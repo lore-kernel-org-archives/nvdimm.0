@@ -1,90 +1,13 @@
-From: "Mail Administrator" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: (unknown)
-Date: Thu, 8 Sep 2016 10:46:00 +0530
-Message-ID: <20160908051654.87ABD1A1F49@ml01.01.org>
+From: =?utf-8?B?NOOAgeaKk+S9j+WFs+mUru+8mumHjeinhuS7gOS5iO+8jOWwseW+l+WIsOS7gOS5iO+8iOeoi+W6j+a4heaZsOOAgeaVsOWtl+aYjuehru+8jOWDj+m6puW9k+WKs+S4gOagt+aVmeWRmOW3pe+8ieWFiOeUnw==?=
+ <zxsz-qxG13maTol0@public.gmane.org>
+Subject: =?utf-8?B?NOOAgeaKk+S9j+WFs+mUru+8mumHjeinhuS7gOS5iO+8jOWwseW+l+WIsOS7gOS5iO+8iOeoi+W6jw==?=
+ =?utf-8?B?5riF5pmw44CB5pWw5a2X5piO56Gu77yM5YOP6bqm5b2T5Yqz5LiA5qC35pWZ5ZGY5bel77yJ?=
+Date: Thu, 8 Jul 2010 04:41:42 +0800
+Message-ID: <DD8CCFEE1FF2E50966F66AFAA7B7EBC1@fmi.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_57D0F450.4D261C68"
-Subject: 
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_57D0F450.4D261C68
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Your message could not be delivered Linux-nvdimm mailing list
-   Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org https://lists.01.org/mailman/listinfo/linux-nvdimm
-   [...] 
-
-Content analysis details:   (7.1 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
- 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
-                            [103.204.166.162 listed in dnsbl.sorbs.net]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 0.1 RCVD_IN_SBL            RBL: Received via a relay in Spamhaus SBL
-                            [103.204.166.162 listed in zen.spamhaus.org]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
--0.0 BAYES_20               BODY: Bayes spam probability is 5 to 20%
-                            [score: 0.1942]
- 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
- 2.6 MSOE_MID_WRONG_CASE    No description available.
- 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
-
-
-
-------------=_57D0F450.4D261C68
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1bhrhl-0005Jp-Lf
-	for gln-linux-nvdimm@m.gmane.org; Thu, 08 Sep 2016 07:16:53 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 87ABD1A1F49;
-	Wed,  7 Sep 2016 22:16:54 -0700 (PDT)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from lists.01.org (unknown [103.204.166.162])
- by ml01.01.org (Postfix) with ESMTP id A03F71A1F49
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Wed,  7 Sep 2016 22:16:50 -0700 (PDT)
-From: "Mail Administrator" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Subject: 
-Date: Thu, 8 Sep 2016 10:46:00 +0530
-MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-X-Content-Filtered-By: Mailman/MimeDel 2.1.21
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -92,18 +15,172 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Message-Id: <20160908051654.87ABD1A1F49-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
 
-Your message could not be delivered
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_57D0F450.4D261C68--
+5Lit5Z2a5Yqb6YePNuWgguivvuKAlOKAlOivvueoi+eugOS7iw0KDQoNCuOAkOaXtumXtOWcsOeC
+ueOAkSAwOeaciDE3LTE45pel5LiK5rW3ICAgMDnmnIgyNC0yNeaXpea3seWcsyAxMOaciDIxLTIy
+5pel5YyX5LqsICAgMTHmnIgxOC0xOeaXpeS4iua1tyAgIDEx5pyIMjYtMjfml6Xmt7HlnLMNCuOA
+kOWPguWKoOWvueixoeOAkSDkvIHkuJrlia/mgLvjgIHlkITpg6jpl6jnu4/nkIbjgIHkuLvnrqHj
+gIHlkITnuqfkuK3lsYLnrqHnkIbkurrlkZjjgIHmlrDmj5Dmi5TnmoTjgIHku47kuJPkuJrkurrm
+iY3ovazlnovliLDnrqHnkIbnmoTjgIHov5vkuIDmraXmg7Pmj5Dpq5jnrqHnkIbnu6nmlYjnmoTj
+gIHmmYvljYfliLDpq5jlsYLnrqHnkIbku6Xlj4rlhbblroPpooTlpIfnrqHnkIbkurrlkZgNCuOA
+kOaOiOivvuaWueW8j+OAkSDorrLluIjorrLmjoggKyDop4bpopHmvJTnu44gKyDmoYjkvovnoJTo
+rqggK+inkuiJsuaJrua8lCArIOiusuW4iOeCueivhA0K44CQ5a2m5Lmg6LS555So44CRIDM2MDDl
+nIYx5Lq677yI5YyF5ous6LWE5paZ6LS544CB5Y2I6aSQ44CB6Iy254K544CB5Y+R56Wo562J77yJ
+DQrjgJDmiYsuLi4u5py644CRIG83NTUtNjIyMm8zNTUgICBsMzU0NG9sMzNsNeminOWwj+WnkA0K
+44CQ6YKuLi4uLueuseOAkSA5NzE3MDA3MzJAcXEuY29tICAg5b6uLuS/oe+8miA5NzE3MDA3MzIN
+Cg0K5YGH5aaC5oqK5LyB5Lia55qE6auY5bGC566h55CG6ICF5q+U5L2c4oCc6ISR6KKL4oCd77yM
+DQrpgqPkuYjkuK3lsYLnrqHnkIbogIXlsLHmmK/igJzohbDigJ3vvIzohbDkuI3lpb3vvIzpoobl
+r7zlsLHlpLTlpKfjgIINCjLlpKnkupLliqjlvI/ln7norq0gICAxNeS4que7j+WFuOahiOS+iw0K
+P+WBh+WmguaKiuWRmOW3pemYn+S8jeavlOWBmueQg+mYn++8jA0KP+S4reWxgueuoeeQhuiAheeb
+uOW9k+S6juS6jOS8oOaJi++8jA0KP+S4gOS4quWlveeahOS6jOS8oOaJi++8jOatu+eQg+WPr+WP
+mOaIkOa0u+eQg++8mw0KP+S6jOS8oOaJi+S4jeWIsOS9je+8jOWlveeQg+S5n+imgeWPmOaIkOiH
+reeQg+OAgg0KDQrkuLrku4DkuYjopoHln7norq025aCC6K++77yfDQoNCuivvueoi+iDjOaZrw0K
+DQogICAg5b2T5LuK5Lit5Zu95LyB5Lia55qE5Lit5bGC5bmy6YOo77yM5b6I5aSa5piv5Y2K6Lev
+5Ye65a6244CC5Y6f5YWI5piv5Lia5Yqh6aqo5bmy44CB5oqA5pyv6IO95omL77yM5ZCO5p2l5pe2
+5Yq/6YCg5YyW6KKr5o6o5Yiw4oCc566h55CG4oCd6L+Z5Liq5L2N572u77yM5LuO5Lia5Yqh5LiA
+5oqK5aW95omL77yM5Yiw5om/5LiK5ZCv5LiL44CB5bim6aKG5LiA5biu5Lq65oqK5LiA5pGK5a2Q
+5LqL5oOF5YGa5aW977yM6L+Z5Liq6KeS6Imy6L2s5o2i5bm25LiN5a655piT44CCDQogICAg5a+5
+6Jab54G/5a6P6ICB5biI77yM5oiR5ZKM5oiR55qE5Lit5bGC5bmy6YOo6YO95LiN6ZmM55Sf77yM
+5ZCs5LuW55qE6K++56iL5aW95Yeg5bm05LqG44CC5LuW5Z+56K6t55qE5pyA5aSn54m554K55bCx
+5piv5Yqh5a6e44CC6Jab54G/5a6P6ICB5biI5LiN5ouY5rOl5LqO5Lit5bGC5bmy6YOo5omA6Z2i
+5Li055qE4oCc5LqL4oCd77yM5pu05aSa6LCI5LqG5Lit5bGC5bmy6YOo5omA6Z2i5Li055qE4oCc
+5Lq64oCd77yM5LiK5Y+45piv5Lq677yM5ZCM5YOa5piv5Lq677yM5LiL5bGe5Lmf5piv5Lq677yM
+5Lit5bGC5bmy6YOo5pW05aSp5bCx5piv6Lef5Lq65omT5Lqk6YGT77yb5YGa5LqL5piv5Z+656GA
+77yM5Li65Lq65piv5qC55pys77yM5YGa5LqL55qE5pys6aKG5YaN5by677yM5L2G5Li65Lq65aSx
+6LSl77yM5piv5Lit5bGC5bmy6YOo5pyA5aSn55qE5aSx6LSl44CCDQogICAg6Jab54G/5a6P6ICB
+5biI55qE6K++56iL77yM6K6y6L+w5LqG5LiA5Lqb6IGM5Zy65r2c6KeE5YiZ44CC5r2c6KeE5YiZ
+5LiN5piv5YWs5Y+45Yi25bqm6YeM5omA6IO95om+5Yiw55qE77yM5Lmf57ud6Z2e5aSn5a2m6K++
+5aCC6YeM6K6y5o6I55qE77yM5pG45riF5r2c6KeE5YiZ77yM5bm25oyJ5r2c6KeE5YiZ5YGa5LqL
+44CB5Li65Lq677yM5omN5pyJ5Y+v6IO96K6p5LiK5Y+46LWP6K+G5L2g77yM5ZCM5YOa6YWN5ZCI
+5L2g77yM5LiL5bGe5bCK6YeN5L2g77yM5L2g55qE6IGM5Zy655Sf5rav5omN6IO96aG65Yip5Y+R
+5bGV77yM5ZCm5YiZ77yM5Y2z5L2/5bmy5Yqy5Yay5aSp77yM5Lmf5pyJ5Y+v6IO96YeM5aSW5LiN
+6K6o5aW944CB5Zub6Z2i5qWa5q2M44CCDQogICAg5oiR5Lus6ZyA6KaB5oCO5qC355qE5Lit5bGC
+5bmy6YOo77yf6L+Z5Liq6K++56iL57uZ5Ye65LqG562U5qGI44CCDQogICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIOKAlOKAlOi/nOS4nOmbhuWbouiRo+S6i+mVvyDokovplKHln7kg5Li644CK
+5Lit5bGC57uP55CG5oCO5qC35b2T44CL5bqPDQrkuK3lnZrlipvph4825aCC6K++4oCU4oCU6K++
+56iL5aSn57qyDQoNCuesrOS4gOWgguivviAg5piO56Gu6Ieq5bex5Zyo5LyB5Lia55qE5a6a5L2N
+DQox44CB5LyB5Lia55qE5rGJ5aCh57uT5p6E77yI6auY5bGC6KaB5pyJ5Yaz562W5Yqb77yM5Z+6
+5bGC6KaB5pyJ6KGM5Yqo5Yqb77yM5Lit5bGC6ZyA6KaB5omn6KGM5Yqb77yJDQoy44CB5Li65LuA
+5LmI5Lya5pyJ5Lit5bGC77yI5LuA5LmI5Y+r5omn6KGM5Yqb77yf5LiJ5Liq5a2X77ya5YGa5Yiw
+5L2N77yJDQoz44CB5Lit5bGC55qE5LiJ5aSn6Zq+5YWz77yI5LiK5Y+46K6k5Y+v44CB5ZCM5YOa
+5pSv5oyB44CB5LiL5bGe5o6o5bSH77yJDQo044CB5Lit5bGC55qE5Lik5aSn572q6L+H77yI576k
+5LyX6aKG6KKW44CB5bCP5Zu95LmL5ZCb77yJDQo144CB5Lit5bGC55qE5LiA5aSn6L2v6IKL77ya
+5o6o5Y246LSj5Lu777yI5ZGY5bel5Y+v5Lul6Lez5qe977yM6ICB5p2/5Y+q6IO96Lez5qW877yJ
+DQo244CB5Lit5bGC5LiN5ZCM6Zi25q6155qE5a6a5L2N77yI5YGa57uP55CG44CB5Z2Q57uP55CG
+44CB5L2c57uP55CG77yJDQrmoYjkvovorqjorrrvvJoNCuKRtOmihuWvvOi0o+mqgu+8jOS4i+Wx
+nuWYsuiuve+8jOS4reWxguKAnOWkueadv+awlOKAneaYr+aAjuS5iOmAoOaIkOeahO+8nw0K4pG1
+5oiR6L+Z5Liq5Lq65Yqb6LWE5rqQ6YOo57uP55CG77yM5oCO5LmI5bCx5ZCD5Yqb5LiN6K6o5aW9
+77yfDQoNCuesrOS6jOWgguivviAg5aaC5L2V5b6X5Yiw6aKG5a+86K6k5Y+vIA0KMeOAgemihuWv
+vOmDveaYr+WvueeahO+8muWdmuWGs+aJp+ihjO+8iOS4jumihuWvvOeahOaEj+ingeS4jeS4gOiH
+tOaXtu+8jOesrOS4gOacjeS7ju+8jOesrOS6jOayn+mAmu+8iQ0KMuOAgeS4jeiuruiuuumihuWv
+vOaYr+mdnu+8muaJv+S4iuWQr+S4i++8iOiAjOS4jeS7heS7heS4iuS8oOS4i+i+vu+8jOabtOS4
+jeiDveasuuS4iueekuS4i++8iQ0KM+OAgee7tOaKpOmihuWvvOWogeS/oe+8muiHquaIkemAgOWQ
+ju+8iOmVv+eUqOiAheWkmuaJueivhO+8jOefreeUqOiAheWkmuihqOaJrO+8iQ0KNOOAgeeUqOaV
+sOWtl+ivtOivne+8mue7k+aenOiHs+S4iu+8iOaxh+aKpeW3peS9nOiwiOe7k+aenO+8jOivt+ek
+uuW3peS9nOivtOaWueahiO+8iQ0KNeOAgeivt+mihuWvvOWBmumAieaLqemimO+8muWLpOS6juaA
+neiAg++8iOmXruetlOmimOawuOi/nOeVmee7meiHquW3se+8iQ0KNuOAgeiuqemihuWvvOWBmuWl
+veS6uu+8muWLh+S6juaLheW9k++8iOayoeacieWdj+S6uuWwseayoeacieWlveS6uu+8jOayoeac
+ieWdj+S6uuWwseayoeacieaJp+ihjOWKm++8iQ0K5qGI5L6L6K6o6K6677yaDQrikbblpITlpITl
+sI/lv4PvvIzov5jmmK/lsaHlsaHlj5fmjKvvvIzmiJHkuIDkuKrnqbrpmY3mlrDnu4/nkIblpoLk
+vZXmmK/lpb3vvJ8NCuKRt+WRmOW3pee9ouW3pe+8jOiAgeadv+WPkeaAku+8jOaIkeS4gOS4quS4
+reWxguW5sumDqOaAjuS5iOWKnu+8nw0KDQrnrKzkuInloILor74gIOWmguS9lei/m+ihjOi3qOmD
+qOmXqOWNj+S9nCANCjHjgIHmg5znvJjvvJrlm6DkuLrnnIvms5XkuI3lkIzvvIzmiYDku6Xlv4Xm
+nInlhrLnqoHvvIjmsqHmnInlhrLnqoHlsLHmsqHmnInmlLnlloTvvIkNCjLjgIHlsIrph43vvJrp
+naLlrZDnrKzkuIDvvIzpgZPnkIbnrKzkuozvvIjpnaLlrZDlhrPlrprlpb3mhJ/vvIzlpb3mhJ/l
+hrPlrprmiJDotKXvvIkNCjPjgIHlhoXmlZvvvJrpq5josIPlgZrkuovvvIzkvY7osIPlgZrkurrv
+vIjlrZnmgp/nqbrmmK/kuI3mmK/lpb3nu4/nkIbvvJ/vvIkNCjTjgIHlhYvlt7HvvJrorqnkuo7l
+kI3liKnvvIzml6DmrLLliJnliJrvvIjli6TlpYvlgZrkuovvvIznroDljZXlgZrkurrvvIkNCjXj
+gIHliqnkurrvvJrkuojkurrnjqvnkbDvvIzmiYvmnInkvZnpppnvvIjlpqXljY/jgIHlv43orqnj
+gIHpmpDol4/vvIzmmK/kvJjnp4DogYzkuJrnu4/nkIbkurrlv4XkuI3lj6/lsJHnmoTntKDlhbvv
+vIkNCuahiOS+i+iuqOiuuu+8mg0K4pG45Y2P5L2c5LiN5Yqb77yM5aaC5L2V5bqU5a+55YWs5Y+4
+5YaF6YOo55qE5rS+57O75LmL5LqJ77yfDQrikbnmnInogYzml6DmnYPvvIzliKvnmoTpg6jpl6jk
+uI3kubDmiJHnmoTluJDvvIzmgI7kuYjlip7vvJ8NCuOAgOOAgOOAgOOAgOOAgOOAgOOAgOOAgA0K
+56ys5Zub5aCC6K++ICDlpoLkvZXosIPliqjkuIvlsZ7lt6XkvZzng63mg4UgIA0KMeOAgemHkemS
+sea/gOWKse+8muW+iOmHjeimgeS9huS4jeWUr+S4gO+8iOS4jeiwiOiWquawtO+8jOaYr+aEmuaw
+keaUv+etlu+8m+WFieiwiOiWquawtO+8jOaYr+Wus+awkeaUv+etlu+8iQ0KMuOAgeaZk+S5i+S7
+peWIqe+8muW8hOa4healmuS4uuiwgeiAjOW3peS9nO+8iOS4juWFtuaKseaAqOiWquawtOWwke+8
+jOS4jeWmguajgOiuqOWyl+S9jeS7t+WAvOS9ju+8iQ0KM+OAgeW8leiAjOS4jeWPke+8muiuqeS7
+luS6uuivtOWHuuS9oOeahOaDs+azle+8iOaKiuiHquW3seeahOaEj+ingeWPmOaIkOS7luS6uuea
+hOaEj+inge+8jOaKiuS7luS6uueahOaEj+ingeWPmOaIkOWkp+WutueahOaEj+inge+8iQ0KNOOA
+geWkmuWktOW5tuS4vu+8muS7juS4jeiKsemSseeahOihqOaJrOW8gOWni++8iOS6uuS6uumcgOim
+geWFtOWli++8jOihqOaJrOWwseaYr+WFtOWli+WJgu+8iQ0KNeOAgemYsuW+ruadnOa4kO+8muS4
+gOWIh+S7juW3peS9nOenr+aegeaAp+WHuuWPke+8iOS8mOengOeahOeuoeeQhuiAhe+8jOW6lOiv
+peaYr+a/gOWKsemrmOaJi++8iQ0K5qGI5L6L6K6o6K6677yaDQrikbrlkZjlt6Xmk4Xoh6rot5/l
+rqLmiLflkIPppa3vvIzov5nnrJTpkrHor6XkuI3or6XmiqXplIDvvJ8NCuKRu+m7hOmHkeWto+iK
+guadpeS6hu+8jOWRmOW3pemXueaDhee7qu+8jOaIkeivpeaAjuS5iOWKnu+8nw0K4pG85pyI5bel
+6LWEODAw55qE5aSn5a2m55Sf5pKe5aGM5bel5qOa5L2/5YWs5Y+45o2f5aSxM+S4h++8jOWmguS9
+leWkhOeQhu+8nw0KDQrnrKzkupTloILor74gICDlpoLkvZXnrqHlpb3pg6jpl6jnu6nmlYggICAN
+CjHjgIHop5LoibLovazmjaLvvJrlgZrmlZnnu4PogIzkuI3lgZrorablr5/vvIjlpb3nmoTnrqHn
+kIbogIXlsLHmmK/lpb3mlZnnu4PvvIkNCjLjgIHngYzovpPmlbDlrZfvvJrkv67igJzot6/igJ3o
+gIzkuI3mmK/kv67igJzkurrigJ3vvIgg5LiO5YW26LSj5oCq5LiL5bGe5aSq56yo77yM5LiN5aaC
+5Y+N5oCd5Li65ZWl5pWZ5LiN5aW977yJDQoz44CB6IGa54Sm57up5pWI77ya5aSa6LCI6KGM5Li6
+77yM5bCR5LiL57uT6K6677yI5bCx5LqL6K665LqL77yM5LiN5aaE5Yqg57uT6K6677yM5piv5pS5
+5ZaE5ZGY5bel6KGM5Li655qE5rOV5YiZ77yJDQo044CB5oqT5L2P5YWz6ZSu77ya6YeN6KeG5LuA
+5LmI77yM5bCx5b6X5Yiw5LuA5LmI77yI56iL5bqP5riF5pmw44CB5pWw5a2X5piO56Gu77yM5YOP
+6bqm5b2T5Yqz5LiA5qC35pWZ5ZGY5bel77yJDQo144CB55uu5qCH566h55CG77ya5o6n5Yi26L+H
+56iL5omN6IO95o6n5Yi257uT5p6c77yI55uu5qCH57up5pWI566h55CG5piv54Wn5aaW6ZWc77yM
+5piv5o6i54Wn54Gv77yJDQo244CB6L+r5L2/6L+b5YyW77ya6L+95rGC5b+r5LmQ77yM6YCD6YG/
+55eb6Ium77yI5LiL5bGe55qE57Sg6LSo5beu77yM5LiN5piv5L2g55qE6ZSZ77yb5LiN6IO95o+Q
+5Y2H5LiL5bGe55qE57Sg6LSo77yM5piv5L2g55qE5aSn6ZSZ77yJDQrmoYjkvovorqjorrrvvJoN
+CuKRveS4tOmYteaNouWwhu+8jOeDguaRiuWtkOaAjuS5iOW/q+mAn+WHuue7qeaViO+8nw0K4pG+
+5ZGY5bel56eB5o2e5aW95aSE77yM5ryP5rSe5oCO5LmI5aC177yfDQrikb/ogIPmoLjvvIzogIPl
+h7rlkZjlt6Xpm4bkvZPlm7TmlLvogIPmoLjkuLvnrqEg6K+l5oCO5LmI5Yqe77yfDQoNCuesrOWF
+reWgguivviAg5aaC5L2V5bim5Ye65LyY56eA5Zui6ZifICAgDQox44CB5Zui6Zif5Li6546L77ya
+5YGa6Iux6ZuE6L+Y5piv5YGa6aKG6KKW77yf77yI566h55CG77yM5bCx5piv6L+Q55So5LuW5Lq6
+55qE5Yqq5Yqb5a6e546w55uu5qCH77yJDQoy44CB6K6y5riF6KeE5YiZ77ya5ri45oiP5Lmf5b6X
+5YWI6K+0546p5rOV77yI5ri45oiP6KeE5YiZ77yM5piv5Li65LqG6Kej5Yaz5YWs5bmz6Zeu6aKY
+44CB5pWI546H6Zeu6aKY77yJDQoz44CB5ZCM6Iif5YWx5rWO77ya5LiA6LW36JCl6YCg5a6J5YWo
+5oSf44CB5b2S5bGe5oSf77yI5ZGY5bel5b+D5oCB5Ye6546w6Zeu6aKY77yM5piv566h55CG6ICF
+55qE6LSj5Lu777yJDQo044CB5Y+M566h6b2Q5LiL77ya5LiA5omL5oqT5Yi25bqm77yM5LiA5omL
+5oqT5paH5YyW77yI5LiH6L6+5piv5Yab6Zif77yM5LiH6L6+5piv5a2m5qCh77yM5LiH6L6+5piv
+5a625bqt77yb5LiH6L6+55qE5LyB5Lia5paH5YyW77yM5oqK5oiR5Lus5oOz6K+055qE6YO96K+0
+5LqG77yJDQo144CB5Z+65Lia6ZW/6Z2S77ya5aW95ZGY5bel5piv5Z+56K6t5Ye65p2l55qE77yI
+5Z+56K6t5piv56ys5LqM55Sf5Lqn5Yqb77yJDQrmoYjkvovorqjorrrvvJoNCuKSgOaAjuagt+md
+ouWvueKAnOiAgeayueadoeS4i+WxnuKAne+8nw0K4pKB5oCO5LmI5bqU5a+54oCc5Y+I6Iet5Y+I
+56Gs4oCd55qE5LiL5bGe77yfDQrikoLooajnjrDoia/lpb3nmoTlkZjlt6XouqvkuIoi5pyJ5ZGz
+6YGTIu+8jOaAjuS5iOWkhOeQhj8NCg0K5Lit5Z2a5Yqb6YePNuWgguivvuKAlOKAlOiusuW4iOS7
+i+e7jQ0KDQrolpvngb/lro8g6ICB5biIDQoNCua4heWNjuWkp+WtpuaAu+ijgeePreeJueiBmOiu
+suW4iA0K5pu+5Lu757qi6LGG6ZuG5Zui566h55CG6aG+6ZeuDQrmm77ku7vmsZ/oi4/np5HooYzp
+m4blm6LnrqHnkIbpob7pl64NCg0KDQoNCg0K5Z+56K6t5LyB5LiaDQoNCiAgICDkuIfovr7pm4bl
+m6LjgIHkuInkuIDpm4blm6LjgIHpq5jpnLLmtIHjgIHkuK3lu7rkupTlsYDjgIHljY7ljJfmsrnn
+lLDjgIHnuqLosYbpm4blm6LjgIHmtbfkv6Hpm4blm6LjgIHov5zkuJzpm4blm6LjgIHljqbpl6jo
+saHlsb/pm4blm6LjgIHmiazlrZDmsZ/oja/kuJrjgIHljY7mtqbpm4blm6LjgIHmiqXllpzpuJ/j
+gIHms7DlsJTojILvvIjml6XotYTvvInjgIHlsbHopb/nu4/nuqznurrmnLrjgIHkuInlvpfliKnl
+laTphZLjgIHpnZLlspvogZTpgJrjgIHotLXlt57lt6XllYbpk7booYzjgIHmtZnmsZ/mqKrlupfp
+m4blm6LjgIHmt67pmLTljbfng5/ljoLjgIHmiJDpg73mmI7nj6Dpm4blm6LjgIHoipzmuZbpgq7m
+lL/lsYDjgIHljZfmlrnnlLXnvZHjgIHplb/ln47mtqbmu5HmsrnjgIHkuInmmJ/nlLXlrZDjgIHl
+sbHkuJzmnY/mnpflrabpmaLjgIHmoYLmnpfkvpvnlLXlsYDjgIHluLjlt57kuK3lm73pk7booYzj
+gIHlpKnlo6vlipvoja/kuJrjgIHml6DplKHkuqTpgJrlrp7kuJrmgLvlhazlj7jjgIHkuK3nlLXp
+m4blm6LjgIHlronlvr3kuqTpgJrpm4blm6LjgIHlub/lt57kupHmmJ/miL/lnLDkuqfjgIHmsZ/o
+i4/lhYnoipLpm4blm6LjgIHkuK3lm73nlLXlipvnp5HlrabnoJTnqbbpmaLigKbigKYg562J44CC
+DQoNCuiusuW4iOiRl+S9nA0KDQrokZfmnInjgIrkuK3lsYLnu4/nkIbmgI7moLflvZPjgIvvvIjn
+u4/mtY7ml6XmiqXlh7rniYjnpL7vvInjgIHjgIrkuK3lsYLlj5jpnanjgIvvvIjljJfkuqzlpKfl
+rablh7rniYjnpL7vvIzlhYnnm5jvvInjgIHjgIrmiafmjozlm6LpmJ/jgIvvvIjnu4/mtY7ml6Xm
+iqXlh7rniYjnpL7vvIkNCg0K5a2m5ZGY6K+E5Lu3DQoNCuKWoCDku47lrp7ot7XkuK3mnaXvvIzl
+iLDlrp7ot7XkuK3ljrvvvIzkuIDliIfku47lrp7pmYXlh7rlj5HvvIzlvojlrp7nlKjvvIzov5nm
+mK/olpvngb/lro/ogIHluIjnmoTpspzmmI7nibnngrnjgIINCiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICDigJTigJQg5rGf6IuP5YWJ6IqS6ZuG5Zui6JGj5LqL6ZW/6IyD
+5pyd5rSqDQrilqAg5pyJ55CG6K6655qE6auY5bqm77yM5pyJ5a6e5oiY55qE5rex5bqm77yM6KiA
+5LmL5pyJ5o2u77yM6K+Z6LCQ5bm96buY77yM5byV5Lq65YWl6IOc77yM5omA5Lul5oiR5Lus5Lik
+5Liq5pyI6YeM6K+36Jab6ICB5biI6K6y5LqG5LiJ5qyh44CCICAgICAgICAgICAgICAgICAgICAg
+ICAg4oCU4oCUIOWxseilv+e7j+e6rOe6uuacuuWFmuWnlOS5puiusOW6k+WGoOe+pA0K4pagIOWP
+pOS7iuS4reWklu+8jOS/oeaJi+aLiOadpe+8jOmynOa0u+eahOahiOS+i++8jOeUn+WKqOeahOaV
+heS6i++8jOW+iOi/h+eYvuOAgg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIOKAlOKAlCDkuK3lu7rkupTlsYDlnJ/mnKjlt6XnqIvlhazlj7jmgLvnu4/nkIblp5rlrZDo
+vokNCuKWoCDlvZPmiJHku6zmiZPnrpfnu5nkuK3lsYLlubLpg6jlgZrln7norq3ml7bvvIzlr7nl
+m73lhoXnmoTln7norq3luIjov5vooYzkuobnrZvpgInvvIzlubbmib7mnaXmnIDlkI7nnIvlpb3n
+moTlh6DkvY3ln7norq3luIjnmoTpn7Plg4/otYTmlpnvvIzmr5TovoPku6XlkI7pgInmi6nkuobo
+lpvogIHluIjjgILkuovlrp7or4HmmI7vvIzmiJHku6znmoTnnLzlhYnmmK/lr7nnmoTjgIINCiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICDigJTigJQg5Y6m6Zeo6LGh5bG/
+6ZuG5Zui5Lq65Yqb6LWE5rqQ6YOo57uP55CG6YKT6bi/6ZuBDQoNCuacrOivvueoi+WOhuaXtjbl
+ubTvvIzkuI3mlq3lrozlloTvvIwNCuWfueiureS8geS4mumAvjEwMDDlrrbvvIzmlbDkuIfnrqHn
+kIbogIXlj5flhbblkK/ov6rjgIINCg0K44CQ5omLLi4uLuacuuOAkSBvNzU1LTYyMjJvMzU1ICAg
+bDM1NDRvbDMzbDXpopzlsI/lp5ANCuOAkOmCri4uLi7nrrHjgJEgOTcxNzAwNzMyQHFxLmNvbSAg
+IOW+ri7kv6HvvJogOTcxNzAwNzMyDQoNCumAgOiuouivt+i9rOWPkemCruS7tuiHszk3MTcwMDcz
+MkBxcS5jb20gDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0
+cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
