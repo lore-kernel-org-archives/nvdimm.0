@@ -1,9 +1,9 @@
-From: =?utf-8?B?5Zui6Zif6YWN5ZCI55qE5YmN5o+Q5piv5LuA5LmI77yf5piv5ZCm5Lu75oSP5Lik5Liq5Lq65Zyo5LiA6LW36YO95Lya5pyJ5Zui6Zif57K+56We77yf5YWI55Sf?=
- <wyctfrrxn-PESxBXCSi2jQT0dZR+AlfA@public.gmane.org>
-Subject: =?utf-8?B?5Zui6Zif6YWN5ZCI55qE5YmN5o+Q5piv5LuA5LmI77yf5piv5ZCm5Lu75oSP5Lik5Liq5Lq65Zyo5LiA?=
- =?utf-8?B?6LW36YO95Lya5pyJ5Zui6Zif57K+56We77yf?=
-Date: Tue, 20 Sep 2016 00:29:47 +0800
-Message-ID: <9F91E4B180B99022B9322DA7E700822D@hbgkkt.com>
+From: =?utf-8?B?MuOAgeW9k+WuouaIt+ivtOi/h+S4gOauteaXtumXtOOAgeS7peWQjuOAgeaUueWkqeOAgeWbnuWktOOAgeaciOW6leaXtu+8jOWmguS9leW6lOWvue+8n+WFiOeUnw==?=
+ <nypj-7eVaaigSCntWk0Htik3J/w@public.gmane.org>
+Subject: =?utf-8?B?MuOAgeW9k+WuouaIt+ivtOi/h+S4gOauteaXtumXtOOAgeS7peWQjuOAgeaUueWkqeOAgeWbnuWktA==?=
+ =?utf-8?B?44CB5pyI5bqV5pe277yM5aaC5L2V5bqU5a+577yf?=
+Date: Thu, 8 Jul 2010 17:11:24 +0800
+Message-ID: <5B557742F25AC170187F23D9EF2B0484@rutbnczt.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
