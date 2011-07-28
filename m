@@ -1,11 +1,11 @@
-From: "Mr.AbdulHamid Mohammed Saeed" <mohammedamohammed01-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: PARTNERSHIP/BUSINESS ASSOCIATE
-Date: Sat, 21 Apr 2018 09:15:17 -0700
-Message-ID: <20180422091533.205B32263DD8F@ml01.01.org>
-Reply-To: "Mr.AbdulHamid Mohammed Saeed" <mohammedamohammed01-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: =?utf-8?B?5rGq5Li75Lu7?= <wwskx-rZrH0017nKM@public.gmane.org>
+Subject: =?utf-8?B?OTY0NjE3Mzg377ya5L6b5bqU6ZO+5Y+K6YeH6LSt566h55CG5Lq65ZGY?=
+ =?utf-8?B?5b+F5aSH55qE6LSi56iO55+l6K+G?=
+Date: Thu, 28 Jul 2011 13:02:58 +0800
+Message-ID: <33D80E0DA3CF7392161FD357B255E396@hbi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,17 +19,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Good day,
-
-I apologize for using this medium to contact you, it is due to the urgency of my situation.
-
-My wish is to become in partnership/business associate with someone in order to start up real estate 
-or any profitable business in your country. I have information about (FUNDS) that can assist me for reaching 
-my dreams but I can't do it myself alone, I need a foreigner like you who will handle it perfectly.
-
-If you're interested to do the business with me, then I will give you the details, but if this proposition offends your 
-moral ethics, do accept my sincere Apology.
-
- 
-Mr.AbdulHamid Mohammed Saeed.
-FAB ABU DHABI UAE
+5Lqy77yabGludXgtbnZkaW1tDQpxaW5nICBuaW4gIGNoYXl1ZSAgZnVqaWFuCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
+IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
