@@ -1,253 +1,193 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Message-ID: <540F2008.9050809@plexistor.com>
-Date: Tue, 09 Sep 2014 18:43:04 +0300
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Message-ID: <540F2077.5000809@plexistor.com>
+Date: Tue, 09 Sep 2014 18:44:55 +0300
 From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Subject: [PATCH 3/9] SQUASHME: pmem: Let each device manage private memory
- region
+Subject: [PATCH 4/9] SQUASHME: pmem: Support of multiple memory regions
 References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com> <540F1EC6.4000504@plexistor.com>
 In-Reply-To: <540F1EC6.4000504@plexistor.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
 From: Boaz Harrosh <boaz@plexistor.com>
 
-This patch removes any global memory information. And lets
-each pmem-device manage it's own memory region.
+After the last patch this is easy.
 
-pmem_alloc() Now receives phys_addr and disk_size and will
-map that region, also pmem_free will do the unmaping.
+The API to pmem module is changed. We now have a single string
+parameter named "map" of the form:
+		 map=mapS[,mapS...]
 
-This is so we can support multiple discontinuous memory regions
-in the next patch
+		 where mapS=nn[KMG]$ss[KMG],
+		 or    mapS=nn[KMG]@ss[KMG],
+
+		 nn=size, ss=offset
+
+Just like the Kernel command line map && memmap parameters,
+so anything you did at grub just copy/paste to here.
+
+The "@" form is exactly the same as the "$" form only that
+at bash prompt we need to escape the "$" with \$ so also
+support the '@' char for convenience.
+
+For each specified mapS there will be a device created.
+
+So needless to say that all the previous prd_XXX params are
+removed as well as the Kconfig defaults.
 
 Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
 ---
- drivers/block/pmem.c | 122 +++++++++++++++++++++++++++++++--------------------
- 1 file changed, 75 insertions(+), 47 deletions(-)
+ drivers/block/Kconfig | 28 -----------------------
+ drivers/block/pmem.c  | 62 ++++++++++++++++++++++++++++++++++++---------------
+ 2 files changed, 44 insertions(+), 46 deletions(-)
 
+diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
+index 2d50125..5da8cbf 100644
+--- a/drivers/block/Kconfig
++++ b/drivers/block/Kconfig
+@@ -416,34 +416,6 @@ config BLK_DEV_PMEM
+ 	  Most normal users won't need this functionality, and can thus say N
+ 	  here.
+ 
+-config BLK_DEV_PMEM_START
+-	int "Offset in GiB of where to start claiming space"
+-	default "0"
+-	depends on BLK_DEV_PMEM
+-	help
+-	  Starting offset in GiB that PMEM should use when claiming memory.  This
+-	  memory needs to be reserved from the OS at boot time using the
+-	  "memmap" kernel parameter.
+-
+-	  If you provide PMEM with volatile memory it will act as a volatile
+-	  RAM disk and your data will not be persistent.
+-
+-config BLK_DEV_PMEM_COUNT
+-	int "Default number of PMEM disks"
+-	default "4"
+-	depends on BLK_DEV_PMEM
+-	help
+-	  Number of equal sized block devices that PMEM should create.
+-
+-config BLK_DEV_PMEM_SIZE
+-	int "Size in GiB of space to claim"
+-	depends on BLK_DEV_PMEM
+-	default "0"
+-	help
+-	  Amount of memory in GiB that PMEM should use when creating block
+-	  devices.  This memory needs to be reserved from the OS at
+-	  boot time using the "memmap" kernel parameter.
+-
+ config CDROM_PKTCDVD
+ 	tristate "Packet writing on CD/DVD media"
+ 	depends on !UML
 diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index 499536c..d5c5c52 100644
+index d5c5c52..e07a373 100644
 --- a/drivers/block/pmem.c
 +++ b/drivers/block/pmem.c
-@@ -27,19 +27,12 @@
- #define PAGE_SECTORS_SHIFT	(PAGE_SHIFT - SECTOR_SHIFT)
- #define PAGE_SECTORS		(1 << PAGE_SECTORS_SHIFT)
+@@ -212,17 +212,11 @@ static const struct block_device_operations pmem_fops = {
+ };
  
--/*
-- * driver-wide physical address and total_size - one single, contiguous memory
-- * region that we divide up in to same-sized devices
-- */
--phys_addr_t	phys_addr;
--void		*virt_addr;
--size_t		total_size;
+ /* Kernel module stuff */
+-static int pmem_start_gb = CONFIG_BLK_DEV_PMEM_START;
+-module_param(pmem_start_gb, int, S_IRUGO);
+-MODULE_PARM_DESC(pmem_start_gb, "Offset in GB of where to start claiming space");
 -
- struct pmem_device {
- 	struct request_queue	*pmem_queue;
- 	struct gendisk		*pmem_disk;
- 	struct list_head	pmem_list;
+-static int pmem_size_gb = CONFIG_BLK_DEV_PMEM_SIZE;
+-module_param(pmem_size_gb,  int, S_IRUGO);
+-MODULE_PARM_DESC(pmem_size_gb,  "Total size in GB of space to claim for all disks");
+-
+-static int pmem_count = CONFIG_BLK_DEV_PMEM_COUNT;
+-module_param(pmem_count, int, S_IRUGO);
+-MODULE_PARM_DESC(pmem_count, "Number of pmem devices to evenly split allocated space");
++static char *map;
++module_param(map, charp, S_IRUGO);
++MODULE_PARM_DESC(map,
++	"pmem device mapping: map=mapS[,mapS...] where:\n"
++	"mapS=nn[KMG]$ss[KMG] or mapS=nn[KMG]@ss[KMG], nn=size, ss=offset.");
  
-+	/* One contiguous memory region per device */
- 	phys_addr_t		phys_addr;
- 	void			*virt_addr;
- 	size_t			size;
-@@ -234,26 +227,70 @@ MODULE_PARM_DESC(pmem_count, "Number of pmem devices to evenly split allocated s
  static LIST_HEAD(pmem_devices);
  static int pmem_major;
- 
--/* FIXME: move phys_addr, virt_addr, size calls up to caller */
--static struct pmem_device *pmem_alloc(int i)
-+/* pmem->phys_addr and pmem->size need to be set.
-+ * Will then set virt_addr if successful.
-+ */
-+int pmem_mapmem(struct pmem_device *pmem)
-+{
-+	struct resource *res_mem;
-+	int err;
-+
-+	res_mem = request_mem_region_exclusive(pmem->phys_addr, pmem->size,
-+					       "pmem");
-+	if (!res_mem) {
-+		pr_warn("pmem: request_mem_region_exclusive phys=0x%llx size=0x%zx failed\n",
-+			   pmem->phys_addr, pmem->size);
-+		return -EINVAL;
-+	}
-+
-+	pmem->virt_addr = ioremap_cache(pmem->phys_addr, pmem->size);
-+	if (unlikely(!pmem->virt_addr)) {
-+		err = -ENXIO;
-+		goto out_release;
-+	}
-+	return 0;
-+
-+out_release:
-+	release_mem_region(pmem->phys_addr, pmem->size);
-+	return err;
-+}
-+
-+void pmem_unmapmem(struct pmem_device *pmem)
-+{
-+	if (unlikely(!pmem->virt_addr))
-+		return;
-+
-+	iounmap(pmem->virt_addr);
-+	release_mem_region(pmem->phys_addr, pmem->size);
-+	pmem->virt_addr = NULL;
-+}
-+
-+static struct pmem_device *pmem_alloc(phys_addr_t phys_addr, size_t disk_size,
-+				      int i)
- {
- 	struct pmem_device *pmem;
+@@ -272,6 +266,13 @@ static struct pmem_device *pmem_alloc(phys_addr_t phys_addr, size_t disk_size,
  	struct gendisk *disk;
--	size_t disk_size = total_size / pmem_count;
--	size_t disk_sectors = disk_size / 512;
-+	int err;
+ 	int err;
  
++	if (unlikely((phys_addr & ~PAGE_MASK) || (disk_size & ~PAGE_MASK))) {
++		pr_err("phys_addr=0x%llx disk_size=0x%zx must be 4k aligned\n",
++		       phys_addr, disk_size);
++		err = -EINVAL;
++		goto out;
++	}
++
  	pmem = kzalloc(sizeof(*pmem), GFP_KERNEL);
--	if (!pmem)
-+	if (unlikely(!pmem)) {
-+		err = -ENOMEM;
- 		goto out;
-+	}
- 
--	pmem->phys_addr = phys_addr + i * disk_size;
--	pmem->virt_addr = virt_addr + i * disk_size;
-+	pmem->phys_addr = phys_addr;
- 	pmem->size = disk_size;
- 
--	pmem->pmem_queue = blk_alloc_queue(GFP_KERNEL);
--	if (!pmem->pmem_queue)
-+	err = pmem_mapmem(pmem);
-+	if (unlikely(err))
- 		goto out_free_dev;
- 
-+	pmem->pmem_queue = blk_alloc_queue(GFP_KERNEL);
-+	if (unlikely(!pmem->pmem_queue)) {
-+		err = -ENOMEM;
-+		goto out_unmap;
-+	}
-+
- 	blk_queue_make_request(pmem->pmem_queue, pmem_make_request);
- 	blk_queue_max_hw_sectors(pmem->pmem_queue, 1024);
- 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
-@@ -264,9 +301,12 @@ static struct pmem_device *pmem_alloc(int i)
- 	blk_queue_physical_block_size(pmem->pmem_queue, PAGE_SIZE);
- 	pmem->pmem_queue->limits.io_min = 512; /* Don't use the accessor */
- 
--	disk = pmem->pmem_disk = alloc_disk(0);
--	if (!disk)
-+	disk = alloc_disk(0);
-+	if (unlikely(!disk)) {
-+		err = -ENOMEM;
- 		goto out_free_queue;
-+	}
-+
- 	disk->major		= pmem_major;
- 	disk->first_minor	= 0;
- 	disk->fops		= &pmem_fops;
-@@ -274,22 +314,26 @@ static struct pmem_device *pmem_alloc(int i)
- 	disk->queue		= pmem->pmem_queue;
- 	disk->flags		= GENHD_FL_EXT_DEVT;
- 	sprintf(disk->disk_name, "pmem%d", i);
--	set_capacity(disk, disk_sectors);
-+	set_capacity(disk, disk_size >> SECTOR_SHIFT);
-+	pmem->pmem_disk = disk;
- 
- 	return pmem;
- 
- out_free_queue:
- 	blk_cleanup_queue(pmem->pmem_queue);
-+out_unmap:
-+	pmem_unmapmem(pmem);
- out_free_dev:
- 	kfree(pmem);
- out:
--	return NULL;
-+	return ERR_PTR(err);
+ 	if (unlikely(!pmem)) {
+ 		err = -ENOMEM;
+@@ -344,16 +345,32 @@ static void pmem_del_one(struct pmem_device *pmem)
+ 	pmem_free(pmem);
  }
  
- static void pmem_free(struct pmem_device *pmem)
- {
- 	put_disk(pmem->pmem_disk);
- 	blk_cleanup_queue(pmem->pmem_queue);
-+	pmem_unmapmem(pmem);
- 	kfree(pmem);
- }
- 
-@@ -303,36 +347,28 @@ static void pmem_del_one(struct pmem_device *pmem)
++static int pmem_parse_map_one(char *map, phys_addr_t *start, size_t *size)
++{
++	char *p = map;
++
++	*size = (size_t)memparse(p, &p);
++	if ((p == map) || ((*p != '$') && (*p != '@')))
++		return -EINVAL;
++
++	if (!*(++p))
++		return -EINVAL;
++
++	*start = (phys_addr_t)memparse(p, &p);
++
++	return *p == '\0' ? 0 : -EINVAL;
++}
++
  static int __init pmem_init(void)
  {
  	int result, i;
--	struct resource *res_mem;
  	struct pmem_device *pmem, *next;
-+	phys_addr_t phys_addr;
-+	size_t total_size, disk_size;
+-	phys_addr_t phys_addr;
+-	size_t total_size, disk_size;
++	char *p, *pmem_map = map;
  
- 	phys_addr  = (phys_addr_t) pmem_start_gb * 1024 * 1024 * 1024;
- 	total_size = (size_t)	   pmem_size_gb  * 1024 * 1024 * 1024;
--
--	res_mem = request_mem_region_exclusive(phys_addr, total_size, "pmem");
--	if (!res_mem)
--		return -ENOMEM;
--
--	virt_addr = ioremap_cache(phys_addr, total_size);
--	if (!virt_addr) {
--		result = -ENOMEM;
--		goto out_release;
--	}
-+	disk_size = total_size / pmem_count;
+-	phys_addr  = (phys_addr_t) pmem_start_gb * 1024 * 1024 * 1024;
+-	total_size = (size_t)	   pmem_size_gb  * 1024 * 1024 * 1024;
+-	disk_size = total_size / pmem_count;
++	if (!pmem_map) {
++		pr_err("pmem: must specify map=nn@ss parameter.\n");
++		return -EINVAL;
++	}
  
  	result = register_blkdev(0, "pmem");
--	if (result < 0) {
--		result = -EIO;
--		goto out_unmap;
--	} else
-+	if (result < 0)
-+		return -EIO;
-+	else
+ 	if (result < 0)
+@@ -361,14 +378,23 @@ static int __init pmem_init(void)
+ 	else
  		pmem_major = result;
  
- 	for (i = 0; i < pmem_count; i++) {
--		pmem = pmem_alloc(i);
--		if (!pmem) {
--			result = -ENOMEM;
-+		pmem = pmem_alloc(phys_addr, disk_size, i);
-+		if (IS_ERR(pmem)) {
-+			result = PTR_ERR(pmem);
+-	for (i = 0; i < pmem_count; i++) {
++	i = 0;
++	while ((p = strsep(&pmem_map, ",")) != NULL) {
++		phys_addr_t phys_addr;
++		size_t disk_size;
++
++		if (!*p)
++			continue;
++		result = pmem_parse_map_one(p, &phys_addr, &disk_size);
++		if (result)
++			goto out_free;
+ 		pmem = pmem_alloc(phys_addr, disk_size, i);
+ 		if (IS_ERR(pmem)) {
+ 			result = PTR_ERR(pmem);
  			goto out_free;
  		}
  		list_add_tail(&pmem->pmem_list, &pmem_devices);
-+		phys_addr += disk_size;
+-		phys_addr += disk_size;
++		++i;
  	}
  
  	list_for_each_entry(pmem, &pmem_devices, pmem_list)
-@@ -348,11 +384,6 @@ out_free:
- 	}
- 	unregister_blkdev(pmem_major, "pmem");
- 
--out_unmap:
--	iounmap(virt_addr);
--
--out_release:
--	release_mem_region(phys_addr, total_size);
- 	return result;
- }
- 
-@@ -364,9 +395,6 @@ static void __exit pmem_exit(void)
- 		pmem_del_one(pmem);
- 
- 	unregister_blkdev(pmem_major, "pmem");
--	iounmap(virt_addr);
--	release_mem_region(phys_addr, total_size);
--
- 	pr_info("pmem: module unloaded\n");
- }
- 
 -- 
 1.9.3
 
