@@ -1,115 +1,67 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <540F2152.4070406@plexistor.com>
-Date: Tue, 09 Sep 2014 18:48:34 +0300
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Message-ID: <540F2197.2000803@plexistor.com>
+Date: Tue, 09 Sep 2014 18:49:43 +0300
 From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Subject: [PATCH 7/9] pmem: Add support for page structs
+Subject: [PATCH 8/9] SQUASHME: pmem: Fixs to getgeo
 References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com> <540F1EC6.4000504@plexistor.com>
 In-Reply-To: <540F1EC6.4000504@plexistor.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org, Toshi Kani <toshi.kani@hp.com>, Dave Hansen <dave.hansen@intel.com>, linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org
+Cc: Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
 From: Boaz Harrosh <boaz@plexistor.com>
 
-One of the current shortcomings of the NVDIMM/PMEM
-support is that this memory does not have a page-struct(s)
-associated with its memory and therefor cannot be passed
-to a block-device or network or DMAed in any way through
-another device in the system.
+With current values fdisk does the wrong thing. On small disks
+it will offer 40 (20K) as first possible sector.
+With this patch fdisk will offer 8 (4k) as possible first
+sector, which is what we want.
 
-The use of add_persistent_memory() fixes all this. After this patch
-an FS can do:
-	bdev_direct_access(,&pfn,);
-	page = pfn_to_page(pfn);
-And use that page for a lock_page(), set_page_dirty(), and/or
-anything else one might do with a page *.
-(Note that with brd one can already do this)
+Note that current code had a BUG with anything bigger than
+64G because hd_geometry->cylinders is ushort and it would
+overflow at this value. Anyway capacity is not calculated
+through getgeo so it does not matter what we set for cylinders.
 
-[pmem-pages-ref-count]
-pmem will serve it's pages with ref==0. Once an FS does
-an blkdev_get_XXX(,FMODE_EXCL,), that memory is own by the FS.
-The FS needs to manage its allocation, just as it already does
-for its disk blocks. The fs should set page->count = 2, before
-submission to any Kernel subsystem so when it returns it will
-never be released to the Kernel's page-allocators. (page_freeze)
+I have tested with cfdisk parted/gparted and they behave the
+same after this patch, with fdisk I have better expected behavior
+after this patch.
+
+Is there any other test I need to perform that might be affected
+by this?
 
 Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
 ---
- drivers/block/Kconfig | 13 +++++++++++++
- drivers/block/pmem.c  | 19 +++++++++++++++++++
- 2 files changed, 32 insertions(+)
+ drivers/block/pmem.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
-index 5da8cbf..8a5929c 100644
---- a/drivers/block/Kconfig
-+++ b/drivers/block/Kconfig
-@@ -416,6 +416,19 @@ config BLK_DEV_PMEM
- 	  Most normal users won't need this functionality, and can thus say N
- 	  here.
- 
-+config BLK_DEV_PMEM_USE_PAGES
-+	bool "Enable use of page struct pages with pmem"
-+	depends on BLK_DEV_PMEM
-+	depends on PERSISTENT_MEMORY_DEPENDENCY
-+	select DRIVER_NEEDS_PERSISTENT_MEMORY
-+	default y
-+	help
-+	  If a user of PMEM device needs "struct page" associated
-+	  with its memory, so this memory can be sent to other
-+	  block devices, or sent on the network, or be DMA transferred
-+	  to other devices in the system, then you must say "Yes" here.
-+	  If unsure leave as Yes.
-+
- config CDROM_PKTCDVD
- 	tristate "Packet writing on CD/DVD media"
- 	depends on !UML
 diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index e07a373..b415b61 100644
+index b415b61..600d225 100644
 --- a/drivers/block/pmem.c
 +++ b/drivers/block/pmem.c
-@@ -221,6 +221,23 @@ MODULE_PARM_DESC(map,
- static LIST_HEAD(pmem_devices);
- static int pmem_major;
+@@ -40,10 +40,16 @@ struct pmem_device {
  
-+#ifdef CONFIG_BLK_DEV_PMEM_USE_PAGES
-+/* pmem->phys_addr and pmem->size need to be set.
-+ * Will then set pmem->virt_addr if successful.
-+ */
-+int pmem_mapmem(struct pmem_device *pmem)
-+{
-+	return add_persistent_memory(pmem->phys_addr, pmem->size,
-+				     &pmem->virt_addr);
-+}
-+
-+static void pmem_unmapmem(struct pmem_device *pmem)
-+{
-+	remove_persistent_memory(pmem->phys_addr, pmem->size);
-+}
-+
-+#else /* !CONFIG_BLK_DEV_PMEM_USE_PAGES */
-+
- /* pmem->phys_addr and pmem->size need to be set.
-  * Will then set virt_addr if successful.
-  */
-@@ -258,6 +275,8 @@ void pmem_unmapmem(struct pmem_device *pmem)
- 	release_mem_region(pmem->phys_addr, pmem->size);
- 	pmem->virt_addr = NULL;
+ static int pmem_getgeo(struct block_device *bd, struct hd_geometry *geo)
+ {
+-	/* some standard values */
+-	geo->heads = 1 << 6;
+-	geo->sectors = 1 << 5;
+-	geo->cylinders = get_capacity(bd->bd_disk) >> 11;
++	/* Just tell fdisk to get out of the way. The CHS math here is so
++	 * convoluted and does not make any sense at all. With all 1s
++	 * The math just gets out of the way.
++	 * When doing the usual lying to fdisk with the (64,32,X) common at the
++	 * rest of the Kernel, fdisk will offer 34 as first sector, with this
++	 * here plus the  4K physical_block_size it will offer 8 (4K)
++	 */
++	geo->heads = 1;
++	geo->sectors = 1;
++	geo->cylinders = 1;
+ 	return 0;
  }
-+#endif /* ! CONFIG_BLK_DEV_PMEM_USE_PAGES */
-+
  
- static struct pmem_device *pmem_alloc(phys_addr_t phys_addr, size_t disk_size,
- 				      int i)
 -- 
 1.9.3
 
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
