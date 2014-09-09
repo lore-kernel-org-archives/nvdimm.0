@@ -1,82 +1,115 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Message-ID: <5415AD2C.6040004@plexistor.com>
-Date: Sun, 14 Sep 2014 17:58:52 +0300
+Return-Path: <owner-linux-mm@kvack.org>
+Message-ID: <540F2152.4070406@plexistor.com>
+Date: Tue, 09 Sep 2014 18:48:34 +0300
 From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Subject: [PATCH v2] SQUASHME pmem: Micro optimize the hotpath
-References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com> <540F1EC6.4000504@plexistor.com> <54108149.3060506@plexistor.com>
-In-Reply-To: <54108149.3060506@plexistor.com>
+Subject: [PATCH 7/9] pmem: Add support for page structs
+References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com> <540F1EC6.4000504@plexistor.com>
+In-Reply-To: <540F1EC6.4000504@plexistor.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org, Toshi Kani <toshi.kani@hp.com>, Dave Hansen <dave.hansen@intel.com>, linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+From: Boaz Harrosh <boaz@plexistor.com>
 
-This is the hotpath I care about - pmem_direct_access()
+One of the current shortcomings of the NVDIMM/PMEM
+support is that this memory does not have a page-struct(s)
+associated with its memory and therefor cannot be passed
+to a block-device or network or DMAed in any way through
+another device in the system.
 
-Please note: This patch spans two patches in the set:
+The use of add_persistent_memory() fixes all this. After this patch
+an FS can do:
+	bdev_direct_access(,&pfn,);
+	page = pfn_to_page(pfn);
+And use that page for a lock_page(), set_page_dirty(), and/or
+anything else one might do with a page *.
+(Note that with brd one can already do this)
 
-* The changes to pmem_lookup_pg_addr from [patch 1/4]
-* The removal to pmem_lookup_pfn and changes to pmem_direct_access
-  from [patch 4/4]
-
-Easier on the eyes too
+[pmem-pages-ref-count]
+pmem will serve it's pages with ref==0. Once an FS does
+an blkdev_get_XXX(,FMODE_EXCL,), that memory is own by the FS.
+The FS needs to manage its allocation, just as it already does
+for its disk blocks. The fs should set page->count = 2, before
+submission to any Kernel subsystem so when it returns it will
+never be released to the Kernel's page-allocators. (page_freeze)
 
 Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
 ---
- drivers/block/pmem.c | 19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ drivers/block/Kconfig | 13 +++++++++++++
+ drivers/block/pmem.c  | 19 +++++++++++++++++++
+ 2 files changed, 32 insertions(+)
 
+diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
+index 5da8cbf..8a5929c 100644
+--- a/drivers/block/Kconfig
++++ b/drivers/block/Kconfig
+@@ -416,6 +416,19 @@ config BLK_DEV_PMEM
+ 	  Most normal users won't need this functionality, and can thus say N
+ 	  here.
+ 
++config BLK_DEV_PMEM_USE_PAGES
++	bool "Enable use of page struct pages with pmem"
++	depends on BLK_DEV_PMEM
++	depends on PERSISTENT_MEMORY_DEPENDENCY
++	select DRIVER_NEEDS_PERSISTENT_MEMORY
++	default y
++	help
++	  If a user of PMEM device needs "struct page" associated
++	  with its memory, so this memory can be sent to other
++	  block devices, or sent on the network, or be DMA transferred
++	  to other devices in the system, then you must say "Yes" here.
++	  If unsure leave as Yes.
++
+ config CDROM_PKTCDVD
+ 	tristate "Packet writing on CD/DVD media"
+ 	depends on !UML
 diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index 5eda95a..8e15c19 100644
+index e07a373..b415b61 100644
 --- a/drivers/block/pmem.c
 +++ b/drivers/block/pmem.c
-@@ -61,22 +61,12 @@ static int pmem_getgeo(struct block_device *bd, struct hd_geometry *geo)
+@@ -221,6 +221,23 @@ MODULE_PARM_DESC(map,
+ static LIST_HEAD(pmem_devices);
+ static int pmem_major;
+ 
++#ifdef CONFIG_BLK_DEV_PMEM_USE_PAGES
++/* pmem->phys_addr and pmem->size need to be set.
++ * Will then set pmem->virt_addr if successful.
++ */
++int pmem_mapmem(struct pmem_device *pmem)
++{
++	return add_persistent_memory(pmem->phys_addr, pmem->size,
++				     &pmem->virt_addr);
++}
++
++static void pmem_unmapmem(struct pmem_device *pmem)
++{
++	remove_persistent_memory(pmem->phys_addr, pmem->size);
++}
++
++#else /* !CONFIG_BLK_DEV_PMEM_USE_PAGES */
++
+ /* pmem->phys_addr and pmem->size need to be set.
+  * Will then set virt_addr if successful.
   */
- static void *pmem_lookup_pg_addr(struct pmem_device *pmem, sector_t sector)
- {
--	size_t page_offset = sector >> PAGE_SECTORS_SHIFT;
--	size_t offset = page_offset << PAGE_SHIFT;
-+	size_t offset = round_down(sector << SECTOR_SHIFT, PAGE_SIZE);
- 
- 	BUG_ON(offset >= pmem->size);
- 	return pmem->virt_addr + offset;
+@@ -258,6 +275,8 @@ void pmem_unmapmem(struct pmem_device *pmem)
+ 	release_mem_region(pmem->phys_addr, pmem->size);
+ 	pmem->virt_addr = NULL;
  }
++#endif /* ! CONFIG_BLK_DEV_PMEM_USE_PAGES */
++
  
--/* sector must be page aligned */
--static unsigned long pmem_lookup_pfn(struct pmem_device *pmem, sector_t sector)
--{
--	size_t page_offset = sector >> PAGE_SECTORS_SHIFT;
--
--	BUG_ON(sector & (PAGE_SECTORS - 1));
--	return (pmem->phys_addr >> PAGE_SHIFT) + page_offset;
--}
--
- /*
-  * sector is not required to be page aligned.
-  * n is at most a single page, but could be less.
-@@ -200,14 +190,15 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
- 			      void **kaddr, unsigned long *pfn, long size)
- {
- 	struct pmem_device *pmem = bdev->bd_disk->private_data;
-+	size_t offset = sector << SECTOR_SHIFT;
- 
- 	if (!pmem)
- 		return -ENODEV;
- 
--	*kaddr = pmem_lookup_pg_addr(pmem, sector);
--	*pfn = pmem_lookup_pfn(pmem, sector);
-+	*kaddr = pmem->virt_addr + offset;
-+	*pfn = (pmem->phys_addr + offset) >> PAGE_SHIFT;
- 
--	return pmem->size - (sector * 512);
-+	return pmem->size - offset;
- }
- 
- static const struct block_device_operations pmem_fops = {
+ static struct pmem_device *pmem_alloc(phys_addr_t phys_addr, size_t disk_size,
+ 				      int i)
 -- 
 1.9.3
 
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
