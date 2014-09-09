@@ -1,83 +1,102 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Message-ID: <54108149.3060506@plexistor.com>
-Date: Wed, 10 Sep 2014 19:50:17 +0300
+Return-Path: <owner-linux-mm@kvack.org>
+Message-ID: <540F1EC6.4000504@plexistor.com>
+Date: Tue, 09 Sep 2014 18:37:42 +0300
 From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Subject: [PATCH] SQUASHME pmem: Micro optimization for pmem_direct_access
-References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com> <540F1EC6.4000504@plexistor.com>
-In-Reply-To: <540F1EC6.4000504@plexistor.com>
+Subject: [PATCH 0/9] pmem: Fixes and farther development (mm: add_persistent_memory)
+References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org, Toshi Kani <toshi.kani@hp.com>, Dave Hansen <dave.hansen@intel.com>, linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Boaz Harrosh <boaz@plexistor.com>
+On 08/28/2014 12:11 AM, Ross Zwisler wrote:
+> PMEM is a modified version of the Block RAM Driver, BRD. The major difference
+> is that BRD allocates its backing store pages from the page cache, whereas
+> PMEM uses reserved memory that has been ioremapped.
+> 
+> One benefit of this approach is that there is a direct mapping between
+> filesystem block numbers and virtual addresses.  In PMEM, filesystem blocks N,
+> N+1, N+2, etc. will all be adjacent in the virtual memory space. This property
+> allows us to set up PMD mappings (2 MiB) for DAX.
+> 
+> This patch set is builds upon the work that Matthew Wilcox has been doing for
+> DAX:
+> 
 
-Please note: This patch spans two patches in the set:
+Let us not submit a driver with the wrong user visible API. Lets submit the
+better API (and structure) I have sent.
 
-* The changes to pmem_lookup_pg_addr from [patch 1/4]
-* The removal to pmem_lookup_pfn and changes to pmem_direct_access
-  from [patch 4/4]
+> https://lkml.org/lkml/2014/8/27/31
+> 
+> Specifically, my implementation of pmem_direct_access() in patch 4/4 uses API
+> enhancements introduced in Matthew's DAX patch v10 02/21:
+> 
+> https://lkml.org/lkml/2014/8/27/48
+> 
+> Ross Zwisler (4):
+>   pmem: Initial version of persistent memory driver
+>   pmem: Add support for getgeo()
+>   pmem: Add support for rw_page()
+>   pmem: Add support for direct_access()
+> 
 
-This is the hotpath I care about / pmem_direct_access()
-Easier on the eyes too
+On top of the 4 above patches here is a list of changes:
 
-Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
----
- drivers/block/pmem.c | 20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+[PATCH 1/9] SQUASHME: pmem: Remove unused #include headers
+[PATCH 2/9] SQUASHME: pmem: Request from fdisk 4k alignment
+[PATCH 3/9] SQUASHME: pmem: Let each device manage private memory region
+[PATCH 4/9] SQUASHME: pmem: Support of multiple memory regions
 
-diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index 5eda95a..4a9d65e 100644
---- a/drivers/block/pmem.c
-+++ b/drivers/block/pmem.c
-@@ -61,22 +61,12 @@ static int pmem_getgeo(struct block_device *bd, struct hd_geometry *geo)
-  */
- static void *pmem_lookup_pg_addr(struct pmem_device *pmem, sector_t sector)
- {
--	size_t page_offset = sector >> PAGE_SECTORS_SHIFT;
--	size_t offset = page_offset << PAGE_SHIFT;
-+	size_t offset = sector << SECTOR_SHIFT;
- 
- 	BUG_ON(offset >= pmem->size);
- 	return pmem->virt_addr + offset;
- }
- 
--/* sector must be page aligned */
--static unsigned long pmem_lookup_pfn(struct pmem_device *pmem, sector_t sector)
--{
--	size_t page_offset = sector >> PAGE_SECTORS_SHIFT;
--
--	BUG_ON(sector & (PAGE_SECTORS - 1));
--	return (pmem->phys_addr >> PAGE_SHIFT) + page_offset;
--}
--
- /*
-  * sector is not required to be page aligned.
-  * n is at most a single page, but could be less.
-@@ -200,14 +190,16 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
- 			      void **kaddr, unsigned long *pfn, long size)
- {
- 	struct pmem_device *pmem = bdev->bd_disk->private_data;
-+	size_t offset = sector << SECTOR_SHIFT;
- 
- 	if (!pmem)
- 		return -ENODEV;
- 
--	*kaddr = pmem_lookup_pg_addr(pmem, sector);
--	*pfn = pmem_lookup_pfn(pmem, sector);
-+	BUG_ON(offset >= pmem->size);
-+	*kaddr = pmem->virt_addr + offset;
-+	*pfn = (pmem->phys_addr + offset) >> PAGE_SHIFT;
- 
--	return pmem->size - (sector * 512);
-+	return pmem->size - offset;
- }
- 
- static const struct block_device_operations pmem_fops = {
--- 
-1.9.3
+	These 4 need to be squashed into Ross's 
+		[patch 1/4] pmem: Initial version of persistent memory driver
+	See below for a suggested new patch
+
+[PATCH 5/9 v2] mm: Let sparse_{add,remove}_one_section receive a node_id
+[PATCH 6/9 v2] mm: New add_persistent_memory/remove_persistent_memory
+[PATCH 7/9 v2] pmem: Add support for page structs
+
+	Please need review by Toshi and mm people.
+
+[PATCH 8/9] SQUASHME: pmem: Fixs to getgeo
+[PATCH 9/9] pmem: KISS, remove register_blkdev
+
+	And some more development atop the initial version
 
 
+All these patches can be viewed in this tree/branch:
+	git://git.open-osd.org/pmem.git branch pmem-jens-3.17-rc1
+	[http://git.open-osd.org/gitweb.cgi?p=pmem.git;a=shortlog;h=refs/heads/pmem-jens-3.17-rc1]
+
+I have also prepared a new branch *pmem* which is already SQUASHED
+And has my suggested changed commit logs for the combined patches
+here is the commit-log:
+
+aa85c80 Boaz Harrosh  |  pmem: KISS, remove register_blkdev 
+738203c Boaz Harrosh  |  pmem: Add support for page structs 
+9f50a54 Boaz Harrosh  |  mm: New add_persistent_memory/remove_persistent_memory 
+fdfab12 Yigal Korman  |  mm: Let sparse_{add,remove}_one_section receive a node_id 
+a477a87 Ross Zwisler  |  pmem: Add support for direct_access() 
+316a93a Ross Zwisler  |  pmem: Add support for rw_page() 
+6850353 Boaz Harrosh  |  SQUASHME: pmem: Fixs to getgeo 
+d78a84a Ross Zwisler  |  pmem: Add support for getgeo() 
+bb0eb45 Ross Zwisler  |  pmem: Initial version of persistent memory driver                                                                             
+
+All these patches can be viewed in this tree/branch:
+	git://git.open-osd.org/pmem.git branch pmem
+	[http://git.open-osd.org/gitweb.cgi?p=pmem.git;a=shortlog;h=refs/heads/pmem]
+Specifically the first [bb0eb45] is needed so first version can be released with the
+proper user visible API.
+Ross please consider taking these patches (pmem branch) in your tree for submission?
+
+Thanks
+Boaz
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
