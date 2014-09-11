@@ -1,51 +1,37 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Message-ID: <540F1FBB.2000706@plexistor.com>
-Date: Tue, 09 Sep 2014 18:41:47 +0300
-From: Boaz Harrosh <boaz@plexistor.com>
+Date: Thu, 11 Sep 2014 15:34:52 -0400
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: Re: [Linux-nvdimm] [PATCH 1/9] SQUASHME: pmem: Remove unused
+ #include headers
+Message-ID: <20140911193452.GJ27730@localhost.localdomain>
+References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com>
+ <540F1EC6.4000504@plexistor.com>
+ <540F1F6F.7090905@plexistor.com>
+ <1410301783.8366.1.camel@rzwisler-mobl1.amr.corp.intel.com>
+ <20140910191642.GI27730@localhost.localdomain>
+ <541188ED.9090709@plexistor.com>
 MIME-Version: 1.0
-Subject: [PATCH 2/9] SQUASHME: pmem: Request from fdisk 4k alignment
-References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com> <540F1EC6.4000504@plexistor.com>
-In-Reply-To: <540F1EC6.4000504@plexistor.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <541188ED.9090709@plexistor.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org
-Cc: Andrew Morton <akpm@linux-foundation.org>
+To: Boaz Harrosh <boaz@plexistor.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@fb.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Boaz Harrosh <boaz@plexistor.com>
+On Thu, Sep 11, 2014 at 02:35:09PM +0300, Boaz Harrosh wrote:
+> If header B has an API like
+> typeA1 b_foo(typeA2 a2, typeA3 a3);
+> where typeA1, typeA2, typeA3 are from an included header A
+> and code in C.c needs the use of b_foo(), or even say b_foo is a vector
+> that C.c needs to implement. Then typeA1, typeA2, typeA3 are explicit
+> by B not implicit.
+> 
+> Implicit is if B has private structures with say typeXy from header X
+> but my code does not need to declare or implement any X types. in order
+> to use public API of B.
 
-Because of the direct_access() API which returns a PFN. partitions
-better start on 4K boundary, else offset ZERO of a partition will
-not be aligned and blk_direct_access() will fail the call.
-
-By setting blk_queue_physical_block_size(PAGE_SIZE) we can communicate
-this to fdisk and friends.
-Note that blk_queue_physical_block_size() also trashes io_min, but
-we can leave this one to be 512.
-
-Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
----
- drivers/block/pmem.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index 8b0b9b0..499536c 100644
---- a/drivers/block/pmem.c
-+++ b/drivers/block/pmem.c
-@@ -258,6 +258,12 @@ static struct pmem_device *pmem_alloc(int i)
- 	blk_queue_max_hw_sectors(pmem->pmem_queue, 1024);
- 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
- 
-+	/* This is so fdisk will align partitions on 4k, because of
-+	 * direct_access API needing 4k alignment, returning a PFN
-+	 */
-+	blk_queue_physical_block_size(pmem->pmem_queue, PAGE_SIZE);
-+	pmem->pmem_queue->limits.io_min = 512; /* Don't use the accessor */
-+
- 	disk = pmem->pmem_disk = alloc_disk(0);
- 	if (!disk)
- 		goto out_free_queue;
--- 
-1.9.3
+If I change B to no longer include A, and declare, but not define types
+A1-A3, a file which relies on the inclusion of B to define types A1-A3
+is now broken.
 
