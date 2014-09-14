@@ -1,96 +1,98 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <540F1EC6.4000504@plexistor.com>
-Date: Tue, 09 Sep 2014 18:37:42 +0300
-From: Boaz Harrosh <boaz@plexistor.com>
+Message-ID: <54156197.5050303@gmail.com>
+Date: Sun, 14 Sep 2014 12:36:23 +0300
+From: Boaz Harrosh <openosd@gmail.com>
 MIME-Version: 1.0
-Subject: [PATCH 0/9] pmem: Fixes and farther development (mm: add_persistent_memory)
-References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 5/9] mm: Let sparse_{add,remove}_one_section receive a
+ node_id
+References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com> <540F1EC6.4000504@plexistor.com> <540F20AB.4000404@plexistor.com> <540F48BA.2090304@intel.com> <541022DB.9090000@plexistor.com> <541077DF.1060609@intel.com> <5410899C.3030501@plexistor.com> <54109845.3050309@intel.com> <54115FAB.2050601@gmail.com> <5411D6D9.5080107@intel.com>
+In-Reply-To: <5411D6D9.5080107@intel.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org, Toshi Kani <toshi.kani@hp.com>, Dave Hansen <dave.hansen@intel.com>, linux-mm@kvack.org
+To: Dave Hansen <dave.hansen@intel.com>, Boaz Harrosh <boaz@plexistor.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org, Toshi Kani <toshi.kani@hp.com>, linux-mm@kvack.org
 Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 08/28/2014 12:11 AM, Ross Zwisler wrote:
-> PMEM is a modified version of the Block RAM Driver, BRD. The major difference
-> is that BRD allocates its backing store pages from the page cache, whereas
-> PMEM uses reserved memory that has been ioremapped.
+On 09/11/2014 08:07 PM, Dave Hansen wrote:
+<>
 > 
-> One benefit of this approach is that there is a direct mapping between
-> filesystem block numbers and virtual addresses.  In PMEM, filesystem blocks N,
-> N+1, N+2, etc. will all be adjacent in the virtual memory space. This property
-> allows us to set up PMD mappings (2 MiB) for DAX.
-> 
-> This patch set is builds upon the work that Matthew Wilcox has been doing for
-> DAX:
+> OK, that sounds like it will work.  The "leaked until the next mount"
+> sounds disastrous, but I'm sure you'll fix that.  I can see how it might
+> lead to some fragmentation if only small amounts are ever pinned, but
+> not a deal-breaker.
 > 
 
-Let us not submit a driver with the wrong user visible API. Lets submit the
-better API (and structure) I have sent.
+There is no such thing as fragmentation with memory mapped storage ;-)
 
-> https://lkml.org/lkml/2014/8/27/31
-> 
-> Specifically, my implementation of pmem_direct_access() in patch 4/4 uses API
-> enhancements introduced in Matthew's DAX patch v10 02/21:
-> 
-> https://lkml.org/lkml/2014/8/27/48
-> 
-> Ross Zwisler (4):
->   pmem: Initial version of persistent memory driver
->   pmem: Add support for getgeo()
->   pmem: Add support for rw_page()
->   pmem: Add support for direct_access()
+<>
+> I'm saying that, if we have a 'struct page' for the memory, we should
+> try to make the mmap()s more normal.  This enables all kinds of things
+> that DAX does not support today, like direct I/O.
 > 
 
-On top of the 4 above patches here is a list of changes:
+What? no! direct I/O is fully supported. Including all API's of it. Do
+you mean open(O_DIRECT) and io_submit(..) Yes it is fully supported.
 
-[PATCH 1/9] SQUASHME: pmem: Remove unused #include headers
-[PATCH 2/9] SQUASHME: pmem: Request from fdisk 4k alignment
-[PATCH 3/9] SQUASHME: pmem: Let each device manage private memory region
-[PATCH 4/9] SQUASHME: pmem: Support of multiple memory regions
+In fact all IO is direct IO. there is never page-cache on the way, hence direct
 
-	These 4 need to be squashed into Ross's 
-		[patch 1/4] pmem: Initial version of persistent memory driver
-	See below for a suggested new patch
+BTW: These patches enable something else. Say FSA is DAX and FSB is regular
+disk FS then
+	fda = open(/mnt/FSA);
+	pa = mmap(fda, ...);
 
-[PATCH 5/9 v2] mm: Let sparse_{add,remove}_one_section receive a node_id
-[PATCH 6/9 v2] mm: New add_persistent_memory/remove_persistent_memory
-[PATCH 7/9 v2] pmem: Add support for page structs
+	fdb = open(/mnt/FSB, O_DIRECT);
+	io_submit(fdb,..,pa ,..);
+	/* I mean pa is put for IO into the passed iocb for fdb */
 
-	Please need review by Toshi and mm people.
+Before this patch above will not work and revert to buffered IO, but
+with these patches it will work.
+Please note this is true for the submitted pmem driver. With brd which
+also supports DAX this will work, because brd always uses pages.
 
-[PATCH 8/9] SQUASHME: pmem: Fixs to getgeo
-[PATCH 9/9] pmem: KISS, remove register_blkdev
+<>
+> Great, so we at least agree that this adds complexity.
+> 
 
-	And some more development atop the initial version
+But the complexity is already there DAX by Matthew is to go in soon I hope.
+Surly these added pages do not add to the complexity that much.
 
+<>
+> 
+> OK, so I think I at least understand the scope of the patch set and the
+> limitations.  I think I've summarized the limitations:
+> 
+> 1. Approach requires all of RAM+Pmem to be direct-mapped (rules out
+>    almost all 32-bit systems, or any 64-bit systems with more than 64TB
+>    of RAM+pmem-storage)
 
-All these patches can be viewed in this tree/branch:
-	git://git.open-osd.org/pmem.git branch pmem-jens-3.17-rc1
-	[http://git.open-osd.org/gitweb.cgi?p=pmem.git;a=shortlog;h=refs/heads/pmem-jens-3.17-rc1]
+Yes, for NOW
 
-I have also prepared a new branch *pmem* which is already SQUASHED
-And has my suggested changed commit logs for the combined patches
-here is the commit-log:
+> 2. Approach is currently incompatible with some kernel code that
+>    requires a 'struct page' (such as direct I/O), and all kernel code
+>    that requires knowledge of zones or NUMA nodes.
 
-aa85c80 Boaz Harrosh  |  pmem: KISS, remove register_blkdev 
-738203c Boaz Harrosh  |  pmem: Add support for page structs 
-9f50a54 Boaz Harrosh  |  mm: New add_persistent_memory/remove_persistent_memory 
-fdfab12 Yigal Korman  |  mm: Let sparse_{add,remove}_one_section receive a node_id 
-a477a87 Ross Zwisler  |  pmem: Add support for direct_access() 
-316a93a Ross Zwisler  |  pmem: Add support for rw_page() 
-6850353 Boaz Harrosh  |  SQUASHME: pmem: Fixs to getgeo 
-d78a84a Ross Zwisler  |  pmem: Add support for getgeo() 
-bb0eb45 Ross Zwisler  |  pmem: Initial version of persistent memory driver                                                                             
+NO!
+Direct IO - supported
+NUMA - supported
 
-All these patches can be viewed in this tree/branch:
-	git://git.open-osd.org/pmem.git branch pmem
-	[http://git.open-osd.org/gitweb.cgi?p=pmem.git;a=shortlog;h=refs/heads/pmem]
-Specifically the first [bb0eb45] is needed so first version can be released with the
-proper user visible API.
-Ross please consider taking these patches (pmem branch) in your tree for submission?
+"all kernel code that requires knowledge of zones" - Not needed
+
+> 3. Approach requires 1/64 of the amount of storage to be consumed by
+>    RAM for a pseudo 'struct page'.  If you had 64GB of storage and 1GB
+>    of RAM, you would simply run our of RAM.
+> 
+
+Yes so in a system as above of 64GB of pmem, 1GB of pmem will need to be
+set aside and hotpluged as volatile memory. This already works today BTW
+you can set aside a portion of NvDIMM and hotplug it as system memory.
+
+We are already used to pay that ratio for RAM.
+On a kernel-config choice that ratio can be also paid for pmem. This is
+why I left it a configuration option
+
+> Did I miss any?
+> 
 
 Thanks
 Boaz
