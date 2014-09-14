@@ -1,118 +1,82 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <540F20AB.4000404@plexistor.com>
-Date: Tue, 09 Sep 2014 18:45:47 +0300
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Message-ID: <5415AD2C.6040004@plexistor.com>
+Date: Sun, 14 Sep 2014 17:58:52 +0300
 From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Subject: [PATCH 5/9] mm: Let sparse_{add,remove}_one_section receive a node_id
-References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com> <540F1EC6.4000504@plexistor.com>
-In-Reply-To: <540F1EC6.4000504@plexistor.com>
+Subject: [PATCH v2] SQUASHME pmem: Micro optimize the hotpath
+References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com> <540F1EC6.4000504@plexistor.com> <54108149.3060506@plexistor.com>
+In-Reply-To: <54108149.3060506@plexistor.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org, Toshi Kani <toshi.kani@hp.com>, Dave Hansen <dave.hansen@intel.com>, linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Yigal Korman <yigal@plexistor.com>
 
-Refactored the arguments of sparse_add_one_section / sparse_remove_one_section
-to use node id instead of struct zone * - A memory section has no direct
-connection to zones, all that was needed from zone was the node id.
+This is the hotpath I care about - pmem_direct_access()
 
-This is for add_persistent_memory that will want a section of pages
-allocated but without any zone associated. This is because belonging
-to a zone will give the memory to the page allocators, but
-persistent_memory belongs to a block device, and is not available for
-regular volatile usage.
+Please note: This patch spans two patches in the set:
 
-Signed-off-by: Yigal Korman <yigal@plexistor.com>
+* The changes to pmem_lookup_pg_addr from [patch 1/4]
+* The removal to pmem_lookup_pfn and changes to pmem_direct_access
+  from [patch 4/4]
+
+Easier on the eyes too
+
 Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
 ---
- include/linux/memory_hotplug.h | 4 ++--
- mm/memory_hotplug.c            | 4 ++--
- mm/sparse.c                    | 9 +++++----
- 3 files changed, 9 insertions(+), 8 deletions(-)
+ drivers/block/pmem.c | 19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index d9524c4..35ca1bb 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -264,8 +264,8 @@ extern int arch_add_memory(int nid, u64 start, u64 size);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern bool is_memblock_offlined(struct memory_block *mem);
- extern void remove_memory(int nid, u64 start, u64 size);
--extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn);
--extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
-+extern int sparse_add_one_section(int nid, unsigned long start_pfn);
-+extern void sparse_remove_one_section(int nid, struct mem_section *ms);
- extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
- 					  unsigned long pnum);
- 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 2ff8c23..e556a90 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -471,7 +471,7 @@ static int __meminit __add_section(int nid, struct zone *zone,
- 	if (pfn_valid(phys_start_pfn))
- 		return -EEXIST;
- 
--	ret = sparse_add_one_section(zone, phys_start_pfn);
-+	ret = sparse_add_one_section(zone->zone_pgdat->node_id, phys_start_pfn);
- 
- 	if (ret < 0)
- 		return ret;
-@@ -737,7 +737,7 @@ static int __remove_section(struct zone *zone, struct mem_section *ms)
- 	start_pfn = section_nr_to_pfn(scn_nr);
- 	__remove_zone(zone, start_pfn);
- 
--	sparse_remove_one_section(zone, ms);
-+	sparse_remove_one_section(zone->zone_pgdat->node_id, ms);
- 	return 0;
- }
- 
-diff --git a/mm/sparse.c b/mm/sparse.c
-index d1b48b6..12a10ab 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -690,10 +690,10 @@ static void free_map_bootmem(struct page *memmap)
-  * set.  If this is <=0, then that means that the passed-in
-  * map was not consumed and must be freed.
+diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
+index 5eda95a..8e15c19 100644
+--- a/drivers/block/pmem.c
++++ b/drivers/block/pmem.c
+@@ -61,22 +61,12 @@ static int pmem_getgeo(struct block_device *bd, struct hd_geometry *geo)
   */
--int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
-+int __meminit sparse_add_one_section(int nid, unsigned long start_pfn)
+ static void *pmem_lookup_pg_addr(struct pmem_device *pmem, sector_t sector)
  {
- 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
--	struct pglist_data *pgdat = zone->zone_pgdat;
-+	struct pglist_data *pgdat = NODE_DATA(nid);
- 	struct mem_section *ms;
- 	struct page *memmap;
- 	unsigned long *usemap;
-@@ -788,11 +788,11 @@ static void free_section_usemap(struct page *memmap, unsigned long *usemap)
- 		free_map_bootmem(memmap);
+-	size_t page_offset = sector >> PAGE_SECTORS_SHIFT;
+-	size_t offset = page_offset << PAGE_SHIFT;
++	size_t offset = round_down(sector << SECTOR_SHIFT, PAGE_SIZE);
+ 
+ 	BUG_ON(offset >= pmem->size);
+ 	return pmem->virt_addr + offset;
  }
  
--void sparse_remove_one_section(struct zone *zone, struct mem_section *ms)
-+void sparse_remove_one_section(int nid, struct mem_section *ms)
+-/* sector must be page aligned */
+-static unsigned long pmem_lookup_pfn(struct pmem_device *pmem, sector_t sector)
+-{
+-	size_t page_offset = sector >> PAGE_SECTORS_SHIFT;
+-
+-	BUG_ON(sector & (PAGE_SECTORS - 1));
+-	return (pmem->phys_addr >> PAGE_SHIFT) + page_offset;
+-}
+-
+ /*
+  * sector is not required to be page aligned.
+  * n is at most a single page, but could be less.
+@@ -200,14 +190,15 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+ 			      void **kaddr, unsigned long *pfn, long size)
  {
- 	struct page *memmap = NULL;
- 	unsigned long *usemap = NULL, flags;
--	struct pglist_data *pgdat = zone->zone_pgdat;
-+	struct pglist_data *pgdat = NODE_DATA(nid);
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
++	size_t offset = sector << SECTOR_SHIFT;
  
- 	pgdat_resize_lock(pgdat, &flags);
- 	if (ms->section_mem_map) {
-@@ -807,5 +807,6 @@ void sparse_remove_one_section(struct zone *zone, struct mem_section *ms)
- 	clear_hwpoisoned_pages(memmap, PAGES_PER_SECTION);
- 	free_section_usemap(memmap, usemap);
+ 	if (!pmem)
+ 		return -ENODEV;
+ 
+-	*kaddr = pmem_lookup_pg_addr(pmem, sector);
+-	*pfn = pmem_lookup_pfn(pmem, sector);
++	*kaddr = pmem->virt_addr + offset;
++	*pfn = (pmem->phys_addr + offset) >> PAGE_SHIFT;
+ 
+-	return pmem->size - (sector * 512);
++	return pmem->size - offset;
  }
-+
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+ static const struct block_device_operations pmem_fops = {
 -- 
 1.9.3
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
