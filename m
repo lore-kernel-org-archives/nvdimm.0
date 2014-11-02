@@ -1,27 +1,18 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
 Subject: RE: [PATCH 2/4] pmem: Add support for getgeo()
-Date: Mon, 3 Nov 2014 16:36:02 +0000
-Message-ID: <100D68C7BA14664A8938383216E40DE0408298B7@FMSMSX114.amr.corp.intel.com>
+Date: Sun, 2 Nov 2014 03:27:40 +0000
+Message-ID: <94D0CD8314A33A4D9D801C0FE68B4029593548D4@G9W0745.americas.hpqcorp.net>
 References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com>
  <1409173922-7484-3-git-send-email-ross.zwisler@linux.intel.com>
- <94D0CD8314A33A4D9D801C0FE68B4029593548D4@G9W0745.americas.hpqcorp.net>
-In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B4029593548D4@G9W0745.americas.hpqcorp.net>
+In-Reply-To: <1409173922-7484-3-git-send-email-ross.zwisler@linux.intel.com>
 Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, Nick Piggin <npiggin@kernel.dk>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "Knippers, Linda" <linda.knippers@hp.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Matthew Wilcox <willy@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Boaz Harrosh <boaz@plexistor.com>, Nick Piggin <npiggin@kernel.dk>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "Knippers, Linda" <linda.knippers@hp.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
-
-I agree that there should be a generic fake getgeo routine; but fixing that is a topic for a different patchset and it doesn't need to get folded into this driver submission process.
-
------Original Message-----
-From: Elliott, Robert (Server Storage) [mailto:Elliott@hp.com] 
-Sent: Saturday, November 01, 2014 8:28 PM
-To: Ross Zwisler; Jens Axboe; Wilcox, Matthew R; Boaz Harrosh; Nick Piggin; Kani, Toshimitsu; Knippers, Linda; linux-fsdevel@vger.kernel.org; linux-kernel@vger.kernel.org; linux-nvdimm@lists.01.org
-Subject: RE: [PATCH 2/4] pmem: Add support for getgeo()
 
 
 
@@ -90,7 +81,6 @@ each block driver doesn't need to do this?
 
 ---
 Rob Elliott    HP Server Storage
-
 
 
 
