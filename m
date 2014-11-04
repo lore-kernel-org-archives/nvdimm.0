@@ -1,86 +1,61 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
-Subject: RE: [PATCH 2/4] pmem: Add support for getgeo()
-Date: Sun, 2 Nov 2014 03:27:40 +0000
-Message-ID: <94D0CD8314A33A4D9D801C0FE68B4029593548D4@G9W0745.americas.hpqcorp.net>
-References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com>
- <1409173922-7484-3-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1409173922-7484-3-git-send-email-ross.zwisler@linux.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Message-ID: <54590781.9070500@plexistor.com>
+Date: Tue, 04 Nov 2014 19:06:09 +0200
+From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
+Subject: Re: [PATCH 1/4] pmem: Initial version of persistent memory driver
+References: <1409173922-7484-1-git-send-email-ross.zwisler@linux.intel.com>	 <1409173922-7484-2-git-send-email-ross.zwisler@linux.intel.com>	 <94D0CD8314A33A4D9D801C0FE68B4029593548AB@G9W0745.americas.hpqcorp.net>	 <100D68C7BA14664A8938383216E40DE04082985D@FMSMSX114.amr.corp.intel.com>	 <5458AC75.3030207@plexistor.com>	 <94D0CD8314A33A4D9D801C0FE68B40295936C4B1@G4W3202.americas.hpqcorp.net> <1415119296.26199.12.camel@theros.lm.intel.com>
+In-Reply-To: <1415119296.26199.12.camel@theros.lm.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Boaz Harrosh <boaz@plexistor.com>, Nick Piggin <npiggin@kernel.dk>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "Knippers, Linda" <linda.knippers@hp.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Cc: Boaz Harrosh <boaz@plexistor.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>, Jens Axboe <axboe@kernel.dk>, Nick Piggin <npiggin@kernel.dk>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "Knippers, Linda" <linda.knippers@hp.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Matthew Wilcox <willy@linux.intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-> -----Original Message-----
-> From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
-> owner@vger.kernel.org] On Behalf Of Ross Zwisler
-> Sent: Wednesday, 27 August, 2014 4:12 PM
-> To: Jens Axboe; Matthew Wilcox; Boaz Harrosh; Nick Piggin; linux-
-> fsdevel@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
-> nvdimm@lists.01.org
-> Cc: Ross Zwisler
-> Subject: [PATCH 2/4] pmem: Add support for getgeo()
+On 11/04/2014 06:41 PM, Ross Zwisler wrote:
+<>
 > 
-> Some programs require HDIO_GETGEO work, which requires we implement
-> getgeo.  Based off of the work done to the NVMe driver in this
-> commit:
+> The UEFI organization is in the process of defining a generic specification
+> for platform non-volatile memory resources.  Essentially the thought was to
+> wait until that was publicly available before adding any new device discovery
+> capabilities to pmem.
 > 
-> commit 4cc09e2dc4cb ("NVMe: Add getgeo to block ops")
+> What Boaz has suggested and coded up is certainly useful, but the worry is
+> that it will end up being incompatible with what comes out of UEFI.  If we
+> stay with the dead-simple module parameter method, we will have less code to
+> unwind later.
 > 
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> ---
->  drivers/block/pmem.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-> index d366b9b..60bbe0d 100644
-> --- a/drivers/block/pmem.c
-> +++ b/drivers/block/pmem.c
-> @@ -50,6 +50,15 @@ struct pmem_device {
->  	size_t			size;
->  };
-> 
-> +static int pmem_getgeo(struct block_device *bd, struct hd_geometry
-> *geo)
-> +{
-> +	/* some standard values */
-> +	geo->heads = 1 << 6;
-> +	geo->sectors = 1 << 5;
-> +	geo->cylinders = get_capacity(bd->bd_disk) >> 11;
 
-Just stuffing the result of get_capacity into the 16-bit 
-cylinders field will overflow/wrap on large capacities.
-0xFFFF << 11 = 0x7FF_F800 = 64 GiB (68.7 GB)
+What ??
+What I coded up is a exactly "dead-simple module parameter method"
+that will not need to be changed in future, that is actually sane.
 
-How many programs still need these meaningless fields?
-Could the bogus information be created elsewhere so
-each block driver doesn't need to do this?
+Actually your version of the code needs changing with the global parameters,
+one range support, and same size devices.
 
+My version of the code is specifically made very probe() ready and dynamic
+ready. It was the point of it all. Including bugs and ugliness fixed.
+(I have a small patch that dynamically addes/removes devices on the fly
+ through the same module-param interface)
 
-> +	return 0;
-> +}
-> +
->  /*
->   * direct translation from (pmem,sector) => void*
->   * We do not require that sector be page aligned.
-> @@ -176,6 +185,7 @@ out:
-> 
->  static const struct block_device_operations pmem_fops = {
->  	.owner =		THIS_MODULE,
-> +	.getgeo =		pmem_getgeo,
->  };
-> 
->  /* Kernel module stuff */
-> --
+There is not a line in all of my patches that might be affected by
+that UEFI comity. (Again actually fixing what needed changing). And in
+addition to that comity and the new HW they will define, my system
+also supports all the current NvDIMMs in the market.
 
+I really can not understand what you guys are saying? Have you actually
+looked at the code and used it, compared to the unusable thing you guys
+have now ??
+[Like you are saying "before adding any new device discovery capabilities"
+ But I have not added any? All I did was fix and simplify the module-param
+ interface. Which makes me think that you might not have looked at any of
+ my fixes?
+]
 
----
-Rob Elliott    HP Server Storage
+> Thanks,
+> - Ross
 
-
+Cheers
+Boaz
 
