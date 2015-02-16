@@ -1,69 +1,96 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <54EB1D33.3050107@plexistor.com>
-Date: Mon, 23 Feb 2015 14:29:39 +0200
+Message-ID: <54E1D19B.30405@plexistor.com>
+Date: Mon, 16 Feb 2015 13:16:43 +0200
 From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Subject: [PATCH 0/3 v2] e820: Fix handling of NvDIMM chips
+Subject: [RFC 2/2] e820: Add the NvDIMM Memory type (type-12)
+References: <54E1CF5B.9020905@plexistor.com>
+In-Reply-To: <54E1CF5B.9020905@plexistor.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, x86@kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "Roger C. Pao" <rcpao.enmotus@gmail.com>, Dan Williams <dan.j.williams@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Wilcox <willy@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Christoph Hellwig <hch@infradead.org>
+To: Ingo Molnar <mingo@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, x86@kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "Roger C. Pao" <rcpao.enmotus@gmail.com>, Dan Williams <dan.j.williams@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi
 
-[v2]
-* Added warning at bring up about unknown type
-* Added an extra patch to warn-print in request_resource
-* changed name from NvDIMM-12 => unknown-12
-  I wish we would reconsider this. So we need to suffer until some unknown
-  future when ACPI decides to reuse type-12. When this happens we can fix
-  it then, NO?
-* Now based on 4.0-rc1
+There are multiple vendors of DDR3 NvDIMMs out in the market today.
+At various stages of development/production. It is estimated that
+there are already more the 100ds of thousands chips sold to
+testers and sites.
 
-If someone still has objections to [PATCH 3A/3] which is the most simple
-thing to do, then We will be forced to do [PATCH 3B/3] ugliness. Ingo
-your call.
+All the vendors I know of, tagged these chips as type-12 memory.
 
-[v1]
-There is a deficiency in current e820.c handling where unknown new memory-chip
-types come up as a BUSY resource when some other driver (like pmem) tries to
-call request_mem_region_exclusive() on that resource. Even though, actually
-there is nothing using it.
->From inspecting the code and the history of e820.c it looks like a BUG.
+[THIS IS A CALL FOR ALL NvDIMM Vendors if you have used other
+ then type-12 NvDIMM, please email me and I will add support
+ for it]
 
-In any way this is a problem for the new type-12 NvDIMM memory chips that
-are circulating around. (It is estimated that there are already 100ds of
-thousands NvDIMM chips in active use)
+Now the ACPI comity, as far as I know, did not yet define a
+standard type for NvDIMM. Also, as far as I know any NvDIMM
+standard will be defined for DDR4. So DDR3 NvDIMM will continue
+to be supported by the individual vendors.
 
-The patches below first fixes the above problem for any future type
-memory, so external drivers can access these mem chips.
+I Wish and call the ACPI comity to Define that NvDIMM is type-12.
+Also for DDR4
 
-I then also add the NvDIMM type-12 memory constant so it comes up
-nice in dprints and at /proc/iomem
+In this patch I name type-12 "NvDIMM-12", but if there
+are positive responses I would like to just name it "NvDIMM",
+For any kind of DDR-X.
 
-Just as before all these chips are very much usable with the pmem
-driver. This lets us remove the hack for type-12 NvDIMMs that ignores
-the return code from request_mem_region_exclusive() in pmem.c.
+Actually is there any reason why I should not submit the final
+version as "NvDIMM" from the get go. Then if the ACPI defines
+another new type-Y Memory we can name both types "NvDIMM", No?
+Please comment
 
-For all the pmem people. I maintain a tree with these patches
-and latest pmem code here:
-	git://git.open-osd.org/pmem.git
-	[web-view:http://git.open-osd.org/gitweb.cgi?p=pmem.git;a=summary]
+Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
+---
+ arch/x86/include/uapi/asm/e820.h | 2 +-
+ arch/x86/kernel/e820.c           | 5 +++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-List of patches:
- [PATCH 1/3] e820: Don't let unknown DIMM type come out BUSY
-	The main fix
-
- [PATCH 2/3] resource: Add new flag IORESOURCE_WARN (64bit)
-	Warn in request_resource
-
- [PATCH 3A/3] e820: Add the unknown-12 Memory type (DDR3-NvDIMM)
-	Please accept this simple patch
-
- [PATCH 3B/3] e820: dynamic unknown-xxx names (for DDR3-NvDIMM)
-	Else we need this crap
-
-Thanks
-Boaz
+diff --git a/arch/x86/include/uapi/asm/e820.h b/arch/x86/include/uapi/asm/e820.h
+index d993e33..a0977e0 100644
+--- a/arch/x86/include/uapi/asm/e820.h
++++ b/arch/x86/include/uapi/asm/e820.h
+@@ -32,7 +32,7 @@
+ #define E820_ACPI	3
+ #define E820_NVS	4
+ #define E820_UNUSABLE	5
+-
++#define E820_NvDIMM_12 12
+ 
+ /*
+  * reserved RAM used by kernel itself
+diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+index 8cfd25f..17f7496 100644
+--- a/arch/x86/kernel/e820.c
++++ b/arch/x86/kernel/e820.c
+@@ -149,6 +149,9 @@ static void __init e820_print_type(u32 type)
+ 	case E820_UNUSABLE:
+ 		printk(KERN_CONT "unusable");
+ 		break;
++	case E820_NvDIMM_12:
++		printk(KERN_CONT "NvDIMM-12");
++		break;
+ 	default:
+ 		printk(KERN_CONT "type %u", type);
+ 		break;
+@@ -908,6 +911,7 @@ static inline const char *e820_type_to_string(int e820_type)
+ 	case E820_NVS:	return "ACPI Non-volatile Storage";
+ 	case E820_UNUSABLE:	return "Unusable memory";
+ 	case E820_RESERVED:	return "reserved";
++	case E820_NvDIMM_12:	return "NvDIMM-12";
+ 	default:	return "reserved-unkown";
+ 	}
+ }
+@@ -922,6 +926,7 @@ static bool _is_reserved_type(int e820_type)
+ 	case E820_UNUSABLE:
+ 		return false;
+ 	case E820_RESERVED:
++	case E820_NvDIMM_12:
+ 	default:
+ 		return true;
+ 	}
+-- 
+1.9.3
 
