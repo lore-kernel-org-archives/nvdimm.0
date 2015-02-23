@@ -1,145 +1,48 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <54EB1E03.4010306@plexistor.com>
-Date: Mon, 23 Feb 2015 14:33:07 +0200
-From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Subject: [PATCH 1/3] e820: Don't let unknown DIMM type come out BUSY
-References: <54EB1D33.3050107@plexistor.com>
-In-Reply-To: <54EB1D33.3050107@plexistor.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <54EB2124.7040701@plexistor.com>
+References: <54EB1D33.3050107@plexistor.com> <54EB2124.7040701@plexistor.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Mon, 23 Feb 2015 07:48:23 -0800
+Message-ID: <CALCETrVcs0bW=fZE4hWe0CoHyHvGRSym6dG4Cwqhe=igr+n+SA@mail.gmail.com>
+Subject: Re: [PATCH 3A/3 good] e820: Add the unknown-12 Memory type (DDR3-NvDIMM)
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, x86@kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "Roger C. Pao" <rcpao.enmotus@gmail.com>, Dan Williams <dan.j.williams@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Wilcox <willy@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Christoph Hellwig <hch@infradead.org>
+To: Boaz Harrosh <boaz@plexistor.com>
+Cc: Ingo Molnar <mingo@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, X86 ML <x86@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Roger C. Pao" <rcpao.enmotus@gmail.com>, Dan Williams <dan.j.williams@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Wilcox <willy@linux.intel.com>, Christoph Hellwig <hch@infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Mon, Feb 23, 2015 at 4:46 AM, Boaz Harrosh <boaz@plexistor.com> wrote:
+>
+> There are multiple vendors of DDR3 NvDIMMs out in the market today.
+> At various stages of development/production. It is estimated that
+> there are already more the 100ds of thousands chips sold to
+> testers and sites.
+>
+> All the BIOS vendors I know of, tagged these chips at e820 table
+> as type-12 memory.
+>
 
-There is something not very nice (Gentlemen nice) In current
-e820.c code.
+I have no problem with this patch.
 
-At Multiple places for example like (@ memblock_x86_fill()) it will
-add the different memory resources *except the E820_RESERVED type*
+> Now the ACPI comity, as far as I know, did not yet define a
+> standard type for NvDIMM. Also, as far as I know any NvDIMM
+> standard will only be defined for DDR4. So DDR3 NvDIMM is
+> probably stuck with this none STD type.
 
-Then at e820_reserve_resources() it will mark all !E820_RESERVED
-as busy.
+s/comity/committee?
 
-This is all fine when we have only the known types one of:
-	E820_RESERVED_KERN:
-	E820_RAM:
-	E820_ACPI:
-	E820_NVS:
-	E820_UNUSABLE:
-	E820_RESERVED:
+>
+> I Wish and call the ACPI comity to Define that NvDIMM is type-12.
+> Also for DDR4
+>
+> In this patch I name type-12 "unknown-12". This is because of
+> ACPI politics that refuse to reserve type-12 as DDR3-NvDIMM
+> and members keep saying:
+>         "What if ACPI assigns type-12 for something else in future"
+>
+> [And I say: Then just don't. Please?]
 
-But if the system encounters a brand new memory type it will
-not add it to any memory list, But will proceed to mark it
-BUSY. So now any other Driver in the system that does know
-how to deal with this new type, is not able to call
-request_mem_region_exclusive() on this new type because it is
-hard coded BUSY even though nothing really uses it.
+Good luck :)
 
-So make any unknown type behave like E820_RESERVED memory,
-it will show up as available to first caller of
-request_mem_region_exclusive().
-
-I Also change the string representation of an unknown type
-from "reserved" (So to not confuse with memmap "reserved"
-region). And call it "reserved-unknown"
-I wish I could return "reserved-type-X" But this is not possible
-because one must return a constant, code-segment, string.
-
-(NOTE: These unknown-types where called "reserved" in
- /proc/iomem and in dmesg but behaved differently. What this
- patch does is name them differently but let them behave
- the same)
-
-By Popular demand An Extra WARNING message is printed if
-an "UNKNOWN" is found. It will look like this:
-  e820: WARNING [mem 0x100000000-0x1ffffffff] is unknown type 12
-
-An example of such "UNKNOWN" type is the not Standard type-12
-DDR3-NvDIMM which is used by multiple vendors for a while
-now. (Estimated 100ds of thousands sold world wide)
-
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: Ingo Molnar <mingo@redhat.com>
-CC: "H. Peter Anvin" <hpa@zytor.com>
-CC: x86@kernel.org
-CC: Dan Williams <dan.j.williams@intel.com>
-CC: Matthew Wilcox <willy@linux.intel.com>
-CC: Christoph Hellwig <hch@infradead.org>
-CC: Andy Lutomirski <luto@amacapital.net>
-Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
----
- arch/x86/kernel/e820.c | 31 +++++++++++++++++++++++++++++--
- 1 file changed, 29 insertions(+), 2 deletions(-)
-
-diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-index 46201de..1a8a1c3 100644
---- a/arch/x86/kernel/e820.c
-+++ b/arch/x86/kernel/e820.c
-@@ -104,6 +104,21 @@ int __init e820_all_mapped(u64 start, u64 end, unsigned type)
- 	return 0;
- }
- 
-+static bool _is_unknown_type(int e820_type)
-+{
-+	switch (e820_type) {
-+	case E820_RESERVED_KERN:
-+	case E820_RAM:
-+	case E820_ACPI:
-+	case E820_NVS:
-+	case E820_UNUSABLE:
-+	case E820_RESERVED:
-+		return false;
-+	default:
-+		return true;
-+	}
-+}
-+
- /*
-  * Add a memory region to the kernel e820 map.
-  */
-@@ -119,6 +134,11 @@ static void __init __e820_add_region(struct e820map *e820x, u64 start, u64 size,
- 		return;
- 	}
- 
-+	if (unlikely(_is_unknown_type(type)))
-+		pr_warn("e820: WARNING [mem %#010llx-%#010llx] is unknown type %d\n",
-+		       (unsigned long long) start,
-+		       (unsigned long long) (start + size - 1), type);
-+
- 	e820x->map[x].addr = start;
- 	e820x->map[x].size = size;
- 	e820x->map[x].type = type;
-@@ -907,10 +927,16 @@ static inline const char *e820_type_to_string(int e820_type)
- 	case E820_ACPI:	return "ACPI Tables";
- 	case E820_NVS:	return "ACPI Non-volatile Storage";
- 	case E820_UNUSABLE:	return "Unusable memory";
--	default:	return "reserved";
-+	case E820_RESERVED:	return "reserved";
-+	default:	return "reserved-unkown";
- 	}
- }
- 
-+static bool _is_reserved_type(int e820_type)
-+{
-+	return (e820_type == E820_RESERVED) || _is_unknown_type(e820_type);
-+}
-+
- /*
-  * Mark e820 reserved areas as busy for the resource manager.
-  */
-@@ -940,7 +966,8 @@ void __init e820_reserve_resources(void)
- 		 * pci device BAR resource and insert them later in
- 		 * pcibios_resource_survey()
- 		 */
--		if (e820.map[i].type != E820_RESERVED || res->start < (1ULL<<20)) {
-+		if (!_is_reserved_type(e820.map[i].type) ||
-+		    res->start < (1ULL<<20)) {
- 			res->flags |= IORESOURCE_BUSY;
- 			insert_resource(&iomem_resource, res);
- 		}
--- 
-1.9.3
-
-
+--Andy
