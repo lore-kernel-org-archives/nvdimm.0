@@ -1,8 +1,8 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Tue, 24 Feb 2015 10:07:43 +0100
+Date: Tue, 24 Feb 2015 10:06:08 +0100
 From: Ingo Molnar <mingo@kernel.org>
 Subject: Re: [PATCH 2/3 v3] resource: Add new flag IORESOURCE_MEM_WARN
-Message-ID: <20150224090742.GC19930@gmail.com>
+Message-ID: <20150224090608.GB19930@gmail.com>
 References: <54EB1D33.3050107@plexistor.com>
  <54EB206E.4010009@plexistor.com>
  <CALCETrXBwJdAarXVgO7VaEkTHtnO=-+n7mXy02PbS+sLqNiMyA@mail.gmail.com>
@@ -19,25 +19,17 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 * Boaz Harrosh <boaz@plexistor.com> wrote:
 
-> --- a/kernel/resource.c
-> +++ b/kernel/resource.c
-> @@ -1075,8 +1075,13 @@ struct resource * __request_region(struct resource *parent,
->  			break;
->  		if (conflict != parent) {
->  			parent = conflict;
-> -			if (!(conflict->flags & IORESOURCE_BUSY))
-> +			if (!(conflict->flags & IORESOURCE_BUSY)) {
-> +				if (conflict->flags & IORESOURCE_MEM_WARN)
-> +					pr_warn("request unknown region [mem %#010llx-%#010llx] %s\n",
-> +						conflict->start, conflict->end,
-> +						conflict->name);
+> --- a/include/linux/ioport.h
+> +++ b/include/linux/ioport.h
+> @@ -255,6 +256,5 @@ static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
+>         return (r1->start <= r2->end && r1->end >= r2->start);
+>  }
+>  
+> -
+>  #endif /* __ASSEMBLY__ */
 
-Maybe:
-
-   'request region with unknown memory type [mem ...]'?
-
-The driver (we hope!) very well knows about the region so 
-it's not totally unknown.
+While the newline is spurious, it should probably not be 
+removed in this patch.
 
 Thanks,
 
