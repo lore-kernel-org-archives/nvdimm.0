@@ -1,55 +1,106 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <54E1CF5B.9020905@plexistor.com>
-Date: Mon, 16 Feb 2015 13:07:07 +0200
+Message-ID: <54ED6D71.9040703@plexistor.com>
+Date: Wed, 25 Feb 2015 08:36:33 +0200
 From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Subject: [PATCH 0/2] e820: Fix handling of NvDIMM chips
+Subject: Re: [PATCH 2/3 v4] resource: Add new flag IORESOURCE_MEM_WARN
+References: <54EB1D33.3050107@plexistor.com>	<54EB206E.4010009@plexistor.com>	<CALCETrXBwJdAarXVgO7VaEkTHtnO=-+n7mXy02PbS+sLqNiMyA@mail.gmail.com>	<54EC38CA.6050607@plexistor.com>	<20150224090742.GC19930@gmail.com>	<54EC91F7.2030201@plexistor.com> <CAPcyv4jjNKkn6dDiJpBU=Gydva5p0FttmEeVj_hBsoZaWQasCQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4jjNKkn6dDiJpBU=Gydva5p0FttmEeVj_hBsoZaWQasCQ@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, x86@kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "Roger C. Pao" <rcpao.enmotus@gmail.com>, Dan Williams <dan.j.williams@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>, Ingo Molnar <mingo@redhat.com>, Andy Lutomirski <luto@amacapital.net>, Ross Zwisler <ross.zwisler@linux.intel.com>, X86 ML <x86@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Roger C. Pao" <rcpao.enmotus@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Wilcox <willy@linux.intel.com>, Christoph Hellwig <hch@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Vivek Goyal <vgoyal@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi
+On 02/24/2015 07:04 PM, Dan Williams wrote:
+> On Tue, Feb 24, 2015 at 7:00 AM, Boaz Harrosh <boaz@plexistor.com> wrote:
+>>
+>> Resource providers set this flag if they want
+>> that request_region will print a warning in dmesg
+>> if this particular memory resource is locked by a driver.
+>>
+>> Thous acting as a Protocol Police about experimental
+>> devices that did not pass a committee approval.
+>>
+>> The Only user of  this flag is x86/kernel/e820.c that
+>> wants to WARN about UNKNOWN memory types.
+>>
+>> NOTE: It would be preferred if I defined a general flag say
+>>       IORESOURCE_WARN, where any kind of resource provider
+>>       can WARN on use, but we have run out of flags in the
+>>       32bit long systems. So I defined a free bit from the
+>>       resource specific flags for mem resources. This is
+>>       why I need to check if this is a memory resource first
+>>       so not to conflict with other resource specific flags.
+>>       (Though actually no one is using this specific bit)
+>>
+>> CC: Thomas Gleixner <tglx@linutronix.de>
+>> CC: Ingo Molnar <mingo@redhat.com>
+>> CC: "H. Peter Anvin" <hpa@zytor.com>
+>> CC: x86@kernel.org
+>> CC: Dan Williams <dan.j.williams@intel.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: Bjorn Helgaas <bhelgaas@google.com>
+>> CC: Vivek Goyal <vgoyal@redhat.com>
+>> Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
+>> ---
+>>  arch/x86/kernel/e820.c | 3 +++
+>>  include/linux/ioport.h | 1 +
+>>  kernel/resource.c      | 9 ++++++++-
+>>  3 files changed, 12 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+>> index 1a8a1c3..105bb37 100644
+>> --- a/arch/x86/kernel/e820.c
+>> +++ b/arch/x86/kernel/e820.c
+>> @@ -961,6 +961,9 @@ void __init e820_reserve_resources(void)
+>>
+>>                 res->flags = IORESOURCE_MEM;
+>>
+>> +               if (_is_unknown_type(e820.map[i].type))
+>> +                       res->flags |= IORESOURCE_MEM_WARN;
+>> +
+>>                 /*
+>>                  * don't register the region that could be conflicted with
+>>                  * pci device BAR resource and insert them later in
+>> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+>> index 2c525022..f78972b 100644
+>> --- a/include/linux/ioport.h
+>> +++ b/include/linux/ioport.h
+>> @@ -90,6 +90,7 @@ struct resource {
+>>  #define IORESOURCE_MEM_32BIT           (3<<3)
+>>  #define IORESOURCE_MEM_SHADOWABLE      (1<<5)  /* dup: IORESOURCE_SHADOWABLE */
+>>  #define IORESOURCE_MEM_EXPANSIONROM    (1<<6)
+>> +#define IORESOURCE_MEM_WARN            (1<<7)  /* WARN if requested by driver */
+>>
+>>  /* PnP I/O specific bits (IORESOURCE_BITS) */
+>>  #define IORESOURCE_IO_16BIT_ADDR       (1<<0)
+>> diff --git a/kernel/resource.c b/kernel/resource.c
+>> index 19f2357..4bab16f 100644
+>> --- a/kernel/resource.c
+>> +++ b/kernel/resource.c
+>> @@ -1075,8 +1075,15 @@ struct resource * __request_region(struct resource *parent,
+>>                         break;
+>>                 if (conflict != parent) {
+>>                         parent = conflict;
+>> -                       if (!(conflict->flags & IORESOURCE_BUSY))
+>> +                       if (!(conflict->flags & IORESOURCE_BUSY)) {
+>> +                               if (unlikely(
+> 
+> No need for unlikely(), this isn't a hot path.
+> 
+>> +                                   (resource_type(conflict) == IORESOURCE_MEM)
+>> +                                   && (conflict->flags & IORESOURCE_MEM_WARN)))
+>> +                                       pr_warn("request region with unknown memory type [mem %#010llx-%#010llx] %s\n",
+>> +                                               conflict->start, conflict->end,
+>> +                                               conflict->name);
+> 
+> I think this should also dump the res->name to identify who is requesting it.
+> 
 
-There is a deficiency in current e820.c handling where unknown new memory-chip
-types come up as a BUSY resource when some other driver (like pmem) tries to
-call request_mem_region_exclusive() on that resource. Even though, actually
-there is nothing using it.
->From inspecting the code and the history of e820.c it looks like a BUG.
-
-In any way this is a problem for the new type-12 NvDIMM memory chips that
-are circulating around. (It is estimated that there are already 100ds of
-thousands NvDIMM chips in active use)
-
-The patches below first fixes the above problem for any future type
-memory, so external drivers can access these mem chips.
-
-I then also add the NvDIMM type-12 memory constant so it comes up
-nice in dprints and at /proc/iomem
-
-Just as before all these chips are very much usable with the pmem
-driver. This lets us remove the hack for type-12 NvDIMMs that ignores
-the return code from request_mem_region_exclusive() in pmem.c.
-
-There is a 3rd patch just for reference to pmem.c which enables
-pmem to work also on Old Kernels which do not include these 2
-patches.
-
-For all the pmem people. I maintain a tree with these patches
-and latest pmem code (Also including DAX) here:
-	git://git.open-osd.org/pmem.git
-	[web-view:http://git.open-osd.org/gitweb.cgi?p=pmem.git;a=summary]
-
-List of patches:
-[PATCH 1/2] e820: Don't let unknown DIMM type come out BUSY
-[RFC 2/2] e820: Add the NvDIMM Memory type (type-12)
-	These are for submission
-
-[PATCH 3/3] pmem: Allow request_mem to fail (CONFIG_BLK_DEV_PMEM_IGNORE_REQUEST_MEM_RET)
-	Just for reference
+OK Will send a version 4
 
 Thanks
 Boaz
-
+ 
