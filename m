@@ -1,147 +1,156 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [RFC PATCH 0/7] evacuate struct page from the block layer
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 16 Mar 2015 16:25:25 -0400
-Message-ID: <20150316201640.33102.33761.stgit@dwillia2-desk3.amr.corp.intel.com>
+Message-ID: <54FD7BF6.70405@plexistor.com>
+Date: Mon, 09 Mar 2015 12:54:46 +0200
+From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Subject: Re: [PATCH 1/3] e820: Don't let unknown DIMM type come out BUSY
+References: <54F82CE0.4040502@plexistor.com>	<54F82DD7.90600@plexistor.com> <CAPcyv4heW8L+nQir_DNwN6LfWVVwX6jZRUufsnTYMSSibWXd=w@mail.gmail.com>
+In-Reply-To: <CAPcyv4heW8L+nQir_DNwN6LfWVVwX6jZRUufsnTYMSSibWXd=w@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, linux-raid@vger.kernel.org, mgorman@suse.de, hch@infradead.org, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>, X86 ML <x86@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Roger C. Pao" <rcpao.enmotus@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, linux-nvdimm <linux-nvdimm@lists.01.org>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Wilcox <willy@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Christoph Hellwig <hch@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Avoid the impending disaster of requiring struct page coverage for what
-is expected to be ever increasing capacities of persistent memory.  In
-conversations with Rik van Riel, Mel Gorman, and Jens Axboe at the
-recently concluded Linux Storage Summit it became clear that struct page
-is not required in many places, it was simply convenient to re-use.
+On 03/05/2015 10:41 PM, Dan Williams wrote:
+> On Thu, Mar 5, 2015 at 2:20 AM, Boaz Harrosh <boaz@plexistor.com> wrote:
+>>
+>> There is something not very nice (Gentlemen nice) In current
+>> e820.c code.
+>>
+>> At Multiple places for example @memblock_x86_fill() it will
+>> add the different memory resources *except the E820_RESERVED type*
+>>
+>> Then at e820_reserve_resources() it will mark all !E820_RESERVED
+>> as busy.
+>>
+>> This is all fine when we have only the known types one of:
+>>         E820_RESERVED_KERN:
+>>         E820_RAM:
+>>         E820_ACPI:
+>>         E820_NVS:
+>>         E820_UNUSABLE:
+>>         E820_RESERVED:
+>>
+>> But if the system encounters a brand new memory type it will
+>> not add it to any memory list, But will proceed to mark it
+>> BUSY. So now any other Driver in the system that does know
+>> how to deal with this new type, is not able to call
+>> request_mem_region_exclusive() on this new type because it is
+>> hard coded BUSY even though nothing really uses it.
+>>
+>> So make any unknown type behave like E820_RESERVED memory,
+>> it will show up as available to first caller of
+>> request_mem_region_exclusive().
+>>
+>> I Also change the string representation of an unknown type
+>> from "reserved" (So to not confuse with memmap "reserved"
+>> region). And call it "reserved-unknown"
+>> I wish I could return "reserved-type-X" But this is not possible
+>> because one must return a constant, code-segment, string.
+>>
+>> (NOTE: These unknown-types where called "reserved" in
+>>  /proc/iomem and in dmesg but behaved differently. What this
+>>  patch does is name them differently but let them behave
+>>  the same)
+>>
+>> By Popular demand An Extra WARNING message is printed if
+>> an "UNKNOWN" is found. It will look like this:
+>>   e820: WARNING [mem 0x100000000-0x1ffffffff] is unknown type 12
+>>
+>> An example of such "UNKNOWN" type is the not Standard type-12
+>> DDR3-NvDIMM which is used by multiple vendors for a while
+>> now. (Estimated 100ds of thousands sold world wide)
+>>
+>> CC: Thomas Gleixner <tglx@linutronix.de>
+>> CC: Ingo Molnar <mingo@redhat.com>
+>> CC: "H. Peter Anvin" <hpa@zytor.com>
+>> CC: x86@kernel.org
+>> CC: Dan Williams <dan.j.williams@intel.com>
+>> CC: Matthew Wilcox <willy@linux.intel.com>
+>> CC: Christoph Hellwig <hch@infradead.org>
+>> CC: Andy Lutomirski <luto@amacapital.net>
+>> Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
+>> ---
+>>  arch/x86/kernel/e820.c | 31 +++++++++++++++++++++++++++++--
+>>  1 file changed, 29 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+>> index 46201de..c3a11cd 100644
+>> --- a/arch/x86/kernel/e820.c
+>> +++ b/arch/x86/kernel/e820.c
+>> @@ -104,6 +104,21 @@ int __init e820_all_mapped(u64 start, u64 end, unsigned type)
+>>         return 0;
+>>  }
+>>
+>> +static bool _is_unknown_type(int e820_type)
+> 
+> Any reason for the leading "_"?
+> 
 
-Introduce helpers and infrastructure to remove struct page usage where
-it is not necessary.  One use case for these changes is to implement a
-write-back-cache in persistent memory for software-RAID.  Another use
-case for the scatterlist changes is RDMA to a pfn-range.
+I have a style guide that says that any static function starts with a _ and
+need not a global prefix like e820_ so to not conflict when compiled in-kernel.
 
-This compiles and boots, but 0day-kbuild-robot coverage is needed before
-this set exits "RFC".  Obviously, the coccinelle script needs to be
-re-run on the block updates for kernel.next.  As is, this only includes
-the resulting auto-generated-patch against 4.0-rc3.
+But This is not the style in this file. So sorry, do I must send a new version
+patch?
 
----
+>> +{
+>> +       switch (e820_type) {
+>> +       case E820_RESERVED_KERN:
+>> +       case E820_RAM:
+>> +       case E820_ACPI:
+>> +       case E820_NVS:
+>> +       case E820_UNUSABLE:
+>> +       case E820_RESERVED:
+>> +               return false;
+>> +       default:
+>> +               return true;
+>> +       }
+>> +}
+>> +
+>>  /*
+>>   * Add a memory region to the kernel e820 map.
+>>   */
+>> @@ -119,6 +134,11 @@ static void __init __e820_add_region(struct e820map *e820x, u64 start, u64 size,
+>>                 return;
+>>         }
+>>
+>> +       if (unlikely(_is_unknown_type(type)))
+> 
+> Unnecessary unlikely()?
+> 
 
-Dan Williams (6):
-      block: add helpers for accessing a bio_vec page
-      block: convert bio_vec.bv_page to bv_pfn
-      dma-mapping: allow archs to optionally specify a ->map_pfn() operation
-      scatterlist: use sg_phys()
-      x86: support dma_map_pfn()
-      block: base support for pfn i/o
+Its more for a programmer's communication then CPU optimization. Though also for
+the CPU it is, "don't waste space at branch predictor", in anyway it can not hurt.
 
-Matthew Wilcox (1):
-      scatterlist: support "page-less" (__pfn_t only) entries
+But I like it here for the reading code flow that communicates. "Even if this happens
+%100 of the time the code flow should be not to take this error branch"
 
+>> +               pr_warn("e820: WARNING [mem %#010llx-%#010llx] is unknown type %d\n",
+>> +                      (unsigned long long) start,
+>> +                      (unsigned long long) (start + size - 1), type);
+> 
+> I still think this warning can go and 
 
- arch/Kconfig                                 |    3 +
- arch/arm/mm/dma-mapping.c                    |    2 -
- arch/microblaze/kernel/dma.c                 |    2 -
- arch/powerpc/sysdev/axonram.c                |    2 -
- arch/x86/Kconfig                             |   12 +++
- arch/x86/kernel/amd_gart_64.c                |   22 ++++--
- arch/x86/kernel/pci-nommu.c                  |   22 ++++--
- arch/x86/kernel/pci-swiotlb.c                |    4 +
- arch/x86/pci/sta2x11-fixup.c                 |    4 +
- arch/x86/xen/pci-swiotlb-xen.c               |    4 +
- block/bio-integrity.c                        |    8 +-
- block/bio.c                                  |   83 +++++++++++++++------
- block/blk-core.c                             |    9 ++
- block/blk-integrity.c                        |    7 +-
- block/blk-lib.c                              |    2 -
- block/blk-merge.c                            |   15 ++--
- block/bounce.c                               |   26 +++----
- drivers/block/aoe/aoecmd.c                   |    8 +-
- drivers/block/brd.c                          |    2 -
- drivers/block/drbd/drbd_bitmap.c             |    5 +
- drivers/block/drbd/drbd_main.c               |    4 +
- drivers/block/drbd/drbd_receiver.c           |    4 +
- drivers/block/drbd/drbd_worker.c             |    3 +
- drivers/block/floppy.c                       |    6 +-
- drivers/block/loop.c                         |    8 +-
- drivers/block/nbd.c                          |    8 +-
- drivers/block/nvme-core.c                    |    2 -
- drivers/block/pktcdvd.c                      |   11 ++-
- drivers/block/ps3disk.c                      |    2 -
- drivers/block/ps3vram.c                      |    2 -
- drivers/block/rbd.c                          |    2 -
- drivers/block/rsxx/dma.c                     |    3 +
- drivers/block/umem.c                         |    2 -
- drivers/block/zram/zram_drv.c                |   10 +--
- drivers/dma/ste_dma40.c                      |    5 -
- drivers/iommu/amd_iommu.c                    |   21 ++++-
- drivers/iommu/intel-iommu.c                  |   26 +++++--
- drivers/iommu/iommu.c                        |    2 -
- drivers/md/bcache/btree.c                    |    4 +
- drivers/md/bcache/debug.c                    |    6 +-
- drivers/md/bcache/movinggc.c                 |    2 -
- drivers/md/bcache/request.c                  |    6 +-
- drivers/md/bcache/super.c                    |   10 +--
- drivers/md/bcache/util.c                     |    5 +
- drivers/md/bcache/writeback.c                |    2 -
- drivers/md/dm-crypt.c                        |   12 ++-
- drivers/md/dm-io.c                           |    2 -
- drivers/md/dm-verity.c                       |    2 -
- drivers/md/raid1.c                           |   50 +++++++------
- drivers/md/raid10.c                          |   38 +++++-----
- drivers/md/raid5.c                           |    6 +-
- drivers/mmc/card/queue.c                     |    4 +
- drivers/s390/block/dasd_diag.c               |    2 -
- drivers/s390/block/dasd_eckd.c               |   14 ++--
- drivers/s390/block/dasd_fba.c                |    6 +-
- drivers/s390/block/dcssblk.c                 |    2 -
- drivers/s390/block/scm_blk.c                 |    2 -
- drivers/s390/block/scm_blk_cluster.c         |    2 -
- drivers/s390/block/xpram.c                   |    2 -
- drivers/scsi/mpt2sas/mpt2sas_transport.c     |    6 +-
- drivers/scsi/mpt3sas/mpt3sas_transport.c     |    6 +-
- drivers/scsi/sd_dif.c                        |    4 +
- drivers/staging/android/ion/ion_chunk_heap.c |    4 +
- drivers/staging/lustre/lustre/llite/lloop.c  |    2 -
- drivers/xen/biomerge.c                       |    4 +
- drivers/xen/swiotlb-xen.c                    |   29 +++++--
- fs/btrfs/check-integrity.c                   |    6 +-
- fs/btrfs/compression.c                       |   12 ++-
- fs/btrfs/disk-io.c                           |    4 +
- fs/btrfs/extent_io.c                         |    8 +-
- fs/btrfs/file-item.c                         |    8 +-
- fs/btrfs/inode.c                             |   18 +++--
- fs/btrfs/raid56.c                            |    4 +
- fs/btrfs/volumes.c                           |    2 -
- fs/buffer.c                                  |    4 +
- fs/direct-io.c                               |    2 -
- fs/exofs/ore.c                               |    4 +
- fs/exofs/ore_raid.c                          |    2 -
- fs/ext4/page-io.c                            |    2 -
- fs/f2fs/data.c                               |    4 +
- fs/f2fs/segment.c                            |    2 -
- fs/gfs2/lops.c                               |    4 +
- fs/jfs/jfs_logmgr.c                          |    4 +
- fs/logfs/dev_bdev.c                          |   10 +--
- fs/mpage.c                                   |    2 -
- fs/splice.c                                  |    2 -
- include/asm-generic/dma-mapping-common.h     |   30 ++++++++
- include/asm-generic/memory_model.h           |    4 +
- include/asm-generic/scatterlist.h            |    6 ++
- include/crypto/scatterwalk.h                 |   10 +++
- include/linux/bio.h                          |   24 +++---
- include/linux/blk_types.h                    |   21 +++++
- include/linux/blkdev.h                       |    2 +
- include/linux/dma-debug.h                    |   23 +++++-
- include/linux/dma-mapping.h                  |    8 ++
- include/linux/scatterlist.h                  |  101 ++++++++++++++++++++++++--
- include/linux/swiotlb.h                      |    5 +
- kernel/power/block_io.c                      |    2 -
- lib/dma-debug.c                              |    4 +
- lib/swiotlb.c                                |   20 ++++-
- mm/iov_iter.c                                |   22 +++---
- mm/page_io.c                                 |    8 +-
- net/ceph/messenger.c                         |    2 -
- 103 files changed, 658 insertions(+), 335 deletions(-)
+I did not have it at first, but Ingo felt it has merit, I trust his experience and
+instincts. I kind of like it now in the lab logs, for machines that actually have
+NvDIMMs in them.
+
+> we can just fold patch 2 into this one, but other than that this looks ok to me.
+> 
+
+No! we cannot.
+
+1. For one it is two different subsystems and maintainers. You want them separate
+   So they might go in through different trees, also conflict in different way if
+   code advances.
+
+2. These are two different topics. This patch is about fixing a bug, The resource being
+   busy was not intentional.
+   The second patch is about a global WARNING for when some mem resource is used, which
+   is independent of this here problem and is a new fixture.
+
+Thanks
+Boaz
+
