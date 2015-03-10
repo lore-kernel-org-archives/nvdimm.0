@@ -1,86 +1,65 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <54F8458E.2060202@plexistor.com>
-Date: Thu, 05 Mar 2015 14:01:18 +0200
-From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Subject: [PATCH 8/8] OUT-OF-TREE: pmem: Allow request_mem to fail (BLK_DEV_PMEM_IGNORE_REQUEST_MEM_RET)
-References: <54F82CE0.4040502@plexistor.com> <54F830D4.7030205@plexistor.com>
-In-Reply-To: <54F830D4.7030205@plexistor.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20150310051137.GA18810@linux-rxt1.site>
+References: <54F82CE0.4040502@plexistor.com> <54F82ED1.8030900@plexistor.com>
+ <CAPcyv4i5WfR48hmGwqLDgTFRpUPaAxusHXKKUKY4FBxu1Mqm+w@mail.gmail.com>
+ <CALCETrX6hLg+VPU-8voTFz+uChUdYf_JYg5iEwr6skEHp4R=Dg@mail.gmail.com>
+ <54FD8DBD.3070309@plexistor.com> <20150310051137.GA18810@linux-rxt1.site>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Tue, 10 Mar 2015 06:19:14 -0700
+Message-ID: <CALCETrXQEOiPxXvx86-T2qKmpNvBJC9OaSPn30heem_PanbSog@mail.gmail.com>
+Subject: Re: [PATCH 3/3] e820: Add the unknown-12 Memory type (DDR3-NvDIMM)
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@redhat.com>, x86@kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "Roger C. Pao" <rcpao.enmotus@gmail.com>, Dan Williams <dan.j.williams@intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-nvdimm <linux-nvdimm@lists.01.org>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Wilcox <willy@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Christoph Hellwig <hch@infradead.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+To: joeyli <jlee@suse.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>, Boaz Harrosh <boaz@plexistor.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, X86 ML <x86@kernel.org>, Dan Williams <dan.j.williams@intel.com>, "Roger C. Pao" <rcpao.enmotus@gmail.com>, Ingo Molnar <mingo@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-kernel <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Mar 10, 2015 1:12 AM, "joeyli" <jlee@suse.com> wrote:
+>
+> Hi,
+>
+> On Mon, Mar 09, 2015 at 02:10:37PM +0200, Boaz Harrosh wrote:
+> > On 03/06/2015 01:09 AM, Andy Lutomirski wrote:
+> > <>
+> > >
+> > > I will be shocked if a standard of this form ever appears.  Modern
+> > > systems *don't have e820*.  The BIOSes that are using this type 12
+> > > hack are awful throwbacks.
+> >
+> > So far the systems we have, with DDR4 NvDIMM(s) (Actual chips arriving soon)
+> > still have BIOS (On by default). The BIOS was yelled "Wolfe" for so long NOW ;-)
+> > Again these are working system in the field, who will switch them all to UEFI?
+> >
+> > How will the UEFI present them to the system? can you point me to the relevant
+> > code? (Or did you mean BIOS but with a different communication path than e820?)
+> >
+>
+> Per my understand...
+>
+> With EFI Boot Stub, there have setup_e820() codes in arch/x86/boot/compressed/eboot.c
+> that used to transfer EFI memmap to e820 entries. Currently doesn't have any
+> EFI_MEMORY_TYPE reflects to NvDIMM that will map to e820_type.
+>
+> I wonder what kind of EFI_MEMORY_TYPE reported by UEFI BIOS on those "shipped
+> NvDIMMs motherboards", like supermicro X9DRH-iF-NV. Then we may need add code
+> to setup_e820() for mapping the efi memory type to e820 type 12 region.
 
-With old Kernels there was a bug in x86 where any unknown
-memory chip type would come up BUSY when calling
-request_mem_region_exclusive().
+Nothing useful.  You can't detect the NvDIMM in EFI mode on my board
+as far as I know.
 
-So for pmem to work with old Kernels and real NvDIMM chips
-we have a new Kconfig option CONFIG_BLK_DEV_PMEM_IGNORE_REQUEST_MEM_RET.
+Rumor has it that we'll learn more about the EFI case very soon.
 
-People have been running with hacked up pmem that will ignore
-the return code from request_mem_region_exclusive. So here it is
-official
+--Andy
 
-Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
----
- drivers/block/Kconfig | 12 ++++++++++++
- drivers/block/pmem.c  |  9 ++++++---
- 2 files changed, 18 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
-index 635fa6a..58a2c69 100644
---- a/drivers/block/Kconfig
-+++ b/drivers/block/Kconfig
-@@ -435,6 +435,18 @@ config BLK_DEV_PMEM_USE_PAGES
- 	  to other devices in the system, then you must say "Yes" here.
- 	  If unsure leave as Yes.
- 
-+config BLK_DEV_PMEM_IGNORE_REQUEST_MEM_RET
-+	bool "Ignore the return code from request_mem_region_exclusive"
-+	depends on BLK_DEV_PMEM
-+	help
-+	  In Old Kernels type-12 Memory type which is used by NvDIMM
-+	  chips Comes out busy when calling request_mem_region_exclusive,
-+	  because of a bug.
-+	  If this option is set to "yes". The pmem will ignore the
-+	  failure, and continue as usual. If you have an old Kernel and
-+	  a real NvDIMM chip you must say yes here.
-+	  (Ignored if BLK_DEV_PMEM_USE_PAGES=y)
-+
- config CDROM_PKTCDVD
- 	tristate "Packet writing on CD/DVD media"
- 	depends on !UML
-diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index d0c80f4..ba1167c 100644
---- a/drivers/block/pmem.c
-+++ b/drivers/block/pmem.c
-@@ -172,8 +172,10 @@ int pmem_mapmem(struct pmem_device *pmem)
- 					       "pmem");
- 	if (unlikely(!res_mem)) {
- 		pr_warn("pmem: request_mem_region_exclusive phys=0x%llx size=0x%zx failed\n",
--			   pmem->phys_addr, pmem->size);
--		return -EINVAL;
-+			pmem->phys_addr, pmem->size);
-+#ifndef CONFIG_BLK_DEV_PMEM_IGNORE_REQUEST_MEM_RET
-+		return -EBUSY;
-+#endif
- 	}
- 
- 	pmem->virt_addr = ioremap_cache(pmem->phys_addr, pmem->size);
-@@ -184,7 +186,8 @@ int pmem_mapmem(struct pmem_device *pmem)
- 	return 0;
- 
- out_release:
--	release_mem_region(pmem->phys_addr, pmem->size);
-+	if (res_mem)
-+		release_mem_region(pmem->phys_addr, pmem->size);
- 	return err;
- }
- 
--- 
-1.9.3
-
+>
+> > >
+> > > --Andy
+> > >
+> >
+> > Thanks
+> > Boaz
+> >
+>
+> Thanks a lot!
+> Joey Lee
