@@ -1,58 +1,53 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <5501BF2F.6010303@plexistor.com>
-Date: Thu, 12 Mar 2015 18:30:39 +0200
-From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Subject: Re: [PATCH] brd: Ensure that bio_vecs have size <= PAGE_SIZE
-References: <1426093353-23709-1-git-send-email-ross.zwisler@linux.intel.com>	 <550078AB.5030203@plexistor.com> <1426113739.18821.2.camel@theros.lm.intel.com>
-In-Reply-To: <1426113739.18821.2.camel@theros.lm.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1426093353-23709-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1426093353-23709-1-git-send-email-ross.zwisler@linux.intel.com>
+Date: Wed, 11 Mar 2015 20:21:29 -0400
+Message-ID: <CAPcyv4j4W9A3Okq9KtU8wmSO4OyTBh8AqtFmLG9VO5bWAwwODw@mail.gmail.com>
+Subject: Re: [Linux-nvdimm] [PATCH] brd: Ensure that bio_vecs have size <= PAGE_SIZE
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@fb.com>
-Cc: linux-kernel@vger.kernel.org, "Roger C. Pao (Enmotus)" <rcpao.enmotus@gmail.com>, linux-nvdimm@lists.01.org, Nick Piggin <npiggin@kernel.dk>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 03/12/2015 12:42 AM, Ross Zwisler wrote:
-<>
-> 
-> Anyway, I thought your response to the original bug report against PMEM was
-> that you were alright with this one line change since it didn't hurt anything,
-> and perhaps it helped someone.  Do you have the same stance for BRD, 
+On Wed, Mar 11, 2015 at 1:02 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> The functions copy_from_brd() and copy_to_brd() are written with an
+> assumption that the bio_vec they are given has size <= PAGE_SIZE.  This
+> assumption is not enforced in any way, and if the bio_vec has size
+> larger than PAGE_SIZE data will just be lost.
+>
+> Such a situation can occur with I/Os generated from in-kernel sources,
+> or with coalesced bio_vecs.  This bug was originally reported against
+> the pmem driver, where it was found using the Enmotus tiering engine.
+>
+> Instead we should have brd explicitly tell the block layer that it can
+> handle data segments of at most PAGE_SIZE.
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Reported-by: Hugh Daschbach <hugh.daschbach@enmotus.com>
+> Cc: Roger C. Pao (Enmotus) <rcpao.enmotus@gmail.com>
+> Cc: Boaz Harrosh <boaz@plexistor.com>
+> Cc: linux-nvdimm@lists.01.org
+> Cc: Nick Piggin <npiggin@kernel.dk>
+> ---
+>  drivers/block/brd.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+> index 898b4f256782..7e4873361b64 100644
+> --- a/drivers/block/brd.c
+> +++ b/drivers/block/brd.c
+> @@ -490,6 +490,7 @@ static struct brd_device *brd_alloc(int i)
+>         blk_queue_make_request(brd->brd_queue, brd_make_request);
+>         blk_queue_max_hw_sectors(brd->brd_queue, 1024);
+>         blk_queue_bounce_limit(brd->brd_queue, BLK_BOUNCE_ANY);
+> +       blk_queue_max_segment_size(brd->brd_queue, PAGE_SIZE);
 
-No what I did in pmem is remove the BUG that was borrowed from brd, because
-in pmem we can support any imaginary bv_len since we are always contiguous
-in memory. (And Kernel mapping of a contiguous physical pages is also
-contiguous physical in virtual space)
 
-> or do you
-> think we need to track down if or how bio_vecs can make it to the driver with
-> more than one page of data first?
-> 
-
-OK So I have (again) audited every instance of *max_segment_size* and call
-me slow and stupid but all I can see is that:
-
-All this "coalesce"ing behavior and any reference to max_segment_size that
-you guys are talking about happen when translating the bio to an sg_list.
-
-In fact think about it the block layer must not touch the bio+biovec because
-it is a contract with upper layer. for each page submission there must be a
-one-to-one end_io notification for instance an FS might have taken a page_lock
-on the page.
-So if what you are saying is true and "bios are coalesced" it means that you
-need to copy the original bio-list to a new compacted one. This does not
-happen the copy to a new list happens from the move from bio to an sg_list,
-and the original bio is untouched.
-
-That said this is all up to Jens he is the maintainer of the block layer, if
-you are correct and bv_len may ever be > PAGE_SIZE then he will gladly take
-this patch I'm sure.
-
-> - Ross
-
-Just that I would really like to understand, that's all
-
-Thanks
-Boaz
-
+The block layer only honors this for request-based drivers.  I think
+we should just fix it properly.  Especially when we have in-kernel
+users of persistent memory allowing > PAGE_SIZE segments will be a
+nice feature.
