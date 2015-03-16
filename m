@@ -1,8 +1,8 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [RFC PATCH 6/7] x86: support dma_map_pfn()
+Subject: [RFC PATCH 4/7] scatterlist: use sg_phys()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 16 Mar 2015 16:25:59 -0400
-Message-ID: <20150316202559.33102.58183.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 16 Mar 2015 16:25:48 -0400
+Message-ID: <20150316202548.33102.57882.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <20150316201640.33102.33761.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150316201640.33102.33761.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -13,410 +13,121 @@ To: linux-kernel@vger.kernel.org
 Cc: axboe@kernel.dk, hch@infradead.org, riel@redhat.com, linux-nvdimm@lists.01.org, linux-raid@vger.kernel.org, mgorman@suse.de, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Fix up x86 dma_map_ops to allow pfn-only mappings.
+Coccinelle cleanup to replace open coded sg to physical address
+translations.  This is in preparation for introducing scatterlists that
+reference pfn(s) without a backing struct page.
 
-As long as a dma_map_sg() implementation uses the generic sg_phys()
-helpers it can support scatterlists that use struct pfn instead of
-struct page.
+// sg_phys.cocci: convert usage page_to_phys(sg_page(sg)) to sg_phys(sg)
+// usage: make coccicheck COCCI=sg_phys.cocci MODE=patch
+
+virtual patch
+virtual report
+virtual org
+
+@@
+struct scatterlist *sg;
+@@
+
+- page_to_phys(sg_page(sg)) + sg->offset
++ sg_phys(sg)
+
+@@
+struct scatterlist *sg;
+@@
+
+- page_to_phys(sg_page(sg))
++ sg_phys(sg) - sg->offset
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/Kconfig               |   12 ++++++++++++
- arch/x86/kernel/amd_gart_64.c  |   22 +++++++++++++++++-----
- arch/x86/kernel/pci-nommu.c    |   22 +++++++++++++++++-----
- arch/x86/kernel/pci-swiotlb.c  |    4 ++++
- arch/x86/pci/sta2x11-fixup.c   |    4 ++++
- arch/x86/xen/pci-swiotlb-xen.c |    4 ++++
- drivers/iommu/amd_iommu.c      |   21 ++++++++++++++++-----
- drivers/iommu/intel-iommu.c    |   22 +++++++++++++++++-----
- drivers/xen/swiotlb-xen.c      |   29 +++++++++++++++++++----------
- include/linux/swiotlb.h        |    4 ++++
- lib/swiotlb.c                  |   20 +++++++++++++++-----
- 11 files changed, 129 insertions(+), 35 deletions(-)
+ arch/arm/mm/dma-mapping.c                    |    2 +-
+ arch/microblaze/kernel/dma.c                 |    2 +-
+ drivers/iommu/intel-iommu.c                  |    4 ++--
+ drivers/iommu/iommu.c                        |    2 +-
+ drivers/staging/android/ion/ion_chunk_heap.c |    4 ++--
+ 5 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index b7d31ca55187..3be1c0ac0025 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -801,6 +801,7 @@ config CALGARY_IOMMU
- 	bool "IBM Calgary IOMMU support"
- 	select SWIOTLB
- 	depends on X86_64 && PCI
-+	depends on !HAVE_DMA_PFN
- 	---help---
- 	  Support for hardware IOMMUs in IBM's xSeries x366 and x460
- 	  systems. Needed to run systems with more than 3GB of memory
-@@ -1430,6 +1431,17 @@ config ILLEGAL_POINTER_VALUE
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index 170a116d1b29..ba7eeacfa8b1 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -1472,7 +1472,7 @@ static int __map_sg_chunk(struct device *dev, struct scatterlist *sg,
+ 		return -ENOMEM;
  
- source "mm/Kconfig"
+ 	for (count = 0, s = sg; count < (size >> PAGE_SHIFT); s = sg_next(s)) {
+-		phys_addr_t phys = page_to_phys(sg_page(s));
++		phys_addr_t phys = sg_phys(s) - s->offset;
+ 		unsigned int len = PAGE_ALIGN(s->offset + s->length);
  
-+config PMEM_DMA
-+	bool "Support DMA to Persistent Memory"
-+	select HAVE_DMA_PFN
-+	---help---
-+	  Enable drivers that are capable of performing DMA to
-+	  Persistent Memory.  Drivers with this capability are prepared
-+	  to map memory with either dma_map_pfn() or a dma_map_sg()
-+	  implementation that is pfn capable.  Note, some iommus, like
-+	  CONFIG_CALGARY_IOMMU are incompatible (disabled by this
-+	  option).
-+
- config HIGHPTE
- 	bool "Allocate 3rd-level pagetables from highmem"
- 	depends on HIGHMEM
-diff --git a/arch/x86/kernel/amd_gart_64.c b/arch/x86/kernel/amd_gart_64.c
-index 8e3842fc8bea..92c9f8139b08 100644
---- a/arch/x86/kernel/amd_gart_64.c
-+++ b/arch/x86/kernel/amd_gart_64.c
-@@ -239,13 +239,13 @@ static dma_addr_t dma_map_area(struct device *dev, dma_addr_t phys_mem,
- }
+ 		if (!is_coherent &&
+diff --git a/arch/microblaze/kernel/dma.c b/arch/microblaze/kernel/dma.c
+index ed7ba8a11822..dcb3c594d626 100644
+--- a/arch/microblaze/kernel/dma.c
++++ b/arch/microblaze/kernel/dma.c
+@@ -61,7 +61,7 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
+ 	/* FIXME this part of code is untested */
+ 	for_each_sg(sgl, sg, nents, i) {
+ 		sg->dma_address = sg_phys(sg);
+-		__dma_sync(page_to_phys(sg_page(sg)) + sg->offset,
++		__dma_sync(sg_phys(sg),
+ 							sg->length, direction);
+ 	}
  
- /* Map a single area into the IOMMU */
--static dma_addr_t gart_map_page(struct device *dev, struct page *page,
--				unsigned long offset, size_t size,
--				enum dma_data_direction dir,
--				struct dma_attrs *attrs)
-+static dma_addr_t gart_map_pfn(struct device *dev, __pfn_t pfn,
-+			       unsigned long offset, size_t size,
-+			       enum dma_data_direction dir,
-+			       struct dma_attrs *attrs)
- {
- 	unsigned long bus;
--	phys_addr_t paddr = page_to_phys(page) + offset;
-+	phys_addr_t paddr = pfn_to_phys(pfn) + offset;
- 
- 	if (!dev)
- 		dev = &x86_dma_fallback_dev;
-@@ -259,6 +259,14 @@ static dma_addr_t gart_map_page(struct device *dev, struct page *page,
- 	return bus;
- }
- 
-+static __maybe_unused dma_addr_t gart_map_page(struct device *dev,
-+		struct page *page, unsigned long offset, size_t size,
-+		enum dma_data_direction dir, struct dma_attrs *attrs)
-+{
-+	return gart_map_pfn(dev, page_to_pfn_typed(page), offset, size, dir,
-+			attrs);
-+}
-+
- /*
-  * Free a DMA mapping.
-  */
-@@ -699,7 +707,11 @@ static __init int init_amd_gatt(struct agp_kern_info *info)
- static struct dma_map_ops gart_dma_ops = {
- 	.map_sg				= gart_map_sg,
- 	.unmap_sg			= gart_unmap_sg,
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	.map_pfn			= gart_map_pfn,
-+#else
- 	.map_page			= gart_map_page,
-+#endif
- 	.unmap_page			= gart_unmap_page,
- 	.alloc				= gart_alloc_coherent,
- 	.free				= gart_free_coherent,
-diff --git a/arch/x86/kernel/pci-nommu.c b/arch/x86/kernel/pci-nommu.c
-index da15918d1c81..dfb66c4b8a73 100644
---- a/arch/x86/kernel/pci-nommu.c
-+++ b/arch/x86/kernel/pci-nommu.c
-@@ -25,12 +25,12 @@ check_addr(char *name, struct device *hwdev, dma_addr_t bus, size_t size)
- 	return 1;
- }
- 
--static dma_addr_t nommu_map_page(struct device *dev, struct page *page,
--				 unsigned long offset, size_t size,
--				 enum dma_data_direction dir,
--				 struct dma_attrs *attrs)
-+static dma_addr_t nommu_map_pfn(struct device *dev, __pfn_t pfn,
-+				unsigned long offset, size_t size,
-+				enum dma_data_direction dir,
-+				struct dma_attrs *attrs)
- {
--	dma_addr_t bus = page_to_phys(page) + offset;
-+	dma_addr_t bus = pfn_to_phys(pfn) + offset;
- 	WARN_ON(size == 0);
- 	if (!check_addr("map_single", dev, bus, size))
- 		return DMA_ERROR_CODE;
-@@ -38,6 +38,14 @@ static dma_addr_t nommu_map_page(struct device *dev, struct page *page,
- 	return bus;
- }
- 
-+static __maybe_unused dma_addr_t nommu_map_page(struct device *dev,
-+		struct page *page, unsigned long offset, size_t size,
-+		enum dma_data_direction dir, struct dma_attrs *attrs)
-+{
-+	return nommu_map_pfn(dev, page_to_pfn_typed(page), offset, size, dir,
-+			attrs);
-+}
-+
- /* Map a set of buffers described by scatterlist in streaming
-  * mode for DMA.  This is the scatter-gather version of the
-  * above pci_map_single interface.  Here the scatter gather list
-@@ -92,7 +100,11 @@ struct dma_map_ops nommu_dma_ops = {
- 	.alloc			= dma_generic_alloc_coherent,
- 	.free			= dma_generic_free_coherent,
- 	.map_sg			= nommu_map_sg,
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	.map_pfn		= nommu_map_pfn,
-+#else
- 	.map_page		= nommu_map_page,
-+#endif
- 	.sync_single_for_device = nommu_sync_single_for_device,
- 	.sync_sg_for_device	= nommu_sync_sg_for_device,
- 	.is_phys		= 1,
-diff --git a/arch/x86/kernel/pci-swiotlb.c b/arch/x86/kernel/pci-swiotlb.c
-index 77dd0ad58be4..5351eb8c8f7f 100644
---- a/arch/x86/kernel/pci-swiotlb.c
-+++ b/arch/x86/kernel/pci-swiotlb.c
-@@ -48,7 +48,11 @@ static struct dma_map_ops swiotlb_dma_ops = {
- 	.sync_sg_for_device = swiotlb_sync_sg_for_device,
- 	.map_sg = swiotlb_map_sg_attrs,
- 	.unmap_sg = swiotlb_unmap_sg_attrs,
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	.map_pfn = swiotlb_map_pfn,
-+#else
- 	.map_page = swiotlb_map_page,
-+#endif
- 	.unmap_page = swiotlb_unmap_page,
- 	.dma_supported = NULL,
- };
-diff --git a/arch/x86/pci/sta2x11-fixup.c b/arch/x86/pci/sta2x11-fixup.c
-index 5ceda85b8687..d1c6e3808bb5 100644
---- a/arch/x86/pci/sta2x11-fixup.c
-+++ b/arch/x86/pci/sta2x11-fixup.c
-@@ -182,7 +182,11 @@ static void *sta2x11_swiotlb_alloc_coherent(struct device *dev,
- static struct dma_map_ops sta2x11_dma_ops = {
- 	.alloc = sta2x11_swiotlb_alloc_coherent,
- 	.free = x86_swiotlb_free_coherent,
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	.map_pfn = swiotlb_map_pfn,
-+#else
- 	.map_page = swiotlb_map_page,
-+#endif
- 	.unmap_page = swiotlb_unmap_page,
- 	.map_sg = swiotlb_map_sg_attrs,
- 	.unmap_sg = swiotlb_unmap_sg_attrs,
-diff --git a/arch/x86/xen/pci-swiotlb-xen.c b/arch/x86/xen/pci-swiotlb-xen.c
-index 0e98e5d241d0..e65ea48d7aed 100644
---- a/arch/x86/xen/pci-swiotlb-xen.c
-+++ b/arch/x86/xen/pci-swiotlb-xen.c
-@@ -28,7 +28,11 @@ static struct dma_map_ops xen_swiotlb_dma_ops = {
- 	.sync_sg_for_device = xen_swiotlb_sync_sg_for_device,
- 	.map_sg = xen_swiotlb_map_sg_attrs,
- 	.unmap_sg = xen_swiotlb_unmap_sg_attrs,
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	.map_pfn = xen_swiotlb_map_pfn,
-+#else
- 	.map_page = xen_swiotlb_map_page,
-+#endif
- 	.unmap_page = xen_swiotlb_unmap_page,
- 	.dma_supported = xen_swiotlb_dma_supported,
- };
-diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
-index 48882c126245..65fc71985c14 100644
---- a/drivers/iommu/amd_iommu.c
-+++ b/drivers/iommu/amd_iommu.c
-@@ -2765,16 +2765,15 @@ static void __unmap_single(struct dma_ops_domain *dma_dom,
- /*
-  * The exported map_single function for dma_ops.
-  */
--static dma_addr_t map_page(struct device *dev, struct page *page,
--			   unsigned long offset, size_t size,
--			   enum dma_data_direction dir,
--			   struct dma_attrs *attrs)
-+static dma_addr_t map_pfn(struct device *dev, __pfn_t pfn, unsigned long offset,
-+		size_t size, enum dma_data_direction dir,
-+		struct dma_attrs *attrs)
- {
- 	unsigned long flags;
- 	struct protection_domain *domain;
- 	dma_addr_t addr;
- 	u64 dma_mask;
--	phys_addr_t paddr = page_to_phys(page) + offset;
-+	phys_addr_t paddr = pfn_to_phys(pfn) + offset;
- 
- 	INC_STATS_COUNTER(cnt_map_single);
- 
-@@ -2799,6 +2798,14 @@ out:
- 	spin_unlock_irqrestore(&domain->lock, flags);
- 
- 	return addr;
-+
-+}
-+
-+static __maybe_unused dma_addr_t map_page(struct device *dev, struct page *page,
-+		unsigned long offset, size_t size, enum dma_data_direction dir,
-+		struct dma_attrs *attrs)
-+{
-+	return map_pfn(dev, page_to_pfn_typed(page), offset, size, dir, attrs);
- }
- 
- /*
-@@ -3063,7 +3070,11 @@ static void __init prealloc_protection_domains(void)
- static struct dma_map_ops amd_iommu_dma_ops = {
- 	.alloc = alloc_coherent,
- 	.free = free_coherent,
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	.map_pfn = map_pfn,
-+#else
- 	.map_page = map_page,
-+#endif
- 	.unmap_page = unmap_page,
- 	.map_sg = map_sg,
- 	.unmap_sg = unmap_sg,
 diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
-index e10d62f2e61f..e3d304d4c162 100644
+index ae4c1a854e57..e10d62f2e61f 100644
 --- a/drivers/iommu/intel-iommu.c
 +++ b/drivers/iommu/intel-iommu.c
-@@ -3087,15 +3087,23 @@ error:
- 	return 0;
- }
- 
--static dma_addr_t intel_map_page(struct device *dev, struct page *page,
--				 unsigned long offset, size_t size,
--				 enum dma_data_direction dir,
--				 struct dma_attrs *attrs)
-+static dma_addr_t intel_map_pfn(struct device *dev, __pfn_t pfn,
-+				unsigned long offset, size_t size,
-+				enum dma_data_direction dir,
-+				struct dma_attrs *attrs)
- {
--	return __intel_map_single(dev, page_to_phys(page) + offset, size,
-+	return __intel_map_single(dev, pfn_to_phys(pfn) + offset, size,
- 				  dir, *dev->dma_mask);
- }
- 
-+static __maybe_unused dma_addr_t intel_map_page(struct device *dev,
-+		struct page *page, unsigned long offset, size_t size,
-+		enum dma_data_direction dir, struct dma_attrs *attrs)
-+{
-+	return intel_map_pfn(dev, page_to_pfn_typed(page), offset, size, dir,
-+			attrs);
-+}
-+
- static void flush_unmaps(void)
- {
- 	int i, j;
-@@ -3381,7 +3389,11 @@ struct dma_map_ops intel_dma_ops = {
- 	.free = intel_free_coherent,
- 	.map_sg = intel_map_sg,
- 	.unmap_sg = intel_unmap_sg,
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	.map_pfn = intel_map_pfn,
-+#else
- 	.map_page = intel_map_page,
-+#endif
- 	.unmap_page = intel_unmap_page,
- 	.mapping_error = intel_mapping_error,
- };
-diff --git a/drivers/xen/swiotlb-xen.c b/drivers/xen/swiotlb-xen.c
-index 810ad419e34c..bd29d09bbacc 100644
---- a/drivers/xen/swiotlb-xen.c
-+++ b/drivers/xen/swiotlb-xen.c
-@@ -382,10 +382,10 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_free_coherent);
-  * Once the device is given the dma address, the device owns this memory until
-  * either xen_swiotlb_unmap_page or xen_swiotlb_dma_sync_single is performed.
-  */
--dma_addr_t xen_swiotlb_map_page(struct device *dev, struct page *page,
--				unsigned long offset, size_t size,
--				enum dma_data_direction dir,
--				struct dma_attrs *attrs)
-+dma_addr_t xen_swiotlb_map_pfn(struct device *dev, unsigned long pfn,
-+			       unsigned long offset, size_t size,
-+			       enum dma_data_direction dir,
-+			       struct dma_attrs *attrs)
- {
- 	phys_addr_t map, phys = page_to_phys(page) + offset;
- 	dma_addr_t dev_addr = xen_phys_to_bus(phys);
-@@ -429,6 +429,16 @@ dma_addr_t xen_swiotlb_map_page(struct device *dev, struct page *page,
- 	}
- 	return dev_addr;
- }
-+EXPORT_SYMBOL_GPL(xen_swiotlb_map_pfn);
-+
-+dma_addr_t xen_swiotlb_map_page(struct device *dev, struct page *page,
-+				unsigned long offset, size_t size,
-+				enum dma_data_direction dir,
-+				struct dma_attrs *attrs)
-+{
-+	return xen_swiotlb_map_pfn(dev, page_to_pfn(page), offset, size, dir,
-+			attrs);
-+}
- EXPORT_SYMBOL_GPL(xen_swiotlb_map_page);
- 
- /*
-@@ -582,15 +592,14 @@ xen_swiotlb_map_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
- 						attrs);
- 			sg->dma_address = xen_phys_to_bus(map);
- 		} else {
-+			__pfn_t pfn = { .pfn = paddr >> PAGE_SHIFT };
-+			unsigned long offset = paddr & ~PAGE_MASK;
-+
- 			/* we are not interested in the dma_addr returned by
- 			 * xen_dma_map_page, only in the potential cache flushes executed
- 			 * by the function. */
--			xen_dma_map_page(hwdev, pfn_to_page(paddr >> PAGE_SHIFT),
--						dev_addr,
--						paddr & ~PAGE_MASK,
--						sg->length,
--						dir,
--						attrs);
-+			xen_dma_map_pfn(hwdev, pfn, dev_addr, offset,
-+					sg->length, attrs);
- 			sg->dma_address = dev_addr;
+@@ -2003,7 +2003,7 @@ static int __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
+ 			sg_res = aligned_nrpages(sg->offset, sg->length);
+ 			sg->dma_address = ((dma_addr_t)iov_pfn << VTD_PAGE_SHIFT) + sg->offset;
+ 			sg->dma_length = sg->length;
+-			pteval = page_to_phys(sg_page(sg)) | prot;
++			pteval = (sg_phys(sg) - sg->offset) | prot;
+ 			phys_pfn = pteval >> VTD_PAGE_SHIFT;
  		}
- 		sg_dma_len(sg) = sg->length;
-diff --git a/include/linux/swiotlb.h b/include/linux/swiotlb.h
-index dc3a94ce3b45..78b136b0b139 100644
---- a/include/linux/swiotlb.h
-+++ b/include/linux/swiotlb.h
-@@ -67,6 +67,10 @@ extern dma_addr_t swiotlb_map_page(struct device *dev, struct page *page,
- 				   unsigned long offset, size_t size,
- 				   enum dma_data_direction dir,
- 				   struct dma_attrs *attrs);
-+extern dma_addr_t swiotlb_map_pfn(struct device *dev, __pfn_t pfn,
-+				  unsigned long offset, size_t size,
-+				  enum dma_data_direction dir,
-+				  struct dma_attrs *attrs);
- extern void swiotlb_unmap_page(struct device *hwdev, dma_addr_t dev_addr,
- 			       size_t size, enum dma_data_direction dir,
- 			       struct dma_attrs *attrs);
-diff --git a/lib/swiotlb.c b/lib/swiotlb.c
-index 4abda074ea45..fc164041ec22 100644
---- a/lib/swiotlb.c
-+++ b/lib/swiotlb.c
-@@ -727,12 +727,12 @@ swiotlb_full(struct device *dev, size_t size, enum dma_data_direction dir,
-  * Once the device is given the dma address, the device owns this memory until
-  * either swiotlb_unmap_page or swiotlb_dma_sync_single is performed.
-  */
--dma_addr_t swiotlb_map_page(struct device *dev, struct page *page,
--			    unsigned long offset, size_t size,
--			    enum dma_data_direction dir,
--			    struct dma_attrs *attrs)
-+dma_addr_t swiotlb_map_pfn(struct device *dev, __pfn_t pfn,
-+			   unsigned long offset, size_t size,
-+			   enum dma_data_direction dir,
-+			   struct dma_attrs *attrs)
- {
--	phys_addr_t map, phys = page_to_phys(page) + offset;
-+	phys_addr_t map, phys = pfn_to_phys(pfn) + offset;
- 	dma_addr_t dev_addr = phys_to_dma(dev, phys);
  
- 	BUG_ON(dir == DMA_NONE);
-@@ -763,6 +763,16 @@ dma_addr_t swiotlb_map_page(struct device *dev, struct page *page,
+@@ -3303,7 +3303,7 @@ static int intel_nontranslate_map_sg(struct device *hddev,
  
- 	return dev_addr;
- }
-+EXPORT_SYMBOL_GPL(swiotlb_map_pfn);
-+
-+dma_addr_t swiotlb_map_page(struct device *dev, struct page *page,
-+			    unsigned long offset, size_t size,
-+			    enum dma_data_direction dir,
-+			    struct dma_attrs *attrs)
-+{
-+	return swiotlb_map_pfn(dev, page_to_pfn_typed(page), offset, size, dir,
-+			attrs);
-+}
- EXPORT_SYMBOL_GPL(swiotlb_map_page);
+ 	for_each_sg(sglist, sg, nelems, i) {
+ 		BUG_ON(!sg_page(sg));
+-		sg->dma_address = page_to_phys(sg_page(sg)) + sg->offset;
++		sg->dma_address = sg_phys(sg);
+ 		sg->dma_length = sg->length;
+ 	}
+ 	return nelems;
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index 72e683df0731..d5e746370bbb 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -1153,7 +1153,7 @@ size_t default_iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
+ 	min_pagesz = 1 << __ffs(domain->ops->pgsize_bitmap);
  
- /*
+ 	for_each_sg(sg, s, nents, i) {
+-		phys_addr_t phys = page_to_phys(sg_page(s)) + s->offset;
++		phys_addr_t phys = sg_phys(s);
+ 
+ 		/*
+ 		 * We are mapping on IOMMU page boundaries, so offset within
+diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
+index 3e6ec2ee6802..b7da5d142aa9 100644
+--- a/drivers/staging/android/ion/ion_chunk_heap.c
++++ b/drivers/staging/android/ion/ion_chunk_heap.c
+@@ -81,7 +81,7 @@ static int ion_chunk_heap_allocate(struct ion_heap *heap,
+ err:
+ 	sg = table->sgl;
+ 	for (i -= 1; i >= 0; i--) {
+-		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
++		gen_pool_free(chunk_heap->pool, sg_phys(sg) - sg->offset,
+ 			      sg->length);
+ 		sg = sg_next(sg);
+ 	}
+@@ -109,7 +109,7 @@ static void ion_chunk_heap_free(struct ion_buffer *buffer)
+ 							DMA_BIDIRECTIONAL);
+ 
+ 	for_each_sg(table->sgl, sg, table->nents, i) {
+-		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
++		gen_pool_free(chunk_heap->pool, sg_phys(sg) - sg->offset,
+ 			      sg->length);
+ 	}
+ 	chunk_heap->allocated -= allocated_size;
 
