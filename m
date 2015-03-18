@@ -1,53 +1,29 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 0/6] Add persistent memory driver
-Date: Mon, 16 Mar 2015 15:12:54 -0600
-Message-Id: <1426540380-24503-1-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+In-Reply-To: <550957B9.5050803@gmail.com>
+References: <20150316201640.33102.33761.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<550957B9.5050803@gmail.com>
+Date: Wed, 18 Mar 2015 08:35:38 -0700
+Message-ID: <CAPcyv4jmO+1xErV0bJEtM4sirTCK5XoWCT923Wgp14KcL=qO2A@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/7] evacuate struct page from the block layer
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, axboe@kernel.dk, hch@infradead.org, riel@redhat.com
+To: Boaz Harrosh <openosd@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@osdl.org>, linux-arch@vger.kernel.org, riel@redhat.com, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-raid <linux-raid@vger.kernel.org>, mgorman@suse.de, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Matthew Wilcox <willy@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-PMEM is a modified version of the Block RAM Driver, BRD. The major difference
-is that BRD allocates its backing store pages from the page cache, whereas
-PMEM uses reserved memory that has been ioremapped.
+On Wed, Mar 18, 2015 at 3:47 AM, Boaz Harrosh <openosd@gmail.com> wrote:
+> On 03/16/2015 10:25 PM, Dan Williams wrote:
+>> Avoid the impending disaster of requiring struct page coverage for what
+>> is expected to be ever increasing capacities of persistent memory.
+>
+> If you are saying "disaster", than we need to believe you. Or is there
+> a scientific proof for this.
 
-One benefit of this approach is that there is a direct mapping between
-filesystem block numbers and virtual addresses.  In PMEM, filesystem blocks N,
-N+1, N+2, etc. will all be adjacent in the virtual memory space. This property
-allows us to set up PMD mappings (2 MiB) for DAX.
-
-This patch set is builds upon the work that Matthew Wilcox has been doing for
-DAX, which has been merged into the v4.0 kernel series.
-
-For more information on PMEM and for some instructions on how to use it, please
-check out PMEM's github tree:
-
-https://github.com/01org/prd
-
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org
-Cc: axboe@kernel.dk
-Cc: hch@infradead.org
-Cc: riel@redhat.com
-
-Boaz Harrosh (1):
-  pmem: Let each device manage private memory region
-
-Ross Zwisler (5):
-  pmem: Initial version of persistent memory driver
-  pmem: Add support for getgeo()
-  pmem: Add support for rw_page()
-  pmem: Add support for direct_access()
-  pmem: Clean up includes
-
- MAINTAINERS            |   6 +
- drivers/block/Kconfig  |  41 +++++
- drivers/block/Makefile |   1 +
- drivers/block/pmem.c   | 401 +++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 449 insertions(+)
- create mode 100644 drivers/block/pmem.c
-
--- 
-1.9.3
-
+The same Moore's Law based extrapolation that Dave Chinner did to
+determine that major feature development on XFS may cease in 5 - 7
+years.  In Dave's words we're looking ahead to "lots and fast".  Given
+the time scale of getting kernel changes out to end users in an
+enterprise kernel update the "dynamic page struct allocation" approach
+is already insufficient.
