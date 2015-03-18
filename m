@@ -1,66 +1,82 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <54F830D4.7030205@plexistor.com>
-Date: Thu, 05 Mar 2015 12:32:52 +0200
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Message-ID: <55095CC6.4070404@plexistor.com>
+Date: Wed, 18 Mar 2015 13:08:54 +0200
 From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Subject: [RFC 0/8] pmem: Submission of the Persistent memory block device
-References: <54F82CE0.4040502@plexistor.com>
-In-Reply-To: <54F82CE0.4040502@plexistor.com>
+Subject: Re: [Linux-nvdimm] [PATCH 0/6] Add persistent memory driver
+References: <1426540380-24503-1-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1426540380-24503-1-git-send-email-ross.zwisler@linux.intel.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@redhat.com>, x86@kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "Roger C. Pao" <rcpao.enmotus@gmail.com>, Dan Williams <dan.j.williams@intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-nvdimm <linux-nvdimm@lists.01.org>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Wilcox <willy@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Christoph Hellwig <hch@infradead.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org
+Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, hch@infradead.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+On 03/16/2015 11:12 PM, Ross Zwisler wrote:
+> PMEM is a modified version of the Block RAM Driver, BRD. The major difference
+> is that BRD allocates its backing store pages from the page cache, whereas
+> PMEM uses reserved memory that has been ioremapped.
+> 
+> One benefit of this approach is that there is a direct mapping between
+> filesystem block numbers and virtual addresses.  In PMEM, filesystem blocks N,
+> N+1, N+2, etc. will all be adjacent in the virtual memory space. This property
+> allows us to set up PMD mappings (2 MiB) for DAX.
+> 
+> This patch set is builds upon the work that Matthew Wilcox has been doing for
+> DAX, which has been merged into the v4.0 kernel series.
+> 
+> For more information on PMEM and for some instructions on how to use it, please
+> check out PMEM's github tree:
+> 
+> https://github.com/01org/prd
+> 
+> Cc: linux-nvdimm@lists.01.org
+> Cc: linux-fsdevel@vger.kernel.org
+> Cc: axboe@kernel.dk
+> Cc: hch@infradead.org
+> Cc: riel@redhat.com
+> 
+> Boaz Harrosh (1):
+>   pmem: Let each device manage private memory region
+> 
+   Not signed-off-by me.
 
-There are already NvDIMMs and other Persistent-memory devices in the market, and
-lots more of them will be coming in near future.
+> Ross Zwisler (5):
+>   pmem: Initial version of persistent memory driver
 
-Current stack is coming along very nice, and filesystems support for leveraging this
-technologies has been submitted to Linus in the DAX series by Matthew Wilcox.
+This is the wrong code
 
-The general stack does not change:
-	block-device
-	partition
-	file-system
-	application file
+>   pmem: Add support for getgeo()
 
-The only extra care, see Matthew's DAX patches, Is the ->direct_access() API from
-block devices that enables a direct mapping from Persistent-memory to user application
-and/or Kernel for direct store/load of data.
+We do not need this patch
 
-The only missing piece is the actual block device that enables support
-for such NvDIMM chips. This is the driver we submit here.
+>   pmem: Add support for rw_page()
+>   pmem: Add support for direct_access()
+>   pmem: Clean up includes
+> 
 
-The driver is very simple, in fact it is the 2nd smallest driver inside drivers/block
-What the driver does is support a physical contiguous iomem range as a single block
-device. The driver has support for as many as needed iomem ranges each as its own device.
-(See patch-1 for more details)
+NACK!
 
-We are using this driver over a year now, In a lab with combination of VMs and real
-hardware, with a variety of hardware and vendors, and it is very stable. Actually why
-not it is so simple it does nothing almost.
+This is the wrong pmem driver, the wrong API and the wrong bad copy/paste
+from brd code.
 
-The driver is not only good for NvDIMMs, It is good for any flat memory mapped
-device. We've used it with NvDIMMs, Kernel reserved DRAM (memmap= on command line),
-PCIE Battery backed memory cards, VM shared memory, and so on.
+(And thanks Ross for not CCing me I have lots of mail to read every day,
+ Seriously this is rude, what do I need to feel?)
 
-Together with this driver also submitted support for page-struct with
-Persistent-memory, so Persistent-memory can be used with RDMA, DMA, block-devices
-and so on, just as regular memory, in a copy-less manner.
-With the use of these two simple patches, we were able to set up an RDMA target
-machine which exports NvDIMMs and enables direct remote storage. The only
-"complicated" thing was the remote flush of caches because most RDMA nicks in
-Kernel will RDMA directly to L3 cache, so we needed to establish a message that
-involves the remote CPU for this. But otherwise the mapping of pmem pointer
-to an RDMA key was trivial, directly from user-mode, with no extra Kernel code.
-[The target is simple with no extra code, the RDMA client on the other hand needs
- a special driver]
+And very Seriously. Ross what is that joke Kconfig and module-param
+API, how it is relevant to anything and how it is getting us close
+to what pmem really needs to be, with the auto-probe. Is this your
+wait wait we done lots of new work on this? It did not change one
+bit from the original brd copy/paste.
 
-I maintain these patches on latest Kernels here:
-	git://git.open-osd.org/pmem.git branch pmem
-
-Thanks for reviewing
 Boaz
+
+>  MAINTAINERS            |   6 +
+>  drivers/block/Kconfig  |  41 +++++
+>  drivers/block/Makefile |   1 +
+>  drivers/block/pmem.c   | 401 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 449 insertions(+)
+>  create mode 100644 drivers/block/pmem.c
+> 
 
