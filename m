@@ -1,45 +1,63 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Mon, 13 Apr 2015 19:18:05 +0200
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [GIT PULL] PMEM driver for v4.1
-Message-ID: <20150413171805.GA14243@lst.de>
-References: <20150413093309.GA30219@gmail.com> <20150413093541.GA5147@lst.de> <20150413104531.GB30556@gmail.com>
+Message-ID: <552BC660.4000202@plexistor.com>
+Date: Mon, 13 Apr 2015 16:36:32 +0300
+From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150413104531.GB30556@gmail.com>
+Subject: Re: [GIT PULL] PMEM driver for v4.1
+References: <20150413093309.GA30219@gmail.com> <20150413093541.GA5147@lst.de> <20150413104531.GB30556@gmail.com> <552BB4CA.6060808@plexistor.com> <20150413123535.GA2666@gmail.com>
+In-Reply-To: <20150413123535.GA2666@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: Ingo Molnar <mingo@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Boaz Harrosh <boaz@plexistor.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Apr 13, 2015 at 12:45:32PM +0200, Ingo Molnar wrote:
-> Btw., what's the future design plan here? Enable struct page backing, 
-> or provide special codepaths for all DAX uses like the special pte 
-> based approach for mmap()s?
+On 04/13/2015 03:35 PM, Ingo Molnar wrote:
+> 
+<>
+> 
+> How does splice work with DAX files? AFAICS vmsplice() won't work, as 
+> it uses get_user_pages(), which needs struct page backing. Also, how 
+> will f_op->sendpage() work? That too needs page backing.
+> 
 
-There are a couple approaches proposed, but we don't have consensus which
-way to go yet (to put it mildly).
+I'm not sure about f_op->sendpage(). I do not see it in ext4 so I assumed
+it works through f_op->splice_read/write.
 
- - the old Intel patches just allocate pages for E820_PMEM regions.
-   I think this is a good way forward for the "old-school" small
-   pmem regions which usually are battery/capacitor + flash backed
-   DRAM anyway.  This could easily be resurrected for the current code,
-   but it couldn't be used for PCI backed pmem regions, and would work
-   although waste a lot of resources for the gigantic pmem devices some
-   Intel people talk about (400TB+ IIRC).
+The way f_op->splice_XX works is through the read/write_iter system
+and this one is fully supported with DAX. It will do an extra copy.
 
- - Intel has proposed changes that allow block I/O on regions that aren't
-   page backed, by supporting PFN-based scatterlists which would have to be
-   supported all over the I/O path. Reception of that code has been rather
-   mediocre in general, although I wouldn't rule it out.
+[You can see this patch in linux-next:
+	8b22559 dax: unify ext2/4_{dax,}_file_operations
+ that explains a bit about this issue
+]
 
- - Boaz has shown code that creates pages dynamically for pmem regions.
-   Unlike the old Intel e820 code that would also work for PCI backed
-   pmem regions.  Boaz says he has such a card, but until someone actually
-   publishes specs and/or the trivial pci_driver for them I'm inclined to
-   just ignore that option.
+>>>    - zero copy O_DIRECT into DAX areas.
+>>
+>> DAX is always O_DIRECT.
+>>
+>> What does not work is mmap of DAX file and use that pointer in an
+>> O_DIRECT operation of another device. (unless it is a DAX device)
+> 
+> That is what I meant: O_DIRECT into (or from) DAX mmap()-ed areas, 
+> from a different device.
+> 
 
- - There have been proposals for temporary struct page mappings, or
-   variable sized pages, but as far as I can tell no code to actually
-   implement these schemes.
+Yes. For me the one missing the most is RDMA to/from pmem copy-less.
+
+Is why I'm pushing for my page-struct patches. But so far people
+rejected it. I hope to resend it soon, once the dust settles and see
+if people might change their mind.
+
+> I'm not promoting the use of these APIs, some of them are quirky, just 
+> wanted to list the known limitations. The pmem driver is already 
+> useful as-is.
+> 
+> Thanks,
+> 	Ingo
+> 
+
+Thanks
+Boaz
+
