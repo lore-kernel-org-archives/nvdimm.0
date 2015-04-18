@@ -1,77 +1,137 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 18/20] libnd: infrastructure for btt devices
+Subject: [PATCH 21/21] nd_blk: nfit blk driver
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 28 Apr 2015 14:25:52 -0400
-Message-ID: <20150428182551.35812.97856.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 17 Apr 2015 21:37:06 -0400
+Message-ID: <20150418013706.25237.474.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org
+Cc: Boaz Harrosh <boaz@plexistor.com>, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, "H. Peter Anvin" <hpa@zytor.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Block devices from an nd bus, in addition to accepting "struct bio"
-based requests, also have the capability to perform byte-aligned
-accesses.  By default only the bio/block interface is used.  However, if
-another driver can make effective use of the byte-aligned capability it
-can claim/disable the block interface and use the byte-aligned "nd_io"
-interface.
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-The BTT driver is the intended first consumer of this mechanism to allow
-layering atomic sector update guarantees on top of nd_io capable
-nd-bus-block-devices.
+Block-device driver for BLK namespaces described by DCR (dimm control
+region), BDW (block data window), and IDT (interleave descriptor) NFIT
+structures.
 
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Neil Brown <neilb@suse.de>
+The BIOS may choose to interleave multiple dimms into a given SPA
+(system physical address) range, so this driver includes core nd
+infrastructure for multiplexing multiple BLK namespace devices on a
+single request_mem_region() + ioremap() mapping.  Note, the math and
+table walking to de-interleave the memory space on each I/O may prove to
+be too computationally expensive, in which case we would look to replace
+it with a flat lookup implementation.
+
+A new nd core api nd_blk_validate_namespace() is introduced to check
+that the labels on the DIMM are in sync with the current set of
+dpa-resources assigned to the namespace.  nd_blk_validate_namespace()
+prevents enabling the namespace when they are out of sync.  Userspace
+can retry the writing the labels in that scenario.
+
+Finally, enable testing of the BLK namespace infrastructure via
+nfit_test.  Provide a mock implementations of  nd_blk_do_io() to route
+block-data-window accesses to an nfit_test allocation simulating BLK
+storage.
+
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Boaz Harrosh <boaz@plexistor.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/block/nd/Kconfig      |    3 
- drivers/block/nd/Makefile     |    1 
- drivers/block/nd/btt.h        |   45 ++++
- drivers/block/nd/btt_devs.c   |  442 +++++++++++++++++++++++++++++++++++++++++
- drivers/block/nd/bus.c        |  128 ++++++++++++
- drivers/block/nd/core.c       |   79 +++++++
- drivers/block/nd/nd-private.h |   28 +++
- drivers/block/nd/nd.h         |   94 +++++++++
- drivers/block/nd/pmem.c       |   29 +++
- include/uapi/linux/ndctl.h    |    2 
- 10 files changed, 847 insertions(+), 4 deletions(-)
- create mode 100644 drivers/block/nd/btt.h
- create mode 100644 drivers/block/nd/btt_devs.c
+ drivers/block/nd/Kconfig          |   19 ++
+ drivers/block/nd/Makefile         |    3 
+ drivers/block/nd/blk.c            |  269 ++++++++++++++++++++++++++++++++
+ drivers/block/nd/core.c           |   57 ++++++-
+ drivers/block/nd/namespace_devs.c |   47 ++++++
+ drivers/block/nd/nd-private.h     |   24 +++
+ drivers/block/nd/nd.h             |   51 ++++++
+ drivers/block/nd/region.c         |   11 +
+ drivers/block/nd/region_devs.c    |  314 ++++++++++++++++++++++++++++++++++++-
+ drivers/block/nd/test/iomap.c     |   53 ++++++
+ drivers/block/nd/test/nfit.c      |    3 
+ drivers/block/nd/test/nfit_test.h |   14 ++
+ 12 files changed, 851 insertions(+), 14 deletions(-)
+ create mode 100644 drivers/block/nd/blk.c
 
 diff --git a/drivers/block/nd/Kconfig b/drivers/block/nd/Kconfig
-index c5eaf195734d..15896db4de37 100644
+index 29d9f8e4eedb..72580cb0e39c 100644
 --- a/drivers/block/nd/Kconfig
 +++ b/drivers/block/nd/Kconfig
-@@ -95,4 +95,7 @@ config BLK_DEV_PMEM
+@@ -70,6 +70,9 @@ config NFIT_TEST
+ 	  load.  Kconfig does not allow for numerical value
+ 	  dependencies, so we can only warn at runtime.
+ 
++	  Enabling this option will degrade the performance of other BLK
++	  namespaces.  Do not enable for production environments.
++
+ 	  Say N unless you are doing development of the 'nd' subsystem.
+ 
+ config BLK_DEV_PMEM
+@@ -89,6 +92,22 @@ config BLK_DEV_PMEM
  
  	  Say Y if you want to use a NVDIMM described by NFIT
  
-+config ND_BTT_DEVS
-+	def_bool y
++config ND_BLK
++	tristate "BLK: Block data window (aperture) device support"
++	depends on ND_CORE
++	default ND_CORE
++	help
++	  This driver performs I/O using a set of DCR/BDW defined
++	  apertures.  The set of apertures will all access the one
++	  DIMM.  Multiple windows allow multiple concurrent accesses,
++	  much like tagged-command-queuing, and would likely be used
++	  by different threads or different CPUs.
 +
- endif
++	  The NFIT specification defines a standard format for a Block
++	  Data Window.
++
++	  Say Y if you want to use a NVDIMM described by NFIT
++
+ config ND_BTT_DEVS
+ 	bool
+ 
 diff --git a/drivers/block/nd/Makefile b/drivers/block/nd/Makefile
-index d588f691163c..0c6d64b7a69d 100644
+index 2dc1ab6fdef2..df104f2123a4 100644
 --- a/drivers/block/nd/Makefile
 +++ b/drivers/block/nd/Makefile
-@@ -32,3 +32,4 @@ libnd-y += region_devs.o
- libnd-y += region.o
- libnd-y += namespace_devs.o
- libnd-y += label.o
-+libnd-$(CONFIG_ND_BTT_DEVS) += btt_devs.o
-diff --git a/drivers/block/nd/btt.h b/drivers/block/nd/btt.h
+@@ -12,12 +12,14 @@ ldflags-y += --wrap=ioremap_nocache
+ ldflags-y += --wrap=iounmap
+ ldflags-y += --wrap=__request_region
+ ldflags-y += --wrap=__release_region
++ldflags-y += --wrap=nd_blk_do_io
+ endif
+ 
+ obj-$(CONFIG_ND_CORE) += nd.o
+ obj-$(CONFIG_NFIT_ACPI) += nd_acpi.o
+ obj-$(CONFIG_BLK_DEV_PMEM) += nd_pmem.o
+ obj-$(CONFIG_ND_BTT) += nd_btt.o
++obj-$(CONFIG_ND_BLK) += nd_blk.o
+ 
+ nd_acpi-y := acpi.o
+ 
+@@ -34,3 +36,4 @@ nd-$(CONFIG_ND_BTT_DEVS) += btt_devs.o
+ 
+ nd_pmem-y := pmem.o
+ nd_btt-y := btt.o
++nd_blk-y := blk.o
+diff --git a/drivers/block/nd/blk.c b/drivers/block/nd/blk.c
 new file mode 100644
-index 000000000000..e8f6d8e0ddd3
+index 000000000000..9e32ae610d15
 --- /dev/null
-+++ b/drivers/block/nd/btt.h
-@@ -0,0 +1,45 @@
++++ b/drivers/block/nd/blk.c
+@@ -0,0 +1,269 @@
 +/*
-+ * Block Translation Table library
-+ * Copyright (c) 2014-2015, Intel Corporation.
++ * NVDIMM Block Window Driver
++ * Copyright (c) 2014, Intel Corporation.
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms and conditions of the GNU General Public License,
@@ -83,1063 +143,1112 @@ index 000000000000..e8f6d8e0ddd3
 + * more details.
 + */
 +
-+#ifndef _LINUX_BTT_H
-+#define _LINUX_BTT_H
-+
-+#include <linux/types.h>
-+
-+#define BTT_SIG_LEN 16
-+#define BTT_SIG "BTT_ARENA_INFO\0"
-+
-+struct btt_sb {
-+	u8 signature[BTT_SIG_LEN];
-+	u8 uuid[16];
-+	u8 parent_uuid[16];
-+	__le32 flags;
-+	__le16 version_major;
-+	__le16 version_minor;
-+	__le32 external_lbasize;
-+	__le32 external_nlba;
-+	__le32 internal_lbasize;
-+	__le32 internal_nlba;
-+	__le32 nfree;
-+	__le32 infosize;
-+	__le64 nextoff;
-+	__le64 dataoff;
-+	__le64 mapoff;
-+	__le64 logoff;
-+	__le64 info2off;
-+	u8 padding[3968];
-+	__le64 checksum;
-+};
-+
-+#endif
-diff --git a/drivers/block/nd/btt_devs.c b/drivers/block/nd/btt_devs.c
-new file mode 100644
-index 000000000000..e6f0b8b999d8
---- /dev/null
-+++ b/drivers/block/nd/btt_devs.c
-@@ -0,0 +1,442 @@
-+/*
-+ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#include <linux/device.h>
-+#include <linux/genhd.h>
-+#include <linux/sizes.h>
-+#include <linux/slab.h>
++#include <linux/blkdev.h>
 +#include <linux/fs.h>
-+#include <linux/mm.h>
-+#include "nd-private.h"
-+#include "btt.h"
++#include <linux/genhd.h>
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/nd.h>
++#include <linux/sizes.h>
 +#include "nd.h"
 +
-+static DEFINE_IDA(btt_ida);
-+
-+static void nd_btt_release(struct device *dev)
-+{
-+	struct nd_btt *nd_btt = to_nd_btt(dev);
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+	WARN_ON(nd_btt->backing_dev);
-+	ndio_del_claim(nd_btt->ndio_claim);
-+	ida_simple_remove(&btt_ida, nd_btt->id);
-+	kfree(nd_btt->uuid);
-+	kfree(nd_btt);
-+}
-+
-+static struct device_type nd_btt_device_type = {
-+	.name = "nd_btt",
-+	.release = nd_btt_release,
++struct nd_blk_device {
++	struct request_queue *queue;
++	struct gendisk *disk;
++	struct nd_namespace_blk *nsblk;
++	struct nd_blk_window *ndbw;
++	struct nd_io ndio;
++	size_t disk_size;
++	int id;
 +};
 +
-+bool is_nd_btt(struct device *dev)
++static int nd_blk_major;
++static DEFINE_IDA(nd_blk_ida);
++
++static resource_size_t to_dev_offset(struct nd_namespace_blk *nsblk,
++				resource_size_t ns_offset, unsigned int len)
 +{
-+	return dev->type == &nd_btt_device_type;
-+}
++	int i;
 +
-+struct nd_btt *to_nd_btt(struct device *dev)
-+{
-+	struct nd_btt *nd_btt = container_of(dev, struct nd_btt, dev);
-+
-+	WARN_ON(!is_nd_btt(dev));
-+	return nd_btt;
-+}
-+EXPORT_SYMBOL(to_nd_btt);
-+
-+static const unsigned long btt_lbasize_supported[] = { 512, 4096, 0 };
-+
-+static ssize_t sector_size_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_btt *nd_btt = to_nd_btt(dev);
-+
-+	return nd_sector_size_show(nd_btt->lbasize, btt_lbasize_supported, buf);
-+}
-+
-+static ssize_t sector_size_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	struct nd_btt *nd_btt = to_nd_btt(dev);
-+	ssize_t rc;
-+
-+	device_lock(dev);
-+	nd_bus_lock(dev);
-+	rc = nd_sector_size_store(dev, buf, &nd_btt->lbasize,
-+			btt_lbasize_supported);
-+	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
-+			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	nd_bus_unlock(dev);
-+	device_unlock(dev);
-+
-+	return rc ? rc : len;
-+}
-+static DEVICE_ATTR_RW(sector_size);
-+
-+static ssize_t uuid_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_btt *nd_btt = to_nd_btt(dev);
-+
-+	if (nd_btt->uuid)
-+		return sprintf(buf, "%pUb\n", nd_btt->uuid);
-+	return sprintf(buf, "\n");
-+}
-+
-+static ssize_t uuid_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	struct nd_btt *nd_btt = to_nd_btt(dev);
-+	ssize_t rc;
-+
-+	device_lock(dev);
-+	rc = nd_uuid_store(dev, &nd_btt->uuid, buf, len);
-+	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
-+			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	device_unlock(dev);
-+
-+	return rc ? rc : len;
-+}
-+static DEVICE_ATTR_RW(uuid);
-+
-+static ssize_t backing_dev_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_btt *nd_btt = to_nd_btt(dev);
-+	char name[BDEVNAME_SIZE];
-+
-+	if (nd_btt->backing_dev)
-+		return sprintf(buf, "/dev/%s\n",
-+				bdevname(nd_btt->backing_dev, name));
-+	else
-+		return sprintf(buf, "\n");
-+}
-+
-+static const fmode_t nd_btt_devs_mode = FMODE_READ | FMODE_WRITE | FMODE_EXCL;
-+
-+static void nd_btt_ndio_notify_remove(struct nd_io_claim *ndio_claim)
-+{
-+	char bdev_name[BDEVNAME_SIZE];
-+	struct nd_btt *nd_btt;
-+
-+	if (!ndio_claim || !ndio_claim->holder)
-+		return;
-+
-+	nd_btt = to_nd_btt(ndio_claim->holder);
-+	WARN_ON_ONCE(!is_nd_bus_locked(&nd_btt->dev));
-+	dev_dbg(&nd_btt->dev, "%pf: %s: release /dev/%s\n",
-+			__builtin_return_address(0), __func__,
-+			bdevname(nd_btt->backing_dev, bdev_name));
-+	blkdev_put(nd_btt->backing_dev, nd_btt_devs_mode);
-+	nd_btt->backing_dev = NULL;
-+
-+	/*
-+	 * Once we've had our backing device removed we need to be fully
-+	 * reconfigured.  The bus will have already created a new seed
-+	 * for this purpose, so now is a good time to clean up this
-+	 * stale nd_btt instance.
-+	 */
-+	if (nd_btt->dev.driver)
-+		nd_device_unregister(&nd_btt->dev, ND_ASYNC);
-+	else {
-+		ndio_del_claim(ndio_claim);
-+		nd_btt->ndio_claim = NULL;
-+	}
-+}
-+
-+static ssize_t __backing_dev_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	struct nd_bus *nd_bus = walk_to_nd_bus(dev);
-+	struct nd_btt *nd_btt = to_nd_btt(dev);
-+	char bdev_name[BDEVNAME_SIZE];
-+	struct block_device *bdev;
-+	struct nd_io *ndio;
-+	char *path;
-+
-+	if (dev->driver) {
-+		dev_dbg(dev, "%s: -EBUSY\n", __func__);
-+		return -EBUSY;
++	for (i = 0; i < nsblk->num_resources; i++) {
++		if (ns_offset < resource_size(nsblk->res[i])) {
++			if (ns_offset + len > resource_size(nsblk->res[i])) {
++				dev_WARN_ONCE(&nsblk->dev, 1,
++					"%s: illegal request\n", __func__);
++				return SIZE_MAX;
++			}
++			return nsblk->res[i]->start + ns_offset;
++		}
++		ns_offset -= resource_size(nsblk->res[i]);
 +	}
 +
-+	path = kstrndup(buf, len, GFP_KERNEL);
-+	if (!path)
-+		return -ENOMEM;
++	dev_WARN_ONCE(&nsblk->dev, 1, "%s: request out of range\n", __func__);
++	return SIZE_MAX;
++}
 +
-+	/* detach the backing device */
-+	if (strcmp(strim(path), "") == 0) {
-+		if (!nd_btt->backing_dev)
++static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
++{
++	struct block_device *bdev = bio->bi_bdev;
++	struct gendisk *disk = bdev->bd_disk;
++	struct nd_namespace_blk *nsblk;
++	struct nd_blk_device *blk_dev;
++	struct nd_blk_window *ndbw;
++	struct bvec_iter iter;
++	struct bio_vec bvec;
++	int err = 0, rw;
++	sector_t sector;
++
++	sector = bio->bi_iter.bi_sector;
++	if (bio_end_sector(bio) > get_capacity(disk)) {
++		err = -EIO;
++		goto out;
++	}
++
++	BUG_ON(bio->bi_rw & REQ_DISCARD);
++
++	rw = bio_data_dir(bio);
++
++	blk_dev = disk->private_data;
++	nsblk = blk_dev->nsblk;
++	ndbw = blk_dev->ndbw;
++	bio_for_each_segment(bvec, bio, iter) {
++		unsigned int len = bvec.bv_len;
++		resource_size_t	dev_offset;
++		void *iobuf;
++
++		BUG_ON(len > PAGE_SIZE);
++
++		dev_offset = to_dev_offset(nsblk, sector << SECTOR_SHIFT, len);
++		if (dev_offset == SIZE_MAX) {
++			err = -EIO;
 +			goto out;
-+		nd_btt_ndio_notify_remove(nd_btt->ndio_claim);
-+		goto out;
-+	} else if (nd_btt->backing_dev) {
-+		dev_dbg(dev, "backing_dev already set\n");
-+		len = -EBUSY;
-+		goto out;
-+	}
++		}
 +
-+	bdev = blkdev_get_by_path(strim(path), nd_btt_devs_mode, nd_btt);
-+	if (IS_ERR(bdev)) {
-+		dev_dbg(dev, "open '%s' failed: %ld\n", strim(path),
-+				PTR_ERR(bdev));
-+		len = PTR_ERR(bdev);
-+		goto out;
-+	}
++		iobuf = kmap_atomic(bvec.bv_page);
++		err = nd_blk_do_io(ndbw, iobuf + bvec.bv_offset, len, rw,
++				dev_offset);
++		kunmap_atomic(iobuf);
++		if (err)
++			goto out;
 +
-+	if (get_capacity(bdev->bd_disk) < SZ_16M / 512) {
-+		blkdev_put(bdev, nd_btt_devs_mode);
-+		len = -ENXIO;
-+		goto out;
++		sector += len >> SECTOR_SHIFT;
 +	}
-+
-+	ndio = ndio_lookup(nd_bus, bdevname(bdev->bd_contains, bdev_name));
-+	if (!ndio) {
-+		dev_dbg(dev, "%s does not have an ndio interface\n",
-+				strim(path));
-+		blkdev_put(bdev, nd_btt_devs_mode);
-+		len = -ENXIO;
-+		goto out;
-+	}
-+
-+	nd_btt->ndio_claim = ndio_add_claim(ndio, &nd_btt->dev,
-+			nd_btt_ndio_notify_remove);
-+	if (!nd_btt->ndio_claim) {
-+		blkdev_put(bdev, nd_btt_devs_mode);
-+		len = -ENOMEM;
-+		goto out;
-+	}
-+
-+	WARN_ON_ONCE(!is_nd_bus_locked(&nd_btt->dev));
-+	nd_btt->backing_dev = bdev;
 +
 + out:
-+	kfree(path);
-+	return len;
++	bio_endio(bio, err);
 +}
 +
-+static ssize_t backing_dev_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	ssize_t rc;
-+
-+	nd_bus_lock(dev);
-+	device_lock(dev);
-+	rc = __backing_dev_store(dev, attr, buf, len);
-+	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
-+			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	device_unlock(dev);
-+	nd_bus_unlock(dev);
-+
-+	return rc;
-+}
-+static DEVICE_ATTR_RW(backing_dev);
-+
-+static bool is_nd_btt_idle(struct device *dev)
-+{
-+	struct nd_bus *nd_bus = walk_to_nd_bus(dev);
-+	struct nd_btt *nd_btt = to_nd_btt(dev);
-+
-+	if (nd_bus->nd_btt == nd_btt || dev->driver || nd_btt->backing_dev)
-+		return false;
-+	return true;
-+}
-+
-+static ssize_t delete_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	/* return 1 if can be deleted */
-+	return sprintf(buf, "%d\n", is_nd_btt_idle(dev));
-+}
-+
-+static ssize_t delete_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	unsigned long val;
-+
-+	/* write 1 to delete */
-+	if (kstrtoul(buf, 0, &val) != 0 || val != 1)
-+		return -EINVAL;
-+
-+	/* prevent deletion while this btt is active, or is the current seed */
-+	if (!is_nd_btt_idle(dev))
-+		return -EBUSY;
-+
-+	/*
-+	 * userspace raced itself if device goes active here and it gets
-+	 * to keep the pieces
-+	 */
-+	nd_device_unregister(dev, ND_ASYNC);
-+
-+	return len;
-+}
-+static DEVICE_ATTR_RW(delete);
-+
-+static struct attribute *nd_btt_attributes[] = {
-+	&dev_attr_sector_size.attr,
-+	&dev_attr_backing_dev.attr,
-+	&dev_attr_delete.attr,
-+	&dev_attr_uuid.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group nd_btt_attribute_group = {
-+	.attrs = nd_btt_attributes,
-+};
-+
-+static const struct attribute_group *nd_btt_attribute_groups[] = {
-+	&nd_btt_attribute_group,
-+	&nd_device_attribute_group,
-+	NULL,
-+};
-+
-+static struct nd_btt *__nd_btt_create(struct nd_bus *nd_bus,
-+		unsigned long lbasize, u8 *uuid)
-+{
-+	struct nd_btt *nd_btt = kzalloc(sizeof(*nd_btt), GFP_KERNEL);
-+	struct device *dev;
-+
-+	if (!nd_btt)
-+		return NULL;
-+	nd_btt->id = ida_simple_get(&btt_ida, 0, 0, GFP_KERNEL);
-+	if (nd_btt->id < 0) {
-+		kfree(nd_btt);
-+		return NULL;
-+	}
-+
-+	nd_btt->lbasize = lbasize;
-+	if (uuid)
-+		uuid = kmemdup(uuid, 16, GFP_KERNEL);
-+	nd_btt->uuid = uuid;
-+	dev = &nd_btt->dev;
-+	dev_set_name(dev, "btt%d", nd_btt->id);
-+	dev->parent = &nd_bus->dev;
-+	dev->type = &nd_btt_device_type;
-+	dev->groups = nd_btt_attribute_groups;
-+	return nd_btt;
-+}
-+
-+struct nd_btt *nd_btt_create(struct nd_bus *nd_bus)
-+{
-+	struct nd_btt *nd_btt = __nd_btt_create(nd_bus, 0, NULL);
-+
-+	if (!nd_btt)
-+		return NULL;
-+	nd_device_register(&nd_btt->dev);
-+	return nd_btt;
-+}
-+
-+/*
-+ * nd_btt_sb_checksum: compute checksum for btt info block
-+ *
-+ * Returns a fletcher64 checksum of everything in the given info block
-+ * except the last field (since that's where the checksum lives).
-+ */
-+u64 nd_btt_sb_checksum(struct btt_sb *btt_sb)
-+{
-+	u64 sum, sum_save;
-+
-+	sum_save = btt_sb->checksum;
-+	btt_sb->checksum = 0;
-+	sum = nd_fletcher64(btt_sb, sizeof(*btt_sb));
-+	btt_sb->checksum = sum_save;
-+	return sum;
-+}
-+EXPORT_SYMBOL(nd_btt_sb_checksum);
-+
-+static int nd_btt_autodetect(struct nd_bus *nd_bus, struct nd_io *ndio,
-+		struct block_device *bdev)
-+{
-+	char name[BDEVNAME_SIZE];
-+	struct nd_btt *nd_btt;
-+	struct btt_sb *btt_sb;
-+	u64 offset, checksum;
-+	u32 lbasize;
-+	u8 *uuid;
-+	int rc;
-+
-+	btt_sb = kzalloc(sizeof(*btt_sb), GFP_KERNEL);
-+	if (!btt_sb)
-+		return -ENODEV;
-+
-+	offset = nd_partition_offset(bdev);
-+	rc = ndio->rw_bytes(ndio, btt_sb, offset + SZ_4K, sizeof(*btt_sb), READ);
-+	if (rc)
-+		goto out_free_sb;
-+
-+	if (get_capacity(bdev->bd_disk) < SZ_16M / 512)
-+		goto out_free_sb;
-+
-+	if (memcmp(btt_sb->signature, BTT_SIG, BTT_SIG_LEN) != 0)
-+		goto out_free_sb;
-+
-+	checksum = le64_to_cpu(btt_sb->checksum);
-+	btt_sb->checksum = 0;
-+	if (checksum != nd_btt_sb_checksum(btt_sb))
-+		goto out_free_sb;
-+	btt_sb->checksum = cpu_to_le64(checksum);
-+
-+	uuid = kmemdup(btt_sb->uuid, 16, GFP_KERNEL);
-+	if (!uuid)
-+		goto out_free_sb;
-+
-+	lbasize = le32_to_cpu(btt_sb->external_lbasize);
-+	nd_btt = __nd_btt_create(nd_bus, lbasize, uuid);
-+	if (!nd_btt)
-+		goto out_free_uuid;
-+
-+	device_initialize(&nd_btt->dev);
-+	nd_btt->ndio_claim = ndio_add_claim(ndio, &nd_btt->dev,
-+			nd_btt_ndio_notify_remove);
-+	if (!nd_btt->ndio_claim)
-+		goto out_free_btt;
-+
-+	nd_btt->backing_dev = bdev;
-+	dev_dbg(&nd_btt->dev, "%s: activate %s\n", __func__,
-+			bdevname(bdev, name));
-+	__nd_device_register(&nd_btt->dev);
-+	kfree(btt_sb);
-+	return 0;
-+
-+ out_free_btt:
-+	kfree(nd_btt);
-+ out_free_uuid:
-+	kfree(uuid);
-+ out_free_sb:
-+	kfree(btt_sb);
-+
-+	return -ENODEV;
-+}
-+
-+void nd_btt_notify_ndio(struct nd_bus *nd_bus, struct nd_io *ndio)
-+{
-+	struct disk_part_iter piter;
-+	struct hd_struct *part;
-+
-+	disk_part_iter_init(&piter, ndio->disk, DISK_PITER_INCL_PART0);
-+	while ((part = disk_part_iter_next(&piter))) {
-+		struct block_device *bdev;
-+		int rc;
-+
-+		bdev = bdget_disk(ndio->disk, part->partno);
-+		if (!bdev)
-+			continue;
-+		if (blkdev_get(bdev, nd_btt_devs_mode, nd_bus) != 0)
-+			continue;
-+		rc = nd_btt_autodetect(nd_bus, ndio, bdev);
-+		if (rc)
-+			blkdev_put(bdev, nd_btt_devs_mode);
-+		/* no need to scan further in the case of whole disk btt */
-+		if (rc == 0 && part->partno == 0)
-+			break;
-+	}
-+	disk_part_iter_exit(&piter);
-+}
-diff --git a/drivers/block/nd/bus.c b/drivers/block/nd/bus.c
-index 6c272f245f4e..27785f3fc4ca 100644
---- a/drivers/block/nd/bus.c
-+++ b/drivers/block/nd/bus.c
-@@ -16,6 +16,7 @@
- #include <linux/module.h>
- #include <linux/fcntl.h>
- #include <linux/async.h>
-+#include <linux/genhd.h>
- #include <linux/ndctl.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-@@ -40,6 +41,8 @@ static int to_nd_device_type(struct device *dev)
- 		return ND_DEVICE_REGION_BLK;
- 	else if (is_nd_pmem(dev->parent) || is_nd_blk(dev->parent))
- 		return nd_region_to_namespace_type(to_nd_region(dev->parent));
-+	else if (is_nd_btt(dev))
-+		return ND_DEVICE_BTT;
- 
- 	return 0;
- }
-@@ -84,6 +87,21 @@ static int nd_bus_probe(struct device *dev)
- 
- 	dev_dbg(&nd_bus->dev, "%s.probe(%s) = %d\n", dev->driver->name,
- 			dev_name(dev), rc);
-+
-+	/* check if our btt-seed has sprouted, and plant another */
-+	if (rc == 0 && is_nd_btt(dev) && dev == &nd_bus->nd_btt->dev) {
-+		const char *sep = "", *name = "", *status = "failed";
-+
-+		nd_bus->nd_btt = nd_btt_create(nd_bus);
-+		if (nd_bus->nd_btt) {
-+			status = "succeeded";
-+			sep = ": ";
-+			name = dev_name(&nd_bus->nd_btt->dev);
-+		}
-+		dev_dbg(&nd_bus->dev, "btt seed creation %s%s%s\n",
-+				status, sep, name);
-+	}
-+
- 	if (rc != 0)
- 		module_put(provider);
- 	return rc;
-@@ -144,14 +162,19 @@ static void nd_async_device_unregister(void *d, async_cookie_t cookie)
- 	put_device(dev);
- }
- 
--void nd_device_register(struct device *dev)
-+void __nd_device_register(struct device *dev)
- {
- 	dev->bus = &nd_bus_type;
--	device_initialize(dev);
- 	get_device(dev);
- 	async_schedule_domain(nd_async_device_register, dev,
- 			&nd_async_domain);
- }
-+
-+void nd_device_register(struct device *dev)
-+{
-+	device_initialize(dev);
-+	__nd_device_register(dev);
-+}
- EXPORT_SYMBOL(nd_device_register);
- 
- void nd_device_unregister(struct device *dev, enum nd_async_mode mode)
-@@ -200,6 +223,107 @@ int __nd_driver_register(struct nd_device_driver *nd_drv, struct module *owner,
- }
- EXPORT_SYMBOL(__nd_driver_register);
- 
-+/**
-+ * nd_register_ndio() - register byte-aligned access capability for an nd-bdev
-+ * @disk: child gendisk of the ndio namepace device
-+ * @ndio: initialized ndio instance to register
-+ *
-+ * LOCKING: hold nd_bus_lock() over the creation of ndio->disk and the
-+ * subsequent nd_region_ndio event
-+ */
-+int nd_register_ndio(struct nd_io *ndio)
-+{
-+	struct nd_bus *nd_bus;
-+	struct device *dev;
-+
-+	if (!ndio || !ndio->dev || !ndio->disk || !list_empty(&ndio->list)
-+			|| !ndio->rw_bytes || !list_empty(&ndio->claims)) {
-+		pr_debug("%s bad parameters from %pf\n", __func__,
-+				__builtin_return_address(0));
-+		return -EINVAL;
-+	}
-+
-+	dev = ndio->dev;
-+	nd_bus = walk_to_nd_bus(dev);
-+	if (!nd_bus)
-+		return -EINVAL;
-+
-+	WARN_ON_ONCE(!is_nd_bus_locked(&nd_bus->dev));
-+	list_add(&ndio->list, &nd_bus->ndios);
-+
-+	/* TODO: generic infrastructure for 3rd party ndio claimers */
-+	nd_btt_notify_ndio(nd_bus, ndio);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(nd_register_ndio);
-+
-+/**
-+ * __nd_unregister_ndio() - try to remove an ndio interface
-+ * @ndio: interface to remove
-+ */
-+static int __nd_unregister_ndio(struct nd_io *ndio)
-+{
-+	struct nd_io_claim *ndio_claim, *_n;
-+	struct nd_bus *nd_bus;
-+	LIST_HEAD(claims);
-+
-+	nd_bus = walk_to_nd_bus(ndio->dev);
-+	if (!nd_bus || list_empty(&ndio->list))
-+		return -ENXIO;
-+
-+	spin_lock(&ndio->lock);
-+	list_splice_init(&ndio->claims, &claims);
-+	spin_unlock(&ndio->lock);
-+
-+	list_for_each_entry_safe(ndio_claim, _n, &claims, list)
-+		ndio_claim->notify_remove(ndio_claim);
-+
-+	list_del_init(&ndio->list);
-+
-+	return 0;
-+}
-+
-+int nd_unregister_ndio(struct nd_io *ndio)
-+{
-+	struct device *dev = ndio->dev;
-+	int rc;
-+
-+	nd_bus_lock(dev);
-+	rc = __nd_unregister_ndio(ndio);
-+	nd_bus_unlock(dev);
-+
-+	/*
-+	 * Flush in case ->notify_remove() kicked off asynchronous device
-+	 * unregistration
-+	 */
-+	nd_synchronize();
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL(nd_unregister_ndio);
-+
-+static struct nd_io *__ndio_lookup(struct nd_bus *nd_bus, const char *diskname)
-+{
-+	struct nd_io *ndio;
-+
-+	list_for_each_entry(ndio, &nd_bus->ndios, list)
-+		if (strcmp(diskname, ndio->disk->disk_name) == 0)
-+			return ndio;
-+
-+	return NULL;
-+}
-+
-+struct nd_io *ndio_lookup(struct nd_bus *nd_bus, const char *diskname)
-+{
-+	struct nd_io *ndio;
-+
-+	WARN_ON_ONCE(!is_nd_bus_locked(&nd_bus->dev));
-+	ndio = __ndio_lookup(nd_bus, diskname);
-+
-+	return ndio;
-+}
-+
- static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
- 		char *buf)
- {
-diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
-index 3ec38289be58..dca48f9c1580 100644
---- a/drivers/block/nd/core.c
-+++ b/drivers/block/nd/core.c
-@@ -55,6 +55,62 @@ bool is_nd_bus_locked(struct device *dev)
- }
- EXPORT_SYMBOL(is_nd_bus_locked);
- 
-+void nd_init_ndio(struct nd_io *ndio, nd_rw_bytes_fn rw_bytes,
-+		struct device *dev, struct gendisk *disk, unsigned long align)
-+{
-+	memset(ndio, 0, sizeof(*ndio));
-+	INIT_LIST_HEAD(&ndio->claims);
-+	INIT_LIST_HEAD(&ndio->list);
-+	spin_lock_init(&ndio->lock);
-+	ndio->dev = dev;
-+	ndio->disk = disk;
-+	ndio->align = align;
-+	ndio->rw_bytes = rw_bytes;
-+}
-+EXPORT_SYMBOL(nd_init_ndio);
-+
-+void ndio_del_claim(struct nd_io_claim *ndio_claim)
-+{
-+	struct nd_io *ndio;
-+	struct device *holder;
-+
-+	if (!ndio_claim)
-+		return;
-+	ndio = ndio_claim->parent;
-+	holder = ndio_claim->holder;
-+
-+	dev_dbg(holder, "%s: drop %s\n", __func__, dev_name(ndio->dev));
-+	spin_lock(&ndio->lock);
-+	list_del(&ndio_claim->list);
-+	spin_unlock(&ndio->lock);
-+	put_device(ndio->dev);
-+	kfree(ndio_claim);
-+	put_device(holder);
-+}
-+
-+struct nd_io_claim *ndio_add_claim(struct nd_io *ndio, struct device *holder,
-+		ndio_notify_remove_fn notify_remove)
-+{
-+	struct nd_io_claim *ndio_claim = kzalloc(sizeof(*ndio_claim), GFP_KERNEL);
-+
-+	if (!ndio_claim)
-+		return NULL;
-+
-+	INIT_LIST_HEAD(&ndio_claim->list);
-+	ndio_claim->parent = ndio;
-+	get_device(ndio->dev);
-+
-+	spin_lock(&ndio->lock);
-+	list_add(&ndio_claim->list, &ndio->claims);
-+	spin_unlock(&ndio->lock);
-+
-+	ndio_claim->holder = holder;
-+	ndio_claim->notify_remove = notify_remove;
-+	get_device(holder);
-+
-+	return ndio_claim;
-+}
-+
- u64 nd_fletcher64(void __iomem *addr, size_t len)
- {
- 	u32 lo32 = 0;
-@@ -74,6 +130,8 @@ static void nd_bus_release(struct device *dev)
- {
- 	struct nd_bus *nd_bus = container_of(dev, struct nd_bus, dev);
- 
-+	WARN_ON(!list_empty(&nd_bus->ndios));
-+
- 	ida_simple_remove(&nd_ida, nd_bus->id);
- 	kfree(nd_bus);
- }
-@@ -270,10 +328,28 @@ static ssize_t wait_probe_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(wait_probe);
- 
-+static ssize_t btt_seed_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_bus *nd_bus = to_nd_bus(dev);
-+	ssize_t rc;
-+
-+	nd_bus_lock(dev);
-+	if (nd_bus->nd_btt)
-+		rc = sprintf(buf, "%s\n", dev_name(&nd_bus->nd_btt->dev));
-+	else
-+		rc = sprintf(buf, "\n");
-+	nd_bus_unlock(dev);
-+
-+	return rc;
-+}
-+static DEVICE_ATTR_RO(btt_seed);
-+
- static struct attribute *nd_bus_attributes[] = {
- 	&dev_attr_commands.attr,
- 	&dev_attr_wait_probe.attr,
- 	&dev_attr_provider.attr,
-+	&dev_attr_btt_seed.attr,
- 	NULL,
- };
- 
-@@ -290,6 +366,7 @@ struct nd_bus *__nd_bus_register(struct device *parent,
- 
- 	if (!nd_bus)
- 		return NULL;
-+	INIT_LIST_HEAD(&nd_bus->ndios);
- 	INIT_LIST_HEAD(&nd_bus->list);
- 	init_waitqueue_head(&nd_bus->probe_wait);
- 	nd_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
-@@ -318,6 +395,8 @@ struct nd_bus *__nd_bus_register(struct device *parent,
- 	list_add_tail(&nd_bus->list, &nd_bus_list);
- 	mutex_unlock(&nd_bus_list_mutex);
- 
-+	nd_bus->nd_btt = nd_btt_create(nd_bus);
-+
- 	return nd_bus;
-  err:
- 	put_device(&nd_bus->dev);
-diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
-index c7b29c6f21cb..4ab4765dc9ee 100644
---- a/drivers/block/nd/nd-private.h
-+++ b/drivers/block/nd/nd-private.h
-@@ -22,14 +22,21 @@ extern struct list_head nd_bus_list;
- extern struct mutex nd_bus_list_mutex;
- extern int nd_dimm_major;
- 
-+struct block_device;
-+struct nd_io_claim;
-+struct nd_btt;
-+struct nd_io;
-+
- struct nd_bus {
- 	struct nd_bus_descriptor *nd_desc;
- 	wait_queue_head_t probe_wait;
- 	struct module *module;
-+	struct list_head ndios;
- 	struct list_head list;
- 	struct device dev;
- 	int id, probe_active;
- 	struct mutex reconfig_mutex;
-+	struct nd_btt *nd_btt;
- };
- 
- struct nd_dimm {
-@@ -41,9 +48,29 @@ struct nd_dimm {
- 	int id;
- };
- 
-+struct nd_io *ndio_lookup(struct nd_bus *nd_bus, const char *diskname);
- bool is_nd_dimm(struct device *dev);
- bool is_nd_blk(struct device *dev);
- bool is_nd_pmem(struct device *dev);
-+#if IS_ENABLED(CONFIG_ND_BTT_DEVS)
-+bool is_nd_btt(struct device *dev);
-+struct nd_btt *nd_btt_create(struct nd_bus *nd_bus);
-+void nd_btt_notify_ndio(struct nd_bus *nd_bus, struct nd_io *ndio);
-+#else
-+static inline bool is_nd_btt(struct device *dev)
-+{
-+	return false;
-+}
-+
-+static inline struct nd_btt *nd_btt_create(struct nd_bus *nd_bus)
-+{
-+	return NULL;
-+}
-+
-+static inline void nd_btt_notify_ndio(struct nd_bus *nd_bus, struct nd_io *ndio)
-+{
-+}
-+#endif
- struct nd_bus *walk_to_nd_bus(struct device *nd_dev);
- int __init nd_bus_init(void);
- void nd_bus_exit(void);
-@@ -62,6 +89,7 @@ void nd_synchronize(void);
- int nd_bus_register_dimms(struct nd_bus *nd_bus);
- int nd_bus_register_regions(struct nd_bus *nd_bus);
- int nd_bus_init_interleave_sets(struct nd_bus *nd_bus);
-+void __nd_device_register(struct device *dev);
- int nd_match_dimm(struct device *dev, void *data);
- struct nd_label_id;
- char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags);
-diff --git a/drivers/block/nd/nd.h b/drivers/block/nd/nd.h
-index 8eaf0ae82db4..c6ed26d4dcad 100644
---- a/drivers/block/nd/nd.h
-+++ b/drivers/block/nd/nd.h
-@@ -12,13 +12,19 @@
-  */
- #ifndef __ND_H__
- #define __ND_H__
-+#include <linux/genhd.h>
- #include <linux/device.h>
- #include <linux/mutex.h>
- #include <linux/ndctl.h>
- #include <linux/types.h>
-+#include <linux/fs.h>
- #include "libnd.h"
- #include "label.h"
- 
-+enum {
-+	SECTOR_SHIFT = 9,
-+};
-+
- struct nd_dimm_drvdata {
- 	struct device *dev;
- 	int nsindex_size;
-@@ -111,6 +117,84 @@ static inline unsigned nd_inc_seq(unsigned seq)
- 	return next[seq & 3];
- }
- 
-+struct nd_io;
-+/**
-+ * nd_rw_bytes_fn() - access bytes relative to the "whole disk" namespace device
-+ * @ndio: per-namespace context
-+ * @buf: source / target for the write / read
-+ * @offset: offset relative to the start of the namespace device
-+ * @n: num bytes to access
-+ * @flags: READ, WRITE, and other REQ_* flags
-+ *
-+ * Note: Implementations may assume that offset + n never crosses ndio->align
-+ */
-+typedef int (*nd_rw_bytes_fn)(struct nd_io *ndio, void *buf, size_t offset,
-+		size_t n, unsigned long flags);
-+#define nd_data_dir(flags) (flags & 1)
-+
-+/**
-+ * struct nd_io - info for byte-aligned access to nd devices
-+ * @rw_bytes: operation to perform byte-aligned access
-+ * @align: a single ->rw_bytes() request may not cross this alignment
-+ * @gendisk: whole disk block device for the namespace
-+ * @list: for the core to cache a list of "ndio"s for later association
-+ * @dev: namespace device
-+ * @claims: list of clients using this interface
-+ * @lock: protect @claims mutation
-+ */
-+struct nd_io {
-+	nd_rw_bytes_fn rw_bytes;
-+	unsigned long align;
-+	struct gendisk *disk;
-+	struct list_head list;
-+	struct device *dev;
-+	struct list_head claims;
-+	spinlock_t lock;
-+};
-+
-+struct nd_io_claim;
-+typedef void (*ndio_notify_remove_fn)(struct nd_io_claim *ndio_claim);
-+
-+/**
-+ * struct nd_io_claim - instance of a claim on a parent ndio
-+ * @notify_remove: ndio is going away, release resources
-+ * @holder: object that has claimed this ndio
-+ * @parent: ndio in use
-+ * @holder: holder device
-+ * @list: claim peers
-+ *
-+ * An ndio may be claimed multiple times, consider the case of a btt
-+ * instance per partition on a namespace.
-+ */
-+struct nd_io_claim {
-+	struct nd_io *parent;
-+	ndio_notify_remove_fn notify_remove;
-+	struct list_head list;
-+	struct device *holder;
-+};
-+
-+struct nd_btt {
-+	struct device dev;
-+	struct nd_io *ndio;
-+	struct block_device *backing_dev;
-+	unsigned long lbasize;
-+	u8 *uuid;
-+	u64 offset;
-+	int id;
-+	struct nd_io_claim *ndio_claim;
-+};
-+
-+static inline u64 nd_partition_offset(struct block_device *bdev)
-+{
-+	struct hd_struct *p;
-+
-+	if (bdev == bdev->bd_contains)
-+		return 0;
-+
-+	p = bdev->bd_part;
-+	return ((u64) p->start_sect) << SECTOR_SHIFT;
-+}
-+
- enum nd_async_mode {
- 	ND_SYNC,
- 	ND_ASYNC,
-@@ -125,12 +209,22 @@ ssize_t nd_sector_size_show(unsigned long current_lbasize,
- 		const unsigned long *supported, char *buf);
- ssize_t nd_sector_size_store(struct device *dev, const char *buf,
- 		unsigned long *current_lbasize, const unsigned long *supported);
-+int nd_register_ndio(struct nd_io *ndio);
-+int nd_unregister_ndio(struct nd_io *ndio);
-+void nd_init_ndio(struct nd_io *ndio, nd_rw_bytes_fn rw_bytes,
-+		struct device *dev, struct gendisk *disk, unsigned long align);
-+void ndio_del_claim(struct nd_io_claim *ndio_claim);
-+struct nd_io_claim *ndio_add_claim(struct nd_io *ndio, struct device *holder,
-+		ndio_notify_remove_fn notify_remove);
- struct nd_dimm;
- struct nd_dimm_drvdata *to_ndd(struct nd_mapping *nd_mapping);
- int nd_dimm_init_nsarea(struct nd_dimm_drvdata *ndd);
- int nd_dimm_init_config_data(struct nd_dimm_drvdata *ndd);
- int nd_dimm_set_config_data(struct nd_dimm_drvdata *ndd, size_t offset,
- 		void *buf, size_t len);
-+struct nd_btt *to_nd_btt(struct device *dev);
-+struct btt_sb;
-+u64 nd_btt_sb_checksum(struct btt_sb *btt_sb);
- struct nd_region *to_nd_region(struct device *dev);
- int nd_region_to_namespace_type(struct nd_region *nd_region);
- int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
-diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
-index 32e7e74ee25a..900dad61a6b9 100644
---- a/drivers/block/nd/pmem.c
-+++ b/drivers/block/nd/pmem.c
-@@ -31,6 +31,7 @@
- struct pmem_device {
- 	struct request_queue	*pmem_queue;
- 	struct gendisk		*pmem_disk;
-+	struct nd_io		ndio;
- 
- 	/* One contiguous memory region per device */
- 	phys_addr_t		phys_addr;
-@@ -100,6 +101,26 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- 	return 0;
- }
- 
-+static int pmem_rw_bytes(struct nd_io *ndio, void *buf, size_t offset,
++static int nd_blk_rw_bytes(struct nd_io *ndio, void *iobuf, size_t offset,
 +		size_t n, unsigned long flags)
 +{
-+	struct pmem_device *pmem = container_of(ndio, typeof(*pmem), ndio);
++	struct nd_namespace_blk *nsblk;
++	struct nd_blk_device *blk_dev;
 +	int rw = nd_data_dir(flags);
++	struct nd_blk_window *ndbw;
++	resource_size_t	dev_offset;
 +
-+	if (unlikely(offset + n > pmem->size)) {
++	blk_dev = container_of(ndio, typeof(*blk_dev), ndio);
++	ndbw = blk_dev->ndbw;
++	nsblk = blk_dev->nsblk;
++	dev_offset = to_dev_offset(nsblk, offset, n);
++
++	if (unlikely(offset + n > blk_dev->disk_size)) {
 +		dev_WARN_ONCE(ndio->dev, 1, "%s: request out of range\n",
 +				__func__);
 +		return -EFAULT;
 +	}
 +
-+	if (rw == READ)
-+		memcpy(buf, pmem->virt_addr + offset, n);
-+	else
-+		memcpy(pmem->virt_addr + offset, buf, n);
++	if (dev_offset == SIZE_MAX)
++		return -EIO;
++
++	return nd_blk_do_io(ndbw, iobuf, n, rw, dev_offset);
++}
++
++static const struct block_device_operations nd_blk_fops = {
++	.owner =		THIS_MODULE,
++};
++
++static int nd_blk_probe(struct device *dev)
++{
++	struct nd_namespace_blk *nsblk = to_nd_namespace_blk(dev);
++	struct nd_blk_device *blk_dev;
++	resource_size_t disk_size;
++	struct gendisk *disk;
++	int err;
++
++	disk_size = nd_namespace_blk_validate(nsblk);
++	if (disk_size < ND_MIN_NAMESPACE_SIZE)
++		return -ENXIO;
++
++	blk_dev = kzalloc(sizeof(*blk_dev), GFP_KERNEL);
++	if (!blk_dev)
++		return -ENOMEM;
++
++	blk_dev->id = ida_simple_get(&nd_blk_ida, 0, 0, GFP_KERNEL);
++	if (blk_dev->id < 0) {
++		err = blk_dev->id;
++		goto err_ida;
++	}
++
++	blk_dev->disk_size	= disk_size;
++
++	blk_dev->queue = blk_alloc_queue(GFP_KERNEL);
++	if (!blk_dev->queue) {
++		err = -ENOMEM;
++		goto err_alloc_queue;
++	}
++
++	blk_queue_make_request(blk_dev->queue, nd_blk_make_request);
++	blk_queue_max_hw_sectors(blk_dev->queue, 1024);
++	blk_queue_bounce_limit(blk_dev->queue, BLK_BOUNCE_ANY);
++
++	disk = blk_dev->disk = alloc_disk(0);
++	if (!disk) {
++		err = -ENOMEM;
++		goto err_alloc_disk;
++	}
++
++	blk_dev->ndbw = &to_nd_region(nsblk->dev.parent)->bw;
++	blk_dev->nsblk = nsblk;
++
++	disk->driverfs_dev	= dev;
++	disk->major		= nd_blk_major;
++	disk->first_minor	= 0;
++	disk->fops		= &nd_blk_fops;
++	disk->private_data	= blk_dev;
++	disk->queue		= blk_dev->queue;
++	disk->flags		= GENHD_FL_EXT_DEVT;
++	sprintf(disk->disk_name, "nd%d", blk_dev->id);
++	set_capacity(disk, disk_size >> SECTOR_SHIFT);
++
++	nd_bus_lock(dev);
++	dev_set_drvdata(dev, blk_dev);
++
++	add_disk(disk);
++	nd_init_ndio(&blk_dev->ndio, nd_blk_rw_bytes, dev, disk, 0);
++	nd_register_ndio(&blk_dev->ndio);
++	nd_bus_unlock(dev);
++
++	return 0;
++
++ err_alloc_disk:
++	blk_cleanup_queue(blk_dev->queue);
++ err_alloc_queue:
++	ida_simple_remove(&nd_blk_ida, blk_dev->id);
++ err_ida:
++	kfree(blk_dev);
++	return err;
++}
++
++static int nd_blk_remove(struct device *dev)
++{
++	/* FIXME: eventually need to get to nd_blk_device from struct device.
++	struct nd_namespace_io *nsio = to_nd_namespace_io(dev); */
++
++	struct nd_blk_device *blk_dev = dev_get_drvdata(dev);
++
++	nd_unregister_ndio(&blk_dev->ndio);
++	del_gendisk(blk_dev->disk);
++	put_disk(blk_dev->disk);
++	blk_cleanup_queue(blk_dev->queue);
++	ida_simple_remove(&nd_blk_ida, blk_dev->id);
++	kfree(blk_dev);
 +
 +	return 0;
 +}
 +
- static long pmem_direct_access(struct block_device *bdev, sector_t sector,
- 			      void **kaddr, unsigned long *pfn, long size)
++static struct nd_device_driver nd_blk_driver = {
++	.probe = nd_blk_probe,
++	.remove = nd_blk_remove,
++	.drv = {
++		.name = "nd_blk",
++	},
++	.type = ND_DRIVER_NAMESPACE_BLOCK,
++};
++
++static int __init nd_blk_init(void)
++{
++	int rc;
++
++	rc = nfit_test_blk_init();
++	if (rc)
++		return rc;
++
++	rc = register_blkdev(0, "nd_blk");
++	if (rc < 0)
++		return rc;
++
++	nd_blk_major = rc;
++	rc = nd_driver_register(&nd_blk_driver);
++
++	if (rc < 0)
++		unregister_blkdev(nd_blk_major, "nd_blk");
++
++	return rc;
++}
++
++static void __exit nd_blk_exit(void)
++{
++	driver_unregister(&nd_blk_driver.drv);
++	unregister_blkdev(nd_blk_major, "nd_blk");
++}
++
++MODULE_AUTHOR("Ross Zwisler <ross.zwisler@linux.intel.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS_ND_DEVICE(ND_DEVICE_NAMESPACE_BLOCK);
++module_init(nd_blk_init);
++module_exit(nd_blk_exit);
+diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
+index 065ab9b5ec61..43ced72f8676 100644
+--- a/drivers/block/nd/core.c
++++ b/drivers/block/nd/core.c
+@@ -159,6 +159,7 @@ static void nd_bus_release(struct device *dev)
+ 	struct nd_mem *nd_mem, *_mem;
+ 	struct nd_dcr *nd_dcr, *_dcr;
+ 	struct nd_bdw *nd_bdw, *_bdw;
++	struct nd_idt *nd_idt, *_idt;
+ 
+ 	list_for_each_entry_safe(nd_spa, _spa, &nd_bus->spas, list) {
+ 		list_del_init(&nd_spa->list);
+@@ -177,6 +178,10 @@ static void nd_bus_release(struct device *dev)
+ 		list_del_init(&nd_memdev->list);
+ 		kfree(nd_memdev);
+ 	}
++	list_for_each_entry_safe(nd_idt, _idt, &nd_bus->idts, list) {
++		list_del_init(&nd_idt->list);
++		kfree(nd_idt);
++	}
+ 	list_for_each_entry_safe(nd_mem, _mem, &nd_bus->dimms, list) {
+ 		list_del_init(&nd_mem->list);
+ 		kfree(nd_mem);
+@@ -427,7 +432,9 @@ static void *nd_bus_new(struct device *parent,
+ 		return NULL;
+ 	INIT_LIST_HEAD(&nd_bus->spas);
+ 	INIT_LIST_HEAD(&nd_bus->dcrs);
++	INIT_LIST_HEAD(&nd_bus->idts);
+ 	INIT_LIST_HEAD(&nd_bus->bdws);
++	INIT_LIST_HEAD(&nd_bus->spa_maps);
+ 	INIT_LIST_HEAD(&nd_bus->memdevs);
+ 	INIT_LIST_HEAD(&nd_bus->dimms);
+ 	INIT_LIST_HEAD(&nd_bus->ndios);
+@@ -436,6 +443,7 @@ static void *nd_bus_new(struct device *parent,
+ 	INIT_RADIX_TREE(&nd_bus->dimm_radix, GFP_KERNEL);
+ 	nd_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
+ 	mutex_init(&nd_bus->reconfig_mutex);
++	mutex_init(&nd_bus->spa_map_mutex);
+ 	if (nd_bus->id < 0) {
+ 		kfree(nd_bus);
+ 		return NULL;
+@@ -574,10 +582,21 @@ static void __iomem *add_table(struct nd_bus *nd_bus, void __iomem *table,
+ 				readw(&nfit_bdw->num_bdw));
+ 		break;
+ 	}
+-	/* TODO */
+-	case NFIT_TABLE_IDT:
+-		dev_dbg(&nd_bus->dev, "%s: idt\n", __func__);
++	case NFIT_TABLE_IDT: {
++		struct nd_idt *nd_idt = kzalloc(sizeof(*nd_idt), GFP_KERNEL);
++		struct nfit_idt __iomem *nfit_idt = table;
++
++		if (!nd_idt)
++			goto err;
++		INIT_LIST_HEAD(&nd_idt->list);
++		nd_idt->nfit_idt = nfit_idt;
++		list_add_tail(&nd_idt->list, &nd_bus->idts);
++		dev_dbg(&nd_bus->dev, "%s: idt index: %d num_lines: %d\n", __func__,
++				readw(&nfit_idt->idt_index),
++				readl(&nfit_idt->num_lines));
+ 		break;
++	}
++	/* TODO */
+ 	case NFIT_TABLE_FLUSH:
+ 		dev_dbg(&nd_bus->dev, "%s: flush\n", __func__);
+ 		break;
+@@ -632,8 +651,11 @@ static void nd_mem_add(struct nd_bus *nd_bus, struct nd_mem *nd_mem)
  {
-@@ -179,8 +200,6 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
- 	set_capacity(disk, pmem->size >> 9);
- 	pmem->pmem_disk = disk;
+ 	u16 dcr_index = readw(&nd_mem->nfit_mem_dcr->dcr_index);
+ 	u16 spa_index = readw(&nd_mem->nfit_spa_dcr->spa_index);
++	struct nd_memdev *nd_memdev;
+ 	struct nd_dcr *nd_dcr;
+ 	struct nd_bdw *nd_bdw;
++	struct nd_idt *nd_idt;
++	u16 idt_index;
  
--	add_disk(disk);
--
- 	return pmem;
+ 	list_for_each_entry(nd_dcr, &nd_bus->dcrs, list) {
+ 		if (readw(&nd_dcr->nfit_dcr->dcr_index) != dcr_index)
+@@ -667,6 +689,26 @@ static void nd_mem_add(struct nd_bus *nd_bus, struct nd_mem *nd_mem)
+ 		return;
  
- out_free_queue:
-@@ -235,7 +254,12 @@ static int nd_pmem_probe(struct device *dev)
- 	if (IS_ERR(pmem))
- 		return PTR_ERR(pmem);
- 
-+	nd_bus_lock(dev);
-+	add_disk(pmem->pmem_disk);
- 	dev_set_drvdata(dev, pmem);
-+	nd_init_ndio(&pmem->ndio, pmem_rw_bytes, dev, pmem->pmem_disk, 0);
-+	nd_register_ndio(&pmem->ndio);
-+	nd_bus_unlock(dev);
- 
- 	return 0;
+ 	nd_mem_find_spa_bdw(nd_bus, nd_mem);
++
++	if (!nd_mem->nfit_spa_bdw)
++		return;
++
++	spa_index = readw(&nd_mem->nfit_spa_bdw->spa_index);
++
++	list_for_each_entry(nd_memdev, &nd_bus->memdevs, list) {
++		if (readw(&nd_memdev->nfit_mem->spa_index) != spa_index ||
++		    readw(&nd_memdev->nfit_mem->dcr_index) != dcr_index)
++			continue;
++		nd_mem->nfit_mem_bdw = nd_memdev->nfit_mem;
++		idt_index = readw(&nd_memdev->nfit_mem->idt_index);
++		list_for_each_entry(nd_idt, &nd_bus->idts, list) {
++			if (readw(&nd_idt->nfit_idt->idt_index) != idt_index)
++				continue;
++			nd_mem->nfit_idt_bdw = nd_idt->nfit_idt;
++			break;
++		}
++		break;
++	}
  }
-@@ -244,6 +268,7 @@ static int nd_pmem_remove(struct device *dev)
+ 
+ static int nd_mem_cmp(void *priv, struct list_head *__a, struct list_head *__b)
+@@ -700,7 +742,9 @@ static int nd_mem_init(struct nd_bus *nd_bus)
+ 		int type = nfit_spa_type(nd_spa->nfit_spa);
+ 		struct nd_mem *nd_mem, *found;
+ 		struct nd_memdev *nd_memdev;
++		struct nd_idt *nd_idt;
+ 		u16 dcr_index;
++		u16 idt_index;
+ 
+ 		if (type != NFIT_SPA_DCR)
+ 			continue;
+@@ -726,6 +770,13 @@ static int nd_mem_init(struct nd_bus *nd_bus)
+ 			INIT_LIST_HEAD(&nd_mem->list);
+ 			nd_mem->nfit_spa_dcr = nd_spa->nfit_spa;
+ 			nd_mem->nfit_mem_dcr = nd_memdev->nfit_mem;
++			idt_index = readw(&nd_memdev->nfit_mem->idt_index);
++			list_for_each_entry(nd_idt, &nd_bus->idts, list) {
++				if (readw(&nd_idt->nfit_idt->idt_index) != idt_index)
++					continue;
++				nd_mem->nfit_idt_dcr = nd_idt->nfit_idt;
++				break;
++			}
+ 			nd_mem_add(nd_bus, nd_mem);
+ 		}
+ 	}
+diff --git a/drivers/block/nd/namespace_devs.c b/drivers/block/nd/namespace_devs.c
+index 8414ca21917d..3e0eb585119c 100644
+--- a/drivers/block/nd/namespace_devs.c
++++ b/drivers/block/nd/namespace_devs.c
+@@ -151,6 +151,53 @@ static resource_size_t nd_namespace_blk_size(struct nd_namespace_blk *nsblk)
+ 	return size;
+ }
+ 
++resource_size_t nd_namespace_blk_validate(struct nd_namespace_blk *nsblk)
++{
++	struct nd_region *nd_region = to_nd_region(nsblk->dev.parent);
++	struct nd_mapping *nd_mapping = &nd_region->mapping[0];
++	struct nd_dimm_drvdata *ndd = to_ndd(nd_mapping);
++	struct nd_label_id label_id;
++	struct resource *res;
++	int count, i;
++
++	if (!nsblk->uuid || !nsblk->lbasize)
++		return 0;
++
++	count = 0;
++	nd_label_gen_id(&label_id, nsblk->uuid, NSLABEL_FLAG_LOCAL);
++	for_each_dpa_resource(ndd, res) {
++		if (strcmp(res->name, label_id.id) != 0)
++			continue;
++		/*
++		 * Resources with unacknoweldged adjustments indicate a
++		 * failure to update labels
++		 */
++		if (res->flags & DPA_RESOURCE_ADJUSTED)
++			return 0;
++		count++;
++	}
++
++	/* These values match after a successful label update */
++	if (count != nsblk->num_resources)
++		return 0;
++
++	for (i = 0; i < nsblk->num_resources; i++) {
++		struct resource *found = NULL;
++
++		for_each_dpa_resource(ndd, res)
++			if (res == nsblk->res[i]) {
++				found = res;
++				break;
++			}
++		/* stale resource */
++		if (!found)
++			return 0;
++	}
++
++	return nd_namespace_blk_size(nsblk);
++}
++EXPORT_SYMBOL(nd_namespace_blk_validate);
++
+ static int nd_namespace_label_update(struct nd_region *nd_region, struct device *dev)
  {
- 	struct pmem_device *pmem = dev_get_drvdata(dev);
- 
-+	nd_unregister_ndio(&pmem->ndio);
- 	pmem_free(pmem);
- 	return 0;
- }
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 0b4dcabb248a..e595751c613d 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -181,6 +181,7 @@ static inline const char *nd_dimm_cmd_name(unsigned cmd)
- #define ND_DEVICE_NAMESPACE_IO 4    /* legacy persistent memory */
- #define ND_DEVICE_NAMESPACE_PMEM 5  /* persistent memory namespace (may alias) */
- #define ND_DEVICE_NAMESPACE_BLK 6   /* block-data-window namespace (may alias) */
-+#define ND_DEVICE_BTT 7		    /* block-translation table device */
- 
- enum nd_driver_flags {
- 	ND_DRIVER_DIMM            = 1 << ND_DEVICE_DIMM,
-@@ -189,6 +190,7 @@ enum nd_driver_flags {
- 	ND_DRIVER_NAMESPACE_IO    = 1 << ND_DEVICE_NAMESPACE_IO,
- 	ND_DRIVER_NAMESPACE_PMEM  = 1 << ND_DEVICE_NAMESPACE_PMEM,
- 	ND_DRIVER_NAMESPACE_BLK   = 1 << ND_DEVICE_NAMESPACE_BLK,
-+	ND_DRIVER_BTT		  = 1 << ND_DEVICE_BTT,
+ 	dev_WARN_ONCE(dev, dev->driver,
+diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
+index 5f58e8e96a41..f65309780df4 100644
+--- a/drivers/block/nd/nd-private.h
++++ b/drivers/block/nd/nd-private.h
+@@ -46,16 +46,19 @@ struct nd_bus {
+ 	struct radix_tree_root dimm_radix;
+ 	wait_queue_head_t probe_wait;
+ 	struct module *module;
++	struct list_head spa_maps;
+ 	struct list_head memdevs;
+ 	struct list_head dimms;
+ 	struct list_head spas;
+ 	struct list_head dcrs;
+ 	struct list_head bdws;
++	struct list_head idts;
+ 	struct list_head ndios;
+ 	struct list_head list;
+ 	struct device dev;
+ 	int id, probe_active;
+ 	struct mutex reconfig_mutex;
++	struct mutex spa_map_mutex;
+ 	struct nd_btt *nd_btt;
  };
  
- enum {
+@@ -92,6 +95,11 @@ struct nd_bdw {
+ 	struct list_head list;
+ };
+ 
++struct nd_idt {
++	struct nfit_idt __iomem *nfit_idt;
++	struct list_head list;
++};
++
+ struct nd_memdev {
+ 	struct nfit_mem __iomem *nfit_mem;
+ 	struct list_head list;
+@@ -100,13 +108,29 @@ struct nd_memdev {
+ /* assembled tables for a given dimm */
+ struct nd_mem {
+ 	struct nfit_mem __iomem *nfit_mem_dcr;
++	struct nfit_mem __iomem *nfit_mem_bdw;
+ 	struct nfit_dcr __iomem *nfit_dcr;
+ 	struct nfit_bdw __iomem *nfit_bdw;
+ 	struct nfit_spa __iomem *nfit_spa_dcr;
+ 	struct nfit_spa __iomem *nfit_spa_bdw;
++	struct nfit_idt __iomem *nfit_idt_dcr;
++	struct nfit_idt __iomem *nfit_idt_bdw;
++	struct list_head list;
++};
++
++struct nd_spa_mapping {
++	struct nfit_spa __iomem *nfit_spa;
+ 	struct list_head list;
++	struct nd_bus *nd_bus;
++	struct kref kref;
++	void *spa;
+ };
+ 
++static inline struct nd_spa_mapping *to_spa_map(struct kref *kref)
++{
++	return container_of(kref, struct nd_spa_mapping, kref);
++}
++
+ struct nd_io *ndio_lookup(struct nd_bus *nd_bus, const char *diskname);
+ const char *spa_type_name(u16 type);
+ int nfit_spa_type(struct nfit_spa __iomem *nfit_spa);
+diff --git a/drivers/block/nd/nd.h b/drivers/block/nd/nd.h
+index ef77b5893628..b092253f3521 100644
+--- a/drivers/block/nd/nd.h
++++ b/drivers/block/nd/nd.h
+@@ -106,6 +106,11 @@ static inline struct nd_namespace_label __iomem *nd_get_label(
+ 	for (res = (ndd)->dpa.child, next = res ? res->sibling : NULL; \
+ 			res; res = next, next = next ? next->sibling : NULL)
+ 
++enum nd_blk_mmio_selector {
++	BDW,
++	DCR,
++};
++
+ struct nd_region {
+ 	struct device dev;
+ 	struct nd_spa *nd_spa;
+@@ -116,6 +121,22 @@ struct nd_region {
+ 	u64 ndr_start;
+ 	int id;
+ 	int num_lanes;
++	/* only valid for blk regions */
++	struct nd_blk_window {
++		struct nd_blk_mmio {
++			void *base;
++			u64 size;
++			u64 base_offset;
++			u32 line_size;
++			u32 num_lines;
++			u32 table_size;
++			struct nfit_idt __iomem *nfit_idt;
++			struct nfit_spa __iomem *nfit_spa;
++		} mmio[2];
++		u64 bdw_offset; /* post interleave offset */
++		u64 stat_offset;
++		u64 cmd_offset;
++	} bw;
+ 	struct nd_mapping mapping[0];
+ };
+ 
+@@ -129,6 +150,11 @@ static inline unsigned nd_inc_seq(unsigned seq)
+ 	return next[seq & 3];
+ }
+ 
++static inline struct nd_region *ndbw_to_region(struct nd_blk_window *ndbw)
++{
++	return container_of(ndbw, struct nd_region, bw);
++}
++
+ struct nd_io;
+ /**
+  * nd_rw_bytes_fn() - access bytes relative to the "whole disk" namespace device
+@@ -212,6 +238,27 @@ enum nd_async_mode {
+ 	ND_ASYNC,
+ };
+ 
++/*
++ * When testing BLK I/O (with CONFIG_NFIT_TEST) we override
++ * nd_blk_do_io() and optionally route it to simulated resources.  Given
++ * circular dependencies nfit_test needs to be loaded for the BLK I/O
++ * fallback path in the case of real hardware.  See
++ * __wrap_nd_blk_do_io().
++ */
++#if IS_ENABLED(CONFIG_NFIT_TEST)
++#include <linux/kmod.h>
++
++static inline int nfit_test_blk_init(void)
++{
++	return request_module("nfit_test");
++}
++#else
++static inline int nfit_test_blk_init(void)
++{
++	return 0;
++}
++#endif
++
+ void wait_nd_bus_probe_idle(struct device *dev);
+ void nd_device_register(struct device *dev);
+ void nd_device_unregister(struct device *dev, enum nd_async_mode mode);
+@@ -248,6 +295,7 @@ u64 btt_sb_checksum(struct btt_sb *btt_sb);
+ struct nd_region *to_nd_region(struct device *dev);
+ unsigned int nd_region_acquire_lane(struct nd_region *nd_region);
+ void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
++int nd_blk_init_region(struct nd_region *nd_region);
+ int nd_region_to_namespace_type(struct nd_region *nd_region);
+ int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
+ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region);
+@@ -256,4 +304,7 @@ void nd_bus_unlock(struct device *dev);
+ bool is_nd_bus_locked(struct device *dev);
+ int nd_label_reserve_dpa(struct nd_dimm_drvdata *ndd);
+ void nd_dimm_free_dpa(struct nd_dimm_drvdata *ndd, struct resource *res);
++int nd_blk_do_io(struct nd_blk_window *ndbw, void *iobuf,
++		unsigned int len, int rw, resource_size_t dev_offset);
++resource_size_t nd_namespace_blk_validate(struct nd_namespace_blk *nsblk);
+ #endif /* __ND_H__ */
+diff --git a/drivers/block/nd/region.c b/drivers/block/nd/region.c
+index 29019a65808e..7f484ed0528c 100644
+--- a/drivers/block/nd/region.c
++++ b/drivers/block/nd/region.c
+@@ -17,11 +17,18 @@
+ 
+ static int nd_region_probe(struct device *dev)
+ {
+-	int err;
++	int err, rc;
+ 	struct nd_region_namespaces *num_ns;
+ 	struct nd_region *nd_region = to_nd_region(dev);
+-	int rc = nd_region_register_namespaces(nd_region, &err);
+ 
++	rc = nd_blk_init_region(nd_region);
++	if (rc) {
++		dev_err(&nd_region->dev, "%s: failed to map block windows: %d\n",
++				__func__, rc);
++		return rc;
++	}
++
++	rc = nd_region_register_namespaces(nd_region, &err);
+ 	num_ns = devm_kzalloc(dev, sizeof(*num_ns), GFP_KERNEL);
+ 	if (!num_ns)
+ 		return -ENOMEM;
+diff --git a/drivers/block/nd/region_devs.c b/drivers/block/nd/region_devs.c
+index 0aab8bb0a982..c1a69bcc7626 100644
+--- a/drivers/block/nd/region_devs.c
++++ b/drivers/block/nd/region_devs.c
+@@ -11,6 +11,7 @@
+  * General Public License for more details.
+  */
+ #include <linux/scatterlist.h>
++#include <linux/highmem.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/sort.h>
+@@ -542,29 +543,148 @@ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region)
+ 	return 0;
+ }
+ 
++static void nd_spa_mapping_release(struct kref *kref)
++{
++	struct nd_spa_mapping *spa_map = to_spa_map(kref);
++	struct nfit_spa __iomem *nfit_spa = spa_map->nfit_spa;
++	struct nd_bus *nd_bus = spa_map->nd_bus;
++
++	WARN_ON(!mutex_is_locked(&nd_bus->spa_map_mutex));
++	dev_dbg(&nd_bus->dev, "%s: SPA%d\n", __func__,
++			readw(&nfit_spa->spa_index));
++	iounmap(spa_map->spa);
++	release_mem_region(readq(&nfit_spa->spa_base),
++			readq(&nfit_spa->spa_length));
++	list_del(&spa_map->list);
++	kfree(spa_map);
++}
++
++static struct nd_spa_mapping *find_spa_mapping(struct nd_bus *nd_bus,
++		struct nfit_spa __iomem *nfit_spa)
++{
++	struct nd_spa_mapping *spa_map;
++
++	WARN_ON(!mutex_is_locked(&nd_bus->spa_map_mutex));
++	list_for_each_entry(spa_map, &nd_bus->spa_maps, list)
++		if (spa_map->nfit_spa == nfit_spa)
++			return spa_map;
++
++	return NULL;
++}
++
++static void nd_spa_unmap(struct nd_bus *nd_bus, struct nfit_spa __iomem *nfit_spa)
++{
++	struct nd_spa_mapping *spa_map;
++
++	mutex_lock(&nd_bus->spa_map_mutex);
++	spa_map = find_spa_mapping(nd_bus, nfit_spa);
++
++	if (spa_map)
++		kref_put(&spa_map->kref, nd_spa_mapping_release);
++	mutex_unlock(&nd_bus->spa_map_mutex);
++}
++
++static void *__nd_spa_map(struct nd_bus *nd_bus, struct nfit_spa __iomem *nfit_spa)
++{
++	resource_size_t start = readq(&nfit_spa->spa_base);
++	resource_size_t n = readq(&nfit_spa->spa_length);
++	struct nd_spa_mapping *spa_map;
++	struct resource *res;
++
++	WARN_ON(!mutex_is_locked(&nd_bus->spa_map_mutex));
++
++	spa_map = find_spa_mapping(nd_bus, nfit_spa);
++	if (spa_map) {
++		kref_get(&spa_map->kref);
++		return spa_map->spa;
++	}
++
++	spa_map = kzalloc(sizeof(*spa_map), GFP_KERNEL);
++	if (!spa_map)
++		return NULL;
++
++	INIT_LIST_HEAD(&spa_map->list);
++	spa_map->nfit_spa = nfit_spa;
++	kref_init(&spa_map->kref);
++	spa_map->nd_bus = nd_bus;
++
++	res = request_mem_region(start, n, dev_name(&nd_bus->dev));
++	if (!res)
++		goto err_mem;
++
++	/* TODO: cacheability based on the spa type */
++	spa_map->spa = ioremap_nocache(start, n);
++	if (!spa_map->spa)
++		goto err_map;
++
++	list_add_tail(&spa_map->list, &nd_bus->spa_maps);
++	return spa_map->spa;
++
++ err_map:
++	release_mem_region(start, n);
++ err_mem:
++	kfree(spa_map);
++	return NULL;
++}
++
++/**
++ * nd_spa_map - nd core managed mappings of NFIT_SPA_DCR and NFIT_SPA_BDW ranges
++ * @nd_bus: NFIT-bus that provided the spa table entry
++ * @nfit_spa: spa table to map
++ *
++ * In the case where block-data-window apertures and
++ * dimm-control-regions are interleaved they will end up sharing a
++ * single request_mem_region() + ioremap() for the address range.  In
++ * the style of devm nd_spa_map() mappings are automatically dropped
++ * when all region devices referencing the same mapping are disabled /
++ * unbound.
++ */
++static void *nd_spa_map(struct nd_bus *nd_bus, struct nfit_spa __iomem *nfit_spa)
++{
++	struct nd_spa_mapping *spa_map;
++
++	mutex_lock(&nd_bus->spa_map_mutex);
++	spa_map = __nd_spa_map(nd_bus, nfit_spa);
++	mutex_unlock(&nd_bus->spa_map_mutex);
++
++	return spa_map;
++}
++
+ /*
+  * Upon successful probe/remove, take/release a reference on the
+- * associated interleave set (if present)
++ * associated dimms in the interleave set, on successful probe of a BLK
++ * namespace check if we need a new seed, and on remove or failed probe
++ * of a BLK region drop interleaved spa mappings.
+  */
+ static void nd_region_notify_driver_action(struct nd_bus *nd_bus,
+ 		struct device *dev, int rc, bool probe)
+ {
+-	if (rc)
+-		return;
+-
+ 	if (is_nd_pmem(dev) || is_nd_blk(dev)) {
+ 		struct nd_region *nd_region = to_nd_region(dev);
++		struct nd_blk_window *ndbw = &nd_region->bw;
+ 		int i;
+ 
+ 		for (i = 0; i < nd_region->ndr_mappings; i++) {
+ 			struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+ 			struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
+ 
+-			if (probe)
++			if (probe && rc == 0)
+ 				atomic_inc(&nd_dimm->busy);
+-			else
++			else if (!probe)
+ 				atomic_dec(&nd_dimm->busy);
+ 		}
++
++		if (is_nd_pmem(dev) || (probe && rc == 0))
++			return;
++
++		/* auto-free BLK spa mappings */
++		for (i = 0; i < 2; i++) {
++			struct nd_blk_mmio *mmio = &ndbw->mmio[i];
++
++			if (mmio->base)
++				nd_spa_unmap(nd_bus, mmio->nfit_spa);
++		}
++		memset(ndbw, 0, sizeof(*ndbw));
+ 	} else if (dev->parent && is_nd_blk(dev->parent) && probe && rc == 0) {
+ 		struct nd_region *nd_region = to_nd_region(dev->parent);
+ 
+@@ -716,6 +836,188 @@ static const struct attribute_group *nd_region_attribute_groups[] = {
+ 	NULL,
+ };
+ 
++static u64 to_interleave_offset(u64 offset, struct nd_blk_mmio *mmio)
++{
++	struct nfit_idt __iomem *nfit_idt = mmio->nfit_idt;
++	u32 sub_line_offset, line_index, line_offset;
++	u64 line_no, table_skip_count, table_offset;
++
++	line_no = div_u64_rem(offset, mmio->line_size, &sub_line_offset);
++	table_skip_count = div_u64_rem(line_no, mmio->num_lines, &line_index);
++	line_offset = readl(&nfit_idt->line_offset[line_index])
++		* mmio->line_size;
++	table_offset = table_skip_count * mmio->table_size;
++
++	return mmio->base_offset + line_offset + table_offset + sub_line_offset;
++}
++
++static u64 read_blk_stat(struct nd_blk_window *ndbw, unsigned int bw)
++{
++	struct nd_blk_mmio *mmio = &ndbw->mmio[DCR];
++	u64 offset = ndbw->stat_offset + mmio->size * bw;
++
++	if (mmio->num_lines)
++		offset = to_interleave_offset(offset, mmio);
++
++	return readq(mmio->base + offset);
++}
++
++static void write_blk_ctl(struct nd_blk_window *ndbw, unsigned int bw,
++		resource_size_t dpa, unsigned int len, unsigned int write)
++{
++	u64 cmd, offset;
++	struct nd_blk_mmio *mmio = &ndbw->mmio[DCR];
++
++	enum {
++		BCW_OFFSET_MASK = (1ULL << 48)-1,
++		BCW_LEN_SHIFT = 48,
++		BCW_LEN_MASK = (1ULL << 8) - 1,
++		BCW_CMD_SHIFT = 56,
++	};
++
++	cmd = (dpa >> L1_CACHE_SHIFT) & BCW_OFFSET_MASK;
++	len = len >> L1_CACHE_SHIFT;
++	cmd |= ((u64) len & BCW_LEN_MASK) << BCW_LEN_SHIFT;
++	cmd |= ((u64) write) << BCW_CMD_SHIFT;
++
++	offset = ndbw->cmd_offset + mmio->size * bw;
++	if (mmio->num_lines)
++		offset = to_interleave_offset(offset, mmio);
++
++	writeq(cmd, mmio->base + offset);
++	/* FIXME: conditionally perform read-back if mandated by firmware */
++}
++
++/* len is <= PAGE_SIZE by this point, so it can be done in a single BW I/O */
++int nd_blk_do_io(struct nd_blk_window *ndbw, void *iobuf, unsigned int len,
++		int write, resource_size_t dpa)
++{
++	struct nd_region *nd_region = ndbw_to_region(ndbw);
++	struct nd_blk_mmio *mmio = &ndbw->mmio[BDW];
++	unsigned int bw, copied = 0;
++	u64 base_offset;
++	int rc;
++
++	bw = nd_region_acquire_lane(nd_region);
++	base_offset = ndbw->bdw_offset + dpa % L1_CACHE_BYTES + bw * mmio->size;
++	/* TODO: non-temporal access, flush hints, cache management etc... */
++	write_blk_ctl(ndbw, bw, dpa, len, write);
++	while (len) {
++		unsigned int c;
++		u64 offset;
++
++		if (mmio->num_lines) {
++			u32 line_offset;
++
++			offset = to_interleave_offset(base_offset + copied,
++					mmio);
++			div_u64_rem(offset, mmio->line_size, &line_offset);
++			c = min(len, mmio->line_size - line_offset);
++		} else {
++			offset = base_offset + ndbw->bdw_offset;
++			c = len;
++		}
++
++		if (write)
++			memcpy(mmio->base + offset, iobuf + copied, c);
++		else
++			memcpy(iobuf + copied, mmio->base + offset, c);
++
++		len -= c;
++		copied += c;
++	}
++	rc = read_blk_stat(ndbw, bw) ? -EIO : 0;
++	nd_region_release_lane(nd_region, bw);
++
++	return rc;
++}
++EXPORT_SYMBOL(nd_blk_do_io);
++
++static int nd_blk_init_interleave(struct nd_blk_mmio *mmio,
++		struct nfit_idt __iomem *nfit_idt, u16 interleave_ways)
++{
++	if (nfit_idt) {
++		mmio->num_lines = readl(&nfit_idt->num_lines);
++		mmio->line_size = readl(&nfit_idt->line_size);
++		if (interleave_ways == 0)
++			return -ENXIO;
++		mmio->table_size = mmio->num_lines * interleave_ways
++			* mmio->line_size;
++	}
++
++	return 0;
++}
++
++int nd_blk_init_region(struct nd_region *nd_region)
++{
++	struct nd_bus *nd_bus = walk_to_nd_bus(&nd_region->dev);
++	struct nd_blk_window *ndbw = &nd_region->bw;
++	struct nd_mapping *nd_mapping;
++	struct nd_blk_mmio *mmio;
++	struct nd_dimm *nd_dimm;
++	struct nd_mem *nd_mem;
++	int rc;
++
++	if (!is_nd_blk(&nd_region->dev))
++		return 0;
++
++	/* FIXME: use nfit values rather than hard coded */
++	if (nd_region->ndr_mappings != 1)
++		return -ENXIO;
++
++	nd_mapping = &nd_region->mapping[0];
++	nd_dimm = nd_mapping->nd_dimm;
++	nd_mem = nd_dimm->nd_mem;
++	if (!nd_mem->nfit_dcr || !nd_mem->nfit_bdw)
++		return -ENXIO;
++
++	/* map block aperture memory */
++	ndbw->bdw_offset = readq(&nd_mem->nfit_bdw->bdw_offset);
++	mmio = &ndbw->mmio[BDW];
++	mmio->base = nd_spa_map(nd_bus, nd_mem->nfit_spa_bdw);
++	if (!mmio->base)
++		return -ENOMEM;
++	mmio->size = readq(&nd_mem->nfit_bdw->bdw_size);
++	mmio->base_offset = readq(&nd_mem->nfit_mem_bdw->region_spa_offset);
++	mmio->nfit_idt = nd_mem->nfit_idt_bdw;
++	mmio->nfit_spa = nd_mem->nfit_spa_bdw;
++	rc = nd_blk_init_interleave(mmio, nd_mem->nfit_idt_bdw,
++			readw(&nd_mem->nfit_mem_bdw->interleave_ways));
++	if (rc)
++		return rc;
++
++	/* map block control memory */
++	ndbw->cmd_offset = readq(&nd_mem->nfit_dcr->cmd_offset);
++	ndbw->stat_offset = readq(&nd_mem->nfit_dcr->status_offset);
++	mmio = &ndbw->mmio[DCR];
++	mmio->base = nd_spa_map(nd_bus, nd_mem->nfit_spa_dcr);
++	if (!mmio->base)
++		return -ENOMEM;
++	mmio->size = readq(&nd_mem->nfit_dcr->bcw_size);
++	mmio->base_offset = readq(&nd_mem->nfit_mem_dcr->region_spa_offset);
++	mmio->nfit_idt = nd_mem->nfit_idt_dcr;
++	mmio->nfit_spa = nd_mem->nfit_spa_dcr;
++	rc = nd_blk_init_interleave(mmio, nd_mem->nfit_idt_dcr,
++			readw(&nd_mem->nfit_mem_dcr->interleave_ways));
++	if (rc)
++		return rc;
++
++	if (mmio->line_size == 0)
++		return 0;
++
++	if ((u32) ndbw->cmd_offset % mmio->line_size + 8 > mmio->line_size) {
++		dev_err(&nd_region->dev,
++				"cmd_offset crosses interleave boundary\n");
++		return -ENXIO;
++	} else if ((u32) ndbw->stat_offset % mmio->line_size + 8 > mmio->line_size) {
++		dev_err(&nd_region->dev,
++				"stat_offset crosses interleave boundary\n");
++		return -ENXIO;
++	}
++
++	return 0;
++}
++
+ static void nd_blk_init(struct nd_bus *nd_bus, struct nd_region *nd_region,
+ 		struct nd_mem *nd_mem)
+ {
+diff --git a/drivers/block/nd/test/iomap.c b/drivers/block/nd/test/iomap.c
+index 87e6a1255237..2724e671c376 100644
+--- a/drivers/block/nd/test/iomap.c
++++ b/drivers/block/nd/test/iomap.c
+@@ -17,17 +17,27 @@
+ #include <linux/types.h>
+ #include <linux/io.h>
+ #include "nfit_test.h"
++#include "../nd.h"
+ 
+ static LIST_HEAD(iomap_head);
+ 
+ static struct iomap_ops {
+ 	nfit_test_lookup_fn nfit_test_lookup;
++	nfit_test_acquire_lane_fn nfit_test_acquire_lane;
++	nfit_test_release_lane_fn nfit_test_release_lane;
++	nfit_test_blk_do_io_fn nfit_test_blk_do_io;
+ 	struct list_head list;
+ } iomap_ops;
+ 
+-void nfit_test_setup(nfit_test_lookup_fn lookup)
++void nfit_test_setup(nfit_test_lookup_fn lookup,
++		nfit_test_acquire_lane_fn acquire_lane,
++		nfit_test_release_lane_fn release_lane,
++		nfit_test_blk_do_io_fn blk_do_io)
+ {
+ 	iomap_ops.nfit_test_lookup = lookup;
++	iomap_ops.nfit_test_acquire_lane = acquire_lane;
++	iomap_ops.nfit_test_release_lane = release_lane;
++	iomap_ops.nfit_test_blk_do_io = blk_do_io;
+ 	INIT_LIST_HEAD(&iomap_ops.list);
+ 	list_add_rcu(&iomap_ops.list, &iomap_head);
+ }
+@@ -145,4 +155,45 @@ void __wrap___release_region(struct resource *parent, resource_size_t start,
+ }
+ EXPORT_SYMBOL(__wrap___release_region);
+ 
++int __wrap_nd_blk_do_io(struct nd_blk_window *ndbw, void *iobuf,
++		unsigned int len, int rw, resource_size_t dpa)
++{
++	struct nd_region *nd_region = ndbw_to_region(ndbw);
++	struct nd_blk_mmio *mmio = &ndbw->mmio[BDW];
++	struct nfit_test_resource *nfit_res;
++	struct iomap_ops *ops;
++	int rc = 0;
++
++	rcu_read_lock();
++	ops = list_first_or_null_rcu(&iomap_head, typeof(*ops), list);
++	nfit_res = ops ? ops->nfit_test_lookup((unsigned long) mmio->base) : NULL;
++	if (nfit_res) {
++		unsigned int bw;
++
++		dev_vdbg(&nd_region->dev, "%s: base: %p offset: %pa\n",
++				__func__, mmio->base, &dpa);
++		bw = ops->nfit_test_acquire_lane(nd_region);
++		if (rw)
++			memcpy(nfit_res->buf + dpa, iobuf, len);
++		else
++			memcpy(iobuf, nfit_res->buf + dpa, len);
++		ops->nfit_test_release_lane(nd_region, bw);
++	} else if (ops) {
++		rc = ops->nfit_test_blk_do_io(ndbw, iobuf, len, rw, dpa);
++	} else {
++		/*
++		 * We can't call nd_blk_do_io() directly here as it would
++		 * create a circular dependency.  nfit_test must remain loaded
++		 * to maintain nfit_test_blk_do_io() => nd_blk_do_io().
++		 */
++		dev_WARN_ONCE(&nd_region->dev, 1,
++				"load nfit_test.ko or disable CONFIG_NFIT_TEST\n");
++		rc = -EIO;
++	}
++	rcu_read_unlock();
++
++	return rc;
++}
++EXPORT_SYMBOL(__wrap_nd_blk_do_io);
++
+ MODULE_LICENSE("GPL v2");
+diff --git a/drivers/block/nd/test/nfit.c b/drivers/block/nd/test/nfit.c
+index e9fb9da765b9..7218b55a9a34 100644
+--- a/drivers/block/nd/test/nfit.c
++++ b/drivers/block/nd/test/nfit.c
+@@ -949,7 +949,8 @@ static __init int nfit_test_init(void)
+ 		return -EINVAL;
+ 	}
+ 
+-	nfit_test_setup(nfit_test_lookup);
++	nfit_test_setup(nfit_test_lookup, nd_region_acquire_lane,
++			nd_region_release_lane, nd_blk_do_io);
+ 
+ 	for (i = 0; i < NUM_NFITS; i++) {
+ 		struct nfit_test *nfit_test;
+diff --git a/drivers/block/nd/test/nfit_test.h b/drivers/block/nd/test/nfit_test.h
+index 8a300c51b6bc..a6978563ad4e 100644
+--- a/drivers/block/nd/test/nfit_test.h
++++ b/drivers/block/nd/test/nfit_test.h
+@@ -12,6 +12,7 @@
+  */
+ #ifndef __NFIT_TEST_H__
+ #define __NFIT_TEST_H__
++#include <linux/types.h>
+ 
+ struct nfit_test_resource {
+ 	struct list_head list;
+@@ -20,6 +21,17 @@ struct nfit_test_resource {
+ };
+ 
+ typedef struct nfit_test_resource *(*nfit_test_lookup_fn)(resource_size_t);
+-void nfit_test_setup(nfit_test_lookup_fn fn);
++struct nd_region;
++typedef unsigned int (*nfit_test_acquire_lane_fn)(struct nd_region *nd_region);
++typedef void (*nfit_test_release_lane_fn)(struct nd_region *nd_region,
++		unsigned int lane);
++struct nd_blk_window;
++struct page;
++typedef int (*nfit_test_blk_do_io_fn)(struct nd_blk_window *ndbw, void *iobuf,
++		unsigned int len, int rw, resource_size_t dpa);
++void nfit_test_setup(nfit_test_lookup_fn lookup,
++		nfit_test_acquire_lane_fn acquire_lane,
++		nfit_test_release_lane_fn release_lane,
++		nfit_test_blk_do_io_fn blk_do_io);
+ void nfit_test_teardown(void);
+ #endif
 
