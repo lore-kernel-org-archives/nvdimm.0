@@ -1,47 +1,32 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 03/21] nd_acpi: initial core implementation and nfit skeleton
-Date: Sun, 19 Apr 2015 21:12:32 +0200
-Message-ID: <3621753.cpAhpD8DHH@vostro.rjw.lan>
+Message-ID: <1429386063.16771.157.camel@x220>
+Subject: Re: [PATCH 03/21] nd_acpi: initial core implementation and nfit
+ skeleton
+From: Paul Bolle <pebolle@tiscali.nl>
+Date: Sat, 18 Apr 2015 21:41:03 +0200
 In-Reply-To: <20150418013530.25237.28383.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com> <20150418013530.25237.28383.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="utf-8"
+References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <20150418013530.25237.28383.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.orgACPI Devel Maling List <linux-acpi@vger.kernel.org>, David Box <david.e.box@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Friday, April 17, 2015 09:35:30 PM Dan Williams wrote:
-> 1/ Autodetect an NFIT table for the ACPI namespace device with _HID of
->    "ACPI0012"
-> 
-> 2/ Skeleton implementation to register an NFIT bus.
-> 
-> The NFIT provided by ACPI is the primary method by which platforms will
-> discover NVDIMM resources.  However, the intent of the
-> nfit_bus_descriptor abstraction is to contain "provider" specific
-> details, leaving the nd core to be NFIT-provider agnostic.  This
-> flexibility is exploited in later patches to implement special purpose
-> providers of test and custom-defined NFITs.
-> 
-> Cc: <linux-acpi@vger.kernel.org>
-> Cc: Robert Moore <robert.moore@intel.com>
-> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+On Fri, 2015-04-17 at 21:35 -0400, Dan Williams wrote:
+> --- /dev/null
+> +++ b/drivers/block/nd/Kconfig
 
-So as discussed internally, nfit.h will have to wait for the ACPICA's
-NFIT support to prevent clashes from happening.
+> +	depends on (X86 || IA64 || ARM || ARM64 || SH || XTENSA)
 
-Also please CC *all* *patches* with "ACPI" (or "acpi" etc) anywhere in the
-subject/changelog/body to linux-acpi@vger.kernel.org.
+I've only skimmed this series. I still noticed this patch contains the
+only Kconfig typo I know by heart. Because I think you meant to say:
+	depends on (X86 || IA64 || ARM || ARM64 || SUPERH || XTENSA)
 
-More comments likely to follow.
-
-Thanks!
+Is that right?
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Paul Bolle
+
