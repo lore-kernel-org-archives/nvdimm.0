@@ -1,10 +1,10 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 19/20] nd_btt: atomic sector updates
+Subject: [PATCH 20/21] nd_btt: atomic sector updates
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 28 Apr 2015 14:25:57 -0400
-Message-ID: <20150428182557.35812.38292.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 17 Apr 2015 21:37:01 -0400
+Message-ID: <20150418013701.25237.87649.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -44,18 +44,15 @@ Signed-off-by: Vishal Verma <vishal.l.verma@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
  Documentation/blockdev/btt.txt |  273 ++++++++
- drivers/block/nd/Kconfig       |   20 +
- drivers/block/nd/Makefile      |    3 
- drivers/block/nd/acpi.c        |    1 
+ drivers/block/nd/Kconfig       |   18 -
+ drivers/block/nd/Makefile      |    2 
  drivers/block/nd/btt.c         | 1423 ++++++++++++++++++++++++++++++++++++++++
  drivers/block/nd/btt.h         |  140 ++++
  drivers/block/nd/btt_devs.c    |    3 
- drivers/block/nd/libnd.h       |    1 
- drivers/block/nd/nd-private.h  |    1 
- drivers/block/nd/nd.h          |   10 
- drivers/block/nd/region.c      |   67 ++
- drivers/block/nd/region_devs.c |   10 
- 12 files changed, 1948 insertions(+), 4 deletions(-)
+ drivers/block/nd/core.c        |    1 
+ drivers/block/nd/nd.h          |    9 
+ drivers/block/nd/region_devs.c |   77 ++
+ 9 files changed, 1944 insertions(+), 2 deletions(-)
  create mode 100644 Documentation/blockdev/btt.txt
  create mode 100644 drivers/block/nd/btt.c
 
@@ -339,15 +336,11 @@ index 000000000000..95134d5ec4a0
 +	void btt_fini(struct btt *btt);
 +
 diff --git a/drivers/block/nd/Kconfig b/drivers/block/nd/Kconfig
-index 15896db4de37..612bf2b14283 100644
+index faa756841773..29d9f8e4eedb 100644
 --- a/drivers/block/nd/Kconfig
 +++ b/drivers/block/nd/Kconfig
-@@ -93,9 +93,25 @@ config BLK_DEV_PMEM
- 	  capable of DAX (direct-access) file system mappings.  See
- 	  Documentation/blockdev/nd.txt for more details.
- 
--	  Say Y if you want to use a NVDIMM described by NFIT
-+	  Say Y if you want to use a NVDIMM described by ACPI, E820, etc...
+@@ -90,6 +90,22 @@ config BLK_DEV_PMEM
+ 	  Say Y if you want to use a NVDIMM described by NFIT
  
  config ND_BTT_DEVS
 -	def_bool y
@@ -355,8 +348,8 @@ index 15896db4de37..612bf2b14283 100644
 +
 +config ND_BTT
 +	tristate "BTT: Block Translation Table (atomic sector updates)"
-+	depends on LIBND 
-+	default LIBND
++	depends on ND_CORE
++	default ND_CORE
 +	select ND_BTT_DEVS
 +
 +config ND_MAX_REGIONS
@@ -371,41 +364,25 @@ index 15896db4de37..612bf2b14283 100644
  
  endif
 diff --git a/drivers/block/nd/Makefile b/drivers/block/nd/Makefile
-index 0c6d64b7a69d..7d778b4523d4 100644
+index 3e4878e0fe1d..2dc1ab6fdef2 100644
 --- a/drivers/block/nd/Makefile
 +++ b/drivers/block/nd/Makefile
-@@ -17,6 +17,7 @@ obj-$(CONFIG_ND_ACPI) += nd_acpi.o
- obj-$(CONFIG_ND_E820) += nd_e820.o
- obj-$(CONFIG_NFIT_TEST) += test/
+@@ -17,6 +17,7 @@ endif
+ obj-$(CONFIG_ND_CORE) += nd.o
+ obj-$(CONFIG_NFIT_ACPI) += nd_acpi.o
  obj-$(CONFIG_BLK_DEV_PMEM) += nd_pmem.o
 +obj-$(CONFIG_ND_BTT) += nd_btt.o
  
  nd_acpi-y := acpi.o
  
-@@ -24,6 +25,8 @@ nd_e820-y := e820.o
+@@ -32,3 +33,4 @@ nd-y += label.o
+ nd-$(CONFIG_ND_BTT_DEVS) += btt_devs.o
  
  nd_pmem-y := pmem.o
- 
 +nd_btt-y := btt.o
-+
- libnd-y := core.o
- libnd-y += bus.o
- libnd-y += dimm_devs.o
-diff --git a/drivers/block/nd/acpi.c b/drivers/block/nd/acpi.c
-index d34cefe38e2f..5b9997fbc344 100644
---- a/drivers/block/nd/acpi.c
-+++ b/drivers/block/nd/acpi.c
-@@ -926,6 +926,7 @@ static int nd_acpi_register_region(struct acpi_nfit_desc *acpi_desc,
- 			} else {
- 				nd_mapping->size = nfit_mem->bdw->blk_capacity;
- 				nd_mapping->start = nfit_mem->bdw->blk_offset;
-+				ndr_desc.num_lanes = nfit_mem->bdw->num_bdw;
- 			}
- 
- 			ndr_desc.nd_mapping = nd_mapping;
 diff --git a/drivers/block/nd/btt.c b/drivers/block/nd/btt.c
 new file mode 100644
-index 000000000000..abcefb7aeed1
+index 000000000000..1075012d13c0
 --- /dev/null
 +++ b/drivers/block/nd/btt.c
 @@ -0,0 +1,1423 @@
@@ -1003,7 +980,7 @@ index 000000000000..abcefb7aeed1
 +
 +	checksum = le64_to_cpu(super->checksum);
 +	super->checksum = 0;
-+	if (checksum != nd_btt_sb_checksum(super))
++	if (checksum != btt_sb_checksum(super))
 +		return 0;
 +	super->checksum = cpu_to_le64(checksum);
 +
@@ -1201,7 +1178,7 @@ index 000000000000..abcefb7aeed1
 +	super->info2off = cpu_to_le64(arena->info2off - arena->infooff);
 +
 +	super->flags = 0;
-+	super->checksum = cpu_to_le64(nd_btt_sb_checksum(super));
++	super->checksum = cpu_to_le64(btt_sb_checksum(super));
 +
 +	ret = btt_info_write(arena, super);
 +
@@ -1581,7 +1558,7 @@ index 000000000000..abcefb7aeed1
 +		goto out_free_queue;
 +	}
 +
-+	sprintf(btt->btt_disk->disk_name, "nd%d", btt->nd_btt->id);
++	sprintf(btt->btt_disk->disk_name, "%s", dev_name(&btt->nd_btt->dev));
 +	btt->btt_disk->driverfs_dev = &btt->nd_btt->dev;
 +	btt->btt_disk->major = btt_major;
 +	btt->btt_disk->first_minor = 0;
@@ -1989,12 +1966,12 @@ index e8f6d8e0ddd3..d4e67c75c91f 100644
 +};
  #endif
 diff --git a/drivers/block/nd/btt_devs.c b/drivers/block/nd/btt_devs.c
-index e6f0b8b999d8..0746db70973c 100644
+index 746d582910b6..6db50443cb2f 100644
 --- a/drivers/block/nd/btt_devs.c
 +++ b/drivers/block/nd/btt_devs.c
 @@ -342,7 +342,8 @@ struct nd_btt *nd_btt_create(struct nd_bus *nd_bus)
   */
- u64 nd_btt_sb_checksum(struct btt_sb *btt_sb)
+ u64 btt_sb_checksum(struct btt_sb *btt_sb)
  {
 -	u64 sum, sum_save;
 +	u64 sum;
@@ -2002,35 +1979,23 @@ index e6f0b8b999d8..0746db70973c 100644
  
  	sum_save = btt_sb->checksum;
  	btt_sb->checksum = 0;
-diff --git a/drivers/block/nd/libnd.h b/drivers/block/nd/libnd.h
-index 3f6b5e09cd67..e188840ed2b9 100644
---- a/drivers/block/nd/libnd.h
-+++ b/drivers/block/nd/libnd.h
-@@ -76,6 +76,7 @@ struct nd_region_desc {
- 	const struct attribute_group **attr_groups;
- 	struct nd_interleave_set *nd_set;
- 	void *provider_data;
-+	int num_lanes;
- };
+diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
+index a093c6468a53..065ab9b5ec61 100644
+--- a/drivers/block/nd/core.c
++++ b/drivers/block/nd/core.c
+@@ -149,6 +149,7 @@ u64 nd_fletcher64(void __iomem *addr, size_t len)
  
- struct nd_bus;
-diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
-index 4ab4765dc9ee..68e9ec824dc8 100644
---- a/drivers/block/nd/nd-private.h
-+++ b/drivers/block/nd/nd-private.h
-@@ -76,6 +76,7 @@ int __init nd_bus_init(void);
- void nd_bus_exit(void);
- int __init nd_dimm_init(void);
- int __init nd_region_init(void);
-+void __init nd_region_init_locks(void);
- void nd_dimm_exit(void);
- int nd_region_exit(void);
- void nd_region_probe_start(struct nd_bus *nd_bus, struct device *dev);
+ 	return hi32 << 32 | lo32;
+ }
++EXPORT_SYMBOL(nd_fletcher64);
+ 
+ static void nd_bus_release(struct device *dev)
+ {
 diff --git a/drivers/block/nd/nd.h b/drivers/block/nd/nd.h
-index c6ed26d4dcad..a29fb7409925 100644
+index b4f95ccc0252..ef77b5893628 100644
 --- a/drivers/block/nd/nd.h
 +++ b/drivers/block/nd/nd.h
-@@ -22,6 +22,12 @@
+@@ -21,6 +21,12 @@
  #include "label.h"
  
  enum {
@@ -2043,31 +2008,30 @@ index c6ed26d4dcad..a29fb7409925 100644
  	SECTOR_SHIFT = 9,
  };
  
-@@ -101,7 +107,7 @@ struct nd_region {
- 	u16 ndr_mappings;
+@@ -109,6 +115,7 @@ struct nd_region {
  	u64 ndr_size;
  	u64 ndr_start;
--	int id;
-+	int id, num_lanes;
- 	void *provider_data;
- 	struct nd_interleave_set *nd_set;
+ 	int id;
++	int num_lanes;
  	struct nd_mapping mapping[0];
-@@ -226,6 +232,8 @@ struct nd_btt *to_nd_btt(struct device *dev);
+ };
+ 
+@@ -239,6 +246,8 @@ struct nd_btt *to_nd_btt(struct device *dev);
  struct btt_sb;
- u64 nd_btt_sb_checksum(struct btt_sb *btt_sb);
+ u64 btt_sb_checksum(struct btt_sb *btt_sb);
  struct nd_region *to_nd_region(struct device *dev);
 +unsigned int nd_region_acquire_lane(struct nd_region *nd_region);
 +void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
  int nd_region_to_namespace_type(struct nd_region *nd_region);
  int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
  u64 nd_region_interleave_set_cookie(struct nd_region *nd_region);
-diff --git a/drivers/block/nd/region.c b/drivers/block/nd/region.c
-index 9d1fd45d78a1..dd5a885cea11 100644
---- a/drivers/block/nd/region.c
-+++ b/drivers/block/nd/region.c
-@@ -15,6 +15,72 @@
- #include <linux/nd.h>
- #include "nd.h"
+diff --git a/drivers/block/nd/region_devs.c b/drivers/block/nd/region_devs.c
+index 1b2c81e0eb0f..0aab8bb0a982 100644
+--- a/drivers/block/nd/region_devs.c
++++ b/drivers/block/nd/region_devs.c
+@@ -22,6 +22,72 @@
+ 
+ #include <asm-generic/io-64-nonatomic-lo-hi.h>
  
 +static struct {
 +	struct {
@@ -2076,7 +2040,7 @@ index 9d1fd45d78a1..dd5a885cea11 100644
 +	} lane[NR_CPUS];
 +} nd_percpu_lane;
 +
-+static void __init nd_region_init_locks(void)
++static void nd_region_init_locks(void)
 +{
 +	int i, j;
 +
@@ -2135,22 +2099,27 @@ index 9d1fd45d78a1..dd5a885cea11 100644
 +}
 +EXPORT_SYMBOL(nd_region_release_lane);
 +
- static int nd_region_probe(struct device *dev)
- {
- 	int err;
-@@ -76,6 +142,7 @@ static struct nd_device_driver nd_region_driver = {
+ static DEFINE_IDA(region_ida);
  
- int __init nd_region_init(void)
- {
-+	nd_region_init_locks();
- 	return nd_driver_register(&nd_region_driver);
- }
+ static void nd_region_release(struct device *dev)
+@@ -679,6 +745,8 @@ static void nd_blk_init(struct nd_bus *nd_bus, struct nd_region *nd_region,
+ 	}
  
-diff --git a/drivers/block/nd/region_devs.c b/drivers/block/nd/region_devs.c
-index bcdd8e1e21a2..268d9ef67f9c 100644
---- a/drivers/block/nd/region_devs.c
-+++ b/drivers/block/nd/region_devs.c
-@@ -538,6 +538,12 @@ static noinline struct nd_region *nd_region_create(struct nd_bus *nd_bus,
+ 	nd_region->ndr_mappings = 1;
++	nd_region->num_lanes = min_t(unsigned short,
++			readw(&nd_mem->nfit_bdw->num_bdw), ND_MAX_LANES);
+ 	nd_mapping = &nd_region->mapping[0];
+ 	nd_mapping->nd_dimm = nd_dimm;
+ 	nd_mapping->size = readq(&nd_mem->nfit_bdw->blk_capacity);
+@@ -692,6 +760,7 @@ static void nd_spa_range_init(struct nd_bus *nd_bus, struct nd_region *nd_region
+ 	struct nd_spa *nd_spa = nd_region->nd_spa;
+ 	u16 spa_index = readw(&nd_spa->nfit_spa->spa_index);
+ 
++	nd_region->num_lanes = ND_MAX_LANES;
+ 	nd_region->dev.type = type;
+ 	for (i = 0; i < nd_region->ndr_mappings; i++) {
+ 		struct nd_memdev *nd_memdev = nd_memdev_from_spa(nd_bus,
+@@ -736,6 +805,12 @@ static struct nd_region *nd_region_create(struct nd_bus *nd_bus,
  	if (nd_region->id < 0) {
  		kfree(nd_region);
  		return NULL;
@@ -2161,38 +2130,15 @@ index bcdd8e1e21a2..268d9ef67f9c 100644
 +		kfree(nd_region);
 +		return NULL;
  	}
+ 	nd_region->nd_spa = nd_spa;
+ 	nd_region->ndr_mappings = num_mappings;
+@@ -769,6 +844,8 @@ int nd_bus_register_regions(struct nd_bus *nd_bus)
+ 	struct nd_spa *nd_spa;
+ 	int rc = 0;
  
- 	memcpy(nd_region->mapping, ndr_desc->nd_mapping,
-@@ -551,6 +557,7 @@ static noinline struct nd_region *nd_region_create(struct nd_bus *nd_bus,
- 	nd_region->ndr_mappings = ndr_desc->num_mappings;
- 	nd_region->provider_data = ndr_desc->provider_data;
- 	nd_region->nd_set = ndr_desc->nd_set;
-+	nd_region->num_lanes = ndr_desc->num_lanes;
- 	ida_init(&nd_region->ns_ida);
- 	dev = &nd_region->dev;
- 	dev_set_name(dev, "region%d", nd_region->id);
-@@ -567,6 +574,7 @@ static noinline struct nd_region *nd_region_create(struct nd_bus *nd_bus,
- struct nd_region *nd_pmem_region_create(struct nd_bus *nd_bus,
- 		struct nd_region_desc *ndr_desc)
- {
-+	ndr_desc->num_lanes = ND_MAX_LANES;
- 	return nd_region_create(nd_bus, ndr_desc, &nd_pmem_device_type);
- }
- EXPORT_SYMBOL_GPL(nd_pmem_region_create);
-@@ -576,6 +584,7 @@ struct nd_region *nd_blk_region_create(struct nd_bus *nd_bus,
- {
- 	if (ndr_desc->num_mappings > 1)
- 		return NULL;
-+	ndr_desc->num_lanes = min(ndr_desc->num_lanes, ND_MAX_LANES);
- 	return nd_region_create(nd_bus, ndr_desc, &nd_blk_device_type);
- }
- EXPORT_SYMBOL_GPL(nd_blk_region_create);
-@@ -583,6 +592,7 @@ EXPORT_SYMBOL_GPL(nd_blk_region_create);
- struct nd_region *nd_volatile_region_create(struct nd_bus *nd_bus,
- 		struct nd_region_desc *ndr_desc)
- {
-+	ndr_desc->num_lanes = ND_MAX_LANES;
- 	return nd_region_create(nd_bus, ndr_desc, &nd_volatile_device_type);
- }
- EXPORT_SYMBOL_GPL(nd_volatile_region_create);
++	nd_region_init_locks();
++
+ 	mutex_lock(&nd_bus_list_mutex);
+ 	list_for_each_entry(nd_spa, &nd_bus->spas, list) {
+ 		int spa_type;
 
