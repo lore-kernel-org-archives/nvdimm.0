@@ -1,9 +1,9 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <1429720742.15952.30.camel@misato.fc.hp.com>
+Message-ID: <1429648353.17259.40.camel@misato.fc.hp.com>
 Subject: Re: [Linux-nvdimm] [PATCH 04/21] nd: create an 'nd_bus' from an
  'nfit_desc'
 From: Toshi Kani <toshi.kani@hp.com>
-Date: Wed, 22 Apr 2015 10:39:02 -0600
+Date: Tue, 21 Apr 2015 14:32:33 -0600
 In-Reply-To: <CAPcyv4gx7f90Kf+4h4drSSz+q54+ezJPtGRH7TwYcAudhvjmHw@mail.gmail.com>
 References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
 	 <20150418013535.25237.4770.stgit@dwillia2-desk3.amr.corp.intel.com>
@@ -68,21 +68,14 @@ On Tue, 2015-04-21 at 13:35 -0700, Dan Williams wrote:
 > info.  We have a test case for simple ranges (nfit_test1_setup()), but
 > it doesn't hit this bug because it does not specify any memory-device
 > tables.
+> 
+> Thanks, will fix this in v2 of the patch set.
+> 
+> > BTW, there are two nd_bus_probe() in bus.c and core.c, which is
+> > confusing.
+> 
+> Ok, will fix this as well in the v2 posting.
 
-Yes, we have NFIT table with SPA range (PM), memory device to SPA, and
-NVDIMM control region structures.  With the memory device to SPA
-structure, this code requires full sets of information, including the
-namespace label data in _DSM [1], which is outside of ACPI 6.0 and is
-optional.  Battery-backed DIMMs do not have such label data.  It needs
-to work with NFIT table with these structures without this _DSM or with
-a different type of _DSM which this code may or may not need to support.
-It should also check Region Format Interface Code (RFIC) in the NVDIMM
-control region structure before assuming this _DSM is present to
-implement RFIC 0x0201.
-
-[1] http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
-
-Thanks,
--Toshi 
-
+Cool!  Thanks Dan!
+-Toshi
 
