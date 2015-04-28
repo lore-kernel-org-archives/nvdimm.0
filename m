@@ -1,8 +1,8 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 06/20] libnd: ndctl.h, the nd ioctl abi
+Subject: [PATCH v2 13/20] libnd: namespace indices: read and validate
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 28 Apr 2015 14:24:44 -0400
-Message-ID: <20150428182444.35812.1805.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 28 Apr 2015 14:25:25 -0400
+Message-ID: <20150428182525.35812.86014.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -10,1309 +10,662 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, linux-kernel@vger.kernel.org
+Cc: Neil Brown <neilb@suse.de>, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Most configuration of the nd-subsystem is done via nd-sysfs attributes.
-However, some nd buses, particularly the ACPI.NFIT bus, define a small
-set of messages that can be passed to the platform.  For convenience we
-derivce the initial nd-ioctl-command formats directly from the NFIT DSM
-formats.
+On media label format consists of two index blocks followed by an array
+of labels.  None of these structures are ever updated in place.  A
+sequence number tracks the current active index and the next one to
+write, while labels are written to free slots.
 
-    ND_CMD_SMART: media health and diagnostics
-    ND_CMD_GET_CONFIG_SIZE: size of the label space
-    ND_CMD_GET_CONFIG_DATA: read label space
-    ND_CMD_SET_CONFIG_DATA: write label space
-    ND_CMD_VENDOR: vendor-specific command passthrough
-    ND_CMD_ARS_CAP: report address-range-scrubbing capabilities
-    ND_CMD_START_ARS: initiate scrubbing
-    ND_CMD_QUERY_ARS: report on scrubbing state
-    ND_CMD_SMART_THRESHOLD: configure alarm thresholds for smart events
+    +------------+
+    |            |
+    |  nsindex0  |
+    |            |
+    +------------+
+    |            |
+    |  nsindex1  |
+    |            |
+    +------------+
+    |   label0   |
+    +------------+
+    |   label1   |
+    +------------+
+    |            |
+     ....nslot...
+    |            |
+    +------------+
+    |   labelN   |
+    +------------+
 
-If a platform later defines different commands than this set it is
-straightforward to extend support to those formats.
+After reading valid labels, store the dpa ranges they claim into
+per-dimm resource trees.
 
-Most of the commands target a specific dimm.  However, the
-address-range-scrubbing commands target the bus.  The 'commands'
-attribute in sysfs of an nd-bus, or an nd-dimm enumerate the supported
-commands for that object.
-
-Cc: <linux-acpi@vger.kernel.org>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reported-by: Nicholas Moulin <nicholas.w.moulin@linux.intel.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/block/nd/Kconfig      |   12 ++
- drivers/block/nd/acpi.c       |  237 ++++++++++++++++++++++++++++++
- drivers/block/nd/acpi_nfit.h  |    3 
- drivers/block/nd/bus.c        |  324 ++++++++++++++++++++++++++++++++++++++++-
- drivers/block/nd/core.c       |   16 ++
- drivers/block/nd/dimm_devs.c  |   38 ++++-
- drivers/block/nd/libnd.h      |   25 +++
- drivers/block/nd/nd-private.h |    3 
- drivers/block/nd/test/nfit.c  |   78 ++++++++++
- include/uapi/linux/Kbuild     |    1 
- include/uapi/linux/ndctl.h    |  178 +++++++++++++++++++++++
- 11 files changed, 903 insertions(+), 12 deletions(-)
- create mode 100644 include/uapi/linux/ndctl.h
+ drivers/block/nd/Makefile    |    1 
+ drivers/block/nd/dimm.c      |   26 +++-
+ drivers/block/nd/dimm_devs.c |    6 +
+ drivers/block/nd/label.c     |  291 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/block/nd/label.h     |  129 +++++++++++++++++++
+ drivers/block/nd/nd.h        |   45 ++++++
+ include/uapi/linux/ndctl.h   |    1 
+ 7 files changed, 495 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/block/nd/label.c
+ create mode 100644 drivers/block/nd/label.h
 
-diff --git a/drivers/block/nd/Kconfig b/drivers/block/nd/Kconfig
-index 09f0135147ca..d2d84451e82c 100644
---- a/drivers/block/nd/Kconfig
-+++ b/drivers/block/nd/Kconfig
-@@ -37,6 +37,18 @@ config ND_ACPI
- 	  addition to storage devices this also enables libnd craft
- 	  ACPI._DSM messages for platform/dimm configuration.
+diff --git a/drivers/block/nd/Makefile b/drivers/block/nd/Makefile
+index ebb212af9f15..d588f691163c 100644
+--- a/drivers/block/nd/Makefile
++++ b/drivers/block/nd/Makefile
+@@ -31,3 +31,4 @@ libnd-y += dimm.o
+ libnd-y += region_devs.o
+ libnd-y += region.o
+ libnd-y += namespace_devs.o
++libnd-y += label.o
+diff --git a/drivers/block/nd/dimm.c b/drivers/block/nd/dimm.c
+index 6b7d2842509c..5477176c5de0 100644
+--- a/drivers/block/nd/dimm.c
++++ b/drivers/block/nd/dimm.c
+@@ -18,6 +18,7 @@
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+ #include <linux/nd.h>
++#include "label.h"
+ #include "nd.h"
  
-+config ND_ACPI_DEBUG
-+	bool "ACPI: Extra nd_acpi debugging"
-+	depends on ND_ACPI
-+	depends on DYNAMIC_DEBUG
-+	default n
-+	help
-+	  Enabling this option causes the nd_acpi driver to dump the
-+	  input and output buffers of _DSM operations on the ACPI0012
-+	  device and its children.  This can be very verbose, so leave
-+	  it disabled unless you are debugging a hardware / firmware
-+	  issue.
-+
- config NFIT_TEST
- 	tristate "NFIT TEST: Manufactured NFIT for interface testing"
- 	depends on DMA_CMA
-diff --git a/drivers/block/nd/acpi.c b/drivers/block/nd/acpi.c
-index af6684341c9b..c46e166695f7 100644
---- a/drivers/block/nd/acpi.c
-+++ b/drivers/block/nd/acpi.c
-@@ -12,6 +12,7 @@
-  */
- #include <linux/list_sort.h>
- #include <linux/module.h>
-+#include <linux/ndctl.h>
- #include <linux/list.h>
- #include <linux/acpi.h>
- #include "acpi_nfit.h"
-@@ -25,11 +26,160 @@ enum {
- 	NFIT_ACPI_NOTIFY_TABLE = 0x80,
- };
- 
-+static u8 nd_acpi_uuids[2][16]; /* initialized at nd_acpi_init */
-+
-+static u8 *nd_acpi_bus_uuid(void)
-+{
-+	return nd_acpi_uuids[0];
-+}
-+
-+static u8 *nd_acpi_dimm_uuid(void)
-+{
-+	return nd_acpi_uuids[1];
-+}
-+
-+static struct acpi_nfit_desc *to_acpi_nfit_desc(struct nd_bus_descriptor *nd_desc)
-+{
-+	return container_of(nd_desc, struct acpi_nfit_desc, nd_desc);
-+}
-+
-+static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
-+{
-+	struct nd_bus_descriptor *nd_desc = &acpi_desc->nd_desc;
-+
-+	/*
-+	 * If provider == 'ACPI.NFIT' we can assume 'dev' is a struct
-+	 * acpi_device.
-+	 */
-+	if (!nd_desc->provider_name
-+			|| strcmp(nd_desc->provider_name, "ACPI.NFIT") != 0)
-+		return NULL;
-+
-+	return to_acpi_device(acpi_desc->dev);
-+}
-+
- static int nd_acpi_ctl(struct nd_bus_descriptor *nd_desc,
- 		struct nd_dimm *nd_dimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len)
- {
--	return -ENOTTY;
-+	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
-+	const struct nd_cmd_desc const *desc = NULL;
-+	union acpi_object in_obj, in_buf, *out_obj;
-+	struct device *dev = acpi_desc->dev;
-+	const char *cmd_name, *dimm_name;
-+	unsigned long dsm_mask;
-+	acpi_handle handle;
-+	u32 offset;
-+	int rc, i;
-+	u8 *uuid;
-+
-+	if (nd_dimm) {
-+		struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
-+		struct acpi_device *adev = nfit_mem->adev;
-+
-+		if (!adev)
-+			return -ENOTTY;
-+		dimm_name = dev_name(&adev->dev);
-+		cmd_name = nd_dimm_cmd_name(cmd);
-+		dsm_mask = nfit_mem->dsm_mask;
-+		desc = nd_cmd_dimm_desc(cmd);
-+		uuid = nd_acpi_dimm_uuid();
-+		handle = adev->handle;
-+	} else {
-+		struct acpi_device *adev = to_acpi_dev(acpi_desc);
-+
-+		cmd_name = nd_bus_cmd_name(cmd);
-+		dsm_mask = nd_desc->dsm_mask;
-+		desc = nd_cmd_bus_desc(cmd);
-+		uuid = nd_acpi_bus_uuid();
-+		handle = adev->handle;
-+		dimm_name = "bus";
-+	}
-+
-+	if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
-+		return -ENOTTY;
-+
-+	if (!test_bit(cmd, &dsm_mask))
-+		return -ENOTTY;
-+
-+	in_obj.type = ACPI_TYPE_PACKAGE;
-+	in_obj.package.count = 1;
-+	in_obj.package.elements = &in_buf;
-+	in_buf.type = ACPI_TYPE_BUFFER;
-+	in_buf.buffer.pointer = buf;
-+	in_buf.buffer.length = 0;
-+
-+	/* libnd has already validated the input envelope */
-+	for (i = 0; i < desc->in_num; i++)
-+		in_buf.buffer.length += nd_cmd_in_size(nd_dimm, cmd, desc, i, buf);
-+
-+	dev_dbg(dev, "%s:%s cmd: %s input length: %d\n", __func__, dimm_name,
-+			cmd_name, in_buf.buffer.length);
-+	if (IS_ENABLED(CONFIG_ND_ACPI_DEBUG))
-+		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
-+				4, in_buf.buffer.pointer, min_t(u32, 128,
-+					in_buf.buffer.length), true);
-+
-+	out_obj = acpi_evaluate_dsm(handle, uuid, 1, cmd, &in_obj);
-+	if (!out_obj) {
-+		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
-+				cmd_name);
-+		return -EINVAL;
-+	}
-+
-+	if (out_obj->package.type != ACPI_TYPE_BUFFER) {
-+		dev_dbg(dev, "%s:%s unexpected output object type cmd: %s type: %d\n",
-+				__func__, dimm_name, cmd_name, out_obj->type);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__, dimm_name,
-+			cmd_name, out_obj->buffer.length);
-+	if (IS_ENABLED(CONFIG_ND_ACPI_DEBUG))
-+		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
-+				4, out_obj->buffer.pointer, min_t(u32, 128,
-+					out_obj->buffer.length), true);
-+
-+	for (i = 0, offset = 0; i < desc->out_num; i++) {
-+		u32 out_size = nd_cmd_out_size(nd_dimm, cmd, desc, i, buf,
-+				(u32 *) out_obj->buffer.pointer);
-+
-+		if (offset + out_size > out_obj->buffer.length) {
-+			dev_dbg(dev, "%s:%s output object underflow cmd: %s field: %d\n",
-+					__func__, dimm_name, cmd_name, i);
-+			break;
-+		}
-+
-+		if (in_buf.buffer.length + offset + out_size > buf_len) {
-+			dev_dbg(dev, "%s:%s output overrun cmd: %s field: %d\n",
-+					__func__, dimm_name, cmd_name, i);
-+			rc = -ENXIO;
-+			goto out;
-+		}
-+		memcpy(buf + in_buf.buffer.length + offset,
-+				out_obj->buffer.pointer + offset, out_size);
-+		offset += out_size;
-+	}
-+	if (offset + in_buf.buffer.length < buf_len) {
-+		if (i >= 1) {
-+			/*
-+			 * status valid, return the number of bytes left
-+			 * unfilled in the output buffer
-+			 */
-+			rc = buf_len - offset - in_buf.buffer.length;
-+		} else {
-+			dev_err(dev, "%s:%s underrun cmd: %s buf_len: %d out_len: %d\n",
-+					__func__, dimm_name, cmd_name, buf_len, offset);
-+			rc = -ENXIO;
-+		}
-+	} else
-+		rc = 0;
-+
-+ out:
-+	ACPI_FREE(out_obj);
-+
-+	return rc;
- }
- 
- static const char *spa_type_name(u16 type)
-@@ -476,6 +626,7 @@ static struct attribute_group nd_acpi_dimm_attribute_group = {
- };
- 
- static const struct attribute_group *nd_acpi_dimm_attribute_groups[] = {
-+	&nd_dimm_attribute_group,
- 	&nd_acpi_dimm_attribute_group,
- 	NULL,
- };
-@@ -492,6 +643,50 @@ static struct nd_dimm *nd_acpi_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
- 	return NULL;
- }
- 
-+static int nd_acpi_add_dimm(struct acpi_nfit_desc *acpi_desc,
-+		struct nfit_mem *nfit_mem, u32 nfit_handle)
-+{
-+	struct acpi_device *adev, *adev_dimm;
-+	struct device *dev = acpi_desc->dev;
-+	u8 *uuid = nd_acpi_dimm_uuid();
-+	unsigned long long sta;
-+	int i, rc = -ENODEV;
-+	acpi_status status;
-+
-+	nfit_mem->dsm_mask = acpi_desc->dimm_dsm_force_en;
-+	adev = to_acpi_dev(acpi_desc);
-+	if (!adev)
-+		return 0;
-+
-+	adev_dimm = acpi_find_child_device(adev, nfit_handle, false);
-+	nfit_mem->adev = adev_dimm;
-+	if (!adev_dimm) {
-+		dev_err(dev, "no ACPI.NFIT device with _ADR %#x, disabling...\n",
-+				nfit_handle);
-+		return -ENODEV;
-+	}
-+
-+	status = acpi_evaluate_integer(adev_dimm->handle, "_STA", NULL, &sta);
-+	if (status == AE_NOT_FOUND) {
-+		dev_dbg(dev, "%s missing _STA, assuming enabled...\n",
-+				dev_name(&adev_dimm->dev));
-+		rc = 0;
-+	} else if (ACPI_FAILURE(status))
-+		dev_err(dev, "%s failed to retrieve_STA, disabling...\n",
-+				dev_name(&adev_dimm->dev));
-+	else if ((sta & ACPI_STA_DEVICE_ENABLED) == 0)
-+		dev_info(dev, "%s disabled by firmware\n",
-+				dev_name(&adev_dimm->dev));
-+	else
-+		rc = 0;
-+
-+	for (i = ND_CMD_SMART; i <= ND_CMD_VENDOR; i++)
-+		if (acpi_check_dsm(adev_dimm->handle, uuid, 1, 1ULL << i))
-+			set_bit(i, &nfit_mem->dsm_mask);
-+
-+	return rc;
-+}
-+
- static int nd_acpi_register_dimms(struct acpi_nfit_desc *acpi_desc)
- {
- 	struct nfit_mem *nfit_mem;
-@@ -500,6 +695,7 @@ static int nd_acpi_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		struct nd_dimm *nd_dimm;
- 		unsigned long flags = 0;
- 		u32 nfit_handle;
-+		int rc;
- 
- 		nfit_handle = __to_nfit_memdev(nfit_mem)->nfit_handle;
- 		nd_dimm = nd_acpi_dimm_by_handle(acpi_desc, nfit_handle);
-@@ -516,8 +712,13 @@ static int nd_acpi_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		if (nfit_mem->bdw && nfit_mem->memdev_pmem)
- 			flags |= NDD_ALIASING;
- 
-+		rc = nd_acpi_add_dimm(acpi_desc, nfit_mem, nfit_handle);
-+		if (rc)
-+			continue;
-+
- 		nd_dimm = nd_dimm_create(acpi_desc->nd_bus, nfit_mem,
--				nd_acpi_dimm_attribute_groups, flags);
-+				nd_acpi_dimm_attribute_groups,
-+				flags, &nfit_mem->dsm_mask);
- 		if (!nd_dimm)
- 			return -ENOMEM;
- 
-@@ -527,6 +728,22 @@ static int nd_acpi_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 	return 0;
- }
- 
-+static void nd_acpi_init_dsms(struct acpi_nfit_desc *acpi_desc)
-+{
-+	struct nd_bus_descriptor *nd_desc = &acpi_desc->nd_desc;
-+	u8 *uuid = nd_acpi_bus_uuid();
-+	struct acpi_device *adev;
-+	int i;
-+
-+	adev = to_acpi_dev(acpi_desc);
-+	if (!adev)
-+		return;
-+
-+	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_ARS_QUERY; i++)
-+		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
-+			set_bit(i, &nd_desc->dsm_mask);
-+}
-+
- int nd_acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- {
- 	struct device *dev = acpi_desc->dev;
-@@ -564,6 +781,8 @@ int nd_acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- 	if (nfit_mem_init(acpi_desc) != 0)
+ static void free_data(struct nd_dimm_drvdata *ndd)
+@@ -42,7 +43,12 @@ static int nd_dimm_probe(struct device *dev)
  		return -ENOMEM;
  
-+	nd_acpi_init_dsms(acpi_desc);
-+
- 	return nd_acpi_register_dimms(acpi_desc);
- }
- EXPORT_SYMBOL_GPL(nd_acpi_nfit_init);
-@@ -641,6 +860,14 @@ static struct acpi_driver nd_acpi_driver = {
+ 	dev_set_drvdata(dev, ndd);
+-        ndd->dev = dev;
++	ndd->dpa.name = dev_name(dev);
++	ndd->ns_current = -1;
++	ndd->ns_next = -1;
++	ndd->dpa.start = 0;
++	ndd->dpa.end = -1;
++	ndd->dev = dev;
  
- static __init int nd_acpi_init(void)
- {
-+	char *uuids[] = {
-+		/* bus interface */
-+		"2f10e7a4-9e91-11e4-89d3-123b93f75cba",
-+		/* per-dimm interface */
-+		"4309ac30-0d11-11e4-9191-0800200c9a66",
-+	};
-+	int i;
-+
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit) != 40);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_spa) != 56);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_memdev) != 48);
-@@ -649,6 +876,12 @@ static __init int nd_acpi_init(void)
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_dcr) != 80);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_bdw) != 40);
+ 	rc = nd_dimm_init_nsarea(ndd);
+ 	if (rc)
+@@ -54,18 +60,34 @@ static int nd_dimm_probe(struct device *dev)
  
-+	for (i = 0; i < ARRAY_SIZE(uuids); i++)
-+		if (acpi_str_to_uuid(uuids[i], nd_acpi_uuids[i]) != AE_OK) {
-+			WARN_ON_ONCE(1);
-+			return -ENXIO;
-+		}
-+
- 	return acpi_bus_register_driver(&nd_acpi_driver);
- }
+ 	dev_dbg(dev, "config data size: %d\n", ndd->nsarea.config_size);
  
-diff --git a/drivers/block/nd/acpi_nfit.h b/drivers/block/nd/acpi_nfit.h
-index 00aaaee5953b..2faac336c07d 100644
---- a/drivers/block/nd/acpi_nfit.h
-+++ b/drivers/block/nd/acpi_nfit.h
-@@ -241,6 +241,8 @@ struct nfit_mem {
- 	struct acpi_nfit_spa *spa_dcr;
- 	struct acpi_nfit_spa *spa_bdw;
- 	struct list_head list;
-+	struct acpi_device *adev;
-+	unsigned long dsm_mask;
- };
- 
- struct acpi_nfit_desc {
-@@ -253,6 +255,7 @@ struct acpi_nfit_desc {
- 	struct list_head bdws;
- 	struct nd_bus *nd_bus;
- 	struct device *dev;
-+	unsigned long dimm_dsm_force_en;
- };
- 
- static inline struct acpi_nfit_memdev *__to_nfit_memdev(struct nfit_mem *nfit_mem)
-diff --git a/drivers/block/nd/bus.c b/drivers/block/nd/bus.c
-index ee56aa1ab2ad..a271e01af4a9 100644
---- a/drivers/block/nd/bus.c
-+++ b/drivers/block/nd/bus.c
-@@ -11,14 +11,18 @@
-  * General Public License for more details.
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/vmalloc.h>
- #include <linux/uaccess.h>
- #include <linux/fcntl.h>
- #include <linux/async.h>
-+#include <linux/ndctl.h>
- #include <linux/slab.h>
- #include <linux/fs.h>
- #include <linux/io.h>
-+#include <linux/mm.h>
- #include "nd-private.h"
- 
-+int nd_dimm_major;
- static int nd_bus_major;
- static struct class *nd_class;
- 
-@@ -47,19 +51,323 @@ void nd_bus_destroy_ndctl(struct nd_bus *nd_bus)
- 	device_destroy(nd_class, MKDEV(nd_bus_major, nd_bus->id));
- }
- 
-+static const struct nd_cmd_desc const __nd_cmd_dimm_descs[] = {
-+	[ND_CMD_IMPLEMENTED] = { },
-+	[ND_CMD_SMART] = {
-+		.out_num = 2,
-+		.out_sizes = { 4, 8, },
-+	},
-+	[ND_CMD_SMART_THRESHOLD] = {
-+		.out_num = 2,
-+		.out_sizes = { 4, 8, },
-+	},
-+	[ND_CMD_DIMM_FLAGS] = {
-+		.out_num = 2,
-+		.out_sizes = { 4, 4 },
-+	},
-+	[ND_CMD_GET_CONFIG_SIZE] = {
-+		.out_num = 3,
-+		.out_sizes = { 4, 4, 4, },
-+	},
-+	[ND_CMD_GET_CONFIG_DATA] = {
-+		.in_num = 2,
-+		.in_sizes = { 4, 4, },
-+		.out_num = 2,
-+		.out_sizes = { 4, UINT_MAX, },
-+	},
-+	[ND_CMD_SET_CONFIG_DATA] = {
-+		.in_num = 3,
-+		.in_sizes = { 4, 4, UINT_MAX, },
-+		.out_num = 1,
-+		.out_sizes = { 4, },
-+	},
-+	[ND_CMD_VENDOR] = {
-+		.in_num = 3,
-+		.in_sizes = { 4, 4, UINT_MAX, },
-+		.out_num = 3,
-+		.out_sizes = { 4, 4, UINT_MAX, },
-+	},
-+};
++	nd_bus_lock(dev);
++	ndd->ns_current = nd_label_validate(ndd);
++	ndd->ns_next = nd_label_next_nsindex(ndd->ns_current);
++	nd_label_copy(ndd, to_next_namespace_index(ndd),
++			to_current_namespace_index(ndd));
++	rc = nd_label_reserve_dpa(ndd);
++	nd_bus_unlock(dev);
 +
-+struct nd_cmd_desc const *nd_cmd_dimm_desc(int cmd)
-+{
-+	if (cmd < ARRAY_SIZE(__nd_cmd_dimm_descs))
-+		return &__nd_cmd_dimm_descs[cmd];
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(nd_cmd_dimm_desc);
++	if (rc)
++		goto err;
 +
-+static const struct nd_cmd_desc const __nd_cmd_bus_descs[] = {
-+	[ND_CMD_IMPLEMENTED] = { },
-+	[ND_CMD_ARS_CAP] = {
-+		.in_num = 2,
-+		.in_sizes = { 8, 8, },
-+		.out_num = 2,
-+		.out_sizes = { 4, 4, },
-+	},
-+	[ND_CMD_ARS_START] = {
-+		.in_num = 4,
-+		.in_sizes = { 8, 8, 2, 6, },
-+		.out_num = 1,
-+		.out_sizes = { 4, },
-+	},
-+	[ND_CMD_ARS_QUERY] = {
-+		.out_num = 2,
-+		.out_sizes = { 4, UINT_MAX, },
-+	},
-+};
-+
-+const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd)
-+{
-+	if (cmd < ARRAY_SIZE(__nd_cmd_bus_descs))
-+		return &__nd_cmd_bus_descs[cmd];
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(nd_cmd_bus_desc);
-+
-+u32 nd_cmd_in_size(struct nd_dimm *nd_dimm, int cmd,
-+		const struct nd_cmd_desc *desc, int idx, void *buf)
-+{
-+	if (idx >= desc->in_num)
-+		return UINT_MAX;
-+
-+	if (desc->in_sizes[idx] < UINT_MAX)
-+		return desc->in_sizes[idx];
-+
-+	if (nd_dimm && cmd == ND_CMD_SET_CONFIG_DATA && idx == 2) {
-+		struct nd_cmd_set_config_hdr *hdr = buf;
-+
-+		return hdr->in_length;
-+	} else if (nd_dimm && cmd == ND_CMD_VENDOR && idx == 2) {
-+		struct nd_cmd_vendor_hdr *hdr = buf;
-+
-+		return hdr->in_length;
-+	}
-+
-+	return UINT_MAX;
-+}
-+EXPORT_SYMBOL_GPL(nd_cmd_in_size);
-+
-+u32 nd_cmd_out_size(struct nd_dimm *nd_dimm, int cmd,
-+		const struct nd_cmd_desc *desc, int idx, const u32 *in_field,
-+		const u32 *out_field)
-+{
-+	if (idx >= desc->out_num)
-+		return UINT_MAX;
-+
-+	if (desc->out_sizes[idx] < UINT_MAX)
-+		return desc->out_sizes[idx];
-+
-+	if (nd_dimm && cmd == ND_CMD_GET_CONFIG_DATA && idx == 1)
-+		return in_field[1];
-+	else if (nd_dimm && cmd == ND_CMD_VENDOR && idx == 2)
-+		return out_field[1];
-+	else if (!nd_dimm && cmd == ND_CMD_ARS_QUERY && idx == 1)
-+		return ND_CMD_ARS_QUERY_MAX;
-+
-+	return UINT_MAX;
-+}
-+EXPORT_SYMBOL_GPL(nd_cmd_out_size);
-+
-+static int __nd_ioctl(struct nd_bus *nd_bus, struct nd_dimm *nd_dimm,
-+		int read_only, unsigned int ioctl_cmd, unsigned long arg)
-+{
-+	struct nd_bus_descriptor *nd_desc = nd_bus->nd_desc;
-+	size_t buf_len = 0, in_len = 0, out_len = 0;
-+	static char out_env[ND_CMD_MAX_ENVELOPE];
-+	static char in_env[ND_CMD_MAX_ENVELOPE];
-+	const struct nd_cmd_desc *desc = NULL;
-+	unsigned int cmd = _IOC_NR(ioctl_cmd);
-+	void __user *p = (void __user *) arg;
-+	struct device *dev = &nd_bus->dev;
-+	const char *cmd_name, *dimm_name;
-+	unsigned long dsm_mask;
-+	void *buf;
-+	int rc, i;
-+
-+	if (nd_dimm) {
-+		desc = nd_cmd_dimm_desc(cmd);
-+		cmd_name = nd_dimm_cmd_name(cmd);
-+		dsm_mask = nd_dimm->dsm_mask ? *(nd_dimm->dsm_mask) : 0;
-+		dimm_name = dev_name(&nd_dimm->dev);
-+	} else {
-+		desc = nd_cmd_bus_desc(cmd);
-+		cmd_name = nd_bus_cmd_name(cmd);
-+		dsm_mask = nd_desc->dsm_mask;
-+		dimm_name = "bus";
-+	}
-+
-+	if (!desc || (desc->out_num + desc->in_num == 0) ||
-+			!test_bit(cmd, &dsm_mask))
-+		return -ENOTTY;
-+
-+	/* fail write commands (when read-only) */
-+	if (read_only)
-+		switch (ioctl_cmd) {
-+		case ND_IOCTL_VENDOR:
-+		case ND_IOCTL_SET_CONFIG_DATA:
-+		case ND_IOCTL_ARS_START:
-+			dev_dbg(&nd_bus->dev, "'%s' command while read-only.\n",
-+					nd_dimm ? nd_dimm_cmd_name(cmd)
-+					: nd_bus_cmd_name(cmd));
-+			return -EPERM;
-+		default:
-+			break;
-+		}
-+
-+	/* process an input envelope */
-+	for (i = 0; i < desc->in_num; i++) {
-+		u32 in_size, copy;
-+
-+		in_size = nd_cmd_in_size(nd_dimm, cmd, desc, i, in_env);
-+		if (in_size == UINT_MAX) {
-+			dev_err(dev, "%s:%s unknown input size cmd: %s field: %d\n",
-+					__func__, dimm_name, cmd_name, i);
-+			return -ENXIO;
-+		}
-+		if (!access_ok(VERIFY_READ, p + in_len, in_size))
-+			return -EFAULT;
-+		if (in_len < sizeof(in_env))
-+			copy = min_t(u32, sizeof(in_env) - in_len, in_size);
-+		else
-+			copy = 0;
-+		if (copy && copy_from_user(&in_env[in_len], p + in_len, copy))
-+			return -EFAULT;
-+		in_len += in_size;
-+	}
-+
-+	/* process an output envelope */
-+	for (i = 0; i < desc->out_num; i++) {
-+		u32 out_size = nd_cmd_out_size(nd_dimm, cmd, desc, i,
-+				(u32 *) in_env, (u32 *) out_env);
-+		u32 copy;
-+
-+		if (out_size == UINT_MAX) {
-+			dev_dbg(dev, "%s:%s unknown output size cmd: %s field: %d\n",
-+					__func__, dimm_name, cmd_name, i);
-+			return -EFAULT;
-+		}
-+		if (!access_ok(VERIFY_WRITE, p + in_len + out_len, out_size))
-+			return -EFAULT;
-+		if (out_len < sizeof(out_env))
-+			copy = min_t(u32, sizeof(out_env) - out_len, out_size);
-+		else
-+			copy = 0;
-+		if (copy && copy_from_user(&out_env[out_len], p + in_len + out_len,
-+					copy))
-+			return -EFAULT;
-+		out_len += out_size;
-+	}
-+
-+	buf_len = out_len + in_len;
-+	if (!access_ok(VERIFY_WRITE, p, sizeof(buf_len)))
-+		return -EFAULT;
-+
-+	if (buf_len > ND_IOCTL_MAX_BUFLEN) {
-+		dev_dbg(dev, "%s:%s cmd: %s buf_len: %zd > %d\n", __func__,
-+				dimm_name, cmd_name, buf_len,
-+				ND_IOCTL_MAX_BUFLEN);
-+		return -EINVAL;
-+	}
-+
-+	buf = vmalloc(buf_len);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	if (copy_from_user(buf, p, buf_len)) {
-+		rc = -EFAULT;
-+		goto out;
-+	}
-+
-+	rc = nd_desc->ndctl(nd_desc, nd_dimm, cmd, buf, buf_len);
-+	if (rc < 0)
-+		goto out;
-+	if (copy_to_user(p, buf, buf_len))
-+		rc = -EFAULT;
-+ out:
-+	vfree(buf);
-+	return rc;
-+}
-+
- static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	return -ENXIO;
-+	long id = (long) file->private_data;
-+	int rc = -ENXIO, read_only;
-+	struct nd_bus *nd_bus;
-+
-+	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	mutex_lock(&nd_bus_list_mutex);
-+	list_for_each_entry(nd_bus, &nd_bus_list, list) {
-+		if (nd_bus->id == id) {
-+			rc = __nd_ioctl(nd_bus, NULL, read_only, cmd, arg);
-+			break;
-+		}
-+	}
-+	mutex_unlock(&nd_bus_list_mutex);
-+
-+	return rc;
-+}
-+
-+static int match_dimm(struct device *dev, void *data)
-+{
-+	long id = (long) data;
-+
-+	if (is_nd_dimm(dev)) {
-+		struct nd_dimm *nd_dimm = to_nd_dimm(dev);
-+
-+		return nd_dimm->id == id;
-+	}
-+
-+	return 0;
-+}
-+
-+static long nd_dimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-+{
-+	int rc = -ENXIO, read_only;
-+	struct nd_bus *nd_bus;
-+
-+	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	mutex_lock(&nd_bus_list_mutex);
-+	list_for_each_entry(nd_bus, &nd_bus_list, list) {
-+		struct device *dev = device_find_child(&nd_bus->dev,
-+				file->private_data, match_dimm);
-+
-+		if (!dev)
-+			continue;
-+
-+		rc = __nd_ioctl(nd_bus, to_nd_dimm(dev), read_only, cmd, arg);
-+		put_device(dev);
-+		break;
-+	}
-+	mutex_unlock(&nd_bus_list_mutex);
-+
-+	return rc;
-+}
-+
-+static int nd_open(struct inode *inode, struct file *file)
-+{
-+	long minor = iminor(inode);
-+
-+	file->private_data = (void *) minor;
-+	return 0;
- }
- 
- static const struct file_operations nd_bus_fops = {
- 	.owner = THIS_MODULE,
--	.open = nonseekable_open,
-+	.open = nd_open,
- 	.unlocked_ioctl = nd_ioctl,
- 	.compat_ioctl = nd_ioctl,
- 	.llseek = noop_llseek,
- };
- 
-+static const struct file_operations nd_dimm_fops = {
-+	.owner = THIS_MODULE,
-+	.open = nd_open,
-+	.unlocked_ioctl = nd_dimm_ioctl,
-+	.compat_ioctl = nd_dimm_ioctl,
-+	.llseek = noop_llseek,
-+};
-+
- int __init nd_bus_init(void)
- {
- 	int rc;
-@@ -70,9 +378,14 @@ int __init nd_bus_init(void)
- 
- 	rc = register_chrdev(0, "ndctl", &nd_bus_fops);
- 	if (rc < 0)
--		goto err_chrdev;
-+		goto err_bus_chrdev;
- 	nd_bus_major = rc;
- 
-+	rc = register_chrdev(0, "dimmctl", &nd_dimm_fops);
-+	if (rc < 0)
-+		goto err_dimm_chrdev;
-+	nd_dimm_major = rc;
-+
- 	nd_class = class_create(THIS_MODULE, "nd");
- 	if (IS_ERR(nd_class))
- 		goto err_class;
-@@ -80,8 +393,10 @@ int __init nd_bus_init(void)
  	return 0;
  
-  err_class:
-+	unregister_chrdev(nd_dimm_major, "dimmctl");
-+ err_dimm_chrdev:
- 	unregister_chrdev(nd_bus_major, "ndctl");
-- err_chrdev:
-+ err_bus_chrdev:
- 	bus_unregister(&nd_bus_type);
- 
+  err:
+ 	free_data(ndd);
  	return rc;
-@@ -91,5 +406,6 @@ void __exit nd_bus_exit(void)
- {
- 	class_destroy(nd_class);
- 	unregister_chrdev(nd_bus_major, "ndctl");
-+	unregister_chrdev(nd_dimm_major, "dimmctl");
- 	bus_unregister(&nd_bus_type);
- }
-diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
-index 24046db897c1..b14bf47dc292 100644
---- a/drivers/block/nd/core.c
-+++ b/drivers/block/nd/core.c
-@@ -13,6 +13,7 @@
- #include <linux/export.h>
- #include <linux/module.h>
- #include <linux/device.h>
-+#include <linux/ndctl.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
- #include "nd-private.h"
-@@ -59,6 +60,20 @@ struct nd_bus *walk_to_nd_bus(struct device *nd_dev)
- 	return NULL;
+-
  }
  
-+static ssize_t commands_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	int cmd, len = 0;
-+	struct nd_bus *nd_bus = to_nd_bus(dev);
-+	struct nd_bus_descriptor *nd_desc = nd_bus->nd_desc;
-+
-+	for_each_set_bit(cmd, &nd_desc->dsm_mask, BITS_PER_LONG)
-+		len += sprintf(buf + len, "%s ", nd_bus_cmd_name(cmd));
-+	len += sprintf(buf + len, "\n");
-+	return len;
-+}
-+static DEVICE_ATTR_RO(commands);
-+
- static const char *nd_bus_provider(struct nd_bus *nd_bus)
+ static int nd_dimm_remove(struct device *dev)
  {
- 	struct nd_bus_descriptor *nd_desc = nd_bus->nd_desc;
-@@ -82,6 +97,7 @@ static ssize_t provider_show(struct device *dev,
- static DEVICE_ATTR_RO(provider);
+ 	struct nd_dimm_drvdata *ndd = dev_get_drvdata(dev);
++	struct resource *res, *_r;
  
- static struct attribute *nd_bus_attributes[] = {
-+	&dev_attr_commands.attr,
- 	&dev_attr_provider.attr,
- 	NULL,
- };
++	nd_bus_lock(dev);
++	dev_set_drvdata(dev, NULL);
++	for_each_dpa_resource_safe(ndd, res, _r)
++		__release_region(&ndd->dpa, res->start, resource_size(res));
++	nd_bus_unlock(dev);
+ 	free_data(ndd);
+ 
+ 	return 0;
 diff --git a/drivers/block/nd/dimm_devs.c b/drivers/block/nd/dimm_devs.c
-index 19b081392f2f..3fa26f61c3db 100644
+index 8981adc59ba4..3fbd0d0502eb 100644
 --- a/drivers/block/nd/dimm_devs.c
 +++ b/drivers/block/nd/dimm_devs.c
-@@ -12,6 +12,7 @@
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- #include <linux/device.h>
-+#include <linux/ndctl.h>
- #include <linux/slab.h>
- #include <linux/io.h>
- #include <linux/fs.h>
-@@ -33,7 +34,7 @@ static struct device_type nd_dimm_device_type = {
- 	.release = nd_dimm_release,
- };
+@@ -92,8 +92,12 @@ int nd_dimm_init_config_data(struct nd_dimm_drvdata *ndd)
+ 	if (ndd->data)
+ 		return 0;
  
--static bool is_nd_dimm(struct device *dev)
-+bool is_nd_dimm(struct device *dev)
- {
- 	return dev->type == &nd_dimm_device_type;
- }
-@@ -55,12 +56,41 @@ EXPORT_SYMBOL_GPL(nd_dimm_name);
- 
- void *nd_dimm_provider_data(struct nd_dimm *nd_dimm)
- {
--	return nd_dimm->provider_data;
-+	if (nd_dimm)
-+		return nd_dimm->provider_data;
-+	return NULL;
- }
- EXPORT_SYMBOL_GPL(nd_dimm_provider_data);
- 
-+static ssize_t commands_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
-+	int cmd, len = 0;
-+
-+	if (!nd_dimm->dsm_mask)
-+		return sprintf(buf, "\n");
-+
-+	for_each_set_bit(cmd, nd_dimm->dsm_mask, BITS_PER_LONG)
-+		len += sprintf(buf + len, "%s ", nd_dimm_cmd_name(cmd));
-+	len += sprintf(buf + len, "\n");
-+	return len;
-+}
-+static DEVICE_ATTR_RO(commands);
-+
-+static struct attribute *nd_dimm_attributes[] = {
-+	&dev_attr_commands.attr,
-+	NULL,
-+};
-+
-+struct attribute_group nd_dimm_attribute_group = {
-+	.attrs = nd_dimm_attributes,
-+};
-+EXPORT_SYMBOL_GPL(nd_dimm_attribute_group);
-+
- struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
--		const struct attribute_group **groups, unsigned long flags)
-+		const struct attribute_group **groups, unsigned long flags,
-+		unsigned long *dsm_mask)
- {
- 	struct nd_dimm *nd_dimm = kzalloc(sizeof(*nd_dimm), GFP_KERNEL);
- 	struct device *dev;
-@@ -75,12 +105,14 @@ struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
- 	}
- 	nd_dimm->provider_data = provider_data;
- 	nd_dimm->flags = flags;
-+	nd_dimm->dsm_mask = dsm_mask;
- 
- 	dev = &nd_dimm->dev;
- 	dev_set_name(dev, "nmem%d", nd_dimm->id);
- 	dev->parent = &nd_bus->dev;
- 	dev->type = &nd_dimm_device_type;
- 	dev->bus = &nd_bus_type;
-+	dev->devt = MKDEV(nd_dimm_major, nd_dimm->id);
- 	dev->groups = groups;
- 	if (device_register(dev) != 0) {
- 		put_device(dev);
-diff --git a/drivers/block/nd/libnd.h b/drivers/block/nd/libnd.h
-index 4f8f2ebbcf7b..23dae8c1e65b 100644
---- a/drivers/block/nd/libnd.h
-+++ b/drivers/block/nd/libnd.h
-@@ -14,13 +14,21 @@
-  */
- #ifndef __LIBND_H__
- #define __LIBND_H__
-+#include <linux/sizes.h>
- 
- enum {
- 	/* when a dimm supports both PMEM and BLK access a label is required */
- 	NDD_ALIASING = 1 << 0,
-+
-+	/* need to set a limit somewhere, but yes, this is likely overkill */
-+	ND_IOCTL_MAX_BUFLEN = SZ_4M,
-+	ND_CMD_MAX_ELEM = 4,
-+	ND_CMD_MAX_ENVELOPE = 16,
-+	ND_CMD_ARS_QUERY_MAX = SZ_4K,
- };
- 
- extern struct attribute_group nd_bus_attribute_group;
-+extern struct attribute_group nd_dimm_attribute_group;
- 
- struct nd_dimm;
- struct nd_bus_descriptor;
-@@ -35,6 +43,13 @@ struct nd_bus_descriptor {
- 	ndctl_fn ndctl;
- };
- 
-+struct nd_cmd_desc {
-+	int in_num;
-+	int out_num;
-+	u32 in_sizes[ND_CMD_MAX_ELEM];
-+	int out_sizes[ND_CMD_MAX_ELEM];
-+};
-+
- struct nd_bus;
- struct nd_bus *nd_bus_register(struct device *parent,
- 		struct nd_bus_descriptor *nfit_desc);
-@@ -45,5 +60,13 @@ struct nd_bus_descriptor *to_nd_desc(struct nd_bus *nd_bus);
- const char *nd_dimm_name(struct nd_dimm *nd_dimm);
- void *nd_dimm_provider_data(struct nd_dimm *nd_dimm);
- struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
--		const struct attribute_group **groups, unsigned long flags);
-+		const struct attribute_group **groups, unsigned long flags,
-+		unsigned long *dsm_mask);
-+const struct nd_cmd_desc const *nd_cmd_dimm_desc(int cmd);
-+const struct nd_cmd_desc const *nd_cmd_bus_desc(int cmd);
-+u32 nd_cmd_in_size(struct nd_dimm *nd_dimm, int cmd,
-+		const struct nd_cmd_desc *desc, int idx, void *buf);
-+u32 nd_cmd_out_size(struct nd_dimm *nd_dimm, int cmd,
-+		const struct nd_cmd_desc *desc, int idx, const u32 *in_field,
-+		const u32 *out_field);
- #endif /* __LIBND_H__ */
-diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
-index cfb5a7241ed1..968e5089f72c 100644
---- a/drivers/block/nd/nd-private.h
-+++ b/drivers/block/nd/nd-private.h
-@@ -18,6 +18,7 @@
- extern struct list_head nd_bus_list;
- extern struct mutex nd_bus_list_mutex;
- extern struct bus_type nd_bus_type;
-+extern int nd_dimm_major;
- 
- struct nd_bus {
- 	struct nd_bus_descriptor *nd_desc;
-@@ -29,10 +30,12 @@ struct nd_bus {
- struct nd_dimm {
- 	unsigned long flags;
- 	void *provider_data;
-+	unsigned long *dsm_mask;
- 	struct device dev;
- 	int id;
- };
- 
-+bool is_nd_dimm(struct device *dev);
- struct nd_bus *walk_to_nd_bus(struct device *nd_dev);
- int __init nd_bus_init(void);
- void __exit nd_bus_exit(void);
-diff --git a/drivers/block/nd/test/nfit.c b/drivers/block/nd/test/nfit.c
-index 1c79f32376fc..50916f0ca901 100644
---- a/drivers/block/nd/test/nfit.c
-+++ b/drivers/block/nd/test/nfit.c
-@@ -14,6 +14,7 @@
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/module.h>
-+#include <linux/ndctl.h>
- #include <linux/sizes.h>
- #include <linux/slab.h>
- #include "nfit_test.h"
-@@ -142,7 +143,74 @@ static int nfit_test_ctl(struct nd_bus_descriptor *nd_desc,
- 		struct nd_dimm *nd_dimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len)
- {
--	return -ENOTTY;
-+	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
-+	struct nfit_test *t = container_of(acpi_desc, typeof(*t), acpi_desc);
-+	struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
-+	int i, rc;
-+
-+	if (!nfit_mem || !test_bit(cmd, &nfit_mem->dsm_mask))
-+		return -ENXIO;
-+
-+	/* lookup label space for the given dimm */
-+	for (i = 0; i < ARRAY_SIZE(handle); i++)
-+		if (__to_nfit_memdev(nfit_mem)->nfit_handle == handle[i])
-+			break;
-+	if (i >= ARRAY_SIZE(handle))
-+		return -ENXIO;
-+
-+	switch (cmd) {
-+	case ND_CMD_GET_CONFIG_SIZE: {
-+		struct nd_cmd_get_config_size *nd_cmd = buf;
-+
-+		if (buf_len < sizeof(*nd_cmd))
-+			return -EINVAL;
-+		nd_cmd->status = 0;
-+		nd_cmd->config_size = LABEL_SIZE;
-+		nd_cmd->max_xfer = SZ_4K;
-+		rc = 0;
-+		break;
+-	if (ndd->nsarea.status || ndd->nsarea.max_xfer == 0)
++	if (ndd->nsarea.status || ndd->nsarea.max_xfer == 0
++			|| ndd->nsarea.config_size < ND_LABEL_MIN_SIZE) {
++		dev_dbg(ndd->dev, "failed to init config data area: (%d:%d)\n",
++				ndd->nsarea.max_xfer, ndd->nsarea.config_size);
+ 		return -ENXIO;
 +	}
-+	case ND_CMD_GET_CONFIG_DATA: {
-+		struct nd_cmd_get_config_data_hdr *nd_cmd = buf;
-+		unsigned int len, offset = nd_cmd->in_offset;
-+
-+		if (buf_len < sizeof(*nd_cmd))
-+			return -EINVAL;
-+		if (offset >= LABEL_SIZE)
-+			return -EINVAL;
-+		if (nd_cmd->in_length + sizeof(*nd_cmd) > buf_len)
-+			return -EINVAL;
-+
-+		nd_cmd->status = 0;
-+		len = min(nd_cmd->in_length, LABEL_SIZE - offset);
-+		memcpy(nd_cmd->out_buf, t->label[i] + offset, len);
-+		rc = buf_len - sizeof(*nd_cmd) - len;
-+		break;
-+	}
-+	case ND_CMD_SET_CONFIG_DATA: {
-+		struct nd_cmd_set_config_hdr *nd_cmd = buf;
-+		unsigned int len, offset = nd_cmd->in_offset;
-+		u32 *status;
-+
-+		if (buf_len < sizeof(*nd_cmd))
-+			return -EINVAL;
-+		if (offset >= LABEL_SIZE)
-+			return -EINVAL;
-+		if (nd_cmd->in_length + sizeof(*nd_cmd) + 4 > buf_len)
-+			return -EINVAL;
-+
-+		status = buf + nd_cmd->in_length + sizeof(*nd_cmd);
-+		*status = 0;
-+		len = min(nd_cmd->in_length, LABEL_SIZE - offset);
-+		memcpy(t->label[i] + offset, nd_cmd->in_buf, len);
-+		rc = buf_len - sizeof(*nd_cmd) - (len + 4);
-+		break;
-+	}
-+	default:
-+		return -ENOTTY;
-+	}
-+
-+	return rc;
- }
  
- static DEFINE_SPINLOCK(nfit_test_lock);
-@@ -280,6 +348,7 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 		t->label[i] = test_alloc(t, LABEL_SIZE, &t->label_dma[i]);
- 		if (!t->label[i])
- 			return -ENOMEM;
-+		sprintf(t->label[i], "label%d", i);
- 	}
- 
- 	for (i = 0; i < NUM_DCR; i++) {
-@@ -322,6 +391,7 @@ static int nfit_test1_alloc(struct nfit_test *t)
- static void nfit_test0_setup(struct nfit_test *t)
- {
- 	struct nd_bus_descriptor *nd_desc;
-+	struct acpi_nfit_desc *acpi_desc;
- 	struct acpi_nfit_memdev *memdev;
- 	void *nfit_buf = t->nfit_buf;
- 	size_t size = t->nfit_size;
-@@ -763,7 +833,11 @@ static void nfit_test0_setup(struct nfit_test *t)
- 
- 	nfit->checksum = nfit_checksum(nfit_buf, size);
- 
--	nd_desc = &t->acpi_desc.nd_desc;
-+	acpi_desc = &t->acpi_desc;
-+	set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_dsm_force_en);
-+	set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_dsm_force_en);
-+	set_bit(ND_CMD_SET_CONFIG_DATA, &acpi_desc->dimm_dsm_force_en);
-+	nd_desc = &acpi_desc->nd_desc;
- 	nd_desc->ndctl = nfit_test_ctl;
- }
- 
-diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
-index 68ceb97c458c..384e8d212b04 100644
---- a/include/uapi/linux/Kbuild
-+++ b/include/uapi/linux/Kbuild
-@@ -270,6 +270,7 @@ header-y += ncp_fs.h
- header-y += ncp.h
- header-y += ncp_mount.h
- header-y += ncp_no.h
-+header-y += ndctl.h
- header-y += neighbour.h
- header-y += netconf.h
- header-y += netdevice.h
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+ 	ndd->data = kmalloc(ndd->nsarea.config_size, GFP_KERNEL);
+ 	if (!ndd->data)
+diff --git a/drivers/block/nd/label.c b/drivers/block/nd/label.c
 new file mode 100644
-index 000000000000..62c01bf76198
+index 000000000000..e791ea8bbdde
 --- /dev/null
-+++ b/include/uapi/linux/ndctl.h
-@@ -0,0 +1,178 @@
++++ b/drivers/block/nd/label.c
+@@ -0,0 +1,291 @@
 +/*
-+ * Copyright (c) 2014-2015, Intel Corporation.
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
 + *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU Lesser General Public License,
-+ * version 2.1, as published by the Free Software Foundation.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
 + *
-+ * This program is distributed in the hope it will be useful, but WITHOUT ANY
-+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
-+ * more details.
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
 + */
-+#ifndef __NDCTL_H__
-+#define __NDCTL_H__
++#include <linux/device.h>
++#include <linux/ndctl.h>
++#include <linux/io.h>
++#include <linux/nd.h>
++#include "nd-private.h"
++#include "label.h"
++#include "nd.h"
 +
-+#include <linux/types.h>
++#include <asm-generic/io-64-nonatomic-lo-hi.h>
 +
-+struct nd_cmd_smart {
-+	__u32 status;
-+	__u8 data[128];
-+} __packed;
++static u32 best_seq(u32 a, u32 b)
++{
++	a &= NSINDEX_SEQ_MASK;
++	b &= NSINDEX_SEQ_MASK;
 +
-+struct nd_cmd_smart_threshold {
-+	__u32 status;
-+	__u8 data[8];
-+} __packed;
++	if (a == 0 || a == b)
++		return b;
++	else if (b == 0)
++		return a;
++	else if (nd_inc_seq(a) == b)
++		return b;
++	else
++		return a;
++}
 +
-+struct nd_cmd_dimm_flags {
-+	__u32 status;
-+	__u32 flags;
-+} __packed;
++size_t sizeof_namespace_index(struct nd_dimm_drvdata *ndd)
++{
++	u32 index_span;
 +
-+struct nd_cmd_get_config_size {
-+	__u32 status;
-+	__u32 config_size;
-+	__u32 max_xfer;
-+} __packed;
++	if (ndd->nsindex_size)
++		return ndd->nsindex_size;
 +
-+struct nd_cmd_get_config_data_hdr {
-+	__u32 in_offset;
-+	__u32 in_length;
-+	__u32 status;
-+	__u8 out_buf[0];
-+} __packed;
++	/*
++	 * The minimum index space is 512 bytes, with that amount of
++	 * index we can describe ~1400 labels which is less than a byte
++	 * of overhead per label.  Round up to a byte of overhead per
++	 * label and determine the size of the index region.  Yes, this
++	 * starts to waste space at larger config_sizes, but it's
++	 * unlikely we'll ever see anything but 128K.
++	 */
++	index_span = ndd->nsarea.config_size / 129;
++	index_span /= NSINDEX_ALIGN * 2;
++	ndd->nsindex_size = index_span * NSINDEX_ALIGN;
 +
-+struct nd_cmd_set_config_hdr {
-+	__u32 in_offset;
-+	__u32 in_length;
-+	__u8 in_buf[0];
-+} __packed;
++	return ndd->nsindex_size;
++}
 +
-+struct nd_cmd_vendor_hdr {
-+	__u32 opcode;
-+	__u32 in_length;
-+	__u8 in_buf[0];
-+} __packed;
++int nd_label_validate(struct nd_dimm_drvdata *ndd)
++{
++	/*
++	 * On media label format consists of two index blocks followed
++	 * by an array of labels.  None of these structures are ever
++	 * updated in place.  A sequence number tracks the current
++	 * active index and the next one to write, while labels are
++	 * written to free slots.
++	 *
++	 *     +------------+
++	 *     |            |
++	 *     |  nsindex0  |
++	 *     |            |
++	 *     +------------+
++	 *     |            |
++	 *     |  nsindex1  |
++	 *     |            |
++	 *     +------------+
++	 *     |   label0   |
++	 *     +------------+
++	 *     |   label1   |
++	 *     +------------+
++	 *     |            |
++	 *      ....nslot...
++	 *     |            |
++	 *     +------------+
++	 *     |   labelN   |
++	 *     +------------+
++	 */
++	struct nd_namespace_index __iomem *nsindex[] = {
++		to_namespace_index(ndd, 0),
++		to_namespace_index(ndd, 1),
++	};
++	const int num_index = ARRAY_SIZE(nsindex);
++	struct device *dev = ndd->dev;
++	bool valid[] = { false, false };
++	int i, num_valid = 0;
++	u32 seq;
 +
-+struct nd_cmd_vendor_tail {
-+	__u32 status;
-+	__u32 out_length;
-+	__u8 out_buf[0];
-+} __packed;
++	for (i = 0; i < num_index; i++) {
++		u64 sum_save, sum;
++		u8 sig[NSINDEX_SIG_LEN];
 +
-+struct nd_cmd_ars_cap {
-+	__u64 address;
-+	__u64 length;
-+	__u32 status;
-+	__u32 max_ars_out;
-+} __packed;
++		memcpy_fromio(sig, nsindex[i]->sig, NSINDEX_SIG_LEN);
++		if (memcmp(sig, NSINDEX_SIGNATURE, NSINDEX_SIG_LEN) != 0) {
++			dev_dbg(dev, "%s: nsindex%d signature invalid\n",
++					__func__, i);
++			continue;
++		}
++		sum_save = readq(&nsindex[i]->checksum);
++		writeq(0, &nsindex[i]->checksum);
++		sum = nd_fletcher64(nsindex[i], sizeof_namespace_index(ndd));
++		writeq(sum_save, &nsindex[i]->checksum);
++		if (sum != sum_save) {
++			dev_dbg(dev, "%s: nsindex%d checksum invalid\n",
++					__func__, i);
++			continue;
++		}
++		if ((readl(&nsindex[i]->seq) & NSINDEX_SEQ_MASK) == 0) {
++			dev_dbg(dev, "%s: nsindex%d sequence: %#x invalid\n",
++					__func__, i, readl(&nsindex[i]->seq));
++			continue;
++		}
 +
-+struct nd_cmd_ars_start {
-+	__u64 address;
-+	__u64 length;
-+	__u16 type;
-+	__u8 reserved[6];
-+	__u32 status;
-+} __packed;
++		/* sanity check the index against expected values */
++		if (readq(&nsindex[i]->myoff)
++				!= i * sizeof_namespace_index(ndd)) {
++			dev_dbg(dev, "%s: nsindex%d myoff: %#llx invalid\n",
++					__func__, i, (unsigned long long)
++					readq(&nsindex[i]->myoff));
++			continue;
++		}
++		if (readq(&nsindex[i]->otheroff)
++				!= (!i) * sizeof_namespace_index(ndd)) {
++			dev_dbg(dev, "%s: nsindex%d otheroff: %#llx invalid\n",
++					__func__, i, (unsigned long long)
++					readq(&nsindex[i]->otheroff));
++			continue;
++		}
++		if (readq(&nsindex[i]->mysize) > sizeof_namespace_index(ndd)
++				|| readq(&nsindex[i]->mysize)
++				< sizeof(struct nd_namespace_index)) {
++			dev_dbg(dev, "%s: nsindex%d mysize: %#llx invalid\n",
++					__func__, i, (unsigned long long)
++					readq(&nsindex[i]->mysize));
++			continue;
++		}
++		if (readl(&nsindex[i]->nslot) * sizeof(struct nd_namespace_label)
++				+ 2 * sizeof_namespace_index(ndd)
++				> ndd->nsarea.config_size) {
++			dev_dbg(dev, "%s: nsindex%d nslot: %u invalid, config_size: %#x\n",
++					__func__, i, readl(&nsindex[i]->nslot),
++					ndd->nsarea.config_size);
++			continue;
++		}
++		valid[i] = true;
++		num_valid++;
++	}
 +
-+struct nd_cmd_ars_query {
-+	__u32 status;
-+	__u32 out_length;
-+	__u64 address;
-+	__u64 length;
-+	__u16 type;
-+	__u32 num_records;
-+	struct nd_ars_record {
-+		__u32 handle;
-+		__u32 flags;
-+		__u64 err_address;
-+		__u64 mask;
-+	} __packed records[0];
-+} __packed;
++	switch (num_valid) {
++	case 0:
++		break;
++	case 1:
++		for (i = 0; i < num_index; i++)
++			if (valid[i])
++				return i;
++		/* can't have num_valid > 0 but valid[] = { false, false } */
++		WARN_ON(1);
++		break;
++	default:
++		/* pick the best index... */
++		seq = best_seq(readl(&nsindex[0]->seq), readl(&nsindex[1]->seq));
++		if (seq == (readl(&nsindex[1]->seq) & NSINDEX_SEQ_MASK))
++			return 1;
++		else
++			return 0;
++		break;
++	}
++
++	return -1;
++}
++
++void nd_label_copy(struct nd_dimm_drvdata *ndd,
++		struct nd_namespace_index __iomem *dst,
++		struct nd_namespace_index __iomem *src)
++{
++	void *s, *d;
++
++	if (dst && src)
++		/* pass */;
++	else
++		return;
++
++	d = (void * __force) dst;
++	s = (void * __force) src;
++	memcpy(d, s, sizeof_namespace_index(ndd));
++}
++
++static struct nd_namespace_label __iomem *nd_label_base(struct nd_dimm_drvdata *ndd)
++{
++	void *base = to_namespace_index(ndd, 0);
++
++	return base + 2 * sizeof_namespace_index(ndd);
++}
++
++#define for_each_clear_bit_le(bit, addr, size) \
++	for ((bit) = find_next_zero_bit_le((addr), (size), 0);  \
++	     (bit) < (size);                                    \
++	     (bit) = find_next_zero_bit_le((addr), (size), (bit) + 1))
++
++/**
++ * preamble_current - common variable initialization for nd_label_* routines
++ * @nd_dimm: dimm container for the relevant label set
++ * @nsindex: on return set to the currently active namespace index
++ * @free: on return set to the free label bitmap in the index
++ * @nslot: on return set to the number of slots in the label space
++ */
++static bool preamble_current(struct nd_dimm_drvdata *ndd,
++		struct nd_namespace_index **nsindex,
++		unsigned long **free, u32 *nslot)
++{
++	*nsindex = to_current_namespace_index(ndd);
++	if (*nsindex == NULL)
++		return false;
++
++	*free = (unsigned long __force *) (*nsindex)->free;
++	*nslot = readl(&(*nsindex)->nslot);
++
++	return true;
++}
++
++static char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags)
++{
++	if (!label_id || !uuid)
++		return NULL;
++	snprintf(label_id->id, ND_LABEL_ID_SIZE, "%s-%pUb",
++			flags & NSLABEL_FLAG_LOCAL ? "blk" : "pmem", uuid);
++	return label_id->id;
++}
++
++static bool slot_valid(struct nd_namespace_label __iomem *nd_label, u32 slot)
++{
++	/* check that we are written where we expect to be written */
++	if (slot != readl(&nd_label->slot))
++		return false;
++
++	/* check that DPA allocations are page aligned */
++	if ((readq(&nd_label->dpa) | readq(&nd_label->rawsize)) % SZ_4K)
++		return false;
++
++	return true;
++}
++
++int nd_label_reserve_dpa(struct nd_dimm_drvdata *ndd)
++{
++	struct nd_namespace_index __iomem *nsindex;
++	unsigned long *free;
++	u32 nslot, slot;
++
++	if (!preamble_current(ndd, &nsindex, &free, &nslot))
++		return 0; /* no label, nothing to reserve */
++
++	for_each_clear_bit_le(slot, free, nslot) {
++		struct nd_namespace_label __iomem *nd_label;
++		struct nd_region *nd_region = NULL;
++		u8 label_uuid[NSLABEL_UUID_LEN];
++		struct nd_label_id *label_id;
++		struct resource *res;
++		u32 flags;
++
++		nd_label = nd_label_base(ndd) + slot;
++
++		if (!slot_valid(nd_label, slot))
++			continue;
++
++		label_id = devm_kzalloc(ndd->dev, sizeof(*label_id),
++				GFP_KERNEL);
++		if (!label_id)
++			return -ENOMEM;
++		memcpy_fromio(label_uuid, nd_label->uuid,
++				NSLABEL_UUID_LEN);
++		flags = readl(&nd_label->flags);
++		res = __request_region(&ndd->dpa, readq(&nd_label->dpa),
++				readq(&nd_label->rawsize),
++				nd_label_gen_id(label_id, label_uuid, flags), 0);
++		nd_dbg_dpa(nd_region, ndd, res, "reserve\n");
++		if (!res)
++			return -EBUSY;
++	}
++
++	return 0;
++}
+diff --git a/drivers/block/nd/label.h b/drivers/block/nd/label.h
+new file mode 100644
+index 000000000000..79ed885a43c0
+--- /dev/null
++++ b/drivers/block/nd/label.h
+@@ -0,0 +1,129 @@
++/*
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __LABEL_H__
++#define __LABEL_H__
++
++#include <linux/ndctl.h>
++#include <linux/sizes.h>
++#include <linux/io.h>
 +
 +enum {
-+	ND_CMD_IMPLEMENTED = 0,
-+
-+	/* bus commands */
-+	ND_CMD_ARS_CAP = 1,
-+	ND_CMD_ARS_START = 2,
-+	ND_CMD_ARS_QUERY = 3,
-+
-+	/* per-dimm commands */
-+	ND_CMD_SMART = 1,
-+	ND_CMD_SMART_THRESHOLD = 2,
-+	ND_CMD_DIMM_FLAGS = 3,
-+	ND_CMD_GET_CONFIG_SIZE = 4,
-+	ND_CMD_GET_CONFIG_DATA = 5,
-+	ND_CMD_SET_CONFIG_DATA = 6,
-+	ND_CMD_VENDOR_EFFECT_LOG_SIZE = 7,
-+	ND_CMD_VENDOR_EFFECT_LOG = 8,
-+	ND_CMD_VENDOR = 9,
++	NSINDEX_SIG_LEN = 16,
++	NSINDEX_ALIGN = 256,
++	NSINDEX_SEQ_MASK = 0x3,
++	NSLABEL_UUID_LEN = 16,
++	NSLABEL_NAME_LEN = 64,
++	NSLABEL_FLAG_ROLABEL = 0x1,  /* read-only label */
++	NSLABEL_FLAG_LOCAL = 0x2,    /* DIMM-local namespace */
++	NSLABEL_FLAG_BTT = 0x4,      /* namespace contains a BTT */
++	NSLABEL_FLAG_UPDATING = 0x8, /* label being updated */
++	BTT_ALIGN = 4096,            /* all btt structures */
++	BTTINFO_SIG_LEN = 16,
++	BTTINFO_UUID_LEN = 16,
++	BTTINFO_FLAG_ERROR = 0x1,    /* error state (read-only) */
++	BTTINFO_MAJOR_VERSION = 1,
++	ND_LABEL_MIN_SIZE = 512 * 129, /* see sizeof_namespace_index() */
++	ND_LABEL_ID_SIZE = 50,
 +};
 +
-+static inline const char *nd_bus_cmd_name(unsigned cmd)
-+{
-+	static const char * const names[] = {
-+		[ND_CMD_ARS_CAP] = "ars_cap",
-+		[ND_CMD_ARS_START] = "ars_start",
-+		[ND_CMD_ARS_QUERY] = "ars_query",
-+	};
++static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
 +
-+	if (cmd < ARRAY_SIZE(names) && names[cmd])
-+		return names[cmd];
-+	return "unknown";
++/**
++ * struct nd_namespace_index - label set superblock
++ * @sig: NAMESPACE_INDEX\0
++ * @flags: placeholder
++ * @seq: sequence number for this index
++ * @myoff: offset of this index in label area
++ * @mysize: size of this index struct
++ * @otheroff: offset of other index
++ * @labeloff: offset of first label slot
++ * @nslot: total number of label slots
++ * @major: label area major version
++ * @minor: label area minor version
++ * @checksum: fletcher64 of all fields
++ * @free[0]: bitmap, nlabel bits
++ *
++ * The size of free[] is rounded up so the total struct size is a
++ * multiple of NSINDEX_ALIGN bytes.  Any bits this allocates beyond
++ * nlabel bits must be zero.
++ */
++struct nd_namespace_index {
++	u8 sig[NSINDEX_SIG_LEN];
++	__le32 flags;
++	__le32 seq;
++	__le64 myoff;
++	__le64 mysize;
++	__le64 otheroff;
++	__le64 labeloff;
++	__le32 nslot;
++	__le16 major;
++	__le16 minor;
++	__le64 checksum;
++	u8 free[0];
++};
++
++/**
++ * struct nd_namespace_label - namespace superblock
++ * @uuid: UUID per RFC 4122
++ * @name: optional name (NULL-terminated)
++ * @flags: see NSLABEL_FLAG_*
++ * @nlabel: num labels to describe this ns
++ * @position: labels position in set
++ * @isetcookie: interleave set cookie
++ * @lbasize: LBA size in bytes or 0 for pmem
++ * @dpa: DPA of NVM range on this DIMM
++ * @rawsize: size of namespace
++ * @slot: slot of this label in label area
++ * @unused: must be zero
++ */
++struct nd_namespace_label {
++	u8 uuid[NSLABEL_UUID_LEN];
++	u8 name[NSLABEL_NAME_LEN];
++	__le32 flags;
++	__le16 nlabel;
++	__le16 position;
++	__le64 isetcookie;
++	__le64 lbasize;
++	__le64 dpa;
++	__le64 rawsize;
++	__le32 slot;
++	__le32 unused;
++};
++
++/**
++ * struct nd_label_id - identifier string for dpa allocation
++ * @id: "{blk|pmem}-<namespace uuid>"
++ */
++struct nd_label_id {
++	char id[ND_LABEL_ID_SIZE];
++};
++
++/*
++ * If the 'best' index is invalid, so is the 'next' index.  Otherwise,
++ * the next index is MOD(index+1, 2)
++ */
++static inline int nd_label_next_nsindex(int index)
++{
++	if (index < 0)
++		return -1;
++
++	return (index + 1) % 2;
 +}
 +
-+static inline const char *nd_dimm_cmd_name(unsigned cmd)
++struct nd_dimm_drvdata;
++int nd_label_validate(struct nd_dimm_drvdata *ndd);
++void nd_label_copy(struct nd_dimm_drvdata *ndd,
++		struct nd_namespace_index *dst,
++		struct nd_namespace_index *src);
++size_t sizeof_namespace_index(struct nd_dimm_drvdata *ndd);
++#endif /* __LABEL_H__ */
+diff --git a/drivers/block/nd/nd.h b/drivers/block/nd/nd.h
+index c69707dbd272..832103a5e3f7 100644
+--- a/drivers/block/nd/nd.h
++++ b/drivers/block/nd/nd.h
+@@ -16,11 +16,15 @@
+ #include <linux/mutex.h>
+ #include <linux/ndctl.h>
+ #include "libnd.h"
++#include "label.h"
+ 
+ struct nd_dimm_drvdata {
+ 	struct device *dev;
++	int nsindex_size;
+ 	struct nd_cmd_get_config_size nsarea;
+ 	void *data;
++	int ns_current, ns_next;
++	struct resource dpa;
+ };
+ 
+ struct nd_region_namespaces {
+@@ -28,6 +32,37 @@ struct nd_region_namespaces {
+ 	int active;
+ };
+ 
++static inline struct nd_namespace_index __iomem *to_namespace_index(
++		struct nd_dimm_drvdata *ndd, int i)
 +{
-+	static const char * const names[] = {
-+		[ND_CMD_SMART] = "smart",
-+		[ND_CMD_SMART_THRESHOLD] = "smart_thresh",
-+		[ND_CMD_DIMM_FLAGS] = "flags",
-+		[ND_CMD_GET_CONFIG_SIZE] = "get_size",
-+		[ND_CMD_GET_CONFIG_DATA] = "get_data",
-+		[ND_CMD_SET_CONFIG_DATA] = "set_data",
-+		[ND_CMD_VENDOR_EFFECT_LOG_SIZE] = "effect_size",
-+		[ND_CMD_VENDOR_EFFECT_LOG] = "effect_log",
-+		[ND_CMD_VENDOR] = "vendor",
-+	};
++	if (i < 0)
++		return NULL;
 +
-+	if (cmd < ARRAY_SIZE(names) && names[cmd])
-+		return names[cmd];
-+	return "unknown";
++	return ((void __iomem *) ndd->data + sizeof_namespace_index(ndd) * i);
 +}
 +
-+#define ND_IOCTL 'N'
++static inline struct nd_namespace_index __iomem *to_current_namespace_index(
++		struct nd_dimm_drvdata *ndd)
++{
++	return to_namespace_index(ndd, ndd->ns_current);
++}
 +
-+#define ND_IOCTL_SMART			_IOWR(ND_IOCTL, ND_CMD_SMART,\
-+					struct nd_cmd_smart)
++static inline struct nd_namespace_index __iomem *to_next_namespace_index(
++		struct nd_dimm_drvdata *ndd)
++{
++	return to_namespace_index(ndd, ndd->ns_next);
++}
 +
-+#define ND_IOCTL_SMART_THRESHOLD	_IOWR(ND_IOCTL, ND_CMD_SMART_THRESHOLD,\
-+					struct nd_cmd_smart_threshold)
++#define nd_dbg_dpa(r, d, res, fmt, arg...) \
++	dev_dbg((r) ? &(r)->dev : (d)->dev, "%s: %.13s: %#llx @ %#llx " fmt, \
++		(r) ? dev_name((d)->dev) : "", res ? res->name : "null", \
++		(unsigned long long) (res ? resource_size(res) : 0), \
++		(unsigned long long) (res ? res->start : 0), ##arg)
 +
-+#define ND_IOCTL_DIMM_FLAGS		_IOWR(ND_IOCTL, ND_CMD_DIMM_FLAGS,\
-+					struct nd_cmd_dimm_flags)
++#define for_each_dpa_resource_safe(ndd, res, next) \
++	for (res = (ndd)->dpa.child, next = res ? res->sibling : NULL; \
++			res; res = next, next = next ? next->sibling : NULL)
 +
-+#define ND_IOCTL_GET_CONFIG_SIZE	_IOWR(ND_IOCTL, ND_CMD_GET_CONFIG_SIZE,\
-+					struct nd_cmd_get_config_size)
+ struct nd_region {
+ 	struct device dev;
+ 	u16 ndr_mappings;
+@@ -39,6 +74,15 @@ struct nd_region {
+ 	struct nd_mapping mapping[0];
+ };
+ 
++/*
++ * Lookup next in the repeating sequence of 01, 10, and 11.
++ */
++static inline unsigned nd_inc_seq(unsigned seq)
++{
++	static const unsigned next[] = { 0, 2, 3, 1 };
 +
-+#define ND_IOCTL_GET_CONFIG_DATA	_IOWR(ND_IOCTL, ND_CMD_GET_CONFIG_DATA,\
-+					struct nd_cmd_get_config_data_hdr)
-+
-+#define ND_IOCTL_SET_CONFIG_DATA	_IOWR(ND_IOCTL, ND_CMD_SET_CONFIG_DATA,\
-+					struct nd_cmd_set_config_hdr)
-+
-+#define ND_IOCTL_VENDOR			_IOWR(ND_IOCTL, ND_CMD_VENDOR,\
-+					struct nd_cmd_vendor_hdr)
-+
-+#define ND_IOCTL_ARS_CAP		_IOWR(ND_IOCTL, ND_CMD_ARS_CAP,\
-+					struct nd_cmd_ars_cap)
-+
-+#define ND_IOCTL_ARS_START		_IOWR(ND_IOCTL, ND_CMD_ARS_START,\
-+					struct nd_cmd_ars_start)
-+
-+#define ND_IOCTL_ARS_QUERY		_IOWR(ND_IOCTL, ND_CMD_ARS_QUERY,\
-+					struct nd_cmd_ars_query)
-+
-+#endif /* __NDCTL_H__ */
++	return next[seq & 3];
++}
+ enum nd_async_mode {
+ 	ND_SYNC,
+ 	ND_ASYNC,
+@@ -54,4 +98,5 @@ int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
+ void nd_bus_lock(struct device *dev);
+ void nd_bus_unlock(struct device *dev);
+ bool is_nd_bus_locked(struct device *dev);
++int nd_label_reserve_dpa(struct nd_dimm_drvdata *ndd);
+ #endif /* __ND_H__ */
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 5ffa319f3408..624a19d9e6e4 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -175,7 +175,6 @@ static inline const char *nd_dimm_cmd_name(unsigned cmd)
+ #define ND_IOCTL_ARS_QUERY		_IOWR(ND_IOCTL, ND_CMD_ARS_QUERY,\
+ 					struct nd_cmd_ars_query)
+ 
+-
+ #define ND_DEVICE_DIMM 1            /* nd_dimm: container for "config data" */
+ #define ND_DEVICE_REGION_PMEM 2     /* nd_region: (parent of pmem namespaces) */
+ #define ND_DEVICE_REGION_BLK 3      /* nd_region: (parent of blk namespaces) */
 
