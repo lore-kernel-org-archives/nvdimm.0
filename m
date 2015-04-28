@@ -1,10 +1,10 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 15/21] nd: pmem label sets and namespace instantiation.
+Subject: [PATCH v2 14/20] libnd: pmem label sets and namespace instantiation.
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 17 Apr 2015 21:36:34 -0400
-Message-ID: <20150418013634.25237.91567.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 28 Apr 2015 14:25:30 -0400
+Message-ID: <20150428182530.35812.86604.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -35,22 +35,23 @@ Signed-off-by: Dan Williams <dan.j.williams@intel.com>
  drivers/block/nd/dimm_devs.c      |  127 +++++
  drivers/block/nd/label.c          |   54 ++
  drivers/block/nd/label.h          |    3 
- drivers/block/nd/namespace_devs.c | 1020 +++++++++++++++++++++++++++++++++++++
+ drivers/block/nd/libnd.h          |    2 
+ drivers/block/nd/namespace_devs.c | 1024 +++++++++++++++++++++++++++++++++++++
  drivers/block/nd/nd-private.h     |   14 +
  drivers/block/nd/nd.h             |   33 +
  drivers/block/nd/pmem.c           |   22 +
- drivers/block/nd/region_devs.c    |  147 +++++
+ drivers/block/nd/region_devs.c    |  145 +++++
  include/linux/nd.h                |   24 +
  include/uapi/linux/ndctl.h        |    4 
- 13 files changed, 1508 insertions(+), 12 deletions(-)
+ 14 files changed, 1512 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/block/nd/bus.c b/drivers/block/nd/bus.c
-index 944d7d7845fe..8e70098b6cb0 100644
+index 8afb8d4a7e81..819259e92468 100644
 --- a/drivers/block/nd/bus.c
 +++ b/drivers/block/nd/bus.c
-@@ -274,8 +274,10 @@ void nd_bus_destroy_ndctl(struct nd_bus *nd_bus)
- 	device_destroy(nd_class, MKDEV(nd_bus_major, nd_bus->id));
+@@ -364,8 +364,10 @@ u32 nd_cmd_out_size(struct nd_dimm *nd_dimm, int cmd,
  }
+ EXPORT_SYMBOL_GPL(nd_cmd_out_size);
  
 -static void wait_nd_bus_probe_idle(struct nd_bus *nd_bus)
 +void wait_nd_bus_probe_idle(struct device *dev)
@@ -60,7 +61,7 @@ index 944d7d7845fe..8e70098b6cb0 100644
  	do {
  		if (nd_bus->probe_active == 0)
  			break;
-@@ -294,7 +296,7 @@ static int nd_cmd_clear_to_send(struct nd_dimm *nd_dimm, unsigned int cmd)
+@@ -384,7 +386,7 @@ static int nd_cmd_clear_to_send(struct nd_dimm *nd_dimm, unsigned int cmd)
  		return 0;
  
  	nd_bus = walk_to_nd_bus(&nd_dimm->dev);
@@ -70,10 +71,10 @@ index 944d7d7845fe..8e70098b6cb0 100644
  	if (atomic_read(&nd_dimm->busy))
  		return -EBUSY;
 diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
-index 976cd5e3ebaf..560ed5555496 100644
+index 603970d0ef3a..cf64b7a50d3a 100644
 --- a/drivers/block/nd/core.c
 +++ b/drivers/block/nd/core.c
-@@ -14,6 +14,7 @@
+@@ -13,6 +13,7 @@
  #include <linux/export.h>
  #include <linux/module.h>
  #include <linux/device.h>
@@ -81,7 +82,7 @@ index 976cd5e3ebaf..560ed5555496 100644
  #include <linux/ndctl.h>
  #include <linux/mutex.h>
  #include <linux/slab.h>
-@@ -149,6 +150,69 @@ struct nd_bus *walk_to_nd_bus(struct device *nd_dev)
+@@ -106,6 +107,69 @@ struct nd_bus *walk_to_nd_bus(struct device *nd_dev)
  	return NULL;
  }
  
@@ -152,10 +153,10 @@ index 976cd5e3ebaf..560ed5555496 100644
  		struct device_attribute *attr, char *buf)
  {
 diff --git a/drivers/block/nd/dimm.c b/drivers/block/nd/dimm.c
-index ccc96d8fe2e7..eb62bc2848d3 100644
+index 5477176c5de0..e2f964308672 100644
 --- a/drivers/block/nd/dimm.c
 +++ b/drivers/block/nd/dimm.c
-@@ -97,7 +97,7 @@ static int nd_dimm_remove(struct device *dev)
+@@ -86,7 +86,7 @@ static int nd_dimm_remove(struct device *dev)
  	nd_bus_lock(dev);
  	dev_set_drvdata(dev, NULL);
  	for_each_dpa_resource_safe(ndd, res, _r)
@@ -165,12 +166,12 @@ index ccc96d8fe2e7..eb62bc2848d3 100644
  	free_data(ndd);
  
 diff --git a/drivers/block/nd/dimm_devs.c b/drivers/block/nd/dimm_devs.c
-index 652dee210fe8..caa51d3ea6af 100644
+index 3fbd0d0502eb..b242d3ae6d12 100644
 --- a/drivers/block/nd/dimm_devs.c
 +++ b/drivers/block/nd/dimm_devs.c
-@@ -161,6 +161,14 @@ struct nd_dimm *to_nd_dimm(struct device *dev)
- 	return nd_dimm;
+@@ -159,6 +159,14 @@ struct nd_dimm *to_nd_dimm(struct device *dev)
  }
+ EXPORT_SYMBOL_GPL(to_nd_dimm);
  
 +struct nd_dimm_drvdata *to_ndd(struct nd_mapping *nd_mapping)
 +{
@@ -180,12 +181,12 @@ index 652dee210fe8..caa51d3ea6af 100644
 +}
 +EXPORT_SYMBOL(to_ndd);
 +
- static struct nfit_mem __iomem *to_nfit_mem(struct device *dev)
+ const char *nd_dimm_name(struct nd_dimm *nd_dimm)
  {
- 	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
-@@ -408,6 +416,125 @@ static struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus,
- 	return NULL;
+ 	return dev_name(&nd_dimm->dev);
+@@ -247,6 +255,125 @@ struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
  }
+ EXPORT_SYMBOL_GPL(nd_dimm_create);
  
 +/**
 + * nd_pmem_available_dpa - for the given dimm+region account unallocated dpa
@@ -390,8 +391,23 @@ index 79ed885a43c0..4436624f4146 100644
 +struct nd_namespace_label __iomem *nd_label_active(
 +		struct nd_dimm_drvdata *ndd, int n);
  #endif /* __LABEL_H__ */
+diff --git a/drivers/block/nd/libnd.h b/drivers/block/nd/libnd.h
+index deb29eff5b61..832dcfebbb49 100644
+--- a/drivers/block/nd/libnd.h
++++ b/drivers/block/nd/libnd.h
+@@ -40,8 +40,10 @@ typedef int (*ndctl_fn)(struct nd_bus_descriptor *nd_desc,
+ 		struct nd_dimm *nd_dimm, unsigned int cmd, void *buf,
+ 		unsigned int buf_len);
+ 
++struct nd_namespace_label;
+ struct nd_mapping {
+ 	struct nd_dimm *nd_dimm;
++	struct nd_namespace_label **labels;
+ 	u64 start;
+ 	u64 size;
+ };
 diff --git a/drivers/block/nd/namespace_devs.c b/drivers/block/nd/namespace_devs.c
-index 6861327f4245..386776845830 100644
+index 6861327f4245..fb23904df4c7 100644
 --- a/drivers/block/nd/namespace_devs.c
 +++ b/drivers/block/nd/namespace_devs.c
 @@ -14,8 +14,11 @@
@@ -1132,7 +1148,7 @@ index 6861327f4245..386776845830 100644
  };
  
  static const struct attribute_group *nd_namespace_attribute_groups[] = {
-@@ -80,23 +783,322 @@ static struct device **create_namespace_io(struct nd_region *nd_region)
+@@ -80,23 +783,326 @@ static struct device **create_namespace_io(struct nd_region *nd_region)
  	return devs;
  }
  
@@ -1393,9 +1409,13 @@ index 6861327f4245..386776845830 100644
 +
 +		/*
 +		 * If the dimm is disabled then prevent the region from
-+		 * being activated
++		 * being activated if it aliases DPA.
 +		 */
 +		if (!ndd) {
++			struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
++
++			if ((nd_dimm->flags & NDD_ALIASING) == 0)
++				return 0;
 +			dev_dbg(&nd_region->dev, "%s: is disabled, failing probe\n",
 +					dev_name(&nd_mapping->nd_dimm->dev));
 +			return -ENXIO;
@@ -1459,7 +1479,7 @@ index 6861327f4245..386776845830 100644
  	for (i = 0; devs[i]; i++) {
  		struct device *dev = devs[i];
  
-@@ -108,4 +1110,14 @@ int nd_region_register_namespaces(struct nd_region *nd_region, int *err)
+@@ -108,4 +1114,14 @@ int nd_region_register_namespaces(struct nd_region *nd_region, int *err)
  	kfree(devs);
  
  	return i;
@@ -1475,10 +1495,10 @@ index 6861327f4245..386776845830 100644
 +	return rc;
  }
 diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
-index 15ca7be507ce..03b14ab8fc7d 100644
+index 5d8249be3415..f09d7784dc11 100644
 --- a/drivers/block/nd/nd-private.h
 +++ b/drivers/block/nd/nd-private.h
-@@ -123,4 +123,18 @@ int nd_bus_register_dimms(struct nd_bus *nd_bus);
+@@ -60,4 +60,18 @@ int nd_bus_register_dimms(struct nd_bus *nd_bus);
  int nd_bus_register_regions(struct nd_bus *nd_bus);
  int nd_bus_init_interleave_sets(struct nd_bus *nd_bus);
  int nd_match_dimm(struct device *dev, void *data);
@@ -1498,7 +1518,7 @@ index 15ca7be507ce..03b14ab8fc7d 100644
 +		struct nd_label_id *label_id);
  #endif /* __ND_PRIVATE_H__ */
 diff --git a/drivers/block/nd/nd.h b/drivers/block/nd/nd.h
-index f8dee1df5e6a..386e17056d3c 100644
+index 832103a5e3f7..c93675172889 100644
 --- a/drivers/block/nd/nd.h
 +++ b/drivers/block/nd/nd.h
 @@ -15,6 +15,7 @@
@@ -1506,18 +1526,10 @@ index f8dee1df5e6a..386e17056d3c 100644
  #include <linux/mutex.h>
  #include <linux/ndctl.h>
 +#include <linux/types.h>
+ #include "libnd.h"
  #include "label.h"
  
- struct nd_dimm_drvdata {
-@@ -54,6 +55,7 @@ static inline struct nd_namespace_index __iomem *to_next_namespace_index(
- 
- struct nd_mapping {
- 	struct nd_dimm *nd_dimm;
-+	struct nd_namespace_label **labels;
- 	u64 start;
- 	u64 size;
- };
-@@ -64,6 +66,30 @@ struct nd_mapping {
+@@ -59,12 +60,37 @@ static inline struct nd_namespace_index __iomem *to_next_namespace_index(
  		(unsigned long long) (res ? resource_size(res) : 0), \
  		(unsigned long long) (res ? res->start : 0), ##arg)
  
@@ -1548,31 +1560,26 @@ index f8dee1df5e6a..386e17056d3c 100644
  #define for_each_dpa_resource_safe(ndd, res, next) \
  	for (res = (ndd)->dpa.child, next = res ? res->sibling : NULL; \
  			res; res = next, next = next ? next->sibling : NULL)
-@@ -71,6 +97,7 @@ struct nd_mapping {
+ 
  struct nd_region {
  	struct device dev;
- 	struct nd_spa *nd_spa;
 +	struct device *ns_seed;
  	u16 ndr_mappings;
  	u64 ndr_size;
  	u64 ndr_start;
-@@ -92,11 +119,15 @@ enum nd_async_mode {
+@@ -88,15 +114,22 @@ enum nd_async_mode {
  	ND_ASYNC,
  };
  
 +void wait_nd_bus_probe_idle(struct device *dev);
  void nd_device_register(struct device *dev);
  void nd_device_unregister(struct device *dev, enum nd_async_mode mode);
- u64 nd_fletcher64(void __iomem *addr, size_t len);
 +int nd_uuid_store(struct device *dev, u8 **uuid_out, const char *buf,
 +		size_t len);
- extern struct attribute_group nd_device_attribute_group;
- struct nd_dimm;
++struct nd_dimm;
 +struct nd_dimm_drvdata *to_ndd(struct nd_mapping *nd_mapping);
- u32 to_nfit_handle(struct nd_dimm *nd_dimm);
- void *nd_dimm_get_pdata(struct nd_dimm *nd_dimm);
- void nd_dimm_set_pdata(struct nd_dimm *nd_dimm, void *data);
-@@ -108,8 +139,10 @@ int nd_dimm_firmware_status(struct device *dev);
+ int nd_dimm_init_nsarea(struct nd_dimm_drvdata *ndd);
+ int nd_dimm_init_config_data(struct nd_dimm_drvdata *ndd);
  struct nd_region *to_nd_region(struct device *dev);
  int nd_region_to_namespace_type(struct nd_region *nd_region);
  int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
@@ -1584,7 +1591,7 @@ index f8dee1df5e6a..386e17056d3c 100644
 +void nd_dimm_free_dpa(struct nd_dimm_drvdata *ndd, struct resource *res);
  #endif /* __ND_H__ */
 diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
-index cd83a9a98d89..aa2b4fb1f140 100644
+index c9dd8d7eca3a..32e7e74ee25a 100644
 --- a/drivers/block/nd/pmem.c
 +++ b/drivers/block/nd/pmem.c
 @@ -24,6 +24,7 @@
@@ -1595,7 +1602,7 @@ index cd83a9a98d89..aa2b4fb1f140 100644
  
  #define PMEM_MINORS		16
  
-@@ -247,9 +248,27 @@ static struct platform_driver pmem_driver = {
+@@ -209,9 +210,27 @@ static void pmem_free(struct pmem_device *pmem)
  
  static int nd_pmem_probe(struct device *dev)
  {
@@ -1623,7 +1630,7 @@ index cd83a9a98d89..aa2b4fb1f140 100644
  	pmem = pmem_alloc(dev, &nsio->res);
  	if (IS_ERR(pmem))
  		return PTR_ERR(pmem);
-@@ -269,13 +288,14 @@ static int nd_pmem_remove(struct device *dev)
+@@ -231,13 +250,14 @@ static int nd_pmem_remove(struct device *dev)
  
  MODULE_ALIAS("pmem");
  MODULE_ALIAS_ND_DEVICE(ND_DEVICE_NAMESPACE_IO);
@@ -1640,7 +1647,7 @@ index cd83a9a98d89..aa2b4fb1f140 100644
  
  static int __init pmem_init(void)
 diff --git a/drivers/block/nd/region_devs.c b/drivers/block/nd/region_devs.c
-index 13f45be755a5..8bcfd9b91a71 100644
+index c1cea42d0473..e74b3d4534b4 100644
 --- a/drivers/block/nd/region_devs.c
 +++ b/drivers/block/nd/region_devs.c
 @@ -15,6 +15,7 @@
@@ -1649,17 +1656,9 @@ index 13f45be755a5..8bcfd9b91a71 100644
  #include <linux/io.h>
 +#include <linux/nd.h>
  #include "nd-private.h"
- #include "nfit.h"
  #include "nd.h"
-@@ -70,6 +71,7 @@ struct nd_region *to_nd_region(struct device *dev)
- 	WARN_ON(dev->type->release != nd_region_release);
- 	return nd_region;
- }
-+EXPORT_SYMBOL(to_nd_region);
  
- /**
-  * nd_region_to_namespace_type() - region to an integer namespace type
-@@ -92,6 +94,58 @@ int nd_region_to_namespace_type(struct nd_region *nd_region)
+@@ -99,6 +100,58 @@ int nd_region_to_namespace_type(struct nd_region *nd_region)
  
  	return 0;
  }
@@ -1680,7 +1679,7 @@ index 13f45be755a5..8bcfd9b91a71 100644
 +			return -EBUSY;
 +		break;
 +	}
-+	case ND_DEVICE_NAMESPACE_BLOCK: {
++	case ND_DEVICE_NAMESPACE_BLK: {
 +		/* TODO: blk namespace support */
 +		break;
 +	}
@@ -1718,7 +1717,7 @@ index 13f45be755a5..8bcfd9b91a71 100644
  
  static ssize_t size_show(struct device *dev,
  		struct device_attribute *attr, char *buf)
-@@ -155,6 +209,60 @@ static ssize_t set_cookie_show(struct device *dev,
+@@ -151,6 +204,60 @@ static ssize_t set_cookie_show(struct device *dev,
  }
  static DEVICE_ATTR_RO(set_cookie);
  
@@ -1779,7 +1778,7 @@ index 13f45be755a5..8bcfd9b91a71 100644
  static ssize_t init_namespaces_show(struct device *dev,
  		struct device_attribute *attr, char *buf)
  {
-@@ -167,12 +275,30 @@ static ssize_t init_namespaces_show(struct device *dev,
+@@ -163,11 +270,29 @@ static ssize_t init_namespaces_show(struct device *dev,
  }
  static DEVICE_ATTR_RO(init_namespaces);
  
@@ -1803,43 +1802,40 @@ index 13f45be755a5..8bcfd9b91a71 100644
  	&dev_attr_size.attr,
  	&dev_attr_nstype.attr,
  	&dev_attr_mappings.attr,
- 	&dev_attr_spa_index.attr,
  	&dev_attr_set_cookie.attr,
 +	&dev_attr_available_size.attr,
 +	&dev_attr_namespace_seed.attr,
  	&dev_attr_init_namespaces.attr,
  	NULL,
  };
-@@ -181,13 +307,18 @@ static umode_t nd_region_visible(struct kobject *kobj, struct attribute *a, int
- {
+@@ -177,12 +302,17 @@ static umode_t nd_region_visible(struct kobject *kobj, struct attribute *a, int
  	struct device *dev = container_of(kobj, typeof(*dev), kobj);
  	struct nd_region *nd_region = to_nd_region(dev);
+ 	struct nd_interleave_set *nd_set = nd_region->nd_set;
 +	int type = nd_region_to_namespace_type(nd_region);
- 	struct nd_spa *nd_spa = nd_region->nd_spa;
  
 -	if (a != &dev_attr_set_cookie.attr)
 +	if (a != &dev_attr_set_cookie.attr && a != &dev_attr_available_size.attr)
  		return a->mode;
  
--	if (is_nd_pmem(dev) && nd_spa->nd_set)
+-	if (is_nd_pmem(dev) && nd_set)
 -			return a->mode;
 +	if ((type == ND_DEVICE_NAMESPACE_PMEM
-+				|| type == ND_DEVICE_NAMESPACE_BLOCK)
++				|| type == ND_DEVICE_NAMESPACE_BLK)
 +			&& a == &dev_attr_available_size.attr)
 +		return a->mode;
-+	else if (is_nd_pmem(dev) && nd_spa->nd_set)
++	else if (is_nd_pmem(dev) && nd_set)
 +		return a->mode;
  
  	return 0;
  }
-@@ -330,6 +461,16 @@ int nd_bus_init_interleave_sets(struct nd_bus *nd_bus)
- 	return rc;
- }
+@@ -193,6 +323,15 @@ struct attribute_group nd_region_attribute_group = {
+ };
+ EXPORT_SYMBOL_GPL(nd_region_attribute_group);
  
 +u64 nd_region_interleave_set_cookie(struct nd_region *nd_region)
 +{
-+	struct nd_spa *nd_spa = nd_region->nd_spa;
-+	struct nd_interleave_set *nd_set = nd_spa ? nd_spa->nd_set : NULL;
++	struct nd_interleave_set *nd_set = nd_region->nd_set;
 +
 +	if (nd_set)
 +		return nd_set->cookie;
@@ -1895,12 +1891,12 @@ index da70e9962197..255c38a83083 100644
  	MODULE_ALIAS("nd:t" __stringify(type) "*")
  #define ND_DEVICE_MODALIAS_FMT "nd:t%d"
 diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 097e67a8d477..5f0cf00872e0 100644
+index 624a19d9e6e4..0b4dcabb248a 100644
 --- a/include/uapi/linux/ndctl.h
 +++ b/include/uapi/linux/ndctl.h
 @@ -190,4 +190,8 @@ enum nd_driver_flags {
  	ND_DRIVER_NAMESPACE_PMEM  = 1 << ND_DEVICE_NAMESPACE_PMEM,
- 	ND_DRIVER_NAMESPACE_BLOCK = 1 << ND_DEVICE_NAMESPACE_BLOCK,
+ 	ND_DRIVER_NAMESPACE_BLK   = 1 << ND_DEVICE_NAMESPACE_BLK,
  };
 +
 +enum {
