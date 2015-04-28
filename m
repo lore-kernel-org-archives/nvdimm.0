@@ -1,68 +1,134 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <CALCETrVJafaxJwZi1C8cAsQs51nvGFywAkNTNbc=BjE+bjBgnQ@mail.gmail.com>
+In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295A8C934B@G9W0745.americas.hpqcorp.net>
 References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<CALCETrV0gE7j+OaJ+UrV=rANrTpALKX6MXFQs6GKAMe0rSxRRw@mail.gmail.com>
-	<CAPcyv4hMfTD9eEVD9NSG3DDT-_5d+BZHL=RHNMR8kh+iBd6FuQ@mail.gmail.com>
-	<CALCETrVJafaxJwZi1C8cAsQs51nvGFywAkNTNbc=BjE+bjBgnQ@mail.gmail.com>
-Date: Tue, 28 Apr 2015 15:28:43 -0700
-Message-ID: <CAPcyv4jeV-4D+uJyjmBa8Zn5VC8LmTf2+eWj_CdVzcAWZvRrKg@mail.gmail.com>
-Subject: Re: [PATCH v2 00/20] libnd: non-volatile memory device support
+	<94D0CD8314A33A4D9D801C0FE68B40295A8C934B@G9W0745.americas.hpqcorp.net>
+Date: Tue, 28 Apr 2015 15:15:54 -0700
+Message-ID: <CAPcyv4g-M6NPVV4C3nB7DebhwuuzNKbNyYGDPKh_3N54P2b4Cw@mail.gmail.com>
+Subject: Re: [Linux-nvdimm] [PATCH v2 00/20] libnd: non-volatile memory device support
 From: Dan Williams <dan.j.williams@intel.com>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Christoph Hellwig <hch@lst.de>, Linux ACPI <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, Ingo Molnar <mingo@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Apr 28, 2015 at 2:06 PM, Andy Lutomirski <luto@amacapital.net> wrote:
-> On Tue, Apr 28, 2015 at 1:59 PM, Dan Williams <dan.j.williams@intel.com> wrote:
->> On Tue, Apr 28, 2015 at 1:52 PM, Andy Lutomirski <luto@amacapital.net> wrote:
->>> On Tue, Apr 28, 2015 at 11:24 AM, Dan Williams <dan.j.williams@intel.com> wrote:
->>>> Changes since v1 [1]: Incorporates feedback received prior to April 24.
->>>>
->>>> 1/ Ingo said [2]:
->>>>
->>>>        "So why on earth is this whole concept and the naming itself
->>>>        ('drivers/block/nd/' stands for 'NFIT Defined', apparently)
->>>>        revolving around a specific 'firmware' mindset and revolving
->>>>        around specific, weirdly named, overly complicated looking
->>>>        firmware interfaces that come with their own new weird
->>>>        glossary??"
->>>>
->>>>    Indeed, we of course consulted the NFIT specification to determine
->>>>    the shape of the sub-system, but then let its terms and data
->>>>    structures permeate too deep into the implementation.  That is fixed
->>>>    now with all NFIT specifics factored out into acpi.c.  The NFIT is no
->>>>    longer required reading to review libnd.  Only three concepts are
->>>>    needed:
->>>>
->>>>       i/ PMEM - contiguous memory range where cpu stores are
->>>>          persistent once they are flushed through the memory
->>>>          controller.
->>>>
->>>>      ii/ BLK - mmio apertures (sliding windows) that can be
->>>>          programmed to access an aperture's-worth of persistent
->>>>          media at a time.
->>>>
->>>>     iii/ DPA - "dimm-physical-address", address space local to a
->>>>          dimm.  A dimm may provide both PMEM-mode and BLK-mode
->>>>          access to a range of DPA.  libnd manages allocation of DPA
->>>>          to either PMEM or BLK-namespaces to resolve this aliasing.
->>>
->>> Mostly for my understanding: is there a name for "address relative to
->>> the address lines on the DIMM"?  That is, a DIMM that exposes 8 GB of
->>> apparent physical memory, possibly interleaved, broken up, or weirdly
->>> remapped by the memory controller, would still have addresses between
->>> 0 and 8 GB.  Some of those might be PMEM windows, some might be MMIO,
->>> some might be BLK apertures, etc.
->>>
->>> IIUC "DPA" refers to actual addressable storage, not this type of address?
+On Tue, Apr 28, 2015 at 2:24 PM, Elliott, Robert (Server Storage)
+<Elliott@hp.com> wrote:
+>> -----Original Message-----
+>> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
+>> Dan Williams
+>> Sent: Tuesday, April 28, 2015 1:24 PM
+>> To: linux-nvdimm@lists.01.org
+>> Cc: Neil Brown; Dave Chinner; H. Peter Anvin; Christoph Hellwig; Rafael J.
+>> Wysocki; Robert Moore; Ingo Molnar; linux-acpi@vger.kernel.org; Jens Axboe;
+>> Borislav Petkov; Thomas Gleixner; Greg KH; linux-kernel@vger.kernel.org;
+>> Andy Lutomirski; Andrew Morton; Linus Torvalds
+>> Subject: [Linux-nvdimm] [PATCH v2 00/20] libnd: non-volatile memory device
+>> support
 >>
->> No, DPA is exactly as you describe above.  You can't directly access
->> it except through a PMEM mapping (possibly interleaved with DPA from
->> other DIMMs) or a BLK aperture (mmio window into DPA).
+>> Changes since v1 [1]: Incorporates feedback received prior to April 24.
 >
-> So the thing I'm describing has no name, then?  Oh, well.
+> Here are some comments on the sysfs properties reported for a pmem device.
+> They are based on v1, but I don't think v2 changes anything.
+>
+> 1. This confuses lsblk (part of util-linux):
+> /sys/block/pmem0/device/type:4
+>
+> lsblk shows:
+> NAME                          MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+> pmem0                         251:0    0     8G  0 worm
+> pmem1                         251:16   0     8G  0 worm
+> pmem2                         251:32   0     8G  0 worm
+> pmem3                         251:48   0     8G  0 worm
+> pmem4                         251:64   0     8G  0 worm
+> pmem5                         251:80   0     8G  0 worm
+> pmem6                         251:96   0     8G  0 worm
+> pmem7                         251:112  0     8G  0 worm
+>
+> lsblk's blkdev_scsi_type_to_name() considers 4 to mean
+> SCSI_TYPE_WORM (write once read many ... used for certain optical
+> and tape drives).
 
-What?  The thing you are describing *is* DPA.
+Why is lsblk assuming these are scsi devices?  I'll need to go check that out.
+
+> I'm not sure what nd and pmem are doing to result in that value.
+
+That is their libnd specific device type number from
+include/uapi/ndctl.h.  4 == ND_DEVICE_NAMESPACE_IO.   lsblk has no
+business interpreting this as something SCSI specific.
+
+> 2. To avoid confusing software trying to detect fast storage vs.
+> slow storage devices via sysfs, this value should be 0:
+> /sys/block/pmem0/queue/rotational:1
+>
+> That can be done by adding this shortly after the blk_alloc_queue call:
+>                 queue_flag_set_unlocked(QUEUE_FLAG_NONROT, pmem->pmem_queue);
+
+Yeah, good catch.
+
+> 3. Is there any reason to have a 512 KiB limit on the transfer
+> length?
+> /sys/block/pmem0/queue/max_hw_sectors_kb:512
+>
+> That is from:
+>        blk_queue_max_hw_sectors(pmem->pmem_queue, 1024);
+
+I'd only change this from the default if performance testing showed it
+made a non-trivial difference.
+
+> 4. These are read-writeable, but IOs never reach a queue, so
+> the queue size is irrelevant and merging never happens:
+> /sys/block/pmem0/queue/nomerges:0
+> /sys/block/pmem0/queue/nr_requests:128
+>
+> Consider making them both read-only with:
+> * nomerges set to 2 (no merging happening)
+> * nr_requests as small as the block layer allows to avoid
+> wasting memory.
+>
+> 5. No scatter-gather lists are created by the driver, so these
+> read-only fields are meaningless:
+> /sys/block/pmem0/queue/max_segments:128
+> /sys/block/pmem0/queue/max_segment_size:65536
+>
+> Is there a better way to report them as irrelevant?
+
+Again it comes back to the question of whether these default settings
+are actively harmful.
+
+>
+> 6. There is no completion processing, so the read-writeable
+> cpu affinity is not used:
+> /sys/block/pmem0/queue/rq_affinity:0
+>
+> Consider making it read-only and set to 2, meaning the
+> completions always run on the requesting CPU.
+
+There are no completions with pmem, the entire I/O path is
+synchronous.  Ideally, this attribute would disappear for a pmem
+queue, not be set to 2.
+
+> 7. With mmap() allowing less than logical block sized accesses
+> to the device, this could be considered misleading:
+> /sys/block/pmem0/queue/physical_block_size:512
+
+I don't see how it is misleading.  If you access it as a block device
+the block size is 512.  If the application is mmap() + DAX aware it
+knows that the physical_block_size is being bypassed.
+
+>
+> Perhaps that needs to be 1 byte or a cacheline size (64 bytes
+> on x86) to indicate that direct partial logical block accesses
+> are possible.
+
+No, because that breaks the definition of a block device.  Through the
+bdev interface it's always accessed a block at a time.
+
+> The btt driver could report 512 as one indication
+> it is different.
+>
+> I wouldn't be surprised if smaller values than the logical block
+> size confused some software, though.
+
+Precisely why we shouldn't go there with pmem.
