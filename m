@@ -1,191 +1,114 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 01/21] e820, efi: add ACPI 6.0 persistent memory types
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 17 Apr 2015 21:35:19 -0400
-Message-ID: <20150418013519.25237.16129.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAPcyv4g51vjr1=p7_vXoRzFCDDwe1FrFCRKGuKZW-J434YE9Fg@mail.gmail.com>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150428182602.35812.78599.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CALCETrX22LRX0p+xP0hPFEa+jV-pxkNMXyLfahq6f=Pt-LOKGg@mail.gmail.com>
+ <CAPcyv4iQb0aT6twqqR=ttteJ18rZSuDTQH++C6cey9WeZLp04g@mail.gmail.com>
+ <CALCETrVAz2woU+QgcxOO4bvTWdD3EPOWn1mg-yjUCTw0ZXrUkw@mail.gmail.com> <CAPcyv4g51vjr1=p7_vXoRzFCDDwe1FrFCRKGuKZW-J434YE9Fg@mail.gmail.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Wed, 29 Apr 2015 12:28:05 -0700
+Message-ID: <CALCETrVTY1xDSwU2r4-5gey9f4jMzoJ4Cc5+5Z+vHr7wVjMmfQ@mail.gmail.com>
+Subject: Re: [PATCH v2 20/20] libnd, nd_acpi, nd_blk: driver for BLK-mode
+ access persistent memory
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Boaz Harrosh <boaz@plexistor.com>, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, "H. Peter Anvin" <hpa@zytor.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jens Axboe <axboe@fb.com>, "H. Peter Anvin" <hpa@zytor.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.0 formalizes e820-type-7 and efi-type-14 as persistent memory.
-Mark it "reserved" and allow it to be claimed by a persistent memory
-device driver.
+On Wed, Apr 29, 2015 at 10:10 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Tue, Apr 28, 2015 at 4:06 PM, Andy Lutomirski <luto@amacapital.net> wrote:
+>> On Tue, Apr 28, 2015 at 3:30 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+>>> On Tue, Apr 28, 2015 at 2:10 PM, Andy Lutomirski <luto@amacapital.net> wrote:
+>>>> On Tue, Apr 28, 2015 at 11:26 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+>>>>> From: Ross Zwisler <ross.zwisler@linux.intel.com>
+>>>>>
+>>>>> The libnd implementation handles allocating dimm address space (DPA)
+>>>>> between PMEM and BLK mode interfaces.  After DPA has been allocated from
+>>>>> a BLK-region to a BLK-namespace the nd_blk driver attaches to handle I/O
+>>>>> as a struct bio based block device. Unlike PMEM, BLK is required to
+>>>>> handle platform specific details like mmio register formats and memory
+>>>>> controller interleave.  For this reason the libnd generic nd_blk driver
+>>>>> calls back into the bus provider to carry out the I/O.
+>>>>>
+>>>>> This initial implementation handles the BLK interface defined by the
+>>>>> ACPI 6 NFIT [1] and the NVDIMM DSM Interface Example [2] composed from
+>>>>> DCR (dimm control region), BDW (block data window), IDT (interleave
+>>>>> descriptor) NFIT structures and the hardware register format.
+>>>>> [1]: http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf
+>>>>> [2]: http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+>>>>>
+>>>>> Cc: Andy Lutomirski <luto@amacapital.net>
+>>>>> Cc: Boaz Harrosh <boaz@plexistor.com>
+>>>>> Cc: H. Peter Anvin <hpa@zytor.com>
+>>>>> Cc: Jens Axboe <axboe@fb.com>
+>>>>> Cc: Ingo Molnar <mingo@kernel.org>
+>>>>> Cc: Christoph Hellwig <hch@lst.de>
+>>>>> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+>>>>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>>>>> ---
+>>>>>  drivers/block/nd/Kconfig          |   12 +
+>>>>>  drivers/block/nd/Makefile         |    3
+>>>>>  drivers/block/nd/acpi.c           |  422 +++++++++++++++++++++++++++++++++++--
+>>>>>  drivers/block/nd/acpi_nfit.h      |   47 ++++
+>>>>>  drivers/block/nd/blk.c            |  264 +++++++++++++++++++++++
+>>>>>  drivers/block/nd/libnd.h          |   11 +
+>>>>>  drivers/block/nd/namespace_devs.c |   47 ++++
+>>>>>  drivers/block/nd/nd-private.h     |    3
+>>>>>  drivers/block/nd/nd.h             |   16 +
+>>>>>  drivers/block/nd/region.c         |    8 +
+>>>>>  drivers/block/nd/region_devs.c    |   65 +++++-
+>>>>>  drivers/block/nd/test/nfit.c      |   29 +++
+>>>>>  drivers/block/nd/test/nfit_test.h |    2
+>>>>>  13 files changed, 891 insertions(+), 38 deletions(-)
+>>>>>  create mode 100644 drivers/block/nd/blk.c
+>>>>>
+>>>>> diff --git a/drivers/block/nd/Kconfig b/drivers/block/nd/Kconfig
+>>>>> index 612bf2b14283..bac4290129fc 100644
+>>>>> --- a/drivers/block/nd/Kconfig
+>>>>> +++ b/drivers/block/nd/Kconfig
+>>>>> @@ -95,6 +95,18 @@ config BLK_DEV_PMEM
+>>>>>
+>>>>>           Say Y if you want to use a NVDIMM described by ACPI, E820, etc...
+>>>>>
+>>>>> +config ND_BLK
+>>>>> +       tristate "BLK: Block data window (aperture) device support"
+>>>>> +       depends on LIBND
+>>>>> +       default ND_ACPI
+>>>>> +       help
+>>>>> +         This driver performs I/O using a set of mmio windows on a
+>>>>> +         dimm.  The set of apertures will all access the one DIMM.
+>>>>> +         Multiple windows allow multiple threads to have a different
+>>>>> +         portions of the dimm open at one time.
+>>>>> +
+>>>>> +         Say Y if you want to use a NVDIMM with BLK-mode capability
+>>>>> +
+>>>>
+>>>> This describes how it works, not what it is.  How about:
+>>>>
+>>>> This driver exposes NVDIMM BLK regions as block devices.  BLK regions
+>>>> are regions of NVDIMM storage that are sector-addressable, not
+>>>> byte-addressible, and do not support DAX.
+>>>
+>>> They *are* byte-addressable albeit through an indirection window.  The
+>>> indirection windows are too small for DAX to be a viable access mode.
+>>
+>> Right, I was assuming incorrectly that the sector-atomic thing was a
+>> necessary part of BLK, or at least of this implementation.
+>>
+>> Anyway, I think my point stands: let's describe what these drivers do
+>> from a user's perspective, not how they work.
+>
+> Agreed.  How about:
+>
+> "Support NVDIMMs, or other devices, that implement a BLK-mode access
+> capability.  BLK-mode access uses memory-mapped-i/o apertures to
+> access persistent media.
+>
+> Say Y if your platform firmware emits an ACPI.NFIT table
+> (CONFIG_ND_ACPI), or otherwise exposes BLK-mode capabilities."
 
-This definition is in addition to the Linux kernel's existing type-12
-definition that was recently added in support of shipping platforms with
-NVDIMM support that predate ACPI 6.0 (which now classifies type-12 as
-OEM reserved).  We may choose to exploit this wealth of definitions for
-NVDIMMs to differentiate E820_PRAM (type-12) from E820_PMEM (type-7).
-One potential differentiation is that PMEM is not backed by struct page
-by default in contrast to PRAM.  For now, they are effectively treated
-as aliases by the mm.
+Sure.
 
-Note, /proc/iomem can be consulted for differentiating legacy
-"Persistent RAM" E820_PRAM vs standard "Persistent I/O Memory"
-E820_PMEM.
-
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Boaz Harrosh <boaz@plexistor.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- arch/arm64/kernel/efi.c          |    1 +
- arch/ia64/kernel/efi.c           |    1 +
- arch/x86/boot/compressed/eboot.c |    4 ++++
- arch/x86/include/uapi/asm/e820.h |    1 +
- arch/x86/kernel/e820.c           |   25 +++++++++++++++++++------
- arch/x86/platform/efi/efi.c      |    3 +++
- include/linux/efi.h              |    3 ++-
- 7 files changed, 31 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm64/kernel/efi.c b/arch/arm64/kernel/efi.c
-index ab21e0d58278..9d4aa18f2a82 100644
---- a/arch/arm64/kernel/efi.c
-+++ b/arch/arm64/kernel/efi.c
-@@ -158,6 +158,7 @@ static __init int is_reserve_region(efi_memory_desc_t *md)
- 	case EFI_BOOT_SERVICES_CODE:
- 	case EFI_BOOT_SERVICES_DATA:
- 	case EFI_CONVENTIONAL_MEMORY:
-+	case EFI_PERSISTENT_MEMORY:
- 		return 0;
- 	default:
- 		break;
-diff --git a/arch/ia64/kernel/efi.c b/arch/ia64/kernel/efi.c
-index c52d7540dc05..cd8b7485e396 100644
---- a/arch/ia64/kernel/efi.c
-+++ b/arch/ia64/kernel/efi.c
-@@ -1227,6 +1227,7 @@ efi_initialize_iomem_resources(struct resource *code_resource,
- 			case EFI_RUNTIME_SERVICES_CODE:
- 			case EFI_RUNTIME_SERVICES_DATA:
- 			case EFI_ACPI_RECLAIM_MEMORY:
-+			case EFI_PERSISTENT_MEMORY:
- 			default:
- 				name = "reserved";
- 				break;
-diff --git a/arch/x86/boot/compressed/eboot.c b/arch/x86/boot/compressed/eboot.c
-index ef17683484e9..dde5bf7726f4 100644
---- a/arch/x86/boot/compressed/eboot.c
-+++ b/arch/x86/boot/compressed/eboot.c
-@@ -1222,6 +1222,10 @@ static efi_status_t setup_e820(struct boot_params *params,
- 			e820_type = E820_NVS;
- 			break;
- 
-+		case EFI_PERSISTENT_MEMORY:
-+			e820_type = E820_PMEM;
-+			break;
-+
- 		default:
- 			continue;
- 		}
-diff --git a/arch/x86/include/uapi/asm/e820.h b/arch/x86/include/uapi/asm/e820.h
-index 960a8a9dc4ab..0f457e6eab18 100644
---- a/arch/x86/include/uapi/asm/e820.h
-+++ b/arch/x86/include/uapi/asm/e820.h
-@@ -32,6 +32,7 @@
- #define E820_ACPI	3
- #define E820_NVS	4
- #define E820_UNUSABLE	5
-+#define E820_PMEM	7
- 
- /*
-  * This is a non-standardized way to represent ADR or NVDIMM regions that
-diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-index 11cc7d54ec3f..410af501a941 100644
---- a/arch/x86/kernel/e820.c
-+++ b/arch/x86/kernel/e820.c
-@@ -137,6 +137,8 @@ static void __init e820_print_type(u32 type)
- 	case E820_RESERVED_KERN:
- 		printk(KERN_CONT "usable");
- 		break;
-+	case E820_PMEM:
-+	case E820_PRAM:
- 	case E820_RESERVED:
- 		printk(KERN_CONT "reserved");
- 		break;
-@@ -149,9 +151,6 @@ static void __init e820_print_type(u32 type)
- 	case E820_UNUSABLE:
- 		printk(KERN_CONT "unusable");
- 		break;
--	case E820_PRAM:
--		printk(KERN_CONT "persistent (type %u)", type);
--		break;
- 	default:
- 		printk(KERN_CONT "type %u", type);
- 		break;
-@@ -919,10 +918,26 @@ static inline const char *e820_type_to_string(int e820_type)
- 	case E820_NVS:	return "ACPI Non-volatile Storage";
- 	case E820_UNUSABLE:	return "Unusable memory";
- 	case E820_PRAM: return "Persistent RAM";
-+	case E820_PMEM: return "Persistent I/O Memory";
- 	default:	return "reserved";
- 	}
- }
- 
-+static bool do_mark_busy(u32 type, struct resource *res)
-+{
-+	if (res->start < (1ULL<<20))
-+		return true;
-+
-+	switch (type) {
-+	case E820_RESERVED:
-+	case E820_PRAM:
-+	case E820_PMEM:
-+		return false;
-+	default:
-+		return true;
-+	}
-+}
-+
- /*
-  * Mark e820 reserved areas as busy for the resource manager.
-  */
-@@ -952,9 +967,7 @@ void __init e820_reserve_resources(void)
- 		 * pci device BAR resource and insert them later in
- 		 * pcibios_resource_survey()
- 		 */
--		if (((e820.map[i].type != E820_RESERVED) &&
--		     (e820.map[i].type != E820_PRAM)) ||
--		     res->start < (1ULL<<20)) {
-+		if (do_mark_busy(e820.map[i].type, res)) {
- 			res->flags |= IORESOURCE_BUSY;
- 			insert_resource(&iomem_resource, res);
- 		}
-diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
-index dbc8627a5cdf..a116e236ac3f 100644
---- a/arch/x86/platform/efi/efi.c
-+++ b/arch/x86/platform/efi/efi.c
-@@ -145,6 +145,9 @@ static void __init do_add_efi_memmap(void)
- 		case EFI_UNUSABLE_MEMORY:
- 			e820_type = E820_UNUSABLE;
- 			break;
-+		case EFI_PERSISTENT_MEMORY:
-+			e820_type = E820_PMEM;
-+			break;
- 		default:
- 			/*
- 			 * EFI_RESERVED_TYPE EFI_RUNTIME_SERVICES_CODE
-diff --git a/include/linux/efi.h b/include/linux/efi.h
-index cf7e431cbc73..28868504aa17 100644
---- a/include/linux/efi.h
-+++ b/include/linux/efi.h
-@@ -85,7 +85,8 @@ typedef	struct {
- #define EFI_MEMORY_MAPPED_IO		11
- #define EFI_MEMORY_MAPPED_IO_PORT_SPACE	12
- #define EFI_PAL_CODE			13
--#define EFI_MAX_MEMORY_TYPE		14
-+#define EFI_PERSISTENT_MEMORY		14
-+#define EFI_MAX_MEMORY_TYPE		15
- 
- /* Attribute values: */
- #define EFI_MEMORY_UC		((u64)0x0000000000000001ULL)	/* uncached */
-
+--Andy
