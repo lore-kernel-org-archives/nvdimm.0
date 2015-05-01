@@ -1,213 +1,102 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 5/6] nd_blk: add support for flush hints
-Date: Thu, 28 May 2015 16:35:52 -0600
-Message-Id: <1432852553-24865-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
+Message-ID: <1430510888.23761.185.camel@misato.fc.hp.com>
+Subject: Re: [Linux-nvdimm] [PATCH v2 05/20] libnd, nd_acpi:
+ dimm/memory-devices
+From: Toshi Kani <toshi.kani@hp.com>
+Date: Fri, 01 May 2015 14:08:08 -0600
+In-Reply-To: <CAPcyv4h1h=UFkJR_RzaLcJRZ4D5rNsoqxfzabYvw+dfBH1Fe3w@mail.gmail.com>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <20150428182439.35812.81191.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <1430502493.23761.145.camel@misato.fc.hp.com>
+	 <CAPcyv4hUeWzBgOv4q7UHN1+nDVGV2QzNg0dojZvs04YObok3SQ@mail.gmail.com>
+	 <1430504355.23761.153.camel@misato.fc.hp.com>
+	 <CAPcyv4hZsnFvZhdAAo4_oHGWbWCjVDQUwj8pDXHHW+wpYCiwgg@mail.gmail.com>
+	 <1430507711.23761.182.camel@misato.fc.hp.com>
+	 <CAPcyv4h1h=UFkJR_RzaLcJRZ4D5rNsoqxfzabYvw+dfBH1Fe3w@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for flush hints and use them in the nd_blk I/O path instead
-of the global persistent_sync() whenever we can.
+On Fri, 2015-05-01 at 12:38 -0700, Dan Williams wrote:
+> On Fri, May 1, 2015 at 12:15 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > On Fri, 2015-05-01 at 11:43 -0700, Dan Williams wrote:
+> >> On Fri, May 1, 2015 at 11:19 AM, Toshi Kani <toshi.kani@hp.com> wrote:
+> >> > On Fri, 2015-05-01 at 11:22 -0700, Dan Williams wrote:
+> >> >> On Fri, May 1, 2015 at 10:48 AM, Toshi Kani <toshi.kani@hp.com> wrote:
+> >> >> > On Tue, 2015-04-28 at 14:24 -0400, Dan Williams wrote:
+> >> >> >> Register the memory devices described in the nfit as libnd 'dimm'
+> >> >> >> devices on an nd bus.  The kernel assigned device id for dimms is
+> >> >> >> dynamic.  If userspace needs a more static identifier it should consult
+> >> >> >> a provider-specific attribute.  In the case where NFIT is the provider,
+> >> >> >> the 'nmemX/nfit/handle' or 'nmemX/nfit/serial' attributes may be used
+> >> >> >> for this purpose.
+> >> >> >  :
+> >> >> >> +
+> >> >> >> +static int nd_acpi_register_dimms(struct acpi_nfit_desc *acpi_desc)
+> >> >> >> +{
+> >> >> >> +     struct nfit_mem *nfit_mem;
+> >> >> >> +
+> >> >> >> +     list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
+> >> >> >> +             struct nd_dimm *nd_dimm;
+> >> >> >> +             unsigned long flags = 0;
+> >> >> >> +             u32 nfit_handle;
+> >> >> >> +
+> >> >> >> +             nfit_handle = __to_nfit_memdev(nfit_mem)->nfit_handle;
+> >> >> >> +             nd_dimm = nd_acpi_dimm_by_handle(acpi_desc, nfit_handle);
+> >> >> >> +             if (nd_dimm) {
+> >> >> >> +                     /*
+> >> >> >> +                      * If for some reason we find multiple DCRs the
+> >> >> >> +                      * first one wins
+> >> >> >> +                      */
+> >> >> >> +                     dev_err(acpi_desc->dev, "duplicate DCR detected: %s\n",
+> >> >> >> +                                     nd_dimm_name(nd_dimm));
+> >> >> >> +                     continue;
+> >> >> >> +             }
+> >> >> >> +
+> >> >> >> +             if (nfit_mem->bdw && nfit_mem->memdev_pmem)
+> >> >> >> +                     flags |= NDD_ALIASING;
+> >> >> >
+> >> >> > Does this check work for a NVDIMM card which has multiple pmem regions
+> >> >> > with label info, but does not have any bdw region configured?
+> >> >>
+> >> >> If you have multiple pmem regions then you don't have aliasing and
+> >> >> don't need a label.  You'll get an nd_namespace_io per region.
+> >> >>
+> >> >> > The code assumes that namespace_pmem (NDD_ALIASING) and namespace_blk
+> >> >> > have label info.  There may be an NVDIMM card with a single blk region
+> >> >> > without label info.
+> >> >>
+> >> >> I'd really like to suggest that labels are only for resolving aliasing
+> >> >> and that if you have a BLK-only NVDIMM you'll get an automatic
+> >> >> namespace created the same as a PMEM-only.  Partitioning is always
+> >> >> there to provide sub-divisions of a namespace.  The only reason to
+> >> >> support multiple BLK-namespaces per-region is to give each a different
+> >> >> sector size.  I may eventually need to relent on this position, but
+> >> >> I'd really like to understand the use case for requiring labels when
+> >> >> aliasing is not present as it seems like a waste to me.
+> >> >
+> >> > By looking at the callers of is_namespace_pmem() and is_namespace_blk(),
+> >> > such as nd_namespace_label_update(), I am concerned that the namespace
+> >> > types are also used for indicating the presence a label.  Is it OK for
+> >> > nd_namespace_label_update() to do nothing when there is no aliasing?
+> >
+> > Did you forget to answer this question?  I am not asking to have a
+> > label.  I am asking if the namespace types can handle it correctly.
+> > Restating the nd_namespace_label_update() example:
+> >  - namespace_io case: Skip, but a label may still exist. Correct?
+> >  - namespace_blk case: Proceed, but blk does not require a label.
+> 
+> Ah, ok.  This is handled by nd_namespace_attr_visible() only labelled
+> namespaces have writable sysfs attributes.  This would need to be
+> extended for a label-less BLK namespace type.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
----
- drivers/acpi/nfit.c | 49 +++++++++++++++++++++++++++++++++++++++++++++----
- drivers/acpi/nfit.h | 22 ++++++++++++++++++++++
- 2 files changed, 67 insertions(+), 4 deletions(-)
+I prefer not to duplicate each namespace type with and without a label,
+but I am OK as long as the presence of labels is handled properly.
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 22df61968c1c..6cca50d1c690 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -286,9 +286,20 @@ static void *add_table(struct acpi_nfit_desc *acpi_desc, void *table, const void
- 				idt->interleave_index, idt->line_count);
- 		break;
- 	}
--	case ACPI_NFIT_TYPE_FLUSH_ADDRESS:
--		dev_dbg(dev, "%s: flush\n", __func__);
-+	case ACPI_NFIT_TYPE_FLUSH_ADDRESS: {
-+		struct nfit_flush *nfit_flush = devm_kzalloc(dev,
-+				sizeof(*nfit_flush), GFP_KERNEL);
-+		struct acpi_nfit_flush_address *flush = table;
-+
-+		if (!nfit_flush)
-+			return err;
-+		INIT_LIST_HEAD(&nfit_flush->list);
-+		nfit_flush->flush = flush;
-+		list_add_tail(&nfit_flush->list, &acpi_desc->flushes);
-+		dev_dbg(dev, "%s: flush_hint handle: %d hint_count: %d\n",
-+			__func__, flush->device_handle, flush->hint_count);
- 		break;
-+	}
- 	case ACPI_NFIT_TYPE_SMBIOS:
- 		dev_dbg(dev, "%s: smbios\n", __func__);
- 		break;
-@@ -338,6 +349,7 @@ static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
- {
- 	u16 dcr_index = __to_nfit_memdev(nfit_mem)->region_index;
- 	struct nfit_memdev *nfit_memdev;
-+	struct nfit_flush *nfit_flush;
- 	struct nfit_dcr *nfit_dcr;
- 	struct nfit_bdw *nfit_bdw;
- 	struct nfit_idt *nfit_idt;
-@@ -384,6 +396,7 @@ static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
- 				nfit_memdev->memdev->region_index != dcr_index)
- 			continue;
- 		nfit_mem->memdev_bdw = nfit_memdev->memdev;
-+
- 		idt_index = nfit_memdev->memdev->interleave_index;
- 		list_for_each_entry(nfit_idt, &acpi_desc->idts, list) {
- 			if (nfit_idt->idt->interleave_index != idt_index)
-@@ -391,6 +404,14 @@ static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
- 			nfit_mem->idt_bdw = nfit_idt->idt;
- 			break;
- 		}
-+
-+		list_for_each_entry(nfit_flush, &acpi_desc->flushes, list) {
-+			if (nfit_flush->flush->device_handle !=
-+					nfit_memdev->memdev->device_handle)
-+				continue;
-+			nfit_mem->nfit_flush = nfit_flush;
-+			break;
-+		}
- 		break;
- 	}
- 
-@@ -929,7 +950,7 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
- 
- 	/* mmio->base must be mapped uncacheable */
- 	writeq(cmd, mmio->base + offset);
--	persistent_sync();
-+	nfit_blk->psync(nfit_blk);
- 	/* FIXME: conditionally perform read-back if mandated by firmware */
- }
- 
-@@ -970,7 +991,7 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
- 	}
- 
- 	if (write)
--		persistent_sync();
-+		nfit_blk->psync(nfit_blk);
- 
- 	rc = read_blk_stat(nfit_blk, bw) ? -EIO : 0;
- 	return rc;
-@@ -1130,6 +1151,7 @@ static int acpi_nfit_blk_region_enable(struct nd_bus *nd_bus, struct device *dev
- 	struct nd_bus_descriptor *nd_desc = to_nd_desc(nd_bus);
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 	struct nd_blk_region *ndbr = to_nd_blk_region(dev);
-+	struct nfit_flush *nfit_flush;
- 	struct nfit_blk_mmio *mmio;
- 	struct nfit_blk *nfit_blk;
- 	struct nfit_mem *nfit_mem;
-@@ -1195,6 +1217,24 @@ static int acpi_nfit_blk_region_enable(struct nd_bus *nd_bus, struct device *dev
- 		return rc;
- 	}
- 
-+	nfit_flush = nfit_mem->nfit_flush;
-+	if (nfit_flush && nfit_flush->flush->hint_count != 0) {
-+		struct acpi_nfit_flush_address *flush = nfit_flush->flush;
-+		struct resource res;
-+
-+		res.start = flush->hint_address[0];
-+		res.end = flush->hint_address[0] + sizeof(u64) - 1;
-+		res.name = dev_name(dev);
-+		res.flags = IORESOURCE_MEM;
-+
-+		/* only need a single hint address.  map uncacheable */
-+		nfit_blk->flush_hint = devm_ioremap_resource(dev, &res);
-+		if (IS_ERR(nfit_blk->flush_hint))
-+			return -ENOMEM;
-+		nfit_blk->psync = directed_psync;
-+	} else
-+		nfit_blk->psync = global_psync;
-+
- 	if (mmio->line_size == 0)
- 		return 0;
- 
-@@ -1349,6 +1389,7 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- 	INIT_LIST_HEAD(&acpi_desc->dcrs);
- 	INIT_LIST_HEAD(&acpi_desc->bdws);
- 	INIT_LIST_HEAD(&acpi_desc->idts);
-+	INIT_LIST_HEAD(&acpi_desc->flushes);
- 	INIT_LIST_HEAD(&acpi_desc->memdevs);
- 	INIT_LIST_HEAD(&acpi_desc->dimms);
- 	mutex_init(&acpi_desc->spa_map_mutex);
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index b882a22ee7bb..858719017bef 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -18,6 +18,7 @@
- #include <linux/libnd.h>
- #include <linux/uuid.h>
- #include <linux/acpi.h>
-+#include <linux/pmem.h>
- #include <acpi/acuuid.h>
- 
- #define UUID_NFIT_BUS "2f10e7a4-9e91-11e4-89d3-123b93f75cba"
-@@ -66,6 +67,11 @@ struct nfit_idt {
- 	struct list_head list;
- };
- 
-+struct nfit_flush {
-+	struct acpi_nfit_flush_address *flush;
-+	struct list_head list;
-+};
-+
- struct nfit_memdev {
- 	struct acpi_nfit_memory_map *memdev;
- 	struct list_head list;
-@@ -83,6 +89,7 @@ struct nfit_mem {
- 	struct acpi_nfit_system_address *spa_bdw;
- 	struct acpi_nfit_interleave *idt_dcr;
- 	struct acpi_nfit_interleave *idt_bdw;
-+	struct nfit_flush *nfit_flush;
- 	struct list_head list;
- 	struct acpi_device *adev;
- 	unsigned long dsm_mask;
-@@ -94,6 +101,7 @@ struct acpi_nfit_desc {
- 	struct mutex spa_map_mutex;
- 	struct list_head spa_maps;
- 	struct list_head memdevs;
-+	struct list_head flushes;
- 	struct list_head dimms;
- 	struct list_head spas;
- 	struct list_head dcrs;
-@@ -131,6 +139,8 @@ struct nfit_blk {
- 	u64 bdw_offset; /* post interleave offset */
- 	u64 stat_offset;
- 	u64 cmd_offset;
-+	void __iomem *flush_hint;
-+	void (*psync)(struct nfit_blk *nfit_blk);
- };
- 
- struct nfit_spa_mapping {
-@@ -158,6 +168,18 @@ static inline struct acpi_nfit_desc *to_acpi_desc(struct nd_bus_descriptor *nd_d
- 	return container_of(nd_desc, struct acpi_nfit_desc, nd_desc);
- }
- 
-+static inline void directed_psync(struct nfit_blk *nfit_blk)
-+{
-+	wmb(); /* order previous writes */
-+	writeq(1, nfit_blk->flush_hint); /* flush_hint must be mapped UC */
-+	wmb(); /* order the write to the flush_hint */
-+}
-+
-+static inline void global_psync(struct nfit_blk *nfit_blk)
-+{
-+	persistent_sync();
-+}
-+
- const u8 *to_nfit_uuid(enum nfit_uuids id);
- int acpi_nfit_init(struct acpi_nfit_desc *nfit, acpi_size sz);
- #endif /* __NFIT_H__ */
--- 
-1.9.3
+Thanks,
+-Toshi
 
