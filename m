@@ -1,134 +1,51 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v3 05/11] scatterlist: use sg_phys()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 12 May 2015 00:29:56 -0400
-Message-ID: <20150512042956.11521.32457.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, david@fromorbit.com, hch@lst.de, Julia Lawall <Julia.Lawall@lip6.fr>, mgorman@suse.de, j.glisse@gmail.com, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, mingo@kernel.org
+In-Reply-To: <6932657.HzjR3A75KT@vostro.rjw.lan>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<2235175.7DaGPJD1E4@vostro.rjw.lan>
+	<CAPcyv4iuPy+KR1YgE+jc91XoHSueR_k0zry-8umJWBjXzcUasg@mail.gmail.com>
+	<6932657.HzjR3A75KT@vostro.rjw.lan>
+Date: Mon, 4 May 2015 16:46:57 -0700
+Message-ID: <CAPcyv4hiYYhYJ8n5nnSsbyWM2U9Vujz44PN7RxJT02HgKmoCNQ@mail.gmail.com>
+Subject: Re: [PATCH v2 02/20] libnd, nd_acpi: initial libnd infrastructure and
+ NFIT support
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Box <david.e.box@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Coccinelle cleanup to replace open coded sg to physical address
-translations.  This is in preparation for introducing scatterlists that
-reference pfn(s) without a backing struct page.
+On Mon, May 4, 2015 at 4:58 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Friday, May 01, 2015 09:23:38 AM Dan Williams wrote:
+>> On Thu, Apr 30, 2015 at 6:21 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> > On Thursday, April 30, 2015 05:39:06 PM Dan Williams wrote:
+>> >> On Thu, Apr 30, 2015 at 4:23 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+[..]
+>> > If ND_E820 and ND_ACPI aren't mutually exclusive, I still don't see a good
+>> > enough reason for asking users about ND_ACPI.  Why would I ever say "No"
+>> > here if I said "Yes" or "Module" to ND_DEVICES?
+>>
+>> I agree that if the user selects ND_DEVICES then ND_ACPI should
+>> probably default on, but otherwise turning it off is a useful option.
+>> If you know your system is pre-ACPI-6 then why bother including
+>> support?
+>
+> If you're a distro, you don't care.  You have to support it regardless.
+>
+> You might care if you're an end user building a kernel for yourself and just
+> for this particular specific machine.  Honestly, how many *server* users do
+> that?
+>
+> And fewer user-selectable options means fewer combination of options to test
+> during development/validation.
+>
+> Also unrelated, but applies to this patch.
+>
+> Since your new driver will handle device ID ACPI0012 which is defined by the
+> spec proper, it should go into drivers/acpi/, because there's where such things
+> go as a rule.
 
-// sg_phys.cocci: convert usage page_to_phys(sg_page(sg)) to sg_phys(sg)
-// usage: make coccicheck COCCI=sg_phys.cocci MODE=patch
-
-virtual patch
-virtual report
-virtual org
-
-@@
-struct scatterlist *sg;
-@@
-
-- page_to_phys(sg_page(sg)) + sg->offset
-+ sg_phys(sg)
-
-@@
-struct scatterlist *sg;
-@@
-
-- page_to_phys(sg_page(sg))
-+ sg_phys(sg) - sg->offset
-
-Cc: Julia Lawall <Julia.Lawall@lip6.fr>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/arm/mm/dma-mapping.c                    |    2 +-
- arch/microblaze/kernel/dma.c                 |    2 +-
- drivers/iommu/intel-iommu.c                  |    4 ++--
- drivers/iommu/iommu.c                        |    2 +-
- drivers/staging/android/ion/ion_chunk_heap.c |    4 ++--
- 5 files changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
-index 09c5fe3d30c2..43cc6a8fdacc 100644
---- a/arch/arm/mm/dma-mapping.c
-+++ b/arch/arm/mm/dma-mapping.c
-@@ -1502,7 +1502,7 @@ static int __map_sg_chunk(struct device *dev, struct scatterlist *sg,
- 		return -ENOMEM;
- 
- 	for (count = 0, s = sg; count < (size >> PAGE_SHIFT); s = sg_next(s)) {
--		phys_addr_t phys = page_to_phys(sg_page(s));
-+		phys_addr_t phys = sg_phys(s) - s->offset;
- 		unsigned int len = PAGE_ALIGN(s->offset + s->length);
- 
- 		if (!is_coherent &&
-diff --git a/arch/microblaze/kernel/dma.c b/arch/microblaze/kernel/dma.c
-index ed7ba8a11822..dcb3c594d626 100644
---- a/arch/microblaze/kernel/dma.c
-+++ b/arch/microblaze/kernel/dma.c
-@@ -61,7 +61,7 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
- 	/* FIXME this part of code is untested */
- 	for_each_sg(sgl, sg, nents, i) {
- 		sg->dma_address = sg_phys(sg);
--		__dma_sync(page_to_phys(sg_page(sg)) + sg->offset,
-+		__dma_sync(sg_phys(sg),
- 							sg->length, direction);
- 	}
- 
-diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
-index 68d43beccb7e..9b9ada71e0d3 100644
---- a/drivers/iommu/intel-iommu.c
-+++ b/drivers/iommu/intel-iommu.c
-@@ -1998,7 +1998,7 @@ static int __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
- 			sg_res = aligned_nrpages(sg->offset, sg->length);
- 			sg->dma_address = ((dma_addr_t)iov_pfn << VTD_PAGE_SHIFT) + sg->offset;
- 			sg->dma_length = sg->length;
--			pteval = page_to_phys(sg_page(sg)) | prot;
-+			pteval = (sg_phys(sg) - sg->offset) | prot;
- 			phys_pfn = pteval >> VTD_PAGE_SHIFT;
- 		}
- 
-@@ -3302,7 +3302,7 @@ static int intel_nontranslate_map_sg(struct device *hddev,
- 
- 	for_each_sg(sglist, sg, nelems, i) {
- 		BUG_ON(!sg_page(sg));
--		sg->dma_address = page_to_phys(sg_page(sg)) + sg->offset;
-+		sg->dma_address = sg_phys(sg);
- 		sg->dma_length = sg->length;
- 	}
- 	return nelems;
-diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-index d4f527e56679..59808fc9110d 100644
---- a/drivers/iommu/iommu.c
-+++ b/drivers/iommu/iommu.c
-@@ -1147,7 +1147,7 @@ size_t default_iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
- 	min_pagesz = 1 << __ffs(domain->ops->pgsize_bitmap);
- 
- 	for_each_sg(sg, s, nents, i) {
--		phys_addr_t phys = page_to_phys(sg_page(s)) + s->offset;
-+		phys_addr_t phys = sg_phys(s);
- 
- 		/*
- 		 * We are mapping on IOMMU page boundaries, so offset within
-diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
-index 3e6ec2ee6802..b7da5d142aa9 100644
---- a/drivers/staging/android/ion/ion_chunk_heap.c
-+++ b/drivers/staging/android/ion/ion_chunk_heap.c
-@@ -81,7 +81,7 @@ static int ion_chunk_heap_allocate(struct ion_heap *heap,
- err:
- 	sg = table->sgl;
- 	for (i -= 1; i >= 0; i--) {
--		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
-+		gen_pool_free(chunk_heap->pool, sg_phys(sg) - sg->offset,
- 			      sg->length);
- 		sg = sg_next(sg);
- 	}
-@@ -109,7 +109,7 @@ static void ion_chunk_heap_free(struct ion_buffer *buffer)
- 							DMA_BIDIRECTIONAL);
- 
- 	for_each_sg(table->sgl, sg, table->nents, i) {
--		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
-+		gen_pool_free(chunk_heap->pool, sg_phys(sg) - sg->offset,
- 			      sg->length);
- 	}
- 	chunk_heap->allocated -= allocated_size;
-
+Ok, I think the move to drivers/acpi/ will kill two birds with one
+stone as selecting ACPI_NFIT from there will select the libnd support
+without prompting.
