@@ -1,212 +1,247 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v3 04/11] dma-mapping: allow archs to optionally specify a
- ->map_pfn() operation
+Subject: [PATCH v2 09/10] dax: convert to __pfn_t
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 12 May 2015 00:29:51 -0400
-Message-ID: <20150512042951.11521.97119.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 06 May 2015 16:05:44 -0400
+Message-ID: <20150506200544.40425.62413.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-fsdevel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, david@fromorbit.com, hch@lst.de, j.glisse@gmail.com, mgorman@suse.de, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, mingo@kernel.org
+Cc: axboe@kernel.dk, Boaz Harrosh <boaz@plexistor.com>, riel@redhat.com, akpm@linux-foundation.org, linux-nvdimm@lists.01.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, mingo@kernel.org, linux-fsdevel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, mgorman@suse.de, Martin Schwidefsky <schwidefsky@de.ibm.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is in support of enabling block device drivers to perform DMA
-to/from persistent memory which may not have a backing struct page
-entry.
+The primary source for non-page-backed page-frames to enter the system
+is via the pmem driver's ->direct_access() method.  The pfns returned by
+the top-level bdev_direct_access() may be passed to any other subsystem
+in the kernel and those sub-systems either need to assume that the pfn
+is page backed (CONFIG_PMEM_IO=n) or be prepared to handle non-page
+backed case (CONFIG_PMEM_IO=y).  Currently the pfns returned by
+->direct_access() are only ever used by vm_insert_mixed() which does not
+care if the pfn is mapped.  As we go to add more usages of these pfns
+add the type-safety of __pfn_t.
 
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Boaz Harrosh <boaz@plexistor.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/Kconfig                             |    3 +++
- include/asm-generic/dma-mapping-common.h |   30 ++++++++++++++++++++++++++++++
- include/linux/dma-debug.h                |   23 +++++++++++++++++++----
- include/linux/dma-mapping.h              |    8 +++++++-
- lib/dma-debug.c                          |   10 ++++++----
- 5 files changed, 65 insertions(+), 9 deletions(-)
+ arch/powerpc/sysdev/axonram.c |    4 ++--
+ drivers/block/brd.c           |    4 ++--
+ drivers/block/pmem.c          |    8 +++++---
+ drivers/s390/block/dcssblk.c  |    6 +++---
+ fs/block_dev.c                |    2 +-
+ fs/dax.c                      |    9 +++++----
+ include/asm-generic/pfn.h     |    7 +++++++
+ include/linux/blkdev.h        |    4 ++--
+ 8 files changed, 27 insertions(+), 17 deletions(-)
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index a65eafb24997..f7f800860c00 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -203,6 +203,9 @@ config HAVE_DMA_ATTRS
- config HAVE_DMA_CONTIGUOUS
- 	bool
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index 9bb5da7f2c0c..069cb5285f18 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -141,13 +141,13 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
+  */
+ static long
+ axon_ram_direct_access(struct block_device *device, sector_t sector,
+-		       void **kaddr, unsigned long *pfn, long size)
++		       void **kaddr, __pfn_t *pfn, long size)
+ {
+ 	struct axon_ram_bank *bank = device->bd_disk->private_data;
+ 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
  
-+config HAVE_DMA_PFN
-+	bool
-+
- config GENERIC_SMP_IDLE_THREAD
-        bool
+ 	*kaddr = (void *)(bank->ph_addr + offset);
+-	*pfn = virt_to_phys(*kaddr) >> PAGE_SHIFT;
++	*pfn = phys_to_pfn_t(virt_to_phys(*kaddr));
  
-diff --git a/include/asm-generic/dma-mapping-common.h b/include/asm-generic/dma-mapping-common.h
-index 940d5ec122c9..7305efb1bac6 100644
---- a/include/asm-generic/dma-mapping-common.h
-+++ b/include/asm-generic/dma-mapping-common.h
-@@ -17,9 +17,15 @@ static inline dma_addr_t dma_map_single_attrs(struct device *dev, void *ptr,
+ 	return bank->size - offset;
+ }
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 115c6cf9cb43..57f4cd787ea2 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -371,7 +371,7 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
  
- 	kmemcheck_mark_initialized(ptr, size);
- 	BUG_ON(!valid_dma_direction(dir));
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	addr = ops->map_pfn(dev, page_to_pfn_typed(virt_to_page(ptr)),
-+			     (unsigned long)ptr & ~PAGE_MASK, size,
-+			     dir, attrs);
-+#else
- 	addr = ops->map_page(dev, virt_to_page(ptr),
- 			     (unsigned long)ptr & ~PAGE_MASK, size,
- 			     dir, attrs);
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+-			void **kaddr, unsigned long *pfn, long size)
++			void **kaddr, __pfn_t *pfn, long size)
+ {
+ 	struct brd_device *brd = bdev->bd_disk->private_data;
+ 	struct page *page;
+@@ -382,7 +382,7 @@ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+ 	if (!page)
+ 		return -ENOSPC;
+ 	*kaddr = page_address(page);
+-	*pfn = page_to_pfn(page);
++	*pfn = page_to_pfn_t(page);
+ 
+ 	/*
+ 	 * TODO: If size > PAGE_SIZE, we could look to see if the next page in
+diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
+index 2a847651f8de..18edb48e405e 100644
+--- a/drivers/block/pmem.c
++++ b/drivers/block/pmem.c
+@@ -98,8 +98,8 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ 	return 0;
+ }
+ 
+-static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+-			      void **kaddr, unsigned long *pfn, long size)
++static long __maybe_unused pmem_direct_access(struct block_device *bdev,
++		sector_t sector, void **kaddr, __pfn_t *pfn, long size)
+ {
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
+ 	size_t offset = sector << 9;
+@@ -108,7 +108,7 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+ 		return -ENODEV;
+ 
+ 	*kaddr = pmem->virt_addr + offset;
+-	*pfn = (pmem->phys_addr + offset) >> PAGE_SHIFT;
++	*pfn = phys_to_pfn_t(pmem->phys_addr + offset);
+ 
+ 	return pmem->size - offset;
+ }
+@@ -116,7 +116,9 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+ static const struct block_device_operations pmem_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.rw_page =		pmem_rw_page,
++#if IS_ENABLED(CONFIG_PMEM_IO)
+ 	.direct_access =	pmem_direct_access,
 +#endif
- 	debug_dma_map_page(dev, virt_to_page(ptr),
- 			   (unsigned long)ptr & ~PAGE_MASK, size,
- 			   dir, addr, true);
-@@ -73,6 +79,29 @@ static inline void dma_unmap_sg_attrs(struct device *dev, struct scatterlist *sg
- 		ops->unmap_sg(dev, sg, nents, dir, attrs);
+ };
+ 
+ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index 5da8515b8fb9..8616c1d33786 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -29,7 +29,7 @@ static int dcssblk_open(struct block_device *bdev, fmode_t mode);
+ static void dcssblk_release(struct gendisk *disk, fmode_t mode);
+ static void dcssblk_make_request(struct request_queue *q, struct bio *bio);
+ static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
+-				 void **kaddr, unsigned long *pfn, long size);
++				 void **kaddr, __pfn_t *pfn, long size);
+ 
+ static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
+ 
+@@ -879,7 +879,7 @@ fail:
+ 
+ static long
+ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+-			void **kaddr, unsigned long *pfn, long size)
++			void **kaddr, __pfn_t *pfn, long size)
+ {
+ 	struct dcssblk_dev_info *dev_info;
+ 	unsigned long offset, dev_sz;
+@@ -890,7 +890,7 @@ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+ 	dev_sz = dev_info->end - dev_info->start;
+ 	offset = secnum * 512;
+ 	*kaddr = (void *) (dev_info->start + offset);
+-	*pfn = virt_to_phys(*kaddr) >> PAGE_SHIFT;
++	*pfn = phys_to_pfn_t(virt_to_phys(*kaddr));
+ 
+ 	return dev_sz - offset;
+ }
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index c7e4163ede87..7285c31f7e30 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -437,7 +437,7 @@ EXPORT_SYMBOL_GPL(bdev_write_page);
+  * accessible at this address.
+  */
+ long bdev_direct_access(struct block_device *bdev, sector_t sector,
+-			void **addr, unsigned long *pfn, long size)
++			void **addr, __pfn_t *pfn, long size)
+ {
+ 	long avail;
+ 	const struct block_device_operations *ops = bdev->bd_disk->fops;
+diff --git a/fs/dax.c b/fs/dax.c
+index 6f65f00e58ec..198bd0e4b5ae 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -35,7 +35,7 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+ 	might_sleep();
+ 	do {
+ 		void *addr;
+-		unsigned long pfn;
++		__pfn_t pfn;
+ 		long count;
+ 
+ 		count = bdev_direct_access(bdev, sector, &addr, &pfn, size);
+@@ -65,7 +65,8 @@ EXPORT_SYMBOL_GPL(dax_clear_blocks);
+ 
+ static long dax_get_addr(struct buffer_head *bh, void **addr, unsigned blkbits)
+ {
+-	unsigned long pfn;
++	__pfn_t pfn;
++
+ 	sector_t sector = bh->b_blocknr << (blkbits - 9);
+ 	return bdev_direct_access(bh->b_bdev, sector, addr, &pfn, bh->b_size);
+ }
+@@ -274,7 +275,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 	sector_t sector = bh->b_blocknr << (inode->i_blkbits - 9);
+ 	unsigned long vaddr = (unsigned long)vmf->virtual_address;
+ 	void *addr;
+-	unsigned long pfn;
++	__pfn_t pfn;
+ 	pgoff_t size;
+ 	int error;
+ 
+@@ -304,7 +305,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 	if (buffer_unwritten(bh) || buffer_new(bh))
+ 		clear_page(addr);
+ 
+-	error = vm_insert_mixed(vma, vaddr, pfn);
++	error = vm_insert_mixed(vma, vaddr, __pfn_t_to_pfn(pfn));
+ 
+  out:
+ 	i_mmap_unlock_read(mapping);
+diff --git a/include/asm-generic/pfn.h b/include/asm-generic/pfn.h
+index c1fdf41fb726..af219dc96792 100644
+--- a/include/asm-generic/pfn.h
++++ b/include/asm-generic/pfn.h
+@@ -49,6 +49,13 @@ static inline __pfn_t page_to_pfn_t(struct page *page)
+ 	return pfn;
  }
  
-+#ifdef CONFIG_HAVE_DMA_PFN
-+static inline dma_addr_t dma_map_pfn(struct device *dev, __pfn_t pfn,
-+				      size_t offset, size_t size,
-+				      enum dma_data_direction dir)
++static inline __pfn_t phys_to_pfn_t(phys_addr_t addr)
 +{
-+	struct dma_map_ops *ops = get_dma_ops(dev);
-+	dma_addr_t addr;
++	__pfn_t pfn = { .pfn = addr >> PAGE_SHIFT };
 +
-+	BUG_ON(!valid_dma_direction(dir));
-+	addr = ops->map_pfn(dev, pfn, offset, size, dir, NULL);
-+	debug_dma_map_pfn(dev, pfn, offset, size, dir, addr, false);
-+
-+	return addr;
++	return pfn;
 +}
 +
-+static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
-+				      size_t offset, size_t size,
-+				      enum dma_data_direction dir)
-+{
-+	kmemcheck_mark_initialized(page_address(page) + offset, size);
-+	return dma_map_pfn(dev, page_to_pfn_typed(page), offset, size, dir);
-+}
-+#else
- static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
- 				      size_t offset, size_t size,
- 				      enum dma_data_direction dir)
-@@ -87,6 +116,7 @@ static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
- 
- 	return addr;
- }
-+#endif /* CONFIG_HAVE_DMA_PFN */
- 
- static inline void dma_unmap_page(struct device *dev, dma_addr_t addr,
- 				  size_t size, enum dma_data_direction dir)
-diff --git a/include/linux/dma-debug.h b/include/linux/dma-debug.h
-index fe8cb610deac..a3b4c8c0cd68 100644
---- a/include/linux/dma-debug.h
-+++ b/include/linux/dma-debug.h
-@@ -34,10 +34,18 @@ extern void dma_debug_init(u32 num_entries);
- 
- extern int dma_debug_resize_entries(u32 num_entries);
- 
--extern void debug_dma_map_page(struct device *dev, struct page *page,
--			       size_t offset, size_t size,
--			       int direction, dma_addr_t dma_addr,
--			       bool map_single);
-+extern void debug_dma_map_pfn(struct device *dev, __pfn_t pfn, size_t offset,
-+			      size_t size, int direction, dma_addr_t dma_addr,
-+			      bool map_single);
-+
-+static inline void debug_dma_map_page(struct device *dev, struct page *page,
-+				      size_t offset, size_t size,
-+				      int direction, dma_addr_t dma_addr,
-+				      bool map_single)
-+{
-+	return debug_dma_map_pfn(dev, page_to_pfn_t(page), offset, size,
-+			direction, dma_addr, map_single);
-+}
- 
- extern void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
- 
-@@ -109,6 +117,13 @@ static inline void debug_dma_map_page(struct device *dev, struct page *page,
+ static inline unsigned long __pfn_t_to_pfn(__pfn_t pfn)
  {
- }
+ #if IS_ENABLED(CONFIG_PMEM_IO)
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 7f9a516f24de..2692d3936f5f 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1605,7 +1605,7 @@ struct block_device_operations {
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	long (*direct_access)(struct block_device *, sector_t,
+-					void **, unsigned long *pfn, long size);
++					void **, __pfn_t *pfn, long size);
+ 	unsigned int (*check_events) (struct gendisk *disk,
+ 				      unsigned int clearing);
+ 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
+@@ -1624,7 +1624,7 @@ extern int bdev_read_page(struct block_device *, sector_t, struct page *);
+ extern int bdev_write_page(struct block_device *, sector_t, struct page *,
+ 						struct writeback_control *);
+ extern long bdev_direct_access(struct block_device *, sector_t, void **addr,
+-						unsigned long *pfn, long size);
++						__pfn_t *pfn, long size);
+ #else /* CONFIG_BLOCK */
  
-+static inline void debug_dma_map_pfn(struct device *dev, __pfn_t pfn,
-+				     size_t offset, size_t size,
-+				     int direction, dma_addr_t dma_addr,
-+				     bool map_single)
-+{
-+}
-+
- static inline void debug_dma_mapping_error(struct device *dev,
- 					  dma_addr_t dma_addr)
- {
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index ac07ff090919..d6437b493300 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -26,11 +26,17 @@ struct dma_map_ops {
- 
- 	int (*get_sgtable)(struct device *dev, struct sg_table *sgt, void *,
- 			   dma_addr_t, size_t, struct dma_attrs *attrs);
--
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	dma_addr_t (*map_pfn)(struct device *dev, __pfn_t pfn,
-+			      unsigned long offset, size_t size,
-+			      enum dma_data_direction dir,
-+			      struct dma_attrs *attrs);
-+#else
- 	dma_addr_t (*map_page)(struct device *dev, struct page *page,
- 			       unsigned long offset, size_t size,
- 			       enum dma_data_direction dir,
- 			       struct dma_attrs *attrs);
-+#endif
- 	void (*unmap_page)(struct device *dev, dma_addr_t dma_handle,
- 			   size_t size, enum dma_data_direction dir,
- 			   struct dma_attrs *attrs);
-diff --git a/lib/dma-debug.c b/lib/dma-debug.c
-index ae4b65e17e64..c24de1cd8f81 100644
---- a/lib/dma-debug.c
-+++ b/lib/dma-debug.c
-@@ -1250,11 +1250,12 @@ out:
- 	put_hash_bucket(bucket, &flags);
- }
- 
--void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
-+void debug_dma_map_pfn(struct device *dev, __pfn_t pfn, size_t offset,
- 			size_t size, int direction, dma_addr_t dma_addr,
- 			bool map_single)
- {
- 	struct dma_debug_entry *entry;
-+	struct page *page;
- 
- 	if (unlikely(dma_debug_disabled()))
- 		return;
-@@ -1268,7 +1269,7 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
- 
- 	entry->dev       = dev;
- 	entry->type      = dma_debug_page;
--	entry->pfn	 = page_to_pfn(page);
-+	entry->pfn	 = __pfn_t_to_pfn(pfn);
- 	entry->offset	 = offset,
- 	entry->dev_addr  = dma_addr;
- 	entry->size      = size;
-@@ -1278,7 +1279,8 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
- 	if (map_single)
- 		entry->type = dma_debug_single;
- 
--	if (!PageHighMem(page)) {
-+	page = __pfn_t_to_page(pfn);
-+	if (page && !PageHighMem(page)) {
- 		void *addr = page_address(page) + offset;
- 
- 		check_for_stack(dev, addr);
-@@ -1287,7 +1289,7 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
- 
- 	add_dma_entry(entry);
- }
--EXPORT_SYMBOL(debug_dma_map_page);
-+EXPORT_SYMBOL(debug_dma_map_pfn);
- 
- void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
- {
+ struct block_device;
 
