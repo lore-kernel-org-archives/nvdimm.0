@@ -1,342 +1,364 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v2 4/4] arch,
- x86: cache management apis for persistent memory
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Subject: [PATCH v2 03/10] block: convert .bv_page to .bv_pfn bio_vec
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 30 May 2015 14:59:40 -0400
-Message-ID: <20150530185940.32590.37804.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150530185425.32590.3190.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150530185425.32590.3190.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 06 May 2015 16:05:12 -0400
+Message-ID: <20150506200511.40425.85612.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: arnd@arndb.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
-Cc: jgross@suse.com, x86@kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, konrad.wilk@oracle.com, linux-kernel@vger.kernel.org, stefan.bader@canonical.com, luto@amacapital.net, linux-mm@kvack.org, geert@linux-m68k.org, hmh@hmh.eng.br, tj@kernel.org, hch@lst.de
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, hch@lst.de, Julia Lawall <Julia.Lawall@lip6.fr>, mgorman@suse.de, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, akpm@linux-foundation.org, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Carry an __pfn_t in a bio_vec rather than a 'struct page *' in support
+of allowing a bio to reference unmapped (not struct page backed)
+persistent memory.
 
-Based on an original patch by Ross Zwisler [1].
+This also fixes up the macros and static initializers that we were not
+automatically converted by the Coccinelle script that introduced the
+bvec_page() and bvec_set_page() helpers.
 
-Writes to persistent memory have the potential to be posted to cpu
-cache, cpu write buffers, and platform write buffers (memory controller)
-before being committed to persistent media.  Provide apis
-(persistent_copy() and persistent_sync()) to copy data and assert that
-it is durable in PMEM (a persistent linear address range).
+If CONFIG_PMEM_IO=n this is functionally equivalent to the status quo as
+the __pfn_t helpers can assume that a __pfn_t always has a corresponding
+struct page.
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-May/000932.html
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-[djbw: s/arch_persistent_flush()/io_flush_cache_range()/]
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Julia Lawall <Julia.Lawall@lip6.fr>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/Kconfig                  |    1 
- arch/x86/include/asm/cacheflush.h |   24 ++++++++++
- arch/x86/include/asm/io.h         |    6 ++
- drivers/block/pmem.c              |   58 ++++++++++++++++++++++-
- include/linux/pmem.h              |   93 +++++++++++++++++++++++++++++++++++++
- lib/Kconfig                       |    3 +
- 6 files changed, 183 insertions(+), 2 deletions(-)
- create mode 100644 include/linux/pmem.h
+ block/blk-integrity.c     |    4 ++--
+ block/blk-merge.c         |    6 +++---
+ block/bounce.c            |    2 +-
+ drivers/md/bcache/btree.c |    2 +-
+ include/linux/bio.h       |   24 +++++++++++++-----------
+ include/linux/blk_types.h |   13 ++++++++++---
+ lib/iov_iter.c            |   22 +++++++++++-----------
+ mm/page_io.c              |    4 ++--
+ 8 files changed, 43 insertions(+), 34 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 73a4d0330ad0..6412d92e6f1e 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -102,6 +102,7 @@ config X86
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
- 	select HAVE_ARCH_HUGE_VMAP if X86_64 || X86_PAE
- 	select ARCH_HAS_SG_CHAIN
-+	select ARCH_HAS_PMEM_API
- 	select CLKEVT_I8253
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select GENERIC_IOMAP
-diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
-index b6f7457d12e4..6b8bd5c43bf6 100644
---- a/arch/x86/include/asm/cacheflush.h
-+++ b/arch/x86/include/asm/cacheflush.h
-@@ -4,6 +4,7 @@
- /* Caches aren't brain-dead on the intel. */
- #include <asm-generic/cacheflush.h>
- #include <asm/special_insns.h>
-+#include <asm/uaccess.h>
+diff --git a/block/blk-integrity.c b/block/blk-integrity.c
+index 0458f31f075a..351198fbda3c 100644
+--- a/block/blk-integrity.c
++++ b/block/blk-integrity.c
+@@ -43,7 +43,7 @@ static const char *bi_unsupported_name = "unsupported";
+  */
+ int blk_rq_count_integrity_sg(struct request_queue *q, struct bio *bio)
+ {
+-	struct bio_vec iv, ivprv = { NULL };
++	struct bio_vec iv, ivprv = BIO_VEC_INIT(ivprv);
+ 	unsigned int segments = 0;
+ 	unsigned int seg_size = 0;
+ 	struct bvec_iter iter;
+@@ -89,7 +89,7 @@ EXPORT_SYMBOL(blk_rq_count_integrity_sg);
+ int blk_rq_map_integrity_sg(struct request_queue *q, struct bio *bio,
+ 			    struct scatterlist *sglist)
+ {
+-	struct bio_vec iv, ivprv = { NULL };
++	struct bio_vec iv, ivprv = BIO_VEC_INIT(ivprv);
+ 	struct scatterlist *sg = NULL;
+ 	unsigned int segments = 0;
+ 	struct bvec_iter iter;
+diff --git a/block/blk-merge.c b/block/blk-merge.c
+index 47ceefacd320..218ad1e57a49 100644
+--- a/block/blk-merge.c
++++ b/block/blk-merge.c
+@@ -13,7 +13,7 @@ static unsigned int __blk_recalc_rq_segments(struct request_queue *q,
+ 					     struct bio *bio,
+ 					     bool no_sg_merge)
+ {
+-	struct bio_vec bv, bvprv = { NULL };
++	struct bio_vec bv, bvprv = BIO_VEC_INIT(bvprv);
+ 	int cluster, high, highprv = 1;
+ 	unsigned int seg_size, nr_phys_segs;
+ 	struct bio *fbio, *bbio;
+@@ -123,7 +123,7 @@ EXPORT_SYMBOL(blk_recount_segments);
+ static int blk_phys_contig_segment(struct request_queue *q, struct bio *bio,
+ 				   struct bio *nxt)
+ {
+-	struct bio_vec end_bv = { NULL }, nxt_bv;
++	struct bio_vec end_bv = BIO_VEC_INIT(end_bv), nxt_bv;
+ 	struct bvec_iter iter;
+ 
+ 	if (!blk_queue_cluster(q))
+@@ -202,7 +202,7 @@ static int __blk_bios_map_sg(struct request_queue *q, struct bio *bio,
+ 			     struct scatterlist *sglist,
+ 			     struct scatterlist **sg)
+ {
+-	struct bio_vec bvec, bvprv = { NULL };
++	struct bio_vec bvec, bvprv = BIO_VEC_INIT(bvprv);
+ 	struct bvec_iter iter;
+ 	int nsegs, cluster;
+ 
+diff --git a/block/bounce.c b/block/bounce.c
+index 0390e44d6e1b..4a3098067c81 100644
+--- a/block/bounce.c
++++ b/block/bounce.c
+@@ -64,7 +64,7 @@ static void bounce_copy_vec(struct bio_vec *to, unsigned char *vfrom)
+ #else /* CONFIG_HIGHMEM */
+ 
+ #define bounce_copy_vec(to, vfrom)	\
+-	memcpy(page_address((to)->bv_page) + (to)->bv_offset, vfrom, (to)->bv_len)
++	memcpy(page_address(bvec_page(to)) + (to)->bv_offset, vfrom, (to)->bv_len)
+ 
+ #endif /* CONFIG_HIGHMEM */
+ 
+diff --git a/drivers/md/bcache/btree.c b/drivers/md/bcache/btree.c
+index 2e76e8b62902..36bbe29a806b 100644
+--- a/drivers/md/bcache/btree.c
++++ b/drivers/md/bcache/btree.c
+@@ -426,7 +426,7 @@ static void do_btree_node_write(struct btree *b)
+ 		void *base = (void *) ((unsigned long) i & ~(PAGE_SIZE - 1));
+ 
+ 		bio_for_each_segment_all(bv, b->bio, j)
+-			memcpy(page_address(bv->bv_page),
++			memcpy(page_address(bvec_page(bv)),
+ 			       base + j * PAGE_SIZE, PAGE_SIZE);
+ 
+ 		bch_submit_bbio(b->bio, b->c, &k.key, 0);
+diff --git a/include/linux/bio.h b/include/linux/bio.h
+index da3a127c9958..a59d97cbfe13 100644
+--- a/include/linux/bio.h
++++ b/include/linux/bio.h
+@@ -63,8 +63,8 @@
+  */
+ #define __bvec_iter_bvec(bvec, iter)	(&(bvec)[(iter).bi_idx])
+ 
+-#define bvec_iter_page(bvec, iter)				\
+-	(__bvec_iter_bvec((bvec), (iter))->bv_page)
++#define bvec_iter_pfn(bvec, iter)				\
++	(__bvec_iter_bvec((bvec), (iter))->bv_pfn)
+ 
+ #define bvec_iter_len(bvec, iter)				\
+ 	min((iter).bi_size,					\
+@@ -75,7 +75,7 @@
+ 
+ #define bvec_iter_bvec(bvec, iter)				\
+ ((struct bio_vec) {						\
+-	.bv_page	= bvec_iter_page((bvec), (iter)),	\
++	.bv_pfn		= bvec_iter_pfn((bvec), (iter)),	\
+ 	.bv_len		= bvec_iter_len((bvec), (iter)),	\
+ 	.bv_offset	= bvec_iter_offset((bvec), (iter)),	\
+ })
+@@ -83,14 +83,16 @@
+ #define bio_iter_iovec(bio, iter)				\
+ 	bvec_iter_bvec((bio)->bi_io_vec, (iter))
+ 
+-#define bio_iter_page(bio, iter)				\
+-	bvec_iter_page((bio)->bi_io_vec, (iter))
++#define bio_iter_pfn(bio, iter)				\
++	bvec_iter_pfn((bio)->bi_io_vec, (iter))
+ #define bio_iter_len(bio, iter)					\
+ 	bvec_iter_len((bio)->bi_io_vec, (iter))
+ #define bio_iter_offset(bio, iter)				\
+ 	bvec_iter_offset((bio)->bi_io_vec, (iter))
+ 
+-#define bio_page(bio)		bio_iter_page((bio), (bio)->bi_iter)
++#define bio_page(bio)	\
++		pfn_to_page((bio_iter_pfn((bio), (bio)->bi_iter)).pfn)
++#define bio_pfn(bio)		bio_iter_pfn((bio), (bio)->bi_iter)
+ #define bio_offset(bio)		bio_iter_offset((bio), (bio)->bi_iter)
+ #define bio_iovec(bio)		bio_iter_iovec((bio), (bio)->bi_iter)
+ 
+@@ -150,8 +152,8 @@ static inline void *bio_data(struct bio *bio)
+ /*
+  * will die
+  */
+-#define bio_to_phys(bio)	(page_to_phys(bio_page((bio))) + (unsigned long) bio_offset((bio)))
+-#define bvec_to_phys(bv)	(page_to_phys((bv)->bv_page) + (unsigned long) (bv)->bv_offset)
++#define bio_to_phys(bio)	(__pfn_t_to_phys(bio_pfn((bio))) + (unsigned long) bio_offset((bio)))
++#define bvec_to_phys(bv)	(__pfn_t_to_phys((bv)->bv_pfn) + (unsigned long) (bv)->bv_offset)
  
  /*
-  * The set_memory_* API can be used to change various attributes of a virtual
-@@ -108,4 +109,27 @@ static inline int rodata_test(void)
- }
- #endif
+  * queues that have highmem support enabled may still need to revert to
+@@ -160,7 +162,7 @@ static inline void *bio_data(struct bio *bio)
+  * I/O completely on that queue (see ide-dma for example)
+  */
+ #define __bio_kmap_atomic(bio, iter)				\
+-	(kmap_atomic(bio_iter_iovec((bio), (iter)).bv_page) +	\
++	(kmap_atomic(bio_iter_iovec((bio), bvec_page(iter)) +	\
+ 		bio_iter_iovec((bio), (iter)).bv_offset)
  
-+static inline void arch_persistent_copy(void *dst, const void *src, size_t n)
-+{
-+	/*
-+	 * We are copying between two kernel buffers, if
-+	 * __copy_from_user_inatomic_nocache() returns an error (page
-+	 * fault) we would have already taken an unhandled fault before
-+	 * the BUG_ON.  The BUG_ON is simply here to satisfy
-+	 * __must_check and allow reuse of the common non-temporal store
-+	 * implementation for persistent_copy().
-+	 */
-+	BUG_ON(__copy_from_user_inatomic_nocache(dst, src, n));
-+}
-+
-+static inline void arch_persistent_sync(void)
-+{
-+	wmb();
-+	pcommit_sfence();
-+}
-+
-+static inline bool __arch_has_persistent_sync(void)
-+{
-+	return boot_cpu_has(X86_FEATURE_PCOMMIT);
-+}
- #endif /* _ASM_X86_CACHEFLUSH_H */
-diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
-index 956f2768bdc1..f3c32bb207cf 100644
---- a/arch/x86/include/asm/io.h
-+++ b/arch/x86/include/asm/io.h
-@@ -250,6 +250,12 @@ static inline void flush_write_buffers(void)
- #endif
+ #define __bio_kunmap_atomic(addr)	kunmap_atomic(addr)
+@@ -490,7 +492,7 @@ static inline char *bvec_kmap_irq(struct bio_vec *bvec, unsigned long *flags)
+ 	 * balancing is a lot nicer this way
+ 	 */
+ 	local_irq_save(*flags);
+-	addr = (unsigned long) kmap_atomic(bvec->bv_page);
++	addr = (unsigned long) kmap_atomic(bvec_page(bvec));
+ 
+ 	BUG_ON(addr & ~PAGE_MASK);
+ 
+@@ -508,7 +510,7 @@ static inline void bvec_kunmap_irq(char *buffer, unsigned long *flags)
+ #else
+ static inline char *bvec_kmap_irq(struct bio_vec *bvec, unsigned long *flags)
+ {
+-	return page_address(bvec->bv_page) + bvec->bv_offset;
++	return page_address(bvec_page(bvec)) + bvec->bv_offset;
  }
  
-+static inline void *arch_persistent_remap(resource_size_t offset,
-+	unsigned long size)
-+{
-+	return (void __force *) ioremap_cache(offset, size);
-+}
-+
- #endif /* __KERNEL__ */
+ static inline void bvec_kunmap_irq(char *buffer, unsigned long *flags)
+diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
+index d7167b50299f..2a15c4943db6 100644
+--- a/include/linux/blk_types.h
++++ b/include/linux/blk_types.h
+@@ -6,6 +6,7 @@
+ #define __LINUX_BLK_TYPES_H
  
- extern void native_io_delay(void);
-diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index 799acff6bd7c..10cbe557165c 100644
---- a/drivers/block/pmem.c
-+++ b/drivers/block/pmem.c
-@@ -23,9 +23,16 @@
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
-+#include <linux/pmem.h>
+ #include <linux/types.h>
++#include <linux/mm.h>
  
- #define PMEM_MINORS		16
- 
-+struct pmem_ops {
-+	void *(*remap)(resource_size_t offset, unsigned long size);
-+	void (*copy)(void *dst, const void *src, size_t size);
-+	void (*sync)(void);
-+};
-+
- struct pmem_device {
- 	struct request_queue	*pmem_queue;
- 	struct gendisk		*pmem_disk;
-@@ -34,11 +41,54 @@ struct pmem_device {
- 	phys_addr_t		phys_addr;
- 	void			*virt_addr;
- 	size_t			size;
-+	struct pmem_ops		ops;
+ struct bio_set;
+ struct bio;
+@@ -21,19 +22,25 @@ typedef void (bio_destructor_t) (struct bio *);
+  * was unsigned short, but we might as well be ready for > 64kB I/O pages
+  */
+ struct bio_vec {
+-	struct page	*bv_page;
++	__pfn_t		bv_pfn;
+ 	unsigned int	bv_len;
+ 	unsigned int	bv_offset;
  };
  
- static int pmem_major;
- static atomic_t pmem_index;
- 
-+static void default_pmem_sync(void)
-+{
-+	wmb();
-+}
++#define BIO_VEC_INIT(name) { .bv_pfn = { .pfn = 0 }, .bv_len = 0, \
++	.bv_offset = 0 }
 +
-+static void default_pmem_copy(void *dst, const void *src, size_t size)
-+{
-+	memcpy(dst, src, size);
-+}
++#define BIO_VEC(name) \
++	struct bio_vec name = BIO_VEC_INIT(name)
 +
-+static void pmem_ops_default_init(struct pmem_device *pmem)
-+{
-+	/*
-+	 * These defaults seek to offer decent performance and minimize
-+	 * the window between i/o completion and writes being durable on
-+	 * media.  However, it is undefined / architecture specific
-+	 * whether acknowledged data may be lost in transit if a power
-+	 * fail occurs after bio_endio().
-+	 */
-+	pmem->ops.remap = memremap_wt;
-+	pmem->ops.copy = default_pmem_copy;
-+	pmem->ops.sync = default_pmem_sync;
-+}
-+
-+static bool pmem_ops_init(struct pmem_device *pmem)
-+{
-+	if (IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API) &&
-+			arch_has_persistent_sync()) {
-+		/*
-+		 * This arch + cpu guarantees that bio_endio() == data
-+		 * durable on media.
-+		 */
-+		pmem->ops.remap = persistent_remap;
-+		pmem->ops.copy = persistent_copy;
-+		pmem->ops.sync = persistent_sync;
-+		return true;
-+	}
-+
-+	pmem_ops_default_init(pmem);
-+	return false;
-+}
-+
- static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 			unsigned int len, unsigned int off, int rw,
- 			sector_t sector)
-@@ -51,7 +101,7 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 		flush_dcache_page(page);
- 	} else {
- 		flush_dcache_page(page);
--		memcpy(pmem->virt_addr + pmem_off, mem + off, len);
-+		pmem->ops.copy(pmem->virt_addr + pmem_off, mem + off, len);
- 	}
- 
- 	kunmap_atomic(mem);
-@@ -82,6 +132,8 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
- 		sector += bvec.bv_len >> 9;
- 	}
- 
-+	if (rw)
-+		pmem->ops.sync();
- out:
- 	bio_endio(bio, err);
+ static inline struct page *bvec_page(const struct bio_vec *bvec)
+ {
+-	return bvec->bv_page;
++	return __pfn_t_to_page(bvec->bv_pfn);
  }
-@@ -131,6 +183,8 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
  
- 	pmem->phys_addr = res->start;
- 	pmem->size = resource_size(res);
-+	if (!pmem_ops_init(pmem))
-+		dev_warn(dev, "unable to guarantee persistence of writes\n");
+ static inline void bvec_set_page(struct bio_vec *bvec, struct page *page)
+ {
+-	bvec->bv_page = page;
++	bvec->bv_pfn = page_to_pfn_t(page);
+ }
  
- 	err = -EINVAL;
- 	if (!request_mem_region(pmem->phys_addr, pmem->size, "pmem")) {
-@@ -143,7 +197,7 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
- 	 * of the CPU caches in case of a crash.
- 	 */
- 	err = -ENOMEM;
--	pmem->virt_addr = memremap_wt(pmem->phys_addr, pmem->size);
-+	pmem->virt_addr = pmem->ops.remap(pmem->phys_addr, pmem->size);
- 	if (!pmem->virt_addr)
- 		goto out_release_region;
+ #ifdef CONFIG_BLOCK
+diff --git a/lib/iov_iter.c b/lib/iov_iter.c
+index 75232ad0a5e7..4276f6d1826c 100644
+--- a/lib/iov_iter.c
++++ b/lib/iov_iter.c
+@@ -61,7 +61,7 @@
+ 	__p = i->bvec;					\
+ 	__v.bv_len = min_t(size_t, n, __p->bv_len - skip);	\
+ 	if (likely(__v.bv_len)) {			\
+-		__v.bv_page = __p->bv_page;		\
++		__v.bv_pfn = __p->bv_pfn;		\
+ 		__v.bv_offset = __p->bv_offset + skip; 	\
+ 		(void)(STEP);				\
+ 		skip += __v.bv_len;			\
+@@ -72,7 +72,7 @@
+ 		__v.bv_len = min_t(size_t, n, __p->bv_len);	\
+ 		if (unlikely(!__v.bv_len))		\
+ 			continue;			\
+-		__v.bv_page = __p->bv_page;		\
++		__v.bv_pfn = __p->bv_pfn;		\
+ 		__v.bv_offset = __p->bv_offset;		\
+ 		(void)(STEP);				\
+ 		skip = __v.bv_len;			\
+@@ -395,7 +395,7 @@ size_t copy_to_iter(void *addr, size_t bytes, struct iov_iter *i)
+ 	iterate_and_advance(i, bytes, v,
+ 		__copy_to_user(v.iov_base, (from += v.iov_len) - v.iov_len,
+ 			       v.iov_len),
+-		memcpy_to_page(v.bv_page, v.bv_offset,
++		memcpy_to_page(bvec_page(&v), v.bv_offset,
+ 			       (from += v.bv_len) - v.bv_len, v.bv_len),
+ 		memcpy(v.iov_base, (from += v.iov_len) - v.iov_len, v.iov_len)
+ 	)
+@@ -416,7 +416,7 @@ size_t copy_from_iter(void *addr, size_t bytes, struct iov_iter *i)
+ 	iterate_and_advance(i, bytes, v,
+ 		__copy_from_user((to += v.iov_len) - v.iov_len, v.iov_base,
+ 				 v.iov_len),
+-		memcpy_from_page((to += v.bv_len) - v.bv_len, v.bv_page,
++		memcpy_from_page((to += v.bv_len) - v.bv_len, bvec_page(&v),
+ 				 v.bv_offset, v.bv_len),
+ 		memcpy((to += v.iov_len) - v.iov_len, v.iov_base, v.iov_len)
+ 	)
+@@ -437,7 +437,7 @@ size_t copy_from_iter_nocache(void *addr, size_t bytes, struct iov_iter *i)
+ 	iterate_and_advance(i, bytes, v,
+ 		__copy_from_user_nocache((to += v.iov_len) - v.iov_len,
+ 					 v.iov_base, v.iov_len),
+-		memcpy_from_page((to += v.bv_len) - v.bv_len, v.bv_page,
++		memcpy_from_page((to += v.bv_len) - v.bv_len, bvec_page(&v),
+ 				 v.bv_offset, v.bv_len),
+ 		memcpy((to += v.iov_len) - v.iov_len, v.iov_base, v.iov_len)
+ 	)
+@@ -482,7 +482,7 @@ size_t iov_iter_zero(size_t bytes, struct iov_iter *i)
  
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-new file mode 100644
-index 000000000000..e9a63ee1d361
---- /dev/null
-+++ b/include/linux/pmem.h
-@@ -0,0 +1,93 @@
-+/*
-+ * Copyright(c) 2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#ifndef __PMEM_H__
-+#define __PMEM_H__
-+
-+#include <linux/io.h>
-+#include <asm/cacheflush.h>
-+
-+/*
-+ * Architectures that define ARCH_HAS_PMEM_API must provide
-+ * implementations for arch_persistent_remap(), arch_persistent_copy(),
-+ * arch_persistent_sync(), and __arch_has_persistent_sync().
-+ */
-+
-+#ifdef CONFIG_ARCH_HAS_PMEM_API
-+/**
-+ * persistent_remap - map physical persistent memory for pmem api
-+ * @offset: physical address of persistent memory
-+ * @size: size of the mapping
-+ *
-+ * Establish a mapping of the architecture specific memory type expected
-+ * by persistent_copy() and persistent_sync().  For example, it may be
-+ * the case that an uncacheable or writethrough mapping is sufficient,
-+ * or a writeback mapping provided persistent_copy() and
-+ * persistent_sync() arrange for the data to be written through the
-+ * cache to persistent media.
-+ */
-+static inline void *persistent_remap(resource_size_t offset, unsigned long size)
-+{
-+	return arch_persistent_remap(offset, size);
-+}
-+
-+/**
-+ * persistent_copy - copy data to persistent memory
-+ * @dst: destination buffer for the copy
-+ * @src: source buffer for the copy
-+ * @n: length of the copy in bytes
-+ *
-+ * Perform a memory copy that results in the destination of the copy
-+ * being effectively evicted from, or never written to, the processor
-+ * cache hierarchy after the copy completes.  After persistent_copy()
-+ * data may still reside in cpu or platform buffers, so this operation
-+ * must be followed by a persistent_sync().
-+ */
-+static inline void persistent_copy(void *dst, const void *src, size_t n)
-+{
-+	arch_persistent_copy(dst, src, n);
-+}
-+
-+/**
-+ * persistent_sync - synchronize writes to persistent memory
-+ *
-+ * After a series of persistent_copy() operations this drains data from
-+ * cpu write buffers and any platform (memory controller) buffers to
-+ * ensure that written data is durable on persistent memory media.
-+ */
-+static inline void persistent_sync(void)
-+{
-+	arch_persistent_sync();
-+}
-+
-+/**
-+ * arch_has_persistent_sync - true if persistent_sync() ensures durability
-+ *
-+ * For a given cpu implementation within an architecture it is possible
-+ * that persistent_sync() resolves to a nop.  In the case this returns
-+ * false, pmem api users are unable to ensure durabilty and may want to
-+ * fall back to a different data consistency model, or otherwise notify
-+ * the user.
-+ */
-+static inline bool arch_has_persistent_sync(void)
-+{
-+	return __arch_has_persistent_sync();
-+}
-+#else
-+/* undefined symbols */
-+extern void *persistent_remap(resource_size_t offet, unsigned long size);
-+extern void persistent_copy(void *dst, const void *src, size_t n);
-+extern void persistent_sync(void);
-+extern bool arch_has_persistent_sync(void);
-+#endif /* CONFIG_ARCH_HAS_PMEM_API */
-+
-+#endif /* __PMEM_H__ */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 601965a948e8..e6a3c892d514 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -522,4 +522,7 @@ source "lib/fonts/Kconfig"
- config ARCH_HAS_SG_CHAIN
- 	def_bool n
+ 	iterate_and_advance(i, bytes, v,
+ 		__clear_user(v.iov_base, v.iov_len),
+-		memzero_page(v.bv_page, v.bv_offset, v.bv_len),
++		memzero_page(bvec_page(&v), v.bv_offset, v.bv_len),
+ 		memset(v.iov_base, 0, v.iov_len)
+ 	)
  
-+config ARCH_HAS_PMEM_API
-+	def_bool n
-+
- endmenu
+@@ -497,7 +497,7 @@ size_t iov_iter_copy_from_user_atomic(struct page *page,
+ 	iterate_all_kinds(i, bytes, v,
+ 		__copy_from_user_inatomic((p += v.iov_len) - v.iov_len,
+ 					  v.iov_base, v.iov_len),
+-		memcpy_from_page((p += v.bv_len) - v.bv_len, v.bv_page,
++		memcpy_from_page((p += v.bv_len) - v.bv_len, bvec_page(&v),
+ 				 v.bv_offset, v.bv_len),
+ 		memcpy((p += v.iov_len) - v.iov_len, v.iov_base, v.iov_len)
+ 	)
+@@ -596,7 +596,7 @@ ssize_t iov_iter_get_pages(struct iov_iter *i,
+ 	0;}),({
+ 		/* can't be more than PAGE_SIZE */
+ 		*start = v.bv_offset;
+-		get_page(*pages = v.bv_page);
++		get_page(*pages = bvec_page(&v));
+ 		return v.bv_len;
+ 	}),({
+ 		return -EFAULT;
+@@ -650,7 +650,7 @@ ssize_t iov_iter_get_pages_alloc(struct iov_iter *i,
+ 		*pages = p = get_pages_array(1);
+ 		if (!p)
+ 			return -ENOMEM;
+-		get_page(*p = v.bv_page);
++		get_page(*p = bvec_page(&v));
+ 		return v.bv_len;
+ 	}),({
+ 		return -EFAULT;
+@@ -684,7 +684,7 @@ size_t csum_and_copy_from_iter(void *addr, size_t bytes, __wsum *csum,
+ 		}
+ 		err ? v.iov_len : 0;
+ 	}), ({
+-		char *p = kmap_atomic(v.bv_page);
++		char *p = kmap_atomic(bvec_page(&v));
+ 		next = csum_partial_copy_nocheck(p + v.bv_offset,
+ 						 (to += v.bv_len) - v.bv_len,
+ 						 v.bv_len, 0);
+@@ -728,7 +728,7 @@ size_t csum_and_copy_to_iter(void *addr, size_t bytes, __wsum *csum,
+ 		}
+ 		err ? v.iov_len : 0;
+ 	}), ({
+-		char *p = kmap_atomic(v.bv_page);
++		char *p = kmap_atomic(bvec_page(&v));
+ 		next = csum_partial_copy_nocheck((from += v.bv_len) - v.bv_len,
+ 						 p + v.bv_offset,
+ 						 v.bv_len, 0);
+diff --git a/mm/page_io.c b/mm/page_io.c
+index 75738896b691..33c248527fd2 100644
+--- a/mm/page_io.c
++++ b/mm/page_io.c
+@@ -265,8 +265,8 @@ int __swap_writepage(struct page *page, struct writeback_control *wbc,
+ 		struct file *swap_file = sis->swap_file;
+ 		struct address_space *mapping = swap_file->f_mapping;
+ 		struct bio_vec bv = {
+-			.bv_page = page,
+-			.bv_len  = PAGE_SIZE,
++			.bv_pfn = page_to_pfn_t(page),
++			.bv_len = PAGE_SIZE,
+ 			.bv_offset = 0
+ 		};
+ 		struct iov_iter from;
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
