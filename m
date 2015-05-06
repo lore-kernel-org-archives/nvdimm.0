@@ -1,137 +1,231 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v10 1/12] x86, mm, pat: Set WT to PA7 slot of PAT MSR
-Date: Wed, 27 May 2015 09:18:53 -0600
-Message-Id: <1432739944-22633-2-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
-References: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Subject: [PATCH v2 04/10] dma-mapping: allow archs to optionally specify a
+ ->map_pfn() operation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 06 May 2015 16:05:17 -0400
+Message-ID: <20150506200517.40425.30409.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, mingo@kernel.org, mgorman@suse.de, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch sets WT to the PA7 slot in the PAT MSR when the processor
-is not affected by the PAT errata.  The PA7 slot is chosen to improve
-robustness in the presence of errata that might cause the high PAT bit
-to be ignored.  This way a buggy PA7 slot access will hit the PA3 slot,
-which is UC, so at worst we lose performance without causing a correctness
-issue.
+This is in support of enabling block device drivers to perform DMA
+to/from persistent memory which may not have a backing struct page
+entry.
 
-The following Intel processors are affected by the PAT errata.
-
-   errata               cpuid
-   ----------------------------------------------------
-   Pentium 2, A52       family 0x6, model 0x5
-   Pentium 3, E27       family 0x6, model 0x7, 0x8
-   Pentium 3 Xenon, G26 family 0x6, model 0x7, 0x8, 0xa
-   Pentium M, Y26       family 0x6, model 0x9
-   Pentium M 90nm, X9   family 0x6, model 0xd
-   Pentium 4, N46       family 0xf, model 0x0
-
-Instead of making sharp boundary checks, this patch makes conservative
-checks to exclude all Pentium 2, 3, M and 4 family processors.  For
-such processors, _PAGE_CACHE_MODE_WT is redirected to UC- per the
-default setup in __cachemode2pte_tbl[].
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Reviewed-by: Juergen Gross <jgross@suse.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/mm/pat.c |   71 ++++++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 56 insertions(+), 15 deletions(-)
+ arch/Kconfig                             |    3 +++
+ include/asm-generic/dma-mapping-common.h |   30 ++++++++++++++++++++++++++++++
+ include/asm-generic/pfn.h                |    9 +++++++++
+ include/linux/dma-debug.h                |   23 +++++++++++++++++++----
+ include/linux/dma-mapping.h              |    8 +++++++-
+ lib/dma-debug.c                          |   10 ++++++----
+ 6 files changed, 74 insertions(+), 9 deletions(-)
 
-diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
-index 35af677..1baa60d 100644
---- a/arch/x86/mm/pat.c
-+++ b/arch/x86/mm/pat.c
-@@ -197,6 +197,7 @@ void pat_init(void)
+diff --git a/arch/Kconfig b/arch/Kconfig
+index a65eafb24997..f7f800860c00 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -203,6 +203,9 @@ config HAVE_DMA_ATTRS
+ config HAVE_DMA_CONTIGUOUS
+ 	bool
+ 
++config HAVE_DMA_PFN
++	bool
++
+ config GENERIC_SMP_IDLE_THREAD
+        bool
+ 
+diff --git a/include/asm-generic/dma-mapping-common.h b/include/asm-generic/dma-mapping-common.h
+index 940d5ec122c9..7305efb1bac6 100644
+--- a/include/asm-generic/dma-mapping-common.h
++++ b/include/asm-generic/dma-mapping-common.h
+@@ -17,9 +17,15 @@ static inline dma_addr_t dma_map_single_attrs(struct device *dev, void *ptr,
+ 
+ 	kmemcheck_mark_initialized(ptr, size);
+ 	BUG_ON(!valid_dma_direction(dir));
++#ifdef CONFIG_HAVE_DMA_PFN
++	addr = ops->map_pfn(dev, page_to_pfn_typed(virt_to_page(ptr)),
++			     (unsigned long)ptr & ~PAGE_MASK, size,
++			     dir, attrs);
++#else
+ 	addr = ops->map_page(dev, virt_to_page(ptr),
+ 			     (unsigned long)ptr & ~PAGE_MASK, size,
+ 			     dir, attrs);
++#endif
+ 	debug_dma_map_page(dev, virt_to_page(ptr),
+ 			   (unsigned long)ptr & ~PAGE_MASK, size,
+ 			   dir, addr, true);
+@@ -73,6 +79,29 @@ static inline void dma_unmap_sg_attrs(struct device *dev, struct scatterlist *sg
+ 		ops->unmap_sg(dev, sg, nents, dir, attrs);
+ }
+ 
++#ifdef CONFIG_HAVE_DMA_PFN
++static inline dma_addr_t dma_map_pfn(struct device *dev, __pfn_t pfn,
++				      size_t offset, size_t size,
++				      enum dma_data_direction dir)
++{
++	struct dma_map_ops *ops = get_dma_ops(dev);
++	dma_addr_t addr;
++
++	BUG_ON(!valid_dma_direction(dir));
++	addr = ops->map_pfn(dev, pfn, offset, size, dir, NULL);
++	debug_dma_map_pfn(dev, pfn, offset, size, dir, addr, false);
++
++	return addr;
++}
++
++static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
++				      size_t offset, size_t size,
++				      enum dma_data_direction dir)
++{
++	kmemcheck_mark_initialized(page_address(page) + offset, size);
++	return dma_map_pfn(dev, page_to_pfn_typed(page), offset, size, dir);
++}
++#else
+ static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
+ 				      size_t offset, size_t size,
+ 				      enum dma_data_direction dir)
+@@ -87,6 +116,7 @@ static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
+ 
+ 	return addr;
+ }
++#endif /* CONFIG_HAVE_DMA_PFN */
+ 
+ static inline void dma_unmap_page(struct device *dev, dma_addr_t addr,
+ 				  size_t size, enum dma_data_direction dir)
+diff --git a/include/asm-generic/pfn.h b/include/asm-generic/pfn.h
+index 91171e0285d9..c1fdf41fb726 100644
+--- a/include/asm-generic/pfn.h
++++ b/include/asm-generic/pfn.h
+@@ -48,4 +48,13 @@ static inline __pfn_t page_to_pfn_t(struct page *page)
+ 
+ 	return pfn;
+ }
++
++static inline unsigned long __pfn_t_to_pfn(__pfn_t pfn)
++{
++#if IS_ENABLED(CONFIG_PMEM_IO)
++	if (pfn.pfn < PAGE_OFFSET)
++		return pfn.pfn;
++#endif
++	return page_to_pfn(__pfn_t_to_page(pfn));
++}
+ #endif /* __ASM_PFN_H */
+diff --git a/include/linux/dma-debug.h b/include/linux/dma-debug.h
+index fe8cb610deac..a3b4c8c0cd68 100644
+--- a/include/linux/dma-debug.h
++++ b/include/linux/dma-debug.h
+@@ -34,10 +34,18 @@ extern void dma_debug_init(u32 num_entries);
+ 
+ extern int dma_debug_resize_entries(u32 num_entries);
+ 
+-extern void debug_dma_map_page(struct device *dev, struct page *page,
+-			       size_t offset, size_t size,
+-			       int direction, dma_addr_t dma_addr,
+-			       bool map_single);
++extern void debug_dma_map_pfn(struct device *dev, __pfn_t pfn, size_t offset,
++			      size_t size, int direction, dma_addr_t dma_addr,
++			      bool map_single);
++
++static inline void debug_dma_map_page(struct device *dev, struct page *page,
++				      size_t offset, size_t size,
++				      int direction, dma_addr_t dma_addr,
++				      bool map_single)
++{
++	return debug_dma_map_pfn(dev, page_to_pfn_t(page), offset, size,
++			direction, dma_addr, map_single);
++}
+ 
+ extern void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
+ 
+@@ -109,6 +117,13 @@ static inline void debug_dma_map_page(struct device *dev, struct page *page,
  {
- 	u64 pat;
- 	bool boot_cpu = !boot_pat_state;
-+	struct cpuinfo_x86 *c = &boot_cpu_data;
+ }
  
- 	if (!pat_enabled)
++static inline void debug_dma_map_pfn(struct device *dev, __pfn_t pfn,
++				     size_t offset, size_t size,
++				     int direction, dma_addr_t dma_addr,
++				     bool map_single)
++{
++}
++
+ static inline void debug_dma_mapping_error(struct device *dev,
+ 					  dma_addr_t dma_addr)
+ {
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index ac07ff090919..d6437b493300 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -26,11 +26,17 @@ struct dma_map_ops {
+ 
+ 	int (*get_sgtable)(struct device *dev, struct sg_table *sgt, void *,
+ 			   dma_addr_t, size_t, struct dma_attrs *attrs);
+-
++#ifdef CONFIG_HAVE_DMA_PFN
++	dma_addr_t (*map_pfn)(struct device *dev, __pfn_t pfn,
++			      unsigned long offset, size_t size,
++			      enum dma_data_direction dir,
++			      struct dma_attrs *attrs);
++#else
+ 	dma_addr_t (*map_page)(struct device *dev, struct page *page,
+ 			       unsigned long offset, size_t size,
+ 			       enum dma_data_direction dir,
+ 			       struct dma_attrs *attrs);
++#endif
+ 	void (*unmap_page)(struct device *dev, dma_addr_t dma_handle,
+ 			   size_t size, enum dma_data_direction dir,
+ 			   struct dma_attrs *attrs);
+diff --git a/lib/dma-debug.c b/lib/dma-debug.c
+index ae4b65e17e64..c24de1cd8f81 100644
+--- a/lib/dma-debug.c
++++ b/lib/dma-debug.c
+@@ -1250,11 +1250,12 @@ out:
+ 	put_hash_bucket(bucket, &flags);
+ }
+ 
+-void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
++void debug_dma_map_pfn(struct device *dev, __pfn_t pfn, size_t offset,
+ 			size_t size, int direction, dma_addr_t dma_addr,
+ 			bool map_single)
+ {
+ 	struct dma_debug_entry *entry;
++	struct page *page;
+ 
+ 	if (unlikely(dma_debug_disabled()))
  		return;
-@@ -217,21 +218,61 @@ void pat_init(void)
- 		}
- 	}
+@@ -1268,7 +1269,7 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
  
--	/* Set PWT to Write-Combining. All other bits stay the same */
--	/*
--	 * PTE encoding used in Linux:
--	 *      PAT
--	 *      |PCD
--	 *      ||PWT
--	 *      |||
--	 *      000 WB		_PAGE_CACHE_WB
--	 *      001 WC		_PAGE_CACHE_WC
--	 *      010 UC-		_PAGE_CACHE_UC_MINUS
--	 *      011 UC		_PAGE_CACHE_UC
--	 * PAT bit unused
--	 */
--	pat = PAT(0, WB) | PAT(1, WC) | PAT(2, UC_MINUS) | PAT(3, UC) |
--	      PAT(4, WB) | PAT(5, WC) | PAT(6, UC_MINUS) | PAT(7, UC);
-+	if ((c->x86_vendor == X86_VENDOR_INTEL) &&
-+	    (((c->x86 == 0x6) && (c->x86_model <= 0xd)) ||
-+	     ((c->x86 == 0xf) && (c->x86_model <= 0x6)))) {
-+		/*
-+		 * PAT support with the lower four entries. Intel Pentium 2,
-+		 * 3, M, and 4 are affected by PAT errata, which makes the
-+		 * upper four entries unusable.  We do not use the upper four
-+		 * entries for all the affected processor families for safe.
-+		 *
-+		 *  PTE encoding used in Linux:
-+		 *      PAT
-+		 *      |PCD
-+		 *      ||PWT  PAT
-+		 *      |||    slot
-+		 *      000    0    WB : _PAGE_CACHE_MODE_WB
-+		 *      001    1    WC : _PAGE_CACHE_MODE_WC
-+		 *      010    2    UC-: _PAGE_CACHE_MODE_UC_MINUS
-+		 *      011    3    UC : _PAGE_CACHE_MODE_UC
-+		 * PAT bit unused
-+		 *
-+		 * NOTE: When WT or WP is used, it is redirected to UC- per
-+		 * the default setup in __cachemode2pte_tbl[].
-+		 */
-+		pat = PAT(0, WB) | PAT(1, WC) | PAT(2, UC_MINUS) | PAT(3, UC) |
-+		      PAT(4, WB) | PAT(5, WC) | PAT(6, UC_MINUS) | PAT(7, UC);
-+	} else {
-+		/*
-+		 * PAT full support.  We put WT in slot 7 to improve
-+		 * robustness in the presence of errata that might cause
-+		 * the high PAT bit to be ignored.  This way a buggy slot 7
-+		 * access will hit slot 3, and slot 3 is UC, so at worst
-+		 * we lose performance without causing a correctness issue.
-+		 * Pentium 4 erratum N46 is an example of such an erratum,
-+		 * although we try not to use PAT at all on affected CPUs.
-+		 *
-+		 *  PTE encoding used in Linux:
-+		 *      PAT
-+		 *      |PCD
-+		 *      ||PWT  PAT
-+		 *      |||    slot
-+		 *      000    0    WB : _PAGE_CACHE_MODE_WB
-+		 *      001    1    WC : _PAGE_CACHE_MODE_WC
-+		 *      010    2    UC-: _PAGE_CACHE_MODE_UC_MINUS
-+		 *      011    3    UC : _PAGE_CACHE_MODE_UC
-+		 *      100    4    WB : Reserved
-+		 *      101    5    WC : Reserved
-+		 *      110    6    UC-: Reserved
-+		 *      111    7    WT : _PAGE_CACHE_MODE_WT
-+		 *
-+		 * The reserved slots are unused, but mapped to their
-+		 * corresponding types in the presence of PAT errata.
-+		 */
-+		pat = PAT(0, WB) | PAT(1, WC) | PAT(2, UC_MINUS) | PAT(3, UC) |
-+		      PAT(4, WB) | PAT(5, WC) | PAT(6, UC_MINUS) | PAT(7, WT);
-+	}
+ 	entry->dev       = dev;
+ 	entry->type      = dma_debug_page;
+-	entry->pfn	 = page_to_pfn(page);
++	entry->pfn	 = __pfn_t_to_pfn(pfn);
+ 	entry->offset	 = offset,
+ 	entry->dev_addr  = dma_addr;
+ 	entry->size      = size;
+@@ -1278,7 +1279,8 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
+ 	if (map_single)
+ 		entry->type = dma_debug_single;
  
- 	/* Boot CPU check */
- 	if (!boot_pat_state) {
+-	if (!PageHighMem(page)) {
++	page = __pfn_t_to_page(pfn);
++	if (page && !PageHighMem(page)) {
+ 		void *addr = page_address(page) + offset;
+ 
+ 		check_for_stack(dev, addr);
+@@ -1287,7 +1289,7 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
+ 
+ 	add_dma_entry(entry);
+ }
+-EXPORT_SYMBOL(debug_dma_map_page);
++EXPORT_SYMBOL(debug_dma_map_pfn);
+ 
+ void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ {
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
