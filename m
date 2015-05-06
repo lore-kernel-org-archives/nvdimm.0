@@ -1,60 +1,77 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4g=pWqWaU5eceaMYi+W4+JqS=dhwgsK5s+b1B-p4hv2PA@mail.gmail.com>
+In-Reply-To: <CA+55aFzON9617c2_Amep0ngLq91kfrPiSccdZakxir82iekUiA@mail.gmail.com>
 References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
 	<CA+55aFzON9617c2_Amep0ngLq91kfrPiSccdZakxir82iekUiA@mail.gmail.com>
-	<CAPcyv4g=pWqWaU5eceaMYi+W4+JqS=dhwgsK5s+b1B-p4hv2PA@mail.gmail.com>
-Date: Wed, 6 May 2015 17:19:48 -0700
-Message-ID: <CA+55aFza6YzfPqy9pi+up-q5FC9Z2WjLkGoX4F6ZCSUYE-2a+Q@mail.gmail.com>
+Date: Wed, 6 May 2015 16:47:14 -0700
+Message-ID: <CAPcyv4g=pWqWaU5eceaMYi+W4+JqS=dhwgsK5s+b1B-p4hv2PA@mail.gmail.com>
 Subject: Re: [PATCH v2 00/10] evacuate struct page from the block layer,
  introduce __pfn_t
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Dan Williams <dan.j.williams@intel.com>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Boaz Harrosh <boaz@plexistor.com>, Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, Neil Brown <neilb@suse.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Chris Mason <clm@fb.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Ingo Molnar <mingo@kernel.org>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Rik van Riel <riel@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Jens Axboe <axboe@kernel.dk>, Theodore Ts'o <tytso@mit.edu>, "Martin K. Petersen" <martin.petersen@oracle.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Tejun Heo <tj@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, May 6, 2015 at 4:47 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+On Wed, May 6, 2015 at 3:10 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Wed, May 6, 2015 at 1:04 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+>>
+>> The motivation for this change is persistent memory and the desire to
+>> use it not only via the pmem driver, but also as a memory target for I/O
+>> (DAX, O_DIRECT, DMA, RDMA, etc) in other parts of the kernel.
 >
-> Conceptually better, but certainly more difficult to audit if the fake
-> struct page is initialized in a subtle way that breaks when/if it
-> leaks to some unwitting context.
+> I detest this approach.
+>
 
-Maybe. It could go either way, though. In particular, with the
-"dynamically allocated struct page" approach, if somebody uses it past
-the supposed lifetime of the use, things like poisoning the temporary
-"struct page" could be fairly effective. You can't really poison the
-pfn - it's just a number, and if somebody uses it later than you think
-(and you have re-used that physical memory for something else), you'll
-never ever know.
+Hmm, yes, I can't argue against "put the onus on odd behavior where it
+belongs."...
 
-I'd *assume* that most users of the dynamic "struct page" allocation
-have very clear lifetime rules. Those things would presumably normally
-get looked-up by some extended version of "get_user_pages()", and
-there's a clear use of the result, with no longer lifetime. Also, you
-do need to have some higher-level locking when you  do this, to make
-sure that the persistent pages don't magically get re-assigned. We're
-presumably talking about having a filesystem in that persistent
-memory, so we cannot be doing IO to the pages (from some other source
-- whether RDMA or some special zero-copy model) while the underlying
-filesystem is reassigning the storage because somebody deleted the
-file.
+> I'd much rather go exactly the other way around, and do the dynamic
+> "struct page" instead.
+>
+> Add a flag to "struct page"
 
-IOW, there had better be other external rules about when - and how
-long - you can use a particular persistent page. No? So the whole
-"when/how to allocate the temporary 'struct page'" is just another
-detail in that whole thing.
+Ok, given I had already precluded 32-bit systems in this __pfn_t
+approach we should have flag space for this on 64-bit.
 
-And yes, some uses may not ever actually see that. If the whole of
-persistent memory is just assigned to a database or something, and the
-DB just wants to do a "flush this range of persistent memory to
-long-term disk storage", then there may not be much of a "lifetime"
-issue for the persistent memory. But even then you're going to have IO
-completion callbacks etc to let the DB know that it has hit the disk,
-so..
+> to mark it as a fake entry and teach
+> "page_to_pfn()" to look up the actual pfn some way (that union tha
+> contains "index" looks like a good target to also contain 'pfn', for
+> example).
+>
+> Especially if this is mainly for persistent storage, we'll never have
+> issues with worrying about writing it back under memory pressure, so
+> allocating a "struct page" for these things shouldn't be a problem.
+> There's likely only a few paths that actually generate IO for those
+> things.
+>
+> In other words, I'd really like our basic infrastructure to be for the
+> *normal* case, and the "struct page" is about so much more than just
+> "what's the target for IO". For normal IO, "struct page" is also what
+> serializes the IO so that you have a consistent view of the end
+> result, and there's obviously the reference count there too. So I
+> really *really* think that "struct page" is the better entity for
+> describing the actual IO, because it's the common and the generic
+> thing, while a "pfn" is not actually *enough* for IO in general, and
+> you now end up having to look up the "struct page" for the locking and
+> refcounting etc.
+>
+> If you go the other way, and instead generate a "struct page" from the
+> pfn for the few cases that need it, you put the onus on odd behavior
+> where it belongs.
+>
+> Yes, it might not be any simpler in the end, but I think it would be
+> conceptually much better.
 
-What is the primary thing that is driving this need? Do we have a very
-concrete example?
-
-                     Linus
+Conceptually better, but certainly more difficult to audit if the fake
+struct page is initialized in a subtle way that breaks when/if it
+leaks to some unwitting context.  The one benefit I may need to
+concede is a mechanism to opt-in to handle these fake pages to the few
+paths that know what they are doing.  That was easy with __pfn_t, but
+a struct page can go silently almost anywhere.  Certainly nothing is
+prepared a for a given struct page pointer to change the pfn it points
+to on the fly, which I think is what we would end up doing for
+something like a raid cache.  Keep a pool of struct pages around and
+point them at persistent memory pfns while I/O is in flight.
