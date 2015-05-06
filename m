@@ -1,188 +1,194 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 3/6] x86, pmem: add PMEM API for persistent memory
-Date: Thu, 28 May 2015 16:35:50 -0600
-Message-Id: <1432852553-24865-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Subject: [PATCH v2 10/10] block: base support for pfn i/o
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 06 May 2015 16:05:49 -0400
+Message-ID: <20150506200549.40425.33696.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, mingo@kernel.org, linux-fsdevel@vger.kernel.org, mgorman@suse.de, Tejun Heo <tj@kernel.org>, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new PMEM API to x86, and allow for architectures that do not
-implement this API.  Architectures that implement the PMEM API should
-define ARCH_HAS_PMEM_API in their kernel configuration and must provide
-implementations for persistent_copy(), persistent_flush() and
-persistent_sync().
+Allow block device drivers to opt-in to receiving bio(s) where the
+bio_vec(s) point to memory that is not backed by struct page entries.
+When a driver opts in it asserts that it will use the __pfn_t versions of the
+dma_map/kmap/scatterlist apis in its bio submission path.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: x86@kernel.org
-Cc: linux-nvdimm@lists.01.org
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- MAINTAINERS                       |  1 +
- arch/x86/Kconfig                  |  3 ++
- arch/x86/include/asm/cacheflush.h | 23 ++++++++++++
- include/linux/pmem.h              | 79 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 106 insertions(+)
- create mode 100644 include/linux/pmem.h
+ block/bio.c               |   48 ++++++++++++++++++++++++++++++++++++++-------
+ block/blk-core.c          |    9 ++++++++
+ include/linux/blk_types.h |    1 +
+ include/linux/blkdev.h    |    2 ++
+ 4 files changed, 52 insertions(+), 8 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0448fec8e44a..ca1f3d99618d 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5944,6 +5944,7 @@ L:	linux-nvdimm@lists.01.org
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/block/nd/pmem.c
-+F:	include/linux/pmem.h
+diff --git a/block/bio.c b/block/bio.c
+index 7100fd6d5898..9c506dd6a093 100644
+--- a/block/bio.c
++++ b/block/bio.c
+@@ -567,6 +567,7 @@ void __bio_clone_fast(struct bio *bio, struct bio *bio_src)
+ 	bio->bi_rw = bio_src->bi_rw;
+ 	bio->bi_iter = bio_src->bi_iter;
+ 	bio->bi_io_vec = bio_src->bi_io_vec;
++	bio->bi_flags |= bio_src->bi_flags & (1 << BIO_PFN);
+ }
+ EXPORT_SYMBOL(__bio_clone_fast);
  
- LINUX FOR IBM pSERIES (RS/6000)
- M:	Paul Mackerras <paulus@au.ibm.com>
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 23c587938804..eb8f12e715af 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -215,6 +215,9 @@ config ARCH_HAS_CPU_RELAX
- config ARCH_HAS_CACHE_LINE_SIZE
- 	def_bool y
+@@ -658,6 +659,8 @@ struct bio *bio_clone_bioset(struct bio *bio_src, gfp_t gfp_mask,
+ 		goto integrity_clone;
+ 	}
  
-+config ARCH_HAS_PMEM_API
-+	def_bool y
++	bio->bi_flags |= bio_src->bi_flags & (1 << BIO_PFN);
 +
- config HAVE_SETUP_PER_CPU_AREA
- 	def_bool y
+ 	bio_for_each_segment(bv, bio_src, iter)
+ 		bio->bi_io_vec[bio->bi_vcnt++] = bv;
  
-diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
-index 47c8e32f621a..ffd5ccdc86f0 100644
---- a/arch/x86/include/asm/cacheflush.h
-+++ b/arch/x86/include/asm/cacheflush.h
-@@ -4,6 +4,7 @@
- /* Caches aren't brain-dead on the intel. */
- #include <asm-generic/cacheflush.h>
- #include <asm/special_insns.h>
-+#include <asm/uaccess.h>
+@@ -699,9 +702,9 @@ int bio_get_nr_vecs(struct block_device *bdev)
+ }
+ EXPORT_SYMBOL(bio_get_nr_vecs);
+ 
+-static int __bio_add_page(struct request_queue *q, struct bio *bio, struct page
+-			  *page, unsigned int len, unsigned int offset,
+-			  unsigned int max_sectors)
++static int __bio_add_pfn(struct request_queue *q, struct bio *bio,
++		__pfn_t pfn, unsigned int len, unsigned int offset,
++		unsigned int max_sectors)
+ {
+ 	int retried_segments = 0;
+ 	struct bio_vec *bvec;
+@@ -723,7 +726,7 @@ static int __bio_add_page(struct request_queue *q, struct bio *bio, struct page
+ 	if (bio->bi_vcnt > 0) {
+ 		struct bio_vec *prev = &bio->bi_io_vec[bio->bi_vcnt - 1];
+ 
+-		if (page == bvec_page(prev) &&
++		if (pfn.pfn == prev->bv_pfn.pfn &&
+ 		    offset == prev->bv_offset + prev->bv_len) {
+ 			unsigned int prev_bv_len = prev->bv_len;
+ 			prev->bv_len += len;
+@@ -768,7 +771,7 @@ static int __bio_add_page(struct request_queue *q, struct bio *bio, struct page
+ 	 * cannot add the page
+ 	 */
+ 	bvec = &bio->bi_io_vec[bio->bi_vcnt];
+-	bvec_set_page(bvec, page);
++	bvec->bv_pfn = pfn;
+ 	bvec->bv_len = len;
+ 	bvec->bv_offset = offset;
+ 	bio->bi_vcnt++;
+@@ -818,7 +821,7 @@ static int __bio_add_page(struct request_queue *q, struct bio *bio, struct page
+ 	return len;
+ 
+  failed:
+-	bvec_set_page(bvec, NULL);
++	bvec->bv_pfn.pfn = 0;
+ 	bvec->bv_len = 0;
+ 	bvec->bv_offset = 0;
+ 	bio->bi_vcnt--;
+@@ -845,7 +848,7 @@ static int __bio_add_page(struct request_queue *q, struct bio *bio, struct page
+ int bio_add_pc_page(struct request_queue *q, struct bio *bio, struct page *page,
+ 		    unsigned int len, unsigned int offset)
+ {
+-	return __bio_add_page(q, bio, page, len, offset,
++	return __bio_add_pfn(q, bio, page_to_pfn_t(page), len, offset,
+ 			      queue_max_hw_sectors(q));
+ }
+ EXPORT_SYMBOL(bio_add_pc_page);
+@@ -872,10 +875,39 @@ int bio_add_page(struct bio *bio, struct page *page, unsigned int len,
+ 	if ((max_sectors < (len >> 9)) && !bio->bi_iter.bi_size)
+ 		max_sectors = len >> 9;
+ 
+-	return __bio_add_page(q, bio, page, len, offset, max_sectors);
++	return __bio_add_pfn(q, bio, page_to_pfn_t(page), len, offset,
++			max_sectors);
+ }
+ EXPORT_SYMBOL(bio_add_page);
+ 
++/**
++ *	bio_add_pfn -	attempt to add pfn to bio
++ *	@bio: destination bio
++ *	@pfn: pfn to add
++ *	@len: vec entry length
++ *	@offset: vec entry offset
++ *
++ *	Identical to bio_add_page() except this variant flags the bio as
++ *	not have struct page backing.  A given request_queue must assert
++ *	that it is prepared to handle this constraint before bio(s)
++ *	flagged in the manner can be passed.
++ */
++int bio_add_pfn(struct bio *bio, __pfn_t pfn, unsigned int len,
++		unsigned int offset)
++{
++	struct request_queue *q = bdev_get_queue(bio->bi_bdev);
++	unsigned int max_sectors;
++
++	if (!blk_queue_pfn(q))
++		return 0;
++	set_bit(BIO_PFN, &bio->bi_flags);
++	max_sectors = blk_max_size_offset(q, bio->bi_iter.bi_sector);
++	if ((max_sectors < (len >> 9)) && !bio->bi_iter.bi_size)
++		max_sectors = len >> 9;
++
++	return __bio_add_pfn(q, bio, pfn, len, offset, max_sectors);
++}
++
+ struct submit_bio_ret {
+ 	struct completion event;
+ 	int error;
+diff --git a/block/blk-core.c b/block/blk-core.c
+index 94d2c6ccf801..4eefff363986 100644
+--- a/block/blk-core.c
++++ b/block/blk-core.c
+@@ -1856,6 +1856,15 @@ generic_make_request_checks(struct bio *bio)
+ 		goto end_io;
+ 	}
+ 
++	if (bio_flagged(bio, BIO_PFN)) {
++		if (IS_ENABLED(CONFIG_PMEM_IO) && blk_queue_pfn(q))
++			/* pass */;
++		else {
++			err = -EOPNOTSUPP;
++			goto end_io;
++		}
++	}
++
+ 	/*
+ 	 * Various block parts want %current->io_context and lazy ioc
+ 	 * allocation ends up trading a lot of pain for a small amount of
+diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
+index 2a15c4943db6..5716c7edc4c4 100644
+--- a/include/linux/blk_types.h
++++ b/include/linux/blk_types.h
+@@ -139,6 +139,7 @@ struct bio {
+ #define BIO_NULL_MAPPED 8	/* contains invalid user pages */
+ #define BIO_QUIET	9	/* Make BIO Quiet */
+ #define BIO_SNAP_STABLE	10	/* bio data must be snapshotted during write */
++#define BIO_PFN		11	/* bio_vec references memory without struct page */
  
  /*
-  * The set_memory_* API can be used to change various attributes of a virtual
-@@ -84,6 +85,28 @@ int set_pages_rw(struct page *page, int numpages);
+  * Flags starting here get preserved by bio_reset() - this includes
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 2692d3936f5f..e6adcfeb72db 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -513,6 +513,7 @@ struct request_queue {
+ #define QUEUE_FLAG_INIT_DONE   20	/* queue is initialized */
+ #define QUEUE_FLAG_NO_SG_MERGE 21	/* don't attempt to merge SG segments*/
+ #define QUEUE_FLAG_SG_GAPS     22	/* queue doesn't support SG gaps */
++#define QUEUE_FLAG_PFN         23	/* queue supports pfn-only bio_vec(s) */
  
- void clflush_cache_range(void *addr, unsigned int size);
- 
-+static inline void arch_persistent_copy(void *dst, const void *src, size_t n)
-+{
-+	/*
-+	 * We are copying between two kernel buffers, so it should be
-+	 * impossible for us to hit this BUG_ON() because we should never need
-+	 * to take a page fault.
-+	 */
-+	BUG_ON(__copy_from_user_inatomic_nocache(dst,
-+				(__user const void *)src, n));
-+}
-+
-+static inline void arch_persistent_flush(void *vaddr, size_t size)
-+{
-+	clflush_cache_range(vaddr, size);
-+}
-+
-+static inline void arch_persistent_sync(void)
-+{
-+	wmb();
-+	pcommit_sfence();
-+}
-+
- #ifdef CONFIG_DEBUG_RODATA
- void mark_rodata_ro(void);
- extern const int rodata_test_data;
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-new file mode 100644
-index 000000000000..88ade7376632
---- /dev/null
-+++ b/include/linux/pmem.h
-@@ -0,0 +1,79 @@
-+/*
-+ * Copyright(c) 2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#ifndef __PMEM_H__
-+#define __PMEM_H__
-+
-+#include <asm/cacheflush.h>
-+
-+/*
-+ * Architectures that define ARCH_HAS_PMEM_API must provide implementations
-+ * for persistent_copy(), persistent_flush() and persistent_sync().
-+ */
-+
-+#ifdef CONFIG_ARCH_HAS_PMEM_API
-+/**
-+ * persistent_copy - copy data to persistent memory
-+ * @dst: destination buffer for the copy
-+ * @src: source buffer for the copy
-+ * @n: length of the copy in bytes
-+ *
-+ * Perform a memory copy that results in the destination of the copy being
-+ * evicted from the processor cache hierarchy ("accepted to memory").  This
-+ * can typically be accomplished with non-temporal stores or by regular stores
-+ * followed by cache flush commands via persistent_flush().
-+ */
-+static inline void persistent_copy(void *dst, const void *src, size_t n)
-+{
-+	arch_persistent_copy(dst, src, n);
-+}
-+
-+/**
-+ * persistent_flush - flush a memory range from the processor cache
-+ * @vaddr: virtual address to begin flushing
-+ * @size: number of bytes to flush
-+ *
-+ * This call needs to include fencing so that the flushing will be ordered
-+ * with respect to both reads and writes.
-+ */
-+static inline void persistent_flush(void *vaddr, size_t size)
-+{
-+	arch_persistent_flush(vaddr, size);
-+}
-+
-+/**
-+ * persistent_sync - synchronize writes to persistent memory
-+ *
-+ * To be used after a series of copies and/or flushes, this should perform any
-+ * necessary fencing to order writes/flushes and then ensure that writes that
-+ * have been "accepted to memory", i.e. previously flushed from the cache
-+ * hierarchy, are actually written to the appropriate DIMMs.  This typically
-+ * involves making sure they are flushed from any platform buffers not covered
-+ * by the cache flushes performed by persistent_flush().
-+ */
-+static inline void persistent_sync(void)
-+{
-+	arch_persistent_sync();
-+}
-+
-+#else /* ! CONFIG_ARCH_HAS_PMEM_API */
-+
-+static inline void persistent_copy(void *dst, const void *src, size_t n)
-+{
-+	memcpy(dst, src, n);
-+}
-+static inline void persistent_flush(void *vaddr, size_t size) {}
-+static inline void persistent_sync(void) {}
-+
-+#endif /* CONFIG_ARCH_HAS_PMEM_API */
-+
-+#endif /* __PMEM_H__ */
--- 
-1.9.3
+ #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
+ 				 (1 << QUEUE_FLAG_STACKABLE)	|	\
+@@ -594,6 +595,7 @@ static inline void queue_flag_clear(unsigned int flag, struct request_queue *q)
+ #define blk_queue_noxmerges(q)	\
+ 	test_bit(QUEUE_FLAG_NOXMERGES, &(q)->queue_flags)
+ #define blk_queue_nonrot(q)	test_bit(QUEUE_FLAG_NONROT, &(q)->queue_flags)
++#define blk_queue_pfn(q)	test_bit(QUEUE_FLAG_PFN, &(q)->queue_flags)
+ #define blk_queue_io_stat(q)	test_bit(QUEUE_FLAG_IO_STAT, &(q)->queue_flags)
+ #define blk_queue_add_random(q)	test_bit(QUEUE_FLAG_ADD_RANDOM, &(q)->queue_flags)
+ #define blk_queue_stackable(q)	\
 
