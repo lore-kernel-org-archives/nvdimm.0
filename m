@@ -1,84 +1,59 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Date: Thu, 7 May 2015 19:36:41 +0200
-From: Ingo Molnar <mingo@kernel.org>
+Date: Thu, 7 May 2015 13:30:58 -0400
+From: Jerome Glisse <j.glisse@gmail.com>
 Subject: Re: [PATCH v2 00/10] evacuate struct page from the block layer,
  introduce __pfn_t
-Message-ID: <20150507173641.GA21781@gmail.com>
+Message-ID: <20150507173057.GA5966@gmail.com>
 References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
  <CA+55aFzON9617c2_Amep0ngLq91kfrPiSccdZakxir82iekUiA@mail.gmail.com>
  <CAPcyv4g=pWqWaU5eceaMYi+W4+JqS=dhwgsK5s+b1B-p4hv2PA@mail.gmail.com>
  <CA+55aFza6YzfPqy9pi+up-q5FC9Z2WjLkGoX4F6ZCSUYE-2a+Q@mail.gmail.com>
- <CAPcyv4ic-NY4KEtVknDQEdbF243aqdWdei2kTnn_tcw=7fUYyQ@mail.gmail.com>
- <CA+55aFwL321_xxcXwj5+G7q=rc8HmqMBpot5dK_AW2=-7xOn0g@mail.gmail.com>
- <CAPcyv4iY+2SKqSxNijhzgwBMDAbcd01kzWrVnW06yqtOinoSQg@mail.gmail.com>
- <CA+55aFyK==+bMHMdfaP4EHjUNseoTWu1-pp2M2WyLVN73ig+_g@mail.gmail.com>
- <CAPcyv4i5957h0PW5JL0rv4iurL=c7ppEFj3cDrrrMc4MQmJQGQ@mail.gmail.com>
+ <20150507161807.GA1671@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAPcyv4i5957h0PW5JL0rv4iurL=c7ppEFj3cDrrrMc4MQmJQGQ@mail.gmail.com>
+In-Reply-To: <20150507161807.GA1671@lst.de>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Boaz Harrosh <boaz@plexistor.com>, Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, Neil Brown <neilb@suse.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Chris Mason <clm@fb.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Rik van Riel <riel@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Jens Axboe <axboe@kernel.dk>, Theodore Ts'o <tytso@mit.edu>, "Martin K. Petersen" <martin.petersen@oracle.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Tejun Heo <tj@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Boaz Harrosh <boaz@plexistor.com>, Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, Neil Brown <neilb@suse.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Chris Mason <clm@fb.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Alasdair Kergon <agk@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Ingo Molnar <mingo@kernel.org>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Rik van Riel <riel@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Jens Axboe <axboe@kernel.dk>, Theodore Ts'o <tytso@mit.edu>, "Martin K. Petersen" <martin.petersen@oracle.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Tejun Heo <tj@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-* Dan Williams <dan.j.williams@intel.com> wrote:
-
-> > Anyway, I did want to say that while I may not be convinced about 
-> > the approach, I think the patches themselves don't look horrible. 
-> > I actually like your "__pfn_t". So while I (very obviously) have 
-> > some doubts about this approach, it may be that the most 
-> > convincing argument is just in the code.
+On Thu, May 07, 2015 at 06:18:07PM +0200, Christoph Hellwig wrote:
+> On Wed, May 06, 2015 at 05:19:48PM -0700, Linus Torvalds wrote:
+> > What is the primary thing that is driving this need? Do we have a very
+> > concrete example?
 > 
-> Ok, I'll keep thinking about this and come back when we have a 
-> better story about passing mmap'd persistent memory around in 
-> userspace.
+> FYI, I plan to to implement RAID acceleration using nvdimms, and I plan to
+> ue pages for that.  The code just merge for 4.1 can easily support page
+> backing, and I plan to use that for now.  This still leaves support
+> for the gigantic intel nvdimms discovered over EFI out, but given that
+> I don't have access to them, and I dont know of any publically available
+> there's little I can do for now.  But adding on demand allocate struct
+> pages for the seems like the easiest way forward.  Boaz already has
+> code to allocate pages for them, although not on demand but at boot / plug in
+> time.
 
-So is there anything fundamentally wrong about creating struct page 
-backing at mmap() time (and making sure aliased mmaps share struct 
-page arrays)?
+I think here other folks might be interested, i am ccing Paul. But for GPU
+we are facing similar issue of trying to present the GPU memory to the kernel
+in a coherent way (coherent from the design and linux kernel concept POV).
 
-Because if that is done, then the DMA agent won't even know about the 
-memory being persistent RAM. It's just a regular struct page, that 
-happens to point to persistent RAM. Same goes for all the high level 
-VM APIs, futexes, etc. Everything will Just Work.
+For this dynamicaly allocated struct page might effectively be a solution that
+could be share btw persistent memory and GPU folks. We can even enforce thing
+like VMEMMAP and have special region carveout where we can dynamicly map/unmap
+backing page for range of device pfn. This would also allow to catch people
+trying to access such page, we could add a set of new helper like :
+get_page_dev()/put_page_dev() ... and only the _dev version would works on
+this new kind of memory, regular get_page()/put_page() would throw error.
+This should allow to make sure only legitimate users are referencing such
+page.
 
-It will also be relatively fast: mmap() is a relative slowpath, 
-comparatively.
+Issue might be that we can run out of kernel address space with 48bits but if
+such monstruous computer ever see the light of day they might consider using
+CPU with more bits.
 
-As far as RAID is concerned: that's a relatively easy situation, as 
-there's only a single user of the devices, the RAID context that 
-manages all component devices exclusively. Device to device DMA can 
-use the block layer directly, i.e. most of the patches you've got here 
-in this series, except:
+Another issue is that we might care for the 32bits platform too, but that's
+solvable at a small cost.
 
-74287   C May 06 Dan Williams    ( 232) ├─>[PATCH v2 09/10] dax: convert to __pfn_t
-
-I think DAX mmap()s need struct page backing.
-
-I think there's a simple rule: if a page is visible to user-space via 
-the MMU then it needs struct page backing. If it's "hidden", like 
-behind a RAID abstraction, it probably doesn't.
-
-With the remaining patches a high level RAID driver ought to be able 
-to send pfn-to-sector and sector-to-pfn requests to other block 
-drivers, without any unnecessary struct page allocation overhead, 
-right?
-
-As long as the pfn concept remains a clever way to reuse our 
-ram<->sector interfaces to implement sector<->sector IO, in the cases 
-where the IO has no serialization or MMU concerns, not using struct 
-page and using pfn_t looks natural.
-
-The moment it starts reaching user space APIs, like in the DAX case, 
-and especially if it becomes user-MMU visible, it's a mistake to not 
-have struct page backing, I think.
-
-(In that sense the current DAX mmap() code is already a partial 
-mistake.)
-
-Thanks,
-
-	Ingo
+Cheers,
+J�r�me
