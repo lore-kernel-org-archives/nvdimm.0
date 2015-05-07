@@ -1,73 +1,54 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Date: Thu, 7 May 2015 21:48:32 +0200
-From: Ingo Molnar <mingo@kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <20150507184037.GA22952@gmail.com>
+References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<CA+55aFzON9617c2_Amep0ngLq91kfrPiSccdZakxir82iekUiA@mail.gmail.com>
+	<CAPcyv4g=pWqWaU5eceaMYi+W4+JqS=dhwgsK5s+b1B-p4hv2PA@mail.gmail.com>
+	<CA+55aFza6YzfPqy9pi+up-q5FC9Z2WjLkGoX4F6ZCSUYE-2a+Q@mail.gmail.com>
+	<20150507161807.GA1671@lst.de>
+	<CAPcyv4hoXORxOx5Gpa=z9MYe=XeW4qzy9bhqbT=NSYkMiAZWbA@mail.gmail.com>
+	<20150507184037.GA22952@gmail.com>
+Date: Thu, 7 May 2015 12:44:17 -0700
+Message-ID: <CAPcyv4ghDSB=s7HgCzT+j-x3YiLu5QLxWziMybwVCBbWijBGdg@mail.gmail.com>
 Subject: Re: [PATCH v2 00/10] evacuate struct page from the block layer,
  introduce __pfn_t
-Message-ID: <20150507194832.GB23511@gmail.com>
-References: <CAPcyv4ic-NY4KEtVknDQEdbF243aqdWdei2kTnn_tcw=7fUYyQ@mail.gmail.com>
- <CA+55aFwL321_xxcXwj5+G7q=rc8HmqMBpot5dK_AW2=-7xOn0g@mail.gmail.com>
- <CAPcyv4iY+2SKqSxNijhzgwBMDAbcd01kzWrVnW06yqtOinoSQg@mail.gmail.com>
- <CA+55aFyK==+bMHMdfaP4EHjUNseoTWu1-pp2M2WyLVN73ig+_g@mail.gmail.com>
- <CAPcyv4i5957h0PW5JL0rv4iurL=c7ppEFj3cDrrrMc4MQmJQGQ@mail.gmail.com>
- <20150507173641.GA21781@gmail.com>
- <CAPcyv4hHwW4U8x1_VLGj2Q4a3HxWgK4F4n9qXg8009_n7sxkmg@mail.gmail.com>
- <554BA748.9030804@linux.intel.com>
- <20150507191107.GB22952@gmail.com>
- <20150507193635.GC5966@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150507193635.GC5966@gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Jerome Glisse <j.glisse@gmail.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Boaz Harrosh <boaz@plexistor.com>, Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, Neil Brown <neilb@suse.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Chris Mason <clm@fb.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Rik van Riel <riel@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Jens Axboe <axboe@kernel.dk>, Theodore Ts'o <tytso@mit.edu>, "Martin K. Petersen" <martin.petersen@oracle.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Tejun Heo <tj@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, paulmck@linux.vnet.ibm.com
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Boaz Harrosh <boaz@plexistor.com>, Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, Neil Brown <neilb@suse.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Chris Mason <clm@fb.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Alasdair Kergon <agk@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Rik van Riel <riel@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Jens Axboe <axboe@kernel.dk>, Theodore Ts'o <tytso@mit.edu>, "Martin K. Petersen" <martin.petersen@oracle.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Tejun Heo <tj@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Thu, May 7, 2015 at 11:40 AM, Ingo Molnar <mingo@kernel.org> wrote:
+>
+> * Dan Williams <dan.j.williams@intel.com> wrote:
+>
+>> On Thu, May 7, 2015 at 9:18 AM, Christoph Hellwig <hch@lst.de> wrote:
+>> > On Wed, May 06, 2015 at 05:19:48PM -0700, Linus Torvalds wrote:
+>> >> What is the primary thing that is driving this need? Do we have a very
+>> >> concrete example?
+>> >
+>> > FYI, I plan to to implement RAID acceleration using nvdimms, and I
+>> > plan to ue pages for that.  The code just merge for 4.1 can easily
+>> > support page backing, and I plan to use that for now.  This still
+>> > leaves support for the gigantic intel nvdimms discovered over EFI
+>> > out, but given that I don't have access to them, and I dont know
+>> > of any publically available there's little I can do for now.  But
+>> > adding on demand allocate struct pages for the seems like the
+>> > easiest way forward.  Boaz already has code to allocate pages for
+>> > them, although not on demand but at boot / plug in time.
+>>
+>> Hmmm, the capacities of persistent memory that would be assigned for
+>> a raid accelerator would be limited by diminishing returns.  I.e.
+>> there seems to be no point to assign more than 8GB or so to the
+>> cache? [...]
+>
+> Why would that be the case?
+>
+> If it's not a temporary cache but a persistent cache that hosts all
+> the data even after writeback completes then going to huge sizes will
+> bring similar benefits to using a large, fast SSD disk on your
+> desktop... The larger, the better. And it also persists across
+> reboots.
 
-* Jerome Glisse <j.glisse@gmail.com> wrote:
-
-> > So I think the main value of struct page is if everyone on the 
-> > system sees the same struct page for the same pfn - not just the 
-> > temporary IO instance.
-> > 
-> > The idea of having very temporary struct page arrays misses the 
-> > point I think: if struct page is used as essentially an IO sglist 
-> > then most of the synchronization properties are lost: then we 
-> > might as well use the real deal in that case and skip the dynamic 
-> > allocation and use pfns directly and avoid the dynamic allocation 
-> > overhead.
-> > 
-> > Stable, global page-struct descriptors are a given for real RAM, 
-> > where we allocate a struct page for every page in nice, large, 
-> > mostly linear arrays.
-> > 
-> > We'd really need that for pmem too, to get the full power of 
-> > struct page: and that means allocating them in nice, large, 
-> > predictable places - such as on the device itself ...
-> 
-> Is handling kernel pagefault on the vmemmap completely out of the 
-> picture ? So we would carveout a chunck of kernel address space for 
-> those pfn and use it for vmemmap and handle pagefault on it.
-
-That's pretty clever. The page fault doesn't even have to do remote 
-TLB shootdown, because it only establishes mappings - so it's pretty 
-atomic, a bit like the minor vmalloc() area faults we are doing.
-
-Some sort of LRA (least recently allocated) scheme could unmap the 
-area in chunks if it's beyond a certain size, to keep a limit on size. 
-Done from the same context and would use remote TLB shootdown.
-
-The only limitation I can see is that such faults would have to be 
-able to sleep, to do the allocation. So pfn_to_page() could not be 
-used in arbitrary contexts.
-
-> Again here i think that GPU folks would like a solution where they 
-> can have a page struct but it would not be PMEM just device memory. 
-> So if we can come up with something generic enough to server both 
-> purpose that would be better in my view.
-
-Yes.
-
-Thanks,
-
-	Ingo
+True, that's more "dm-cache" than "RAID accelerator", but point taken.
