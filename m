@@ -1,61 +1,44 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v11 5/12] x86, asm: Change is_new_memtype_allowed() for WT
-Date: Fri, 29 May 2015 16:59:03 -0600
-Message-Id: <1432940350-1802-6-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1432940350-1802-1-git-send-email-toshi.kani@hp.com>
-References: <1432940350-1802-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <20150508005536.312c3eff@canb.auug.org.au>
+References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150506200459.40425.80269.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150508005536.312c3eff@canb.auug.org.au>
+Date: Thu, 7 May 2015 17:21:39 -0700
+Message-ID: <CAPcyv4iO=HGPBewkHiyDTZXJ+PHd86afhhaCw2jr91nyDQM18Q@mail.gmail.com>
+Subject: Re: [PATCH v2 01/10] arch: introduce __pfn_t for persistent memory i/o
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jens Axboe <axboe@kernel.dk>, Rik van Riel <riel@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Ingo Molnar <mingo@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Mel Gorman <mgorman@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Toshi Kani <toshi.kani@hp.com>
+On Thu, May 7, 2015 at 7:55 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> Hi Dan,
+>
+> On Wed, 06 May 2015 16:04:59 -0400 Dan Williams <dan.j.williams@intel.com> wrote:
+>>
+>> diff --git a/include/asm-generic/pfn.h b/include/asm-generic/pfn.h
+>> new file mode 100644
+>> index 000000000000..91171e0285d9
+>> --- /dev/null
+>> +++ b/include/asm-generic/pfn.h
+>> @@ -0,0 +1,51 @@
+>> +#ifndef __ASM_PFN_H
+>> +#define __ASM_PFN_H
+>> +
+>> +#ifndef __pfn_to_phys
+>> +#define __pfn_to_phys(pfn)      ((dma_addr_t)(pfn) << PAGE_SHIFT)
+>
+> Why dma_addr_t and not phys_addr_t?  i.e. it could use a comment if it
+> is correct.
 
-__ioremap_caller() calls reserve_memtype() to set new_pcm
-(existing map type if any), and then calls
-is_new_memtype_allowed() to verify if converting to new_pcm
-is allowed when pcm (request type) is different from new_pcm.
+Hmm, this was derived from:
 
-When WT is requested, the caller expects that writes are
-ordered and uncached.  Therefore, this patch changes
-is_new_memtype_allowed() to disallow the following cases.
+#define page_to_phys(page)    ((dma_addr_t)page_to_pfn(page) << PAGE_SHIFT)
 
- - If the request is WT, mapping type cannot be WB
- - If the request is WT, mapping type cannot be WC
+in arch/x86/include/asm/io.h
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
----
- arch/x86/include/asm/pgtable.h |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
-index fe57e7a..2562e30 100644
---- a/arch/x86/include/asm/pgtable.h
-+++ b/arch/x86/include/asm/pgtable.h
-@@ -398,11 +398,17 @@ static inline int is_new_memtype_allowed(u64 paddr, unsigned long size,
- 	 * requested memtype:
- 	 * - request is uncached, return cannot be write-back
- 	 * - request is write-combine, return cannot be write-back
-+	 * - request is write-through, return cannot be write-back
-+	 * - request is write-through, return cannot be write-combine
- 	 */
- 	if ((pcm == _PAGE_CACHE_MODE_UC_MINUS &&
- 	     new_pcm == _PAGE_CACHE_MODE_WB) ||
- 	    (pcm == _PAGE_CACHE_MODE_WC &&
--	     new_pcm == _PAGE_CACHE_MODE_WB)) {
-+	     new_pcm == _PAGE_CACHE_MODE_WB) ||
-+	    (pcm == _PAGE_CACHE_MODE_WT &&
-+	     new_pcm == _PAGE_CACHE_MODE_WB) ||
-+	    (pcm == _PAGE_CACHE_MODE_WT &&
-+	     new_pcm == _PAGE_CACHE_MODE_WC)) {
- 		return 0;
- 	}
- 
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+The primary users of __pfn_to_phys() is dma_map_page().  I'll add a
+comment to that effect.
