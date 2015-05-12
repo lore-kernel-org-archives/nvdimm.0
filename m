@@ -1,16 +1,16 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v2 07/10] x86: support dma_map_pfn()
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v3 07/11] x86: support dma_map_pfn()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 06 May 2015 16:05:33 -0400
-Message-ID: <20150506200533.40425.86133.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 12 May 2015 00:30:07 -0400
+Message-ID: <20150512043006.11521.34823.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, mingo@kernel.org, mgorman@suse.de, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
+Cc: linux-arch@vger.kernel.org, axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, david@fromorbit.com, hch@lst.de, j.glisse@gmail.com, mgorman@suse.de, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Fix up x86 dma_map_ops to allow pfn-only mappings.
@@ -37,7 +37,7 @@ Signed-off-by: Dan Williams <dan.j.williams@intel.com>
  13 files changed, 125 insertions(+), 37 deletions(-)
 
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 226d5696e1d1..1fae5e842423 100644
+index 226d5696e1d1..c626ffa5c01e 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -796,6 +796,7 @@ config CALGARY_IOMMU
@@ -53,7 +53,7 @@ index 226d5696e1d1..1fae5e842423 100644
  	  Say Y if unsure.
  
 +config X86_PMEM_DMA
-+	def_bool PMEM_IO
++	def_bool DEV_PFN
 +	select HAVE_DMA_PFN
 +
  config HIGHPTE
