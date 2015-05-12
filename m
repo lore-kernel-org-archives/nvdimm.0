@@ -1,231 +1,329 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: Re: [PATCH v3 06/11] scatterlist: support "page-less" (__pfn_t
- only) entries
-Date: Wed, 13 May 2015 18:35:55 +0000
-Message-ID: <1431542149.31415.10.camel@intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v3 06/11] scatterlist: support "page-less" (__pfn_t only)
+ entries
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 12 May 2015 00:30:01 -0400
+Message-ID: <20150512043001.11521.3526.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150512043001.11521.3526.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150512043001.11521.3526.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <1FFD39A6595B33489C3782FA877A827C@intel.com>
-Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: "hch@lst.de" <hch@lst.de>, "axboe@fb.com" <axboe@fb.com>
-Cc: "mingo@kernel.org" <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "j.glisse@gmail.com" <j.glisse@gmail.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "riel@redhat.com" <riel@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "willy@linux.intel.com" <willy@linux.intel.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "mgorman@suse.de" <mgorman@suse.de>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "david@fromorbit.com" <david@fromorbit.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, david@fromorbit.com, hch@lst.de, j.glisse@gmail.com, mgorman@suse.de, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, akpm@linux-foundation.org, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-WyBhZGRpbmcgd2lsbHkgKHllcywgbmVlZCB0byBmaXggbXkgc2NyaXB0cyksIGFuZCBkbWFlbmdp
-bmUgZm9sa3NdDQoNCkplbnMsIENocmlzdG9waCwNCg0KSSd2ZSByZWJhc2VkIHRoaXMgcGF0Y2gg
-c2VyaWVzIGJsb2NrL2Zvci1uZXh0LiAgV2l0aCBjb21taXQgODRiZTQ1NmY4ODNjDQoicmVtb3Zl
-IDxhc20vc2NhdHRlcmxpc3QuaD4iIEkgdGhpbmsgd2UgY2FuIHRha2UgdGhlIG5leHQgc3RlcCBv
-Zg0KcmVtb3ZpbmcgYWxsIHJlZmVyZW5jZXMgdG8gcGFnZV9saW5rIGFuZCBqdXN0IHVzZSBfX3Bm
-bl90IGJ5IGRlZmF1bHQuDQp2NCBwYXRjaCBiZWxvdy4NCg0KSmVucywgSSdtIHdvbmRlcmluZyBp
-ZiB5b3Ugd2FudCB0byB0YWtlIHRoaXMgc2VyaWVzKC4pIGFzIHBhdGNoZXMgb3INCnByZXBhcmUg
-YSBnaXQgYnJhbmNoIHRvIHB1bGw/DQoNCjg8LS0tLS0tLS0NClN1YmplY3Q6IHNjYXR0ZXJsaXN0
-OiBzdXBwb3J0ICJwYWdlLWxlc3MiIChfX3Bmbl90IG9ubHkpIGVudHJpZXMNCg0KRnJvbTogTWF0
-dGhldyBXaWxjb3ggPHdpbGx5QGxpbnV4LmludGVsLmNvbT4NCg0KR2l2ZW4gdGhhdCBhbiBvZmZz
-ZXQgd2lsbCBuZXZlciBiZSBtb3JlIHRoYW4gUEFHRV9TSVpFLCBzdGVhbCB0aGUgdW51c2VkDQpi
-aXRzIG9mIHRoZSBvZmZzZXQgdG8gaW1wbGVtZW50IGEgZmxhZ3MgZmllbGQuICBNb3ZlIHRoZSBl
-eGlzdGluZyAidGhpcw0KaXMgYSBzZ19jaGFpbigpIG9yIHNnX2xhc3QoKSBlbnRyeSIgZmxhZ3Mg
-dG8gdGhlIG5ldyAnZmxhZ3MnIGZpZWxkLg0KDQpbZGpidzogcmViYXNlIG9uIGJsb2NrL2Zvci00
-LjJdDQpTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
-bT4NClNpZ25lZC1vZmYtYnk6IE1hdHRoZXcgV2lsY294IDx3aWxseUBsaW51eC5pbnRlbC5jb20+
-DQotLS0NCiBibG9jay9ibGstbWVyZ2UuYyAgICAgICAgICAgIHwgICAgMiAtDQogZHJpdmVycy9j
-cnlwdG8vb21hcC1zaGFtLmMgICB8ICAgIDIgLQ0KIGRyaXZlcnMvZG1hL2lteC1kbWEuYyAgICAg
-ICAgfCAgICA3ICstLQ0KIGRyaXZlcnMvZG1hL3N0ZV9kbWE0MC5jICAgICAgfCAgICA1IC0tDQog
-ZHJpdmVycy9tbWMvY2FyZC9xdWV1ZS5jICAgICB8ICAgIDQgKy0NCiBpbmNsdWRlL2NyeXB0by9z
-Y2F0dGVyd2Fsay5oIHwgICAgOSArLS0tDQogaW5jbHVkZS9saW51eC9zY2F0dGVybGlzdC5oICB8
-ICAgOTIgKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tDQogc2FtcGxl
-cy9rZmlmby9kbWEtZXhhbXBsZS5jICB8ICAgIDggKystLQ0KIDggZmlsZXMgY2hhbmdlZCwgNjkg
-aW5zZXJ0aW9ucygrKSwgNjAgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9ibG9jay9ibGst
-bWVyZ2UuYyBiL2Jsb2NrL2Jsay1tZXJnZS5jDQppbmRleCAyMThhZDFlNTdhNDkuLjgyYTY4ODU1
-MWI3MiAxMDA2NDQNCi0tLSBhL2Jsb2NrL2Jsay1tZXJnZS5jDQorKysgYi9ibG9jay9ibGstbWVy
-Z2UuYw0KQEAgLTI2Nyw3ICsyNjcsNyBAQCBpbnQgYmxrX3JxX21hcF9zZyhzdHJ1Y3QgcmVxdWVz
-dF9xdWV1ZSAqcSwgc3RydWN0IHJlcXVlc3QgKnJxLA0KIAkJaWYgKHJxLT5jbWRfZmxhZ3MgJiBS
-RVFfV1JJVEUpDQogCQkJbWVtc2V0KHEtPmRtYV9kcmFpbl9idWZmZXIsIDAsIHEtPmRtYV9kcmFp
-bl9zaXplKTsNCiANCi0JCXNnLT5wYWdlX2xpbmsgJj0gfjB4MDI7DQorCQlzZ191bm1hcmtfZW5k
-KHNnKTsNCiAJCXNnID0gc2dfbmV4dChzZyk7DQogCQlzZ19zZXRfcGFnZShzZywgdmlydF90b19w
-YWdlKHEtPmRtYV9kcmFpbl9idWZmZXIpLA0KIAkJCSAgICBxLT5kbWFfZHJhaW5fc2l6ZSwNCmRp
-ZmYgLS1naXQgYS9kcml2ZXJzL2NyeXB0by9vbWFwLXNoYW0uYyBiL2RyaXZlcnMvY3J5cHRvL29t
-YXAtc2hhbS5jDQppbmRleCA0ZDYzZTBkNGRhOWEuLjIxNzM2YWZkMzMyMCAxMDA2NDQNCi0tLSBh
-L2RyaXZlcnMvY3J5cHRvL29tYXAtc2hhbS5jDQorKysgYi9kcml2ZXJzL2NyeXB0by9vbWFwLXNo
-YW0uYw0KQEAgLTU4Miw3ICs1ODIsNyBAQCBzdGF0aWMgaW50IG9tYXBfc2hhbV94bWl0X2RtYShz
-dHJ1Y3Qgb21hcF9zaGFtX2RldiAqZGQsIGRtYV9hZGRyX3QgZG1hX2FkZHIsDQogCQkgKiB0aGUg
-ZG1hZW5naW5lIG1heSB0cnkgdG8gRE1BIHRoZSBpbmNvcnJlY3QgYW1vdW50IG9mIGRhdGEuDQog
-CQkgKi8NCiAJCXNnX2luaXRfdGFibGUoJmN0eC0+c2dsLCAxKTsNCi0JCWN0eC0+c2dsLnBhZ2Vf
-bGluayA9IGN0eC0+c2ctPnBhZ2VfbGluazsNCisJCWN0eC0+c2dsLnBmbiA9IGN0eC0+c2ctPnBm
-bjsNCiAJCWN0eC0+c2dsLm9mZnNldCA9IGN0eC0+c2ctPm9mZnNldDsNCiAJCXNnX2RtYV9sZW4o
-JmN0eC0+c2dsKSA9IGxlbjMyOw0KIAkJc2dfZG1hX2FkZHJlc3MoJmN0eC0+c2dsKSA9IHNnX2Rt
-YV9hZGRyZXNzKGN0eC0+c2cpOw0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvZG1hL2lteC1kbWEuYyBi
-L2RyaXZlcnMvZG1hL2lteC1kbWEuYw0KaW5kZXggZWVkNDA1OTc2ZWE5Li5hNzY3NzI3YmNmZWYg
-MTAwNjQ0DQotLS0gYS9kcml2ZXJzL2RtYS9pbXgtZG1hLmMNCisrKyBiL2RyaXZlcnMvZG1hL2lt
-eC1kbWEuYw0KQEAgLTg4Niw3ICs4ODYsNyBAQCBzdGF0aWMgc3RydWN0IGRtYV9hc3luY190eF9k
-ZXNjcmlwdG9yICppbXhkbWFfcHJlcF9kbWFfY3ljbGljKA0KIAlzZ19pbml0X3RhYmxlKGlteGRt
-YWMtPnNnX2xpc3QsIHBlcmlvZHMpOw0KIA0KIAlmb3IgKGkgPSAwOyBpIDwgcGVyaW9kczsgaSsr
-KSB7DQotCQlpbXhkbWFjLT5zZ19saXN0W2ldLnBhZ2VfbGluayA9IDA7DQorCQlpbXhkbWFjLT5z
-Z19saXN0W2ldLnBmbi5wYWdlID0gTlVMTDsNCiAJCWlteGRtYWMtPnNnX2xpc3RbaV0ub2Zmc2V0
-ID0gMDsNCiAJCWlteGRtYWMtPnNnX2xpc3RbaV0uZG1hX2FkZHJlc3MgPSBkbWFfYWRkcjsNCiAJ
-CXNnX2RtYV9sZW4oJmlteGRtYWMtPnNnX2xpc3RbaV0pID0gcGVyaW9kX2xlbjsNCkBAIC04OTQs
-MTAgKzg5NCw3IEBAIHN0YXRpYyBzdHJ1Y3QgZG1hX2FzeW5jX3R4X2Rlc2NyaXB0b3IgKmlteGRt
-YV9wcmVwX2RtYV9jeWNsaWMoDQogCX0NCiANCiAJLyogY2xvc2UgdGhlIGxvb3AgKi8NCi0JaW14
-ZG1hYy0+c2dfbGlzdFtwZXJpb2RzXS5vZmZzZXQgPSAwOw0KLQlzZ19kbWFfbGVuKCZpbXhkbWFj
-LT5zZ19saXN0W3BlcmlvZHNdKSA9IDA7DQotCWlteGRtYWMtPnNnX2xpc3RbcGVyaW9kc10ucGFn
-ZV9saW5rID0NCi0JCSgodW5zaWduZWQgbG9uZylpbXhkbWFjLT5zZ19saXN0IHwgMHgwMSkgJiB+
-MHgwMjsNCisJc2dfY2hhaW4oaW14ZG1hYy0+c2dfbGlzdCwgcGVyaW9kcyArIDEsIGlteGRtYWMt
-PnNnX2xpc3QpOw0KIA0KIAlkZXNjLT50eXBlID0gSU1YRE1BX0RFU0NfQ1lDTElDOw0KIAlkZXNj
-LT5zZyA9IGlteGRtYWMtPnNnX2xpc3Q7DQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9kbWEvc3RlX2Rt
-YTQwLmMgYi9kcml2ZXJzL2RtYS9zdGVfZG1hNDAuYw0KaW5kZXggM2MxMGYwMzRkNGI5Li5lOGMw
-MDY0MmNhY2IgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL2RtYS9zdGVfZG1hNDAuYw0KKysrIGIvZHJp
-dmVycy9kbWEvc3RlX2RtYTQwLmMNCkBAIC0yNTYyLDEwICsyNTYyLDcgQEAgZG1hNDBfcHJlcF9k
-bWFfY3ljbGljKHN0cnVjdCBkbWFfY2hhbiAqY2hhbiwgZG1hX2FkZHJfdCBkbWFfYWRkciwNCiAJ
-CWRtYV9hZGRyICs9IHBlcmlvZF9sZW47DQogCX0NCiANCi0Jc2dbcGVyaW9kc10ub2Zmc2V0ID0g
-MDsNCi0Jc2dfZG1hX2xlbigmc2dbcGVyaW9kc10pID0gMDsNCi0Jc2dbcGVyaW9kc10ucGFnZV9s
-aW5rID0NCi0JCSgodW5zaWduZWQgbG9uZylzZyB8IDB4MDEpICYgfjB4MDI7DQorCXNnX2NoYWlu
-KHNnLCBwZXJpb2RzICsgMSwgc2cpOw0KIA0KIAl0eGQgPSBkNDBfcHJlcF9zZyhjaGFuLCBzZywg
-c2csIHBlcmlvZHMsIGRpcmVjdGlvbiwNCiAJCQkgIERNQV9QUkVQX0lOVEVSUlVQVCk7DQpkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9tbWMvY2FyZC9xdWV1ZS5jIGIvZHJpdmVycy9tbWMvY2FyZC9xdWV1
-ZS5jDQppbmRleCAyMzZkMTk0YzI4ODMuLjEyN2Y3NjI5NGU3MSAxMDA2NDQNCi0tLSBhL2RyaXZl
-cnMvbW1jL2NhcmQvcXVldWUuYw0KKysrIGIvZHJpdmVycy9tbWMvY2FyZC9xdWV1ZS5jDQpAQCAt
-NDY5LDcgKzQ2OSw3IEBAIHN0YXRpYyB1bnNpZ25lZCBpbnQgbW1jX3F1ZXVlX3BhY2tlZF9tYXBf
-c2coc3RydWN0IG1tY19xdWV1ZSAqbXEsDQogCQkJc2dfc2V0X2J1ZihfX3NnLCBidWYgKyBvZmZz
-ZXQsIGxlbik7DQogCQkJb2Zmc2V0ICs9IGxlbjsNCiAJCQlyZW1haW4gLT0gbGVuOw0KLQkJCShf
-X3NnKyspLT5wYWdlX2xpbmsgJj0gfjB4MDI7DQorCQkJc2dfdW5tYXJrX2VuZChfX3NnKyspOw0K
-IAkJCXNnX2xlbisrOw0KIAkJfSB3aGlsZSAocmVtYWluKTsNCiAJfQ0KQEAgLTQ3Nyw3ICs0Nzcs
-NyBAQCBzdGF0aWMgdW5zaWduZWQgaW50IG1tY19xdWV1ZV9wYWNrZWRfbWFwX3NnKHN0cnVjdCBt
-bWNfcXVldWUgKm1xLA0KIAlsaXN0X2Zvcl9lYWNoX2VudHJ5KHJlcSwgJnBhY2tlZC0+bGlzdCwg
-cXVldWVsaXN0KSB7DQogCQlzZ19sZW4gKz0gYmxrX3JxX21hcF9zZyhtcS0+cXVldWUsIHJlcSwg
-X19zZyk7DQogCQlfX3NnID0gc2cgKyAoc2dfbGVuIC0gMSk7DQotCQkoX19zZysrKS0+cGFnZV9s
-aW5rICY9IH4weDAyOw0KKwkJc2dfdW5tYXJrX2VuZChfX3NnKyspOw0KIAl9DQogCXNnX21hcmtf
-ZW5kKHNnICsgKHNnX2xlbiAtIDEpKTsNCiAJcmV0dXJuIHNnX2xlbjsNCmRpZmYgLS1naXQgYS9p
-bmNsdWRlL2NyeXB0by9zY2F0dGVyd2Fsay5oIGIvaW5jbHVkZS9jcnlwdG8vc2NhdHRlcndhbGsu
-aA0KaW5kZXggMjBlNDIyNmEyZTE0Li40NTI5ODg5YjBmMDcgMTAwNjQ0DQotLS0gYS9pbmNsdWRl
-L2NyeXB0by9zY2F0dGVyd2Fsay5oDQorKysgYi9pbmNsdWRlL2NyeXB0by9zY2F0dGVyd2Fsay5o
-DQpAQCAtMjUsMTMgKzI1LDggQEANCiAjaW5jbHVkZSA8bGludXgvc2NhdHRlcmxpc3QuaD4NCiAj
-aW5jbHVkZSA8bGludXgvc2NoZWQuaD4NCiANCi1zdGF0aWMgaW5saW5lIHZvaWQgc2NhdHRlcndh
-bGtfc2dfY2hhaW4oc3RydWN0IHNjYXR0ZXJsaXN0ICpzZzEsIGludCBudW0sDQotCQkJCQlzdHJ1
-Y3Qgc2NhdHRlcmxpc3QgKnNnMikNCi17DQotCXNnX3NldF9wYWdlKCZzZzFbbnVtIC0gMV0sICh2
-b2lkICopc2cyLCAwLCAwKTsNCi0Jc2cxW251bSAtIDFdLnBhZ2VfbGluayAmPSB+MHgwMjsNCi0J
-c2cxW251bSAtIDFdLnBhZ2VfbGluayB8PSAweDAxOw0KLX0NCisjZGVmaW5lIHNjYXR0ZXJ3YWxr
-X3NnX2NoYWluKHBydiwgbnVtLCBzZ2wpCXNnX2NoYWluKHBydiwgbnVtLCBzZ2wpDQorI2RlZmlu
-ZSBzY2F0dGVyd2Fsa19zZ19uZXh0KHNnbCkJCXNnX25leHQoc2dsKQ0KIA0KIHN0YXRpYyBpbmxp
-bmUgdm9pZCBzY2F0dGVyd2Fsa19jcnlwdG9fY2hhaW4oc3RydWN0IHNjYXR0ZXJsaXN0ICpoZWFk
-LA0KIAkJCQkJICAgIHN0cnVjdCBzY2F0dGVybGlzdCAqc2csDQpkaWZmIC0tZ2l0IGEvaW5jbHVk
-ZS9saW51eC9zY2F0dGVybGlzdC5oIGIvaW5jbHVkZS9saW51eC9zY2F0dGVybGlzdC5oDQppbmRl
-eCBlY2ExZWM5Mzc3NWMuLjk4YzIxYjQ2MDI5MiAxMDA2NDQNCi0tLSBhL2luY2x1ZGUvbGludXgv
-c2NhdHRlcmxpc3QuaA0KKysrIGIvaW5jbHVkZS9saW51eC9zY2F0dGVybGlzdC5oDQpAQCAtOSwx
-NCArOSwxOCBAQA0KIA0KIHN0cnVjdCBzY2F0dGVybGlzdCB7DQogI2lmZGVmIENPTkZJR19ERUJV
-R19TRw0KLQl1bnNpZ25lZCBsb25nCXNnX21hZ2ljOw0KKwl1bnNpZ25lZCBsb25nICAgc2dfbWFn
-aWM7DQogI2VuZGlmDQotCXVuc2lnbmVkIGxvbmcJcGFnZV9saW5rOw0KLQl1bnNpZ25lZCBpbnQJ
-b2Zmc2V0Ow0KLQl1bnNpZ25lZCBpbnQJbGVuZ3RoOw0KLQlkbWFfYWRkcl90CWRtYV9hZGRyZXNz
-Ow0KKyAgICAgICAgdW5pb24gew0KKyAgICAgICAgICAgICAgICBfX3Bmbl90IHBmbjsNCisgICAg
-ICAgICAgICAgICAgc3RydWN0IHNjYXR0ZXJsaXN0ICpuZXh0Ow0KKyAgICAgICAgfTsNCisgICAg
-ICAgIHVuc2lnbmVkIHNob3J0ICBvZmZzZXQ7DQorICAgICAgICB1bnNpZ25lZCBzaG9ydCAgc2df
-ZmxhZ3M7DQorICAgICAgICB1bnNpZ25lZCBpbnQgICAgbGVuZ3RoOw0KKyAgICAgICAgZG1hX2Fk
-ZHJfdCAgICAgIGRtYV9hZGRyZXNzOw0KICNpZmRlZiBDT05GSUdfTkVFRF9TR19ETUFfTEVOR1RI
-DQotCXVuc2lnbmVkIGludAlkbWFfbGVuZ3RoOw0KKyAgICAgICAgdW5zaWduZWQgaW50ICAgIGRt
-YV9sZW5ndGg7DQogI2VuZGlmDQogfTsNCiANCkBAIC00NCwzMCArNDgsMjkgQEAgc3RydWN0IHNn
-X3RhYmxlIHsNCiAvKg0KICAqIE5vdGVzIG9uIFNHIHRhYmxlIGRlc2lnbi4NCiAgKg0KLSAqIFdl
-IHVzZSB0aGUgdW5zaWduZWQgbG9uZyBwYWdlX2xpbmsgZmllbGQgaW4gdGhlIHNjYXR0ZXJsaXN0
-IHN0cnVjdCB0byBwbGFjZQ0KLSAqIHRoZSBwYWdlIHBvaW50ZXIgQU5EIGVuY29kZSBpbmZvcm1h
-dGlvbiBhYm91dCB0aGUgc2cgdGFibGUgYXMgd2VsbC4gVGhlIHR3bw0KLSAqIGxvd2VyIGJpdHMg
-YXJlIHJlc2VydmVkIGZvciB0aGlzIGluZm9ybWF0aW9uLg0KKyAqIFdlIHVzZSB0aGUgZmFjdCB0
-aGF0IGEgZ2l2ZW4gc2cgZW50cnkgd2lsbCBuZXZlciBiZSBsYXJnZXIgdGhhbiBhDQorICogcGFn
-ZSB0byBwYWNrICdvZmZzZXQnIGFuZCAnc2dfZmxhZ3MnIGludG8gMzItYml0cy4gIFRoaXMgc3Vw
-cG9ydHMgYQ0KKyAqIFBBR0VfU0laRSB1cCB0byA2NEsgYW5kIGZsYWdzIHRvIGVuY29kZSBpbmZv
-cm1hdGlvbiBhYm91dCB0aGUgc2cNCisgKiBlbnRyeS4NCiAgKg0KLSAqIElmIGJpdCAwIGlzIHNl
-dCwgdGhlbiB0aGUgcGFnZV9saW5rIGNvbnRhaW5zIGEgcG9pbnRlciB0byB0aGUgbmV4dCBzZw0K
-LSAqIHRhYmxlIGxpc3QuIE90aGVyd2lzZSB0aGUgbmV4dCBlbnRyeSBpcyBhdCBzZyArIDEuDQor
-ICogSWYgU0dfRkxBR1NfQ0hBSU4gaXMgc2V0LCB0aGVuIHRoZSAnbmV4dCcgbWVtYmVyIG9mIHRo
-ZSBlbnRyeSBpcyBhDQorICogcG9pbnRlciB0byB0aGUgbmV4dCBzZyB0YWJsZSBsaXN0LiBPdGhl
-cndpc2UgdGhlIG5leHQgZW50cnkgaXMgYXQgc2cNCisgKiArIDEuDQogICoNCi0gKiBJZiBiaXQg
-MSBpcyBzZXQsIHRoZW4gdGhpcyBzZyBlbnRyeSBpcyB0aGUgbGFzdCBlbGVtZW50IGluIGEgbGlz
-dC4NCisgKiBJZiBTR19GTEFHU19MQVNUIGlzIHNldCwgdGhlbiB0aGlzIHNnIGVudHJ5IGlzIHRo
-ZSBsYXN0IGVsZW1lbnQgaW4gYQ0KKyAqIGxpc3QuDQogICoNCiAgKiBTZWUgc2dfbmV4dCgpLg0K
-ICAqDQogICovDQogDQogI2RlZmluZSBTR19NQUdJQwkweDg3NjU0MzIxDQorI2RlZmluZSBTR19G
-TEFHU19DSEFJTgkweDAwMDENCisjZGVmaW5lIFNHX0ZMQUdTX0xBU1QJMHgwMDAyDQogDQotLyoN
-Ci0gKiBXZSBvdmVybG9hZCB0aGUgTFNCIG9mIHRoZSBwYWdlIHBvaW50ZXIgdG8gaW5kaWNhdGUg
-d2hldGhlciBpdCdzDQotICogYSB2YWxpZCBzZyBlbnRyeSwgb3Igd2hldGhlciBpdCBwb2ludHMg
-dG8gdGhlIHN0YXJ0IG9mIGEgbmV3IHNjYXR0ZXJsaXN0Lg0KLSAqIFRob3NlIGxvdyBiaXRzIGFy
-ZSB0aGVyZSBmb3IgZXZlcnlvbmUhICh0aGFua3MgbWFzb24gOi0pDQotICovDQotI2RlZmluZSBz
-Z19pc19jaGFpbihzZykJCSgoc2cpLT5wYWdlX2xpbmsgJiAweDAxKQ0KLSNkZWZpbmUgc2dfaXNf
-bGFzdChzZykJCSgoc2cpLT5wYWdlX2xpbmsgJiAweDAyKQ0KLSNkZWZpbmUgc2dfY2hhaW5fcHRy
-KHNnKQlcDQotCSgoc3RydWN0IHNjYXR0ZXJsaXN0ICopICgoc2cpLT5wYWdlX2xpbmsgJiB+MHgw
-MykpDQorI2RlZmluZSBzZ19pc19jaGFpbihzZykJCSgoc2cpLT5zZ19mbGFncyAmIFNHX0ZMQUdT
-X0NIQUlOKQ0KKyNkZWZpbmUgc2dfaXNfbGFzdChzZykJCSgoc2cpLT5zZ19mbGFncyAmIFNHX0ZM
-QUdTX0xBU1QpDQorI2RlZmluZSBzZ19jaGFpbl9wdHIoc2cpCSgoc2cpLT5uZXh0KQ0KIA0KIC8q
-Kg0KICAqIHNnX2Fzc2lnbl9wYWdlIC0gQXNzaWduIGEgZ2l2ZW4gcGFnZSB0byBhbiBTRyBlbnRy
-eQ0KQEAgLTgxLDE4ICs4NCwxNSBAQCBzdHJ1Y3Qgc2dfdGFibGUgew0KICAqKi8NCiBzdGF0aWMg
-aW5saW5lIHZvaWQgc2dfYXNzaWduX3BhZ2Uoc3RydWN0IHNjYXR0ZXJsaXN0ICpzZywgc3RydWN0
-IHBhZ2UgKnBhZ2UpDQogew0KLQl1bnNpZ25lZCBsb25nIHBhZ2VfbGluayA9IHNnLT5wYWdlX2xp
-bmsgJiAweDM7DQotDQotCS8qDQotCSAqIEluIG9yZGVyIGZvciB0aGUgbG93IGJpdCBzdGVhbGlu
-ZyBhcHByb2FjaCB0byB3b3JrLCBwYWdlcw0KLQkgKiBtdXN0IGJlIGFsaWduZWQgYXQgYSAzMi1i
-aXQgYm91bmRhcnkgYXMgYSBtaW5pbXVtLg0KLQkgKi8NCi0JQlVHX09OKCh1bnNpZ25lZCBsb25n
-KSBwYWdlICYgMHgwMyk7DQogI2lmZGVmIENPTkZJR19ERUJVR19TRw0KIAlCVUdfT04oc2ctPnNn
-X21hZ2ljICE9IFNHX01BR0lDKTsNCiAJQlVHX09OKHNnX2lzX2NoYWluKHNnKSk7DQogI2VuZGlm
-DQotCXNnLT5wYWdlX2xpbmsgPSBwYWdlX2xpbmsgfCAodW5zaWduZWQgbG9uZykgcGFnZTsNCisJ
-c2ctPnBmbiA9IHBhZ2VfdG9fcGZuX3QocGFnZSk7DQorI2lmZGVmIENPTkZJR19ERUJVR19TRw0K
-KwlCVUdfT04oc2ctPnNnX21hZ2ljICE9IFNHX01BR0lDKTsNCisJQlVHX09OKHNnX2lzX2NoYWlu
-KHNnKSk7DQorI2VuZGlmDQogfQ0KIA0KIC8qKg0KQEAgLTExMywxNyArMTEzLDMyIEBAIHN0YXRp
-YyBpbmxpbmUgdm9pZCBzZ19zZXRfcGFnZShzdHJ1Y3Qgc2NhdHRlcmxpc3QgKnNnLCBzdHJ1Y3Qg
-cGFnZSAqcGFnZSwNCiAJCQkgICAgICAgdW5zaWduZWQgaW50IGxlbiwgdW5zaWduZWQgaW50IG9m
-ZnNldCkNCiB7DQogCXNnX2Fzc2lnbl9wYWdlKHNnLCBwYWdlKTsNCisJQlVHX09OKG9mZnNldCA+
-IDY1NTM1KTsNCiAJc2ctPm9mZnNldCA9IG9mZnNldDsNCiAJc2ctPmxlbmd0aCA9IGxlbjsNCiB9
-DQogDQorc3RhdGljIGlubGluZSB2b2lkIHNnX3NldF9wZm4oc3RydWN0IHNjYXR0ZXJsaXN0ICpz
-ZywgX19wZm5fdCBwZm4sDQorCQkJICAgICAgdW5zaWduZWQgaW50IGxlbiwgdW5zaWduZWQgaW50
-IG9mZnNldCkNCit7DQorI2lmZGVmIENPTkZJR19ERUJVR19TRw0KKwlCVUdfT04oc2ctPnNnX21h
-Z2ljICE9IFNHX01BR0lDKTsNCisJQlVHX09OKHNnX2lzX2NoYWluKHNnKSk7DQorI2VuZGlmDQor
-CXNnLT5wZm4gPSBwZm47DQorCUJVR19PTihvZmZzZXQgPiA2NTUzNSk7DQorCXNnLT5vZmZzZXQg
-PSBvZmZzZXQ7DQorCXNnLT5zZ19mbGFncyA9IDA7DQorCXNnLT5sZW5ndGggPSBsZW47DQorfQ0K
-Kw0KIHN0YXRpYyBpbmxpbmUgc3RydWN0IHBhZ2UgKnNnX3BhZ2Uoc3RydWN0IHNjYXR0ZXJsaXN0
-ICpzZykNCiB7DQogI2lmZGVmIENPTkZJR19ERUJVR19TRw0KIAlCVUdfT04oc2ctPnNnX21hZ2lj
-ICE9IFNHX01BR0lDKTsNCiAJQlVHX09OKHNnX2lzX2NoYWluKHNnKSk7DQogI2VuZGlmDQotCXJl
-dHVybiAoc3RydWN0IHBhZ2UgKikoKHNnKS0+cGFnZV9saW5rICYgfjB4Myk7DQorCXJldHVybiBf
-X3Bmbl90X3RvX3BhZ2Uoc2ctPnBmbik7DQogfQ0KIA0KIC8qKg0KQEAgLTE3NSw3ICsxOTAsOCBA
-QCBzdGF0aWMgaW5saW5lIHZvaWQgc2dfY2hhaW4oc3RydWN0IHNjYXR0ZXJsaXN0ICpwcnYsIHVu
-c2lnbmVkIGludCBwcnZfbmVudHMsDQogCSAqIFNldCBsb3dlc3QgYml0IHRvIGluZGljYXRlIGEg
-bGluayBwb2ludGVyLCBhbmQgbWFrZSBzdXJlIHRvIGNsZWFyDQogCSAqIHRoZSB0ZXJtaW5hdGlv
-biBiaXQgaWYgaXQgaGFwcGVucyB0byBiZSBzZXQuDQogCSAqLw0KLQlwcnZbcHJ2X25lbnRzIC0g
-MV0ucGFnZV9saW5rID0gKCh1bnNpZ25lZCBsb25nKSBzZ2wgfCAweDAxKSAmIH4weDAyOw0KKwlw
-cnZbcHJ2X25lbnRzIC0gMV0ubmV4dCA9IHNnbDsNCisJcHJ2W3Bydl9uZW50cyAtIDFdLnNnX2Zs
-YWdzID0gU0dfRkxBR1NfQ0hBSU47DQogfQ0KIA0KIC8qKg0KQEAgLTE5NSw4ICsyMTEsOCBAQCBz
-dGF0aWMgaW5saW5lIHZvaWQgc2dfbWFya19lbmQoc3RydWN0IHNjYXR0ZXJsaXN0ICpzZykNCiAJ
-LyoNCiAJICogU2V0IHRlcm1pbmF0aW9uIGJpdCwgY2xlYXIgcG90ZW50aWFsIGNoYWluIGJpdA0K
-IAkgKi8NCi0Jc2ctPnBhZ2VfbGluayB8PSAweDAyOw0KLQlzZy0+cGFnZV9saW5rICY9IH4weDAx
-Ow0KKwlzZy0+c2dfZmxhZ3MgfD0gU0dfRkxBR1NfTEFTVDsNCisJc2ctPnNnX2ZsYWdzICY9IH5T
-R19GTEFHU19DSEFJTjsNCiB9DQogDQogLyoqDQpAQCAtMjEyLDcgKzIyOCw3IEBAIHN0YXRpYyBp
-bmxpbmUgdm9pZCBzZ191bm1hcmtfZW5kKHN0cnVjdCBzY2F0dGVybGlzdCAqc2cpDQogI2lmZGVm
-IENPTkZJR19ERUJVR19TRw0KIAlCVUdfT04oc2ctPnNnX21hZ2ljICE9IFNHX01BR0lDKTsNCiAj
-ZW5kaWYNCi0Jc2ctPnBhZ2VfbGluayAmPSB+MHgwMjsNCisJc2ctPnNnX2ZsYWdzICY9IH5TR19G
-TEFHU19MQVNUOw0KIH0NCiANCiAvKioNCkBAIC0yMjcsNyArMjQzLDcgQEAgc3RhdGljIGlubGlu
-ZSB2b2lkIHNnX3VubWFya19lbmQoc3RydWN0IHNjYXR0ZXJsaXN0ICpzZykNCiAgKiovDQogc3Rh
-dGljIGlubGluZSBkbWFfYWRkcl90IHNnX3BoeXMoc3RydWN0IHNjYXR0ZXJsaXN0ICpzZykNCiB7
-DQotCXJldHVybiBwYWdlX3RvX3BoeXMoc2dfcGFnZShzZykpICsgc2ctPm9mZnNldDsNCisJcmV0
-dXJuIF9fcGZuX3RfdG9fcGh5cyhzZy0+cGZuKSArIHNnLT5vZmZzZXQ7DQogfQ0KIA0KIC8qKg0K
-QEAgLTI0Miw3ICsyNTgsMTEgQEAgc3RhdGljIGlubGluZSBkbWFfYWRkcl90IHNnX3BoeXMoc3Ry
-dWN0IHNjYXR0ZXJsaXN0ICpzZykNCiAgKiovDQogc3RhdGljIGlubGluZSB2b2lkICpzZ192aXJ0
-KHN0cnVjdCBzY2F0dGVybGlzdCAqc2cpDQogew0KLQlyZXR1cm4gcGFnZV9hZGRyZXNzKHNnX3Bh
-Z2Uoc2cpKSArIHNnLT5vZmZzZXQ7DQorCXN0cnVjdCBwYWdlICpwYWdlOw0KKw0KKwlwYWdlID0g
-X19wZm5fdF90b19wYWdlKHNnLT5wZm4pICsgc2ctPm9mZnNldDsNCisJQlVHX09OKCFwYWdlKTsg
-LyogZG9uJ3QgdXNlIHNnX3ZpcnQoKSBvbiB1bm1hcHBlZCBtZW1vcnkgKi8NCisJcmV0dXJuIHBh
-Z2VfYWRkcmVzcyhwYWdlKSArIHNnLT5vZmZzZXQ7DQogfQ0KIA0KIGludCBzZ19uZW50cyhzdHJ1
-Y3Qgc2NhdHRlcmxpc3QgKnNnKTsNCmRpZmYgLS1naXQgYS9zYW1wbGVzL2tmaWZvL2RtYS1leGFt
-cGxlLmMgYi9zYW1wbGVzL2tmaWZvL2RtYS1leGFtcGxlLmMNCmluZGV4IGFhMjQzZGI5M2YwMS4u
-M2VlZmY5YTU2ZTBlIDEwMDY0NA0KLS0tIGEvc2FtcGxlcy9rZmlmby9kbWEtZXhhbXBsZS5jDQor
-KysgYi9zYW1wbGVzL2tmaWZvL2RtYS1leGFtcGxlLmMNCkBAIC03NSw4ICs3NSw4IEBAIHN0YXRp
-YyBpbnQgX19pbml0IGV4YW1wbGVfaW5pdCh2b2lkKQ0KIAlmb3IgKGkgPSAwOyBpIDwgbmVudHM7
-IGkrKykgew0KIAkJcHJpbnRrKEtFUk5fSU5GTw0KIAkJInNnWyVkXSAtPiAiDQotCQkicGFnZV9s
-aW5rIDB4JS44bHggb2Zmc2V0IDB4JS44eCBsZW5ndGggMHglLjh4XG4iLA0KLQkJCWksIHNnW2ld
-LnBhZ2VfbGluaywgc2dbaV0ub2Zmc2V0LCBzZ1tpXS5sZW5ndGgpOw0KKwkJInBmbl9kYXRhIDB4
-JS44bHggb2Zmc2V0IDB4JS44eCBsZW5ndGggMHglLjh4XG4iLA0KKwkJCWksIHNnW2ldLnBmbi5k
-YXRhLCBzZ1tpXS5vZmZzZXQsIHNnW2ldLmxlbmd0aCk7DQogDQogCQlpZiAoc2dfaXNfbGFzdCgm
-c2dbaV0pKQ0KIAkJCWJyZWFrOw0KQEAgLTEwNCw4ICsxMDQsOCBAQCBzdGF0aWMgaW50IF9faW5p
-dCBleGFtcGxlX2luaXQodm9pZCkNCiAJZm9yIChpID0gMDsgaSA8IG5lbnRzOyBpKyspIHsNCiAJ
-CXByaW50ayhLRVJOX0lORk8NCiAJCSJzZ1slZF0gLT4gIg0KLQkJInBhZ2VfbGluayAweCUuOGx4
-IG9mZnNldCAweCUuOHggbGVuZ3RoIDB4JS44eFxuIiwNCi0JCQlpLCBzZ1tpXS5wYWdlX2xpbmss
-IHNnW2ldLm9mZnNldCwgc2dbaV0ubGVuZ3RoKTsNCisJCSJwZm5fZGF0YSAweCUuOGx4IG9mZnNl
-dCAweCUuOHggbGVuZ3RoIDB4JS44eFxuIiwNCisJCQlpLCBzZ1tpXS5wZm4uZGF0YSwgc2dbaV0u
-b2Zmc2V0LCBzZ1tpXS5sZW5ndGgpOw0KIA0KIAkJaWYgKHNnX2lzX2xhc3QoJnNnW2ldKSkNCiAJ
-CQlicmVhazsNCg0K
+From: Matthew Wilcox <willy@linux.intel.com>
+
+Given that an offset will never be more than PAGE_SIZE, steal the unused
+bits of the offset to implement a flags field.  Move the existing "this
+is a sg_chain() entry" flag to the new flags field, and add a new flag
+(SG_FLAGS_PAGE) to indicate that there is a struct page backing for the
+entry.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+---
+ block/blk-merge.c                 |    2 -
+ drivers/dma/ste_dma40.c           |    5 --
+ drivers/mmc/card/queue.c          |    4 +-
+ include/asm-generic/scatterlist.h |    9 ++++
+ include/crypto/scatterwalk.h      |   10 ++++
+ include/linux/scatterlist.h       |   91 +++++++++++++++++++++++++++++++++----
+ 6 files changed, 105 insertions(+), 16 deletions(-)
+
+diff --git a/block/blk-merge.c b/block/blk-merge.c
+index 218ad1e57a49..82a688551b72 100644
+--- a/block/blk-merge.c
++++ b/block/blk-merge.c
+@@ -267,7 +267,7 @@ int blk_rq_map_sg(struct request_queue *q, struct request *rq,
+ 		if (rq->cmd_flags & REQ_WRITE)
+ 			memset(q->dma_drain_buffer, 0, q->dma_drain_size);
+ 
+-		sg->page_link &= ~0x02;
++		sg_unmark_end(sg);
+ 		sg = sg_next(sg);
+ 		sg_set_page(sg, virt_to_page(q->dma_drain_buffer),
+ 			    q->dma_drain_size,
+diff --git a/drivers/dma/ste_dma40.c b/drivers/dma/ste_dma40.c
+index 3c10f034d4b9..e8c00642cacb 100644
+--- a/drivers/dma/ste_dma40.c
++++ b/drivers/dma/ste_dma40.c
+@@ -2562,10 +2562,7 @@ dma40_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t dma_addr,
+ 		dma_addr += period_len;
+ 	}
+ 
+-	sg[periods].offset = 0;
+-	sg_dma_len(&sg[periods]) = 0;
+-	sg[periods].page_link =
+-		((unsigned long)sg | 0x01) & ~0x02;
++	sg_chain(sg, periods + 1, sg);
+ 
+ 	txd = d40_prep_sg(chan, sg, sg, periods, direction,
+ 			  DMA_PREP_INTERRUPT);
+diff --git a/drivers/mmc/card/queue.c b/drivers/mmc/card/queue.c
+index 236d194c2883..127f76294e71 100644
+--- a/drivers/mmc/card/queue.c
++++ b/drivers/mmc/card/queue.c
+@@ -469,7 +469,7 @@ static unsigned int mmc_queue_packed_map_sg(struct mmc_queue *mq,
+ 			sg_set_buf(__sg, buf + offset, len);
+ 			offset += len;
+ 			remain -= len;
+-			(__sg++)->page_link &= ~0x02;
++			sg_unmark_end(__sg++);
+ 			sg_len++;
+ 		} while (remain);
+ 	}
+@@ -477,7 +477,7 @@ static unsigned int mmc_queue_packed_map_sg(struct mmc_queue *mq,
+ 	list_for_each_entry(req, &packed->list, queuelist) {
+ 		sg_len += blk_rq_map_sg(mq->queue, req, __sg);
+ 		__sg = sg + (sg_len - 1);
+-		(__sg++)->page_link &= ~0x02;
++		sg_unmark_end(__sg++);
+ 	}
+ 	sg_mark_end(sg + (sg_len - 1));
+ 	return sg_len;
+diff --git a/include/asm-generic/scatterlist.h b/include/asm-generic/scatterlist.h
+index 5de07355fad4..959f51572a8e 100644
+--- a/include/asm-generic/scatterlist.h
++++ b/include/asm-generic/scatterlist.h
+@@ -7,8 +7,17 @@ struct scatterlist {
+ #ifdef CONFIG_DEBUG_SG
+ 	unsigned long	sg_magic;
+ #endif
++#ifdef CONFIG_HAVE_DMA_PFN
++	union {
++		__pfn_t pfn;
++		struct scatterlist *next;
++	};
++	unsigned short	offset;
++	unsigned short	sg_flags;
++#else
+ 	unsigned long	page_link;
+ 	unsigned int	offset;
++#endif
+ 	unsigned int	length;
+ 	dma_addr_t	dma_address;
+ #ifdef CONFIG_NEED_SG_DMA_LENGTH
+diff --git a/include/crypto/scatterwalk.h b/include/crypto/scatterwalk.h
+index 20e4226a2e14..7296d89a50b2 100644
+--- a/include/crypto/scatterwalk.h
++++ b/include/crypto/scatterwalk.h
+@@ -25,6 +25,15 @@
+ #include <linux/scatterlist.h>
+ #include <linux/sched.h>
+ 
++#ifdef CONFIG_HAVE_DMA_PFN
++/*
++ * If we're using PFNs, the architecture must also have been converted to
++ * support SG_CHAIN.  So we can use the generic code instead of custom
++ * code.
++ */
++#define scatterwalk_sg_chain(prv, num, sgl)	sg_chain(prv, num, sgl)
++#define scatterwalk_sg_next(sgl)		sg_next(sgl)
++#else
+ static inline void scatterwalk_sg_chain(struct scatterlist *sg1, int num,
+ 					struct scatterlist *sg2)
+ {
+@@ -32,6 +41,7 @@ static inline void scatterwalk_sg_chain(struct scatterlist *sg1, int num,
+ 	sg1[num - 1].page_link &= ~0x02;
+ 	sg1[num - 1].page_link |= 0x01;
+ }
++#endif
+ 
+ static inline void scatterwalk_crypto_chain(struct scatterlist *head,
+ 					    struct scatterlist *sg,
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index ed8f9e70df9b..9d423e559bdb 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -5,6 +5,7 @@
+ #include <linux/bug.h>
+ #include <linux/mm.h>
+ 
++#include <asm/page.h>
+ #include <asm/types.h>
+ #include <asm/scatterlist.h>
+ #include <asm/io.h>
+@@ -18,8 +19,14 @@ struct sg_table {
+ /*
+  * Notes on SG table design.
+  *
+- * Architectures must provide an unsigned long page_link field in the
+- * scatterlist struct. We use that to place the page pointer AND encode
++ * Architectures may define CONFIG_HAVE_DMA_PFN to indicate that they wish
++ * to support SGLs that point to pages which do not have a struct page to
++ * describe them.  If so, they should provide an sg_flags field in their
++ * scatterlist struct (see asm-generic for an example) as well as a pfn
++ * field.
++ *
++ * Otherwise, architectures must provide an unsigned long page_link field in
++ * the scatterlist struct. We use that to place the page pointer AND encode
+  * information about the sg table as well. The two lower bits are reserved
+  * for this information.
+  *
+@@ -33,16 +40,25 @@ struct sg_table {
+  */
+ 
+ #define SG_MAGIC	0x87654321
+-
++#define SG_FLAGS_CHAIN	0x0001
++#define SG_FLAGS_LAST	0x0002
++#define SG_FLAGS_PAGE	0x0004
++
++#ifdef CONFIG_HAVE_DMA_PFN
++#define sg_is_chain(sg)		((sg)->sg_flags & SG_FLAGS_CHAIN)
++#define sg_is_last(sg)		((sg)->sg_flags & SG_FLAGS_LAST)
++#define sg_chain_ptr(sg)	((sg)->next)
++#else /* !CONFIG_HAVE_DMA_PFN */
+ /*
+  * We overload the LSB of the page pointer to indicate whether it's
+  * a valid sg entry, or whether it points to the start of a new scatterlist.
+  * Those low bits are there for everyone! (thanks mason :-)
+  */
+-#define sg_is_chain(sg)		((sg)->page_link & 0x01)
+-#define sg_is_last(sg)		((sg)->page_link & 0x02)
++#define sg_is_chain(sg)		((sg)->page_link & SG_FLAGS_CHAIN)
++#define sg_is_last(sg)		((sg)->page_link & SG_FLAGS_LAST)
+ #define sg_chain_ptr(sg)	\
+ 	((struct scatterlist *) ((sg)->page_link & ~0x03))
++#endif /* !CONFIG_HAVE_DMA_PFN */
+ 
+ /**
+  * sg_assign_page - Assign a given page to an SG entry
+@@ -56,6 +72,14 @@ struct sg_table {
+  **/
+ static inline void sg_assign_page(struct scatterlist *sg, struct page *page)
+ {
++#ifdef CONFIG_HAVE_DMA_PFN
++#ifdef CONFIG_DEBUG_SG
++	BUG_ON(sg->sg_magic != SG_MAGIC);
++	BUG_ON(sg_is_chain(sg));
++#endif
++	sg->pfn = page_to_pfn_t(page);
++	sg->sg_flags |= SG_FLAGS_PAGE;
++#else /* !CONFIG_HAVE_DMA_PFN */
+ 	unsigned long page_link = sg->page_link & 0x3;
+ 
+ 	/*
+@@ -68,6 +92,7 @@ static inline void sg_assign_page(struct scatterlist *sg, struct page *page)
+ 	BUG_ON(sg_is_chain(sg));
+ #endif
+ 	sg->page_link = page_link | (unsigned long) page;
++#endif /* !CONFIG_HAVE_DMA_PFN */
+ }
+ 
+ /**
+@@ -88,17 +113,39 @@ static inline void sg_set_page(struct scatterlist *sg, struct page *page,
+ 			       unsigned int len, unsigned int offset)
+ {
+ 	sg_assign_page(sg, page);
++	BUG_ON(offset > 65535);
+ 	sg->offset = offset;
+ 	sg->length = len;
+ }
+ 
++#ifdef CONFIG_HAVE_DMA_PFN
++static inline void sg_set_pfn(struct scatterlist *sg, __pfn_t pfn,
++			      unsigned int len, unsigned int offset)
++{
++#ifdef CONFIG_DEBUG_SG
++	BUG_ON(sg->sg_magic != SG_MAGIC);
++	BUG_ON(sg_is_chain(sg));
++#endif
++	sg->pfn = pfn;
++	BUG_ON(offset > 65535);
++	sg->offset = offset;
++	sg->sg_flags = 0;
++	sg->length = len;
++}
++#endif
++
+ static inline struct page *sg_page(struct scatterlist *sg)
+ {
+ #ifdef CONFIG_DEBUG_SG
+ 	BUG_ON(sg->sg_magic != SG_MAGIC);
+ 	BUG_ON(sg_is_chain(sg));
+ #endif
++#ifdef CONFIG_HAVE_DMA_PFN
++	BUG_ON(!(sg->sg_flags & SG_FLAGS_PAGE));
++	return __pfn_t_to_page(sg->pfn);
++#else
+ 	return (struct page *)((sg)->page_link & ~0x3);
++#endif
+ }
+ 
+ /**
+@@ -150,7 +197,12 @@ static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
+ 	 * Set lowest bit to indicate a link pointer, and make sure to clear
+ 	 * the termination bit if it happens to be set.
+ 	 */
++#ifdef CONFIG_HAVE_DMA_PFN
++	prv[prv_nents - 1].next = sgl;
++	prv[prv_nents - 1].sg_flags = SG_FLAGS_CHAIN;
++#else
+ 	prv[prv_nents - 1].page_link = ((unsigned long) sgl | 0x01) & ~0x02;
++#endif
+ }
+ 
+ /**
+@@ -170,8 +222,13 @@ static inline void sg_mark_end(struct scatterlist *sg)
+ 	/*
+ 	 * Set termination bit, clear potential chain bit
+ 	 */
+-	sg->page_link |= 0x02;
+-	sg->page_link &= ~0x01;
++#ifdef CONFIG_HAVE_DMA_PFN
++	sg->sg_flags |= SG_FLAGS_LAST;
++	sg->sg_flags &= ~SG_FLAGS_CHAIN;
++#else
++	sg->page_link |= SG_FLAGS_LAST;
++	sg->page_link &= ~SG_FLAGS_CHAIN;
++#endif
+ }
+ 
+ /**
+@@ -187,7 +244,11 @@ static inline void sg_unmark_end(struct scatterlist *sg)
+ #ifdef CONFIG_DEBUG_SG
+ 	BUG_ON(sg->sg_magic != SG_MAGIC);
+ #endif
+-	sg->page_link &= ~0x02;
++#ifdef CONFIG_HAVE_DMA_PFN
++	sg->sg_flags &= ~SG_FLAGS_LAST;
++#else
++	sg->page_link &= ~SG_FLAGS_LAST;
++#endif
+ }
+ 
+ /**
+@@ -202,7 +263,11 @@ static inline void sg_unmark_end(struct scatterlist *sg)
+  **/
+ static inline dma_addr_t sg_phys(struct scatterlist *sg)
+ {
++#ifdef CONFIG_HAVE_DMA_PFN
++	return __pfn_t_to_phys(sg->pfn) + sg->offset;
++#else
+ 	return page_to_phys(sg_page(sg)) + sg->offset;
++#endif
+ }
+ 
+ /**
+@@ -217,7 +282,15 @@ static inline dma_addr_t sg_phys(struct scatterlist *sg)
+  **/
+ static inline void *sg_virt(struct scatterlist *sg)
+ {
+-	return page_address(sg_page(sg)) + sg->offset;
++	struct page *page;
++
++#ifdef CONFIG_HAVE_DMA_PFN
++	page = __pfn_t_to_page(sg->pfn) + sg->offset;
++	BUG_ON(!page); /* don't use sg_virt() on unmapped memory */
++#else
++	page = sg_page(sg);
++#endif
++	return page_address(page) + sg->offset;
+ }
+ 
+ int sg_nents(struct scatterlist *sg);
+
