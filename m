@@ -1,329 +1,120 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v2 06/10] scatterlist: support "page-less" (__pfn_t only)
- entries
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 06 May 2015 16:05:28 -0400
-Message-ID: <20150506200528.40425.86401.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 12 May 2015 10:47:54 -0400
+From: Jerome Glisse <j.glisse@gmail.com>
+Subject: Re: "Directly mapped persistent memory page cache"
+Message-ID: <20150512144752.GA4003@gmail.com>
+References: <20150507191107.GB22952@gmail.com>
+ <554CBE17.4070904@redhat.com>
+ <20150508140556.GA2185@gmail.com>
+ <21836.51957.715473.780762@quad.stoffel.home>
+ <CA+55aFw70B=mDXVpvsJez6p=YTGBXknNgMHHqB54pKk+Eook9w@mail.gmail.com>
+ <554CEB5D.90209@redhat.com>
+ <20150509084510.GA10587@gmail.com>
+ <20150511082536.GP4327@dastard>
+ <20150511091836.GA29191@gmail.com>
+ <20150512005347.GQ4327@dastard>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20150512005347.GQ4327@dastard>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, mingo@kernel.org, mgorman@suse.de, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, akpm@linux-foundation.org, hch@lst.de
+To: Dave Chinner <david@fromorbit.com>
+Cc: Ingo Molnar <mingo@kernel.org>, Rik van Riel <riel@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, John Stoffel <john@stoffel.org>, Dave Hansen <dave.hansen@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Boaz Harrosh <boaz@plexistor.com>, Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, Neil Brown <neilb@suse.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Chris Mason <clm@fb.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Jens Axboe <axboe@kernel.dk>, Theodore Ts'o <tytso@mit.edu>, "Martin K. Petersen" <martin.petersen@oracle.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Tejun Heo <tj@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <willy@linux.intel.com>
+On Tue, May 12, 2015 at 10:53:47AM +1000, Dave Chinner wrote:
+> On Mon, May 11, 2015 at 11:18:36AM +0200, Ingo Molnar wrote:
+> 
+> > > And, of course, different platforms have different page sizes, so 
+> > > designing page array structures to be optimal for x86-64 is just a 
+> > > wee bit premature.
+> > 
+> > 4K is the smallest one on x86 and ARM, and it's also a IMHO pretty 
+> > sane default from a human workflow point of view.
+> > 
+> > But oddball configs with larger page sizes could also be supported at 
+> > device creation time (via a simple superblock structure).
+> 
+> Ok, so now I know it's volatile, why do we need a persistent
+> superblock? Why is *anything* persistent required?  And why would
+> page size matter if the reserved area is volatile?
+> 
+> And if it is volatile, then the kernel is effectively doing dynamic
+> allocation and initialisation of the struct pages, so why wouldn't
+> we just do dynamic allocation out of a slab cache in RAM and free
+> them when the last reference to the page goes away? Applications
+> aren't going to be able to reference every page in persistent
+> memory at the same time...
+> 
+> Keep in mind we need to design for tens of TB of PRAM at minimum
+> (400GB NVDIMMS and tens of them in a single machine are not that far
+> away), so static arrays of structures that index 4k blocks is not a
+> design that scales to these sizes - it's like using 1980s filesystem
+> algorithms for a new filesystem designed for tens of terabytes of
+> storage - it can be made to work, but it's just not efficient or
+> scalable in the long term.
 
-Given that an offset will never be more than PAGE_SIZE, steal the unused
-bits of the offset to implement a flags field.  Move the existing "this
-is a sg_chain() entry" flag to the new flags field, and add a new flag
-(SG_FLAGS_PAGE) to indicate that there is a struct page backing for the
-entry.
+On having easy pfn<->struct page relation i would agree with Ingo. I
+thin it is important. For instance in my case when migrating system
+memory to device memory i store a pfn in special swap entry. While
+right now i use my own adhoc structure i would rather directly use
+a struct page that i can easily find back from the pfn.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
----
- block/blk-merge.c                 |    2 -
- drivers/dma/ste_dma40.c           |    5 --
- drivers/mmc/card/queue.c          |    4 +-
- include/asm-generic/scatterlist.h |    9 ++++
- include/crypto/scatterwalk.h      |   10 ++++
- include/linux/scatterlist.h       |   91 +++++++++++++++++++++++++++++++++----
- 6 files changed, 105 insertions(+), 16 deletions(-)
+In the scheme i proposed you only need to allocate PUD & PMD directory
+and use a huge zero page map read only for the whole array at boot time.
+When you need a struct page for a given pfn you allocate 2 page, one for
+the PMD directory and one for the struct page array for given range of
+pfn. Once the struct page is no longer needed you free both page and
+turn back to the zero huge page.
 
-diff --git a/block/blk-merge.c b/block/blk-merge.c
-index 218ad1e57a49..82a688551b72 100644
---- a/block/blk-merge.c
-+++ b/block/blk-merge.c
-@@ -267,7 +267,7 @@ int blk_rq_map_sg(struct request_queue *q, struct request *rq,
- 		if (rq->cmd_flags & REQ_WRITE)
- 			memset(q->dma_drain_buffer, 0, q->dma_drain_size);
- 
--		sg->page_link &= ~0x02;
-+		sg_unmark_end(sg);
- 		sg = sg_next(sg);
- 		sg_set_page(sg, virt_to_page(q->dma_drain_buffer),
- 			    q->dma_drain_size,
-diff --git a/drivers/dma/ste_dma40.c b/drivers/dma/ste_dma40.c
-index 3c10f034d4b9..e8c00642cacb 100644
---- a/drivers/dma/ste_dma40.c
-+++ b/drivers/dma/ste_dma40.c
-@@ -2562,10 +2562,7 @@ dma40_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t dma_addr,
- 		dma_addr += period_len;
- 	}
- 
--	sg[periods].offset = 0;
--	sg_dma_len(&sg[periods]) = 0;
--	sg[periods].page_link =
--		((unsigned long)sg | 0x01) & ~0x02;
-+	sg_chain(sg, periods + 1, sg);
- 
- 	txd = d40_prep_sg(chan, sg, sg, periods, direction,
- 			  DMA_PREP_INTERRUPT);
-diff --git a/drivers/mmc/card/queue.c b/drivers/mmc/card/queue.c
-index 236d194c2883..127f76294e71 100644
---- a/drivers/mmc/card/queue.c
-+++ b/drivers/mmc/card/queue.c
-@@ -469,7 +469,7 @@ static unsigned int mmc_queue_packed_map_sg(struct mmc_queue *mq,
- 			sg_set_buf(__sg, buf + offset, len);
- 			offset += len;
- 			remain -= len;
--			(__sg++)->page_link &= ~0x02;
-+			sg_unmark_end(__sg++);
- 			sg_len++;
- 		} while (remain);
- 	}
-@@ -477,7 +477,7 @@ static unsigned int mmc_queue_packed_map_sg(struct mmc_queue *mq,
- 	list_for_each_entry(req, &packed->list, queuelist) {
- 		sg_len += blk_rq_map_sg(mq->queue, req, __sg);
- 		__sg = sg + (sg_len - 1);
--		(__sg++)->page_link &= ~0x02;
-+		sg_unmark_end(__sg++);
- 	}
- 	sg_mark_end(sg + (sg_len - 1));
- 	return sg_len;
-diff --git a/include/asm-generic/scatterlist.h b/include/asm-generic/scatterlist.h
-index 5de07355fad4..959f51572a8e 100644
---- a/include/asm-generic/scatterlist.h
-+++ b/include/asm-generic/scatterlist.h
-@@ -7,8 +7,17 @@ struct scatterlist {
- #ifdef CONFIG_DEBUG_SG
- 	unsigned long	sg_magic;
- #endif
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	union {
-+		__pfn_t pfn;
-+		struct scatterlist *next;
-+	};
-+	unsigned short	offset;
-+	unsigned short	sg_flags;
-+#else
- 	unsigned long	page_link;
- 	unsigned int	offset;
-+#endif
- 	unsigned int	length;
- 	dma_addr_t	dma_address;
- #ifdef CONFIG_NEED_SG_DMA_LENGTH
-diff --git a/include/crypto/scatterwalk.h b/include/crypto/scatterwalk.h
-index 20e4226a2e14..7296d89a50b2 100644
---- a/include/crypto/scatterwalk.h
-+++ b/include/crypto/scatterwalk.h
-@@ -25,6 +25,15 @@
- #include <linux/scatterlist.h>
- #include <linux/sched.h>
- 
-+#ifdef CONFIG_HAVE_DMA_PFN
-+/*
-+ * If we're using PFNs, the architecture must also have been converted to
-+ * support SG_CHAIN.  So we can use the generic code instead of custom
-+ * code.
-+ */
-+#define scatterwalk_sg_chain(prv, num, sgl)	sg_chain(prv, num, sgl)
-+#define scatterwalk_sg_next(sgl)		sg_next(sgl)
-+#else
- static inline void scatterwalk_sg_chain(struct scatterlist *sg1, int num,
- 					struct scatterlist *sg2)
- {
-@@ -32,6 +41,7 @@ static inline void scatterwalk_sg_chain(struct scatterlist *sg1, int num,
- 	sg1[num - 1].page_link &= ~0x02;
- 	sg1[num - 1].page_link |= 0x01;
- }
-+#endif
- 
- static inline void scatterwalk_crypto_chain(struct scatterlist *head,
- 					    struct scatterlist *sg,
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index ed8f9e70df9b..9d423e559bdb 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -5,6 +5,7 @@
- #include <linux/bug.h>
- #include <linux/mm.h>
- 
-+#include <asm/page.h>
- #include <asm/types.h>
- #include <asm/scatterlist.h>
- #include <asm/io.h>
-@@ -18,8 +19,14 @@ struct sg_table {
- /*
-  * Notes on SG table design.
-  *
-- * Architectures must provide an unsigned long page_link field in the
-- * scatterlist struct. We use that to place the page pointer AND encode
-+ * Architectures may define CONFIG_HAVE_DMA_PFN to indicate that they wish
-+ * to support SGLs that point to pages which do not have a struct page to
-+ * describe them.  If so, they should provide an sg_flags field in their
-+ * scatterlist struct (see asm-generic for an example) as well as a pfn
-+ * field.
-+ *
-+ * Otherwise, architectures must provide an unsigned long page_link field in
-+ * the scatterlist struct. We use that to place the page pointer AND encode
-  * information about the sg table as well. The two lower bits are reserved
-  * for this information.
-  *
-@@ -33,16 +40,25 @@ struct sg_table {
-  */
- 
- #define SG_MAGIC	0x87654321
--
-+#define SG_FLAGS_CHAIN	0x0001
-+#define SG_FLAGS_LAST	0x0002
-+#define SG_FLAGS_PAGE	0x0004
-+
-+#ifdef CONFIG_HAVE_DMA_PFN
-+#define sg_is_chain(sg)		((sg)->sg_flags & SG_FLAGS_CHAIN)
-+#define sg_is_last(sg)		((sg)->sg_flags & SG_FLAGS_LAST)
-+#define sg_chain_ptr(sg)	((sg)->next)
-+#else /* !CONFIG_HAVE_DMA_PFN */
- /*
-  * We overload the LSB of the page pointer to indicate whether it's
-  * a valid sg entry, or whether it points to the start of a new scatterlist.
-  * Those low bits are there for everyone! (thanks mason :-)
-  */
--#define sg_is_chain(sg)		((sg)->page_link & 0x01)
--#define sg_is_last(sg)		((sg)->page_link & 0x02)
-+#define sg_is_chain(sg)		((sg)->page_link & SG_FLAGS_CHAIN)
-+#define sg_is_last(sg)		((sg)->page_link & SG_FLAGS_LAST)
- #define sg_chain_ptr(sg)	\
- 	((struct scatterlist *) ((sg)->page_link & ~0x03))
-+#endif /* !CONFIG_HAVE_DMA_PFN */
- 
- /**
-  * sg_assign_page - Assign a given page to an SG entry
-@@ -56,6 +72,14 @@ struct sg_table {
-  **/
- static inline void sg_assign_page(struct scatterlist *sg, struct page *page)
- {
-+#ifdef CONFIG_HAVE_DMA_PFN
-+#ifdef CONFIG_DEBUG_SG
-+	BUG_ON(sg->sg_magic != SG_MAGIC);
-+	BUG_ON(sg_is_chain(sg));
-+#endif
-+	sg->pfn = page_to_pfn_t(page);
-+	sg->sg_flags |= SG_FLAGS_PAGE;
-+#else /* !CONFIG_HAVE_DMA_PFN */
- 	unsigned long page_link = sg->page_link & 0x3;
- 
- 	/*
-@@ -68,6 +92,7 @@ static inline void sg_assign_page(struct scatterlist *sg, struct page *page)
- 	BUG_ON(sg_is_chain(sg));
- #endif
- 	sg->page_link = page_link | (unsigned long) page;
-+#endif /* !CONFIG_HAVE_DMA_PFN */
- }
- 
- /**
-@@ -88,17 +113,39 @@ static inline void sg_set_page(struct scatterlist *sg, struct page *page,
- 			       unsigned int len, unsigned int offset)
- {
- 	sg_assign_page(sg, page);
-+	BUG_ON(offset > 65535);
- 	sg->offset = offset;
- 	sg->length = len;
- }
- 
-+#ifdef CONFIG_HAVE_DMA_PFN
-+static inline void sg_set_pfn(struct scatterlist *sg, __pfn_t pfn,
-+			      unsigned int len, unsigned int offset)
-+{
-+#ifdef CONFIG_DEBUG_SG
-+	BUG_ON(sg->sg_magic != SG_MAGIC);
-+	BUG_ON(sg_is_chain(sg));
-+#endif
-+	sg->pfn = pfn;
-+	BUG_ON(offset > 65535);
-+	sg->offset = offset;
-+	sg->sg_flags = 0;
-+	sg->length = len;
-+}
-+#endif
-+
- static inline struct page *sg_page(struct scatterlist *sg)
- {
- #ifdef CONFIG_DEBUG_SG
- 	BUG_ON(sg->sg_magic != SG_MAGIC);
- 	BUG_ON(sg_is_chain(sg));
- #endif
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	BUG_ON(!(sg->sg_flags & SG_FLAGS_PAGE));
-+	return __pfn_t_to_page(sg->pfn);
-+#else
- 	return (struct page *)((sg)->page_link & ~0x3);
-+#endif
- }
- 
- /**
-@@ -150,7 +197,12 @@ static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
- 	 * Set lowest bit to indicate a link pointer, and make sure to clear
- 	 * the termination bit if it happens to be set.
- 	 */
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	prv[prv_nents - 1].next = sgl;
-+	prv[prv_nents - 1].sg_flags = SG_FLAGS_CHAIN;
-+#else
- 	prv[prv_nents - 1].page_link = ((unsigned long) sgl | 0x01) & ~0x02;
-+#endif
- }
- 
- /**
-@@ -170,8 +222,13 @@ static inline void sg_mark_end(struct scatterlist *sg)
- 	/*
- 	 * Set termination bit, clear potential chain bit
- 	 */
--	sg->page_link |= 0x02;
--	sg->page_link &= ~0x01;
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	sg->sg_flags |= SG_FLAGS_LAST;
-+	sg->sg_flags &= ~SG_FLAGS_CHAIN;
-+#else
-+	sg->page_link |= SG_FLAGS_LAST;
-+	sg->page_link &= ~SG_FLAGS_CHAIN;
-+#endif
- }
- 
- /**
-@@ -187,7 +244,11 @@ static inline void sg_unmark_end(struct scatterlist *sg)
- #ifdef CONFIG_DEBUG_SG
- 	BUG_ON(sg->sg_magic != SG_MAGIC);
- #endif
--	sg->page_link &= ~0x02;
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	sg->sg_flags &= ~SG_FLAGS_LAST;
-+#else
-+	sg->page_link &= ~SG_FLAGS_LAST;
-+#endif
- }
- 
- /**
-@@ -202,7 +263,11 @@ static inline void sg_unmark_end(struct scatterlist *sg)
-  **/
- static inline dma_addr_t sg_phys(struct scatterlist *sg)
- {
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	return __pfn_t_to_phys(sg->pfn) + sg->offset;
-+#else
- 	return page_to_phys(sg_page(sg)) + sg->offset;
-+#endif
- }
- 
- /**
-@@ -217,7 +282,15 @@ static inline dma_addr_t sg_phys(struct scatterlist *sg)
-  **/
- static inline void *sg_virt(struct scatterlist *sg)
- {
--	return page_address(sg_page(sg)) + sg->offset;
-+	struct page *page;
-+
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	page = __pfn_t_to_page(sg->pfn) + sg->offset;
-+	BUG_ON(!page); /* don't use sg_virt() on unmapped memory */
-+#else
-+	page = sg_page(sg);
-+#endif
-+	return page_address(page) + sg->offset;
- }
- 
- int sg_nents(struct scatterlist *sg);
+So you get dynamic allocation and keep the nice pfn<->struct page mapping
+working.
 
+> 
+> As an example, look at the current problems with scaling the
+> initialisation for struct pages for large memory machines - 16TB
+> machines are taking 10 minutes just to initialise the struct page
+> arrays on startup. That's the scale of overhead that static page
+> arrays will have for PRAM, whether they are lazily initialised or
+> not. IOWs, static page arrays are not scalable, and hence aren't a
+> viable long term solution to the PRAM problem.
+
+With solution i describe above all you need to initialize is PUD & PMD
+directory to point to a zero huge page. I would think this should be
+fast enough even for 1TB 2^(40 - 12 - 9 - 9) = 2^10 so you need 1024
+PUD and 512K PMD (4M of PUD and 256M of PMD). You can even directly
+share PMD and have to dynamicly allocate 3 pages (1 for the PMD level,
+1 for the PTE level, 1 for struct page array) effectively reducing to
+static 4M allocation for all PUD. Rest being dynamicly allocated/freed
+upon useage.
+
+> IMO, we need to be designing around the concept that the filesytem
+> manages the pmem space, and the MM subsystem simply uses the block
+> mapping information provided to it from the filesystem to decide how
+> it references and maps the regions into the user's address space or
+> for DMA. The mm subsystem does not manage the pmem space, it's
+> alignment or how it is allocated to user files. Hence page mappings
+> can only be - at best - reactive to what the filesystem does with
+> it's free space. The mm subsystem already has to query the block
+> layer to get mappings on page faults, so it's only a small stretch
+> to enhance the DAX mapping request to ask for a large page mapping
+> rather than a 4k mapping.  If the fs can't do a large page mapping,
+> you'll get a 4k aligned mapping back.
+> 
+> What I'm trying to say is that the mapping behaviour needs to be
+> designed with the way filesystems and the mm subsystem interact in
+> mind, not from a pre-formed "direct Io is bad, we must use the page
+> cache" point of view. The filesystem and the mm subsystem must
+> co-operate to allow things like large page mappings to be made and
+> hence looking at the problem purely from a mm<->pmem device
+> perspective as you are ignores an important chunk of the system:
+> the part that actually manages the pmem space...
+
+I am all for letting the filesystem manage pmem, but i think having
+struct page expose to mm allow the mm side to stay ignorant of what
+is really behind. Also if i could share more code with other i would
+be happier :)
+
+Cheers,
+J�r�me
