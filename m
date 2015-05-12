@@ -1,166 +1,134 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 01/10] arch: introduce __pfn_t for persistent memory i/o
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Subject: [PATCH v3 05/11] scatterlist: use sg_phys()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 06 May 2015 16:04:59 -0400
-Message-ID: <20150506200459.40425.80269.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 12 May 2015 00:29:56 -0400
+Message-ID: <20150512042956.11521.32457.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, mingo@kernel.org, linux-fsdevel@vger.kernel.org, mgorman@suse.de, "H. Peter Anvin" <hpa@zytor.com>, Tejun Heo <tj@kernel.org>, akpm@linux-foundation.org, Linus Torvalds <torvalds@linux-foundation.org>, hch@lst.de
+Cc: linux-arch@vger.kernel.org, axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, david@fromorbit.com, hch@lst.de, Julia Lawall <Julia.Lawall@lip6.fr>, mgorman@suse.de, j.glisse@gmail.com, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Introduce a type that encapsulates a page-frame-number that is
-optionally backed by memmap (struct page).  This type will be used in
-place of 'struct page *' instances in contexts where persistent memory
-is being referenced (scatterlists for drivers, biovecs for the block
-layer, etc).  The operations in those i/o paths that formerly required a
-'struct page *' are to be converted to use __pfn_t aware equivalent
-helpers.  Otherwise, in the absence of persistent memory, there is no
-functional change and __pfn_t is an alias for a normal memory page.
+Coccinelle cleanup to replace open coded sg to physical address
+translations.  This is in preparation for introducing scatterlists that
+reference pfn(s) without a backing struct page.
 
-It turns out that while 'struct page' references are used broadly in the
-kernel I/O stacks the usage of 'struct page' based capabilities is very
-shallow.  It is only used for populating bio_vecs and scatterlists for
-the retrieval of dma addresses, and for temporary kernel mappings
-(kmap).  Aside from kmap, these usages can be trivially converted to
-operate on a pfn.
+// sg_phys.cocci: convert usage page_to_phys(sg_page(sg)) to sg_phys(sg)
+// usage: make coccicheck COCCI=sg_phys.cocci MODE=patch
 
-Indeed, kmap_atomic() is more problematic as it uses mm infrastructure,
-via struct page, to setup and track temporary kernel mappings.  It would
-be unfortunate if the kmap infrastructure escaped its 32-bit/HIGHMEM
-bonds and leaked into 64-bit code.  Thankfully, it seems all that is
-needed here is to convert kmap_atomic() callers, that want to opt-in to
-supporting persistent memory, to use a new kmap_atomic_pfn_t().  Where
-kmap_atomic_pfn_t() is enabled to re-use the existing ioremap() mapping
-established by the driver for persistent memory.
+virtual patch
+virtual report
+virtual org
 
-Note, that as far as conceptually understanding __pfn_t is concerned,
-'persistent memory' is really any address range in host memory not
-covered by memmap.  Contrast this with pure iomem that is on an mmio
-mapped bus like PCI and cannot be converted to a dma_addr_t by "pfn <<
-PAGE_SHIFT".
+@@
+struct scatterlist *sg;
+@@
 
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+- page_to_phys(sg_page(sg)) + sg->offset
++ sg_phys(sg)
+
+@@
+struct scatterlist *sg;
+@@
+
+- page_to_phys(sg_page(sg))
++ sg_phys(sg) - sg->offset
+
+Cc: Julia Lawall <Julia.Lawall@lip6.fr>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/asm-generic/memory_model.h |    1 -
- include/asm-generic/pfn.h          |   51 ++++++++++++++++++++++++++++++++++++
- include/linux/mm.h                 |    1 +
- init/Kconfig                       |   13 +++++++++
- 4 files changed, 65 insertions(+), 1 deletion(-)
- create mode 100644 include/asm-generic/pfn.h
+ arch/arm/mm/dma-mapping.c                    |    2 +-
+ arch/microblaze/kernel/dma.c                 |    2 +-
+ drivers/iommu/intel-iommu.c                  |    4 ++--
+ drivers/iommu/iommu.c                        |    2 +-
+ drivers/staging/android/ion/ion_chunk_heap.c |    4 ++--
+ 5 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/include/asm-generic/memory_model.h b/include/asm-generic/memory_model.h
-index 14909b0b9cae..1b0ae21fd8ff 100644
---- a/include/asm-generic/memory_model.h
-+++ b/include/asm-generic/memory_model.h
-@@ -70,7 +70,6 @@
- #endif /* CONFIG_FLATMEM/DISCONTIGMEM/SPARSEMEM */
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index 09c5fe3d30c2..43cc6a8fdacc 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -1502,7 +1502,7 @@ static int __map_sg_chunk(struct device *dev, struct scatterlist *sg,
+ 		return -ENOMEM;
  
- #define page_to_pfn __page_to_pfn
--#define pfn_to_page __pfn_to_page
+ 	for (count = 0, s = sg; count < (size >> PAGE_SHIFT); s = sg_next(s)) {
+-		phys_addr_t phys = page_to_phys(sg_page(s));
++		phys_addr_t phys = sg_phys(s) - s->offset;
+ 		unsigned int len = PAGE_ALIGN(s->offset + s->length);
  
- #endif /* __ASSEMBLY__ */
+ 		if (!is_coherent &&
+diff --git a/arch/microblaze/kernel/dma.c b/arch/microblaze/kernel/dma.c
+index ed7ba8a11822..dcb3c594d626 100644
+--- a/arch/microblaze/kernel/dma.c
++++ b/arch/microblaze/kernel/dma.c
+@@ -61,7 +61,7 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
+ 	/* FIXME this part of code is untested */
+ 	for_each_sg(sgl, sg, nents, i) {
+ 		sg->dma_address = sg_phys(sg);
+-		__dma_sync(page_to_phys(sg_page(sg)) + sg->offset,
++		__dma_sync(sg_phys(sg),
+ 							sg->length, direction);
+ 	}
  
-diff --git a/include/asm-generic/pfn.h b/include/asm-generic/pfn.h
-new file mode 100644
-index 000000000000..91171e0285d9
---- /dev/null
-+++ b/include/asm-generic/pfn.h
-@@ -0,0 +1,51 @@
-+#ifndef __ASM_PFN_H
-+#define __ASM_PFN_H
-+
-+#ifndef __pfn_to_phys
-+#define __pfn_to_phys(pfn)      ((dma_addr_t)(pfn) << PAGE_SHIFT)
-+#endif
-+
-+static inline struct page *pfn_to_page(unsigned long pfn)
-+{
-+	return __pfn_to_page(pfn);
-+}
-+
-+/*
-+ * __pfn_t: encapsulates a page-frame number that is optionally backed
-+ * by memmap (struct page).  This type will be used in place of a
-+ * 'struct page *' instance in contexts where unmapped memory (usually
-+ * persistent memory) is being referenced (scatterlists for drivers,
-+ * biovecs for the block layer, etc).
-+ */
-+typedef struct {
-+	union {
-+		unsigned long pfn;
-+		struct page *page;
-+	};
-+} __pfn_t;
-+
-+static inline struct page *__pfn_t_to_page(__pfn_t pfn)
-+{
-+#if IS_ENABLED(CONFIG_PMEM_IO)
-+	if (pfn.pfn < PAGE_OFFSET)
-+		return NULL;
-+#endif
-+	return pfn.page;
-+}
-+
-+static inline dma_addr_t __pfn_t_to_phys(__pfn_t pfn)
-+{
-+#if IS_ENABLED(CONFIG_PMEM_IO)
-+	if (pfn.pfn < PAGE_OFFSET)
-+		return __pfn_to_phys(pfn.pfn);
-+#endif
-+	return __pfn_to_phys(page_to_pfn(pfn.page));
-+}
-+
-+static inline __pfn_t page_to_pfn_t(struct page *page)
-+{
-+	__pfn_t pfn = { .page = page };
-+
-+	return pfn;
-+}
-+#endif /* __ASM_PFN_H */
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 0755b9fd03a7..9d35cff41c12 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -52,6 +52,7 @@ extern int sysctl_legacy_va_layout;
- #include <asm/page.h>
- #include <asm/pgtable.h>
- #include <asm/processor.h>
-+#include <asm-generic/pfn.h>
+diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
+index 68d43beccb7e..9b9ada71e0d3 100644
+--- a/drivers/iommu/intel-iommu.c
++++ b/drivers/iommu/intel-iommu.c
+@@ -1998,7 +1998,7 @@ static int __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
+ 			sg_res = aligned_nrpages(sg->offset, sg->length);
+ 			sg->dma_address = ((dma_addr_t)iov_pfn << VTD_PAGE_SHIFT) + sg->offset;
+ 			sg->dma_length = sg->length;
+-			pteval = page_to_phys(sg_page(sg)) | prot;
++			pteval = (sg_phys(sg) - sg->offset) | prot;
+ 			phys_pfn = pteval >> VTD_PAGE_SHIFT;
+ 		}
  
- #ifndef __pa_symbol
- #define __pa_symbol(x)  __pa(RELOC_HIDE((unsigned long)(x), 0))
-diff --git a/init/Kconfig b/init/Kconfig
-index dc24dec60232..7d2ad350fd29 100644
---- a/init/Kconfig
-+++ b/init/Kconfig
-@@ -1764,6 +1764,19 @@ config PROFILING
- 	  Say Y here to enable the extended profiling support mechanisms used
- 	  by profilers such as OProfile.
+@@ -3302,7 +3302,7 @@ static int intel_nontranslate_map_sg(struct device *hddev,
  
-+config PMEM_IO
-+	default n
-+	bool "Support for I/O, DAX, DMA, RDMA to unmapped (persistent) memory" if EXPERT
-+	help
-+	  Say Y here to enable the Block and Networking stacks to
-+	  reference memory that is not mapped.  This is usually the
-+	  case if you have large quantities of persistent memory
-+	  relative to DRAM.  Enabling this option may increase the
-+	  kernel size by a few kilobytes as it instructs the kernel
-+	  that a __pfn_t may reference unmapped memory.  Disabling
-+	  this option instructs the kernel that a __pfn_t always
-+	  references mapped memory.
-+
- #
- # Place an empty function call at each tracepoint site. Can be
- # dynamically changed for a probe function.
+ 	for_each_sg(sglist, sg, nelems, i) {
+ 		BUG_ON(!sg_page(sg));
+-		sg->dma_address = page_to_phys(sg_page(sg)) + sg->offset;
++		sg->dma_address = sg_phys(sg);
+ 		sg->dma_length = sg->length;
+ 	}
+ 	return nelems;
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index d4f527e56679..59808fc9110d 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -1147,7 +1147,7 @@ size_t default_iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
+ 	min_pagesz = 1 << __ffs(domain->ops->pgsize_bitmap);
+ 
+ 	for_each_sg(sg, s, nents, i) {
+-		phys_addr_t phys = page_to_phys(sg_page(s)) + s->offset;
++		phys_addr_t phys = sg_phys(s);
+ 
+ 		/*
+ 		 * We are mapping on IOMMU page boundaries, so offset within
+diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
+index 3e6ec2ee6802..b7da5d142aa9 100644
+--- a/drivers/staging/android/ion/ion_chunk_heap.c
++++ b/drivers/staging/android/ion/ion_chunk_heap.c
+@@ -81,7 +81,7 @@ static int ion_chunk_heap_allocate(struct ion_heap *heap,
+ err:
+ 	sg = table->sgl;
+ 	for (i -= 1; i >= 0; i--) {
+-		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
++		gen_pool_free(chunk_heap->pool, sg_phys(sg) - sg->offset,
+ 			      sg->length);
+ 		sg = sg_next(sg);
+ 	}
+@@ -109,7 +109,7 @@ static void ion_chunk_heap_free(struct ion_buffer *buffer)
+ 							DMA_BIDIRECTIONAL);
+ 
+ 	for_each_sg(table->sgl, sg, table->nents, i) {
+-		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
++		gen_pool_free(chunk_heap->pool, sg_phys(sg) - sg->offset,
+ 			      sg->length);
+ 	}
+ 	chunk_heap->allocated -= allocated_size;
 
