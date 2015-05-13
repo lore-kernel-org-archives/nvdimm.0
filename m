@@ -1,502 +1,298 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v4 04/21] libnd, nfit: dimm/memory-devices
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 27 May 2015 18:25:04 -0400
-Message-ID: <20150527222504.17965.75016.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@kernel.dk
-Cc: mingo@kernel.org, sfr@canb.auug.org.au, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, akpm@linux-foundation.org, hch@lst.de
+Return-Path: <owner-linux-mm@kvack.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v9 5/10] arch/*/asm/io.h: Add ioremap_wt() to all architectures
+Date: Wed, 13 May 2015 15:05:46 -0600
+Message-Id: <1431551151-19124-6-git-send-email-toshi.kani@hp.com>
+In-Reply-To: <1431551151-19124-1-git-send-email-toshi.kani@hp.com>
+References: <1431551151-19124-1-git-send-email-toshi.kani@hp.com>
+Sender: owner-linux-mm@kvack.org
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Enable dimm devices to be registered on a libnd bus.  The kernel
-assigned device id for dimms is dynamic.  If userspace needs a more
-static identifier it should consult a provider-specific attribute.  In
-the case where NFIT is the provider, the 'nmemX/nfit/handle' or
-'nmemX/nfit/serial' attributes may be used for this purpose.
+This patch adds ioremap_wt() to all arch-specific asm/io.h which
+define ioremap_wc() locally.  These arch-specific asm/io.h do not
+include <asm-generic/iomap.h>.  Some of them include
+<asm-generic/io.h>, but ioremap_wt() is defined for consistency
+since they define all ioremap_xxx locally.
 
-Cc: Neil Brown <neilb@suse.de>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+ioremap_wt() is defined indentical to ioremap_nocache() to all
+architectures without WT support.
+
+frv and m68k already have ioremap_writethrough().  This patch
+implements ioremap_wt() indetical to ioremap_writethrough() and
+defines ARCH_HAS_IOREMAP_WT in both architectures.
+
+This patch allows generic drivers to use ioremap_wt().
+
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
- drivers/acpi/nfit.c           |  160 +++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/nfit.h           |    1 
- drivers/block/nd/Makefile     |    1 
- drivers/block/nd/bus.c        |   14 +++-
- drivers/block/nd/core.c       |   29 +++++++
- drivers/block/nd/dimm_devs.c  |   92 ++++++++++++++++++++++++
- drivers/block/nd/nd-private.h |   12 +++
- include/linux/libnd.h         |   11 +++
- 8 files changed, 318 insertions(+), 2 deletions(-)
- create mode 100644 drivers/block/nd/dimm_devs.c
+ arch/arc/include/asm/io.h        |    1 +
+ arch/arm/include/asm/io.h        |    1 +
+ arch/arm64/include/asm/io.h      |    1 +
+ arch/avr32/include/asm/io.h      |    1 +
+ arch/frv/include/asm/io.h        |    7 +++++++
+ arch/m32r/include/asm/io.h       |    1 +
+ arch/m68k/include/asm/io_mm.h    |    7 +++++++
+ arch/m68k/include/asm/io_no.h    |    6 ++++++
+ arch/metag/include/asm/io.h      |    3 +++
+ arch/microblaze/include/asm/io.h |    1 +
+ arch/mn10300/include/asm/io.h    |    1 +
+ arch/nios2/include/asm/io.h      |    1 +
+ arch/s390/include/asm/io.h       |    1 +
+ arch/sparc/include/asm/io_32.h   |    1 +
+ arch/sparc/include/asm/io_64.h   |    1 +
+ arch/tile/include/asm/io.h       |    1 +
+ arch/xtensa/include/asm/io.h     |    1 +
+ 17 files changed, 36 insertions(+)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index d31a0fffafcc..b26e1a4a59e3 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -344,6 +344,164 @@ const struct attribute_group *acpi_nfit_attribute_groups[] = {
- };
- EXPORT_SYMBOL_GPL(acpi_nfit_attribute_groups);
+diff --git a/arch/arc/include/asm/io.h b/arch/arc/include/asm/io.h
+index cabd518..7cc4ced 100644
+--- a/arch/arc/include/asm/io.h
++++ b/arch/arc/include/asm/io.h
+@@ -20,6 +20,7 @@ extern void iounmap(const void __iomem *addr);
  
-+static struct acpi_nfit_memory_map *to_nfit_memdev(struct device *dev)
-+{
-+	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
-+	struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
-+
-+	return __to_nfit_memdev(nfit_mem);
-+}
-+
-+static struct acpi_nfit_control_region *to_nfit_dcr(struct device *dev)
-+{
-+	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
-+	struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
-+
-+	return nfit_mem->dcr;
-+}
-+
-+static ssize_t handle_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_memory_map *memdev = to_nfit_memdev(dev);
-+
-+	return sprintf(buf, "%#x\n", memdev->device_handle);
-+}
-+static DEVICE_ATTR_RO(handle);
-+
-+static ssize_t phys_id_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_memory_map *memdev = to_nfit_memdev(dev);
-+
-+	return sprintf(buf, "%#x\n", memdev->physical_id);
-+}
-+static DEVICE_ATTR_RO(phys_id);
-+
-+static ssize_t vendor_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+
-+	return sprintf(buf, "%#x\n", dcr->vendor_id);
-+}
-+static DEVICE_ATTR_RO(vendor);
-+
-+static ssize_t rev_id_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+
-+	return sprintf(buf, "%#x\n", dcr->revision_id);
-+}
-+static DEVICE_ATTR_RO(rev_id);
-+
-+static ssize_t device_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+
-+	return sprintf(buf, "%#x\n", dcr->device_id);
-+}
-+static DEVICE_ATTR_RO(device);
-+
-+static ssize_t format_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+
-+	return sprintf(buf, "%#x\n", dcr->code);
-+}
-+static DEVICE_ATTR_RO(format);
-+
-+static ssize_t serial_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+
-+	return sprintf(buf, "%#x\n", dcr->serial_number);
-+}
-+static DEVICE_ATTR_RO(serial);
-+
-+static struct attribute *acpi_nfit_dimm_attributes[] = {
-+	&dev_attr_handle.attr,
-+	&dev_attr_phys_id.attr,
-+	&dev_attr_vendor.attr,
-+	&dev_attr_device.attr,
-+	&dev_attr_format.attr,
-+	&dev_attr_serial.attr,
-+	&dev_attr_rev_id.attr,
-+	NULL,
-+};
-+
-+static umode_t acpi_nfit_dimm_attr_visible(struct kobject *kobj, struct attribute *a, int n)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+
-+	if (to_nfit_dcr(dev))
-+		return a->mode;
-+	else
-+		return 0;
-+}
-+
-+static struct attribute_group acpi_nfit_dimm_attribute_group = {
-+	.name = "nfit",
-+	.attrs = acpi_nfit_dimm_attributes,
-+	.is_visible = acpi_nfit_dimm_attr_visible,
-+};
-+
-+static const struct attribute_group *acpi_nfit_dimm_attribute_groups[] = {
-+	&acpi_nfit_dimm_attribute_group,
-+	NULL,
-+};
-+
-+static struct nd_dimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
-+		u32 device_handle)
-+{
-+	struct nfit_mem *nfit_mem;
-+
-+	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list)
-+		if (__to_nfit_memdev(nfit_mem)->device_handle == device_handle)
-+			return nfit_mem->nd_dimm;
-+
-+	return NULL;
-+}
-+
-+static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
-+{
-+	struct nfit_mem *nfit_mem;
-+
-+	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+		struct nd_dimm *nd_dimm;
-+		unsigned long flags = 0;
-+		u32 device_handle;
-+
-+		device_handle = __to_nfit_memdev(nfit_mem)->device_handle;
-+		nd_dimm = acpi_nfit_dimm_by_handle(acpi_desc, device_handle);
-+		if (nd_dimm) {
-+			/*
-+			 * If for some reason we find multiple DCRs the
-+			 * first one wins
-+			 */
-+			dev_err(acpi_desc->dev, "duplicate DCR detected: %s\n",
-+					nd_dimm_name(nd_dimm));
-+			continue;
-+		}
-+
-+		if (nfit_mem->bdw && nfit_mem->memdev_pmem)
-+			flags |= NDD_ALIASING;
-+
-+		nd_dimm = nd_dimm_create(acpi_desc->nd_bus, nfit_mem,
-+				acpi_nfit_dimm_attribute_groups, flags);
-+		if (!nd_dimm)
-+			return -ENOMEM;
-+
-+		nfit_mem->nd_dimm = nd_dimm;
-+	}
-+
-+	return 0;
-+}
-+
- static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- {
- 	struct device *dev = acpi_desc->dev;
-@@ -371,7 +529,7 @@ static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- 	if (nfit_mem_init(acpi_desc) != 0)
- 		return -ENOMEM;
+ #define ioremap_nocache(phy, sz)	ioremap(phy, sz)
+ #define ioremap_wc(phy, sz)		ioremap(phy, sz)
++#define ioremap_wt(phy, sz)		ioremap(phy, sz)
  
--	return 0;
-+	return acpi_nfit_register_dimms(acpi_desc);
+ /* Change struct page to physical address */
+ #define page_to_phys(page)		(page_to_pfn(page) << PAGE_SHIFT)
+diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
+index db58deb..1b7677d 100644
+--- a/arch/arm/include/asm/io.h
++++ b/arch/arm/include/asm/io.h
+@@ -336,6 +336,7 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
+ #define ioremap_nocache(cookie,size)	__arm_ioremap((cookie), (size), MT_DEVICE)
+ #define ioremap_cache(cookie,size)	__arm_ioremap((cookie), (size), MT_DEVICE_CACHED)
+ #define ioremap_wc(cookie,size)		__arm_ioremap((cookie), (size), MT_DEVICE_WC)
++#define ioremap_wt(cookie,size)		__arm_ioremap((cookie), (size), MT_DEVICE)
+ #define iounmap				__arm_iounmap
+ 
+ /*
+diff --git a/arch/arm64/include/asm/io.h b/arch/arm64/include/asm/io.h
+index 540f7c0..7116d39 100644
+--- a/arch/arm64/include/asm/io.h
++++ b/arch/arm64/include/asm/io.h
+@@ -170,6 +170,7 @@ extern void __iomem *ioremap_cache(phys_addr_t phys_addr, size_t size);
+ #define ioremap(addr, size)		__ioremap((addr), (size), __pgprot(PROT_DEVICE_nGnRE))
+ #define ioremap_nocache(addr, size)	__ioremap((addr), (size), __pgprot(PROT_DEVICE_nGnRE))
+ #define ioremap_wc(addr, size)		__ioremap((addr), (size), __pgprot(PROT_NORMAL_NC))
++#define ioremap_wt(addr, size)		__ioremap((addr), (size), __pgprot(PROT_DEVICE_nGnRE))
+ #define iounmap				__iounmap
+ 
+ /*
+diff --git a/arch/avr32/include/asm/io.h b/arch/avr32/include/asm/io.h
+index 4f5ec2b..e998ff5 100644
+--- a/arch/avr32/include/asm/io.h
++++ b/arch/avr32/include/asm/io.h
+@@ -296,6 +296,7 @@ extern void __iounmap(void __iomem *addr);
+ 	__iounmap(addr)
+ 
+ #define ioremap_wc ioremap_nocache
++#define ioremap_wt ioremap_nocache
+ 
+ #define cached(addr) P1SEGADDR(addr)
+ #define uncached(addr) P2SEGADDR(addr)
+diff --git a/arch/frv/include/asm/io.h b/arch/frv/include/asm/io.h
+index 0b78bc8..1fe98fe 100644
+--- a/arch/frv/include/asm/io.h
++++ b/arch/frv/include/asm/io.h
+@@ -17,6 +17,8 @@
+ 
+ #ifdef __KERNEL__
+ 
++#define ARCH_HAS_IOREMAP_WT
++
+ #include <linux/types.h>
+ #include <asm/virtconvert.h>
+ #include <asm/string.h>
+@@ -270,6 +272,11 @@ static inline void __iomem *ioremap_writethrough(unsigned long physaddr, unsigne
+ 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
  }
  
- static int acpi_nfit_add(struct acpi_device *adev)
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index b6c85d773ca1..9d4c1634cb0e 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -59,6 +59,7 @@ struct nfit_memdev {
- 
- /* assembled tables for a given dimm/memory-device */
- struct nfit_mem {
-+	struct nd_dimm *nd_dimm;
- 	struct acpi_nfit_memory_map *memdev_dcr;
- 	struct acpi_nfit_memory_map *memdev_pmem;
- 	struct acpi_nfit_control_region *dcr;
-diff --git a/drivers/block/nd/Makefile b/drivers/block/nd/Makefile
-index 34d1b58b3258..2954b9543bec 100644
---- a/drivers/block/nd/Makefile
-+++ b/drivers/block/nd/Makefile
-@@ -2,3 +2,4 @@ obj-$(CONFIG_LIBND) += libnd.o
- 
- libnd-y := core.o
- libnd-y += bus.o
-+libnd-y += dimm_devs.o
-diff --git a/drivers/block/nd/bus.c b/drivers/block/nd/bus.c
-index 635f2e926426..ee56aa1ab2ad 100644
---- a/drivers/block/nd/bus.c
-+++ b/drivers/block/nd/bus.c
-@@ -13,6 +13,7 @@
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- #include <linux/uaccess.h>
- #include <linux/fcntl.h>
-+#include <linux/async.h>
- #include <linux/slab.h>
- #include <linux/fs.h>
- #include <linux/io.h>
-@@ -21,6 +22,10 @@
- static int nd_bus_major;
- static struct class *nd_class;
- 
-+struct bus_type nd_bus_type = {
-+	.name = "nd",
-+};
++static inline void __iomem *ioremap_wt(unsigned long physaddr, unsigned long size)
++{
++	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
++}
 +
- int nd_bus_create_ndctl(struct nd_bus *nd_bus)
+ static inline void __iomem *ioremap_fullcache(unsigned long physaddr, unsigned long size)
  {
- 	dev_t devt = MKDEV(nd_bus_major, nd_bus->id);
-@@ -59,9 +64,13 @@ int __init nd_bus_init(void)
- {
- 	int rc;
+ 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
+diff --git a/arch/m32r/include/asm/io.h b/arch/m32r/include/asm/io.h
+index 9cc00db..0c3f25e 100644
+--- a/arch/m32r/include/asm/io.h
++++ b/arch/m32r/include/asm/io.h
+@@ -68,6 +68,7 @@ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
+ extern void iounmap(volatile void __iomem *addr);
+ #define ioremap_nocache(off,size) ioremap(off,size)
+ #define ioremap_wc ioremap_nocache
++#define ioremap_wt ioremap_nocache
  
-+	rc = bus_register(&nd_bus_type);
-+	if (rc)
-+		return rc;
+ /*
+  * IO bus memory addresses are also 1:1 with the physical address
+diff --git a/arch/m68k/include/asm/io_mm.h b/arch/m68k/include/asm/io_mm.h
+index 8955b40..7c12138 100644
+--- a/arch/m68k/include/asm/io_mm.h
++++ b/arch/m68k/include/asm/io_mm.h
+@@ -20,6 +20,8 @@
+ 
+ #ifdef __KERNEL__
+ 
++#define ARCH_HAS_IOREMAP_WT
 +
- 	rc = register_chrdev(0, "ndctl", &nd_bus_fops);
- 	if (rc < 0)
--		return rc;
-+		goto err_chrdev;
- 	nd_bus_major = rc;
- 
- 	nd_class = class_create(THIS_MODULE, "nd");
-@@ -72,6 +81,8 @@ int __init nd_bus_init(void)
- 
-  err_class:
- 	unregister_chrdev(nd_bus_major, "ndctl");
-+ err_chrdev:
-+	bus_unregister(&nd_bus_type);
- 
- 	return rc;
+ #include <linux/compiler.h>
+ #include <asm/raw_io.h>
+ #include <asm/virtconvert.h>
+@@ -470,6 +472,11 @@ static inline void __iomem *ioremap_writethrough(unsigned long physaddr,
+ {
+ 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
  }
-@@ -80,4 +91,5 @@ void __exit nd_bus_exit(void)
++static inline void __iomem *ioremap_wt(unsigned long physaddr,
++					 unsigned long size)
++{
++	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
++}
+ static inline void __iomem *ioremap_fullcache(unsigned long physaddr,
+ 				      unsigned long size)
  {
- 	class_destroy(nd_class);
- 	unregister_chrdev(nd_bus_major, "ndctl");
-+	bus_unregister(&nd_bus_type);
- }
-diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
-index 49b7ac8f7606..4d0e53ecdcb0 100644
---- a/drivers/block/nd/core.c
-+++ b/drivers/block/nd/core.c
-@@ -46,6 +46,19 @@ struct nd_bus_descriptor *to_nd_desc(struct nd_bus *nd_bus)
- }
- EXPORT_SYMBOL_GPL(to_nd_desc);
+diff --git a/arch/m68k/include/asm/io_no.h b/arch/m68k/include/asm/io_no.h
+index a93c8cd..5fff9a2 100644
+--- a/arch/m68k/include/asm/io_no.h
++++ b/arch/m68k/include/asm/io_no.h
+@@ -3,6 +3,8 @@
  
-+struct nd_bus *walk_to_nd_bus(struct device *nd_dev)
-+{
-+	struct device *dev;
+ #ifdef __KERNEL__
+ 
++#define ARCH_HAS_IOREMAP_WT
 +
-+	for (dev = nd_dev; dev; dev = dev->parent)
-+		if (dev->release == nd_bus_release)
-+			break;
-+	dev_WARN_ONCE(nd_dev, !dev, "invalid dev, not on nd bus\n");
-+	if (dev)
-+		return to_nd_bus(dev);
-+	return NULL;
-+}
-+
- static const char *nd_bus_provider(struct nd_bus *nd_bus)
+ #include <asm/virtconvert.h>
+ #include <asm-generic/iomap.h>
+ 
+@@ -157,6 +159,10 @@ static inline void *ioremap_writethrough(unsigned long physaddr, unsigned long s
  {
- 	struct nd_bus_descriptor *nd_desc = nd_bus->nd_desc;
-@@ -118,6 +131,21 @@ struct nd_bus *nd_bus_register(struct device *parent,
+ 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
  }
- EXPORT_SYMBOL_GPL(nd_bus_register);
- 
-+static int child_unregister(struct device *dev, void *data)
++static inline void *ioremap_wt(unsigned long physaddr, unsigned long size)
 +{
-+	/*
-+	 * the singular ndctl class device per bus needs to be
-+	 * "device_destroy"ed, so skip it here
-+	 *
-+	 * i.e. remove classless children
-+	 */
-+	if (dev->class)
-+		/* pass */;
-+	else
-+		device_unregister(dev);
-+	return 0;
++	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
 +}
-+
- void nd_bus_unregister(struct nd_bus *nd_bus)
+ static inline void *ioremap_fullcache(unsigned long physaddr, unsigned long size)
  {
- 	if (!nd_bus)
-@@ -127,6 +155,7 @@ void nd_bus_unregister(struct nd_bus *nd_bus)
- 	list_del_init(&nd_bus->list);
- 	mutex_unlock(&nd_bus_list_mutex);
+ 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
+diff --git a/arch/metag/include/asm/io.h b/arch/metag/include/asm/io.h
+index d5779b0..9890f21 100644
+--- a/arch/metag/include/asm/io.h
++++ b/arch/metag/include/asm/io.h
+@@ -160,6 +160,9 @@ extern void __iounmap(void __iomem *addr);
+ #define ioremap_wc(offset, size)                \
+ 	__ioremap((offset), (size), _PAGE_WR_COMBINE)
  
-+	device_for_each_child(&nd_bus->dev, NULL, child_unregister);
- 	nd_bus_destroy_ndctl(nd_bus);
++#define ioremap_wt(offset, size)                \
++	__ioremap((offset), (size), 0)
++
+ #define iounmap(addr)                           \
+ 	__iounmap(addr)
  
- 	device_unregister(&nd_bus->dev);
-diff --git a/drivers/block/nd/dimm_devs.c b/drivers/block/nd/dimm_devs.c
-new file mode 100644
-index 000000000000..19b081392f2f
---- /dev/null
-+++ b/drivers/block/nd/dimm_devs.c
-@@ -0,0 +1,92 @@
-+/*
-+ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/device.h>
-+#include <linux/slab.h>
-+#include <linux/io.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
-+#include "nd-private.h"
-+
-+static DEFINE_IDA(dimm_ida);
-+
-+static void nd_dimm_release(struct device *dev)
-+{
-+	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
-+
-+	ida_simple_remove(&dimm_ida, nd_dimm->id);
-+	kfree(nd_dimm);
-+}
-+
-+static struct device_type nd_dimm_device_type = {
-+	.name = "nd_dimm",
-+	.release = nd_dimm_release,
-+};
-+
-+static bool is_nd_dimm(struct device *dev)
-+{
-+	return dev->type == &nd_dimm_device_type;
-+}
-+
-+struct nd_dimm *to_nd_dimm(struct device *dev)
-+{
-+	struct nd_dimm *nd_dimm = container_of(dev, struct nd_dimm, dev);
-+
-+	WARN_ON(!is_nd_dimm(dev));
-+	return nd_dimm;
-+}
-+EXPORT_SYMBOL_GPL(to_nd_dimm);
-+
-+const char *nd_dimm_name(struct nd_dimm *nd_dimm)
-+{
-+	return dev_name(&nd_dimm->dev);
-+}
-+EXPORT_SYMBOL_GPL(nd_dimm_name);
-+
-+void *nd_dimm_provider_data(struct nd_dimm *nd_dimm)
-+{
-+	return nd_dimm->provider_data;
-+}
-+EXPORT_SYMBOL_GPL(nd_dimm_provider_data);
-+
-+struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
-+		const struct attribute_group **groups, unsigned long flags)
-+{
-+	struct nd_dimm *nd_dimm = kzalloc(sizeof(*nd_dimm), GFP_KERNEL);
-+	struct device *dev;
-+
-+	if (!nd_dimm)
-+		return NULL;
-+
-+	nd_dimm->id = ida_simple_get(&dimm_ida, 0, 0, GFP_KERNEL);
-+	if (nd_dimm->id < 0) {
-+		kfree(nd_dimm);
-+		return NULL;
-+	}
-+	nd_dimm->provider_data = provider_data;
-+	nd_dimm->flags = flags;
-+
-+	dev = &nd_dimm->dev;
-+	dev_set_name(dev, "nmem%d", nd_dimm->id);
-+	dev->parent = &nd_bus->dev;
-+	dev->type = &nd_dimm_device_type;
-+	dev->bus = &nd_bus_type;
-+	dev->groups = groups;
-+	if (device_register(dev) != 0) {
-+		put_device(dev);
-+		return NULL;
-+	}
-+
-+	return nd_dimm;
-+}
-+EXPORT_SYMBOL_GPL(nd_dimm_create);
-diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
-index 884601f65a15..251ecdd77153 100644
---- a/drivers/block/nd/nd-private.h
-+++ b/drivers/block/nd/nd-private.h
-@@ -15,6 +15,10 @@
- #include <linux/device.h>
- #include <linux/libnd.h>
+diff --git a/arch/microblaze/include/asm/io.h b/arch/microblaze/include/asm/io.h
+index 940f5fc..ec3da11 100644
+--- a/arch/microblaze/include/asm/io.h
++++ b/arch/microblaze/include/asm/io.h
+@@ -43,6 +43,7 @@ extern void __iomem *ioremap(phys_addr_t address, unsigned long size);
+ #define ioremap_nocache(addr, size)		ioremap((addr), (size))
+ #define ioremap_fullcache(addr, size)		ioremap((addr), (size))
+ #define ioremap_wc(addr, size)			ioremap((addr), (size))
++#define ioremap_wt(addr, size)			ioremap((addr), (size))
  
-+extern struct list_head nd_bus_list;
-+extern struct mutex nd_bus_list_mutex;
-+extern struct bus_type nd_bus_type;
-+
- struct nd_bus {
- 	struct nd_bus_descriptor *nd_desc;
- 	struct list_head list;
-@@ -22,6 +26,14 @@ struct nd_bus {
- 	int id;
- };
+ #endif /* CONFIG_MMU */
  
-+struct nd_dimm {
-+	unsigned long flags;
-+	void *provider_data;
-+	struct device dev;
-+	int id;
-+};
-+
-+struct nd_bus *walk_to_nd_bus(struct device *nd_dev);
- int __init nd_bus_init(void);
- void __exit nd_bus_exit(void);
- int nd_bus_create_ndctl(struct nd_bus *nd_bus);
-diff --git a/include/linux/libnd.h b/include/linux/libnd.h
-index 04a97653d56c..76d5839fb50e 100644
---- a/include/linux/libnd.h
-+++ b/include/linux/libnd.h
-@@ -14,6 +14,12 @@
-  */
- #ifndef __LIBND_H__
- #define __LIBND_H__
-+
-+enum {
-+	/* when a dimm supports both PMEM and BLK access a label is required */
-+	NDD_ALIASING = 1 << 0,
-+};
-+
- extern struct attribute_group nd_bus_attribute_group;
+diff --git a/arch/mn10300/include/asm/io.h b/arch/mn10300/include/asm/io.h
+index cc4a2ba..07c5b4a 100644
+--- a/arch/mn10300/include/asm/io.h
++++ b/arch/mn10300/include/asm/io.h
+@@ -282,6 +282,7 @@ static inline void __iomem *ioremap_nocache(unsigned long offset, unsigned long
+ }
  
- struct nd_dimm;
-@@ -35,5 +41,10 @@ struct nd_bus *nd_bus_register(struct device *parent,
- 		struct nd_bus_descriptor *nfit_desc);
- void nd_bus_unregister(struct nd_bus *nd_bus);
- struct nd_bus *to_nd_bus(struct device *dev);
-+struct nd_dimm *to_nd_dimm(struct device *dev);
- struct nd_bus_descriptor *to_nd_desc(struct nd_bus *nd_bus);
-+const char *nd_dimm_name(struct nd_dimm *nd_dimm);
-+void *nd_dimm_provider_data(struct nd_dimm *nd_dimm);
-+struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
-+		const struct attribute_group **groups, unsigned long flags);
- #endif /* __LIBND_H__ */
+ #define ioremap_wc ioremap_nocache
++#define ioremap_wt ioremap_nocache
+ 
+ static inline void iounmap(void __iomem *addr)
+ {
+diff --git a/arch/nios2/include/asm/io.h b/arch/nios2/include/asm/io.h
+index 6e24d7c..c5a62da 100644
+--- a/arch/nios2/include/asm/io.h
++++ b/arch/nios2/include/asm/io.h
+@@ -46,6 +46,7 @@ static inline void iounmap(void __iomem *addr)
+ }
+ 
+ #define ioremap_wc ioremap_nocache
++#define ioremap_wt ioremap_nocache
+ 
+ /* Pages to physical address... */
+ #define page_to_phys(page)	virt_to_phys(page_to_virt(page))
+diff --git a/arch/s390/include/asm/io.h b/arch/s390/include/asm/io.h
+index 30fd5c8..cb5fdf3 100644
+--- a/arch/s390/include/asm/io.h
++++ b/arch/s390/include/asm/io.h
+@@ -29,6 +29,7 @@ void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
+ 
+ #define ioremap_nocache(addr, size)	ioremap(addr, size)
+ #define ioremap_wc			ioremap_nocache
++#define ioremap_wt			ioremap_nocache
+ 
+ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
+ {
+diff --git a/arch/sparc/include/asm/io_32.h b/arch/sparc/include/asm/io_32.h
+index 407ac14..57f26c3 100644
+--- a/arch/sparc/include/asm/io_32.h
++++ b/arch/sparc/include/asm/io_32.h
+@@ -129,6 +129,7 @@ static inline void sbus_memcpy_toio(volatile void __iomem *dst,
+ void __iomem *ioremap(unsigned long offset, unsigned long size);
+ #define ioremap_nocache(X,Y)	ioremap((X),(Y))
+ #define ioremap_wc(X,Y)		ioremap((X),(Y))
++#define ioremap_wt(X,Y)		ioremap((X),(Y))
+ void iounmap(volatile void __iomem *addr);
+ 
+ /* Create a virtual mapping cookie for an IO port range */
+diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
+index 50d4840..c32fa3f 100644
+--- a/arch/sparc/include/asm/io_64.h
++++ b/arch/sparc/include/asm/io_64.h
+@@ -402,6 +402,7 @@ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
+ 
+ #define ioremap_nocache(X,Y)		ioremap((X),(Y))
+ #define ioremap_wc(X,Y)			ioremap((X),(Y))
++#define ioremap_wt(X,Y)			ioremap((X),(Y))
+ 
+ static inline void iounmap(volatile void __iomem *addr)
+ {
+diff --git a/arch/tile/include/asm/io.h b/arch/tile/include/asm/io.h
+index 6ef4eca..9c3d950 100644
+--- a/arch/tile/include/asm/io.h
++++ b/arch/tile/include/asm/io.h
+@@ -54,6 +54,7 @@ extern void iounmap(volatile void __iomem *addr);
+ 
+ #define ioremap_nocache(physaddr, size)		ioremap(physaddr, size)
+ #define ioremap_wc(physaddr, size)		ioremap(physaddr, size)
++#define ioremap_wt(physaddr, size)		ioremap(physaddr, size)
+ #define ioremap_writethrough(physaddr, size)	ioremap(physaddr, size)
+ #define ioremap_fullcache(physaddr, size)	ioremap(physaddr, size)
+ 
+diff --git a/arch/xtensa/include/asm/io.h b/arch/xtensa/include/asm/io.h
+index fe1600a..c39bb6e 100644
+--- a/arch/xtensa/include/asm/io.h
++++ b/arch/xtensa/include/asm/io.h
+@@ -59,6 +59,7 @@ static inline void __iomem *ioremap_cache(unsigned long offset,
+ }
+ 
+ #define ioremap_wc ioremap_nocache
++#define ioremap_wt ioremap_nocache
+ 
+ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
+ {
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
