@@ -1,244 +1,221 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v3 08/11] x86: support kmap_atomic_pfn_t() for persistent
- memory
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 12 May 2015 00:30:12 -0400
-Message-ID: <20150512043012.11521.98885.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, david@fromorbit.com, hch@lst.de, j.glisse@gmail.com, mgorman@suse.de, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, mingo@kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v9 8/10] x86, mm: Add set_memory_wt() for WT
+Date: Wed, 13 May 2015 15:05:49 -0600
+Message-Id: <1431551151-19124-9-git-send-email-toshi.kani@hp.com>
+In-Reply-To: <1431551151-19124-1-git-send-email-toshi.kani@hp.com>
+References: <1431551151-19124-1-git-send-email-toshi.kani@hp.com>
+Sender: owner-linux-mm@kvack.org
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-It would be unfortunate if the kmap infrastructure escaped its current
-32-bit/HIGHMEM bonds and leaked into 64-bit code.  Instead, if the user
-has enabled CONFIG_DEV_PFN we direct the kmap_atomic_pfn_t()
-implementation to scan a list of pre-mapped persistent memory address
-ranges inserted by the pmem driver.
+Now that reserve_ram_pages_type() accepts the WT type,
+this patch adds set_memory_wt(), set_memory_array_wt() and
+set_pages_array_wt() for setting the WT type to the regular
+memory.
 
-The __pfn_t to resource lookup is indeed inefficient walking of a linked list,
-but there are two mitigating factors:
-
-1/ The number of persistent memory ranges is bounded by the number of
-   DIMMs which is on the order of 10s of DIMMs, not hundreds.
-
-2/ The lookup yields the entire range, if it becomes inefficient to do a
-   kmap_atomic_pfn_t() a PAGE_SIZE at a time the caller can take
-   advantage of the fact that the lookup can be amortized for all kmap
-   operations it needs to perform in a given range.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
- arch/Kconfig            |    3 +
- arch/x86/Kconfig        |    2 +
- drivers/block/pmem.c    |    6 +++
- include/linux/highmem.h |   23 +++++++++++
- mm/Makefile             |    1 
- mm/pfn.c                |   98 +++++++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 133 insertions(+)
- create mode 100644 mm/pfn.c
+ Documentation/x86/pat.txt         |    9 ++++-
+ arch/x86/include/asm/cacheflush.h |    6 +++-
+ arch/x86/mm/pageattr.c            |   61 +++++++++++++++++++++++++++++++++----
+ 3 files changed, 66 insertions(+), 10 deletions(-)
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index f7f800860c00..69d3a3fa21af 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -206,6 +206,9 @@ config HAVE_DMA_CONTIGUOUS
- config HAVE_DMA_PFN
- 	bool
+diff --git a/Documentation/x86/pat.txt b/Documentation/x86/pat.txt
+index be7b8c2..bf4339c 100644
+--- a/Documentation/x86/pat.txt
++++ b/Documentation/x86/pat.txt
+@@ -46,6 +46,9 @@ set_memory_uc          |    UC-   |    --      |       --         |
+ set_memory_wc          |    WC    |    --      |       --         |
+  set_memory_wb         |          |            |                  |
+                        |          |            |                  |
++set_memory_wt          |    WT    |    --      |       --         |
++ set_memory_wb         |          |            |                  |
++                       |          |            |                  |
+ pci sysfs resource     |    --    |    --      |       UC-        |
+                        |          |            |                  |
+ pci sysfs resource_wc  |    --    |    --      |       WC         |
+@@ -117,8 +120,8 @@ can be more restrictive, in case of any existing aliasing for that address.
+ For example: If there is an existing uncached mapping, a new ioremap_wc can
+ return uncached mapping in place of write-combine requested.
  
-+config HAVE_KMAP_PFN
-+	bool
+-set_memory_[uc|wc] and set_memory_wb should be used in pairs, where driver will
+-first make a region uc or wc and switch it back to wb after use.
++set_memory_[uc|wc|wt] and set_memory_wb should be used in pairs, where driver
++will first make a region uc, wc or wt and switch it back to wb after use.
+ 
+ Over time writes to /proc/mtrr will be deprecated in favor of using PAT based
+ interfaces. Users writing to /proc/mtrr are suggested to use above interfaces.
+@@ -126,7 +129,7 @@ interfaces. Users writing to /proc/mtrr are suggested to use above interfaces.
+ Drivers should use ioremap_[uc|wc] to access PCI BARs with [uc|wc] access
+ types.
+ 
+-Drivers should use set_memory_[uc|wc] to set access type for RAM ranges.
++Drivers should use set_memory_[uc|wc|wt] to set access type for RAM ranges.
+ 
+ 
+ PAT debugging
+diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
+index 47c8e32..b6f7457 100644
+--- a/arch/x86/include/asm/cacheflush.h
++++ b/arch/x86/include/asm/cacheflush.h
+@@ -8,7 +8,7 @@
+ /*
+  * The set_memory_* API can be used to change various attributes of a virtual
+  * address range. The attributes include:
+- * Cachability   : UnCached, WriteCombining, WriteBack
++ * Cachability   : UnCached, WriteCombining, WriteThrough, WriteBack
+  * Executability : eXeutable, NoteXecutable
+  * Read/Write    : ReadOnly, ReadWrite
+  * Presence      : NotPresent
+@@ -35,9 +35,11 @@
+ 
+ int _set_memory_uc(unsigned long addr, int numpages);
+ int _set_memory_wc(unsigned long addr, int numpages);
++int _set_memory_wt(unsigned long addr, int numpages);
+ int _set_memory_wb(unsigned long addr, int numpages);
+ int set_memory_uc(unsigned long addr, int numpages);
+ int set_memory_wc(unsigned long addr, int numpages);
++int set_memory_wt(unsigned long addr, int numpages);
+ int set_memory_wb(unsigned long addr, int numpages);
+ int set_memory_x(unsigned long addr, int numpages);
+ int set_memory_nx(unsigned long addr, int numpages);
+@@ -48,10 +50,12 @@ int set_memory_4k(unsigned long addr, int numpages);
+ 
+ int set_memory_array_uc(unsigned long *addr, int addrinarray);
+ int set_memory_array_wc(unsigned long *addr, int addrinarray);
++int set_memory_array_wt(unsigned long *addr, int addrinarray);
+ int set_memory_array_wb(unsigned long *addr, int addrinarray);
+ 
+ int set_pages_array_uc(struct page **pages, int addrinarray);
+ int set_pages_array_wc(struct page **pages, int addrinarray);
++int set_pages_array_wt(struct page **pages, int addrinarray);
+ int set_pages_array_wb(struct page **pages, int addrinarray);
+ 
+ /*
+diff --git a/arch/x86/mm/pageattr.c b/arch/x86/mm/pageattr.c
+index 89af288..a4d39cc 100644
+--- a/arch/x86/mm/pageattr.c
++++ b/arch/x86/mm/pageattr.c
+@@ -1502,12 +1502,10 @@ EXPORT_SYMBOL(set_memory_uc);
+ static int _set_memory_array(unsigned long *addr, int addrinarray,
+ 		enum page_cache_mode new_type)
+ {
++	enum page_cache_mode set_type;
+ 	int i, j;
+ 	int ret;
+ 
+-	/*
+-	 * for now UC MINUS. see comments in ioremap_nocache()
+-	 */
+ 	for (i = 0; i < addrinarray; i++) {
+ 		ret = reserve_memtype(__pa(addr[i]), __pa(addr[i]) + PAGE_SIZE,
+ 					new_type, NULL);
+@@ -1515,9 +1513,12 @@ static int _set_memory_array(unsigned long *addr, int addrinarray,
+ 			goto out_free;
+ 	}
+ 
++	/* If WC, set to UC- first and then WC */
++	set_type = (new_type == _PAGE_CACHE_MODE_WC) ?
++				_PAGE_CACHE_MODE_UC_MINUS : new_type;
 +
- config GENERIC_SMP_IDLE_THREAD
-        bool
+ 	ret = change_page_attr_set(addr, addrinarray,
+-				   cachemode2pgprot(_PAGE_CACHE_MODE_UC_MINUS),
+-				   1);
++				   cachemode2pgprot(set_type), 1);
  
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index c626ffa5c01e..2fd7690ed0e2 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -1434,7 +1434,9 @@ config X86_PMEM_LEGACY
- 	  Say Y if unsure.
+ 	if (!ret && new_type == _PAGE_CACHE_MODE_WC)
+ 		ret = change_page_attr_set_clr(addr, addrinarray,
+@@ -1549,6 +1550,12 @@ int set_memory_array_wc(unsigned long *addr, int addrinarray)
+ }
+ EXPORT_SYMBOL(set_memory_array_wc);
  
- config X86_PMEM_DMA
-+	depends on !HIGHMEM
- 	def_bool DEV_PFN
-+	select HAVE_KMAP_PFN
- 	select HAVE_DMA_PFN
- 
- config HIGHPTE
-diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index 41bb424533e6..2a847651f8de 100644
---- a/drivers/block/pmem.c
-+++ b/drivers/block/pmem.c
-@@ -23,6 +23,7 @@
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
-+#include <linux/highmem.h>
- 
- #define PMEM_MINORS		16
- 
-@@ -147,6 +148,11 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
- 	if (!pmem->virt_addr)
- 		goto out_release_region;
- 
-+	err = devm_register_kmap_pfn_range(dev, res, pmem->virt_addr);
-+	if (err)
-+		goto out_unmap;
-+
-+	err = -ENOMEM;
- 	pmem->pmem_queue = blk_alloc_queue(GFP_KERNEL);
- 	if (!pmem->pmem_queue)
- 		goto out_unmap;
-diff --git a/include/linux/highmem.h b/include/linux/highmem.h
-index 9286a46b7d69..85fd52d43a9a 100644
---- a/include/linux/highmem.h
-+++ b/include/linux/highmem.h
-@@ -83,6 +83,29 @@ static inline void __kunmap_atomic(void *addr)
- 
- #endif /* CONFIG_HIGHMEM */
- 
-+#ifdef CONFIG_HAVE_KMAP_PFN
-+extern void *kmap_atomic_pfn_t(__pfn_t pfn);
-+extern void kunmap_atomic_pfn_t(void *addr);
-+extern int devm_register_kmap_pfn_range(struct device *dev,
-+		struct resource *res, void *base);
-+#else
-+static inline void *kmap_atomic_pfn_t(__pfn_t pfn)
++int set_memory_array_wt(unsigned long *addr, int addrinarray)
 +{
-+	return kmap_atomic(__pfn_t_to_page(pfn));
++	return _set_memory_array(addr, addrinarray, _PAGE_CACHE_MODE_WT);
++}
++EXPORT_SYMBOL_GPL(set_memory_array_wt);
++
+ int _set_memory_wc(unsigned long addr, int numpages)
+ {
+ 	int ret;
+@@ -1592,6 +1599,37 @@ out_err:
+ }
+ EXPORT_SYMBOL(set_memory_wc);
+ 
++int _set_memory_wt(unsigned long addr, int numpages)
++{
++	return change_page_attr_set(&addr, numpages,
++				    cachemode2pgprot(_PAGE_CACHE_MODE_WT), 0);
 +}
 +
-+static inline void kunmap_atomic_pfn_t(void *addr)
++int set_memory_wt(unsigned long addr, int numpages)
 +{
-+	__kunmap_atomic(addr);
-+}
++	int ret;
 +
-+static inline int devm_register_kmap_pfn_range(struct device *dev,
-+		struct resource *res, void *base)
-+{
++	if (!pat_enabled)
++		return set_memory_uc(addr, numpages);
++
++	ret = reserve_memtype(__pa(addr), __pa(addr) + numpages * PAGE_SIZE,
++			      _PAGE_CACHE_MODE_WT, NULL);
++	if (ret)
++		goto out_err;
++
++	ret = _set_memory_wt(addr, numpages);
++	if (ret)
++		goto out_free;
++
 +	return 0;
-+}
-+#endif /* CONFIG_HAVE_KMAP_PFN */
 +
- #if defined(CONFIG_HIGHMEM) || defined(CONFIG_X86_32)
++out_free:
++	free_memtype(__pa(addr), __pa(addr) + numpages * PAGE_SIZE);
++out_err:
++	return ret;
++}
++EXPORT_SYMBOL_GPL(set_memory_wt);
++
+ int _set_memory_wb(unsigned long addr, int numpages)
+ {
+ 	/* WB cache mode is hard wired to all cache attribute bits being 0 */
+@@ -1682,6 +1720,7 @@ static int _set_pages_array(struct page **pages, int addrinarray,
+ {
+ 	unsigned long start;
+ 	unsigned long end;
++	enum page_cache_mode set_type;
+ 	int i;
+ 	int free_idx;
+ 	int ret;
+@@ -1695,8 +1734,12 @@ static int _set_pages_array(struct page **pages, int addrinarray,
+ 			goto err_out;
+ 	}
  
- DECLARE_PER_CPU(int, __kmap_atomic_idx);
-diff --git a/mm/Makefile b/mm/Makefile
-index 98c4eaeabdcb..66e30c2addfe 100644
---- a/mm/Makefile
-+++ b/mm/Makefile
-@@ -78,3 +78,4 @@ obj-$(CONFIG_CMA)	+= cma.o
- obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
- obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
- obj-$(CONFIG_CMA_DEBUGFS) += cma_debug.o
-+obj-$(CONFIG_HAVE_KMAP_PFN) += pfn.o
-diff --git a/mm/pfn.c b/mm/pfn.c
-new file mode 100644
-index 000000000000..0e046b49aebf
---- /dev/null
-+++ b/mm/pfn.c
-@@ -0,0 +1,98 @@
-+/*
-+ * Copyright(c) 2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#include <linux/rcupdate.h>
-+#include <linux/rculist.h>
-+#include <linux/highmem.h>
-+#include <linux/device.h>
-+#include <linux/slab.h>
-+#include <linux/mm.h>
++	/* If WC, set to UC- first and then WC */
++	set_type = (new_type == _PAGE_CACHE_MODE_WC) ?
++				_PAGE_CACHE_MODE_UC_MINUS : new_type;
 +
-+static LIST_HEAD(ranges);
-+
-+struct kmap {
-+	struct list_head list;
-+	struct resource *res;
-+	struct device *dev;
-+	void *base;
-+};
-+
-+static void teardown_kmap(void *data)
+ 	ret = cpa_set_pages_array(pages, addrinarray,
+-			cachemode2pgprot(_PAGE_CACHE_MODE_UC_MINUS));
++				  cachemode2pgprot(set_type));
+ 	if (!ret && new_type == _PAGE_CACHE_MODE_WC)
+ 		ret = change_page_attr_set_clr(NULL, addrinarray,
+ 					       cachemode2pgprot(
+@@ -1730,6 +1773,12 @@ int set_pages_array_wc(struct page **pages, int addrinarray)
+ }
+ EXPORT_SYMBOL(set_pages_array_wc);
+ 
++int set_pages_array_wt(struct page **pages, int addrinarray)
 +{
-+	struct kmap *kmap = data;
-+
-+	dev_dbg(kmap->dev, "kmap unregister %pr\n", kmap->res);
-+	list_del_rcu(&kmap->list);
-+	synchronize_rcu();
-+	kfree(kmap);
++	return _set_pages_array(pages, addrinarray, _PAGE_CACHE_MODE_WT);
 +}
++EXPORT_SYMBOL_GPL(set_pages_array_wt);
 +
-+int devm_register_kmap_pfn_range(struct device *dev, struct resource *res,
-+		void *base)
-+{
-+	struct kmap *kmap = kzalloc(sizeof(*kmap), GFP_KERNEL);
-+	int rc;
-+
-+	if (!kmap)
-+		return -ENOMEM;
-+
-+	INIT_LIST_HEAD(&kmap->list);
-+	kmap->res = res;
-+	kmap->base = base;
-+	kmap->dev = dev;
-+	rc = devm_add_action(dev, teardown_kmap, kmap);
-+	if (rc) {
-+		kfree(kmap);
-+		return rc;
-+	}
-+	dev_dbg(kmap->dev, "kmap register %pr\n", kmap->res);
-+	list_add_rcu(&kmap->list, &ranges);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(devm_register_kmap_pfn_range);
-+
-+void *kmap_atomic_pfn_t(__pfn_t pfn)
-+{
-+	struct page *page = __pfn_t_to_page(pfn);
-+	resource_size_t addr;
-+	struct kmap *kmap;
-+
-+	if (page)
-+		return kmap_atomic(page);
-+	addr = __pfn_t_to_phys(pfn);
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(kmap, &ranges, list)
-+		if (addr >= kmap->res->start && addr <= kmap->res->end)
-+			return kmap->base + addr - kmap->res->start;
-+
-+	/* only unlock in the error case */
-+	rcu_read_unlock();
-+	return NULL;
-+}
-+EXPORT_SYMBOL(kmap_atomic_pfn_t);
-+
-+void kunmap_atomic_pfn_t(void *addr)
-+{
-+	/*
-+	 * If the original __pfn_t had an entry in the memmap then
-+	 * 'addr' will be outside of vmalloc space i.e. it came from
-+	 * page_address()
-+	 */
-+	if (!is_vmalloc_addr(addr)) {
-+		kunmap_atomic(addr);
-+		return;
-+	}
-+
-+	/* signal that we are done with the range */
-+	rcu_read_unlock();
-+}
-+EXPORT_SYMBOL(kunmap_atomic_pfn_t);
+ int set_pages_wb(struct page *page, int numpages)
+ {
+ 	unsigned long addr = (unsigned long)page_address(page);
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
