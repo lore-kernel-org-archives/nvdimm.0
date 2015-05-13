@@ -1,83 +1,87 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <1431448400.24419.99.camel@misato.fc.hp.com>
-Subject: Re: [Linux-nvdimm] [PATCH v2 18/20] libnd: infrastructure for btt
- devices
+Return-Path: <owner-linux-mm@kvack.org>
 From: Toshi Kani <toshi.kani@hp.com>
-Date: Tue, 12 May 2015 10:33:20 -0600
-In-Reply-To: <20150428182551.35812.97856.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150428182551.35812.97856.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org
+Subject: [PATCH v9 2/10] x86, mm, pat: Change reserve_memtype() for WT
+Date: Wed, 13 May 2015 15:05:43 -0600
+Message-Id: <1431551151-19124-3-git-send-email-toshi.kani@hp.com>
+In-Reply-To: <1431551151-19124-1-git-send-email-toshi.kani@hp.com>
+References: <1431551151-19124-1-git-send-email-toshi.kani@hp.com>
+Sender: owner-linux-mm@kvack.org
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, 2015-04-28 at 14:25 -0400, Dan Williams wrote:
-> Block devices from an nd bus, in addition to accepting "struct bio"
-> based requests, also have the capability to perform byte-aligned
-> accesses.  By default only the bio/block interface is used.  However, if
-> another driver can make effective use of the byte-aligned capability it
-> can claim/disable the block interface and use the byte-aligned "nd_io"
-> interface.
-> 
-> The BTT driver is the intended first consumer of this mechanism to allow
-> layering atomic sector update guarantees on top of nd_io capable
-> nd-bus-block-devices.
- :
-> +static int nd_btt_autodetect(struct nd_bus *nd_bus, struct nd_io *ndio,
-> +		struct block_device *bdev)
-> +{
-> +	char name[BDEVNAME_SIZE];
-> +	struct nd_btt *nd_btt;
-> +	struct btt_sb *btt_sb;
-> +	u64 offset, checksum;
-> +	u32 lbasize;
-> +	u8 *uuid;
-> +	int rc;
-> +
-> +	btt_sb = kzalloc(sizeof(*btt_sb), GFP_KERNEL);
-> +	if (!btt_sb)
-> +		return -ENODEV;
-> +
-> +	offset = nd_partition_offset(bdev);
-> +	rc = ndio->rw_bytes(ndio, btt_sb, offset + SZ_4K, sizeof(*btt_sb), READ);
-> +	if (rc)
-> +		goto out_free_sb;
-> +
-> +	if (get_capacity(bdev->bd_disk) < SZ_16M / 512)
-> +		goto out_free_sb;
-> +
-> +	if (memcmp(btt_sb->signature, BTT_SIG, BTT_SIG_LEN) != 0)
-> +		goto out_free_sb;
-> +
-> +	checksum = le64_to_cpu(btt_sb->checksum);
-> +	btt_sb->checksum = 0;
-> +	if (checksum != nd_btt_sb_checksum(btt_sb))
-> +		goto out_free_sb;
-> +	btt_sb->checksum = cpu_to_le64(checksum);
-> +
-> +	uuid = kmemdup(btt_sb->uuid, 16, GFP_KERNEL);
-> +	if (!uuid)
-> +		goto out_free_sb;
-> +
-> +	lbasize = le32_to_cpu(btt_sb->external_lbasize);
-> +	nd_btt = __nd_btt_create(nd_bus, lbasize, uuid);
+This patch changes reserve_memtype() to support the WT cache mode
+with PAT.  When PAT is not enabled, WB and UC- are the only types
+supported.
 
-When BTT is first set up, user binds a seed "btt0" to a block device,
-such as /dev/pmem0.  It then creates /dev/nd0 bound to /dev/pmem0.
+When a target range is in RAM, reserve_ram_pages_type() verifies
+the requested type.  reserve_ram_pages_type() is changed to fail
+WT and WP requests with -EINVAL since set_page_memtype() is
+limited to handle three types, WB, WC and UC-.
 
-After a reboot, nd_btt_autodetect() detects the BTT setup and creates a
-new "btt1" since it is called after a seed "btt0" is created.
-Therefore, it creates /dev/nd1 bound to /dev/pmem0 this time.
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+Patch 7/10 enhances set_page_memtype() to support WT.
+---
+ arch/x86/mm/pat.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-Is this how it is intended to work, i.e. "btt0" as the default seed btt?
-While user should not rely on the name of /dev/nd%d, I thought this
-device name change was confusing...
+diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
+index 1baa60d..d932b43 100644
+--- a/arch/x86/mm/pat.c
++++ b/arch/x86/mm/pat.c
+@@ -365,6 +365,8 @@ static int pat_pagerange_is_ram(resource_size_t start, resource_size_t end)
+ 
+ /*
+  * For RAM pages, we use page flags to mark the pages with appropriate type.
++ * The page flags are limited to three types, WB, WC and UC-.
++ * WT and WP requests fail with -EINVAL, and UC gets redirected to UC-.
+  * Here we do two pass:
+  * - Find the memtype of all the pages in the range, look for any conflicts
+  * - In case of no conflicts, set the new memtype for pages in the range
+@@ -376,6 +378,13 @@ static int reserve_ram_pages_type(u64 start, u64 end,
+ 	struct page *page;
+ 	u64 pfn;
+ 
++	if ((req_type == _PAGE_CACHE_MODE_WT) ||
++	    (req_type == _PAGE_CACHE_MODE_WP)) {
++		if (new_type)
++			*new_type = _PAGE_CACHE_MODE_UC_MINUS;
++		return -EINVAL;
++	}
++
+ 	if (req_type == _PAGE_CACHE_MODE_UC) {
+ 		/* We do not support strong UC */
+ 		WARN_ON_ONCE(1);
+@@ -425,6 +434,7 @@ static int free_ram_pages_type(u64 start, u64 end)
+  * - _PAGE_CACHE_MODE_WC
+  * - _PAGE_CACHE_MODE_UC_MINUS
+  * - _PAGE_CACHE_MODE_UC
++ * - _PAGE_CACHE_MODE_WT
+  *
+  * If new_type is NULL, function will return an error if it cannot reserve the
+  * region with req_type. If new_type is non-NULL, function will return
+@@ -442,12 +452,12 @@ int reserve_memtype(u64 start, u64 end, enum page_cache_mode req_type,
+ 	BUG_ON(start >= end); /* end is exclusive */
+ 
+ 	if (!pat_enabled) {
+-		/* This is identical to page table setting without PAT */
++		/* WB and UC- are the only types supported without PAT */
+ 		if (new_type) {
+-			if (req_type == _PAGE_CACHE_MODE_WC)
+-				*new_type = _PAGE_CACHE_MODE_UC_MINUS;
++			if (req_type == _PAGE_CACHE_MODE_WB)
++				*new_type = _PAGE_CACHE_MODE_WB;
+ 			else
+-				*new_type = req_type;
++				*new_type = _PAGE_CACHE_MODE_UC_MINUS;
+ 		}
+ 		return 0;
+ 	}
 
-Thanks,
--Toshi
-
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
