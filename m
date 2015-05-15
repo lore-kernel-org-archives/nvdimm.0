@@ -1,104 +1,51 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v10 10/12] x86, mm, pat: Cleanup init flags in pat_init()
-Date: Wed, 27 May 2015 09:19:02 -0600
-Message-Id: <1432739944-22633-11-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
-References: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Subject: RE: [Linux-nvdimm] [PATCH v2 18/20] libnd: infrastructure for btt
+ devices
+Date: Fri, 15 May 2015 04:25:24 +0000
+Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295A9068BF@G9W0745.americas.hpqcorp.net>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150428182551.35812.97856.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <1431448400.24419.99.camel@misato.fc.hp.com>
+ <CAPcyv4hd2KP6pLEOaTBHkN0nnAcFRoCtPE0pmeJBqvpg3yGwhA@mail.gmail.com>
+In-Reply-To: <CAPcyv4hd2KP6pLEOaTBHkN0nnAcFRoCtPE0pmeJBqvpg3yGwhA@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>
+Cc: Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-pat_init() uses two flags, 'boot_cpu' and 'boot_pat_state', for
-tracking the boot CPU's initialization status.  'boot_pat_state'
-is also overloaded to carry the boot PAT value.
+> -----Original Message-----
+> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf
+> Of Dan Williams
+> Sent: Thursday, May 14, 2015 7:42 PM
+> To: Kani, Toshimitsu
+> Cc: Neil Brown; Greg KH; linux-kernel@vger.kernel.org; linux-
+> nvdimm@lists.01.org
+> Subject: Re: [Linux-nvdimm] [PATCH v2 18/20] libnd: infrastructure for
+> btt devices
+> 
+...
+> So we can fix this to be at least as stable as the backing device
+> names [1], but as far as I can see we would need to start using the
+> backing device name in the btt device name.  A strawman proposal is to
+> append 's' to indicated 'sectored'.  So /dev/pmem0s is the btt
+> instance fronting /dev/pmem0.  Other examples:
+> 
+> /dev/pmem0p1s
+> /dev/ndblk0.0s
+> /dev/ndblk0.0p1s
+> ...
+> 
+> Thoughts?
+> 
+> [1]: https://lists.01.org/pipermail/linux-nvdimm/2015-April/000636.html
 
-This patch cleans this up by replacing them with a new single
-flag, 'boot_cpu_done', to track the boot CPU's initialization
-status.  'boot_pat_state' is only used to carry the boot PAT
-value as a result.
+I like that; it also hints to the user that another driver has already
+claimed /dev/pmem0, similar to how the presence of /dev/sda1, /dev/sda2,
+etc. hints that a program has partitioned /dev/sda.
 
-Suggested-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- arch/x86/mm/pat.c |   42 ++++++++++++++++++++----------------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
 
-diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
-index 92fc635..7cfd995 100644
---- a/arch/x86/mm/pat.c
-+++ b/arch/x86/mm/pat.c
-@@ -201,26 +201,31 @@ void pat_init_cache_modes(void)
- void pat_init(void)
- {
- 	u64 pat;
--	bool boot_cpu = !boot_pat_state;
- 	struct cpuinfo_x86 *c = &boot_cpu_data;
-+	static bool boot_cpu_done;
- 
- 	if (!pat_enabled)
- 		return;
- 
--	if (!cpu_has_pat) {
--		if (!boot_pat_state) {
-+	if (!boot_cpu_done) {
-+		if (!cpu_has_pat) {
- 			pat_disable("PAT not supported by CPU.");
- 			return;
--		} else {
--			/*
--			 * If this happens we are on a secondary CPU, but
--			 * switched to PAT on the boot CPU. We have no way to
--			 * undo PAT.
--			 */
--			printk(KERN_ERR "PAT enabled, "
--			       "but not supported by secondary CPU\n");
--			BUG();
- 		}
-+
-+		rdmsrl(MSR_IA32_CR_PAT, boot_pat_state);
-+		if (!boot_pat_state) {
-+			pat_disable("PAT read returns always zero, disabled.");
-+			return;
-+		}
-+	} else if (!cpu_has_pat) {
-+		/*
-+		 * If this happens we are on a secondary CPU, but
-+		 * switched to PAT on the boot CPU. We have no way to
-+		 * undo PAT.
-+		 */
-+		pr_err("PAT enabled, but not supported by secondary CPU\n");
-+		BUG();
- 	}
- 
- 	if ((c->x86_vendor == X86_VENDOR_INTEL) &&
-@@ -279,19 +284,12 @@ void pat_init(void)
- 		      PAT(4, WB) | PAT(5, WC) | PAT(6, UC_MINUS) | PAT(7, WT);
- 	}
- 
--	/* Boot CPU check */
--	if (!boot_pat_state) {
--		rdmsrl(MSR_IA32_CR_PAT, boot_pat_state);
--		if (!boot_pat_state) {
--			pat_disable("PAT read returns always zero, disabled.");
--			return;
--		}
--	}
--
- 	wrmsrl(MSR_IA32_CR_PAT, pat);
- 
--	if (boot_cpu)
-+	if (!boot_cpu_done) {
- 		pat_init_cache_modes();
-+		boot_cpu_done = true;
-+	}
- }
- 
- #undef PAT
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
