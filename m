@@ -1,389 +1,1589 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
-Subject: RE: [PATCH v3 20/21] nfit-test: manufactured NFITs for interface
+Subject: [PATCH v3 20/21] nfit-test: manufactured NFITs for interface
  development
-Date: Mon, 25 May 2015 07:02:57 +0000
-Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295A9217B0@G9W0745.americas.hpqcorp.net>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 20 May 2015 16:58:00 -0400
+Message-ID: <20150520205800.32249.74581.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20150520205800.32249.74581.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150520205800.32249.74581.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-Type: multipart/mixed;
-	boundary="_002_94D0CD8314A33A4D9D801C0FE68B40295A9217B0G9W0745americas_"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, "axboe@kernel.dk" <axboe@kernel.dk>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "neilb@suse.de" <neilb@suse.de>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, "hch@lst.de" <hch@lst.de>, "mingo@kernel.org" <mingo@kernel.org>, "Kani, Toshimitsu" <toshi.kani@hp.com>Christoph Hellwig <hch@lst.de>, "Boaz Harrosh (boaz@plexistor.com)" <boaz@plexistor.com>
+To: axboe@kernel.dk
+Cc: mingo@kernel.org, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Lv Zheng <lv.zheng@intel.com>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
---_002_94D0CD8314A33A4D9D801C0FE68B40295A9217B0G9W0745americas_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Manually create and register NFITs to describe 2 topologies.  Topology1
+is an advanced plausible configuration for BLK/PMEM aliased NVDIMMs.
+Topology2 is an example configuration for current platforms that only
+ship with a persistent address range.
 
-> -----Original Message-----
-> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf
-> Of Dan Williams
-> Sent: Wednesday, May 20, 2015 3:58 PM
-> To: axboe@kernel.dk
-> Subject: [PATCH v3 20/21] nfit-test: manufactured NFITs for interface
-> development
-...
+ Kernel provider "nfit_test.0" produces an NFIT with the following attributes:
 
-Attached is some experimental code to try pmem with different=20
-cache types (UC, WB, WC, and WT) and memcpy functions using x86=20
-AVX non-temporal load and store instructions.
+                              (a)               (b)           DIMM   BLK-REGION
+           +-------------------+--------+--------+--------+
+ +------+  |       pm0.0       | blk2.0 | pm1.0  | blk2.1 |    0      region2
+ | imc0 +--+- - - region0- - - +--------+        +--------+
+ +--+---+  |       pm0.0       | blk3.0 | pm1.0  | blk3.1 |    1      region3
+    |      +-------------------+--------v        v--------+
+ +--+---+                               |                 |
+ | cpu0 |                                     region1
+ +--+---+                               |                 |
+    |      +----------------------------^        ^--------+
+ +--+---+  |           blk4.0           | pm1.0  | blk4.0 |    2      region4
+ | imc1 +--+----------------------------|        +--------+
+ +------+  |           blk5.0           | pm1.0  | blk5.0 |    3      region5
+           +----------------------------+--------+--------+
 
-It depends on Toshi's WT patch series:
-	https://lkml.org/lkml/2015/5/13/866
+ *) In this layout we have four dimms and two memory controllers in one
+    socket.  Each unique interface ("block" or "pmem") to DPA space
+    is identified by a region device with a dynamically assigned id.
 
-If you don't have that, you can just comment out the lines related
-to ioremap_wt.
+ *) The first portion of dimm0 and dimm1 are interleaved as REGION0.
+    A single "pmem" namespace is created in the REGION0-"spa"-range
+    that spans dimm0 and dimm1 with a user-specified name of "pm0.0".
+    Some of that interleaved "spa" range is reclaimed as "bdw"
+    accessed space starting at offset (a) into each dimm.  In that
+    reclaimed space we create two "bdw" "namespaces" from REGION2 and
+    REGION3 where "blk2.0" and "blk3.0" are just human readable names
+    that could be set to any user-desired name in the label.
 
+ *) In the last portion of dimm0 and dimm1 we have an interleaved
+    "spa" range, REGION1, that spans those two dimms as well as dimm2
+    and dimm3.  Some of REGION1 allocated to a "pmem" namespace named
+    "pm1.0" the rest is reclaimed in 4 "bdw" namespaces (for each
+    dimm in the interleave set), "blk2.1", "blk3.1", "blk4.0", and
+    "blk5.0".
+
+ *) The portion of dimm2 and dimm3 that do not participate in the
+    REGION1 interleaved "spa" range (i.e. the DPA address below
+    offset (b) are also included in the "blk4.0" and "blk5.0"
+    namespaces.  Note, that this example shows that "bdw" namespaces
+    don't need to be contiguous in DPA-space.
+
+ Kernel provider "nfit_test.1" produces an NFIT with the following attributes:
+
+ region2
+ +---------------------+
+ |---------------------|
+ ||       pm2.0       ||
+ |---------------------|
+ +---------------------+
+
+ *) Describes a simple system-physical-address range with no backing
+    dimm or interleave description.
+
+Cc: <linux-acpi@vger.kernel.org>
+Cc: Lv Zheng <lv.zheng@intel.com>
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Rob Elliott, HP Server Storage
+ drivers/acpi/nfit.c               |    6 
+ drivers/acpi/nfit.h               |   12 
+ drivers/block/nd/Kconfig          |   22 +
+ drivers/block/nd/Makefile         |    9 
+ drivers/block/nd/test/Makefile    |    5 
+ drivers/block/nd/test/iomap.c     |  151 +++++
+ drivers/block/nd/test/nfit.c      | 1171 +++++++++++++++++++++++++++++++++++++
+ drivers/block/nd/test/nfit_test.h |   28 +
+ 8 files changed, 1402 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/block/nd/test/Makefile
+ create mode 100644 drivers/block/nd/test/iomap.c
+ create mode 100644 drivers/block/nd/test/nfit.c
+ create mode 100644 drivers/block/nd/test/nfit_test.h
 
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index c4ce498da9eb..1efbd01d4860 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -29,10 +29,11 @@ MODULE_PARM_DESC(force_enable_dimms, "Ignore _STA (ACPI DIMM device) status");
+ 
+ static u8 nfit_uuid[NFIT_UUID_MAX][16];
+ 
+-static const u8 *to_nfit_uuid(enum nfit_uuids id)
++const u8 *to_nfit_uuid(enum nfit_uuids id)
+ {
+ 	return nfit_uuid[id];
+ }
++EXPORT_SYMBOL(to_nfit_uuid);
+ 
+ static struct acpi_nfit_desc *to_acpi_nfit_desc(struct nd_bus_descriptor *nd_desc)
+ {
+@@ -1330,7 +1331,7 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+ 	return 0;
+ }
+ 
+-static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
++int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+ {
+ 	struct device *dev = acpi_desc->dev;
+ 	const void *end;
+@@ -1369,6 +1370,7 @@ static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+ 
+ 	return acpi_nfit_register_regions(acpi_desc);
+ }
++EXPORT_SYMBOL_GPL(acpi_nfit_init);
+ 
+ static int acpi_nfit_add(struct acpi_device *adev)
+ {
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index 1fc49cc51d4a..eedbd3d79e02 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -37,6 +37,15 @@ enum nfit_uuids {
+ 	NFIT_UUID_MAX,
+ };
+ 
++#define NFIT_DIMM_HANDLE(node, socket, imc, chan, dimm) \
++       (((node & 0xfff) << 16) | ((socket & 0xf) << 12) \
++        | ((imc & 0xf) << 8) | ((chan & 0xf) << 4) | (dimm & 0xf))
++#define NFIT_DIMM_NODE(handle) ((handle) >> 16 & 0xfff)
++#define NFIT_DIMM_SOCKET(handle) ((handle) >> 12 & 0xf)
++#define NFIT_DIMM_CHAN(handle) ((handle) >> 8 & 0xf)
++#define NFIT_DIMM_IMC(handle) ((handle) >> 4 & 0xf)
++#define NFIT_DIMM_DIMM(handle) ((handle) & 0xf)
++
+ struct nfit_spa {
+ 	struct acpi_nfit_system_address *spa;
+ 	struct list_head list;
+@@ -145,4 +154,7 @@ static inline struct acpi_nfit_desc *to_acpi_desc(struct nd_bus_descriptor *nd_d
+ {
+ 	return container_of(nd_desc, struct acpi_nfit_desc, nd_desc);
+ }
++
++const u8 *to_nfit_uuid(enum nfit_uuids id);
++int acpi_nfit_init(struct acpi_nfit_desc *nfit, acpi_size sz);
+ #endif /* __NFIT_H__ */
+diff --git a/drivers/block/nd/Kconfig b/drivers/block/nd/Kconfig
+index f97bf0db6519..5f2935aefd41 100644
+--- a/drivers/block/nd/Kconfig
++++ b/drivers/block/nd/Kconfig
+@@ -17,6 +17,28 @@ if ND_DEVICES
+ config LIBND
+ 	tristate
+ 
++config NFIT_TEST
++	tristate "NFIT TEST: Manufactured NFIT for interface testing"
++	default n
++	depends on EXPERT
++	depends on DMA_CMA
++	depends on LIBND=m
++	depends on ACPI_NFIT
++	depends on m
++	help
++	  For development purposes register a manufactured
++	  NFIT table to verify the resulting device model topology.
++	  Note, this module arranges for ioremap_cache() to be
++	  overridden locally to allow simulation of system-memory as an
++	  io-memory-resource.
++
++	  Note, this test expects to be able to find at least 256MB of
++	  contiguous DMA space (CONFIG_CMA_SIZE_MBYTES, cma=) or it
++	  will fail to load.  This much contiguos memory is needed to
++	  properly simulate a DAX capable memory region.
++
++	  Say N unless you are doing development of the 'libnd' subsystem.
++
+ config BLK_DEV_PMEM
+ 	tristate "PMEM: Persistent memory block device support"
+ 	depends on LIBND
+diff --git a/drivers/block/nd/Makefile b/drivers/block/nd/Makefile
+index 29a797686429..e1e0f01ae960 100644
+--- a/drivers/block/nd/Makefile
++++ b/drivers/block/nd/Makefile
+@@ -1,4 +1,13 @@
++ifdef CONFIG_NFIT_TEST
++ldflags-y += --wrap=ioremap_cache
++ldflags-y += --wrap=ioremap_nocache
++ldflags-y += --wrap=iounmap
++ldflags-y += --wrap=__request_region
++ldflags-y += --wrap=__release_region
++endif
++
+ obj-$(CONFIG_LIBND) += libnd.o
++obj-$(CONFIG_NFIT_TEST) += test/
+ obj-$(CONFIG_BLK_DEV_PMEM) += nd_pmem.o
+ obj-$(CONFIG_ND_BTT) += nd_btt.o
+ obj-$(CONFIG_ND_BLK) += nd_blk.o
+diff --git a/drivers/block/nd/test/Makefile b/drivers/block/nd/test/Makefile
+new file mode 100644
+index 000000000000..c7f319cbd082
+--- /dev/null
++++ b/drivers/block/nd/test/Makefile
+@@ -0,0 +1,5 @@
++obj-$(CONFIG_NFIT_TEST) += nfit_test.o
++obj-$(CONFIG_NFIT_TEST) += nfit_test_iomap.o
++
++nfit_test-y := nfit.o
++nfit_test_iomap-y := iomap.o
+diff --git a/drivers/block/nd/test/iomap.c b/drivers/block/nd/test/iomap.c
+new file mode 100644
+index 000000000000..c85a6f6ba559
+--- /dev/null
++++ b/drivers/block/nd/test/iomap.c
+@@ -0,0 +1,151 @@
++/*
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#include <linux/rculist.h>
++#include <linux/export.h>
++#include <linux/ioport.h>
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/io.h>
++#include "nfit_test.h"
++
++static LIST_HEAD(iomap_head);
++
++static struct iomap_ops {
++	nfit_test_lookup_fn nfit_test_lookup;
++	struct list_head list;
++} iomap_ops = {
++	.list = LIST_HEAD_INIT(iomap_ops.list),
++};
++
++void nfit_test_setup(nfit_test_lookup_fn lookup)
++{
++	iomap_ops.nfit_test_lookup = lookup;
++	list_add_rcu(&iomap_ops.list, &iomap_head);
++}
++EXPORT_SYMBOL(nfit_test_setup);
++
++void nfit_test_teardown(void)
++{
++	list_del_rcu(&iomap_ops.list);
++	synchronize_rcu();
++}
++EXPORT_SYMBOL(nfit_test_teardown);
++
++static struct nfit_test_resource *get_nfit_res(resource_size_t resource)
++{
++	struct iomap_ops *ops;
++
++	ops = list_first_or_null_rcu(&iomap_head, typeof(*ops), list);
++	if (ops)
++		return ops->nfit_test_lookup(resource);
++	return NULL;
++}
++
++void __iomem *__nfit_test_ioremap(resource_size_t offset, unsigned long size,
++		void __iomem *(*fallback_fn)(resource_size_t, unsigned long))
++{
++	struct nfit_test_resource *nfit_res;
++
++	rcu_read_lock();
++	nfit_res = get_nfit_res(offset);
++	rcu_read_unlock();
++	if (nfit_res)
++		return (void __iomem *) nfit_res->buf + offset
++			- nfit_res->res->start;
++	return fallback_fn(offset, size);
++}
++
++void __iomem *__wrap_ioremap_cache(resource_size_t offset, unsigned long size)
++{
++	return __nfit_test_ioremap(offset, size, ioremap_cache);
++}
++EXPORT_SYMBOL(__wrap_ioremap_cache);
++
++void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
++{
++	return __nfit_test_ioremap(offset, size, ioremap_nocache);
++}
++EXPORT_SYMBOL(__wrap_ioremap_nocache);
++
++void __wrap_iounmap(volatile void __iomem *addr)
++{
++	struct nfit_test_resource *nfit_res;
++
++	rcu_read_lock();
++	nfit_res = get_nfit_res((unsigned long) addr);
++	rcu_read_unlock();
++	if (nfit_res)
++		return;
++	return iounmap(addr);
++}
++EXPORT_SYMBOL(__wrap_iounmap);
++
++struct resource *__wrap___request_region(struct resource *parent,
++		resource_size_t start, resource_size_t n, const char *name,
++		int flags)
++{
++	struct nfit_test_resource *nfit_res;
++
++	if (parent == &iomem_resource) {
++		rcu_read_lock();
++		nfit_res = get_nfit_res(start);
++		rcu_read_unlock();
++		if (nfit_res) {
++			struct resource *res = nfit_res->res + 1;
++
++			if (start + n > nfit_res->res->start
++					+ resource_size(nfit_res->res)) {
++				pr_debug("%s: start: %llx n: %llx overflow: %pr\n",
++						__func__, start, n,
++						nfit_res->res);
++				return NULL;
++			}
++
++			res->start = start;
++			res->end = start + n - 1;
++			res->name = name;
++			res->flags = resource_type(parent);
++			res->flags |= IORESOURCE_BUSY | flags;
++			pr_debug("%s: %pr\n", __func__, res);
++			return res;
++		}
++	}
++	return __request_region(parent, start, n, name, flags);
++}
++EXPORT_SYMBOL(__wrap___request_region);
++
++void __wrap___release_region(struct resource *parent, resource_size_t start,
++				resource_size_t n)
++{
++	struct nfit_test_resource *nfit_res;
++
++	if (parent == &iomem_resource) {
++		rcu_read_lock();
++		nfit_res = get_nfit_res(start);
++		rcu_read_unlock();
++		if (nfit_res) {
++			struct resource *res = nfit_res->res + 1;
++
++			if (start != res->start || resource_size(res) != n)
++				pr_info("%s: start: %llx n: %llx mismatch: %pr\n",
++						__func__, start, n, res);
++			else
++				memset(res, 0, sizeof(*res));
++			return;
++		}
++	}
++	__release_region(parent, start, n);
++}
++EXPORT_SYMBOL(__wrap___release_region);
++
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/block/nd/test/nfit.c b/drivers/block/nd/test/nfit.c
+new file mode 100644
+index 000000000000..973e46c06abc
+--- /dev/null
++++ b/drivers/block/nd/test/nfit.c
+@@ -0,0 +1,1171 @@
++/*
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#include <linux/device.h>
++#include <linux/module.h>
++#include <linux/libnd.h>
++#include <linux/ndctl.h>
++#include <linux/sizes.h>
++#include <linux/slab.h>
++#include "../../../acpi/nfit.h"
++#include "nfit_test.h"
++#include "../nd.h"
++
++/*
++ * Generate an NFIT table to describe the following topology:
++ *
++ * BUS0: Interleaved PMEM regions, and aliasing with BLK regions
++ *
++ *                     (a)                       (b)            DIMM   BLK-REGION
++ *           +----------+--------------+----------+---------+
++ * +------+  |  blk2.0  |     pm0.0    |  blk2.1  |  pm1.0  |    0      region2
++ * | imc0 +--+- - - - - region0 - - - -+----------+         +
++ * +--+---+  |  blk3.0  |     pm0.0    |  blk3.1  |  pm1.0  |    1      region3
++ *    |      +----------+--------------v----------v         v
++ * +--+---+                            |                    |
++ * | cpu0 |                                    region1
++ * +--+---+                            |                    |
++ *    |      +-------------------------^----------^         ^
++ * +--+---+  |                 blk4.0             |  pm1.0  |    2      region4
++ * | imc1 +--+-------------------------+----------+         +
++ * +------+  |                 blk5.0             |  pm1.0  |    3      region5
++ *           +-------------------------+----------+-+-------+
++ *
++ * *) In this layout we have four dimms and two memory controllers in one
++ *    socket.  Each unique interface (BLK or PMEM) to DPA space
++ *    is identified by a region device with a dynamically assigned id.
++ *
++ * *) The first portion of dimm0 and dimm1 are interleaved as REGION0.
++ *    A single PMEM namespace "pm0.0" is created using half of the
++ *    REGION0 SPA-range.  REGION0 spans dimm0 and dimm1.  PMEM namespace
++ *    allocate from from the bottom of a region.  The unallocated
++ *    portion of REGION0 aliases with REGION2 and REGION3.  That
++ *    unallacted capacity is reclaimed as BLK namespaces ("blk2.0" and
++ *    "blk3.0") starting at the base of each DIMM to offset (a) in those
++ *    DIMMs.  "pm0.0", "blk2.0" and "blk3.0" are free-form readable
++ *    names that can be assigned to a namespace.
++ *
++ * *) In the last portion of dimm0 and dimm1 we have an interleaved
++ *    SPA range, REGION1, that spans those two dimms as well as dimm2
++ *    and dimm3.  Some of REGION1 allocated to a PMEM namespace named
++ *    "pm1.0" the rest is reclaimed in 4 BLK namespaces (for each
++ *    dimm in the interleave set), "blk2.1", "blk3.1", "blk4.0", and
++ *    "blk5.0".
++ *
++ * *) The portion of dimm2 and dimm3 that do not participate in the
++ *    REGION1 interleaved SPA range (i.e. the DPA address below offset
++ *    (b) are also included in the "blk4.0" and "blk5.0" namespaces.
++ *    Note, that BLK namespaces need not be contiguous in DPA-space, and
++ *    can consume aliased capacity from multiple interleave sets.
++ *
++ * BUS1: Legacy NVDIMM (single contiguous range)
++ *
++ *  region2
++ * +---------------------+
++ * |---------------------|
++ * ||       pm2.0       ||
++ * |---------------------|
++ * +---------------------+
++ *
++ * *) A NFIT-table may describe a simple system-physical-address range
++ *    with no BLK aliasing.  This type of region may optionally
++ *    reference an NVDIMM.
++ */
++enum {
++	NUM_PM  = 2,
++	NUM_DCR = 4,
++	NUM_BDW = NUM_DCR,
++	NUM_SPA = NUM_PM + NUM_DCR + NUM_BDW,
++	NUM_MEM = NUM_DCR + NUM_BDW + 2 /* spa0 iset */ + 4 /* spa1 iset */,
++	DIMM_SIZE = SZ_32M,
++	LABEL_SIZE = SZ_128K,
++	SPA0_SIZE = DIMM_SIZE,
++	SPA1_SIZE = DIMM_SIZE*2,
++	SPA2_SIZE = DIMM_SIZE,
++	BDW_SIZE = 64 << 8,
++	DCR_SIZE = 12,
++	NUM_NFITS = 2, /* permit testing multiple NFITs per system */
++};
++
++struct nfit_test_dcr {
++	__le64 bdw_addr;
++	__le32 bdw_status;
++	__u8 aperature[BDW_SIZE];
++};
++
++static u32 handle[NUM_DCR] = {
++	[0] = NFIT_DIMM_HANDLE(0, 0, 0, 0, 0),
++	[1] = NFIT_DIMM_HANDLE(0, 0, 0, 0, 1),
++	[2] = NFIT_DIMM_HANDLE(0, 0, 1, 0, 0),
++	[3] = NFIT_DIMM_HANDLE(0, 0, 1, 0, 1),
++};
++
++struct nfit_test {
++	struct acpi_nfit_desc acpi_desc;
++	struct platform_device pdev;
++	struct list_head resources;
++	void *nfit_buf;
++	dma_addr_t nfit_dma;
++	size_t nfit_size;
++	int num_dcr;
++	int num_pm;
++	void **dimm;
++	dma_addr_t *dimm_dma;
++	void **label;
++	dma_addr_t *label_dma;
++	void **spa_set;
++	dma_addr_t *spa_set_dma;
++	struct nfit_test_dcr **dcr;
++	dma_addr_t *dcr_dma;
++	int (*alloc)(struct nfit_test *t);
++	void (*setup)(struct nfit_test *t);
++};
++
++static struct nfit_test *to_nfit_test(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++
++	return container_of(pdev, struct nfit_test, pdev);
++}
++
++static int nfit_test_ctl(struct nd_bus_descriptor *nd_desc,
++		struct nd_dimm *nd_dimm, unsigned int cmd, void *buf,
++		unsigned int buf_len)
++{
++	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
++	struct nfit_test *t = container_of(acpi_desc, typeof(*t), acpi_desc);
++	struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
++	int i, rc;
++
++	if (!nfit_mem || !test_bit(cmd, &nfit_mem->dsm_mask))
++		return -ENXIO;
++
++	/* lookup label space for the given dimm */
++	for (i = 0; i < ARRAY_SIZE(handle); i++)
++		if (__to_nfit_memdev(nfit_mem)->device_handle == handle[i])
++			break;
++	if (i >= ARRAY_SIZE(handle))
++		return -ENXIO;
++
++	switch (cmd) {
++	case ND_CMD_GET_CONFIG_SIZE: {
++		struct nd_cmd_get_config_size *nd_cmd = buf;
++
++		if (buf_len < sizeof(*nd_cmd))
++			return -EINVAL;
++		nd_cmd->status = 0;
++		nd_cmd->config_size = LABEL_SIZE;
++		nd_cmd->max_xfer = SZ_4K;
++		rc = 0;
++		break;
++	}
++	case ND_CMD_GET_CONFIG_DATA: {
++		struct nd_cmd_get_config_data_hdr *nd_cmd = buf;
++		unsigned int len, offset = nd_cmd->in_offset;
++
++		if (buf_len < sizeof(*nd_cmd))
++			return -EINVAL;
++		if (offset >= LABEL_SIZE)
++			return -EINVAL;
++		if (nd_cmd->in_length + sizeof(*nd_cmd) > buf_len)
++			return -EINVAL;
++
++		nd_cmd->status = 0;
++		len = min(nd_cmd->in_length, LABEL_SIZE - offset);
++		memcpy(nd_cmd->out_buf, t->label[i] + offset, len);
++		rc = buf_len - sizeof(*nd_cmd) - len;
++		break;
++	}
++	case ND_CMD_SET_CONFIG_DATA: {
++		struct nd_cmd_set_config_hdr *nd_cmd = buf;
++		unsigned int len, offset = nd_cmd->in_offset;
++		u32 *status;
++
++		if (buf_len < sizeof(*nd_cmd))
++			return -EINVAL;
++		if (offset >= LABEL_SIZE)
++			return -EINVAL;
++		if (nd_cmd->in_length + sizeof(*nd_cmd) + 4 > buf_len)
++			return -EINVAL;
++
++		status = buf + nd_cmd->in_length + sizeof(*nd_cmd);
++		*status = 0;
++		len = min(nd_cmd->in_length, LABEL_SIZE - offset);
++		memcpy(t->label[i] + offset, nd_cmd->in_buf, len);
++		rc = buf_len - sizeof(*nd_cmd) - (len + 4);
++		break;
++	}
++	default:
++		return -ENOTTY;
++	}
++
++	return rc;
++}
++
++static DEFINE_SPINLOCK(nfit_test_lock);
++static struct nfit_test *instances[NUM_NFITS];
++
++static void release_nfit_res(void *data)
++{
++	struct nfit_test_resource *nfit_res = data;
++	struct resource *res = nfit_res->res;
++
++	spin_lock(&nfit_test_lock);
++	list_del(&nfit_res->list);
++	spin_unlock(&nfit_test_lock);
++
++	if (is_vmalloc_addr(nfit_res->buf))
++		vfree(nfit_res->buf);
++	else
++		dma_free_coherent(nfit_res->dev, resource_size(res),
++				nfit_res->buf, res->start);
++	kfree(res);
++	kfree(nfit_res);
++}
++
++static void *__test_alloc(struct nfit_test *t, size_t size, dma_addr_t *dma,
++		void *buf)
++{
++	struct device *dev = &t->pdev.dev;
++	struct resource *res = kzalloc(sizeof(*res) * 2, GFP_KERNEL);
++	struct nfit_test_resource *nfit_res = kzalloc(sizeof(*nfit_res),
++			GFP_KERNEL);
++	int rc;
++
++	if (!res || !buf || !nfit_res)
++		goto err;
++	rc = devm_add_action(dev, release_nfit_res, nfit_res);
++	if (rc)
++		goto err;
++	INIT_LIST_HEAD(&nfit_res->list);
++	memset(buf, 0, size);
++	nfit_res->dev = dev;
++	nfit_res->buf = buf;
++	nfit_res->res = res;
++	res->start = *dma;
++	res->end = *dma + size - 1;
++	res->name = "NFIT";
++	spin_lock(&nfit_test_lock);
++	list_add(&nfit_res->list, &t->resources);
++	spin_unlock(&nfit_test_lock);
++
++	return nfit_res->buf;
++ err:
++	if (buf && !is_vmalloc_addr(buf))
++		dma_free_coherent(dev, size, buf, *dma);
++	else if (buf)
++		vfree(buf);
++	kfree(res);
++	kfree(nfit_res);
++	return NULL;
++}
++
++static void *test_alloc(struct nfit_test *t, size_t size, dma_addr_t *dma)
++{
++	void *buf = vmalloc(size);
++
++	*dma = (unsigned long) buf;
++	return __test_alloc(t, size, dma, buf);
++}
++
++static void *test_alloc_coherent(struct nfit_test *t, size_t size, dma_addr_t *dma)
++{
++	struct device *dev = &t->pdev.dev;
++	void *buf = dma_alloc_coherent(dev, size, dma, GFP_KERNEL);
++
++	return __test_alloc(t, size, dma, buf);
++}
++
++static struct nfit_test_resource *nfit_test_lookup(resource_size_t addr)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(instances); i++) {
++		struct nfit_test_resource *n, *nfit_res = NULL;
++		struct nfit_test *t = instances[i];
++
++		if (!t)
++			continue;
++		spin_lock(&nfit_test_lock);
++		list_for_each_entry(n, &t->resources, list) {
++			if (addr >= n->res->start && (addr < n->res->start
++						+ resource_size(n->res))) {
++				nfit_res = n;
++				break;
++			} else if (addr >= (unsigned long) n->buf
++					&& (addr < (unsigned long) n->buf
++						+ resource_size(n->res))) {
++				nfit_res = n;
++				break;
++			}
++		}
++		spin_unlock(&nfit_test_lock);
++		if (nfit_res)
++			return nfit_res;
++	}
++
++	return NULL;
++}
++
++static int nfit_test0_alloc(struct nfit_test *t)
++{
++	size_t nfit_size = sizeof(struct acpi_table_nfit)
++			+ sizeof(struct acpi_nfit_system_address) * NUM_SPA
++			+ sizeof(struct acpi_nfit_memory_map) * NUM_MEM
++			+ sizeof(struct acpi_nfit_control_region) * NUM_DCR
++			+ sizeof(struct acpi_nfit_data_region) * NUM_BDW;
++	int i;
++
++	t->nfit_buf = test_alloc(t, nfit_size, &t->nfit_dma);
++	if (!t->nfit_buf)
++		return -ENOMEM;
++	t->nfit_size = nfit_size;
++
++	t->spa_set[0] = test_alloc_coherent(t, SPA0_SIZE, &t->spa_set_dma[0]);
++	if (!t->spa_set[0])
++		return -ENOMEM;
++
++	t->spa_set[1] = test_alloc_coherent(t, SPA1_SIZE, &t->spa_set_dma[1]);
++	if (!t->spa_set[1])
++		return -ENOMEM;
++
++	for (i = 0; i < NUM_DCR; i++) {
++		t->dimm[i] = test_alloc(t, DIMM_SIZE, &t->dimm_dma[i]);
++		if (!t->dimm[i])
++			return -ENOMEM;
++
++		t->label[i] = test_alloc(t, LABEL_SIZE, &t->label_dma[i]);
++		if (!t->label[i])
++			return -ENOMEM;
++		sprintf(t->label[i], "label%d", i);
++	}
++
++	for (i = 0; i < NUM_DCR; i++) {
++		t->dcr[i] = test_alloc(t, LABEL_SIZE, &t->dcr_dma[i]);
++		if (!t->dcr[i])
++			return -ENOMEM;
++	}
++
++	return 0;
++}
++
++static int nfit_test1_alloc(struct nfit_test *t)
++{
++	size_t nfit_size = sizeof(struct acpi_table_nfit)
++		+ sizeof(struct acpi_nfit_system_address) + sizeof(struct acpi_nfit_memory_map)
++		+ sizeof(struct acpi_nfit_control_region);
++
++	t->nfit_buf = test_alloc(t, nfit_size, &t->nfit_dma);
++	if (!t->nfit_buf)
++		return -ENOMEM;
++	t->nfit_size = nfit_size;
++
++	t->spa_set[0] = test_alloc_coherent(t, SPA2_SIZE, &t->spa_set_dma[0]);
++	if (!t->spa_set[0])
++		return -ENOMEM;
++
++	return 0;
++}
++
++static void nfit_test_init_header(struct acpi_table_nfit *nfit, size_t size)
++{
++	memcpy(nfit->header.signature, ACPI_SIG_NFIT, 4);
++	nfit->header.length = size;
++	nfit->header.revision = 1;
++	memcpy(nfit->header.oem_id, "LIBND", 6);
++	memcpy(nfit->header.oem_table_id, "TEST", 5);
++	nfit->header.oem_revision = 1;
++	memcpy(nfit->header.asl_compiler_id, "TST", 4);
++	nfit->header.asl_compiler_revision = 1;
++}
++
++static void nfit_test0_setup(struct nfit_test *t)
++{
++	struct nd_bus_descriptor *nd_desc;
++	struct acpi_nfit_desc *acpi_desc;
++	struct acpi_nfit_memory_map *memdev;
++	void *nfit_buf = t->nfit_buf;
++	size_t size = t->nfit_size;
++	struct acpi_nfit_system_address *spa;
++	struct acpi_nfit_control_region *dcr;
++	struct acpi_nfit_data_region *bdw;
++	unsigned int offset;
++
++	nfit_test_init_header(nfit_buf, size);
++
++	/*
++	 * spa0 (interleave first half of dimm0 and dimm1, note storage
++	 * does not actually alias the related block-data-window
++	 * regions)
++	 */
++	spa = nfit_buf + sizeof(struct acpi_table_nfit);
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_PM), 16);
++	spa->range_index = 0+1;
++	spa->address = t->spa_set_dma[0];
++	spa->length = SPA0_SIZE;
++
++	/*
++	 * spa1 (interleave last half of the 4 DIMMS, note storage
++	 * does not actually alias the related block-data-window
++	 * regions)
++	 */
++	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa);
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_PM), 16);
++	spa->range_index = 1+1;
++	spa->address = t->spa_set_dma[1];
++	spa->length = SPA1_SIZE;
++
++	/* spa2 (dcr0) dimm0 */
++	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 2;
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
++	spa->range_index = 2+1;
++	spa->address = t->dcr_dma[0];
++	spa->length = DCR_SIZE;
++
++	/* spa3 (dcr1) dimm1 */
++	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 3;
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
++	spa->range_index = 3+1;
++	spa->address = t->dcr_dma[1];
++	spa->length = DCR_SIZE;
++
++	/* spa4 (dcr2) dimm2 */
++	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 4;
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
++	spa->range_index = 4+1;
++	spa->address = t->dcr_dma[2];
++	spa->length = DCR_SIZE;
++
++	/* spa5 (dcr3) dimm3 */
++	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 5;
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
++	spa->range_index = 5+1;
++	spa->address = t->dcr_dma[3];
++	spa->length = DCR_SIZE;
++
++	/* spa6 (bdw for dcr0) dimm0 */
++	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 6;
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
++	spa->range_index = 6+1;
++	spa->address = t->dimm_dma[0];
++	spa->length = DIMM_SIZE;
++
++	/* spa7 (bdw for dcr1) dimm1 */
++	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 7;
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
++	spa->range_index = 7+1;
++	spa->address = t->dimm_dma[1];
++	spa->length = DIMM_SIZE;
++
++	/* spa8 (bdw for dcr2) dimm2 */
++	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 8;
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
++	spa->range_index = 8+1;
++	spa->address = t->dimm_dma[2];
++	spa->length = DIMM_SIZE;
++
++	/* spa9 (bdw for dcr3) dimm3 */
++	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 9;
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
++	spa->range_index = 9+1;
++	spa->address = t->dimm_dma[3];
++	spa->length = DIMM_SIZE;
++
++	offset = sizeof(struct acpi_table_nfit) + sizeof(*spa) * 10;
++	/* mem-region0 (spa0, dimm0) */
++	memdev = nfit_buf + offset;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[0];
++	memdev->physical_id = 0;
++	memdev->region_id = 0;
++	memdev->range_index = 0+1;
++	memdev->region_index = 0+1;
++	memdev->region_size = SPA0_SIZE/2;
++	memdev->region_offset = t->spa_set_dma[0];
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 2;
++
++	/* mem-region1 (spa0, dimm1) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map);
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[1];
++	memdev->physical_id = 1;
++	memdev->region_id = 0;
++	memdev->range_index = 0+1;
++	memdev->region_index = 1+1;
++	memdev->region_size = SPA0_SIZE/2;
++	memdev->region_offset = t->spa_set_dma[0] + SPA0_SIZE/2;
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 2;
++
++	/* mem-region2 (spa1, dimm0) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 2;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[0];
++	memdev->physical_id = 0;
++	memdev->region_id = 1;
++	memdev->range_index = 1+1;
++	memdev->region_index = 0+1;
++	memdev->region_size = SPA1_SIZE/4;
++	memdev->region_offset = t->spa_set_dma[1];
++	memdev->address = SPA0_SIZE/2;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 4;
++
++	/* mem-region3 (spa1, dimm1) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 3;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[1];
++	memdev->physical_id = 1;
++	memdev->region_id = 1;
++	memdev->range_index = 1+1;
++	memdev->region_index = 1+1;
++	memdev->region_size = SPA1_SIZE/4;
++	memdev->region_offset = t->spa_set_dma[1] + SPA1_SIZE/4;
++	memdev->address = SPA0_SIZE/2;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 4;
++
++	/* mem-region4 (spa1, dimm2) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 4;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[2];
++	memdev->physical_id = 2;
++	memdev->region_id = 0;
++	memdev->range_index = 1+1;
++	memdev->region_index = 2+1;
++	memdev->region_size = SPA1_SIZE/4;
++	memdev->region_offset = t->spa_set_dma[1] + 2*SPA1_SIZE/4;
++	memdev->address = SPA0_SIZE/2;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 4;
++
++	/* mem-region5 (spa1, dimm3) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 5;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[3];
++	memdev->physical_id = 3;
++	memdev->region_id = 0;
++	memdev->range_index = 1+1;
++	memdev->region_index = 3+1;
++	memdev->region_size = SPA1_SIZE/4;
++	memdev->region_offset = t->spa_set_dma[1] + 3*SPA1_SIZE/4;
++	memdev->address = SPA0_SIZE/2;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 4;
++
++	/* mem-region6 (spa/dcr0, dimm0) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 6;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[0];
++	memdev->physical_id = 0;
++	memdev->region_id = 0;
++	memdev->range_index = 2+1;
++	memdev->region_index = 0+1;
++	memdev->region_size = 0;
++	memdev->region_offset = 0;
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 1;
++
++	/* mem-region7 (spa/dcr1, dimm1) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 7;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[1];
++	memdev->physical_id = 1;
++	memdev->region_id = 0;
++	memdev->range_index = 3+1;
++	memdev->region_index = 1+1;
++	memdev->region_size = 0;
++	memdev->region_offset = 0;
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 1;
++
++	/* mem-region8 (spa/dcr2, dimm2) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 8;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[2];
++	memdev->physical_id = 2;
++	memdev->region_id = 0;
++	memdev->range_index = 4+1;
++	memdev->region_index = 2+1;
++	memdev->region_size = 0;
++	memdev->region_offset = 0;
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 1;
++
++	/* mem-region9 (spa/dcr3, dimm3) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 9;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[3];
++	memdev->physical_id = 3;
++	memdev->region_id = 0;
++	memdev->range_index = 5+1;
++	memdev->region_index = 3+1;
++	memdev->region_size = 0;
++	memdev->region_offset = 0;
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 1;
++
++	/* mem-region10 (spa/bdw0, dimm0) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 10;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[0];
++	memdev->physical_id = 0;
++	memdev->region_id = 0;
++	memdev->range_index = 6+1;
++	memdev->region_index = 0+1;
++	memdev->region_size = 0;
++	memdev->region_offset = 0;
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 1;
++
++	/* mem-region11 (spa/bdw1, dimm1) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 11;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[1];
++	memdev->physical_id = 1;
++	memdev->region_id = 0;
++	memdev->range_index = 7+1;
++	memdev->region_index = 1+1;
++	memdev->region_size = 0;
++	memdev->region_offset = 0;
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 1;
++
++	/* mem-region12 (spa/bdw2, dimm2) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 12;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[2];
++	memdev->physical_id = 2;
++	memdev->region_id = 0;
++	memdev->range_index = 8+1;
++	memdev->region_index = 2+1;
++	memdev->region_size = 0;
++	memdev->region_offset = 0;
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 1;
++
++	/* mem-region13 (spa/dcr3, dimm3) */
++	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 13;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[3];
++	memdev->physical_id = 3;
++	memdev->region_id = 0;
++	memdev->range_index = 9+1;
++	memdev->region_index = 3+1;
++	memdev->region_size = 0;
++	memdev->region_offset = 0;
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 1;
++
++	offset = offset + sizeof(struct acpi_nfit_memory_map) * 14;
++	/* dcr-descriptor0 */
++	dcr = nfit_buf + offset;
++	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
++	dcr->header.length = sizeof(struct acpi_nfit_control_region);
++	dcr->region_index = 0+1;
++	dcr->vendor_id = 0xabcd;
++	dcr->device_id = 0;
++	dcr->revision_id = 1;
++	dcr->serial_number = ~handle[0];
++	dcr->windows = 1;
++	dcr->window_size = DCR_SIZE;
++	dcr->command_offset = 0;
++	dcr->command_size = 8;
++	dcr->status_offset = 8;
++	dcr->status_size = 4;
++
++	/* dcr-descriptor1 */
++	dcr = nfit_buf + offset + sizeof(struct acpi_nfit_control_region);
++	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
++	dcr->header.length = sizeof(struct acpi_nfit_control_region);
++	dcr->region_index = 1+1;
++	dcr->vendor_id = 0xabcd;
++	dcr->device_id = 0;
++	dcr->revision_id = 1;
++	dcr->serial_number = ~handle[1];
++	dcr->windows = 1;
++	dcr->window_size = DCR_SIZE;
++	dcr->command_offset = 0;
++	dcr->command_size = 8;
++	dcr->status_offset = 8;
++	dcr->status_size = 4;
++
++	/* dcr-descriptor2 */
++	dcr = nfit_buf + offset + sizeof(struct acpi_nfit_control_region) * 2;
++	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
++	dcr->header.length = sizeof(struct acpi_nfit_control_region);
++	dcr->region_index = 2+1;
++	dcr->vendor_id = 0xabcd;
++	dcr->device_id = 0;
++	dcr->revision_id = 1;
++	dcr->serial_number = ~handle[2];
++	dcr->windows = 1;
++	dcr->window_size = DCR_SIZE;
++	dcr->command_offset = 0;
++	dcr->command_size = 8;
++	dcr->status_offset = 8;
++	dcr->status_size = 4;
++
++	/* dcr-descriptor3 */
++	dcr = nfit_buf + offset + sizeof(struct acpi_nfit_control_region) * 3;
++	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
++	dcr->header.length = sizeof(struct acpi_nfit_control_region);
++	dcr->region_index = 3+1;
++	dcr->vendor_id = 0xabcd;
++	dcr->device_id = 0;
++	dcr->revision_id = 1;
++	dcr->serial_number = ~handle[3];
++	dcr->windows = 1;
++	dcr->window_size = DCR_SIZE;
++	dcr->command_offset = 0;
++	dcr->command_size = 8;
++	dcr->status_offset = 8;
++	dcr->status_size = 4;
++
++	offset = offset + sizeof(struct acpi_nfit_control_region) * 4;
++	/* bdw0 (spa/dcr0, dimm0) */
++	bdw = nfit_buf + offset;
++	bdw->header.type = ACPI_NFIT_TYPE_DATA_REGION;
++	bdw->header.length = sizeof(struct acpi_nfit_data_region);
++	bdw->region_index = 0+1;
++	bdw->windows = 1;
++	bdw->offset = 0;
++	bdw->size = BDW_SIZE;
++	bdw->capacity = DIMM_SIZE;
++	bdw->start_address = 0;
++
++	/* bdw1 (spa/dcr1, dimm1) */
++	bdw = nfit_buf + offset + sizeof(struct acpi_nfit_data_region);
++	bdw->header.type = ACPI_NFIT_TYPE_DATA_REGION;
++	bdw->header.length = sizeof(struct acpi_nfit_data_region);
++	bdw->region_index = 1+1;
++	bdw->windows = 1;
++	bdw->offset = 0;
++	bdw->size = BDW_SIZE;
++	bdw->capacity = DIMM_SIZE;
++	bdw->start_address = 0;
++
++	/* bdw2 (spa/dcr2, dimm2) */
++	bdw = nfit_buf + offset + sizeof(struct acpi_nfit_data_region) * 2;
++	bdw->header.type = ACPI_NFIT_TYPE_DATA_REGION;
++	bdw->header.length = sizeof(struct acpi_nfit_data_region);
++	bdw->region_index = 2+1;
++	bdw->windows = 1;
++	bdw->offset = 0;
++	bdw->size = BDW_SIZE;
++	bdw->capacity = DIMM_SIZE;
++	bdw->start_address = 0;
++
++	/* bdw3 (spa/dcr3, dimm3) */
++	bdw = nfit_buf + offset + sizeof(struct acpi_nfit_data_region) * 3;
++	bdw->header.type = ACPI_NFIT_TYPE_DATA_REGION;
++	bdw->header.length = sizeof(struct acpi_nfit_data_region);
++	bdw->region_index = 3+1;
++	bdw->windows = 1;
++	bdw->offset = 0;
++	bdw->size = BDW_SIZE;
++	bdw->capacity = DIMM_SIZE;
++	bdw->start_address = 0;
++
++	acpi_desc = &t->acpi_desc;
++	set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_dsm_force_en);
++	set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_dsm_force_en);
++	set_bit(ND_CMD_SET_CONFIG_DATA, &acpi_desc->dimm_dsm_force_en);
++	nd_desc = &acpi_desc->nd_desc;
++	nd_desc->ndctl = nfit_test_ctl;
++}
++
++static void nfit_test1_setup(struct nfit_test *t)
++{
++	size_t size = t->nfit_size, offset;
++	void *nfit_buf = t->nfit_buf;
++	struct acpi_nfit_memory_map *memdev;
++	struct acpi_nfit_control_region *dcr;
++	struct acpi_nfit_system_address *spa;
++
++	nfit_test_init_header(nfit_buf, size);
++
++	offset = sizeof(struct acpi_table_nfit);
++	/* spa0 (flat range with no bdw aliasing) */
++	spa = nfit_buf + offset;
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_PM), 16);
++	spa->range_index = 0+1;
++	spa->address = t->spa_set_dma[0];
++	spa->length = SPA2_SIZE;
++
++	offset += sizeof(*spa);
++	/* mem-region0 (spa0, dimm0) */
++	memdev = nfit_buf + offset;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = 0;
++	memdev->physical_id = 0;
++	memdev->region_id = 0;
++	memdev->range_index = 0+1;
++	memdev->region_index = 0+1;
++	memdev->region_size = SPA2_SIZE;
++	memdev->region_offset = 0;
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 1;
++
++	offset += sizeof(*memdev);
++	/* dcr-descriptor0 */
++	dcr = nfit_buf + offset;
++	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
++	dcr->header.length = sizeof(struct acpi_nfit_control_region);
++	dcr->region_index = 0+1;
++	dcr->vendor_id = 0xabcd;
++	dcr->device_id = 0;
++	dcr->revision_id = 1;
++	dcr->serial_number = ~0;
++	dcr->code = 0x201;
++	dcr->windows = 0;
++	dcr->window_size = 0;
++	dcr->command_offset = 0;
++	dcr->command_size = 0;
++	dcr->status_offset = 0;
++	dcr->status_size = 0;
++}
++
++static int nfit_test_blk_region_enable(struct nd_bus *nd_bus, struct device *dev)
++{
++	struct nd_blk_region *ndbr = to_nd_blk_region(dev);
++	struct acpi_nfit_system_address *spa_bdw;
++	struct nfit_blk_mmio *mmio;
++	struct nfit_blk *nfit_blk;
++	struct nfit_mem *nfit_mem;
++	struct nd_dimm *nd_dimm;
++
++	nd_dimm = nd_blk_region_to_dimm(ndbr);
++	nfit_mem = nd_dimm_provider_data(nd_dimm);
++	if (!nfit_mem || !nfit_mem->dcr || !nfit_mem->bdw) {
++		dev_dbg(dev, "%s: missing%s%s%s\n", __func__,
++				nfit_mem ? "" : " nfit_mem",
++				nfit_mem->dcr ? "" : " dcr",
++				nfit_mem->bdw ? "" : " bdw");
++		return -ENXIO;
++	}
++
++	nfit_blk = devm_kzalloc(dev, sizeof(*nfit_blk), GFP_KERNEL);
++	if (!nfit_blk)
++		return -ENOMEM;
++	nd_blk_region_set_provider_data(ndbr, nfit_blk);
++	nfit_blk->nd_region = to_nd_region(dev);
++
++	/* block aperture memory is all we use in nfit_test */
++	nfit_blk->bdw_offset = nfit_mem->bdw->offset;
++	mmio = &nfit_blk->mmio[BDW];
++	spa_bdw = nfit_mem->spa_bdw;
++	mmio->base = __wrap_ioremap_nocache(spa_bdw->address, spa_bdw->length);
++	if (!mmio->base) {
++		release_mem_region(spa_bdw->address, spa_bdw->length);
++		dev_dbg(dev, "%s: %s failed to map bdw\n", __func__,
++				nd_dimm_name(nd_dimm));
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++static void nfit_test_blk_region_disable(struct nd_bus *nd_bus, struct device *dev)
++{
++	struct nd_blk_region *ndbr = to_nd_blk_region(dev);
++	struct nfit_blk *nfit_blk = nd_blk_region_provider_data(ndbr);
++	struct acpi_nfit_system_address *spa_bdw;
++	struct nfit_blk_mmio *mmio;
++	struct nfit_mem *nfit_mem;
++	struct nd_dimm *nd_dimm;
++
++	if (!nfit_blk)
++		return; /* never enabled */
++
++	nd_dimm = nd_blk_region_to_dimm(ndbr);
++	nfit_mem = nd_dimm_provider_data(nd_dimm);
++	spa_bdw = nfit_mem->spa_bdw;
++	mmio = &nfit_blk->mmio[BDW];
++	__wrap_iounmap(mmio->base);
++	nd_blk_region_set_provider_data(ndbr, NULL);
++}
++
++static int nfit_test_blk_do_io(struct nd_blk_region *ndbr, void *iobuf,
++                u64 len, int rw, resource_size_t dpa)
++{
++	struct nfit_blk *nfit_blk = ndbr->blk_provider_data;
++	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[BDW];
++	struct nd_region *nd_region = &ndbr->nd_region;
++        struct nfit_test_resource *nfit_res;
++	unsigned int bw;
++
++        nfit_res = nfit_test_lookup((unsigned long) mmio->base);
++        if (!nfit_res) {
++		dev_WARN_ONCE(&nd_region->dev, 1, "no test resource\n");
++		return -EIO;
++	}
++	dev_vdbg(&nd_region->dev, "%s: base: %p offset: %pa\n",
++			__func__, mmio->base, &dpa);
++	bw = nd_region_acquire_lane(nd_region);
++	if (rw)
++		memcpy(nfit_res->buf + dpa, iobuf, len);
++	else
++		memcpy(iobuf, nfit_res->buf + dpa, len);
++	nd_region_release_lane(nd_region, bw);
++
++        return 0;
++}
++
++extern const struct attribute_group *acpi_nfit_attribute_groups[];
++
++static int nfit_test_probe(struct platform_device *pdev)
++{
++	struct nd_bus_descriptor *nd_desc;
++	struct acpi_nfit_desc *acpi_desc;
++	struct device *dev = &pdev->dev;
++	struct nfit_test *nfit_test;
++	int rc;
++
++	nfit_test = to_nfit_test(&pdev->dev);
++
++	/* common alloc */
++	if (nfit_test->num_dcr) {
++		int num = nfit_test->num_dcr;
++
++		nfit_test->dimm = devm_kcalloc(dev, num, sizeof(void *), GFP_KERNEL);
++		nfit_test->dimm_dma = devm_kcalloc(dev, num, sizeof(dma_addr_t), GFP_KERNEL);
++		nfit_test->label = devm_kcalloc(dev, num, sizeof(void *), GFP_KERNEL);
++		nfit_test->label_dma = devm_kcalloc(dev, num, sizeof(dma_addr_t), GFP_KERNEL);
++		nfit_test->dcr = devm_kcalloc(dev, num, sizeof(struct nfit_test_dcr *), GFP_KERNEL);
++		nfit_test->dcr_dma = devm_kcalloc(dev, num, sizeof(dma_addr_t), GFP_KERNEL);
++		if (nfit_test->dimm && nfit_test->dimm_dma && nfit_test->label
++				&& nfit_test->label_dma && nfit_test->dcr
++				&& nfit_test->dcr_dma)
++			/* pass */;
++		else
++			return -ENOMEM;
++	}
++
++	if (nfit_test->num_pm) {
++		int num = nfit_test->num_pm;
++
++		nfit_test->spa_set = devm_kcalloc(dev, num, sizeof(void *), GFP_KERNEL);
++		nfit_test->spa_set_dma = devm_kcalloc(dev, num,
++				sizeof(dma_addr_t), GFP_KERNEL);
++		if (nfit_test->spa_set && nfit_test->spa_set_dma)
++			/* pass */;
++		else
++			return -ENOMEM;
++	}
++
++	/* per-nfit specific alloc */
++	if (nfit_test->alloc(nfit_test))
++		return -ENOMEM;
++
++	nfit_test->setup(nfit_test);
++	acpi_desc = &nfit_test->acpi_desc;
++	acpi_desc->dev = &pdev->dev;
++	acpi_desc->nfit = nfit_test->nfit_buf;
++	acpi_desc->blk_enable = nfit_test_blk_region_enable;
++	acpi_desc->blk_disable = nfit_test_blk_region_disable;
++	acpi_desc->blk_do_io = nfit_test_blk_do_io;
++	nd_desc = &acpi_desc->nd_desc;
++	nd_desc->attr_groups = acpi_nfit_attribute_groups;
++	acpi_desc->nd_bus = nd_bus_register(&pdev->dev, nd_desc);
++	if (!acpi_desc->nd_bus)
++		return -ENXIO;
++
++	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
++	if (rc) {
++		nd_bus_unregister(acpi_desc->nd_bus);
++		return rc;
++	}
++
++	return 0;
++}
++
++static int nfit_test_remove(struct platform_device *pdev)
++{
++	struct nfit_test *nfit_test = to_nfit_test(&pdev->dev);
++	struct acpi_nfit_desc *acpi_desc = &nfit_test->acpi_desc;
++
++	nd_bus_unregister(acpi_desc->nd_bus);
++
++	return 0;
++}
++
++static void nfit_test_release(struct device *dev)
++{
++	struct nfit_test *nfit_test = to_nfit_test(dev);
++
++	kfree(nfit_test);
++}
++
++static const struct platform_device_id nfit_test_id[] = {
++	{ KBUILD_MODNAME },
++	{ },
++};
++
++static struct platform_driver nfit_test_driver = {
++	.probe = nfit_test_probe,
++	.remove = nfit_test_remove,
++	.driver = {
++		.name = KBUILD_MODNAME,
++	},
++	.id_table = nfit_test_id,
++};
++
++#ifdef CONFIG_CMA_SIZE_MBYTES
++#define CMA_SIZE_MBYTES CONFIG_CMA_SIZE_MBYTES
++#else
++#define CMA_SIZE_MBYTES 0
++#endif
++
++static __init int nfit_test_init(void)
++{
++	int rc, i;
++
++	nfit_test_setup(nfit_test_lookup);
++
++	for (i = 0; i < NUM_NFITS; i++) {
++		struct nfit_test *nfit_test;
++		struct platform_device *pdev;
++		static int once;
++
++		nfit_test = kzalloc(sizeof(*nfit_test), GFP_KERNEL);
++		if (!nfit_test) {
++			rc = -ENOMEM;
++			goto err_register;
++		}
++		INIT_LIST_HEAD(&nfit_test->resources);
++		switch (i) {
++		case 0:
++			nfit_test->num_pm = NUM_PM;
++			nfit_test->num_dcr = NUM_DCR;
++			nfit_test->alloc = nfit_test0_alloc;
++			nfit_test->setup = nfit_test0_setup;
++			break;
++		case 1:
++			nfit_test->num_pm = 1;
++			nfit_test->alloc = nfit_test1_alloc;
++			nfit_test->setup = nfit_test1_setup;
++			break;
++		default:
++			rc = -EINVAL;
++			goto err_register;
++		}
++		pdev = &nfit_test->pdev;
++		pdev->name = KBUILD_MODNAME;
++		pdev->id = i;
++		pdev->dev.release = nfit_test_release;
++		rc = platform_device_register(pdev);
++		if (rc) {
++			put_device(&pdev->dev);
++			goto err_register;
++		}
++
++		rc = dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
++		if (rc)
++			goto err_register;
++
++		instances[i] = nfit_test;
++
++		if (!once++) {
++			dma_addr_t dma;
++			void *buf;
++
++			buf = dma_alloc_coherent(&pdev->dev, SZ_128M, &dma,
++					GFP_KERNEL);
++			if (!buf) {
++				rc = -ENOMEM;
++				dev_warn(&pdev->dev, "need 128M of free cma\n");
++				goto err_register;
++			}
++			dma_free_coherent(&pdev->dev, SZ_128M, buf, dma);
++		}
++	}
++
++	rc = platform_driver_register(&nfit_test_driver);
++	if (rc)
++		goto err_register;
++	return 0;
++
++ err_register:
++	for (i = 0; i < NUM_NFITS; i++)
++		if (instances[i])
++			platform_device_unregister(&instances[i]->pdev);
++	nfit_test_teardown();
++	return rc;
++}
++
++static __exit void nfit_test_exit(void)
++{
++	int i;
++
++	platform_driver_unregister(&nfit_test_driver);
++	for (i = 0; i < NUM_NFITS; i++)
++		platform_device_unregister(&instances[i]->pdev);
++	nfit_test_teardown();
++}
++
++module_init(nfit_test_init);
++module_exit(nfit_test_exit);
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Intel Corporation");
+diff --git a/drivers/block/nd/test/nfit_test.h b/drivers/block/nd/test/nfit_test.h
+new file mode 100644
+index 000000000000..4a1215ec45c0
+--- /dev/null
++++ b/drivers/block/nd/test/nfit_test.h
+@@ -0,0 +1,28 @@
++/*
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __NFIT_TEST_H__
++#define __NFIT_TEST_H__
++
++struct nfit_test_resource {
++	struct list_head list;
++	struct resource *res;
++	struct device *dev;
++	void *buf;
++};
++
++typedef struct nfit_test_resource *(*nfit_test_lookup_fn)(resource_size_t);
++void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size);
++void __wrap_iounmap(volatile void __iomem *addr);
++void nfit_test_setup(nfit_test_lookup_fn lookup);
++void nfit_test_teardown(void);
++#endif
 
---_002_94D0CD8314A33A4D9D801C0FE68B40295A9217B0G9W0745americas_
-Content-Type: application/octet-stream; name="0001-pmem-cache-type"
-Content-Description: 0001-pmem-cache-type
-Content-Disposition: attachment; filename="0001-pmem-cache-type"; size=19027;
-	creation-date="Mon, 25 May 2015 06:55:53 GMT";
-	modification-date="Mon, 25 May 2015 06:55:53 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSAxOGU3NWE3MTM0ZTAxMzBiOTI1ZmZmYWIxM2Y0MWMxZmZjNGQ5ZjA1IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBSb2JlcnQgRWxsaW90dCA8ZWxsaW90dEBocC5jb20+CkRhdGU6
-IEZyaSwgMjIgTWF5IDIwMTUgMTY6NDY6MjEgLTA1MDAKU3ViamVjdDogW1BBVENIXSBwbWVtIGNh
-Y2hlIHR5cGUgcGF0Y2gKCkF1dGhvcjogUm9iZXJ0IEVsbGlvdHQgPGVsbGlvdHRAaHAuY29tPgpE
-YXRlOiAgIFR1ZSBBcHIgMjggMTk6MTQ6NTMgMjAxNSAtMDUwMAoKICAgIHBtZW06IGNhY2hlX3R5
-cGUsIG5vbi10ZW1wb3JhbCBtZW1jcHkgZXhwZXJpbWVudHMKCiAgICBXQVJOSU5HOiBOb3QgZm9y
-IGluY2x1c2lvbiBpbiB0aGUga2VybmVsIC0ganVzdCBmb3IgZXhwZXJpbWVudGF0aW9uLgoKICAg
-IEFkZCBtb2RwYXJhbXMgdG8gc2VsZWN0IGNhY2hlX3R5cGUgYW5kIHZhcmlvdXMga2luZHMgb2YK
-ICAgIG1lbWNweSB3aXRoIG5vbi10ZW1wb3JhbCBsb2FkcyBhbmQgc3RvcmVzLiAgUGFyYW1ldGVy
-cwogICAgYXJlIHByaW50ZWQgdG8gdGhlIGtlcm5lbCBzZXJpYWwgbG9nIGF0IG1vZHVsZSBsb2Fk
-IHRpbWUuCgogICAgRXhhbXBsZSB1c2FnZToKICAgIG1vZHByb2JlIHBtZW0gcG1lbV9jYWNoZXR5
-cGU9MiBwbWVtX3JlYWRzY2FuPTIgcG1lbV9udHc9MSBwbWVtX250cj0xCgogICAgeDg2IG9mZmVy
-cyBzZXZlcmFsIG5vbi10ZW1wb3JhbCBpbnN0cnVjdGlvbnM6CiAgICAqICA4IGJ5dGU6IG1vdm50
-aSAoc3RvcmUpIGZyb20gbm9ybWFsIHJlZ2lzdGVycwogICAgKiAxNiBieXRlOiBtb3ZudGRxIChz
-dG9yZSkgYW5kIG1vdm50ZHFhIChsb2FkKSB1c2luZyB4bW0gcmVnaXN0ZXJzIChTU0UpCiAgICAq
-IDMyIGJ5dGU6IHZtb3ZudGRxIGFuZCB2bW92bnRkcWEgdXNpbmcgeW1tIHJlZ2lzdGVycyAoQVZY
-KQogICAgKiA2NCBieXRlOiB2bW92bnRkcSBhbmQgdm1vdm50ZHFhIHVzaW5nIHptbSByZWdpc3Rl
-cnMgKEFWWDUxMikKCiAgICBUaGUgMzItYnl0ZSBBVlggaW5zdHJ1Y3Rpb25zIGFyZSB1c2VkIGJ5
-IHRoaXMgcGF0Y2guCgogICAgTm9ybWFsIG1lbWNweSBpcyB1c2VkIGZvciB1bmFsaWduZWQgcG1l
-bV9yd19ieXRlcyBhY2Nlc3NlcywKICAgIHNvIGlzIHVuc2FmZSBmb3IgV0IgbW9kZS4KCiAgICBN
-b2R1bGUgcGFyYW1ldGVycwogICAgPT09PT09PT09PT09PT09PT0KICAgIHBtZW1fY2FjaGV0eXBl
-PW4JKGRlZmF1bHQgMykKICAgIAlTZWxlY3QgdGhlIGNhY2hlIHR5cGUgKHdoaWNoIGlvcmVtYXAg
-ZnVuY3Rpb24gdG8gdXNlIHRvCiAgICAJbWFwIHRoZSBOVkRJTU0gbWVtb3J5KQogICAgCTAgPSBV
-QyAodW5jYWNoZWFibGUpIC0gc2xvdyB3cml0ZXMsIHNsb3cgcmVhZHMKICAgIAkxID0gV0IgKHdy
-aXRlYmFjaykgLSBmYXN0IHVuc2FmZSB3cml0ZXMsIGZhc3QgcmVhZHMKICAgIAkyID0gV0MgKHdy
-aXRlIGNvbWJpbmluZykgLSBmYXN0IHdyaXRlcywgc2xvdyByZWFkcwogICAgCTMgPSBXVCAod3Jp
-dGV0aHJvdWdoKSAtIHNsb3cgd3JpdGVzLCBmYXN0IHJlYWRzCgogICAgCVdCIHdyaXRlcyBhcmUg
-c2FmZSBpZjoKICAgIAkqIG5vbi10ZW1wb3JhbCBzdG9yZXMgYXJlIGV4Y2x1c2l2ZWx5IHVzZWQK
-ICAgIAkqIGNsZmx1c2ggaW5zdHJ1Y3Rpb25zIGFyZSBhZGRlZAoKICAgIHBtZW1fcmVhZHNjYW49
-bgkJKGRlZmF1bHQgMCkKICAgIAkwID0gbm8gcmVhZCBzY2FuCiAgICAJMSA9IHJlYWQgdGhlIGVu
-dGlyZSBtZW1vcnkgcmFuZ2UsIGxvb2tpbmcgdG8gdHJpZ2dlcgogICAgCVVDIG1lbW9yeSBlcnJv
-cnMKCiAgICAJVGhlIHJhdGUgaXMgYWxzbyBwcmludGVkLCBzZXJ2aW5nIGFzIGEgcXVpY2sgcGVy
-Zm9ybWFuY2UKICAgIAljaGVjayAodXNlcyBhIDY0IGJ5dGUgbG9vcCB3aXRoIE5UIGxvYWRzKS4K
-CiAgICBwbWVtX2NsZWFuPW4JCShkZWZhdWx0IDApCiAgICAJMCA9IG5vIGNsZWFuCiAgICAJMSA9
-IG92ZXJ3cml0ZSB0aGUgZW50aXJlIG1lbW9yeSByYW5nZSwgcG9zc2libHkKICAgIAljbGVhcmlu
-ZyBVQyBtZW1vcnkgZXJyb3JzIChkYW5nZXJvdXMsIGRlc3Ryb3lzCiAgICAJYWxsIGRhdGEpCgog
-ICAgCVRoZSByYXRlIGlzIGFsc28gcHJpbnRlZCwgc2VydmluZyBhcyBhIHF1aWNrIHBlcmZvcm1h
-bmNlCiAgICAJY2hlY2sgKHVzZXMgYSA2NCBieXRlIGxvb3Agd2l0aCBOVCBzdG9yZXMpLgoKICAg
-IHBtZW1fbnR3PW4JCShkZWZhdWx0IDMpCiAgICAJVXNlIG5vbi10ZW1wb3JhbCBzdG9yZXMgd2hl
-biB3cml0aW5nIHBlcnNpc3RlbnQgbWVtb3J5CgogICAgCTAgPSBtZW1jcHkgKHVuc2FmZSBmb3Ig
-V0IpCiAgICAJMSA9IDY0IGJ5dGUgbG9vcCB3aXRoIE5UIHN0b3JlcwogICAgCTIgPSAxMjggYnl0
-ZSBsb29wIHdpdGggTlQgc3RvcmVzCiAgICAJMyA9IDY0IGJ5dGUgbG9vcCB3aXRoIE5UIHN0b3Jl
-cywgcGx1cyB1c2UgTlQgbG9hZHMgZnJvbQogICAgCSAgbm9ybWFsIG1lbW9yeSAobWF5IGJlIGJl
-dHRlciBjYWNoZSB1c2FnZSkKICAgIAk0ID0gMTI4IGJ5dGUgbG9vcCB3aXRoIE5UIHN0b3Jlcywg
-cGx1cyB1c2UgTlQgbG9hZHMgZnJvbQogICAgCSAgbm9ybWFsIG1lbW9yeQogICAgCTUgPSBfX2Nv
-cHlfZnJvbV91c2VyIChleGlzdGluZyBrZXJuZWwgZnVuY3Rpb24gd2l0aAogICAgCSAgOCBieXRl
-IE5UIGluc3RydWN0aW9ucykKICAgIAk2ID0gbm8gd3JpdGUgYXQgYWxsIChub3ApKGRhbmdlcm91
-cykKICAgIAk3ID0gNjQtYnl0ZSBsb29wLCBzdG9yZSBvbmx5ICh3cml0ZSBnYXJiYWdlKShkYW5n
-ZXJvdXMpCgogICAgcG1lbV9udHI9bgkJKGRlZmF1bHQgMykKICAgIAlVc2Ugbm9uLXRlbXBvcmFs
-IGxvYWRzIHdoZW4gcmVhZGluZyBwZXJzaXN0ZW50IG1lbW9yeQoKICAgIAkwID0gbWVtY3B5CiAg
-ICAJMSA9IDY0IGJ5dGUgbG9vcCB3aXRoIE5UIGxvYWRzCiAgICAJMiA9IDEyOCBieXRlIGxvb3Ag
-d2l0aCBOVCBsb2FkcwogICAgCTMgPSA2NCBieXRlIGxvb3Agd2l0aCBOVCBsb2FkcywgcGx1cyB1
-c2UgTlQgc3RvcmVzIHRvCiAgICAJICBub3JtYWwgbWVtb3J5CiAgICAJNCA9IDEyOCBieXRlIGxv
-b3Agd2l0aCBOVCBsb2FkcywgcGx1cyB1c2UgTlQgc3RvcmVzIHRvCiAgICAJICBub3JtYWwgbWVt
-b3J5CiAgICAJNSA9IG1lbWNweQogICAgCTYgPSBubyBsb2FkIGF0IGFsbCAobm9wKShkYW5nZXJv
-dXMpCiAgICAJNyA9IDY0LWJ5dGUgbG9vcCwgbG9hZCBvbmx5IChyZXR1cm4gZ2FyYmFnZSkoZGFu
-Z2Vyb3VzKQoKICAgIHBtbV9udHc9NiBwbWVtX250cj02IGV4aGliaXRzIHRoZSBibG9jayBsYXll
-ciBJT1BTIGxpbWl0cy4KCiAgICBTaWduZWQtb2ZmLWJ5OiBSb2JlcnQgRWxsaW90dCA8ZWxsaW90
-dEBocC5jb20+Ci0tLQogZHJpdmVycy9ibG9jay9uZC9wbWVtLmMgfCA1NTAgKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystCiAxIGZpbGUgY2hhbmdlZCwgNTM5
-IGluc2VydGlvbnMoKyksIDExIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYmxv
-Y2svbmQvcG1lbS5jIGIvZHJpdmVycy9ibG9jay9uZC9wbWVtLmMKaW5kZXggN2I1Y2VkZjFmMmE0
-Li5mMzc4ZWY4MTczM2YgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYmxvY2svbmQvcG1lbS5jCisrKyBi
-L2RyaXZlcnMvYmxvY2svbmQvcG1lbS5jCkBAIC0yNiw2ICsyNiwzODIgQEAKICNpbmNsdWRlIDxs
-aW51eC9uZC5oPgogI2luY2x1ZGUgIm5kLmgiCiAKK3N0YXRpYyBpbnQgcG1lbV9jYWNoZXR5cGU7
-CS8qIGRlZmF1bHQgVUMgKi8KK21vZHVsZV9wYXJhbShwbWVtX2NhY2hldHlwZSwgaW50LCBTX0lS
-VUdPfFNfSVdVU1IpOworTU9EVUxFX1BBUk1fREVTQyhwbWVtX2NhY2hldHlwZSwKKwkiU2VsZWN0
-IGNhY2hlIGF0dHJpYnV0ZSBmb3IgcG1lbSBkcml2ZXIgKDA9VUMsIDE9V0IgMj1XQyAzPVdUKSIp
-OworCitzdGF0aWMgaW50IHBtZW1fcmVhZHNjYW47Cittb2R1bGVfcGFyYW0ocG1lbV9yZWFkc2Nh
-biwgaW50LCBTX0lSVUdPfFNfSVdVU1IpOworTU9EVUxFX1BBUk1fREVTQyhwbWVtX3JlYWRzY2Fu
-LAorCSJSZWFkIHNjYW4gcG1lbSBkZXZpY2UgdXBvbiBpbml0ICh0cmlnZ2VyIEVDQyBlcnJvcnMp
-Iik7CisKK3N0YXRpYyBpbnQgcG1lbV9jbGVhbjsKK21vZHVsZV9wYXJhbShwbWVtX2NsZWFuLCBp
-bnQsIFNfSVJVR098U19JV1VTUik7CitNT0RVTEVfUEFSTV9ERVNDKHBtZW1fY2xlYW4sCisJIkNs
-ZWFuIHBtZW0gZGV2aWNlIHVwb24gaW5pdCAod3JpdGUgZ2FyYmFnZSwgYnV0IGNsZWFucyB0aGUg
-RUNDKSIpOworCitzdGF0aWMgaW50IHBtZW1fbnR3ID0gMzsKK21vZHVsZV9wYXJhbShwbWVtX250
-dywgaW50LCBTX0lSVUdPfFNfSVdVU1IpOworTU9EVUxFX1BBUk1fREVTQyhwbWVtX250dywKKwki
-VXNlIG5vbi10ZW1wb3JhbCBzdG9yZXMgZm9yIGJsb2NrIHdyaXRlcyBpbiBwbWVtICgwPW1lbWNw
-eSwgMT02NCBieXRlIE5ULCAyPTEyOCBieXRlIE5ULCAzPTY0IGR1YWwgTlQsIDQ9MTI4IGR1YWwg
-TlQsIDU9Y29weV9mcm9tX3VzZXIsIDY9bm9wLCA3PTY0LWJ5dGUgTlQtc3RvcmUgb25seSkiKTsK
-Kworc3RhdGljIGludCBwbWVtX250ciA9IDM7Cittb2R1bGVfcGFyYW0ocG1lbV9udHIsIGludCwg
-U19JUlVHT3xTX0lXVVNSKTsKK01PRFVMRV9QQVJNX0RFU0MocG1lbV9udHIsCisJIlVzZSBub24t
-dGVtcG9yYWwgbG9hZHMgZm9yIGJsb2NrIHJlYWRzIGluIHBtZW0gKDA9bWVtY3B5LCAxPTY0IGJ5
-dGUgTlQsIDI9MTI4IGJ5dGUgTlQsIDM9NjQgZHVhbCBOVCwgND0xMjggZHVhbCBOVCwgNT1tZW1j
-cHksIDY9bm9wLCA3PTY0LWJ5dGUgTlQtbG9hZCBvbmx5KSIpOworCisvKiBsb2FkOiBub3JtYWws
-IHN0b3JlOiBub24tdGVtcG9yYWwsIGxvb3A6IDY0IGJ5dGVzICovCitzdGF0aWMgdm9pZCBtZW1j
-cHlfbHRfc250XzY0KHZvaWQgKnRvLCBjb25zdCB2b2lkICpmcm9tLCBzaXplX3Qgc2l6ZSkKK3sK
-Kwl1NjQgYnMgPSA2NDsKKwlpbnQgaTsKKworCUJVR19PTighSVNfQUxJR05FRChzaXplLCBicykp
-OworCUJVR19PTighSVNfQUxJR05FRCgodTY0KXRvLCBicykpOworCUJVR19PTighSVNfQUxJR05F
-RCgodTY0KWZyb20sIGJzKSk7CisKKwlmb3IgKGkgPSAwOyBpIDwgc2l6ZTsgaSArPSBicykgewor
-CQlfX2FzbV9fIF9fdm9sYXRpbGVfXyAoCisjaWYgMAorCQkvKiAxNi1ieXRlIFNTRSBpbnN0cnVj
-dGlvbnMgKi8KKwkJIm1vdmRxYSAoJTApLCAlJXhtbTBcbiIKKwkJIm1vdmRxYSAxNiglMCksICUl
-eG1tMVxuIgorCQkibW92ZHFhIDMyKCUwKSwgJSV4bW0yXG4iCisJCSJtb3ZkcWEgNDgoJTApLCAl
-JXhtbTNcbiIKKwkJIm1vdm50ZHEgJSV4bW0wLCAoJTEpXG4iCisJCSJtb3ZudGRxICUleG1tMSwg
-MTYoJTEpXG4iCisJCSJtb3ZudGRxICUleG1tMiwgMzIoJTEpXG4iCisJCSJtb3ZudGRxICUleG1t
-MywgNDgoJTEpXG4iCisjZW5kaWYKKwkJLyogMzItYnl0ZSBBVlggaW5zdHJ1Y3Rpb25zICovCisJ
-CSJ2bW92ZHFhICglMCksICUleW1tMFxuIgorCQkidm1vdmRxYSAzMiglMCksICUleW1tMVxuIgor
-CQkidm1vdm50ZHEgJSV5bW0wLCAoJTEpXG4iCisJCSJ2bW92bnRkcSAlJXltbTEsIDMyKCUxKVxu
-IgorCQk6CisJCTogInIiIChmcm9tKSwgInIiICh0bykKKwkJOiAibWVtb3J5Iik7CisKKwkJdG8g
-Kz0gYnM7CisJCWZyb20gKz0gYnM7CisJfQorCisJX19hc21fXyBfX3ZvbGF0aWxlX18gKAorCQki
-IHNmZW5jZVxuIiA6IDoKKwkpOworfQorCisvKiBsb2FkOiBza2lwLCBzdG9yZTogbm9uLXRlbXBv
-cmFsLCBsb29wOiA2NCBieXRlcyAqLworc3RhdGljIHZvaWQgbWVtY3B5X2xza2lwX3NudF82NCh2
-b2lkICp0bywgY29uc3Qgdm9pZCAqZnJvbSwgc2l6ZV90IHNpemUpCit7CisJdTY0IGJzID0gNjQ7
-CisJaW50IGk7CisKKwlCVUdfT04oIUlTX0FMSUdORUQoc2l6ZSwgYnMpKTsKKwlCVUdfT04oIUlT
-X0FMSUdORUQoKHU2NCl0bywgYnMpKTsKKwlCVUdfT04oIUlTX0FMSUdORUQoKHU2NClmcm9tLCBi
-cykpOworCisJZm9yIChpID0gMDsgaSA8IHNpemU7IGkgKz0gYnMpIHsKKwkJX19hc21fXyBfX3Zv
-bGF0aWxlX18gKAorI2lmIDAKKwkJIm1vdm50ZHEgJSV4bW0wLCAoJTEpXG4iCisJCSJtb3ZudGRx
-ICUleG1tMSwgMTYoJTEpXG4iCisJCSJtb3ZudGRxICUleG1tMiwgMzIoJTEpXG4iCisJCSJtb3Zu
-dGRxICUleG1tMywgNDgoJTEpXG4iCisjZW5kaWYKKwkJInZtb3ZudGRxICUleW1tMCwgKCUxKVxu
-IgorCQkidm1vdm50ZHEgJSV5bW0xLCAzMiglMSlcbiIKKwkJOgorCQk6ICJyIiAoZnJvbSksICJy
-IiAodG8pCisJCTogIm1lbW9yeSIpOworCisJCXRvICs9IGJzOworCQlmcm9tICs9IGJzOworCX0K
-KworCV9fYXNtX18gX192b2xhdGlsZV9fICgKKwkJIiBzZmVuY2VcbiIgOiA6CisJKTsKK30KKwor
-LyogbG9hZDogbm9uLXRlbXBvcmFsLCBzdG9yZTogbm9uLXRlbXBvcmFsLCBsb29wOiA2NCBieXRl
-cyAqLworc3RhdGljIHZvaWQgbWVtY3B5X2xudF9zbnRfNjQodm9pZCAqdG8sIGNvbnN0IHZvaWQg
-KmZyb20sIHNpemVfdCBzaXplKQoreworCXU2NCBicyA9IDY0OworCWludCBpOworCisJQlVHX09O
-KCFJU19BTElHTkVEKHNpemUsIGJzKSk7CisJQlVHX09OKCFJU19BTElHTkVEKCh1NjQpdG8sIGJz
-KSk7CisJQlVHX09OKCFJU19BTElHTkVEKCh1NjQpZnJvbSwgYnMpKTsKKworCWZvciAoaSA9IDA7
-IGkgPCBzaXplOyBpICs9IGJzKSB7CisJCV9fYXNtX18gX192b2xhdGlsZV9fICgKKyNpZiAwCisJ
-CSJtb3ZudGRxYSAoJTApLCAlJXhtbTBcbiIKKwkJIm1vdm50ZHFhIDE2KCUwKSwgJSV4bW0xXG4i
-CisJCSJtb3ZudGRxYSAzMiglMCksICUleG1tMlxuIgorCQkibW92bnRkcWEgNDgoJTApLCAlJXht
-bTNcbiIKKwkJIm1vdm50ZHEgJSV4bW0wLCAoJTEpXG4iCisJCSJtb3ZudGRxICUleG1tMSwgMTYo
-JTEpXG4iCisJCSJtb3ZudGRxICUleG1tMiwgMzIoJTEpXG4iCisJCSJtb3ZudGRxICUleG1tMywg
-NDgoJTEpXG4iCisjZW5kaWYKKwkJInZtb3ZudGRxYSAoJTApLCAlJXltbTBcbiIKKwkJInZtb3Zu
-dGRxYSAzMiglMCksICUleW1tMVxuIgorCQkidm1vdm50ZHEgJSV5bW0wLCAoJTEpXG4iCisJCSJ2
-bW92bnRkcSAlJXltbTEsIDMyKCUxKVxuIgorCQk6CisJCTogInIiIChmcm9tKSwgInIiICh0bykK
-KwkJOiAibWVtb3J5Iik7CisKKwkJdG8gKz0gYnM7CisJCWZyb20gKz0gYnM7CisJfQorCisJX19h
-c21fXyBfX3ZvbGF0aWxlX18gKAorCQkiIHNmZW5jZVxuIiA6IDoKKwkpOworfQorCisvKiBsb2Fk
-OiBub3JtYWwsIHN0b3JlOiBub24tdGVtcG9yYWwsIGxvb3A6IDEyOCBieXRlcyAqLworc3RhdGlj
-IHZvaWQgbWVtY3B5X2x0X3NudF8xMjgodm9pZCAqdG8sIGNvbnN0IHZvaWQgKmZyb20sIHNpemVf
-dCBzaXplKQoreworCXU2NCBicyA9IDEyODsKKwlpbnQgaTsKKworCUJVR19PTighSVNfQUxJR05F
-RChzaXplLCBicykpOworCUJVR19PTighSVNfQUxJR05FRCgodTY0KXRvLCBicykpOworCUJVR19P
-TighSVNfQUxJR05FRCgodTY0KWZyb20sIGJzKSk7CisKKwlmb3IgKGkgPSAwOyBpIDwgc2l6ZTsg
-aSArPSBicykgeworCQlfX2FzbV9fIF9fdm9sYXRpbGVfXyAoCisjaWYgMAorCQkvKiBoYXJkIHRv
-IHVzZSBwcmVmZXRjaCBlZmZlY3RpdmVseSAqLworCQkicHJlZmV0Y2hudGEgMTI4KCUwKVxuIgor
-CQkicHJlZmV0Y2hudGEgMTkyKCUwKVxuIgorI2VuZGlmCisjaWYgMAorCQkibW92ZHFhICglMCks
-ICUleG1tMFxuIgorCQkibW92ZHFhIDE2KCUwKSwgJSV4bW0xXG4iCisJCSJtb3ZkcWEgMzIoJTAp
-LCAlJXhtbTJcbiIKKwkJIm1vdmRxYSA0OCglMCksICUleG1tM1xuIgorCQkibW92ZHFhIDY0KCUw
-KSwgJSV4bW00XG4iCisJCSJtb3ZkcWEgODAoJTApLCAlJXhtbTVcbiIKKwkJIm1vdmRxYSA5Nigl
-MCksICUleG1tNlxuIgorCQkibW92ZHFhIDExMiglMCksICUleG1tN1xuIgorCQkibW92bnRkcSAl
-JXhtbTAsICglMSlcbiIKKwkJIm1vdm50ZHEgJSV4bW0xLCAxNiglMSlcbiIKKwkJIm1vdm50ZHEg
-JSV4bW0yLCAzMiglMSlcbiIKKwkJIm1vdm50ZHEgJSV4bW0zLCA0OCglMSlcbiIKKwkJIm1vdm50
-ZHEgJSV4bW00LCA2NCglMSlcbiIKKwkJIm1vdm50ZHEgJSV4bW01LCA4MCglMSlcbiIKKwkJIm1v
-dm50ZHEgJSV4bW02LCA5NiglMSlcbiIKKwkJIm1vdm50ZHEgJSV4bW03LCAxMTIoJTEpXG4iCisj
-ZW5kaWYKKwkJInZtb3ZkcWEgKCUwKSwgJSV5bW0wXG4iCisJCSJ2bW92ZHFhIDMyKCUwKSwgJSV5
-bW0xXG4iCisJCSJ2bW92ZHFhIDY0KCUwKSwgJSV5bW0yXG4iCisJCSJ2bW92ZHFhIDk2KCUwKSwg
-JSV5bW0zXG4iCisJCSJ2bW92bnRkcSAlJXltbTAsICglMSlcbiIKKwkJInZtb3ZudGRxICUleW1t
-MSwgMzIoJTEpXG4iCisJCSJ2bW92bnRkcSAlJXltbTIsIDY0KCUxKVxuIgorCQkidm1vdm50ZHEg
-JSV5bW0zLCA5NiglMSlcbiIKKwkJOgorCQk6ICJyIiAoZnJvbSksICJyIiAodG8pCisJCTogIm1l
-bW9yeSIpOworCisJCXRvICs9IGJzOworCQlmcm9tICs9IGJzOworCX0KKworCV9fYXNtX18gX192
-b2xhdGlsZV9fICgKKwkJIiBzZmVuY2VcbiIgOiA6CisJKTsKK30KKworLyogbG9hZDogbm9uLXRl
-bXBvcmFsLCBzdG9yZTogbm9uLXRlbXBvcmFsLCBsb29wOiAxMjggYnl0ZXMgKi8KK3N0YXRpYyB2
-b2lkIG1lbWNweV9sbnRfc250XzEyOCh2b2lkICp0bywgY29uc3Qgdm9pZCAqZnJvbSwgc2l6ZV90
-IHNpemUpCit7CisJdTY0IGJzID0gMTI4OworCWludCBpOworCisJQlVHX09OKCFJU19BTElHTkVE
-KHNpemUsIGJzKSk7CisJQlVHX09OKCFJU19BTElHTkVEKCh1NjQpdG8sIGJzKSk7CisJQlVHX09O
-KCFJU19BTElHTkVEKCh1NjQpZnJvbSwgYnMpKTsKKworCWZvciAoaSA9IDA7IGkgPCBzaXplOyBp
-ICs9IGJzKSB7CisJCV9fYXNtX18gX192b2xhdGlsZV9fICgKKyNpZiAwCisJCSJwcmVmZXRjaG50
-YSAxMjgoJTApXG4iCisJCSJwcmVmZXRjaG50YSAxOTIoJTApXG4iCisjZW5kaWYKKyNpZiAwCisJ
-CSJtb3ZudGRxYSAoJTApLCAlJXhtbTBcbiIKKwkJIm1vdm50ZHFhIDE2KCUwKSwgJSV4bW0xXG4i
-CisJCSJtb3ZudGRxYSAzMiglMCksICUleG1tMlxuIgorCQkibW92bnRkcWEgNDgoJTApLCAlJXht
-bTNcbiIKKwkJIm1vdm50ZHFhIDY0KCUwKSwgJSV4bW00XG4iCisJCSJtb3ZudGRxYSA4MCglMCks
-ICUleG1tNVxuIgorCQkibW92bnRkcWEgOTYoJTApLCAlJXhtbTZcbiIKKwkJIm1vdm50ZHFhIDEx
-MiglMCksICUleG1tN1xuIgorCQkibW92bnRkcSAlJXhtbTAsICglMSlcbiIKKwkJIm1vdm50ZHEg
-JSV4bW0xLCAxNiglMSlcbiIKKwkJIm1vdm50ZHEgJSV4bW0yLCAzMiglMSlcbiIKKwkJIm1vdm50
-ZHEgJSV4bW0zLCA0OCglMSlcbiIKKwkJIm1vdm50ZHEgJSV4bW00LCA2NCglMSlcbiIKKwkJIm1v
-dm50ZHEgJSV4bW01LCA4MCglMSlcbiIKKwkJIm1vdm50ZHEgJSV4bW02LCA5NiglMSlcbiIKKwkJ
-Im1vdm50ZHEgJSV4bW03LCAxMTIoJTEpXG4iCisjZW5kaWYKKwkJInZtb3ZudGRxYSAoJTApLCAl
-JXltbTBcbiIKKwkJInZtb3ZudGRxYSAzMiglMCksICUleW1tMVxuIgorCQkidm1vdm50ZHFhIDY0
-KCUwKSwgJSV5bW0yXG4iCisJCSJ2bW92bnRkcWEgOTYoJTApLCAlJXltbTNcbiIKKwkJInZtb3Zu
-dGRxICUleW1tMCwgKCUxKVxuIgorCQkidm1vdm50ZHEgJSV5bW0xLCAzMiglMSlcbiIKKwkJInZt
-b3ZudGRxICUleW1tMiwgNjQoJTEpXG4iCisJCSJ2bW92bnRkcSAlJXltbTMsIDk2KCUxKVxuIgor
-CQk6CisJCTogInIiIChmcm9tKSwgInIiICh0bykKKwkJOiAibWVtb3J5Iik7CisKKwkJdG8gKz0g
-YnM7CisJCWZyb20gKz0gYnM7CisJfQorCisJX19hc21fXyBfX3ZvbGF0aWxlX18gKAorCQkiIHNm
-ZW5jZVxuIiA6IDoKKwkpOworfQorCisvKiBsb2FkOiBub24tdGVtcG9yYWwsIHN0b3JlOiBub3Jt
-YWwsIGxvb3A6IDY0IGJ5dGVzICovCitzdGF0aWMgdm9pZCBtZW1jcHlfbG50X3N0XzY0KHZvaWQg
-KnRvLCBjb25zdCB2b2lkICpmcm9tLCBzaXplX3Qgc2l6ZSkKK3sKKwl1NjQgYnMgPSA2NDsKKwlp
-bnQgaTsKKworCUJVR19PTighSVNfQUxJR05FRChzaXplLCBicykpOworCUJVR19PTighSVNfQUxJ
-R05FRCgodTY0KXRvLCBicykpOworCUJVR19PTighSVNfQUxJR05FRCgodTY0KWZyb20sIGJzKSk7
-CisKKwlmb3IgKGkgPSAwOyBpIDwgc2l6ZTsgaSArPSBicykgeworCQlfX2FzbV9fIF9fdm9sYXRp
-bGVfXyAoCisjaWYgMAorCQkibW92bnRkcWEgKCUwKSwgJSV4bW0wXG4iCisJCSJtb3ZudGRxYSAx
-NiglMCksICUleG1tMVxuIgorCQkibW92bnRkcWEgMzIoJTApLCAlJXhtbTJcbiIKKwkJIm1vdm50
-ZHFhIDQ4KCUwKSwgJSV4bW0zXG4iCisJCSJtb3ZkcWEgJSV4bW0wLCAoJTEpXG4iCisJCSJtb3Zk
-cWEgJSV4bW0xLCAxNiglMSlcbiIKKwkJIm1vdmRxYSAlJXhtbTIsIDMyKCUxKVxuIgorCQkibW92
-ZHFhICUleG1tMywgNDgoJTEpXG4iCisjZW5kaWYKKwkJInZtb3ZudGRxYSAoJTApLCAlJXltbTBc
-biIKKwkJInZtb3ZudGRxYSAzMiglMCksICUleW1tMVxuIgorCQkidm1vdmRxYSAlJXltbTAsICgl
-MSlcbiIKKwkJInZtb3ZkcWEgJSV5bW0xLCAzMiglMSlcbiIKKwkJOgorCQk6ICJyIiAoZnJvbSks
-ICJyIiAodG8pCisJCTogIm1lbW9yeSIpOworCisJCXRvICs9IGJzOworCQlmcm9tICs9IGJzOwor
-CX0KKworCV9fYXNtX18gX192b2xhdGlsZV9fICgKKwkJIiBzZmVuY2VcbiIgOiA6CisJKTsKK30K
-KworLyogbG9hZDogbm9uLXRlbXBvcmFsLCBzdG9yZTogc2tpcCwgbG9vcDogNjQgYnl0ZXMgKi8K
-K3N0YXRpYyB2b2lkIG1lbWNweV9sbnRfc3NraXBfNjQodm9pZCAqdG8sIGNvbnN0IHZvaWQgKmZy
-b20sIHNpemVfdCBzaXplKQoreworCXU2NCBicyA9IDY0OworCWludCBpOworCisJQlVHX09OKCFJ
-U19BTElHTkVEKHNpemUsIGJzKSk7CisJQlVHX09OKCFJU19BTElHTkVEKCh1NjQpdG8sIGJzKSk7
-CisJQlVHX09OKCFJU19BTElHTkVEKCh1NjQpZnJvbSwgYnMpKTsKKworCWZvciAoaSA9IDA7IGkg
-PCBzaXplOyBpICs9IGJzKSB7CisJCV9fYXNtX18gX192b2xhdGlsZV9fICgKKyNpZiAwCisJCSJt
-b3ZudGRxYSAoJTApLCAlJXhtbTBcbiIKKwkJIm1vdm50ZHFhIDE2KCUwKSwgJSV4bW0xXG4iCisJ
-CSJtb3ZudGRxYSAzMiglMCksICUleG1tMlxuIgorCQkibW92bnRkcWEgNDgoJTApLCAlJXhtbTNc
-biIKKyNlbmRpZgorCQkidm1vdm50ZHFhICglMCksICUleW1tMFxuIgorCQkidm1vdm50ZHFhIDMy
-KCUwKSwgJSV5bW0xXG4iCisJCToKKwkJOiAiciIgKGZyb20pLCAiciIgKHRvKQorCQk6ICJtZW1v
-cnkiKTsKKworCQl0byArPSBiczsKKwkJZnJvbSArPSBiczsKKwl9CisKKwlfX2FzbV9fIF9fdm9s
-YXRpbGVfXyAoCisJCSIgc2ZlbmNlXG4iIDogOgorCSk7Cit9CisKKy8qIGxvYWQ6IG5vbi10ZW1w
-b3JhbCwgc3RvcmU6IG5vcm1hbCwgbG9vcDogMTI4IGJ5dGVzICovCitzdGF0aWMgdm9pZCBtZW1j
-cHlfbG50X3N0XzEyOCh2b2lkICp0bywgY29uc3Qgdm9pZCAqZnJvbSwgc2l6ZV90IHNpemUpCit7
-CisJdTY0IGJzID0gMTI4OworCWludCBpOworCisJQlVHX09OKCFJU19BTElHTkVEKHNpemUsIGJz
-KSk7CisJQlVHX09OKCFJU19BTElHTkVEKCh1NjQpdG8sIGJzKSk7CisJQlVHX09OKCFJU19BTElH
-TkVEKCh1NjQpZnJvbSwgYnMpKTsKKworCWZvciAoaSA9IDA7IGkgPCBzaXplOyBpICs9IGJzKSB7
-CisJCV9fYXNtX18gX192b2xhdGlsZV9fICgKKyNpZiAwCisJCSJwcmVmZXRjaG50YSAxMjgoJTAp
-XG4iCisJCSJwcmVmZXRjaG50YSAxOTIoJTApXG4iCisjZW5kaWYKKyNpZiAwCisJCSJtb3ZudGRx
-YSAoJTApLCAlJXhtbTBcbiIKKwkJIm1vdm50ZHFhIDE2KCUwKSwgJSV4bW0xXG4iCisJCSJtb3Zu
-dGRxYSAzMiglMCksICUleG1tMlxuIgorCQkibW92bnRkcWEgNDgoJTApLCAlJXhtbTNcbiIKKwkJ
-Im1vdm50ZHFhIDY0KCUwKSwgJSV4bW00XG4iCisJCSJtb3ZudGRxYSA4MCglMCksICUleG1tNVxu
-IgorCQkibW92bnRkcWEgOTYoJTApLCAlJXhtbTZcbiIKKwkJIm1vdm50ZHFhIDExMiglMCksICUl
-eG1tN1xuIgorCQkibW92ZHFhICUleG1tMCwgKCUxKVxuIgorCQkibW92ZHFhICUleG1tMSwgMTYo
-JTEpXG4iCisJCSJtb3ZkcWEgJSV4bW0yLCAzMiglMSlcbiIKKwkJIm1vdmRxYSAlJXhtbTMsIDQ4
-KCUxKVxuIgorCQkibW92ZHFhICUleG1tNCwgNjQoJTEpXG4iCisJCSJtb3ZkcWEgJSV4bW01LCA4
-MCglMSlcbiIKKwkJIm1vdmRxYSAlJXhtbTYsIDk2KCUxKVxuIgorCQkibW92ZHFhICUleG1tNywg
-MTEyKCUxKVxuIgorI2VuZGlmCisJCSJ2bW92bnRkcWEgKCUwKSwgJSV5bW0wXG4iCisJCSJ2bW92
-bnRkcWEgMzIoJTApLCAlJXltbTFcbiIKKwkJInZtb3ZudGRxYSA2NCglMCksICUleW1tMlxuIgor
-CQkidm1vdm50ZHFhIDk2KCUwKSwgJSV5bW0zXG4iCisJCSJ2bW92ZHFhICUleW1tMCwgKCUxKVxu
-IgorCQkidm1vdmRxYSAlJXltbTEsIDMyKCUxKVxuIgorCQkidm1vdmRxYSAlJXltbTIsIDY0KCUx
-KVxuIgorCQkidm1vdmRxYSAlJXltbTMsIDk2KCUxKVxuIgorCQk6CisJCTogInIiIChmcm9tKSwg
-InIiICh0bykKKwkJOiAibWVtb3J5Iik7CisKKwkJdG8gKz0gYnM7CisJCWZyb20gKz0gYnM7CisJ
-fQorCisJX19hc21fXyBfX3ZvbGF0aWxlX18gKAorCQkiIHNmZW5jZVxuIiA6IDoKKwkpOworfQor
-CiBzdHJ1Y3QgcG1lbV9kZXZpY2UgewogCXN0cnVjdCByZXF1ZXN0X3F1ZXVlCSpwbWVtX3F1ZXVl
-OwogCXN0cnVjdCBnZW5kaXNrCQkqcG1lbV9kaXNrOwpAQCAtMzcsNiArNDEzLDgxIEBAIHN0cnVj
-dCBwbWVtX2RldmljZSB7CiAJc2l6ZV90CQkJc2l6ZTsKIH07CiAKKy8qIHBpY2sgdGhlIHR5cGUg
-b2YgbWVtY3B5IGZvciBhIHJlYWQgZnJvbSBOVkRJTU1zICovCitzdGF0aWMgdm9pZCBtZW1jcHlf
-bnRyKHZvaWQgKnRvLCBjb25zdCB2b2lkICpmcm9tLCBzaXplX3Qgc2l6ZSkKK3sKKwlzd2l0Y2gg
-KHBtZW1fbnRyKSB7CisJY2FzZSAxOgorCQltZW1jcHlfbG50X3N0XzY0KHRvLCBmcm9tLCBzaXpl
-KTsKKwkJYnJlYWs7CisJY2FzZSAyOgorCQltZW1jcHlfbG50X3N0XzEyOCh0bywgZnJvbSwgc2l6
-ZSk7CisJCWJyZWFrOworCWNhc2UgMzoKKwkJbWVtY3B5X2xudF9zbnRfNjQodG8sIGZyb20sIHNp
-emUpOworCQlicmVhazsKKwljYXNlIDQ6CisJCW1lbWNweV9sbnRfc250XzEyOCh0bywgZnJvbSwg
-c2l6ZSk7CisJCWJyZWFrOworCWNhc2UgNjoKKwkJLyogbm9wICovCisJCWJyZWFrOworCWNhc2Ug
-NzoKKwkJbWVtY3B5X2xudF9zc2tpcF82NCh0bywgZnJvbSwgc2l6ZSk7CisJCWJyZWFrOworCWRl
-ZmF1bHQ6CisJCW1lbWNweSh0bywgZnJvbSwgc2l6ZSk7CisJCWJyZWFrOworCX0KK30KKworLyog
-cGljayB0aGUgdHlwZSBvZiBtZW1jcHkgZm9yIGEgd3JpdGUgdG8gTlZESU1NcyAqLworc3RhdGlj
-IHZvaWQgbWVtY3B5X250dyh2b2lkICp0bywgY29uc3Qgdm9pZCAqZnJvbSwgc2l6ZV90IHNpemUp
-Cit7CisJaW50IHJldDsKKwlzd2l0Y2ggKHBtZW1fbnR3KSB7CisJY2FzZSAxOgorCQltZW1jcHlf
-bHRfc250XzY0KHRvLCBmcm9tLCBzaXplKTsKKwkJcmV0ID0gMDsKKwkJYnJlYWs7CisJY2FzZSAy
-OgorCQltZW1jcHlfbHRfc250XzEyOCh0bywgZnJvbSwgc2l6ZSk7CisJCXJldCA9IDA7CisJCWJy
-ZWFrOworCWNhc2UgMzoKKwkJbWVtY3B5X2xudF9zbnRfNjQodG8sIGZyb20sIHNpemUpOworCQly
-ZXQgPSAwOworCQlicmVhazsKKwljYXNlIDQ6CisJCW1lbWNweV9sbnRfc250XzEyOCh0bywgZnJv
-bSwgc2l6ZSk7CisJCXJldCA9IDA7CisJCWJyZWFrOworCWNhc2UgNToKKwkJcmV0ID0gX19jb3B5
-X2Zyb21fdXNlcih0bywgZnJvbSwgc2l6ZSk7CisJCWlmIChyZXQpCisJCQlnb3RvIGV4aXQ7CisJ
-Y2FzZSA2OgorCQkvKiBub3AgKi8KKwkJcmV0ID0gMDsKKwkJYnJlYWs7CisJY2FzZSA3OgorCQlt
-ZW1jcHlfbHNraXBfc250XzY0KHRvLCBmcm9tLCBzaXplKTsKKwkJcmV0ID0gMDsKKwkJYnJlYWs7
-CisJZGVmYXVsdDoKKwkJbWVtY3B5KHRvLCBmcm9tLCBzaXplKTsKKwkJcmV0ID0gMDsKKwkJYnJl
-YWs7CisJfQorZXhpdDoKKwkvKiBpZiBfX2NvcHlfZnJvbV91c2VyIG9yIG90aGVyIG1lbWNweSBm
-dW5jdGlvbnMgd2l0aCByZXR1cm4KKwkgKiB2YWx1ZXMgYXJlIHVzZWQsIHRoZSByZXR1cm4gdmFs
-dWUgc2hvdWxkIHJlYWxseSBiZQorCSAqIHByb3BhZ2F0ZWQgdXBzdHJlYW0uIFNpbmNlIG1vc3Qg
-bWVtY3B5cyBhc3N1bWUgc3VjY2VzcywKKwkgKiBmb3JnbyB0aGlzIGZvciBub3cKKwkgKi8KKwly
-ZXR1cm47Cit9CisKIHN0YXRpYyBpbnQgcG1lbV9tYWpvcjsKIAogc3RhdGljIHZvaWQgcG1lbV9k
-b19idmVjKHN0cnVjdCBwbWVtX2RldmljZSAqcG1lbSwgc3RydWN0IHBhZ2UgKnBhZ2UsCkBAIC00
-NywxMSArNDk4LDExIEBAIHN0YXRpYyB2b2lkIHBtZW1fZG9fYnZlYyhzdHJ1Y3QgcG1lbV9kZXZp
-Y2UgKnBtZW0sIHN0cnVjdCBwYWdlICpwYWdlLAogCXNpemVfdCBwbWVtX29mZiA9IHNlY3RvciA8
-PCA5OwogCiAJaWYgKHJ3ID09IFJFQUQpIHsKLQkJbWVtY3B5KG1lbSArIG9mZiwgcG1lbS0+dmly
-dF9hZGRyICsgcG1lbV9vZmYsIGxlbik7CisJCW1lbWNweV9udHIobWVtICsgb2ZmLCBwbWVtLT52
-aXJ0X2FkZHIgKyBwbWVtX29mZiwgbGVuKTsKIAkJZmx1c2hfZGNhY2hlX3BhZ2UocGFnZSk7CiAJ
-fSBlbHNlIHsKIAkJZmx1c2hfZGNhY2hlX3BhZ2UocGFnZSk7Ci0JCW1lbWNweShwbWVtLT52aXJ0
-X2FkZHIgKyBwbWVtX29mZiwgbWVtICsgb2ZmLCBsZW4pOworCQltZW1jcHlfbnR3KHBtZW0tPnZp
-cnRfYWRkciArIHBtZW1fb2ZmLCBtZW0gKyBvZmYsIGxlbik7CiAJfQogCiAJa3VubWFwX2F0b21p
-YyhtZW0pOwpAQCAtMTA5LDEwICs1NjAsMjYgQEAgc3RhdGljIGludCBwbWVtX3J3X2J5dGVzKHN0
-cnVjdCBuZF9pbyAqbmRpbywgdm9pZCAqYnVmLCBzaXplX3Qgb2Zmc2V0LAogCQlyZXR1cm4gLUVG
-QVVMVDsKIAl9CiAKLQlpZiAocncgPT0gUkVBRCkKLQkJbWVtY3B5KGJ1ZiwgcG1lbS0+dmlydF9h
-ZGRyICsgb2Zmc2V0LCBuKTsKLQllbHNlCi0JCW1lbWNweShwbWVtLT52aXJ0X2FkZHIgKyBvZmZz
-ZXQsIGJ1Ziwgbik7CisJLyogTk9URTogUGxhaW4gbWVtY3B5IGlzIHVzZWQgZm9yIHVuYWxpZ25l
-ZCBhY2Nlc3NlcywgbWVhbmluZworCSAqIHRoaXMgaXMgbm90IHNhZmUgZm9yIFdCIG1vZGUuCisJ
-ICoKKwkgKiBBbGwgYnR0IGFjY2Vzc2VzIGNvbWUgdGhyb3VnaCBoZXJlOyBtYW55IGFyZSBub3Qg
-YWxpZ25lZC4KKwkgKi8KKwlpZiAocncgPT0gUkVBRCkgeworCQlpZiAoSVNfQUxJR05FRCgodTY0
-KSBidWYsIDY0KSAmJgorCQkgICAgSVNfQUxJR05FRCgodTY0KSBwbWVtLT52aXJ0X2FkZHIgKyBv
-ZmZzZXQsIDY0KSAmJgorCQkgICAgSVNfQUxJR05FRChuLCA2NCkpCisJCQltZW1jcHlfbnRyKGJ1
-ZiwgcG1lbS0+dmlydF9hZGRyICsgb2Zmc2V0LCBuKTsKKwkJZWxzZQorCQkJbWVtY3B5KGJ1Ziwg
-cG1lbS0+dmlydF9hZGRyICsgb2Zmc2V0LCBuKTsKKwl9IGVsc2UgeworCQlpZiAoSVNfQUxJR05F
-RCgodTY0KSBidWYsIDY0KSAmJgorCQkgICAgSVNfQUxJR05FRCgodTY0KSBwbWVtLT52aXJ0X2Fk
-ZHIgKyBvZmZzZXQsIDY0KSAmJgorCQkgICAgSVNfQUxJR05FRChuLCA2NCkpCisJCQltZW1jcHlf
-bnR3KHBtZW0tPnZpcnRfYWRkciArIG9mZnNldCwgYnVmLCBuKTsKKwkJZWxzZQorCQkJbWVtY3B5
-KHBtZW0tPnZpcnRfYWRkciArIG9mZnNldCwgYnVmLCBuKTsKKwl9CiAKIAlyZXR1cm4gMDsKIH0K
-QEAgLTE0Myw2ICs2MTAsNyBAQCBzdGF0aWMgc3RydWN0IHBtZW1fZGV2aWNlICpwbWVtX2FsbG9j
-KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IHJlc291cmNlICpyZXMsCiAJc3RydWN0IHBtZW1f
-ZGV2aWNlICpwbWVtOwogCXN0cnVjdCBnZW5kaXNrICpkaXNrOwogCWludCBlcnI7CisJdTY0IHRz
-LCB0ZTsKIAogCWVyciA9IC1FTk9NRU07CiAJcG1lbSA9IGt6YWxsb2Moc2l6ZW9mKCpwbWVtKSwg
-R0ZQX0tFUk5FTCk7CkBAIC0xNTIsMjEgKzYyMCw3OCBAQCBzdGF0aWMgc3RydWN0IHBtZW1fZGV2
-aWNlICpwbWVtX2FsbG9jKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IHJlc291cmNlICpyZXMs
-CiAJcG1lbS0+cGh5c19hZGRyID0gcmVzLT5zdGFydDsKIAlwbWVtLT5zaXplID0gcmVzb3VyY2Vf
-c2l6ZShyZXMpOwogCisJZGV2X2luZm8oZGV2LAorCQkibWFwcGluZyBwaHlzPTB4JWxseCAoJWxs
-ZCBHaUIpIHNpemU9MHglenggKCVsZCBHaUIpXG4iLAorCQlwbWVtLT5waHlzX2FkZHIsIHBtZW0t
-PnBoeXNfYWRkciAvICgxMDI0KjEwMjQqMTAyNCksCisJCXBtZW0tPnNpemUsIHBtZW0tPnNpemUg
-LyAoMTAyNCoxMDI0KjEwMjQpKTsKKwogCWVyciA9IC1FSU5WQUw7CiAJaWYgKCFyZXF1ZXN0X21l
-bV9yZWdpb24ocG1lbS0+cGh5c19hZGRyLCBwbWVtLT5zaXplLCAicG1lbSIpKSB7CiAJCWRldl93
-YXJuKGRldiwgImNvdWxkIG5vdCByZXNlcnZlIHJlZ2lvbiBbMHglcGE6MHglenhdXG4iLCAmcG1l
-bS0+cGh5c19hZGRyLCBwbWVtLT5zaXplKTsKIAkJZ290byBvdXRfZnJlZV9kZXY7CiAJfQogCi0J
-LyoKLQkgKiBNYXAgdGhlIG1lbW9yeSBhcyBub24tY2FjaGFibGUsIGFzIHdlIGNhbid0IHdyaXRl
-IGJhY2sgdGhlIGNvbnRlbnRzCi0JICogb2YgdGhlIENQVSBjYWNoZXMgaW4gY2FzZSBvZiBhIGNy
-YXNoLgotCSAqLwogCWVyciA9IC1FTk9NRU07Ci0JcG1lbS0+dmlydF9hZGRyID0gaW9yZW1hcF9u
-b2NhY2hlKHBtZW0tPnBoeXNfYWRkciwgcG1lbS0+c2l6ZSk7CisJc3dpdGNoIChwbWVtX2NhY2hl
-dHlwZSkgeworCWNhc2UgMDogLyogVUMgKi8KKwkJcG1lbS0+dmlydF9hZGRyID0gaW9yZW1hcF9u
-b2NhY2hlKHBtZW0tPnBoeXNfYWRkciwgcG1lbS0+c2l6ZSk7CisJCWJyZWFrOworCWNhc2UgMTog
-LyogV0IgKi8KKwkJLyogV0IgaXMgdW5zYWZlIHVubGVzcyBzeXN0ZW0gZmx1c2hlcyBjYWNoZXMg
-b24gcG93ZXIgbG9zcyAqLworCQlwbWVtLT52aXJ0X2FkZHIgPSBpb3JlbWFwX2NhY2hlKHBtZW0t
-PnBoeXNfYWRkciwgcG1lbS0+c2l6ZSk7CisJCWJyZWFrOworCWNhc2UgMjogLyogV0MgKi8KKwkJ
-LyogV0MgaXMgdW5zYWZlIHVubGVzcyBzeXN0ZW0gZmx1c2hlcyBidWZmZXJzIG9uIHBvd2VyIGxv
-c3MgKi8KKwkJcG1lbS0+dmlydF9hZGRyID0gaW9yZW1hcF93YyhwbWVtLT5waHlzX2FkZHIsIHBt
-ZW0tPnNpemUpOworCQlicmVhazsKKwljYXNlIDM6IC8qIFdUICovCisJZGVmYXVsdDoKKwkJcG1l
-bS0+dmlydF9hZGRyID0gaW9yZW1hcF93dChwbWVtLT5waHlzX2FkZHIsIHBtZW0tPnNpemUpOwor
-CQlicmVhazsKKwl9CisKKwlkZXZfaW5mbyhkZXYsCisJCSJtYXBwZWQ6IGNhY2hlX3R5cGU9JWQg
-dmlydD0weCVwIHBoeXM9MHglbGx4ICglbGxkIEdpQikgc2l6ZT0weCV6eCAoJWxkIEdpQilcbiIs
-CisJCXBtZW1fY2FjaGV0eXBlLAorCQlwbWVtLT52aXJ0X2FkZHIsCisJCXBtZW0tPnBoeXNfYWRk
-ciwgcG1lbS0+cGh5c19hZGRyIC8gKDEwMjQqMTAyNCoxMDI0KSwKKwkJcG1lbS0+c2l6ZSwgcG1l
-bS0+c2l6ZSAvICgxMDI0KjEwMjQqMTAyNCkpOworCiAJaWYgKCFwbWVtLT52aXJ0X2FkZHIpCiAJ
-CWdvdG8gb3V0X3JlbGVhc2VfcmVnaW9uOwogCisJaWYgKHBtZW1fY2xlYW4pIHsKKwkJLyogd3Jp
-dGUgYWxsIG9mIE5WRElNTSBtZW1vcnkgdG8gY2xlYXIgYW55IEVDQyBlcnJvcnMgKi8KKwkJZGV2
-X2luZm8oZGV2LAorCQkJIndyaXRlIGNsZWFuIHN0YXJ0aW5nOiB2aXJ0PTB4JXAgcGh5cz0weCVs
-bHggKCVsbGQgR2lCKSBzaXplPTB4JXp4ICglbGQgR2lCKVxuIiwKKwkJCXBtZW0tPnZpcnRfYWRk
-ciwKKwkJCXBtZW0tPnBoeXNfYWRkciwgcG1lbS0+cGh5c19hZGRyIC8gKDEwMjQqMTAyNCoxMDI0
-KSwKKwkJCXBtZW0tPnNpemUsIHBtZW0tPnNpemUgLyAoMTAyNCoxMDI0KjEwMjQpKTsKKwkJdHMg
-PSBsb2NhbF9jbG9jaygpOworCQltZW1jcHlfbHNraXBfc250XzY0KHBtZW0tPnZpcnRfYWRkciwg
-TlVMTCwgcG1lbS0+c2l6ZSk7CisJCXRlID0gbG9jYWxfY2xvY2soKTsKKwkJZGV2X2luZm8oZGV2
-LAorCQkJIndyaXRlIGNsZWFuIGNvbXBsZXRlOiBjdD0lZCBpbiAlbGxkIEdCL3NcbiIsCisJCQlw
-bWVtX2NhY2hldHlwZSwKKwkJCXBtZW0tPnNpemUgLyAodGUgLSB0cykpOwkvKiBCL25zIGVxdWFs
-cyBHQi9zICovCisJfQorCisJLyogcmVhZCBhbGwgb2YgTlZESU1NIG1lbW9yeSB0byB0cmlnZ2Vy
-IGFueSBFQ0MgZXJyb3JzIG5vdyAqLworCWlmIChwbWVtX3JlYWRzY2FuKSB7CisJCWRldl9pbmZv
-KGRldiwKKwkJCSJyZWFkIHNjYW4gc3RhcnRpbmc6IHZpcnQ9MHglcCBwaHlzPTB4JWxseCAoJWxs
-ZCBHaUIpIHNpemU9MHglenggKCVsZCBHaUIpXG4iLAorCQkJcG1lbS0+dmlydF9hZGRyLAorCQkJ
-cG1lbS0+cGh5c19hZGRyLCBwbWVtLT5waHlzX2FkZHIgLyAoMTAyNCoxMDI0KjEwMjQpLAorCQkJ
-cG1lbS0+c2l6ZSwgcG1lbS0+c2l6ZSAvICgxMDI0KjEwMjQqMTAyNCkpOworCQl0cyA9IGxvY2Fs
-X2Nsb2NrKCk7CisJCW1lbWNweV9sbnRfc3NraXBfNjQoMCwgcG1lbS0+dmlydF9hZGRyLCBwbWVt
-LT5zaXplKTsKKwkJdGUgPSBsb2NhbF9jbG9jaygpOworCQlkZXZfaW5mbyhkZXYsCisJCQkicmVh
-ZCBzY2FuIGNvbXBsZXRlOiBjdD0lZCBpbiAlbGxkIEdCL3NcbiIsCisJCQlwbWVtX2NhY2hldHlw
-ZSwKKwkJCXBtZW0tPnNpemUgLyAodGUgLSB0cykpOwkvKiBCL25zIGVxdWFscyBHQi9zICovCisJ
-fQorCiAJcG1lbS0+cG1lbV9xdWV1ZSA9IGJsa19hbGxvY19xdWV1ZShHRlBfS0VSTkVMKTsKIAlp
-ZiAoIXBtZW0tPnBtZW1fcXVldWUpCiAJCWdvdG8gb3V0X3VubWFwOwpAQCAtMjc2LDYgKzgwMSw5
-IEBAIHN0YXRpYyBpbnQgX19pbml0IHBtZW1faW5pdCh2b2lkKQogewogCWludCBlcnJvcjsKIAor
-CXByX2luZm8oInBtZW0gbG9hZGluZyB3aXRoIHBtZW1fcmVhZHNjYW49JWQgcG1lbV9jbGVhbj0l
-ZCBwbWVtX2NhY2hldHlwZT0lZCBwbWVtX250dz0lZCBwbWVtX250cj0lZFxuIiwKKwkJcG1lbV9y
-ZWFkc2NhbiwgcG1lbV9jbGVhbiwgcG1lbV9jYWNoZXR5cGUsIHBtZW1fbnR3LCBwbWVtX250cik7
-CisKIAlwbWVtX21ham9yID0gcmVnaXN0ZXJfYmxrZGV2KDAsICJwbWVtIik7CiAJaWYgKHBtZW1f
-bWFqb3IgPCAwKQogCQlyZXR1cm4gcG1lbV9tYWpvcjsKLS0gCjEuOC4zLjEKCg==
-
---_002_94D0CD8314A33A4D9D801C0FE68B40295A9217B0G9W0745americas_--
