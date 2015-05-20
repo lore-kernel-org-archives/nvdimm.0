@@ -1,231 +1,192 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v2 04/10] dma-mapping: allow archs to optionally specify a
- ->map_pfn() operation
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v3 01/21] e820, efi: add ACPI 6.0 persistent memory types
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 06 May 2015 16:05:17 -0400
-Message-ID: <20150506200517.40425.30409.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150506200219.40425.74411.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 20 May 2015 16:56:16 -0400
+Message-ID: <20150520205616.32249.52559.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, mingo@kernel.org, mgorman@suse.de, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
+Sender: linux-kernel-owner@vger.kernel.org
+To: axboe@kernel.dk
+Cc: mingo@kernel.org, Boaz Harrosh <boaz@plexistor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, hch@lst.de, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Andy Lutomirski <luto@amacapital.net>, Linus Torvalds <torvalds@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is in support of enabling block device drivers to perform DMA
-to/from persistent memory which may not have a backing struct page
-entry.
+ACPI 6.0 formalizes e820-type-7 and efi-type-14 as persistent memory.
+Mark it "reserved" and allow it to be claimed by a persistent memory
+device driver.
 
+This definition is in addition to the Linux kernel's existing type-12
+definition that was recently added in support of shipping platforms with
+NVDIMM support that predate ACPI 6.0 (which now classifies type-12 as
+OEM reserved).
+
+Note, /proc/iomem can be consulted for differentiating legacy
+"Persistent Memory (legacy)" E820_PRAM vs standard "Persistent Memory"
+E820_PMEM.
+
+Cc: Boaz Harrosh <boaz@plexistor.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Acked-by: Andy Lutomirski <luto@amacapital.net>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/Kconfig                             |    3 +++
- include/asm-generic/dma-mapping-common.h |   30 ++++++++++++++++++++++++++++++
- include/asm-generic/pfn.h                |    9 +++++++++
- include/linux/dma-debug.h                |   23 +++++++++++++++++++----
- include/linux/dma-mapping.h              |    8 +++++++-
- lib/dma-debug.c                          |   10 ++++++----
- 6 files changed, 74 insertions(+), 9 deletions(-)
+ arch/arm64/kernel/efi.c          |    1 +
+ arch/ia64/kernel/efi.c           |    4 ++++
+ arch/x86/boot/compressed/eboot.c |    4 ++++
+ arch/x86/include/uapi/asm/e820.h |    1 +
+ arch/x86/kernel/e820.c           |   28 ++++++++++++++++++++++++----
+ arch/x86/platform/efi/efi.c      |    3 +++
+ include/linux/efi.h              |    3 ++-
+ 7 files changed, 39 insertions(+), 5 deletions(-)
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index a65eafb24997..f7f800860c00 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -203,6 +203,9 @@ config HAVE_DMA_ATTRS
- config HAVE_DMA_CONTIGUOUS
- 	bool
+diff --git a/arch/arm64/kernel/efi.c b/arch/arm64/kernel/efi.c
+index ab21e0d58278..9d4aa18f2a82 100644
+--- a/arch/arm64/kernel/efi.c
++++ b/arch/arm64/kernel/efi.c
+@@ -158,6 +158,7 @@ static __init int is_reserve_region(efi_memory_desc_t *md)
+ 	case EFI_BOOT_SERVICES_CODE:
+ 	case EFI_BOOT_SERVICES_DATA:
+ 	case EFI_CONVENTIONAL_MEMORY:
++	case EFI_PERSISTENT_MEMORY:
+ 		return 0;
+ 	default:
+ 		break;
+diff --git a/arch/ia64/kernel/efi.c b/arch/ia64/kernel/efi.c
+index c52d7540dc05..5f6be9dd6968 100644
+--- a/arch/ia64/kernel/efi.c
++++ b/arch/ia64/kernel/efi.c
+@@ -1223,6 +1223,10 @@ efi_initialize_iomem_resources(struct resource *code_resource,
+ 				flags |= IORESOURCE_DISABLED;
+ 				break;
  
-+config HAVE_DMA_PFN
-+	bool
++			case EFI_PERSISTENT_MEMORY:
++				name = "Persistent Memory";
++				break;
 +
- config GENERIC_SMP_IDLE_THREAD
-        bool
+ 			case EFI_RESERVED_TYPE:
+ 			case EFI_RUNTIME_SERVICES_CODE:
+ 			case EFI_RUNTIME_SERVICES_DATA:
+diff --git a/arch/x86/boot/compressed/eboot.c b/arch/x86/boot/compressed/eboot.c
+index ef17683484e9..dde5bf7726f4 100644
+--- a/arch/x86/boot/compressed/eboot.c
++++ b/arch/x86/boot/compressed/eboot.c
+@@ -1222,6 +1222,10 @@ static efi_status_t setup_e820(struct boot_params *params,
+ 			e820_type = E820_NVS;
+ 			break;
  
-diff --git a/include/asm-generic/dma-mapping-common.h b/include/asm-generic/dma-mapping-common.h
-index 940d5ec122c9..7305efb1bac6 100644
---- a/include/asm-generic/dma-mapping-common.h
-+++ b/include/asm-generic/dma-mapping-common.h
-@@ -17,9 +17,15 @@ static inline dma_addr_t dma_map_single_attrs(struct device *dev, void *ptr,
++		case EFI_PERSISTENT_MEMORY:
++			e820_type = E820_PMEM;
++			break;
++
+ 		default:
+ 			continue;
+ 		}
+diff --git a/arch/x86/include/uapi/asm/e820.h b/arch/x86/include/uapi/asm/e820.h
+index 960a8a9dc4ab..0f457e6eab18 100644
+--- a/arch/x86/include/uapi/asm/e820.h
++++ b/arch/x86/include/uapi/asm/e820.h
+@@ -32,6 +32,7 @@
+ #define E820_ACPI	3
+ #define E820_NVS	4
+ #define E820_UNUSABLE	5
++#define E820_PMEM	7
  
- 	kmemcheck_mark_initialized(ptr, size);
- 	BUG_ON(!valid_dma_direction(dir));
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	addr = ops->map_pfn(dev, page_to_pfn_typed(virt_to_page(ptr)),
-+			     (unsigned long)ptr & ~PAGE_MASK, size,
-+			     dir, attrs);
-+#else
- 	addr = ops->map_page(dev, virt_to_page(ptr),
- 			     (unsigned long)ptr & ~PAGE_MASK, size,
- 			     dir, attrs);
-+#endif
- 	debug_dma_map_page(dev, virt_to_page(ptr),
- 			   (unsigned long)ptr & ~PAGE_MASK, size,
- 			   dir, addr, true);
-@@ -73,6 +79,29 @@ static inline void dma_unmap_sg_attrs(struct device *dev, struct scatterlist *sg
- 		ops->unmap_sg(dev, sg, nents, dir, attrs);
+ /*
+  * This is a non-standardized way to represent ADR or NVDIMM regions that
+diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+index 11cc7d54ec3f..0abe20da743a 100644
+--- a/arch/x86/kernel/e820.c
++++ b/arch/x86/kernel/e820.c
+@@ -149,6 +149,7 @@ static void __init e820_print_type(u32 type)
+ 	case E820_UNUSABLE:
+ 		printk(KERN_CONT "unusable");
+ 		break;
++	case E820_PMEM:
+ 	case E820_PRAM:
+ 		printk(KERN_CONT "persistent (type %u)", type);
+ 		break;
+@@ -918,11 +919,32 @@ static inline const char *e820_type_to_string(int e820_type)
+ 	case E820_ACPI:	return "ACPI Tables";
+ 	case E820_NVS:	return "ACPI Non-volatile Storage";
+ 	case E820_UNUSABLE:	return "Unusable memory";
+-	case E820_PRAM: return "Persistent RAM";
++	case E820_PRAM: return "Persistent Memory (legacy)";
++	case E820_PMEM: return "Persistent Memory";
+ 	default:	return "reserved";
+ 	}
  }
  
-+#ifdef CONFIG_HAVE_DMA_PFN
-+static inline dma_addr_t dma_map_pfn(struct device *dev, __pfn_t pfn,
-+				      size_t offset, size_t size,
-+				      enum dma_data_direction dir)
++static bool do_mark_busy(u32 type, struct resource *res)
 +{
-+	struct dma_map_ops *ops = get_dma_ops(dev);
-+	dma_addr_t addr;
++	/* this is the legacy bios/dos rom-shadow + mmio region */
++	if (res->start < (1ULL<<20))
++		return true;
 +
-+	BUG_ON(!valid_dma_direction(dir));
-+	addr = ops->map_pfn(dev, pfn, offset, size, dir, NULL);
-+	debug_dma_map_pfn(dev, pfn, offset, size, dir, addr, false);
-+
-+	return addr;
++	/*
++	 * Treat persistent memory like device memory, i.e. reserve it
++	 * for exclusive use of a driver
++	 */
++	switch (type) {
++	case E820_RESERVED:
++	case E820_PRAM:
++	case E820_PMEM:
++		return false;
++	default:
++		return true;
++	}
 +}
 +
-+static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
-+				      size_t offset, size_t size,
-+				      enum dma_data_direction dir)
-+{
-+	kmemcheck_mark_initialized(page_address(page) + offset, size);
-+	return dma_map_pfn(dev, page_to_pfn_typed(page), offset, size, dir);
-+}
-+#else
- static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
- 				      size_t offset, size_t size,
- 				      enum dma_data_direction dir)
-@@ -87,6 +116,7 @@ static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
+ /*
+  * Mark e820 reserved areas as busy for the resource manager.
+  */
+@@ -952,9 +974,7 @@ void __init e820_reserve_resources(void)
+ 		 * pci device BAR resource and insert them later in
+ 		 * pcibios_resource_survey()
+ 		 */
+-		if (((e820.map[i].type != E820_RESERVED) &&
+-		     (e820.map[i].type != E820_PRAM)) ||
+-		     res->start < (1ULL<<20)) {
++		if (do_mark_busy(e820.map[i].type, res)) {
+ 			res->flags |= IORESOURCE_BUSY;
+ 			insert_resource(&iomem_resource, res);
+ 		}
+diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
+index dbc8627a5cdf..a116e236ac3f 100644
+--- a/arch/x86/platform/efi/efi.c
++++ b/arch/x86/platform/efi/efi.c
+@@ -145,6 +145,9 @@ static void __init do_add_efi_memmap(void)
+ 		case EFI_UNUSABLE_MEMORY:
+ 			e820_type = E820_UNUSABLE;
+ 			break;
++		case EFI_PERSISTENT_MEMORY:
++			e820_type = E820_PMEM;
++			break;
+ 		default:
+ 			/*
+ 			 * EFI_RESERVED_TYPE EFI_RUNTIME_SERVICES_CODE
+diff --git a/include/linux/efi.h b/include/linux/efi.h
+index cf7e431cbc73..28868504aa17 100644
+--- a/include/linux/efi.h
++++ b/include/linux/efi.h
+@@ -85,7 +85,8 @@ typedef	struct {
+ #define EFI_MEMORY_MAPPED_IO		11
+ #define EFI_MEMORY_MAPPED_IO_PORT_SPACE	12
+ #define EFI_PAL_CODE			13
+-#define EFI_MAX_MEMORY_TYPE		14
++#define EFI_PERSISTENT_MEMORY		14
++#define EFI_MAX_MEMORY_TYPE		15
  
- 	return addr;
- }
-+#endif /* CONFIG_HAVE_DMA_PFN */
- 
- static inline void dma_unmap_page(struct device *dev, dma_addr_t addr,
- 				  size_t size, enum dma_data_direction dir)
-diff --git a/include/asm-generic/pfn.h b/include/asm-generic/pfn.h
-index 91171e0285d9..c1fdf41fb726 100644
---- a/include/asm-generic/pfn.h
-+++ b/include/asm-generic/pfn.h
-@@ -48,4 +48,13 @@ static inline __pfn_t page_to_pfn_t(struct page *page)
- 
- 	return pfn;
- }
-+
-+static inline unsigned long __pfn_t_to_pfn(__pfn_t pfn)
-+{
-+#if IS_ENABLED(CONFIG_PMEM_IO)
-+	if (pfn.pfn < PAGE_OFFSET)
-+		return pfn.pfn;
-+#endif
-+	return page_to_pfn(__pfn_t_to_page(pfn));
-+}
- #endif /* __ASM_PFN_H */
-diff --git a/include/linux/dma-debug.h b/include/linux/dma-debug.h
-index fe8cb610deac..a3b4c8c0cd68 100644
---- a/include/linux/dma-debug.h
-+++ b/include/linux/dma-debug.h
-@@ -34,10 +34,18 @@ extern void dma_debug_init(u32 num_entries);
- 
- extern int dma_debug_resize_entries(u32 num_entries);
- 
--extern void debug_dma_map_page(struct device *dev, struct page *page,
--			       size_t offset, size_t size,
--			       int direction, dma_addr_t dma_addr,
--			       bool map_single);
-+extern void debug_dma_map_pfn(struct device *dev, __pfn_t pfn, size_t offset,
-+			      size_t size, int direction, dma_addr_t dma_addr,
-+			      bool map_single);
-+
-+static inline void debug_dma_map_page(struct device *dev, struct page *page,
-+				      size_t offset, size_t size,
-+				      int direction, dma_addr_t dma_addr,
-+				      bool map_single)
-+{
-+	return debug_dma_map_pfn(dev, page_to_pfn_t(page), offset, size,
-+			direction, dma_addr, map_single);
-+}
- 
- extern void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
- 
-@@ -109,6 +117,13 @@ static inline void debug_dma_map_page(struct device *dev, struct page *page,
- {
- }
- 
-+static inline void debug_dma_map_pfn(struct device *dev, __pfn_t pfn,
-+				     size_t offset, size_t size,
-+				     int direction, dma_addr_t dma_addr,
-+				     bool map_single)
-+{
-+}
-+
- static inline void debug_dma_mapping_error(struct device *dev,
- 					  dma_addr_t dma_addr)
- {
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index ac07ff090919..d6437b493300 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -26,11 +26,17 @@ struct dma_map_ops {
- 
- 	int (*get_sgtable)(struct device *dev, struct sg_table *sgt, void *,
- 			   dma_addr_t, size_t, struct dma_attrs *attrs);
--
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	dma_addr_t (*map_pfn)(struct device *dev, __pfn_t pfn,
-+			      unsigned long offset, size_t size,
-+			      enum dma_data_direction dir,
-+			      struct dma_attrs *attrs);
-+#else
- 	dma_addr_t (*map_page)(struct device *dev, struct page *page,
- 			       unsigned long offset, size_t size,
- 			       enum dma_data_direction dir,
- 			       struct dma_attrs *attrs);
-+#endif
- 	void (*unmap_page)(struct device *dev, dma_addr_t dma_handle,
- 			   size_t size, enum dma_data_direction dir,
- 			   struct dma_attrs *attrs);
-diff --git a/lib/dma-debug.c b/lib/dma-debug.c
-index ae4b65e17e64..c24de1cd8f81 100644
---- a/lib/dma-debug.c
-+++ b/lib/dma-debug.c
-@@ -1250,11 +1250,12 @@ out:
- 	put_hash_bucket(bucket, &flags);
- }
- 
--void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
-+void debug_dma_map_pfn(struct device *dev, __pfn_t pfn, size_t offset,
- 			size_t size, int direction, dma_addr_t dma_addr,
- 			bool map_single)
- {
- 	struct dma_debug_entry *entry;
-+	struct page *page;
- 
- 	if (unlikely(dma_debug_disabled()))
- 		return;
-@@ -1268,7 +1269,7 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
- 
- 	entry->dev       = dev;
- 	entry->type      = dma_debug_page;
--	entry->pfn	 = page_to_pfn(page);
-+	entry->pfn	 = __pfn_t_to_pfn(pfn);
- 	entry->offset	 = offset,
- 	entry->dev_addr  = dma_addr;
- 	entry->size      = size;
-@@ -1278,7 +1279,8 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
- 	if (map_single)
- 		entry->type = dma_debug_single;
- 
--	if (!PageHighMem(page)) {
-+	page = __pfn_t_to_page(pfn);
-+	if (page && !PageHighMem(page)) {
- 		void *addr = page_address(page) + offset;
- 
- 		check_for_stack(dev, addr);
-@@ -1287,7 +1289,7 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
- 
- 	add_dma_entry(entry);
- }
--EXPORT_SYMBOL(debug_dma_map_page);
-+EXPORT_SYMBOL(debug_dma_map_pfn);
- 
- void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
- {
+ /* Attribute values: */
+ #define EFI_MEMORY_UC		((u64)0x0000000000000001ULL)	/* uncached */
 
