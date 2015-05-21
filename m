@@ -1,170 +1,109 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <1432231297.28704.8.camel@misato.fc.hp.com>
-Subject: Re: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure and
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure and
  NFIT support
-From: Toshi Kani <toshi.kani@hp.com>
-Date: Thu, 21 May 2015 12:01:37 -0600
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE7C0@ORSMSX112.amr.corp.intel.com>
+Date: Thu, 21 May 2015 17:49:12 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE7C0@ORSMSX112.amr.corp.intel.com>
 References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
 	 <20150520205621.32249.39424.stgit@dwillia2-desk3.amr.corp.intel.com>
 	 <1432216514.26714.4.camel@misato.fc.hp.com>
 	 <CAPcyv4ijJeBjX-vvMprDYwQx8PnPD3P5UJR2A-3wqNdd63p7Bg@mail.gmail.com>
-	 <1432229114.28126.25.camel@misato.fc.hp.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE7C0@ORSMSX112.amr.corp.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+ <1432229114.28126.25.camel@misato.fc.hp.com>
+In-Reply-To: <1432229114.28126.25.camel@misato.fc.hp.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@kernel.org>
+To: Toshi Kani <toshi.kani@hp.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, 2015-05-21 at 17:49 +0000, Moore, Robert wrote:
-> What ACPICA has done here is to define these values consistently with the ToUUID ASL macro:
-> 
-> 
-> Byte encoding of UUID/GUID strings into ACPI Buffer objects (use ToUUID from ASL):
-> 
->    Input UUID/GUID String format : aabbccdd-eeff-gghh-iijj-kkllmmnnoopp
->      Expected output ACPI buffer : dd,cc,bb,aa, ff,ee, hh,gg, ii,jj, kk,ll,mm,nn,oo,pp
-> 
-
-I do not see any issue in this conversion, which is consistent with
-ToUUID defined in ACPI spec.
-
-My point is that the string format of GUID is endian-neutral.  Wiki
-pages and EFI spec agree on it.  EFI 2.5 spec, Table 225 (sorry not
-Table 212, which is v2.4), is also clear about how String and Buffer are
-related with actual values of GUID.
-
-Thanks,
--Toshi
-
-
-> 
-> 
-> > -----Original Message-----
-> > From: Toshi Kani [mailto:toshi.kani@hp.com]
-> > Sent: Thursday, May 21, 2015 10:25 AM
-> > To: Williams, Dan J
-> > Cc: Jens Axboe; linux-nvdimm@lists.01.org; Neil Brown; Greg KH; Wysocki,
-> > Rafael J; linux-kernel@vger.kernel.org; Moore, Robert; Linux ACPI; Zheng,
-> > Lv; Christoph Hellwig; Ingo Molnar
-> > Subject: Re: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure
-> > and NFIT support
-> > 
-> > On Thu, 2015-05-21 at 08:56 -0700, Dan Williams wrote:
-> > > On Thu, May 21, 2015 at 6:55 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> > > > On Wed, 2015-05-20 at 16:56 -0400, Dan Williams wrote:
-> > > >  :
-> > > >> +/* NVDIMM - NFIT table */
-> > > >> +
-> > > >> +#define UUID_VOLATILE_MEMORY            "4f940573-dafd-e344-b16c-
-> > 3f22d252e5d0"
-> > > >> +#define UUID_PERSISTENT_MEMORY          "79d3f066-f3b4-7440-ac43-
-> > 0d3318b78cdb"
-> > > >> +#define UUID_CONTROL_REGION             "f601f792-b413-5d40-910b-
-> > 299367e8234c"
-> > > >> +#define UUID_DATA_REGION                "3005af91-865d-0e47-a6b0-
-> > 0a2db9408249"
-> > > >> +#define UUID_VOLATILE_VIRTUAL_DISK      "5a53ab77-fc45-4b62-5560-
-> > f7b281d1f96e"
-> > > >> +#define UUID_VOLATILE_VIRTUAL_CD        "30bd5a3d-7541-ce87-6d64-
-> > d2ade523c4bb"
-> > > >> +#define UUID_PERSISTENT_VIRTUAL_DISK    "c902ea5c-074d-69d3-269f-
-> > 4496fbe096f9"
-> > > >> +#define UUID_PERSISTENT_VIRTUAL_CD      "88810108-cd42-48bb-100f-
-> > 5387d53ded3d"
-> > > >
-> > > > acpi_str_to_uuid() performs little-endian byte-swapping, so the UUID
-> > > > strings here need to be actual values.
-> > > >
-> > > > For instance, UUID_PERSISTENT_MEMORY should be:
-> > > > #define UUID_PERSISTENT_MEMORY   "66f0d379-b4f3-4074-ac43-
-> > 0d3318b78cdb"
-> > > >
-> > >
-> > > No, the spec defines the GUID for persistent memory as:
-> > >
-> > > { 0x66F0D379, 0xB4F3, 0x4074, 0xAC, 0x43, 0x0D, 0x33, 0x18, 0xB7,
-> > > 0x8C, 0xDB }
-> > >
-> > > The byte encoding for that GUID is the following (all fields stored
-> > > big endian:
-> > > https://en.wikipedia.org/wiki/Globally_unique_identifier#Binary_encodi
-> > > ng)
-> > >
-> > > { 0x66, 0xF0, 0xD3, 0x79, 0xB4, 0xF3, 0x40,0x74, 0xAC, 0x43, 0x0D,
-> > > 0x33, 0x18, 0xB7, 0x8C, 0xDB }
-> > >
-> > > The reverse ACPI string translation of a UUID buffer according to
-> > > "ACPI 6 - 19.6.136 ToUUID (Convert String to UUID Macro)"
-> > >
-> > > { dd, cc, bb, aa, ff, ee, hh, gg, ii, jj, kk, ll, mm, nn, oo, pp }
-> > >
-> > > "aabbccdd-eeff-gghh-iijj-kkllmmnnoopp"
-> > >
-> > > "79d3f066-f3b4-7440-ac43-0d3318b78cdb"
-> > >
-> > > Indeed, v2 of this patchset got this wrong.  Thanks to the sharp eyes
-> > > of Bob Moore on the ACPICA team, he caught this discrepancy.  It seems
-> > > the ACPI spec uses the terms "GUID" and "UUID" interchangeably.
-> > 
-> > I agree that this thing is confusing...
-> > 
-> > The Wiki page you pointed states that:
-> > ===
-> > Byte encoding
-> >  :
-> > This endianness applies only to the way in which a GUID is stored, and not
-> > to the way in which it is represented in text. GUIDs and RFC 4122 UUIDs
-> > should be identical when displayed textually.
-> > 
-> > Text encoding
-> >  :
-> > For the first three fields, the most significant digit is on the left.
-> > ===
-> > 
-> > Wiki page of UUID below also states that:
-> > http://en.wikipedia.org/wiki/Universally_unique_identifier
-> > ===
-> > Definition
-> >  :
-> > The first 3 sequences are interpreted as complete hexadecimal numbers,
-> > while the final 2 as a plain sequence of bytes. The byte order is "most
-> > significant byte first (known as network byte order) ===
-> > 
-> > So, the text encoding of GUID represents actual value; no endianness
-> > applies here.  So, the following GUID definition:
-> > 
-> > { 0x66F0D379, 0xB4F3, 0x4074, 0xAC, 0x43, 0x0D, 0x33, 0x18, 0xB7, 0x8C,
-> > 0xDB }
-> > 
-> > Should be text encoded as:
-> > 
-> > "66f0d379-b4f3-4074-ac43-0d3318b78cdb"
-> > 
-> > Now, byte-encoding is confusing.  While the Wiki page you pointed states
-> > that GUID has big endian per Microsoft definition, EFI spec defines
-> > differently.  Please look at EFI 2.5 "Appendix A GUID and Time Formats".
-> > 
-> > The EFI spec states that:
-> > ===
-> > All EFI GUIDs (Globally Unique Identifiers) have the format described in
-> > RFC 4122 and comply with the referenced algorithms for generating GUIDs.
-> > It should be noted that TimeLow, TimeMid, TimeHighAndVersion fields in the
-> > EFI are encoded as little endian.
-> > ===
-> > 
-> > Table 212 defines how text representation of the GUID is stored in Buffer,
-> > which is little endian format.  This table also states that the most
-> > significant byte is the first in text encoding, which is consistent with
-> > the Wiki pages.
-> > 
-> > The ACPI spec, ToUUID, is consistent with EFI spec Table 212 as well.
-> > 
-> > Thanks,
-> > -Toshi
-> 
-
-
+V2hhdCBBQ1BJQ0EgaGFzIGRvbmUgaGVyZSBpcyB0byBkZWZpbmUgdGhlc2UgdmFsdWVzIGNvbnNp
+c3RlbnRseSB3aXRoIHRoZSBUb1VVSUQgQVNMIG1hY3JvOg0KDQoNCkJ5dGUgZW5jb2Rpbmcgb2Yg
+VVVJRC9HVUlEIHN0cmluZ3MgaW50byBBQ1BJIEJ1ZmZlciBvYmplY3RzICh1c2UgVG9VVUlEIGZy
+b20gQVNMKToNCg0KICAgSW5wdXQgVVVJRC9HVUlEIFN0cmluZyBmb3JtYXQgOiBhYWJiY2NkZC1l
+ZWZmLWdnaGgtaWlqai1ra2xsbW1ubm9vcHANCiAgICAgRXhwZWN0ZWQgb3V0cHV0IEFDUEkgYnVm
+ZmVyIDogZGQsY2MsYmIsYWEsIGZmLGVlLCBoaCxnZywgaWksamosIGtrLGxsLG1tLG5uLG9vLHBw
+DQoNCg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVG9zaGkgS2Fu
+aSBbbWFpbHRvOnRvc2hpLmthbmlAaHAuY29tXQ0KPiBTZW50OiBUaHVyc2RheSwgTWF5IDIxLCAy
+MDE1IDEwOjI1IEFNDQo+IFRvOiBXaWxsaWFtcywgRGFuIEoNCj4gQ2M6IEplbnMgQXhib2U7IGxp
+bnV4LW52ZGltbUBsaXN0cy4wMS5vcmc7IE5laWwgQnJvd247IEdyZWcgS0g7IFd5c29ja2ksDQo+
+IFJhZmFlbCBKOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBNb29yZSwgUm9iZXJ0OyBM
+aW51eCBBQ1BJOyBaaGVuZywNCj4gTHY7IENocmlzdG9waCBIZWxsd2lnOyBJbmdvIE1vbG5hcg0K
+PiBTdWJqZWN0OiBSZTogW1BBVENIIHYzIDAyLzIxXSBsaWJuZCwgbmZpdDogaW5pdGlhbCBsaWJu
+ZCBpbmZyYXN0cnVjdHVyZQ0KPiBhbmQgTkZJVCBzdXBwb3J0DQo+IA0KPiBPbiBUaHUsIDIwMTUt
+MDUtMjEgYXQgMDg6NTYgLTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4gPiBPbiBUaHUsIE1h
+eSAyMSwgMjAxNSBhdCA2OjU1IEFNLCBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwLmNvbT4gd3Jv
+dGU6DQo+ID4gPiBPbiBXZWQsIDIwMTUtMDUtMjAgYXQgMTY6NTYgLTA0MDAsIERhbiBXaWxsaWFt
+cyB3cm90ZToNCj4gPiA+ICA6DQo+ID4gPj4gKy8qIE5WRElNTSAtIE5GSVQgdGFibGUgKi8NCj4g
+PiA+PiArDQo+ID4gPj4gKyNkZWZpbmUgVVVJRF9WT0xBVElMRV9NRU1PUlkgICAgICAgICAgICAi
+NGY5NDA1NzMtZGFmZC1lMzQ0LWIxNmMtDQo+IDNmMjJkMjUyZTVkMCINCj4gPiA+PiArI2RlZmlu
+ZSBVVUlEX1BFUlNJU1RFTlRfTUVNT1JZICAgICAgICAgICI3OWQzZjA2Ni1mM2I0LTc0NDAtYWM0
+My0NCj4gMGQzMzE4Yjc4Y2RiIg0KPiA+ID4+ICsjZGVmaW5lIFVVSURfQ09OVFJPTF9SRUdJT04g
+ICAgICAgICAgICAgImY2MDFmNzkyLWI0MTMtNWQ0MC05MTBiLQ0KPiAyOTkzNjdlODIzNGMiDQo+
+ID4gPj4gKyNkZWZpbmUgVVVJRF9EQVRBX1JFR0lPTiAgICAgICAgICAgICAgICAiMzAwNWFmOTEt
+ODY1ZC0wZTQ3LWE2YjAtDQo+IDBhMmRiOTQwODI0OSINCj4gPiA+PiArI2RlZmluZSBVVUlEX1ZP
+TEFUSUxFX1ZJUlRVQUxfRElTSyAgICAgICI1YTUzYWI3Ny1mYzQ1LTRiNjItNTU2MC0NCj4gZjdi
+MjgxZDFmOTZlIg0KPiA+ID4+ICsjZGVmaW5lIFVVSURfVk9MQVRJTEVfVklSVFVBTF9DRCAgICAg
+ICAgIjMwYmQ1YTNkLTc1NDEtY2U4Ny02ZDY0LQ0KPiBkMmFkZTUyM2M0YmIiDQo+ID4gPj4gKyNk
+ZWZpbmUgVVVJRF9QRVJTSVNURU5UX1ZJUlRVQUxfRElTSyAgICAiYzkwMmVhNWMtMDc0ZC02OWQz
+LTI2OWYtDQo+IDQ0OTZmYmUwOTZmOSINCj4gPiA+PiArI2RlZmluZSBVVUlEX1BFUlNJU1RFTlRf
+VklSVFVBTF9DRCAgICAgICI4ODgxMDEwOC1jZDQyLTQ4YmItMTAwZi0NCj4gNTM4N2Q1M2RlZDNk
+Ig0KPiA+ID4NCj4gPiA+IGFjcGlfc3RyX3RvX3V1aWQoKSBwZXJmb3JtcyBsaXR0bGUtZW5kaWFu
+IGJ5dGUtc3dhcHBpbmcsIHNvIHRoZSBVVUlEDQo+ID4gPiBzdHJpbmdzIGhlcmUgbmVlZCB0byBi
+ZSBhY3R1YWwgdmFsdWVzLg0KPiA+ID4NCj4gPiA+IEZvciBpbnN0YW5jZSwgVVVJRF9QRVJTSVNU
+RU5UX01FTU9SWSBzaG91bGQgYmU6DQo+ID4gPiAjZGVmaW5lIFVVSURfUEVSU0lTVEVOVF9NRU1P
+UlkgICAiNjZmMGQzNzktYjRmMy00MDc0LWFjNDMtDQo+IDBkMzMxOGI3OGNkYiINCj4gPiA+DQo+
+ID4NCj4gPiBObywgdGhlIHNwZWMgZGVmaW5lcyB0aGUgR1VJRCBmb3IgcGVyc2lzdGVudCBtZW1v
+cnkgYXM6DQo+ID4NCj4gPiB7IDB4NjZGMEQzNzksIDB4QjRGMywgMHg0MDc0LCAweEFDLCAweDQz
+LCAweDBELCAweDMzLCAweDE4LCAweEI3LA0KPiA+IDB4OEMsIDB4REIgfQ0KPiA+DQo+ID4gVGhl
+IGJ5dGUgZW5jb2RpbmcgZm9yIHRoYXQgR1VJRCBpcyB0aGUgZm9sbG93aW5nIChhbGwgZmllbGRz
+IHN0b3JlZA0KPiA+IGJpZyBlbmRpYW46DQo+ID4gaHR0cHM6Ly9lbi53aWtpcGVkaWEub3JnL3dp
+a2kvR2xvYmFsbHlfdW5pcXVlX2lkZW50aWZpZXIjQmluYXJ5X2VuY29kaQ0KPiA+IG5nKQ0KPiA+
+DQo+ID4geyAweDY2LCAweEYwLCAweEQzLCAweDc5LCAweEI0LCAweEYzLCAweDQwLDB4NzQsIDB4
+QUMsIDB4NDMsIDB4MEQsDQo+ID4gMHgzMywgMHgxOCwgMHhCNywgMHg4QywgMHhEQiB9DQo+ID4N
+Cj4gPiBUaGUgcmV2ZXJzZSBBQ1BJIHN0cmluZyB0cmFuc2xhdGlvbiBvZiBhIFVVSUQgYnVmZmVy
+IGFjY29yZGluZyB0bw0KPiA+ICJBQ1BJIDYgLSAxOS42LjEzNiBUb1VVSUQgKENvbnZlcnQgU3Ry
+aW5nIHRvIFVVSUQgTWFjcm8pIg0KPiA+DQo+ID4geyBkZCwgY2MsIGJiLCBhYSwgZmYsIGVlLCBo
+aCwgZ2csIGlpLCBqaiwga2ssIGxsLCBtbSwgbm4sIG9vLCBwcCB9DQo+ID4NCj4gPiAiYWFiYmNj
+ZGQtZWVmZi1nZ2hoLWlpamota2tsbG1tbm5vb3BwIg0KPiA+DQo+ID4gIjc5ZDNmMDY2LWYzYjQt
+NzQ0MC1hYzQzLTBkMzMxOGI3OGNkYiINCj4gPg0KPiA+IEluZGVlZCwgdjIgb2YgdGhpcyBwYXRj
+aHNldCBnb3QgdGhpcyB3cm9uZy4gIFRoYW5rcyB0byB0aGUgc2hhcnAgZXllcw0KPiA+IG9mIEJv
+YiBNb29yZSBvbiB0aGUgQUNQSUNBIHRlYW0sIGhlIGNhdWdodCB0aGlzIGRpc2NyZXBhbmN5LiAg
+SXQgc2VlbXMNCj4gPiB0aGUgQUNQSSBzcGVjIHVzZXMgdGhlIHRlcm1zICJHVUlEIiBhbmQgIlVV
+SUQiIGludGVyY2hhbmdlYWJseS4NCj4gDQo+IEkgYWdyZWUgdGhhdCB0aGlzIHRoaW5nIGlzIGNv
+bmZ1c2luZy4uLg0KPiANCj4gVGhlIFdpa2kgcGFnZSB5b3UgcG9pbnRlZCBzdGF0ZXMgdGhhdDoN
+Cj4gPT09DQo+IEJ5dGUgZW5jb2RpbmcNCj4gIDoNCj4gVGhpcyBlbmRpYW5uZXNzIGFwcGxpZXMg
+b25seSB0byB0aGUgd2F5IGluIHdoaWNoIGEgR1VJRCBpcyBzdG9yZWQsIGFuZCBub3QNCj4gdG8g
+dGhlIHdheSBpbiB3aGljaCBpdCBpcyByZXByZXNlbnRlZCBpbiB0ZXh0LiBHVUlEcyBhbmQgUkZD
+IDQxMjIgVVVJRHMNCj4gc2hvdWxkIGJlIGlkZW50aWNhbCB3aGVuIGRpc3BsYXllZCB0ZXh0dWFs
+bHkuDQo+IA0KPiBUZXh0IGVuY29kaW5nDQo+ICA6DQo+IEZvciB0aGUgZmlyc3QgdGhyZWUgZmll
+bGRzLCB0aGUgbW9zdCBzaWduaWZpY2FudCBkaWdpdCBpcyBvbiB0aGUgbGVmdC4NCj4gPT09DQo+
+IA0KPiBXaWtpIHBhZ2Ugb2YgVVVJRCBiZWxvdyBhbHNvIHN0YXRlcyB0aGF0Og0KPiBodHRwOi8v
+ZW4ud2lraXBlZGlhLm9yZy93aWtpL1VuaXZlcnNhbGx5X3VuaXF1ZV9pZGVudGlmaWVyDQo+ID09
+PQ0KPiBEZWZpbml0aW9uDQo+ICA6DQo+IFRoZSBmaXJzdCAzIHNlcXVlbmNlcyBhcmUgaW50ZXJw
+cmV0ZWQgYXMgY29tcGxldGUgaGV4YWRlY2ltYWwgbnVtYmVycywNCj4gd2hpbGUgdGhlIGZpbmFs
+IDIgYXMgYSBwbGFpbiBzZXF1ZW5jZSBvZiBieXRlcy4gVGhlIGJ5dGUgb3JkZXIgaXMgIm1vc3QN
+Cj4gc2lnbmlmaWNhbnQgYnl0ZSBmaXJzdCAoa25vd24gYXMgbmV0d29yayBieXRlIG9yZGVyKSA9
+PT0NCj4gDQo+IFNvLCB0aGUgdGV4dCBlbmNvZGluZyBvZiBHVUlEIHJlcHJlc2VudHMgYWN0dWFs
+IHZhbHVlOyBubyBlbmRpYW5uZXNzDQo+IGFwcGxpZXMgaGVyZS4gIFNvLCB0aGUgZm9sbG93aW5n
+IEdVSUQgZGVmaW5pdGlvbjoNCj4gDQo+IHsgMHg2NkYwRDM3OSwgMHhCNEYzLCAweDQwNzQsIDB4
+QUMsIDB4NDMsIDB4MEQsIDB4MzMsIDB4MTgsIDB4QjcsIDB4OEMsDQo+IDB4REIgfQ0KPiANCj4g
+U2hvdWxkIGJlIHRleHQgZW5jb2RlZCBhczoNCj4gDQo+ICI2NmYwZDM3OS1iNGYzLTQwNzQtYWM0
+My0wZDMzMThiNzhjZGIiDQo+IA0KPiBOb3csIGJ5dGUtZW5jb2RpbmcgaXMgY29uZnVzaW5nLiAg
+V2hpbGUgdGhlIFdpa2kgcGFnZSB5b3UgcG9pbnRlZCBzdGF0ZXMNCj4gdGhhdCBHVUlEIGhhcyBi
+aWcgZW5kaWFuIHBlciBNaWNyb3NvZnQgZGVmaW5pdGlvbiwgRUZJIHNwZWMgZGVmaW5lcw0KPiBk
+aWZmZXJlbnRseS4gIFBsZWFzZSBsb29rIGF0IEVGSSAyLjUgIkFwcGVuZGl4IEEgR1VJRCBhbmQg
+VGltZSBGb3JtYXRzIi4NCj4gDQo+IFRoZSBFRkkgc3BlYyBzdGF0ZXMgdGhhdDoNCj4gPT09DQo+
+IEFsbCBFRkkgR1VJRHMgKEdsb2JhbGx5IFVuaXF1ZSBJZGVudGlmaWVycykgaGF2ZSB0aGUgZm9y
+bWF0IGRlc2NyaWJlZCBpbg0KPiBSRkMgNDEyMiBhbmQgY29tcGx5IHdpdGggdGhlIHJlZmVyZW5j
+ZWQgYWxnb3JpdGhtcyBmb3IgZ2VuZXJhdGluZyBHVUlEcy4NCj4gSXQgc2hvdWxkIGJlIG5vdGVk
+IHRoYXQgVGltZUxvdywgVGltZU1pZCwgVGltZUhpZ2hBbmRWZXJzaW9uIGZpZWxkcyBpbiB0aGUN
+Cj4gRUZJIGFyZSBlbmNvZGVkIGFzIGxpdHRsZSBlbmRpYW4uDQo+ID09PQ0KPiANCj4gVGFibGUg
+MjEyIGRlZmluZXMgaG93IHRleHQgcmVwcmVzZW50YXRpb24gb2YgdGhlIEdVSUQgaXMgc3RvcmVk
+IGluIEJ1ZmZlciwNCj4gd2hpY2ggaXMgbGl0dGxlIGVuZGlhbiBmb3JtYXQuICBUaGlzIHRhYmxl
+IGFsc28gc3RhdGVzIHRoYXQgdGhlIG1vc3QNCj4gc2lnbmlmaWNhbnQgYnl0ZSBpcyB0aGUgZmly
+c3QgaW4gdGV4dCBlbmNvZGluZywgd2hpY2ggaXMgY29uc2lzdGVudCB3aXRoDQo+IHRoZSBXaWtp
+IHBhZ2VzLg0KPiANCj4gVGhlIEFDUEkgc3BlYywgVG9VVUlELCBpcyBjb25zaXN0ZW50IHdpdGgg
+RUZJIHNwZWMgVGFibGUgMjEyIGFzIHdlbGwuDQo+IA0KPiBUaGFua3MsDQo+IC1Ub3NoaQ0KDQo=
