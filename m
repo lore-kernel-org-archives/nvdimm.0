@@ -1,9 +1,10 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure and
+Message-ID: <1432308084.1428.6.camel@misato.fc.hp.com>
+Subject: Re: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure and
  NFIT support
-Date: Fri, 22 May 2015 16:12:14 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EEDDF@ORSMSX112.amr.corp.intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Date: Fri, 22 May 2015 09:21:24 -0600
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EED26@ORSMSX112.amr.corp.intel.com>
 References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
 	 <20150520205621.32249.39424.stgit@dwillia2-desk3.amr.corp.intel.com>
 	 <1432216514.26714.4.camel@misato.fc.hp.com>
@@ -16,62 +17,54 @@ References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
 	 <1432238358.29840.25.camel@misato.fc.hp.com>	<555E474B.2060306@hp.com>
 	 <CAPcyv4jB7DmJ3msAcQmHJov0kiqcSdcz2R5UsSaN3kc3OLbUoA@mail.gmail.com>
 	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EED26@ORSMSX112.amr.corp.intel.com>
- <1432308084.1428.6.camel@misato.fc.hp.com>
-In-Reply-To: <1432308084.1428.6.camel@misato.fc.hp.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
+To: "Moore, Robert" <robert.moore@intel.com>
 Cc: "Williams, Dan J" <dan.j.williams@intel.com>, Linda Knippers <linda.knippers@hp.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGVyZSBhcmUgdGhlIGNvcnJlY3RlZCBzdHJpbmdzOg0KDQovKiBOVkRJTU0gLSBORklUIHRhYmxl
-ICovDQoNCiNkZWZpbmUgVVVJRF9WT0xBVElMRV9NRU1PUlkgICAgICAgICAgICAiNzMwNTk0NGYt
-ZmRkYS00NGUzLWIxNmMtM2YyMmQyNTJlNWQwIg0KI2RlZmluZSBVVUlEX1BFUlNJU1RFTlRfTUVN
-T1JZICAgICAgICAgICI2NmYwZDM3OS1iNGYzLTQwNzQtYWM0My0wZDMzMThiNzhjZGIiDQojZGVm
-aW5lIFVVSURfQ09OVFJPTF9SRUdJT04gICAgICAgICAgICAgIjkyZjcwMWY2LTEzYjQtNDA1ZC05
-MTBiLTI5OTM2N2U4MjM0YyINCiNkZWZpbmUgVVVJRF9EQVRBX1JFR0lPTiAgICAgICAgICAgICAg
-ICAiOTFhZjA1MzAtNWQ4Ni00NzBlLWE2YjAtMGEyZGI5NDA4MjQ5Ig0KI2RlZmluZSBVVUlEX1ZP
-TEFUSUxFX1ZJUlRVQUxfRElTSyAgICAgICI3N2FiNTM1YS00NWZjLTYyNGItNTU2MC1mN2IyODFk
-MWY5NmUiDQojZGVmaW5lIFVVSURfVk9MQVRJTEVfVklSVFVBTF9DRCAgICAgICAgIjNkNWFiZDMw
-LTQxNzUtODdjZS02ZDY0LWQyYWRlNTIzYzRiYiINCiNkZWZpbmUgVVVJRF9QRVJTSVNURU5UX1ZJ
-UlRVQUxfRElTSyAgICAiNWNlYTAyYzktNGQwNy02OWQzLTI2OWYtNDQ5NmZiZTA5NmY5Ig0KI2Rl
-ZmluZSBVVUlEX1BFUlNJU1RFTlRfVklSVFVBTF9DRCAgICAgICIwODAxODE4OC00MmNkLWJiNDgt
-MTAwZi01Mzg3ZDUzZGVkM2QiDQoNCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+
-IEZyb206IFRvc2hpIEthbmkgW21haWx0bzp0b3NoaS5rYW5pQGhwLmNvbV0NCj4gU2VudDogRnJp
-ZGF5LCBNYXkgMjIsIDIwMTUgODoyMSBBTQ0KPiBUbzogTW9vcmUsIFJvYmVydA0KPiBDYzogV2ls
-bGlhbXMsIERhbiBKOyBMaW5kYSBLbmlwcGVyczsgSmVucyBBeGJvZTsgbGludXgtDQo+IG52ZGlt
-bUBsaXN0cy4wMS5vcmc7IE5laWwgQnJvd247IEdyZWcgS0g7IFd5c29ja2ksIFJhZmFlbCBKOyBs
-aW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZzsgTGludXggQUNQSTsgSW5nbyBNb2xuYXI7
-IFpoZW5nLCBMdjsgQ2hyaXN0b3BoDQo+IEhlbGx3aWcNCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2
-MyAwMi8yMV0gbGlibmQsIG5maXQ6IGluaXRpYWwgbGlibmQgaW5mcmFzdHJ1Y3R1cmUNCj4gYW5k
-IE5GSVQgc3VwcG9ydA0KPiANCj4gT24gRnJpLCAyMDE1LTA1LTIyIGF0IDE0OjU4ICswMDAwLCBN
-b29yZSwgUm9iZXJ0IHdyb3RlOg0KPiA+IEl0IGxvb2tzIHRvIG1lIHRoYXQgeW91IGFyZSBjb3Jy
-ZWN0IGFuZCBJIHNjcmV3ZWQgdXAgd2hlbiBJIG1hZGUgdGhvc2UNCj4gc3RyaW5ncy4NCj4gPiBU
-aGUgb2RkIHRoaW5nIGlzIHRoYXQgd2UgaGFkIGRpc2N1c3NlZCB0aGlzIHdob2xlIGlzc3VlIGlu
-dGVybmFsbHkgZm9yDQo+ID4gYSBmZXcgZGF5cw0KPiA+ICAtLSB0aGVuIEkgd2VudCBhaGVhZCBh
-bmQgbWVzc2VkIHVwIHRoZSBzdHJpbmdzLiBJIHRoaW5rIG15IGJyYWluIHdhcw0KPiA+IGdvaW5n
-IGFyb3VuZCBpbiBjaXJjbGVzLg0KPiANCj4gWWVzLCBlbmRpYW5uZXNzIGlzIGFsd2F5cyBmdW4u
-Li4gOi0pDQo+IA0KPiA+IEFueXdheSwgaGVyZSBpcyB0aGUgbGF0ZXN0IGluZm8sIHBsZWFzZSBo
-YXZlIGEgbG9vazoNCj4gPg0KPiA+DQo+ID4gQmVsb3cgaXMgdGhlIEdVSUQgZm9yIHZvbGF0aWxl
-IG1lbW9yeSByZWdpb24gZGlyZWN0bHkgZnJvbSB0aGUgQUNQSQ0KPiBzcGVjOg0KPiA+DQo+ID4N
-Cj4gPiB7IDB4NzMwNTk0NEYsIDB4RkREQSwgMHg0NEUzLCAweEIxLCAweDZDLCAweDNGLCAweDIy
-LCAweEQyLCAweDUyLA0KPiA+IDB4RTUsIDB4RDAgfQ0KPiA+DQo+ID4gSGVyZSBpcyBhbiBleGFt
-cGxlIG9mIFRvVVVJRCB1c2luZyBhIGNvcnJlY3RlZCB2ZXJzaW9uIG9mIHRoZSBHVUlEDQo+IHN0
-cmluZy4gTm90ZSB0aGF0IHRoZSBvcmRlcmluZyBvZiB0aGUgc3RyaW5nIGlzIGlkZW50aWNhbCB0
-byB0aGUgdmVyc2lvbg0KPiBpbiB0aGUgQUNQSSBzcGVjOg0KPiA+DQo+ID4gICAgICAgMTE6ICAg
-ICAgTmFtZSAoVVVJRCwgVG9VVUlEICgiNzMwNTk0NEYtRkREQS00NEUzLUIxNkMtDQo+IDNGMjJE
-MjUyRTVEMCIpKQ0KPiA+DQo+ID4NCj4gPiBIZXJlIGlzIHRoZSBBTUwgb3V0cHV0IG9mIHRoZSBU
-b1VVSUQgbWFjcm8uIE5vdGUgdGhhdCB0aGUgZmlyc3QgdGhyZWUNCj4gZmllbGRzIGFyZSByZXZl
-cnNlZCwgdGhlIHJlc3Qgb2YgdGhlIHN0cmluZyBpcyBsZWZ0IGFzLWlzIChhcyBwZXIgdGhlDQo+
-IFRvVVVJRCBkZWZpbml0aW9uKToNCj4gPg0KPiA+IDAwMDAwMDI0OiAgMDggNTUgNTUgNDkgNDQg
-Li4uLi4uLi4uICAgICIuVVVJRCINCj4gPiAwMDAwMDAyOTogIDExIDEzIDBBIDEwIDRGIDk0IDA1
-IDczICAgICAiLi4uLk8uLnMiDQo+ID4gMDAwMDAwMzE6ICBEQSBGRCBFMyA0NCBCMSA2QyAzRiAy
-MiAgICAgIi4uLkQubD8iIg0KPiA+IDAwMDAwMDM5OiAgRDIgNTIgRTUgRDAgLi4uLi4uLi4uLi4u
-ICAgICIuUi4uIg0KPiA+DQo+ID4gVGhpcyBpcyB0aGUgaW1wb3J0YW50IHBhcnQ6DQo+ID4NCj4g
-PiAgICAgICAgICAgIDRGIDk0IDA1IDczICAgICAiLi4uLk8uLnMiDQo+ID4gMDAwMDAwMzE6ICBE
-QSBGRCBFMyA0NCBCMSA2QyAzRiAyMiAgICAgIi4uLkQubD8iIg0KPiA+IDAwMDAwMDM5OiAgRDIg
-NTIgRTUgRDANCj4gPg0KPiA+DQo+ID4gSSBiZWxpZXZlIHRoYXQgdGhpcyBpcyBjb3JyZWN0Lg0K
-PiANCj4gTG9va3MgZ29vZCENCj4gDQo+IFRoYW5rcywNCj4gLVRvc2hpDQo+IA0KDQo=
+On Fri, 2015-05-22 at 14:58 +0000, Moore, Robert wrote:
+> It looks to me that you are correct and I screwed up when I made those strings.
+> The odd thing is that we had discussed this whole issue internally for a few days
+>  -- then I went ahead and messed up the strings. I think my brain was going
+> around in circles.
+
+Yes, endianness is always fun... :-)
+
+> Anyway, here is the latest info, please have a look:
+> 
+> 
+> Below is the GUID for volatile memory region directly from the ACPI spec:
+> 
+> 
+> { 0x7305944F, 0xFDDA, 0x44E3, 0xB1, 0x6C, 0x3F, 0x22, 0xD2, 0x52, 0xE5, 0xD0 }
+> 
+> Here is an example of ToUUID using a corrected version of the GUID string. Note that the ordering of the string is identical to the version in the ACPI spec:
+> 
+>       11:      Name (UUID, ToUUID ("7305944F-FDDA-44E3-B16C-3F22D252E5D0"))
+> 
+> 
+> Here is the AML output of the ToUUID macro. Note that the first three fields are reversed, the rest of the string is left as-is (as per the ToUUID definition):
+> 
+> 00000024:  08 55 55 49 44 .........    ".UUID"
+> 00000029:  11 13 0A 10 4F 94 05 73     "....O..s"
+> 00000031:  DA FD E3 44 B1 6C 3F 22     "...D.l?""
+> 00000039:  D2 52 E5 D0 ............    ".R.."
+> 
+> This is the important part:
+> 
+>            4F 94 05 73     "....O..s"
+> 00000031:  DA FD E3 44 B1 6C 3F 22     "...D.l?""
+> 00000039:  D2 52 E5 D0
+> 
+> 
+> I believe that this is correct.
+
+Looks good!
+
+Thanks,
+-Toshi
+
+
