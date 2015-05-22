@@ -1,123 +1,77 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v9 0/10] Support Write-Through mapping on x86
-Date: Wed, 13 May 2015 15:05:41 -0600
-Message-Id: <1431551151-19124-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure and
+ NFIT support
+Date: Fri, 22 May 2015 16:12:14 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EEDDF@ORSMSX112.amr.corp.intel.com>
+References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <20150520205621.32249.39424.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <1432216514.26714.4.camel@misato.fc.hp.com>
+	 <CAPcyv4ijJeBjX-vvMprDYwQx8PnPD3P5UJR2A-3wqNdd63p7Bg@mail.gmail.com>
+	 <1432229114.28126.25.camel@misato.fc.hp.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE7C0@ORSMSX112.amr.corp.intel.com>
+	 <1432231297.28704.8.camel@misato.fc.hp.com>
+	 <CAPcyv4gjh_2Uy=gLN793=PTWh4X5e=A6tbtVTvaeLxEoHjxw0w@mail.gmail.com>
+	 <1432237458.29840.17.camel@misato.fc.hp.com>
+	 <1432238358.29840.25.camel@misato.fc.hp.com>	<555E474B.2060306@hp.com>
+	 <CAPcyv4jB7DmJ3msAcQmHJov0kiqcSdcz2R5UsSaN3kc3OLbUoA@mail.gmail.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EED26@ORSMSX112.amr.corp.intel.com>
+ <1432308084.1428.6.camel@misato.fc.hp.com>
+In-Reply-To: <1432308084.1428.6.camel@misato.fc.hp.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>, Linda Knippers <linda.knippers@hp.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patchset adds support of Write-Through (WT) mapping on x86.
-The study below shows that using WT mapping may be useful for
-non-volatile memory.
-
-http://www.hpl.hp.com/techreports/2012/HPL-2012-236.pdf
-
-The patchset consists of the following changes.
- - Patch 1/10 to 5/10 add ioremap_wt()
- - Patch 6/10 adds pgprot_writethrough()
- - Patch 7/10 to 8/10 add set_memory_wt()
- - Patch 9/10 refactors !pat_enable paths
- - Patch 10/10 changes the pmem driver to call ioremap_wt()
-
-All new/modified interfaces have been tested.
-
----
-v9:
-- Changed to export the set_xxx_wt() interfaces with GPL.
-  (Ingo Molnar)
-- Changed is_new_memtype_allowed() to handle WT cases.
-- Changed arch-specific io.h to define ioremap_wt().
-- Changed the pmem driver to use ioremap_wt().
-- Rebased to 4.1-rc3 and resolved minor conflicts.
-
-v8:
-- Rebased to 4.0-rc1 and resolved conflicts with 9d34cfdf4 in
-  patch 5/7.
-
-v7:
-- Rebased to 3.19-rc3 as Juergen's patchset for the PAT management
-  has been accepted.
-
-v6:
-- Dropped the patch moving [set|get]_page_memtype() to pat.c
-  since the tip branch already has this change.
-- Fixed an issue when CONFIG_X86_PAT is not defined.
-
-v5:
-- Clarified comment of why using slot 7. (Andy Lutomirski,
-  Thomas Gleixner)
-- Moved [set|get]_page_memtype() to pat.c. (Thomas Gleixner)
-- Removed BUG() from set_page_memtype(). (Thomas Gleixner)
-
-v4:
-- Added set_memory_wt() by adding WT support of regular memory.
-
-v3:
-- Dropped the set_memory_wt() patch. (Andy Lutomirski)
-- Refactored the !pat_enabled handling. (H. Peter Anvin,
-  Andy Lutomirski)
-- Added the picture of PTE encoding. (Konrad Rzeszutek Wilk)
-
-v2:
-- Changed WT to use slot 7 of the PAT MSR. (H. Peter Anvin,
-  Andy Lutomirski)
-- Changed to have conservative checks to exclude all Pentium 2, 3,
-  M, and 4 families. (Ingo Molnar, Henrique de Moraes Holschuh,
-  Andy Lutomirski)
-- Updated documentation to cover WT interfaces and usages.
-  (Andy Lutomirski, Yigal Korman)
-
----
-Toshi Kani (10):
- 1/10 x86, mm, pat: Set WT to PA7 slot of PAT MSR
- 2/10 x86, mm, pat: Change reserve_memtype() for WT
- 3/10 x86, asm: Change is_new_memtype_allowed() for WT
- 4/10 x86, mm, asm-gen: Add ioremap_wt() for WT
- 5/10 arch/*/asm/io.h: Add ioremap_wt() to all architectures
- 6/10 x86, mm, pat: Add pgprot_writethrough() for WT
- 7/10 x86, mm, asm: Add WT support to set_page_memtype()
- 8/10 x86, mm: Add set_memory_wt() for WT
- 9/10 x86, mm, pat: Refactor !pat_enable handling
-10/10 drivers/block/pmem: Map NVDIMM with ioremap_wt()
-
----
- Documentation/x86/pat.txt            |  13 ++-
- arch/arc/include/asm/io.h            |   1 +
- arch/arm/include/asm/io.h            |   1 +
- arch/arm64/include/asm/io.h          |   1 +
- arch/avr32/include/asm/io.h          |   1 +
- arch/frv/include/asm/io.h            |   7 ++
- arch/m32r/include/asm/io.h           |   1 +
- arch/m68k/include/asm/io_mm.h        |   7 ++
- arch/m68k/include/asm/io_no.h        |   6 ++
- arch/metag/include/asm/io.h          |   3 +
- arch/microblaze/include/asm/io.h     |   1 +
- arch/mn10300/include/asm/io.h        |   1 +
- arch/nios2/include/asm/io.h          |   1 +
- arch/s390/include/asm/io.h           |   1 +
- arch/sparc/include/asm/io_32.h       |   1 +
- arch/sparc/include/asm/io_64.h       |   1 +
- arch/tile/include/asm/io.h           |   1 +
- arch/x86/include/asm/cacheflush.h    |   6 +-
- arch/x86/include/asm/io.h            |   2 +
- arch/x86/include/asm/pgtable.h       |   8 +-
- arch/x86/include/asm/pgtable_types.h |   3 +
- arch/x86/mm/init.c                   |   6 +-
- arch/x86/mm/iomap_32.c               |  12 +--
- arch/x86/mm/ioremap.c                |  26 ++++-
- arch/x86/mm/pageattr.c               |  61 +++++++++--
- arch/x86/mm/pat.c                    | 194 ++++++++++++++++++++++++-----------
- arch/xtensa/include/asm/io.h         |   1 +
- drivers/block/pmem.c                 |   4 +-
- include/asm-generic/io.h             |   9 ++
- include/asm-generic/iomap.h          |   4 +
- include/asm-generic/pgtable.h        |   4 +
- 31 files changed, 296 insertions(+), 92 deletions(-)
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+SGVyZSBhcmUgdGhlIGNvcnJlY3RlZCBzdHJpbmdzOg0KDQovKiBOVkRJTU0gLSBORklUIHRhYmxl
+ICovDQoNCiNkZWZpbmUgVVVJRF9WT0xBVElMRV9NRU1PUlkgICAgICAgICAgICAiNzMwNTk0NGYt
+ZmRkYS00NGUzLWIxNmMtM2YyMmQyNTJlNWQwIg0KI2RlZmluZSBVVUlEX1BFUlNJU1RFTlRfTUVN
+T1JZICAgICAgICAgICI2NmYwZDM3OS1iNGYzLTQwNzQtYWM0My0wZDMzMThiNzhjZGIiDQojZGVm
+aW5lIFVVSURfQ09OVFJPTF9SRUdJT04gICAgICAgICAgICAgIjkyZjcwMWY2LTEzYjQtNDA1ZC05
+MTBiLTI5OTM2N2U4MjM0YyINCiNkZWZpbmUgVVVJRF9EQVRBX1JFR0lPTiAgICAgICAgICAgICAg
+ICAiOTFhZjA1MzAtNWQ4Ni00NzBlLWE2YjAtMGEyZGI5NDA4MjQ5Ig0KI2RlZmluZSBVVUlEX1ZP
+TEFUSUxFX1ZJUlRVQUxfRElTSyAgICAgICI3N2FiNTM1YS00NWZjLTYyNGItNTU2MC1mN2IyODFk
+MWY5NmUiDQojZGVmaW5lIFVVSURfVk9MQVRJTEVfVklSVFVBTF9DRCAgICAgICAgIjNkNWFiZDMw
+LTQxNzUtODdjZS02ZDY0LWQyYWRlNTIzYzRiYiINCiNkZWZpbmUgVVVJRF9QRVJTSVNURU5UX1ZJ
+UlRVQUxfRElTSyAgICAiNWNlYTAyYzktNGQwNy02OWQzLTI2OWYtNDQ5NmZiZTA5NmY5Ig0KI2Rl
+ZmluZSBVVUlEX1BFUlNJU1RFTlRfVklSVFVBTF9DRCAgICAgICIwODAxODE4OC00MmNkLWJiNDgt
+MTAwZi01Mzg3ZDUzZGVkM2QiDQoNCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+
+IEZyb206IFRvc2hpIEthbmkgW21haWx0bzp0b3NoaS5rYW5pQGhwLmNvbV0NCj4gU2VudDogRnJp
+ZGF5LCBNYXkgMjIsIDIwMTUgODoyMSBBTQ0KPiBUbzogTW9vcmUsIFJvYmVydA0KPiBDYzogV2ls
+bGlhbXMsIERhbiBKOyBMaW5kYSBLbmlwcGVyczsgSmVucyBBeGJvZTsgbGludXgtDQo+IG52ZGlt
+bUBsaXN0cy4wMS5vcmc7IE5laWwgQnJvd247IEdyZWcgS0g7IFd5c29ja2ksIFJhZmFlbCBKOyBs
+aW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZzsgTGludXggQUNQSTsgSW5nbyBNb2xuYXI7
+IFpoZW5nLCBMdjsgQ2hyaXN0b3BoDQo+IEhlbGx3aWcNCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2
+MyAwMi8yMV0gbGlibmQsIG5maXQ6IGluaXRpYWwgbGlibmQgaW5mcmFzdHJ1Y3R1cmUNCj4gYW5k
+IE5GSVQgc3VwcG9ydA0KPiANCj4gT24gRnJpLCAyMDE1LTA1LTIyIGF0IDE0OjU4ICswMDAwLCBN
+b29yZSwgUm9iZXJ0IHdyb3RlOg0KPiA+IEl0IGxvb2tzIHRvIG1lIHRoYXQgeW91IGFyZSBjb3Jy
+ZWN0IGFuZCBJIHNjcmV3ZWQgdXAgd2hlbiBJIG1hZGUgdGhvc2UNCj4gc3RyaW5ncy4NCj4gPiBU
+aGUgb2RkIHRoaW5nIGlzIHRoYXQgd2UgaGFkIGRpc2N1c3NlZCB0aGlzIHdob2xlIGlzc3VlIGlu
+dGVybmFsbHkgZm9yDQo+ID4gYSBmZXcgZGF5cw0KPiA+ICAtLSB0aGVuIEkgd2VudCBhaGVhZCBh
+bmQgbWVzc2VkIHVwIHRoZSBzdHJpbmdzLiBJIHRoaW5rIG15IGJyYWluIHdhcw0KPiA+IGdvaW5n
+IGFyb3VuZCBpbiBjaXJjbGVzLg0KPiANCj4gWWVzLCBlbmRpYW5uZXNzIGlzIGFsd2F5cyBmdW4u
+Li4gOi0pDQo+IA0KPiA+IEFueXdheSwgaGVyZSBpcyB0aGUgbGF0ZXN0IGluZm8sIHBsZWFzZSBo
+YXZlIGEgbG9vazoNCj4gPg0KPiA+DQo+ID4gQmVsb3cgaXMgdGhlIEdVSUQgZm9yIHZvbGF0aWxl
+IG1lbW9yeSByZWdpb24gZGlyZWN0bHkgZnJvbSB0aGUgQUNQSQ0KPiBzcGVjOg0KPiA+DQo+ID4N
+Cj4gPiB7IDB4NzMwNTk0NEYsIDB4RkREQSwgMHg0NEUzLCAweEIxLCAweDZDLCAweDNGLCAweDIy
+LCAweEQyLCAweDUyLA0KPiA+IDB4RTUsIDB4RDAgfQ0KPiA+DQo+ID4gSGVyZSBpcyBhbiBleGFt
+cGxlIG9mIFRvVVVJRCB1c2luZyBhIGNvcnJlY3RlZCB2ZXJzaW9uIG9mIHRoZSBHVUlEDQo+IHN0
+cmluZy4gTm90ZSB0aGF0IHRoZSBvcmRlcmluZyBvZiB0aGUgc3RyaW5nIGlzIGlkZW50aWNhbCB0
+byB0aGUgdmVyc2lvbg0KPiBpbiB0aGUgQUNQSSBzcGVjOg0KPiA+DQo+ID4gICAgICAgMTE6ICAg
+ICAgTmFtZSAoVVVJRCwgVG9VVUlEICgiNzMwNTk0NEYtRkREQS00NEUzLUIxNkMtDQo+IDNGMjJE
+MjUyRTVEMCIpKQ0KPiA+DQo+ID4NCj4gPiBIZXJlIGlzIHRoZSBBTUwgb3V0cHV0IG9mIHRoZSBU
+b1VVSUQgbWFjcm8uIE5vdGUgdGhhdCB0aGUgZmlyc3QgdGhyZWUNCj4gZmllbGRzIGFyZSByZXZl
+cnNlZCwgdGhlIHJlc3Qgb2YgdGhlIHN0cmluZyBpcyBsZWZ0IGFzLWlzIChhcyBwZXIgdGhlDQo+
+IFRvVVVJRCBkZWZpbml0aW9uKToNCj4gPg0KPiA+IDAwMDAwMDI0OiAgMDggNTUgNTUgNDkgNDQg
+Li4uLi4uLi4uICAgICIuVVVJRCINCj4gPiAwMDAwMDAyOTogIDExIDEzIDBBIDEwIDRGIDk0IDA1
+IDczICAgICAiLi4uLk8uLnMiDQo+ID4gMDAwMDAwMzE6ICBEQSBGRCBFMyA0NCBCMSA2QyAzRiAy
+MiAgICAgIi4uLkQubD8iIg0KPiA+IDAwMDAwMDM5OiAgRDIgNTIgRTUgRDAgLi4uLi4uLi4uLi4u
+ICAgICIuUi4uIg0KPiA+DQo+ID4gVGhpcyBpcyB0aGUgaW1wb3J0YW50IHBhcnQ6DQo+ID4NCj4g
+PiAgICAgICAgICAgIDRGIDk0IDA1IDczICAgICAiLi4uLk8uLnMiDQo+ID4gMDAwMDAwMzE6ICBE
+QSBGRCBFMyA0NCBCMSA2QyAzRiAyMiAgICAgIi4uLkQubD8iIg0KPiA+IDAwMDAwMDM5OiAgRDIg
+NTIgRTUgRDANCj4gPg0KPiA+DQo+ID4gSSBiZWxpZXZlIHRoYXQgdGhpcyBpcyBjb3JyZWN0Lg0K
+PiANCj4gTG9va3MgZ29vZCENCj4gDQo+IFRoYW5rcywNCj4gLVRvc2hpDQo+IA0KDQo=
