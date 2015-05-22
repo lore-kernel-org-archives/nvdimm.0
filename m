@@ -1,70 +1,131 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <1432308084.1428.6.camel@misato.fc.hp.com>
-Subject: Re: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure and
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure and
  NFIT support
-From: Toshi Kani <toshi.kani@hp.com>
-Date: Fri, 22 May 2015 09:21:24 -0600
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EED26@ORSMSX112.amr.corp.intel.com>
+Date: Fri, 22 May 2015 14:58:18 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EED26@ORSMSX112.amr.corp.intel.com>
 References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150520205621.32249.39424.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <1432216514.26714.4.camel@misato.fc.hp.com>
-	 <CAPcyv4ijJeBjX-vvMprDYwQx8PnPD3P5UJR2A-3wqNdd63p7Bg@mail.gmail.com>
-	 <1432229114.28126.25.camel@misato.fc.hp.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE7C0@ORSMSX112.amr.corp.intel.com>
-	 <1432231297.28704.8.camel@misato.fc.hp.com>
-	 <CAPcyv4gjh_2Uy=gLN793=PTWh4X5e=A6tbtVTvaeLxEoHjxw0w@mail.gmail.com>
-	 <1432237458.29840.17.camel@misato.fc.hp.com>
-	 <1432238358.29840.25.camel@misato.fc.hp.com>	<555E474B.2060306@hp.com>
-	 <CAPcyv4jB7DmJ3msAcQmHJov0kiqcSdcz2R5UsSaN3kc3OLbUoA@mail.gmail.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EED26@ORSMSX112.amr.corp.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	<20150520205621.32249.39424.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<1432216514.26714.4.camel@misato.fc.hp.com>
+	<CAPcyv4ijJeBjX-vvMprDYwQx8PnPD3P5UJR2A-3wqNdd63p7Bg@mail.gmail.com>
+	<1432229114.28126.25.camel@misato.fc.hp.com>
+	<94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE7C0@ORSMSX112.amr.corp.intel.com>
+	<1432231297.28704.8.camel@misato.fc.hp.com>
+	<CAPcyv4gjh_2Uy=gLN793=PTWh4X5e=A6tbtVTvaeLxEoHjxw0w@mail.gmail.com>
+	<1432237458.29840.17.camel@misato.fc.hp.com>
+	<1432238358.29840.25.camel@misato.fc.hp.com>	<555E474B.2060306@hp.com>
+ <CAPcyv4jB7DmJ3msAcQmHJov0kiqcSdcz2R5UsSaN3kc3OLbUoA@mail.gmail.com>
+In-Reply-To: <CAPcyv4jB7DmJ3msAcQmHJov0kiqcSdcz2R5UsSaN3kc3OLbUoA@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>, Linda Knippers <linda.knippers@hp.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Christoph Hellwig <hch@lst.de>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, Linda Knippers <linda.knippers@hp.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, 2015-05-22 at 14:58 +0000, Moore, Robert wrote:
-> It looks to me that you are correct and I screwed up when I made those strings.
-> The odd thing is that we had discussed this whole issue internally for a few days
->  -- then I went ahead and messed up the strings. I think my brain was going
-> around in circles.
-
-Yes, endianness is always fun... :-)
-
-> Anyway, here is the latest info, please have a look:
-> 
-> 
-> Below is the GUID for volatile memory region directly from the ACPI spec:
-> 
-> 
-> { 0x7305944F, 0xFDDA, 0x44E3, 0xB1, 0x6C, 0x3F, 0x22, 0xD2, 0x52, 0xE5, 0xD0 }
-> 
-> Here is an example of ToUUID using a corrected version of the GUID string. Note that the ordering of the string is identical to the version in the ACPI spec:
-> 
->       11:      Name (UUID, ToUUID ("7305944F-FDDA-44E3-B16C-3F22D252E5D0"))
-> 
-> 
-> Here is the AML output of the ToUUID macro. Note that the first three fields are reversed, the rest of the string is left as-is (as per the ToUUID definition):
-> 
-> 00000024:  08 55 55 49 44 .........    ".UUID"
-> 00000029:  11 13 0A 10 4F 94 05 73     "....O..s"
-> 00000031:  DA FD E3 44 B1 6C 3F 22     "...D.l?""
-> 00000039:  D2 52 E5 D0 ............    ".R.."
-> 
-> This is the important part:
-> 
->            4F 94 05 73     "....O..s"
-> 00000031:  DA FD E3 44 B1 6C 3F 22     "...D.l?""
-> 00000039:  D2 52 E5 D0
-> 
-> 
-> I believe that this is correct.
-
-Looks good!
-
-Thanks,
--Toshi
-
-
+SXQgbG9va3MgdG8gbWUgdGhhdCB5b3UgYXJlIGNvcnJlY3QgYW5kIEkgc2NyZXdlZCB1cCB3aGVu
+IEkgbWFkZSB0aG9zZSBzdHJpbmdzLiBUaGUgb2RkIHRoaW5nIGlzIHRoYXQgd2UgaGFkIGRpc2N1
+c3NlZCB0aGlzIHdob2xlIGlzc3VlIGludGVybmFsbHkgZm9yIGEgZmV3IGRheXMgLS0gdGhlbiBJ
+IHdlbnQgYWhlYWQgYW5kIG1lc3NlZCB1cCB0aGUgc3RyaW5ncy4gSSB0aGluayBteSBicmFpbiB3
+YXMgZ29pbmcgYXJvdW5kIGluIGNpcmNsZXMuDQoNCkFueXdheSwgaGVyZSBpcyB0aGUgbGF0ZXN0
+IGluZm8sIHBsZWFzZSBoYXZlIGEgbG9vazoNCg0KDQpCZWxvdyBpcyB0aGUgR1VJRCBmb3Igdm9s
+YXRpbGUgbWVtb3J5IHJlZ2lvbiBkaXJlY3RseSBmcm9tIHRoZSBBQ1BJIHNwZWM6DQoNCg0KeyAw
+eDczMDU5NDRGLCAweEZEREEsIDB4NDRFMywgMHhCMSwgMHg2QywgMHgzRiwgMHgyMiwgMHhEMiwg
+MHg1MiwgMHhFNSwgMHhEMCB9DQoNCkhlcmUgaXMgYW4gZXhhbXBsZSBvZiBUb1VVSUQgdXNpbmcg
+YSBjb3JyZWN0ZWQgdmVyc2lvbiBvZiB0aGUgR1VJRCBzdHJpbmcuIE5vdGUgdGhhdCB0aGUgb3Jk
+ZXJpbmcgb2YgdGhlIHN0cmluZyBpcyBpZGVudGljYWwgdG8gdGhlIHZlcnNpb24gaW4gdGhlIEFD
+UEkgc3BlYzoNCg0KICAgICAgMTE6ICAgICAgTmFtZSAoVVVJRCwgVG9VVUlEICgiNzMwNTk0NEYt
+RkREQS00NEUzLUIxNkMtM0YyMkQyNTJFNUQwIikpDQoNCg0KSGVyZSBpcyB0aGUgQU1MIG91dHB1
+dCBvZiB0aGUgVG9VVUlEIG1hY3JvLiBOb3RlIHRoYXQgdGhlIGZpcnN0IHRocmVlIGZpZWxkcyBh
+cmUgcmV2ZXJzZWQsIHRoZSByZXN0IG9mIHRoZSBzdHJpbmcgaXMgbGVmdCBhcy1pcyAoYXMgcGVy
+IHRoZSBUb1VVSUQgZGVmaW5pdGlvbik6DQoNCjAwMDAwMDI0OiAgMDggNTUgNTUgNDkgNDQgLi4u
+Li4uLi4uICAgICIuVVVJRCINCjAwMDAwMDI5OiAgMTEgMTMgMEEgMTAgNEYgOTQgMDUgNzMgICAg
+ICIuLi4uTy4ucyINCjAwMDAwMDMxOiAgREEgRkQgRTMgNDQgQjEgNkMgM0YgMjIgICAgICIuLi5E
+Lmw/IiINCjAwMDAwMDM5OiAgRDIgNTIgRTUgRDAgLi4uLi4uLi4uLi4uICAgICIuUi4uIg0KDQpU
+aGlzIGlzIHRoZSBpbXBvcnRhbnQgcGFydDoNCg0KICAgICAgICAgICA0RiA5NCAwNSA3MyAgICAg
+Ii4uLi5PLi5zIg0KMDAwMDAwMzE6ICBEQSBGRCBFMyA0NCBCMSA2QyAzRiAyMiAgICAgIi4uLkQu
+bD8iIg0KMDAwMDAwMzk6ICBEMiA1MiBFNSBEMA0KDQoNCkkgYmVsaWV2ZSB0aGF0IHRoaXMgaXMg
+Y29ycmVjdC4NCg0KVGhhbmtzIGZvciB5b3VyIGhlbHAsDQpCb2INCg0KDQoNCg0KPiAtLS0tLU9y
+aWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEYW4gV2lsbGlhbXMgW21haWx0bzpkYW4uai53
+aWxsaWFtc0BpbnRlbC5jb21dDQo+IFNlbnQ6IFRodXJzZGF5LCBNYXkgMjEsIDIwMTUgMjozNSBQ
+TQ0KPiBUbzogTGluZGEgS25pcHBlcnMNCj4gQ2M6IFRvc2hpIEthbmk7IEplbnMgQXhib2U7IGxp
+bnV4LW52ZGltbUBsaXN0cy4wMS5vcmc7IE5laWwgQnJvd247IEdyZWcNCj4gS0g7IFd5c29ja2ks
+IFJhZmFlbCBKOyBNb29yZSwgUm9iZXJ0OyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBM
+aW51eA0KPiBBQ1BJOyBJbmdvIE1vbG5hcjsgWmhlbmcsIEx2OyBDaHJpc3RvcGggSGVsbHdpZw0K
+PiBTdWJqZWN0OiBSZTogW1BBVENIIHYzIDAyLzIxXSBsaWJuZCwgbmZpdDogaW5pdGlhbCBsaWJu
+ZCBpbmZyYXN0cnVjdHVyZQ0KPiBhbmQgTkZJVCBzdXBwb3J0DQo+IA0KPiBPbiBUaHUsIE1heSAy
+MSwgMjAxNSBhdCAxOjU5IFBNLCBMaW5kYSBLbmlwcGVycyA8bGluZGEua25pcHBlcnNAaHAuY29t
+Pg0KPiB3cm90ZToNCj4gPiBPbiAwNS8yMS8yMDE1IDAzOjU5IFBNLCBUb3NoaSBLYW5pIHdyb3Rl
+Og0KPiA+PiBPbiBUaHUsIDIwMTUtMDUtMjEgYXQgMTM6NDQgLTA2MDAsIFRvc2hpIEthbmkgd3Jv
+dGU6DQo+ID4+PiBPbiBUaHUsIDIwMTUtMDUtMjEgYXQgMTI6MDYgLTA3MDAsIERhbiBXaWxsaWFt
+cyB3cm90ZToNCj4gPj4+PiBPbiBUaHUsIE1heSAyMSwgMjAxNSBhdCAxMTowMSBBTSwgVG9zaGkg
+S2FuaSA8dG9zaGkua2FuaUBocC5jb20+DQo+IHdyb3RlOg0KPiA+Pj4+PiBPbiBUaHUsIDIwMTUt
+MDUtMjEgYXQgMTc6NDkgKzAwMDAsIE1vb3JlLCBSb2JlcnQgd3JvdGU6DQo+ID4+Pj4+PiBXaGF0
+IEFDUElDQSBoYXMgZG9uZSBoZXJlIGlzIHRvIGRlZmluZSB0aGVzZSB2YWx1ZXMgY29uc2lzdGVu
+dGx5DQo+IHdpdGggdGhlIFRvVVVJRCBBU0wgbWFjcm86DQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4NCj4g
+Pj4+Pj4+IEJ5dGUgZW5jb2Rpbmcgb2YgVVVJRC9HVUlEIHN0cmluZ3MgaW50byBBQ1BJIEJ1ZmZl
+ciBvYmplY3RzICh1c2UNCj4gVG9VVUlEIGZyb20gQVNMKToNCj4gPj4+Pj4+DQo+ID4+Pj4+PiAg
+ICBJbnB1dCBVVUlEL0dVSUQgU3RyaW5nIGZvcm1hdCA6IGFhYmJjY2RkLWVlZmYtZ2doaC1paWpq
+LQ0KPiBra2xsbW1ubm9vcHANCj4gPj4+Pj4+ICAgICAgRXhwZWN0ZWQgb3V0cHV0IEFDUEkgYnVm
+ZmVyIDogZGQsY2MsYmIsYWEsIGZmLGVlLCBoaCxnZywNCj4gPj4+Pj4+IGlpLGpqLCBrayxsbCxt
+bSxubixvbyxwcA0KPiA+Pj4+Pj4NCj4gPj4+Pj4NCj4gPj4+Pj4gSSBkbyBub3Qgc2VlIGFueSBp
+c3N1ZSBpbiB0aGlzIGNvbnZlcnNpb24sIHdoaWNoIGlzIGNvbnNpc3RlbnQNCj4gPj4+Pj4gd2l0
+aCBUb1VVSUQgZGVmaW5lZCBpbiBBQ1BJIHNwZWMuDQo+ID4+Pj4+DQo+ID4+Pj4+IE15IHBvaW50
+IGlzIHRoYXQgdGhlIHN0cmluZyBmb3JtYXQgb2YgR1VJRCBpcyBlbmRpYW4tbmV1dHJhbC4NCj4g
+Pj4+Pj4gV2lraSBwYWdlcyBhbmQgRUZJIHNwZWMgYWdyZWUgb24gaXQuICBFRkkgMi41IHNwZWMs
+IFRhYmxlIDIyNQ0KPiA+Pj4+PiAoc29ycnkgbm90IFRhYmxlIDIxMiwgd2hpY2ggaXMgdjIuNCks
+IGlzIGFsc28gY2xlYXIgYWJvdXQgaG93DQo+ID4+Pj4+IFN0cmluZyBhbmQgQnVmZmVyIGFyZSBy
+ZWxhdGVkIHdpdGggYWN0dWFsIHZhbHVlcyBvZiBHVUlELg0KPiA+Pj4+DQo+ID4+Pj4gSSB0aGlu
+ayB0aGUgY3JpdGljYWwgcG9pbnQgZnJvbSB0aGUgVUVGSSBzcGVjIGlzIHRoZSAiSXQgc2hvdWxk
+DQo+ID4+Pj4gYWxzbyBiZSBub3RlZCB0aGF0IFRpbWVMb3csIFRpbWVNaWQsIFRpbWVIaWdoQW5k
+VmVyc2lvbiBmaWVsZHMgaW4NCj4gPj4+PiB0aGUgRUZJIGFyZSBlbmNvZGVkIGFzIGxpdHRsZSBl
+bmRpYW4iLiAgVGhhdCB3b3VsZCBpbXBseSB0aGUgYnl0ZQ0KPiA+Pj4+IGVuY29kaW5nIG9mLi4u
+DQo+ID4+Pj4NCj4gPj4+PiB7IDB4OTJGNzAxRjYsIDB4MTNCNCwgMHg0MDVELCAweDkxLCAweDBC
+LCAweDI5LCAweDkzLCAweDY3LCAweEU4LA0KPiA+Pj4+IDB4MjMsIDB4NEMgfQ0KPiA+Pj4+DQo+
+ID4+Pj4gLi4uc2hvdWxkIGJlOg0KPiA+Pj4+DQo+ID4+Pj4geyBmNiwwMSxmNyw5MixiNCwxMyw1
+ZCw0MCw5MSwwYiwyOSw5Myw2NyxlOCwyMyw0YyB9DQo+ID4+Pg0KPiA+Pj4gVGhlIGFib3ZlIE5G
+SVQgR1VJRCBhcyBkYXRhIHZhbHVlcyBtZWFuczoNCj4gPj4+DQo+ID4+PiBFRklfR1VJRCgweDky
+RjcwMUY2LCAweDEzQjQsIDB4NDA1RCwgMHg5MSwgMHgwQiwgMHgyOSwgMHg5MywgMHg2NywNCj4g
+Pj4+IDB4RTgsIDB4MjMsIDB4NEMpDQo+ID4+Pg0KPiA+Pj4+IFdoaWNoIGltcGxpZXMgdGhlIHRl
+eHQgY29udmVyc2lvbiBzaG91bGQgYmU6DQo+ID4+Pj4NCj4gPj4+PiAiOTJmNzAxZjYtMTNiNC00
+MDVkLTkxMGItMjk5MzY3ZTgyMzRjIg0KPiA+Pj4NCj4gPj4+IE5vcGUuDQo+ID4+DQo+ID4+IE9v
+cHMhIFNvcnJ5LCBJIG1pc3JlYWQgeW91ciBlbWFpbC4uLiBUaGUgYWJvdmUgc3RyaW5nIGlzIGNv
+cnJlY3QsDQo+ID4+IGFsdGhvdWdoIEkgZG8gbm90IHRoaW5rIHlvdSBuZWVkIHN1Y2ggY29udmVy
+c2lvbi4NCj4gPj4NCj4gPj4+IEVGSSAyLjUgc3BlYywgQXBwZW5kaXggQSAiR1VJRCBhbmQgVGlt
+ZSBGb3JtYXRzIiBkZWZpbmVzIHRoYXQ6DQo+ID4+PiAoTk9URSwgSSBzaW1wbGlmaWVkIHRoZSB0
+YWJsZSAyMjUgdG8gZml0IGluIHRoaXMgZW1haWwpID09IFRoaXMNCj4gPj4+IHNwZWNpZmljYXRp
+b24gYWxzbyBkZWZpbmVzIGEgc3RhbmRhcmQgdGV4dCByZXByZXNlbnRhdGlvbiBvZiB0aGUNCj4g
+Pj4+IEdVSUQuIFRoaXMgZm9ybWF0IGlzIGFsc28gc29tZXRpbWVzIGNhbGxlZCB0aGUg4oCccmVn
+aXN0cnkgZm9ybWF04oCdLiBJdA0KPiA+Pj4gY29uc2lzdHMgb2YgMzYgY2hhcmFjdGVycywgYXMg
+Zm9sbG93czoNCj4gPj4+DQo+ID4+PiBhYWJiY2NkZC1lZWZmLWdnaGgtaWlqai1ra2xsbW1ubm9v
+cHANCj4gPj4+ICA6DQo+ID4+Pg0KPiA+Pj4gVGFibGUgMjI1LiBUZXh0IHJlcHJlc2VudGF0aW9u
+IHJlbGF0aW9uc2hpcHMNCj4gPj4+IFN0cmluZyAgICAgICBPZmZzZXQgSW4gQnVmZmVyICAgRUZJ
+X0dVSUQNCj4gPj4+IGFhICAgMyAgICAgICAgICAgICAgICAgIERhdGExWzI0OjMxXQ0KPiA+Pj4g
+YmIgICAgICAyICAgICAgICAgICAgICAgICAgRGF0YTFbMTY6MjNdDQo+ID4+PiBjYyAgICAgIDEg
+ICAgICAgICAgICAgICAgICBEYXRhMVs4OjE1XQ0KPiA+Pj4gZGQgICAgICAwICAgICAgICAgICAg
+ICAgICAgRGF0YTFbMDo3XQ0KPiA+Pj4gIDoNCj4gPj4+ID09PQ0KPiA+Pj4NCj4gPj4+IFRoZXJl
+Zm9yZToNCj4gPj4+DQo+ID4+PiBhYSA9IERhdGExWzIxOjMxXSA9IDkyDQo+ID4+PiBiYiA9IERh
+dGExWzE2OjIzXSA9IEY3DQo+ID4+PiBjYyA9IERhdGExWzg6MTVdICA9IDAxDQo+ID4+PiBkZCA9
+IERhdGExWzA6N10gICA9IEY2DQo+ID4+Pg0KPiA+Pj4+IC4uLm5vdA0KPiA+Pj4+DQo+ID4+Pj4+
+ICsjZGVmaW5lIFVVSURfQ09OVFJPTF9SRUdJT04gICAgICAgICAgICAgImY2MDFmNzkyLWI0MTMt
+NWQ0MC05MTBiLQ0KPiAyOTkzNjdlODIzNGMiDQo+ID4+Pg0KPiA+Pj4gSGVuY2UsIHRoZSBhYm92
+ZSBzdHJpbmcgaXMgY29ycmVjdC4NCj4gPj4NCj4gPj4gTWlzcmVhZCBhZ2Fpbi4uLiBSaWdodCwg
+dGhlIGFib3ZlIHN0cmluZyBpcyBOT1QgY29ycmVjdC4NCj4gPj4NCj4gPj4gSSB0aGluayB3ZSBh
+cmUgb24gdGhlIHNhbWUgcGFnZSB0aGF0IHRoZSBHVUlEIHN0cmluZ3MgaW4gdGhpcyBwYXRjaA0K
+PiA+PiBuZWVkIHRvIGJlIGNoYW5nZWQuDQo+ID4+DQo+ID4+IHsgMHg5MkY3MDFGNiwgMHgxM0I0
+LCAweDQwNUQsIDB4OTEsIDB4MEIsIDB4MjksIDB4OTMsIDB4NjcsIDB4RTgsDQo+ID4+IDB4MjMs
+IDB4NEMgfQ0KPiA+Pg0KPiA+PiBzaG91bGQgYmUgZGVmaW5lZCBhczoNCj4gPj4NCj4gPj4gIjky
+ZjcwMWY2LTEzYjQtNDA1ZC05MTBiLTI5OTM2N2U4MjM0YyINCj4gPg0KPiA+IEkndmUgbG9zdCB0
+cmFjayBvZiB0aGUgcmlnaHQgYW5zd2VyIGJ1dCBzaG91bGQgd2UgYmUgZGlzY3Vzc2luZyBpdCBp
+bg0KPiA+IHRoZSBjb250ZXh0IG9mIHRoaXMgcGF0Y2ggdG9vPw0KPiA+DQo+ID4gaHR0cDovL3d3
+dy5zcGluaWNzLm5ldC9saXN0cy9saW51eC1hY3BpL21zZzU3ODI1Lmh0bWwNCj4gPiBbUEFUQ0gg
+MTgvMTldIEFDUElDQTogQUNQSSA2LjA6IEFkZCBzdXBwb3J0IGZvciBORklUIHRhYmxlLg0KPiA+
+DQo+ID4gRGFuJ3MgdmVyc2lvbiBvZiB0aGUgZmlsZSBoYXMgbG90cyBvZiBvdGhlciBVVUlEcyB0
+b28sIGJleW9uZCBORklULg0KPiANCj4gWWVhaCwgaXQncyBub3QgY2xlYXIgd2hldGhlciB0aG9z
+ZSBvdGhlciBHVUlEcyBhcmUgYWN0dWFsbHkgR1VJRHMgb3IgdGhlc2UNCj4gYnl0ZS1zd2FwcGVk
+ICJFRkkgR1VJRCJzLiAgQXQgbGVhc3QgZm9yIE5GSVQgaXQgc2VlbXMgdGhhdCB0aGUgaW50ZW50
+IHdhcw0KPiBFRkkgR1VJRCBvcmRlcmluZyBkdWUgdG8gdGhlIG5vdGUgYWJvdXQgbmVlZGluZyB0
+byBtYXRjaCB0aGUgIkRpc2sgVHlwZQ0KPiBHVUlEIiBmb3JtYXQgZnJvbSB0aGUgRUZJIHNwZWMu
+DQo+IA0KPiBJIGNpcmNsZSBiYWNrIHdpdGggdGhlIEFDUElDQSBmb2xrcy4NCg==
