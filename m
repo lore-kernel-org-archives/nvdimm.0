@@ -1,79 +1,49 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v11 9/12] x86, mm, pat: Add pgprot_writethrough() for WT
-Date: Fri, 29 May 2015 16:59:07 -0600
-Message-Id: <1432940350-1802-10-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1432940350-1802-1-git-send-email-toshi.kani@hp.com>
-References: <1432940350-1802-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Sat, 23 May 2015 16:32:57 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v3 00/11] evacuate struct page from the block layer,
+	introduce __pfn_t
+Message-ID: <20150523143257.GA19676@lst.de>
+References: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150512042629.11521.70356.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-kernel@vger.kernel.org, Boaz Harrosh <boaz@plexistor.com>, Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, Neil Brown <neilb@suse.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Chris Mason <clm@fb.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, j.glisse@gmail.com, mingo@kernel.org, Alasdair Kergon <agk@redhat.com>, linux-arch@vger.kernel.org, linux-nvdimm@lists.01.org, hch@lst.de, mgorman@suse.de, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, riel@redhat.com, david@fromorbit.com, Tejun Heo <tj@kernel.org>, axboe@kernel.dk, Theodore Ts'o <tytso@mit.edu>, "Martin K. Petersen" <martin.petersen@oracle.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, Linus Torvalds <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Toshi Kani <toshi.kani@hp.com>
+I don't like this series at all, it does too much and too little at
+the same time.
 
-This patch adds pgprot_writethrough() for setting WT to a given
-pgprot_t.
+There's three totally different parts to it that are mixed up:
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
----
- arch/x86/include/asm/pgtable_types.h |    3 +++
- arch/x86/mm/pat.c                    |    7 +++++++
- include/asm-generic/pgtable.h        |    4 ++++
- 3 files changed, 14 insertions(+)
+ (1) cleanups to use accessors for struct scatterlist instead of exposing
+     the intricate details of chained S/G list to users
+ (2) a switch of struct scatterlist to store a PFN instead of a page
+ (3) switch struct bio_vec to store a struct PFN instead of a page
 
-diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
-index 78f0c8c..13f310b 100644
---- a/arch/x86/include/asm/pgtable_types.h
-+++ b/arch/x86/include/asm/pgtable_types.h
-@@ -367,6 +367,9 @@ extern int nx_enabled;
- #define pgprot_writecombine	pgprot_writecombine
- extern pgprot_t pgprot_writecombine(pgprot_t prot);
- 
-+#define pgprot_writethrough	pgprot_writethrough
-+extern pgprot_t pgprot_writethrough(pgprot_t prot);
-+
- /* Indicate that x86 has its own track and untrack pfn vma functions */
- #define __HAVE_PFNMAP_TRACKING
- 
-diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
-index 85c9fcb..1a2c84c 100644
---- a/arch/x86/mm/pat.c
-+++ b/arch/x86/mm/pat.c
-@@ -987,6 +987,13 @@ pgprot_t pgprot_writecombine(pgprot_t prot)
- }
- EXPORT_SYMBOL_GPL(pgprot_writecombine);
- 
-+pgprot_t pgprot_writethrough(pgprot_t prot)
-+{
-+	return __pgprot(pgprot_val(prot) |
-+				cachemode2protval(_PAGE_CACHE_MODE_WT));
-+}
-+EXPORT_SYMBOL_GPL(pgprot_writethrough);
-+
- #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_X86_PAT)
- 
- static struct memtype *memtype_get_idx(loff_t pos)
-diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
-index 39f1d6a..bd910ce 100644
---- a/include/asm-generic/pgtable.h
-+++ b/include/asm-generic/pgtable.h
-@@ -262,6 +262,10 @@ static inline int pmd_same(pmd_t pmd_a, pmd_t pmd_b)
- #define pgprot_writecombine pgprot_noncached
- #endif
- 
-+#ifndef pgprot_writethrough
-+#define pgprot_writethrough pgprot_noncached
-+#endif
-+
- #ifndef pgprot_device
- #define pgprot_device pgprot_noncached
- #endif
+(1) are pretty obvious cleanups, and they should have been submited
+separately long time ago.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+(2) seems like a good idea, but only when done properly, that is a full
+conversion to it.  Not a you need a config option, in which case maybe
+some architectures and can sometimes deal with it if they driver says:
+meh, okay.
+
+Given that nature of SGLs most consumer want a physical address anyway,
+and it shouldn't be a problem to convert all others that need a kernel
+mapping to proper helpers.
+
+(3) I'm not sure about in it's current form.  The bio_vec sees all kinds
+of highlevel use and we need to be a lot more careful about it, due to
+the way we e.g. use the in the iov_iter based read/write interfaces.
+
+It could be that pfn_t based approach there makes sense, but only if
+we ensure all consumer can always handle them.
+
+Because of that I'd suggest you try to get (1) and (2) done properly
+first, at that point we'll have how we can do (3) without causing 
+a big mess.
+
