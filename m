@@ -1,358 +1,698 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v2 1/4] arch/*/asm/io.h: add ioremap_cache() to all
- architectures
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v4 12/21] libnd: namespace indices: read and validate
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 30 May 2015 14:59:23 -0400
-Message-ID: <20150530185923.32590.98598.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150530185425.32590.3190.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150530185425.32590.3190.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 27 May 2015 18:25:48 -0400
+Message-ID: <20150527222548.17965.88878.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: arnd@arndb.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
-Cc: jgross@suse.com, x86@kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, konrad.wilk@oracle.com, linux-kernel@vger.kernel.org, stefan.bader@canonical.com, luto@amacapital.net, linux-mm@kvack.org, geert@linux-m68k.org, hmh@hmh.eng.br, tj@kernel.org, hch@lst.de
+Sender: linux-kernel-owner@vger.kernel.org
+To: axboe@kernel.dk
+Cc: sfr@canb.auug.org.au, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to ioremap_wc() let architecture implementations optionally
-provide ioremap_cache().  As is, current ioremap_cache() users have
-architecture dependencies that prevent them from compiling on archs
-without ioremap_cache().  In some cases the architectures that have a
-cached ioremap() capability have an identifier other than
-"ioremap_cache".
+This on media label format [1] consists of two index blocks followed by
+an array of labels.  None of these structures are ever updated in place.
+A sequence number tracks the current active index and the next one to
+write, while labels are written to free slots.
 
-Allow drivers to compile with ioremap_cache() support and fallback to a
-safe / uncached ioremap otherwise.
+    +------------+
+    |            |
+    |  nsindex0  |
+    |            |
+    +------------+
+    |            |
+    |  nsindex1  |
+    |            |
+    +------------+
+    |   label0   |
+    +------------+
+    |   label1   |
+    +------------+
+    |            |
+     ....nslot...
+    |            |
+    +------------+
+    |   labelN   |
+    +------------+
 
-Cc: Toshi Kani <toshi.kani@hp.com>
+After reading valid labels, store the dpa ranges they claim into
+per-dimm resource trees.
+
+[1]: http://pmem.io/documents/NVDIMM_Namespace_Spec.pdf
+
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arc/include/asm/io.h        |    1 +
- arch/arm/include/asm/io.h        |    2 ++
- arch/arm64/include/asm/io.h      |    2 ++
- arch/avr32/include/asm/io.h      |    1 +
- arch/frv/include/asm/io.h        |    6 ++++++
- arch/m32r/include/asm/io.h       |    1 +
- arch/m68k/include/asm/io_mm.h    |    7 +++++++
- arch/m68k/include/asm/io_no.h    |    5 +++++
- arch/metag/include/asm/io.h      |    5 +++++
- arch/microblaze/include/asm/io.h |    1 +
- arch/mn10300/include/asm/io.h    |    1 +
- arch/nios2/include/asm/io.h      |    1 +
- arch/s390/include/asm/io.h       |    1 +
- arch/sparc/include/asm/io_32.h   |    1 +
- arch/sparc/include/asm/io_64.h   |    1 +
- arch/tile/include/asm/io.h       |    1 +
- arch/x86/include/asm/io.h        |    1 +
- arch/xtensa/include/asm/io.h     |    3 +++
- include/asm-generic/io.h         |    8 ++++++++
- include/asm-generic/iomap.h      |    4 ++++
- 20 files changed, 53 insertions(+)
+ drivers/block/nd/Makefile    |    1 
+ drivers/block/nd/dimm.c      |   23 +++
+ drivers/block/nd/dimm_devs.c |   30 ++++
+ drivers/block/nd/label.c     |  287 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/block/nd/label.h     |  129 +++++++++++++++++++
+ drivers/block/nd/nd.h        |   49 +++++++
+ include/uapi/linux/ndctl.h   |    1 
+ 7 files changed, 518 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/block/nd/label.c
+ create mode 100644 drivers/block/nd/label.h
 
-diff --git a/arch/arc/include/asm/io.h b/arch/arc/include/asm/io.h
-index 7cc4ced5dbf4..6b6f5a47acec 100644
---- a/arch/arc/include/asm/io.h
-+++ b/arch/arc/include/asm/io.h
-@@ -19,6 +19,7 @@ extern void __iomem *ioremap_prot(phys_addr_t offset, unsigned long size,
- extern void iounmap(const void __iomem *addr);
- 
- #define ioremap_nocache(phy, sz)	ioremap(phy, sz)
-+#define ioremap_cache(phy, sz)		ioremap(phy, sz)
- #define ioremap_wc(phy, sz)		ioremap(phy, sz)
- #define ioremap_wt(phy, sz)		ioremap(phy, sz)
- 
-diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
-index 1b7677d1e5e1..5e2c5cbdffdc 100644
---- a/arch/arm/include/asm/io.h
-+++ b/arch/arm/include/asm/io.h
-@@ -23,6 +23,8 @@
- 
- #ifdef __KERNEL__
- 
-+#define ARCH_HAS_IOREMAP_CACHE
-+
- #include <linux/types.h>
- #include <linux/blk_types.h>
- #include <asm/byteorder.h>
-diff --git a/arch/arm64/include/asm/io.h b/arch/arm64/include/asm/io.h
-index 7116d3973058..598fd5c22240 100644
---- a/arch/arm64/include/asm/io.h
-+++ b/arch/arm64/include/asm/io.h
-@@ -21,6 +21,8 @@
- 
- #ifdef __KERNEL__
- 
-+#define ARCH_HAS_IOREMAP_CACHE
-+
- #include <linux/types.h>
- #include <linux/blk_types.h>
- 
-diff --git a/arch/avr32/include/asm/io.h b/arch/avr32/include/asm/io.h
-index e998ff5d8e1a..c6994d880dbd 100644
---- a/arch/avr32/include/asm/io.h
-+++ b/arch/avr32/include/asm/io.h
-@@ -297,6 +297,7 @@ extern void __iounmap(void __iomem *addr);
- 
- #define ioremap_wc ioremap_nocache
- #define ioremap_wt ioremap_nocache
-+#define ioremap_cache ioremap_nocache
- 
- #define cached(addr) P1SEGADDR(addr)
- #define uncached(addr) P2SEGADDR(addr)
-diff --git a/arch/frv/include/asm/io.h b/arch/frv/include/asm/io.h
-index a31b63ec4930..cd841f852af3 100644
---- a/arch/frv/include/asm/io.h
-+++ b/arch/frv/include/asm/io.h
+diff --git a/drivers/block/nd/Makefile b/drivers/block/nd/Makefile
+index 6f539f01fa82..8d14510559e1 100644
+--- a/drivers/block/nd/Makefile
++++ b/drivers/block/nd/Makefile
+@@ -10,3 +10,4 @@ libnd-y += dimm.o
+ libnd-y += region_devs.o
+ libnd-y += region.o
+ libnd-y += namespace_devs.o
++libnd-y += label.o
+diff --git a/drivers/block/nd/dimm.c b/drivers/block/nd/dimm.c
+index c4df1a32a68b..e2f964308672 100644
+--- a/drivers/block/nd/dimm.c
++++ b/drivers/block/nd/dimm.c
 @@ -18,6 +18,7 @@
- #ifdef __KERNEL__
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+ #include <linux/nd.h>
++#include "label.h"
+ #include "nd.h"
  
- #define ARCH_HAS_IOREMAP_WT
-+#define ARCH_HAS_IOREMAP_CACHE
+ static void free_data(struct nd_dimm_drvdata *ndd)
+@@ -42,6 +43,11 @@ static int nd_dimm_probe(struct device *dev)
+ 		return -ENOMEM;
  
- #include <linux/types.h>
- #include <asm/virtconvert.h>
-@@ -277,6 +278,11 @@ static inline void __iomem *ioremap_fullcache(unsigned long physaddr, unsigned l
- 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
+ 	dev_set_drvdata(dev, ndd);
++	ndd->dpa.name = dev_name(dev);
++	ndd->ns_current = -1;
++	ndd->ns_next = -1;
++	ndd->dpa.start = 0;
++	ndd->dpa.end = -1;
+ 	ndd->dev = dev;
+ 
+ 	rc = nd_dimm_init_nsarea(ndd);
+@@ -54,6 +60,17 @@ static int nd_dimm_probe(struct device *dev)
+ 
+ 	dev_dbg(dev, "config data size: %d\n", ndd->nsarea.config_size);
+ 
++	nd_bus_lock(dev);
++	ndd->ns_current = nd_label_validate(ndd);
++	ndd->ns_next = nd_label_next_nsindex(ndd->ns_current);
++	nd_label_copy(ndd, to_next_namespace_index(ndd),
++			to_current_namespace_index(ndd));
++	rc = nd_label_reserve_dpa(ndd);
++	nd_bus_unlock(dev);
++
++	if (rc)
++		goto err;
++
+ 	return 0;
+ 
+  err:
+@@ -64,7 +81,13 @@ static int nd_dimm_probe(struct device *dev)
+ static int nd_dimm_remove(struct device *dev)
+ {
+ 	struct nd_dimm_drvdata *ndd = dev_get_drvdata(dev);
++	struct resource *res, *_r;
+ 
++	nd_bus_lock(dev);
++	dev_set_drvdata(dev, NULL);
++	for_each_dpa_resource_safe(ndd, res, _r)
++		nd_dimm_free_dpa(ndd, res);
++	nd_bus_unlock(dev);
+ 	free_data(ndd);
+ 
+ 	return 0;
+diff --git a/drivers/block/nd/dimm_devs.c b/drivers/block/nd/dimm_devs.c
+index 8981adc59ba4..013531b8adfa 100644
+--- a/drivers/block/nd/dimm_devs.c
++++ b/drivers/block/nd/dimm_devs.c
+@@ -92,8 +92,12 @@ int nd_dimm_init_config_data(struct nd_dimm_drvdata *ndd)
+ 	if (ndd->data)
+ 		return 0;
+ 
+-	if (ndd->nsarea.status || ndd->nsarea.max_xfer == 0)
++	if (ndd->nsarea.status || ndd->nsarea.max_xfer == 0
++			|| ndd->nsarea.config_size < ND_LABEL_MIN_SIZE) {
++		dev_dbg(ndd->dev, "failed to init config data area: (%d:%d)\n",
++				ndd->nsarea.max_xfer, ndd->nsarea.config_size);
+ 		return -ENXIO;
++	}
+ 
+ 	ndd->data = kmalloc(ndd->nsarea.config_size, GFP_KERNEL);
+ 	if (!ndd->data)
+@@ -243,6 +247,30 @@ struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
  }
+ EXPORT_SYMBOL_GPL(nd_dimm_create);
  
-+static inline void __iomem *ioremap_cache(unsigned long physaddr, unsigned long size)
++void nd_dimm_free_dpa(struct nd_dimm_drvdata *ndd, struct resource *res)
 +{
-+	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
++	WARN_ON_ONCE(!is_nd_bus_locked(ndd->dev));
++	kfree(res->name);
++	__release_region(&ndd->dpa, res->start, resource_size(res));
 +}
 +
- #define ioremap_wc ioremap_nocache
- 
- extern void iounmap(void volatile __iomem *addr);
-diff --git a/arch/m32r/include/asm/io.h b/arch/m32r/include/asm/io.h
-index 0c3f25ee3381..f3eceeac25c8 100644
---- a/arch/m32r/include/asm/io.h
-+++ b/arch/m32r/include/asm/io.h
-@@ -67,6 +67,7 @@ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
- 
- extern void iounmap(volatile void __iomem *addr);
- #define ioremap_nocache(off,size) ioremap(off,size)
-+#define ioremap_cache ioremap_nocache
- #define ioremap_wc ioremap_nocache
- #define ioremap_wt ioremap_nocache
- 
-diff --git a/arch/m68k/include/asm/io_mm.h b/arch/m68k/include/asm/io_mm.h
-index 618c85d3c786..aaf1009f2f94 100644
---- a/arch/m68k/include/asm/io_mm.h
-+++ b/arch/m68k/include/asm/io_mm.h
-@@ -21,6 +21,7 @@
- #ifdef __KERNEL__
- 
- #define ARCH_HAS_IOREMAP_WT
-+#define ARCH_HAS_IOREMAP_CACHE
- 
- #include <linux/compiler.h>
- #include <asm/raw_io.h>
-@@ -478,6 +479,12 @@ static inline void __iomem *ioremap_fullcache(unsigned long physaddr,
- 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
- }
- 
-+static inline void __iomem *ioremap_cache(unsigned long physaddr,
-+		unsigned long size)
++struct resource *nd_dimm_allocate_dpa(struct nd_dimm_drvdata *ndd,
++		struct nd_label_id *label_id, resource_size_t start,
++		resource_size_t n)
 +{
-+	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
++	char *name = kmemdup(label_id, sizeof(*label_id), GFP_KERNEL);
++	struct resource *res;
++
++	if (!name)
++		return NULL;
++
++	WARN_ON_ONCE(!is_nd_bus_locked(ndd->dev));
++	res = __request_region(&ndd->dpa, start, n, name, 0);
++	if (!res)
++		kfree(name);
++	return res;
 +}
 +
- static inline void memset_io(volatile void __iomem *addr, unsigned char val, int count)
+ static int count_dimms(struct device *dev, void *c)
  {
- 	__builtin_memset((void __force *) addr, val, count);
-diff --git a/arch/m68k/include/asm/io_no.h b/arch/m68k/include/asm/io_no.h
-index ad7bd40e6742..020483566b73 100644
---- a/arch/m68k/include/asm/io_no.h
-+++ b/arch/m68k/include/asm/io_no.h
-@@ -4,6 +4,7 @@
- #ifdef __KERNEL__
- 
- #define ARCH_HAS_IOREMAP_WT
-+#define ARCH_HAS_IOREMAP_CACHE
- 
- #include <asm/virtconvert.h>
- #include <asm-generic/iomap.h>
-@@ -163,6 +164,10 @@ static inline void *ioremap_fullcache(unsigned long physaddr, unsigned long size
- {
- 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
- }
-+static inline void *ioremap_cache(unsigned long physaddr, unsigned long size)
+ 	int *count = c;
+diff --git a/drivers/block/nd/label.c b/drivers/block/nd/label.c
+new file mode 100644
+index 000000000000..da5008e45917
+--- /dev/null
++++ b/drivers/block/nd/label.c
+@@ -0,0 +1,287 @@
++/*
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#include <linux/device.h>
++#include <linux/ndctl.h>
++#include <linux/io.h>
++#include <linux/nd.h>
++#include "nd-private.h"
++#include "label.h"
++#include "nd.h"
++
++#include <asm-generic/io-64-nonatomic-lo-hi.h>
++
++static u32 best_seq(u32 a, u32 b)
 +{
-+	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
++	a &= NSINDEX_SEQ_MASK;
++	b &= NSINDEX_SEQ_MASK;
++
++	if (a == 0 || a == b)
++		return b;
++	else if (b == 0)
++		return a;
++	else if (nd_inc_seq(a) == b)
++		return b;
++	else
++		return a;
 +}
- 
- #define	iounmap(addr)	do { } while(0)
- 
-diff --git a/arch/metag/include/asm/io.h b/arch/metag/include/asm/io.h
-index 9890f21eadbe..d9b2873e3ca8 100644
---- a/arch/metag/include/asm/io.h
-+++ b/arch/metag/include/asm/io.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_METAG_IO_H
- #define _ASM_METAG_IO_H
- 
-+#define ARCH_HAS_IOREMAP_CACHE
 +
- #include <linux/types.h>
- #include <asm/pgtable-bits.h>
- 
-@@ -157,6 +159,9 @@ extern void __iounmap(void __iomem *addr);
- #define ioremap_cached(offset, size)            \
- 	__ioremap((offset), (size), _PAGE_CACHEABLE)
- 
-+#define ioremap_cache(offset, size)            \
-+	__ioremap((offset), (size), _PAGE_CACHEABLE)
-+
- #define ioremap_wc(offset, size)                \
- 	__ioremap((offset), (size), _PAGE_WR_COMBINE)
- 
-diff --git a/arch/microblaze/include/asm/io.h b/arch/microblaze/include/asm/io.h
-index 39b6315db82e..986cc0c9e67f 100644
---- a/arch/microblaze/include/asm/io.h
-+++ b/arch/microblaze/include/asm/io.h
-@@ -43,6 +43,7 @@ extern void __iomem *ioremap(phys_addr_t address, unsigned long size);
- #define ioremap_fullcache(addr, size)		ioremap((addr), (size))
- #define ioremap_wc(addr, size)			ioremap((addr), (size))
- #define ioremap_wt(addr, size)			ioremap((addr), (size))
-+#define ioremap_cache(addr, size)		ioremap((addr), (size))
- 
- #endif /* CONFIG_MMU */
- 
-diff --git a/arch/mn10300/include/asm/io.h b/arch/mn10300/include/asm/io.h
-index 07c5b4a3903b..dcab414f40df 100644
---- a/arch/mn10300/include/asm/io.h
-+++ b/arch/mn10300/include/asm/io.h
-@@ -283,6 +283,7 @@ static inline void __iomem *ioremap_nocache(unsigned long offset, unsigned long
- 
- #define ioremap_wc ioremap_nocache
- #define ioremap_wt ioremap_nocache
-+#define ioremap_cache ioremap_nocache
- 
- static inline void iounmap(void __iomem *addr)
- {
-diff --git a/arch/nios2/include/asm/io.h b/arch/nios2/include/asm/io.h
-index c5a62da22cd2..367e2ea7663a 100644
---- a/arch/nios2/include/asm/io.h
-+++ b/arch/nios2/include/asm/io.h
-@@ -47,6 +47,7 @@ static inline void iounmap(void __iomem *addr)
- 
- #define ioremap_wc ioremap_nocache
- #define ioremap_wt ioremap_nocache
-+#define ioremap_cache ioremap_nocache
- 
- /* Pages to physical address... */
- #define page_to_phys(page)	virt_to_phys(page_to_virt(page))
-diff --git a/arch/s390/include/asm/io.h b/arch/s390/include/asm/io.h
-index cb5fdf3a78fc..6824c3daa2a1 100644
---- a/arch/s390/include/asm/io.h
-+++ b/arch/s390/include/asm/io.h
-@@ -30,6 +30,7 @@ void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
- #define ioremap_nocache(addr, size)	ioremap(addr, size)
- #define ioremap_wc			ioremap_nocache
- #define ioremap_wt			ioremap_nocache
-+#define ioremap_cache			ioremap_nocache
- 
- static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
- {
-diff --git a/arch/sparc/include/asm/io_32.h b/arch/sparc/include/asm/io_32.h
-index 57f26c398dc9..b9a734caf57d 100644
---- a/arch/sparc/include/asm/io_32.h
-+++ b/arch/sparc/include/asm/io_32.h
-@@ -128,6 +128,7 @@ static inline void sbus_memcpy_toio(volatile void __iomem *dst,
-  */
- void __iomem *ioremap(unsigned long offset, unsigned long size);
- #define ioremap_nocache(X,Y)	ioremap((X),(Y))
-+#define ioremap_cache(X,Y)	ioremap((X),(Y))
- #define ioremap_wc(X,Y)		ioremap((X),(Y))
- #define ioremap_wt(X,Y)		ioremap((X),(Y))
- void iounmap(volatile void __iomem *addr);
-diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
-index c32fa3f752c8..0a0899d505b4 100644
---- a/arch/sparc/include/asm/io_64.h
-+++ b/arch/sparc/include/asm/io_64.h
-@@ -401,6 +401,7 @@ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
- }
- 
- #define ioremap_nocache(X,Y)		ioremap((X),(Y))
-+#define ioremap_cache(X,Y)		ioremap((X),(Y))
- #define ioremap_wc(X,Y)			ioremap((X),(Y))
- #define ioremap_wt(X,Y)			ioremap((X),(Y))
- 
-diff --git a/arch/tile/include/asm/io.h b/arch/tile/include/asm/io.h
-index dc61de15c1f9..fe853a135e25 100644
---- a/arch/tile/include/asm/io.h
-+++ b/arch/tile/include/asm/io.h
-@@ -53,6 +53,7 @@ extern void iounmap(volatile void __iomem *addr);
- #endif
- 
- #define ioremap_nocache(physaddr, size)		ioremap(physaddr, size)
-+#define ioremap_cache(physaddr, size)		ioremap(physaddr, size)
- #define ioremap_wc(physaddr, size)		ioremap(physaddr, size)
- #define ioremap_wt(physaddr, size)		ioremap(physaddr, size)
- #define ioremap_fullcache(physaddr, size)	ioremap(physaddr, size)
-diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
-index 6c3a130de503..956f2768bdc1 100644
---- a/arch/x86/include/asm/io.h
-+++ b/arch/x86/include/asm/io.h
-@@ -36,6 +36,7 @@
- 
- #define ARCH_HAS_IOREMAP_WC
- #define ARCH_HAS_IOREMAP_WT
-+#define ARCH_HAS_IOREMAP_CACHE
- 
- #include <linux/string.h>
- #include <linux/compiler.h>
-diff --git a/arch/xtensa/include/asm/io.h b/arch/xtensa/include/asm/io.h
-index c39bb6e61911..f91a8a99aa29 100644
---- a/arch/xtensa/include/asm/io.h
-+++ b/arch/xtensa/include/asm/io.h
-@@ -12,6 +12,9 @@
- #define _XTENSA_IO_H
- 
- #ifdef __KERNEL__
-+
-+#define ARCH_HAS_IOREMAP_CACHE
-+
- #include <asm/byteorder.h>
- #include <asm/page.h>
- #include <asm/vectors.h>
-diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
-index f56094cfdeff..a0665dfcab47 100644
---- a/include/asm-generic/io.h
-+++ b/include/asm-generic/io.h
-@@ -793,6 +793,14 @@ static inline void __iomem *ioremap_wt(phys_addr_t offset, size_t size)
- }
- #endif
- 
-+#ifndef ioremap_cache
-+#define ioremap_cache ioremap_cache
-+static inline void __iomem *ioremap_cache(phys_addr_t offset, size_t size)
++size_t sizeof_namespace_index(struct nd_dimm_drvdata *ndd)
 +{
-+	return ioremap_nocache(offset, size);
++	u32 index_span;
++
++	if (ndd->nsindex_size)
++		return ndd->nsindex_size;
++
++	/*
++	 * The minimum index space is 512 bytes, with that amount of
++	 * index we can describe ~1400 labels which is less than a byte
++	 * of overhead per label.  Round up to a byte of overhead per
++	 * label and determine the size of the index region.  Yes, this
++	 * starts to waste space at larger config_sizes, but it's
++	 * unlikely we'll ever see anything but 128K.
++	 */
++	index_span = ndd->nsarea.config_size / 129;
++	index_span /= NSINDEX_ALIGN * 2;
++	ndd->nsindex_size = index_span * NSINDEX_ALIGN;
++
++	return ndd->nsindex_size;
 +}
-+#endif
 +
- #ifndef iounmap
- #define iounmap iounmap
- 
-diff --git a/include/asm-generic/iomap.h b/include/asm-generic/iomap.h
-index d8f8622fa044..f0f30464cecd 100644
---- a/include/asm-generic/iomap.h
-+++ b/include/asm-generic/iomap.h
-@@ -70,6 +70,10 @@ extern void ioport_unmap(void __iomem *);
- #define ioremap_wt ioremap_nocache
- #endif
- 
-+#ifndef ARCH_HAS_IOREMAP_CACHE
-+#define ioremap_cache ioremap_nocache
-+#endif
++int nd_label_validate(struct nd_dimm_drvdata *ndd)
++{
++	/*
++	 * On media label format consists of two index blocks followed
++	 * by an array of labels.  None of these structures are ever
++	 * updated in place.  A sequence number tracks the current
++	 * active index and the next one to write, while labels are
++	 * written to free slots.
++	 *
++	 *     +------------+
++	 *     |            |
++	 *     |  nsindex0  |
++	 *     |            |
++	 *     +------------+
++	 *     |            |
++	 *     |  nsindex1  |
++	 *     |            |
++	 *     +------------+
++	 *     |   label0   |
++	 *     +------------+
++	 *     |   label1   |
++	 *     +------------+
++	 *     |            |
++	 *      ....nslot...
++	 *     |            |
++	 *     +------------+
++	 *     |   labelN   |
++	 *     +------------+
++	 */
++	struct nd_namespace_index __iomem *nsindex[] = {
++		to_namespace_index(ndd, 0),
++		to_namespace_index(ndd, 1),
++	};
++	const int num_index = ARRAY_SIZE(nsindex);
++	struct device *dev = ndd->dev;
++	bool valid[] = { false, false };
++	int i, num_valid = 0;
++	u32 seq;
 +
- #ifdef CONFIG_PCI
- /* Destroy a virtual mapping cookie for a PCI BAR (memory or IO) */
- struct pci_dev;
++	for (i = 0; i < num_index; i++) {
++		u64 sum_save, sum;
++		u8 sig[NSINDEX_SIG_LEN];
++
++		memcpy_fromio(sig, nsindex[i]->sig, NSINDEX_SIG_LEN);
++		if (memcmp(sig, NSINDEX_SIGNATURE, NSINDEX_SIG_LEN) != 0) {
++			dev_dbg(dev, "%s: nsindex%d signature invalid\n",
++					__func__, i);
++			continue;
++		}
++		sum_save = readq(&nsindex[i]->checksum);
++		writeq(0, &nsindex[i]->checksum);
++		sum = nd_fletcher64((void * __force) nsindex[i],
++				sizeof_namespace_index(ndd), 1);
++		writeq(sum_save, &nsindex[i]->checksum);
++		if (sum != sum_save) {
++			dev_dbg(dev, "%s: nsindex%d checksum invalid\n",
++					__func__, i);
++			continue;
++		}
++		if ((readl(&nsindex[i]->seq) & NSINDEX_SEQ_MASK) == 0) {
++			dev_dbg(dev, "%s: nsindex%d sequence: %#x invalid\n",
++					__func__, i, readl(&nsindex[i]->seq));
++			continue;
++		}
++
++		/* sanity check the index against expected values */
++		if (readq(&nsindex[i]->myoff)
++				!= i * sizeof_namespace_index(ndd)) {
++			dev_dbg(dev, "%s: nsindex%d myoff: %#llx invalid\n",
++					__func__, i, (unsigned long long)
++					readq(&nsindex[i]->myoff));
++			continue;
++		}
++		if (readq(&nsindex[i]->otheroff)
++				!= (!i) * sizeof_namespace_index(ndd)) {
++			dev_dbg(dev, "%s: nsindex%d otheroff: %#llx invalid\n",
++					__func__, i, (unsigned long long)
++					readq(&nsindex[i]->otheroff));
++			continue;
++		}
++		if (readq(&nsindex[i]->mysize) > sizeof_namespace_index(ndd)
++				|| readq(&nsindex[i]->mysize)
++				< sizeof(struct nd_namespace_index)) {
++			dev_dbg(dev, "%s: nsindex%d mysize: %#llx invalid\n",
++					__func__, i, (unsigned long long)
++					readq(&nsindex[i]->mysize));
++			continue;
++		}
++		if (readl(&nsindex[i]->nslot) * sizeof(struct nd_namespace_label)
++				+ 2 * sizeof_namespace_index(ndd)
++				> ndd->nsarea.config_size) {
++			dev_dbg(dev, "%s: nsindex%d nslot: %u invalid, config_size: %#x\n",
++					__func__, i, readl(&nsindex[i]->nslot),
++					ndd->nsarea.config_size);
++			continue;
++		}
++		valid[i] = true;
++		num_valid++;
++	}
++
++	switch (num_valid) {
++	case 0:
++		break;
++	case 1:
++		for (i = 0; i < num_index; i++)
++			if (valid[i])
++				return i;
++		/* can't have num_valid > 0 but valid[] = { false, false } */
++		WARN_ON(1);
++		break;
++	default:
++		/* pick the best index... */
++		seq = best_seq(readl(&nsindex[0]->seq), readl(&nsindex[1]->seq));
++		if (seq == (readl(&nsindex[1]->seq) & NSINDEX_SEQ_MASK))
++			return 1;
++		else
++			return 0;
++		break;
++	}
++
++	return -1;
++}
++
++void nd_label_copy(struct nd_dimm_drvdata *ndd,
++		struct nd_namespace_index __iomem *dst,
++		struct nd_namespace_index __iomem *src)
++{
++	void *s, *d;
++
++	if (dst && src)
++		/* pass */;
++	else
++		return;
++
++	d = (void * __force) dst;
++	s = (void * __force) src;
++	memcpy(d, s, sizeof_namespace_index(ndd));
++}
++
++static struct nd_namespace_label __iomem *nd_label_base(struct nd_dimm_drvdata *ndd)
++{
++	void *base = to_namespace_index(ndd, 0);
++
++	return base + 2 * sizeof_namespace_index(ndd);
++}
++
++#define for_each_clear_bit_le(bit, addr, size) \
++	for ((bit) = find_next_zero_bit_le((addr), (size), 0);  \
++	     (bit) < (size);                                    \
++	     (bit) = find_next_zero_bit_le((addr), (size), (bit) + 1))
++
++/**
++ * preamble_current - common variable initialization for nd_label_* routines
++ * @nd_dimm: dimm container for the relevant label set
++ * @nsindex: on return set to the currently active namespace index
++ * @free: on return set to the free label bitmap in the index
++ * @nslot: on return set to the number of slots in the label space
++ */
++static bool preamble_current(struct nd_dimm_drvdata *ndd,
++		struct nd_namespace_index **nsindex,
++		unsigned long **free, u32 *nslot)
++{
++	*nsindex = to_current_namespace_index(ndd);
++	if (*nsindex == NULL)
++		return false;
++
++	*free = (unsigned long __force *) (*nsindex)->free;
++	*nslot = readl(&(*nsindex)->nslot);
++
++	return true;
++}
++
++static char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags)
++{
++	if (!label_id || !uuid)
++		return NULL;
++	snprintf(label_id->id, ND_LABEL_ID_SIZE, "%s-%pUb",
++			flags & NSLABEL_FLAG_LOCAL ? "blk" : "pmem", uuid);
++	return label_id->id;
++}
++
++static bool slot_valid(struct nd_namespace_label __iomem *nd_label, u32 slot)
++{
++	/* check that we are written where we expect to be written */
++	if (slot != readl(&nd_label->slot))
++		return false;
++
++	/* check that DPA allocations are page aligned */
++	if ((readq(&nd_label->dpa) | readq(&nd_label->rawsize)) % SZ_4K)
++		return false;
++
++	return true;
++}
++
++int nd_label_reserve_dpa(struct nd_dimm_drvdata *ndd)
++{
++	struct nd_namespace_index __iomem *nsindex;
++	unsigned long *free;
++	u32 nslot, slot;
++
++	if (!preamble_current(ndd, &nsindex, &free, &nslot))
++		return 0; /* no label, nothing to reserve */
++
++	for_each_clear_bit_le(slot, free, nslot) {
++		struct nd_namespace_label __iomem *nd_label;
++		struct nd_region *nd_region = NULL;
++		u8 label_uuid[NSLABEL_UUID_LEN];
++		struct nd_label_id label_id;
++		struct resource *res;
++		u32 flags;
++
++		nd_label = nd_label_base(ndd) + slot;
++
++		if (!slot_valid(nd_label, slot))
++			continue;
++
++		memcpy_fromio(label_uuid, nd_label->uuid, NSLABEL_UUID_LEN);
++		flags = readl(&nd_label->flags);
++		nd_label_gen_id(&label_id, label_uuid, flags);
++		res = nd_dimm_allocate_dpa(ndd, &label_id, readq(&nd_label->dpa),
++				readq(&nd_label->rawsize));
++		nd_dbg_dpa(nd_region, ndd, res, "reserve\n");
++		if (!res)
++			return -EBUSY;
++	}
++
++	return 0;
++}
+diff --git a/drivers/block/nd/label.h b/drivers/block/nd/label.h
+new file mode 100644
+index 000000000000..79ed885a43c0
+--- /dev/null
++++ b/drivers/block/nd/label.h
+@@ -0,0 +1,129 @@
++/*
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __LABEL_H__
++#define __LABEL_H__
++
++#include <linux/ndctl.h>
++#include <linux/sizes.h>
++#include <linux/io.h>
++
++enum {
++	NSINDEX_SIG_LEN = 16,
++	NSINDEX_ALIGN = 256,
++	NSINDEX_SEQ_MASK = 0x3,
++	NSLABEL_UUID_LEN = 16,
++	NSLABEL_NAME_LEN = 64,
++	NSLABEL_FLAG_ROLABEL = 0x1,  /* read-only label */
++	NSLABEL_FLAG_LOCAL = 0x2,    /* DIMM-local namespace */
++	NSLABEL_FLAG_BTT = 0x4,      /* namespace contains a BTT */
++	NSLABEL_FLAG_UPDATING = 0x8, /* label being updated */
++	BTT_ALIGN = 4096,            /* all btt structures */
++	BTTINFO_SIG_LEN = 16,
++	BTTINFO_UUID_LEN = 16,
++	BTTINFO_FLAG_ERROR = 0x1,    /* error state (read-only) */
++	BTTINFO_MAJOR_VERSION = 1,
++	ND_LABEL_MIN_SIZE = 512 * 129, /* see sizeof_namespace_index() */
++	ND_LABEL_ID_SIZE = 50,
++};
++
++static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
++
++/**
++ * struct nd_namespace_index - label set superblock
++ * @sig: NAMESPACE_INDEX\0
++ * @flags: placeholder
++ * @seq: sequence number for this index
++ * @myoff: offset of this index in label area
++ * @mysize: size of this index struct
++ * @otheroff: offset of other index
++ * @labeloff: offset of first label slot
++ * @nslot: total number of label slots
++ * @major: label area major version
++ * @minor: label area minor version
++ * @checksum: fletcher64 of all fields
++ * @free[0]: bitmap, nlabel bits
++ *
++ * The size of free[] is rounded up so the total struct size is a
++ * multiple of NSINDEX_ALIGN bytes.  Any bits this allocates beyond
++ * nlabel bits must be zero.
++ */
++struct nd_namespace_index {
++	u8 sig[NSINDEX_SIG_LEN];
++	__le32 flags;
++	__le32 seq;
++	__le64 myoff;
++	__le64 mysize;
++	__le64 otheroff;
++	__le64 labeloff;
++	__le32 nslot;
++	__le16 major;
++	__le16 minor;
++	__le64 checksum;
++	u8 free[0];
++};
++
++/**
++ * struct nd_namespace_label - namespace superblock
++ * @uuid: UUID per RFC 4122
++ * @name: optional name (NULL-terminated)
++ * @flags: see NSLABEL_FLAG_*
++ * @nlabel: num labels to describe this ns
++ * @position: labels position in set
++ * @isetcookie: interleave set cookie
++ * @lbasize: LBA size in bytes or 0 for pmem
++ * @dpa: DPA of NVM range on this DIMM
++ * @rawsize: size of namespace
++ * @slot: slot of this label in label area
++ * @unused: must be zero
++ */
++struct nd_namespace_label {
++	u8 uuid[NSLABEL_UUID_LEN];
++	u8 name[NSLABEL_NAME_LEN];
++	__le32 flags;
++	__le16 nlabel;
++	__le16 position;
++	__le64 isetcookie;
++	__le64 lbasize;
++	__le64 dpa;
++	__le64 rawsize;
++	__le32 slot;
++	__le32 unused;
++};
++
++/**
++ * struct nd_label_id - identifier string for dpa allocation
++ * @id: "{blk|pmem}-<namespace uuid>"
++ */
++struct nd_label_id {
++	char id[ND_LABEL_ID_SIZE];
++};
++
++/*
++ * If the 'best' index is invalid, so is the 'next' index.  Otherwise,
++ * the next index is MOD(index+1, 2)
++ */
++static inline int nd_label_next_nsindex(int index)
++{
++	if (index < 0)
++		return -1;
++
++	return (index + 1) % 2;
++}
++
++struct nd_dimm_drvdata;
++int nd_label_validate(struct nd_dimm_drvdata *ndd);
++void nd_label_copy(struct nd_dimm_drvdata *ndd,
++		struct nd_namespace_index *dst,
++		struct nd_namespace_index *src);
++size_t sizeof_namespace_index(struct nd_dimm_drvdata *ndd);
++#endif /* __LABEL_H__ */
+diff --git a/drivers/block/nd/nd.h b/drivers/block/nd/nd.h
+index 905183d45799..63540ffe845d 100644
+--- a/drivers/block/nd/nd.h
++++ b/drivers/block/nd/nd.h
+@@ -16,11 +16,15 @@
+ #include <linux/libnd.h>
+ #include <linux/mutex.h>
+ #include <linux/ndctl.h>
++#include "label.h"
+ 
+ struct nd_dimm_drvdata {
+ 	struct device *dev;
++	int nsindex_size;
+ 	struct nd_cmd_get_config_size nsarea;
+ 	void *data;
++	int ns_current, ns_next;
++	struct resource dpa;
+ };
+ 
+ struct nd_region_namespaces {
+@@ -28,6 +32,37 @@ struct nd_region_namespaces {
+ 	int active;
+ };
+ 
++static inline struct nd_namespace_index __iomem *to_namespace_index(
++		struct nd_dimm_drvdata *ndd, int i)
++{
++	if (i < 0)
++		return NULL;
++
++	return ((void __iomem *) ndd->data + sizeof_namespace_index(ndd) * i);
++}
++
++static inline struct nd_namespace_index __iomem *to_current_namespace_index(
++		struct nd_dimm_drvdata *ndd)
++{
++	return to_namespace_index(ndd, ndd->ns_current);
++}
++
++static inline struct nd_namespace_index __iomem *to_next_namespace_index(
++		struct nd_dimm_drvdata *ndd)
++{
++	return to_namespace_index(ndd, ndd->ns_next);
++}
++
++#define nd_dbg_dpa(r, d, res, fmt, arg...) \
++	dev_dbg((r) ? &(r)->dev : (d)->dev, "%s: %.13s: %#llx @ %#llx " fmt, \
++		(r) ? dev_name((d)->dev) : "", res ? res->name : "null", \
++		(unsigned long long) (res ? resource_size(res) : 0), \
++		(unsigned long long) (res ? res->start : 0), ##arg)
++
++#define for_each_dpa_resource_safe(ndd, res, next) \
++	for (res = (ndd)->dpa.child, next = res ? res->sibling : NULL; \
++			res; res = next, next = next ? next->sibling : NULL)
++
+ struct nd_region {
+ 	struct device dev;
+ 	u16 ndr_mappings;
+@@ -39,6 +74,15 @@ struct nd_region {
+ 	struct nd_mapping mapping[0];
+ };
+ 
++/*
++ * Lookup next in the repeating sequence of 01, 10, and 11.
++ */
++static inline unsigned nd_inc_seq(unsigned seq)
++{
++	static const unsigned next[] = { 0, 2, 3, 1 };
++
++	return next[seq & 3];
++}
+ enum nd_async_mode {
+ 	ND_SYNC,
+ 	ND_ASYNC,
+@@ -54,4 +98,9 @@ int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
+ void nd_bus_lock(struct device *dev);
+ void nd_bus_unlock(struct device *dev);
+ bool is_nd_bus_locked(struct device *dev);
++int nd_label_reserve_dpa(struct nd_dimm_drvdata *ndd);
++void nd_dimm_free_dpa(struct nd_dimm_drvdata *ndd, struct resource *res);
++struct resource *nd_dimm_allocate_dpa(struct nd_dimm_drvdata *ndd,
++		struct nd_label_id *label_id, resource_size_t start,
++		resource_size_t n);
+ #endif /* __ND_H__ */
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 5ffa319f3408..624a19d9e6e4 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -175,7 +175,6 @@ static inline const char *nd_dimm_cmd_name(unsigned cmd)
+ #define ND_IOCTL_ARS_QUERY		_IOWR(ND_IOCTL, ND_CMD_ARS_QUERY,\
+ 					struct nd_cmd_ars_query)
+ 
+-
+ #define ND_DEVICE_DIMM 1            /* nd_dimm: container for "config data" */
+ #define ND_DEVICE_REGION_PMEM 2     /* nd_region: (parent of pmem namespaces) */
+ #define ND_DEVICE_REGION_BLK 3      /* nd_region: (parent of blk namespaces) */
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
