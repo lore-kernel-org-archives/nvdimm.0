@@ -1,146 +1,134 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <2235175.7DaGPJD1E4@vostro.rjw.lan>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<5532780.fyo4CQJEJz@vostro.rjw.lan>
-	<CAPcyv4hVvZdM0DUk5GhJE5C6QSkKjetRh2JVR5eh+JaJgYMrNA@mail.gmail.com>
-	<2235175.7DaGPJD1E4@vostro.rjw.lan>
-Date: Fri, 1 May 2015 09:23:38 -0700
-Message-ID: <CAPcyv4iuPy+KR1YgE+jc91XoHSueR_k0zry-8umJWBjXzcUasg@mail.gmail.com>
-Subject: Re: [PATCH v2 02/20] libnd, nd_acpi: initial libnd infrastructure and
- NFIT support
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Box <david.e.box@linux.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v10 0/12] Support Write-Through mapping on x86
+Date: Wed, 27 May 2015 09:18:52 -0600
+Message-Id: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
+Sender: owner-linux-mm@kvack.org
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Apr 30, 2015 at 6:21 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Thursday, April 30, 2015 05:39:06 PM Dan Williams wrote:
->> On Thu, Apr 30, 2015 at 4:23 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-[..]
->> >> +if ND_DEVICES
->> >> +
->> >> +config LIBND
->> >> +     tristate "LIBND: libnd device driver support"
->> >> +     help
->> >> +       Platform agnostic device model for a libnd bus.  Publishes
->> >> +       resources for a PMEM (persistent-memory) driver and/or BLK
->> >> +       (sliding mmio window(s)) driver to attach.  Exposes a device
->> >> +       topology under a "ndX" bus device, a "/dev/ndctlX" bus-ioctl
->> >> +       message passing interface, and a "/dev/nmemX" dimm-ioctl
->> >> +       message interface for each memory device registered on the
->> >> +       bus.  instance.  A userspace library "ndctl" provides an API
->> >> +       to enumerate/manage this subsystem.
->> >> +
->> >> +config ND_ACPI
->> >> +     tristate "ACPI: NFIT to libnd bus support"
->> >> +     select LIBND
->> >> +     depends on ACPI
->> >> +     help
->> >> +       Infrastructure to probe ACPI 6 compliant platforms for
->> >> +       NVDIMMs (NFIT) and register a libnd device tree.  In
->> >> +       addition to storage devices this also enables libnd craft
->> >> +       ACPI._DSM messages for platform/dimm configuration.
->> >
->> > I'm wondering if the two CONFIG options above really need to be user-selectable?
->> >
->> > For example, what reason people (who've already selected ND_DEVICES) may have
->> > for not selecting ND_ACPI if ACPI is set?
->>
->>
->> Later on in the series we introduce ND_E820 which supports creating a
->> libnd-bus from e820-type-12 memory ranges on pre-NFIT systems.  I'm
->> also considering a configfs defined libnd-bus because e820 types are
->> not nearly enough information to safely define nvdimm resources
->> outside of NFIT.
->
-> I hope these are not mutually exclusive with ND_ACPI?  Otherwise distros
-> will have problems with supporting them in one kernel.
+This patchset adds support of Write-Through (WT) mapping on x86.
+The study below shows that using WT mapping may be useful for
+non-volatile memory.
 
-You can have ND_E820 support and ND_ACPI support in the same system.
-Likely an NFIT enabled system will never have e820-type-12 ranges, but
-if a user messes up and uses the new memmap=ss!nn command line to
-overlap NFIT-defined memory then the request_mem_region() calls in the
-driver will collide.  First to load wins in that scenario.
+http://www.hpl.hp.com/techreports/2012/HPL-2012-236.pdf
 
-> If ND_E820 and ND_ACPI aren't mutually exclusive, I still don't see a good
-> enough reason for asking users about ND_ACPI.  Why would I ever say "No"
-> here if I said "Yes" or "Module" to ND_DEVICES?
+The patchset consists of the following changes.
+ - Patch 1/12 to 6/12 add ioremap_wt()
+ - Patch 7/12 adds pgprot_writethrough()
+ - Patch 8/12 to 9/12 add set_memory_wt()
+ - Patch 10/12 to 11/12 refactor !pat_enable paths
+ - Patch 12/12 changes the pmem driver to call ioremap_wt()
 
-I agree that if the user selects ND_DEVICES then ND_ACPI should
-probably default on, but otherwise turning it off is a useful option.
-If you know your system is pre-ACPI-6 then why bother including
-support?
+All new/modified interfaces have been tested.
 
->> >> +
->> >> +endif
->> >> diff --git a/drivers/block/nd/Makefile b/drivers/block/nd/Makefile
->> >> new file mode 100644
->> >> index 000000000000..944b5947c0cb
->> >> --- /dev/null
->> >> +++ b/drivers/block/nd/Makefile
->> >> @@ -0,0 +1,6 @@
->> >> +obj-$(CONFIG_LIBND) += libnd.o
->> >> +obj-$(CONFIG_ND_ACPI) += nd_acpi.o
->> >> +
->> >> +nd_acpi-y := acpi.o
->> >> +
->> >> +libnd-y := core.o
->> >
->> > OK, so it looks like no modules, just built-in code, right?
->> >
->>
->> Um, no, both CONFIG_ND_ACPI and CONFIG_LIBND can be =m.
->
-> OK
->
-> [cut]
->
->> >> +static int nd_acpi_remove(struct acpi_device *adev)
->> >> +{
->> >> +     struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
->> >> +
->> >> +     nd_bus_unregister(acpi_desc->nd_bus);
->> >> +     return 0;
->> >> +}
->> >> +
->> >> +static void nd_acpi_notify(struct acpi_device *adev, u32 event)
->> >> +{
->> >> +     /* TODO: handle ACPI_NOTIFY_BUS_CHECK notification */
->> >> +     dev_dbg(&adev->dev, "%s: event: %d\n", __func__, event);
->> >> +}
->> >> +
->> >> +static const struct acpi_device_id nd_acpi_ids[] = {
->> >> +     { "ACPI0012", 0 },
->> >> +     { "", 0 },
->> >> +};
->> >> +MODULE_DEVICE_TABLE(acpi, nd_acpi_ids);
->> >> +
->> >> +static struct acpi_driver nd_acpi_driver = {
->> >> +     .name = KBUILD_MODNAME,
->> >> +     .ids = nd_acpi_ids,
->> >> +     .flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
->> >> +     .ops = {
->> >> +             .add = nd_acpi_add,
->> >> +             .remove = nd_acpi_remove,
->> >> +             .notify = nd_acpi_notify
->> >> +     },
->> >> +};
->> >
->> > Since this is going to be non-modular built-in code, please use an ACPI
->> > scan handler instead of using a driver here.  acpi_memhotplug.c does that,
->> > you can use it as an example, but I guess you don't need to enable hotplug
->> > for it to start with.
->>
->>
->> No, you misunderstood, this will certainly be modular and loaded on-demand.
->
-> OK
->
-> So please drop the .notify thing at least for now.  It most likely doesn't do
-> what you need anyway.
+---
+v10:
+- Removed ioremap_writethrough(). (Thomas Gleixner)
+- Clarified and cleaned up multiple comments and functions.
+  (Thomas Gleixner) 
+- Changed ioremap_change_attr() to accept the WT type.
 
-The .notify handler will eventually be filled in to handle hot-add of
-NFIT structures, but yes I'll drop it for now.
+v9:
+- Changed to export the set_xxx_wt() interfaces with GPL.
+  (Ingo Molnar)
+- Changed is_new_memtype_allowed() to handle WT cases.
+- Changed arch-specific io.h to define ioremap_wt().
+- Changed the pmem driver to use ioremap_wt().
+- Rebased to 4.1-rc3 and resolved minor conflicts.
+
+v8:
+- Rebased to 4.0-rc1 and resolved conflicts with 9d34cfdf4 in
+  patch 5/7.
+
+v7:
+- Rebased to 3.19-rc3 as Juergen's patchset for the PAT management
+  has been accepted.
+
+v6:
+- Dropped the patch moving [set|get]_page_memtype() to pat.c
+  since the tip branch already has this change.
+- Fixed an issue when CONFIG_X86_PAT is not defined.
+
+v5:
+- Clarified comment of why using slot 7. (Andy Lutomirski,
+  Thomas Gleixner)
+- Moved [set|get]_page_memtype() to pat.c. (Thomas Gleixner)
+- Removed BUG() from set_page_memtype(). (Thomas Gleixner)
+
+v4:
+- Added set_memory_wt() by adding WT support of regular memory.
+
+v3:
+- Dropped the set_memory_wt() patch. (Andy Lutomirski)
+- Refactored the !pat_enabled handling. (H. Peter Anvin,
+  Andy Lutomirski)
+- Added the picture of PTE encoding. (Konrad Rzeszutek Wilk)
+
+v2:
+- Changed WT to use slot 7 of the PAT MSR. (H. Peter Anvin,
+  Andy Lutomirski)
+- Changed to have conservative checks to exclude all Pentium 2, 3,
+  M, and 4 families. (Ingo Molnar, Henrique de Moraes Holschuh,
+  Andy Lutomirski)
+- Updated documentation to cover WT interfaces and usages.
+  (Andy Lutomirski, Yigal Korman)
+
+---
+Toshi Kani (12):
+ 1/12 x86, mm, pat: Set WT to PA7 slot of PAT MSR
+ 2/12 x86, mm, pat: Change reserve_memtype() for WT
+ 3/12 x86, asm: Change is_new_memtype_allowed() for WT
+ 4/12 x86, mm, asm-gen: Add ioremap_wt() for WT
+ 5/12 arch/*/asm/io.h: Add ioremap_wt() to all architectures
+ 6/12 video/fbdev, asm/io.h: Remove ioremap_writethrough()
+ 7/12 x86, mm, pat: Add pgprot_writethrough() for WT
+ 8/12 x86, mm, asm: Add WT support to set_page_memtype()
+ 9/12 x86, mm: Add set_memory_wt() for WT
+10/12 x86, mm, pat: Cleanup init flags in pat_init()
+11/12 x86, mm, pat: Refactor !pat_enable handling
+12/12 drivers/block/pmem: Map NVDIMM with ioremap_wt()
+
+---
+ Documentation/x86/pat.txt            |  13 +-
+ arch/arc/include/asm/io.h            |   1 +
+ arch/arm/include/asm/io.h            |   1 +
+ arch/arm64/include/asm/io.h          |   1 +
+ arch/avr32/include/asm/io.h          |   1 +
+ arch/frv/include/asm/io.h            |   4 +-
+ arch/m32r/include/asm/io.h           |   1 +
+ arch/m68k/include/asm/io_mm.h        |   4 +-
+ arch/m68k/include/asm/io_no.h        |   4 +-
+ arch/metag/include/asm/io.h          |   3 +
+ arch/microblaze/include/asm/io.h     |   2 +-
+ arch/mn10300/include/asm/io.h        |   1 +
+ arch/nios2/include/asm/io.h          |   1 +
+ arch/s390/include/asm/io.h           |   1 +
+ arch/sparc/include/asm/io_32.h       |   1 +
+ arch/sparc/include/asm/io_64.h       |   1 +
+ arch/tile/include/asm/io.h           |   2 +-
+ arch/x86/include/asm/cacheflush.h    |   6 +-
+ arch/x86/include/asm/io.h            |   2 +
+ arch/x86/include/asm/pgtable.h       |   8 +-
+ arch/x86/include/asm/pgtable_types.h |   3 +
+ arch/x86/mm/init.c                   |   6 +-
+ arch/x86/mm/iomap_32.c               |  12 +-
+ arch/x86/mm/ioremap.c                |  29 ++++-
+ arch/x86/mm/pageattr.c               |  65 +++++++---
+ arch/x86/mm/pat.c                    | 232 +++++++++++++++++++++++------------
+ arch/xtensa/include/asm/io.h         |   1 +
+ drivers/block/pmem.c                 |   4 +-
+ drivers/video/fbdev/amifb.c          |   4 +-
+ drivers/video/fbdev/atafb.c          |   3 +-
+ drivers/video/fbdev/hpfb.c           |   4 +-
+ include/asm-generic/io.h             |   9 ++
+ include/asm-generic/iomap.h          |   4 +
+ include/asm-generic/pgtable.h        |   4 +
+ 34 files changed, 311 insertions(+), 127 deletions(-)
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
