@@ -1,16 +1,16 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 16/21] libnd: write blk label set
+Subject: [PATCH v4 16/21] libnd: write blk label set
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 20 May 2015 16:57:38 -0400
-Message-ID: <20150520205738.32249.79704.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 27 May 2015 18:26:11 -0400
+Message-ID: <20150527222611.17965.71487.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: axboe@kernel.dk
-Cc: linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, hch@lst.de
+Cc: sfr@canb.auug.org.au, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
 After 'uuid', 'size', 'sector_size', and optionally 'alt_name' have been
@@ -480,7 +480,7 @@ index e17958941e34..a26cebc9f389 100644
 +		struct nd_namespace_blk *nsblk, resource_size_t size);
  #endif /* __LABEL_H__ */
 diff --git a/drivers/block/nd/namespace_devs.c b/drivers/block/nd/namespace_devs.c
-index cdb78dddcfa9..c193ba6c6445 100644
+index c89cc2be1705..dea650dc3b10 100644
 --- a/drivers/block/nd/namespace_devs.c
 +++ b/drivers/block/nd/namespace_devs.c
 @@ -164,8 +164,7 @@ static int nd_namespace_label_update(struct nd_region *nd_region, struct device
