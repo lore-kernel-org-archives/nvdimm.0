@@ -1,93 +1,151 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/6] nfit: Fix up address spaces, sparse warnings
-Date: Thu, 28 May 2015 16:35:49 -0600
-Message-Id: <1432852553-24865-3-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v10 6/12] video/fbdev, asm/io.h: Remove ioremap_writethrough()
+Date: Wed, 27 May 2015 09:18:58 -0600
+Message-Id: <1432739944-22633-7-git-send-email-toshi.kani@hp.com>
+In-Reply-To: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
+References: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
+Sender: owner-linux-mm@kvack.org
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Fix a couple of sparse warnings (duplicate const, incorrect address
-space), and go back to using memcpy() instead of memcpy_toio() and
-memcpy_fromio() when talking to our block apertures.  Instead, include a
-union to alias mmio->base and mmio->aperture so that we can continue to
-reuse common code for ioremapping and deinterleaving.  mmio->base still
-has the __iomem annotation and is used via readq() and writeq() for the
-control and status registers.  mmio->aperture is used via normal
-memcpy() for aperture I/O.
+This patch removes the callers of ioremap_writethrough() by
+replacing them with ioremap_wt() in three drivers under
+drivers/video/fbdev.  It then removes ioremap_writethrough()
+defined in some architecture's asm/io.h, frv, m68k, microblaze,
+and tile.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
- drivers/acpi/nfit.c | 10 +++++-----
- drivers/acpi/nfit.h |  5 ++++-
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ arch/frv/include/asm/io.h        |    5 -----
+ arch/m68k/include/asm/io_mm.h    |    5 -----
+ arch/m68k/include/asm/io_no.h    |    4 ----
+ arch/microblaze/include/asm/io.h |    1 -
+ arch/tile/include/asm/io.h       |    1 -
+ drivers/video/fbdev/amifb.c      |    4 ++--
+ drivers/video/fbdev/atafb.c      |    3 +--
+ drivers/video/fbdev/hpfb.c       |    4 ++--
+ 8 files changed, 5 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 34f879808ada..df14652ea13e 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -60,7 +60,7 @@ static int acpi_nfit_ctl(struct nd_bus_descriptor *nd_desc,
- 		unsigned int buf_len)
+diff --git a/arch/frv/include/asm/io.h b/arch/frv/include/asm/io.h
+index 1fe98fe..a31b63e 100644
+--- a/arch/frv/include/asm/io.h
++++ b/arch/frv/include/asm/io.h
+@@ -267,11 +267,6 @@ static inline void __iomem *ioremap_nocache(unsigned long physaddr, unsigned lon
+ 	return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
+ }
+ 
+-static inline void __iomem *ioremap_writethrough(unsigned long physaddr, unsigned long size)
+-{
+-	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
+-}
+-
+ static inline void __iomem *ioremap_wt(unsigned long physaddr, unsigned long size)
  {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
--	const struct nd_cmd_desc const *desc = NULL;
-+	const struct nd_cmd_desc *desc = NULL;
- 	union acpi_object in_obj, in_buf, *out_obj;
- 	struct device *dev = acpi_desc->dev;
- 	const char *cmd_name, *dimm_name;
-@@ -895,7 +895,7 @@ static u64 to_interleave_offset(u64 offset, struct nfit_blk_mmio *mmio)
- 
- static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
+ 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
+diff --git a/arch/m68k/include/asm/io_mm.h b/arch/m68k/include/asm/io_mm.h
+index 7c12138..618c85d3 100644
+--- a/arch/m68k/include/asm/io_mm.h
++++ b/arch/m68k/include/asm/io_mm.h
+@@ -467,11 +467,6 @@ static inline void __iomem *ioremap_nocache(unsigned long physaddr, unsigned lon
  {
--	struct nfit_blk_mmio __iomem *mmio = &nfit_blk->mmio[DCR];
-+	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
- 	u64 offset = nfit_blk->stat_offset + mmio->size * bw;
- 
- 	if (mmio->num_lines)
-@@ -908,7 +908,7 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
- 		resource_size_t dpa, unsigned int len, unsigned int write)
+ 	return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
+ }
+-static inline void __iomem *ioremap_writethrough(unsigned long physaddr,
+-					 unsigned long size)
+-{
+-	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
+-}
+ static inline void __iomem *ioremap_wt(unsigned long physaddr,
+ 					 unsigned long size)
  {
- 	u64 cmd, offset;
--	struct nfit_blk_mmio __iomem *mmio = &nfit_blk->mmio[DCR];
-+	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
+diff --git a/arch/m68k/include/asm/io_no.h b/arch/m68k/include/asm/io_no.h
+index 5fff9a2..ad7bd40 100644
+--- a/arch/m68k/include/asm/io_no.h
++++ b/arch/m68k/include/asm/io_no.h
+@@ -155,10 +155,6 @@ static inline void *ioremap_nocache(unsigned long physaddr, unsigned long size)
+ {
+ 	return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
+ }
+-static inline void *ioremap_writethrough(unsigned long physaddr, unsigned long size)
+-{
+-	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
+-}
+ static inline void *ioremap_wt(unsigned long physaddr, unsigned long size)
+ {
+ 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
+diff --git a/arch/microblaze/include/asm/io.h b/arch/microblaze/include/asm/io.h
+index ec3da11..39b6315 100644
+--- a/arch/microblaze/include/asm/io.h
++++ b/arch/microblaze/include/asm/io.h
+@@ -39,7 +39,6 @@ extern resource_size_t isa_mem_base;
+ extern void iounmap(void __iomem *addr);
  
- 	enum {
- 		BCW_OFFSET_MASK = (1ULL << 48)-1,
-@@ -959,9 +959,9 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
- 		}
+ extern void __iomem *ioremap(phys_addr_t address, unsigned long size);
+-#define ioremap_writethrough(addr, size)	ioremap((addr), (size))
+ #define ioremap_nocache(addr, size)		ioremap((addr), (size))
+ #define ioremap_fullcache(addr, size)		ioremap((addr), (size))
+ #define ioremap_wc(addr, size)			ioremap((addr), (size))
+diff --git a/arch/tile/include/asm/io.h b/arch/tile/include/asm/io.h
+index 9c3d950..dc61de1 100644
+--- a/arch/tile/include/asm/io.h
++++ b/arch/tile/include/asm/io.h
+@@ -55,7 +55,6 @@ extern void iounmap(volatile void __iomem *addr);
+ #define ioremap_nocache(physaddr, size)		ioremap(physaddr, size)
+ #define ioremap_wc(physaddr, size)		ioremap(physaddr, size)
+ #define ioremap_wt(physaddr, size)		ioremap(physaddr, size)
+-#define ioremap_writethrough(physaddr, size)	ioremap(physaddr, size)
+ #define ioremap_fullcache(physaddr, size)	ioremap(physaddr, size)
  
- 		if (write)
--			memcpy_fromio(mmio->base + offset, iobuf + copied, c);
-+			memcpy(mmio->aperture + offset, iobuf + copied, c);
- 		else
--			memcpy_toio(iobuf + copied, mmio->base + offset, c);
-+			memcpy(iobuf + copied, mmio->aperture + offset, c);
- 
- 		copied += c;
- 		len -= c;
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index e462214f94cd..b882a22ee7bb 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -115,7 +115,10 @@ enum nd_blk_mmio_selector {
- 
- struct nfit_blk {
- 	struct nfit_blk_mmio {
--		void __iomem *base;
-+		union {
-+			void __iomem *base;
-+			void *aperture;
-+		};
- 		u64 size;
- 		u64 base_offset;
- 		u32 line_size;
--- 
-1.9.3
+ #define mmiowb()
+diff --git a/drivers/video/fbdev/amifb.c b/drivers/video/fbdev/amifb.c
+index 35f7900..ee3a703 100644
+--- a/drivers/video/fbdev/amifb.c
++++ b/drivers/video/fbdev/amifb.c
+@@ -3705,8 +3705,8 @@ default_chipset:
+ 	 * access the videomem with writethrough cache
+ 	 */
+ 	info->fix.smem_start = (u_long)ZTWO_PADDR(videomemory);
+-	videomemory = (u_long)ioremap_writethrough(info->fix.smem_start,
+-						   info->fix.smem_len);
++	videomemory = (u_long)ioremap_wt(info->fix.smem_start,
++					 info->fix.smem_len);
+ 	if (!videomemory) {
+ 		dev_warn(&pdev->dev,
+ 			 "Unable to map videomem cached writethrough\n");
+diff --git a/drivers/video/fbdev/atafb.c b/drivers/video/fbdev/atafb.c
+index cb9ee25..d6ce613 100644
+--- a/drivers/video/fbdev/atafb.c
++++ b/drivers/video/fbdev/atafb.c
+@@ -3185,8 +3185,7 @@ int __init atafb_init(void)
+ 		/* Map the video memory (physical address given) to somewhere
+ 		 * in the kernel address space.
+ 		 */
+-		external_screen_base = ioremap_writethrough(external_addr,
+-						     external_len);
++		external_screen_base = ioremap_wt(external_addr, external_len);
+ 		if (external_vgaiobase)
+ 			external_vgaiobase =
+ 			  (unsigned long)ioremap(external_vgaiobase, 0x10000);
+diff --git a/drivers/video/fbdev/hpfb.c b/drivers/video/fbdev/hpfb.c
+index a1b7e5f..9476d19 100644
+--- a/drivers/video/fbdev/hpfb.c
++++ b/drivers/video/fbdev/hpfb.c
+@@ -241,8 +241,8 @@ static int hpfb_init_one(unsigned long phys_base, unsigned long virt_base)
+ 	fb_info.fix.line_length = fb_width;
+ 	fb_height = (in_8(fb_regs + HPFB_FBHMSB) << 8) | in_8(fb_regs + HPFB_FBHLSB);
+ 	fb_info.fix.smem_len = fb_width * fb_height;
+-	fb_start = (unsigned long)ioremap_writethrough(fb_info.fix.smem_start,
+-						       fb_info.fix.smem_len);
++	fb_start = (unsigned long)ioremap_wt(fb_info.fix.smem_start,
++					     fb_info.fix.smem_len);
+ 	hpfb_defined.xres = (in_8(fb_regs + HPFB_DWMSB) << 8) | in_8(fb_regs + HPFB_DWLSB);
+ 	hpfb_defined.yres = (in_8(fb_regs + HPFB_DHMSB) << 8) | in_8(fb_regs + HPFB_DHLSB);
+ 	hpfb_defined.xres_virtual = hpfb_defined.xres;
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
