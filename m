@@ -1,161 +1,79 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v9 7/10] x86, mm, asm: Add WT support to set_page_memtype()
-Date: Wed, 13 May 2015 15:05:48 -0600
-Message-Id: <1431551151-19124-8-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1431551151-19124-1-git-send-email-toshi.kani@hp.com>
-References: <1431551151-19124-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v4 10/21] pmem: Dynamically allocate partition numbers
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 27 May 2015 18:25:37 -0400
+Message-ID: <20150527222536.17965.84039.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: axboe@kernel.dk
+Cc: sfr@canb.auug.org.au, akpm@linux-foundation.org, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Ross Zwisler <ross.zwisler@linux.intel.com>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-As set_memory_wb() calls free_ram_pages_type(), which then calls
-set_page_memtype() with -1, _PGMT_DEFAULT is used for tracking
-the WB type.  _PGMT_WB is defined but unused.  Hence, this patch
-renames _PGMT_DEFAULT to _PGMT_WB to clarify the usage, and
-releases the slot used by _PGMT_WB before.  free_ram_pages_type()
-is changed to call set_page_memtype() with _PGMT_WB, and
-get_page_memtype() returns _PAGE_CACHE_MODE_WB for _PGMT_WB.
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-This patch then defines _PGMT_WT to the released slot.  This enables
-set_page_memtype() to track the WT type.
+Dynamically allocate minor numbers for partitions instead of statically
+preallocating them.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+It gives us a simpler minors scheme, and makes it so we get a consistent
+major when moving past partition 16.  Here's what happens with the
+current code:
+
+ pmem0      249:0    0 63.5G  0 rom
+ ├─pmem0p1  249:1    0    1G  0 part
+ ├─pmem0p2  249:2    0    1G  0 part
+ ├─pmem0p3  249:3    0    1G  0 part
+ ├─pmem0p4  249:4    0    1G  0 part
+ ├─pmem0p5  249:5    0    1G  0 part
+ ├─pmem0p6  249:6    0    1G  0 part
+ ├─pmem0p7  249:7    0    1G  0 part
+ ├─pmem0p8  249:8    0    1G  0 part
+ ├─pmem0p9  249:9    0    1G  0 part
+ ├─pmem0p10 249:10   0    1G  0 part
+ ├─pmem0p11 249:11   0    1G  0 part
+ ├─pmem0p12 249:12   0    1G  0 part
+ ├─pmem0p13 249:13   0    1G  0 part
+ ├─pmem0p14 249:14   0    1G  0 part
+ ├─pmem0p15 249:15   0    1G  0 part
+ ├─pmem0p16 259:0    0    1G  0 part
+ ├─pmem0p17 259:1    0    1G  0 part
+ └─pmem0p18 259:2    0    1G  0 part
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/mm/pat.c |   48 +++++++++++++++++++++---------------------------
- 1 file changed, 21 insertions(+), 27 deletions(-)
+ drivers/block/nd/pmem.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
-index aee5cdf..ed191e0 100644
---- a/arch/x86/mm/pat.c
-+++ b/arch/x86/mm/pat.c
-@@ -69,18 +69,18 @@ static u64 __read_mostly boot_pat_state;
+diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
+index cf5d53eda9e5..0842d27ffc8d 100644
+--- a/drivers/block/nd/pmem.c
++++ b/drivers/block/nd/pmem.c
+@@ -26,8 +26,6 @@
+ #include <linux/nd.h>
+ #include "nd.h"
  
- #ifdef CONFIG_X86_PAT
- /*
-- * X86 PAT uses page flags WC and Uncached together to keep track of
-- * memory type of pages that have backing page struct. X86 PAT supports 3
-- * different memory types, _PAGE_CACHE_MODE_WB, _PAGE_CACHE_MODE_WC and
-- * _PAGE_CACHE_MODE_UC_MINUS and fourth state where page's memory type has not
-- * been changed from its default (value of -1 used to denote this).
-+ * X86 PAT uses page flags arch_1 and uncached together to keep track of
-+ * memory type of pages that have backing page struct. X86 PAT supports 4
-+ * different memory types, _PAGE_CACHE_MODE_WT, _PAGE_CACHE_MODE_WC,
-+ * _PAGE_CACHE_MODE_UC_MINUS and _PAGE_CACHE_MODE_WB where page's memory
-+ * type has not been changed from its default.
-  * Note we do not support _PAGE_CACHE_MODE_UC here.
-  */
- 
--#define _PGMT_DEFAULT		0
-+#define _PGMT_WB		0	/* default */
- #define _PGMT_WC		(1UL << PG_arch_1)
- #define _PGMT_UC_MINUS		(1UL << PG_uncached)
--#define _PGMT_WB		(1UL << PG_uncached | 1UL << PG_arch_1)
-+#define _PGMT_WT		(1UL << PG_uncached | 1UL << PG_arch_1)
- #define _PGMT_MASK		(1UL << PG_uncached | 1UL << PG_arch_1)
- #define _PGMT_CLEAR_MASK	(~_PGMT_MASK)
- 
-@@ -88,14 +88,14 @@ static inline enum page_cache_mode get_page_memtype(struct page *pg)
- {
- 	unsigned long pg_flags = pg->flags & _PGMT_MASK;
- 
--	if (pg_flags == _PGMT_DEFAULT)
--		return -1;
-+	if (pg_flags == _PGMT_WB)
-+		return _PAGE_CACHE_MODE_WB;
- 	else if (pg_flags == _PGMT_WC)
- 		return _PAGE_CACHE_MODE_WC;
- 	else if (pg_flags == _PGMT_UC_MINUS)
- 		return _PAGE_CACHE_MODE_UC_MINUS;
- 	else
--		return _PAGE_CACHE_MODE_WB;
-+		return _PAGE_CACHE_MODE_WT;
- }
- 
- static inline void set_page_memtype(struct page *pg,
-@@ -112,11 +112,12 @@ static inline void set_page_memtype(struct page *pg,
- 	case _PAGE_CACHE_MODE_UC_MINUS:
- 		memtype_flags = _PGMT_UC_MINUS;
- 		break;
--	case _PAGE_CACHE_MODE_WB:
--		memtype_flags = _PGMT_WB;
-+	case _PAGE_CACHE_MODE_WT:
-+		memtype_flags = _PGMT_WT;
- 		break;
-+	case _PAGE_CACHE_MODE_WB:
- 	default:
--		memtype_flags = _PGMT_DEFAULT;
-+		memtype_flags = _PGMT_WB;	/* default */
- 		break;
- 	}
- 
-@@ -365,8 +366,9 @@ static int pat_pagerange_is_ram(resource_size_t start, resource_size_t end)
- 
- /*
-  * For RAM pages, we use page flags to mark the pages with appropriate type.
-- * The page flags are limited to three types, WB, WC and UC-.
-- * WT and WP requests fail with -EINVAL, and UC gets redirected to UC-.
-+ * The page flags are limited to four types, WB (default), WC, WT and UC-.
-+ * WP request fails with -EINVAL, and UC gets redirected to UC-.
-+ * A new memtype can only be set to the default memtype WB.
-  * Here we do two pass:
-  * - Find the memtype of all the pages in the range, look for any conflicts
-  * - In case of no conflicts, set the new memtype for pages in the range
-@@ -378,8 +380,7 @@ static int reserve_ram_pages_type(u64 start, u64 end,
- 	struct page *page;
- 	u64 pfn;
- 
--	if ((req_type == _PAGE_CACHE_MODE_WT) ||
--	    (req_type == _PAGE_CACHE_MODE_WP)) {
-+	if (req_type == _PAGE_CACHE_MODE_WP) {
- 		if (new_type)
- 			*new_type = _PAGE_CACHE_MODE_UC_MINUS;
- 		return -EINVAL;
-@@ -396,7 +397,7 @@ static int reserve_ram_pages_type(u64 start, u64 end,
- 
- 		page = pfn_to_page(pfn);
- 		type = get_page_memtype(page);
--		if (type != -1) {
-+		if (type != _PAGE_CACHE_MODE_WB) {
- 			pr_info("reserve_ram_pages_type failed [mem %#010Lx-%#010Lx], track 0x%x, req 0x%x\n",
- 				start, end - 1, type, req_type);
- 			if (new_type)
-@@ -423,7 +424,7 @@ static int free_ram_pages_type(u64 start, u64 end)
- 
- 	for (pfn = (start >> PAGE_SHIFT); pfn < (end >> PAGE_SHIFT); ++pfn) {
- 		page = pfn_to_page(pfn);
--		set_page_memtype(page, -1);
-+		set_page_memtype(page, _PAGE_CACHE_MODE_WB);
- 	}
- 	return 0;
- }
-@@ -568,7 +569,7 @@ int free_memtype(u64 start, u64 end)
-  * Only to be called when PAT is enabled
-  *
-  * Returns _PAGE_CACHE_MODE_WB, _PAGE_CACHE_MODE_WC, _PAGE_CACHE_MODE_UC_MINUS
-- * or _PAGE_CACHE_MODE_UC
-+ * or _PAGE_CACHE_MODE_WT.
-  */
- static enum page_cache_mode lookup_memtype(u64 paddr)
- {
-@@ -582,13 +583,6 @@ static enum page_cache_mode lookup_memtype(u64 paddr)
- 		struct page *page;
- 		page = pfn_to_page(paddr >> PAGE_SHIFT);
- 		rettype = get_page_memtype(page);
--		/*
--		 * -1 from get_page_memtype() implies RAM page is in its
--		 * default state and not reserved, and hence of type WB
--		 */
--		if (rettype == -1)
--			rettype = _PAGE_CACHE_MODE_WB;
+-#define PMEM_MINORS		16
 -
- 		return rettype;
- 	}
+ struct pmem_device {
+ 	struct request_queue	*pmem_queue;
+ 	struct gendisk		*pmem_disk;
+@@ -156,12 +154,12 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res,
+ 	blk_queue_max_hw_sectors(pmem->pmem_queue, 1024);
+ 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
  
+-	disk = alloc_disk(PMEM_MINORS);
++	disk = alloc_disk(0);
+ 	if (!disk)
+ 		goto out_free_queue;
+ 
+ 	disk->major		= pmem_major;
+-	disk->first_minor	= PMEM_MINORS * id;
++	disk->first_minor	= 0;
+ 	disk->fops		= &pmem_fops;
+ 	disk->private_data	= pmem;
+ 	disk->queue		= pmem->pmem_queue;
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
