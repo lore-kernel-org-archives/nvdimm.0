@@ -1,56 +1,104 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Fri, 29 May 2015 10:59:20 +0200
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v10 10/12] x86, mm, pat: Cleanup init flags in pat_init()
-Message-ID: <20150529085920.GB31435@pd.tnic>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v10 10/12] x86, mm, pat: Cleanup init flags in pat_init()
+Date: Wed, 27 May 2015 09:19:02 -0600
+Message-Id: <1432739944-22633-11-git-send-email-toshi.kani@hp.com>
+In-Reply-To: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
 References: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
- <1432739944-22633-11-git-send-email-toshi.kani@hp.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1432739944-22633-11-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de, linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de
+Sender: owner-linux-mm@kvack.org
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, May 27, 2015 at 09:19:02AM -0600, Toshi Kani wrote:
-> pat_init() uses two flags, 'boot_cpu' and 'boot_pat_state', for
-> tracking the boot CPU's initialization status.  'boot_pat_state'
-> is also overloaded to carry the boot PAT value.
-> 
-> This patch cleans this up by replacing them with a new single
-> flag, 'boot_cpu_done', to track the boot CPU's initialization
-> status.  'boot_pat_state' is only used to carry the boot PAT
-> value as a result.
-> 
-> Suggested-by: Thomas Gleixner <tglx@linutronix.de>
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> ---
->  arch/x86/mm/pat.c |   42 ++++++++++++++++++++----------------------
->  1 file changed, 20 insertions(+), 22 deletions(-)
+pat_init() uses two flags, 'boot_cpu' and 'boot_pat_state', for
+tracking the boot CPU's initialization status.  'boot_pat_state'
+is also overloaded to carry the boot PAT value.
 
-...
+This patch cleans this up by replacing them with a new single
+flag, 'boot_cpu_done', to track the boot CPU's initialization
+status.  'boot_pat_state' is only used to carry the boot PAT
+value as a result.
 
-> +		rdmsrl(MSR_IA32_CR_PAT, boot_pat_state);
-> +		if (!boot_pat_state) {
-> +			pat_disable("PAT read returns always zero, disabled.");
-> +			return;
-> +		}
-> +	} else if (!cpu_has_pat) {
-> +		/*
-> +		 * If this happens we are on a secondary CPU, but
-> +		 * switched to PAT on the boot CPU. We have no way to
-> +		 * undo PAT.
-> +		 */
-> +		pr_err("PAT enabled, but not supported by secondary CPU\n");
-> +		BUG();
+Suggested-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+---
+ arch/x86/mm/pat.c |   42 ++++++++++++++++++++----------------------
+ 1 file changed, 20 insertions(+), 22 deletions(-)
 
-These could be replaced with a panic().
+diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
+index 92fc635..7cfd995 100644
+--- a/arch/x86/mm/pat.c
++++ b/arch/x86/mm/pat.c
+@@ -201,26 +201,31 @@ void pat_init_cache_modes(void)
+ void pat_init(void)
+ {
+ 	u64 pat;
+-	bool boot_cpu = !boot_pat_state;
+ 	struct cpuinfo_x86 *c = &boot_cpu_data;
++	static bool boot_cpu_done;
+ 
+ 	if (!pat_enabled)
+ 		return;
+ 
+-	if (!cpu_has_pat) {
+-		if (!boot_pat_state) {
++	if (!boot_cpu_done) {
++		if (!cpu_has_pat) {
+ 			pat_disable("PAT not supported by CPU.");
+ 			return;
+-		} else {
+-			/*
+-			 * If this happens we are on a secondary CPU, but
+-			 * switched to PAT on the boot CPU. We have no way to
+-			 * undo PAT.
+-			 */
+-			printk(KERN_ERR "PAT enabled, "
+-			       "but not supported by secondary CPU\n");
+-			BUG();
+ 		}
++
++		rdmsrl(MSR_IA32_CR_PAT, boot_pat_state);
++		if (!boot_pat_state) {
++			pat_disable("PAT read returns always zero, disabled.");
++			return;
++		}
++	} else if (!cpu_has_pat) {
++		/*
++		 * If this happens we are on a secondary CPU, but
++		 * switched to PAT on the boot CPU. We have no way to
++		 * undo PAT.
++		 */
++		pr_err("PAT enabled, but not supported by secondary CPU\n");
++		BUG();
+ 	}
+ 
+ 	if ((c->x86_vendor == X86_VENDOR_INTEL) &&
+@@ -279,19 +284,12 @@ void pat_init(void)
+ 		      PAT(4, WB) | PAT(5, WC) | PAT(6, UC_MINUS) | PAT(7, WT);
+ 	}
+ 
+-	/* Boot CPU check */
+-	if (!boot_pat_state) {
+-		rdmsrl(MSR_IA32_CR_PAT, boot_pat_state);
+-		if (!boot_pat_state) {
+-			pat_disable("PAT read returns always zero, disabled.");
+-			return;
+-		}
+-	}
+-
+ 	wrmsrl(MSR_IA32_CR_PAT, pat);
+ 
+-	if (boot_cpu)
++	if (!boot_cpu_done) {
+ 		pat_init_cache_modes();
++		boot_cpu_done = true;
++	}
+ }
+ 
+ #undef PAT
 
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
 --
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
