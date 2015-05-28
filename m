@@ -1,79 +1,65 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v9 6/10] x86, mm, pat: Add pgprot_writethrough() for WT
-Date: Wed, 13 May 2015 15:05:47 -0600
-Message-Id: <1431551151-19124-7-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1431551151-19124-1-git-send-email-toshi.kani@hp.com>
-References: <1431551151-19124-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 0/6] I/O path improvements for ND_BLK and PMEM
+Date: Thu, 28 May 2015 16:35:47 -0600
+Message-Id: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds pgprot_writethrough() for setting WT to a given
-pgprot_t.
+This series adds a new PMEM API consisting of three functions:
+persistent_copy(), persistent_flush() and persistent_sync().
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
----
- arch/x86/include/asm/pgtable_types.h |    3 +++
- arch/x86/mm/pat.c                    |   10 ++++++++++
- include/asm-generic/pgtable.h        |    4 ++++
- 3 files changed, 17 insertions(+)
+These three functions are then used in the I/O paths for both the ND_BLK driver
+and the PMEM driver to ensure that writes actually make it to the DIMM and
+become durable before the I/O operation completes.
 
-diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
-index 78f0c8c..13f310b 100644
---- a/arch/x86/include/asm/pgtable_types.h
-+++ b/arch/x86/include/asm/pgtable_types.h
-@@ -367,6 +367,9 @@ extern int nx_enabled;
- #define pgprot_writecombine	pgprot_writecombine
- extern pgprot_t pgprot_writecombine(pgprot_t prot);
- 
-+#define pgprot_writethrough	pgprot_writethrough
-+extern pgprot_t pgprot_writethrough(pgprot_t prot);
-+
- /* Indicate that x86 has its own track and untrack pfn vma functions */
- #define __HAVE_PFNMAP_TRACKING
- 
-diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
-index d932b43..aee5cdf 100644
---- a/arch/x86/mm/pat.c
-+++ b/arch/x86/mm/pat.c
-@@ -972,6 +972,16 @@ pgprot_t pgprot_writecombine(pgprot_t prot)
- }
- EXPORT_SYMBOL_GPL(pgprot_writecombine);
- 
-+pgprot_t pgprot_writethrough(pgprot_t prot)
-+{
-+	if (pat_enabled)
-+		return __pgprot(pgprot_val(prot) |
-+				cachemode2protval(_PAGE_CACHE_MODE_WT));
-+	else
-+		return pgprot_noncached(prot);
-+}
-+EXPORT_SYMBOL_GPL(pgprot_writethrough);
-+
- #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_X86_PAT)
- 
- static struct memtype *memtype_get_idx(loff_t pos)
-diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
-index 39f1d6a..bd910ce 100644
---- a/include/asm-generic/pgtable.h
-+++ b/include/asm-generic/pgtable.h
-@@ -262,6 +262,10 @@ static inline int pmd_same(pmd_t pmd_a, pmd_t pmd_b)
- #define pgprot_writecombine pgprot_noncached
- #endif
- 
-+#ifndef pgprot_writethrough
-+#define pgprot_writethrough pgprot_noncached
-+#endif
-+
- #ifndef pgprot_device
- #define pgprot_device pgprot_noncached
- #endif
+The first two patches in the series are just cleanup and correctness patches.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Patch three provides a reasonable architecture neutral default implementation
+for these three APIs for architectures that do not implement the PMEM API.
+These defaults allow all architectures to mostly work, aliasing
+persistent_copy() to memcpy() and having persistent_flush() and
+persistent_sync() be noops.  With this patch set this implementation is
+provided at the pmem.h level.
+
+It's possible that other future consumers of the PMEM API (DAX, possibly
+others) would prefer to have a different default behavior for architectures
+that don't support the PMEM API.  If this is the case we could move the choice
+about what to do for those architectures down into consumer-specific header
+files, so nd.h for libnd, for example.  If DAX and other consumers are fine
+with our defaults it's nicer to keep them common and in a global place.  Please
+let us know how other future consumers of the PMEM API feel about this.
+
+Patches 5 and 6 update the I/O paths for flush hints and NVDIMM flags.
+
+This series applies cleanly to Dan's "ndctl-for-next" tree:
+
+https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/log/?h=libnd-for-next
+
+One last note - I'm going to be unavailable soon, so patch feedback will most
+likely be handled by Dan Williams.  Thanks, Dan. :)
+
+Ross Zwisler (6):
+  pmem: add force casts to avoid __iomem annotation
+  nfit: Fix up address spaces, sparse warnings
+  x86, pmem: add PMEM API for persistent memory
+  pmem, nd_blk: update I/O paths to use PMEM API
+  nd_blk: add support for flush hints
+  nd_blk: add support for NVDIMM flags
+
+ MAINTAINERS                       |  1 +
+ arch/x86/Kconfig                  |  3 ++
+ arch/x86/include/asm/cacheflush.h | 23 ++++++++++
+ drivers/acpi/nfit.c               | 89 ++++++++++++++++++++++++++++++++++-----
+ drivers/acpi/nfit.h               | 28 +++++++++++-
+ drivers/block/nd/pmem.c           | 22 +++++++---
+ include/linux/pmem.h              | 79 ++++++++++++++++++++++++++++++++++
+ include/uapi/linux/ndctl.h        |  5 +++
+ 8 files changed, 232 insertions(+), 18 deletions(-)
+ create mode 100644 include/linux/pmem.h
+
+-- 
+1.9.3
+
