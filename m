@@ -1,58 +1,51 @@
 Return-Path: <owner-linux-mm@kvack.org>
-MIME-Version: 1.0
-In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295A92F392@G9W0745.americas.hpqcorp.net>
+From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Subject: RE: [PATCH v10 12/12] drivers/block/pmem: Map NVDIMM with
+ ioremap_wt()
+Date: Fri, 29 May 2015 21:29:53 +0000
+Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295A92F392@G9W0745.americas.hpqcorp.net>
 References: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
- <1432739944-22633-13-git-send-email-toshi.kani@hp.com> <20150529091129.GC31435@pd.tnic>
+ <1432739944-22633-13-git-send-email-toshi.kani@hp.com>
+ <20150529091129.GC31435@pd.tnic>
  <CAPcyv4jHbrUP7bDpw2Cja5x0eMQZBLmmzFXbotQWSEkAiL1s7Q@mail.gmail.com>
- <1432911782.23540.55.camel@misato.fc.hp.com> <CAPcyv4g+zYFkEYpa0HCh0Q+2C3wWNr6v3ZU143h52OKf=U=Qvw@mail.gmail.com>
- <CALCETrXXfujebOemesBtgKCkmRTOQFGjdcxjFDF+_P_tv+C0bw@mail.gmail.com> <94D0CD8314A33A4D9D801C0FE68B40295A92F392@G9W0745.americas.hpqcorp.net>
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Fri, 29 May 2015 14:46:19 -0700
-Message-ID: <CALCETrXhNsk9yX=gerxqHCR6+CLdCGrjt9pDk98yeF0L7yyPvg@mail.gmail.com>
-Subject: Re: [PATCH v10 12/12] drivers/block/pmem: Map NVDIMM with ioremap_wt()
-Content-Type: text/plain; charset=UTF-8
+ <1432911782.23540.55.camel@misato.fc.hp.com>
+ <CAPcyv4g+zYFkEYpa0HCh0Q+2C3wWNr6v3ZU143h52OKf=U=Qvw@mail.gmail.com>
+ <CALCETrXXfujebOemesBtgKCkmRTOQFGjdcxjFDF+_P_tv+C0bw@mail.gmail.com>
+In-Reply-To: <CALCETrXXfujebOemesBtgKCkmRTOQFGjdcxjFDF+_P_tv+C0bw@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: owner-linux-mm@kvack.org
-To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, Borislav Petkov <bp@alien8.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Juergen Gross <jgross@suse.com>, Stefan Bader <stefan.bader@canonical.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Yigal Korman <yigal@plexistor.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Luis Rodriguez <mcgrof@suse.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <willy@linux.intel.com>
+To: Andy Lutomirski <luto@amacapital.net>, Dan Williams <dan.j.williams@intel.com>
+Cc: "Kani, Toshimitsu" <toshi.kani@hp.com>, Borislav Petkov <bp@alien8.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Juergen Gross <jgross@suse.com>, Stefan Bader <stefan.bader@canonical.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Yigal Korman <yigal@plexistor.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Luis Rodriguez  <mcgrof@suse.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox" <willy@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, May 29, 2015 at 2:29 PM, Elliott, Robert (Server Storage)
-<Elliott@hp.com> wrote:
->> -----Original Message-----
->> From: Andy Lutomirski [mailto:luto@amacapital.net]
->> Sent: Friday, May 29, 2015 1:35 PM
-> ...
->> Whoa, there!  Why would we use non-temporal stores to WB memory to
->> access persistent memory?  I can see two reasons not to:
->
-> Data written to a block storage device (here, the NVDIMM) is unlikely
-> to be read or written again any time soon.  It's not like the code
-> and data that a program has in memory, where there might be a loop
-> accessing the location every CPU clock; it's storage I/O to
-> historically very slow (relative to the CPU clock speed) devices.
-> The source buffer for that data might be frequently accessed,
-> but not the NVDIMM storage itself.
->
-> Non-temporal stores avoid wasting cache space on these "one-time"
-> accesses.  The same applies for reads and non-temporal loads.
-> Keep the CPU data cache lines free for the application.
->
-> DAX and mmap() do change that; the application is now free to
-> store frequently accessed data structures directly in persistent
-> memory.  But, that's not available if btt is used, and
-> application loads and stores won't go through the memcpy()
-> calls inside pmem anyway.  The non-temporal instructions are
-> cache coherent, so data integrity won't get confused by them
-> if I/O going through pmem's block storage APIs happens
-> to overlap with the application's mmap() regions.
->
-
-You answered the wrong question. :)  I understand the point of the
-non-temporal stores -- I don't understand the point of using
-non-temporal stores to *WB memory*.  I think we should be okay with
-having the kernel mapping use WT instead.
-
---Andy
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBbmR5IEx1dG9taXJza2kgW21h
+aWx0bzpsdXRvQGFtYWNhcGl0YWwubmV0XQ0KPiBTZW50OiBGcmlkYXksIE1heSAyOSwgMjAxNSAx
+OjM1IFBNDQouLi4NCj4gV2hvYSwgdGhlcmUhICBXaHkgd291bGQgd2UgdXNlIG5vbi10ZW1wb3Jh
+bCBzdG9yZXMgdG8gV0IgbWVtb3J5IHRvDQo+IGFjY2VzcyBwZXJzaXN0ZW50IG1lbW9yeT8gIEkg
+Y2FuIHNlZSB0d28gcmVhc29ucyBub3QgdG86DQoNCkRhdGEgd3JpdHRlbiB0byBhIGJsb2NrIHN0
+b3JhZ2UgZGV2aWNlIChoZXJlLCB0aGUgTlZESU1NKSBpcyB1bmxpa2VseQ0KdG8gYmUgcmVhZCBv
+ciB3cml0dGVuIGFnYWluIGFueSB0aW1lIHNvb24uICBJdCdzIG5vdCBsaWtlIHRoZSBjb2RlDQph
+bmQgZGF0YSB0aGF0IGEgcHJvZ3JhbSBoYXMgaW4gbWVtb3J5LCB3aGVyZSB0aGVyZSBtaWdodCBi
+ZSBhIGxvb3ANCmFjY2Vzc2luZyB0aGUgbG9jYXRpb24gZXZlcnkgQ1BVIGNsb2NrOyBpdCdzIHN0
+b3JhZ2UgSS9PIHRvDQpoaXN0b3JpY2FsbHkgdmVyeSBzbG93IChyZWxhdGl2ZSB0byB0aGUgQ1BV
+IGNsb2NrIHNwZWVkKSBkZXZpY2VzLiAgDQpUaGUgc291cmNlIGJ1ZmZlciBmb3IgdGhhdCBkYXRh
+IG1pZ2h0IGJlIGZyZXF1ZW50bHkgYWNjZXNzZWQsIA0KYnV0IG5vdCB0aGUgTlZESU1NIHN0b3Jh
+Z2UgaXRzZWxmLiAgDQoNCk5vbi10ZW1wb3JhbCBzdG9yZXMgYXZvaWQgd2FzdGluZyBjYWNoZSBz
+cGFjZSBvbiB0aGVzZSAib25lLXRpbWUiIA0KYWNjZXNzZXMuICBUaGUgc2FtZSBhcHBsaWVzIGZv
+ciByZWFkcyBhbmQgbm9uLXRlbXBvcmFsIGxvYWRzLg0KS2VlcCB0aGUgQ1BVIGRhdGEgY2FjaGUg
+bGluZXMgZnJlZSBmb3IgdGhlIGFwcGxpY2F0aW9uLg0KDQpEQVggYW5kIG1tYXAoKSBkbyBjaGFu
+Z2UgdGhhdDsgdGhlIGFwcGxpY2F0aW9uIGlzIG5vdyBmcmVlIHRvDQpzdG9yZSBmcmVxdWVudGx5
+IGFjY2Vzc2VkIGRhdGEgc3RydWN0dXJlcyBkaXJlY3RseSBpbiBwZXJzaXN0ZW50IA0KbWVtb3J5
+LiAgQnV0LCB0aGF0J3Mgbm90IGF2YWlsYWJsZSBpZiBidHQgaXMgdXNlZCwgYW5kIA0KYXBwbGlj
+YXRpb24gbG9hZHMgYW5kIHN0b3JlcyB3b24ndCBnbyB0aHJvdWdoIHRoZSBtZW1jcHkoKQ0KY2Fs
+bHMgaW5zaWRlIHBtZW0gYW55d2F5LiAgVGhlIG5vbi10ZW1wb3JhbCBpbnN0cnVjdGlvbnMgYXJl
+DQpjYWNoZSBjb2hlcmVudCwgc28gZGF0YSBpbnRlZ3JpdHkgd29uJ3QgZ2V0IGNvbmZ1c2VkIGJ5
+IHRoZW0NCmlmIEkvTyBnb2luZyB0aHJvdWdoIHBtZW0ncyBibG9jayBzdG9yYWdlIEFQSXMgaGFw
+cGVucw0KdG8gb3ZlcmxhcCB3aXRoIHRoZSBhcHBsaWNhdGlvbidzIG1tYXAoKSByZWdpb25zLg0K
+DQotLS0NClJvYmVydCBFbGxpb3R0LCBIUCBTZXJ2ZXIgU3RvcmFnZQ0KDQoNCg==
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
