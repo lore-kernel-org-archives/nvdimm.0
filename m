@@ -1,97 +1,58 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
-Subject: RE: [PATCH v10 12/12] drivers/block/pmem: Map NVDIMM with
- ioremap_wt()
-Date: Fri, 29 May 2015 22:24:57 +0000
-Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295A92F4EF@G9W0745.americas.hpqcorp.net>
-References: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
- <1432739944-22633-13-git-send-email-toshi.kani@hp.com>
- <20150529091129.GC31435@pd.tnic>
- <CAPcyv4jHbrUP7bDpw2Cja5x0eMQZBLmmzFXbotQWSEkAiL1s7Q@mail.gmail.com>
- <1432911782.23540.55.camel@misato.fc.hp.com>
- <CAPcyv4g+zYFkEYpa0HCh0Q+2C3wWNr6v3ZU143h52OKf=U=Qvw@mail.gmail.com>
- <CALCETrXXfujebOemesBtgKCkmRTOQFGjdcxjFDF+_P_tv+C0bw@mail.gmail.com>
- <94D0CD8314A33A4D9D801C0FE68B40295A92F392@G9W0745.americas.hpqcorp.net>
- <CALCETrXhNsk9yX=gerxqHCR6+CLdCGrjt9pDk98yeF0L7yyPvg@mail.gmail.com>
-In-Reply-To: <CALCETrXhNsk9yX=gerxqHCR6+CLdCGrjt9pDk98yeF0L7yyPvg@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
 MIME-Version: 1.0
+In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295A92F392@G9W0745.americas.hpqcorp.net>
+References: <1432739944-22633-1-git-send-email-toshi.kani@hp.com>
+ <1432739944-22633-13-git-send-email-toshi.kani@hp.com> <20150529091129.GC31435@pd.tnic>
+ <CAPcyv4jHbrUP7bDpw2Cja5x0eMQZBLmmzFXbotQWSEkAiL1s7Q@mail.gmail.com>
+ <1432911782.23540.55.camel@misato.fc.hp.com> <CAPcyv4g+zYFkEYpa0HCh0Q+2C3wWNr6v3ZU143h52OKf=U=Qvw@mail.gmail.com>
+ <CALCETrXXfujebOemesBtgKCkmRTOQFGjdcxjFDF+_P_tv+C0bw@mail.gmail.com> <94D0CD8314A33A4D9D801C0FE68B40295A92F392@G9W0745.americas.hpqcorp.net>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Fri, 29 May 2015 14:46:19 -0700
+Message-ID: <CALCETrXhNsk9yX=gerxqHCR6+CLdCGrjt9pDk98yeF0L7yyPvg@mail.gmail.com>
+Subject: Re: [PATCH v10 12/12] drivers/block/pmem: Map NVDIMM with ioremap_wt()
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Dan Williams <dan.j.williams@intel.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, Borislav Petkov <bp@alien8.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "Thomas Gleixner  <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Andrew Morton" <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Juergen Gross <jgross@suse.com>, Stefan Bader <stefan.bader@canonical.com>, "Henrique de Moraes Holschuh  <hmh@hmh.eng.br>, Yigal Korman <yigal@plexistor.com>, Konrad Rzeszutek Wilk" <konrad.wilk@oracle.com>, Luis Rodriguez <mcgrof@suse.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <willy@linux.intel.com>
+To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, Borislav Petkov <bp@alien8.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Juergen Gross <jgross@suse.com>, Stefan Bader <stefan.bader@canonical.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Yigal Korman <yigal@plexistor.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Luis Rodriguez <mcgrof@suse.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <willy@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQoNCi0tLQ0KUm9iZXJ0IEVsbGlvdHQsIEhQIFNlcnZlciBTdG9yYWdlDQoNCj4gLS0tLS1Pcmln
-aW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBMdXRvbWlyc2tpIFttYWlsdG86bHV0b0Bh
-bWFjYXBpdGFsLm5ldF0NCj4gU2VudDogRnJpZGF5LCBNYXkgMjksIDIwMTUgNDo0NiBQTQ0KPiBU
-bzogRWxsaW90dCwgUm9iZXJ0IChTZXJ2ZXIgU3RvcmFnZSkNCj4gQ2M6IERhbiBXaWxsaWFtczsg
-S2FuaSwgVG9zaGltaXRzdTsgQm9yaXNsYXYgUGV0a292OyBSb3NzIFp3aXNsZXI7DQo+IEguIFBl
-dGVyIEFudmluOyBUaG9tYXMgR2xlaXhuZXI7IEluZ28gTW9sbmFyOyBBbmRyZXcgTW9ydG9uOyBB
-cm5kDQo+IEJlcmdtYW5uOyBsaW51eC1tbUBrdmFjay5vcmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtl
-cm5lbC5vcmc7IFg4NiBNTDsNCj4gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZzsgSnVlcmdlbiBH
-cm9zczsgU3RlZmFuIEJhZGVyOyBIZW5yaXF1ZSBkZQ0KPiBNb3JhZXMgSG9sc2NodWg7IFlpZ2Fs
-IEtvcm1hbjsgS29ucmFkIFJ6ZXN6dXRlayBXaWxrOyBMdWlzDQo+IFJvZHJpZ3VlejsgQ2hyaXN0
-b3BoIEhlbGx3aWc7IE1hdHRoZXcgV2lsY294DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjEwIDEy
-LzEyXSBkcml2ZXJzL2Jsb2NrL3BtZW06IE1hcCBOVkRJTU0gd2l0aA0KPiBpb3JlbWFwX3d0KCkN
-Cj4gDQo+IE9uIEZyaSwgTWF5IDI5LCAyMDE1IGF0IDI6MjkgUE0sIEVsbGlvdHQsIFJvYmVydCAo
-U2VydmVyIFN0b3JhZ2UpDQo+IDxFbGxpb3R0QGhwLmNvbT4gd3JvdGU6DQo+ID4+IC0tLS0tT3Jp
-Z2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZyb206IEFuZHkgTHV0b21pcnNraSBbbWFpbHRvOmx1
-dG9AYW1hY2FwaXRhbC5uZXRdDQo+ID4+IFNlbnQ6IEZyaWRheSwgTWF5IDI5LCAyMDE1IDE6MzUg
-UE0NCj4gPiAuLi4NCj4gPj4gV2hvYSwgdGhlcmUhICBXaHkgd291bGQgd2UgdXNlIG5vbi10ZW1w
-b3JhbCBzdG9yZXMgdG8gV0IgbWVtb3J5DQo+IHRvDQo+ID4+IGFjY2VzcyBwZXJzaXN0ZW50IG1l
-bW9yeT8gIEkgY2FuIHNlZSB0d28gcmVhc29ucyBub3QgdG86DQo+ID4NCj4gPiBEYXRhIHdyaXR0
-ZW4gdG8gYSBibG9jayBzdG9yYWdlIGRldmljZSAoaGVyZSwgdGhlIE5WRElNTSkgaXMNCj4gdW5s
-aWtlbHkNCj4gPiB0byBiZSByZWFkIG9yIHdyaXR0ZW4gYWdhaW4gYW55IHRpbWUgc29vbi4gIEl0
-J3Mgbm90IGxpa2UgdGhlIGNvZGUNCj4gPiBhbmQgZGF0YSB0aGF0IGEgcHJvZ3JhbSBoYXMgaW4g
-bWVtb3J5LCB3aGVyZSB0aGVyZSBtaWdodCBiZSBhIGxvb3ANCj4gPiBhY2Nlc3NpbmcgdGhlIGxv
-Y2F0aW9uIGV2ZXJ5IENQVSBjbG9jazsgaXQncyBzdG9yYWdlIEkvTyB0bw0KPiA+IGhpc3Rvcmlj
-YWxseSB2ZXJ5IHNsb3cgKHJlbGF0aXZlIHRvIHRoZSBDUFUgY2xvY2sgc3BlZWQpIGRldmljZXMu
-DQo+ID4gVGhlIHNvdXJjZSBidWZmZXIgZm9yIHRoYXQgZGF0YSBtaWdodCBiZSBmcmVxdWVudGx5
-IGFjY2Vzc2VkLA0KPiA+IGJ1dCBub3QgdGhlIE5WRElNTSBzdG9yYWdlIGl0c2VsZi4NCj4gPg0K
-PiA+IE5vbi10ZW1wb3JhbCBzdG9yZXMgYXZvaWQgd2FzdGluZyBjYWNoZSBzcGFjZSBvbiB0aGVz
-ZSAib25lLXRpbWUiDQo+ID4gYWNjZXNzZXMuICBUaGUgc2FtZSBhcHBsaWVzIGZvciByZWFkcyBh
-bmQgbm9uLXRlbXBvcmFsIGxvYWRzLg0KPiA+IEtlZXAgdGhlIENQVSBkYXRhIGNhY2hlIGxpbmVz
-IGZyZWUgZm9yIHRoZSBhcHBsaWNhdGlvbi4NCj4gPg0KPiA+IERBWCBhbmQgbW1hcCgpIGRvIGNo
-YW5nZSB0aGF0OyB0aGUgYXBwbGljYXRpb24gaXMgbm93IGZyZWUgdG8NCj4gPiBzdG9yZSBmcmVx
-dWVudGx5IGFjY2Vzc2VkIGRhdGEgc3RydWN0dXJlcyBkaXJlY3RseSBpbiBwZXJzaXN0ZW50DQo+
-ID4gbWVtb3J5LiAgQnV0LCB0aGF0J3Mgbm90IGF2YWlsYWJsZSBpZiBidHQgaXMgdXNlZCwgYW5k
-DQo+ID4gYXBwbGljYXRpb24gbG9hZHMgYW5kIHN0b3JlcyB3b24ndCBnbyB0aHJvdWdoIHRoZSBt
-ZW1jcHkoKQ0KPiA+IGNhbGxzIGluc2lkZSBwbWVtIGFueXdheS4gIFRoZSBub24tdGVtcG9yYWwg
-aW5zdHJ1Y3Rpb25zIGFyZQ0KPiA+IGNhY2hlIGNvaGVyZW50LCBzbyBkYXRhIGludGVncml0eSB3
-b24ndCBnZXQgY29uZnVzZWQgYnkgdGhlbQ0KPiA+IGlmIEkvTyBnb2luZyB0aHJvdWdoIHBtZW0n
-cyBibG9jayBzdG9yYWdlIEFQSXMgaGFwcGVucw0KPiA+IHRvIG92ZXJsYXAgd2l0aCB0aGUgYXBw
-bGljYXRpb24ncyBtbWFwKCkgcmVnaW9ucy4NCj4gPg0KPiANCj4gWW91IGFuc3dlcmVkIHRoZSB3
-cm9uZyBxdWVzdGlvbi4gOikgIEkgdW5kZXJzdGFuZCB0aGUgcG9pbnQgb2YgdGhlDQo+IG5vbi10
-ZW1wb3JhbCBzdG9yZXMgLS0gSSBkb24ndCB1bmRlcnN0YW5kIHRoZSBwb2ludCBvZiB1c2luZw0K
-PiBub24tdGVtcG9yYWwgc3RvcmVzIHRvICpXQiBtZW1vcnkqLiAgSSB0aGluayB3ZSBzaG91bGQg
-YmUgb2theSB3aXRoDQo+IGhhdmluZyB0aGUga2VybmVsIG1hcHBpbmcgdXNlIFdUIGluc3RlYWQu
-DQoNClRoZSBjYWNoZSB0eXBlIHRoYXQgdGhlIGFwcGxpY2F0aW9uIGNob29zZXMgZm9yIGl0cyBt
-bWFwKCkNCnZpZXcgaGFzIHRvIGJlIGNvbXBhdGlibGUgd2l0aCB0aGF0IGFscmVhZHkgc2VsZWN0
-ZWQgYnkgdGhlIA0Ka2VybmVsLCBvciB3ZSBydW4gaW50bzoNCg0KSW50ZWwgU0RNIDExLjEyLjQg
-UHJvZ3JhbW1pbmcgdGhlIFBBVA0KLi4uDQoiVGhlIFBBVCBhbGxvd3MgYW55IG1lbW9yeSB0eXBl
-IHRvIGJlIHNwZWNpZmllZCBpbiB0aGUgcGFnZSB0YWJsZXMsDQphbmQgdGhlcmVmb3JlIGl0IGlz
-IHBvc3NpYmxlIHRvIGhhdmUgYSBzaW5nbGUgcGh5c2ljYWwgcGFnZSBtYXBwZWQNCnRvIHR3byBv
-ciBtb3JlIGRpZmZlcmVudCBsaW5lYXIgYWRkcmVzc2VzLCBlYWNoIHdpdGggZGlmZmVyZW50DQpt
-ZW1vcnkgdHlwZXMuIEludGVsIGRvZXMgbm90IHN1cHBvcnQgdGhpcyBwcmFjdGljZSBiZWNhdXNl
-IGl0IG1heQ0KbGVhZCB0byB1bmRlZmluZWQgb3BlcmF0aW9ucyB0aGF0IGNhbiByZXN1bHQgaW4g
-YSBzeXN0ZW0gZmFpbHVyZS4gDQpJbiBwYXJ0aWN1bGFyLCBhIFdDIHBhZ2UgbXVzdCBuZXZlciBi
-ZSBhbGlhc2VkIHRvIGEgY2FjaGVhYmxlIHBhZ2UNCmJlY2F1c2UgV0Mgd3JpdGVzIG1heSBub3Qg
-Y2hlY2sgdGhlIHByb2Nlc3NvciBjYWNoZXMuIg0KDQpSaWdodCBub3csIGFwcGxpY2F0aW9uIG1l
-bW9yeSBpcyBhbHdheXMgV0IsIHNvIFdCIGlzIHRoZQ0Kb25seSBzYWZlIGNob2ljZSBmcm9tIHRo
-aXMgcGVyc3BlY3RpdmUgKHRoZSBzeXN0ZW0gbXVzdCBoYXZlDQpBRFIgZm9yIHNhZmV0eSBmcm9t
-IG90aGVyIHBlcnNwZWN0aXZlcykuIFRoYXQgbWlnaHQgbm90IGJlIA0KdGhlIGJlc3QgY2hvaWNl
-IGZvciBhbGwgYXBwbGljYXRpb25zLCB0aG91Z2g7IHNvbWUgYXBwbGljYXRpb25zDQptaWdodCBu
-b3Qgd2FudCBDUFUgY2FjaGluZyBhbGwgdGhlIGRhdGEgdGhleSBydW4gdGhyb3VnaCBoZXJlIA0K
-YW5kIHByZWZlciBXQy4gIE9uIGEgbm9uLUFEUiBzeXN0ZW0sIFdUIG1pZ2h0IGJlIHRoZSBvbmx5
-IA0Kc2FmZSBjaG9pY2UuDQoNClNob3VsZCB0aGVyZSBiZSBhIHdheSBmb3IgdGhlIGFwcGxpY2F0
-aW9uIHRvIHNwZWNpZnkgYSBjYWNoZQ0KdHlwZSBpbiBpdHMgbW1hcCgpIGNhbGw/IFRoZSB0eXBl
-IGFscmVhZHkgc2VsZWN0ZWQgYnkgdGhlDQprZXJuZWwgZHJpdmVyIGNvdWxkIChjYXJlZnVsbHkp
-IGJlIGNoYW5nZWQgb24gdGhlIGZseSBpZiANCml0J3MgZGlmZmVyZW50Lg0KDQpOb24tdGVtcG9y
-YWwgc3RvcmUgcGVyZm9ybWFuY2UgaXMgZXhjZWxsZW50IHVuZGVyIFdCLCBXQywgYW5kIFdUOw0K
-aWYgYW55dGhpbmcsIEkgdGhpbmsgV0MgZWRnZXMgYWhlYWQgYmVjYXVzZSBpdCBuZWVkIG5vdCBz
-bm9vcA0KdGhlIGNhY2hlLiBJdCdzIHN0aWxsIHBvb3IgdW5kZXIgVUMuDQoNCg0KDQo=
+On Fri, May 29, 2015 at 2:29 PM, Elliott, Robert (Server Storage)
+<Elliott@hp.com> wrote:
+>> -----Original Message-----
+>> From: Andy Lutomirski [mailto:luto@amacapital.net]
+>> Sent: Friday, May 29, 2015 1:35 PM
+> ...
+>> Whoa, there!  Why would we use non-temporal stores to WB memory to
+>> access persistent memory?  I can see two reasons not to:
+>
+> Data written to a block storage device (here, the NVDIMM) is unlikely
+> to be read or written again any time soon.  It's not like the code
+> and data that a program has in memory, where there might be a loop
+> accessing the location every CPU clock; it's storage I/O to
+> historically very slow (relative to the CPU clock speed) devices.
+> The source buffer for that data might be frequently accessed,
+> but not the NVDIMM storage itself.
+>
+> Non-temporal stores avoid wasting cache space on these "one-time"
+> accesses.  The same applies for reads and non-temporal loads.
+> Keep the CPU data cache lines free for the application.
+>
+> DAX and mmap() do change that; the application is now free to
+> store frequently accessed data structures directly in persistent
+> memory.  But, that's not available if btt is used, and
+> application loads and stores won't go through the memcpy()
+> calls inside pmem anyway.  The non-temporal instructions are
+> cache coherent, so data integrity won't get confused by them
+> if I/O going through pmem's block storage APIs happens
+> to overlap with the application's mmap() regions.
+>
+
+You answered the wrong question. :)  I understand the point of the
+non-temporal stores -- I don't understand the point of using
+non-temporal stores to *WB memory*.  I think we should be okay with
+having the kernel mapping use WT instead.
+
+--Andy
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
