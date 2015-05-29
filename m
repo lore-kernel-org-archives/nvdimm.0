@@ -1,79 +1,65 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 10/21] pmem: Dynamically allocate partition numbers
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 20 May 2015 16:57:06 -0400
-Message-ID: <20150520205706.32249.99479.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CALCETrXhNsk9yX=gerxqHCR6+CLdCGrjt9pDk98yeF0L7yyPvg@mail.gmail.com>
+References: <1432739944-22633-1-git-send-email-toshi.kani@hp.com> <1432739944-22633-13-git-send-email-toshi.kani@hp.com> <20150529091129.GC31435@pd.tnic> <CAPcyv4jHbrUP7bDpw2Cja5x0eMQZBLmmzFXbotQWSEkAiL1s7Q@mail.gmail.com> <1432911782.23540.55.camel@misato.fc.hp.com> <CAPcyv4g+zYFkEYpa0HCh0Q+2C3wWNr6v3ZU143h52OKf=U=Qvw@mail.gmail.com> <CALCETrXXfujebOemesBtgKCkmRTOQFGjdcxjFDF+_P_tv+C0bw@mail.gmail.com> <94D0CD8314A33A4D9D801C0FE68B40295A92F392@G9W0745.americas.hpqcorp.net> <CALCETrXhNsk9yX=gerxqHCR6+CLdCGrjt9pDk98yeF0L7yyPvg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@kernel.dk
-Cc: linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Ross Zwisler <ross.zwisler@linux.intel.com>, hch@lst.de
+Content-Type: text/plain;
+ charset=UTF-8
+Subject: Re: [PATCH v10 12/12] drivers/block/pmem: Map NVDIMM with ioremap_wt()
+From: "H. Peter Anvin" <hpa@zytor.com>
+Date: Fri, 29 May 2015 15:32:59 -0700
+Message-ID: <126375CE-37E2-4406-B4E8-3C991F02A0C1@zytor.com>
+Sender: owner-linux-mm@kvack.org
+To: Andy Lutomirski <luto@amacapital.net>, "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, Borislav Petkov <bp@alien8.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Juergen Gross <jgross@suse.com>, Stefan Bader <stefan.bader@canonical.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Yigal Korman <yigal@plexistor.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Luis Rodriguez <mcgrof@suse.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <willy@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Nontemporal stores to WB memory is fine in such a way that it doesn't pollute the cache.  This can be done by denoting to WC or by forcing cache allocation out of only a subset of the cache.
 
-Dynamically allocate minor numbers for partitions instead of statically
-preallocating them.
+On May 29, 2015 2:46:19 PM PDT, Andy Lutomirski <luto@amacapital.net> wrote:
+>On Fri, May 29, 2015 at 2:29 PM, Elliott, Robert (Server Storage)
+><Elliott@hp.com> wrote:
+>>> -----Original Message-----
+>>> From: Andy Lutomirski [mailto:luto@amacapital.net]
+>>> Sent: Friday, May 29, 2015 1:35 PM
+>> ...
+>>> Whoa, there!  Why would we use non-temporal stores to WB memory to
+>>> access persistent memory?  I can see two reasons not to:
+>>
+>> Data written to a block storage device (here, the NVDIMM) is unlikely
+>> to be read or written again any time soon.  It's not like the code
+>> and data that a program has in memory, where there might be a loop
+>> accessing the location every CPU clock; it's storage I/O to
+>> historically very slow (relative to the CPU clock speed) devices.
+>> The source buffer for that data might be frequently accessed,
+>> but not the NVDIMM storage itself.
+>>
+>> Non-temporal stores avoid wasting cache space on these "one-time"
+>> accesses.  The same applies for reads and non-temporal loads.
+>> Keep the CPU data cache lines free for the application.
+>>
+>> DAX and mmap() do change that; the application is now free to
+>> store frequently accessed data structures directly in persistent
+>> memory.  But, that's not available if btt is used, and
+>> application loads and stores won't go through the memcpy()
+>> calls inside pmem anyway.  The non-temporal instructions are
+>> cache coherent, so data integrity won't get confused by them
+>> if I/O going through pmem's block storage APIs happens
+>> to overlap with the application's mmap() regions.
+>>
+>
+>You answered the wrong question. :)  I understand the point of the
+>non-temporal stores -- I don't understand the point of using
+>non-temporal stores to *WB memory*.  I think we should be okay with
+>having the kernel mapping use WT instead.
+>
+>--Andy
 
-It gives us a simpler minors scheme, and makes it so we get a consistent
-major when moving past partition 16.  Here's what happens with the
-current code:
+-- 
+Sent from my mobile phone.  Please pardon brevity and lack of formatting.
 
- pmem0      249:0    0 63.5G  0 rom
- ├─pmem0p1  249:1    0    1G  0 part
- ├─pmem0p2  249:2    0    1G  0 part
- ├─pmem0p3  249:3    0    1G  0 part
- ├─pmem0p4  249:4    0    1G  0 part
- ├─pmem0p5  249:5    0    1G  0 part
- ├─pmem0p6  249:6    0    1G  0 part
- ├─pmem0p7  249:7    0    1G  0 part
- ├─pmem0p8  249:8    0    1G  0 part
- ├─pmem0p9  249:9    0    1G  0 part
- ├─pmem0p10 249:10   0    1G  0 part
- ├─pmem0p11 249:11   0    1G  0 part
- ├─pmem0p12 249:12   0    1G  0 part
- ├─pmem0p13 249:13   0    1G  0 part
- ├─pmem0p14 249:14   0    1G  0 part
- ├─pmem0p15 249:15   0    1G  0 part
- ├─pmem0p16 259:0    0    1G  0 part
- ├─pmem0p17 259:1    0    1G  0 part
- └─pmem0p18 259:2    0    1G  0 part
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/block/nd/pmem.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
-index 529a1444a918..fc34677d0f48 100644
---- a/drivers/block/nd/pmem.c
-+++ b/drivers/block/nd/pmem.c
-@@ -26,8 +26,6 @@
- #include <linux/nd.h>
- #include "nd.h"
- 
--#define PMEM_MINORS		16
--
- struct pmem_device {
- 	struct request_queue	*pmem_queue;
- 	struct gendisk		*pmem_disk;
-@@ -156,12 +154,12 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res,
- 	blk_queue_max_hw_sectors(pmem->pmem_queue, 1024);
- 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
- 
--	disk = alloc_disk(PMEM_MINORS);
-+	disk = alloc_disk(0);
- 	if (!disk)
- 		goto out_free_queue;
- 
- 	disk->major		= pmem_major;
--	disk->first_minor	= PMEM_MINORS * id;
-+	disk->first_minor	= 0;
- 	disk->fops		= &pmem_fops;
- 	disk->private_data	= pmem;
- 	disk->queue		= pmem->pmem_queue;
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
