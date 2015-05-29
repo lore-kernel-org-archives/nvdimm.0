@@ -1,142 +1,70 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 4/6] pmem, nd_blk: update I/O paths to use PMEM API
-Date: Thu, 28 May 2015 16:35:51 -0600
-Message-Id: <1432852553-24865-5-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v11 4/12] x86, mm, pat: Change reserve_memtype() for WT
+Date: Fri, 29 May 2015 16:59:02 -0600
+Message-Id: <1432940350-1802-5-git-send-email-toshi.kani@hp.com>
+In-Reply-To: <1432940350-1802-1-git-send-email-toshi.kani@hp.com>
+References: <1432940350-1802-1-git-send-email-toshi.kani@hp.com>
+Sender: owner-linux-mm@kvack.org
+To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Update the PMEM and ND_BLK I/O paths to use the new PMEM API and to
-adhere to the read/write flows outlined in the "NVDIMM Block Window
-Driver Writer's Guide":
+From: Toshi Kani <toshi.kani@hp.com>
 
-http://pmem.io/documents/NVDIMM_Driver_Writers_Guide.pdf
+When a RAM range is requested to reserve_memtype(), it calls
+reserve_ram_pages_type() to verify the requested type.
+reserve_ram_pages_type() is changed to fail WT and WP requests
+with -EINVAL since set_page_memtype() is limited to handle
+three types, WB, WC and UC-.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/acpi/nfit.c     | 10 ++++++++--
- drivers/block/nd/pmem.c | 15 +++++++++++----
- 2 files changed, 19 insertions(+), 6 deletions(-)
+Patch 10/12 enhances set_page_memtype() to support WT.
+---
+ arch/x86/mm/pat.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index df14652ea13e..22df61968c1c 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -18,6 +18,7 @@
- #include <linux/list.h>
- #include <linux/acpi.h>
- #include <linux/sort.h>
-+#include <linux/pmem.h>
- #include <linux/io.h>
- #include "nfit.h"
+diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
+index 3d9f125..85c9fcb 100644
+--- a/arch/x86/mm/pat.c
++++ b/arch/x86/mm/pat.c
+@@ -389,6 +389,8 @@ static int pat_pagerange_is_ram(resource_size_t start, resource_size_t end)
  
-@@ -926,7 +927,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
- 	if (mmio->num_lines)
- 		offset = to_interleave_offset(offset, mmio);
+ /*
+  * For RAM pages, we use page flags to mark the pages with appropriate type.
++ * The page flags are limited to three types, WB, WC and UC-.
++ * WT and WP requests fail with -EINVAL, and UC gets redirected to UC-.
+  * Here we do two pass:
+  * - Find the memtype of all the pages in the range, look for any conflicts
+  * - In case of no conflicts, set the new memtype for pages in the range
+@@ -400,6 +402,13 @@ static int reserve_ram_pages_type(u64 start, u64 end,
+ 	struct page *page;
+ 	u64 pfn;
  
-+	/* mmio->base must be mapped uncacheable */
- 	writeq(cmd, mmio->base + offset);
-+	persistent_sync();
- 	/* FIXME: conditionally perform read-back if mandated by firmware */
- }
- 
-@@ -940,7 +943,6 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
- 	int rc;
- 
- 	base_offset = nfit_blk->bdw_offset + dpa % L1_CACHE_BYTES + bw * mmio->size;
--	/* TODO: non-temporal access, flush hints, cache management etc... */
- 	write_blk_ctl(nfit_blk, bw, dpa, len, write);
- 	while (len) {
- 		unsigned int c;
-@@ -959,13 +961,17 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
- 		}
- 
- 		if (write)
--			memcpy(mmio->aperture + offset, iobuf + copied, c);
-+			persistent_copy(mmio->aperture + offset, iobuf + copied, c);
- 		else
- 			memcpy(iobuf + copied, mmio->aperture + offset, c);
- 
- 		copied += c;
- 		len -= c;
- 	}
-+
-+	if (write)
-+		persistent_sync();
-+
- 	rc = read_blk_stat(nfit_blk, bw) ? -EIO : 0;
- 	return rc;
- }
-diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
-index a8712e41e7f5..1a447c351aef 100644
---- a/drivers/block/nd/pmem.c
-+++ b/drivers/block/nd/pmem.c
-@@ -15,15 +15,16 @@
-  * more details.
-  */
- 
--#include <asm/cacheflush.h>
- #include <linux/blkdev.h>
- #include <linux/hdreg.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
-+#include <linux/pmem.h>
- #include <linux/slab.h>
- #include <linux/nd.h>
-+#include <asm/cacheflush.h>
- #include "nd.h"
- 
- struct pmem_device {
-@@ -51,7 +52,7 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 		flush_dcache_page(page);
- 	} else {
- 		flush_dcache_page(page);
--		memcpy(pmem->virt_addr + pmem_off, mem + off, len);
-+		persistent_copy(pmem->virt_addr + pmem_off, mem + off, len);
- 	}
- 
- 	kunmap_atomic(mem);
-@@ -82,6 +83,8 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
- 		sector += bvec.bv_len >> 9;
- 	}
- 
-+	if (rw & WRITE)
-+		persistent_sync();
- out:
- 	bio_endio(bio, err);
- }
-@@ -92,6 +95,8 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- 	struct pmem_device *pmem = bdev->bd_disk->private_data;
- 
- 	pmem_do_bvec(pmem, page, PAGE_CACHE_SIZE, 0, rw, sector);
-+	if (rw & WRITE)
-+		persistent_sync();
- 	page_endio(page, rw & WRITE, 0);
- 
- 	return 0;
-@@ -111,8 +116,10 @@ static int pmem_rw_bytes(struct nd_io *ndio, void *buf, size_t offset,
- 
- 	if (rw == READ)
- 		memcpy(buf, pmem->virt_addr + offset, n);
--	else
--		memcpy(pmem->virt_addr + offset, buf, n);
-+	else {
-+		persistent_copy(pmem->virt_addr + offset, buf, n);
-+		persistent_sync();
++	if ((req_type == _PAGE_CACHE_MODE_WT) ||
++	    (req_type == _PAGE_CACHE_MODE_WP)) {
++		if (new_type)
++			*new_type = _PAGE_CACHE_MODE_UC_MINUS;
++		return -EINVAL;
 +	}
- 
- 	return 0;
- }
--- 
-1.9.3
++
+ 	if (req_type == _PAGE_CACHE_MODE_UC) {
+ 		/* We do not support strong UC */
+ 		WARN_ON_ONCE(1);
+@@ -449,6 +458,7 @@ static int free_ram_pages_type(u64 start, u64 end)
+  * - _PAGE_CACHE_MODE_WC
+  * - _PAGE_CACHE_MODE_UC_MINUS
+  * - _PAGE_CACHE_MODE_UC
++ * - _PAGE_CACHE_MODE_WT
+  *
+  * If new_type is NULL, function will return an error if it cannot reserve the
+  * region with req_type. If new_type is non-NULL, function will return
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
