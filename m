@@ -1,46 +1,74 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v11 12/12] drivers/block/pmem: Map NVDIMM with ioremap_wt()
-Date: Fri, 29 May 2015 16:59:10 -0600
-Message-Id: <1432940350-1802-13-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1432940350-1802-1-git-send-email-toshi.kani@hp.com>
-References: <1432940350-1802-1-git-send-email-toshi.kani@hp.com>
+MIME-Version: 1.0
+In-Reply-To: <201505302300.10950.arnd@arndb.de>
+References: <20150530185425.32590.3190.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150530185935.32590.95416.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<201505302300.10950.arnd@arndb.de>
+Date: Sat, 30 May 2015 14:39:48 -0700
+Message-ID: <CAPcyv4hqQaabcOsOZA9emT5f+UF9GgD-PiYupng4HYwymcvYmQ@mail.gmail.com>
+Subject: Re: [PATCH v2 3/4] arch: introduce memremap()
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, X86 ML <x86@kernel.org>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Luis Rodriguez <mcgrof@suse.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Bader <stefan.bader@canonical.com>, Andy Lutomirski <luto@amacapital.net>, linux-mm@kvack.org, geert@linux-m68k.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Tejun Heo <tj@kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Toshi Kani <toshi.kani@hp.com>
+On Sat, May 30, 2015 at 2:00 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Saturday 30 May 2015, Dan Williams wrote:
+>>
+>> +/*
+>> + * memremap() is "ioremap" for cases where it is known that the resource
+>> + * being mapped does not have i/o side effects and the __iomem
+>> + * annotation is not applicable.
+>> + */
+>> +
+>> +static inline void *memremap(resource_size_t offset, size_t size)
+>> +{
+>> +       return (void __force *) ioremap(offset, size);
+>> +}
+>> +
+>> +static inline void *memremap_nocache(resource_size_t offset, size_t size)
+>> +{
+>> +       return (void __force *) ioremap_nocache(offset, size);
+>> +}
+>> +
+>> +static inline void *memremap_cache(resource_size_t offset, size_t size)
+>> +{
+>> +       return (void __force *) ioremap_cache(offset, size);
+>> +}
+>> +
+>
+> There are architectures on which the result of ioremap is not necessarily
+> a pointer, but instead indicates that the access is to be done through
+> some other indirect access, or require special instructions. I think implementing
+> the memremap() interfaces is generally helpful, but don't rely on the
+> ioremap implementation.
 
-The pmem driver maps NVDIMM with ioremap_nocache() as we cannot
-write back the contents of the CPU caches in case of a crash.
+Is it enough to detect the archs where ioremap() does return an
+otherwise usable pointer and set ARCH_HAS_MEMREMAP, in the first take
+of this introduction?  Regardless, it seems that drivers should have
+Kconfig dependency checks for archs where ioremap can not be used in
+this manner.
 
-This patch changes to use ioremap_wt(), which provides uncached
-writes but cached reads, for improving read performance.
+> Adding both cached an uncached versions is also dangerous, because you
+> typically get either undefined behavior or a system checkstop when a
+> single page is mapped both cached and uncached at the same time. This
+> means that doing memremap() or memremap_nocache() on something that
+> may be part of the linear kernel mapping is a bug, and we should probably
+> check for that here.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/block/pmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Part of the reason for relying on ioremap() was to borrow its internal
+checks to fail attempts that try to remap ranges that are already in
+the kernel linear map.  Hmm, that's a guarantee x86 ioremap gives, but
+maybe that's not universal?
 
-diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index eabf4a8..095dfaa 100644
---- a/drivers/block/pmem.c
-+++ b/drivers/block/pmem.c
-@@ -139,11 +139,11 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
- 	}
- 
- 	/*
--	 * Map the memory as non-cachable, as we can't write back the contents
-+	 * Map the memory as write-through, as we can't write back the contents
- 	 * of the CPU caches in case of a crash.
- 	 */
- 	err = -ENOMEM;
--	pmem->virt_addr = ioremap_nocache(pmem->phys_addr, pmem->size);
-+	pmem->virt_addr = ioremap_wt(pmem->phys_addr, pmem->size);
- 	if (!pmem->virt_addr)
- 		goto out_release_region;
- 
+> We can probably avoid having both memremap() and memremap_nocache(),
+> as all architectures define ioremap() and ioremap_nocache() to be the
+> same thing.
+>
+
+Ok
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
