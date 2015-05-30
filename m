@@ -1,73 +1,69 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <1433033892.23540.100.camel@misato.fc.hp.com>
-Subject: Re: [PATCH v11 6/12] x86, mm, asm-gen: Add ioremap_wt() for WT
-From: Toshi Kani <toshi.kani@hp.com>
-Date: Sat, 30 May 2015 18:58:12 -0600
-In-Reply-To: <CAMuHMdWLMUr9ggkhbOiDSsc_eq04En3L5oX5pL=9gHuR6JDb+w@mail.gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <1432940350-1802-7-git-send-email-toshi.kani@hp.com>
 References: <1432940350-1802-1-git-send-email-toshi.kani@hp.com>
-	 <1432940350-1802-7-git-send-email-toshi.kani@hp.com>
-	 <CAMuHMdWLMUr9ggkhbOiDSsc_eq04En3L5oX5pL=9gHuR6JDb+w@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	<1432940350-1802-7-git-send-email-toshi.kani@hp.com>
+Date: Sat, 30 May 2015 11:18:26 +0200
+Message-ID: <CAMuHMdWLMUr9ggkhbOiDSsc_eq04En3L5oX5pL=9gHuR6JDb+w@mail.gmail.com>
+Subject: Re: [PATCH v11 6/12] x86, mm, asm-gen: Add ioremap_wt() for WT
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Toshi Kani <toshi.kani@hp.com>
 Cc: Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Linux MM <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, Andy Lutomirski <luto@amacapital.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, yigal@plexistor.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Elliott@hp.com, "Luis R. Rodriguez" <mcgrof@suse.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sat, 2015-05-30 at 11:18 +0200, Geert Uytterhoeven wrote:
-> On Sat, May 30, 2015 at 12:59 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> > --- a/include/asm-generic/io.h
-> > +++ b/include/asm-generic/io.h
-> > @@ -785,8 +785,17 @@ static inline void __iomem *ioremap_wc(phys_addr_t offset, size_t size)
-> >  }
-> >  #endif
-> >
-> > +#ifndef ioremap_wt
-> > +#define ioremap_wt ioremap_wt
-> > +static inline void __iomem *ioremap_wt(phys_addr_t offset, size_t size)
-> > +{
-> > +       return ioremap_nocache(offset, size);
-> > +}
-> > +#endif
-> > +
-> >  #ifndef iounmap
-> >  #define iounmap iounmap
-> > +
-> >  static inline void iounmap(void __iomem *addr)
-> >  {
-> >  }
-> > diff --git a/include/asm-generic/iomap.h b/include/asm-generic/iomap.h
-> > index 1b41011..d8f8622 100644
-> > --- a/include/asm-generic/iomap.h
-> > +++ b/include/asm-generic/iomap.h
-> > @@ -66,6 +66,10 @@ extern void ioport_unmap(void __iomem *);
-> >  #define ioremap_wc ioremap_nocache
-> >  #endif
-> >
-> > +#ifndef ARCH_HAS_IOREMAP_WT
-> > +#define ioremap_wt ioremap_nocache
-> > +#endif
-> 
-> Defining ioremap_wt in two different places in asm-generic looks fishy to me.
-> 
-> If <asm/io.h> already provides it (either through asm-generic/io.h or
-> arch/<arch>/include/asm/io.h), why does asm-generic/iomap.h need to define
-> its own version?
-> 
-> I see this pattern already exists for ioremap_wc...
+On Sat, May 30, 2015 at 12:59 AM, Toshi Kani <toshi.kani@hp.com> wrote:
+> --- a/include/asm-generic/io.h
+> +++ b/include/asm-generic/io.h
+> @@ -785,8 +785,17 @@ static inline void __iomem *ioremap_wc(phys_addr_t offset, size_t size)
+>  }
+>  #endif
+>
+> +#ifndef ioremap_wt
+> +#define ioremap_wt ioremap_wt
+> +static inline void __iomem *ioremap_wt(phys_addr_t offset, size_t size)
+> +{
+> +       return ioremap_nocache(offset, size);
+> +}
+> +#endif
+> +
+>  #ifndef iounmap
+>  #define iounmap iounmap
+> +
+>  static inline void iounmap(void __iomem *addr)
+>  {
+>  }
+> diff --git a/include/asm-generic/iomap.h b/include/asm-generic/iomap.h
+> index 1b41011..d8f8622 100644
+> --- a/include/asm-generic/iomap.h
+> +++ b/include/asm-generic/iomap.h
+> @@ -66,6 +66,10 @@ extern void ioport_unmap(void __iomem *);
+>  #define ioremap_wc ioremap_nocache
+>  #endif
+>
+> +#ifndef ARCH_HAS_IOREMAP_WT
+> +#define ioremap_wt ioremap_nocache
+> +#endif
 
-Yes, this patchset follows the model of ioremap_wc.  This duplication
-was introduced by 9216efafc52 "asm-generic/io.h: Reconcile I/O accessor
-overrides", while the original ioremap_wc support changed
-asm-generic/iomap.h (1526a756fba).  As described in patch 07, some
-architectures define ioremap_xxx() locally as well.
+Defining ioremap_wt in two different places in asm-generic looks fishy to me.
 
-It is too risky to do everything in one short.  I will look into the
-duplication issue as a separate item after this patchset is settled.
+If <asm/io.h> already provides it (either through asm-generic/io.h or
+arch/<arch>/include/asm/io.h), why does asm-generic/iomap.h need to define
+its own version?
 
-Thanks,
--Toshi
+I see this pattern already exists for ioremap_wc...
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
