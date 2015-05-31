@@ -1,73 +1,137 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date: Thu, 28 May 2015 00:36:11 +0200
-Message-ID: <CAJZ5v0h2RpkFRHbGxGRbVXCeySkSZLm71YG16ToiaXg_XgacDQ@mail.gmail.com>
-Subject: Re: [GIT PULL v4 00/21] libnd: non-volatile memory device support
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Content-Type: text/plain; charset=UTF-8
+From: Borislav Petkov <bp@alien8.de>
+Subject: [PATCH 4/4] x86/pat: Remove pat_enabled() checks
+Date: Sun, 31 May 2015 11:48:06 +0200
+Message-Id: <1433065686-20922-4-git-send-email-bp@alien8.de>
+In-Reply-To: <1433065686-20922-1-git-send-email-bp@alien8.de>
+References: <20150531094655.GA20440@pd.tnic>
+ <1433065686-20922-1-git-send-email-bp@alien8.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: axboe@kernel.dk, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, hch@lst.de, sfr@canb.auug.org.au, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Ingo Molnar <mingo@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, jmoyer@redhat.com, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@amacapital.net>, arnd@arndb.de, Elliott@hp.com, hch@lst.de, hmh@hmh.eng.br, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, jgross@suse.com, konrad.wilk@oracle.com, linux-mm <linux-mm@kvack.org>, linux-nvdimm@lists.01.org, "Luis R. Rodriguez" <mcgrof@suse.com>, stefan.bader@canonical.com, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, x86-ml <x86@kernel.org>, yigal@plexistor.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+From: Borislav Petkov <bp@suse.de>
 
-On Thu, May 28, 2015 at 12:24 AM, Dan Williams <dan.j.williams@intel.com> wrote:
-> Jens, please pull from...
->
->    git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm tags/libnd-for-jens
->
-> ...to receive the libnd sub-system for the next merge window.  This has
-> been through 3 rounds of review.  Incremental diffstats and links to
-> previous postings:
->
-> v1: 39 files changed, 13102 insertions(+), 36 deletions(-)
->     https://lists.01.org/pipermail/linux-nvdimm/2015-April/000484.html
->
-> v2: 30 files changed, 3166 insertions(+), 3935 deletions(-)
->     https://lists.01.org/pipermail/linux-nvdimm/2015-April/000574.html
->
-> v3: 33 files changed, 2202 insertions(+), 1233 deletions(-)
->     https://lists.01.org/pipermail/linux-nvdimm/2015-May/000804.html
->
-> v4: Full diffstat since v3
->
->     Documentation/blockdev/libnd.txt  |   2 +-
->     arch/x86/Kconfig                  |   4 ++
->     arch/x86/kernel/pmem.c            |  92 +++++++++++++++++++++++------------
->     drivers/acpi/nfit.c               |  20 ++++----
->     drivers/acpi/nfit.h               |   4 +-
->     drivers/block/Kconfig             |   8 ---
->     drivers/block/Makefile            |   1 -
->     drivers/block/e820_pmem.c         | 100 --------------------------------------
->     drivers/block/nd/Kconfig          |  10 ++++
->     drivers/block/nd/btt.h            |   2 +-
->     drivers/block/nd/namespace_devs.c |   5 +-
->     drivers/block/nd/pmem.c           |   2 +-
->     drivers/block/nd/test/nfit.c      |  10 ++--
->     include/acpi/acuuid.h             |  16 +++---
->     14 files changed, 105 insertions(+), 171 deletions(-)
->     delete mode 100644 drivers/block/e820_pmem.c
->
->     1/ Kill drivers/block/e820_pmem.c, we can just register pmem
->        regions directly from arch/x86/kernel/pmem.c without need for an
->        intermediary driver (Christoph).
->
->     2/ Update to latest NFIT UUID definitions (Toshi).  This
->        merges cleanly with, and is identical to the include/acpi/
->        NFIT enabling in Rafael's linux-pm.git/bleeding-edge branch.
+Now that we emulate a PAT table when PAT is disabled, there's no need
+for those checks anymore as the PAT abstraction will handle those cases
+too.
 
-Well, I didn't expect you to send a pull request for this right away
-to be honest.
+Based on a conglomerate patch from Toshi Kani.
 
-Can you please pull from my acpica branch and rebase your patches on
-top of that by any chance?
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: arnd@arndb.de
+Cc: Elliott@hp.com
+Cc: hch@lst.de
+Cc: hmh@hmh.eng.br
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: jgross@suse.com
+Cc: konrad.wilk@oracle.com
+Cc: linux-mm <linux-mm@kvack.org>
+Cc: linux-nvdimm@lists.01.org
+Cc: Luis R. Rodriguez <mcgrof@suse.com>
+Cc: stefan.bader@canonical.com
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: x86-ml <x86@kernel.org>
+Cc: yigal@plexistor.com
+---
+ arch/x86/mm/iomap_32.c | 12 ++++++------
+ arch/x86/mm/ioremap.c  |  5 +----
+ arch/x86/mm/pageattr.c |  3 ---
+ arch/x86/mm/pat.c      | 13 +++----------
+ 4 files changed, 10 insertions(+), 23 deletions(-)
 
-And no, the "merges cleanly" part isn't sufficient as it'll create a
-mess of a history if merged together like that.  Can we do that
-properly instead?
+diff --git a/arch/x86/mm/iomap_32.c b/arch/x86/mm/iomap_32.c
+index 3a2ec8790ca7..a9dc7a37e6a2 100644
+--- a/arch/x86/mm/iomap_32.c
++++ b/arch/x86/mm/iomap_32.c
+@@ -77,13 +77,13 @@ void __iomem *
+ iomap_atomic_prot_pfn(unsigned long pfn, pgprot_t prot)
+ {
+ 	/*
+-	 * For non-PAT systems, promote PAGE_KERNEL_WC to PAGE_KERNEL_UC_MINUS.
+-	 * PAGE_KERNEL_WC maps to PWT, which translates to uncached if the
+-	 * MTRR is UC or WC.  UC_MINUS gets the real intention, of the
+-	 * user, which is "WC if the MTRR is WC, UC if you can't do that."
++	 * For non-PAT systems, translate non-WB request to UC- just in
++	 * case the caller set the PWT bit to prot directly without using
++	 * pgprot_writecombine(). UC- translates to uncached if the MTRR
++	 * is UC or WC. UC- gets the real intention, of the user, which is
++	 * "WC if the MTRR is WC, UC if you can't do that."
+ 	 */
+-	if (!pat_enabled() && pgprot_val(prot) ==
+-	    (__PAGE_KERNEL | cachemode2protval(_PAGE_CACHE_MODE_WC)))
++	if (!pat_enabled() && pgprot2cachemode(prot) != _PAGE_CACHE_MODE_WB)
+ 		prot = __pgprot(__PAGE_KERNEL |
+ 				cachemode2protval(_PAGE_CACHE_MODE_UC_MINUS));
+ 
+diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
+index b0da3588b452..cc0f17c5ad9f 100644
+--- a/arch/x86/mm/ioremap.c
++++ b/arch/x86/mm/ioremap.c
+@@ -292,11 +292,8 @@ EXPORT_SYMBOL_GPL(ioremap_uc);
+  */
+ void __iomem *ioremap_wc(resource_size_t phys_addr, unsigned long size)
+ {
+-	if (pat_enabled())
+-		return __ioremap_caller(phys_addr, size, _PAGE_CACHE_MODE_WC,
++	return __ioremap_caller(phys_addr, size, _PAGE_CACHE_MODE_WC,
+ 					__builtin_return_address(0));
+-	else
+-		return ioremap_nocache(phys_addr, size);
+ }
+ EXPORT_SYMBOL(ioremap_wc);
+ 
+diff --git a/arch/x86/mm/pageattr.c b/arch/x86/mm/pageattr.c
+index 70d221fe2eb4..94aae76a5e06 100644
+--- a/arch/x86/mm/pageattr.c
++++ b/arch/x86/mm/pageattr.c
+@@ -1571,9 +1571,6 @@ int set_memory_wc(unsigned long addr, int numpages)
+ {
+ 	int ret;
+ 
+-	if (!pat_enabled())
+-		return set_memory_uc(addr, numpages);
+-
+ 	ret = reserve_memtype(__pa(addr), __pa(addr) + numpages * PAGE_SIZE,
+ 		_PAGE_CACHE_MODE_WC, NULL);
+ 	if (ret)
+diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
+index 62171cb2b0cb..e65555e0fe3d 100644
+--- a/arch/x86/mm/pat.c
++++ b/arch/x86/mm/pat.c
+@@ -432,12 +432,8 @@ int reserve_memtype(u64 start, u64 end, enum page_cache_mode req_type,
+ 
+ 	if (!pat_enabled()) {
+ 		/* This is identical to page table setting without PAT */
+-		if (new_type) {
+-			if (req_type == _PAGE_CACHE_MODE_WC)
+-				*new_type = _PAGE_CACHE_MODE_UC_MINUS;
+-			else
+-				*new_type = req_type;
+-		}
++		if (new_type)
++			*new_type = req_type;
+ 		return 0;
+ 	}
+ 
+@@ -941,11 +937,8 @@ void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
+ 
+ pgprot_t pgprot_writecombine(pgprot_t prot)
+ {
+-	if (pat_enabled())
+-		return __pgprot(pgprot_val(prot) |
++	return __pgprot(pgprot_val(prot) |
+ 				cachemode2protval(_PAGE_CACHE_MODE_WC));
+-	else
+-		return pgprot_noncached(prot);
+ }
+ EXPORT_SYMBOL_GPL(pgprot_writecombine);
+ 
+-- 
+2.3.5
 
-Thanks,
-Rafael
