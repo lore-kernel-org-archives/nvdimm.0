@@ -1,641 +1,277 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v4 07/21] libnd, nfit: regions (block-data-window,
- persistent memory, volatile memory)
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 27 May 2015 18:25:20 -0400
-Message-ID: <20150527222520.17965.56109.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Message-ID: <556AEA3D.4000502@suse.com>
+Date: Sun, 31 May 2015 13:02:21 +0200
+From: Juergen Gross <jgross@suse.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@kernel.dk
-Cc: mingo@kernel.org, sfr@canb.auug.org.au, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, akpm@linux-foundation.org, hch@lst.de
+Subject: Re: [PATCH 2/4] x86/pat: Merge pat_init_cache_modes() into its caller
+References: <20150531094655.GA20440@pd.tnic> <1433065686-20922-1-git-send-email-bp@alien8.de> <1433065686-20922-2-git-send-email-bp@alien8.de> <20150531102338.GB20440@pd.tnic>
+In-Reply-To: <20150531102338.GB20440@pd.tnic>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Sender: owner-linux-mm@kvack.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@amacapital.net>, arnd@arndb.de, Elliott@hp.com, hch@lst.de, hmh@hmh.eng.br, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, konrad.wilk@oracle.com, linux-mm <linux-mm@kvack.org>, linux-nvdimm@lists.01.org, "Luis R. Rodriguez" <mcgrof@suse.com>, stefan.bader@canonical.com, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, x86-ml <x86@kernel.org>, yigal@plexistor.com, lkml <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A "region" device represents the maximum capacity of a BLK range (mmio
-block-data-window(s)), or a PMEM range (DAX-capable persistent memory or
-volatile memory), without regard for aliasing.  Aliasing, in the
-dimm-local address space (DPA), is resolved by metadata on a dimm to
-designate which exclusive interface will access the aliased DPA ranges.
-Support for the per-dimm metadata/label arrvies is in a subsequent
-patch.
+On 05/31/2015 12:23 PM, Borislav Petkov wrote:
+> On Sun, May 31, 2015 at 11:48:04AM +0200, Borislav Petkov wrote:
+>> From: Borislav Petkov <bp@suse.de>
+>>
+>> This way we can pass pat MSR value directly.
+>
+> This breaks xen as that function is used there, doh. :-\
+>
+> Jürgen,
+>
+> can you check the enlighten.c changes below please?
 
-The name format of "region" devices is "regionN" where, like dimms, N is
-a global ida index assigned at discovery time.  This id is not reliable
-across reboots nor in the presence of hotplug.  Look to attributes of
-the region or static id-data of the sub-namespace to generate a
-persistent name.  However, if the platform configuration does not change
-it is reasonable to expect the same region id to be assigned at the next
-boot.
+Acked-by: Juergen Gross <jgross@suse.com>
 
-"region"s have 2 generic attributes "size", and "mapping"s where:
-- size: the BLK accessible capacity or the span of the
-  system physical address range in the case of PMEM.
+>
+> I'm reading xen's PAT config from MSR_IA32_CR_PAT and handing it down to
+> pat_init_cache_modes(). That shouldn't change current behavior AFAICT
+> because pat_init_cache_modes() did it itself before.
+>
+> Right?
+>
+> Thanks.
+>
+> ---
+> Author: Borislav Petkov <bp@suse.de>
+> Date:   Sat May 30 13:09:55 2015 +0200
+>
+>      x86/pat: Emulate PAT when it is disabled
+>
+>      In the case when PAT is disabled on the command line with "nopat" or
+>      when virtualization doesn't support PAT (correctly) - see
+>
+>        9d34cfdf4796 ("x86: Don't rely on VMWare emulating PAT MSR correctly").
+>
+>      we emulate it using the PWT and PCD cache attribute bits. Get rid of
+>      boot_pat_state while at it.
+>
+>      Based on a conglomerate patch from Toshi Kani.
+>
+>      Signed-off-by: Borislav Petkov <bp@suse.de>
+>      Cc: Andrew Morton <akpm@linux-foundation.org>
+>      Cc: Andy Lutomirski <luto@amacapital.net>
+>      Cc: arnd@arndb.de
+>      Cc: Elliott@hp.com
+>      Cc: hch@lst.de
+>      Cc: hmh@hmh.eng.br
+>      Cc: H. Peter Anvin <hpa@zytor.com>
+>      Cc: Ingo Molnar <mingo@redhat.com>
+>      Cc: jgross@suse.com
+>      Cc: konrad.wilk@oracle.com
+>      Cc: linux-mm <linux-mm@kvack.org>
+>      Cc: linux-nvdimm@lists.01.org
+>      Cc: Luis R. Rodriguez <mcgrof@suse.com>
+>      Cc: stefan.bader@canonical.com
+>      Cc: Thomas Gleixner <tglx@linutronix.de>
+>      Cc: Toshi Kani <toshi.kani@hp.com>
+>      Cc: x86-ml <x86@kernel.org>
+>      Cc: yigal@plexistor.com
+>
+> diff --git a/arch/x86/include/asm/pat.h b/arch/x86/include/asm/pat.h
+> index cdcff7f7f694..ca6c228d5e62 100644
+> --- a/arch/x86/include/asm/pat.h
+> +++ b/arch/x86/include/asm/pat.h
+> @@ -6,7 +6,7 @@
+>
+>   bool pat_enabled(void);
+>   extern void pat_init(void);
+> -void pat_init_cache_modes(void);
+> +void pat_init_cache_modes(u64);
+>
+>   extern int reserve_memtype(u64 start, u64 end,
+>   		enum page_cache_mode req_pcm, enum page_cache_mode *ret_pcm);
+> diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
+> index 1d553186c434..8533b46e6bee 100644
+> --- a/arch/x86/mm/init.c
+> +++ b/arch/x86/mm/init.c
+> @@ -40,7 +40,7 @@
+>    */
+>   uint16_t __cachemode2pte_tbl[_PAGE_CACHE_MODE_NUM] = {
+>   	[_PAGE_CACHE_MODE_WB      ]	= 0         | 0        ,
+> -	[_PAGE_CACHE_MODE_WC      ]	= _PAGE_PWT | 0        ,
+> +	[_PAGE_CACHE_MODE_WC      ]	= 0         | _PAGE_PCD,
+>   	[_PAGE_CACHE_MODE_UC_MINUS]	= 0         | _PAGE_PCD,
+>   	[_PAGE_CACHE_MODE_UC      ]	= _PAGE_PWT | _PAGE_PCD,
+>   	[_PAGE_CACHE_MODE_WT      ]	= 0         | _PAGE_PCD,
+> @@ -50,11 +50,11 @@ EXPORT_SYMBOL(__cachemode2pte_tbl);
+>
+>   uint8_t __pte2cachemode_tbl[8] = {
+>   	[__pte2cm_idx( 0        | 0         | 0        )] = _PAGE_CACHE_MODE_WB,
+> -	[__pte2cm_idx(_PAGE_PWT | 0         | 0        )] = _PAGE_CACHE_MODE_WC,
+> +	[__pte2cm_idx(_PAGE_PWT | 0         | 0        )] = _PAGE_CACHE_MODE_UC_MINUS,
+>   	[__pte2cm_idx( 0        | _PAGE_PCD | 0        )] = _PAGE_CACHE_MODE_UC_MINUS,
+>   	[__pte2cm_idx(_PAGE_PWT | _PAGE_PCD | 0        )] = _PAGE_CACHE_MODE_UC,
+>   	[__pte2cm_idx( 0        | 0         | _PAGE_PAT)] = _PAGE_CACHE_MODE_WB,
+> -	[__pte2cm_idx(_PAGE_PWT | 0         | _PAGE_PAT)] = _PAGE_CACHE_MODE_WC,
+> +	[__pte2cm_idx(_PAGE_PWT | 0         | _PAGE_PAT)] = _PAGE_CACHE_MODE_UC_MINUS,
+>   	[__pte2cm_idx(0         | _PAGE_PCD | _PAGE_PAT)] = _PAGE_CACHE_MODE_UC_MINUS,
+>   	[__pte2cm_idx(_PAGE_PWT | _PAGE_PCD | _PAGE_PAT)] = _PAGE_CACHE_MODE_UC,
+>   };
+> diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
+> index 476d0780560f..6dc7826e4797 100644
+> --- a/arch/x86/mm/pat.c
+> +++ b/arch/x86/mm/pat.c
+> @@ -68,8 +68,6 @@ static int __init pat_debug_setup(char *str)
+>   }
+>   __setup("debugpat", pat_debug_setup);
+>
+> -static u64 __read_mostly boot_pat_state;
+> -
+>   #ifdef CONFIG_X86_PAT
+>   /*
+>    * X86 PAT uses page flags WC and Uncached together to keep track of
+> @@ -177,14 +175,12 @@ static enum page_cache_mode pat_get_cache_mode(unsigned pat_val, char *msg)
+>    * configuration.
+>    * Using lower indices is preferred, so we start with highest index.
+>    */
+> -void pat_init_cache_modes(void)
+> +void pat_init_cache_modes(u64 pat)
+>   {
+> -	int i;
+>   	enum page_cache_mode cache;
+>   	char pat_msg[33];
+> -	u64 pat;
+> +	int i;
+>
+> -	rdmsrl(MSR_IA32_CR_PAT, pat);
+>   	pat_msg[32] = 0;
+>   	for (i = 7; i >= 0; i--) {
+>   		cache = pat_get_cache_mode((pat >> (i * 8)) & 7,
+> @@ -198,24 +194,33 @@ void pat_init_cache_modes(void)
+>
+>   static void pat_bsp_init(u64 pat)
+>   {
+> +	u64 tmp_pat;
+> +
+>   	if (!cpu_has_pat) {
+>   		pat_disable("PAT not supported by CPU.");
+>   		return;
+>   	}
+>
+> -	rdmsrl(MSR_IA32_CR_PAT, boot_pat_state);
+> -	if (!boot_pat_state) {
+> +	if (!pat_enabled())
+> +		goto done;
+> +
+> +	rdmsrl(MSR_IA32_CR_PAT, tmp_pat);
+> +	if (!tmp_pat) {
+>   		pat_disable("PAT MSR is 0, disabled.");
+>   		return;
+>   	}
+>
+>   	wrmsrl(MSR_IA32_CR_PAT, pat);
+>
+> -	pat_init_cache_modes();
+> +done:
+> +	pat_init_cache_modes(pat);
+>   }
+>
+>   static void pat_ap_init(u64 pat)
+>   {
+> +	if (!pat_enabled())
+> +		return;
+> +
+>   	if (!cpu_has_pat) {
+>   		/*
+>   		 * If this happens we are on a secondary CPU, but switched to
+> @@ -231,25 +236,45 @@ void pat_init(void)
+>   {
+>   	u64 pat;
+>
+> -	if (!pat_enabled())
+> -		return;
+> -
+> -	/*
+> -	 * Set PWT to Write-Combining. All other bits stay the same:
+> -	 *
+> -	 * PTE encoding used in Linux:
+> -	 *      PAT
+> -	 *      |PCD
+> -	 *      ||PWT
+> -	 *      |||
+> -	 *      000 WB		_PAGE_CACHE_WB
+> -	 *      001 WC		_PAGE_CACHE_WC
+> -	 *      010 UC-		_PAGE_CACHE_UC_MINUS
+> -	 *      011 UC		_PAGE_CACHE_UC
+> -	 * PAT bit unused
+> -	 */
+> -	pat = PAT(0, WB) | PAT(1, WC) | PAT(2, UC_MINUS) | PAT(3, UC) |
+> -	      PAT(4, WB) | PAT(5, WC) | PAT(6, UC_MINUS) | PAT(7, UC);
+> +	if (!pat_enabled()) {
+> +		/*
+> +		 * No PAT. Emulate the PAT table that corresponds to the two
+> +		 * cache bits, PWT (Write Through) and PCD (Cache Disable). This
+> +		 * setup is the same as the BIOS default setup when the system
+> +		 * has PAT but the "nopat" boot option has been specified. This
+> +		 * emulated PAT table is used when MSR_IA32_CR_PAT returns 0.
+> +		 *
+> +		 * PTE encoding used:
+> +		 *
+> +		 *       PCD
+> +		 *       |PWT  PAT
+> +		 *       ||    slot
+> +		 *       00    0    WB : _PAGE_CACHE_MODE_WB
+> +		 *       01    1    WT : _PAGE_CACHE_MODE_WT
+> +		 *       10    2    UC-: _PAGE_CACHE_MODE_UC_MINUS
+> +		 *       11    3    UC : _PAGE_CACHE_MODE_UC
+> +		 *
+> +		 * NOTE: When WC or WP is used, it is redirected to UC- per
+> +		 * the default setup in __cachemode2pte_tbl[].
+> +		 */
+> +		pat = PAT(0, WB) | PAT(1, WT) | PAT(2, UC_MINUS) | PAT(3, UC) |
+> +		      PAT(4, WB) | PAT(5, WT) | PAT(6, UC_MINUS) | PAT(7, UC);
+> +	} else {
+> +		/*
+> +		 * PTE encoding used in Linux:
+> +		 *      PAT
+> +		 *      |PCD
+> +		 *      ||PWT
+> +		 *      |||
+> +		 *      000 WB          _PAGE_CACHE_WB
+> +		 *      001 WC          _PAGE_CACHE_WC
+> +		 *      010 UC-         _PAGE_CACHE_UC_MINUS
+> +		 *      011 UC          _PAGE_CACHE_UC
+> +		 * PAT bit unused
+> +		 */
+> +		pat = PAT(0, WB) | PAT(1, WC) | PAT(2, UC_MINUS) | PAT(3, UC) |
+> +		      PAT(4, WB) | PAT(5, WC) | PAT(6, UC_MINUS) | PAT(7, UC);
+> +	}
+>
+>   	if (!boot_cpu_done) {
+>   		pat_bsp_init(pat);
+> diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+> index 46957ead3060..53233a9beea9 100644
+> --- a/arch/x86/xen/enlighten.c
+> +++ b/arch/x86/xen/enlighten.c
+> @@ -1467,6 +1467,7 @@ asmlinkage __visible void __init xen_start_kernel(void)
+>   {
+>   	struct physdev_set_iopl set_iopl;
+>   	unsigned long initrd_start = 0;
+> +	u64 pat;
+>   	int rc;
+>
+>   	if (!xen_start_info)
+> @@ -1574,8 +1575,8 @@ asmlinkage __visible void __init xen_start_kernel(void)
+>   	 * Modify the cache mode translation tables to match Xen's PAT
+>   	 * configuration.
+>   	 */
+> -
+> -	pat_init_cache_modes();
+> +	rdmsrl(MSR_IA32_CR_PAT, pat);
+> +	pat_init_cache_modes(pat);
+>
+>   	/* keep using Xen gdt for now; no urgent need to change it */
+>
+>
+>
 
-- mappingN: a tuple describing a dimm's contribution to the region's
-  capacity in the format (<nmemX>,<dpa>,<size>).  For a
-  PMEM-region there will be at least one mapping per dimm in the interleave
-  set.  For a BLK-region there is only "mapping0" listing the starting
-  DPA of the BLK-region and the available DPA capacity of that space
-  (matches "size" above).
-
-The max number of mappings per "region" is hard coded per the constraints of
-sysfs attribute groups.  That said the number of mappings per region should
-never exceed the maximum number of possible dimms in the system.  If the
-current number turns out to not be enough then the "mappings" attribute
-clarifies how many there are supposed to be. "32 should be enough for
-anybody...".
-
-Cc: Neil Brown <neilb@suse.de>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit.c            |  130 ++++++++++++++++++
- drivers/block/nd/Makefile      |    1 
- drivers/block/nd/nd-private.h  |    3 
- drivers/block/nd/nd.h          |   11 +
- drivers/block/nd/region_devs.c |  294 ++++++++++++++++++++++++++++++++++++++++
- include/linux/libnd.h          |   25 +++
- 6 files changed, 463 insertions(+), 1 deletion(-)
- create mode 100644 drivers/block/nd/region_devs.c
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index c75f4bf1c230..93a761abab91 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -716,11 +716,135 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
- 			set_bit(i, &nd_desc->dsm_mask);
- }
- 
-+static ssize_t range_index_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+	struct nfit_spa *nfit_spa = nd_region_provider_data(nd_region);
-+
-+	return sprintf(buf, "%d\n", nfit_spa->spa->range_index);
-+}
-+static DEVICE_ATTR_RO(range_index);
-+
-+static struct attribute *acpi_nfit_region_attributes[] = {
-+	&dev_attr_range_index.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group acpi_nfit_region_attribute_group = {
-+	.name = "nfit",
-+	.attrs = acpi_nfit_region_attributes,
-+};
-+
-+static const struct attribute_group *acpi_nfit_region_attribute_groups[] = {
-+	&nd_region_attribute_group,
-+	&nd_mapping_attribute_group,
-+	&acpi_nfit_region_attribute_group,
-+	NULL,
-+};
-+
-+static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
-+		struct nfit_spa *nfit_spa)
-+{
-+	static struct nd_mapping nd_mappings[ND_MAX_MAPPINGS];
-+	struct acpi_nfit_system_address *spa = nfit_spa->spa;
-+	struct nfit_memdev *nfit_memdev;
-+	struct nd_region_desc ndr_desc;
-+	int spa_type, count = 0;
-+	struct resource res;
-+	u16 range_index;
-+
-+	spa_type = nfit_spa_type(spa);
-+	range_index = spa->range_index;
-+	if (range_index == 0) {
-+		dev_dbg(acpi_desc->dev, "%s: detected invalid spa index\n",
-+				__func__);
-+		return 0;
-+	}
-+
-+	memset(&res, 0, sizeof(res));
-+	memset(&nd_mappings, 0, sizeof(nd_mappings));
-+	memset(&ndr_desc, 0, sizeof(ndr_desc));
-+	res.start = spa->address;
-+	res.end = res.start + spa->length - 1;
-+	ndr_desc.res = &res;
-+	ndr_desc.provider_data = nfit_spa;
-+	ndr_desc.attr_groups = acpi_nfit_region_attribute_groups;
-+	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
-+		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
-+		struct nd_mapping *nd_mapping;
-+		struct nd_dimm *nd_dimm;
-+
-+		if (memdev->range_index != range_index)
-+			continue;
-+		if (count >= ND_MAX_MAPPINGS) {
-+			dev_err(acpi_desc->dev, "spa%d exceeds max mappings %d\n",
-+					range_index, ND_MAX_MAPPINGS);
-+			return -ENXIO;
-+		}
-+		nd_dimm = acpi_nfit_dimm_by_handle(acpi_desc, memdev->device_handle);
-+		if (!nd_dimm) {
-+			dev_err(acpi_desc->dev, "spa%d dimm: %#x not found\n",
-+					range_index, memdev->device_handle);
-+			return -ENODEV;
-+		}
-+		nd_mapping = &nd_mappings[count++];
-+		nd_mapping->nd_dimm = nd_dimm;
-+		if (spa_type == NFIT_SPA_PM || spa_type == NFIT_SPA_VOLATILE) {
-+			nd_mapping->start = memdev->address;
-+			nd_mapping->size = memdev->region_size;
-+		} else if (spa_type == NFIT_SPA_DCR) {
-+			struct nfit_mem *nfit_mem;
-+			int blk_valid = 1;
-+
-+			nfit_mem = nd_dimm_provider_data(nd_dimm);
-+			if (!nfit_mem || !nfit_mem->bdw) {
-+				dev_dbg(acpi_desc->dev, "%s: spa%d missing bdw\n",
-+						nd_dimm_name(nd_dimm), range_index);
-+				blk_valid = 0;
-+			} else {
-+				nd_mapping->size = nfit_mem->bdw->capacity;
-+				nd_mapping->start = nfit_mem->bdw->start_address;
-+			}
-+
-+			ndr_desc.nd_mapping = nd_mapping;
-+			ndr_desc.num_mappings = blk_valid;
-+			if (!nd_blk_region_create(acpi_desc->nd_bus, &ndr_desc))
-+				return -ENOMEM;
-+		}
-+	}
-+
-+	ndr_desc.nd_mapping = nd_mappings;
-+	ndr_desc.num_mappings = count;
-+	if (spa_type == NFIT_SPA_PM) {
-+		if (!nd_pmem_region_create(acpi_desc->nd_bus, &ndr_desc))
-+			return -ENOMEM;
-+	} else if (spa_type == NFIT_SPA_VOLATILE) {
-+		if (!nd_volatile_region_create(acpi_desc->nd_bus, &ndr_desc))
-+			return -ENOMEM;
-+	}
-+	return 0;
-+}
-+
-+static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
-+{
-+	struct nfit_spa *nfit_spa;
-+
-+	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-+		int rc = acpi_nfit_register_region(acpi_desc, nfit_spa);
-+
-+		if (rc)
-+			return rc;
-+	}
-+	return 0;
-+}
-+
- static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- {
- 	struct device *dev = acpi_desc->dev;
- 	const void *end;
- 	u8 *data;
-+	int rc;
- 
- 	INIT_LIST_HEAD(&acpi_desc->spas);
- 	INIT_LIST_HEAD(&acpi_desc->dcrs);
-@@ -745,7 +869,11 @@ static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- 
- 	acpi_nfit_init_dsms(acpi_desc);
- 
--	return acpi_nfit_register_dimms(acpi_desc);
-+	rc = acpi_nfit_register_dimms(acpi_desc);
-+	if (rc)
-+		return rc;
-+
-+	return acpi_nfit_register_regions(acpi_desc);
- }
- 
- static int acpi_nfit_add(struct acpi_device *adev)
-diff --git a/drivers/block/nd/Makefile b/drivers/block/nd/Makefile
-index d9ef4496e8d3..43fdf4b206d6 100644
---- a/drivers/block/nd/Makefile
-+++ b/drivers/block/nd/Makefile
-@@ -4,3 +4,4 @@ libnd-y := core.o
- libnd-y += bus.o
- libnd-y += dimm_devs.o
- libnd-y += dimm.o
-+libnd-y += region_devs.o
-diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
-index a333f3401ca7..8fee471e8dfc 100644
---- a/drivers/block/nd/nd-private.h
-+++ b/drivers/block/nd/nd-private.h
-@@ -42,5 +42,8 @@ void __exit nd_dimm_exit(void);
- int nd_bus_create_ndctl(struct nd_bus *nd_bus);
- void nd_bus_destroy_ndctl(struct nd_bus *nd_bus);
- void nd_synchronize(void);
-+int nd_bus_register_dimms(struct nd_bus *nd_bus);
-+int nd_bus_register_regions(struct nd_bus *nd_bus);
-+int nd_match_dimm(struct device *dev, void *data);
- bool is_nd_dimm(struct device *dev);
- #endif /* __ND_PRIVATE_H__ */
-diff --git a/drivers/block/nd/nd.h b/drivers/block/nd/nd.h
-index 1a5a081ce640..d08871ceb3cf 100644
---- a/drivers/block/nd/nd.h
-+++ b/drivers/block/nd/nd.h
-@@ -13,6 +13,7 @@
- #ifndef __ND_H__
- #define __ND_H__
- #include <linux/device.h>
-+#include <linux/libnd.h>
- #include <linux/mutex.h>
- #include <linux/ndctl.h>
- 
-@@ -22,6 +23,16 @@ struct nd_dimm_drvdata {
- 	void *data;
- };
- 
-+struct nd_region {
-+	struct device dev;
-+	u16 ndr_mappings;
-+	u64 ndr_size;
-+	u64 ndr_start;
-+	int id;
-+	void *provider_data;
-+	struct nd_mapping mapping[0];
-+};
-+
- enum nd_async_mode {
- 	ND_SYNC,
- 	ND_ASYNC,
-diff --git a/drivers/block/nd/region_devs.c b/drivers/block/nd/region_devs.c
-new file mode 100644
-index 000000000000..12a5415acfcc
---- /dev/null
-+++ b/drivers/block/nd/region_devs.c
-@@ -0,0 +1,294 @@
-+/*
-+ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#include <linux/slab.h>
-+#include <linux/io.h>
-+#include "nd-private.h"
-+#include "nd.h"
-+
-+static DEFINE_IDA(region_ida);
-+
-+static void nd_region_release(struct device *dev)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+	u16 i;
-+
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+		struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
-+
-+		put_device(&nd_dimm->dev);
-+	}
-+	ida_simple_remove(&region_ida, nd_region->id);
-+	kfree(nd_region);
-+}
-+
-+static struct device_type nd_blk_device_type = {
-+	.name = "nd_blk",
-+	.release = nd_region_release,
-+};
-+
-+static struct device_type nd_pmem_device_type = {
-+	.name = "nd_pmem",
-+	.release = nd_region_release,
-+};
-+
-+static struct device_type nd_volatile_device_type = {
-+	.name = "nd_volatile",
-+	.release = nd_region_release,
-+};
-+
-+static bool is_nd_pmem(struct device *dev)
-+{
-+	return dev ? dev->type == &nd_pmem_device_type : false;
-+}
-+
-+struct nd_region *to_nd_region(struct device *dev)
-+{
-+	struct nd_region *nd_region = container_of(dev, struct nd_region, dev);
-+
-+	WARN_ON(dev->type->release != nd_region_release);
-+	return nd_region;
-+}
-+EXPORT_SYMBOL_GPL(to_nd_region);
-+
-+static ssize_t size_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+	unsigned long long size = 0;
-+
-+	if (is_nd_pmem(dev)) {
-+		size = nd_region->ndr_size;
-+	} else if (nd_region->ndr_mappings == 1) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[0];
-+
-+		size = nd_mapping->size;
-+	}
-+
-+	return sprintf(buf, "%llu\n", size);
-+}
-+static DEVICE_ATTR_RO(size);
-+
-+static ssize_t mappings_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+
-+	return sprintf(buf, "%d\n", nd_region->ndr_mappings);
-+}
-+static DEVICE_ATTR_RO(mappings);
-+
-+static struct attribute *nd_region_attributes[] = {
-+	&dev_attr_size.attr,
-+	&dev_attr_mappings.attr,
-+	NULL,
-+};
-+
-+struct attribute_group nd_region_attribute_group = {
-+	.attrs = nd_region_attributes,
-+};
-+EXPORT_SYMBOL_GPL(nd_region_attribute_group);
-+
-+static ssize_t mappingN(struct device *dev, char *buf, int n)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+	struct nd_mapping *nd_mapping;
-+	struct nd_dimm *nd_dimm;
-+
-+	if (n >= nd_region->ndr_mappings)
-+		return -ENXIO;
-+	nd_mapping = &nd_region->mapping[n];
-+	nd_dimm = nd_mapping->nd_dimm;
-+
-+	return sprintf(buf, "%s,%llu,%llu\n", dev_name(&nd_dimm->dev),
-+			nd_mapping->start, nd_mapping->size);
-+}
-+
-+#define REGION_MAPPING(idx) \
-+static ssize_t mapping##idx##_show(struct device *dev,		\
-+		struct device_attribute *attr, char *buf)	\
-+{								\
-+	return mappingN(dev, buf, idx);				\
-+}								\
-+static DEVICE_ATTR_RO(mapping##idx)
-+
-+/*
-+ * 32 should be enough for a while, even in the presence of socket
-+ * interleave a 32-way interleave set is a degenerate case.
-+ */
-+REGION_MAPPING(0);
-+REGION_MAPPING(1);
-+REGION_MAPPING(2);
-+REGION_MAPPING(3);
-+REGION_MAPPING(4);
-+REGION_MAPPING(5);
-+REGION_MAPPING(6);
-+REGION_MAPPING(7);
-+REGION_MAPPING(8);
-+REGION_MAPPING(9);
-+REGION_MAPPING(10);
-+REGION_MAPPING(11);
-+REGION_MAPPING(12);
-+REGION_MAPPING(13);
-+REGION_MAPPING(14);
-+REGION_MAPPING(15);
-+REGION_MAPPING(16);
-+REGION_MAPPING(17);
-+REGION_MAPPING(18);
-+REGION_MAPPING(19);
-+REGION_MAPPING(20);
-+REGION_MAPPING(21);
-+REGION_MAPPING(22);
-+REGION_MAPPING(23);
-+REGION_MAPPING(24);
-+REGION_MAPPING(25);
-+REGION_MAPPING(26);
-+REGION_MAPPING(27);
-+REGION_MAPPING(28);
-+REGION_MAPPING(29);
-+REGION_MAPPING(30);
-+REGION_MAPPING(31);
-+
-+static umode_t nd_mapping_visible(struct kobject *kobj, struct attribute *a, int n)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct nd_region *nd_region = to_nd_region(dev);
-+
-+	if (n < nd_region->ndr_mappings)
-+		return a->mode;
-+	return 0;
-+}
-+
-+static struct attribute *nd_mapping_attributes[] = {
-+	&dev_attr_mapping0.attr,
-+	&dev_attr_mapping1.attr,
-+	&dev_attr_mapping2.attr,
-+	&dev_attr_mapping3.attr,
-+	&dev_attr_mapping4.attr,
-+	&dev_attr_mapping5.attr,
-+	&dev_attr_mapping6.attr,
-+	&dev_attr_mapping7.attr,
-+	&dev_attr_mapping8.attr,
-+	&dev_attr_mapping9.attr,
-+	&dev_attr_mapping10.attr,
-+	&dev_attr_mapping11.attr,
-+	&dev_attr_mapping12.attr,
-+	&dev_attr_mapping13.attr,
-+	&dev_attr_mapping14.attr,
-+	&dev_attr_mapping15.attr,
-+	&dev_attr_mapping16.attr,
-+	&dev_attr_mapping17.attr,
-+	&dev_attr_mapping18.attr,
-+	&dev_attr_mapping19.attr,
-+	&dev_attr_mapping20.attr,
-+	&dev_attr_mapping21.attr,
-+	&dev_attr_mapping22.attr,
-+	&dev_attr_mapping23.attr,
-+	&dev_attr_mapping24.attr,
-+	&dev_attr_mapping25.attr,
-+	&dev_attr_mapping26.attr,
-+	&dev_attr_mapping27.attr,
-+	&dev_attr_mapping28.attr,
-+	&dev_attr_mapping29.attr,
-+	&dev_attr_mapping30.attr,
-+	&dev_attr_mapping31.attr,
-+	NULL,
-+};
-+
-+struct attribute_group nd_mapping_attribute_group = {
-+	.is_visible = nd_mapping_visible,
-+	.attrs = nd_mapping_attributes,
-+};
-+EXPORT_SYMBOL_GPL(nd_mapping_attribute_group);
-+
-+void *nd_region_provider_data(struct nd_region *nd_region)
-+{
-+	return nd_region->provider_data;
-+}
-+EXPORT_SYMBOL_GPL(nd_region_provider_data);
-+
-+static noinline struct nd_region *nd_region_create(struct nd_bus *nd_bus,
-+		struct nd_region_desc *ndr_desc, struct device_type *dev_type)
-+{
-+	struct nd_region *nd_region;
-+	struct device *dev;
-+	u16 i;
-+
-+	for (i = 0; i < ndr_desc->num_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &ndr_desc->nd_mapping[i];
-+		struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
-+
-+		if ((nd_mapping->start | nd_mapping->size) % SZ_4K) {
-+			dev_err(&nd_bus->dev, "%pf: %s mapping%d is not 4K aligned\n",
-+					__builtin_return_address(0),
-+					dev_name(&nd_dimm->dev), i);
-+
-+			return NULL;
-+		}
-+	}
-+
-+	nd_region = kzalloc(sizeof(struct nd_region)
-+			+ sizeof(struct nd_mapping) * ndr_desc->num_mappings,
-+			GFP_KERNEL);
-+	if (!nd_region)
-+		return NULL;
-+	nd_region->id = ida_simple_get(&region_ida, 0, 0, GFP_KERNEL);
-+	if (nd_region->id < 0) {
-+		kfree(nd_region);
-+		return NULL;
-+	}
-+
-+	memcpy(nd_region->mapping, ndr_desc->nd_mapping,
-+			sizeof(struct nd_mapping) * ndr_desc->num_mappings);
-+	for (i = 0; i < ndr_desc->num_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &ndr_desc->nd_mapping[i];
-+		struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
-+
-+		get_device(&nd_dimm->dev);
-+	}
-+	nd_region->ndr_mappings = ndr_desc->num_mappings;
-+	nd_region->provider_data = ndr_desc->provider_data;
-+	dev = &nd_region->dev;
-+	dev_set_name(dev, "region%d", nd_region->id);
-+	dev->parent = &nd_bus->dev;
-+	dev->type = dev_type;
-+	dev->groups = ndr_desc->attr_groups;
-+	nd_region->ndr_size = resource_size(ndr_desc->res);
-+	nd_region->ndr_start = ndr_desc->res->start;
-+	nd_device_register(dev);
-+
-+	return nd_region;
-+}
-+
-+struct nd_region *nd_pmem_region_create(struct nd_bus *nd_bus,
-+		struct nd_region_desc *ndr_desc)
-+{
-+	return nd_region_create(nd_bus, ndr_desc, &nd_pmem_device_type);
-+}
-+EXPORT_SYMBOL_GPL(nd_pmem_region_create);
-+
-+struct nd_region *nd_blk_region_create(struct nd_bus *nd_bus,
-+		struct nd_region_desc *ndr_desc)
-+{
-+	if (ndr_desc->num_mappings > 1)
-+		return NULL;
-+	return nd_region_create(nd_bus, ndr_desc, &nd_blk_device_type);
-+}
-+EXPORT_SYMBOL_GPL(nd_blk_region_create);
-+
-+struct nd_region *nd_volatile_region_create(struct nd_bus *nd_bus,
-+		struct nd_region_desc *ndr_desc)
-+{
-+	return nd_region_create(nd_bus, ndr_desc, &nd_volatile_device_type);
-+}
-+EXPORT_SYMBOL_GPL(nd_volatile_region_create);
-diff --git a/include/linux/libnd.h b/include/linux/libnd.h
-index 0d7e82401e4b..f45407727216 100644
---- a/include/linux/libnd.h
-+++ b/include/linux/libnd.h
-@@ -25,11 +25,14 @@ enum {
- 	ND_CMD_MAX_ELEM = 4,
- 	ND_CMD_MAX_ENVELOPE = 16,
- 	ND_CMD_ARS_QUERY_MAX = SZ_4K,
-+	ND_MAX_MAPPINGS = 32,
- };
- 
- extern struct attribute_group nd_bus_attribute_group;
- extern struct attribute_group nd_dimm_attribute_group;
- extern struct attribute_group nd_device_attribute_group;
-+extern struct attribute_group nd_region_attribute_group;
-+extern struct attribute_group nd_mapping_attribute_group;
- 
- struct nd_dimm;
- struct nd_bus_descriptor;
-@@ -37,6 +40,12 @@ typedef int (*ndctl_fn)(struct nd_bus_descriptor *nd_desc,
- 		struct nd_dimm *nd_dimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len);
- 
-+struct nd_mapping {
-+	struct nd_dimm *nd_dimm;
-+	u64 start;
-+	u64 size;
-+};
-+
- struct nd_bus_descriptor {
- 	const struct attribute_group **attr_groups;
- 	unsigned long dsm_mask;
-@@ -51,6 +60,14 @@ struct nd_cmd_desc {
- 	int out_sizes[ND_CMD_MAX_ELEM];
- };
- 
-+struct nd_region_desc {
-+	struct resource *res;
-+	struct nd_mapping *nd_mapping;
-+	u16 num_mappings;
-+	const struct attribute_group **attr_groups;
-+	void *provider_data;
-+};
-+
- struct nd_bus;
- struct device;
- struct nd_bus *nd_bus_register(struct device *parent,
-@@ -58,9 +75,11 @@ struct nd_bus *nd_bus_register(struct device *parent,
- void nd_bus_unregister(struct nd_bus *nd_bus);
- struct nd_bus *to_nd_bus(struct device *dev);
- struct nd_dimm *to_nd_dimm(struct device *dev);
-+struct nd_region *to_nd_region(struct device *dev);
- struct nd_bus_descriptor *to_nd_desc(struct nd_bus *nd_bus);
- const char *nd_dimm_name(struct nd_dimm *nd_dimm);
- void *nd_dimm_provider_data(struct nd_dimm *nd_dimm);
-+void *nd_region_provider_data(struct nd_region *nd_region);
- struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
- 		unsigned long *dsm_mask);
-@@ -72,4 +91,10 @@ u32 nd_cmd_out_size(struct nd_dimm *nd_dimm, int cmd,
- 		const struct nd_cmd_desc *desc, int idx, const u32 *in_field,
- 		const u32 *out_field);
- int nd_bus_validate_dimm_count(struct nd_bus *nd_bus, int dimm_count);
-+struct nd_region *nd_pmem_region_create(struct nd_bus *nd_bus,
-+		struct nd_region_desc *ndr_desc);
-+struct nd_region *nd_blk_region_create(struct nd_bus *nd_bus,
-+		struct nd_region_desc *ndr_desc);
-+struct nd_region *nd_volatile_region_create(struct nd_bus *nd_bus,
-+		struct nd_region_desc *ndr_desc);
- #endif /* __LIBND_H__ */
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
