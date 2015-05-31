@@ -1,543 +1,146 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 11/21] libnd,
- nfit: add interleave-set state-tracking infrastructure
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 20 May 2015 16:57:11 -0400
-Message-ID: <20150520205711.32249.27510.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Borislav Petkov <bp@alien8.de>
+Subject: [PATCH 1/4] x86/pat: Untangle pat_init()
+Date: Sun, 31 May 2015 11:48:03 +0200
+Message-Id: <1433065686-20922-1-git-send-email-bp@alien8.de>
+In-Reply-To: <20150531094655.GA20440@pd.tnic>
+References: <20150531094655.GA20440@pd.tnic>
 Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@kernel.dk
-Cc: mingo@kernel.org, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, hch@lst.de
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@amacapital.net>, arnd@arndb.de, Elliott@hp.com, hch@lst.de, hmh@hmh.eng.br, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, jgross@suse.com, konrad.wilk@oracle.com, linux-mm <linux-mm@kvack.org>, linux-nvdimm@lists.01.org, "Luis R. Rodriguez" <mcgrof@suse.com>, stefan.bader@canonical.com, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, x86-ml <x86@kernel.org>, yigal@plexistor.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On platforms that have firmware support for reading/writing per-dimm
-label space, a portion of the dimm may be accessible via an interleave
-set PMEM mapping in addition to the dimm's BLK (block-data-window
-aperture(s)) interface.  A label, stored in a "configuration data
-region" on the dimm, disambiguates which dimm addresses are accessed
-through which exclusive interface.
+From: Borislav Petkov <bp@suse.de>
 
-Add infrastructure that allows the kernel to block modifications to a
-label in the set while any member dimm is active.  Note that this is
-meant only for enforcing "no modifications of active labels" via the
-coarse ioctl command.  Adding/deleting namespaces from an active
-interleave set is always possible via sysfs.
+Split it into a BSP and AP version which makes the PAT initialization
+path actually readable again.
 
-Another aspect of tracking interleave sets is tracking their integrity
-when DIMMs in a set are physically re-ordered.  For this purpose we
-generate an "interleave-set cookie" that can be recorded in a label and
-validated against the current configuration.  It is the bus provider
-implementation's responsibility to calculate the interleave set cookie
-and attach it to a given region.
-
-Cc: Neil Brown <neilb@suse.de>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: arnd@arndb.de
+Cc: Elliott@hp.com
+Cc: hch@lst.de
+Cc: hmh@hmh.eng.br
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: jgross@suse.com
+Cc: konrad.wilk@oracle.com
+Cc: linux-mm <linux-mm@kvack.org>
+Cc: linux-nvdimm@lists.01.org
+Cc: Luis R. Rodriguez <mcgrof@suse.com>
+Cc: stefan.bader@canonical.com
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: x86-ml <x86@kernel.org>
+Cc: yigal@plexistor.com
 ---
- drivers/acpi/nfit.c            |   91 ++++++++++++++++++++++++++++++++++++++++
- drivers/block/nd/bus.c         |   41 ++++++++++++++++++
- drivers/block/nd/core.c        |   17 +++++++
- drivers/block/nd/dimm_devs.c   |   19 ++++++++
- drivers/block/nd/nd-private.h  |   10 ++++
- drivers/block/nd/nd.h          |    1 
- drivers/block/nd/region_devs.c |   85 +++++++++++++++++++++++++++++++++++++
- include/linux/libnd.h          |    6 +++
- 8 files changed, 266 insertions(+), 4 deletions(-)
+ arch/x86/mm/pat.c | 69 ++++++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 40 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index aa719ef0418f..7c4d47492372 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -16,6 +16,7 @@
- #include <linux/ndctl.h>
- #include <linux/list.h>
- #include <linux/acpi.h>
-+#include <linux/sort.h>
- #include "nfit.h"
+diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
+index a1c96544099d..476d0780560f 100644
+--- a/arch/x86/mm/pat.c
++++ b/arch/x86/mm/pat.c
+@@ -36,6 +36,8 @@
+ #undef pr_fmt
+ #define pr_fmt(fmt) "" fmt
  
- static bool force_enable_dimms;
-@@ -744,6 +745,91 @@ static const struct attribute_group *acpi_nfit_region_attribute_groups[] = {
- 	NULL,
- };
++static bool boot_cpu_done;
++
+ static int __read_mostly __pat_enabled = IS_ENABLED(CONFIG_X86_PAT);
  
-+/* enough info to uniquely specify an interleave set */
-+struct nfit_set_info {
-+	struct nfit_set_info_map {
-+		u64 region_offset;
-+		u32 serial_number;
-+		u32 pad;
-+	} mapping[0];
-+};
-+
-+static size_t sizeof_nfit_set_info(int num_mappings)
-+{
-+	return sizeof(struct nfit_set_info)
-+		+ num_mappings * sizeof(struct nfit_set_info_map);
-+}
-+
-+static int cmp_map(const void *m0, const void *m1)
-+{
-+	const struct nfit_set_info_map *map0 = m0;
-+	const struct nfit_set_info_map *map1 = m1;
-+
-+	return memcmp(&map0->region_offset, &map1->region_offset,
-+			sizeof(u64));
-+}
-+
-+/* Retrieve the nth entry referencing this spa */
-+static struct acpi_nfit_memory_map *memdev_from_spa(
-+		struct acpi_nfit_desc *acpi_desc, u16 range_index, int n)
-+{
-+        struct nfit_memdev *nfit_memdev;
-+
-+        list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list)
-+                if (nfit_memdev->memdev->range_index == range_index)
-+                        if (n-- == 0)
-+                                return nfit_memdev->memdev;
-+        return NULL;
-+}
-+
-+static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
-+		struct nd_region_desc *ndr_desc,
-+		struct acpi_nfit_system_address *spa)
-+{
-+	u16 num_mappings = ndr_desc->num_mappings;
-+	int i, spa_type = nfit_spa_type(spa);
-+	struct device *dev = acpi_desc->dev;
-+	struct nd_interleave_set *nd_set;
-+	struct nfit_set_info *info;
-+
-+	if (spa_type == NFIT_SPA_PM || spa_type == NFIT_SPA_VOLATILE)
-+		/* pass */;
-+	else
-+		return 0;
-+
-+	nd_set = devm_kzalloc(dev, sizeof(*nd_set), GFP_KERNEL);
-+	if (!nd_set)
-+		return -ENOMEM;
-+
-+	info = devm_kzalloc(dev, sizeof_nfit_set_info(num_mappings), GFP_KERNEL);
-+	if (!info)
-+		return -ENOMEM;
-+	for (i = 0; i < num_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &ndr_desc->nd_mapping[i];
-+		struct nfit_set_info_map *map = &info->mapping[i];
-+		struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
-+		struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
-+		struct acpi_nfit_memory_map *memdev = memdev_from_spa(acpi_desc,
-+				spa->range_index, i);
-+
-+		if (!memdev || !nfit_mem->dcr) {
-+			dev_err(dev, "%s: failed to find DCR\n", __func__);
-+			return -ENODEV;
-+		}
-+
-+		map->region_offset = memdev->region_offset;
-+		map->serial_number = nfit_mem->dcr->serial_number;
+ static inline void pat_disable(const char *reason)
+@@ -194,31 +196,47 @@ void pat_init_cache_modes(void)
+ 
+ #define PAT(x, y)	((u64)PAT_ ## y << ((x)*8))
+ 
+-void pat_init(void)
++static void pat_bsp_init(u64 pat)
+ {
+-	u64 pat;
+-	bool boot_cpu = !boot_pat_state;
++	if (!cpu_has_pat) {
++		pat_disable("PAT not supported by CPU.");
++		return;
 +	}
+ 
+-	if (!pat_enabled())
++	rdmsrl(MSR_IA32_CR_PAT, boot_pat_state);
++	if (!boot_pat_state) {
++		pat_disable("PAT MSR is 0, disabled.");
+ 		return;
++	}
+ 
++	wrmsrl(MSR_IA32_CR_PAT, pat);
 +
-+	sort(&info->mapping[0], num_mappings, sizeof(struct nfit_set_info_map),
-+			cmp_map, NULL);
-+	nd_set->cookie = nd_fletcher64(info, sizeof_nfit_set_info(num_mappings), 0);
-+	ndr_desc->nd_set = nd_set;
-+	devm_kfree(dev, info);
-+
-+	return 0;
++	pat_init_cache_modes();
 +}
 +
- static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
- 		struct nfit_spa *nfit_spa)
- {
-@@ -751,7 +837,7 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
- 	struct acpi_nfit_system_address *spa = nfit_spa->spa;
- 	struct nfit_memdev *nfit_memdev;
- 	struct nd_region_desc ndr_desc;
--	int spa_type, count = 0;
-+	int spa_type, count = 0, rc;
- 	struct resource res;
- 	u16 range_index;
- 
-@@ -817,6 +903,9 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
- 
- 	ndr_desc.nd_mapping = nd_mappings;
- 	ndr_desc.num_mappings = count;
-+	rc = acpi_nfit_init_interleave_set(acpi_desc, &ndr_desc, spa);
-+	if (rc)
-+		return rc;
- 	if (spa_type == NFIT_SPA_PM) {
- 		if (!nd_pmem_region_create(acpi_desc->nd_bus, &ndr_desc))
- 			return -ENOMEM;
-diff --git a/drivers/block/nd/bus.c b/drivers/block/nd/bus.c
-index d2a62a6142f3..63b5182cf766 100644
---- a/drivers/block/nd/bus.c
-+++ b/drivers/block/nd/bus.c
-@@ -78,7 +78,10 @@ static int nd_bus_probe(struct device *dev)
- 	if (!try_module_get(provider))
- 		return -ENXIO;
- 
-+	nd_region_probe_start(nd_bus, dev);
- 	rc = nd_drv->probe(dev);
-+	nd_region_probe_end(nd_bus, dev, rc);
-+
- 	dev_dbg(&nd_bus->dev, "%s.probe(%s) = %d\n", dev->driver->name,
- 			dev_name(dev), rc);
- 	if (rc != 0)
-@@ -94,6 +97,8 @@ static int nd_bus_remove(struct device *dev)
- 	int rc;
- 
- 	rc = nd_drv->remove(dev);
-+	nd_region_notify_remove(nd_bus, dev, rc);
-+
- 	dev_dbg(&nd_bus->dev, "%s.remove(%s) = %d\n", dev->driver->name,
- 			dev_name(dev), rc);
- 	module_put(provider);
-@@ -359,6 +364,33 @@ u32 nd_cmd_out_size(struct nd_dimm *nd_dimm, int cmd,
- }
- EXPORT_SYMBOL_GPL(nd_cmd_out_size);
- 
-+static void wait_nd_bus_probe_idle(struct nd_bus *nd_bus)
++static void pat_ap_init(u64 pat)
 +{
-+	do {
-+		if (nd_bus->probe_active == 0)
-+			break;
-+		nd_bus_unlock(&nd_bus->dev);
-+		wait_event(nd_bus->probe_wait, nd_bus->probe_active == 0);
-+		nd_bus_lock(&nd_bus->dev);
-+	} while (true);
-+}
-+
-+/* set_config requires an idle interleave set */
-+static int nd_cmd_clear_to_send(struct nd_dimm *nd_dimm, unsigned int cmd)
-+{
-+	struct nd_bus *nd_bus;
-+
-+	if (!nd_dimm || cmd != ND_CMD_SET_CONFIG_DATA)
-+		return 0;
-+
-+	nd_bus = walk_to_nd_bus(&nd_dimm->dev);
-+	wait_nd_bus_probe_idle(nd_bus);
-+
-+	if (atomic_read(&nd_dimm->busy))
-+		return -EBUSY;
-+	return 0;
-+}
-+
- static int __nd_ioctl(struct nd_bus *nd_bus, struct nd_dimm *nd_dimm,
- 		int read_only, unsigned int ioctl_cmd, unsigned long arg)
- {
-@@ -469,11 +501,18 @@ static int __nd_ioctl(struct nd_bus *nd_bus, struct nd_dimm *nd_dimm,
- 		goto out;
+ 	if (!cpu_has_pat) {
+-		if (!boot_pat_state) {
+-			pat_disable("PAT not supported by CPU.");
+-			return;
+-		} else {
+-			/*
+-			 * If this happens we are on a secondary CPU, but
+-			 * switched to PAT on the boot CPU. We have no way to
+-			 * undo PAT.
+-			 */
+-			pr_err("x86/PAT: PAT enabled, but not supported by secondary CPU\n");
+-			BUG();
+-		}
++		/*
++		 * If this happens we are on a secondary CPU, but switched to
++		 * PAT on the boot CPU. We have no way to undo PAT.
++		 */
++		panic("x86/PAT: PAT enabled, but not supported by secondary CPU\n");
  	}
  
-+	nd_bus_lock(&nd_bus->dev);
-+	rc = nd_cmd_clear_to_send(nd_dimm, cmd);
-+	if (rc)
-+		goto out_unlock;
-+
- 	rc = nd_desc->ndctl(nd_desc, nd_dimm, cmd, buf, buf_len);
- 	if (rc < 0)
--		goto out;
-+		goto out_unlock;
- 	if (copy_to_user(p, buf, buf_len))
- 		rc = -EFAULT;
-+ out_unlock:
-+	nd_bus_unlock(&nd_bus->dev);
-  out:
- 	vfree(buf);
- 	return rc;
-diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
-index 7bf88fb124b7..38fb8f4c9a2c 100644
---- a/drivers/block/nd/core.c
-+++ b/drivers/block/nd/core.c
-@@ -54,6 +54,22 @@ bool is_nd_bus_locked(struct device *dev)
- }
- EXPORT_SYMBOL(is_nd_bus_locked);
- 
-+u64 nd_fletcher64(void *addr, size_t len, bool le)
-+{
-+	u32 *buf = addr;
-+	u32 lo32 = 0;
-+	u64 hi32 = 0;
-+	int i;
-+
-+	for (i = 0; i < len / sizeof(u32); i++) {
-+		lo32 += le ? le32_to_cpu(buf[i]) : buf[i];
-+		hi32 += lo32;
-+	}
-+
-+	return hi32 << 32 | lo32;
-+}
-+EXPORT_SYMBOL_GPL(nd_fletcher64);
-+
- static void nd_bus_release(struct device *dev)
- {
- 	struct nd_bus *nd_bus = container_of(dev, struct nd_bus, dev);
-@@ -172,6 +188,7 @@ struct nd_bus *__nd_bus_register(struct device *parent,
- 	if (!nd_bus)
- 		return NULL;
- 	INIT_LIST_HEAD(&nd_bus->list);
-+	init_waitqueue_head(&nd_bus->probe_wait);
- 	nd_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
- 	mutex_init(&nd_bus->reconfig_mutex);
- 	if (nd_bus->id < 0) {
-diff --git a/drivers/block/nd/dimm_devs.c b/drivers/block/nd/dimm_devs.c
-index 33b6d5336096..8981adc59ba4 100644
---- a/drivers/block/nd/dimm_devs.c
-+++ b/drivers/block/nd/dimm_devs.c
-@@ -185,7 +185,24 @@ static ssize_t commands_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(commands);
- 
-+static ssize_t state_show(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
-+
-+	/*
-+	 * The state may be in the process of changing, userspace should
-+	 * quiesce probing if it wants a static answer
-+	 */
-+	nd_bus_lock(dev);
-+	nd_bus_unlock(dev);
-+	return sprintf(buf, "%s\n", atomic_read(&nd_dimm->busy)
-+			? "active" : "idle");
-+}
-+static DEVICE_ATTR_RO(state);
-+
- static struct attribute *nd_dimm_attributes[] = {
-+	&dev_attr_state.attr,
- 	&dev_attr_commands.attr,
- 	NULL,
- };
-@@ -213,7 +230,7 @@ struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
- 	nd_dimm->provider_data = provider_data;
- 	nd_dimm->flags = flags;
- 	nd_dimm->dsm_mask = dsm_mask;
--
-+	atomic_set(&nd_dimm->busy, 0);
- 	dev = &nd_dimm->dev;
- 	dev_set_name(dev, "nmem%d", nd_dimm->id);
- 	dev->parent = &nd_bus->dev;
-diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
-index 8ef3a1b50f44..67f28011dfa5 100644
---- a/drivers/block/nd/nd-private.h
-+++ b/drivers/block/nd/nd-private.h
-@@ -14,6 +14,8 @@
- #define __ND_PRIVATE_H__
- #include <linux/device.h>
- #include <linux/libnd.h>
-+#include <linux/sizes.h>
-+#include <linux/mutex.h>
- 
- extern struct list_head nd_bus_list;
- extern struct mutex nd_bus_list_mutex;
-@@ -21,10 +23,11 @@ extern int nd_dimm_major;
- 
- struct nd_bus {
- 	struct nd_bus_descriptor *nd_desc;
-+	wait_queue_head_t probe_wait;
- 	struct module *module;
- 	struct list_head list;
- 	struct device dev;
--	int id;
-+	int id, probe_active;
- 	struct mutex reconfig_mutex;
- };
- 
-@@ -33,6 +36,7 @@ struct nd_dimm {
- 	void *provider_data;
- 	unsigned long *dsm_mask;
- 	struct device dev;
-+	atomic_t busy;
- 	int id;
- };
- 
-@@ -46,10 +50,14 @@ int __init nd_dimm_init(void);
- int __init nd_region_init(void);
- void nd_dimm_exit(void);
- int nd_region_exit(void);
-+void nd_region_probe_start(struct nd_bus *nd_bus, struct device *dev);
-+void nd_region_probe_end(struct nd_bus *nd_bus, struct device *dev, int rc);
-+void nd_region_notify_remove(struct nd_bus *nd_bus, struct device *dev, int rc);
- int nd_bus_create_ndctl(struct nd_bus *nd_bus);
- void nd_bus_destroy_ndctl(struct nd_bus *nd_bus);
- void nd_synchronize(void);
- int nd_bus_register_dimms(struct nd_bus *nd_bus);
- int nd_bus_register_regions(struct nd_bus *nd_bus);
-+int nd_bus_init_interleave_sets(struct nd_bus *nd_bus);
- int nd_match_dimm(struct device *dev, void *data);
- #endif /* __ND_PRIVATE_H__ */
-diff --git a/drivers/block/nd/nd.h b/drivers/block/nd/nd.h
-index 72f4d7b76059..905183d45799 100644
---- a/drivers/block/nd/nd.h
-+++ b/drivers/block/nd/nd.h
-@@ -35,6 +35,7 @@ struct nd_region {
- 	u64 ndr_start;
- 	int id;
- 	void *provider_data;
-+	struct nd_interleave_set *nd_set;
- 	struct nd_mapping mapping[0];
- };
- 
-diff --git a/drivers/block/nd/region_devs.c b/drivers/block/nd/region_devs.c
-index fdc58e333b78..221e6342b6ca 100644
---- a/drivers/block/nd/region_devs.c
-+++ b/drivers/block/nd/region_devs.c
-@@ -10,7 +10,10 @@
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-  */
-+#include <linux/scatterlist.h>
-+#include <linux/sched.h>
- #include <linux/slab.h>
-+#include <linux/sort.h>
- #include <linux/io.h>
- #include "nd-private.h"
- #include "nd.h"
-@@ -133,6 +136,21 @@ static ssize_t nstype_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(nstype);
- 
-+static ssize_t set_cookie_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+	struct nd_interleave_set *nd_set = nd_region->nd_set;
-+
-+	if (is_nd_pmem(dev) && nd_set)
-+		/* pass, should be precluded by nd_region_visible */;
-+	else
-+		return -ENXIO;
-+
-+	return sprintf(buf, "%#llx\n", nd_set->cookie);
-+}
-+static DEVICE_ATTR_RO(set_cookie);
-+
- static ssize_t init_namespaces_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -154,15 +172,81 @@ static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_size.attr,
- 	&dev_attr_nstype.attr,
- 	&dev_attr_mappings.attr,
-+	&dev_attr_set_cookie.attr,
- 	&dev_attr_init_namespaces.attr,
- 	NULL,
- };
- 
-+static umode_t nd_region_visible(struct kobject *kobj, struct attribute *a, int n)
-+{
-+	struct device *dev = container_of(kobj, typeof(*dev), kobj);
-+	struct nd_region *nd_region = to_nd_region(dev);
-+	struct nd_interleave_set *nd_set = nd_region->nd_set;
-+
-+	if (a != &dev_attr_set_cookie.attr)
-+		return a->mode;
-+
-+	if (is_nd_pmem(dev) && nd_set)
-+			return a->mode;
-+
-+	return 0;
+-	/* Set PWT to Write-Combining. All other bits stay the same */
++	wrmsrl(MSR_IA32_CR_PAT, pat);
 +}
 +
- struct attribute_group nd_region_attribute_group = {
- 	.attrs = nd_region_attributes,
-+	.is_visible = nd_region_visible,
- };
- EXPORT_SYMBOL_GPL(nd_region_attribute_group);
- 
-+/*
-+ * Upon successful probe/remove, take/release a reference on the
-+ * associated interleave set (if present)
-+ */
-+static void nd_region_notify_driver_action(struct nd_bus *nd_bus,
-+		struct device *dev, int rc, bool probe)
++void pat_init(void)
 +{
-+	if (rc)
++	u64 pat;
++
++	if (!pat_enabled())
 +		return;
 +
-+	if (is_nd_pmem(dev) || is_nd_blk(dev)) {
-+		struct nd_region *nd_region = to_nd_region(dev);
-+		int i;
-+
-+		for (i = 0; i < nd_region->ndr_mappings; i++) {
-+			struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+			struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
-+
-+			if (probe)
-+				atomic_inc(&nd_dimm->busy);
-+			else
-+				atomic_dec(&nd_dimm->busy);
-+		}
-+	}
-+}
-+
-+void nd_region_probe_start(struct nd_bus *nd_bus, struct device *dev)
-+{
-+	nd_bus_lock(&nd_bus->dev);
-+	nd_bus->probe_active++;
-+	nd_bus_unlock(&nd_bus->dev);
-+}
-+
-+void nd_region_probe_end(struct nd_bus *nd_bus, struct device *dev, int rc)
-+{
-+	nd_bus_lock(&nd_bus->dev);
-+	nd_region_notify_driver_action(nd_bus, dev, rc, true);
-+	if (--nd_bus->probe_active == 0)
-+		wake_up(&nd_bus->probe_wait);
-+	nd_bus_unlock(&nd_bus->dev);
-+}
-+
-+void nd_region_notify_remove(struct nd_bus *nd_bus, struct device *dev, int rc)
-+{
-+	nd_bus_lock(dev);
-+	nd_region_notify_driver_action(nd_bus, dev, rc, false);
-+	nd_bus_unlock(dev);
-+}
-+
- static ssize_t mappingN(struct device *dev, char *buf, int n)
- {
- 	struct nd_region *nd_region = to_nd_region(dev);
-@@ -322,6 +406,7 @@ static noinline struct nd_region *nd_region_create(struct nd_bus *nd_bus,
+ 	/*
++	 * Set PWT to Write-Combining. All other bits stay the same:
++	 *
+ 	 * PTE encoding used in Linux:
+ 	 *      PAT
+ 	 *      |PCD
+@@ -233,19 +251,12 @@ void pat_init(void)
+ 	pat = PAT(0, WB) | PAT(1, WC) | PAT(2, UC_MINUS) | PAT(3, UC) |
+ 	      PAT(4, WB) | PAT(5, WC) | PAT(6, UC_MINUS) | PAT(7, UC);
+ 
+-	/* Boot CPU check */
+-	if (!boot_pat_state) {
+-		rdmsrl(MSR_IA32_CR_PAT, boot_pat_state);
+-		if (!boot_pat_state) {
+-			pat_disable("PAT read returns always zero, disabled.");
+-			return;
+-		}
++	if (!boot_cpu_done) {
++		pat_bsp_init(pat);
++		boot_cpu_done = true;
++	} else {
++		pat_ap_init(pat);
  	}
- 	nd_region->ndr_mappings = ndr_desc->num_mappings;
- 	nd_region->provider_data = ndr_desc->provider_data;
-+	nd_region->nd_set = ndr_desc->nd_set;
- 	dev = &nd_region->dev;
- 	dev_set_name(dev, "region%d", nd_region->id);
- 	dev->parent = &nd_bus->dev;
-diff --git a/include/linux/libnd.h b/include/linux/libnd.h
-index 6747da2c7cb6..52f669faacfd 100644
---- a/include/linux/libnd.h
-+++ b/include/linux/libnd.h
-@@ -60,11 +60,16 @@ struct nd_cmd_desc {
- 	int out_sizes[ND_CMD_MAX_ELEM];
- };
+-
+-	wrmsrl(MSR_IA32_CR_PAT, pat);
+-
+-	if (boot_cpu)
+-		pat_init_cache_modes();
+ }
  
-+struct nd_interleave_set {
-+	u64 cookie;
-+};
-+
- struct nd_region_desc {
- 	struct resource *res;
- 	struct nd_mapping *nd_mapping;
- 	u16 num_mappings;
- 	const struct attribute_group **attr_groups;
-+	struct nd_interleave_set *nd_set;
- 	void *provider_data;
- };
- 
-@@ -99,4 +104,5 @@ struct nd_region *nd_blk_region_create(struct nd_bus *nd_bus,
- 		struct nd_region_desc *ndr_desc);
- struct nd_region *nd_volatile_region_create(struct nd_bus *nd_bus,
- 		struct nd_region_desc *ndr_desc);
-+u64 nd_fletcher64(void *addr, size_t len, bool le);
- #endif /* __LIBND_H__ */
+ #undef PAT
+-- 
+2.3.5
 
