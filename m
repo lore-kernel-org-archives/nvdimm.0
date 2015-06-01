@@ -1,81 +1,139 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Tue, 2 Jun 2015 18:21:03 +0200
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: Re: [PATCH v12 0/10] Support Write-Through mapping on x86
-Message-ID: <20150602162103.GL23057@wotan.suse.de>
-References: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v12 0/10] Support Write-Through mapping on x86
+Date: Mon,  1 Jun 2015 13:36:23 -0600
+Message-Id: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
 Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de, linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, hch@lst.de
+To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jun 01, 2015 at 01:36:23PM -0600, Toshi Kani wrote:
-> This patchset adds support of Write-Through (WT) mapping on x86.
-> The study below shows that using WT mapping may be useful for
-> non-volatile memory.
-> 
-> http://www.hpl.hp.com/techreports/2012/HPL-2012-236.pdf
-> 
-> The patchset consists of the following changes.
->  - Patch 1/10 to 6/10 add ioremap_wt()
->  - Patch 7/10 adds pgprot_writethrough()
->  - Patch 8/10 to 9/10 add set_memory_wt()
->  - Patch 10/10 changes the pmem driver to call ioremap_wt()
-> 
-> All new/modified interfaces have been tested.
-> 
-> The patchset is based on:
-> git://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git#tip-mm-2
+This patchset adds support of Write-Through (WT) mapping on x86.
+The study below shows that using WT mapping may be useful for
+non-volatile memory.
 
-While at it can you also look at:
+http://www.hpl.hp.com/techreports/2012/HPL-2012-236.pdf
 
-mcgrof@ergon ~/linux-next (git::master)$ git grep -4 "writethrough" drivers/infiniband/
+The patchset consists of the following changes.
+ - Patch 1/10 to 6/10 add ioremap_wt()
+ - Patch 7/10 adds pgprot_writethrough()
+ - Patch 8/10 to 9/10 add set_memory_wt()
+ - Patch 10/10 changes the pmem driver to call ioremap_wt()
 
-drivers/infiniband/hw/ipath/ipath_driver.c-
-drivers/infiniband/hw/ipath/ipath_driver.c-     dd->ipath_pcirev = pdev->revision;
-drivers/infiniband/hw/ipath/ipath_driver.c-
-drivers/infiniband/hw/ipath/ipath_driver.c-#if defined(__powerpc__)
-drivers/infiniband/hw/ipath/ipath_driver.c:     /* There isn't a generic way to specify writethrough mappings */
-drivers/infiniband/hw/ipath/ipath_driver.c-     dd->ipath_kregbase = __ioremap(addr, len,
-drivers/infiniband/hw/ipath/ipath_driver.c-             (_PAGE_NO_CACHE|_PAGE_WRITETHRU));
-drivers/infiniband/hw/ipath/ipath_driver.c-#else
-drivers/infiniband/hw/ipath/ipath_driver.c-     dd->ipath_kregbase = ioremap_nocache(addr, len);
---
-drivers/infiniband/hw/ipath/ipath_file_ops.c-
-drivers/infiniband/hw/ipath/ipath_file_ops.c-   phys = dd->ipath_physaddr + piobufs;
-drivers/infiniband/hw/ipath/ipath_file_ops.c-
-drivers/infiniband/hw/ipath/ipath_file_ops.c-#if defined(__powerpc__)
-drivers/infiniband/hw/ipath/ipath_file_ops.c:   /* There isn't a generic way to specify writethrough mappings */
-drivers/infiniband/hw/ipath/ipath_file_ops.c-   pgprot_val(vma->vm_page_prot) |= _PAGE_NO_CACHE;
-drivers/infiniband/hw/ipath/ipath_file_ops.c-   pgprot_val(vma->vm_page_prot) |= _PAGE_WRITETHRU;
-drivers/infiniband/hw/ipath/ipath_file_ops.c-   pgprot_val(vma->vm_page_prot) &= ~_PAGE_GUARDED;
-drivers/infiniband/hw/ipath/ipath_file_ops.c-#endif
---
-drivers/infiniband/hw/qib/qib_file_ops.c-
-drivers/infiniband/hw/qib/qib_file_ops.c-       phys = dd->physaddr + piobufs;
-drivers/infiniband/hw/qib/qib_file_ops.c-
-drivers/infiniband/hw/qib/qib_file_ops.c-#if defined(__powerpc__)
-drivers/infiniband/hw/qib/qib_file_ops.c:       /* There isn't a generic way to specify writethrough mappings */
-drivers/infiniband/hw/qib/qib_file_ops.c-       pgprot_val(vma->vm_page_prot) |= _PAGE_NO_CACHE;
-drivers/infiniband/hw/qib/qib_file_ops.c-       pgprot_val(vma->vm_page_prot) |= _PAGE_WRITETHRU;
-drivers/infiniband/hw/qib/qib_file_ops.c-       pgprot_val(vma->vm_page_prot) &= ~_PAGE_GUARDED;
-drivers/infiniband/hw/qib/qib_file_ops.c-#endif
---
-drivers/infiniband/hw/qib/qib_pcie.c-   addr = pci_resource_start(pdev, 0);
-drivers/infiniband/hw/qib/qib_pcie.c-   len = pci_resource_len(pdev, 0);
-drivers/infiniband/hw/qib/qib_pcie.c-
-drivers/infiniband/hw/qib/qib_pcie.c-#if defined(__powerpc__)
-drivers/infiniband/hw/qib/qib_pcie.c:   /* There isn't a generic way to specify writethrough mappings */
-drivers/infiniband/hw/qib/qib_pcie.c-   dd->kregbase = __ioremap(addr, len, _PAGE_NO_CACHE | _PAGE_WRITETHRU);
-drivers/infiniband/hw/qib/qib_pcie.c-#else
-drivers/infiniband/hw/qib/qib_pcie.c-   dd->kregbase = ioremap_nocache(addr, len);
-drivers/infiniband/hw/qib/qib_pcie.c-#endif
+All new/modified interfaces have been tested.
 
-  Luis
+The patchset is based on:
+git://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git#tip-mm-2
+
+---
+v12:
+- Rebased to bp/bp.git#tip-mm-2 and resolved minor conflicts. 
+- Dropped cleanup patches 1-2 as redone by Boris.
+
+v11:
+- Reordered the refactor changes from patch 10-11 to 1-2.
+  (Borislav Petkov)
+- Changed BUG() to panic(). (Borislav Petkov)
+- Rebased to tip/master and resolved conflicts. 
+
+v10:
+- Removed ioremap_writethrough(). (Thomas Gleixner)
+- Clarified and cleaned up multiple comments and functions.
+  (Thomas Gleixner) 
+- Changed ioremap_change_attr() to accept the WT type.
+
+v9:
+- Changed to export the set_xxx_wt() interfaces with GPL.
+  (Ingo Molnar)
+- Changed is_new_memtype_allowed() to handle WT cases.
+- Changed arch-specific io.h to define ioremap_wt().
+- Changed the pmem driver to use ioremap_wt().
+- Rebased to 4.1-rc3 and resolved minor conflicts.
+
+v8:
+- Rebased to 4.0-rc1 and resolved conflicts with 9d34cfdf4 in
+  patch 5/7.
+
+v7:
+- Rebased to 3.19-rc3 as Juergen's patchset for the PAT management
+  has been accepted.
+
+v6:
+- Dropped the patch moving [set|get]_page_memtype() to pat.c
+  since the tip branch already has this change.
+- Fixed an issue when CONFIG_X86_PAT is not defined.
+
+v5:
+- Clarified comment of why using slot 7. (Andy Lutomirski,
+  Thomas Gleixner)
+- Moved [set|get]_page_memtype() to pat.c. (Thomas Gleixner)
+- Removed BUG() from set_page_memtype(). (Thomas Gleixner)
+
+v4:
+- Added set_memory_wt() by adding WT support of regular memory.
+
+v3:
+- Dropped the set_memory_wt() patch. (Andy Lutomirski)
+- Refactored the !pat_enabled handling. (H. Peter Anvin,
+  Andy Lutomirski)
+- Added the picture of PTE encoding. (Konrad Rzeszutek Wilk)
+
+v2:
+- Changed WT to use slot 7 of the PAT MSR. (H. Peter Anvin,
+  Andy Lutomirski)
+- Changed to have conservative checks to exclude all Pentium 2, 3,
+  M, and 4 families. (Ingo Molnar, Henrique de Moraes Holschuh,
+  Andy Lutomirski)
+- Updated documentation to cover WT interfaces and usages.
+  (Andy Lutomirski, Yigal Korman)
+
+---
+Toshi Kani (10):
+ 1/10 x86, mm, pat: Set WT to PA7 slot of PAT MSR
+ 2/10 x86, mm, pat: Change reserve_memtype() for WT
+ 3/10 x86, asm: Change is_new_memtype_allowed() for WT
+ 4/10 x86, mm, asm-gen: Add ioremap_wt() for WT
+ 5/10 arch/*/asm/io.h: Add ioremap_wt() to all architectures
+ 6/10 video/fbdev, asm/io.h: Remove ioremap_writethrough()
+ 7/10 x86, mm, pat: Add pgprot_writethrough() for WT
+ 8/10 x86, mm, asm: Add WT support to set_page_memtype()
+ 9/10 x86, mm: Add set_memory_wt() for WT
+10/10 drivers/block/pmem: Map NVDIMM with ioremap_wt()
+
+---
+ Documentation/x86/pat.txt            |  13 ++--
+ arch/arc/include/asm/io.h            |   1 +
+ arch/arm/include/asm/io.h            |   1 +
+ arch/arm64/include/asm/io.h          |   1 +
+ arch/avr32/include/asm/io.h          |   1 +
+ arch/frv/include/asm/io.h            |   4 +-
+ arch/m32r/include/asm/io.h           |   1 +
+ arch/m68k/include/asm/io_mm.h        |   4 +-
+ arch/m68k/include/asm/io_no.h        |   4 +-
+ arch/metag/include/asm/io.h          |   3 +
+ arch/microblaze/include/asm/io.h     |   2 +-
+ arch/mn10300/include/asm/io.h        |   1 +
+ arch/nios2/include/asm/io.h          |   1 +
+ arch/s390/include/asm/io.h           |   1 +
+ arch/sparc/include/asm/io_32.h       |   1 +
+ arch/sparc/include/asm/io_64.h       |   1 +
+ arch/tile/include/asm/io.h           |   2 +-
+ arch/x86/include/asm/cacheflush.h    |   6 +-
+ arch/x86/include/asm/io.h            |   2 +
+ arch/x86/include/asm/pgtable.h       |   8 ++-
+ arch/x86/include/asm/pgtable_types.h |   3 +
+ arch/x86/mm/ioremap.c                |  24 +++++++
+ arch/x86/mm/pageattr.c               |  62 +++++++++++++----
+ arch/x86/mm/pat.c                    | 126 +++++++++++++++++++++++++----------
+ arch/xtensa/include/asm/io.h         |   1 +
+ drivers/block/pmem.c                 |   4 +-
+ drivers/video/fbdev/amifb.c          |   4 +-
+ drivers/video/fbdev/atafb.c          |   3 +-
+ drivers/video/fbdev/hpfb.c           |   4 +-
+ include/asm-generic/io.h             |   9 +++
+ include/asm-generic/iomap.h          |   4 ++
+ include/asm-generic/pgtable.h        |   4 ++
+ 32 files changed, 240 insertions(+), 66 deletions(-)
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
