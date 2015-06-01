@@ -1,8 +1,8 @@
 Return-Path: <owner-linux-mm@kvack.org>
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v12 5/10] arch/*/asm/io.h: Add ioremap_wt() to all architectures
-Date: Mon,  1 Jun 2015 13:36:28 -0600
-Message-Id: <1433187393-22688-6-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v12 2/10] x86, mm, pat: Change reserve_memtype() for WT
+Date: Mon,  1 Jun 2015 13:36:25 -0600
+Message-Id: <1433187393-22688-3-git-send-email-toshi.kani@hp.com>
 In-Reply-To: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
 References: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
 Sender: owner-linux-mm@kvack.org
@@ -10,286 +10,56 @@ To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linu
 Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds ioremap_wt() to all arch-specific asm/io.h which
-define ioremap_wc() locally.  These arch-specific asm/io.h do not
-include <asm-generic/iomap.h>.  Some of them include
-<asm-generic/io.h>, but ioremap_wt() is defined for consistency
-since they define all ioremap_xxx locally.
-
-ioremap_wt() is defined indentical to ioremap_nocache() to all
-architectures without WT support.
-
-frv and m68k already have ioremap_writethrough().  This patch
-implements ioremap_wt() indetical to ioremap_writethrough() and
-defines ARCH_HAS_IOREMAP_WT in both architectures.
-
-This patch allows generic drivers to use ioremap_wt().
+When a RAM range is requested to reserve_memtype(), it calls
+reserve_ram_pages_type() to verify the requested type.
+reserve_ram_pages_type() is changed to fail WT and WP requests
+with -EINVAL since set_page_memtype() is limited to handle
+three types, WB, WC and UC-.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- arch/arc/include/asm/io.h        |    1 +
- arch/arm/include/asm/io.h        |    1 +
- arch/arm64/include/asm/io.h      |    1 +
- arch/avr32/include/asm/io.h      |    1 +
- arch/frv/include/asm/io.h        |    7 +++++++
- arch/m32r/include/asm/io.h       |    1 +
- arch/m68k/include/asm/io_mm.h    |    7 +++++++
- arch/m68k/include/asm/io_no.h    |    6 ++++++
- arch/metag/include/asm/io.h      |    3 +++
- arch/microblaze/include/asm/io.h |    1 +
- arch/mn10300/include/asm/io.h    |    1 +
- arch/nios2/include/asm/io.h      |    1 +
- arch/s390/include/asm/io.h       |    1 +
- arch/sparc/include/asm/io_32.h   |    1 +
- arch/sparc/include/asm/io_64.h   |    1 +
- arch/tile/include/asm/io.h       |    1 +
- arch/xtensa/include/asm/io.h     |    1 +
- 17 files changed, 36 insertions(+)
+Patch 8/10 enhances set_page_memtype() to support WT.
+---
+ arch/x86/mm/pat.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/arch/arc/include/asm/io.h b/arch/arc/include/asm/io.h
-index cabd518..7cc4ced 100644
---- a/arch/arc/include/asm/io.h
-+++ b/arch/arc/include/asm/io.h
-@@ -20,6 +20,7 @@ extern void iounmap(const void __iomem *addr);
- 
- #define ioremap_nocache(phy, sz)	ioremap(phy, sz)
- #define ioremap_wc(phy, sz)		ioremap(phy, sz)
-+#define ioremap_wt(phy, sz)		ioremap(phy, sz)
- 
- /* Change struct page to physical address */
- #define page_to_phys(page)		(page_to_pfn(page) << PAGE_SHIFT)
-diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
-index db58deb..1b7677d 100644
---- a/arch/arm/include/asm/io.h
-+++ b/arch/arm/include/asm/io.h
-@@ -336,6 +336,7 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
- #define ioremap_nocache(cookie,size)	__arm_ioremap((cookie), (size), MT_DEVICE)
- #define ioremap_cache(cookie,size)	__arm_ioremap((cookie), (size), MT_DEVICE_CACHED)
- #define ioremap_wc(cookie,size)		__arm_ioremap((cookie), (size), MT_DEVICE_WC)
-+#define ioremap_wt(cookie,size)		__arm_ioremap((cookie), (size), MT_DEVICE)
- #define iounmap				__arm_iounmap
+diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
+index 83af01a..56c8b4d 100644
+--- a/arch/x86/mm/pat.c
++++ b/arch/x86/mm/pat.c
+@@ -401,6 +401,8 @@ static int pat_pagerange_is_ram(resource_size_t start, resource_size_t end)
  
  /*
-diff --git a/arch/arm64/include/asm/io.h b/arch/arm64/include/asm/io.h
-index 540f7c0..7116d39 100644
---- a/arch/arm64/include/asm/io.h
-+++ b/arch/arm64/include/asm/io.h
-@@ -170,6 +170,7 @@ extern void __iomem *ioremap_cache(phys_addr_t phys_addr, size_t size);
- #define ioremap(addr, size)		__ioremap((addr), (size), __pgprot(PROT_DEVICE_nGnRE))
- #define ioremap_nocache(addr, size)	__ioremap((addr), (size), __pgprot(PROT_DEVICE_nGnRE))
- #define ioremap_wc(addr, size)		__ioremap((addr), (size), __pgprot(PROT_NORMAL_NC))
-+#define ioremap_wt(addr, size)		__ioremap((addr), (size), __pgprot(PROT_DEVICE_nGnRE))
- #define iounmap				__iounmap
+  * For RAM pages, we use page flags to mark the pages with appropriate type.
++ * The page flags are limited to three types, WB, WC and UC-.
++ * WT and WP requests fail with -EINVAL, and UC gets redirected to UC-.
+  * Here we do two pass:
+  * - Find the memtype of all the pages in the range, look for any conflicts
+  * - In case of no conflicts, set the new memtype for pages in the range
+@@ -412,6 +414,13 @@ static int reserve_ram_pages_type(u64 start, u64 end,
+ 	struct page *page;
+ 	u64 pfn;
  
- /*
-diff --git a/arch/avr32/include/asm/io.h b/arch/avr32/include/asm/io.h
-index 4f5ec2b..e998ff5 100644
---- a/arch/avr32/include/asm/io.h
-+++ b/arch/avr32/include/asm/io.h
-@@ -296,6 +296,7 @@ extern void __iounmap(void __iomem *addr);
- 	__iounmap(addr)
- 
- #define ioremap_wc ioremap_nocache
-+#define ioremap_wt ioremap_nocache
- 
- #define cached(addr) P1SEGADDR(addr)
- #define uncached(addr) P2SEGADDR(addr)
-diff --git a/arch/frv/include/asm/io.h b/arch/frv/include/asm/io.h
-index 0b78bc8..1fe98fe 100644
---- a/arch/frv/include/asm/io.h
-+++ b/arch/frv/include/asm/io.h
-@@ -17,6 +17,8 @@
- 
- #ifdef __KERNEL__
- 
-+#define ARCH_HAS_IOREMAP_WT
++	if ((req_type == _PAGE_CACHE_MODE_WT) ||
++	    (req_type == _PAGE_CACHE_MODE_WP)) {
++		if (new_type)
++			*new_type = _PAGE_CACHE_MODE_UC_MINUS;
++		return -EINVAL;
++	}
 +
- #include <linux/types.h>
- #include <asm/virtconvert.h>
- #include <asm/string.h>
-@@ -270,6 +272,11 @@ static inline void __iomem *ioremap_writethrough(unsigned long physaddr, unsigne
- 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
- }
- 
-+static inline void __iomem *ioremap_wt(unsigned long physaddr, unsigned long size)
-+{
-+	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
-+}
-+
- static inline void __iomem *ioremap_fullcache(unsigned long physaddr, unsigned long size)
- {
- 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
-diff --git a/arch/m32r/include/asm/io.h b/arch/m32r/include/asm/io.h
-index 9cc00db..0c3f25e 100644
---- a/arch/m32r/include/asm/io.h
-+++ b/arch/m32r/include/asm/io.h
-@@ -68,6 +68,7 @@ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
- extern void iounmap(volatile void __iomem *addr);
- #define ioremap_nocache(off,size) ioremap(off,size)
- #define ioremap_wc ioremap_nocache
-+#define ioremap_wt ioremap_nocache
- 
- /*
-  * IO bus memory addresses are also 1:1 with the physical address
-diff --git a/arch/m68k/include/asm/io_mm.h b/arch/m68k/include/asm/io_mm.h
-index 8955b40..7c12138 100644
---- a/arch/m68k/include/asm/io_mm.h
-+++ b/arch/m68k/include/asm/io_mm.h
-@@ -20,6 +20,8 @@
- 
- #ifdef __KERNEL__
- 
-+#define ARCH_HAS_IOREMAP_WT
-+
- #include <linux/compiler.h>
- #include <asm/raw_io.h>
- #include <asm/virtconvert.h>
-@@ -470,6 +472,11 @@ static inline void __iomem *ioremap_writethrough(unsigned long physaddr,
- {
- 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
- }
-+static inline void __iomem *ioremap_wt(unsigned long physaddr,
-+					 unsigned long size)
-+{
-+	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
-+}
- static inline void __iomem *ioremap_fullcache(unsigned long physaddr,
- 				      unsigned long size)
- {
-diff --git a/arch/m68k/include/asm/io_no.h b/arch/m68k/include/asm/io_no.h
-index a93c8cd..5fff9a2 100644
---- a/arch/m68k/include/asm/io_no.h
-+++ b/arch/m68k/include/asm/io_no.h
-@@ -3,6 +3,8 @@
- 
- #ifdef __KERNEL__
- 
-+#define ARCH_HAS_IOREMAP_WT
-+
- #include <asm/virtconvert.h>
- #include <asm-generic/iomap.h>
- 
-@@ -157,6 +159,10 @@ static inline void *ioremap_writethrough(unsigned long physaddr, unsigned long s
- {
- 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
- }
-+static inline void *ioremap_wt(unsigned long physaddr, unsigned long size)
-+{
-+	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
-+}
- static inline void *ioremap_fullcache(unsigned long physaddr, unsigned long size)
- {
- 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
-diff --git a/arch/metag/include/asm/io.h b/arch/metag/include/asm/io.h
-index d5779b0..9890f21 100644
---- a/arch/metag/include/asm/io.h
-+++ b/arch/metag/include/asm/io.h
-@@ -160,6 +160,9 @@ extern void __iounmap(void __iomem *addr);
- #define ioremap_wc(offset, size)                \
- 	__ioremap((offset), (size), _PAGE_WR_COMBINE)
- 
-+#define ioremap_wt(offset, size)                \
-+	__ioremap((offset), (size), 0)
-+
- #define iounmap(addr)                           \
- 	__iounmap(addr)
- 
-diff --git a/arch/microblaze/include/asm/io.h b/arch/microblaze/include/asm/io.h
-index 940f5fc..ec3da11 100644
---- a/arch/microblaze/include/asm/io.h
-+++ b/arch/microblaze/include/asm/io.h
-@@ -43,6 +43,7 @@ extern void __iomem *ioremap(phys_addr_t address, unsigned long size);
- #define ioremap_nocache(addr, size)		ioremap((addr), (size))
- #define ioremap_fullcache(addr, size)		ioremap((addr), (size))
- #define ioremap_wc(addr, size)			ioremap((addr), (size))
-+#define ioremap_wt(addr, size)			ioremap((addr), (size))
- 
- #endif /* CONFIG_MMU */
- 
-diff --git a/arch/mn10300/include/asm/io.h b/arch/mn10300/include/asm/io.h
-index cc4a2ba..07c5b4a 100644
---- a/arch/mn10300/include/asm/io.h
-+++ b/arch/mn10300/include/asm/io.h
-@@ -282,6 +282,7 @@ static inline void __iomem *ioremap_nocache(unsigned long offset, unsigned long
- }
- 
- #define ioremap_wc ioremap_nocache
-+#define ioremap_wt ioremap_nocache
- 
- static inline void iounmap(void __iomem *addr)
- {
-diff --git a/arch/nios2/include/asm/io.h b/arch/nios2/include/asm/io.h
-index 6e24d7c..c5a62da 100644
---- a/arch/nios2/include/asm/io.h
-+++ b/arch/nios2/include/asm/io.h
-@@ -46,6 +46,7 @@ static inline void iounmap(void __iomem *addr)
- }
- 
- #define ioremap_wc ioremap_nocache
-+#define ioremap_wt ioremap_nocache
- 
- /* Pages to physical address... */
- #define page_to_phys(page)	virt_to_phys(page_to_virt(page))
-diff --git a/arch/s390/include/asm/io.h b/arch/s390/include/asm/io.h
-index 30fd5c8..cb5fdf3 100644
---- a/arch/s390/include/asm/io.h
-+++ b/arch/s390/include/asm/io.h
-@@ -29,6 +29,7 @@ void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
- 
- #define ioremap_nocache(addr, size)	ioremap(addr, size)
- #define ioremap_wc			ioremap_nocache
-+#define ioremap_wt			ioremap_nocache
- 
- static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
- {
-diff --git a/arch/sparc/include/asm/io_32.h b/arch/sparc/include/asm/io_32.h
-index 407ac14..57f26c3 100644
---- a/arch/sparc/include/asm/io_32.h
-+++ b/arch/sparc/include/asm/io_32.h
-@@ -129,6 +129,7 @@ static inline void sbus_memcpy_toio(volatile void __iomem *dst,
- void __iomem *ioremap(unsigned long offset, unsigned long size);
- #define ioremap_nocache(X,Y)	ioremap((X),(Y))
- #define ioremap_wc(X,Y)		ioremap((X),(Y))
-+#define ioremap_wt(X,Y)		ioremap((X),(Y))
- void iounmap(volatile void __iomem *addr);
- 
- /* Create a virtual mapping cookie for an IO port range */
-diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
-index 50d4840..c32fa3f 100644
---- a/arch/sparc/include/asm/io_64.h
-+++ b/arch/sparc/include/asm/io_64.h
-@@ -402,6 +402,7 @@ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
- 
- #define ioremap_nocache(X,Y)		ioremap((X),(Y))
- #define ioremap_wc(X,Y)			ioremap((X),(Y))
-+#define ioremap_wt(X,Y)			ioremap((X),(Y))
- 
- static inline void iounmap(volatile void __iomem *addr)
- {
-diff --git a/arch/tile/include/asm/io.h b/arch/tile/include/asm/io.h
-index 6ef4eca..9c3d950 100644
---- a/arch/tile/include/asm/io.h
-+++ b/arch/tile/include/asm/io.h
-@@ -54,6 +54,7 @@ extern void iounmap(volatile void __iomem *addr);
- 
- #define ioremap_nocache(physaddr, size)		ioremap(physaddr, size)
- #define ioremap_wc(physaddr, size)		ioremap(physaddr, size)
-+#define ioremap_wt(physaddr, size)		ioremap(physaddr, size)
- #define ioremap_writethrough(physaddr, size)	ioremap(physaddr, size)
- #define ioremap_fullcache(physaddr, size)	ioremap(physaddr, size)
- 
-diff --git a/arch/xtensa/include/asm/io.h b/arch/xtensa/include/asm/io.h
-index fe1600a..c39bb6e 100644
---- a/arch/xtensa/include/asm/io.h
-+++ b/arch/xtensa/include/asm/io.h
-@@ -59,6 +59,7 @@ static inline void __iomem *ioremap_cache(unsigned long offset,
- }
- 
- #define ioremap_wc ioremap_nocache
-+#define ioremap_wt ioremap_nocache
- 
- static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
- {
+ 	if (req_type == _PAGE_CACHE_MODE_UC) {
+ 		/* We do not support strong UC */
+ 		WARN_ON_ONCE(1);
+@@ -461,6 +470,7 @@ static int free_ram_pages_type(u64 start, u64 end)
+  * - _PAGE_CACHE_MODE_WC
+  * - _PAGE_CACHE_MODE_UC_MINUS
+  * - _PAGE_CACHE_MODE_UC
++ * - _PAGE_CACHE_MODE_WT
+  *
+  * If new_type is NULL, function will return an error if it cannot reserve the
+  * region with req_type. If new_type is non-NULL, function will return
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
