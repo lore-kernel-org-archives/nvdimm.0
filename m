@@ -1,37 +1,39 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Mon, 1 Jun 2015 20:51:05 +0200
-From: Borislav Petkov <bp@alien8.de>
+Message-ID: <1433183189.23540.116.camel@misato.fc.hp.com>
 Subject: Re: [PATCH 4/4] x86/pat: Remove pat_enabled() checks
-Message-ID: <20150601185105.GA17187@pd.tnic>
+From: Toshi Kani <toshi.kani@hp.com>
+Date: Mon, 01 Jun 2015 12:26:29 -0600
+In-Reply-To: <1433065686-20922-4-git-send-email-bp@alien8.de>
 References: <20150531094655.GA20440@pd.tnic>
- <1433065686-20922-1-git-send-email-bp@alien8.de>
- <1433065686-20922-4-git-send-email-bp@alien8.de>
- <1433183189.23540.116.camel@misato.fc.hp.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1433183189.23540.116.camel@misato.fc.hp.com>
+	 <1433065686-20922-1-git-send-email-bp@alien8.de>
+	 <1433065686-20922-4-git-send-email-bp@alien8.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hp.com>
+To: Borislav Petkov <bp@alien8.de>
 Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@amacapital.net>, arnd@arndb.de, Elliott@hp.com, hch@lst.de, hmh@hmh.eng.br, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, jgross@suse.com, konrad.wilk@oracle.com, linux-mm <linux-mm@kvack.org>, linux-nvdimm@lists.01.org, "Luis R. Rodriguez" <mcgrof@suse.com>, stefan.bader@canonical.com, Thomas Gleixner <tglx@linutronix.de>, x86-ml <x86@kernel.org>, yigal@plexistor.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jun 01, 2015 at 12:26:29PM -0600, Toshi Kani wrote:
-> I reviewed the 1/3-3/3 patchset in your "tip-mm-2" branch, which is
-> different from this submitted patchset 1/4-4/4. So, my review-by
-> applies to the 3 patches in the "tip-mm-2" branch.
+On Sun, 2015-05-31 at 11:48 +0200, Borislav Petkov wrote:
+> From: Borislav Petkov <bp@suse.de>
+> 
+> Now that we emulate a PAT table when PAT is disabled, there's no need
+> for those checks anymore as the PAT abstraction will handle those cases
+> too.
+> 
+> Based on a conglomerate patch from Toshi Kani.
+> 
+> Signed-off-by: Borislav Petkov <bp@suse.de>
 
-That's fine, the 4 patches were broken due to xen using
-pat_init_cache_modes() too. So the 3 are the right ones.
+I reviewed the 1/3-3/3 patchset in your "tip-mm-2" branch, which is
+different from this submitted patchset 1/4-4/4.  So, my review-by
+applies to the 3 patches in the "tip-mm-2" branch.
 
-Thanks.
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
 
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+Thanks,
+-Toshi
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
