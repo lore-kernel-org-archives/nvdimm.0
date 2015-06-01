@@ -1,37 +1,35 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH 13/15] libnvdimm: flag libnvdimm block devices as
- non-rotational
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 17 Jun 2015 19:55:57 -0400
-Message-ID: <20150617235557.12943.75518.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Return-Path: <owner-linux-mm@kvack.org>
+Message-ID: <1433175458.23540.111.camel@misato.fc.hp.com>
+Subject: Re: [PATCH 1/4] x86/pat: Untangle pat_init()
+From: Toshi Kani <toshi.kani@hp.com>
+Date: Mon, 01 Jun 2015 10:17:38 -0600
+In-Reply-To: <1433065686-20922-1-git-send-email-bp@alien8.de>
+References: <20150531094655.GA20440@pd.tnic>
+	 <1433065686-20922-1-git-send-email-bp@alien8.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: axboe@kernel.dk, linux-nvdimm@lists.01.org
-Cc: boaz@plexistor.com, toshi.kani@hp.com, Vishal Verma <vishal.l.verma@linux.intel.com>, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
+Sender: owner-linux-mm@kvack.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@amacapital.net>, arnd@arndb.de, Elliott@hp.com, hch@lst.de, hmh@hmh.eng.br, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, jgross@suse.com, konrad.wilk@oracle.com, linux-mm <linux-mm@kvack.org>, linux-nvdimm@lists.01.org, "Luis R. Rodriguez" <mcgrof@suse.com>, stefan.bader@canonical.com, Thomas Gleixner <tglx@linutronix.de>, x86-ml <x86@kernel.org>, yigal@plexistor.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-...since they are effectively SSDs as far as userspace is concerned.
+On Sun, 2015-05-31 at 11:48 +0200, Borislav Petkov wrote:
+> From: Borislav Petkov <bp@suse.de>
+> 
+> Split it into a BSP and AP version which makes the PAT initialization
+> path actually readable again.
+> 
+> Signed-off-by: Borislav Petkov <bp@suse.de>
 
-Reviewed-by: Vishal Verma <vishal.l.verma@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/core.c |    1 +
- 1 file changed, 1 insertion(+)
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
 
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 99cf95af5f24..fa82f215990d 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -220,6 +220,7 @@ void nd_blk_queue_init(struct request_queue *q)
- 	blk_queue_bounce_limit(q, BLK_BOUNCE_ANY);
- 	if (IS_ENABLED(CONFIG_ND_IOSTAT))
- 		queue_flag_set_unlocked(QUEUE_FLAG_IO_STAT, q);
-+	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, q);
- }
- EXPORT_SYMBOL(nd_blk_queue_init);
- 
+Thanks,
+-Toshi
 
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
