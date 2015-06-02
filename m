@@ -1,464 +1,581 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v2 17/17] arch,
- x86: pmem api for ensuring durability of persistent memory updates
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v5 16/21] libnvdimm: write blk label set
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 25 Jun 2015 05:37:49 -0400
-Message-ID: <20150625093749.40066.25475.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
-References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
+Date: Mon, 01 Jun 2015 20:15:36 -0400
+Message-ID: <20150602001536.4506.94972.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, mingo@kernel.org, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: axboe@kernel.dk, sfr@canb.auug.org.au, rafael@kernel.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, linux-api@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+After 'uuid', 'size', 'sector_size', and optionally 'alt_name' have been
+set to valid values the labels on the dimm can be updated.  The
+difference with the pmem case is that blk namespaces are limited to one
+dimm and can cover discontiguous ranges in dpa space.
 
-Based on an original patch by Ross Zwisler [1].
+Also, after allocating label slots, it is useful for userspace to know
+how many slots are left.  Export this information in sysfs.
 
-Writes to persistent memory have the potential to be posted to cpu
-cache, cpu write buffers, and platform write buffers (memory controller)
-before being committed to persistent media.  Provide apis,
-memcpy_to_pmem(), wmb_pmem(), and memremap_pmem(), to write data to
-pmem and assert that it is durable in PMEM (a persistent linear address
-range).  A '__pmem' attribute is added so sparse can track proper usage
-of pointers to pmem.
-
-This continues the status quo of pmem being x86 only for 4.2, but
-reworks to ioremap, and wider implementation of memremap() will enable
-other archs in 4.3.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-May/000932.html
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-[djbw: various reworks]
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/Kconfig                  |    1 
- arch/x86/include/asm/cacheflush.h |   72 +++++++++++++++++
- arch/x86/include/asm/io.h         |    6 +
- drivers/nvdimm/pmem.c             |   33 +++++---
- include/linux/compiler.h          |    2 
- include/linux/pmem.h              |  153 +++++++++++++++++++++++++++++++++++++
- lib/Kconfig                       |    3 +
- 7 files changed, 257 insertions(+), 13 deletions(-)
- create mode 100644 include/linux/pmem.h
+ drivers/nvdimm/bus.c            |    4 +
+ drivers/nvdimm/dimm_devs.c      |   25 +++
+ drivers/nvdimm/label.c          |  297 +++++++++++++++++++++++++++++++++++++--
+ drivers/nvdimm/label.h          |    5 +
+ drivers/nvdimm/namespace_devs.c |   57 +++++++
+ drivers/nvdimm/nd-private.h     |    1 
+ 6 files changed, 367 insertions(+), 22 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 1a2cbf641667..62564ddf7f78 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -27,6 +27,7 @@ config X86
- 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
- 	select ARCH_HAS_FAST_MULTIPLIER
- 	select ARCH_HAS_GCOV_PROFILE_ALL
-+	select ARCH_HAS_PMEM_API
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_MIGHT_HAVE_PC_SERIO
- 	select HAVE_AOUT if X86_32
-diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
-index 47c8e32f621a..ec23bb753a3e 100644
---- a/arch/x86/include/asm/cacheflush.h
-+++ b/arch/x86/include/asm/cacheflush.h
-@@ -4,6 +4,7 @@
- /* Caches aren't brain-dead on the intel. */
- #include <asm-generic/cacheflush.h>
- #include <asm/special_insns.h>
-+#include <asm/uaccess.h>
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 95c11e622daa..fbf21dbd80fa 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -136,6 +136,10 @@ static void nd_async_device_unregister(void *d, async_cookie_t cookie)
+ {
+ 	struct device *dev = d;
  
- /*
-  * The set_memory_* API can be used to change various attributes of a virtual
-@@ -104,4 +105,75 @@ static inline int rodata_test(void)
++	/* flush bus operations before delete */
++	nvdimm_bus_lock(dev);
++	nvdimm_bus_unlock(dev);
++
+ 	device_unregister(dev);
+ 	put_device(dev);
  }
- #endif
- 
-+#ifdef ARCH_HAS_NOCACHE_UACCESS
-+
-+/**
-+ * arch_memcpy_to_pmem - copy data to persistent memory
-+ * @dst: destination buffer for the copy
-+ * @src: source buffer for the copy
-+ * @n: length of the copy in bytes
-+ *
-+ * Copy data to persistent memory media via non-temporal stores so that
-+ * a subsequent arch_wmb_pmem() can flush cpu and memory controller
-+ * write buffers to guarantee durability.
-+ */
-+static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
-+		size_t n)
-+{
-+	int unwritten;
-+
-+	/*
-+	 * We are copying between two kernel buffers, if
-+	 * __copy_from_user_inatomic_nocache() returns an error (page
-+	 * fault) we would have already reported a general protection fault
-+	 * before the WARN+BUG.
-+	 */
-+	unwritten = __copy_from_user_inatomic_nocache((void __force *) dst,
-+			(void __user *) src, n);
-+	if (WARN(unwritten, "%s: fault copying %p <- %p unwritten: %d\n",
-+				__func__, dst, src, unwritten))
-+		BUG();
-+}
-+
-+/**
-+ * arch_wmb_pmem - synchronize writes to persistent memory
-+ *
-+ * After a series of arch_memcpy_to_pmem() operations this drains data
-+ * from cpu write buffers and any platform (memory controller) buffers
-+ * to ensure that written data is durable on persistent memory media.
-+ */
-+static inline void arch_wmb_pmem(void)
-+{
-+	/*
-+	 * wmb() to 'sfence' all previous writes such that they are
-+	 * architecturally visible to 'pcommit'.  Note, that we've
-+	 * already arranged for pmem writes to avoid the cache via
-+	 * arch_memcpy_to_pmem().
-+	 */
-+	wmb();
-+	pcommit_sfence();
-+}
-+
-+static inline bool __arch_has_wmb_pmem(void)
-+{
-+#ifdef CONFIG_X86_64
-+	/*
-+	 * We require that wmb() be an 'sfence', that is only guaranteed on
-+	 * 64-bit builds
-+	 */
-+	return static_cpu_has(X86_FEATURE_PCOMMIT);
-+#else
-+	return false;
-+#endif
-+}
-+#else /* ARCH_HAS_NOCACHE_UACCESS i.e. ARCH=um */
-+extern void arch_memcpy_to_pmem(void __pmem *dst, const void *src, size_t n);
-+extern void arch_wmb_pmem(void);
-+
-+static inline bool __arch_has_wmb_pmem(void)
-+{
-+	return false;
-+}
-+#endif
-+
- #endif /* _ASM_X86_CACHEFLUSH_H */
-diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
-index 34a5b93704d3..c60c3f3b0183 100644
---- a/arch/x86/include/asm/io.h
-+++ b/arch/x86/include/asm/io.h
-@@ -247,6 +247,12 @@ static inline void flush_write_buffers(void)
- #endif
- }
- 
-+static inline void __pmem *arch_memremap_pmem(resource_size_t offset,
-+	unsigned long size)
-+{
-+	return (void __force __pmem *) ioremap_cache(offset, size);
-+}
-+
- #endif /* __KERNEL__ */
- 
- extern void native_io_delay(void);
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 42b766f33e59..ade9eb917a4d 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -23,6 +23,7 @@
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
-+#include <linux/pmem.h>
- #include <linux/nd.h>
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index f6c4b1ab8073..38fb68af5ef9 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -19,6 +19,7 @@
+ #include <linux/fs.h>
+ #include <linux/mm.h>
+ #include "nd-private.h"
++#include "label.h"
  #include "nd.h"
  
-@@ -32,7 +33,7 @@ struct pmem_device {
+ static DEFINE_IDA(dimm_ida);
+@@ -262,9 +263,33 @@ static ssize_t state_show(struct device *dev, struct device_attribute *attr,
+ }
+ static DEVICE_ATTR_RO(state);
  
- 	/* One contiguous memory region per device */
- 	phys_addr_t		phys_addr;
--	void			*virt_addr;
-+	void __pmem		*virt_addr;
- 	size_t			size;
++static ssize_t available_slots_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nvdimm_drvdata *ndd = dev_get_drvdata(dev);
++	ssize_t rc;
++	u32 nfree;
++
++	if (!ndd)
++		return -ENXIO;
++
++	nvdimm_bus_lock(dev);
++	nfree = nd_label_nfree(ndd);
++	if (nfree - 1 > nfree) {
++		dev_WARN_ONCE(dev, 1, "we ate our last label?\n");
++		nfree = 0;
++	} else
++		nfree--;
++	rc = sprintf(buf, "%d\n", nfree);
++	nvdimm_bus_unlock(dev);
++	return rc;
++}
++static DEVICE_ATTR_RO(available_slots);
++
+ static struct attribute *nvdimm_attributes[] = {
+ 	&dev_attr_state.attr,
+ 	&dev_attr_commands.attr,
++	&dev_attr_available_slots.attr,
+ 	NULL,
  };
  
-@@ -44,13 +45,14 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- {
- 	void *mem = kmap_atomic(page);
- 	size_t pmem_off = sector << 9;
-+	void __pmem *pmem_addr = pmem->virt_addr + pmem_off;
- 
- 	if (rw == READ) {
--		memcpy(mem + off, pmem->virt_addr + pmem_off, len);
-+		memcpy_from_pmem(mem + off, pmem_addr, len);
- 		flush_dcache_page(page);
- 	} else {
- 		flush_dcache_page(page);
--		memcpy(pmem->virt_addr + pmem_off, mem + off, len);
-+		memcpy_to_pmem(pmem_addr, mem + off, len);
- 	}
- 
- 	kunmap_atomic(mem);
-@@ -71,6 +73,10 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
- 				bio_data_dir(bio), iter.bi_sector);
- 	if (do_acct)
- 		nd_iostat_end(bio, start);
-+
-+	if (bio_data_dir(bio))
-+		wmb_pmem();
-+
- 	bio_endio(bio, 0);
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 8176bc5d645e..6f67db5a3302 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -62,7 +62,7 @@ size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
+ 	return ndd->nsindex_size;
  }
  
-@@ -94,7 +100,8 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
- 	if (!pmem)
- 		return -ENODEV;
+-static int nvdimm_num_label_slots(struct nvdimm_drvdata *ndd)
++int nvdimm_num_label_slots(struct nvdimm_drvdata *ndd)
+ {
+ 	return ndd->nsarea.config_size / 129;
+ }
+@@ -415,7 +415,7 @@ u32 nd_label_nfree(struct nvdimm_drvdata *ndd)
+ 	WARN_ON(!is_nvdimm_bus_locked(ndd->dev));
  
--	*kaddr = pmem->virt_addr + offset;
-+	/* FIXME convert DAX to comprehend that this mapping has a lifetime */
-+	*kaddr = (void __force *) pmem->virt_addr + offset;
- 	*pfn = (pmem->phys_addr + offset) >> PAGE_SHIFT;
+ 	if (!preamble_next(ndd, &nsindex, &free, &nslot))
+-		return 0;
++		return nvdimm_num_label_slots(ndd);
  
- 	return pmem->size - offset;
-@@ -118,6 +125,8 @@ static struct pmem_device *pmem_alloc(struct device *dev,
- 
- 	pmem->phys_addr = res->start;
- 	pmem->size = resource_size(res);
-+	if (!arch_has_pmem_api())
-+		dev_warn(dev, "unable to guarantee persistence of writes\n");
- 
- 	if (!request_mem_region(pmem->phys_addr, pmem->size, dev_name(dev))) {
- 		dev_warn(dev, "could not reserve region [0x%pa:0x%zx]\n",
-@@ -126,11 +135,7 @@ static struct pmem_device *pmem_alloc(struct device *dev,
- 		return ERR_PTR(-EBUSY);
- 	}
- 
--	/*
--	 * Map the memory as non-cachable, as we can't write back the contents
--	 * of the CPU caches in case of a crash.
--	 */
--	pmem->virt_addr = ioremap_nocache(pmem->phys_addr, pmem->size);
-+	pmem->virt_addr = memremap_pmem(pmem->phys_addr, pmem->size);
- 	if (!pmem->virt_addr) {
- 		release_mem_region(pmem->phys_addr, pmem->size);
- 		kfree(pmem);
-@@ -195,16 +200,18 @@ static int pmem_rw_bytes(struct nd_namespace_common *ndns,
- 	}
- 
- 	if (rw == READ)
--		memcpy(buf, pmem->virt_addr + offset, size);
--	else
--		memcpy(pmem->virt_addr + offset, buf, size);
-+		memcpy_from_pmem(buf, pmem->virt_addr + offset, size);
-+	else {
-+		memcpy_to_pmem(pmem->virt_addr + offset, buf, size);
-+		wmb_pmem();
-+	}
- 
+ 	return bitmap_weight(free, nslot);
+ }
+@@ -554,22 +554,270 @@ static int __pmem_label_update(struct nd_region *nd_region,
  	return 0;
  }
  
- static void pmem_free(struct pmem_device *pmem)
- {
--	iounmap(pmem->virt_addr);
-+	memunmap_pmem(pmem->virt_addr);
- 	release_mem_region(pmem->phys_addr, pmem->size);
- 	kfree(pmem);
- }
-diff --git a/include/linux/compiler.h b/include/linux/compiler.h
-index 867722591be2..9a528d945498 100644
---- a/include/linux/compiler.h
-+++ b/include/linux/compiler.h
-@@ -21,6 +21,7 @@
- # define __rcu		__attribute__((noderef, address_space(4)))
- #else
- # define __rcu
-+# define __pmem		__attribute__((noderef, address_space(5)))
- #endif
- extern void __chk_user_ptr(const volatile void __user *);
- extern void __chk_io_ptr(const volatile void __iomem *);
-@@ -42,6 +43,7 @@ extern void __chk_io_ptr(const volatile void __iomem *);
- # define __cond_lock(x,c) (c)
- # define __percpu
- # define __rcu
-+# define __pmem
- #endif
- 
- /* Indirect macros required for expanded argument pasting, eg. __LINE__. */
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-new file mode 100644
-index 000000000000..f6481a0b1d4f
---- /dev/null
-+++ b/include/linux/pmem.h
-@@ -0,0 +1,153 @@
-+/*
-+ * Copyright(c) 2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#ifndef __PMEM_H__
-+#define __PMEM_H__
-+
-+#include <linux/io.h>
-+
-+#ifdef CONFIG_ARCH_HAS_PMEM_API
-+#include <asm/cacheflush.h>
-+#else
-+static inline void arch_wmb_pmem(void)
+-static int init_labels(struct nd_mapping *nd_mapping)
++static void del_label(struct nd_mapping *nd_mapping, int l)
 +{
-+	BUG();
++	struct nd_namespace_label __iomem *next_label, *nd_label;
++	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
++	unsigned int slot;
++	int j;
++
++	nd_label = nd_get_label(nd_mapping->labels, l);
++	slot = to_slot(ndd, nd_label);
++	dev_vdbg(ndd->dev, "%s: clear: %d\n", __func__, slot);
++
++	for (j = l; (next_label = nd_get_label(nd_mapping->labels, j + 1)); j++)
++		nd_set_label(nd_mapping->labels, next_label, j);
++	nd_set_label(nd_mapping->labels, NULL, j);
 +}
 +
-+static inline bool __arch_has_wmb_pmem(void)
-+{
++static bool is_old_resource(struct resource *res, struct resource **list, int n)
+ {
+ 	int i;
++
++	if (res->flags & DPA_RESOURCE_ADJUSTED)
++		return false;
++	for (i = 0; i < n; i++)
++		if (res == list[i])
++			return true;
 +	return false;
 +}
 +
-+static inline void __pmem *arch_memremap_pmem(resource_size_t offset,
-+		unsigned long size)
++static struct resource *to_resource(struct nvdimm_drvdata *ndd,
++		struct nd_namespace_label __iomem *nd_label)
 +{
++	struct resource *res;
++
++	for_each_dpa_resource(ndd, res) {
++		if (res->start != readq(&nd_label->dpa))
++			continue;
++		if (resource_size(res) != readq(&nd_label->rawsize))
++			continue;
++		return res;
++	}
++
 +	return NULL;
 +}
 +
-+static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
-+		size_t n)
-+{
-+	BUG();
-+}
-+#endif
-+
 +/*
-+ * Architectures that define ARCH_HAS_PMEM_API must provide
-+ * implementations for arch_memremap_pmem(), arch_memcpy_to_pmem(),
-+ * arch_wmb_pmem(), and __arch_has_wmb_pmem().
++ * 1/ Account all the labels that can be freed after this update
++ * 2/ Allocate and write the label to the staging (next) index
++ * 3/ Record the resources in the namespace device
 + */
-+
-+static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
++static int __blk_label_update(struct nd_region *nd_region,
++		struct nd_mapping *nd_mapping, struct nd_namespace_blk *nsblk,
++		int num_labels)
 +{
-+	memcpy(dst, (void __force const *) src, size);
++	int i, l, alloc, victims, nfree, old_num_resources, nlabel, rc = -ENXIO;
++	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
++	struct nd_namespace_label __iomem *nd_label;
++	struct nd_namespace_index __iomem *nsindex;
++	unsigned long *free, *victim_map = NULL;
++	struct resource *res, **old_res_list;
++	struct nd_label_id label_id;
++	u8 uuid[NSLABEL_UUID_LEN];
++	u32 nslot, slot;
++
++	if (!preamble_next(ndd, &nsindex, &free, &nslot))
++		return -ENXIO;
++
++	old_res_list = nsblk->res;
++	nfree = nd_label_nfree(ndd);
++	old_num_resources = nsblk->num_resources;
++	nd_label_gen_id(&label_id, nsblk->uuid, NSLABEL_FLAG_LOCAL);
++
++	/*
++	 * We need to loop over the old resources a few times, which seems a
++	 * bit inefficient, but we need to know that we have the label
++	 * space before we start mutating the tracking structures.
++	 * Otherwise the recovery method of last resort for userspace is
++	 * disable and re-enable the parent region.
++	 */
++	alloc = 0;
++	for_each_dpa_resource(ndd, res) {
++		if (strcmp(res->name, label_id.id) != 0)
++			continue;
++		if (!is_old_resource(res, old_res_list, old_num_resources))
++			alloc++;
++	}
++
++	victims = 0;
++	if (old_num_resources) {
++		/* convert old local-label-map to dimm-slot victim-map */
++		victim_map = kcalloc(BITS_TO_LONGS(nslot), sizeof(long),
++				GFP_KERNEL);
++		if (!victim_map)
++			return -ENOMEM;
++
++		/* mark unused labels for garbage collection */
++		for_each_clear_bit_le(slot, free, nslot) {
++			nd_label = nd_label_base(ndd) + slot;
++			memcpy_fromio(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
++			if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
++				continue;
++			res = to_resource(ndd, nd_label);
++			if (res && is_old_resource(res, old_res_list,
++						old_num_resources))
++				continue;
++			slot = to_slot(ndd, nd_label);
++			set_bit(slot, victim_map);
++			victims++;
++		}
++	}
++
++	/* don't allow updates that consume the last label */
++	if (nfree - alloc < 0 || nfree - alloc + victims < 1) {
++		dev_info(&nsblk->dev, "insufficient label space\n");
++		kfree(victim_map);
++		return -ENOSPC;
++	}
++	/* from here on we need to abort on error */
++
++
++	/* assign all resources to the namespace before writing the labels */
++	nsblk->res = NULL;
++	nsblk->num_resources = 0;
++	for_each_dpa_resource(ndd, res) {
++		if (strcmp(res->name, label_id.id) != 0)
++			continue;
++		if (!nsblk_add_resource(nd_region, ndd, nsblk, res->start)) {
++			rc = -ENOMEM;
++			goto abort;
++		}
++	}
++
++	for (i = 0; i < nsblk->num_resources; i++) {
++		size_t offset;
++
++		res = nsblk->res[i];
++		if (is_old_resource(res, old_res_list, old_num_resources))
++			continue; /* carry-over */
++		slot = nd_label_alloc_slot(ndd);
++		if (slot == UINT_MAX)
++			goto abort;
++		dev_dbg(ndd->dev, "%s: allocated: %d\n", __func__, slot);
++
++		nd_label = nd_label_base(ndd) + slot;
++		memset_io(nd_label, 0, sizeof(struct nd_namespace_label));
++		memcpy_toio(nd_label->uuid, nsblk->uuid, NSLABEL_UUID_LEN);
++		if (nsblk->alt_name)
++			memcpy_toio(nd_label->name, nsblk->alt_name,
++					NSLABEL_NAME_LEN);
++		writel(NSLABEL_FLAG_LOCAL, &nd_label->flags);
++		writew(0, &nd_label->nlabel); /* N/A */
++		writew(0, &nd_label->position); /* N/A */
++		writeq(0, &nd_label->isetcookie); /* N/A */
++		writeq(res->start, &nd_label->dpa);
++		writeq(resource_size(res), &nd_label->rawsize);
++		writeq(nsblk->lbasize, &nd_label->lbasize);
++		writel(slot, &nd_label->slot);
++
++		/* update label */
++		offset = nd_label_offset(ndd, nd_label);
++		rc = nvdimm_set_config_data(ndd, offset, __io_virt(nd_label),
++				sizeof(struct nd_namespace_label));
++		if (rc < 0)
++			goto abort;
++	}
++
++	/* free up now unused slots in the new index */
++	for_each_set_bit(slot, victim_map, victim_map ? nslot : 0) {
++		dev_dbg(ndd->dev, "%s: free: %d\n", __func__, slot);
++		nd_label_free_slot(ndd, slot);
++	}
++
++	/* update index */
++	rc = nd_label_write_index(ndd, ndd->ns_next,
++			nd_inc_seq(readl(&nsindex->seq)), 0);
++	if (rc)
++		goto abort;
++
++	/*
++	 * Now that the on-dimm labels are up to date, fix up the tracking
++	 * entries in nd_mapping->labels
++	 */
++	nlabel = 0;
++	for_each_label(l, nd_label, nd_mapping->labels) {
++		nlabel++;
++		memcpy_fromio(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
++		if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
++			continue;
++		nlabel--;
++		del_label(nd_mapping, l);
++		l--; /* retry with the new label at this index */
++	}
++	if (nlabel + nsblk->num_resources > num_labels) {
++		/*
++		 * Bug, we can't end up with more resources than
++		 * available labels
++		 */
++		WARN_ON_ONCE(1);
++		rc = -ENXIO;
++		goto out;
++	}
++
++	for_each_clear_bit_le(slot, free, nslot) {
++		nd_label = nd_label_base(ndd) + slot;
++		memcpy_fromio(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
++		if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
++			continue;
++		res = to_resource(ndd, nd_label);
++		res->flags &= ~DPA_RESOURCE_ADJUSTED;
++		dev_vdbg(&nsblk->dev, "assign label[%d] slot: %d\n", l, slot);
++		nd_set_label(nd_mapping->labels, nd_label, l++);
++	}
++	nd_set_label(nd_mapping->labels, NULL, l);
++
++ out:
++	kfree(old_res_list);
++	kfree(victim_map);
++	return rc;
++
++ abort:
++	/*
++	 * 1/ repair the allocated label bitmap in the index
++	 * 2/ restore the resource list
++	 */
++	nd_label_copy(ndd, nsindex, to_current_namespace_index(ndd));
++	kfree(nsblk->res);
++	nsblk->res = old_res_list;
++	nsblk->num_resources = old_num_resources;
++	old_res_list = NULL;
++	goto out;
 +}
 +
-+static inline void memunmap_pmem(void __pmem *addr)
++static int init_labels(struct nd_mapping *nd_mapping, int num_labels)
 +{
-+	iounmap((void __force __iomem *) addr);
-+}
-+
-+/**
-+ * arch_has_wmb_pmem - true if wmb_pmem() ensures durability
-+ *
-+ * For a given cpu implementation within an architecture it is possible
-+ * that wmb_pmem() resolves to a nop.  In the case this returns
-+ * false, pmem api users are unable to ensure durability and may want to
-+ * fall back to a different data consistency model, or otherwise notify
-+ * the user.
-+ */
-+static inline bool arch_has_wmb_pmem(void)
-+{
-+	if (IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API))
-+		return __arch_has_wmb_pmem();
-+	return false;
-+}
-+
-+static inline bool arch_has_pmem_api(void)
-+{
-+	return IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API) && arch_has_wmb_pmem();
-+}
-+
-+/*
-+ * These defaults seek to offer decent performance and minimize the
-+ * window between i/o completion and writes being durable on media.
-+ * However, it is undefined / architecture specific whether
-+ * default_memremap_pmem + default_memcpy_to_pmem is sufficient for
-+ * making data durable relative to i/o completion.
-+ */
-+static void default_memcpy_to_pmem(void __pmem *dst, const void *src,
-+		size_t size)
-+{
-+	memcpy((void __force *) dst, src, size);
-+}
-+
-+static void __pmem *default_memremap_pmem(resource_size_t offset,
-+		unsigned long size)
-+{
-+	/* TODO: convert to ioremap_wt() */
-+	return (void __pmem __force *)ioremap_nocache(offset, size);
-+}
-+
-+/**
-+ * memremap_pmem - map physical persistent memory for pmem api
-+ * @offset: physical address of persistent memory
-+ * @size: size of the mapping
-+ *
-+ * Establish a mapping of the architecture specific memory type expected
-+ * by memcpy_to_pmem() and wmb_pmem().  For example, it may be
-+ * the case that an uncacheable or writethrough mapping is sufficient,
-+ * or a writeback mapping provided memcpy_to_pmem() and
-+ * wmb_pmem() arrange for the data to be written through the
-+ * cache to persistent media.
-+ */
-+static inline void __pmem *memremap_pmem(resource_size_t offset,
-+		unsigned long size)
-+{
-+	if (arch_has_pmem_api())
-+		return arch_memremap_pmem(offset, size);
-+	return default_memremap_pmem(offset, size);
-+}
-+
-+/**
-+ * memcpy_to_pmem - copy data to persistent memory
-+ * @dst: destination buffer for the copy
-+ * @src: source buffer for the copy
-+ * @n: length of the copy in bytes
-+ *
-+ * Perform a memory copy that results in the destination of the copy
-+ * being effectively evicted from, or never written to, the processor
-+ * cache hierarchy after the copy completes.  After memcpy_to_pmem()
-+ * data may still reside in cpu or platform buffers, so this operation
-+ * must be followed by a wmb_pmem().
-+ */
-+static inline void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
-+{
-+	if (arch_has_pmem_api())
-+		arch_memcpy_to_pmem(dst, src, n);
-+	else
-+		default_memcpy_to_pmem(dst, src, n);
-+}
-+
-+/**
-+ * wmb_pmem - synchronize writes to persistent memory
-+ *
-+ * After a series of memcpy_to_pmem() operations this drains data from
-+ * cpu write buffers and any platform (memory controller) buffers to
-+ * ensure that written data is durable on persistent memory media.
-+ */
-+static inline void wmb_pmem(void)
-+{
-+	if (arch_has_pmem_api())
-+		arch_wmb_pmem();
-+}
-+#endif /* __PMEM_H__ */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 601965a948e8..d27c13a91c28 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -522,4 +522,7 @@ source "lib/fonts/Kconfig"
- config ARCH_HAS_SG_CHAIN
- 	def_bool n
++	int i, l, old_num_labels = 0;
+ 	struct nd_namespace_index __iomem *nsindex;
++	struct nd_namespace_label __iomem *nd_label;
+ 	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
++	size_t size = (num_labels + 1) * sizeof(struct nd_namespace_label *);
  
-+config ARCH_HAS_PMEM_API
-+	bool
+-	if (!nd_mapping->labels)
+-		nd_mapping->labels = kcalloc(2, sizeof(void *), GFP_KERNEL);
++	for_each_label(l, nd_label, nd_mapping->labels)
++		old_num_labels++;
+ 
++	/*
++	 * We need to preserve all the old labels for the mapping so
++	 * they can be garbage collected after writing the new labels.
++	 */
++	if (num_labels > old_num_labels) {
++		struct nd_namespace_label **labels;
 +
- endmenu
++		labels = krealloc(nd_mapping->labels, size, GFP_KERNEL);
++		if (!labels)
++			return -ENOMEM;
++		nd_mapping->labels = labels;
++	}
+ 	if (!nd_mapping->labels)
+ 		return -ENOMEM;
+ 
++	for (i = old_num_labels; i <= num_labels; i++)
++		nd_set_label(nd_mapping->labels, NULL, i);
++
+ 	if (ndd->ns_current == -1 || ndd->ns_next == -1)
+ 		/* pass */;
+ 	else
+-		return 0;
++		return max(num_labels, old_num_labels);
+ 
+ 	nsindex = to_namespace_index(ndd, 0);
+ 	memset_io(nsindex, 0, ndd->nsarea.config_size);
+@@ -582,7 +830,7 @@ static int init_labels(struct nd_mapping *nd_mapping)
+ 	ndd->ns_next = 1;
+ 	ndd->ns_current = 0;
+ 
+-	return 0;
++	return max(num_labels, old_num_labels);
+ }
+ 
+ static int del_labels(struct nd_mapping *nd_mapping, u8 *uuid)
+@@ -604,22 +852,15 @@ static int del_labels(struct nd_mapping *nd_mapping, u8 *uuid)
+ 		return 0;
+ 
+ 	for_each_label(l, nd_label, nd_mapping->labels) {
+-		int j;
+-
+ 		memcpy_fromio(label_uuid, nd_label->uuid, NSLABEL_UUID_LEN);
+ 		if (memcmp(label_uuid, uuid, NSLABEL_UUID_LEN) != 0)
+ 			continue;
+ 		slot = to_slot(ndd, nd_label);
+ 		nd_label_free_slot(ndd, slot);
+ 		dev_dbg(ndd->dev, "%s: free: %d\n", __func__, slot);
+-		for (j = l; nd_get_label(nd_mapping->labels, j + 1); j++) {
+-			struct nd_namespace_label __iomem *next_label;
+-
+-			next_label = nd_get_label(nd_mapping->labels, j + 1);
+-			nd_set_label(nd_mapping->labels, next_label, j);
+-		}
+-		nd_set_label(nd_mapping->labels, NULL, j);
++		del_label(nd_mapping, l);
+ 		num_freed++;
++		l--; /* retry with new label at this index */
+ 	}
+ 
+ 	if (num_freed > l) {
+@@ -652,8 +893,8 @@ int nd_pmem_namespace_label_update(struct nd_region *nd_region,
+ 			continue;
+ 		}
+ 
+-		rc = init_labels(nd_mapping);
+-		if (rc)
++		rc = init_labels(nd_mapping, 1);
++		if (rc < 0)
+ 			return rc;
+ 
+ 		rc = __pmem_label_update(nd_region, nd_mapping, nspm, i);
+@@ -663,3 +904,23 @@ int nd_pmem_namespace_label_update(struct nd_region *nd_region,
+ 
+ 	return 0;
+ }
++
++int nd_blk_namespace_label_update(struct nd_region *nd_region,
++		struct nd_namespace_blk *nsblk, resource_size_t size)
++{
++	struct nd_mapping *nd_mapping = &nd_region->mapping[0];
++	struct resource *res;
++	int count = 0;
++
++	if (size == 0)
++		return del_labels(nd_mapping, nsblk->uuid);
++
++	for_each_dpa_resource(to_ndd(nd_mapping), res)
++		count++;
++
++	count = init_labels(nd_mapping, count);
++	if (count < 0)
++		return count;
++
++	return __blk_label_update(nd_region, nd_mapping, nsblk, count);
++}
+diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+index 91273b257028..21e179bf926a 100644
+--- a/drivers/nvdimm/label.h
++++ b/drivers/nvdimm/label.h
+@@ -130,9 +130,14 @@ size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd);
+ int nd_label_active_count(struct nvdimm_drvdata *ndd);
+ struct nd_namespace_label __iomem *nd_label_active(
+ 		struct nvdimm_drvdata *ndd, int n);
++u32 nd_label_alloc_slot(struct nvdimm_drvdata *ndd);
++bool nd_label_free_slot(struct nvdimm_drvdata *ndd, u32 slot);
+ u32 nd_label_nfree(struct nvdimm_drvdata *ndd);
+ struct nd_region;
+ struct nd_namespace_pmem;
++struct nd_namespace_blk;
+ int nd_pmem_namespace_label_update(struct nd_region *nd_region,
+ 		struct nd_namespace_pmem *nspm, resource_size_t size);
++int nd_blk_namespace_label_update(struct nd_region *nd_region,
++		struct nd_namespace_blk *nsblk, resource_size_t size);
+ #endif /* __LABEL_H__ */
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 32ad1c34e06d..893eefafb940 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -164,8 +164,7 @@ static int nd_namespace_label_update(struct nd_region *nd_region, struct device
+ 	 */
+ 	if (is_namespace_pmem(dev)) {
+ 		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
+-		struct resource *res = &nspm->nsio.res;
+-		resource_size_t size = resource_size(res);
++		resource_size_t size = resource_size(&nspm->nsio.res);
+ 
+ 		if (size == 0 && nspm->uuid)
+ 			/* delete allocation */;
+@@ -174,8 +173,15 @@ static int nd_namespace_label_update(struct nd_region *nd_region, struct device
+ 
+ 		return nd_pmem_namespace_label_update(nd_region, nspm, size);
+ 	} else if (is_namespace_blk(dev)) {
+-		/* TODO: implement blk labels */
+-		return 0;
++		struct nd_namespace_blk *nsblk = to_nd_namespace_blk(dev);
++		resource_size_t size = nd_namespace_blk_size(nsblk);
++
++		if (size == 0 && nsblk->uuid)
++			/* delete allocation */;
++		else if (!nsblk->uuid || !nsblk->lbasize)
++			return 0;
++
++		return nd_blk_namespace_label_update(nd_region, nsblk, size);
+ 	} else
+ 		return -ENXIO;
+ }
+@@ -983,6 +989,48 @@ static ssize_t sector_size_store(struct device *dev,
+ }
+ static DEVICE_ATTR_RW(sector_size);
+ 
++static ssize_t dpa_extents_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_region *nd_region = to_nd_region(dev->parent);
++	struct nd_label_id label_id;
++	int count = 0, i;
++	u8 *uuid = NULL;
++	u32 flags = 0;
++
++	nvdimm_bus_lock(dev);
++	if (is_namespace_pmem(dev)) {
++		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
++
++		uuid = nspm->uuid;
++		flags = 0;
++	} else if (is_namespace_blk(dev)) {
++		struct nd_namespace_blk *nsblk = to_nd_namespace_blk(dev);
++
++		uuid = nsblk->uuid;
++		flags = NSLABEL_FLAG_LOCAL;
++	}
++
++	if (!uuid)
++		goto out;
++
++	nd_label_gen_id(&label_id, uuid, flags);
++	for (i = 0; i < nd_region->ndr_mappings; i++) {
++		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
++		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
++		struct resource *res;
++
++		for_each_dpa_resource(ndd, res)
++			if (strcmp(res->name, label_id.id) == 0)
++				count++;
++	}
++ out:
++	nvdimm_bus_unlock(dev);
++
++	return sprintf(buf, "%d\n", count);
++}
++static DEVICE_ATTR_RO(dpa_extents);
++
+ static struct attribute *nd_namespace_attributes[] = {
+ 	&dev_attr_nstype.attr,
+ 	&dev_attr_size.attr,
+@@ -990,6 +1038,7 @@ static struct attribute *nd_namespace_attributes[] = {
+ 	&dev_attr_resource.attr,
+ 	&dev_attr_alt_name.attr,
+ 	&dev_attr_sector_size.attr,
++	&dev_attr_dpa_extents.attr,
+ 	NULL,
+ };
+ 
+diff --git a/drivers/nvdimm/nd-private.h b/drivers/nvdimm/nd-private.h
+index 0d39cc1ba084..b0eed3bcb76d 100644
+--- a/drivers/nvdimm/nd-private.h
++++ b/drivers/nvdimm/nd-private.h
+@@ -76,4 +76,5 @@ struct nd_mapping;
+ struct resource *nsblk_add_resource(struct nd_region *nd_region,
+ 		struct nvdimm_drvdata *ndd, struct nd_namespace_blk *nsblk,
+ 		resource_size_t start);
++int nvdimm_num_label_slots(struct nvdimm_drvdata *ndd);
+ #endif /* __ND_PRIVATE_H__ */
 
