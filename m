@@ -1,68 +1,79 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v12 2/10] x86, mm, pat: Change reserve_memtype() for WT
-Date: Mon,  1 Jun 2015 13:36:25 -0600
-Message-Id: <1433187393-22688-3-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
-References: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v5 10/21] pmem: Dynamically allocate partition numbers
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 01 Jun 2015 20:15:03 -0400
+Message-ID: <20150602001503.4506.10472.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: axboe@kernel.dk, sfr@canb.auug.org.au, rafael@kernel.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, linux-api@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a RAM range is requested to reserve_memtype(), it calls
-reserve_ram_pages_type() to verify the requested type.
-reserve_ram_pages_type() is changed to fail WT and WP requests
-with -EINVAL since set_page_memtype() is limited to handle
-three types, WB, WC and UC-.
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Dynamically allocate minor numbers for partitions instead of statically
+preallocating them.
+
+It gives us a simpler minors scheme, and makes it so we get a consistent
+major when moving past partition 16.  Here's what happens with the
+current code:
+
+ pmem0      249:0    0 63.5G  0 rom
+ ├─pmem0p1  249:1    0    1G  0 part
+ ├─pmem0p2  249:2    0    1G  0 part
+ ├─pmem0p3  249:3    0    1G  0 part
+ ├─pmem0p4  249:4    0    1G  0 part
+ ├─pmem0p5  249:5    0    1G  0 part
+ ├─pmem0p6  249:6    0    1G  0 part
+ ├─pmem0p7  249:7    0    1G  0 part
+ ├─pmem0p8  249:8    0    1G  0 part
+ ├─pmem0p9  249:9    0    1G  0 part
+ ├─pmem0p10 249:10   0    1G  0 part
+ ├─pmem0p11 249:11   0    1G  0 part
+ ├─pmem0p12 249:12   0    1G  0 part
+ ├─pmem0p13 249:13   0    1G  0 part
+ ├─pmem0p14 249:14   0    1G  0 part
+ ├─pmem0p15 249:15   0    1G  0 part
+ ├─pmem0p16 259:0    0    1G  0 part
+ ├─pmem0p17 259:1    0    1G  0 part
+ └─pmem0p18 259:2    0    1G  0 part
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Patch 8/10 enhances set_page_memtype() to support WT.
----
- arch/x86/mm/pat.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/nvdimm/pmem.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
-index 83af01a..56c8b4d 100644
---- a/arch/x86/mm/pat.c
-+++ b/arch/x86/mm/pat.c
-@@ -401,6 +401,8 @@ static int pat_pagerange_is_ram(resource_size_t start, resource_size_t end)
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index cf5d53eda9e5..0842d27ffc8d 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -26,8 +26,6 @@
+ #include <linux/nd.h>
+ #include "nd.h"
  
- /*
-  * For RAM pages, we use page flags to mark the pages with appropriate type.
-+ * The page flags are limited to three types, WB, WC and UC-.
-+ * WT and WP requests fail with -EINVAL, and UC gets redirected to UC-.
-  * Here we do two pass:
-  * - Find the memtype of all the pages in the range, look for any conflicts
-  * - In case of no conflicts, set the new memtype for pages in the range
-@@ -412,6 +414,13 @@ static int reserve_ram_pages_type(u64 start, u64 end,
- 	struct page *page;
- 	u64 pfn;
+-#define PMEM_MINORS		16
+-
+ struct pmem_device {
+ 	struct request_queue	*pmem_queue;
+ 	struct gendisk		*pmem_disk;
+@@ -156,12 +154,12 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res,
+ 	blk_queue_max_hw_sectors(pmem->pmem_queue, 1024);
+ 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
  
-+	if ((req_type == _PAGE_CACHE_MODE_WT) ||
-+	    (req_type == _PAGE_CACHE_MODE_WP)) {
-+		if (new_type)
-+			*new_type = _PAGE_CACHE_MODE_UC_MINUS;
-+		return -EINVAL;
-+	}
-+
- 	if (req_type == _PAGE_CACHE_MODE_UC) {
- 		/* We do not support strong UC */
- 		WARN_ON_ONCE(1);
-@@ -461,6 +470,7 @@ static int free_ram_pages_type(u64 start, u64 end)
-  * - _PAGE_CACHE_MODE_WC
-  * - _PAGE_CACHE_MODE_UC_MINUS
-  * - _PAGE_CACHE_MODE_UC
-+ * - _PAGE_CACHE_MODE_WT
-  *
-  * If new_type is NULL, function will return an error if it cannot reserve the
-  * region with req_type. If new_type is non-NULL, function will return
+-	disk = alloc_disk(PMEM_MINORS);
++	disk = alloc_disk(0);
+ 	if (!disk)
+ 		goto out_free_queue;
+ 
+ 	disk->major		= pmem_major;
+-	disk->first_minor	= PMEM_MINORS * id;
++	disk->first_minor	= 0;
+ 	disk->fops		= &pmem_fops;
+ 	disk->private_data	= pmem;
+ 	disk->queue		= pmem->pmem_queue;
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
