@@ -1,48 +1,52 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH 0/3] Add NUMA support for NVDIMM devices
-Date: Tue,  2 Jun 2015 18:26:49 -0600
-Message-Id: <1433291212-23367-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+MIME-Version: 1.0
+In-Reply-To: <1433187393-22688-7-git-send-email-toshi.kani@hp.com>
+References: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
+	<1433187393-22688-7-git-send-email-toshi.kani@hp.com>
+Date: Tue, 2 Jun 2015 09:06:06 +0200
+Message-ID: <CAMuHMdUaasgirQcB=gR28Zi_4pj29cdKeVg=efOHNpvbcAck9A@mail.gmail.com>
+Subject: Re: [PATCH v12 6/10] video/fbdev, asm/io.h: Remove ioremap_writethrough()
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Content-Type: text/plain; charset=UTF-8
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Linux MM <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, Andy Lutomirski <luto@amacapital.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, yigal@plexistor.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Elliott@hp.com, "Luis R. Rodriguez" <mcgrof@suse.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Since NVDIMMs are installed on memory slots, they expose the NUMA
-topology of a platform.  This patchset adds support of sysfs
-'numa_node' to the NVDIMM devices under /sys/bus/nd/devices.
-With this change, numactl(8) accepts 'block:' and 'file:' paths of
-pmem and btt devices as shown in the examples below.
-  numactl --preferred block:pmem0 --show
-  numactl --preferred file:/dev/pmem0s --show
+On Mon, Jun 1, 2015 at 9:36 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> This patch removes the callers of ioremap_writethrough() by
+> replacing them with ioremap_wt() in three drivers under
+> drivers/video/fbdev.  It then removes ioremap_writethrough()
+> defined in some architecture's asm/io.h, frv, m68k, microblaze,
+> and tile.
+>
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> ---
+>  arch/frv/include/asm/io.h        |    5 -----
+>  arch/m68k/include/asm/io_mm.h    |    5 -----
+>  arch/m68k/include/asm/io_no.h    |    4 ----
+>  arch/microblaze/include/asm/io.h |    1 -
+>  arch/tile/include/asm/io.h       |    1 -
+>  drivers/video/fbdev/amifb.c      |    4 ++--
+>  drivers/video/fbdev/atafb.c      |    3 +--
+>  drivers/video/fbdev/hpfb.c       |    4 ++--
 
-Here is a result of fio benchmark to ext4/dax on pmem0 using numactl
-on an HP DL380 with 2 sockets; pmem0 on node 0, and pmem1 on node 1.
+For the m68k and amifb/atafb/hpfb changes:
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-  Local [1] :  4098.3MB/s
-  Remote [2]:  3718.4MB/s
+Gr{oetje,eeting}s,
 
-[1] numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio <fs-on-pmem0> 
-[2] numactl --preferred block:pmem1 --cpunodebind block:pmem1 fio <fs-on-pmem0>
+                        Geert
 
-Patch 1/3-2/3 apply on top of the acpica branch of the pm tree.
-Patch 3/3 applies on top of Dan Williams's v5 patch series of 
-"libnvdimm: non-volatile memory devices".
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
----
-Toshi Kani (3):
-  1/3 acpi: Fix acpi_map_pxm_to_node() to handle numa_off
-  2/3 acpi: Add export to acpi_map_pxm_to_node()
-  3/3 libnvdimm: Add sysfs numa_node to NVDIMM devices
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
 
----
- drivers/acpi/nfit.c          |  2 ++
- drivers/acpi/numa.c          | 13 ++++++++++---
- drivers/nvdimm/btt.c         |  2 ++
- drivers/nvdimm/bus.c         | 12 ++++++++++++
- drivers/nvdimm/nd.h          |  1 +
- drivers/nvdimm/region.c      |  1 +
- drivers/nvdimm/region_devs.c |  1 +
- include/linux/acpi.h         |  5 +++++
- include/linux/libnvdimm.h    |  1 +
- 9 files changed, 35 insertions(+), 3 deletions(-)
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
