@@ -1,112 +1,53 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-tip PATCH v4 0/6] pmem api, generic ioremap_cache, and memremap
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 11 Jun 2015 17:19:12 -0400
-Message-ID: <20150611211354.10271.57950.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: arnd@arndb.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
-Cc: jgross@suse.com, x86@kernel.org, toshi.kani@hp.com, konrad.wilk@oracle.com, benh@kernel.crashing.org, mcgrof@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stefan.bader@canonical.com, luto@amacapital.net, linux-mm@kvack.org, Andy Shevchenko <andy.shevchenko@gmail.com>, geert@linux-m68k.org, ralf@linux-mips.org, hmh@hmh.eng.br, mpe@ellerman.id.au, tj@kernel.org, paulus@samba.org, kbuild test robot <fengguang.wu@intel.com>, hch@lst.de
+In-Reply-To: <20150603065510.GB11344@lst.de>
+References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150528085124.GA26120@lst.de>
+	<CAPcyv4ieTpdTdH=X9o0+YQ4B+fk9Wp85a55yWKReFAXpdVnSVg@mail.gmail.com>
+	<20150603065510.GB11344@lst.de>
+Date: Wed, 3 Jun 2015 00:02:53 -0700
+Message-ID: <CAPcyv4j6UtkZ6i9Zp8ptiadNw2ZrTNp8t8q6Xap52_3zw5ypkg@mail.gmail.com>
+Subject: Re: [GIT PULL v4 00/21] libnd: non-volatile memory device support
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pmem api is responsible for shepherding data out to persistent
-media.  The pmem driver uses this api, when available, to assert that
-data is durable by the time bio_endio() is invoked.  When an
-architecture or cpu can not make persistence guarantees the driver warns
-and falls back to "best effort" implementation.
+On Tue, Jun 2, 2015 at 11:55 PM, Christoph Hellwig <hch@lst.de> wrote:
+> On Thu, May 28, 2015 at 07:55:47AM -0700, Dan Williams wrote:
+>> >  - stong NAK for the linker wrapping abuse in the test module
+>>
+>> This capability has been our single largest generator of bug fixes and
+>> regression prevention.  Please tell me you have a non-bikeshed
+>> argument why this test approach must die?  We need more tests in tree,
+>> not less.  That said, it's at the end of the series ready to be lopped
+>> off like a spent booster rocket if it's really a blocker.
+>
+> No - you're overloading general functionality to go to something much
+> slower, with locking implications etc totally invisible to someone reading
+> the code.  I could be persuaded that a test module makes sense if you
+> make it an explicit opt-in at the source code level, e.g. a version
+> of a the pmem driver that needs to be explicitly loaded.
 
-Changes since v3 [1]:
+I slowly came to the same realization, see v5.
 
-Rebased on tip/master now that Toshi's ioremap_wt() patches have landed
-in -tip.  The primary change was reflowing the patches against the newly
-alphabetized 'select' options under config X86.
+> Then again I really don't see the point - if you already need a VM with
+> ACPI / EFI tables to claim that you have pmem support you might as well
+> do the pmem emulation in that same virtualіzation environment.
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-June/001081.html
+The problem is that PMEM is easy to emulate, BLK, is more involved.
+No one really wants BLK mode in a VM compared to a virtio passthrough
+to BLK mode on the bare metal side.
 
----
+>> It makes the identifier prefixes shorter is the bulk of the reasoning
+>> and a hardware memory resource need not always be a "dimm".  If it's
+>> just the top-level directory I'm fine with 'nvdimm' or are you looking
+>> for a rename throughout?
+>
+> That's the most important part.
 
-Dan Williams (5):
-      arch: unify ioremap prototypes and macro aliases
-      cleanup IORESOURCE_CACHEABLE vs ioremap()
-      arch/*/asm/io.h: add ioremap_cache() to all architectures
-      devm: fix ioremap_cache() usage
-      arch: introduce memremap_cache() and memremap_wt()
-
-Ross Zwisler (1):
-      arch, x86: pmem api for ensuring durability of persistent memory updates
-
-
- arch/arc/include/asm/io.h               |    1 
- arch/arm/Kconfig                        |    1 
- arch/arm/include/asm/io.h               |    2 +
- arch/arm/mach-clps711x/board-cdb89712.c |    2 -
- arch/arm64/Kconfig                      |    1 
- arch/arm64/include/asm/io.h             |    3 +
- arch/arm64/kernel/efi.c                 |    4 +
- arch/arm64/kernel/smp_spin_table.c      |   10 ++-
- arch/avr32/include/asm/io.h             |    1 
- arch/cris/include/asm/io.h              |    8 +-
- arch/cris/mm/ioremap.c                  |    6 +-
- arch/frv/Kconfig                        |    1 
- arch/frv/include/asm/io.h               |    6 ++
- arch/ia64/include/asm/io.h              |    9 +--
- arch/ia64/mm/ioremap.c                  |    4 +
- arch/m32r/include/asm/io.h              |    1 
- arch/m68k/Kconfig                       |    1 
- arch/m68k/include/asm/io_mm.h           |    7 ++
- arch/m68k/include/asm/io_no.h           |    5 ++
- arch/metag/Kconfig                      |    1 
- arch/metag/include/asm/io.h             |    5 ++
- arch/microblaze/include/asm/io.h        |    1 
- arch/mips/Kconfig                       |    1 
- arch/mips/include/asm/io.h              |   17 ++++-
- arch/mn10300/include/asm/io.h           |    1 
- arch/nios2/include/asm/io.h             |    1 
- arch/powerpc/Kconfig                    |    1 
- arch/powerpc/include/asm/io.h           |    2 -
- arch/powerpc/kernel/pci_of_scan.c       |    2 -
- arch/s390/include/asm/io.h              |    1 
- arch/sparc/include/asm/io_32.h          |    1 
- arch/sparc/include/asm/io_64.h          |    9 ++-
- arch/sparc/kernel/pci.c                 |    3 -
- arch/tile/include/asm/io.h              |    1 
- arch/x86/Kconfig                        |    2 +
- arch/x86/include/asm/cacheflush.h       |   36 +++++++++++
- arch/x86/include/asm/io.h               |    7 ++
- arch/x86/kernel/crash_dump_64.c         |    6 +-
- arch/x86/kernel/kdebugfs.c              |    8 +-
- arch/x86/kernel/ksysfs.c                |   28 ++++-----
- arch/x86/mm/ioremap.c                   |   10 +--
- arch/xtensa/Kconfig                     |    1 
- arch/xtensa/include/asm/io.h            |    3 +
- drivers/acpi/apei/einj.c                |    8 +-
- drivers/acpi/apei/erst.c                |    4 +
- drivers/block/Kconfig                   |    1 
- drivers/block/pmem.c                    |   76 +++++++++++++++++++++--
- drivers/firmware/google/memconsole.c    |    4 +
- drivers/pci/probe.c                     |    3 -
- drivers/pnp/manager.c                   |    2 -
- drivers/scsi/aic94xx/aic94xx_init.c     |    7 --
- drivers/scsi/arcmsr/arcmsr_hba.c        |    5 --
- drivers/scsi/mvsas/mv_init.c            |   15 +----
- drivers/video/fbdev/ocfb.c              |    1 
- include/asm-generic/io.h                |    8 ++
- include/asm-generic/iomap.h             |    4 +
- include/linux/compiler.h                |    2 +
- include/linux/device.h                  |    5 ++
- include/linux/io.h                      |    6 ++
- include/linux/pmem.h                    |  102 +++++++++++++++++++++++++++++++
- kernel/resource.c                       |   41 ++++++++++++
- lib/Kconfig                             |    8 ++
- lib/devres.c                            |   48 ++++++---------
- lib/pci_iomap.c                         |    7 +-
- 64 files changed, 440 insertions(+), 138 deletions(-)
- create mode 100644 include/linux/pmem.h
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Ok, have a look at v5 and see if that seems like the right set of
+identifier names.
