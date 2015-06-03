@@ -1,244 +1,432 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v12 09/10] x86, mm: Add set_memory_wt() for WT
-Date: Mon,  1 Jun 2015 13:36:32 -0600
-Message-Id: <1433187393-22688-10-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
-References: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v3 3/6] arch/*/asm/io.h: add ioremap_cache() to all
+ architectures
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 03 Jun 2015 17:34:28 -0400
+Message-ID: <20150603213428.13749.99455.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150603211948.13749.85816.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150603211948.13749.85816.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
+To: arnd@arndb.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
+Cc: jgross@suse.com, x86@kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, mcgrof@suse.com, konrad.wilk@oracle.com, linux-kernel@vger.kernel.org, stefan.bader@canonical.com, luto@amacapital.net, linux-mm@kvack.org, geert@linux-m68k.org, ralf@linux-mips.org, hmh@hmh.eng.br, mpe@ellerman.id.au, tj@kernel.org, paulus@samba.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that reserve_ram_pages_type() accepts the WT type, this
-patch adds set_memory_wt(), set_memory_array_wt() and
-set_pages_array_wt() for setting the WT type to the regular
-memory.
+Similar to ioremap_wc() let architecture implementations optionally
+provide ioremap_cache().  As is, current ioremap_cache() users have
+architecture dependencies that prevent them from compiling on archs
+without ioremap_cache().  In some cases the architectures that have a
+cached ioremap() capability have an identifier other than
+"ioremap_cache".
 
-ioremap_change_attr() is also extended to accept the WT type.
+Allow drivers to compile with ioremap_cache() support and fallback to a
+safe / uncached ioremap otherwise.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/x86/pat.txt         |    9 ++++-
- arch/x86/include/asm/cacheflush.h |    6 +++-
- arch/x86/mm/ioremap.c             |    3 ++
- arch/x86/mm/pageattr.c            |   62 +++++++++++++++++++++++++++++--------
- 4 files changed, 63 insertions(+), 17 deletions(-)
+ arch/arc/include/asm/io.h        |    1 +
+ arch/arm/include/asm/io.h        |    2 ++
+ arch/arm64/include/asm/io.h      |    3 +++
+ arch/avr32/include/asm/io.h      |    1 +
+ arch/frv/include/asm/io.h        |    6 ++++++
+ arch/ia64/include/asm/io.h       |    5 -----
+ arch/m32r/include/asm/io.h       |    1 +
+ arch/m68k/include/asm/io_mm.h    |    7 +++++++
+ arch/m68k/include/asm/io_no.h    |    5 +++++
+ arch/metag/include/asm/io.h      |    5 +++++
+ arch/microblaze/include/asm/io.h |    1 +
+ arch/mips/include/asm/io.h       |   17 +++++++++++++----
+ arch/mn10300/include/asm/io.h    |    1 +
+ arch/nios2/include/asm/io.h      |    1 +
+ arch/s390/include/asm/io.h       |    1 +
+ arch/sparc/include/asm/io_32.h   |    1 +
+ arch/sparc/include/asm/io_64.h   |    1 +
+ arch/tile/include/asm/io.h       |    1 +
+ arch/x86/include/asm/io.h        |    1 +
+ arch/xtensa/include/asm/io.h     |    3 +++
+ include/asm-generic/io.h         |    8 ++++++++
+ include/asm-generic/iomap.h      |    4 ++++
+ 22 files changed, 67 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/x86/pat.txt b/Documentation/x86/pat.txt
-index db0de6c..54944c7 100644
---- a/Documentation/x86/pat.txt
-+++ b/Documentation/x86/pat.txt
-@@ -48,6 +48,9 @@ set_memory_uc          |    UC-   |    --      |       --         |
- set_memory_wc          |    WC    |    --      |       --         |
-  set_memory_wb         |          |            |                  |
-                        |          |            |                  |
-+set_memory_wt          |    WT    |    --      |       --         |
-+ set_memory_wb         |          |            |                  |
-+                       |          |            |                  |
- pci sysfs resource     |    --    |    --      |       UC-        |
-                        |          |            |                  |
- pci sysfs resource_wc  |    --    |    --      |       WC         |
-@@ -150,8 +153,8 @@ can be more restrictive, in case of any existing aliasing for that address.
- For example: If there is an existing uncached mapping, a new ioremap_wc can
- return uncached mapping in place of write-combine requested.
+diff --git a/arch/arc/include/asm/io.h b/arch/arc/include/asm/io.h
+index 7cc4ced5dbf4..6b6f5a47acec 100644
+--- a/arch/arc/include/asm/io.h
++++ b/arch/arc/include/asm/io.h
+@@ -19,6 +19,7 @@ extern void __iomem *ioremap_prot(phys_addr_t offset, unsigned long size,
+ extern void iounmap(const void __iomem *addr);
  
--set_memory_[uc|wc] and set_memory_wb should be used in pairs, where driver will
--first make a region uc or wc and switch it back to wb after use.
-+set_memory_[uc|wc|wt] and set_memory_wb should be used in pairs, where driver
-+will first make a region uc, wc or wt and switch it back to wb after use.
+ #define ioremap_nocache(phy, sz)	ioremap(phy, sz)
++#define ioremap_cache(phy, sz)		ioremap(phy, sz)
+ #define ioremap_wc(phy, sz)		ioremap(phy, sz)
+ #define ioremap_wt(phy, sz)		ioremap(phy, sz)
  
- Over time writes to /proc/mtrr will be deprecated in favor of using PAT based
- interfaces. Users writing to /proc/mtrr are suggested to use above interfaces.
-@@ -159,7 +162,7 @@ interfaces. Users writing to /proc/mtrr are suggested to use above interfaces.
- Drivers should use ioremap_[uc|wc] to access PCI BARs with [uc|wc] access
- types.
+diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
+index 1b7677d1e5e1..5e2c5cbdffdc 100644
+--- a/arch/arm/include/asm/io.h
++++ b/arch/arm/include/asm/io.h
+@@ -23,6 +23,8 @@
  
--Drivers should use set_memory_[uc|wc] to set access type for RAM ranges.
-+Drivers should use set_memory_[uc|wc|wt] to set access type for RAM ranges.
+ #ifdef __KERNEL__
  
- 
- PAT debugging
-diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
-index 47c8e32..b6f7457 100644
---- a/arch/x86/include/asm/cacheflush.h
-+++ b/arch/x86/include/asm/cacheflush.h
-@@ -8,7 +8,7 @@
- /*
-  * The set_memory_* API can be used to change various attributes of a virtual
-  * address range. The attributes include:
-- * Cachability   : UnCached, WriteCombining, WriteBack
-+ * Cachability   : UnCached, WriteCombining, WriteThrough, WriteBack
-  * Executability : eXeutable, NoteXecutable
-  * Read/Write    : ReadOnly, ReadWrite
-  * Presence      : NotPresent
-@@ -35,9 +35,11 @@
- 
- int _set_memory_uc(unsigned long addr, int numpages);
- int _set_memory_wc(unsigned long addr, int numpages);
-+int _set_memory_wt(unsigned long addr, int numpages);
- int _set_memory_wb(unsigned long addr, int numpages);
- int set_memory_uc(unsigned long addr, int numpages);
- int set_memory_wc(unsigned long addr, int numpages);
-+int set_memory_wt(unsigned long addr, int numpages);
- int set_memory_wb(unsigned long addr, int numpages);
- int set_memory_x(unsigned long addr, int numpages);
- int set_memory_nx(unsigned long addr, int numpages);
-@@ -48,10 +50,12 @@ int set_memory_4k(unsigned long addr, int numpages);
- 
- int set_memory_array_uc(unsigned long *addr, int addrinarray);
- int set_memory_array_wc(unsigned long *addr, int addrinarray);
-+int set_memory_array_wt(unsigned long *addr, int addrinarray);
- int set_memory_array_wb(unsigned long *addr, int addrinarray);
- 
- int set_pages_array_uc(struct page **pages, int addrinarray);
- int set_pages_array_wc(struct page **pages, int addrinarray);
-+int set_pages_array_wt(struct page **pages, int addrinarray);
- int set_pages_array_wb(struct page **pages, int addrinarray);
- 
- /*
-diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
-index 07cd46a..8405c0c 100644
---- a/arch/x86/mm/ioremap.c
-+++ b/arch/x86/mm/ioremap.c
-@@ -42,6 +42,9 @@ int ioremap_change_attr(unsigned long vaddr, unsigned long size,
- 	case _PAGE_CACHE_MODE_WC:
- 		err = _set_memory_wc(vaddr, nrpages);
- 		break;
-+	case _PAGE_CACHE_MODE_WT:
-+		err = _set_memory_wt(vaddr, nrpages);
-+		break;
- 	case _PAGE_CACHE_MODE_WB:
- 		err = _set_memory_wb(vaddr, nrpages);
- 		break;
-diff --git a/arch/x86/mm/pageattr.c b/arch/x86/mm/pageattr.c
-index 94aae76..d908f19 100644
---- a/arch/x86/mm/pageattr.c
-+++ b/arch/x86/mm/pageattr.c
-@@ -1502,12 +1502,10 @@ EXPORT_SYMBOL(set_memory_uc);
- static int _set_memory_array(unsigned long *addr, int addrinarray,
- 		enum page_cache_mode new_type)
- {
-+	enum page_cache_mode set_type;
- 	int i, j;
- 	int ret;
- 
--	/*
--	 * for now UC MINUS. see comments in ioremap_nocache()
--	 */
- 	for (i = 0; i < addrinarray; i++) {
- 		ret = reserve_memtype(__pa(addr[i]), __pa(addr[i]) + PAGE_SIZE,
- 					new_type, NULL);
-@@ -1515,9 +1513,12 @@ static int _set_memory_array(unsigned long *addr, int addrinarray,
- 			goto out_free;
- 	}
- 
-+	/* If WC, set to UC- first and then WC */
-+	set_type = (new_type == _PAGE_CACHE_MODE_WC) ?
-+				_PAGE_CACHE_MODE_UC_MINUS : new_type;
++#define ARCH_HAS_IOREMAP_CACHE
 +
- 	ret = change_page_attr_set(addr, addrinarray,
--				   cachemode2pgprot(_PAGE_CACHE_MODE_UC_MINUS),
--				   1);
-+				   cachemode2pgprot(set_type), 1);
+ #include <linux/types.h>
+ #include <linux/blk_types.h>
+ #include <asm/byteorder.h>
+diff --git a/arch/arm64/include/asm/io.h b/arch/arm64/include/asm/io.h
+index 7116d3973058..6a8836c9d993 100644
+--- a/arch/arm64/include/asm/io.h
++++ b/arch/arm64/include/asm/io.h
+@@ -21,6 +21,8 @@
  
- 	if (!ret && new_type == _PAGE_CACHE_MODE_WC)
- 		ret = change_page_attr_set_clr(addr, addrinarray,
-@@ -1549,6 +1550,12 @@ int set_memory_array_wc(unsigned long *addr, int addrinarray)
+ #ifdef __KERNEL__
+ 
++#define ARCH_HAS_IOREMAP_CACHE
++
+ #include <linux/types.h>
+ #include <linux/blk_types.h>
+ 
+@@ -171,6 +173,7 @@ extern void __iomem *ioremap_cache(phys_addr_t phys_addr, size_t size);
+ #define ioremap_nocache(addr, size)	__ioremap((addr), (size), __pgprot(PROT_DEVICE_nGnRE))
+ #define ioremap_wc(addr, size)		__ioremap((addr), (size), __pgprot(PROT_NORMAL_NC))
+ #define ioremap_wt(addr, size)		__ioremap((addr), (size), __pgprot(PROT_DEVICE_nGnRE))
++#define ioremap_cache			ioremap_cache
+ #define iounmap				__iounmap
+ 
+ /*
+diff --git a/arch/avr32/include/asm/io.h b/arch/avr32/include/asm/io.h
+index e998ff5d8e1a..c6994d880dbd 100644
+--- a/arch/avr32/include/asm/io.h
++++ b/arch/avr32/include/asm/io.h
+@@ -297,6 +297,7 @@ extern void __iounmap(void __iomem *addr);
+ 
+ #define ioremap_wc ioremap_nocache
+ #define ioremap_wt ioremap_nocache
++#define ioremap_cache ioremap_nocache
+ 
+ #define cached(addr) P1SEGADDR(addr)
+ #define uncached(addr) P2SEGADDR(addr)
+diff --git a/arch/frv/include/asm/io.h b/arch/frv/include/asm/io.h
+index a31b63ec4930..cd841f852af3 100644
+--- a/arch/frv/include/asm/io.h
++++ b/arch/frv/include/asm/io.h
+@@ -18,6 +18,7 @@
+ #ifdef __KERNEL__
+ 
+ #define ARCH_HAS_IOREMAP_WT
++#define ARCH_HAS_IOREMAP_CACHE
+ 
+ #include <linux/types.h>
+ #include <asm/virtconvert.h>
+@@ -277,6 +278,11 @@ static inline void __iomem *ioremap_fullcache(unsigned long physaddr, unsigned l
+ 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
  }
- EXPORT_SYMBOL(set_memory_array_wc);
  
-+int set_memory_array_wt(unsigned long *addr, int addrinarray)
++static inline void __iomem *ioremap_cache(unsigned long physaddr, unsigned long size)
 +{
-+	return _set_memory_array(addr, addrinarray, _PAGE_CACHE_MODE_WT);
++	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
 +}
-+EXPORT_SYMBOL_GPL(set_memory_array_wt);
 +
- int _set_memory_wc(unsigned long addr, int numpages)
- {
- 	int ret;
-@@ -1574,21 +1581,39 @@ int set_memory_wc(unsigned long addr, int numpages)
- 	ret = reserve_memtype(__pa(addr), __pa(addr) + numpages * PAGE_SIZE,
- 		_PAGE_CACHE_MODE_WC, NULL);
- 	if (ret)
--		goto out_err;
-+		return ret;
+ #define ioremap_wc ioremap_nocache
  
- 	ret = _set_memory_wc(addr, numpages);
- 	if (ret)
--		goto out_free;
-+		free_memtype(__pa(addr), __pa(addr) + numpages * PAGE_SIZE);
- 
--	return 0;
+ extern void iounmap(void volatile __iomem *addr);
+diff --git a/arch/ia64/include/asm/io.h b/arch/ia64/include/asm/io.h
+index 8588ef767a44..cba265c30c3c 100644
+--- a/arch/ia64/include/asm/io.h
++++ b/arch/ia64/include/asm/io.h
+@@ -431,11 +431,6 @@ extern void __iomem * early_ioremap (unsigned long phys_addr, unsigned long size
+ #define early_memremap(phys_addr, size)        early_ioremap(phys_addr, size)
+ extern void early_iounmap (volatile void __iomem *addr, unsigned long size);
+ #define early_memunmap(addr, size)             early_iounmap(addr, size)
+-static inline void __iomem * ioremap_cache (unsigned long phys_addr, unsigned long size)
+-{
+-	return ioremap(phys_addr, size);
+-}
 -
--out_free:
--	free_memtype(__pa(addr), __pa(addr) + numpages * PAGE_SIZE);
--out_err:
- 	return ret;
+ 
+ /*
+  * String version of IO memory access ops:
+diff --git a/arch/m32r/include/asm/io.h b/arch/m32r/include/asm/io.h
+index 0c3f25ee3381..f3eceeac25c8 100644
+--- a/arch/m32r/include/asm/io.h
++++ b/arch/m32r/include/asm/io.h
+@@ -67,6 +67,7 @@ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
+ 
+ extern void iounmap(volatile void __iomem *addr);
+ #define ioremap_nocache(off,size) ioremap(off,size)
++#define ioremap_cache ioremap_nocache
+ #define ioremap_wc ioremap_nocache
+ #define ioremap_wt ioremap_nocache
+ 
+diff --git a/arch/m68k/include/asm/io_mm.h b/arch/m68k/include/asm/io_mm.h
+index 618c85d3c786..aaf1009f2f94 100644
+--- a/arch/m68k/include/asm/io_mm.h
++++ b/arch/m68k/include/asm/io_mm.h
+@@ -21,6 +21,7 @@
+ #ifdef __KERNEL__
+ 
+ #define ARCH_HAS_IOREMAP_WT
++#define ARCH_HAS_IOREMAP_CACHE
+ 
+ #include <linux/compiler.h>
+ #include <asm/raw_io.h>
+@@ -478,6 +479,12 @@ static inline void __iomem *ioremap_fullcache(unsigned long physaddr,
+ 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
  }
- EXPORT_SYMBOL(set_memory_wc);
  
-+int _set_memory_wt(unsigned long addr, int numpages)
++static inline void __iomem *ioremap_cache(unsigned long physaddr,
++		unsigned long size)
 +{
-+	return change_page_attr_set(&addr, numpages,
-+				    cachemode2pgprot(_PAGE_CACHE_MODE_WT), 0);
++	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
 +}
 +
-+int set_memory_wt(unsigned long addr, int numpages)
-+{
-+	int ret;
-+
-+	ret = reserve_memtype(__pa(addr), __pa(addr) + numpages * PAGE_SIZE,
-+			      _PAGE_CACHE_MODE_WT, NULL);
-+	if (ret)
-+		return ret;
-+
-+	ret = _set_memory_wt(addr, numpages);
-+	if (ret)
-+		free_memtype(__pa(addr), __pa(addr) + numpages * PAGE_SIZE);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(set_memory_wt);
-+
- int _set_memory_wb(unsigned long addr, int numpages)
+ static inline void memset_io(volatile void __iomem *addr, unsigned char val, int count)
  {
- 	/* WB cache mode is hard wired to all cache attribute bits being 0 */
-@@ -1679,6 +1704,7 @@ static int _set_pages_array(struct page **pages, int addrinarray,
- {
- 	unsigned long start;
- 	unsigned long end;
-+	enum page_cache_mode set_type;
- 	int i;
- 	int free_idx;
- 	int ret;
-@@ -1692,8 +1718,12 @@ static int _set_pages_array(struct page **pages, int addrinarray,
- 			goto err_out;
- 	}
+ 	__builtin_memset((void __force *) addr, val, count);
+diff --git a/arch/m68k/include/asm/io_no.h b/arch/m68k/include/asm/io_no.h
+index ad7bd40e6742..020483566b73 100644
+--- a/arch/m68k/include/asm/io_no.h
++++ b/arch/m68k/include/asm/io_no.h
+@@ -4,6 +4,7 @@
+ #ifdef __KERNEL__
  
-+	/* If WC, set to UC- first and then WC */
-+	set_type = (new_type == _PAGE_CACHE_MODE_WC) ?
-+				_PAGE_CACHE_MODE_UC_MINUS : new_type;
-+
- 	ret = cpa_set_pages_array(pages, addrinarray,
--			cachemode2pgprot(_PAGE_CACHE_MODE_UC_MINUS));
-+				  cachemode2pgprot(set_type));
- 	if (!ret && new_type == _PAGE_CACHE_MODE_WC)
- 		ret = change_page_attr_set_clr(NULL, addrinarray,
- 					       cachemode2pgprot(
-@@ -1727,6 +1757,12 @@ int set_pages_array_wc(struct page **pages, int addrinarray)
+ #define ARCH_HAS_IOREMAP_WT
++#define ARCH_HAS_IOREMAP_CACHE
+ 
+ #include <asm/virtconvert.h>
+ #include <asm-generic/iomap.h>
+@@ -163,6 +164,10 @@ static inline void *ioremap_fullcache(unsigned long physaddr, unsigned long size
+ {
+ 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
  }
- EXPORT_SYMBOL(set_pages_array_wc);
- 
-+int set_pages_array_wt(struct page **pages, int addrinarray)
++static inline void *ioremap_cache(unsigned long physaddr, unsigned long size)
 +{
-+	return _set_pages_array(pages, addrinarray, _PAGE_CACHE_MODE_WT);
++	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
 +}
-+EXPORT_SYMBOL_GPL(set_pages_array_wt);
+ 
+ #define	iounmap(addr)	do { } while(0)
+ 
+diff --git a/arch/metag/include/asm/io.h b/arch/metag/include/asm/io.h
+index 9890f21eadbe..d9b2873e3ca8 100644
+--- a/arch/metag/include/asm/io.h
++++ b/arch/metag/include/asm/io.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_METAG_IO_H
+ #define _ASM_METAG_IO_H
+ 
++#define ARCH_HAS_IOREMAP_CACHE
 +
- int set_pages_wb(struct page *page, int numpages)
+ #include <linux/types.h>
+ #include <asm/pgtable-bits.h>
+ 
+@@ -157,6 +159,9 @@ extern void __iounmap(void __iomem *addr);
+ #define ioremap_cached(offset, size)            \
+ 	__ioremap((offset), (size), _PAGE_CACHEABLE)
+ 
++#define ioremap_cache(offset, size)            \
++	__ioremap((offset), (size), _PAGE_CACHEABLE)
++
+ #define ioremap_wc(offset, size)                \
+ 	__ioremap((offset), (size), _PAGE_WR_COMBINE)
+ 
+diff --git a/arch/microblaze/include/asm/io.h b/arch/microblaze/include/asm/io.h
+index 39b6315db82e..986cc0c9e67f 100644
+--- a/arch/microblaze/include/asm/io.h
++++ b/arch/microblaze/include/asm/io.h
+@@ -43,6 +43,7 @@ extern void __iomem *ioremap(phys_addr_t address, unsigned long size);
+ #define ioremap_fullcache(addr, size)		ioremap((addr), (size))
+ #define ioremap_wc(addr, size)			ioremap((addr), (size))
+ #define ioremap_wt(addr, size)			ioremap((addr), (size))
++#define ioremap_cache(addr, size)		ioremap((addr), (size))
+ 
+ #endif /* CONFIG_MMU */
+ 
+diff --git a/arch/mips/include/asm/io.h b/arch/mips/include/asm/io.h
+index 9e777cd42b67..6d4c3ae146a5 100644
+--- a/arch/mips/include/asm/io.h
++++ b/arch/mips/include/asm/io.h
+@@ -12,6 +12,8 @@
+ #ifndef _ASM_IO_H
+ #define _ASM_IO_H
+ 
++#define ARCH_HAS_IOREMAP_CACHE
++
+ #include <linux/compiler.h>
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+@@ -232,8 +234,10 @@ static inline void __iomem * __ioremap_mode(phys_addr_t offset, unsigned long si
+  * address is not guaranteed to be usable directly as a virtual
+  * address.
+  */
+-#define ioremap(offset, size)						\
+-	__ioremap_mode((offset), (size), _CACHE_UNCACHED)
++static inline void __iomem *ioremap(resource_size_t offset, unsigned long size)
++{
++	return __ioremap_mode(offset, size, _CACHE_UNCACHED);
++}
+ 
+ /*
+  * ioremap_nocache     -   map bus memory into CPU space
+@@ -254,8 +258,7 @@ static inline void __iomem * __ioremap_mode(phys_addr_t offset, unsigned long si
+  * It's useful if some control registers are in such an area and
+  * write combining or read caching is not desirable:
+  */
+-#define ioremap_nocache(offset, size)					\
+-	__ioremap_mode((offset), (size), _CACHE_UNCACHED)
++#define ioremap_nocache ioremap
+ 
+ /*
+  * ioremap_cachable -	map bus memory into CPU space
+@@ -272,8 +275,14 @@ static inline void __iomem * __ioremap_mode(phys_addr_t offset, unsigned long si
+  * the CPU.  Also enables full write-combining.	 Useful for some
+  * memory-like regions on I/O busses.
+  */
++extern unsigned long _page_cachable_default;
+ #define ioremap_cachable(offset, size)					\
+ 	__ioremap_mode((offset), (size), _page_cachable_default)
++static inline void __iomem *ioremap_cache(resource_size_t offset,
++		unsigned long size)
++{
++	return ioremap_cachable(offset, size);
++}
+ 
+ /*
+  * These two are MIPS specific ioremap variant.	 ioremap_cacheable_cow
+diff --git a/arch/mn10300/include/asm/io.h b/arch/mn10300/include/asm/io.h
+index 07c5b4a3903b..dcab414f40df 100644
+--- a/arch/mn10300/include/asm/io.h
++++ b/arch/mn10300/include/asm/io.h
+@@ -283,6 +283,7 @@ static inline void __iomem *ioremap_nocache(unsigned long offset, unsigned long
+ 
+ #define ioremap_wc ioremap_nocache
+ #define ioremap_wt ioremap_nocache
++#define ioremap_cache ioremap_nocache
+ 
+ static inline void iounmap(void __iomem *addr)
  {
- 	unsigned long addr = (unsigned long)page_address(page);
+diff --git a/arch/nios2/include/asm/io.h b/arch/nios2/include/asm/io.h
+index c5a62da22cd2..367e2ea7663a 100644
+--- a/arch/nios2/include/asm/io.h
++++ b/arch/nios2/include/asm/io.h
+@@ -47,6 +47,7 @@ static inline void iounmap(void __iomem *addr)
+ 
+ #define ioremap_wc ioremap_nocache
+ #define ioremap_wt ioremap_nocache
++#define ioremap_cache ioremap_nocache
+ 
+ /* Pages to physical address... */
+ #define page_to_phys(page)	virt_to_phys(page_to_virt(page))
+diff --git a/arch/s390/include/asm/io.h b/arch/s390/include/asm/io.h
+index cb5fdf3a78fc..6824c3daa2a1 100644
+--- a/arch/s390/include/asm/io.h
++++ b/arch/s390/include/asm/io.h
+@@ -30,6 +30,7 @@ void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
+ #define ioremap_nocache(addr, size)	ioremap(addr, size)
+ #define ioremap_wc			ioremap_nocache
+ #define ioremap_wt			ioremap_nocache
++#define ioremap_cache			ioremap_nocache
+ 
+ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
+ {
+diff --git a/arch/sparc/include/asm/io_32.h b/arch/sparc/include/asm/io_32.h
+index 57f26c398dc9..b9a734caf57d 100644
+--- a/arch/sparc/include/asm/io_32.h
++++ b/arch/sparc/include/asm/io_32.h
+@@ -128,6 +128,7 @@ static inline void sbus_memcpy_toio(volatile void __iomem *dst,
+  */
+ void __iomem *ioremap(unsigned long offset, unsigned long size);
+ #define ioremap_nocache(X,Y)	ioremap((X),(Y))
++#define ioremap_cache(X,Y)	ioremap((X),(Y))
+ #define ioremap_wc(X,Y)		ioremap((X),(Y))
+ #define ioremap_wt(X,Y)		ioremap((X),(Y))
+ void iounmap(volatile void __iomem *addr);
+diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
+index b99ae1fac174..61f5d04da892 100644
+--- a/arch/sparc/include/asm/io_64.h
++++ b/arch/sparc/include/asm/io_64.h
+@@ -401,6 +401,7 @@ static inline void __iomem *ioremap(resource_size_t offset, unsigned long size)
+ }
+ 
+ #define ioremap_nocache ioremap
++#define ioremap_cache ioremap
+ #define ioremap_wc ioremap
+ #define ioremap_wt ioremap
+ 
+diff --git a/arch/tile/include/asm/io.h b/arch/tile/include/asm/io.h
+index dc61de15c1f9..fe853a135e25 100644
+--- a/arch/tile/include/asm/io.h
++++ b/arch/tile/include/asm/io.h
+@@ -53,6 +53,7 @@ extern void iounmap(volatile void __iomem *addr);
+ #endif
+ 
+ #define ioremap_nocache(physaddr, size)		ioremap(physaddr, size)
++#define ioremap_cache(physaddr, size)		ioremap(physaddr, size)
+ #define ioremap_wc(physaddr, size)		ioremap(physaddr, size)
+ #define ioremap_wt(physaddr, size)		ioremap(physaddr, size)
+ #define ioremap_fullcache(physaddr, size)	ioremap(physaddr, size)
+diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
+index 6c3a130de503..956f2768bdc1 100644
+--- a/arch/x86/include/asm/io.h
++++ b/arch/x86/include/asm/io.h
+@@ -36,6 +36,7 @@
+ 
+ #define ARCH_HAS_IOREMAP_WC
+ #define ARCH_HAS_IOREMAP_WT
++#define ARCH_HAS_IOREMAP_CACHE
+ 
+ #include <linux/string.h>
+ #include <linux/compiler.h>
+diff --git a/arch/xtensa/include/asm/io.h b/arch/xtensa/include/asm/io.h
+index c39bb6e61911..f91a8a99aa29 100644
+--- a/arch/xtensa/include/asm/io.h
++++ b/arch/xtensa/include/asm/io.h
+@@ -12,6 +12,9 @@
+ #define _XTENSA_IO_H
+ 
+ #ifdef __KERNEL__
++
++#define ARCH_HAS_IOREMAP_CACHE
++
+ #include <asm/byteorder.h>
+ #include <asm/page.h>
+ #include <asm/vectors.h>
+diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
+index f56094cfdeff..a0665dfcab47 100644
+--- a/include/asm-generic/io.h
++++ b/include/asm-generic/io.h
+@@ -793,6 +793,14 @@ static inline void __iomem *ioremap_wt(phys_addr_t offset, size_t size)
+ }
+ #endif
+ 
++#ifndef ioremap_cache
++#define ioremap_cache ioremap_cache
++static inline void __iomem *ioremap_cache(phys_addr_t offset, size_t size)
++{
++	return ioremap_nocache(offset, size);
++}
++#endif
++
+ #ifndef iounmap
+ #define iounmap iounmap
+ 
+diff --git a/include/asm-generic/iomap.h b/include/asm-generic/iomap.h
+index d8f8622fa044..f0f30464cecd 100644
+--- a/include/asm-generic/iomap.h
++++ b/include/asm-generic/iomap.h
+@@ -70,6 +70,10 @@ extern void ioport_unmap(void __iomem *);
+ #define ioremap_wt ioremap_nocache
+ #endif
+ 
++#ifndef ARCH_HAS_IOREMAP_CACHE
++#define ioremap_cache ioremap_nocache
++#endif
++
+ #ifdef CONFIG_PCI
+ /* Destroy a virtual mapping cookie for a PCI BAR (memory or IO) */
+ struct pci_dev;
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
