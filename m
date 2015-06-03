@@ -1,480 +1,313 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v5 12/21] libnvdimm: namespace indices: read and validate
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v3 6/6] arch,
+ x86: pmem api for ensuring durability of persistent memory updates
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 01 Jun 2015 20:15:14 -0400
-Message-ID: <20150602001514.4506.13974.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 03 Jun 2015 17:34:45 -0400
+Message-ID: <20150603213445.13749.29052.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150603211948.13749.85816.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150603211948.13749.85816.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: axboe@kernel.dk, sfr@canb.auug.org.au, rafael@kernel.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, linux-api@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
+Sender: owner-linux-mm@kvack.org
+To: arnd@arndb.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
+Cc: jgross@suse.com, x86@kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, mcgrof@suse.com, konrad.wilk@oracle.com, linux-kernel@vger.kernel.org, stefan.bader@canonical.com, luto@amacapital.net, linux-mm@kvack.org, geert@linux-m68k.org, ralf@linux-mips.org, hmh@hmh.eng.br, mpe@ellerman.id.au, tj@kernel.org, paulus@samba.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This on media label format [1] consists of two index blocks followed by
-an array of labels.  None of these structures are ever updated in place.
-A sequence number tracks the current active index and the next one to
-write, while labels are written to free slots.
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-    +------------+
-    |            |
-    |  nsindex0  |
-    |            |
-    +------------+
-    |            |
-    |  nsindex1  |
-    |            |
-    +------------+
-    |   label0   |
-    +------------+
-    |   label1   |
-    +------------+
-    |            |
-     ....nslot...
-    |            |
-    +------------+
-    |   labelN   |
-    +------------+
+Based on an original patch by Ross Zwisler [1].
 
-After reading valid labels, store the dpa ranges they claim into
-per-dimm resource trees.
+Writes to persistent memory have the potential to be posted to cpu
+cache, cpu write buffers, and platform write buffers (memory controller)
+before being committed to persistent media.  Provide apis,
+memcpy_to_pmem(), sync_pmem(), and memremap_pmem(), to write data to
+pmem and assert that it is durable in PMEM (a persistent linear address
+range).  A '__pmem' attribute is added so sparse can track proper usage
+of pointers to pmem.
 
-[1]: http://pmem.io/documents/NVDIMM_Namespace_Spec.pdf
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-May/000932.html
 
-Cc: Neil Brown <neilb@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+[djbw: various reworks]
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/Makefile    |    1 
- drivers/nvdimm/dimm.c      |   23 +++
- drivers/nvdimm/dimm_devs.c |   30 ++++-
- drivers/nvdimm/label.c     |  290 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/label.h     |  129 ++++++++++++++++++++
- drivers/nvdimm/nd.h        |   49 +++++++
- include/uapi/linux/ndctl.h |    1 
- 7 files changed, 521 insertions(+), 2 deletions(-)
- create mode 100644 drivers/nvdimm/label.c
- create mode 100644 drivers/nvdimm/label.h
+ arch/x86/Kconfig                  |    1 
+ arch/x86/include/asm/cacheflush.h |   36 +++++++++++++
+ arch/x86/include/asm/io.h         |    6 ++
+ drivers/block/pmem.c              |   75 +++++++++++++++++++++++++--
+ include/linux/compiler.h          |    2 +
+ include/linux/pmem.h              |  102 +++++++++++++++++++++++++++++++++++++
+ lib/Kconfig                       |    3 +
+ 7 files changed, 218 insertions(+), 7 deletions(-)
+ create mode 100644 include/linux/pmem.h
 
-diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
-index 4d2a27f52faa..abce98f87f16 100644
---- a/drivers/nvdimm/Makefile
-+++ b/drivers/nvdimm/Makefile
-@@ -10,3 +10,4 @@ libnvdimm-y += dimm.o
- libnvdimm-y += region_devs.o
- libnvdimm-y += region.o
- libnvdimm-y += namespace_devs.o
-+libnvdimm-y += label.o
-diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-index eb20fc2df32b..2df97c3c3b34 100644
---- a/drivers/nvdimm/dimm.c
-+++ b/drivers/nvdimm/dimm.c
-@@ -18,6 +18,7 @@
- #include <linux/slab.h>
- #include <linux/mm.h>
- #include <linux/nd.h>
-+#include "label.h"
- #include "nd.h"
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index cfda0b6d7698..708b9abb625f 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -103,6 +103,7 @@ config X86
+ 	select HAVE_ARCH_HUGE_VMAP if X86_64 || X86_PAE
+ 	select ARCH_HAS_SG_CHAIN
+ 	select ARCH_HAS_MEMREMAP
++	select ARCH_HAS_PMEM_API
+ 	select CLKEVT_I8253
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select GENERIC_IOMAP
+diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
+index b6f7457d12e4..4d896487382c 100644
+--- a/arch/x86/include/asm/cacheflush.h
++++ b/arch/x86/include/asm/cacheflush.h
+@@ -4,6 +4,7 @@
+ /* Caches aren't brain-dead on the intel. */
+ #include <asm-generic/cacheflush.h>
+ #include <asm/special_insns.h>
++#include <asm/uaccess.h>
  
- static void free_data(struct nvdimm_drvdata *ndd)
-@@ -42,6 +43,11 @@ static int nvdimm_probe(struct device *dev)
- 		return -ENOMEM;
- 
- 	dev_set_drvdata(dev, ndd);
-+	ndd->dpa.name = dev_name(dev);
-+	ndd->ns_current = -1;
-+	ndd->ns_next = -1;
-+	ndd->dpa.start = 0;
-+	ndd->dpa.end = -1;
- 	ndd->dev = dev;
- 
- 	rc = nvdimm_init_nsarea(ndd);
-@@ -54,6 +60,17 @@ static int nvdimm_probe(struct device *dev)
- 
- 	dev_dbg(dev, "config data size: %d\n", ndd->nsarea.config_size);
- 
-+	nvdimm_bus_lock(dev);
-+	ndd->ns_current = nd_label_validate(ndd);
-+	ndd->ns_next = nd_label_next_nsindex(ndd->ns_current);
-+	nd_label_copy(ndd, to_next_namespace_index(ndd),
-+			to_current_namespace_index(ndd));
-+	rc = nd_label_reserve_dpa(ndd);
-+	nvdimm_bus_unlock(dev);
-+
-+	if (rc)
-+		goto err;
-+
- 	return 0;
- 
-  err:
-@@ -64,7 +81,13 @@ static int nvdimm_probe(struct device *dev)
- static int nvdimm_remove(struct device *dev)
- {
- 	struct nvdimm_drvdata *ndd = dev_get_drvdata(dev);
-+	struct resource *res, *_r;
- 
-+	nvdimm_bus_lock(dev);
-+	dev_set_drvdata(dev, NULL);
-+	for_each_dpa_resource_safe(ndd, res, _r)
-+		nvdimm_free_dpa(ndd, res);
-+	nvdimm_bus_unlock(dev);
- 	free_data(ndd);
- 
- 	return 0;
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 55405d70f56a..5e40188a7fec 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -92,8 +92,12 @@ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
- 	if (ndd->data)
- 		return 0;
- 
--	if (ndd->nsarea.status || ndd->nsarea.max_xfer == 0)
-+	if (ndd->nsarea.status || ndd->nsarea.max_xfer == 0
-+			|| ndd->nsarea.config_size < ND_LABEL_MIN_SIZE) {
-+		dev_dbg(ndd->dev, "failed to init config data area: (%d:%d)\n",
-+				ndd->nsarea.max_xfer, ndd->nsarea.config_size);
- 		return -ENXIO;
-+	}
- 
- 	ndd->data = kmalloc(ndd->nsarea.config_size, GFP_KERNEL);
- 	if (!ndd->data)
-@@ -243,6 +247,30 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+ /*
+  * The set_memory_* API can be used to change various attributes of a virtual
+@@ -108,4 +109,39 @@ static inline int rodata_test(void)
  }
- EXPORT_SYMBOL_GPL(nvdimm_create);
+ #endif
  
-+void nvdimm_free_dpa(struct nvdimm_drvdata *ndd, struct resource *res)
++#ifdef ARCH_HAS_NOCACHE_UACCESS
++static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
 +{
-+	WARN_ON_ONCE(!is_nvdimm_bus_locked(ndd->dev));
-+	kfree(res->name);
-+	__release_region(&ndd->dpa, res->start, resource_size(res));
++	/*
++	 * We are copying between two kernel buffers, if
++	 * __copy_from_user_inatomic_nocache() returns an error (page
++	 * fault) we would have already taken an unhandled fault before
++	 * the BUG_ON.  The BUG_ON is simply here to satisfy
++	 * __must_check and allow reuse of the common non-temporal store
++	 * implementation for memcpy_to_pmem().
++	 */
++	BUG_ON(__copy_from_user_inatomic_nocache((void __force *) dst,
++				(void __user *) src, n));
 +}
 +
-+struct resource *nvdimm_allocate_dpa(struct nvdimm_drvdata *ndd,
-+		struct nd_label_id *label_id, resource_size_t start,
-+		resource_size_t n)
++static inline void arch_sync_pmem(void)
 +{
-+	char *name = kmemdup(label_id, sizeof(*label_id), GFP_KERNEL);
-+	struct resource *res;
-+
-+	if (!name)
-+		return NULL;
-+
-+	WARN_ON_ONCE(!is_nvdimm_bus_locked(ndd->dev));
-+	res = __request_region(&ndd->dpa, start, n, name, 0);
-+	if (!res)
-+		kfree(name);
-+	return res;
++	wmb();
++	pcommit_sfence();
 +}
 +
- static int count_dimms(struct device *dev, void *c)
- {
- 	int *count = c;
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-new file mode 100644
-index 000000000000..b125bc30e10a
---- /dev/null
-+++ b/drivers/nvdimm/label.c
-@@ -0,0 +1,290 @@
-+/*
-+ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#include <linux/device.h>
-+#include <linux/ndctl.h>
-+#include <linux/io.h>
-+#include <linux/nd.h>
-+#include "nd-private.h"
-+#include "label.h"
-+#include "nd.h"
++static inline bool __arch_has_sync_pmem(void)
++{
++	return boot_cpu_has(X86_FEATURE_PCOMMIT);
++}
++#else /* ARCH_HAS_NOCACHE_UACCESS i.e. ARCH=um */
++extern void arch_memcpy_to_pmem(void __pmem *dst, const void *src, size_t n);
++extern void arch_sync_pmem(void);
 +
-+#include <asm-generic/io-64-nonatomic-lo-hi.h>
-+
-+#ifndef __io_virt
-+#define __io_virt(x) ((void __force *) (x))
++static inline bool __arch_has_sync_pmem(void)
++{
++	return false;
++}
 +#endif
 +
-+static u32 best_seq(u32 a, u32 b)
+ #endif /* _ASM_X86_CACHEFLUSH_H */
+diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
+index 956f2768bdc1..d7f01c9ffa38 100644
+--- a/arch/x86/include/asm/io.h
++++ b/arch/x86/include/asm/io.h
+@@ -250,6 +250,12 @@ static inline void flush_write_buffers(void)
+ #endif
+ }
+ 
++static inline void __pmem *arch_memremap_pmem(resource_size_t offset,
++	unsigned long size)
 +{
-+	a &= NSINDEX_SEQ_MASK;
-+	b &= NSINDEX_SEQ_MASK;
-+
-+	if (a == 0 || a == b)
-+		return b;
-+	else if (b == 0)
-+		return a;
-+	else if (nd_inc_seq(a) == b)
-+		return b;
-+	else
-+		return a;
++	return (void __force __pmem *) ioremap_cache(offset, size);
 +}
 +
-+size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
+ #endif /* __KERNEL__ */
+ 
+ extern void native_io_delay(void);
+diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
+index b00b97314b57..81090f61b8b1 100644
+--- a/drivers/block/pmem.c
++++ b/drivers/block/pmem.c
+@@ -23,23 +23,79 @@
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/slab.h>
++#include <linux/pmem.h>
+ #include <linux/io.h>
+ 
+ #define PMEM_MINORS		16
+ 
++struct pmem_ops {
++	void __pmem *(*remap)(resource_size_t offset, unsigned long size);
++	void (*copy)(void __pmem *dst, const void *src, size_t size);
++	void (*sync)(void);
++};
++
+ struct pmem_device {
+ 	struct request_queue	*pmem_queue;
+ 	struct gendisk		*pmem_disk;
+ 
+ 	/* One contiguous memory region per device */
+ 	phys_addr_t		phys_addr;
+-	void			*virt_addr;
++	void __pmem		*virt_addr;
+ 	size_t			size;
++	struct pmem_ops		ops;
+ };
+ 
+ static int pmem_major;
+ static atomic_t pmem_index;
+ 
++static void default_sync_pmem(void)
 +{
-+	u32 index_span;
++	wmb();
++}
 +
-+	if (ndd->nsindex_size)
-+		return ndd->nsindex_size;
++static void default_memcpy_to_pmem(void __pmem *dst, const void *src, size_t size)
++{
++	memcpy((void __force *) dst, src, size);
++}
 +
++static void __pmem *default_memremap_pmem(resource_size_t offset, unsigned long size)
++{
++	return (void __pmem *)memremap_wt(offset, size);
++}
++
++static void pmem_ops_default_init(struct pmem_device *pmem)
++{
 +	/*
-+	 * The minimum index space is 512 bytes, with that amount of
-+	 * index we can describe ~1400 labels which is less than a byte
-+	 * of overhead per label.  Round up to a byte of overhead per
-+	 * label and determine the size of the index region.  Yes, this
-+	 * starts to waste space at larger config_sizes, but it's
-+	 * unlikely we'll ever see anything but 128K.
++	 * These defaults seek to offer decent performance and minimize
++	 * the window between i/o completion and writes being durable on
++	 * media.  However, it is undefined / architecture specific
++	 * whether default_memcpy_to_pmem + default_pmem_sync is
++	 * sufficient for making data durable relative to i/o
++	 * completion.
 +	 */
-+	index_span = ndd->nsarea.config_size / 129;
-+	index_span /= NSINDEX_ALIGN * 2;
-+	ndd->nsindex_size = index_span * NSINDEX_ALIGN;
-+
-+	return ndd->nsindex_size;
++	pmem->ops.remap = default_memremap_pmem;
++	pmem->ops.copy = default_memcpy_to_pmem;
++	pmem->ops.sync = default_sync_pmem;
 +}
 +
-+int nd_label_validate(struct nvdimm_drvdata *ndd)
++static bool pmem_ops_init(struct pmem_device *pmem)
 +{
-+	/*
-+	 * On media label format consists of two index blocks followed
-+	 * by an array of labels.  None of these structures are ever
-+	 * updated in place.  A sequence number tracks the current
-+	 * active index and the next one to write, while labels are
-+	 * written to free slots.
-+	 *
-+	 *     +------------+
-+	 *     |            |
-+	 *     |  nsindex0  |
-+	 *     |            |
-+	 *     +------------+
-+	 *     |            |
-+	 *     |  nsindex1  |
-+	 *     |            |
-+	 *     +------------+
-+	 *     |   label0   |
-+	 *     +------------+
-+	 *     |   label1   |
-+	 *     +------------+
-+	 *     |            |
-+	 *      ....nslot...
-+	 *     |            |
-+	 *     +------------+
-+	 *     |   labelN   |
-+	 *     +------------+
-+	 */
-+	struct nd_namespace_index __iomem *nsindex[] = {
-+		to_namespace_index(ndd, 0),
-+		to_namespace_index(ndd, 1),
-+	};
-+	const int num_index = ARRAY_SIZE(nsindex);
-+	struct device *dev = ndd->dev;
-+	bool valid[] = { false, false };
-+	int i, num_valid = 0;
-+	u32 seq;
-+
-+	for (i = 0; i < num_index; i++) {
-+		u64 sum_save, sum;
-+		u8 sig[NSINDEX_SIG_LEN];
-+
-+		memcpy_fromio(sig, nsindex[i]->sig, NSINDEX_SIG_LEN);
-+		if (memcmp(sig, NSINDEX_SIGNATURE, NSINDEX_SIG_LEN) != 0) {
-+			dev_dbg(dev, "%s: nsindex%d signature invalid\n",
-+					__func__, i);
-+			continue;
-+		}
-+		sum_save = readq(&nsindex[i]->checksum);
-+		writeq(0, &nsindex[i]->checksum);
-+		sum = nd_fletcher64(__io_virt(nsindex[i]),
-+				sizeof_namespace_index(ndd), 1);
-+		writeq(sum_save, &nsindex[i]->checksum);
-+		if (sum != sum_save) {
-+			dev_dbg(dev, "%s: nsindex%d checksum invalid\n",
-+					__func__, i);
-+			continue;
-+		}
-+		if ((readl(&nsindex[i]->seq) & NSINDEX_SEQ_MASK) == 0) {
-+			dev_dbg(dev, "%s: nsindex%d sequence: %#x invalid\n",
-+					__func__, i, readl(&nsindex[i]->seq));
-+			continue;
-+		}
-+
-+		/* sanity check the index against expected values */
-+		if (readq(&nsindex[i]->myoff)
-+				!= i * sizeof_namespace_index(ndd)) {
-+			dev_dbg(dev, "%s: nsindex%d myoff: %#llx invalid\n",
-+					__func__, i, (unsigned long long)
-+					readq(&nsindex[i]->myoff));
-+			continue;
-+		}
-+		if (readq(&nsindex[i]->otheroff)
-+				!= (!i) * sizeof_namespace_index(ndd)) {
-+			dev_dbg(dev, "%s: nsindex%d otheroff: %#llx invalid\n",
-+					__func__, i, (unsigned long long)
-+					readq(&nsindex[i]->otheroff));
-+			continue;
-+		}
-+		if (readq(&nsindex[i]->mysize) > sizeof_namespace_index(ndd)
-+				|| readq(&nsindex[i]->mysize)
-+				< sizeof(struct nd_namespace_index)) {
-+			dev_dbg(dev, "%s: nsindex%d mysize: %#llx invalid\n",
-+					__func__, i, (unsigned long long)
-+					readq(&nsindex[i]->mysize));
-+			continue;
-+		}
-+		if (readl(&nsindex[i]->nslot) * sizeof(struct nd_namespace_label)
-+				+ 2 * sizeof_namespace_index(ndd)
-+				> ndd->nsarea.config_size) {
-+			dev_dbg(dev, "%s: nsindex%d nslot: %u invalid, config_size: %#x\n",
-+					__func__, i, readl(&nsindex[i]->nslot),
-+					ndd->nsarea.config_size);
-+			continue;
-+		}
-+		valid[i] = true;
-+		num_valid++;
++	if (IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API) &&
++			arch_has_sync_pmem()) {
++		/*
++		 * This arch + cpu guarantees that bio_endio() == data
++		 * durable on media.
++		 */
++		pmem->ops.remap = memremap_pmem;
++		pmem->ops.copy = memcpy_to_pmem;
++		pmem->ops.sync = sync_pmem;
++		return true;
 +	}
 +
-+	switch (num_valid) {
-+	case 0:
-+		break;
-+	case 1:
-+		for (i = 0; i < num_index; i++)
-+			if (valid[i])
-+				return i;
-+		/* can't have num_valid > 0 but valid[] = { false, false } */
-+		WARN_ON(1);
-+		break;
-+	default:
-+		/* pick the best index... */
-+		seq = best_seq(readl(&nsindex[0]->seq), readl(&nsindex[1]->seq));
-+		if (seq == (readl(&nsindex[1]->seq) & NSINDEX_SEQ_MASK))
-+			return 1;
-+		else
-+			return 0;
-+		break;
-+	}
-+
-+	return -1;
++	pmem_ops_default_init(pmem);
++	return false;
 +}
 +
-+void nd_label_copy(struct nvdimm_drvdata *ndd,
-+		struct nd_namespace_index __iomem *dst,
-+		struct nd_namespace_index __iomem *src)
-+{
-+	if (dst && src)
-+		/* pass */;
-+	else
-+		return;
-+
-+	memcpy(__io_virt(dst), __io_virt(src), sizeof_namespace_index(ndd));
-+}
-+
-+static struct nd_namespace_label __iomem *nd_label_base(struct nvdimm_drvdata *ndd)
-+{
-+	void __iomem *base = to_namespace_index(ndd, 0);
-+
-+	return base + 2 * sizeof_namespace_index(ndd);
-+}
-+
-+#define for_each_clear_bit_le(bit, addr, size) \
-+	for ((bit) = find_next_zero_bit_le((addr), (size), 0);  \
-+	     (bit) < (size);                                    \
-+	     (bit) = find_next_zero_bit_le((addr), (size), (bit) + 1))
-+
-+/**
-+ * preamble_current - common variable initialization for nd_label_* routines
-+ * @ndd: dimm container for the relevant label set
-+ * @nsindex_out: on return set to the currently active namespace index
-+ * @free: on return set to the free label bitmap in the index
-+ * @nslot: on return set to the number of slots in the label space
-+ */
-+static bool preamble_current(struct nvdimm_drvdata *ndd,
-+		struct nd_namespace_index __iomem **nsindex_out,
-+		unsigned long **free, u32 *nslot)
-+{
-+	struct nd_namespace_index __iomem *nsindex;
-+
-+	nsindex = to_current_namespace_index(ndd);
-+	if (nsindex == NULL)
-+		return false;
-+
-+	*free = __io_virt(nsindex->free);
-+	*nslot = readl(&nsindex->nslot);
-+	*nsindex_out = nsindex;
-+
-+	return true;
-+}
-+
-+static char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags)
-+{
-+	if (!label_id || !uuid)
-+		return NULL;
-+	snprintf(label_id->id, ND_LABEL_ID_SIZE, "%s-%pUb",
-+			flags & NSLABEL_FLAG_LOCAL ? "blk" : "pmem", uuid);
-+	return label_id->id;
-+}
-+
-+static bool slot_valid(struct nd_namespace_label __iomem *nd_label, u32 slot)
-+{
-+	/* check that we are written where we expect to be written */
-+	if (slot != readl(&nd_label->slot))
-+		return false;
-+
-+	/* check that DPA allocations are page aligned */
-+	if ((readq(&nd_label->dpa) | readq(&nd_label->rawsize)) % SZ_4K)
-+		return false;
-+
-+	return true;
-+}
-+
-+int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
-+{
-+	struct nd_namespace_index __iomem *nsindex;
-+	unsigned long *free;
-+	u32 nslot, slot;
-+
-+	if (!preamble_current(ndd, &nsindex, &free, &nslot))
-+		return 0; /* no label, nothing to reserve */
-+
-+	for_each_clear_bit_le(slot, free, nslot) {
-+		struct nd_namespace_label __iomem *nd_label;
-+		struct nd_region *nd_region = NULL;
-+		u8 label_uuid[NSLABEL_UUID_LEN];
-+		struct nd_label_id label_id;
-+		struct resource *res;
-+		u32 flags;
-+
-+		nd_label = nd_label_base(ndd) + slot;
-+
-+		if (!slot_valid(nd_label, slot))
-+			continue;
-+
-+		memcpy_fromio(label_uuid, nd_label->uuid, NSLABEL_UUID_LEN);
-+		flags = readl(&nd_label->flags);
-+		nd_label_gen_id(&label_id, label_uuid, flags);
-+		res = nvdimm_allocate_dpa(ndd, &label_id, readq(&nd_label->dpa),
-+				readq(&nd_label->rawsize));
-+		nd_dbg_dpa(nd_region, ndd, res, "reserve\n");
-+		if (!res)
-+			return -EBUSY;
-+	}
-+
-+	return 0;
-+}
-diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ 			unsigned int len, unsigned int off, int rw,
+ 			sector_t sector)
+@@ -48,11 +104,11 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ 	size_t pmem_off = sector << 9;
+ 
+ 	if (rw == READ) {
+-		memcpy(mem + off, pmem->virt_addr + pmem_off, len);
++		memcpy_from_pmem(mem + off, pmem->virt_addr + pmem_off, len);
+ 		flush_dcache_page(page);
+ 	} else {
+ 		flush_dcache_page(page);
+-		memcpy(pmem->virt_addr + pmem_off, mem + off, len);
++		pmem->ops.copy(pmem->virt_addr + pmem_off, mem + off, len);
+ 	}
+ 
+ 	kunmap_atomic(mem);
+@@ -83,6 +139,8 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
+ 		sector += bvec.bv_len >> 9;
+ 	}
+ 
++	if (rw)
++		pmem->ops.sync();
+ out:
+ 	bio_endio(bio, err);
+ }
+@@ -107,7 +165,8 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+ 	if (!pmem)
+ 		return -ENODEV;
+ 
+-	*kaddr = pmem->virt_addr + offset;
++	/* FIXME convert DAX to comprehend that this mapping has a lifetime */
++	*kaddr = (void __force *) pmem->virt_addr + offset;
+ 	*pfn = (pmem->phys_addr + offset) >> PAGE_SHIFT;
+ 
+ 	return pmem->size - offset;
+@@ -132,6 +191,8 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
+ 
+ 	pmem->phys_addr = res->start;
+ 	pmem->size = resource_size(res);
++	if (!pmem_ops_init(pmem))
++		dev_warn(dev, "unable to guarantee persistence of writes\n");
+ 
+ 	err = -EINVAL;
+ 	if (!request_mem_region(pmem->phys_addr, pmem->size, "pmem")) {
+@@ -144,7 +205,7 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
+ 	 * of the CPU caches in case of a crash.
+ 	 */
+ 	err = -ENOMEM;
+-	pmem->virt_addr = memremap_wt(pmem->phys_addr, pmem->size);
++	pmem->virt_addr = pmem->ops.remap(pmem->phys_addr, pmem->size);
+ 	if (!pmem->virt_addr)
+ 		goto out_release_region;
+ 
+@@ -180,7 +241,7 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
+ out_free_queue:
+ 	blk_cleanup_queue(pmem->pmem_queue);
+ out_unmap:
+-	memunmap(pmem->virt_addr);
++	memunmap_pmem(pmem->virt_addr);
+ out_release_region:
+ 	release_mem_region(pmem->phys_addr, pmem->size);
+ out_free_dev:
+@@ -194,7 +255,7 @@ static void pmem_free(struct pmem_device *pmem)
+ 	del_gendisk(pmem->pmem_disk);
+ 	put_disk(pmem->pmem_disk);
+ 	blk_cleanup_queue(pmem->pmem_queue);
+-	memunmap(pmem->virt_addr);
++	memunmap_pmem(pmem->virt_addr);
+ 	release_mem_region(pmem->phys_addr, pmem->size);
+ 	kfree(pmem);
+ }
+diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+index 867722591be2..9a528d945498 100644
+--- a/include/linux/compiler.h
++++ b/include/linux/compiler.h
+@@ -21,6 +21,7 @@
+ # define __rcu		__attribute__((noderef, address_space(4)))
+ #else
+ # define __rcu
++# define __pmem		__attribute__((noderef, address_space(5)))
+ #endif
+ extern void __chk_user_ptr(const volatile void __user *);
+ extern void __chk_io_ptr(const volatile void __iomem *);
+@@ -42,6 +43,7 @@ extern void __chk_io_ptr(const volatile void __iomem *);
+ # define __cond_lock(x,c) (c)
+ # define __percpu
+ # define __rcu
++# define __pmem
+ #endif
+ 
+ /* Indirect macros required for expanded argument pasting, eg. __LINE__. */
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
 new file mode 100644
-index 000000000000..979aa757c1b4
+index 000000000000..0fad4ad714cc
 --- /dev/null
-+++ b/drivers/nvdimm/label.h
-@@ -0,0 +1,129 @@
++++ b/include/linux/pmem.h
+@@ -0,0 +1,102 @@
 +/*
-+ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ * Copyright(c) 2015 Intel Corporation. All rights reserved.
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of version 2 of the GNU General Public License as
@@ -485,217 +318,111 @@ index 000000000000..979aa757c1b4
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 + * General Public License for more details.
 + */
-+#ifndef __LABEL_H__
-+#define __LABEL_H__
++#ifndef __PMEM_H__
++#define __PMEM_H__
 +
-+#include <linux/ndctl.h>
-+#include <linux/sizes.h>
 +#include <linux/io.h>
++#include <asm/cacheflush.h>
 +
-+enum {
-+	NSINDEX_SIG_LEN = 16,
-+	NSINDEX_ALIGN = 256,
-+	NSINDEX_SEQ_MASK = 0x3,
-+	NSLABEL_UUID_LEN = 16,
-+	NSLABEL_NAME_LEN = 64,
-+	NSLABEL_FLAG_ROLABEL = 0x1,  /* read-only label */
-+	NSLABEL_FLAG_LOCAL = 0x2,    /* DIMM-local namespace */
-+	NSLABEL_FLAG_BTT = 0x4,      /* namespace contains a BTT */
-+	NSLABEL_FLAG_UPDATING = 0x8, /* label being updated */
-+	BTT_ALIGN = 4096,            /* all btt structures */
-+	BTTINFO_SIG_LEN = 16,
-+	BTTINFO_UUID_LEN = 16,
-+	BTTINFO_FLAG_ERROR = 0x1,    /* error state (read-only) */
-+	BTTINFO_MAJOR_VERSION = 1,
-+	ND_LABEL_MIN_SIZE = 512 * 129, /* see sizeof_namespace_index() */
-+	ND_LABEL_ID_SIZE = 50,
-+};
++/*
++ * Architectures that define ARCH_HAS_PMEM_API must provide
++ * implementations for arch_memremap_pmem(), arch_memcpy_to_pmem(),
++ * arch_sync_pmem(), and __arch_has_sync_pmem().
++ */
 +
-+static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
-+
++#ifdef CONFIG_ARCH_HAS_PMEM_API
 +/**
-+ * struct nd_namespace_index - label set superblock
-+ * @sig: NAMESPACE_INDEX\0
-+ * @flags: placeholder
-+ * @seq: sequence number for this index
-+ * @myoff: offset of this index in label area
-+ * @mysize: size of this index struct
-+ * @otheroff: offset of other index
-+ * @labeloff: offset of first label slot
-+ * @nslot: total number of label slots
-+ * @major: label area major version
-+ * @minor: label area minor version
-+ * @checksum: fletcher64 of all fields
-+ * @free[0]: bitmap, nlabel bits
++ * memremap_pmem - map physical persistent memory for pmem api
++ * @offset: physical address of persistent memory
++ * @size: size of the mapping
 + *
-+ * The size of free[] is rounded up so the total struct size is a
-+ * multiple of NSINDEX_ALIGN bytes.  Any bits this allocates beyond
-+ * nlabel bits must be zero.
++ * Establish a mapping of the architecture specific memory type expected
++ * by memcpy_to_pmem() and sync_pmem().  For example, it may be
++ * the case that an uncacheable or writethrough mapping is sufficient,
++ * or a writeback mapping provided memcpy_to_pmem() and
++ * sync_pmem() arrange for the data to be written through the
++ * cache to persistent media.
 + */
-+struct nd_namespace_index {
-+	u8 sig[NSINDEX_SIG_LEN];
-+	__le32 flags;
-+	__le32 seq;
-+	__le64 myoff;
-+	__le64 mysize;
-+	__le64 otheroff;
-+	__le64 labeloff;
-+	__le32 nslot;
-+	__le16 major;
-+	__le16 minor;
-+	__le64 checksum;
-+	u8 free[0];
-+};
++static inline void __pmem *memremap_pmem(resource_size_t offset, unsigned long size)
++{
++	return arch_memremap_pmem(offset, size);
++}
 +
 +/**
-+ * struct nd_namespace_label - namespace superblock
-+ * @uuid: UUID per RFC 4122
-+ * @name: optional name (NULL-terminated)
-+ * @flags: see NSLABEL_FLAG_*
-+ * @nlabel: num labels to describe this ns
-+ * @position: labels position in set
-+ * @isetcookie: interleave set cookie
-+ * @lbasize: LBA size in bytes or 0 for pmem
-+ * @dpa: DPA of NVM range on this DIMM
-+ * @rawsize: size of namespace
-+ * @slot: slot of this label in label area
-+ * @unused: must be zero
++ * memcpy_to_pmem - copy data to persistent memory
++ * @dst: destination buffer for the copy
++ * @src: source buffer for the copy
++ * @n: length of the copy in bytes
++ *
++ * Perform a memory copy that results in the destination of the copy
++ * being effectively evicted from, or never written to, the processor
++ * cache hierarchy after the copy completes.  After memcpy_to_pmem()
++ * data may still reside in cpu or platform buffers, so this operation
++ * must be followed by a sync_pmem().
 + */
-+struct nd_namespace_label {
-+	u8 uuid[NSLABEL_UUID_LEN];
-+	u8 name[NSLABEL_NAME_LEN];
-+	__le32 flags;
-+	__le16 nlabel;
-+	__le16 position;
-+	__le64 isetcookie;
-+	__le64 lbasize;
-+	__le64 dpa;
-+	__le64 rawsize;
-+	__le32 slot;
-+	__le32 unused;
-+};
++static inline void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
++{
++	arch_memcpy_to_pmem(dst, src, n);
++}
 +
 +/**
-+ * struct nd_label_id - identifier string for dpa allocation
-+ * @id: "{blk|pmem}-<namespace uuid>"
++ * sync_pmem - synchronize writes to persistent memory
++ *
++ * After a series of memcpy_to_pmem() operations this drains data from
++ * cpu write buffers and any platform (memory controller) buffers to
++ * ensure that written data is durable on persistent memory media.
 + */
-+struct nd_label_id {
-+	char id[ND_LABEL_ID_SIZE];
-+};
++static inline void sync_pmem(void)
++{
++	arch_sync_pmem();
++}
 +
-+/*
-+ * If the 'best' index is invalid, so is the 'next' index.  Otherwise,
-+ * the next index is MOD(index+1, 2)
++/**
++ * arch_has_sync_pmem - true if sync_pmem() ensures durability
++ *
++ * For a given cpu implementation within an architecture it is possible
++ * that sync_pmem() resolves to a nop.  In the case this returns
++ * false, pmem api users are unable to ensure durabilty and may want to
++ * fall back to a different data consistency model, or otherwise notify
++ * the user.
 + */
-+static inline int nd_label_next_nsindex(int index)
++static inline bool arch_has_sync_pmem(void)
 +{
-+	if (index < 0)
-+		return -1;
++	return __arch_has_sync_pmem();
++}
++#else
++/* undefined symbols */
++extern void __pmem *memremap_pmem(resource_size_t offet, unsigned long size);
++extern void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n);
++extern void sync_pmem(void);
++extern bool arch_has_sync_pmem(void);
++#endif /* CONFIG_ARCH_HAS_PMEM_API */
 +
-+	return (index + 1) % 2;
++static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
++{
++	memcpy(dst, (void __force const *) src, size);
 +}
 +
-+struct nvdimm_drvdata;
-+int nd_label_validate(struct nvdimm_drvdata *ndd);
-+void nd_label_copy(struct nvdimm_drvdata *ndd,
-+		struct nd_namespace_index __iomem *dst,
-+		struct nd_namespace_index __iomem *src);
-+size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd);
-+#endif /* __LABEL_H__ */
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 6bc0a233b6bd..668a6481782c 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -16,11 +16,15 @@
- #include <linux/device.h>
- #include <linux/mutex.h>
- #include <linux/ndctl.h>
-+#include "label.h"
- 
- struct nvdimm_drvdata {
- 	struct device *dev;
-+	int nsindex_size;
- 	struct nd_cmd_get_config_size nsarea;
- 	void *data;
-+	int ns_current, ns_next;
-+	struct resource dpa;
- };
- 
- struct nd_region_namespaces {
-@@ -28,6 +32,37 @@ struct nd_region_namespaces {
- 	int active;
- };
- 
-+static inline struct nd_namespace_index __iomem *to_namespace_index(
-+		struct nvdimm_drvdata *ndd, int i)
++static inline void memunmap_pmem(void __pmem *addr)
 +{
-+	if (i < 0)
-+		return NULL;
-+
-+	return ((void __iomem *) ndd->data + sizeof_namespace_index(ndd) * i);
++	memunmap((void __force *) addr);
 +}
-+
-+static inline struct nd_namespace_index __iomem *to_current_namespace_index(
-+		struct nvdimm_drvdata *ndd)
-+{
-+	return to_namespace_index(ndd, ndd->ns_current);
-+}
-+
-+static inline struct nd_namespace_index __iomem *to_next_namespace_index(
-+		struct nvdimm_drvdata *ndd)
-+{
-+	return to_namespace_index(ndd, ndd->ns_next);
-+}
-+
-+#define nd_dbg_dpa(r, d, res, fmt, arg...) \
-+	dev_dbg((r) ? &(r)->dev : (d)->dev, "%s: %.13s: %#llx @ %#llx " fmt, \
-+		(r) ? dev_name((d)->dev) : "", res ? res->name : "null", \
-+		(unsigned long long) (res ? resource_size(res) : 0), \
-+		(unsigned long long) (res ? res->start : 0), ##arg)
-+
-+#define for_each_dpa_resource_safe(ndd, res, next) \
-+	for (res = (ndd)->dpa.child, next = res ? res->sibling : NULL; \
-+			res; res = next, next = next ? next->sibling : NULL)
-+
- struct nd_region {
- 	struct device dev;
- 	u16 ndr_mappings;
-@@ -39,6 +74,15 @@ struct nd_region {
- 	struct nd_mapping mapping[0];
- };
++#endif /* __PMEM_H__ */
+diff --git a/lib/Kconfig b/lib/Kconfig
+index bc7bc0278921..0d28cc560c6b 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -525,4 +525,7 @@ config ARCH_HAS_SG_CHAIN
+ config ARCH_HAS_MEMREMAP
+ 	bool
  
-+/*
-+ * Lookup next in the repeating sequence of 01, 10, and 11.
-+ */
-+static inline unsigned nd_inc_seq(unsigned seq)
-+{
-+	static const unsigned next[] = { 0, 2, 3, 1 };
++config ARCH_HAS_PMEM_API
++	bool
 +
-+	return next[seq & 3];
-+}
- enum nd_async_mode {
- 	ND_SYNC,
- 	ND_ASYNC,
-@@ -58,4 +102,9 @@ int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
- void nvdimm_bus_lock(struct device *dev);
- void nvdimm_bus_unlock(struct device *dev);
- bool is_nvdimm_bus_locked(struct device *dev);
-+int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd);
-+void nvdimm_free_dpa(struct nvdimm_drvdata *ndd, struct resource *res);
-+struct resource *nvdimm_allocate_dpa(struct nvdimm_drvdata *ndd,
-+		struct nd_label_id *label_id, resource_size_t start,
-+		resource_size_t n);
- #endif /* __ND_H__ */
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 6e434a7863b8..74da204c423a 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -175,7 +175,6 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
- #define ND_IOCTL_ARS_QUERY		_IOWR(ND_IOCTL, ND_CMD_ARS_QUERY,\
- 					struct nd_cmd_ars_query)
- 
--
- #define ND_DEVICE_DIMM 1            /* nd_dimm: container for "config data" */
- #define ND_DEVICE_REGION_PMEM 2     /* nd_region: (parent of pmem namespaces) */
- #define ND_DEVICE_REGION_BLK 3      /* nd_region: (parent of blk namespaces) */
+ endmenu
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
