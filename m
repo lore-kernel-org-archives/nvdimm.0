@@ -1,230 +1,283 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v3 2/6] cleanup IORESOURCE_CACHEABLE vs ioremap()
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v4 8/9] scatterlist: convert to __pfn_t
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 03 Jun 2015 17:34:23 -0400
-Message-ID: <20150603213423.13749.55822.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150603211948.13749.85816.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150603211948.13749.85816.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 05 Jun 2015 17:19:49 -0400
+Message-ID: <20150605211949.20751.59262.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: arnd@arndb.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
-Cc: jgross@suse.com, x86@kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, mcgrof@suse.com, konrad.wilk@oracle.com, linux-kernel@vger.kernel.org, stefan.bader@canonical.com, luto@amacapital.net, linux-mm@kvack.org, geert@linux-m68k.org, ralf@linux-mips.org, hmh@hmh.eng.br, mpe@ellerman.id.au, tj@kernel.org, paulus@samba.org, hch@lst.de
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, linux-arch@vger.kernel.org, arnd@arndb.de, ross.zwisler@linux.intel.com, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, linux-fsdevel@vger.kernel.org, heiko.carstens@de.ibm.com, hch@lst.de, tj@kernel.org, paulus@samba.org, hpa@zytor.com, schwidefsky@de.ibm.com, willy@linux.intel.com, akpm@linux-foundation.org, torvalds@linux-foundation.org, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Quoting Arnd:
-    I was thinking the opposite approach and basically removing all uses
-    of IORESOURCE_CACHEABLE from the kernel. There are only a handful of
-    them.and we can probably replace them all with hardcoded
-    ioremap_cached() calls in the cases they are actually useful.
+__pfn_t replaces the struct page reference in struct scatterlist.  Given
+__pfn_t implements the same bits at the same bit positions for denoting
+sg_is_chain() + sg_is_last() this conversion is binary identical to the
+previous state.
 
-All existing usages of IORESOURCE_CACHEABLE call ioremap() instead of
-ioremap_nocache() if the resource is cacheable, however ioremap() is
-uncached by default.  Clearly none of the existing usages care about the
-cacheability, so let's clean that up before introducing generic
-ioremap_cache() support across architectures.
-
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm/mach-clps711x/board-cdb89712.c |    2 +-
- arch/powerpc/kernel/pci_of_scan.c       |    2 +-
- arch/sparc/kernel/pci.c                 |    3 +--
- drivers/pci/probe.c                     |    3 +--
- drivers/pnp/manager.c                   |    2 --
- drivers/scsi/aic94xx/aic94xx_init.c     |    7 +------
- drivers/scsi/arcmsr/arcmsr_hba.c        |    5 +----
- drivers/scsi/mvsas/mv_init.c            |   15 ++++-----------
- drivers/video/fbdev/ocfb.c              |    1 -
- lib/devres.c                            |    7 ++-----
- lib/pci_iomap.c                         |    7 ++-----
- 11 files changed, 14 insertions(+), 40 deletions(-)
+ include/asm-generic/pfn.h   |    9 ++++
+ include/linux/scatterlist.h |  103 ++++++++++++++++++++++++++++++-------------
+ samples/kfifo/dma-example.c |    8 ++-
+ 3 files changed, 86 insertions(+), 34 deletions(-)
 
-diff --git a/arch/arm/mach-clps711x/board-cdb89712.c b/arch/arm/mach-clps711x/board-cdb89712.c
-index 1ec378c334e5..972abdb10028 100644
---- a/arch/arm/mach-clps711x/board-cdb89712.c
-+++ b/arch/arm/mach-clps711x/board-cdb89712.c
-@@ -95,7 +95,7 @@ static struct physmap_flash_data cdb89712_bootrom_pdata __initdata = {
+diff --git a/include/asm-generic/pfn.h b/include/asm-generic/pfn.h
+index e9fed20d606a..f826c50ed025 100644
+--- a/include/asm-generic/pfn.h
++++ b/include/asm-generic/pfn.h
+@@ -108,4 +108,13 @@ static inline __pfn_t page_to_pfn_t(struct page *page)
  
- static struct resource cdb89712_bootrom_resources[] __initdata = {
- 	DEFINE_RES_NAMED(CS7_PHYS_BASE, SZ_128, "BOOTROM", IORESOURCE_MEM |
--			 IORESOURCE_CACHEABLE | IORESOURCE_READONLY),
-+			 IORESOURCE_READONLY),
- };
- 
- static struct platform_device cdb89712_bootrom_pdev __initdata = {
-diff --git a/arch/powerpc/kernel/pci_of_scan.c b/arch/powerpc/kernel/pci_of_scan.c
-index 42e02a2d570b..d4726addff0b 100644
---- a/arch/powerpc/kernel/pci_of_scan.c
-+++ b/arch/powerpc/kernel/pci_of_scan.c
-@@ -102,7 +102,7 @@ static void of_pci_parse_addrs(struct device_node *node, struct pci_dev *dev)
- 			res = &dev->resource[(i - PCI_BASE_ADDRESS_0) >> 2];
- 		} else if (i == dev->rom_base_reg) {
- 			res = &dev->resource[PCI_ROM_RESOURCE];
--			flags |= IORESOURCE_READONLY | IORESOURCE_CACHEABLE;
-+			flags |= IORESOURCE_READONLY;
- 		} else {
- 			printk(KERN_ERR "PCI: bad cfg reg num 0x%x\n", i);
- 			continue;
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index 6f7251fd2eab..5c65de283ff6 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -231,8 +231,7 @@ static void pci_parse_of_addrs(struct platform_device *op,
- 			res = &dev->resource[(i - PCI_BASE_ADDRESS_0) >> 2];
- 		} else if (i == dev->rom_base_reg) {
- 			res = &dev->resource[PCI_ROM_RESOURCE];
--			flags |= IORESOURCE_READONLY | IORESOURCE_CACHEABLE
--			      | IORESOURCE_SIZEALIGN;
-+			flags |= IORESOURCE_READONLY | IORESOURCE_SIZEALIGN;
- 		} else {
- 			printk(KERN_ERR "PCI: bad cfg reg num 0x%x\n", i);
- 			continue;
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 6675a7a1b9fc..bbc7f8f86051 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -326,8 +326,7 @@ static void pci_read_bases(struct pci_dev *dev, unsigned int howmany, int rom)
- 		struct resource *res = &dev->resource[PCI_ROM_RESOURCE];
- 		dev->rom_base_reg = rom;
- 		res->flags = IORESOURCE_MEM | IORESOURCE_PREFETCH |
--				IORESOURCE_READONLY | IORESOURCE_CACHEABLE |
--				IORESOURCE_SIZEALIGN;
-+				IORESOURCE_READONLY | IORESOURCE_SIZEALIGN;
- 		__pci_read_base(dev, pci_bar_mem32, res, rom);
- 	}
+ 	return pfn;
  }
-diff --git a/drivers/pnp/manager.c b/drivers/pnp/manager.c
-index 9357aa779048..7ad3295752ef 100644
---- a/drivers/pnp/manager.c
-+++ b/drivers/pnp/manager.c
-@@ -97,8 +97,6 @@ static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
- 	/* ??? rule->flags restricted to 8 bits, all tests bogus ??? */
- 	if (!(rule->flags & IORESOURCE_MEM_WRITEABLE))
- 		res->flags |= IORESOURCE_READONLY;
--	if (rule->flags & IORESOURCE_MEM_CACHEABLE)
--		res->flags |= IORESOURCE_CACHEABLE;
- 	if (rule->flags & IORESOURCE_MEM_RANGELENGTH)
- 		res->flags |= IORESOURCE_RANGELENGTH;
- 	if (rule->flags & IORESOURCE_MEM_SHADOWABLE)
-diff --git a/drivers/scsi/aic94xx/aic94xx_init.c b/drivers/scsi/aic94xx/aic94xx_init.c
-index 02a2512b76a8..1058a7b1e334 100644
---- a/drivers/scsi/aic94xx/aic94xx_init.c
-+++ b/drivers/scsi/aic94xx/aic94xx_init.c
-@@ -101,12 +101,7 @@ static int asd_map_memio(struct asd_ha_struct *asd_ha)
- 				   pci_name(asd_ha->pcidev));
- 			goto Err;
- 		}
--		if (io_handle->flags & IORESOURCE_CACHEABLE)
--			io_handle->addr = ioremap(io_handle->start,
--						  io_handle->len);
--		else
--			io_handle->addr = ioremap_nocache(io_handle->start,
--							  io_handle->len);
-+		io_handle->addr = ioremap(io_handle->start, io_handle->len);
- 		if (!io_handle->addr) {
- 			asd_printk("couldn't map MBAR%d of %s\n", i==0?0:1,
- 				   pci_name(asd_ha->pcidev));
-diff --git a/drivers/scsi/arcmsr/arcmsr_hba.c b/drivers/scsi/arcmsr/arcmsr_hba.c
-index 914c39f9f388..e4f77cad9fd8 100644
---- a/drivers/scsi/arcmsr/arcmsr_hba.c
-+++ b/drivers/scsi/arcmsr/arcmsr_hba.c
-@@ -259,10 +259,7 @@ static bool arcmsr_remap_pciregion(struct AdapterControlBlock *acb)
- 		addr = (unsigned long)pci_resource_start(pdev, 0);
- 		range = pci_resource_len(pdev, 0);
- 		flags = pci_resource_flags(pdev, 0);
--		if (flags & IORESOURCE_CACHEABLE)
--			mem_base0 = ioremap(addr, range);
--		else
--			mem_base0 = ioremap_nocache(addr, range);
-+		mem_base0 = ioremap(addr, range);
- 		if (!mem_base0) {
- 			pr_notice("arcmsr%d: memory mapping region fail\n",
- 				acb->host->host_no);
-diff --git a/drivers/scsi/mvsas/mv_init.c b/drivers/scsi/mvsas/mv_init.c
-index 53030b0e8015..c01ef5f538b1 100644
---- a/drivers/scsi/mvsas/mv_init.c
-+++ b/drivers/scsi/mvsas/mv_init.c
-@@ -325,13 +325,9 @@ int mvs_ioremap(struct mvs_info *mvi, int bar, int bar_ex)
- 			goto err_out;
++
++static inline __pfn_t nth_pfn(__pfn_t pfn, unsigned int n)
++{
++	__pfn_t ret;
++
++	ret.data = (__pfn_t_to_pfn(pfn) + n) << PFN_SHIFT
++		| (pfn.data & PFN_MASK);
++	return ret;
++}
+ #endif /* __ASM_PFN_H */
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index eca1ec93775c..49054374646e 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -11,7 +11,7 @@ struct scatterlist {
+ #ifdef CONFIG_DEBUG_SG
+ 	unsigned long	sg_magic;
+ #endif
+-	unsigned long	page_link;
++	__pfn_t		pfn;
+ 	unsigned int	offset;
+ 	unsigned int	length;
+ 	dma_addr_t	dma_address;
+@@ -44,14 +44,14 @@ struct sg_table {
+ /*
+  * Notes on SG table design.
+  *
+- * We use the unsigned long page_link field in the scatterlist struct to place
++ * We use the __pfn_t pfn field in the scatterlist struct to place
+  * the page pointer AND encode information about the sg table as well. The two
+  * lower bits are reserved for this information.
+  *
+- * If bit 0 is set, then the page_link contains a pointer to the next sg
++ * If PFN_SG_CHAIN is set, then the pfn contains a pointer to the next sg
+  * table list. Otherwise the next entry is at sg + 1.
+  *
+- * If bit 1 is set, then this sg entry is the last element in a list.
++ * If PFN_SG_LAST is set, then this sg entry is the last element in a list.
+  *
+  * See sg_next().
+  *
+@@ -64,10 +64,30 @@ struct sg_table {
+  * a valid sg entry, or whether it points to the start of a new scatterlist.
+  * Those low bits are there for everyone! (thanks mason :-)
+  */
+-#define sg_is_chain(sg)		((sg)->page_link & 0x01)
+-#define sg_is_last(sg)		((sg)->page_link & 0x02)
+-#define sg_chain_ptr(sg)	\
+-	((struct scatterlist *) ((sg)->page_link & ~0x03))
++static inline bool sg_is_chain(struct scatterlist *sg)
++{
++	return (sg->pfn.data & PFN_MASK) == PFN_SG_CHAIN;
++}
++
++static inline bool sg_is_last(struct scatterlist *sg)
++{
++	return (sg->pfn.data & PFN_MASK) == PFN_SG_LAST;
++}
++
++static inline struct scatterlist *sg_chain_ptr(struct scatterlist *sg)
++{
++	return (struct scatterlist *) (sg->pfn.data & ~PFN_MASK);
++}
++
++static inline void sg_assign_pfn(struct scatterlist *sg, __pfn_t pfn)
++{
++#ifdef CONFIG_DEBUG_SG
++	BUG_ON(sg->sg_magic != SG_MAGIC);
++	BUG_ON(sg_is_chain(sg));
++#endif
++	pfn.data &= ~PFN_SG_LAST;
++	sg->pfn.data = (sg->pfn.data & PFN_SG_LAST) | pfn.data;
++}
  
- 		res_flag_ex = pci_resource_flags(pdev, bar_ex);
--		if (res_flag_ex & IORESOURCE_MEM) {
--			if (res_flag_ex & IORESOURCE_CACHEABLE)
--				mvi->regs_ex = ioremap(res_start, res_len);
--			else
--				mvi->regs_ex = ioremap_nocache(res_start,
--						res_len);
--		} else
-+		if (res_flag_ex & IORESOURCE_MEM)
-+			mvi->regs_ex = ioremap(res_start, res_len);
-+		else
- 			mvi->regs_ex = (void *)res_start;
- 		if (!mvi->regs_ex)
- 			goto err_out;
-@@ -343,10 +339,7 @@ int mvs_ioremap(struct mvs_info *mvi, int bar, int bar_ex)
- 		goto err_out;
+ /**
+  * sg_assign_page - Assign a given page to an SG entry
+@@ -81,18 +101,23 @@ struct sg_table {
+  **/
+ static inline void sg_assign_page(struct scatterlist *sg, struct page *page)
+ {
+-	unsigned long page_link = sg->page_link & 0x3;
++	__pfn_t pfn = page_to_pfn_t(page);
  
- 	res_flag = pci_resource_flags(pdev, bar);
--	if (res_flag & IORESOURCE_CACHEABLE)
--		mvi->regs = ioremap(res_start, res_len);
--	else
--		mvi->regs = ioremap_nocache(res_start, res_len);
-+	mvi->regs = ioremap(res_start, res_len);
- 
- 	if (!mvi->regs) {
- 		if (mvi->regs_ex && (res_flag_ex & IORESOURCE_MEM))
-diff --git a/drivers/video/fbdev/ocfb.c b/drivers/video/fbdev/ocfb.c
-index de9819660ca0..c9293aea8ec3 100644
---- a/drivers/video/fbdev/ocfb.c
-+++ b/drivers/video/fbdev/ocfb.c
-@@ -325,7 +325,6 @@ static int ocfb_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev, "I/O resource request failed\n");
- 		return -ENXIO;
- 	}
--	res->flags &= ~IORESOURCE_CACHEABLE;
- 	fbdev->regs = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(fbdev->regs))
- 		return PTR_ERR(fbdev->regs);
-diff --git a/lib/devres.c b/lib/devres.c
-index fbe2aac522e6..f4001d90d24d 100644
---- a/lib/devres.c
-+++ b/lib/devres.c
-@@ -153,11 +153,8 @@ void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res)
- 		return IOMEM_ERR_PTR(-EBUSY);
- 	}
- 
--	if (res->flags & IORESOURCE_CACHEABLE)
--		dest_ptr = devm_ioremap(dev, res->start, size);
--	else
--		dest_ptr = devm_ioremap_nocache(dev, res->start, size);
--
-+	/* FIXME: add devm_ioremap_cache support */
-+	dest_ptr = devm_ioremap(dev, res->start, size);
- 	if (!dest_ptr) {
- 		dev_err(dev, "ioremap failed for resource %pR\n", res);
- 		devm_release_mem_region(dev, res->start, size);
-diff --git a/lib/pci_iomap.c b/lib/pci_iomap.c
-index bcce5f149310..e1930dbab2da 100644
---- a/lib/pci_iomap.c
-+++ b/lib/pci_iomap.c
-@@ -41,11 +41,8 @@ void __iomem *pci_iomap_range(struct pci_dev *dev,
- 		len = maxlen;
- 	if (flags & IORESOURCE_IO)
- 		return __pci_ioport_map(dev, start, len);
--	if (flags & IORESOURCE_MEM) {
--		if (flags & IORESOURCE_CACHEABLE)
--			return ioremap(start, len);
--		return ioremap_nocache(start, len);
--	}
-+	if (flags & IORESOURCE_MEM)
-+		return ioremap(start, len);
- 	/* What? */
- 	return NULL;
+ 	/*
+ 	 * In order for the low bit stealing approach to work, pages
+-	 * must be aligned at a 32-bit boundary as a minimum.
++	 * must be aligned at a sizeof(unsigned long) boundary.
+ 	 */
+-	BUG_ON((unsigned long) page & 0x03);
+-#ifdef CONFIG_DEBUG_SG
+-	BUG_ON(sg->sg_magic != SG_MAGIC);
+-	BUG_ON(sg_is_chain(sg));
+-#endif
+-	sg->page_link = page_link | (unsigned long) page;
++	BUG_ON(pfn.data & PFN_MASK);
++
++	sg_assign_pfn(sg, pfn);
++}
++
++static inline void sg_set_pfn(struct scatterlist *sg, __pfn_t pfn,
++	unsigned int len, unsigned int offset)
++{
++	sg_assign_pfn(sg, pfn);
++	sg->offset = offset;
++	sg->length = len;
  }
+ 
+ /**
+@@ -112,18 +137,30 @@ static inline void sg_assign_page(struct scatterlist *sg, struct page *page)
+ static inline void sg_set_page(struct scatterlist *sg, struct page *page,
+ 			       unsigned int len, unsigned int offset)
+ {
+-	sg_assign_page(sg, page);
+-	sg->offset = offset;
+-	sg->length = len;
++	sg_set_pfn(sg, page_to_pfn_t(page), len, offset);
+ }
+ 
+ static inline struct page *sg_page(struct scatterlist *sg)
+ {
++	__pfn_t pfn = sg->pfn;
++	struct page *page;
++
+ #ifdef CONFIG_DEBUG_SG
+ 	BUG_ON(sg->sg_magic != SG_MAGIC);
+ 	BUG_ON(sg_is_chain(sg));
+ #endif
+-	return (struct page *)((sg)->page_link & ~0x3);
++
++	pfn.data &= ~PFN_SG_LAST;
++	page = __pfn_t_to_page(pfn);
++
++	/* don't use sg_page() on non linear-mapped memory */
++	BUG_ON(!page);
++	return page;
++}
++
++static inline unsigned long sg_pfn(struct scatterlist *sg)
++{
++	return __pfn_t_to_pfn(sg->pfn);
+ }
+ 
+ /**
+@@ -175,7 +212,8 @@ static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
+ 	 * Set lowest bit to indicate a link pointer, and make sure to clear
+ 	 * the termination bit if it happens to be set.
+ 	 */
+-	prv[prv_nents - 1].page_link = ((unsigned long) sgl | 0x01) & ~0x02;
++	prv[prv_nents - 1].pfn.data = ((unsigned long) sgl | PFN_SG_CHAIN)
++		& ~PFN_SG_LAST;
+ }
+ 
+ /**
+@@ -195,8 +233,8 @@ static inline void sg_mark_end(struct scatterlist *sg)
+ 	/*
+ 	 * Set termination bit, clear potential chain bit
+ 	 */
+-	sg->page_link |= 0x02;
+-	sg->page_link &= ~0x01;
++	sg->pfn.data |= PFN_SG_LAST;
++	sg->pfn.data &= ~PFN_SG_CHAIN;
+ }
+ 
+ /**
+@@ -212,7 +250,7 @@ static inline void sg_unmark_end(struct scatterlist *sg)
+ #ifdef CONFIG_DEBUG_SG
+ 	BUG_ON(sg->sg_magic != SG_MAGIC);
+ #endif
+-	sg->page_link &= ~0x02;
++	sg->pfn.data &= ~PFN_SG_LAST;
+ }
+ 
+ /**
+@@ -220,14 +258,13 @@ static inline void sg_unmark_end(struct scatterlist *sg)
+  * @sg:	     SG entry
+  *
+  * Description:
+- *   This calls page_to_phys() on the page in this sg entry, and adds the
+- *   sg offset. The caller must know that it is legal to call page_to_phys()
+- *   on the sg page.
++ *   This calls __pfn_t_to_phys() on the pfn in this sg entry, and adds the
++ *   sg offset.
+  *
+  **/
+ static inline dma_addr_t sg_phys(struct scatterlist *sg)
+ {
+-	return page_to_phys(sg_page(sg)) + sg->offset;
++	return __pfn_t_to_phys(sg->pfn) + sg->offset;
+ }
+ 
+ /**
+@@ -281,7 +318,7 @@ size_t sg_pcopy_to_buffer(struct scatterlist *sgl, unsigned int nents,
+ #define SG_MAX_SINGLE_ALLOC		(PAGE_SIZE / sizeof(struct scatterlist))
+ 
+ /*
+- * sg page iterator
++ * sg page / pfn iterator
+  *
+  * Iterates over sg entries page-by-page.  On each successful iteration,
+  * you can call sg_page_iter_page(@piter) and sg_page_iter_dma_address(@piter)
+@@ -304,13 +341,19 @@ bool __sg_page_iter_next(struct sg_page_iter *piter);
+ void __sg_page_iter_start(struct sg_page_iter *piter,
+ 			  struct scatterlist *sglist, unsigned int nents,
+ 			  unsigned long pgoffset);
++
++static inline __pfn_t sg_page_iter_pfn(struct sg_page_iter *piter)
++{
++	return nth_pfn(piter->sg->pfn, piter->sg_pgoffset);
++}
++
+ /**
+  * sg_page_iter_page - get the current page held by the page iterator
+  * @piter:	page iterator holding the page
+  */
+ static inline struct page *sg_page_iter_page(struct sg_page_iter *piter)
+ {
+-	return nth_page(sg_page(piter->sg), piter->sg_pgoffset);
++	return __pfn_t_to_page(sg_page_iter_pfn(piter));
+ }
+ 
+ /**
+diff --git a/samples/kfifo/dma-example.c b/samples/kfifo/dma-example.c
+index aa243db93f01..3eeff9a56e0e 100644
+--- a/samples/kfifo/dma-example.c
++++ b/samples/kfifo/dma-example.c
+@@ -75,8 +75,8 @@ static int __init example_init(void)
+ 	for (i = 0; i < nents; i++) {
+ 		printk(KERN_INFO
+ 		"sg[%d] -> "
+-		"page_link 0x%.8lx offset 0x%.8x length 0x%.8x\n",
+-			i, sg[i].page_link, sg[i].offset, sg[i].length);
++		"pfn_data 0x%.8lx offset 0x%.8x length 0x%.8x\n",
++			i, sg[i].pfn.data, sg[i].offset, sg[i].length);
+ 
+ 		if (sg_is_last(&sg[i]))
+ 			break;
+@@ -104,8 +104,8 @@ static int __init example_init(void)
+ 	for (i = 0; i < nents; i++) {
+ 		printk(KERN_INFO
+ 		"sg[%d] -> "
+-		"page_link 0x%.8lx offset 0x%.8x length 0x%.8x\n",
+-			i, sg[i].page_link, sg[i].offset, sg[i].length);
++		"pfn_data 0x%.8lx offset 0x%.8x length 0x%.8x\n",
++			i, sg[i].pfn.data, sg[i].offset, sg[i].length);
+ 
+ 		if (sg_is_last(&sg[i]))
+ 			break;
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
