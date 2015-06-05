@@ -1,142 +1,138 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v3 1/3] acpi: Add acpi_map_pxm_to_online_node()
-Date: Fri, 19 Jun 2015 12:18:32 -0600
-Message-Id: <1434737914-18466-2-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1434737914-18466-1-git-send-email-toshi.kani@hp.com>
-References: <1434737914-18466-1-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v4 7/9] scatterlist: cleanup sg_chain() and sg_unmark_end()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 05 Jun 2015 17:19:41 -0400
+Message-ID: <20150605211941.20751.68557.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+To: linux-kernel@vger.kernel.org
+Cc: axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, linux-arch@vger.kernel.org, arnd@arndb.de, ross.zwisler@linux.intel.com, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, linux-fsdevel@vger.kernel.org, heiko.carstens@de.ibm.com, hch@lst.de, tj@kernel.org, paulus@samba.org, hpa@zytor.com, schwidefsky@de.ibm.com, willy@linux.intel.com, akpm@linux-foundation.org, torvalds@linux-foundation.org, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The kernel initializes CPU & memory's NUMA topology from ACPI
-SRAT table.  Some other ACPI tables, such as NFIT and DMAR, also
-contain proximity IDs for their device's NUMA topology.  This
-information can be used to improve performance of these devices.
+Replace open coded sg_chain() and sg_unmark_end() instances with the
+aforementioned helpers.
 
-This patch introduces acpi_map_pxm_to_online_node(), which is
-similar to acpi_map_pxm_to_node(), but always returns an on-line
-node.  When the mapped node from a given proximity ID is off-line,
-it looks up the node distance table and returns the nearest
-on-line node.
-
-ACPI device drivers, which are called after the NUMA initialization
-has completed in the kernel, can call this interface to obtain their
-device NUMA topology from ACPI tables.  Such drivers do not have to
-deal with off-line nodes.  A node may be off-line when a device
-proximity ID is unique, SRAT memory entry does not exist, or NUMA is
-disabled, ex. "numa=off" on x86.
-
-This patch also moves the pxm range check from acpi_get_node() to
-acpi_map_pxm_to_node().
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/numa.c  |   50 +++++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/acpi.h |    5 +++++
- 2 files changed, 52 insertions(+), 3 deletions(-)
+ block/blk-merge.c            |    2 +-
+ drivers/crypto/omap-sham.c   |    2 +-
+ drivers/dma/imx-dma.c        |    8 ++------
+ drivers/dma/ste_dma40.c      |    5 +----
+ drivers/mmc/card/queue.c     |    4 ++--
+ include/crypto/scatterwalk.h |    9 ++-------
+ 6 files changed, 9 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 1333cbdc..0b6e3a0 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -29,6 +29,8 @@
- #include <linux/errno.h>
- #include <linux/acpi.h>
- #include <linux/numa.h>
-+#include <linux/nodemask.h>
-+#include <linux/topology.h>
+diff --git a/block/blk-merge.c b/block/blk-merge.c
+index 30a0d9f89017..f4a3e87623dc 100644
+--- a/block/blk-merge.c
++++ b/block/blk-merge.c
+@@ -266,7 +266,7 @@ int blk_rq_map_sg(struct request_queue *q, struct request *rq,
+ 		if (rq->cmd_flags & REQ_WRITE)
+ 			memset(q->dma_drain_buffer, 0, q->dma_drain_size);
  
- #define PREFIX "ACPI: "
+-		sg->page_link &= ~0x02;
++		sg_unmark_end(sg);
+ 		sg = sg_next(sg);
+ 		sg_set_page(sg, virt_to_page(q->dma_drain_buffer),
+ 			    q->dma_drain_size,
+diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+index 4d63e0d4da9a..df8b23e19b90 100644
+--- a/drivers/crypto/omap-sham.c
++++ b/drivers/crypto/omap-sham.c
+@@ -582,7 +582,7 @@ static int omap_sham_xmit_dma(struct omap_sham_dev *dd, dma_addr_t dma_addr,
+ 		 * the dmaengine may try to DMA the incorrect amount of data.
+ 		 */
+ 		sg_init_table(&ctx->sgl, 1);
+-		ctx->sgl.page_link = ctx->sg->page_link;
++		sg_assign_page(&ctx->sgl, sg_page(ctx->sg));
+ 		ctx->sgl.offset = ctx->sg->offset;
+ 		sg_dma_len(&ctx->sgl) = len32;
+ 		sg_dma_address(&ctx->sgl) = sg_dma_address(ctx->sg);
+diff --git a/drivers/dma/imx-dma.c b/drivers/dma/imx-dma.c
+index eed405976ea9..081fbfc87f6b 100644
+--- a/drivers/dma/imx-dma.c
++++ b/drivers/dma/imx-dma.c
+@@ -886,18 +886,14 @@ static struct dma_async_tx_descriptor *imxdma_prep_dma_cyclic(
+ 	sg_init_table(imxdmac->sg_list, periods);
  
-@@ -70,7 +72,12 @@ static void __acpi_map_pxm_to_node(int pxm, int node)
+ 	for (i = 0; i < periods; i++) {
+-		imxdmac->sg_list[i].page_link = 0;
+-		imxdmac->sg_list[i].offset = 0;
++		sg_set_page(&imxdmac->sg_list[i], NULL, period_len, 0);
+ 		imxdmac->sg_list[i].dma_address = dma_addr;
+ 		sg_dma_len(&imxdmac->sg_list[i]) = period_len;
+ 		dma_addr += period_len;
+ 	}
  
- int acpi_map_pxm_to_node(int pxm)
- {
--	int node = pxm_to_node_map[pxm];
-+	int node;
-+
-+	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
-+		return NUMA_NO_NODE;
-+
-+	node = pxm_to_node_map[pxm];
+ 	/* close the loop */
+-	imxdmac->sg_list[periods].offset = 0;
+-	sg_dma_len(&imxdmac->sg_list[periods]) = 0;
+-	imxdmac->sg_list[periods].page_link =
+-		((unsigned long)imxdmac->sg_list | 0x01) & ~0x02;
++	sg_chain(imxdmac->sg_list, periods + 1, imxdmac->sg_list);
  
- 	if (node == NUMA_NO_NODE) {
- 		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
-@@ -83,6 +90,45 @@ int acpi_map_pxm_to_node(int pxm)
- 	return node;
- }
+ 	desc->type = IMXDMA_DESC_CYCLIC;
+ 	desc->sg = imxdmac->sg_list;
+diff --git a/drivers/dma/ste_dma40.c b/drivers/dma/ste_dma40.c
+index 3c10f034d4b9..e8c00642cacb 100644
+--- a/drivers/dma/ste_dma40.c
++++ b/drivers/dma/ste_dma40.c
+@@ -2562,10 +2562,7 @@ dma40_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t dma_addr,
+ 		dma_addr += period_len;
+ 	}
  
-+/**
-+ * acpi_map_pxm_to_online_node - Map proximity ID to on-line node
-+ * @pxm: ACPI proximity ID
-+ *
-+ * This is similar to acpi_map_pxm_to_node(), but always returns an on-line
-+ * node.  When the mapped node from a given proximity ID is off-line, it
-+ * looks up the node distance table and returns the nearest on-line node.
-+ *
-+ * ACPI device drivers, which are called after the NUMA initialization has
-+ * completed in the kernel, can call this interface to obtain their device
-+ * NUMA topology from ACPI tables.  Such drivers do not have to deal with
-+ * off-line nodes.  A node may be off-line when a device proximity ID is
-+ * unique, SRAT memory entry does not exist, or NUMA is disabled, ex.
-+ * "numa=off" on x86.
-+ */
-+int acpi_map_pxm_to_online_node(int pxm)
-+{
-+	int node, n, dist, min_dist;
-+
-+	node = acpi_map_pxm_to_node(pxm);
-+
-+	if (node == NUMA_NO_NODE)
-+		node = 0;
-+
-+	if (!node_online(node)) {
-+		min_dist = INT_MAX;
-+		for_each_online_node(n) {
-+			dist = node_distance(node, n);
-+			if (dist < min_dist) {
-+				min_dist = dist;
-+				node = n;
-+			}
-+		}
-+	}
-+
-+	return node;
-+}
-+EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
-+
- static void __init
- acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- {
-@@ -328,8 +374,6 @@ int acpi_get_node(acpi_handle handle)
- 	int pxm;
+-	sg[periods].offset = 0;
+-	sg_dma_len(&sg[periods]) = 0;
+-	sg[periods].page_link =
+-		((unsigned long)sg | 0x01) & ~0x02;
++	sg_chain(sg, periods + 1, sg);
  
- 	pxm = acpi_get_pxm(handle);
--	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
--		return NUMA_NO_NODE;
+ 	txd = d40_prep_sg(chan, sg, sg, periods, direction,
+ 			  DMA_PREP_INTERRUPT);
+diff --git a/drivers/mmc/card/queue.c b/drivers/mmc/card/queue.c
+index 236d194c2883..127f76294e71 100644
+--- a/drivers/mmc/card/queue.c
++++ b/drivers/mmc/card/queue.c
+@@ -469,7 +469,7 @@ static unsigned int mmc_queue_packed_map_sg(struct mmc_queue *mq,
+ 			sg_set_buf(__sg, buf + offset, len);
+ 			offset += len;
+ 			remain -= len;
+-			(__sg++)->page_link &= ~0x02;
++			sg_unmark_end(__sg++);
+ 			sg_len++;
+ 		} while (remain);
+ 	}
+@@ -477,7 +477,7 @@ static unsigned int mmc_queue_packed_map_sg(struct mmc_queue *mq,
+ 	list_for_each_entry(req, &packed->list, queuelist) {
+ 		sg_len += blk_rq_map_sg(mq->queue, req, __sg);
+ 		__sg = sg + (sg_len - 1);
+-		(__sg++)->page_link &= ~0x02;
++		sg_unmark_end(__sg++);
+ 	}
+ 	sg_mark_end(sg + (sg_len - 1));
+ 	return sg_len;
+diff --git a/include/crypto/scatterwalk.h b/include/crypto/scatterwalk.h
+index 20e4226a2e14..4529889b0f07 100644
+--- a/include/crypto/scatterwalk.h
++++ b/include/crypto/scatterwalk.h
+@@ -25,13 +25,8 @@
+ #include <linux/scatterlist.h>
+ #include <linux/sched.h>
  
- 	return acpi_map_pxm_to_node(pxm);
- }
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index e4da5e3..1b3bbb1 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -289,8 +289,13 @@ extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
- extern void acpi_osi_setup(char *str);
+-static inline void scatterwalk_sg_chain(struct scatterlist *sg1, int num,
+-					struct scatterlist *sg2)
+-{
+-	sg_set_page(&sg1[num - 1], (void *)sg2, 0, 0);
+-	sg1[num - 1].page_link &= ~0x02;
+-	sg1[num - 1].page_link |= 0x01;
+-}
++#define scatterwalk_sg_chain(prv, num, sgl)	sg_chain(prv, num, sgl)
++#define scatterwalk_sg_next(sgl)		sg_next(sgl)
  
- #ifdef CONFIG_ACPI_NUMA
-+int acpi_map_pxm_to_online_node(int pxm);
- int acpi_get_node(acpi_handle handle);
- #else
-+static inline int acpi_map_pxm_to_online_node(int pxm)
-+{
-+	return 0;
-+}
- static inline int acpi_get_node(acpi_handle handle)
- {
- 	return 0;
---
-To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-Please read the FAQ at  http://www.tux.org/lkml/
+ static inline void scatterwalk_crypto_chain(struct scatterlist *head,
+ 					    struct scatterlist *sg,
+
