@@ -1,53 +1,73 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Tue, 9 Jun 2015 08:55:49 +0200
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v4 4/9] dax: fix mapping lifetime handling, convert to
-	__pfn_t + kmap_atomic_pfn_t()
-Message-ID: <20150609065548.GC10167@lst.de>
-References: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com> <20150605211924.20751.434.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150605211924.20751.434.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, linux-arch@vger.kernel.org, arnd@arndb.de, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, linux-fsdevel@vger.kernel.org, heiko.carstens@de.ibm.com, hch@lst.de, mingo@kernel.org, tj@kernel.org, paulus@samba.org, hpa@zytor.com, schwidefsky@de.ibm.com, willy@linux.intel.com, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org, akpm@linux-foundation.org
+In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295A973B07@G9W0745.americas.hpqcorp.net>
+References: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150605211924.20751.434.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<94D0CD8314A33A4D9D801C0FE68B40295A973B07@G9W0745.americas.hpqcorp.net>
+Date: Mon, 8 Jun 2015 09:36:46 -0700
+Message-ID: <CAPcyv4jeX+SMhoVh-wwuNozn5-E-4hfhH7H6RpqgsBnHq30Bmg@mail.gmail.com>
+Subject: Re: [PATCH v4 4/9] dax: fix mapping lifetime handling, convert to
+ __pfn_t + kmap_atomic_pfn_t()
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "axboe@kernel.dk" <axboe@kernel.dk>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "arnd@arndb.de" <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "hpa@zytor.com" <hpa@zytor.com>, "david@fromorbit.com" <david@fromorbit.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "mingo@kernel.org" <mingo@kernel.org>, "tj@kernel.org" <tj@kernel.org>, "paulus@samba.org" <paulus@samba.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "hch@lst.de" <hch@lst.de>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jun 05, 2015 at 05:19:24PM -0400, Dan Williams wrote:
-> The primary source for non-page-backed page-frames to enter the system
-> is via the pmem driver's ->direct_access() method.  The pfns returned by
-> the top-level bdev_direct_access() may be passed to any other subsystem
-> in the kernel and those sub-systems either need to assume that the pfn
-> is page backed (CONFIG_DEV_PFN=n) or be prepared to handle non-page
-> backed case (CONFIG_DEV_PFN=y).  Currently the pfns returned by
-> ->direct_access() are only ever used by vm_insert_mixed() which does not
-> care if the pfn is mapped.  As we go to add more usages of these pfns
-> add the type-safety of __pfn_t.
-> 
-> This also simplifies the calling convention of ->direct_access() by not
-> returning the virtual address in the same call.  This annotates cases
-> where the kernel is directly accessing pmem outside the driver, and
-> makes the valid lifetime of the reference explicit.  This property may
-> be useful in the future for invalidating mappings to pmem, but for now
-> it provides some protection against the "pmem disable vs still-in-use"
-> race.
-> 
-> Note that axon_ram_direct_access and dcssblk_direct_access were
-> previously making potentially incorrect assumptions about the addresses
-> they passed to virt_to_phys().
+On Mon, Jun 8, 2015 at 9:29 AM, Elliott, Robert (Server Storage)
+<Elliott@hp.com> wrote:
+>> -----Original Message-----
+>> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf
+>> Of Dan Williams
+>> Sent: Friday, June 05, 2015 3:19 PM
+>> Subject: [PATCH v4 4/9] dax: fix mapping lifetime handling, convert to
+>> __pfn_t + kmap_atomic_pfn_t()
+> ...
+>> diff --git a/arch/powerpc/sysdev/axonram.c
+>> b/arch/powerpc/sysdev/axonram.c
+>> index e8657d3bc588..20725006592e 100644
+>> --- a/arch/powerpc/sysdev/axonram.c
+>> +++ b/arch/powerpc/sysdev/axonram.c
+> ...
+>> @@ -165,9 +166,13 @@ static int axon_ram_probe(struct platform_device
+>> *device)
+>>  {
+>>       static int axon_ram_bank_id = -1;
+>>       struct axon_ram_bank *bank;
+>> -     struct resource resource;
+>> +     struct resource *resource;
+>>       int rc = 0;
+>>
+>> +     resource = devm_kzalloc(&device->dev, sizeof(*resource),
+>> GFP_KERNEL);
+>> +     if (!resource)
+>> +             return -ENOMEM;
+>> +
+>
+> Since resource is now a pointer...
+>
+> ...
+>> @@ -184,13 +189,13 @@ static int axon_ram_probe(struct platform_device
+>> *device)
+>>
+>>       bank->device = device;
+>>
+>> -     if (of_address_to_resource(device->dev.of_node, 0, &resource) != 0)
+>> {
+>> +     if (of_address_to_resource(device->dev.of_node, 0, resource) != 0) {
+>>               dev_err(&device->dev, "Cannot access device tree\n");
+>>               rc = -EFAULT;
+>>               goto failed;
+>>       }
+> ...
+>
+> ... I'd expect to see a devm_kfree call added after the failed label,
+> like was  done here:
 
-This looks generally good.
-
-The subject line is a little confusing as the main change is that
-it moves the responsibility of mapping a PFN returned from 
-->direct_access to a kernel virtual address to the caller, so I'd
-suggest to reflect this.
-
-Second all the ifdef HAVE_KMAP_PFN is horribly ugly.  I'd suggest
-to try hard to offer it on all architectures and select it from
-the drivers that need it.
-
-Third it seems like this breaks axonram and dcssblk as powerpc
-and s390 don't define HAVE_KMAP_PFN yet unless I missed something.
-
+No, because unlike dccsblk the axon_ram driver actually adheres to the
+device model, so it will be auto-freed on failed probe.  The dcssblk
+implementation is not a proper "driver" so we don't get the
+devres_release_all() until the device is unregistered.  That causes
+the "resource" object to stick around longer than necessary unless we
+force devm_kfree() it.
