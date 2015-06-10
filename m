@@ -1,130 +1,35 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v12 1/10] x86, mm, pat: Set WT to PA7 slot of PAT MSR
-Date: Mon,  1 Jun 2015 13:36:24 -0600
-Message-Id: <1433187393-22688-2-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
-References: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <20150610161157.GA14366@lst.de>
+References: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150605211912.20751.35406.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150610121202.GA9190@lst.de>
+	<20150610150334.GK2729@linux.intel.com>
+	<20150610151100.GA12757@lst.de>
+	<CAPcyv4hnd1JRwLYapo_s=vXFYHUA6Cv-ZpJt+Y3_tTCxQsJUPg@mail.gmail.com>
+	<20150610161157.GA14366@lst.de>
+Date: Wed, 10 Jun 2015 09:17:40 -0700
+Message-ID: <CAPcyv4hC1ud_xhZpqDALMbijrjU4GSBHscqTmPoimHn4hX8anQ@mail.gmail.com>
+Subject: Re: [PATCH v4 2/9] x86: support kmap_atomic_pfn_t() for persistent memory
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <willy@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, david <david@fromorbit.com>, linux-arch@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Tejun Heo <tj@kernel.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch sets WT to the PA7 slot in the PAT MSR when the processor
-is not affected by the PAT errata.  The PA7 slot is chosen to improve
-robustness in the presence of errata that might cause the high PAT bit
-to be ignored.  This way a buggy PA7 slot access will hit the PA3 slot,
-which is UC, so at worst we lose performance without causing a correctness
-issue.
+On Wed, Jun 10, 2015 at 9:11 AM, Christoph Hellwig <hch@lst.de> wrote:
+> On Wed, Jun 10, 2015 at 08:36:48AM -0700, Dan Williams wrote:
+>> On surprise removal my expectation is that the driver keeps the the
+>> ioremap mapping alive for at least a synchronize_rcu() period.  With
+>> that in place the rcu_read_lock() in kmap_atomic_pfn_t() should keep
+>> the mapping alive for the short duration, or otherwise prevent new
+>> mappings.  However, I missed converting the driver to order its
+>> iounmap() with respect to the pfn range registration via devres, will
+>> fix.
+>
+> Right.  I guess the best idea is to replace devm_register_kmap_pfn_range
+> with an interface that does the ioremap, in which case the cleanup
+> function can take care of the proper ordering behind the drivers back.
 
-The following Intel processors are affected by the PAT errata.
-
-   errata               cpuid
-   ----------------------------------------------------
-   Pentium 2, A52       family 0x6, model 0x5
-   Pentium 3, E27       family 0x6, model 0x7, 0x8
-   Pentium 3 Xenon, G26 family 0x6, model 0x7, 0x8, 0xa
-   Pentium M, Y26       family 0x6, model 0x9
-   Pentium M 90nm, X9   family 0x6, model 0xd
-   Pentium 4, N46       family 0xf, model 0x0
-
-Instead of making sharp boundary checks, this patch makes conservative
-checks to exclude all Pentium 2, 3, M and 4 family processors.  For
-such processors, _PAGE_CACHE_MODE_WT is redirected to UC- per the
-default setup in __cachemode2pte_tbl[].
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Reviewed-by: Juergen Gross <jgross@suse.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
----
- arch/x86/mm/pat.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 49 insertions(+), 8 deletions(-)
-
-diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
-index f89e460..83af01a 100644
---- a/arch/x86/mm/pat.c
-+++ b/arch/x86/mm/pat.c
-@@ -235,6 +235,7 @@ static void pat_ap_init(u64 pat)
- void pat_init(void)
- {
- 	u64 pat;
-+	struct cpuinfo_x86 *c = &boot_cpu_data;
- 
- 	if (!pat_enabled()) {
- 		/*
-@@ -259,21 +260,61 @@ void pat_init(void)
- 		 */
- 		pat = PAT(0, WB) | PAT(1, WT) | PAT(2, UC_MINUS) | PAT(3, UC) |
- 		      PAT(4, WB) | PAT(5, WT) | PAT(6, UC_MINUS) | PAT(7, UC);
--	} else {
-+
-+	} else if ((c->x86_vendor == X86_VENDOR_INTEL) &&
-+		   (((c->x86 == 0x6) && (c->x86_model <= 0xd)) ||
-+		    ((c->x86 == 0xf) && (c->x86_model <= 0x6)))) {
- 		/*
--		 * PTE encoding used in Linux:
-+		 * PAT support with the lower four entries. Intel Pentium 2,
-+		 * 3, M, and 4 are affected by PAT errata, which makes the
-+		 * upper four entries unusable.  We do not use the upper four
-+		 * entries for all the affected processor families for safe.
-+		 *
-+		 *  PTE encoding used in Linux:
- 		 *      PAT
- 		 *      |PCD
--		 *      ||PWT
--		 *      |||
--		 *      000 WB          _PAGE_CACHE_WB
--		 *      001 WC          _PAGE_CACHE_WC
--		 *      010 UC-         _PAGE_CACHE_UC_MINUS
--		 *      011 UC          _PAGE_CACHE_UC
-+		 *      ||PWT  PAT
-+		 *      |||    slot
-+		 *      000    0    WB : _PAGE_CACHE_MODE_WB
-+		 *      001    1    WC : _PAGE_CACHE_MODE_WC
-+		 *      010    2    UC-: _PAGE_CACHE_MODE_UC_MINUS
-+		 *      011    3    UC : _PAGE_CACHE_MODE_UC
- 		 * PAT bit unused
-+		 *
-+		 * NOTE: When WT or WP is used, it is redirected to UC- per
-+		 * the default setup in __cachemode2pte_tbl[].
- 		 */
- 		pat = PAT(0, WB) | PAT(1, WC) | PAT(2, UC_MINUS) | PAT(3, UC) |
- 		      PAT(4, WB) | PAT(5, WC) | PAT(6, UC_MINUS) | PAT(7, UC);
-+	} else {
-+		/*
-+		 * PAT full support.  We put WT in slot 7 to improve
-+		 * robustness in the presence of errata that might cause
-+		 * the high PAT bit to be ignored.  This way a buggy slot 7
-+		 * access will hit slot 3, and slot 3 is UC, so at worst
-+		 * we lose performance without causing a correctness issue.
-+		 * Pentium 4 erratum N46 is an example of such an erratum,
-+		 * although we try not to use PAT at all on affected CPUs.
-+		 *
-+		 *  PTE encoding used in Linux:
-+		 *      PAT
-+		 *      |PCD
-+		 *      ||PWT  PAT
-+		 *      |||    slot
-+		 *      000    0    WB : _PAGE_CACHE_MODE_WB
-+		 *      001    1    WC : _PAGE_CACHE_MODE_WC
-+		 *      010    2    UC-: _PAGE_CACHE_MODE_UC_MINUS
-+		 *      011    3    UC : _PAGE_CACHE_MODE_UC
-+		 *      100    4    WB : Reserved
-+		 *      101    5    WC : Reserved
-+		 *      110    6    UC-: Reserved
-+		 *      111    7    WT : _PAGE_CACHE_MODE_WT
-+		 *
-+		 * The reserved slots are unused, but mapped to their
-+		 * corresponding types in the presence of PAT errata.
-+		 */
-+		pat = PAT(0, WB) | PAT(1, WC) | PAT(2, UC_MINUS) | PAT(3, UC) |
-+		      PAT(4, WB) | PAT(5, WC) | PAT(6, UC_MINUS) | PAT(7, WT);
- 	}
- 
- 	if (!boot_cpu_done) {
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Even better than what I was thinking... will do.
