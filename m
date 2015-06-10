@@ -1,142 +1,36 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v12 0/10] Support Write-Through mapping on x86
-Date: Mon,  1 Jun 2015 13:36:23 -0600
-Message-Id: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Message-ID: <1433960682.32607.45.camel@linux.intel.com>
+Subject: Re: [PATCH v5 18/21] nd_btt: atomic sector updates
+From: Vishal Verma <vishal.l.verma@linux.intel.com>
+Date: Wed, 10 Jun 2015 12:24:42 -0600
+In-Reply-To: <20150610073434.GC3369@lst.de>
+References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <20150602001546.4506.15713.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <20150609064425.GF9804@lst.de> <1433874431.32607.37.camel@linux.intel.com>
+	 <20150610073434.GC3369@lst.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, axboe@kernel.dk, sfr@canb.auug.org.au, rafael@kernel.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-api@vger.kernel.org, akpm@linux-foundation.org, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patchset adds support of Write-Through (WT) mapping on x86.
-The study below shows that using WT mapping may be useful for
-non-volatile memory.
+On Wed, 2015-06-10 at 09:34 +0200, Christoph Hellwig wrote:
+> Hi Vishal,
+> 
+> I'm mostly worried about handling scalability to large CPU counts
+> properly.  If you think this is the best way to handle it that fine,
+> but please document the decisions on the changelog in a similar form
+> to what you did below.
 
-http://www.hpl.hp.com/techreports/2012/HPL-2012-236.pdf
+Thanks Christoph.
 
-The patchset consists of the following changes.
- - Patch 1/10 to 6/10 add ioremap_wt()
- - Patch 7/10 adds pgprot_writethrough()
- - Patch 8/10 to 9/10 add set_memory_wt()
- - Patch 10/10 changes the pmem driver to call ioremap_wt()
+I'll update the changelog for the next version. Scalability and
+performance are of course at the top of my head - this implementation is
+a first shot at what we think will work best, but if there are
+experiments/changes/data that show otherwise, I'll be more than happy to
+incorporate those.
 
-All new/modified interfaces have been tested.
+	-Vishal
 
-The patchset is based on:
-git://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git#tip-mm-2
-
----
-v12:
-- Rebased to bp/bp.git#tip-mm-2 and resolved minor conflicts. 
-- Dropped cleanup patches 1-2 as redone by Boris.
-
-v11:
-- Reordered the refactor changes from patch 10-11 to 1-2.
-  (Borislav Petkov)
-- Changed BUG() to panic(). (Borislav Petkov)
-- Rebased to tip/master and resolved conflicts. 
-
-v10:
-- Removed ioremap_writethrough(). (Thomas Gleixner)
-- Clarified and cleaned up multiple comments and functions.
-  (Thomas Gleixner) 
-- Changed ioremap_change_attr() to accept the WT type.
-
-v9:
-- Changed to export the set_xxx_wt() interfaces with GPL.
-  (Ingo Molnar)
-- Changed is_new_memtype_allowed() to handle WT cases.
-- Changed arch-specific io.h to define ioremap_wt().
-- Changed the pmem driver to use ioremap_wt().
-- Rebased to 4.1-rc3 and resolved minor conflicts.
-
-v8:
-- Rebased to 4.0-rc1 and resolved conflicts with 9d34cfdf4 in
-  patch 5/7.
-
-v7:
-- Rebased to 3.19-rc3 as Juergen's patchset for the PAT management
-  has been accepted.
-
-v6:
-- Dropped the patch moving [set|get]_page_memtype() to pat.c
-  since the tip branch already has this change.
-- Fixed an issue when CONFIG_X86_PAT is not defined.
-
-v5:
-- Clarified comment of why using slot 7. (Andy Lutomirski,
-  Thomas Gleixner)
-- Moved [set|get]_page_memtype() to pat.c. (Thomas Gleixner)
-- Removed BUG() from set_page_memtype(). (Thomas Gleixner)
-
-v4:
-- Added set_memory_wt() by adding WT support of regular memory.
-
-v3:
-- Dropped the set_memory_wt() patch. (Andy Lutomirski)
-- Refactored the !pat_enabled handling. (H. Peter Anvin,
-  Andy Lutomirski)
-- Added the picture of PTE encoding. (Konrad Rzeszutek Wilk)
-
-v2:
-- Changed WT to use slot 7 of the PAT MSR. (H. Peter Anvin,
-  Andy Lutomirski)
-- Changed to have conservative checks to exclude all Pentium 2, 3,
-  M, and 4 families. (Ingo Molnar, Henrique de Moraes Holschuh,
-  Andy Lutomirski)
-- Updated documentation to cover WT interfaces and usages.
-  (Andy Lutomirski, Yigal Korman)
-
----
-Toshi Kani (10):
- 1/10 x86, mm, pat: Set WT to PA7 slot of PAT MSR
- 2/10 x86, mm, pat: Change reserve_memtype() for WT
- 3/10 x86, asm: Change is_new_memtype_allowed() for WT
- 4/10 x86, mm, asm-gen: Add ioremap_wt() for WT
- 5/10 arch/*/asm/io.h: Add ioremap_wt() to all architectures
- 6/10 video/fbdev, asm/io.h: Remove ioremap_writethrough()
- 7/10 x86, mm, pat: Add pgprot_writethrough() for WT
- 8/10 x86, mm, asm: Add WT support to set_page_memtype()
- 9/10 x86, mm: Add set_memory_wt() for WT
-10/10 drivers/block/pmem: Map NVDIMM with ioremap_wt()
-
----
- Documentation/x86/pat.txt            |  13 ++--
- arch/arc/include/asm/io.h            |   1 +
- arch/arm/include/asm/io.h            |   1 +
- arch/arm64/include/asm/io.h          |   1 +
- arch/avr32/include/asm/io.h          |   1 +
- arch/frv/include/asm/io.h            |   4 +-
- arch/m32r/include/asm/io.h           |   1 +
- arch/m68k/include/asm/io_mm.h        |   4 +-
- arch/m68k/include/asm/io_no.h        |   4 +-
- arch/metag/include/asm/io.h          |   3 +
- arch/microblaze/include/asm/io.h     |   2 +-
- arch/mn10300/include/asm/io.h        |   1 +
- arch/nios2/include/asm/io.h          |   1 +
- arch/s390/include/asm/io.h           |   1 +
- arch/sparc/include/asm/io_32.h       |   1 +
- arch/sparc/include/asm/io_64.h       |   1 +
- arch/tile/include/asm/io.h           |   2 +-
- arch/x86/include/asm/cacheflush.h    |   6 +-
- arch/x86/include/asm/io.h            |   2 +
- arch/x86/include/asm/pgtable.h       |   8 ++-
- arch/x86/include/asm/pgtable_types.h |   3 +
- arch/x86/mm/ioremap.c                |  24 +++++++
- arch/x86/mm/pageattr.c               |  62 +++++++++++++----
- arch/x86/mm/pat.c                    | 126 +++++++++++++++++++++++++----------
- arch/xtensa/include/asm/io.h         |   1 +
- drivers/block/pmem.c                 |   4 +-
- drivers/video/fbdev/amifb.c          |   4 +-
- drivers/video/fbdev/atafb.c          |   3 +-
- drivers/video/fbdev/hpfb.c           |   4 +-
- include/asm-generic/io.h             |   9 +++
- include/asm-generic/iomap.h          |   4 ++
- include/asm-generic/pgtable.h        |   4 ++
- 32 files changed, 240 insertions(+), 66 deletions(-)
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
