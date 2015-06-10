@@ -1,56 +1,28 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH 07/15] fs/block_dev.c: skip rw_page if bdev has integrity
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 17 Jun 2015 19:55:24 -0400
-Message-ID: <20150617235524.12943.51967.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Wed, 10 Jun 2015 09:33:16 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v5 05/21] libnvdimm: control (ioctl) messages for
+	libnvdimm bus and dimm devices
+Message-ID: <20150610073316.GB3369@lst.de>
+References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com> <20150602001435.4506.42614.stgit@dwillia2-desk3.amr.corp.intel.com> <20150609063418.GB9804@lst.de> <CAPcyv4jmHpg4YrseBWH-k=achv4N-V8n2X0CkFw+-AFsiRuH8A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: axboe@kernel.dk, linux-nvdimm@lists.01.org
-Cc: boaz@plexistor.com, toshi.kani@hp.com, "Martin K. Petersen" <martin.petersen@oracle.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, linux-kernel@vger.kernel.org, mingo@kernel.org, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4jmHpg4YrseBWH-k=achv4N-V8n2X0CkFw+-AFsiRuH8A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Jens Axboe <axboe@kernel.dk>, Stephen Rothwell <sfr@canb.auug.org.au>, "Rafael J. Wysocki" <rafael@kernel.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, linux-api@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Vishal Verma <vishal.l.verma@linux.intel.com>
+On Mon, Jun 08, 2015 at 11:57:42PM -0700, Dan Williams wrote:
+> Data payload size for one, these commands transfer more than a page
+> worth of data at a time.
+> 
+> Even if we killed the ioctl interface to userspace we still need all
+> the ugly data marshaling code in the kernel to craft properly
+> formatted ACPI _DSM messages.  I try to share as much common
+> infrastructure from the ACPI _DSM implementation to the ioctl
+> interface (nd_cmd_dimm_desc() + nd_cmd_bus_desc()).
 
-If a block device has bio integrity enabled, rw_page will bypass the
-integrity payload, which is undesirable. Skip rw_page if this is the
-case.
-
-Currently brd and zram provide rw_page, and the proposed 'nd' drivers
-will too.
-
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
-Suggested-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/block_dev.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index c7e4163ede87..054ef1bbb821 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -376,7 +376,7 @@ int bdev_read_page(struct block_device *bdev, sector_t sector,
- 			struct page *page)
- {
- 	const struct block_device_operations *ops = bdev->bd_disk->fops;
--	if (!ops->rw_page)
-+	if (!ops->rw_page || bdev_get_integrity(bdev))
- 		return -EOPNOTSUPP;
- 	return ops->rw_page(bdev, sector + get_start_sect(bdev), page, READ);
- }
-@@ -407,7 +407,7 @@ int bdev_write_page(struct block_device *bdev, sector_t sector,
- 	int result;
- 	int rw = (wbc->sync_mode == WB_SYNC_ALL) ? WRITE_SYNC : WRITE;
- 	const struct block_device_operations *ops = bdev->bd_disk->fops;
--	if (!ops->rw_page)
-+	if (!ops->rw_page || bdev_get_integrity(bdev))
- 		return -EOPNOTSUPP;
- 	set_page_writeback(page);
- 	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page, rw);
-
+Ok.  Not a fan of these dual interfaces but in this case they might be
+justified.
