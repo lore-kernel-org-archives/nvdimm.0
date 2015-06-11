@@ -1,48 +1,113 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v2 2/4] devm: fix ioremap_cache() usage
-Date: Mon, 01 Jun 2015 16:26:57 +0200
-Message-ID: <1620292.L8s1FmNDhT@wuerfel>
-In-Reply-To: <CAPcyv4g30QqO2+vmhfFi6Mw3pku=BkEmvUbzxMme4nm8SkHyrQ@mail.gmail.com>
-References: <20150530185425.32590.3190.stgit@dwillia2-desk3.amr.corp.intel.com> <201505302252.19647.arnd@arndb.de> <CAPcyv4g30QqO2+vmhfFi6Mw3pku=BkEmvUbzxMme4nm8SkHyrQ@mail.gmail.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v6 09/21] libnvdimm, pmem: move pmem to drivers/nvdimm/
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 11 Jun 2015 16:10:58 -0400
+Message-ID: <20150611201058.25175.1129.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150611183830.25175.51256.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150611183830.25175.51256.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, X86 ML <x86@kernel.org>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Luis Rodriguez <mcgrof@suse.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Bader <stefan.bader@canonical.com>, Andy Lutomirski <luto@amacapital.net>, linux-mm@kvack.org, geert@linux-m68k.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Tejun Heo <tj@kernel.org>, Christoph Hellwig <hch@lst.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: axboe@kernel.dk, sfr@canb.auug.org.au, rafael@kernel.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, linux-api@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Saturday 30 May 2015 14:16:28 Dan Williams wrote:
-> On Sat, May 30, 2015 at 1:52 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Saturday 30 May 2015, Dan Williams wrote:
-> >> @@ -154,7 +148,7 @@ void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res)
-> >>         }
-> >>
-> >>         if (res->flags & IORESOURCE_CACHEABLE)
-> >> -               dest_ptr = devm_ioremap(dev, res->start, size);
-> >> +               dest_ptr = devm_ioremap_cache(dev, res->start, size);
-> >>         else
-> >>                 dest_ptr = devm_ioremap_nocache(dev, res->start, size);
-> >
-> > I think the existing uses of IORESOURCE_CACHEABLE are mostly bugs, so changing
-> > the behavior here may cause more problems than it solves.
-> >
-> 
-> Ok, but that effectively makes devm_ioremap_resource() unusable for
-> the cached case.  How about introducing devm_ioremap_cache_resource(),
-> and cleaning up devm_ioremap_resource() to stop pretending that it is
-> honoring the memory type of the resource?
+Prepare the pmem driver to consume PMEM namespaces emitted by regions of
+an nvdimm_bus instance.  No functional change.
 
-I was thinking the opposite approach and basically removing all uses
-of IORESOURCE_CACHEABLE from the kernel. There are only a handful of
-them.and we can probably replace them all with hardcoded ioremap_cached()
-calls in the cases they are actually useful
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/block/Kconfig   |   11 -----------
+ drivers/block/Makefile  |    1 -
+ drivers/nvdimm/Kconfig  |   22 +++++++++++++++++++++-
+ drivers/nvdimm/Makefile |    3 +++
+ drivers/nvdimm/pmem.c   |    0 
+ 5 files changed, 24 insertions(+), 13 deletions(-)
+ rename drivers/{block/pmem.c => nvdimm/pmem.c} (100%)
 
-	Arnd
+diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
+index eb1fed5bd516..1b8094d4d7af 100644
+--- a/drivers/block/Kconfig
++++ b/drivers/block/Kconfig
+@@ -404,17 +404,6 @@ config BLK_DEV_RAM_DAX
+ 	  and will prevent RAM block device backing store memory from being
+ 	  allocated from highmem (only a problem for highmem systems).
+ 
+-config BLK_DEV_PMEM
+-	tristate "Persistent memory block device support"
+-	help
+-	  Saying Y here will allow you to use a contiguous range of reserved
+-	  memory as one or more persistent block devices.
+-
+-	  To compile this driver as a module, choose M here: the module will be
+-	  called 'pmem'.
+-
+-	  If unsure, say N.
+-
+ config CDROM_PKTCDVD
+ 	tristate "Packet writing on CD/DVD media"
+ 	depends on !UML
+diff --git a/drivers/block/Makefile b/drivers/block/Makefile
+index 9cc6c18a1c7e..02b688d1438d 100644
+--- a/drivers/block/Makefile
++++ b/drivers/block/Makefile
+@@ -14,7 +14,6 @@ obj-$(CONFIG_PS3_VRAM)		+= ps3vram.o
+ obj-$(CONFIG_ATARI_FLOPPY)	+= ataflop.o
+ obj-$(CONFIG_AMIGA_Z2RAM)	+= z2ram.o
+ obj-$(CONFIG_BLK_DEV_RAM)	+= brd.o
+-obj-$(CONFIG_BLK_DEV_PMEM)	+= pmem.o
+ obj-$(CONFIG_BLK_DEV_LOOP)	+= loop.o
+ obj-$(CONFIG_BLK_CPQ_DA)	+= cpqarray.o
+ obj-$(CONFIG_BLK_CPQ_CISS_DA)  += cciss.o
+diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+index 92933551f846..b5e2f8b22423 100644
+--- a/drivers/nvdimm/Kconfig
++++ b/drivers/nvdimm/Kconfig
+@@ -1,4 +1,4 @@
+-config LIBNVDIMM
++menuconfig LIBNVDIMM
+ 	tristate "NVDIMM (Non-Volatile Memory Device) Support"
+ 	depends on PHYS_ADDR_T_64BIT
+ 	depends on BLK_DEV
+@@ -13,3 +13,23 @@ config LIBNVDIMM
+ 	  CONFIG_DAX).  A BLK namespace refers to an NVDIMM control
+ 	  region which exposes an mmio register set for windowed
+ 	  access mode to non-volatile memory.
++
++if LIBNVDIMM
++
++config BLK_DEV_PMEM
++	tristate "PMEM: Persistent memory block device support"
++	default LIBNVDIMM
++	help
++	  Memory ranges for PMEM are described by either an NFIT
++	  (NVDIMM Firmware Interface Table, see CONFIG_NFIT_ACPI), a
++	  non-standard OEM-specific E820 memory type (type-12, see
++	  CONFIG_X86_PMEM_LEGACY), or it is manually specified by the
++	  'memmap=nn[KMG]!ss[KMG]' kernel command line (see
++	  Documentation/kernel-parameters.txt).  This driver converts
++	  these persistent memory ranges into block devices that are
++	  capable of DAX (direct-access) file system mappings.  See
++	  Documentation/nvdimm/nvdimm.txt for more details.
++
++	  Say Y if you want to use an NVDIMM
++
++endif
+diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
+index af5e2760ddbd..4d2a27f52faa 100644
+--- a/drivers/nvdimm/Makefile
++++ b/drivers/nvdimm/Makefile
+@@ -1,4 +1,7 @@
+ obj-$(CONFIG_LIBNVDIMM) += libnvdimm.o
++obj-$(CONFIG_BLK_DEV_PMEM) += nd_pmem.o
++
++nd_pmem-y := pmem.o
+ 
+ libnvdimm-y := core.o
+ libnvdimm-y += bus.o
+diff --git a/drivers/block/pmem.c b/drivers/nvdimm/pmem.c
+similarity index 100%
+rename from drivers/block/pmem.c
+rename to drivers/nvdimm/pmem.c
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
