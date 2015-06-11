@@ -1,396 +1,231 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH 09/15] libnvdimm, blk: add support for blk integrity
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v4 2/6] cleanup IORESOURCE_CACHEABLE vs ioremap()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 17 Jun 2015 19:55:35 -0400
-Message-ID: <20150617235535.12943.9582.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 11 Jun 2015 17:19:24 -0400
+Message-ID: <20150611211924.10271.2950.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150611211354.10271.57950.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150611211354.10271.57950.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: axboe@kernel.dk, linux-nvdimm@lists.01.org
-Cc: boaz@plexistor.com, toshi.kani@hp.com, Vishal Verma <vishal.l.verma@linux.intel.com>, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
+Sender: owner-linux-mm@kvack.org
+To: arnd@arndb.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
+Cc: jgross@suse.com, x86@kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, mcgrof@suse.com, konrad.wilk@oracle.com, linux-kernel@vger.kernel.org, stefan.bader@canonical.com, luto@amacapital.net, linux-mm@kvack.org, geert@linux-m68k.org, ralf@linux-mips.org, hmh@hmh.eng.br, mpe@ellerman.id.au, tj@kernel.org, paulus@samba.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Vishal Verma <vishal.l.verma@linux.intel.com>
+Quoting Arnd:
+    I was thinking the opposite approach and basically removing all uses
+    of IORESOURCE_CACHEABLE from the kernel. There are only a handful of
+    them.and we can probably replace them all with hardcoded
+    ioremap_cached() calls in the cases they are actually useful.
 
-Support multiple block sizes (sector + metadata) for nd_blk in the
-same way as done for the BTT. Add the idea of an 'internal' lbasize,
-which is properly aligned and padded, and store metadata in this space.
+All existing usages of IORESOURCE_CACHEABLE call ioremap() instead of
+ioremap_nocache() if the resource is cacheable, however ioremap() is
+uncached by default.  Clearly none of the existing usages care about the
+cacheability, so let's clean that up before introducing generic
+ioremap_cache() support across architectures.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@linux.intel.com>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/blk.c            |  168 ++++++++++++++++++++++++++++++++++-----
- drivers/nvdimm/btt.h            |    1 
- drivers/nvdimm/bus.c            |   28 +++++--
- drivers/nvdimm/core.c           |    3 +
- drivers/nvdimm/namespace_devs.c |    3 -
- drivers/nvdimm/nd.h             |    3 +
- 6 files changed, 174 insertions(+), 32 deletions(-)
+ arch/arm/mach-clps711x/board-cdb89712.c |    2 +-
+ arch/powerpc/kernel/pci_of_scan.c       |    2 +-
+ arch/sparc/kernel/pci.c                 |    3 +--
+ drivers/pci/probe.c                     |    3 +--
+ drivers/pnp/manager.c                   |    2 --
+ drivers/scsi/aic94xx/aic94xx_init.c     |    7 +------
+ drivers/scsi/arcmsr/arcmsr_hba.c        |    5 +----
+ drivers/scsi/mvsas/mv_init.c            |   15 ++++-----------
+ drivers/video/fbdev/ocfb.c              |    1 -
+ lib/devres.c                            |    7 ++-----
+ lib/pci_iomap.c                         |    7 ++-----
+ 11 files changed, 14 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
-index a2749b5e43d7..feddad325f97 100644
---- a/drivers/nvdimm/blk.c
-+++ b/drivers/nvdimm/blk.c
-@@ -27,10 +27,17 @@ struct nd_blk_device {
- 	struct nd_namespace_blk *nsblk;
- 	struct nd_blk_region *ndbr;
- 	size_t disk_size;
-+	u32 sector_size;
-+	u32 internal_lbasize;
+diff --git a/arch/arm/mach-clps711x/board-cdb89712.c b/arch/arm/mach-clps711x/board-cdb89712.c
+index 1ec378c334e5..972abdb10028 100644
+--- a/arch/arm/mach-clps711x/board-cdb89712.c
++++ b/arch/arm/mach-clps711x/board-cdb89712.c
+@@ -95,7 +95,7 @@ static struct physmap_flash_data cdb89712_bootrom_pdata __initdata = {
+ 
+ static struct resource cdb89712_bootrom_resources[] __initdata = {
+ 	DEFINE_RES_NAMED(CS7_PHYS_BASE, SZ_128, "BOOTROM", IORESOURCE_MEM |
+-			 IORESOURCE_CACHEABLE | IORESOURCE_READONLY),
++			 IORESOURCE_READONLY),
  };
  
- static int nd_blk_major;
- 
-+static u32 nd_blk_meta_size(struct nd_blk_device *blk_dev)
-+{
-+	return blk_dev->nsblk->lbasize - blk_dev->sector_size;
-+}
-+
- static resource_size_t to_dev_offset(struct nd_namespace_blk *nsblk,
- 				resource_size_t ns_offset, unsigned int len)
- {
-@@ -52,13 +59,114 @@ static resource_size_t to_dev_offset(struct nd_namespace_blk *nsblk,
- 	return SIZE_MAX;
+ static struct platform_device cdb89712_bootrom_pdev __initdata = {
+diff --git a/arch/powerpc/kernel/pci_of_scan.c b/arch/powerpc/kernel/pci_of_scan.c
+index 42e02a2d570b..d4726addff0b 100644
+--- a/arch/powerpc/kernel/pci_of_scan.c
++++ b/arch/powerpc/kernel/pci_of_scan.c
+@@ -102,7 +102,7 @@ static void of_pci_parse_addrs(struct device_node *node, struct pci_dev *dev)
+ 			res = &dev->resource[(i - PCI_BASE_ADDRESS_0) >> 2];
+ 		} else if (i == dev->rom_base_reg) {
+ 			res = &dev->resource[PCI_ROM_RESOURCE];
+-			flags |= IORESOURCE_READONLY | IORESOURCE_CACHEABLE;
++			flags |= IORESOURCE_READONLY;
+ 		} else {
+ 			printk(KERN_ERR "PCI: bad cfg reg num 0x%x\n", i);
+ 			continue;
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index c928bc64b4ba..04da147e0712 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -231,8 +231,7 @@ static void pci_parse_of_addrs(struct platform_device *op,
+ 			res = &dev->resource[(i - PCI_BASE_ADDRESS_0) >> 2];
+ 		} else if (i == dev->rom_base_reg) {
+ 			res = &dev->resource[PCI_ROM_RESOURCE];
+-			flags |= IORESOURCE_READONLY | IORESOURCE_CACHEABLE
+-			      | IORESOURCE_SIZEALIGN;
++			flags |= IORESOURCE_READONLY | IORESOURCE_SIZEALIGN;
+ 		} else {
+ 			printk(KERN_ERR "PCI: bad cfg reg num 0x%x\n", i);
+ 			continue;
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 6675a7a1b9fc..bbc7f8f86051 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -326,8 +326,7 @@ static void pci_read_bases(struct pci_dev *dev, unsigned int howmany, int rom)
+ 		struct resource *res = &dev->resource[PCI_ROM_RESOURCE];
+ 		dev->rom_base_reg = rom;
+ 		res->flags = IORESOURCE_MEM | IORESOURCE_PREFETCH |
+-				IORESOURCE_READONLY | IORESOURCE_CACHEABLE |
+-				IORESOURCE_SIZEALIGN;
++				IORESOURCE_READONLY | IORESOURCE_SIZEALIGN;
+ 		__pci_read_base(dev, pci_bar_mem32, res, rom);
+ 	}
  }
- 
-+#ifdef CONFIG_BLK_DEV_INTEGRITY
-+static int nd_blk_rw_integrity(struct nd_blk_device *blk_dev,
-+				struct bio_integrity_payload *bip, u64 lba,
-+				int rw)
-+{
-+	unsigned int len = nd_blk_meta_size(blk_dev);
-+	resource_size_t	dev_offset, ns_offset;
-+	struct nd_namespace_blk *nsblk;
-+	struct nd_blk_region *ndbr;
-+	int err = 0;
-+
-+	nsblk = blk_dev->nsblk;
-+	ndbr = blk_dev->ndbr;
-+	ns_offset = lba * blk_dev->internal_lbasize + blk_dev->sector_size;
-+	dev_offset = to_dev_offset(nsblk, ns_offset, len);
-+	if (dev_offset == SIZE_MAX)
-+		return -EIO;
-+
-+	while (len) {
-+		unsigned int cur_len;
-+		struct bio_vec bv;
-+		void *iobuf;
-+
-+		bv = bvec_iter_bvec(bip->bip_vec, bip->bip_iter);
-+		/*
-+		 * The 'bv' obtained from bvec_iter_bvec has its .bv_len and
-+		 * .bv_offset already adjusted for iter->bi_bvec_done, and we
-+		 * can use those directly
-+		 */
-+
-+		cur_len = min(len, bv.bv_len);
-+		iobuf = kmap_atomic(bv.bv_page);
-+		err = ndbr->do_io(ndbr, dev_offset, iobuf + bv.bv_offset,
-+				cur_len, rw);
-+		kunmap_atomic(iobuf);
-+		if (err)
-+			return err;
-+
-+		len -= cur_len;
-+		dev_offset += cur_len;
-+		bvec_iter_advance(bip->bip_vec, &bip->bip_iter, cur_len);
-+	}
-+
-+	return err;
-+}
-+
-+#else /* CONFIG_BLK_DEV_INTEGRITY */
-+static int nd_blk_rw_integrity(struct nd_blk_device *blk_dev,
-+				struct bio_integrity_payload *bip, u64 lba,
-+				int rw)
-+{
-+	return 0;
-+}
-+#endif
-+
-+static int nd_blk_do_bvec(struct nd_blk_device *blk_dev,
-+			struct bio_integrity_payload *bip, struct page *page,
-+			unsigned int len, unsigned int off, int rw,
-+			sector_t sector)
-+{
-+	struct nd_blk_region *ndbr = blk_dev->ndbr;
-+	resource_size_t	dev_offset, ns_offset;
-+	int err = 0;
-+	void *iobuf;
-+	u64 lba;
-+
-+	while (len) {
-+		unsigned int cur_len;
-+
-+		/*
-+		 * If we don't have an integrity payload, we don't have to
-+		 * split the bvec into sectors, as this would cause unnecessary
-+		 * Block Window setup/move steps. the do_io routine is capable
-+		 * of handling len <= PAGE_SIZE.
-+		 */
-+		cur_len = bip ? min(len, blk_dev->sector_size) : len;
-+
-+		lba = div_u64(sector << SECTOR_SHIFT, blk_dev->sector_size);
-+		ns_offset = lba * blk_dev->internal_lbasize;
-+		dev_offset = to_dev_offset(blk_dev->nsblk, ns_offset, cur_len);
-+		if (dev_offset == SIZE_MAX)
-+			return -EIO;
-+
-+		iobuf = kmap_atomic(page);
-+		err = ndbr->do_io(ndbr, dev_offset, iobuf + off, cur_len, rw);
-+		kunmap_atomic(iobuf);
-+		if (err)
-+			return err;
-+
-+		if (bip) {
-+			err = nd_blk_rw_integrity(blk_dev, bip, lba, rw);
-+			if (err)
-+				return err;
-+		}
-+		len -= cur_len;
-+		off += cur_len;
-+		sector += blk_dev->sector_size >> SECTOR_SHIFT;
-+	}
-+
-+	return err;
-+}
-+
- static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
- {
- 	struct block_device *bdev = bio->bi_bdev;
- 	struct gendisk *disk = bdev->bd_disk;
--	struct nd_namespace_blk *nsblk;
-+	struct bio_integrity_payload *bip;
- 	struct nd_blk_device *blk_dev;
--	struct nd_blk_region *ndbr;
- 	struct bvec_iter iter;
- 	struct bio_vec bvec;
- 	int err = 0, rw;
-@@ -74,29 +182,33 @@ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
- 
- 	rw = bio_data_dir(bio);
- 
-+	/*
-+	 * bio_integrity_enabled also checks if the bio already has an
-+	 * integrity payload attached. If it does, we *don't* do a
-+	 * bio_integrity_prep here - the payload has been generated by
-+	 * another kernel subsystem, and we just pass it through.
-+	 */
-+	if (bio_integrity_enabled(bio) && bio_integrity_prep(bio)) {
-+		err = -EIO;
-+		goto out;
-+	}
-+
-+	bip = bio_integrity(bio);
- 	blk_dev = disk->private_data;
--	nsblk = blk_dev->nsblk;
--	ndbr = blk_dev->ndbr;
-+
- 	bio_for_each_segment(bvec, bio, iter) {
- 		unsigned int len = bvec.bv_len;
--		resource_size_t	dev_offset;
--		void *iobuf;
- 
- 		BUG_ON(len > PAGE_SIZE);
--
--		dev_offset = to_dev_offset(nsblk, sector << SECTOR_SHIFT, len);
--		if (dev_offset == SIZE_MAX) {
--			err = -EIO;
-+		err = nd_blk_do_bvec(blk_dev, bip, bvec.bv_page, len,
-+					bvec.bv_offset, rw, sector);
-+		if (err) {
-+			dev_info(&blk_dev->nsblk->dev,
-+					"io error in %s sector %lld, len %d,\n",
-+					(rw == READ) ? "READ" : "WRITE",
-+					(unsigned long long) sector, len);
- 			goto out;
+diff --git a/drivers/pnp/manager.c b/drivers/pnp/manager.c
+index 9357aa779048..7ad3295752ef 100644
+--- a/drivers/pnp/manager.c
++++ b/drivers/pnp/manager.c
+@@ -97,8 +97,6 @@ static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
+ 	/* ??? rule->flags restricted to 8 bits, all tests bogus ??? */
+ 	if (!(rule->flags & IORESOURCE_MEM_WRITEABLE))
+ 		res->flags |= IORESOURCE_READONLY;
+-	if (rule->flags & IORESOURCE_MEM_CACHEABLE)
+-		res->flags |= IORESOURCE_CACHEABLE;
+ 	if (rule->flags & IORESOURCE_MEM_RANGELENGTH)
+ 		res->flags |= IORESOURCE_RANGELENGTH;
+ 	if (rule->flags & IORESOURCE_MEM_SHADOWABLE)
+diff --git a/drivers/scsi/aic94xx/aic94xx_init.c b/drivers/scsi/aic94xx/aic94xx_init.c
+index 02a2512b76a8..1058a7b1e334 100644
+--- a/drivers/scsi/aic94xx/aic94xx_init.c
++++ b/drivers/scsi/aic94xx/aic94xx_init.c
+@@ -101,12 +101,7 @@ static int asd_map_memio(struct asd_ha_struct *asd_ha)
+ 				   pci_name(asd_ha->pcidev));
+ 			goto Err;
  		}
--
--		iobuf = kmap_atomic(bvec.bv_page);
--		err = ndbr->do_io(ndbr, dev_offset, iobuf + bvec.bv_offset,
--				len, rw);
--		kunmap_atomic(iobuf);
--		if (err)
--			goto out;
--
- 		sector += len >> SECTOR_SHIFT;
+-		if (io_handle->flags & IORESOURCE_CACHEABLE)
+-			io_handle->addr = ioremap(io_handle->start,
+-						  io_handle->len);
+-		else
+-			io_handle->addr = ioremap_nocache(io_handle->start,
+-							  io_handle->len);
++		io_handle->addr = ioremap(io_handle->start, io_handle->len);
+ 		if (!io_handle->addr) {
+ 			asd_printk("couldn't map MBAR%d of %s\n", i==0?0:1,
+ 				   pci_name(asd_ha->pcidev));
+diff --git a/drivers/scsi/arcmsr/arcmsr_hba.c b/drivers/scsi/arcmsr/arcmsr_hba.c
+index 914c39f9f388..e4f77cad9fd8 100644
+--- a/drivers/scsi/arcmsr/arcmsr_hba.c
++++ b/drivers/scsi/arcmsr/arcmsr_hba.c
+@@ -259,10 +259,7 @@ static bool arcmsr_remap_pciregion(struct AdapterControlBlock *acb)
+ 		addr = (unsigned long)pci_resource_start(pdev, 0);
+ 		range = pci_resource_len(pdev, 0);
+ 		flags = pci_resource_flags(pdev, 0);
+-		if (flags & IORESOURCE_CACHEABLE)
+-			mem_base0 = ioremap(addr, range);
+-		else
+-			mem_base0 = ioremap_nocache(addr, range);
++		mem_base0 = ioremap(addr, range);
+ 		if (!mem_base0) {
+ 			pr_notice("arcmsr%d: memory mapping region fail\n",
+ 				acb->host->host_no);
+diff --git a/drivers/scsi/mvsas/mv_init.c b/drivers/scsi/mvsas/mv_init.c
+index 53030b0e8015..c01ef5f538b1 100644
+--- a/drivers/scsi/mvsas/mv_init.c
++++ b/drivers/scsi/mvsas/mv_init.c
+@@ -325,13 +325,9 @@ int mvs_ioremap(struct mvs_info *mvi, int bar, int bar_ex)
+ 			goto err_out;
+ 
+ 		res_flag_ex = pci_resource_flags(pdev, bar_ex);
+-		if (res_flag_ex & IORESOURCE_MEM) {
+-			if (res_flag_ex & IORESOURCE_CACHEABLE)
+-				mvi->regs_ex = ioremap(res_start, res_len);
+-			else
+-				mvi->regs_ex = ioremap_nocache(res_start,
+-						res_len);
+-		} else
++		if (res_flag_ex & IORESOURCE_MEM)
++			mvi->regs_ex = ioremap(res_start, res_len);
++		else
+ 			mvi->regs_ex = (void *)res_start;
+ 		if (!mvi->regs_ex)
+ 			goto err_out;
+@@ -343,10 +339,7 @@ int mvs_ioremap(struct mvs_info *mvi, int bar, int bar_ex)
+ 		goto err_out;
+ 
+ 	res_flag = pci_resource_flags(pdev, bar);
+-	if (res_flag & IORESOURCE_CACHEABLE)
+-		mvi->regs = ioremap(res_start, res_len);
+-	else
+-		mvi->regs = ioremap_nocache(res_start, res_len);
++	mvi->regs = ioremap(res_start, res_len);
+ 
+ 	if (!mvi->regs) {
+ 		if (mvi->regs_ex && (res_flag_ex & IORESOURCE_MEM))
+diff --git a/drivers/video/fbdev/ocfb.c b/drivers/video/fbdev/ocfb.c
+index de9819660ca0..c9293aea8ec3 100644
+--- a/drivers/video/fbdev/ocfb.c
++++ b/drivers/video/fbdev/ocfb.c
+@@ -325,7 +325,6 @@ static int ocfb_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "I/O resource request failed\n");
+ 		return -ENXIO;
+ 	}
+-	res->flags &= ~IORESOURCE_CACHEABLE;
+ 	fbdev->regs = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(fbdev->regs))
+ 		return PTR_ERR(fbdev->regs);
+diff --git a/lib/devres.c b/lib/devres.c
+index fbe2aac522e6..f4001d90d24d 100644
+--- a/lib/devres.c
++++ b/lib/devres.c
+@@ -153,11 +153,8 @@ void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res)
+ 		return IOMEM_ERR_PTR(-EBUSY);
  	}
  
-@@ -135,7 +247,8 @@ static int nd_blk_probe(struct device *dev)
- 	struct nd_namespace_blk *nsblk = to_nd_namespace_blk(dev);
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
- 	struct nd_blk_device *blk_dev;
--	resource_size_t disk_size;
-+	resource_size_t disk_size, available_disk_size;
-+	u64 internal_nlba;
- 	struct gendisk *disk;
- 	int err;
- 
-@@ -148,6 +261,9 @@ static int nd_blk_probe(struct device *dev)
- 		return -ENOMEM;
- 
- 	blk_dev->disk_size	= disk_size;
-+	blk_dev->sector_size = ((nsblk->lbasize >= 4096) ? 4096 : 512);
-+	blk_dev->internal_lbasize = roundup(nsblk->lbasize,
-+						INT_LBASIZE_ALIGNMENT);
- 
- 	blk_dev->queue = blk_alloc_queue(GFP_KERNEL);
- 	if (!blk_dev->queue) {
-@@ -158,7 +274,7 @@ static int nd_blk_probe(struct device *dev)
- 	blk_queue_make_request(blk_dev->queue, nd_blk_make_request);
- 	blk_queue_max_hw_sectors(blk_dev->queue, 1024);
- 	blk_queue_bounce_limit(blk_dev->queue, BLK_BOUNCE_ANY);
--	blk_queue_logical_block_size(blk_dev->queue, nsblk->lbasize);
-+	blk_queue_logical_block_size(blk_dev->queue, blk_dev->sector_size);
- 
- 	disk = blk_dev->disk = alloc_disk(0);
- 	if (!disk) {
-@@ -177,13 +293,21 @@ static int nd_blk_probe(struct device *dev)
- 	disk->queue		= blk_dev->queue;
- 	disk->flags		= GENHD_FL_EXT_DEVT;
- 	sprintf(disk->disk_name, "ndblk%d.%d", nd_region->id, nsblk->id);
--	set_capacity(disk, disk_size >> SECTOR_SHIFT);
-+	set_capacity(disk, 0);
- 
-+	internal_nlba = div_u64(disk_size, blk_dev->internal_lbasize);
-+	available_disk_size = internal_nlba * blk_dev->sector_size;
- 	dev_set_drvdata(dev, blk_dev);
--	nvdimm_bus_add_disk(disk);
-+	err = nvdimm_bus_add_integrity_disk(disk, nd_blk_meta_size(blk_dev),
-+			available_disk_size >> SECTOR_SHIFT);
-+	if (err)
-+		goto err_add_disk;
- 
- 	return 0;
- 
-+ err_add_disk:
-+	del_gendisk(disk);
-+	put_disk(disk);
-  err_alloc_disk:
- 	blk_cleanup_queue(blk_dev->queue);
-  err_alloc_queue:
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 2caa0ef7e67a..75b0d80a6bd9 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -31,7 +31,6 @@
- #define ARENA_MAX_SIZE (1ULL << 39)	/* 512 GB */
- #define RTT_VALID (1UL << 31)
- #define RTT_INVALID 0
--#define INT_LBASIZE_ALIGNMENT 64
- #define BTT_PG_SIZE 4096
- #define BTT_DEFAULT_NFREE ND_MAX_LANES
- #define LOG_SEQ_INIT 1
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 3c14fee5aff4..d4fbc48f5643 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -243,17 +243,13 @@ int __nd_driver_register(struct nd_device_driver *nd_drv, struct module *owner,
+-	if (res->flags & IORESOURCE_CACHEABLE)
+-		dest_ptr = devm_ioremap(dev, res->start, size);
+-	else
+-		dest_ptr = devm_ioremap_nocache(dev, res->start, size);
+-
++	/* FIXME: add devm_ioremap_cache support */
++	dest_ptr = devm_ioremap(dev, res->start, size);
+ 	if (!dest_ptr) {
+ 		dev_err(dev, "ioremap failed for resource %pR\n", res);
+ 		devm_release_mem_region(dev, res->start, size);
+diff --git a/lib/pci_iomap.c b/lib/pci_iomap.c
+index bcce5f149310..e1930dbab2da 100644
+--- a/lib/pci_iomap.c
++++ b/lib/pci_iomap.c
+@@ -41,11 +41,8 @@ void __iomem *pci_iomap_range(struct pci_dev *dev,
+ 		len = maxlen;
+ 	if (flags & IORESOURCE_IO)
+ 		return __pci_ioport_map(dev, start, len);
+-	if (flags & IORESOURCE_MEM) {
+-		if (flags & IORESOURCE_CACHEABLE)
+-			return ioremap(start, len);
+-		return ioremap_nocache(start, len);
+-	}
++	if (flags & IORESOURCE_MEM)
++		return ioremap(start, len);
+ 	/* What? */
+ 	return NULL;
  }
- EXPORT_SYMBOL(__nd_driver_register);
- 
--/**
-- * nvdimm_bus_add_disk() - attach and run actions on an nvdimm block device
-- * @disk: disk device being registered
-- *
-- * Note, that @disk must be a descendant of an nvdimm_bus
-- */
--int nvdimm_bus_add_disk(struct gendisk *disk)
-+int nvdimm_bus_add_integrity_disk(struct gendisk *disk, u32 lbasize,
-+		sector_t size)
- {
- 	const struct block_device_operations *ops = disk->fops;
- 	struct device *dev = disk->driverfs_dev;
- 	struct nvdimm_bus *nvdimm_bus;
-+	int rc;
- 
- 	nvdimm_bus = walk_to_nvdimm_bus(dev);
- 	if (!nvdimm_bus || !ops->rw_bytes)
-@@ -266,10 +262,25 @@ int nvdimm_bus_add_disk(struct gendisk *disk)
- 	 */
- 	nvdimm_bus_lock(&nvdimm_bus->dev);
- 	add_disk(disk);
-+	rc = nd_integrity_init(disk, lbasize);
-+	if (size)
-+		set_capacity(disk, size);
- 	nd_btt_add_disk(nvdimm_bus, disk);
- 	nvdimm_bus_unlock(&nvdimm_bus->dev);
- 
--	return 0;
-+	return rc;
-+}
-+EXPORT_SYMBOL(nvdimm_bus_add_integrity_disk);
-+
-+/**
-+ * nvdimm_bus_add_disk() - attach and run actions on an nvdimm block device
-+ * @disk: disk device being registered
-+ *
-+ * Note, that @disk must be a descendant of an nvdimm_bus
-+ */
-+int nvdimm_bus_add_disk(struct gendisk *disk)
-+{
-+	return nvdimm_bus_add_integrity_disk(disk, 0, 0);
- }
- EXPORT_SYMBOL(nvdimm_bus_add_disk);
- 
-@@ -292,6 +303,7 @@ void nvdimm_bus_remove_disk(struct gendisk *disk)
- 	 */
- 	nd_synchronize();
- 
-+	blk_integrity_unregister(disk);
- 	del_gendisk(disk);
- 	put_disk(disk);
- }
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 36f112995c0c..8f466c384b30 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -399,6 +399,9 @@ int nd_integrity_init(struct gendisk *disk, unsigned long meta_size)
- 	};
- 	int ret;
- 
-+	if (meta_size == 0)
-+		return 0;
-+
- 	ret = blk_integrity_register(disk, &integrity);
- 	if (ret)
- 		return ret;
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 68780d768e7b..0fe541a1df49 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1013,7 +1013,8 @@ static ssize_t resource_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(resource);
- 
--static const unsigned long ns_lbasize_supported[] = { 512, 0 };
-+static const unsigned long ns_lbasize_supported[] = { 512, 520, 528,
-+	4096, 4104, 4160, 4224, 0 };
- 
- static ssize_t sector_size_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 1cea3f191a83..9b5fdb2215b1 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -29,6 +29,7 @@ enum {
- 	 */
- 	ND_MAX_LANES = 256,
- 	SECTOR_SHIFT = 9,
-+	INT_LBASIZE_ALIGNMENT = 64,
- };
- 
- struct nvdimm_drvdata {
-@@ -159,6 +160,8 @@ void nvdimm_bus_lock(struct device *dev);
- void nvdimm_bus_unlock(struct device *dev);
- bool is_nvdimm_bus_locked(struct device *dev);
- int nvdimm_bus_add_disk(struct gendisk *disk);
-+int nvdimm_bus_add_integrity_disk(struct gendisk *disk, u32 lbasize,
-+		sector_t size);
- void nvdimm_bus_remove_disk(struct gendisk *disk);
- void nvdimm_drvdata_release(struct kref *kref);
- void put_ndd(struct nvdimm_drvdata *ndd);
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
