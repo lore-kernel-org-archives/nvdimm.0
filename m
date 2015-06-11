@@ -1,94 +1,192 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH 2/3] mm, x86: Remove region_is_ram() call from ioremap
-Date: Fri, 19 Jun 2015 15:44:04 -0600
-Message-Id: <1434750245-6304-3-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1434750245-6304-1-git-send-email-toshi.kani@hp.com>
-References: <1434750245-6304-1-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v6 01/21] e820, efi: add ACPI 6.0 persistent memory types
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 11 Jun 2015 16:10:13 -0400
+Message-ID: <20150611201013.25175.16798.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150611183830.25175.51256.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150611183830.25175.51256.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, akpm@linux-foundation.org
-Cc: travis@sgi.com, roland@purestorage.com, dan.j.williams@intel.com, x86@kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+To: linux-nvdimm@lists.01.org
+Cc: mingo@kernel.org, Boaz Harrosh <boaz@plexistor.com>, akpm@linux-foundation.org, sfr@canb.auug.org.au, neilb@suse.de, gregkh@linuxfoundation.org, rafael@kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org, hch@lst.de, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Borislav Petkov <bp@alien8.de>, axboe@kernel.dk, "H. Peter Anvin" <hpa@zytor.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Andy Lutomirski <luto@amacapital.net>, Linus Torvalds <torvalds@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-__ioremap_caller() calls region_is_ram() to look up the resource
-to check if a target range is RAM, which was added as an additinal
-check to improve the lookup performance over page_is_ram() (commit
-906e36c5c717 "x86: use optimized ioresource lookup in ioremap
-function").
+ACPI 6.0 formalizes e820-type-7 and efi-type-14 as persistent memory.
+Mark it "reserved" and allow it to be claimed by a persistent memory
+device driver.
 
-__ioremap_caller() then calls walk_system_ram_range(), which had
-replaced page_is_ram() to improve the lookup performance (commit
-c81c8a1eeede "x86, ioremap: Speed up check for RAM pages").
+This definition is in addition to the Linux kernel's existing type-12
+definition that was recently added in support of shipping platforms with
+NVDIMM support that predate ACPI 6.0 (which now classifies type-12 as
+OEM reserved).
 
-Since both functions walk through the resource table, there is
-no need to call the two functions.  Furthermore, region_is_ram()
-has bugs and always returns with -1.  This makes
-walk_system_ram_range() as the only check being used.
+Note, /proc/iomem can be consulted for differentiating legacy
+"Persistent Memory (legacy)" E820_PRAM vs standard "Persistent Memory"
+E820_PMEM.
 
-Hence, remove the call to region_is_ram() from __ioremap_caller().
-
-Note, removing the call to region_is_ram() is also necessary
-to fix the bugs in region_is_ram().  walk_system_ram_range()
-requires RAM ranges aligned by the page size in the resource
-table.  e820_reserve_setup_data() updates the e820 table by
-allocating a separate entry to each data region in setup_data,
-which is not page-aligned.  Therefore, walk_system_ram_range()
-is unable to detect the RAM ranges in setup_data.  This
-restriction has allowed multiple uses of ioremap() to map
-setup_data.  Using fixed region_is_ram() will cause these callers
-to start failing.  After all ioremap to setup_data are converted,
-__ioremap_caller() may call region_is_ram() instead.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Boaz Harrosh <boaz@plexistor.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Acked-by: Andy Lutomirski <luto@amacapital.net>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/mm/ioremap.c |   24 ++++++------------------
- 1 file changed, 6 insertions(+), 18 deletions(-)
+ arch/arm64/kernel/efi.c          |    1 +
+ arch/ia64/kernel/efi.c           |    4 ++++
+ arch/x86/boot/compressed/eboot.c |    4 ++++
+ arch/x86/include/uapi/asm/e820.h |    1 +
+ arch/x86/kernel/e820.c           |   28 ++++++++++++++++++++++++----
+ arch/x86/platform/efi/efi.c      |    3 +++
+ include/linux/efi.h              |    3 ++-
+ 7 files changed, 39 insertions(+), 5 deletions(-)
 
-diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
-index 56f8af7..928867e 100644
---- a/arch/x86/mm/ioremap.c
-+++ b/arch/x86/mm/ioremap.c
-@@ -89,7 +89,6 @@ static void __iomem *__ioremap_caller(resource_size_t phys_addr,
- 	pgprot_t prot;
- 	int retval;
- 	void __iomem *ret_addr;
--	int ram_region;
+diff --git a/arch/arm64/kernel/efi.c b/arch/arm64/kernel/efi.c
+index ab21e0d58278..9d4aa18f2a82 100644
+--- a/arch/arm64/kernel/efi.c
++++ b/arch/arm64/kernel/efi.c
+@@ -158,6 +158,7 @@ static __init int is_reserve_region(efi_memory_desc_t *md)
+ 	case EFI_BOOT_SERVICES_CODE:
+ 	case EFI_BOOT_SERVICES_DATA:
+ 	case EFI_CONVENTIONAL_MEMORY:
++	case EFI_PERSISTENT_MEMORY:
+ 		return 0;
+ 	default:
+ 		break;
+diff --git a/arch/ia64/kernel/efi.c b/arch/ia64/kernel/efi.c
+index c52d7540dc05..5f6be9dd6968 100644
+--- a/arch/ia64/kernel/efi.c
++++ b/arch/ia64/kernel/efi.c
+@@ -1223,6 +1223,10 @@ efi_initialize_iomem_resources(struct resource *code_resource,
+ 				flags |= IORESOURCE_DISABLED;
+ 				break;
  
- 	/* Don't allow wraparound or zero size */
- 	last_addr = phys_addr + size - 1;
-@@ -112,26 +111,15 @@ static void __iomem *__ioremap_caller(resource_size_t phys_addr,
- 	/*
- 	 * Don't allow anybody to remap normal RAM that we're using..
- 	 */
--	/* First check if whole region can be identified as RAM or not */
--	ram_region = region_is_ram(phys_addr, size);
--	if (ram_region > 0) {
--		WARN_ONCE(1, "ioremap on RAM at 0x%lx - 0x%lx\n",
--				(unsigned long int)phys_addr,
--				(unsigned long int)last_addr);
--		return NULL;
--	}
--
--	/* If could not be identified(-1), check page by page */
--	if (ram_region < 0) {
--		pfn      = phys_addr >> PAGE_SHIFT;
--		last_pfn = last_addr >> PAGE_SHIFT;
--		if (walk_system_ram_range(pfn, last_pfn - pfn + 1, NULL,
-+	pfn      = phys_addr >> PAGE_SHIFT;
-+	last_pfn = last_addr >> PAGE_SHIFT;
-+	if (walk_system_ram_range(pfn, last_pfn - pfn + 1, NULL,
- 					  __ioremap_check_ram) == 1) {
--			WARN_ONCE(1, "ioremap on RAM at 0x%llx - 0x%llx\n",
-+		WARN_ONCE(1, "ioremap on RAM at 0x%llx - 0x%llx\n",
- 					phys_addr, last_addr);
--			return NULL;
--		}
-+		return NULL;
- 	}
++			case EFI_PERSISTENT_MEMORY:
++				name = "Persistent Memory";
++				break;
 +
- 	/*
- 	 * Mappings have to be page-aligned
- 	 */
---
-To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-Please read the FAQ at  http://www.tux.org/lkml/
+ 			case EFI_RESERVED_TYPE:
+ 			case EFI_RUNTIME_SERVICES_CODE:
+ 			case EFI_RUNTIME_SERVICES_DATA:
+diff --git a/arch/x86/boot/compressed/eboot.c b/arch/x86/boot/compressed/eboot.c
+index 48304b89b601..2c82bd150d43 100644
+--- a/arch/x86/boot/compressed/eboot.c
++++ b/arch/x86/boot/compressed/eboot.c
+@@ -1224,6 +1224,10 @@ static efi_status_t setup_e820(struct boot_params *params,
+ 			e820_type = E820_NVS;
+ 			break;
+ 
++		case EFI_PERSISTENT_MEMORY:
++			e820_type = E820_PMEM;
++			break;
++
+ 		default:
+ 			continue;
+ 		}
+diff --git a/arch/x86/include/uapi/asm/e820.h b/arch/x86/include/uapi/asm/e820.h
+index 960a8a9dc4ab..0f457e6eab18 100644
+--- a/arch/x86/include/uapi/asm/e820.h
++++ b/arch/x86/include/uapi/asm/e820.h
+@@ -32,6 +32,7 @@
+ #define E820_ACPI	3
+ #define E820_NVS	4
+ #define E820_UNUSABLE	5
++#define E820_PMEM	7
+ 
+ /*
+  * This is a non-standardized way to represent ADR or NVDIMM regions that
+diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+index e2ce85db2283..c857d53269dd 100644
+--- a/arch/x86/kernel/e820.c
++++ b/arch/x86/kernel/e820.c
+@@ -149,6 +149,7 @@ static void __init e820_print_type(u32 type)
+ 	case E820_UNUSABLE:
+ 		printk(KERN_CONT "unusable");
+ 		break;
++	case E820_PMEM:
+ 	case E820_PRAM:
+ 		printk(KERN_CONT "persistent (type %u)", type);
+ 		break;
+@@ -918,11 +919,32 @@ static inline const char *e820_type_to_string(int e820_type)
+ 	case E820_ACPI:	return "ACPI Tables";
+ 	case E820_NVS:	return "ACPI Non-volatile Storage";
+ 	case E820_UNUSABLE:	return "Unusable memory";
+-	case E820_PRAM: return "Persistent RAM";
++	case E820_PRAM: return "Persistent Memory (legacy)";
++	case E820_PMEM: return "Persistent Memory";
+ 	default:	return "reserved";
+ 	}
+ }
+ 
++static bool do_mark_busy(u32 type, struct resource *res)
++{
++	/* this is the legacy bios/dos rom-shadow + mmio region */
++	if (res->start < (1ULL<<20))
++		return true;
++
++	/*
++	 * Treat persistent memory like device memory, i.e. reserve it
++	 * for exclusive use of a driver
++	 */
++	switch (type) {
++	case E820_RESERVED:
++	case E820_PRAM:
++	case E820_PMEM:
++		return false;
++	default:
++		return true;
++	}
++}
++
+ /*
+  * Mark e820 reserved areas as busy for the resource manager.
+  */
+@@ -952,9 +974,7 @@ void __init e820_reserve_resources(void)
+ 		 * pci device BAR resource and insert them later in
+ 		 * pcibios_resource_survey()
+ 		 */
+-		if (((e820.map[i].type != E820_RESERVED) &&
+-		     (e820.map[i].type != E820_PRAM)) ||
+-		     res->start < (1ULL<<20)) {
++		if (do_mark_busy(e820.map[i].type, res)) {
+ 			res->flags |= IORESOURCE_BUSY;
+ 			insert_resource(&iomem_resource, res);
+ 		}
+diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
+index 02744df576d5..fe01ae37a2a4 100644
+--- a/arch/x86/platform/efi/efi.c
++++ b/arch/x86/platform/efi/efi.c
+@@ -153,6 +153,9 @@ static void __init do_add_efi_memmap(void)
+ 		case EFI_UNUSABLE_MEMORY:
+ 			e820_type = E820_UNUSABLE;
+ 			break;
++		case EFI_PERSISTENT_MEMORY:
++			e820_type = E820_PMEM;
++			break;
+ 		default:
+ 			/*
+ 			 * EFI_RESERVED_TYPE EFI_RUNTIME_SERVICES_CODE
+diff --git a/include/linux/efi.h b/include/linux/efi.h
+index af5be0368dec..825b6e3d69cb 100644
+--- a/include/linux/efi.h
++++ b/include/linux/efi.h
+@@ -85,7 +85,8 @@ typedef	struct {
+ #define EFI_MEMORY_MAPPED_IO		11
+ #define EFI_MEMORY_MAPPED_IO_PORT_SPACE	12
+ #define EFI_PAL_CODE			13
+-#define EFI_MAX_MEMORY_TYPE		14
++#define EFI_PERSISTENT_MEMORY		14
++#define EFI_MAX_MEMORY_TYPE		15
+ 
+ /* Attribute values: */
+ #define EFI_MEMORY_UC		((u64)0x0000000000000001ULL)	/* uncached */
+
