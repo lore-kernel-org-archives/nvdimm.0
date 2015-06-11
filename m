@@ -1,134 +1,144 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v4 6/9] scatterlist: use sg_phys()
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v4 4/6] devm: fix ioremap_cache() usage
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 05 Jun 2015 17:19:35 -0400
-Message-ID: <20150605211935.20751.55654.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 11 Jun 2015 17:19:36 -0400
+Message-ID: <20150611211936.10271.3169.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150611211354.10271.57950.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150611211354.10271.57950.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, linux-arch@vger.kernel.org, arnd@arndb.de, ross.zwisler@linux.intel.com, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, linux-fsdevel@vger.kernel.org, heiko.carstens@de.ibm.com, hch@lst.de, Julia Lawall <Julia.Lawall@lip6.fr>, tj@kernel.org, paulus@samba.org, hpa@zytor.com, schwidefsky@de.ibm.com, willy@linux.intel.com, akpm@linux-foundation.org, torvalds@linux-foundation.org, mingo@kernel.org
+Sender: owner-linux-mm@kvack.org
+To: arnd@arndb.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
+Cc: jgross@suse.com, x86@kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, mcgrof@suse.com, konrad.wilk@oracle.com, linux-kernel@vger.kernel.org, stefan.bader@canonical.com, luto@amacapital.net, linux-mm@kvack.org, geert@linux-m68k.org, ralf@linux-mips.org, hmh@hmh.eng.br, mpe@ellerman.id.au, tj@kernel.org, paulus@samba.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Coccinelle cleanup to replace open coded sg to physical address
-translations.  This is in preparation for introducing scatterlists that
-reference __pfn_t.
+Provide devm_ioremap_cache() and fix up devm_ioremap_resource() to
+actually provide cacheable mappings.  On archs that implement
+ioremap_cache() devm_ioremap_resource() is always silently falling back
+to uncached when IORESOURCE_CACHEABLE is specified.
 
-// sg_phys.cocci: convert usage page_to_phys(sg_page(sg)) to sg_phys(sg)
-// usage: make coccicheck COCCI=sg_phys.cocci MODE=patch
-
-virtual patch
-virtual report
-virtual org
-
-@@
-struct scatterlist *sg;
-@@
-
-- page_to_phys(sg_page(sg)) + sg->offset
-+ sg_phys(sg)
-
-@@
-struct scatterlist *sg;
-@@
-
-- page_to_phys(sg_page(sg))
-+ sg_phys(sg) - sg->offset
-
-Cc: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm/mm/dma-mapping.c                    |    2 +-
- arch/microblaze/kernel/dma.c                 |    2 +-
- drivers/iommu/intel-iommu.c                  |    4 ++--
- drivers/iommu/iommu.c                        |    2 +-
- drivers/staging/android/ion/ion_chunk_heap.c |    4 ++--
- 5 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/io.h |    2 ++
+ lib/devres.c       |   53 +++++++++++++++++++++++++---------------------------
+ 2 files changed, 27 insertions(+), 28 deletions(-)
 
-diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
-index 09c5fe3d30c2..43cc6a8fdacc 100644
---- a/arch/arm/mm/dma-mapping.c
-+++ b/arch/arm/mm/dma-mapping.c
-@@ -1502,7 +1502,7 @@ static int __map_sg_chunk(struct device *dev, struct scatterlist *sg,
- 		return -ENOMEM;
+diff --git a/include/linux/io.h b/include/linux/io.h
+index fb5a99800e77..4cd8996cfea0 100644
+--- a/include/linux/io.h
++++ b/include/linux/io.h
+@@ -71,6 +71,8 @@ static inline void devm_ioport_unmap(struct device *dev, void __iomem *addr)
  
- 	for (count = 0, s = sg; count < (size >> PAGE_SHIFT); s = sg_next(s)) {
--		phys_addr_t phys = page_to_phys(sg_page(s));
-+		phys_addr_t phys = sg_phys(s) - s->offset;
- 		unsigned int len = PAGE_ALIGN(s->offset + s->length);
+ void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
+ 			   resource_size_t size);
++void __iomem *devm_ioremap_cache(struct device *dev, resource_size_t offset,
++			   resource_size_t size);
+ void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
+ 				   resource_size_t size);
+ void __iomem *devm_ioremap_wc(struct device *dev, resource_size_t offset,
+diff --git a/lib/devres.c b/lib/devres.c
+index f4001d90d24d..c8e75cdaf816 100644
+--- a/lib/devres.c
++++ b/lib/devres.c
+@@ -14,6 +14,8 @@ static int devm_ioremap_match(struct device *dev, void *res, void *match_data)
+ 	return *(void **)res == match_data;
+ }
  
- 		if (!is_coherent &&
-diff --git a/arch/microblaze/kernel/dma.c b/arch/microblaze/kernel/dma.c
-index ed7ba8a11822..dcb3c594d626 100644
---- a/arch/microblaze/kernel/dma.c
-+++ b/arch/microblaze/kernel/dma.c
-@@ -61,7 +61,7 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
- 	/* FIXME this part of code is untested */
- 	for_each_sg(sgl, sg, nents, i) {
- 		sg->dma_address = sg_phys(sg);
--		__dma_sync(page_to_phys(sg_page(sg)) + sg->offset,
-+		__dma_sync(sg_phys(sg),
- 							sg->length, direction);
++typedef void __iomem *(*ioremap_fn)(resource_size_t offset, unsigned long size);
++
+ /**
+  * devm_ioremap - Managed ioremap()
+  * @dev: Generic device to remap IO address for
+@@ -22,8 +24,9 @@ static int devm_ioremap_match(struct device *dev, void *res, void *match_data)
+  *
+  * Managed ioremap().  Map is automatically unmapped on driver detach.
+  */
+-void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
+-			   resource_size_t size)
++static void __iomem *devm_ioremap_type(struct device *dev,
++		resource_size_t offset, resource_size_t size,
++		ioremap_fn ioremap_type)
+ {
+ 	void __iomem **ptr, *addr;
+ 
+@@ -31,7 +34,7 @@ void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
+ 	if (!ptr)
+ 		return NULL;
+ 
+-	addr = ioremap(offset, size);
++	addr = ioremap_type(offset, size);
+ 	if (addr) {
+ 		*ptr = addr;
+ 		devres_add(dev, ptr);
+@@ -40,34 +43,25 @@ void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
+ 
+ 	return addr;
+ }
++
++void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
++			   resource_size_t size)
++{
++	return devm_ioremap_type(dev, offset, size, ioremap);
++}
+ EXPORT_SYMBOL(devm_ioremap);
+ 
+-/**
+- * devm_ioremap_nocache - Managed ioremap_nocache()
+- * @dev: Generic device to remap IO address for
+- * @offset: BUS offset to map
+- * @size: Size of map
+- *
+- * Managed ioremap_nocache().  Map is automatically unmapped on driver
+- * detach.
+- */
++void __iomem *devm_ioremap_cache(struct device *dev, resource_size_t offset,
++			   resource_size_t size)
++{
++	return devm_ioremap_type(dev, offset, size, ioremap_cache);
++}
++EXPORT_SYMBOL(devm_ioremap_cache);
++
+ void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
+ 				   resource_size_t size)
+ {
+-	void __iomem **ptr, *addr;
+-
+-	ptr = devres_alloc(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL);
+-	if (!ptr)
+-		return NULL;
+-
+-	addr = ioremap_nocache(offset, size);
+-	if (addr) {
+-		*ptr = addr;
+-		devres_add(dev, ptr);
+-	} else
+-		devres_free(ptr);
+-
+-	return addr;
++	return devm_ioremap_type(dev, offset, size, ioremap_nocache);
+ }
+ EXPORT_SYMBOL(devm_ioremap_nocache);
+ 
+@@ -153,8 +147,11 @@ void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res)
+ 		return IOMEM_ERR_PTR(-EBUSY);
  	}
  
-diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
-index 68d43beccb7e..9b9ada71e0d3 100644
---- a/drivers/iommu/intel-iommu.c
-+++ b/drivers/iommu/intel-iommu.c
-@@ -1998,7 +1998,7 @@ static int __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
- 			sg_res = aligned_nrpages(sg->offset, sg->length);
- 			sg->dma_address = ((dma_addr_t)iov_pfn << VTD_PAGE_SHIFT) + sg->offset;
- 			sg->dma_length = sg->length;
--			pteval = page_to_phys(sg_page(sg)) | prot;
-+			pteval = (sg_phys(sg) - sg->offset) | prot;
- 			phys_pfn = pteval >> VTD_PAGE_SHIFT;
- 		}
- 
-@@ -3302,7 +3302,7 @@ static int intel_nontranslate_map_sg(struct device *hddev,
- 
- 	for_each_sg(sglist, sg, nelems, i) {
- 		BUG_ON(!sg_page(sg));
--		sg->dma_address = page_to_phys(sg_page(sg)) + sg->offset;
-+		sg->dma_address = sg_phys(sg);
- 		sg->dma_length = sg->length;
- 	}
- 	return nelems;
-diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-index d4f527e56679..59808fc9110d 100644
---- a/drivers/iommu/iommu.c
-+++ b/drivers/iommu/iommu.c
-@@ -1147,7 +1147,7 @@ size_t default_iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
- 	min_pagesz = 1 << __ffs(domain->ops->pgsize_bitmap);
- 
- 	for_each_sg(sg, s, nents, i) {
--		phys_addr_t phys = page_to_phys(sg_page(s)) + s->offset;
-+		phys_addr_t phys = sg_phys(s);
- 
- 		/*
- 		 * We are mapping on IOMMU page boundaries, so offset within
-diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
-index 3e6ec2ee6802..b7da5d142aa9 100644
---- a/drivers/staging/android/ion/ion_chunk_heap.c
-+++ b/drivers/staging/android/ion/ion_chunk_heap.c
-@@ -81,7 +81,7 @@ static int ion_chunk_heap_allocate(struct ion_heap *heap,
- err:
- 	sg = table->sgl;
- 	for (i -= 1; i >= 0; i--) {
--		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
-+		gen_pool_free(chunk_heap->pool, sg_phys(sg) - sg->offset,
- 			      sg->length);
- 		sg = sg_next(sg);
- 	}
-@@ -109,7 +109,7 @@ static void ion_chunk_heap_free(struct ion_buffer *buffer)
- 							DMA_BIDIRECTIONAL);
- 
- 	for_each_sg(table->sgl, sg, table->nents, i) {
--		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
-+		gen_pool_free(chunk_heap->pool, sg_phys(sg) - sg->offset,
- 			      sg->length);
- 	}
- 	chunk_heap->allocated -= allocated_size;
+-	/* FIXME: add devm_ioremap_cache support */
+-	dest_ptr = devm_ioremap(dev, res->start, size);
++	if (res->flags & IORESOURCE_CACHEABLE)
++		dest_ptr = devm_ioremap_cache(dev, res->start, size);
++	else
++		dest_ptr = devm_ioremap_nocache(dev, res->start, size);
++
+ 	if (!dest_ptr) {
+ 		dev_err(dev, "ioremap failed for resource %pR\n", res);
+ 		devm_release_mem_region(dev, res->start, size);
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
