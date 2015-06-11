@@ -1,58 +1,55 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v2 0/3] Add NUMA support for NVDIMM devices
-Date: Tue,  9 Jun 2015 17:10:37 -0600
-Message-Id: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
+MIME-Version: 1.0
+In-Reply-To: <20150611201147.25175.87146.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150611183830.25175.51256.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150611201147.25175.87146.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 11 Jun 2015 13:22:48 -0700
+Message-ID: <CAPcyv4jwyqkJZ6cd3eZzbhmrv5zpgmMWRo9DVRSMFC+KqVHEAA@mail.gmail.com>
+Subject: Re: [PATCH v6 18/21] nd_btt: atomic sector updates
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, Linux ACPI <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Morton <akpm@linux-foundation.org>, linux-api@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Since NVDIMMs are installed on memory slots, they expose the NUMA
-topology of a platform.  This patchset adds support of sysfs
-'numa_node' to I/O-related NVDIMM devices under /sys/bus/nd/devices.
-This enables numactl(8) to accept 'block:' and 'file:' paths of
-pmem and btt devices as shown in the examples below.
-  numactl --preferred block:pmem0 --show
-  numactl --preferred file:/dev/pmem0s --show
+On Thu, Jun 11, 2015 at 1:11 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> From: Vishal Verma <vishal.l.verma@linux.intel.com>
+>
+> BTT stands for Block Translation Table, and is a way to provide power
+> fail sector atomicity semantics for block devices that have the ability
+> to perform byte granularity IO. It relies on the capability of libnvdimm
+> namespace devices to do byte aligned IO.
+>
+> The BTT works as a stacked blocked device, and reserves a chunk of space
+> from the backing device for its accounting metadata. It is a bio-based
+> driver because all IO is done synchronously, and there is no queuing or
+> asynchronous completions at either the device or the driver level.
+>
+> The BTT uses 'lanes' to index into various 'on-disk' data structures,
+> and lanes also act as a synchronization mechanism in case there are more
+> CPUs than available lanes. We did a comparison between two lane lock
+> strategies - first where we kept an atomic counter around that tracked
+> which was the last lane that was used, and 'our' lane was determined by
+> atomically incrementing that. That way, for the nr_cpus > nr_lanes case,
+> theoretically, no CPU would be blocked waiting for a lane. The other
+> strategy was to use the cpu number we're scheduled on to and hash it to
+> a lane number. Theoretically, this could block an IO that could've
+> otherwise run using a different, free lane. But some fio workloads
+> showed that the direct cpu -> lane hash performed faster than tracking
+> 'last lane' - my reasoning is the cache thrash caused by moving the
+> atomic variable made that approach slower than simply waiting out the
+> in-progress IO. This supports the conclusion that the driver can be a
+> very simple bio-based one that does synchronous IOs instead of queuing.
+>
 
-numactl can be used to bind an application to the locality of
-a target NVDIMM for better performance.  Here is a result of fio
-benchmark to ext4/dax on an HP DL380 with 2 sockets for local and
-remote settings.
+Copy / paste error... following 2 paragraphs were from the previous
+version of this patch and will be deleted when pushing upstream.
 
-  Local [1] :  4098.3MB/s
-  Remote [2]:  3718.4MB/s
-
-[1] numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio <fs-on-pmem0> 
-[2] numactl --preferred block:pmem1 --cpunodebind block:pmem1 fio <fs-on-pmem0>
-
-Patch 1/3 applies on top of the acpica branch of the pm tree.
-Patch 2/3-3/3 apply on top of Dan Williams's v5 patch series of 
-"libnvdimm: non-volatile memory devices".
-
----
-v2:
- - Add acpi_map_pxm_to_online_node(), which returns an online node.
- - Manage visibility of sysfs numa_node with is_visible. (Dan Williams)
- - Check ACPI_NFIT_PROXIMITY_VALID in spa->flags.
-
----
-Toshi Kani (3):
-  1/3 acpi: Add acpi_map_pxm_to_online_node()
-  2/3 libnvdimm: Set numa_node to NVDIMM devices
-  3/3 libnvdimm: Add sysfs numa_node to NVDIMM devices
-
----
- drivers/acpi/nfit.c             |  7 +++++++
- drivers/acpi/numa.c             | 40 +++++++++++++++++++++++++++++++++++++---
- drivers/nvdimm/btt.c            |  2 ++
- drivers/nvdimm/btt_devs.c       |  1 +
- drivers/nvdimm/bus.c            | 30 ++++++++++++++++++++++++++++++
- drivers/nvdimm/namespace_devs.c |  1 +
- drivers/nvdimm/nd.h             |  1 +
- drivers/nvdimm/region.c         |  1 +
- drivers/nvdimm/region_devs.c    |  1 +
- include/linux/acpi.h            |  5 +++++
- include/linux/libnvdimm.h       |  2 ++
- 11 files changed, 88 insertions(+), 3 deletions(-)
+> BTT stands for Block Translation Table, and is a way to provide power
+> fail sector atomicity semantics for block devices that have the ability
+> to perform byte granularity IO. It relies on the ->rw_bytes() capability
+> of libnd namespace devices.
+>
+> The BTT works as a stacked blocked device, and reserves a chunk of space
+> from the backing device for its accounting metadata.
