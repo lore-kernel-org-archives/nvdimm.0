@@ -1,672 +1,283 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v5 5/6] arch: introduce memremap_cache() and memremap_wt()
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH 15/15] libnvdimm, nfit: handle acpi_nfit_memory_map flags
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 22 Jun 2015 04:24:44 -0400
-Message-ID: <20150622082444.35954.79583.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20150622081028.35954.89885.stgit@dwillia2-desk3.jf.intel.com>
-References: <20150622081028.35954.89885.stgit@dwillia2-desk3.jf.intel.com>
+Date: Wed, 17 Jun 2015 19:56:08 -0400
+Message-ID: <20150617235608.12943.82647.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: arnd@arndb.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
-Cc: jgross@suse.com, x86@kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, mcgrof@suse.com, konrad.wilk@oracle.com, linux-kernel@vger.kernel.org, stefan.bader@canonical.com, luto@amacapital.net, linux-mm@kvack.org, geert@linux-m68k.org, ralf@linux-mips.org, hmh@hmh.eng.br, mpe@ellerman.id.au, tj@kernel.org, paulus@samba.org, hch@lst.de
+Sender: linux-kernel-owner@vger.kernel.org
+To: axboe@kernel.dk, linux-nvdimm@lists.01.org
+Cc: boaz@plexistor.com, toshi.kani@hp.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Existing users of ioremap_cache() are mapping memory that is known in
-advance to not have i/o side effects.  These users are forced to cast
-away the __iomem annotation, or otherwise neglect to fix the sparse
-errors thrown when dereferencing pointers to this memory.  Provide
-memremap_*() as a non __iomem annotated ioremap_*().
+The flags in this NFIT sub-structure indicate the state of the data on
+the nvdimm relative to its energy source or last "flush to persistence".
+For the most part there is nothing the driver can do but advertise the
+state of these flags in sysfs and emit a message if firmware indicates
+that the contents of the device may be corrupted.  However, for the case
+of ACPI_NFIT_MEM_ARMED, the driver can arrange for the block devices
+incorporating that nvdimm to be marked read-only.  This is a safe
+default as the data is still available and new writes are held off until
+the administrator either forces read-write mode, or the energy source
+becomes armed.
 
-The ARCH_HAS_MEMREMAP kconfig symbol is introduced for archs to assert
-that it is safe to recast / reuse the return value from ioremap as a
-normal pointer to memory.  In other words, archs that mandate specific
-accessors for __iomem are not memremap() capable and drivers that care,
-like pmem, can add a dependency to disable themselves on these archs.
+A module parameter "force_rw" is added to allow the default to be
+overridden.
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm/Kconfig                     |    1 +
- arch/arm64/Kconfig                   |    1 +
- arch/arm64/kernel/efi.c              |    4 ++-
- arch/arm64/kernel/smp_spin_table.c   |   10 ++++----
- arch/frv/Kconfig                     |    1 +
- arch/m68k/Kconfig                    |    1 +
- arch/metag/Kconfig                   |    1 +
- arch/mips/Kconfig                    |    1 +
- arch/powerpc/Kconfig                 |    1 +
- arch/x86/Kconfig                     |    1 +
- arch/x86/kernel/crash_dump_64.c      |    6 ++---
- arch/x86/kernel/kdebugfs.c           |    8 +++----
- arch/x86/kernel/ksysfs.c             |   28 ++++++++++++-----------
- arch/x86/mm/ioremap.c                |   10 +++-----
- arch/xtensa/Kconfig                  |    1 +
- drivers/acpi/apei/einj.c             |    8 +++----
- drivers/acpi/apei/erst.c             |    4 ++-
- drivers/block/Kconfig                |    1 +
- drivers/block/pmem.c                 |    7 +++---
- drivers/firmware/google/memconsole.c |    4 ++-
- include/linux/device.h               |    5 ++++
- include/linux/io.h                   |    4 +++
- kernel/resource.c                    |   41 +++++++++++++++++++++++++++++++++-
- lib/Kconfig                          |    5 +++-
- 24 files changed, 107 insertions(+), 47 deletions(-)
+ drivers/acpi/nfit.c              |   35 +++++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit.h              |    3 +++
+ drivers/nvdimm/blk.c             |    1 +
+ drivers/nvdimm/bus.c             |   27 +++++++++++++++++++++++++++
+ drivers/nvdimm/nd-core.h         |    1 +
+ drivers/nvdimm/nd.h              |    1 +
+ drivers/nvdimm/pmem.c            |    1 +
+ drivers/nvdimm/region_devs.c     |   13 +++++++++++++
+ include/linux/libnvdimm.h        |    2 ++
+ tools/testing/nvdimm/test/nfit.c |    3 +++
+ 10 files changed, 87 insertions(+)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 45df48ba0b12..397426f8ca37 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -3,6 +3,7 @@ config ARM
- 	default y
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_ELF_RANDOMIZE
-+	select ARCH_HAS_MEMREMAP
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select ARCH_HAS_GCOV_PROFILE_ALL
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 7796af4b1d6f..f07a9a5af61e 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -5,6 +5,7 @@ config ARM64
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
-+	select ARCH_HAS_MEMREMAP
- 	select ARCH_HAS_SG_CHAIN
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_USE_CMPXCHG_LOCKREF
-diff --git a/arch/arm64/kernel/efi.c b/arch/arm64/kernel/efi.c
-index ab21e0d58278..b672ef33f08b 100644
---- a/arch/arm64/kernel/efi.c
-+++ b/arch/arm64/kernel/efi.c
-@@ -289,7 +289,7 @@ static int __init arm64_enable_runtime_services(void)
- 	pr_info("Remapping and enabling EFI services.\n");
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 9363e4b0e6a7..5f645823d7d7 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -27,6 +27,10 @@ static bool force_enable_dimms;
+ module_param(force_enable_dimms, bool, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(force_enable_dimms, "Ignore _STA (ACPI DIMM device) status");
  
- 	mapsize = memmap.map_end - memmap.map;
--	memmap.map = (__force void *)ioremap_cache((phys_addr_t)memmap.phys_map,
-+	memmap.map = memremap_cache((phys_addr_t)memmap.phys_map,
- 						   mapsize);
- 	if (!memmap.map) {
- 		pr_err("Failed to remap EFI memory map\n");
-@@ -298,7 +298,7 @@ static int __init arm64_enable_runtime_services(void)
- 	memmap.map_end = memmap.map + mapsize;
- 	efi.memmap = &memmap;
++static bool force_rw;
++module_param(force_rw, bool, S_IRUGO|S_IWUSR);
++MODULE_PARM_DESC(force_rw, "Enable writes to DIMMs that failed to arm");
++
+ static u8 nfit_uuid[NFIT_UUID_MAX][16];
  
--	efi.systab = (__force void *)ioremap_cache(efi_system_table,
-+	efi.systab = memremap_cache(efi_system_table,
- 						   sizeof(efi_system_table_t));
- 	if (!efi.systab) {
- 		pr_err("Failed to remap EFI System Table\n");
-diff --git a/arch/arm64/kernel/smp_spin_table.c b/arch/arm64/kernel/smp_spin_table.c
-index 14944e5b28da..893c8586e20f 100644
---- a/arch/arm64/kernel/smp_spin_table.c
-+++ b/arch/arm64/kernel/smp_spin_table.c
-@@ -67,18 +67,18 @@ static int smp_spin_table_cpu_init(struct device_node *dn, unsigned int cpu)
- 
- static int smp_spin_table_cpu_prepare(unsigned int cpu)
- {
--	__le64 __iomem *release_addr;
-+	__le64 *release_addr;
- 
- 	if (!cpu_release_addr[cpu])
- 		return -ENODEV;
- 
- 	/*
- 	 * The cpu-release-addr may or may not be inside the linear mapping.
--	 * As ioremap_cache will either give us a new mapping or reuse the
-+	 * As memremap_cache will either give us a new mapping or reuse the
- 	 * existing linear mapping, we can use it to cover both cases. In
- 	 * either case the memory will be MT_NORMAL.
- 	 */
--	release_addr = ioremap_cache(cpu_release_addr[cpu],
-+	release_addr = memremap_cache(cpu_release_addr[cpu],
- 				     sizeof(*release_addr));
- 	if (!release_addr)
- 		return -ENOMEM;
-@@ -91,7 +91,7 @@ static int smp_spin_table_cpu_prepare(unsigned int cpu)
- 	 * the boot protocol.
- 	 */
- 	writeq_relaxed(__pa(secondary_holding_pen), release_addr);
--	__flush_dcache_area((__force void *)release_addr,
-+	__flush_dcache_area(release_addr,
- 			    sizeof(*release_addr));
- 
- 	/*
-@@ -99,7 +99,7 @@ static int smp_spin_table_cpu_prepare(unsigned int cpu)
- 	 */
- 	sev();
- 
--	iounmap(release_addr);
-+	memunmap(release_addr);
- 
- 	return 0;
+ const u8 *to_nfit_uuid(enum nfit_uuids id)
+@@ -664,6 +668,20 @@ static ssize_t serial_show(struct device *dev,
  }
-diff --git a/arch/frv/Kconfig b/arch/frv/Kconfig
-index 34aa19352dc1..2373bf183527 100644
---- a/arch/frv/Kconfig
-+++ b/arch/frv/Kconfig
-@@ -14,6 +14,7 @@ config FRV
- 	select OLD_SIGSUSPEND3
- 	select OLD_SIGACTION
- 	select HAVE_DEBUG_STACKOVERFLOW
-+	select ARCH_HAS_MEMREMAP
+ static DEVICE_ATTR_RO(serial);
  
- config ZONE_DMA
- 	bool
-diff --git a/arch/m68k/Kconfig b/arch/m68k/Kconfig
-index 2dd8f63bfbbb..831b1be8c43d 100644
---- a/arch/m68k/Kconfig
-+++ b/arch/m68k/Kconfig
-@@ -23,6 +23,7 @@ config M68K
- 	select MODULES_USE_ELF_RELA
- 	select OLD_SIGSUSPEND3
- 	select OLD_SIGACTION
-+	select ARCH_HAS_MEMREMAP
- 
- config RWSEM_GENERIC_SPINLOCK
- 	bool
-diff --git a/arch/metag/Kconfig b/arch/metag/Kconfig
-index 0b389a81c43a..5669fe3eb807 100644
---- a/arch/metag/Kconfig
-+++ b/arch/metag/Kconfig
-@@ -24,6 +24,7 @@ config METAG
- 	select HAVE_PERF_EVENTS
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select HAVE_UNDERSCORE_SYMBOL_PREFIX
-+	select ARCH_HAS_MEMREMAP
- 	select IRQ_DOMAIN
- 	select MODULES_USE_ELF_RELA
- 	select OF
-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index f5016656494f..9ee35e615c0d 100644
---- a/arch/mips/Kconfig
-+++ b/arch/mips/Kconfig
-@@ -58,6 +58,7 @@ config MIPS
- 	select SYSCTL_EXCEPTION_TRACE
- 	select HAVE_VIRT_CPU_ACCOUNTING_GEN
- 	select HAVE_IRQ_TIME_ACCOUNTING
-+	select ARCH_HAS_MEMREMAP
- 
- menu "Machine selection"
- 
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 190cc48abc0c..73c1f8b1f022 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -153,6 +153,7 @@ config PPC
- 	select NO_BOOTMEM
- 	select HAVE_GENERIC_RCU_GUP
- 	select HAVE_PERF_EVENTS_NMI if PPC64
-+	select ARCH_HAS_MEMREMAP
- 
- config GENERIC_CSUM
- 	def_bool CPU_LITTLE_ENDIAN
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 228aa35d7e89..f16caf7eac27 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -27,6 +27,7 @@ config X86
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_FAST_MULTIPLIER
- 	select ARCH_HAS_GCOV_PROFILE_ALL
-+	select ARCH_HAS_MEMREMAP
- 	select ARCH_HAS_SG_CHAIN
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
-diff --git a/arch/x86/kernel/crash_dump_64.c b/arch/x86/kernel/crash_dump_64.c
-index afa64adb75ee..8e04011665fd 100644
---- a/arch/x86/kernel/crash_dump_64.c
-+++ b/arch/x86/kernel/crash_dump_64.c
-@@ -31,19 +31,19 @@ ssize_t copy_oldmem_page(unsigned long pfn, char *buf,
- 	if (!csize)
- 		return 0;
- 
--	vaddr = ioremap_cache(pfn << PAGE_SHIFT, PAGE_SIZE);
-+	vaddr = memremap_cache(pfn << PAGE_SHIFT, PAGE_SIZE);
- 	if (!vaddr)
- 		return -ENOMEM;
- 
- 	if (userbuf) {
- 		if (copy_to_user(buf, vaddr + offset, csize)) {
--			iounmap(vaddr);
-+			memunmap(vaddr);
- 			return -EFAULT;
- 		}
- 	} else
- 		memcpy(buf, vaddr + offset, csize);
- 
- 	set_iounmap_nonlazy();
--	iounmap(vaddr);
-+	memunmap(vaddr);
- 	return csize;
- }
-diff --git a/arch/x86/kernel/kdebugfs.c b/arch/x86/kernel/kdebugfs.c
-index dc1404bf8e4b..731b10e2814f 100644
---- a/arch/x86/kernel/kdebugfs.c
-+++ b/arch/x86/kernel/kdebugfs.c
-@@ -49,7 +49,7 @@ static ssize_t setup_data_read(struct file *file, char __user *user_buf,
- 	pa = node->paddr + sizeof(struct setup_data) + pos;
- 	pg = pfn_to_page((pa + count - 1) >> PAGE_SHIFT);
- 	if (PageHighMem(pg)) {
--		p = ioremap_cache(pa, count);
-+		p = memremap_cache(pa, count);
- 		if (!p)
- 			return -ENXIO;
- 	} else
-@@ -58,7 +58,7 @@ static ssize_t setup_data_read(struct file *file, char __user *user_buf,
- 	remain = copy_to_user(user_buf, p, count);
- 
- 	if (PageHighMem(pg))
--		iounmap(p);
-+		memunmap(p);
- 
- 	if (remain)
- 		return -EFAULT;
-@@ -128,7 +128,7 @@ static int __init create_setup_data_nodes(struct dentry *parent)
- 
- 		pg = pfn_to_page((pa_data+sizeof(*data)-1) >> PAGE_SHIFT);
- 		if (PageHighMem(pg)) {
--			data = ioremap_cache(pa_data, sizeof(*data));
-+			data = memremap_cache(pa_data, sizeof(*data));
- 			if (!data) {
- 				kfree(node);
- 				error = -ENXIO;
-@@ -144,7 +144,7 @@ static int __init create_setup_data_nodes(struct dentry *parent)
- 		pa_data = data->next;
- 
- 		if (PageHighMem(pg))
--			iounmap(data);
-+			memunmap(data);
- 		if (error)
- 			goto err_dir;
- 		no++;
-diff --git a/arch/x86/kernel/ksysfs.c b/arch/x86/kernel/ksysfs.c
-index c2bedaea11f7..2fbc62886eae 100644
---- a/arch/x86/kernel/ksysfs.c
-+++ b/arch/x86/kernel/ksysfs.c
-@@ -16,8 +16,8 @@
- #include <linux/stat.h>
- #include <linux/slab.h>
- #include <linux/mm.h>
-+#include <linux/io.h>
- 
--#include <asm/io.h>
- #include <asm/setup.h>
- 
- static ssize_t version_show(struct kobject *kobj,
-@@ -79,12 +79,12 @@ static int get_setup_data_paddr(int nr, u64 *paddr)
- 			*paddr = pa_data;
- 			return 0;
- 		}
--		data = ioremap_cache(pa_data, sizeof(*data));
-+		data = memremap_cache(pa_data, sizeof(*data));
- 		if (!data)
- 			return -ENOMEM;
- 
- 		pa_data = data->next;
--		iounmap(data);
-+		memunmap(data);
- 		i++;
- 	}
- 	return -EINVAL;
-@@ -97,17 +97,17 @@ static int __init get_setup_data_size(int nr, size_t *size)
- 	u64 pa_data = boot_params.hdr.setup_data;
- 
- 	while (pa_data) {
--		data = ioremap_cache(pa_data, sizeof(*data));
-+		data = memremap_cache(pa_data, sizeof(*data));
- 		if (!data)
- 			return -ENOMEM;
- 		if (nr == i) {
- 			*size = data->len;
--			iounmap(data);
-+			memunmap(data);
- 			return 0;
- 		}
- 
- 		pa_data = data->next;
--		iounmap(data);
-+		memunmap(data);
- 		i++;
- 	}
- 	return -EINVAL;
-@@ -127,12 +127,12 @@ static ssize_t type_show(struct kobject *kobj,
- 	ret = get_setup_data_paddr(nr, &paddr);
- 	if (ret)
- 		return ret;
--	data = ioremap_cache(paddr, sizeof(*data));
-+	data = memremap_cache(paddr, sizeof(*data));
- 	if (!data)
- 		return -ENOMEM;
- 
- 	ret = sprintf(buf, "0x%x\n", data->type);
--	iounmap(data);
-+	memunmap(data);
- 	return ret;
- }
- 
-@@ -154,7 +154,7 @@ static ssize_t setup_data_data_read(struct file *fp,
- 	ret = get_setup_data_paddr(nr, &paddr);
- 	if (ret)
- 		return ret;
--	data = ioremap_cache(paddr, sizeof(*data));
-+	data = memremap_cache(paddr, sizeof(*data));
- 	if (!data)
- 		return -ENOMEM;
- 
-@@ -170,15 +170,15 @@ static ssize_t setup_data_data_read(struct file *fp,
- 		goto out;
- 
- 	ret = count;
--	p = ioremap_cache(paddr + sizeof(*data), data->len);
-+	p = memremap_cache(paddr + sizeof(*data), data->len);
- 	if (!p) {
- 		ret = -ENOMEM;
- 		goto out;
- 	}
- 	memcpy(buf, p + off, count);
--	iounmap(p);
-+	memunmap(p);
- out:
--	iounmap(data);
-+	memunmap(data);
- 	return ret;
- }
- 
-@@ -250,13 +250,13 @@ static int __init get_setup_data_total_num(u64 pa_data, int *nr)
- 	*nr = 0;
- 	while (pa_data) {
- 		*nr += 1;
--		data = ioremap_cache(pa_data, sizeof(*data));
-+		data = memremap_cache(pa_data, sizeof(*data));
- 		if (!data) {
- 			ret = -ENOMEM;
- 			goto out;
- 		}
- 		pa_data = data->next;
--		iounmap(data);
-+		memunmap(data);
- 	}
- 
- out:
-diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
-index cc5ccc415cc0..7f087cb793fa 100644
---- a/arch/x86/mm/ioremap.c
-+++ b/arch/x86/mm/ioremap.c
-@@ -414,12 +414,10 @@ void *xlate_dev_mem_ptr(phys_addr_t phys)
- 	if (page_is_ram(start >> PAGE_SHIFT))
- 		return __va(phys);
- 
--	vaddr = ioremap_cache(start, PAGE_SIZE);
--	/* Only add the offset on success and return NULL if the ioremap() failed: */
-+	vaddr = memremap_cache(start, PAGE_SIZE);
- 	if (vaddr)
--		vaddr += offset;
--
--	return vaddr;
-+		return vaddr + offset;
-+	return NULL;
- }
- 
- void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
-@@ -427,7 +425,7 @@ void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
- 	if (page_is_ram(phys >> PAGE_SHIFT))
- 		return;
- 
--	iounmap((void __iomem *)((unsigned long)addr & PAGE_MASK));
-+	memunmap((void *)((unsigned long)addr & PAGE_MASK));
- }
- 
- static pte_t bm_pte[PAGE_SIZE/sizeof(pte_t)] __page_aligned_bss;
-diff --git a/arch/xtensa/Kconfig b/arch/xtensa/Kconfig
-index 87be10e8b57a..e601faf87cee 100644
---- a/arch/xtensa/Kconfig
-+++ b/arch/xtensa/Kconfig
-@@ -3,6 +3,7 @@ config ZONE_DMA
- 
- config XTENSA
- 	def_bool y
-+	select ARCH_HAS_MEMREMAP
- 	select ARCH_WANT_FRAME_POINTERS
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index a095d4f858da..2ec9006cfb6c 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -318,7 +318,7 @@ static int __einj_error_trigger(u64 trigger_paddr, u32 type,
- 			    sizeof(*trigger_tab) - 1);
- 		goto out;
- 	}
--	trigger_tab = ioremap_cache(trigger_paddr, sizeof(*trigger_tab));
-+	trigger_tab = memremap_cache(trigger_paddr, sizeof(*trigger_tab));
- 	if (!trigger_tab) {
- 		pr_err(EINJ_PFX "Failed to map trigger table!\n");
- 		goto out_rel_header;
-@@ -346,8 +346,8 @@ static int __einj_error_trigger(u64 trigger_paddr, u32 type,
- 		       (unsigned long long)trigger_paddr + table_size - 1);
- 		goto out_rel_header;
- 	}
--	iounmap(trigger_tab);
--	trigger_tab = ioremap_cache(trigger_paddr, table_size);
-+	memunmap(trigger_tab);
-+	trigger_tab = memremap_cache(trigger_paddr, table_size);
- 	if (!trigger_tab) {
- 		pr_err(EINJ_PFX "Failed to map trigger table!\n");
- 		goto out_rel_entry;
-@@ -409,7 +409,7 @@ out_rel_header:
- 	release_mem_region(trigger_paddr, sizeof(*trigger_tab));
- out:
- 	if (trigger_tab)
--		iounmap(trigger_tab);
-+		memunmap(trigger_tab);
- 
- 	return rc;
- }
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 3670bbab57a3..6b95066da51d 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -77,7 +77,7 @@ static struct acpi_table_erst *erst_tab;
- static struct erst_erange {
- 	u64 base;
- 	u64 size;
--	void __iomem *vaddr;
-+	void *vaddr;
- 	u32 attr;
- } erst_erange;
- 
-@@ -1185,7 +1185,7 @@ static int __init erst_init(void)
- 		goto err_unmap_reg;
- 	}
- 	rc = -ENOMEM;
--	erst_erange.vaddr = ioremap_cache(erst_erange.base,
-+	erst_erange.vaddr = memremap_cache(erst_erange.base,
- 					  erst_erange.size);
- 	if (!erst_erange.vaddr)
- 		goto err_release_erange;
-diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
-index eb1fed5bd516..98418fc330ae 100644
---- a/drivers/block/Kconfig
-+++ b/drivers/block/Kconfig
-@@ -406,6 +406,7 @@ config BLK_DEV_RAM_DAX
- 
- config BLK_DEV_PMEM
- 	tristate "Persistent memory block device support"
-+	depends on ARCH_HAS_MEMREMAP
- 	help
- 	  Saying Y here will allow you to use a contiguous range of reserved
- 	  memory as one or more persistent block devices.
-diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index 095dfaadcaa5..b00b97314b57 100644
---- a/drivers/block/pmem.c
-+++ b/drivers/block/pmem.c
-@@ -23,6 +23,7 @@
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
-+#include <linux/io.h>
- 
- #define PMEM_MINORS		16
- 
-@@ -143,7 +144,7 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
- 	 * of the CPU caches in case of a crash.
- 	 */
- 	err = -ENOMEM;
--	pmem->virt_addr = ioremap_wt(pmem->phys_addr, pmem->size);
-+	pmem->virt_addr = memremap_wt(pmem->phys_addr, pmem->size);
- 	if (!pmem->virt_addr)
- 		goto out_release_region;
- 
-@@ -179,7 +180,7 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
- out_free_queue:
- 	blk_cleanup_queue(pmem->pmem_queue);
- out_unmap:
--	iounmap(pmem->virt_addr);
-+	memunmap(pmem->virt_addr);
- out_release_region:
- 	release_mem_region(pmem->phys_addr, pmem->size);
- out_free_dev:
-@@ -193,7 +194,7 @@ static void pmem_free(struct pmem_device *pmem)
- 	del_gendisk(pmem->pmem_disk);
- 	put_disk(pmem->pmem_disk);
- 	blk_cleanup_queue(pmem->pmem_queue);
--	iounmap(pmem->virt_addr);
-+	memunmap(pmem->virt_addr);
- 	release_mem_region(pmem->phys_addr, pmem->size);
- 	kfree(pmem);
- }
-diff --git a/drivers/firmware/google/memconsole.c b/drivers/firmware/google/memconsole.c
-index 2f569aaed4c7..877433dc8297 100644
---- a/drivers/firmware/google/memconsole.c
-+++ b/drivers/firmware/google/memconsole.c
-@@ -52,14 +52,14 @@ static ssize_t memconsole_read(struct file *filp, struct kobject *kobp,
- 	char *memconsole;
- 	ssize_t ret;
- 
--	memconsole = ioremap_cache(memconsole_baseaddr, memconsole_length);
-+	memconsole = memremap_cache(memconsole_baseaddr, memconsole_length);
- 	if (!memconsole) {
- 		pr_err("memconsole: ioremap_cache failed\n");
- 		return -ENOMEM;
- 	}
- 	ret = memory_read_from_buffer(buf, count, &pos, memconsole,
- 				      memconsole_length);
--	iounmap(memconsole);
-+	memunmap(memconsole);
- 	return ret;
- }
- 
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 6558af90c8fe..518f49c5d596 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -638,6 +638,11 @@ extern void devm_free_pages(struct device *dev, unsigned long addr);
- 
- void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res);
- 
-+static inline void *devm_memremap_resource(struct device *dev, struct resource *res)
++static ssize_t flags_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
 +{
-+	return (void __force *) devm_ioremap_resource(dev, res);
++	u16 flags = to_nfit_memdev(dev)->flags;
++
++	return sprintf(buf, "%s%s%s%s%s\n",
++			flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " : "",
++			flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore " : "",
++			flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush " : "",
++			flags & ACPI_NFIT_MEM_ARMED ? "arm " : "",
++			flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart " : "");
 +}
++static DEVICE_ATTR_RO(flags);
 +
- /* allows to add/remove a custom action to devres stack */
- int devm_add_action(struct device *dev, void (*action)(void *), void *data);
- void devm_remove_action(struct device *dev, void (*action)(void *), void *data);
-diff --git a/include/linux/io.h b/include/linux/io.h
-index 8789a114f37c..21dc5de483f6 100644
---- a/include/linux/io.h
-+++ b/include/linux/io.h
-@@ -181,4 +181,8 @@ static inline int arch_phys_wc_index(int handle)
- #endif
- #endif
+ static struct attribute *acpi_nfit_dimm_attributes[] = {
+ 	&dev_attr_handle.attr,
+ 	&dev_attr_phys_id.attr,
+@@ -672,6 +690,7 @@ static struct attribute *acpi_nfit_dimm_attributes[] = {
+ 	&dev_attr_format.attr,
+ 	&dev_attr_serial.attr,
+ 	&dev_attr_rev_id.attr,
++	&dev_attr_flags.attr,
+ 	NULL,
+ };
  
-+extern void *memremap_cache(resource_size_t offset, size_t size);
-+extern void *memremap_wt(resource_size_t offset, size_t size);
-+extern void memunmap(void *addr);
+@@ -764,6 +783,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		struct nvdimm *nvdimm;
+ 		unsigned long flags = 0;
+ 		u32 device_handle;
++		u16 mem_flags;
+ 		int rc;
+ 
+ 		device_handle = __to_nfit_memdev(nfit_mem)->device_handle;
+@@ -781,6 +801,10 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		if (nfit_mem->bdw && nfit_mem->memdev_pmem)
+ 			flags |= NDD_ALIASING;
+ 
++		mem_flags = __to_nfit_memdev(nfit_mem)->flags;
++		if ((mem_flags & ACPI_NFIT_MEM_ARMED) && !force_rw)
++			flags |= NDD_UNARMED;
 +
- #endif /* _LINUX_IO_H */
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 90552aab5f2d..2f8aca09da52 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -23,7 +23,7 @@
- #include <linux/pfn.h>
- #include <linux/mm.h>
- #include <linux/resource_ext.h>
--#include <asm/io.h>
-+#include <linux/io.h>
+ 		rc = acpi_nfit_add_dimm(acpi_desc, nfit_mem, device_handle);
+ 		if (rc)
+ 			continue;
+@@ -793,6 +817,17 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
  
+ 		nfit_mem->nvdimm = nvdimm;
+ 		dimm_count++;
++
++		if ((mem_flags & ACPI_NFIT_MEM_FAILED_MASK) == 0)
++			continue;
++
++		dev_info(acpi_desc->dev, "%s: failed: %s%s%s%s\n",
++				nvdimm_name(nvdimm),
++			mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " : "",
++			mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore " : "",
++			mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush " : "",
++			mem_flags & ACPI_NFIT_MEM_ARMED ? "arm " : "");
++
+ 	}
  
- struct resource ioport_resource = {
-@@ -528,6 +528,45 @@ int region_is_ram(resource_size_t start, unsigned long size)
- 	return ret;
+ 	return nvdimm_bus_check_dimm_count(acpi_desc->nvdimm_bus, dimm_count);
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index c62fffea8423..81f2e8c5a79c 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -22,6 +22,9 @@
+ 
+ #define UUID_NFIT_BUS "2f10e7a4-9e91-11e4-89d3-123b93f75cba"
+ #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
++#define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
++		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
++		| ACPI_NFIT_MEM_ARMED)
+ 
+ enum nfit_uuids {
+ 	NFIT_SPA_VOLATILE,
+diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
+index adacc27f04f1..0b359cb8aa9f 100644
+--- a/drivers/nvdimm/blk.c
++++ b/drivers/nvdimm/blk.c
+@@ -243,6 +243,7 @@ static const struct block_device_operations nd_blk_fops = {
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl = nvdimm_bdev_compat_ioctl,
+ #endif
++	.revalidate_disk = nvdimm_revalidate_disk,
+ };
+ 
+ static int nd_blk_probe(struct device *dev)
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 47260ca573e0..67525f995859 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -243,6 +243,32 @@ int __nd_driver_register(struct nd_device_driver *nd_drv, struct module *owner,
  }
+ EXPORT_SYMBOL(__nd_driver_register);
  
-+#ifdef CONFIG_ARCH_HAS_MEMREMAP
-+/*
-+ * memremap() is "ioremap" for cases where it is known that the resource
-+ * being mapped does not have i/o side effects and the __iomem
-+ * annotation is not applicable.
-+ */
-+static bool memremap_valid(resource_size_t offset, size_t size)
++int nvdimm_revalidate_disk(struct gendisk *disk)
 +{
-+	if (region_is_ram(offset, size) != 0) {
-+		WARN_ONCE(1, "memremap attempted on ram %pa size: %zu\n",
-+				&offset, size);
-+		return false;
++	int i;
++	struct device *dev = disk->driverfs_dev;
++	struct nd_region *nd_region = walk_to_nd_region(dev);
++
++	if (!nd_region)
++		return 0;
++
++	for (i = 0; i < nd_region->ndr_mappings; i++) {
++		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
++		struct nvdimm *nvdimm = nd_mapping->nvdimm;
++
++		if ((nvdimm->flags & NDD_UNARMED) && !get_disk_ro(disk)) {
++			dev_dbg(dev, "%s: unarmed, marking disk %s ro\n",
++					dev_name(&nvdimm->dev),
++					dev_name(disk_to_dev(disk)));
++			set_disk_ro(disk, 1);
++			break;
++		}
 +	}
-+	return true;
-+}
 +
-+void *memremap_cache(resource_size_t offset, size_t size)
-+{
-+	if (!memremap_valid(offset, size))
-+		return NULL;
-+	return (void __force *) ioremap_cache(offset, size);
++	return 0;
 +}
-+EXPORT_SYMBOL(memremap_cache);
++EXPORT_SYMBOL(nvdimm_revalidate_disk);
 +
-+void *memremap_wt(resource_size_t offset, size_t size)
-+{
-+	if (!memremap_valid(offset, size))
-+		return NULL;
-+	return (void __force *) ioremap_wt(offset, size);
-+}
-+EXPORT_SYMBOL(memremap_wt);
-+
-+void memunmap(void *addr)
-+{
-+	iounmap((void __iomem __force *) addr);
-+}
-+EXPORT_SYMBOL(memunmap);
-+#endif /* CONFIG_ARCH_HAS_MEMREMAP */
-+
- void __weak arch_remove_reservations(struct resource *avail)
+ int nvdimm_bus_add_integrity_disk(struct gendisk *disk, u32 lbasize,
+ 		sector_t size)
  {
+@@ -265,6 +291,7 @@ int nvdimm_bus_add_integrity_disk(struct gendisk *disk, u32 lbasize,
+ 	rc = nd_integrity_init(disk, lbasize);
+ 	if (size)
+ 		set_capacity(disk, size);
++	revalidate_disk(disk);
+ 	nd_btt_add_disk(nvdimm_bus, disk);
+ 	nvdimm_bus_unlock(&nvdimm_bus->dev);
+ 
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index ba548d248b4e..0cac05aca8f5 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -110,6 +110,7 @@ bool nd_is_uuid_unique(struct device *dev, u8 *uuid);
+ struct nd_region;
+ struct nvdimm_drvdata;
+ struct nd_mapping;
++struct nd_region *walk_to_nd_region(struct device *nd_dev);
+ resource_size_t nd_pmem_available_dpa(struct nd_region *nd_region,
+ 		struct nd_mapping *nd_mapping, resource_size_t *overlap);
+ resource_size_t nd_blk_available_dpa(struct nd_mapping *nd_mapping);
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 2786eb8456ec..011d7c51b5da 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -168,6 +168,7 @@ int nvdimm_bdev_ioctl(struct block_device *bdev, fmode_t mode,
+ 		unsigned int cmd, unsigned long arg);
+ int nvdimm_bdev_compat_ioctl(struct block_device *bdev, fmode_t mode,
+ 		unsigned int cmd, unsigned long arg);
++int nvdimm_revalidate_disk(struct gendisk *disk);
+ void nvdimm_drvdata_release(struct kref *kref);
+ void put_ndd(struct nvdimm_drvdata *ndd);
+ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd);
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 96964419b72d..b69278424dff 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -135,6 +135,7 @@ static const struct block_device_operations pmem_fops = {
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl =		nvdimm_bdev_ioctl,
+ #endif
++	.revalidate_disk =	nvdimm_revalidate_disk,
+ };
+ 
+ static struct pmem_device *pmem_alloc(struct device *dev,
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index b16ec20dbba2..bb9f329c3b9f 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -83,6 +83,19 @@ struct nd_blk_region *to_nd_blk_region(struct device *dev)
  }
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 601965a948e8..bc7bc0278921 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -520,6 +520,9 @@ source "lib/fonts/Kconfig"
- #
+ EXPORT_SYMBOL_GPL(to_nd_blk_region);
  
- config ARCH_HAS_SG_CHAIN
--	def_bool n
-+	bool
++struct nd_region *walk_to_nd_region(struct device *nd_dev)
++{
++	struct device *dev;
 +
-+config ARCH_HAS_MEMREMAP
-+	bool
++	for (dev = nd_dev; dev; dev = dev->parent)
++		if (dev->type->release == nd_region_release)
++			break;
++	dev_WARN_ONCE(nd_dev, !dev, "invalid dev, not an nd_region descendant\n");
++	if (dev)
++		return to_nd_region(dev);
++	return NULL;
++}
++
+ void *nd_region_provider_data(struct nd_region *nd_region)
+ {
+ 	return nd_region->provider_data;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 7fc1b25bdb5d..dc799a29ed1a 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -21,6 +21,8 @@
+ enum {
+ 	/* when a dimm supports both PMEM and BLK access a label is required */
+ 	NDD_ALIASING = 1 << 0,
++	/* unarmed memory devices may not persist writes */
++	NDD_UNARMED = 1 << 1,
  
- endmenu
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 416f8fbf9881..c57ecb4e421d 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -873,6 +873,9 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	memdev->address = 0;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 1;
++	memdev->flags = ACPI_NFIT_MEM_SAVE_FAILED | ACPI_NFIT_MEM_RESTORE_FAILED
++		| ACPI_NFIT_MEM_FLUSH_FAILED | ACPI_NFIT_MEM_HEALTH_OBSERVED
++		| ACPI_NFIT_MEM_ARMED;
+ 
+ 	offset += sizeof(*memdev);
+ 	/* dcr-descriptor0 */
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
