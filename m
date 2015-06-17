@@ -1,553 +1,396 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v4 4/9] dax: fix mapping lifetime handling,
- convert to __pfn_t + kmap_atomic_pfn_t()
+Subject: [PATCH 09/15] libnvdimm, blk: add support for blk integrity
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 05 Jun 2015 17:19:24 -0400
-Message-ID: <20150605211924.20751.434.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 17 Jun 2015 19:55:35 -0400
+Message-ID: <20150617235535.12943.9582.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, linux-arch@vger.kernel.org, arnd@arndb.de, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, linux-fsdevel@vger.kernel.org, heiko.carstens@de.ibm.com, hch@lst.de, mingo@kernel.org, tj@kernel.org, paulus@samba.org, hpa@zytor.com, schwidefsky@de.ibm.com, willy@linux.intel.com, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org, akpm@linux-foundation.org
+To: axboe@kernel.dk, linux-nvdimm@lists.01.org
+Cc: boaz@plexistor.com, toshi.kani@hp.com, Vishal Verma <vishal.l.verma@linux.intel.com>, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The primary source for non-page-backed page-frames to enter the system
-is via the pmem driver's ->direct_access() method.  The pfns returned by
-the top-level bdev_direct_access() may be passed to any other subsystem
-in the kernel and those sub-systems either need to assume that the pfn
-is page backed (CONFIG_DEV_PFN=n) or be prepared to handle non-page
-backed case (CONFIG_DEV_PFN=y).  Currently the pfns returned by
-->direct_access() are only ever used by vm_insert_mixed() which does not
-care if the pfn is mapped.  As we go to add more usages of these pfns
-add the type-safety of __pfn_t.
+From: Vishal Verma <vishal.l.verma@linux.intel.com>
 
-This also simplifies the calling convention of ->direct_access() by not
-returning the virtual address in the same call.  This annotates cases
-where the kernel is directly accessing pmem outside the driver, and
-makes the valid lifetime of the reference explicit.  This property may
-be useful in the future for invalidating mappings to pmem, but for now
-it provides some protection against the "pmem disable vs still-in-use"
-race.
+Support multiple block sizes (sector + metadata) for nd_blk in the
+same way as done for the BTT. Add the idea of an 'internal' lbasize,
+which is properly aligned and padded, and store metadata in this space.
 
-Note that axon_ram_direct_access and dcssblk_direct_access were
-previously making potentially incorrect assumptions about the addresses
-they passed to virt_to_phys().
-
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Boaz Harrosh <boaz@plexistor.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/powerpc/sysdev/axonram.c |   26 ++++++++++++-----
- drivers/block/brd.c           |    5 +--
- drivers/block/pmem.c          |   16 ++++++++---
- drivers/s390/block/dcssblk.c  |   26 ++++++++++++++---
- fs/block_dev.c                |    4 +--
- fs/dax.c                      |   62 ++++++++++++++++++++++++++++++++---------
- include/asm-generic/pfn.h     |   25 +++++++++++++++++
- include/linux/blkdev.h        |    7 ++---
- 8 files changed, 132 insertions(+), 39 deletions(-)
+ drivers/nvdimm/blk.c            |  168 ++++++++++++++++++++++++++++++++++-----
+ drivers/nvdimm/btt.h            |    1 
+ drivers/nvdimm/bus.c            |   28 +++++--
+ drivers/nvdimm/core.c           |    3 +
+ drivers/nvdimm/namespace_devs.c |    3 -
+ drivers/nvdimm/nd.h             |    3 +
+ 6 files changed, 174 insertions(+), 32 deletions(-)
 
-diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
-index e8657d3bc588..20725006592e 100644
---- a/arch/powerpc/sysdev/axonram.c
-+++ b/arch/powerpc/sysdev/axonram.c
-@@ -139,22 +139,23 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
-  * axon_ram_direct_access - direct_access() method for block device
-  * @device, @sector, @data: see block_device_operations method
-  */
--static long
-+static __maybe_unused long
- axon_ram_direct_access(struct block_device *device, sector_t sector,
--		       void **kaddr, unsigned long *pfn)
-+		       __pfn_t *pfn)
- {
- 	struct axon_ram_bank *bank = device->bd_disk->private_data;
- 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
- 
--	*kaddr = (void *)(bank->ph_addr + offset);
--	*pfn = virt_to_phys(*kaddr) >> PAGE_SHIFT;
-+	*pfn = phys_to_pfn_t(bank->ph_addr + offset);
- 
- 	return bank->size - offset;
- }
- 
- static const struct block_device_operations axon_ram_devops = {
- 	.owner		= THIS_MODULE,
-+#ifdef HAVE_KMAP_PFN
- 	.direct_access	= axon_ram_direct_access
-+#endif
+diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
+index a2749b5e43d7..feddad325f97 100644
+--- a/drivers/nvdimm/blk.c
++++ b/drivers/nvdimm/blk.c
+@@ -27,10 +27,17 @@ struct nd_blk_device {
+ 	struct nd_namespace_blk *nsblk;
+ 	struct nd_blk_region *ndbr;
+ 	size_t disk_size;
++	u32 sector_size;
++	u32 internal_lbasize;
  };
  
- /**
-@@ -165,9 +166,13 @@ static int axon_ram_probe(struct platform_device *device)
- {
- 	static int axon_ram_bank_id = -1;
- 	struct axon_ram_bank *bank;
--	struct resource resource;
-+	struct resource *resource;
- 	int rc = 0;
+ static int nd_blk_major;
  
-+	resource = devm_kzalloc(&device->dev, sizeof(*resource), GFP_KERNEL);
-+	if (!resource)
-+		return -ENOMEM;
++static u32 nd_blk_meta_size(struct nd_blk_device *blk_dev)
++{
++	return blk_dev->nsblk->lbasize - blk_dev->sector_size;
++}
 +
- 	axon_ram_bank_id++;
+ static resource_size_t to_dev_offset(struct nd_namespace_blk *nsblk,
+ 				resource_size_t ns_offset, unsigned int len)
+ {
+@@ -52,13 +59,114 @@ static resource_size_t to_dev_offset(struct nd_namespace_blk *nsblk,
+ 	return SIZE_MAX;
+ }
  
- 	dev_info(&device->dev, "Found memory controller on %s\n",
-@@ -184,13 +189,13 @@ static int axon_ram_probe(struct platform_device *device)
- 
- 	bank->device = device;
- 
--	if (of_address_to_resource(device->dev.of_node, 0, &resource) != 0) {
-+	if (of_address_to_resource(device->dev.of_node, 0, resource) != 0) {
- 		dev_err(&device->dev, "Cannot access device tree\n");
- 		rc = -EFAULT;
- 		goto failed;
- 	}
- 
--	bank->size = resource_size(&resource);
-+	bank->size = resource_size(resource);
- 
- 	if (bank->size == 0) {
- 		dev_err(&device->dev, "No DDR2 memory found for %s%d\n",
-@@ -202,7 +207,7 @@ static int axon_ram_probe(struct platform_device *device)
- 	dev_info(&device->dev, "Register DDR2 memory device %s%d with %luMB\n",
- 			AXON_RAM_DEVICE_NAME, axon_ram_bank_id, bank->size >> 20);
- 
--	bank->ph_addr = resource.start;
-+	bank->ph_addr = resource->start;
- 	bank->io_addr = (unsigned long) ioremap_prot(
- 			bank->ph_addr, bank->size, _PAGE_NO_CACHE);
- 	if (bank->io_addr == 0) {
-@@ -211,6 +216,11 @@ static int axon_ram_probe(struct platform_device *device)
- 		goto failed;
- 	}
- 
-+	rc = devm_register_kmap_pfn_range(&device->dev, resource,
-+			(void *) bank->io_addr);
-+	if (rc)
-+		goto failed;
++#ifdef CONFIG_BLK_DEV_INTEGRITY
++static int nd_blk_rw_integrity(struct nd_blk_device *blk_dev,
++				struct bio_integrity_payload *bip, u64 lba,
++				int rw)
++{
++	unsigned int len = nd_blk_meta_size(blk_dev);
++	resource_size_t	dev_offset, ns_offset;
++	struct nd_namespace_blk *nsblk;
++	struct nd_blk_region *ndbr;
++	int err = 0;
 +
- 	bank->disk = alloc_disk(AXON_RAM_MINORS_PER_DISK);
- 	if (bank->disk == NULL) {
- 		dev_err(&device->dev, "Cannot register disk\n");
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 41528857c70d..6c4b21a4e915 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -371,7 +371,7 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
- 
- #ifdef CONFIG_BLK_DEV_RAM_DAX
- static long brd_direct_access(struct block_device *bdev, sector_t sector,
--			void **kaddr, unsigned long *pfn)
-+		__pfn_t *pfn)
- {
- 	struct brd_device *brd = bdev->bd_disk->private_data;
- 	struct page *page;
-@@ -381,8 +381,7 @@ static long brd_direct_access(struct block_device *bdev, sector_t sector,
- 	page = brd_insert_page(brd, sector);
- 	if (!page)
- 		return -ENOSPC;
--	*kaddr = page_address(page);
--	*pfn = page_to_pfn(page);
-+	*pfn = page_to_pfn_t(page);
- 
- 	return PAGE_SIZE;
- }
-diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index 1f5b5a6288c0..0cb66aa00b4b 100644
---- a/drivers/block/pmem.c
-+++ b/drivers/block/pmem.c
-@@ -23,6 +23,8 @@
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
-+#include <linux/highmem.h>
-+#include <linux/mm.h>
- 
- #define PMEM_MINORS		16
- 
-@@ -97,8 +99,8 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- 	return 0;
- }
- 
--static long pmem_direct_access(struct block_device *bdev, sector_t sector,
--			      void **kaddr, unsigned long *pfn)
-+static  __maybe_unused long pmem_direct_access(struct block_device *bdev,
-+		sector_t sector, __pfn_t *pfn)
- {
- 	struct pmem_device *pmem = bdev->bd_disk->private_data;
- 	size_t offset = sector << 9;
-@@ -106,8 +108,7 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
- 	if (!pmem)
- 		return -ENODEV;
- 
--	*kaddr = pmem->virt_addr + offset;
--	*pfn = (pmem->phys_addr + offset) >> PAGE_SHIFT;
-+	*pfn = phys_to_pfn_t(pmem->phys_addr + offset);
- 
- 	return pmem->size - offset;
- }
-@@ -115,7 +116,9 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
- static const struct block_device_operations pmem_fops = {
- 	.owner =		THIS_MODULE,
- 	.rw_page =		pmem_rw_page,
-+#ifdef HAVE_KMAP_PFN
- 	.direct_access =	pmem_direct_access,
-+#endif
- };
- 
- static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
-@@ -147,6 +150,11 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
- 	if (!pmem->virt_addr)
- 		goto out_release_region;
- 
-+	err = devm_register_kmap_pfn_range(dev, res, pmem->virt_addr);
-+	if (err)
-+		goto out_unmap;
-+
-+	err = -ENOMEM;
- 	pmem->pmem_queue = blk_alloc_queue(GFP_KERNEL);
- 	if (!pmem->pmem_queue)
- 		goto out_unmap;
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 2f1734ba0e22..a7b9743c546f 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -29,7 +29,7 @@ static int dcssblk_open(struct block_device *bdev, fmode_t mode);
- static void dcssblk_release(struct gendisk *disk, fmode_t mode);
- static void dcssblk_make_request(struct request_queue *q, struct bio *bio);
- static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
--				 void **kaddr, unsigned long *pfn);
-+		__pfn_t *pfn);
- 
- static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
- 
-@@ -38,7 +38,9 @@ static const struct block_device_operations dcssblk_devops = {
- 	.owner   	= THIS_MODULE,
- 	.open    	= dcssblk_open,
- 	.release 	= dcssblk_release,
-+#ifdef HAVE_KMAP_PFN
- 	.direct_access 	= dcssblk_direct_access,
-+#endif
- };
- 
- struct dcssblk_dev_info {
-@@ -520,12 +522,18 @@ static const struct attribute_group *dcssblk_dev_attr_groups[] = {
- static ssize_t
- dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
- {
-+	struct resource *res = devm_kzalloc(dev, sizeof(*res), GFP_KERNEL);
- 	int rc, i, j, num_of_segments;
- 	struct dcssblk_dev_info *dev_info;
- 	struct segment_info *seg_info, *temp;
- 	char *local_buf;
- 	unsigned long seg_byte_size;
- 
-+	if (!res) {
-+		rc = -ENOMEM;
-+		goto out_nobuf;
-+	}
-+
- 	dev_info = NULL;
- 	seg_info = NULL;
- 	if (dev != dcssblk_root_dev) {
-@@ -652,6 +660,13 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
- 	if (rc)
- 		goto put_dev;
- 
-+	res->start = dev_info->start;
-+	res->end = dev_info->end - 1;
-+	rc = devm_register_kmap_pfn_range(&dev_info->dev, res,
-+			(void *) dev_info->start);
-+	if (rc)
-+		goto put_dev;
-+
- 	get_device(&dev_info->dev);
- 	add_disk(dev_info->gd);
- 
-@@ -699,6 +714,8 @@ seg_list_del:
- out:
- 	kfree(local_buf);
- out_nobuf:
-+	if (res)
-+		devm_kfree(dev, res);
- 	return rc;
- }
- 
-@@ -877,9 +894,9 @@ fail:
- 	bio_io_error(bio);
- }
- 
--static long
-+static __maybe_unused long
- dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
--			void **kaddr, unsigned long *pfn)
-+		__pfn_t *pfn)
- {
- 	struct dcssblk_dev_info *dev_info;
- 	unsigned long offset, dev_sz;
-@@ -889,8 +906,7 @@ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
- 		return -ENODEV;
- 	dev_sz = dev_info->end - dev_info->start;
- 	offset = secnum * 512;
--	*kaddr = (void *) (dev_info->start + offset);
--	*pfn = virt_to_phys(*kaddr) >> PAGE_SHIFT;
-+	*pfn = phys_to_pfn_t(dev_info->start + offset);
- 
- 	return dev_sz - offset;
- }
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 19750f058495..0f05b33b924f 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -438,7 +438,7 @@ EXPORT_SYMBOL_GPL(bdev_write_page);
-  * accessible at this address.
-  */
- long bdev_direct_access(struct block_device *bdev, sector_t sector,
--			void **addr, unsigned long *pfn, long size)
-+			__pfn_t *pfn, long size)
- {
- 	long avail;
- 	const struct block_device_operations *ops = bdev->bd_disk->fops;
-@@ -453,7 +453,7 @@ long bdev_direct_access(struct block_device *bdev, sector_t sector,
- 	sector += get_start_sect(bdev);
- 	if (sector % (PAGE_SIZE / 512))
- 		return -EINVAL;
--	avail = ops->direct_access(bdev, sector, addr, pfn);
-+	avail = ops->direct_access(bdev, sector, pfn);
- 	if (!avail)
- 		return -ERANGE;
- 	return min(avail, size);
-diff --git a/fs/dax.c b/fs/dax.c
-index 6f65f00e58ec..7d302bfff48a 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -35,13 +35,16 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- 	might_sleep();
- 	do {
- 		void *addr;
--		unsigned long pfn;
-+		__pfn_t pfn;
- 		long count;
- 
--		count = bdev_direct_access(bdev, sector, &addr, &pfn, size);
-+		count = bdev_direct_access(bdev, sector, &pfn, size);
- 		if (count < 0)
- 			return count;
- 		BUG_ON(size < count);
-+		addr = kmap_atomic_pfn_t(pfn);
-+		if (!addr)
-+			return -EIO;
- 		while (count > 0) {
- 			unsigned pgsz = PAGE_SIZE - offset_in_page(addr);
- 			if (pgsz > count)
-@@ -57,17 +60,17 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- 			sector += pgsz / 512;
- 			cond_resched();
- 		}
-+		kunmap_atomic_pfn_t(addr);
- 	} while (size);
- 
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(dax_clear_blocks);
- 
--static long dax_get_addr(struct buffer_head *bh, void **addr, unsigned blkbits)
-+static long dax_get_pfn(struct buffer_head *bh, __pfn_t *pfn, unsigned blkbits)
- {
--	unsigned long pfn;
- 	sector_t sector = bh->b_blocknr << (blkbits - 9);
--	return bdev_direct_access(bh->b_bdev, sector, addr, &pfn, bh->b_size);
-+	return bdev_direct_access(bh->b_bdev, sector, pfn, bh->b_size);
- }
- 
- static void dax_new_buf(void *addr, unsigned size, unsigned first, loff_t pos,
-@@ -106,7 +109,8 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 	loff_t pos = start;
- 	loff_t max = start;
- 	loff_t bh_max = start;
--	void *addr;
-+	void *addr = NULL, *kmap = NULL;
-+	__pfn_t pfn;
- 	bool hole = false;
- 
- 	if (iov_iter_rw(iter) != WRITE)
-@@ -142,9 +146,19 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 				addr = NULL;
- 				size = bh->b_size - first;
- 			} else {
--				retval = dax_get_addr(bh, &addr, blkbits);
-+				if (kmap) {
-+					kunmap_atomic_pfn_t(kmap);
-+					kmap = NULL;
-+				}
-+				retval = dax_get_pfn(bh, &pfn, blkbits);
- 				if (retval < 0)
- 					break;
-+				kmap = kmap_atomic_pfn_t(pfn);
-+				if (!kmap) {
-+					retval = -EIO;
-+					break;
-+				}
-+				addr = kmap;
- 				if (buffer_unwritten(bh) || buffer_new(bh))
- 					dax_new_buf(addr, retval, first, pos,
- 									end);
-@@ -168,6 +182,9 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 		addr += len;
- 	}
- 
-+	if (kmap)
-+		kunmap_atomic_pfn_t(kmap);
-+
- 	return (pos == start) ? retval : pos - start;
- }
- 
-@@ -259,11 +276,17 @@ static int copy_user_bh(struct page *to, struct buffer_head *bh,
- 			unsigned blkbits, unsigned long vaddr)
- {
- 	void *vfrom, *vto;
--	if (dax_get_addr(bh, &vfrom, blkbits) < 0)
-+	__pfn_t pfn;
-+
-+	if (dax_get_pfn(bh, &pfn, blkbits) < 0)
++	nsblk = blk_dev->nsblk;
++	ndbr = blk_dev->ndbr;
++	ns_offset = lba * blk_dev->internal_lbasize + blk_dev->sector_size;
++	dev_offset = to_dev_offset(nsblk, ns_offset, len);
++	if (dev_offset == SIZE_MAX)
 +		return -EIO;
-+	vfrom = kmap_atomic_pfn_t(pfn);
-+	if (!vfrom)
- 		return -EIO;
- 	vto = kmap_atomic(to);
- 	copy_user_page(vto, vfrom, vaddr, to);
- 	kunmap_atomic(vto);
-+	kunmap_atomic_pfn_t(vfrom);
- 	return 0;
- }
- 
-@@ -274,7 +297,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 	sector_t sector = bh->b_blocknr << (inode->i_blkbits - 9);
- 	unsigned long vaddr = (unsigned long)vmf->virtual_address;
- 	void *addr;
--	unsigned long pfn;
-+	__pfn_t pfn;
- 	pgoff_t size;
- 	int error;
- 
-@@ -293,7 +316,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 		goto out;
- 	}
- 
--	error = bdev_direct_access(bh->b_bdev, sector, &addr, &pfn, bh->b_size);
-+	error = bdev_direct_access(bh->b_bdev, sector, &pfn, bh->b_size);
- 	if (error < 0)
- 		goto out;
- 	if (error < PAGE_SIZE) {
-@@ -301,10 +324,17 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 		goto out;
- 	}
- 
--	if (buffer_unwritten(bh) || buffer_new(bh))
-+	if (buffer_unwritten(bh) || buffer_new(bh)) {
-+		addr = kmap_atomic_pfn_t(pfn);
-+		if (!addr) {
-+			error = -EIO;
-+			goto out;
-+		}
- 		clear_page(addr);
-+		kunmap_atomic_pfn_t(addr);
++
++	while (len) {
++		unsigned int cur_len;
++		struct bio_vec bv;
++		void *iobuf;
++
++		bv = bvec_iter_bvec(bip->bip_vec, bip->bip_iter);
++		/*
++		 * The 'bv' obtained from bvec_iter_bvec has its .bv_len and
++		 * .bv_offset already adjusted for iter->bi_bvec_done, and we
++		 * can use those directly
++		 */
++
++		cur_len = min(len, bv.bv_len);
++		iobuf = kmap_atomic(bv.bv_page);
++		err = ndbr->do_io(ndbr, dev_offset, iobuf + bv.bv_offset,
++				cur_len, rw);
++		kunmap_atomic(iobuf);
++		if (err)
++			return err;
++
++		len -= cur_len;
++		dev_offset += cur_len;
++		bvec_iter_advance(bip->bip_vec, &bip->bip_iter, cur_len);
 +	}
- 
--	error = vm_insert_mixed(vma, vaddr, pfn);
-+	error = vm_insert_mixed(vma, vaddr, __pfn_t_to_pfn(pfn));
- 
-  out:
- 	i_mmap_unlock_read(mapping);
-@@ -517,10 +547,16 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
- 		return err;
- 	if (buffer_written(&bh)) {
- 		void *addr;
--		err = dax_get_addr(&bh, &addr, inode->i_blkbits);
-+		__pfn_t pfn;
 +
-+		err = dax_get_pfn(&bh, &pfn, inode->i_blkbits);
- 		if (err < 0)
- 			return err;
-+		addr = kmap_atomic_pfn_t(pfn);
-+		if (!addr)
++	return err;
++}
++
++#else /* CONFIG_BLK_DEV_INTEGRITY */
++static int nd_blk_rw_integrity(struct nd_blk_device *blk_dev,
++				struct bio_integrity_payload *bip, u64 lba,
++				int rw)
++{
++	return 0;
++}
++#endif
++
++static int nd_blk_do_bvec(struct nd_blk_device *blk_dev,
++			struct bio_integrity_payload *bip, struct page *page,
++			unsigned int len, unsigned int off, int rw,
++			sector_t sector)
++{
++	struct nd_blk_region *ndbr = blk_dev->ndbr;
++	resource_size_t	dev_offset, ns_offset;
++	int err = 0;
++	void *iobuf;
++	u64 lba;
++
++	while (len) {
++		unsigned int cur_len;
++
++		/*
++		 * If we don't have an integrity payload, we don't have to
++		 * split the bvec into sectors, as this would cause unnecessary
++		 * Block Window setup/move steps. the do_io routine is capable
++		 * of handling len <= PAGE_SIZE.
++		 */
++		cur_len = bip ? min(len, blk_dev->sector_size) : len;
++
++		lba = div_u64(sector << SECTOR_SHIFT, blk_dev->sector_size);
++		ns_offset = lba * blk_dev->internal_lbasize;
++		dev_offset = to_dev_offset(blk_dev->nsblk, ns_offset, cur_len);
++		if (dev_offset == SIZE_MAX)
 +			return -EIO;
- 		memset(addr + offset, 0, length);
-+		kunmap_atomic_pfn_t(addr);
++
++		iobuf = kmap_atomic(page);
++		err = ndbr->do_io(ndbr, dev_offset, iobuf + off, cur_len, rw);
++		kunmap_atomic(iobuf);
++		if (err)
++			return err;
++
++		if (bip) {
++			err = nd_blk_rw_integrity(blk_dev, bip, lba, rw);
++			if (err)
++				return err;
++		}
++		len -= cur_len;
++		off += cur_len;
++		sector += blk_dev->sector_size >> SECTOR_SHIFT;
++	}
++
++	return err;
++}
++
+ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
+ {
+ 	struct block_device *bdev = bio->bi_bdev;
+ 	struct gendisk *disk = bdev->bd_disk;
+-	struct nd_namespace_blk *nsblk;
++	struct bio_integrity_payload *bip;
+ 	struct nd_blk_device *blk_dev;
+-	struct nd_blk_region *ndbr;
+ 	struct bvec_iter iter;
+ 	struct bio_vec bvec;
+ 	int err = 0, rw;
+@@ -74,29 +182,33 @@ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
+ 
+ 	rw = bio_data_dir(bio);
+ 
++	/*
++	 * bio_integrity_enabled also checks if the bio already has an
++	 * integrity payload attached. If it does, we *don't* do a
++	 * bio_integrity_prep here - the payload has been generated by
++	 * another kernel subsystem, and we just pass it through.
++	 */
++	if (bio_integrity_enabled(bio) && bio_integrity_prep(bio)) {
++		err = -EIO;
++		goto out;
++	}
++
++	bip = bio_integrity(bio);
+ 	blk_dev = disk->private_data;
+-	nsblk = blk_dev->nsblk;
+-	ndbr = blk_dev->ndbr;
++
+ 	bio_for_each_segment(bvec, bio, iter) {
+ 		unsigned int len = bvec.bv_len;
+-		resource_size_t	dev_offset;
+-		void *iobuf;
+ 
+ 		BUG_ON(len > PAGE_SIZE);
+-
+-		dev_offset = to_dev_offset(nsblk, sector << SECTOR_SHIFT, len);
+-		if (dev_offset == SIZE_MAX) {
+-			err = -EIO;
++		err = nd_blk_do_bvec(blk_dev, bip, bvec.bv_page, len,
++					bvec.bv_offset, rw, sector);
++		if (err) {
++			dev_info(&blk_dev->nsblk->dev,
++					"io error in %s sector %lld, len %d,\n",
++					(rw == READ) ? "READ" : "WRITE",
++					(unsigned long long) sector, len);
+ 			goto out;
+ 		}
+-
+-		iobuf = kmap_atomic(bvec.bv_page);
+-		err = ndbr->do_io(ndbr, dev_offset, iobuf + bvec.bv_offset,
+-				len, rw);
+-		kunmap_atomic(iobuf);
+-		if (err)
+-			goto out;
+-
+ 		sector += len >> SECTOR_SHIFT;
  	}
  
+@@ -135,7 +247,8 @@ static int nd_blk_probe(struct device *dev)
+ 	struct nd_namespace_blk *nsblk = to_nd_namespace_blk(dev);
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+ 	struct nd_blk_device *blk_dev;
+-	resource_size_t disk_size;
++	resource_size_t disk_size, available_disk_size;
++	u64 internal_nlba;
+ 	struct gendisk *disk;
+ 	int err;
+ 
+@@ -148,6 +261,9 @@ static int nd_blk_probe(struct device *dev)
+ 		return -ENOMEM;
+ 
+ 	blk_dev->disk_size	= disk_size;
++	blk_dev->sector_size = ((nsblk->lbasize >= 4096) ? 4096 : 512);
++	blk_dev->internal_lbasize = roundup(nsblk->lbasize,
++						INT_LBASIZE_ALIGNMENT);
+ 
+ 	blk_dev->queue = blk_alloc_queue(GFP_KERNEL);
+ 	if (!blk_dev->queue) {
+@@ -158,7 +274,7 @@ static int nd_blk_probe(struct device *dev)
+ 	blk_queue_make_request(blk_dev->queue, nd_blk_make_request);
+ 	blk_queue_max_hw_sectors(blk_dev->queue, 1024);
+ 	blk_queue_bounce_limit(blk_dev->queue, BLK_BOUNCE_ANY);
+-	blk_queue_logical_block_size(blk_dev->queue, nsblk->lbasize);
++	blk_queue_logical_block_size(blk_dev->queue, blk_dev->sector_size);
+ 
+ 	disk = blk_dev->disk = alloc_disk(0);
+ 	if (!disk) {
+@@ -177,13 +293,21 @@ static int nd_blk_probe(struct device *dev)
+ 	disk->queue		= blk_dev->queue;
+ 	disk->flags		= GENHD_FL_EXT_DEVT;
+ 	sprintf(disk->disk_name, "ndblk%d.%d", nd_region->id, nsblk->id);
+-	set_capacity(disk, disk_size >> SECTOR_SHIFT);
++	set_capacity(disk, 0);
+ 
++	internal_nlba = div_u64(disk_size, blk_dev->internal_lbasize);
++	available_disk_size = internal_nlba * blk_dev->sector_size;
+ 	dev_set_drvdata(dev, blk_dev);
+-	nvdimm_bus_add_disk(disk);
++	err = nvdimm_bus_add_integrity_disk(disk, nd_blk_meta_size(blk_dev),
++			available_disk_size >> SECTOR_SHIFT);
++	if (err)
++		goto err_add_disk;
+ 
  	return 0;
-diff --git a/include/asm-generic/pfn.h b/include/asm-generic/pfn.h
-index 2f4ae40dc6a7..e9fed20d606a 100644
---- a/include/asm-generic/pfn.h
-+++ b/include/asm-generic/pfn.h
-@@ -49,7 +49,32 @@ static inline bool __pfn_t_has_page(__pfn_t pfn)
- 	return (pfn.data & PFN_MASK) == 0;
+ 
++ err_add_disk:
++	del_gendisk(disk);
++	put_disk(disk);
+  err_alloc_disk:
+ 	blk_cleanup_queue(blk_dev->queue);
+  err_alloc_queue:
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 2caa0ef7e67a..75b0d80a6bd9 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -31,7 +31,6 @@
+ #define ARENA_MAX_SIZE (1ULL << 39)	/* 512 GB */
+ #define RTT_VALID (1UL << 31)
+ #define RTT_INVALID 0
+-#define INT_LBASIZE_ALIGNMENT 64
+ #define BTT_PG_SIZE 4096
+ #define BTT_DEFAULT_NFREE ND_MAX_LANES
+ #define LOG_SEQ_INIT 1
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 3c14fee5aff4..d4fbc48f5643 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -243,17 +243,13 @@ int __nd_driver_register(struct nd_device_driver *nd_drv, struct module *owner,
  }
+ EXPORT_SYMBOL(__nd_driver_register);
  
-+static inline __pfn_t pfn_to_pfn_t(unsigned long pfn)
-+{
-+	__pfn_t pfn_t = { .data = (pfn << PFN_SHIFT) | PFN_DEV };
-+
-+	return pfn_t;
-+}
-+
-+static inline __pfn_t phys_to_pfn_t(dma_addr_t addr)
-+{
-+	return pfn_to_pfn_t(addr >> PAGE_SHIFT);
-+}
- #else
-+static inline __pfn_t phys_to_pfn_t(dma_addr_t addr)
-+{
-+	__pfn_t pfn_t = { .data = 0 };
-+
-+	/*
-+	 * With CONFIG_DEV_PFN=n the kernel expects every __pfn_t to
-+	 * have a corresponding entry in the kernel linear address map
-+	 * (struct page).
-+	 */
-+	BUG();
-+
-+	return pfn_t;
-+}
-+
- static inline bool __pfn_t_has_page(__pfn_t pfn)
+-/**
+- * nvdimm_bus_add_disk() - attach and run actions on an nvdimm block device
+- * @disk: disk device being registered
+- *
+- * Note, that @disk must be a descendant of an nvdimm_bus
+- */
+-int nvdimm_bus_add_disk(struct gendisk *disk)
++int nvdimm_bus_add_integrity_disk(struct gendisk *disk, u32 lbasize,
++		sector_t size)
  {
- 	return true;
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 535b82f790a6..35e404d598b2 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1552,8 +1552,7 @@ struct block_device_operations {
- 	int (*rw_page)(struct block_device *, sector_t, struct page *, int rw);
- 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
- 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
--	long (*direct_access)(struct block_device *, sector_t,
--					void **, unsigned long *pfn);
-+	long (*direct_access)(struct block_device *, sector_t, __pfn_t *pfn);
- 	unsigned int (*check_events) (struct gendisk *disk,
- 				      unsigned int clearing);
- 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
-@@ -1571,8 +1570,8 @@ extern int __blkdev_driver_ioctl(struct block_device *, fmode_t, unsigned int,
- extern int bdev_read_page(struct block_device *, sector_t, struct page *);
- extern int bdev_write_page(struct block_device *, sector_t, struct page *,
- 						struct writeback_control *);
--extern long bdev_direct_access(struct block_device *, sector_t, void **addr,
--						unsigned long *pfn, long size);
-+extern long bdev_direct_access(struct block_device *, sector_t,
-+		__pfn_t *pfn, long size);
- #else /* CONFIG_BLOCK */
+ 	const struct block_device_operations *ops = disk->fops;
+ 	struct device *dev = disk->driverfs_dev;
+ 	struct nvdimm_bus *nvdimm_bus;
++	int rc;
  
- struct block_device;
+ 	nvdimm_bus = walk_to_nvdimm_bus(dev);
+ 	if (!nvdimm_bus || !ops->rw_bytes)
+@@ -266,10 +262,25 @@ int nvdimm_bus_add_disk(struct gendisk *disk)
+ 	 */
+ 	nvdimm_bus_lock(&nvdimm_bus->dev);
+ 	add_disk(disk);
++	rc = nd_integrity_init(disk, lbasize);
++	if (size)
++		set_capacity(disk, size);
+ 	nd_btt_add_disk(nvdimm_bus, disk);
+ 	nvdimm_bus_unlock(&nvdimm_bus->dev);
+ 
+-	return 0;
++	return rc;
++}
++EXPORT_SYMBOL(nvdimm_bus_add_integrity_disk);
++
++/**
++ * nvdimm_bus_add_disk() - attach and run actions on an nvdimm block device
++ * @disk: disk device being registered
++ *
++ * Note, that @disk must be a descendant of an nvdimm_bus
++ */
++int nvdimm_bus_add_disk(struct gendisk *disk)
++{
++	return nvdimm_bus_add_integrity_disk(disk, 0, 0);
+ }
+ EXPORT_SYMBOL(nvdimm_bus_add_disk);
+ 
+@@ -292,6 +303,7 @@ void nvdimm_bus_remove_disk(struct gendisk *disk)
+ 	 */
+ 	nd_synchronize();
+ 
++	blk_integrity_unregister(disk);
+ 	del_gendisk(disk);
+ 	put_disk(disk);
+ }
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index 36f112995c0c..8f466c384b30 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -399,6 +399,9 @@ int nd_integrity_init(struct gendisk *disk, unsigned long meta_size)
+ 	};
+ 	int ret;
+ 
++	if (meta_size == 0)
++		return 0;
++
+ 	ret = blk_integrity_register(disk, &integrity);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 68780d768e7b..0fe541a1df49 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1013,7 +1013,8 @@ static ssize_t resource_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(resource);
+ 
+-static const unsigned long ns_lbasize_supported[] = { 512, 0 };
++static const unsigned long ns_lbasize_supported[] = { 512, 520, 528,
++	4096, 4104, 4160, 4224, 0 };
+ 
+ static ssize_t sector_size_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 1cea3f191a83..9b5fdb2215b1 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -29,6 +29,7 @@ enum {
+ 	 */
+ 	ND_MAX_LANES = 256,
+ 	SECTOR_SHIFT = 9,
++	INT_LBASIZE_ALIGNMENT = 64,
+ };
+ 
+ struct nvdimm_drvdata {
+@@ -159,6 +160,8 @@ void nvdimm_bus_lock(struct device *dev);
+ void nvdimm_bus_unlock(struct device *dev);
+ bool is_nvdimm_bus_locked(struct device *dev);
+ int nvdimm_bus_add_disk(struct gendisk *disk);
++int nvdimm_bus_add_integrity_disk(struct gendisk *disk, u32 lbasize,
++		sector_t size);
+ void nvdimm_bus_remove_disk(struct gendisk *disk);
+ void nvdimm_drvdata_release(struct kref *kref);
+ void put_ndd(struct nvdimm_drvdata *ndd);
 
