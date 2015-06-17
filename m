@@ -1,127 +1,49 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: [PATCH] mm: make GUP handle pfn mapping unless FOLL_GET is requested
-Date: Wed, 24 Jun 2015 13:25:03 +0300
-Message-Id: <1435141503-100635-1-git-send-email-kirill.shutemov@linux.intel.com>
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4hkS+3iTqJkcuES13vZKNYdWKufAqjD3+Pf4BaZ88nZEQ@mail.gmail.com>
+References: <20150611211354.10271.57950.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150611211947.10271.80768.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150617113121.GC9246@lst.de> <CAPcyv4hkS+3iTqJkcuES13vZKNYdWKufAqjD3+Pf4BaZ88nZEQ@mail.gmail.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Wed, 17 Jun 2015 08:08:49 -0700
+Message-ID: <CALCETrX_CCvZyoscZaOnqiyPgFmNg9i0qh452pTeHQnQGjAGug@mail.gmail.com>
+Subject: Re: [PATCH v4 6/6] arch, x86: pmem api for ensuring durability of
+ persistent memory updates
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, Arnd Bergmann <arnd@arndb.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, X86 ML <x86@kernel.org>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Luis Rodriguez <mcgrof@suse.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Bader <stefan.bader@canonical.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Ralf Baechle <ralf@linux-mips.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Michael Ellerman <mpe@ellerman.id.au>, Tejun Heo <tj@kernel.org>, Paul Mackerras <paulus@samba.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-With DAX, pfn mapping becoming more common. The patch adjusts GUP code
-to cover pfn mapping for cases when we don't need struct page to
-proceed.
+On Wed, Jun 17, 2015 at 7:54 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Wed, Jun 17, 2015 at 4:31 AM, Christoph Hellwig <hch@lst.de> wrote:
+>> This mess with arch_ methods and an ops vecor is almost unreadable.
+>>
+>> What's the problem with having something like:
+>>
+>> pmem_foo()
+>> {
+>>         if (arch_has_pmem)              // or sync_pmem
+>>                 arch_pmem_foo();
+>>         generic_pmem_foo();
+>> }
+>>
+>> This adds a branch at runtime, but that shoudn't really be any slower
+>> than an indirect call on architectures that matter.
+>
+> No doubt it's premature optimization, but it bothered me that we'll
+> end up calling cpuid perhaps multiple times every i/o.  If it's just a
+> readability concern I could wrap it in helpers.  Getting it upstream
+> is my primary concern at this point so I have no strong attachment to
+> the indirect calls if that's all that is preventing an ack.
 
-To make it possible, let's change follow_page() code to return -EEXIST
-error code if proper page table entry exists, but no corresponding
-struct page. __get_user_page() would ignore the error code and move to
-the next page frame.
+A cpuid per i/o would be a killer, but the cpufeature code is way
+smarter than that.
 
-The immediate effect of the change is working MAP_POPULATE and mlock()
-on DAX mappings.
+You want static_cpu_has, though -- it's even faster, since it gets
+patched at boot time.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
----
- mm/gup.c | 58 ++++++++++++++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 48 insertions(+), 10 deletions(-)
-
-diff --git a/mm/gup.c b/mm/gup.c
-index 222d57e335f9..03645f400748 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -33,6 +33,30 @@ static struct page *no_page_table(struct vm_area_struct *vma,
- 	return NULL;
- }
- 
-+static int follow_pfn_pte(struct vm_area_struct *vma, unsigned long address,
-+		pte_t *pte, unsigned int flags)
-+{
-+	/* No page to get reference */
-+	if (flags & FOLL_GET)
-+		return -EFAULT;
-+
-+	if (flags & FOLL_TOUCH) {
-+		pte_t entry = *pte;
-+
-+		if (flags & FOLL_WRITE)
-+			entry = pte_mkdirty(entry);
-+		entry = pte_mkyoung(entry);
-+
-+		if (!pte_same(*pte, entry)) {
-+			set_pte_at(vma->vm_mm, address, pte, entry);
-+			update_mmu_cache(vma, address, pte);
-+		}
-+	}
-+
-+	/* Proper page table entry exists, but no corresponding struct page */
-+	return -EEXIST;
-+}
-+
- static struct page *follow_page_pte(struct vm_area_struct *vma,
- 		unsigned long address, pmd_t *pmd, unsigned int flags)
- {
-@@ -74,10 +98,21 @@ retry:
- 
- 	page = vm_normal_page(vma, address, pte);
- 	if (unlikely(!page)) {
--		if ((flags & FOLL_DUMP) ||
--		    !is_zero_pfn(pte_pfn(pte)))
--			goto bad_page;
--		page = pte_page(pte);
-+		if (flags & FOLL_DUMP) {
-+			/* Avoid special (like zero) pages in core dumps */
-+			page = ERR_PTR(-EFAULT);
-+			goto out;
-+		}
-+
-+		if (is_zero_pfn(pte_pfn(pte))) {
-+			page = pte_page(pte);
-+		} else {
-+			int ret;
-+
-+			ret = follow_pfn_pte(vma, address, ptep, flags);
-+			page = ERR_PTR(ret);
-+			goto out;
-+		}
- 	}
- 
- 	if (flags & FOLL_GET)
-@@ -115,12 +150,9 @@ retry:
- 			unlock_page(page);
- 		}
- 	}
-+out:
- 	pte_unmap_unlock(ptep, ptl);
- 	return page;
--bad_page:
--	pte_unmap_unlock(ptep, ptl);
--	return ERR_PTR(-EFAULT);
--
- no_page:
- 	pte_unmap_unlock(ptep, ptl);
- 	if (!pte_none(pte))
-@@ -490,9 +522,15 @@ retry:
- 				goto next_page;
- 			}
- 			BUG();
--		}
--		if (IS_ERR(page))
-+		} else if (PTR_ERR(page) == -EEXIST) {
-+			/*
-+			 * Proper page table entry exists, but no corresponding
-+			 * struct page.
-+			 */
-+			goto next_page;
-+		} else if (IS_ERR(page)) {
- 			return i ? i : PTR_ERR(page);
-+		}
- 		if (pages) {
- 			pages[i] = page;
- 			flush_anon_page(vma, page, start);
--- 
-2.1.4
+--Andy
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
