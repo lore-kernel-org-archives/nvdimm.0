@@ -1,338 +1,57 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v7 10/16] libnvdimm,
- pmem: add libnvdimm support to the pmem driver
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 17 Jun 2015 19:14:14 -0400
-Message-ID: <20150617231414.11597.64427.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150617215027.11597.61414.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150617215027.11597.61414.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Return-Path: <owner-linux-mm@kvack.org>
+Message-ID: <1434562513.11808.100.camel@misato.fc.hp.com>
+Subject: Re: [PATCH v4 1/6] arch: unify ioremap prototypes and macro aliases
+From: Toshi Kani <toshi.kani@hp.com>
+Date: Wed, 17 Jun 2015 11:35:13 -0600
+In-Reply-To: <20150611211918.10271.74243.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: 
+	<20150611211354.10271.57950.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <20150611211918.10271.74243.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: axboe@kernel.dk, Boaz Harrosh <boaz@plexistor.com>, akpm@linux-foundation.org, sfr@canb.auug.org.au, neilb@suse.de, gregkh@linuxfoundation.org, rafael@kernel.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, jmoyer@redhat.com, "H. Peter Anvin" <hpa@zytor.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-api@vger.kernel.org, hch@lst.de, mingo@kernel.org
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: arnd@arndb.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, ross.zwisler@linux.intel.com, akpm@linux-foundation.org, jgross@suse.com, x86@kernel.org, konrad.wilk@oracle.com, benh@kernel.crashing.org, mcgrof@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stefan.bader@canonical.com, luto@amacapital.net, linux-mm@kvack.org, geert@linux-m68k.org, ralf@linux-mips.org, hmh@hmh.eng.br, mpe@ellerman.id.au, tj@kernel.org, paulus@samba.org, kbuild test robot <fengguang.wu@intel.com>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-nd_pmem attaches to persistent memory regions and namespaces emitted by
-the libnvdimm subsystem, and, same as the original pmem driver, presents
-the system-physical-address range as a block device.
+On Thu, 2015-06-11 at 17:19 -0400, Dan Williams wrote:
+> Some archs define the first parameter to ioremap() as unsigned long,
+> while the balance define it as resource_size_t.  Unify on
+> resource_size_t to enable passing ioremap function pointers.  Also, some
+> archs use function-like macros for defining ioremap aliases, but
+> asm-generic/iomap.h expects object-like macros, unify on the latter.
+> 
+ :
+> diff --git a/arch/ia64/include/asm/io.h b/arch/ia64/include/asm/io.h
+> index 80a7e34be009..8588ef767a44 100644
+> --- a/arch/ia64/include/asm/io.h
+> +++ b/arch/ia64/include/asm/io.h
+> @@ -424,8 +424,8 @@ __writeq (unsigned long val, volatile void __iomem *addr)
+>  
+>  # ifdef __KERNEL__
+>  
+> -extern void __iomem * ioremap(unsigned long offset, unsigned long size);
+> -extern void __iomem * ioremap_nocache (unsigned long offset, unsigned long size);
+> +extern void __iomem * ioremap(resource_size_t offset, unsigned long size);
+> +extern void __iomem * ioremap_nocache (resource_size_t offset, unsigned long size);
+>  extern void iounmap (volatile void __iomem *addr);
+>  extern void __iomem * early_ioremap (unsigned long phys_addr, unsigned long size);
+>  #define early_memremap(phys_addr, size)        early_ioremap(phys_addr, size)
 
-The existing e820-type-12 to pmem setup is converted to an nvdimm_bus
-that emits an nd_namespace_io device.
+This ia64 io.h also defines ioremap_cache().  Should this be also
+changed to resource_size_t?
 
-Note that the X in 'pmemX' is now derived from the parent region.  This
-provides some stability to the pmem devices names from boot-to-boot.
-The minor numbers are also more predictable by passing 0 to
-alloc_disk().
+static inline void __iomem * ioremap_cache (unsigned long phys_addr,
+unsigned long size)
+{
+	return ioremap(phys_addr, size);
+}
 
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Boaz Harrosh <boaz@plexistor.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Acked-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/Kconfig       |    3 ++
- arch/x86/kernel/pmem.c |   92 +++++++++++++++++++++++++++++++-----------------
- drivers/nvdimm/pmem.c  |   68 +++++++++++++++++------------------
- 3 files changed, 96 insertions(+), 67 deletions(-)
+-Toshi
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 226d5696e1d1..1a2cbf641667 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -1424,6 +1424,9 @@ source "mm/Kconfig"
- 
- config X86_PMEM_LEGACY
- 	bool "Support non-standard NVDIMMs and ADR protected memory"
-+	depends on PHYS_ADDR_T_64BIT
-+	depends on BLK_DEV
-+	select LIBNVDIMM
- 	help
- 	  Treat memory marked using the non-standard e820 type of 12 as used
- 	  by the Intel Sandy Bridge-EP reference BIOS as protected memory.
-diff --git a/arch/x86/kernel/pmem.c b/arch/x86/kernel/pmem.c
-index 3420c874ddc5..0f4ef472ab9e 100644
---- a/arch/x86/kernel/pmem.c
-+++ b/arch/x86/kernel/pmem.c
-@@ -1,53 +1,81 @@
- /*
-  * Copyright (c) 2015, Christoph Hellwig.
-+ * Copyright (c) 2015, Intel Corporation.
-  */
--#include <linux/memblock.h>
- #include <linux/platform_device.h>
--#include <linux/slab.h>
-+#include <linux/libnvdimm.h>
-+#include <linux/module.h>
- #include <asm/e820.h>
--#include <asm/page_types.h>
--#include <asm/setup.h>
- 
--static __init void register_pmem_device(struct resource *res)
-+static void e820_pmem_release(struct device *dev)
- {
--	struct platform_device *pdev;
--	int error;
-+	struct nvdimm_bus *nvdimm_bus = dev->platform_data;
- 
--	pdev = platform_device_alloc("pmem", PLATFORM_DEVID_AUTO);
--	if (!pdev)
--		return;
-+	if (nvdimm_bus)
-+		nvdimm_bus_unregister(nvdimm_bus);
-+}
- 
--	error = platform_device_add_resources(pdev, res, 1);
--	if (error)
--		goto out_put_pdev;
-+static struct platform_device e820_pmem = {
-+	.name = "e820_pmem",
-+	.id = -1,
-+	.dev = {
-+		.release = e820_pmem_release,
-+	},
-+};
- 
--	error = platform_device_add(pdev);
--	if (error)
--		goto out_put_pdev;
--	return;
-+static const struct attribute_group *e820_pmem_attribute_groups[] = {
-+	&nvdimm_bus_attribute_group,
-+	NULL,
-+};
- 
--out_put_pdev:
--	dev_warn(&pdev->dev, "failed to add 'pmem' (persistent memory) device!\n");
--	platform_device_put(pdev);
--}
-+static const struct attribute_group *e820_pmem_region_attribute_groups[] = {
-+	&nd_region_attribute_group,
-+	&nd_device_attribute_group,
-+	NULL,
-+};
- 
--static __init int register_pmem_devices(void)
-+static __init int register_e820_pmem(void)
- {
--	int i;
-+	static struct nvdimm_bus_descriptor nd_desc;
-+	struct device *dev = &e820_pmem.dev;
-+	struct nvdimm_bus *nvdimm_bus;
-+	int rc, i;
-+
-+	rc = platform_device_register(&e820_pmem);
-+	if (rc)
-+		return rc;
-+
-+	nd_desc.attr_groups = e820_pmem_attribute_groups;
-+	nd_desc.provider_name = "e820";
-+	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
-+	if (!nvdimm_bus)
-+		goto err;
-+	dev->platform_data = nvdimm_bus;
- 
- 	for (i = 0; i < e820.nr_map; i++) {
- 		struct e820entry *ei = &e820.map[i];
-+		struct resource res = {
-+			.flags	= IORESOURCE_MEM,
-+			.start	= ei->addr,
-+			.end	= ei->addr + ei->size - 1,
-+		};
-+		struct nd_region_desc ndr_desc;
-+
-+		if (ei->type != E820_PRAM)
-+			continue;
- 
--		if (ei->type == E820_PRAM) {
--			struct resource res = {
--				.flags	= IORESOURCE_MEM,
--				.start	= ei->addr,
--				.end	= ei->addr + ei->size - 1,
--			};
--			register_pmem_device(&res);
--		}
-+		memset(&ndr_desc, 0, sizeof(ndr_desc));
-+		ndr_desc.res = &res;
-+		ndr_desc.attr_groups = e820_pmem_region_attribute_groups;
-+		if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
-+			goto err;
- 	}
- 
- 	return 0;
-+
-+ err:
-+	dev_err(dev, "failed to register legacy persistent memory ranges\n");
-+	platform_device_unregister(&e820_pmem);
-+	return -ENXIO;
- }
--device_initcall(register_pmem_devices);
-+device_initcall(register_e820_pmem);
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index eabf4a8d0085..d46975ed9e40 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -1,7 +1,7 @@
- /*
-  * Persistent Memory Driver
-  *
-- * Copyright (c) 2014, Intel Corporation.
-+ * Copyright (c) 2014-2015, Intel Corporation.
-  * Copyright (c) 2015, Christoph Hellwig <hch@lst.de>.
-  * Copyright (c) 2015, Boaz Harrosh <boaz@plexistor.com>.
-  *
-@@ -23,8 +23,8 @@
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
--
--#define PMEM_MINORS		16
-+#include <linux/nd.h>
-+#include "nd.h"
- 
- struct pmem_device {
- 	struct request_queue	*pmem_queue;
-@@ -37,7 +37,6 @@ struct pmem_device {
- };
- 
- static int pmem_major;
--static atomic_t pmem_index;
- 
- static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 			unsigned int len, unsigned int off, int rw,
-@@ -118,11 +117,12 @@ static const struct block_device_operations pmem_fops = {
- 	.direct_access =	pmem_direct_access,
- };
- 
--static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
-+static struct pmem_device *pmem_alloc(struct device *dev,
-+		struct resource *res, int id)
- {
- 	struct pmem_device *pmem;
- 	struct gendisk *disk;
--	int idx, err;
-+	int err;
- 
- 	err = -ENOMEM;
- 	pmem = kzalloc(sizeof(*pmem), GFP_KERNEL);
-@@ -134,7 +134,8 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
- 
- 	err = -EINVAL;
- 	if (!request_mem_region(pmem->phys_addr, pmem->size, "pmem")) {
--		dev_warn(dev, "could not reserve region [0x%pa:0x%zx]\n", &pmem->phys_addr, pmem->size);
-+		dev_warn(dev, "could not reserve region [0x%pa:0x%zx]\n",
-+				&pmem->phys_addr, pmem->size);
- 		goto out_free_dev;
- 	}
- 
-@@ -155,19 +156,17 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
- 	blk_queue_max_hw_sectors(pmem->pmem_queue, 1024);
- 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
- 
--	disk = alloc_disk(PMEM_MINORS);
-+	disk = alloc_disk(0);
- 	if (!disk)
- 		goto out_free_queue;
- 
--	idx = atomic_inc_return(&pmem_index) - 1;
--
- 	disk->major		= pmem_major;
--	disk->first_minor	= PMEM_MINORS * idx;
-+	disk->first_minor	= 0;
- 	disk->fops		= &pmem_fops;
- 	disk->private_data	= pmem;
- 	disk->queue		= pmem->pmem_queue;
- 	disk->flags		= GENHD_FL_EXT_DEVT;
--	sprintf(disk->disk_name, "pmem%d", idx);
-+	sprintf(disk->disk_name, "pmem%d", id);
- 	disk->driverfs_dev = dev;
- 	set_capacity(disk, pmem->size >> 9);
- 	pmem->pmem_disk = disk;
-@@ -198,42 +197,38 @@ static void pmem_free(struct pmem_device *pmem)
- 	kfree(pmem);
- }
- 
--static int pmem_probe(struct platform_device *pdev)
-+static int nd_pmem_probe(struct device *dev)
- {
-+	struct nd_region *nd_region = to_nd_region(dev->parent);
-+	struct nd_namespace_io *nsio = to_nd_namespace_io(dev);
- 	struct pmem_device *pmem;
--	struct resource *res;
--
--	if (WARN_ON(pdev->num_resources > 1))
--		return -ENXIO;
--
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENXIO;
- 
--	pmem = pmem_alloc(&pdev->dev, res);
-+	pmem = pmem_alloc(dev, &nsio->res, nd_region->id);
- 	if (IS_ERR(pmem))
- 		return PTR_ERR(pmem);
- 
--	platform_set_drvdata(pdev, pmem);
-+	dev_set_drvdata(dev, pmem);
- 
- 	return 0;
- }
- 
--static int pmem_remove(struct platform_device *pdev)
-+static int nd_pmem_remove(struct device *dev)
- {
--	struct pmem_device *pmem = platform_get_drvdata(pdev);
-+	struct pmem_device *pmem = dev_get_drvdata(dev);
- 
- 	pmem_free(pmem);
- 	return 0;
- }
- 
--static struct platform_driver pmem_driver = {
--	.probe		= pmem_probe,
--	.remove		= pmem_remove,
--	.driver		= {
--		.owner	= THIS_MODULE,
--		.name	= "pmem",
-+MODULE_ALIAS("pmem");
-+MODULE_ALIAS_ND_DEVICE(ND_DEVICE_NAMESPACE_IO);
-+static struct nd_device_driver nd_pmem_driver = {
-+	.probe = nd_pmem_probe,
-+	.remove = nd_pmem_remove,
-+	.drv = {
-+		.name = "nd_pmem",
- 	},
-+	.type = ND_DRIVER_NAMESPACE_IO,
- };
- 
- static int __init pmem_init(void)
-@@ -244,16 +239,19 @@ static int __init pmem_init(void)
- 	if (pmem_major < 0)
- 		return pmem_major;
- 
--	error = platform_driver_register(&pmem_driver);
--	if (error)
-+	error = nd_driver_register(&nd_pmem_driver);
-+	if (error) {
- 		unregister_blkdev(pmem_major, "pmem");
--	return error;
-+		return error;
-+	}
-+
-+	return 0;
- }
- module_init(pmem_init);
- 
- static void pmem_exit(void)
- {
--	platform_driver_unregister(&pmem_driver);
-+	driver_unregister(&nd_pmem_driver.drv);
- 	unregister_blkdev(pmem_major, "pmem");
- }
- module_exit(pmem_exit);
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
