@@ -1,79 +1,65 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v5 10/21] pmem: Dynamically allocate partition numbers
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 01 Jun 2015 20:15:03 -0400
-Message-ID: <20150602001503.4506.10472.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20150617235452.12943.27817.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150617235452.12943.27817.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 18 Jun 2015 12:25:37 -0700
+Message-ID: <CAPcyv4jcc7oA5xZLB3Jh5bnvqiufjpxOCFH8_aOmBvA6vH3SWg@mail.gmail.com>
+Subject: Re: [PATCH 01/15] block: introduce an ->rw_bytes() block device operation
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: axboe@kernel.dk, sfr@canb.auug.org.au, rafael@kernel.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, linux-api@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
+To: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: Ingo Molnar <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+On Wed, Jun 17, 2015 at 4:54 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> Why do we need a new method in block_device_operations?
+>
+> The capacities of persistent memory make it too large to map as RAM (no
+> struct page coverage by default), so Linux arranges for it to be managed
+> as a block device. The bio interface to a block device enforces sector
+> at a time i/o and has infrastructure for asynchronous completion of i/o.
+> The ->rw_page() interface is closely tied to the page cache and also
+> carries asynchronous i/o completion assumptions.  NVDIMM devices are
+> fast enough to complete i/o's synchronously (memcpy) and some in kernel
+> applications can take advantage of the byte-aligned (as opposed to
+> sector-aligned) nature of the media.  The ->rw_bytes() operation is
+> added to fill this role that does not fit into any existing access
+> method.
+>
+> It could be argued that a ->rw_bytes() method makes a struct
+> block_device not a *block* device.  However, the applications for
+> persistent memory as storage devices makes them more "block" devices
+> than "character" devices.
+>
+> The first consumer of the ->rw_bytes() capability is a stacked
+> block_device driver (BTT - block translation table) that adds atomic
+> sector update semantics on top of an nvdimm storage device.
+>
+> Why enable drivers like BTT on top of a new globally visibly
+> block_device_operations op rather than an internal detail of nvdimm
+> drivers?
+>
+> 1/ We want ->rw_bytes() consumers to be enabled on either a per-disk or
+> per-partition basis.  Consider the case of enabling DAX+XFS on a single
+> persistent memory disk whereby the metadata needs atomic sector update
+> guarantees, but the data would like to be DAX capable.  Solution is to
+> create two partitions and enable BTT on the "metadata/XFS-logdev"
+> partition.
+>
+> 2/ We want this configuration topology to be visible to the sysfs device
+> model, and not an internal detail of nvdimm drivers requiring special
+> tooling.  For example if you ever wanted to "fsck" BTT metadata that
+> could be carried out on the raw nvdimm device directly rather than
+> require custom tooling / mechanisms to access the raw media.
+>
+> 3/ It becomes trivial to add new BTT like drivers without touching the
+> nvdimm drivers to add is_btt_mode(), is_foo_mode(), etc... checks in the
+> fast path.
+>
 
-Dynamically allocate minor numbers for partitions instead of statically
-preallocating them.
+Acked-by: Jens Axboe <axboe@fb.com> ...off list.
 
-It gives us a simpler minors scheme, and makes it so we get a consistent
-major when moving past partition 16.  Here's what happens with the
-current code:
-
- pmem0      249:0    0 63.5G  0 rom
- ├─pmem0p1  249:1    0    1G  0 part
- ├─pmem0p2  249:2    0    1G  0 part
- ├─pmem0p3  249:3    0    1G  0 part
- ├─pmem0p4  249:4    0    1G  0 part
- ├─pmem0p5  249:5    0    1G  0 part
- ├─pmem0p6  249:6    0    1G  0 part
- ├─pmem0p7  249:7    0    1G  0 part
- ├─pmem0p8  249:8    0    1G  0 part
- ├─pmem0p9  249:9    0    1G  0 part
- ├─pmem0p10 249:10   0    1G  0 part
- ├─pmem0p11 249:11   0    1G  0 part
- ├─pmem0p12 249:12   0    1G  0 part
- ├─pmem0p13 249:13   0    1G  0 part
- ├─pmem0p14 249:14   0    1G  0 part
- ├─pmem0p15 249:15   0    1G  0 part
- ├─pmem0p16 259:0    0    1G  0 part
- ├─pmem0p17 259:1    0    1G  0 part
- └─pmem0p18 259:2    0    1G  0 part
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pmem.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index cf5d53eda9e5..0842d27ffc8d 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -26,8 +26,6 @@
- #include <linux/nd.h>
- #include "nd.h"
- 
--#define PMEM_MINORS		16
--
- struct pmem_device {
- 	struct request_queue	*pmem_queue;
- 	struct gendisk		*pmem_disk;
-@@ -156,12 +154,12 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res,
- 	blk_queue_max_hw_sectors(pmem->pmem_queue, 1024);
- 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
- 
--	disk = alloc_disk(PMEM_MINORS);
-+	disk = alloc_disk(0);
- 	if (!disk)
- 		goto out_free_queue;
- 
- 	disk->major		= pmem_major;
--	disk->first_minor	= PMEM_MINORS * id;
-+	disk->first_minor	= 0;
- 	disk->fops		= &pmem_fops;
- 	disk->private_data	= pmem;
- 	disk->queue		= pmem->pmem_queue;
-
+Christoph, I assume that satisfies your primary concern with the BTT
+infrastructure and implementation?
