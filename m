@@ -1,48 +1,38 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v12 10/10] drivers/block/pmem: Map NVDIMM with ioremap_wt()
-Date: Mon,  1 Jun 2015 13:36:33 -0600
-Message-Id: <1433187393-22688-11-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
-References: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, akpm@linux-foundation.org, arnd@arndb.de
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, jgross@suse.com, stefan.bader@canonical.com, luto@amacapital.net, hmh@hmh.eng.br, yigal@plexistor.com, konrad.wilk@oracle.com, Elliott@hp.com, mcgrof@suse.com, hch@lst.de, Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH 0/3] mm, x86: Fix ioremap RAM check interfaces
+Date: Fri, 19 Jun 2015 15:44:02 -0600
+Message-Id: <1434750245-6304-1-git-send-email-toshi.kani@hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, akpm@linux-foundation.org
+Cc: travis@sgi.com, roland@purestorage.com, dan.j.williams@intel.com, x86@kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pmem driver maps NVDIMM with ioremap_nocache() as we cannot
-write back the contents of the CPU caches in case of a crash.
+ioremap() checks if a target range is RAM and fails the request
+if true.  There are multiple issues in the iormap RAM check
+interfaces.
 
-This patch changes to use ioremap_wt(), which provides uncached
-writes but cached reads, for improving read performance.
+ 1. region_is_ram() does not work at all.
+ 2. The RAM checks, region_is_ram() and __ioremap_caller() via
+    walk_system_ram_range(), are redundant.
+ 3. walk_system_ram_range() requires the RAM ranges page-aligned
+    in the resource table.  This restriction has allowed multiple
+    ioremap calls to setup_data, which is not page-aligned.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
+This patchset solves issue 1 and 2.  Issue 3 is not addressed in
+this patchset, but is taken into the account that ioremap continues
+to allow such callers until it is addressed.
+
 ---
- drivers/block/pmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Toshi Kani (3):
+  1/3 mm, x86: Fix warning in ioremap RAM check
+  2/3 mm, x86: Remove region_is_ram() call from ioremap
+  3/3 mm: Fix bugs in region_is_ram()
 
-diff --git a/drivers/block/pmem.c b/drivers/block/pmem.c
-index eabf4a8..095dfaa 100644
---- a/drivers/block/pmem.c
-+++ b/drivers/block/pmem.c
-@@ -139,11 +139,11 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
- 	}
- 
- 	/*
--	 * Map the memory as non-cachable, as we can't write back the contents
-+	 * Map the memory as write-through, as we can't write back the contents
- 	 * of the CPU caches in case of a crash.
- 	 */
- 	err = -ENOMEM;
--	pmem->virt_addr = ioremap_nocache(pmem->phys_addr, pmem->size);
-+	pmem->virt_addr = ioremap_wt(pmem->phys_addr, pmem->size);
- 	if (!pmem->virt_addr)
- 		goto out_release_region;
- 
-
+---
+ arch/x86/mm/ioremap.c | 23 ++++++-----------------
+ kernel/resource.c     |  6 +++---
+ 2 files changed, 9 insertions(+), 20 deletions(-)
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+Please read the FAQ at  http://www.tux.org/lkml/
