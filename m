@@ -1,55 +1,56 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <x49fv5jvasv.fsf@segfault.boston.devel.redhat.com>
-References: <CAPcyv4iAkSaCOzpJHJLLtJG_9M=5Jp75Kc9tVeCr__OjEB=ajQ@mail.gmail.com>
+In-Reply-To: <20150622165717.GA9803@lst.de>
+References: <20150621135406.GA9572@lst.de>
+	<CAPcyv4iAkSaCOzpJHJLLtJG_9M=5Jp75Kc9tVeCr__OjEB=ajQ@mail.gmail.com>
 	<20150622063028.GA30434@lst.de>
 	<CAPcyv4hmYiU5Gzmz8prPCESOYGn099-TffFTZH0E2OAx+JzkTQ@mail.gmail.com>
 	<20150622072844.GA31263@lst.de>
 	<CAPcyv4gUp6LtYVuzbQfzq6RbDyf=3nQ0509TPnNCJtVBazrUTg@mail.gmail.com>
-	<x49pp4nwzun.fsf@segfault.boston.devel.redhat.com>
-	<20150622154138.GC7952@lst.de>
-	<x49ioafwx55.fsf@segfault.boston.devel.redhat.com>
-	<20150622163224.GA9168@lst.de>
-	<x49a8vrwv7f.fsf@segfault.boston.devel.redhat.com>
-	<20150622164804.GA9393@lst.de>
-	<x49fv5jvasv.fsf@segfault.boston.devel.redhat.com>
-Date: Mon, 22 Jun 2015 12:04:05 -0700
-Message-ID: <CAPcyv4gr5rVBFcx-4xzs9z8zPGOXUMdQ-O5n7Tpo7ur2FxzNaw@mail.gmail.com>
+	<20150622154056.GB7952@lst.de>
+	<CAPcyv4hQ_r--8kmLZrkSZV5OBPAFt0VeRWN1r_OEhuxh96rxyw@mail.gmail.com>
+	<20150622164515.GA9281@lst.de>
+	<CAPcyv4gNLcw5ucb65RjRyuh=22vMDmrmyh5erQ50uJ45s-UMEQ@mail.gmail.com>
+	<20150622165717.GA9803@lst.de>
+Date: Mon, 22 Jun 2015 09:59:58 -0700
+Message-ID: <CAPcyv4isdr4JbOZUGDVt93Y3goA_f2yJm8tYZzPR0SejAE+XWA@mail.gmail.com>
 Subject: Re: [PATCH 14/15] libnvdimm: support read-only btt backing devices
 From: Dan Williams <dan.j.williams@intel.com>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jun 22, 2015 at 11:48 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
-> Christoph Hellwig <hch@lst.de> writes:
->
->> On Mon, Jun 22, 2015 at 12:42:44PM -0400, Jeff Moyer wrote:
->>> OK, add torn sector detection/recovery to that statement, then.  More
->>> importantly, do you agree with the sentiment or not?
+On Mon, Jun 22, 2015 at 9:57 AM, Christoph Hellwig <hch@lst.de> wrote:
+> On Mon, Jun 22, 2015 at 09:54:51AM -0700, Dan Williams wrote:
+>> > I don't see why you're comparing with MD and DM here.  MD and DM
+>> > sit cleanly ontop of any block device.  If btt was independent of
+>> > libnvdimm and just used ->rw_bytes we could see it as this.
+>> >
+>> > But it's all a giant entangled mess, where btt for example is probed
+>> > by libnvdimm.  At the same time pmem.c isn't really a true block
+>> > driver, it's really just a trivial shim between the block API
+>> > and pmem-style memcpy.  Especially with the proper pmem API btt
+>> > would become cleaner just calling that directly.
 >>
->> I think we're getting on a very slipper slope if we think about
->> application here.  Buffered I/O application must deal with torn
->> writes at any granulairty anyway, e.g. fsync + rename is the
->> only thing they can rely on right now (I actually have software O_ATOMIC
->> code to avoid this, but that's another story).
+>> The pmem api does nothing to fix torn sectors, there's no extra
+>> atomicity guarantees that come from those instructions.
 >
-> OK, so you think applications using buffered I/O will Just Work(TM)?  My
-> guess is that things will start to break that hadn't broken in the
-> past.  Sure, the application isn't designed properly, and that should be
-> fixed, but we shouldn't foist this on users as the default.
+> Of course not.  And neither does pmem.c help with you in any way.
 >
->> Direct I/O using application can make assumption if they know the sector
->> size, and we must have a way for them to be able to see our new
->> "subsector sector size".
+> That's the point:  btt should be a peer to pmem.c, not on top of it
+> as there's no value add in pmem.c for it, and they are logically peers.
 >
-> You need to let them determine that when NOT using the btt, yes.  Right
-> now, I don't think there's a way to determine what the underlying atomic
-> write unit is.  That's something the NFIT spec probably should have
-> defined.
+>> Well, let's start with per-disk btt and see where that gets us, we can
+>> always ramp up complexity later.  I'd just as soon make the default
+>> opt-in/out a Kconfig toggle with a sysfs override.
+>
+> Kconfig or sysfs are both utterly horrible choices.  It's a disk format
+> choice so it needs to be persisted.
 
-There are no atomic write units for NFIT to advertise beyond cpu register width.
+Of course it will be persisted with an on disk BTT superblock.
+Establishing that superblock by default and deleting at on-demand are
+via Kconfig and sysfs.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-fsdevel" in
