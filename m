@@ -1,25 +1,55 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Tue, 23 Jun 2015 12:07:57 +0200
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v5 2/6] arch: unify ioremap prototypes and macro aliases
-Message-ID: <20150623100757.GA24894@lst.de>
-References: <20150622081028.35954.89885.stgit@dwillia2-desk3.jf.intel.com> <20150622082427.35954.73529.stgit@dwillia2-desk3.jf.intel.com> <20150622161002.GB8240@lst.de> <CAPcyv4gSMixA6KNpqXR8pkEpff=Z-N+LbQmuxpiVLs4yMfqZSg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4gSMixA6KNpqXR8pkEpff=Z-N+LbQmuxpiVLs4yMfqZSg@mail.gmail.com>
+In-Reply-To: <20150622161002.GB8240@lst.de>
+References: <20150622081028.35954.89885.stgit@dwillia2-desk3.jf.intel.com>
+	<20150622082427.35954.73529.stgit@dwillia2-desk3.jf.intel.com>
+	<20150622161002.GB8240@lst.de>
+Date: Mon, 22 Jun 2015 10:12:40 -0700
+Message-ID: <CAPcyv4gSMixA6KNpqXR8pkEpff=Z-N+LbQmuxpiVLs4yMfqZSg@mail.gmail.com>
+Subject: Re: [PATCH v5 2/6] arch: unify ioremap prototypes and macro aliases
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>, Arnd Bergmann <arnd@arndb.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, X86 ML <x86@kernel.org>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Luis Rodriguez <mcgrof@suse.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Bader <stefan.bader@canonical.com>, Andy Lutomirski <luto@amacapital.net>, linux-mm@kvack.org, Geert Uytterhoeven <geert@linux-m68k.org>, Ralf Baechle <ralf@linux-mips.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, mpe@ellerman.id.au, Tejun Heo <tj@kernel.org>, Paul Mackerras <paulus@samba.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Arnd Bergmann <arnd@arndb.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, X86 ML <x86@kernel.org>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Luis Rodriguez <mcgrof@suse.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Bader <stefan.bader@canonical.com>, Andy Lutomirski <luto@amacapital.net>, linux-mm@kvack.org, Geert Uytterhoeven <geert@linux-m68k.org>, Ralf Baechle <ralf@linux-mips.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, mpe@ellerman.id.au, Tejun Heo <tj@kernel.org>, Paul Mackerras <paulus@samba.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jun 22, 2015 at 10:12:40AM -0700, Dan Williams wrote:
-> Is that an acked-by for this cycle with a request to go deeper for 4.3?
+On Mon, Jun 22, 2015 at 9:10 AM, Christoph Hellwig <hch@lst.de> wrote:
+> On Mon, Jun 22, 2015 at 04:24:27AM -0400, Dan Williams wrote:
+>> Some archs define the first parameter to ioremap() as unsigned long,
+>> while the balance define it as resource_size_t.  Unify on
+>> resource_size_t to enable passing ioremap function pointers.  Also, some
+>> archs use function-like macros for defining ioremap aliases, but
+>> asm-generic/io.h expects object-like macros, unify on the latter.
+>>
+>> Move all handling of ioremap aliasing (i.e. ioremap_wt => ioremap) to
+>> include/linux/io.h.  Add a check to include/linux/io.h to warn at
+>> compile time if an arch violates expectations.
+>>
+>> Kill ARCH_HAS_IOREMAP_WC and ARCH_HAS_IOREMAP_WT in favor of just
+>> testing for ioremap_wc, and ioremap_wt being defined.  This arrangement
+>> allows drivers to know when ioremap_<foo> are being re-directed to plain
+>> ioremap.
+>>
+>> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>
+> Hmm, this is quite a bit of churn, and doesn't make the interface lot
+> more obvious.
+>
+> I guess it's enough to get the pmem related bits going
 
-I wouldn't really expect something this wide reaching to be picked up
-for this cycle, but if you manage to get it in:
+Is that an acked-by for this cycle with a request to go deeper for 4.3?
 
-Acked-by: Christoph Hellwig <hch@lst.de>
+> but I'd really
+> prefer defining the ioremap* prototype in linux/io.h and requiring
+> and out of line implementation in the architectures, it's not like
+> it's a fast path.  And to avoid the ifdef mess make it something like:
+>
+> void __iomem *ioremap_flags(resource_size_t offset, unsigned long size,
+>                         unsigned long prot_val, unsigned flags);
+
+Yes, I do like this even better.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
