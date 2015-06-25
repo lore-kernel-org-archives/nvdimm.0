@@ -1,435 +1,337 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v3 3/6] arch/*/asm/io.h: add ioremap_cache() to all
- architectures
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v2 08/17] libnvdimm, blk: add support for blk integrity
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 03 Jun 2015 17:34:28 -0400
-Message-ID: <20150603213428.13749.99455.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150603211948.13749.85816.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150603211948.13749.85816.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 25 Jun 2015 05:37:01 -0400
+Message-ID: <20150625093701.40066.83284.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
+References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: arnd@arndb.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
-Cc: jgross@suse.com, x86@kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, mcgrof@suse.com, konrad.wilk@oracle.com, linux-kernel@vger.kernel.org, stefan.bader@canonical.com, luto@amacapital.net, linux-mm@kvack.org, geert@linux-m68k.org, ralf@linux-mips.org, hmh@hmh.eng.br, mpe@ellerman.id.au, tj@kernel.org, paulus@samba.org, hch@lst.de
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, Vishal Verma <vishal.l.verma@linux.intel.com>, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to ioremap_wc() let architecture implementations optionally
-provide ioremap_cache().  As is, current ioremap_cache() users have
-architecture dependencies that prevent them from compiling on archs
-without ioremap_cache().  In some cases the architectures that have a
-cached ioremap() capability have an identifier other than
-"ioremap_cache".
+From: Vishal Verma <vishal.l.verma@intel.com>
 
-Allow drivers to compile with ioremap_cache() support and fallback to a
-safe / uncached ioremap otherwise.
+Support multiple block sizes (sector + metadata) for nd_blk in the
+same way as done for the BTT. Add the idea of an 'internal' lbasize,
+which is properly aligned and padded, and store metadata in this space.
 
-Cc: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arc/include/asm/io.h        |    1 +
- arch/arm/include/asm/io.h        |    2 ++
- arch/arm64/include/asm/io.h      |    3 +++
- arch/avr32/include/asm/io.h      |    1 +
- arch/frv/include/asm/io.h        |    6 ++++++
- arch/ia64/include/asm/io.h       |    5 -----
- arch/m32r/include/asm/io.h       |    1 +
- arch/m68k/include/asm/io_mm.h    |    7 +++++++
- arch/m68k/include/asm/io_no.h    |    5 +++++
- arch/metag/include/asm/io.h      |    5 +++++
- arch/microblaze/include/asm/io.h |    1 +
- arch/mips/include/asm/io.h       |   17 +++++++++++++----
- arch/mn10300/include/asm/io.h    |    1 +
- arch/nios2/include/asm/io.h      |    1 +
- arch/s390/include/asm/io.h       |    1 +
- arch/sparc/include/asm/io_32.h   |    1 +
- arch/sparc/include/asm/io_64.h   |    1 +
- arch/tile/include/asm/io.h       |    1 +
- arch/x86/include/asm/io.h        |    1 +
- arch/xtensa/include/asm/io.h     |    3 +++
- include/asm-generic/io.h         |    8 ++++++++
- include/asm-generic/iomap.h      |    4 ++++
- 22 files changed, 67 insertions(+), 9 deletions(-)
+ drivers/nvdimm/blk.c            |  174 ++++++++++++++++++++++++++++++++++-----
+ drivers/nvdimm/btt.h            |    1 
+ drivers/nvdimm/core.c           |    3 +
+ drivers/nvdimm/namespace_devs.c |    3 -
+ drivers/nvdimm/nd.h             |    1 
+ 5 files changed, 159 insertions(+), 23 deletions(-)
 
-diff --git a/arch/arc/include/asm/io.h b/arch/arc/include/asm/io.h
-index 7cc4ced5dbf4..6b6f5a47acec 100644
---- a/arch/arc/include/asm/io.h
-+++ b/arch/arc/include/asm/io.h
-@@ -19,6 +19,7 @@ extern void __iomem *ioremap_prot(phys_addr_t offset, unsigned long size,
- extern void iounmap(const void __iomem *addr);
+diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
+index 9ac0c266c15c..5c44e067652f 100644
+--- a/drivers/nvdimm/blk.c
++++ b/drivers/nvdimm/blk.c
+@@ -27,10 +27,17 @@ struct nd_blk_device {
+ 	struct nd_namespace_blk *nsblk;
+ 	struct nd_blk_region *ndbr;
+ 	size_t disk_size;
++	u32 sector_size;
++	u32 internal_lbasize;
+ };
  
- #define ioremap_nocache(phy, sz)	ioremap(phy, sz)
-+#define ioremap_cache(phy, sz)		ioremap(phy, sz)
- #define ioremap_wc(phy, sz)		ioremap(phy, sz)
- #define ioremap_wt(phy, sz)		ioremap(phy, sz)
+ static int nd_blk_major;
  
-diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
-index 1b7677d1e5e1..5e2c5cbdffdc 100644
---- a/arch/arm/include/asm/io.h
-+++ b/arch/arm/include/asm/io.h
-@@ -23,6 +23,8 @@
- 
- #ifdef __KERNEL__
- 
-+#define ARCH_HAS_IOREMAP_CACHE
-+
- #include <linux/types.h>
- #include <linux/blk_types.h>
- #include <asm/byteorder.h>
-diff --git a/arch/arm64/include/asm/io.h b/arch/arm64/include/asm/io.h
-index 7116d3973058..6a8836c9d993 100644
---- a/arch/arm64/include/asm/io.h
-+++ b/arch/arm64/include/asm/io.h
-@@ -21,6 +21,8 @@
- 
- #ifdef __KERNEL__
- 
-+#define ARCH_HAS_IOREMAP_CACHE
-+
- #include <linux/types.h>
- #include <linux/blk_types.h>
- 
-@@ -171,6 +173,7 @@ extern void __iomem *ioremap_cache(phys_addr_t phys_addr, size_t size);
- #define ioremap_nocache(addr, size)	__ioremap((addr), (size), __pgprot(PROT_DEVICE_nGnRE))
- #define ioremap_wc(addr, size)		__ioremap((addr), (size), __pgprot(PROT_NORMAL_NC))
- #define ioremap_wt(addr, size)		__ioremap((addr), (size), __pgprot(PROT_DEVICE_nGnRE))
-+#define ioremap_cache			ioremap_cache
- #define iounmap				__iounmap
- 
- /*
-diff --git a/arch/avr32/include/asm/io.h b/arch/avr32/include/asm/io.h
-index e998ff5d8e1a..c6994d880dbd 100644
---- a/arch/avr32/include/asm/io.h
-+++ b/arch/avr32/include/asm/io.h
-@@ -297,6 +297,7 @@ extern void __iounmap(void __iomem *addr);
- 
- #define ioremap_wc ioremap_nocache
- #define ioremap_wt ioremap_nocache
-+#define ioremap_cache ioremap_nocache
- 
- #define cached(addr) P1SEGADDR(addr)
- #define uncached(addr) P2SEGADDR(addr)
-diff --git a/arch/frv/include/asm/io.h b/arch/frv/include/asm/io.h
-index a31b63ec4930..cd841f852af3 100644
---- a/arch/frv/include/asm/io.h
-+++ b/arch/frv/include/asm/io.h
-@@ -18,6 +18,7 @@
- #ifdef __KERNEL__
- 
- #define ARCH_HAS_IOREMAP_WT
-+#define ARCH_HAS_IOREMAP_CACHE
- 
- #include <linux/types.h>
- #include <asm/virtconvert.h>
-@@ -277,6 +278,11 @@ static inline void __iomem *ioremap_fullcache(unsigned long physaddr, unsigned l
- 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
- }
- 
-+static inline void __iomem *ioremap_cache(unsigned long physaddr, unsigned long size)
++static u32 nd_blk_meta_size(struct nd_blk_device *blk_dev)
 +{
-+	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
++	return blk_dev->nsblk->lbasize - blk_dev->sector_size;
 +}
 +
- #define ioremap_wc ioremap_nocache
+ static resource_size_t to_dev_offset(struct nd_namespace_blk *nsblk,
+ 				resource_size_t ns_offset, unsigned int len)
+ {
+@@ -52,41 +59,145 @@ static resource_size_t to_dev_offset(struct nd_namespace_blk *nsblk,
+ 	return SIZE_MAX;
+ }
  
- extern void iounmap(void volatile __iomem *addr);
-diff --git a/arch/ia64/include/asm/io.h b/arch/ia64/include/asm/io.h
-index 8588ef767a44..cba265c30c3c 100644
---- a/arch/ia64/include/asm/io.h
-+++ b/arch/ia64/include/asm/io.h
-@@ -431,11 +431,6 @@ extern void __iomem * early_ioremap (unsigned long phys_addr, unsigned long size
- #define early_memremap(phys_addr, size)        early_ioremap(phys_addr, size)
- extern void early_iounmap (volatile void __iomem *addr, unsigned long size);
- #define early_memunmap(addr, size)             early_iounmap(addr, size)
--static inline void __iomem * ioremap_cache (unsigned long phys_addr, unsigned long size)
--{
--	return ioremap(phys_addr, size);
--}
++#ifdef CONFIG_BLK_DEV_INTEGRITY
++static int nd_blk_rw_integrity(struct nd_blk_device *blk_dev,
++				struct bio_integrity_payload *bip, u64 lba,
++				int rw)
++{
++	unsigned int len = nd_blk_meta_size(blk_dev);
++	resource_size_t	dev_offset, ns_offset;
++	struct nd_namespace_blk *nsblk;
++	struct nd_blk_region *ndbr;
++	int err = 0;
++
++	nsblk = blk_dev->nsblk;
++	ndbr = blk_dev->ndbr;
++	ns_offset = lba * blk_dev->internal_lbasize + blk_dev->sector_size;
++	dev_offset = to_dev_offset(nsblk, ns_offset, len);
++	if (dev_offset == SIZE_MAX)
++		return -EIO;
++
++	while (len) {
++		unsigned int cur_len;
++		struct bio_vec bv;
++		void *iobuf;
++
++		bv = bvec_iter_bvec(bip->bip_vec, bip->bip_iter);
++		/*
++		 * The 'bv' obtained from bvec_iter_bvec has its .bv_len and
++		 * .bv_offset already adjusted for iter->bi_bvec_done, and we
++		 * can use those directly
++		 */
++
++		cur_len = min(len, bv.bv_len);
++		iobuf = kmap_atomic(bv.bv_page);
++		err = ndbr->do_io(ndbr, dev_offset, iobuf + bv.bv_offset,
++				cur_len, rw);
++		kunmap_atomic(iobuf);
++		if (err)
++			return err;
++
++		len -= cur_len;
++		dev_offset += cur_len;
++		bvec_iter_advance(bip->bip_vec, &bip->bip_iter, cur_len);
++	}
++
++	return err;
++}
++
++#else /* CONFIG_BLK_DEV_INTEGRITY */
++static int nd_blk_rw_integrity(struct nd_blk_device *blk_dev,
++				struct bio_integrity_payload *bip, u64 lba,
++				int rw)
++{
++	return 0;
++}
++#endif
++
++static int nd_blk_do_bvec(struct nd_blk_device *blk_dev,
++			struct bio_integrity_payload *bip, struct page *page,
++			unsigned int len, unsigned int off, int rw,
++			sector_t sector)
++{
++	struct nd_blk_region *ndbr = blk_dev->ndbr;
++	resource_size_t	dev_offset, ns_offset;
++	int err = 0;
++	void *iobuf;
++	u64 lba;
++
++	while (len) {
++		unsigned int cur_len;
++
++		/*
++		 * If we don't have an integrity payload, we don't have to
++		 * split the bvec into sectors, as this would cause unnecessary
++		 * Block Window setup/move steps. the do_io routine is capable
++		 * of handling len <= PAGE_SIZE.
++		 */
++		cur_len = bip ? min(len, blk_dev->sector_size) : len;
++
++		lba = div_u64(sector << SECTOR_SHIFT, blk_dev->sector_size);
++		ns_offset = lba * blk_dev->internal_lbasize;
++		dev_offset = to_dev_offset(blk_dev->nsblk, ns_offset, cur_len);
++		if (dev_offset == SIZE_MAX)
++			return -EIO;
++
++		iobuf = kmap_atomic(page);
++		err = ndbr->do_io(ndbr, dev_offset, iobuf + off, cur_len, rw);
++		kunmap_atomic(iobuf);
++		if (err)
++			return err;
++
++		if (bip) {
++			err = nd_blk_rw_integrity(blk_dev, bip, lba, rw);
++			if (err)
++				return err;
++		}
++		len -= cur_len;
++		off += cur_len;
++		sector += blk_dev->sector_size >> SECTOR_SHIFT;
++	}
++
++	return err;
++}
++
+ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
+ {
+ 	struct block_device *bdev = bio->bi_bdev;
+ 	struct gendisk *disk = bdev->bd_disk;
+-	struct nd_namespace_blk *nsblk;
++	struct bio_integrity_payload *bip;
+ 	struct nd_blk_device *blk_dev;
+-	struct nd_blk_region *ndbr;
+ 	struct bvec_iter iter;
+ 	struct bio_vec bvec;
+ 	int err = 0, rw;
+ 
++	/*
++	 * bio_integrity_enabled also checks if the bio already has an
++	 * integrity payload attached. If it does, we *don't* do a
++	 * bio_integrity_prep here - the payload has been generated by
++	 * another kernel subsystem, and we just pass it through.
++	 */
++	if (bio_integrity_enabled(bio) && bio_integrity_prep(bio)) {
++		err = -EIO;
++		goto out;
++	}
++
++	bip = bio_integrity(bio);
+ 	blk_dev = disk->private_data;
+-	nsblk = blk_dev->nsblk;
+-	ndbr = blk_dev->ndbr;
+ 	rw = bio_data_dir(bio);
+ 	bio_for_each_segment(bvec, bio, iter) {
+ 		unsigned int len = bvec.bv_len;
+-		resource_size_t	dev_offset;
+-		void *iobuf;
+ 
+ 		BUG_ON(len > PAGE_SIZE);
 -
+-		dev_offset = to_dev_offset(nsblk,
+-				iter.bi_sector << SECTOR_SHIFT, len);
+-		if (dev_offset == SIZE_MAX) {
+-			err = -EIO;
++		err = nd_blk_do_bvec(blk_dev, bip, bvec.bv_page, len,
++					bvec.bv_offset, rw, iter.bi_sector);
++		if (err) {
++			dev_info(&blk_dev->nsblk->common.dev,
++					"io error in %s sector %lld, len %d,\n",
++					(rw == READ) ? "READ" : "WRITE",
++					(unsigned long long) iter.bi_sector, len);
+ 			goto out;
+ 		}
+-
+-		iobuf = kmap_atomic(bvec.bv_page);
+-		err = ndbr->do_io(ndbr, dev_offset, iobuf + bvec.bv_offset,
+-				len, rw);
+-		kunmap_atomic(iobuf);
+-		if (err)
+-			goto out;
+ 	}
  
- /*
-  * String version of IO memory access ops:
-diff --git a/arch/m32r/include/asm/io.h b/arch/m32r/include/asm/io.h
-index 0c3f25ee3381..f3eceeac25c8 100644
---- a/arch/m32r/include/asm/io.h
-+++ b/arch/m32r/include/asm/io.h
-@@ -67,6 +67,7 @@ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
+  out:
+@@ -121,8 +232,12 @@ static const struct block_device_operations nd_blk_fops = {
+ static int nd_blk_attach_disk(struct nd_namespace_common *ndns,
+ 		struct nd_blk_device *blk_dev)
+ {
+-	struct nd_namespace_blk *nsblk = to_nd_namespace_blk(&ndns->dev);
++	resource_size_t available_disk_size;
+ 	struct gendisk *disk;
++	u64 internal_nlba;
++
++	internal_nlba = div_u64(blk_dev->disk_size, blk_dev->internal_lbasize);
++	available_disk_size = internal_nlba * blk_dev->sector_size;
  
- extern void iounmap(volatile void __iomem *addr);
- #define ioremap_nocache(off,size) ioremap(off,size)
-+#define ioremap_cache ioremap_nocache
- #define ioremap_wc ioremap_nocache
- #define ioremap_wt ioremap_nocache
+ 	blk_dev->queue = blk_alloc_queue(GFP_KERNEL);
+ 	if (!blk_dev->queue)
+@@ -131,7 +246,7 @@ static int nd_blk_attach_disk(struct nd_namespace_common *ndns,
+ 	blk_queue_make_request(blk_dev->queue, nd_blk_make_request);
+ 	blk_queue_max_hw_sectors(blk_dev->queue, UINT_MAX);
+ 	blk_queue_bounce_limit(blk_dev->queue, BLK_BOUNCE_ANY);
+-	blk_queue_logical_block_size(blk_dev->queue, nsblk->lbasize);
++	blk_queue_logical_block_size(blk_dev->queue, blk_dev->sector_size);
+ 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, blk_dev->queue);
  
-diff --git a/arch/m68k/include/asm/io_mm.h b/arch/m68k/include/asm/io_mm.h
-index 618c85d3c786..aaf1009f2f94 100644
---- a/arch/m68k/include/asm/io_mm.h
-+++ b/arch/m68k/include/asm/io_mm.h
-@@ -21,6 +21,7 @@
- #ifdef __KERNEL__
+ 	disk = blk_dev->disk = alloc_disk(0);
+@@ -148,15 +263,28 @@ static int nd_blk_attach_disk(struct nd_namespace_common *ndns,
+ 	disk->queue		= blk_dev->queue;
+ 	disk->flags		= GENHD_FL_EXT_DEVT;
+ 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
+-	set_capacity(disk, blk_dev->disk_size >> SECTOR_SHIFT);
++	set_capacity(disk, 0);
+ 	add_disk(disk);
  
- #define ARCH_HAS_IOREMAP_WT
-+#define ARCH_HAS_IOREMAP_CACHE
- 
- #include <linux/compiler.h>
- #include <asm/raw_io.h>
-@@ -478,6 +479,12 @@ static inline void __iomem *ioremap_fullcache(unsigned long physaddr,
- 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
++	if (nd_blk_meta_size(blk_dev)) {
++		int rc = nd_integrity_init(disk, nd_blk_meta_size(blk_dev));
++
++		if (rc) {
++			del_gendisk(disk);
++			put_disk(disk);
++			blk_cleanup_queue(blk_dev->queue);
++			return rc;
++		}
++	}
++
++	set_capacity(disk, available_disk_size >> SECTOR_SHIFT);
+ 	return 0;
  }
  
-+static inline void __iomem *ioremap_cache(unsigned long physaddr,
-+		unsigned long size)
-+{
-+	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
-+}
+ static int nd_blk_probe(struct device *dev)
+ {
+ 	struct nd_namespace_common *ndns;
++	struct nd_namespace_blk *nsblk;
+ 	struct nd_blk_device *blk_dev;
+ 	int rc;
+ 
+@@ -168,9 +296,13 @@ static int nd_blk_probe(struct device *dev)
+ 	if (!blk_dev)
+ 		return -ENOMEM;
+ 
++	nsblk = to_nd_namespace_blk(&ndns->dev);
+ 	blk_dev->disk_size = nvdimm_namespace_capacity(ndns);
+ 	blk_dev->ndbr = to_nd_blk_region(dev->parent);
+ 	blk_dev->nsblk = to_nd_namespace_blk(&ndns->dev);
++	blk_dev->internal_lbasize = roundup(nsblk->lbasize,
++						INT_LBASIZE_ALIGNMENT);
++	blk_dev->sector_size = ((nsblk->lbasize >= 4096) ? 4096 : 512);
+ 	dev_set_drvdata(dev, blk_dev);
+ 
+ 	ndns->rw_bytes = nd_blk_rw_bytes;
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 2caa0ef7e67a..75b0d80a6bd9 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -31,7 +31,6 @@
+ #define ARENA_MAX_SIZE (1ULL << 39)	/* 512 GB */
+ #define RTT_VALID (1UL << 31)
+ #define RTT_INVALID 0
+-#define INT_LBASIZE_ALIGNMENT 64
+ #define BTT_PG_SIZE 4096
+ #define BTT_DEFAULT_NFREE ND_MAX_LANES
+ #define LOG_SEQ_INIT 1
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index 1d96b9a6e4cc..4288169432de 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -379,6 +379,9 @@ int nd_integrity_init(struct gendisk *disk, unsigned long meta_size)
+ 	};
+ 	int ret;
+ 
++	if (meta_size == 0)
++		return 0;
 +
- static inline void memset_io(volatile void __iomem *addr, unsigned char val, int count)
- {
- 	__builtin_memset((void __force *) addr, val, count);
-diff --git a/arch/m68k/include/asm/io_no.h b/arch/m68k/include/asm/io_no.h
-index ad7bd40e6742..020483566b73 100644
---- a/arch/m68k/include/asm/io_no.h
-+++ b/arch/m68k/include/asm/io_no.h
-@@ -4,6 +4,7 @@
- #ifdef __KERNEL__
- 
- #define ARCH_HAS_IOREMAP_WT
-+#define ARCH_HAS_IOREMAP_CACHE
- 
- #include <asm/virtconvert.h>
- #include <asm-generic/iomap.h>
-@@ -163,6 +164,10 @@ static inline void *ioremap_fullcache(unsigned long physaddr, unsigned long size
- {
- 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
+ 	ret = blk_integrity_register(disk, &integrity);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 1ce1e70de44a..27d69bd3b4d6 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1059,7 +1059,8 @@ static ssize_t resource_show(struct device *dev,
  }
-+static inline void *ioremap_cache(unsigned long physaddr, unsigned long size)
-+{
-+	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
-+}
+ static DEVICE_ATTR_RO(resource);
  
- #define	iounmap(addr)	do { } while(0)
+-static const unsigned long ns_lbasize_supported[] = { 512, 0 };
++static const unsigned long ns_lbasize_supported[] = { 512, 520, 528,
++	4096, 4104, 4160, 4224, 0 };
  
-diff --git a/arch/metag/include/asm/io.h b/arch/metag/include/asm/io.h
-index 9890f21eadbe..d9b2873e3ca8 100644
---- a/arch/metag/include/asm/io.h
-+++ b/arch/metag/include/asm/io.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_METAG_IO_H
- #define _ASM_METAG_IO_H
+ static ssize_t sector_size_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 6a969a885d70..e73c34dcd935 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -27,6 +27,7 @@ enum {
+ 	 */
+ 	ND_MAX_LANES = 256,
+ 	SECTOR_SHIFT = 9,
++	INT_LBASIZE_ALIGNMENT = 64,
+ };
  
-+#define ARCH_HAS_IOREMAP_CACHE
-+
- #include <linux/types.h>
- #include <asm/pgtable-bits.h>
- 
-@@ -157,6 +159,9 @@ extern void __iounmap(void __iomem *addr);
- #define ioremap_cached(offset, size)            \
- 	__ioremap((offset), (size), _PAGE_CACHEABLE)
- 
-+#define ioremap_cache(offset, size)            \
-+	__ioremap((offset), (size), _PAGE_CACHEABLE)
-+
- #define ioremap_wc(offset, size)                \
- 	__ioremap((offset), (size), _PAGE_WR_COMBINE)
- 
-diff --git a/arch/microblaze/include/asm/io.h b/arch/microblaze/include/asm/io.h
-index 39b6315db82e..986cc0c9e67f 100644
---- a/arch/microblaze/include/asm/io.h
-+++ b/arch/microblaze/include/asm/io.h
-@@ -43,6 +43,7 @@ extern void __iomem *ioremap(phys_addr_t address, unsigned long size);
- #define ioremap_fullcache(addr, size)		ioremap((addr), (size))
- #define ioremap_wc(addr, size)			ioremap((addr), (size))
- #define ioremap_wt(addr, size)			ioremap((addr), (size))
-+#define ioremap_cache(addr, size)		ioremap((addr), (size))
- 
- #endif /* CONFIG_MMU */
- 
-diff --git a/arch/mips/include/asm/io.h b/arch/mips/include/asm/io.h
-index 9e777cd42b67..6d4c3ae146a5 100644
---- a/arch/mips/include/asm/io.h
-+++ b/arch/mips/include/asm/io.h
-@@ -12,6 +12,8 @@
- #ifndef _ASM_IO_H
- #define _ASM_IO_H
- 
-+#define ARCH_HAS_IOREMAP_CACHE
-+
- #include <linux/compiler.h>
- #include <linux/kernel.h>
- #include <linux/types.h>
-@@ -232,8 +234,10 @@ static inline void __iomem * __ioremap_mode(phys_addr_t offset, unsigned long si
-  * address is not guaranteed to be usable directly as a virtual
-  * address.
-  */
--#define ioremap(offset, size)						\
--	__ioremap_mode((offset), (size), _CACHE_UNCACHED)
-+static inline void __iomem *ioremap(resource_size_t offset, unsigned long size)
-+{
-+	return __ioremap_mode(offset, size, _CACHE_UNCACHED);
-+}
- 
- /*
-  * ioremap_nocache     -   map bus memory into CPU space
-@@ -254,8 +258,7 @@ static inline void __iomem * __ioremap_mode(phys_addr_t offset, unsigned long si
-  * It's useful if some control registers are in such an area and
-  * write combining or read caching is not desirable:
-  */
--#define ioremap_nocache(offset, size)					\
--	__ioremap_mode((offset), (size), _CACHE_UNCACHED)
-+#define ioremap_nocache ioremap
- 
- /*
-  * ioremap_cachable -	map bus memory into CPU space
-@@ -272,8 +275,14 @@ static inline void __iomem * __ioremap_mode(phys_addr_t offset, unsigned long si
-  * the CPU.  Also enables full write-combining.	 Useful for some
-  * memory-like regions on I/O busses.
-  */
-+extern unsigned long _page_cachable_default;
- #define ioremap_cachable(offset, size)					\
- 	__ioremap_mode((offset), (size), _page_cachable_default)
-+static inline void __iomem *ioremap_cache(resource_size_t offset,
-+		unsigned long size)
-+{
-+	return ioremap_cachable(offset, size);
-+}
- 
- /*
-  * These two are MIPS specific ioremap variant.	 ioremap_cacheable_cow
-diff --git a/arch/mn10300/include/asm/io.h b/arch/mn10300/include/asm/io.h
-index 07c5b4a3903b..dcab414f40df 100644
---- a/arch/mn10300/include/asm/io.h
-+++ b/arch/mn10300/include/asm/io.h
-@@ -283,6 +283,7 @@ static inline void __iomem *ioremap_nocache(unsigned long offset, unsigned long
- 
- #define ioremap_wc ioremap_nocache
- #define ioremap_wt ioremap_nocache
-+#define ioremap_cache ioremap_nocache
- 
- static inline void iounmap(void __iomem *addr)
- {
-diff --git a/arch/nios2/include/asm/io.h b/arch/nios2/include/asm/io.h
-index c5a62da22cd2..367e2ea7663a 100644
---- a/arch/nios2/include/asm/io.h
-+++ b/arch/nios2/include/asm/io.h
-@@ -47,6 +47,7 @@ static inline void iounmap(void __iomem *addr)
- 
- #define ioremap_wc ioremap_nocache
- #define ioremap_wt ioremap_nocache
-+#define ioremap_cache ioremap_nocache
- 
- /* Pages to physical address... */
- #define page_to_phys(page)	virt_to_phys(page_to_virt(page))
-diff --git a/arch/s390/include/asm/io.h b/arch/s390/include/asm/io.h
-index cb5fdf3a78fc..6824c3daa2a1 100644
---- a/arch/s390/include/asm/io.h
-+++ b/arch/s390/include/asm/io.h
-@@ -30,6 +30,7 @@ void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
- #define ioremap_nocache(addr, size)	ioremap(addr, size)
- #define ioremap_wc			ioremap_nocache
- #define ioremap_wt			ioremap_nocache
-+#define ioremap_cache			ioremap_nocache
- 
- static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
- {
-diff --git a/arch/sparc/include/asm/io_32.h b/arch/sparc/include/asm/io_32.h
-index 57f26c398dc9..b9a734caf57d 100644
---- a/arch/sparc/include/asm/io_32.h
-+++ b/arch/sparc/include/asm/io_32.h
-@@ -128,6 +128,7 @@ static inline void sbus_memcpy_toio(volatile void __iomem *dst,
-  */
- void __iomem *ioremap(unsigned long offset, unsigned long size);
- #define ioremap_nocache(X,Y)	ioremap((X),(Y))
-+#define ioremap_cache(X,Y)	ioremap((X),(Y))
- #define ioremap_wc(X,Y)		ioremap((X),(Y))
- #define ioremap_wt(X,Y)		ioremap((X),(Y))
- void iounmap(volatile void __iomem *addr);
-diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
-index b99ae1fac174..61f5d04da892 100644
---- a/arch/sparc/include/asm/io_64.h
-+++ b/arch/sparc/include/asm/io_64.h
-@@ -401,6 +401,7 @@ static inline void __iomem *ioremap(resource_size_t offset, unsigned long size)
- }
- 
- #define ioremap_nocache ioremap
-+#define ioremap_cache ioremap
- #define ioremap_wc ioremap
- #define ioremap_wt ioremap
- 
-diff --git a/arch/tile/include/asm/io.h b/arch/tile/include/asm/io.h
-index dc61de15c1f9..fe853a135e25 100644
---- a/arch/tile/include/asm/io.h
-+++ b/arch/tile/include/asm/io.h
-@@ -53,6 +53,7 @@ extern void iounmap(volatile void __iomem *addr);
- #endif
- 
- #define ioremap_nocache(physaddr, size)		ioremap(physaddr, size)
-+#define ioremap_cache(physaddr, size)		ioremap(physaddr, size)
- #define ioremap_wc(physaddr, size)		ioremap(physaddr, size)
- #define ioremap_wt(physaddr, size)		ioremap(physaddr, size)
- #define ioremap_fullcache(physaddr, size)	ioremap(physaddr, size)
-diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
-index 6c3a130de503..956f2768bdc1 100644
---- a/arch/x86/include/asm/io.h
-+++ b/arch/x86/include/asm/io.h
-@@ -36,6 +36,7 @@
- 
- #define ARCH_HAS_IOREMAP_WC
- #define ARCH_HAS_IOREMAP_WT
-+#define ARCH_HAS_IOREMAP_CACHE
- 
- #include <linux/string.h>
- #include <linux/compiler.h>
-diff --git a/arch/xtensa/include/asm/io.h b/arch/xtensa/include/asm/io.h
-index c39bb6e61911..f91a8a99aa29 100644
---- a/arch/xtensa/include/asm/io.h
-+++ b/arch/xtensa/include/asm/io.h
-@@ -12,6 +12,9 @@
- #define _XTENSA_IO_H
- 
- #ifdef __KERNEL__
-+
-+#define ARCH_HAS_IOREMAP_CACHE
-+
- #include <asm/byteorder.h>
- #include <asm/page.h>
- #include <asm/vectors.h>
-diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
-index f56094cfdeff..a0665dfcab47 100644
---- a/include/asm-generic/io.h
-+++ b/include/asm-generic/io.h
-@@ -793,6 +793,14 @@ static inline void __iomem *ioremap_wt(phys_addr_t offset, size_t size)
- }
- #endif
- 
-+#ifndef ioremap_cache
-+#define ioremap_cache ioremap_cache
-+static inline void __iomem *ioremap_cache(phys_addr_t offset, size_t size)
-+{
-+	return ioremap_nocache(offset, size);
-+}
-+#endif
-+
- #ifndef iounmap
- #define iounmap iounmap
- 
-diff --git a/include/asm-generic/iomap.h b/include/asm-generic/iomap.h
-index d8f8622fa044..f0f30464cecd 100644
---- a/include/asm-generic/iomap.h
-+++ b/include/asm-generic/iomap.h
-@@ -70,6 +70,10 @@ extern void ioport_unmap(void __iomem *);
- #define ioremap_wt ioremap_nocache
- #endif
- 
-+#ifndef ARCH_HAS_IOREMAP_CACHE
-+#define ioremap_cache ioremap_nocache
-+#endif
-+
- #ifdef CONFIG_PCI
- /* Destroy a virtual mapping cookie for a PCI BAR (memory or IO) */
- struct pci_dev;
+ struct nvdimm_drvdata {
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
