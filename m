@@ -1,41 +1,56 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Wed, 3 Jun 2015 08:55:10 +0200
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [GIT PULL v4 00/21] libnd: non-volatile memory device support
-Message-ID: <20150603065510.GB11344@lst.de>
-References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com> <20150528085124.GA26120@lst.de> <CAPcyv4ieTpdTdH=X9o0+YQ4B+fk9Wp85a55yWKReFAXpdVnSVg@mail.gmail.com>
+Subject: [PATCH v2 06/17] fs/block_dev.c: skip rw_page if bdev has integrity
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 25 Jun 2015 05:36:50 -0400
+Message-ID: <20150625093650.40066.18898.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
+References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAPcyv4ieTpdTdH=X9o0+YQ4B+fk9Wp85a55yWKReFAXpdVnSVg@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: linux-nvdimm@lists.01.org
+Cc: axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, "Martin K. Petersen" <martin.petersen@oracle.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, linux-kernel@vger.kernel.org, mingo@kernel.org, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, May 28, 2015 at 07:55:47AM -0700, Dan Williams wrote:
-> >  - stong NAK for the linker wrapping abuse in the test module
-> 
-> This capability has been our single largest generator of bug fixes and
-> regression prevention.  Please tell me you have a non-bikeshed
-> argument why this test approach must die?  We need more tests in tree,
-> not less.  That said, it's at the end of the series ready to be lopped
-> off like a spent booster rocket if it's really a blocker.
+From: Vishal Verma <vishal.l.verma@intel.com>
 
-No - you're overloading general functionality to go to something much
-slower, with locking implications etc totally invisible to someone reading
-the code.  I could be persuaded that a test module makes sense if you
-make it an explicit opt-in at the source code level, e.g. a version
-of a the pmem driver that needs to be explicitly loaded.
+If a block device has bio integrity enabled, rw_page will bypass the
+integrity payload, which is undesirable. Skip rw_page if this is the
+case.
 
-Then again I really don't see the point - if you already need a VM with
-ACPI / EFI tables to claim that you have pmem support you might as well
-do the pmem emulation in that same virtualіzation environment.
+Currently brd and zram provide rw_page, and the proposed 'nd' drivers
+will too.
 
-> It makes the identifier prefixes shorter is the bulk of the reasoning
-> and a hardware memory resource need not always be a "dimm".  If it's
-> just the top-level directory I'm fine with 'nvdimm' or are you looking
-> for a rename throughout?
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Martin K. Petersen <martin.petersen@oracle.com>
+Suggested-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ fs/block_dev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-That's the most important part.
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index c7e4163ede87..054ef1bbb821 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -376,7 +376,7 @@ int bdev_read_page(struct block_device *bdev, sector_t sector,
+ 			struct page *page)
+ {
+ 	const struct block_device_operations *ops = bdev->bd_disk->fops;
+-	if (!ops->rw_page)
++	if (!ops->rw_page || bdev_get_integrity(bdev))
+ 		return -EOPNOTSUPP;
+ 	return ops->rw_page(bdev, sector + get_start_sect(bdev), page, READ);
+ }
+@@ -407,7 +407,7 @@ int bdev_write_page(struct block_device *bdev, sector_t sector,
+ 	int result;
+ 	int rw = (wbc->sync_mode == WB_SYNC_ALL) ? WRITE_SYNC : WRITE;
+ 	const struct block_device_operations *ops = bdev->bd_disk->fops;
+-	if (!ops->rw_page)
++	if (!ops->rw_page || bdev_get_integrity(bdev))
+ 		return -EOPNOTSUPP;
+ 	set_page_writeback(page);
+ 	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page, rw);
+
