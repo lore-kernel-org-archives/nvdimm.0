@@ -1,213 +1,464 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v4 5/9] dma-mapping: allow archs to optionally specify a
- ->map_pfn() operation
+Subject: [PATCH v2 17/17] arch,
+ x86: pmem api for ensuring durability of persistent memory updates
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 05 Jun 2015 17:19:30 -0400
-Message-ID: <20150605211929.20751.764.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150605205052.20751.77149.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 25 Jun 2015 05:37:49 -0400
+Message-ID: <20150625093749.40066.25475.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
+References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, linux-arch@vger.kernel.org, arnd@arndb.de, ross.zwisler@linux.intel.com, linux-nvdimm@lists.01.org, benh@kernel.crashing.org, linux-fsdevel@vger.kernel.org, heiko.carstens@de.ibm.com, hch@lst.de, tj@kernel.org, paulus@samba.org, hpa@zytor.com, schwidefsky@de.ibm.com, willy@linux.intel.com, akpm@linux-foundation.org, torvalds@linux-foundation.org, mingo@kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, mingo@kernel.org, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Initially this enables the conversion of struct scatterlist to carry a __pfn_t
-instead of a struct page * reference.  Later this enables block device drivers
-to perform DMA to/from persistent memory which may not have a backing struct
-page entry.
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 
+Based on an original patch by Ross Zwisler [1].
+
+Writes to persistent memory have the potential to be posted to cpu
+cache, cpu write buffers, and platform write buffers (memory controller)
+before being committed to persistent media.  Provide apis,
+memcpy_to_pmem(), wmb_pmem(), and memremap_pmem(), to write data to
+pmem and assert that it is durable in PMEM (a persistent linear address
+range).  A '__pmem' attribute is added so sparse can track proper usage
+of pointers to pmem.
+
+This continues the status quo of pmem being x86 only for 4.2, but
+reworks to ioremap, and wider implementation of memremap() will enable
+other archs in 4.3.
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-May/000932.html
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+[djbw: various reworks]
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/Kconfig                             |    3 +++
- include/asm-generic/dma-mapping-common.h |   30 ++++++++++++++++++++++++++++++
- include/linux/dma-debug.h                |   23 +++++++++++++++++++----
- include/linux/dma-mapping.h              |    8 +++++++-
- lib/dma-debug.c                          |   10 ++++++----
- 5 files changed, 65 insertions(+), 9 deletions(-)
+ arch/x86/Kconfig                  |    1 
+ arch/x86/include/asm/cacheflush.h |   72 +++++++++++++++++
+ arch/x86/include/asm/io.h         |    6 +
+ drivers/nvdimm/pmem.c             |   33 +++++---
+ include/linux/compiler.h          |    2 
+ include/linux/pmem.h              |  153 +++++++++++++++++++++++++++++++++++++
+ lib/Kconfig                       |    3 +
+ 7 files changed, 257 insertions(+), 13 deletions(-)
+ create mode 100644 include/linux/pmem.h
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index 9b98732e0f3b..69d3a3fa21af 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -203,6 +203,9 @@ config HAVE_DMA_ATTRS
- config HAVE_DMA_CONTIGUOUS
- 	bool
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 1a2cbf641667..62564ddf7f78 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -27,6 +27,7 @@ config X86
+ 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
+ 	select ARCH_HAS_FAST_MULTIPLIER
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
++	select ARCH_HAS_PMEM_API
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select HAVE_AOUT if X86_32
+diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
+index 47c8e32f621a..ec23bb753a3e 100644
+--- a/arch/x86/include/asm/cacheflush.h
++++ b/arch/x86/include/asm/cacheflush.h
+@@ -4,6 +4,7 @@
+ /* Caches aren't brain-dead on the intel. */
+ #include <asm-generic/cacheflush.h>
+ #include <asm/special_insns.h>
++#include <asm/uaccess.h>
  
-+config HAVE_DMA_PFN
+ /*
+  * The set_memory_* API can be used to change various attributes of a virtual
+@@ -104,4 +105,75 @@ static inline int rodata_test(void)
+ }
+ #endif
+ 
++#ifdef ARCH_HAS_NOCACHE_UACCESS
++
++/**
++ * arch_memcpy_to_pmem - copy data to persistent memory
++ * @dst: destination buffer for the copy
++ * @src: source buffer for the copy
++ * @n: length of the copy in bytes
++ *
++ * Copy data to persistent memory media via non-temporal stores so that
++ * a subsequent arch_wmb_pmem() can flush cpu and memory controller
++ * write buffers to guarantee durability.
++ */
++static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
++		size_t n)
++{
++	int unwritten;
++
++	/*
++	 * We are copying between two kernel buffers, if
++	 * __copy_from_user_inatomic_nocache() returns an error (page
++	 * fault) we would have already reported a general protection fault
++	 * before the WARN+BUG.
++	 */
++	unwritten = __copy_from_user_inatomic_nocache((void __force *) dst,
++			(void __user *) src, n);
++	if (WARN(unwritten, "%s: fault copying %p <- %p unwritten: %d\n",
++				__func__, dst, src, unwritten))
++		BUG();
++}
++
++/**
++ * arch_wmb_pmem - synchronize writes to persistent memory
++ *
++ * After a series of arch_memcpy_to_pmem() operations this drains data
++ * from cpu write buffers and any platform (memory controller) buffers
++ * to ensure that written data is durable on persistent memory media.
++ */
++static inline void arch_wmb_pmem(void)
++{
++	/*
++	 * wmb() to 'sfence' all previous writes such that they are
++	 * architecturally visible to 'pcommit'.  Note, that we've
++	 * already arranged for pmem writes to avoid the cache via
++	 * arch_memcpy_to_pmem().
++	 */
++	wmb();
++	pcommit_sfence();
++}
++
++static inline bool __arch_has_wmb_pmem(void)
++{
++#ifdef CONFIG_X86_64
++	/*
++	 * We require that wmb() be an 'sfence', that is only guaranteed on
++	 * 64-bit builds
++	 */
++	return static_cpu_has(X86_FEATURE_PCOMMIT);
++#else
++	return false;
++#endif
++}
++#else /* ARCH_HAS_NOCACHE_UACCESS i.e. ARCH=um */
++extern void arch_memcpy_to_pmem(void __pmem *dst, const void *src, size_t n);
++extern void arch_wmb_pmem(void);
++
++static inline bool __arch_has_wmb_pmem(void)
++{
++	return false;
++}
++#endif
++
+ #endif /* _ASM_X86_CACHEFLUSH_H */
+diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
+index 34a5b93704d3..c60c3f3b0183 100644
+--- a/arch/x86/include/asm/io.h
++++ b/arch/x86/include/asm/io.h
+@@ -247,6 +247,12 @@ static inline void flush_write_buffers(void)
+ #endif
+ }
+ 
++static inline void __pmem *arch_memremap_pmem(resource_size_t offset,
++	unsigned long size)
++{
++	return (void __force __pmem *) ioremap_cache(offset, size);
++}
++
+ #endif /* __KERNEL__ */
+ 
+ extern void native_io_delay(void);
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 42b766f33e59..ade9eb917a4d 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -23,6 +23,7 @@
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/slab.h>
++#include <linux/pmem.h>
+ #include <linux/nd.h>
+ #include "nd.h"
+ 
+@@ -32,7 +33,7 @@ struct pmem_device {
+ 
+ 	/* One contiguous memory region per device */
+ 	phys_addr_t		phys_addr;
+-	void			*virt_addr;
++	void __pmem		*virt_addr;
+ 	size_t			size;
+ };
+ 
+@@ -44,13 +45,14 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ {
+ 	void *mem = kmap_atomic(page);
+ 	size_t pmem_off = sector << 9;
++	void __pmem *pmem_addr = pmem->virt_addr + pmem_off;
+ 
+ 	if (rw == READ) {
+-		memcpy(mem + off, pmem->virt_addr + pmem_off, len);
++		memcpy_from_pmem(mem + off, pmem_addr, len);
+ 		flush_dcache_page(page);
+ 	} else {
+ 		flush_dcache_page(page);
+-		memcpy(pmem->virt_addr + pmem_off, mem + off, len);
++		memcpy_to_pmem(pmem_addr, mem + off, len);
+ 	}
+ 
+ 	kunmap_atomic(mem);
+@@ -71,6 +73,10 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
+ 				bio_data_dir(bio), iter.bi_sector);
+ 	if (do_acct)
+ 		nd_iostat_end(bio, start);
++
++	if (bio_data_dir(bio))
++		wmb_pmem();
++
+ 	bio_endio(bio, 0);
+ }
+ 
+@@ -94,7 +100,8 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+ 	if (!pmem)
+ 		return -ENODEV;
+ 
+-	*kaddr = pmem->virt_addr + offset;
++	/* FIXME convert DAX to comprehend that this mapping has a lifetime */
++	*kaddr = (void __force *) pmem->virt_addr + offset;
+ 	*pfn = (pmem->phys_addr + offset) >> PAGE_SHIFT;
+ 
+ 	return pmem->size - offset;
+@@ -118,6 +125,8 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 
+ 	pmem->phys_addr = res->start;
+ 	pmem->size = resource_size(res);
++	if (!arch_has_pmem_api())
++		dev_warn(dev, "unable to guarantee persistence of writes\n");
+ 
+ 	if (!request_mem_region(pmem->phys_addr, pmem->size, dev_name(dev))) {
+ 		dev_warn(dev, "could not reserve region [0x%pa:0x%zx]\n",
+@@ -126,11 +135,7 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 		return ERR_PTR(-EBUSY);
+ 	}
+ 
+-	/*
+-	 * Map the memory as non-cachable, as we can't write back the contents
+-	 * of the CPU caches in case of a crash.
+-	 */
+-	pmem->virt_addr = ioremap_nocache(pmem->phys_addr, pmem->size);
++	pmem->virt_addr = memremap_pmem(pmem->phys_addr, pmem->size);
+ 	if (!pmem->virt_addr) {
+ 		release_mem_region(pmem->phys_addr, pmem->size);
+ 		kfree(pmem);
+@@ -195,16 +200,18 @@ static int pmem_rw_bytes(struct nd_namespace_common *ndns,
+ 	}
+ 
+ 	if (rw == READ)
+-		memcpy(buf, pmem->virt_addr + offset, size);
+-	else
+-		memcpy(pmem->virt_addr + offset, buf, size);
++		memcpy_from_pmem(buf, pmem->virt_addr + offset, size);
++	else {
++		memcpy_to_pmem(pmem->virt_addr + offset, buf, size);
++		wmb_pmem();
++	}
+ 
+ 	return 0;
+ }
+ 
+ static void pmem_free(struct pmem_device *pmem)
+ {
+-	iounmap(pmem->virt_addr);
++	memunmap_pmem(pmem->virt_addr);
+ 	release_mem_region(pmem->phys_addr, pmem->size);
+ 	kfree(pmem);
+ }
+diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+index 867722591be2..9a528d945498 100644
+--- a/include/linux/compiler.h
++++ b/include/linux/compiler.h
+@@ -21,6 +21,7 @@
+ # define __rcu		__attribute__((noderef, address_space(4)))
+ #else
+ # define __rcu
++# define __pmem		__attribute__((noderef, address_space(5)))
+ #endif
+ extern void __chk_user_ptr(const volatile void __user *);
+ extern void __chk_io_ptr(const volatile void __iomem *);
+@@ -42,6 +43,7 @@ extern void __chk_io_ptr(const volatile void __iomem *);
+ # define __cond_lock(x,c) (c)
+ # define __percpu
+ # define __rcu
++# define __pmem
+ #endif
+ 
+ /* Indirect macros required for expanded argument pasting, eg. __LINE__. */
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+new file mode 100644
+index 000000000000..f6481a0b1d4f
+--- /dev/null
++++ b/include/linux/pmem.h
+@@ -0,0 +1,153 @@
++/*
++ * Copyright(c) 2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __PMEM_H__
++#define __PMEM_H__
++
++#include <linux/io.h>
++
++#ifdef CONFIG_ARCH_HAS_PMEM_API
++#include <asm/cacheflush.h>
++#else
++static inline void arch_wmb_pmem(void)
++{
++	BUG();
++}
++
++static inline bool __arch_has_wmb_pmem(void)
++{
++	return false;
++}
++
++static inline void __pmem *arch_memremap_pmem(resource_size_t offset,
++		unsigned long size)
++{
++	return NULL;
++}
++
++static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
++		size_t n)
++{
++	BUG();
++}
++#endif
++
++/*
++ * Architectures that define ARCH_HAS_PMEM_API must provide
++ * implementations for arch_memremap_pmem(), arch_memcpy_to_pmem(),
++ * arch_wmb_pmem(), and __arch_has_wmb_pmem().
++ */
++
++static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
++{
++	memcpy(dst, (void __force const *) src, size);
++}
++
++static inline void memunmap_pmem(void __pmem *addr)
++{
++	iounmap((void __force __iomem *) addr);
++}
++
++/**
++ * arch_has_wmb_pmem - true if wmb_pmem() ensures durability
++ *
++ * For a given cpu implementation within an architecture it is possible
++ * that wmb_pmem() resolves to a nop.  In the case this returns
++ * false, pmem api users are unable to ensure durability and may want to
++ * fall back to a different data consistency model, or otherwise notify
++ * the user.
++ */
++static inline bool arch_has_wmb_pmem(void)
++{
++	if (IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API))
++		return __arch_has_wmb_pmem();
++	return false;
++}
++
++static inline bool arch_has_pmem_api(void)
++{
++	return IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API) && arch_has_wmb_pmem();
++}
++
++/*
++ * These defaults seek to offer decent performance and minimize the
++ * window between i/o completion and writes being durable on media.
++ * However, it is undefined / architecture specific whether
++ * default_memremap_pmem + default_memcpy_to_pmem is sufficient for
++ * making data durable relative to i/o completion.
++ */
++static void default_memcpy_to_pmem(void __pmem *dst, const void *src,
++		size_t size)
++{
++	memcpy((void __force *) dst, src, size);
++}
++
++static void __pmem *default_memremap_pmem(resource_size_t offset,
++		unsigned long size)
++{
++	/* TODO: convert to ioremap_wt() */
++	return (void __pmem __force *)ioremap_nocache(offset, size);
++}
++
++/**
++ * memremap_pmem - map physical persistent memory for pmem api
++ * @offset: physical address of persistent memory
++ * @size: size of the mapping
++ *
++ * Establish a mapping of the architecture specific memory type expected
++ * by memcpy_to_pmem() and wmb_pmem().  For example, it may be
++ * the case that an uncacheable or writethrough mapping is sufficient,
++ * or a writeback mapping provided memcpy_to_pmem() and
++ * wmb_pmem() arrange for the data to be written through the
++ * cache to persistent media.
++ */
++static inline void __pmem *memremap_pmem(resource_size_t offset,
++		unsigned long size)
++{
++	if (arch_has_pmem_api())
++		return arch_memremap_pmem(offset, size);
++	return default_memremap_pmem(offset, size);
++}
++
++/**
++ * memcpy_to_pmem - copy data to persistent memory
++ * @dst: destination buffer for the copy
++ * @src: source buffer for the copy
++ * @n: length of the copy in bytes
++ *
++ * Perform a memory copy that results in the destination of the copy
++ * being effectively evicted from, or never written to, the processor
++ * cache hierarchy after the copy completes.  After memcpy_to_pmem()
++ * data may still reside in cpu or platform buffers, so this operation
++ * must be followed by a wmb_pmem().
++ */
++static inline void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
++{
++	if (arch_has_pmem_api())
++		arch_memcpy_to_pmem(dst, src, n);
++	else
++		default_memcpy_to_pmem(dst, src, n);
++}
++
++/**
++ * wmb_pmem - synchronize writes to persistent memory
++ *
++ * After a series of memcpy_to_pmem() operations this drains data from
++ * cpu write buffers and any platform (memory controller) buffers to
++ * ensure that written data is durable on persistent memory media.
++ */
++static inline void wmb_pmem(void)
++{
++	if (arch_has_pmem_api())
++		arch_wmb_pmem();
++}
++#endif /* __PMEM_H__ */
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 601965a948e8..d27c13a91c28 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -522,4 +522,7 @@ source "lib/fonts/Kconfig"
+ config ARCH_HAS_SG_CHAIN
+ 	def_bool n
+ 
++config ARCH_HAS_PMEM_API
 +	bool
 +
- config HAVE_KMAP_PFN
- 	bool
- 
-diff --git a/include/asm-generic/dma-mapping-common.h b/include/asm-generic/dma-mapping-common.h
-index 940d5ec122c9..7305efb1bac6 100644
---- a/include/asm-generic/dma-mapping-common.h
-+++ b/include/asm-generic/dma-mapping-common.h
-@@ -17,9 +17,15 @@ static inline dma_addr_t dma_map_single_attrs(struct device *dev, void *ptr,
- 
- 	kmemcheck_mark_initialized(ptr, size);
- 	BUG_ON(!valid_dma_direction(dir));
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	addr = ops->map_pfn(dev, page_to_pfn_typed(virt_to_page(ptr)),
-+			     (unsigned long)ptr & ~PAGE_MASK, size,
-+			     dir, attrs);
-+#else
- 	addr = ops->map_page(dev, virt_to_page(ptr),
- 			     (unsigned long)ptr & ~PAGE_MASK, size,
- 			     dir, attrs);
-+#endif
- 	debug_dma_map_page(dev, virt_to_page(ptr),
- 			   (unsigned long)ptr & ~PAGE_MASK, size,
- 			   dir, addr, true);
-@@ -73,6 +79,29 @@ static inline void dma_unmap_sg_attrs(struct device *dev, struct scatterlist *sg
- 		ops->unmap_sg(dev, sg, nents, dir, attrs);
- }
- 
-+#ifdef CONFIG_HAVE_DMA_PFN
-+static inline dma_addr_t dma_map_pfn(struct device *dev, __pfn_t pfn,
-+				      size_t offset, size_t size,
-+				      enum dma_data_direction dir)
-+{
-+	struct dma_map_ops *ops = get_dma_ops(dev);
-+	dma_addr_t addr;
-+
-+	BUG_ON(!valid_dma_direction(dir));
-+	addr = ops->map_pfn(dev, pfn, offset, size, dir, NULL);
-+	debug_dma_map_pfn(dev, pfn, offset, size, dir, addr, false);
-+
-+	return addr;
-+}
-+
-+static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
-+				      size_t offset, size_t size,
-+				      enum dma_data_direction dir)
-+{
-+	kmemcheck_mark_initialized(page_address(page) + offset, size);
-+	return dma_map_pfn(dev, page_to_pfn_typed(page), offset, size, dir);
-+}
-+#else
- static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
- 				      size_t offset, size_t size,
- 				      enum dma_data_direction dir)
-@@ -87,6 +116,7 @@ static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
- 
- 	return addr;
- }
-+#endif /* CONFIG_HAVE_DMA_PFN */
- 
- static inline void dma_unmap_page(struct device *dev, dma_addr_t addr,
- 				  size_t size, enum dma_data_direction dir)
-diff --git a/include/linux/dma-debug.h b/include/linux/dma-debug.h
-index fe8cb610deac..a3b4c8c0cd68 100644
---- a/include/linux/dma-debug.h
-+++ b/include/linux/dma-debug.h
-@@ -34,10 +34,18 @@ extern void dma_debug_init(u32 num_entries);
- 
- extern int dma_debug_resize_entries(u32 num_entries);
- 
--extern void debug_dma_map_page(struct device *dev, struct page *page,
--			       size_t offset, size_t size,
--			       int direction, dma_addr_t dma_addr,
--			       bool map_single);
-+extern void debug_dma_map_pfn(struct device *dev, __pfn_t pfn, size_t offset,
-+			      size_t size, int direction, dma_addr_t dma_addr,
-+			      bool map_single);
-+
-+static inline void debug_dma_map_page(struct device *dev, struct page *page,
-+				      size_t offset, size_t size,
-+				      int direction, dma_addr_t dma_addr,
-+				      bool map_single)
-+{
-+	return debug_dma_map_pfn(dev, page_to_pfn_t(page), offset, size,
-+			direction, dma_addr, map_single);
-+}
- 
- extern void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
- 
-@@ -109,6 +117,13 @@ static inline void debug_dma_map_page(struct device *dev, struct page *page,
- {
- }
- 
-+static inline void debug_dma_map_pfn(struct device *dev, __pfn_t pfn,
-+				     size_t offset, size_t size,
-+				     int direction, dma_addr_t dma_addr,
-+				     bool map_single)
-+{
-+}
-+
- static inline void debug_dma_mapping_error(struct device *dev,
- 					  dma_addr_t dma_addr)
- {
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index ac07ff090919..d6437b493300 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -26,11 +26,17 @@ struct dma_map_ops {
- 
- 	int (*get_sgtable)(struct device *dev, struct sg_table *sgt, void *,
- 			   dma_addr_t, size_t, struct dma_attrs *attrs);
--
-+#ifdef CONFIG_HAVE_DMA_PFN
-+	dma_addr_t (*map_pfn)(struct device *dev, __pfn_t pfn,
-+			      unsigned long offset, size_t size,
-+			      enum dma_data_direction dir,
-+			      struct dma_attrs *attrs);
-+#else
- 	dma_addr_t (*map_page)(struct device *dev, struct page *page,
- 			       unsigned long offset, size_t size,
- 			       enum dma_data_direction dir,
- 			       struct dma_attrs *attrs);
-+#endif
- 	void (*unmap_page)(struct device *dev, dma_addr_t dma_handle,
- 			   size_t size, enum dma_data_direction dir,
- 			   struct dma_attrs *attrs);
-diff --git a/lib/dma-debug.c b/lib/dma-debug.c
-index ae4b65e17e64..c24de1cd8f81 100644
---- a/lib/dma-debug.c
-+++ b/lib/dma-debug.c
-@@ -1250,11 +1250,12 @@ out:
- 	put_hash_bucket(bucket, &flags);
- }
- 
--void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
-+void debug_dma_map_pfn(struct device *dev, __pfn_t pfn, size_t offset,
- 			size_t size, int direction, dma_addr_t dma_addr,
- 			bool map_single)
- {
- 	struct dma_debug_entry *entry;
-+	struct page *page;
- 
- 	if (unlikely(dma_debug_disabled()))
- 		return;
-@@ -1268,7 +1269,7 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
- 
- 	entry->dev       = dev;
- 	entry->type      = dma_debug_page;
--	entry->pfn	 = page_to_pfn(page);
-+	entry->pfn	 = __pfn_t_to_pfn(pfn);
- 	entry->offset	 = offset,
- 	entry->dev_addr  = dma_addr;
- 	entry->size      = size;
-@@ -1278,7 +1279,8 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
- 	if (map_single)
- 		entry->type = dma_debug_single;
- 
--	if (!PageHighMem(page)) {
-+	page = __pfn_t_to_page(pfn);
-+	if (page && !PageHighMem(page)) {
- 		void *addr = page_address(page) + offset;
- 
- 		check_for_stack(dev, addr);
-@@ -1287,7 +1289,7 @@ void debug_dma_map_page(struct device *dev, struct page *page, size_t offset,
- 
- 	add_dma_entry(entry);
- }
--EXPORT_SYMBOL(debug_dma_map_page);
-+EXPORT_SYMBOL(debug_dma_map_pfn);
- 
- void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
- {
+ endmenu
 
