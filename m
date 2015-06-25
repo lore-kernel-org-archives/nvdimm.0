@@ -1,64 +1,122 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <1435257283.13411.4.camel@intel.com>
-References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
-	<20150625093738.40066.88750.stgit@dwillia2-desk3.jf.intel.com>
-	<1435254317.11808.327.camel@misato.fc.hp.com>
-	<1435257283.13411.4.camel@intel.com>
-Date: Thu, 25 Jun 2015 14:31:21 -0700
-Message-ID: <CAPcyv4jhDc1+TGyo4J6vC7bRBaGbfAXyLP2qB9X5DAJRBhCRyQ@mail.gmail.com>
+From: "Williams, Dan J" <dan.j.williams@intel.com>
 Subject: Re: [PATCH v2 15/17] libnvdimm: Set numa_node to NVDIMM devices
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
+Date: Thu, 25 Jun 2015 18:34:47 +0000
+Message-ID: <1435257283.13411.4.camel@intel.com>
+References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
+	 <20150625093738.40066.88750.stgit@dwillia2-desk3.jf.intel.com>
+	 <1435254317.11808.327.camel@misato.fc.hp.com>
+In-Reply-To: <1435254317.11808.327.camel@misato.fc.hp.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <99B108357E832F49AAAADC54323A9624@intel.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-fsdevel-owner@vger.kernel.org
 To: "toshi.kani@hp.com" <toshi.kani@hp.com>
-Cc: "axboe@kernel.dk" <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "hch@lst.de" <hch@lst.de>, "axboe@kernel.dk" <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "boaz@plexistor.com" <boaz@plexistor.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jun 25, 2015 at 11:34 AM, Williams, Dan J
-<dan.j.williams@intel.com> wrote:
-> On Thu, 2015-06-25 at 11:45 -0600, Toshi Kani wrote:
->> On Thu, 2015-06-25 at 05:37 -0400, Dan Williams wrote:
->> > From: Toshi Kani <toshi.kani@hp.com>
->> >
->> > ACPI NFIT table has System Physical Address Range Structure entries that
->> > describe a proximity ID of each range when ACPI_NFIT_PROXIMITY_VALID is
->> > set in the flags.
->> >
->> > Change acpi_nfit_register_region() to map a proximity ID to its node ID,
->> > and set it to a new numa_node field of nd_region_desc, which is then
->> > conveyed to the nd_region device.
->> >
->> > The device core arranges for btt and namespace devices to inherit their
->> > node from their parent region.
->> >
->> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
->> > [djbw: move set_dev_node() from region 'probe' to 'create']
->>
->> Sorry, I failed to mention other issue, which led me call set_dev_node()
->> in probe.  nd_async_device_register() calls device_add(), which does:
->>
->>         /* use parent numa_node */
->>         if (parent)
->>                 set_dev_node(dev, dev_to_node(parent));
->>
->> and overwrites numa_node to -1.  Since region's parent is ndbusN, we
->> cannot set numa_node to the parent.  So, I had to set it in probe.
->
-> In general, I still don't like leaving it up to ->probe() which is
-> within its rights to fail and not set the node.  How about the following
-> that moves it to the bus uevent code?  Should get triggered before probe
-> so the numa_node is valid before userspace is ever notified about the
-> device.
->
-> device_add() does:
->
->         kobject_uevent(&dev->kobj, KOBJ_ADD);
->         bus_probe_device(dev);
->
-> ...so I think we're good, agree?  I also added a missing init of
-> ndr_desc.numa_node in arch/x86/kernel/pmem.c, see below.
-
-This looks good in a quick manual test.  It's interesting/illustrative
-that I inadvertently broke the one bit of the libnvdimm sysfs
-interface that did not have unit test coverage.
+T24gVGh1LCAyMDE1LTA2LTI1IGF0IDExOjQ1IC0wNjAwLCBUb3NoaSBLYW5pIHdyb3RlOg0KPiBP
+biBUaHUsIDIwMTUtMDYtMjUgYXQgMDU6MzcgLTA0MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4g
+PiBGcm9tOiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwLmNvbT4NCj4gPiANCj4gPiBBQ1BJIE5G
+SVQgdGFibGUgaGFzIFN5c3RlbSBQaHlzaWNhbCBBZGRyZXNzIFJhbmdlIFN0cnVjdHVyZSBlbnRy
+aWVzIHRoYXQNCj4gPiBkZXNjcmliZSBhIHByb3hpbWl0eSBJRCBvZiBlYWNoIHJhbmdlIHdoZW4g
+QUNQSV9ORklUX1BST1hJTUlUWV9WQUxJRCBpcw0KPiA+IHNldCBpbiB0aGUgZmxhZ3MuDQo+ID4g
+DQo+ID4gQ2hhbmdlIGFjcGlfbmZpdF9yZWdpc3Rlcl9yZWdpb24oKSB0byBtYXAgYSBwcm94aW1p
+dHkgSUQgdG8gaXRzIG5vZGUgSUQsDQo+ID4gYW5kIHNldCBpdCB0byBhIG5ldyBudW1hX25vZGUg
+ZmllbGQgb2YgbmRfcmVnaW9uX2Rlc2MsIHdoaWNoIGlzIHRoZW4NCj4gPiBjb252ZXllZCB0byB0
+aGUgbmRfcmVnaW9uIGRldmljZS4NCj4gPiANCj4gPiBUaGUgZGV2aWNlIGNvcmUgYXJyYW5nZXMg
+Zm9yIGJ0dCBhbmQgbmFtZXNwYWNlIGRldmljZXMgdG8gaW5oZXJpdCB0aGVpcg0KPiA+IG5vZGUg
+ZnJvbSB0aGVpciBwYXJlbnQgcmVnaW9uLg0KPiA+IA0KPiA+IFNpZ25lZC1vZmYtYnk6IFRvc2hp
+IEthbmkgPHRvc2hpLmthbmlAaHAuY29tPg0KPiA+IFtkamJ3OiBtb3ZlIHNldF9kZXZfbm9kZSgp
+IGZyb20gcmVnaW9uICdwcm9iZScgdG8gJ2NyZWF0ZSddDQo+IA0KPiBTb3JyeSwgSSBmYWlsZWQg
+dG8gbWVudGlvbiBvdGhlciBpc3N1ZSwgd2hpY2ggbGVkIG1lIGNhbGwgc2V0X2Rldl9ub2RlKCkN
+Cj4gaW4gcHJvYmUuICBuZF9hc3luY19kZXZpY2VfcmVnaXN0ZXIoKSBjYWxscyBkZXZpY2VfYWRk
+KCksIHdoaWNoIGRvZXM6DQo+IA0KPiAgICAgICAgIC8qIHVzZSBwYXJlbnQgbnVtYV9ub2RlICov
+DQo+ICAgICAgICAgaWYgKHBhcmVudCkNCj4gICAgICAgICAgICAgICAgIHNldF9kZXZfbm9kZShk
+ZXYsIGRldl90b19ub2RlKHBhcmVudCkpOw0KPiANCj4gYW5kIG92ZXJ3cml0ZXMgbnVtYV9ub2Rl
+IHRvIC0xLiAgU2luY2UgcmVnaW9uJ3MgcGFyZW50IGlzIG5kYnVzTiwgd2UNCj4gY2Fubm90IHNl
+dCBudW1hX25vZGUgdG8gdGhlIHBhcmVudC4gIFNvLCBJIGhhZCB0byBzZXQgaXQgaW4gcHJvYmUu
+IA0KDQpJbiBnZW5lcmFsLCBJIHN0aWxsIGRvbid0IGxpa2UgbGVhdmluZyBpdCB1cCB0byAtPnBy
+b2JlKCkgd2hpY2ggaXMNCndpdGhpbiBpdHMgcmlnaHRzIHRvIGZhaWwgYW5kIG5vdCBzZXQgdGhl
+IG5vZGUuICBIb3cgYWJvdXQgdGhlIGZvbGxvd2luZw0KdGhhdCBtb3ZlcyBpdCB0byB0aGUgYnVz
+IHVldmVudCBjb2RlPyAgU2hvdWxkIGdldCB0cmlnZ2VyZWQgYmVmb3JlIHByb2JlDQpzbyB0aGUg
+bnVtYV9ub2RlIGlzIHZhbGlkIGJlZm9yZSB1c2Vyc3BhY2UgaXMgZXZlciBub3RpZmllZCBhYm91
+dCB0aGUNCmRldmljZS4NCg0KZGV2aWNlX2FkZCgpIGRvZXM6DQoNCiAgICAgICAga29iamVjdF91
+ZXZlbnQoJmRldi0+a29iaiwgS09CSl9BREQpOw0KICAgICAgICBidXNfcHJvYmVfZGV2aWNlKGRl
+dik7DQoNCi4uLnNvIEkgdGhpbmsgd2UncmUgZ29vZCwgYWdyZWU/ICBJIGFsc28gYWRkZWQgYSBt
+aXNzaW5nIGluaXQgb2YNCm5kcl9kZXNjLm51bWFfbm9kZSBpbiBhcmNoL3g4Ni9rZXJuZWwvcG1l
+bS5jLCBzZWUgYmVsb3cuDQoNCjg8LS0tLS0NClN1YmplY3Q6IGxpYm52ZGltbTogU2V0IG51bWFf
+bm9kZSB0byBOVkRJTU0gZGV2aWNlcw0KDQpGcm9tOiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhw
+LmNvbT4NCg0KQUNQSSBORklUIHRhYmxlIGhhcyBTeXN0ZW0gUGh5c2ljYWwgQWRkcmVzcyBSYW5n
+ZSBTdHJ1Y3R1cmUgZW50cmllcyB0aGF0DQpkZXNjcmliZSBhIHByb3hpbWl0eSBJRCBvZiBlYWNo
+IHJhbmdlIHdoZW4gQUNQSV9ORklUX1BST1hJTUlUWV9WQUxJRCBpcw0Kc2V0IGluIHRoZSBmbGFn
+cy4NCg0KQ2hhbmdlIGFjcGlfbmZpdF9yZWdpc3Rlcl9yZWdpb24oKSB0byBtYXAgYSBwcm94aW1p
+dHkgSUQgdG8gaXRzIG5vZGUgSUQsDQphbmQgc2V0IGl0IHRvIGEgbmV3IG51bWFfbm9kZSBmaWVs
+ZCBvZiBuZF9yZWdpb25fZGVzYywgd2hpY2ggaXMgdGhlbg0KY29udmV5ZWQgdG8gdGhlIG5kX3Jl
+Z2lvbiBkZXZpY2UuDQoNClRoZSBkZXZpY2UgY29yZSBhcnJhbmdlcyBmb3IgYnR0IGFuZCBuYW1l
+c3BhY2UgZGV2aWNlcyB0byBpbmhlcml0IHRoZWlyDQpub2RlIGZyb20gdGhlaXIgcGFyZW50IHJl
+Z2lvbi4NCg0KU2lnbmVkLW9mZi1ieTogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocC5jb20+DQpb
+ZGpidzogbW92ZSBzZXRfZGV2X25vZGUoKSBmcm9tIHJlZ2lvbi5jIHRvIGJ1cy5jXQ0KU2lnbmVk
+LW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQotLS0NCiBh
+cmNoL3g4Ni9rZXJuZWwvcG1lbS5jICAgICAgIHwgICAgMSArDQogZHJpdmVycy9hY3BpL25maXQu
+YyAgICAgICAgICB8ICAgIDYgKysrKysrDQogZHJpdmVycy9udmRpbW0vYnVzLmMgICAgICAgICB8
+ICAgIDYgKysrKysrDQogZHJpdmVycy9udmRpbW0vbmQuaCAgICAgICAgICB8ICAgIDIgKy0NCiBk
+cml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jIHwgICAgMSArDQogaW5jbHVkZS9saW51eC9saWJu
+dmRpbW0uaCAgICB8ICAgIDEgKw0KIDYgZmlsZXMgY2hhbmdlZCwgMTYgaW5zZXJ0aW9ucygrKSwg
+MSBkZWxldGlvbigtKQ0KDQpkaWZmIC0tZ2l0IGEvYXJjaC94ODYva2VybmVsL3BtZW0uYyBiL2Fy
+Y2gveDg2L2tlcm5lbC9wbWVtLmMNCmluZGV4IDBmNGVmNDcyYWI5ZS4uNjRmOTBmNTNiYjg1IDEw
+MDY0NA0KLS0tIGEvYXJjaC94ODYva2VybmVsL3BtZW0uYw0KKysrIGIvYXJjaC94ODYva2VybmVs
+L3BtZW0uYw0KQEAgLTY3LDYgKzY3LDcgQEAgc3RhdGljIF9faW5pdCBpbnQgcmVnaXN0ZXJfZTgy
+MF9wbWVtKHZvaWQpDQogCQltZW1zZXQoJm5kcl9kZXNjLCAwLCBzaXplb2YobmRyX2Rlc2MpKTsN
+CiAJCW5kcl9kZXNjLnJlcyA9ICZyZXM7DQogCQluZHJfZGVzYy5hdHRyX2dyb3VwcyA9IGU4MjBf
+cG1lbV9yZWdpb25fYXR0cmlidXRlX2dyb3VwczsNCisJCW5kcl9kZXNjLm51bWFfbm9kZSA9IE5V
+TUFfTk9fTk9ERTsNCiAJCWlmICghbnZkaW1tX3BtZW1fcmVnaW9uX2NyZWF0ZShudmRpbW1fYnVz
+LCAmbmRyX2Rlc2MpKQ0KIAkJCWdvdG8gZXJyOw0KIAl9DQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9h
+Y3BpL25maXQuYyBiL2RyaXZlcnMvYWNwaS9uZml0LmMNCmluZGV4IDFmNmYxYjFhNTRmNC4uZDk2
+YzhmZTk3NGRkIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9hY3BpL25maXQuYw0KKysrIGIvZHJpdmVy
+cy9hY3BpL25maXQuYw0KQEAgLTEzOTIsNiArMTM5MiwxMiBAQCBzdGF0aWMgaW50IGFjcGlfbmZp
+dF9yZWdpc3Rlcl9yZWdpb24oc3RydWN0IGFjcGlfbmZpdF9kZXNjICphY3BpX2Rlc2MsDQogCW5k
+cl9kZXNjLT5yZXMgPSAmcmVzOw0KIAluZHJfZGVzYy0+cHJvdmlkZXJfZGF0YSA9IG5maXRfc3Bh
+Ow0KIAluZHJfZGVzYy0+YXR0cl9ncm91cHMgPSBhY3BpX25maXRfcmVnaW9uX2F0dHJpYnV0ZV9n
+cm91cHM7DQorCWlmIChzcGEtPmZsYWdzICYgQUNQSV9ORklUX1BST1hJTUlUWV9WQUxJRCkNCisJ
+CW5kcl9kZXNjLT5udW1hX25vZGUgPSBhY3BpX21hcF9weG1fdG9fb25saW5lX25vZGUoDQorCQkJ
+CQkJc3BhLT5wcm94aW1pdHlfZG9tYWluKTsNCisJZWxzZQ0KKwkJbmRyX2Rlc2MtPm51bWFfbm9k
+ZSA9IE5VTUFfTk9fTk9ERTsNCisNCiAJbGlzdF9mb3JfZWFjaF9lbnRyeShuZml0X21lbWRldiwg
+JmFjcGlfZGVzYy0+bWVtZGV2cywgbGlzdCkgew0KIAkJc3RydWN0IGFjcGlfbmZpdF9tZW1vcnlf
+bWFwICptZW1kZXYgPSBuZml0X21lbWRldi0+bWVtZGV2Ow0KIAkJc3RydWN0IG5kX21hcHBpbmcg
+Km5kX21hcHBpbmc7DQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vYnVzLmMgYi9kcml2ZXJz
+L252ZGltbS9idXMuYw0KaW5kZXggZWM1OWYxZjI2ZDk1Li4yMDUzNDQ2NDM4NTIgMTAwNjQ0DQot
+LS0gYS9kcml2ZXJzL252ZGltbS9idXMuYw0KKysrIGIvZHJpdmVycy9udmRpbW0vYnVzLmMNCkBA
+IC00OCw2ICs0OCwxMiBAQCBzdGF0aWMgaW50IHRvX25kX2RldmljZV90eXBlKHN0cnVjdCBkZXZp
+Y2UgKmRldikNCiANCiBzdGF0aWMgaW50IG52ZGltbV9idXNfdWV2ZW50KHN0cnVjdCBkZXZpY2Ug
+KmRldiwgc3RydWN0IGtvYmpfdWV2ZW50X2VudiAqZW52KQ0KIHsNCisJLyoNCisJICogRW5zdXJl
+IHRoYXQgcmVnaW9uIGRldmljZXMgYWx3YXlzIGhhdmUgdGhlaXIgbnVtYSBub2RlIHNldCBhcw0K
+KwkgKiBlYXJseSBhcyBwb3NzaWJsZS4NCisJICovDQorCWlmIChpc19uZF9wbWVtKGRldikgfHwg
+aXNfbmRfYmxrKGRldikpDQorCQlzZXRfZGV2X25vZGUoZGV2LCB0b19uZF9yZWdpb24oZGV2KS0+
+bnVtYV9ub2RlKTsNCiAJcmV0dXJuIGFkZF91ZXZlbnRfdmFyKGVudiwgIk1PREFMSUFTPSIgTkRf
+REVWSUNFX01PREFMSUFTX0ZNVCwNCiAJCQl0b19uZF9kZXZpY2VfdHlwZShkZXYpKTsNCiB9DQpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vbmQuaCBiL2RyaXZlcnMvbnZkaW1tL25kLmgNCmlu
+ZGV4IGI4NzBkZTlhZGQ3OS4uNzJjMjY0NjE4MzVkIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9udmRp
+bW0vbmQuaA0KKysrIGIvZHJpdmVycy9udmRpbW0vbmQuaA0KQEAgLTk2LDcgKzk2LDcgQEAgc3Ry
+dWN0IG5kX3JlZ2lvbiB7DQogCXUxNiBuZHJfbWFwcGluZ3M7DQogCXU2NCBuZHJfc2l6ZTsNCiAJ
+dTY0IG5kcl9zdGFydDsNCi0JaW50IGlkLCBudW1fbGFuZXMsIHJvOw0KKwlpbnQgaWQsIG51bV9s
+YW5lcywgcm8sIG51bWFfbm9kZTsNCiAJdm9pZCAqcHJvdmlkZXJfZGF0YTsNCiAJc3RydWN0IG5k
+X2ludGVybGVhdmVfc2V0ICpuZF9zZXQ7DQogCXN0cnVjdCBuZF9wZXJjcHVfbGFuZSBfX3BlcmNw
+dSAqbGFuZTsNCmRpZmYgLS1naXQgYS9kcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jIGIvZHJp
+dmVycy9udmRpbW0vcmVnaW9uX2RldnMuYw0KaW5kZXggOGY4YzdlYTQ4NWYxLi41NWI0MjRmNmJh
+MGQgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jDQorKysgYi9kcml2
+ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jDQpAQCAtNzM2LDYgKzczNiw3IEBAIHN0YXRpYyBzdHJ1
+Y3QgbmRfcmVnaW9uICpuZF9yZWdpb25fY3JlYXRlKHN0cnVjdCBudmRpbW1fYnVzICpudmRpbW1f
+YnVzLA0KIAluZF9yZWdpb24tPm5kX3NldCA9IG5kcl9kZXNjLT5uZF9zZXQ7DQogCW5kX3JlZ2lv
+bi0+bnVtX2xhbmVzID0gbmRyX2Rlc2MtPm51bV9sYW5lczsNCiAJbmRfcmVnaW9uLT5ybyA9IHJv
+Ow0KKwluZF9yZWdpb24tPm51bWFfbm9kZSA9IG5kcl9kZXNjLT5udW1hX25vZGU7DQogCWlkYV9p
+bml0KCZuZF9yZWdpb24tPm5zX2lkYSk7DQogCWRldiA9ICZuZF9yZWdpb24tPmRldjsNCiAJZGV2
+X3NldF9uYW1lKGRldiwgInJlZ2lvbiVkIiwgbmRfcmVnaW9uLT5pZCk7DQpkaWZmIC0tZ2l0IGEv
+aW5jbHVkZS9saW51eC9saWJudmRpbW0uaCBiL2luY2x1ZGUvbGludXgvbGlibnZkaW1tLmgNCmlu
+ZGV4IGRjNzk5YTI5ZWQxYS4uMzBiM2RlYWFmZDUxIDEwMDY0NA0KLS0tIGEvaW5jbHVkZS9saW51
+eC9saWJudmRpbW0uaA0KKysrIGIvaW5jbHVkZS9saW51eC9saWJudmRpbW0uaA0KQEAgLTg5LDYg
+Kzg5LDcgQEAgc3RydWN0IG5kX3JlZ2lvbl9kZXNjIHsNCiAJc3RydWN0IG5kX2ludGVybGVhdmVf
+c2V0ICpuZF9zZXQ7DQogCXZvaWQgKnByb3ZpZGVyX2RhdGE7DQogCWludCBudW1fbGFuZXM7DQor
+CWludCBudW1hX25vZGU7DQogfTsNCiANCiBzdHJ1Y3QgbnZkaW1tX2J1czsNCg0KDQo=
