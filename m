@@ -1,8 +1,9 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
+Message-ID: <1435272910.11808.356.camel@misato.fc.hp.com>
 Subject: Re: [PATCH v2 15/17] libnvdimm: Set numa_node to NVDIMM devices
-Date: Thu, 25 Jun 2015 23:42:33 +0000
-Message-ID: <1435275750.18090.5.camel@intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Date: Thu, 25 Jun 2015 16:55:10 -0600
+In-Reply-To: <CAPcyv4hzUA71G8bmUt7OLXx0GMX-36gqQ-WHOjA7sj9z4pudCA@mail.gmail.com>
 References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
 	 <20150625093738.40066.88750.stgit@dwillia2-desk3.jf.intel.com>
 	 <1435254317.11808.327.camel@misato.fc.hp.com>
@@ -12,108 +13,67 @@ References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
 	 <CAPcyv4gqgbEVWDKR4e8=Uaz1As4FxY4-8VHWKZfQ-vtc2wOs3g@mail.gmail.com>
 	 <1435270287.11808.352.camel@misato.fc.hp.com>
 	 <CAPcyv4hzUA71G8bmUt7OLXx0GMX-36gqQ-WHOjA7sj9z4pudCA@mail.gmail.com>
-	 <1435272910.11808.356.camel@misato.fc.hp.com>
-In-Reply-To: <1435272910.11808.356.camel@misato.fc.hp.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <FEFFB7F888A9AA4CB18BD85A23AE72B2@intel.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: "toshi.kani@hp.com" <toshi.kani@hp.com>
-Cc: "mingo@kernel.org" <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "hch@lst.de" <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "axboe@kernel.dk" <axboe@kernel.dk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "axboe@kernel.dk" <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCAyMDE1LTA2LTI1IGF0IDE2OjU1IC0wNjAwLCBUb3NoaSBLYW5pIHdyb3RlOg0KPiBP
-biBUaHUsIDIwMTUtMDYtMjUgYXQgMTU6MzQgLTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4g
-PiBPbiBUaHUsIEp1biAyNSwgMjAxNSBhdCAzOjExIFBNLCBUb3NoaSBLYW5pIDx0b3NoaS5rYW5p
-QGhwLmNvbT4gd3JvdGU6DQo+ID4gPiBPbiBUaHUsIDIwMTUtMDYtMjUgYXQgMTU6MDAgLTA3MDAs
-IERhbiBXaWxsaWFtcyB3cm90ZToNCj4gPiA+IFllcywgSSBzZWUgbm8gcHJvYmxlbSB3aXRoIGJv
-dW5kIEJUVHMgYW5kIHRoZWlyIGRldmljZSBmaWxlcy4gIFNvLCBob3cNCj4gPiA+IGRvIHdlIGJp
-bmQgQlRUIHdpdGggdGhpcyBuZXcgdmVyc2lvbj8NCj4gPiA+DQo+ID4gDQo+ID4gIyBjZCAvc3lz
-L2J1cy9uZC9kZXZpY2VzDQo+ID4gIyB1dWlkZ2VuID4gYnR0Ni91dWlkDQo+ID4gIyBlY2hvIDQw
-OTYgPiBidHQ2L3NlY3Rvcl9zaXplDQo+ID4gIyBlY2hvIG5hbWVzcGFjZTYuMCA+IGJ0dDYvbmFt
-ZXNwYWNlDQo+ID4gIyBlY2hvIG5hbWVzcGFjZTYuMCA+IC4uL2RyaXZlcnMvbmRfcG1lbS91bmJp
-bmQNCj4gPiAjIGVjaG8gYnR0NiA+IC4uL2RyaXZlcnMvbmRfcG1lbS9iaW5kDQo+ID4gDQo+ID4g
-QWZ0ZXIgcmVib290LCB3aGVuIHRoZSBzeXN0ZW0gc2VlcyBuYW1lc3BhY2U2LjAgYWdhaW4gaXQg
-d2lsbCBub3RpY2UNCj4gPiB0aGUgYnR0IGluc3RhbmNlIGFuZCBhdHRhY2ggYnR0WCBpbnN0ZWFk
-LiAgVGhlIG5ldCBlZmZlY3QgaXMgdGhhdCBub3cNCj4gPiB5b3UnbGwgb25seSBldmVyIGhhdmUg
-L2Rldi9wbWVtNiBvciAvZGV2L3BtZW02cywgbmV2ZXIgYm90aCBhdCB0aGUNCj4gPiBzYW1lIHRp
-bWUgdGhhdCB3YXMgYSBzaWRlIGVmZmVjdCBvZiB0aGUgc3RhY2tpbmcgYXBwcm9hY2guDQo+ID4g
-DQo+ID4gSSdsbCBwb3N0IHRoZSBwYXRjaCB0aGF0IHVwZGF0ZXMgbGlibmRjdGwgYW5kIHRoZSB1
-bml0IHRlc3RzIHNob3J0bHkNCj4gDQo+IE1heWJlIEkgYW0gbWlzc2luZyBzb21ldGhpbmcsIGJ1
-dCBJIGFtIGdldHRpbmcgZXJyb3JzIG9uIG15IHN5c3RlbS4gIChJDQo+IHVzZWQgYnR0MCBzaW5j
-ZSB0aGVyZSBpcyBubyBidHQ2LikNCj4gDQo+ICMgY2F0IGJpbmQuc2gNCj4gc2V0IC14DQo+IGNk
-IC9zeXMvYnVzL25kL2RldmljZXMNCj4gdXVpZGdlbiA+IGJ0dDAvdXVpZA0KPiBlY2hvIDQwOTYg
-PiBidHQwL3NlY3Rvcl9zaXplDQo+IGVjaG8gbmFtZXNwYWNlMC4wID4gYnR0MC9uYW1lc3BhY2UN
-Cj4gZWNobyBuYW1lc3BhY2UwLjAgPiAuLi9kcml2ZXJzL25kX3BtZW0vdW5iaW5kDQo+IGVjaG8g
-YnR0MCA+IC4uL2RyaXZlcnMvbmRfcG1lbS9iaW5kDQo+IA0KPiAjIHNoIGJpbmQuc2gNCj4gKyBj
-ZCAvc3lzL2J1cy9uZC9kZXZpY2VzDQo+ICsgdXVpZGdlbg0KPiArIGVjaG8gNDA5Ng0KPiArIGVj
-aG8gbmFtZXNwYWNlMC4wDQo+IGJpbmQuc2g6IGxpbmUgNjogZWNobzogd3JpdGUgZXJyb3I6IERl
-dmljZSBvciByZXNvdXJjZSBidXN5DQo+ICsgZWNobyBuYW1lc3BhY2UwLjANCj4gYmluZC5zaDog
-bGluZSA3OiBlY2hvOiB3cml0ZSBlcnJvcjogTm8gc3VjaCBkZXZpY2UNCj4gKyBlY2hvIGJ0dDAN
-Cj4gYmluZC5zaDogbGluZSA4OiBlY2hvOiB3cml0ZSBlcnJvcjogTm8gc3VjaCBkZXZpY2UNCj4g
-DQo+ICMgZG1lc2cNCj4gIDoNCj4gWzEyNTEzLjgzOTE2Ml0gbmQgYnR0MDogdXVpZF9zdG9yZTog
-cmVzdWx0OiAwIHdyb3RlOg0KPiBiMzJjZDE5NS05YWFlLTRjNTQtYTVhYy00OWFkYjUwYThhOTgN
-Cj4gWzEyNTEzLjg4MDI4Nl0gbmQgYnR0MDogc2VjdG9yX3NpemVfc3RvcmU6IHJlc3VsdDogMCB3
-cm90ZTogNDA5Ng0KPiBbMTI1MTMuOTA5NDk0XSBuZCBidHQwOiBuYW1lc3BhY2UwLjAgYWxyZWFk
-eSBjbGFpbWVkDQo+IFsxMjUxMy45MzMzNjRdIG5kIGJ0dDA6IG5hbWVzcGFjZV9zdG9yZTogcmVz
-dWx0OiAtMTYgd3JvdGU6IG5hbWVzcGFjZTAuMA0KPiBbMTI1MTMuOTY2ODA4XSAgbmRidXMwOiBu
-ZF9wbWVtLnByb2JlKGJ0dDApID0gLTE5DQo+IA0KDQpTbyB0aGlzIHR1cm5lZCBvdXQgdG8gYmUg
-YSBwZXJmZWN0IGV4YW1wbGUgb2Ygd2h5IHdlIG1pZ2h0IHdhbnQgdG8gaGF2ZQ0KdGhlIHJlZ2lv
-bi1pZCBpbiB0aGUgYnR0IGRldmljZSBuYW1lIGp1c3QgbGlrZSBuYW1lc3BhY2VzLCBiZWNhdXNl
-IGJ0dDANCndhcyBhY3R1YWxseSBib3VuZCB0byBuYW1lc3BhY2U0LjAgb24gVG9zaGkncyBzeXN0
-ZW0uICBUaGUgZm9sbG93aW5nDQp1cGRhdGUsIHRoYXQgSSB3aWxsIGZvbGQgaW4gdG8gdGhlIHNl
-cmllcywgZml4ZXMgdGhpcy4gIE5vdGUgdGhhdCB0aGUNCmFzc29jaWF0aW9uIG9mIGJ0dCBpZCB0
-byB0byBuYW1lc3BhY2UgaXMgc3RpbGwgbm9uLWRldGVybWluaXN0aWMuICBJLmUuDQpidHQwLjEg
-Y291bGQgYmUgYXNzaWduZWQgYXMgdGhlIGJ0dCBmb3IgbmFtZXNwYWNlMC4wLCBidXQgYXQgbGVh
-c3Qgd2hlbg0KbG9va2luZyBhdCAvc3lzL2J1cy9uZC9kZXZpY2VzIGl0IHdpbGwgYmUgY2xlYXIg
-d2hpY2ggYnR0cyBiZWxvbmcgdG8NCndoaWNoIHJlZ2lvbnMuDQoNCiMgbHMgL3N5cy9idXMvbmQv
-ZGV2aWNlcw0KYnR0MC4wICBidHQzLjAgIGJ0dDYuMCAgICAgICAgbmFtZXNwYWNlMi4wICBuYW1l
-c3BhY2U1LjAgIG5tZW0xICBubWVtNCAgICByZWdpb24yICByZWdpb241DQpidHQxLjAgIGJ0dDQu
-MCAgbmFtZXNwYWNlMC4wICBuYW1lc3BhY2UzLjAgIG5hbWVzcGFjZTYuMCAgbm1lbTIgIHJlZ2lv
-bjAgIHJlZ2lvbjMgIHJlZ2lvbjYNCmJ0dDIuMCAgYnR0NS4wICBuYW1lc3BhY2UxLjAgIG5hbWVz
-cGFjZTQuMCAgbm1lbTAgICAgICAgICBubWVtMyAgcmVnaW9uMSAgcmVnaW9uNA0KDQoNCjg8LS0t
-LS0tLS0tLS0tDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vYnR0X2RldnMuYyBiL2RyaXZl
-cnMvbnZkaW1tL2J0dF9kZXZzLmMNCmluZGV4IDJkZmI1MjlmNGQzNS4uNmFjOGMwZmVhM2VjIDEw
-MDY0NA0KLS0tIGEvZHJpdmVycy9udmRpbW0vYnR0X2RldnMuYw0KKysrIGIvZHJpdmVycy9udmRp
-bW0vYnR0X2RldnMuYw0KQEAgLTIxLDggKzIxLDYgQEANCiAjaW5jbHVkZSAiYnR0LmgiDQogI2lu
-Y2x1ZGUgIm5kLmgiDQogDQotc3RhdGljIERFRklORV9JREEoYnR0X2lkYSk7DQotDQogc3RhdGlj
-IHZvaWQgX19uZF9idHRfZGV0YWNoX25kbnMoc3RydWN0IG5kX2J0dCAqbmRfYnR0KQ0KIHsNCiAJ
-c3RydWN0IG5kX25hbWVzcGFjZV9jb21tb24gKm5kbnMgPSBuZF9idHQtPm5kbnM7DQpAQCAtNzUs
-MTEgKzczLDEyIEBAIHN0YXRpYyBib29sIG5kX2J0dF9hdHRhY2hfbmRucyhzdHJ1Y3QgbmRfYnR0
-ICpuZF9idHQsDQogDQogc3RhdGljIHZvaWQgbmRfYnR0X3JlbGVhc2Uoc3RydWN0IGRldmljZSAq
-ZGV2KQ0KIHsNCisJc3RydWN0IG5kX3JlZ2lvbiAqbmRfcmVnaW9uID0gdG9fbmRfcmVnaW9uKGRl
-di0+cGFyZW50KTsNCiAJc3RydWN0IG5kX2J0dCAqbmRfYnR0ID0gdG9fbmRfYnR0KGRldik7DQog
-DQogCWRldl9kYmcoZGV2LCAiJXNcbiIsIF9fZnVuY19fKTsNCiAJbmRfYnR0X2RldGFjaF9uZG5z
-KG5kX2J0dCk7DQotCWlkYV9zaW1wbGVfcmVtb3ZlKCZidHRfaWRhLCBuZF9idHQtPmlkKTsNCisJ
-aWRhX3NpbXBsZV9yZW1vdmUoJm5kX3JlZ2lvbi0+YnR0X2lkYSwgbmRfYnR0LT5pZCk7DQogCWtm
-cmVlKG5kX2J0dC0+dXVpZCk7DQogCWtmcmVlKG5kX2J0dCk7DQogfQ0KQEAgLTMwOSw3ICszMDgs
-NyBAQCBzdGF0aWMgc3RydWN0IGRldmljZSAqX19uZF9idHRfY3JlYXRlKHN0cnVjdCBuZF9yZWdp
-b24gKm5kX3JlZ2lvbiwNCiAJaWYgKCFuZF9idHQpDQogCQlyZXR1cm4gTlVMTDsNCiANCi0JbmRf
-YnR0LT5pZCA9IGlkYV9zaW1wbGVfZ2V0KCZidHRfaWRhLCAwLCAwLCBHRlBfS0VSTkVMKTsNCisJ
-bmRfYnR0LT5pZCA9IGlkYV9zaW1wbGVfZ2V0KCZuZF9yZWdpb24tPmJ0dF9pZGEsIDAsIDAsIEdG
-UF9LRVJORUwpOw0KIAlpZiAobmRfYnR0LT5pZCA8IDApIHsNCiAJCWtmcmVlKG5kX2J0dCk7DQog
-CQlyZXR1cm4gTlVMTDsNCkBAIC0zMjAsNyArMzE5LDcgQEAgc3RhdGljIHN0cnVjdCBkZXZpY2Ug
-Kl9fbmRfYnR0X2NyZWF0ZShzdHJ1Y3QgbmRfcmVnaW9uICpuZF9yZWdpb24sDQogCQl1dWlkID0g
-a21lbWR1cCh1dWlkLCAxNiwgR0ZQX0tFUk5FTCk7DQogCW5kX2J0dC0+dXVpZCA9IHV1aWQ7DQog
-CWRldiA9ICZuZF9idHQtPmRldjsNCi0JZGV2X3NldF9uYW1lKGRldiwgImJ0dCVkIiwgbmRfYnR0
-LT5pZCk7DQorCWRldl9zZXRfbmFtZShkZXYsICJidHQlZC4lZCIsIG5kX3JlZ2lvbi0+aWQsIG5k
-X2J0dC0+aWQpOw0KIAlkZXYtPnBhcmVudCA9ICZuZF9yZWdpb24tPmRldjsNCiAJZGV2LT50eXBl
-ID0gJm5kX2J0dF9kZXZpY2VfdHlwZTsNCiAJZGV2LT5ncm91cHMgPSBuZF9idHRfYXR0cmlidXRl
-X2dyb3VwczsNCmRpZmYgLS1naXQgYS9kcml2ZXJzL252ZGltbS9uZC5oIGIvZHJpdmVycy9udmRp
-bW0vbmQuaA0KaW5kZXggNzJjMjY0NjE4MzVkLi5jNDFmNTNlNzQyNzcgMTAwNjQ0DQotLS0gYS9k
-cml2ZXJzL252ZGltbS9uZC5oDQorKysgYi9kcml2ZXJzL252ZGltbS9uZC5oDQpAQCAtOTEsNiAr
-OTEsNyBAQCBzdHJ1Y3QgbmRfcGVyY3B1X2xhbmUgew0KIHN0cnVjdCBuZF9yZWdpb24gew0KIAlz
-dHJ1Y3QgZGV2aWNlIGRldjsNCiAJc3RydWN0IGlkYSBuc19pZGE7DQorCXN0cnVjdCBpZGEgYnR0
-X2lkYTsNCiAJc3RydWN0IGRldmljZSAqbnNfc2VlZDsNCiAJc3RydWN0IGRldmljZSAqYnR0X3Nl
-ZWQ7DQogCXUxNiBuZHJfbWFwcGluZ3M7DQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vcmVn
-aW9uX2RldnMuYyBiL2RyaXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMNCmluZGV4IDU1YjQyNGY2
-YmEwZC4uYTUyMzM0MjJmOWRjIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9udmRpbW0vcmVnaW9uX2Rl
-dnMuYw0KKysrIGIvZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYw0KQEAgLTczOCw2ICs3Mzgs
-NyBAQCBzdGF0aWMgc3RydWN0IG5kX3JlZ2lvbiAqbmRfcmVnaW9uX2NyZWF0ZShzdHJ1Y3QgbnZk
-aW1tX2J1cyAqbnZkaW1tX2J1cywNCiAJbmRfcmVnaW9uLT5ybyA9IHJvOw0KIAluZF9yZWdpb24t
-Pm51bWFfbm9kZSA9IG5kcl9kZXNjLT5udW1hX25vZGU7DQogCWlkYV9pbml0KCZuZF9yZWdpb24t
-Pm5zX2lkYSk7DQorCWlkYV9pbml0KCZuZF9yZWdpb24tPmJ0dF9pZGEpOw0KIAlkZXYgPSAmbmRf
-cmVnaW9uLT5kZXY7DQogCWRldl9zZXRfbmFtZShkZXYsICJyZWdpb24lZCIsIG5kX3JlZ2lvbi0+
-aWQpOw0KIAlkZXYtPnBhcmVudCA9ICZudmRpbW1fYnVzLT5kZXY7DQoNCg==
+On Thu, 2015-06-25 at 15:34 -0700, Dan Williams wrote:
+> On Thu, Jun 25, 2015 at 3:11 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > On Thu, 2015-06-25 at 15:00 -0700, Dan Williams wrote:
+> > Yes, I see no problem with bound BTTs and their device files.  So, how
+> > do we bind BTT with this new version?
+> >
+> 
+> # cd /sys/bus/nd/devices
+> # uuidgen > btt6/uuid
+> # echo 4096 > btt6/sector_size
+> # echo namespace6.0 > btt6/namespace
+> # echo namespace6.0 > ../drivers/nd_pmem/unbind
+> # echo btt6 > ../drivers/nd_pmem/bind
+> 
+> After reboot, when the system sees namespace6.0 again it will notice
+> the btt instance and attach bttX instead.  The net effect is that now
+> you'll only ever have /dev/pmem6 or /dev/pmem6s, never both at the
+> same time that was a side effect of the stacking approach.
+> 
+> I'll post the patch that updates libndctl and the unit tests shortly
+
+Maybe I am missing something, but I am getting errors on my system.  (I
+used btt0 since there is no btt6.)
+
+# cat bind.sh
+set -x
+cd /sys/bus/nd/devices
+uuidgen > btt0/uuid
+echo 4096 > btt0/sector_size
+echo namespace0.0 > btt0/namespace
+echo namespace0.0 > ../drivers/nd_pmem/unbind
+echo btt0 > ../drivers/nd_pmem/bind
+
+# sh bind.sh
++ cd /sys/bus/nd/devices
++ uuidgen
++ echo 4096
++ echo namespace0.0
+bind.sh: line 6: echo: write error: Device or resource busy
++ echo namespace0.0
+bind.sh: line 7: echo: write error: No such device
++ echo btt0
+bind.sh: line 8: echo: write error: No such device
+
+# dmesg
+ :
+[12513.839162] nd btt0: uuid_store: result: 0 wrote:
+b32cd195-9aae-4c54-a5ac-49adb50a8a98
+[12513.880286] nd btt0: sector_size_store: result: 0 wrote: 4096
+[12513.909494] nd btt0: namespace0.0 already claimed
+[12513.933364] nd btt0: namespace_store: result: -16 wrote: namespace0.0
+[12513.966808]  ndbus0: nd_pmem.probe(btt0) = -19
+
+Thanks,
+-Toshi
+
