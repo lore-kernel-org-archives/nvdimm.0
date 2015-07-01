@@ -1,37 +1,36 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 04/24] intel_iommu: fix leaked ioremap mapping
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 30 Jul 2015 12:54:01 -0400
-Message-ID: <20150730165401.33962.81348.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAMuHMdU8z7iUVaUaGs3f1kUcDus5Qg1+EQQ5uu7uCWrHO_kBaw@mail.gmail.com>
+References: <20150617215027.11597.61414.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150617231408.11597.28725.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<CAMuHMdVMxoJFmzBZ_qAx5gDfZxsGUo2wJzawgMxS5TER==VUWQ@mail.gmail.com>
+	<CAPcyv4jEhoYsW_M3SPG1_YVQCXtnytg6Wi+BfXU=idFSp-2wYg@mail.gmail.com>
+	<CAMuHMdU8z7iUVaUaGs3f1kUcDus5Qg1+EQQ5uu7uCWrHO_kBaw@mail.gmail.com>
+Date: Wed, 1 Jul 2015 10:24:53 -0700
+Message-ID: <CAPcyv4j-anyF1Tt3F5G7yoQpfik9SmhXEojUmSrPm+SMVN31Sw@mail.gmail.com>
+Subject: Re: [PATCH v7 09/16] libnvdimm, pmem: move pmem to drivers/nvdimm/
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Jens Axboe <axboe@kernel.dk>, Stephen Rothwell <sfr@canb.auug.org.au>, "Rafael J. Wysocki" <rafael@kernel.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, "linux-api@vger.kernel.org" <linux-api@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-iommu_load_old_irte() appears to leak the old_irte mapping after use.
+On Wed, Jul 1, 2015 at 9:49 AM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+> On Wed, Jul 1, 2015 at 6:41 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+>> On Wed, Jul 1, 2015 at 6:13 AM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+>>> On Thu, Jun 18, 2015 at 1:14 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+>>>> Prepare the pmem driver to consume PMEM namespaces emitted by regions of
+>>>> an nvdimm_bus instance.  No functional change.
+>>>
+>>> As LIBNVDIMM depends on PHYS_ADDR_T_64BIT, the driver can no
+>>> longer be enabled on pure 32-bit platforms. Is that intended?
+>>
+>> Yes it was intentional.  It still allows 32-bit platforms with 64-bit
+>> resource_size_t to compile. Do you otherwise have a 32-bit use case
+>> for pmem?  I'm of course open to working through the changes to add
+>> wider architecture support.
+>
+> Nope, just wondering, as the original didn't depend on PHYS_ADDR_T_64BIT.
 
-Cc: Joerg Roedel <jroedel@suse.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/iommu/intel_irq_remapping.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/iommu/intel_irq_remapping.c b/drivers/iommu/intel_irq_remapping.c
-index f15692a410c7..27cdfa84ec5b 100644
---- a/drivers/iommu/intel_irq_remapping.c
-+++ b/drivers/iommu/intel_irq_remapping.c
-@@ -426,6 +426,8 @@ static int iommu_load_old_irte(struct intel_iommu *iommu)
- 			bitmap_set(iommu->ir_table->bitmap, i, 1);
- 	}
- 
-+	iounmap(old_ir_table);
-+
- 	return 0;
- }
- 
-
+Not explicitly, but it did rely on X86_PMEM_LEGACY.
