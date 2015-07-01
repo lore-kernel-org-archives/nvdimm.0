@@ -1,133 +1,79 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Tue, 7 Jul 2015 11:50:12 +0200
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: Re: [PATCH v5 2/6] arch: unify ioremap prototypes and macro aliases
-Message-ID: <20150707095012.GQ7021@wotan.suse.de>
-References: <20150622081028.35954.89885.stgit@dwillia2-desk3.jf.intel.com>
- <20150622082427.35954.73529.stgit@dwillia2-desk3.jf.intel.com>
- <20150622161002.GB8240@lst.de>
- <CAPcyv4h5OXyRvZvLGD5ZknO-YUPn675YGv0XdtW1QOO9qmZsug@mail.gmail.com>
- <20150701062352.GA3739@lst.de>
- <CAMuHMdUO4uSWH1Qc0SfDTLuXbiG2N9fq8Tf6j+3RoqVKdPugbA@mail.gmail.com>
- <20150701065948.GA4355@lst.de>
- <CAMuHMdXqjmo2T3V=msZySVSu2j4YjyE7FnVXWTjySEyfYLSg1A@mail.gmail.com>
- <20150701072828.GA4881@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150701072828.GA4881@lst.de>
+In-Reply-To: <20150701080915.GJ7557@n2100.arm.linux.org.uk>
+References: <20150622081028.35954.89885.stgit@dwillia2-desk3.jf.intel.com>
+	<20150622082427.35954.73529.stgit@dwillia2-desk3.jf.intel.com>
+	<20150622161002.GB8240@lst.de>
+	<CAPcyv4h5OXyRvZvLGD5ZknO-YUPn675YGv0XdtW1QOO9qmZsug@mail.gmail.com>
+	<20150701062352.GA3739@lst.de>
+	<CAMuHMdUO4uSWH1Qc0SfDTLuXbiG2N9fq8Tf6j+3RoqVKdPugbA@mail.gmail.com>
+	<20150701080915.GJ7557@n2100.arm.linux.org.uk>
+Date: Wed, 1 Jul 2015 09:47:31 -0700
+Message-ID: <CAPcyv4iaf77KMffTseMbYEcK_BJTpGsY=PmeJyDGR9N2yBAKVg@mail.gmail.com>
+Subject: Re: [PATCH v5 2/6] arch: unify ioremap prototypes and macro aliases
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: Christoph Hellwig <hch@lst.de>, Andy Lutomirski <luto@amacapital.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Julia Lawall <julia.lawall@lip6.fr>, Dan Williams <dan.j.williams@intel.com>, Arnd Bergmann <arnd@arndb.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, X86 ML <x86@kernel.org>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Bader <stefan.bader@canonical.com>, Linux MM <linux-mm@kvack.org>, Ralf Baechle <ralf@linux-mips.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Michael Ellerman <mpe@ellerman.id.au>, Tejun Heo <tj@kernel.org>, Paul Mackerras <paulus@samba.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, mcgrof@do-not-panic.com, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Christoph Hellwig <hch@lst.de>, Arnd Bergmann <arnd@arndb.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, X86 ML <x86@kernel.org>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Luis Rodriguez <mcgrof@suse.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Bader <stefan.bader@canonical.com>, Andy Lutomirski <luto@amacapital.net>, Linux MM <linux-mm@kvack.org>, Ralf Baechle <ralf@linux-mips.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Michael Ellerman <mpe@ellerman.id.au>, Tejun Heo <tj@kernel.org>, Paul Mackerras <paulus@samba.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Jul 01, 2015 at 09:28:28AM +0200, Christoph Hellwig wrote:
-> On Wed, Jul 01, 2015 at 09:19:29AM +0200, Geert Uytterhoeven wrote:
-> > >> So it would be the responsibility of the caller to fall back from
-> > >> ioremap(..., CACHED) to ioremap(..., UNCACHED)?
-> > >> I.e. all drivers using it should be changed...
-> > >
-> > > All of the zero users we currently have will need to be changed, yes.
-> > 
-> > Good. Less work to convert all of these ;-)
-> 
-> And I didn't have enough coffee yet.  We of course have a few users of
-> ioremap_cache(), and two implememantions but no users of ioremap_cached().
-> Looks like the implementations can't even agree on the name.
+On Wed, Jul 1, 2015 at 1:09 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Wed, Jul 01, 2015 at 08:55:57AM +0200, Geert Uytterhoeven wrote:
+>> On Wed, Jul 1, 2015 at 8:23 AM, Christoph Hellwig <hch@lst.de> wrote:
+>> >> One useful feature of the ifdef mess as implemented in the patch is
+>> >> that you could test for whether ioremap_cache() is actually
+>> >> implemented or falls back to default ioremap().  I think for
+>> >> completeness archs should publish an ioremap type capabilities mask
+>> >> for drivers that care... (I can imagine pmem caring), or default to
+>> >> being permissive if something like IOREMAP_STRICT is not set.  There's
+>> >> also the wrinkle of archs that can only support certain types of
+>> >> mappings at a given alignment.
+>> >
+>> > I think doing this at runtime might be a better idea.  E.g. a
+>> > ioremap_flags with the CACHED argument will return -EOPNOTSUP unless
+>> > actually implemented.  On various architectures different CPUs or
+>> > boards will have different capabilities in this area.
+>>
+>> So it would be the responsibility of the caller to fall back from
+>> ioremap(..., CACHED) to ioremap(..., UNCACHED)?
+>> I.e. all drivers using it should be changed...
+>
+> Another important point here is to define what the properties of the
+> mappings are.  It's no good just saying "uncached".
+>
+> We've recently been around this over the PMEM driver and the broken
+> addition of ioremap_wt() on ARM...
+>
+> By "properties" I mean stuff like whether unaligned accesses permitted,
+> any kind of atomic access (eg, xchg, cmpxchg, etc).
+>
+> This matters: on ARM, a mapping suitable for a device does not support
+> unaligned accesses or atomic accesses - only "memory-like" mappings
+> support those.  However, memory-like mappings are not required to
+> preserve access size, number of accesses, etc which makes them unsuitable
+> for device registers.
 
-Yies, that naming is icky... we also have quite a bit of ioremap_nocache() users:
+I'm proposing that we explicitly switch "memory-like" use cases over
+to a separate set of "memremap()" apis, as these are no longer
+"__iomem" [1].
 
-mcgrof@ergon ~/linux-next (git::kill-mtrr)$ git grep ioremap_nocache drivers/| wc -l
-359
+> The problem with ioremap_uncached() in particular is that we have LDD
+> and other documentation telling people to use it to map device registers,
+> so we can't define ioremap_uncached() on ARM to have memory-like
+> properties, and it doesn't support unaligned accesses.
+>
+> I have a series of patches which fix up 32-bit ARM for the broken
+> ioremap_wt() stuff that was merged during this merge window, which I
+> intend to push out into linux-next at some point (possibly during the
+> merge window, if not after -rc1) which also move ioremap*() out of line
+> on ARM but more importantly, adds a load of documentation about the
+> properties of the resulting mapping on ARM.
 
-On x86 the default ioremap() happens to map to ioremap_nocache() anyway as well.
+Sounds good, I'll look for that before proceeding on this clean up.
 
-This is on purpose, there is an ongoing effort to streamline ioremap_nocache()
-for registers on the x86 front with the long term goal then of making PAT
-strong UC the default preference for both ioremap() and ioremap_nocache() for
-PAT enabled systems. This would prevent things like write-combining modifiers
-from having any effect on the area. This comes with a small architectural
-driver cost, it means all write-combining desired areas must be split out in
-drivers properly.  This is part of the work I've been doing lately. The
-eventual goal once we have the write-combing areas properly split with
-ioremap_wc() and using the new proper preferred architecture agnostic modifier
-(arch_phys_wc_add()) is to change the default ioremap behaviour on x86 to use
-strong UC for PAT enabled systems for *both* ioremap() and ioremap_nocache().
-
-This was aleady done once but reverted later due to the regression issues on
-video drivers not haveing the right ioremap_wc() calls. I'm finishing this
-effort and am about a few patches away...
-
-Once done and once things cool down we should go back and may consider flipping
-the switch again to make strong UC default. For details refer to commit
-de33c442ed2a465 ("x86 PAT: fix performance drop for glx, use UC minus
-for ioremap(), ioremap_nocache() and pci_mmap_page_range()").
-
-All this is fine in theory -- but Benjamin Herrenschmidt recently also
-noted that on powerpc the write-combining may end up requiring each
-register read/write with its own specific API. That is, we'd lose the
-magic of having things being done behind the scenes, and that would
-also mean tons of reads/writes may need to be converted over to be
-explicit about write-combining preferences...
-
-I will note that upon discussions it seems that the above requirement
-may have been a slight mishap on not being explicit about our semantics
-and requirements on ioremap() variants, technically it may be possible
-that effectively PowerPC may not get any write-combining effects on
-infiniband / networking / anything not doing write-combining on
-userspace such as framebuffer... from what I gather that needs to
-be fixed. Because of these grammatical issues and the issues with
-unaligned access with ARM I think its important we put some effort
-to care a bit more about defining clear semantics through grammar
-for new APIs or as we rewrite APIs. We have tools to do this these
-days, best make use of them.
-
-While we're at it and reconsidering all this, a few items I wish for
-us to address as well then, most of them related to grammar, some
-procedural clarification:
-
-  * Document it as not supported to have overlapping ioremap() calls.
-    No one seems to have a clue if this should work, but clearly this
-    is just a bad idea. I don't see why we should support the complexity
-    of having this. It seems we can write grammar rules to prevent this.
-
-  * We seem to care about device drivers / kernel code doing unaligned
-    accesses with certain ioremap() variants. At least for ARM you should
-    not do unaligned accesses on ioremap_nocache() areas. I am not sure
-    if we can come up with grammar to vet for / warn for unaligned access
-    type of code in driver code on some memory area when some ioremap()
-    variant is used, but this could be looked into. I believe we may
-    want rules for unaligned access maybe in general, and not attached
-    to certain calls due to performance considerations, so this work
-    may be welcomed regardless (refer to
-    Documentation/unaligned-memory-access.txt)
-    
-  * We seem to want to be pedantic about adding new ioremap() variants, the
-    unaligned issue on ARM is one reason, do we ideally then want *all*
-    architecture maintainers to provide an Acked-by for any new ioremap
-    variants ? Are we going to have to sit and wait for a kumbaya every time
-    a helper comes along to see how it all fits well for all architectures?
-    The asm-generic io.h seemed to have set in place the ability to let
-    architectures define things *when* they get to it, that seems like a much
-    more fair approach *if* and *when possible*.  Can we not have and define
-    a *safe* ioremap() call to fall under ?  The unaligned access concerns seem
-    fair but.. again it seems we generally care about unaligned access anyway,
-    so the concern really should be to fix all driver code to not do unaligned
-    access, if possible no?
-
-  * There are helpers such as set_memory_wc() which should not be used
-    on IO memory, we should define grammar rules for these.
-
-  * There are ioremap() variants which may require helpers for architectures.
-    The only example I am aware of is ioremap_wc() requires arch_phys_wc_add()
-    so that on x86 PAT enabled systems this does nothing, but on x86 non-PAT
-    systems this will use MTRRs. The arch_phys_wc_add() API can be re-purposed
-    for other architectures if needed, maybe benh can look at this for powerpc?
-    But it seems those helpers were added mostly with a bias towards x86
-    requirements, do we again expect all architecture maintainers to provide
-    an Acked-by for ioremap() variants helpers ?
-
-  Luis
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-June/001331.html
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
