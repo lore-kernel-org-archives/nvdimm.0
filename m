@@ -1,40 +1,40 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 3/6] tools/testing/nvdimm: fix return code for
- unimplemented commands
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 11 Jul 2015 10:40:53 -0400
-Message-ID: <20150711144053.25013.48187.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/3] Correctness fixes for NFIT BLK I/O path
+Date: Thu, 09 Jul 2015 00:24:14 +0200
+Message-ID: <1739070.jNKN61Jqzj@vostro.rjw.lan>
+In-Reply-To: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Greg KH <gregkh@linuxfoundation.org>, Jeff Moyer <jmoyer@redhat.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Toshi Kani <toshi.kani@hp.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The implementation for the new "DIMM Flags" DSM relies on the -ENOTTY
-return code to indicate that the flags are unimplimented and to fall
-back to a safe default.  As is the -ENXIO error code erroneoously
-indicates to fail enabling a BLK region.
+On Wednesday, July 08, 2015 10:00:18 AM Ross Zwisler wrote:
+> Patch 1 is just a quick update to MAINTAINERS for include/linux/pmem.h.
+> 
+> Patches 2 and 3 in this series contain correctness fixes for the NFIT BLK I/O
+> path, which in my opinion need to be pulled in for v4.2.  These fixes include
+> making sure that the block control registers are properly flushed before the
+> associated apertures are accessed, which is necessary for proper operation.
+> This series also updates the I/O path to use non-temporal stores, and to
+> respect the "latch" flag outlined in the DSM specification.
+> 
+> Ross Zwisler (3):
+>   pmem: add maintainer for include/linux/pmem.h
+>   nfit: update block I/O path to use PMEM API
+>   nfit: add support for NVDIMM "latch" flag
+> 
+>  MAINTAINERS         |   1 +
+>  drivers/acpi/nfit.c | 114 +++++++++++++++++++++++++++++++++++++++++++++++++---
+>  drivers/acpi/nfit.h |  16 +++++++-
+>  3 files changed, 125 insertions(+), 6 deletions(-)
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- tools/testing/nvdimm/test/nfit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+No objections from me and I'm assuming Dan to be taking these.
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 4b69b8368de0..092d4724fe16 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -155,7 +155,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 	int i, rc;
- 
- 	if (!nfit_mem || !test_bit(cmd, &nfit_mem->dsm_mask))
--		return -ENXIO;
-+		return -ENOTTY;
- 
- 	/* lookup label space for the given dimm */
- 	for (i = 0; i < ARRAY_SIZE(handle); i++)
+Thanks,
+Rafael
 
