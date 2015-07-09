@@ -1,103 +1,150 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
+Message-ID: <1436485405.3214.99.camel@hp.com>
+Subject: Re: [PATCH v5 2/6] arch: unify ioremap prototypes and macro aliases
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH] x86/panic/reboot: Flush processor caches during panic/reboot
-Date: Thu, 23 Jul 2015 11:33:30 -0600
-Message-Id: <1437672810-9641-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com
-Cc: bp@alien8.de, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org, Toshi Kani <toshi.kani@hp.com>
+Date: Thu, 09 Jul 2015 17:43:25 -0600
+In-Reply-To: <20150709014020.GA7021@wotan.suse.de>
+References: 
+	<CAPcyv4h5OXyRvZvLGD5ZknO-YUPn675YGv0XdtW1QOO9qmZsug@mail.gmail.com>
+	 <20150701062352.GA3739@lst.de>
+	 <CAMuHMdUO4uSWH1Qc0SfDTLuXbiG2N9fq8Tf6j+3RoqVKdPugbA@mail.gmail.com>
+	 <20150701065948.GA4355@lst.de>
+	 <CAMuHMdXqjmo2T3V=msZySVSu2j4YjyE7FnVXWTjySEyfYLSg1A@mail.gmail.com>
+	 <20150701072828.GA4881@lst.de> <20150707095012.GQ7021@wotan.suse.de>
+	 <20150707101330.GJ7557@n2100.arm.linux.org.uk>
+	 <20150707160703.GR7021@wotan.suse.de> <1436310658.3214.85.camel@hp.com>
+	 <20150709014020.GA7021@wotan.suse.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Andy Lutomirski <luto@amacapital.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Julia Lawall <julia.lawall@lip6.fr>, Dan Williams <dan.j.williams@intel.com>, Arnd Bergmann <arnd@arndb.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, X86 ML <x86@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Bader <stefan.bader@canonical.com>, Linux MM <linux-mm@kvack.org>, Ralf Baechle <ralf@linux-mips.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Michael Ellerman <mpe@ellerman.id.au>, Tejun Heo <tj@kernel.org>, Paul Mackerras <paulus@samba.org>, mcgrof@do-not-panic.com, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-During power failure, Asynchronous DRAM Refresh (ADR) flushes
-the write buffer in memory controllers into NVDIMM, but does not
-flush processor caches.  While the kernel and application code
-need to take care of processor cache flush, they may not be able
-to do so during panic or reboot.
+On Thu, 2015-07-09 at 03:40 +0200, Luis R. Rodriguez wrote:
+> On Tue, Jul 07, 2015 at 05:10:58PM -0600, Toshi Kani wrote:
+> > On Tue, 2015-07-07 at 18:07 +0200, Luis R. Rodriguez wrote:
+> > > On Tue, Jul 07, 2015 at 11:13:30AM +0100, Russell King - ARM 
+> > > Linux 
+> > > wrote:
+> >   :
+> > > > On ARM, we (probably) have a lot of cases where ioremap() is 
+> > > > used 
+> > > > multiple
+> > > > times for the same physical address space, so we shouldn't rule 
+> > > > out 
+> > > > having
+> > > > multiple mappings of the same type.
+> > > 
+> > > Why is that done? Don't worry if you are not sure why but only 
+> > > speculate of the
+> > > practice's existence (sloppy drivers or lazy driver developers). 
+> > > FWIW 
+> > > for x86
+> > > IIRC I ended up concluding that overlapping ioremap() calls with 
+> > > the 
+> > > same type
+> > > would work but not if they differ in type.  Although I haven't 
+> > > written a
+> > > grammer rule to hunt down overlapping ioremap() I suspected its 
+> > > use 
+> > > was likely
+> > > odd and likely should be reconsidered. Would this be true for ARM 
+> > > too 
+> > > ? Or are
+> > > you saying this should be a feature ? I don't expect an answer 
+> > > now 
+> > > but I'm
+> > > saying we *should* all together decide on this, and if you're 
+> > > inclined to
+> > > believe that this should ideally be avoided I'd like to hear 
+> > > that. If 
+> > > you feel
+> > > strongly though this should be a feature I would like to know 
+> > > why.
+> > 
+> > There are multiple mapping interfaces, and overlapping can happen 
+> > among
+> > them as well.  For instance, remap_pfn_range() (and 
+> > io_remap_pfn_range(), which is the same as remap_pfn_range() on 
+> > x86)
+> > creates a mapping to user space. The same physical ranges may be
+> > mapped to kernel and user spaces.  /dev/mem is one example that may
+> > create a user space mapping to a physical address that is already
+> > mapped with ioremap() by other module.
+> 
+> Thanks for the feedback. The restriction seems to be differing cache 
+> types
+> requirements, other than this, are there any other concerns ? For 
+> instance are
+> we completley happy with aliasing so long as cache types match 
+> everywhere?  I'd
+> expect no architecture would want cache types to differ when 
+> aliasing, what
+> should differ then I think would just be how to verify this and it 
+> doesn't seem
+> we may be doing this for all architectures.
+> 
+> Even for userspace we seem to be covered -- we enable userspace 
+> mmap() calls to
+> get their mapped space with a cache type, on the kernel we'd say use
+> pgprot_writecombine() on the vma->vm_page_prot prior to the
+> io_remap_pfn_range() -- that maps to remap_pfn_range() on x86 and as 
+> you note
+> that checks cache type via reserve_memtype() -- but only on x86...
+> 
+> Other than this differing cache type concern are we OK with aliasing 
+> in
+> userspace all the time ?
+> 
+> If we want to restrict aliasing either for the kernel or userspace 
+> mapping
+> we might be able to do it, I just want to know if we want to or not 
+> care
+> at all.
 
-Add processor cache flush (wbinvd) to the stop-CPUs interfaces,
-native_stop_other_cpus() and nmi_shootdown_cpus(), which are
-called during panic and reboot as follows.  These wbinvd()s are
-called on each CPU after its irq/APIC is disabled.
+Yes, we allow to create multiple mappings to a same physical page as
+long as their cache type is the same.  There are multiple use-cases
+that depend on this ability.
 
-  - panic()
-    + smp_send_stop()
-       o native_stop_other_cpus()
-          o stop_this_cpu()
+> > pmem and DAX also create mappings to the same NVDIMM ranges.  DAX 
+> > calls
+> > vm_insert_mixed(), which is particularly a problematic since
+> > vm_insert_mixed() does not verify aliasing.  ioremap() and 
+> > remap_pfn_range()
+> > call reserve_memtype() to verify aliasing on x86. 
+> >  reserve_memtype() is
+> > x86-specific and there is no arch-generic wrapper for such check.
+> 
+> As clarified by Matthew Wilcox via commit d92576f1167cacf7844 ("dax: 
+> does not
+> work correctly with virtual aliasing caches") caches are virtually 
+> mapped for
+> some architectures, it seems it should be possible to fix this for 
+> DAX somehow
+> though.
 
-  - native_machine_restart()
-  - native_machine_halt()
-  - native_machine_power_off()
-     + native_machine_shutdown()
-        + stop_other_cpus()
-           o native_stop_other_cpus()
-              o stop_this_cpu()
+I simply described this DAX case as an example of how two modules might
+request different cache types.  Yes, we should be able to fix this
+case.
 
-  - native_machine_crash_shutdown()
-     + kdump_nmi_shootdown_cpus()
-        o nmi_shootdown_cpus()
-           o crash_nmi_callback()
+> > I think DAX could get a cache type from pmem to keep them in sync, 
+> > though.
+> 
+> pmem is x86 specific right now, are other folks going to expose 
+> something
+> similar ? Otherwise we seem to only be addressing these deep concerns 
+> for
+> x86 so far.
 
-Note, the cpu offline path, mwait_play_dead(), already calls
-wbinvd().
+pmem is a generic driver and is not x86-specific. 
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
----
- arch/x86/kernel/process.c |    2 ++
- arch/x86/kernel/reboot.c  |    5 +++++
- arch/x86/kernel/smp.c     |    2 ++
- 3 files changed, 9 insertions(+)
+Thanks,
+-Toshi
 
-diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
-index 397688b..3a1f381 100644
---- a/arch/x86/kernel/process.c
-+++ b/arch/x86/kernel/process.c
-@@ -320,6 +320,8 @@ void stop_this_cpu(void *dummy)
- 	set_cpu_online(smp_processor_id(), false);
- 	disable_local_APIC();
- 
-+	wbinvd();
-+
- 	for (;;)
- 		halt();
- }
-diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
-index 86db4bc..5ef4d4b 100644
---- a/arch/x86/kernel/reboot.c
-+++ b/arch/x86/kernel/reboot.c
-@@ -737,6 +737,9 @@ static int crash_nmi_callback(unsigned int val, struct pt_regs *regs)
- 	shootdown_callback(cpu, regs);
- 
- 	atomic_dec(&waiting_for_crash_ipi);
-+
-+	wbinvd();
-+
- 	/* Assume hlt works */
- 	halt();
- 	for (;;)
-@@ -780,6 +783,8 @@ void nmi_shootdown_cpus(nmi_shootdown_cb callback)
- 
- 	smp_send_nmi_allbutself();
- 
-+	wbinvd();
-+
- 	msecs = 1000; /* Wait at most a second for the other cpus to stop */
- 	while ((atomic_read(&waiting_for_crash_ipi) > 0) && msecs) {
- 		mdelay(1);
-diff --git a/arch/x86/kernel/smp.c b/arch/x86/kernel/smp.c
-index 15aaa69..41e7ca8 100644
---- a/arch/x86/kernel/smp.c
-+++ b/arch/x86/kernel/smp.c
-@@ -244,6 +244,8 @@ finish:
- 	local_irq_save(flags);
- 	disable_local_APIC();
- 	local_irq_restore(flags);
-+
-+	wbinvd();
- }
- 
- /*
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
