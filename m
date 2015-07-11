@@ -1,101 +1,52 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 21/24] arch: kill ioremap_fullcache()
+Subject: [PATCH v2 2/6] tools/testing/nvdimm: mock ioremap_wt
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 30 Jul 2015 12:55:36 -0400
-Message-ID: <20150730165536.33962.67351.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 11 Jul 2015 10:40:48 -0400
+Message-ID: <20150711144047.25013.78168.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Nothing calls this helper, and now that ioremap_cache() is being
-deprecated these can also be removed.
+In the 4.2-rc1 merge the default_memremap_pmem() implementation switched
+from ioremap_nocache() to ioremap_wt().  Add it to the list of mocked
+routines to restore the ability to run the unit tests.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/frv/include/asm/io.h        |    5 -----
- arch/m68k/include/asm/io_mm.h    |    6 ------
- arch/m68k/include/asm/io_no.h    |    5 -----
- arch/microblaze/include/asm/io.h |    1 -
- arch/tile/include/asm/io.h       |    1 -
- 5 files changed, 18 deletions(-)
+ tools/testing/nvdimm/Kbuild       |    1 +
+ tools/testing/nvdimm/test/iomap.c |    6 ++++++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/arch/frv/include/asm/io.h b/arch/frv/include/asm/io.h
-index a31b63ec4930..15a49a268754 100644
---- a/arch/frv/include/asm/io.h
-+++ b/arch/frv/include/asm/io.h
-@@ -272,11 +272,6 @@ static inline void __iomem *ioremap_wt(unsigned long physaddr, unsigned long siz
- 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index 8e9b64520ec1..8e020601c773 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -1,3 +1,4 @@
++ldflags-y += --wrap=ioremap_wt
+ ldflags-y += --wrap=ioremap_cache
+ ldflags-y += --wrap=ioremap_nocache
+ ldflags-y += --wrap=iounmap
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index c85a6f6ba559..9f21b150396b 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -77,6 +77,12 @@ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
  }
+ EXPORT_SYMBOL(__wrap_ioremap_nocache);
  
--static inline void __iomem *ioremap_fullcache(unsigned long physaddr, unsigned long size)
--{
--	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
--}
--
- #define ioremap_wc ioremap_nocache
- 
- extern void iounmap(void volatile __iomem *addr);
-diff --git a/arch/m68k/include/asm/io_mm.h b/arch/m68k/include/asm/io_mm.h
-index f55cad529400..910e90770eb2 100644
---- a/arch/m68k/include/asm/io_mm.h
-+++ b/arch/m68k/include/asm/io_mm.h
-@@ -473,12 +473,6 @@ static inline void __iomem *ioremap_wt(unsigned long physaddr,
++void __iomem *__wrap_ioremap_wt(resource_size_t offset, unsigned long size)
++{
++	return __nfit_test_ioremap(offset, size, ioremap_wt);
++}
++EXPORT_SYMBOL(__wrap_ioremap_wt);
++
+ void __wrap_iounmap(volatile void __iomem *addr)
  {
- 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
- }
--static inline void __iomem *ioremap_fullcache(unsigned long physaddr,
--				      unsigned long size)
--{
--	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
--}
--
- static inline void memset_io(volatile void __iomem *addr, unsigned char val, int count)
- {
- 	__builtin_memset((void __force *) addr, val, count);
-diff --git a/arch/m68k/include/asm/io_no.h b/arch/m68k/include/asm/io_no.h
-index ad7bd40e6742..2690fa99dc56 100644
---- a/arch/m68k/include/asm/io_no.h
-+++ b/arch/m68k/include/asm/io_no.h
-@@ -159,11 +159,6 @@ static inline void *ioremap_wt(unsigned long physaddr, unsigned long size)
- {
- 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
- }
--static inline void *ioremap_fullcache(unsigned long physaddr, unsigned long size)
--{
--	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
--}
--
- #define	iounmap(addr)	do { } while(0)
- 
- /*
-diff --git a/arch/microblaze/include/asm/io.h b/arch/microblaze/include/asm/io.h
-index 39b6315db82e..5e0cbf4e4204 100644
---- a/arch/microblaze/include/asm/io.h
-+++ b/arch/microblaze/include/asm/io.h
-@@ -40,7 +40,6 @@ extern void iounmap(void __iomem *addr);
- 
- extern void __iomem *ioremap(phys_addr_t address, unsigned long size);
- #define ioremap_nocache(addr, size)		ioremap((addr), (size))
--#define ioremap_fullcache(addr, size)		ioremap((addr), (size))
- #define ioremap_wc(addr, size)			ioremap((addr), (size))
- #define ioremap_wt(addr, size)			ioremap((addr), (size))
- 
-diff --git a/arch/tile/include/asm/io.h b/arch/tile/include/asm/io.h
-index dc61de15c1f9..e2867d235170 100644
---- a/arch/tile/include/asm/io.h
-+++ b/arch/tile/include/asm/io.h
-@@ -55,7 +55,6 @@ extern void iounmap(volatile void __iomem *addr);
- #define ioremap_nocache(physaddr, size)		ioremap(physaddr, size)
- #define ioremap_wc(physaddr, size)		ioremap(physaddr, size)
- #define ioremap_wt(physaddr, size)		ioremap(physaddr, size)
--#define ioremap_fullcache(physaddr, size)	ioremap(physaddr, size)
- 
- #define mmiowb()
- 
+ 	struct nfit_test_resource *nfit_res;
 
