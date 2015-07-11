@@ -1,228 +1,183 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 02/24] arch, drivers: don't include <asm/io.h> directly,
- use <linux/io.h> instead
+Subject: [PATCH v2 4/6] tools/testing/nvdimm: add mock
+ acpi_nfit_flush_address entries to nfit_test
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 30 Jul 2015 12:53:51 -0400
-Message-ID: <20150730165350.33962.12562.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 11 Jul 2015 10:40:58 -0400
+Message-ID: <20150711144058.25013.94870.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Preparation for uniform definition of ioremap, ioremap_wc, ioremap_wt,
-and ioremap_cache, tree-wide.
+In preparation for fixing the BLK path to properly use "directed
+pcommit" enable the unit test infrastructure to emit mock "flush"
+tables.  Writes to these flush addresses trigger a memory controller to
+flush its internal buffers to persistent media, similar to the x86
+"pcommit" instruction.
 
-Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm/mach-shmobile/pm-rcar.c            |    2 +-
- arch/ia64/kernel/cyclone.c                  |    2 +-
- drivers/isdn/icn/icn.h                      |    2 +-
- drivers/mtd/devices/slram.c                 |    2 +-
- drivers/mtd/nand/diskonchip.c               |    2 +-
- drivers/mtd/onenand/generic.c               |    2 +-
- drivers/scsi/sun3x_esp.c                    |    2 +-
- drivers/staging/comedi/drivers/ii_pci20kc.c |    1 +
- drivers/tty/serial/8250/8250_core.c         |    2 +-
- drivers/video/fbdev/s1d13xxxfb.c            |    3 +--
- drivers/video/fbdev/stifb.c                 |    1 +
- include/linux/io-mapping.h                  |    2 +-
- include/linux/mtd/map.h                     |    2 +-
- include/video/vga.h                         |    2 +-
- 14 files changed, 14 insertions(+), 13 deletions(-)
+ tools/testing/nvdimm/Kbuild       |    2 +
+ tools/testing/nvdimm/test/iomap.c |   21 ++++++++++++++++
+ tools/testing/nvdimm/test/nfit.c  |   50 ++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 71 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-shmobile/pm-rcar.c b/arch/arm/mach-shmobile/pm-rcar.c
-index 00022ee56f80..9d3dde00c2fe 100644
---- a/arch/arm/mach-shmobile/pm-rcar.c
-+++ b/arch/arm/mach-shmobile/pm-rcar.c
-@@ -12,7 +12,7 @@
- #include <linux/err.h>
- #include <linux/mm.h>
- #include <linux/spinlock.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include "pm-rcar.h"
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index 8e020601c773..f56914c7929b 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -1,4 +1,6 @@
+ ldflags-y += --wrap=ioremap_wt
++ldflags-y += --wrap=ioremap_wc
++ldflags-y += --wrap=devm_ioremap_nocache
+ ldflags-y += --wrap=ioremap_cache
+ ldflags-y += --wrap=ioremap_nocache
+ ldflags-y += --wrap=iounmap
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index 9f21b150396b..64bfaa50831c 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -65,6 +65,21 @@ void __iomem *__nfit_test_ioremap(resource_size_t offset, unsigned long size,
+ 	return fallback_fn(offset, size);
+ }
  
- /* SYSC */
-diff --git a/arch/ia64/kernel/cyclone.c b/arch/ia64/kernel/cyclone.c
-index 4826ff957a3d..5fa3848ba224 100644
---- a/arch/ia64/kernel/cyclone.c
-+++ b/arch/ia64/kernel/cyclone.c
-@@ -4,7 +4,7 @@
- #include <linux/errno.h>
- #include <linux/timex.h>
- #include <linux/clocksource.h>
--#include <asm/io.h>
-+#include <linux/io.h>
++void __iomem *__wrap_devm_ioremap_nocache(struct device *dev,
++		resource_size_t offset, unsigned long size)
++{
++	struct nfit_test_resource *nfit_res;
++
++	rcu_read_lock();
++	nfit_res = get_nfit_res(offset);
++	rcu_read_unlock();
++	if (nfit_res)
++		return (void __iomem *) nfit_res->buf + offset
++			- nfit_res->res->start;
++	return devm_ioremap_nocache(dev, offset, size);
++}
++EXPORT_SYMBOL(__wrap_devm_ioremap_nocache);
++
+ void __iomem *__wrap_ioremap_cache(resource_size_t offset, unsigned long size)
+ {
+ 	return __nfit_test_ioremap(offset, size, ioremap_cache);
+@@ -83,6 +98,12 @@ void __iomem *__wrap_ioremap_wt(resource_size_t offset, unsigned long size)
+ }
+ EXPORT_SYMBOL(__wrap_ioremap_wt);
  
- /* IBM Summit (EXA) Cyclone counter code*/
- #define CYCLONE_CBAR_ADDR 0xFEB00CD0
-diff --git a/drivers/isdn/icn/icn.h b/drivers/isdn/icn/icn.h
-index b713466997a0..f8f2e76d34bf 100644
---- a/drivers/isdn/icn/icn.h
-+++ b/drivers/isdn/icn/icn.h
-@@ -38,7 +38,7 @@ typedef struct icn_cdef {
- #include <linux/errno.h>
- #include <linux/fs.h>
- #include <linux/major.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <linux/kernel.h>
- #include <linux/signal.h>
- #include <linux/slab.h>
-diff --git a/drivers/mtd/devices/slram.c b/drivers/mtd/devices/slram.c
-index 2fc4957cbe7f..a70eb83e68f1 100644
---- a/drivers/mtd/devices/slram.c
-+++ b/drivers/mtd/devices/slram.c
-@@ -41,7 +41,7 @@
- #include <linux/fs.h>
- #include <linux/ioctl.h>
- #include <linux/init.h>
--#include <asm/io.h>
-+#include <linux/io.h>
++void __iomem *__wrap_ioremap_wc(resource_size_t offset, unsigned long size)
++{
++	return __nfit_test_ioremap(offset, size, ioremap_wc);
++}
++EXPORT_SYMBOL(__wrap_ioremap_wc);
++
+ void __wrap_iounmap(volatile void __iomem *addr)
+ {
+ 	struct nfit_test_resource *nfit_res;
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 092d4724fe16..d0bdae40ccc9 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -128,6 +128,8 @@ struct nfit_test {
+ 	int num_pm;
+ 	void **dimm;
+ 	dma_addr_t *dimm_dma;
++	void **flush;
++	dma_addr_t *flush_dma;
+ 	void **label;
+ 	dma_addr_t *label_dma;
+ 	void **spa_set;
+@@ -331,7 +333,8 @@ static int nfit_test0_alloc(struct nfit_test *t)
+ 			+ sizeof(struct acpi_nfit_system_address) * NUM_SPA
+ 			+ sizeof(struct acpi_nfit_memory_map) * NUM_MEM
+ 			+ sizeof(struct acpi_nfit_control_region) * NUM_DCR
+-			+ sizeof(struct acpi_nfit_data_region) * NUM_BDW;
++			+ sizeof(struct acpi_nfit_data_region) * NUM_BDW
++			+ sizeof(struct acpi_nfit_flush_address) * NUM_DCR;
+ 	int i;
  
- #include <linux/mtd/mtd.h>
+ 	t->nfit_buf = test_alloc(t, nfit_size, &t->nfit_dma);
+@@ -356,6 +359,10 @@ static int nfit_test0_alloc(struct nfit_test *t)
+ 		if (!t->label[i])
+ 			return -ENOMEM;
+ 		sprintf(t->label[i], "label%d", i);
++
++		t->flush[i] = test_alloc(t, 8, &t->flush_dma[i]);
++		if (!t->flush[i])
++			return -ENOMEM;
+ 	}
  
-diff --git a/drivers/mtd/nand/diskonchip.c b/drivers/mtd/nand/diskonchip.c
-index 7da266a53979..0802158a3f75 100644
---- a/drivers/mtd/nand/diskonchip.c
-+++ b/drivers/mtd/nand/diskonchip.c
-@@ -24,7 +24,7 @@
- #include <linux/rslib.h>
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
--#include <asm/io.h>
-+#include <linux/io.h>
+ 	for (i = 0; i < NUM_DCR; i++) {
+@@ -408,6 +415,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	struct acpi_nfit_system_address *spa;
+ 	struct acpi_nfit_control_region *dcr;
+ 	struct acpi_nfit_data_region *bdw;
++	struct acpi_nfit_flush_address *flush;
+ 	unsigned int offset;
  
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/nand.h>
-diff --git a/drivers/mtd/onenand/generic.c b/drivers/mtd/onenand/generic.c
-index 32a216d31141..ab7bda0bb245 100644
---- a/drivers/mtd/onenand/generic.c
-+++ b/drivers/mtd/onenand/generic.c
-@@ -18,7 +18,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/onenand.h>
- #include <linux/mtd/partitions.h>
--#include <asm/io.h>
-+#include <linux/io.h>
+ 	nfit_test_init_header(nfit_buf, size);
+@@ -831,6 +839,39 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	bdw->capacity = DIMM_SIZE;
+ 	bdw->start_address = 0;
  
- /*
-  * Note: Driver name and platform data format have been updated!
-diff --git a/drivers/scsi/sun3x_esp.c b/drivers/scsi/sun3x_esp.c
-index e26e81de7c45..d50c5ed8f428 100644
---- a/drivers/scsi/sun3x_esp.c
-+++ b/drivers/scsi/sun3x_esp.c
-@@ -12,9 +12,9 @@
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/interrupt.h>
-+#include <linux/io.h>
- 
- #include <asm/sun3x.h>
--#include <asm/io.h>
- #include <asm/dma.h>
- #include <asm/dvma.h>
- 
-diff --git a/drivers/staging/comedi/drivers/ii_pci20kc.c b/drivers/staging/comedi/drivers/ii_pci20kc.c
-index 0768bc42a5db..14ef1f67dd42 100644
---- a/drivers/staging/comedi/drivers/ii_pci20kc.c
-+++ b/drivers/staging/comedi/drivers/ii_pci20kc.c
-@@ -28,6 +28,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/io.h>
- #include "../comedidev.h"
- 
- /*
-diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index 37fff12dd4d0..fe902ff52e58 100644
---- a/drivers/tty/serial/8250/8250_core.c
-+++ b/drivers/tty/serial/8250/8250_core.c
-@@ -38,11 +38,11 @@
- #include <linux/slab.h>
- #include <linux/uaccess.h>
- #include <linux/pm_runtime.h>
-+#include <linux/io.h>
- #ifdef CONFIG_SPARC
- #include <linux/sunserialcore.h>
- #endif
- 
--#include <asm/io.h>
- #include <asm/irq.h>
- 
- #include "8250.h"
-diff --git a/drivers/video/fbdev/s1d13xxxfb.c b/drivers/video/fbdev/s1d13xxxfb.c
-index 83433cb0dfba..96aa46dc696c 100644
---- a/drivers/video/fbdev/s1d13xxxfb.c
-+++ b/drivers/video/fbdev/s1d13xxxfb.c
-@@ -32,8 +32,7 @@
- #include <linux/spinlock_types.h>
- #include <linux/spinlock.h>
- #include <linux/slab.h>
--
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- #include <video/s1d13xxxfb.h>
- 
-diff --git a/drivers/video/fbdev/stifb.c b/drivers/video/fbdev/stifb.c
-index 735355b0e023..7df4228e25f0 100644
---- a/drivers/video/fbdev/stifb.c
-+++ b/drivers/video/fbdev/stifb.c
-@@ -64,6 +64,7 @@
- #include <linux/fb.h>
- #include <linux/init.h>
- #include <linux/ioport.h>
-+#include <linux/io.h>
- 
- #include <asm/grfioctl.h>	/* for HP-UX compatibility */
- #include <asm/uaccess.h>
-diff --git a/include/linux/io-mapping.h b/include/linux/io-mapping.h
-index c27dde7215b5..e399029b68c5 100644
---- a/include/linux/io-mapping.h
-+++ b/include/linux/io-mapping.h
-@@ -21,7 +21,7 @@
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <linux/bug.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <asm/page.h>
- 
- /*
-diff --git a/include/linux/mtd/map.h b/include/linux/mtd/map.h
-index 29975c73a953..366cf77953b5 100644
---- a/include/linux/mtd/map.h
-+++ b/include/linux/mtd/map.h
-@@ -27,9 +27,9 @@
- #include <linux/string.h>
- #include <linux/bug.h>
- #include <linux/kernel.h>
-+#include <linux/io.h>
- 
- #include <asm/unaligned.h>
--#include <asm/io.h>
- #include <asm/barrier.h>
- 
- #ifdef CONFIG_MTD_MAP_BANK_WIDTH_1
-diff --git a/include/video/vga.h b/include/video/vga.h
-index cac567f22e62..d334e64c1c19 100644
---- a/include/video/vga.h
-+++ b/include/video/vga.h
-@@ -18,7 +18,7 @@
- #define __linux_video_vga_h__
- 
- #include <linux/types.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <asm/vga.h>
- #include <asm/byteorder.h>
- 
++	offset = offset + sizeof(struct acpi_nfit_data_region) * 4;
++	/* flush0 (dimm0) */
++	flush = nfit_buf + offset;
++	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
++	flush->header.length = sizeof(struct acpi_nfit_flush_address);
++	flush->device_handle = handle[0];
++	flush->hint_count = 1;
++	flush->hint_address[0] = t->flush_dma[0];
++
++	/* flush1 (dimm1) */
++	flush = nfit_buf + offset + sizeof(struct acpi_nfit_flush_address) * 1;
++	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
++	flush->header.length = sizeof(struct acpi_nfit_flush_address);
++	flush->device_handle = handle[1];
++	flush->hint_count = 1;
++	flush->hint_address[0] = t->flush_dma[1];
++
++	/* flush2 (dimm2) */
++	flush = nfit_buf + offset + sizeof(struct acpi_nfit_flush_address) * 2;
++	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
++	flush->header.length = sizeof(struct acpi_nfit_flush_address);
++	flush->device_handle = handle[2];
++	flush->hint_count = 1;
++	flush->hint_address[0] = t->flush_dma[2];
++
++	/* flush3 (dimm3) */
++	flush = nfit_buf + offset + sizeof(struct acpi_nfit_flush_address) * 3;
++	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
++	flush->header.length = sizeof(struct acpi_nfit_flush_address);
++	flush->device_handle = handle[3];
++	flush->hint_count = 1;
++	flush->hint_address[0] = t->flush_dma[3];
++
+ 	acpi_desc = &t->acpi_desc;
+ 	set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_dsm_force_en);
+ 	set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_dsm_force_en);
+@@ -933,6 +974,10 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 				GFP_KERNEL);
+ 		nfit_test->dimm_dma = devm_kcalloc(dev, num, sizeof(dma_addr_t),
+ 				GFP_KERNEL);
++		nfit_test->flush = devm_kcalloc(dev, num, sizeof(void *),
++				GFP_KERNEL);
++		nfit_test->flush_dma = devm_kcalloc(dev, num, sizeof(dma_addr_t),
++				GFP_KERNEL);
+ 		nfit_test->label = devm_kcalloc(dev, num, sizeof(void *),
+ 				GFP_KERNEL);
+ 		nfit_test->label_dma = devm_kcalloc(dev, num,
+@@ -943,7 +988,8 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 				sizeof(dma_addr_t), GFP_KERNEL);
+ 		if (nfit_test->dimm && nfit_test->dimm_dma && nfit_test->label
+ 				&& nfit_test->label_dma && nfit_test->dcr
+-				&& nfit_test->dcr_dma)
++				&& nfit_test->dcr_dma && nfit_test->flush
++				&& nfit_test->flush_dma)
+ 			/* pass */;
+ 		else
+ 			return -ENOMEM;
 
