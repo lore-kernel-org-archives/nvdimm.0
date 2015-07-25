@@ -1,34 +1,63 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: Re: [PATCH v2 15/25] memconsole: fix __iomem mishandling, switch to
+ memremap
+References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150725023923.8664.66965.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <55B40778.4010909@cogentembedded.com>
+Date: Sun, 26 Jul 2015 01:02:32 +0300
 MIME-Version: 1.0
-In-Reply-To: <20150617231408.11597.28725.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150617215027.11597.61414.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150617231408.11597.28725.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date: Wed, 1 Jul 2015 15:13:00 +0200
-Message-ID: <CAMuHMdVMxoJFmzBZ_qAx5gDfZxsGUo2wJzawgMxS5TER==VUWQ@mail.gmail.com>
-Subject: Re: [PATCH v7 09/16] libnvdimm, pmem: move pmem to drivers/nvdimm/
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20150725023923.8664.66965.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, Jens Axboe <axboe@kernel.dk>, Stephen Rothwell <sfr@canb.auug.org.au>, "Rafael J. Wysocki" <rafael@kernel.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, "linux-api@vger.kernel.org" <linux-api@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: Dan Williams <dan.j.williams@intel.com>, tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
+Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Mike Waychison <mikew@google.com>, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan,
+Hello.
 
-On Thu, Jun 18, 2015 at 1:14 AM, Dan Williams <dan.j.williams@intel.com> wrote:
-> Prepare the pmem driver to consume PMEM namespaces emitted by regions of
-> an nvdimm_bus instance.  No functional change.
+On 07/25/2015 05:39 AM, Dan Williams wrote:
 
-As LIBNVDIMM depends on PHYS_ADDR_T_64BIT, the driver can no
-longer be enabled on pure 32-bit platforms. Is that intended?
+> The memconsole driver is not using proper accessors for __iomem.  Switch
+> to memremap to fix this issue, and this also prepares the driver for the
+> removal of ioremap_cache.
 
-Gr{oetje,eeting}s,
+> Cc: Mike Waychison <mikew@google.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>   drivers/firmware/google/memconsole.c |    7 ++++---
+>   1 file changed, 4 insertions(+), 3 deletions(-)
 
-                        Geert
+> diff --git a/drivers/firmware/google/memconsole.c b/drivers/firmware/google/memconsole.c
+> index 2f569aaed4c7..1b25fba84f32 100644
+> --- a/drivers/firmware/google/memconsole.c
+> +++ b/drivers/firmware/google/memconsole.c
+> @@ -52,14 +52,15 @@ static ssize_t memconsole_read(struct file *filp, struct kobject *kobp,
+>   	char *memconsole;
+>   	ssize_t ret;
+>
+> -	memconsole = ioremap_cache(memconsole_baseaddr, memconsole_length);
+> +	memconsole = memremap(memconsole_baseaddr, memconsole_length,
+> +			MEMREMAP_CACHE);
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+    Could you maintain the existing style of the broken line alignment in this 
+file?
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+>   	if (!memconsole) {
+> -		pr_err("memconsole: ioremap_cache failed\n");
+> +		pr_err("memconsole: memremap failed\n");
+>   		return -ENOMEM;
+>   	}
+>   	ret = memory_read_from_buffer(buf, count, &pos, memconsole,
+>   				      memconsole_length);
+
+    Here's an example...
+
+> -	iounmap(memconsole);
+> +	memunmap(memconsole);
+>   	return ret;
+>   }
+
+MBR, Sergei
+
