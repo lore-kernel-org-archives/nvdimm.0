@@ -1,52 +1,68 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 2/6] tools/testing/nvdimm: mock ioremap_wt
+Subject: [PATCH v2 01/25] mm, x86: Fix warning in ioremap RAM check
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 11 Jul 2015 10:40:48 -0400
-Message-ID: <20150711144047.25013.78168.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 24 Jul 2015 22:38:00 -0400
+Message-ID: <20150725023800.8664.47177.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
+To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
+Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, "Luis R. Rodriguez" <mcgrof@suse.com>, linux-kernel@vger.kernel.org, Roland Dreier <roland@purestorage.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, rmk+kernel@arm.linux.org.uk, kbuild test robot <fengguang.wu@intel.com>, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In the 4.2-rc1 merge the default_memremap_pmem() implementation switched
-from ioremap_nocache() to ioremap_wt().  Add it to the list of mocked
-routines to restore the ability to run the unit tests.
+From: Toshi Kani <toshi.kani@hp.com>
 
+__ioremap_caller() calls __ioremap_check_ram() through
+walk_system_ram_range() to check if a target range is in RAM.
+__ioremap_check_ram() has WARN_ONCE() in a wrong place where it warns
+when the given range is not RAM.  This misplaced warning is not exposed
+since walk_system_ram_range() only calls __ioremap_check_ram() for RAM
+ranges.
+
+Move the WARN_ONCE() to __ioremap_caller(), and update the message to
+include the address range.
+
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Roland Dreier <roland@purestorage.com>
+Cc: Luis R. Rodriguez <mcgrof@suse.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+[djbw: fix format specifier warnings]
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/nvdimm/Kbuild       |    1 +
- tools/testing/nvdimm/test/iomap.c |    6 ++++++
- 2 files changed, 7 insertions(+)
+ arch/x86/mm/ioremap.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index 8e9b64520ec1..8e020601c773 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -1,3 +1,4 @@
-+ldflags-y += --wrap=ioremap_wt
- ldflags-y += --wrap=ioremap_cache
- ldflags-y += --wrap=ioremap_nocache
- ldflags-y += --wrap=iounmap
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index c85a6f6ba559..9f21b150396b 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -77,6 +77,12 @@ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
- }
- EXPORT_SYMBOL(__wrap_ioremap_nocache);
+diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
+index cc5ccc415cc0..c13f7fdca142 100644
+--- a/arch/x86/mm/ioremap.c
++++ b/arch/x86/mm/ioremap.c
+@@ -63,8 +63,6 @@ static int __ioremap_check_ram(unsigned long start_pfn, unsigned long nr_pages,
+ 		    !PageReserved(pfn_to_page(start_pfn + i)))
+ 			return 1;
  
-+void __iomem *__wrap_ioremap_wt(resource_size_t offset, unsigned long size)
-+{
-+	return __nfit_test_ioremap(offset, size, ioremap_wt);
-+}
-+EXPORT_SYMBOL(__wrap_ioremap_wt);
-+
- void __wrap_iounmap(volatile void __iomem *addr)
- {
- 	struct nfit_test_resource *nfit_res;
+-	WARN_ONCE(1, "ioremap on RAM pfn 0x%lx\n", start_pfn);
+-
+ 	return 0;
+ }
+ 
+@@ -131,8 +129,11 @@ static void __iomem *__ioremap_caller(resource_size_t phys_addr,
+ 		pfn      = phys_addr >> PAGE_SHIFT;
+ 		last_pfn = last_addr >> PAGE_SHIFT;
+ 		if (walk_system_ram_range(pfn, last_pfn - pfn + 1, NULL,
+-					  __ioremap_check_ram) == 1)
++					  __ioremap_check_ram) == 1) {
++			WARN_ONCE(1, "ioremap on RAM at %pa - %pa\n",
++					&phys_addr, &last_addr);
+ 			return NULL;
++		}
+ 	}
+ 	/*
+ 	 * Mappings have to be page-aligned
 
