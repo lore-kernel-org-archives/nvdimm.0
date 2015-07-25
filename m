@@ -1,9 +1,8 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 15/25] memconsole: fix __iomem mishandling,
- switch to memremap
+Subject: [PATCH v2 20/25] sfi: switch from ioremap_cache to memremap
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 24 Jul 2015 22:39:23 -0400
-Message-ID: <20150725023923.8664.66965.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 24 Jul 2015 22:39:50 -0400
+Message-ID: <20150725023950.8664.40556.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -11,40 +10,40 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Mike Waychison <mikew@google.com>, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
+Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The memconsole driver is not using proper accessors for __iomem.  Switch
-to memremap to fix this issue, and this also prepares the driver for the
-removal of ioremap_cache.
+In preparation for deprecating ioremap_cache() convert its usage in sfi
+to memremap.  It's a bit awkward that we go and add back a fake __iomem
+annotation, but this is to keep consistency with early_ioremap() which
+does not have a 'memremap' flavor.
 
-Cc: Mike Waychison <mikew@google.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/firmware/google/memconsole.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/sfi/sfi_core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/firmware/google/memconsole.c b/drivers/firmware/google/memconsole.c
-index 2f569aaed4c7..1b25fba84f32 100644
---- a/drivers/firmware/google/memconsole.c
-+++ b/drivers/firmware/google/memconsole.c
-@@ -52,14 +52,15 @@ static ssize_t memconsole_read(struct file *filp, struct kobject *kobp,
- 	char *memconsole;
- 	ssize_t ret;
+diff --git a/drivers/sfi/sfi_core.c b/drivers/sfi/sfi_core.c
+index 296db7a69c27..1cccf31dfccc 100644
+--- a/drivers/sfi/sfi_core.c
++++ b/drivers/sfi/sfi_core.c
+@@ -101,7 +101,7 @@ static void __iomem * __ref sfi_map_memory(u64 phys, u32 size)
+ 		return NULL;
  
--	memconsole = ioremap_cache(memconsole_baseaddr, memconsole_length);
-+	memconsole = memremap(memconsole_baseaddr, memconsole_length,
-+			MEMREMAP_CACHE);
- 	if (!memconsole) {
--		pr_err("memconsole: ioremap_cache failed\n");
-+		pr_err("memconsole: memremap failed\n");
- 		return -ENOMEM;
- 	}
- 	ret = memory_read_from_buffer(buf, count, &pos, memconsole,
- 				      memconsole_length);
--	iounmap(memconsole);
-+	memunmap(memconsole);
- 	return ret;
+ 	if (sfi_use_ioremap)
+-		return ioremap_cache(phys, size);
++		return (void __iomem *) memremap(phys, size, MEMREMAP_CACHE);
+ 	else
+ 		return early_ioremap(phys, size);
  }
+@@ -112,7 +112,7 @@ static void __ref sfi_unmap_memory(void __iomem *virt, u32 size)
+ 		return;
  
+ 	if (sfi_use_ioremap)
+-		iounmap(virt);
++		memunmap((void __force *) virt);
+ 	else
+ 		early_iounmap(virt, size);
+ }
 
