@@ -1,115 +1,62 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 19/24] pmem: switch from ioremap_wt to memremap
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 30 Jul 2015 12:55:25 -0400
-Message-ID: <20150730165524.33962.27724.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm fix for 4.2-rc4
+Date: Sat, 25 Jul 2015 17:51:07 +0000
+Message-ID: <1437846666.9656.9.camel@intel.com>
+Content-Language: en-US
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-ID: <085F2F9C6105614BAEEAC621FCC2167B@intel.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, Ross Zwisler <ross.zwisler@linux.intel.com>, hch@lst.de, linux-arm-kernel@lists.infradead.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "nicholas.w.moulin@linux.intel.com" <nicholas.w.moulin@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for deprecating ioremap_wt() convert its usage in
-the PMEM API to memremap.
-
-Acked-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/pmem.h              |    2 +-
- tools/testing/nvdimm/Kbuild       |    4 ++--
- tools/testing/nvdimm/test/iomap.c |   34 +++++++++++++++++++++++++---------
- 3 files changed, 28 insertions(+), 12 deletions(-)
-
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index d2114045a6c4..1bf74c735fa0 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -94,7 +94,7 @@ static void default_memcpy_to_pmem(void __pmem *dst, const void *src,
- static void __pmem *default_memremap_pmem(resource_size_t offset,
- 		unsigned long size)
- {
--	return (void __pmem __force *)ioremap_wt(offset, size);
-+	return (void __pmem *) memremap(offset, size, MEMREMAP_WT);
- }
- 
- /**
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index de2912ea78e8..8032a49f7873 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -1,7 +1,7 @@
--ldflags-y += --wrap=ioremap_wt
- ldflags-y += --wrap=ioremap_wc
- ldflags-y += --wrap=devm_ioremap_nocache
--ldflags-y += --wrap=arch_memremap_pmem
-+ldflags-y += --wrap=memremap
-+ldflags-y += --wrap=memunmap
- ldflags-y += --wrap=ioremap_nocache
- ldflags-y += --wrap=iounmap
- ldflags-y += --wrap=__request_region
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index f8486f98f860..21288f34a5ca 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -80,11 +80,20 @@ void __iomem *__wrap_devm_ioremap_nocache(struct device *dev,
- }
- EXPORT_SYMBOL(__wrap_devm_ioremap_nocache);
- 
--void *__wrap_arch_memremap_pmem(resource_size_t offset, size_t size)
-+void *__wrap_memremap(resource_size_t offset, size_t size,
-+		unsigned long flags)
- {
--	return __nfit_test_ioremap(offset, size, arch_memremap_pmem);
-+	struct nfit_test_resource *nfit_res;
-+
-+	rcu_read_lock();
-+	nfit_res = get_nfit_res(offset);
-+	rcu_read_unlock();
-+	if (nfit_res)
-+		return (void __iomem *) nfit_res->buf + offset
-+			- nfit_res->res->start;
-+	return memremap(offset, size, flags);
- }
--EXPORT_SYMBOL(__wrap_arch_memremap_pmem);
-+EXPORT_SYMBOL(__wrap_memremap);
- 
- void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
- {
-@@ -92,12 +101,6 @@ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
- }
- EXPORT_SYMBOL(__wrap_ioremap_nocache);
- 
--void __iomem *__wrap_ioremap_wt(resource_size_t offset, unsigned long size)
--{
--	return __nfit_test_ioremap(offset, size, ioremap_wt);
--}
--EXPORT_SYMBOL(__wrap_ioremap_wt);
--
- void __iomem *__wrap_ioremap_wc(resource_size_t offset, unsigned long size)
- {
- 	return __nfit_test_ioremap(offset, size, ioremap_wc);
-@@ -117,6 +120,19 @@ void __wrap_iounmap(volatile void __iomem *addr)
- }
- EXPORT_SYMBOL(__wrap_iounmap);
- 
-+void __wrap_memunmap(void *addr)
-+{
-+	struct nfit_test_resource *nfit_res;
-+
-+	rcu_read_lock();
-+	nfit_res = get_nfit_res((unsigned long) addr);
-+	rcu_read_unlock();
-+	if (nfit_res)
-+		return;
-+	return memunmap(addr);
-+}
-+EXPORT_SYMBOL(__wrap_memunmap);
-+
- struct resource *__wrap___request_region(struct resource *parent,
- 		resource_size_t start, resource_size_t n, const char *name,
- 		int flags)
-
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb20uLi4NCg0KICBnaXQ6Ly9naXQua2VybmVsLm9yZy9w
+dWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvZGpidy9udmRpbW0gbGlibnZkaW1tLWZpeGVzDQoNCi4u
+LnRvIHJlY2VpdmUgYSBtaW5vciBmaXggZm9yIHRoZSBsaWJudmRpbW0gc3Vic3lzdGVtLg0KDQpU
+aGlzIGlzIG5vdCBjcml0aWNhbC4gIFRoZSBwcm9ibGVtIGNhbiBiZSB3b3JrZWQgYXJvdW5kIGlu
+IHVzZXJzcGFjZSBieQ0KcHV0dGluZyB0aGUgbmFtZXNwYWNlIHRlbXBvcmFyaWx5IGludG8gcmF3
+IG1vZGUNCihuZGN0bF9uYW1lc3BhY2Vfc2V0X3Jhd19tb2RlKCkgZnJvbSBsaWJuZGN0bCksIGJ1
+dCB0aGF0IGlzIGF3a3dhcmQgZm9yDQptYW5hZ2VtZW50IHV0aWxpdGllcy4gIEkgd291bGQgY29u
+c2lkZXIgaXQgYSBjYW5kaWRhdGUgZm9yIDQuMi1zdGFibGUgaWYNCml0IGRvZXMgbm90IG1ha2Ug
+NC4yLg0KDQpUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29tbWl0IDUyNzIxZDlkMzMzNGMx
+Y2IxZjc2MjE5YTE2MTA4NDA5NGVjNjM0ZGM6DQoNCiAgTGludXggNC4yLXJjMyAoMjAxNS0wNy0x
+OSAxNDo0NTowMiAtMDcwMCkNCg0KYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkg
+YXQ6DQoNCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L2Rq
+YncvbnZkaW1tIGxpYm52ZGltbS1maXhlcw0KDQpmb3IgeW91IHRvIGZldGNoIGNoYW5nZXMgdXAg
+dG8gOGNhMjQzNTM2ZDIxYWUyZDA4ZjYxYjFjNWFmNGFjM2Q0YmI2OTdlNDoNCg0KICBsaWJudmRp
+bW06IGZpeCBuYW1lc3BhY2Ugc2VlZCBjcmVhdGlvbiAoMjAxNS0wNy0yNSAwOTo1Nzo1NiAtMDcw
+MCkNCg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLQ0KRGFuIFdpbGxpYW1zICgxKToNCiAgICAgIGxpYm52ZGltbTogZml4IG5h
+bWVzcGFjZSBzZWVkIGNyZWF0aW9uDQoNCiBkcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jIHwg
+NSArKysrKw0KIDEgZmlsZSBjaGFuZ2VkLCA1IGluc2VydGlvbnMoKykNCg0KY29tbWl0IDhjYTI0
+MzUzNmQyMWFlMmQwOGY2MWIxYzVhZjRhYzNkNGJiNjk3ZTQNCkF1dGhvcjogRGFuIFdpbGxpYW1z
+IDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQpEYXRlOiAgIEZyaSBKdWwgMjQgMjM6NDI6MzQg
+MjAxNSAtMDQwMA0KDQogICAgbGlibnZkaW1tOiBmaXggbmFtZXNwYWNlIHNlZWQgY3JlYXRpb24N
+CiAgICANCiAgICBBIG5ldyBCTEsgbmFtZXNwYWNlICJzZWVkIiBkZXZpY2UgaXMgY3JlYXRlZCB3
+aGVuZXZlciB0aGUgY3VycmVudCBzZWVkDQogICAgaXMgc3VjY2Vzc2Z1bGx5IHByb2JlZC4gIEhv
+d2V2ZXIsIGlmIHRoYXQgbmFtZXNwYWNlIGlzIGFzc2lnbmVkIHRvIGEgQlRUDQogICAgaXQgbWF5
+IG5ldmVyIGRpcmVjdGx5IGV4cGVyaWVuY2UgYSBzdWNjZXNzZnVsIHByb2JlIGFzIGl0IGlzIGEN
+CiAgICBzdWJvcmRpbmF0ZSBkZXZpY2UgdG8gYSBCVFQgY29uZmlndXJhdGlvbi4NCiAgICANCiAg
+ICBUaGUgZWZmZWN0IG9mIHRoZSBjdXJyZW50IGNvZGUgaXMgdGhhdCBubyBuZXcgbmFtZXNwYWNl
+cyBjYW4gYmUNCiAgICBpbnN0YW50aWF0ZWQsIGFmdGVyIHRoZSBzZWVkIG5hbWVzcGFjZSwgdG8g
+Y29uc3VtZSBhdmFpbGFibGUgQkxLIERQQQ0KICAgIGNhcGFjaXR5LiAgRml4IHRoaXMgYnkgdHJl
+YXRpbmcgYSBzdWNjZXNzZnVsIEJUVCBwcm9iZSBldmVudCBhcyBhDQogICAgc3VjY2Vzc2Z1bCBw
+cm9iZSBldmVudCBmb3IgdGhlIGJhY2tpbmcgbmFtZXNwYWNlLg0KICAgIA0KICAgIFJlcG9ydGVk
+LWJ5OiBOaWNob2xhcyBNb3VsaW4gPG5pY2hvbGFzLncubW91bGluQGxpbnV4LmludGVsLmNvbT4N
+CiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
+bT4NCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMgYi9kcml2ZXJz
+L252ZGltbS9yZWdpb25fZGV2cy5jDQppbmRleCBhNTIzMzQyMmY5ZGMuLjczODQ0NTU3OTJiZiAx
+MDA2NDQNCi0tLSBhL2RyaXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMNCisrKyBiL2RyaXZlcnMv
+bnZkaW1tL3JlZ2lvbl9kZXZzLmMNCkBAIC00NTgsMTAgKzQ1OCwxNSBAQCBzdGF0aWMgdm9pZCBu
+ZF9yZWdpb25fbm90aWZ5X2RyaXZlcl9hY3Rpb24oc3RydWN0IG52ZGltbV9idXMgKm52ZGltbV9i
+dXMsDQogCQludmRpbW1fYnVzX3VubG9jayhkZXYpOw0KIAl9DQogCWlmIChpc19uZF9idHQoZGV2
+KSAmJiBwcm9iZSkgew0KKwkJc3RydWN0IG5kX2J0dCAqbmRfYnR0ID0gdG9fbmRfYnR0KGRldik7
+DQorDQogCQluZF9yZWdpb24gPSB0b19uZF9yZWdpb24oZGV2LT5wYXJlbnQpOw0KIAkJbnZkaW1t
+X2J1c19sb2NrKGRldik7DQogCQlpZiAobmRfcmVnaW9uLT5idHRfc2VlZCA9PSBkZXYpDQogCQkJ
+bmRfcmVnaW9uX2NyZWF0ZV9idHRfc2VlZChuZF9yZWdpb24pOw0KKwkJaWYgKG5kX3JlZ2lvbi0+
+bnNfc2VlZCA9PSAmbmRfYnR0LT5uZG5zLT5kZXYgJiYNCisJCQkJaXNfbmRfYmxrKGRldi0+cGFy
+ZW50KSkNCisJCQluZF9yZWdpb25fY3JlYXRlX2Jsa19zZWVkKG5kX3JlZ2lvbik7DQogCQludmRp
+bW1fYnVzX3VubG9jayhkZXYpOw0KIAl9DQogfQ0KDQo=
