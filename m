@@ -1,26 +1,115 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <1438197156.17072.0.camel@linux.intel.com>
-Subject: Re: [PATCH v2 22/25] pmem: switch from ioremap_wt to memremap
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Date: Wed, 29 Jul 2015 13:12:36 -0600
-In-Reply-To: <20150725024001.8664.13362.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 22/25] pmem: switch from ioremap_wt to memremap
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 24 Jul 2015 22:40:01 -0400
+Message-ID: <20150725024001.8664.13362.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150725024001.8664.13362.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
+To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
+Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, Ross Zwisler <ross.zwisler@linux.intel.com>, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, 2015-07-24 at 22:40 -0400, Dan Williams wrote:
-> In preparation for deprecating ioremap_wt() convert its usage in
-> the PMEM API to memremap.
-> 
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+In preparation for deprecating ioremap_wt() convert its usage in
+the PMEM API to memremap.
 
-Acked-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ include/linux/pmem.h              |    2 +-
+ tools/testing/nvdimm/Kbuild       |    4 ++--
+ tools/testing/nvdimm/test/iomap.c |   34 +++++++++++++++++++++++++---------
+ 3 files changed, 28 insertions(+), 12 deletions(-)
 
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index d2114045a6c4..1bf74c735fa0 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -94,7 +94,7 @@ static void default_memcpy_to_pmem(void __pmem *dst, const void *src,
+ static void __pmem *default_memremap_pmem(resource_size_t offset,
+ 		unsigned long size)
+ {
+-	return (void __pmem __force *)ioremap_wt(offset, size);
++	return (void __pmem *) memremap(offset, size, MEMREMAP_WT);
+ }
+ 
+ /**
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index de2912ea78e8..8032a49f7873 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -1,7 +1,7 @@
+-ldflags-y += --wrap=ioremap_wt
+ ldflags-y += --wrap=ioremap_wc
+ ldflags-y += --wrap=devm_ioremap_nocache
+-ldflags-y += --wrap=arch_memremap_pmem
++ldflags-y += --wrap=memremap
++ldflags-y += --wrap=memunmap
+ ldflags-y += --wrap=ioremap_nocache
+ ldflags-y += --wrap=iounmap
+ ldflags-y += --wrap=__request_region
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index f8486f98f860..21288f34a5ca 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -80,11 +80,20 @@ void __iomem *__wrap_devm_ioremap_nocache(struct device *dev,
+ }
+ EXPORT_SYMBOL(__wrap_devm_ioremap_nocache);
+ 
+-void *__wrap_arch_memremap_pmem(resource_size_t offset, size_t size)
++void *__wrap_memremap(resource_size_t offset, size_t size,
++		unsigned long flags)
+ {
+-	return __nfit_test_ioremap(offset, size, arch_memremap_pmem);
++	struct nfit_test_resource *nfit_res;
++
++	rcu_read_lock();
++	nfit_res = get_nfit_res(offset);
++	rcu_read_unlock();
++	if (nfit_res)
++		return (void __iomem *) nfit_res->buf + offset
++			- nfit_res->res->start;
++	return memremap(offset, size, flags);
+ }
+-EXPORT_SYMBOL(__wrap_arch_memremap_pmem);
++EXPORT_SYMBOL(__wrap_memremap);
+ 
+ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
+ {
+@@ -92,12 +101,6 @@ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
+ }
+ EXPORT_SYMBOL(__wrap_ioremap_nocache);
+ 
+-void __iomem *__wrap_ioremap_wt(resource_size_t offset, unsigned long size)
+-{
+-	return __nfit_test_ioremap(offset, size, ioremap_wt);
+-}
+-EXPORT_SYMBOL(__wrap_ioremap_wt);
+-
+ void __iomem *__wrap_ioremap_wc(resource_size_t offset, unsigned long size)
+ {
+ 	return __nfit_test_ioremap(offset, size, ioremap_wc);
+@@ -117,6 +120,19 @@ void __wrap_iounmap(volatile void __iomem *addr)
+ }
+ EXPORT_SYMBOL(__wrap_iounmap);
+ 
++void __wrap_memunmap(void *addr)
++{
++	struct nfit_test_resource *nfit_res;
++
++	rcu_read_lock();
++	nfit_res = get_nfit_res((unsigned long) addr);
++	rcu_read_unlock();
++	if (nfit_res)
++		return;
++	return memunmap(addr);
++}
++EXPORT_SYMBOL(__wrap_memunmap);
++
+ struct resource *__wrap___request_region(struct resource *parent,
+ 		resource_size_t start, resource_size_t n, const char *name,
+ 		int flags)
 
