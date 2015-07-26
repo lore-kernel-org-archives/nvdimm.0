@@ -1,95 +1,31 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 18/25] libnvdimm,
- pmem: switch from ioremap_cache to memremap
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 24 Jul 2015 22:39:40 -0400
-Message-ID: <20150725023940.8664.2784.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sun, 26 Jul 2015 19:31:13 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v2 23/25] arch: remove ioremap_cache, replace with
+	arch_memremap
+Message-ID: <20150726173113.GB29513@lst.de>
+References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com> <20150725024007.8664.58668.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150725024007.8664.58668.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, linux-arch@vger.kernel.org, Tony Luck <tony.luck@intel.com>, toshi.kani@hp.com, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for deprecating ioremap_cache() convert its usage in
-libnvdimm and the PMEM API to memremap.
+On Fri, Jul 24, 2015 at 10:40:07PM -0400, Dan Williams wrote:
+> Now that all call sites for ioremap_cache() have been converted to
+> memremap(MEMREMAP_CACHE) we can now proceed with removing the
+> implementation in the archs.  This amounts to replacing the per-arch
+> ioremap_cache() implementation with arch_memremap.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/include/asm/io.h         |    7 +------
- arch/x86/mm/ioremap.c             |    6 ++++++
- tools/testing/nvdimm/Kbuild       |    2 +-
- tools/testing/nvdimm/test/iomap.c |    6 +++---
- 4 files changed, 11 insertions(+), 10 deletions(-)
+Please have prototypes for arch_memremap and arch_memunmap in
+linux/io.h so that we enforce common prototypes.  This also
+forces arch_memunmap to be out of line which makes sense for such
+a slow patch API.
 
-diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
-index cc9c61bc1abe..8aeb6456188a 100644
---- a/arch/x86/include/asm/io.h
-+++ b/arch/x86/include/asm/io.h
-@@ -248,12 +248,7 @@ static inline void flush_write_buffers(void)
- #endif
- }
- 
--static inline void __pmem *arch_memremap_pmem(resource_size_t offset,
--	unsigned long size)
--{
--	return (void __force __pmem *) ioremap_cache(offset, size);
--}
--
-+void __pmem *arch_memremap_pmem(resource_size_t offset, size_t size);
- #endif /* __KERNEL__ */
- 
- extern void native_io_delay(void);
-diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
-index 6f759c7c2ab7..7b422e7574b1 100644
---- a/arch/x86/mm/ioremap.c
-+++ b/arch/x86/mm/ioremap.c
-@@ -317,6 +317,12 @@ void __iomem *ioremap_cache(resource_size_t phys_addr, unsigned long size)
- }
- EXPORT_SYMBOL(ioremap_cache);
- 
-+void __pmem *arch_memremap_pmem(resource_size_t offset, size_t size)
-+{
-+	return (void __force __pmem *) ioremap_cache(offset, size);
-+}
-+EXPORT_SYMBOL(arch_memremap_pmem);
-+
- void __iomem *ioremap_prot(resource_size_t phys_addr, unsigned long size,
- 				unsigned long prot_val)
- {
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index f56914c7929b..de2912ea78e8 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -1,7 +1,7 @@
- ldflags-y += --wrap=ioremap_wt
- ldflags-y += --wrap=ioremap_wc
- ldflags-y += --wrap=devm_ioremap_nocache
--ldflags-y += --wrap=ioremap_cache
-+ldflags-y += --wrap=arch_memremap_pmem
- ldflags-y += --wrap=ioremap_nocache
- ldflags-y += --wrap=iounmap
- ldflags-y += --wrap=__request_region
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index 64bfaa50831c..f8486f98f860 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -80,11 +80,11 @@ void __iomem *__wrap_devm_ioremap_nocache(struct device *dev,
- }
- EXPORT_SYMBOL(__wrap_devm_ioremap_nocache);
- 
--void __iomem *__wrap_ioremap_cache(resource_size_t offset, unsigned long size)
-+void *__wrap_arch_memremap_pmem(resource_size_t offset, size_t size)
- {
--	return __nfit_test_ioremap(offset, size, ioremap_cache);
-+	return __nfit_test_ioremap(offset, size, arch_memremap_pmem);
- }
--EXPORT_SYMBOL(__wrap_ioremap_cache);
-+EXPORT_SYMBOL(__wrap_arch_memremap_pmem);
- 
- void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
- {
-
+Also while you're at it please convert the ioremap_cached implementations
+on metag and unicore32 which looks like misspellings, fix up the comment
+in arch/arm/mm/mmu.c and the documentation in Documentation/x86/pat.txt
+to not longer refer to ioremap_cache.
