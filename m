@@ -1,8 +1,8 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Mon, 27 Jul 2015 07:12:58 +0200
+Date: Mon, 27 Jul 2015 07:12:16 +0200
 From: Christoph Hellwig <hch@lst.de>
 Subject: Re: [PATCH v2 08/25] arch: introduce memremap()
-Message-ID: <20150727051258.GB15836@lst.de>
+Message-ID: <20150727051216.GA15836@lst.de>
 References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com> <20150725023842.8664.97620.stgit@dwillia2-desk3.amr.corp.intel.com> <20150726172527.GA29513@lst.de> <CAPcyv4igoopDPpcCRU1TNYdwPhiYdcDiRA7L9Jdian=0rtexRg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -14,16 +14,9 @@ Cc: Christoph Hellwig <hch@lst.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo M
 List-ID: <linux-nvdimm@lists.01.org>
 
 On Sun, Jul 26, 2015 at 10:49:39AM -0700, Dan Williams wrote:
-> On Sun, Jul 26, 2015 at 10:25 AM, Christoph Hellwig <hch@lst.de> wrote:
-> > On Fri, Jul 24, 2015 at 10:38:42PM -0400, Dan Williams wrote:
-> >> The behavior change to return NULL on an unsupported request is reserved
-> >> for a later patch.
-> >
-> > Why?
+> > What's the point of having this MEMREMAP_CACHE alias?
 > 
-> This is for drivers like pmem that care about the mapping type.  For
-> example, if pmem can't get a cache-enabled mapping it is potentially
-> putting the write durability of the persistent media at risk.
+> For developers that are used to seeing ioremap_cache()...
 
-I understand that part, but the question is why the old behavior
-is retained for now and only changed later.
+Meh.  We've got git logs that show clearly what replaced a previous API.
+Duplicate names for the same API are highly confusing.
