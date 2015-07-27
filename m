@@ -1,97 +1,42 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Tue, 28 Jul 2015 01:43:51 +0200
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: Re: [PATCH v2 08/25] arch: introduce memremap()
-Message-ID: <20150727234351.GW30479@wotan.suse.de>
-References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20150725023842.8664.97620.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20150727231755.GV30479@wotan.suse.de>
- <CAPcyv4i07wV1Mf1XCs-U98w979enk9PYKquh7CSMcJv0T1kH1Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4i07wV1Mf1XCs-U98w979enk9PYKquh7CSMcJv0T1kH1Q@mail.gmail.com>
+In-Reply-To: <20150727051258.GB15836@lst.de>
+References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150725023842.8664.97620.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150726172527.GA29513@lst.de>
+	<CAPcyv4igoopDPpcCRU1TNYdwPhiYdcDiRA7L9Jdian=0rtexRg@mail.gmail.com>
+	<20150727051258.GB15836@lst.de>
+Date: Mon, 27 Jul 2015 16:26:03 -0700
+Message-ID: <CAPcyv4jN6jYzw11qOOR-xd_w6s5dguQSoHyvmPFSWtL9S+tz3w@mail.gmail.com>
+Subject: Re: [PATCH v2 08/25] arch: introduce memremap()
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-arch@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Christoph Hellwig <hch@lst.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-arch@vger.kernel.org, "Kani, Toshimitsu" <toshi.kani@hp.com>, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jul 27, 2015 at 04:31:09PM -0700, Dan Williams wrote:
-> On Mon, Jul 27, 2015 at 4:17 PM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
-> > On Fri, Jul 24, 2015 at 10:38:42PM -0400, Dan Williams wrote:
-> >> Existing users of ioremap_cache() are mapping memory that is known in
-> >> advance to not have i/o side effects.  These users are forced to cast
-> >> away the __iomem annotation, or otherwise neglect to fix the sparse
-> >> errors thrown when dereferencing pointers to this memory.  Provide
-> >> memremap() as a non __iomem annotated ioremap_*() in the case when
-> >> ioremap is otherwise a pointer to memory.
-> >
-> > Ok so a special use case.
-> >
-> >> Outside of ioremap() and
-> >> ioremap_nocache(), the expectation is that most calls to
-> >> ioremap_<type>() are seeking memory-like semantics (e.g.  speculative
-> >> reads, and prefetching permitted).  These callsites can be moved to
-> >> memremap() over time.
-> >
-> > Such memory-like smantics are not well defined yet and this has caused
-> > issues over expectations over a slew of APIs. As you note above
-> > your own defined 'semantics' so far for memremap are just that there are
-> > no i/o side effects, when the mapped memory is just a pointer to memory,
-> > as such I do not think its fair to set the excpectations that we'll
-> > switch all other ioremap_*() callers to the same memremap() API. Now,
-> > it may be a good idea to use something similar, ie, to pass flags,
-> > but setting the expectations outright to move to memremap() without having
-> > any agreement having been made over semantics seems uncalled for at this
-> > point in time, specially when you are noting that the expectations for
-> > both sets of calls are different.
-> >
-> > So perhaps:
-> >
-> > "
-> > Outside of ioremap() and ioremap_nocache(), all other ioremap_<type>()
-> > variant calls are seeking memory-like semantics (e.g.  speculative
-> > reads, and prefetching permitted) and all calls expecations currently
-> > differ depending on architecture. Once and if we get agreement on such
-> > semantics we may be able to move such ioremap_*() variant calls to
-> > a similar API where the semantics required are clearly spelled out
-> > and well defined and passed as arguments.
-> 
-> I still think ioremap_wc(), and now ioremap_uc(), are special and are
-> not obvious candidates for conversion to memremap().
+On Sun, Jul 26, 2015 at 10:12 PM, Christoph Hellwig <hch@lst.de> wrote:
+> On Sun, Jul 26, 2015 at 10:49:39AM -0700, Dan Williams wrote:
+>> On Sun, Jul 26, 2015 at 10:25 AM, Christoph Hellwig <hch@lst.de> wrote:
+>> > On Fri, Jul 24, 2015 at 10:38:42PM -0400, Dan Williams wrote:
+>> >> The behavior change to return NULL on an unsupported request is reserved
+>> >> for a later patch.
+>> >
+>> > Why?
+>>
+>> This is for drivers like pmem that care about the mapping type.  For
+>> example, if pmem can't get a cache-enabled mapping it is potentially
+>> putting the write durability of the persistent media at risk.
+>
+> I understand that part, but the question is why the old behavior
+> is retained for now and only changed later.
 
-OK great, then we're in strong agreement, so removing the "Outside of
-ioremap() and... over time" might be best then? Otherwise what I posted
-seems to reflect the state of affairs better?
+Oh, because all we have at this point is ioremap_cache() which
+silently falls back.  It's not until the introduction of
+arch_memremp() where we update the arch code to break that behavior.
 
-> >> +void *memremap(resource_size_t offset, size_t size, unsigned long flags)
-> >> +{
-> >> +     int is_ram = region_is_ram(offset, size);
-> >> +     void *addr = NULL;
-> >> +
-> >> +     if (is_ram < 0) {
-> >> +             WARN_ONCE(1, "memremap attempted on mixed range %pa size: %zu\n",
-> >> +                             &offset, size);
-> >> +             return NULL;
-> >> +     }
-> >> +
-> >> +     /* Try all mapping types requested until one returns non-NULL */
-> >> +     if (flags & MEMREMAP_CACHE) {
-> >> +             flags &= ~MEMREMAP_CACHE;
-> >> +             /*
-> >> +              * MEMREMAP_CACHE is special in that it can be satisifed
-> >> +              * from the direct map.  Some archs depend on the
-> >> +              * capability of memremap() to autodetect cases where
-> >> +              * the requested range is potentially in "System RAM"
-> >> +              */
-> >> +             if (is_ram)
-> >> +                     addr = __va(offset);
-> >
-> > The no MMU case seems to match this, can that be switch to this?
-> 
-> Hmm, it may be possible to consolidate all the NOMMU cases here.
-> That's a good incremental cleanup once these base patches are merged.
-
-Sure fine by me.
-
-  Luis
+That said, I think it may be beneficial to allow a fallback if the
+user cares.  So maybe memremap() can call plain ioremap() if
+MEMREMAP_STRICT is not set and none of the other mapping types are
+satisfied.
