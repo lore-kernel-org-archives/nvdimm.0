@@ -1,39 +1,62 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 1/3] pmem: add maintainer for include/linux/pmem.h
-Date: Wed,  8 Jul 2015 10:00:19 -0600
-Message-Id: <1436371221-30296-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+In-Reply-To: <20150727080347.GA18599@lst.de>
+References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150725024015.8664.42950.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150727080347.GA18599@lst.de>
+Date: Wed, 29 Jul 2015 15:21:56 -0700
+Message-ID: <CAPcyv4icZ4aWgPeYnmuj0eeK6wm36A=D2qHW0e3FJBvzpeEWaQ@mail.gmail.com>
+Subject: Re: [PATCH v2 24/25] arch: remove ioremap_wt, replace with arch_memremap
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Greg KH <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-arch@vger.kernel.org, Tony Luck <tony.luck@intel.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Russell King <rmk+kernel@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The file include/linux/pmem.h was recently created to hold the PMEM API,
-and is logically part of the PMEM driver.  Add an entry for this file to
-MAINTAINERS.
+On Mon, Jul 27, 2015 at 1:03 AM, Christoph Hellwig <hch@lst.de> wrote:
+>> +++ b/arch/frv/include/asm/io.h
+>> @@ -17,8 +17,6 @@
+>>
+>>  #ifdef __KERNEL__
+>>
+>> -#define ARCH_HAS_IOREMAP_WT
+>> -
+>>  #include <linux/types.h>
+>>  #include <asm/virtconvert.h>
+>>  #include <asm/string.h>
+>> @@ -267,20 +265,17 @@ static inline void __iomem *ioremap_nocache(unsigned long physaddr, unsigned lon
+>>       return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
+>>  }
+>>
+>> -static inline void __iomem *ioremap_wt(unsigned long physaddr, unsigned long size)
+>> -{
+>> -     return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
+>> -}
+>> -
+>> -static inline void __iomem *ioremap_fullcache(unsigned long physaddr, unsigned long size)
+>> -{
+>> -     return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
+>> -}
+>
+>
+>> +void *arch_memremap(resource_size_t offset, size_t size, unsigned long flags)
+>> +{
+>> +     return (void *) offset;
+>> +}
+>> +EXPORT_SYMBOL(arch_memremap);
+>
+> This doesn't look like a correct replacement.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Greg KH <gregkh@linuxfoundation.org> 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+It doesn't, but frv jumps through a lot of hoops to give the illusion
+it actually supports different mapping types only to do this simple
+case in the end.  Given we don't want fallback semantics I will simply
+remove these false wrappers in the next revision of the patches.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index d4164f80cb42..8f0826b2c036 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5952,6 +5952,7 @@ L:	linux-nvdimm@lists.01.org
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/nvdimm/pmem.c
-+F:	include/linux/pmem.h
- 
- LINUX FOR IBM pSERIES (RS/6000)
- M:	Paul Mackerras <paulus@au.ibm.com>
--- 
-1.9.3
+> Also shouldn't the replacements of ioremap_fullcache or ioremap_wc be
+> in the previous patch?
+>
+> A few more similar issues pop up for other architectures as well.
 
+I went ahead and moved the deletion of ioremap_cached() and
+ioremap_fullcache() to their own patches.
