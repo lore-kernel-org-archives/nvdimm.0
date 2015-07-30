@@ -1,40 +1,41 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 1/6] pmem: add maintainer for include/linux/pmem.h
+Subject: [PATCH v3 11/24] toshiba laptop: replace ioremap_cache with ioremap
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 11 Jul 2015 10:40:42 -0400
-Message-ID: <20150711144042.25013.64570.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 30 Jul 2015 12:54:40 -0400
+Message-ID: <20150730165440.33962.36249.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
+To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
+Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jonathan Buzzard <jonathan@buzzard.org.uk>, linux-kernel@vger.kernel.org, mcgrof@suse.com, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+With ioremap_cache being replaced with memremap there is no longer a
+guarantee that a mapping will silently fall back to an uncached mapping.
+Explicitly use a vanilla ioremap() for this short lived mapping.
 
-The file include/linux/pmem.h was recently created to hold the PMEM API,
-and is logically part of the PMEM driver.  Add an entry for this file to
-MAINTAINERS.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jonathan Buzzard <jonathan@buzzard.org.uk>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/toshiba.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0e6b09150aad..a8306b25c13c 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6134,6 +6134,7 @@ L:	linux-nvdimm@lists.01.org
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/nvdimm/pmem.c
-+F:	include/linux/pmem.h
+diff --git a/drivers/char/toshiba.c b/drivers/char/toshiba.c
+index 014c9d90d297..f5a45d887a37 100644
+--- a/drivers/char/toshiba.c
++++ b/drivers/char/toshiba.c
+@@ -430,7 +430,7 @@ static int tosh_probe(void)
+ 	int i,major,minor,day,year,month,flag;
+ 	unsigned char signature[7] = { 0x54,0x4f,0x53,0x48,0x49,0x42,0x41 };
+ 	SMMRegisters regs;
+-	void __iomem *bios = ioremap_cache(0xf0000, 0x10000);
++	void __iomem *bios = ioremap(0xf0000, 0x10000);
  
- LINUX FOR IBM pSERIES (RS/6000)
- M:	Paul Mackerras <paulus@au.ibm.com>
+ 	if (!bios)
+ 		return -ENOMEM;
 
