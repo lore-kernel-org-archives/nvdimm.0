@@ -1,62 +1,192 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fix for 4.2-rc4
-Date: Sat, 25 Jul 2015 17:51:07 +0000
-Message-ID: <1437846666.9656.9.camel@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <085F2F9C6105614BAEEAC621FCC2167B@intel.com>
-Content-Transfer-Encoding: base64
+Subject: [PATCH v3 00/24] replace ioremap_{cache|wt} with memremap
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 30 Jul 2015 12:53:39 -0400
+Message-ID: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "nicholas.w.moulin@linux.intel.com" <nicholas.w.moulin@linux.intel.com>
+To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
+Cc: linux-fbdev@vger.kernel.org, David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org, Lv Zheng <lv.zheng@intel.com>, Daniel Vetter <daniel.vetter@intel.com>, Benjamin Romer <benjamin.romer@unisys.com>, hch@lst.de, linux-arch@vger.kernel.org, linux-nvdimm@lists.01.org, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Bob Moore <robert.moore@intel.com>, Mike Waychison <mikew@google.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, rmk+kernel@arm.linux.org.uk, Ross Zwisler <ross.zwisler@linux.intel.com>, David Kershner <david.kershner@unisys.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, intel-gfx@lists.freedesktop.org, Len Brown <lenb@kernel.org>, Joerg Roedel <jroedel@suse.de>, Arnd Bergmann <arnd@arndb.de>, mcgrof@suse.com, Jani Nikula <jani.nikula@linux.intel.com>, Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck@intel.com>, toshi.kani@hp.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jonathan Buzzard <jonathan@buzzard.org.uk>, linux-kernel@vger.kernel.org, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb20uLi4NCg0KICBnaXQ6Ly9naXQua2VybmVsLm9yZy9w
-dWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvZGpidy9udmRpbW0gbGlibnZkaW1tLWZpeGVzDQoNCi4u
-LnRvIHJlY2VpdmUgYSBtaW5vciBmaXggZm9yIHRoZSBsaWJudmRpbW0gc3Vic3lzdGVtLg0KDQpU
-aGlzIGlzIG5vdCBjcml0aWNhbC4gIFRoZSBwcm9ibGVtIGNhbiBiZSB3b3JrZWQgYXJvdW5kIGlu
-IHVzZXJzcGFjZSBieQ0KcHV0dGluZyB0aGUgbmFtZXNwYWNlIHRlbXBvcmFyaWx5IGludG8gcmF3
-IG1vZGUNCihuZGN0bF9uYW1lc3BhY2Vfc2V0X3Jhd19tb2RlKCkgZnJvbSBsaWJuZGN0bCksIGJ1
-dCB0aGF0IGlzIGF3a3dhcmQgZm9yDQptYW5hZ2VtZW50IHV0aWxpdGllcy4gIEkgd291bGQgY29u
-c2lkZXIgaXQgYSBjYW5kaWRhdGUgZm9yIDQuMi1zdGFibGUgaWYNCml0IGRvZXMgbm90IG1ha2Ug
-NC4yLg0KDQpUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29tbWl0IDUyNzIxZDlkMzMzNGMx
-Y2IxZjc2MjE5YTE2MTA4NDA5NGVjNjM0ZGM6DQoNCiAgTGludXggNC4yLXJjMyAoMjAxNS0wNy0x
-OSAxNDo0NTowMiAtMDcwMCkNCg0KYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkg
-YXQ6DQoNCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L2Rq
-YncvbnZkaW1tIGxpYm52ZGltbS1maXhlcw0KDQpmb3IgeW91IHRvIGZldGNoIGNoYW5nZXMgdXAg
-dG8gOGNhMjQzNTM2ZDIxYWUyZDA4ZjYxYjFjNWFmNGFjM2Q0YmI2OTdlNDoNCg0KICBsaWJudmRp
-bW06IGZpeCBuYW1lc3BhY2Ugc2VlZCBjcmVhdGlvbiAoMjAxNS0wNy0yNSAwOTo1Nzo1NiAtMDcw
-MCkNCg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLQ0KRGFuIFdpbGxpYW1zICgxKToNCiAgICAgIGxpYm52ZGltbTogZml4IG5h
-bWVzcGFjZSBzZWVkIGNyZWF0aW9uDQoNCiBkcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jIHwg
-NSArKysrKw0KIDEgZmlsZSBjaGFuZ2VkLCA1IGluc2VydGlvbnMoKykNCg0KY29tbWl0IDhjYTI0
-MzUzNmQyMWFlMmQwOGY2MWIxYzVhZjRhYzNkNGJiNjk3ZTQNCkF1dGhvcjogRGFuIFdpbGxpYW1z
-IDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQpEYXRlOiAgIEZyaSBKdWwgMjQgMjM6NDI6MzQg
-MjAxNSAtMDQwMA0KDQogICAgbGlibnZkaW1tOiBmaXggbmFtZXNwYWNlIHNlZWQgY3JlYXRpb24N
-CiAgICANCiAgICBBIG5ldyBCTEsgbmFtZXNwYWNlICJzZWVkIiBkZXZpY2UgaXMgY3JlYXRlZCB3
-aGVuZXZlciB0aGUgY3VycmVudCBzZWVkDQogICAgaXMgc3VjY2Vzc2Z1bGx5IHByb2JlZC4gIEhv
-d2V2ZXIsIGlmIHRoYXQgbmFtZXNwYWNlIGlzIGFzc2lnbmVkIHRvIGEgQlRUDQogICAgaXQgbWF5
-IG5ldmVyIGRpcmVjdGx5IGV4cGVyaWVuY2UgYSBzdWNjZXNzZnVsIHByb2JlIGFzIGl0IGlzIGEN
-CiAgICBzdWJvcmRpbmF0ZSBkZXZpY2UgdG8gYSBCVFQgY29uZmlndXJhdGlvbi4NCiAgICANCiAg
-ICBUaGUgZWZmZWN0IG9mIHRoZSBjdXJyZW50IGNvZGUgaXMgdGhhdCBubyBuZXcgbmFtZXNwYWNl
-cyBjYW4gYmUNCiAgICBpbnN0YW50aWF0ZWQsIGFmdGVyIHRoZSBzZWVkIG5hbWVzcGFjZSwgdG8g
-Y29uc3VtZSBhdmFpbGFibGUgQkxLIERQQQ0KICAgIGNhcGFjaXR5LiAgRml4IHRoaXMgYnkgdHJl
-YXRpbmcgYSBzdWNjZXNzZnVsIEJUVCBwcm9iZSBldmVudCBhcyBhDQogICAgc3VjY2Vzc2Z1bCBw
-cm9iZSBldmVudCBmb3IgdGhlIGJhY2tpbmcgbmFtZXNwYWNlLg0KICAgIA0KICAgIFJlcG9ydGVk
-LWJ5OiBOaWNob2xhcyBNb3VsaW4gPG5pY2hvbGFzLncubW91bGluQGxpbnV4LmludGVsLmNvbT4N
-CiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
-bT4NCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMgYi9kcml2ZXJz
-L252ZGltbS9yZWdpb25fZGV2cy5jDQppbmRleCBhNTIzMzQyMmY5ZGMuLjczODQ0NTU3OTJiZiAx
-MDA2NDQNCi0tLSBhL2RyaXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMNCisrKyBiL2RyaXZlcnMv
-bnZkaW1tL3JlZ2lvbl9kZXZzLmMNCkBAIC00NTgsMTAgKzQ1OCwxNSBAQCBzdGF0aWMgdm9pZCBu
-ZF9yZWdpb25fbm90aWZ5X2RyaXZlcl9hY3Rpb24oc3RydWN0IG52ZGltbV9idXMgKm52ZGltbV9i
-dXMsDQogCQludmRpbW1fYnVzX3VubG9jayhkZXYpOw0KIAl9DQogCWlmIChpc19uZF9idHQoZGV2
-KSAmJiBwcm9iZSkgew0KKwkJc3RydWN0IG5kX2J0dCAqbmRfYnR0ID0gdG9fbmRfYnR0KGRldik7
-DQorDQogCQluZF9yZWdpb24gPSB0b19uZF9yZWdpb24oZGV2LT5wYXJlbnQpOw0KIAkJbnZkaW1t
-X2J1c19sb2NrKGRldik7DQogCQlpZiAobmRfcmVnaW9uLT5idHRfc2VlZCA9PSBkZXYpDQogCQkJ
-bmRfcmVnaW9uX2NyZWF0ZV9idHRfc2VlZChuZF9yZWdpb24pOw0KKwkJaWYgKG5kX3JlZ2lvbi0+
-bnNfc2VlZCA9PSAmbmRfYnR0LT5uZG5zLT5kZXYgJiYNCisJCQkJaXNfbmRfYmxrKGRldi0+cGFy
-ZW50KSkNCisJCQluZF9yZWdpb25fY3JlYXRlX2Jsa19zZWVkKG5kX3JlZ2lvbik7DQogCQludmRp
-bW1fYnVzX3VubG9jayhkZXYpOw0KIAl9DQogfQ0KDQo=
+Changes since v2 [1]:
+
+1/ Move arch_memremap() and arch_memunmap() out of line (Christoph)
+
+2/ Convert region_is_ram() to region_intersects() and define an enum for
+   its 3 return values. (Luis)
+
+3/ Fix gma500 and i915 to explicitly use cached mappings and clean up
+   the __iomem usage. (Daniel)
+
+4/ Kill unused ioremap aliases (ioremap_cached() and
+   ioremap_fullcache()) (Christoph)
+
+5/ Clarify some change logs and documentation (Luis, Christoph, and
+   Ross)
+
+6/ Add a unified CONFIG_MMU=n implementation with __weak symbols. (Luis)
+
+---
+While developing the pmem driver we noticed that the __iomem annotation
+on the return value from ioremap_cache() was being mishandled by several
+callers.  We also observed that all of the call sites expected to be
+able to treat the return value from ioremap_cache() as normal
+(non-__iomem) pointer to memory.
+
+This patchset takes the opportunity to clean up the above confusion as
+well as a few issues with the ioremap_{cache|wt} interface, including:
+
+1/ Eliminating the possibility of function prototypes differing between
+   architectures by defining a central memremap() prototype that takes
+   flags to determine the mapping type.
+
+2/ Returning NULL rather than falling back silently to a different
+   mapping-type.  This allows drivers to be stricter about the
+   mapping-type fallbacks that are permissible.
+
+[1]: http://marc.info/?l=linux-arch&m=143779222217405&w=2
+
+---
+
+Dan Williams (24):
+      mm: enhance region_is_ram() to region_intersects()
+      arch, drivers: don't include <asm/io.h> directly, use <linux/io.h> instead
+      cleanup IORESOURCE_CACHEABLE vs ioremap()
+      intel_iommu: fix leaked ioremap mapping
+      arch: introduce memremap()
+      arm: switch from ioremap_cache to memremap
+      x86: switch from ioremap_cache to memremap
+      gma500: switch from acpi_os_ioremap to memremap
+      i915: switch from acpi_os_ioremap to memremap
+      acpi: switch from ioremap_cache to memremap
+      toshiba laptop: replace ioremap_cache with ioremap
+      memconsole: fix __iomem mishandling, switch to memremap
+      visorbus: switch from ioremap_cache to memremap
+      intel-iommu: switch from ioremap_cache to memremap
+      libnvdimm, pmem: push call to ioremap_cache out of line
+      pxa2xx-flash: switch from ioremap_cache to memremap
+      sfi: switch from ioremap_cache to memremap
+      fbdev: switch from ioremap_wt to memremap
+      pmem: switch from ioremap_wt to memremap
+      arch: kill ioremap_cached()
+      arch: kill ioremap_fullcache()
+      arch: remove ioremap_cache, replace with arch_memremap
+      arch: remove ioremap_wt, optionally replace with arch_memremap
+      pmem: convert to generic memremap
+
+
+ Documentation/x86/pat.txt                      |    6 +
+ arch/arc/include/asm/io.h                      |    1 
+ arch/arm/Kconfig                               |    1 
+ arch/arm/include/asm/io.h                      |    7 --
+ arch/arm/include/asm/xen/page.h                |    4 -
+ arch/arm/mach-clps711x/board-cdb89712.c        |    2 
+ arch/arm/mach-shmobile/pm-rcar.c               |    2 
+ arch/arm/mm/ioremap.c                          |   18 +++-
+ arch/arm/mm/mmu.c                              |    2 
+ arch/arm/mm/nommu.c                            |   11 ++
+ arch/arm64/Kconfig                             |    1 
+ arch/arm64/include/asm/acpi.h                  |   11 --
+ arch/arm64/include/asm/dmi.h                   |    8 +-
+ arch/arm64/include/asm/io.h                    |    2 
+ arch/arm64/kernel/efi.c                        |    9 +-
+ arch/arm64/kernel/smp_spin_table.c             |   19 ++--
+ arch/arm64/mm/ioremap.c                        |   20 ++--
+ arch/avr32/include/asm/io.h                    |    1 
+ arch/frv/include/asm/io.h                      |   12 ---
+ arch/ia64/Kconfig                              |    1 
+ arch/ia64/include/asm/io.h                     |    5 -
+ arch/ia64/kernel/cyclone.c                     |    2 
+ arch/ia64/mm/ioremap.c                         |   16 +++
+ arch/m32r/include/asm/io.h                     |    1 
+ arch/m68k/Kconfig                              |    1 
+ arch/m68k/include/asm/io_mm.h                  |   12 ---
+ arch/m68k/include/asm/io_no.h                  |   11 --
+ arch/m68k/include/asm/raw_io.h                 |    1 
+ arch/m68k/mm/kmap.c                            |   17 +++-
+ arch/m68k/mm/sun3kmap.c                        |    6 +
+ arch/metag/include/asm/io.h                    |    6 -
+ arch/microblaze/include/asm/io.h               |    2 
+ arch/mn10300/include/asm/io.h                  |    1 
+ arch/nios2/include/asm/io.h                    |    1 
+ arch/powerpc/kernel/pci_of_scan.c              |    2 
+ arch/s390/include/asm/io.h                     |    1 
+ arch/sh/Kconfig                                |    1 
+ arch/sh/include/asm/io.h                       |    6 -
+ arch/sh/mm/ioremap.c                           |   15 +++
+ arch/sparc/include/asm/io_32.h                 |    1 
+ arch/sparc/include/asm/io_64.h                 |    1 
+ arch/sparc/kernel/pci.c                        |    3 -
+ arch/tile/include/asm/io.h                     |    2 
+ arch/unicore32/include/asm/io.h                |    4 -
+ arch/unicore32/mm/ioremap.c                    |    8 --
+ arch/x86/Kconfig                               |    1 
+ arch/x86/include/asm/efi.h                     |    3 -
+ arch/x86/include/asm/io.h                      |   11 --
+ arch/x86/kernel/crash_dump_64.c                |    6 +
+ arch/x86/kernel/kdebugfs.c                     |    8 +-
+ arch/x86/kernel/ksysfs.c                       |   28 +++---
+ arch/x86/mm/ioremap.c                          |   59 +++++++------
+ arch/xtensa/include/asm/io.h                   |   11 --
+ drivers/acpi/apei/einj.c                       |    9 +-
+ drivers/acpi/apei/erst.c                       |    6 +
+ drivers/acpi/nvs.c                             |    6 +
+ drivers/acpi/osl.c                             |   70 ++++-----------
+ drivers/char/toshiba.c                         |    2 
+ drivers/firmware/google/memconsole.c           |    7 +-
+ drivers/gpu/drm/gma500/opregion.c              |    8 +-
+ drivers/gpu/drm/gma500/psb_drv.h               |    2 
+ drivers/gpu/drm/gma500/psb_lid.c               |    8 +-
+ drivers/gpu/drm/i915/i915_debugfs.c            |    2 
+ drivers/gpu/drm/i915/i915_drv.h                |   12 +--
+ drivers/gpu/drm/i915/intel_bios.c              |    7 +-
+ drivers/gpu/drm/i915/intel_opregion.c          |   87 +++++++++----------
+ drivers/gpu/drm/i915/intel_panel.c             |    2 
+ drivers/iommu/intel-iommu.c                    |   10 +-
+ drivers/iommu/intel_irq_remapping.c            |    4 +
+ drivers/isdn/icn/icn.h                         |    2 
+ drivers/mtd/devices/slram.c                    |    2 
+ drivers/mtd/maps/pxa2xx-flash.c                |    4 -
+ drivers/mtd/nand/diskonchip.c                  |    2 
+ drivers/mtd/onenand/generic.c                  |    2 
+ drivers/nvdimm/Kconfig                         |    2 
+ drivers/pci/probe.c                            |    3 -
+ drivers/pnp/manager.c                          |    2 
+ drivers/scsi/aic94xx/aic94xx_init.c            |    7 --
+ drivers/scsi/arcmsr/arcmsr_hba.c               |    5 -
+ drivers/scsi/mvsas/mv_init.c                   |   15 +--
+ drivers/scsi/sun3x_esp.c                       |    2 
+ drivers/sfi/sfi_core.c                         |    4 -
+ drivers/staging/comedi/drivers/ii_pci20kc.c    |    1 
+ drivers/staging/unisys/visorbus/visorchannel.c |   16 ++-
+ drivers/staging/unisys/visorbus/visorchipset.c |   17 ++--
+ drivers/tty/serial/8250/8250_core.c            |    2 
+ drivers/video/fbdev/Kconfig                    |    2 
+ drivers/video/fbdev/amifb.c                    |    5 +
+ drivers/video/fbdev/atafb.c                    |    5 +
+ drivers/video/fbdev/hpfb.c                     |    6 +
+ drivers/video/fbdev/ocfb.c                     |    1 
+ drivers/video/fbdev/s1d13xxxfb.c               |    3 -
+ drivers/video/fbdev/stifb.c                    |    1 
+ include/acpi/acpi_io.h                         |    6 -
+ include/asm-generic/io.h                       |    8 --
+ include/asm-generic/iomap.h                    |    4 -
+ include/linux/io-mapping.h                     |    2 
+ include/linux/io.h                             |   11 ++
+ include/linux/mm.h                             |    9 ++
+ include/linux/mtd/map.h                        |    2 
+ include/linux/pmem.h                           |   26 +++---
+ include/video/vga.h                            |    2 
+ kernel/Makefile                                |    2 
+ kernel/memremap.c                              |  110 ++++++++++++++++++++++++
+ kernel/resource.c                              |   61 ++++++++-----
+ lib/Kconfig                                    |    5 +
+ lib/devres.c                                   |   13 +--
+ lib/pci_iomap.c                                |    7 --
+ tools/testing/nvdimm/Kbuild                    |    4 -
+ tools/testing/nvdimm/test/iomap.c              |   34 +++++--
+ 110 files changed, 553 insertions(+), 497 deletions(-)
+ create mode 100644 kernel/memremap.c
