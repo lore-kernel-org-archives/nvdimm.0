@@ -1,226 +1,111 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH 12/15] libnvdimm: enable iostat
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 17 Jun 2015 19:55:51 -0400
-Message-ID: <20150617235551.12943.76656.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Message-ID: <1438214404.3214.438.camel@hp.com>
+Subject: Re: [PATCH v2 08/25] arch: introduce memremap()
+From: Toshi Kani <toshi.kani@hp.com>
+Date: Wed, 29 Jul 2015 18:00:04 -0600
+In-Reply-To: <20150729214358.GK30479@wotan.suse.de>
+References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <20150725023842.8664.97620.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <20150726172527.GA29513@lst.de>
+	 <CAPcyv4igoopDPpcCRU1TNYdwPhiYdcDiRA7L9Jdian=0rtexRg@mail.gmail.com>
+	 <20150727051258.GB15836@lst.de>
+	 <CAPcyv4jN6jYzw11qOOR-xd_w6s5dguQSoHyvmPFSWtL9S+tz3w@mail.gmail.com>
+	 <20150729065004.GA17162@lst.de> <20150729182712.GI30479@wotan.suse.de>
+	 <CAPcyv4iAeMAmU1QRZ1=WTav0cg2=-gqzzrt3nMC1QoD1+hOeBg@mail.gmail.com>
+	 <1438203638.3214.418.camel@hp.com> <20150729214358.GK30479@wotan.suse.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: axboe@kernel.dk, linux-nvdimm@lists.01.org
-Cc: boaz@plexistor.com, toshi.kani@hp.com, Vishal Verma <vishal.l.verma@linux.intel.com>, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Luis R. Rodriguez" <mcgrof@suse.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-arch@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "H. Peter Anvin" <hpa@zytor.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is disabled by default as the overhead is prohibitive, but if the
-user takes the action to turn it on we'll oblige.
+On Wed, 2015-07-29 at 23:43 +0200, Luis R. Rodriguez wrote:
+> On Wed, Jul 29, 2015 at 03:00:38PM -0600, Toshi Kani wrote:
+> > On Wed, 2015-07-29 at 11:33 -0700, Dan Williams wrote:
+> > > On Wed, Jul 29, 2015 at 11:27 AM, Luis R. Rodriguez <mcgrof@suse.com> 
+> > > wrote:
+> > > > On Wed, Jul 29, 2015 at 08:50:04AM +0200, Christoph Hellwig wrote:
+> > > > > On Mon, Jul 27, 2015 at 04:26:03PM -0700, Dan Williams wrote:
+> > > > > > Oh, because all we have at this point is ioremap_cache() which
+> > > > > > silently falls back.  It's not until the introduction of
+> > > > > > arch_memremp() where we update the arch code to break that 
+> > > > > > behavior.
+> > > > > 
+> > > > > Ok, makes sense.  Might be worth to document in the changelog.
+> > > > > 
+> > > > > > That said, I think it may be beneficial to allow a fallback if 
+> > > > > > the user cares.  So maybe memremap() can call plain ioremap() if
+> > > > > > MEMREMAP_STRICT is not set and none of the other mapping types 
+> > > > > > are satisfied.
+> > > > > 
+> > > > > Is there a real use case for it?  Fallback APIs always seem 
+> > > > > confusing and it might make more sense to do this in the caller(s) 
+> > > > > that actually need it.
+> > > > 
+> > > > It seems semantics-wise we are trying to separate these two really, 
+> > > > so I agree with this. Having a fallback would onloy make things more
+> > > > complicated for any sanitizer / checker / etc, and I don't think the 
+> > > > practical gains of having a fallback outweight the gains of having a 
+> > > > clear semantic separation on intended memory type and interactions 
+> > > > with it.
+> > > > 
+> > > 
+> > > Yup, consider it dropped.  Drivers that want fallback behavior can do
+> > > it explicitly.
+> > 
+> > I agree in general.  However, for the drivers to be able to fall back
+> > properly, they will need to know the cache type they can fall back with. 
+> > 
+> 
+> That would depend on the purpose of the region and the driver developer 
+> should in theory know best. One issue with this of course is that, as 
+> we've discovered, the semantics of on the ioremap*() variant front 
+> regarding cache types is not clearly well defined, or at least it may be 
+> only well defined implicitly on x86 only, so the driver developer can only 
+> *hope* for the best across architectures. Our ambiguity on our semantics 
+> on ioremap*() variants therefore means driver developers can resonably be 
+> puzzled by what fallbacks to use. That also means architectures 
+> maintainers should not whip driver developers for any misuse. Such 
+> considerations are why although we're now revisiting semantics for 
+> ioremap*() variants I was in hopes we could be at least somewhat
+> pedantic about memremap() semantics.
 
-Reviewed-by: Vishal Verma <vishal.l.verma@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/Kconfig |   14 ++++++++++++++
- drivers/nvdimm/blk.c   |    7 ++++++-
- drivers/nvdimm/btt.c   |    7 ++++++-
- drivers/nvdimm/core.c  |   31 +++++++++++++++++++++++++++++++
- drivers/nvdimm/nd.h    |   13 +++++++++++++
- drivers/nvdimm/pmem.c  |    5 +++++
- 6 files changed, 75 insertions(+), 2 deletions(-)
+I agree.  However, there are a few exceptions like /dev/mem, which can map a
+target range without knowledge.
 
-diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-index 912cb36b8435..9d72085a67c9 100644
---- a/drivers/nvdimm/Kconfig
-+++ b/drivers/nvdimm/Kconfig
-@@ -73,4 +73,18 @@ config ND_MAX_REGIONS
- 
- 	  Leave the default of 64 if you are unsure.
- 
-+config ND_IOSTAT
-+	bool "Enable iostat by default"
-+	default n
-+	---help---
-+	  Persistent memory i/o has very low latency to the point
-+	  where the overhead to measure statistics can dramatically
-+	  impact the relative performance of the driver.  Say y here
-+	  to trade off performance for statistics gathering that is
-+	  enabled by default.  These statistics can always be
-+	  enabled/disabled at run time via the 'iostat' attribute of
-+	  the block device's queue in sysfs.
-+
-+	  If unsure, say N
-+
- endif
-diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
-index 9d609ef95266..8a65e5a500d8 100644
---- a/drivers/nvdimm/blk.c
-+++ b/drivers/nvdimm/blk.c
-@@ -168,8 +168,10 @@ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
- 	struct bio_integrity_payload *bip;
- 	struct nd_blk_device *blk_dev;
- 	struct bvec_iter iter;
-+	unsigned long start;
- 	struct bio_vec bvec;
- 	int err = 0, rw;
-+	bool do_acct;
- 
- 	if (unlikely(bio_end_sector(bio) > get_capacity(disk))) {
- 		err = -EIO;
-@@ -191,6 +193,7 @@ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
- 	blk_dev = disk->private_data;
- 
- 	rw = bio_data_dir(bio);
-+	do_acct = nd_iostat_start(bio, &start);
- 	bio_for_each_segment(bvec, bio, iter) {
- 		unsigned int len = bvec.bv_len;
- 
-@@ -202,9 +205,11 @@ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
- 					"io error in %s sector %lld, len %d,\n",
- 					(rw == READ) ? "READ" : "WRITE",
- 					(unsigned long long) iter.bi_sector, len);
--			goto out;
-+			break;
- 		}
- 	}
-+	if (do_acct)
-+		nd_iostat_end(bio, start);
- 
-  out:
- 	bio_endio(bio, err);
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 83b798dd2e68..67484633c322 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1178,8 +1178,10 @@ static void btt_make_request(struct request_queue *q, struct bio *bio)
- 	struct block_device *bdev = bio->bi_bdev;
- 	struct btt *btt = q->queuedata;
- 	struct bvec_iter iter;
-+	unsigned long start;
- 	struct bio_vec bvec;
- 	int err = 0, rw;
-+	bool do_acct;
- 
- 	if (bio_end_sector(bio) > get_capacity(bdev->bd_disk)) {
- 		err = -EIO;
-@@ -1199,6 +1201,7 @@ static void btt_make_request(struct request_queue *q, struct bio *bio)
- 		goto out;
- 	}
- 
-+	do_acct = nd_iostat_start(bio, &start);
- 	bio_for_each_segment(bvec, bio, iter) {
- 		unsigned int len = bvec.bv_len;
- 
-@@ -1215,9 +1218,11 @@ static void btt_make_request(struct request_queue *q, struct bio *bio)
- 					"io error in %s sector %lld, len %d,\n",
- 					(rw == READ) ? "READ" : "WRITE",
- 					(unsigned long long) iter.bi_sector, len);
--			goto out;
-+			break;
- 		}
- 	}
-+	if (do_acct)
-+		nd_iostat_end(bio, start);
- 
- out:
- 	bio_endio(bio, err);
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index d27b13357873..99cf95af5f24 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -218,9 +218,40 @@ void nd_blk_queue_init(struct request_queue *q)
- {
- 	blk_queue_max_hw_sectors(q, UINT_MAX);
- 	blk_queue_bounce_limit(q, BLK_BOUNCE_ANY);
-+	if (IS_ENABLED(CONFIG_ND_IOSTAT))
-+		queue_flag_set_unlocked(QUEUE_FLAG_IO_STAT, q);
- }
- EXPORT_SYMBOL(nd_blk_queue_init);
- 
-+void __nd_iostat_start(struct bio *bio, unsigned long *start)
-+{
-+	struct gendisk *disk = bio->bi_bdev->bd_disk;
-+	const int rw = bio_data_dir(bio);
-+	int cpu = part_stat_lock();
-+
-+	*start = jiffies;
-+	part_round_stats(cpu, &disk->part0);
-+	part_stat_inc(cpu, &disk->part0, ios[rw]);
-+	part_stat_add(cpu, &disk->part0, sectors[rw], bio_sectors(bio));
-+	part_inc_in_flight(&disk->part0, rw);
-+	part_stat_unlock();
-+}
-+EXPORT_SYMBOL(__nd_iostat_start);
-+
-+void nd_iostat_end(struct bio *bio, unsigned long start)
-+{
-+	struct gendisk *disk = bio->bi_bdev->bd_disk;
-+	unsigned long duration = jiffies - start;
-+	const int rw = bio_data_dir(bio);
-+	int cpu = part_stat_lock();
-+
-+	part_stat_add(cpu, &disk->part0, ticks[rw], duration);
-+	part_round_stats(cpu, &disk->part0);
-+	part_dec_in_flight(&disk->part0, rw);
-+	part_stat_unlock();
-+}
-+EXPORT_SYMBOL(nd_iostat_end);
-+
- static ssize_t commands_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 2f20d5dca028..3c4c8b6c64ec 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -13,6 +13,7 @@
- #ifndef __ND_H__
- #define __ND_H__
- #include <linux/libnvdimm.h>
-+#include <linux/blkdev.h>
- #include <linux/device.h>
- #include <linux/genhd.h>
- #include <linux/mutex.h>
-@@ -172,5 +173,17 @@ struct resource *nvdimm_allocate_dpa(struct nvdimm_drvdata *ndd,
- 		resource_size_t n);
- int nd_blk_region_init(struct nd_region *nd_region);
- void nd_blk_queue_init(struct request_queue *q);
-+void __nd_iostat_start(struct bio *bio, unsigned long *start);
-+static inline bool nd_iostat_start(struct bio *bio, unsigned long *start)
-+{
-+	struct gendisk *disk = bio->bi_bdev->bd_disk;
-+
-+	if (!blk_queue_io_stat(disk->queue))
-+		return false;
-+
-+	__nd_iostat_start(bio, start);
-+	return true;
-+}
-+void nd_iostat_end(struct bio *bio, unsigned long start);
- resource_size_t nd_namespace_blk_validate(struct nd_namespace_blk *nsblk);
- #endif /* __ND_H__ */
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 0337b00f5409..3fd854a78f09 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -59,6 +59,8 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- static void pmem_make_request(struct request_queue *q, struct bio *bio)
- {
- 	int err = 0;
-+	bool do_acct;
-+	unsigned long start;
- 	struct bio_vec bvec;
- 	struct bvec_iter iter;
- 	struct block_device *bdev = bio->bi_bdev;
-@@ -69,9 +71,12 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
- 		goto out;
- 	}
- 
-+	do_acct = nd_iostat_start(bio, &start);
- 	bio_for_each_segment(bvec, bio, iter)
- 		pmem_do_bvec(pmem, bvec.bv_page, bvec.bv_len, bvec.bv_offset,
- 				bio_data_dir(bio), iter.bi_sector);
-+	if (do_acct)
-+		nd_iostat_end(bio, start);
- 
- out:
- 	bio_endio(bio, err);
+> For instance since memremap() only has 2 types right now can a respective
+> fallback be documented as an alternative to help with this ? Or can we not
+> generalize this ?  One for MEMREMAP_WB and one for MEMREMAP_WT ?
 
+Yes, if a target range can be only mapped by memremap().  However, there is
+no restriction that a range can be mapped with a single interface alone. 
+ For example, a range can be mapped with remap_pfn_range() to user space
+with any cache type.  So, in theory, memremap() can overlap with any other
+types.
+
+> > ioremap() falls back to the cache type of an existing mapping to avoid
+> > aliasing.
+> 
+> Does that assume an existing ioremap*() call was used on a bigger range?
+> Do you know if that happens to only be the case for x86 (I'd think so)
+> or if its the same for other architectures ?
+
+In the /dev/mem example, it is remap_pfn_range().  I think other archs have
+the same issue, but I do not know if they fall back in case of overlapping
+call. 
+
+> While at it, Dan, will / should memremap() support overlapping calls ?
+> What is the expectation on behaviour ?
+> 
+> PS: I did see you reply about this being about lacking an arch 
+> implementation for a memremap() type, not a cache type, but as the driver 
+> uses one memremap() type the goal for a region is just as important as the 
+> resulting type.
+
+Agreed.  Drivers cannot tell if a fallback is due to lacking implementation
+of overlapping, unless they check with #ifdef ioremap_xxx.
+
+Thanks,
+-Toshi
