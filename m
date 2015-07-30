@@ -1,228 +1,99 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 05/25] arch, drivers: don't include <asm/io.h> directly,
- use <linux/io.h> instead
+Subject: [PATCH v3 14/24] intel-iommu: switch from ioremap_cache to memremap
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 24 Jul 2015 22:38:26 -0400
-Message-ID: <20150725023826.8664.61176.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 30 Jul 2015 12:54:57 -0400
+Message-ID: <20150730165456.33962.30608.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
+Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, Joerg Roedel <joro@8bytes.org>, linux-kernel@vger.kernel.org, mcgrof@suse.com, rmk+kernel@arm.linux.org.uk, David Woodhouse <dwmw2@infradead.org>, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Preparation for uniform definition of ioremap, ioremap_wc, ioremap_wt,
-and ioremap_cache, tree-wide.
+In preparation for deprecating ioremap_cache() convert its usage in
+intel-iommu to memremap.  This also eliminates the mishandling of the
+__iomem annotation in the implementation.
 
-Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Joerg Roedel <joro@8bytes.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm/mach-shmobile/pm-rcar.c            |    2 +-
- arch/ia64/kernel/cyclone.c                  |    2 +-
- drivers/isdn/icn/icn.h                      |    2 +-
- drivers/mtd/devices/slram.c                 |    2 +-
- drivers/mtd/nand/diskonchip.c               |    2 +-
- drivers/mtd/onenand/generic.c               |    2 +-
- drivers/scsi/sun3x_esp.c                    |    2 +-
- drivers/staging/comedi/drivers/ii_pci20kc.c |    1 +
- drivers/tty/serial/8250/8250_core.c         |    2 +-
- drivers/video/fbdev/s1d13xxxfb.c            |    3 +--
- drivers/video/fbdev/stifb.c                 |    1 +
- include/linux/io-mapping.h                  |    2 +-
- include/linux/mtd/map.h                     |    2 +-
- include/video/vga.h                         |    2 +-
- 14 files changed, 14 insertions(+), 13 deletions(-)
+ drivers/iommu/intel-iommu.c         |   10 ++++++----
+ drivers/iommu/intel_irq_remapping.c |    4 ++--
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-shmobile/pm-rcar.c b/arch/arm/mach-shmobile/pm-rcar.c
-index 00022ee56f80..9d3dde00c2fe 100644
---- a/arch/arm/mach-shmobile/pm-rcar.c
-+++ b/arch/arm/mach-shmobile/pm-rcar.c
-@@ -12,7 +12,7 @@
- #include <linux/err.h>
- #include <linux/mm.h>
- #include <linux/spinlock.h>
--#include <asm/io.h>
+diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
+index 0649b94f5958..5852df8cc50f 100644
+--- a/drivers/iommu/intel-iommu.c
++++ b/drivers/iommu/intel-iommu.c
+@@ -34,6 +34,7 @@
+ #include <linux/mempool.h>
+ #include <linux/memory.h>
+ #include <linux/timer.h>
 +#include <linux/io.h>
- #include "pm-rcar.h"
+ #include <linux/iova.h>
+ #include <linux/iommu.h>
+ #include <linux/intel-iommu.h>
+@@ -2874,7 +2875,8 @@ static int copy_context_table(struct intel_iommu *iommu,
+ 			}
  
- /* SYSC */
-diff --git a/arch/ia64/kernel/cyclone.c b/arch/ia64/kernel/cyclone.c
-index 4826ff957a3d..5fa3848ba224 100644
---- a/arch/ia64/kernel/cyclone.c
-+++ b/arch/ia64/kernel/cyclone.c
-@@ -4,7 +4,7 @@
- #include <linux/errno.h>
- #include <linux/timex.h>
- #include <linux/clocksource.h>
--#include <asm/io.h>
-+#include <linux/io.h>
+ 			ret = -ENOMEM;
+-			old_ce = ioremap_cache(old_ce_phys, PAGE_SIZE);
++			old_ce = memremap(old_ce_phys, PAGE_SIZE,
++					MEMREMAP_WB);
+ 			if (!old_ce)
+ 				goto out;
  
- /* IBM Summit (EXA) Cyclone counter code*/
- #define CYCLONE_CBAR_ADDR 0xFEB00CD0
-diff --git a/drivers/isdn/icn/icn.h b/drivers/isdn/icn/icn.h
-index b713466997a0..f8f2e76d34bf 100644
---- a/drivers/isdn/icn/icn.h
-+++ b/drivers/isdn/icn/icn.h
-@@ -38,7 +38,7 @@ typedef struct icn_cdef {
- #include <linux/errno.h>
- #include <linux/fs.h>
- #include <linux/major.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <linux/kernel.h>
- #include <linux/signal.h>
- #include <linux/slab.h>
-diff --git a/drivers/mtd/devices/slram.c b/drivers/mtd/devices/slram.c
-index 2fc4957cbe7f..a70eb83e68f1 100644
---- a/drivers/mtd/devices/slram.c
-+++ b/drivers/mtd/devices/slram.c
-@@ -41,7 +41,7 @@
- #include <linux/fs.h>
- #include <linux/ioctl.h>
- #include <linux/init.h>
--#include <asm/io.h>
-+#include <linux/io.h>
+@@ -2922,7 +2924,7 @@ static int copy_context_table(struct intel_iommu *iommu,
+ 	__iommu_flush_cache(iommu, new_ce, VTD_PAGE_SIZE);
  
- #include <linux/mtd/mtd.h>
+ out_unmap:
+-	iounmap(old_ce);
++	memunmap(old_ce);
  
-diff --git a/drivers/mtd/nand/diskonchip.c b/drivers/mtd/nand/diskonchip.c
-index 7da266a53979..0802158a3f75 100644
---- a/drivers/mtd/nand/diskonchip.c
-+++ b/drivers/mtd/nand/diskonchip.c
-@@ -24,7 +24,7 @@
- #include <linux/rslib.h>
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
--#include <asm/io.h>
-+#include <linux/io.h>
+ out:
+ 	return ret;
+@@ -2956,7 +2958,7 @@ static int copy_translation_tables(struct intel_iommu *iommu)
+ 	if (!old_rt_phys)
+ 		return -EINVAL;
  
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/nand.h>
-diff --git a/drivers/mtd/onenand/generic.c b/drivers/mtd/onenand/generic.c
-index 32a216d31141..ab7bda0bb245 100644
---- a/drivers/mtd/onenand/generic.c
-+++ b/drivers/mtd/onenand/generic.c
-@@ -18,7 +18,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/onenand.h>
- #include <linux/mtd/partitions.h>
--#include <asm/io.h>
-+#include <linux/io.h>
+-	old_rt = ioremap_cache(old_rt_phys, PAGE_SIZE);
++	old_rt = memremap(old_rt_phys, PAGE_SIZE, MEMREMAP_WB);
+ 	if (!old_rt)
+ 		return -ENOMEM;
  
- /*
-  * Note: Driver name and platform data format have been updated!
-diff --git a/drivers/scsi/sun3x_esp.c b/drivers/scsi/sun3x_esp.c
-index e26e81de7c45..d50c5ed8f428 100644
---- a/drivers/scsi/sun3x_esp.c
-+++ b/drivers/scsi/sun3x_esp.c
-@@ -12,9 +12,9 @@
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/interrupt.h>
-+#include <linux/io.h>
+@@ -3005,7 +3007,7 @@ static int copy_translation_tables(struct intel_iommu *iommu)
+ 	ret = 0;
  
- #include <asm/sun3x.h>
--#include <asm/io.h>
- #include <asm/dma.h>
- #include <asm/dvma.h>
+ out_unmap:
+-	iounmap(old_rt);
++	memunmap(old_rt);
  
-diff --git a/drivers/staging/comedi/drivers/ii_pci20kc.c b/drivers/staging/comedi/drivers/ii_pci20kc.c
-index 0768bc42a5db..14ef1f67dd42 100644
---- a/drivers/staging/comedi/drivers/ii_pci20kc.c
-+++ b/drivers/staging/comedi/drivers/ii_pci20kc.c
-@@ -28,6 +28,7 @@
-  */
+ 	return ret;
+ }
+diff --git a/drivers/iommu/intel_irq_remapping.c b/drivers/iommu/intel_irq_remapping.c
+index 27cdfa84ec5b..bdc52cc6ed23 100644
+--- a/drivers/iommu/intel_irq_remapping.c
++++ b/drivers/iommu/intel_irq_remapping.c
+@@ -408,7 +408,7 @@ static int iommu_load_old_irte(struct intel_iommu *iommu)
+ 	size     = INTR_REMAP_TABLE_ENTRIES*sizeof(struct irte);
  
- #include <linux/module.h>
-+#include <linux/io.h>
- #include "../comedidev.h"
+ 	/* Map the old IR table */
+-	old_ir_table = ioremap_cache(irt_phys, size);
++	old_ir_table = memremap(irt_phys, size, MEMREMAP_WB);
+ 	if (!old_ir_table)
+ 		return -ENOMEM;
  
- /*
-diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index 37fff12dd4d0..fe902ff52e58 100644
---- a/drivers/tty/serial/8250/8250_core.c
-+++ b/drivers/tty/serial/8250/8250_core.c
-@@ -38,11 +38,11 @@
- #include <linux/slab.h>
- #include <linux/uaccess.h>
- #include <linux/pm_runtime.h>
-+#include <linux/io.h>
- #ifdef CONFIG_SPARC
- #include <linux/sunserialcore.h>
- #endif
+@@ -426,7 +426,7 @@ static int iommu_load_old_irte(struct intel_iommu *iommu)
+ 			bitmap_set(iommu->ir_table->bitmap, i, 1);
+ 	}
  
--#include <asm/io.h>
- #include <asm/irq.h>
+-	iounmap(old_ir_table);
++	memunmap(old_ir_table);
  
- #include "8250.h"
-diff --git a/drivers/video/fbdev/s1d13xxxfb.c b/drivers/video/fbdev/s1d13xxxfb.c
-index 83433cb0dfba..96aa46dc696c 100644
---- a/drivers/video/fbdev/s1d13xxxfb.c
-+++ b/drivers/video/fbdev/s1d13xxxfb.c
-@@ -32,8 +32,7 @@
- #include <linux/spinlock_types.h>
- #include <linux/spinlock.h>
- #include <linux/slab.h>
--
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- #include <video/s1d13xxxfb.h>
- 
-diff --git a/drivers/video/fbdev/stifb.c b/drivers/video/fbdev/stifb.c
-index 735355b0e023..7df4228e25f0 100644
---- a/drivers/video/fbdev/stifb.c
-+++ b/drivers/video/fbdev/stifb.c
-@@ -64,6 +64,7 @@
- #include <linux/fb.h>
- #include <linux/init.h>
- #include <linux/ioport.h>
-+#include <linux/io.h>
- 
- #include <asm/grfioctl.h>	/* for HP-UX compatibility */
- #include <asm/uaccess.h>
-diff --git a/include/linux/io-mapping.h b/include/linux/io-mapping.h
-index c27dde7215b5..e399029b68c5 100644
---- a/include/linux/io-mapping.h
-+++ b/include/linux/io-mapping.h
-@@ -21,7 +21,7 @@
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <linux/bug.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <asm/page.h>
- 
- /*
-diff --git a/include/linux/mtd/map.h b/include/linux/mtd/map.h
-index 29975c73a953..366cf77953b5 100644
---- a/include/linux/mtd/map.h
-+++ b/include/linux/mtd/map.h
-@@ -27,9 +27,9 @@
- #include <linux/string.h>
- #include <linux/bug.h>
- #include <linux/kernel.h>
-+#include <linux/io.h>
- 
- #include <asm/unaligned.h>
--#include <asm/io.h>
- #include <asm/barrier.h>
- 
- #ifdef CONFIG_MTD_MAP_BANK_WIDTH_1
-diff --git a/include/video/vga.h b/include/video/vga.h
-index cac567f22e62..d334e64c1c19 100644
---- a/include/video/vga.h
-+++ b/include/video/vga.h
-@@ -18,7 +18,7 @@
- #define __linux_video_vga_h__
- 
- #include <linux/types.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <asm/vga.h>
- #include <asm/byteorder.h>
- 
+ 	return 0;
+ }
 
