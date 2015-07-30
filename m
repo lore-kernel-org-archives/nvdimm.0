@@ -1,58 +1,97 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v3 20/24] arch: kill ioremap_cached()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 30 Jul 2015 12:55:31 -0400
+Message-ID: <20150730165531.33962.12151.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20150701065948.GA4355@lst.de>
-References: <20150622081028.35954.89885.stgit@dwillia2-desk3.jf.intel.com>
-	<20150622082427.35954.73529.stgit@dwillia2-desk3.jf.intel.com>
-	<20150622161002.GB8240@lst.de>
-	<CAPcyv4h5OXyRvZvLGD5ZknO-YUPn675YGv0XdtW1QOO9qmZsug@mail.gmail.com>
-	<20150701062352.GA3739@lst.de>
-	<CAMuHMdUO4uSWH1Qc0SfDTLuXbiG2N9fq8Tf6j+3RoqVKdPugbA@mail.gmail.com>
-	<20150701065948.GA4355@lst.de>
-Date: Wed, 1 Jul 2015 09:19:29 +0200
-Message-ID: <CAMuHMdXqjmo2T3V=msZySVSu2j4YjyE7FnVXWTjySEyfYLSg1A@mail.gmail.com>
-Subject: Re: [PATCH v5 2/6] arch: unify ioremap prototypes and macro aliases
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Content-Type: text/plain; charset=UTF-8
-Sender: owner-linux-mm@kvack.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>, Arnd Bergmann <arnd@arndb.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, X86 ML <x86@kernel.org>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Luis Rodriguez <mcgrof@suse.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Bader <stefan.bader@canonical.com>, Andy Lutomirski <luto@amacapital.net>, Linux MM <linux-mm@kvack.org>, Ralf Baechle <ralf@linux-mips.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Michael Ellerman <mpe@ellerman.id.au>, Tejun Heo <tj@kernel.org>, Paul Mackerras <paulus@samba.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
+Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Jul 1, 2015 at 8:59 AM, Christoph Hellwig <hch@lst.de> wrote:
-> On Wed, Jul 01, 2015 at 08:55:57AM +0200, Geert Uytterhoeven wrote:
->> >
->> > I think doing this at runtime might be a better idea.  E.g. a
->> > ioremap_flags with the CACHED argument will return -EOPNOTSUP unless
->> > actually implemented.  On various architectures different CPUs or
->> > boards will have different capabilities in this area.
->>
->> So it would be the responsibility of the caller to fall back from
->> ioremap(..., CACHED) to ioremap(..., UNCACHED)?
->> I.e. all drivers using it should be changed...
->
-> All of the zero users we currently have will need to be changed, yes.
+Nothing calls this helper, and now that ioremap_cache() is being
+deprecated these can also be removed.
 
-Good. Less work to convert all of these ;-)
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/arm/mm/mmu.c               |    2 +-
+ arch/metag/include/asm/io.h     |    3 ---
+ arch/unicore32/include/asm/io.h |    4 +---
+ arch/unicore32/mm/ioremap.c     |    8 --------
+ 4 files changed, 2 insertions(+), 15 deletions(-)
 
-> Note that I propose to leave ioremap(), aka ioremap_flags(..., 0) as
-> a default that always has to work, -EOPNOTSUP is only a valid return
-> value for non-default flaga.
+diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
+index 870838a46d52..3888018d1a36 100644
+--- a/arch/arm/mm/mmu.c
++++ b/arch/arm/mm/mmu.c
+@@ -259,7 +259,7 @@ static struct mem_type mem_types[] = {
+ 		.prot_sect	= PROT_SECT_DEVICE,
+ 		.domain		= DOMAIN_IO,
+ 	},
+-	[MT_DEVICE_CACHED] = {	  /* ioremap_cached */
++	[MT_DEVICE_CACHED] = {	  /* memremap(MEMREMAP_WB) */
+ 		.prot_pte	= PROT_PTE_DEVICE | L_PTE_MT_DEV_CACHED,
+ 		.prot_l1	= PMD_TYPE_TABLE,
+ 		.prot_sect	= PROT_SECT_DEVICE | PMD_SECT_WB,
+diff --git a/arch/metag/include/asm/io.h b/arch/metag/include/asm/io.h
+index 9890f21eadbe..5432949e627e 100644
+--- a/arch/metag/include/asm/io.h
++++ b/arch/metag/include/asm/io.h
+@@ -154,9 +154,6 @@ extern void __iounmap(void __iomem *addr);
+ #define ioremap_nocache(offset, size)           \
+ 	__ioremap((offset), (size), 0)
+ 
+-#define ioremap_cached(offset, size)            \
+-	__ioremap((offset), (size), _PAGE_CACHEABLE)
+-
+ #define ioremap_wc(offset, size)                \
+ 	__ioremap((offset), (size), _PAGE_WR_COMBINE)
+ 
+diff --git a/arch/unicore32/include/asm/io.h b/arch/unicore32/include/asm/io.h
+index cb1d8fd2b16b..1eea482b3cb9 100644
+--- a/arch/unicore32/include/asm/io.h
++++ b/arch/unicore32/include/asm/io.h
+@@ -21,10 +21,9 @@
+ #include <asm-generic/io.h>
+ 
+ /*
+- * __uc32_ioremap and __uc32_ioremap_cached takes CPU physical address.
++ * __uc32_ioremap takes CPU physical address.
+  */
+ extern void __iomem *__uc32_ioremap(unsigned long, size_t);
+-extern void __iomem *__uc32_ioremap_cached(unsigned long, size_t);
+ extern void __uc32_iounmap(volatile void __iomem *addr);
+ 
+ /*
+@@ -35,7 +34,6 @@ extern void __uc32_iounmap(volatile void __iomem *addr);
+  *
+  */
+ #define ioremap(cookie, size)		__uc32_ioremap(cookie, size)
+-#define ioremap_cached(cookie, size)	__uc32_ioremap_cached(cookie, size)
+ #define ioremap_nocache(cookie, size)	__uc32_ioremap(cookie, size)
+ #define iounmap(cookie)			__uc32_iounmap(cookie)
+ 
+diff --git a/arch/unicore32/mm/ioremap.c b/arch/unicore32/mm/ioremap.c
+index bf012b2b71a9..f9b6d918de6f 100644
+--- a/arch/unicore32/mm/ioremap.c
++++ b/arch/unicore32/mm/ioremap.c
+@@ -224,14 +224,6 @@ __uc32_ioremap(unsigned long phys_addr, size_t size)
+ }
+ EXPORT_SYMBOL(__uc32_ioremap);
+ 
+-void __iomem *
+-__uc32_ioremap_cached(unsigned long phys_addr, size_t size)
+-{
+-	return __uc32_ioremap_caller(phys_addr, size, MT_DEVICE_CACHED,
+-			__builtin_return_address(0));
+-}
+-EXPORT_SYMBOL(__uc32_ioremap_cached);
+-
+ void __uc32_iounmap(volatile void __iomem *io_addr)
+ {
+ 	void *addr = (void *)(PAGE_MASK & (unsigned long)io_addr);
 
-OK.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
