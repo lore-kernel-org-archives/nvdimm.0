@@ -1,41 +1,96 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 19/25] pxa2xx-flash: switch from ioremap_cache to memremap
+Subject: [PATCH v3 15/24] libnvdimm,
+ pmem: push call to ioremap_cache out of line
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 24 Jul 2015 22:39:45 -0400
-Message-ID: <20150725023945.8664.34842.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 30 Jul 2015 12:55:02 -0400
+Message-ID: <20150730165502.33962.1808.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>, hch@lst.de, linux-arm-kernel@lists.infradead.org
+Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for deprecating ioremap_cache() convert its usage in
-pxa2xx-flash to memremap.
+In preparation for deprecating ioremap_cache() push its usage into arch
+code where it deleted in a later globabl conversion of ioremap_cache()
+to arch_memremap().
 
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Brian Norris <computersforpeace@gmail.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/mtd/maps/pxa2xx-flash.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/io.h         |    7 +------
+ arch/x86/mm/ioremap.c             |    6 ++++++
+ tools/testing/nvdimm/Kbuild       |    2 +-
+ tools/testing/nvdimm/test/iomap.c |    6 +++---
+ 4 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/mtd/maps/pxa2xx-flash.c b/drivers/mtd/maps/pxa2xx-flash.c
-index 12fa75df5008..758a8a7f86d9 100644
---- a/drivers/mtd/maps/pxa2xx-flash.c
-+++ b/drivers/mtd/maps/pxa2xx-flash.c
-@@ -71,8 +71,8 @@ static int pxa2xx_flash_probe(struct platform_device *pdev)
- 		       info->map.name);
- 		return -ENOMEM;
- 	}
--	info->map.cached =
--		ioremap_cache(info->map.phys, info->map.size);
-+	info->map.cached = memremap(info->map.phys, info->map.size,
-+			MEMREMAP_CACHE);
- 	if (!info->map.cached)
- 		printk(KERN_WARNING "Failed to ioremap cached %s\n",
- 		       info->map.name);
+diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
+index cc9c61bc1abe..8aeb6456188a 100644
+--- a/arch/x86/include/asm/io.h
++++ b/arch/x86/include/asm/io.h
+@@ -248,12 +248,7 @@ static inline void flush_write_buffers(void)
+ #endif
+ }
+ 
+-static inline void __pmem *arch_memremap_pmem(resource_size_t offset,
+-	unsigned long size)
+-{
+-	return (void __force __pmem *) ioremap_cache(offset, size);
+-}
+-
++void __pmem *arch_memremap_pmem(resource_size_t offset, size_t size);
+ #endif /* __KERNEL__ */
+ 
+ extern void native_io_delay(void);
+diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
+index ce53e6cff75c..dcaadc6a125b 100644
+--- a/arch/x86/mm/ioremap.c
++++ b/arch/x86/mm/ioremap.c
+@@ -317,6 +317,12 @@ void __iomem *ioremap_cache(resource_size_t phys_addr, unsigned long size)
+ }
+ EXPORT_SYMBOL(ioremap_cache);
+ 
++void __pmem *arch_memremap_pmem(resource_size_t offset, size_t size)
++{
++	return (void __force __pmem *) ioremap_cache(offset, size);
++}
++EXPORT_SYMBOL(arch_memremap_pmem);
++
+ void __iomem *ioremap_prot(resource_size_t phys_addr, unsigned long size,
+ 				unsigned long prot_val)
+ {
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index f56914c7929b..de2912ea78e8 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -1,7 +1,7 @@
+ ldflags-y += --wrap=ioremap_wt
+ ldflags-y += --wrap=ioremap_wc
+ ldflags-y += --wrap=devm_ioremap_nocache
+-ldflags-y += --wrap=ioremap_cache
++ldflags-y += --wrap=arch_memremap_pmem
+ ldflags-y += --wrap=ioremap_nocache
+ ldflags-y += --wrap=iounmap
+ ldflags-y += --wrap=__request_region
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index 64bfaa50831c..f8486f98f860 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -80,11 +80,11 @@ void __iomem *__wrap_devm_ioremap_nocache(struct device *dev,
+ }
+ EXPORT_SYMBOL(__wrap_devm_ioremap_nocache);
+ 
+-void __iomem *__wrap_ioremap_cache(resource_size_t offset, unsigned long size)
++void *__wrap_arch_memremap_pmem(resource_size_t offset, size_t size)
+ {
+-	return __nfit_test_ioremap(offset, size, ioremap_cache);
++	return __nfit_test_ioremap(offset, size, arch_memremap_pmem);
+ }
+-EXPORT_SYMBOL(__wrap_ioremap_cache);
++EXPORT_SYMBOL(__wrap_arch_memremap_pmem);
+ 
+ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
+ {
 
