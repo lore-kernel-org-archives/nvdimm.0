@@ -1,16 +1,16 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 13/25] acpi: switch from ioremap_cache to memremap
+Subject: [PATCH v3 10/24] acpi: switch from ioremap_cache to memremap
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 24 Jul 2015 22:39:09 -0400
-Message-ID: <20150725023909.8664.13169.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 30 Jul 2015 12:54:34 -0400
+Message-ID: <20150730165433.33962.1046.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Bob Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
+Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Bob Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 In preparation for deprecating ioremap_cache() convert its usage in
@@ -21,40 +21,45 @@ a normal memory pointer.
 Finally, memremap automatically handles requests to map normal memory
 pages, so this also drops the calls to "should_use_kmap()".
 
+It seems ARM had a local definition of acpi_os_ioremap() to handle RAM
+addresses, but it can be deleted now that memremap() handles this
+generically.
+
 Cc: Bob Moore <robert.moore@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm64/include/asm/acpi.h |    5 +--
+ arch/arm64/include/asm/acpi.h |    8 -----
  drivers/acpi/apei/einj.c      |    9 +++--
  drivers/acpi/apei/erst.c      |    6 ++--
  drivers/acpi/nvs.c            |    6 ++--
  drivers/acpi/osl.c            |   70 +++++++++++------------------------------
- include/acpi/acpi_io.h        |    6 ++--
- 6 files changed, 35 insertions(+), 67 deletions(-)
+ include/acpi/acpi_io.h        |    6 +---
+ 6 files changed, 32 insertions(+), 73 deletions(-)
 
 diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 5d7e46a1efdb..d12fc0b932b3 100644
+index fdccacd8f7bb..f9f3dcd2bffd 100644
 --- a/arch/arm64/include/asm/acpi.h
 +++ b/arch/arm64/include/asm/acpi.h
-@@ -30,12 +30,11 @@
+@@ -29,14 +29,6 @@
+ 
  /* Basic configuration for ACPI */
  #ifdef	CONFIG_ACPI
- /* ACPI table mapping after acpi_gbl_permanent_mmap is set */
+-/* ACPI table mapping after acpi_gbl_permanent_mmap is set */
 -static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
 -					    acpi_size size)
-+static inline void *acpi_os_memremap(acpi_physical_address phys, acpi_size size)
- {
- 	return memremap(phys, size, MEMREMAP_CACHE);
- }
+-{
+-	return memremap(phys, size, MEMREMAP_WB);
+-}
 -#define acpi_os_ioremap acpi_os_ioremap
-+#define acpi_os_memremap acpi_os_memremap
- 
+-
  typedef u64 phys_cpuid_t;
  #define PHYS_CPUID_INVALID INVALID_HWID
+ 
 diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index a095d4f858da..d4992fea6994 100644
+index a095d4f858da..270636220746 100644
 --- a/drivers/acpi/apei/einj.c
 +++ b/drivers/acpi/apei/einj.c
 @@ -318,7 +318,8 @@ static int __einj_error_trigger(u64 trigger_paddr, u32 type,
@@ -63,7 +68,7 @@ index a095d4f858da..d4992fea6994 100644
  	}
 -	trigger_tab = ioremap_cache(trigger_paddr, sizeof(*trigger_tab));
 +	trigger_tab = memremap(trigger_paddr, sizeof(*trigger_tab),
-+			MEMREMAP_CACHE);
++			MEMREMAP_WB);
  	if (!trigger_tab) {
  		pr_err(EINJ_PFX "Failed to map trigger table!\n");
  		goto out_rel_header;
@@ -74,7 +79,7 @@ index a095d4f858da..d4992fea6994 100644
 -	iounmap(trigger_tab);
 -	trigger_tab = ioremap_cache(trigger_paddr, table_size);
 +	memunmap(trigger_tab);
-+	trigger_tab = memremap(trigger_paddr, table_size, MEMREMAP_CACHE);
++	trigger_tab = memremap(trigger_paddr, table_size, MEMREMAP_WB);
  	if (!trigger_tab) {
  		pr_err(EINJ_PFX "Failed to map trigger table!\n");
  		goto out_rel_entry;
@@ -88,7 +93,7 @@ index a095d4f858da..d4992fea6994 100644
  	return rc;
  }
 diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 3670bbab57a3..dc49b0b42d65 100644
+index 3670bbab57a3..569237176e18 100644
 --- a/drivers/acpi/apei/erst.c
 +++ b/drivers/acpi/apei/erst.c
 @@ -77,7 +77,7 @@ static struct acpi_table_erst *erst_tab;
@@ -107,7 +112,7 @@ index 3670bbab57a3..dc49b0b42d65 100644
 -	erst_erange.vaddr = ioremap_cache(erst_erange.base,
 -					  erst_erange.size);
 +	erst_erange.vaddr = memremap(erst_erange.base, erst_erange.size,
-+			MEMREMAP_CACHE);
++			MEMREMAP_WB);
  	if (!erst_erange.vaddr)
  		goto err_release_erange;
  
@@ -335,22 +340,23 @@ index 3b8963f21b36..9d5242179b74 100644
  		rcu_read_unlock();
  
 diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
-index dd86c5fc102d..55bb32f375d6 100644
+index dd86c5fc102d..646ce8714109 100644
 --- a/include/acpi/acpi_io.h
 +++ b/include/acpi/acpi_io.h
-@@ -5,11 +5,11 @@
+@@ -5,13 +5,11 @@
  
  #include <asm/acpi.h>
  
 -#ifndef acpi_os_ioremap
 -static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
-+#ifndef acpi_os_memremap
 +static inline void *acpi_os_memremap(acpi_physical_address phys,
  					    acpi_size size)
  {
 -       return ioremap_cache(phys, size);
-+       return memremap(phys, size, MEMREMAP_CACHE);
++       return memremap(phys, size, MEMREMAP_WB);
  }
- #endif
+-#endif
  
+ void __iomem *__init_refok
+ acpi_os_map_iomem(acpi_physical_address phys, acpi_size size);
 
