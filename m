@@ -1,251 +1,82 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 10/25] x86: switch from ioremap_cache to memremap
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 24 Jul 2015 22:38:53 -0400
-Message-ID: <20150725023853.8664.23118.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20150730210204.GQ30479@wotan.suse.de>
+References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150730165407.33962.79603.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150730210204.GQ30479@wotan.suse.de>
+Date: Thu, 30 Jul 2015 14:11:37 -0700
+Message-ID: <CAPcyv4iV79Em9umnc=L+M0HqRb1gtfZxj-A=0nbAh76ceYn_pg@mail.gmail.com>
+Subject: Re: [PATCH v3 05/24] arch: introduce memremap()
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
+To: "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-arch@vger.kernel.org, "Kani, Toshimitsu" <toshi.kani@hp.com>, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Christoph Hellwig <hch@lst.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for deprecating ioremap_cache() convert its usage in
-arch/x86/ to memremap.
+On Thu, Jul 30, 2015 at 2:02 PM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+> On Thu, Jul 30, 2015 at 12:54:07PM -0400, Dan Williams wrote:
+>> diff --git a/include/linux/io.h b/include/linux/io.h
+>> index fb5a99800e77..3fcf6256c088 100644
+>> --- a/include/linux/io.h
+>> +++ b/include/linux/io.h
+>> @@ -121,4 +121,13 @@ static inline int arch_phys_wc_index(int handle)
+>>  #endif
+>>  #endif
+>>
+>> +enum {
+>> +     /* See memremap() kernel-doc for usage description... */
+>> +     MEMREMAP_WB = 1 << 0,
+>> +     MEMREMAP_WT = 1 << 1,
+>> +};
+>
+> Same feedback for enum nameing and also kdoc style.
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/include/asm/efi.h      |    3 ++-
- arch/x86/kernel/crash_dump_64.c |    6 +++---
- arch/x86/kernel/kdebugfs.c      |    8 ++++----
- arch/x86/kernel/ksysfs.c        |   28 ++++++++++++++--------------
- arch/x86/mm/ioremap.c           |   10 ++++------
- 5 files changed, 27 insertions(+), 28 deletions(-)
+I'm concerned documentation here has the possibility of getting out of
+sync with the "source of truth" at the definition of memremap().  I
+think it's better to have the documentation consolidated at it
+implementation rather than its definition.
 
-diff --git a/arch/x86/include/asm/efi.h b/arch/x86/include/asm/efi.h
-index 155162ea0e00..755272a8c45f 100644
---- a/arch/x86/include/asm/efi.h
-+++ b/arch/x86/include/asm/efi.h
-@@ -54,7 +54,8 @@ extern unsigned long asmlinkage efi_call_phys(void *, ...);
- 	kernel_fpu_end();						\
- })
- 
--#define efi_ioremap(addr, size, type, attr)	ioremap_cache(addr, size)
-+#define efi_ioremap(addr, size, type, attr)				\
-+	memremap(addr, size, MEMREMAP_CACHE)
- 
- #else /* !CONFIG_X86_32 */
- 
-diff --git a/arch/x86/kernel/crash_dump_64.c b/arch/x86/kernel/crash_dump_64.c
-index afa64adb75ee..b87ca059e5fc 100644
---- a/arch/x86/kernel/crash_dump_64.c
-+++ b/arch/x86/kernel/crash_dump_64.c
-@@ -31,19 +31,19 @@ ssize_t copy_oldmem_page(unsigned long pfn, char *buf,
- 	if (!csize)
- 		return 0;
- 
--	vaddr = ioremap_cache(pfn << PAGE_SHIFT, PAGE_SIZE);
-+	vaddr = memremap(pfn << PAGE_SHIFT, PAGE_SIZE, MEMREMAP_CACHE);
- 	if (!vaddr)
- 		return -ENOMEM;
- 
- 	if (userbuf) {
- 		if (copy_to_user(buf, vaddr + offset, csize)) {
--			iounmap(vaddr);
-+			memunmap(vaddr);
- 			return -EFAULT;
- 		}
- 	} else
- 		memcpy(buf, vaddr + offset, csize);
- 
- 	set_iounmap_nonlazy();
--	iounmap(vaddr);
-+	memunmap(vaddr);
- 	return csize;
- }
-diff --git a/arch/x86/kernel/kdebugfs.c b/arch/x86/kernel/kdebugfs.c
-index dc1404bf8e4b..a2248482c14b 100644
---- a/arch/x86/kernel/kdebugfs.c
-+++ b/arch/x86/kernel/kdebugfs.c
-@@ -49,7 +49,7 @@ static ssize_t setup_data_read(struct file *file, char __user *user_buf,
- 	pa = node->paddr + sizeof(struct setup_data) + pos;
- 	pg = pfn_to_page((pa + count - 1) >> PAGE_SHIFT);
- 	if (PageHighMem(pg)) {
--		p = ioremap_cache(pa, count);
-+		p = memremap(pa, count, MEMREMAP_CACHE);
- 		if (!p)
- 			return -ENXIO;
- 	} else
-@@ -58,7 +58,7 @@ static ssize_t setup_data_read(struct file *file, char __user *user_buf,
- 	remain = copy_to_user(user_buf, p, count);
- 
- 	if (PageHighMem(pg))
--		iounmap(p);
-+		memunmap(p);
- 
- 	if (remain)
- 		return -EFAULT;
-@@ -128,7 +128,7 @@ static int __init create_setup_data_nodes(struct dentry *parent)
- 
- 		pg = pfn_to_page((pa_data+sizeof(*data)-1) >> PAGE_SHIFT);
- 		if (PageHighMem(pg)) {
--			data = ioremap_cache(pa_data, sizeof(*data));
-+			data = memremap(pa_data, sizeof(*data), MEMREMAP_CACHE);
- 			if (!data) {
- 				kfree(node);
- 				error = -ENXIO;
-@@ -144,7 +144,7 @@ static int __init create_setup_data_nodes(struct dentry *parent)
- 		pa_data = data->next;
- 
- 		if (PageHighMem(pg))
--			iounmap(data);
-+			memunmap(data);
- 		if (error)
- 			goto err_dir;
- 		no++;
-diff --git a/arch/x86/kernel/ksysfs.c b/arch/x86/kernel/ksysfs.c
-index c2bedaea11f7..d2670bb75a08 100644
---- a/arch/x86/kernel/ksysfs.c
-+++ b/arch/x86/kernel/ksysfs.c
-@@ -16,8 +16,8 @@
- #include <linux/stat.h>
- #include <linux/slab.h>
- #include <linux/mm.h>
-+#include <linux/io.h>
- 
--#include <asm/io.h>
- #include <asm/setup.h>
- 
- static ssize_t version_show(struct kobject *kobj,
-@@ -79,12 +79,12 @@ static int get_setup_data_paddr(int nr, u64 *paddr)
- 			*paddr = pa_data;
- 			return 0;
- 		}
--		data = ioremap_cache(pa_data, sizeof(*data));
-+		data = memremap(pa_data, sizeof(*data), MEMREMAP_CACHE);
- 		if (!data)
- 			return -ENOMEM;
- 
- 		pa_data = data->next;
--		iounmap(data);
-+		memunmap(data);
- 		i++;
- 	}
- 	return -EINVAL;
-@@ -97,17 +97,17 @@ static int __init get_setup_data_size(int nr, size_t *size)
- 	u64 pa_data = boot_params.hdr.setup_data;
- 
- 	while (pa_data) {
--		data = ioremap_cache(pa_data, sizeof(*data));
-+		data = memremap(pa_data, sizeof(*data), MEMREMAP_CACHE);
- 		if (!data)
- 			return -ENOMEM;
- 		if (nr == i) {
- 			*size = data->len;
--			iounmap(data);
-+			memunmap(data);
- 			return 0;
- 		}
- 
- 		pa_data = data->next;
--		iounmap(data);
-+		memunmap(data);
- 		i++;
- 	}
- 	return -EINVAL;
-@@ -127,12 +127,12 @@ static ssize_t type_show(struct kobject *kobj,
- 	ret = get_setup_data_paddr(nr, &paddr);
- 	if (ret)
- 		return ret;
--	data = ioremap_cache(paddr, sizeof(*data));
-+	data = memremap(paddr, sizeof(*data), MEMREMAP_CACHE);
- 	if (!data)
- 		return -ENOMEM;
- 
- 	ret = sprintf(buf, "0x%x\n", data->type);
--	iounmap(data);
-+	memunmap(data);
- 	return ret;
- }
- 
-@@ -154,7 +154,7 @@ static ssize_t setup_data_data_read(struct file *fp,
- 	ret = get_setup_data_paddr(nr, &paddr);
- 	if (ret)
- 		return ret;
--	data = ioremap_cache(paddr, sizeof(*data));
-+	data = memremap(paddr, sizeof(*data), MEMREMAP_CACHE);
- 	if (!data)
- 		return -ENOMEM;
- 
-@@ -170,15 +170,15 @@ static ssize_t setup_data_data_read(struct file *fp,
- 		goto out;
- 
- 	ret = count;
--	p = ioremap_cache(paddr + sizeof(*data), data->len);
-+	p = memremap(paddr + sizeof(*data), data->len, MEMREMAP_CACHE);
- 	if (!p) {
- 		ret = -ENOMEM;
- 		goto out;
- 	}
- 	memcpy(buf, p + off, count);
--	iounmap(p);
-+	memunmap(p);
- out:
--	iounmap(data);
-+	memunmap(data);
- 	return ret;
- }
- 
-@@ -250,13 +250,13 @@ static int __init get_setup_data_total_num(u64 pa_data, int *nr)
- 	*nr = 0;
- 	while (pa_data) {
- 		*nr += 1;
--		data = ioremap_cache(pa_data, sizeof(*data));
-+		data = memremap(pa_data, sizeof(*data), MEMREMAP_CACHE);
- 		if (!data) {
- 			ret = -ENOMEM;
- 			goto out;
- 		}
- 		pa_data = data->next;
--		iounmap(data);
-+		memunmap(data);
- 	}
- 
- out:
-diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
-index 12b1eaeab6b9..6f759c7c2ab7 100644
---- a/arch/x86/mm/ioremap.c
-+++ b/arch/x86/mm/ioremap.c
-@@ -403,12 +403,10 @@ void *xlate_dev_mem_ptr(phys_addr_t phys)
- 	if (page_is_ram(start >> PAGE_SHIFT))
- 		return __va(phys);
- 
--	vaddr = ioremap_cache(start, PAGE_SIZE);
--	/* Only add the offset on success and return NULL if the ioremap() failed: */
-+	vaddr = memremap(start, PAGE_SIZE, MEMREMAP_CACHE);
- 	if (vaddr)
--		vaddr += offset;
--
--	return vaddr;
-+		return vaddr + offset;
-+	return NULL;
- }
- 
- void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
-@@ -416,7 +414,7 @@ void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
- 	if (page_is_ram(phys >> PAGE_SHIFT))
- 		return;
- 
--	iounmap((void __iomem *)((unsigned long)addr & PAGE_MASK));
-+	memunmap((void *)((unsigned long)addr & PAGE_MASK));
- }
- 
- static pte_t bm_pte[PAGE_SIZE/sizeof(pte_t)] __page_aligned_bss;
+>
+>> diff --git a/kernel/memremap.c b/kernel/memremap.c
+>> new file mode 100644
+>> index 000000000000..27637f42f30d
+>> --- /dev/null
+>> +++ b/kernel/memremap.c
+>
+> <-- ... -->
+>
+>> +/**
+>> + * memremap() - remap an iomem_resource as cacheable memory
+>> + * @offset: iomem resource start address
+>> + * @size: size of remap
+>> + * @flags: either MEMREMAP_WB or MEMREMAP_WT
+>> + *
+>> + * memremap() is "ioremap" for cases where it is known that the resource
+>> + * being mapped does not have i/o side effects and the __iomem
+>> + * annotation is not applicable.
+>> + *
+>> + * MEMREMAP_WB - matches the default mapping for "System RAM" on
+>> + * the architecture.  This is usually a read-allocate write-back cache.
+>> + * Morever, if MEMREMAP_WB is specified and the requested remap region is RAM
+>> + * memremap() will bypass establishing a new mapping and instead return
+>> + * a pointer into the direct map.
+>> + *
+>> + * MEMREMAP_WT - establish a mapping whereby writes either bypass the
+>> + * cache or are written through to memory and never exist in a
+>> + * cache-dirty state with respect to program visibility.  Attempts to
+>> + * map "System RAM" with this mapping type will fail.
+>
+> Then you can extrend all this on kdoc on the enum.
+>
+>> + */
+>> +void *memremap(resource_size_t offset, size_t size, unsigned long flags)
+>> +{
+>> +     int is_ram = region_intersects(offset, size, "System RAM");
+>
+> This could be the enum region_intersect_type, then if the region enum is
+> extended you'd get a compiler error if one type was not handled.
 
+This already does not handle the REGION_DISJOINT case explicitly, it's
+implied by handling the other 2.  A compiler warning would be verbose
+for not much benefit afaics.
