@@ -1,115 +1,105 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 22/25] pmem: switch from ioremap_wt to memremap
+Subject: [PATCH v3 18/24] fbdev: switch from ioremap_wt to memremap
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 24 Jul 2015 22:40:01 -0400
-Message-ID: <20150725024001.8664.13362.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 30 Jul 2015 12:55:19 -0400
+Message-ID: <20150730165519.33962.40536.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, Ross Zwisler <ross.zwisler@linux.intel.com>, hch@lst.de, linux-arm-kernel@lists.infradead.org
+Cc: linux-arch@vger.kernel.org, linux-fbdev@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, rmk+kernel@arm.linux.org.uk, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 In preparation for deprecating ioremap_wt() convert its usage in
-the PMEM API to memremap.
+drivers/video/fbdev to memremap.
 
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/pmem.h              |    2 +-
- tools/testing/nvdimm/Kbuild       |    4 ++--
- tools/testing/nvdimm/test/iomap.c |   34 +++++++++++++++++++++++++---------
- 3 files changed, 28 insertions(+), 12 deletions(-)
+ drivers/video/fbdev/amifb.c |    5 +++--
+ drivers/video/fbdev/atafb.c |    5 +++--
+ drivers/video/fbdev/hpfb.c  |    6 +++---
+ 3 files changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index d2114045a6c4..1bf74c735fa0 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -94,7 +94,7 @@ static void default_memcpy_to_pmem(void __pmem *dst, const void *src,
- static void __pmem *default_memremap_pmem(resource_size_t offset,
- 		unsigned long size)
- {
--	return (void __pmem __force *)ioremap_wt(offset, size);
-+	return (void __pmem *) memremap(offset, size, MEMREMAP_WT);
- }
+diff --git a/drivers/video/fbdev/amifb.c b/drivers/video/fbdev/amifb.c
+index 1d702e13aaff..0cde451046d0 100644
+--- a/drivers/video/fbdev/amifb.c
++++ b/drivers/video/fbdev/amifb.c
+@@ -52,6 +52,7 @@
+ #include <linux/ioport.h>
+ #include <linux/platform_device.h>
+ #include <linux/uaccess.h>
++#include <linux/io.h>
  
- /**
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index de2912ea78e8..8032a49f7873 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -1,7 +1,7 @@
--ldflags-y += --wrap=ioremap_wt
- ldflags-y += --wrap=ioremap_wc
- ldflags-y += --wrap=devm_ioremap_nocache
--ldflags-y += --wrap=arch_memremap_pmem
-+ldflags-y += --wrap=memremap
-+ldflags-y += --wrap=memunmap
- ldflags-y += --wrap=ioremap_nocache
- ldflags-y += --wrap=iounmap
- ldflags-y += --wrap=__request_region
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index f8486f98f860..21288f34a5ca 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -80,11 +80,20 @@ void __iomem *__wrap_devm_ioremap_nocache(struct device *dev,
- }
- EXPORT_SYMBOL(__wrap_devm_ioremap_nocache);
+ #include <asm/irq.h>
+ #include <asm/amigahw.h>
+@@ -3705,8 +3706,8 @@ default_chipset:
+ 	 * access the videomem with writethrough cache
+ 	 */
+ 	info->fix.smem_start = (u_long)ZTWO_PADDR(videomemory);
+-	videomemory = (u_long)ioremap_wt(info->fix.smem_start,
+-					 info->fix.smem_len);
++	videomemory = (u_long)memremap(info->fix.smem_start, info->fix.smem_len,
++			MEMREMAP_WT);
+ 	if (!videomemory) {
+ 		dev_warn(&pdev->dev,
+ 			 "Unable to map videomem cached writethrough\n");
+diff --git a/drivers/video/fbdev/atafb.c b/drivers/video/fbdev/atafb.c
+index d6ce613e12ad..5615e8c31ea2 100644
+--- a/drivers/video/fbdev/atafb.c
++++ b/drivers/video/fbdev/atafb.c
+@@ -55,12 +55,12 @@
+ #include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
++#include <linux/io.h>
  
--void *__wrap_arch_memremap_pmem(resource_size_t offset, size_t size)
-+void *__wrap_memremap(resource_size_t offset, size_t size,
-+		unsigned long flags)
- {
--	return __nfit_test_ioremap(offset, size, arch_memremap_pmem);
-+	struct nfit_test_resource *nfit_res;
-+
-+	rcu_read_lock();
-+	nfit_res = get_nfit_res(offset);
-+	rcu_read_unlock();
-+	if (nfit_res)
-+		return (void __iomem *) nfit_res->buf + offset
-+			- nfit_res->res->start;
-+	return memremap(offset, size, flags);
- }
--EXPORT_SYMBOL(__wrap_arch_memremap_pmem);
-+EXPORT_SYMBOL(__wrap_memremap);
+ #include <asm/setup.h>
+ #include <linux/uaccess.h>
+ #include <asm/pgtable.h>
+ #include <asm/irq.h>
+-#include <asm/io.h>
  
- void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
- {
-@@ -92,12 +101,6 @@ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
- }
- EXPORT_SYMBOL(__wrap_ioremap_nocache);
+ #include <asm/atarihw.h>
+ #include <asm/atariints.h>
+@@ -3185,7 +3185,8 @@ int __init atafb_init(void)
+ 		/* Map the video memory (physical address given) to somewhere
+ 		 * in the kernel address space.
+ 		 */
+-		external_screen_base = ioremap_wt(external_addr, external_len);
++		external_screen_base = memremap(external_addr, external_len,
++				MEMREMAP_WT);
+ 		if (external_vgaiobase)
+ 			external_vgaiobase =
+ 			  (unsigned long)ioremap(external_vgaiobase, 0x10000);
+diff --git a/drivers/video/fbdev/hpfb.c b/drivers/video/fbdev/hpfb.c
+index 9476d196f510..d08c320b06fc 100644
+--- a/drivers/video/fbdev/hpfb.c
++++ b/drivers/video/fbdev/hpfb.c
+@@ -14,8 +14,8 @@
+ #include <linux/init.h>
+ #include <linux/fb.h>
+ #include <linux/dio.h>
++#include <linux/io.h>
  
--void __iomem *__wrap_ioremap_wt(resource_size_t offset, unsigned long size)
--{
--	return __nfit_test_ioremap(offset, size, ioremap_wt);
--}
--EXPORT_SYMBOL(__wrap_ioremap_wt);
--
- void __iomem *__wrap_ioremap_wc(resource_size_t offset, unsigned long size)
- {
- 	return __nfit_test_ioremap(offset, size, ioremap_wc);
-@@ -117,6 +120,19 @@ void __wrap_iounmap(volatile void __iomem *addr)
- }
- EXPORT_SYMBOL(__wrap_iounmap);
+-#include <asm/io.h>
+ #include <asm/uaccess.h>
  
-+void __wrap_memunmap(void *addr)
-+{
-+	struct nfit_test_resource *nfit_res;
-+
-+	rcu_read_lock();
-+	nfit_res = get_nfit_res((unsigned long) addr);
-+	rcu_read_unlock();
-+	if (nfit_res)
-+		return;
-+	return memunmap(addr);
-+}
-+EXPORT_SYMBOL(__wrap_memunmap);
-+
- struct resource *__wrap___request_region(struct resource *parent,
- 		resource_size_t start, resource_size_t n, const char *name,
- 		int flags)
+ static struct fb_info fb_info = {
+@@ -241,8 +241,8 @@ static int hpfb_init_one(unsigned long phys_base, unsigned long virt_base)
+ 	fb_info.fix.line_length = fb_width;
+ 	fb_height = (in_8(fb_regs + HPFB_FBHMSB) << 8) | in_8(fb_regs + HPFB_FBHLSB);
+ 	fb_info.fix.smem_len = fb_width * fb_height;
+-	fb_start = (unsigned long)ioremap_wt(fb_info.fix.smem_start,
+-					     fb_info.fix.smem_len);
++	fb_start = (unsigned long) memremap(fb_info.fix.smem_start,
++					     fb_info.fix.smem_len, MEMREMAP_WT);
+ 	hpfb_defined.xres = (in_8(fb_regs + HPFB_DWMSB) << 8) | in_8(fb_regs + HPFB_DWLSB);
+ 	hpfb_defined.yres = (in_8(fb_regs + HPFB_DHMSB) << 8) | in_8(fb_regs + HPFB_DHLSB);
+ 	hpfb_defined.xres_virtual = hpfb_defined.xres;
 
