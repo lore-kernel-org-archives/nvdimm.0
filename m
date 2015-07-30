@@ -1,120 +1,228 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 3/3] nfit: add support for NVDIMM "latch" flag
-Date: Wed,  8 Jul 2015 10:00:21 -0600
-Message-Id: <1436371221-30296-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 02/24] arch, drivers: don't include <asm/io.h> directly,
+ use <linux/io.h> instead
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 30 Jul 2015 12:53:51 -0400
+Message-ID: <20150730165350.33962.12562.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dan Williams <dan.j.williams@intel.com>, Len Brown <lenb@kernel.org>, Christoph Hellwig <hch@lst.de>, Jeff Moyer <jmoyer@redhat.com>, Toshi Kani <toshi.kani@hp.com>
+To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
+Cc: linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support in the NFIT BLK I/O path for the "latch" flag
-defined in the "Get Block NVDIMM Flags" _DSM function:
+Preparation for uniform definition of ioremap, ioremap_wc, ioremap_wt,
+and ioremap_cache, tree-wide.
 
-http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
-
-This flag requires the driver to read back the command register after it
-is written in the block I/O path.  This ensures that the hardware has
-fully processed the new command and moved the aperture appropriately.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c | 33 ++++++++++++++++++++++++++++++++-
- drivers/acpi/nfit.h |  6 ++++++
- 2 files changed, 38 insertions(+), 1 deletion(-)
+ arch/arm/mach-shmobile/pm-rcar.c            |    2 +-
+ arch/ia64/kernel/cyclone.c                  |    2 +-
+ drivers/isdn/icn/icn.h                      |    2 +-
+ drivers/mtd/devices/slram.c                 |    2 +-
+ drivers/mtd/nand/diskonchip.c               |    2 +-
+ drivers/mtd/onenand/generic.c               |    2 +-
+ drivers/scsi/sun3x_esp.c                    |    2 +-
+ drivers/staging/comedi/drivers/ii_pci20kc.c |    1 +
+ drivers/tty/serial/8250/8250_core.c         |    2 +-
+ drivers/video/fbdev/s1d13xxxfb.c            |    3 +--
+ drivers/video/fbdev/stifb.c                 |    1 +
+ include/linux/io-mapping.h                  |    2 +-
+ include/linux/mtd/map.h                     |    2 +-
+ include/video/vga.h                         |    2 +-
+ 14 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index b3c446412f61..9062c11c1062 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1059,7 +1059,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+diff --git a/arch/arm/mach-shmobile/pm-rcar.c b/arch/arm/mach-shmobile/pm-rcar.c
+index 00022ee56f80..9d3dde00c2fe 100644
+--- a/arch/arm/mach-shmobile/pm-rcar.c
++++ b/arch/arm/mach-shmobile/pm-rcar.c
+@@ -12,7 +12,7 @@
+ #include <linux/err.h>
+ #include <linux/mm.h>
+ #include <linux/spinlock.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include "pm-rcar.h"
  
- 	writeq(cmd, mmio->base + offset);
- 	wmb_blk(nfit_blk);
--	/* FIXME: conditionally perform read-back if mandated by firmware */
-+
-+	if (nfit_blk->dimm_flags & ND_BLK_DCR_LATCH)
-+		readq(mmio->base + offset);
- }
+ /* SYSC */
+diff --git a/arch/ia64/kernel/cyclone.c b/arch/ia64/kernel/cyclone.c
+index 4826ff957a3d..5fa3848ba224 100644
+--- a/arch/ia64/kernel/cyclone.c
++++ b/arch/ia64/kernel/cyclone.c
+@@ -4,7 +4,7 @@
+ #include <linux/errno.h>
+ #include <linux/timex.h>
+ #include <linux/clocksource.h>
+-#include <asm/io.h>
++#include <linux/io.h>
  
- static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
-@@ -1258,6 +1260,28 @@ static int nfit_blk_init_interleave(struct nfit_blk_mmio *mmio,
- 	return 0;
- }
+ /* IBM Summit (EXA) Cyclone counter code*/
+ #define CYCLONE_CBAR_ADDR 0xFEB00CD0
+diff --git a/drivers/isdn/icn/icn.h b/drivers/isdn/icn/icn.h
+index b713466997a0..f8f2e76d34bf 100644
+--- a/drivers/isdn/icn/icn.h
++++ b/drivers/isdn/icn/icn.h
+@@ -38,7 +38,7 @@ typedef struct icn_cdef {
+ #include <linux/errno.h>
+ #include <linux/fs.h>
+ #include <linux/major.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include <linux/kernel.h>
+ #include <linux/signal.h>
+ #include <linux/slab.h>
+diff --git a/drivers/mtd/devices/slram.c b/drivers/mtd/devices/slram.c
+index 2fc4957cbe7f..a70eb83e68f1 100644
+--- a/drivers/mtd/devices/slram.c
++++ b/drivers/mtd/devices/slram.c
+@@ -41,7 +41,7 @@
+ #include <linux/fs.h>
+ #include <linux/ioctl.h>
+ #include <linux/init.h>
+-#include <asm/io.h>
++#include <linux/io.h>
  
-+static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
-+		struct nvdimm *nvdimm, struct nfit_blk *nfit_blk)
-+{
-+	struct nd_cmd_dimm_flags flags;
-+	int rc;
-+
-+	memset(&flags, 0, sizeof(flags));
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
-+			sizeof(flags));
-+
-+	if (rc >= 0) {
-+		if (!flags.status)
-+			nfit_blk->dimm_flags = flags.flags;
-+		else if (flags.status == ND_DSM_STATUS_NOT_SUPPORTED)
-+			nfit_blk->dimm_flags = 0; /* as per the _DSM spec */
-+		else
-+			rc = -EINVAL;
-+	}
-+
-+	return rc;
-+}
-+
- static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 		struct device *dev)
- {
-@@ -1333,6 +1357,13 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 		return rc;
- 	}
+ #include <linux/mtd/mtd.h>
  
-+	rc = acpi_nfit_blk_get_flags(nd_desc, nvdimm, nfit_blk);
-+	if (rc < 0) {
-+		dev_dbg(dev, "%s: %s failed get DIMM flags\n",
-+				__func__, nvdimm_name(nvdimm));
-+		return rc;
-+	}
-+
- 	nfit_flush = nfit_mem->nfit_flush;
- 	if (nfit_flush && nfit_flush->flush->hint_count != 0) {
- 		struct acpi_nfit_flush_address *flush = nfit_flush->flush;
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index d284729cc37c..98e36ca0dfc2 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -40,6 +40,11 @@ enum nfit_uuids {
- 	NFIT_UUID_MAX,
- };
+diff --git a/drivers/mtd/nand/diskonchip.c b/drivers/mtd/nand/diskonchip.c
+index 7da266a53979..0802158a3f75 100644
+--- a/drivers/mtd/nand/diskonchip.c
++++ b/drivers/mtd/nand/diskonchip.c
+@@ -24,7 +24,7 @@
+ #include <linux/rslib.h>
+ #include <linux/moduleparam.h>
+ #include <linux/slab.h>
+-#include <asm/io.h>
++#include <linux/io.h>
  
-+enum {
-+	ND_BLK_DCR_LATCH = 2,
-+	ND_DSM_STATUS_NOT_SUPPORTED = 1,
-+};
-+
- struct nfit_spa {
- 	struct acpi_nfit_system_address *spa;
- 	struct list_head list;
-@@ -131,6 +136,7 @@ struct nfit_blk {
- 	u64 stat_offset;
- 	u64 cmd_offset;
- 	void __iomem *nvdimm_flush;
-+	u32 dimm_flags;
- };
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+diff --git a/drivers/mtd/onenand/generic.c b/drivers/mtd/onenand/generic.c
+index 32a216d31141..ab7bda0bb245 100644
+--- a/drivers/mtd/onenand/generic.c
++++ b/drivers/mtd/onenand/generic.c
+@@ -18,7 +18,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/onenand.h>
+ #include <linux/mtd/partitions.h>
+-#include <asm/io.h>
++#include <linux/io.h>
  
- struct nfit_spa_mapping {
--- 
-1.9.3
+ /*
+  * Note: Driver name and platform data format have been updated!
+diff --git a/drivers/scsi/sun3x_esp.c b/drivers/scsi/sun3x_esp.c
+index e26e81de7c45..d50c5ed8f428 100644
+--- a/drivers/scsi/sun3x_esp.c
++++ b/drivers/scsi/sun3x_esp.c
+@@ -12,9 +12,9 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/interrupt.h>
++#include <linux/io.h>
+ 
+ #include <asm/sun3x.h>
+-#include <asm/io.h>
+ #include <asm/dma.h>
+ #include <asm/dvma.h>
+ 
+diff --git a/drivers/staging/comedi/drivers/ii_pci20kc.c b/drivers/staging/comedi/drivers/ii_pci20kc.c
+index 0768bc42a5db..14ef1f67dd42 100644
+--- a/drivers/staging/comedi/drivers/ii_pci20kc.c
++++ b/drivers/staging/comedi/drivers/ii_pci20kc.c
+@@ -28,6 +28,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/io.h>
+ #include "../comedidev.h"
+ 
+ /*
+diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
+index 37fff12dd4d0..fe902ff52e58 100644
+--- a/drivers/tty/serial/8250/8250_core.c
++++ b/drivers/tty/serial/8250/8250_core.c
+@@ -38,11 +38,11 @@
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
+ #include <linux/pm_runtime.h>
++#include <linux/io.h>
+ #ifdef CONFIG_SPARC
+ #include <linux/sunserialcore.h>
+ #endif
+ 
+-#include <asm/io.h>
+ #include <asm/irq.h>
+ 
+ #include "8250.h"
+diff --git a/drivers/video/fbdev/s1d13xxxfb.c b/drivers/video/fbdev/s1d13xxxfb.c
+index 83433cb0dfba..96aa46dc696c 100644
+--- a/drivers/video/fbdev/s1d13xxxfb.c
++++ b/drivers/video/fbdev/s1d13xxxfb.c
+@@ -32,8 +32,7 @@
+ #include <linux/spinlock_types.h>
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
+-
+-#include <asm/io.h>
++#include <linux/io.h>
+ 
+ #include <video/s1d13xxxfb.h>
+ 
+diff --git a/drivers/video/fbdev/stifb.c b/drivers/video/fbdev/stifb.c
+index 735355b0e023..7df4228e25f0 100644
+--- a/drivers/video/fbdev/stifb.c
++++ b/drivers/video/fbdev/stifb.c
+@@ -64,6 +64,7 @@
+ #include <linux/fb.h>
+ #include <linux/init.h>
+ #include <linux/ioport.h>
++#include <linux/io.h>
+ 
+ #include <asm/grfioctl.h>	/* for HP-UX compatibility */
+ #include <asm/uaccess.h>
+diff --git a/include/linux/io-mapping.h b/include/linux/io-mapping.h
+index c27dde7215b5..e399029b68c5 100644
+--- a/include/linux/io-mapping.h
++++ b/include/linux/io-mapping.h
+@@ -21,7 +21,7 @@
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include <linux/bug.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include <asm/page.h>
+ 
+ /*
+diff --git a/include/linux/mtd/map.h b/include/linux/mtd/map.h
+index 29975c73a953..366cf77953b5 100644
+--- a/include/linux/mtd/map.h
++++ b/include/linux/mtd/map.h
+@@ -27,9 +27,9 @@
+ #include <linux/string.h>
+ #include <linux/bug.h>
+ #include <linux/kernel.h>
++#include <linux/io.h>
+ 
+ #include <asm/unaligned.h>
+-#include <asm/io.h>
+ #include <asm/barrier.h>
+ 
+ #ifdef CONFIG_MTD_MAP_BANK_WIDTH_1
+diff --git a/include/video/vga.h b/include/video/vga.h
+index cac567f22e62..d334e64c1c19 100644
+--- a/include/video/vga.h
++++ b/include/video/vga.h
+@@ -18,7 +18,7 @@
+ #define __linux_video_vga_h__
+ 
+ #include <linux/types.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include <asm/vga.h>
+ #include <asm/byteorder.h>
+ 
 
