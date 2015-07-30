@@ -1,105 +1,75 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 18/24] fbdev: switch from ioremap_wt to memremap
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 30 Jul 2015 12:55:19 -0400
-Message-ID: <20150730165519.33962.40536.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 30 Jul 2015 23:10:26 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Subject: Re: [PATCH v3 01/24] mm: enhance region_is_ram() to
+ region_intersects()
+Message-ID: <20150730211026.GR30479@wotan.suse.de>
 References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150730165345.33962.80299.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150730204249.GN30479@wotan.suse.de>
+ <CAPcyv4hywBvt85E6LAznxQaDug17+_YxoyVzhf6fWu+GpsrmKw@mail.gmail.com>
+ <20150730205449.GO30479@wotan.suse.de>
+ <CAPcyv4g1cMCDUZGrWz6Epmp4XvYuuLOPneiOTqrRsX1PoOS9gA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4g1cMCDUZGrWz6Epmp4XvYuuLOPneiOTqrRsX1PoOS9gA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com
-Cc: linux-arch@vger.kernel.org, linux-fbdev@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, rmk+kernel@arm.linux.org.uk, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, hch@lst.de, linux-arm-kernel@lists.infradead.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-arch@vger.kernel.org, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Christoph Hellwig <hch@lst.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for deprecating ioremap_wt() convert its usage in
-drivers/video/fbdev to memremap.
+On Thu, Jul 30, 2015 at 01:59:20PM -0700, Dan Williams wrote:
+> On Thu, Jul 30, 2015 at 1:54 PM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+> > On Thu, Jul 30, 2015 at 01:44:44PM -0700, Dan Williams wrote:
+> >> On Thu, Jul 30, 2015 at 1:42 PM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+> >> > On Thu, Jul 30, 2015 at 12:53:45PM -0400, Dan Williams wrote:
+> >> >> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> >> >> index 2e872f92dbac..84b05ebedb2d 100644
+> >> >> --- a/include/linux/mm.h
+> >> >> +++ b/include/linux/mm.h
+> >> >> @@ -369,7 +369,14 @@ static inline int put_page_unless_one(struct page *page)
+> >> >>  }
+> >> >>
+> >> >>  extern int page_is_ram(unsigned long pfn);
+> >> >> -extern int region_is_ram(resource_size_t phys_addr, unsigned long size);
+> >> >> +
+> >> >> +enum {
+> >> >> +     REGION_INTERSECTS,
+> >> >> +     REGION_DISJOINT,
+> >> >> +     REGION_MIXED,
+> >> >> +};
+> >> >> +
+> >> >
+> >> > Can you Kdoc'ify this? Part of the reason for the enum request was this
+> >> > could be then documented really well. The helper is documented but here
+> >> > you can go into more detail about each region intersection.
+> >>
+> >> Given region_intersects() has its own kdoc I'd probably just say "See
+> >> region_intersects() for details".
+> >
+> > With the kdoc in place in the enum you'd kick people to elaborate when
+> > extending the enums, whereas without this you'd hope they do it. With
+> > the enum in place you can also be more verbose.
+> >
+> 
+> Care to send a patch on what you are thinking?  I wasn't planning on
+> this enum growing any other entries.
 
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/video/fbdev/amifb.c |    5 +++--
- drivers/video/fbdev/atafb.c |    5 +++--
- drivers/video/fbdev/hpfb.c  |    6 +++---
- 3 files changed, 9 insertions(+), 7 deletions(-)
+I mean something like this:
 
-diff --git a/drivers/video/fbdev/amifb.c b/drivers/video/fbdev/amifb.c
-index 1d702e13aaff..0cde451046d0 100644
---- a/drivers/video/fbdev/amifb.c
-+++ b/drivers/video/fbdev/amifb.c
-@@ -52,6 +52,7 @@
- #include <linux/ioport.h>
- #include <linux/platform_device.h>
- #include <linux/uaccess.h>
-+#include <linux/io.h>
- 
- #include <asm/irq.h>
- #include <asm/amigahw.h>
-@@ -3705,8 +3706,8 @@ default_chipset:
- 	 * access the videomem with writethrough cache
- 	 */
- 	info->fix.smem_start = (u_long)ZTWO_PADDR(videomemory);
--	videomemory = (u_long)ioremap_wt(info->fix.smem_start,
--					 info->fix.smem_len);
-+	videomemory = (u_long)memremap(info->fix.smem_start, info->fix.smem_len,
-+			MEMREMAP_WT);
- 	if (!videomemory) {
- 		dev_warn(&pdev->dev,
- 			 "Unable to map videomem cached writethrough\n");
-diff --git a/drivers/video/fbdev/atafb.c b/drivers/video/fbdev/atafb.c
-index d6ce613e12ad..5615e8c31ea2 100644
---- a/drivers/video/fbdev/atafb.c
-+++ b/drivers/video/fbdev/atafb.c
-@@ -55,12 +55,12 @@
- #include <linux/delay.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
-+#include <linux/io.h>
- 
- #include <asm/setup.h>
- #include <linux/uaccess.h>
- #include <asm/pgtable.h>
- #include <asm/irq.h>
--#include <asm/io.h>
- 
- #include <asm/atarihw.h>
- #include <asm/atariints.h>
-@@ -3185,7 +3185,8 @@ int __init atafb_init(void)
- 		/* Map the video memory (physical address given) to somewhere
- 		 * in the kernel address space.
- 		 */
--		external_screen_base = ioremap_wt(external_addr, external_len);
-+		external_screen_base = memremap(external_addr, external_len,
-+				MEMREMAP_WT);
- 		if (external_vgaiobase)
- 			external_vgaiobase =
- 			  (unsigned long)ioremap(external_vgaiobase, 0x10000);
-diff --git a/drivers/video/fbdev/hpfb.c b/drivers/video/fbdev/hpfb.c
-index 9476d196f510..d08c320b06fc 100644
---- a/drivers/video/fbdev/hpfb.c
-+++ b/drivers/video/fbdev/hpfb.c
-@@ -14,8 +14,8 @@
- #include <linux/init.h>
- #include <linux/fb.h>
- #include <linux/dio.h>
-+#include <linux/io.h>
- 
--#include <asm/io.h>
- #include <asm/uaccess.h>
- 
- static struct fb_info fb_info = {
-@@ -241,8 +241,8 @@ static int hpfb_init_one(unsigned long phys_base, unsigned long virt_base)
- 	fb_info.fix.line_length = fb_width;
- 	fb_height = (in_8(fb_regs + HPFB_FBHMSB) << 8) | in_8(fb_regs + HPFB_FBHLSB);
- 	fb_info.fix.smem_len = fb_width * fb_height;
--	fb_start = (unsigned long)ioremap_wt(fb_info.fix.smem_start,
--					     fb_info.fix.smem_len);
-+	fb_start = (unsigned long) memremap(fb_info.fix.smem_start,
-+					     fb_info.fix.smem_len, MEMREMAP_WT);
- 	hpfb_defined.xres = (in_8(fb_regs + HPFB_DWMSB) << 8) | in_8(fb_regs + HPFB_DWLSB);
- 	hpfb_defined.yres = (in_8(fb_regs + HPFB_DHMSB) << 8) | in_8(fb_regs + HPFB_DHLSB);
- 	hpfb_defined.xres_virtual = hpfb_defined.xres;
+/**
+ * enum region_intersect_type
+ *
+ * @REGION_INTERSECTS: explain and you you can go into any elaborate
+ *	detail as you wish.
+ * @REGION_DISJOINT: explain
+ * @REGION_MIXED: explain
+ */
+enum region_intersect_type {
+     REGION_INTERSECTS,
+     REGION_DISJOINT,
+     REGION_MIXED,
+};
 
+  Luis
