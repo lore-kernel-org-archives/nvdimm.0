@@ -1,115 +1,32 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v4 07/10] pmem: switch from ioremap_wt to memremap
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 10 Aug 2015 23:38:28 -0400
-Message-ID: <20150811033828.4987.46863.stgit@otcpl-bsw-rvp-2.jf.intel.com>
-In-Reply-To: <20150811033345.4987.17983.stgit@otcpl-bsw-rvp-2.jf.intel.com>
-References: <20150811033345.4987.17983.stgit@otcpl-bsw-rvp-2.jf.intel.com>
+Date: Mon, 3 Aug 2015 16:27:16 +0200
+From: Joerg Roedel <joro@8bytes.org>
+Subject: Re: [PATCH v2 17/25] intel-iommu: switch from ioremap_cache to
+ memremap
+Message-ID: <20150803142716.GC20968@8bytes.org>
+References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150725023933.8664.85856.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150725023933.8664.85856.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: ross.zwisler@linux.intel.com, mcgrof@suse.com, hch@lst.de, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, David Woodhouse <dwmw2@infradead.org>, hch@lst.de, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for deprecating ioremap_wt() convert its usage in
-the PMEM API to memremap.
+On Fri, Jul 24, 2015 at 10:39:33PM -0400, Dan Williams wrote:
+> In preparation for deprecating ioremap_cache() convert its usage in
+> intel-iommu to memremap.  This also eliminates the mishandling of the
+> __iomem annotation in the implementation.
+> 
+> Cc: David Woodhouse <dwmw2@infradead.org>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/iommu/intel-iommu.c         |   10 ++++++----
+>  drivers/iommu/intel_irq_remapping.c |    4 ++--
+>  2 files changed, 8 insertions(+), 6 deletions(-)
 
-Acked-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/pmem.h              |    2 +-
- tools/testing/nvdimm/Kbuild       |    4 ++--
- tools/testing/nvdimm/test/iomap.c |   34 +++++++++++++++++++++++++---------
- 3 files changed, 28 insertions(+), 12 deletions(-)
-
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index d2114045a6c4..1bf74c735fa0 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -94,7 +94,7 @@ static void default_memcpy_to_pmem(void __pmem *dst, const void *src,
- static void __pmem *default_memremap_pmem(resource_size_t offset,
- 		unsigned long size)
- {
--	return (void __pmem __force *)ioremap_wt(offset, size);
-+	return (void __pmem *) memremap(offset, size, MEMREMAP_WT);
- }
- 
- /**
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index de2912ea78e8..8032a49f7873 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -1,7 +1,7 @@
--ldflags-y += --wrap=ioremap_wt
- ldflags-y += --wrap=ioremap_wc
- ldflags-y += --wrap=devm_ioremap_nocache
--ldflags-y += --wrap=arch_memremap_pmem
-+ldflags-y += --wrap=memremap
-+ldflags-y += --wrap=memunmap
- ldflags-y += --wrap=ioremap_nocache
- ldflags-y += --wrap=iounmap
- ldflags-y += --wrap=__request_region
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index f8486f98f860..21288f34a5ca 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -80,11 +80,20 @@ void __iomem *__wrap_devm_ioremap_nocache(struct device *dev,
- }
- EXPORT_SYMBOL(__wrap_devm_ioremap_nocache);
- 
--void *__wrap_arch_memremap_pmem(resource_size_t offset, size_t size)
-+void *__wrap_memremap(resource_size_t offset, size_t size,
-+		unsigned long flags)
- {
--	return __nfit_test_ioremap(offset, size, arch_memremap_pmem);
-+	struct nfit_test_resource *nfit_res;
-+
-+	rcu_read_lock();
-+	nfit_res = get_nfit_res(offset);
-+	rcu_read_unlock();
-+	if (nfit_res)
-+		return (void __iomem *) nfit_res->buf + offset
-+			- nfit_res->res->start;
-+	return memremap(offset, size, flags);
- }
--EXPORT_SYMBOL(__wrap_arch_memremap_pmem);
-+EXPORT_SYMBOL(__wrap_memremap);
- 
- void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
- {
-@@ -92,12 +101,6 @@ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
- }
- EXPORT_SYMBOL(__wrap_ioremap_nocache);
- 
--void __iomem *__wrap_ioremap_wt(resource_size_t offset, unsigned long size)
--{
--	return __nfit_test_ioremap(offset, size, ioremap_wt);
--}
--EXPORT_SYMBOL(__wrap_ioremap_wt);
--
- void __iomem *__wrap_ioremap_wc(resource_size_t offset, unsigned long size)
- {
- 	return __nfit_test_ioremap(offset, size, ioremap_wc);
-@@ -117,6 +120,19 @@ void __wrap_iounmap(volatile void __iomem *addr)
- }
- EXPORT_SYMBOL(__wrap_iounmap);
- 
-+void __wrap_memunmap(void *addr)
-+{
-+	struct nfit_test_resource *nfit_res;
-+
-+	rcu_read_lock();
-+	nfit_res = get_nfit_res((unsigned long) addr);
-+	rcu_read_unlock();
-+	if (nfit_res)
-+		return;
-+	return memunmap(addr);
-+}
-+EXPORT_SYMBOL(__wrap_memunmap);
-+
- struct resource *__wrap___request_region(struct resource *parent,
- 		resource_size_t start, resource_size_t n, const char *name,
- 		int flags)
+Acked-by: Joerg Roedel <jroedel@suse.de>
 
