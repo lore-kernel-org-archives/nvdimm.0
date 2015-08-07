@@ -1,134 +1,53 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v5 3/5] dax: drop size parameter to ->direct_access()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 12 Aug 2015 23:01:14 -0400
-Message-ID: <20150813030114.36703.27957.stgit@otcpl-skl-sds-2.jf.intel.com>
-In-Reply-To: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com>
-References: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Message-ID: <1438974391.2293.3.camel@linux.intel.com>
+Subject: Re: [PATCH 0/6] pmem, dax: I/O path enhancements
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Date: Fri, 07 Aug 2015 13:06:31 -0600
+In-Reply-To: <CAPcyv4gJM1RRp3ShDf239g_gkcmkz8dN_f0GBOPeXc65YH4+EQ@mail.gmail.com>
+References: <1438883000-9011-1-git-send-email-ross.zwisler@linux.intel.com>
+	 <CAPcyv4gJM1RRp3ShDf239g_gkcmkz8dN_f0GBOPeXc65YH4+EQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, mgorman@suse.de, torvalds@linux-foundation.org, hch@lst.de
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Borislav Petkov <bp@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Juergen Gross <jgross@suse.com>, Len Brown <lenb@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Luis R. Rodriguez" <mcgrof@suse.com>, Matthew Wilcox <willy@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, X86 ML <x86@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-None of the implementations currently use it.  The common
-bdev_direct_access() entry point handles all the size checks before
-calling ->direct_access().
+On Fri, 2015-08-07 at 09:47 -0700, Dan Williams wrote:
+> On Thu, Aug 6, 2015 at 10:43 AM, Ross Zwisler
+> <ross.zwisler@linux.intel.com> wrote:
+> > Patch 5 adds support for the "read flush" _DSM flag, allowing us to change the
+> > ND BLK aperture mapping from write-combining to write-back via memremap_pmem().
+> >
+> > Patch 6 updates the DAX I/O path so that all operations that store data (I/O
+> > writes, zeroing blocks, punching holes, etc.) properly synchronize the stores
+> > to media using the PMEM API.  This ensures that the data DAX is writing is
+> > durable on media before the operation completes.
+> >
+> > Patches 1-4 are cleanup patches and additions to the PMEM API that make
+> > patches 5 and 6 possible.
+> >
+> > Regarding the choice to add both flush_cache_pmem() and wb_cache_pmem() to the
+> > PMEM API, I had initially implemented flush_cache_pmem() as a generic function
+> > flush_io_cache_range() in the spirit of flush_cache_range(), etc., in
+> > cacheflush.h.  I eventually moved it into the PMEM API because a) it has a
+> > common and consistent use of the __pmem annotation, b) it has a clear fallback
+> > method for architectures that don't support it, as opposed to APIs in
+> > cacheflush.h which would need to be added individually to all other
+> > architectures.  It can be argued that the flush API could apply to other uses
+> > beyond PMEM such as flushing cache lines associated with other types of
+> > sliding MMIO windows.  At this point I'm inclined to have it as part of the
+> > PMEM API, and then take on the effort of making it a general cache flusing API
+> > if other users come along.
+> 
+> I'm not convinced.  There are already existing users for invalidating
+> a cpu cache and they currently jump through hoops to have cross-arch
+> flushing, see drm_clflush_pages().  What the NFIT-BLK driver brings to
+> the table is just one more instance where the cpu cache needs to be
+> invalidated, and for something so fundamental it is time we had a
+> cross arch generic helper.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/powerpc/sysdev/axonram.c |    2 +-
- drivers/block/brd.c           |    6 +-----
- drivers/nvdimm/pmem.c         |    2 +-
- drivers/s390/block/dcssblk.c  |    4 ++--
- fs/block_dev.c                |    2 +-
- include/linux/blkdev.h        |    2 +-
- 6 files changed, 7 insertions(+), 11 deletions(-)
+Fair enough.  I'll move back to the flush_io_cache_range() solution.
 
-diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
-index ee90db17b097..e8657d3bc588 100644
---- a/arch/powerpc/sysdev/axonram.c
-+++ b/arch/powerpc/sysdev/axonram.c
-@@ -141,7 +141,7 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
-  */
- static long
- axon_ram_direct_access(struct block_device *device, sector_t sector,
--		       void **kaddr, unsigned long *pfn, long size)
-+		       void **kaddr, unsigned long *pfn)
- {
- 	struct axon_ram_bank *bank = device->bd_disk->private_data;
- 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 64ab4951e9d6..41528857c70d 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -371,7 +371,7 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
- 
- #ifdef CONFIG_BLK_DEV_RAM_DAX
- static long brd_direct_access(struct block_device *bdev, sector_t sector,
--			void **kaddr, unsigned long *pfn, long size)
-+			void **kaddr, unsigned long *pfn)
- {
- 	struct brd_device *brd = bdev->bd_disk->private_data;
- 	struct page *page;
-@@ -384,10 +384,6 @@ static long brd_direct_access(struct block_device *bdev, sector_t sector,
- 	*kaddr = page_address(page);
- 	*pfn = page_to_pfn(page);
- 
--	/*
--	 * TODO: If size > PAGE_SIZE, we could look to see if the next page in
--	 * the file happens to be mapped to the next page of physical RAM.
--	 */
- 	return PAGE_SIZE;
- }
- #else
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index eb7552d939e1..5e019a6942ce 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -92,7 +92,7 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- }
- 
- static long pmem_direct_access(struct block_device *bdev, sector_t sector,
--			      void **kaddr, unsigned long *pfn, long size)
-+			      void **kaddr, unsigned long *pfn)
- {
- 	struct pmem_device *pmem = bdev->bd_disk->private_data;
- 	size_t offset = sector << 9;
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index da212813f2d5..2f1734ba0e22 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -29,7 +29,7 @@ static int dcssblk_open(struct block_device *bdev, fmode_t mode);
- static void dcssblk_release(struct gendisk *disk, fmode_t mode);
- static void dcssblk_make_request(struct request_queue *q, struct bio *bio);
- static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
--				 void **kaddr, unsigned long *pfn, long size);
-+				 void **kaddr, unsigned long *pfn);
- 
- static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
- 
-@@ -879,7 +879,7 @@ fail:
- 
- static long
- dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
--			void **kaddr, unsigned long *pfn, long size)
-+			void **kaddr, unsigned long *pfn)
- {
- 	struct dcssblk_dev_info *dev_info;
- 	unsigned long offset, dev_sz;
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 198243717da5..3a8ac7edfbf4 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -462,7 +462,7 @@ long bdev_direct_access(struct block_device *bdev, sector_t sector,
- 	sector += get_start_sect(bdev);
- 	if (sector % (PAGE_SIZE / 512))
- 		return -EINVAL;
--	avail = ops->direct_access(bdev, sector, addr, pfn, size);
-+	avail = ops->direct_access(bdev, sector, addr, pfn);
- 	if (!avail)
- 		return -ERANGE;
- 	return min(avail, size);
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index d4068c17d0df..ff47d5498133 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1556,7 +1556,7 @@ struct block_device_operations {
- 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
- 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
- 	long (*direct_access)(struct block_device *, sector_t,
--					void **, unsigned long *pfn, long size);
-+					void **, unsigned long *pfn);
- 	unsigned int (*check_events) (struct gendisk *disk,
- 				      unsigned int clearing);
- 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
