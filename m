@@ -1,104 +1,95 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v5 1/5] mm: move __phys_to_pfn and __pfn_to_phys to
- asm/generic/memory_model.h
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v4 09/10] devres: add devm_memremap
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 12 Aug 2015 23:01:04 -0400
-Message-ID: <20150813030104.36703.50646.stgit@otcpl-skl-sds-2.jf.intel.com>
-In-Reply-To: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com>
-References: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com>
+Date: Mon, 10 Aug 2015 23:38:38 -0400
+Message-ID: <20150811033838.4987.61972.stgit@otcpl-bsw-rvp-2.jf.intel.com>
+In-Reply-To: <20150811033345.4987.17983.stgit@otcpl-bsw-rvp-2.jf.intel.com>
+References: <20150811033345.4987.17983.stgit@otcpl-bsw-rvp-2.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, mgorman@suse.de, torvalds@linux-foundation.org, hch@lst.de
+Cc: ross.zwisler@linux.intel.com, mcgrof@suse.com, hch@lst.de, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 From: Christoph Hellwig <hch@lst.de>
 
-Three architectures already define these, and we'll need them genericly
-soon.
-
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm/include/asm/memory.h       |    6 ------
- arch/arm64/include/asm/memory.h     |    6 ------
- arch/unicore32/include/asm/memory.h |    6 ------
- include/asm-generic/memory_model.h  |    6 ++++++
- 4 files changed, 6 insertions(+), 18 deletions(-)
+ include/linux/io.h |    4 ++++
+ kernel/memremap.c  |   40 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 44 insertions(+)
 
-diff --git a/arch/arm/include/asm/memory.h b/arch/arm/include/asm/memory.h
-index b7f6fb462ea0..98d58bb04ac5 100644
---- a/arch/arm/include/asm/memory.h
-+++ b/arch/arm/include/asm/memory.h
-@@ -119,12 +119,6 @@
- #endif
+diff --git a/include/linux/io.h b/include/linux/io.h
+index 3fcf6256c088..d8d749abd665 100644
+--- a/include/linux/io.h
++++ b/include/linux/io.h
+@@ -80,6 +80,10 @@ int check_signature(const volatile void __iomem *io_addr,
+ 			const unsigned char *signature, int length);
+ void devm_ioremap_release(struct device *dev, void *res);
  
- /*
-- * Convert a physical address to a Page Frame Number and back
-- */
--#define	__phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
--#define	__pfn_to_phys(pfn)	((phys_addr_t)(pfn) << PAGE_SHIFT)
--
--/*
-  * Convert a page to/from a physical address
-  */
- #define page_to_phys(page)	(__pfn_to_phys(page_to_pfn(page)))
-diff --git a/arch/arm64/include/asm/memory.h b/arch/arm64/include/asm/memory.h
-index f800d45ea226..d808bb688751 100644
---- a/arch/arm64/include/asm/memory.h
-+++ b/arch/arm64/include/asm/memory.h
-@@ -81,12 +81,6 @@
- #define __phys_to_virt(x)	((unsigned long)((x) - PHYS_OFFSET + PAGE_OFFSET))
- 
- /*
-- * Convert a physical address to a Page Frame Number and back
-- */
--#define	__phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
--#define	__pfn_to_phys(pfn)	((phys_addr_t)(pfn) << PAGE_SHIFT)
--
--/*
-  * Convert a page to/from a physical address
-  */
- #define page_to_phys(page)	(__pfn_to_phys(page_to_pfn(page)))
-diff --git a/arch/unicore32/include/asm/memory.h b/arch/unicore32/include/asm/memory.h
-index debafc40200a..3bb0a29fd2d7 100644
---- a/arch/unicore32/include/asm/memory.h
-+++ b/arch/unicore32/include/asm/memory.h
-@@ -61,12 +61,6 @@
- #endif
- 
- /*
-- * Convert a physical address to a Page Frame Number and back
-- */
--#define	__phys_to_pfn(paddr)	((paddr) >> PAGE_SHIFT)
--#define	__pfn_to_phys(pfn)	((pfn) << PAGE_SHIFT)
--
--/*
-  * Convert a page to/from a physical address
-  */
- #define page_to_phys(page)	(__pfn_to_phys(page_to_pfn(page)))
-diff --git a/include/asm-generic/memory_model.h b/include/asm-generic/memory_model.h
-index 14909b0b9cae..f20f407ce45d 100644
---- a/include/asm-generic/memory_model.h
-+++ b/include/asm-generic/memory_model.h
-@@ -69,6 +69,12 @@
- })
- #endif /* CONFIG_FLATMEM/DISCONTIGMEM/SPARSEMEM */
- 
-+/*
-+ * Convert a physical address to a Page Frame Number and back
-+ */
-+#define	__phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
-+#define	__pfn_to_phys(pfn)	((pfn) << PAGE_SHIFT)
++void *devm_memremap(struct device *dev, resource_size_t offset,
++		size_t size, unsigned long flags);
++void devm_memunmap(struct device *dev, void *addr);
 +
- #define page_to_pfn __page_to_pfn
- #define pfn_to_page __pfn_to_page
- 
+ /*
+  * Some systems do not have legacy ISA devices.
+  * /dev/port is not a valid interface on these systems.
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index a293de52e837..1dbe88088aa1 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -10,6 +10,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  * General Public License for more details.
+  */
++#include <linux/device.h>
+ #include <linux/types.h>
+ #include <linux/io.h>
+ #include <linux/mm.h>
+@@ -96,3 +97,42 @@ void memunmap(void *addr)
+ 		iounmap((void __iomem *) addr);
+ }
+ EXPORT_SYMBOL(memunmap);
++
++static void devm_memremap_release(struct device *dev, void *res)
++{
++	memunmap(res);
++}
++
++static int devm_memremap_match(struct device *dev, void *res, void *match_data)
++{
++	return *(void **)res == match_data;
++}
++
++void *devm_memremap(struct device *dev, resource_size_t offset,
++		size_t size, unsigned long flags)
++{
++	void **ptr, *addr;
++
++	ptr = devres_alloc(devm_memremap_release, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr)
++		return NULL;
++
++	addr = memremap(offset, size, flags);
++	if (addr) {
++		*ptr = addr;
++		devres_add(dev, ptr);
++	} else
++		devres_free(ptr);
++
++	return addr;
++}
++EXPORT_SYMBOL(devm_memremap);
++
++void devm_memunmap(struct device *dev, void *addr)
++{
++	WARN_ON(devres_destroy(dev, devm_memremap_release, devm_memremap_match,
++			       addr));
++	memunmap(addr);
++}
++EXPORT_SYMBOL(devm_memunmap);
++
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
