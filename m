@@ -1,209 +1,97 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 5/7] pmem: add copy_from_iter_pmem() and clear_pmem()
-Date: Mon, 17 Aug 2015 12:30:09 -0600
-Message-Id: <1439836211-4719-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439836211-4719-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439836211-4719-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 00/10] memremap for 4.3
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 10 Aug 2015 23:37:50 -0400
+Message-ID: <20150811033345.4987.17983.stgit@otcpl-bsw-rvp-2.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Toshi Kani <toshi.kani@hp.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mcgrof@suse.com, hch@lst.de, Benjamin Romer <benjamin.romer@unisys.com>, David Kershner <david.kershner@unisys.com>, ross.zwisler@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for two new PMEM APIs, copy_from_iter_pmem() and
-clear_pmem().  copy_from_iter_pmem() is used to copy data from an
-iterator into a PMEM buffer.  clear_pmem() zeros a PMEM memory range.
+Changes since v3: [1]
 
-Both of these new APIs must be explicitly ordered using a wmb_pmem()
-function call and are implemented in such a way that the wmb_pmem()
-will make the stores to PMEM durable.  Because both APIs are unordered
-they can be called as needed without introducing any unwanted memory
-barriers.
+1/ Include devm_memremap() support (Christoph)
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+2/ Rebase the series to defer the removal of ioremap_cache() and drop
+   any of the ioremap_cache()-to-memremap() conversions that have yet to be
+   acked by the appropriate maintainer. This avoids any potential for
+   bisection breakage during the 4.3 merge and the cleanup can be done for
+   4.4. (Christoph)
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-July/001649.html
 ---
- arch/x86/include/asm/pmem.h | 69 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pmem.h        | 65 ++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 131 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index 7f3413f..fba0121 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -14,6 +14,8 @@
- #define __ASM_X86_PMEM_H__
- 
- #include <linux/uaccess.h>
-+#include <linux/uio.h>
-+
- #include <asm/cacheflush.h>
- #include <asm/cpufeature.h>
- #include <asm/special_insns.h>
-@@ -66,6 +68,73 @@ static inline void arch_wmb_pmem(void)
- 	pcommit_sfence();
- }
- 
-+/**
-+ * __arch_wb_cache_pmem - write back a cache range with CLWB
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to write back
-+ *
-+ * Write back a cache range using the CLWB (cache line write back)
-+ * instruction.  This function requires explicit ordering with an
-+ * arch_wmb_pmem() call.  This API is internal to the x86 PMEM implementation.
-+ */
-+static inline void __arch_wb_cache_pmem(void __pmem *addr, size_t size)
-+{
-+	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
-+	unsigned long clflush_mask = x86_clflush_size - 1;
-+	void *vend = (void __force *)addr + size;
-+	void *p;
-+
-+	for (p = (void *)((unsigned long)addr & ~clflush_mask);
-+	     p < vend; p += x86_clflush_size)
-+		clwb(p);
-+}
-+
-+/**
-+ * arch_copy_from_iter_pmem - copy data from an iterator to PMEM
-+ * @addr:	PMEM destination address
-+ * @bytes:	number of bytes to copy
-+ * @i:		iterator with source data
-+ *
-+ * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
-+ * This function requires explicit ordering with an arch_wmb_pmem() call.
-+ */
-+static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
-+		struct iov_iter *i)
-+{
-+	size_t len;
-+
-+	len = copy_from_iter_nocache((void __force *)addr, bytes, i);
-+
-+	/*
-+	 * copy_from_iter_nocache() on x86 only uses non-temporal stores for
-+	 * iovec iterators, so for other types (bvec & kvec) we must do a
-+	 * cache write-back.
-+	 */
-+	if (iter_is_iovec(i) == false)
-+		__arch_wb_cache_pmem(addr, bytes);
-+
-+	return len;
-+}
-+
-+/**
-+ * arch_clear_pmem - zero a PMEM memory range
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to zero
-+ *
-+ * Write zeros into the memory range starting at 'addr' for 'size' bytes.
-+ * This function requires explicit ordering with an arch_wmb_pmem() call.
-+ */
-+static inline void arch_clear_pmem(void __pmem *addr, size_t size)
-+{
-+	/* TODO: implement the zeroing via non-temporal writes */
-+	if (size == PAGE_SIZE && ((unsigned long)addr & ~PAGE_MASK) == 0)
-+		clear_page((void __force *)addr);
-+	else
-+		memset((void __force *)addr, 0, size);
-+
-+	__arch_wb_cache_pmem(addr, size);
-+}
-+
- static inline bool arch_has_wmb_pmem(void)
- {
- #ifdef CONFIG_X86_64
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 9d619d2..de415b3 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -39,12 +39,24 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
- {
- 	BUG();
- }
-+
-+static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
-+		struct iov_iter *i)
-+{
-+	BUG();
-+	return 0;
-+}
-+
-+static inline void arch_clear_pmem(void __pmem *addr, size_t size)
-+{
-+	BUG();
-+}
- #endif
- 
- /*
-- * Architectures that define ARCH_HAS_PMEM_API must provide
-- * implementations for arch_memremap_pmem(), arch_memcpy_to_pmem(),
-- * arch_wmb_pmem(), and arch_has_wmb_pmem().
-+ * Architectures that define ARCH_HAS_PMEM_API must provide implementations
-+ * for arch_memremap_pmem(), arch_memcpy_to_pmem(), arch_wmb_pmem(),
-+ * arch_copy_from_iter_pmem(), arch_clear_pmem() and arch_has_wmb_pmem().
-  */
- 
- static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
-@@ -90,6 +102,20 @@ static void __pmem *default_memremap_pmem(resource_size_t offset,
- 	return (void __pmem __force *)ioremap_wt(offset, size);
- }
- 
-+static inline size_t default_copy_from_iter_pmem(void __pmem *addr,
-+		size_t bytes, struct iov_iter *i)
-+{
-+	return copy_from_iter_nocache((void __force *)addr, bytes, i);
-+}
-+
-+static inline void default_clear_pmem(void __pmem *addr, size_t size)
-+{
-+	if (size == PAGE_SIZE && ((unsigned long)addr & ~PAGE_MASK) == 0)
-+		clear_page((void __force *)addr);
-+	else
-+		memset((void __force *)addr, 0, size);
-+}
-+
- /**
-  * memremap_pmem - map physical persistent memory for pmem api
-  * @offset: physical address of persistent memory
-@@ -142,4 +168,37 @@ static inline void wmb_pmem(void)
- 	if (arch_has_pmem_api())
- 		arch_wmb_pmem();
- }
-+
-+/**
-+ * copy_from_iter_pmem - copy data from an iterator to PMEM
-+ * @addr:	PMEM destination address
-+ * @bytes:	number of bytes to copy
-+ * @i:		iterator with source data
-+ *
-+ * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
-+ * This function requires explicit ordering with a wmb_pmem() call.
-+ */
-+static inline size_t copy_from_iter_pmem(void __pmem *addr, size_t bytes,
-+		struct iov_iter *i)
-+{
-+	if (arch_has_pmem_api())
-+		return arch_copy_from_iter_pmem(addr, bytes, i);
-+	return default_copy_from_iter_pmem(addr, bytes, i);
-+}
-+
-+/**
-+ * clear_pmem - zero a PMEM memory range
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to zero
-+ *
-+ * Write zeros into the memory range starting at 'addr' for 'size' bytes.
-+ * This function requires explicit ordering with a wmb_pmem() call.
-+ */
-+static inline void clear_pmem(void __pmem *addr, size_t size)
-+{
-+	if (arch_has_pmem_api())
-+		arch_clear_pmem(addr, size);
-+	else
-+		default_clear_pmem(addr, size);
-+}
- #endif /* __PMEM_H__ */
--- 
-2.1.0
+While developing the pmem driver we noticed that the __iomem annotation
+on the return value from ioremap_cache() was being mishandled by several
+callers.  We also observed that all of the call sites expected to be
+able to treat the return value from ioremap_cache() as normal
+(non-__iomem) pointer to memory.
 
+See also, the LWN write up: https://lwn.net/Articles/653585/
+
+This has passed a 0day run and will appear in libnvdimm-for-next
+shortly.
+
+---
+
+Christoph Hellwig (2):
+      devres: add devm_memremap
+      pmem: switch to devm_ allocations
+
+Dan Williams (8):
+      mm: enhance region_is_ram() to region_intersects()
+      arch, drivers: don't include <asm/io.h> directly, use <linux/io.h> instead
+      cleanup IORESOURCE_CACHEABLE vs ioremap()
+      arch: introduce memremap()
+      visorbus: switch from ioremap_cache to memremap
+      libnvdimm, pmem: push call to ioremap_cache out of line
+      pmem: switch from ioremap_wt to memremap
+      pmem: convert to generic memremap
+
+
+ arch/arm/mach-clps711x/board-cdb89712.c        |    2 
+ arch/arm/mach-shmobile/pm-rcar.c               |    2 
+ arch/ia64/include/asm/io.h                     |    1 
+ arch/ia64/kernel/cyclone.c                     |    2 
+ arch/powerpc/kernel/pci_of_scan.c              |    2 
+ arch/sh/include/asm/io.h                       |    1 
+ arch/sparc/kernel/pci.c                        |    3 -
+ arch/x86/include/asm/io.h                      |    7 -
+ arch/x86/mm/ioremap.c                          |   10 ++
+ arch/xtensa/include/asm/io.h                   |    1 
+ drivers/isdn/icn/icn.h                         |    2 
+ drivers/mtd/devices/slram.c                    |    2 
+ drivers/mtd/nand/diskonchip.c                  |    2 
+ drivers/mtd/onenand/generic.c                  |    2 
+ drivers/nvdimm/pmem.c                          |   36 ++----
+ drivers/pci/probe.c                            |    3 -
+ drivers/pnp/manager.c                          |    2 
+ drivers/scsi/aic94xx/aic94xx_init.c            |    7 -
+ drivers/scsi/arcmsr/arcmsr_hba.c               |    5 -
+ drivers/scsi/mvsas/mv_init.c                   |   15 +--
+ drivers/scsi/sun3x_esp.c                       |    2 
+ drivers/staging/comedi/drivers/ii_pci20kc.c    |    1 
+ drivers/staging/unisys/visorbus/visorchannel.c |   16 ++-
+ drivers/staging/unisys/visorbus/visorchipset.c |   17 ++-
+ drivers/tty/serial/8250/8250_core.c            |    2 
+ drivers/video/fbdev/ocfb.c                     |    1 
+ drivers/video/fbdev/s1d13xxxfb.c               |    3 -
+ drivers/video/fbdev/stifb.c                    |    1 
+ include/linux/io-mapping.h                     |    2 
+ include/linux/io.h                             |   13 ++
+ include/linux/mm.h                             |    9 +-
+ include/linux/mtd/map.h                        |    2 
+ include/linux/pmem.h                           |   30 +++--
+ include/video/vga.h                            |    2 
+ kernel/Makefile                                |    2 
+ kernel/memremap.c                              |  138 ++++++++++++++++++++++++
+ kernel/resource.c                              |   61 ++++++-----
+ lib/devres.c                                   |   13 +-
+ lib/pci_iomap.c                                |    7 -
+ tools/testing/nvdimm/Kbuild                    |    4 -
+ tools/testing/nvdimm/test/iomap.c              |   46 ++++++--
+ 41 files changed, 323 insertions(+), 156 deletions(-)
+ create mode 100644 kernel/memremap.c
