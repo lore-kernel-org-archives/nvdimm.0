@@ -1,40 +1,18 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 1/7] brd: make rd_size static
-Date: Thu, 13 Aug 2015 10:51:05 -0600
-Message-Id: <1439484671-15718-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
+Date: Tue, 11 Aug 2015 14:47:31 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v4 04/10] arch: introduce memremap()
+Message-ID: <20150811124731.GA3402@lst.de>
+References: <20150811033345.4987.17983.stgit@otcpl-bsw-rvp-2.jf.intel.com> <20150811033811.4987.28661.stgit@otcpl-bsw-rvp-2.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150811033811.4987.28661.stgit@otcpl-bsw-rvp-2.jf.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@kernel.dk>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-kernel@vger.kernel.org, ross.zwisler@linux.intel.com, mcgrof@suse.com, hch@lst.de, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Make rd_size static because it is local to drivers/block/brd.c
+Looks good,
 
-This was reported by sparse:
-
-drivers/block/brd.c:445:5: warning: symbol 'rd_size' was not declared.
-Should it be static?
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- drivers/block/brd.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 64ab495..5750b39 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -442,7 +442,7 @@ static int rd_nr = CONFIG_BLK_DEV_RAM_COUNT;
- module_param(rd_nr, int, S_IRUGO);
- MODULE_PARM_DESC(rd_nr, "Maximum number of brd devices");
- 
--int rd_size = CONFIG_BLK_DEV_RAM_SIZE;
-+static int rd_size = CONFIG_BLK_DEV_RAM_SIZE;
- module_param(rd_size, int, S_IRUGO);
- MODULE_PARM_DESC(rd_size, "Size of each RAM disk in kbytes.");
- 
--- 
-2.1.0
-
+Reviewed-by: Christoph Hellwig <hch@lst.de>
