@@ -1,233 +1,240 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 2/7] pmem, x86: move x86 PMEM API to new pmem.h header
-Date: Tue, 18 Aug 2015 11:14:43 -0600
-Message-Id: <1439918088-32159-3-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 10/10] pmem: switch to devm_ allocations
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 10 Aug 2015 23:38:44 -0400
+Message-ID: <20150811033843.4987.15396.stgit@otcpl-bsw-rvp-2.jf.intel.com>
+In-Reply-To: <20150811033345.4987.17983.stgit@otcpl-bsw-rvp-2.jf.intel.com>
+References: <20150811033345.4987.17983.stgit@otcpl-bsw-rvp-2.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "David S. Miller" <davem@davemloft.net>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@suse.de>, Greg KH <gregkh@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Jiri Slaby <jslaby@suse.com>, Joe Perches <joe@perches.com>, Juergen Gross <jgross@suse.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Tejun Heo <tj@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, x86@kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: ross.zwisler@linux.intel.com, mcgrof@suse.com, hch@lst.de, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Move the x86 PMEM API implementation out of asm/cacheflush.h and into
-its own header asm/pmem.h.  This will allow members of the PMEM API to
-be more easily identified on this and other architectures.
+From: Christoph Hellwig <hch@lst.de>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+[djbw: tools/testing/nvdimm/ support]
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- MAINTAINERS                       |  1 +
- arch/x86/include/asm/cacheflush.h | 71 ------------------------------
- arch/x86/include/asm/pmem.h       | 92 +++++++++++++++++++++++++++++++++++++++
- include/linux/pmem.h              |  2 +-
- 4 files changed, 94 insertions(+), 72 deletions(-)
- create mode 100644 arch/x86/include/asm/pmem.h
+ drivers/nvdimm/pmem.c             |   36 +++++++++--------------------
+ include/linux/pmem.h              |    6 ++---
+ tools/testing/nvdimm/Kbuild       |    4 ++-
+ tools/testing/nvdimm/test/iomap.c |   46 +++++++++++++++++++++----------------
+ 4 files changed, 42 insertions(+), 50 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index a9ae6c1..d0b5a08 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6165,6 +6165,7 @@ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/nvdimm/pmem.c
- F:	include/linux/pmem.h
-+F:	arch/*/include/asm/pmem.h
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index bcf48f133443..eb7552d939e1 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -119,7 +119,7 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ {
+ 	struct pmem_device *pmem;
  
- LINUX FOR IBM pSERIES (RS/6000)
- M:	Paul Mackerras <paulus@au.ibm.com>
-diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
-index 9bf3ea1..471418a 100644
---- a/arch/x86/include/asm/cacheflush.h
-+++ b/arch/x86/include/asm/cacheflush.h
-@@ -109,75 +109,4 @@ static inline int rodata_test(void)
+-	pmem = kzalloc(sizeof(*pmem), GFP_KERNEL);
++	pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
+ 	if (!pmem)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -128,19 +128,16 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 	if (!arch_has_pmem_api())
+ 		dev_warn(dev, "unable to guarantee persistence of writes\n");
+ 
+-	if (!request_mem_region(pmem->phys_addr, pmem->size, dev_name(dev))) {
++	if (!devm_request_mem_region(dev, pmem->phys_addr, pmem->size,
++			dev_name(dev))) {
+ 		dev_warn(dev, "could not reserve region [0x%pa:0x%zx]\n",
+ 				&pmem->phys_addr, pmem->size);
+-		kfree(pmem);
+ 		return ERR_PTR(-EBUSY);
+ 	}
+ 
+-	pmem->virt_addr = memremap_pmem(pmem->phys_addr, pmem->size);
+-	if (!pmem->virt_addr) {
+-		release_mem_region(pmem->phys_addr, pmem->size);
+-		kfree(pmem);
++	pmem->virt_addr = memremap_pmem(dev, pmem->phys_addr, pmem->size);
++	if (!pmem->virt_addr)
+ 		return ERR_PTR(-ENXIO);
+-	}
+ 
+ 	return pmem;
  }
- #endif
+@@ -210,20 +207,12 @@ static int pmem_rw_bytes(struct nd_namespace_common *ndns,
+ 	return 0;
+ }
  
--#ifdef ARCH_HAS_NOCACHE_UACCESS
--
--/**
-- * arch_memcpy_to_pmem - copy data to persistent memory
-- * @dst: destination buffer for the copy
-- * @src: source buffer for the copy
-- * @n: length of the copy in bytes
-- *
-- * Copy data to persistent memory media via non-temporal stores so that
-- * a subsequent arch_wmb_pmem() can flush cpu and memory controller
-- * write buffers to guarantee durability.
-- */
--static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
--		size_t n)
+-static void pmem_free(struct pmem_device *pmem)
 -{
--	int unwritten;
--
--	/*
--	 * We are copying between two kernel buffers, if
--	 * __copy_from_user_inatomic_nocache() returns an error (page
--	 * fault) we would have already reported a general protection fault
--	 * before the WARN+BUG.
--	 */
--	unwritten = __copy_from_user_inatomic_nocache((void __force *) dst,
--			(void __user *) src, n);
--	if (WARN(unwritten, "%s: fault copying %p <- %p unwritten: %d\n",
--				__func__, dst, src, unwritten))
--		BUG();
+-	memunmap_pmem(pmem->virt_addr);
+-	release_mem_region(pmem->phys_addr, pmem->size);
+-	kfree(pmem);
 -}
 -
--/**
-- * arch_wmb_pmem - synchronize writes to persistent memory
-- *
-- * After a series of arch_memcpy_to_pmem() operations this drains data
-- * from cpu write buffers and any platform (memory controller) buffers
-- * to ensure that written data is durable on persistent memory media.
-- */
--static inline void arch_wmb_pmem(void)
--{
--	/*
--	 * wmb() to 'sfence' all previous writes such that they are
--	 * architecturally visible to 'pcommit'.  Note, that we've
--	 * already arranged for pmem writes to avoid the cache via
--	 * arch_memcpy_to_pmem().
--	 */
--	wmb();
--	pcommit_sfence();
--}
--
--static inline bool __arch_has_wmb_pmem(void)
--{
--#ifdef CONFIG_X86_64
--	/*
--	 * We require that wmb() be an 'sfence', that is only guaranteed on
--	 * 64-bit builds
--	 */
--	return static_cpu_has(X86_FEATURE_PCOMMIT);
--#else
--	return false;
--#endif
--}
--#else /* ARCH_HAS_NOCACHE_UACCESS i.e. ARCH=um */
--extern void arch_memcpy_to_pmem(void __pmem *dst, const void *src, size_t n);
--extern void arch_wmb_pmem(void);
--
--static inline bool __arch_has_wmb_pmem(void)
--{
--	return false;
--}
--#endif
--
- #endif /* _ASM_X86_CACHEFLUSH_H */
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-new file mode 100644
-index 0000000..f43462c
---- /dev/null
-+++ b/arch/x86/include/asm/pmem.h
-@@ -0,0 +1,92 @@
-+/*
-+ * Copyright(c) 2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#ifndef __ASM_X86_PMEM_H__
-+#define __ASM_X86_PMEM_H__
+ static int nd_pmem_probe(struct device *dev)
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+ 	struct nd_namespace_common *ndns;
+ 	struct nd_namespace_io *nsio;
+ 	struct pmem_device *pmem;
+-	int rc;
+ 
+ 	ndns = nvdimm_namespace_common_probe(dev);
+ 	if (IS_ERR(ndns))
+@@ -236,16 +225,14 @@ static int nd_pmem_probe(struct device *dev)
+ 
+ 	dev_set_drvdata(dev, pmem);
+ 	ndns->rw_bytes = pmem_rw_bytes;
 +
-+#include <linux/uaccess.h>
-+#include <asm/cacheflush.h>
-+#include <asm/cpufeature.h>
-+#include <asm/special_insns.h>
+ 	if (is_nd_btt(dev))
+-		rc = nvdimm_namespace_attach_btt(ndns);
+-	else if (nd_btt_probe(ndns, pmem) == 0) {
++		return nvdimm_namespace_attach_btt(ndns);
 +
-+#ifdef ARCH_HAS_NOCACHE_UACCESS
-+
-+/**
-+ * arch_memcpy_to_pmem - copy data to persistent memory
-+ * @dst: destination buffer for the copy
-+ * @src: source buffer for the copy
-+ * @n: length of the copy in bytes
-+ *
-+ * Copy data to persistent memory media via non-temporal stores so that
-+ * a subsequent arch_wmb_pmem() can flush cpu and memory controller
-+ * write buffers to guarantee durability.
-+ */
-+static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
-+		size_t n)
-+{
-+	int unwritten;
-+
-+	/*
-+	 * We are copying between two kernel buffers, if
-+	 * __copy_from_user_inatomic_nocache() returns an error (page
-+	 * fault) we would have already reported a general protection fault
-+	 * before the WARN+BUG.
-+	 */
-+	unwritten = __copy_from_user_inatomic_nocache((void __force *) dst,
-+			(void __user *) src, n);
-+	if (WARN(unwritten, "%s: fault copying %p <- %p unwritten: %d\n",
-+				__func__, dst, src, unwritten))
-+		BUG();
-+}
-+
-+/**
-+ * arch_wmb_pmem - synchronize writes to persistent memory
-+ *
-+ * After a series of arch_memcpy_to_pmem() operations this drains data
-+ * from cpu write buffers and any platform (memory controller) buffers
-+ * to ensure that written data is durable on persistent memory media.
-+ */
-+static inline void arch_wmb_pmem(void)
-+{
-+	/*
-+	 * wmb() to 'sfence' all previous writes such that they are
-+	 * architecturally visible to 'pcommit'.  Note, that we've
-+	 * already arranged for pmem writes to avoid the cache via
-+	 * arch_memcpy_to_pmem().
-+	 */
-+	wmb();
-+	pcommit_sfence();
-+}
-+
-+static inline bool __arch_has_wmb_pmem(void)
-+{
-+#ifdef CONFIG_X86_64
-+	/*
-+	 * We require that wmb() be an 'sfence', that is only guaranteed on
-+	 * 64-bit builds
-+	 */
-+	return static_cpu_has(X86_FEATURE_PCOMMIT);
-+#else
-+	return false;
-+#endif
-+}
-+#else /* ARCH_HAS_NOCACHE_UACCESS i.e. ARCH=um */
-+extern void arch_memcpy_to_pmem(void __pmem *dst, const void *src, size_t n);
-+extern void arch_wmb_pmem(void);
-+
-+static inline bool __arch_has_wmb_pmem(void)
-+{
-+	return false;
-+}
-+#endif
-+
-+#endif /* __ASM_X86_PMEM_H__ */
++	if (nd_btt_probe(ndns, pmem) == 0)
+ 		/* we'll come back as btt-pmem */
+-		rc = -ENXIO;
+-	} else
+-		rc = pmem_attach_disk(ndns, pmem);
+-	if (rc)
+-		pmem_free(pmem);
+-	return rc;
++		return -ENXIO;
++	return pmem_attach_disk(ndns, pmem);
+ }
+ 
+ static int nd_pmem_remove(struct device *dev)
+@@ -256,7 +243,6 @@ static int nd_pmem_remove(struct device *dev)
+ 		nvdimm_namespace_detach_btt(to_nd_btt(dev)->ndns);
+ 	else
+ 		pmem_detach_disk(pmem);
+-	pmem_free(pmem);
+ 
+ 	return 0;
+ }
 diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index d211404..5dad6d1 100644
+index 03f9d73f3e13..eff2e6ba2a1a 100644
 --- a/include/linux/pmem.h
 +++ b/include/linux/pmem.h
-@@ -16,7 +16,7 @@
- #include <linux/io.h>
- 
- #ifdef CONFIG_ARCH_HAS_PMEM_API
--#include <asm/cacheflush.h>
-+#include <asm/pmem.h>
- #else
- static inline void arch_wmb_pmem(void)
+@@ -108,8 +108,8 @@ static inline unsigned long default_memremap_pmem_flags(void)
+  * wmb_pmem() arrange for the data to be written through the
+  * cache to persistent media.
+  */
+-static inline void __pmem *memremap_pmem(resource_size_t offset,
+-		unsigned long size)
++static inline void __pmem *memremap_pmem(struct device *dev,
++		resource_size_t offset, unsigned long size)
  {
--- 
-2.1.0
+ 	unsigned long flags;
+ 
+@@ -118,7 +118,7 @@ static inline void __pmem *memremap_pmem(resource_size_t offset,
+ 	else
+ 		flags = default_memremap_pmem_flags();
+ 
+-	return (void __pmem *) memremap(offset, size, flags);
++	return (void __pmem *) devm_memremap(dev, offset, size, flags);
+ }
+ 
+ /**
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index 8032a49f7873..04c5fc09576d 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -1,9 +1,9 @@
+ ldflags-y += --wrap=ioremap_wc
+ ldflags-y += --wrap=devm_ioremap_nocache
+-ldflags-y += --wrap=memremap
+-ldflags-y += --wrap=memunmap
++ldflags-y += --wrap=devm_memremap
+ ldflags-y += --wrap=ioremap_nocache
+ ldflags-y += --wrap=iounmap
++ldflags-y += --wrap=__devm_request_region
+ ldflags-y += --wrap=__request_region
+ ldflags-y += --wrap=__release_region
+ 
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index 21288f34a5ca..402110cab9e9 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -80,8 +80,8 @@ void __iomem *__wrap_devm_ioremap_nocache(struct device *dev,
+ }
+ EXPORT_SYMBOL(__wrap_devm_ioremap_nocache);
+ 
+-void *__wrap_memremap(resource_size_t offset, size_t size,
+-		unsigned long flags)
++void *__wrap_devm_memremap(struct device *dev, resource_size_t offset,
++		size_t size, unsigned long flags)
+ {
+ 	struct nfit_test_resource *nfit_res;
+ 
+@@ -91,9 +91,9 @@ void *__wrap_memremap(resource_size_t offset, size_t size,
+ 	if (nfit_res)
+ 		return (void __iomem *) nfit_res->buf + offset
+ 			- nfit_res->res->start;
+-	return memremap(offset, size, flags);
++	return devm_memremap(dev, offset, size, flags);
+ }
+-EXPORT_SYMBOL(__wrap_memremap);
++EXPORT_SYMBOL(__wrap_devm_memremap);
+ 
+ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
+ {
+@@ -120,22 +120,9 @@ void __wrap_iounmap(volatile void __iomem *addr)
+ }
+ EXPORT_SYMBOL(__wrap_iounmap);
+ 
+-void __wrap_memunmap(void *addr)
+-{
+-	struct nfit_test_resource *nfit_res;
+-
+-	rcu_read_lock();
+-	nfit_res = get_nfit_res((unsigned long) addr);
+-	rcu_read_unlock();
+-	if (nfit_res)
+-		return;
+-	return memunmap(addr);
+-}
+-EXPORT_SYMBOL(__wrap_memunmap);
+-
+-struct resource *__wrap___request_region(struct resource *parent,
+-		resource_size_t start, resource_size_t n, const char *name,
+-		int flags)
++static struct resource *nfit_test_request_region(struct device *dev,
++		struct resource *parent, resource_size_t start,
++		resource_size_t n, const char *name, int flags)
+ {
+ 	struct nfit_test_resource *nfit_res;
+ 
+@@ -163,10 +150,29 @@ struct resource *__wrap___request_region(struct resource *parent,
+ 			return res;
+ 		}
+ 	}
++	if (dev)
++		__devm_request_region(dev, parent, start, n, name);
+ 	return __request_region(parent, start, n, name, flags);
+ }
++
++struct resource *__wrap___request_region(struct resource *parent,
++		resource_size_t start, resource_size_t n, const char *name,
++		int flags)
++{
++	return nfit_test_request_region(NULL, parent, start, n, name, flags);
++}
+ EXPORT_SYMBOL(__wrap___request_region);
+ 
++struct resource *__wrap___devm_request_region(struct device *dev,
++		struct resource *parent, resource_size_t start,
++		resource_size_t n, const char *name)
++{
++	if (!dev)
++		return NULL;
++	return nfit_test_request_region(dev, parent, start, n, name, 0);
++}
++EXPORT_SYMBOL(__wrap___devm_request_region);
++
+ void __wrap___release_region(struct resource *parent, resource_size_t start,
+ 				resource_size_t n)
+ {
 
