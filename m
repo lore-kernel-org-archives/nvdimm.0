@@ -1,216 +1,228 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 5/7] pmem: add copy_from_iter_pmem() and clear_pmem()
-Date: Tue, 18 Aug 2015 11:14:46 -0600
-Message-Id: <1439918088-32159-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v5 2/8] arch, drivers: don't include <asm/io.h> directly,
+ use <linux/io.h> instead
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 12 Aug 2015 20:12:14 -0400
+Message-ID: <20150813001214.17702.81461.stgit@otcpl-skl-sds-2.jf.intel.com>
+In-Reply-To: <20150813000250.17702.28409.stgit@otcpl-skl-sds-2.jf.intel.com>
+References: <20150813000250.17702.28409.stgit@otcpl-skl-sds-2.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: ross.zwisler@linux.intel.com, mcgrof@suse.com, hch@lst.de, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for two new PMEM APIs, copy_from_iter_pmem() and
-clear_pmem().  copy_from_iter_pmem() is used to copy data from an
-iterator into a PMEM buffer.  clear_pmem() zeros a PMEM memory range.
+Preparation for uniform definition of ioremap, ioremap_wc, ioremap_wt,
+and ioremap_cache, tree-wide.
 
-Both of these new APIs must be explicitly ordered using a wmb_pmem()
-function call and are implemented in such a way that the wmb_pmem()
-will make the stores to PMEM durable.  Because both APIs are unordered
-they can be called as needed without introducing any unwanted memory
-barriers.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/pmem.h | 75 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pmem.h        | 66 +++++++++++++++++++++++++++++++++++++--
- 2 files changed, 138 insertions(+), 3 deletions(-)
+ arch/arm/mach-shmobile/pm-rcar.c            |    2 +-
+ arch/ia64/kernel/cyclone.c                  |    2 +-
+ drivers/isdn/icn/icn.h                      |    2 +-
+ drivers/mtd/devices/slram.c                 |    2 +-
+ drivers/mtd/nand/diskonchip.c               |    2 +-
+ drivers/mtd/onenand/generic.c               |    2 +-
+ drivers/scsi/sun3x_esp.c                    |    2 +-
+ drivers/staging/comedi/drivers/ii_pci20kc.c |    1 +
+ drivers/tty/serial/8250/8250_core.c         |    2 +-
+ drivers/video/fbdev/s1d13xxxfb.c            |    3 +--
+ drivers/video/fbdev/stifb.c                 |    1 +
+ include/linux/io-mapping.h                  |    2 +-
+ include/linux/mtd/map.h                     |    2 +-
+ include/video/vga.h                         |    2 +-
+ 14 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index 7f3413f..a3a0df6 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -66,6 +66,81 @@ static inline void arch_wmb_pmem(void)
- 	pcommit_sfence();
- }
+diff --git a/arch/arm/mach-shmobile/pm-rcar.c b/arch/arm/mach-shmobile/pm-rcar.c
+index 00022ee56f80..9d3dde00c2fe 100644
+--- a/arch/arm/mach-shmobile/pm-rcar.c
++++ b/arch/arm/mach-shmobile/pm-rcar.c
+@@ -12,7 +12,7 @@
+ #include <linux/err.h>
+ #include <linux/mm.h>
+ #include <linux/spinlock.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include "pm-rcar.h"
  
-+/**
-+ * __arch_wb_cache_pmem - write back a cache range with CLWB
-+ * @vaddr:	virtual start address
-+ * @size:	number of bytes to write back
-+ *
-+ * Write back a cache range using the CLWB (cache line write back)
-+ * instruction.  This function requires explicit ordering with an
-+ * arch_wmb_pmem() call.  This API is internal to the x86 PMEM implementation.
-+ */
-+static inline void __arch_wb_cache_pmem(void *vaddr, size_t size)
-+{
-+	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
-+	unsigned long clflush_mask = x86_clflush_size - 1;
-+	void *vend = vaddr + size;
-+	void *p;
-+
-+	for (p = (void *)((unsigned long)vaddr & ~clflush_mask);
-+	     p < vend; p += x86_clflush_size)
-+		clwb(p);
-+}
-+
-+/*
-+ * copy_from_iter_nocache() on x86 only uses non-temporal stores for iovec
-+ * iterators, so for other types (bvec & kvec) we must do a cache write-back.
-+ */
-+static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
-+{
-+	return iter_is_iovec(i) == false;
-+}
-+
-+/**
-+ * arch_copy_from_iter_pmem - copy data from an iterator to PMEM
-+ * @addr:	PMEM destination address
-+ * @bytes:	number of bytes to copy
-+ * @i:		iterator with source data
-+ *
-+ * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
-+ * This function requires explicit ordering with an arch_wmb_pmem() call.
-+ */
-+static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
-+		struct iov_iter *i)
-+{
-+	void *vaddr = (void __force *)addr;
-+	size_t len;
-+
-+	/* TODO: skip the write-back by always using non-temporal stores */
-+	len = copy_from_iter_nocache(vaddr, bytes, i);
-+
-+	if (__iter_needs_pmem_wb(i))
-+		__arch_wb_cache_pmem(vaddr, bytes);
-+
-+	return len;
-+}
-+
-+/**
-+ * arch_clear_pmem - zero a PMEM memory range
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to zero
-+ *
-+ * Write zeros into the memory range starting at 'addr' for 'size' bytes.
-+ * This function requires explicit ordering with an arch_wmb_pmem() call.
-+ */
-+static inline void arch_clear_pmem(void __pmem *addr, size_t size)
-+{
-+	void *vaddr = (void __force *)addr;
-+
-+	/* TODO: implement the zeroing via non-temporal writes */
-+	if (size == PAGE_SIZE && ((unsigned long)vaddr & ~PAGE_MASK) == 0)
-+		clear_page(vaddr);
-+	else
-+		memset(vaddr, 0, size);
-+
-+	__arch_wb_cache_pmem(vaddr, size);
-+}
-+
- static inline bool arch_has_wmb_pmem(void)
- {
- #ifdef CONFIG_X86_64
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 9d619d2..c7f57eb 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -14,6 +14,7 @@
- #define __PMEM_H__
+ /* SYSC */
+diff --git a/arch/ia64/kernel/cyclone.c b/arch/ia64/kernel/cyclone.c
+index 4826ff957a3d..5fa3848ba224 100644
+--- a/arch/ia64/kernel/cyclone.c
++++ b/arch/ia64/kernel/cyclone.c
+@@ -4,7 +4,7 @@
+ #include <linux/errno.h>
+ #include <linux/timex.h>
+ #include <linux/clocksource.h>
+-#include <asm/io.h>
++#include <linux/io.h>
  
- #include <linux/io.h>
-+#include <linux/uio.h>
+ /* IBM Summit (EXA) Cyclone counter code*/
+ #define CYCLONE_CBAR_ADDR 0xFEB00CD0
+diff --git a/drivers/isdn/icn/icn.h b/drivers/isdn/icn/icn.h
+index b713466997a0..f8f2e76d34bf 100644
+--- a/drivers/isdn/icn/icn.h
++++ b/drivers/isdn/icn/icn.h
+@@ -38,7 +38,7 @@ typedef struct icn_cdef {
+ #include <linux/errno.h>
+ #include <linux/fs.h>
+ #include <linux/major.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include <linux/kernel.h>
+ #include <linux/signal.h>
+ #include <linux/slab.h>
+diff --git a/drivers/mtd/devices/slram.c b/drivers/mtd/devices/slram.c
+index 2fc4957cbe7f..a70eb83e68f1 100644
+--- a/drivers/mtd/devices/slram.c
++++ b/drivers/mtd/devices/slram.c
+@@ -41,7 +41,7 @@
+ #include <linux/fs.h>
+ #include <linux/ioctl.h>
+ #include <linux/init.h>
+-#include <asm/io.h>
++#include <linux/io.h>
  
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- #include <asm/pmem.h>
-@@ -39,12 +40,24 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
- {
- 	BUG();
- }
-+
-+static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
-+		struct iov_iter *i)
-+{
-+	BUG();
-+	return 0;
-+}
-+
-+static inline void arch_clear_pmem(void __pmem *addr, size_t size)
-+{
-+	BUG();
-+}
- #endif
+ #include <linux/mtd/mtd.h>
+ 
+diff --git a/drivers/mtd/nand/diskonchip.c b/drivers/mtd/nand/diskonchip.c
+index 7da266a53979..0802158a3f75 100644
+--- a/drivers/mtd/nand/diskonchip.c
++++ b/drivers/mtd/nand/diskonchip.c
+@@ -24,7 +24,7 @@
+ #include <linux/rslib.h>
+ #include <linux/moduleparam.h>
+ #include <linux/slab.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ 
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+diff --git a/drivers/mtd/onenand/generic.c b/drivers/mtd/onenand/generic.c
+index 32a216d31141..ab7bda0bb245 100644
+--- a/drivers/mtd/onenand/generic.c
++++ b/drivers/mtd/onenand/generic.c
+@@ -18,7 +18,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/onenand.h>
+ #include <linux/mtd/partitions.h>
+-#include <asm/io.h>
++#include <linux/io.h>
  
  /*
-- * Architectures that define ARCH_HAS_PMEM_API must provide
-- * implementations for arch_memremap_pmem(), arch_memcpy_to_pmem(),
-- * arch_wmb_pmem(), and arch_has_wmb_pmem().
-+ * Architectures that define ARCH_HAS_PMEM_API must provide implementations
-+ * for arch_memremap_pmem(), arch_memcpy_to_pmem(), arch_wmb_pmem(),
-+ * arch_copy_from_iter_pmem(), arch_clear_pmem() and arch_has_wmb_pmem().
+  * Note: Driver name and platform data format have been updated!
+diff --git a/drivers/scsi/sun3x_esp.c b/drivers/scsi/sun3x_esp.c
+index e26e81de7c45..d50c5ed8f428 100644
+--- a/drivers/scsi/sun3x_esp.c
++++ b/drivers/scsi/sun3x_esp.c
+@@ -12,9 +12,9 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/interrupt.h>
++#include <linux/io.h>
+ 
+ #include <asm/sun3x.h>
+-#include <asm/io.h>
+ #include <asm/dma.h>
+ #include <asm/dvma.h>
+ 
+diff --git a/drivers/staging/comedi/drivers/ii_pci20kc.c b/drivers/staging/comedi/drivers/ii_pci20kc.c
+index 0768bc42a5db..14ef1f67dd42 100644
+--- a/drivers/staging/comedi/drivers/ii_pci20kc.c
++++ b/drivers/staging/comedi/drivers/ii_pci20kc.c
+@@ -28,6 +28,7 @@
   */
  
- static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
-@@ -90,6 +103,20 @@ static void __pmem *default_memremap_pmem(resource_size_t offset,
- 	return (void __pmem __force *)ioremap_wt(offset, size);
- }
+ #include <linux/module.h>
++#include <linux/io.h>
+ #include "../comedidev.h"
  
-+static inline size_t default_copy_from_iter_pmem(void __pmem *addr,
-+		size_t bytes, struct iov_iter *i)
-+{
-+	return copy_from_iter_nocache((void __force *)addr, bytes, i);
-+}
-+
-+static inline void default_clear_pmem(void __pmem *addr, size_t size)
-+{
-+	if (size == PAGE_SIZE && ((unsigned long)addr & ~PAGE_MASK) == 0)
-+		clear_page((void __force *)addr);
-+	else
-+		memset((void __force *)addr, 0, size);
-+}
-+
- /**
-  * memremap_pmem - map physical persistent memory for pmem api
-  * @offset: physical address of persistent memory
-@@ -142,4 +169,37 @@ static inline void wmb_pmem(void)
- 	if (arch_has_pmem_api())
- 		arch_wmb_pmem();
- }
-+
-+/**
-+ * copy_from_iter_pmem - copy data from an iterator to PMEM
-+ * @addr:	PMEM destination address
-+ * @bytes:	number of bytes to copy
-+ * @i:		iterator with source data
-+ *
-+ * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
-+ * This function requires explicit ordering with a wmb_pmem() call.
-+ */
-+static inline size_t copy_from_iter_pmem(void __pmem *addr, size_t bytes,
-+		struct iov_iter *i)
-+{
-+	if (arch_has_pmem_api())
-+		return arch_copy_from_iter_pmem(addr, bytes, i);
-+	return default_copy_from_iter_pmem(addr, bytes, i);
-+}
-+
-+/**
-+ * clear_pmem - zero a PMEM memory range
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to zero
-+ *
-+ * Write zeros into the memory range starting at 'addr' for 'size' bytes.
-+ * This function requires explicit ordering with a wmb_pmem() call.
-+ */
-+static inline void clear_pmem(void __pmem *addr, size_t size)
-+{
-+	if (arch_has_pmem_api())
-+		arch_clear_pmem(addr, size);
-+	else
-+		default_clear_pmem(addr, size);
-+}
- #endif /* __PMEM_H__ */
--- 
-2.1.0
+ /*
+diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
+index 37fff12dd4d0..fe902ff52e58 100644
+--- a/drivers/tty/serial/8250/8250_core.c
++++ b/drivers/tty/serial/8250/8250_core.c
+@@ -38,11 +38,11 @@
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
+ #include <linux/pm_runtime.h>
++#include <linux/io.h>
+ #ifdef CONFIG_SPARC
+ #include <linux/sunserialcore.h>
+ #endif
+ 
+-#include <asm/io.h>
+ #include <asm/irq.h>
+ 
+ #include "8250.h"
+diff --git a/drivers/video/fbdev/s1d13xxxfb.c b/drivers/video/fbdev/s1d13xxxfb.c
+index 83433cb0dfba..96aa46dc696c 100644
+--- a/drivers/video/fbdev/s1d13xxxfb.c
++++ b/drivers/video/fbdev/s1d13xxxfb.c
+@@ -32,8 +32,7 @@
+ #include <linux/spinlock_types.h>
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
+-
+-#include <asm/io.h>
++#include <linux/io.h>
+ 
+ #include <video/s1d13xxxfb.h>
+ 
+diff --git a/drivers/video/fbdev/stifb.c b/drivers/video/fbdev/stifb.c
+index 735355b0e023..7df4228e25f0 100644
+--- a/drivers/video/fbdev/stifb.c
++++ b/drivers/video/fbdev/stifb.c
+@@ -64,6 +64,7 @@
+ #include <linux/fb.h>
+ #include <linux/init.h>
+ #include <linux/ioport.h>
++#include <linux/io.h>
+ 
+ #include <asm/grfioctl.h>	/* for HP-UX compatibility */
+ #include <asm/uaccess.h>
+diff --git a/include/linux/io-mapping.h b/include/linux/io-mapping.h
+index c27dde7215b5..e399029b68c5 100644
+--- a/include/linux/io-mapping.h
++++ b/include/linux/io-mapping.h
+@@ -21,7 +21,7 @@
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include <linux/bug.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include <asm/page.h>
+ 
+ /*
+diff --git a/include/linux/mtd/map.h b/include/linux/mtd/map.h
+index 29975c73a953..366cf77953b5 100644
+--- a/include/linux/mtd/map.h
++++ b/include/linux/mtd/map.h
+@@ -27,9 +27,9 @@
+ #include <linux/string.h>
+ #include <linux/bug.h>
+ #include <linux/kernel.h>
++#include <linux/io.h>
+ 
+ #include <asm/unaligned.h>
+-#include <asm/io.h>
+ #include <asm/barrier.h>
+ 
+ #ifdef CONFIG_MTD_MAP_BANK_WIDTH_1
+diff --git a/include/video/vga.h b/include/video/vga.h
+index cac567f22e62..d334e64c1c19 100644
+--- a/include/video/vga.h
++++ b/include/video/vga.h
+@@ -18,7 +18,7 @@
+ #define __linux_video_vga_h__
+ 
+ #include <linux/types.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include <asm/vga.h>
+ #include <asm/byteorder.h>
+ 
 
