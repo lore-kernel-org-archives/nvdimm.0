@@ -1,36 +1,40 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3] change aperture mapping from WC to WB
-Date: Thu, 27 Aug 2015 13:14:19 -0600
-Message-Id: <1440702860-17363-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 1/7] brd: make rd_size static
+Date: Thu, 13 Aug 2015 10:51:05 -0600
+Message-Id: <1439484671-15718-2-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ingo Molnar <mingo@redhat.com>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, x86@kernel.org, Dan Williams <dan.j.williams@intel.com>
+To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@kernel.dk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The patch formerly known as `nd_blk: add support for "read flush" DSM flag'.
+Make rd_size static because it is local to drivers/block/brd.c
 
-I changed the patch title and updated the description to place more emphasis on
-the real purpose of the change, which is to move the BLK aperture mapping to
-WB.  Really the implementation of the "read flush" flag was just to enable this
-mapping change.
+This was reported by sparse:
 
-Ross Zwisler (1):
-  nd_blk: change aperture mapping from WC to WB
+drivers/block/brd.c:445:5: warning: symbol 'rd_size' was not declared.
+Should it be static?
 
- arch/x86/Kconfig                  |  1 +
- arch/x86/include/asm/cacheflush.h |  2 ++
- arch/x86/include/asm/io.h         |  2 --
- arch/x86/include/asm/pmem.h       |  2 ++
- drivers/acpi/Kconfig              |  1 +
- drivers/acpi/nfit.c               | 55 ++++++++++++++++++++++-----------------
- drivers/acpi/nfit.h               | 16 ++++++++----
- lib/Kconfig                       |  3 +++
- tools/testing/nvdimm/Kbuild       |  2 ++
- tools/testing/nvdimm/test/iomap.c | 30 +++++++++++++++++++--
- tools/testing/nvdimm/test/nfit.c  | 10 ++++---
- 11 files changed, 88 insertions(+), 36 deletions(-)
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ drivers/block/brd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 64ab495..5750b39 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -442,7 +442,7 @@ static int rd_nr = CONFIG_BLK_DEV_RAM_COUNT;
+ module_param(rd_nr, int, S_IRUGO);
+ MODULE_PARM_DESC(rd_nr, "Maximum number of brd devices");
+ 
+-int rd_size = CONFIG_BLK_DEV_RAM_SIZE;
++static int rd_size = CONFIG_BLK_DEV_RAM_SIZE;
+ module_param(rd_size, int, S_IRUGO);
+ MODULE_PARM_DESC(rd_size, "Size of each RAM disk in kbytes.");
+ 
 -- 
 2.1.0
 
