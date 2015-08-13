@@ -1,167 +1,103 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 5/7] pmem: add wb_cache_pmem() and clear_pmem()
-Date: Thu, 13 Aug 2015 10:51:09 -0600
-Message-Id: <1439484671-15718-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Chinner <david@fromorbit.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v5 0/5] introduce __pfn_t for unmapped pfn I/O and DAX
+ lifetime
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 12 Aug 2015 23:00:59 -0400
+Message-ID: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, mgorman@suse.de, torvalds@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for two new PMEM APIs, wb_cache_pmem() and clear_pmem().
-The first, wb_cache_pmem(), is used to write back ranges of dirtied
-cache lines to media in order to make stores durable.  The contents of
-the now-clean cache lines can potentially still reside in the cache
-after this write back operation allowing subsequent loads to be serviced
-from the cache.
+Changes since v4 [1]:
 
-The second, clear_pmem(), zeros a PMEM memory range and ensures that the
-newly zeroed data is properly flushed from the processor cache to media.
-This can be done either with normal writes followed by wb_cache_pmem()
-calls, or by using non-temporal stores.
+1/ Allow up to PAGE_SHIFT bits in PFN_ flags.  Previously the __pfn_t
+   value was a union with a 'struct page *', but now __pfn_t_to_page()
+   internally does a pfn_to_page() instead of type-punning the value.
+   (Linus, Matthew)
 
-Both of these new APIs must be explicitly ordered using a wmb_pmem()
-function call.  Because both APIs are unordered they can be called as
-needed without introducing any unwanted memory barriers.
+2/ Move the definition to include/linux/mm.h and squash the
+   kmap_atomic_pfn_t() definition into the same patch. (Christoph)
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+3/ Kill dax_get_pfn().  Now replaced with dax_map_bh() (Matthew)
+
+4/ The scatterlist cleanup patches are moved to their own series being
+   carried by Christoph.
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-June/001094.html
+
 ---
- arch/x86/include/asm/pmem.h | 40 ++++++++++++++++++++++++++++++++++
- include/linux/pmem.h        | 53 ++++++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 90 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index 7f3413f..89b04c0 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -66,6 +66,46 @@ static inline void arch_wmb_pmem(void)
- 	pcommit_sfence();
- }
- 
-+/**
-+ * arch_wb_cache_pmem - write back a cache range with CLWB
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to write back
-+ *
-+ * Write back a cache range using the CLWB (cache line write back)
-+ * instruction.  This function requires explicit ordering with an
-+ * arch_wmb_pmem() function call.
-+ */
-+static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
-+{
-+	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
-+	unsigned long clflush_mask = x86_clflush_size - 1;
-+	void *vend = (void __force *)addr + size;
-+	void *p;
-+
-+	for (p = (void *)((unsigned long)addr & ~clflush_mask);
-+	     p < vend; p += x86_clflush_size)
-+		clwb(p);
-+}
-+
-+/**
-+ * arch_clear_pmem - zero a PMEM memory range
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to zero
-+ *
-+ * Write zeros into the memory range starting at 'addr' for 'size' bytes.
-+ * This function requires explicit ordering with an arch_wmb_pmem() call.
-+ */
-+static inline void arch_clear_pmem(void __pmem *addr, size_t size)
-+{
-+	/* TODO: implement the zeroing via non-temporal writes */
-+	if (size == PAGE_SIZE && ((unsigned long)addr & ~PAGE_MASK) == 0)
-+		clear_page((void __force *)addr);
-+	else
-+		memset((void __force *)addr, 0, size);
-+
-+	arch_wb_cache_pmem(addr, size);
-+}
-+
- static inline bool arch_has_wmb_pmem(void)
- {
- #ifdef CONFIG_X86_64
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 9d619d2..dd1b72c 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -39,12 +39,22 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
- {
- 	BUG();
- }
-+
-+static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
-+{
-+	BUG();
-+}
-+
-+static inline void arch_clear_pmem(void __pmem *addr, size_t size)
-+{
-+	BUG();
-+}
- #endif
- 
- /*
-- * Architectures that define ARCH_HAS_PMEM_API must provide
-- * implementations for arch_memremap_pmem(), arch_memcpy_to_pmem(),
-- * arch_wmb_pmem(), and arch_has_wmb_pmem().
-+ * Architectures that define ARCH_HAS_PMEM_API must provide implementations
-+ * for arch_memremap_pmem(), arch_memcpy_to_pmem(), arch_wmb_pmem(),
-+ * arch_wb_cache_pmem(), arch_clear_pmem() and arch_has_wmb_pmem().
-  */
- 
- static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
-@@ -90,6 +100,14 @@ static void __pmem *default_memremap_pmem(resource_size_t offset,
- 	return (void __pmem __force *)ioremap_wt(offset, size);
- }
- 
-+static inline void default_clear_pmem(void __pmem *addr, size_t size)
-+{
-+	if (size == PAGE_SIZE && ((unsigned long)addr & ~PAGE_MASK) == 0)
-+		clear_page((void __force *)addr);
-+	else
-+		memset((void __force *)addr, 0, size);
-+}
-+
- /**
-  * memremap_pmem - map physical persistent memory for pmem api
-  * @offset: physical address of persistent memory
-@@ -142,4 +160,33 @@ static inline void wmb_pmem(void)
- 	if (arch_has_pmem_api())
- 		arch_wmb_pmem();
- }
-+
-+/**
-+ * wb_cache_pmem - write back a cache range
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to write back
-+ *
-+ * This function requires explicit ordering with a wmb_pmem() call.
-+ */
-+static inline void wb_cache_pmem(void __pmem *addr, size_t size)
-+{
-+	if (arch_has_pmem_api())
-+		arch_wb_cache_pmem(addr, size);
-+}
-+
-+/**
-+ * clear_pmem - zero a PMEM memory range
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to zero
-+ *
-+ * Write zeros into the memory range starting at 'addr' for 'size' bytes.
-+ * This function requires explicit ordering with a wmb_pmem() call.
-+ */
-+static inline void clear_pmem(void __pmem *addr, size_t size)
-+{
-+	if (arch_has_pmem_api())
-+		arch_clear_pmem(addr, size);
-+	else
-+		default_clear_pmem(addr, size);
-+}
- #endif /* __PMEM_H__ */
--- 
-2.1.0
+We want persistent memory to have 4 modes of access:
 
+1/ Block device: persistent memory treated as a ram disk (done)
+
+2/ DAX: userspace mmap (done)
+
+3/ Kernel "page-less". (this series)
+
+4/ Kernel and userspace references to page-mapped persistent memory
+   (future series)
+
+The "kernel 'page-less'" case leverages the fact that a 'struct page'
+object is not necessarily required for describing a DMA transfer from a
+device to a persistent memory address.  A pfn will do, but code needs to
+be careful to not perform a pfn_to_page() operation on unmapped
+persistent memory. The __pfn_t type enforces that safety and
+kmap_atomic_pfn_t() covers cases where the I/O stack needs to touch the
+buffer on its way to the low-level-device-driver (i.e. current usages of
+kmap_atomic() in the block-layer).
+
+A subsequent patch series will add struct page coverage for persistent,
+"device", memory.
+
+We also use kmap_atomic_pfn_t() to solve races of pmem driver unbind vs
+usage in DAX. rcu_read_lock() protects the driver from unbinding while a
+mapping is held.
+
+---
+
+Christoph Hellwig (1):
+      mm: move __phys_to_pfn and __pfn_to_phys to asm/generic/memory_model.h
+
+Dan Williams (4):
+      allow mapping page-less memremaped areas into KVA
+      dax: drop size parameter to ->direct_access()
+      dax: fix mapping lifetime handling, convert to __pfn_t + kmap_atomic_pfn_t()
+      scatterlist: convert to __pfn_t
+
+
+ arch/arm/include/asm/memory.h       |    6 --
+ arch/arm64/include/asm/memory.h     |    6 --
+ arch/powerpc/platforms/Kconfig      |    1 
+ arch/powerpc/sysdev/axonram.c       |   24 +++++--
+ arch/unicore32/include/asm/memory.h |    6 --
+ drivers/block/brd.c                 |    9 +--
+ drivers/nvdimm/Kconfig              |    1 
+ drivers/nvdimm/pmem.c               |   24 ++++---
+ drivers/s390/block/Kconfig          |    1 
+ drivers/s390/block/dcssblk.c        |   23 ++++++-
+ fs/Kconfig                          |    1 
+ fs/block_dev.c                      |    4 +
+ fs/dax.c                            |   79 +++++++++++++++++-------
+ include/asm-generic/memory_model.h  |    6 ++
+ include/linux/blkdev.h              |    7 +-
+ include/linux/kmap_pfn.h            |   31 +++++++++
+ include/linux/mm.h                  |   78 +++++++++++++++++++++++
+ include/linux/scatterlist.h         |  111 +++++++++++++++++++++++----------
+ mm/Kconfig                          |    3 +
+ mm/Makefile                         |    1 
+ mm/kmap_pfn.c                       |  117 +++++++++++++++++++++++++++++++++++
+ samples/kfifo/dma-example.c         |    8 +-
+ 22 files changed, 435 insertions(+), 112 deletions(-)
+ create mode 100644 include/linux/kmap_pfn.h
+ create mode 100644 mm/kmap_pfn.c
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
