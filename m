@@ -1,53 +1,54 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <55CCB7DD.7080005@plexistor.com>
-Date: Thu, 13 Aug 2015 18:29:33 +0300
+Message-ID: <55CCB14B.4030303@plexistor.com>
+Date: Thu, 13 Aug 2015 18:01:31 +0300
 From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
 Subject: Re: [PATCH v5 2/5] allow mapping page-less memremaped areas into
  KVA
-References: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com> <20150813030109.36703.21738.stgit@otcpl-skl-sds-2.jf.intel.com> <55CC3222.5090503@plexistor.com> <20150813143744.GA17375@lst.de> <55CCAE57.20009@plexistor.com>
-In-Reply-To: <55CCAE57.20009@plexistor.com>
+References: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com> <20150813030109.36703.21738.stgit@otcpl-skl-sds-2.jf.intel.com> <55CC3222.5090503@plexistor.com> <CAPcyv4gwFD5F=k_qQyf68z74Opzf1t4DMqY+A9D2w_Fwsbzvew@mail.gmail.com> <55CC9A5A.1020209@plexistor.com> <20150813144132.GC17375@lst.de>
+In-Reply-To: <20150813144132.GC17375@lst.de>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
 To: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, mgorman@suse.de, torvalds@linux-foundation.org
+Cc: Dan Williams <dan.j.williams@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jens Axboe <axboe@kernel.dk>, Rik van Riel <riel@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>, Mel Gorman <mgorman@suse.de>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 08/13/2015 05:48 PM, Boaz Harrosh wrote:
-<>
-> There is already an object that holds a relationship of physical
-> to Kernel-virtual. It is called a memory-section. Why not just
-> widen its definition?
+On 08/13/2015 05:41 PM, Christoph Hellwig wrote:
+> On Thu, Aug 13, 2015 at 04:23:38PM +0300, Boaz Harrosh wrote:
+>>> DAX as is is races against pmem unbind.   A synchronization cost must
+>>> be paid somewhere to make sure the memremap() mapping is still valid.
+>>
+>> Sorry for being so slow, is what I asked. what is exactly "pmem unbind" ?
+>>
+>> Currently in my 4.1 Kernel the ioremap is done on modprobe time and
+>> released modprobe --remove time. the --remove can not happen with a mounted
+>> FS dax or not. So what is exactly "pmem unbind". And if there is a new knob
+>> then make it refuse with a raised refcount.
+> 
+> Surprise removal of a PCIe card which is mapped to provide non-volatile
+> memory for example.  Or memory hot swap.
 > 
 
-BTW: Regarding the "widen its definition"
+Then the mapping is just there and you get garbage. Just the same as
+"memory hot swap" the kernel will not let you HOT-REMOVE a referenced
+memory. It will just refuse. If you forcefully remove a swapeble memory
+chip without HOT-REMOVE first what will happen? so the same here.
 
-I was thinking of two possible new models here:
-[1-A page-less memory section]
-- Keep the 64bit phisical-to-kernel_virtual hard coded relationship
-- Allocate a section-object, but this section object does not have any
-  pages, its only the header. (You need it for the pmd/pmt thing)
+SW wise you refuse to HOT-REMOVE. HW wise BTW the Kernel will not die
+only farther reads will return all 111111 and writes will go to the
+either.
 
-  Lots of things just work now if you make sure you do not go through
-  a page struct. This needs no extra work I have done this in the past
-  all you need is to do your ioremap through the map_kernel_range_noflush(__va(), ....)
+The all kmap thing was for highmem. Is not the case here.
 
-[2- Small pages-struct]
+Again see my other comment at dax mmap:
 
-- Like above, but each entry in the new section object is small one-ulong size
-  holding just flags.
-
- Then if !(p->flags & PAGE_SPECIAL) page = container_of(p, struct page, flags)
-
- This model is good because you actually have your pfn_to_page and page_to_pfn
- and need not touch sg-list or bio. But only 8 bytes per frame instead of 64 bytes
-
-
-But I still think that the best long-term model is the variable size pages
-where a page* can be 2M or 1G. Again an extra flag and a widen section definition.
-Is about time we move to bigger pages, throughout but still keep the 4k
-page-cache-dirty granularity.
+- you go pfn_map take a pfn
+- kpfn_unmap
+- put pfn on user mmap vma
+- then what happens to user access after that. Nothing not even a page_fault
+  It will have a vm-mapping to a now none existing physical address that's
+  it.
 
 Thanks
 Boaz
