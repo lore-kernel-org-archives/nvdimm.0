@@ -1,47 +1,56 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 13 Aug 2015 13:35:52 -0400
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: Re: [PATCH v5 2/5] allow mapping page-less memremaped areas into KVA
-Message-ID: <20150813173552.GA9645@linux.intel.com>
-References: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com>
- <20150813030109.36703.21738.stgit@otcpl-skl-sds-2.jf.intel.com>
+Message-ID: <55CCB7DD.7080005@plexistor.com>
+Date: Thu, 13 Aug 2015 18:29:33 +0300
+From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150813030109.36703.21738.stgit@otcpl-skl-sds-2.jf.intel.com>
+Subject: Re: [PATCH v5 2/5] allow mapping page-less memremaped areas into
+ KVA
+References: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com> <20150813030109.36703.21738.stgit@otcpl-skl-sds-2.jf.intel.com> <55CC3222.5090503@plexistor.com> <20150813143744.GA17375@lst.de> <55CCAE57.20009@plexistor.com>
+In-Reply-To: <55CCAE57.20009@plexistor.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, mgorman@suse.de, torvalds@linux-foundation.org, hch@lst.de
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, mgorman@suse.de, torvalds@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Aug 12, 2015 at 11:01:09PM -0400, Dan Williams wrote:
-> +static inline __pfn_t page_to_pfn_t(struct page *page)
-> +{
-> +	__pfn_t pfn = { .val = page_to_pfn(page) << PAGE_SHIFT, };
-> +
-> +	return pfn;
-> +}
+On 08/13/2015 05:48 PM, Boaz Harrosh wrote:
+<>
+> There is already an object that holds a relationship of physical
+> to Kernel-virtual. It is called a memory-section. Why not just
+> widen its definition?
+> 
 
-static inline __pfn_t page_to_pfn_t(struct page *page)
-{
-	__pfn_t __pfn;
-	unsigned long pfn = page_to_pfn(page);
-	BUG_ON(pfn > (-1UL >> PFN_SHIFT))
-	__pfn.val = pfn << PFN_SHIFT;
+BTW: Regarding the "widen its definition"
 
-	return __pfn;
-}
+I was thinking of two possible new models here:
+[1-A page-less memory section]
+- Keep the 64bit phisical-to-kernel_virtual hard coded relationship
+- Allocate a section-object, but this section object does not have any
+  pages, its only the header. (You need it for the pmd/pmt thing)
 
-I have a problem wih PFN_SHIFT being equal to PAGE_SHIFT.  Consider a
-32-bit kernel; you're asserting that no memory represented by a struct
-page can have a physical address above 4GB.
+  Lots of things just work now if you make sure you do not go through
+  a page struct. This needs no extra work I have done this in the past
+  all you need is to do your ioremap through the map_kernel_range_noflush(__va(), ....)
 
-You only need three bits for flags so far ... how about making PFN_SHIFT
-be 6?  That supports physical addresses up to 2^38 (256GB).  That should
-be enough, but hardware designers have done some strange things in the
-past (I know that HP made PA-RISC hardware that can run 32-bit kernels
-with memory between 64GB and 68GB, and they can't be the only strange
-hardware people out there).
+[2- Small pages-struct]
+
+- Like above, but each entry in the new section object is small one-ulong size
+  holding just flags.
+
+ Then if !(p->flags & PAGE_SPECIAL) page = container_of(p, struct page, flags)
+
+ This model is good because you actually have your pfn_to_page and page_to_pfn
+ and need not touch sg-list or bio. But only 8 bytes per frame instead of 64 bytes
+
+
+But I still think that the best long-term model is the variable size pages
+where a page* can be 2M or 1G. Again an extra flag and a widen section definition.
+Is about time we move to bigger pages, throughout but still keep the 4k
+page-cache-dirty granularity.
+
+Thanks
+Boaz
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
