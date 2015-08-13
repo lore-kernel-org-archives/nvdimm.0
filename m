@@ -1,57 +1,67 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <55CCB14B.4030303@plexistor.com>
-Date: Thu, 13 Aug 2015 18:01:31 +0300
+Message-ID: <55CCAE57.20009@plexistor.com>
+Date: Thu, 13 Aug 2015 17:48:55 +0300
 From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
 Subject: Re: [PATCH v5 2/5] allow mapping page-less memremaped areas into
  KVA
-References: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com> <20150813030109.36703.21738.stgit@otcpl-skl-sds-2.jf.intel.com> <55CC3222.5090503@plexistor.com> <CAPcyv4gwFD5F=k_qQyf68z74Opzf1t4DMqY+A9D2w_Fwsbzvew@mail.gmail.com> <55CC9A5A.1020209@plexistor.com> <20150813144132.GC17375@lst.de>
-In-Reply-To: <20150813144132.GC17375@lst.de>
+References: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com> <20150813030109.36703.21738.stgit@otcpl-skl-sds-2.jf.intel.com> <55CC3222.5090503@plexistor.com> <20150813143744.GA17375@lst.de>
+In-Reply-To: <20150813143744.GA17375@lst.de>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
 To: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jens Axboe <axboe@kernel.dk>, Rik van Riel <riel@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>, Mel Gorman <mgorman@suse.de>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, mgorman@suse.de, torvalds@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 08/13/2015 05:41 PM, Christoph Hellwig wrote:
-> On Thu, Aug 13, 2015 at 04:23:38PM +0300, Boaz Harrosh wrote:
->>> DAX as is is races against pmem unbind.   A synchronization cost must
->>> be paid somewhere to make sure the memremap() mapping is still valid.
->>
->> Sorry for being so slow, is what I asked. what is exactly "pmem unbind" ?
->>
->> Currently in my 4.1 Kernel the ioremap is done on modprobe time and
->> released modprobe --remove time. the --remove can not happen with a mounted
->> FS dax or not. So what is exactly "pmem unbind". And if there is a new knob
->> then make it refuse with a raised refcount.
+On 08/13/2015 05:37 PM, Christoph Hellwig wrote:
+> Hi Boaz,
 > 
-> Surprise removal of a PCIe card which is mapped to provide non-volatile
-> memory for example.  Or memory hot swap.
+> can you please fix your quoting?  I read down about 10 pages but still
+> couldn't find a comment from you.  For now I gave up on this mail.
 > 
 
-Then the mapping is just there and you get garbage. Just the same as
-"memory hot swap" the kernel will not let you HOT-REMOVE a referenced
-memory. It will just refuse. If you forcefully remove a swapeble memory
-chip without HOT-REMOVE first what will happen? so the same here.
+Sorry here:
 
-SW wise you refuse to HOT-REMOVE. HW wise BTW the Kernel will not die
-only farther reads will return all 111111 and writes will go to the
-either.
+> +void *kmap_atomic_pfn_t(__pfn_t pfn)
+> +{
+> +	struct page *page = __pfn_t_to_page(pfn);
+> +	resource_size_t addr;
+> +	struct kmap *kmap;
+> +
+> +	rcu_read_lock();
+> +	if (page)
+> +		return kmap_atomic(page);
 
-The all kmap thing was for highmem. Is not the case here.
+Right even with pages I pay rcu_read_lock(); for every access?
 
-Again see my other comment at dax mmap:
+> +	addr = __pfn_t_to_phys(pfn);
+> +	list_for_each_entry_rcu(kmap, &ranges, list)
+> +		if (addr >= kmap->res->start && addr <= kmap->res->end)
+> +			return kmap->base + addr - kmap->res->start;
+> +
 
-- you go pfn_map take a pfn
-- kpfn_unmap
-- put pfn on user mmap vma
-- then what happens to user access after that. Nothing not even a page_fault
-  It will have a vm-mapping to a now none existing physical address that's
-  it.
+Good god! This loop is a real *joke*. You have just dropped memory access
+performance by 10 fold.
 
-Thanks
-Boaz
+The all point of pages and memory_model.h was to have a one to one
+relation-ships between Kernel-virtual vs physical vs page *
+
+There is already an object that holds a relationship of physical
+to Kernel-virtual. It is called a memory-section. Why not just
+widen its definition?
+
+If you are willing to accept this loop. In current Linux 2015 Kernel
+Then I have nothing farther to say.
+
+Boaz - go mourning for the death of the Linux Kernel alone in the corner ;-(
+
+> +	/* only unlock in the error case */
+> +	rcu_read_unlock();
+> +	return NULL;
+> +}
+> +EXPORT_SYMBOL(kmap_atomic_pfn_t);
+> +
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
