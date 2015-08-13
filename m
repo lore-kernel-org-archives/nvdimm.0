@@ -1,169 +1,141 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 6/7] dax: update I/O path to do proper PMEM flushing
-Date: Mon, 17 Aug 2015 12:30:10 -0600
-Message-Id: <1439836211-4719-7-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439836211-4719-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439836211-4719-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v5 1/8] mm: enhance region_is_ram() to region_intersects()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 12 Aug 2015 20:12:08 -0400
+Message-ID: <20150813001208.17702.3892.stgit@otcpl-skl-sds-2.jf.intel.com>
+In-Reply-To: <20150813000250.17702.28409.stgit@otcpl-skl-sds-2.jf.intel.com>
+References: <20150813000250.17702.28409.stgit@otcpl-skl-sds-2.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: mcgrof@suse.com, Toshi Kani <toshi.kani@hp.com>, hch@lst.de, ross.zwisler@linux.intel.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Update the DAX I/O path so that all operations that store data (I/O
-writes, zeroing blocks, punching holes, etc.) properly synchronize the
-stores to media using the PMEM API.  This ensures that the data DAX is
-writing is durable on media before the operation completes.
+region_is_ram() is used to prevent the establishment of aliased mappings
+to physical "System RAM" with incompatible cache settings.  However, it
+uses "-1" to indicate both "unknown" memory ranges (ranges not described
+by platform firmware) and "mixed" ranges (where the parameters describe
+a range that partially overlaps "System RAM").
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Fix this up by explicitly tracking the "unknown" vs "mixed" resource
+cases and returning REGION_INTERSECTS, REGION_MIXED, or REGION_DISJOINT.
+This re-write also adds support for detecting when the requested region
+completely eclipses all of a resource.  Note, the implementation treats
+overlaps between "unknown" and the requested memory type as
+REGION_INTERSECTS.
+
+Finally, other memory types can be passed in by name, for now the only
+usage "System RAM".
+
+Suggested-by: Luis R. Rodriguez <mcgrof@suse.com>
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 44 +++++++++++++++++++++++++++++---------------
- 1 file changed, 29 insertions(+), 15 deletions(-)
+ include/linux/mm.h |    9 +++++++-
+ kernel/resource.c  |   61 +++++++++++++++++++++++++++++++---------------------
+ 2 files changed, 44 insertions(+), 26 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index b6769ce..680b44a 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -17,12 +17,14 @@
- #include <linux/atomic.h>
- #include <linux/blkdev.h>
- #include <linux/buffer_head.h>
-+#include <linux/dax.h>
- #include <linux/fs.h>
- #include <linux/genhd.h>
- #include <linux/highmem.h>
- #include <linux/memcontrol.h>
- #include <linux/mm.h>
- #include <linux/mutex.h>
-+#include <linux/pmem.h>
- #include <linux/sched.h>
- #include <linux/uio.h>
- #include <linux/vmstat.h>
-@@ -46,10 +48,7 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- 			unsigned pgsz = PAGE_SIZE - offset_in_page(addr);
- 			if (pgsz > count)
- 				pgsz = count;
--			if (pgsz < PAGE_SIZE)
--				memset(addr, 0, pgsz);
--			else
--				clear_page(addr);
-+			clear_pmem((void __pmem *)addr, pgsz);
- 			addr += pgsz;
- 			size -= pgsz;
- 			count -= pgsz;
-@@ -59,6 +58,7 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- 		}
- 	} while (size);
- 
-+	wmb_pmem();
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(dax_clear_blocks);
-@@ -70,15 +70,16 @@ static long dax_get_addr(struct buffer_head *bh, void **addr, unsigned blkbits)
- 	return bdev_direct_access(bh->b_bdev, sector, addr, &pfn, bh->b_size);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 2e872f92dbac..84b05ebedb2d 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -369,7 +369,14 @@ static inline int put_page_unless_one(struct page *page)
  }
  
-+/* the clear_pmem() calls are ordered by a wmb_pmem() in the caller */
- static void dax_new_buf(void *addr, unsigned size, unsigned first, loff_t pos,
- 			loff_t end)
- {
- 	loff_t final = end - pos + first; /* The final byte of the buffer */
- 
- 	if (first > 0)
--		memset(addr, 0, first);
-+		clear_pmem((void __pmem *)addr, first);
- 	if (final < size)
--		memset(addr + final, 0, size - final);
-+		clear_pmem((void __pmem *)addr + final, size - final);
- }
- 
- static bool buffer_written(struct buffer_head *bh)
-@@ -108,12 +109,13 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 	loff_t bh_max = start;
- 	void *addr;
- 	bool hole = false;
-+	bool need_wmb = false;
- 
- 	if (iov_iter_rw(iter) != WRITE)
- 		end = min(end, i_size_read(inode));
- 
- 	while (pos < end) {
--		unsigned len;
-+		size_t len;
- 		if (pos == max) {
- 			unsigned blkbits = inode->i_blkbits;
- 			sector_t block = pos >> blkbits;
-@@ -145,18 +147,22 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 				retval = dax_get_addr(bh, &addr, blkbits);
- 				if (retval < 0)
- 					break;
--				if (buffer_unwritten(bh) || buffer_new(bh))
-+				if (buffer_unwritten(bh) || buffer_new(bh)) {
- 					dax_new_buf(addr, retval, first, pos,
- 									end);
-+					need_wmb = true;
-+				}
- 				addr += first;
- 				size = retval - first;
- 			}
- 			max = min(pos + size, end);
- 		}
- 
--		if (iov_iter_rw(iter) == WRITE)
--			len = copy_from_iter_nocache(addr, max - pos, iter);
--		else if (!hole)
-+		if (iov_iter_rw(iter) == WRITE) {
-+			len = copy_from_iter_pmem((void __pmem *)addr,
-+					max - pos, iter);
-+			need_wmb = true;
-+		} else if (!hole)
- 			len = copy_to_iter(addr, max - pos, iter);
- 		else
- 			len = iov_iter_zero(max - pos, iter);
-@@ -168,6 +174,9 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 		addr += len;
- 	}
- 
-+	if (need_wmb)
-+		wmb_pmem();
+ extern int page_is_ram(unsigned long pfn);
+-extern int region_is_ram(resource_size_t phys_addr, unsigned long size);
 +
- 	return (pos == start) ? retval : pos - start;
++enum {
++	REGION_INTERSECTS,
++	REGION_DISJOINT,
++	REGION_MIXED,
++};
++
++int region_intersects(resource_size_t offset, size_t size, const char *type);
+ 
+ /* Support for virtually mapped pages */
+ struct page *vmalloc_to_page(const void *addr);
+diff --git a/kernel/resource.c b/kernel/resource.c
+index fed052a1bc9f..f150dbbe6f62 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -492,40 +492,51 @@ int __weak page_is_ram(unsigned long pfn)
+ }
+ EXPORT_SYMBOL_GPL(page_is_ram);
+ 
+-/*
+- * Search for a resouce entry that fully contains the specified region.
+- * If found, return 1 if it is RAM, 0 if not.
+- * If not found, or region is not fully contained, return -1
++/**
++ * region_intersects() - determine intersection of region with known resources
++ * @start: region start address
++ * @size: size of region
++ * @name: name of resource (in iomem_resource)
+  *
+- * Used by the ioremap functions to ensure the user is not remapping RAM and is
+- * a vast speed up over walking through the resource table page by page.
++ * Check if the specified region partially overlaps or fully eclipses a
++ * resource identified by @name.  Return REGION_DISJOINT if the region
++ * does not overlap @name, return REGION_MIXED if the region overlaps
++ * @type and another resource, and return REGION_INTERSECTS if the
++ * region overlaps @type and no other defined resource. Note, that
++ * REGION_INTERSECTS is also returned in the case when the specified
++ * region overlaps RAM and undefined memory holes.
++ *
++ * region_intersect() is used by memory remapping functions to ensure
++ * the user is not remapping RAM and is a vast speed up over walking
++ * through the resource table page by page.
+  */
+-int region_is_ram(resource_size_t start, unsigned long size)
++int region_intersects(resource_size_t start, size_t size, const char *name)
+ {
+-	struct resource *p;
+-	resource_size_t end = start + size - 1;
+ 	unsigned long flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+-	const char *name = "System RAM";
+-	int ret = -1;
++	resource_size_t end = start + size - 1;
++	int type = 0; int other = 0;
++	struct resource *p;
+ 
+ 	read_lock(&resource_lock);
+ 	for (p = iomem_resource.child; p ; p = p->sibling) {
+-		if (p->end < start)
+-			continue;
+-
+-		if (p->start <= start && end <= p->end) {
+-			/* resource fully contains region */
+-			if ((p->flags != flags) || strcmp(p->name, name))
+-				ret = 0;
+-			else
+-				ret = 1;
+-			break;
+-		}
+-		if (end < p->start)
+-			break;	/* not found */
++		bool is_type = strcmp(p->name, name) == 0 && p->flags == flags;
++
++		if (start >= p->start && start <= p->end)
++			is_type ? type++ : other++;
++		if (end >= p->start && end <= p->end)
++			is_type ? type++ : other++;
++		if (p->start >= start && p->end <= end)
++			is_type ? type++ : other++;
+ 	}
+ 	read_unlock(&resource_lock);
+-	return ret;
++
++	if (other == 0)
++		return type ? REGION_INTERSECTS : REGION_DISJOINT;
++
++	if (type)
++		return REGION_MIXED;
++
++	return REGION_DISJOINT;
  }
  
-@@ -300,8 +309,10 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 		goto out;
- 	}
- 
--	if (buffer_unwritten(bh) || buffer_new(bh))
--		clear_page(addr);
-+	if (buffer_unwritten(bh) || buffer_new(bh)) {
-+		clear_pmem((void __pmem *)addr, PAGE_SIZE);
-+		wmb_pmem();
-+	}
- 
- 	error = vm_insert_mixed(vma, vaddr, pfn);
- 
-@@ -608,7 +619,9 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
- 			int i;
- 			for (i = 0; i < PTRS_PER_PMD; i++)
--				clear_page(kaddr + i * PAGE_SIZE);
-+				clear_pmem((void __pmem *)kaddr + i*PAGE_SIZE,
-+						PAGE_SIZE);
-+			wmb_pmem();
- 			count_vm_event(PGMAJFAULT);
- 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
- 			result |= VM_FAULT_MAJOR;
-@@ -720,7 +733,8 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
- 		err = dax_get_addr(&bh, &addr, inode->i_blkbits);
- 		if (err < 0)
- 			return err;
--		memset(addr + offset, 0, length);
-+		clear_pmem((void __pmem *)addr + offset, length);
-+		wmb_pmem();
- 	}
- 
- 	return 0;
--- 
-2.1.0
+ void __weak arch_remove_reservations(struct resource *avail)
 
