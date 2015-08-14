@@ -1,14 +1,13 @@
 Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4gEPum_qq7PH0oNx3ntiWTP_1fp4EU+CAj8tm1Oeg-E9w@mail.gmail.com>
+In-Reply-To: <20150814220605.GB3265@gmail.com>
 References: <20150813031253.36913.29580.stgit@otcpl-skl-sds-2.jf.intel.com>
 	<20150813035005.36913.77364.stgit@otcpl-skl-sds-2.jf.intel.com>
 	<20150814213714.GA3265@gmail.com>
 	<CAPcyv4ib244VMSdhHDWHRnmCvYdteUEzT+ehTzitSY42m2Tt=w@mail.gmail.com>
 	<20150814220605.GB3265@gmail.com>
-	<CAPcyv4gEPum_qq7PH0oNx3ntiWTP_1fp4EU+CAj8tm1Oeg-E9w@mail.gmail.com>
-Date: Fri, 14 Aug 2015 19:11:27 -0700
-Message-ID: <CAPcyv4i-5RWTLK8FQFCBuFKwY0_HShbW7PVTHudSk4sF35xosA@mail.gmail.com>
+Date: Fri, 14 Aug 2015 15:33:13 -0700
+Message-ID: <CAPcyv4gEPum_qq7PH0oNx3ntiWTP_1fp4EU+CAj8tm1Oeg-E9w@mail.gmail.com>
 Subject: Re: [RFC PATCH 1/7] x86, mm: ZONE_DEVICE for "device memory"
 From: Dan Williams <dan.j.williams@intel.com>
 Content-Type: text/plain; charset=UTF-8
@@ -17,40 +16,31 @@ To: Jerome Glisse <j.glisse@gmail.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Boaz Harrosh <boaz@plexistor.com>, Rik van Riel <riel@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Hansen <dave.hansen@linux.intel.com>, david <david@fromorbit.com>, Ingo Molnar <mingo@kernel.org>, Linux MM <linux-mm@kvack.org>, Ingo Molnar <mingo@redhat.com>, Mel Gorman <mgorman@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Aug 14, 2015 at 3:33 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Fri, Aug 14, 2015 at 3:06 PM, Jerome Glisse <j.glisse@gmail.com> wrote:
->> On Fri, Aug 14, 2015 at 02:52:15PM -0700, Dan Williams wrote:
->>> On Fri, Aug 14, 2015 at 2:37 PM, Jerome Glisse <j.glisse@gmail.com> wrote:
->>> > On Wed, Aug 12, 2015 at 11:50:05PM -0400, Dan Williams wrote:
-> [..]
->>> > What is the rational for not updating max_pfn, max_low_pfn, ... ?
->>> >
->>>
->>> The idea is that this memory is not meant to be available to the page
->>> allocator and should not count as new memory capacity.  We're only
->>> hotplugging it to get struct page coverage.
+On Fri, Aug 14, 2015 at 3:06 PM, Jerome Glisse <j.glisse@gmail.com> wrote:
+> On Fri, Aug 14, 2015 at 02:52:15PM -0700, Dan Williams wrote:
+>> On Fri, Aug 14, 2015 at 2:37 PM, Jerome Glisse <j.glisse@gmail.com> wrote:
+>> > On Wed, Aug 12, 2015 at 11:50:05PM -0400, Dan Williams wrote:
+[..]
+>> > What is the rational for not updating max_pfn, max_low_pfn, ... ?
+>> >
 >>
->> But this sounds bogus to me to rely on max_pfn to stay smaller than
->> first_dev_pfn.  For instance you might plug a device that register
->> dev memory and then some regular memory might be hotplug, effectively
->> updating max_pfn to a value bigger than first_dev_pfn.
->>
+>> The idea is that this memory is not meant to be available to the page
+>> allocator and should not count as new memory capacity.  We're only
+>> hotplugging it to get struct page coverage.
 >
-> True.
+> But this sounds bogus to me to rely on max_pfn to stay smaller than
+> first_dev_pfn.  For instance you might plug a device that register
+> dev memory and then some regular memory might be hotplug, effectively
+> updating max_pfn to a value bigger than first_dev_pfn.
 >
->> Also i do not think that the buddy allocator use max_pfn or max_low_pfn
->> to consider page/zone for allocation or not.
->
-> Yes, I took it out with no effects.  I'll investigate further whether
-> we should be touching those variables or not for this new usage.
 
-Although it does not offer perfect protection if device memory is at a
-physically lower address than RAM, skipping the update of these
-variables does seem to be what we want.  For example /dev/mem would
-fail to allow write access to persistent memory if it fails a
-valid_phys_addr_range() check.  Since /dev/mem does not know how to
-write to PMEM in a reliably persistent way, it should not treat a
-PMEM-pfn like RAM.
+True.
+
+> Also i do not think that the buddy allocator use max_pfn or max_low_pfn
+> to consider page/zone for allocation or not.
+
+Yes, I took it out with no effects.  I'll investigate further whether
+we should be touching those variables or not for this new usage.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
