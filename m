@@ -1,32 +1,86 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <1439586441.16263.6.camel@linux.intel.com>
-References: <1439585008-30192-1-git-send-email-ross.zwisler@linux.intel.com>
-	<CAPcyv4jxw5rP2UoBF5gKW4tWtcKCj6Z0iXqwbWSCNv9TpjRGEQ@mail.gmail.com>
-	<1439586441.16263.6.camel@linux.intel.com>
-Date: Fri, 14 Aug 2015 14:28:36 -0700
-Message-ID: <CAPcyv4jKMhG-rAWiESFGktoC0-zyvOP543KKRZEe3+Vv2Qugnw@mail.gmail.com>
+Message-ID: <1439586441.16263.6.camel@linux.intel.com>
 Subject: Re: [PATCH] nd_blk: add support for "read flush" DSM flag
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Date: Fri, 14 Aug 2015 15:07:21 -0600
+In-Reply-To: <CAPcyv4jxw5rP2UoBF5gKW4tWtcKCj6Z0iXqwbWSCNv9TpjRGEQ@mail.gmail.com>
+References: <1439585008-30192-1-git-send-email-ross.zwisler@linux.intel.com>
+	 <CAPcyv4jxw5rP2UoBF5gKW4tWtcKCj6Z0iXqwbWSCNv9TpjRGEQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Jaeger <cj@linux.com>, Juergen Gross <jgross@suse.com>, X86 ML <x86@kernel.org>, Yalin Wang <Yalin.Wang@sonymobile.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Will Deacon <will.deacon@arm.com>, Rusty Russell <rusty@rustcorp.com.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Borislav Petkov <bp@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Dan Streetman <ddstreet@ieee.org>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Aug 14, 2015 at 2:07 PM, Ross Zwisler
-<ross.zwisler@linux.intel.com> wrote:
-> On Fri, 2015-08-14 at 14:05 -0700, Dan Williams wrote:
->> On Fri, Aug 14, 2015 at 1:43 PM, Ross Zwisler
->> This should be s/MEMREMAP_WB/ARCH_MEMREMAP_PMEM/, but other than that
->> looks good to me.
->>
->> I also should go move ARCH_MEMREMAP_PMEM over to
->> arch/x86/include/asm/pmem.h and fold it in to your other pending
->> pmem-api cleanups.
->
-> Sounds good.  Would you like a v2 with those changes, or would you rather
-> fix it as you apply it to the nvdimm tree?
+On Fri, 2015-08-14 at 14:05 -0700, Dan Williams wrote:
+> On Fri, Aug 14, 2015 at 1:43 PM, Ross Zwisler
+> <ross.zwisler@linux.intel.com> wrote:
+> > Add support for the "read flush" _DSM flag, as outlined in the DSM spec:
+> >
+> > http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+> >
+> > This flag tells the ND BLK driver that it needs to flush the cache lines
+> > associated with the aperture after the aperture is moved but before any
+> > new data is read.  This ensures that any stale cache lines from the
+> > previous contents of the aperture will be discarded from the processor
+> > cache, and the new data will be read properly from the DIMM.  We know
+> > that the cache lines are clean and will be discarded without any
+> > writeback because either a) the previous aperture operation was a read,
+> > and we never modified the contents of the aperture, or b) the previous
+> > aperture operation was a write and we must have written back the dirtied
+> > contents of the aperture to the DIMM before the I/O was completed.
+> >
+> > By supporting the "read flush" flag we can also change the ND BLK
+> > aperture mapping from write-combining to write-back via memremap().
+> >
+> > In order to add support for the "read flush" flag I needed to add a
+> > generic routine to invalidate cache lines, mmio_flush_range().  This is
+> > protected by the ARCH_HAS_MMIO_FLUSH Kconfig variable, and is currently
+> > only supported on x86.
+> >
+> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > ---
+> >  arch/x86/Kconfig                  |  1 +
+> >  arch/x86/include/asm/cacheflush.h |  2 ++
+> >  drivers/acpi/Kconfig              |  1 +
+> >  drivers/acpi/nfit.c               | 55 ++++++++++++++++++++++-----------------
+> >  drivers/acpi/nfit.h               | 16 ++++++++----
+> >  lib/Kconfig                       |  3 +++
+> >  6 files changed, 49 insertions(+), 29 deletions(-)
+> >
+> [..]
+> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> > index 628a42c..816c778 100644
+> > --- a/drivers/acpi/nfit.c
+> > +++ b/drivers/acpi/nfit.c
+> [..]
+> > @@ -1206,20 +1214,19 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+> >         if (!res)
+> >                 goto err_mem;
+> >
+> > -       if (type == SPA_MAP_APERTURE) {
+> > -               /*
+> > -                * TODO: memremap_pmem() support, but that requires cache
+> > -                * flushing when the aperture is moved.
+> > -                */
+> > -               spa_map->iomem = ioremap_wc(start, n);
+> > -       } else
+> > -               spa_map->iomem = ioremap_nocache(start, n);
+> > +       spa_map->type = type;
+> > +       if (type == SPA_MAP_APERTURE)
+> > +               spa_map->addr.aperture = (void __pmem *)memremap(start, n,
+> > +                                                               MEMREMAP_WB);
+> 
+> This should be s/MEMREMAP_WB/ARCH_MEMREMAP_PMEM/, but other than that
+> looks good to me.
+> 
+> I also should go move ARCH_MEMREMAP_PMEM over to
+> arch/x86/include/asm/pmem.h and fold it in to your other pending
+> pmem-api cleanups.
 
-Actually on closer this breaks the build for the unit test, so please
-respin with the ARCH_MEMREMAP_PMEM change and the unit test fixups.
+Sounds good.  Would you like a v2 with those changes, or would you rather
+fix it as you apply it to the nvdimm tree?
+
+
