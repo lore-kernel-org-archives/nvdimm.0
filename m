@@ -1,25 +1,27 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-MIME-Version: 1.0
-Date: Fri, 14 Aug 2015 10:00:48 -0700
-Message-ID: <CAPcyv4iEuKzNQ-zEMtriLqe+bnoE3jfUSztcSRaH05ZMBWvtfw@mail.gmail.com>
-Subject: Switch nvdimm.git to the shared repository
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
+Message-ID: <1439582628.16263.4.camel@linux.intel.com>
+Subject: Re: [PATCH v5 6/8] pmem: convert to generic memremap
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Date: Fri, 14 Aug 2015 14:03:48 -0600
+In-Reply-To: <20150813001235.17702.56586.stgit@otcpl-skl-sds-2.jf.intel.com>
+References: <20150813000250.17702.28409.stgit@otcpl-skl-sds-2.jf.intel.com>
+	 <20150813001235.17702.56586.stgit@otcpl-skl-sds-2.jf.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Vishal L Verma <vishal.l.verma@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-kernel@vger.kernel.org, mcgrof@suse.com, hch@lst.de, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Stephen,
+On Wed, 2015-08-12 at 20:12 -0400, Dan Williams wrote:
+> Kill arch_memremap_pmem() and just let the architecture specify the
+> flags to be passed to memremap().  Default to writethrough by default.
+> 
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Suggested-by: Christoph Hellwig <hch@lst.de>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-When you get a chance please switch the nvdimm.git repository in -next
-to our newly established shared repo.  I.e. switch from:
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm.git libnvdimm-for-next
 
-...to...:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git
-libnvdimm-for-next
-
-Thank you!
