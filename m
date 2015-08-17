@@ -1,30 +1,27 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Wed, 5 Aug 2015 17:27:37 -0700
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v3 13/24] visorbus: switch from ioremap_cache to memremap
-Message-ID: <20150806002737.GA25628@kroah.com>
-References: <20150730165155.33962.64121.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20150730165451.33962.48793.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Mon, 17 Aug 2015 21:11:03 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v3 6/7] dax: update I/O path to do proper PMEM flushing
+Message-ID: <20150817191103.GD6752@lst.de>
+References: <1439836211-4719-1-git-send-email-ross.zwisler@linux.intel.com> <1439836211-4719-7-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20150730165451.33962.48793.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, mcgrof@suse.com, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, Benjamin Romer <benjamin.romer@unisys.com>, David Kershner <david.kershner@unisys.com>, hch@lst.de, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1439836211-4719-7-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jul 30, 2015 at 12:54:51PM -0400, Dan Williams wrote:
-> In preparation for deprecating ioremap_cache() convert its usage in
-> visorbus to memremap.
+On Mon, Aug 17, 2015 at 12:30:10PM -0600, Ross Zwisler wrote:
+> Update the DAX I/O path so that all operations that store data (I/O
+> writes, zeroing blocks, punching holes, etc.) properly synchronize the
+> stores to media using the PMEM API.  This ensures that the data DAX is
+> writing is durable on media before the operation completes.
 > 
-> Cc: Benjamin Romer <benjamin.romer@unisys.com>
-> Cc: David Kershner <david.kershner@unisys.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/staging/unisys/visorbus/visorchannel.c |   16 +++++++++-------
->  drivers/staging/unisys/visorbus/visorchipset.c |   17 +++++++++--------
->  2 files changed, 18 insertions(+), 15 deletions(-)
-> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Looks fine (at least as long as the next patch also goes in to cut
+down on the crazy amount of __pmem casts..)
+
+Reviewed-by: Christoph Hellwig <hch@lst.de>
