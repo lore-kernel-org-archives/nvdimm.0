@@ -1,93 +1,90 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH 1/2]: nfit: Clarify memory device state flags strings
-Date: Wed, 26 Aug 2015 10:20:23 -0600
-Message-Id: <1440606024-29873-2-git-send-email-toshi.kani@hp.com>
-In-Reply-To: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
-References: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 3/7] pmem: remove layer when calling arch_has_wmb_pmem()
+Date: Mon, 17 Aug 2015 12:30:07 -0600
+Message-Id: <1439836211-4719-4-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439836211-4719-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439836211-4719-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: dan.j.williams@intel.com, rafael.j.wysocki@intel.com
-Cc: robert.moore@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, elliott@hp.com, Toshi Kani <toshi.kani@hp.com>
+To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.0 NFIT Memory Device State Flags in Table 5-129 defines
-NVDIMM status as follows.  These bits indicate multiple info,
-such as failures, pending event, and capability.
+Prior to this change arch_has_wmb_pmem() was only called by
+arch_has_pmem_api().  Both arch_has_wmb_pmem() and arch_has_pmem_api()
+checked to make sure that CONFIG_ARCH_HAS_PMEM_API was enabled.
 
-  Bit [0] set to 1 to indicate that the previous SAVE to the
-  Memory Device failed.
-  Bit [1] set to 1 to indicate that the last RESTORE from the
-  Memory Device failed.
-  Bit [2] set to 1 to indicate that platform flush of data to
-  Memory Device failed. As a result, the restored data content
-  may be inconsistent even if SAVE and RESTORE do not indicate
-  failure.
-  Bit [3] set to 1 to indicate that the Memory Device is observed
-  to be not armed prior to OSPM hand off. A Memory Device is
-  considered armed if it is able to accept persistent writes.
-  Bit [4] set to 1 to indicate that the Memory Device observed
-  SMART and health events prior to OSPM handoff.
-  Bit [5] is set to 1 to indicate that platform firmware is
-  enabled to notify OSPM on SMART and health events related to
-  the memory device using Notify codes as specified in Section
-  5.6.6.
+Instead, remove the old arch_has_wmb_pmem() wrapper to be rid of one
+extra layer of indirection and the redundant CONFIG_ARCH_HAS_PMEM_API
+check. Rename __arch_has_wmb_pmem() to arch_has_wmb_pmem() since we no
+longer have a wrapper, and just have arch_has_pmem_api() call the
+architecture specific arch_has_wmb_pmem() directly.
 
-/sys/bus/nd/devices/nmemX/nfit/flags shows this flags info.
-The output strings associated with the bits are "save", "restore",
-"smart", etc., which can be confusing as they may be interpreted
-as positive status, i.e. save succeeded.
-
-Change the strings to be more descriptive per the ACPI spec.
-Also add a string to bit 5 for completeness.
-
-Change also the dev_info() message in acpi_nfit_register_dimms()
-to be consistent with the sysfs flags strings.
-
-Reported-by: Robert Elliott <elliott@hp.com>
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/acpi/nfit.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ arch/x86/include/asm/pmem.h |  2 +-
+ include/linux/pmem.h        | 13 +++----------
+ 2 files changed, 4 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index c3fe206..6993ff2 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -701,12 +701,13 @@ static ssize_t flags_show(struct device *dev,
- {
- 	u16 flags = to_nfit_memdev(dev)->flags;
- 
--	return sprintf(buf, "%s%s%s%s%s\n",
--			flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " : "",
--			flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore " : "",
--			flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush " : "",
--			flags & ACPI_NFIT_MEM_ARMED ? "arm " : "",
--			flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart " : "");
-+	return sprintf(buf, "%s%s%s%s%s%s\n",
-+		flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
-+		flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail " : "",
-+		flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
-+		flags & ACPI_NFIT_MEM_ARMED ? "not_arm " : "",
-+		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " : "",
-+		flags & ACPI_NFIT_MEM_HEALTH_ENABLED ? "notify_enabled " : "");
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index f43462c..1e8dbb7 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -67,7 +67,7 @@ static inline void arch_wmb_pmem(void)
+ 	pcommit_sfence();
  }
- static DEVICE_ATTR_RO(flags);
  
-@@ -834,11 +835,11 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 			continue;
+-static inline bool __arch_has_wmb_pmem(void)
++static inline bool arch_has_wmb_pmem(void)
+ {
+ #ifdef CONFIG_X86_64
+ 	/*
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 5dad6d1..9d619d2 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -23,7 +23,7 @@ static inline void arch_wmb_pmem(void)
+ 	BUG();
+ }
  
- 		dev_info(acpi_desc->dev, "%s: failed: %s%s%s%s\n",
--				nvdimm_name(nvdimm),
--			mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " : "",
--			mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore " : "",
--			mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush " : "",
--			mem_flags & ACPI_NFIT_MEM_ARMED ? "arm " : "");
-+		  nvdimm_name(nvdimm),
-+		  mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
-+		  mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail ":"",
-+		  mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
-+		  mem_flags & ACPI_NFIT_MEM_ARMED ? "not_arm " : "");
+-static inline bool __arch_has_wmb_pmem(void)
++static inline bool arch_has_wmb_pmem(void)
+ {
+ 	return false;
+ }
+@@ -44,7 +44,7 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+ /*
+  * Architectures that define ARCH_HAS_PMEM_API must provide
+  * implementations for arch_memremap_pmem(), arch_memcpy_to_pmem(),
+- * arch_wmb_pmem(), and __arch_has_wmb_pmem().
++ * arch_wmb_pmem(), and arch_has_wmb_pmem().
+  */
  
- 	}
+ static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
+@@ -58,7 +58,7 @@ static inline void memunmap_pmem(void __pmem *addr)
+ }
  
+ /**
+- * arch_has_wmb_pmem - true if wmb_pmem() ensures durability
++ * arch_has_pmem_api - true if wmb_pmem() ensures durability
+  *
+  * For a given cpu implementation within an architecture it is possible
+  * that wmb_pmem() resolves to a nop.  In the case this returns
+@@ -66,13 +66,6 @@ static inline void memunmap_pmem(void __pmem *addr)
+  * fall back to a different data consistency model, or otherwise notify
+  * the user.
+  */
+-static inline bool arch_has_wmb_pmem(void)
+-{
+-	if (IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API))
+-		return __arch_has_wmb_pmem();
+-	return false;
+-}
+-
+ static inline bool arch_has_pmem_api(void)
+ {
+ 	return IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API) && arch_has_wmb_pmem();
+-- 
+2.1.0
+
