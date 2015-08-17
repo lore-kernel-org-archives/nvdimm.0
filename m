@@ -1,100 +1,61 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [RFC PATCH 0/7] 'struct page' driver for persistent memory
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 12 Aug 2015 23:50:00 -0400
-Message-ID: <20150813031253.36913.29580.stgit@otcpl-skl-sds-2.jf.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20150817150158.GB2625@lst.de>
+References: <20150813031253.36913.29580.stgit@otcpl-skl-sds-2.jf.intel.com>
+	<20150813035028.36913.25267.stgit@otcpl-skl-sds-2.jf.intel.com>
+	<20150815090635.GF21033@lst.de>
+	<CAPcyv4hMaRDOttcnvjq-aBXqgaPuB1d1XVi-dJFryC9pJ8PhMw@mail.gmail.com>
+	<20150815155846.GA26248@lst.de>
+	<CAPcyv4iN0BmipDfrsoCg2N2KnhX0+Hz2-ghr1i0H4US+bFe+Dw@mail.gmail.com>
+	<20150817150158.GB2625@lst.de>
+Date: Mon, 17 Aug 2015 08:32:07 -0700
+Message-ID: <CAPcyv4i5K2_rVwSJFon6x=f+Rsfd-yfkp4ACeSWwJ5K0OXxRrA@mail.gmail.com>
+Subject: Re: [RFC PATCH 5/7] libnvdimm, e820: make CONFIG_X86_PMEM_LEGACY a
+ tristate option
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: boaz@plexistor.com, riel@redhat.com, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, david@fromorbit.com, mingo@kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, mgorman@suse.de, "H. Peter Anvin" <hpa@zytor.com>, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org, hch@lst.de
+To: Christoph Hellwig <hch@lst.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Boaz Harrosh <boaz@plexistor.com>, Rik van Riel <riel@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, david <david@fromorbit.com>, Ingo Molnar <mingo@kernel.org>, Linux MM <linux-mm@kvack.org>, Mel Gorman <mgorman@suse.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When we last left this debate [1] it was becoming clear that the
-'page-less' approach left too many I/O scenarios off the table.  The
-page-less enabling is still useful for avoiding the overhead of struct
-page where it is not needed, but in the end, page-backed persistent
-memory seems to be a requirement.
+On Mon, Aug 17, 2015 at 8:01 AM, Christoph Hellwig <hch@lst.de> wrote:
+> On Sat, Aug 15, 2015 at 09:04:02AM -0700, Dan Williams wrote:
+>> What other layer? /sys/devices/platform/e820_pmem is that exact same
+>> device we had before this patch.  We just have a proper driver for it
+>> now.
+>
+> We're adding another layer of indirection between the old e820 file
+> and the new module.
 
-With that assumption in place the next debate was where to allocate the
-storage for the memmap array, or otherwise reduce the overhead of 'struct
-page' with a fancier object like variable length pages.
+Ok, yes, I was confused by "another layer of platform_devices".
 
-This series takes the position of mapping persistent memory with
-standard 'struct page' and pushes the policy decision of allocating the
-storage for the memmap array, from RAM or PMEM, to userspace.  It turns
-out the best place to allocate 64-bytes per 4K page will be platform
-specific.
-
-If PMEM capacities are low then mapping in RAM is a good choice.
-Otherwise, for very large capacities storing the memmap in PMEM might be
-a better choice. Yet again, PMEM might not have the performance
-characteristics favorable to a high rate of change object like 'struct
-page'. The kernel can make a reasonable guess, but it seems we will need
-to maintain the ability to override any default.
-
-Outside of the new libvdimm sysfs mechanisms to specify the memmap
-allocation policy for a given PMEM device, the core of this
-implementation is 'struct vmem_altmap'.  'vmem_altmap' alters the memory
-hotplug code to optionally use a reserved PMEM-pfn range rather than
-dynamic allocation for the memmap.
-
-Only lightly tested so far to confirm valid pfn_to_page() and
-page_address() conversions across a range of persistent memory specified
-by 'memmap=ss!nn' (kernel command line option to simulate a PMEM
-range).
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-May/000748.html
+That said here are the non-unit-test related reasons for this change
+that I would include in a new changelog:
 
 ---
 
-Dan Williams (7):
-      x86, mm: ZONE_DEVICE for "device memory"
-      x86, mm: introduce struct vmem_altmap
-      x86, mm: arch_add_dev_memory()
-      mm: register_dev_memmap()
-      libnvdimm, e820: make CONFIG_X86_PMEM_LEGACY a tristate option
-      libnvdimm, pfn: 'struct page' provider infrastructure
-      libnvdimm, pmem: 'struct page' for pmem
+We currently register a platform device for e820 type-12 memory and
+register a nvdimm bus beneath it.  Registering the platform device
+triggers the device-core machinery to probe for a driver, but that
+search currently comes up empty.  Building the nvdimm-bus registration
+into the e820_pmem platform device registration in this way forces
+libnvdimm to be built-in.  Instead, convert the built-in portion of
+CONFIG_X86_PMEM_LEGACY to simply register a platform device and move
+the rest of the logic to the driver for e820_pmem, for the following
+reasons:
 
+1/ Letting libnvdimm be a module allows building and testing
+libnvdimm.ko changes without rebooting
 
- arch/powerpc/mm/init_64.c         |    7 +
- arch/x86/Kconfig                  |   19 ++
- arch/x86/include/uapi/asm/e820.h  |    2 
- arch/x86/kernel/Makefile          |    2 
- arch/x86/kernel/pmem.c            |   79 +--------
- arch/x86/mm/init_64.c             |  160 +++++++++++++-----
- drivers/nvdimm/Kconfig            |   26 +++
- drivers/nvdimm/Makefile           |    5 +
- drivers/nvdimm/btt.c              |    8 -
- drivers/nvdimm/btt_devs.c         |  172 +------------------
- drivers/nvdimm/claim.c            |  201 ++++++++++++++++++++++
- drivers/nvdimm/e820.c             |   86 ++++++++++
- drivers/nvdimm/namespace_devs.c   |   34 +++-
- drivers/nvdimm/nd-core.h          |    9 +
- drivers/nvdimm/nd.h               |   59 ++++++-
- drivers/nvdimm/pfn.h              |   35 ++++
- drivers/nvdimm/pfn_devs.c         |  334 +++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/pmem.c             |  213 +++++++++++++++++++++++-
- drivers/nvdimm/region.c           |    2 
- drivers/nvdimm/region_devs.c      |   19 ++
- include/linux/kmap_pfn.h          |   33 ++++
- include/linux/memory_hotplug.h    |   21 ++
- include/linux/mm.h                |   53 ++++++
- include/linux/mmzone.h            |   23 +++
- mm/kmap_pfn.c                     |  195 ++++++++++++++++++++++
- mm/memory_hotplug.c               |   84 ++++++---
- mm/page_alloc.c                   |   18 ++
- mm/sparse-vmemmap.c               |   60 ++++++-
- mm/sparse.c                       |   44 +++--
- tools/testing/nvdimm/Kbuild       |    7 +
- tools/testing/nvdimm/test/iomap.c |   13 +
- 31 files changed, 1673 insertions(+), 350 deletions(-)
- create mode 100644 drivers/nvdimm/claim.c
- create mode 100644 drivers/nvdimm/e820.c
- create mode 100644 drivers/nvdimm/pfn.h
- create mode 100644 drivers/nvdimm/pfn_devs.c
+2/ All the normal policy around modules can be applied to e820_pmem
+(unbind to disable and/or blacklisting the module from loading by
+default)
+
+3/ Moving the driver to a generic location and converting it to scan
+"iomem_resource" rather than "e820.map" means any other architecture
+can take advantage of this simple nvdimm resource discovery mechanism
+by registering a resource named "Persistent Memory (legacy)"
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
