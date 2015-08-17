@@ -1,105 +1,233 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH]: acpica/nfit: Rename not-armed bit definition
-Date: Fri, 28 Aug 2015 08:40:17 -0600
-Message-Id: <1440772817-13562-1-git-send-email-toshi.kani@hp.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 2/7] pmem, x86: move x86 PMEM API to new pmem.h header
+Date: Mon, 17 Aug 2015 12:30:06 -0600
+Message-Id: <1439836211-4719-3-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439836211-4719-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439836211-4719-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: dan.j.williams@intel.com, rafael.j.wysocki@intel.com, robert.moore@intel.com
-Cc: devel@acpica.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "David S. Miller" <davem@davemloft.net>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@suse.de>, Greg KH <gregkh@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Jiri Slaby <jslaby@suse.com>, Joe Perches <joe@perches.com>, Juergen Gross <jgross@suse.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Tejun Heo <tj@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.0 NFIT Memory Device State Flags in Table 5-129 defines
-bit 3 as follows.
+Move the x86 PMEM API implementation out of asm/cacheflush.h and into
+its own header asm/pmem.h.  This will allow members of the PMEM API to
+be more easily identified on this and other architectures.
 
-  Bit [3] set to 1 to indicate that the Memory Device is observed
-  to be not armed prior to OSPM hand off. A Memory Device is
-  considered armed if it is able to accept persistent writes.
-
-This bit is currently defined as ACPI_NFIT_MEM_ARMED, which can be
-confusing as if the Memory Device is armed when this bit is set.
-
-Change the name to ACPI_NFIT_MEM_NOT_ARMED per the spec.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
-This patch is based on the linus's tree.
----
- drivers/acpi/nfit.c              |    6 +++---
- drivers/acpi/nfit.h              |    2 +-
- include/acpi/actbl1.h            |    2 +-
- tools/testing/nvdimm/test/nfit.c |    2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ MAINTAINERS                       |  1 +
+ arch/x86/include/asm/cacheflush.h | 71 ------------------------------
+ arch/x86/include/asm/pmem.h       | 92 +++++++++++++++++++++++++++++++++++++++
+ include/linux/pmem.h              |  2 +-
+ 4 files changed, 94 insertions(+), 72 deletions(-)
+ create mode 100644 arch/x86/include/asm/pmem.h
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index cf0fd96..4596e0a 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -705,7 +705,7 @@ static ssize_t flags_show(struct device *dev,
- 		flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
- 		flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail " : "",
- 		flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
--		flags & ACPI_NFIT_MEM_ARMED ? "not_armed " : "",
-+		flags & ACPI_NFIT_MEM_NOT_ARMED ? "not_armed " : "",
- 		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " : "");
+diff --git a/MAINTAINERS b/MAINTAINERS
+index a9ae6c1..d0b5a08 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6165,6 +6165,7 @@ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
+ S:	Supported
+ F:	drivers/nvdimm/pmem.c
+ F:	include/linux/pmem.h
++F:	arch/*/include/asm/pmem.h
+ 
+ LINUX FOR IBM pSERIES (RS/6000)
+ M:	Paul Mackerras <paulus@au.ibm.com>
+diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
+index 9bf3ea1..471418a 100644
+--- a/arch/x86/include/asm/cacheflush.h
++++ b/arch/x86/include/asm/cacheflush.h
+@@ -109,75 +109,4 @@ static inline int rodata_test(void)
  }
- static DEVICE_ATTR_RO(flags);
-@@ -830,7 +830,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 			flags |= NDD_ALIASING;
+ #endif
  
- 		mem_flags = __to_nfit_memdev(nfit_mem)->flags;
--		if (mem_flags & ACPI_NFIT_MEM_ARMED)
-+		if (mem_flags & ACPI_NFIT_MEM_NOT_ARMED)
- 			flags |= NDD_UNARMED;
+-#ifdef ARCH_HAS_NOCACHE_UACCESS
+-
+-/**
+- * arch_memcpy_to_pmem - copy data to persistent memory
+- * @dst: destination buffer for the copy
+- * @src: source buffer for the copy
+- * @n: length of the copy in bytes
+- *
+- * Copy data to persistent memory media via non-temporal stores so that
+- * a subsequent arch_wmb_pmem() can flush cpu and memory controller
+- * write buffers to guarantee durability.
+- */
+-static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+-		size_t n)
+-{
+-	int unwritten;
+-
+-	/*
+-	 * We are copying between two kernel buffers, if
+-	 * __copy_from_user_inatomic_nocache() returns an error (page
+-	 * fault) we would have already reported a general protection fault
+-	 * before the WARN+BUG.
+-	 */
+-	unwritten = __copy_from_user_inatomic_nocache((void __force *) dst,
+-			(void __user *) src, n);
+-	if (WARN(unwritten, "%s: fault copying %p <- %p unwritten: %d\n",
+-				__func__, dst, src, unwritten))
+-		BUG();
+-}
+-
+-/**
+- * arch_wmb_pmem - synchronize writes to persistent memory
+- *
+- * After a series of arch_memcpy_to_pmem() operations this drains data
+- * from cpu write buffers and any platform (memory controller) buffers
+- * to ensure that written data is durable on persistent memory media.
+- */
+-static inline void arch_wmb_pmem(void)
+-{
+-	/*
+-	 * wmb() to 'sfence' all previous writes such that they are
+-	 * architecturally visible to 'pcommit'.  Note, that we've
+-	 * already arranged for pmem writes to avoid the cache via
+-	 * arch_memcpy_to_pmem().
+-	 */
+-	wmb();
+-	pcommit_sfence();
+-}
+-
+-static inline bool __arch_has_wmb_pmem(void)
+-{
+-#ifdef CONFIG_X86_64
+-	/*
+-	 * We require that wmb() be an 'sfence', that is only guaranteed on
+-	 * 64-bit builds
+-	 */
+-	return static_cpu_has(X86_FEATURE_PCOMMIT);
+-#else
+-	return false;
+-#endif
+-}
+-#else /* ARCH_HAS_NOCACHE_UACCESS i.e. ARCH=um */
+-extern void arch_memcpy_to_pmem(void __pmem *dst, const void *src, size_t n);
+-extern void arch_wmb_pmem(void);
+-
+-static inline bool __arch_has_wmb_pmem(void)
+-{
+-	return false;
+-}
+-#endif
+-
+ #endif /* _ASM_X86_CACHEFLUSH_H */
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+new file mode 100644
+index 0000000..f43462c
+--- /dev/null
++++ b/arch/x86/include/asm/pmem.h
+@@ -0,0 +1,92 @@
++/*
++ * Copyright(c) 2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __ASM_X86_PMEM_H__
++#define __ASM_X86_PMEM_H__
++
++#include <linux/uaccess.h>
++#include <asm/cacheflush.h>
++#include <asm/cpufeature.h>
++#include <asm/special_insns.h>
++
++#ifdef ARCH_HAS_NOCACHE_UACCESS
++
++/**
++ * arch_memcpy_to_pmem - copy data to persistent memory
++ * @dst: destination buffer for the copy
++ * @src: source buffer for the copy
++ * @n: length of the copy in bytes
++ *
++ * Copy data to persistent memory media via non-temporal stores so that
++ * a subsequent arch_wmb_pmem() can flush cpu and memory controller
++ * write buffers to guarantee durability.
++ */
++static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
++		size_t n)
++{
++	int unwritten;
++
++	/*
++	 * We are copying between two kernel buffers, if
++	 * __copy_from_user_inatomic_nocache() returns an error (page
++	 * fault) we would have already reported a general protection fault
++	 * before the WARN+BUG.
++	 */
++	unwritten = __copy_from_user_inatomic_nocache((void __force *) dst,
++			(void __user *) src, n);
++	if (WARN(unwritten, "%s: fault copying %p <- %p unwritten: %d\n",
++				__func__, dst, src, unwritten))
++		BUG();
++}
++
++/**
++ * arch_wmb_pmem - synchronize writes to persistent memory
++ *
++ * After a series of arch_memcpy_to_pmem() operations this drains data
++ * from cpu write buffers and any platform (memory controller) buffers
++ * to ensure that written data is durable on persistent memory media.
++ */
++static inline void arch_wmb_pmem(void)
++{
++	/*
++	 * wmb() to 'sfence' all previous writes such that they are
++	 * architecturally visible to 'pcommit'.  Note, that we've
++	 * already arranged for pmem writes to avoid the cache via
++	 * arch_memcpy_to_pmem().
++	 */
++	wmb();
++	pcommit_sfence();
++}
++
++static inline bool __arch_has_wmb_pmem(void)
++{
++#ifdef CONFIG_X86_64
++	/*
++	 * We require that wmb() be an 'sfence', that is only guaranteed on
++	 * 64-bit builds
++	 */
++	return static_cpu_has(X86_FEATURE_PCOMMIT);
++#else
++	return false;
++#endif
++}
++#else /* ARCH_HAS_NOCACHE_UACCESS i.e. ARCH=um */
++extern void arch_memcpy_to_pmem(void __pmem *dst, const void *src, size_t n);
++extern void arch_wmb_pmem(void);
++
++static inline bool __arch_has_wmb_pmem(void)
++{
++	return false;
++}
++#endif
++
++#endif /* __ASM_X86_PMEM_H__ */
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index d211404..5dad6d1 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -16,7 +16,7 @@
+ #include <linux/io.h>
  
- 		rc = acpi_nfit_add_dimm(acpi_desc, nfit_mem, device_handle);
-@@ -854,7 +854,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		  mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? " save_fail" : "",
- 		  mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? " restore_fail":"",
- 		  mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? " flush_fail" : "",
--		  mem_flags & ACPI_NFIT_MEM_ARMED ? " not_armed" : "");
-+		  mem_flags & ACPI_NFIT_MEM_NOT_ARMED ? " not_armed" : "");
- 
- 	}
- 
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 79b6d83..90505e3 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -24,7 +24,7 @@
- #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
- #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
- 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
--		| ACPI_NFIT_MEM_ARMED)
-+		| ACPI_NFIT_MEM_NOT_ARMED)
- 
- enum nfit_uuids {
- 	NFIT_SPA_VOLATILE,
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index fcd5709..238754e 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -1012,7 +1012,7 @@ struct acpi_nfit_memory_map {
- #define ACPI_NFIT_MEM_SAVE_FAILED       (1)	/* 00: Last SAVE to Memory Device failed */
- #define ACPI_NFIT_MEM_RESTORE_FAILED    (1<<1)	/* 01: Last RESTORE from Memory Device failed */
- #define ACPI_NFIT_MEM_FLUSH_FAILED      (1<<2)	/* 02: Platform flush failed */
--#define ACPI_NFIT_MEM_ARMED             (1<<3)	/* 03: Memory Device observed to be not armed */
-+#define ACPI_NFIT_MEM_NOT_ARMED         (1<<3)	/* 03: Memory Device observed to be not armed */
- #define ACPI_NFIT_MEM_HEALTH_OBSERVED   (1<<4)	/* 04: Memory Device observed SMART/health events */
- #define ACPI_NFIT_MEM_HEALTH_ENABLED    (1<<5)	/* 05: SMART/health events enabled */
- 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index d0bdae4..ed271ba 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -917,7 +917,7 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	memdev->interleave_ways = 1;
- 	memdev->flags = ACPI_NFIT_MEM_SAVE_FAILED | ACPI_NFIT_MEM_RESTORE_FAILED
- 		| ACPI_NFIT_MEM_FLUSH_FAILED | ACPI_NFIT_MEM_HEALTH_OBSERVED
--		| ACPI_NFIT_MEM_ARMED;
-+		| ACPI_NFIT_MEM_NOT_ARMED;
- 
- 	offset += sizeof(*memdev);
- 	/* dcr-descriptor0 */
+ #ifdef CONFIG_ARCH_HAS_PMEM_API
+-#include <asm/cacheflush.h>
++#include <asm/pmem.h>
+ #else
+ static inline void arch_wmb_pmem(void)
+ {
+-- 
+2.1.0
+
