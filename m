@@ -1,10 +1,10 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 1/7] brd: make rd_size static
-Date: Tue, 18 Aug 2015 13:55:35 -0600
-Message-Id: <1439927741-29580-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 1/7] brd: make rd_size static
+Date: Tue, 18 Aug 2015 11:14:42 -0600
+Message-Id: <1439918088-32159-2-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@kernel.dk>
