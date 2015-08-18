@@ -1,10 +1,10 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 6/7] dax: update I/O path to do proper PMEM flushing
-Date: Tue, 18 Aug 2015 13:55:40 -0600
-Message-Id: <1439927741-29580-7-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 6/7] dax: update I/O path to do proper PMEM flushing
+Date: Tue, 18 Aug 2015 11:14:47 -0600
+Message-Id: <1439918088-32159-7-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org
@@ -18,11 +18,11 @@ writing is durable on media before the operation completes.
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/dax.c | 40 ++++++++++++++++++++++++++--------------
- 1 file changed, 26 insertions(+), 14 deletions(-)
+ fs/dax.c | 44 +++++++++++++++++++++++++++++---------------
+ 1 file changed, 29 insertions(+), 15 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index c3e21cc..cb02a61 100644
+index b6769ce..680b44a 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
 @@ -17,12 +17,14 @@
@@ -131,7 +131,7 @@ index c3e21cc..cb02a61 100644
  	return (pos == start) ? retval : pos - start;
  }
  
-@@ -303,8 +312,10 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+@@ -300,8 +309,10 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
  		goto out;
  	}
  
@@ -144,7 +144,18 @@ index c3e21cc..cb02a61 100644
  
  	error = vm_insert_mixed(vma, vaddr, pfn);
  
-@@ -542,7 +553,8 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
+@@ -608,7 +619,9 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+ 			int i;
+ 			for (i = 0; i < PTRS_PER_PMD; i++)
+-				clear_page(kaddr + i * PAGE_SIZE);
++				clear_pmem((void __pmem *)kaddr + i*PAGE_SIZE,
++						PAGE_SIZE);
++			wmb_pmem();
+ 			count_vm_event(PGMAJFAULT);
+ 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+ 			result |= VM_FAULT_MAJOR;
+@@ -720,7 +733,8 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
  		err = dax_get_addr(&bh, &addr, inode->i_blkbits);
  		if (err < 0)
  			return err;
