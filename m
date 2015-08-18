@@ -1,10 +1,10 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 4/7] pmem, x86: clean up conditional pmem includes
-Date: Tue, 18 Aug 2015 13:55:38 -0600
-Message-Id: <1439927741-29580-5-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 4/7] pmem, x86: clean up conditional pmem includes
+Date: Tue, 18 Aug 2015 11:14:45 -0600
+Message-Id: <1439918088-32159-5-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
