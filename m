@@ -1,103 +1,90 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v5 0/5] introduce __pfn_t for unmapped pfn I/O and DAX
- lifetime
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 12 Aug 2015 23:00:59 -0400
-Message-ID: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, mgorman@suse.de, torvalds@linux-foundation.org, hch@lst.de
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v5 3/7] pmem: remove layer when calling arch_has_wmb_pmem()
+Date: Tue, 18 Aug 2015 13:55:37 -0600
+Message-Id: <1439927741-29580-4-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v4 [1]:
+Prior to this change arch_has_wmb_pmem() was only called by
+arch_has_pmem_api().  Both arch_has_wmb_pmem() and arch_has_pmem_api()
+checked to make sure that CONFIG_ARCH_HAS_PMEM_API was enabled.
 
-1/ Allow up to PAGE_SHIFT bits in PFN_ flags.  Previously the __pfn_t
-   value was a union with a 'struct page *', but now __pfn_t_to_page()
-   internally does a pfn_to_page() instead of type-punning the value.
-   (Linus, Matthew)
+Instead, remove the old arch_has_wmb_pmem() wrapper to be rid of one
+extra layer of indirection and the redundant CONFIG_ARCH_HAS_PMEM_API
+check. Rename __arch_has_wmb_pmem() to arch_has_wmb_pmem() since we no
+longer have a wrapper, and just have arch_has_pmem_api() call the
+architecture specific arch_has_wmb_pmem() directly.
 
-2/ Move the definition to include/linux/mm.h and squash the
-   kmap_atomic_pfn_t() definition into the same patch. (Christoph)
-
-3/ Kill dax_get_pfn().  Now replaced with dax_map_bh() (Matthew)
-
-4/ The scatterlist cleanup patches are moved to their own series being
-   carried by Christoph.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-June/001094.html
-
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
+ arch/x86/include/asm/pmem.h |  2 +-
+ include/linux/pmem.h        | 13 +++----------
+ 2 files changed, 4 insertions(+), 11 deletions(-)
 
-We want persistent memory to have 4 modes of access:
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index f43462c..1e8dbb7 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -67,7 +67,7 @@ static inline void arch_wmb_pmem(void)
+ 	pcommit_sfence();
+ }
+ 
+-static inline bool __arch_has_wmb_pmem(void)
++static inline bool arch_has_wmb_pmem(void)
+ {
+ #ifdef CONFIG_X86_64
+ 	/*
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index c2af613..a0706ea 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -23,7 +23,7 @@ static inline void arch_wmb_pmem(void)
+ 	BUG();
+ }
+ 
+-static inline bool __arch_has_wmb_pmem(void)
++static inline bool arch_has_wmb_pmem(void)
+ {
+ 	return false;
+ }
+@@ -38,7 +38,7 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+ /*
+  * Architectures that define ARCH_HAS_PMEM_API must provide
+  * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(), and
+- * __arch_has_wmb_pmem().
++ * arch_has_wmb_pmem().
+  */
+ 
+ static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
+@@ -52,7 +52,7 @@ static inline void memunmap_pmem(struct device *dev, void __pmem *addr)
+ }
+ 
+ /**
+- * arch_has_wmb_pmem - true if wmb_pmem() ensures durability
++ * arch_has_pmem_api - true if wmb_pmem() ensures durability
+  *
+  * For a given cpu implementation within an architecture it is possible
+  * that wmb_pmem() resolves to a nop.  In the case this returns
+@@ -60,13 +60,6 @@ static inline void memunmap_pmem(struct device *dev, void __pmem *addr)
+  * fall back to a different data consistency model, or otherwise notify
+  * the user.
+  */
+-static inline bool arch_has_wmb_pmem(void)
+-{
+-	if (IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API))
+-		return __arch_has_wmb_pmem();
+-	return false;
+-}
+-
+ static inline bool arch_has_pmem_api(void)
+ {
+ 	return IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API) && arch_has_wmb_pmem();
+-- 
+2.1.0
 
-1/ Block device: persistent memory treated as a ram disk (done)
-
-2/ DAX: userspace mmap (done)
-
-3/ Kernel "page-less". (this series)
-
-4/ Kernel and userspace references to page-mapped persistent memory
-   (future series)
-
-The "kernel 'page-less'" case leverages the fact that a 'struct page'
-object is not necessarily required for describing a DMA transfer from a
-device to a persistent memory address.  A pfn will do, but code needs to
-be careful to not perform a pfn_to_page() operation on unmapped
-persistent memory. The __pfn_t type enforces that safety and
-kmap_atomic_pfn_t() covers cases where the I/O stack needs to touch the
-buffer on its way to the low-level-device-driver (i.e. current usages of
-kmap_atomic() in the block-layer).
-
-A subsequent patch series will add struct page coverage for persistent,
-"device", memory.
-
-We also use kmap_atomic_pfn_t() to solve races of pmem driver unbind vs
-usage in DAX. rcu_read_lock() protects the driver from unbinding while a
-mapping is held.
-
----
-
-Christoph Hellwig (1):
-      mm: move __phys_to_pfn and __pfn_to_phys to asm/generic/memory_model.h
-
-Dan Williams (4):
-      allow mapping page-less memremaped areas into KVA
-      dax: drop size parameter to ->direct_access()
-      dax: fix mapping lifetime handling, convert to __pfn_t + kmap_atomic_pfn_t()
-      scatterlist: convert to __pfn_t
-
-
- arch/arm/include/asm/memory.h       |    6 --
- arch/arm64/include/asm/memory.h     |    6 --
- arch/powerpc/platforms/Kconfig      |    1 
- arch/powerpc/sysdev/axonram.c       |   24 +++++--
- arch/unicore32/include/asm/memory.h |    6 --
- drivers/block/brd.c                 |    9 +--
- drivers/nvdimm/Kconfig              |    1 
- drivers/nvdimm/pmem.c               |   24 ++++---
- drivers/s390/block/Kconfig          |    1 
- drivers/s390/block/dcssblk.c        |   23 ++++++-
- fs/Kconfig                          |    1 
- fs/block_dev.c                      |    4 +
- fs/dax.c                            |   79 +++++++++++++++++-------
- include/asm-generic/memory_model.h  |    6 ++
- include/linux/blkdev.h              |    7 +-
- include/linux/kmap_pfn.h            |   31 +++++++++
- include/linux/mm.h                  |   78 +++++++++++++++++++++++
- include/linux/scatterlist.h         |  111 +++++++++++++++++++++++----------
- mm/Kconfig                          |    3 +
- mm/Makefile                         |    1 
- mm/kmap_pfn.c                       |  117 +++++++++++++++++++++++++++++++++++
- samples/kfifo/dma-example.c         |    8 +-
- 22 files changed, 435 insertions(+), 112 deletions(-)
- create mode 100644 include/linux/kmap_pfn.h
- create mode 100644 mm/kmap_pfn.c
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
