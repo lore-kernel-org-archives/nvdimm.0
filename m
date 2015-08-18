@@ -1,10 +1,10 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 5/7] pmem: add copy_from_iter_pmem() and clear_pmem()
-Date: Tue, 18 Aug 2015 13:55:39 -0600
-Message-Id: <1439927741-29580-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 5/7] pmem: add copy_from_iter_pmem() and clear_pmem()
+Date: Tue, 18 Aug 2015 11:14:46 -0600
+Message-Id: <1439918088-32159-6-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
@@ -23,8 +23,8 @@ barriers.
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
  arch/x86/include/asm/pmem.h | 75 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pmem.h        | 64 ++++++++++++++++++++++++++++++++++++--
- 2 files changed, 137 insertions(+), 2 deletions(-)
+ include/linux/pmem.h        | 66 +++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 138 insertions(+), 3 deletions(-)
 
 diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
 index 7f3413f..a3a0df6 100644
@@ -113,7 +113,7 @@ index 7f3413f..a3a0df6 100644
  {
  #ifdef CONFIG_X86_64
 diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index a0706ea..a9d84bf 100644
+index 9d619d2..c7f57eb 100644
 --- a/include/linux/pmem.h
 +++ b/include/linux/pmem.h
 @@ -14,6 +14,7 @@
@@ -124,7 +124,7 @@ index a0706ea..a9d84bf 100644
  
  #ifdef CONFIG_ARCH_HAS_PMEM_API
  #include <asm/pmem.h>
-@@ -33,12 +34,24 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+@@ -39,12 +40,24 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
  {
  	BUG();
  }
@@ -143,16 +143,17 @@ index a0706ea..a9d84bf 100644
  #endif
  
  /*
-  * Architectures that define ARCH_HAS_PMEM_API must provide
-- * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(), and
-- * arch_has_wmb_pmem().
-+ * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(),
+- * Architectures that define ARCH_HAS_PMEM_API must provide
+- * implementations for arch_memremap_pmem(), arch_memcpy_to_pmem(),
+- * arch_wmb_pmem(), and arch_has_wmb_pmem().
++ * Architectures that define ARCH_HAS_PMEM_API must provide implementations
++ * for arch_memremap_pmem(), arch_memcpy_to_pmem(), arch_wmb_pmem(),
 + * arch_copy_from_iter_pmem(), arch_clear_pmem() and arch_has_wmb_pmem().
   */
  
  static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
-@@ -78,6 +91,20 @@ static inline void default_memcpy_to_pmem(void __pmem *dst, const void *src,
- 	memcpy((void __force *) dst, src, size);
+@@ -90,6 +103,20 @@ static void __pmem *default_memremap_pmem(resource_size_t offset,
+ 	return (void __pmem __force *)ioremap_wt(offset, size);
  }
  
 +static inline size_t default_copy_from_iter_pmem(void __pmem *addr,
@@ -172,7 +173,7 @@ index a0706ea..a9d84bf 100644
  /**
   * memremap_pmem - map physical persistent memory for pmem api
   * @offset: physical address of persistent memory
-@@ -134,4 +161,37 @@ static inline void wmb_pmem(void)
+@@ -142,4 +169,37 @@ static inline void wmb_pmem(void)
  	if (arch_has_pmem_api())
  		arch_wmb_pmem();
  }
