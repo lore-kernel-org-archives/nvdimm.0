@@ -1,10 +1,10 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 2/7] pmem, x86: move x86 PMEM API to new pmem.h header
-Date: Tue, 18 Aug 2015 13:55:36 -0600
-Message-Id: <1439927741-29580-3-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 2/7] pmem, x86: move x86 PMEM API to new pmem.h header
+Date: Tue, 18 Aug 2015 11:14:43 -0600
+Message-Id: <1439918088-32159-3-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "David S. Miller" <davem@davemloft.net>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@suse.de>, Greg KH <gregkh@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Jiri Slaby <jslaby@suse.com>, Joe Perches <joe@perches.com>, Juergen Gross <jgross@suse.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Tejun Heo <tj@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, x86@kernel.org
@@ -26,10 +26,10 @@ Reviewed-by: Christoph Hellwig <hch@lst.de>
  create mode 100644 arch/x86/include/asm/pmem.h
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 9289ecb..8fcde371 100644
+index a9ae6c1..d0b5a08 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -6161,6 +6161,7 @@ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
+@@ -6165,6 +6165,7 @@ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
  S:	Supported
  F:	drivers/nvdimm/pmem.c
  F:	include/linux/pmem.h
@@ -216,7 +216,7 @@ index 0000000..f43462c
 +
 +#endif /* __ASM_X86_PMEM_H__ */
 diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 20c367c..c2af613 100644
+index d211404..5dad6d1 100644
 --- a/include/linux/pmem.h
 +++ b/include/linux/pmem.h
 @@ -16,7 +16,7 @@
