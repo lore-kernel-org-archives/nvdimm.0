@@ -1,10 +1,10 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 3/7] pmem: remove layer when calling arch_has_wmb_pmem()
-Date: Tue, 18 Aug 2015 13:55:37 -0600
-Message-Id: <1439927741-29580-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 3/7] pmem: remove layer when calling arch_has_wmb_pmem()
+Date: Tue, 18 Aug 2015 11:14:44 -0600
+Message-Id: <1439918088-32159-4-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
@@ -41,7 +41,7 @@ index f43462c..1e8dbb7 100644
  #ifdef CONFIG_X86_64
  	/*
 diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index c2af613..a0706ea 100644
+index 5dad6d1..9d619d2 100644
 --- a/include/linux/pmem.h
 +++ b/include/linux/pmem.h
 @@ -23,7 +23,7 @@ static inline void arch_wmb_pmem(void)
@@ -53,16 +53,16 @@ index c2af613..a0706ea 100644
  {
  	return false;
  }
-@@ -38,7 +38,7 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+@@ -44,7 +44,7 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
  /*
   * Architectures that define ARCH_HAS_PMEM_API must provide
-  * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(), and
-- * __arch_has_wmb_pmem().
-+ * arch_has_wmb_pmem().
+  * implementations for arch_memremap_pmem(), arch_memcpy_to_pmem(),
+- * arch_wmb_pmem(), and __arch_has_wmb_pmem().
++ * arch_wmb_pmem(), and arch_has_wmb_pmem().
   */
  
  static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
-@@ -52,7 +52,7 @@ static inline void memunmap_pmem(struct device *dev, void __pmem *addr)
+@@ -58,7 +58,7 @@ static inline void memunmap_pmem(void __pmem *addr)
  }
  
  /**
@@ -71,7 +71,7 @@ index c2af613..a0706ea 100644
   *
   * For a given cpu implementation within an architecture it is possible
   * that wmb_pmem() resolves to a nop.  In the case this returns
-@@ -60,13 +60,6 @@ static inline void memunmap_pmem(struct device *dev, void __pmem *addr)
+@@ -66,13 +66,6 @@ static inline void memunmap_pmem(void __pmem *addr)
   * fall back to a different data consistency model, or otherwise notify
   * the user.
   */
