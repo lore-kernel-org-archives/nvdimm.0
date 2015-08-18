@@ -1,97 +1,159 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v4 00/10] memremap for 4.3
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 10 Aug 2015 23:37:50 -0400
-Message-ID: <20150811033345.4987.17983.stgit@otcpl-bsw-rvp-2.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Toshi Kani <toshi.kani@hp.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mcgrof@suse.com, hch@lst.de, Benjamin Romer <benjamin.romer@unisys.com>, David Kershner <david.kershner@unisys.com>, ross.zwisler@linux.intel.com
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v5 6/7] dax: update I/O path to do proper PMEM flushing
+Date: Tue, 18 Aug 2015 13:55:40 -0600
+Message-Id: <1439927741-29580-7-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v3: [1]
+Update the DAX I/O path so that all operations that store data (I/O
+writes, zeroing blocks, punching holes, etc.) properly synchronize the
+stores to media using the PMEM API.  This ensures that the data DAX is
+writing is durable on media before the operation completes.
 
-1/ Include devm_memremap() support (Christoph)
-
-2/ Rebase the series to defer the removal of ioremap_cache() and drop
-   any of the ioremap_cache()-to-memremap() conversions that have yet to be
-   acked by the appropriate maintainer. This avoids any potential for
-   bisection breakage during the 4.3 merge and the cleanup can be done for
-   4.4. (Christoph)
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-July/001649.html
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
+ fs/dax.c | 40 ++++++++++++++++++++++++++--------------
+ 1 file changed, 26 insertions(+), 14 deletions(-)
 
-While developing the pmem driver we noticed that the __iomem annotation
-on the return value from ioremap_cache() was being mishandled by several
-callers.  We also observed that all of the call sites expected to be
-able to treat the return value from ioremap_cache() as normal
-(non-__iomem) pointer to memory.
+diff --git a/fs/dax.c b/fs/dax.c
+index c3e21cc..cb02a61 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -17,12 +17,14 @@
+ #include <linux/atomic.h>
+ #include <linux/blkdev.h>
+ #include <linux/buffer_head.h>
++#include <linux/dax.h>
+ #include <linux/fs.h>
+ #include <linux/genhd.h>
+ #include <linux/highmem.h>
+ #include <linux/memcontrol.h>
+ #include <linux/mm.h>
+ #include <linux/mutex.h>
++#include <linux/pmem.h>
+ #include <linux/sched.h>
+ #include <linux/uio.h>
+ #include <linux/vmstat.h>
+@@ -46,10 +48,7 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+ 			unsigned pgsz = PAGE_SIZE - offset_in_page(addr);
+ 			if (pgsz > count)
+ 				pgsz = count;
+-			if (pgsz < PAGE_SIZE)
+-				memset(addr, 0, pgsz);
+-			else
+-				clear_page(addr);
++			clear_pmem((void __pmem *)addr, pgsz);
+ 			addr += pgsz;
+ 			size -= pgsz;
+ 			count -= pgsz;
+@@ -59,6 +58,7 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+ 		}
+ 	} while (size);
+ 
++	wmb_pmem();
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(dax_clear_blocks);
+@@ -70,15 +70,16 @@ static long dax_get_addr(struct buffer_head *bh, void **addr, unsigned blkbits)
+ 	return bdev_direct_access(bh->b_bdev, sector, addr, &pfn, bh->b_size);
+ }
+ 
++/* the clear_pmem() calls are ordered by a wmb_pmem() in the caller */
+ static void dax_new_buf(void *addr, unsigned size, unsigned first, loff_t pos,
+ 			loff_t end)
+ {
+ 	loff_t final = end - pos + first; /* The final byte of the buffer */
+ 
+ 	if (first > 0)
+-		memset(addr, 0, first);
++		clear_pmem((void __pmem *)addr, first);
+ 	if (final < size)
+-		memset(addr + final, 0, size - final);
++		clear_pmem((void __pmem *)addr + final, size - final);
+ }
+ 
+ static bool buffer_written(struct buffer_head *bh)
+@@ -108,12 +109,13 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 	loff_t bh_max = start;
+ 	void *addr;
+ 	bool hole = false;
++	bool need_wmb = false;
+ 
+ 	if (iov_iter_rw(iter) != WRITE)
+ 		end = min(end, i_size_read(inode));
+ 
+ 	while (pos < end) {
+-		unsigned len;
++		size_t len;
+ 		if (pos == max) {
+ 			unsigned blkbits = inode->i_blkbits;
+ 			sector_t block = pos >> blkbits;
+@@ -145,18 +147,22 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 				retval = dax_get_addr(bh, &addr, blkbits);
+ 				if (retval < 0)
+ 					break;
+-				if (buffer_unwritten(bh) || buffer_new(bh))
++				if (buffer_unwritten(bh) || buffer_new(bh)) {
+ 					dax_new_buf(addr, retval, first, pos,
+ 									end);
++					need_wmb = true;
++				}
+ 				addr += first;
+ 				size = retval - first;
+ 			}
+ 			max = min(pos + size, end);
+ 		}
+ 
+-		if (iov_iter_rw(iter) == WRITE)
+-			len = copy_from_iter_nocache(addr, max - pos, iter);
+-		else if (!hole)
++		if (iov_iter_rw(iter) == WRITE) {
++			len = copy_from_iter_pmem((void __pmem *)addr,
++					max - pos, iter);
++			need_wmb = true;
++		} else if (!hole)
+ 			len = copy_to_iter(addr, max - pos, iter);
+ 		else
+ 			len = iov_iter_zero(max - pos, iter);
+@@ -168,6 +174,9 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 		addr += len;
+ 	}
+ 
++	if (need_wmb)
++		wmb_pmem();
++
+ 	return (pos == start) ? retval : pos - start;
+ }
+ 
+@@ -303,8 +312,10 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 		goto out;
+ 	}
+ 
+-	if (buffer_unwritten(bh) || buffer_new(bh))
+-		clear_page(addr);
++	if (buffer_unwritten(bh) || buffer_new(bh)) {
++		clear_pmem((void __pmem *)addr, PAGE_SIZE);
++		wmb_pmem();
++	}
+ 
+ 	error = vm_insert_mixed(vma, vaddr, pfn);
+ 
+@@ -542,7 +553,8 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
+ 		err = dax_get_addr(&bh, &addr, inode->i_blkbits);
+ 		if (err < 0)
+ 			return err;
+-		memset(addr + offset, 0, length);
++		clear_pmem((void __pmem *)addr + offset, length);
++		wmb_pmem();
+ 	}
+ 
+ 	return 0;
+-- 
+2.1.0
 
-See also, the LWN write up: https://lwn.net/Articles/653585/
-
-This has passed a 0day run and will appear in libnvdimm-for-next
-shortly.
-
----
-
-Christoph Hellwig (2):
-      devres: add devm_memremap
-      pmem: switch to devm_ allocations
-
-Dan Williams (8):
-      mm: enhance region_is_ram() to region_intersects()
-      arch, drivers: don't include <asm/io.h> directly, use <linux/io.h> instead
-      cleanup IORESOURCE_CACHEABLE vs ioremap()
-      arch: introduce memremap()
-      visorbus: switch from ioremap_cache to memremap
-      libnvdimm, pmem: push call to ioremap_cache out of line
-      pmem: switch from ioremap_wt to memremap
-      pmem: convert to generic memremap
-
-
- arch/arm/mach-clps711x/board-cdb89712.c        |    2 
- arch/arm/mach-shmobile/pm-rcar.c               |    2 
- arch/ia64/include/asm/io.h                     |    1 
- arch/ia64/kernel/cyclone.c                     |    2 
- arch/powerpc/kernel/pci_of_scan.c              |    2 
- arch/sh/include/asm/io.h                       |    1 
- arch/sparc/kernel/pci.c                        |    3 -
- arch/x86/include/asm/io.h                      |    7 -
- arch/x86/mm/ioremap.c                          |   10 ++
- arch/xtensa/include/asm/io.h                   |    1 
- drivers/isdn/icn/icn.h                         |    2 
- drivers/mtd/devices/slram.c                    |    2 
- drivers/mtd/nand/diskonchip.c                  |    2 
- drivers/mtd/onenand/generic.c                  |    2 
- drivers/nvdimm/pmem.c                          |   36 ++----
- drivers/pci/probe.c                            |    3 -
- drivers/pnp/manager.c                          |    2 
- drivers/scsi/aic94xx/aic94xx_init.c            |    7 -
- drivers/scsi/arcmsr/arcmsr_hba.c               |    5 -
- drivers/scsi/mvsas/mv_init.c                   |   15 +--
- drivers/scsi/sun3x_esp.c                       |    2 
- drivers/staging/comedi/drivers/ii_pci20kc.c    |    1 
- drivers/staging/unisys/visorbus/visorchannel.c |   16 ++-
- drivers/staging/unisys/visorbus/visorchipset.c |   17 ++-
- drivers/tty/serial/8250/8250_core.c            |    2 
- drivers/video/fbdev/ocfb.c                     |    1 
- drivers/video/fbdev/s1d13xxxfb.c               |    3 -
- drivers/video/fbdev/stifb.c                    |    1 
- include/linux/io-mapping.h                     |    2 
- include/linux/io.h                             |   13 ++
- include/linux/mm.h                             |    9 +-
- include/linux/mtd/map.h                        |    2 
- include/linux/pmem.h                           |   30 +++--
- include/video/vga.h                            |    2 
- kernel/Makefile                                |    2 
- kernel/memremap.c                              |  138 ++++++++++++++++++++++++
- kernel/resource.c                              |   61 ++++++-----
- lib/devres.c                                   |   13 +-
- lib/pci_iomap.c                                |    7 -
- tools/testing/nvdimm/Kbuild                    |    4 -
- tools/testing/nvdimm/test/iomap.c              |   46 ++++++--
- 41 files changed, 323 insertions(+), 156 deletions(-)
- create mode 100644 kernel/memremap.c
