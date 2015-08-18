@@ -1,13 +1,13 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 7/7] pmem, dax: have direct_access use __pmem annotation
-Date: Tue, 18 Aug 2015 13:55:41 -0600
-Message-Id: <1439927741-29580-8-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439927741-29580-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 7/7] pmem, dax: have direct_access use __pmem annotation
+Date: Tue, 18 Aug 2015 11:14:48 -0600
+Message-Id: <1439918088-32159-8-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1439918088-32159-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Chinner <david@fromorbit.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Alexander Viro <viro@zeniv.linux.org.uk>, Ameen Ali <ameenali023@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Boaz Harrosh <boaz@plexistor.com>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Jan Kara <jack@suse.cz>, Jeff Layton <jlayton@primarydata.com>, Jens Axboe <axboe@kernel.dk>, Jonathan Corbet <corbet@lwn.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Matthew Wilcox <willy@linux.intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Mike Snitzer <snitzer@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ming Lei <ming.lei@canonical.com>, Omar Sandoval <osandov@osandov.com>, Paul Mackerras <paulus@samba.org>, Sagi Grimberg <sagig@mellanox.com>, Shaohua Li <shli@fb.com>, Tejun Heo <tj@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-s390@vger.kernel.org, linux390@de.ibm.com, linuxppc-dev@lists.ozlabs.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Alexander Viro <viro@zeniv.linux.org.uk>, Ameen Ali <ameenali023@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Boaz Harrosh <boaz@plexistor.com>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Jan Kara <jack@suse.cz>, Jeff Layton <jlayton@primarydata.com>, Jens Axboe <axboe@kernel.dk>, Jonathan Corbet <corbet@lwn.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Matthew Wilcox <willy@linux.intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Mike Snitzer <snitzer@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ming Lei <ming.lei@canonical.com>, Omar Sandoval <osandov@osandov.com>, Paul Mackerras <paulus@samba.org>, Sagi Grimberg <sagig@mellanox.com>, Shaohua Li <shli@fb.com>, Tejun Heo <tj@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-s390@vger.kernel.org, linux390@de.ibm.com, linuxppc-dev@lists.ozlabs.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Update the annotation for the kaddr pointer returned by direct_access()
@@ -23,9 +23,9 @@ Reviewed-by: Christoph Hellwig <hch@lst.de>
  drivers/nvdimm/pmem.c             |  4 ++--
  drivers/s390/block/dcssblk.c      | 10 ++++++----
  fs/block_dev.c                    |  2 +-
- fs/dax.c                          | 37 ++++++++++++++++++++-----------------
+ fs/dax.c                          | 42 ++++++++++++++++++++-------------------
  include/linux/blkdev.h            |  8 ++++----
- 8 files changed, 41 insertions(+), 34 deletions(-)
+ 8 files changed, 43 insertions(+), 37 deletions(-)
 
 diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
 index 6a34a0f..06d4434 100644
@@ -86,7 +86,7 @@ index 5750b39..2691bb6 100644
  
  	/*
 diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index eb7552d..f3b6297 100644
+index ade9eb9..68f6a6a 100644
 --- a/drivers/nvdimm/pmem.c
 +++ b/drivers/nvdimm/pmem.c
 @@ -92,7 +92,7 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
@@ -145,10 +145,10 @@ index da21281..2c5a397 100644
  	return dev_sz - offset;
  }
 diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 1982437..2345a98 100644
+index 9be2d7e..4ab366d 100644
 --- a/fs/block_dev.c
 +++ b/fs/block_dev.c
-@@ -441,7 +441,7 @@ EXPORT_SYMBOL_GPL(bdev_write_page);
+@@ -442,7 +442,7 @@ EXPORT_SYMBOL_GPL(bdev_write_page);
   * accessible at this address.
   */
  long bdev_direct_access(struct block_device *bdev, sector_t sector,
@@ -158,7 +158,7 @@ index 1982437..2345a98 100644
  	long avail;
  	const struct block_device_operations *ops = bdev->bd_disk->fops;
 diff --git a/fs/dax.c b/fs/dax.c
-index cb02a61..57e8867 100644
+index 680b44a..3c66303 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
 @@ -36,7 +36,7 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
@@ -249,8 +249,8 @@ index cb02a61..57e8867 100644
  	kunmap_atomic(vto);
  	return 0;
  }
-@@ -284,7 +287,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 	struct address_space *mapping = inode->i_mapping;
+@@ -283,7 +286,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ {
  	sector_t sector = bh->b_blocknr << (inode->i_blkbits - 9);
  	unsigned long vaddr = (unsigned long)vmf->virtual_address;
 -	void *addr;
@@ -258,7 +258,7 @@ index cb02a61..57e8867 100644
  	unsigned long pfn;
  	pgoff_t size;
  	int error;
-@@ -313,7 +316,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+@@ -310,7 +313,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
  	}
  
  	if (buffer_unwritten(bh) || buffer_new(bh)) {
@@ -267,7 +267,26 @@ index cb02a61..57e8867 100644
  		wmb_pmem();
  	}
  
-@@ -549,11 +552,11 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
+@@ -525,7 +528,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	unsigned long pmd_addr = address & PMD_MASK;
+ 	bool write = flags & FAULT_FLAG_WRITE;
+ 	long length;
+-	void *kaddr;
++	void __pmem *kaddr;
+ 	pgoff_t size, pgoff;
+ 	sector_t block, sector;
+ 	unsigned long pfn;
+@@ -619,8 +622,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+ 			int i;
+ 			for (i = 0; i < PTRS_PER_PMD; i++)
+-				clear_pmem((void __pmem *)kaddr + i*PAGE_SIZE,
+-						PAGE_SIZE);
++				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
+ 			wmb_pmem();
+ 			count_vm_event(PGMAJFAULT);
+ 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+@@ -729,11 +731,11 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
  	if (err < 0)
  		return err;
  	if (buffer_written(&bh)) {
