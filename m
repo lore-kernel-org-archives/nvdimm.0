@@ -1,228 +1,327 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v4 02/10] arch, drivers: don't include <asm/io.h> directly,
- use <linux/io.h> instead
+Subject: [PATCH v2] libnvdimm,
+ e820: make CONFIG_X86_PMEM_LEGACY a tristate option
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 10 Aug 2015 23:38:00 -0400
-Message-ID: <20150811033800.4987.59974.stgit@otcpl-bsw-rvp-2.jf.intel.com>
-In-Reply-To: <20150811033345.4987.17983.stgit@otcpl-bsw-rvp-2.jf.intel.com>
-References: <20150811033345.4987.17983.stgit@otcpl-bsw-rvp-2.jf.intel.com>
+Date: Wed, 19 Aug 2015 00:44:43 -0400
+Message-ID: <20150819043836.5323.60255.stgit@otcpl-bsw-rvp-2.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: ross.zwisler@linux.intel.com, mcgrof@suse.com, hch@lst.de, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: hch@lst.de, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Preparation for uniform definition of ioremap, ioremap_wc, ioremap_wt,
-and ioremap_cache, tree-wide.
+We currently register a platform device for e820 type-12 memory and
+register a nvdimm bus beneath it.  Registering the platform device
+triggers the device-core machinery to probe for a driver, but that
+search currently comes up empty.  Building the nvdimm-bus registration
+into the e820_pmem platform device registration in this way forces
+libnvdimm to be built-in.  Instead, convert the built-in portion of
+CONFIG_X86_PMEM_LEGACY to simply register a platform device and move the
+rest of the logic to the driver for e820_pmem, for the following
+reasons:
 
-Acked-by: Christoph Hellwig <hch@lst.de>
+1/ Letting e820_pmem support be a module allows building and testing
+   libnvdimm.ko changes without rebooting
+
+2/ All the normal policy around modules can be applied to e820_pmem
+   (unbind to disable and/or blacklisting the module from loading by
+   default)
+
+3/ Moving the driver to a generic location and converting it to scan
+   "iomem_resource" rather than "e820.map" means any other architecture can
+   take advantage of this simple nvdimm resource discovery mechanism by
+   registering a resource named "Persistent Memory (legacy)"
+
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm/mach-shmobile/pm-rcar.c            |    2 +-
- arch/ia64/kernel/cyclone.c                  |    2 +-
- drivers/isdn/icn/icn.h                      |    2 +-
- drivers/mtd/devices/slram.c                 |    2 +-
- drivers/mtd/nand/diskonchip.c               |    2 +-
- drivers/mtd/onenand/generic.c               |    2 +-
- drivers/scsi/sun3x_esp.c                    |    2 +-
- drivers/staging/comedi/drivers/ii_pci20kc.c |    1 +
- drivers/tty/serial/8250/8250_core.c         |    2 +-
- drivers/video/fbdev/s1d13xxxfb.c            |    3 +--
- drivers/video/fbdev/stifb.c                 |    1 +
- include/linux/io-mapping.h                  |    2 +-
- include/linux/mtd/map.h                     |    2 +-
- include/video/vga.h                         |    2 +-
- 14 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-shmobile/pm-rcar.c b/arch/arm/mach-shmobile/pm-rcar.c
-index 00022ee56f80..9d3dde00c2fe 100644
---- a/arch/arm/mach-shmobile/pm-rcar.c
-+++ b/arch/arm/mach-shmobile/pm-rcar.c
-@@ -12,7 +12,7 @@
- #include <linux/err.h>
- #include <linux/mm.h>
- #include <linux/spinlock.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include "pm-rcar.h"
+No code changes since v1, just a revised changelog.
+
+ arch/x86/Kconfig                 |    6 ++-
+ arch/x86/include/uapi/asm/e820.h |    2 -
+ arch/x86/kernel/Makefile         |    2 -
+ arch/x86/kernel/pmem.c           |   79 ++++-------------------------------
+ drivers/nvdimm/Makefile          |    3 +
+ drivers/nvdimm/e820.c            |   86 ++++++++++++++++++++++++++++++++++++++
+ tools/testing/nvdimm/Kbuild      |    4 ++
+ 7 files changed, 108 insertions(+), 74 deletions(-)
+ create mode 100644 drivers/nvdimm/e820.c
+
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index b3a1a5d77d92..76c61154ed50 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -1426,10 +1426,14 @@ config ILLEGAL_POINTER_VALUE
  
- /* SYSC */
-diff --git a/arch/ia64/kernel/cyclone.c b/arch/ia64/kernel/cyclone.c
-index 4826ff957a3d..5fa3848ba224 100644
---- a/arch/ia64/kernel/cyclone.c
-+++ b/arch/ia64/kernel/cyclone.c
-@@ -4,7 +4,7 @@
- #include <linux/errno.h>
- #include <linux/timex.h>
- #include <linux/clocksource.h>
--#include <asm/io.h>
-+#include <linux/io.h>
+ source "mm/Kconfig"
  
- /* IBM Summit (EXA) Cyclone counter code*/
- #define CYCLONE_CBAR_ADDR 0xFEB00CD0
-diff --git a/drivers/isdn/icn/icn.h b/drivers/isdn/icn/icn.h
-index b713466997a0..f8f2e76d34bf 100644
---- a/drivers/isdn/icn/icn.h
-+++ b/drivers/isdn/icn/icn.h
-@@ -38,7 +38,7 @@ typedef struct icn_cdef {
- #include <linux/errno.h>
- #include <linux/fs.h>
- #include <linux/major.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <linux/kernel.h>
- #include <linux/signal.h>
- #include <linux/slab.h>
-diff --git a/drivers/mtd/devices/slram.c b/drivers/mtd/devices/slram.c
-index 2fc4957cbe7f..a70eb83e68f1 100644
---- a/drivers/mtd/devices/slram.c
-+++ b/drivers/mtd/devices/slram.c
-@@ -41,7 +41,7 @@
- #include <linux/fs.h>
- #include <linux/ioctl.h>
- #include <linux/init.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- #include <linux/mtd/mtd.h>
- 
-diff --git a/drivers/mtd/nand/diskonchip.c b/drivers/mtd/nand/diskonchip.c
-index 7da266a53979..0802158a3f75 100644
---- a/drivers/mtd/nand/diskonchip.c
-+++ b/drivers/mtd/nand/diskonchip.c
-@@ -24,7 +24,7 @@
- #include <linux/rslib.h>
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/nand.h>
-diff --git a/drivers/mtd/onenand/generic.c b/drivers/mtd/onenand/generic.c
-index 32a216d31141..ab7bda0bb245 100644
---- a/drivers/mtd/onenand/generic.c
-+++ b/drivers/mtd/onenand/generic.c
-@@ -18,7 +18,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/onenand.h>
- #include <linux/mtd/partitions.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
++config X86_PMEM_LEGACY_DEVICE
++	bool
++
+ config X86_PMEM_LEGACY
+-	bool "Support non-standard NVDIMMs and ADR protected memory"
++	tristate "Support non-standard NVDIMMs and ADR protected memory"
+ 	depends on PHYS_ADDR_T_64BIT
+ 	depends on BLK_DEV
++	select X86_PMEM_LEGACY_DEVICE
+ 	select LIBNVDIMM
+ 	help
+ 	  Treat memory marked using the non-standard e820 type of 12 as used
+diff --git a/arch/x86/include/uapi/asm/e820.h b/arch/x86/include/uapi/asm/e820.h
+index 0f457e6eab18..9dafe59cf6e2 100644
+--- a/arch/x86/include/uapi/asm/e820.h
++++ b/arch/x86/include/uapi/asm/e820.h
+@@ -37,7 +37,7 @@
  /*
-  * Note: Driver name and platform data format have been updated!
-diff --git a/drivers/scsi/sun3x_esp.c b/drivers/scsi/sun3x_esp.c
-index e26e81de7c45..d50c5ed8f428 100644
---- a/drivers/scsi/sun3x_esp.c
-+++ b/drivers/scsi/sun3x_esp.c
-@@ -12,9 +12,9 @@
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/interrupt.h>
-+#include <linux/io.h>
+  * This is a non-standardized way to represent ADR or NVDIMM regions that
+  * persist over a reboot.  The kernel will ignore their special capabilities
+- * unless the CONFIG_X86_PMEM_LEGACY=y option is set.
++ * unless the CONFIG_X86_PMEM_LEGACY option is set.
+  *
+  * ( Note that older platforms also used 6 for the same type of memory,
+  *   but newer versions switched to 12 as 6 was assigned differently.  Some
+diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
+index 0f15af41bd80..ac2bb7e28ba2 100644
+--- a/arch/x86/kernel/Makefile
++++ b/arch/x86/kernel/Makefile
+@@ -92,7 +92,7 @@ obj-$(CONFIG_KVM_GUEST)		+= kvm.o kvmclock.o
+ obj-$(CONFIG_PARAVIRT)		+= paravirt.o paravirt_patch_$(BITS).o
+ obj-$(CONFIG_PARAVIRT_SPINLOCKS)+= paravirt-spinlocks.o
+ obj-$(CONFIG_PARAVIRT_CLOCK)	+= pvclock.o
+-obj-$(CONFIG_X86_PMEM_LEGACY)	+= pmem.o
++obj-$(CONFIG_X86_PMEM_LEGACY_DEVICE) += pmem.o
  
- #include <asm/sun3x.h>
--#include <asm/io.h>
- #include <asm/dma.h>
- #include <asm/dvma.h>
+ obj-$(CONFIG_PCSPKR_PLATFORM)	+= pcspeaker.o
  
-diff --git a/drivers/staging/comedi/drivers/ii_pci20kc.c b/drivers/staging/comedi/drivers/ii_pci20kc.c
-index 0768bc42a5db..14ef1f67dd42 100644
---- a/drivers/staging/comedi/drivers/ii_pci20kc.c
-+++ b/drivers/staging/comedi/drivers/ii_pci20kc.c
-@@ -28,6 +28,7 @@
+diff --git a/arch/x86/kernel/pmem.c b/arch/x86/kernel/pmem.c
+index 64f90f53bb85..4f00b63d7ff3 100644
+--- a/arch/x86/kernel/pmem.c
++++ b/arch/x86/kernel/pmem.c
+@@ -3,80 +3,17 @@
+  * Copyright (c) 2015, Intel Corporation.
   */
- 
+ #include <linux/platform_device.h>
+-#include <linux/libnvdimm.h>
  #include <linux/module.h>
-+#include <linux/io.h>
- #include "../comedidev.h"
- 
- /*
-diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index 37fff12dd4d0..fe902ff52e58 100644
---- a/drivers/tty/serial/8250/8250_core.c
-+++ b/drivers/tty/serial/8250/8250_core.c
-@@ -38,11 +38,11 @@
- #include <linux/slab.h>
- #include <linux/uaccess.h>
- #include <linux/pm_runtime.h>
-+#include <linux/io.h>
- #ifdef CONFIG_SPARC
- #include <linux/sunserialcore.h>
- #endif
- 
--#include <asm/io.h>
- #include <asm/irq.h>
- 
- #include "8250.h"
-diff --git a/drivers/video/fbdev/s1d13xxxfb.c b/drivers/video/fbdev/s1d13xxxfb.c
-index 83433cb0dfba..96aa46dc696c 100644
---- a/drivers/video/fbdev/s1d13xxxfb.c
-+++ b/drivers/video/fbdev/s1d13xxxfb.c
-@@ -32,8 +32,7 @@
- #include <linux/spinlock_types.h>
- #include <linux/spinlock.h>
- #include <linux/slab.h>
+-#include <asm/e820.h>
 -
--#include <asm/io.h>
-+#include <linux/io.h>
+-static void e820_pmem_release(struct device *dev)
+-{
+-	struct nvdimm_bus *nvdimm_bus = dev->platform_data;
+-
+-	if (nvdimm_bus)
+-		nvdimm_bus_unregister(nvdimm_bus);
+-}
+-
+-static struct platform_device e820_pmem = {
+-	.name = "e820_pmem",
+-	.id = -1,
+-	.dev = {
+-		.release = e820_pmem_release,
+-	},
+-};
+-
+-static const struct attribute_group *e820_pmem_attribute_groups[] = {
+-	&nvdimm_bus_attribute_group,
+-	NULL,
+-};
+-
+-static const struct attribute_group *e820_pmem_region_attribute_groups[] = {
+-	&nd_region_attribute_group,
+-	&nd_device_attribute_group,
+-	NULL,
+-};
  
- #include <video/s1d13xxxfb.h>
+ static __init int register_e820_pmem(void)
+ {
+-	static struct nvdimm_bus_descriptor nd_desc;
+-	struct device *dev = &e820_pmem.dev;
+-	struct nvdimm_bus *nvdimm_bus;
+-	int rc, i;
+-
+-	rc = platform_device_register(&e820_pmem);
+-	if (rc)
+-		return rc;
+-
+-	nd_desc.attr_groups = e820_pmem_attribute_groups;
+-	nd_desc.provider_name = "e820";
+-	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
+-	if (!nvdimm_bus)
+-		goto err;
+-	dev->platform_data = nvdimm_bus;
+-
+-	for (i = 0; i < e820.nr_map; i++) {
+-		struct e820entry *ei = &e820.map[i];
+-		struct resource res = {
+-			.flags	= IORESOURCE_MEM,
+-			.start	= ei->addr,
+-			.end	= ei->addr + ei->size - 1,
+-		};
+-		struct nd_region_desc ndr_desc;
+-
+-		if (ei->type != E820_PRAM)
+-			continue;
+-
+-		memset(&ndr_desc, 0, sizeof(ndr_desc));
+-		ndr_desc.res = &res;
+-		ndr_desc.attr_groups = e820_pmem_region_attribute_groups;
+-		ndr_desc.numa_node = NUMA_NO_NODE;
+-		if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
+-			goto err;
+-	}
+-
+-	return 0;
+-
+- err:
+-	dev_err(dev, "failed to register legacy persistent memory ranges\n");
+-	platform_device_unregister(&e820_pmem);
+-	return -ENXIO;
++	struct platform_device *pdev;
++
++	/*
++	 * See drivers/nvdimm/e820.c for the implementation, this is
++	 * simply here to trigger the module to load on demand.
++	 */
++	pdev = platform_device_alloc("e820_pmem", -1);
++	return platform_device_add(pdev);
+ }
+ device_initcall(register_e820_pmem);
+diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
+index 594bb97c867a..9bf15db52dee 100644
+--- a/drivers/nvdimm/Makefile
++++ b/drivers/nvdimm/Makefile
+@@ -2,6 +2,7 @@ obj-$(CONFIG_LIBNVDIMM) += libnvdimm.o
+ obj-$(CONFIG_BLK_DEV_PMEM) += nd_pmem.o
+ obj-$(CONFIG_ND_BTT) += nd_btt.o
+ obj-$(CONFIG_ND_BLK) += nd_blk.o
++obj-$(CONFIG_X86_PMEM_LEGACY) += nd_e820.o
  
-diff --git a/drivers/video/fbdev/stifb.c b/drivers/video/fbdev/stifb.c
-index 735355b0e023..7df4228e25f0 100644
---- a/drivers/video/fbdev/stifb.c
-+++ b/drivers/video/fbdev/stifb.c
-@@ -64,6 +64,7 @@
- #include <linux/fb.h>
- #include <linux/init.h>
- #include <linux/ioport.h>
-+#include <linux/io.h>
+ nd_pmem-y := pmem.o
  
- #include <asm/grfioctl.h>	/* for HP-UX compatibility */
- #include <asm/uaccess.h>
-diff --git a/include/linux/io-mapping.h b/include/linux/io-mapping.h
-index c27dde7215b5..e399029b68c5 100644
---- a/include/linux/io-mapping.h
-+++ b/include/linux/io-mapping.h
-@@ -21,7 +21,7 @@
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <linux/bug.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <asm/page.h>
+@@ -9,6 +10,8 @@ nd_btt-y := btt.o
  
- /*
-diff --git a/include/linux/mtd/map.h b/include/linux/mtd/map.h
-index 29975c73a953..366cf77953b5 100644
---- a/include/linux/mtd/map.h
-+++ b/include/linux/mtd/map.h
-@@ -27,9 +27,9 @@
- #include <linux/string.h>
- #include <linux/bug.h>
- #include <linux/kernel.h>
-+#include <linux/io.h>
+ nd_blk-y := blk.o
  
- #include <asm/unaligned.h>
--#include <asm/io.h>
- #include <asm/barrier.h>
++nd_e820-y := e820.o
++
+ libnvdimm-y := core.o
+ libnvdimm-y += bus.o
+ libnvdimm-y += dimm_devs.o
+diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
+new file mode 100644
+index 000000000000..1b5743ad92db
+--- /dev/null
++++ b/drivers/nvdimm/e820.c
+@@ -0,0 +1,86 @@
++/*
++ * Copyright (c) 2015, Christoph Hellwig.
++ * Copyright (c) 2015, Intel Corporation.
++ */
++#include <linux/platform_device.h>
++#include <linux/libnvdimm.h>
++#include <linux/module.h>
++
++static const struct attribute_group *e820_pmem_attribute_groups[] = {
++	&nvdimm_bus_attribute_group,
++	NULL,
++};
++
++static const struct attribute_group *e820_pmem_region_attribute_groups[] = {
++	&nd_region_attribute_group,
++	&nd_device_attribute_group,
++	NULL,
++};
++
++static int e820_pmem_remove(struct platform_device *pdev)
++{
++	struct nvdimm_bus *nvdimm_bus = platform_get_drvdata(pdev);
++
++	nvdimm_bus_unregister(nvdimm_bus);
++	return 0;
++}
++
++static int e820_pmem_probe(struct platform_device *pdev)
++{
++	static struct nvdimm_bus_descriptor nd_desc;
++	struct device *dev = &pdev->dev;
++	struct nvdimm_bus *nvdimm_bus;
++	struct resource *p;
++
++	nd_desc.attr_groups = e820_pmem_attribute_groups;
++	nd_desc.provider_name = "e820";
++	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
++	if (!nvdimm_bus)
++		goto err;
++	platform_set_drvdata(pdev, nvdimm_bus);
++
++	for (p = iomem_resource.child; p ; p = p->sibling) {
++		struct nd_region_desc ndr_desc;
++
++		if (strncmp(p->name, "Persistent Memory (legacy)", 26) != 0)
++			continue;
++
++		memset(&ndr_desc, 0, sizeof(ndr_desc));
++		ndr_desc.res = p;
++		ndr_desc.attr_groups = e820_pmem_region_attribute_groups;
++		ndr_desc.numa_node = NUMA_NO_NODE;
++		if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
++			goto err;
++	}
++
++	return 0;
++
++ err:
++	nvdimm_bus_unregister(nvdimm_bus);
++	dev_err(dev, "failed to register legacy persistent memory ranges\n");
++	return -ENXIO;
++}
++
++static struct platform_driver e820_pmem_driver = {
++	.probe = e820_pmem_probe,
++	.remove = e820_pmem_remove,
++	.driver = {
++		.name = "e820_pmem",
++	},
++};
++
++static __init int e820_pmem_init(void)
++{
++	return platform_driver_register(&e820_pmem_driver);
++}
++
++static __exit void e820_pmem_exit(void)
++{
++	platform_driver_unregister(&e820_pmem_driver);
++}
++
++MODULE_ALIAS("platform:e820_pmem*");
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Intel Corporation");
++module_init(e820_pmem_init);
++module_exit(e820_pmem_exit);
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index f56914c7929b..d7c136a96346 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -15,6 +15,7 @@ obj-$(CONFIG_LIBNVDIMM) += libnvdimm.o
+ obj-$(CONFIG_BLK_DEV_PMEM) += nd_pmem.o
+ obj-$(CONFIG_ND_BTT) += nd_btt.o
+ obj-$(CONFIG_ND_BLK) += nd_blk.o
++obj-$(CONFIG_X86_PMEM_LEGACY) += nd_e820.o
+ obj-$(CONFIG_ACPI_NFIT) += nfit.o
  
- #ifdef CONFIG_MTD_MAP_BANK_WIDTH_1
-diff --git a/include/video/vga.h b/include/video/vga.h
-index cac567f22e62..d334e64c1c19 100644
---- a/include/video/vga.h
-+++ b/include/video/vga.h
-@@ -18,7 +18,7 @@
- #define __linux_video_vga_h__
+ nfit-y := $(ACPI_SRC)/nfit.o
+@@ -29,6 +30,9 @@ nd_btt-y += config_check.o
+ nd_blk-y := $(NVDIMM_SRC)/blk.o
+ nd_blk-y += config_check.o
  
- #include <linux/types.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <asm/vga.h>
- #include <asm/byteorder.h>
- 
++nd_e820-y := $(NVDIMM_SRC)/e820.o
++nd_e820-y += config_check.o
++
+ libnvdimm-y := $(NVDIMM_SRC)/core.o
+ libnvdimm-y += $(NVDIMM_SRC)/bus.o
+ libnvdimm-y += $(NVDIMM_SRC)/dimm_devs.o
 
