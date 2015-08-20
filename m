@@ -1,62 +1,45 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
+Message-ID: <1440092994.30197.5.camel@linux.intel.com>
+Subject: Re: [PATCH] nvdimm: change to use generic kvfree()
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 4/7] pmem, x86: clean up conditional pmem includes
-Date: Thu, 13 Aug 2015 10:51:08 -0600
-Message-Id: <1439484671-15718-5-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
+Date: Thu, 20 Aug 2015 11:49:54 -0600
+In-Reply-To: <1440064809-26036-1-git-send-email-yalin.wang2010@gmail.com>
+References: <1440064809-26036-1-git-send-email-yalin.wang2010@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+To: yalin wang <yalin.wang2010@gmail.com>
+Cc: dan.j.williams@intel.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prior to this change x86_64 used the pmem defines in
-arch/x86/include/asm/pmem.h, and UM used the default ones at the
-top of include/linux/pmem.h.  The inclusion or exclusion in linux/pmem.h
-was controlled by CONFIG_ARCH_HAS_PMEM_API, but the ones in asm/pmem.h
-were controlled by ARCH_HAS_NOCACHE_UACCESS.
+On Thu, 2015-08-20 at 18:00 +0800, yalin wang wrote:
+> Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
+> ---
+>  drivers/nvdimm/dimm_devs.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+> index c05eb80..651b8d1 100644
+> --- a/drivers/nvdimm/dimm_devs.c
+> +++ b/drivers/nvdimm/dimm_devs.c
+> @@ -241,10 +241,7 @@ void nvdimm_drvdata_release(struct kref *kref)
+>  		nvdimm_free_dpa(ndd, res);
+>  	nvdimm_bus_unlock(dev);
+>  
+> -	if (ndd->data && is_vmalloc_addr(ndd->data))
+> -		vfree(ndd->data);
+> -	else
+> -		kfree(ndd->data);
+> +	kvfree(ndd->data);
+>  	kfree(ndd);
+>  	put_device(dev);
+>  }
 
-Instead, control them both with CONFIG_ARCH_HAS_PMEM_API so that it's
-clear that they are related and we don't run into the possibility where
-they are both included or excluded.  Also remove a bunch of stale
-function prototypes meant for UM in asm/pmem.h - these just conflicted
-with the inline defaults in linux/pmem.h and gave compile errors.
+This seems fine.  You're skipping the existing check to see if ndd->data is
+NULL, but I think that is handled implicitly by is_vmalloc_addr() since NULL
+won't be in the vmalloc address range.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- arch/x86/include/asm/pmem.h | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index 1e8dbb7..7f3413f 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -18,8 +18,7 @@
- #include <asm/cpufeature.h>
- #include <asm/special_insns.h>
- 
--#ifdef ARCH_HAS_NOCACHE_UACCESS
--
-+#ifdef CONFIG_ARCH_HAS_PMEM_API
- /**
-  * arch_memcpy_to_pmem - copy data to persistent memory
-  * @dst: destination buffer for the copy
-@@ -79,14 +78,6 @@ static inline bool arch_has_wmb_pmem(void)
- 	return false;
- #endif
- }
--#else /* ARCH_HAS_NOCACHE_UACCESS i.e. ARCH=um */
--extern void arch_memcpy_to_pmem(void __pmem *dst, const void *src, size_t n);
--extern void arch_wmb_pmem(void);
--
--static inline bool __arch_has_wmb_pmem(void)
--{
--	return false;
--}
--#endif
-+#endif /* CONFIG_ARCH_HAS_PMEM_API */
- 
- #endif /* __ASM_X86_PMEM_H__ */
--- 
-2.1.0
 
