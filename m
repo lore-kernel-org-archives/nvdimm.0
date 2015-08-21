@@ -1,113 +1,66 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm ABI fixup for 4.2
-Date: Thu, 27 Aug 2015 23:36:16 +0000
-Message-ID: <1440718572.21270.19.camel@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <84CB7E7ACD98C14EA8E98B3D972E0548@intel.com>
-Content-Transfer-Encoding: base64
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Fri, 21 Aug 2015 11:15:12 -0400
+From: Jerome Glisse <j.glisse@gmail.com>
+Subject: Re: [RFC PATCH 1/7] x86, mm: ZONE_DEVICE for "device memory"
+Message-ID: <20150821151511.GB3244@gmail.com>
+References: <20150813031253.36913.29580.stgit@otcpl-skl-sds-2.jf.intel.com>
+ <20150813035005.36913.77364.stgit@otcpl-skl-sds-2.jf.intel.com>
+ <20150814213714.GA3265@gmail.com>
+ <CAPcyv4ib244VMSdhHDWHRnmCvYdteUEzT+ehTzitSY42m2Tt=w@mail.gmail.com>
+ <20150815085954.GC21033@lst.de>
+ <CAPcyv4jiXqcy_kUrArw7cpbySDoaQe+UF5JcvihxyGyxjsWKZw@mail.gmail.com>
 MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "toshi.kani@hp.com" <toshi.kani@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linda.knippers@hp.com" <linda.knippers@hp.com>, "elliott@hp.com" <elliott@hp.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPcyv4jiXqcy_kUrArw7cpbySDoaQe+UF5JcvihxyGyxjsWKZw@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Boaz Harrosh <boaz@plexistor.com>, Rik van Riel <riel@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Hansen <dave.hansen@linux.intel.com>, david <david@fromorbit.com>, Ingo Molnar <mingo@kernel.org>, Linux MM <linux-mm@kvack.org>, Ingo Molnar <mingo@redhat.com>, Mel Gorman <mgorman@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206DQoNCiAgICBnaXQ6Ly9naXQua2VybmVsLm9yZy9w
-dWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMNCg0K
-Li4udG8gcmVjZWl2ZSBvbmUgZmluYWwgZml4IGZvciA0LjIuDQoNCkkgcHVzaGVkIGJhY2sgb24g
-dGhpcyBjaGFuZ2UgcXVpdGUgaGFyZCBnaXZlbiB0aGUgbGF0ZSBkYXRlLCB0aGF0IGl0DQphcHBl
-YXJzIHRvIGJlIHB1cmVseSBjb3NtZXRpYywgc3lzZnMgaXMgbm90IG5lY2Vzc2FyaWx5IG1lYW50
-IHRvIGJlIGENCnVzZXIgZnJpZW5kbHkgVUksIGFuZCB0aGUga2VybmVsIGludGVycHJldHMgdGhl
-IHJldmVyc2VkIHBvbGFyaXR5IG9mIHRoZQ0KQUNQSV9ORklUX01FTV9BUk1FRCBmbGFnIGNvcnJl
-Y3RseS4gIFdoZW4gdGhpcyBmbGFnIGlzIHNldCwgdGhlIGVuZXJneQ0Kc291cmNlIG9mIGFuIE5W
-RElNTSBpcyBub3QgYXJtZWQgYW5kIGFueSBuZXcgd3JpdGVzIHRvIHRoZSBESU1NIG1heSBub3QN
-CmJlIHByZXNlcnZlZC4NCg0KSG93ZXZlciwgQm9iIE1vb3JlIHdhcm5lZCBtZSB0aGF0IGl0IGlz
-IGltcG9ydGFudCB0byBnZXQgdGhlc2UgdGhpbmdzDQpuYW1lZCBjb3JyZWN0bHkgd2hlcmV2ZXIg
-dGhleSBhcHBlYXIgb3RoZXJ3aXNlIHdlIHJ1biB0aGUgcmlzayBvZiBhIGxlc3MNCnRoYW4gY2F1
-dGlvdXMgZmlybXdhcmUgZW5naW5lZXIgaW1wbGVtZW50aW5nIHRoZSBwb2xhcml0eSB0aGUgd3Jv
-bmcgd2F5Lg0KT25jZSBhIG1pc3Rha2UgbGlrZSB0aGF0IGVzY2FwZXMgaW50byBwcm9kdWN0aW9u
-IHBsYXRmb3JtcyB0aGUgZmxhZw0KYmVjb21lcyB1c2VsZXNzIGFuZCB3ZSBuZWVkIHRvIG1vdmUg
-dG8gYSBuZXcgYml0IHBvc2l0aW9uLg0KDQpCb2IgaGFzIGFncmVlZCB0byB0YWtlIGEgY2hhbmdl
-IHRocm91Z2ggQUNQSUNBIHRvIHJlbmFtZQ0KQUNQSV9ORklUX01FTV9BUk1FRCB0byBBQ1BJX05G
-SVRfTUVNX05PVF9BUk1FRCwgYW5kIHRoZSBwYXRjaCBiZWxvdyBmcm9tDQpUb3NoaSBicmluZ3Mg
-dGhlIHN5c2ZzIHJlcHJlc2VudGF0aW9uIG9mIHRoZXNlIGZsYWdzIGluIGxpbmUgd2l0aCB0aGVp
-cg0KcmVzcGVjdGl2ZSBwb2xhcml0aWVzLg0KDQpQbGVhc2UgcHVsbCBmb3IgNC4yIGFzIHRoaXMg
-aXMgdGhlIGZpcnN0IGtlcm5lbCB0byBleHBvc2UgdGhlIEFDUEkgTkZJVA0Kc3lzZnMgcmVwcmVz
-ZW50YXRpb24sIGFuZCB0aGlzIGlzIGxpa2VseSBhIGtlcm5lbCB0aGF0IGZpcm13YXJlDQpkZXZl
-bG9wZXJzIHdpbGwgYmUgdXNpbmcgZm9yIGNoZWNraW5nIG91dCB0aGVpciBOVkRJTU0gZW5hYmxp
-bmcuDQoNClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgZGU0YTE5NmMwMmEyYTI2
-MzFiNTE2ZDkwZGE2ZThkMDUyY2NiMDdlODoNCg0KICBuZml0LCBuZF9ibGs6IEJMSyBzdGF0dXMg
-cmVnaXN0ZXIgaXMgb25seSAzMiBiaXRzICgyMDE1LTA4LTI1IDE5OjQyOjAxIC0wNDAwKQ0KDQph
-cmUgYXZhaWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoNCg0KICBnaXQ6Ly9naXQua2Vy
-bmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0t
-Zml4ZXMNCg0KZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIDQwMmJhZTU5N2VjNjhiODQ0
-OTg0MzJmNWEwMDY5ZjI4YmZiODA3ZDY6DQoNCiAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNl
-IHN0YXRlIGZsYWdzIHN0cmluZ3MgKDIwMTUtMDgtMjcgMTQ6MzU6NTggLTA0MDApDQoNCi0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0NClRvc2hpIEthbmkgKDEpOg0KICAgICAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNlIHN0
-YXRlIGZsYWdzIHN0cmluZ3MNCg0KIGRyaXZlcnMvYWNwaS9uZml0LmMgfCAyMCArKysrKysrKysr
-LS0tLS0tLS0tLQ0KIDEgZmlsZSBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCspLCAxMCBkZWxldGlv
-bnMoLSkNCg0KY29tbWl0IDQwMmJhZTU5N2VjNjhiODQ0OTg0MzJmNWEwMDY5ZjI4YmZiODA3ZDYN
-CkF1dGhvcjogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocC5jb20+DQpEYXRlOiAgIFdlZCBBdWcg
-MjYgMTA6MjA6MjMgMjAxNSAtMDYwMA0KDQogICAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNl
-IHN0YXRlIGZsYWdzIHN0cmluZ3MNCiAgICANCiAgICBBQ1BJIDYuMCBORklUIE1lbW9yeSBEZXZp
-Y2UgU3RhdGUgRmxhZ3MgaW4gVGFibGUgNS0xMjkgZGVmaW5lcw0KICAgIE5WRElNTSBzdGF0dXMg
-YXMgZm9sbG93cy4gIFRoZXNlIGJpdHMgaW5kaWNhdGUgbXVsdGlwbGUgaW5mbywNCiAgICBzdWNo
-IGFzIGZhaWx1cmVzLCBwZW5kaW5nIGV2ZW50LCBhbmQgY2FwYWJpbGl0eS4NCiAgICANCiAgICAg
-IEJpdCBbMF0gc2V0IHRvIDEgdG8gaW5kaWNhdGUgdGhhdCB0aGUgcHJldmlvdXMgU0FWRSB0byB0
-aGUNCiAgICAgIE1lbW9yeSBEZXZpY2UgZmFpbGVkLg0KICAgICAgQml0IFsxXSBzZXQgdG8gMSB0
-byBpbmRpY2F0ZSB0aGF0IHRoZSBsYXN0IFJFU1RPUkUgZnJvbSB0aGUNCiAgICAgIE1lbW9yeSBE
-ZXZpY2UgZmFpbGVkLg0KICAgICAgQml0IFsyXSBzZXQgdG8gMSB0byBpbmRpY2F0ZSB0aGF0IHBs
-YXRmb3JtIGZsdXNoIG9mIGRhdGEgdG8NCiAgICAgIE1lbW9yeSBEZXZpY2UgZmFpbGVkLiBBcyBh
-IHJlc3VsdCwgdGhlIHJlc3RvcmVkIGRhdGEgY29udGVudA0KICAgICAgbWF5IGJlIGluY29uc2lz
-dGVudCBldmVuIGlmIFNBVkUgYW5kIFJFU1RPUkUgZG8gbm90IGluZGljYXRlDQogICAgICBmYWls
-dXJlLg0KICAgICAgQml0IFszXSBzZXQgdG8gMSB0byBpbmRpY2F0ZSB0aGF0IHRoZSBNZW1vcnkg
-RGV2aWNlIGlzIG9ic2VydmVkDQogICAgICB0byBiZSBub3QgYXJtZWQgcHJpb3IgdG8gT1NQTSBo
-YW5kIG9mZi4gQSBNZW1vcnkgRGV2aWNlIGlzDQogICAgICBjb25zaWRlcmVkIGFybWVkIGlmIGl0
-IGlzIGFibGUgdG8gYWNjZXB0IHBlcnNpc3RlbnQgd3JpdGVzLg0KICAgICAgQml0IFs0XSBzZXQg
-dG8gMSB0byBpbmRpY2F0ZSB0aGF0IHRoZSBNZW1vcnkgRGV2aWNlIG9ic2VydmVkDQogICAgICBT
-TUFSVCBhbmQgaGVhbHRoIGV2ZW50cyBwcmlvciB0byBPU1BNIGhhbmRvZmYuDQogICAgDQogICAg
-L3N5cy9idXMvbmQvZGV2aWNlcy9ubWVtWC9uZml0L2ZsYWdzIHNob3dzIHRoaXMgZmxhZ3MgaW5m
-by4NCiAgICBUaGUgb3V0cHV0IHN0cmluZ3MgYXNzb2NpYXRlZCB3aXRoIHRoZSBiaXRzIGFyZSAi
-c2F2ZSIsICJyZXN0b3JlIiwNCiAgICAic21hcnQiLCBldGMuLCB3aGljaCBjYW4gYmUgY29uZnVz
-aW5nIGFzIHRoZXkgbWF5IGJlIGludGVycHJldGVkDQogICAgYXMgcG9zaXRpdmUgc3RhdHVzLCBp
-LmUuIHNhdmUgc3VjY2VlZGVkLg0KICAgIA0KICAgIENoYW5nZSBhbHNvIHRoZSBkZXZfaW5mbygp
-IG1lc3NhZ2UgaW4gYWNwaV9uZml0X3JlZ2lzdGVyX2RpbW1zKCkNCiAgICB0byBiZSBjb25zaXN0
-ZW50IHdpdGggdGhlIHN5c2ZzIGZsYWdzIHN0cmluZ3MuDQogICAgDQogICAgUmVwb3J0ZWQtYnk6
-IFJvYmVydCBFbGxpb3R0IDxlbGxpb3R0QGhwLmNvbT4NCiAgICBTaWduZWQtb2ZmLWJ5OiBUb3No
-aSBLYW5pIDx0b3NoaS5rYW5pQGhwLmNvbT4NCiAgICBbcm9zczogcmVuYW1lICdub3RfYXJtJyB0
-byAnbm90X2FybWVkJ10NCiAgICBDYzogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXgu
-aW50ZWwuY29tPg0KICAgIFtkamJ3OiBkZWZlciBhZGRpbmcgYml0NSwgSEVBTFRIX0VOQUJMRUQs
-IGZvciBub3ddDQogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFt
-c0BpbnRlbC5jb20+DQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVy
-cy9hY3BpL25maXQuYw0KaW5kZXggYmIyOWU1NjI3NmJkLi5jZjBmZDk2YTc2MDIgMTAwNjQ0DQot
-LS0gYS9kcml2ZXJzL2FjcGkvbmZpdC5jDQorKysgYi9kcml2ZXJzL2FjcGkvbmZpdC5jDQpAQCAt
-NzAyLDExICs3MDIsMTEgQEAgc3RhdGljIHNzaXplX3QgZmxhZ3Nfc2hvdyhzdHJ1Y3QgZGV2aWNl
-ICpkZXYsDQogCXUxNiBmbGFncyA9IHRvX25maXRfbWVtZGV2KGRldiktPmZsYWdzOw0KIA0KIAly
-ZXR1cm4gc3ByaW50ZihidWYsICIlcyVzJXMlcyVzXG4iLA0KLQkJCWZsYWdzICYgQUNQSV9ORklU
-X01FTV9TQVZFX0ZBSUxFRCA/ICJzYXZlICIgOiAiIiwNCi0JCQlmbGFncyAmIEFDUElfTkZJVF9N
-RU1fUkVTVE9SRV9GQUlMRUQgPyAicmVzdG9yZSAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05G
-SVRfTUVNX0ZMVVNIX0ZBSUxFRCA/ICJmbHVzaCAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05G
-SVRfTUVNX0FSTUVEID8gImFybSAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0hF
-QUxUSF9PQlNFUlZFRCA/ICJzbWFydCAiIDogIiIpOw0KKwkJZmxhZ3MgJiBBQ1BJX05GSVRfTUVN
-X1NBVkVfRkFJTEVEID8gInNhdmVfZmFpbCAiIDogIiIsDQorCQlmbGFncyAmIEFDUElfTkZJVF9N
-RU1fUkVTVE9SRV9GQUlMRUQgPyAicmVzdG9yZV9mYWlsICIgOiAiIiwNCisJCWZsYWdzICYgQUNQ
-SV9ORklUX01FTV9GTFVTSF9GQUlMRUQgPyAiZmx1c2hfZmFpbCAiIDogIiIsDQorCQlmbGFncyAm
-IEFDUElfTkZJVF9NRU1fQVJNRUQgPyAibm90X2FybWVkICIgOiAiIiwNCisJCWZsYWdzICYgQUNQ
-SV9ORklUX01FTV9IRUFMVEhfT0JTRVJWRUQgPyAic21hcnRfZXZlbnQgIiA6ICIiKTsNCiB9DQog
-c3RhdGljIERFVklDRV9BVFRSX1JPKGZsYWdzKTsNCiANCkBAIC04NDksMTIgKzg0OSwxMiBAQCBz
-dGF0aWMgaW50IGFjcGlfbmZpdF9yZWdpc3Rlcl9kaW1tcyhzdHJ1Y3QgYWNwaV9uZml0X2Rlc2Mg
-KmFjcGlfZGVzYykNCiAJCWlmICgobWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9GQUlMRURfTUFT
-SykgPT0gMCkNCiAJCQljb250aW51ZTsNCiANCi0JCWRldl9pbmZvKGFjcGlfZGVzYy0+ZGV2LCAi
-JXM6IGZhaWxlZDogJXMlcyVzJXNcbiIsDQorCQlkZXZfaW5mbyhhY3BpX2Rlc2MtPmRldiwgIiVz
-IGZsYWdzOiVzJXMlcyVzXG4iLA0KIAkJCQludmRpbW1fbmFtZShudmRpbW0pLA0KLQkJCW1lbV9m
-bGFncyAmIEFDUElfTkZJVF9NRU1fU0FWRV9GQUlMRUQgPyAic2F2ZSAiIDogIiIsDQotCQkJbWVt
-X2ZsYWdzICYgQUNQSV9ORklUX01FTV9SRVNUT1JFX0ZBSUxFRCA/ICJyZXN0b3JlICIgOiAiIiwN
-Ci0JCQltZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0ZMVVNIX0ZBSUxFRCA/ICJmbHVzaCAiIDog
-IiIsDQotCQkJbWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9BUk1FRCA/ICJhcm0gIiA6ICIiKTsN
-CisJCSAgbWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9TQVZFX0ZBSUxFRCA/ICIgc2F2ZV9mYWls
-IiA6ICIiLA0KKwkJICBtZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX1JFU1RPUkVfRkFJTEVEID8g
-IiByZXN0b3JlX2ZhaWwiOiIiLA0KKwkJICBtZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0ZMVVNI
-X0ZBSUxFRCA/ICIgZmx1c2hfZmFpbCIgOiAiIiwNCisJCSAgbWVtX2ZsYWdzICYgQUNQSV9ORklU
-X01FTV9BUk1FRCA/ICIgbm90X2FybWVkIiA6ICIiKTsNCiANCiAJfQ0KIA0KDQo=
+On Fri, Aug 21, 2015 at 08:02:51AM -0700, Dan Williams wrote:
+> [ Adding David Woodhouse ]
+> 
+> On Sat, Aug 15, 2015 at 1:59 AM, Christoph Hellwig <hch@lst.de> wrote:
+> > On Fri, Aug 14, 2015 at 02:52:15PM -0700, Dan Williams wrote:
+> >> The idea is that this memory is not meant to be available to the page
+> >> allocator and should not count as new memory capacity.  We're only
+> >> hotplugging it to get struct page coverage.
+> >
+> > This might need a bigger audit of the max_pfn usages.  I remember
+> > architectures using it as a decisions for using IOMMUs or similar.
+> 
+> We chatted about this at LPC yesterday.  The takeaway was that the
+> max_pfn checks that the IOMMU code does is for checking whether a
+> device needs an io-virtual mapping to reach addresses above its DMA
+> limit (if it can't do 64-bit DMA).  Given the capacities of persistent
+> memory it's likely that a device with this limitation already can't
+> address all of RAM let alone PMEM.   So it seems to me that updating
+> max_pfn for PMEM hotplug does not buy us anything except a few more
+> opportunities to confuse PMEM as typical RAM.
+
+I think it is wrong do not update max_pfn for 3 reasons :
+  - In some case your PMEM memory will end up below current max_pfn
+    value so device doing DMA can confuse your PMEM for regular RAM.
+  - Given the above, not updating PMEM means you are not consistant,
+    ie on some computer PMEM will be DMA addressable by device and
+    on other computer it would not. Because different RAM and PMEM
+    configuration, different bios, ... that cause max_pfn to be below
+    range where PMEM get hotpluged.
+  - Last why would we want to block device to access PMEM directly ?
+    Wouldn't it make sense for some device like say network to read
+    PMEM directly and stream it over the network ? All this happening
+    through IOMMU (i am assuming PCIE network card using IOMMU). Which
+    imply having the IOMMU consider this like regular mapping (ignoring
+    Will Davis recent patchset here that might affect the IOMMU max_pfn
+    test).
+
+Cheers,
+J�r�me
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
