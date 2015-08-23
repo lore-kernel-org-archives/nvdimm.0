@@ -1,66 +1,41 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fix for 4.2
-Date: Wed, 26 Aug 2015 00:16:06 +0000
-Message-ID: <1440548164.31365.13.camel@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <140300644124DD46B17F8D0CF7CCC231@intel.com>
-Content-Transfer-Encoding: base64
 MIME-Version: 1.0
+In-Reply-To: <1440105339.30197.11.camel@linux.intel.com>
+References: <1440024484-26152-1-git-send-email-ross.zwisler@linux.intel.com>
+	<CAPcyv4ifZgaQfskPQFGQNhVtnUfkh-Q2au0GjRDYTO60r4F0-g@mail.gmail.com>
+	<1440089067.30197.3.camel@linux.intel.com>
+	<CAPcyv4itBu=-WSzt03L3C1n+BxcLGtePuEEcdwBxk=kx0Mnqjw@mail.gmail.com>
+	<1440094654.30197.8.camel@linux.intel.com>
+	<CAPcyv4iSJ8e3mgiMb3cG_NEW4VqmuWhHdL2v4Os_xiPSgGLmCg@mail.gmail.com>
+	<1440097210.30197.9.camel@linux.intel.com>
+	<CAPcyv4iZb4ot2nEn5DJ+19wF-ZiWk=fKb41mehd6Pv0buGRxJQ@mail.gmail.com>
+	<1440105339.30197.11.camel@linux.intel.com>
+Date: Sat, 22 Aug 2015 18:59:50 -0700
+Message-ID: <CAPcyv4hVMGmtc_OU5kj=Hqh=ySr_48XFhkfxUhvfh9jEH5HOXA@mail.gmail.com>
+Subject: Re: [PATCH v2] nd_blk: add support for "read flush" DSM flag
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "Luis R. Rodriguez" <mcgrof@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Christoph Hellwig <hch@lst.de>, Christoph Jaeger <cj@linux.com>, Dan Streetman <ddstreet@ieee.org>, Ingo Molnar <mingo@redhat.com>, Juergen Gross <jgross@suse.com>, Len Brown <lenb@kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, Stephen Rothwell <sfr@canb.auug.org.au>, Thierry Reding <treding@nvidia.com>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, Vishal Verma <vishal.l.verma@intel.com>, Will Deacon <will.deacon@arm.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMgcGxlYXNlIHB1bGwgZnJvbS4uLg0KDQogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
-Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcw0KDQou
-Li50byByZWNlaXZlIGEgc2luZ2xlIGZpeCBmb3IgdGhlIG5kX2JsayBkcml2ZXIuDQoNClRoZSBl
-ZmZlY3Qgb2YgZ2V0dGluZyB0aGUgd2lkdGggb2YgdGhpcyByZWdpc3RlciByZWFkIHdyb25nIGlz
-IHRoYXQgYWxsDQpJL08gZmFpbHMgd2hlbiB0aGUgcmVhZCByZXR1cm5zIG5vbi16ZXJvLiAgR2l2
-ZW4gdGhlIGF2YWlsYWJpbGl0eSBvZg0KQUNQSSA2IE5GSVQgZW5hYmxlZCBwbGF0Zm9ybXMsIHRo
-aXMgY291bGQgcmVhc29uYWJseSB3YWl0IHRvIGNvbWUgaW4NCmR1cmluZyB0aGUgNC4zIG1lcmdl
-IHdpbmRvdyB3aXRoIGEgdGFnIGZvciA0LjItc3RhYmxlLiAgT3RoZXJ3aXNlLCB0aGlzDQptYWtl
-cyB0aGUgNC4yIGtlcm5lbCBmdWxseSBmdW5jdGlvbmFsIHdpdGggZGV2aWNlcyB0aGF0IGNvbmZv
-cm0gdG8gdGhlDQptbWlvLWJsb2NrLWFwZXJ0dXJlcyBkZWZpbmVkIGluIHRoZSBBQ1BJIDYgTkZJ
-VCAoTlZESU1NIEZpcm13YXJlDQpJbnRlcmZhY2UgVGFibGUpLg0KDQpGdWxsIGNoYW5nZWxvZyBh
-bmQgZGlmZnN0YXQgYmVsb3cuDQoNCi0tLQ0KDQoNClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5j
-ZSBjb21taXQgY2JmZThmYTZjZDY3MjAxMWM3NTVjM2NkODVjOWZmZDRlMmQxMGE2ZjoNCg0KICBM
-aW51eCA0LjItcmM0ICgyMDE1LTA3LTI2IDEyOjI2OjIxIC0wNzAwKQ0KDQphcmUgYXZhaWxhYmxl
-IGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoNCg0KICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIv
-c2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMNCg0KZm9y
-IHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIGRlNGExOTZjMDJhMmEyNjMxYjUxNmQ5MGRhNmU4
-ZDA1MmNjYjA3ZTg6DQoNCiAgbmZpdCwgbmRfYmxrOiBCTEsgc3RhdHVzIHJlZ2lzdGVyIGlzIG9u
-bHkgMzIgYml0cyAoMjAxNS0wOC0yNSAxOTo0MjowMSAtMDQwMCkNCg0KLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KUm9zcyBa
-d2lzbGVyICgxKToNCiAgICAgIG5maXQsIG5kX2JsazogQkxLIHN0YXR1cyByZWdpc3RlciBpcyBv
-bmx5IDMyIGJpdHMNCg0KIGRyaXZlcnMvYWNwaS9uZml0LmMgfCA0ICsrLS0NCiAxIGZpbGUgY2hh
-bmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KDQotLS0NCg0KY29tbWl0IGRl
-NGExOTZjMDJhMmEyNjMxYjUxNmQ5MGRhNmU4ZDA1MmNjYjA3ZTgNCkF1dGhvcjogUm9zcyBad2lz
-bGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPg0KRGF0ZTogICBUaHUgQXVnIDIwIDE2
-OjI3OjM4IDIwMTUgLTA2MDANCg0KICAgIG5maXQsIG5kX2JsazogQkxLIHN0YXR1cyByZWdpc3Rl
-ciBpcyBvbmx5IDMyIGJpdHMNCiAgICANCiAgICBPbmx5IHJlYWQgMzIgYml0cyBmb3IgdGhlIEJM
-SyBzdGF0dXMgcmVnaXN0ZXIgaW4gcmVhZF9ibGtfc3RhdCgpLg0KICAgIA0KICAgIFRoZSBmb3Jt
-YXQgYW5kIHNpemUgb2YgdGhpcyByZWdpc3RlciBpcyBkZWZpbmVkIGluIHRoZQ0KICAgICJOVkRJ
-TU0gRHJpdmVyIFdyaXRlcidzIGd1aWRlIjoNCiAgICANCiAgICBodHRwOi8vcG1lbS5pby9kb2N1
-bWVudHMvTlZESU1NX0RyaXZlcl9Xcml0ZXJzX0d1aWRlLnBkZg0KICAgIA0KICAgIFNpZ25lZC1v
-ZmYtYnk6IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4NCiAgICBS
-ZXBvcnRlZC1ieTogTmljaG9sYXMgTW91bGluIDxuaWNob2xhcy53Lm1vdWxpbkBsaW51eC5pbnRl
-bC5jb20+DQogICAgVGVzdGVkLWJ5OiBOaWNob2xhcyBNb3VsaW4gPG5pY2hvbGFzLncubW91bGlu
-QGxpbnV4LmludGVsLmNvbT4NCiAgICBSZXZpZXdlZC1ieTogSmVmZiBNb3llciA8am1veWVyQHJl
-ZGhhdC5jb20+DQogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFt
-c0BpbnRlbC5jb20+DQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVy
-cy9hY3BpL25maXQuYw0KaW5kZXggNjI4YTQyYzQxYWIxLi5iYjI5ZTU2Mjc2YmQgMTAwNjQ0DQot
-LS0gYS9kcml2ZXJzL2FjcGkvbmZpdC5jDQorKysgYi9kcml2ZXJzL2FjcGkvbmZpdC5jDQpAQCAt
-MTAyNCw3ICsxMDI0LDcgQEAgc3RhdGljIHZvaWQgd21iX2JsayhzdHJ1Y3QgbmZpdF9ibGsgKm5m
-aXRfYmxrKQ0KIAkJd21iX3BtZW0oKTsNCiB9DQogDQotc3RhdGljIHU2NCByZWFkX2Jsa19zdGF0
-KHN0cnVjdCBuZml0X2JsayAqbmZpdF9ibGssIHVuc2lnbmVkIGludCBidykNCitzdGF0aWMgdTMy
-IHJlYWRfYmxrX3N0YXQoc3RydWN0IG5maXRfYmxrICpuZml0X2JsaywgdW5zaWduZWQgaW50IGJ3
-KQ0KIHsNCiAJc3RydWN0IG5maXRfYmxrX21taW8gKm1taW8gPSAmbmZpdF9ibGstPm1taW9bRENS
-XTsNCiAJdTY0IG9mZnNldCA9IG5maXRfYmxrLT5zdGF0X29mZnNldCArIG1taW8tPnNpemUgKiBi
-dzsNCkBAIC0xMDMyLDcgKzEwMzIsNyBAQCBzdGF0aWMgdTY0IHJlYWRfYmxrX3N0YXQoc3RydWN0
-IG5maXRfYmxrICpuZml0X2JsaywgdW5zaWduZWQgaW50IGJ3KQ0KIAlpZiAobW1pby0+bnVtX2xp
-bmVzKQ0KIAkJb2Zmc2V0ID0gdG9faW50ZXJsZWF2ZV9vZmZzZXQob2Zmc2V0LCBtbWlvKTsNCiAN
-Ci0JcmV0dXJuIHJlYWRxKG1taW8tPmJhc2UgKyBvZmZzZXQpOw0KKwlyZXR1cm4gcmVhZGwobW1p
-by0+YmFzZSArIG9mZnNldCk7DQogfQ0KIA0KIHN0YXRpYyB2b2lkIHdyaXRlX2Jsa19jdGwoc3Ry
-dWN0IG5maXRfYmxrICpuZml0X2JsaywgdW5zaWduZWQgaW50IGJ3LA0KDQo=
+On Thu, Aug 20, 2015 at 2:15 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Thu, 2015-08-20 at 13:27 -0700, Dan Williams wrote:
+> [...]
+>> With regards to the fencing, since we already take care to flush
+>> writes we don't need to fence at all for the flush, right?  All we
+>> care about is that reads see valid data.
+>
+> We were careful to flush writes, but we could still have (now stale) data in
+> the cache either due to a previous read or because of prefetching.  So we
+> need to flush, and we need to fence to make sure that our flushing stays
+> correctly ordered with respect to our reads.
+
+Hmm, so clflushopt does not guarantee that a read in program order
+after a clflushopt sees the invalidate?  It seems like we're not
+getting any advantage of using clfushopt vs clflush.
+
+Let's go with this for now, but anything further should be guided by
+performance numbers.
