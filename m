@@ -1,90 +1,144 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 3/7] pmem: remove layer when calling arch_has_wmb_pmem()
-Date: Thu, 13 Aug 2015 10:51:07 -0600
-Message-Id: <1439484671-15718-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Christoph Hellwig <hch@lst.de>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v2 4/9] add devm_memremap_pages
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 25 Aug 2015 21:27:46 -0400
+Message-ID: <20150826012746.8851.7835.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: boaz@plexistor.com, david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-mm@kvack.org, hpa@zytor.com, ross.zwisler@linux.intel.com, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prior to this change arch_has_wmb_pmem() was only called by
-arch_has_pmem_api().  Both arch_has_wmb_pmem() and arch_has_pmem_api()
-checked to make sure that CONFIG_ARCH_HAS_PMEM_API was enabled.
+From: Christoph Hellwig <hch@lst.de>
 
-Instead, remove the old arch_has_wmb_pmem() wrapper to be rid of one
-extra layer of indirection and the redundant CONFIG_ARCH_HAS_PMEM_API
-check. Rename __arch_has_wmb_pmem() to arch_has_wmb_pmem() since we no
-longer have a wrapper, and just have arch_has_pmem_api() call the
-architecture specific arch_has_wmb_pmem() directly.
+This behaves like devm_memremap except that it ensures we have page
+structures available that can back the region.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+[djbw: catch attempts to remap RAM, drop flags]
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/pmem.h |  2 +-
- include/linux/pmem.h        | 13 +++----------
- 2 files changed, 4 insertions(+), 11 deletions(-)
+ include/linux/io.h |   20 ++++++++++++++++++++
+ kernel/memremap.c  |   53 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 73 insertions(+)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index f43462c..1e8dbb7 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -67,7 +67,7 @@ static inline void arch_wmb_pmem(void)
- 	pcommit_sfence();
- }
+diff --git a/include/linux/io.h b/include/linux/io.h
+index d8d749abd665..de64c1e53612 100644
+--- a/include/linux/io.h
++++ b/include/linux/io.h
+@@ -20,10 +20,13 @@
  
--static inline bool __arch_has_wmb_pmem(void)
-+static inline bool arch_has_wmb_pmem(void)
- {
- #ifdef CONFIG_X86_64
- 	/*
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 5dad6d1..9d619d2 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -23,7 +23,7 @@ static inline void arch_wmb_pmem(void)
- 	BUG();
- }
+ #include <linux/types.h>
+ #include <linux/init.h>
++#include <linux/bug.h>
++#include <linux/err.h>
+ #include <asm/io.h>
+ #include <asm/page.h>
  
--static inline bool __arch_has_wmb_pmem(void)
-+static inline bool arch_has_wmb_pmem(void)
- {
- 	return false;
- }
-@@ -44,7 +44,7 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+ struct device;
++struct resource;
+ 
+ __visible void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
+ void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
+@@ -84,6 +87,23 @@ void *devm_memremap(struct device *dev, resource_size_t offset,
+ 		size_t size, unsigned long flags);
+ void devm_memunmap(struct device *dev, void *addr);
+ 
++void *__devm_memremap_pages(struct device *dev, struct resource *res);
++
++#ifdef CONFIG_ZONE_DEVICE
++void *devm_memremap_pages(struct device *dev, struct resource *res);
++#else
++static inline void *devm_memremap_pages(struct device *dev, struct resource *res)
++{
++	/*
++	 * Fail attempts to call devm_memremap_pages() without
++	 * ZONE_DEVICE support enabled, this requires callers to fall
++	 * back to plain devm_memremap() based on config
++	 */
++	WARN_ON_ONCE(1);
++	return ERR_PTR(-ENXIO);
++}
++#endif
++
  /*
-  * Architectures that define ARCH_HAS_PMEM_API must provide
-  * implementations for arch_memremap_pmem(), arch_memcpy_to_pmem(),
-- * arch_wmb_pmem(), and __arch_has_wmb_pmem().
-+ * arch_wmb_pmem(), and arch_has_wmb_pmem().
-  */
+  * Some systems do not have legacy ISA devices.
+  * /dev/port is not a valid interface on these systems.
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 5c9b55eaf121..72b0c66628b6 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -14,6 +14,7 @@
+ #include <linux/types.h>
+ #include <linux/io.h>
+ #include <linux/mm.h>
++#include <linux/memory_hotplug.h>
  
- static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
-@@ -58,7 +58,7 @@ static inline void memunmap_pmem(void __pmem *addr)
+ #ifndef ioremap_cache
+ /* temporary while we convert existing ioremap_cache users to memremap */
+@@ -135,3 +136,55 @@ void devm_memunmap(struct device *dev, void *addr)
+ 	memunmap(addr);
  }
- 
- /**
-- * arch_has_wmb_pmem - true if wmb_pmem() ensures durability
-+ * arch_has_pmem_api - true if wmb_pmem() ensures durability
-  *
-  * For a given cpu implementation within an architecture it is possible
-  * that wmb_pmem() resolves to a nop.  In the case this returns
-@@ -66,13 +66,6 @@ static inline void memunmap_pmem(void __pmem *addr)
-  * fall back to a different data consistency model, or otherwise notify
-  * the user.
-  */
--static inline bool arch_has_wmb_pmem(void)
--{
--	if (IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API))
--		return __arch_has_wmb_pmem();
--	return false;
--}
--
- static inline bool arch_has_pmem_api(void)
- {
- 	return IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API) && arch_has_wmb_pmem();
--- 
-2.1.0
+ EXPORT_SYMBOL(devm_memunmap);
++
++#ifdef CONFIG_ZONE_DEVICE
++struct page_map {
++	struct resource res;
++};
++
++static void devm_memremap_pages_release(struct device *dev, void *res)
++{
++	struct page_map *page_map = res;
++
++	/* pages are dead and unused, undo the arch mapping */
++	arch_remove_memory(page_map->res.start, resource_size(&page_map->res));
++}
++
++void *devm_memremap_pages(struct device *dev, struct resource *res)
++{
++	int is_ram = region_intersects(res->start, resource_size(res),
++			"System RAM");
++	struct page_map *page_map;
++	int error, nid;
++
++	if (is_ram == REGION_MIXED) {
++		WARN_ONCE(1, "%s attempted on mixed region %pr\n",
++				__func__, res);
++		return ERR_PTR(-ENXIO);
++	}
++
++	if (is_ram == REGION_INTERSECTS)
++		return __va(res->start);
++
++	page_map = devres_alloc(devm_memremap_pages_release,
++			sizeof(*page_map), GFP_KERNEL);
++	if (!page_map)
++		return ERR_PTR(-ENOMEM);
++
++	memcpy(&page_map->res, res, sizeof(*res));
++
++	nid = dev_to_node(dev);
++	if (nid < 0)
++		nid = 0;
++
++	error = arch_add_memory(nid, res->start, resource_size(res), true);
++	if (error) {
++		devres_free(page_map);
++		return ERR_PTR(error);
++	}
++
++	devres_add(dev, page_map);
++	return __va(res->start);
++}
++EXPORT_SYMBOL(devm_memremap_pages);
++#endif /* CONFIG_ZONE_DEVICE */
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
