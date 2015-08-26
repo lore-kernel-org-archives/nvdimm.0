@@ -1,337 +1,104 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 7/7] pmem, dax: have direct_access use __pmem annotation
-Date: Thu, 13 Aug 2015 10:51:11 -0600
-Message-Id: <1439484671-15718-8-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1439484671-15718-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Jonathan Corbet <corbet@lwn.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Jens Axboe <axboe@kernel.dk>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, Jeff Layton <jlayton@primarydata.com>, Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Omar Sandoval <osandov@osandov.com>, Boaz Harrosh <boaz@plexistor.com>, Miklos Szeredi <mszeredi@suse.cz>, Jan Kara <jack@suse.cz>, Wolfram Sang <wsa@the-dreams.de>, =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Ameen Ali <ameenali023@gmail.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Sagi Grimberg <sagig@mellanox.com>, Mike Snitzer <snitzer@redhat.com>, Tejun Heo <tj@kernel.org>, Shaohua Li <shli@fb.com>, Ming Lei <ming.lei@canonical.com>, linux-doc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-fsdevel@vger.kernel.org, Dave Chinner <david@fromorbit.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v2 2/9] mm: move __phys_to_pfn and __pfn_to_phys to
+ asm/generic/memory_model.h
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 25 Aug 2015 21:27:35 -0400
+Message-ID: <20150826012735.8851.49787.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: boaz@plexistor.com, david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-mm@kvack.org, hpa@zytor.com, ross.zwisler@linux.intel.com, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Update the annotation for the kaddr pointer returned by direct_access()
-so that it is a __pmem pointer.  This is consistent with the PMEM driver
-and with how this direct_access() pointer is used in the DAX code.
+From: Christoph Hellwig <hch@lst.de>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Three architectures already define these, and we'll need them genericly
+soon.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/filesystems/Locking |  3 ++-
- arch/powerpc/sysdev/axonram.c     |  7 ++++---
- drivers/block/brd.c               |  4 ++--
- drivers/nvdimm/pmem.c             |  4 ++--
- drivers/s390/block/dcssblk.c      | 10 +++++----
- fs/block_dev.c                    |  2 +-
- fs/dax.c                          | 44 +++++++++++++++++++++------------------
- include/linux/blkdev.h            |  8 +++----
- 8 files changed, 45 insertions(+), 37 deletions(-)
+ arch/arm/include/asm/memory.h       |    6 ------
+ arch/arm64/include/asm/memory.h     |    6 ------
+ arch/unicore32/include/asm/memory.h |    6 ------
+ include/asm-generic/memory_model.h  |    6 ++++++
+ 4 files changed, 6 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
-index 6a34a0f..06d4434 100644
---- a/Documentation/filesystems/Locking
-+++ b/Documentation/filesystems/Locking
-@@ -397,7 +397,8 @@ prototypes:
- 	int (*release) (struct gendisk *, fmode_t);
- 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
- 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
--	int (*direct_access) (struct block_device *, sector_t, void **, unsigned long *);
-+	int (*direct_access) (struct block_device *, sector_t, void __pmem **,
-+				unsigned long *);
- 	int (*media_changed) (struct gendisk *);
- 	void (*unlock_native_capacity) (struct gendisk *);
- 	int (*revalidate_disk) (struct gendisk *);
-diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
-index ee90db1..a2be2a6 100644
---- a/arch/powerpc/sysdev/axonram.c
-+++ b/arch/powerpc/sysdev/axonram.c
-@@ -141,13 +141,14 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
+diff --git a/arch/arm/include/asm/memory.h b/arch/arm/include/asm/memory.h
+index b7f6fb462ea0..98d58bb04ac5 100644
+--- a/arch/arm/include/asm/memory.h
++++ b/arch/arm/include/asm/memory.h
+@@ -119,12 +119,6 @@
+ #endif
+ 
+ /*
+- * Convert a physical address to a Page Frame Number and back
+- */
+-#define	__phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
+-#define	__pfn_to_phys(pfn)	((phys_addr_t)(pfn) << PAGE_SHIFT)
+-
+-/*
+  * Convert a page to/from a physical address
   */
- static long
- axon_ram_direct_access(struct block_device *device, sector_t sector,
--		       void **kaddr, unsigned long *pfn, long size)
-+		       void __pmem **kaddr, unsigned long *pfn, long size)
- {
- 	struct axon_ram_bank *bank = device->bd_disk->private_data;
- 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
-+	void *addr = (void *)(bank->ph_addr + offset);
+ #define page_to_phys(page)	(__pfn_to_phys(page_to_pfn(page)))
+diff --git a/arch/arm64/include/asm/memory.h b/arch/arm64/include/asm/memory.h
+index f800d45ea226..d808bb688751 100644
+--- a/arch/arm64/include/asm/memory.h
++++ b/arch/arm64/include/asm/memory.h
+@@ -81,12 +81,6 @@
+ #define __phys_to_virt(x)	((unsigned long)((x) - PHYS_OFFSET + PAGE_OFFSET))
  
--	*kaddr = (void *)(bank->ph_addr + offset);
--	*pfn = virt_to_phys(*kaddr) >> PAGE_SHIFT;
-+	*kaddr = (void __pmem *)addr;
-+	*pfn = virt_to_phys(addr) >> PAGE_SHIFT;
- 
- 	return bank->size - offset;
- }
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 5750b39..2691bb6 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -371,7 +371,7 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
- 
- #ifdef CONFIG_BLK_DEV_RAM_DAX
- static long brd_direct_access(struct block_device *bdev, sector_t sector,
--			void **kaddr, unsigned long *pfn, long size)
-+			void __pmem **kaddr, unsigned long *pfn, long size)
- {
- 	struct brd_device *brd = bdev->bd_disk->private_data;
- 	struct page *page;
-@@ -381,7 +381,7 @@ static long brd_direct_access(struct block_device *bdev, sector_t sector,
- 	page = brd_insert_page(brd, sector);
- 	if (!page)
- 		return -ENOSPC;
--	*kaddr = page_address(page);
-+	*kaddr = (void __pmem *)page_address(page);
- 	*pfn = page_to_pfn(page);
- 
- 	/*
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index ade9eb9..68f6a6a 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -92,7 +92,7 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- }
- 
- static long pmem_direct_access(struct block_device *bdev, sector_t sector,
--			      void **kaddr, unsigned long *pfn, long size)
-+		      void __pmem **kaddr, unsigned long *pfn, long size)
- {
- 	struct pmem_device *pmem = bdev->bd_disk->private_data;
- 	size_t offset = sector << 9;
-@@ -101,7 +101,7 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
- 		return -ENODEV;
- 
- 	/* FIXME convert DAX to comprehend that this mapping has a lifetime */
--	*kaddr = (void __force *) pmem->virt_addr + offset;
-+	*kaddr = pmem->virt_addr + offset;
- 	*pfn = (pmem->phys_addr + offset) >> PAGE_SHIFT;
- 
- 	return pmem->size - offset;
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index da21281..2c5a397 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -29,7 +29,7 @@ static int dcssblk_open(struct block_device *bdev, fmode_t mode);
- static void dcssblk_release(struct gendisk *disk, fmode_t mode);
- static void dcssblk_make_request(struct request_queue *q, struct bio *bio);
- static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
--				 void **kaddr, unsigned long *pfn, long size);
-+			 void __pmem **kaddr, unsigned long *pfn, long size);
- 
- static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
- 
-@@ -879,18 +879,20 @@ fail:
- 
- static long
- dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
--			void **kaddr, unsigned long *pfn, long size)
-+			void __pmem **kaddr, unsigned long *pfn, long size)
- {
- 	struct dcssblk_dev_info *dev_info;
- 	unsigned long offset, dev_sz;
-+	void *addr;
- 
- 	dev_info = bdev->bd_disk->private_data;
- 	if (!dev_info)
- 		return -ENODEV;
- 	dev_sz = dev_info->end - dev_info->start;
- 	offset = secnum * 512;
--	*kaddr = (void *) (dev_info->start + offset);
--	*pfn = virt_to_phys(*kaddr) >> PAGE_SHIFT;
-+	addr = (void *) (dev_info->start + offset);
-+	*pfn = virt_to_phys(addr) >> PAGE_SHIFT;
-+	*kaddr = (void __pmem *) addr;
- 
- 	return dev_sz - offset;
- }
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 9be2d7e..4ab366d 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -442,7 +442,7 @@ EXPORT_SYMBOL_GPL(bdev_write_page);
-  * accessible at this address.
+ /*
+- * Convert a physical address to a Page Frame Number and back
+- */
+-#define	__phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
+-#define	__pfn_to_phys(pfn)	((phys_addr_t)(pfn) << PAGE_SHIFT)
+-
+-/*
+  * Convert a page to/from a physical address
   */
- long bdev_direct_access(struct block_device *bdev, sector_t sector,
--			void **addr, unsigned long *pfn, long size)
-+			void __pmem **addr, unsigned long *pfn, long size)
- {
- 	long avail;
- 	const struct block_device_operations *ops = bdev->bd_disk->fops;
-diff --git a/fs/dax.c b/fs/dax.c
-index ea1b2c8..633a1ba 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -36,7 +36,7 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+ #define page_to_phys(page)	(__pfn_to_phys(page_to_pfn(page)))
+diff --git a/arch/unicore32/include/asm/memory.h b/arch/unicore32/include/asm/memory.h
+index debafc40200a..3bb0a29fd2d7 100644
+--- a/arch/unicore32/include/asm/memory.h
++++ b/arch/unicore32/include/asm/memory.h
+@@ -61,12 +61,6 @@
+ #endif
  
- 	might_sleep();
- 	do {
--		void *addr;
-+		void __pmem *addr;
- 		unsigned long pfn;
- 		long count;
+ /*
+- * Convert a physical address to a Page Frame Number and back
+- */
+-#define	__phys_to_pfn(paddr)	((paddr) >> PAGE_SHIFT)
+-#define	__pfn_to_phys(pfn)	((pfn) << PAGE_SHIFT)
+-
+-/*
+  * Convert a page to/from a physical address
+  */
+ #define page_to_phys(page)	(__pfn_to_phys(page_to_pfn(page)))
+diff --git a/include/asm-generic/memory_model.h b/include/asm-generic/memory_model.h
+index 14909b0b9cae..f20f407ce45d 100644
+--- a/include/asm-generic/memory_model.h
++++ b/include/asm-generic/memory_model.h
+@@ -69,6 +69,12 @@
+ })
+ #endif /* CONFIG_FLATMEM/DISCONTIGMEM/SPARSEMEM */
  
-@@ -48,7 +48,7 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- 			unsigned pgsz = PAGE_SIZE - offset_in_page(addr);
- 			if (pgsz > count)
- 				pgsz = count;
--			clear_pmem((void __pmem *)addr, pgsz);
-+			clear_pmem(addr, pgsz);
- 			addr += pgsz;
- 			size -= pgsz;
- 			count -= pgsz;
-@@ -63,7 +63,8 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- }
- EXPORT_SYMBOL_GPL(dax_clear_blocks);
- 
--static long dax_get_addr(struct buffer_head *bh, void **addr, unsigned blkbits)
-+static long dax_get_addr(struct buffer_head *bh, void __pmem **addr,
-+		unsigned blkbits)
- {
- 	unsigned long pfn;
- 	sector_t sector = bh->b_blocknr << (blkbits - 9);
-@@ -71,15 +72,15 @@ static long dax_get_addr(struct buffer_head *bh, void **addr, unsigned blkbits)
- }
- 
- /* the clear_pmem() calls are ordered by a wmb_pmem() in the caller */
--static void dax_new_buf(void *addr, unsigned size, unsigned first, loff_t pos,
--			loff_t end)
-+static void dax_new_buf(void __pmem *addr, unsigned size, unsigned first,
-+		loff_t pos, loff_t end)
- {
- 	loff_t final = end - pos + first; /* The final byte of the buffer */
- 
- 	if (first > 0)
--		clear_pmem((void __pmem *)addr, first);
-+		clear_pmem(addr, first);
- 	if (final < size)
--		clear_pmem((void __pmem *)addr + final, size - final);
-+		clear_pmem(addr + final, size - final);
- }
- 
- static bool buffer_written(struct buffer_head *bh)
-@@ -107,7 +108,7 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 	loff_t pos = start;
- 	loff_t max = start;
- 	loff_t bh_max = start;
--	void *addr;
-+	void __pmem *addr;
- 	bool hole = false;
- 	bool need_wmb = false;
- 
-@@ -159,16 +160,18 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 		}
- 
- 		if (iov_iter_rw(iter) == WRITE) {
--			len = copy_from_iter_nocache(addr, max - pos, iter);
-+			len = copy_from_iter_nocache((void __force *)addr,
-+					max - pos, iter);
- 			/*
- 			 * copy_from_iter_nocache() uses non-temporal stores
- 			 * for iovec iterators so we can skip the write back.
- 			 */
- 			if (!iter_is_iovec(iter))
--				wb_cache_pmem((void __pmem *)addr, max - pos);
-+				wb_cache_pmem(addr, max - pos);
- 			need_wmb = true;
- 		} else if (!hole)
--			len = copy_to_iter(addr, max - pos, iter);
-+			len = copy_to_iter((void __force *)addr, max - pos,
-+					iter);
- 		else
- 			len = iov_iter_zero(max - pos, iter);
- 
-@@ -274,11 +277,13 @@ static int dax_load_hole(struct address_space *mapping, struct page *page,
- static int copy_user_bh(struct page *to, struct buffer_head *bh,
- 			unsigned blkbits, unsigned long vaddr)
- {
--	void *vfrom, *vto;
-+	void __pmem *vfrom;
-+	void *vto;
++/*
++ * Convert a physical address to a Page Frame Number and back
++ */
++#define	__phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
++#define	__pfn_to_phys(pfn)	((pfn) << PAGE_SHIFT)
 +
- 	if (dax_get_addr(bh, &vfrom, blkbits) < 0)
- 		return -EIO;
- 	vto = kmap_atomic(to);
--	copy_user_page(vto, vfrom, vaddr, to);
-+	copy_user_page(vto, (void __force *)vfrom, vaddr, to);
- 	kunmap_atomic(vto);
- 	return 0;
- }
-@@ -288,7 +293,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- {
- 	sector_t sector = bh->b_blocknr << (inode->i_blkbits - 9);
- 	unsigned long vaddr = (unsigned long)vmf->virtual_address;
--	void *addr;
-+	void __pmem *addr;
- 	unsigned long pfn;
- 	pgoff_t size;
- 	int error;
-@@ -315,7 +320,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 	}
+ #define page_to_pfn __page_to_pfn
+ #define pfn_to_page __pfn_to_page
  
- 	if (buffer_unwritten(bh) || buffer_new(bh)) {
--		clear_pmem((void __pmem *)addr, PAGE_SIZE);
-+		clear_pmem(addr, PAGE_SIZE);
- 		wmb_pmem();
- 	}
- 
-@@ -530,7 +535,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	unsigned long pmd_addr = address & PMD_MASK;
- 	bool write = flags & FAULT_FLAG_WRITE;
- 	long length;
--	void *kaddr;
-+	void __pmem *kaddr;
- 	pgoff_t size, pgoff;
- 	sector_t block, sector;
- 	unsigned long pfn;
-@@ -624,8 +629,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
- 			int i;
- 			for (i = 0; i < PTRS_PER_PMD; i++)
--				clear_pmem((void __pmem *)kaddr + i*PAGE_SIZE,
--						PAGE_SIZE);
-+				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
- 			wmb_pmem();
- 			count_vm_event(PGMAJFAULT);
- 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
-@@ -734,11 +738,11 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
- 	if (err < 0)
- 		return err;
- 	if (buffer_written(&bh)) {
--		void *addr;
-+		void __pmem *addr;
- 		err = dax_get_addr(&bh, &addr, inode->i_blkbits);
- 		if (err < 0)
- 			return err;
--		clear_pmem((void __pmem *)addr + offset, length);
-+		clear_pmem(addr + offset, length);
- 		wmb_pmem();
- 	}
- 
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index d4068c1..c401ecd 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1555,8 +1555,8 @@ struct block_device_operations {
- 	int (*rw_page)(struct block_device *, sector_t, struct page *, int rw);
- 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
- 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
--	long (*direct_access)(struct block_device *, sector_t,
--					void **, unsigned long *pfn, long size);
-+	long (*direct_access)(struct block_device *, sector_t, void __pmem **,
-+			unsigned long *pfn, long size);
- 	unsigned int (*check_events) (struct gendisk *disk,
- 				      unsigned int clearing);
- 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
-@@ -1574,8 +1574,8 @@ extern int __blkdev_driver_ioctl(struct block_device *, fmode_t, unsigned int,
- extern int bdev_read_page(struct block_device *, sector_t, struct page *);
- extern int bdev_write_page(struct block_device *, sector_t, struct page *,
- 						struct writeback_control *);
--extern long bdev_direct_access(struct block_device *, sector_t, void **addr,
--						unsigned long *pfn, long size);
-+extern long bdev_direct_access(struct block_device *, sector_t,
-+		void __pmem **addr, unsigned long *pfn, long size);
- #else /* CONFIG_BLOCK */
- 
- struct block_device;
--- 
-2.1.0
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
