@@ -1,78 +1,134 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 3/6] x86: add clwb_cache_range()
-Date: Thu,  6 Aug 2015 11:43:17 -0600
-Message-Id: <1438883000-9011-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1438883000-9011-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1438883000-9011-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, dan.j.williams@intel.com
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Juergen Gross <jgross@suse.com>, Borislav Petkov <bp@suse.de>, Toshi Kani <toshi.kani@hp.com>, "Luis R. Rodriguez" <mcgrof@suse.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v2 1/9] dax: drop size parameter to ->direct_access()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 25 Aug 2015 21:27:30 -0400
+Message-ID: <20150826012729.8851.66729.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: boaz@plexistor.com, david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-mm@kvack.org, hpa@zytor.com, ross.zwisler@linux.intel.com, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for writing back a cache range using CLWB instead of just
-flushing it using CLFLUSH or CLFLUSHOPT.  This allows you to ensure that
-your data has become durable on your DIMM, but potentially leaves a
-clean version in the processor cache hierarchy for future loads.
+None of the implementations currently use it.  The common
+bdev_direct_access() entry point handles all the size checks before
+calling ->direct_access().
 
-This will be used in DAX to write back stores to persistent memory.
-
-Details on CLWB can be found here:
-
-https://software.intel.com/sites/default/files/managed/0d/53/319433-022.pdf
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/cacheflush.h |  1 +
- arch/x86/mm/pageattr.c            | 23 +++++++++++++++++++++++
- 2 files changed, 24 insertions(+)
+ arch/powerpc/sysdev/axonram.c |    2 +-
+ drivers/block/brd.c           |    6 +-----
+ drivers/nvdimm/pmem.c         |    2 +-
+ drivers/s390/block/dcssblk.c  |    4 ++--
+ fs/block_dev.c                |    2 +-
+ include/linux/blkdev.h        |    2 +-
+ 6 files changed, 7 insertions(+), 11 deletions(-)
 
-diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
-index ae00766..490b3d6 100644
---- a/arch/x86/include/asm/cacheflush.h
-+++ b/arch/x86/include/asm/cacheflush.h
-@@ -88,6 +88,7 @@ int set_pages_rw(struct page *page, int numpages);
- 
- 
- void clflush_cache_range(void *addr, unsigned int size);
-+void clwb_cache_range(void *addr, size_t size);
- 
- #ifdef CONFIG_DEBUG_RODATA
- void mark_rodata_ro(void);
-diff --git a/arch/x86/mm/pageattr.c b/arch/x86/mm/pageattr.c
-index 727158c..ce84d05 100644
---- a/arch/x86/mm/pageattr.c
-+++ b/arch/x86/mm/pageattr.c
-@@ -144,6 +144,29 @@ void clflush_cache_range(void *vaddr, unsigned int size)
- }
- EXPORT_SYMBOL_GPL(clflush_cache_range);
- 
-+/**
-+ * clwb_cache_range - write back a cache range with clwb
-+ * @vaddr:	virtual start address
-+ * @size:	number of bytes to write back
-+ *
-+ * clwb is an unordered instruction which needs fencing with mfence or sfence
-+ * to avoid ordering issues.
-+ */
-+void clwb_cache_range(void *vaddr, size_t size)
-+{
-+	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
-+	unsigned long clflush_mask = x86_clflush_size - 1;
-+	char *vend = (char *)vaddr + size;
-+	char *p;
-+
-+	for (p = (char *)((unsigned long)vaddr & ~clflush_mask);
-+	     p < vend; p += x86_clflush_size)
-+		clwb(p);
-+
-+	wmb();
-+}
-+EXPORT_SYMBOL_GPL(clwb_cache_range);
-+
- static void __cpa_flush_all(void *arg)
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index a2be2a66dab6..4419c84ac15a 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -141,7 +141,7 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
+  */
+ static long
+ axon_ram_direct_access(struct block_device *device, sector_t sector,
+-		       void __pmem **kaddr, unsigned long *pfn, long size)
++		       void __pmem **kaddr, unsigned long *pfn)
  {
- 	unsigned long cache = (unsigned long)arg;
--- 
-2.1.0
+ 	struct axon_ram_bank *bank = device->bd_disk->private_data;
+ 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index c96402fd1560..03c45c41bdfa 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -371,7 +371,7 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
+ 
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+-			void __pmem **kaddr, unsigned long *pfn, long size)
++			void __pmem **kaddr, unsigned long *pfn)
+ {
+ 	struct brd_device *brd = bdev->bd_disk->private_data;
+ 	struct page *page;
+@@ -384,10 +384,6 @@ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+ 	*kaddr = (void __pmem *)page_address(page);
+ 	*pfn = page_to_pfn(page);
+ 
+-	/*
+-	 * TODO: If size > PAGE_SIZE, we could look to see if the next page in
+-	 * the file happens to be mapped to the next page of physical RAM.
+-	 */
+ 	return PAGE_SIZE;
+ }
+ #else
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index f3b629779266..3b5b9cb758b6 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -92,7 +92,7 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ }
+ 
+ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+-		      void __pmem **kaddr, unsigned long *pfn, long size)
++		      void __pmem **kaddr, unsigned long *pfn)
+ {
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
+ 	size_t offset = sector << 9;
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index 2c5a397b9f3e..8c027a9e4e8a 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -29,7 +29,7 @@ static int dcssblk_open(struct block_device *bdev, fmode_t mode);
+ static void dcssblk_release(struct gendisk *disk, fmode_t mode);
+ static void dcssblk_make_request(struct request_queue *q, struct bio *bio);
+ static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
+-			 void __pmem **kaddr, unsigned long *pfn, long size);
++			 void __pmem **kaddr, unsigned long *pfn);
+ 
+ static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
+ 
+@@ -879,7 +879,7 @@ fail:
+ 
+ static long
+ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+-			void __pmem **kaddr, unsigned long *pfn, long size)
++			void __pmem **kaddr, unsigned long *pfn)
+ {
+ 	struct dcssblk_dev_info *dev_info;
+ 	unsigned long offset, dev_sz;
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 2345a9870e2c..3831e5691b32 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -462,7 +462,7 @@ long bdev_direct_access(struct block_device *bdev, sector_t sector,
+ 	sector += get_start_sect(bdev);
+ 	if (sector % (PAGE_SIZE / 512))
+ 		return -EINVAL;
+-	avail = ops->direct_access(bdev, sector, addr, pfn, size);
++	avail = ops->direct_access(bdev, sector, addr, pfn);
+ 	if (!avail)
+ 		return -ERANGE;
+ 	return min(avail, size);
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index c401ecdff9cb..c22064f326b2 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1556,7 +1556,7 @@ struct block_device_operations {
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	long (*direct_access)(struct block_device *, sector_t, void __pmem **,
+-			unsigned long *pfn, long size);
++			unsigned long *pfn);
+ 	unsigned int (*check_events) (struct gendisk *disk,
+ 				      unsigned int clearing);
+ 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
