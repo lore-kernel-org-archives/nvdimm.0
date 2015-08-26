@@ -1,91 +1,325 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v5 0/8] memremap for 4.3
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v2 3/9] mm: ZONE_DEVICE for "device memory"
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 12 Aug 2015 20:12:03 -0400
-Message-ID: <20150813000250.17702.28409.stgit@otcpl-skl-sds-2.jf.intel.com>
+Date: Tue, 25 Aug 2015 21:27:41 -0400
+Message-ID: <20150826012740.8851.52436.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Toshi Kani <toshi.kani@hp.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mcgrof@suse.com, hch@lst.de, Benjamin Romer <benjamin.romer@unisys.com>, David Kershner <david.kershner@unisys.com>, ross.zwisler@linux.intel.com
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: boaz@plexistor.com, Rik van Riel <riel@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Mel Gorman <mgorman@suse.de>, hpa@zytor.com, Jerome Glisse <j.glisse@gmail.com>, ross.zwisler@linux.intel.com, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v4 [1]:
+While pmem is usable as a block device or via DAX mappings to userspace
+there are several usage scenarios that can not target pmem due to its
+lack of struct page coverage. In preparation for "hot plugging" pmem
+into the vmemmap add ZONE_DEVICE as a new zone to tag these pages
+separately from the ones that are subject to standard page allocations.
+Importantly "device memory" can be removed at will by userspace
+unbinding the driver of the device.
 
-1/ Squashed the pmem memremap conversion into one patch and dropped the
-   boilerplate for looking a mapping-type by range. The architecture
-   now optionally defines ARCH_MEMREMAP_PMEM flags to override the
-   default. (Christoph)
+Having a separate zone prevents allocation and otherwise marks these
+pages that are distinct from typical uniform memory.  Device memory has
+different lifetime and performance characteristics than RAM.  However,
+since we have run out of ZONES_SHIFT bits this functionality currently
+depends on sacrificing ZONE_DMA.
 
-2/ Fixed memunmap_pmem() to be devm based to match memremap_pmem()
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-August/001728.html
-
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Jerome Glisse <j.glisse@gmail.com>
+[hch: various simplifications in the arch interface]
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ arch/ia64/mm/init.c            |    4 ++--
+ arch/powerpc/mm/mem.c          |    4 ++--
+ arch/s390/mm/init.c            |    2 +-
+ arch/sh/mm/init.c              |    5 +++--
+ arch/tile/mm/init.c            |    2 +-
+ arch/x86/mm/init_32.c          |    4 ++--
+ arch/x86/mm/init_64.c          |    4 ++--
+ include/linux/memory_hotplug.h |    5 +++--
+ include/linux/mmzone.h         |   23 +++++++++++++++++++++++
+ mm/Kconfig                     |   17 +++++++++++++++++
+ mm/memory_hotplug.c            |   14 +++++++++++---
+ mm/page_alloc.c                |    3 +++
+ 12 files changed, 70 insertions(+), 17 deletions(-)
 
-While developing the pmem driver we noticed that the __iomem annotation
-on the return value from ioremap_cache() was being mishandled by several
-callers.  We also observed that all of the call sites expected to be
-able to treat the return value from ioremap_cache() as normal
-(non-__iomem) pointer to memory.
+diff --git a/arch/ia64/mm/init.c b/arch/ia64/mm/init.c
+index 97e48b0eefc7..1841ef69183d 100644
+--- a/arch/ia64/mm/init.c
++++ b/arch/ia64/mm/init.c
+@@ -645,7 +645,7 @@ mem_init (void)
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size)
++int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
+ {
+ 	pg_data_t *pgdat;
+ 	struct zone *zone;
+@@ -656,7 +656,7 @@ int arch_add_memory(int nid, u64 start, u64 size)
+ 	pgdat = NODE_DATA(nid);
+ 
+ 	zone = pgdat->node_zones +
+-		zone_for_memory(nid, start, size, ZONE_NORMAL);
++		zone_for_memory(nid, start, size, ZONE_NORMAL, for_device);
+ 	ret = __add_pages(nid, zone, start_pfn, nr_pages);
+ 
+ 	if (ret)
+diff --git a/arch/powerpc/mm/mem.c b/arch/powerpc/mm/mem.c
+index 0f11819d8f1d..6571cfb05668 100644
+--- a/arch/powerpc/mm/mem.c
++++ b/arch/powerpc/mm/mem.c
+@@ -113,7 +113,7 @@ int memory_add_physaddr_to_nid(u64 start)
+ }
+ #endif
+ 
+-int arch_add_memory(int nid, u64 start, u64 size)
++int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
+ {
+ 	struct pglist_data *pgdata;
+ 	struct zone *zone;
+@@ -128,7 +128,7 @@ int arch_add_memory(int nid, u64 start, u64 size)
+ 
+ 	/* this should work for most non-highmem platforms */
+ 	zone = pgdata->node_zones +
+-		zone_for_memory(nid, start, size, 0);
++		zone_for_memory(nid, start, size, 0, for_device);
+ 
+ 	return __add_pages(nid, zone, start_pfn, nr_pages);
+ }
+diff --git a/arch/s390/mm/init.c b/arch/s390/mm/init.c
+index 76e873748b56..48ee78be88ba 100644
+--- a/arch/s390/mm/init.c
++++ b/arch/s390/mm/init.c
+@@ -168,7 +168,7 @@ void __init free_initrd_mem(unsigned long start, unsigned long end)
+ #endif
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size)
++int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
+ {
+ 	unsigned long zone_start_pfn, zone_end_pfn, nr_pages;
+ 	unsigned long start_pfn = PFN_DOWN(start);
+diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
+index 2790b6a64157..c1490096b863 100644
+--- a/arch/sh/mm/init.c
++++ b/arch/sh/mm/init.c
+@@ -485,7 +485,7 @@ void free_initrd_mem(unsigned long start, unsigned long end)
+ #endif
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size)
++int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
+ {
+ 	pg_data_t *pgdat;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+@@ -496,7 +496,8 @@ int arch_add_memory(int nid, u64 start, u64 size)
+ 
+ 	/* We only have ZONE_NORMAL, so this is easy.. */
+ 	ret = __add_pages(nid, pgdat->node_zones +
+-			zone_for_memory(nid, start, size, ZONE_NORMAL),
++			zone_for_memory(nid, start, size, ZONE_NORMAL,
++			for_device),
+ 			start_pfn, nr_pages);
+ 	if (unlikely(ret))
+ 		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
+diff --git a/arch/tile/mm/init.c b/arch/tile/mm/init.c
+index 5bd252e3fdc5..d4e1fc41d06d 100644
+--- a/arch/tile/mm/init.c
++++ b/arch/tile/mm/init.c
+@@ -863,7 +863,7 @@ void __init mem_init(void)
+  * memory to the highmem for now.
+  */
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+-int arch_add_memory(u64 start, u64 size)
++int arch_add_memory(u64 start, u64 size, bool for_device)
+ {
+ 	struct pglist_data *pgdata = &contig_page_data;
+ 	struct zone *zone = pgdata->node_zones + MAX_NR_ZONES-1;
+diff --git a/arch/x86/mm/init_32.c b/arch/x86/mm/init_32.c
+index 8340e45c891a..2a9237d20a70 100644
+--- a/arch/x86/mm/init_32.c
++++ b/arch/x86/mm/init_32.c
+@@ -822,11 +822,11 @@ void __init mem_init(void)
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size)
++int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
+ {
+ 	struct pglist_data *pgdata = NODE_DATA(nid);
+ 	struct zone *zone = pgdata->node_zones +
+-		zone_for_memory(nid, start, size, ZONE_HIGHMEM);
++		zone_for_memory(nid, start, size, ZONE_HIGHMEM, for_device);
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 3fba623e3ba5..30564e2752d3 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -687,11 +687,11 @@ static void  update_end_of_memory_vars(u64 start, u64 size)
+  * Memory is added always to NORMAL zone. This means you will never get
+  * additional DMA/DMA32 memory.
+  */
+-int arch_add_memory(int nid, u64 start, u64 size)
++int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
+ {
+ 	struct pglist_data *pgdat = NODE_DATA(nid);
+ 	struct zone *zone = pgdat->node_zones +
+-		zone_for_memory(nid, start, size, ZONE_NORMAL);
++		zone_for_memory(nid, start, size, ZONE_NORMAL, for_device);
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 6ffa0ac7f7d6..8f60e899b33c 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -266,8 +266,9 @@ static inline void remove_memory(int nid, u64 start, u64 size) {}
+ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+ 		void *arg, int (*func)(struct memory_block *, void *));
+ extern int add_memory(int nid, u64 start, u64 size);
+-extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default);
+-extern int arch_add_memory(int nid, u64 start, u64 size);
++extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
++		bool for_device);
++extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern bool is_memblock_offlined(struct memory_block *mem);
+ extern void remove_memory(int nid, u64 start, u64 size);
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 754c25966a0a..9217fd93c25b 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -319,7 +319,11 @@ enum zone_type {
+ 	ZONE_HIGHMEM,
+ #endif
+ 	ZONE_MOVABLE,
++#ifdef CONFIG_ZONE_DEVICE
++	ZONE_DEVICE,
++#endif
+ 	__MAX_NR_ZONES
++
+ };
+ 
+ #ifndef __GENERATING_BOUNDS_H
+@@ -794,6 +798,25 @@ static inline bool pgdat_is_empty(pg_data_t *pgdat)
+ 	return !pgdat->node_start_pfn && !pgdat->node_spanned_pages;
+ }
+ 
++static inline int zone_id(const struct zone *zone)
++{
++	struct pglist_data *pgdat = zone->zone_pgdat;
++
++	return zone - pgdat->node_zones;
++}
++
++#ifdef CONFIG_ZONE_DEVICE
++static inline bool is_dev_zone(const struct zone *zone)
++{
++	return zone_id(zone) == ZONE_DEVICE;
++}
++#else
++static inline bool is_dev_zone(const struct zone *zone)
++{
++	return false;
++}
++#endif
++
+ #include <linux/memory_hotplug.h>
+ 
+ extern struct mutex zonelists_mutex;
+diff --git a/mm/Kconfig b/mm/Kconfig
+index e79de2bd12cd..a0cd086df16b 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -654,3 +654,20 @@ config DEFERRED_STRUCT_PAGE_INIT
+ 	  when kswapd starts. This has a potential performance impact on
+ 	  processes running early in the lifetime of the systemm until kswapd
+ 	  finishes the initialisation.
++
++config ZONE_DEVICE
++	bool "Device memory (pmem, etc...) hotplug support" if EXPERT
++	default !ZONE_DMA
++	depends on !ZONE_DMA
++	depends on MEMORY_HOTPLUG
++	depends on MEMORY_HOTREMOVE
++	depends on X86_64 #arch_add_memory() comprehends device memory
++
++	help
++	  Device memory hotplug support allows for establishing pmem,
++	  or other device driver discovered memory regions, in the
++	  memmap. This allows pfn_to_page() lookups of otherwise
++	  "device-physical" addresses which is needed for using a DAX
++	  mapping in an O_DIRECT operation, among other things.
++
++	  If FS_DAX is enabled, then say Y.
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 26fbba7d888f..24e4c76c951b 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -770,7 +770,10 @@ int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
+ 
+ 	start = phys_start_pfn << PAGE_SHIFT;
+ 	size = nr_pages * PAGE_SIZE;
+-	ret = release_mem_region_adjustable(&iomem_resource, start, size);
++
++	/* in the ZONE_DEVICE case device driver owns the memory region */
++	if (!is_dev_zone(zone))
++		ret = release_mem_region_adjustable(&iomem_resource, start, size);
+ 	if (ret) {
+ 		resource_size_t endres = start + size - 1;
+ 
+@@ -1207,8 +1210,13 @@ static int should_add_memory_movable(int nid, u64 start, u64 size)
+ 	return 0;
+ }
+ 
+-int zone_for_memory(int nid, u64 start, u64 size, int zone_default)
++int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
++		bool for_device)
+ {
++#ifdef CONFIG_ZONE_DEVICE
++	if (for_device)
++		return ZONE_DEVICE;
++#endif
+ 	if (should_add_memory_movable(nid, start, size))
+ 		return ZONE_MOVABLE;
+ 
+@@ -1249,7 +1257,7 @@ int __ref add_memory(int nid, u64 start, u64 size)
+ 	}
+ 
+ 	/* call arch's memory hotadd */
+-	ret = arch_add_memory(nid, start, size);
++	ret = arch_add_memory(nid, start, size, false);
+ 
+ 	if (ret < 0)
+ 		goto error;
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index ef19f22b2b7d..0f19b4e18233 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -207,6 +207,9 @@ static char * const zone_names[MAX_NR_ZONES] = {
+ 	 "HighMem",
+ #endif
+ 	 "Movable",
++#ifdef CONFIG_ZONE_DEVICE
++	 "Device",
++#endif
+ };
+ 
+ int min_free_kbytes = 1024;
 
-See also, the LWN write up: https://lwn.net/Articles/653585/
-
----
-
-Christoph Hellwig (2):
-      devres: add devm_memremap
-      pmem: switch to devm_ allocations
-
-Dan Williams (6):
-      mm: enhance region_is_ram() to region_intersects()
-      arch, drivers: don't include <asm/io.h> directly, use <linux/io.h> instead
-      cleanup IORESOURCE_CACHEABLE vs ioremap()
-      arch: introduce memremap()
-      visorbus: switch from ioremap_cache to memremap
-      pmem: convert to generic memremap
-
-
- arch/arm/mach-clps711x/board-cdb89712.c        |    2 
- arch/arm/mach-shmobile/pm-rcar.c               |    2 
- arch/ia64/include/asm/io.h                     |    1 
- arch/ia64/kernel/cyclone.c                     |    2 
- arch/powerpc/kernel/pci_of_scan.c              |    2 
- arch/sh/include/asm/io.h                       |    1 
- arch/sparc/kernel/pci.c                        |    3 -
- arch/x86/include/asm/io.h                      |    6 -
- arch/xtensa/include/asm/io.h                   |    1 
- drivers/isdn/icn/icn.h                         |    2 
- drivers/mtd/devices/slram.c                    |    2 
- drivers/mtd/nand/diskonchip.c                  |    2 
- drivers/mtd/onenand/generic.c                  |    2 
- drivers/nvdimm/pmem.c                          |   36 ++----
- drivers/pci/probe.c                            |    3 -
- drivers/pnp/manager.c                          |    2 
- drivers/scsi/aic94xx/aic94xx_init.c            |    7 -
- drivers/scsi/arcmsr/arcmsr_hba.c               |    5 -
- drivers/scsi/mvsas/mv_init.c                   |   15 +--
- drivers/scsi/sun3x_esp.c                       |    2 
- drivers/staging/comedi/drivers/ii_pci20kc.c    |    1 
- drivers/staging/unisys/visorbus/visorchannel.c |   16 ++-
- drivers/staging/unisys/visorbus/visorchipset.c |   17 ++-
- drivers/tty/serial/8250/8250_core.c            |    2 
- drivers/video/fbdev/ocfb.c                     |    1 
- drivers/video/fbdev/s1d13xxxfb.c               |    3 -
- drivers/video/fbdev/stifb.c                    |    1 
- include/linux/io-mapping.h                     |    2 
- include/linux/io.h                             |   13 ++
- include/linux/mm.h                             |    9 +-
- include/linux/mtd/map.h                        |    2 
- include/linux/pmem.h                           |   36 ++----
- include/video/vga.h                            |    2 
- kernel/Makefile                                |    2 
- kernel/memremap.c                              |  137 ++++++++++++++++++++++++
- kernel/resource.c                              |   61 ++++++-----
- lib/devres.c                                   |   13 +-
- lib/pci_iomap.c                                |    7 -
- tools/testing/nvdimm/Kbuild                    |    4 -
- tools/testing/nvdimm/test/iomap.c              |   46 ++++++--
- 40 files changed, 309 insertions(+), 164 deletions(-)
- create mode 100644 kernel/memremap.c
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
