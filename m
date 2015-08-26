@@ -1,290 +1,118 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v5 5/5] scatterlist: convert to __pfn_t
+Subject: [PATCH v2 0/9] initial struct page support for pmem
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 12 Aug 2015 23:01:25 -0400
-Message-ID: <20150813030125.36703.92536.stgit@otcpl-skl-sds-2.jf.intel.com>
-In-Reply-To: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com>
-References: <20150813025112.36703.21333.stgit@otcpl-skl-sds-2.jf.intel.com>
+Date: Tue, 25 Aug 2015 21:27:24 -0400
+Message-ID: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: axboe@kernel.dk, riel@redhat.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, mgorman@suse.de, torvalds@linux-foundation.org, hch@lst.de
+To: linux-nvdimm@lists.01.org
+Cc: mingo@kernel.org, boaz@plexistor.com, Rik van Riel <riel@redhat.com>, Toshi Kani <toshi.kani@hp.com>, Dave Hansen <dave.hansen@linux.intel.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Mel Gorman <mgorman@suse.de>, hpa@zytor.com, Jerome Glisse <j.glisse@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, ross.zwisler@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-__pfn_t has flags for sg_chain and sg_last, use it to replace the
-(struct page *) entry in struct scatterlist.
+Changes since v1 [1]:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+1/ Several simplifications from Christoph including dropping the __pfn_t
+   dependency, and merging ZONE_DEVICE into the base arch_add_memory()
+   implementation.
+
+2/ Drop the deeper changes to the memory hotplug code that enabled
+   allocating the backing 'struct page' array from pmem (struct
+   vmem_altmap).  This functionality is still needed when large capacity
+   PMEM devices arrive.  However, for now we can take this simple step to
+   enable struct page mapping in RAM and enable it by default for small
+   capacity CONFIG_X86_PMEM_LEGACY devices.
+
+3/ A rework of the PMEM api to allow usage of the non-temporal
+   memcpy_to_pmem() implementation even on platforms without pcommit
+   instruction support.
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-August/001809.html
+
 ---
- include/linux/mm.h          |    9 +++
- include/linux/scatterlist.h |  111 ++++++++++++++++++++++++++++++-------------
- samples/kfifo/dma-example.c |    8 ++-
- 3 files changed, 91 insertions(+), 37 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index c4683ea2fcab..348f69467f54 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -992,6 +992,15 @@ static inline __pfn_t page_to_pfn_t(struct page *page)
- 	return pfn;
- }
- 
-+static inline __pfn_t nth_pfn(__pfn_t pfn, unsigned int n)
-+{
-+	__pfn_t ret;
-+
-+	ret.val = (__pfn_t_to_pfn(pfn) + n) << PAGE_SHIFT
-+		| (pfn.val & PFN_MASK);
-+	return ret;
-+}
-+
- /*
-  * Some inline functions in vmstat.h depend on page_zone()
-  */
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index 698e906ca730..c612599bb155 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -11,7 +11,7 @@ struct scatterlist {
- #ifdef CONFIG_DEBUG_SG
- 	unsigned long	sg_magic;
- #endif
--	unsigned long	page_link;
-+	__pfn_t		pfn;
- 	unsigned int	offset;
- 	unsigned int	length;
- 	dma_addr_t	dma_address;
-@@ -44,14 +44,14 @@ struct sg_table {
- /*
-  * Notes on SG table design.
-  *
-- * We use the unsigned long page_link field in the scatterlist struct to place
-+ * We use the __pfn_t pfn field in the scatterlist struct to place
-  * the page pointer AND encode information about the sg table as well. The two
-  * lower bits are reserved for this information.
-  *
-- * If bit 0 is set, then the page_link contains a pointer to the next sg
-+ * If PFN_SG_CHAIN is set, then the pfn contains a pointer to the next sg
-  * table list. Otherwise the next entry is at sg + 1.
-  *
-- * If bit 1 is set, then this sg entry is the last element in a list.
-+ * If PFN_SG_LAST is set, then this sg entry is the last element in a list.
-  *
-  * See sg_next().
-  *
-@@ -64,10 +64,31 @@ struct sg_table {
-  * a valid sg entry, or whether it points to the start of a new scatterlist.
-  * Those low bits are there for everyone! (thanks mason :-)
-  */
--#define sg_is_chain(sg)		((sg)->page_link & 0x01)
--#define sg_is_last(sg)		((sg)->page_link & 0x02)
--#define sg_chain_ptr(sg)	\
--	((struct scatterlist *) ((sg)->page_link & ~0x03))
-+static inline bool sg_is_chain(struct scatterlist *sg)
-+{
-+	return (sg->pfn.val & PFN_SG_CHAIN) == PFN_SG_CHAIN;
-+}
-+
-+static inline bool sg_is_last(struct scatterlist *sg)
-+{
-+	return (sg->pfn.val & PFN_SG_LAST) == PFN_SG_LAST;
-+}
-+
-+static inline struct scatterlist *sg_chain_ptr(struct scatterlist *sg)
-+{
-+	return (struct scatterlist *) (sg->pfn.val
-+		& ~(PFN_SG_CHAIN | PFN_SG_LAST));
-+}
-+
-+static inline void sg_assign_pfn(struct scatterlist *sg, __pfn_t pfn)
-+{
-+#ifdef CONFIG_DEBUG_SG
-+	BUG_ON(sg->sg_magic != SG_MAGIC);
-+	BUG_ON(sg_is_chain(sg));
-+#endif
-+	pfn.val &= ~PFN_SG_LAST;
-+	sg->pfn.val = (sg->pfn.val & PFN_SG_LAST) | pfn.val;
-+}
- 
- /**
-  * sg_assign_page - Assign a given page to an SG entry
-@@ -81,18 +102,20 @@ struct sg_table {
-  **/
- static inline void sg_assign_page(struct scatterlist *sg, struct page *page)
- {
--	unsigned long page_link = sg->page_link & 0x3;
-+	__pfn_t pfn = page_to_pfn_t(page);
- 
--	/*
--	 * In order for the low bit stealing approach to work, pages
--	 * must be aligned at a 32-bit boundary as a minimum.
--	 */
--	BUG_ON((unsigned long) page & 0x03);
--#ifdef CONFIG_DEBUG_SG
--	BUG_ON(sg->sg_magic != SG_MAGIC);
--	BUG_ON(sg_is_chain(sg));
--#endif
--	sg->page_link = page_link | (unsigned long) page;
-+	/* check that a __pfn_t has enough bits to encode a page */
-+	BUG_ON(pfn.val & (PFN_SG_LAST | PFN_SG_CHAIN));
-+
-+	sg_assign_pfn(sg, pfn);
-+}
-+
-+static inline void sg_set_pfn(struct scatterlist *sg, __pfn_t pfn,
-+	unsigned int len, unsigned int offset)
-+{
-+	sg_assign_pfn(sg, pfn);
-+	sg->offset = offset;
-+	sg->length = len;
- }
- 
- /**
-@@ -112,18 +135,34 @@ static inline void sg_assign_page(struct scatterlist *sg, struct page *page)
- static inline void sg_set_page(struct scatterlist *sg, struct page *page,
- 			       unsigned int len, unsigned int offset)
- {
--	sg_assign_page(sg, page);
--	sg->offset = offset;
--	sg->length = len;
-+	sg_set_pfn(sg, page_to_pfn_t(page), len, offset);
-+}
-+
-+static inline bool sg_has_page(struct scatterlist *sg)
-+{
-+	return __pfn_t_has_page(sg->pfn);
- }
- 
- static inline struct page *sg_page(struct scatterlist *sg)
- {
-+	__pfn_t pfn = sg->pfn;
-+	struct page *page;
-+
-+	WARN_ONCE(!sg_has_page(sg), "scatterlist references unmapped memory\n");
-+
- #ifdef CONFIG_DEBUG_SG
- 	BUG_ON(sg->sg_magic != SG_MAGIC);
- 	BUG_ON(sg_is_chain(sg));
- #endif
--	return (struct page *)((sg)->page_link & ~0x3);
-+
-+	page = __pfn_t_to_page(pfn);
-+
-+	return page;
-+}
-+
-+static inline unsigned long sg_pfn(struct scatterlist *sg)
-+{
-+	return __pfn_t_to_pfn(sg->pfn);
- }
- 
- /**
-@@ -171,7 +210,8 @@ static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
- 	 * Set lowest bit to indicate a link pointer, and make sure to clear
- 	 * the termination bit if it happens to be set.
- 	 */
--	prv[prv_nents - 1].page_link = ((unsigned long) sgl | 0x01) & ~0x02;
-+	prv[prv_nents - 1].pfn.val = ((unsigned long) sgl | PFN_SG_CHAIN)
-+		& ~PFN_SG_LAST;
- }
- 
- /**
-@@ -191,8 +231,8 @@ static inline void sg_mark_end(struct scatterlist *sg)
- 	/*
- 	 * Set termination bit, clear potential chain bit
- 	 */
--	sg->page_link |= 0x02;
--	sg->page_link &= ~0x01;
-+	sg->pfn.val |= PFN_SG_LAST;
-+	sg->pfn.val &= ~PFN_SG_CHAIN;
- }
- 
- /**
-@@ -208,7 +248,7 @@ static inline void sg_unmark_end(struct scatterlist *sg)
- #ifdef CONFIG_DEBUG_SG
- 	BUG_ON(sg->sg_magic != SG_MAGIC);
- #endif
--	sg->page_link &= ~0x02;
-+	sg->pfn.val &= ~PFN_SG_LAST;
- }
- 
- /**
-@@ -216,14 +256,13 @@ static inline void sg_unmark_end(struct scatterlist *sg)
-  * @sg:	     SG entry
-  *
-  * Description:
-- *   This calls page_to_phys() on the page in this sg entry, and adds the
-- *   sg offset. The caller must know that it is legal to call page_to_phys()
-- *   on the sg page.
-+ *   This calls __pfn_t_to_phys() on the pfn in this sg entry, and adds the
-+ *   sg offset.
-  *
-  **/
- static inline dma_addr_t sg_phys(struct scatterlist *sg)
- {
--	return page_to_phys(sg_page(sg)) + sg->offset;
-+	return __pfn_t_to_phys(sg->pfn) + sg->offset;
- }
- 
- /**
-@@ -281,7 +320,7 @@ size_t sg_pcopy_to_buffer(struct scatterlist *sgl, unsigned int nents,
- #define SG_MAX_SINGLE_ALLOC		(PAGE_SIZE / sizeof(struct scatterlist))
- 
- /*
-- * sg page iterator
-+ * sg page / pfn iterator
-  *
-  * Iterates over sg entries page-by-page.  On each successful iteration,
-  * you can call sg_page_iter_page(@piter) and sg_page_iter_dma_address(@piter)
-@@ -304,13 +343,19 @@ bool __sg_page_iter_next(struct sg_page_iter *piter);
- void __sg_page_iter_start(struct sg_page_iter *piter,
- 			  struct scatterlist *sglist, unsigned int nents,
- 			  unsigned long pgoffset);
-+
-+static inline __pfn_t sg_page_iter_pfn(struct sg_page_iter *piter)
-+{
-+	return nth_pfn(piter->sg->pfn, piter->sg_pgoffset);
-+}
-+
- /**
-  * sg_page_iter_page - get the current page held by the page iterator
-  * @piter:	page iterator holding the page
-  */
- static inline struct page *sg_page_iter_page(struct sg_page_iter *piter)
- {
--	return nth_page(sg_page(piter->sg), piter->sg_pgoffset);
-+	return __pfn_t_to_page(sg_page_iter_pfn(piter));
- }
- 
- /**
-diff --git a/samples/kfifo/dma-example.c b/samples/kfifo/dma-example.c
-index aa243db93f01..3eeff9a56e0e 100644
---- a/samples/kfifo/dma-example.c
-+++ b/samples/kfifo/dma-example.c
-@@ -75,8 +75,8 @@ static int __init example_init(void)
- 	for (i = 0; i < nents; i++) {
- 		printk(KERN_INFO
- 		"sg[%d] -> "
--		"page_link 0x%.8lx offset 0x%.8x length 0x%.8x\n",
--			i, sg[i].page_link, sg[i].offset, sg[i].length);
-+		"pfn_data 0x%.8lx offset 0x%.8x length 0x%.8x\n",
-+			i, sg[i].pfn.data, sg[i].offset, sg[i].length);
- 
- 		if (sg_is_last(&sg[i]))
- 			break;
-@@ -104,8 +104,8 @@ static int __init example_init(void)
- 	for (i = 0; i < nents; i++) {
- 		printk(KERN_INFO
- 		"sg[%d] -> "
--		"page_link 0x%.8lx offset 0x%.8x length 0x%.8x\n",
--			i, sg[i].page_link, sg[i].offset, sg[i].length);
-+		"pfn_data 0x%.8lx offset 0x%.8x length 0x%.8x\n",
-+			i, sg[i].pfn.data, sg[i].offset, sg[i].length);
- 
- 		if (sg_is_last(&sg[i]))
- 			break;
+When we last left this debate [2] it was becoming clear that the
+'page-less' approach left too many I/O scenarios off the table.  The
+page-less enabling is still useful for avoiding the overhead of struct
+page where it is not needed, but in the end, page-backed persistent
+memory seems to be a requirement.  We confirmed as much at the recently
+concluded Persistent Memory Microconference at Linux Plumbers.
+
+Whereas the initial RFC of this functionality enabled userspace to pick
+whether struct page is allocated from RAM or PMEM.  This new version
+only enables RAM-backed for now.  This is suitable for existing NVDIMM
+devices and a starting point to incrementally build "allocate struct
+page from PMEM" support.
+
+[2]: https://lists.01.org/pipermail/linux-nvdimm/2015-May/000748.html
+
+---
+
+Christoph Hellwig (2):
+      mm: move __phys_to_pfn and __pfn_to_phys to asm/generic/memory_model.h
+      add devm_memremap_pages
+
+Dan Williams (7):
+      dax: drop size parameter to ->direct_access()
+      mm: ZONE_DEVICE for "device memory"
+      x86, pmem: push fallback handling to arch code
+      libnvdimm, pfn: 'struct page' provider infrastructure
+      libnvdimm, pmem: 'struct page' for pmem
+      libnvdimm, pmem: direct map legacy pmem by default
+      devm_memremap_pages: protect against pmem device unbind
+
+
+ arch/arm/include/asm/memory.h       |    6 -
+ arch/arm64/include/asm/memory.h     |    6 -
+ arch/ia64/mm/init.c                 |    4 
+ arch/powerpc/mm/mem.c               |    4 
+ arch/powerpc/sysdev/axonram.c       |    2 
+ arch/s390/mm/init.c                 |    2 
+ arch/sh/mm/init.c                   |    5 -
+ arch/tile/mm/init.c                 |    2 
+ arch/unicore32/include/asm/memory.h |    6 -
+ arch/x86/include/asm/io.h           |    2 
+ arch/x86/include/asm/pmem.h         |   41 ++++
+ arch/x86/mm/init_32.c               |    4 
+ arch/x86/mm/init_64.c               |    4 
+ drivers/acpi/nfit.c                 |    2 
+ drivers/block/brd.c                 |    6 -
+ drivers/nvdimm/Kconfig              |   23 ++
+ drivers/nvdimm/Makefile             |    2 
+ drivers/nvdimm/btt.c                |    6 -
+ drivers/nvdimm/btt_devs.c           |  172 +-----------------
+ drivers/nvdimm/claim.c              |  201 +++++++++++++++++++++
+ drivers/nvdimm/e820.c               |    1 
+ drivers/nvdimm/namespace_devs.c     |   62 +++++-
+ drivers/nvdimm/nd-core.h            |    9 +
+ drivers/nvdimm/nd.h                 |   59 ++++++
+ drivers/nvdimm/pfn.h                |   35 ++++
+ drivers/nvdimm/pfn_devs.c           |  337 +++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/pmem.c               |  220 +++++++++++++++++++++--
+ drivers/nvdimm/region.c             |    2 
+ drivers/nvdimm/region_devs.c        |   20 ++
+ drivers/s390/block/dcssblk.c        |    4 
+ fs/block_dev.c                      |    2 
+ include/asm-generic/memory_model.h  |    6 +
+ include/asm-generic/pmem.h          |   72 +++++++
+ include/linux/blkdev.h              |    2 
+ include/linux/io.h                  |   57 ++++++
+ include/linux/libnvdimm.h           |    4 
+ include/linux/memory_hotplug.h      |    5 -
+ include/linux/mmzone.h              |   23 ++
+ include/linux/pmem.h                |   73 +-------
+ kernel/memremap.c                   |  136 ++++++++++++++
+ mm/Kconfig                          |   17 ++
+ mm/memory_hotplug.c                 |   14 +
+ mm/page_alloc.c                     |    3 
+ tools/testing/nvdimm/Kbuild         |    3 
+ tools/testing/nvdimm/test/iomap.c   |   13 +
+ 45 files changed, 1369 insertions(+), 310 deletions(-)
+ create mode 100644 drivers/nvdimm/claim.c
+ create mode 100644 drivers/nvdimm/pfn.h
+ create mode 100644 drivers/nvdimm/pfn_devs.c
+ create mode 100644 include/asm-generic/pmem.h
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
