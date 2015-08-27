@@ -1,118 +1,49 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v2 0/9] initial struct page support for pmem
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 25 Aug 2015 21:27:24 -0400
-Message-ID: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 27 Aug 2015 09:33:25 +0200
+From: "hch@lst.de" <hch@lst.de>
+Subject: Re: [PATCH v2 9/9] devm_memremap_pages: protect against pmem
+	device unbind
+Message-ID: <20150827073325.GB27207@lst.de>
+References: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com> <20150826012813.8851.35482.stgit@dwillia2-desk3.amr.corp.intel.com> <20150826124649.GA8014@lst.de> <1440625157.31365.21.camel@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1440625157.31365.21.camel@intel.com>
 Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: mingo@kernel.org, boaz@plexistor.com, Rik van Riel <riel@redhat.com>, Toshi Kani <toshi.kani@hp.com>, Dave Hansen <dave.hansen@linux.intel.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Mel Gorman <mgorman@suse.de>, hpa@zytor.com, Jerome Glisse <j.glisse@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, ross.zwisler@linux.intel.com
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "hch@lst.de" <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "hpa@zytor.com" <hpa@zytor.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "boaz@plexistor.com" <boaz@plexistor.com>, "david@fromorbit.com" <david@fromorbit.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v1 [1]:
+On Wed, Aug 26, 2015 at 09:39:18PM +0000, Williams, Dan J wrote:
+> On Wed, 2015-08-26 at 14:46 +0200, Christoph Hellwig wrote:
+> > On Tue, Aug 25, 2015 at 09:28:13PM -0400, Dan Williams wrote:
+> > > Given that:
+> > > 
+> > > 1/ device ->remove() can not be failed
+> > > 
+> > > 2/ a pmem device may be unbound at any time
+> > > 
+> > > 3/ we do not know what other parts of the kernel are actively using a
+> > >    'struct page' from devm_memremap_pages()
+> > > 
+> > > ...provide a facility for active usages of device memory to block pmem
+> > > device unbind.  With a percpu_ref it should be feasible to take a
+> > > reference on a per-I/O or other high frequency basis.
+> > 
+> > Without a caller of get_page_map this is just adding dead code.  I'd
+> > suggest to group it in a series with that caller.
+> > 
+> 
+> Agreed, we can drop this until the first user arrives.
+> 
+> > Also if the page_map gets exposed in a header the name is a bit too generic.
+> > memremap_map maybe?
+> 
+> Done, and in the patch below I hide the internal implementation details
+> of page_map in kernel/memremap.c and only expose the percpu_ref in the
+> public memremap_map.
 
-1/ Several simplifications from Christoph including dropping the __pfn_t
-   dependency, and merging ZONE_DEVICE into the base arch_add_memory()
-   implementation.
-
-2/ Drop the deeper changes to the memory hotplug code that enabled
-   allocating the backing 'struct page' array from pmem (struct
-   vmem_altmap).  This functionality is still needed when large capacity
-   PMEM devices arrive.  However, for now we can take this simple step to
-   enable struct page mapping in RAM and enable it by default for small
-   capacity CONFIG_X86_PMEM_LEGACY devices.
-
-3/ A rework of the PMEM api to allow usage of the non-temporal
-   memcpy_to_pmem() implementation even on platforms without pcommit
-   instruction support.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-August/001809.html
-
----
-
-When we last left this debate [2] it was becoming clear that the
-'page-less' approach left too many I/O scenarios off the table.  The
-page-less enabling is still useful for avoiding the overhead of struct
-page where it is not needed, but in the end, page-backed persistent
-memory seems to be a requirement.  We confirmed as much at the recently
-concluded Persistent Memory Microconference at Linux Plumbers.
-
-Whereas the initial RFC of this functionality enabled userspace to pick
-whether struct page is allocated from RAM or PMEM.  This new version
-only enables RAM-backed for now.  This is suitable for existing NVDIMM
-devices and a starting point to incrementally build "allocate struct
-page from PMEM" support.
-
-[2]: https://lists.01.org/pipermail/linux-nvdimm/2015-May/000748.html
-
----
-
-Christoph Hellwig (2):
-      mm: move __phys_to_pfn and __pfn_to_phys to asm/generic/memory_model.h
-      add devm_memremap_pages
-
-Dan Williams (7):
-      dax: drop size parameter to ->direct_access()
-      mm: ZONE_DEVICE for "device memory"
-      x86, pmem: push fallback handling to arch code
-      libnvdimm, pfn: 'struct page' provider infrastructure
-      libnvdimm, pmem: 'struct page' for pmem
-      libnvdimm, pmem: direct map legacy pmem by default
-      devm_memremap_pages: protect against pmem device unbind
-
-
- arch/arm/include/asm/memory.h       |    6 -
- arch/arm64/include/asm/memory.h     |    6 -
- arch/ia64/mm/init.c                 |    4 
- arch/powerpc/mm/mem.c               |    4 
- arch/powerpc/sysdev/axonram.c       |    2 
- arch/s390/mm/init.c                 |    2 
- arch/sh/mm/init.c                   |    5 -
- arch/tile/mm/init.c                 |    2 
- arch/unicore32/include/asm/memory.h |    6 -
- arch/x86/include/asm/io.h           |    2 
- arch/x86/include/asm/pmem.h         |   41 ++++
- arch/x86/mm/init_32.c               |    4 
- arch/x86/mm/init_64.c               |    4 
- drivers/acpi/nfit.c                 |    2 
- drivers/block/brd.c                 |    6 -
- drivers/nvdimm/Kconfig              |   23 ++
- drivers/nvdimm/Makefile             |    2 
- drivers/nvdimm/btt.c                |    6 -
- drivers/nvdimm/btt_devs.c           |  172 +-----------------
- drivers/nvdimm/claim.c              |  201 +++++++++++++++++++++
- drivers/nvdimm/e820.c               |    1 
- drivers/nvdimm/namespace_devs.c     |   62 +++++-
- drivers/nvdimm/nd-core.h            |    9 +
- drivers/nvdimm/nd.h                 |   59 ++++++
- drivers/nvdimm/pfn.h                |   35 ++++
- drivers/nvdimm/pfn_devs.c           |  337 +++++++++++++++++++++++++++++++++++
- drivers/nvdimm/pmem.c               |  220 +++++++++++++++++++++--
- drivers/nvdimm/region.c             |    2 
- drivers/nvdimm/region_devs.c        |   20 ++
- drivers/s390/block/dcssblk.c        |    4 
- fs/block_dev.c                      |    2 
- include/asm-generic/memory_model.h  |    6 +
- include/asm-generic/pmem.h          |   72 +++++++
- include/linux/blkdev.h              |    2 
- include/linux/io.h                  |   57 ++++++
- include/linux/libnvdimm.h           |    4 
- include/linux/memory_hotplug.h      |    5 -
- include/linux/mmzone.h              |   23 ++
- include/linux/pmem.h                |   73 +-------
- kernel/memremap.c                   |  136 ++++++++++++++
- mm/Kconfig                          |   17 ++
- mm/memory_hotplug.c                 |   14 +
- mm/page_alloc.c                     |    3 
- tools/testing/nvdimm/Kbuild         |    3 
- tools/testing/nvdimm/test/iomap.c   |   13 +
- 45 files changed, 1369 insertions(+), 310 deletions(-)
- create mode 100644 drivers/nvdimm/claim.c
- create mode 100644 drivers/nvdimm/pfn.h
- create mode 100644 drivers/nvdimm/pfn_devs.c
- create mode 100644 include/asm-generic/pmem.h
+Yes, that looks good once we're getting the users for it.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
