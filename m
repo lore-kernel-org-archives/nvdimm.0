@@ -1,242 +1,113 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v5 3/8] cleanup IORESOURCE_CACHEABLE vs ioremap()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 12 Aug 2015 20:12:19 -0400
-Message-ID: <20150813001219.17702.72250.stgit@otcpl-skl-sds-2.jf.intel.com>
-In-Reply-To: <20150813000250.17702.28409.stgit@otcpl-skl-sds-2.jf.intel.com>
-References: <20150813000250.17702.28409.stgit@otcpl-skl-sds-2.jf.intel.com>
-MIME-Version: 1.0
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm ABI fixup for 4.2
+Date: Thu, 27 Aug 2015 23:36:16 +0000
+Message-ID: <1440718572.21270.19.camel@intel.com>
+Content-Language: en-US
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-ID: <84CB7E7ACD98C14EA8E98B3D972E0548@intel.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: ross.zwisler@linux.intel.com, mcgrof@suse.com, hch@lst.de, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "toshi.kani@hp.com" <toshi.kani@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linda.knippers@hp.com" <linda.knippers@hp.com>, "elliott@hp.com" <elliott@hp.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Quoting Arnd:
-    I was thinking the opposite approach and basically removing all uses
-    of IORESOURCE_CACHEABLE from the kernel. There are only a handful of
-    them.and we can probably replace them all with hardcoded
-    ioremap_cached() calls in the cases they are actually useful.
-
-All existing usages of IORESOURCE_CACHEABLE call ioremap() instead of
-ioremap_nocache() if the resource is cacheable, however ioremap() is
-uncached by default. Clearly none of the existing usages care about the
-cacheability. Particularly devm_ioremap_resource() never worked as
-advertised since it always fell back to plain ioremap().
-
-Clean this up as the new direction we want is to convert
-ioremap_<type>() usages to memremap(..., flags).
-
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/arm/mach-clps711x/board-cdb89712.c |    2 +-
- arch/powerpc/kernel/pci_of_scan.c       |    2 +-
- arch/sparc/kernel/pci.c                 |    3 +--
- drivers/pci/probe.c                     |    3 +--
- drivers/pnp/manager.c                   |    2 --
- drivers/scsi/aic94xx/aic94xx_init.c     |    7 +------
- drivers/scsi/arcmsr/arcmsr_hba.c        |    5 +----
- drivers/scsi/mvsas/mv_init.c            |   15 ++++-----------
- drivers/video/fbdev/ocfb.c              |    1 -
- lib/devres.c                            |   13 ++++---------
- lib/pci_iomap.c                         |    7 ++-----
- 11 files changed, 16 insertions(+), 44 deletions(-)
-
-diff --git a/arch/arm/mach-clps711x/board-cdb89712.c b/arch/arm/mach-clps711x/board-cdb89712.c
-index 1ec378c334e5..972abdb10028 100644
---- a/arch/arm/mach-clps711x/board-cdb89712.c
-+++ b/arch/arm/mach-clps711x/board-cdb89712.c
-@@ -95,7 +95,7 @@ static struct physmap_flash_data cdb89712_bootrom_pdata __initdata = {
- 
- static struct resource cdb89712_bootrom_resources[] __initdata = {
- 	DEFINE_RES_NAMED(CS7_PHYS_BASE, SZ_128, "BOOTROM", IORESOURCE_MEM |
--			 IORESOURCE_CACHEABLE | IORESOURCE_READONLY),
-+			 IORESOURCE_READONLY),
- };
- 
- static struct platform_device cdb89712_bootrom_pdev __initdata = {
-diff --git a/arch/powerpc/kernel/pci_of_scan.c b/arch/powerpc/kernel/pci_of_scan.c
-index 42e02a2d570b..d4726addff0b 100644
---- a/arch/powerpc/kernel/pci_of_scan.c
-+++ b/arch/powerpc/kernel/pci_of_scan.c
-@@ -102,7 +102,7 @@ static void of_pci_parse_addrs(struct device_node *node, struct pci_dev *dev)
- 			res = &dev->resource[(i - PCI_BASE_ADDRESS_0) >> 2];
- 		} else if (i == dev->rom_base_reg) {
- 			res = &dev->resource[PCI_ROM_RESOURCE];
--			flags |= IORESOURCE_READONLY | IORESOURCE_CACHEABLE;
-+			flags |= IORESOURCE_READONLY;
- 		} else {
- 			printk(KERN_ERR "PCI: bad cfg reg num 0x%x\n", i);
- 			continue;
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index c928bc64b4ba..04da147e0712 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -231,8 +231,7 @@ static void pci_parse_of_addrs(struct platform_device *op,
- 			res = &dev->resource[(i - PCI_BASE_ADDRESS_0) >> 2];
- 		} else if (i == dev->rom_base_reg) {
- 			res = &dev->resource[PCI_ROM_RESOURCE];
--			flags |= IORESOURCE_READONLY | IORESOURCE_CACHEABLE
--			      | IORESOURCE_SIZEALIGN;
-+			flags |= IORESOURCE_READONLY | IORESOURCE_SIZEALIGN;
- 		} else {
- 			printk(KERN_ERR "PCI: bad cfg reg num 0x%x\n", i);
- 			continue;
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index cefd636681b6..8ed37dd04056 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -326,8 +326,7 @@ static void pci_read_bases(struct pci_dev *dev, unsigned int howmany, int rom)
- 		struct resource *res = &dev->resource[PCI_ROM_RESOURCE];
- 		dev->rom_base_reg = rom;
- 		res->flags = IORESOURCE_MEM | IORESOURCE_PREFETCH |
--				IORESOURCE_READONLY | IORESOURCE_CACHEABLE |
--				IORESOURCE_SIZEALIGN;
-+				IORESOURCE_READONLY | IORESOURCE_SIZEALIGN;
- 		__pci_read_base(dev, pci_bar_mem32, res, rom);
- 	}
- }
-diff --git a/drivers/pnp/manager.c b/drivers/pnp/manager.c
-index 9357aa779048..7ad3295752ef 100644
---- a/drivers/pnp/manager.c
-+++ b/drivers/pnp/manager.c
-@@ -97,8 +97,6 @@ static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
- 	/* ??? rule->flags restricted to 8 bits, all tests bogus ??? */
- 	if (!(rule->flags & IORESOURCE_MEM_WRITEABLE))
- 		res->flags |= IORESOURCE_READONLY;
--	if (rule->flags & IORESOURCE_MEM_CACHEABLE)
--		res->flags |= IORESOURCE_CACHEABLE;
- 	if (rule->flags & IORESOURCE_MEM_RANGELENGTH)
- 		res->flags |= IORESOURCE_RANGELENGTH;
- 	if (rule->flags & IORESOURCE_MEM_SHADOWABLE)
-diff --git a/drivers/scsi/aic94xx/aic94xx_init.c b/drivers/scsi/aic94xx/aic94xx_init.c
-index 4b135cca42a1..140cb8e6fea2 100644
---- a/drivers/scsi/aic94xx/aic94xx_init.c
-+++ b/drivers/scsi/aic94xx/aic94xx_init.c
-@@ -100,12 +100,7 @@ static int asd_map_memio(struct asd_ha_struct *asd_ha)
- 				   pci_name(asd_ha->pcidev));
- 			goto Err;
- 		}
--		if (io_handle->flags & IORESOURCE_CACHEABLE)
--			io_handle->addr = ioremap(io_handle->start,
--						  io_handle->len);
--		else
--			io_handle->addr = ioremap_nocache(io_handle->start,
--							  io_handle->len);
-+		io_handle->addr = ioremap(io_handle->start, io_handle->len);
- 		if (!io_handle->addr) {
- 			asd_printk("couldn't map MBAR%d of %s\n", i==0?0:1,
- 				   pci_name(asd_ha->pcidev));
-diff --git a/drivers/scsi/arcmsr/arcmsr_hba.c b/drivers/scsi/arcmsr/arcmsr_hba.c
-index 914c39f9f388..e4f77cad9fd8 100644
---- a/drivers/scsi/arcmsr/arcmsr_hba.c
-+++ b/drivers/scsi/arcmsr/arcmsr_hba.c
-@@ -259,10 +259,7 @@ static bool arcmsr_remap_pciregion(struct AdapterControlBlock *acb)
- 		addr = (unsigned long)pci_resource_start(pdev, 0);
- 		range = pci_resource_len(pdev, 0);
- 		flags = pci_resource_flags(pdev, 0);
--		if (flags & IORESOURCE_CACHEABLE)
--			mem_base0 = ioremap(addr, range);
--		else
--			mem_base0 = ioremap_nocache(addr, range);
-+		mem_base0 = ioremap(addr, range);
- 		if (!mem_base0) {
- 			pr_notice("arcmsr%d: memory mapping region fail\n",
- 				acb->host->host_no);
-diff --git a/drivers/scsi/mvsas/mv_init.c b/drivers/scsi/mvsas/mv_init.c
-index d40d734aa53a..e654b5cec69e 100644
---- a/drivers/scsi/mvsas/mv_init.c
-+++ b/drivers/scsi/mvsas/mv_init.c
-@@ -324,13 +324,9 @@ int mvs_ioremap(struct mvs_info *mvi, int bar, int bar_ex)
- 			goto err_out;
- 
- 		res_flag_ex = pci_resource_flags(pdev, bar_ex);
--		if (res_flag_ex & IORESOURCE_MEM) {
--			if (res_flag_ex & IORESOURCE_CACHEABLE)
--				mvi->regs_ex = ioremap(res_start, res_len);
--			else
--				mvi->regs_ex = ioremap_nocache(res_start,
--						res_len);
--		} else
-+		if (res_flag_ex & IORESOURCE_MEM)
-+			mvi->regs_ex = ioremap(res_start, res_len);
-+		else
- 			mvi->regs_ex = (void *)res_start;
- 		if (!mvi->regs_ex)
- 			goto err_out;
-@@ -342,10 +338,7 @@ int mvs_ioremap(struct mvs_info *mvi, int bar, int bar_ex)
- 		goto err_out;
- 
- 	res_flag = pci_resource_flags(pdev, bar);
--	if (res_flag & IORESOURCE_CACHEABLE)
--		mvi->regs = ioremap(res_start, res_len);
--	else
--		mvi->regs = ioremap_nocache(res_start, res_len);
-+	mvi->regs = ioremap(res_start, res_len);
- 
- 	if (!mvi->regs) {
- 		if (mvi->regs_ex && (res_flag_ex & IORESOURCE_MEM))
-diff --git a/drivers/video/fbdev/ocfb.c b/drivers/video/fbdev/ocfb.c
-index de9819660ca0..c9293aea8ec3 100644
---- a/drivers/video/fbdev/ocfb.c
-+++ b/drivers/video/fbdev/ocfb.c
-@@ -325,7 +325,6 @@ static int ocfb_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev, "I/O resource request failed\n");
- 		return -ENXIO;
- 	}
--	res->flags &= ~IORESOURCE_CACHEABLE;
- 	fbdev->regs = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(fbdev->regs))
- 		return PTR_ERR(fbdev->regs);
-diff --git a/lib/devres.c b/lib/devres.c
-index fbe2aac522e6..f13a2468ff39 100644
---- a/lib/devres.c
-+++ b/lib/devres.c
-@@ -119,10 +119,9 @@ EXPORT_SYMBOL(devm_iounmap);
-  * @dev: generic device to handle the resource for
-  * @res: resource to be handled
-  *
-- * Checks that a resource is a valid memory region, requests the memory region
-- * and ioremaps it either as cacheable or as non-cacheable memory depending on
-- * the resource's flags. All operations are managed and will be undone on
-- * driver detach.
-+ * Checks that a resource is a valid memory region, requests the memory
-+ * region and ioremaps it. All operations are managed and will be undone
-+ * on driver detach.
-  *
-  * Returns a pointer to the remapped memory or an ERR_PTR() encoded error code
-  * on failure. Usage example:
-@@ -153,11 +152,7 @@ void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res)
- 		return IOMEM_ERR_PTR(-EBUSY);
- 	}
- 
--	if (res->flags & IORESOURCE_CACHEABLE)
--		dest_ptr = devm_ioremap(dev, res->start, size);
--	else
--		dest_ptr = devm_ioremap_nocache(dev, res->start, size);
--
-+	dest_ptr = devm_ioremap(dev, res->start, size);
- 	if (!dest_ptr) {
- 		dev_err(dev, "ioremap failed for resource %pR\n", res);
- 		devm_release_mem_region(dev, res->start, size);
-diff --git a/lib/pci_iomap.c b/lib/pci_iomap.c
-index bcce5f149310..e1930dbab2da 100644
---- a/lib/pci_iomap.c
-+++ b/lib/pci_iomap.c
-@@ -41,11 +41,8 @@ void __iomem *pci_iomap_range(struct pci_dev *dev,
- 		len = maxlen;
- 	if (flags & IORESOURCE_IO)
- 		return __pci_ioport_map(dev, start, len);
--	if (flags & IORESOURCE_MEM) {
--		if (flags & IORESOURCE_CACHEABLE)
--			return ioremap(start, len);
--		return ioremap_nocache(start, len);
--	}
-+	if (flags & IORESOURCE_MEM)
-+		return ioremap(start, len);
- 	/* What? */
- 	return NULL;
- }
-
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206DQoNCiAgICBnaXQ6Ly9naXQua2VybmVsLm9yZy9w
+dWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMNCg0K
+Li4udG8gcmVjZWl2ZSBvbmUgZmluYWwgZml4IGZvciA0LjIuDQoNCkkgcHVzaGVkIGJhY2sgb24g
+dGhpcyBjaGFuZ2UgcXVpdGUgaGFyZCBnaXZlbiB0aGUgbGF0ZSBkYXRlLCB0aGF0IGl0DQphcHBl
+YXJzIHRvIGJlIHB1cmVseSBjb3NtZXRpYywgc3lzZnMgaXMgbm90IG5lY2Vzc2FyaWx5IG1lYW50
+IHRvIGJlIGENCnVzZXIgZnJpZW5kbHkgVUksIGFuZCB0aGUga2VybmVsIGludGVycHJldHMgdGhl
+IHJldmVyc2VkIHBvbGFyaXR5IG9mIHRoZQ0KQUNQSV9ORklUX01FTV9BUk1FRCBmbGFnIGNvcnJl
+Y3RseS4gIFdoZW4gdGhpcyBmbGFnIGlzIHNldCwgdGhlIGVuZXJneQ0Kc291cmNlIG9mIGFuIE5W
+RElNTSBpcyBub3QgYXJtZWQgYW5kIGFueSBuZXcgd3JpdGVzIHRvIHRoZSBESU1NIG1heSBub3QN
+CmJlIHByZXNlcnZlZC4NCg0KSG93ZXZlciwgQm9iIE1vb3JlIHdhcm5lZCBtZSB0aGF0IGl0IGlz
+IGltcG9ydGFudCB0byBnZXQgdGhlc2UgdGhpbmdzDQpuYW1lZCBjb3JyZWN0bHkgd2hlcmV2ZXIg
+dGhleSBhcHBlYXIgb3RoZXJ3aXNlIHdlIHJ1biB0aGUgcmlzayBvZiBhIGxlc3MNCnRoYW4gY2F1
+dGlvdXMgZmlybXdhcmUgZW5naW5lZXIgaW1wbGVtZW50aW5nIHRoZSBwb2xhcml0eSB0aGUgd3Jv
+bmcgd2F5Lg0KT25jZSBhIG1pc3Rha2UgbGlrZSB0aGF0IGVzY2FwZXMgaW50byBwcm9kdWN0aW9u
+IHBsYXRmb3JtcyB0aGUgZmxhZw0KYmVjb21lcyB1c2VsZXNzIGFuZCB3ZSBuZWVkIHRvIG1vdmUg
+dG8gYSBuZXcgYml0IHBvc2l0aW9uLg0KDQpCb2IgaGFzIGFncmVlZCB0byB0YWtlIGEgY2hhbmdl
+IHRocm91Z2ggQUNQSUNBIHRvIHJlbmFtZQ0KQUNQSV9ORklUX01FTV9BUk1FRCB0byBBQ1BJX05G
+SVRfTUVNX05PVF9BUk1FRCwgYW5kIHRoZSBwYXRjaCBiZWxvdyBmcm9tDQpUb3NoaSBicmluZ3Mg
+dGhlIHN5c2ZzIHJlcHJlc2VudGF0aW9uIG9mIHRoZXNlIGZsYWdzIGluIGxpbmUgd2l0aCB0aGVp
+cg0KcmVzcGVjdGl2ZSBwb2xhcml0aWVzLg0KDQpQbGVhc2UgcHVsbCBmb3IgNC4yIGFzIHRoaXMg
+aXMgdGhlIGZpcnN0IGtlcm5lbCB0byBleHBvc2UgdGhlIEFDUEkgTkZJVA0Kc3lzZnMgcmVwcmVz
+ZW50YXRpb24sIGFuZCB0aGlzIGlzIGxpa2VseSBhIGtlcm5lbCB0aGF0IGZpcm13YXJlDQpkZXZl
+bG9wZXJzIHdpbGwgYmUgdXNpbmcgZm9yIGNoZWNraW5nIG91dCB0aGVpciBOVkRJTU0gZW5hYmxp
+bmcuDQoNClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgZGU0YTE5NmMwMmEyYTI2
+MzFiNTE2ZDkwZGE2ZThkMDUyY2NiMDdlODoNCg0KICBuZml0LCBuZF9ibGs6IEJMSyBzdGF0dXMg
+cmVnaXN0ZXIgaXMgb25seSAzMiBiaXRzICgyMDE1LTA4LTI1IDE5OjQyOjAxIC0wNDAwKQ0KDQph
+cmUgYXZhaWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoNCg0KICBnaXQ6Ly9naXQua2Vy
+bmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0t
+Zml4ZXMNCg0KZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIDQwMmJhZTU5N2VjNjhiODQ0
+OTg0MzJmNWEwMDY5ZjI4YmZiODA3ZDY6DQoNCiAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNl
+IHN0YXRlIGZsYWdzIHN0cmluZ3MgKDIwMTUtMDgtMjcgMTQ6MzU6NTggLTA0MDApDQoNCi0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0NClRvc2hpIEthbmkgKDEpOg0KICAgICAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNlIHN0
+YXRlIGZsYWdzIHN0cmluZ3MNCg0KIGRyaXZlcnMvYWNwaS9uZml0LmMgfCAyMCArKysrKysrKysr
+LS0tLS0tLS0tLQ0KIDEgZmlsZSBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCspLCAxMCBkZWxldGlv
+bnMoLSkNCg0KY29tbWl0IDQwMmJhZTU5N2VjNjhiODQ0OTg0MzJmNWEwMDY5ZjI4YmZiODA3ZDYN
+CkF1dGhvcjogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocC5jb20+DQpEYXRlOiAgIFdlZCBBdWcg
+MjYgMTA6MjA6MjMgMjAxNSAtMDYwMA0KDQogICAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNl
+IHN0YXRlIGZsYWdzIHN0cmluZ3MNCiAgICANCiAgICBBQ1BJIDYuMCBORklUIE1lbW9yeSBEZXZp
+Y2UgU3RhdGUgRmxhZ3MgaW4gVGFibGUgNS0xMjkgZGVmaW5lcw0KICAgIE5WRElNTSBzdGF0dXMg
+YXMgZm9sbG93cy4gIFRoZXNlIGJpdHMgaW5kaWNhdGUgbXVsdGlwbGUgaW5mbywNCiAgICBzdWNo
+IGFzIGZhaWx1cmVzLCBwZW5kaW5nIGV2ZW50LCBhbmQgY2FwYWJpbGl0eS4NCiAgICANCiAgICAg
+IEJpdCBbMF0gc2V0IHRvIDEgdG8gaW5kaWNhdGUgdGhhdCB0aGUgcHJldmlvdXMgU0FWRSB0byB0
+aGUNCiAgICAgIE1lbW9yeSBEZXZpY2UgZmFpbGVkLg0KICAgICAgQml0IFsxXSBzZXQgdG8gMSB0
+byBpbmRpY2F0ZSB0aGF0IHRoZSBsYXN0IFJFU1RPUkUgZnJvbSB0aGUNCiAgICAgIE1lbW9yeSBE
+ZXZpY2UgZmFpbGVkLg0KICAgICAgQml0IFsyXSBzZXQgdG8gMSB0byBpbmRpY2F0ZSB0aGF0IHBs
+YXRmb3JtIGZsdXNoIG9mIGRhdGEgdG8NCiAgICAgIE1lbW9yeSBEZXZpY2UgZmFpbGVkLiBBcyBh
+IHJlc3VsdCwgdGhlIHJlc3RvcmVkIGRhdGEgY29udGVudA0KICAgICAgbWF5IGJlIGluY29uc2lz
+dGVudCBldmVuIGlmIFNBVkUgYW5kIFJFU1RPUkUgZG8gbm90IGluZGljYXRlDQogICAgICBmYWls
+dXJlLg0KICAgICAgQml0IFszXSBzZXQgdG8gMSB0byBpbmRpY2F0ZSB0aGF0IHRoZSBNZW1vcnkg
+RGV2aWNlIGlzIG9ic2VydmVkDQogICAgICB0byBiZSBub3QgYXJtZWQgcHJpb3IgdG8gT1NQTSBo
+YW5kIG9mZi4gQSBNZW1vcnkgRGV2aWNlIGlzDQogICAgICBjb25zaWRlcmVkIGFybWVkIGlmIGl0
+IGlzIGFibGUgdG8gYWNjZXB0IHBlcnNpc3RlbnQgd3JpdGVzLg0KICAgICAgQml0IFs0XSBzZXQg
+dG8gMSB0byBpbmRpY2F0ZSB0aGF0IHRoZSBNZW1vcnkgRGV2aWNlIG9ic2VydmVkDQogICAgICBT
+TUFSVCBhbmQgaGVhbHRoIGV2ZW50cyBwcmlvciB0byBPU1BNIGhhbmRvZmYuDQogICAgDQogICAg
+L3N5cy9idXMvbmQvZGV2aWNlcy9ubWVtWC9uZml0L2ZsYWdzIHNob3dzIHRoaXMgZmxhZ3MgaW5m
+by4NCiAgICBUaGUgb3V0cHV0IHN0cmluZ3MgYXNzb2NpYXRlZCB3aXRoIHRoZSBiaXRzIGFyZSAi
+c2F2ZSIsICJyZXN0b3JlIiwNCiAgICAic21hcnQiLCBldGMuLCB3aGljaCBjYW4gYmUgY29uZnVz
+aW5nIGFzIHRoZXkgbWF5IGJlIGludGVycHJldGVkDQogICAgYXMgcG9zaXRpdmUgc3RhdHVzLCBp
+LmUuIHNhdmUgc3VjY2VlZGVkLg0KICAgIA0KICAgIENoYW5nZSBhbHNvIHRoZSBkZXZfaW5mbygp
+IG1lc3NhZ2UgaW4gYWNwaV9uZml0X3JlZ2lzdGVyX2RpbW1zKCkNCiAgICB0byBiZSBjb25zaXN0
+ZW50IHdpdGggdGhlIHN5c2ZzIGZsYWdzIHN0cmluZ3MuDQogICAgDQogICAgUmVwb3J0ZWQtYnk6
+IFJvYmVydCBFbGxpb3R0IDxlbGxpb3R0QGhwLmNvbT4NCiAgICBTaWduZWQtb2ZmLWJ5OiBUb3No
+aSBLYW5pIDx0b3NoaS5rYW5pQGhwLmNvbT4NCiAgICBbcm9zczogcmVuYW1lICdub3RfYXJtJyB0
+byAnbm90X2FybWVkJ10NCiAgICBDYzogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXgu
+aW50ZWwuY29tPg0KICAgIFtkamJ3OiBkZWZlciBhZGRpbmcgYml0NSwgSEVBTFRIX0VOQUJMRUQs
+IGZvciBub3ddDQogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFt
+c0BpbnRlbC5jb20+DQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVy
+cy9hY3BpL25maXQuYw0KaW5kZXggYmIyOWU1NjI3NmJkLi5jZjBmZDk2YTc2MDIgMTAwNjQ0DQot
+LS0gYS9kcml2ZXJzL2FjcGkvbmZpdC5jDQorKysgYi9kcml2ZXJzL2FjcGkvbmZpdC5jDQpAQCAt
+NzAyLDExICs3MDIsMTEgQEAgc3RhdGljIHNzaXplX3QgZmxhZ3Nfc2hvdyhzdHJ1Y3QgZGV2aWNl
+ICpkZXYsDQogCXUxNiBmbGFncyA9IHRvX25maXRfbWVtZGV2KGRldiktPmZsYWdzOw0KIA0KIAly
+ZXR1cm4gc3ByaW50ZihidWYsICIlcyVzJXMlcyVzXG4iLA0KLQkJCWZsYWdzICYgQUNQSV9ORklU
+X01FTV9TQVZFX0ZBSUxFRCA/ICJzYXZlICIgOiAiIiwNCi0JCQlmbGFncyAmIEFDUElfTkZJVF9N
+RU1fUkVTVE9SRV9GQUlMRUQgPyAicmVzdG9yZSAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05G
+SVRfTUVNX0ZMVVNIX0ZBSUxFRCA/ICJmbHVzaCAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05G
+SVRfTUVNX0FSTUVEID8gImFybSAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0hF
+QUxUSF9PQlNFUlZFRCA/ICJzbWFydCAiIDogIiIpOw0KKwkJZmxhZ3MgJiBBQ1BJX05GSVRfTUVN
+X1NBVkVfRkFJTEVEID8gInNhdmVfZmFpbCAiIDogIiIsDQorCQlmbGFncyAmIEFDUElfTkZJVF9N
+RU1fUkVTVE9SRV9GQUlMRUQgPyAicmVzdG9yZV9mYWlsICIgOiAiIiwNCisJCWZsYWdzICYgQUNQ
+SV9ORklUX01FTV9GTFVTSF9GQUlMRUQgPyAiZmx1c2hfZmFpbCAiIDogIiIsDQorCQlmbGFncyAm
+IEFDUElfTkZJVF9NRU1fQVJNRUQgPyAibm90X2FybWVkICIgOiAiIiwNCisJCWZsYWdzICYgQUNQ
+SV9ORklUX01FTV9IRUFMVEhfT0JTRVJWRUQgPyAic21hcnRfZXZlbnQgIiA6ICIiKTsNCiB9DQog
+c3RhdGljIERFVklDRV9BVFRSX1JPKGZsYWdzKTsNCiANCkBAIC04NDksMTIgKzg0OSwxMiBAQCBz
+dGF0aWMgaW50IGFjcGlfbmZpdF9yZWdpc3Rlcl9kaW1tcyhzdHJ1Y3QgYWNwaV9uZml0X2Rlc2Mg
+KmFjcGlfZGVzYykNCiAJCWlmICgobWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9GQUlMRURfTUFT
+SykgPT0gMCkNCiAJCQljb250aW51ZTsNCiANCi0JCWRldl9pbmZvKGFjcGlfZGVzYy0+ZGV2LCAi
+JXM6IGZhaWxlZDogJXMlcyVzJXNcbiIsDQorCQlkZXZfaW5mbyhhY3BpX2Rlc2MtPmRldiwgIiVz
+IGZsYWdzOiVzJXMlcyVzXG4iLA0KIAkJCQludmRpbW1fbmFtZShudmRpbW0pLA0KLQkJCW1lbV9m
+bGFncyAmIEFDUElfTkZJVF9NRU1fU0FWRV9GQUlMRUQgPyAic2F2ZSAiIDogIiIsDQotCQkJbWVt
+X2ZsYWdzICYgQUNQSV9ORklUX01FTV9SRVNUT1JFX0ZBSUxFRCA/ICJyZXN0b3JlICIgOiAiIiwN
+Ci0JCQltZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0ZMVVNIX0ZBSUxFRCA/ICJmbHVzaCAiIDog
+IiIsDQotCQkJbWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9BUk1FRCA/ICJhcm0gIiA6ICIiKTsN
+CisJCSAgbWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9TQVZFX0ZBSUxFRCA/ICIgc2F2ZV9mYWls
+IiA6ICIiLA0KKwkJICBtZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX1JFU1RPUkVfRkFJTEVEID8g
+IiByZXN0b3JlX2ZhaWwiOiIiLA0KKwkJICBtZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0ZMVVNI
+X0ZBSUxFRCA/ICIgZmx1c2hfZmFpbCIgOiAiIiwNCisJCSAgbWVtX2ZsYWdzICYgQUNQSV9ORklU
+X01FTV9BUk1FRCA/ICIgbm90X2FybWVkIiA6ICIiKTsNCiANCiAJfQ0KIA0KDQo=
