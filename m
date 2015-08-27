@@ -1,346 +1,415 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [RFC PATCH 3/7] x86, mm: arch_add_dev_memory()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 12 Aug 2015 23:50:17 -0400
-Message-ID: <20150813035017.36913.83188.stgit@otcpl-skl-sds-2.jf.intel.com>
-In-Reply-To: <20150813031253.36913.29580.stgit@otcpl-skl-sds-2.jf.intel.com>
-References: <20150813031253.36913.29580.stgit@otcpl-skl-sds-2.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3] nd_blk: change aperture mapping from WC to WB
+Date: Thu, 27 Aug 2015 13:14:20 -0600
+Message-Id: <1440702860-17363-2-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1440702860-17363-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1440702860-17363-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: boaz@plexistor.com, riel@redhat.com, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, david@fromorbit.com, mingo@kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, mgorman@suse.de, "H. Peter Anvin" <hpa@zytor.com>, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org, hch@lst.de
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ingo Molnar <mingo@redhat.com>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, x86@kernel.org, Dan Williams <dan.j.williams@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use struct vmem_altmap to augment vmemmap_{populate|free}().
+This should result in a pretty sizeable performance gain for reads.  For
+rough comparison I did some simple read testing using PMEM to compare
+reads of write combining (WC) mappings vs write-back (WB).  This was
+done on a random lab machine.
 
-In support of providing struct page coverage for persistent memory,
-use struct vmem_altmap to change the default policy for mapping pfns for
-a page range.  The default vmemmap_populate() allocates page table
-storage area from the page allocator.  In support of storing struct page
-infrastructure on device memory (pmem) directly vmem_altmap directs
-vmmemap_populate() to use a pre-allocated block of contiguous pfns for
-storage of the new vmemmap entries.
+PMEM reads from a write combining mapping:
+	# dd of=/dev/null if=/dev/pmem0 bs=4096 count=100000
+	100000+0 records in
+	100000+0 records out
+	409600000 bytes (410 MB) copied, 9.2855 s, 44.1 MB/s
 
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: linux-mm@kvack.org
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+PMEM reads from a write-back mapping:
+	# dd of=/dev/null if=/dev/pmem0 bs=4096 count=1000000
+	1000000+0 records in
+	1000000+0 records out
+	4096000000 bytes (4.1 GB) copied, 3.44034 s, 1.2 GB/s
+
+To be able to safely support a write-back aperture I needed to add
+support for the "read flush" _DSM flag, as outlined in the DSM spec:
+
+http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+
+This flag tells the ND BLK driver that it needs to flush the cache lines
+associated with the aperture after the aperture is moved but before any
+new data is read.  This ensures that any stale cache lines from the
+previous contents of the aperture will be discarded from the processor
+cache, and the new data will be read properly from the DIMM.  We know
+that the cache lines are clean and will be discarded without any
+writeback because either a) the previous aperture operation was a read,
+and we never modified the contents of the aperture, or b) the previous
+aperture operation was a write and we must have written back the dirtied
+contents of the aperture to the DIMM before the I/O was completed.
+
+In order to add support for the "read flush" flag I needed to add a
+generic routine to invalidate cache lines, mmio_flush_range().  This is
+protected by the ARCH_HAS_MMIO_FLUSH Kconfig variable, and is currently
+only supported on x86.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/mm/init_64.c          |   55 +++++++++++++++++++++++++++++++++++++---
- include/linux/memory_hotplug.h |    4 +++
- include/linux/mm.h             |   38 +++++++++++++++++++++++++++-
- mm/memory_hotplug.c            |   12 +++++++++
- mm/page_alloc.c                |    4 +++
- mm/sparse-vmemmap.c            |   31 +++++++++++++++++++++++
- mm/sparse.c                    |   17 +++++++++++-
- 7 files changed, 154 insertions(+), 7 deletions(-)
+ arch/x86/Kconfig                  |  1 +
+ arch/x86/include/asm/cacheflush.h |  2 ++
+ arch/x86/include/asm/io.h         |  2 --
+ arch/x86/include/asm/pmem.h       |  2 ++
+ drivers/acpi/Kconfig              |  1 +
+ drivers/acpi/nfit.c               | 55 ++++++++++++++++++++++-----------------
+ drivers/acpi/nfit.h               | 16 ++++++++----
+ lib/Kconfig                       |  3 +++
+ tools/testing/nvdimm/Kbuild       |  2 ++
+ tools/testing/nvdimm/test/iomap.c | 30 +++++++++++++++++++--
+ tools/testing/nvdimm/test/nfit.c  | 10 ++++---
+ 11 files changed, 88 insertions(+), 36 deletions(-)
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index c2f872a379d2..eda65ec8484e 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -719,6 +719,21 @@ int arch_add_memory(int nid, u64 start, u64 size)
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 76c6115..03ab612 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -28,6 +28,7 @@ config X86
+ 	select ARCH_HAS_FAST_MULTIPLIER
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_HAS_PMEM_API
++	select ARCH_HAS_MMIO_FLUSH
+ 	select ARCH_HAS_SG_CHAIN
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
+diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
+index 471418a..e63aa38 100644
+--- a/arch/x86/include/asm/cacheflush.h
++++ b/arch/x86/include/asm/cacheflush.h
+@@ -89,6 +89,8 @@ int set_pages_rw(struct page *page, int numpages);
+ 
+ void clflush_cache_range(void *addr, unsigned int size);
+ 
++#define mmio_flush_range(addr, size) clflush_cache_range(addr, size)
++
+ #ifdef CONFIG_DEBUG_RODATA
+ void mark_rodata_ro(void);
+ extern const int rodata_test_data;
+diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
+index d241fbd..83ec9b1 100644
+--- a/arch/x86/include/asm/io.h
++++ b/arch/x86/include/asm/io.h
+@@ -248,8 +248,6 @@ static inline void flush_write_buffers(void)
+ #endif
  }
- EXPORT_SYMBOL_GPL(arch_add_memory);
  
-+#ifdef CONFIG_ZONE_DEVICE
-+/*
-+ * The primary difference vs arch_add_memory is that the zone is known
-+ * apriori.
-+ */
-+int arch_add_dev_memory(int nid, u64 start, u64 size,
-+		struct vmem_altmap *altmap)
-+{
-+	struct pglist_data *pgdat = NODE_DATA(nid);
-+	struct zone *zone = pgdat->node_zones + ZONE_DEVICE;
-+
-+	return __arch_add_memory(nid, start, size, zone, altmap);
-+}
-+#endif
-+
- #define PAGE_INUSE 0xFD
+-#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
+-
+ #endif /* __KERNEL__ */
  
- static void __meminit free_pagetable(struct page *page, int order)
-@@ -771,8 +786,13 @@ static void __meminit free_pmd_table(pmd_t *pmd_start, pud_t *pud,
- 			return;
+ extern void native_io_delay(void);
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index a3a0df6..bb026c5 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -18,6 +18,8 @@
+ #include <asm/cpufeature.h>
+ #include <asm/special_insns.h>
+ 
++#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
++
+ #ifdef CONFIG_ARCH_HAS_PMEM_API
+ /**
+  * arch_memcpy_to_pmem - copy data to persistent memory
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 114cf48..4baeb85 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -410,6 +410,7 @@ config ACPI_NFIT
+ 	tristate "ACPI NVDIMM Firmware Interface Table (NFIT)"
+ 	depends on PHYS_ADDR_T_64BIT
+ 	depends on BLK_DEV
++	depends on ARCH_HAS_MMIO_FLUSH
+ 	select LIBNVDIMM
+ 	help
+ 	  Infrastructure to probe ACPI 6 compliant platforms for
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 7c2638f..56fff01 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1017,7 +1017,7 @@ static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
+ 	if (mmio->num_lines)
+ 		offset = to_interleave_offset(offset, mmio);
+ 
+-	return readq(mmio->base + offset);
++	return readq(mmio->addr.base + offset);
+ }
+ 
+ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+@@ -1042,11 +1042,11 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+ 	if (mmio->num_lines)
+ 		offset = to_interleave_offset(offset, mmio);
+ 
+-	writeq(cmd, mmio->base + offset);
++	writeq(cmd, mmio->addr.base + offset);
+ 	wmb_blk(nfit_blk);
+ 
+ 	if (nfit_blk->dimm_flags & ND_BLK_DCR_LATCH)
+-		readq(mmio->base + offset);
++		readq(mmio->addr.base + offset);
+ }
+ 
+ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+@@ -1078,11 +1078,16 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+ 		}
+ 
+ 		if (rw)
+-			memcpy_to_pmem(mmio->aperture + offset,
++			memcpy_to_pmem(mmio->addr.aperture + offset,
+ 					iobuf + copied, c);
+-		else
++		else {
++			if (nfit_blk->dimm_flags & ND_BLK_READ_FLUSH)
++				mmio_flush_range((void __force *)
++					mmio->addr.aperture + offset, c);
++
+ 			memcpy_from_pmem(iobuf + copied,
+-					mmio->aperture + offset, c);
++					mmio->addr.aperture + offset, c);
++		}
+ 
+ 		copied += c;
+ 		len -= c;
+@@ -1129,7 +1134,10 @@ static void nfit_spa_mapping_release(struct kref *kref)
+ 
+ 	WARN_ON(!mutex_is_locked(&acpi_desc->spa_map_mutex));
+ 	dev_dbg(acpi_desc->dev, "%s: SPA%d\n", __func__, spa->range_index);
+-	iounmap(spa_map->iomem);
++	if (spa_map->type == SPA_MAP_APERTURE)
++		memunmap((void __force *)spa_map->addr.aperture);
++	else
++		iounmap(spa_map->addr.base);
+ 	release_mem_region(spa->address, spa->length);
+ 	list_del(&spa_map->list);
+ 	kfree(spa_map);
+@@ -1175,7 +1183,7 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+ 	spa_map = find_spa_mapping(acpi_desc, spa);
+ 	if (spa_map) {
+ 		kref_get(&spa_map->kref);
+-		return spa_map->iomem;
++		return spa_map->addr.base;
  	}
  
--	/* free a pmd talbe */
--	free_pagetable(pud_page(*pud), 0);
-+	/*
-+	 * Free a pmd table if it came from the page allocator (i.e. !altmap).
-+	 * In the altmap case the pages are being freed implicitly by the
-+	 * section becoming unmapped / unplugged.
-+	 */
-+	if (!altmap)
-+		free_pagetable(pud_page(*pud), 0);
- 	spin_lock(&init_mm.page_table_lock);
- 	pud_clear(pud);
- 	spin_unlock(&init_mm.page_table_lock);
-@@ -890,7 +910,7 @@ remove_pmd_table(pmd_t *pmd_start, unsigned long addr, unsigned long end,
- 		if (pmd_large(*pmd)) {
- 			if (IS_ALIGNED(addr, PMD_SIZE) &&
- 			    IS_ALIGNED(next, PMD_SIZE)) {
--				if (!direct)
-+				if (!direct && !altmap)
- 					free_pagetable(pmd_page(*pmd),
- 						       get_order(PMD_SIZE));
+ 	spa_map = kzalloc(sizeof(*spa_map), GFP_KERNEL);
+@@ -1191,20 +1199,19 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+ 	if (!res)
+ 		goto err_mem;
  
-@@ -946,7 +966,7 @@ remove_pud_table(pud_t *pud_start, unsigned long addr, unsigned long end,
- 		if (pud_large(*pud)) {
- 			if (IS_ALIGNED(addr, PUD_SIZE) &&
- 			    IS_ALIGNED(next, PUD_SIZE)) {
--				if (!direct)
-+				if (!direct && !altmap)
- 					free_pagetable(pud_page(*pud),
- 						       get_order(PUD_SIZE));
- 
-@@ -993,6 +1013,8 @@ remove_pagetable(unsigned long start, unsigned long end, bool direct,
- 	pud_t *pud;
- 	bool pgd_changed = false;
- 
-+	WARN_ON_ONCE(direct && altmap);
+-	if (type == SPA_MAP_APERTURE) {
+-		/*
+-		 * TODO: memremap_pmem() support, but that requires cache
+-		 * flushing when the aperture is moved.
+-		 */
+-		spa_map->iomem = ioremap_wc(start, n);
+-	} else
+-		spa_map->iomem = ioremap_nocache(start, n);
++	spa_map->type = type;
++	if (type == SPA_MAP_APERTURE)
++		spa_map->addr.aperture = (void __pmem *)memremap(start, n,
++							ARCH_MEMREMAP_PMEM);
++	else
++		spa_map->addr.base = ioremap_nocache(start, n);
 +
- 	for (addr = start; addr < end; addr = next) {
- 		next = pgd_addr_end(addr, end);
  
-@@ -1041,6 +1063,31 @@ static int __ref __arch_remove_memory(u64 start, u64 size, struct zone *zone,
- 			__phys_to_pfn(size), altmap);
- }
+-	if (!spa_map->iomem)
++	if (!spa_map->addr.base)
+ 		goto err_map;
  
-+int __ref arch_remove_dev_memory(u64 start, u64 size,
-+		struct vmem_altmap *altmap)
-+{
-+	unsigned long pfn = __phys_to_pfn(start);
-+	struct zone *zone;
-+	int rc;
-+
-+	/*
-+	 * Reserve pages will not have initialized pfns, so we need to
-+	 * calulate the page zone from the first valid pfn.
-+	 */
-+	if (altmap) {
-+		if (altmap->base_pfn != pfn) {
-+			WARN_ONCE(1, "pfn: %#lx expected: %#lx\n",
-+					pfn, altmap->base_pfn);
-+			return -EINVAL;
-+		}
-+		pfn += altmap->reserve;
-+	}
-+	zone = page_zone(pfn_to_page(pfn));
-+	rc = __arch_remove_memory(start, size, zone, altmap);
-+	WARN_ON_ONCE(rc);
-+	return rc;
-+}
-+
- int __ref arch_remove_memory(u64 start, u64 size)
- {
- 	struct zone *zone = page_zone(pfn_to_page(__phys_to_pfn(start)));
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 48a4e0a5e13d..6a9f05e2c02f 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -102,6 +102,8 @@ extern int try_online_node(int nid);
- #ifdef CONFIG_MEMORY_HOTREMOVE
- extern bool is_pageblock_removable_nolock(struct page *page);
- extern int arch_remove_memory(u64 start, u64 size);
-+extern int arch_remove_dev_memory(u64 start, u64 size,
-+		struct vmem_altmap *altmap);
- extern int __remove_pages_altmap(struct zone *zone, unsigned long start_pfn,
- 	unsigned long nr_pages, struct vmem_altmap *altmap);
- extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
-@@ -279,6 +281,8 @@ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
- extern int add_memory(int nid, u64 start, u64 size);
- extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default);
- extern int arch_add_memory(int nid, u64 start, u64 size);
-+extern int arch_add_dev_memory(int nid, u64 start, u64 size,
-+		struct vmem_altmap *altmap);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern bool is_memblock_offlined(struct memory_block *mem);
- extern void remove_memory(int nid, u64 start, u64 size);
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index de44de70e63a..8a4f24d7fdb0 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2215,7 +2215,43 @@ void sparse_mem_maps_populate_node(struct page **map_map,
- 				   unsigned long map_count,
- 				   int nodeid);
+ 	list_add_tail(&spa_map->list, &acpi_desc->spa_maps);
+-	return spa_map->iomem;
++	return spa_map->addr.base;
  
--struct vmem_altmap;
-+/**
-+ * struct vmem_altmap - augment vmemap_populate with pre-allocated pte storage
-+ * @base: first pfn of the allocation
-+ * @reserve: number of pfns reserved by the device relative to base
-+ * @free: range of memmap storage / offset to data from section0
-+ * @alloc: tracks num pfns consumed for page map, private to vmemmap_populate()
-+ */
-+struct vmem_altmap {
-+	const unsigned long base_pfn;
-+	const unsigned long reserve;
-+	unsigned long free;
-+	unsigned long alloc;
+  err_map:
+ 	release_mem_region(start, n);
+@@ -1267,7 +1274,7 @@ static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
+ 		nfit_blk->dimm_flags = flags.flags;
+ 	else if (rc == -ENOTTY) {
+ 		/* fall back to a conservative default */
+-		nfit_blk->dimm_flags = ND_BLK_DCR_LATCH;
++		nfit_blk->dimm_flags = ND_BLK_DCR_LATCH | ND_BLK_READ_FLUSH;
+ 		rc = 0;
+ 	} else
+ 		rc = -ENXIO;
+@@ -1307,9 +1314,9 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 	/* map block aperture memory */
+ 	nfit_blk->bdw_offset = nfit_mem->bdw->offset;
+ 	mmio = &nfit_blk->mmio[BDW];
+-	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_bdw,
++	mmio->addr.base = nfit_spa_map(acpi_desc, nfit_mem->spa_bdw,
+ 			SPA_MAP_APERTURE);
+-	if (!mmio->base) {
++	if (!mmio->addr.base) {
+ 		dev_dbg(dev, "%s: %s failed to map bdw\n", __func__,
+ 				nvdimm_name(nvdimm));
+ 		return -ENOMEM;
+@@ -1330,9 +1337,9 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 	nfit_blk->cmd_offset = nfit_mem->dcr->command_offset;
+ 	nfit_blk->stat_offset = nfit_mem->dcr->status_offset;
+ 	mmio = &nfit_blk->mmio[DCR];
+-	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_dcr,
++	mmio->addr.base = nfit_spa_map(acpi_desc, nfit_mem->spa_dcr,
+ 			SPA_MAP_CONTROL);
+-	if (!mmio->base) {
++	if (!mmio->addr.base) {
+ 		dev_dbg(dev, "%s: %s failed to map dcr\n", __func__,
+ 				nvdimm_name(nvdimm));
+ 		return -ENOMEM;
+@@ -1399,7 +1406,7 @@ static void acpi_nfit_blk_region_disable(struct nvdimm_bus *nvdimm_bus,
+ 	for (i = 0; i < 2; i++) {
+ 		struct nfit_blk_mmio *mmio = &nfit_blk->mmio[i];
+ 
+-		if (mmio->base)
++		if (mmio->addr.base)
+ 			nfit_spa_unmap(acpi_desc, mmio->spa);
+ 	}
+ 	nd_blk_region_set_provider_data(ndbr, NULL);
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index f2c2bb7..7e74015 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -41,6 +41,7 @@ enum nfit_uuids {
+ };
+ 
+ enum {
++	ND_BLK_READ_FLUSH = 1,
+ 	ND_BLK_DCR_LATCH = 2,
+ };
+ 
+@@ -117,12 +118,16 @@ enum nd_blk_mmio_selector {
+ 	DCR,
+ };
+ 
++struct nd_blk_addr {
++	union {
++		void __iomem *base;
++		void __pmem  *aperture;
++	};
 +};
 +
-+static inline unsigned long vmem_altmap_nr_free(struct vmem_altmap *altmap)
-+{
-+	if (altmap->free > altmap->alloc)
-+		return altmap->free - altmap->alloc;
-+	return 0;
-+}
-+
-+static inline unsigned long vmem_altmap_next_pfn(struct vmem_altmap *altmap)
-+{
-+	return altmap->base_pfn + altmap->alloc;
-+}
-+
-+static inline unsigned long vmem_altmap_alloc(struct vmem_altmap *altmap,
-+		unsigned long nr_pfns)
-+{
-+	unsigned long pfn = vmem_altmap_next_pfn(altmap);
-+
-+	if (nr_pfns > vmem_altmap_nr_free(altmap))
-+		return ULONG_MAX;
-+	altmap->alloc += nr_pfns;
-+	return pfn;
-+}
-+
- struct page *sparse_mem_map_populate(unsigned long pnum, int nid);
- struct page *sparse_alt_map_populate(unsigned long pnum, int nid,
- 		struct vmem_altmap *altmap);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index d4bcfeaaec37..79cb7595b659 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -505,6 +505,18 @@ int __ref __add_pages_altmap(int nid, struct zone *zone,
- 	start_sec = pfn_to_section_nr(phys_start_pfn);
- 	end_sec = pfn_to_section_nr(phys_start_pfn + nr_pages - 1);
+ struct nfit_blk {
+ 	struct nfit_blk_mmio {
+-		union {
+-			void __iomem *base;
+-			void __pmem  *aperture;
+-		};
++		struct nd_blk_addr addr;
+ 		u64 size;
+ 		u64 base_offset;
+ 		u32 line_size;
+@@ -149,7 +154,8 @@ struct nfit_spa_mapping {
+ 	struct acpi_nfit_system_address *spa;
+ 	struct list_head list;
+ 	struct kref kref;
+-	void __iomem *iomem;
++	enum spa_map_type type;
++	struct nd_blk_addr addr;
+ };
  
-+	if (altmap) {
-+		/*
-+		 * Validate altmap is within bounds of the total request
-+		 */
-+		if (altmap->base_pfn != phys_start_pfn || (altmap->reserve
-+					+ altmap->free) > nr_pages) {
-+			pr_warn_once("memory add fail, invalid altmap\n");
-+			return -EINVAL;
-+		}
-+		altmap->alloc = 0;
+ static inline struct nfit_spa_mapping *to_spa_map(struct kref *kref)
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 3a2ef67..a938a39 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -531,4 +531,7 @@ config ARCH_HAS_SG_CHAIN
+ config ARCH_HAS_PMEM_API
+ 	bool
+ 
++config ARCH_HAS_MMIO_FLUSH
++	bool
++
+ endmenu
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index e667579..98f2881 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -1,8 +1,10 @@
+ ldflags-y += --wrap=ioremap_wc
++ldflags-y += --wrap=memremap
+ ldflags-y += --wrap=devm_ioremap_nocache
+ ldflags-y += --wrap=devm_memremap
+ ldflags-y += --wrap=ioremap_nocache
+ ldflags-y += --wrap=iounmap
++ldflags-y += --wrap=memunmap
+ ldflags-y += --wrap=__devm_request_region
+ ldflags-y += --wrap=__request_region
+ ldflags-y += --wrap=__release_region
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index ff1e004..179d228 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -89,12 +89,25 @@ void *__wrap_devm_memremap(struct device *dev, resource_size_t offset,
+ 	nfit_res = get_nfit_res(offset);
+ 	rcu_read_unlock();
+ 	if (nfit_res)
+-		return (void __iomem *) nfit_res->buf + offset
+-			- nfit_res->res->start;
++		return nfit_res->buf + offset - nfit_res->res->start;
+ 	return devm_memremap(dev, offset, size, flags);
+ }
+ EXPORT_SYMBOL(__wrap_devm_memremap);
+ 
++void *__wrap_memremap(resource_size_t offset, size_t size,
++		unsigned long flags)
++{
++	struct nfit_test_resource *nfit_res;
++
++	rcu_read_lock();
++	nfit_res = get_nfit_res(offset);
++	rcu_read_unlock();
++	if (nfit_res)
++		return nfit_res->buf + offset - nfit_res->res->start;
++	return memremap(offset, size, flags);
++}
++EXPORT_SYMBOL(__wrap_memremap);
++
+ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
+ {
+ 	return __nfit_test_ioremap(offset, size, ioremap_nocache);
+@@ -120,6 +133,19 @@ void __wrap_iounmap(volatile void __iomem *addr)
+ }
+ EXPORT_SYMBOL(__wrap_iounmap);
+ 
++void __wrap_memunmap(void *addr)
++{
++	struct nfit_test_resource *nfit_res;
++
++	rcu_read_lock();
++	nfit_res = get_nfit_res((unsigned long) addr);
++	rcu_read_unlock();
++	if (nfit_res)
++		return;
++	return memunmap(addr);
++}
++EXPORT_SYMBOL(__wrap_memunmap);
++
+ static struct resource *nfit_test_request_region(struct device *dev,
+ 		struct resource *parent, resource_size_t start,
+ 		resource_size_t n, const char *name, int flags)
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 28dba91..021e6f9 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -1029,9 +1029,13 @@ static int nfit_test_blk_do_io(struct nd_blk_region *ndbr, resource_size_t dpa,
+ 
+ 	lane = nd_region_acquire_lane(nd_region);
+ 	if (rw)
+-		memcpy(mmio->base + dpa, iobuf, len);
+-	else
+-		memcpy(iobuf, mmio->base + dpa, len);
++		memcpy(mmio->addr.base + dpa, iobuf, len);
++	else {
++		memcpy(iobuf, mmio->addr.base + dpa, len);
++
++		/* give us some some coverage of the mmio_flush_range() API */
++		mmio_flush_range(mmio->addr.base + dpa, len);
 +	}
-+
- 	for (i = start_sec; i <= end_sec; i++) {
- 		err = __add_section(nid, zone, section_nr_to_pfn(i), altmap);
+ 	nd_region_release_lane(nd_region, lane);
  
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index c18520831dbc..498193b8811d 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -4590,6 +4590,10 @@ void __meminit __memmap_init_zone(unsigned long size, int nid,
- 	if (highest_memmap_pfn < end_pfn - 1)
- 		highest_memmap_pfn = end_pfn - 1;
- 
-+	/* skip initializing a number of pfns from the start of the section */
-+	if (altmap && start_pfn == altmap->base_pfn)
-+		start_pfn += altmap->reserve;
-+
- 	z = &pgdat->node_zones[zone];
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 		/*
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index 16ec1675b793..6ea8027daf00 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -86,10 +86,41 @@ static void * __meminit __vmemmap_alloc_block_buf(unsigned long size, int node)
- 	return ptr;
- }
- 
-+static void * __meminit altmap_alloc_block_buf(unsigned long size,
-+		struct vmem_altmap *altmap)
-+{
-+	unsigned long pfn, start_pfn = vmem_altmap_next_pfn(altmap);
-+	unsigned long align = 0;
-+	void *ptr;
-+
-+	if (!is_power_of_2(size) || size < PAGE_SIZE) {
-+		pr_warn_once("%s: allocations must be multiple of PAGE_SIZE (%ld)\n",
-+				__func__, PAGE_SIZE);
-+		return NULL;
-+	}
-+
-+	size >>= PAGE_SHIFT;
-+	if (start_pfn & (size - 1))
-+		align = ALIGN(start_pfn, size) - start_pfn;
-+
-+	pfn = vmem_altmap_alloc(altmap, align + size);
-+	if (pfn < ULONG_MAX)
-+		ptr = __va(__pfn_to_phys(pfn));
-+	else
-+		ptr = NULL;
-+	pr_debug("%s: start: %#lx align: %#lx next: %#lx nr: %#lx %p\n",
-+			__func__, start_pfn, align,
-+			vmem_altmap_next_pfn(altmap), size + align, ptr);
-+
-+	return ptr;
-+}
-+
- /* need to make sure size is all the same during early stage */
- void * __meminit vmemmap_alloc_block_buf(unsigned long size, int node,
- 		struct vmem_altmap *altmap)
- {
-+	if (altmap)
-+		return altmap_alloc_block_buf(size, altmap);
- 	return __vmemmap_alloc_block_buf(size, node);
- }
- 
-diff --git a/mm/sparse.c b/mm/sparse.c
-index eda783903b1d..529b16509eca 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -369,6 +369,13 @@ static void __init sparse_early_usemaps_alloc_node(void *data,
- }
- 
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
-+struct page __init *sparse_alt_map_populate(unsigned long pnum, int nid,
-+		struct vmem_altmap *altmap)
-+{
-+	pr_warn_once("%s: requires CONFIG_SPARSEMEM_VMEMMAP=y\n", __func__);
-+	return NULL;
-+}
-+
- struct page __init *sparse_mem_map_populate(unsigned long pnum, int nid)
- {
- 	struct page *map;
-@@ -598,7 +605,10 @@ void __init sparse_init(void)
- static struct page *alloc_section_memmap(unsigned long pnum, int nid,
- 		struct vmem_altmap *altmap)
- {
--	return sparse_mem_map_populate(pnum, nid);
-+	if (altmap)
-+		return sparse_alt_map_populate(pnum, nid, altmap);
-+	else
-+		return sparse_mem_map_populate(pnum, nid);
- }
- 
- static inline void free_section_memmap(struct page *memmap,
-@@ -607,7 +617,10 @@ static inline void free_section_memmap(struct page *memmap,
- 	unsigned long start = (unsigned long)memmap;
- 	unsigned long end = (unsigned long)(memmap + PAGES_PER_SECTION);
- 
--	__vmemmap_free(start, end, NULL);
-+	if (altmap)
-+		__vmemmap_free(start, end, altmap);
-+	else
-+		__vmemmap_free(start, end, NULL);
- }
- #ifdef CONFIG_MEMORY_HOTREMOVE
- static void free_map_bootmem(struct page *memmap)
+ 	return 0;
+-- 
+2.1.0
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
