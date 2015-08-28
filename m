@@ -1,22 +1,22 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <1440798084.14237.106.camel@hp.com>
+Date: Fri, 28 Aug 2015 14:22:11 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH v2 5/9] x86, pmem: push fallback handling to arch code
-From: Toshi Kani <toshi.kani@hp.com>
-Date: Fri, 28 Aug 2015 15:41:24 -0600
+Message-ID: <20150828202211.GA21699@linux.intel.com>
+References: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150826012751.8851.78564.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150826124124.GA7613@lst.de>
+ <1440624859.31365.17.camel@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 In-Reply-To: <1440624859.31365.17.camel@intel.com>
-References: 
-	<20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150826012751.8851.78564.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150826124124.GA7613@lst.de> <1440624859.31365.17.camel@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "hch@lst.de" <hch@lst.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "hpa@zytor.com" <hpa@zytor.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "mingo@redhat.com" <mingo@redhat.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "boaz@plexistor.com" <boaz@plexistor.com>, "david@fromorbit.com" <david@fromorbit.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "hch@lst.de" <hch@lst.de>, "toshi.kani@hp.com" <toshi.kani@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "hpa@zytor.com" <hpa@zytor.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "mingo@redhat.com" <mingo@redhat.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "boaz@plexistor.com" <boaz@plexistor.com>, "david@fromorbit.com" <david@fromorbit.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, 2015-08-26 at 21:34 +0000, Williams, Dan J wrote:
+On Wed, Aug 26, 2015 at 09:34:20PM +0000, Williams, Dan J wrote:
 > On Wed, 2015-08-26 at 14:41 +0200, Christoph Hellwig wrote:
 > > I like the intent behind this, but not the implementation.
 > > 
@@ -62,53 +62,9 @@ On Wed, 2015-08-26 at 21:34 +0000, Williams, Dan J wrote:
 > [hch: set ARCH_HAS_PMEM_API=n on X86_32]
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Thanks for making this change!  It looks good.
+Yep, this seems like a good change.
 
-Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-
-I have one minor comment below:
-
-> ---
->  arch/x86/Kconfig            |    2 +-
->  arch/x86/include/asm/io.h   |    2 --
->  arch/x86/include/asm/pmem.h |    8 ++------
->  drivers/acpi/nfit.c         |    2 +-
->  drivers/nvdimm/pmem.c       |    2 +-
->  include/linux/pmem.h        |   28 +++++++++++++++++-----------
->  6 files changed, 22 insertions(+), 22 deletions(-)
-> 
-> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> index 76c61154ed50..5912859df533 100644
-> --- a/arch/x86/Kconfig
-> +++ b/arch/x86/Kconfig
-> @@ -27,7 +27,7 @@ config X86
->  	select ARCH_HAS_ELF_RANDOMIZE
->  	select ARCH_HAS_FAST_MULTIPLIER
->  	select ARCH_HAS_GCOV_PROFILE_ALL
-> -	select ARCH_HAS_PMEM_API
-> +	select ARCH_HAS_PMEM_API		if X86_64
->  	select ARCH_HAS_SG_CHAIN
->  	select ARCH_HAVE_NMI_SAFE_CMPXCHG
->  	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
-> diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
-> index d241fbd5c87b..83ec9b1d77cc 100644
-> --- a/arch/x86/include/asm/io.h
-> +++ b/arch/x86/include/asm/io.h
-> @@ -248,8 +248,6 @@ static inline void flush_write_buffers(void)
->  #endif
->  }
->  
-> -#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
-
-Should it be better to do:
-
-#else	/* !CONFIG_ARCH_HAS_PMEM_API */
-#define ARCH_MEMREMAP_PMEM MEMREMAP_WT
-
-so that you can remove all '#ifdef ARCH_MEMREMAP_PMEM' stuff?
-
-Thanks,
--Toshi
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
