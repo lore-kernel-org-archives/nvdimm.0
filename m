@@ -1,44 +1,36 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <1440798506.14237.107.camel@hp.com>
+MIME-Version: 1.0
+In-Reply-To: <1440798084.14237.106.camel@hp.com>
+References: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150826012751.8851.78564.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150826124124.GA7613@lst.de>
+	<1440624859.31365.17.camel@intel.com>
+	<1440798084.14237.106.camel@hp.com>
+Date: Fri, 28 Aug 2015 14:47:18 -0700
+Message-ID: <CAPcyv4iaado-ARQ4z=4jCYH3n7x5+pNsbDjd9XkWyiu=aFyBWA@mail.gmail.com>
 Subject: Re: [PATCH v2 5/9] x86, pmem: push fallback handling to arch code
-From: Toshi Kani <toshi.kani@hp.com>
-Date: Fri, 28 Aug 2015 15:48:26 -0600
-In-Reply-To: <CAPcyv4iaado-ARQ4z=4jCYH3n7x5+pNsbDjd9XkWyiu=aFyBWA@mail.gmail.com>
-References: 
-	<20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150826012751.8851.78564.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150826124124.GA7613@lst.de> <1440624859.31365.17.camel@intel.com>
-	 <1440798084.14237.106.camel@hp.com>
-	 <CAPcyv4iaado-ARQ4z=4jCYH3n7x5+pNsbDjd9XkWyiu=aFyBWA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
+To: Toshi Kani <toshi.kani@hp.com>
 Cc: "hch@lst.de" <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "hpa@zytor.com" <hpa@zytor.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "mingo@redhat.com" <mingo@redhat.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "boaz@plexistor.com" <boaz@plexistor.com>, "david@fromorbit.com" <david@fromorbit.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, 2015-08-28 at 14:47 -0700, Dan Williams wrote:
-> On Fri, Aug 28, 2015 at 2:41 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> > On Wed, 2015-08-26 at 21:34 +0000, Williams, Dan J wrote:
-> [..]
-> > > -#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
-> > 
-> > Should it be better to do:
-> > 
-> > #else   /* !CONFIG_ARCH_HAS_PMEM_API */
-> > #define ARCH_MEMREMAP_PMEM MEMREMAP_WT
-> > 
-> > so that you can remove all '#ifdef ARCH_MEMREMAP_PMEM' stuff?
-> 
-> Yeah, that seems like a nice incremental cleanup for memremap_pmem()
-> to just unconditionally use ARCH_MEMREMAP_PMEM, feel free to send it
-> along.
+On Fri, Aug 28, 2015 at 2:41 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> On Wed, 2015-08-26 at 21:34 +0000, Williams, Dan J wrote:
+[..]
+>> -#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
+>
+> Should it be better to do:
+>
+> #else   /* !CONFIG_ARCH_HAS_PMEM_API */
+> #define ARCH_MEMREMAP_PMEM MEMREMAP_WT
+>
+> so that you can remove all '#ifdef ARCH_MEMREMAP_PMEM' stuff?
 
-OK. Will do.
-
-Thanks,
--Toshi
+Yeah, that seems like a nice incremental cleanup for memremap_pmem()
+to just unconditionally use ARCH_MEMREMAP_PMEM, feel free to send it
+along.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
