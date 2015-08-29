@@ -1,32 +1,35 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Mon, 3 Aug 2015 16:27:16 +0200
-From: Joerg Roedel <joro@8bytes.org>
-Subject: Re: [PATCH v2 17/25] intel-iommu: switch from ioremap_cache to
- memremap
-Message-ID: <20150803142716.GC20968@8bytes.org>
-References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20150725023933.8664.85856.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150725023933.8664.85856.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <1440811124-1634-1-git-send-email-toshi.kani@hp.com>
+References: <1440811124-1634-1-git-send-email-toshi.kani@hp.com>
+Date: Fri, 28 Aug 2015 20:31:35 -0700
+Message-ID: <CAPcyv4hr1eVvYr2c9ngmYhuBjd96aNOAtC2kTSSXWXQ8_2xKvQ@mail.gmail.com>
+Subject: Re: [PATCH] nfit: Fix undefined mmio_flush_range on x86_32
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, linux-arch@vger.kernel.org, toshi.kani@hp.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, rmk+kernel@arm.linux.org.uk, David Woodhouse <dwmw2@infradead.org>, hch@lst.de, linux-arm-kernel@lists.infradead.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jul 24, 2015 at 10:39:33PM -0400, Dan Williams wrote:
-> In preparation for deprecating ioremap_cache() convert its usage in
-> intel-iommu to memremap.  This also eliminates the mishandling of the
-> __iomem annotation in the implementation.
-> 
-> Cc: David Woodhouse <dwmw2@infradead.org>
-> Cc: Joerg Roedel <joro@8bytes.org>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+On Fri, Aug 28, 2015 at 6:18 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> The following compile error was observed on x86_32 since nfit.c
+> relies on <asm/pmem.h> to include <asm/cacheflush.h>, which only
+> works when CONFIG_ARCH_HAS_PMEM_API is set on x86_64.
+>
+>   drivers/acpi/nfit.c:1085:5: error: implicit declaration of
+>   function 'mmio_flush_range' [-Werror=implicit-function-declaration]
+>
+> Change nfit.c to include <asm/cacheflush.h> directly for now.
+>
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 > ---
->  drivers/iommu/intel-iommu.c         |   10 ++++++----
->  drivers/iommu/intel_irq_remapping.c |    4 ++--
->  2 files changed, 8 insertions(+), 6 deletions(-)
+> Apply on top of libnvdimm-for-next of the nvdimm tree.
+> This is a temporary fix and please feel free to replace it with
+> a better solution.
 
-Acked-by: Joerg Roedel <jroedel@suse.de>
+This looks correct to me, I'm going to fold it in to where the breakage occurs.
 
+Thanks Toshi!
