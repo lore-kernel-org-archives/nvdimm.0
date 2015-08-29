@@ -1,141 +1,45 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v2 4/9] add devm_memremap_pages
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 25 Aug 2015 21:27:46 -0400
-Message-ID: <20150826012746.8851.7835.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 29 Aug 2015 15:57:14 +0200
+From: "hch@lst.de" <hch@lst.de>
+Subject: Re: [PATCH v2 5/9] x86, pmem: push fallback handling to arch code
+Message-ID: <20150829135714.GC13103@lst.de>
+References: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com> <20150826012751.8851.78564.stgit@dwillia2-desk3.amr.corp.intel.com> <20150826124124.GA7613@lst.de> <1440624859.31365.17.camel@intel.com> <1440798084.14237.106.camel@hp.com> <CAPcyv4iaado-ARQ4z=4jCYH3n7x5+pNsbDjd9XkWyiu=aFyBWA@mail.gmail.com> <1440798506.14237.107.camel@hp.com> <1440821097.32027.2.camel@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1440821097.32027.2.camel@intel.com>
 Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: boaz@plexistor.com, david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-mm@kvack.org, hpa@zytor.com, ross.zwisler@linux.intel.com, mingo@kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "toshi.kani@hp.com" <toshi.kani@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "hch@lst.de" <hch@lst.de>, "hpa@zytor.com" <hpa@zytor.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "mingo@redhat.com" <mingo@redhat.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "boaz@plexistor.com" <boaz@plexistor.com>, "david@fromorbit.com" <david@fromorbit.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Christoph Hellwig <hch@lst.de>
+On Sat, Aug 29, 2015 at 04:04:58AM +0000, Williams, Dan J wrote:
+> On Fri, 2015-08-28 at 15:48 -0600, Toshi Kani wrote:
+> > On Fri, 2015-08-28 at 14:47 -0700, Dan Williams wrote:
+> > > On Fri, Aug 28, 2015 at 2:41 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > > > On Wed, 2015-08-26 at 21:34 +0000, Williams, Dan J wrote:
+> > > [..]
+> > > > > -#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
+> > > > 
+> > > > Should it be better to do:
+> > > > 
+> > > > #else   /* !CONFIG_ARCH_HAS_PMEM_API */
+> > > > #define ARCH_MEMREMAP_PMEM MEMREMAP_WT
+> > > > 
+> > > > so that you can remove all '#ifdef ARCH_MEMREMAP_PMEM' stuff?
+> > > 
+> > > Yeah, that seems like a nice incremental cleanup for memremap_pmem()
+> > > to just unconditionally use ARCH_MEMREMAP_PMEM, feel free to send it
+> > > along.
+> > 
+> > OK. Will do.
+> > 
+> 
+> Here's the re-worked patch with Toshi's fixes folded in:
 
-This behaves like devm_memremap except that it ensures we have page
-structures available that can back the region.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-[djbw: catch attempts to remap RAM, drop flags]
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/io.h |   20 ++++++++++++++++++++
- kernel/memremap.c  |   53 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 73 insertions(+)
-
-diff --git a/include/linux/io.h b/include/linux/io.h
-index d8d749abd665..de64c1e53612 100644
---- a/include/linux/io.h
-+++ b/include/linux/io.h
-@@ -20,10 +20,13 @@
- 
- #include <linux/types.h>
- #include <linux/init.h>
-+#include <linux/bug.h>
-+#include <linux/err.h>
- #include <asm/io.h>
- #include <asm/page.h>
- 
- struct device;
-+struct resource;
- 
- __visible void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
- void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
-@@ -84,6 +87,23 @@ void *devm_memremap(struct device *dev, resource_size_t offset,
- 		size_t size, unsigned long flags);
- void devm_memunmap(struct device *dev, void *addr);
- 
-+void *__devm_memremap_pages(struct device *dev, struct resource *res);
-+
-+#ifdef CONFIG_ZONE_DEVICE
-+void *devm_memremap_pages(struct device *dev, struct resource *res);
-+#else
-+static inline void *devm_memremap_pages(struct device *dev, struct resource *res)
-+{
-+	/*
-+	 * Fail attempts to call devm_memremap_pages() without
-+	 * ZONE_DEVICE support enabled, this requires callers to fall
-+	 * back to plain devm_memremap() based on config
-+	 */
-+	WARN_ON_ONCE(1);
-+	return ERR_PTR(-ENXIO);
-+}
-+#endif
-+
- /*
-  * Some systems do not have legacy ISA devices.
-  * /dev/port is not a valid interface on these systems.
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 5c9b55eaf121..72b0c66628b6 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -14,6 +14,7 @@
- #include <linux/types.h>
- #include <linux/io.h>
- #include <linux/mm.h>
-+#include <linux/memory_hotplug.h>
- 
- #ifndef ioremap_cache
- /* temporary while we convert existing ioremap_cache users to memremap */
-@@ -135,3 +136,55 @@ void devm_memunmap(struct device *dev, void *addr)
- 	memunmap(addr);
- }
- EXPORT_SYMBOL(devm_memunmap);
-+
-+#ifdef CONFIG_ZONE_DEVICE
-+struct page_map {
-+	struct resource res;
-+};
-+
-+static void devm_memremap_pages_release(struct device *dev, void *res)
-+{
-+	struct page_map *page_map = res;
-+
-+	/* pages are dead and unused, undo the arch mapping */
-+	arch_remove_memory(page_map->res.start, resource_size(&page_map->res));
-+}
-+
-+void *devm_memremap_pages(struct device *dev, struct resource *res)
-+{
-+	int is_ram = region_intersects(res->start, resource_size(res),
-+			"System RAM");
-+	struct page_map *page_map;
-+	int error, nid;
-+
-+	if (is_ram == REGION_MIXED) {
-+		WARN_ONCE(1, "%s attempted on mixed region %pr\n",
-+				__func__, res);
-+		return ERR_PTR(-ENXIO);
-+	}
-+
-+	if (is_ram == REGION_INTERSECTS)
-+		return __va(res->start);
-+
-+	page_map = devres_alloc(devm_memremap_pages_release,
-+			sizeof(*page_map), GFP_KERNEL);
-+	if (!page_map)
-+		return ERR_PTR(-ENOMEM);
-+
-+	memcpy(&page_map->res, res, sizeof(*res));
-+
-+	nid = dev_to_node(dev);
-+	if (nid < 0)
-+		nid = 0;
-+
-+	error = arch_add_memory(nid, res->start, resource_size(res), true);
-+	if (error) {
-+		devres_free(page_map);
-+		return ERR_PTR(error);
-+	}
-+
-+	devres_add(dev, page_map);
-+	return __va(res->start);
-+}
-+EXPORT_SYMBOL(devm_memremap_pages);
-+#endif /* CONFIG_ZONE_DEVICE */
+I like this in principle, but we'll have to be carefull now if we
+want to drop the fallbacks in mremap, as we will have to shift it into
+the pmem driver then.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
