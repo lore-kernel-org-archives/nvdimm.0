@@ -1,61 +1,54 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Wed, 2 Sep 2015 08:49:22 +1000
+Date: Wed, 2 Sep 2015 08:21:20 +1000
 From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH] dax, pmem: add support for msync
-Message-ID: <20150901224922.GR3902@dastard>
+Message-ID: <20150901222120.GQ3902@dastard>
 References: <1441047584-14664-1-git-send-email-ross.zwisler@linux.intel.com>
  <20150831233803.GO3902@dastard>
- <20150901100804.GA7045@node.dhcp.inet.fi>
+ <20150901070608.GA5482@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20150901100804.GA7045@node.dhcp.inet.fi>
+In-Reply-To: <20150901070608.GA5482@lst.de>
 Sender: owner-linux-mm@kvack.org
-To: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@osdl.org>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Hugh Dickins <hughd@google.com>, Ingo Molnar <mingo@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@osdl.org>, Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Hugh Dickins <hughd@google.com>, Ingo Molnar <mingo@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Sep 01, 2015 at 01:08:04PM +0300, Kirill A. Shutemov wrote:
+On Tue, Sep 01, 2015 at 09:06:08AM +0200, Christoph Hellwig wrote:
 > On Tue, Sep 01, 2015 at 09:38:03AM +1000, Dave Chinner wrote:
 > > On Mon, Aug 31, 2015 at 12:59:44PM -0600, Ross Zwisler wrote:
+> > > For DAX msync we just need to flush the given range using
+> > > wb_cache_pmem(), which is now a public part of the PMEM API.
+> > 
+> > This is wrong, because it still leaves fsync() broken on dax.
+> > 
+> > Flushing dirty data to stable storage is the responsibility of the
+> > writeback infrastructure, not the VMA/mm infrasrtucture. For non-dax
+> > configurations, msync defers all that to vfs_fsync_range(), because
+> > it has to be implemented there for fsync() to work.
+> > 
 > > Even for DAX, msync has to call vfs_fsync_range() for the filesystem to commit
 > > the backing store allocations to stable storage, so there's not
 > > getting around the fact msync is the wrong place to be flushing
 > > DAX mappings to persistent storage.
 > 
-> Why?
-> IIUC, msync() doesn't have any requirements wrt metadata, right?
-
-Of course it does. If the backing store allocation has not been
-committed, then after a crash there will be a hole in file and
-so it will read as zeroes regardless of what data was written and
-flushed.
-
-> > I pointed this out almost 6 months ago (i.e. that fsync was broken)
-> > anf hinted at how to solve it. Fix fsync, and msync gets fixed for
-> > free:
-> > 
-> > https://lists.01.org/pipermail/linux-nvdimm/2015-March/000341.html
-> > 
-> > I've also reported to Willy that DAX write page faults don't work
-> > correctly, either. xfstests generic/080 exposes this: a read
-> > from a page followed immediately by a write to that page does not
-> > result in ->page_mkwrite being called on the write and so
-> > backing store is not allocated for the page, nor are the timestamps
-> > for the file updated. This will also result in fsync (and msync)
-> > not working properly.
+> DAX does call ->fsync before and after this patch.  And with all
+> the recent fixes we take care to ensure data is written though the
+> cache for everything but mmap-access.  With this patch from Ross
+> we ensure msync writes back the cache before calling ->fsync so that
+> the filesystem can then do it's work like converting unwritten extents.
 > 
-> Is that because XFS doesn't provide vm_ops->pfn_mkwrite?
+> The only downside is that previously on Linux you could always use
+> fsync as a replaement for msymc, which isn't true anymore for DAX.
 
-I didn't know that had been committed. I don't recall seeing a pull
-request with that in it, none of the XFS DAX patches conflicted
-against it and there's been no runtime errors. I'll fix it up.
+Which means applications that should "just work" without
+modification on DAX are now subtly broken and don't actually
+guarantee data is safe after a crash. That's a pretty nasty
+landmine, and goes against *everything* we've claimed about using
+DAX with existing applications.
 
-As such, shouldn't there be a check in the VM (in ->mmap callers)
-that if we have the vma is returned with VM_MIXEDMODE enabled that
-->pfn_mkwrite is not NULL?  It's now clear to me that any filesystem
-that sets VM_MIXEDMODE needs to support both page_mkwrite and
-pfn_mkwrite, and such a check would have caught this immediately...
+That's wrong, and needs fixing.
 
 Cheers,
 
