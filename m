@@ -1,10 +1,9 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Tue, 1 Sep 2015 13:08:04 +0300
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Date: Tue, 1 Sep 2015 09:06:08 +0200
+From: Christoph Hellwig <hch@lst.de>
 Subject: Re: [PATCH] dax, pmem: add support for msync
-Message-ID: <20150901100804.GA7045@node.dhcp.inet.fi>
-References: <1441047584-14664-1-git-send-email-ross.zwisler@linux.intel.com>
- <20150831233803.GO3902@dastard>
+Message-ID: <20150901070608.GA5482@lst.de>
+References: <1441047584-14664-1-git-send-email-ross.zwisler@linux.intel.com> <20150831233803.GO3902@dastard>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
@@ -22,48 +21,27 @@ On Tue, Sep 01, 2015 at 09:38:03AM +1000, Dave Chinner wrote:
 > This is wrong, because it still leaves fsync() broken on dax.
 > 
 > Flushing dirty data to stable storage is the responsibility of the
-> writeback infrastructure, not the VMA/mm infrasrtucture.
-
-Writeback infrastructure is non-existent for DAX. Without struct page we
-don't have anything to transfer pte_ditry() to. And I'm not sure we need
-to invent some. For DAX flushing in-place can be cheaper than dirty
-tracking beyond page tables.
-
-> For non-dax configurations, msync defers all that to vfs_fsync_range(),
-> because it has to be implemented there for fsync() to work.
-
-Not necessary. I think fsync() for DAX can be implemented with rmap over
-all file's VMA and msync() them with commiting metadata afterwards.
-
-But we also need to commit to persistent on zap_page_range() to make it
-work.
-
+> writeback infrastructure, not the VMA/mm infrasrtucture. For non-dax
+> configurations, msync defers all that to vfs_fsync_range(), because
+> it has to be implemented there for fsync() to work.
+> 
 > Even for DAX, msync has to call vfs_fsync_range() for the filesystem to commit
 > the backing store allocations to stable storage, so there's not
 > getting around the fact msync is the wrong place to be flushing
 > DAX mappings to persistent storage.
 
-Why?
-IIUC, msync() doesn't have any requirements wrt metadata, right?
+DAX does call ->fsync before and after this patch.  And with all
+the recent fixes we take care to ensure data is written though the
+cache for everything but mmap-access.  With this patch from Ross
+we ensure msync writes back the cache before calling ->fsync so that
+the filesystem can then do it's work like converting unwritten extents.
 
-> I pointed this out almost 6 months ago (i.e. that fsync was broken)
-> anf hinted at how to solve it. Fix fsync, and msync gets fixed for
-> free:
-> 
-> https://lists.01.org/pipermail/linux-nvdimm/2015-March/000341.html
-> 
-> I've also reported to Willy that DAX write page faults don't work
-> correctly, either. xfstests generic/080 exposes this: a read
-> from a page followed immediately by a write to that page does not
-> result in ->page_mkwrite being called on the write and so
-> backing store is not allocated for the page, nor are the timestamps
-> for the file updated. This will also result in fsync (and msync)
-> not working properly.
+The only downside is that previously on Linux you could always use
+fsync as a replaement for msymc, which isn't true anymore for DAX.
 
-Is that because XFS doesn't provide vm_ops->pfn_mkwrite?
-
--- 
- Kirill A. Shutemov
+But given that we need the virtual address to write back the cache
+I can't see how to do this differently given that clwb() needs the
+user virtual address to flush the cache.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
