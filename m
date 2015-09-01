@@ -1,91 +1,64 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH] dax: fix NULL pointer in __dax_pmd_fault()
-Date: Tue, 22 Sep 2015 11:46:19 -0600
-Message-Id: <1442943979-1931-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, linux-fsdevel@vger.kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+Message-ID: <55E58A54.8040805@plexistor.com>
+Date: Tue, 01 Sep 2015 14:21:56 +0300
+From: Boaz Harrosh <boaz@plexistor.com>
+MIME-Version: 1.0
+Subject: Re: [PATCH] mm, dax: VMA with vm_ops->pfn_mkwrite wants to be write-notified
+References: <1441102961-68041-1-git-send-email-kirill.shutemov@linux.intel.com> <55E583E2.9000200@plexistor.com> <20150901111020.GA7820@node.dhcp.inet.fi>
+In-Reply-To: <20150901111020.GA7820@node.dhcp.inet.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Yigal Korman <yigal@plexistor.com>, Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following commit:
+On 09/01/2015 02:10 PM, Kirill A. Shutemov wrote:
+> On Tue, Sep 01, 2015 at 01:54:26PM +0300, Boaz Harrosh wrote:
+>> On 09/01/2015 01:22 PM, Kirill A. Shutemov wrote:
+>>> For VM_PFNMAP and VM_MIXEDMAP we use vm_ops->pfn_mkwrite instead of
+>>> vm_ops->page_mkwrite to notify abort write access. This means we want
+>>> vma->vm_page_prot to be write-protected if the VMA provides this vm_ops.
+>>>
+>>
+>> Hi Kirill
+>>
+>> I will test with this right away and ACK on this.
+>>
+>> Hmm so are you saying we might be missing some buffer modifications right now.
+>>
+>> What would be a theoretical scenario that will cause these missed events?
+> 
+> On writable mapping with vm_ops->pfn_mkwrite, but without
+> vm_ops->page_mkwrite: read fault followed by write access to the pfn.
+> Writable pte will be set up on read fault and write fault will not be
+> generated.
+> 
+> I found it examining Dave's complain on generic/080:
+> 
+> http://lkml.kernel.org/g/20150831233803.GO3902@dastard
+> 
+> Although I don't think it's the reason.
+> 
+>> I would like to put a test in our test rigs that should fail today and this
+>> patch fixes.
+>>
+>> [In our system every modified pmem block is also RDMAed to a remote
+>>  pmem for HA, a missed modification will make the two copies unsynced]
+> 
+> It shouldn't be a problem for ext2/ext4 as they provide both pfn_mkwrite
+> and page_mkwrite.
+> 
 
-commit 46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for
-	DAX")
+Ha right we have both as well, and so should xfs I think (because of the
+zero pages thing, in fact any dax.c user should).
 
-moved some code in __dax_pmd_fault() that was responsible for zeroing
-newly allocated PMD pages.  The new location didn't properly set up
-'kaddr', though, so when run this code resulted in a NULL pointer BUG.
+Thanks so this verifies why we could not see any such breakage.
 
-Fix this by getting the correct 'kaddr' via bdev_direct_access(), and
-only make the second call to bdev_direct_access() if we don't already
-have a PFN from the first call.
+ACK-by: Boaz Harrosh <boaz@plexistor.com>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c | 31 ++++++++++++++++++++++---------
- 1 file changed, 22 insertions(+), 9 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 7ae6df7..08ac2bd 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -532,7 +532,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	void __pmem *kaddr;
- 	pgoff_t size, pgoff;
- 	sector_t block, sector;
--	unsigned long pfn;
-+	unsigned long pfn = 0;
- 	int result = 0;
- 
- 	/* Fall back to PTEs if we're going to COW */
-@@ -569,8 +569,20 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
- 		goto fallback;
- 
-+	sector = bh.b_blocknr << (blkbits - 9);
-+
- 	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
- 		int i;
-+
-+		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
-+						bh.b_size);
-+		if (length < 0) {
-+			result = VM_FAULT_SIGBUS;
-+			goto out;
-+		}
-+		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
-+			goto fallback;
-+
- 		for (i = 0; i < PTRS_PER_PMD; i++)
- 			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
- 		wmb_pmem();
-@@ -623,15 +635,16 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		result = VM_FAULT_NOPAGE;
- 		spin_unlock(ptl);
- 	} else {
--		sector = bh.b_blocknr << (blkbits - 9);
--		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
--						bh.b_size);
--		if (length < 0) {
--			result = VM_FAULT_SIGBUS;
--			goto out;
-+		if (pfn == 0) {
-+			length = bdev_direct_access(bh.b_bdev, sector, &kaddr,
-+					&pfn, bh.b_size);
-+			if (length < 0) {
-+				result = VM_FAULT_SIGBUS;
-+				goto out;
-+			}
-+			if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
-+				goto fallback;
- 		}
--		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
--			goto fallback;
- 
- 		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
- 	}
--- 
-2.1.0
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
