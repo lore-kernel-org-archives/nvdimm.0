@@ -1,98 +1,92 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Wed, 2 Sep 2015 12:13:21 +0300
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Date: Wed, 2 Sep 2015 15:17:11 +1000
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH] dax, pmem: add support for msync
-Message-ID: <20150902091321.GA2323@node.dhcp.inet.fi>
+Message-ID: <20150902051711.GS3902@dastard>
 References: <1441047584-14664-1-git-send-email-ross.zwisler@linux.intel.com>
  <20150831233803.GO3902@dastard>
- <20150901100804.GA7045@node.dhcp.inet.fi>
- <20150901224922.GR3902@dastard>
+ <20150901070608.GA5482@lst.de>
+ <20150901222120.GQ3902@dastard>
+ <20150902031945.GA8916@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20150901224922.GR3902@dastard>
+In-Reply-To: <20150902031945.GA8916@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@osdl.org>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Hugh Dickins <hughd@google.com>, Ingo Molnar <mingo@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@osdl.org>, Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Hugh Dickins <hughd@google.com>, Ingo Molnar <mingo@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Sep 02, 2015 at 08:49:22AM +1000, Dave Chinner wrote:
-> On Tue, Sep 01, 2015 at 01:08:04PM +0300, Kirill A. Shutemov wrote:
-> > On Tue, Sep 01, 2015 at 09:38:03AM +1000, Dave Chinner wrote:
-> > > On Mon, Aug 31, 2015 at 12:59:44PM -0600, Ross Zwisler wrote:
-> > > Even for DAX, msync has to call vfs_fsync_range() for the filesystem to commit
-> > > the backing store allocations to stable storage, so there's not
-> > > getting around the fact msync is the wrong place to be flushing
-> > > DAX mappings to persistent storage.
+On Tue, Sep 01, 2015 at 09:19:45PM -0600, Ross Zwisler wrote:
+> On Wed, Sep 02, 2015 at 08:21:20AM +1000, Dave Chinner wrote:
+> > Which means applications that should "just work" without
+> > modification on DAX are now subtly broken and don't actually
+> > guarantee data is safe after a crash. That's a pretty nasty
+> > landmine, and goes against *everything* we've claimed about using
+> > DAX with existing applications.
 > > 
-> > Why?
-> > IIUC, msync() doesn't have any requirements wrt metadata, right?
+> > That's wrong, and needs fixing.
 > 
-> Of course it does. If the backing store allocation has not been
-> committed, then after a crash there will be a hole in file and
-> so it will read as zeroes regardless of what data was written and
-> flushed.
-
-Any reason why backing store allocation cannot be committed on *_mkwrite?
-
-> > > I pointed this out almost 6 months ago (i.e. that fsync was broken)
-> > > anf hinted at how to solve it. Fix fsync, and msync gets fixed for
-> > > free:
-> > > 
-> > > https://lists.01.org/pipermail/linux-nvdimm/2015-March/000341.html
-> > > 
-> > > I've also reported to Willy that DAX write page faults don't work
-> > > correctly, either. xfstests generic/080 exposes this: a read
-> > > from a page followed immediately by a write to that page does not
-> > > result in ->page_mkwrite being called on the write and so
-> > > backing store is not allocated for the page, nor are the timestamps
-> > > for the file updated. This will also result in fsync (and msync)
-> > > not working properly.
-> > 
-> > Is that because XFS doesn't provide vm_ops->pfn_mkwrite?
+> I agree that we need to fix fsync as well, and that the fsync solution could
+> be used to implement msync if we choose to go that route.  I think we might
+> want to consider keeping the msync and fsync implementations separate, though,
+> for two reasons.
 > 
-> I didn't know that had been committed. I don't recall seeing a pull
-> request with that in it
+> 1) The current msync implementation is much more efficient than what will be
+> needed for fsync.  Fsync will need to call into the filesystem, traverse all
+> the blocks, get kernel virtual addresses from those and then call
+> wb_cache_pmem() on those kernel addresses.  I think this is a necessary evil
+> for fsync since you don't have a VMA, but for msync we do and we can just
+> flush using the user addresses without any fs lookups.
 
-It went though -mm tree.
+Yet you're ignoring the fact that flushing the entire range of the
+relevant VMAs may not be very efficient. It may be a very
+large mapping with only a few pages that need flushing from the
+cache, but you still iterate the mappings flushing GB ranges from
+the cache at a time.
 
-> none of the XFS DAX patches conflicted
-> against it and there's been no runtime errors. I'll fix it up.
+We don't need struct pages to track page dirty state. We already
+have a method for doing this that does not rely on having a struct
+page and can be used for efficient lookup of exact dirty ranges. i.e
+the per-page dirty tag that is kept in the mapping radix tree. It's
+fine grained, and extremely efficient in terms of lookups to find
+dirty pages.
+
+Indeed, the mapping tree tags were specifically designed to avoid
+this "fsync doesn't know what range to flush" problem for normal
+files. That same problem still exists here for msync - these patches
+are just hitting it with a goddamn massive hammer "because it is
+easy" rather than attempting to do the flushing efficiently.
+
+> 2) I believe that the near-term fsync code will rely on struct pages for
+> PMEM, which I believe are possible but optional as of Dan's last patch set:
 > 
-> As such, shouldn't there be a check in the VM (in ->mmap callers)
-> that if we have the vma is returned with VM_MIXEDMODE enabled that
-> ->pfn_mkwrite is not NULL?  It's now clear to me that any filesystem
-> that sets VM_MIXEDMODE needs to support both page_mkwrite and
-> pfn_mkwrite, and such a check would have caught this immediately...
+> https://lkml.org/lkml/2015/8/25/841
+> 
+> I believe that this means that if we don't have struct pages for PMEM (becuase
+> ZONE_DEVICE et al. are turned off) fsync won't work.  I'd be nice not to lose
+> msync as well.
 
-I guess it's "both or none" case. We have VM_MIXEDMAP users who don't care
-about *_mkwrite.
+I don't think this is an either-or situation. If we use struct pages
+for PMEM, then fsync will work without modification as DAX will need
+to use struct pages and hence we can insert them in the mapping
+radix tree directly and use the normal set/clear_page_dirty() calls
+to track dirty state. It will give us fine grained flush capability
+and we won't want msync() to be using the big hammer if we can avoid
+it.
 
-I'm not yet sure it would be always correct, but something like this will
-catch the XFS case, without false-positive on other stuff in my KVM setup:
+If we make the existing pfn-based DAX code track dirty pages via
+mapping radix tree tags right now, then we allow fsync to work by
+reusing most of the infrastructure we already have.  That means DAX
+and fsync will work exactly the same regardless of how we
+index/reference PMEM in future and we won't have to come back and
+fix it all up again.
 
-diff --git a/mm/mmap.c b/mm/mmap.c
-index 3f78bceefe5a..f2e29a541e14 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1645,6 +1645,15 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
-                        vma->vm_ops = &dummy_ops;
-                }
- 
-+               /*
-+                * Make sure that for VM_MIXEDMAP VMA has both
-+                * vm_ops->page_mkwrite and vm_ops->pfn_mkwrite or has none.
-+                */
-+               if ((vma->vm_ops->page_mkwrite || vma->vm_ops->pfn_mkwrite) &&
-+                               vma->vm_flags & VM_MIXEDMAP) {
-+                       VM_BUG_ON_VMA(!vma->vm_ops->page_mkwrite, vma);
-+                       VM_BUG_ON_VMA(!vma->vm_ops->pfn_mkwrite, vma);
-+               }
-                addr = vma->vm_start;
-                vm_flags = vma->vm_flags;
-        } else if (vm_flags & VM_SHARED) {
+Cheers,
+
+Dave.
 -- 
- Kirill A. Shutemov
+Dave Chinner
+david@fromorbit.com
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
