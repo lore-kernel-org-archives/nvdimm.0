@@ -1,83 +1,77 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 3 Sep 2015 10:57:25 +1000
-From: Dave Chinner <david@fromorbit.com>
+Date: Wed, 2 Sep 2015 23:17:38 +0300
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
 Subject: Re: [PATCH] dax, pmem: add support for msync
-Message-ID: <20150903005725.GU3902@dastard>
+Message-ID: <20150902201738.GA5775@node.dhcp.inet.fi>
 References: <1441047584-14664-1-git-send-email-ross.zwisler@linux.intel.com>
  <20150831233803.GO3902@dastard>
- <20150901100804.GA7045@node.dhcp.inet.fi>
- <20150901224922.GR3902@dastard>
- <20150902091321.GA2323@node.dhcp.inet.fi>
+ <20150901070608.GA5482@lst.de>
+ <55E597A1.9090205@plexistor.com>
+ <20150902190401.GC32255@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20150902091321.GA2323@node.dhcp.inet.fi>
+In-Reply-To: <20150902190401.GC32255@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@osdl.org>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Hugh Dickins <hughd@google.com>, Ingo Molnar <mingo@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Boaz Harrosh <boaz@plexistor.com>, Christoph Hellwig <hch@lst.de>, Dave Chinner <david@fromorbit.com>, Andrew Morton <akpm@osdl.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, Hugh Dickins <hughd@google.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Sep 02, 2015 at 12:13:21PM +0300, Kirill A. Shutemov wrote:
-> On Wed, Sep 02, 2015 at 08:49:22AM +1000, Dave Chinner wrote:
-> > On Tue, Sep 01, 2015 at 01:08:04PM +0300, Kirill A. Shutemov wrote:
-> > > On Tue, Sep 01, 2015 at 09:38:03AM +1000, Dave Chinner wrote:
-> > > > On Mon, Aug 31, 2015 at 12:59:44PM -0600, Ross Zwisler wrote:
-> > > > Even for DAX, msync has to call vfs_fsync_range() for the filesystem to commit
-> > > > the backing store allocations to stable storage, so there's not
-> > > > getting around the fact msync is the wrong place to be flushing
-> > > > DAX mappings to persistent storage.
-> > > 
-> > > Why?
-> > > IIUC, msync() doesn't have any requirements wrt metadata, right?
+On Wed, Sep 02, 2015 at 01:04:01PM -0600, Ross Zwisler wrote:
+> On Tue, Sep 01, 2015 at 03:18:41PM +0300, Boaz Harrosh wrote:
+> > So the approach we took was a bit different to exactly solve these
+> > problem, and to also not over flush too much. here is what we did.
 > > 
-> > Of course it does. If the backing store allocation has not been
-> > committed, then after a crash there will be a hole in file and
-> > so it will read as zeroes regardless of what data was written and
-> > flushed.
+> > * At vm_operations_struct we also override the .close vector (say call it dax_vm_close)
+> > 
+> > * At dax_vm_close() on writable files call ->fsync(,vma->vm_start, vma->vm_end,)
+> >   (We have an inode flag if the file was actually dirtied, but even if not, that will
+> >    not be that bad, so a file was opened for write, mmapped, but actually never
+> >    modified. Not a lot of these, and the do nothing cl_flushing is very fast)
+> > 
+> > * At ->fsync() do the actual cl_flush for all cases but only iff
+> > 	if (mapping_mapped(inode->i_mapping) == 0)
+> > 		return 0;
+> > 
+> >   This is because data written not through mmap is already persistent and we
+> >   do not need the cl_flushing
+> > 
+> > Apps expect all these to work:
+> > 1. open mmap m-write msync ... close
+> > 2. open mmap m-write fsync ... close
+> > 3. open mmap m-write unmap ... fsync close
+> > 
+> > 4. open mmap m-write sync ...
 > 
-> Any reason why backing store allocation cannot be committed on *_mkwrite?
+> So basically you made close have an implicit fsync?  What about the flow that
+> looks like this:
+> 
+> 5. open mmap close m-write
+> 
+> This guy definitely needs an msync/fsync at the end to make sure that the
+> m-write becomes durable.  
 
-Oh, I could change that if you want, it'll just be ridiculously
-slow because it requires journal flushes on every page fault that
-needs to change the filesytsem block map (i.e. every allocation and/or
-every unwritten extent conversion).
+We can sync on pte_dirty() during zap_page_range(): it's practically free,
+since we page walk anyway.
 
-Sycnhronous journalling requires flushing the log on every
-transaction commit. That involves switching to a work queue, copying
-the changes into a log buffer, issuing IO to flush the journal,
-waiting for that to complete, etc. i.e.  synchronous journalling
-incurs a minimum overhead of 4 context switches per page fault that
-needs to allocate/convert backing store, along with all the CPU time
-needed to process the journal commit.
+With this approach it probably makes sense to come back to page walk on
+msync() side too to be consistent wrt pte_dirty() meaning.
 
-> diff --git a/mm/mmap.c b/mm/mmap.c
-> index 3f78bceefe5a..f2e29a541e14 100644
-> --- a/mm/mmap.c
-> +++ b/mm/mmap.c
-> @@ -1645,6 +1645,15 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
->                         vma->vm_ops = &dummy_ops;
->                 }
->  
-> +               /*
-> +                * Make sure that for VM_MIXEDMAP VMA has both
-> +                * vm_ops->page_mkwrite and vm_ops->pfn_mkwrite or has none.
-> +                */
-> +               if ((vma->vm_ops->page_mkwrite || vma->vm_ops->pfn_mkwrite) &&
-> +                               vma->vm_flags & VM_MIXEDMAP) {
-> +                       VM_BUG_ON_VMA(!vma->vm_ops->page_mkwrite, vma);
-> +                       VM_BUG_ON_VMA(!vma->vm_ops->pfn_mkwrite, vma);
-> +               }
+> Also, the CLOSE(2) man page specifically says that a flush does not occur at
+> close:
+> 	A successful close does not guarantee that the data has been
+> 	successfully  saved  to  disk,  as  the  kernel defers  writes.   It
+> 	is not common for a filesystem to flush the buffers when the stream is
+> 	closed.  If you need to be sure that the data is physically stored,
+> 	use fsync(2).  (It will depend on the disk  hardware  at this point.)
+> 
+> I don't think that adding an implicit fsync to close is the right solution -
+> we just need to get msync and fsync correctly working.
 
-Doesn't really help developers that don't use CONFIG_DEBUG_VM. i.e
-it's the FS developers that you need to warn, not VM developers -
-in this case a "WARN_ON_ONCE" is probably more appropriate.
+I doesn't mean we can't sync if we can do without noticible performance
+degradation.
 
-Cheers,
-
-Dave.
 -- 
-Dave Chinner
-david@fromorbit.com
+ Kirill A. Shutemov
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
