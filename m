@@ -1,42 +1,26 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: Re: [PATCH] dax, pmem: add support for msync
-References: <1441047584-14664-1-git-send-email-ross.zwisler@linux.intel.com>
- <20150831233803.GO3902@dastard> <20150901070608.GA5482@lst.de>
- <20150901222120.GQ3902@dastard> <20150902031945.GA8916@linux.intel.com>
- <20150902051711.GS3902@dastard> <55E6CF15.4070105@plexistor.com>
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Message-ID: <55E70653.4090302@linux.intel.com>
-Date: Wed, 2 Sep 2015 07:23:15 -0700
+Message-ID: <55E6CF6B.7060005@plexistor.com>
+Date: Wed, 02 Sep 2015 13:28:59 +0300
+From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-In-Reply-To: <55E6CF15.4070105@plexistor.com>
+Subject: Re: [PATCH] dax, pmem: add support for msync
+References: <1441047584-14664-1-git-send-email-ross.zwisler@linux.intel.com> <20150831233803.GO3902@dastard> <20150901100804.GA7045@node.dhcp.inet.fi> <20150901224922.GR3902@dastard> <20150902091321.GA2323@node.dhcp.inet.fi> <55E6C36C.3090402@plexistor.com> <55E6C458.3040901@plexistor.com> <20150902094739.GA2627@node.dhcp.inet.fi>
+In-Reply-To: <20150902094739.GA2627@node.dhcp.inet.fi>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: Boaz Harrosh <boaz@plexistor.com>, Dave Chinner <david@fromorbit.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@osdl.org>, "H. Peter Anvin" <hpa@zytor.com>, Hugh Dickins <hughd@google.com>, Ingo Molnar <mingo@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
+To: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Dave Chinner <david@fromorbit.com>, Andrew Morton <akpm@osdl.org>, x86@kernel.org, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Hugh Dickins <hughd@google.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Alexander Viro <viro@zeniv.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 09/02/2015 03:27 AM, Boaz Harrosh wrote:
->> > Yet you're ignoring the fact that flushing the entire range of the
->> > relevant VMAs may not be very efficient. It may be a very
->> > large mapping with only a few pages that need flushing from the
->> > cache, but you still iterate the mappings flushing GB ranges from
->> > the cache at a time.
->> > 
-> So actually you are wrong about this. We have a working system and as part
-> of our testing rig we do performance measurements, constantly. Our random
-> mmap 4k writes test preforms very well and is in par with the random-direct-write
-> implementation even though on every unmap, we do a VMA->start/end cl_flushing.
+On 09/02/2015 12:47 PM, Kirill A. Shutemov wrote:
+<>
 > 
-> The cl_flush operation is a no-op if the cacheline is not dirty and is a
-> memory bus storm with all the CLs that are dirty. So the only cost
-> is the iteration of vma->start-to-vma->end i+=64
+> I don't insist on applying the patch. And I worry about false-positives.
+> 
 
-I'd be curious what the cost is in practice.  Do you have any actual
-numbers of the cost of doing it this way?
-
-Even if the instruction is a "noop", I'd really expect the overhead to
-really add up for a tens-of-gigabytes mapping, no matter how much the
-CPU optimizes it.
+Thanks, yes
+Boaz
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
