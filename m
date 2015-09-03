@@ -1,48 +1,42 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 3 Sep 2015 10:44:53 -0600
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH] dax, pmem: add support for msync
-Message-ID: <20150903164453.GA10341@linux.intel.com>
-References: <1441047584-14664-1-git-send-email-ross.zwisler@linux.intel.com>
- <20150831233803.GO3902@dastard>
- <20150901070608.GA5482@lst.de>
- <55E597A1.9090205@plexistor.com>
- <20150902190401.GC32255@linux.intel.com>
- <55E7E962.2000607@plexistor.com>
+Message-ID: <55E7EBA2.50200@plexistor.com>
+Date: Thu, 03 Sep 2015 09:41:38 +0300
+From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <55E7E962.2000607@plexistor.com>
+Subject: Re: [PATCH] dax, pmem: add support for msync
+References: <1441047584-14664-1-git-send-email-ross.zwisler@linux.intel.com> <20150831233803.GO3902@dastard> <20150901070608.GA5482@lst.de> <20150901222120.GQ3902@dastard> <20150902031945.GA8916@linux.intel.com> <20150902051711.GS3902@dastard> <55E6CF15.4070105@plexistor.com> <55E70653.4090302@linux.intel.com> <55E7132E.104@plexistor.com> <55E7184B.3020104@linux.intel.com> <55E71D00.4050103@plexistor.com> <55E7217B.2090803@linux.intel.com>
+In-Reply-To: <55E7217B.2090803@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: Boaz Harrosh <boaz@plexistor.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Dave Chinner <david@fromorbit.com>, Andrew Morton <akpm@osdl.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, Hugh Dickins <hughd@google.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@osdl.org>, "H. Peter Anvin" <hpa@zytor.com>, Hugh Dickins <hughd@google.com>, Ingo Molnar <mingo@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Sep 03, 2015 at 09:32:02AM +0300, Boaz Harrosh wrote:
-> On 09/02/2015 10:04 PM, Ross Zwisler wrote:
-> > On Tue, Sep 01, 2015 at 03:18:41PM +0300, Boaz Harrosh wrote:
-> <>
-> >> Apps expect all these to work:
-> >> 1. open mmap m-write msync ... close
-> >> 2. open mmap m-write fsync ... close
-> >> 3. open mmap m-write unmap ... fsync close
-> >>
-> >> 4. open mmap m-write sync ...
-> > 
-> > So basically you made close have an implicit fsync?  What about the flow that
-> > looks like this:
-> > 
-> > 5. open mmap close m-write
-> > 
+On 09/02/2015 07:19 PM, Dave Hansen wrote:
+> On 09/02/2015 09:00 AM, Boaz Harrosh wrote:
+>>>> We are going to have 2-socket systems with 6TB of persistent memory in
+>>>> them.  I think it's important to design this mechanism so that it scales
+>>>> to memory sizes like that and supports large mmap()s.
+>>>>
+>>>> I'm not sure the application you've seen thus far are very
+>>>> representative of what we want to design for.
+>>>>
+>> We have a patch pending to introduce a new mmap flag that pmem aware
+>> applications can set to eliminate any kind of flushing. MMAP_PMEM_AWARE.
 > 
-> What? no, close means ummap because you need a file* attached to your vma
+> Great!  Do you have a link so that I can review it and compare it to
+> Ross's approach?
 > 
-> And you miss-understood me, the vm_opts->close is the *unmap* operation not
-> the file::close() operation.
-> 
-> I meant memory-cl_flush on unmap before the vma goes away.
 
-Ah, got it, thanks for the clarification.
+Ha? I have not seen a new mmap flag from Ross, yet I have been off lately
+so it is logical that I might have missed it.
+
+Could you send me a link?
+
+(BTW my patch I did not release yet, I'll cc you once its done)
+
+Thanks
+Boaz
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
