@@ -1,8 +1,8 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH 06/15] devm_memunmap: use devres_release()
+Subject: [PATCH 07/15] devm_memremap: convert to return ERR_PTR
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 23 Sep 2015 00:41:44 -0400
-Message-ID: <20150923044144.36490.28268.stgit@dwillia2-desk3.jf.intel.com>
+Date: Wed, 23 Sep 2015 00:41:50 -0400
+Message-ID: <20150923044150.36490.15073.stgit@dwillia2-desk3.jf.intel.com>
 In-Reply-To: <20150923043737.36490.70547.stgit@dwillia2-desk3.jf.intel.com>
 References: <20150923043737.36490.70547.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
@@ -13,31 +13,60 @@ To: akpm@linux-foundation.org
 Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Remove open coded call to memunmap.
+Make devm_memremap consistent with the error return scheme of
+devm_memremap_pages to remove special casing in the pmem driver.
 
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- kernel/memremap.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/nvdimm/pmem.c |   16 ++++++----------
+ kernel/memremap.c     |    2 +-
+ 2 files changed, 7 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 0680affae04a..9805d311b1d1 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -150,19 +150,15 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 		return ERR_PTR(-EBUSY);
+ 	}
+ 
+-	if (pmem_should_map_pages(dev)) {
+-		void *addr = devm_memremap_pages(dev, res);
+-
+-		if (IS_ERR(addr))
+-			return addr;
+-		pmem->virt_addr = (void __pmem *) addr;
+-	} else {
++	if (pmem_should_map_pages(dev))
++		pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, res);
++	else
+ 		pmem->virt_addr = (void __pmem *) devm_memremap(dev,
+ 				pmem->phys_addr, pmem->size,
+ 				ARCH_MEMREMAP_PMEM);
+-		if (!pmem->virt_addr)
+-			return ERR_PTR(-ENXIO);
+-	}
++
++	if (IS_ERR(pmem->virt_addr))
++		return (void __force *) pmem->virt_addr;
+ 
+ 	return pmem;
+ }
 diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 72b0c66628b6..0756273437e0 100644
+index 0756273437e0..0d818ce04129 100644
 --- a/kernel/memremap.c
 +++ b/kernel/memremap.c
-@@ -131,9 +131,8 @@ EXPORT_SYMBOL(devm_memremap);
+@@ -116,7 +116,7 @@ void *devm_memremap(struct device *dev, resource_size_t offset,
  
- void devm_memunmap(struct device *dev, void *addr)
- {
--	WARN_ON(devres_destroy(dev, devm_memremap_release, devm_memremap_match,
--			       addr));
--	memunmap(addr);
-+	WARN_ON(devres_release(dev, devm_memremap_release,
-+				devm_memremap_match, addr));
- }
- EXPORT_SYMBOL(devm_memunmap);
+ 	ptr = devres_alloc(devm_memremap_release, sizeof(*ptr), GFP_KERNEL);
+ 	if (!ptr)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
  
+ 	addr = memremap(offset, size, flags);
+ 	if (addr) {
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
