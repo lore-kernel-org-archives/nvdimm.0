@@ -1,132 +1,98 @@
 Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH 09/15] block, pmem: fix null pointer de-reference on shutdown,
+ check for queue death
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 23 Sep 2015 00:42:00 -0400
+Message-ID: <20150923044200.36490.54494.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20150923043737.36490.70547.stgit@dwillia2-desk3.jf.intel.com>
+References: <20150923043737.36490.70547.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20150826012735.8851.49787.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150826012735.8851.49787.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date: Fri, 18 Sep 2015 16:42:16 -0700
-Message-ID: <CANMBJr6xkh1Ciqb_9JF33aPapavxLLZte1BH+rQpdRpwvLO+dA@mail.gmail.com>
-Subject: Re: [PATCH v2 2/9] mm: move __phys_to_pfn and __pfn_to_phys to asm/generic/memory_model.h
-From: Tyler Baker <tyler.baker@linaro.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, boaz@plexistor.com, david@fromorbit.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, hch@lst.de, linux-mm@kvack.org, hpa@zytor.com, ross.zwisler@linux.intel.com, Ingo Molnar <mingo@kernel.org>, Kevin's boot bot <khilman@kernel.org>
+To: akpm@linux-foundation.org
+Cc: Jens Axboe <axboe@kernel.dk>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+After the driver has been unbound the queue is dead and the private data
+pointer is invalid.  Check that the queue is still alive, or otherwise
+pin it active before using queuedata.
 
-On 25 August 2015 at 18:27, Dan Williams <dan.j.williams@intel.com> wrote:
-> From: Christoph Hellwig <hch@lst.de>
->
-> Three architectures already define these, and we'll need them genericly
-> soon.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  arch/arm/include/asm/memory.h       |    6 ------
->  arch/arm64/include/asm/memory.h     |    6 ------
->  arch/unicore32/include/asm/memory.h |    6 ------
->  include/asm-generic/memory_model.h  |    6 ++++++
->  4 files changed, 6 insertions(+), 18 deletions(-)
->
-> diff --git a/arch/arm/include/asm/memory.h b/arch/arm/include/asm/memory.h
-> index b7f6fb462ea0..98d58bb04ac5 100644
-> --- a/arch/arm/include/asm/memory.h
-> +++ b/arch/arm/include/asm/memory.h
-> @@ -119,12 +119,6 @@
->  #endif
->
->  /*
-> - * Convert a physical address to a Page Frame Number and back
-> - */
-> -#define        __phys_to_pfn(paddr)    ((unsigned long)((paddr) >> PAGE_SHIFT))
-> -#define        __pfn_to_phys(pfn)      ((phys_addr_t)(pfn) << PAGE_SHIFT)
-> -
-> -/*
->   * Convert a page to/from a physical address
->   */
->  #define page_to_phys(page)     (__pfn_to_phys(page_to_pfn(page)))
-> diff --git a/arch/arm64/include/asm/memory.h b/arch/arm64/include/asm/memory.h
-> index f800d45ea226..d808bb688751 100644
-> --- a/arch/arm64/include/asm/memory.h
-> +++ b/arch/arm64/include/asm/memory.h
-> @@ -81,12 +81,6 @@
->  #define __phys_to_virt(x)      ((unsigned long)((x) - PHYS_OFFSET + PAGE_OFFSET))
->
->  /*
-> - * Convert a physical address to a Page Frame Number and back
-> - */
-> -#define        __phys_to_pfn(paddr)    ((unsigned long)((paddr) >> PAGE_SHIFT))
-> -#define        __pfn_to_phys(pfn)      ((phys_addr_t)(pfn) << PAGE_SHIFT)
-> -
-> -/*
->   * Convert a page to/from a physical address
->   */
->  #define page_to_phys(page)     (__pfn_to_phys(page_to_pfn(page)))
-> diff --git a/arch/unicore32/include/asm/memory.h b/arch/unicore32/include/asm/memory.h
-> index debafc40200a..3bb0a29fd2d7 100644
-> --- a/arch/unicore32/include/asm/memory.h
-> +++ b/arch/unicore32/include/asm/memory.h
-> @@ -61,12 +61,6 @@
->  #endif
->
->  /*
-> - * Convert a physical address to a Page Frame Number and back
-> - */
-> -#define        __phys_to_pfn(paddr)    ((paddr) >> PAGE_SHIFT)
-> -#define        __pfn_to_phys(pfn)      ((pfn) << PAGE_SHIFT)
-> -
-> -/*
->   * Convert a page to/from a physical address
->   */
->  #define page_to_phys(page)     (__pfn_to_phys(page_to_pfn(page)))
-> diff --git a/include/asm-generic/memory_model.h b/include/asm-generic/memory_model.h
-> index 14909b0b9cae..f20f407ce45d 100644
-> --- a/include/asm-generic/memory_model.h
-> +++ b/include/asm-generic/memory_model.h
-> @@ -69,6 +69,12 @@
->  })
->  #endif /* CONFIG_FLATMEM/DISCONTIGMEM/SPARSEMEM */
->
-> +/*
-> + * Convert a physical address to a Page Frame Number and back
-> + */
-> +#define        __phys_to_pfn(paddr)    ((unsigned long)((paddr) >> PAGE_SHIFT))
-> +#define        __pfn_to_phys(pfn)      ((pfn) << PAGE_SHIFT)
+Fixes crash signatures like the following.
 
-The kernelci.org bot has been reporting complete boot failures[1] on
-ARM platforms with more than 4GB of memory and LPAE enabled. I've
-bisected[2] the failures down to this commit, and reverting it on top
-of the latest mainline resolves the boot issue. I took a closer look
-at this patch and noticed the cast to phys_addr_t was dropped in the
-generic function. Adding this to the new generic function solves the
-boot issue I'm reporting.
+ BUG: unable to handle kernel paging request at ffff880140000000
+ [..]
+ Call Trace:
+  [<ffffffff8145e8bf>] ? copy_user_handle_tail+0x5f/0x70
+  [<ffffffffa004e1e0>] pmem_do_bvec.isra.11+0x70/0xf0 [nd_pmem]
+  [<ffffffffa004e331>] pmem_make_request+0xd1/0x200 [nd_pmem]
+  [<ffffffff811c3162>] ? mempool_alloc+0x72/0x1a0
+  [<ffffffff8141f8b6>] generic_make_request+0xd6/0x110
+  [<ffffffff8141f966>] submit_bio+0x76/0x170
+  [<ffffffff81286dff>] submit_bh_wbc+0x12f/0x160
+  [<ffffffff81286e62>] submit_bh+0x12/0x20
+  [<ffffffff813395bd>] jbd2_write_superblock+0x8d/0x170
+  [<ffffffff8133974d>] jbd2_mark_journal_empty+0x5d/0x90
+  [<ffffffff813399cb>] jbd2_journal_destroy+0x24b/0x270
+  [<ffffffff810bc4ca>] ? put_pwq_unlocked+0x2a/0x30
+  [<ffffffff810bc6f5>] ? destroy_workqueue+0x225/0x250
+  [<ffffffff81303494>] ext4_put_super+0x64/0x360
+  [<ffffffff8124ab1a>] generic_shutdown_super+0x6a/0xf0
 
-diff --git a/include/asm-generic/memory_model.h
-b/include/asm-generic/memory_model.h
-index f20f407..db9f5c7 100644
---- a/include/asm-generic/memory_model.h
-+++ b/include/asm-generic/memory_model.h
-@@ -73,7 +73,7 @@
-  * Convert a physical address to a Page Frame Number and back
-  */
- #define        __phys_to_pfn(paddr)    ((unsigned long)((paddr) >> PAGE_SHIFT))
--#define        __pfn_to_phys(pfn)      ((pfn) << PAGE_SHIFT)
-+#define        __pfn_to_phys(pfn)      ((phys_addr_t)(pfn) << PAGE_SHIFT)
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ block/blk-core.c      |    2 ++
+ drivers/nvdimm/pmem.c |    8 ++++++++
+ 2 files changed, 10 insertions(+)
 
- #define page_to_pfn __page_to_pfn
- #define pfn_to_page __pfn_to_page
-
-If this fix is valid, I can send a formal patch or it can be squashed
-into the original commit.
-
-Cheers,
-
-Tyler
-
-[1] http://kernelci.org/boot/?d01&LPAE
-[2] http://hastebin.com/tuhefudage.vhdl
+diff --git a/block/blk-core.c b/block/blk-core.c
+index 13764f8b22e0..0ea7d285b886 100644
+--- a/block/blk-core.c
++++ b/block/blk-core.c
+@@ -532,11 +532,13 @@ int blk_dax_get(struct request_queue *q)
+ {
+ 	return blk_qref_enter(&q->dax_ref, GFP_NOWAIT);
+ }
++EXPORT_SYMBOL(blk_dax_get);
+ 
+ void blk_dax_put(struct request_queue *q)
+ {
+ 	percpu_ref_put(&q->dax_ref.count);
+ }
++EXPORT_SYMBOL(blk_dax_put);
+ 
+ static void blk_dax_freeze(struct request_queue *q)
+ {
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index a01611d8f351..3ee02af73ad0 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -73,6 +73,12 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
+ 	struct block_device *bdev = bio->bi_bdev;
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
+ 
++	if (blk_dax_get(q) != 0) {
++		bio->bi_error = -ENODEV;
++		bio_endio(bio);
++		return;
++	}
++
+ 	do_acct = nd_iostat_start(bio, &start);
+ 	bio_for_each_segment(bvec, bio, iter)
+ 		pmem_do_bvec(pmem, bvec.bv_page, bvec.bv_len, bvec.bv_offset,
+@@ -84,6 +90,8 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
+ 		wmb_pmem();
+ 
+ 	bio_endio(bio);
++
++	blk_dax_put(q);
+ }
+ 
+ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
