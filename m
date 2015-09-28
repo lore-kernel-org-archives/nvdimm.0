@@ -1,44 +1,158 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Mon, 28 Sep 2015 20:12:14 +1000
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Mon, 28 Sep 2015 10:59:04 +1000
 From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH] dax: fix deadlock in __dax_fault
-Message-ID: <20150928101214.GA19114@dastard>
+Message-ID: <20150928005904.GY19114@dastard>
 References: <1443040800-5460-1-git-send-email-ross.zwisler@linux.intel.com>
  <20150924025225.GT3902@dastard>
  <20150924155029.GA6008@linux.intel.com>
  <20150925025357.GU3902@dastard>
  <20150926031745.GA560@linux.intel.com>
- <20150928005904.GY19114@dastard>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20150928005904.GY19114@dastard>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20150926031745.GA560@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Sep 28, 2015 at 10:59:04AM +1000, Dave Chinner wrote:
-> > Does this sound like a reasonable path forward for v4.3?  Dave, and Jan, can
-> > you guys can provide guidance and code reviews for the XFS and ext4 bits?
-> 
-> IMO, it's way too much to get into 4.3. I'd much prefer we revert
-> the bad changes in 4.3, and then work towards fixing this for the
-> 4.4 merge window. If someone needs this for 4.3, then they can
-> backport the 4.4 code to 4.3-stable.
+On Fri, Sep 25, 2015 at 09:17:45PM -0600, Ross Zwisler wrote:
+> On Fri, Sep 25, 2015 at 12:53:57PM +1000, Dave Chinner wrote:
+> > I think a bunch of reverts are in order -the code is broken, has
+> > stale data exposure problems and we're going to have to rip the code
+> > out anyway because I don't think this is the right way to fix the
+> > underlying problem ("If two threads write-fault on the same hole at
+> > the same time...")
 
-FWIW, here's the first bit of making XFS clear blocks during
-allocation. There's a couple of things I need to fix (e.g. moving
-the zeroing out of the transaction context but still under the inode
-allocation lock and hence atomic with the allocation), it needs to
-be split into at least two patches (to split out the
-xfs_imap_to_sector() helper), and there's another patch to remove
-the complete_unwritten callbacks. I also need to do more audit and
-validation on the handling of unwritten extents during get_blocks()
-for write faults - the get_blocks() call in this case effectively
-becomes an unwritten extent conversion call rather than an
-allocation call, and I need to validate that it does what get_block
-expects it to do. And that I haven't broken any of the other
-get_blocks callers. So still lots to do.
+[...]
+
+> I think that at the end of the day the locking in the two DAX fault paths is
+> trying to protect us against two things:
+> 
+> 1) Simultaneous write-fault on the same hole at the same time.
+> 2) Races between page faults and truncate.
+
+1) is fixed by pushing block zeroing into get_blocks()
+
+2) is fixed by the filesystem locking out page faults during
+truncate. XFS already does this with it's XFS_MMAPLOCK_[SHARED|EXCL]
+locking on page faults and truncate...
+
+> To get them all written down in one place, here are all the issues and
+> questions that I currently know about regarding the DAX fault paths as of
+> v4.3-rc2:
+> 
+> 1) In __dax_pmd_fault() the block inside the first "if (buffer_unwritten(&bh)
+
+	[fail to set kaddr, patch in -mm]
+
+> 2) In __dax_pmd_fault() we have this code:
+
+	[fail to release i_mmap_lock_write()]
+
+> 3) In __dax_pmd_fault() we convert the unwritten extent to written
+....
+> 4) In __dax_fault() we can return through this path:
+
+	[incorrect release of i_mmap_lock_write()]
+
+> 5) In __dax_fault() we rely on the presence of a page pointer to know whether
+
+	[fail to release i_mmap_lock_write() on racing read faults]
+
+> 6) In __dax_fault() in the vmf->cow_page case we can end up exiting with
+>    status VM_FAULT_LOCKED but with mapping->i_mmap_rwsem held.  This is
+
+	[undocumented, unbalanced, but handled]
+
+> 7) In both __dax_fault() and __dax_pmd_fault() we call the filesystem's
+>    get_block() and complete_unwritten() functions while holding
+>    mapping->i_mmap_rwsem.  There is a concern that this could potentially lead
+>    to a lock inversion, leading to a deadlock.
+
+	[more investigation needed]
+
+> Here's how I think we can address the above issues (basically "do what Dave
+> said"):
+> 
+> 1) For the simultaneous write-fault issue, move the responsibility for zeroing
+>    the extents and converting them to written to the filesystem as Dave
+
+*nod*
+
+> 2) For the remaining uses of mapping->i_mmap_rwsem in the fault paths that
+>    protect us against truncate, address any remaining code issues listed
+>    above, clearly document in the fault handlers the locking rules and the
+>    exceptions to those rules (cow_page + VM_FAULT_LOCKED).  Update any locking
+>    order changes like in mm/filemap.c as necessary.
+
+Incorrect. Truncate is a special case of hole punching, and the mm
+subsystem has long relied on a nasty hack to serialise page faults
+against truncate. That is:
+
+	lock_page(page);
+	if (page beyond EOF or mapping is different) {
+		/* OMG FAIL FAIL FAIL */
+	}
+
+This "page beyond EOF" does not work for operations like hole
+punching or other direct filesystem extent manipulation operations
+that occur within the current EOF and require mapping invalidation
+and serialisation until after the extent manipulation is done.
+
+IOWs, all of these operations require the filesystem to prevent new
+page faults from occurring after the initial invalidation and until
+the extent manipulation is completed.  This includes truncate - the
+"page beyond EOF" hack is not necessary anymore, because truncate
+has the same invalidation behaviour w.r.t. punching out mappings
+within EOF...
+
+And with DAX, we have no struct page to lock, so there really isn't
+anything in the mm subsystem that can be used to ensure that a given
+range of a file is not being otherwise manipulated in a manner that
+races with a page fault. The i_mmap_rwsem is not a replacement for
+the page lock....
+
+In reality, the require DAX page fault vs truncate serialisation is
+provided for XFS by the XFS_MMAPLOCK_* inode locking that is done in
+the fault, mkwrite and filesystem extent manipulation paths. There
+is no way this sort of exclusion can be done in the mm/ subsystem as
+it simply does not have the context to be able to provide the
+necessary serialisation.  Every filesystem that wants to use DAX
+needs to provide this external page fault serialisation, and in
+doing so will also protect it's hole punch/extent swap/shift
+operations under normal operation against racing mmap access....
+
+IOWs, for DAX this needs to be fixed in ext4, not the mm/ subsystem.
+
+> 3) For issue #7 above (lock inversion concerns between i_mmap_rwsem and the
+>    filesystem locking needed for get_block() and complete_unwritten()), I
+>    think that the complete_unwritten() calls in DAX will go away since we will
+>    be allocating, zeroing and converting extents to written all in the
+>    filesystem.  Similarly, I think that the calls to get_block() will no
+>    longer happen while the mapping->i_mmap_rwsem is held - this was the case
+>    as of v4.2, and I think we can probably get bet there with finger grained
+>    FS locking.
+
+ext2 already does this zeroing. See the call to dax_clear_blocks()
+in ext2_get_blocks. I should be able to do something similar in XFS
+easily enough.
+
+> 4) Test all changes with xfstests using both xfs & ext4, using lockep.
+> 
+> Did I miss any issues, or does this path not solve one of them somehow?
+> 
+> Does this sound like a reasonable path forward for v4.3?  Dave, and Jan, can
+> you guys can provide guidance and code reviews for the XFS and ext4 bits?
+
+IMO, it's way too much to get into 4.3. I'd much prefer we revert
+the bad changes in 4.3, and then work towards fixing this for the
+4.4 merge window. If someone needs this for 4.3, then they can
+backport the 4.4 code to 4.3-stable.
+
+The "fast and loose and fix it later" development model does not
+work for persistent storage algorithms; DAX is storage - not memory
+management - and so we need to treat it as such.
 
 Cheers,
 
@@ -46,222 +160,3 @@ Dave.
 -- 
 Dave Chinner
 david@fromorbit.com
-
-xfs: Don't use unwritten extents for DAX
-
-From: Dave Chinner <dchinner@redhat.com>
-
-DAX has a page fault serialisation problem with block allocation.
-Because it allows concurrent page faults and does not have a page
-lock to serialise faults to the same page, it can get two concurrent
-faults to the page that race.
-
-When two read faults race, this isn't a huge problem as the data
-underlying the page is not changing and so "detect and drop" works
-just fine. The issues are to do with write faults.
-
-When two write faults occur, we serialise block allocation in
-get_blocks() so only one faul will allocate the extent. It will,
-however, be marked as an unwritten extent, and that is where the
-problem lies - the DAX fault code cannot differentiate between a
-block that was just allocated and a block that was preallocated and
-needs zeroing. The result is that both write faults end up zeroing
-the block and attempting to convert it back to written.
-
-The problem is that the first fault can zero and convert before the
-second fault starts zeroing, resulting in the zeroing for the second
-fault overwriting the data that the first fault wrote with zeros.
-The second fault then attempts to convert the unwritten extent,
-which is then a no-op because it's already written. Data loss occurs
-as a result of this race.
-
-Because there is no sane locking construct in the page fault code
-that we can use for serialisation across the page faults, we need to
-ensure block allocation and zeroing occurs atomically in the
-filesystem. This means we can still take concurrent page faults and
-the only time they will serialise is in the filesystem
-mapping/allocation callback. The page fault code will always see
-written, initialised extents, so we will be able to remove the
-unwritten extent handling from the DAX code when all filesystems are
-converted.
-
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
----
- fs/xfs/xfs_aops.c  | 40 ++++++++++++++++++++++++----------------
- fs/xfs/xfs_aops.h  |  5 +++++
- fs/xfs/xfs_iomap.c | 38 +++++++++++++++++++++++++++++++++++++-
- 3 files changed, 66 insertions(+), 17 deletions(-)
-
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index 50ab287..f645587 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -586,27 +586,35 @@ xfs_add_to_ioend(
- 	ioend->io_size += bh->b_size;
- }
- 
--STATIC void
--xfs_map_buffer(
-+sector_t
-+xfs_imap_to_sector(
- 	struct inode		*inode,
--	struct buffer_head	*bh,
- 	struct xfs_bmbt_irec	*imap,
- 	xfs_off_t		offset)
- {
--	sector_t		bn;
--	struct xfs_mount	*m = XFS_I(inode)->i_mount;
--	xfs_off_t		iomap_offset = XFS_FSB_TO_B(m, imap->br_startoff);
--	xfs_daddr_t		iomap_bn = xfs_fsb_to_db(XFS_I(inode), imap->br_startblock);
-+	struct xfs_mount	*mp = XFS_I(inode)->i_mount;
-+	xfs_off_t		iomap_offset;
-+	xfs_daddr_t		iomap_bn;
- 
- 	ASSERT(imap->br_startblock != HOLESTARTBLOCK);
- 	ASSERT(imap->br_startblock != DELAYSTARTBLOCK);
- 
--	bn = (iomap_bn >> (inode->i_blkbits - BBSHIFT)) +
--	      ((offset - iomap_offset) >> inode->i_blkbits);
-+	iomap_bn = xfs_fsb_to_db(XFS_I(inode), imap->br_startblock);
-+	iomap_offset = XFS_FSB_TO_B(mp, imap->br_startoff);
- 
--	ASSERT(bn || XFS_IS_REALTIME_INODE(XFS_I(inode)));
-+	return iomap_bn + BTOBB(offset - iomap_offset);
-+}
- 
--	bh->b_blocknr = bn;
-+STATIC void
-+xfs_map_buffer(
-+	struct inode		*inode,
-+	struct buffer_head	*bh,
-+	struct xfs_bmbt_irec	*imap,
-+	xfs_off_t		offset)
-+{
-+	bh->b_blocknr = xfs_imap_to_sector(inode, imap, offset) >>
-+						(inode->i_blkbits - BBSHIFT);
-+	ASSERT(bh->b_blocknr || XFS_IS_REALTIME_INODE(XFS_I(inode)));
- 	set_buffer_mapped(bh);
- }
- 
-@@ -617,11 +625,7 @@ xfs_map_at_offset(
- 	struct xfs_bmbt_irec	*imap,
- 	xfs_off_t		offset)
- {
--	ASSERT(imap->br_startblock != HOLESTARTBLOCK);
--	ASSERT(imap->br_startblock != DELAYSTARTBLOCK);
--
- 	xfs_map_buffer(inode, bh, imap, offset);
--	set_buffer_mapped(bh);
- 	clear_buffer_delay(bh);
- 	clear_buffer_unwritten(bh);
- }
-@@ -1396,7 +1400,8 @@ __xfs_get_blocks(
- 	if (create &&
- 	    (!nimaps ||
- 	     (imap.br_startblock == HOLESTARTBLOCK ||
--	      imap.br_startblock == DELAYSTARTBLOCK))) {
-+	      imap.br_startblock == DELAYSTARTBLOCK) ||
-+	     (IS_DAX(inode) && ISUNWRITTEN(&imap)))) {
- 		if (direct || xfs_get_extsz_hint(ip)) {
- 			/*
- 			 * Drop the ilock in preparation for starting the block
-@@ -1441,6 +1446,9 @@ __xfs_get_blocks(
- 		goto out_unlock;
- 	}
- 
-+	if (IS_DAX(inode))
-+		ASSERT(!ISUNWRITTEN(&imap));
-+
- 	/* trim mapping down to size requested */
- 	if (direct || size > (1 << inode->i_blkbits))
- 		xfs_map_trim_size(inode, iblock, bh_result,
-diff --git a/fs/xfs/xfs_aops.h b/fs/xfs/xfs_aops.h
-index 86afd1a..ede1025 100644
---- a/fs/xfs/xfs_aops.h
-+++ b/fs/xfs/xfs_aops.h
-@@ -18,6 +18,8 @@
- #ifndef __XFS_AOPS_H__
- #define __XFS_AOPS_H__
- 
-+struct xfs_bmbt_irec;
-+
- extern mempool_t *xfs_ioend_pool;
- 
- /*
-@@ -62,4 +64,7 @@ void	xfs_end_io_dax_write(struct buffer_head *bh, int uptodate);
- 
- extern void xfs_count_page_state(struct page *, int *, int *);
- 
-+sector_t xfs_imap_to_sector(struct inode *inode, struct xfs_bmbt_irec *imap,
-+			    xfs_off_t offset);
-+
- #endif /* __XFS_AOPS_H__ */
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index 1f86033..277cd82 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -131,6 +131,7 @@ xfs_iomap_write_direct(
- 	uint		qblocks, resblks, resrtextents;
- 	int		committed;
- 	int		error;
-+	int		bmapi_flags = XFS_BMAPI_PREALLOC;
- 
- 	error = xfs_qm_dqattach(ip, 0);
- 	if (error)
-@@ -196,13 +197,26 @@ xfs_iomap_write_direct(
- 	xfs_trans_ijoin(tp, ip, 0);
- 
- 	/*
-+	 * For DAX, we do not allocate unwritten extents, but instead we zero
-+	 * the block before we commit the transaction. Hence if we are mapping
-+	 * unwritten extents here, we need to convert them to written so that we
-+	 * don't need an unwritten extent callback here.
-+	 *
-+	 * Block zeroing for DAX is effectively a memset operation and so should
-+	 * not block on anything when we call it after the block allocation or
-+	 * conversion before we commit the transaction.
-+	 */
-+	if (IS_DAX(VFS_I(ip)))
-+		bmapi_flags = XFS_BMAPI_CONVERT;
-+
-+	/*
- 	 * From this point onwards we overwrite the imap pointer that the
- 	 * caller gave to us.
- 	 */
- 	xfs_bmap_init(&free_list, &firstfsb);
- 	nimaps = 1;
- 	error = xfs_bmapi_write(tp, ip, offset_fsb, count_fsb,
--				XFS_BMAPI_PREALLOC, &firstfsb, 0,
-+				bmapi_flags, &firstfsb, 0,
- 				imap, &nimaps, &free_list);
- 	if (error)
- 		goto out_bmap_cancel;
-@@ -213,6 +227,28 @@ xfs_iomap_write_direct(
- 	error = xfs_bmap_finish(&tp, &free_list, &committed);
- 	if (error)
- 		goto out_bmap_cancel;
-+
-+	/* DAX needs to zero the entire allocated extent here */
-+	if (IS_DAX(VFS_I(ip)) && nimaps) {
-+		sector_t sector = xfs_imap_to_sector(VFS_I(ip), imap, offset);
-+
-+		ASSERT(!ISUNWRITTEN(imap));
-+		ASSERT(nimaps == 1);
-+		error = dax_clear_blocks(VFS_I(ip),
-+				sector >> (VFS_I(ip)->i_blkbits - BBSHIFT),
-+				XFS_FSB_TO_B(mp, imap->br_blockcount));
-+		if (error) {
-+			xfs_warn(mp,
-+ "err %d, off/cnt %lld/%ld, sector %ld, bytes %lld, im.stblk %lld, im.stoff %lld, im.blkcnt %lld",
-+				error, offset, count, 
-+				xfs_imap_to_sector(VFS_I(ip), imap, offset),
-+				XFS_FSB_TO_B(mp, imap->br_blockcount),
-+				imap->br_startblock, imap->br_startoff,
-+				imap->br_blockcount);
-+			goto out_trans_cancel;
-+		}
-+	}
-+
- 	error = xfs_trans_commit(tp);
- 	if (error)
- 		goto out_unlock;
