@@ -1,151 +1,140 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <20150929021807.GB27164@dastard>
-References: <1443040800-5460-1-git-send-email-ross.zwisler@linux.intel.com>
-	<20150924025225.GT3902@dastard>
-	<20150924155029.GA6008@linux.intel.com>
-	<20150925025357.GU3902@dastard>
-	<20150926031745.GA560@linux.intel.com>
-	<20150928005904.GY19114@dastard>
-	<CAPcyv4jfT2fvYPGFBgxynNAvJ4KoKX=_TZbpB4ieTQV25mmFkQ@mail.gmail.com>
-	<20150928213548.GX3902@dastard>
-	<CAPcyv4i2Bu1EsVrVkJpN8LUgoD+H5f+REBiEk-eoF=8xBJpL_g@mail.gmail.com>
-	<20150929021807.GB27164@dastard>
-Date: Mon, 28 Sep 2015 20:08:13 -0700
-Message-ID: <CAA9_cmf7e+Ggo1UfrNZ_aFDqpT6zmbgM_qscyDSzFUvhRZGpCQ@mail.gmail.com>
+Date: Tue, 29 Sep 2015 12:44:58 +1000
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH] dax: fix deadlock in __dax_fault
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
+Message-ID: <20150929024458.GC27164@dastard>
+References: <1443040800-5460-1-git-send-email-ross.zwisler@linux.intel.com>
+ <20150924025225.GT3902@dastard>
+ <20150924155029.GA6008@linux.intel.com>
+ <20150925025357.GU3902@dastard>
+ <20150926031745.GA560@linux.intel.com>
+ <20150928005904.GY19114@dastard>
+ <20150928224001.GA21955@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150928224001.GA21955@linux.intel.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Sep 28, 2015 at 7:18 PM, Dave Chinner <david@fromorbit.com> wrote:
-> On Mon, Sep 28, 2015 at 03:57:29PM -0700, Dan Williams wrote:
->> On Mon, Sep 28, 2015 at 2:35 PM, Dave Chinner <david@fromorbit.com> wrote:
->> > On Mon, Sep 28, 2015 at 05:13:50AM -0700, Dan Williams wrote:
->> >> On Sun, Sep 27, 2015 at 5:59 PM, Dave Chinner <david@fromorbit.com> wrote:
->> >> > On Fri, Sep 25, 2015 at 09:17:45PM -0600, Ross Zwisler wrote:
->> >> >> On Fri, Sep 25, 2015 at 12:53:57PM +1000, Dave Chinner wrote:
->> >> [..]
->> >> >> Does this sound like a reasonable path forward for v4.3?  Dave, and Jan, can
->> >> >> you guys can provide guidance and code reviews for the XFS and ext4 bits?
->> >> >
->> >> > IMO, it's way too much to get into 4.3. I'd much prefer we revert
->> >> > the bad changes in 4.3, and then work towards fixing this for the
->> >> > 4.4 merge window. If someone needs this for 4.3, then they can
->> >> > backport the 4.4 code to 4.3-stable.
->> >> >
->> >>
->> >> If the proposal is to step back and get a running start at these fixes
->> >> for 4.4, then it is worth considering what the state of allocating
->> >> pages for DAX mappings will be in 4.4.
->> >
->> > Oh, do tell. I haven't seen any published design, code, etc,
->>
->> This is via the devm_memremap_pages() api that went into 4.2 [1] and
->> my v1 (RFC quality) series using it for dax get_user_pages() [2].
->>
->> [1]: https://lkml.org/lkml/2015/8/25/841
->> [2]: https://lkml.org/lkml/2015/9/23/11
->
-> I'll have a look at some point when I'm not trying to put out fires.
->
->> > And, quite frankly, I'm not enabling any new DAX behaviour/subsystem
->> > in XFS until I've had time to review, test and fix it so it works
->> > without deadlocking or corrupting data.
->>
->> I'm in violent agreement, to the point where I'm pondering whether
->> CONFIG_FS_DAX should just depend on CONFIG_BROKEN in 4.3 until we've
->> convinced ourselves of all the fixes in 4.4.  It's not clear to me
->> that we have a stable baseline to which we can revert this "still in
->> development" implementation, did you have one in mind?
->
-> XFS warns that DAX is experimental when you mount with that option,
-> so there is no need to do that:
->
-> [  686.055780] XFS (ram0): DAX enabled. Warning: EXPERIMENTAL, use at your own risk
-> [  686.058464] XFS (ram0): Mounting V5 Filesystem
-> [  686.062857] XFS (ram0): Ending clean mount
+On Mon, Sep 28, 2015 at 04:40:01PM -0600, Ross Zwisler wrote:
+> On Mon, Sep 28, 2015 at 10:59:04AM +1000, Dave Chinner wrote:
+> > On Fri, Sep 25, 2015 at 09:17:45PM -0600, Ross Zwisler wrote:
+> <>
+> > In reality, the require DAX page fault vs truncate serialisation is
+> > provided for XFS by the XFS_MMAPLOCK_* inode locking that is done in
+> > the fault, mkwrite and filesystem extent manipulation paths. There
+> > is no way this sort of exclusion can be done in the mm/ subsystem as
+> > it simply does not have the context to be able to provide the
+> > necessary serialisation.  Every filesystem that wants to use DAX
+> > needs to provide this external page fault serialisation, and in
+> > doing so will also protect it's hole punch/extent swap/shift
+> > operations under normal operation against racing mmap access....
+> > 
+> > IOWs, for DAX this needs to be fixed in ext4, not the mm/ subsystem.
+> 
+> So is it your belief that XFS already has correct locking in place to ensure
+> that we don't hit these races?  I see XFS taking XFS_MMAPLOCK_SHARED before it
+> calls __dax_fault() in both xfs_filemap_page_mkwrite() (via __dax_mkwrite) and
+> in xfs_filemap_fault().
+> 
+> XFS takes XFS_MMAPLOCK_EXCL before a truncate in xfs_vn_setattr() - I haven't
+> found the generic hole punching code yet, but I assume it takes
+> XFS_MMAPLOCK_EXCL as well.
 
-Well that is comforting, although a similar warning is missing from
-ext4.  I'll send a patch.
+There is no generic hole punching. See xfs_file_fallocate(), where
+most fallocate() based operations are protected, xfs_ioc_space()
+where all the XFS ioctl based extent manipulations are protected,
+xfs_swap_extents() where online defrag extent swaps are protected.
+And we'll add it to any future operations that directly
+manipulate extent mappings. 
 
->> >> It's already that case that
->> >> allocating struct page for DAX mappings is the only solution on the
->> >> horizon for enabling a get_user_pages() solution for persistent
->> >> memory.  We of course need to get the page-less DAX path fixed up, but
->> >> the near-term path to full functionality and safety is when struct
->> >> page is available to enable the typical synchronization mechanics.
->> >
->> > And we do so at the expense of medium to long term complexity and
->> > maintenance. I'm no fan of using struct pages to track terabytes to
->> > petabytes of persistent memory, and I'm even less of a fan of having
->> > to simultaneously support both struct page and pfn based DAX
->> > subsystems...
->>
->> I'm no fan of tracking petabytes of persistent memory with struct
->> page, but we're in the near term space (hardware technology-wise) of
->> how to enable DMA/RDMA to 100s of gigabytes to a few terabytes of
->> persistent memory.
->
-> Don't think I don't know that - as I said to someone a few hours
-> ago on IRC:
->
-> [29/09/15 07:41] <dchinner> I'm sure they do, but they have a hard requirement to support RDMA from persistent memory
-> [29/09/15 07:41] <dchinner> and that's what seems to be driving the "we need to use struct pages" design
+> Meaning, is the work that we need to do around extent vs page fault locking
+> basically adding equivalent locking to ext4 and ext2 and removing the attempts
+> at locking from dax.c?
 
-Fair enough...
+Yup. I'm not game to touch ext4 locking, though.
 
->> A page-less solution to that problem is not on the
->> horizon as far as I can tell.  In short, I am concerned we are
->> spending time working around the lack of struct page to get to a
->> stable page-less solution that is still missing support for the use
->> cases that are expected to "just work".
->
-> I'm concerned with making what we have work before we go and change
-> everything. You might want to move really quickly, but without sane
-> filesystem support you can't ship anything worth a damn. There's all
-> sorts of issues here, and introducing struct pages doesn't solve all
-> of them.
->
-> Let's concentrate on ensuring the basic operation of DAX is robust
-> first - get the page fault vs extent manipulations serialised, sane
-> and scalable before we start changing anything else. If we don't
-> solve these problems, then nothing else we do will be reliable, and
-> the problems exist regardless of whether we are using struct pages
-> or not. Hence these are the critical problems we need to fix before
-> anything else.
->
-> Once we have these issues sorted out, switching between struct page
-> and pfn should be much simpler because we don't have to worry about
-> different locking strategies to protect against truncate, racing
-> page faults, etc.
+> 
+> > > 4) Test all changes with xfstests using both xfs & ext4, using lockep.
+> > > 
+> > > Did I miss any issues, or does this path not solve one of them somehow?
+> > > 
+> > > Does this sound like a reasonable path forward for v4.3?  Dave, and Jan, can
+> > > you guys can provide guidance and code reviews for the XFS and ext4 bits?
+> > 
+> > IMO, it's way too much to get into 4.3. I'd much prefer we revert
+> > the bad changes in 4.3, and then work towards fixing this for the
+> > 4.4 merge window. If someone needs this for 4.3, then they can
+> > backport the 4.4 code to 4.3-stable.
+> > 
+> > The "fast and loose and fix it later" development model does not
+> > work for persistent storage algorithms; DAX is storage - not memory
+> > management - and so we need to treat it as such.
+> 
+> Okay.  To get our locking back to v4.2 levels here are the two commits I think
+> we need to look at:
+> 
+> commit 843172978bb9 ("dax: fix race between simultaneous faults")
+> commit 46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
 
-It sounds like you have a page-independent/scalable method in mind for
-solving the truncate protection problem?  I had always thought that
-must require struct page, but if you're happy to carry that solution
-in the filesystem you're not going to see resistance from me.
+Already testing a kernel with those reverted. My current DAX patch
+stack is (bottom is first commit in stack):
 
->> I do not think introducing page-back persistent memory sets us back to
->> square 1.  Instead, given the functionality that is enabled when pages
->> are present I think it is safe to assume most platforms will arrange
->> for page backed persistent memory.
->
-> Sure, but it will take a little time to get there. Moving fast
-> doesn't help us here - it only results in stuff we have to revert or
-> redo in the near future and that means progress is much slower than
-> it should be. Let's solve the DAX problems in the right order - it
-> will make things simpler and faster down the road.
+f672ae4 xfs: add ->pfn_mkwrite support for DAX
+6855c23 xfs: remove DAX complete_unwritten callback
+e074bdf Revert "dax: fix race between simultaneous faults"
+8ba0157 Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
+a2ce6a5 xfs: DAX does not use IO completion callbacks
+246c52a xfs: update size during allocation for DAX
+9d10e7b xfs: Don't use unwritten extents for DAX
+eaef807 xfs: factor out sector mapping.
+e7f2d50 xfs: introduce per-inode DAX enablement
 
-Sounds workable, although this thread is missing an ext4
-representative so far.  Hopefully ext4 is equally open to solving
-these problems generically without struct page.
+BTW, add to the problems that need fixing is that the pfn_mkwrite
+code needs to check that the fault is still within EOF, like
+__dax_fault does. i.e. the top patch in the series adds this
+to xfs_filemap_pfn_mkwrite() instead of using dax_pfn_mkwrite():
 
-Outside of that there's also basic device driver lifetime fixes in the
-get_user_pages() series (patches 8-10) that are 4.4 material to stop
-the trivial breakage from unbinding the pmem driver regardless of when
-we decide to stage the others.
+....
++       /* check if the faulting page hasn't raced with truncate */
++       xfs_ilock(ip, XFS_MMAPLOCK_SHARED);
++       size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
++       if (vmf->pgoff >= size)
++               ret = VM_FAULT_SIGBUS;
++       xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
++       sb_end_pagefault(inode->i_sb);
 
-In any event, thanks for the attention and patience, Dave, much appreciated.
+i.e. dax_pfn_mkwrite() doesn't work correctly when racing with
+truncate (i.e. another way that ext2/ext4 are currently broken).
+
+> On an unrelated note, while wandering through the XFS code I found the
+> following lock ordering documented above xfs_ilock():
+> 
+>  * Basic locking order:
+>  *
+>  * i_iolock -> i_mmap_lock -> page_lock -> i_ilock
+>  *
+>  * mmap_sem locking order:
+>  *
+>  * i_iolock -> page lock -> mmap_sem
+>  * mmap_sem -> i_mmap_lock -> page_lock
+> 
+> I noticed that page_lock and i_mmap_lock are in different places in the
+> ordering depending on the presence or absence of mmap_sem.  Does this not open
+> us up to a lock ordering inversion?
+
+Typo, not picked up in review (note the missing "_").
+
+- * i_iolock -> page lock -> mmap_sem
++ * i_iolock -> page fault -> mmap_sem
+
+Thanks for the heads-up on that.
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
