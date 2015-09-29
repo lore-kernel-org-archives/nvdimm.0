@@ -1,75 +1,82 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 3/3] pmem, memremap: convert to numa aware allocations
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 25 Sep 2015 21:17:53 -0400
-Message-ID: <20150926011753.2848.75637.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20150926011243.2848.82422.stgit@dwillia2-desk3.jf.intel.com>
-References: <20150926011243.2848.82422.stgit@dwillia2-desk3.jf.intel.com>
+Date: Tue, 29 Sep 2015 15:47:43 -0400 (EDT)
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: Re: [PATCH v2 2/9] mm: move __phys_to_pfn and __pfn_to_phys to
+ asm/generic/memory_model.h
+In-Reply-To: <CANMBJr7Su2Gw_4oUj11grO-GMP-+tP0yp52zYB8KA3s5vo76VA@mail.gmail.com>
+Message-ID: <alpine.LFD.2.20.1509291545460.11346@knanqh.ubzr>
+References: <20150826010220.8851.18077.stgit@dwillia2-desk3.amr.corp.intel.com> <20150826012735.8851.49787.stgit@dwillia2-desk3.amr.corp.intel.com> <alpine.LFD.2.20.1509291511440.11346@knanqh.ubzr>
+ <CANMBJr7Su2Gw_4oUj11grO-GMP-+tP0yp52zYB8KA3s5vo76VA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-kernel-owner@vger.kernel.org
-To: tj@kernel.org
-Cc: linux-nvdimm@lists.01.org, hch@lst.de, linux-kernel@vger.kernel.org
+To: Tyler Baker <tyler.baker@linaro.org>
+Cc: Dan Williams <dan.j.williams@intel.com>, Russell King <linux@arm.linux.org.uk>, linux-nvdimm@lists.01.org, Boaz Harrosh <boaz@plexistor.com>, david <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Linux MM <linux-mm@kvack.org>, "H. Peter Anvin" <hpa@zytor.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Given that pmem ranges come with numa-locality hints, arrange for the
-resulting driver objects to be obtained from node-local memory.
+On Tue, 29 Sep 2015, Tyler Baker wrote:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pmem.c |    5 +++--
- kernel/memremap.c     |    7 ++++---
- 2 files changed, 7 insertions(+), 5 deletions(-)
+> On 29 September 2015 at 12:21, Nicolas Pitre <nicolas.pitre@linaro.org> wrote:
+> > On Tue, 25 Aug 2015, Dan Williams wrote:
+> >
+> >> From: Christoph Hellwig <hch@lst.de>
+> >>
+> >> Three architectures already define these, and we'll need them genericly
+> >> soon.
+> >>
+> >> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> >> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> >> ---
+> >>  arch/arm/include/asm/memory.h       |    6 ------
+> >>  arch/arm64/include/asm/memory.h     |    6 ------
+> >>  arch/unicore32/include/asm/memory.h |    6 ------
+> >>  include/asm-generic/memory_model.h  |    6 ++++++
+> >>  4 files changed, 6 insertions(+), 18 deletions(-)
+> >>
+> >> diff --git a/arch/arm/include/asm/memory.h b/arch/arm/include/asm/memory.h
+> >> index b7f6fb462ea0..98d58bb04ac5 100644
+> >> --- a/arch/arm/include/asm/memory.h
+> >> +++ b/arch/arm/include/asm/memory.h
+> >> @@ -119,12 +119,6 @@
+> >>  #endif
+> >>
+> >>  /*
+> >> - * Convert a physical address to a Page Frame Number and back
+> >> - */
+> >> -#define      __phys_to_pfn(paddr)    ((unsigned long)((paddr) >> PAGE_SHIFT))
+> >> -#define      __pfn_to_phys(pfn)      ((phys_addr_t)(pfn) << PAGE_SHIFT)
+> >> -
+> >> -/*
+> >>   * Convert a page to/from a physical address
+> >>   */
+> >>  #define page_to_phys(page)   (__pfn_to_phys(page_to_pfn(page)))
+> >
+> > [...]
+> >
+> >> diff --git a/include/asm-generic/memory_model.h b/include/asm-generic/memory_model.h
+> >> index 14909b0b9cae..f20f407ce45d 100644
+> >> --- a/include/asm-generic/memory_model.h
+> >> +++ b/include/asm-generic/memory_model.h
+> >> @@ -69,6 +69,12 @@
+> >>  })
+> >>  #endif /* CONFIG_FLATMEM/DISCONTIGMEM/SPARSEMEM */
+> >>
+> >> +/*
+> >> + * Convert a physical address to a Page Frame Number and back
+> >> + */
+> >> +#define      __phys_to_pfn(paddr)    ((unsigned long)((paddr) >> PAGE_SHIFT))
+> >> +#define      __pfn_to_phys(pfn)      ((pfn) << PAGE_SHIFT)
+> >> +
+> >
+> > This patch, currently in mainline as commit 012dcef3f0, breaks LPAE on
+> > ARM32 with more than 4GB of RAM. The phys_addr_t cast in the original
+> > ARM definition is important when LPAE is enabled as phys_addr_t is 64
+> > bits while longs are 32 bits.
+> 
+> Dan sent my fix above to Linus already, which is in mainline as commit
+> ae4f97696889.
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index b9525385c0dc..570764a7599e 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -177,9 +177,10 @@ static void pmem_detach_disk(struct pmem_device *pmem)
- static int pmem_attach_disk(struct device *dev,
- 		struct nd_namespace_common *ndns, struct pmem_device *pmem)
- {
-+	int nid = dev_to_node(dev);
- 	struct gendisk *disk;
- 
--	pmem->pmem_queue = blk_alloc_queue(GFP_KERNEL);
-+	pmem->pmem_queue = blk_alloc_queue_node(GFP_KERNEL, nid);
- 	if (!pmem->pmem_queue)
- 		return -ENOMEM;
- 
-@@ -189,7 +190,7 @@ static int pmem_attach_disk(struct device *dev,
- 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
- 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, pmem->pmem_queue);
- 
--	disk = alloc_disk(0);
-+	disk = alloc_disk_node(0, nid);
- 	if (!disk) {
- 		blk_cleanup_queue(pmem->pmem_queue);
- 		return -ENOMEM;
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 86a5cdeb18f2..f257c4e66e60 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -114,7 +114,8 @@ void *devm_memremap(struct device *dev, resource_size_t offset,
- {
- 	void **ptr, *addr;
- 
--	ptr = devres_alloc(devm_memremap_release, sizeof(*ptr), GFP_KERNEL);
-+	ptr = devres_alloc_node(devm_memremap_release, sizeof(*ptr), GFP_KERNEL,
-+			dev_to_node(dev));
- 	if (!ptr)
- 		return NULL;
- 
-@@ -166,8 +167,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res)
- 	if (is_ram == REGION_INTERSECTS)
- 		return __va(res->start);
- 
--	page_map = devres_alloc(devm_memremap_pages_release,
--			sizeof(*page_map), GFP_KERNEL);
-+	page_map = devres_alloc_node(devm_memremap_pages_release,
-+			sizeof(*page_map), GFP_KERNEL, dev_to_node(dev));
- 	if (!page_map)
- 		return ERR_PTR(-ENOMEM);
- 
+Excellent.  Somehow I was looking at v4.3-rc1 and not the latest.
 
+
+Nicolas
