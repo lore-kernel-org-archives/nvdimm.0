@@ -1,70 +1,57 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH] ext2, ext4: warn when mounting with dax enabled
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 29 Sep 2015 15:48:11 -0400
-Message-ID: <20150929194806.5276.863.stgit@dwillia2-desk3.jf.intel.com>
+Date: Wed, 30 Sep 2015 13:22:55 +1000
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH] dax: fix deadlock in __dax_fault
+Message-ID: <20150930032255.GF27164@dastard>
+References: <1443040800-5460-1-git-send-email-ross.zwisler@linux.intel.com>
+ <20150924025225.GT3902@dastard>
+ <20150924155029.GA6008@linux.intel.com>
+ <20150925025357.GU3902@dastard>
+ <20150926031745.GA560@linux.intel.com>
+ <20150928005904.GY19114@dastard>
+ <20150928224001.GA21955@linux.intel.com>
+ <20150929024458.GC27164@dastard>
+ <20150930020421.GA2417@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150930020421.GA2417@linux.intel.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, david@fromorbit.com
-Cc: Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, Andreas Dilger <adilger.kernel@dilger.ca>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Eric Sandeen <sandeen@redhat.com>, Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to XFS warn when mounting DAX while it is still considered under
-development.  Also, aspects of the DAX implementation, for example
-synchronization against multiple faults and faults causing block
-allocation, depend on the correct implementation in the filesystem.  The
-maturity of a given DAX implementation is filesystem specific.
+On Tue, Sep 29, 2015 at 08:04:21PM -0600, Ross Zwisler wrote:
+> On Tue, Sep 29, 2015 at 12:44:58PM +1000, Dave Chinner wrote:
+> <>
+> > Already testing a kernel with those reverted. My current DAX patch
+> > stack is (bottom is first commit in stack):
+> > 
+> > f672ae4 xfs: add ->pfn_mkwrite support for DAX
+> > 6855c23 xfs: remove DAX complete_unwritten callback
+> > e074bdf Revert "dax: fix race between simultaneous faults"
+> > 8ba0157 Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
+> > a2ce6a5 xfs: DAX does not use IO completion callbacks
+> > 246c52a xfs: update size during allocation for DAX
+> > 9d10e7b xfs: Don't use unwritten extents for DAX
+> > eaef807 xfs: factor out sector mapping.
+> > e7f2d50 xfs: introduce per-inode DAX enablement
+> 
+> Dave, would you be willing to share these patches with me, even if they are
+> just RFC?  I'm working through how to add equivalent support in both ext2 and
+> ext4, and a conceptual example in XFS would be really helpful.
 
-Cc: Jan Kara <jack@suse.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: linux-ext4@vger.kernel.org
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Dave Chinner <david@fromorbit.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Given the pending investigations [1], and rather than marking FS_DAX
-broken, warn about DAX usage until we've landed fixes for the issues
-that Dave has identified.
+When I have code that works properly and isn't fundamentally broken,
+I'll post it. Hopefully within the next day.
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-September/002266.html
+> Eric and Jan, if you guys have any spare cycles to help with the ext2/ext4
+> bits, I certainly wouldn't say no.  :)
 
- fs/ext2/super.c |    2 ++
- fs/ext4/super.c |    6 +++++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ext2 already does the block zeroing in allocation, so it only needs
+locking help...
 
-diff --git a/fs/ext2/super.c b/fs/ext2/super.c
-index 900e19cf9ef6..2597b0663bf2 100644
---- a/fs/ext2/super.c
-+++ b/fs/ext2/super.c
-@@ -566,6 +566,8 @@ static int parse_options(char *options, struct super_block *sb)
- 			/* Fall through */
- 		case Opt_dax:
- #ifdef CONFIG_FS_DAX
-+			ext2_msg(sb, KERN_WARNING,
-+		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
- 			set_opt(sbi->s_mount_opt, DAX);
- #else
- 			ext2_msg(sb, KERN_INFO, "dax option not supported");
-diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-index a63c7b0a10cf..4db6eb0b6979 100644
---- a/fs/ext4/super.c
-+++ b/fs/ext4/super.c
-@@ -1656,8 +1656,12 @@ static int handle_mount_opt(struct super_block *sb, char *opt, int token,
- 		}
- 		sbi->s_jquota_fmt = m->mount_opt;
- #endif
--#ifndef CONFIG_FS_DAX
- 	} else if (token == Opt_dax) {
-+#ifdef CONFIG_FS_DAX
-+		ext4_msg(sb, KERN_WARNING,
-+		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
-+			sbi->s_mount_opt |= m->mount_opt;
-+#else
- 		ext4_msg(sb, KERN_INFO, "dax option not supported");
- 		return -1;
- #endif
+Cheers,
 
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
