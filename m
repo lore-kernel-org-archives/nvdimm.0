@@ -1,79 +1,330 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Thu, 1 Oct 2015 09:35:29 +1000
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH 2/2] block, dax: fix lifetime of in-kernel dax mappings
-Message-ID: <20150930233529.GE3902@dastard>
+Subject: [PATCH 2/2] block, dax: fix lifetime of in-kernel dax mappings
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 29 Sep 2015 20:41:36 -0400
+Message-ID: <20150930004136.37133.66059.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20150930002927.37133.331.stgit@dwillia2-desk3.jf.intel.com>
 References: <20150930002927.37133.331.stgit@dwillia2-desk3.jf.intel.com>
- <20150930004136.37133.66059.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150930004136.37133.66059.stgit@dwillia2-desk3.jf.intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: axboe@kernel.dk, Boaz Harrosh <boaz@plexistor.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, ross.zwisler@linux.intel.com, Christoph Hellwig <hch@lst.de>
+To: axboe@kernel.dk
+Cc: Boaz Harrosh <boaz@plexistor.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, ross.zwisler@linux.intel.com, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Sep 29, 2015 at 08:41:36PM -0400, Dan Williams wrote:
-> The DAX implementation needs to protect new calls to ->direct_access()
-> and usage of its return value against unbind of the underlying block
-> device.  Use blk_queue_enter()/blk_queue_exit() to either prevent
-> blk_cleanup_queue() from proceeding, or fail the dax_map_bh() if the
-> request_queue is being torn down.
-> 
-> Cc: Jens Axboe <axboe@kernel.dk>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Boaz Harrosh <boaz@plexistor.com>
-> Cc: Dave Chinner <david@fromorbit.com>
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  block/blk.h            |    2 -
->  fs/dax.c               |  130 +++++++++++++++++++++++++++++++-----------------
->  include/linux/blkdev.h |    2 +
->  3 files changed, 85 insertions(+), 49 deletions(-)
-> 
-> diff --git a/block/blk.h b/block/blk.h
-> index 5b2cd393afbe..0f8de0dda768 100644
-> --- a/block/blk.h
-> +++ b/block/blk.h
-> @@ -72,8 +72,6 @@ void blk_dequeue_request(struct request *rq);
->  void __blk_queue_free_tags(struct request_queue *q);
->  bool __blk_end_bidi_request(struct request *rq, int error,
->  			    unsigned int nr_bytes, unsigned int bidi_bytes);
-> -int blk_queue_enter(struct request_queue *q, gfp_t gfp);
-> -void blk_queue_exit(struct request_queue *q);
->  void blk_freeze_queue(struct request_queue *q);
->  
->  static inline void blk_queue_enter_live(struct request_queue *q)
-> diff --git a/fs/dax.c b/fs/dax.c
-> index bcfb14bfc1e4..7ce002bb60d0 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -63,12 +63,42 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
->  }
->  EXPORT_SYMBOL_GPL(dax_clear_blocks);
->  
-> -static long dax_get_addr(struct buffer_head *bh, void __pmem **addr,
-> -		unsigned blkbits)
-> +static void __pmem *__dax_map_bh(const struct buffer_head *bh, unsigned blkbits,
-> +		unsigned long *pfn, long *len)
+The DAX implementation needs to protect new calls to ->direct_access()
+and usage of its return value against unbind of the underlying block
+device.  Use blk_queue_enter()/blk_queue_exit() to either prevent
+blk_cleanup_queue() from proceeding, or fail the dax_map_bh() if the
+request_queue is being torn down.
 
-Please don't use bufferheads for this. Please pass an inode, the
-block and length to map, similar to dax_clear_blocks().
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Boaz Harrosh <boaz@plexistor.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ block/blk.h            |    2 -
+ fs/dax.c               |  130 +++++++++++++++++++++++++++++++-----------------
+ include/linux/blkdev.h |    2 +
+ 3 files changed, 85 insertions(+), 49 deletions(-)
 
-Why? Because dax_clear_blocks() needs to do this "mapping" too,
-and it is called from contexts where there are no bufferheads.
-There's a good chance we'll need more mapping contexts like this in
-future, so lets not propagate bufferheads deeper into this code
-than we absilutely need to.
+diff --git a/block/blk.h b/block/blk.h
+index 5b2cd393afbe..0f8de0dda768 100644
+--- a/block/blk.h
++++ b/block/blk.h
+@@ -72,8 +72,6 @@ void blk_dequeue_request(struct request *rq);
+ void __blk_queue_free_tags(struct request_queue *q);
+ bool __blk_end_bidi_request(struct request *rq, int error,
+ 			    unsigned int nr_bytes, unsigned int bidi_bytes);
+-int blk_queue_enter(struct request_queue *q, gfp_t gfp);
+-void blk_queue_exit(struct request_queue *q);
+ void blk_freeze_queue(struct request_queue *q);
+ 
+ static inline void blk_queue_enter_live(struct request_queue *q)
+diff --git a/fs/dax.c b/fs/dax.c
+index bcfb14bfc1e4..7ce002bb60d0 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -63,12 +63,42 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+ }
+ EXPORT_SYMBOL_GPL(dax_clear_blocks);
+ 
+-static long dax_get_addr(struct buffer_head *bh, void __pmem **addr,
+-		unsigned blkbits)
++static void __pmem *__dax_map_bh(const struct buffer_head *bh, unsigned blkbits,
++		unsigned long *pfn, long *len)
+ {
+-	unsigned long pfn;
++	long rc;
++	void __pmem *addr;
++	struct block_device *bdev = bh->b_bdev;
++	struct request_queue *q = bdev->bd_queue;
+ 	sector_t sector = bh->b_blocknr << (blkbits - 9);
+-	return bdev_direct_access(bh->b_bdev, sector, addr, &pfn, bh->b_size);
++
++	if (blk_queue_enter(q, GFP_NOWAIT) != 0)
++		return (void __pmem *) ERR_PTR(-EIO);
++	rc = bdev_direct_access(bdev, sector, &addr, pfn, bh->b_size);
++	if (len)
++		*len = rc;
++	if (rc < 0) {
++		blk_queue_exit(q);
++		return (void __pmem *) ERR_PTR(rc);
++	}
++	return addr;
++}
++
++static void __pmem *dax_map_bh(const struct buffer_head *bh, unsigned blkbits)
++{
++	unsigned long pfn;
++
++	return __dax_map_bh(bh, blkbits, &pfn, NULL);
++}
++
++static void dax_unmap_bh(const struct buffer_head *bh, void __pmem *addr)
++{
++	struct block_device *bdev = bh->b_bdev;
++	struct request_queue *q = bdev->bd_queue;
++
++	if (IS_ERR(addr))
++		return;
++	blk_queue_exit(q);
+ }
+ 
+ /* the clear_pmem() calls are ordered by a wmb_pmem() in the caller */
+@@ -104,15 +134,16 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 		      loff_t start, loff_t end, get_block_t get_block,
+ 		      struct buffer_head *bh)
+ {
+-	ssize_t retval = 0;
+-	loff_t pos = start;
+-	loff_t max = start;
+-	loff_t bh_max = start;
+-	void __pmem *addr;
++	loff_t pos = start, max = start, bh_max = start;
++	int rw = iov_iter_rw(iter), rc;
++	long map_len = 0;
++	unsigned long pfn;
++	void __pmem *addr = NULL;
++	void __pmem *kmap = (void __pmem *) ERR_PTR(-EIO);
+ 	bool hole = false;
+ 	bool need_wmb = false;
+ 
+-	if (iov_iter_rw(iter) != WRITE)
++	if (rw == READ)
+ 		end = min(end, i_size_read(inode));
+ 
+ 	while (pos < end) {
+@@ -127,9 +158,8 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 			if (pos == bh_max) {
+ 				bh->b_size = PAGE_ALIGN(end - pos);
+ 				bh->b_state = 0;
+-				retval = get_block(inode, block, bh,
+-						   iov_iter_rw(iter) == WRITE);
+-				if (retval)
++				rc = get_block(inode, block, bh, rw == WRITE);
++				if (rc)
+ 					break;
+ 				if (!buffer_size_valid(bh))
+ 					bh->b_size = 1 << blkbits;
+@@ -141,21 +171,25 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 				bh->b_size -= done;
+ 			}
+ 
+-			hole = iov_iter_rw(iter) != WRITE && !buffer_written(bh);
++			hole = rw == READ && !buffer_written(bh);
+ 			if (hole) {
+ 				addr = NULL;
+ 				size = bh->b_size - first;
+ 			} else {
+-				retval = dax_get_addr(bh, &addr, blkbits);
+-				if (retval < 0)
++				dax_unmap_bh(bh, kmap);
++				kmap = __dax_map_bh(bh, blkbits, &pfn, &map_len);
++				if (IS_ERR(kmap)) {
++					rc = PTR_ERR(kmap);
+ 					break;
++				}
++				addr = kmap;
+ 				if (buffer_unwritten(bh) || buffer_new(bh)) {
+-					dax_new_buf(addr, retval, first, pos,
+-									end);
++					dax_new_buf(addr, map_len, first, pos,
++							end);
+ 					need_wmb = true;
+ 				}
+ 				addr += first;
+-				size = retval - first;
++				size = map_len - first;
+ 			}
+ 			max = min(pos + size, end);
+ 		}
+@@ -178,8 +212,9 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 
+ 	if (need_wmb)
+ 		wmb_pmem();
++	dax_unmap_bh(bh, kmap);
+ 
+-	return (pos == start) ? retval : pos - start;
++	return (pos == start) ? rc : pos - start;
+ }
+ 
+ /**
+@@ -274,21 +309,22 @@ static int copy_user_bh(struct page *to, struct buffer_head *bh,
+ 	void __pmem *vfrom;
+ 	void *vto;
+ 
+-	if (dax_get_addr(bh, &vfrom, blkbits) < 0)
+-		return -EIO;
++	vfrom = dax_map_bh(bh, blkbits);
++	if (IS_ERR(vfrom))
++		return PTR_ERR(vfrom);
+ 	vto = kmap_atomic(to);
+ 	copy_user_page(vto, (void __force *)vfrom, vaddr, to);
+ 	kunmap_atomic(vto);
++	dax_unmap_bh(bh, vfrom);
+ 	return 0;
+ }
+ 
+ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 			struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	sector_t sector = bh->b_blocknr << (inode->i_blkbits - 9);
+ 	unsigned long vaddr = (unsigned long)vmf->virtual_address;
+-	void __pmem *addr;
+ 	unsigned long pfn;
++	void __pmem *addr;
+ 	pgoff_t size;
+ 	int error;
+ 
+@@ -305,11 +341,9 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 		goto out;
+ 	}
+ 
+-	error = bdev_direct_access(bh->b_bdev, sector, &addr, &pfn, bh->b_size);
+-	if (error < 0)
+-		goto out;
+-	if (error < PAGE_SIZE) {
+-		error = -EIO;
++	addr = __dax_map_bh(bh, inode->i_blkbits, &pfn, NULL);
++	if (IS_ERR(addr)) {
++		error = PTR_ERR(addr);
+ 		goto out;
+ 	}
+ 
+@@ -317,6 +351,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 		clear_pmem(addr, PAGE_SIZE);
+ 		wmb_pmem();
+ 	}
++	dax_unmap_bh(bh, addr);
+ 
+ 	error = vm_insert_mixed(vma, vaddr, pfn);
+ 
+@@ -528,11 +563,8 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	unsigned blkbits = inode->i_blkbits;
+ 	unsigned long pmd_addr = address & PMD_MASK;
+ 	bool write = flags & FAULT_FLAG_WRITE;
+-	long length;
+-	void __pmem *kaddr;
+ 	pgoff_t size, pgoff;
+-	sector_t block, sector;
+-	unsigned long pfn;
++	sector_t block;
+ 	int result = 0;
+ 
+ 	/* Fall back to PTEs if we're going to COW */
+@@ -557,8 +589,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 
+ 	bh.b_size = PMD_SIZE;
+ 	i_mmap_lock_write(mapping);
+-	length = get_block(inode, block, &bh, write);
+-	if (length)
++	if (get_block(inode, block, &bh, write) != 0)
+ 		return VM_FAULT_SIGBUS;
+ 
+ 	/*
+@@ -569,17 +600,17 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
+ 		goto fallback;
+ 
+-	sector = bh.b_blocknr << (blkbits - 9);
+-
+ 	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+ 		int i;
++		long length;
++		unsigned long pfn;
++		void __pmem *kaddr = __dax_map_bh(&bh, blkbits, &pfn, &length);
+ 
+-		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
+-						bh.b_size);
+-		if (length < 0) {
++		if (IS_ERR(kaddr)) {
+ 			result = VM_FAULT_SIGBUS;
+ 			goto out;
+ 		}
++
+ 		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
+ 			goto fallback;
+ 
+@@ -589,6 +620,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		count_vm_event(PGMAJFAULT);
+ 		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+ 		result |= VM_FAULT_MAJOR;
++		dax_unmap_bh(&bh, kaddr);
+ 	}
+ 
+ 	/*
+@@ -635,12 +667,15 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		result = VM_FAULT_NOPAGE;
+ 		spin_unlock(ptl);
+ 	} else {
+-		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
+-						bh.b_size);
+-		if (length < 0) {
++		long length;
++		unsigned long pfn;
++		void __pmem *kaddr = __dax_map_bh(&bh, blkbits, &pfn, &length);
++
++		if (IS_ERR(kaddr)) {
+ 			result = VM_FAULT_SIGBUS;
+ 			goto out;
+ 		}
++		dax_unmap_bh(&bh, kaddr);
+ 		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
+ 			goto fallback;
+ 
+@@ -746,12 +781,13 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
+ 	if (err < 0)
+ 		return err;
+ 	if (buffer_written(&bh)) {
+-		void __pmem *addr;
+-		err = dax_get_addr(&bh, &addr, inode->i_blkbits);
+-		if (err < 0)
+-			return err;
++		void __pmem *addr = dax_map_bh(&bh, inode->i_blkbits);
++
++		if (IS_ERR(addr))
++			return PTR_ERR(addr);
+ 		clear_pmem(addr + offset, length);
+ 		wmb_pmem();
++		dax_unmap_bh(&bh, addr);
+ 	}
+ 
+ 	return 0;
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 0a0def66c61e..8127fff4d0f5 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -786,6 +786,8 @@ extern int scsi_cmd_ioctl(struct request_queue *, struct gendisk *, fmode_t,
+ extern int sg_scsi_ioctl(struct request_queue *, struct gendisk *, fmode_t,
+ 			 struct scsi_ioctl_command __user *);
+ 
++extern int blk_queue_enter(struct request_queue *q, gfp_t gfp);
++extern void blk_queue_exit(struct request_queue *q);
+ extern void blk_start_queue(struct request_queue *q);
+ extern void blk_stop_queue(struct request_queue *q);
+ extern void blk_sync_queue(struct request_queue *q);
 
-We should be trying to limit/remove bufferheads in the DAX code, not
-propagating them deeper into the code...
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
