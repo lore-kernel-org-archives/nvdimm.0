@@ -1,94 +1,87 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Fri, 2 Oct 2015 08:32:40 +1000
-From: Dave Chinner <david@fromorbit.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: "Williams, Dan J" <dan.j.williams@intel.com>
 Subject: Re: [PATCH 1/7] Revert "mm: take i_mmap_lock in
  unmap_mapping_range() for DAX"
-Message-ID: <20151001223240.GI27164@dastard>
+Date: Thu, 1 Oct 2015 22:14:22 +0000
+Message-ID: <1443737659.4886.3.camel@intel.com>
 References: <1443685599-4843-1-git-send-email-david@fromorbit.com>
- <1443685599-4843-2-git-send-email-david@fromorbit.com>
- <20151001202729.GA23495@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	 <1443685599-4843-2-git-send-email-david@fromorbit.com>
+	 <20151001202729.GA23495@linux.intel.com>
 In-Reply-To: <20151001202729.GA23495@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, xfs@oss.sgi.com, linux-fsdevel@vger.kernel.org, willy@linux.intel.com, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, linux-nvdimm@lists.01.org, jack@suse.cz, linux-kernel@vger.kernel.org
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <A5132391DC19E24381F398375B96AC8D@intel.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>
+Cc: "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "willy@linux.intel.com" <willy@linux.intel.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "david@fromorbit.com" <david@fromorbit.com>, "jack@suse.cz" <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Oct 01, 2015 at 02:27:29PM -0600, Ross Zwisler wrote:
-> On Thu, Oct 01, 2015 at 05:46:33PM +1000, Dave Chinner wrote:
-> > This reverts commit 46c043ede4711e8d598b9d63c5616c1fedb0605e.
-> > ---
-> >  fs/dax.c    | 36 ++++++++++++++++--------------------
-> >  mm/memory.c | 11 +++++++++--
-> >  2 files changed, 25 insertions(+), 22 deletions(-)
-> > 
-> > diff --git a/fs/dax.c b/fs/dax.c
-> > index 7ae6df7..400fe95 100644
-> > --- a/fs/dax.c
-> > +++ b/fs/dax.c
-> > @@ -569,26 +569,6 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
-> >  	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
-> >  		goto fallback;
-> >  
-> > -	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
-> > -		int i;
-> > -		for (i = 0; i < PTRS_PER_PMD; i++)
-> > -			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
-> > -		wmb_pmem();
-> 
-> The above two lines were updated to use the PMEM API with this commit:
-> 
-> commit d77e92e270ed ("dax: update PMD fault handler with PMEM API")
-> 
-> but they aren't updated in the reverted version here: 
-> 
-> > @@ -633,6 +620,15 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
-> >  		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
-> >  			goto fallback;
-> >  
-> > +		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
-> > +			int i;
-> > +			for (i = 0; i < PTRS_PER_PMD; i++)
-> > +				clear_page(kaddr + i * PAGE_SIZE);
-> > +			count_vm_event(PGMAJFAULT);
-> > +			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
-> > +			result |= VM_FAULT_MAJOR;
-> > +		}
-> > +
-> >  		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
-> >  	}
-> 
-> This is the source of the follow-up sparse warning from the kbuild robot.
-
-I couldn't work out what set of commits I needed to revert to get a
-clean revert, so I just reverted the commits and hacked out the
-revert failures to what looked ok. Feel free to send me a clean set
-of reverts, and I'll replace these patches with them... :)
-
-> Also, if I understood your previous mails correctly you were targeting the
-> first two revert patches for v4.3 so we get back to v4.2 level locking, and
-> the rest of the series will target v4.4, correct?  How does this work?  Do the
-> patches need to be split into two series and tested separately?
-
-Test it and push the reverts however you like. I don't care how the
-reverts get to 4.3 - I'll be carrying them locally in my trees from
-now and so my development and testing is now unaffected by the bugs
-that are in the 4.3 code. If you aren't going to push them for 4.3
-then I'd suggest that they go to linus along with the rest of the
-XFS changes in this series.
-
-FWIW, I'm quite happy to host all the pending DAX changes in a
-public git tree and ask for it to be included in linux-next. It's
-probably a good idea to do this because it makes it much easier to
-co-ordinate merges when we are touching multiple subsystems (ext4,
-xfs, dax, mm, etc). And it will help prevent the "patches molder on
-the list until Andrew hoovers them up" problem and so prevent this
-situation from happening in the future...
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+T24gVGh1LCAyMDE1LTEwLTAxIGF0IDE0OjI3IC0wNjAwLCBSb3NzIFp3aXNsZXIgd3JvdGU6DQo+
+IE9uIFRodSwgT2N0IDAxLCAyMDE1IGF0IDA1OjQ2OjMzUE0gKzEwMDAsIERhdmUgQ2hpbm5lciB3
+cm90ZToNCj4gPiBUaGlzIHJldmVydHMgY29tbWl0IDQ2YzA0M2VkZTQ3MTFlOGQ1OThiOWQ2M2M1
+NjE2YzFmZWRiMDYwNWUuDQo+ID4gLS0tDQo+ID4gIGZzL2RheC5jICAgIHwgMzYgKysrKysrKysr
+KysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4gIG1tL21lbW9yeS5jIHwgMTEgKysrKysr
+KysrLS0NCj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCAyNSBpbnNlcnRpb25zKCspLCAyMiBkZWxldGlv
+bnMoLSkNCj4gPiANCj4gPiBkaWZmIC0tZ2l0IGEvZnMvZGF4LmMgYi9mcy9kYXguYw0KPiA+IGlu
+ZGV4IDdhZTZkZjcuLjQwMGZlOTUgMTAwNjQ0DQo+ID4gLS0tIGEvZnMvZGF4LmMNCj4gPiArKysg
+Yi9mcy9kYXguYw0KPiA+IEBAIC01NjksMjYgKzU2OSw2IEBAIGludCBfX2RheF9wbWRfZmF1bHQo
+c3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEsIHVuc2lnbmVkIGxvbmcgYWRkcmVzcywNCj4gPiAg
+CWlmICghYnVmZmVyX3NpemVfdmFsaWQoJmJoKSB8fCBiaC5iX3NpemUgPCBQTURfU0laRSkNCj4g
+PiAgCQlnb3RvIGZhbGxiYWNrOw0KPiA+ICANCj4gPiAtCWlmIChidWZmZXJfdW53cml0dGVuKCZi
+aCkgfHwgYnVmZmVyX25ldygmYmgpKSB7DQo+ID4gLQkJaW50IGk7DQo+ID4gLQkJZm9yIChpID0g
+MDsgaSA8IFBUUlNfUEVSX1BNRDsgaSsrKQ0KPiA+IC0JCQljbGVhcl9wbWVtKGthZGRyICsgaSAq
+IFBBR0VfU0laRSwgUEFHRV9TSVpFKTsNCj4gPiAtCQl3bWJfcG1lbSgpOw0KPiANCj4gVGhlIGFi
+b3ZlIHR3byBsaW5lcyB3ZXJlIHVwZGF0ZWQgdG8gdXNlIHRoZSBQTUVNIEFQSSB3aXRoIHRoaXMg
+Y29tbWl0Og0KPiANCj4gY29tbWl0IGQ3N2U5MmUyNzBlZCAoImRheDogdXBkYXRlIFBNRCBmYXVs
+dCBoYW5kbGVyIHdpdGggUE1FTSBBUEkiKQ0KPiANCj4gYnV0IHRoZXkgYXJlbid0IHVwZGF0ZWQg
+aW4gdGhlIHJldmVydGVkIHZlcnNpb24gaGVyZTogDQo+IA0KPiA+IEBAIC02MzMsNiArNjIwLDE1
+IEBAIGludCBfX2RheF9wbWRfZmF1bHQoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEsIHVuc2ln
+bmVkIGxvbmcgYWRkcmVzcywNCj4gPiAgCQlpZiAoKGxlbmd0aCA8IFBNRF9TSVpFKSB8fCAocGZu
+ICYgUEdfUE1EX0NPTE9VUikpDQo+ID4gIAkJCWdvdG8gZmFsbGJhY2s7DQo+ID4gIA0KPiA+ICsJ
+CWlmIChidWZmZXJfdW53cml0dGVuKCZiaCkgfHwgYnVmZmVyX25ldygmYmgpKSB7DQo+ID4gKwkJ
+CWludCBpOw0KPiA+ICsJCQlmb3IgKGkgPSAwOyBpIDwgUFRSU19QRVJfUE1EOyBpKyspDQo+ID4g
+KwkJCQljbGVhcl9wYWdlKGthZGRyICsgaSAqIFBBR0VfU0laRSk7DQo+ID4gKwkJCWNvdW50X3Zt
+X2V2ZW50KFBHTUFKRkFVTFQpOw0KPiA+ICsJCQltZW1fY2dyb3VwX2NvdW50X3ZtX2V2ZW50KHZt
+YS0+dm1fbW0sIFBHTUFKRkFVTFQpOw0KPiA+ICsJCQlyZXN1bHQgfD0gVk1fRkFVTFRfTUFKT1I7
+DQo+ID4gKwkJfQ0KPiA+ICsNCj4gPiAgCQlyZXN1bHQgfD0gdm1mX2luc2VydF9wZm5fcG1kKHZt
+YSwgYWRkcmVzcywgcG1kLCBwZm4sIHdyaXRlKTsNCj4gPiAgCX0NCj4gDQo+IFRoaXMgaXMgdGhl
+IHNvdXJjZSBvZiB0aGUgZm9sbG93LXVwIHNwYXJzZSB3YXJuaW5nIGZyb20gdGhlIGtidWlsZCBy
+b2JvdC4NCj4gDQoNClRvIHRoYXQgZW5kIERhdmUgSGFuc2VuIGhhZCBhbHNvIG5vdGljZWQgdGhh
+dCBQVFJTX1BFUl9QTUQgc2hvdWxkIG5vdCBiZQ0KdXNlZCBpbiB0aGlzIGNvbnRleHQuICBIZXJl
+J3MgYW4gaW5jcmVtZW50YWwgY2xlYW51cDoNCg0KODwtLS0NClN1YmplY3Q6IHBtZW0sIGRheDog
+Y2xlYW4gdXAgY2xlYXJfcG1lbSgpDQoNCkZyb206IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlh
+bXNAaW50ZWwuY29tPg0KDQpCb3RoLCBfX2RheF9wbWRfZmF1bHQsIGFuZCBjbGVhcl9wbWVtKCkg
+d2VyZSB0YWtpbmcgc3BlY2lhbCBzdGVwcyB0bw0KY2xlYXIgbWVtb3J5IGEgcGFnZSBhdCBhIHRp
+bWUgdG8gdGFrZSBhZHZhbnRhZ2Ugb2Ygbm9uLXRlbXBvcmFsDQpjbGVhcl9wYWdlKCkgaW1wbGVt
+ZW50YXRpb25zLiAgSG93ZXZlciwgeDg2XzY0IGRvZXMgbm90IHVzZQ0Kbm9uLXRlbXBvcmFsIGlu
+c3RydWN0aW9ucyBmb3IgY2xlYXJfcGFnZSgpLCBhbmQgYXJjaF9jbGVhcl9wbWVtKCkgd2FzDQph
+bHdheXMgaW5jdXJyaW5nIHRoZSBjb3N0IG9mIF9fYXJjaF93Yl9jYWNoZV9wbWVtKCkuDQoNCkNs
+ZWFuIHVwIHRoZSBhc3N1bXB0aW9uIHRoYXQgZG9pbmcgY2xlYXJfcG1lbSgpIGEgcGFnZSBhdCBh
+IHRpbWUgaXMgbW9yZQ0KcGVyZm9ybWFudC4NCg0KQ2M6IFJvc3MgWndpc2xlciA8cm9zcy56d2lz
+bGVyQGxpbnV4LmludGVsLmNvbT4NClJlcG9ydGVkLWJ5OiBEYXZlIEhhbnNlbiA8ZGF2ZS5oYW5z
+ZW5AbGludXguaW50ZWwuY29tPg0KU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53
+aWxsaWFtc0BpbnRlbC5jb20+DQotLS0NCiBhcmNoL3g4Ni9pbmNsdWRlL2FzbS9wbWVtLmggfCAg
+ICA3ICstLS0tLS0NCiBmcy9kYXguYyAgICAgICAgICAgICAgICAgICAgfCAgICA0ICstLS0NCiAy
+IGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlvbnMoLSkNCg0KZGlmZiAt
+LWdpdCBhL2FyY2gveDg2L2luY2x1ZGUvYXNtL3BtZW0uaCBiL2FyY2gveDg2L2luY2x1ZGUvYXNt
+L3BtZW0uaA0KaW5kZXggZDhjZTNlYzgxNmFiLi4xNTQ0ZmFiY2Q3ZjkgMTAwNjQ0DQotLS0gYS9h
+cmNoL3g4Ni9pbmNsdWRlL2FzbS9wbWVtLmgNCisrKyBiL2FyY2gveDg2L2luY2x1ZGUvYXNtL3Bt
+ZW0uaA0KQEAgLTEzMiwxMiArMTMyLDcgQEAgc3RhdGljIGlubGluZSB2b2lkIGFyY2hfY2xlYXJf
+cG1lbSh2b2lkIF9fcG1lbSAqYWRkciwgc2l6ZV90IHNpemUpDQogew0KIAl2b2lkICp2YWRkciA9
+ICh2b2lkIF9fZm9yY2UgKilhZGRyOw0KIA0KLQkvKiBUT0RPOiBpbXBsZW1lbnQgdGhlIHplcm9p
+bmcgdmlhIG5vbi10ZW1wb3JhbCB3cml0ZXMgKi8NCi0JaWYgKHNpemUgPT0gUEFHRV9TSVpFICYm
+ICgodW5zaWduZWQgbG9uZyl2YWRkciAmIH5QQUdFX01BU0spID09IDApDQotCQljbGVhcl9wYWdl
+KHZhZGRyKTsNCi0JZWxzZQ0KLQkJbWVtc2V0KHZhZGRyLCAwLCBzaXplKTsNCi0NCisJbWVtc2V0
+KHZhZGRyLCAwLCBzaXplKTsNCiAJX19hcmNoX3diX2NhY2hlX3BtZW0odmFkZHIsIHNpemUpOw0K
+IH0NCiANCmRpZmYgLS1naXQgYS9mcy9kYXguYyBiL2ZzL2RheC5jDQppbmRleCBiMzZkNmQyZTdm
+ODcuLjNmYWZmOTIyNzEzNSAxMDA2NDQNCi0tLSBhL2ZzL2RheC5jDQorKysgYi9mcy9kYXguYw0K
+QEAgLTYyNSw5ICs2MjUsNyBAQCBpbnQgX19kYXhfcG1kX2ZhdWx0KHN0cnVjdCB2bV9hcmVhX3N0
+cnVjdCAqdm1hLCB1bnNpZ25lZCBsb25nIGFkZHJlc3MsDQogCQkJZ290byBmYWxsYmFjazsNCiAN
+CiAJCWlmIChidWZmZXJfdW53cml0dGVuKCZiaCkgfHwgYnVmZmVyX25ldygmYmgpKSB7DQotCQkJ
+aW50IGk7DQotCQkJZm9yIChpID0gMDsgaSA8IFBUUlNfUEVSX1BNRDsgaSsrKQ0KLQkJCQljbGVh
+cl9wYWdlKGthZGRyICsgaSAqIFBBR0VfU0laRSk7DQorCQkJY2xlYXJfcG1lbShrYWRkciwgSFBB
+R0VfU0laRSk7DQogCQkJY291bnRfdm1fZXZlbnQoUEdNQUpGQVVMVCk7DQogCQkJbWVtX2Nncm91
+cF9jb3VudF92bV9ldmVudCh2bWEtPnZtX21tLCBQR01BSkZBVUxUKTsNCiAJCQlyZXN1bHQgfD0g
+Vk1fRkFVTFRfTUFKT1I7DQoNCg==
