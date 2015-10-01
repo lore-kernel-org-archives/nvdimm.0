@@ -1,314 +1,169 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v2 15/20] mm, dax: convert vmf_insert_pfn_pmd() to pfn_t
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Oct 2015 20:56:44 -0400
-Message-ID: <20151010005644.17221.68344.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave@sr71.net>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, ross.zwisler@linux.intel.com, Matthew Wilcox <willy@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, hch@lst.de
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Dave Chinner <david@fromorbit.com>
+Subject: [PATCH 5/7] xfs: Don't use unwritten extents for DAX
+Date: Thu,  1 Oct 2015 17:46:37 +1000
+Message-Id: <1443685599-4843-6-git-send-email-david@fromorbit.com>
+In-Reply-To: <1443685599-4843-1-git-send-email-david@fromorbit.com>
+References: <1443685599-4843-1-git-send-email-david@fromorbit.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: xfs@oss.sgi.com
+Cc: linux-fsdevel@vger.kernel.org, ross.zwisler@linux.intel.com, willy@linux.intel.com, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, linux-nvdimm@lists.01.org, jack@suse.cz, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to the conversion of vm_insert_mixed() use pfn_t in the
-vmf_insert_pfn_pmd() to tag the resulting pte with _PAGE_DEVICE when the
-pfn is backed by a devm_memremap_pages() mapping.
+From: Dave Chinner <dchinner@redhat.com>
 
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+DAX has a page fault serialisation problem with block allocation.
+Because it allows concurrent page faults and does not have a page
+lock to serialise faults to the same page, it can get two concurrent
+faults to the page that race.
+
+When two read faults race, this isn't a huge problem as the data
+underlying the page is not changing and so "detect and drop" works
+just fine. The issues are to do with write faults.
+
+When two write faults occur, we serialise block allocation in
+get_blocks() so only one faul will allocate the extent. It will,
+however, be marked as an unwritten extent, and that is where the
+problem lies - the DAX fault code cannot differentiate between a
+block that was just allocated and a block that was preallocated and
+needs zeroing. The result is that both write faults end up zeroing
+the block and attempting to convert it back to written.
+
+The problem is that the first fault can zero and convert before the
+second fault starts zeroing, resulting in the zeroing for the second
+fault overwriting the data that the first fault wrote with zeros.
+The second fault then attempts to convert the unwritten extent,
+which is then a no-op because it's already written. Data loss occurs
+as a result of this race.
+
+Because there is no sane locking construct in the page fault code
+that we can use for serialisation across the page faults, we need to
+ensure block allocation and zeroing occurs atomically in the
+filesystem. This means we can still take concurrent page faults and
+the only time they will serialise is in the filesystem
+mapping/allocation callback. The page fault code will always see
+written, initialised extents, so we will be able to remove the
+unwritten extent handling from the DAX code when all filesystems are
+converted.
+
+Signed-off-by: Dave Chinner <dchinner@redhat.com>
 ---
- arch/sparc/include/asm/pgtable_64.h     |    2 ++
- arch/x86/include/asm/pgtable.h          |    6 ++++++
- arch/x86/mm/pat.c                       |    4 ++--
- drivers/gpu/drm/exynos/exynos_drm_gem.c |    2 +-
- drivers/gpu/drm/msm/msm_gem.c           |    2 +-
- drivers/gpu/drm/omapdrm/omap_gem.c      |    4 ++--
- fs/dax.c                                |    2 +-
- include/asm-generic/pgtable.h           |    6 ++++--
- include/linux/huge_mm.h                 |    2 +-
- include/linux/mm.h                      |   18 +++++++++++++++++-
- mm/huge_memory.c                        |   10 ++++++----
- mm/memory.c                             |    2 +-
- 12 files changed, 44 insertions(+), 16 deletions(-)
+ fs/dax.c           |  5 +++++
+ fs/xfs/xfs_aops.c  | 13 +++++++++----
+ fs/xfs/xfs_iomap.c | 17 ++++++++++++++++-
+ 3 files changed, 30 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 131d36fcd07a..496ef783c68c 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -234,6 +234,7 @@ extern struct page *mem_map_zero;
-  * the first physical page in the machine is at some huge physical address,
-  * such as 4GB.   This is common on a partitioned E10000, for example.
-  */
-+#define pfn_pte pfn_pte
- static inline pte_t pfn_pte(unsigned long pfn, pgprot_t prot)
- {
- 	unsigned long paddr = pfn << PAGE_SHIFT;
-@@ -244,6 +245,7 @@ static inline pte_t pfn_pte(unsigned long pfn, pgprot_t prot)
- #define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#define pfn_pmd pfn_pmd
- static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
- {
- 	pte_t pte = pfn_pte(page_nr, pgprot);
-diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
-index 02a54e5b7930..84d1346e1cda 100644
---- a/arch/x86/include/asm/pgtable.h
-+++ b/arch/x86/include/asm/pgtable.h
-@@ -282,6 +282,11 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
- 	return pmd_set_flags(pmd, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
- }
- 
-+static inline pmd_t pmd_mkdevmap(pmd_t pmd)
-+{
-+	return pmd_set_flags(pmd, _PAGE_DEVMAP);
-+}
-+
- static inline pmd_t pmd_mkhuge(pmd_t pmd)
- {
- 	return pmd_set_flags(pmd, _PAGE_PSE);
-@@ -346,6 +351,7 @@ static inline pte_t pfn_pte(unsigned long page_nr, pgprot_t pgprot)
- 		     massage_pgprot(pgprot));
- }
- 
-+#define pfn_pmd pfn_pmd
- static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
- {
- 	return __pmd(((phys_addr_t)page_nr << PAGE_SHIFT) |
-diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
-index 188e3e07eeeb..98efd3c02374 100644
---- a/arch/x86/mm/pat.c
-+++ b/arch/x86/mm/pat.c
-@@ -949,7 +949,7 @@ int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
- }
- 
- int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
--		     unsigned long pfn)
-+		     pfn_t pfn)
- {
- 	enum page_cache_mode pcm;
- 
-@@ -957,7 +957,7 @@ int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
- 		return 0;
- 
- 	/* Set prot based on lookup */
--	pcm = lookup_memtype((resource_size_t)pfn << PAGE_SHIFT);
-+	pcm = lookup_memtype(pfn_t_to_phys(pfn));
- 	*prot = __pgprot((pgprot_val(vma->vm_page_prot) & (~_PAGE_CACHE_MASK)) |
- 			 cachemode2protval(pcm));
- 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_gem.c b/drivers/gpu/drm/exynos/exynos_drm_gem.c
-index 778764bebc00..aa7709ed9ae2 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_gem.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_gem.c
-@@ -480,7 +480,7 @@ int exynos_drm_gem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- 
- 	pfn = page_to_pfn(exynos_gem_obj->pages[page_offset]);
- 	ret = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
--			pfn_to_pfn_t(pfn, PFN_DEV));
-+			__pfn_to_pfn_t(pfn, PFN_DEV));
- 
- out:
- 	switch (ret) {
-diff --git a/drivers/gpu/drm/msm/msm_gem.c b/drivers/gpu/drm/msm/msm_gem.c
-index 0f4ed5bfda83..6509d9b23912 100644
---- a/drivers/gpu/drm/msm/msm_gem.c
-+++ b/drivers/gpu/drm/msm/msm_gem.c
-@@ -223,7 +223,7 @@ int msm_gem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- 			pfn, pfn << PAGE_SHIFT);
- 
- 	ret = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
--			pfn_to_pfn_t(pfn, PFN_DEV));
-+			__pfn_to_pfn_t(pfn, PFN_DEV));
- 
- out_unlock:
- 	mutex_unlock(&dev->struct_mutex);
-diff --git a/drivers/gpu/drm/omapdrm/omap_gem.c b/drivers/gpu/drm/omapdrm/omap_gem.c
-index 910cb276a7ea..94b6d23ec202 100644
---- a/drivers/gpu/drm/omapdrm/omap_gem.c
-+++ b/drivers/gpu/drm/omapdrm/omap_gem.c
-@@ -386,7 +386,7 @@ static int fault_1d(struct drm_gem_object *obj,
- 			pfn, pfn << PAGE_SHIFT);
- 
- 	return vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
--			pfn_to_pfn_t(pfn, PFN_DEV));
-+			__pfn_to_pfn_t(pfn, PFN_DEV));
- }
- 
- /* Special handling for the case of faulting in 2d tiled buffers */
-@@ -480,7 +480,7 @@ static int fault_2d(struct drm_gem_object *obj,
- 
- 	for (i = n; i > 0; i--) {
- 		vm_insert_mixed(vma, (unsigned long)vaddr,
--				pfn_to_pfn_t(pfn, PFN_DEV));
-+				__pfn_to_pfn_t(pfn, PFN_DEV));
- 		pfn += usergart[fmt].stride_pfn;
- 		vaddr += PAGE_SIZE * m;
- 	}
 diff --git a/fs/dax.c b/fs/dax.c
-index 1588edf297a2..87a070d6e6dc 100644
+index 3994a2b..b36d6d2 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -685,7 +685,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		dax_unmap_atomic(bdev, kaddr);
+@@ -29,6 +29,11 @@
+ #include <linux/uio.h>
+ #include <linux/vmstat.h>
  
- 		result |= vmf_insert_pfn_pmd(vma, address, pmd,
--				pfn_t_to_pfn(pfn), write);
-+				pfn, write);
++/*
++ * dax_clear_blocks() is called from within transaction context from XFS,
++ * and hence this means the stack from this point must follow GFP_NOFS
++ * semantics for all operations.
++ */
+ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+ {
+ 	struct block_device *bdev = inode->i_sb->s_bdev;
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index e747d6a..df3dabd 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -1284,15 +1284,12 @@ xfs_map_direct(
+ 
+ 	trace_xfs_gbmap_direct(XFS_I(inode), offset, size, type, imap);
+ 
+-	/* XXX: preparation for removing unwritten extents in DAX */
+-#if 0
+ 	if (dax_fault) {
+ 		ASSERT(type == XFS_IO_OVERWRITE);
+ 		trace_xfs_gbmap_direct_none(XFS_I(inode), offset, size, type,
+ 					    imap);
+ 		return;
+ 	}
+-#endif
+ 
+ 	if (bh_result->b_private) {
+ 		ioend = bh_result->b_private;
+@@ -1420,10 +1417,12 @@ __xfs_get_blocks(
+ 	if (error)
+ 		goto out_unlock;
+ 
++	/* for DAX, we convert unwritten extents directly */
+ 	if (create &&
+ 	    (!nimaps ||
+ 	     (imap.br_startblock == HOLESTARTBLOCK ||
+-	      imap.br_startblock == DELAYSTARTBLOCK))) {
++	      imap.br_startblock == DELAYSTARTBLOCK) ||
++	     (IS_DAX(inode) && ISUNWRITTEN(&imap)))) {
+ 		if (direct || xfs_get_extsz_hint(ip)) {
+ 			/*
+ 			 * Drop the ilock in preparation for starting the block
+@@ -1468,6 +1467,12 @@ __xfs_get_blocks(
+ 		goto out_unlock;
  	}
  
-  out:
-diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
-index 29c57b2cb344..16d2244c686f 100644
---- a/include/asm-generic/pgtable.h
-+++ b/include/asm-generic/pgtable.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_GENERIC_PGTABLE_H
- #define _ASM_GENERIC_PGTABLE_H
- 
-+#include <linux/pfn.h>
++	if (IS_DAX(inode) && create) {
++		ASSERT(!ISUNWRITTEN(&imap));
++		/* zeroing is not needed at a higher layer */
++		new = 0;
++	}
 +
- #ifndef __ASSEMBLY__
- #ifdef CONFIG_MMU
+ 	/* trim mapping down to size requested */
+ 	if (direct || size > (1 << inode->i_blkbits))
+ 		xfs_map_trim_size(inode, iblock, bh_result,
+diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+index 1f86033..8b2b4a9 100644
+--- a/fs/xfs/xfs_iomap.c
++++ b/fs/xfs/xfs_iomap.c
+@@ -131,6 +131,7 @@ xfs_iomap_write_direct(
+ 	uint		qblocks, resblks, resrtextents;
+ 	int		committed;
+ 	int		error;
++	int		bmapi_flags = XFS_BMAPI_PREALLOC;
  
-@@ -521,7 +523,7 @@ static inline int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
-  * by vm_insert_pfn().
-  */
- static inline int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
--				   unsigned long pfn)
-+				   pfn_t pfn)
- {
- 	return 0;
- }
-@@ -549,7 +551,7 @@ extern int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
- 			   unsigned long pfn, unsigned long addr,
- 			   unsigned long size);
- extern int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
--			    unsigned long pfn);
-+			    pfn_t pfn);
- extern int track_pfn_copy(struct vm_area_struct *vma);
- extern void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
- 			unsigned long size);
-diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index ecb080d6ff42..d218abedfeb9 100644
---- a/include/linux/huge_mm.h
-+++ b/include/linux/huge_mm.h
-@@ -34,7 +34,7 @@ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 			unsigned long addr, pgprot_t newprot,
- 			int prot_numa);
- int vmf_insert_pfn_pmd(struct vm_area_struct *, unsigned long addr, pmd_t *,
--			unsigned long pfn, bool write);
-+			pfn_t pfn, bool write);
+ 	error = xfs_qm_dqattach(ip, 0);
+ 	if (error)
+@@ -196,13 +197,26 @@ xfs_iomap_write_direct(
+ 	xfs_trans_ijoin(tp, ip, 0);
  
- enum transparent_hugepage_flag {
- 	TRANSPARENT_HUGEPAGE_FLAG,
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 1d405ca21c9f..ce173327215d 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1109,7 +1109,14 @@ static inline pte_t pfn_t_pte(pfn_t pfn, pgprot_t pgprot)
- }
- #endif
- 
--#ifdef __HAVE_ARCH_PTE_DEVICE
-+#ifdef pfn_pmd
-+static inline pmd_t pfn_t_pmd(pfn_t pfn, pgprot_t pgprot)
-+{
-+	return pfn_pmd(pfn_t_to_pfn(pfn), pgprot);
-+}
-+#endif
-+
-+#ifdef __HAVE_ARCH_PTE_DEVMAP
- static inline bool pfn_t_has_dev_pagemap(pfn_t pfn)
- {
- 	const unsigned long flags = PFN_DEV|PFN_MAP;
-@@ -1122,6 +1129,7 @@ static inline bool pfn_t_has_dev_pagemap(pfn_t pfn)
- 	return false;
- }
- pte_t pte_mkdevmap(pte_t pte);
-+pmd_t pmd_mkdevmap(pmd_t pmd);
- #endif
- 
- /*
-@@ -1887,6 +1895,14 @@ static inline void pgtable_pmd_page_dtor(struct page *page) {}
- 
- #endif
- 
-+#ifndef pmd_devmap
-+#define pmd_devmap(x) (0)
-+#endif
-+
-+#ifndef pte_devmap
-+#define pte_devmap(x) (0)
-+#endif
-+
- static inline spinlock_t *pmd_lock(struct mm_struct *mm, pmd_t *pmd)
- {
- 	spinlock_t *ptl = pmd_lockptr(mm, pmd);
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 4b06b8db9df2..952b65a55bc9 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -870,7 +870,7 @@ int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
- }
- 
- static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
--		pmd_t *pmd, unsigned long pfn, pgprot_t prot, bool write)
-+		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	pmd_t entry;
-@@ -878,7 +878,9 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
- 
- 	ptl = pmd_lock(mm, pmd);
- 	if (pmd_none(*pmd)) {
--		entry = pmd_mkhuge(pfn_pmd(pfn, prot));
-+		entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
-+		if (pfn_t_has_dev_pagemap(pfn))
-+			entry = pmd_mkdevmap(entry);
- 		if (write) {
- 			entry = pmd_mkyoung(pmd_mkdirty(entry));
- 			entry = maybe_pmd_mkwrite(entry, vma);
-@@ -890,7 +892,7 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
- }
- 
- int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
--			pmd_t *pmd, unsigned long pfn, bool write)
-+			pmd_t *pmd, pfn_t pfn, bool write)
- {
- 	pgprot_t pgprot = vma->vm_page_prot;
  	/*
-@@ -902,7 +904,7 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
--	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
-+	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_t_valid(pfn));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return VM_FAULT_SIGBUS;
-diff --git a/mm/memory.c b/mm/memory.c
-index 5fc858570f58..06d78ac37343 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -1583,7 +1583,7 @@ int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return -EFAULT;
--	if (track_pfn_insert(vma, &pgprot, pfn))
-+	if (track_pfn_insert(vma, &pgprot, __pfn_to_pfn_t(pfn, PFN_DEV)))
- 		return -EINVAL;
- 
- 	ret = insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, PFN_DEV), pgprot);
++	 * For DAX, we do not allocate unwritten extents, but instead we zero
++	 * the block before we commit the transaction.  Ideally we'd like to do
++	 * this outside the transaction context, but if we commit and then crash
++	 * we may not have zeroed the blocks and this will be exposed on
++	 * recovery of the allocation. Hence we must zero before commit.
++	 * Further, if we are mapping unwritten extents here, we need to zero
++	 * and convert them to written so that we don't need an unwritten extent
++	 * callback for DAX.
++	 */
++	if (IS_DAX(VFS_I(ip)))
++		bmapi_flags = XFS_BMAPI_CONVERT | XFS_BMAPI_ZERO;
++
++	/*
+ 	 * From this point onwards we overwrite the imap pointer that the
+ 	 * caller gave to us.
+ 	 */
+ 	xfs_bmap_init(&free_list, &firstfsb);
+ 	nimaps = 1;
+ 	error = xfs_bmapi_write(tp, ip, offset_fsb, count_fsb,
+-				XFS_BMAPI_PREALLOC, &firstfsb, 0,
++				bmapi_flags, &firstfsb, 0,
+ 				imap, &nimaps, &free_list);
+ 	if (error)
+ 		goto out_bmap_cancel;
+@@ -213,6 +227,7 @@ xfs_iomap_write_direct(
+ 	error = xfs_bmap_finish(&tp, &free_list, &committed);
+ 	if (error)
+ 		goto out_bmap_cancel;
++
+ 	error = xfs_trans_commit(tp);
+ 	if (error)
+ 		goto out_unlock;
+-- 
+2.5.0
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
