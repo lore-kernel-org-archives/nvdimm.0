@@ -1,64 +1,76 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH] dax: update PMD fault handler with PMEM API
-Date: Wed,  9 Sep 2015 10:29:40 -0600
-Message-Id: <1441816180-30008-1-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+In-Reply-To: <20150930233529.GE3902@dastard>
+References: <20150930002927.37133.331.stgit@dwillia2-desk3.jf.intel.com>
+	<20150930004136.37133.66059.stgit@dwillia2-desk3.jf.intel.com>
+	<20150930233529.GE3902@dastard>
+Date: Wed, 30 Sep 2015 17:09:43 -0700
+Message-ID: <CAPcyv4jgAAUEo=M_NPf-eoFnR1LVjFQORxRYADZrah2PkT98zg@mail.gmail.com>
+Subject: Re: [PATCH 2/2] block, dax: fix lifetime of in-kernel dax mappings
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, "Kirill A. Shutemov" <kirill@shutemov.name>
+To: Dave Chinner <david@fromorbit.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-As part of the v4.3 merge window the DAX code was updated by Matthew and
-Kirill to handle PMD pages.  Also as part of the v4.3 merge window we
-updated the DAX code to do proper PMEM flushing:
+On Wed, Sep 30, 2015 at 4:35 PM, Dave Chinner <david@fromorbit.com> wrote:
+> On Tue, Sep 29, 2015 at 08:41:36PM -0400, Dan Williams wrote:
+>> The DAX implementation needs to protect new calls to ->direct_access()
+>> and usage of its return value against unbind of the underlying block
+>> device.  Use blk_queue_enter()/blk_queue_exit() to either prevent
+>> blk_cleanup_queue() from proceeding, or fail the dax_map_bh() if the
+>> request_queue is being torn down.
+>>
+>> Cc: Jens Axboe <axboe@kernel.dk>
+>> Cc: Christoph Hellwig <hch@lst.de>
+>> Cc: Boaz Harrosh <boaz@plexistor.com>
+>> Cc: Dave Chinner <david@fromorbit.com>
+>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  block/blk.h            |    2 -
+>>  fs/dax.c               |  130 +++++++++++++++++++++++++++++++-----------------
+>>  include/linux/blkdev.h |    2 +
+>>  3 files changed, 85 insertions(+), 49 deletions(-)
+>>
+>> diff --git a/block/blk.h b/block/blk.h
+>> index 5b2cd393afbe..0f8de0dda768 100644
+>> --- a/block/blk.h
+>> +++ b/block/blk.h
+>> @@ -72,8 +72,6 @@ void blk_dequeue_request(struct request *rq);
+>>  void __blk_queue_free_tags(struct request_queue *q);
+>>  bool __blk_end_bidi_request(struct request *rq, int error,
+>>                           unsigned int nr_bytes, unsigned int bidi_bytes);
+>> -int blk_queue_enter(struct request_queue *q, gfp_t gfp);
+>> -void blk_queue_exit(struct request_queue *q);
+>>  void blk_freeze_queue(struct request_queue *q);
+>>
+>>  static inline void blk_queue_enter_live(struct request_queue *q)
+>> diff --git a/fs/dax.c b/fs/dax.c
+>> index bcfb14bfc1e4..7ce002bb60d0 100644
+>> --- a/fs/dax.c
+>> +++ b/fs/dax.c
+>> @@ -63,12 +63,42 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+>>  }
+>>  EXPORT_SYMBOL_GPL(dax_clear_blocks);
+>>
+>> -static long dax_get_addr(struct buffer_head *bh, void __pmem **addr,
+>> -             unsigned blkbits)
+>> +static void __pmem *__dax_map_bh(const struct buffer_head *bh, unsigned blkbits,
+>> +             unsigned long *pfn, long *len)
+>
+> Please don't use bufferheads for this. Please pass an inode, the
+> block and length to map, similar to dax_clear_blocks().
+>
+> Why? Because dax_clear_blocks() needs to do this "mapping" too,
+> and it is called from contexts where there are no bufferheads.
+> There's a good chance we'll need more mapping contexts like this in
+> future, so lets not propagate bufferheads deeper into this code
+> than we absilutely need to.
+>
+> We should be trying to limit/remove bufferheads in the DAX code, not
+> propagating them deeper into the code...
+>
 
-2765cfbb342c ("dax: update I/O path to do proper PMEM flushing")
-
-The additional code added by the DAX PMD patches also needs to be
-updated to properly use the PMEM API.  This ensures that after a PMD
-fault is handled the zeros written to the newly allocated pages are
-durable on the DIMMs.
-
-linux/dax.h is included to get rid of a bunch of sparse warnings.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
-Linus, would you consider applying this to the v4.3 merge tree?
----
- fs/dax.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index e43389c..93bf2f9 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -17,6 +17,7 @@
- #include <linux/atomic.h>
- #include <linux/blkdev.h>
- #include <linux/buffer_head.h>
-+#include <linux/dax.h>
- #include <linux/fs.h>
- #include <linux/genhd.h>
- #include <linux/highmem.h>
-@@ -527,7 +528,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	unsigned long pmd_addr = address & PMD_MASK;
- 	bool write = flags & FAULT_FLAG_WRITE;
- 	long length;
--	void *kaddr;
-+	void __pmem *kaddr;
- 	pgoff_t size, pgoff;
- 	sector_t block, sector;
- 	unsigned long pfn;
-@@ -570,7 +571,8 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
- 		int i;
- 		for (i = 0; i < PTRS_PER_PMD; i++)
--			clear_page(kaddr + i * PAGE_SIZE);
-+			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
-+		wmb_pmem();
- 		count_vm_event(PGMAJFAULT);
- 		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
- 		result |= VM_FAULT_MAJOR;
--- 
-2.1.0
-
+Sounds good, will do.
