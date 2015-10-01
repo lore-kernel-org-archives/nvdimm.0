@@ -1,68 +1,177 @@
-Return-Path: <linux-ext4-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 0/2] Add updated DAX locking to ext2
-Date: Fri,  9 Oct 2015 16:02:06 -0600
-Message-Id: <1444428128-12200-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-ext4-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Dave Chinner <david@fromorbit.com>
+Subject: [PATCH 2/7] Revert "dax: fix race between simultaneous faults"
+Date: Thu,  1 Oct 2015 17:46:34 +1000
+Message-Id: <1443685599-4843-3-git-send-email-david@fromorbit.com>
+In-Reply-To: <1443685599-4843-1-git-send-email-david@fromorbit.com>
+References: <1443685599-4843-1-git-send-email-david@fromorbit.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: xfs@oss.sgi.com
+Cc: linux-fsdevel@vger.kernel.org, ross.zwisler@linux.intel.com, willy@linux.intel.com, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, linux-nvdimm@lists.01.org, jack@suse.cz, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The first patch in this series is a somewhat related bug fix.  The second patch
-adds new locking to ext2 to isolate DAX faults (page faults, PMD faults, page
-mkwrite and pfn mkwrite) from ext2 operations that modify a given inode's data
-block allocations.
+This reverts commit 843172978bb92997310d2f7fbc172ece423cfc02.
+---
+ fs/dax.c    | 33 ++++++++++++++++-----------------
+ mm/memory.c | 11 +++--------
+ 2 files changed, 19 insertions(+), 25 deletions(-)
 
-In my first attempt at this fix I attempted to expand the protection offered by
-ext2_inode_info->truncate_mutex so that we took truncate_mutex before our DAX
-fault paths were entered.  The DAX fault handlers would then call a version of
-ext2_get_block() that assumed truncate_mutex was already held.
-
-This *almost* works, but it turns out that it introduces a lock ordering
-inversion between truncate_mutex and a given page's page_lock.  With my series
-as it is, the lock ordering looks like this:
-
-mmap_sem (MM)
-  ext2_inode_info->dax_sem
-    sb_start_pagefault (vfs, freeze - taken in DAX)
-      address_space->i_mmap_rwsem or page_lock (mutually exclusive in DAX)
-        ext2_inode_info->truncate_mutex
-
-With truncate_mutex being taken before the page fault handler, as in my initial
-attempt, our lock ordering is instead:
-
-mmap_sem (MM)
-  ext2_inode_info->truncate_mutex
-    sb_start_pagefault (vfs, freeze - taken in DAX)
-      address_space->i_mmap_rwsem or page_lock (mutually exclusive in DAX)
-
-This is fine for DAX, but it turns out that you can't actually take
-truncate_mutex before a page_lock because some operations call ext2_get_block()
-while already holding page_lock from calls higher in the stack.  This means
-that whatever locks are taken in ext2_get_block() must be below page_lock in
-the locking order, else you can deadlock.  To solve this I had to introduce a
-new lock that would sit above page_lock in the locking order.  This is the new
-"dax_sem" semaphore.
-
-Folks with ext2 experience, have I missed any other cases that need to be
-protected by dax_sem?  I took a hard look at all the cases in XFS that are
-protected by i_mmaplock and convinced myself that truncate was the only one of
-them present in ext2.
-
-I've tested this series using xfstests with DAX both enabled and disabled.
-Lockdep was on and working, and didn't have any complaints.
-
-Ross Zwisler (2):
-  dax: dax_pfn_mkwrite() truncate race check
-  ext2: Add locking for DAX faults
-
- fs/dax.c        | 13 +++++++++++--
- fs/ext2/ext2.h  |  1 +
- fs/ext2/file.c  | 51 +++++++++++++++++++++++++++++++++++++++++++++++----
- fs/ext2/inode.c |  9 +++++++++
- fs/ext2/super.c |  1 +
- 5 files changed, 69 insertions(+), 6 deletions(-)
-
+diff --git a/fs/dax.c b/fs/dax.c
+index 400fe95..3994a2b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -285,6 +285,7 @@ static int copy_user_bh(struct page *to, struct buffer_head *bh,
+ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 			struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
++	struct address_space *mapping = inode->i_mapping;
+ 	sector_t sector = bh->b_blocknr << (inode->i_blkbits - 9);
+ 	unsigned long vaddr = (unsigned long)vmf->virtual_address;
+ 	void __pmem *addr;
+@@ -292,6 +293,8 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 	pgoff_t size;
+ 	int error;
+ 
++	i_mmap_lock_read(mapping);
++
+ 	/*
+ 	 * Check truncate didn't happen while we were allocating a block.
+ 	 * If it did, this block may or may not be still allocated to the
+@@ -321,6 +324,8 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 	error = vm_insert_mixed(vma, vaddr, pfn);
+ 
+  out:
++	i_mmap_unlock_read(mapping);
++
+ 	return error;
+ }
+ 
+@@ -382,17 +387,15 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 			 * from a read fault and we've raced with a truncate
+ 			 */
+ 			error = -EIO;
+-			goto unlock;
++			goto unlock_page;
+ 		}
+-	} else {
+-		i_mmap_lock_write(mapping);
+ 	}
+ 
+ 	error = get_block(inode, block, &bh, 0);
+ 	if (!error && (bh.b_size < PAGE_SIZE))
+ 		error = -EIO;		/* fs corruption? */
+ 	if (error)
+-		goto unlock;
++		goto unlock_page;
+ 
+ 	if (!buffer_mapped(&bh) && !buffer_unwritten(&bh) && !vmf->cow_page) {
+ 		if (vmf->flags & FAULT_FLAG_WRITE) {
+@@ -403,9 +406,8 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 			if (!error && (bh.b_size < PAGE_SIZE))
+ 				error = -EIO;
+ 			if (error)
+-				goto unlock;
++				goto unlock_page;
+ 		} else {
+-			i_mmap_unlock_write(mapping);
+ 			return dax_load_hole(mapping, page, vmf);
+ 		}
+ 	}
+@@ -417,15 +419,17 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		else
+ 			clear_user_highpage(new_page, vaddr);
+ 		if (error)
+-			goto unlock;
++			goto unlock_page;
+ 		vmf->page = page;
+ 		if (!page) {
++			i_mmap_lock_read(mapping);
+ 			/* Check we didn't race with truncate */
+ 			size = (i_size_read(inode) + PAGE_SIZE - 1) >>
+ 								PAGE_SHIFT;
+ 			if (vmf->pgoff >= size) {
++				i_mmap_unlock_read(mapping);
+ 				error = -EIO;
+-				goto unlock;
++				goto out;
+ 			}
+ 		}
+ 		return VM_FAULT_LOCKED;
+@@ -461,8 +465,6 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 			WARN_ON_ONCE(!(vmf->flags & FAULT_FLAG_WRITE));
+ 	}
+ 
+-	if (!page)
+-		i_mmap_unlock_write(mapping);
+  out:
+ 	if (error == -ENOMEM)
+ 		return VM_FAULT_OOM | major;
+@@ -471,14 +473,11 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		return VM_FAULT_SIGBUS | major;
+ 	return VM_FAULT_NOPAGE | major;
+ 
+- unlock:
++ unlock_page:
+ 	if (page) {
+ 		unlock_page(page);
+ 		page_cache_release(page);
+-	} else {
+-		i_mmap_unlock_write(mapping);
+ 	}
+-
+ 	goto out;
+ }
+ EXPORT_SYMBOL(__dax_fault);
+@@ -556,10 +555,10 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
+ 
+ 	bh.b_size = PMD_SIZE;
+-	i_mmap_lock_write(mapping);
+ 	length = get_block(inode, block, &bh, write);
+ 	if (length)
+ 		return VM_FAULT_SIGBUS;
++	i_mmap_lock_read(mapping);
+ 
+ 	/*
+ 	 * If the filesystem isn't willing to tell us the length of a hole,
+@@ -633,11 +632,11 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	}
+ 
+  out:
++	i_mmap_unlock_read(mapping);
++
+ 	if (buffer_unwritten(&bh))
+ 		complete_unwritten(&bh, !(result & VM_FAULT_ERROR));
+ 
+-	i_mmap_unlock_write(mapping);
+-
+ 	return result;
+ 
+  fallback:
+diff --git a/mm/memory.c b/mm/memory.c
+index 5ec066f..deb679c 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2427,16 +2427,11 @@ void unmap_mapping_range(struct address_space *mapping,
+ 		details.last_index = ULONG_MAX;
+ 
+ 
+-	/*
+-	 * DAX already holds i_mmap_lock to serialise file truncate vs
+-	 * page fault and page fault vs page fault.
+-	 */
+-	if (!IS_DAX(mapping->host))
+-		i_mmap_lock_write(mapping);
++	/* DAX uses i_mmap_lock to serialise file truncate vs page fault */
++	i_mmap_lock_write(mapping);
+ 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
+ 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
+-	if (!IS_DAX(mapping->host))
+-		i_mmap_unlock_write(mapping);
++	i_mmap_unlock_write(mapping);
+ }
+ EXPORT_SYMBOL(unmap_mapping_range);
+ 
 -- 
-2.1.0
+2.5.0
 
