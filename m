@@ -1,103 +1,80 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v2 10/20] um: kill pfn_t
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Oct 2015 20:56:17 -0400
-Message-ID: <20151010005617.17221.12773.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Fri, 2 Oct 2015 08:54:48 +1000
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH 0/7] xfs, dax: fix the page fault/allocation mess
+Message-ID: <20151001225448.GJ27164@dastard>
+References: <1443685599-4843-1-git-send-email-david@fromorbit.com>
+ <20151001203121.GB23495@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave@sr71.net>, Richard Weinberger <richard@nod.at>, Jeff Dike <jdike@addtoit.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, ross.zwisler@linux.intel.com, hch@lst.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151001203121.GB23495@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, xfs@oss.sgi.com, linux-fsdevel@vger.kernel.org, willy@linux.intel.com, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, linux-nvdimm@lists.01.org, jack@suse.cz, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The core has developed a need for a "pfn_t" type [1].  Convert the usage
-of pfn_t by usermode-linux to an unsigned long, and update pfn_to_phys()
-to drop its expectation of a typed pfn.
+On Thu, Oct 01, 2015 at 02:31:21PM -0600, Ross Zwisler wrote:
+> On Thu, Oct 01, 2015 at 05:46:32PM +1000, Dave Chinner wrote:
+> > Hi folks,
+> > 
+> > As discussed in the recent thread about problems with DAX locking:
+> > 
+> > http://www.gossamer-threads.com/lists/linux/kernel/2264090?do=post_view_threaded
+> > 
+> > I said that I'd post the patch set that fixed the problems for XFS
+> > as soon as I had something sane and workable. That's what this
+> > series is.
+> > 
+> > To start with, it passes xfstests "auto" group with only the only
+> > failures being expected failures or failures due to unexpected
+> > allocation patterns or trying to use unsupported block sizes. That
+> > makes it better than any previous version of the XFS/DAX code.
+.....
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-September/002199.html
+> Thank you for working on this, and for documenting your thinking so clearly.
 
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/um/include/asm/page.h           |    6 +++---
- arch/um/include/asm/pgtable-3level.h |    4 ++--
- arch/um/include/asm/pgtable.h        |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+To put this in perspective, "patch 0" descriptions like this is a
+requirement for any non-trivial XFS modification. It saves reviewers
+so much time and many round trips in email and IRC to understand the
+changes being proposed that it's a no-brainer.
 
-diff --git a/arch/um/include/asm/page.h b/arch/um/include/asm/page.h
-index 71c5d132062a..fe26a5e06268 100644
---- a/arch/um/include/asm/page.h
-+++ b/arch/um/include/asm/page.h
-@@ -18,6 +18,7 @@
- 
- struct page;
- 
-+#include <linux/pfn.h>
- #include <linux/types.h>
- #include <asm/vm-flags.h>
- 
-@@ -76,7 +77,6 @@ typedef struct { unsigned long pmd; } pmd_t;
- #define pte_is_zero(p) (!((p).pte & ~_PAGE_NEWPAGE))
- #define pte_set_val(p, phys, prot) (p).pte = (phys | pgprot_val(prot))
- 
--typedef unsigned long pfn_t;
- typedef unsigned long phys_t;
- 
- #endif
-@@ -109,8 +109,8 @@ extern unsigned long uml_physmem;
- #define __pa(virt) to_phys((void *) (unsigned long) (virt))
- #define __va(phys) to_virt((unsigned long) (phys))
- 
--#define phys_to_pfn(p) ((pfn_t) ((p) >> PAGE_SHIFT))
--#define pfn_to_phys(pfn) ((phys_t) ((pfn) << PAGE_SHIFT))
-+#define phys_to_pfn(p) ((p) >> PAGE_SHIFT)
-+#define pfn_to_phys(pfn) PFN_PHYS(pfn)
- 
- #define pfn_valid(pfn) ((pfn) < max_mapnr)
- #define virt_addr_valid(v) pfn_valid(phys_to_pfn(__pa(v)))
-diff --git a/arch/um/include/asm/pgtable-3level.h b/arch/um/include/asm/pgtable-3level.h
-index 2b4274e7c095..bae8523a162f 100644
---- a/arch/um/include/asm/pgtable-3level.h
-+++ b/arch/um/include/asm/pgtable-3level.h
-@@ -98,7 +98,7 @@ static inline unsigned long pte_pfn(pte_t pte)
- 	return phys_to_pfn(pte_val(pte));
- }
- 
--static inline pte_t pfn_pte(pfn_t page_nr, pgprot_t pgprot)
-+static inline pte_t pfn_pte(unsigned long page_nr, pgprot_t pgprot)
- {
- 	pte_t pte;
- 	phys_t phys = pfn_to_phys(page_nr);
-@@ -107,7 +107,7 @@ static inline pte_t pfn_pte(pfn_t page_nr, pgprot_t pgprot)
- 	return pte;
- }
- 
--static inline pmd_t pfn_pmd(pfn_t page_nr, pgprot_t pgprot)
-+static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
- {
- 	return __pmd((page_nr << PAGE_SHIFT) | pgprot_val(pgprot));
- }
-diff --git a/arch/um/include/asm/pgtable.h b/arch/um/include/asm/pgtable.h
-index 18eb9924dda3..7485398d0737 100644
---- a/arch/um/include/asm/pgtable.h
-+++ b/arch/um/include/asm/pgtable.h
-@@ -271,7 +271,7 @@ static inline int pte_same(pte_t pte_a, pte_t pte_b)
- 
- #define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
- #define __virt_to_page(virt) phys_to_page(__pa(virt))
--#define page_to_phys(page) pfn_to_phys((pfn_t) page_to_pfn(page))
-+#define page_to_phys(page) pfn_to_phys(page_to_pfn(page))
- #define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
- 
- #define mk_pte(page, pgprot) \
+Lead by example, and all that...
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> One thing I noticed is that in my test setup XFS+DAX is now failing
+> generic/274:
+> 
+> 	# diff -u tests/generic/274.out /root/xfstests/results//generic/274.out.bad
+> 	--- tests/generic/274.out	2015-08-24 11:05:41.490926305 -0600
+> 	+++ /root/xfstests/results//generic/274.out.bad	2015-10-01 13:53:50.498354091 -0600
+> 	@@ -2,4 +2,5 @@
+> 	 ------------------------------
+> 	 preallocation test
+> 	 ------------------------------
+> 	-done
+> 	+failed to write to test file
+> 	+(see /root/xfstests/results//generic/274.full for details)
+> 
+> I've verified that the test passes 100% of the time with my baseline
+> (v4.3-rc3), and with the set applied but without the DAX mount option.  With
+> the series and with DAX it fails 100% of the time.  I haven't looked into the
+> details of the failure yet, I just wanted to let you know that it was
+> happening.
+
+See above - I classified this under the "failures due to unexpected
+allocation patterns". This is a ENOSPC test, and we've change the
+allocation pattern and the unwritten extent conversion algorithm and
+so changed the metadata allocation demand of the test.
+
+I haven't looked any further than this yet, but I suspect the issue
+is that the up-front unwritten extent conversion is not being
+allowed to dip into the reserve block pool for BMBT allocations when
+the extent list grows past a single block. If that's the case, then
+it's a couple of lines of code to conditionally at XFS_TRANS_RESERVE
+to the transaction handle to allow it access to the reserve pool...
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
