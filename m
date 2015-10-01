@@ -1,55 +1,50 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Thu, 1 Oct 2015 16:47:45 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 1/2] dax: dax_pfn_mkwrite() truncate race check
-Date: Fri,  9 Oct 2015 16:02:07 -0600
-Message-Id: <1444428128-12200-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1444428128-12200-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1444428128-12200-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 1/7] Revert "mm: take i_mmap_lock in
+ unmap_mapping_range() for DAX"
+Message-ID: <20151001224745.GB7634@linux.intel.com>
+References: <1443685599-4843-1-git-send-email-david@fromorbit.com>
+ <1443685599-4843-2-git-send-email-david@fromorbit.com>
+ <20151001202729.GA23495@linux.intel.com>
+ <20151001223240.GI27164@dastard>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151001223240.GI27164@dastard>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
+To: Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, xfs@oss.sgi.com, linux-fsdevel@vger.kernel.org, willy@linux.intel.com, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, linux-nvdimm@lists.01.org, jack@suse.cz, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Update dax_pfn_mkwrite() so that it validates i_size before returning.
-This is necessary to ensure that the page fault has not raced with truncate
-and is now pointing to a region beyond the end of the current file.
+On Fri, Oct 02, 2015 at 08:32:40AM +1000, Dave Chinner wrote:
+> I couldn't work out what set of commits I needed to revert to get a
+> clean revert, so I just reverted the commits and hacked out the
+> revert failures to what looked ok. Feel free to send me a clean set
+> of reverts, and I'll replace these patches with them... :)
 
-This change is based on a similar outstanding patch for XFS from Dave
-Chinner entitled "xfs: add ->pfn_mkwrite support for DAX".
+Will do.  I will queue the reverts in my external tree & ask Linus to pull
+them into v4.3 so we don't ship with deadlocks.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+> > Also, if I understood your previous mails correctly you were targeting the
+> > first two revert patches for v4.3 so we get back to v4.2 level locking, and
+> > the rest of the series will target v4.4, correct?  How does this work?  Do the
+> > patches need to be split into two series and tested separately?
+> 
+> Test it and push the reverts however you like. I don't care how the
+> reverts get to 4.3 - I'll be carrying them locally in my trees from
+> now and so my development and testing is now unaffected by the bugs
+> that are in the 4.3 code. If you aren't going to push them for 4.3
+> then I'd suggest that they go to linus along with the rest of the
+> XFS changes in this series.
+> 
+> FWIW, I'm quite happy to host all the pending DAX changes in a
+> public git tree and ask for it to be included in linux-next. It's
+> probably a good idea to do this because it makes it much easier to
+> co-ordinate merges when we are touching multiple subsystems (ext4,
+> xfs, dax, mm, etc). And it will help prevent the "patches molder on
+> the list until Andrew hoovers them up" problem and so prevent this
+> situation from happening in the future...
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 131fd35a..82be6e4 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -693,12 +693,21 @@ EXPORT_SYMBOL_GPL(dax_pmd_fault);
-  */
- int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
--	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
-+	struct inode *inode = file_inode(vma->vm_file);
-+	struct super_block *sb = inode->i_sb;
-+	int ret = VM_FAULT_NOPAGE;
-+	loff_t size;
- 
- 	sb_start_pagefault(sb);
- 	file_update_time(vma->vm_file);
-+
-+	/* check that the faulting page hasn't raced with truncate */
-+	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	if (vmf->pgoff >= size)
-+		ret = VM_FAULT_SIGBUS;
-+
- 	sb_end_pagefault(sb);
--	return VM_FAULT_NOPAGE;
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
- 
--- 
-2.1.0
-
+No objections from me. :)  I agree that it would be nice to have a central
+home for all the DAX patches.
