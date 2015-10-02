@@ -1,56 +1,50 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 3/3] ACPI/APEI/EINJ: Allow memory error injection to NVDIMM
-Date: Thu, 22 Oct 2015 17:20:44 -0600
-Message-Id: <1445556044-30322-4-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1445556044-30322-1-git-send-email-toshi.kani@hpe.com>
-References: <1445556044-30322-1-git-send-email-toshi.kani@hpe.com>
+MIME-Version: 1.0
+In-Reply-To: <560F0854.9040300@deltatee.com>
+References: <20150923043737.36490.70547.stgit@dwillia2-desk3.jf.intel.com>
+	<20150923044227.36490.99741.stgit@dwillia2-desk3.jf.intel.com>
+	<20151002212137.GB30448@deltatee.com>
+	<CAPcyv4iwJJX-rSgC0ramLrvccdzDXgnUAUMQbTMpoODo2f7kOw@mail.gmail.com>
+	<560F0854.9040300@deltatee.com>
+Date: Fri, 2 Oct 2015 15:55:23 -0700
+Message-ID: <CAPcyv4jbRn8tTbuqKYCzd4Qs5FjvJCN_Jy5pjHfwX+Kw9bub0Q@mail.gmail.com>
+Subject: Re: [PATCH 14/15] mm, dax, pmem: introduce {get|put}_dev_pagemap()
+ for dax-gup
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Dave Hansen <dave@sr71.net>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Stephen Bates <Stephen.Bates@pmcs.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In the case of memory error injection, einj_error_inject() checks
-if a target address is regular RAM.  Change this check to allow
-injecting a memory error to both RAM and NVDIMM so that memory
-errors can be tested on NVDIMM as well.
+On Fri, Oct 2, 2015 at 3:42 PM, Logan Gunthorpe <logang@deltatee.com> wrote:
+>
+>
+> On 02/10/15 03:53 PM, Dan Williams wrote:
+>>
+>> Yes, this location for dev_pagemap will not work.  I've since moved it
+>> to a union with the lru list_head since ZONE_DEVICE pages memory
+>> should always have an elevated page count and never land on a slab
+>> allocator lru.
+>
+>
+> Oh, also, I was actually hoping to make use of the lru list_head in the
+> future with ZONE_DEVICE memory. One thought I had was once we have a PCIe
+> device with a BAR space, we'd then need to have a way of allocating these
+> buffers when user space needs them. The simple way I was thinking was to
+> just use the lru list head to store lists of used and unused pages -- though
+> there are probably other solutions to this that don't require using struct
+> pages.
+>
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
----
- drivers/acpi/apei/einj.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 0431883..696f45a 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 			     u64 param3, u64 param4)
- {
- 	int rc;
--	unsigned long pfn;
-+	u64 base_addr, size;
- 
- 	/* If user manually set "flags", make sure it is legal */
- 	if (flags && (flags &
-@@ -545,10 +545,14 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 	/*
- 	 * Disallow crazy address masks that give BIOS leeway to pick
- 	 * injection address almost anywhere. Insist on page or
--	 * better granularity and that target address is normal RAM.
-+	 * better granularity and that target address is normal RAM or
-+	 * NVDIMM.
- 	 */
--	pfn = PFN_DOWN(param1 & param2);
--	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
-+	base_addr = param1 & param2;
-+	size = (~param2) + 1;
-+	if (((!page_is_ram(PFN_DOWN(base_addr))) &&
-+	     (region_intersects_pmem(base_addr, size) != REGION_INTERSECTS)) ||
-+	    ((param2 & PAGE_MASK) != PAGE_MASK))
- 		return -EINVAL;
- 
- inject:
+The current assumption is the ZONE_DEVICE ranges are being managed by
+a physical address allocator.  In the case of persistent memory this
+is the block allocator of the filesystem sitting on top of a pmem
+block device.  The struct page is really only there to facilitate
+in-flight I/O requests.  If it weren't for complexity we'd allocate
+them on demand.  So you're "unused" case should be a raw pfn and then
+for the time-limited duration it is in use as a struct page it should
+hold a reference against the mapping.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
