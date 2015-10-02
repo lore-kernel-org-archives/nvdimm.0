@@ -1,50 +1,38 @@
 Return-Path: <owner-linux-mm@kvack.org>
+Message-ID: <560F0854.9040300@deltatee.com>
+Date: Fri, 02 Oct 2015 16:42:28 -0600
+From: Logan Gunthorpe <logang@deltatee.com>
 MIME-Version: 1.0
-In-Reply-To: <560F0854.9040300@deltatee.com>
-References: <20150923043737.36490.70547.stgit@dwillia2-desk3.jf.intel.com>
-	<20150923044227.36490.99741.stgit@dwillia2-desk3.jf.intel.com>
-	<20151002212137.GB30448@deltatee.com>
-	<CAPcyv4iwJJX-rSgC0ramLrvccdzDXgnUAUMQbTMpoODo2f7kOw@mail.gmail.com>
-	<560F0854.9040300@deltatee.com>
-Date: Fri, 2 Oct 2015 15:55:23 -0700
-Message-ID: <CAPcyv4jbRn8tTbuqKYCzd4Qs5FjvJCN_Jy5pjHfwX+Kw9bub0Q@mail.gmail.com>
+References: <20150923043737.36490.70547.stgit@dwillia2-desk3.jf.intel.com>	<20150923044227.36490.99741.stgit@dwillia2-desk3.jf.intel.com>	<20151002212137.GB30448@deltatee.com> <CAPcyv4iwJJX-rSgC0ramLrvccdzDXgnUAUMQbTMpoODo2f7kOw@mail.gmail.com>
+In-Reply-To: <CAPcyv4iwJJX-rSgC0ramLrvccdzDXgnUAUMQbTMpoODo2f7kOw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Subject: Re: [PATCH 14/15] mm, dax, pmem: introduce {get|put}_dev_pagemap()
  for dax-gup
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: Logan Gunthorpe <logang@deltatee.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Dave Hansen <dave@sr71.net>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Stephen Bates <Stephen.Bates@pmcs.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Oct 2, 2015 at 3:42 PM, Logan Gunthorpe <logang@deltatee.com> wrote:
->
->
-> On 02/10/15 03:53 PM, Dan Williams wrote:
->>
->> Yes, this location for dev_pagemap will not work.  I've since moved it
->> to a union with the lru list_head since ZONE_DEVICE pages memory
->> should always have an elevated page count and never land on a slab
->> allocator lru.
->
->
-> Oh, also, I was actually hoping to make use of the lru list_head in the
-> future with ZONE_DEVICE memory. One thought I had was once we have a PCIe
-> device with a BAR space, we'd then need to have a way of allocating these
-> buffers when user space needs them. The simple way I was thinking was to
-> just use the lru list head to store lists of used and unused pages -- though
-> there are probably other solutions to this that don't require using struct
-> pages.
->
 
-The current assumption is the ZONE_DEVICE ranges are being managed by
-a physical address allocator.  In the case of persistent memory this
-is the block allocator of the filesystem sitting on top of a pmem
-block device.  The struct page is really only there to facilitate
-in-flight I/O requests.  If it weren't for complexity we'd allocate
-them on demand.  So you're "unused" case should be a raw pfn and then
-for the time-limited duration it is in use as a struct page it should
-hold a reference against the mapping.
+
+On 02/10/15 03:53 PM, Dan Williams wrote:
+> Yes, this location for dev_pagemap will not work.  I've since moved it
+> to a union with the lru list_head since ZONE_DEVICE pages memory
+> should always have an elevated page count and never land on a slab
+> allocator lru.
+
+Oh, also, I was actually hoping to make use of the lru list_head in the 
+future with ZONE_DEVICE memory. One thought I had was once we have a 
+PCIe device with a BAR space, we'd then need to have a way of allocating 
+these buffers when user space needs them. The simple way I was thinking 
+was to just use the lru list head to store lists of used and unused 
+pages -- though there are probably other solutions to this that don't 
+require using struct pages.
+
+Thanks,
+
+Logan
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
