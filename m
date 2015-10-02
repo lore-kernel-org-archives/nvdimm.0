@@ -1,11 +1,11 @@
 Return-Path: <owner-linux-mm@kvack.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 0/2] Revert locking changes in DAX for v4.3
-Date: Fri,  2 Oct 2015 18:01:32 -0600
-Message-Id: <1443830494-8748-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH 0/3] Revert locking changes in DAX for v4.3
+Date: Fri,  2 Oct 2015 15:02:29 -0600
+Message-Id: <1443819752-17091-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
 To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <dchinner@redhat.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 This series reverts some recent changes to the locking scheme in DAX introduced
@@ -14,12 +14,36 @@ by these two commits:
 commit 843172978bb9 ("dax: fix race between simultaneous faults")
 commit 46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
 
-Changes from v1:
- -  Squashed patches 1 and 2 from the first series into a single patch to avoid
-    adding another spot in the git history where we could end up referencing an
-    uninitialized pointer.
+The list of issues in DAX after these commits (some newly introduced by the
+commits, some preexisting) can be found here:
+	    
+https://lkml.org/lkml/2015/9/25/602
 
-Ross Zwisler (2):
+Several of these issues were preexisting, and are being addressed by moving the
+locking in DAX to the filesystem.  A patch series doing this for XFS is here:
+
+https://lkml.org/lkml/2015/10/1/180
+
+These fixes will end up hitting v4.4, hopefully.
+
+In the mean time the above two commits *did* introduce several deadlocks and a
+null pointer issue.  I started fixing them one at a time:
+
+https://lkml.org/lkml/2015/9/23/607
+https://lkml.org/lkml/2015/9/22/668
+
+But it soon became apparent that there were just too many corner cases.  The
+current plan is to revert the locking in DAX to the old v4.2 scheme, and then
+proceed with fixing the rest of the issues by moving the locking into the
+various filesystems that support DAX.  Dave Chinner is working on this for XFS,
+and Jan Kara has said he will help with ext4.
+
+akpm, this series obviates my patch "dax: fix deadlock in __dax_fault()" that
+is currently in the -mm tree but which I believe has not yet been sent to Linus.
+Can you please just remove it from -mm?
+
+Ross Zwisler (3):
+  Revert "dax: fix NULL pointer in __dax_pmd_fault()"
   Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
   Revert "dax: fix race between simultaneous faults"
 
