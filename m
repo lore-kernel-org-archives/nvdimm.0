@@ -1,13 +1,13 @@
 Return-Path: <owner-linux-mm@kvack.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 2/2] Revert "dax: fix race between simultaneous faults"
-Date: Fri,  2 Oct 2015 18:01:34 -0600
-Message-Id: <1443830494-8748-3-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1443830494-8748-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1443830494-8748-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH 3/3] Revert "dax: fix race between simultaneous faults"
+Date: Fri,  2 Oct 2015 15:02:32 -0600
+Message-Id: <1443819752-17091-4-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1443819752-17091-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1443819752-17091-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
 To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <dchinner@redhat.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 This reverts commit 843172978bb92997310d2f7fbc172ece423cfc02.
