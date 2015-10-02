@@ -1,17 +1,16 @@
 Return-Path: <owner-linux-mm@kvack.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 1/2] Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
-Date: Fri,  2 Oct 2015 18:01:33 -0600
-Message-Id: <1443830494-8748-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1443830494-8748-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1443830494-8748-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH 2/3] Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
+Date: Fri,  2 Oct 2015 15:02:31 -0600
+Message-Id: <1443819752-17091-3-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1443819752-17091-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1443819752-17091-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
 To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <dchinner@redhat.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This reverts commits 46c043ede4711e8d598b9d63c5616c1fedb0605e
-and 8346c416d17bf5b4ea1508662959bb62e73fd6a5.
+This reverts commit 46c043ede4711e8d598b9d63c5616c1fedb0605e.
 
 The following two locking commits in the DAX code:
 
@@ -32,32 +31,20 @@ commit d77e92e270ed ("dax: update PMD fault handler with PMEM API")
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- fs/dax.c    | 50 ++++++++++++++++++--------------------------------
+ fs/dax.c    | 37 +++++++++++++++++--------------------
  mm/memory.c | 11 +++++++++--
- 2 files changed, 27 insertions(+), 34 deletions(-)
+ 2 files changed, 26 insertions(+), 22 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index bcfb14b..de3f53e 100644
+index 7ae6df7..de3f53e 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -569,38 +569,6 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+@@ -569,26 +569,6 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
  	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
  		goto fallback;
  
--	sector = bh.b_blocknr << (blkbits - 9);
--
 -	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
 -		int i;
--
--		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
--						bh.b_size);
--		if (length < 0) {
--			result = VM_FAULT_SIGBUS;
--			goto out;
--		}
--		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
--			goto fallback;
--
 -		for (i = 0; i < PTRS_PER_PMD; i++)
 -			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
 -		wmb_pmem();
@@ -79,7 +66,7 @@ index bcfb14b..de3f53e 100644
  	/*
  	 * If a truncate happened while we were allocating blocks, we may
  	 * leave blocks allocated to the file that are beyond EOF.  We can't
-@@ -615,6 +583,13 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+@@ -603,6 +583,13 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
  	if ((pgoff | PG_PMD_COLOUR) >= size)
  		goto fallback;
  
@@ -93,15 +80,7 @@ index bcfb14b..de3f53e 100644
  	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
  		spinlock_t *ptl;
  		pmd_t entry;
-@@ -635,6 +610,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		result = VM_FAULT_NOPAGE;
- 		spin_unlock(ptl);
- 	} else {
-+		sector = bh.b_blocknr << (blkbits - 9);
- 		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
- 						bh.b_size);
- 		if (length < 0) {
-@@ -644,6 +620,16 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+@@ -633,6 +620,16 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
  		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
  			goto fallback;
  
