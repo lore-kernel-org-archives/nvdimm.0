@@ -1,6 +1,6 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <560F0854.9040300@deltatee.com>
-Date: Fri, 02 Oct 2015 16:42:28 -0600
+Message-ID: <560F01CD.7060504@deltatee.com>
+Date: Fri, 02 Oct 2015 16:14:37 -0600
 From: Logan Gunthorpe <logang@deltatee.com>
 MIME-Version: 1.0
 References: <20150923043737.36490.70547.stgit@dwillia2-desk3.jf.intel.com>	<20150923044227.36490.99741.stgit@dwillia2-desk3.jf.intel.com>	<20151002212137.GB30448@deltatee.com> <CAPcyv4iwJJX-rSgC0ramLrvccdzDXgnUAUMQbTMpoODo2f7kOw@mail.gmail.com>
@@ -14,21 +14,30 @@ To: Dan Williams <dan.j.williams@intel.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Dave Hansen <dave@sr71.net>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Stephen Bates <Stephen.Bates@pmcs.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+Hi Dan,
+
+Good to know you've already addressed the struct page issue. We'll watch 
+out for an updated patchset to try.
 
 
 On 02/10/15 03:53 PM, Dan Williams wrote:
-> Yes, this location for dev_pagemap will not work.  I've since moved it
-> to a union with the lru list_head since ZONE_DEVICE pages memory
-> should always have an elevated page count and never land on a slab
-> allocator lru.
+> Hmm, I didn't have peer-to-peer PCI-E in mind for this mechanism, but
+> the test report is welcome nonetheless.  The definition of dma_addr_t
+> is the device view of host memory, not necessarily the device view of
+> a peer device's memory range, so I expect you'll run into issues with
+> IOMMUs and other parts of the kernel that assume this definition.
 
-Oh, also, I was actually hoping to make use of the lru list_head in the 
-future with ZONE_DEVICE memory. One thought I had was once we have a 
-PCIe device with a BAR space, we'd then need to have a way of allocating 
-these buffers when user space needs them. The simple way I was thinking 
-was to just use the lru list head to store lists of used and unused 
-pages -- though there are probably other solutions to this that don't 
-require using struct pages.
+Yeah, we've actually been doing this with a number of more "hacky" 
+techniques for some time. ZONE_DEVICE just provides us with a much 
+cleaner way to set this up that doesn't require patching around 
+get_user_pages in various places in the kernel.
+
+We've never had any issues with the IOMMU getting in the way (at least 
+on Intel x86). My understanding always was that the IOMMU sits between a 
+PCI card and main memory; it doesn't get in the way of peer-to-peer 
+transfers. Though admittedly, I don't have a complete understanding of 
+how the IOMMU works in the kernel. I'm just speaking from experimental 
+experience. We've never actually tried this on other architectures.
 
 Thanks,
 
