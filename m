@@ -1,114 +1,55 @@
 Return-Path: <owner-linux-mm@kvack.org>
+Date: Sat, 3 Oct 2015 23:24:33 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [RFC 06/11] mm: add pgoff_mkclean()
-Date: Thu, 29 Oct 2015 14:12:10 -0600
-Message-Id: <1446149535-16200-7-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v2 0/2] Revert locking changes in DAX for v4.3
+Message-ID: <20151004052433.GA10753@linux.intel.com>
+References: <1443830494-8748-2-git-send-email-ross.zwisler@linux.intel.com>
+ <1443830494-8748-1-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1443830494-8748-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Introduce pgoff_mkclean() which conceptually is similar to page_mkclean()
-except it works in the absence of struct page and it can also be used to
-clean PMDs.  This is needed for DAX's dirty page handling.
+On Fri, Oct 02, 2015 at 06:01:32PM -0600, Ross Zwisler wrote:
+> This series reverts some recent changes to the locking scheme in DAX introduced
+> by these two commits:
+> 
+> commit 843172978bb9 ("dax: fix race between simultaneous faults")
+> commit 46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
+> 
+> Changes from v1:
+>  -  Squashed patches 1 and 2 from the first series into a single patch to avoid
+>     adding another spot in the git history where we could end up referencing an
+>     uninitialized pointer.
+> 
+> Ross Zwisler (2):
+>   Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
+>   Revert "dax: fix race between simultaneous faults"
+> 
+>  fs/dax.c    | 83 +++++++++++++++++++++++++------------------------------------
+>  mm/memory.c |  2 ++
+>  2 files changed, 36 insertions(+), 49 deletions(-)
+> 
+> -- 
+> 2.1.0
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- include/linux/rmap.h |  5 +++++
- mm/rmap.c            | 53 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 58 insertions(+)
+*sigh* - even after these reverts we can deadlock on in the DAX PMD code with
+its original locking scheme.  I can hit them 100% of the time with either
+generic/074 or generic/198 using either XFS or ext4.  I'll debug exactly
+what's going on on Monday.
 
-diff --git a/include/linux/rmap.h b/include/linux/rmap.h
-index 29446ae..627875f9 100644
---- a/include/linux/rmap.h
-+++ b/include/linux/rmap.h
-@@ -223,6 +223,11 @@ unsigned long page_address_in_vma(struct page *, struct vm_area_struct *);
- int page_mkclean(struct page *);
- 
- /*
-+ * Cleans and write protects the PTEs of shared mappings.
-+ */
-+int pgoff_mkclean(pgoff_t, struct address_space *);
-+
-+/*
-  * called in munlock()/munmap() path to check for other vmas holding
-  * the page mlocked.
-  */
-diff --git a/mm/rmap.c b/mm/rmap.c
-index f5b5c1f..0ce16ab 100644
---- a/mm/rmap.c
-+++ b/mm/rmap.c
-@@ -586,6 +586,16 @@ vma_address(struct page *page, struct vm_area_struct *vma)
- 	return address;
- }
- 
-+static inline unsigned long
-+pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
-+{
-+	unsigned long address;
-+
-+	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
-+	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
-+	return address;
-+}
-+
- #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- static void percpu_flush_tlb_batch_pages(void *data)
- {
-@@ -1040,6 +1050,49 @@ int page_mkclean(struct page *page)
- }
- EXPORT_SYMBOL_GPL(page_mkclean);
- 
-+int pgoff_mkclean(pgoff_t pgoff, struct address_space *mapping)
-+{
-+	struct vm_area_struct *vma;
-+	int ret = 0;
-+
-+	i_mmap_lock_read(mapping);
-+	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
-+		struct mm_struct *mm = vma->vm_mm;
-+		pmd_t pmd, *pmdp = NULL;
-+		pte_t pte, *ptep = NULL;
-+		unsigned long address;
-+		spinlock_t *ptl;
-+
-+		address = pgoff_address(pgoff, vma);
-+
-+		ret = follow_pte_pmd(mm, address, &ptep, &pmdp, &ptl);
-+		if (ret)
-+			goto out;
-+
-+		if (pmdp) {
-+			flush_cache_page(vma, address, pmd_pfn(*pmdp));
-+			pmd = pmdp_huge_clear_flush(vma, address, pmdp);
-+			pmd = pmd_wrprotect(pmd);
-+			pmd = pmd_mkclean(pmd);
-+			set_pmd_at(mm, address, pmdp, pmd);
-+			spin_unlock(ptl);
-+		} else {
-+			BUG_ON(!ptep);
-+			flush_cache_page(vma, address, pte_pfn(*ptep));
-+			pte = ptep_clear_flush(vma, address, ptep);
-+			pte = pte_wrprotect(pte);
-+			pte = pte_mkclean(pte);
-+			set_pte_at(mm, address, ptep, pte);
-+			pte_unmap_unlock(ptep, ptl);
-+		}
-+	}
-+
-+ out:
-+	i_mmap_unlock_read(mapping);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(pgoff_mkclean);
-+
- /**
-  * page_move_anon_rmap - move a page to our anon_vma
-  * @page:	the page to move to our anon_vma
--- 
-2.1.0
+The quick and easy workaround for this is to do a "return VM_FAULT_FALLBACK;"
+at the beginning of __dax_pmd_fault() to just turn off PMD faults while we
+rework the locking for v4.4.  This saves us reverting and re-adding all the
+PMD code, and will let us ship v4.3 without known deadlocks.
+
+Other better ideas?
+
+- Ross
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
