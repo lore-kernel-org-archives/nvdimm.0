@@ -1,68 +1,42 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 1/3] Revert "dax: fix NULL pointer in __dax_pmd_fault()"
-Date: Fri,  2 Oct 2015 15:02:30 -0600
-Message-Id: <1443819752-17091-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1443819752-17091-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1443819752-17091-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Subject: [PATCH v3 0/3]  Revert locking changes in DAX for v4.3
+Date: Mon,  5 Oct 2015 14:32:51 -0600
+Message-Id: <1444077174-22016-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
 To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <dchinner@redhat.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This reverts commit 8346c416d17bf5b4ea1508662959bb62e73fd6a5.
-
-This commit did fix the issue it intended to fix, but it turns out that
-the locking changes introduced by these two commits:
+This series reverts some recent changes to the locking scheme in DAX introduced
+by these two commits:
 
 commit 843172978bb9 ("dax: fix race between simultaneous faults")
 commit 46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
 
-had other issues as well, so they need to just be reverted.
+It also temporarily disables the newly added DAX PMD fault path because of a
+deadlock. We are re-working the way that DAX does its locking for v4.4, so for
+now just disable DAX PMD faults and fall back to PAGE_SIZE faults to make sure
+we don't hit this deadlock.
 
-The list of issues in DAX after these commits (some newly introduced by
-the commits, some preexisting) can be found here:
+Changes from v2:
+ - Temporarily disable the DAX PMD fault path while we re-work DAX locking for
+   v4.4.
 
-https://lkml.org/lkml/2015/9/25/602
+Ross Zwisler (3):
+  Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
+  Revert "dax: fix race between simultaneous faults"
+  dax: temporarily disable DAX PMD fault path
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ fs/dax.c    | 90 ++++++++++++++++++++++++++++---------------------------------
+ mm/memory.c |  2 ++
+ 2 files changed, 43 insertions(+), 49 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index bcfb14b..7ae6df7 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -569,20 +569,8 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
- 		goto fallback;
- 
--	sector = bh.b_blocknr << (blkbits - 9);
--
- 	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
- 		int i;
--
--		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
--						bh.b_size);
--		if (length < 0) {
--			result = VM_FAULT_SIGBUS;
--			goto out;
--		}
--		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
--			goto fallback;
--
- 		for (i = 0; i < PTRS_PER_PMD; i++)
- 			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
- 		wmb_pmem();
-@@ -635,6 +623,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		result = VM_FAULT_NOPAGE;
- 		spin_unlock(ptl);
- 	} else {
-+		sector = bh.b_blocknr << (blkbits - 9);
- 		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
- 						bh.b_size);
- 		if (length < 0) {
 -- 
 2.1.0
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
