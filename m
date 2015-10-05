@@ -1,160 +1,149 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v2 04/20] mm: introduce __get_dev_pagemap()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Oct 2015 20:55:44 -0400
-Message-ID: <20151010005544.17221.69747.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 1/3] Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
+Date: Mon,  5 Oct 2015 14:32:52 -0600
+Message-Id: <1444077174-22016-2-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1444077174-22016-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1444077174-22016-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, ross.zwisler@linux.intel.com, Andrew Morton <akpm@linux-foundation.org>, hch@lst.de
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-There are several scenarios where we need to retrieve and update
-metadata associated with a given devm_memremap_pages() mapping, and the
-only lookup key available is a pfn in the range:
+This reverts commits 46c043ede4711e8d598b9d63c5616c1fedb0605e
+and 8346c416d17bf5b4ea1508662959bb62e73fd6a5.
 
-1/ We want to augment vmemmap_populate() (called via arch_add_memory())
-   to allocate memmap storage from pre-allocated pages reserved by the
-   device driver.  At vmemmap_alloc_block_buf() time it grabs device pages
-   rather than page allocator pages.  This is in support of
-   devm_memremap_pages() mappings where the memmap is too large to fit in
-   main memory (i.e. large persistent memory devices).
+The following two locking commits in the DAX code:
 
-2/ Taking a reference against the mapping when inserting device pages
-   into the address_space radix of a given inode.  This facilitates
-   unmap_mapping_range() and truncate_inode_pages() operations when the
-   driver is tearing down the mapping.
+commit 843172978bb9 ("dax: fix race between simultaneous faults")
+commit 46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
 
-3/ get_user_pages() operations on ZONE_DEVICE memory require taking a
-   reference against the mapping so that the driver teardown path can
-   revoke and drain usage of device pages.
+introduced a number of deadlocks and other issues, and need to be
+reverted for the v4.3 kernel. The list of issues in DAX after these
+commits (some newly introduced by the commits, some preexisting) can be
+found here:
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+https://lkml.org/lkml/2015/9/25/602
+
+This revert keeps the PMEM API changes to the zeroing code in
+__dax_pmd_fault(), which were added by this commit:
+
+commit d77e92e270ed ("dax: update PMD fault handler with PMEM API")
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- include/linux/mm.h |   18 ++++++++++++++++++
- kernel/memremap.c  |   40 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 58 insertions(+)
+ fs/dax.c    | 50 ++++++++++++++++++--------------------------------
+ mm/memory.c | 11 +++++++++--
+ 2 files changed, 27 insertions(+), 34 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 80001de019ba..30c3c8764649 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -717,6 +717,24 @@ static inline enum zone_type page_zonenum(const struct page *page)
- 	return (page->flags >> ZONES_PGSHIFT) & ZONES_MASK;
- }
+diff --git a/fs/dax.c b/fs/dax.c
+index bcfb14b..de3f53e 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -569,38 +569,6 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
+ 		goto fallback;
  
-+/**
-+ * struct dev_pagemap - metadata for ZONE_DEVICE mappings
-+ * @dev: host device of the mapping for debug
-+ */
-+struct dev_pagemap {
-+	/* TODO: vmem_altmap and percpu_ref count */
-+	struct device *dev;
-+};
-+
-+#ifdef CONFIG_ZONE_DEVICE
-+struct dev_pagemap *__get_dev_pagemap(resource_size_t phys);
-+#else
-+static inline struct dev_pagemap *get_dev_pagemap(resource_size_t phys)
-+{
-+	return NULL;
-+}
-+#endif
-+
- #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- #define SECTION_IN_PAGE_FLAGS
- #endif
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 3218e8b1fc28..64bfd9fa93aa 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -10,6 +10,7 @@
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-  */
-+#include <linux/rculist.h>
- #include <linux/device.h>
- #include <linux/types.h>
- #include <linux/io.h>
-@@ -138,18 +139,52 @@ void devm_memunmap(struct device *dev, void *addr)
- EXPORT_SYMBOL(devm_memunmap);
+-	sector = bh.b_blocknr << (blkbits - 9);
+-
+-	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+-		int i;
+-
+-		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
+-						bh.b_size);
+-		if (length < 0) {
+-			result = VM_FAULT_SIGBUS;
+-			goto out;
+-		}
+-		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
+-			goto fallback;
+-
+-		for (i = 0; i < PTRS_PER_PMD; i++)
+-			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
+-		wmb_pmem();
+-		count_vm_event(PGMAJFAULT);
+-		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+-		result |= VM_FAULT_MAJOR;
+-	}
+-
+-	/*
+-	 * If we allocated new storage, make sure no process has any
+-	 * zero pages covering this hole
+-	 */
+-	if (buffer_new(&bh)) {
+-		i_mmap_unlock_write(mapping);
+-		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
+-		i_mmap_lock_write(mapping);
+-	}
+-
+ 	/*
+ 	 * If a truncate happened while we were allocating blocks, we may
+ 	 * leave blocks allocated to the file that are beyond EOF.  We can't
+@@ -615,6 +583,13 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	if ((pgoff | PG_PMD_COLOUR) >= size)
+ 		goto fallback;
  
- #ifdef CONFIG_ZONE_DEVICE
-+static LIST_HEAD(ranges);
-+static DEFINE_SPINLOCK(range_lock);
++	/*
++	 * If we allocated new storage, make sure no process has any
++	 * zero pages covering this hole
++	 */
++	if (buffer_new(&bh))
++		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
 +
- struct page_map {
- 	struct resource res;
-+	struct dev_pagemap pgmap;
-+	struct list_head list;
- };
+ 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
+ 		spinlock_t *ptl;
+ 		pmd_t entry;
+@@ -635,6 +610,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		result = VM_FAULT_NOPAGE;
+ 		spin_unlock(ptl);
+ 	} else {
++		sector = bh.b_blocknr << (blkbits - 9);
+ 		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
+ 						bh.b_size);
+ 		if (length < 0) {
+@@ -644,6 +620,16 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
+ 			goto fallback;
  
-+static void add_page_map(struct page_map *page_map)
-+{
-+	spin_lock(&range_lock);
-+	list_add_rcu(&page_map->list, &ranges);
-+	spin_unlock(&range_lock);
-+}
++		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
++			int i;
++			for (i = 0; i < PTRS_PER_PMD; i++)
++				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
++			wmb_pmem();
++			count_vm_event(PGMAJFAULT);
++			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
++			result |= VM_FAULT_MAJOR;
++		}
 +
-+static void del_page_map(struct page_map *page_map)
-+{
-+	spin_lock(&range_lock);
-+	list_del_rcu(&page_map->list);
-+	spin_unlock(&range_lock);
-+}
-+
- static void devm_memremap_pages_release(struct device *dev, void *res)
- {
- 	struct page_map *page_map = res;
- 
-+	del_page_map(page_map);
-+
- 	/* pages are dead and unused, undo the arch mapping */
- 	arch_remove_memory(page_map->res.start, resource_size(&page_map->res));
- }
- 
-+/* assumes rcu_read_lock() held at entry */
-+struct dev_pagemap *__get_dev_pagemap(resource_size_t phys)
-+{
-+	struct page_map *page_map;
-+
-+	WARN_ON_ONCE(!rcu_read_lock_held());
-+
-+	list_for_each_entry_rcu(page_map, &ranges, list)
-+		if (phys >= page_map->res.start && phys <= page_map->res.end)
-+			return &page_map->pgmap;
-+	return NULL;
-+}
-+
- void *devm_memremap_pages(struct device *dev, struct resource *res)
- {
- 	int is_ram = region_intersects(res->start, resource_size(res),
-@@ -173,12 +208,17 @@ void *devm_memremap_pages(struct device *dev, struct resource *res)
- 
- 	memcpy(&page_map->res, res, sizeof(*res));
- 
-+	page_map->pgmap.dev = dev;
-+	INIT_LIST_HEAD(&page_map->list);
-+	add_page_map(page_map);
-+
- 	nid = dev_to_node(dev);
- 	if (nid < 0)
- 		nid = numa_mem_id();
- 
- 	error = arch_add_memory(nid, res->start, resource_size(res), true);
- 	if (error) {
-+		del_page_map(page_map);
- 		devres_free(page_map);
- 		return ERR_PTR(error);
+ 		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
  	}
+ 
+diff --git a/mm/memory.c b/mm/memory.c
+index 9cb2747..5ec066f 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2426,10 +2426,17 @@ void unmap_mapping_range(struct address_space *mapping,
+ 	if (details.last_index < details.first_index)
+ 		details.last_index = ULONG_MAX;
+ 
+-	i_mmap_lock_write(mapping);
++
++	/*
++	 * DAX already holds i_mmap_lock to serialise file truncate vs
++	 * page fault and page fault vs page fault.
++	 */
++	if (!IS_DAX(mapping->host))
++		i_mmap_lock_write(mapping);
+ 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
+ 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
+-	i_mmap_unlock_write(mapping);
++	if (!IS_DAX(mapping->host))
++		i_mmap_unlock_write(mapping);
+ }
+ EXPORT_SYMBOL(unmap_mapping_range);
+ 
+-- 
+2.1.0
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
