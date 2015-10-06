@@ -1,122 +1,62 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 1/3] resource: Add @flags to region_intersects()
-Date: Thu, 22 Oct 2015 17:20:42 -0600
-Message-Id: <1445556044-30322-2-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1445556044-30322-1-git-send-email-toshi.kani@hpe.com>
-References: <1445556044-30322-1-git-send-email-toshi.kani@hpe.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <CACVXFVO0v5nAbzY_h72P8vHWvtnw3ctRt8TKhgxRPeK1nGKonA@mail.gmail.com>
+References: <20150930002927.37133.331.stgit@dwillia2-desk3.jf.intel.com>
+	<20150930004130.37133.73852.stgit@dwillia2-desk3.jf.intel.com>
+	<CACVXFVNRzR0339Zq7TG32Z1WboehAvGuaPeijW1t9AjRvLZrBQ@mail.gmail.com>
+	<CAPcyv4gbE74iO3EsdXjdDS6jtdwsojYs8KJxYgnbKnuY0VNQUg@mail.gmail.com>
+	<CACVXFVO0v5nAbzY_h72P8vHWvtnw3ctRt8TKhgxRPeK1nGKonA@mail.gmail.com>
+Date: Tue, 6 Oct 2015 09:04:22 -0700
+Message-ID: <CAPcyv4ijAvdvLzynpsrtcG0-XZvgAQ67GZV5q0=jrnpLxGR5uQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] block: generic request_queue reference counting
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Christoph Hellwig <hch@lst.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-region_intersects() checks if a specified region partially overlaps
-or fully eclipses a resource identified by @name.  It currently sets
-resource flags statically, which prevents the caller from specifying
-a non-RAM region, such as persistent memory.  Add @flags so that
-any region can be specified to the function.
+On Tue, Oct 6, 2015 at 3:46 AM, Ming Lei <tom.leiming@gmail.com> wrote:
+> On Tue, Oct 6, 2015 at 7:23 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+>> On Sun, Oct 4, 2015 at 12:52 AM, Ming Lei <tom.leiming@gmail.com> wrote:
+>>> On Wed, Sep 30, 2015 at 8:41 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+>>>> Allow pmem, and other synchronous/bio-based block drivers, to fallback
+>>>
+>>> Just a bit curious, why not extend it for all(both synchronous and
+>>> asynchrounous) bio-based drivers? As you mentioned in introductory
+>>> message, all bio based drivers may have this kind of problem.
+>>>
+>>> One idea I thought of is to hold the usage counter in bio life time,
+>>> instead of request's life time like in blk-mq.
+>>>
+>>>> on a per-cpu reference count managed by the core for tracking queue
+>>>> live/dead state.
+>>>>
+>>>> The existing per-cpu reference count for the blk_mq case is promoted to
+>>>> be used in all block i/o scenarios.  This involves initializing it by
+>>>> default, waiting for it to drop to zero at exit, and holding a live
+>>>> reference over the invocation of q->make_request_fn() in
+>>>
+>>> It isn't enough for asynchrounous bio drivers.
+>>
+>> True, but I think that support is a follow on extension of the
+>> mechanism.  It seems to me not as straightforward as holding a
+>> per-request reference or a reference over the submission path.
+>
+> Given it is a general problem for all bio based drivers, it seems
+> better to figure out one general solution instead of the partial fix
+> only for synchrounous bio based drivers.
+>
+> IMO, it should work by holding the usage counter in BIO's lifetime,
+> for example, getting it before calling q->make_request_fn(q, bio), and
+> putting it after bio's completion(in bio_endio()).  Even though there is
+> still a small window between all bio's completion and all request's
+> completion, and it should have been addressed easily for both
+> !mq_ops and mq_ops.
 
-A helper function, region_intersects_ram(), is added so that the
-callers that check a RAM region do not have to specify its iomem
-resource name and flags.
-
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
----
- include/linux/mm.h |    4 +++-
- kernel/memremap.c  |    5 ++---
- kernel/resource.c  |   22 +++++++++++++++-------
- 3 files changed, 20 insertions(+), 11 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 80001de..699224e 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -358,7 +358,9 @@ enum {
- 	REGION_MIXED,
- };
- 
--int region_intersects(resource_size_t offset, size_t size, const char *type);
-+int region_intersects(resource_size_t offset, size_t size, const char *type,
-+			unsigned long flags);
-+int region_intersects_ram(resource_size_t offset, size_t size);
- 
- /* Support for virtually mapped pages */
- struct page *vmalloc_to_page(const void *addr);
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 72b0c66..2157ea5 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -47,7 +47,7 @@ __weak void __iomem *ioremap_cache(resource_size_t offset, unsigned long size)
-  */
- void *memremap(resource_size_t offset, size_t size, unsigned long flags)
- {
--	int is_ram = region_intersects(offset, size, "System RAM");
-+	int is_ram = region_intersects_ram(offset, size);
- 	void *addr = NULL;
- 
- 	if (is_ram == REGION_MIXED) {
-@@ -152,8 +152,7 @@ static void devm_memremap_pages_release(struct device *dev, void *res)
- 
- void *devm_memremap_pages(struct device *dev, struct resource *res)
- {
--	int is_ram = region_intersects(res->start, resource_size(res),
--			"System RAM");
-+	int is_ram = region_intersects_ram(res->start, resource_size(res));
- 	struct page_map *page_map;
- 	int error, nid;
- 
-diff --git a/kernel/resource.c b/kernel/resource.c
-index f150dbb..8a77ed8 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -497,6 +497,7 @@ EXPORT_SYMBOL_GPL(page_is_ram);
-  * @start: region start address
-  * @size: size of region
-  * @name: name of resource (in iomem_resource)
-+ * @flags: flags of resource (in iomem_resource)
-  *
-  * Check if the specified region partially overlaps or fully eclipses a
-  * resource identified by @name.  Return REGION_DISJOINT if the region
-@@ -504,15 +505,11 @@ EXPORT_SYMBOL_GPL(page_is_ram);
-  * @type and another resource, and return REGION_INTERSECTS if the
-  * region overlaps @type and no other defined resource. Note, that
-  * REGION_INTERSECTS is also returned in the case when the specified
-- * region overlaps RAM and undefined memory holes.
-- *
-- * region_intersect() is used by memory remapping functions to ensure
-- * the user is not remapping RAM and is a vast speed up over walking
-- * through the resource table page by page.
-+ * region overlaps with undefined memory holes.
-  */
--int region_intersects(resource_size_t start, size_t size, const char *name)
-+int region_intersects(resource_size_t start, size_t size, const char *name,
-+			unsigned long flags)
- {
--	unsigned long flags = IORESOURCE_MEM | IORESOURCE_BUSY;
- 	resource_size_t end = start + size - 1;
- 	int type = 0; int other = 0;
- 	struct resource *p;
-@@ -539,6 +536,17 @@ int region_intersects(resource_size_t start, size_t size, const char *name)
- 	return REGION_DISJOINT;
- }
- 
-+/*
-+ * region_intersect_ram() is used by memory remapping functions to ensure
-+ * the user is not remapping RAM and is a vast speed up over walking
-+ * through the resource table page by page.
-+ */
-+int region_intersects_ram(resource_size_t start, size_t size)
-+{
-+	return region_intersects(start, size, "System RAM",
-+				 IORESOURCE_MEM | IORESOURCE_BUSY);
-+}
-+
- void __weak arch_remove_reservations(struct resource *avail)
- {
- }
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I'm not convinced it is that simple, i.e. that all bio_endio()
+invocations are guaranteed to have a 1:1 matching invocation through
+generic_make_request().  If you want to help with that audit I'd be
+appreciative and open to putting together a follow-on patch.  In the
+meantime this starting point already makes things better for pmem,
+nd_blk, brd, etc...
