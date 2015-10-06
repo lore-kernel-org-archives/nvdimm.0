@@ -1,62 +1,56 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <CACVXFVO0v5nAbzY_h72P8vHWvtnw3ctRt8TKhgxRPeK1nGKonA@mail.gmail.com>
+In-Reply-To: <CAPcyv4gbE74iO3EsdXjdDS6jtdwsojYs8KJxYgnbKnuY0VNQUg@mail.gmail.com>
 References: <20150930002927.37133.331.stgit@dwillia2-desk3.jf.intel.com>
 	<20150930004130.37133.73852.stgit@dwillia2-desk3.jf.intel.com>
 	<CACVXFVNRzR0339Zq7TG32Z1WboehAvGuaPeijW1t9AjRvLZrBQ@mail.gmail.com>
 	<CAPcyv4gbE74iO3EsdXjdDS6jtdwsojYs8KJxYgnbKnuY0VNQUg@mail.gmail.com>
-	<CACVXFVO0v5nAbzY_h72P8vHWvtnw3ctRt8TKhgxRPeK1nGKonA@mail.gmail.com>
-Date: Tue, 6 Oct 2015 09:04:22 -0700
-Message-ID: <CAPcyv4ijAvdvLzynpsrtcG0-XZvgAQ67GZV5q0=jrnpLxGR5uQ@mail.gmail.com>
+Date: Tue, 6 Oct 2015 18:46:52 +0800
+Message-ID: <CACVXFVO0v5nAbzY_h72P8vHWvtnw3ctRt8TKhgxRPeK1nGKonA@mail.gmail.com>
 Subject: Re: [PATCH 1/2] block: generic request_queue reference counting
-From: Dan Williams <dan.j.williams@intel.com>
+From: Ming Lei <tom.leiming@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Christoph Hellwig <hch@lst.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Oct 6, 2015 at 3:46 AM, Ming Lei <tom.leiming@gmail.com> wrote:
-> On Tue, Oct 6, 2015 at 7:23 AM, Dan Williams <dan.j.williams@intel.com> wrote:
->> On Sun, Oct 4, 2015 at 12:52 AM, Ming Lei <tom.leiming@gmail.com> wrote:
->>> On Wed, Sep 30, 2015 at 8:41 AM, Dan Williams <dan.j.williams@intel.com> wrote:
->>>> Allow pmem, and other synchronous/bio-based block drivers, to fallback
->>>
->>> Just a bit curious, why not extend it for all(both synchronous and
->>> asynchrounous) bio-based drivers? As you mentioned in introductory
->>> message, all bio based drivers may have this kind of problem.
->>>
->>> One idea I thought of is to hold the usage counter in bio life time,
->>> instead of request's life time like in blk-mq.
->>>
->>>> on a per-cpu reference count managed by the core for tracking queue
->>>> live/dead state.
->>>>
->>>> The existing per-cpu reference count for the blk_mq case is promoted to
->>>> be used in all block i/o scenarios.  This involves initializing it by
->>>> default, waiting for it to drop to zero at exit, and holding a live
->>>> reference over the invocation of q->make_request_fn() in
->>>
->>> It isn't enough for asynchrounous bio drivers.
+On Tue, Oct 6, 2015 at 7:23 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Sun, Oct 4, 2015 at 12:52 AM, Ming Lei <tom.leiming@gmail.com> wrote:
+>> On Wed, Sep 30, 2015 at 8:41 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+>>> Allow pmem, and other synchronous/bio-based block drivers, to fallback
 >>
->> True, but I think that support is a follow on extension of the
->> mechanism.  It seems to me not as straightforward as holding a
->> per-request reference or a reference over the submission path.
+>> Just a bit curious, why not extend it for all(both synchronous and
+>> asynchrounous) bio-based drivers? As you mentioned in introductory
+>> message, all bio based drivers may have this kind of problem.
+>>
+>> One idea I thought of is to hold the usage counter in bio life time,
+>> instead of request's life time like in blk-mq.
+>>
+>>> on a per-cpu reference count managed by the core for tracking queue
+>>> live/dead state.
+>>>
+>>> The existing per-cpu reference count for the blk_mq case is promoted to
+>>> be used in all block i/o scenarios.  This involves initializing it by
+>>> default, waiting for it to drop to zero at exit, and holding a live
+>>> reference over the invocation of q->make_request_fn() in
+>>
+>> It isn't enough for asynchrounous bio drivers.
 >
-> Given it is a general problem for all bio based drivers, it seems
-> better to figure out one general solution instead of the partial fix
-> only for synchrounous bio based drivers.
->
-> IMO, it should work by holding the usage counter in BIO's lifetime,
-> for example, getting it before calling q->make_request_fn(q, bio), and
-> putting it after bio's completion(in bio_endio()).  Even though there is
-> still a small window between all bio's completion and all request's
-> completion, and it should have been addressed easily for both
-> !mq_ops and mq_ops.
+> True, but I think that support is a follow on extension of the
+> mechanism.  It seems to me not as straightforward as holding a
+> per-request reference or a reference over the submission path.
 
-I'm not convinced it is that simple, i.e. that all bio_endio()
-invocations are guaranteed to have a 1:1 matching invocation through
-generic_make_request().  If you want to help with that audit I'd be
-appreciative and open to putting together a follow-on patch.  In the
-meantime this starting point already makes things better for pmem,
-nd_blk, brd, etc...
+Given it is a general problem for all bio based drivers, it seems
+better to figure out one general solution instead of the partial fix
+only for synchrounous bio based drivers.
+
+IMO, it should work by holding the usage counter in BIO's lifetime,
+for example, getting it before calling q->make_request_fn(q, bio), and
+putting it after bio's completion(in bio_endio()).  Even though there is
+still a small window between all bio's completion and all request's
+completion, and it should have been addressed easily for both
+!mq_ops and mq_ops.
+
+thanks,
+Ming Lei
