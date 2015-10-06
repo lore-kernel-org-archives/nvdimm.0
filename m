@@ -1,61 +1,33 @@
 Return-Path: <owner-linux-mm@kvack.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [RFC 11/11] ext4: add ext4_dax_pfn_mkwrite()
-Date: Thu, 29 Oct 2015 14:12:15 -0600
-Message-Id: <1446149535-16200-12-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 0/2] Revert locking changes in DAX for v4.3
+Date: Tue,  6 Oct 2015 16:28:47 -0600
+Message-Id: <1444170529-12814-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
 To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add ext4_dax_pfn_mkwrite() that properly protects against freeze, sets
-the file update time and calls into dax_pfn_mkwrite() to add the newly
-dirtied page to the radix tree which tracks dirty DAX pages.
+This series reverts some recent changes to the locking scheme in DAX introduced
+by these two commits:
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/ext4/file.c | 22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+commit 843172978bb9 ("dax: fix race between simultaneous faults")
+commit 46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 54d7729..7f62cad 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -272,11 +272,31 @@ static int ext4_dax_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
- 				ext4_end_io_unwritten);
- }
- 
-+static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	struct inode *inode = file_inode(vma->vm_file);
-+	loff_t size;
-+	int ret;
-+
-+	sb_start_pagefault(inode->i_sb);
-+	file_update_time(vma->vm_file);
-+
-+	/* check that the faulting page hasn't raced with truncate */
-+	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	if (vmf->pgoff >= size)
-+		ret = VM_FAULT_SIGBUS;
-+	else
-+		ret = dax_pfn_mkwrite(vma, vmf);
-+
-+	sb_end_pagefault(inode->i_sb);
-+	return ret;
-+}
-+
- static const struct vm_operations_struct ext4_dax_vm_ops = {
- 	.fault		= ext4_dax_fault,
- 	.pmd_fault	= ext4_dax_pmd_fault,
- 	.page_mkwrite	= ext4_dax_mkwrite,
--	.pfn_mkwrite	= dax_pfn_mkwrite,
-+	.pfn_mkwrite	= ext4_dax_pfn_mkwrite,
- };
- #else
- #define ext4_dax_vm_ops	ext4_file_vm_ops
+Changes from v3:
+ - reduced the revert of 46c043ede471 in patch 1 so that we still drop the
+   mapping->i_mmap_rwsem before calling unmap_mapping_range().  This prevents
+   the deadlock in the __dax_pmd_fault() path so there is no longer a need to
+   temporarily disable DAX PMD faults.
+
+Ross Zwisler (2):
+  Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
+  Revert "dax: fix race between simultaneous faults"
+
+ fs/dax.c    | 70 +++++++++++++++++++++++++------------------------------------
+ mm/memory.c |  2 ++
+ 2 files changed, 31 insertions(+), 41 deletions(-)
+
 -- 
 2.1.0
 
