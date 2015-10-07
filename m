@@ -1,91 +1,37 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Dave Chinner <david@fromorbit.com>
-Subject: [PATCH 0/7] xfs, dax: fix the page fault/allocation mess
-Date: Thu,  1 Oct 2015 17:46:32 +1000
-Message-Id: <1443685599-4843-1-git-send-email-david@fromorbit.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-fsdevel@vger.kernel.org, ross.zwisler@linux.intel.com, willy@linux.intel.com, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, linux-nvdimm@lists.01.org, jack@suse.cz, linux-kernel@vger.kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v5] Fix DAX deadlocks for v4.3
+Date: Wed,  7 Oct 2015 16:58:48 -0600
+Message-Id: <1444258729-21974-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi folks,
+This was previously "Revert locking changes in DAX for v4.3".
 
-As discussed in the recent thread about problems with DAX locking:
+Undo some recent changes to the locking scheme in DAX introduced by these two
+commits:
 
-http://www.gossamer-threads.com/lists/linux/kernel/2264090?do=post_view_threaded
+commit 843172978bb9 ("dax: fix race between simultaneous faults")
+commit 46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
 
-I said that I'd post the patch set that fixed the problems for XFS
-as soon as I had something sane and workable. That's what this
-series is.
+Changes from v4:
+ - Collapsed two revert commits into a single fix commit.  No code changes were
+   made.
 
-To start with, it passes xfstests "auto" group with only the only
-failures being expected failures or failures due to unexpected
-allocation patterns or trying to use unsupported block sizes. That
-makes it better than any previous version of the XFS/DAX code.
+Ross Zwisler (1):
+  mm, dax: fix DAX deadlocks
 
-The patchset starts by reverting the two patches that were
-introduced in 4.3-rc1 to try to fix the fault vs fault and fault vs
-truncate races that caused deadlocks. This fixes the hangs in
-generic/075 that these patches introduced.
+ fs/dax.c    | 70 +++++++++++++++++++++++++------------------------------------
+ mm/memory.c |  2 ++
+ 2 files changed, 31 insertions(+), 41 deletions(-)
 
-Patch 3 enables XFS to handle the behaviour of DAX and DIO when
-asking to allocate the block at (2^63 - 1FSB), where the offset +
-count s technically illegal (larger than sb->s_maxbytes) and
-overflows a s64 variable. This is currently hidden by the fact that
-all DAX and DIO allocation is currently unwritten, but patch 5
-exposes it for DAX.
+-- 
+2.1.0
 
-Patch 4 introduces the ability for XFS to allocate physically zeroed
-data blocks. This is done for each physical extent that is
-allocated, deep inside the allocator itself and guaranteed to be
-atomic with the allocation transaction and hence has no
-crash+recovery exposure issues.
-
-This is necessary because the BMAPI layer merges allocated extents
-in the BMBT before it returns the mapped extent back to the high
-level get_blocks() code. Hence the high level code can have a single
-extent presented that is made of merged new and existing extents,
-and so zeroing can't be done at this layer.
-
-The advantage of driving the zeroing deep into the allocator is the
-functionality is now available to all XFS code. Hence we can
-allocate pre-zeroed blocks on any type of storage, and we can
-utilise storage-based hardware acceleration (e.g. discard to zero,
-WRITE_SAME, etc) to do the zeroing. From this POV, DAX is just
-another hardware accelerated physical zeroing mechanism for XFS. :)
-
-[ This is an example of the mantra I repeat a lot: solve the problem
-  properly the first time and it will make everything simpler! Sure,
-  it took me three attempts to work out how to solve it in a sane
-  manner, but that's pretty much par for the course with anything
-  non-trivial. ]
-
-Patch 5 makes __xfs_get_blocks() aware that it is being called from
-the DAX fault path and makes sure it returns zeroed blocks rather
-than unwritten extents via XFS_BMAPI_ZERO. It also now sets
-XFS_BMAPI_CONVERT, which tells it to convert unwritten extents to
-written, zeroed blocks. This is the major change of behaviour.
-
-Patch 6 removes the IO completion callbacks from the XFS DAX code as
-they are not longer necessary after patch 5.
-
-Patch 7 adds pfn_mkwrite support to XFS. This is needed to fix
-generic/080, which detects a failure to update the inode timestamp
-on a pfn fault. It also adds the same locking as the XFS
-implementation of ->fault and ->page_mkwrite and hence provide
-correct serialisation against truncate, hole punching, etc that
-doesn't currently exist.
-
-The next steps that are needed are to do the same "block zeroing
-during allocation" to ext4, and then the block zeroing and
-complete_unwritten callbacks can be removed from the DAX API and
-code. I've had a breif look at the ext4 code - the block zeroing
-should be able to be done by overloading the existing zeroout code
-that ext4 has in the unwritten extent allocation code. I'd much
-prefer that an ext4 expert does this work, and then we can clean up
-the DAX code...
-
-Cheers,
-
-Dave.
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
