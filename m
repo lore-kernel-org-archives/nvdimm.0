@@ -1,42 +1,50 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 0/3]  Revert locking changes in DAX for v4.3
-Date: Mon,  5 Oct 2015 14:32:51 -0600
-Message-Id: <1444077174-22016-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <20151002175127.GH107187@google.com>
+References: <20150725023649.8664.59145.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150725023945.8664.34842.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20151002175127.GH107187@google.com>
+Date: Fri, 9 Oct 2015 14:33:22 -0700
+Message-ID: <CAPcyv4hVNykjWbmdpm4rN3Kf7GNPzNXxxH0jriMe2fpjNJYukg@mail.gmail.com>
+Subject: Re: [PATCH v2 19/25] pxa2xx-flash: switch from ioremap_cache to memremap
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-arch@vger.kernel.org, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Christoph Hellwig <hch@lst.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-mtd@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This series reverts some recent changes to the locking scheme in DAX introduced
-by these two commits:
+On Fri, Oct 2, 2015 at 10:51 AM, Brian Norris
+<computersforpeace@gmail.com> wrote:
+> + linux-mtd
+>
+> On Fri, Jul 24, 2015 at 10:39:45PM -0400, Dan Williams wrote:
+>> In preparation for deprecating ioremap_cache() convert its usage in
+>> pxa2xx-flash to memremap.
+>>
+>> Cc: David Woodhouse <dwmw2@infradead.org>
+>> Cc: Brian Norris <computersforpeace@gmail.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  drivers/mtd/maps/pxa2xx-flash.c |    4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/mtd/maps/pxa2xx-flash.c b/drivers/mtd/maps/pxa2xx-flash.c
+>> index 12fa75df5008..758a8a7f86d9 100644
+>> --- a/drivers/mtd/maps/pxa2xx-flash.c
+>> +++ b/drivers/mtd/maps/pxa2xx-flash.c
+>> @@ -71,8 +71,8 @@ static int pxa2xx_flash_probe(struct platform_device *pdev)
+>>                      info->map.name);
+>>               return -ENOMEM;
+>>       }
+>> -     info->map.cached =
+>> -             ioremap_cache(info->map.phys, info->map.size);
+>> +     info->map.cached = memremap(info->map.phys, info->map.size,
+>> +                     MEMREMAP_CACHE);
+>
+> Should the corresponding iounmap() be changed too? Looks like a pretty
+> thin wrapper right now, but it seems like the API would suggest we do
+> this anyway.
+>
 
-commit 843172978bb9 ("dax: fix race between simultaneous faults")
-commit 46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
-
-It also temporarily disables the newly added DAX PMD fault path because of a
-deadlock. We are re-working the way that DAX does its locking for v4.4, so for
-now just disable DAX PMD faults and fall back to PAGE_SIZE faults to make sure
-we don't hit this deadlock.
-
-Changes from v2:
- - Temporarily disable the DAX PMD fault path while we re-work DAX locking for
-   v4.4.
-
-Ross Zwisler (3):
-  Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
-  Revert "dax: fix race between simultaneous faults"
-  dax: temporarily disable DAX PMD fault path
-
- fs/dax.c    | 90 ++++++++++++++++++++++++++++---------------------------------
- mm/memory.c |  2 ++
- 2 files changed, 43 insertions(+), 49 deletions(-)
-
--- 
-2.1.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Yes, thanks for that catch, addressed in the next rev.
