@@ -1,76 +1,74 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 2/5] dax: increase granularity of dax_clear_blocks()
- operations
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 22 Oct 2015 02:41:54 -0400
-Message-ID: <20151022064154.12700.90545.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20151022064142.12700.11849.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20151022064142.12700.11849.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@fb.com
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, ross.zwisler@linux.intel.com, willy@linux.intel.com, akpm@linux-foundation.org, hch@lst.de
+In-Reply-To: <5615A31D.60800@deltatee.com>
+References: <20150923043737.36490.70547.stgit@dwillia2-desk3.jf.intel.com>
+	<20150923044206.36490.79829.stgit@dwillia2-desk3.jf.intel.com>
+	<5615A31D.60800@deltatee.com>
+Date: Fri, 9 Oct 2015 14:12:26 -0700
+Message-ID: <CAPcyv4itVeM+9jkEN_wYHFWHLJEBbhm0M_L-MYOQfqJ1ta-TGw@mail.gmail.com>
+Subject: Re: [PATCH 10/15] block, dax: fix lifetime of in-kernel dax mappings
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: owner-linux-mm@kvack.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Stephen Bates <Stephen.Bates@pmcs.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_clear_blocks is currently performing a cond_resched() after every
-PAGE_SIZE memset.  We need not check so frequently, for example md-raid
-only calls cond_resched() at stripe granularity.  Also, in preparation
-for introducing a dax_map_atomic() operation that temporarily pins a dax
-mapping move the call to cond_resched() to the outer loop.
+On Wed, Oct 7, 2015 at 3:56 PM, Logan Gunthorpe <logang@deltatee.com> wrote:
+> Hi Dan,
+>
+> We've uncovered another issue during testing with these patches. We get a
+> kernel panic sometimes just while using a DAX filesystem. I've traced the
+> issue back to this patch. (There's a stack trace at the end of this email.)
+>
+> On 22/09/15 10:42 PM, Dan Williams wrote:
+>>
+>> +static void dax_unmap_bh(const struct buffer_head *bh, void __pmem *addr)
+>> +{
+>> +       struct block_device *bdev = bh->b_bdev;
+>> +       struct request_queue *q = bdev->bd_queue;
+>> +
+>> +       if (IS_ERR(addr))
+>> +               return;
+>> +       blk_dax_put(q);
+>>   }
+>>
+>> @@ -127,9 +159,8 @@ static ssize_t dax_io(struct inode *inode, struct
+>> iov_iter *iter,
+>>                         if (pos == bh_max) {
+>>                                 bh->b_size = PAGE_ALIGN(end - pos);
+>>                                 bh->b_state = 0;
+>> -                               retval = get_block(inode, block, bh,
+>> -                                                  iov_iter_rw(iter) ==
+>> WRITE);
+>> -                               if (retval)
+>> +                               rc = get_block(inode, block, bh, rw ==
+>> WRITE);
+>> +                               if (rc)
+>>                                         break;
+>>                                 if (!buffer_size_valid(bh))
+>>                                         bh->b_size = 1 << blkbits;
+>> @@ -178,8 +213,9 @@ static ssize_t dax_io(struct inode *inode, struct
+>> iov_iter *iter,
+>>
+>>         if (need_wmb)
+>>                 wmb_pmem();
+>> +       dax_unmap_bh(bh, kmap);
+>>
+>> -       return (pos == start) ? retval : pos - start;
+>> +       return (pos == start) ? rc : pos - start;
+>>   }
+>
+>
+> The problem is if get_block fails and returns an error code, it will still
+> call dax_unmap_bh which tries to dereference bh->b_bdev. However, seeing
+> get_block failed, that pointer is NULL. Maybe a null check in dax_unmap_bh
+> would be sufficient?
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+Thanks for the report, I have this fixed up in v2.  Will post shortly.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 5dc33d788d50..f8e543839e5c 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -28,6 +28,7 @@
- #include <linux/sched.h>
- #include <linux/uio.h>
- #include <linux/vmstat.h>
-+#include <linux/sizes.h>
- 
- int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- {
-@@ -38,24 +39,20 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- 	do {
- 		void __pmem *addr;
- 		unsigned long pfn;
--		long count;
-+		long count, sz;
- 
--		count = bdev_direct_access(bdev, sector, &addr, &pfn, size);
-+		sz = min_t(long, size, SZ_1M);
-+		count = bdev_direct_access(bdev, sector, &addr, &pfn, sz);
- 		if (count < 0)
- 			return count;
--		BUG_ON(size < count);
--		while (count > 0) {
--			unsigned pgsz = PAGE_SIZE - offset_in_page(addr);
--			if (pgsz > count)
--				pgsz = count;
--			clear_pmem(addr, pgsz);
--			addr += pgsz;
--			size -= pgsz;
--			count -= pgsz;
--			BUG_ON(pgsz & 511);
--			sector += pgsz / 512;
--			cond_resched();
--		}
-+		if (count < sz)
-+			sz = count;
-+		clear_pmem(addr, sz);
-+		addr += sz;
-+		size -= sz;
-+		BUG_ON(sz & 511);
-+		sector += sz / 512;
-+		cond_resched();
- 	} while (size);
- 
- 	wmb_pmem();
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
