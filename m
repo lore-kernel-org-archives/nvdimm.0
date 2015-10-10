@@ -1,115 +1,170 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Dave Chinner <david@fromorbit.com>
-Subject: [PATCH 6/7] xfs: DAX does not use IO completion callbacks
-Date: Thu,  1 Oct 2015 17:46:38 +1000
-Message-Id: <1443685599-4843-7-git-send-email-david@fromorbit.com>
-In-Reply-To: <1443685599-4843-1-git-send-email-david@fromorbit.com>
-References: <1443685599-4843-1-git-send-email-david@fromorbit.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-fsdevel@vger.kernel.org, ross.zwisler@linux.intel.com, willy@linux.intel.com, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, linux-nvdimm@lists.01.org, jack@suse.cz, linux-kernel@vger.kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v2 18/20] block: notify queue death confirmation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 09 Oct 2015 20:57:00 -0400
+Message-ID: <20151010005700.17221.88874.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: Jens Axboe <axboe@kernel.dk>, linux-mm@kvack.org, ross.zwisler@linux.intel.com, hch@lst.de, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dave Chinner <dchinner@redhat.com>
+The pmem driver arranges for references to be taken against the queue
+while pages it allocated via devm_memremap_pages() are in use.  At
+shutdown time, before those pages can be deallocated, they need to be
+truncated, unmapped, and guaranteed to be idle.  Scanning the pages to
+initiate truncation can only be done once we are certain no new page
+references will be taken.  Once the blk queue percpu_ref is confirmed
+dead __get_dev_pagemap() will cease allowing new references and we can
+reclaim these "device" pages.
 
-For DAX, we are now doing block zeroing and
-we are updating the file size during allocation. This means we no
-longer need an IO completion callback to do these things, so remove
-the completion callbacks from the __dax_fault and __dax_mkwrite
-calls.
-
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/xfs_aops.c | 39 ---------------------------------------
- fs/xfs/xfs_aops.h |  1 -
- fs/xfs/xfs_file.c |  5 ++---
- 3 files changed, 2 insertions(+), 43 deletions(-)
+ block/blk-core.c       |   12 +++++++++---
+ block/blk-mq.c         |   19 +++++++++++++++----
+ include/linux/blkdev.h |    4 +++-
+ 3 files changed, 27 insertions(+), 8 deletions(-)
 
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index df3dabd..69c2dbc 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -1657,45 +1657,6 @@ xfs_end_io_direct_write(
- 	__xfs_end_io_direct_write(inode, ioend, offset, size);
+diff --git a/block/blk-core.c b/block/blk-core.c
+index 9b4d735cb5b8..74aaa208a8e9 100644
+--- a/block/blk-core.c
++++ b/block/blk-core.c
+@@ -516,6 +516,12 @@ void blk_set_queue_dying(struct request_queue *q)
+ }
+ EXPORT_SYMBOL_GPL(blk_set_queue_dying);
+ 
++void blk_wait_queue_dead(struct request_queue *q)
++{
++	wait_event(q->q_freeze_wq, q->q_usage_dead);
++}
++EXPORT_SYMBOL(blk_wait_queue_dead);
++
+ /**
+  * blk_cleanup_queue - shutdown a request queue
+  * @q: request queue to shutdown
+@@ -638,7 +644,7 @@ int blk_queue_enter(struct request_queue *q, gfp_t gfp)
+ 		if (!(gfp & __GFP_WAIT))
+ 			return -EBUSY;
+ 
+-		ret = wait_event_interruptible(q->mq_freeze_wq,
++		ret = wait_event_interruptible(q->q_freeze_wq,
+ 				!atomic_read(&q->mq_freeze_depth) ||
+ 				blk_queue_dying(q));
+ 		if (blk_queue_dying(q))
+@@ -658,7 +664,7 @@ static void blk_queue_usage_counter_release(struct percpu_ref *ref)
+ 	struct request_queue *q =
+ 		container_of(ref, struct request_queue, q_usage_counter);
+ 
+-	wake_up_all(&q->mq_freeze_wq);
++	wake_up_all(&q->q_freeze_wq);
  }
  
--/*
-- * For DAX we need a mapping buffer callback for unwritten extent conversion
-- * when page faults allocate blocks and then zero them. Note that in this
-- * case the mapping indicated by the ioend may extend beyond EOF. We most
-- * definitely do not want to extend EOF here, so we trim back the ioend size to
-- * EOF.
-- */
--#ifdef CONFIG_FS_DAX
--void
--xfs_end_io_dax_write(
--	struct buffer_head	*bh,
--	int			uptodate)
--{
--	struct xfs_ioend	*ioend = bh->b_private;
--	struct inode		*inode = ioend->io_inode;
--	ssize_t			size = ioend->io_size;
--
--	ASSERT(IS_DAX(ioend->io_inode));
--
--	/* if there was an error zeroing, then don't convert it */
--	if (!uptodate)
--		ioend->io_error = -EIO;
--
--	/*
--	 * Trim update to EOF, so we don't extend EOF during unwritten extent
--	 * conversion of partial EOF blocks.
--	 */
--	spin_lock(&XFS_I(inode)->i_flags_lock);
--	if (ioend->io_offset + size > i_size_read(inode))
--		size = i_size_read(inode) - ioend->io_offset;
--	spin_unlock(&XFS_I(inode)->i_flags_lock);
--
--	__xfs_end_io_direct_write(inode, ioend, ioend->io_offset, size);
--
--}
--#else
--void xfs_end_io_dax_write(struct buffer_head *bh, int uptodate) { }
--#endif
--
- static inline ssize_t
- xfs_vm_do_dio(
- 	struct inode		*inode,
-diff --git a/fs/xfs/xfs_aops.h b/fs/xfs/xfs_aops.h
-index d39ba25..f6ffc9a 100644
---- a/fs/xfs/xfs_aops.h
-+++ b/fs/xfs/xfs_aops.h
-@@ -60,7 +60,6 @@ int	xfs_get_blocks_direct(struct inode *inode, sector_t offset,
- 			      struct buffer_head *map_bh, int create);
- int	xfs_get_blocks_dax_fault(struct inode *inode, sector_t offset,
- 			         struct buffer_head *map_bh, int create);
--void	xfs_end_io_dax_write(struct buffer_head *bh, int uptodate);
+ struct request_queue *blk_alloc_queue_node(gfp_t gfp_mask, int node_id)
+@@ -720,7 +726,7 @@ struct request_queue *blk_alloc_queue_node(gfp_t gfp_mask, int node_id)
+ 	q->bypass_depth = 1;
+ 	__set_bit(QUEUE_FLAG_BYPASS, &q->queue_flags);
  
- extern void xfs_count_page_state(struct page *, int *, int *);
+-	init_waitqueue_head(&q->mq_freeze_wq);
++	init_waitqueue_head(&q->q_freeze_wq);
  
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 27abe1c..9c8eef7 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1503,8 +1503,7 @@ xfs_filemap_page_mkwrite(
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 	/*
+ 	 * Init percpu_ref in atomic mode so that it's faster to shutdown.
+diff --git a/block/blk-mq.c b/block/blk-mq.c
+index c371aeda2986..d52f9d91f5c1 100644
+--- a/block/blk-mq.c
++++ b/block/blk-mq.c
+@@ -77,13 +77,23 @@ static void blk_mq_hctx_clear_pending(struct blk_mq_hw_ctx *hctx,
+ 	clear_bit(CTX_TO_BIT(hctx, ctx), &bm->word);
+ }
  
- 	if (IS_DAX(inode)) {
--		ret = __dax_mkwrite(vma, vmf, xfs_get_blocks_dax_fault,
--				    xfs_end_io_dax_write);
-+		ret = __dax_mkwrite(vma, vmf, xfs_get_blocks_dax_fault, NULL);
- 	} else {
- 		ret = __block_page_mkwrite(vma, vmf, xfs_get_blocks);
- 		ret = block_page_mkwrite_return(ret);
-@@ -1566,7 +1565,7 @@ xfs_filemap_pmd_fault(
- 	file_update_time(vma->vm_file);
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 	ret = __dax_pmd_fault(vma, addr, pmd, flags, xfs_get_blocks_dax_fault,
--				    xfs_end_io_dax_write);
-+			      NULL);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
++static void blk_confirm_queue_death(struct percpu_ref *ref)
++{
++	struct request_queue *q = container_of(ref, typeof(*q),
++			q_usage_counter);
++
++	q->q_usage_dead = 1;
++	wake_up_all(&q->q_freeze_wq);
++}
++
+ void blk_mq_freeze_queue_start(struct request_queue *q)
+ {
+ 	int freeze_depth;
  
--- 
-2.5.0
+ 	freeze_depth = atomic_inc_return(&q->mq_freeze_depth);
+ 	if (freeze_depth == 1) {
+-		percpu_ref_kill(&q->q_usage_counter);
++		percpu_ref_kill_and_confirm(&q->q_usage_counter,
++				blk_confirm_queue_death);
+ 		blk_mq_run_hw_queues(q, false);
+ 	}
+ }
+@@ -91,7 +101,7 @@ EXPORT_SYMBOL_GPL(blk_mq_freeze_queue_start);
+ 
+ static void blk_mq_freeze_queue_wait(struct request_queue *q)
+ {
+-	wait_event(q->mq_freeze_wq, percpu_ref_is_zero(&q->q_usage_counter));
++	wait_event(q->q_freeze_wq, percpu_ref_is_zero(&q->q_usage_counter));
+ }
+ 
+ /*
+@@ -129,7 +139,8 @@ void blk_mq_unfreeze_queue(struct request_queue *q)
+ 	WARN_ON_ONCE(freeze_depth < 0);
+ 	if (!freeze_depth) {
+ 		percpu_ref_reinit(&q->q_usage_counter);
+-		wake_up_all(&q->mq_freeze_wq);
++		q->q_usage_dead = 0;
++		wake_up_all(&q->q_freeze_wq);
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(blk_mq_unfreeze_queue);
+@@ -148,7 +159,7 @@ void blk_mq_wake_waiters(struct request_queue *q)
+ 	 * dying, we need to ensure that processes currently waiting on
+ 	 * the queue are notified as well.
+ 	 */
+-	wake_up_all(&q->mq_freeze_wq);
++	wake_up_all(&q->q_freeze_wq);
+ }
+ 
+ bool blk_mq_can_queue(struct blk_mq_hw_ctx *hctx)
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index fb3e6886c479..a1340654e360 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -427,6 +427,7 @@ struct request_queue {
+ 	 */
+ 	unsigned int		flush_flags;
+ 	unsigned int		flush_not_queueable:1;
++	unsigned int		q_usage_dead:1;
+ 	struct blk_flush_queue	*fq;
+ 
+ 	struct list_head	requeue_list;
+@@ -449,7 +450,7 @@ struct request_queue {
+ 	struct throtl_data *td;
+ #endif
+ 	struct rcu_head		rcu_head;
+-	wait_queue_head_t	mq_freeze_wq;
++	wait_queue_head_t	q_freeze_wq;
+ 	struct percpu_ref	q_usage_counter;
+ 	struct list_head	all_q_node;
+ 
+@@ -949,6 +950,7 @@ extern struct request_queue *blk_init_queue_node(request_fn_proc *rfn,
+ extern struct request_queue *blk_init_queue(request_fn_proc *, spinlock_t *);
+ extern struct request_queue *blk_init_allocated_queue(struct request_queue *,
+ 						      request_fn_proc *, spinlock_t *);
++extern void blk_wait_queue_dead(struct request_queue *q);
+ extern void blk_cleanup_queue(struct request_queue *);
+ extern void blk_queue_make_request(struct request_queue *, make_request_fn *);
+ extern void blk_queue_bounce_limit(struct request_queue *, u64);
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
