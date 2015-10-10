@@ -1,113 +1,78 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <5615A31D.60800@deltatee.com>
-Date: Wed, 07 Oct 2015 16:56:29 -0600
-From: Logan Gunthorpe <logang@deltatee.com>
+Subject: [PATCH v2 02/20] dax: increase granularity of dax_clear_blocks()
+ operations
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 09 Oct 2015 20:55:33 -0400
+Message-ID: <20151010005533.17221.47618.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
-References: <20150923043737.36490.70547.stgit@dwillia2-desk3.jf.intel.com> <20150923044206.36490.79829.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20150923044206.36490.79829.stgit@dwillia2-desk3.jf.intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 10/15] block, dax: fix lifetime of in-kernel dax mappings
 Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
-Cc: Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Stephen Bates <Stephen.Bates@pmcs.com>
+To: linux-nvdimm@lists.01.org
+Cc: linux-mm@kvack.org, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan,
+dax_clear_blocks is currently performing a cond_resched() after every
+PAGE_SIZE memset.  We need not check so frequently, for example md-raid
+only calls cond_resched() at stripe granularity.  Also, in preparation
+for introducing a dax_map_atomic() operation that temporarily pins a dax
+mapping move the call to cond_resched() to the outer loop.
 
-We've uncovered another issue during testing with these patches. We get 
-a kernel panic sometimes just while using a DAX filesystem. I've traced 
-the issue back to this patch. (There's a stack trace at the end of this 
-email.)
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ fs/dax.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
-On 22/09/15 10:42 PM, Dan Williams wrote:
-> +static void dax_unmap_bh(const struct buffer_head *bh, void __pmem *addr)
-> +{
-> +	struct block_device *bdev = bh->b_bdev;
-> +	struct request_queue *q = bdev->bd_queue;
-> +
-> +	if (IS_ERR(addr))
-> +		return;
-> +	blk_dax_put(q);
->   }
->
-> @@ -127,9 +159,8 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
->   			if (pos == bh_max) {
->   				bh->b_size = PAGE_ALIGN(end - pos);
->   				bh->b_state = 0;
-> -				retval = get_block(inode, block, bh,
-> -						   iov_iter_rw(iter) == WRITE);
-> -				if (retval)
-> +				rc = get_block(inode, block, bh, rw == WRITE);
-> +				if (rc)
->   					break;
->   				if (!buffer_size_valid(bh))
->   					bh->b_size = 1 << blkbits;
-> @@ -178,8 +213,9 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
->
->   	if (need_wmb)
->   		wmb_pmem();
-> +	dax_unmap_bh(bh, kmap);
->
-> -	return (pos == start) ? retval : pos - start;
-> +	return (pos == start) ? rc : pos - start;
->   }
-
-The problem is if get_block fails and returns an error code, it will 
-still call dax_unmap_bh which tries to dereference bh->b_bdev. However, 
-seeing get_block failed, that pointer is NULL. Maybe a null check in 
-dax_unmap_bh would be sufficient?
-
-
-Thanks,
-
-Logan
-
---
-
-> [   35.391790] BUG: unable to handle kernel NULL pointer dereference at 00000000000000a0
-> [   35.393306] IP: [<ffffffff811d1731>] dax_unmap_bh+0x41/0x70
-> [   35.394253] PGD 7c7ed067 PUD 7c01f067 PMD 0
-> [   35.395020] Oops: 0000 [#1] SMP
-> [   35.395597] Modules linked in: mtramonb(O)
-> [   35.396320] CPU: 0 PID: 1501 Comm: dd Tainted: G           O    4.3.0-rc2+ #51
-> [   35.397500] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.7.5-0-ge51488c-20140602_164612-nilsson.home.kraxel.org 04/01/2014
-> [   35.399728] task: ffff88007bc6d600 ti: ffff880079250000 task.ti: ffff880079250000
-> [   35.401006] RIP: 0010:[<ffffffff811d1731>]  [<ffffffff811d1731>] dax_unmap_bh+0x41/0x70
-> [   35.402402] RSP: 0018:ffff880079253ab8  EFLAGS: 00010246
-> [   35.403321] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000012
-> [   35.404550] RDX: 0000000000000007 RSI: 0000000000000246 RDI: ffffffff8181f630
-> [   35.405783] RBP: ffff880079253ac8 R08: 000000000000000a R09: 000000000000fffe
-> [   35.407011] R10: ffff88007fc1ad90 R11: 0000000000006abc R12: fffffffffffffffb
-> [   35.408237] R13: 000000000038e000 R14: 000000000038e000 R15: 000000000038e000
-> [   35.409466] FS:  00007f0e81476700(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
-> [   35.410830] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [   35.411796] CR2: 00000000000000a0 CR3: 000000007926f000 CR4: 00000000000006f0
-> [   35.412990] Stack:
-> [   35.413340]  00000000ffffffe4 ffff880079253cf0 ffff880079253be0 ffffffff811d2259
-> [   35.414670]  0000000000000246 ffffffff81203120 ffff880079253e68 0000000000000000
-> [   35.415981]  000000017c394800 000000000038e000 0000000100000000 fffffffffffffffb
-> [   35.417298] Call Trace:
-> [   35.417727]  [<ffffffff811d2259>] dax_do_io+0x199/0x700
-> [   35.418615]  [<ffffffff81203120>] ? _ext4_get_block+0x200/0x200
-> [   35.419819]  [<ffffffff81249700>] ? jbd2_journal_stop+0x60/0x390
-> [   35.420886]  [<ffffffff8123e7fd>] ext4_ind_direct_IO+0x8d/0x410
-> [   35.421908]  [<ffffffff8120205a>] ext4_direct_IO+0x2da/0x540
-> [   35.422859]  [<ffffffff8120887c>] ? ext4_dirty_inode+0x5c/0x70
-> [   35.423841]  [<ffffffff8113306a>] generic_file_direct_write+0xaa/0x170
-> [   35.424931]  [<ffffffff811331f2>] __generic_file_write_iter+0xc2/0x1f0
-> [   35.426027]  [<ffffffff811fcdcb>] ext4_file_write_iter+0x13b/0x420
-> [   35.427066]  [<ffffffff81084ca2>] ? pick_next_entity+0xb2/0x190
-> [   35.428061]  [<ffffffff811891f7>] __vfs_write+0xa7/0xf0
-> [   35.428940]  [<ffffffff81189b59>] vfs_write+0xa9/0x190
-> [   35.429810]  [<ffffffff81189a94>] ? vfs_read+0x114/0x130
-> [   35.430706]  [<ffffffff8118a786>] SyS_write+0x46/0xa0
-> [   35.431561]  [<ffffffff815f742e>] entry_SYSCALL_64_fastpath+0x12/0x71
-> [   35.432637] Code: fe 48 c7 c7 4c 63 7e 81 e8 11 ec f5 ff 48 8b 5b 30 48 c7 c7 52 63 7e 81 31 c0 48 89 de e8 fc eb f5 ff 31 c0 48 c7 c7 30 f6 81 81 <48> 8b 9b a0 00 00 00 e8 e7 eb f5 ff 49 81 fc 00 f0 ff ff 77 08
-> [   35.437029] RIP  [<ffffffff811d1731>] dax_unmap_bh+0x41/0x70
-> [   35.438005]  RSP <ffff880079253ab8>
-> [   35.438608] CR2: 00000000000000a0
-> [   35.439194] ---[ end trace 323695b29b46dd96 ]---
+diff --git a/fs/dax.c b/fs/dax.c
+index cc9a6e3d7389..7031b0312596 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -28,6 +28,7 @@
+ #include <linux/sched.h>
+ #include <linux/uio.h>
+ #include <linux/vmstat.h>
++#include <linux/sizes.h>
+ 
+ /*
+  * dax_clear_blocks() is called from within transaction context from XFS,
+@@ -43,24 +44,20 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+ 	do {
+ 		void __pmem *addr;
+ 		unsigned long pfn;
+-		long count;
++		long count, sz;
+ 
+-		count = bdev_direct_access(bdev, sector, &addr, &pfn, size);
++		sz = min_t(long, size, SZ_1M);
++		count = bdev_direct_access(bdev, sector, &addr, &pfn, sz);
+ 		if (count < 0)
+ 			return count;
+-		BUG_ON(size < count);
+-		while (count > 0) {
+-			unsigned pgsz = PAGE_SIZE - offset_in_page(addr);
+-			if (pgsz > count)
+-				pgsz = count;
+-			clear_pmem(addr, pgsz);
+-			addr += pgsz;
+-			size -= pgsz;
+-			count -= pgsz;
+-			BUG_ON(pgsz & 511);
+-			sector += pgsz / 512;
+-			cond_resched();
+-		}
++		if (count < sz)
++			sz = count;
++		clear_pmem(addr, sz);
++		addr += sz;
++		size -= sz;
++		BUG_ON(sz & 511);
++		sector += sz / 512;
++		cond_resched();
+ 	} while (size);
+ 
+ 	wmb_pmem();
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
