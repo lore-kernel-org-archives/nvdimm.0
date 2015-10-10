@@ -1,83 +1,54 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Date: Fri, 2 Oct 2015 16:16:05 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH] ext2, ext4: warn when mounting with dax enabled
-Message-ID: <20151002141605.GC14603@quack.suse.cz>
-References: <20150929194806.5276.863.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v2 07/20] avr32: convert to asm-generic/memory_model.h
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 09 Oct 2015 20:56:00 -0400
+Message-ID: <20151010005600.17221.60519.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150929194806.5276.863.stgit@dwillia2-desk3.jf.intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: ross.zwisler@linux.intel.com, david@fromorbit.com, Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, Andreas Dilger <adilger.kernel@dilger.ca>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-mm@kvack.org, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 29-09-15 15:48:11, Dan Williams wrote:
-> Similar to XFS warn when mounting DAX while it is still considered under
-> development.  Also, aspects of the DAX implementation, for example
-> synchronization against multiple faults and faults causing block
-> allocation, depend on the correct implementation in the filesystem.  The
-> maturity of a given DAX implementation is filesystem specific.
-> 
-> Cc: Jan Kara <jack@suse.com>
-> Cc: "Theodore Ts'o" <tytso@mit.edu>
-> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-> Cc: Matthew Wilcox <willy@linux.intel.com>
-> Cc: linux-ext4@vger.kernel.org
-> Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-> Reported-by: Dave Chinner <david@fromorbit.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Switch avr32/include/asm/page.h to use the common defintions for
+pfn_to_page(), page_to_pfn(), and ARCH_PFN_OFFSET.
 
-Agreed. You can add:
-Acked-by: Jan Kara <jack@suse.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/avr32/include/asm/page.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-								Honza
+diff --git a/arch/avr32/include/asm/page.h b/arch/avr32/include/asm/page.h
+index f805d1cb11bc..c5d2a3e2c62f 100644
+--- a/arch/avr32/include/asm/page.h
++++ b/arch/avr32/include/asm/page.h
+@@ -83,11 +83,9 @@ static inline int get_order(unsigned long size)
+ 
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ 
+-#define PHYS_PFN_OFFSET		(CONFIG_PHYS_OFFSET >> PAGE_SHIFT)
++#define ARCH_PFN_OFFSET		(CONFIG_PHYS_OFFSET >> PAGE_SHIFT)
+ 
+-#define pfn_to_page(pfn)	(mem_map + ((pfn) - PHYS_PFN_OFFSET))
+-#define page_to_pfn(page)	((unsigned long)((page) - mem_map) + PHYS_PFN_OFFSET)
+-#define pfn_valid(pfn)		((pfn) >= PHYS_PFN_OFFSET && (pfn) < (PHYS_PFN_OFFSET + max_mapnr))
++#define pfn_valid(pfn)		((pfn) >= ARCH_PFN_OFFSET && (pfn) < (ARCH_PFN_OFFSET + max_mapnr))
+ #endif /* CONFIG_NEED_MULTIPLE_NODES */
+ 
+ #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+@@ -101,4 +99,6 @@ static inline int get_order(unsigned long size)
+  */
+ #define HIGHMEM_START		0x20000000UL
+ 
++#include <asm-generic/memory_model.h>
++
+ #endif /* __ASM_AVR32_PAGE_H */
 
-> ---
-> Given the pending investigations [1], and rather than marking FS_DAX
-> broken, warn about DAX usage until we've landed fixes for the issues
-> that Dave has identified.
-> 
-> [1]: https://lists.01.org/pipermail/linux-nvdimm/2015-September/002266.html
-> 
->  fs/ext2/super.c |    2 ++
->  fs/ext4/super.c |    6 +++++-
->  2 files changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/fs/ext2/super.c b/fs/ext2/super.c
-> index 900e19cf9ef6..2597b0663bf2 100644
-> --- a/fs/ext2/super.c
-> +++ b/fs/ext2/super.c
-> @@ -566,6 +566,8 @@ static int parse_options(char *options, struct super_block *sb)
->  			/* Fall through */
->  		case Opt_dax:
->  #ifdef CONFIG_FS_DAX
-> +			ext2_msg(sb, KERN_WARNING,
-> +		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
->  			set_opt(sbi->s_mount_opt, DAX);
->  #else
->  			ext2_msg(sb, KERN_INFO, "dax option not supported");
-> diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-> index a63c7b0a10cf..4db6eb0b6979 100644
-> --- a/fs/ext4/super.c
-> +++ b/fs/ext4/super.c
-> @@ -1656,8 +1656,12 @@ static int handle_mount_opt(struct super_block *sb, char *opt, int token,
->  		}
->  		sbi->s_jquota_fmt = m->mount_opt;
->  #endif
-> -#ifndef CONFIG_FS_DAX
->  	} else if (token == Opt_dax) {
-> +#ifdef CONFIG_FS_DAX
-> +		ext4_msg(sb, KERN_WARNING,
-> +		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
-> +			sbi->s_mount_opt |= m->mount_opt;
-> +#else
->  		ext4_msg(sb, KERN_INFO, "dax option not supported");
->  		return -1;
->  #endif
-> 
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
