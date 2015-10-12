@@ -1,47 +1,64 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 3/3] dax: temporarily disable DAX PMD fault path
-Date: Mon,  5 Oct 2015 14:32:54 -0600
-Message-Id: <1444077174-22016-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1444077174-22016-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1444077174-22016-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
+Return-Path: <owner-linux-mm@kvack.org>
+MIME-Version: 1.0
+In-Reply-To: <561BACB8.7020405@redhat.com>
+References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
+	<20151010005622.17221.44373.stgit@dwillia2-desk3.jf.intel.com>
+	<561976AC.6000003@redhat.com>
+	<CAPcyv4jOtDfOZAQB7WN3MWQMPwkZmsZczrmK7=YxDy63ZRSiAw@mail.gmail.com>
+	<561BACB8.7020405@redhat.com>
+Date: Mon, 12 Oct 2015 09:16:55 -0700
+Message-ID: <CAPcyv4jdHrfmkfcDvNUGKSSMoM751wJ1QF42WxDnTuPMtrrKdQ@mail.gmail.com>
+Subject: Re: [PATCH v2 11/20] kvm: rename pfn_t to kvm_pfn_t
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: owner-linux-mm@kvack.org
+To: Paolo Bonzini <pbonzini@redhat.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Dave Hansen <dave@sr71.net>, Russell King <linux@arm.linux.org.uk>, Linux MM <linux-mm@kvack.org>, Gleb Natapov <gleb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, Marc Zyngier <marc.zyngier@arm.com>, Paul Mackerras <paulus@samba.org>, Christoffer Dall <christoffer.dall@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Alexander Graf <agraf@suse.com>, KVM list <kvm@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-There is currently a deadlock in the DAX PMD fault path because it ends up
-taking the same mapping->i_mmap_rwsem twice.  The first take is a
-i_mmap_lock_read() near the beginning of __dax_pmd_fault(), and the second
-is __dax_pmd_fault() -> unmap_mapping_range() -> i_mmap_lock_write().
+On Mon, Oct 12, 2015 at 5:51 AM, Paolo Bonzini <pbonzini@redhat.com> wrote:
+>
+>
+> On 10/10/2015 22:57, Dan Williams wrote:
+>> On Sat, Oct 10, 2015 at 1:35 PM, Paolo Bonzini <pbonzini@redhat.com> wrote:
+>>> On 10/10/2015 02:56, Dan Williams wrote:
+>>>> The core has developed a need for a "pfn_t" type [1].  Move the existing
+>>>> pfn_t in KVM to kvm_pfn_t [2].
+>>>>
+>>>> [1]: https://lists.01.org/pipermail/linux-nvdimm/2015-September/002199.html
+>>>> [2]: https://lists.01.org/pipermail/linux-nvdimm/2015-September/002218.html
+>>>
+>>> Can you please change also the other types in include/linux/kvm_types.h?
+>>
+>> Hmm, all those seem kvm specific already.  I'd only prefix them with
+>> kvm_ if they collided with a "core" type.
+>
+> But they are all related and the code becomes uglier if you only prefix
+> one of them.  If you don't convert all of them, I will do it anyway as
+> soon as this patch get in.
 
-We are re-working the way that DAX does its locking for v4.4, so for now
-just disable DAX PMD faults and fall back to PAGE_SIZE faults to make sure
-we don't hit this deadlock.
+Ok.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+> Since it touches a lot of KVM files, we should synchronize in order to
+> avoid conflicts and gnashing of teeth.  What tree is this patch going
+> in?  You could provide me a commit SHA1 for this patch (well, its
+> definitive version) based on Linus's tree (so that I can merge it in my
+> tree as well), or I could commit it and provide the SHA1 to the
+> maintainer of said tree.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index f364c90..d42217d 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -534,6 +534,13 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	unsigned long pfn;
- 	int result = 0;
- 
-+	/*
-+	 * There is currently a deadlock in the DAX PMD fault path.  Disable
-+	 * this path and fall back to the normal dax_fault() path for now
-+	 * while we rework locking.
-+	 */
-+	return VM_FAULT_FALLBACK;
-+
- 	/* Fall back to PTEs if we're going to COW */
- 	if (write && !(vma->vm_flags & VM_SHARED))
- 		return VM_FAULT_FALLBACK;
--- 
-2.1.0
+The kvm_pfn_t conversion is only needed if the new pfn_t
+infrastructure moves forward, and at this point it still needs some
+review feedback.
 
+How about this, care to send conversion patches for the rest? ...based on:
+
+    https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/log/?h=libnvdimm-pending
+
+When/if the new pfn_t bits move forward I'll carry them in the same
+pull request through the nvdimm.git tree.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
