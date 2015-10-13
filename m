@@ -1,24 +1,24 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Tue, 13 Oct 2015 11:33:20 -0600
+Return-Path: <linux-ext4-owner@vger.kernel.org>
+Date: Tue, 13 Oct 2015 09:02:45 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH 2/2] ext2: Add locking for DAX faults
-Message-ID: <20151013173320.GA14561@linux.intel.com>
+Message-ID: <20151013150245.GA22694@linux.intel.com>
 References: <1444428128-12200-1-git-send-email-ross.zwisler@linux.intel.com>
  <1444428128-12200-3-git-send-email-ross.zwisler@linux.intel.com>
  <20151011231443.GY27164@dastard>
  <20151012214135.GA24720@linux.intel.com>
- <20151013080712.GI17050@quack.suse.cz>
+ <20151012232427.GH27164@dastard>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20151013080712.GI17050@quack.suse.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Jan Kara <jack@suse.com>, linux-ext4@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
+In-Reply-To: <20151012232427.GH27164@dastard>
+Sender: linux-ext4-owner@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Jan Kara <jack@suse.com>, linux-ext4@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Oct 13, 2015 at 10:07:12AM +0200, Jan Kara wrote:
-> On Mon 12-10-15 15:41:35, Ross Zwisler wrote:
+On Tue, Oct 13, 2015 at 10:24:28AM +1100, Dave Chinner wrote:
+> On Mon, Oct 12, 2015 at 03:41:35PM -0600, Ross Zwisler wrote:
 > > On Mon, Oct 12, 2015 at 10:14:43AM +1100, Dave Chinner wrote:
 > > > On Fri, Oct 09, 2015 at 04:02:08PM -0600, Ross Zwisler wrote:
 > > > > Add locking to ensure that DAX faults are isolated from ext2 operations
@@ -40,14 +40,21 @@ On Tue, Oct 13, 2015 at 10:07:12AM +0200, Jan Kara wrote:
 > > 
 > > Yep, I see that XFS uses the same locking to protect both DAX and non-DAX
 > > faults.  I'll add this protection to non-DAX ext2 faults as well.
+> > 
+> > One quick question - it looks like that dax_pmd_fault() only grabs the
+> > pagefault lock and updates the file_update_time() if the FAULT_WRITE_FLAG is
+> > set. In xfs_filemap_pfn_mkwrite(), though, these two steps are taken for read
+> > faults as well.  Is this intentional?
 > 
-> Actually, since ext2 driver doesn't support punch hole, there is no need
-> for additional locking in non-DAX paths. So we can save some space in inode
-> and locking for that common case. So I'd prefer if we didn't add
-> unnecessary locking in those paths and just document that for non-DAX
-> faults using page lock and i_size check is enough. After all the main
-> usecase of ext2 driver these days is for people with tiny devices...
+> xfs_filemap_pfn_mkwrite() should not be called for read faults.
+> We've already had to have a fault that maps the page to pfn for us
+> to get a pfn based fault, and hence that code is correct.
+> 
+> Or are you talking about xfs_filemap_pmd_fault()? In which case, I
+> refer you to the commit log and it should be obvious that it was
+> committed without me even looking at it.  I have another patch in my
+> current series for 4.4 that will fix this.
 
-Based on this comment I'm assuming you'd like the definition of dax_sem in
-struct ext2_inode_info to be conditional like ext2_inode_info->xattr_sem,
-correct?
+Yep, sorry, I meant xfs_filemap_pmd_fault().  Thanks, I was just making sure the
+pattern I'm following in ext2 where I'm only locking the pagefault lock &
+updating the file_update_time() on writes was correct.
