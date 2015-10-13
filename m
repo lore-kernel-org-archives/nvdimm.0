@@ -1,81 +1,45 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v2 02/20] dax: increase granularity of dax_clear_blocks()
- operations
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Oct 2015 20:55:33 -0400
-Message-ID: <20151010005533.17221.47618.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Tue, 13 Oct 2015 16:54:15 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 0/2] Add explicit coredump filtering for DAX mappings
+Message-ID: <20151013225415.GA25616@linux.intel.com>
+References: <1444084417-19192-1-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-mm@kvack.org, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org, hch@lst.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1444084417-19192-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Ingo Molnar <mingo@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Peter Zijlstra <peterz@infradead.org>, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_clear_blocks is currently performing a cond_resched() after every
-PAGE_SIZE memset.  We need not check so frequently, for example md-raid
-only calls cond_resched() at stripe granularity.  Also, in preparation
-for introducing a dax_map_atomic() operation that temporarily pins a dax
-mapping move the call to cond_resched() to the outer loop.
+On Mon, Oct 05, 2015 at 04:33:35PM -0600, Ross Zwisler wrote:
+> Add two new flags to the existing coredump mechanism for ELF files to allow
+> us to explicitly filter DAX mappings.  This is desirable because DAX
+> mappings, like hugetlb mappings, have the potential to be very large.
+> 
+> The coredump code relies on get_user_page() to populate the coredump file
+> with the appropriate data, and for DAX mappings this currently fails.  This
+> results in a hole being placed in the coredump file, so you end up reading
+> back zeros.  Once the get_user_pages() patch series from Dan Williams [1]
+> is merged, DAX core dumps will give real data.
+> 
+> I have a patch ready for core(5) to update the documentation on the new
+> filtering flags.  I'll send it out once this gets merged.
+> 
+> [1] http://thread.gmane.org/gmane.linux.kernel.mm/139026
+> 
+> Ross Zwisler (2):
+>   coredump: add DAX filtering for ELF coredumps
+>   coredump: add DAX filtering for FDPIC ELF coredumps
+> 
+>  Documentation/filesystems/proc.txt | 22 ++++++++++++----------
+>  fs/binfmt_elf.c                    | 10 ++++++++++
+>  fs/binfmt_elf_fdpic.c              | 15 +++++++++++++++
+>  include/linux/sched.h              |  4 +++-
+>  4 files changed, 40 insertions(+), 11 deletions(-)
+> 
+> -- 
+> 2.1.0
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index cc9a6e3d7389..7031b0312596 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -28,6 +28,7 @@
- #include <linux/sched.h>
- #include <linux/uio.h>
- #include <linux/vmstat.h>
-+#include <linux/sizes.h>
- 
- /*
-  * dax_clear_blocks() is called from within transaction context from XFS,
-@@ -43,24 +44,20 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- 	do {
- 		void __pmem *addr;
- 		unsigned long pfn;
--		long count;
-+		long count, sz;
- 
--		count = bdev_direct_access(bdev, sector, &addr, &pfn, size);
-+		sz = min_t(long, size, SZ_1M);
-+		count = bdev_direct_access(bdev, sector, &addr, &pfn, sz);
- 		if (count < 0)
- 			return count;
--		BUG_ON(size < count);
--		while (count > 0) {
--			unsigned pgsz = PAGE_SIZE - offset_in_page(addr);
--			if (pgsz > count)
--				pgsz = count;
--			clear_pmem(addr, pgsz);
--			addr += pgsz;
--			size -= pgsz;
--			count -= pgsz;
--			BUG_ON(pgsz & 511);
--			sector += pgsz / 512;
--			cond_resched();
--		}
-+		if (count < sz)
-+			sz = count;
-+		clear_pmem(addr, sz);
-+		addr += sz;
-+		size -= sz;
-+		BUG_ON(sz & 511);
-+		sector += sz / 512;
-+		cond_resched();
- 	} while (size);
- 
- 	wmb_pmem();
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Ping?
