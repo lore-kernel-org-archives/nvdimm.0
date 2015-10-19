@@ -1,124 +1,63 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 1/3] resource: Add @flags to region_intersects()
-Date: Fri, 23 Oct 2015 12:53:57 -0600
-Message-Id: <1445626439-8424-2-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1445626439-8424-1-git-send-email-toshi.kani@hpe.com>
-References: <1445626439-8424-1-git-send-email-toshi.kani@hpe.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+Return-Path: <linux-ext4-owner@vger.kernel.org>
+Date: Mon, 19 Oct 2015 14:47:49 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v2 2/2] ext2: Add locking for DAX faults
+Message-ID: <20151019124749.GG25787@quack.suse.cz>
+References: <1444775137-23685-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1444775137-23685-3-git-send-email-ross.zwisler@linux.intel.com>
+ <20151014085119.GB23758@quack.suse.cz>
+ <20151014153138.GA12470@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151014153138.GA12470@linux.intel.com>
+Sender: linux-ext4-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-region_intersects() checks if a specified region partially overlaps
-or fully eclipses a resource identified by @name.  It currently sets
-resource flags statically, which prevents the caller from specifying
-a non-RAM region, such as persistent memory.  Add @flags so that
-any region can be specified to the function.
+On Wed 14-10-15 09:31:38, Ross Zwisler wrote:
+> On Wed, Oct 14, 2015 at 10:51:19AM +0200, Jan Kara wrote:
+> > On Tue 13-10-15 16:25:37, Ross Zwisler wrote:
+> > > Add locking to ensure that DAX faults are isolated from ext2 operations
+> > > that modify the data blocks allocation for an inode.  This is intended to
+> > > be analogous to the work being done in XFS by Dave Chinner:
+> > > 
+> > > http://www.spinics.net/lists/linux-fsdevel/msg90260.html
+> > > 
+> > > Compared with XFS the ext2 case is greatly simplified by the fact that ext2
+> > > already allocates and zeros new blocks before they are returned as part of
+> > > ext2_get_block(), so DAX doesn't need to worry about getting unmapped or
+> > > unwritten buffer heads.
+> > > 
+> > > This means that the only work we need to do in ext2 is to isolate the DAX
+> > > faults from inode block allocation changes.  I believe this just means that
+> > > we need to isolate the DAX faults from truncate operations.
+> > > 
+> > > The newly introduced dax_sem is intended to replicate the protection
+> > > offered by i_mmaplock in XFS.  In addition to truncate the i_mmaplock also
+> > > protects XFS operations like hole punching, fallocate down, extent
+> > > manipulation IOCTLS like xfs_ioc_space() and extent swapping.  Truncate is
+> > > the only one of these operations supported by ext2.
+> > > 
+> > > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > 
+> > The patch looks good to me. Feel free to add:
+> > 
+> > Reviewed-by: Jan Kara <jack@suse.com>
+> > 
+> > Or I can push the patch through my tree as it seems to be independent of
+> > any other changes, am I right?
+> > 
+> > 								Honza
+> 
+> Yep, it is independent of other patches.  It'd be great if you pushed it up
+> through your tree, thanks!
 
-A helper function, region_intersects_ram(), is added so that the
-callers that check a RAM region do not have to specify its iomem
-resource name and flags.  This interface is exported for modules,
-such as the EINJ driver.
+I've pulled the patch into my tree and will push it to Linus in the next
+merge window.
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
----
- include/linux/mm.h |    4 +++-
- kernel/memremap.c  |    5 ++---
- kernel/resource.c  |   23 ++++++++++++++++-------
- 3 files changed, 21 insertions(+), 11 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 80001de..699224e 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -358,7 +358,9 @@ enum {
- 	REGION_MIXED,
- };
- 
--int region_intersects(resource_size_t offset, size_t size, const char *type);
-+int region_intersects(resource_size_t offset, size_t size, const char *type,
-+			unsigned long flags);
-+int region_intersects_ram(resource_size_t offset, size_t size);
- 
- /* Support for virtually mapped pages */
- struct page *vmalloc_to_page(const void *addr);
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 72b0c66..2157ea5 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -47,7 +47,7 @@ __weak void __iomem *ioremap_cache(resource_size_t offset, unsigned long size)
-  */
- void *memremap(resource_size_t offset, size_t size, unsigned long flags)
- {
--	int is_ram = region_intersects(offset, size, "System RAM");
-+	int is_ram = region_intersects_ram(offset, size);
- 	void *addr = NULL;
- 
- 	if (is_ram == REGION_MIXED) {
-@@ -152,8 +152,7 @@ static void devm_memremap_pages_release(struct device *dev, void *res)
- 
- void *devm_memremap_pages(struct device *dev, struct resource *res)
- {
--	int is_ram = region_intersects(res->start, resource_size(res),
--			"System RAM");
-+	int is_ram = region_intersects_ram(res->start, resource_size(res));
- 	struct page_map *page_map;
- 	int error, nid;
- 
-diff --git a/kernel/resource.c b/kernel/resource.c
-index f150dbb..15c133e 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -497,6 +497,7 @@ EXPORT_SYMBOL_GPL(page_is_ram);
-  * @start: region start address
-  * @size: size of region
-  * @name: name of resource (in iomem_resource)
-+ * @flags: flags of resource (in iomem_resource)
-  *
-  * Check if the specified region partially overlaps or fully eclipses a
-  * resource identified by @name.  Return REGION_DISJOINT if the region
-@@ -504,15 +505,11 @@ EXPORT_SYMBOL_GPL(page_is_ram);
-  * @type and another resource, and return REGION_INTERSECTS if the
-  * region overlaps @type and no other defined resource. Note, that
-  * REGION_INTERSECTS is also returned in the case when the specified
-- * region overlaps RAM and undefined memory holes.
-- *
-- * region_intersect() is used by memory remapping functions to ensure
-- * the user is not remapping RAM and is a vast speed up over walking
-- * through the resource table page by page.
-+ * region overlaps with undefined memory holes.
-  */
--int region_intersects(resource_size_t start, size_t size, const char *name)
-+int region_intersects(resource_size_t start, size_t size, const char *name,
-+			unsigned long flags)
- {
--	unsigned long flags = IORESOURCE_MEM | IORESOURCE_BUSY;
- 	resource_size_t end = start + size - 1;
- 	int type = 0; int other = 0;
- 	struct resource *p;
-@@ -539,6 +536,18 @@ int region_intersects(resource_size_t start, size_t size, const char *name)
- 	return REGION_DISJOINT;
- }
- 
-+/*
-+ * region_intersect_ram() is used by memory remapping functions to ensure
-+ * the user is not remapping RAM and is a vast speed up over walking
-+ * through the resource table page by page.
-+ */
-+int region_intersects_ram(resource_size_t start, size_t size)
-+{
-+	return region_intersects(start, size, "System RAM",
-+				 IORESOURCE_MEM | IORESOURCE_BUSY);
-+}
-+EXPORT_SYMBOL_GPL(region_intersects_ram);
-+
- void __weak arch_remove_reservations(struct resource *avail)
- {
- }
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
