@@ -1,50 +1,42 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <20151021000103.GA19199@dastard>
-References: <1445383903.6611.39.camel@intel.com>
-	<20151021000103.GA19199@dastard>
-Date: Tue, 20 Oct 2015 17:31:18 -0700
-Message-ID: <CAPcyv4hBV=tsEmNajuMXr8Jj7-+ovT7FP3yWrfDLZVWejgA2ig@mail.gmail.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Wed, 21 Oct 2015 11:01:03 +1100
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: what's in nvdimm.git for v4.4?
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
+Message-ID: <20151021000103.GA19199@dastard>
+References: <1445383903.6611.39.camel@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1445383903.6611.39.camel@intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>
 Cc: "axboe@fb.com" <axboe@fb.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jack@suse.cz" <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Oct 20, 2015 at 5:01 PM, Dave Chinner <david@fromorbit.com> wrote:
-> On Tue, Oct 20, 2015 at 11:31:45PM +0000, Williams, Dan J wrote:
->> Here is a status summary of the topic-branches nvdimm.git is tracking
->> for v4.4.  Unless indicated these branches are not present in -next.
->> Please ACK, NAK, or ask for a re-post of any of the below to disposition
->> it for the merge window.
->>
->> ===
->> for-4.4/dax-fixes:
->> ===
-> ...
->>         Dave Chinner (5):
->>               xfs: fix inode size update overflow in xfs_map_direct()
->>               xfs: introduce BMAPI_ZERO for allocating zeroed extents
->>               xfs: Don't use unwritten extents for DAX
->>               xfs: DAX does not use IO completion callbacks
->>               xfs: add ->pfn_mkwrite support for DAX
->
-> Please drop these. They have not been reviewed yet, and because
-> the changes affect more than just DAX (core XFS allocator
-> functionality was changed) these need to go through the XFS tree.
->
+On Tue, Oct 20, 2015 at 11:31:45PM +0000, Williams, Dan J wrote:
+> Here is a status summary of the topic-branches nvdimm.git is tracking
+> for v4.4.  Unless indicated these branches are not present in -next.
+> Please ACK, NAK, or ask for a re-post of any of the below to disposition
+> it for the merge window.
+> 
+> ===
+> for-4.4/dax-fixes:
+> ===
+...
+>         Dave Chinner (5):
+>               xfs: fix inode size update overflow in xfs_map_direct()
+>               xfs: introduce BMAPI_ZERO for allocating zeroed extents
+>               xfs: Don't use unwritten extents for DAX
+>               xfs: DAX does not use IO completion callbacks
+>               xfs: add ->pfn_mkwrite support for DAX
 
-Ok, thanks for the heads up.  For the get_user_pages() patches that
-build on these fixes I'm assuming your review bandwidth is in short
-supply to also give an XFS sign-off on those changes for 4.4?
+Please drop these. They have not been reviewed yet, and because
+the changes affect more than just DAX (core XFS allocator
+functionality was changed) these need to go through the XFS tree.
 
-I'm wondering if we can take a conservative step forward with those
-patches for 4.4.  if XFS and EXT4 interactions need more time to get
-worked out, which I believe they do, I can conceive just turning on
-get_user_pages() support for DAX-mappings of the raw block device.
-This would be via the new facility I posted yesterday:
-https://lists.01.org/pipermail/linux-nvdimm/2015-October/002512.html.
-While not very functional for applications it makes testing base DAX
-mechanisms straightforward.
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
