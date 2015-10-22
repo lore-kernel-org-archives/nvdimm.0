@@ -1,83 +1,119 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
+Date: Thu, 22 Oct 2015 11:35:49 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH 5/5] block: enable dax for raw block devices
-Date: Thu, 22 Oct 2015 16:05:46 +0000
-Message-ID: <1445529945.17208.4.camel@intel.com>
+Message-ID: <20151022093549.GE14445@quack.suse.cz>
 References: <20151022064142.12700.11849.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20151022064211.12700.77105.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20151022093549.GE14445@quack.suse.cz>
-In-Reply-To: <20151022093549.GE14445@quack.suse.cz>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <0B5FD146F4C0674B9E174AA9A408A4A2@intel.com>
-Content-Transfer-Encoding: base64
+ <20151022064211.12700.77105.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151022064211.12700.77105.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "jack@suse.cz" <jack@suse.cz>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "hch@lst.de" <hch@lst.de>, "axboe@fb.com" <axboe@fb.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "willy@linux.intel.com" <willy@linux.intel.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "david@fromorbit.com" <david@fromorbit.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: axboe@fb.com, jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de, Jeff Moyer <jmoyer@redhat.com>, willy@linux.intel.com, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCAyMDE1LTEwLTIyIGF0IDExOjM1ICswMjAwLCBKYW4gS2FyYSB3cm90ZToNCj4gT24g
-VGh1IDIyLTEwLTE1IDAyOjQyOjExLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+ID4gSWYgYW4gYXBw
-bGljYXRpb24gd2FudHMgZXhjbHVzaXZlIGFjY2VzcyB0byBhbGwgb2YgdGhlIHBlcnNpc3RlbnQg
-bWVtb3J5DQo+ID4gcHJvdmlkZWQgYnkgYW4gTlZESU1NIG5hbWVzcGFjZSBpdCBjYW4gdXNlIHRo
-aXMgcmF3LWJsb2NrLWRheCBmYWNpbGl0eQ0KPiA+IHRvIGZvcmdvIGVzdGFibGlzaGluZyBhIGZp
-bGVzeXN0ZW0uICBUaGlzIGNhcGFiaWxpdHkgaXMgdGFyZ2V0ZWQNCj4gPiBwcmltYXJpbHkgdG8g
-aHlwZXJ2aXNvcnMgd2FudGluZyB0byBwcm92aXNpb24gcGVyc2lzdGVudCBtZW1vcnkgZm9yDQo+
-ID4gZ3Vlc3RzLg0KPiA+IA0KPiA+IENjOiBKYW4gS2FyYSA8amFja0BzdXNlLmN6Pg0KPiA+IENj
-OiBKZWZmIE1veWVyIDxqbW95ZXJAcmVkaGF0LmNvbT4NCj4gPiBDYzogQ2hyaXN0b3BoIEhlbGx3
-aWcgPGhjaEBsc3QuZGU+DQo+ID4gQ2M6IERhdmUgQ2hpbm5lciA8ZGF2aWRAZnJvbW9yYml0LmNv
-bT4NCj4gPiBDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4NCj4g
-PiBDYzogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPg0KPiA+IFNp
-Z25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiA+
-IC0tLQ0KPiA+ICBmcy9ibG9ja19kZXYuYyB8ICAgNTQgKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKystDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCA1MyBp
-bnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pDQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2ZzL2Js
-b2NrX2Rldi5jIGIvZnMvYmxvY2tfZGV2LmMNCj4gPiBpbmRleCAzMjU1ZGNlYzk2YjQuLmMyN2Nk
-MWEyMWExMyAxMDA2NDQNCj4gPiAtLS0gYS9mcy9ibG9ja19kZXYuYw0KPiA+ICsrKyBiL2ZzL2Js
-b2NrX2Rldi5jDQo+ID4gQEAgLTE2ODcsMTMgKzE2ODcsNjUgQEAgc3RhdGljIGNvbnN0IHN0cnVj
-dCBhZGRyZXNzX3NwYWNlX29wZXJhdGlvbnMgZGVmX2Jsa19hb3BzID0gew0KPiA+ICAJLmlzX2Rp
-cnR5X3dyaXRlYmFjayA9IGJ1ZmZlcl9jaGVja19kaXJ0eV93cml0ZWJhY2ssDQo+ID4gIH07DQo+
-ID4gIA0KPiA+ICsjaWZkZWYgQ09ORklHX0ZTX0RBWA0KPiA+ICsvKg0KPiA+ICsgKiBJbiB0aGUg
-cmF3IGJsb2NrIGNhc2Ugd2UgZG8gbm90IG5lZWQgdG8gY29udGVuZCB3aXRoIHRydW5jYXRpb24g
-bm9yDQo+ID4gKyAqIHVud3JpdHRlbiBmaWxlIGV4dGVudHMuICBXaXRob3V0IHRob3NlIGNvbmNl
-cm5zIHRoZXJlIGlzIG5vIG5lZWQgZm9yDQo+ID4gKyAqIGFkZGl0aW9uYWwgbG9ja2luZyBiZXlv
-bmQgdGhlIG1tYXBfc2VtIGNvbnRleHQgdGhhdCB0aGVzZSByb3V0aW5lcw0KPiA+ICsgKiBhcmUg
-YWxyZWFkeSBleGVjdXRpbmcgdW5kZXIuDQo+ID4gKyAqDQo+ID4gKyAqIE5vdGUsIHRoZXJlIGlz
-IG5vIHByb3RlY3Rpb24gaWYgdGhlIGJsb2NrIGRldmljZSBpcyBkeW5hbWljYWxseQ0KPiA+ICsg
-KiByZXNpemVkIChwYXJ0aXRpb24gZ3Jvdy9zaHJpbmspIGR1cmluZyBhIGZhdWx0LiBBIHN0YWJs
-ZSBibG9jayBkZXZpY2UNCj4gPiArICogc2l6ZSBpcyBhbHJlYWR5IG5vdCBlbmZvcmNlZCBpbiB0
-aGUgYmxrZGV2X2RpcmVjdF9JTyBwYXRoLg0KPiA+ICsgKg0KPiA+ICsgKiBGb3IgREFYLCBpdCBp
-cyB0aGUgcmVzcG9uc2liaWxpdHkgb2YgdGhlIGJsb2NrIGRldmljZSBkcml2ZXIgdG8NCj4gPiAr
-ICogZW5zdXJlIHRoZSB3aG9sZS1kaXNrIGRldmljZSBzaXplIGlzIHN0YWJsZSB3aGlsZSByZXF1
-ZXN0cyBhcmUgaW4NCj4gPiArICogZmxpZ2h0Lg0KPiA+ICsgKg0KPiA+ICsgKiBGaW5hbGx5LCB0
-aGVzZSBwYXRocyBkbyBub3Qgc3luY2hyb25pemUgYWdhaW5zdCBmcmVlemluZw0KPiA+ICsgKiAo
-c2Jfc3RhcnRfcGFnZWZhdWx0KCksIGV0Yy4uLikgc2luY2UgYmRldl9zb3BzIGRvZXMgbm90IHN1
-cHBvcnQNCj4gPiArICogZnJlZXppbmcuDQo+IA0KPiBXZWxsLCBmb3IgZGV2aWNlcyBmcmVlemlu
-ZyBpcyBoYW5kbGVkIGRpcmVjdGx5IGluIHRoZSBibG9jayBsYXllciBjb2RlDQo+IChibGtfc3Rv
-cF9xdWV1ZSgpKSBzaW5jZSB0aGVyZSdzIG5vIG5lZWQgdG8gcHV0IHNvbWUgbWV0YWRhdGEgc3Ry
-dWN0dXJlcw0KPiBpbnRvIGEgY29uc2lzdGVudCBzdGF0ZS4gU28gdGhlIGNvbW1lbnQgYWJvdXQg
-YmRldl9zb3BzIGlzIHNvbWV3aGF0DQo+IHN0cmFuZ2UuDQoNClRoaXMgdGV4dCB3YXMgYWltZWQg
-YXQgdGhlIHJlcXVlc3QgZnJvbSBSb3NzIHRvIGRvY3VtZW50IHRoZSBkaWZmZXJlbmNlcw0KdnMg
-dGhlIGdlbmVyaWNfZmlsZV9tbWFwKCkgcGF0aC4gIElzIHRoZSBmb2xsb3dpbmcgaW5jcmVtZW50
-YWwgY2hhbmdlDQptb3JlIGNsZWFyPw0KDQpkaWZmIC0tZ2l0IGEvZnMvYmxvY2tfZGV2LmMgYi9m
-cy9ibG9ja19kZXYuYw0KaW5kZXggODQwYWNkNDM4MGQ0Li40YWU4ZmE1NWJkMWUgMTAwNjQ0DQot
-LS0gYS9mcy9ibG9ja19kZXYuYw0KKysrIGIvZnMvYmxvY2tfZGV2LmMNCkBAIC0xNzAyLDkgKzE3
-MDIsMTUgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBhZGRyZXNzX3NwYWNlX29wZXJhdGlvbnMgZGVm
-X2Jsa19hb3BzID0gew0KICAqIGVuc3VyZSB0aGUgd2hvbGUtZGlzayBkZXZpY2Ugc2l6ZSBpcyBz
-dGFibGUgd2hpbGUgcmVxdWVzdHMgYXJlIGluDQogICogZmxpZ2h0Lg0KICAqDQotICogRmluYWxs
-eSwgdGhlc2UgcGF0aHMgZG8gbm90IHN5bmNocm9uaXplIGFnYWluc3QgZnJlZXppbmcNCi0gKiAo
-c2Jfc3RhcnRfcGFnZWZhdWx0KCksIGV0Yy4uLikgc2luY2UgYmRldl9zb3BzIGRvZXMgbm90IHN1
-cHBvcnQNCi0gKiBmcmVlemluZy4NCisgKiBGaW5hbGx5LCBpbiBjb250cmFzdCB0byB0aGUgZ2Vu
-ZXJpY19maWxlX21tYXAoKSBwYXRoLCB0aGVyZSBhcmUgbm8NCisgKiBjYWxscyB0byBzYl9zdGFy
-dF9wYWdlZmF1bHQoKS4gIFRoYXQgaXMgbWVhbnQgdG8gc3luY2hyb25pemUgd3JpdGUNCisgKiBm
-YXVsdHMgYWdhaW5zdCByZXF1ZXN0cyB0byBmcmVlemUgdGhlIGNvbnRlbnRzIG9mIHRoZSBmaWxl
-c3lzdGVtDQorICogaG9zdGluZyB2bWEtPnZtX2ZpbGUuICBIb3dldmVyLCBpbiB0aGUgY2FzZSBv
-ZiBhIGJsb2NrIGRldmljZSBzcGVjaWFsDQorICogZmlsZSwgaXQgaXMgYSAwLXNpemVkIGRldmlj
-ZSBub2RlIHVzdWFsbHkgaG9zdGVkIG9uIGRldnRtcGZzLCBpLmUuDQorICogbm90aGluZyB0byBk
-byB3aXRoIHRoZSBzdXBlcl9ibG9jayBmb3IgYmRldl9maWxlX2lub2RlKHZtYS0+dm1fZmlsZSku
-DQorICogV2UgY291bGQgY2FsbCBnZXRfc3VwZXIoKSBpbiB0aGlzIHBhdGggdG8gcmV0cmlldmUg
-dGhlIHJpZ2h0DQorICogc3VwZXJfYmxvY2ssIGJ1dCB0aGUgZ2VuZXJpY19maWxlX21tYXAoKSBw
-YXRoIGRvZXMgbm90IGRvIHRoaXMgZm9yDQorICogdGhlIENPTkZJR19GU19EQVg9biBjYXNlLg0K
-ICAqLw0KIHN0YXRpYyBpbnQgYmxrZGV2X2RheF9mYXVsdChzdHJ1Y3Qgdm1fYXJlYV9zdHJ1Y3Qg
-KnZtYSwgc3RydWN0IHZtX2ZhdWx0ICp2bWYpDQogew0KDQo=
+On Thu 22-10-15 02:42:11, Dan Williams wrote:
+> If an application wants exclusive access to all of the persistent memory
+> provided by an NVDIMM namespace it can use this raw-block-dax facility
+> to forgo establishing a filesystem.  This capability is targeted
+> primarily to hypervisors wanting to provision persistent memory for
+> guests.
+> 
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Jeff Moyer <jmoyer@redhat.com>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Dave Chinner <david@fromorbit.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  fs/block_dev.c |   54 +++++++++++++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 53 insertions(+), 1 deletion(-)
+> 
+> diff --git a/fs/block_dev.c b/fs/block_dev.c
+> index 3255dcec96b4..c27cd1a21a13 100644
+> --- a/fs/block_dev.c
+> +++ b/fs/block_dev.c
+> @@ -1687,13 +1687,65 @@ static const struct address_space_operations def_blk_aops = {
+>  	.is_dirty_writeback = buffer_check_dirty_writeback,
+>  };
+>  
+> +#ifdef CONFIG_FS_DAX
+> +/*
+> + * In the raw block case we do not need to contend with truncation nor
+> + * unwritten file extents.  Without those concerns there is no need for
+> + * additional locking beyond the mmap_sem context that these routines
+> + * are already executing under.
+> + *
+> + * Note, there is no protection if the block device is dynamically
+> + * resized (partition grow/shrink) during a fault. A stable block device
+> + * size is already not enforced in the blkdev_direct_IO path.
+> + *
+> + * For DAX, it is the responsibility of the block device driver to
+> + * ensure the whole-disk device size is stable while requests are in
+> + * flight.
+> + *
+> + * Finally, these paths do not synchronize against freezing
+> + * (sb_start_pagefault(), etc...) since bdev_sops does not support
+> + * freezing.
+
+Well, for devices freezing is handled directly in the block layer code
+(blk_stop_queue()) since there's no need to put some metadata structures
+into a consistent state. So the comment about bdev_sops is somewhat
+strange. Otherwise the patch looks good to me. You can add:
+
+Reviewed-by: Jan Kara <jack@suse.com>
+
+								Honza
+ 
+> + */
+> +static int blkdev_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+> +{
+> +	return __dax_fault(vma, vmf, blkdev_get_block, NULL);
+> +}
+> +
+> +static int blkdev_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+> +		pmd_t *pmd, unsigned int flags)
+> +{
+> +	return __dax_pmd_fault(vma, addr, pmd, flags, blkdev_get_block, NULL);
+> +}
+> +
+> +static const struct vm_operations_struct blkdev_dax_vm_ops = {
+> +	.page_mkwrite	= blkdev_dax_fault,
+> +	.fault		= blkdev_dax_fault,
+> +	.pmd_fault	= blkdev_dax_pmd_fault,
+> +};
+> +
+> +static int blkdev_mmap(struct file *file, struct vm_area_struct *vma)
+> +{
+> +	struct inode *bd_inode = file_bd_inode(file);
+> +
+> +	if (!IS_DAX(bd_inode))
+> +		return generic_file_mmap(file, vma);
+> +
+> +	file_accessed(file);
+> +	vma->vm_ops = &blkdev_dax_vm_ops;
+> +	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
+> +	return 0;
+> +}
+> +#else
+> +#define blkdev_mmap generic_file_mmap
+> +#endif
+> +
+>  const struct file_operations def_blk_fops = {
+>  	.open		= blkdev_open,
+>  	.release	= blkdev_close,
+>  	.llseek		= block_llseek,
+>  	.read_iter	= blkdev_read_iter,
+>  	.write_iter	= blkdev_write_iter,
+> -	.mmap		= generic_file_mmap,
+> +	.mmap		= blkdev_mmap,
+>  	.fsync		= blkdev_fsync,
+>  	.unlocked_ioctl	= block_ioctl,
+>  #ifdef CONFIG_COMPAT
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
