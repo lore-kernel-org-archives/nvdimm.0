@@ -1,169 +1,77 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Dave Chinner <david@fromorbit.com>
-Subject: [PATCH 5/7] xfs: Don't use unwritten extents for DAX
-Date: Thu,  1 Oct 2015 17:46:37 +1000
-Message-Id: <1443685599-4843-6-git-send-email-david@fromorbit.com>
-In-Reply-To: <1443685599-4843-1-git-send-email-david@fromorbit.com>
-References: <1443685599-4843-1-git-send-email-david@fromorbit.com>
+Subject: [PATCH v2 2/5] dax: increase granularity of dax_clear_blocks()
+ operations
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 22 Oct 2015 13:10:26 -0400
+Message-ID: <20151022171026.38343.6371.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20151022171015.38343.72043.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20151022171015.38343.72043.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-fsdevel@vger.kernel.org, ross.zwisler@linux.intel.com, willy@linux.intel.com, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, linux-nvdimm@lists.01.org, jack@suse.cz, linux-kernel@vger.kernel.org
+To: axboe@fb.com
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, Jan Kara <jack@suse.com>, willy@linux.intel.com, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dave Chinner <dchinner@redhat.com>
+dax_clear_blocks is currently performing a cond_resched() after every
+PAGE_SIZE memset.  We need not check so frequently, for example md-raid
+only calls cond_resched() at stripe granularity.  Also, in preparation
+for introducing a dax_map_atomic() operation that temporarily pins a dax
+mapping move the call to cond_resched() to the outer loop.
 
-DAX has a page fault serialisation problem with block allocation.
-Because it allows concurrent page faults and does not have a page
-lock to serialise faults to the same page, it can get two concurrent
-faults to the page that race.
-
-When two read faults race, this isn't a huge problem as the data
-underlying the page is not changing and so "detect and drop" works
-just fine. The issues are to do with write faults.
-
-When two write faults occur, we serialise block allocation in
-get_blocks() so only one faul will allocate the extent. It will,
-however, be marked as an unwritten extent, and that is where the
-problem lies - the DAX fault code cannot differentiate between a
-block that was just allocated and a block that was preallocated and
-needs zeroing. The result is that both write faults end up zeroing
-the block and attempting to convert it back to written.
-
-The problem is that the first fault can zero and convert before the
-second fault starts zeroing, resulting in the zeroing for the second
-fault overwriting the data that the first fault wrote with zeros.
-The second fault then attempts to convert the unwritten extent,
-which is then a no-op because it's already written. Data loss occurs
-as a result of this race.
-
-Because there is no sane locking construct in the page fault code
-that we can use for serialisation across the page faults, we need to
-ensure block allocation and zeroing occurs atomically in the
-filesystem. This means we can still take concurrent page faults and
-the only time they will serialise is in the filesystem
-mapping/allocation callback. The page fault code will always see
-written, initialised extents, so we will be able to remove the
-unwritten extent handling from the DAX code when all filesystems are
-converted.
-
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c           |  5 +++++
- fs/xfs/xfs_aops.c  | 13 +++++++++----
- fs/xfs/xfs_iomap.c | 17 ++++++++++++++++-
- 3 files changed, 30 insertions(+), 5 deletions(-)
+ fs/dax.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 3994a2b..b36d6d2 100644
+index 5dc33d788d50..f8e543839e5c 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -29,6 +29,11 @@
+@@ -28,6 +28,7 @@
+ #include <linux/sched.h>
  #include <linux/uio.h>
  #include <linux/vmstat.h>
++#include <linux/sizes.h>
  
-+/*
-+ * dax_clear_blocks() is called from within transaction context from XFS,
-+ * and hence this means the stack from this point must follow GFP_NOFS
-+ * semantics for all operations.
-+ */
  int dax_clear_blocks(struct inode *inode, sector_t block, long size)
  {
- 	struct block_device *bdev = inode->i_sb->s_bdev;
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index e747d6a..df3dabd 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -1284,15 +1284,12 @@ xfs_map_direct(
+@@ -38,24 +39,20 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+ 	do {
+ 		void __pmem *addr;
+ 		unsigned long pfn;
+-		long count;
++		long count, sz;
  
- 	trace_xfs_gbmap_direct(XFS_I(inode), offset, size, type, imap);
+-		count = bdev_direct_access(bdev, sector, &addr, &pfn, size);
++		sz = min_t(long, size, SZ_1M);
++		count = bdev_direct_access(bdev, sector, &addr, &pfn, sz);
+ 		if (count < 0)
+ 			return count;
+-		BUG_ON(size < count);
+-		while (count > 0) {
+-			unsigned pgsz = PAGE_SIZE - offset_in_page(addr);
+-			if (pgsz > count)
+-				pgsz = count;
+-			clear_pmem(addr, pgsz);
+-			addr += pgsz;
+-			size -= pgsz;
+-			count -= pgsz;
+-			BUG_ON(pgsz & 511);
+-			sector += pgsz / 512;
+-			cond_resched();
+-		}
++		if (count < sz)
++			sz = count;
++		clear_pmem(addr, sz);
++		addr += sz;
++		size -= sz;
++		BUG_ON(sz & 511);
++		sector += sz / 512;
++		cond_resched();
+ 	} while (size);
  
--	/* XXX: preparation for removing unwritten extents in DAX */
--#if 0
- 	if (dax_fault) {
- 		ASSERT(type == XFS_IO_OVERWRITE);
- 		trace_xfs_gbmap_direct_none(XFS_I(inode), offset, size, type,
- 					    imap);
- 		return;
- 	}
--#endif
- 
- 	if (bh_result->b_private) {
- 		ioend = bh_result->b_private;
-@@ -1420,10 +1417,12 @@ __xfs_get_blocks(
- 	if (error)
- 		goto out_unlock;
- 
-+	/* for DAX, we convert unwritten extents directly */
- 	if (create &&
- 	    (!nimaps ||
- 	     (imap.br_startblock == HOLESTARTBLOCK ||
--	      imap.br_startblock == DELAYSTARTBLOCK))) {
-+	      imap.br_startblock == DELAYSTARTBLOCK) ||
-+	     (IS_DAX(inode) && ISUNWRITTEN(&imap)))) {
- 		if (direct || xfs_get_extsz_hint(ip)) {
- 			/*
- 			 * Drop the ilock in preparation for starting the block
-@@ -1468,6 +1467,12 @@ __xfs_get_blocks(
- 		goto out_unlock;
- 	}
- 
-+	if (IS_DAX(inode) && create) {
-+		ASSERT(!ISUNWRITTEN(&imap));
-+		/* zeroing is not needed at a higher layer */
-+		new = 0;
-+	}
-+
- 	/* trim mapping down to size requested */
- 	if (direct || size > (1 << inode->i_blkbits))
- 		xfs_map_trim_size(inode, iblock, bh_result,
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index 1f86033..8b2b4a9 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -131,6 +131,7 @@ xfs_iomap_write_direct(
- 	uint		qblocks, resblks, resrtextents;
- 	int		committed;
- 	int		error;
-+	int		bmapi_flags = XFS_BMAPI_PREALLOC;
- 
- 	error = xfs_qm_dqattach(ip, 0);
- 	if (error)
-@@ -196,13 +197,26 @@ xfs_iomap_write_direct(
- 	xfs_trans_ijoin(tp, ip, 0);
- 
- 	/*
-+	 * For DAX, we do not allocate unwritten extents, but instead we zero
-+	 * the block before we commit the transaction.  Ideally we'd like to do
-+	 * this outside the transaction context, but if we commit and then crash
-+	 * we may not have zeroed the blocks and this will be exposed on
-+	 * recovery of the allocation. Hence we must zero before commit.
-+	 * Further, if we are mapping unwritten extents here, we need to zero
-+	 * and convert them to written so that we don't need an unwritten extent
-+	 * callback for DAX.
-+	 */
-+	if (IS_DAX(VFS_I(ip)))
-+		bmapi_flags = XFS_BMAPI_CONVERT | XFS_BMAPI_ZERO;
-+
-+	/*
- 	 * From this point onwards we overwrite the imap pointer that the
- 	 * caller gave to us.
- 	 */
- 	xfs_bmap_init(&free_list, &firstfsb);
- 	nimaps = 1;
- 	error = xfs_bmapi_write(tp, ip, offset_fsb, count_fsb,
--				XFS_BMAPI_PREALLOC, &firstfsb, 0,
-+				bmapi_flags, &firstfsb, 0,
- 				imap, &nimaps, &free_list);
- 	if (error)
- 		goto out_bmap_cancel;
-@@ -213,6 +227,7 @@ xfs_iomap_write_direct(
- 	error = xfs_bmap_finish(&tp, &free_list, &committed);
- 	if (error)
- 		goto out_bmap_cancel;
-+
- 	error = xfs_trans_commit(tp);
- 	if (error)
- 		goto out_unlock;
--- 
-2.5.0
+ 	wmb_pmem();
 
