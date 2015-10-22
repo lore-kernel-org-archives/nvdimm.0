@@ -1,11 +1,11 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 3/5] block,
+Subject: [PATCH 3/5] block,
  dax: fix lifetime of in-kernel dax mappings with dax_map_atomic()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 22 Oct 2015 13:10:32 -0400
-Message-ID: <20151022171032.38343.34504.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20151022171015.38343.72043.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20151022171015.38343.72043.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 22 Oct 2015 02:41:59 -0400
+Message-ID: <20151022064159.12700.27130.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20151022064142.12700.11849.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20151022064142.12700.11849.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
