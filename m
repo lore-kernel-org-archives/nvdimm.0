@@ -1,244 +1,126 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
+Date: Thu, 22 Oct 2015 23:08:18 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH 5/5] block: enable dax for raw block devices
-Date: Thu, 22 Oct 2015 23:41:27 +0000
-Message-ID: <1445557283.17208.30.camel@intel.com>
+Message-ID: <20151022210818.GC8670@quack.suse.cz>
 References: <20151022064142.12700.11849.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20151022064211.12700.77105.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20151022093549.GE14445@quack.suse.cz> <1445529945.17208.4.camel@intel.com>
-	 <20151022210818.GC8670@quack.suse.cz>
-In-Reply-To: <20151022210818.GC8670@quack.suse.cz>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <A0AF4BEE0DEEC345B82E1748CF5AAC3D@intel.com>
-Content-Transfer-Encoding: base64
+ <20151022064211.12700.77105.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20151022093549.GE14445@quack.suse.cz>
+ <1445529945.17208.4.camel@intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1445529945.17208.4.camel@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "jack@suse.cz" <jack@suse.cz>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "hch@lst.de" <hch@lst.de>, "axboe@fb.com" <axboe@fb.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "willy@linux.intel.com" <willy@linux.intel.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "david@fromorbit.com" <david@fromorbit.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "jack@suse.cz" <jack@suse.cz>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "hch@lst.de" <hch@lst.de>, "axboe@fb.com" <axboe@fb.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "willy@linux.intel.com" <willy@linux.intel.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "david@fromorbit.com" <david@fromorbit.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCAyMDE1LTEwLTIyIGF0IDIzOjA4ICswMjAwLCBKYW4gS2FyYSB3cm90ZToNCj4gT24g
-VGh1IDIyLTEwLTE1IDE2OjA1OjQ2LCBXaWxsaWFtcywgRGFuIEogd3JvdGU6DQo+ID4gT24gVGh1
-LCAyMDE1LTEwLTIyIGF0IDExOjM1ICswMjAwLCBKYW4gS2FyYSB3cm90ZToNCj4gPiA+IE9uIFRo
-dSAyMi0xMC0xNSAwMjo0MjoxMSwgRGFuIFdpbGxpYW1zIHdyb3RlOg0KPiA+ID4gPiBJZiBhbiBh
-cHBsaWNhdGlvbiB3YW50cyBleGNsdXNpdmUgYWNjZXNzIHRvIGFsbCBvZiB0aGUgcGVyc2lzdGVu
-dCBtZW1vcnkNCj4gPiA+ID4gcHJvdmlkZWQgYnkgYW4gTlZESU1NIG5hbWVzcGFjZSBpdCBjYW4g
-dXNlIHRoaXMgcmF3LWJsb2NrLWRheCBmYWNpbGl0eQ0KPiA+ID4gPiB0byBmb3JnbyBlc3RhYmxp
-c2hpbmcgYSBmaWxlc3lzdGVtLiAgVGhpcyBjYXBhYmlsaXR5IGlzIHRhcmdldGVkDQo+ID4gPiA+
-IHByaW1hcmlseSB0byBoeXBlcnZpc29ycyB3YW50aW5nIHRvIHByb3Zpc2lvbiBwZXJzaXN0ZW50
-IG1lbW9yeSBmb3INCj4gPiA+ID4gZ3Vlc3RzLg0KPiA+ID4gPiANCj4gPiA+ID4gQ2M6IEphbiBL
-YXJhIDxqYWNrQHN1c2UuY3o+DQo+ID4gPiA+IENjOiBKZWZmIE1veWVyIDxqbW95ZXJAcmVkaGF0
-LmNvbT4NCj4gPiA+ID4gQ2M6IENocmlzdG9waCBIZWxsd2lnIDxoY2hAbHN0LmRlPg0KPiA+ID4g
-PiBDYzogRGF2ZSBDaGlubmVyIDxkYXZpZEBmcm9tb3JiaXQuY29tPg0KPiA+ID4gPiBDYzogQW5k
-cmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4NCj4gPiA+ID4gQ2M6IFJvc3Mg
-Wndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4NCj4gPiA+ID4gU2lnbmVkLW9m
-Zi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4gPiA+IC0t
-LQ0KPiA+ID4gPiAgZnMvYmxvY2tfZGV2LmMgfCAgIDU0ICsrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLQ0KPiA+ID4gPiAgMSBmaWxlIGNoYW5nZWQs
-IDUzIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4gPiA+ID4gDQo+ID4gPiA+IGRpZmYg
-LS1naXQgYS9mcy9ibG9ja19kZXYuYyBiL2ZzL2Jsb2NrX2Rldi5jDQo+ID4gPiA+IGluZGV4IDMy
-NTVkY2VjOTZiNC4uYzI3Y2QxYTIxYTEzIDEwMDY0NA0KPiA+ID4gPiAtLS0gYS9mcy9ibG9ja19k
-ZXYuYw0KPiA+ID4gPiArKysgYi9mcy9ibG9ja19kZXYuYw0KPiA+ID4gPiBAQCAtMTY4NywxMyAr
-MTY4Nyw2NSBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGFkZHJlc3Nfc3BhY2Vfb3BlcmF0aW9ucyBk
-ZWZfYmxrX2FvcHMgPSB7DQo+ID4gPiA+ICAJLmlzX2RpcnR5X3dyaXRlYmFjayA9IGJ1ZmZlcl9j
-aGVja19kaXJ0eV93cml0ZWJhY2ssDQo+ID4gPiA+ICB9Ow0KPiA+ID4gPiAgDQo+ID4gPiA+ICsj
-aWZkZWYgQ09ORklHX0ZTX0RBWA0KPiA+ID4gPiArLyoNCj4gPiA+ID4gKyAqIEluIHRoZSByYXcg
-YmxvY2sgY2FzZSB3ZSBkbyBub3QgbmVlZCB0byBjb250ZW5kIHdpdGggdHJ1bmNhdGlvbiBub3IN
-Cj4gPiA+ID4gKyAqIHVud3JpdHRlbiBmaWxlIGV4dGVudHMuICBXaXRob3V0IHRob3NlIGNvbmNl
-cm5zIHRoZXJlIGlzIG5vIG5lZWQgZm9yDQo+ID4gPiA+ICsgKiBhZGRpdGlvbmFsIGxvY2tpbmcg
-YmV5b25kIHRoZSBtbWFwX3NlbSBjb250ZXh0IHRoYXQgdGhlc2Ugcm91dGluZXMNCj4gPiA+ID4g
-KyAqIGFyZSBhbHJlYWR5IGV4ZWN1dGluZyB1bmRlci4NCj4gPiA+ID4gKyAqDQo+ID4gPiA+ICsg
-KiBOb3RlLCB0aGVyZSBpcyBubyBwcm90ZWN0aW9uIGlmIHRoZSBibG9jayBkZXZpY2UgaXMgZHlu
-YW1pY2FsbHkNCj4gPiA+ID4gKyAqIHJlc2l6ZWQgKHBhcnRpdGlvbiBncm93L3NocmluaykgZHVy
-aW5nIGEgZmF1bHQuIEEgc3RhYmxlIGJsb2NrIGRldmljZQ0KPiA+ID4gPiArICogc2l6ZSBpcyBh
-bHJlYWR5IG5vdCBlbmZvcmNlZCBpbiB0aGUgYmxrZGV2X2RpcmVjdF9JTyBwYXRoLg0KPiA+ID4g
-PiArICoNCj4gPiA+ID4gKyAqIEZvciBEQVgsIGl0IGlzIHRoZSByZXNwb25zaWJpbGl0eSBvZiB0
-aGUgYmxvY2sgZGV2aWNlIGRyaXZlciB0bw0KPiA+ID4gPiArICogZW5zdXJlIHRoZSB3aG9sZS1k
-aXNrIGRldmljZSBzaXplIGlzIHN0YWJsZSB3aGlsZSByZXF1ZXN0cyBhcmUgaW4NCj4gPiA+ID4g
-KyAqIGZsaWdodC4NCj4gPiA+ID4gKyAqDQo+ID4gPiA+ICsgKiBGaW5hbGx5LCB0aGVzZSBwYXRo
-cyBkbyBub3Qgc3luY2hyb25pemUgYWdhaW5zdCBmcmVlemluZw0KPiA+ID4gPiArICogKHNiX3N0
-YXJ0X3BhZ2VmYXVsdCgpLCBldGMuLi4pIHNpbmNlIGJkZXZfc29wcyBkb2VzIG5vdCBzdXBwb3J0
-DQo+ID4gPiA+ICsgKiBmcmVlemluZy4NCj4gPiA+IA0KPiA+ID4gV2VsbCwgZm9yIGRldmljZXMg
-ZnJlZXppbmcgaXMgaGFuZGxlZCBkaXJlY3RseSBpbiB0aGUgYmxvY2sgbGF5ZXIgY29kZQ0KPiA+
-ID4gKGJsa19zdG9wX3F1ZXVlKCkpIHNpbmNlIHRoZXJlJ3Mgbm8gbmVlZCB0byBwdXQgc29tZSBt
-ZXRhZGF0YSBzdHJ1Y3R1cmVzDQo+ID4gPiBpbnRvIGEgY29uc2lzdGVudCBzdGF0ZS4gU28gdGhl
-IGNvbW1lbnQgYWJvdXQgYmRldl9zb3BzIGlzIHNvbWV3aGF0DQo+ID4gPiBzdHJhbmdlLg0KPiA+
-IA0KPiA+IFRoaXMgdGV4dCB3YXMgYWltZWQgYXQgdGhlIHJlcXVlc3QgZnJvbSBSb3NzIHRvIGRv
-Y3VtZW50IHRoZSBkaWZmZXJlbmNlcw0KPiA+IHZzIHRoZSBnZW5lcmljX2ZpbGVfbW1hcCgpIHBh
-dGguICBJcyB0aGUgZm9sbG93aW5nIGluY3JlbWVudGFsIGNoYW5nZQ0KPiA+IG1vcmUgY2xlYXI/
-DQo+IA0KPiBXZWxsLCBub3QgcmVhbGx5LiBJIHRob3VnaHQgeW91J2QganVzdCBkZWxldGUgdGhh
-dCBwYXJhZ3JhcGggOikgVGhlIHRoaW5nDQo+IGlzOiBXaGVuIGRvaW5nIElPIGRpcmVjdGx5IHRv
-IHRoZSBibG9jayBkZXZpY2UsIGl0IG1ha2VzIG5vIHNlbnNlIHRvIGxvb2sNCj4gYXQgYSBmaWxl
-c3lzdGVtIG9uIHRvcCBvZiBpdCAtIGhvcGVmdWxseSB0aGVyZSBpcyBub25lIHNpbmNlIHlvdSdk
-IGJlDQo+IGNvcnJ1cHRpbmcgaXQuIFNvIHRoZSBwYXJhZ3JhcGggdGhhdCB3b3VsZCBtYWtlIHNl
-bnNlIHRvIG1lIHdvdWxkIGJlOg0KPiANCj4gICogRmluYWxseSwgaW4gY29udHJhc3QgdG8gZmls
-ZW1hcF9wYWdlX21rd3JpdGUoKSwgd2UgZG9uJ3QgYm90aGVyIGNhbGxpbmcNCj4gICogc2Jfc3Rh
-cnRfcGFnZWZhdWx0KCkuIFRoZXJlIGlzIG5vIGZpbGVzeXN0ZW0gd2hpY2ggY291bGQgYmUgZnJv
-emVuIGhlcmUNCj4gICogYW5kIHdoZW4gYmRldiBnZXRzIGZyb3plbiwgSU8gZ2V0cyBibG9ja2Vk
-IGluIHRoZSByZXF1ZXN0IHF1ZXVlLg0KPiANCj4gQnV0IHdoZW4gc3BlbGxlZCBvdXQgbGlrZSB0
-aGlzLCBJJ3ZlIHJlYWxpemVkIHRoYXQgd2l0aCBEQVgsIHRoaXMgYmxvY2tpbmcNCj4gb2YgcmVx
-dWVzdHMgaW4gdGhlIHJlcXVlc3QgcXVldWUgZG9lc24ndCByZWFsbHkgYmxvY2sgdGhlIElPIHRv
-IHRoZSBkZXZpY2UuDQo+IFNvIGJsb2NrIGRldmljZSBmcmVlemluZyAoYWthIGJsa19xdWV1ZV9z
-dG9wKCkpIGRvZXNuJ3Qgd29yayByZWxpYWJseSB3aXRoDQo+IERBWC4gVGhhdCBzaG91bGQgYmUg
-Zml4ZWQgYnV0IGl0J3Mgbm90IGVhc3kgYXMgdGhlIG9ubHkgd2F5IHRvIGRvIHRoYXQNCj4gd291
-bGQgYmUgdG8gaG9vayBpbnRvIGJsa19zdG9wX3F1ZXVlKCkgYW5kIHVubWFwIChvciBhdCBsZWFz
-dA0KPiB3cml0ZS1wcm90ZWN0KSBhbGwgdGhlIG1hcHBpbmdzIG9mIHRoZSBkZXZpY2UuIFVnaC4u
-Lg0KPiANCj4gVWdoMjogTm93IEkgcmVhbGl6ZWQgdGhhdCBEQVggbW1hcCBpc24ndCBzYWZlIHdy
-dCBmcyBmcmVlemluZyBldmVuIGZvcg0KPiBmaWxlc3lzdGVtcyBzaW5jZSB0aGVyZSdzIG5vdGhp
-bmcgd2hpY2ggd3JpdGVwcm90ZWN0cyBwYWdlcyB0aGF0IGFyZQ0KPiB3cml0ZWFibHkgbWFwcGVk
-LiBJbiBub3JtYWwgcGF0aCwgcGFnZSB3cml0ZWJhY2sgZG9lcyB0aGlzIGJ1dCB0aGF0IGRvZXNu
-J3QNCj4gaGFwcGVuIGZvciBEQVguIEkgcmVtZW1iZXIgd2Ugb25jZSB0YWxrZWQgYWJvdXQgdGhp
-cyBidXQgaXQgZ290IGxvc3QuDQo+IFdlIG5lZWQgc29tZXRoaW5nIGxpa2Ugd2FsayBhbGwgZmls
-ZXN5c3RlbSBpbm9kZXMgZHVyaW5nIGZzIGZyZWV6ZSBhbmQNCj4gd3JpdGVwcm90ZWN0IGFsbCBw
-YWdlcyB0aGF0IGFyZSBtYXBwZWQuIEJ1dCB0aGF0J3MgZ29pbmcgdG8gYmUgc2xvdy4uLg0KDQpU
-aGlzIHNvdW5kcyBzdXNwaWNpb3VzbHkgbGlrZSB3aGF0IEknbSBwbGFubmluZyB0byBkbyBmb3Ig
-dGhlIGRldmljZQ0KdGVhcmRvd24gcGF0aCB3aGVuIHdlJ3ZlIGR5bmFtaWNhbGx5IGFsbG9jYXRl
-ZCBzdHJ1Y3QgcGFnZS4gIFRoZSBiYWNraW5nDQptZW1vcnkgZm9yIHRob3NlIHBhZ2VzIGlzIGZy
-ZWVkIHdoZW4gdGhlIGRyaXZlciBydW5zIGl0cyAtPnJlbW92ZSgpDQpwYXRoLCBzbyB3ZSBoYXZl
-IHRvIGJlIHN1cmUgdGhlcmUgYXJlIG5vIG91dHN0YW5kaW5nIHJlZmVyZW5jZXMgdG8gdGhlbS4N
-Cg0KTXkgY3VycmVudCBwcm9wb3NhbCBmb3IgdGhlIHRlYXJkb3duIGNhc2UsIHRoYXQgd2UgbWln
-aHQgcmUtcHVycG9zZSBmb3INCnRoaXMgZnJlZXplIGNhc2UsIGlzIGJlbG93LiAgSXQgcmVsaWVz
-IG9uIHRoZSBwZXJjcHVfcmVmIGluIHRoZQ0KcmVxdWVzdF9xdWV1ZSB0byBibG9jayBuZXcgZmF1
-bHRzIGFuZCB0aGVuIHVzZXMgdHJ1bmNhdGVfcGFnZWNhY2hlKCkgdG8NCnRlYXJkb3duIG1hcHBp
-bmdzLiAgSG93ZXZlciwgdGhpcyBhc3N1bWVzIHdlJ3ZlIGluc2VydGVkIHBhZ2VzIGludG8gdGhl
-DQphZGRyZXNzX3NwYWNlIHJhZGl4IGF0IGZhdWx0LCB3aGljaCB3ZSBkb24ndCBjdXJyZW50bHkg
-ZG8uLi4NCg0KSW4gZ2VuZXJhbCwgYXMgdGhpcyBwYWdlLWJhY2tlZC1wbWVtIHN1cHBvcnQgbGFu
-ZHMgdXBzdHJlYW0sIEknbSBvZiB0aGUNCm9waW5pb24gdGhhdCB0aGUgcGFnZS1sZXNzIERBWCBz
-dXBwb3J0IGJlIGRlcHJlY2F0ZWQvZGlzYWJsZWQNCnVubGVzcy91bnRpbCBpdCBjYW4gYmUgbWFk
-ZSBhcyBmdW5jdGlvbmFsbHkgY2FwYWJsZSBhcyB0aGUgcGFnZS1lbmFibGVkDQpwYXRocy4NCg0K
-ODwtLS0tDQpTdWJqZWN0OiBtbSwgcG1lbTogZGV2bV9tZW11bm1hcF9wYWdlcygpLCB0cnVuY2F0
-ZSBhbmQgdW5tYXAgWk9ORV9ERVZJQ0UgcGFnZXMNCg0KRnJvbTogRGFuIFdpbGxpYW1zIDxkYW4u
-ai53aWxsaWFtc0BpbnRlbC5jb20+DQoNCkJlZm9yZSB3ZSBhbGxvdyBaT05FX0RFVklDRSBwYWdl
-cyB0byBiZSBwdXQgaW50byBhY3RpdmUgdXNlIG91dHNpZGUgb2YNCnRoZSBwbWVtIGRyaXZlciwg
-d2UgbmVlZCB0byBhcnJhbmdlIGZvciB0aGVtIHRvIGJlIHJlY2xhaW1lZCB3aGVuIHRoZQ0KZHJp
-dmVyIGlzIHNodXRkb3duLiAgZGV2bV9tZW11bm1hcF9wYWdlcygpIG11c3Qgd2FpdCBmb3IgYWxs
-IHBhZ2VzIHRvDQpyZXR1cm4gdG8gdGhlIGluaXRpYWwgbWFwY291bnQgb2YgMS4gIElmIGEgZ2l2
-ZW4gcGFnZSBpcyBtYXBwZWQgYnkgYQ0KcHJvY2VzcyB3ZSB3aWxsIHRydW5jYXRlIGl0IG91dCBv
-ZiBpdHMgaW5vZGUgbWFwcGluZyBhbmQgdW5tYXAgaXQgb3V0IG9mDQp0aGUgcHJvY2VzcyB2bWEu
-DQoNClRoaXMgdHJ1bmNhdGlvbiBpcyBkb25lIHdoaWxlIHRoZSBkZXZfcGFnZW1hcCByZWZlcmVu
-Y2UgY291bnQgaXMgImRlYWQiLA0KcHJldmVudGluZyBuZXcgcmVmZXJlbmNlcyBmcm9tIGJlaW5n
-IHRha2VuIHdoaWxlIHRoZSB0cnVuY2F0ZSt1bm1hcCBzY2FuDQppcyBpbiBwcm9ncmVzcy4NCg0K
-Q2M6IERhdmUgSGFuc2VuIDxkYXZlQHNyNzEubmV0Pg0KQ2M6IEFuZHJldyBNb3J0b24gPGFrcG1A
-bGludXgtZm91bmRhdGlvbi5vcmc+DQpDYzogQ2hyaXN0b3BoIEhlbGx3aWcgPGhjaEBsc3QuZGU+
-DQpDYzogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPg0KQ2M6IE1h
-dHRoZXcgV2lsY294IDx3aWxseUBsaW51eC5pbnRlbC5jb20+DQpDYzogQWxleGFuZGVyIFZpcm8g
-PHZpcm9AemVuaXYubGludXgub3JnLnVrPg0KQ2M6IERhdmUgQ2hpbm5lciA8ZGF2aWRAZnJvbW9y
-Yml0LmNvbT4NClNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50
-ZWwuY29tPg0KLS0tDQogZHJpdmVycy9udmRpbW0vcG1lbS5jIHwgICA0MiArKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKystLS0tLS0NCiBmcy9kYXguYyAgICAgICAgICAgICAgfCAg
-ICAyICsrDQogaW5jbHVkZS9saW51eC9tbS5oICAgIHwgICAgNSArKysrKw0KIGtlcm5lbC9tZW1y
-ZW1hcC5jICAgICB8ICAgNDggKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrDQogNCBmaWxlcyBjaGFuZ2VkLCA5MSBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9u
-cygtKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vcG1lbS5jIGIvZHJpdmVycy9udmRp
-bW0vcG1lbS5jDQppbmRleCBmN2FjY2U1OTRmYTAuLjJjOWFlYmJjM2ZlYSAxMDA2NDQNCi0tLSBh
-L2RyaXZlcnMvbnZkaW1tL3BtZW0uYw0KKysrIGIvZHJpdmVycy9udmRpbW0vcG1lbS5jDQpAQCAt
-MjQsMTIgKzI0LDE1IEBADQogI2luY2x1ZGUgPGxpbnV4L21lbW9yeV9ob3RwbHVnLmg+DQogI2lu
-Y2x1ZGUgPGxpbnV4L21vZHVsZXBhcmFtLmg+DQogI2luY2x1ZGUgPGxpbnV4L3ZtYWxsb2MuaD4N
-CisjaW5jbHVkZSA8bGludXgvYXN5bmMuaD4NCiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPg0KICNp
-bmNsdWRlIDxsaW51eC9wbWVtLmg+DQogI2luY2x1ZGUgPGxpbnV4L25kLmg+DQogI2luY2x1ZGUg
-InBmbi5oIg0KICNpbmNsdWRlICJuZC5oIg0KIA0KK3N0YXRpYyBBU1lOQ19ET01BSU5fRVhDTFVT
-SVZFKGFzeW5jX3BtZW0pOw0KKw0KIHN0cnVjdCBwbWVtX2RldmljZSB7DQogCXN0cnVjdCByZXF1
-ZXN0X3F1ZXVlCSpwbWVtX3F1ZXVlOw0KIAlzdHJ1Y3QgZ2VuZGlzawkJKnBtZW1fZGlzazsNCkBA
-IC0xNjQsMTQgKzE2Nyw0MyBAQCBzdGF0aWMgc3RydWN0IHBtZW1fZGV2aWNlICpwbWVtX2FsbG9j
-KHN0cnVjdCBkZXZpY2UgKmRldiwNCiAJcmV0dXJuIHBtZW07DQogfQ0KIA0KLXN0YXRpYyB2b2lk
-IHBtZW1fZGV0YWNoX2Rpc2soc3RydWN0IHBtZW1fZGV2aWNlICpwbWVtKQ0KKw0KK3N0YXRpYyB2
-b2lkIGFzeW5jX2Jsa19jbGVhbnVwX3F1ZXVlKHZvaWQgKmRhdGEsIGFzeW5jX2Nvb2tpZV90IGNv
-b2tpZSkNCit7DQorCXN0cnVjdCBwbWVtX2RldmljZSAqcG1lbSA9IGRhdGE7DQorDQorCWJsa19j
-bGVhbnVwX3F1ZXVlKHBtZW0tPnBtZW1fcXVldWUpOw0KK30NCisNCitzdGF0aWMgdm9pZCBwbWVt
-X2RldGFjaF9kaXNrKHN0cnVjdCBkZXZpY2UgKmRldikNCiB7DQorCXN0cnVjdCBwbWVtX2Rldmlj
-ZSAqcG1lbSA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOw0KKwlzdHJ1Y3QgcmVxdWVzdF9xdWV1ZSAq
-cSA9IHBtZW0tPnBtZW1fcXVldWU7DQorDQogCWlmICghcG1lbS0+cG1lbV9kaXNrKQ0KIAkJcmV0
-dXJuOw0KIA0KIAlkZWxfZ2VuZGlzayhwbWVtLT5wbWVtX2Rpc2spOw0KIAlwdXRfZGlzayhwbWVt
-LT5wbWVtX2Rpc2spOw0KLQlibGtfY2xlYW51cF9xdWV1ZShwbWVtLT5wbWVtX3F1ZXVlKTsNCisJ
-YXN5bmNfc2NoZWR1bGVfZG9tYWluKGFzeW5jX2Jsa19jbGVhbnVwX3F1ZXVlLCBwbWVtLCAmYXN5
-bmNfcG1lbSk7DQorDQorCWlmIChwbWVtLT5wZm5fZmxhZ3MgJiBQRk5fTUFQKSB7DQorCQkvKg0K
-KwkJICogV2FpdCBmb3IgcXVldWUgdG8gZ28gZGVhZCBzbyB0aGF0IHdlIGtub3cgbm8gbmV3DQor
-CQkgKiByZWZlcmVuY2VzIHdpbGwgYmUgdGFrZW4gYWdhaW5zdCB0aGUgcGFnZXMgYWxsb2NhdGVk
-DQorCQkgKiBieSBkZXZtX21lbXJlbWFwX3BhZ2VzKCkuDQorCQkgKi8NCisJCWJsa193YWl0X3F1
-ZXVlX2RlYWQocSk7DQorDQorCQkvKg0KKwkJICogTWFudWFsbHkgcmVsZWFzZSB0aGUgcGFnZSBt
-YXBwaW5nIHNvIHRoYXQNCisJCSAqIGJsa19jbGVhbnVwX3F1ZXVlKCkgY2FuIGNvbXBsZXRlIHF1
-ZXVlIGRyYWluaW5nLg0KKwkJICovDQorCQlkZXZtX21lbXVubWFwX3BhZ2VzKGRldiwgKHZvaWQg
-X19mb3JjZSAqKSBwbWVtLT52aXJ0X2FkZHIpOw0KKwl9DQorDQorCS8qIFdhaXQgZm9yIGJsa19j
-bGVhbnVwX3F1ZXVlKCkgdG8gZmluaXNoICovDQorCWFzeW5jX3N5bmNocm9uaXplX2Z1bGxfZG9t
-YWluKCZhc3luY19wbWVtKTsNCiB9DQogDQogc3RhdGljIGludCBwbWVtX2F0dGFjaF9kaXNrKHN0
-cnVjdCBkZXZpY2UgKmRldiwNCkBAIC0yOTksMTEgKzMzMSw5IEBAIHN0YXRpYyBpbnQgbmRfcGZu
-X2luaXQoc3RydWN0IG5kX3BmbiAqbmRfcGZuKQ0KIHN0YXRpYyBpbnQgbnZkaW1tX25hbWVzcGFj
-ZV9kZXRhY2hfcGZuKHN0cnVjdCBuZF9uYW1lc3BhY2VfY29tbW9uICpuZG5zKQ0KIHsNCiAJc3Ry
-dWN0IG5kX3BmbiAqbmRfcGZuID0gdG9fbmRfcGZuKG5kbnMtPmNsYWltKTsNCi0Jc3RydWN0IHBt
-ZW1fZGV2aWNlICpwbWVtOw0KIA0KIAkvKiBmcmVlIHBtZW0gZGlzayAqLw0KLQlwbWVtID0gZGV2
-X2dldF9kcnZkYXRhKCZuZF9wZm4tPmRldik7DQotCXBtZW1fZGV0YWNoX2Rpc2socG1lbSk7DQor
-CXBtZW1fZGV0YWNoX2Rpc2soJm5kX3Bmbi0+ZGV2KTsNCiANCiAJLyogcmVsZWFzZSBuZF9wZm4g
-cmVzb3VyY2VzICovDQogCWtmcmVlKG5kX3Bmbi0+cGZuX3NiKTsNCkBAIC00NDYsNyArNDc2LDcg
-QEAgc3RhdGljIGludCBuZF9wbWVtX3JlbW92ZShzdHJ1Y3QgZGV2aWNlICpkZXYpDQogCWVsc2Ug
-aWYgKGlzX25kX3BmbihkZXYpKQ0KIAkJbnZkaW1tX25hbWVzcGFjZV9kZXRhY2hfcGZuKHBtZW0t
-Pm5kbnMpOw0KIAllbHNlDQotCQlwbWVtX2RldGFjaF9kaXNrKHBtZW0pOw0KKwkJcG1lbV9kZXRh
-Y2hfZGlzayhkZXYpOw0KIA0KIAlyZXR1cm4gMDsNCiB9DQpkaWZmIC0tZ2l0IGEvZnMvZGF4LmMg
-Yi9mcy9kYXguYw0KaW5kZXggOGQ3NTY1NjJmY2YwLi4wYmM5YjMxNWQxNmYgMTAwNjQ0DQotLS0g
-YS9mcy9kYXguYw0KKysrIGIvZnMvZGF4LmMNCkBAIC00Niw2ICs0Niw3IEBAIHN0YXRpYyB2b2lk
-IF9fcG1lbSAqX19kYXhfbWFwX2F0b21pYyhzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2LCBzZWN0
-b3JfdCBzZWN0b3IsDQogCQlibGtfcXVldWVfZXhpdChxKTsNCiAJCXJldHVybiAodm9pZCBfX3Bt
-ZW0gKikgRVJSX1BUUihyYyk7DQogCX0NCisJcmN1X3JlYWRfbG9jaygpOw0KIAlyZXR1cm4gYWRk
-cjsNCiB9DQogDQpAQCAtNjIsNiArNjMsNyBAQCBzdGF0aWMgdm9pZCBkYXhfdW5tYXBfYXRvbWlj
-KHN0cnVjdCBibG9ja19kZXZpY2UgKmJkZXYsIHZvaWQgX19wbWVtICphZGRyKQ0KIAlpZiAoSVNf
-RVJSKGFkZHIpKQ0KIAkJcmV0dXJuOw0KIAlibGtfcXVldWVfZXhpdChiZGV2LT5iZF9xdWV1ZSk7
-DQorCXJjdV9yZWFkX3VubG9jaygpOw0KIH0NCiANCiBpbnQgZGF4X2NsZWFyX2Jsb2NrcyhzdHJ1
-Y3QgaW5vZGUgKmlub2RlLCBzZWN0b3JfdCBibG9jaywgbG9uZyBzaXplKQ0KZGlmZiAtLWdpdCBh
-L2luY2x1ZGUvbGludXgvbW0uaCBiL2luY2x1ZGUvbGludXgvbW0uaA0KaW5kZXggYTViNTI2N2Vh
-ZTViLi4yOTQ1MThkZGY1YmMgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL2xpbnV4L21tLmgNCisrKyBi
-L2luY2x1ZGUvbGludXgvbW0uaA0KQEAgLTgwMSw2ICs4MDEsNyBAQCBzdHJ1Y3QgZGV2X3BhZ2Vt
-YXAgew0KIA0KICNpZmRlZiBDT05GSUdfWk9ORV9ERVZJQ0UNCiBzdHJ1Y3QgZGV2X3BhZ2VtYXAg
-Kl9fZ2V0X2Rldl9wYWdlbWFwKHJlc291cmNlX3NpemVfdCBwaHlzKTsNCit2b2lkIGRldm1fbWVt
-dW5tYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2LCB2b2lkICphZGRyKTsNCiB2b2lkICpkZXZt
-X21lbXJlbWFwX3BhZ2VzKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IHJlc291cmNlICpyZXMs
-DQogCQlzdHJ1Y3QgcGVyY3B1X3JlZiAqcmVmLCBzdHJ1Y3Qgdm1lbV9hbHRtYXAgKmFsdG1hcCk7
-DQogI2Vsc2UNCkBAIC04MDksNiArODEwLDEwIEBAIHN0YXRpYyBpbmxpbmUgc3RydWN0IGRldl9w
-YWdlbWFwICpfX2dldF9kZXZfcGFnZW1hcChyZXNvdXJjZV9zaXplX3QgcGh5cykNCiAJcmV0dXJu
-IE5VTEw7DQogfQ0KIA0KK3N0YXRpYyBpbmxpbmUgdm9pZCBkZXZtX21lbXVubWFwX3BhZ2VzKHN0
-cnVjdCBkZXZpY2UgKmRldiwgdm9pZCAqYWRkcikNCit7DQorfQ0KKw0KIHN0YXRpYyBpbmxpbmUg
-dm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCByZXNv
-dXJjZSAqcmVzLA0KIAkJc3RydWN0IHBlcmNwdV9yZWYgKnJlZiwgc3RydWN0IHZtZW1fYWx0bWFw
-ICphbHRtYXApDQogew0KZGlmZiAtLWdpdCBhL2tlcm5lbC9tZW1yZW1hcC5jIGIva2VybmVsL21l
-bXJlbWFwLmMNCmluZGV4IDQ2OTgwNzFhMWM0My4uYWM3NDMzNmU2ZDczIDEwMDY0NA0KLS0tIGEv
-a2VybmVsL21lbXJlbWFwLmMNCisrKyBiL2tlcm5lbC9tZW1yZW1hcC5jDQpAQCAtMTMsNiArMTMs
-NyBAQA0KICNpbmNsdWRlIDxsaW51eC9yY3VsaXN0Lmg+DQogI2luY2x1ZGUgPGxpbnV4L2Rldmlj
-ZS5oPg0KICNpbmNsdWRlIDxsaW51eC90eXBlcy5oPg0KKyNpbmNsdWRlIDxsaW51eC9mcy5oPg0K
-ICNpbmNsdWRlIDxsaW51eC9pby5oPg0KICNpbmNsdWRlIDxsaW51eC9tbS5oPg0KICNpbmNsdWRl
-IDxsaW51eC9tZW1vcnlfaG90cGx1Zy5oPg0KQEAgLTE4NywxMCArMTg4LDM5IEBAIHN0YXRpYyB1
-bnNpZ25lZCBsb25nIHBmbl9lbmQoc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkNCiANCiBzdGF0
-aWMgdm9pZCBkZXZtX21lbXJlbWFwX3BhZ2VzX3JlbGVhc2Uoc3RydWN0IGRldmljZSAqZGV2LCB2
-b2lkICpkYXRhKQ0KIHsNCisJdW5zaWduZWQgbG9uZyBwZm47DQogCXN0cnVjdCBwYWdlX21hcCAq
-cGFnZV9tYXAgPSBkYXRhOw0KIAlzdHJ1Y3QgcmVzb3VyY2UgKnJlcyA9ICZwYWdlX21hcC0+cmVz
-Ow0KKwlzdHJ1Y3QgYWRkcmVzc19zcGFjZSAqbWFwcGluZ19wcmV2ID0gTlVMTDsNCiAJc3RydWN0
-IGRldl9wYWdlbWFwICpwZ21hcCA9ICZwYWdlX21hcC0+cGdtYXA7DQogDQorCWlmIChwZXJjcHVf
-cmVmX3RyeWdldF9saXZlKHBnbWFwLT5yZWYpKSB7DQorCQlkZXZfV0FSTihkZXYsICIlczogcGFn
-ZSBtYXBwaW5nIGlzIHN0aWxsIGxpdmUhXG4iLCBfX2Z1bmNfXyk7DQorCQlwZXJjcHVfcmVmX3B1
-dChwZ21hcC0+cmVmKTsNCisJfQ0KKw0KKwkvKiBmbHVzaCBpbi1mbGlnaHQgZGF4X21hcF9hdG9t
-aWMoKSBvcGVyYXRpb25zICovDQorCXN5bmNocm9uaXplX3JjdSgpOw0KKw0KKwlmb3JfZWFjaF9k
-ZXZpY2VfcGZuKHBmbiwgcGdtYXApIHsNCisJCXN0cnVjdCBwYWdlICpwYWdlID0gcGZuX3RvX3Bh
-Z2UocGZuKTsNCisJCXN0cnVjdCBhZGRyZXNzX3NwYWNlICptYXBwaW5nID0gcGFnZS0+bWFwcGlu
-ZzsNCisJCXN0cnVjdCBpbm9kZSAqaW5vZGUgPSBtYXBwaW5nID8gbWFwcGluZy0+aG9zdCA6IE5V
-TEw7DQorDQorCQlkZXZfV0FSTl9PTkNFKGRldiwgYXRvbWljX3JlYWQoJnBhZ2UtPl9jb3VudCkg
-PCAxLA0KKwkJCQkiJXM6IFpPTkVfREVWSUNFIHBhZ2Ugd2FzIGZyZWVkIVxuIiwgX19mdW5jX18p
-Ow0KKw0KKwkJaWYgKCFtYXBwaW5nIHx8ICFpbm9kZSB8fCBtYXBwaW5nID09IG1hcHBpbmdfcHJl
-dikgew0KKwkJCWRldl9XQVJOX09OQ0UoZGV2LCBhdG9taWNfcmVhZCgmcGFnZS0+X2NvdW50KSA+
-IDEsDQorCQkJCQkiJXM6IHVuZXhwZWN0ZWQgZWxldmF0ZWQgcGFnZSBjb3VudCBwZm46ICVseFxu
-IiwNCisJCQkJCV9fZnVuY19fLCBwZm4pOw0KKwkJCWNvbnRpbnVlOw0KKwkJfQ0KKw0KKwkJdHJ1
-bmNhdGVfcGFnZWNhY2hlKGlub2RlLCAwKTsNCisJCW1hcHBpbmdfcHJldiA9IG1hcHBpbmc7DQor
-CX0NCisNCiAJLyogcGFnZXMgYXJlIGRlYWQgYW5kIHVudXNlZCwgdW5kbyB0aGUgYXJjaCBtYXBw
-aW5nICovDQogCWFyY2hfcmVtb3ZlX21lbW9yeShyZXMtPnN0YXJ0LCByZXNvdXJjZV9zaXplKHJl
-cykpOw0KIAlkZXZfV0FSTl9PTkNFKGRldiwgcGdtYXAtPmFsdG1hcCAmJiBwZ21hcC0+YWx0bWFw
-LT5hbGxvYywNCkBAIC0yOTIsNiArMzIyLDI0IEBAIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMo
-c3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgcmVzb3VyY2UgKnJlcywNCiAJcmV0dXJuIF9fdmEo
-cmVzLT5zdGFydCk7DQogfQ0KIEVYUE9SVF9TWU1CT0woZGV2bV9tZW1yZW1hcF9wYWdlcyk7DQor
-DQorc3RhdGljIGludCBwYWdlX21hcF9tYXRjaChzdHJ1Y3QgZGV2aWNlICpkZXYsIHZvaWQgKnJl
-cywgdm9pZCAqbWF0Y2hfZGF0YSkNCit7DQorCXN0cnVjdCBwYWdlX21hcCAqcGFnZV9tYXAgPSBy
-ZXM7DQorCXJlc291cmNlX3NpemVfdCBwaHlzID0gKihyZXNvdXJjZV9zaXplX3QgKikgbWF0Y2hf
-ZGF0YTsNCisNCisJcmV0dXJuIHBhZ2VfbWFwLT5yZXMuc3RhcnQgPT0gcGh5czsNCit9DQorDQor
-dm9pZCBkZXZtX21lbXVubWFwX3BhZ2VzKHN0cnVjdCBkZXZpY2UgKmRldiwgdm9pZCAqYWRkcikN
-Cit7DQorCXJlc291cmNlX3NpemVfdCBzdGFydCA9IF9fcGEoYWRkcik7DQorDQorCWlmIChkZXZy
-ZXNfcmVsZWFzZShkZXYsIGRldm1fbWVtcmVtYXBfcGFnZXNfcmVsZWFzZSwgcGFnZV9tYXBfbWF0
-Y2gsDQorCQkJCSZzdGFydCkgIT0gMCkNCisJCWRldl9XQVJOKGRldiwgImZhaWxlZCB0byBmaW5k
-IHBhZ2UgbWFwIHRvIHJlbGVhc2VcbiIpOw0KK30NCitFWFBPUlRfU1lNQk9MKGRldm1fbWVtdW5t
-YXBfcGFnZXMpOw0KICNlbmRpZiAvKiBDT05GSUdfWk9ORV9ERVZJQ0UgKi8NCiANCiAjaWZkZWYg
-Q09ORklHX1NQQVJTRU1FTV9WTUVNTUFQDQoNCg==
+On Thu 22-10-15 16:05:46, Williams, Dan J wrote:
+> On Thu, 2015-10-22 at 11:35 +0200, Jan Kara wrote:
+> > On Thu 22-10-15 02:42:11, Dan Williams wrote:
+> > > If an application wants exclusive access to all of the persistent memory
+> > > provided by an NVDIMM namespace it can use this raw-block-dax facility
+> > > to forgo establishing a filesystem.  This capability is targeted
+> > > primarily to hypervisors wanting to provision persistent memory for
+> > > guests.
+> > > 
+> > > Cc: Jan Kara <jack@suse.cz>
+> > > Cc: Jeff Moyer <jmoyer@redhat.com>
+> > > Cc: Christoph Hellwig <hch@lst.de>
+> > > Cc: Dave Chinner <david@fromorbit.com>
+> > > Cc: Andrew Morton <akpm@linux-foundation.org>
+> > > Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > > ---
+> > >  fs/block_dev.c |   54 +++++++++++++++++++++++++++++++++++++++++++++++++++++-
+> > >  1 file changed, 53 insertions(+), 1 deletion(-)
+> > > 
+> > > diff --git a/fs/block_dev.c b/fs/block_dev.c
+> > > index 3255dcec96b4..c27cd1a21a13 100644
+> > > --- a/fs/block_dev.c
+> > > +++ b/fs/block_dev.c
+> > > @@ -1687,13 +1687,65 @@ static const struct address_space_operations def_blk_aops = {
+> > >  	.is_dirty_writeback = buffer_check_dirty_writeback,
+> > >  };
+> > >  
+> > > +#ifdef CONFIG_FS_DAX
+> > > +/*
+> > > + * In the raw block case we do not need to contend with truncation nor
+> > > + * unwritten file extents.  Without those concerns there is no need for
+> > > + * additional locking beyond the mmap_sem context that these routines
+> > > + * are already executing under.
+> > > + *
+> > > + * Note, there is no protection if the block device is dynamically
+> > > + * resized (partition grow/shrink) during a fault. A stable block device
+> > > + * size is already not enforced in the blkdev_direct_IO path.
+> > > + *
+> > > + * For DAX, it is the responsibility of the block device driver to
+> > > + * ensure the whole-disk device size is stable while requests are in
+> > > + * flight.
+> > > + *
+> > > + * Finally, these paths do not synchronize against freezing
+> > > + * (sb_start_pagefault(), etc...) since bdev_sops does not support
+> > > + * freezing.
+> > 
+> > Well, for devices freezing is handled directly in the block layer code
+> > (blk_stop_queue()) since there's no need to put some metadata structures
+> > into a consistent state. So the comment about bdev_sops is somewhat
+> > strange.
+> 
+> This text was aimed at the request from Ross to document the differences
+> vs the generic_file_mmap() path.  Is the following incremental change
+> more clear?
+
+Well, not really. I thought you'd just delete that paragraph :) The thing
+is: When doing IO directly to the block device, it makes no sense to look
+at a filesystem on top of it - hopefully there is none since you'd be
+corrupting it. So the paragraph that would make sense to me would be:
+
+ * Finally, in contrast to filemap_page_mkwrite(), we don't bother calling
+ * sb_start_pagefault(). There is no filesystem which could be frozen here
+ * and when bdev gets frozen, IO gets blocked in the request queue.
+
+But when spelled out like this, I've realized that with DAX, this blocking
+of requests in the request queue doesn't really block the IO to the device.
+So block device freezing (aka blk_queue_stop()) doesn't work reliably with
+DAX. That should be fixed but it's not easy as the only way to do that
+would be to hook into blk_stop_queue() and unmap (or at least
+write-protect) all the mappings of the device. Ugh...
+
+Ugh2: Now I realized that DAX mmap isn't safe wrt fs freezing even for
+filesystems since there's nothing which writeprotects pages that are
+writeably mapped. In normal path, page writeback does this but that doesn't
+happen for DAX. I remember we once talked about this but it got lost.
+We need something like walk all filesystem inodes during fs freeze and
+writeprotect all pages that are mapped. But that's going to be slow...
+
+								Honza
+
+> diff --git a/fs/block_dev.c b/fs/block_dev.c
+> index 840acd4380d4..4ae8fa55bd1e 100644
+> --- a/fs/block_dev.c
+> +++ b/fs/block_dev.c
+> @@ -1702,9 +1702,15 @@ static const struct address_space_operations def_blk_aops = {
+>   * ensure the whole-disk device size is stable while requests are in
+>   * flight.
+>   *
+> - * Finally, these paths do not synchronize against freezing
+> - * (sb_start_pagefault(), etc...) since bdev_sops does not support
+> - * freezing.
+> + * Finally, in contrast to the generic_file_mmap() path, there are no
+> + * calls to sb_start_pagefault().  That is meant to synchronize write
+> + * faults against requests to freeze the contents of the filesystem
+> + * hosting vma->vm_file.  However, in the case of a block device special
+> + * file, it is a 0-sized device node usually hosted on devtmpfs, i.e.
+> + * nothing to do with the super_block for bdev_file_inode(vma->vm_file).
+> + * We could call get_super() in this path to retrieve the right
+> + * super_block, but the generic_file_mmap() path does not do this for
+> + * the CONFIG_FS_DAX=n case.
+>   */
+>  static int blkdev_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+>  {
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
