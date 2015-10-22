@@ -1,10 +1,10 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v2 1/5] pmem, dax: clean up clear_pmem()
+Subject: [PATCH 1/5] pmem, dax: clean up clear_pmem()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 22 Oct 2015 13:10:21 -0400
-Message-ID: <20151022171021.38343.65959.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20151022171015.38343.72043.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20151022171015.38343.72043.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 22 Oct 2015 02:41:48 -0400
+Message-ID: <20151022064148.12700.3630.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20151022064142.12700.11849.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20151022064142.12700.11849.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
