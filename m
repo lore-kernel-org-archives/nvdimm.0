@@ -1,108 +1,119 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [RFC 05/11] mm: add follow_pte_pmd()
-Date: Thu, 29 Oct 2015 14:12:09 -0600
-Message-Id: <1446149535-16200-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 1/3] resource: Add @flags to region_intersects()
+Date: Thu, 22 Oct 2015 17:20:42 -0600
+Message-Id: <1445556044-30322-2-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1445556044-30322-1-git-send-email-toshi.kani@hpe.com>
+References: <1445556044-30322-1-git-send-email-toshi.kani@hpe.com>
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to follow_pte(), follow_pte_pmd() allows either a PTE leaf or a
-huge page PMD leaf to be found and returned.
+region_intersects() checks if a specified region partially overlaps
+or fully eclipses a resource identified by @name.  It currently sets
+resource flags statically, which prevents the caller from specifying
+a non-RAM region, such as persistent memory.  Add @flags so that
+any region can be specified to the function.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+A helper function, region_intersects_ram(), is added so that the
+callers that check a RAM region do not have to specify its iomem
+resource name and flags.
+
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
 ---
- include/linux/mm.h |  2 ++
- mm/memory.c        | 41 +++++++++++++++++++++++++++++++++--------
- 2 files changed, 35 insertions(+), 8 deletions(-)
+ include/linux/mm.h |    4 +++-
+ kernel/memremap.c  |    5 ++---
+ kernel/resource.c  |   22 +++++++++++++++-------
+ 3 files changed, 20 insertions(+), 11 deletions(-)
 
 diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 80001de..393441c 100644
+index 80001de..699224e 100644
 --- a/include/linux/mm.h
 +++ b/include/linux/mm.h
-@@ -1166,6 +1166,8 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
- 			struct vm_area_struct *vma);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
-+int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
- 	unsigned long *pfn);
- int follow_phys(struct vm_area_struct *vma, unsigned long address,
-diff --git a/mm/memory.c b/mm/memory.c
-index deb679c..c2b8c0a 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3512,8 +3512,8 @@ int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
- }
- #endif /* __PAGETABLE_PMD_FOLDED */
+@@ -358,7 +358,9 @@ enum {
+ 	REGION_MIXED,
+ };
  
--static int __follow_pte(struct mm_struct *mm, unsigned long address,
--		pte_t **ptepp, spinlock_t **ptlp)
-+static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+		pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
+-int region_intersects(resource_size_t offset, size_t size, const char *type);
++int region_intersects(resource_size_t offset, size_t size, const char *type,
++			unsigned long flags);
++int region_intersects_ram(resource_size_t offset, size_t size);
+ 
+ /* Support for virtually mapped pages */
+ struct page *vmalloc_to_page(const void *addr);
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 72b0c66..2157ea5 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -47,7 +47,7 @@ __weak void __iomem *ioremap_cache(resource_size_t offset, unsigned long size)
+  */
+ void *memremap(resource_size_t offset, size_t size, unsigned long flags)
  {
- 	pgd_t *pgd;
- 	pud_t *pud;
-@@ -3529,12 +3529,23 @@ static int __follow_pte(struct mm_struct *mm, unsigned long address,
- 		goto out;
+-	int is_ram = region_intersects(offset, size, "System RAM");
++	int is_ram = region_intersects_ram(offset, size);
+ 	void *addr = NULL;
  
- 	pmd = pmd_offset(pud, address);
--	VM_BUG_ON(pmd_trans_huge(*pmd));
--	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
--		goto out;
+ 	if (is_ram == REGION_MIXED) {
+@@ -152,8 +152,7 @@ static void devm_memremap_pages_release(struct device *dev, void *res)
  
--	/* We cannot handle huge page PFN maps. Luckily they don't exist. */
--	if (pmd_huge(*pmd))
-+	if (pmd_huge(*pmd)) {
-+		if (!pmdpp)
-+			goto out;
-+
-+		*ptlp = pmd_lock(mm, pmd);
-+		if (pmd_huge(*pmd)) {
-+			/* Success, we found a large PTE */
-+			*pmdpp = pmd;
-+			return 0;
-+		}
-+		/* Somebody removed the PMD entry, try it as a pte */
-+		spin_unlock(*ptlp);
-+	}
-+
-+	/* FIXME: pmd_bad() is sometimes set for DAX pmds? */
-+	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
- 		goto out;
+ void *devm_memremap_pages(struct device *dev, struct resource *res)
+ {
+-	int is_ram = region_intersects(res->start, resource_size(res),
+-			"System RAM");
++	int is_ram = region_intersects_ram(res->start, resource_size(res));
+ 	struct page_map *page_map;
+ 	int error, nid;
  
- 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
-@@ -3557,9 +3568,23 @@ static inline int follow_pte(struct mm_struct *mm, unsigned long address,
+diff --git a/kernel/resource.c b/kernel/resource.c
+index f150dbb..8a77ed8 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -497,6 +497,7 @@ EXPORT_SYMBOL_GPL(page_is_ram);
+  * @start: region start address
+  * @size: size of region
+  * @name: name of resource (in iomem_resource)
++ * @flags: flags of resource (in iomem_resource)
+  *
+  * Check if the specified region partially overlaps or fully eclipses a
+  * resource identified by @name.  Return REGION_DISJOINT if the region
+@@ -504,15 +505,11 @@ EXPORT_SYMBOL_GPL(page_is_ram);
+  * @type and another resource, and return REGION_INTERSECTS if the
+  * region overlaps @type and no other defined resource. Note, that
+  * REGION_INTERSECTS is also returned in the case when the specified
+- * region overlaps RAM and undefined memory holes.
+- *
+- * region_intersect() is used by memory remapping functions to ensure
+- * the user is not remapping RAM and is a vast speed up over walking
+- * through the resource table page by page.
++ * region overlaps with undefined memory holes.
+  */
+-int region_intersects(resource_size_t start, size_t size, const char *name)
++int region_intersects(resource_size_t start, size_t size, const char *name,
++			unsigned long flags)
+ {
+-	unsigned long flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 	resource_size_t end = start + size - 1;
+ 	int type = 0; int other = 0;
+ 	struct resource *p;
+@@ -539,6 +536,17 @@ int region_intersects(resource_size_t start, size_t size, const char *name)
+ 	return REGION_DISJOINT;
+ }
  
- 	/* (void) is needed to make gcc happy */
- 	(void) __cond_lock(*ptlp,
--			   !(res = __follow_pte(mm, address, ptepp, ptlp)));
-+			   !(res = __follow_pte_pmd(mm, address, ptepp, NULL,
-+					   ptlp)));
-+	return res;
++/*
++ * region_intersect_ram() is used by memory remapping functions to ensure
++ * the user is not remapping RAM and is a vast speed up over walking
++ * through the resource table page by page.
++ */
++int region_intersects_ram(resource_size_t start, size_t size)
++{
++	return region_intersects(start, size, "System RAM",
++				 IORESOURCE_MEM | IORESOURCE_BUSY);
 +}
 +
-+int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
-+{
-+	int res;
-+
-+	/* (void) is needed to make gcc happy */
-+	(void) __cond_lock(*ptlp,
-+			   !(res = __follow_pte_pmd(mm, address, ptepp, pmdpp,
-+					   ptlp)));
- 	return res;
+ void __weak arch_remove_reservations(struct resource *avail)
+ {
  }
-+EXPORT_SYMBOL(follow_pte_pmd);
- 
- /**
-  * follow_pfn - look up PFN at a user virtual address
--- 
-2.1.0
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
