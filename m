@@ -1,100 +1,58 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 4/5] block: introduce file_bd_inode()
+Subject: [PATCH v2 0/5] block, dax: updates for 4.4
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 22 Oct 2015 02:42:05 -0400
-Message-ID: <20151022064205.12700.63495.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20151022064142.12700.11849.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20151022064142.12700.11849.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 22 Oct 2015 13:10:15 -0400
+Message-ID: <20151022171015.38343.72043.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: axboe@fb.com
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, ross.zwisler@linux.intel.com, willy@linux.intel.com, akpm@linux-foundation.org, hch@lst.de
+Cc: Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, jack@suse.cz, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de, Jeff Moyer <jmoyer@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, willy@linux.intel.com, akpm@linux-foundation.org, ross.zwisler@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to the file_inode() helper, provide a helper to lookup the inode for a
-raw block device itself.
+Changes since v1: https://lists.01.org/pipermail/linux-nvdimm/2015-October/002538.html
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+1/ Rename file_bd_inode to bdev_file_inode (Jan Kara)
+
+2/ Clarify sb_start_pagefault() comment (Jan Kara)
+
+3/ Collect Reviewed-by's
+
 ---
- fs/block_dev.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 0a793c7930eb..3255dcec96b4 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -147,11 +147,16 @@ blkdev_get_block(struct inode *inode, sector_t iblock,
- 	return 0;
- }
- 
-+static struct inode *file_bd_inode(struct file *file)
-+{
-+	return file->f_mapping->host;
-+}
-+
- static ssize_t
- blkdev_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
- {
- 	struct file *file = iocb->ki_filp;
--	struct inode *inode = file->f_mapping->host;
-+	struct inode *inode = file_bd_inode(file);
- 
- 	if (IS_DAX(inode))
- 		return dax_do_io(iocb, inode, iter, offset, blkdev_get_block,
-@@ -329,7 +334,7 @@ static int blkdev_write_end(struct file *file, struct address_space *mapping,
-  */
- static loff_t block_llseek(struct file *file, loff_t offset, int whence)
- {
--	struct inode *bd_inode = file->f_mapping->host;
-+	struct inode *bd_inode = file_bd_inode(file);
- 	loff_t retval;
- 
- 	mutex_lock(&bd_inode->i_mutex);
-@@ -340,7 +345,7 @@ static loff_t block_llseek(struct file *file, loff_t offset, int whence)
- 	
- int blkdev_fsync(struct file *filp, loff_t start, loff_t end, int datasync)
- {
--	struct inode *bd_inode = filp->f_mapping->host;
-+	struct inode *bd_inode = file_bd_inode(filp);
- 	struct block_device *bdev = I_BDEV(bd_inode);
- 	int error;
- 	
-@@ -1579,14 +1584,14 @@ EXPORT_SYMBOL(blkdev_put);
- 
- static int blkdev_close(struct inode * inode, struct file * filp)
- {
--	struct block_device *bdev = I_BDEV(filp->f_mapping->host);
-+	struct block_device *bdev = I_BDEV(file_bd_inode(filp));
- 	blkdev_put(bdev, filp->f_mode);
- 	return 0;
- }
- 
- static long block_ioctl(struct file *file, unsigned cmd, unsigned long arg)
- {
--	struct block_device *bdev = I_BDEV(file->f_mapping->host);
-+	struct block_device *bdev = I_BDEV(file_bd_inode(file));
- 	fmode_t mode = file->f_mode;
- 
- 	/*
-@@ -1611,7 +1616,7 @@ static long block_ioctl(struct file *file, unsigned cmd, unsigned long arg)
- ssize_t blkdev_write_iter(struct kiocb *iocb, struct iov_iter *from)
- {
- 	struct file *file = iocb->ki_filp;
--	struct inode *bd_inode = file->f_mapping->host;
-+	struct inode *bd_inode = file_bd_inode(file);
- 	loff_t size = i_size_read(bd_inode);
- 	struct blk_plug plug;
- 	ssize_t ret;
-@@ -1643,7 +1648,7 @@ EXPORT_SYMBOL_GPL(blkdev_write_iter);
- ssize_t blkdev_read_iter(struct kiocb *iocb, struct iov_iter *to)
- {
- 	struct file *file = iocb->ki_filp;
--	struct inode *bd_inode = file->f_mapping->host;
-+	struct inode *bd_inode = file_bd_inode(file);
- 	loff_t size = i_size_read(bd_inode);
- 	loff_t pos = iocb->ki_pos;
- 
+As requested [1], break out the block specific updates from the dax-gup
+series [2], to merge via the block tree.
 
+1/ Enable dax mappings for raw block devices.  This addresses the review
+   comments (from Ross and Honza) from the RFC [3].
+
+2/ Introduce dax_map_atomic() to fix races between device teardown and
+   new mapping requests.  This depends on commit 2a9067a91825 "block:
+   generic request_queue reference counting" in for-4.4/integrity branch
+   of the block tree.
+
+3/ Cleanup clear_pmem() and its usage in dax.  This depends on commit
+   0f90cc6609c7 "mm, dax: fix DAX deadlocks" that was merged into v4.3-rc6.
+
+These pass the nvdimm unit tests and have passed a 0day-kbuild-robot run.
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-October/002531.html
+[2]: https://lists.01.org/pipermail/linux-nvdimm/2015-October/002387.html
+[3]: https://lists.01.org/pipermail/linux-nvdimm/2015-October/002512.html
+
+---
+
+Dan Williams (5):
+      pmem, dax: clean up clear_pmem()
+      dax: increase granularity of dax_clear_blocks() operations
+      block, dax: fix lifetime of in-kernel dax mappings with dax_map_atomic()
+      block: introduce bdev_file_inode()
+      block: enable dax for raw block devices
+
+ arch/x86/include/asm/pmem.h |    7 --
+ block/blk.h                 |    2 
+ fs/block_dev.c              |   79 ++++++++++++++++-
+ fs/dax.c                    |  196 +++++++++++++++++++++++++++----------------
+ include/linux/blkdev.h      |    2 
+ 5 files changed, 197 insertions(+), 89 deletions(-)
