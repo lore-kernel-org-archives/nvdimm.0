@@ -1,42 +1,24 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Fri, 30 Oct 2015 10:40:29 +0100
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 UPDATE-2 3/3] ACPI/APEI/EINJ: Allow memory error
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH v2 UPDATE-2 3/3] ACPI/APEI/EINJ: Allow memory error
  injection to NVDIMM
-Message-ID: <20151030094029.GC20952@pd.tnic>
+Date: Mon, 26 Oct 2015 21:52:21 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F32B5FC3C@ORSMSX114.amr.corp.intel.com>
 References: <1445894544-21382-1-git-send-email-toshi.kani@hpe.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 In-Reply-To: <1445894544-21382-1-git-send-email-toshi.kani@hpe.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
 Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: tony.luck@intel.com, akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>, "bp@alien8.de" <bp@alien8.de>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Williams, Dan J" <dan.j.williams@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Oct 26, 2015 at 03:22:24PM -0600, Toshi Kani wrote:
-> @@ -545,10 +545,15 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
->  	/*
->  	 * Disallow crazy address masks that give BIOS leeway to pick
->  	 * injection address almost anywhere. Insist on page or
-> -	 * better granularity and that target address is normal RAM.
-> +	 * better granularity and that target address is normal RAM or
-> +	 * NVDIMM.
->  	 */
-> -	pfn = PFN_DOWN(param1 & param2);
-> -	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
-> +	base_addr = param1 & param2;
-> +	size = (~param2) + 1;
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 
-Hmm, I missed this last time: why are the brackets there?
-
-AFAIK, bitwise NOT has a higher precedence than addition.
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
+Acked-by: Tony Luck <tony.luck@intel.com>
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
