@@ -1,144 +1,65 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 1/2] Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
-Date: Tue,  6 Oct 2015 16:28:48 -0600
-Message-Id: <1444170529-12814-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1444170529-12814-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1444170529-12814-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <matthew.r.wilcox@intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <1446070176-14568-3-git-send-email-ross.zwisler@linux.intel.com>
+References: <1446070176-14568-1-git-send-email-ross.zwisler@linux.intel.com>
+	<1446070176-14568-3-git-send-email-ross.zwisler@linux.intel.com>
+Date: Thu, 29 Oct 2015 08:02:17 +0900
+Message-ID: <CAPcyv4hRFi9MjEsj0xhN7KqqOdbZ-CZHdk9NToAYEL5wv5BHpA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] pmem: Add simple and slow fsync/msync support
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This reverts commits 46c043ede4711e8d598b9d63c5616c1fedb0605e
-and 8346c416d17bf5b4ea1508662959bb62e73fd6a5.
+On Thu, Oct 29, 2015 at 7:09 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> Make blkdev_issue_flush() behave correctly according to its required
+> semantics - all volatile cached data is flushed to stable storage.
+>
+> Eventually this needs to be replaced with something much more precise by
+> tracking dirty DAX entries via the radix tree in struct address_space, but
+> for now this gives us correctness even if the performance is quite bad.
+>
+> Userspace applications looking to avoid the fsync/msync penalty should
+> consider more fine-grained flushing via the NVML library:
+>
+> https://github.com/pmem/nvml
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  drivers/nvdimm/pmem.c | 10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index 0ba6a97..eea7997 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -80,7 +80,14 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
+>         if (do_acct)
+>                 nd_iostat_end(bio, start);
+>
+> -       if (bio_data_dir(bio))
+> +       if (bio->bi_rw & REQ_FLUSH) {
+> +               void __pmem *addr = pmem->virt_addr + pmem->data_offset;
+> +               size_t size = pmem->size - pmem->data_offset;
+> +
+> +               wb_cache_pmem(addr, size);
+> +       }
+> +
 
-The following two locking commits in the DAX code:
+So I think this will be too expensive to run synchronously in the
+submission path for very large pmem ranges and should be farmed out to
+an async thread. Then, as long as we're farming it out, might as well
+farm it out to more than one cpu.  I'll take a stab at this on the
+flight back from KS.
 
-commit 843172978bb9 ("dax: fix race between simultaneous faults")
-commit 46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
+Another optimization is that we can make the flush a nop up until
+pmem_direct_access() is first called, because we know there is nothing
+to flush when all the i/o is coming through the driver.  That at least
+helps the "pmem as a fast SSD" use case avoid the overhead.
 
-introduced a number of deadlocks and other issues, and need to be
-reverted for the v4.3 kernel. The list of issues in DAX after these
-commits (some newly introduced by the commits, some preexisting) can be
-found here:
-
-https://lkml.org/lkml/2015/9/25/602
-
-This revert keeps the PMEM API changes to the zeroing code in
-__dax_pmd_fault(), which were added by this commit:
-
-commit d77e92e270ed ("dax: update PMD fault handler with PMEM API")
-
-It also keeps the code dropping mapping->i_mmap_rwsem before calling
-unmap_mapping_range(), but converts it to a read lock since that's what is
-now used by the rest of __dax_pmd_fault().  This is needed to avoid
-recursively acquiring mapping->i_mmap_rwsem, once with a read lock in
-__dax_pmd_fault() and once with a write lock in unmap_mapping_range().
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c    | 37 +++++++++++++------------------------
- mm/memory.c | 11 +++++++++--
- 2 files changed, 22 insertions(+), 26 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index bcfb14b..f665bc9 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -569,36 +569,14 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
- 		goto fallback;
- 
--	sector = bh.b_blocknr << (blkbits - 9);
--
--	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
--		int i;
--
--		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
--						bh.b_size);
--		if (length < 0) {
--			result = VM_FAULT_SIGBUS;
--			goto out;
--		}
--		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
--			goto fallback;
--
--		for (i = 0; i < PTRS_PER_PMD; i++)
--			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
--		wmb_pmem();
--		count_vm_event(PGMAJFAULT);
--		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
--		result |= VM_FAULT_MAJOR;
--	}
--
- 	/*
- 	 * If we allocated new storage, make sure no process has any
- 	 * zero pages covering this hole
- 	 */
- 	if (buffer_new(&bh)) {
--		i_mmap_unlock_write(mapping);
-+		i_mmap_unlock_read(mapping);
- 		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
--		i_mmap_lock_write(mapping);
-+		i_mmap_lock_read(mapping);
- 	}
- 
- 	/*
-@@ -635,6 +613,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		result = VM_FAULT_NOPAGE;
- 		spin_unlock(ptl);
- 	} else {
-+		sector = bh.b_blocknr << (blkbits - 9);
- 		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
- 						bh.b_size);
- 		if (length < 0) {
-@@ -644,6 +623,16 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
- 			goto fallback;
- 
-+		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
-+			int i;
-+			for (i = 0; i < PTRS_PER_PMD; i++)
-+				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
-+			wmb_pmem();
-+			count_vm_event(PGMAJFAULT);
-+			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
-+			result |= VM_FAULT_MAJOR;
-+		}
-+
- 		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
- 	}
- 
-diff --git a/mm/memory.c b/mm/memory.c
-index 9cb2747..5ec066f 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2426,10 +2426,17 @@ void unmap_mapping_range(struct address_space *mapping,
- 	if (details.last_index < details.first_index)
- 		details.last_index = ULONG_MAX;
- 
--	i_mmap_lock_write(mapping);
-+
-+	/*
-+	 * DAX already holds i_mmap_lock to serialise file truncate vs
-+	 * page fault and page fault vs page fault.
-+	 */
-+	if (!IS_DAX(mapping->host))
-+		i_mmap_lock_write(mapping);
- 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
- 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
--	i_mmap_unlock_write(mapping);
-+	if (!IS_DAX(mapping->host))
-+		i_mmap_unlock_write(mapping);
- }
- EXPORT_SYMBOL(unmap_mapping_range);
- 
--- 
-2.1.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Bikeshed alert... wb_cache_pmem() should probably become
+mmio_wb_cache() and live next to mmio_flush_cache() since it is not
+specific to persistent memory.
