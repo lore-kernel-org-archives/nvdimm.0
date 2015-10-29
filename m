@@ -1,8 +1,8 @@
 Return-Path: <owner-linux-mm@kvack.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [RFC 08/11] fs: add get_block() to struct inode_operations
-Date: Thu, 29 Oct 2015 14:12:12 -0600
-Message-Id: <1446149535-16200-9-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [RFC 06/11] mm: add pgoff_mkclean()
+Date: Thu, 29 Oct 2015 14:12:10 -0600
+Message-Id: <1446149535-16200-7-git-send-email-ross.zwisler@linux.intel.com>
 In-Reply-To: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
 References: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
@@ -10,77 +10,103 @@ To: linux-kernel@vger.kernel.org
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To be able to flush dirty pages to media as part of the fsync/msync path
-DAX needs to be able to map file offsets to kernel addresses via a
-combination of the filesystem's get_block() routine and
-bdev_direct_access().  This currently happens in the DAX fault handlers
-which receive a get_block() callback directly from the filesystem via a
-function parameter.
-
-For the fsync/msync path this doesn't work, though, because DAX is called
-not by the filesystem but by the writeback infrastructure which doesn't
-know about the filesystem specific get_block() routine.
-
-To handle this we make get_block() an entry in the struct inode_operations
-table so that we can access the correct get_block() routine in the
-context of the writeback infrastructure.
+Introduce pgoff_mkclean() which conceptually is similar to page_mkclean()
+except it works in the absence of struct page and it can also be used to
+clean PMDs.  This is needed for DAX's dirty page handling.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- fs/ext2/file.c     | 1 +
- fs/ext4/file.c     | 1 +
- fs/xfs/xfs_iops.c  | 1 +
- include/linux/fs.h | 4 ++--
- 4 files changed, 5 insertions(+), 2 deletions(-)
+ include/linux/rmap.h |  5 +++++
+ mm/rmap.c            | 53 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+)
 
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index 11a42c5..fc1418c 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -202,4 +202,5 @@ const struct inode_operations ext2_file_inode_operations = {
- 	.get_acl	= ext2_get_acl,
- 	.set_acl	= ext2_set_acl,
- 	.fiemap		= ext2_fiemap,
-+	.get_block	= ext2_get_block,
- };
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 113837e..54d7729 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -720,5 +720,6 @@ const struct inode_operations ext4_file_inode_operations = {
- 	.get_acl	= ext4_get_acl,
- 	.set_acl	= ext4_set_acl,
- 	.fiemap		= ext4_fiemap,
-+	.get_block	= ext4_get_block_dax,
- };
+diff --git a/include/linux/rmap.h b/include/linux/rmap.h
+index 29446ae..627875f9 100644
+--- a/include/linux/rmap.h
++++ b/include/linux/rmap.h
+@@ -223,6 +223,11 @@ unsigned long page_address_in_vma(struct page *, struct vm_area_struct *);
+ int page_mkclean(struct page *);
  
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index 8294132..c58c270 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -1112,6 +1112,7 @@ static const struct inode_operations xfs_inode_operations = {
- 	.listxattr		= xfs_vn_listxattr,
- 	.fiemap			= xfs_vn_fiemap,
- 	.update_time		= xfs_vn_update_time,
-+	.get_block		= xfs_get_blocks_direct,
- };
+ /*
++ * Cleans and write protects the PTEs of shared mappings.
++ */
++int pgoff_mkclean(pgoff_t, struct address_space *);
++
++/*
+  * called in munlock()/munmap() path to check for other vmas holding
+  * the page mlocked.
+  */
+diff --git a/mm/rmap.c b/mm/rmap.c
+index f5b5c1f..0ce16ab 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -586,6 +586,16 @@ vma_address(struct page *page, struct vm_area_struct *vma)
+ 	return address;
+ }
  
- static const struct inode_operations xfs_dir_inode_operations = {
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index f791698..1dca85b 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1679,8 +1679,8 @@ struct inode_operations {
- 			   umode_t create_mode, int *opened);
- 	int (*tmpfile) (struct inode *, struct dentry *, umode_t);
- 	int (*set_acl)(struct inode *, struct posix_acl *, int);
--
--	/* WARNING: probably going away soon, do not use! */
-+	int (*get_block)(struct inode *inode, sector_t iblock,
-+			struct buffer_head *bh_result, int create);
- } ____cacheline_aligned;
++static inline unsigned long
++pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
++{
++	unsigned long address;
++
++	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
++	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
++	return address;
++}
++
+ #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
+ static void percpu_flush_tlb_batch_pages(void *data)
+ {
+@@ -1040,6 +1050,49 @@ int page_mkclean(struct page *page)
+ }
+ EXPORT_SYMBOL_GPL(page_mkclean);
  
- ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
++int pgoff_mkclean(pgoff_t pgoff, struct address_space *mapping)
++{
++	struct vm_area_struct *vma;
++	int ret = 0;
++
++	i_mmap_lock_read(mapping);
++	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
++		struct mm_struct *mm = vma->vm_mm;
++		pmd_t pmd, *pmdp = NULL;
++		pte_t pte, *ptep = NULL;
++		unsigned long address;
++		spinlock_t *ptl;
++
++		address = pgoff_address(pgoff, vma);
++
++		ret = follow_pte_pmd(mm, address, &ptep, &pmdp, &ptl);
++		if (ret)
++			goto out;
++
++		if (pmdp) {
++			flush_cache_page(vma, address, pmd_pfn(*pmdp));
++			pmd = pmdp_huge_clear_flush(vma, address, pmdp);
++			pmd = pmd_wrprotect(pmd);
++			pmd = pmd_mkclean(pmd);
++			set_pmd_at(mm, address, pmdp, pmd);
++			spin_unlock(ptl);
++		} else {
++			BUG_ON(!ptep);
++			flush_cache_page(vma, address, pte_pfn(*ptep));
++			pte = ptep_clear_flush(vma, address, ptep);
++			pte = pte_wrprotect(pte);
++			pte = pte_mkclean(pte);
++			set_pte_at(mm, address, ptep, pte);
++			pte_unmap_unlock(ptep, ptl);
++		}
++	}
++
++ out:
++	i_mmap_unlock_read(mapping);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(pgoff_mkclean);
++
+ /**
+  * page_move_anon_rmap - move a page to our anon_vma
+  * @page:	the page to move to our anon_vma
 -- 
 2.1.0
 
