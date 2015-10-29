@@ -1,48 +1,66 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 0/2] "big hammer" for DAX msync/fsync correctness
-Date: Wed, 28 Oct 2015 16:09:34 -0600
-Message-Id: <1446070176-14568-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [RFC 11/11] ext4: add ext4_dax_pfn_mkwrite()
+Date: Thu, 29 Oct 2015 14:12:15 -0600
+Message-Id: <1446149535-16200-12-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
 To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Dan Williams <dan.j.williams@intel.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, linux-nvdimm@lists.01.org, x86@kernel.org, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This series implements the very slow but correct handling for
-blkdev_issue_flush() with DAX mappings, as discussed here:
+Add ext4_dax_pfn_mkwrite() that properly protects against freeze, sets
+the file update time and calls into dax_pfn_mkwrite() to add the newly
+dirtied page to the radix tree which tracks dirty DAX pages.
 
-https://lkml.org/lkml/2015/10/26/116
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ fs/ext4/file.c | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
-I don't think that we can actually do the
-
-    on_each_cpu(sync_cache, ...);
-
-...where sync_cache is something like:
-
-    cache_disable();
-    wbinvd();
-    pcommit();
-    cache_enable();
-
-solution as proposed by Dan because WBINVD + PCOMMIT doesn't guarantee that
-your writes actually make it durably onto the DIMMs.  I believe you really do
-need to loop through the cache lines, flush them with CLWB, then fence and
-PCOMMIT.
-
-I do worry that the cost of blindly flushing the entire PMEM namespace on each
-fsync or msync will be prohibitively expensive, and that we'll by very
-incentivized to move to the radix tree based dirty page tracking as soon as
-possible. :)
-
-Ross Zwisler (2):
-  pmem: add wb_cache_pmem() to the PMEM API
-  pmem: Add simple and slow fsync/msync support
-
- arch/x86/include/asm/pmem.h | 11 ++++++-----
- drivers/nvdimm/pmem.c       | 10 +++++++++-
- include/linux/pmem.h        | 22 +++++++++++++++++++++-
- 3 files changed, 36 insertions(+), 7 deletions(-)
-
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 54d7729..7f62cad 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -272,11 +272,31 @@ static int ext4_dax_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 				ext4_end_io_unwritten);
+ }
+ 
++static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
++{
++	struct inode *inode = file_inode(vma->vm_file);
++	loff_t size;
++	int ret;
++
++	sb_start_pagefault(inode->i_sb);
++	file_update_time(vma->vm_file);
++
++	/* check that the faulting page hasn't raced with truncate */
++	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	if (vmf->pgoff >= size)
++		ret = VM_FAULT_SIGBUS;
++	else
++		ret = dax_pfn_mkwrite(vma, vmf);
++
++	sb_end_pagefault(inode->i_sb);
++	return ret;
++}
++
+ static const struct vm_operations_struct ext4_dax_vm_ops = {
+ 	.fault		= ext4_dax_fault,
+ 	.pmd_fault	= ext4_dax_pmd_fault,
+ 	.page_mkwrite	= ext4_dax_mkwrite,
+-	.pfn_mkwrite	= dax_pfn_mkwrite,
++	.pfn_mkwrite	= ext4_dax_pfn_mkwrite,
+ };
+ #else
+ #define ext4_dax_vm_ops	ext4_file_vm_ops
 -- 
 2.1.0
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
