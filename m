@@ -1,180 +1,330 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.3-rc2
-Date: Sat, 19 Sep 2015 17:10:58 +0000
-Message-ID: <1442682656.1879.13.camel@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <05F6D784F599134198BE357D93ABD1EF@intel.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
-Cc: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "willy@linux.intel.com" <willy@linux.intel.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "tyler.baker@linaro.org" <tyler.baker@linaro.org>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [RFC 09/11] dax: add support for fsync/sync
+Date: Thu, 29 Oct 2015 14:12:13 -0600
+Message-Id: <1446149535-16200-10-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206DQoNCiAgICBnaXQ6Ly9naXQua2VybmVsLm9yZy9w
-dWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMNCg0K
-Li4udG8gcmVjZWl2ZToNCg0KMS8gQSBib290IHJlZ3Jlc3Npb24gKHNpbmNlIHY0LjIpIGZpeCBm
-b3Igc29tZSBBUk0gY29uZmlndXJhdGlvbnMgZnJvbQ0KVHlsZXINCg0KMi8gUmVncmVzc2lvbiAo
-c2luY2UgdjQuMSkgZml4ZXMgZm9yIG1rZnMueGZzIG9uIGEgREFYIGVuYWJsZWQgZGV2aWNlDQpm
-cm9tIEplZmYuICBUaGVzZSBhcmUgdGFnZ2VkIGZvciAtc3RhYmxlLg0KDQozLyBBIHBhaXIgb2Yg
-bG9ja2luZyBmaXhlcyBmcm9tIEF4ZWwgdGhhdCBhcmUgaGlkZGVuIGZyb20gbG9ja2RlcCBzaW5j
-ZQ0KdGhleSBpbnZvbHZlIGRldmljZV9sb2NrKCkuICBUaGUgImJ0dCIgb25lIGlzIHRhZ2dlZCBm
-b3IgLXN0YWJsZSwgdGhlDQpvdGhlciBvbmx5IGFwcGxpZXMgdG8gdGhlIG5ldyAicGZuIiBtZWNo
-YW5pc20gaW4gdjQuMy4NCg0KNC8gQSBmaXggZm9yIHRoZSBwbWVtIC0+cndfcGFnZSgpIHBhdGgg
-dG8gdXNlIHdtYl9wbWVtKCkgZnJvbSBSb3NzLg0KDQpGdWxsIGxvZyBhbmQgZGlmZiBiZWxvdy4N
-Cg0KLS0tDQoNClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgNmZmMzNmMzkwMmMz
-YjFjNWQwZGI2YjFlMmM3MGI2ZDc2ZmJhMzU3ZjoNCg0KICBMaW51eCA0LjMtcmMxICgyMDE1LTA5
-LTEyIDE2OjM1OjU2IC0wNzAwKQ0KDQphcmUgYXZhaWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9y
-eSBhdDoNCg0KICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQv
-bnZkaW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMNCg0KZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2Vz
-IHVwIHRvIGFlNGY5NzY5Njg4OTZmOGY0MWIzYTdhYTIxYmU2MTQ2NDkyMjExZTU6DQoNCiAgbW06
-IGZpeCB0eXBlIGNhc3QgaW4gX19wZm5fdG9fcGh5cygpICgyMDE1LTA5LTE5IDAzOjU4OjEwIC0w
-NDAwKQ0KDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tDQpBeGVsIExpbiAoMik6DQogICAgICBsaWJudmRpbW06IGJ0dF9kZXZz
-OiBGaXggbG9ja2luZyBpbiBuYW1lc3BhY2Vfc3RvcmUNCiAgICAgIGxpYm52ZGltbTogcGZuX2Rl
-dnM6IEZpeCBsb2NraW5nIGluIG5hbWVzcGFjZV9zdG9yZQ0KDQpKZWZmIE1veWVyICgyKToNCiAg
-ICAgIGRheDogZml4IE9fRElSRUNUIEkvTyB0byB0aGUgbGFzdCBibG9jayBvZiBhIGJsb2NrZGV2
-DQogICAgICBibG9ja2RldjogZG9uJ3Qgc2V0IFNfREFYIGZvciBtaXNhbGlnbmVkIHBhcnRpdGlv
-bnMNCg0KUm9zcyBad2lzbGVyICgxKToNCiAgICAgIHBtZW06IGFkZCBwcm9wZXIgZmVuY2luZyB0
-byBwbWVtX3J3X3BhZ2UoKQ0KDQpUeWxlciBCYWtlciAoMSk6DQogICAgICBtbTogZml4IHR5cGUg
-Y2FzdCBpbiBfX3Bmbl90b19waHlzKCkNCg0KIGRyaXZlcnMvbnZkaW1tL2J0dF9kZXZzLmMgICAg
-ICAgICAgfCA0ICsrLS0NCiBkcml2ZXJzL252ZGltbS9wZm5fZGV2cy5jICAgICAgICAgIHwgNCAr
-Ky0tDQogZHJpdmVycy9udmRpbW0vcG1lbS5jICAgICAgICAgICAgICB8IDIgKysNCiBmcy9ibG9j
-a19kZXYuYyAgICAgICAgICAgICAgICAgICAgIHwgNyArKysrKysrDQogZnMvZGF4LmMgICAgICAg
-ICAgICAgICAgICAgICAgICAgICB8IDMgKystDQogaW5jbHVkZS9hc20tZ2VuZXJpYy9tZW1vcnlf
-bW9kZWwuaCB8IDIgKy0NCiA2IGZpbGVzIGNoYW5nZWQsIDE2IGluc2VydGlvbnMoKyksIDYgZGVs
-ZXRpb25zKC0pDQoNCmNvbW1pdCBhZTRmOTc2OTY4ODk2ZjhmNDFiM2E3YWEyMWJlNjE0NjQ5MjIx
-MWU1DQpBdXRob3I6IFR5bGVyIEJha2VyIDx0eWxlci5iYWtlckBsaW5hcm8ub3JnPg0KRGF0ZTog
-ICBTYXQgU2VwIDE5IDAzOjU4OjEwIDIwMTUgLTA0MDANCg0KICAgIG1tOiBmaXggdHlwZSBjYXN0
-IGluIF9fcGZuX3RvX3BoeXMoKQ0KICAgIA0KICAgIFRoZSB2YXJpb3VzIGRlZmluaXRpb25zIG9m
-IF9fcGZuX3RvX3BoeXMoKSBoYXZlIGJlZW4gY29uc29saWRhdGVkIHRvDQogICAgdXNlIGEgZ2Vu
-ZXJpYyBtYWNybyBpbiBpbmNsdWRlL2FzbS1nZW5lcmljL21lbW9yeV9tb2RlbC5oLiBUaGlzIGhp
-dA0KICAgIG1haW5saW5lIGluIHRoZSBmb3JtIG9mIDAxMmRjZWYzZjA1OCAibW06IG1vdmUgX19w
-aHlzX3RvX3BmbiBhbmQNCiAgICBfX3Bmbl90b19waHlzIHRvIGFzbS9nZW5lcmljL21lbW9yeV9t
-b2RlbC5oIi4gV2hlbiB0aGUgZ2VuZXJpYyBtYWNybw0KICAgIHdhcyBpbXBsZW1lbnRlZCB0aGUg
-dHlwZSBjYXN0IHRvIHBoeXNfYWRkcl90IHdhcyBkcm9wcGVkIHdoaWNoIGNhdXNlZA0KICAgIGJv
-b3QgcmVncmVzc2lvbnMgb24gQVJNIHBsYXRmb3JtcyB3aXRoIG1vcmUgdGhhbiA0R0Igb2YgbWVt
-b3J5IGFuZA0KICAgIExQQUUgZW5hYmxlZC4NCiAgICANCiAgICBJdCB3YXMgc3VnZ2VzdGVkIHRv
-IHVzZSBQRk5fUEhZUygpIGRlZmluZWQgaW4gaW5jbHVkZS9saW51eC9wZm4uaA0KICAgIGFzIHBy
-b3ZpZGVzIHRoZSBjb3JyZWN0IGxvZ2ljIGFuZCBhdm9pZHMgZnVydGhlciBkdXBsaWNhdGlvbi4N
-CiAgICANCiAgICBSZXBvcnRlZC1ieToga2VybmVsY2kub3JnIGJvdCA8Ym90QGtlcm5lbGNpLm9y
-Zz4NCiAgICBTdWdnZXN0ZWQtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwu
-Y29tPg0KICAgIFNpZ25lZC1vZmYtYnk6IFR5bGVyIEJha2VyIDx0eWxlci5iYWtlckBsaW5hcm8u
-b3JnPg0KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50
-ZWwuY29tPg0KDQpjb21taXQgYmE4ZmUwZjg1ZTE1ZDA0NzY4NmNhZjhhNDI0NjNiNTkyYzYzYzk4
-Yw0KQXV0aG9yOiBSb3NzIFp3aXNsZXIgPHJvc3Muendpc2xlckBsaW51eC5pbnRlbC5jb20+DQpE
-YXRlOiAgIFdlZCBTZXAgMTYgMTQ6NTI6MjEgMjAxNSAtMDYwMA0KDQogICAgcG1lbTogYWRkIHBy
-b3BlciBmZW5jaW5nIHRvIHBtZW1fcndfcGFnZSgpDQogICAgDQogICAgcG1lbV9yd19wYWdlKCkg
-bmVlZHMgdG8gY2FsbCB3bWJfcG1lbSgpIG9uIHdyaXRlcyB0byBtYWtlIHN1cmUgdGhhdCB0aGUN
-CiAgICBuZXdseSB3cml0dGVuIGRhdGEgaXMgZHVyYWJsZS4gIFRoaXMgZmxvdyB3YXMgYWRkZWQg
-dG8gcG1lbV9yd19ieXRlcygpDQogICAgYW5kIHBtZW1fbWFrZV9yZXF1ZXN0KCkgd2l0aCB0aGlz
-IGNvbW1pdDoNCiAgICANCiAgICBjb21taXQgNjEwMzE5NTJmNGM4ICgiYXJjaCwgeDg2OiBwbWVt
-IGFwaSBmb3IgZW5zdXJpbmcgZHVyYWJpbGl0eSBvZg0KICAgIAlwZXJzaXN0ZW50IG1lbW9yeSB1
-cGRhdGVzIikNCiAgICANCiAgICAuLi50aGUgcG1lbV9yd19wYWdlKCkgcGF0aCB3YXMgbWlzc2Vk
-Lg0KICAgIA0KICAgIENjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4NCiAgICBTaWduZWQtb2Zm
-LWJ5OiBSb3NzIFp3aXNsZXIgPHJvc3Muendpc2xlckBsaW51eC5pbnRlbC5jb20+DQogICAgU2ln
-bmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQoNCmNv
-bW1pdCA0Y2E4YjU3YTBhZjE0NWY0ZTc5MWYyMWRiY2E2YWQ3ODlkYTllZThiDQpBdXRob3I6IEF4
-ZWwgTGluIDxheGVsLmxpbkBpbmdpY3MuY29tPg0KRGF0ZTogICBXZWQgU2VwIDE2IDIxOjI1OjM4
-IDIwMTUgKzA4MDANCg0KICAgIGxpYm52ZGltbTogcGZuX2RldnM6IEZpeCBsb2NraW5nIGluIG5h
-bWVzcGFjZV9zdG9yZQ0KICAgIA0KICAgIEFsd2F5cyB0YWtlIGRldmljZV9sb2NrKCkgYmVmb3Jl
-IG52ZGltbV9idXNfbG9jaygpIHRvIHByZXZlbnQgZGVhZGxvY2suDQogICAgDQogICAgU2lnbmVk
-LW9mZi1ieTogQXhlbCBMaW4gPGF4ZWwubGluQGluZ2ljcy5jb20+DQogICAgU2lnbmVkLW9mZi1i
-eTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQoNCmNvbW1pdCA0YmU5
-YzFmYzNkZjljM2IwM2M5YmRlOGFlYzVlNDRmYzczOTk2YTNmDQpBdXRob3I6IEF4ZWwgTGluIDxh
-eGVsLmxpbkBpbmdpY3MuY29tPg0KRGF0ZTogICBXZWQgU2VwIDE2IDIxOjI0OjQ3IDIwMTUgKzA4
-MDANCg0KICAgIGxpYm52ZGltbTogYnR0X2RldnM6IEZpeCBsb2NraW5nIGluIG5hbWVzcGFjZV9z
-dG9yZQ0KICAgIA0KICAgIEFsd2F5cyB0YWtlIGRldmljZV9sb2NrKCkgYmVmb3JlIG52ZGltbV9i
-dXNfbG9jaygpIHRvIHByZXZlbnQgZGVhZGxvY2suDQogICAgDQogICAgQ2M6IDxzdGFibGVAdmdl
-ci5rZXJuZWwub3JnPg0KICAgIFNpZ25lZC1vZmYtYnk6IEF4ZWwgTGluIDxheGVsLmxpbkBpbmdp
-Y3MuY29tPg0KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNA
-aW50ZWwuY29tPg0KDQpjb21taXQgZjBiMmU1NjNiYzQxOWRmN2MxYjNkMmY0OTQ1NzRjMjUxMjVm
-NmFlZA0KQXV0aG9yOiBKZWZmIE1veWVyIDxqbW95ZXJAcmVkaGF0LmNvbT4NCkRhdGU6ICAgRnJp
-IEF1ZyAxNCAxNjoxNTozMiAyMDE1IC0wNDAwDQoNCiAgICBibG9ja2RldjogZG9uJ3Qgc2V0IFNf
-REFYIGZvciBtaXNhbGlnbmVkIHBhcnRpdGlvbnMNCiAgICANCiAgICBUaGUgZGF4IGNvZGUgZG9l
-c24ndCBjdXJyZW50bHkgc3VwcG9ydCBtaXNhbGlnbmVkIHBhcnRpdGlvbnMsDQogICAgc28gZGlz
-YWJsZSBPX0RJUkVDVCB2aWEgZGF4IHVudGlsIHN1Y2ggdGltZSBhcyB0aGF0IHN1cHBvcnQNCiAg
-ICBtYXRlcmlhbGl6ZXMuDQogICAgDQogICAgQ2M6IDxzdGFibGVAdmdlci5rZXJuZWwub3JnPg0K
-ICAgIFN1Z2dlc3RlZC1ieTogQm9heiBIYXJyb3NoIDxib2F6QHBsZXhpc3Rvci5jb20+DQogICAg
-U2lnbmVkLW9mZi1ieTogSmVmZiBNb3llciA8am1veWVyQHJlZGhhdC5jb20+DQogICAgU2lnbmVk
-LW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQoNCmNvbW1p
-dCBlOTRmNWEyMjg1ZmM5NDIwMmE5ZWZiMmM2ODc0ODFmMjliNjQxMzJjDQpBdXRob3I6IEplZmYg
-TW95ZXIgPGptb3llckByZWRoYXQuY29tPg0KRGF0ZTogICBGcmkgQXVnIDE0IDE2OjE1OjMxIDIw
-MTUgLTA0MDANCg0KICAgIGRheDogZml4IE9fRElSRUNUIEkvTyB0byB0aGUgbGFzdCBibG9jayBv
-ZiBhIGJsb2NrZGV2DQogICAgDQogICAgY29tbWl0IGJiYWIzN2RkYzIwYiAoYmxvY2s6IEFkZCBz
-dXBwb3J0IGZvciBEQVggcmVhZHMvd3JpdGVzIHRvDQogICAgYmxvY2sgZGV2aWNlcykgY2F1c2Vk
-IGEgcmVncmVzc2lvbiBpbiBta2ZzLnhmcy4gIFRoYXQgdXRpbGl0eQ0KICAgIHNldHMgdGhlIGJs
-b2NrIHNpemUgb2YgdGhlIGRldmljZSB0byB0aGUgbG9naWNhbCBibG9jayBzaXplDQogICAgdXNp
-bmcgdGhlIEJMS0JTWlNFVCBpb2N0bCwgYW5kIHRoZW4gaXNzdWVzIGEgc2luZ2xlIHNlY3RvciBy
-ZWFkDQogICAgZnJvbSB0aGUgbGFzdCBzZWN0b3Igb2YgdGhlIGRldmljZS4gIFRoaXMgcmVzdWx0
-cyBpbiB0aGUgZGF4X2lvDQogICAgY29kZSB0cnlpbmcgdG8gZG8gYSBwYWdlLXNpemVkIHJlYWQg
-ZnJvbSA1MTIgYnl0ZXMgZnJvbSB0aGUgZW5kDQogICAgb2YgdGhlIGRldmljZS4gIFRoZSByZXN1
-bHQgaXMgLUVSQU5HRSBiZWluZyByZXR1cm5lZCB0byB1c2Vyc3BhY2UuDQogICAgDQogICAgVGhl
-IGZpeCBpcyB0byBhbGlnbiB0aGUgYmxvY2sgdG8gdGhlIHBhZ2Ugc2l6ZSBiZWZvcmUgY2FsbGlu
-Zw0KICAgIGdldF9ibG9jay4NCiAgICANCiAgICBUaGFua3MgdG8gd2lsbHkgZm9yIHNpbXBsaWZ5
-aW5nIG15IG9yaWdpbmFsIHBhdGNoLg0KICAgIA0KICAgIENjOiA8c3RhYmxlQHZnZXIua2VybmVs
-Lm9yZz4NCiAgICBTaWduZWQtb2ZmLWJ5OiBKZWZmIE1veWVyIDxqbW95ZXJAcmVkaGF0LmNvbT4N
-CiAgICBUZXN0ZWQtYnk6ICBMaW5kYSBLbmlwcGVycyA8bGluZGEua25pcHBlcnNAaHAuY29tPg0K
-ICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29t
-Pg0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vYnR0X2RldnMuYyBiL2RyaXZlcnMvbnZk
-aW1tL2J0dF9kZXZzLmMNCmluZGV4IDU5YWQ1NGE2M2Q5Zi4uY2I0Nzc1MThkZDBlIDEwMDY0NA0K
-LS0tIGEvZHJpdmVycy9udmRpbW0vYnR0X2RldnMuYw0KKysrIGIvZHJpdmVycy9udmRpbW0vYnR0
-X2RldnMuYw0KQEAgLTEyOCwxMyArMTI4LDEzIEBAIHN0YXRpYyBzc2l6ZV90IG5hbWVzcGFjZV9z
-dG9yZShzdHJ1Y3QgZGV2aWNlICpkZXYsDQogCXN0cnVjdCBuZF9idHQgKm5kX2J0dCA9IHRvX25k
-X2J0dChkZXYpOw0KIAlzc2l6ZV90IHJjOw0KIA0KLQludmRpbW1fYnVzX2xvY2soZGV2KTsNCiAJ
-ZGV2aWNlX2xvY2soZGV2KTsNCisJbnZkaW1tX2J1c19sb2NrKGRldik7DQogCXJjID0gbmRfbmFt
-ZXNwYWNlX3N0b3JlKGRldiwgJm5kX2J0dC0+bmRucywgYnVmLCBsZW4pOw0KIAlkZXZfZGJnKGRl
-diwgIiVzOiByZXN1bHQ6ICV6ZCB3cm90ZTogJXMlcyIsIF9fZnVuY19fLA0KIAkJCXJjLCBidWYs
-IGJ1ZltsZW4gLSAxXSA9PSAnXG4nID8gIiIgOiAiXG4iKTsNCi0JZGV2aWNlX3VubG9jayhkZXYp
-Ow0KIAludmRpbW1fYnVzX3VubG9jayhkZXYpOw0KKwlkZXZpY2VfdW5sb2NrKGRldik7DQogDQog
-CXJldHVybiByYzsNCiB9DQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vcGZuX2RldnMuYyBi
-L2RyaXZlcnMvbnZkaW1tL3Bmbl9kZXZzLmMNCmluZGV4IDNmZDdkMGQ4MWE0Ny4uNzE4MDVhMWFh
-MGYzIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9udmRpbW0vcGZuX2RldnMuYw0KKysrIGIvZHJpdmVy
-cy9udmRpbW0vcGZuX2RldnMuYw0KQEAgLTE0OCwxMyArMTQ4LDEzIEBAIHN0YXRpYyBzc2l6ZV90
-IG5hbWVzcGFjZV9zdG9yZShzdHJ1Y3QgZGV2aWNlICpkZXYsDQogCXN0cnVjdCBuZF9wZm4gKm5k
-X3BmbiA9IHRvX25kX3BmbihkZXYpOw0KIAlzc2l6ZV90IHJjOw0KIA0KLQludmRpbW1fYnVzX2xv
-Y2soZGV2KTsNCiAJZGV2aWNlX2xvY2soZGV2KTsNCisJbnZkaW1tX2J1c19sb2NrKGRldik7DQog
-CXJjID0gbmRfbmFtZXNwYWNlX3N0b3JlKGRldiwgJm5kX3Bmbi0+bmRucywgYnVmLCBsZW4pOw0K
-IAlkZXZfZGJnKGRldiwgIiVzOiByZXN1bHQ6ICV6ZCB3cm90ZTogJXMlcyIsIF9fZnVuY19fLA0K
-IAkJCXJjLCBidWYsIGJ1ZltsZW4gLSAxXSA9PSAnXG4nID8gIiIgOiAiXG4iKTsNCi0JZGV2aWNl
-X3VubG9jayhkZXYpOw0KIAludmRpbW1fYnVzX3VubG9jayhkZXYpOw0KKwlkZXZpY2VfdW5sb2Nr
-KGRldik7DQogDQogCXJldHVybiByYzsNCiB9DQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0v
-cG1lbS5jIGIvZHJpdmVycy9udmRpbW0vcG1lbS5jDQppbmRleCBiOTUyNTM4NWMwZGMuLjBiYTZh
-OTc4ZjIyNyAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvbnZkaW1tL3BtZW0uYw0KKysrIGIvZHJpdmVy
-cy9udmRpbW0vcG1lbS5jDQpAQCAtOTIsNiArOTIsOCBAQCBzdGF0aWMgaW50IHBtZW1fcndfcGFn
-ZShzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2LCBzZWN0b3JfdCBzZWN0b3IsDQogCXN0cnVjdCBw
-bWVtX2RldmljZSAqcG1lbSA9IGJkZXYtPmJkX2Rpc2stPnByaXZhdGVfZGF0YTsNCiANCiAJcG1l
-bV9kb19idmVjKHBtZW0sIHBhZ2UsIFBBR0VfQ0FDSEVfU0laRSwgMCwgcncsIHNlY3Rvcik7DQor
-CWlmIChydyAmIFdSSVRFKQ0KKwkJd21iX3BtZW0oKTsNCiAJcGFnZV9lbmRpbyhwYWdlLCBydyAm
-IFdSSVRFLCAwKTsNCiANCiAJcmV0dXJuIDA7DQpkaWZmIC0tZ2l0IGEvZnMvYmxvY2tfZGV2LmMg
-Yi9mcy9ibG9ja19kZXYuYw0KaW5kZXggMjJlYTQyNGVlNzQxLi4wNzNiYjU3YWRhYjEgMTAwNjQ0
-DQotLS0gYS9mcy9ibG9ja19kZXYuYw0KKysrIGIvZnMvYmxvY2tfZGV2LmMNCkBAIC0xMjQyLDYg
-KzEyNDIsMTMgQEAgc3RhdGljIGludCBfX2Jsa2Rldl9nZXQoc3RydWN0IGJsb2NrX2RldmljZSAq
-YmRldiwgZm1vZGVfdCBtb2RlLCBpbnQgZm9yX3BhcnQpDQogCQkJCWdvdG8gb3V0X2NsZWFyOw0K
-IAkJCX0NCiAJCQliZF9zZXRfc2l6ZShiZGV2LCAobG9mZl90KWJkZXYtPmJkX3BhcnQtPm5yX3Nl
-Y3RzIDw8IDkpOw0KKwkJCS8qDQorCQkJICogSWYgdGhlIHBhcnRpdGlvbiBpcyBub3QgYWxpZ25l
-ZCBvbiBhIHBhZ2UNCisJCQkgKiBib3VuZGFyeSwgd2UgY2FuJ3QgZG8gZGF4IEkvTyB0byBpdC4N
-CisJCQkgKi8NCisJCQlpZiAoKGJkZXYtPmJkX3BhcnQtPnN0YXJ0X3NlY3QgJSAoUEFHRV9TSVpF
-IC8gNTEyKSkgfHwNCisJCQkgICAgKGJkZXYtPmJkX3BhcnQtPm5yX3NlY3RzICUgKFBBR0VfU0la
-RSAvIDUxMikpKQ0KKwkJCQliZGV2LT5iZF9pbm9kZS0+aV9mbGFncyAmPSB+U19EQVg7DQogCQl9
-DQogCX0gZWxzZSB7DQogCQlpZiAoYmRldi0+YmRfY29udGFpbnMgPT0gYmRldikgew0KZGlmZiAt
-LWdpdCBhL2ZzL2RheC5jIGIvZnMvZGF4LmMNCmluZGV4IDkzYmYyZjk5MGFjZS4uN2FlNmRmN2Vh
-MWQyIDEwMDY0NA0KLS0tIGEvZnMvZGF4LmMNCisrKyBiL2ZzL2RheC5jDQpAQCAtMTE5LDcgKzEx
-OSw4IEBAIHN0YXRpYyBzc2l6ZV90IGRheF9pbyhzdHJ1Y3QgaW5vZGUgKmlub2RlLCBzdHJ1Y3Qg
-aW92X2l0ZXIgKml0ZXIsDQogCQlzaXplX3QgbGVuOw0KIAkJaWYgKHBvcyA9PSBtYXgpIHsNCiAJ
-CQl1bnNpZ25lZCBibGtiaXRzID0gaW5vZGUtPmlfYmxrYml0czsNCi0JCQlzZWN0b3JfdCBibG9j
-ayA9IHBvcyA+PiBibGtiaXRzOw0KKwkJCWxvbmcgcGFnZSA9IHBvcyA+PiBQQUdFX1NISUZUOw0K
-KwkJCXNlY3Rvcl90IGJsb2NrID0gcGFnZSA8PCAoUEFHRV9TSElGVCAtIGJsa2JpdHMpOw0KIAkJ
-CXVuc2lnbmVkIGZpcnN0ID0gcG9zIC0gKGJsb2NrIDw8IGJsa2JpdHMpOw0KIAkJCWxvbmcgc2l6
-ZTsNCiANCmRpZmYgLS1naXQgYS9pbmNsdWRlL2FzbS1nZW5lcmljL21lbW9yeV9tb2RlbC5oIGIv
-aW5jbHVkZS9hc20tZ2VuZXJpYy9tZW1vcnlfbW9kZWwuaA0KaW5kZXggZjIwZjQwN2NlNDVkLi40
-YjRiMDU2YTZlYjAgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL2FzbS1nZW5lcmljL21lbW9yeV9tb2Rl
-bC5oDQorKysgYi9pbmNsdWRlL2FzbS1nZW5lcmljL21lbW9yeV9tb2RlbC5oDQpAQCAtNzMsNyAr
-NzMsNyBAQA0KICAqIENvbnZlcnQgYSBwaHlzaWNhbCBhZGRyZXNzIHRvIGEgUGFnZSBGcmFtZSBO
-dW1iZXIgYW5kIGJhY2sNCiAgKi8NCiAjZGVmaW5lCV9fcGh5c190b19wZm4ocGFkZHIpCSgodW5z
-aWduZWQgbG9uZykoKHBhZGRyKSA+PiBQQUdFX1NISUZUKSkNCi0jZGVmaW5lCV9fcGZuX3RvX3Bo
-eXMocGZuKQkoKHBmbikgPDwgUEFHRV9TSElGVCkNCisjZGVmaW5lCV9fcGZuX3RvX3BoeXMocGZu
-KQlQRk5fUEhZUyhwZm4pDQogDQogI2RlZmluZSBwYWdlX3RvX3BmbiBfX3BhZ2VfdG9fcGZuDQog
-I2RlZmluZSBwZm5fdG9fcGFnZSBfX3Bmbl90b19wYWdlDQoNCg==
+To properly handle fsync/msync in an efficient way DAX needs to track dirty
+pages so it is able to flush them durably to media on demand.
+
+The tracking of dirty pages is done via the radix tree in struct
+address_space.  This radix tree is already used by the page writeback
+infrastructure for tracking dirty pages associated with an open file, and
+it already has support for exceptional (non struct page*) entries.  We
+build upon these features to add exceptional entries to the radix tree for
+DAX dirty PMD or PTE pages at fault time.
+
+When called as part of the msync/fsync flush path DAX queries the radix
+tree for dirty entries, flushing them and then marking the PTE or PMD page
+table entries as clean.  The step of cleaning the PTE or PMD entries is
+necessary so that on subsequent writes to the same page we get a new write
+fault, allowing us to re-enter the DAX tag into the radix tree.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ fs/dax.c            | 161 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+ include/linux/dax.h |   1 +
+ mm/huge_memory.c    |  14 ++---
+ mm/page-writeback.c |   9 +++
+ 4 files changed, 172 insertions(+), 13 deletions(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index 131fd35a..3b38aff 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -24,10 +24,13 @@
+ #include <linux/memcontrol.h>
+ #include <linux/mm.h>
+ #include <linux/mutex.h>
++#include <linux/pagevec.h>
+ #include <linux/pmem.h>
++#include <linux/rmap.h>
+ #include <linux/sched.h>
+ #include <linux/uio.h>
+ #include <linux/vmstat.h>
++#include <linux/dax.h>
+ 
+ /*
+  * dax_clear_blocks() is called from within transaction context from XFS,
+@@ -287,6 +290,42 @@ static int copy_user_bh(struct page *to, struct buffer_head *bh,
+ 	return 0;
+ }
+ 
++static int dax_dirty_pgoff(struct vm_area_struct *vma,
++		struct address_space *mapping, unsigned long pgoff,
++		bool pmd_entry)
++{
++	struct radix_tree_root *page_tree = &mapping->page_tree;
++	void *tag;
++	int error = 0;
++
++	__mark_inode_dirty(file_inode(vma->vm_file), I_DIRTY_PAGES);
++
++	spin_lock_irq(&mapping->tree_lock);
++
++	tag = radix_tree_lookup(page_tree, pgoff);
++	if (tag) {
++		if (pmd_entry && tag == RADIX_TREE_DAX_PTE) {
++			radix_tree_delete(&mapping->page_tree, pgoff);
++			mapping->nrdax--;
++		} else
++			goto out;
++	}
++
++	if (pmd_entry)
++		error = radix_tree_insert(page_tree, pgoff, RADIX_TREE_DAX_PMD);
++	else
++		error = radix_tree_insert(page_tree, pgoff, RADIX_TREE_DAX_PTE);
++
++	if (error)
++		goto out;
++
++	mapping->nrdax++;
++	radix_tree_tag_set(page_tree, pgoff, PAGECACHE_TAG_DIRTY);
++ out:
++	spin_unlock_irq(&mapping->tree_lock);
++	return error;
++}
++
+ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 			struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+@@ -450,6 +489,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		delete_from_page_cache(page);
+ 		unlock_page(page);
+ 		page_cache_release(page);
++		page = NULL;
+ 	}
+ 
+ 	/*
+@@ -463,6 +503,13 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	 * as for normal BH based IO completions.
+ 	 */
+ 	error = dax_insert_mapping(inode, &bh, vma, vmf);
++	if (error)
++		goto out;
++
++	error = dax_dirty_pgoff(vma, inode->i_mapping, vmf->pgoff, false);
++	if (error)
++		goto out;
++
+ 	if (buffer_unwritten(&bh)) {
+ 		if (complete_unwritten)
+ 			complete_unwritten(&bh, !error);
+@@ -537,7 +584,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	pgoff_t size, pgoff;
+ 	sector_t block, sector;
+ 	unsigned long pfn;
+-	int result = 0;
++	int error, result = 0;
+ 
+ 	/* Fall back to PTEs if we're going to COW */
+ 	if (write && !(vma->vm_flags & VM_SHARED))
+@@ -638,6 +685,10 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		}
+ 
+ 		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
++
++		error = dax_dirty_pgoff(vma, inode->i_mapping, pgoff, true);
++		if (error)
++			goto fallback;
+ 	}
+ 
+  out:
+@@ -693,11 +744,11 @@ EXPORT_SYMBOL_GPL(dax_pmd_fault);
+  */
+ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
++	struct file *file = vma->vm_file;
++	struct address_space *mapping = file->f_mapping;
++	struct inode *inode = mapping->host;
+ 
+-	sb_start_pagefault(sb);
+-	file_update_time(vma->vm_file);
+-	sb_end_pagefault(sb);
++	dax_dirty_pgoff(vma, inode->i_mapping, vmf->pgoff, false);
+ 	return VM_FAULT_NOPAGE;
+ }
+ EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
+@@ -772,3 +823,103 @@ int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
+ 	return dax_zero_page_range(inode, from, length, get_block);
+ }
+ EXPORT_SYMBOL_GPL(dax_truncate_page);
++
++static int dax_flush_one_mapping(struct address_space *mapping,
++		struct inode *inode, sector_t block, void *tag)
++{
++	get_block_t *get_block = inode->i_op->get_block;
++	struct buffer_head bh;
++	void __pmem *addr;
++	int ret;
++
++	BUG_ON(tag != RADIX_TREE_DAX_PMD && tag != RADIX_TREE_DAX_PTE);
++
++	memset(&bh, 0, sizeof(bh));
++
++	if (tag == RADIX_TREE_DAX_PMD)
++		bh.b_size = PMD_SIZE;
++	else
++		bh.b_size = PAGE_SIZE;
++
++	ret = get_block(inode, block, &bh, false);
++	BUG_ON(!buffer_written(&bh));
++	if (ret < 0)
++		return ret;
++
++	ret = dax_get_addr(&bh, &addr, inode->i_blkbits);
++	if (ret < 0)
++		return ret;
++
++	if (tag == RADIX_TREE_DAX_PMD)
++		WARN_ON(ret != PMD_SIZE);
++	else
++		WARN_ON(ret != PAGE_SIZE);
++
++	wb_cache_pmem(addr, ret);
++
++	spin_lock_irq(&mapping->tree_lock);
++	radix_tree_delete(&mapping->page_tree, block);
++	spin_unlock_irq(&mapping->tree_lock);
++	mapping->nrdax--;
++
++	return pgoff_mkclean(block, mapping);
++}
++
++/*
++ * flush the mapping to the persistent domain within the byte range of (start,
++ * end). This is required by data integrity operations to ensure file data is on
++ * persistent storage prior to completion of the operation. It also requires us
++ * to clean the mappings (i.e. write -> RO) so that we'll get a new fault when
++ * the file is written to again so wehave an indication that we need to flush
++ * the mapping if a data integrity operation takes place.
++ *
++ * We don't need commits to storage here - the filesystems will issue flushes
++ * appropriately at the conclusion of the data integrity operation via REQ_FUA
++ * writes or blkdev_issue_flush() commands.  This requires the DAX block device
++ * to implement persistent storage domain fencing/commits on receiving a
++ * REQ_FLUSH or REQ_FUA request so that this works as expected by the higher
++ * layers.
++ */
++int dax_flush_mapping(struct address_space *mapping, loff_t start, loff_t end)
++{
++	struct inode *inode = mapping->host;
++	pgoff_t indices[PAGEVEC_SIZE];
++	struct pagevec pvec;
++	int i, error;
++
++	pgoff_t start_page = start >> PAGE_CACHE_SHIFT;
++	pgoff_t end_page = end >> PAGE_CACHE_SHIFT;
++
++
++	if (mapping->nrdax == 0)
++		return 0;
++
++	if (!inode->i_op->get_block) {
++		WARN_ONCE(1, "Flushing DAX mapping without get_block()!");
++		mapping->nrdax = 0;
++		return 0;
++	}
++
++	BUG_ON(inode->i_blkbits != PAGE_SHIFT);
++
++	tag_pages_for_writeback(mapping, start_page, end_page);
++
++	pagevec_init(&pvec, 0);
++	while (1) {
++		pvec.nr = find_get_entries_tag(mapping, start_page,
++				PAGECACHE_TAG_TOWRITE, PAGEVEC_SIZE,
++				pvec.pages, indices);
++
++		if (pvec.nr == 0)
++			break;
++
++		for (i = 0; i < pvec.nr; i++) {
++			error = dax_flush_one_mapping(mapping, inode,
++					indices[i], pvec.pages[i]);
++			if (error)
++				return error;
++		}
++	}
++
++	return 0;
++}
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index e9d57f68..5eff476 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -41,4 +41,5 @@ static inline bool dax_mapping(struct address_space *mapping)
+ {
+ 	return mapping->host && IS_DAX(mapping->host);
+ }
++int dax_flush_mapping(struct address_space *mapping, loff_t start, loff_t end);
+ #endif
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index bbac913..1b3df56 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -877,15 +877,13 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	spinlock_t *ptl;
+ 
+ 	ptl = pmd_lock(mm, pmd);
+-	if (pmd_none(*pmd)) {
+-		entry = pmd_mkhuge(pfn_pmd(pfn, prot));
+-		if (write) {
+-			entry = pmd_mkyoung(pmd_mkdirty(entry));
+-			entry = maybe_pmd_mkwrite(entry, vma);
+-		}
+-		set_pmd_at(mm, addr, pmd, entry);
+-		update_mmu_cache_pmd(vma, addr, pmd);
++	entry = pmd_mkhuge(pfn_pmd(pfn, prot));
++	if (write) {
++		entry = pmd_mkyoung(pmd_mkdirty(entry));
++		entry = maybe_pmd_mkwrite(entry, vma);
+ 	}
++	set_pmd_at(mm, addr, pmd, entry);
++	update_mmu_cache_pmd(vma, addr, pmd);
+ 	spin_unlock(ptl);
+ }
+ 
+diff --git a/mm/page-writeback.c b/mm/page-writeback.c
+index 2c90357..1801df8 100644
+--- a/mm/page-writeback.c
++++ b/mm/page-writeback.c
+@@ -37,6 +37,7 @@
+ #include <linux/timer.h>
+ #include <linux/sched/rt.h>
+ #include <linux/mm_inline.h>
++#include <linux/dax.h>
+ #include <trace/events/writeback.h>
+ 
+ #include "internal.h"
+@@ -2338,6 +2339,14 @@ int do_writepages(struct address_space *mapping, struct writeback_control *wbc)
+ 
+ 	if (wbc->nr_to_write <= 0)
+ 		return 0;
++
++	if (wbc->sync_mode == WB_SYNC_ALL && dax_mapping(mapping)) {
++		ret = dax_flush_mapping(mapping, wbc->range_start,
++				wbc->range_end);
++		if (ret)
++			return ret;
++	}
++
+ 	if (mapping->a_ops->writepages)
+ 		ret = mapping->a_ops->writepages(mapping, wbc);
+ 	else
+-- 
+2.1.0
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
