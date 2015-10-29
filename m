@@ -1,67 +1,51 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 2/3] resource: Add region_intersects_pmem()
-Date: Fri, 23 Oct 2015 12:53:58 -0600
-Message-Id: <1445626439-8424-3-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1445626439-8424-1-git-send-email-toshi.kani@hpe.com>
-References: <1445626439-8424-1-git-send-email-toshi.kani@hpe.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [RFC 03/11] pmem: enable REQ_FLUSH handling
+Date: Thu, 29 Oct 2015 14:12:07 -0600
+Message-Id: <1446149535-16200-4-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add region_intersects_pmem(), which checks if a specified address
-range is persistent memory registered as "Persistent Memory" in
-the iomem_resource list.
+Currently the PMEM driver doesn't accept REQ_FLUSH bios.  These are sent
+down via blkdev_issue_flush() in response to a fsync() or msync().
 
-Note, it does not support legacy persistent memory registered as
-"Persistent Memory (legacy)".  It can be supported by extending
-this function or a separate function, if necessary.
+When we get an msync() or fsync() it is the responsibility of the DAX code
+to flush all dirty pages to media.  The PMEM driver then just has issue a
+wmb_pmem() in response to the REQ_FLUSH to ensure that before we return all
+the flushed data has been durably stored on the media.
 
-This interface is exported so that it can be called from modules,
-such as the EINJ driver.
-
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- include/linux/mm.h |    1 +
- kernel/resource.c  |   12 ++++++++++++
- 2 files changed, 13 insertions(+)
+ drivers/nvdimm/pmem.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 699224e..ae1790f 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -361,6 +361,7 @@ enum {
- int region_intersects(resource_size_t offset, size_t size, const char *type,
- 			unsigned long flags);
- int region_intersects_ram(resource_size_t offset, size_t size);
-+int region_intersects_pmem(resource_size_t offset, size_t size);
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 0ba6a97..e1e222e 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -80,7 +80,7 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
+ 	if (do_acct)
+ 		nd_iostat_end(bio, start);
  
- /* Support for virtually mapped pages */
- struct page *vmalloc_to_page(const void *addr);
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 15c133e..5230e63 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -548,6 +548,18 @@ int region_intersects_ram(resource_size_t start, size_t size)
- }
- EXPORT_SYMBOL_GPL(region_intersects_ram);
+-	if (bio_data_dir(bio))
++	if (bio_data_dir(bio) || (bio->bi_rw & REQ_FLUSH))
+ 		wmb_pmem();
  
-+/*
-+ * region_intersects_pmem() checks if a specified address range is
-+ * persistent memory, registered as "Persistent Memory", in the
-+ * iomem_resource list.
-+ */
-+int region_intersects_pmem(resource_size_t start, size_t size)
-+{
-+	return region_intersects(start, size, "Persistent Memory",
-+				 IORESOURCE_MEM);
-+}
-+EXPORT_SYMBOL_GPL(region_intersects_pmem);
-+
- void __weak arch_remove_reservations(struct resource *avail)
- {
- }
+ 	bio_endio(bio);
+@@ -189,6 +189,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	blk_queue_physical_block_size(pmem->pmem_queue, PAGE_SIZE);
+ 	blk_queue_max_hw_sectors(pmem->pmem_queue, UINT_MAX);
+ 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
++	blk_queue_flush(pmem->pmem_queue, REQ_FLUSH);
+ 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, pmem->pmem_queue);
+ 
+ 	disk = alloc_disk(0);
+-- 
+2.1.0
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
