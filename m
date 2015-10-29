@@ -1,177 +1,162 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Dave Chinner <david@fromorbit.com>
-Subject: [PATCH 2/7] Revert "dax: fix race between simultaneous faults"
-Date: Thu,  1 Oct 2015 17:46:34 +1000
-Message-Id: <1443685599-4843-3-git-send-email-david@fromorbit.com>
-In-Reply-To: <1443685599-4843-1-git-send-email-david@fromorbit.com>
-References: <1443685599-4843-1-git-send-email-david@fromorbit.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-fsdevel@vger.kernel.org, ross.zwisler@linux.intel.com, willy@linux.intel.com, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, linux-nvdimm@lists.01.org, jack@suse.cz, linux-kernel@vger.kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [RFC 04/11] dax: support dirty DAX entries in radix tree
+Date: Thu, 29 Oct 2015 14:12:08 -0600
+Message-Id: <1446149535-16200-5-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This reverts commit 843172978bb92997310d2f7fbc172ece423cfc02.
+Add support for tracking dirty DAX entries in the struct address_space
+radix tree.  This tree is already used for dirty page writeback, and it
+already supports the use of exceptional (non struct page*) entries.
+
+In order to properly track dirty DAX pages we will insert new exceptional
+entries into the radix tree that represent dirty DAX PTE or PMD pages.
+
+There are currently two types of exceptional entries (shmem and shadow)
+that can be placed into the radix tree, and this adds a third.  There
+shouldn't be any collisions between these various exceptional entries
+because only one type of exceptional entry should be able to be found in a
+radix tree at a time depending on how it is being used.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- fs/dax.c    | 33 ++++++++++++++++-----------------
- mm/memory.c | 11 +++--------
- 2 files changed, 19 insertions(+), 25 deletions(-)
+ fs/inode.c                 |  1 +
+ include/linux/dax.h        |  5 +++++
+ include/linux/fs.h         |  1 +
+ include/linux/radix-tree.h |  3 +++
+ mm/filemap.c               | 12 ++++++++----
+ mm/truncate.c              |  5 +++--
+ 6 files changed, 21 insertions(+), 6 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 400fe95..3994a2b 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -285,6 +285,7 @@ static int copy_user_bh(struct page *to, struct buffer_head *bh,
- static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 			struct vm_area_struct *vma, struct vm_fault *vmf)
+diff --git a/fs/inode.c b/fs/inode.c
+index 78a17b8..f7c87a6 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -496,6 +496,7 @@ void clear_inode(struct inode *inode)
+ 	spin_lock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(inode->i_data.nrpages);
+ 	BUG_ON(inode->i_data.nrshadows);
++	BUG_ON(inode->i_data.nrdax);
+ 	spin_unlock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(!list_empty(&inode->i_data.private_list));
+ 	BUG_ON(!(inode->i_state & I_FREEING));
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index b415e52..e9d57f68 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -36,4 +36,9 @@ static inline bool vma_is_dax(struct vm_area_struct *vma)
  {
-+	struct address_space *mapping = inode->i_mapping;
- 	sector_t sector = bh->b_blocknr << (inode->i_blkbits - 9);
- 	unsigned long vaddr = (unsigned long)vmf->virtual_address;
- 	void __pmem *addr;
-@@ -292,6 +293,8 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 	pgoff_t size;
- 	int error;
- 
-+	i_mmap_lock_read(mapping);
-+
- 	/*
- 	 * Check truncate didn't happen while we were allocating a block.
- 	 * If it did, this block may or may not be still allocated to the
-@@ -321,6 +324,8 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 	error = vm_insert_mixed(vma, vaddr, pfn);
- 
-  out:
-+	i_mmap_unlock_read(mapping);
-+
- 	return error;
+ 	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
  }
++
++static inline bool dax_mapping(struct address_space *mapping)
++{
++	return mapping->host && IS_DAX(mapping->host);
++}
+ #endif
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 72d8a84..f791698 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -433,6 +433,7 @@ struct address_space {
+ 	/* Protected by tree_lock together with the radix tree */
+ 	unsigned long		nrpages;	/* number of total pages */
+ 	unsigned long		nrshadows;	/* number of shadow entries */
++	unsigned long		nrdax;	        /* number of DAX entries */
+ 	pgoff_t			writeback_index;/* writeback starts here */
+ 	const struct address_space_operations *a_ops;	/* methods */
+ 	unsigned long		flags;		/* error bits/gfp mask */
+diff --git a/include/linux/radix-tree.h b/include/linux/radix-tree.h
+index 33170db..fabec66 100644
+--- a/include/linux/radix-tree.h
++++ b/include/linux/radix-tree.h
+@@ -51,6 +51,9 @@
+ #define RADIX_TREE_EXCEPTIONAL_ENTRY	2
+ #define RADIX_TREE_EXCEPTIONAL_SHIFT	2
  
-@@ -382,17 +387,15 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			 * from a read fault and we've raced with a truncate
++#define RADIX_TREE_DAX_PTE  ((void *)(0x10 | RADIX_TREE_EXCEPTIONAL_ENTRY))
++#define RADIX_TREE_DAX_PMD  ((void *)(0x20 | RADIX_TREE_EXCEPTIONAL_ENTRY))
++
+ static inline int radix_tree_is_indirect_ptr(void *ptr)
+ {
+ 	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 327910c..c3a9e4f 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -11,6 +11,7 @@
+  */
+ #include <linux/export.h>
+ #include <linux/compiler.h>
++#include <linux/dax.h>
+ #include <linux/fs.h>
+ #include <linux/uaccess.h>
+ #include <linux/capability.h>
+@@ -440,7 +441,7 @@ int filemap_write_and_wait_range(struct address_space *mapping,
+ {
+ 	int err = 0;
+ 
+-	if (mapping->nrpages) {
++	if (mapping->nrpages || mapping->nrdax) {
+ 		err = __filemap_fdatawrite_range(mapping, lstart, lend,
+ 						 WB_SYNC_ALL);
+ 		/* See comment of filemap_write_and_wait() */
+@@ -538,6 +539,9 @@ static int page_cache_tree_insert(struct address_space *mapping,
+ 		p = radix_tree_deref_slot_protected(slot, &mapping->tree_lock);
+ 		if (!radix_tree_exceptional_entry(p))
+ 			return -EEXIST;
++
++		BUG_ON(dax_mapping(mapping));
++
+ 		if (shadowp)
+ 			*shadowp = p;
+ 		mapping->nrshadows--;
+@@ -1201,9 +1205,9 @@ repeat:
+ 			if (radix_tree_deref_retry(page))
+ 				goto restart;
+ 			/*
+-			 * A shadow entry of a recently evicted page,
+-			 * or a swap entry from shmem/tmpfs.  Return
+-			 * it without attempting to raise page count.
++			 * A shadow entry of a recently evicted page, a swap
++			 * entry from shmem/tmpfs or a DAX entry.  Return it
++			 * without attempting to raise page count.
  			 */
- 			error = -EIO;
--			goto unlock;
-+			goto unlock_page;
+ 			goto export;
  		}
--	} else {
--		i_mmap_lock_write(mapping);
- 	}
+diff --git a/mm/truncate.c b/mm/truncate.c
+index 76e35ad..cdf44a0 100644
+--- a/mm/truncate.c
++++ b/mm/truncate.c
+@@ -9,6 +9,7 @@
  
- 	error = get_block(inode, block, &bh, 0);
- 	if (!error && (bh.b_size < PAGE_SIZE))
- 		error = -EIO;		/* fs corruption? */
- 	if (error)
--		goto unlock;
-+		goto unlock_page;
+ #include <linux/kernel.h>
+ #include <linux/backing-dev.h>
++#include <linux/dax.h>
+ #include <linux/gfp.h>
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+@@ -29,8 +30,8 @@ static void clear_exceptional_entry(struct address_space *mapping,
+ 	struct radix_tree_node *node;
+ 	void **slot;
  
- 	if (!buffer_mapped(&bh) && !buffer_unwritten(&bh) && !vmf->cow_page) {
- 		if (vmf->flags & FAULT_FLAG_WRITE) {
-@@ -403,9 +406,8 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			if (!error && (bh.b_size < PAGE_SIZE))
- 				error = -EIO;
- 			if (error)
--				goto unlock;
-+				goto unlock_page;
- 		} else {
--			i_mmap_unlock_write(mapping);
- 			return dax_load_hole(mapping, page, vmf);
- 		}
- 	}
-@@ -417,15 +419,17 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		else
- 			clear_user_highpage(new_page, vaddr);
- 		if (error)
--			goto unlock;
-+			goto unlock_page;
- 		vmf->page = page;
- 		if (!page) {
-+			i_mmap_lock_read(mapping);
- 			/* Check we didn't race with truncate */
- 			size = (i_size_read(inode) + PAGE_SIZE - 1) >>
- 								PAGE_SHIFT;
- 			if (vmf->pgoff >= size) {
-+				i_mmap_unlock_read(mapping);
- 				error = -EIO;
--				goto unlock;
-+				goto out;
- 			}
- 		}
- 		return VM_FAULT_LOCKED;
-@@ -461,8 +465,6 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			WARN_ON_ONCE(!(vmf->flags & FAULT_FLAG_WRITE));
- 	}
+-	/* Handled by shmem itself */
+-	if (shmem_mapping(mapping))
++	/* Handled by shmem or DAX directly */
++	if (shmem_mapping(mapping) || dax_mapping(mapping))
+ 		return;
  
--	if (!page)
--		i_mmap_unlock_write(mapping);
-  out:
- 	if (error == -ENOMEM)
- 		return VM_FAULT_OOM | major;
-@@ -471,14 +473,11 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		return VM_FAULT_SIGBUS | major;
- 	return VM_FAULT_NOPAGE | major;
- 
-- unlock:
-+ unlock_page:
- 	if (page) {
- 		unlock_page(page);
- 		page_cache_release(page);
--	} else {
--		i_mmap_unlock_write(mapping);
- 	}
--
- 	goto out;
- }
- EXPORT_SYMBOL(__dax_fault);
-@@ -556,10 +555,10 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
- 
- 	bh.b_size = PMD_SIZE;
--	i_mmap_lock_write(mapping);
- 	length = get_block(inode, block, &bh, write);
- 	if (length)
- 		return VM_FAULT_SIGBUS;
-+	i_mmap_lock_read(mapping);
- 
- 	/*
- 	 * If the filesystem isn't willing to tell us the length of a hole,
-@@ -633,11 +632,11 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	}
- 
-  out:
-+	i_mmap_unlock_read(mapping);
-+
- 	if (buffer_unwritten(&bh))
- 		complete_unwritten(&bh, !(result & VM_FAULT_ERROR));
- 
--	i_mmap_unlock_write(mapping);
--
- 	return result;
- 
-  fallback:
-diff --git a/mm/memory.c b/mm/memory.c
-index 5ec066f..deb679c 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2427,16 +2427,11 @@ void unmap_mapping_range(struct address_space *mapping,
- 		details.last_index = ULONG_MAX;
- 
- 
--	/*
--	 * DAX already holds i_mmap_lock to serialise file truncate vs
--	 * page fault and page fault vs page fault.
--	 */
--	if (!IS_DAX(mapping->host))
--		i_mmap_lock_write(mapping);
-+	/* DAX uses i_mmap_lock to serialise file truncate vs page fault */
-+	i_mmap_lock_write(mapping);
- 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
- 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
--	if (!IS_DAX(mapping->host))
--		i_mmap_unlock_write(mapping);
-+	i_mmap_unlock_write(mapping);
- }
- EXPORT_SYMBOL(unmap_mapping_range);
- 
+ 	spin_lock_irq(&mapping->tree_lock);
 -- 
-2.5.0
+2.1.0
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
