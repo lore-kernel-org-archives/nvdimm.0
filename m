@@ -1,15 +1,15 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Fri, 30 Oct 2015 14:55:33 +1100
-From: Dave Chinner <david@fromorbit.com>
+Date: Thu, 29 Oct 2015 16:49:53 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [RFC 00/11] DAX fsynx/msync support
-Message-ID: <20151030035533.GU19199@dastard>
+Message-ID: <20151029224953.GA17933@linux.intel.com>
 References: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>
 Cc: linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
@@ -30,58 +30,21 @@ On Thu, Oct 29, 2015 at 02:12:04PM -0600, Ross Zwisler wrote:
 > but I think that if we can get this reviewed and working it's a much better
 > solution than the "big hammer" approach that blindly flushes entire PMEM
 > namespaces [3].
-
-We need the "big hammer" regardless of fsync. If REQ_FLUSH and
-REQ_FUA don't do the right thing when it comes to ordering journal
-writes against other IO operations, then the filesystems are not
-crash safe. i.e. we need REQ_FLUSH/REQ_FUA to commit all outstanding
-changes back to stable storage, just like they do for existing
-storage....
-
+> 
 > [1] http://oss.sgi.com/archives/xfs/2015-10/msg00523.html
 > [2] http://marc.info/?l=linux-ext4&m=144550211312472&w=2
 > [3] https://lists.01.org/pipermail/linux-nvdimm/2015-October/002614.html
-> 
-> Ross Zwisler (11):
->   pmem: add wb_cache_pmem() to the PMEM API
->   mm: add pmd_mkclean()
->   pmem: enable REQ_FLUSH handling
->   dax: support dirty DAX entries in radix tree
->   mm: add follow_pte_pmd()
->   mm: add pgoff_mkclean()
->   mm: add find_get_entries_tag()
->   fs: add get_block() to struct inode_operations
 
-I don't think this is the right thing to do - it propagates the use
-of bufferheads as a mapping structure into places where we do not
-want bufferheads. We've recently added a similar block mapping
-interface to the export operations structure for PNFS and that uses
-a "struct iomap" which is far more suited to being an inode
-operation this.
+Hmm...I think I may need to isolate the fsync/msync flushing against races
+with truncate since we are calling into the filesystem directly with
+get_block().  Dave (Chinner), does this sound right?
 
-We have plans to move this to the inode operations for various
-reasons. e.g: multipage write, adding interfaces that support proper
-mapping of holes, etc:
+Also, one thing I forgot to mention is that these patches are built upon the
+first version of Dave Chinner's XFS patches and my ext2 patches that deal with
+the truncate races with DAX.  A snapshot of my development tree with these
+patches applied can be found here:
 
-https://www.redhat.com/archives/cluster-devel/2014-October/msg00167.html
-
-So after many years of saying no to moving getblocks to the inode
-operations it seems like the wrong thing to do now considering I
-want to convert all the DAX code to use iomaps while only 2/3
-filesystems are supported...
-
->   dax: add support for fsync/sync
-
-Why put the dax_flush_mapping() in do_writepages()? Why not call it
-directly from the filesystem ->fsync() implementations where a
-getblocks callback could also be provided?
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+https://github.com/01org/prd/tree/fsync_rfc
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
