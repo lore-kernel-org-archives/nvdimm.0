@@ -1,33 +1,45 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Fri, 30 Oct 2015 15:47:30 +0100
-From: Borislav Petkov <bp@alien8.de>
+Message-ID: <1446212931.20657.161.camel@hpe.com>
 Subject: Re: [PATCH v2 UPDATE-2 3/3] ACPI/APEI/EINJ: Allow memory error
  injection to NVDIMM
-Message-ID: <20151030144730.GG20952@pd.tnic>
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Fri, 30 Oct 2015 07:48:51 -0600
+In-Reply-To: <20151030094029.GC20952@pd.tnic>
 References: <1445894544-21382-1-git-send-email-toshi.kani@hpe.com>
- <20151030094029.GC20952@pd.tnic>
- <1446212931.20657.161.camel@hpe.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1446212931.20657.161.camel@hpe.com>
+	 <20151030094029.GC20952@pd.tnic>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hpe.com>, rjw@rjwysocki.net
-Cc: tony.luck@intel.com, akpm@linux-foundation.org, dan.j.williams@intel.com, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: tony.luck@intel.com, akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Oct 30, 2015 at 07:48:51AM -0600, Toshi Kani wrote:
-> Yes, the brackets are not necessary. I put them as self-explanatory of
-> the precedence. Shall I remove them, and send you an updated patch?
+On Fri, 2015-10-30 at 10:40 +0100, Borislav Petkov wrote:
+> On Mon, Oct 26, 2015 at 03:22:24PM -0600, Toshi Kani wrote:
+> > @@ -545,10 +545,15 @@ static int einj_error_inject(u32 type, u32 flags, u64
+> > param1, u64 param2,
+> >  	/*
+> >  	 * Disallow crazy address masks that give BIOS leeway to pick
+> >  	 * injection address almost anywhere. Insist on page or
+> > -	 * better granularity and that target address is normal RAM.
+> > +	 * better granularity and that target address is normal RAM or
+> > +	 * NVDIMM.
+> >  	 */
+> > -	pfn = PFN_DOWN(param1 & param2);
+> > -	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
+> > +	base_addr = param1 & param2;
+> > +	size = (~param2) + 1;
+> 
+> Hmm, I missed this last time: why are the brackets there?
+> 
+> AFAIK, bitwise NOT has a higher precedence than addition.
 
-Not necessary, I have my high hopes that Rafael can remove them when
-applying :-)
+Yes, the brackets are not necessary.  I put them as self-explanatory of the
+precedence.  Shall I remove them, and send you an updated patch?
 
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
+Thanks,
+-Toshi
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
