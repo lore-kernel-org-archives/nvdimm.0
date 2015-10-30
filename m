@@ -1,132 +1,112 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: what's in nvdimm.git for v4.4?
-Date: Tue, 20 Oct 2015 23:31:45 +0000
-Message-ID: <1445383903.6611.39.camel@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <1D4848EF1EE49E4CAB6EF9E943E7CF1C@intel.com>
-Content-Transfer-Encoding: base64
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: "axboe@fb.com" <axboe@fb.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "david@fromorbit.com" <david@fromorbit.com>, "jack@suse.cz" <jack@suse.cz>
+In-Reply-To: <20151030194300.GA22670@linux.intel.com>
+References: <1446149535-16200-1-git-send-email-ross.zwisler@linux.intel.com>
+	<CAPcyv4haGNytokPfgL3m-qOEw=BO4QF5dO3woLSYZDCRmL-YWg@mail.gmail.com>
+	<20151030194300.GA22670@linux.intel.com>
+Date: Fri, 30 Oct 2015 12:51:40 -0700
+Message-ID: <CAPcyv4jnEF2g+tUs+ZZxzmdgacWhU=KepKQvXLfFVHri=Pj+Jg@mail.gmail.com>
+Subject: Re: [RFC 00/11] DAX fsynx/msync support
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGVyZSBpcyBhIHN0YXR1cyBzdW1tYXJ5IG9mIHRoZSB0b3BpYy1icmFuY2hlcyBudmRpbW0uZ2l0
-IGlzIHRyYWNraW5nDQpmb3IgdjQuNC4gIFVubGVzcyBpbmRpY2F0ZWQgdGhlc2UgYnJhbmNoZXMg
-YXJlIG5vdCBwcmVzZW50IGluIC1uZXh0Lg0KUGxlYXNlIEFDSywgTkFLLCBvciBhc2sgZm9yIGEg
-cmUtcG9zdCBvZiBhbnkgb2YgdGhlIGJlbG93IHRvIGRpc3Bvc2l0aW9uDQppdCBmb3IgdGhlIG1l
-cmdlIHdpbmRvdy4NCg0KPT09DQpmb3ItNC40L2RheC1maXhlczoNCj09PQ0KDQogICAgICAgIENv
-cmUgREFYIGFuZCBYRlMgZml4ZXMgZm9yIERBWCBsb2NraW5nLiAgVGhleSBhcmUgY2FycmllZCBp
-bg0KICAgICAgICBudmRpbW0uZ2l0IGFzIGEgZGVwZW5kZW5jeSBvZiB0aGUgZm9yLTQuNC9kYXgt
-Z3VwIGJyYW5jaC4NCiAgICAgICAgICAgICAgICANCiAgICAgICAgRGFuIFdpbGxpYW1zICgxKToN
-CiAgICAgICAgICAgICAgcG1lbSwgZGF4OiBjbGVhbiB1cCBjbGVhcl9wbWVtKCkNCiAgICAgICAg
-DQogICAgICAgIERhdmUgQ2hpbm5lciAoNSk6DQogICAgICAgICAgICAgIHhmczogZml4IGlub2Rl
-IHNpemUgdXBkYXRlIG92ZXJmbG93IGluIHhmc19tYXBfZGlyZWN0KCkNCiAgICAgICAgICAgICAg
-eGZzOiBpbnRyb2R1Y2UgQk1BUElfWkVSTyBmb3IgYWxsb2NhdGluZyB6ZXJvZWQgZXh0ZW50cw0K
-ICAgICAgICAgICAgICB4ZnM6IERvbid0IHVzZSB1bndyaXR0ZW4gZXh0ZW50cyBmb3IgREFYDQog
-ICAgICAgICAgICAgIHhmczogREFYIGRvZXMgbm90IHVzZSBJTyBjb21wbGV0aW9uIGNhbGxiYWNr
-cw0KICAgICAgICAgICAgICB4ZnM6IGFkZCAtPnBmbl9ta3dyaXRlIHN1cHBvcnQgZm9yIERBWA0K
-ICAgICAgICANCiAgICAgICAgUm9zcyBad2lzbGVyICgyKToNCiAgICAgICAgICAgICAgZGF4OiBk
-YXhfcGZuX21rd3JpdGUoKSB0cnVuY2F0ZSByYWNlIGNoZWNrDQogICAgICAgICAgICAgIGV4dDI6
-IEFkZCBsb2NraW5nIGZvciBEQVggZmF1bHRzDQoNCj09PQ0KZm9yLTQuNC9udW1hOg0KPT09DQoN
-CiAgICAgICAgTWlub3IgYXBpIGNsZWFudXBzIHRoYXQgaGF2ZSBiZWVuIGFja2VkIGFuZCBwdWJs
-aXNoZWQgaW4gLW5leHQNCiAgICAgICAgZm9yIGEgZmV3IHdlZWtzLg0KDQogICAgICAgIERhbiBX
-aWxsaWFtcyAoNyk6DQogICAgICAgICAgICAgIHg4NiwgbW06IHF1aWV0IGFyY2hfYWRkX21lbW9y
-eSgpDQogICAgICAgICAgICAgIHBtZW06IGtpbGwgbWVtcmVtYXBfcG1lbSgpDQogICAgICAgICAg
-ICAgIGRldm1fbWVtdW5tYXA6IHVzZSBkZXZyZXNfcmVsZWFzZSgpDQogICAgICAgICAgICAgIGRl
-dm1fbWVtcmVtYXA6IGNvbnZlcnQgdG8gcmV0dXJuIEVSUl9QVFINCiAgICAgICAgICAgICAgZGV2
-bTogbWFrZSBhbGxvY2F0aW9ucyBudW1hIGF3YXJlIGJ5IGRlZmF1bHQNCiAgICAgICAgICAgICAg
-ZGV2bV9tZW1yZW1hcF9wYWdlczogdXNlIG51bWFfbWVtX2lkDQogICAgICAgICAgICAgIHBtZW0s
-IG1lbXJlbWFwOiBjb252ZXJ0IHRvIG51bWEgYXdhcmUgYWxsb2NhdGlvbnMNCiAgICAgICAgDQo9
-PT0NCmZvci00LjQvZGF4LWd1cDogZ2V0X3VzZXJfcGFnZXMoKSBzdXBwb3J0IGZvciBkYXggbWFw
-cGluZ3MNCmh0dHBzOi8vbGlzdHMuMDEub3JnL3BpcGVybWFpbC9saW51eC1udmRpbW0vMjAxNS1P
-Y3RvYmVyLzAwMjM4Ny5odG1sDQo9PT0NCg0KICAgICAgICBOZWVkcyBhY2tzIGZyb20gY29yZSAt
-bW0gZm9sa3MgcGFydGljdWxhcmx5IGZvcjoNCiAgICAgICAgICAgICAgICB4ODYsIG1tOiBpbnRy
-b2R1Y2Ugdm1lbV9hbHRtYXAgdG8gYXVnbWVudA0KICAgICAgICAgICAgICAgIHZtZW1tYXBfcG9w
-dWxhdGUoKQ0KICAgICAgICAgICAgICAgIG1tLCB4ODY6IGdldF91c2VyX3BhZ2VzKCkgZm9yIGRh
-eCBtYXBwaW5ncw0KICAgICAgICANCiAgICAgICAgRGFuIFdpbGxpYW1zICgyMik6DQogICAgICAg
-ICAgICAgIGJsb2NrOiBnZW5lcmljIHJlcXVlc3RfcXVldWUgcmVmZXJlbmNlIGNvdW50aW5nDQog
-ICAgICAgICAgICAgIGRheDogaW5jcmVhc2UgZ3JhbnVsYXJpdHkgb2YgZGF4X2NsZWFyX2Jsb2Nr
-cygpIG9wZXJhdGlvbnMNCiAgICAgICAgICAgICAgYmxvY2ssIGRheDogZml4IGxpZmV0aW1lIG9m
-IGluLWtlcm5lbCBkYXggbWFwcGluZ3Mgd2l0aCBkYXhfbWFwX2F0b21pYygpDQogICAgICAgICAg
-ICAgIG1tOiBpbnRyb2R1Y2UgX19nZXRfZGV2X3BhZ2VtYXAoKQ0KICAgICAgICAgICAgICB4ODYs
-IG1tOiBpbnRyb2R1Y2Ugdm1lbV9hbHRtYXAgdG8gYXVnbWVudCB2bWVtbWFwX3BvcHVsYXRlKCkN
-CiAgICAgICAgICAgICAgbGlibnZkaW1tLCBwZm4sIHBtZW06IGFsbG9jYXRlIG1lbW1hcCBhcnJh
-eSBpbiBwZXJzaXN0ZW50IG1lbW9yeQ0KICAgICAgICAgICAgICBhdnIzMjogY29udmVydCB0byBh
-c20tZ2VuZXJpYy9tZW1vcnlfbW9kZWwuaA0KICAgICAgICAgICAgICBodWdldGxiOiBmaXggY29t
-cGlsZSBlcnJvciBvbiB0aWxlDQogICAgICAgICAgICAgIGZydjogZml4IGNvbXBpbGVyIHdhcm5p
-bmcgZnJvbSBkZWZpbml0aW9uIG9mIF9fcG1kKCkNCiAgICAgICAgICAgICAgdW06IGtpbGwgcGZu
-X3QNCiAgICAgICAgICAgICAga3ZtOiByZW5hbWUgcGZuX3QgdG8ga3ZtX3Bmbl90DQogICAgICAg
-ICAgICAgIG1pcHM6IGZpeCBQQUdFX01BU0sgZGVmaW5pdGlvbg0KICAgICAgICAgICAgICBtbSwg
-ZGF4LCBwbWVtOiBpbnRyb2R1Y2UgcGZuX3QNCiAgICAgICAgICAgICAgbW0sIGRheCwgZ3B1OiBj
-b252ZXJ0IHZtX2luc2VydF9taXhlZCB0byBwZm5fdCwgaW50cm9kdWNlIF9QQUdFX0RFVk1BUA0K
-ICAgICAgICAgICAgICBtbSwgZGF4OiBjb252ZXJ0IHZtZl9pbnNlcnRfcGZuX3BtZCgpIHRvIHBm
-bl90DQogICAgICAgICAgICAgIGxpc3Q6IGludHJvZHVjZSBsaXN0X2RlbF9wb2lzb24oKQ0KICAg
-ICAgICAgICAgICBtbSwgZGF4LCBwbWVtOiBpbnRyb2R1Y2Uge2dldHxwdXR9X2Rldl9wYWdlbWFw
-KCkgZm9yIGRheC1ndXANCiAgICAgICAgICAgICAgYmxvY2s6IG5vdGlmeSBxdWV1ZSBkZWF0aCBj
-b25maXJtYXRpb24NCiAgICAgICAgICAgICAgbW0sIHBtZW06IGRldm1fbWVtdW5tYXBfcGFnZXMo
-KSwgdHJ1bmNhdGUgYW5kIHVubWFwIFpPTkVfREVWSUNFIHBhZ2VzDQogICAgICAgICAgICAgIG1t
-LCB4ODY6IGdldF91c2VyX3BhZ2VzKCkgZm9yIGRheCBtYXBwaW5ncw0KICAgICAgICAgICAgICBi
-bG9jazogaW50cm9kdWNlIGZpbGVfYmRfaW5vZGUoKQ0KICAgICAgICAgICAgICBibG9jazogZW5h
-YmxlIGRheCBmb3IgcmF3IGJsb2NrIGRldmljZXMNCg0KPT09DQpmb3ItNC40L2RheC1jb3JlZHVt
-cA0KPT09DQoNCiAgICAgICAgUmVjZW50bHkgYWNrZWQgYnkgSmVmZiB3aWxsIGFwcGVhciBpbiAt
-bmV4dCBzaG9ydGx5Lg0KICAgICAgICANCiAgICAgICAgUm9zcyBad2lzbGVyICgyKToNCiAgICAg
-ICAgICAgICAgY29yZWR1bXA6IGFkZCBEQVggZmlsdGVyaW5nIGZvciBFTEYgY29yZWR1bXBzDQog
-ICAgICAgICAgICAgIGNvcmVkdW1wOiBhZGQgREFYIGZpbHRlcmluZyBmb3IgRkRQSUMgRUxGIGNv
-cmVkdW1wcw0KDQo9PT0NCmZvci00LjQvbWVtcmVtYXANCmh0dHBzOi8vbHduLm5ldC9BcnRpY2xl
-cy82NTM1ODUvDQo9PT0NCg0KICAgICAgICBTb21lIHBhdGNoZXMgb3V0IG9mIHRoaXMgc2VyaWVz
-IGhhdmUgc3RhcnRlZCB0byBsZWFrIGludG8NCiAgICAgICAgbWFpbnRhaW5lciB0cmVlcywgYnV0
-IHRoZSB1cHRha2UgaXMgZmFpcmx5IHNsb3cuICBJIG1heSBqdXN0DQogICAgICAgIHNlbmQgYSBi
-cmFuY2ggdG8gTGludXMgd2l0aCB0aGUgc3RyYWdnbGVycyB0b3dhcmRzIHRoZSBlbmQgb2YNCiAg
-ICAgICAgdGhlIG1lcmdlIHdpbmRvdy4NCg0KICAgICAgICBEYW4gV2lsbGlhbXMgKDIxKToNCiAg
-ICAgICAgICAgICAgeDg2OiBpbnRyb2R1Y2UgYXJjaF9tZW1yZW1hcCgpDQogICAgICAgICAgICAg
-IGFybTogaW50cm9kdWNlIGFyY2hfbWVtcmVtYXAoKQ0KICAgICAgICAgICAgICBpYTY0OiBpbnRy
-b2R1Y2UgYXJjaF9tZW1yZW1hcCgpDQogICAgICAgICAgICAgIHNoOiBpbnRyb2R1Y2UgYXJjaF9t
-ZW1yZW1hcCgpDQogICAgICAgICAgICAgIG02OGs6IGludHJvZHVjZSBhcmNoX21lbXJlbWFwKCkN
-CiAgICAgICAgICAgICAgYXJtOiBzd2l0Y2ggZnJvbSBpb3JlbWFwX2NhY2hlIHRvIG1lbXJlbWFw
-DQogICAgICAgICAgICAgIHg4Njogc3dpdGNoIGZyb20gaW9yZW1hcF9jYWNoZSB0byBtZW1yZW1h
-cA0KICAgICAgICAgICAgICBnbWE1MDA6IHN3aXRjaCBmcm9tIGFjcGlfb3NfaW9yZW1hcCB0byBt
-ZW1yZW1hcA0KICAgICAgICAgICAgICBpOTE1OiBzd2l0Y2ggZnJvbSBhY3BpX29zX2lvcmVtYXAg
-dG8gbWVtcmVtYXANCiAgICAgICAgICAgICAgZHJtL3Ztd2dmeDogc3dpdGNoIGZyb20gaW9yZW1h
-cF9jYWNoZSB0byBtZW1yZW1hcA0KICAgICAgICAgICAgICBhY3BpOiBzd2l0Y2ggZnJvbSBpb3Jl
-bWFwX2NhY2hlIHRvIG1lbXJlbWFwDQogICAgICAgICAgICAgIHNvdW5kLCBza3lsYWtlOiBzd2l0
-Y2ggZnJvbSBpb3JlbWFwX2NhY2hlIHRvIG1lbXJlbWFwDQogICAgICAgICAgICAgIG1lbWNvbnNv
-bGU6IGZpeCBfX2lvbWVtIG1pc2hhbmRsaW5nLCBzd2l0Y2ggdG8gbWVtcmVtYXANCiAgICAgICAg
-ICAgICAgaW50ZWwtaW9tbXU6IHN3aXRjaCBmcm9tIGlvcmVtYXBfY2FjaGUgdG8gbWVtcmVtYXAN
-CiAgICAgICAgICAgICAgcHhhMnh4LWZsYXNoOiBzd2l0Y2ggZnJvbSBpb3JlbWFwX2NhY2hlIHRv
-IG1lbXJlbWFwDQogICAgICAgICAgICAgIHNmaTogc3dpdGNoIGZyb20gaW9yZW1hcF9jYWNoZSB0
-byBtZW1yZW1hcA0KICAgICAgICAgICAgICBmYmRldjogc3dpdGNoIGZyb20gaW9yZW1hcF93dCB0
-byBtZW1yZW1hcA0KICAgICAgICAgICAgICBhcmNoOiBraWxsIGlvcmVtYXBfY2FjaGVkKCkNCiAg
-ICAgICAgICAgICAgYXJjaDoga2lsbCBpb3JlbWFwX2Z1bGxjYWNoZSgpDQogICAgICAgICAgICAg
-IGFyY2g6IHJlbW92ZSBpb3JlbWFwX2NhY2hlLCByZXBsYWNlIHdpdGggYXJjaF9tZW1yZW1hcA0K
-ICAgICAgICAgICAgICBhcmNoOiByZW1vdmUgaW9yZW1hcF93dCwgb3B0aW9uYWxseSByZXBsYWNl
-IHdpdGgNCiAgICAgICAgYXJjaF9tZW1yZW1hcA0KDQo9PT0NCmZvci00LjQvYmxrLWludGVncml0
-eToNCj09PQ0KICAgICAgICANCiAgICAgICAgSmVucz8gIEkndmUgZm9sZGVkIG15IGZpeGVzIHdp
-dGggTWFydGluJ3MgbGF0ZXN0IGFuZA0KICAgICAgICBibG9jay5naXQvZm9yLTQuNC9kcml2ZXJz
-Lg0KICAgICAgICANCiAgICAgICAgRGFuIFdpbGxpYW1zICg3KToNCiAgICAgICAgICAgICAgbWQs
-IGRtLCBzY3NpLCBudm1lLCBsaWJudmRpbW06IGRyb3AgYmxrX2ludGVncml0eV91bnJlZ2lzdGVy
-KCkgYXQgc2h1dGRvd24NCiAgICAgICAgICAgICAgbWQ6IHN1c3BlbmQgaS9vIGR1cmluZyBydW50
-aW1lIGJsa19pbnRlZ3JpdHlfdW5yZWdpc3Rlcg0KICAgICAgICAgICAgICBudm1lOiBzdXNwZW5k
-IGkvbyBkdXJpbmcgcnVudGltZSBibGtfaW50ZWdyaXR5X3VucmVnaXN0ZXINCiAgICAgICAgICAg
-ICAgYmxvY2s6IGdlbmVyaWMgcmVxdWVzdF9xdWV1ZSByZWZlcmVuY2UgY291bnRpbmcNCiAgICAg
-ICAgICAgICAgYmxvY2s6IG1vdmUgYmxrX2ludGVncml0eSB0byByZXF1ZXN0X3F1ZXVlDQogICAg
-ICAgICAgICAgIGJsb2NrOiBibGtfZmx1c2hfaW50ZWdyaXR5KCkgZm9yIGJpby1iYXNlZCBkcml2
-ZXJzDQogICAgICAgICAgICAgIGJsb2NrLCBsaWJudmRpbW0sIG52bWU6IHByb3ZpZGUgYSBidWls
-dC1pbiBibGtfaW50ZWdyaXR5IG5vcCBwcm9maWxlDQogICAgICAgIA0KICAgICAgICBNYXJ0aW4g
-Sy4gUGV0ZXJzZW4gKDUpOg0KICAgICAgICAgICAgICBibG9jazogTW92ZSBpbnRlZ3JpdHkga29i
-amVjdCB0byBzdHJ1Y3QgZ2VuZGlzaw0KICAgICAgICAgICAgICBibG9jazogQ29uc29saWRhdGUg
-c3RhdGljIGludGVncml0eSBwcm9maWxlIHByb3BlcnRpZXMNCiAgICAgICAgICAgICAgYmxvY2s6
-IFJlZHVjZSB0aGUgc2l6ZSBvZiBzdHJ1Y3QgYmxrX2ludGVncml0eQ0KICAgICAgICAgICAgICBi
-bG9jazogRXhwb3J0IGludGVncml0eSBkYXRhIGludGVydmFsIHNpemUgaW4gc3lzZnMNCiAgICAg
-ICAgICAgICAgYmxvY2s6IElubGluZSBibGtfaW50ZWdyaXR5IGluIHN0cnVjdCBnZW5kaXNrDQog
-ICAgICAgIA0KPT09DQpmb3ItNC40L2hvdHBsdWcNCj09PQ0KDQogICAgICAgIENoYW5nZXMgcmVx
-dWVzdGVkIGZvciB2MywgYnV0IG9uY2UgdGhvc2UgYXJlIGFkZHJlc3NlZCBqdXN0IG5lZWQNCiAg
-ICAgICAgYW4gYWNrIGZyb20gUmFmYWVsLg0KDQogICAgICAgIFZpc2hhbCBWZXJtYSAoMik6DQog
-ICAgICAgICAgICAgIG5maXQ6IGluIGFjcGlfbmZpdF9pbml0LCBicmVhayBvbiBhIDAtbGVuZ3Ro
-IHRhYmxlDQogICAgICAgICAgICAgIGFjcGk6IG5maXQ6IEFkZCBzdXBwb3J0IGZvciBob3QtYWRk
-DQoNCj09PQ0KZm9yLTQuNC9kb2N1bWVudGF0aW9uOg0KPT09DQoNCiAgICAgICAgSW4gLW5leHQu
-Li4NCiAgICAgICAgDQogICAgICAgIEtvbnJhZCBSemVzenV0ZWsgV2lsayAoMSk6DQogICAgICAg
-ICAgICAgIGxpYm52ZGltbTogZG9jdW1lbnRhdGlvbiBjbGFyaWZpY2F0aW9ucw0KICAgICAgICAN
-Cg0K
+On Fri, Oct 30, 2015 at 12:43 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Fri, Oct 30, 2015 at 11:34:07AM -0700, Dan Williams wrote:
+>> On Thu, Oct 29, 2015 at 1:12 PM, Ross Zwisler
+>> <ross.zwisler@linux.intel.com> wrote:
+>> > This patch series adds support for fsync/msync to DAX.
+>> >
+>> > Patches 1 through 8 add various utilities that the DAX code will eventually
+>> > need, and the DAX code itself is added by patch 9.  Patches 10 and 11 are
+>> > filesystem changes that are needed after the DAX code is added, but these
+>> > patches may change slightly as the filesystem fault handling for DAX is
+>> > being modified ([1] and [2]).
+>> >
+>> > I've marked this series as RFC because I'm still testing, but I wanted to
+>> > get this out there so people would see the direction I was going and
+>> > hopefully comment on any big red flags sooner rather than later.
+>> >
+>> > I realize that we are getting pretty dang close to the v4.4 merge window,
+>> > but I think that if we can get this reviewed and working it's a much better
+>> > solution than the "big hammer" approach that blindly flushes entire PMEM
+>> > namespaces [3].
+>> >
+>> > [1] http://oss.sgi.com/archives/xfs/2015-10/msg00523.html
+>> > [2] http://marc.info/?l=linux-ext4&m=144550211312472&w=2
+>> > [3] https://lists.01.org/pipermail/linux-nvdimm/2015-October/002614.html
+>> >
+>> > Ross Zwisler (11):
+>> >   pmem: add wb_cache_pmem() to the PMEM API
+>> >   mm: add pmd_mkclean()
+>> >   pmem: enable REQ_FLUSH handling
+>> >   dax: support dirty DAX entries in radix tree
+>> >   mm: add follow_pte_pmd()
+>> >   mm: add pgoff_mkclean()
+>> >   mm: add find_get_entries_tag()
+>> >   fs: add get_block() to struct inode_operations
+>> >   dax: add support for fsync/sync
+>> >   xfs, ext2: call dax_pfn_mkwrite() on write fault
+>> >   ext4: add ext4_dax_pfn_mkwrite()
+>>
+>> This is great to have when the flush-the-world solution ends up
+>> killing performance.  However, there are a couple mitigating options
+>> for workloads that dirty small amounts and flush often that we need to
+>> collect data on:
+>>
+>> 1/ Using cache management and pcommit from userspace to skip calls to
+>> msync / fsync.  Although, this does not eliminate all calls to
+>> blkdev_issue_flush as the fs may invoke it for other reasons.  I
+>> suspect turning on REQ_FUA support eliminates a number of those
+>> invocations, and pmem already satisfies REQ_FUA semantics by default.
+>
+> Sure, I'll turn on REQ_FUA in addition to REQ_FLUSH - I agree that PMEM
+> already handles the requirements of REQ_FUA, but I didn't realize that it
+> might reduce the number of REQ_FLUSH bios we receive.
+
+I'll let Dave chime in, but a lot of the flush requirements come from
+guaranteeing the state of the metadata, if metadata updates can be
+done with REQ_FUA then there is no subsequent need to flush.
+
+>> 2/ Turn off DAX and use the page cache.  As Dave mentions [1] we
+>> should enable this control on a per-inode basis.  I'm folding in this
+>> capability as a blkdev_ioctl for the next version of the raw block DAX
+>> support patch.
+>
+> Umm...I think you just said "the way to avoid this delay is to just not use
+> DAX".  :)  I don't think this is where we want to go - we are trying to make
+> DAX better, not abandon it.
+
+That's a bit of an exaggeration.  Avoiding DAX where it is not
+necessary is not "abandoning DAX", it's using the right tool for the
+job.  Page cache is fine for many cases.
+
+>> It's entirely possible these mitigations won't eliminate the need for
+>> a mechanism like this, but I think we have a bit more work to do to
+>> find out how bad this is in practice as well as the crossover point
+>> where walking the radix becomes prohibitive.
+>
+> I'm guessing a single run through xfstests will be enough to convince you that
+> the "big hammer" approach is untenable.  Tests that used to take a second now
+> take several minutes, at least in my VM testing environment...  And that's
+> only using a tiny 4GiB namespace.
+>
+> Yes, we can distribute the cost over multiple CPUs, but that just distributes
+> the problem and doesn't reduce the overall work that needs to be done.
+> Ultimately I think that looping through multiple GiB or even TiB of cache
+> lines and blindly writing them back individually on every REQ_FLUSH is going
+> to be a deal breaker.
+
+Right, part of the problem is that the driver doesn't know which
+blocks are actively DAX mapped.  I think we can incrementally fix that
+without requiring DAX specific fsync/msync handling code for each fs
+that supports DAX.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
