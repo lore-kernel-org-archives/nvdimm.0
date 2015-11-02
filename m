@@ -1,76 +1,67 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH 3/8] mm, dax: fix DAX deadlocks (COW fault)
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v3 01/15] pmem, dax: clean up clear_pmem()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 17 Nov 2015 12:16:09 -0800
-Message-ID: <20151117201608.15053.40161.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
+Date: Sun, 01 Nov 2015 23:29:47 -0500
+Message-ID: <20151102042947.6610.75116.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Boaz Harrosh <boaz@plexistor.com>, Dave Chinner <dchinner@redhat.com>, stable@vger.kernel.org, linux-block@vger.kernel.org, Yigal Korman <yigal@plexistor.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, willy@linux.intel.com, ross.zwisler@linux.intel.com, akpm@linux-foundation.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: axboe@fb.com
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, ross.zwisler@linux.intel.com, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Yigal Korman <yigal@plexistor.com>
+Both, __dax_pmd_fault, and clear_pmem() were taking special steps to
+clear memory a page at a time to take advantage of non-temporal
+clear_page() implementations.  However, x86_64 does not use
+non-temporal instructions for clear_page(), and arch_clear_pmem() was
+always incurring the cost of __arch_wb_cache_pmem().
 
-DAX handling of COW faults has wrong locking sequence:
-	dax_fault does i_mmap_lock_read
-	do_cow_fault does i_mmap_unlock_write
+Clean up the assumption that doing clear_pmem() a page at a time is more
+performant.
 
-Ross's commit[1] missed a fix[2] that Kirill added to Matthew's
-commit[3].
-
-Original COW locking logic was introduced by Matthew here[4].
-
-This should be applied to v4.3 as well.
-
-[1] 0f90cc6609c7 mm, dax: fix DAX deadlocks
-[2] 52a2b53ffde6 mm, dax: use i_mmap_unlock_write() in do_cow_fault()
-[3] 843172978bb9 dax: fix race between simultaneous faults
-[4] 2e4cdab0584f mm: allow page fault handlers to perform the COW
-
-Cc: <stable@vger.kernel.org>
-Cc: Boaz Harrosh <boaz@plexistor.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Acked-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Yigal Korman <yigal@plexistor.com>
+Reported-by: Dave Hansen <dave.hansen@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- mm/memory.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/include/asm/pmem.h |    7 +------
+ fs/dax.c                    |    4 +---
+ 2 files changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/mm/memory.c b/mm/memory.c
-index deb679c31f2a..c387430f06c3 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3015,9 +3015,9 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		} else {
- 			/*
- 			 * The fault handler has no page to lock, so it holds
--			 * i_mmap_lock for write to protect against truncate.
-+			 * i_mmap_lock for read to protect against truncate.
- 			 */
--			i_mmap_unlock_write(vma->vm_file->f_mapping);
-+			i_mmap_unlock_read(vma->vm_file->f_mapping);
- 		}
- 		goto uncharge_out;
- 	}
-@@ -3031,9 +3031,9 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 	} else {
- 		/*
- 		 * The fault handler has no page to lock, so it holds
--		 * i_mmap_lock for write to protect against truncate.
-+		 * i_mmap_lock for read to protect against truncate.
- 		 */
--		i_mmap_unlock_write(vma->vm_file->f_mapping);
-+		i_mmap_unlock_read(vma->vm_file->f_mapping);
- 	}
- 	return ret;
- uncharge_out:
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index d8ce3ec816ab..1544fabcd7f9 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -132,12 +132,7 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
+ {
+ 	void *vaddr = (void __force *)addr;
+ 
+-	/* TODO: implement the zeroing via non-temporal writes */
+-	if (size == PAGE_SIZE && ((unsigned long)vaddr & ~PAGE_MASK) == 0)
+-		clear_page(vaddr);
+-	else
+-		memset(vaddr, 0, size);
+-
++	memset(vaddr, 0, size);
+ 	__arch_wb_cache_pmem(vaddr, size);
+ }
+ 
+diff --git a/fs/dax.c b/fs/dax.c
+index a86d3cc2b389..5dc33d788d50 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -623,9 +623,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 			goto fallback;
+ 
+ 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+-			int i;
+-			for (i = 0; i < PTRS_PER_PMD; i++)
+-				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
++			clear_pmem(kaddr, HPAGE_SIZE);
+ 			wmb_pmem();
+ 			count_vm_event(PGMAJFAULT);
+ 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
 
