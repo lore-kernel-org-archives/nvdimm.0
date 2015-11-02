@@ -1,245 +1,233 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v2 3/3] nvdimm: Add IOCTL pass thru functions
-Date: Mon, 16 Nov 2015 11:38:19 -0700
-Message-Id: <e847390b826b48fcc87b2e81a4ff84ae5381a92d.1447698598.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1447698598.git.jerry.hoemann@hpe.com>
-References: <cover.1447698598.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1447698598.git.jerry.hoemann@hpe.com>
-References: <cover.1447698598.git.jerry.hoemann@hpe.com>
+Subject: [PATCH v3 12/15] block: enable dax for raw block devices
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 01 Nov 2015 23:30:47 -0500
+Message-ID: <20151102043047.6610.59544.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+To: axboe@fb.com
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de, Jeff Moyer <jmoyer@redhat.com>, Jan Kara <jack@suse.com>, ross.zwisler@linux.intel.com, kbuild test robot <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add functions acpi_nfit_ctl_passthru and __nd_ioctl_passthru which allow
-kernel to call a nvdimm's _DSM as a passthru without the marshaling code
-of the nd_cmd_desc.
+If an application wants exclusive access to all of the persistent memory
+provided by an NVDIMM namespace it can use this raw-block-dax facility
+to forgo establishing a filesystem.  This capability is targeted
+primarily to hypervisors wanting to provision persistent memory for
+guests.  It can be disabled / enabled dynamically via the new BLKDAXSET
+ioctl.
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Reviewed-by: Jan Kara <jack@suse.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c  | 93 +++++++++++++++++++++++++++++++++++++++++++++++++++-
- drivers/nvdimm/bus.c | 89 ++++++++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 180 insertions(+), 2 deletions(-)
+ block/ioctl.c           |   43 ++++++++++++++++++++++
+ fs/block_dev.c          |   90 ++++++++++++++++++++++++++++++++++++++++++++++-
+ include/linux/fs.h      |    3 ++
+ include/uapi/linux/fs.h |    2 +
+ 4 files changed, 137 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index c1b8d03..88844af 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -62,7 +62,7 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
- 	return to_acpi_device(acpi_desc->dev);
+diff --git a/block/ioctl.c b/block/ioctl.c
+index 8061eba42887..205d57612fbd 100644
+--- a/block/ioctl.c
++++ b/block/ioctl.c
+@@ -295,6 +295,35 @@ static inline int is_unrecognized_ioctl(int ret)
+ 		ret == -ENOIOCTLCMD;
  }
  
--static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
-+static int acpi_nfit_ctl_intel(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len)
- {
-@@ -190,6 +190,97 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 	return rc;
- }
- 
-+
-+static int acpi_nfit_ctl_passthru(struct nvdimm_bus_descriptor *nd_desc,
-+		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
-+		unsigned int buf_len)
++#ifdef CONFIG_FS_DAX
++static int blkdev_set_dax(struct block_device *bdev, int n)
 +{
-+	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
-+	union acpi_object in_obj, in_buf, *out_obj;
-+	struct device *dev = acpi_desc->dev;
-+	const char *dimm_name;
-+	acpi_handle handle;
-+	const u8 *uuid;
++	struct gendisk *disk = bdev->bd_disk;
 +	int rc = 0;
-+	__u64 rev = 0, func = 0;
 +
-+	struct nd_passthru_pkg *pkg = buf;
++	if (n)
++		n = S_DAX;
 +
-+	if (nvdimm) {
-+		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+		struct acpi_device *adev = nfit_mem->adev;
++	if (n && !disk->fops->direct_access)
++		return -ENOTTY;
 +
-+		if (!adev)
-+			return -ENOTTY;
-+		dimm_name = nvdimm_name(nvdimm);
-+		handle = adev->handle;
-+	} else {
-+		struct acpi_device *adev = to_acpi_dev(acpi_desc);
-+
-+		handle = adev->handle;
-+		dimm_name = "bus";
-+	}
-+	uuid = pkg->h.dsm_uuid;
-+	rev  = pkg->h.dsm_rev;
-+	func = pkg->h.dsm_fun_idx;
-+
-+	in_obj.type = ACPI_TYPE_PACKAGE;
-+	in_obj.package.count = 1;
-+	in_obj.package.elements = &in_buf;
-+	in_buf.type = ACPI_TYPE_BUFFER;
-+	in_buf.buffer.pointer = (void *) &pkg->buf;
-+
-+	in_buf.buffer.length = pkg->h.dsm_in;
-+
-+	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG))
-+		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
-+			in_buf.buffer.pointer,
-+			min_t(u32, 256, in_buf.buffer.length), true);
-+
-+	out_obj = acpi_evaluate_dsm(handle, uuid, rev, func, &in_obj);
-+	if (!out_obj) {
-+		dev_dbg(dev, "%s:%s _DSM failed idx: %llu\n", __func__,
-+				dimm_name, func);
-+		return -EINVAL;
-+	}
-+
-+	if (out_obj->package.type != ACPI_TYPE_BUFFER) {
-+		dev_dbg(dev, "%s:%s unexpected object type: %d type: %d\n",
-+				__func__, dimm_name, cmd, out_obj->type);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG))
-+		print_hex_dump_debug("nvdimm out ", DUMP_PREFIX_OFFSET, 4, 4,
-+			out_obj->buffer.pointer,
-+			min_t(u32, 256, out_obj->buffer.length), true);
-+
-+	pkg->h.dsm_size = out_obj->buffer.length;
-+	memcpy(pkg->buf + pkg->h.dsm_in,
-+			out_obj->buffer.pointer,
-+			min(pkg->h.dsm_size, pkg->h.dsm_out));
-+
-+
-+ out:
-+	ACPI_FREE(out_obj);
-+
-+	return rc;
-+}
-+
-+static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
-+		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
-+		unsigned int len)
-+{
-+	switch (cmd) {
-+	case ND_CMD_PASSTHRU:
-+		return acpi_nfit_ctl_passthru(nd_desc, nvdimm, cmd, buf, len);
-+	default:
-+		return acpi_nfit_ctl_intel(nd_desc, nvdimm, cmd, buf, len);
-+	}
-+}
-+
-+
- static const char *spa_type_name(u16 type)
- {
- 	static const char *to_name[] = {
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 1c81203..ca7f89c 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -479,7 +479,7 @@ static int nd_cmd_clear_to_send(struct nvdimm *nvdimm, unsigned int cmd)
- 	return 0;
- }
- 
--static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
-+static int __nd_ioctl_intel(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		int read_only, unsigned int ioctl_cmd, unsigned long arg)
- {
- 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
-@@ -599,6 +599,93 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 	return rc;
- }
- 
-+
-+static int __nd_ioctl_passthru(struct nvdimm_bus *nvdimm_bus,
-+		struct nvdimm *nvdimm, int read_only, unsigned
-+		int ioctl_cmd, unsigned long arg)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
-+	size_t buf_len = 0, in_len = 0, out_len = 0;
-+	unsigned int cmd = _IOC_NR(ioctl_cmd);
-+	void __user *p = (void __user *) arg;
-+	struct device *dev = &nvdimm_bus->dev;
-+	const char *dimm_name = "";
-+	void *buf = NULL;
-+	int i, rc;
-+	struct nd_passthru_pkg pkg;
-+
-+	if (nvdimm)
-+		dimm_name = dev_name(&nvdimm->dev);
++	mutex_lock(&bdev->bd_inode->i_mutex);
++	if (bdev->bd_map_count == 0)
++		inode_set_flags(bdev->bd_inode, n, S_DAX);
 +	else
-+		dimm_name = "bus";
-+
-+	if (copy_from_user(&pkg, p, sizeof(pkg))) {
-+		rc = -EFAULT;
-+		goto out;
-+	}
-+
-+	/* Caller must tell us size of input to _DSM. */
-+	/* This may be bigger that the fixed portion of the pakcage */
-+	in_len  = pkg.h.dsm_in;
-+	out_len = pkg.h.dsm_out;
-+	buf_len = sizeof(pkg.h) + in_len + out_len;
-+
-+	dev_dbg(dev, "%s:%s rev: %llu, idx: %llu, in: %zu, out: %zu, len %zu\n",
-+		__func__, dimm_name,
-+		pkg.h.dsm_rev, pkg.h.dsm_fun_idx,
-+		in_len, out_len, buf_len);
-+
-+	for (i = 0; i < ARRAY_SIZE(pkg.h.reserved); i++)
-+		if (pkg.h.reserved[i])
-+			return -EINVAL;
-+
-+	if (buf_len > ND_IOCTL_MAX_BUFLEN) {
-+		dev_dbg(dev, "%s:%s cmd: %d, idx: %llu buf_len: %zu > %d\n",
-+			__func__, dimm_name, cmd, pkg.h.dsm_fun_idx,
-+			buf_len, ND_IOCTL_MAX_BUFLEN);
-+		return -EINVAL;
-+	}
-+
-+	buf = vmalloc(buf_len);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	if (copy_from_user(buf, p, buf_len)) {
-+		rc = -EFAULT;
-+		goto out;
-+	}
-+
-+	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	rc = nd_cmd_clear_to_send(nvdimm, cmd);
-+	if (rc)
-+		goto out_unlock;
-+
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len);
-+	if (rc < 0)
-+		goto out_unlock;
-+	if (copy_to_user(p, buf, buf_len))
-+		rc = -EFAULT;
-+ out_unlock:
-+	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+ out:
-+	vfree(buf);
++		rc = -EBUSY;
++	mutex_unlock(&bdev->bd_inode->i_mutex);
 +	return rc;
 +}
-+
-+static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
-+		int ro, unsigned int ioctl_cmd, unsigned long arg)
-+
++#else
++static int blkdev_set_dax(struct block_device *bdev, int n)
 +{
-+	unsigned int cmd = _IOC_NR(ioctl_cmd);
++	if (n)
++		return -ENOTTY;
++	return 0;
++}
++#endif
 +
-+	switch (cmd) {
-+	case ND_CMD_PASSTHRU:
-+		return __nd_ioctl_passthru(nvdimm_bus, nvdimm, ro, ioctl_cmd, arg);
-+	default:
-+		return __nd_ioctl_intel(nvdimm_bus, nvdimm, ro, ioctl_cmd, arg);
-+	}
+ /*
+  * always keep this in sync with compat_blkdev_ioctl()
+  */
+@@ -449,6 +478,20 @@ int blkdev_ioctl(struct block_device *bdev, fmode_t mode, unsigned cmd,
+ 	case BLKTRACETEARDOWN:
+ 		ret = blk_trace_ioctl(bdev, cmd, (char __user *) arg);
+ 		break;
++	case BLKDAXSET:
++		if (!capable(CAP_SYS_ADMIN))
++			return -EACCES;
++
++		if (get_user(n, (int __user *)(arg)))
++			return -EFAULT;
++		n = !!n;
++		if (n == !!(bdev->bd_inode->i_flags & S_DAX))
++			return 0;
++
++		return blkdev_set_dax(bdev, n);
++	case BLKDAXGET:
++		return put_int(arg, !!(bdev->bd_inode->i_flags & S_DAX));
++		break;
+ 	default:
+ 		ret = __blkdev_driver_ioctl(bdev, mode, cmd, arg);
+ 	}
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 29cd1eb0765d..13ce6d0ff7f6 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -1687,13 +1687,101 @@ static const struct address_space_operations def_blk_aops = {
+ 	.is_dirty_writeback = buffer_check_dirty_writeback,
+ };
+ 
++#ifdef CONFIG_FS_DAX
++/*
++ * In the raw block case we do not need to contend with truncation nor
++ * unwritten file extents.  Without those concerns there is no need for
++ * additional locking beyond the mmap_sem context that these routines
++ * are already executing under.
++ *
++ * Note, there is no protection if the block device is dynamically
++ * resized (partition grow/shrink) during a fault. A stable block device
++ * size is already not enforced in the blkdev_direct_IO path.
++ *
++ * For DAX, it is the responsibility of the block device driver to
++ * ensure the whole-disk device size is stable while requests are in
++ * flight.
++ *
++ * Finally, unlike the filemap_page_mkwrite() case there is no
++ * filesystem superblock to sync against freezing.  We still include a
++ * pfn_mkwrite callback for dax drivers to receive write fault
++ * notifications.
++ */
++static int blkdev_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++{
++	return __dax_fault(vma, vmf, blkdev_get_block, NULL);
 +}
 +
- static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	long id = (long) file->private_data;
--- 
-1.7.11.3
++static int blkdev_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
++		pmd_t *pmd, unsigned int flags)
++{
++	return __dax_pmd_fault(vma, addr, pmd, flags, blkdev_get_block, NULL);
++}
++
++static void blkdev_vm_open(struct vm_area_struct *vma)
++{
++	struct inode *bd_inode = bdev_file_inode(vma->vm_file);
++	struct block_device *bdev = I_BDEV(bd_inode);
++
++	mutex_lock(&bd_inode->i_mutex);
++	bdev->bd_map_count++;
++	mutex_unlock(&bd_inode->i_mutex);
++}
++
++static void blkdev_vm_close(struct vm_area_struct *vma)
++{
++	struct inode *bd_inode = bdev_file_inode(vma->vm_file);
++	struct block_device *bdev = I_BDEV(bd_inode);
++
++	mutex_lock(&bd_inode->i_mutex);
++	bdev->bd_map_count--;
++	mutex_unlock(&bd_inode->i_mutex);
++}
++
++static const struct vm_operations_struct blkdev_dax_vm_ops = {
++	.open		= blkdev_vm_open,
++	.close		= blkdev_vm_close,
++	.fault		= blkdev_dax_fault,
++	.pmd_fault	= blkdev_dax_pmd_fault,
++	.pfn_mkwrite	= blkdev_dax_fault,
++};
++
++static const struct vm_operations_struct blkdev_default_vm_ops = {
++	.open		= blkdev_vm_open,
++	.close		= blkdev_vm_close,
++	.fault		= filemap_fault,
++	.map_pages	= filemap_map_pages,
++};
++
++static int blkdev_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct inode *bd_inode = bdev_file_inode(file);
++	struct block_device *bdev = I_BDEV(bd_inode);
++
++	file_accessed(file);
++	mutex_lock(&bd_inode->i_mutex);
++	bdev->bd_map_count++;
++	if (IS_DAX(bd_inode)) {
++		vma->vm_ops = &blkdev_dax_vm_ops;
++		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++	} else {
++		vma->vm_ops = &blkdev_default_vm_ops;
++	}
++	mutex_unlock(&bd_inode->i_mutex);
++
++	return 0;
++}
++#else
++#define blkdev_mmap generic_file_mmap
++#endif
++
+ const struct file_operations def_blk_fops = {
+ 	.open		= blkdev_open,
+ 	.release	= blkdev_close,
+ 	.llseek		= block_llseek,
+ 	.read_iter	= blkdev_read_iter,
+ 	.write_iter	= blkdev_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap		= blkdev_mmap,
+ 	.fsync		= blkdev_fsync,
+ 	.unlocked_ioctl	= block_ioctl,
+ #ifdef CONFIG_COMPAT
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 72d8a844c692..8fb2d4b848bf 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -482,6 +482,9 @@ struct block_device {
+ 	int			bd_fsfreeze_count;
+ 	/* Mutex for freeze */
+ 	struct mutex		bd_fsfreeze_mutex;
++#ifdef CONFIG_FS_DAX
++	int			bd_map_count;
++#endif
+ };
+ 
+ /*
+diff --git a/include/uapi/linux/fs.h b/include/uapi/linux/fs.h
+index 9b964a5920af..cc2f0fdae707 100644
+--- a/include/uapi/linux/fs.h
++++ b/include/uapi/linux/fs.h
+@@ -152,6 +152,8 @@ struct inodes_stat_t {
+ #define BLKSECDISCARD _IO(0x12,125)
+ #define BLKROTATIONAL _IO(0x12,126)
+ #define BLKZEROOUT _IO(0x12,127)
++#define BLKDAXSET _IO(0x12,128)
++#define BLKDAXGET _IO(0x12,129)
+ 
+ #define BMAP_IOCTL 1		/* obsolete - kept for compatibility */
+ #define FIBMAP	   _IO(0x00,1)	/* bmap access */
 
