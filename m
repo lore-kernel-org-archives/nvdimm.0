@@ -1,9 +1,9 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Tue, 3 Nov 2015 10:57:57 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Date: Tue, 3 Nov 2015 17:21:19 +0100
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH v3 02/15] dax: increase granularity of dax_clear_blocks()
  operations
-Message-ID: <20151103175757.GA23366@linux.intel.com>
+Message-ID: <20151103162119.GE4063@quack.suse.cz>
 References: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20151102042952.6610.7185.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20151103005113.GN10656@dastard>
@@ -19,7 +19,7 @@ To: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>, Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, Jan Kara <jack@suse.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Nov 02, 2015 at 09:31:11PM -0800, Dan Williams wrote:
+On Mon 02-11-15 21:31:11, Dan Williams wrote:
 > On Mon, Nov 2, 2015 at 8:48 PM, Dave Chinner <david@fromorbit.com> wrote:
 > > On Mon, Nov 02, 2015 at 07:27:26PM -0800, Dan Williams wrote:
 > >> On Mon, Nov 2, 2015 at 4:51 PM, Dave Chinner <david@fromorbit.com> wrote:
@@ -51,30 +51,15 @@ On Mon, Nov 02, 2015 at 09:31:11PM -0800, Dan Williams wrote:
 > final flush, but when we need to resort to looping through all the
 > virtual addresses that might have touched it gets expensive.
 
-I agree with the idea that we should avoid the "big hammer" flushing in
-response to REQ_FLUSH.  Here are the steps that are needed to make sure that
-something is durable on media with PMEM/DAX:
+Similarly as Dave I'm somewhat confused by your use of "virtual addresses"
+and I wasn't able to figure out what exactly are you speaking about. In
+Ross' patches, fsync will iterate over all 4 KB ranges (they would be pages
+if we had page cache) of the file that got dirtied and call wb_cache_pmem()
+for each corresponding "physical block" - where "physical block" actually
+ends up being an physical address in pmem. Is this iteration what you find
+too costly?
 
-1) Write, either with non-temporal stores or with stores that use the
-processor cache
-
-2) If you wrote using the processor cache, flush or write back the processor
-cache
-
-3) wmb_pmem(), synchronizing all non-temporal writes and flushes durably to
-media.
-
-PMEM does all I/O using 1 and 3 with non-temporal stores, and mmaps that go to
-userspace can used cached writes, so on fsync/msync we do a bunch of flushes
-for step 2.  In either case I think we should have the PMEM driver just do
-step 3, the wmb_pmem(), in response to REQ_FLUSH.  This allows the zeroing
-code to just do non-temporal writes of zeros, the DAX fsync/msync code to just
-do flushes (which is what my patch set already does), and just leave the
-wmb_pmem() to the PMEM driver at REQ_FLUSH time.
-
-This makes the burden of REQ_FLUSH bearable for the PMEM driver, allowing us
-to avoid looping through potentially terabytes of PMEM on each REQ_FLUSH bio.
-
-This just means that the layers above the PMEM code either need to use
-non-temporal writes for their I/Os, or do flushing, which I don't think is too
-onerous.
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
