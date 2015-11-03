@@ -1,160 +1,116 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH 4/4] nvdimm: rename functions that aren't IOCTL passthru
-Date: Fri,  6 Nov 2015 15:27:31 -0700
-Message-Id: <05df97cb6646ebcf5111d5bbf09bfe73370ea782.1446684001.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1446684001.git.jerry.hoemann@hpe.com>
-References: <cover.1446684001.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1446684001.git.jerry.hoemann@hpe.com>
-References: <cover.1446684001.git.jerry.hoemann@hpe.com>
+MIME-Version: 1.0
+In-Reply-To: <20151103213759.GF23366@linux.intel.com>
+References: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20151102043058.6610.15559.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20151103011653.GO10656@dastard>
+	<CAPcyv4hof4rVN0EZHhV9Q7VBE0WMw6hcSrLK-HvB5FOrOwY+tg@mail.gmail.com>
+	<20151103054039.GQ10656@dastard>
+	<CAPcyv4gMuLcnLckoXQAe7yO36213rWT3KyHW+WrW3AtxaAHv0A@mail.gmail.com>
+	<20151103205131.GH19199@dastard>
+	<20151103213759.GF23366@linux.intel.com>
+Date: Tue, 3 Nov 2015 13:43:32 -0800
+Message-ID: <CAPcyv4h8wdUpqz5UMr2ByvS3Ooe+Uv7w4teSWmwQoq5McqcJfw@mail.gmail.com>
+Subject: Re: [PATCH v3 14/15] dax: dirty extent notification
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>, Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-rename functions acpi_nfit_ctl, __nd_ioctl, ndctl, to *_intel to denote
-that the functions implement the Intel example _DSM.
+On Tue, Nov 3, 2015 at 1:37 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Wed, Nov 04, 2015 at 07:51:31AM +1100, Dave Chinner wrote:
+>> On Mon, Nov 02, 2015 at 11:20:49PM -0800, Dan Williams wrote:
+>> > On Mon, Nov 2, 2015 at 9:40 PM, Dave Chinner <david@fromorbit.com> wrote:
+>> > > On Mon, Nov 02, 2015 at 08:56:24PM -0800, Dan Williams wrote:
+>> > >> No, we definitely can't do that.   I think your mental model of the
+>> > >> cache flushing is similar to the disk model where a small buffer is
+>> > >> flushed after a large streaming write.  Both Ross' patches and my
+>> > >> approach suffer from the same horror that the cache flushing is O(N)
+>> > >> currently, so we don't want to make it responsible for more data
+>> > >> ranges areas than is strictly necessary.
+>> > >
+>> > > I didn't see anything that was O(N) in Ross's patches. What part of
+>> > > the fsync algorithm that Ross proposed are you refering to here?
+>> >
+>> > We have to issue clflush per touched virtual address rather than a
+>> > constant number of physical ways, or a flush-all instruction.
+>> .....
+>> > > So don't tell me that tracking dirty pages in the radix tree too
+>> > > slow for DAX and that DAX should not be used for POSIX IO based
+>> > > applications - it should be as fast as buffered IO, if not faster,
+>> > > and if it isn't then we've screwed up real bad. And right now, we're
+>> > > screwing up real bad.
+>> >
+>> > Again, it's not the dirty tracking in the radix I'm worried about it's
+>> > looping through all the virtual addresses within those pages..
+>>
+>> So, let me summarise what I think you've just said. You are
+>>
+>> 1. fine with looping through the virtual addresses doing cache flushes
+>>    synchronously when doing IO despite it having significant
+>>    latency and performance costs.
+>>
+>> 2. Happy to hack a method into DAX to bypass the filesystems by
+>>    pushing information to the block device for it to track regions that
+>>    need cache flushes, then add infrastructure to the block device to
+>>    track those dirty regions and then walk those addresses and issue
+>>    cache flushes when the filesystem issues a REQ_FLUSH IO regardless
+>>    of whether the filesystem actually needs those cachelines flushed
+>>    for that specific IO?
+>>
+>> 3. Not happy to use the generic mm/vfs level infrastructure
+>>    architectected specifically to provide the exact asynchronous
+>>    cache flushing/writeback semantics we require because it will
+>>    cause too many cache flushes, even though the number of cache
+>>    flushes will be, at worst, the same as in 2).
+>>
+>>
+>> 1) will work, but as we can see it is *slow*. 3) is what Ross is
+>> implementing - it's a tried and tested architecture that all mm/fs
+>> developers understand, and his explanation of why it will work for
+>> pmem is pretty solid and completely platform/hardware architecture
+>> independent.
+>>
+>> Which leaves this question: How does 2) save us anything in terms of
+>> avoiding iterating virtual addresses and issuing cache flushes
+>> over 3)? And is it sufficient to justify hacking a bypass into DAX
+>> and the additional driver level complexity of having to add dirty
+>> region tracking, flushing and cleaning to REQ_FLUSH operations?
+>
+> I also don't see a benefit of pushing this into the driver.  The generic
+> writeback infrastructure that is already in place seems to fit perfectly with
+> what we are trying to do.  I feel like putting the flushing infrastructure
+> into the driver, as with my first failed attempt at msync support, ends up
+> solving one aspect of the problem in a non-generic way that is ultimately
+> fatally flawed.
+>
+> The driver inherently doesn't have enough information to solve this problem -
+> we really do need to involve the filesystem and mm layers.  For example:
+>
+> 1) The driver can't easily mark regions as clean once they have been flushed,
+> meaning that every time you dirty data you add to an ever increasing list of
+> things that will be flushed on the next REQ_FLUSH.
+>
+> 2) The driver doesn't know how inodes map to blocks, so when you get a
+> REQ_FLUSH for an fsync you end up flushing the dirty regions for *the entire
+> block device*, not just the one inode.
+>
+> 3) The driver doesn't understand how mmap ranges map to block regions, so if
+> someone msyncs a single page (causing a REQ_FLUSH) on a single mmap you will
+> once again flush every region that has ever been dirtied on the entire block
+> device.
+>
+> Each of these cases is handled by the existing writeback infrastructure.  I'm
+> strongly in favor of waiting and solving this issue with the radix tree
+> patches.
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
----
- drivers/acpi/nfit.c        |  6 +++---
- drivers/nvdimm/bus.c       | 15 ++++++++-------
- drivers/nvdimm/dimm_devs.c |  6 +++---
- include/linux/libnvdimm.h  |  2 +-
- 4 files changed, 15 insertions(+), 14 deletions(-)
+Again, all of these holes are mitigated by turning off DAX or fixing
+the app.  The radix solution does nothing to address the worst case
+flushing and will spin, single-threaded flushing the world.  So I
+remain strongly against the core change, but that's ultimately not my
+call.
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index a6b458a..f85200d 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -62,7 +62,7 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
- 	return to_acpi_device(acpi_desc->dev);
- }
- 
--static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
-+static int acpi_nfit_ctl_intel(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len)
- {
-@@ -1352,7 +1352,7 @@ static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
- 	int rc;
- 
- 	memset(&flags, 0, sizeof(flags));
--	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
-+	rc = nd_desc->ndctl_intel(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
- 			sizeof(flags));
- 
- 	if (rc >= 0 && flags.status == 0)
-@@ -1697,7 +1697,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 	acpi_desc->blk_do_io = acpi_nfit_blk_region_do_io;
- 	nd_desc = &acpi_desc->nd_desc;
- 	nd_desc->provider_name = "ACPI.NFIT";
--	nd_desc->ndctl = acpi_nfit_ctl;
-+	nd_desc->ndctl_intel = acpi_nfit_ctl_intel;
- 	nd_desc->ndctl_passthru = acpi_nfit_ctl_passthru;
- 	nd_desc->attr_groups = acpi_nfit_attribute_groups;
- 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index cfb10eb..4587d30 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -479,8 +479,9 @@ static int nd_cmd_clear_to_send(struct nvdimm *nvdimm, unsigned int cmd)
- 	return 0;
- }
- 
--static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
--		int read_only, unsigned int ioctl_cmd, unsigned long arg)
-+static int __nd_ioctl_intel(struct nvdimm_bus *nvdimm_bus,
-+		struct nvdimm *nvdimm, int read_only, unsigned int ioctl_cmd,
-+		unsigned long arg)
- {
- 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
- 	size_t buf_len = 0, in_len = 0, out_len = 0;
-@@ -587,7 +588,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 	if (rc)
- 		goto out_unlock;
- 
--	rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len);
-+	rc = nd_desc->ndctl_intel(nd_desc, nvdimm, cmd, buf, buf_len);
- 	if (rc < 0)
- 		goto out_unlock;
- 	if (copy_to_user(p, buf, buf_len))
-@@ -677,11 +678,11 @@ static int __nd_ioctl_passthru(struct nvdimm_bus *nvdimm_bus,
- static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	long id = (long) file->private_data;
--	int rc = -ENXIO, read_only;
-+	int rc = -ENXIO, ro;
- 	struct nvdimm_bus *nvdimm_bus;
- 	unsigned int type = _IOC_TYPE(cmd);
- 
--	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	ro = (O_RDWR != (file->f_flags & O_ACCMODE));
- 	mutex_lock(&nvdimm_bus_list_mutex);
- 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
- 		if (nvdimm_bus->id != id)
-@@ -689,7 +690,7 @@ static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 
- 		switch (type) {
- 		case NVDIMM_TYPE_INTEL:
--			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
-+			rc = __nd_ioctl_intel(nvdimm_bus, NULL, ro, cmd, arg);
- 			break;
- 		case NVDIMM_TYPE_PASSTHRU:
- 			rc = __nd_ioctl_passthru(nvdimm_bus, NULL, 0, cmd, arg);
-@@ -736,7 +737,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 
- 		switch (type) {
- 		case NVDIMM_TYPE_INTEL:
--			rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
-+			rc = __nd_ioctl_intel(nvdimm_bus, nvdimm, ro, cmd, arg);
- 			break;
- 		case NVDIMM_TYPE_PASSTHRU:
- 			rc = __nd_ioctl_passthru(nvdimm_bus, nvdimm, ro, cmd, arg);
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 651b8d1..9c0cc23 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -74,7 +74,7 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
- 
- 	memset(cmd, 0, sizeof(*cmd));
- 	nd_desc = nvdimm_bus->nd_desc;
--	return nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
-+	return nd_desc->ndctl_intel(nd_desc, to_nvdimm(ndd->dev),
- 			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd));
- }
- 
-@@ -118,7 +118,7 @@ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
- 			offset += cmd->in_length) {
- 		cmd->in_length = min(config_size, max_cmd_size);
- 		cmd->in_offset = offset;
--		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
-+		rc = nd_desc->ndctl_intel(nd_desc, to_nvdimm(ndd->dev),
- 				ND_CMD_GET_CONFIG_DATA, cmd,
- 				cmd->in_length + sizeof(*cmd));
- 		if (rc || cmd->status) {
-@@ -170,7 +170,7 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
- 		cmd_size = sizeof(*cmd) + cmd->in_length + sizeof(u32);
- 		status = ((void *) cmd) + cmd_size - sizeof(u32);
- 
--		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
-+		rc = nd_desc->ndctl_intel(nd_desc, to_nvdimm(ndd->dev),
- 				ND_CMD_SET_CONFIG_DATA, cmd, cmd_size);
- 		if (rc || *status) {
- 			rc = rc ? rc : -ENXIO;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 01117e1..594a772 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -71,7 +71,7 @@ struct nvdimm_bus_descriptor {
- 	const struct attribute_group **attr_groups;
- 	unsigned long dsm_mask;
- 	char *provider_name;
--	ndctl_fn ndctl;
-+	ndctl_fn ndctl_intel;
- 	ndctl_fn ndctl_passthru;
- };
- 
--- 
-1.7.11.3
-
+Looks like we're leaving this broken for 4.4...
