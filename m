@@ -1,8 +1,8 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Date: Tue, 3 Nov 2015 17:50:56 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Date: Tue, 3 Nov 2015 10:16:05 +0100
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH 3/6] xfs: Don't use unwritten extents for DAX
-Message-ID: <20151104005056.GA24710@linux.intel.com>
+Message-ID: <20151103091605.GA4063@quack.suse.cz>
 References: <1445225238-30413-1-git-send-email-david@fromorbit.com>
  <1445225238-30413-4-git-send-email-david@fromorbit.com>
  <20151029142950.GE11663@bfoster.bfoster>
@@ -11,68 +11,31 @@ References: <1445225238-30413-1-git-send-email-david@fromorbit.com>
  <20151102011433.GW19199@dastard>
  <20151102141509.GA29346@bfoster.bfoster>
  <20151102214424.GJ10656@dastard>
- <CAPcyv4i_D6TuV8B6WF-5JoBdgh9FZbeBim8=s45RnQfhWAVpYg@mail.gmail.com>
- <20151103050413.GB19199@dastard>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20151103050413.GB19199@dastard>
+In-Reply-To: <20151102214424.GJ10656@dastard>
 Sender: linux-fsdevel-owner@vger.kernel.org
 To: Dave Chinner <david@fromorbit.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, Brian Foster <bfoster@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jan Kara <jack@suse.cz>, xfs@oss.sgi.com, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: Brian Foster <bfoster@redhat.com>, ross.zwisler@linux.intel.com, jack@suse.cz, xfs@oss.sgi.com, linux-fsdevel@vger.kernel.org, dan.j.williams@intel.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Nov 03, 2015 at 04:04:13PM +1100, Dave Chinner wrote:
-> On Mon, Nov 02, 2015 at 07:53:27PM -0800, Dan Williams wrote:
-> > On Mon, Nov 2, 2015 at 1:44 PM, Dave Chinner <david@fromorbit.com> wrote:
-<>
-> > > This comes back to the comments I made w.r.t. the pmem driver
-> > > implementation doing synchronous IO by immediately forcing CPU cache
-> > > flushes and barriers. it's obviously correct, but it looks like
-> > > there's going to be a major performance penalty associated with it.
-> > > This is why I recently suggested that a pmem driver that doesn't do
-> > > CPU cache writeback during IO but does it on REQ_FLUSH is an
-> > > architecture we'll likely have to support.
-> > >
-> > 
-> > The only thing we can realistically delay is wmb_pmem() i.e. the final
-> > sync waiting for data that has *left* the cpu cache.  Unless/until we
-> > get a architecturally guaranteed method to write-back the entire
-> > cache, or flush the cache by physical-cache-way we're stuck with
-> > either non-temporal cycles or looping on potentially huge virtual
-> > address ranges.
-> 
-> I'm missing something: why won't flushing the address range returned
-> by bdev_direct_access() during a fsync operation work? i.e. we're
-> working with exactly the same address as dax_clear_blocks() and
-> dax_do_io() use, so why can't we look up that address and flush it
-> from fsync?
+On Tue 03-11-15 08:44:24, Dave Chinner wrote:
+> Realistically, dax_clear_blocks() should probably be implemented at
+> the pmem driver layer through blkdev_issue_zeroout() because all it
+> does is directly map the sector/len to pfn via bdev_direct_access()
+> and then zero it - it's a sector based, block device operation. We
+> don't actually need a special case path for DAX here. Optimisation
+> of this operation has little to do with the filesystem.
 
-I could be wrong, but I don't see a reason why DAX can't use the strategy of
-writing data and marking it dirty in one step and then flushing later in
-response to fsync/msync.  I think this could be used everywhere we write or
-zero data - dax_clear_blocks(), dax_io() etc.  (I believe that lots of the
-block zeroing code will go away once we have the XFS and ext4 patches in that
-guarantee we will only get written and zeroed extents from the filesystem in
-response to get_block().)  I think the PMEM driver, lacking the ability to
-mark things as dirty in the radix tree, etc, will need to keep doing things
-synchronously.
+Yep. This is actually what I did in ext4 - the block zeroing is using the
+ext4 block zeroout path which ends up calling blkdev_issue_zeroout(). I
+didn't want to special-case DAX and figured out that if we want
+performance, we should implement blkdev_issue_zeroout() efficiently for
+pmem. After all ext4 uses blkdev_issue_zeroout() in other extent conversion
+cases where zeroing out is needed.
 
-Hmm...if we go this path, though, is that an argument against moving the
-zeroing from DAX down into the driver?  True, with BRD it makes things nice
-and efficient because you can zero and never flush, and the driver knows
-there's nothing else to do.
-
-For PMEM, though, you lose the ability to zero the data and then queue the
-flushing for later, as you would be able to do if you left the zeroing code in
-DAX.  The benefit of this is that if you are going to immediately re-write the
-newly zeroed data (which seems common), PMEM will end up doing an extra cache
-flush of the zeroes, only to have them overwritten and marked as dirty by DAX.
-If we leave the zeroing to DAX we can mark it dirty once, zero it once, write
-it once, and flush it once.
-
-This would make us lose the ability to do hardware-assisted flushing in the
-future that requires driver specific knowledge, though I don't think that
-exists yet.  Perhaps we should leave the zeroing in DAX for now to take
-advantage of the single flush, and then move it down if a driver can improve
-performance with hardware assisted PMEM zeroing?
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
