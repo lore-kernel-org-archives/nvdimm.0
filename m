@@ -1,84 +1,58 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 2/2] restrict /dev/mem to idle io memory ranges
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 21 Nov 2015 19:57:07 -0800
-Message-ID: <20151122035707.9313.59919.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151122035702.9313.52457.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151122035702.9313.52457.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAPcyv4jpNtML7NuizvWUVW3Jxma4-D4+c59yJw_PZ140KoVqsw@mail.gmail.com>
+References: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20151102043053.6610.43948.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20151103003234.GM10656@dastard>
+	<CAPcyv4j8=_LdfK_TjJfEP0aA-1d3wSaLwBcpmrTobijpcRk1Dw@mail.gmail.com>
+	<20151103202041.GG19199@dastard>
+	<CAPcyv4jpNtML7NuizvWUVW3Jxma4-D4+c59yJw_PZ140KoVqsw@mail.gmail.com>
+Date: Wed, 4 Nov 2015 11:23:16 -0800
+Message-ID: <CAPcyv4ibo-MDxr06wo49pB-EhAWEPXy1_GFDU9KnoPma9gu9JQ@mail.gmail.com>
+Subject: Re: [PATCH v3 13/15] block, dax: make dax mappings opt-in by default
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This effectively promotes IORESOURCE_BUSY to IORESOURCE_EXCLUSIVE
-semantics by default.  If userspace really believes it is safe to access
-the memory region it can also perform the extra step of disabling an
-active driver.  This protects device address ranges with read side
-effects and otherwise directs userspace to use the driver.
+On Tue, Nov 3, 2015 at 3:04 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Tue, Nov 3, 2015 at 12:20 PM, Dave Chinner <david@fromorbit.com> wrote:
+>> On Mon, Nov 02, 2015 at 11:35:04PM -0800, Dan Williams wrote:
+>>> On Mon, Nov 2, 2015 at 4:32 PM, Dave Chinner <david@fromorbit.com> wrote:
+> [..]
+>>> Only in the mmap path:
+>>
+>> which means blkdev_direct_IO() is now always going to go down the
+>> dax_do_io() path for any driver with a ->direct_access method rather
+>> than the direct IO path, regardless of whether DAX is enabled on the
+>> device or not.
+>>
+>> That really seems wrong to me - you've replace explicit "is DAX
+>> enabled" checks with "is DAX possible" checks, and so DAX paths are
+>> used regardless of whether DAX is enabled or not. And it's not
+>> obvious why this is done, nor is it now obvious how DAX interacts
+>> with the block device.
+>>
+>> This really seems like a step backwards to me.
+>
+> I think the reason it is not obvious is the original justification for
+> the bypass as stated in commit bbab37ddc20b "block: Add support for
+> DAX reads/writes to block devices" was:
+>
+>     "instead of allocating a DIO and a BIO"
+>
+> It turns out it's faster and as far as I can tell semantically
+> equivalent to the __blockdev_direct_IO() path.  The DAX mmap path in
+> comparison has plenty of sharp edges and semantic differences that
+> would be avoided by turning off DAX.
+>
+> I'm not opposed to also turning off dax_do_io() when S_DAX is clear,
+> but I don't currently see the point.  At the very least I need to add
+> the above comments to the code, but do you still think opt-in DAX is a
+> backwards step?
 
-Persistent memory presents a large "mistake surface" to /dev/mem as now
-accidental writes can corrupt a filesystem.
-
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- kernel/resource.c |    3 +++
- lib/Kconfig.debug |   23 ++++++++++++++++++++---
- 2 files changed, 23 insertions(+), 3 deletions(-)
-
-diff --git a/kernel/resource.c b/kernel/resource.c
-index f150dbbe6f62..03a8b09f68a8 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -1498,6 +1498,9 @@ int iomem_is_exclusive(u64 addr)
- 			break;
- 		if (p->end < addr)
- 			continue;
-+		if (IS_ENABLED(CONFIG_IO_STRICT_DEVMEM)
-+				&& p->flags & IORESOURCE_BUSY)
-+			break;
- 		if (p->flags & IORESOURCE_BUSY &&
- 		     p->flags & IORESOURCE_EXCLUSIVE) {
- 			err = 1;
-diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index ad85145d0047..be47f99fb191 100644
---- a/lib/Kconfig.debug
-+++ b/lib/Kconfig.debug
-@@ -1866,9 +1866,26 @@ config STRICT_DEVMEM
- 	  enabled, even in this case there are restrictions on /dev/mem
- 	  use due to the cache aliasing requirements.
- 
-+	  If this option is switched on, and IO_STRICT_DEVMEM=n, the /dev/mem
-+	  file only allows userspace access to PCI space and the BIOS code and
-+	  data regions.  This is sufficient for dosemu and X and all common
-+	  users of /dev/mem.
-+
-+	  If in doubt, say Y.
-+
-+config IO_STRICT_DEVMEM
-+	bool "Filter I/O access to /dev/mem"
-+	depends on STRICT_DEVMEM
-+	default STRICT_DEVMEM
-+	---help---
-+	  If this option is disabled, you allow userspace (root) access to all
-+	  io-memory regardless of whether a driver is actively using that
-+	  range.  Accidental access to this is obviously disastrous, but
-+	  specific access can be used by people debugging kernel drivers.
-+
- 	  If this option is switched on, the /dev/mem file only allows
--	  userspace access to PCI space and the BIOS code and data regions.
--	  This is sufficient for dosemu and X and all common users of
--	  /dev/mem.
-+	  userspace access to *idle* io-memory ranges (see /proc/iomem) This
-+	  may break traditional users of /dev/mem (dosemu, legacy X, etc...)
-+	  if the driver using a given range cannot be disabled.
- 
- 	  If in doubt, say Y.
-
+I thought of one way dax_do_io() breaks current semantics, it defeats
+blktrace and i/o stat tracking.  I'll restore the existing behavior
+that gates dax_do_io() on S_DAX.
