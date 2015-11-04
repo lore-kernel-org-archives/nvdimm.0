@@ -1,106 +1,93 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH] mm: Fix mmap MAP_POPULATE for DAX pmd mapping
-Date: Mon, 23 Nov 2015 13:04:42 -0700
-Message-Id: <1448309082-20851-1-git-send-email-toshi.kani@hpe.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: kirill.shutemov@linux.intel.com, willy@linux.intel.com, ross.zwisler@linux.intel.com, dan.j.williams@intel.com, mauricio.porto@hpe.com, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Wed, 4 Nov 2015 18:21:48 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 3/6] xfs: Don't use unwritten extents for DAX
+Message-ID: <20151104172148.GB20212@quack.suse.cz>
+References: <20151102011433.GW19199@dastard>
+ <20151102141509.GA29346@bfoster.bfoster>
+ <20151102214424.GJ10656@dastard>
+ <CAPcyv4i_D6TuV8B6WF-5JoBdgh9FZbeBim8=s45RnQfhWAVpYg@mail.gmail.com>
+ <20151103050413.GB19199@dastard>
+ <20151104005056.GA24710@linux.intel.com>
+ <CAPcyv4hbrM4+P-8=SXU8BFP8tr1Dw9u1zSU9o0M=wzYjzsp8rw@mail.gmail.com>
+ <20151104044613.GA29575@linux.intel.com>
+ <20151104090612.GA10124@quack.suse.cz>
+ <20151104153551.GA9981@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151104153551.GA9981@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Brian Foster <bfoster@redhat.com>, xfs@oss.sgi.com, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following oops was observed when mmap() with MAP_POPULATE
-pre-faulted pmd mappings of a DAX file.  follow_trans_huge_pmd()
-expects that a target address has a struct page.
+On Wed 04-11-15 08:35:51, Ross Zwisler wrote:
+> On Wed, Nov 04, 2015 at 10:06:12AM +0100, Jan Kara wrote:
+> > Now how the problem is currently solved: When we allocate blocks, we just
+> > record that information in a transaction in the journal. For DAX case we
+> > also submit the IO zeroing those blocks and wait for it. Now if we crash
+> > before the transaction gets committed, blocks won't be seen in the inode
+> > after a journal recovery and thus no data exposure can happen. As a part of
+> > transaction commit, we call blkdev_issue_flush() (or submit REQ_FLUSH
+> > request). We expect that to force out all the IO in volatile caches into
+> > the persistent storage. So this will also force the zeroing into persistent
+> > storage for normal disks and AFAIU if you do zeroing with non-temporal
+> > writes in pmem driver and then do wmb_pmem() in response to a flush request
+> > we get the same persistency guarantee in pmem case as well. So after a
+> > transaction commit we are guaranteed to see zeros in those allocated
+> > blocks. 
+> > 
+> > So the transaction commit and the corresponding flush request in particular
+> > is the sync point you speak about above but the good thing is that in most
+> > cases this will happen after real data gets written into those blocks so we
+> > save the unnecessary flush.
+> 
+> Cool, thank you for the explanation, that makes sense to me.
+> 
+> When dealing with normal SSDs and the page cache, does the filesystem keep the
+> zeroes in the page cache, or does it issue it directly to the driver via
+> sb_issue_zeroout()/blkdev_issue_zeroout()?  If we keep it in the page cache so
 
-  BUG: unable to handle kernel paging request at ffffea0012220000
-  follow_trans_huge_pmd+0xba/0x390
-  follow_page_mask+0x33d/0x420
-  __get_user_pages+0xdc/0x800
-  populate_vma_page_range+0xb5/0xe0
-  __mm_populate+0xc5/0x150
-  vm_mmap_pgoff+0xd5/0xe0
-  SyS_mmap_pgoff+0x1c1/0x290
-  SyS_mmap+0x1b/0x30
+Currently we use sb_issue_zeroout() for zeroing out blocks in ext4 (for DAX
+and in some other cases to avoid splitting extents too much).  Note that
+zeroing blocks in page cache won't work on it's own - blkdev_issue_flush()
+doesn't force out any dirty pages from page cache so transaction commit
+wouldn't make sure stale block contents is not exposed.
 
-Fix it by making the PMD pre-fault handling consistent with PTE.
-After pre-faulted in faultin_page(), follow_page_mask() calls
-follow_trans_huge_pmd(), which is changed to call follow_pfn_pmd()
-for VM_PFNMAP or VM_MIXEDMAP.  follow_pfn_pmd() handles FOLL_TOUCH
-and returns with -EEXIST.
+However we actually do have a mechanism in ext4 to force out data from page
+cache during transaction commit - that is what data=ordered mode is all
+about - we can attach inode to a transaction and all dirty data of that
+inode that has underlying blocks allocated is flushed as a part of
+transaction commit. So this makes sure stale data cannot be seen after a
+crash in data=ordered mode. XFS doesn't have this mechanism and thus it
+normally has to put allocated blocks in unwritten extents, submit IO to
+write data to those blocks, and convert extent to written once IO finishes.
 
-Reported-by: Mauricio Porto <mauricio.porto@hpe.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- mm/huge_memory.c |   34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+> that the follow-up writes just update the dirty pages and we end up
+> writing to media once, this seems like it would flow nicely into the idea
+> of zeroing new blocks at the DAX level without flushing and just marking
+> them as dirty in the radix tree.
 
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index d5b8920..f56e034 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -1267,6 +1267,32 @@ out_unlock:
- 	return ret;
- }
- 
-+/*
-+ * Follow a pmd inserted by vmf_insert_pfn_pmd(). See follow_pfn_pte() for pte.
-+ */
-+static int follow_pfn_pmd(struct vm_area_struct *vma, unsigned long address,
-+		pmd_t *pmd, unsigned int flags)
-+{
-+	/* No page to get reference */
-+	if (flags & FOLL_GET)
-+		return -EFAULT;
-+
-+	if (flags & FOLL_TOUCH) {
-+		pmd_t entry = *pmd;
-+
-+		/* Set the dirty bit per follow_trans_huge_pmd() */
-+		entry = pmd_mkyoung(pmd_mkdirty(entry));
-+
-+		if (!pmd_same(*pmd, entry)) {
-+			set_pmd_at(vma->vm_mm, address, pmd, entry);
-+			update_mmu_cache_pmd(vma, address, pmd);
-+		}
-+	}
-+
-+	/* Proper page table entry exists, but no corresponding struct page */
-+	return -EEXIST;
-+}
-+
- struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
- 				   unsigned long addr,
- 				   pmd_t *pmd,
-@@ -1274,6 +1300,7 @@ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct page *page = NULL;
-+	int ret;
- 
- 	assert_spin_locked(pmd_lockptr(mm, pmd));
- 
-@@ -1288,6 +1315,13 @@ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
- 	if ((flags & FOLL_NUMA) && pmd_protnone(*pmd))
- 		goto out;
- 
-+	/* pfn map does not have a struct page */
-+	if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP)) {
-+		ret = follow_pfn_pmd(vma, addr, pmd, flags);
-+		page = ERR_PTR(ret);
-+		goto out;
-+	}
-+
- 	page = pmd_page(*pmd);
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
- 	if (flags & FOLL_TOUCH) {
+So for ext4 you could make this work the same way data=ordered mode works -
+just store zeroes into allocated blocks, mark page as dirty in the radix
+tree, attach inode to the running transaction, and on transaction commit do
+the flush. However note that for DAX page faults zeroing needs to happen
+under fs lock serializing faults to the same page which effectively means
+it happens inside filesystem's block mapping function and at that place we
+don't have a page to zero out. So it would require considerable plumbing to
+make this work even for ext4 and I'm not even speaking of XFS where the
+flushing mechanism on transaction commit doesn't currently exist AFAIK.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Frankly since the savings would be realized only for allocating writes into
+mmaped file which aren't than common, I'm not convinced this would be worth
+it.
+
+> If the zeroing happens via sb_issue_zeroout() then this probably doesn't
+> make sense because the existing flow won't include a fsync/msync type
+> step of the newly zeroed data in the page cache.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
