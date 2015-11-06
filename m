@@ -1,73 +1,62 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 09/11] ext2: add support for DAX fsync/msync
-Date: Fri, 13 Nov 2015 17:06:48 -0700
-Message-Id: <1447459610-14259-10-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH 0/4] nvdimm: Add an IOCTL pass thru for DSM calls
+Date: Fri,  6 Nov 2015 15:27:27 -0700
+Message-Id: <cover.1446684001.git.jerry.hoemann@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can properly track when a user
-write faults on a previously cleaned address.  They also need to call
-dax_fsync() in the filesystem fsync() path.  This dax_fsync() call uses
-addresses retrieved from get_block() so it needs to be ordered with
-respect to truncate.  This is accomplished by using the same locking that
-was set up for DAX page faults.
+The NVDIMM code in the kernel supports an IOCTL interface to user
+space based upon the Intel Example DSM:
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/ext2/file.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
 
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index 11a42c5..6c30ea2 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -102,8 +102,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
- {
- 	struct inode *inode = file_inode(vma->vm_file);
- 	struct ext2_inode_info *ei = EXT2_I(inode);
--	int ret = VM_FAULT_NOPAGE;
- 	loff_t size;
-+	int ret;
- 
- 	sb_start_pagefault(inode->i_sb);
- 	file_update_time(vma->vm_file);
-@@ -113,6 +113,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 
- 	up_read(&ei->dax_sem);
- 	sb_end_pagefault(inode->i_sb);
-@@ -161,6 +163,16 @@ int ext2_fsync(struct file *file, loff_t start, loff_t end, int datasync)
- 	struct super_block *sb = file->f_mapping->host->i_sb;
- 	struct address_space *mapping = sb->s_bdev->bd_inode->i_mapping;
- 
-+#ifdef CONFIG_FS_DAX
-+	if (dax_mapping(mapping)) {
-+		struct ext2_inode_info *ei = EXT2_I(file_inode(file));
-+
-+		down_read(&ei->dax_sem);
-+		dax_fsync(mapping, start, end);
-+		up_read(&ei->dax_sem);
-+	}
-+#endif
-+
- 	ret = generic_file_fsync(file, start, end, datasync);
- 	if (ret == -EIO || test_and_clear_bit(AS_EIO, &mapping->flags)) {
- 		/* We don't really know where the IO error happened... */
+This interface cannot be used by other NVDIMM DSMs that support
+incompatible functions.
+
+This patch set adds a generic "passthru" IOCTL interface which
+is not tied to a particular DSM.
+
+A new IOCTL type "P" is added for the pass thru call.
+
+The new data structure ndn_pkg serves as a wrapper for the passthru
+calls.  This wrapper supplies the data that the kernel needs to
+make the _DSM call.
+
+Unlike the definitions of the _DSM functions themselves, the ndn_pkg
+provides the calling information (input/output sizes) in an uniform
+manner making the kernel marshaling of the arguments straight
+forward.
+
+This shifts the marshaling burden from the kernel to the user
+space application while still permitting the kernel to internally
+calling _DSM functions.
+
+To make the resultant kernel code easier to understand the existing
+functions acpi_nfit_ctl and __nd_ioctl were renamed to .*_intel to
+denote calling mechanism as in 4.2 tailored to the Intel Example DSM.
+New functions acpi_nfit_ctl_passthru and __nd_ioctl_passthru were
+created to supply the pass thru interface.
+
+
+These changes are based upon the 4.3 kernel.
+
+
+Jerry Hoemann (4):
+  nvdimm: Add wrapper for IOCTL pass thru.
+  nvdimm: Add IOCTL pass thru
+  nvdimm: Add IOCTL pass thru
+  nvdimm: rename functions that aren't IOCTL passthru
+
+ drivers/acpi/nfit.c        |  91 ++++++++++++++++++++++++++++++++--
+ drivers/nvdimm/bus.c       | 118 +++++++++++++++++++++++++++++++++++++++++----
+ drivers/nvdimm/dimm_devs.c |   6 +--
+ include/linux/libnvdimm.h  |   3 +-
+ include/uapi/linux/ndctl.h |  20 +++++++-
+ 5 files changed, 220 insertions(+), 18 deletions(-)
+
 -- 
-2.1.0
+1.7.11.3
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
