@@ -1,199 +1,160 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [RFC PATCH 2/5] mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 29 Nov 2015 21:08:44 -0800
-Message-ID: <20151130050844.18366.61858.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151130050833.18366.21963.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151130050833.18366.21963.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-mm@kvack.org
-Cc: Andrea Arcangeli <aarcange@redhat.com>, Dave Hansen <dave@sr71.net>, toshi.kani@hp.com, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH 4/4] nvdimm: rename functions that aren't IOCTL passthru
+Date: Fri,  6 Nov 2015 15:27:31 -0700
+Message-Id: <05df97cb6646ebcf5111d5bbf09bfe73370ea782.1446684001.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1446684001.git.jerry.hoemann@hpe.com>
+References: <cover.1446684001.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1446684001.git.jerry.hoemann@hpe.com>
+References: <cover.1446684001.git.jerry.hoemann@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A dax-huge-page mapping while it uses some thp helpers is ultimately not a
-transparent huge page.  The distinction is especially important in the
-get_user_pages() path.  pmd_devmap() is used to distinguish dax-pmds from
-pmd_huge() and pmd_trans_huge() which have slightly different semantics.
+rename functions acpi_nfit_ctl, __nd_ioctl, ndctl, to *_intel to denote
+that the functions implement the Intel example _DSM.
 
-Explicitly mark the pmd_trans_huge() helpers that dax needs by adding
-pmd_devmap() checks.
-
-Also, before we introduce usages of pmd_pfn() in common code, include a
-definition for archs that have not needed it to date.
-
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- arch/ia64/include/asm/pgtable.h      |    1 +
- arch/sh/include/asm/pgtable-3level.h |    1 +
- arch/x86/include/asm/pgtable.h       |    2 +-
- include/linux/huge_mm.h              |    3 ++-
- mm/huge_memory.c                     |   23 +++++++++++++----------
- mm/memory.c                          |    8 ++++----
- 6 files changed, 22 insertions(+), 16 deletions(-)
+ drivers/acpi/nfit.c        |  6 +++---
+ drivers/nvdimm/bus.c       | 15 ++++++++-------
+ drivers/nvdimm/dimm_devs.c |  6 +++---
+ include/linux/libnvdimm.h  |  2 +-
+ 4 files changed, 15 insertions(+), 14 deletions(-)
 
-diff --git a/arch/ia64/include/asm/pgtable.h b/arch/ia64/include/asm/pgtable.h
-index 9f3ed9ee8f13..81d2af23958f 100644
---- a/arch/ia64/include/asm/pgtable.h
-+++ b/arch/ia64/include/asm/pgtable.h
-@@ -273,6 +273,7 @@ extern unsigned long VMALLOC_END;
- #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
- #define pmd_page_vaddr(pmd)		((unsigned long) __va(pmd_val(pmd) & _PFN_MASK))
- #define pmd_page(pmd)			virt_to_page((pmd_val(pmd) + PAGE_OFFSET))
-+#define pmd_pfn(pmd)			(pmd_val(pmd) >> PAGE_SHIFT)
- 
- #define pud_none(pud)			(!pud_val(pud))
- #define pud_bad(pud)			(!ia64_phys_addr_valid(pud_val(pud)))
-diff --git a/arch/sh/include/asm/pgtable-3level.h b/arch/sh/include/asm/pgtable-3level.h
-index 249a985d9648..bb29a80fb40e 100644
---- a/arch/sh/include/asm/pgtable-3level.h
-+++ b/arch/sh/include/asm/pgtable-3level.h
-@@ -29,6 +29,7 @@
- 
- typedef struct { unsigned long long pmd; } pmd_t;
- #define pmd_val(x)	((x).pmd)
-+#define pmd_pfn(x)	((pmd_val(x) & PMD_MASK) >> PAGE_SHIFT)
- #define __pmd(x)	((pmd_t) { (x) } )
- 
- static inline unsigned long pud_page_vaddr(pud_t pud)
-diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
-index 02096a5dec2a..d5747ada2a76 100644
---- a/arch/x86/include/asm/pgtable.h
-+++ b/arch/x86/include/asm/pgtable.h
-@@ -178,7 +178,7 @@ static inline int pmd_trans_splitting(pmd_t pmd)
- 
- static inline int pmd_trans_huge(pmd_t pmd)
- {
--	return pmd_val(pmd) & _PAGE_PSE;
-+	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index a6b458a..f85200d 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -62,7 +62,7 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
+ 	return to_acpi_device(acpi_desc->dev);
  }
  
- static inline int has_transparent_hugepage(void)
-diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index d218abedfeb9..9c9c1688889a 100644
---- a/include/linux/huge_mm.h
-+++ b/include/linux/huge_mm.h
-@@ -105,7 +105,8 @@ extern void __split_huge_page_pmd(struct vm_area_struct *vma,
- #define split_huge_page_pmd(__vma, __address, __pmd)			\
- 	do {								\
- 		pmd_t *____pmd = (__pmd);				\
--		if (unlikely(pmd_trans_huge(*____pmd)))			\
-+		if (unlikely(pmd_trans_huge(*____pmd)			\
-+					|| pmd_devmap(*____pmd)))	\
- 			__split_huge_page_pmd(__vma, __address,		\
- 					____pmd);			\
- 	}  while (0)
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 6b506df659ec..329cedf48b8a 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -933,7 +933,7 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 
- 	ret = -EAGAIN;
- 	pmd = *src_pmd;
--	if (unlikely(!pmd_trans_huge(pmd))) {
-+	if (unlikely(!pmd_trans_huge(pmd) && !pmd_devmap(pmd))) {
- 		pte_free(dst_mm, pgtable);
- 		goto out_unlock;
- 	}
-@@ -965,17 +965,20 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 		wait_split_huge_page(vma->anon_vma, src_pmd); /* src_vma */
- 		goto out;
- 	}
--	src_page = pmd_page(pmd);
--	VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
--	get_page(src_page);
--	page_dup_rmap(src_page);
--	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
-+	if (pmd_trans_huge(pmd)) {
-+		/* thp accounting separate from pmd_devmap accounting */
-+		src_page = pmd_page(pmd);
-+		VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
-+		get_page(src_page);
-+		page_dup_rmap(src_page);
-+		add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
-+		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
-+		atomic_long_inc(&dst_mm->nr_ptes);
-+	}
- 
- 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
- 	pmd = pmd_mkold(pmd_wrprotect(pmd));
--	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
- 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
--	atomic_long_inc(&dst_mm->nr_ptes);
- 
- 	ret = 0;
- out_unlock:
-@@ -1599,7 +1602,7 @@ int __pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma,
- 		spinlock_t **ptl)
+-static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
++static int acpi_nfit_ctl_intel(struct nvdimm_bus_descriptor *nd_desc,
+ 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
+ 		unsigned int buf_len)
  {
- 	*ptl = pmd_lock(vma->vm_mm, pmd);
--	if (likely(pmd_trans_huge(*pmd))) {
-+	if (likely(pmd_trans_huge(*pmd) || pmd_devmap(*pmd))) {
- 		if (unlikely(pmd_trans_splitting(*pmd))) {
- 			spin_unlock(*ptl);
- 			wait_split_huge_page(vma->anon_vma, pmd);
-@@ -2975,7 +2978,7 @@ void __split_huge_page_pmd(struct vm_area_struct *vma, unsigned long address,
- again:
- 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	ptl = pmd_lock(mm, pmd);
--	if (unlikely(!pmd_trans_huge(*pmd)))
-+	if (unlikely(!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
- 		goto unlock;
- 	if (vma_is_dax(vma)) {
- 		pmd_t _pmd = pmdp_huge_clear_flush_notify(vma, haddr, pmd);
-diff --git a/mm/memory.c b/mm/memory.c
-index 6a34be836a3b..5b9c6bab80d1 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -961,7 +961,7 @@ static inline int copy_pmd_range(struct mm_struct *dst_mm, struct mm_struct *src
- 	src_pmd = pmd_offset(src_pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (pmd_trans_huge(*src_pmd)) {
-+		if (pmd_trans_huge(*src_pmd) || pmd_devmap(*src_pmd)) {
- 			int err;
- 			VM_BUG_ON(next-addr != HPAGE_PMD_SIZE);
- 			err = copy_huge_pmd(dst_mm, src_mm,
-@@ -1193,7 +1193,7 @@ static inline unsigned long zap_pmd_range(struct mmu_gather *tlb,
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (pmd_trans_huge(*pmd)) {
-+		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE) {
- #ifdef CONFIG_DEBUG_VM
- 				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
-@@ -3366,7 +3366,7 @@ static int __handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		int ret;
+@@ -1352,7 +1352,7 @@ static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
+ 	int rc;
  
- 		barrier();
--		if (pmd_trans_huge(orig_pmd)) {
-+		if (pmd_trans_huge(orig_pmd) || pmd_devmap(orig_pmd)) {
- 			unsigned int dirty = flags & FAULT_FLAG_WRITE;
+ 	memset(&flags, 0, sizeof(flags));
+-	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
++	rc = nd_desc->ndctl_intel(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
+ 			sizeof(flags));
  
- 			/*
-@@ -3403,7 +3403,7 @@ static int __handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 	    unlikely(__pte_alloc(mm, vma, pmd, address)))
- 		return VM_FAULT_OOM;
- 	/* if an huge pmd materialized from under us just retry later */
--	if (unlikely(pmd_trans_huge(*pmd)))
-+	if (unlikely(pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
- 		return 0;
- 	/*
- 	 * A regular pmd is established and it can't morph into a huge pmd
+ 	if (rc >= 0 && flags.status == 0)
+@@ -1697,7 +1697,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
+ 	acpi_desc->blk_do_io = acpi_nfit_blk_region_do_io;
+ 	nd_desc = &acpi_desc->nd_desc;
+ 	nd_desc->provider_name = "ACPI.NFIT";
+-	nd_desc->ndctl = acpi_nfit_ctl;
++	nd_desc->ndctl_intel = acpi_nfit_ctl_intel;
+ 	nd_desc->ndctl_passthru = acpi_nfit_ctl_passthru;
+ 	nd_desc->attr_groups = acpi_nfit_attribute_groups;
+ 
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index cfb10eb..4587d30 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -479,8 +479,9 @@ static int nd_cmd_clear_to_send(struct nvdimm *nvdimm, unsigned int cmd)
+ 	return 0;
+ }
+ 
+-static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+-		int read_only, unsigned int ioctl_cmd, unsigned long arg)
++static int __nd_ioctl_intel(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm, int read_only, unsigned int ioctl_cmd,
++		unsigned long arg)
+ {
+ 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
+ 	size_t buf_len = 0, in_len = 0, out_len = 0;
+@@ -587,7 +588,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	if (rc)
+ 		goto out_unlock;
+ 
+-	rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len);
++	rc = nd_desc->ndctl_intel(nd_desc, nvdimm, cmd, buf, buf_len);
+ 	if (rc < 0)
+ 		goto out_unlock;
+ 	if (copy_to_user(p, buf, buf_len))
+@@ -677,11 +678,11 @@ static int __nd_ioctl_passthru(struct nvdimm_bus *nvdimm_bus,
+ static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	long id = (long) file->private_data;
+-	int rc = -ENXIO, read_only;
++	int rc = -ENXIO, ro;
+ 	struct nvdimm_bus *nvdimm_bus;
+ 	unsigned int type = _IOC_TYPE(cmd);
+ 
+-	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
++	ro = (O_RDWR != (file->f_flags & O_ACCMODE));
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+ 		if (nvdimm_bus->id != id)
+@@ -689,7 +690,7 @@ static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 
+ 		switch (type) {
+ 		case NVDIMM_TYPE_INTEL:
+-			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
++			rc = __nd_ioctl_intel(nvdimm_bus, NULL, ro, cmd, arg);
+ 			break;
+ 		case NVDIMM_TYPE_PASSTHRU:
+ 			rc = __nd_ioctl_passthru(nvdimm_bus, NULL, 0, cmd, arg);
+@@ -736,7 +737,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 
+ 		switch (type) {
+ 		case NVDIMM_TYPE_INTEL:
+-			rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
++			rc = __nd_ioctl_intel(nvdimm_bus, nvdimm, ro, cmd, arg);
+ 			break;
+ 		case NVDIMM_TYPE_PASSTHRU:
+ 			rc = __nd_ioctl_passthru(nvdimm_bus, nvdimm, ro, cmd, arg);
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 651b8d1..9c0cc23 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -74,7 +74,7 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
+ 
+ 	memset(cmd, 0, sizeof(*cmd));
+ 	nd_desc = nvdimm_bus->nd_desc;
+-	return nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
++	return nd_desc->ndctl_intel(nd_desc, to_nvdimm(ndd->dev),
+ 			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd));
+ }
+ 
+@@ -118,7 +118,7 @@ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
+ 			offset += cmd->in_length) {
+ 		cmd->in_length = min(config_size, max_cmd_size);
+ 		cmd->in_offset = offset;
+-		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
++		rc = nd_desc->ndctl_intel(nd_desc, to_nvdimm(ndd->dev),
+ 				ND_CMD_GET_CONFIG_DATA, cmd,
+ 				cmd->in_length + sizeof(*cmd));
+ 		if (rc || cmd->status) {
+@@ -170,7 +170,7 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
+ 		cmd_size = sizeof(*cmd) + cmd->in_length + sizeof(u32);
+ 		status = ((void *) cmd) + cmd_size - sizeof(u32);
+ 
+-		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
++		rc = nd_desc->ndctl_intel(nd_desc, to_nvdimm(ndd->dev),
+ 				ND_CMD_SET_CONFIG_DATA, cmd, cmd_size);
+ 		if (rc || *status) {
+ 			rc = rc ? rc : -ENXIO;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 01117e1..594a772 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -71,7 +71,7 @@ struct nvdimm_bus_descriptor {
+ 	const struct attribute_group **attr_groups;
+ 	unsigned long dsm_mask;
+ 	char *provider_name;
+-	ndctl_fn ndctl;
++	ndctl_fn ndctl_intel;
+ 	ndctl_fn ndctl_passthru;
+ };
+ 
+-- 
+1.7.11.3
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
