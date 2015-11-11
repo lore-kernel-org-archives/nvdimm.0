@@ -1,49 +1,53 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Message-ID: <5643B043.3010103@plexistor.com>
+Date: Wed, 11 Nov 2015 23:16:51 +0200
+From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-In-Reply-To: <5643B043.3010103@plexistor.com>
-References: <5643B043.3010103@plexistor.com>
-Date: Wed, 11 Nov 2015 13:46:05 -0800
-Message-ID: <CAPcyv4jCg58-Je4hW=O4TT9ESeJTV-GFEUidLD9n60-z9w9V2Q@mail.gmail.com>
-Subject: Re: [RFC 1/1] memremap: devm_memremap_pages has wrong nid
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
+Subject: [RFC 1/1] memremap: devm_memremap_pages has wrong nid
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Boaz Harrosh <boaz@plexistor.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Nov 11, 2015 at 1:16 PM, Boaz Harrosh <boaz@plexistor.com> wrote:
->
-> The pmem dev as received in devm_memremap_pages() does not have
-> its dev->numa_node properly initialized yet.
->
-> What I see is that all pmem devices will call arch_add_memory
-> with nid==0 regardless of the real nid the memory is actually
-> on. Needless to say that after that all the NUMA page and zone
-> members (at page->flags) come out wrong.
->
-> If I do the below code it will all work properly.
->
-> RFC because probably we want to fix dev->numa_node before the
-> call to devm_memremap_pages.
 
-Let's just do that instead.  I.e. in the case of NFIT numa node should
-already be set, and in the case of the memmap=ss!nn or e820-type-12 we
-can set the numa node like this:
+The pmem dev as received in devm_memremap_pages() does not have
+its dev->numa_node properly initialized yet.
 
-diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
-index 8282db2ef99e..e40df8fedf73 100644
---- a/drivers/nvdimm/e820.c
-+++ b/drivers/nvdimm/e820.c
-@@ -48,7 +48,7 @@ static int e820_pmem_probe(struct platform_device *pdev)
-               memset(&ndr_desc, 0, sizeof(ndr_desc));
-               ndr_desc.res = p;
-               ndr_desc.attr_groups = e820_pmem_region_attribute_groups;
--               ndr_desc.numa_node = NUMA_NO_NODE;
-+               ndr_desc.numa_node = memory_add_physaddr_to_nid(p->start);
-               set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-               if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
-                       goto err;
+What I see is that all pmem devices will call arch_add_memory
+with nid==0 regardless of the real nid the memory is actually
+on. Needless to say that after that all the NUMA page and zone
+members (at page->flags) come out wrong.
 
-Thanks for pointing out memory_add_physaddr_to_nid(). I did not know
-that existed.
+If I do the below code it will all work properly.
+
+RFC because probably we want to fix dev->numa_node before the
+call to devm_memremap_pages.
+
+This is on top of v4.3. I will please need the final fix for Stable@
+
+Thanks
+Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
+---
+ kernel/memremap.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 9d6b555..9409e23 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -183,9 +183,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res)
+ 
+ 	memcpy(&page_map->res, res, sizeof(*res));
+ 
+-	nid = dev_to_node(dev);
+-	if (nid < 0)
+-		nid = 0;
++	nid = memory_add_physaddr_to_nid(res->start);
+ 
+ 	error = arch_add_memory(nid, res->start, resource_size(res), true);
+ 	if (error) {
+-- 
+1.9.3
+
