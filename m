@@ -1,107 +1,116 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Message-ID: <564859A6.2080406@plexistor.com>
-Date: Sun, 15 Nov 2015 12:08:38 +0200
-From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
+In-Reply-To: <56449AF3.70606@plexistor.com>
+References: <5643B043.3010103@plexistor.com>
+	<CAPcyv4jCg58-Je4hW=O4TT9ESeJTV-GFEUidLD9n60-z9w9V2Q@mail.gmail.com>
+	<5643BB8D.4080202@plexistor.com>
+	<56448FDE.4020404@plexistor.com>
+	<56449AF3.70606@plexistor.com>
+Date: Thu, 12 Nov 2015 09:13:47 -0800
+Message-ID: <CAPcyv4gabAY-8vuK+DZv0o9OdMCpY+ayC4bXqz7PWw-C5NTs2Q@mail.gmail.com>
 Subject: Re: [PATCH] nvdimm: proper NID in e820_pmem_probe
-References: <5643B043.3010103@plexistor.com>	<CAPcyv4jCg58-Je4hW=O4TT9ESeJTV-GFEUidLD9n60-z9w9V2Q@mail.gmail.com>	<5643BB8D.4080202@plexistor.com>	<56448FDE.4020404@plexistor.com>	<56449AF3.70606@plexistor.com> <CAPcyv4gabAY-8vuK+DZv0o9OdMCpY+ayC4bXqz7PWw-C5NTs2Q@mail.gmail.com>
-In-Reply-To: <CAPcyv4gabAY-8vuK+DZv0o9OdMCpY+ayC4bXqz7PWw-C5NTs2Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
+To: Boaz Harrosh <boaz@plexistor.com>
 Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Stable Tree <stable@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 11/12/2015 07:13 PM, Dan Williams wrote:
-<>
-> 
-> Thanks for the test!  There's a small compile fix I need to add that
-> 0day discovered, but I'll get this into a pull request before the end
-> of the week.
-> 
-
-Thanks
-
-<>
-> 
-> Really?  How do you achieve these 3 features without get_user_pages()
-> for DAX mappings?  Do you have a custom driver in the kernel that is
-> just going pfn_to_page()?
-> 
-
-Yes both Target and Initiator are Kernel based. The target is currently
-a driver that receives a /dev/pmemX parameter to operate on. (The initiator
-is inside this pmem cluster FS, half Kernel half user-space)
-
-<>
+On Thu, Nov 12, 2015 at 5:58 AM, Boaz Harrosh <boaz@plexistor.com> wrote:
+> On 11/12/2015 03:10 PM, Boaz Harrosh wrote:
+>> From: Dan Williams <dan.j.williams@intel.com>
 >>
->> We still carry a few of our own persistent assembly calls, but just because
->> the Kernel's ones are a bit of a mixed mess.
-> 
-> Would be interested to see them.  We're currently looking at
-> performance enhancements in this area.
-> 
+>> [Boaz]
+>> What I see is that in the call to arch_add_memory() nid==0 regardless of the
+>> real NID the memory is actually on.
+>>
+>> [Dan]
+>> In the case of NFIT numa node should already be set, and in the
+>> case of the memmap=ss!nn or e820-type-12 we can set the numa node
+>> like this:
+>>
+>> [Needed for v4.3]
+>> CC: Stable Tree <stable@vger.kernel.org>
+>> Tested-by: Boaz Harrosh <boaz@plexistor.com>
+>
+> Dan thanks, of course it works perfectly well. I'm not sure if you also need my:
+> Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
+>
+> So I'm happy to say that with this small fix.
 
-I have an old patch to clean up pmem.h and stuff but is old and will not patch.
-Is there anything beyond what Linus pulled for 4.4-rc1 ? I'll try to base it
-on your tree. But no promises this is low priority for me.
+Thanks for the test!  There's a small compile fix I need to add that
+0day discovered, but I'll get this into a pull request before the end
+of the week.
 
-performance wise we are using the regular __copy_from_user_inatomic_nocache()
-as you do.
-Only difference is the: "No need for memory-barrier with clflush" and our
-clflush loop with some fixes.
-(And our own clean implementation of copy_from_iter_persistent inside
- iov_iter.c for also KVEC and BVEC NT support)
+> And a big struggle to enable CONFIG_EXPERT so to disable ZONE_DMA and enable
+> ZONE_DEVICE. Would you support reverting the completely dead code ZONE_DMA
+> for x86_64 "on" by default so to allow an easier ZONE_DEVICE to be turned on?
+> (We currently have a script sent to clients to manipulate their .config before
+>  compiling their 4.3 based Kernel)
 
-Actually we are counting on your future patches to not FAULT on memory
-errors and return with an error code.
+Changing that default would be a question to the x86 maintainers.  I
+agree that ZONE_DMA should be opt-in rather than opt-out on modern
+systems.
 
-<>
-> 
-> I agree that the ADR situation is a bit of a mess since ACPI provides
-> no mechanism to tell you that it is available.  I wouldn't be opposed
-> to whitelisting certain platforms or use a sideband mechanism to check
-> for ADR.  It's just not clear to me how to reliably determine if ADR
-> is available and functional.
-> 
+> So as I said I'm happy to announce that with the 4.3 Kernel (+ fix) I'm able
+> to run my all system, same as with my old system, but without any Kernel patching.
+> (Almost, just one optimization for write page-faults).
+>
+> Including:
+> - Direct IO of pmem-pages to slower SSD / harddisk / iscai block devices
+> - RDMA from pmem-pages directly.
+> - pmem direct RDMA target machine.
 
-I think that for now the presence of ACPI both type-12 and NFIT is a clear
-indication of an ADR system. Do you know of any system in existence that this
-is not true? (Why talk about theoretical none existent systems?).
+Really?  How do you achieve these 3 features without get_user_pages()
+for DAX mappings?  Do you have a custom driver in the kernel that is
+just going pfn_to_page()?
 
-Any system builder will not provide ACPI NvDIMM tables if it would not work,
-otherwise what is the point to provide it? so just trust the system builder
-I think.
+> - Cluster wide unified pmem access
+> - VM access to pmem
+>
+> We still carry a few of our own persistent assembly calls, but just because
+> the Kernel's ones are a bit of a mixed mess.
 
-I think the all warning is mute. The chain of events that need to happen so
-a pmem driver will actually appear already means the system is capable of
-NvDIMM. So please let us just remove this warning. Also with emulated memmap=ss!aa
-the warning means nothing.
+Would be interested to see them.  We're currently looking at
+performance enhancements in this area.
 
-[BTW Also with (none-existent) pcommit you do not actually know that the system
- actually works, the CPU might have it, but not the firmware]
+>
+> The only complain I have with 4.3 is the wrong and scary message in my logs
+> on my perfectly healthy and thriving ADR system with NvDIMMs that says:
+>
+>         "d_pmem namespace0.0: unable to guarantee persistence of writes"
+>
+> As I told you in our talk, (Ever so gently and with full respect), you guys
+> made a bit of mess with the none-existent PCOMMIT instruction and NvDIMM persistency.
+> With a complete ADR system, even CPUs without PCOMMIT instruction are persistence
+> safe because of system support in flushing of MEM/IO buffers on a power loss.
+>
+> So you see the Kernel can not really say if the system is actually
+> "guarantee persistence". I'd send a fix for this all mess, once I have a bit
+> of time. (The mess I mean the all PCOMMIT thing that not a single CPU in existence
+> has support off, and actually it was put on hold for any real hardware. And some
+> missing corner cases of wrongness with persistency, as we found in testing)
 
-> How about a kernel parameter like "libnvdimm.adr=1" to tell the kernel
-> to ignore the absence of pcommit?
-> 
+I agree that the ADR situation is a bit of a mess since ACPI provides
+no mechanism to tell you that it is available.  I wouldn't be opposed
+to whitelisting certain platforms or use a sideband mechanism to check
+for ADR.  It's just not clear to me how to reliably determine if ADR
+is available and functional.
 
-Again I think the presence of NFIT or type-12 already means this.
-For x86 this is ADR. For other ARCHs they will need to provide there
-own Software or firmware support down the ARCH space. I think
+How about a kernel parameter like "libnvdimm.adr=1" to tell the kernel
+to ignore the absence of pcommit?
 
-The only real point is ARCHs that do not define any pmem support, but
-for those we will BUG() so fast that the warning is pointless there too.
+> 4.4 stuff I have not touched yet at all. Will do ASAP and report once I tested it.
 
-<>
-> 
-> The QEMU NFIT enabling is progressing, but not yet merged it seems.
-> 
-> http://marc.info/?l=qemu-devel&m=144645659908290&w=2
-> 
+Appreciate it.
 
-I will make an attempt to compile this, and produce a document.
+> [And we are still waiting for any NFIT system which is currently a complete
+>  vaporware. Intel said it will not upgrade any of our ADR systems BIOS/EUFI
+>  to NFIT. And there is no date yet for any new NFIT systems.
+>  You need to please send me instructions on how to compile my own QEMU with
+>  NFIT support, because I do not have any means currently to test my code with
+>  NFIT]
 
-Thanks Dan, good day
-Boaz
+The QEMU NFIT enabling is progressing, but not yet merged it seems.
 
+http://marc.info/?l=qemu-devel&m=144645659908290&w=2
