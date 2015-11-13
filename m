@@ -1,44 +1,62 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Message-ID: <56484DA1.5060506@plexistor.com>
-Date: Sun, 15 Nov 2015 11:17:21 +0200
-From: Boaz Harrosh <boaz@plexistor.com>
-MIME-Version: 1.0
+Message-ID: <1447430433.21443.85.camel@hpe.com>
 Subject: Re: [RFC 1/1] memremap: devm_memremap_pages has wrong nid
-References: <5643B043.3010103@plexistor.com>	 <CAPcyv4jCg58-Je4hW=O4TT9ESeJTV-GFEUidLD9n60-z9w9V2Q@mail.gmail.com> <1447430433.21443.85.camel@hpe.com>
-In-Reply-To: <1447430433.21443.85.camel@hpe.com>
-Content-Type: text/plain; charset=utf-8
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Fri, 13 Nov 2015 09:00:33 -0700
+In-Reply-To: <CAPcyv4jCg58-Je4hW=O4TT9ESeJTV-GFEUidLD9n60-z9w9V2Q@mail.gmail.com>
+References: <5643B043.3010103@plexistor.com>
+	 <CAPcyv4jCg58-Je4hW=O4TT9ESeJTV-GFEUidLD9n60-z9w9V2Q@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>, Dan Williams <dan.j.williams@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>, Boaz Harrosh <boaz@plexistor.com>
 Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 11/13/2015 06:00 PM, Toshi Kani wrote:
-<>
+On Wed, 2015-11-11 at 13:46 -0800, Dan Williams wrote:
+> On Wed, Nov 11, 2015 at 1:16 PM, Boaz Harrosh <boaz@plexistor.com> wrote:
+> > 
+> > The pmem dev as received in devm_memremap_pages() does not have
+> > its dev->numa_node properly initialized yet.
+> > 
+> > What I see is that all pmem devices will call arch_add_memory
+> > with nid==0 regardless of the real nid the memory is actually
+> > on. Needless to say that after that all the NUMA page and zone
+> > members (at page->flags) come out wrong.
+> > 
+> > If I do the below code it will all work properly.
+> > 
+> > RFC because probably we want to fix dev->numa_node before the
+> > call to devm_memremap_pages.
 > 
-> Agreed.  memory_add_physaddr_to_nid() uses the SRAT info, which does not work
-> with the NFIT case. 
+> Let's just do that instead.  I.e. in the case of NFIT numa node should
+> already be set, and in the case of the memmap=ss!nn or e820-type-12 we
+> can set the numa node like this:
+
+Agreed.  memory_add_physaddr_to_nid() uses the SRAT info, which does not work
+with the NFIT case. 
+
+Thanks,
+-Toshi 
+
+
+> diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
+> index 8282db2ef99e..e40df8fedf73 100644
+> --- a/drivers/nvdimm/e820.c
+> +++ b/drivers/nvdimm/e820.c
+> @@ -48,7 +48,7 @@ static int e820_pmem_probe(struct platform_device *pdev)
+>                memset(&ndr_desc, 0, sizeof(ndr_desc));
+>                ndr_desc.res = p;
+>                ndr_desc.attr_groups = e820_pmem_region_attribute_groups;
+> -               ndr_desc.numa_node = NUMA_NO_NODE;
+> +               ndr_desc.numa_node = memory_add_physaddr_to_nid(p->start);
+>                set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
+>                if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
+>                        goto err;
 > 
+> Thanks for pointing out memory_add_physaddr_to_nid(). I did not know
+> that existed.
 
-Thanks Toshi, I did not know that NFIT would not work. (As I already ranted NFIT
-is hard to find)
 
-Would it be hard to fix? I mean the way it is today NvDIMM is always put at the
-*end* of the NUMA address range, so all the NUMA boundaries (start) are there, all
-we need is to make sure max_pfn is advanced behind the last NvDIMM range.
-
-(Ok and we might have a slight problem with an NFIT only Node, where there
- is no volatile memory at all)
-
-I think it is worth fixing there are surprising places this might be used.
-I know that it works with type-12 and emulated pmem.
-
-(Once I set up my NFIT QEMU I'll see what I can find)
-
-> Thanks,
-> -Toshi 
-> 
-
-Thanks
-Boaz
 
