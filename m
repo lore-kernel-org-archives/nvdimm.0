@@ -1,67 +1,94 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v2 1/7] pmem, dax: clean up clear_pmem()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 25 Nov 2015 10:37:02 -0800
-Message-ID: <20151125183702.12508.33070.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20151125183656.12508.52212.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20151125183656.12508.52212.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 10/11] ext4: add support for DAX fsync/msync
+Date: Fri, 13 Nov 2015 17:06:49 -0700
+Message-Id: <1447459610-14259-11-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Both, __dax_pmd_fault, and clear_pmem() were taking special steps to
-clear memory a page at a time to take advantage of non-temporal
-clear_page() implementations.  However, x86_64 does not use
-non-temporal instructions for clear_page(), and arch_clear_pmem() was
-always incurring the cost of __arch_wb_cache_pmem().
+To properly support the new DAX fsync/msync infrastructure filesystems
+need to call dax_pfn_mkwrite() so that DAX can properly track when a user
+write faults on a previously cleaned address.  They also need to call
+dax_fsync() in the filesystem fsync() path.  This dax_fsync() call uses
+addresses retrieved from get_block() so it needs to be ordered with
+respect to truncate.  This is accomplished by using the same locking that
+was set up for DAX page faults.
 
-Clean up the assumption that doing clear_pmem() a page at a time is more
-performant.
-
-Reported-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- arch/x86/include/asm/pmem.h |    7 +------
- fs/dax.c                    |    4 +---
- 2 files changed, 2 insertions(+), 9 deletions(-)
+ fs/ext4/file.c  |  4 +++-
+ fs/ext4/fsync.c | 12 ++++++++++--
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index d8ce3ec816ab..1544fabcd7f9 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -132,12 +132,7 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 749b222..8c8965c 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -291,8 +291,8 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
  {
- 	void *vaddr = (void __force *)addr;
+ 	struct inode *inode = file_inode(vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+-	int ret = VM_FAULT_NOPAGE;
+ 	loff_t size;
++	int ret;
  
--	/* TODO: implement the zeroing via non-temporal writes */
--	if (size == PAGE_SIZE && ((unsigned long)vaddr & ~PAGE_MASK) == 0)
--		clear_page(vaddr);
--	else
--		memset(vaddr, 0, size);
--
-+	memset(vaddr, 0, size);
- 	__arch_wb_cache_pmem(vaddr, size);
- }
+ 	sb_start_pagefault(sb);
+ 	file_update_time(vma->vm_file);
+@@ -300,6 +300,8 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		ret = VM_FAULT_SIGBUS;
++	else
++		ret = dax_pfn_mkwrite(vma, vmf);
+ 	up_read(&EXT4_I(inode)->i_mmap_sem);
+ 	sb_end_pagefault(sb);
  
-diff --git a/fs/dax.c b/fs/dax.c
-index 43671b68220e..19492cc65a30 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -641,9 +641,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 			goto fallback;
+diff --git a/fs/ext4/fsync.c b/fs/ext4/fsync.c
+index 8850254..e87c29b 100644
+--- a/fs/ext4/fsync.c
++++ b/fs/ext4/fsync.c
+@@ -27,6 +27,7 @@
+ #include <linux/sched.h>
+ #include <linux/writeback.h>
+ #include <linux/blkdev.h>
++#include <linux/dax.h>
  
- 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
--			int i;
--			for (i = 0; i < PTRS_PER_PMD; i++)
--				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
-+			clear_pmem(kaddr, PMD_SIZE);
- 			wmb_pmem();
- 			count_vm_event(PGMAJFAULT);
- 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+ #include "ext4.h"
+ #include "ext4_jbd2.h"
+@@ -86,7 +87,8 @@ static int ext4_sync_parent(struct inode *inode)
+ 
+ int ext4_sync_file(struct file *file, loff_t start, loff_t end, int datasync)
+ {
+-	struct inode *inode = file->f_mapping->host;
++	struct address_space *mapping = file->f_mapping;
++	struct inode *inode = mapping->host;
+ 	struct ext4_inode_info *ei = EXT4_I(inode);
+ 	journal_t *journal = EXT4_SB(inode->i_sb)->s_journal;
+ 	int ret = 0, err;
+@@ -112,7 +114,13 @@ int ext4_sync_file(struct file *file, loff_t start, loff_t end, int datasync)
+ 		goto out;
+ 	}
+ 
+-	ret = filemap_write_and_wait_range(inode->i_mapping, start, end);
++	if (dax_mapping(mapping)) {
++		down_read(&ei->i_mmap_sem);
++		dax_fsync(mapping, start, end);
++		up_read(&ei->i_mmap_sem);
++	}
++
++	ret = filemap_write_and_wait_range(mapping, start, end);
+ 	if (ret)
+ 		return ret;
+ 	/*
+-- 
+2.1.0
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
