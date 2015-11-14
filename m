@@ -1,27 +1,43 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: Re: [PATCH v2 02/11] mm: add pmd_mkclean()
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 02/11] mm: add pmd_mkclean()
+Date: Fri, 13 Nov 2015 17:06:41 -0700
+Message-Id: <1447459610-14259-3-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
 References: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
- <1447459610-14259-3-git-send-email-ross.zwisler@linux.intel.com>
-From: Dave Hansen <dave.hansen@intel.com>
-Message-ID: <56468838.6010506@intel.com>
-Date: Fri, 13 Nov 2015 17:02:48 -0800
-MIME-Version: 1.0
-In-Reply-To: <1447459610-14259-3-git-send-email-ross.zwisler@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org
-Cc: "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 11/13/2015 04:06 PM, Ross Zwisler wrote:
-> +static inline pmd_t pmd_mkclean(pmd_t pmd)
-> +{
-> +	return pmd_clear_flags(pmd, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
-> +}
+Currently PMD pages can be dirtied via pmd_mkdirty(), but cannot be
+cleaned.  For DAX mmap dirty page tracking we need to be able to clean PMD
+pages when we flush them to media so that we get a new write fault the next
+time the are written to.
 
-pte_mkclean() doesn't clear _PAGE_SOFT_DIRTY.  What the thought behind
-doing it here?
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ arch/x86/include/asm/pgtable.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index 867da5b..c548e4c 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -277,6 +277,11 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
+ 	return pmd_set_flags(pmd, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
+ }
+ 
++static inline pmd_t pmd_mkclean(pmd_t pmd)
++{
++	return pmd_clear_flags(pmd, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
++}
++
+ static inline pmd_t pmd_mkhuge(pmd_t pmd)
+ {
+ 	return pmd_set_flags(pmd, _PAGE_PSE);
+-- 
+2.1.0
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
