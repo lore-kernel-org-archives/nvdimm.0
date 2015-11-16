@@ -1,53 +1,68 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Message-ID: <5643B043.3010103@plexistor.com>
-Date: Wed, 11 Nov 2015 23:16:51 +0200
-From: Boaz Harrosh <boaz@plexistor.com>
-MIME-Version: 1.0
-Subject: [RFC 1/1] memremap: devm_memremap_pages has wrong nid
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v2 1/3] nvdimm: Clean-up access mode check.
+Date: Mon, 16 Nov 2015 11:38:17 -0700
+Message-Id: <37b74929497e6fefe94793ce9ca788e00d386d8a.1447698598.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1447698598.git.jerry.hoemann@hpe.com>
+References: <cover.1447698598.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1447698598.git.jerry.hoemann@hpe.com>
+References: <cover.1447698598.git.jerry.hoemann@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+Change nd_ioctl and nvdimm_ioctl access mode check to use O_RDONLY.
 
-The pmem dev as received in devm_memremap_pages() does not have
-its dev->numa_node properly initialized yet.
-
-What I see is that all pmem devices will call arch_add_memory
-with nid==0 regardless of the real nid the memory is actually
-on. Needless to say that after that all the NUMA page and zone
-members (at page->flags) come out wrong.
-
-If I do the below code it will all work properly.
-
-RFC because probably we want to fix dev->numa_node before the
-call to devm_memremap_pages.
-
-This is on top of v4.3. I will please need the final fix for Stable@
-
-Thanks
-Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- kernel/memremap.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/nvdimm/bus.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 9d6b555..9409e23 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -183,9 +183,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res)
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 7e2c43f..1c81203 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -602,14 +602,14 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	long id = (long) file->private_data;
+-	int rc = -ENXIO, read_only;
++	int rc = -ENXIO, ro;
+ 	struct nvdimm_bus *nvdimm_bus;
  
- 	memcpy(&page_map->res, res, sizeof(*res));
+-	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
++	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+ 		if (nvdimm_bus->id == id) {
+-			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
++			rc = __nd_ioctl(nvdimm_bus, NULL, ro, cmd, arg);
+ 			break;
+ 		}
+ 	}
+@@ -633,10 +633,10 @@ static int match_dimm(struct device *dev, void *data)
  
--	nid = dev_to_node(dev);
--	if (nid < 0)
--		nid = 0;
-+	nid = memory_add_physaddr_to_nid(res->start);
+ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+-	int rc = -ENXIO, read_only;
++	int rc = -ENXIO, ro;
+ 	struct nvdimm_bus *nvdimm_bus;
  
- 	error = arch_add_memory(nid, res->start, resource_size(res), true);
- 	if (error) {
+-	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
++	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+ 		struct device *dev = device_find_child(&nvdimm_bus->dev,
+@@ -647,7 +647,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 			continue;
+ 
+ 		nvdimm = to_nvdimm(dev);
+-		rc = __nd_ioctl(nvdimm_bus, nvdimm, read_only, cmd, arg);
++		rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
+ 		put_device(dev);
+ 		break;
+ 	}
 -- 
-1.9.3
+1.7.11.3
 
