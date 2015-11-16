@@ -1,71 +1,62 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v2 0/3] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Mon, 16 Nov 2015 11:38:16 -0700
-Message-Id: <cover.1447698598.git.jerry.hoemann@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 16 Nov 2015 13:01:02 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v2 00/11] DAX fsynx/msync support
+Message-ID: <20151116200102.GA9737@linux.intel.com>
+References: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
+ <20151116144130.GD3443@quack.suse.cz>
+ <CAPcyv4gb8rh4Xkn-yzjbazftnXp8f6hr21LR5ZZehQBNLeNkZA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gb8rh4Xkn-yzjbazftnXp8f6hr21LR5ZZehQBNLeNkZA@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, XFS Developers <xfs@oss.sgi.com>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Mon, Nov 16, 2015 at 08:58:11AM -0800, Dan Williams wrote:
+> On Mon, Nov 16, 2015 at 6:41 AM, Jan Kara <jack@suse.cz> wrote:
+> > On Fri 13-11-15 17:06:39, Ross Zwisler wrote:
+> >> This patch series adds support for fsync/msync to DAX.
+> >>
+> >> Patches 1 through 7 add various utilities that the DAX code will eventually
+> >> need, and the DAX code itself is added by patch 8.  Patches 9-11 update the
+> >> three filesystems that currently support DAX, ext2, ext4 and XFS, to use
+> >> the new DAX fsync/msync code.
+> >>
+> >> These patches build on the recent DAX locking changes from Dave Chinner,
+> >> Jan Kara and myself.  Dave's changes for XFS and my changes for ext2 have
+> >> been merged in the v4.4 window, but Jan's are still unmerged.  You can grab
+> >> them here:
+> >>
+> >> http://www.spinics.net/lists/linux-ext4/msg49951.html
+> >
+> > I had a quick look and the patches look sane to me. I'll try to give them
+> > more detailed look later this week. When thinking about the general design
+> > I was wondering: When we have this infrastructure to track data potentially
+> > lingering in CPU caches, would not it be a performance win to use standard
+> > cached stores in dax_io() and mark corresponding pages as dirty in page
+> > cache the same way as this patch set does it for mmaped writes? I have no
+> > idea how costly are non-temporal stores compared to cached ones and how
+> > would this compare to the cost of dirty tracking so this may be just
+> > completely bogus...
+> 
+> Keep in mind that this approach will flush every virtual address that
+> may be dirty.  For example, if you touch 1byte in a 2MB page we'll end
+> up looping through the entire 2MB range.  At some point the dirty size
+> becomes large enough that is cheaper to flush the entire cache, we
+> have not measured where that crossover point is.
 
-The NVDIMM code in the kernel supports an IOCTL interface to user
-space based upon the Intel Example DSM:
+Yep, I expect there will be a crossover point where flushing the entire
+processor cache will be beneficial.  I agree with Dan that we'll need to
+figure this out via measurement, and that we'd similarly need measurements to
+justify the decision to write dirty data at the DAX level without flushing and
+mark entries as dirty for fsync/msync to clean up later.  It could turn out to
+be great, but we'll have to see. :)
 
-	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
-
-This interface cannot be used by other NVDIMM DSMs that support
-incompatible functions.
-
-This patch set adds a generic "passthru" IOCTL interface which
-is not tied to a particular DSM.
-
-A new _IOC_NR ND_CMD_PASSTHRU == "100" is added for the pass thru call.
-
-The new data structure nd_passthru_pkg serves as a wrapper for the passthru
-calls.  This wrapper supplies the data that the kernel needs to
-make the _DSM call.
-
-Unlike the definitions of the _DSM functions themselves, the nd_passthru_pkg
-provides the calling information (input/output sizes) in an uniform
-manner making the kernel marshaling of the arguments straight
-forward.
-
-This shifts the marshaling burden from the kernel to the user
-space application while still permitting the kernel to internally
-call _DSM functions.
-
-To make the resultant kernel code easier to understand the existing
-functions acpi_nfit_ctl and __nd_ioctl were renamed to .*_intel to
-denote calling mechanism as in 4.3 tailored to the Intel Example DSM.
-New functions acpi_nfit_ctl_passthru and __nd_ioctl_passthru were
-created to supply the pass thru interface.
-
-
-These changes are based upon the 4.3 kernel.
-
-
-Changes in version 2:
----------------------
-1. Cleanup access mode check in nd_ioctl and nvdimm_ioctl.
-2. Change name of ndn_pkg to nd_passthru_pkg
-3. Adjust sizes in nd_passthru_pkg. DSM intergers are 64 bit.
-4. No new ioctl type, instead tunnel into the existing number space.
-5. Push down one function level where determine ioctl cmd type.
-6. re-work diagnostic print/dump message in pass-thru functions.
-
-
-
-Jerry Hoemann (3):
-  nvdimm: Clean-up access mode check.
-  nvdimm: Add wrapper for IOCTL pass thru
-  nvdimm: Add IOCTL pass thru functions
-
- drivers/acpi/nfit.c        |  93 ++++++++++++++++++++++++++++++++++++++++-
- drivers/nvdimm/bus.c       | 101 +++++++++++++++++++++++++++++++++++++++++----
- include/uapi/linux/ndctl.h |  16 +++++++
- 3 files changed, 202 insertions(+), 8 deletions(-)
-
--- 
-1.7.11.3
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
