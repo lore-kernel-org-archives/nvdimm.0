@@ -1,55 +1,97 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH] dax: fix __dax_pmd_fault crash
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 12 Nov 2015 18:57:45 -0800
-Message-ID: <20151113025706.13868.1679.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Message-ID: <564B0410.9040502@plexistor.com>
+Date: Tue, 17 Nov 2015 12:40:16 +0200
+From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Subject: Re: [PATCH] mm, dax: fix DAX deadlocks (COW fault)
+References: <1447675755-5692-1-git-send-email-yigal@plexistor.com> <CAPcyv4gaeq=dJziT3xdWfaprVg6KsRO2-yR9QC3_XV8zb6b=Mg@mail.gmail.com> <20151116183404.GA22996@linux.intel.com>
+In-Reply-To: <20151116183404.GA22996@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, stable@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Yigal Korman <yigal@plexistor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, david <david@fromorbit.com>, Andrew Morton <akpm@linux-foundation.org>, Stable Tree <stable@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Dave Chinner <dchinner@redhat.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Since 4.3 introduced devm_memremap_pages() the pfns handled by DAX may
-optionally have a struct page backing.  When a mapped pfn reaches
-vmf_insert_pfn_pmd() it fails with a crash signature like the following:
+On 11/16/2015 08:34 PM, Ross Zwisler wrote:
+> On Mon, Nov 16, 2015 at 10:15:56AM -0800, Dan Williams wrote:
+>> On Mon, Nov 16, 2015 at 4:09 AM, Yigal Korman <yigal@plexistor.com> wrote:
+>>> DAX handling of COW faults has wrong locking sequence:
+>>>         dax_fault does i_mmap_lock_read
+>>>         do_cow_fault does i_mmap_unlock_write
+>>>
+>>> Ross's commit[1] missed a fix[2] that Kirill added to Matthew's
+>>> commit[3].
+>>>
+>>> Original COW locking logic was introduced by Matthew here[4].
+>>>
+>>> This should be applied to v4.3 as well.
+>>>
+>>> [1] 0f90cc6609c7 mm, dax: fix DAX deadlocks
+>>> [2] 52a2b53ffde6 mm, dax: use i_mmap_unlock_write() in do_cow_fault()
+>>> [3] 843172978bb9 dax: fix race between simultaneous faults
+>>> [4] 2e4cdab0584f mm: allow page fault handlers to perform the COW
+>>>
+>>> Signed-off-by: Yigal Korman <yigal@plexistor.com>
+>>>
+>>> Cc: Stable Tree <stable@vger.kernel.org>
+>>> Cc: Boaz Harrosh <boaz@plexistor.com>
+>>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>>> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+>>> Cc: Dan Williams <dan.j.williams@intel.com>
+>>> Cc: Dave Chinner <dchinner@redhat.com>
+>>> Cc: Jan Kara <jack@suse.com>
+>>> Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+>>> Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+>>> ---
+>>>  mm/memory.c | 8 ++++----
+>>>  1 file changed, 4 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/mm/memory.c b/mm/memory.c
+>>> index c716913..e5071af 100644
+>>> --- a/mm/memory.c
+>>> +++ b/mm/memory.c
+>>> @@ -3015,9 +3015,9 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+>>>                 } else {
+>>>                         /*
+>>>                          * The fault handler has no page to lock, so it holds
+>>> -                        * i_mmap_lock for write to protect against truncate.
+>>> +                        * i_mmap_lock for read to protect against truncate.
+>>>                          */
+>>> -                       i_mmap_unlock_write(vma->vm_file->f_mapping);
+>>> +                       i_mmap_unlock_read(vma->vm_file->f_mapping);
+>>>                 }
+>>>                 goto uncharge_out;
+>>>         }
+>>> @@ -3031,9 +3031,9 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+>>>         } else {
+>>>                 /*
+>>>                  * The fault handler has no page to lock, so it holds
+>>> -                * i_mmap_lock for write to protect against truncate.
+>>> +                * i_mmap_lock for read to protect against truncate.
+>>>                  */
+>>> -               i_mmap_unlock_write(vma->vm_file->f_mapping);
+>>> +               i_mmap_unlock_read(vma->vm_file->f_mapping);
+>>>         }
+>>>         return ret;
+>>>  uncharge_out:
+>>
+>> Looks good to me.  I'll include this with some other DAX fixes I have pending.
+> 
+> Looks good to me as well.  Thanks for catching this.
+> 
 
- kernel BUG at mm/huge_memory.c:905!
- [..]
- Call Trace:
-  [<ffffffff812a73ba>] __dax_pmd_fault+0x2ea/0x5b0
-  [<ffffffffa01a4182>] xfs_filemap_pmd_fault+0x92/0x150 [xfs]
-  [<ffffffff811fbe02>] handle_mm_fault+0x312/0x1b50
+Yes. None of the xfstests catch this. It needs a private-mapping mmap in some combination
+of other activity on the file at the same time.
 
-Fix this by falling back to 4K mappings in the pfn_valid() case.  Longer
-term, vmf_insert_pfn_pmd() needs to grow support for architectures that
-can provide a 'pmd_special' capability.
+Which the linker of gcc does. We have a test of a git clone Kernel-tree and make. which
+catches this in the make phase. For some reason on ext4 it is reliable to crash but on xfs 1/2
+the runs go through, go figure.
 
-Cc: <stable@vger.kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+Thanks Yigal for the fast fix
+Boaz
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 131fd35ae39d..bff20cc56130 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -627,6 +627,13 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
- 			goto fallback;
- 
-+		/*
-+		 * TODO: teach vmf_insert_pfn_pmd() to support
-+		 * 'pte_special' for pmds
-+		 */
-+		if (pfn_valid(pfn))
-+			goto fallback;
-+
- 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
- 			int i;
- 			for (i = 0; i < PTRS_PER_PMD; i++)
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
