@@ -1,164 +1,66 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 09/15] block: notify queue death confirmation
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Subject: [PATCH 1/8] ext2, ext4: warn when mounting with dax enabled
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 01 Nov 2015 23:30:31 -0500
-Message-ID: <20151102043031.6610.41822.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 17 Nov 2015 12:15:58 -0800
+Message-ID: <20151117201558.15053.94792.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@fb.com
-Cc: Jens Axboe <axboe@kernel.dk>, jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, ross.zwisler@linux.intel.com, hch@lst.de
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Dave Chinner <david@fromorbit.com>, stable@vger.kernel.org, linux-block@vger.kernel.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, willy@linux.intel.com, ross.zwisler@linux.intel.com, linux-ext4@vger.kernel.org, akpm@linux-foundation.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pmem driver arranges for references to be taken against the queue
-while pages it allocated via devm_memremap_pages() are in use.  At
-shutdown time, before those pages can be deallocated, they need to be
-unmapped, and guaranteed to be idle.  The unmap scan can only be done
-once we are certain no new page references will be taken.  Once the blk
-queue percpu_ref is confirmed dead the dax core will cease allowing new
-references and we can free these "device" pages.
+Similar to XFS warn when mounting DAX while it is still considered under
+development.  Also, aspects of the DAX implementation, for example
+synchronization against multiple faults and faults causing block
+allocation, depend on the correct implementation in the filesystem.  The
+maturity of a given DAX implementation is filesystem specific.
 
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: <stable@vger.kernel.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: linux-ext4@vger.kernel.org
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Dave Chinner <david@fromorbit.com>
+Acked-by: Jan Kara <jack@suse.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- block/blk-core.c       |   12 +++++++++---
- block/blk-mq.c         |   19 +++++++++++++++----
- include/linux/blkdev.h |    4 +++-
- 3 files changed, 27 insertions(+), 8 deletions(-)
+ fs/ext2/super.c |    2 ++
+ fs/ext4/super.c |    6 +++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/block/blk-core.c b/block/blk-core.c
-index 6ebe33ed5154..5159946a2b41 100644
---- a/block/blk-core.c
-+++ b/block/blk-core.c
-@@ -516,6 +516,12 @@ void blk_set_queue_dying(struct request_queue *q)
- }
- EXPORT_SYMBOL_GPL(blk_set_queue_dying);
- 
-+void blk_wait_queue_dead(struct request_queue *q)
-+{
-+	wait_event(q->q_freeze_wq, q->q_usage_dead);
-+}
-+EXPORT_SYMBOL(blk_wait_queue_dead);
-+
- /**
-  * blk_cleanup_queue - shutdown a request queue
-  * @q: request queue to shutdown
-@@ -641,7 +647,7 @@ int blk_queue_enter(struct request_queue *q, gfp_t gfp)
- 		if (!(gfp & __GFP_WAIT))
- 			return -EBUSY;
- 
--		ret = wait_event_interruptible(q->mq_freeze_wq,
-+		ret = wait_event_interruptible(q->q_freeze_wq,
- 				!atomic_read(&q->mq_freeze_depth) ||
- 				blk_queue_dying(q));
- 		if (blk_queue_dying(q))
-@@ -661,7 +667,7 @@ static void blk_queue_usage_counter_release(struct percpu_ref *ref)
- 	struct request_queue *q =
- 		container_of(ref, struct request_queue, q_usage_counter);
- 
--	wake_up_all(&q->mq_freeze_wq);
-+	wake_up_all(&q->q_freeze_wq);
- }
- 
- struct request_queue *blk_alloc_queue_node(gfp_t gfp_mask, int node_id)
-@@ -723,7 +729,7 @@ struct request_queue *blk_alloc_queue_node(gfp_t gfp_mask, int node_id)
- 	q->bypass_depth = 1;
- 	__set_bit(QUEUE_FLAG_BYPASS, &q->queue_flags);
- 
--	init_waitqueue_head(&q->mq_freeze_wq);
-+	init_waitqueue_head(&q->q_freeze_wq);
- 
- 	/*
- 	 * Init percpu_ref in atomic mode so that it's faster to shutdown.
-diff --git a/block/blk-mq.c b/block/blk-mq.c
-index 6c240712553a..e0417febbcd4 100644
---- a/block/blk-mq.c
-+++ b/block/blk-mq.c
-@@ -78,13 +78,23 @@ static void blk_mq_hctx_clear_pending(struct blk_mq_hw_ctx *hctx,
- 	clear_bit(CTX_TO_BIT(hctx, ctx), &bm->word);
- }
- 
-+static void blk_confirm_queue_death(struct percpu_ref *ref)
-+{
-+	struct request_queue *q = container_of(ref, typeof(*q),
-+			q_usage_counter);
-+
-+	q->q_usage_dead = 1;
-+	wake_up_all(&q->q_freeze_wq);
-+}
-+
- void blk_mq_freeze_queue_start(struct request_queue *q)
- {
- 	int freeze_depth;
- 
- 	freeze_depth = atomic_inc_return(&q->mq_freeze_depth);
- 	if (freeze_depth == 1) {
--		percpu_ref_kill(&q->q_usage_counter);
-+		percpu_ref_kill_and_confirm(&q->q_usage_counter,
-+				blk_confirm_queue_death);
- 		blk_mq_run_hw_queues(q, false);
- 	}
- }
-@@ -92,7 +102,7 @@ EXPORT_SYMBOL_GPL(blk_mq_freeze_queue_start);
- 
- static void blk_mq_freeze_queue_wait(struct request_queue *q)
- {
--	wait_event(q->mq_freeze_wq, percpu_ref_is_zero(&q->q_usage_counter));
-+	wait_event(q->q_freeze_wq, percpu_ref_is_zero(&q->q_usage_counter));
- }
- 
- /*
-@@ -130,7 +140,8 @@ void blk_mq_unfreeze_queue(struct request_queue *q)
- 	WARN_ON_ONCE(freeze_depth < 0);
- 	if (!freeze_depth) {
- 		percpu_ref_reinit(&q->q_usage_counter);
--		wake_up_all(&q->mq_freeze_wq);
-+		q->q_usage_dead = 0;
-+		wake_up_all(&q->q_freeze_wq);
- 	}
- }
- EXPORT_SYMBOL_GPL(blk_mq_unfreeze_queue);
-@@ -149,7 +160,7 @@ void blk_mq_wake_waiters(struct request_queue *q)
- 	 * dying, we need to ensure that processes currently waiting on
- 	 * the queue are notified as well.
- 	 */
--	wake_up_all(&q->mq_freeze_wq);
-+	wake_up_all(&q->q_freeze_wq);
- }
- 
- bool blk_mq_can_queue(struct blk_mq_hw_ctx *hctx)
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index b78e01542e9e..e121e5e0c6ac 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -431,6 +431,7 @@ struct request_queue {
- 	 */
- 	unsigned int		flush_flags;
- 	unsigned int		flush_not_queueable:1;
-+	unsigned int		q_usage_dead:1;
- 	struct blk_flush_queue	*fq;
- 
- 	struct list_head	requeue_list;
-@@ -453,7 +454,7 @@ struct request_queue {
- 	struct throtl_data *td;
+diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+index 3a71cea68420..748d35afc902 100644
+--- a/fs/ext2/super.c
++++ b/fs/ext2/super.c
+@@ -569,6 +569,8 @@ static int parse_options(char *options, struct super_block *sb)
+ 			/* Fall through */
+ 		case Opt_dax:
+ #ifdef CONFIG_FS_DAX
++			ext2_msg(sb, KERN_WARNING,
++		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+ 			set_opt(sbi->s_mount_opt, DAX);
+ #else
+ 			ext2_msg(sb, KERN_INFO, "dax option not supported");
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index 753f4e68b820..c9ab67da6e5a 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -1664,8 +1664,12 @@ static int handle_mount_opt(struct super_block *sb, char *opt, int token,
+ 		}
+ 		sbi->s_jquota_fmt = m->mount_opt;
  #endif
- 	struct rcu_head		rcu_head;
--	wait_queue_head_t	mq_freeze_wq;
-+	wait_queue_head_t	q_freeze_wq;
- 	struct percpu_ref	q_usage_counter;
- 	struct list_head	all_q_node;
- 
-@@ -953,6 +954,7 @@ extern struct request_queue *blk_init_queue_node(request_fn_proc *rfn,
- extern struct request_queue *blk_init_queue(request_fn_proc *, spinlock_t *);
- extern struct request_queue *blk_init_allocated_queue(struct request_queue *,
- 						      request_fn_proc *, spinlock_t *);
-+extern void blk_wait_queue_dead(struct request_queue *q);
- extern void blk_cleanup_queue(struct request_queue *);
- extern void blk_queue_make_request(struct request_queue *, make_request_fn *);
- extern void blk_queue_bounce_limit(struct request_queue *, u64);
+-#ifndef CONFIG_FS_DAX
+ 	} else if (token == Opt_dax) {
++#ifdef CONFIG_FS_DAX
++		ext4_msg(sb, KERN_WARNING,
++		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
++			sbi->s_mount_opt |= m->mount_opt;
++#else
+ 		ext4_msg(sb, KERN_INFO, "dax option not supported");
+ 		return -1;
+ #endif
 
