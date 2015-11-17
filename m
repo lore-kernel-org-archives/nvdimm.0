@@ -1,67 +1,240 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 01/15] pmem, dax: clean up clear_pmem()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 01 Nov 2015 23:29:47 -0500
-Message-ID: <20151102042947.6610.75116.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Tue, 17 Nov 2015 11:30:16 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v2 08/11] dax: add support for fsync/sync
+Message-ID: <20151117183016.GC28024@linux.intel.com>
+References: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1447459610-14259-9-git-send-email-ross.zwisler@linux.intel.com>
+ <20151116225807.GX19199@dastard>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@fb.com
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, ross.zwisler@linux.intel.com, hch@lst.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151116225807.GX19199@dastard>
+Sender: owner-linux-mm@kvack.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Both, __dax_pmd_fault, and clear_pmem() were taking special steps to
-clear memory a page at a time to take advantage of non-temporal
-clear_page() implementations.  However, x86_64 does not use
-non-temporal instructions for clear_page(), and arch_clear_pmem() was
-always incurring the cost of __arch_wb_cache_pmem().
+On Tue, Nov 17, 2015 at 09:58:07AM +1100, Dave Chinner wrote:
+> On Fri, Nov 13, 2015 at 05:06:47PM -0700, Ross Zwisler wrote:
+> > To properly handle fsync/msync in an efficient way DAX needs to track dirty
+> > pages so it is able to flush them durably to media on demand.
+> > 
+> > The tracking of dirty pages is done via the radix tree in struct
+> > address_space.  This radix tree is already used by the page writeback
+> > infrastructure for tracking dirty pages associated with an open file, and
+> > it already has support for exceptional (non struct page*) entries.  We
+> > build upon these features to add exceptional entries to the radix tree for
+> > DAX dirty PMD or PTE pages at fault time.
+> > 
+> > When called as part of the msync/fsync flush path DAX queries the radix
+> > tree for dirty entries, flushing them and then marking the PTE or PMD page
+> > table entries as clean.  The step of cleaning the PTE or PMD entries is
+> > necessary so that on subsequent writes to the same page we get a new write
+> > fault allowing us to once again dirty the DAX tag in the radix tree.
+> > 
+> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > ---
+> >  fs/dax.c            | 140 +++++++++++++++++++++++++++++++++++++++++++++++++---
+> >  include/linux/dax.h |   1 +
+> >  mm/huge_memory.c    |  14 +++---
+> >  3 files changed, 141 insertions(+), 14 deletions(-)
+> > 
+> > diff --git a/fs/dax.c b/fs/dax.c
+> > index 131fd35a..9ce6d1b 100644
+> > --- a/fs/dax.c
+> > +++ b/fs/dax.c
+> > @@ -24,7 +24,9 @@
+> >  #include <linux/memcontrol.h>
+> >  #include <linux/mm.h>
+> >  #include <linux/mutex.h>
+> > +#include <linux/pagevec.h>
+> >  #include <linux/pmem.h>
+> > +#include <linux/rmap.h>
+> >  #include <linux/sched.h>
+> >  #include <linux/uio.h>
+> >  #include <linux/vmstat.h>
+> > @@ -287,6 +289,53 @@ static int copy_user_bh(struct page *to, struct buffer_head *bh,
+> >  	return 0;
+> >  }
+> >  
+> > +static int dax_dirty_pgoff(struct address_space *mapping, unsigned long pgoff,
+> > +		void __pmem *addr, bool pmd_entry)
+> > +{
+> > +	struct radix_tree_root *page_tree = &mapping->page_tree;
+> > +	int error = 0;
+> > +	void *entry;
+> > +
+> > +	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+> > +
+> > +	spin_lock_irq(&mapping->tree_lock);
+> > +	entry = radix_tree_lookup(page_tree, pgoff);
+> > +	if (addr == NULL) {
+> > +		if (entry)
+> > +			goto dirty;
+> > +		else {
+> > +			WARN(1, "DAX pfn_mkwrite failed to find an entry");
+> > +			goto out;
+> > +		}
+> > +	}
+> > +
+> > +	if (entry) {
+> > +		if (pmd_entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PTE) {
+> > +			radix_tree_delete(&mapping->page_tree, pgoff);
+> > +			mapping->nrdax--;
+> > +		} else
+> > +			goto dirty;
+> > +	}
+> 
+> Logic is pretty spagettied here. Perhaps:
+> 
+> 	entry = radix_tree_lookup(page_tree, pgoff);
+> 	if (entry) {
+> 		if (!pmd_entry || RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD))
+> 			goto dirty;
+> 		radix_tree_delete(&mapping->page_tree, pgoff);
+> 		mapping->nrdax--;
+> 	} else {
+> 		WARN_ON(!addr);
+> 		goto out_unlock;
+> 	}
+> ....
 
-Clean up the assumption that doing clear_pmem() a page at a time is more
-performant.
+I don't think that this works because now if !entry we unconditionally goto
+out_unlock without inserting a new entry.  I'll try and simplify the logic and
+add some comments.
 
-Reported-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/include/asm/pmem.h |    7 +------
- fs/dax.c                    |    4 +---
- 2 files changed, 2 insertions(+), 9 deletions(-)
+> > +
+> > +	BUG_ON(RADIX_DAX_TYPE(addr));
+> > +	if (pmd_entry)
+> > +		error = radix_tree_insert(page_tree, pgoff,
+> > +				RADIX_DAX_PMD_ENTRY(addr));
+> > +	else
+> > +		error = radix_tree_insert(page_tree, pgoff,
+> > +				RADIX_DAX_PTE_ENTRY(addr));
+> > +
+> > +	if (error)
+> > +		goto out;
+> > +
+> > +	mapping->nrdax++;
+> > + dirty:
+> > +	radix_tree_tag_set(page_tree, pgoff, PAGECACHE_TAG_DIRTY);
+> > + out:
+> > +	spin_unlock_irq(&mapping->tree_lock);
+> 
+> label should be "out_unlock" rather "out" to indicate in the code
+> that we are jumping to the correct spot in the error stack...
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index d8ce3ec816ab..1544fabcd7f9 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -132,12 +132,7 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
- {
- 	void *vaddr = (void __force *)addr;
- 
--	/* TODO: implement the zeroing via non-temporal writes */
--	if (size == PAGE_SIZE && ((unsigned long)vaddr & ~PAGE_MASK) == 0)
--		clear_page(vaddr);
--	else
--		memset(vaddr, 0, size);
--
-+	memset(vaddr, 0, size);
- 	__arch_wb_cache_pmem(vaddr, size);
- }
- 
-diff --git a/fs/dax.c b/fs/dax.c
-index a86d3cc2b389..5dc33d788d50 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -623,9 +623,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 			goto fallback;
- 
- 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
--			int i;
--			for (i = 0; i < PTRS_PER_PMD; i++)
--				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
-+			clear_pmem(kaddr, HPAGE_SIZE);
- 			wmb_pmem();
- 			count_vm_event(PGMAJFAULT);
- 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+Sure, will do.
 
+> > +			goto fallback;
+> >  	}
+> >  
+> >   out:
+> > @@ -689,15 +746,12 @@ EXPORT_SYMBOL_GPL(dax_pmd_fault);
+> >   * dax_pfn_mkwrite - handle first write to DAX page
+> >   * @vma: The virtual memory area where the fault occurred
+> >   * @vmf: The description of the fault
+> > - *
+> >   */
+> >  int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+> >  {
+> > -	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
+> > +	struct file *file = vma->vm_file;
+> >  
+> > -	sb_start_pagefault(sb);
+> > -	file_update_time(vma->vm_file);
+> > -	sb_end_pagefault(sb);
+> > +	dax_dirty_pgoff(file->f_mapping, vmf->pgoff, NULL, false);
+> >  	return VM_FAULT_NOPAGE;
+> 
+> This seems wrong - it's dropping the freeze protection on fault, and
+> now the inode timestamp won't get updated, either.
+
+Oh, that all still happens in the filesystem pfn_mkwrite code
+(xfs_filemap_pfn_mkwrite() for XFS).  It needs to happen there, I think,
+because we wanted to order it so that the filesystem freeze happens outside of
+the XFS_MMAPLOCK_SHARED locking, as it does with the regular PMD and PTE fault
+paths.
+
+Prior to this patch set dax_pfn_mkwrite() was completely unused an was ready
+to be removed as dead code - it's now being used by all filesystems just to
+make sure we re-add the newly dirtied page to the radix tree dirty list.
+
+> >  }
+> >  EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
+> > @@ -772,3 +826,77 @@ int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
+> >  	return dax_zero_page_range(inode, from, length, get_block);
+> >  }
+> >  EXPORT_SYMBOL_GPL(dax_truncate_page);
+> > +
+> > +static void dax_sync_entry(struct address_space *mapping, pgoff_t pgoff,
+> > +		void *entry)
+> > +{
+> 
+> dax_writeback_pgoff() seems like a more consistent name (consider
+> dax_dirty_pgoff), and that we are actually doing a writeback
+> operation, not a "sync" operation.
+
+Sure, I'm fine with that change.
+
+> > +	struct radix_tree_root *page_tree = &mapping->page_tree;
+> > +	int type = RADIX_DAX_TYPE(entry);
+> > +	size_t size;
+> > +
+> > +	BUG_ON(type != RADIX_DAX_PTE && type != RADIX_DAX_PMD);
+> > +
+> > +	spin_lock_irq(&mapping->tree_lock);
+> > +	if (!radix_tree_tag_get(page_tree, pgoff, PAGECACHE_TAG_TOWRITE)) {
+> > +		/* another fsync thread already wrote back this entry */
+> > +		spin_unlock_irq(&mapping->tree_lock);
+> > +		return;
+> > +	}
+> > +	radix_tree_tag_clear(page_tree, pgoff, PAGECACHE_TAG_TOWRITE);
+> > +	radix_tree_tag_clear(page_tree, pgoff, PAGECACHE_TAG_DIRTY);
+> > +	spin_unlock_irq(&mapping->tree_lock);
+> > +
+> > +	if (type == RADIX_DAX_PMD)
+> > +		size = PMD_SIZE;
+> > +	else
+> > +		size = PAGE_SIZE;
+> > +
+> > +	wb_cache_pmem(RADIX_DAX_ADDR(entry), size);
+> > +	pgoff_mkclean(pgoff, mapping);
+> 
+> This looks racy w.r.t. another operation setting the radix tree
+> dirty tags. i.e. there is no locking to serialise marking the
+> vma/pte clean and another operation marking the radix tree dirty.
+
+I think you're right - I'll look into how to protect us from this race.  Thank
+you for catching this.
+
+> > +}
+> > +
+> > +/*
+> > + * Flush the mapping to the persistent domain within the byte range of (start,
+> > + * end). This is required by data integrity operations to ensure file data is on
+> > + * persistent storage prior to completion of the operation. It also requires us
+> > + * to clean the mappings (i.e. write -> RO) so that we'll get a new fault when
+> > + * the file is written to again so we have an indication that we need to flush
+> > + * the mapping if a data integrity operation takes place.
+> > + *
+> > + * We don't need commits to storage here - the filesystems will issue flushes
+> > + * appropriately at the conclusion of the data integrity operation via REQ_FUA
+> > + * writes or blkdev_issue_flush() commands.  This requires the DAX block device
+> > + * to implement persistent storage domain fencing/commits on receiving a
+> > + * REQ_FLUSH or REQ_FUA request so that this works as expected by the higher
+> > + * layers.
+> > + */
+> > +void dax_fsync(struct address_space *mapping, loff_t start, loff_t end)
+> > +{
+> 
+> dax_writeback_mapping_range()
+
+Sure, I'm fine with that change.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
