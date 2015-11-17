@@ -1,77 +1,53 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Yigal Korman <yigal@plexistor.com>
-Subject: [PATCH] mm, dax: fix DAX deadlocks (COW fault)
-Date: Mon, 16 Nov 2015 14:09:15 +0200
-Message-Id: <1447675755-5692-1-git-send-email-yigal@plexistor.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, david@fromorbit.com, akpm@linux-foundation.org, Yigal Korman <yigal@plexistor.com>, Stable Tree <stable@vger.kernel.org>, Boaz Harrosh <boaz@plexistor.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <dchinner@redhat.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Subject: [PATCH 7/8] dax: guarantee page aligned results from
+ bdev_direct_access()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 17 Nov 2015 12:16:30 -0800
+Message-ID: <20151117201630.15053.53812.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-block@vger.kernel.org, willy@linux.intel.com, ross.zwisler@linux.intel.com, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX handling of COW faults has wrong locking sequence:
-	dax_fault does i_mmap_lock_read
-	do_cow_fault does i_mmap_unlock_write
+If a ->direct_access() implementation ever returns a map count less than
+PAGE_SIZE, catch the error in bdev_direct_access().  This simplifies
+error checking in upper layers.
 
-Ross's commit[1] missed a fix[2] that Kirill added to Matthew's
-commit[3].
-
-Original COW locking logic was introduced by Matthew here[4].
-
-This should be applied to v4.3 as well.
-
-[1] 0f90cc6609c7 mm, dax: fix DAX deadlocks
-[2] 52a2b53ffde6 mm, dax: use i_mmap_unlock_write() in do_cow_fault()
-[3] 843172978bb9 dax: fix race between simultaneous faults
-[4] 2e4cdab0584f mm: allow page fault handlers to perform the COW
-
-Signed-off-by: Yigal Korman <yigal@plexistor.com>
-
-Cc: Stable Tree <stable@vger.kernel.org>
-Cc: Boaz Harrosh <boaz@plexistor.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- mm/memory.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/block_dev.c |    2 ++
+ fs/dax.c       |    1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/mm/memory.c b/mm/memory.c
-index c716913..e5071af 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3015,9 +3015,9 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		} else {
- 			/*
- 			 * The fault handler has no page to lock, so it holds
--			 * i_mmap_lock for write to protect against truncate.
-+			 * i_mmap_lock for read to protect against truncate.
- 			 */
--			i_mmap_unlock_write(vma->vm_file->f_mapping);
-+			i_mmap_unlock_read(vma->vm_file->f_mapping);
- 		}
- 		goto uncharge_out;
- 	}
-@@ -3031,9 +3031,9 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 	} else {
- 		/*
- 		 * The fault handler has no page to lock, so it holds
--		 * i_mmap_lock for write to protect against truncate.
-+		 * i_mmap_lock for read to protect against truncate.
- 		 */
--		i_mmap_unlock_write(vma->vm_file->f_mapping);
-+		i_mmap_unlock_read(vma->vm_file->f_mapping);
- 	}
- 	return ret;
- uncharge_out:
--- 
-1.9.3
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index bb0dfb1c7af1..e2cc681d4afe 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -475,6 +475,8 @@ long bdev_direct_access(struct block_device *bdev, sector_t sector,
+ 	avail = ops->direct_access(bdev, sector, addr, pfn);
+ 	if (!avail)
+ 		return -ERANGE;
++	if (avail > 0 && avail & ~PAGE_MASK)
++		return -ENXIO;
+ 	return min(avail, size);
+ }
+ EXPORT_SYMBOL_GPL(bdev_direct_access);
+diff --git a/fs/dax.c b/fs/dax.c
+index e11d88835bb2..6e498c2570bf 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -52,7 +52,6 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+ 		sz = min_t(long, count, SZ_1M);
+ 		clear_pmem(addr, sz);
+ 		size -= sz;
+-		BUG_ON(sz & 511);
+ 		sector += sz / 512;
+ 		cond_resched();
+ 	} while (size);
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
