@@ -1,94 +1,64 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Tue, 17 Nov 2015 13:51:20 -0700
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 10/11] ext4: add support for DAX fsync/msync
-Date: Fri, 13 Nov 2015 17:06:49 -0700
-Message-Id: <1447459610-14259-11-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+Subject: Re: [PATCH 2/8] dax: disable pmd mappings
+Message-ID: <20151117205120.GF28024@linux.intel.com>
+References: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
+ <20151117201603.15053.77916.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151117201603.15053.77916.stgit@dwillia2-desk3.jf.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, stable@vger.kernel.org, linux-block@vger.kernel.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, willy@linux.intel.com, ross.zwisler@linux.intel.com, akpm@linux-foundation.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can properly track when a user
-write faults on a previously cleaned address.  They also need to call
-dax_fsync() in the filesystem fsync() path.  This dax_fsync() call uses
-addresses retrieved from get_block() so it needs to be ordered with
-respect to truncate.  This is accomplished by using the same locking that
-was set up for DAX page faults.
+On Tue, Nov 17, 2015 at 12:16:03PM -0800, Dan Williams wrote:
+> While dax pmd mappings are functional in the nominal path they trigger
+> kernel crashes in the following paths:
+> 
+>  BUG: unable to handle kernel paging request at ffffea0004098000
+>  IP: [<ffffffff812362f7>] follow_trans_huge_pmd+0x117/0x3b0
+>  [..]
+>  Call Trace:
+>   [<ffffffff811f6573>] follow_page_mask+0x2d3/0x380
+>   [<ffffffff811f6708>] __get_user_pages+0xe8/0x6f0
+>   [<ffffffff811f7045>] get_user_pages_unlocked+0x165/0x1e0
+>   [<ffffffff8106f5b1>] get_user_pages_fast+0xa1/0x1b0
+> 
+>  kernel BUG at arch/x86/mm/gup.c:131!
+>  [..]
+>  Call Trace:
+>   [<ffffffff8106f34c>] gup_pud_range+0x1bc/0x220
+>   [<ffffffff8106f634>] get_user_pages_fast+0x124/0x1b0
+> 
+>  BUG: unable to handle kernel paging request at ffffea0004088000
+>  IP: [<ffffffff81235f49>] copy_huge_pmd+0x159/0x350
+>  [..]
+>  Call Trace:
+>   [<ffffffff811fad3c>] copy_page_range+0x34c/0x9f0
+>   [<ffffffff810a0daf>] copy_process+0x1b7f/0x1e10
+>   [<ffffffff810a11c1>] _do_fork+0x91/0x590
+> 
+> All of these paths are interpreting a dax pmd mapping as a transparent
+> huge page and making the assumption that the pfn is covered by the
+> memmap, i.e. that the pfn has an associated struct page.  PTE mappings
+> do not suffer the same fate since they have the _PAGE_SPECIAL flag to
+> cause the gup path to fault.  We can do something similar for the PMD
+> path, or otherwise defer pmd support for cases where a struct page is
+> available.  For now, 4.4-rc and -stable need to disable dax pmd support
+> by default.
+> 
+> For development the "depends on BROKEN" line can be removed from
+> CONFIG_FS_DAX_PMD.
+> 
+> Cc: <stable@vger.kernel.org>
+> Cc: Jan Kara <jack@suse.com>
+> Cc: Dave Chinner <david@fromorbit.com>
+> Cc: Matthew Wilcox <willy@linux.intel.com>
+> Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/ext4/file.c  |  4 +++-
- fs/ext4/fsync.c | 12 ++++++++++--
- 2 files changed, 13 insertions(+), 3 deletions(-)
-
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 749b222..8c8965c 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -291,8 +291,8 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
- {
- 	struct inode *inode = file_inode(vma->vm_file);
- 	struct super_block *sb = inode->i_sb;
--	int ret = VM_FAULT_NOPAGE;
- 	loff_t size;
-+	int ret;
- 
- 	sb_start_pagefault(sb);
- 	file_update_time(vma->vm_file);
-@@ -300,6 +300,8 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 	up_read(&EXT4_I(inode)->i_mmap_sem);
- 	sb_end_pagefault(sb);
- 
-diff --git a/fs/ext4/fsync.c b/fs/ext4/fsync.c
-index 8850254..e87c29b 100644
---- a/fs/ext4/fsync.c
-+++ b/fs/ext4/fsync.c
-@@ -27,6 +27,7 @@
- #include <linux/sched.h>
- #include <linux/writeback.h>
- #include <linux/blkdev.h>
-+#include <linux/dax.h>
- 
- #include "ext4.h"
- #include "ext4_jbd2.h"
-@@ -86,7 +87,8 @@ static int ext4_sync_parent(struct inode *inode)
- 
- int ext4_sync_file(struct file *file, loff_t start, loff_t end, int datasync)
- {
--	struct inode *inode = file->f_mapping->host;
-+	struct address_space *mapping = file->f_mapping;
-+	struct inode *inode = mapping->host;
- 	struct ext4_inode_info *ei = EXT4_I(inode);
- 	journal_t *journal = EXT4_SB(inode->i_sb)->s_journal;
- 	int ret = 0, err;
-@@ -112,7 +114,13 @@ int ext4_sync_file(struct file *file, loff_t start, loff_t end, int datasync)
- 		goto out;
- 	}
- 
--	ret = filemap_write_and_wait_range(inode->i_mapping, start, end);
-+	if (dax_mapping(mapping)) {
-+		down_read(&ei->i_mmap_sem);
-+		dax_fsync(mapping, start, end);
-+		up_read(&ei->i_mmap_sem);
-+	}
-+
-+	ret = filemap_write_and_wait_range(mapping, start, end);
- 	if (ret)
- 		return ret;
- 	/*
--- 
-2.1.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Acked-by: Ross Zwisler <ross.zwisler@linux.intel.com>
