@@ -1,67 +1,33 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 3/3] ACPI/APEI/EINJ: Allow memory error injection to NVDIMM
-Date: Tue, 24 Nov 2015 15:33:38 -0700
-Message-Id: <1448404418-28800-4-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
-References: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
+Date: Tue, 17 Nov 2015 10:52:43 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v2 02/11] mm: add pmd_mkclean()
+Message-ID: <20151117175243.GA28024@linux.intel.com>
+References: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1447459610-14259-3-git-send-email-ross.zwisler@linux.intel.com>
+ <56468838.6010506@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56468838.6010506@intel.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: tony.luck@intel.com, bp@alien8.de, vishal.l.verma@intel.com, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In the case of memory error injection, einj_error_inject() checks
-if a target address is regular RAM.  Update this check to add a call
-to region_intersects_pmem() to verify if a target address range is
-NVDIMM.  This allows injecting a memory error to both RAM and NVDIMM
-for testing.
+On Fri, Nov 13, 2015 at 05:02:48PM -0800, Dave Hansen wrote:
+> On 11/13/2015 04:06 PM, Ross Zwisler wrote:
+> > +static inline pmd_t pmd_mkclean(pmd_t pmd)
+> > +{
+> > +	return pmd_clear_flags(pmd, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
+> > +}
+> 
+> pte_mkclean() doesn't clear _PAGE_SOFT_DIRTY.  What the thought behind
+> doing it here?
 
-In addition, the current RAM check, page_is_ram(), is replaced with
-region_intersects_ram() so that it can verify a target address range
-with the requested size.
-
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: Tony Luck <tony.luck@intel.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/acpi/apei/einj.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 0431883..52792d2 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 			     u64 param3, u64 param4)
- {
- 	int rc;
--	unsigned long pfn;
-+	u64 base_addr, size;
- 
- 	/* If user manually set "flags", make sure it is legal */
- 	if (flags && (flags &
-@@ -545,10 +545,15 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 	/*
- 	 * Disallow crazy address masks that give BIOS leeway to pick
- 	 * injection address almost anywhere. Insist on page or
--	 * better granularity and that target address is normal RAM.
-+	 * better granularity and that target address is normal RAM or
-+	 * NVDIMM.
- 	 */
--	pfn = PFN_DOWN(param1 & param2);
--	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
-+	base_addr = param1 & param2;
-+	size = ~param2 + 1;
-+
-+	if (((param2 & PAGE_MASK) != PAGE_MASK) ||
-+	    ((region_intersects_ram(base_addr, size) != REGION_INTERSECTS) &&
-+	     (region_intersects_pmem(base_addr, size) != REGION_INTERSECTS)))
- 		return -EINVAL;
- 
- inject:
+I just wrote it to undo the work done by pmd_mkdirty() - you're right, it
+should mirror the work done by pte_mkclean() and not clear _PAGE_SOFT_DIRTY.
+I'll fix this for v3, thanks!
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
