@@ -1,86 +1,73 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: Re: [PATCH 4/8] mm, dax: truncate dax mappings at bdev or fs
- shutdown
-Date: Thu, 19 Nov 2015 00:22:14 +0000
-Message-ID: <1447892533.13153.8.camel@intel.com>
+Date: Wed, 18 Nov 2015 16:09:45 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 4/8] mm, dax: truncate dax mappings at bdev or fs shutdown
+Message-ID: <20151118150945.GE6097@quack.suse.cz>
 References: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
-	 <20151117201614.15053.62376.stgit@dwillia2-desk3.jf.intel.com>
-	 <20151118150945.GE6097@quack.suse.cz>
-In-Reply-To: <20151118150945.GE6097@quack.suse.cz>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <6B6D0922B2EF4F43A9FF42B705D0E9AC@intel.com>
-Content-Transfer-Encoding: base64
+ <20151117201614.15053.62376.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151117201614.15053.62376.stgit@dwillia2-desk3.jf.intel.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: "jack@suse.cz" <jack@suse.cz>
-Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "willy@linux.intel.com" <willy@linux.intel.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "jack@suse.com" <jack@suse.com>, "david@fromorbit.com" <david@fromorbit.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, stable@vger.kernel.org, linux-block@vger.kernel.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, willy@linux.intel.com, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCAyMDE1LTExLTE4IGF0IDE2OjA5ICswMTAwLCBKYW4gS2FyYSB3cm90ZToNCj4gSHVt
-LCBJIGRvbid0IGdldCB0aGlzLiB0cnVuY2F0ZV9pbm9kZV9wYWdlc19maW5hbCgpIGdldHMgY2Fs
-bGVkIHdoZW4gaW5vZGUNCj4gaGFzIG5vIG1vcmUgdXNlcnMuIFNvIHRoZXJlIGFyZSBubyBtYXBw
-aW5ncyBvZiB0aGUgaW5vZGUuIFNvIGhvdyBjb3VsZA0KPiB0cnVuY2F0ZV9wYWdlY2FjaGUoKSBw
-b3NzaWJseSBtYWtlIGEgZGlmZmVyZW5jZT8NCg0KVHJ1ZS4gwqBJIGNvbmZpcm1lZCB3aXRoIG1v
-cmUgZm9jdXMgdGVzdGluZyB0aGF0IHRoZSBjaGFuZ2UgdG8NCnRydW5jYXRlX2lub2RlX3BhZ2Vz
-X2ZpbmFsKCkgaXMgbm90IG5lY2Vzc2FyeS4gwqBBZnRlcg0KaW52YWxpZGF0ZV9pbm9kZXMoKSBk
-b2VzIHVubWFwX21hcHBpbmdfcmFuZ2UoKSB3ZSBhcmUgcHJvdGVjdGVkIGJ5DQpmdXR1cmUgY2Fs
-bHMgdG8gZ2V0X2Jsb2NrKCkgYW5kIGJsa19xdWV1ZV9lbnRlcigpIGZhaWxpbmcgd2hlbiB0aGVy
-ZQ0KYXJlIGF0dGVtcHRzIHRvIHJlLWVzdGFibGlzaCBhIG1hcHBpbmcgYWZ0ZXIgdGhlIGJsb2Nr
-IGRldmljZSBoYXMgYmVlbg0KdG9ybiBkb3duLg0KDQpIZXJlJ3MgYSByZXZpc2VkIHBhdGNoLiDC
-oE5vdGUgdGhhdCB0aGUgY2FsbCB0cnVuY2F0ZV9wYWdlY2FjaGUoKSBpcw0KcmVwbGFjZWQgd2l0
-aCBhIGNhbGwgdG8gdW5tYXBfbWFwcGluZ19yYW5nZSgpIHNpbmNlIGl0IGlzIGZpbmUgdG8NCmFj
-Y2VzcyB6ZXJvIHBhZ2VzIHRoYXQgbWlnaHQgc3RpbGwgYmUgaW4gdGhlIHBhZ2UgY2FjaGUuDQoN
-Cjg8LS0tLQ0KU3ViamVjdDogbW0sIGRheDogdW5tYXAgZGF4IG1hcHBpbmdzIGF0IGJkZXYgb3Ig
-ZnMgc2h1dGRvd24NCg0KRnJvbTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5j
-b20+DQoNCkN1cnJlbnRseSBkYXggbWFwcGluZ3MgbGVhayBwYXN0IC8gc3Vydml2ZSBibG9ja19k
-ZXZpY2Ugc2h1dGRvd24uwqDCoFdoaWxlDQpwYWdlIGNhY2hlIHBhZ2VzIGFyZSBwZXJtaXR0ZWQg
-dG8gYmUgcmVhZC93cml0dGVuIGFmdGVyIHRoZSBibG9ja19kZXZpY2UNCmlzIHRvcm4gZG93biB0
-aGlzIGlzIG5vdCBhY2NlcHRhYmxlIGluIHRoZSBkYXggY2FzZSBhcyBhbGwgbWVkaWEgYWNjZXNz
-DQptdXN0IGVuZCB3aGVuIHRoZSBkZXZpY2UgaXMgZGlzYWJsZWQuwqDCoFRoZSBwZm4gYmFja2lu
-ZyBhIGRheCBtYXBwaW5nIGlzDQpwZXJtaXR0ZWQgdG8gYmUgaW52YWxpZGF0ZWQgYWZ0ZXIgYmRl
-diBzaHV0ZG93biBhbmQgdGhpcyBpcyBpbmRlZWQgdGhlDQpjYXNlIHdpdGggYnJkLg0KDQpXaGVu
-IGEgZGF4IGNhcGFibGUgYmxvY2tfZGV2aWNlIGRyaXZlciBjYWxscyBkZWxfZ2VuZGlzaygpIGlu
-IGl0cw0Kc2h1dGRvd24gcGF0aCBkZWxfZ2VuZGlzaygpIG5lZWRzIHRvIGVuc3VyZSB0aGF0IGFs
-bCBEQVggcGZucyBhcmUNCnVubWFwcGVkLsKgwqBUaGlzIGlzIGRpZmZlcmVudCB0aGFuIHRoZSBw
-YWdlY2FjaGUgYmFja2VkIGNhc2Ugd2hlcmUgdGhlDQpkaXNrIGlzIHByb3RlY3RlZCBieSB0aGUg
-cXVldWUgYmVpbmcgdG9ybiBkb3duIHdoaWNoIGVuZHMgSS9PIHRvIHRoZQ0KZGV2aWNlLsKgwqBT
-aW5jZSBkYXggYnlwYXNzZXMgdGhlIHBhZ2UgY2FjaGUgd2UgbmVlZCB0byB1bmNvbmRpdGlvbmFs
-bHkNCnVubWFwIHRoZSBpbm9kZS4NCg0KQ2M6IDxzdGFibGVAdmdlci5rZXJuZWwub3JnPg0KQ2M6
-IEphbiBLYXJhIDxqYWNrQHN1c2UuY29tPg0KQ2M6IERhdmUgQ2hpbm5lciA8ZGF2aWRAZnJvbW9y
-Yml0LmNvbT4NCkNjOiBNYXR0aGV3IFdpbGNveCA8d2lsbHlAbGludXguaW50ZWwuY29tPg0KQ2M6
-IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4NCltob256YTogZHJv
-cCBjaGFuZ2VzIHRvIHRydW5jYXRlX2lub2RlX3BhZ2VzX2ZpbmFsXQ0KU2lnbmVkLW9mZi1ieTog
-RGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQotLS0NCsKgZnMvaW5vZGUu
-YyB8wqDCoMKgMjcgKysrKysrKysrKysrKysrKysrKysrKysrKysrDQrCoDEgZmlsZSBjaGFuZ2Vk
-LCAyNyBpbnNlcnRpb25zKCspDQoNCmRpZmYgLS1naXQgYS9mcy9pbm9kZS5jIGIvZnMvaW5vZGUu
-Yw0KaW5kZXggMWJlNWY5MDAzZWIzLi5kY2IzMWQyYzE1ZTYgMTAwNjQ0DQotLS0gYS9mcy9pbm9k
-ZS5jDQorKysgYi9mcy9pbm9kZS5jDQpAQCAtNTc5LDYgKzU3OSwxOCBAQCBzdGF0aWMgdm9pZCBk
-aXNwb3NlX2xpc3Qoc3RydWN0IGxpc3RfaGVhZCAqaGVhZCkNCsKgCX0NCsKgfQ0KwqANCitzdGF0
-aWMgdm9pZCB1bm1hcF9saXN0KHN0cnVjdCBsaXN0X2hlYWQgKmhlYWQpDQorew0KKwlzdHJ1Y3Qg
-aW5vZGUgKmlub2RlLCAqX2k7DQorDQorCWxpc3RfZm9yX2VhY2hfZW50cnlfc2FmZShpbm9kZSwg
-X2ksIGhlYWQsIGlfbHJ1KSB7DQorCQlsaXN0X2RlbF9pbml0KCZpbm9kZS0+aV9scnUpOw0KKwkJ
-dW5tYXBfbWFwcGluZ19yYW5nZSgmaW5vZGUtPmlfZGF0YSwgMCwgMCwgMSk7DQorCQlpcHV0KGlu
-b2RlKTsNCisJCWNvbmRfcmVzY2hlZCgpOw0KKwl9DQorfQ0KKw0KwqAvKioNCsKgICogZXZpY3Rf
-aW5vZGVzCS0gZXZpY3QgYWxsIGV2aWN0YWJsZSBpbm9kZXMgZm9yIGEgc3VwZXJibG9jaw0KwqAg
-KiBAc2I6CQlzdXBlcmJsb2NrIHRvIG9wZXJhdGUgb24NCkBAIC02NDIsNiArNjU0LDcgQEAgaW50
-IGludmFsaWRhdGVfaW5vZGVzKHN0cnVjdCBzdXBlcl9ibG9jayAqc2IsIGJvb2wga2lsbF9kaXJ0
-eSkNCsKgCWludCBidXN5ID0gMDsNCsKgCXN0cnVjdCBpbm9kZSAqaW5vZGUsICpuZXh0Ow0KwqAJ
-TElTVF9IRUFEKGRpc3Bvc2UpOw0KKwlMSVNUX0hFQUQodW5tYXApOw0KwqANCsKgCXNwaW5fbG9j
-aygmc2ItPnNfaW5vZGVfbGlzdF9sb2NrKTsNCsKgCWxpc3RfZm9yX2VhY2hfZW50cnlfc2FmZShp
-bm9kZSwgbmV4dCwgJnNiLT5zX2lub2RlcywgaV9zYl9saXN0KSB7DQpAQCAtNjU1LDYgKzY2OCwx
-OSBAQCBpbnQgaW52YWxpZGF0ZV9pbm9kZXMoc3RydWN0IHN1cGVyX2Jsb2NrICpzYiwgYm9vbCBr
-aWxsX2RpcnR5KQ0KwqAJCQlidXN5ID0gMTsNCsKgCQkJY29udGludWU7DQrCoAkJfQ0KKwkJaWYg
-KElTX0RBWChpbm9kZSkgJiYgYXRvbWljX3JlYWQoJmlub2RlLT5pX2NvdW50KSkgew0KKwkJCS8q
-DQorCQkJwqAqIGRheCBtYXBwaW5ncyBjYW4ndCBsaXZlIHBhc3QgdGhpcyBpbnZhbGlkYXRpb24g
-ZXZlbnQNCisJCQnCoCogYXMgdGhlcmUgaXMgbm8gcGFnZSBjYWNoZSBwcmVzZW50IHRvIGFsbG93
-IHRoZSBkYXRhDQorCQkJwqAqIHRvIHJlbWFpbiBhY2Nlc3NpYmxlLg0KKwkJCcKgKi8NCisJCQlf
-X2lnZXQoaW5vZGUpOw0KKwkJCWlub2RlX2xydV9saXN0X2RlbChpbm9kZSk7DQorCQkJc3Bpbl91
-bmxvY2soJmlub2RlLT5pX2xvY2spOw0KKwkJCWxpc3RfYWRkKCZpbm9kZS0+aV9scnUsICZ1bm1h
-cCk7DQorCQkJYnVzeSA9IDE7DQorCQkJY29udGludWU7DQorCQl9DQrCoAkJaWYgKGF0b21pY19y
-ZWFkKCZpbm9kZS0+aV9jb3VudCkpIHsNCsKgCQkJc3Bpbl91bmxvY2soJmlub2RlLT5pX2xvY2sp
-Ow0KwqAJCQlidXN5ID0gMTsNCkBAIC02NjksNiArNjk1LDcgQEAgaW50IGludmFsaWRhdGVfaW5v
-ZGVzKHN0cnVjdCBzdXBlcl9ibG9jayAqc2IsIGJvb2wga2lsbF9kaXJ0eSkNCsKgCXNwaW5fdW5s
-b2NrKCZzYi0+c19pbm9kZV9saXN0X2xvY2spOw0KwqANCsKgCWRpc3Bvc2VfbGlzdCgmZGlzcG9z
-ZSk7DQorCXVubWFwX2xpc3QoJnVubWFwKTsNCsKgDQrCoAlyZXR1cm4gYnVzeTsNCsKgfQ==
+On Tue 17-11-15 12:16:14, Dan Williams wrote:
+> Currently dax mappings survive block_device shutdown.  While page cache
+> pages are permitted to be read/written after the block_device is torn
+> down this is not acceptable in the dax case as all media access must end
+> when the device is disabled.  The pfn backing a dax mapping is permitted
+> to be invalidated after bdev shutdown and this is indeed the case with
+> brd.
+> 
+> When a dax capable block_device driver calls del_gendisk() in its
+> shutdown path, or a filesystem evicts an inode it needs to ensure that
+> all the pfns that had been mapped via bdev_direct_access() are unmapped.
+> This is different than the pagecache backed case where
+> truncate_inode_pages() is sufficient to end I/O to pages mapped to a
+> dying inode.
+> 
+> Since dax bypasses the page cache we need to unmap in addition to
+> truncating pages.  Also, since dax mappings are not accounted in the
+> mapping radix we uncoditionally truncate all inodes with the S_DAX flag.
+> Likely when we add support for dynamic dax enable/disable control we'll
+> have infrastructure to detect if the inode is unmapped and can skip the
+> truncate.
+> 
+> Cc: <stable@vger.kernel.org>
+> Cc: Jan Kara <jack@suse.com>
+> Cc: Dave Chinner <david@fromorbit.com>
+> Cc: Matthew Wilcox <willy@linux.intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  fs/inode.c    |   27 +++++++++++++++++++++++++++
+>  mm/truncate.c |   13 +++++++++++--
+>  2 files changed, 38 insertions(+), 2 deletions(-)
+...
+> @@ -433,7 +434,15 @@ void truncate_inode_pages_final(struct address_space *mapping)
+>  		spin_lock_irq(&mapping->tree_lock);
+>  		spin_unlock_irq(&mapping->tree_lock);
+>  
+> -		truncate_inode_pages(mapping, 0);
+> +		/*
+> +		 * In the case of DAX we also need to unmap the inode
+> +		 * since the pfn backing the mapping may be invalidated
+> +		 * after this returns
+> +		 */
+> +		if (IS_DAX(inode))
+> +			truncate_pagecache(inode, 0);
+> +		else
+> +			truncate_inode_pages(mapping, 0);
+>  	}
+
+Hum, I don't get this. truncate_inode_pages_final() gets called when inode
+has no more users. So there are no mappings of the inode. So how could
+truncate_pagecache() possibly make a difference?
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
