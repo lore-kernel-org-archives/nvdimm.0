@@ -1,214 +1,125 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: Re: [PATCH 4/8] mm, dax: truncate dax mappings at bdev or fs
- shutdown
-Date: Fri, 20 Nov 2015 00:05:11 +0000
-Message-ID: <1447977911.20885.10.camel@intel.com>
+Date: Fri, 20 Nov 2015 10:17:04 +1100
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH 4/8] mm, dax: truncate dax mappings at bdev or fs shutdown
+Message-ID: <20151119231704.GG19199@dastard>
 References: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
-	 <20151117201614.15053.62376.stgit@dwillia2-desk3.jf.intel.com>
-	 <20151118150945.GE6097@quack.suse.cz> <1447892533.13153.8.camel@intel.com>
-	 <20151119125541.GC18581@quack.suse.cz>
-	 <CAPcyv4iGYPGz6n6YxdEWFJ4c0BZRXrWpa2188K2z9zz4_ez0TA@mail.gmail.com>
-	 <20151119231704.GG19199@dastard>
-In-Reply-To: <20151119231704.GG19199@dastard>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <8D9D9D56966A3645BBDEB9B05892EA98@intel.com>
-Content-Transfer-Encoding: base64
+ <20151117201614.15053.62376.stgit@dwillia2-desk3.jf.intel.com>
+ <20151118150945.GE6097@quack.suse.cz>
+ <1447892533.13153.8.camel@intel.com>
+ <20151119125541.GC18581@quack.suse.cz>
+ <CAPcyv4iGYPGz6n6YxdEWFJ4c0BZRXrWpa2188K2z9zz4_ez0TA@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4iGYPGz6n6YxdEWFJ4c0BZRXrWpa2188K2z9zz4_ez0TA@mail.gmail.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: "david@fromorbit.com" <david@fromorbit.com>
-Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "willy@linux.intel.com" <willy@linux.intel.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "jack@suse.com" <jack@suse.com>, "jack@suse.cz" <jack@suse.cz>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "willy@linux.intel.com" <willy@linux.intel.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "jack@suse.com" <jack@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE1LTExLTIwIGF0IDEwOjE3ICsxMTAwLCBEYXZlIENoaW5uZXIgd3JvdGU6DQo+
-IEFjdHVhbGx5LCBJIHRoaW5rIHdlIG5lZWQgdG8gdHJpZ2dlciBhIGZpbGVzeXN0ZW0gc2h1dGRv
-d24gYmVmb3JlDQo+IGRvaW5nIGFueXRoaW5nIGVsc2UgKGUuZy4gYmVmb3JlIHVubWFwcGluZyB0
-aGUgaW5vZGVzKS5UaGF0IHdheSB0aGUNCj4gZmlsZXN5c3RlbSB3aWxsIGVycm9yIG91dCBuZXcg
-Y2FsbHMgdG8gZ2V0X2Jsb2NrcygpIGFuZCBwcmV2ZW50IGFueQ0KPiBuZXcgSU8gc3VibWlzc2lv
-biB3aGlsZSB0aGUgYmxvY2sgZGV2aWNlIHRlYXJkb3duIGFuZCBpbm9kZQ0KPiB1bm1hcHBpbmcg
-aXMgZG9uZS4gaS5lLiBzb2x2aW5nIHRoZSBwcm9ibGVtIGF0IHRoZSBibG9jayBkZXZpY2UNCj4g
-bGV2ZWwgaXMgaGFyZCwgYnV0IHdlIGFscmVhZHkgaGF2ZSBhbGwgdGhlIG5lY2Vzc2FyeSBpbmZy
-YXN0cnVjdHVyZQ0KPiB0byBzaHV0IG9mZiBJTyBhbmQgbmV3IGJsb2NrIG1hcHBpbmdzIGF0IHRo
-ZSBmaWxlc3lzdGVtIGxldmVsLi4uLg0KPiANCg0KU2h1dHRpbmcgZG93biB0aGUgZmlsZXN5c3Rl
-bSBvbiBibG9ja19kZXZpY2UgcmVtb3ZlIHNlZW1zIGEgbW9yZQ0KaW52YXNpdmUgYmVoYXZpb3Ig
-Y2hhbmdlIGZyb20gd2hhdCB3ZSd2ZSBoaXN0b3JpY2FsbHkgZG9uZS4gwqBJLmUuIGENCmJlc3Qg
-ZWZmb3J0ICJsZXQgdGhlIGZzIHN0cnVnZ2xlIG9uIHRvIHNlcnZpY2Ugd2hhdGV2ZXIgaXQgY2Fu
-IHRoYXQgaXMNCm5vdCBkZXBlbmRlbnQgb24gbmV3IGRpc2sgSS9PIi4NCg0KU29sdmluZyBpdCBh
-dCB0aGUgYmxvY2sgbGF5ZXIgaXNuJ3QgdGhhdCBoYXJkIG5vdyB0aGF0IHdlIGhhdmUNCmJsa19x
-dWV1ZV9lbnRlcigpIHRvIGNoZWFwbHkgdGVzdCBpZiB0aGUgYmxvY2tfZGV2aWNlIGlzIGR5aW5n
-IG9yIGRlYWQuDQoNCkJlbG93IGlzIGFuIHVwZGF0ZWQgYXR0ZW1wdCB0aGF0IGJvcnJvd3MgYSBj
-b21tb24gaW5vZGUgd2Fsa2luZw0KcGF0dGVybiwgYW5kIHNpbXBseSByZW9yZGVycyB0aGUgb3Jk
-ZXIgb2Ygb3BlcmF0aW9ucyBkb25lIGJ5DQpkZWxfZ2VuZGlzayBhbmQgYmxrX2NsZWFudXBfcXVl
-dWUuDQoNCk5vdGUgdGhhdCB0aGlzIGRlcGVuZHMgb24gZGF4X21hcF9hdG9taWMoKSBmcm9tICJb
-UEFUQ0ggOC84XSBkYXg6IGZpeA0KbGlmZXRpbWUgb2YgaW4ta2VybmVsIGRheCBtYXBwaW5ncyB3
-aXRoIGRheF9tYXBfYXRvbWljKCkiIChodHRwczovL2xpc3QNCnMuMDEub3JnL3BpcGVybWFpbC9s
-aW51eC1udmRpbW0vMjAxNS1Ob3ZlbWJlci8wMDI4ODIuaHRtbCkuIMKgV2hlcmUNCmRheF9tYXBf
-YXRvbWljKCkgY2hlY2tzIHRoYXQgdGhlIHF1ZXVlIGlzIHN0aWxsIGxpdmUgYmVmb3JlIGFsbG93
-aW5nDQpuZXcgY2FsbHMgdG8gYmRldl9kaXJlY3RfYWNjZXNzKCkuDQoNCjg8LS0tLS0NClN1Ympl
-Y3Q6IG1tLCBkYXg6IHVubWFwIGRheCBtYXBwaW5ncyBhdCBiZGV2IHNodXRkb3duDQoNCkZyb206
-IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KDQpDdXJyZW50bHkgZGF4
-IG1hcHBpbmdzIGxlYWsgcGFzdCAvIHN1cnZpdmUgYmxvY2tfZGV2aWNlIHNodXRkb3duLsKgwqBX
-aGlsZQ0KcGFnZSBjYWNoZSBwYWdlcyBhcmUgcGVybWl0dGVkIHRvIGJlIHJlYWQvd3JpdHRlbiBh
-ZnRlciB0aGUgYmxvY2tfZGV2aWNlDQppcyB0b3JuIGRvd24gdGhpcyBpcyBub3QgYWNjZXB0YWJs
-ZSBpbiB0aGUgZGF4IGNhc2UgYXMgYWxsIG1lZGlhIGFjY2Vzcw0KbXVzdCBlbmQgd2hlbiB0aGUg
-ZGV2aWNlIGlzIGRpc2FibGVkLsKgwqBUaGUgcGZuIGJhY2tpbmcgYSBkYXggbWFwcGluZyBpcw0K
-cGVybWl0dGVkIHRvIGJlIGludmFsaWRhdGVkIGFmdGVyIGJkZXYgc2h1dGRvd24gYW5kIHRoaXMg
-aXMgaW5kZWVkIHRoZQ0KY2FzZSB3aXRoIGJyZC4NCg0KV2hlbiBhIGRheCBjYXBhYmxlIGJsb2Nr
-X2RldmljZSBkcml2ZXIgY2FsbHMgZGVsX2dlbmRpc2tfcXVldWUoKSBpbiBpdHMNCnNodXRkb3du
-IHBhdGggaXQgbmVlZHMgdG8gZW5zdXJlIHRoYXQgYWxsIERBWCBwZm5zIGFyZSB1bm1hcHBlZCwg
-YW5kDQp0aGF0IG5vIG5ldyBtYXBwaW5ncyBjYW4gYmUgZXN0YWJsaXNoZWQuwqDCoFRoaXMgaXMg
-ZGlmZmVyZW50IHRoYW4gdGhlDQpwYWdlY2FjaGUgYmFja2VkIGNhc2Ugd2hlcmUgdGhlIGRpc2sg
-aXMgcHJvdGVjdGVkIGJ5IHRoZSBxdWV1ZSBiZWluZw0KdG9ybiBkb3duIHdoaWNoIGVuZHMgSS9P
-IHRvIHRoZSBkZXZpY2UuwqDCoFNpbmNlIGRheCBieXBhc3NlcyB0aGUgcGFnZQ0KY2FjaGUgd2Ug
-bmVlZCB0byB1bmNvbmRpdGlvbmFsbHkgdW5tYXAgdGhlIGlub2RlLg0KDQpDYzogSmFuIEthcmEg
-PGphY2tAc3VzZS5jb20+DQpDYzogRGF2ZSBDaGlubmVyIDxkYXZpZEBmcm9tb3JiaXQuY29tPg0K
-Q2M6IE1hdHRoZXcgV2lsY294IDx3aWxseUBsaW51eC5pbnRlbC5jb20+DQpDYzogUm9zcyBad2lz
-bGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPg0KW2hvbnphOiBkcm9wIGNoYW5nZXMg
-dG8gdHJ1bmNhdGVfaW5vZGVfcGFnZXNfZmluYWxdDQpbaG9uemE6IGVuc3VyZSBtYXBwaW5ncyBj
-YW4ndCBiZSByZS1lc3RhYmxpc2hlZF0NClNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFu
-Lmoud2lsbGlhbXNAaW50ZWwuY29tPg0KLS0tDQrCoGJsb2NrL2dlbmhkLmPCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqA4OCArKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKy0tLS0tLS0NCsKgZHJpdmVycy9ibG9jay9icmQuY8KgwqDCoMKgwqDCoMKgwqDCoMKg
-fMKgwqDCoMKgMyAtDQrCoGRyaXZlcnMvbnZkaW1tL3BtZW0uY8KgwqDCoMKgwqDCoMKgwqB8wqDC
-oMKgwqAzIC0NCsKgZHJpdmVycy9zMzkwL2Jsb2NrL2Rjc3NibGsuYyB8wqDCoMKgwqA2ICstLQ0K
-wqBmcy9ibG9ja19kZXYuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqA0MSAr
-KysrKysrKysrKysrKysrKysrKw0KwqBpbmNsdWRlL2xpbnV4L2ZzLmjCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgfMKgwqDCoMKgMSANCsKgaW5jbHVkZS9saW51eC9nZW5oZC5owqDCoMKgwqDCoMKgwqDC
-oHzCoMKgwqDCoDEgDQrCoDcgZmlsZXMgY2hhbmdlZCwgMTIxIGluc2VydGlvbnMoKyksIDIyIGRl
-bGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvYmxvY2svZ2VuaGQuYyBiL2Jsb2NrL2dlbmhkLmMN
-CmluZGV4IGU1Y2FmYTUxNTY3Yy4uMzdhYjc4MGMwOTM3IDEwMDY0NA0KLS0tIGEvYmxvY2svZ2Vu
-aGQuYw0KKysrIGIvYmxvY2svZ2VuaGQuYw0KQEAgLTYzNCwyNCArNjM0LDE0IEBAIHZvaWQgYWRk
-X2Rpc2soc3RydWN0IGdlbmRpc2sgKmRpc2spDQrCoH0NCsKgRVhQT1JUX1NZTUJPTChhZGRfZGlz
-ayk7DQrCoA0KLXZvaWQgZGVsX2dlbmRpc2soc3RydWN0IGdlbmRpc2sgKmRpc2spDQorc3RhdGlj
-IHZvaWQgZGVsX2dlbmRpc2tfc3RhcnQoc3RydWN0IGdlbmRpc2sgKmRpc2spDQrCoHsNCi0Jc3Ry
-dWN0IGRpc2tfcGFydF9pdGVyIHBpdGVyOw0KLQlzdHJ1Y3QgaGRfc3RydWN0ICpwYXJ0Ow0KLQ0K
-wqAJYmxrX2ludGVncml0eV9kZWwoZGlzayk7DQrCoAlkaXNrX2RlbF9ldmVudHMoZGlzayk7DQor
-fQ0KwqANCi0JLyogaW52YWxpZGF0ZSBzdHVmZiAqLw0KLQlkaXNrX3BhcnRfaXRlcl9pbml0KCZw
-aXRlciwgZGlzaywNCi0JCQnCoMKgwqDCoMKgRElTS19QSVRFUl9JTkNMX0VNUFRZIHwgRElTS19Q
-SVRFUl9SRVZFUlNFKTsNCi0Jd2hpbGUgKChwYXJ0ID0gZGlza19wYXJ0X2l0ZXJfbmV4dCgmcGl0
-ZXIpKSkgew0KLQkJaW52YWxpZGF0ZV9wYXJ0aXRpb24oZGlzaywgcGFydC0+cGFydG5vKTsNCi0J
-CWRlbGV0ZV9wYXJ0aXRpb24oZGlzaywgcGFydC0+cGFydG5vKTsNCi0JfQ0KLQlkaXNrX3BhcnRf
-aXRlcl9leGl0KCZwaXRlcik7DQotDQotCWludmFsaWRhdGVfcGFydGl0aW9uKGRpc2ssIDApOw0K
-K3N0YXRpYyB2b2lkIGRlbF9nZW5kaXNrX2VuZChzdHJ1Y3QgZ2VuZGlzayAqZGlzaykNCit7DQrC
-oAlzZXRfY2FwYWNpdHkoZGlzaywgMCk7DQrCoAlkaXNrLT5mbGFncyAmPSB+R0VOSERfRkxfVVA7
-DQrCoA0KQEAgLTY3MCw5ICs2NjAsNzkgQEAgdm9pZCBkZWxfZ2VuZGlzayhzdHJ1Y3QgZ2VuZGlz
-ayAqZGlzaykNCsKgCXBtX3J1bnRpbWVfc2V0X21lbWFsbG9jX25vaW8oZGlza190b19kZXYoZGlz
-ayksIGZhbHNlKTsNCsKgCWRldmljZV9kZWwoZGlza190b19kZXYoZGlzaykpOw0KwqB9DQorDQor
-I2RlZmluZSBmb3JfZWFjaF9wYXJ0KHBhcnQsIHBpdGVyKSBcDQorCWZvciAocGFydCA9IGRpc2tf
-cGFydF9pdGVyX25leHQocGl0ZXIpOyBwYXJ0OyBcDQorCQkJcGFydCA9IGRpc2tfcGFydF9pdGVy
-X25leHQocGl0ZXIpKQ0KK3ZvaWQgZGVsX2dlbmRpc2soc3RydWN0IGdlbmRpc2sgKmRpc2spDQor
-ew0KKwlzdHJ1Y3QgZGlza19wYXJ0X2l0ZXIgcGl0ZXI7DQorCXN0cnVjdCBoZF9zdHJ1Y3QgKnBh
-cnQ7DQorDQorCWRlbF9nZW5kaXNrX3N0YXJ0KGRpc2spOw0KKw0KKwkvKiBpbnZhbGlkYXRlIHN0
-dWZmICovDQorCWRpc2tfcGFydF9pdGVyX2luaXQoJnBpdGVyLCBkaXNrLA0KKwkJCcKgwqDCoMKg
-wqBESVNLX1BJVEVSX0lOQ0xfRU1QVFkgfCBESVNLX1BJVEVSX1JFVkVSU0UpOw0KKwlmb3JfZWFj
-aF9wYXJ0KHBhcnQsICZwaXRlcikgew0KKwkJaW52YWxpZGF0ZV9wYXJ0aXRpb24oZGlzaywgcGFy
-dC0+cGFydG5vKTsNCisJCWRlbGV0ZV9wYXJ0aXRpb24oZGlzaywgcGFydC0+cGFydG5vKTsNCisJ
-fQ0KKwlkaXNrX3BhcnRfaXRlcl9leGl0KCZwaXRlcik7DQorCWludmFsaWRhdGVfcGFydGl0aW9u
-KGRpc2ssIDApOw0KKw0KKwlkZWxfZ2VuZGlza19lbmQoZGlzayk7DQorfQ0KwqBFWFBPUlRfU1lN
-Qk9MKGRlbF9nZW5kaXNrKTsNCsKgDQrCoC8qKg0KKyAqIGRlbF9nZW5kaXNrX3F1ZXVlIC0gY29t
-YmluZWQgZGVsX2dlbmRpc2sgKyBibGtfY2xlYW51cF9xdWV1ZQ0KKyAqIEBkaXNrOiBkaXNrIHRv
-IGRlbGV0ZSwgaW52YWxpZGF0ZSwgdW5tYXAsIGFuZCBlbmQgaS9vDQorICoNCisgKiBUaGlzIGFs
-dGVybmF0aXZlIGZvciBvcGVuIGNvZGVkIGNhbGxzIHRvOg0KKyAqwqDCoMKgwqDCoGRlbF9nZW5k
-aXNrKCkNCisgKsKgwqDCoMKgwqBibGtfY2xlYW51cF9xdWV1ZSgpDQorICogLi4uaXMgZm9yIC0+
-ZGlyZWN0X2FjY2VzcygpIChEQVgpIGNhcGFibGUgZGV2aWNlcy7CoMKgREFYIGJ5cGFzc2VzIHBh
-Z2UNCisgKiBjYWNoZSBhbmQgbWFwcGluZ3MgZ28gZGlyZWN0bHkgdG8gc3RvcmFnZSBtZWRpYS7C
-oMKgV2hlbiBzdWNoIGEgZGlzayBpcw0KKyAqIHJlbW92ZWQgdGhlIHBmbiBiYWNraW5nIGEgbWFw
-cGluZyBtYXkgYmUgaW52YWxpZCBvciByZW1vdmVkIGZyb20gdGhlDQorICogc3lzdGVtLsKgwqBV
-cG9uIHJldHVybiBhY2Nlc3NpbmcgREFYIG1hcHBpbmdzIG9mIHRoaXMgZGlzayB3aWxsIHRyaWdn
-ZXINCisgKiBTSUdCVVMuDQorICovDQordm9pZCBkZWxfZ2VuZGlza19xdWV1ZShzdHJ1Y3QgZ2Vu
-ZGlzayAqZGlzaykNCit7DQorCXN0cnVjdCBkaXNrX3BhcnRfaXRlciBwaXRlcjsNCisJc3RydWN0
-IGhkX3N0cnVjdCAqcGFydDsNCisNCisJZGVsX2dlbmRpc2tfc3RhcnQoZGlzayk7DQorDQorCS8q
-IHBhc3MxIHN5bmMgZnMgKyBldmljdCBpZGxlIGlub2RlcyAqLw0KKwlkaXNrX3BhcnRfaXRlcl9p
-bml0KCZwaXRlciwgZGlzaywNCisJCQnCoMKgwqDCoMKgRElTS19QSVRFUl9JTkNMX0VNUFRZIHwg
-RElTS19QSVRFUl9SRVZFUlNFKTsNCisJZm9yX2VhY2hfcGFydChwYXJ0LCAmcGl0ZXIpDQorCQlp
-bnZhbGlkYXRlX3BhcnRpdGlvbihkaXNrLCBwYXJ0LT5wYXJ0bm8pOw0KKwlkaXNrX3BhcnRfaXRl
-cl9leGl0KCZwaXRlcik7DQorCWludmFsaWRhdGVfcGFydGl0aW9uKGRpc2ssIDApOw0KKw0KKwli
-bGtfY2xlYW51cF9xdWV1ZShkaXNrLT5xdWV1ZSk7DQorDQorCS8qDQorCcKgKiBwYXNzMiBub3cg
-dGhhdCB0aGUgcXVldWUgaXMgZGVhZCB1bm1hcCBEQVggaW5vZGVzLCBhbmQgZGVsZXRlDQorCcKg
-KiBwYXJ0aXRpb25zDQorCcKgKi8NCisJZGlza19wYXJ0X2l0ZXJfaW5pdCgmcGl0ZXIsIGRpc2ss
-DQorCQkJwqDCoMKgwqDCoERJU0tfUElURVJfSU5DTF9FTVBUWSB8IERJU0tfUElURVJfUkVWRVJT
-RSk7DQorCWZvcl9lYWNoX3BhcnQocGFydCwgJnBpdGVyKSB7DQorCQl1bm1hcF9wYXJ0aXRpb24o
-ZGlzaywgcGFydC0+cGFydG5vKTsNCisJCWRlbGV0ZV9wYXJ0aXRpb24oZGlzaywgcGFydC0+cGFy
-dG5vKTsNCisJfQ0KKwlkaXNrX3BhcnRfaXRlcl9leGl0KCZwaXRlcik7DQorCXVubWFwX3BhcnRp
-dGlvbihkaXNrLCAwKTsNCisNCisJZGVsX2dlbmRpc2tfZW5kKGRpc2spOw0KK30NCitFWFBPUlRf
-U1lNQk9MKGRlbF9nZW5kaXNrX3F1ZXVlKTsNCisNCisvKioNCsKgICogZ2V0X2dlbmRpc2sgLSBn
-ZXQgcGFydGl0aW9uaW5nIGluZm9ybWF0aW9uIGZvciBhIGdpdmVuIGRldmljZQ0KwqAgKiBAZGV2
-dDogZGV2aWNlIHRvIGdldCBwYXJ0aXRpb25pbmcgaW5mb3JtYXRpb24gZm9yDQrCoCAqIEBwYXJ0
-bm86IHJldHVybmVkIHBhcnRpdGlvbiBpbmRleA0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvYmxvY2sv
-YnJkLmMgYi9kcml2ZXJzL2Jsb2NrL2JyZC5jDQppbmRleCBhNTg4MGY0YWI0MGUuLmYxNDlkZDU3
-YmJhMyAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvYmxvY2svYnJkLmMNCisrKyBiL2RyaXZlcnMvYmxv
-Y2svYnJkLmMNCkBAIC01MzIsNyArNTMyLDYgQEAgb3V0Og0KwqBzdGF0aWMgdm9pZCBicmRfZnJl
-ZShzdHJ1Y3QgYnJkX2RldmljZSAqYnJkKQ0KwqB7DQrCoAlwdXRfZGlzayhicmQtPmJyZF9kaXNr
-KTsNCi0JYmxrX2NsZWFudXBfcXVldWUoYnJkLT5icmRfcXVldWUpOw0KwqAJYnJkX2ZyZWVfcGFn
-ZXMoYnJkKTsNCsKgCWtmcmVlKGJyZCk7DQrCoH0NCkBAIC01NjAsNyArNTU5LDcgQEAgb3V0Og0K
-wqBzdGF0aWMgdm9pZCBicmRfZGVsX29uZShzdHJ1Y3QgYnJkX2RldmljZSAqYnJkKQ0KwqB7DQrC
-oAlsaXN0X2RlbCgmYnJkLT5icmRfbGlzdCk7DQotCWRlbF9nZW5kaXNrKGJyZC0+YnJkX2Rpc2sp
-Ow0KKwlkZWxfZ2VuZGlza19xdWV1ZShicmQtPmJyZF9kaXNrKTsNCsKgCWJyZF9mcmVlKGJyZCk7
-DQrCoH0NCsKgDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vcG1lbS5jIGIvZHJpdmVycy9u
-dmRpbW0vcG1lbS5jDQppbmRleCA4ZWU3OTg5M2QyZjUuLjZkZDA2ZTlkMzRiMCAxMDA2NDQNCi0t
-LSBhL2RyaXZlcnMvbnZkaW1tL3BtZW0uYw0KKysrIGIvZHJpdmVycy9udmRpbW0vcG1lbS5jDQpA
-QCAtMTU4LDkgKzE1OCw4IEBAIHN0YXRpYyB2b2lkIHBtZW1fZGV0YWNoX2Rpc2soc3RydWN0IHBt
-ZW1fZGV2aWNlICpwbWVtKQ0KwqAJaWYgKCFwbWVtLT5wbWVtX2Rpc2spDQrCoAkJcmV0dXJuOw0K
-wqANCi0JZGVsX2dlbmRpc2socG1lbS0+cG1lbV9kaXNrKTsNCisJZGVsX2dlbmRpc2tfcXVldWUo
-cG1lbS0+cG1lbV9kaXNrKTsNCsKgCXB1dF9kaXNrKHBtZW0tPnBtZW1fZGlzayk7DQotCWJsa19j
-bGVhbnVwX3F1ZXVlKHBtZW0tPnBtZW1fcXVldWUpOw0KwqB9DQrCoA0KwqBzdGF0aWMgaW50IHBt
-ZW1fYXR0YWNoX2Rpc2soc3RydWN0IGRldmljZSAqZGV2LA0KZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-czM5MC9ibG9jay9kY3NzYmxrLmMgYi9kcml2ZXJzL3MzOTAvYmxvY2svZGNzc2Jsay5jDQppbmRl
-eCA5NGE4ZjRhYjU3YmMuLjBjM2M5NjhiNTdkOSAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvczM5MC9i
-bG9jay9kY3NzYmxrLmMNCisrKyBiL2RyaXZlcnMvczM5MC9ibG9jay9kY3NzYmxrLmMNCkBAIC0z
-ODgsOCArMzg4LDcgQEAgcmVtb3Zlc2VnOg0KwqAJfQ0KwqAJbGlzdF9kZWwoJmRldl9pbmZvLT5s
-aCk7DQrCoA0KLQlkZWxfZ2VuZGlzayhkZXZfaW5mby0+Z2QpOw0KLQlibGtfY2xlYW51cF9xdWV1
-ZShkZXZfaW5mby0+ZGNzc2Jsa19xdWV1ZSk7DQorCWRlbF9nZW5kaXNrX3F1ZXVlKGRldl9pbmZv
-LT5nZCk7DQrCoAlkZXZfaW5mby0+Z2QtPnF1ZXVlID0gTlVMTDsNCsKgCXB1dF9kaXNrKGRldl9p
-bmZvLT5nZCk7DQrCoAl1cF93cml0ZSgmZGNzc2Jsa19kZXZpY2VzX3NlbSk7DQpAQCAtNzUxLDgg
-Kzc1MCw3IEBAIGRjc3NibGtfcmVtb3ZlX3N0b3JlKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0
-IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNvbnN0IGNoDQrCoAl9DQrCoA0KwqAJbGlzdF9kZWwo
-JmRldl9pbmZvLT5saCk7DQotCWRlbF9nZW5kaXNrKGRldl9pbmZvLT5nZCk7DQotCWJsa19jbGVh
-bnVwX3F1ZXVlKGRldl9pbmZvLT5kY3NzYmxrX3F1ZXVlKTsNCisJZGVsX2dlbmRpc2tfcXVldWUo
-ZGV2X2luZm8tPmdkKTsNCsKgCWRldl9pbmZvLT5nZC0+cXVldWUgPSBOVUxMOw0KwqAJcHV0X2Rp
-c2soZGV2X2luZm8tPmdkKTsNCsKgCWRldmljZV91bnJlZ2lzdGVyKCZkZXZfaW5mby0+ZGV2KTsN
-CmRpZmYgLS1naXQgYS9mcy9ibG9ja19kZXYuYyBiL2ZzL2Jsb2NrX2Rldi5jDQppbmRleCA0YzE0
-ZDQ0NjdiYmYuLjk3NWQzMmI1NjIzYiAxMDA2NDQNCi0tLSBhL2ZzL2Jsb2NrX2Rldi5jDQorKysg
-Yi9mcy9ibG9ja19kZXYuYw0KQEAgLTE3OTUsNiArMTc5NSw0NyBAQCBpbnQgX19pbnZhbGlkYXRl
-X2RldmljZShzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2LCBib29sIGtpbGxfZGlydHkpDQrCoH0N
-CsKgRVhQT1JUX1NZTUJPTChfX2ludmFsaWRhdGVfZGV2aWNlKTsNCsKgDQordm9pZCB1bm1hcF9w
-YXJ0aXRpb24oc3RydWN0IGdlbmRpc2sgKmRpc2ssIGludCBwYXJ0bm8pDQorew0KKwlib29sIGRh
-eCA9ICEhZGlzay0+Zm9wcy0+ZGlyZWN0X2FjY2VzczsNCisJc3RydWN0IGJsb2NrX2RldmljZSAq
-YmRldiA9IGRheCA/IGJkZ2V0X2Rpc2soZGlzaywgcGFydG5vKSA6IE5VTEw7DQorCXN0cnVjdCBz
-dXBlcl9ibG9jayAqc2IgPSBnZXRfc3VwZXIoYmRldik7DQorCXN0cnVjdCBpbm9kZSAqaW5vZGUs
-ICpfaW5vZGUgPSBOVUxMOw0KKw0KKwlpZiAoIWJkZXYpDQorCQlyZXR1cm47DQorDQorCWlmICgh
-c2IpIHsNCisJCWJkcHV0KGJkZXYpOw0KKwkJcmV0dXJuOw0KKwl9DQorDQorCXNwaW5fbG9jaygm
-c2ItPnNfaW5vZGVfbGlzdF9sb2NrKTsNCisJbGlzdF9mb3JfZWFjaF9lbnRyeShpbm9kZSwgJnNi
-LT5zX2lub2RlcywgaV9zYl9saXN0KSB7DQorCQlzcGluX2xvY2soJmlub2RlLT5pX2xvY2spOw0K
-KwkJaWYgKChpbm9kZS0+aV9zdGF0ZSAmIChJX0ZSRUVJTkd8SV9XSUxMX0ZSRUV8SV9ORVcpKQ0K
-KwkJCQl8fCAhSVNfREFYKGlub2RlKSkgew0KKwkJCXNwaW5fdW5sb2NrKCZpbm9kZS0+aV9sb2Nr
-KTsNCisJCQljb250aW51ZTsNCisJCX0NCisJCV9faWdldChpbm9kZSk7DQorCQlzcGluX3VubG9j
-aygmaW5vZGUtPmlfbG9jayk7DQorCQlzcGluX3VubG9jaygmc2ItPnNfaW5vZGVfbGlzdF9sb2Nr
-KTsNCisNCisJCXVubWFwX21hcHBpbmdfcmFuZ2UoaW5vZGUtPmlfbWFwcGluZywgMCwgMCwgMSk7
-DQorCQlpcHV0KF9pbm9kZSk7DQorCQlfaW5vZGUgPSBpbm9kZTsNCisJCWNvbmRfcmVzY2hlZCgp
-Ow0KKw0KKwkJc3Bpbl9sb2NrKCZzYi0+c19pbm9kZV9saXN0X2xvY2spOw0KKwl9DQorCXNwaW5f
-dW5sb2NrKCZzYi0+c19pbm9kZV9saXN0X2xvY2spOw0KKwlpcHV0KF9pbm9kZSk7DQorDQorCWRy
-b3Bfc3VwZXIoc2IpOw0KKwliZHB1dChiZGV2KTsNCit9DQorDQrCoHZvaWQgaXRlcmF0ZV9iZGV2
-cyh2b2lkICgqZnVuYykoc3RydWN0IGJsb2NrX2RldmljZSAqLCB2b2lkICopLCB2b2lkICphcmcp
-DQrCoHsNCsKgCXN0cnVjdCBpbm9kZSAqaW5vZGUsICpvbGRfaW5vZGUgPSBOVUxMOw0KZGlmZiAt
-LWdpdCBhL2luY2x1ZGUvbGludXgvZnMuaCBiL2luY2x1ZGUvbGludXgvZnMuaA0KaW5kZXggM2Fh
-NTE0MjU0MTYxLi5kMmRkYTI0OWFiZjggMTAwNjQ0DQotLS0gYS9pbmNsdWRlL2xpbnV4L2ZzLmgN
-CisrKyBiL2luY2x1ZGUvbGludXgvZnMuaA0KQEAgLTIzOTAsNiArMjM5MCw3IEBAIGV4dGVybiBp
-bnQgcmV2YWxpZGF0ZV9kaXNrKHN0cnVjdCBnZW5kaXNrICopOw0KwqBleHRlcm4gaW50IGNoZWNr
-X2Rpc2tfY2hhbmdlKHN0cnVjdCBibG9ja19kZXZpY2UgKik7DQrCoGV4dGVybiBpbnQgX19pbnZh
-bGlkYXRlX2RldmljZShzdHJ1Y3QgYmxvY2tfZGV2aWNlICosIGJvb2wpOw0KwqBleHRlcm4gaW50
-IGludmFsaWRhdGVfcGFydGl0aW9uKHN0cnVjdCBnZW5kaXNrICosIGludCk7DQorZXh0ZXJuIHZv
-aWQgdW5tYXBfcGFydGl0aW9uKHN0cnVjdCBnZW5kaXNrICosIGludCk7DQrCoCNlbmRpZg0KwqB1
-bnNpZ25lZCBsb25nIGludmFsaWRhdGVfbWFwcGluZ19wYWdlcyhzdHJ1Y3QgYWRkcmVzc19zcGFj
-ZSAqbWFwcGluZywNCsKgCQkJCQlwZ29mZl90IHN0YXJ0LCBwZ29mZl90IGVuZCk7DQpkaWZmIC0t
-Z2l0IGEvaW5jbHVkZS9saW51eC9nZW5oZC5oIGIvaW5jbHVkZS9saW51eC9nZW5oZC5oDQppbmRl
-eCA4NDdjYzFkOTE2MzQuLjAyOGNmMTVhOGE1NyAxMDA2NDQNCi0tLSBhL2luY2x1ZGUvbGludXgv
-Z2VuaGQuaA0KKysrIGIvaW5jbHVkZS9saW51eC9nZW5oZC5oDQpAQCAtNDMxLDYgKzQzMSw3IEBA
-IGV4dGVybiB2b2lkIHBhcnRfcm91bmRfc3RhdHMoaW50IGNwdSwgc3RydWN0IGhkX3N0cnVjdCAq
-cGFydCk7DQrCoC8qIGJsb2NrL2dlbmhkLmMgKi8NCsKgZXh0ZXJuIHZvaWQgYWRkX2Rpc2soc3Ry
-dWN0IGdlbmRpc2sgKmRpc2spOw0KwqBleHRlcm4gdm9pZCBkZWxfZ2VuZGlzayhzdHJ1Y3QgZ2Vu
-ZGlzayAqZ3ApOw0KK2V4dGVybiB2b2lkIGRlbF9nZW5kaXNrX3F1ZXVlKHN0cnVjdCBnZW5kaXNr
-ICpkaXNrKTsNCsKgZXh0ZXJuIHN0cnVjdCBnZW5kaXNrICpnZXRfZ2VuZGlzayhkZXZfdCBkZXYs
-IGludCAqcGFydG5vKTsNCsKgZXh0ZXJuIHN0cnVjdCBibG9ja19kZXZpY2UgKmJkZ2V0X2Rpc2so
-c3RydWN0IGdlbmRpc2sgKmRpc2ssIGludCBwYXJ0bm8pOw0KwqA=
+On Thu, Nov 19, 2015 at 08:55:48AM -0800, Dan Williams wrote:
+> On Thu, Nov 19, 2015 at 4:55 AM, Jan Kara <jack@suse.cz> wrote:
+> >> Subject: mm, dax: unmap dax mappings at bdev or fs shutdown
+> >> From: Dan Williams <dan.j.williams@intel.com>
+> >>
+> >> Currently dax mappings leak past / survive block_device shutdown.  While
+> >> page cache pages are permitted to be read/written after the block_device
+> >> is torn down this is not acceptable in the dax case as all media access
+> >> must end when the device is disabled.  The pfn backing a dax mapping is
+> >> permitted to be invalidated after bdev shutdown and this is indeed the
+> >> case with brd.
+> >>
+> >> When a dax capable block_device driver calls del_gendisk() in its
+> >> shutdown path del_gendisk() needs to ensure that all DAX pfns are
+> >> unmapped.  This is different than the pagecache backed case where the
+> >> disk is protected by the queue being torn down which ends I/O to the
+> >> device.  Since dax bypasses the page cache we need to unconditionally
+> >> unmap the inode.
+> > ...
+> >> +static void unmap_list(struct list_head *head)
+> >> +{
+> >> +     struct inode *inode, *_i;
+> >> +
+> >> +     list_for_each_entry_safe(inode, _i, head, i_lru) {
+> >> +             list_del_init(&inode->i_lru);
+> >> +             unmap_mapping_range(&inode->i_data, 0, 0, 1);
+> >> +             iput(inode);
+> >> +             cond_resched();
+> >> +     }
+> >> +}
+> >> +
+> >>  /**
+> >>   * evict_inodes      - evict all evictable inodes for a superblock
+> >>   * @sb:              superblock to operate on
+> >> @@ -642,6 +654,7 @@ int invalidate_inodes(struct super_block *sb, bool kill_dirty)
+> >>       int busy = 0;
+> >>       struct inode *inode, *next;
+> >>       LIST_HEAD(dispose);
+> >> +     LIST_HEAD(unmap);
+> >>
+> >>       spin_lock(&sb->s_inode_list_lock);
+> >>       list_for_each_entry_safe(inode, next, &sb->s_inodes, i_sb_list) {
+> >> @@ -655,6 +668,19 @@ int invalidate_inodes(struct super_block *sb, bool kill_dirty)
+> >>                       busy = 1;
+> >>                       continue;
+> >>               }
+> >> +             if (IS_DAX(inode) && atomic_read(&inode->i_count)) {
+> >> +                     /*
+> >> +                      * dax mappings can't live past this invalidation event
+> >> +                      * as there is no page cache present to allow the data
+> >> +                      * to remain accessible.
+> >> +                      */
+> >> +                     __iget(inode);
+> >> +                     inode_lru_list_del(inode);
+> >> +                     spin_unlock(&inode->i_lock);
+> >> +                     list_add(&inode->i_lru, &unmap);
+> >> +                     busy = 1;
+> >> +                     continue;
+> >> +             }
+> >
+> > I'm somewhat concerned about the abuse of i_lru list here. The inodes have
+> > i_count > 0 and so the code generally assumes such inodes should be removed
+> > from LRU list if they are there. Now I didn't find a place where this could
+> > really hit you but it is fragile. And when that happens, you have a
+> > corruption of your unmap list (since you access it without any locks) and
+> > also you will not unmap your inode.
+> 
+> "i_lru" list abuse was my main concern with this patch, I'll look into
+> a different way.
+
+Yeah, you can't use i_lru at all for purposes like this - even if
+there are active references to the inode, the shrinker could be
+walking the LRU list and accessing this inode (e.g.
+inode_lru_isolate()) at the same time this code is removing it from
+the LRU. Then things will go real bad....
+
+> > Also are you sure that your unmapping cannot race with other process
+> > mapping the pfns again?
+> 
+> You're right, there is indeed a gap between the unmap and when
+> get_blocks() will start returning errors in the fault path.
+
+get_blocks() won't start returning errors until the filesystem has
+had an IO error. Given they cache metadata and do async
+transactions, it could be some time before the filesystem notices
+that the device has gone away in a fatal way.
+
+> I think I
+> need to defer the unmapping until after blk_cleanup_queue() where we
+> know that no new I/o to the device is possible.
+
+Actually, I think we need to trigger a filesystem shutdown before
+doing anything else (e.g. before unmapping the inodes). That way the
+filesystem will error out new calls to get_blocks() and prevent any
+new IO submission while the block device teardown and inode
+unmapping is done. i.e. solving the problem at the block device
+level is hard, but we already have all the necessary infrastructure
+to shut off IO and new block mappings at the filesystem level....
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
