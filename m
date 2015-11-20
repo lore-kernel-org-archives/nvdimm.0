@@ -1,100 +1,145 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
+Date: Fri, 20 Nov 2015 13:12:28 -0500
+From: Matthew Wilcox <willy@linux.intel.com>
 Subject: Re: [PATCH] block: protect rw_page against device teardown
-Date: Fri, 20 Nov 2015 18:26:19 +0000
-Message-ID: <1448043978.29114.1.camel@intel.com>
+Message-ID: <20151120181228.GE18246@linux.intel.com>
 References: <201511200825.O2a2KLtg%fengguang.wu@intel.com>
-	 <1447980689.20885.16.camel@intel.com>
-	 <20151120181228.GE18246@linux.intel.com>
-In-Reply-To: <20151120181228.GE18246@linux.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <3C9BEFE31A4D1A41A216BF6264E82D6B@intel.com>
-Content-Transfer-Encoding: base64
+ <1447980689.20885.16.camel@intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+In-Reply-To: <1447980689.20885.16.camel@intel.com>
+Content-Transfer-Encoding: 8BIT
 Sender: linux-kernel-owner@vger.kernel.org
-To: "willy@linux.intel.com" <willy@linux.intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "axboe@fb.com" <axboe@fb.com>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "axboe@fb.com" <axboe@fb.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE1LTExLTIwIGF0IDEzOjEyIC0wNTAwLCBNYXR0aGV3IFdpbGNveCB3cm90ZToN
-Cj4gSSdkIHByZWZlciBiZGV2X3JlYWRfcGFnZSgpIGFuZCBiZGV2X3dyaXRlX3BhZ2UoKSB0byBi
-ZSBhIGJpdCBtb3JlDQo+IGNvbnNpc3RlbnQNCj4gKGVnICdyYycgdnMgJ3Jlc3VsdCcpLCBidXQ6
-DQo+IA0KPiBBY2tlZC1ieTogTWF0dGhldyBXaWxjb3ggPHdpbGx5QGxpbnV4LmludGVsLmNvbT4N
-Cg0KVGhhbmtzISDCoEZpeGVkIHVwIHZlcnNpb246DQoNCjg8LS0tLQ0KU3ViamVjdDogYmxvY2s6
-IHByb3RlY3QgcndfcGFnZSBhZ2FpbnN0IGRldmljZSB0ZWFyZG93bg0KDQpGcm9tOiBEYW4gV2ls
-bGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCg0KRml4IHVzZSBhZnRlciBmcmVlIGNy
-YXNoZXMgbGlrZSB0aGUgZm9sbG93aW5nOg0KDQrCoGdlbmVyYWwgcHJvdGVjdGlvbiBmYXVsdDog
-MDAwMCBbIzFdIFNNUA0KwqBDYWxsIFRyYWNlOg0KwqAgWzxmZmZmZmZmZmEwMDUwMjE2Pl0gPyBw
-bWVtX2RvX2J2ZWMuaXNyYS4xMisweGE2LzB4ZjAgW25kX3BtZW1dDQrCoCBbPGZmZmZmZmZmYTAw
-NTBiYTI+XSBwbWVtX3J3X3BhZ2UrMHg0Mi8weDgwIFtuZF9wbWVtXQ0KwqAgWzxmZmZmZmZmZjgx
-MjhmZDkwPl0gYmRldl9yZWFkX3BhZ2UrMHg1MC8weDYwDQrCoCBbPGZmZmZmZmZmODEyOTcyZjA+
-XSBkb19tcGFnZV9yZWFkcGFnZSsweDUxMC8weDc3MA0KwqAgWzxmZmZmZmZmZjgxMjhmZDIwPl0g
-PyBJX0JERVYrMHgyMC8weDIwDQrCoCBbPGZmZmZmZmZmODExZDg2ZGM+XSA/IGxydV9jYWNoZV9h
-ZGQrMHgxYy8weDUwDQrCoCBbPGZmZmZmZmZmODEyOTc2NTc+XSBtcGFnZV9yZWFkcGFnZXMrMHgx
-MDcvMHgxNzANCsKgIFs8ZmZmZmZmZmY4MTI4ZmQyMD5dID8gSV9CREVWKzB4MjAvMHgyMA0KwqAg
-WzxmZmZmZmZmZjgxMjhmZDIwPl0gPyBJX0JERVYrMHgyMC8weDIwDQrCoCBbPGZmZmZmZmZmODEy
-OTA1OGQ+XSBibGtkZXZfcmVhZHBhZ2VzKzB4MWQvMHgyMA0KwqAgWzxmZmZmZmZmZjgxMWQ2MTVm
-Pl0gX19kb19wYWdlX2NhY2hlX3JlYWRhaGVhZCsweDI4Zi8weDMxMA0KwqAgWzxmZmZmZmZmZjgx
-MWQ2MDM5Pl0gPyBfX2RvX3BhZ2VfY2FjaGVfcmVhZGFoZWFkKzB4MTY5LzB4MzEwDQrCoCBbPGZm
-ZmZmZmZmODExYzVhYmQ+XSA/IHBhZ2VjYWNoZV9nZXRfcGFnZSsweDJkLzB4MWQwDQrCoCBbPGZm
-ZmZmZmZmODExYzc2ZjY+XSBmaWxlbWFwX2ZhdWx0KzB4Mzk2LzB4NTMwDQrCoCBbPGZmZmZmZmZm
-ODExZjgxNmU+XSBfX2RvX2ZhdWx0KzB4NGUvMHhmMA0KwqAgWzxmZmZmZmZmZjgxMWZjZTdkPl0g
-aGFuZGxlX21tX2ZhdWx0KzB4MTFiZC8weDFiNTANCg0KQ2M6IDxzdGFibGVAdmdlci5rZXJuZWwu
-b3JnPg0KQ2M6IEplbnMgQXhib2UgPGF4Ym9lQGZiLmNvbT4NCkNjOiBBbGV4YW5kZXIgVmlybyA8
-dmlyb0B6ZW5pdi5saW51eC5vcmcudWs+DQpSZXBvcnRlZC1ieToga2J1aWxkIHRlc3Qgcm9ib3Qg
-PGxrcEBpbnRlbC5jb20+DQpBY2tlZC1ieTogTWF0dGhldyBXaWxjb3ggPHdpbGx5QGxpbnV4Lmlu
-dGVsLmNvbT4NClt3aWxseTogc3ltbWV0cnkgZml4dXBzXQ0KU2lnbmVkLW9mZi1ieTogRGFuIFdp
-bGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQotLS0NCsKgYmxvY2svYmxrLmjCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqAyIC0tDQrCoGZzL2Jsb2NrX2Rldi5jwqDCoMKg
-wqDCoMKgwqDCoMKgfMKgwqDCoDE4ICsrKysrKysrKysrKysrKystLQ0KwqBpbmNsdWRlL2xpbnV4
-L2Jsa2Rldi5oIHzCoMKgwqDCoDIgKysNCsKgMyBmaWxlcyBjaGFuZ2VkLCAxOCBpbnNlcnRpb25z
-KCspLCA0IGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvYmxvY2svYmxrLmggYi9ibG9jay9i
-bGsuaA0KaW5kZXggZGE3MjJlYjc4NmRmLi5jNDM5MjZkM2Q3NGQgMTAwNjQ0DQotLS0gYS9ibG9j
-ay9ibGsuaA0KKysrIGIvYmxvY2svYmxrLmgNCkBAIC03Miw4ICs3Miw2IEBAIHZvaWQgYmxrX2Rl
-cXVldWVfcmVxdWVzdChzdHJ1Y3QgcmVxdWVzdCAqcnEpOw0KwqB2b2lkIF9fYmxrX3F1ZXVlX2Zy
-ZWVfdGFncyhzdHJ1Y3QgcmVxdWVzdF9xdWV1ZSAqcSk7DQrCoGJvb2wgX19ibGtfZW5kX2JpZGlf
-cmVxdWVzdChzdHJ1Y3QgcmVxdWVzdCAqcnEsIGludCBlcnJvciwNCsKgCQkJwqDCoMKgwqB1bnNp
-Z25lZCBpbnQgbnJfYnl0ZXMsIHVuc2lnbmVkIGludCBiaWRpX2J5dGVzKTsNCi1pbnQgYmxrX3F1
-ZXVlX2VudGVyKHN0cnVjdCByZXF1ZXN0X3F1ZXVlICpxLCBnZnBfdCBnZnApOw0KLXZvaWQgYmxr
-X3F1ZXVlX2V4aXQoc3RydWN0IHJlcXVlc3RfcXVldWUgKnEpOw0KwqB2b2lkIGJsa19mcmVlemVf
-cXVldWUoc3RydWN0IHJlcXVlc3RfcXVldWUgKnEpOw0KwqANCsKgc3RhdGljIGlubGluZSB2b2lk
-IGJsa19xdWV1ZV9lbnRlcl9saXZlKHN0cnVjdCByZXF1ZXN0X3F1ZXVlICpxKQ0KZGlmZiAtLWdp
-dCBhL2ZzL2Jsb2NrX2Rldi5jIGIvZnMvYmxvY2tfZGV2LmMNCmluZGV4IGJiMGRmYjFjN2FmMS4u
-YzI1NjM5ZTkwN2JkIDEwMDY0NA0KLS0tIGEvZnMvYmxvY2tfZGV2LmMNCisrKyBiL2ZzL2Jsb2Nr
-X2Rldi5jDQpAQCAtMzkwLDkgKzM5MCwxNyBAQCBpbnQgYmRldl9yZWFkX3BhZ2Uoc3RydWN0IGJs
-b2NrX2RldmljZSAqYmRldiwgc2VjdG9yX3Qgc2VjdG9yLA0KwqAJCQlzdHJ1Y3QgcGFnZSAqcGFn
-ZSkNCsKgew0KwqAJY29uc3Qgc3RydWN0IGJsb2NrX2RldmljZV9vcGVyYXRpb25zICpvcHMgPSBi
-ZGV2LT5iZF9kaXNrLT5mb3BzOw0KKwlpbnQgcmVzdWx0ID0gLUVPUE5PVFNVUFA7DQorDQrCoAlp
-ZiAoIW9wcy0+cndfcGFnZSB8fCBiZGV2X2dldF9pbnRlZ3JpdHkoYmRldikpDQotCQlyZXR1cm4g
-LUVPUE5PVFNVUFA7DQotCXJldHVybiBvcHMtPnJ3X3BhZ2UoYmRldiwgc2VjdG9yICsgZ2V0X3N0
-YXJ0X3NlY3QoYmRldiksIHBhZ2UsIFJFQUQpOw0KKwkJcmV0dXJuIHJlc3VsdDsNCisNCisJcmVz
-dWx0ID0gYmxrX3F1ZXVlX2VudGVyKGJkZXYtPmJkX3F1ZXVlLCBHRlBfS0VSTkVMKTsNCisJaWYg
-KHJlc3VsdCkNCisJCXJldHVybiByZXN1bHQ7DQorCXJlc3VsdCA9IG9wcy0+cndfcGFnZShiZGV2
-LCBzZWN0b3IgKyBnZXRfc3RhcnRfc2VjdChiZGV2KSwgcGFnZSwgUkVBRCk7DQorCWJsa19xdWV1
-ZV9leGl0KGJkZXYtPmJkX3F1ZXVlKTsNCisJcmV0dXJuIHJlc3VsdDsNCsKgfQ0KwqBFWFBPUlRf
-U1lNQk9MX0dQTChiZGV2X3JlYWRfcGFnZSk7DQrCoA0KQEAgLTQyMSwxNCArNDI5LDIwIEBAIGlu
-dCBiZGV2X3dyaXRlX3BhZ2Uoc3RydWN0IGJsb2NrX2RldmljZSAqYmRldiwgc2VjdG9yX3Qgc2Vj
-dG9yLA0KwqAJaW50IHJlc3VsdDsNCsKgCWludCBydyA9ICh3YmMtPnN5bmNfbW9kZSA9PSBXQl9T
-WU5DX0FMTCkgPyBXUklURV9TWU5DIDogV1JJVEU7DQrCoAljb25zdCBzdHJ1Y3QgYmxvY2tfZGV2
-aWNlX29wZXJhdGlvbnMgKm9wcyA9IGJkZXYtPmJkX2Rpc2stPmZvcHM7DQorDQrCoAlpZiAoIW9w
-cy0+cndfcGFnZSB8fCBiZGV2X2dldF9pbnRlZ3JpdHkoYmRldikpDQrCoAkJcmV0dXJuIC1FT1BO
-T1RTVVBQOw0KKwlyZXN1bHQgPSBibGtfcXVldWVfZW50ZXIoYmRldi0+YmRfcXVldWUsIEdGUF9L
-RVJORUwpOw0KKwlpZiAocmVzdWx0KQ0KKwkJcmV0dXJuIHJlc3VsdDsNCisNCsKgCXNldF9wYWdl
-X3dyaXRlYmFjayhwYWdlKTsNCsKgCXJlc3VsdCA9IG9wcy0+cndfcGFnZShiZGV2LCBzZWN0b3Ig
-KyBnZXRfc3RhcnRfc2VjdChiZGV2KSwgcGFnZSwgcncpOw0KwqAJaWYgKHJlc3VsdCkNCsKgCQll
-bmRfcGFnZV93cml0ZWJhY2socGFnZSk7DQrCoAllbHNlDQrCoAkJdW5sb2NrX3BhZ2UocGFnZSk7
-DQorCWJsa19xdWV1ZV9leGl0KGJkZXYtPmJkX3F1ZXVlKTsNCsKgCXJldHVybiByZXN1bHQ7DQrC
-oH0NCsKgRVhQT1JUX1NZTUJPTF9HUEwoYmRldl93cml0ZV9wYWdlKTsNCmRpZmYgLS1naXQgYS9p
-bmNsdWRlL2xpbnV4L2Jsa2Rldi5oIGIvaW5jbHVkZS9saW51eC9ibGtkZXYuaA0KaW5kZXggM2Zl
-MjdmOGQ5MWYwLi5jMGQyYjc5MjdjMWYgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL2xpbnV4L2Jsa2Rl
-di5oDQorKysgYi9pbmNsdWRlL2xpbnV4L2Jsa2Rldi5oDQpAQCAtNzk0LDYgKzc5NCw4IEBAIGV4
-dGVybiBpbnQgc2NzaV9jbWRfaW9jdGwoc3RydWN0IHJlcXVlc3RfcXVldWUgKiwgc3RydWN0IGdl
-bmRpc2sgKiwgZm1vZGVfdCwNCsKgZXh0ZXJuIGludCBzZ19zY3NpX2lvY3RsKHN0cnVjdCByZXF1
-ZXN0X3F1ZXVlICosIHN0cnVjdCBnZW5kaXNrICosIGZtb2RlX3QsDQrCoAkJCcKgc3RydWN0IHNj
-c2lfaW9jdGxfY29tbWFuZCBfX3VzZXIgKik7DQrCoA0KK2V4dGVybiBpbnQgYmxrX3F1ZXVlX2Vu
-dGVyKHN0cnVjdCByZXF1ZXN0X3F1ZXVlICpxLCBnZnBfdCBnZnApOw0KK2V4dGVybiB2b2lkIGJs
-a19xdWV1ZV9leGl0KHN0cnVjdCByZXF1ZXN0X3F1ZXVlICpxKTsNCsKgZXh0ZXJuIHZvaWQgYmxr
-X3N0YXJ0X3F1ZXVlKHN0cnVjdCByZXF1ZXN0X3F1ZXVlICpxKTsNCsKgZXh0ZXJuIHZvaWQgYmxr
-X3N0b3BfcXVldWUoc3RydWN0IHJlcXVlc3RfcXVldWUgKnEpOw0KwqBleHRlcm4gdm9pZCBibGtf
-c3luY19xdWV1ZShzdHJ1Y3QgcmVxdWVzdF9xdWV1ZSAqcSk7
+
+I'd prefer bdev_read_page() and bdev_write_page() to be a bit more consistent
+(eg 'rc' vs 'result'), but:
+
+Acked-by: Matthew Wilcox <willy@linux.intel.com>
+
+On Fri, Nov 20, 2015 at 12:51:30AM +0000, Williams, Dan J wrote:
+> On Fri, 2015-11-20 at 08:32 +0800, kbuild test robot wrote:
+> > Hi Dan,
+> > 
+> > [auto build test ERROR on: block/for-next]
+> > [also build test ERROR on: v4.4-rc1 next-20151119]
+> 
+> Thanks kbuild robot! ;-)
+> 
+> I indeed had rebased this in my tree in front of another patch that
+> made blk_queue_enter() public. �Given that other patch is 4.5 material,
+> move that declaration change into this patch:
+> 
+> 8<----
+> Subject: block: protect rw_page against device teardown
+> 
+> From: Dan Williams <dan.j.williams@intel.com>
+> 
+> Fix use after free crashes like the following:
+> 
+> �general protection fault: 0000 [#1] SMP
+> �Call Trace:
+> � [<ffffffffa0050216>] ? pmem_do_bvec.isra.12+0xa6/0xf0 [nd_pmem]
+> � [<ffffffffa0050ba2>] pmem_rw_page+0x42/0x80 [nd_pmem]
+> � [<ffffffff8128fd90>] bdev_read_page+0x50/0x60
+> � [<ffffffff812972f0>] do_mpage_readpage+0x510/0x770
+> � [<ffffffff8128fd20>] ? I_BDEV+0x20/0x20
+> � [<ffffffff811d86dc>] ? lru_cache_add+0x1c/0x50
+> � [<ffffffff81297657>] mpage_readpages+0x107/0x170
+> � [<ffffffff8128fd20>] ? I_BDEV+0x20/0x20
+> � [<ffffffff8128fd20>] ? I_BDEV+0x20/0x20
+> � [<ffffffff8129058d>] blkdev_readpages+0x1d/0x20
+> � [<ffffffff811d615f>] __do_page_cache_readahead+0x28f/0x310
+> � [<ffffffff811d6039>] ? __do_page_cache_readahead+0x169/0x310
+> � [<ffffffff811c5abd>] ? pagecache_get_page+0x2d/0x1d0
+> � [<ffffffff811c76f6>] filemap_fault+0x396/0x530
+> � [<ffffffff811f816e>] __do_fault+0x4e/0xf0
+> � [<ffffffff811fce7d>] handle_mm_fault+0x11bd/0x1b50
+> 
+> Cc: <stable@vger.kernel.org>
+> Cc: Jens Axboe <axboe@fb.com>
+> Cc: Matthew Wilcox <willy@linux.intel.com>
+> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+> Reported-by: kbuild test robot <lkp@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+> �block/blk.h������������|����2 --
+> �fs/block_dev.c���������|���18 ++++++++++++++++--
+> �include/linux/blkdev.h |����2 ++
+> �3 files changed, 18 insertions(+), 4 deletions(-)
+> 
+> diff --git a/block/blk.h b/block/blk.h
+> index da722eb786df..c43926d3d74d 100644
+> --- a/block/blk.h
+> +++ b/block/blk.h
+> @@ -72,8 +72,6 @@ void blk_dequeue_request(struct request *rq);
+> �void __blk_queue_free_tags(struct request_queue *q);
+> �bool __blk_end_bidi_request(struct request *rq, int error,
+> �			����unsigned int nr_bytes, unsigned int bidi_bytes);
+> -int blk_queue_enter(struct request_queue *q, gfp_t gfp);
+> -void blk_queue_exit(struct request_queue *q);
+> �void blk_freeze_queue(struct request_queue *q);
+> �
+> �static inline void blk_queue_enter_live(struct request_queue *q)
+> diff --git a/fs/block_dev.c b/fs/block_dev.c
+> index bb0dfb1c7af1..cc0af12acf94 100644
+> --- a/fs/block_dev.c
+> +++ b/fs/block_dev.c
+> @@ -390,9 +390,17 @@ int bdev_read_page(struct block_device *bdev, sector_t sector,
+> �			struct page *page)
+> �{
+> �	const struct block_device_operations *ops = bdev->bd_disk->fops;
+> +	int rc = -EOPNOTSUPP;
+> +
+> �	if (!ops->rw_page || bdev_get_integrity(bdev))
+> -		return -EOPNOTSUPP;
+> -	return ops->rw_page(bdev, sector + get_start_sect(bdev), page, READ);
+> +		return rc;
+> +
+> +	rc = blk_queue_enter(bdev->bd_queue, GFP_KERNEL);
+> +	if (rc)
+> +		return rc;
+> +	rc = ops->rw_page(bdev, sector + get_start_sect(bdev), page, READ);
+> +	blk_queue_exit(bdev->bd_queue);
+> +	return rc;
+> �}
+> �EXPORT_SYMBOL_GPL(bdev_read_page);
+> �
+> @@ -421,14 +429,20 @@ int bdev_write_page(struct block_device *bdev, sector_t sector,
+> �	int result;
+> �	int rw = (wbc->sync_mode == WB_SYNC_ALL) ? WRITE_SYNC : WRITE;
+> �	const struct block_device_operations *ops = bdev->bd_disk->fops;
+> +
+> �	if (!ops->rw_page || bdev_get_integrity(bdev))
+> �		return -EOPNOTSUPP;
+> +	result = blk_queue_enter(bdev->bd_queue, GFP_KERNEL);
+> +	if (result)
+> +		return result;
+> +
+> �	set_page_writeback(page);
+> �	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page, rw);
+> �	if (result)
+> �		end_page_writeback(page);
+> �	else
+> �		unlock_page(page);
+> +	blk_queue_exit(bdev->bd_queue);
+> �	return result;
+> �}
+> �EXPORT_SYMBOL_GPL(bdev_write_page);
+> diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+> index 3fe27f8d91f0..c0d2b7927c1f 100644
+> --- a/include/linux/blkdev.h
+> +++ b/include/linux/blkdev.h
+> @@ -794,6 +794,8 @@ extern int scsi_cmd_ioctl(struct request_queue *, struct gendisk *, fmode_t,
+> �extern int sg_scsi_ioctl(struct request_queue *, struct gendisk *, fmode_t,
+> �			�struct scsi_ioctl_command __user *);
+> �
+> +extern int blk_queue_enter(struct request_queue *q, gfp_t gfp);
+> +extern void blk_queue_exit(struct request_queue *q);
+> �extern void blk_start_queue(struct request_queue *q);
+> �extern void blk_stop_queue(struct request_queue *q);
+> �extern void blk_sync_queue(struct request_queue *q);
