@@ -1,111 +1,62 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 04/15] libnvdimm,
- pmem: move request_queue allocation earlier in probe
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 01 Nov 2015 23:30:04 -0500
-Message-ID: <20151102043004.6610.78684.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4325714.tYNkapC69P@wuerfel>
+References: <20151120173133.24259.97028.stgit@dwillia2-desk3.jf.intel.com>
+	<4325714.tYNkapC69P@wuerfel>
+Date: Fri, 20 Nov 2015 12:07:08 -0800
+Message-ID: <CAGXu5jJnk5PbrJFftheQSd2s=T1A5gnbnMzc7VgqTPNMd8Vw=Q@mail.gmail.com>
+Subject: Re: [RFC PATCH] restrict /dev/mem to idle io memory ranges
+From: Kees Cook <keescook@chromium.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@fb.com
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, ross.zwisler@linux.intel.com, hch@lst.de
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dan Williams <dan.j.williams@intel.com>, LKML <linux-kernel@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Will Deacon <will.deacon@arm.com>, Ingo Molnar <mingo@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Catalin Marinas <catalin.marinas@arm.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Before the dynamically allocated struct pages from devm_memremap_pages()
-can be put to use outside the driver, we need a mechanism to track
-whether they are still in use at teardown.  Towards that goal reorder
-the initialization sequence to allow the 'q_usage_counter' from the
-request_queue to be used by the devm_memremap_pages() implementation (in
-subsequent patches).
+On Fri, Nov 20, 2015 at 12:00 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Friday 20 November 2015 09:31:33 Dan Williams wrote:
+>> This effectively promotes IORESOURCE_BUSY to IORESOURCE_EXCLUSIVE
+>> semantics by default.  If userspace really believes it is safe to access
+>> the memory region it can also perform the extra step of disabling an
+>> active driver.  This protects device address ranges with read side
+>> effects and otherwise directs userspace to use the driver.
+>>
+>> Persistent memory presents a large "mistake surface" to /dev/mem as now
+>> accidental writes can corrupt a filesystem.
+>>
+>> Cc: Kees Cook <keescook@chromium.org>
+>> Cc: Russell King <linux@arm.linux.org.uk>
+>> Cc: Catalin Marinas <catalin.marinas@arm.com>
+>> Cc: Will Deacon <will.deacon@arm.com>
+>> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>> Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+>> Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> Cc: Ingo Molnar <mingo@redhat.com>
+>> Cc: "H. Peter Anvin" <hpa@zytor.com>
+>> Cc: Andrew Morton <akpm@linux-foundation.org>
+>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>>
+>
+> I like the idea.
 
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pmem.c |   37 ++++++++++++++++++++++---------------
- 1 file changed, 22 insertions(+), 15 deletions(-)
+Yes please! I was always surprised that IORESOURCE_BUSY was allowed
+under STRICT_DEVMEM.
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 349f03e7ed06..e46988fbdee5 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -133,6 +133,7 @@ static struct pmem_device *pmem_alloc(struct device *dev,
- 		struct resource *res, int id)
- {
- 	struct pmem_device *pmem;
-+	struct request_queue *q;
- 
- 	pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
- 	if (!pmem)
-@@ -150,16 +151,23 @@ static struct pmem_device *pmem_alloc(struct device *dev,
- 		return ERR_PTR(-EBUSY);
- 	}
- 
--	if (pmem_should_map_pages(dev))
-+	q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
-+	if (!q)
-+		return ERR_PTR(-ENOMEM);
-+
-+	if (pmem_should_map_pages(dev)) {
- 		pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, res);
--	else
-+	} else
- 		pmem->virt_addr = (void __pmem *) devm_memremap(dev,
- 				pmem->phys_addr, pmem->size,
- 				ARCH_MEMREMAP_PMEM);
- 
--	if (IS_ERR(pmem->virt_addr))
-+	if (IS_ERR(pmem->virt_addr)) {
-+		blk_cleanup_queue(q);
- 		return (void __force *) pmem->virt_addr;
-+	}
- 
-+	pmem->pmem_queue = q;
- 	return pmem;
- }
- 
-@@ -179,10 +187,6 @@ static int pmem_attach_disk(struct device *dev,
- 	int nid = dev_to_node(dev);
- 	struct gendisk *disk;
- 
--	pmem->pmem_queue = blk_alloc_queue_node(GFP_KERNEL, nid);
--	if (!pmem->pmem_queue)
--		return -ENOMEM;
--
- 	blk_queue_make_request(pmem->pmem_queue, pmem_make_request);
- 	blk_queue_physical_block_size(pmem->pmem_queue, PAGE_SIZE);
- 	blk_queue_max_hw_sectors(pmem->pmem_queue, UINT_MAX);
-@@ -400,19 +404,22 @@ static int nd_pmem_probe(struct device *dev)
- 	dev_set_drvdata(dev, pmem);
- 	ndns->rw_bytes = pmem_rw_bytes;
- 
--	if (is_nd_btt(dev))
-+	if (is_nd_btt(dev)) {
-+		/* btt allocates its own request_queue */
-+		blk_cleanup_queue(pmem->pmem_queue);
-+		pmem->pmem_queue = NULL;
- 		return nvdimm_namespace_attach_btt(ndns);
-+	}
- 
- 	if (is_nd_pfn(dev))
- 		return nvdimm_namespace_attach_pfn(ndns);
- 
--	if (nd_btt_probe(ndns, pmem) == 0) {
--		/* we'll come back as btt-pmem */
--		return -ENXIO;
--	}
--
--	if (nd_pfn_probe(ndns, pmem) == 0) {
--		/* we'll come back as pfn-pmem */
-+	if (nd_btt_probe(ndns, pmem) == 0 || nd_pfn_probe(ndns, pmem) == 0) {
-+		/*
-+		 * We'll come back as either btt-pmem, or pfn-pmem, so
-+		 * drop the queue allocation for now.
-+		 */
-+		blk_cleanup_queue(pmem->pmem_queue);
- 		return -ENXIO;
- 	}
- 
+> Maybe split the change up into two patches, where the first one
+> just does the trivial move of the Kconfig option, and the second
+> one that changes behavior is small?
 
+Agreed: consolidate the per-arch Kconfigs first.
+
+> There is also a question of whether we actually need two options
+> or if we can safely make the existing option stricter.
+
+Right -- what actually breaks if we add _BUSY to getting blocked?
+
+-Kees
+
+-- 
+Kees Cook
+Chrome OS Security
