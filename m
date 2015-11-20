@@ -1,116 +1,35 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 00/15] block, dax updates for 4.4
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 01 Nov 2015 23:29:41 -0500
-Message-ID: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@fb.com
-Cc: Jens Axboe <axboe@kernel.dk>, Dave Hansen <dave@sr71.net>, jack@suse.cz, linux-nvdimm@lists.01.org, Richard Weinberger <richard@nod.at>, Jeff Dike <jdike@addtoit.com>, Dave Hansen <dave.hansen@linux.intel.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, stable@vger.kernel.org, hch@lst.de, Jeff Moyer <jmoyer@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, kbuild test robot <fengguang.wu@intel.com>, ross.zwisler@linux.intel.com, Matthew Wilcox <willy@linux.intel.com>, Christoffer Dall <christoffer.dall@linaro.org>
+In-Reply-To: <CAA9_cmcNJK2GMmqE-Ss+P5TQMEE3CrViQ9JX77BC6nn8ihi_ag@mail.gmail.com>
+References: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
+	<20151117201614.15053.62376.stgit@dwillia2-desk3.jf.intel.com>
+	<20151118150945.GE6097@quack.suse.cz>
+	<1447892533.13153.8.camel@intel.com>
+	<20151119125541.GC18581@quack.suse.cz>
+	<CAPcyv4iGYPGz6n6YxdEWFJ4c0BZRXrWpa2188K2z9zz4_ez0TA@mail.gmail.com>
+	<20151119231704.GG19199@dastard>
+	<1447977911.20885.10.camel@intel.com>
+	<20151120040625.GI19199@dastard>
+	<CAA9_cmcNJK2GMmqE-Ss+P5TQMEE3CrViQ9JX77BC6nn8ihi_ag@mail.gmail.com>
+Date: Fri, 20 Nov 2015 09:08:32 -0800
+Message-ID: <CAPcyv4ioUcGK6ZyxmByP9Gh13xEszjURHn7C=DUdP9eitXe92Q@mail.gmail.com>
+Subject: Re: [PATCH 4/8] mm, dax: truncate dax mappings at bdev or fs shutdown
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "jack@suse.com" <jack@suse.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v2: [1]
+On Thu, Nov 19, 2015 at 8:25 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Thu, Nov 19, 2015 at 8:06 PM, Dave Chinner <david@fromorbit.com> wrote:
+[..]
+> What would be the recommended interface to tell XFS to sync if it can,
+> but give up quickly if it hits an error and then shutdown permanently?
 
-1/ Include a fix to revoke dax-mappings at device teardown time
-
-2/ Include a blkdev_issue_flush implementation for pmem
-
-3/ New block device ioctls to set/query dax mode, make dax opt-in
-
-4/ Collect reviewed-by's
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-October/002538.html
-
----
-
-There were several topics developed during this cycle, some are ready
-and some are not.  The items needing more review and testing are the
-pmem+dax updates with mm, ext4, and xfs dependencies.  Topics like the
-dax locking reworks, dax get_user_pages, and write-protecting dax ptes
-after fsync/msync.
-
-Instead, this more conservative set represents the fs and mm independent
-updates to dax and pmem:
-
-1/ Enable dax mappings for raw block devices
-
-2/ Use blk_queue_{enter|exit} and the availability of 'struct page' to
-   fix lifetime issues and races with unloading the pmem driver.
-
-3/ Enable blkdev_issue_flush to fix legacy apps that may dirty pmem via
-   dax mmap I/O.  Although legacy environments should consider disabling
-   dax for apps that don't expect it.
-
-These depend on the latest 'libnvdimm-for-next' branch from nvdimm.git
-and the 'for-4.4/integrity' branch from Jens' tree.  All but the last
-three have been out for review previously, and I am looking to submit
-them towards the back half of the merge window.
-
----
-
-Dan Williams (15):
-      pmem, dax: clean up clear_pmem()
-      dax: increase granularity of dax_clear_blocks() operations
-      block, dax: fix lifetime of in-kernel dax mappings with dax_map_atomic()
-      libnvdimm, pmem: move request_queue allocation earlier in probe
-      libnvdimm, pmem: fix size trim in pmem_direct_access()
-      um: kill pfn_t
-      kvm: rename pfn_t to kvm_pfn_t
-      mm, dax, pmem: introduce pfn_t
-      block: notify queue death confirmation
-      dax, pmem: introduce zone_device_revoke() and devm_memunmap_pages()
-      block: introduce bdev_file_inode()
-      block: enable dax for raw block devices
-      block, dax: make dax mappings opt-in by default
-      dax: dirty extent notification
-      pmem: blkdev_issue_flush support
-
-
- arch/arm/include/asm/kvm_mmu.h        |    5 -
- arch/arm/kvm/mmu.c                    |   10 +
- arch/arm64/include/asm/kvm_mmu.h      |    3 
- arch/mips/include/asm/kvm_host.h      |    6 -
- arch/mips/kvm/emulate.c               |    2 
- arch/mips/kvm/tlb.c                   |   14 +-
- arch/powerpc/include/asm/kvm_book3s.h |    4 -
- arch/powerpc/include/asm/kvm_ppc.h    |    2 
- arch/powerpc/kvm/book3s.c             |    6 -
- arch/powerpc/kvm/book3s_32_mmu_host.c |    2 
- arch/powerpc/kvm/book3s_64_mmu_host.c |    2 
- arch/powerpc/kvm/e500.h               |    2 
- arch/powerpc/kvm/e500_mmu_host.c      |    8 +
- arch/powerpc/kvm/trace_pr.h           |    2 
- arch/powerpc/sysdev/axonram.c         |   11 +
- arch/um/include/asm/page.h            |    6 -
- arch/um/include/asm/pgtable-3level.h  |    4 -
- arch/um/include/asm/pgtable.h         |    2 
- arch/x86/include/asm/cacheflush.h     |    4 +
- arch/x86/include/asm/pmem.h           |    7 -
- arch/x86/kvm/iommu.c                  |   11 +
- arch/x86/kvm/mmu.c                    |   37 +++--
- arch/x86/kvm/mmu_audit.c              |    2 
- arch/x86/kvm/paging_tmpl.h            |    6 -
- arch/x86/kvm/vmx.c                    |    2 
- arch/x86/kvm/x86.c                    |    2 
- block/blk-core.c                      |   13 +-
- block/blk-mq.c                        |   19 ++-
- block/blk.h                           |   13 --
- block/ioctl.c                         |   42 ++++++
- drivers/block/brd.c                   |   10 +
- drivers/nvdimm/pmem.c                 |  247 ++++++++++++++++++++++++++++-----
- drivers/s390/block/dcssblk.c          |   13 +-
- fs/block_dev.c                        |  159 ++++++++++++++++++---
- fs/dax.c                              |  242 ++++++++++++++++++++++----------
- include/linux/blkdev.h                |   41 +++++
- include/linux/fs.h                    |   11 +
- include/linux/io.h                    |   17 --
- include/linux/kvm_host.h              |   37 +++--
- include/linux/kvm_types.h             |    2 
- include/linux/mm.h                    |   90 ++++++++++++
- include/linux/pfn.h                   |    9 +
- include/uapi/linux/fs.h               |    2 
- kernel/memremap.c                     |   98 +++++++++++++
- virt/kvm/kvm_main.c                   |   47 +++---
- 45 files changed, 949 insertions(+), 325 deletions(-)
+Thinking about this a bit further I think a "give up" notification to
+a filesystem is an incremental addition to the common vfs layer
+invalidate_partition() and now unmap_partition().  Because "sync if
+you can, but give up quickly" is handled by fsync_bdev() and
+generic_make_request() returning immediate errors.  It's only the file
+system triggered retries that we need to turn off.
