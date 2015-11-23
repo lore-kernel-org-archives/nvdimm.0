@@ -1,83 +1,98 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 11/11] xfs: add support for DAX fsync/msync
-Date: Fri, 13 Nov 2015 17:06:50 -0700
-Message-Id: <1447459610-14259-12-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <20151122035707.9313.59919.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151122035702.9313.52457.stgit@dwillia2-desk3.jf.intel.com>
+	<20151122035707.9313.59919.stgit@dwillia2-desk3.jf.intel.com>
+Date: Mon, 23 Nov 2015 11:00:45 -0800
+Message-ID: <CAGXu5jLpZLRbhK2+TuKhcDSujR91662SGLkTwC-mQCT8fFQ_1w@mail.gmail.com>
+Subject: Re: [PATCH 2/2] restrict /dev/mem to idle io memory ranges
+From: Kees Cook <keescook@chromium.org>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can properly track when a user
-write faults on a previously cleaned address.  They also need to call
-dax_fsync() in the filesystem fsync() path.  This dax_fsync() call uses
-addresses retrieved from get_block() so it needs to be ordered with
-respect to truncate.  This is accomplished by using the same locking that
-was set up for DAX page faults.
+On Sat, Nov 21, 2015 at 7:57 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> This effectively promotes IORESOURCE_BUSY to IORESOURCE_EXCLUSIVE
+> semantics by default.  If userspace really believes it is safe to access
+> the memory region it can also perform the extra step of disabling an
+> active driver.  This protects device address ranges with read side
+> effects and otherwise directs userspace to use the driver.
+>
+> Persistent memory presents a large "mistake surface" to /dev/mem as now
+> accidental writes can corrupt a filesystem.
+>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Kees Cook <keescook@chromium.org>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/xfs/xfs_file.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+Acked-by: Kees Cook <keescook@chromium.org>
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 39743ef..2b490a1 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -209,7 +209,8 @@ xfs_file_fsync(
- 	loff_t			end,
- 	int			datasync)
- {
--	struct inode		*inode = file->f_mapping->host;
-+	struct address_space	*mapping = file->f_mapping;
-+	struct inode		*inode = mapping->host;
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	struct xfs_mount	*mp = ip->i_mount;
- 	int			error = 0;
-@@ -218,7 +219,13 @@ xfs_file_fsync(
- 
- 	trace_xfs_file_fsync(ip);
- 
--	error = filemap_write_and_wait_range(inode->i_mapping, start, end);
-+	if (dax_mapping(mapping)) {
-+		xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-+		dax_fsync(mapping, start, end);
-+		xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-+	}
-+
-+	error = filemap_write_and_wait_range(mapping, start, end);
- 	if (error)
- 		return error;
- 
-@@ -1603,9 +1610,8 @@ xfs_filemap_pmd_fault(
- /*
-  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
-  * updates on write faults. In reality, it's need to serialise against
-- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
-- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
-- * barrier in place.
-+ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
-+ * to ensure we serialise the fault barrier in place.
-  */
- static int
- xfs_filemap_pfn_mkwrite(
-@@ -1628,6 +1634,8 @@ xfs_filemap_pfn_mkwrite(
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else if (IS_DAX(inode))
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
+Thanks!
+
+-Kees
+
+> ---
+>  kernel/resource.c |    3 +++
+>  lib/Kconfig.debug |   23 ++++++++++++++++++++---
+>  2 files changed, 23 insertions(+), 3 deletions(-)
+>
+> diff --git a/kernel/resource.c b/kernel/resource.c
+> index f150dbbe6f62..03a8b09f68a8 100644
+> --- a/kernel/resource.c
+> +++ b/kernel/resource.c
+> @@ -1498,6 +1498,9 @@ int iomem_is_exclusive(u64 addr)
+>                         break;
+>                 if (p->end < addr)
+>                         continue;
+> +               if (IS_ENABLED(CONFIG_IO_STRICT_DEVMEM)
+> +                               && p->flags & IORESOURCE_BUSY)
+> +                       break;
+>                 if (p->flags & IORESOURCE_BUSY &&
+>                      p->flags & IORESOURCE_EXCLUSIVE) {
+>                         err = 1;
+> diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+> index ad85145d0047..be47f99fb191 100644
+> --- a/lib/Kconfig.debug
+> +++ b/lib/Kconfig.debug
+> @@ -1866,9 +1866,26 @@ config STRICT_DEVMEM
+>           enabled, even in this case there are restrictions on /dev/mem
+>           use due to the cache aliasing requirements.
+>
+> +         If this option is switched on, and IO_STRICT_DEVMEM=n, the /dev/mem
+> +         file only allows userspace access to PCI space and the BIOS code and
+> +         data regions.  This is sufficient for dosemu and X and all common
+> +         users of /dev/mem.
+> +
+> +         If in doubt, say Y.
+> +
+> +config IO_STRICT_DEVMEM
+> +       bool "Filter I/O access to /dev/mem"
+> +       depends on STRICT_DEVMEM
+> +       default STRICT_DEVMEM
+> +       ---help---
+> +         If this option is disabled, you allow userspace (root) access to all
+> +         io-memory regardless of whether a driver is actively using that
+> +         range.  Accidental access to this is obviously disastrous, but
+> +         specific access can be used by people debugging kernel drivers.
+> +
+>           If this option is switched on, the /dev/mem file only allows
+> -         userspace access to PCI space and the BIOS code and data regions.
+> -         This is sufficient for dosemu and X and all common users of
+> -         /dev/mem.
+> +         userspace access to *idle* io-memory ranges (see /proc/iomem) This
+> +         may break traditional users of /dev/mem (dosemu, legacy X, etc...)
+> +         if the driver using a given range cannot be disabled.
+>
+>           If in doubt, say Y.
+>
+
+
+
 -- 
-2.1.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Kees Cook
+Chrome OS Security
