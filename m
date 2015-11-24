@@ -1,62 +1,56 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 05/15] libnvdimm,
- pmem: fix size trim in pmem_direct_access()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 01 Nov 2015 23:30:10 -0500
-Message-ID: <20151102043009.6610.83896.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20151102042941.6610.27784.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 24 Nov 2015 09:27:57 +0100
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH 1/2] arch: consolidate CONFIG_STRICT_DEVM in
+ lib/Kconfig.debug
+Message-ID: <20151124082757.GB23624@gmail.com>
+References: <20151122035702.9313.52457.stgit@dwillia2-desk3.jf.intel.com>
+ <20151123081235.GA23661@gmail.com>
+ <CAPcyv4hDbi5KJ+tGJnEwQV5G=PM+ZRooQbgTNrYxyyVVPA3EwA@mail.gmail.com>
+ <CAGXu5jLpm7iG17+ws2MfK7ZG9KEDaHWd5xxHSk7KHPyizYEm2A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAGXu5jLpm7iG17+ws2MfK7ZG9KEDaHWd5xxHSk7KHPyizYEm2A@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@fb.com
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, stable@vger.kernel.org, ross.zwisler@linux.intel.com, hch@lst.de
+To: Kees Cook <keescook@chromium.org>
+Cc: Dan Williams <dan.j.williams@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Catalin Marinas <catalin.marinas@arm.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Will Deacon <will.deacon@arm.com>, Ingo Molnar <mingo@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "H. Peter Anvin" <hpa@zytor.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This masking prevents access to the end of the device via dax_do_io(),
-and is unnecessary as arch_add_memory() would have rejected an unaligned
-allocation.
 
-Cc: <stable@vger.kernel.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pmem.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+* Kees Cook <keescook@chromium.org> wrote:
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index e46988fbdee5..93472953e231 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -100,26 +100,15 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- }
- 
- static long pmem_direct_access(struct block_device *bdev, sector_t sector,
--		      void __pmem **kaddr, unsigned long *pfn)
-+		      void __pmem **kaddr, pfn_t *pfn)
- {
- 	struct pmem_device *pmem = bdev->bd_disk->private_data;
- 	resource_size_t offset = sector * 512 + pmem->data_offset;
--	resource_size_t size;
- 
--	if (pmem->data_offset) {
--		/*
--		 * Limit the direct_access() size to what is covered by
--		 * the memmap
--		 */
--		size = (pmem->size - offset) & ~ND_PFN_MASK;
--	} else
--		size = pmem->size - offset;
--
--	/* FIXME convert DAX to comprehend that this mapping has a lifetime */
- 	*kaddr = pmem->virt_addr + offset;
--	*pfn = (pmem->phys_addr + offset) >> PAGE_SHIFT;
-+	*pfn = __phys_to_pfn(pmem->phys_addr + offset, pmem->pfn_flags);
- 
--	return size;
-+	return pmem->size - offset;
- }
- 
- static const struct block_device_operations pmem_fops = {
+> On Mon, Nov 23, 2015 at 9:12 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+> > On Mon, Nov 23, 2015 at 12:12 AM, Ingo Molnar <mingo@kernel.org> wrote:
+> >>
+> >> * Dan Williams <dan.j.williams@intel.com> wrote:
+> >>
+> >>> Let all the archs that implement CONFIG_STRICT_DEVM use a common
+> >>> definition in lib/Kconfig.debug.
+> >>
+> >> For the x86 bit:
+> >>
+> >> Acked-by: Ingo Molnar <mingo@kernel.org>
+> >>
+> >>> Note, the 'depends on !SPARC' is due to sparc not implementing
+> >>> devmem_is_allowed().
+> >>
+> >> Maybe that should be converted into a helper Kconfig switch for architectures to
+> >> opt in to /dev/mem restrictions?
+> >
+> > Sure, easy enough to add a ARCH_HAS_DEVMEM_IS_ALLOWED opt-in.
+> 
+> Is there some hidden meaning about the difference between ARCH_HAS_...
+> and HAVE_ARCH_... and HAVE_... ?
 
+There's also the double underscore variants such as __HAVE_ARCH_STRNCASECMP! ;-)
+
+It's all just nonsensical historic muck: because no-one ever was confronted with 
+the messy global picture.
+
+Today you can run Documentation/features/list-arch.sh and wonder at the zoo of 
+options ;-)
+
+Thanks,
+
+	Ingo
