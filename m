@@ -1,158 +1,91 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [RFC PATCH 4/5] dax: provide diagnostics for pmd mapping failures
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Subject: [PATCH v2 0/7] dax cleanups and lifetime fixes
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 29 Nov 2015 21:08:55 -0800
-Message-ID: <20151130050854.18366.17076.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151130050833.18366.21963.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151130050833.18366.21963.stgit@dwillia2-desk3.jf.intel.com>
+Date: Wed, 25 Nov 2015 10:36:56 -0800
+Message-ID: <20151125183656.12508.52212.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-mm@kvack.org
-Cc: toshi.kani@hp.com, linux-nvdimm@lists.01.org
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-block@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Jens Axboe <axboe@fb.com>, Jeff Moyer <jmoyer@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-There is a wide gamut of conditions that can trigger the dax pmd path to
-fallback to pte mappings.  Ideally we'd have a syscall interface to
-determine mapping characteristics after the fact.  In the meantime
-provide debug messages.
+Changes since v1: [1]
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+1/ Dropped the patches that were merged for v4.4-rc2
+
+2/ Introduce a new super-block flag that filesystems can use to error
+   out early when there is no longer a backing device available. Use it to
+   prevent a spurious warning triggered by ext4 on surprise removal. (Dave)
+
+3/ Include the unmap_partition implementation initially posted here [2].
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-November/002876.html
+[2]: https://lists.01.org/pipermail/linux-nvdimm/2015-November/002922.html
+
+Testing this patch set reveals that xfs needs more XFS_FORCED_SHUTDOWN
+checks, especially in the unmount path.  Currently we deadlock here on
+umount after block device removal:
+
+ INFO: task umount:2187 blocked for more than 120 seconds.
+       Tainted: G           O    4.4.0-rc2+ #1953  
+ "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+ umount          D ffff8800d2fbfd70     0  2187   2095 0x00000080
+  ffff8800d2fbfd70 ffffffff81f94f98 ffff88031fc97bd8 ffff88030af5ad80
+  ffff8800db71db00 ffff8800d2fc0000 ffff8800db8dbde0 ffff8800d93b6708
+  ffff8800d93b6760 ffff8800d93b66d8 ffff8800d2fbfd88 ffffffff818f0695
+ Call Trace:
+  [<ffffffff818f0695>] schedule+0x35/0x80
+  [<ffffffffa01e134e>] xfs_ail_push_all_sync+0xbe/0x110 [xfs]
+  [<ffffffff810ecc30>] ? wait_woken+0x80/0x80
+  [<ffffffffa01c8d91>] xfs_unmountfs+0x81/0x1b0 [xfs]
+  [<ffffffffa01c991b>] ? xfs_mru_cache_destroy+0x6b/0x90 [xfs]
+  [<ffffffffa01cbf30>] xfs_fs_put_super+0x30/0x90 [xfs]
+  [<ffffffff81247eca>] generic_shutdown_super+0x6a/0xf0
+
+Earlier in this trace xfs has already performed:
+
+ XFS (pmem0m): xfs_do_force_shutdown(0x2) called from line 1197 of file fs/xfs/xfs_log.c.
+
+...but xfs_log_work_queue() continues to run periodically.
+
 ---
- fs/dax.c |   47 ++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 38 insertions(+), 9 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 9eb46f4b6e38..a429a00628c5 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -567,8 +567,9 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	unsigned blkbits = inode->i_blkbits;
- 	unsigned long pmd_addr = address & PMD_MASK;
- 	bool write = flags & FAULT_FLAG_WRITE;
--	struct block_device *bdev;
-+	struct block_device *bdev = NULL;
- 	pgoff_t size, pgoff;
-+	const char *reason;
- 	sector_t block;
- 	int result = 0;
- 
-@@ -579,21 +580,28 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	/* Fall back to PTEs if we're going to COW */
- 	if (write && !(vma->vm_flags & VM_SHARED)) {
- 		split_huge_page_pmd(vma, address, pmd);
-+		reason = "cow write";
- 		return VM_FAULT_FALLBACK;
- 	}
- 	/* If the PMD would extend outside the VMA */
--	if (pmd_addr < vma->vm_start)
--		return VM_FAULT_FALLBACK;
--	if ((pmd_addr + PMD_SIZE) > vma->vm_end)
--		return VM_FAULT_FALLBACK;
-+	if (pmd_addr < vma->vm_start) {
-+		reason = "vma start unaligned";
-+		goto fallback;
-+	}
-+	if ((pmd_addr + PMD_SIZE) > vma->vm_end) {
-+		reason = "vma end unaligned";
-+		goto fallback;
-+	}
- 
- 	pgoff = linear_page_index(vma, pmd_addr);
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (pgoff >= size)
- 		return VM_FAULT_SIGBUS;
- 	/* If the PMD would cover blocks out of the file */
--	if ((pgoff | PG_PMD_COLOUR) >= size)
-+	if ((pgoff | PG_PMD_COLOUR) >= size) {
-+		reason = "offset + huge page size > file size";
- 		return VM_FAULT_FALLBACK;
-+	}
- 
- 	memset(&bh, 0, sizeof(bh));
- 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
-@@ -609,8 +617,10 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	 * just fall back to PTEs.  Calling get_block 512 times in a loop
- 	 * would be silly.
- 	 */
--	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
-+	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
-+		reason = "block allocation size invalid";
- 		goto fallback;
-+	}
- 
- 	/*
- 	 * If we allocated new storage, make sure no process has any
-@@ -633,23 +643,33 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		result = VM_FAULT_SIGBUS;
- 		goto out;
- 	}
--	if ((pgoff | PG_PMD_COLOUR) >= size)
-+	if ((pgoff | PG_PMD_COLOUR) >= size) {
-+		reason = "pgoff unaligned";
- 		goto fallback;
-+	}
- 
- 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
- 		spinlock_t *ptl;
- 		pmd_t entry;
- 		struct page *zero_page = get_huge_zero_page();
- 
--		if (unlikely(!zero_page))
-+		if (unlikely(!zero_page)) {
-+			reason = "no zero page";
- 			goto fallback;
-+		}
- 
- 		ptl = pmd_lock(vma->vm_mm, pmd);
- 		if (!pmd_none(*pmd)) {
- 			spin_unlock(ptl);
-+			reason = "pmd already present";
- 			goto fallback;
- 		}
- 
-+		dev_dbg(part_to_dev(bdev->bd_part),
-+				"%s: %s addr: %lx pfn: <zero> sect: %llx\n",
-+				__func__, current->comm, address,
-+				(unsigned long long) to_sector(&bh, inode));
-+
- 		entry = mk_pmd(zero_page, vma->vm_page_prot);
- 		entry = pmd_mkhuge(entry);
- 		set_pmd_at(vma->vm_mm, pmd_addr, pmd, entry);
-@@ -678,6 +698,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		 */
- 		if (pfn_t_has_page(dax.pfn)) {
- 			dax_unmap_atomic(bdev, &dax);
-+			reason = "pfn not in memmap";
- 			goto fallback;
- 		}
- 
-@@ -690,6 +711,11 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		}
- 		dax_unmap_atomic(bdev, &dax);
- 
-+		dev_dbg(part_to_dev(bdev->bd_part),
-+				"%s: %s addr: %lx pfn: %lx sect: %llx\n",
-+				__func__, current->comm, address,
-+				pfn_t_to_pfn(dax.pfn),
-+				(unsigned long long) dax.sector);
- 		result |= vmf_insert_pfn_pmd(vma, address, pmd,
- 				dax.pfn, write);
- 	}
-@@ -703,6 +729,9 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	return result;
- 
-  fallback:
-+	pr_debug("%s%s %s: %s addr: %lx fallback: %s\n", bdev
-+			? dev_name(part_to_dev(bdev->bd_part)) : "", bdev
-+			? ": " : "", __func__, current->comm, address, reason);
- 	count_vm_event(THP_FAULT_FALLBACK);
- 	result = VM_FAULT_FALLBACK;
- 	goto out;
+The motivation for these lifetime fixes is to prevent crashes and
+mapping leaks when using dax.  Most of the safety guarantees in this
+series come from the protection afforded by blk_queue_enter +
+blk_queue_exit.  After a successful blk_queue_enter we can issue any
+block device operations we want without needing to worry about the block
+layer infrastructure for the device being torn down.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+blk_queue_enter is chosen for this "is bdev alive?" check over
+SB_I_BDI_DEAD or error returns from get_blocks() because it synchronizes
+with blk_cleanup_queue.  SB_I_BDI_DEAD is there to let a file system
+optionally error out early before getting -ENODEV from the block layer,
+but it's optional an asynchronous.
+
+---
+
+Dan Williams (7):
+      pmem, dax: clean up clear_pmem()
+      dax: increase granularity of dax_clear_blocks() operations
+      dax: guarantee page aligned results from bdev_direct_access()
+      dax: fix lifetime of in-kernel dax mappings with dax_map_atomic()
+      fs: notify superblocks of backing-device death
+      ext4: skip inode dirty when backing device is gone
+      mm, dax: unmap dax mappings at bdev shutdown
+
+
+ arch/x86/include/asm/pmem.h  |    7 -
+ block/genhd.c                |   93 +++++++++++++++--
+ drivers/block/brd.c          |    3 -
+ drivers/nvdimm/pmem.c        |    3 -
+ drivers/s390/block/dcssblk.c |    6 -
+ fs/block_dev.c               |   73 ++++++++++++--
+ fs/dax.c                     |  224 +++++++++++++++++++++++++-----------------
+ fs/fs-writeback.c            |    3 +
+ include/linux/blkdev.h       |   17 +++
+ include/linux/fs.h           |    3 +
+ include/linux/genhd.h        |    1 
+ 11 files changed, 304 insertions(+), 129 deletions(-)
