@@ -1,142 +1,53 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH] sound: depend on ZONE_DMA
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Subject: [PATCH v2 3/7] dax: guarantee page aligned results from
+ bdev_direct_access()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 12 Nov 2015 12:13:57 -0800
-Message-ID: <20151112201357.11045.22705.stgit@dwillia2-desk3.jf.intel.com>
+Date: Wed, 25 Nov 2015 10:37:13 -0800
+Message-ID: <20151125183713.12508.77457.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20151125183656.12508.52212.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20151125183656.12508.52212.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org, Jeff Moyer <jmoyer@redhat.com>, Jaroslav Kysela <perex@perex.cz>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-There are several sound drivers that 'select ZONE_DMA'.  This is
-backwards as ZONE_DMA is an architecture capability exported to drivers.
-Switch the polarity of the dependency to disable these drivers when the
-architecture does not support ZONE_DMA.  This was discovered in the
-context of testing/enabling devm_memremap_pages() which depends on
-ZONE_DEVICE.  ZONE_DEVICE in turn depends on !ZONE_DMA.
+If a ->direct_access() implementation ever returns a map count less than
+PAGE_SIZE, catch the error in bdev_direct_access().  This simplifies
+error checking in upper layers.
 
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: <alsa-devel@alsa-project.org>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- sound/pci/Kconfig |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ fs/block_dev.c |    2 ++
+ fs/dax.c       |    1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/sound/pci/Kconfig b/sound/pci/Kconfig
-index edfc1b8d553e..656ce39bddbc 100644
---- a/sound/pci/Kconfig
-+++ b/sound/pci/Kconfig
-@@ -25,7 +25,7 @@ config SND_ALS300
- 	select SND_PCM
- 	select SND_AC97_CODEC
- 	select SND_OPL3_LIB
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say 'Y' or 'M' to include support for Avance Logic ALS300/ALS300+
- 
-@@ -50,7 +50,7 @@ config SND_ALI5451
- 	tristate "ALi M5451 PCI Audio Controller"
- 	select SND_MPU401_UART
- 	select SND_AC97_CODEC
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say Y here to include support for the integrated AC97 sound
- 	  device on motherboards using the ALi M5451 Audio Controller
-@@ -155,7 +155,7 @@ config SND_AZT3328
- 	select SND_PCM
- 	select SND_RAWMIDI
- 	select SND_AC97_CODEC
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say Y here to include support for Aztech AZF3328 (PCI168)
- 	  soundcards.
-@@ -463,7 +463,7 @@ config SND_EMU10K1
- 	select SND_HWDEP
- 	select SND_RAWMIDI
- 	select SND_AC97_CODEC
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say Y to include support for Sound Blaster PCI 512, Live!,
- 	  Audigy and E-mu APS (partially supported) soundcards.
-@@ -479,7 +479,7 @@ config SND_EMU10K1X
- 	tristate "Emu10k1X (Dell OEM Version)"
- 	select SND_AC97_CODEC
- 	select SND_RAWMIDI
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say Y here to include support for the Dell OEM version of the
- 	  Sound Blaster Live!.
-@@ -513,7 +513,7 @@ config SND_ES1938
- 	select SND_OPL3_LIB
- 	select SND_MPU401_UART
- 	select SND_AC97_CODEC
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say Y here to include support for soundcards based on ESS Solo-1
- 	  (ES1938, ES1946, ES1969) chips.
-@@ -525,7 +525,7 @@ config SND_ES1968
- 	tristate "ESS ES1968/1978 (Maestro-1/2/2E)"
- 	select SND_MPU401_UART
- 	select SND_AC97_CODEC
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say Y here to include support for soundcards based on ESS Maestro
- 	  1/2/2E chips.
-@@ -612,7 +612,7 @@ config SND_ICE1712
- 	select SND_MPU401_UART
- 	select SND_AC97_CODEC
- 	select BITREVERSE
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say Y here to include support for soundcards based on the
- 	  ICE1712 (Envy24) chip.
-@@ -700,7 +700,7 @@ config SND_LX6464ES
- config SND_MAESTRO3
- 	tristate "ESS Allegro/Maestro3"
- 	select SND_AC97_CODEC
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say Y here to include support for soundcards based on ESS Maestro 3
- 	  (Allegro) chips.
-@@ -806,7 +806,7 @@ config SND_SIS7019
- 	tristate "SiS 7019 Audio Accelerator"
- 	depends on X86_32
- 	select SND_AC97_CODEC
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say Y here to include support for the SiS 7019 Audio Accelerator.
- 
-@@ -818,7 +818,7 @@ config SND_SONICVIBES
- 	select SND_OPL3_LIB
- 	select SND_MPU401_UART
- 	select SND_AC97_CODEC
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say Y here to include support for soundcards based on the S3
- 	  SonicVibes chip.
-@@ -830,7 +830,7 @@ config SND_TRIDENT
- 	tristate "Trident 4D-Wave DX/NX; SiS 7018"
- 	select SND_MPU401_UART
- 	select SND_AC97_CODEC
--	select ZONE_DMA
-+	depends on ZONE_DMA
- 	help
- 	  Say Y here to include support for soundcards based on Trident
- 	  4D-Wave DX/NX or SiS 7018 chips.
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index c25639e907bd..c9f813843939 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -489,6 +489,8 @@ long bdev_direct_access(struct block_device *bdev, sector_t sector,
+ 	avail = ops->direct_access(bdev, sector, addr, pfn);
+ 	if (!avail)
+ 		return -ERANGE;
++	if (avail > 0 && avail & ~PAGE_MASK)
++		return -ENXIO;
+ 	return min(avail, size);
+ }
+ EXPORT_SYMBOL_GPL(bdev_direct_access);
+diff --git a/fs/dax.c b/fs/dax.c
+index e11d88835bb2..6e498c2570bf 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -52,7 +52,6 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+ 		sz = min_t(long, count, SZ_1M);
+ 		clear_pmem(addr, sz);
+ 		size -= sz;
+-		BUG_ON(sz & 511);
+ 		sector += sz / 512;
+ 		cond_resched();
+ 	} while (size);
 
