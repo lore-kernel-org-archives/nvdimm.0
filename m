@@ -1,74 +1,60 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH 6/8] dax: increase granularity of dax_clear_blocks()
- operations
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 17 Nov 2015 12:16:25 -0800
-Message-ID: <20151117201625.15053.40904.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151117201551.15053.32709.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-block@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, willy@linux.intel.com, ross.zwisler@linux.intel.com, akpm@linux-foundation.org
+In-Reply-To: <1448309082-20851-1-git-send-email-toshi.kani@hpe.com>
+References: <1448309082-20851-1-git-send-email-toshi.kani@hpe.com>
+Date: Mon, 30 Nov 2015 14:08:53 -0800
+Message-ID: <CAPcyv4gY2SZZwiv9DtjRk4js3gS=vf4YLJvmsMJ196aps4ZHcQ@mail.gmail.com>
+Subject: Re: [PATCH] mm: Fix mmap MAP_POPULATE for DAX pmd mapping
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, mauricio.porto@hpe.com, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_clear_blocks is currently performing a cond_resched() after every
-PAGE_SIZE memset.  We need not check so frequently, for example md-raid
-only calls cond_resched() at stripe granularity.  Also, in preparation
-for introducing a dax_map_atomic() operation that temporarily pins a dax
-mapping move the call to cond_resched() to the outer loop.
+On Mon, Nov 23, 2015 at 12:04 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> The following oops was observed when mmap() with MAP_POPULATE
+> pre-faulted pmd mappings of a DAX file.  follow_trans_huge_pmd()
+> expects that a target address has a struct page.
+>
+>   BUG: unable to handle kernel paging request at ffffea0012220000
+>   follow_trans_huge_pmd+0xba/0x390
+>   follow_page_mask+0x33d/0x420
+>   __get_user_pages+0xdc/0x800
+>   populate_vma_page_range+0xb5/0xe0
+>   __mm_populate+0xc5/0x150
+>   vm_mmap_pgoff+0xd5/0xe0
+>   SyS_mmap_pgoff+0x1c1/0x290
+>   SyS_mmap+0x1b/0x30
+>
+> Fix it by making the PMD pre-fault handling consistent with PTE.
+> After pre-faulted in faultin_page(), follow_page_mask() calls
+> follow_trans_huge_pmd(), which is changed to call follow_pfn_pmd()
+> for VM_PFNMAP or VM_MIXEDMAP.  follow_pfn_pmd() handles FOLL_TOUCH
+> and returns with -EEXIST.
+>
+> Reported-by: Mauricio Porto <mauricio.porto@hpe.com>
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Cc: Matthew Wilcox <willy@linux.intel.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
 
-Reviewed-by: Jan Kara <jack@suse.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |   22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+Hey Toshi,
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 19492cc65a30..e11d88835bb2 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -28,6 +28,7 @@
- #include <linux/sched.h>
- #include <linux/uio.h>
- #include <linux/vmstat.h>
-+#include <linux/sizes.h>
- 
- /*
-  * dax_clear_blocks() is called from within transaction context from XFS,
-@@ -43,24 +44,17 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- 	do {
- 		void __pmem *addr;
- 		unsigned long pfn;
--		long count;
-+		long count, sz;
- 
- 		count = bdev_direct_access(bdev, sector, &addr, &pfn, size);
- 		if (count < 0)
- 			return count;
--		BUG_ON(size < count);
--		while (count > 0) {
--			unsigned pgsz = PAGE_SIZE - offset_in_page(addr);
--			if (pgsz > count)
--				pgsz = count;
--			clear_pmem(addr, pgsz);
--			addr += pgsz;
--			size -= pgsz;
--			count -= pgsz;
--			BUG_ON(pgsz & 511);
--			sector += pgsz / 512;
--			cond_resched();
--		}
-+		sz = min_t(long, count, SZ_1M);
-+		clear_pmem(addr, sz);
-+		size -= sz;
-+		BUG_ON(sz & 511);
-+		sector += sz / 512;
-+		cond_resched();
- 	} while (size);
- 
- 	wmb_pmem();
+I ended up fixing this differently with follow_pmd_devmap() introduced
+in this series:
 
+https://lists.01.org/pipermail/linux-nvdimm/2015-November/003033.html
+
+Does the latest libnvdimm-pending branch [1] pass your test case?
+
+[1]: git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm libnvdimm-pending
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
