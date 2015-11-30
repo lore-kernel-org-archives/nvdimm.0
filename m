@@ -1,52 +1,196 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 03/11] pmem: enable REQ_FUA/REQ_FLUSH handling
-Date: Fri, 13 Nov 2015 17:06:42 -0700
-Message-Id: <1447459610-14259-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [RFC PATCH 2/5] mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 29 Nov 2015 21:08:44 -0800
+Message-ID: <20151130050844.18366.61858.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151130050833.18366.21963.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151130050833.18366.21963.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: linux-mm@kvack.org
+Cc: Andrea Arcangeli <aarcange@redhat.com>, Dave Hansen <dave@sr71.net>, toshi.kani@hp.com, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently the PMEM driver doesn't accept REQ_FLUSH or REQ_FUA bios.  These
-are sent down via blkdev_issue_flush() in response to a fsync() or msync()
-and are used by filesystems to order their metadata, among other things.
+A dax-huge-page mapping while it uses some thp helpers is ultimately not a
+transparent huge page.  The distinction is especially important in the
+get_user_pages() path.  pmd_devmap() is used to distinguish dax-pmds from
+pmd_huge() and pmd_trans_huge() which have slightly different semantics.
 
-When we get an msync() or fsync() it is the responsibility of the DAX code
-to flush all dirty pages to media.  The PMEM driver then just has issue a
-wmb_pmem() in response to the REQ_FLUSH to ensure that before we return all
-the flushed data has been durably stored on the media.
+Explicitly mark the pmd_trans_huge() helpers that dax needs by adding
+pmd_devmap() checks.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Also, before we introduce usages of pmd_pfn() in common code, include a
+definition for archs that have not needed it to date.
+
+Cc: Dave Hansen <dave@sr71.net>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/pmem.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/ia64/include/asm/pgtable.h      |    1 +
+ arch/sh/include/asm/pgtable-3level.h |    1 +
+ arch/x86/include/asm/pgtable.h       |    2 +-
+ include/linux/huge_mm.h              |    3 ++-
+ mm/huge_memory.c                     |   23 +++++++++++++----------
+ mm/memory.c                          |    8 ++++----
+ 6 files changed, 22 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 0ba6a97..b914d66 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -80,7 +80,7 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
- 	if (do_acct)
- 		nd_iostat_end(bio, start);
+diff --git a/arch/ia64/include/asm/pgtable.h b/arch/ia64/include/asm/pgtable.h
+index 9f3ed9ee8f13..81d2af23958f 100644
+--- a/arch/ia64/include/asm/pgtable.h
++++ b/arch/ia64/include/asm/pgtable.h
+@@ -273,6 +273,7 @@ extern unsigned long VMALLOC_END;
+ #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
+ #define pmd_page_vaddr(pmd)		((unsigned long) __va(pmd_val(pmd) & _PFN_MASK))
+ #define pmd_page(pmd)			virt_to_page((pmd_val(pmd) + PAGE_OFFSET))
++#define pmd_pfn(pmd)			(pmd_val(pmd) >> PAGE_SHIFT)
  
--	if (bio_data_dir(bio))
-+	if (bio_data_dir(bio) || (bio->bi_rw & (REQ_FLUSH|REQ_FUA)))
- 		wmb_pmem();
+ #define pud_none(pud)			(!pud_val(pud))
+ #define pud_bad(pud)			(!ia64_phys_addr_valid(pud_val(pud)))
+diff --git a/arch/sh/include/asm/pgtable-3level.h b/arch/sh/include/asm/pgtable-3level.h
+index 249a985d9648..bb29a80fb40e 100644
+--- a/arch/sh/include/asm/pgtable-3level.h
++++ b/arch/sh/include/asm/pgtable-3level.h
+@@ -29,6 +29,7 @@
  
- 	bio_endio(bio);
-@@ -189,6 +189,7 @@ static int pmem_attach_disk(struct device *dev,
- 	blk_queue_physical_block_size(pmem->pmem_queue, PAGE_SIZE);
- 	blk_queue_max_hw_sectors(pmem->pmem_queue, UINT_MAX);
- 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
-+	blk_queue_flush(pmem->pmem_queue, REQ_FLUSH|REQ_FUA);
- 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, pmem->pmem_queue);
+ typedef struct { unsigned long long pmd; } pmd_t;
+ #define pmd_val(x)	((x).pmd)
++#define pmd_pfn(x)	((pmd_val(x) & PMD_MASK) >> PAGE_SHIFT)
+ #define __pmd(x)	((pmd_t) { (x) } )
  
- 	disk = alloc_disk(0);
--- 
-2.1.0
+ static inline unsigned long pud_page_vaddr(pud_t pud)
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index 02096a5dec2a..d5747ada2a76 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -178,7 +178,7 @@ static inline int pmd_trans_splitting(pmd_t pmd)
+ 
+ static inline int pmd_trans_huge(pmd_t pmd)
+ {
+-	return pmd_val(pmd) & _PAGE_PSE;
++	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
+ }
+ 
+ static inline int has_transparent_hugepage(void)
+diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+index d218abedfeb9..9c9c1688889a 100644
+--- a/include/linux/huge_mm.h
++++ b/include/linux/huge_mm.h
+@@ -105,7 +105,8 @@ extern void __split_huge_page_pmd(struct vm_area_struct *vma,
+ #define split_huge_page_pmd(__vma, __address, __pmd)			\
+ 	do {								\
+ 		pmd_t *____pmd = (__pmd);				\
+-		if (unlikely(pmd_trans_huge(*____pmd)))			\
++		if (unlikely(pmd_trans_huge(*____pmd)			\
++					|| pmd_devmap(*____pmd)))	\
+ 			__split_huge_page_pmd(__vma, __address,		\
+ 					____pmd);			\
+ 	}  while (0)
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 6b506df659ec..329cedf48b8a 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -933,7 +933,7 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 
+ 	ret = -EAGAIN;
+ 	pmd = *src_pmd;
+-	if (unlikely(!pmd_trans_huge(pmd))) {
++	if (unlikely(!pmd_trans_huge(pmd) && !pmd_devmap(pmd))) {
+ 		pte_free(dst_mm, pgtable);
+ 		goto out_unlock;
+ 	}
+@@ -965,17 +965,20 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 		wait_split_huge_page(vma->anon_vma, src_pmd); /* src_vma */
+ 		goto out;
+ 	}
+-	src_page = pmd_page(pmd);
+-	VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
+-	get_page(src_page);
+-	page_dup_rmap(src_page);
+-	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
++	if (pmd_trans_huge(pmd)) {
++		/* thp accounting separate from pmd_devmap accounting */
++		src_page = pmd_page(pmd);
++		VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
++		get_page(src_page);
++		page_dup_rmap(src_page);
++		add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
++		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
++		atomic_long_inc(&dst_mm->nr_ptes);
++	}
+ 
+ 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
+ 	pmd = pmd_mkold(pmd_wrprotect(pmd));
+-	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
+ 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
+-	atomic_long_inc(&dst_mm->nr_ptes);
+ 
+ 	ret = 0;
+ out_unlock:
+@@ -1599,7 +1602,7 @@ int __pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma,
+ 		spinlock_t **ptl)
+ {
+ 	*ptl = pmd_lock(vma->vm_mm, pmd);
+-	if (likely(pmd_trans_huge(*pmd))) {
++	if (likely(pmd_trans_huge(*pmd) || pmd_devmap(*pmd))) {
+ 		if (unlikely(pmd_trans_splitting(*pmd))) {
+ 			spin_unlock(*ptl);
+ 			wait_split_huge_page(vma->anon_vma, pmd);
+@@ -2975,7 +2978,7 @@ void __split_huge_page_pmd(struct vm_area_struct *vma, unsigned long address,
+ again:
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 	ptl = pmd_lock(mm, pmd);
+-	if (unlikely(!pmd_trans_huge(*pmd)))
++	if (unlikely(!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
+ 		goto unlock;
+ 	if (vma_is_dax(vma)) {
+ 		pmd_t _pmd = pmdp_huge_clear_flush_notify(vma, haddr, pmd);
+diff --git a/mm/memory.c b/mm/memory.c
+index 6a34be836a3b..5b9c6bab80d1 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -961,7 +961,7 @@ static inline int copy_pmd_range(struct mm_struct *dst_mm, struct mm_struct *src
+ 	src_pmd = pmd_offset(src_pud, addr);
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+-		if (pmd_trans_huge(*src_pmd)) {
++		if (pmd_trans_huge(*src_pmd) || pmd_devmap(*src_pmd)) {
+ 			int err;
+ 			VM_BUG_ON(next-addr != HPAGE_PMD_SIZE);
+ 			err = copy_huge_pmd(dst_mm, src_mm,
+@@ -1193,7 +1193,7 @@ static inline unsigned long zap_pmd_range(struct mmu_gather *tlb,
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+-		if (pmd_trans_huge(*pmd)) {
++		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE) {
+ #ifdef CONFIG_DEBUG_VM
+ 				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
+@@ -3366,7 +3366,7 @@ static int __handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		int ret;
+ 
+ 		barrier();
+-		if (pmd_trans_huge(orig_pmd)) {
++		if (pmd_trans_huge(orig_pmd) || pmd_devmap(orig_pmd)) {
+ 			unsigned int dirty = flags & FAULT_FLAG_WRITE;
+ 
+ 			/*
+@@ -3403,7 +3403,7 @@ static int __handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	    unlikely(__pte_alloc(mm, vma, pmd, address)))
+ 		return VM_FAULT_OOM;
+ 	/* if an huge pmd materialized from under us just retry later */
+-	if (unlikely(pmd_trans_huge(*pmd)))
++	if (unlikely(pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
+ 		return 0;
+ 	/*
+ 	 * A regular pmd is established and it can't morph into a huge pmd
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
