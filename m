@@ -1,109 +1,101 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 05/11] mm: add follow_pte_pmd()
-Date: Fri, 13 Nov 2015 17:06:44 -0700
-Message-Id: <1447459610-14259-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1447459610-14259-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <20151201040336.GS19199@dastard>
+References: <20151125183656.12508.52212.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20151125183724.12508.73971.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20151125215050.GQ19199@dastard>
+	<CAPcyv4i_wjZLNPN5C=fy7TL4N+QCedMX5U-T4gdMxhMmFztfJA@mail.gmail.com>
+	<20151126062728.GR19199@dastard>
+	<CAPcyv4ipVjvMJ7VjtcBX+umXZPv66X8p6V4VwfKjBrkQhJZ5jg@mail.gmail.com>
+	<20151201040336.GS19199@dastard>
+Date: Mon, 30 Nov 2015 20:20:47 -0800
+Message-ID: <CAPcyv4iQx=dohU+gcEUmxA5LGZYsRKoUsfpHSOx=+Jzu_BS+jQ@mail.gmail.com>
+Subject: Re: [PATCH v2 5/7] fs: notify superblocks of backing-device death
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Jens Axboe <axboe@fb.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-block@vger.kernel.org, Jan Kara <jack@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to follow_pte(), follow_pte_pmd() allows either a PTE leaf or a
-huge page PMD leaf to be found and returned.
+On Mon, Nov 30, 2015 at 8:03 PM, Dave Chinner <david@fromorbit.com> wrote:
+> On Wed, Nov 25, 2015 at 11:11:00PM -0800, Dan Williams wrote:
+>> On Wed, Nov 25, 2015 at 10:27 PM, Dave Chinner <david@fromorbit.com> wrote:
+>> > On Wed, Nov 25, 2015 at 02:09:34PM -0800, Dan Williams wrote:
+>> >> On Wed, Nov 25, 2015 at 1:50 PM, Dave Chinner <david@fromorbit.com> wrote:
+>> >> > On Wed, Nov 25, 2015 at 10:37:24AM -0800, Dan Williams wrote:
+>> [..]
+>> >> That sounds good in theory.  However, in the case of xfs it is already
+>> >> calling xfs_force_shutdown(),
+>> >
+>> > Where?
+>>
+>> In the trace I included in the cover letter.
+>>
+>> Testing this patch set reveals that xfs needs more XFS_FORCED_SHUTDOWN
+>> checks, especially in the unmount path.  Currently we deadlock here on
+>> umount after block device removal:
+>
+> What's the test case?
+>
+> From what you've said, it appears to be another manifestation where
+> we trying to recovery from non-fatal IO errors that are being
+> reported by the block device, but that is short-cutting the path
+> that normally does shutdown detection on metadata buffer IO
+> completion.
+>
+> Filesystem error handling coul dbe a lot more simple if we didnt'
+> have to try to guess what EIO from the block device actually means.
+> If device unplug triggered a shutdown, we wouldn't have to care
+> about retrying in many cases where we do right now because shutdown
+> then has clear priority of all other errors we need to handle. RIgh
+> tnow we just have ot guess, and there's a long history of corner
+> cases where we have guessed wrong....
+>
+> I have patches to fix this particular manifestation, but until we
+> have have notification that devices hav ebeen unplugged and are not
+> coming back we're going to continue to struggle to get this right
+> and hence have re-occurring bugs when users pull USB drives out from
+> under active filesystems.....
+>
+>
+>> >> None of this fixes the problem of dax mappings leaking past block
+>> >> device remove.  That can be done generically without needing per-fs
+>> >> code.
+>> >
+>> > No, the shutdown is intended to close the race between the device
+>> > being removed, the mappings being invalidated and the filesytem
+>> > racing creating new mappings during page faults because it doesn't
+>> > know the device has been unplugged until it does IO that gets some
+>> > error in an unrecoverable path...
+>>
+>> So you want me to grow a ->sb_shutdown() method for each fs that
+>> supports dax only to call unmap_mapping_range on each dax inode when
+>> common code could have already walked the inode list.
+>
+> No, I don't want you to implement some whacky, dax only
+> ->sb_shutdown method. I want a notification method to be implemented
+> so that each filesystem can take the necessary action it requires
+> when the underlying block device goes away.
+>
+> Yes, that *filesystem specific method* might involve invalidating
+> all the dirty inodes in the filesystem, and if there are DAX
+> mappings in the filesystem then invalidating them, too, but that's
+> something the filesystem needs to take care of because *all
+> filesystem shutdowns must do this*.
+>
+> Do you see the distinction there? This isn't just about device
+> unplug - there are lots of different triggers for a filesystem
+> shutdown. However, regardless of the shutdown trigger, we have to
+> take the same action. That is, we have to prevent all pending and
+> future IO from being issued to the block device, *even if the block
+> device is still OK*.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dave Hansen <dave.hansen@linux.intel.com>
----
- include/linux/mm.h |  2 ++
- mm/memory.c        | 38 ++++++++++++++++++++++++++++++--------
- 2 files changed, 32 insertions(+), 8 deletions(-)
+Ah, that finally got through to me.
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 80001de..393441c 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1166,6 +1166,8 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
- 			struct vm_area_struct *vma);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
-+int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
- 	unsigned long *pfn);
- int follow_phys(struct vm_area_struct *vma, unsigned long address,
-diff --git a/mm/memory.c b/mm/memory.c
-index deb679c..7f4090e 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3512,8 +3512,8 @@ int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
- }
- #endif /* __PAGETABLE_PMD_FOLDED */
- 
--static int __follow_pte(struct mm_struct *mm, unsigned long address,
--		pte_t **ptepp, spinlock_t **ptlp)
-+static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+		pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
- {
- 	pgd_t *pgd;
- 	pud_t *pud;
-@@ -3529,12 +3529,20 @@ static int __follow_pte(struct mm_struct *mm, unsigned long address,
- 		goto out;
- 
- 	pmd = pmd_offset(pud, address);
--	VM_BUG_ON(pmd_trans_huge(*pmd));
--	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
--		goto out;
- 
--	/* We cannot handle huge page PFN maps. Luckily they don't exist. */
--	if (pmd_huge(*pmd))
-+	if (pmd_huge(*pmd)) {
-+		if (!pmdpp)
-+			goto out;
-+
-+		*ptlp = pmd_lock(mm, pmd);
-+		if (pmd_huge(*pmd)) {
-+			*pmdpp = pmd;
-+			return 0;
-+		}
-+		spin_unlock(*ptlp);
-+	}
-+
-+	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
- 		goto out;
- 
- 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
-@@ -3557,9 +3565,23 @@ static inline int follow_pte(struct mm_struct *mm, unsigned long address,
- 
- 	/* (void) is needed to make gcc happy */
- 	(void) __cond_lock(*ptlp,
--			   !(res = __follow_pte(mm, address, ptepp, ptlp)));
-+			   !(res = __follow_pte_pmd(mm, address, ptepp, NULL,
-+					   ptlp)));
-+	return res;
-+}
-+
-+int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
-+{
-+	int res;
-+
-+	/* (void) is needed to make gcc happy */
-+	(void) __cond_lock(*ptlp,
-+			   !(res = __follow_pte_pmd(mm, address, ptepp, pmdpp,
-+					   ptlp)));
- 	return res;
- }
-+EXPORT_SYMBOL(follow_pte_pmd);
- 
- /**
-  * follow_pfn - look up PFN at a user virtual address
--- 
-2.1.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I'll refactor this to be a ->shutdown notification with a generic
+unmap that a filesystem can optionally call under its own discretion.
+As I now see that generic functionality is just common code that an fs
+might optionally need/use, but it is counter productive for that to be
+privately triggered only by the block layer and only from an event
+like del_gendisk.  We need it in potentially all fs shutdown paths.
