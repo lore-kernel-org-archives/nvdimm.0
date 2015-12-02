@@ -1,169 +1,95 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 3/9] libnvdimm, pfn: add 'align' attribute,
- default to HPAGE_SIZE
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 14 Dec 2015 18:14:44 -0800
-Message-ID: <20151215021444.37090.34287.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Wed, 2 Dec 2015 11:35:12 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 3/3] writeback: fix false positive WARN in
+ __mark_inode_dirty
+Message-ID: <20151202103512.GA22125@quack.suse.cz>
+References: <20151201235836.36836.90416.stgit@dwillia2-desk3.jf.intel.com>
+ <20151201235852.36836.87208.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: willy@linux.intel.com, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151201235852.36836.87208.stgit@dwillia2-desk3.jf.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.com>, Tejun Heo <tj@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When setting aside capacity for struct page it must be aligned to the
-largest mapping size that is to be made available via DAX.  Make the
-alignment configurable to enable support for 1GiB page-size mappings.
+On Tue 01-12-15 15:58:52, Dan Williams wrote:
+> This warning was added as a debugging aid way back in commit
+> 500b067c5e6c "writeback: check for registered bdi in flusher add and
+> inode dirty" when we were switching over to per-bdi writeback.
+> 
+> Once the block device has been torn down it's no longer useful to
+> complain about unregistered bdi's.  Clear the writeback capability under
+> the the wb->list_lock(), so that __mark_inode_dirty has no opportunity
+> to race bdi_unregister() to this WARN() condition.
+> 
+> Alternatively we could just delete the warning...
+> 
+> Found this while testing block device remove from underneath an active
+> fs triggering traces like:
+> 
+>  WARNING: CPU: 6 PID: 2129 at fs/fs-writeback.c:2065 __mark_inode_dirty+0x261/0x350()
+>  bdi-block not registered
+>  [..]
+>  Call Trace:
+>   [<ffffffff81459f02>] dump_stack+0x44/0x62
+>   [<ffffffff810a1f32>] warn_slowpath_common+0x82/0xc0
+>   [<ffffffff810a1fcc>] warn_slowpath_fmt+0x5c/0x80
+>   [<ffffffff812830b1>] __mark_inode_dirty+0x261/0x350
+>   [<ffffffff8126d019>] generic_update_time+0x79/0xd0
+>   [<ffffffff8126d19d>] file_update_time+0xbd/0x110
+>   [<ffffffff812e4ab8>] ext4_dax_fault+0x68/0x110
+>   [<ffffffff811f7f3e>] __do_fault+0x4e/0xf0
+>   [<ffffffff811fc077>] handle_mm_fault+0x5e7/0x1b50
+>   [<ffffffff811fbae1>] ? handle_mm_fault+0x51/0x1b50
+>   [<ffffffff81068981>] __do_page_fault+0x191/0x3f0
+>   [<ffffffff81068caf>] trace_do_page_fault+0x4f/0x120
+>   [<ffffffff810630fa>] do_async_page_fault+0x1a/0xa0
+>   [<ffffffff819023f8>] async_page_fault+0x28/0x30
+> 
+> Cc: Jan Kara <jack@suse.com>
+> Cc: Tejun Heo <tj@kernel.org>
+> Cc: Jens Axboe <axboe@fb.com>
+> Cc: Dave Chinner <david@fromorbit.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-The offset for PFN_MODE_RAM may now be larger than SZ_8K, so fixup the
-offset check in nvdimm_namespace_attach_pfn().
+OK, looks good to me. There is still a tiny race window where the warning
+could trigger but I don't think it's worth caring about. You can add:
 
-Reported-by: Toshi Kani <toshi.kani@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/nd.h       |    1 +
- drivers/nvdimm/pfn_devs.c |   61 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/pmem.c     |    6 ++--
- 3 files changed, 65 insertions(+), 3 deletions(-)
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 2ce428e9b584..e4e9f9ae0cc8 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -146,6 +146,7 @@ struct nd_pfn {
- 	int id;
- 	u8 *uuid;
- 	struct device dev;
-+	unsigned long align;
- 	unsigned long npfns;
- 	enum nd_pfn_mode mode;
- 	struct nd_pfn_sb *pfn_sb;
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 613ffcca6ecb..95ecd7b0fab3 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -103,6 +103,52 @@ static ssize_t mode_store(struct device *dev,
- }
- static DEVICE_ATTR_RW(mode);
- 
-+static ssize_t align_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+
-+	return sprintf(buf, "%lx\n", nd_pfn->align);
-+}
-+
-+static ssize_t __align_store(struct nd_pfn *nd_pfn, const char *buf)
-+{
-+	unsigned long val;
-+	int rc;
-+
-+	rc = kstrtoul(buf, 0, &val);
-+	if (rc)
-+		return rc;
-+
-+	if (!is_power_of_2(val) || val < PAGE_SIZE || val > SZ_1G)
-+		return -EINVAL;
-+
-+	if (nd_pfn->dev.driver)
-+		return -EBUSY;
-+	else
-+		nd_pfn->align = val;
-+
-+	return 0;
-+}
-+
-+static ssize_t align_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	ssize_t rc;
-+
-+	device_lock(dev);
-+	nvdimm_bus_lock(dev);
-+	rc = __align_store(nd_pfn, buf);
-+	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
-+			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	nvdimm_bus_unlock(dev);
-+	device_unlock(dev);
-+
-+	return rc ? rc : len;
-+}
-+static DEVICE_ATTR_RW(align);
-+
- static ssize_t uuid_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -164,6 +210,7 @@ static struct attribute *nd_pfn_attributes[] = {
- 	&dev_attr_mode.attr,
- 	&dev_attr_namespace.attr,
- 	&dev_attr_uuid.attr,
-+	&dev_attr_align.attr,
- 	NULL,
- };
- 
-@@ -199,6 +246,7 @@ static struct device *__nd_pfn_create(struct nd_region *nd_region,
- 	}
- 
- 	nd_pfn->mode = PFN_MODE_NONE;
-+	nd_pfn->align = HPAGE_SIZE;
- 	dev = &nd_pfn->dev;
- 	dev_set_name(dev, "pfn%d.%d", nd_region->id, nd_pfn->id);
- 	dev->parent = &nd_region->dev;
-@@ -269,6 +317,12 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn)
- 			return -EINVAL;
- 	}
- 
-+	if (nd_pfn->align > nvdimm_namespace_capacity(ndns)) {
-+		dev_err(&nd_pfn->dev, "alignment: %lx exceeds capacity %llx\n",
-+				nd_pfn->align, nvdimm_namespace_capacity(ndns));
-+		return -EINVAL;
-+	}
-+
- 	/*
- 	 * These warnings are verbose because they can only trigger in
- 	 * the case where the physical address alignment of the
-@@ -283,6 +337,13 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn)
- 		return -EBUSY;
- 	}
- 
-+	nd_pfn->align = 1UL << ilog2(offset);
-+	if (!is_power_of_2(offset) || offset < PAGE_SIZE) {
-+		dev_err(&nd_pfn->dev, "bad offset: %#llx dax disabled\n",
-+				offset);
-+		return -ENXIO;
-+	}
-+
- 	return 0;
- }
- EXPORT_SYMBOL(nd_pfn_validate);
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 520c00321dad..5ba351e4f26a 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -258,9 +258,9 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	 * ->direct_access() to those that are included in the memmap.
- 	 */
- 	if (nd_pfn->mode == PFN_MODE_PMEM)
--		offset = ALIGN(SZ_8K + 64 * npfns, PMD_SIZE);
-+		offset = ALIGN(SZ_8K + 64 * npfns, nd_pfn->align);
- 	else if (nd_pfn->mode == PFN_MODE_RAM)
--		offset = SZ_8K;
-+		offset = ALIGN(SZ_8K, nd_pfn->align);
- 	else
- 		goto err;
- 
-@@ -325,7 +325,7 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
- 	offset = le64_to_cpu(pfn_sb->dataoff);
- 	nd_pfn->mode = le32_to_cpu(nd_pfn->pfn_sb->mode);
- 	if (nd_pfn->mode == PFN_MODE_RAM) {
--		if (offset != SZ_8K)
-+		if (offset < SZ_8K)
- 			return -EINVAL;
- 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
- 		altmap = NULL;
+								Honza
 
+> ---
+>  mm/backing-dev.c |    7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/mm/backing-dev.c b/mm/backing-dev.c
+> index 8ed2ffd963c5..24e61acf74a7 100644
+> --- a/mm/backing-dev.c
+> +++ b/mm/backing-dev.c
+> @@ -343,10 +343,17 @@ static void wb_shutdown(struct bdi_writeback *wb)
+>  {
+>  	/* Make sure nobody queues further work */
+>  	spin_lock_bh(&wb->work_lock);
+> +
+>  	if (!test_and_clear_bit(WB_registered, &wb->state)) {
+>  		spin_unlock_bh(&wb->work_lock);
+>  		return;
+>  	}
+> +
+> +	/* tell __mark_inode_dirty that writeback is no longer possible */
+> +	spin_lock(&wb->list_lock);
+> +	wb->bdi->capabilities |= BDI_CAP_NO_WRITEBACK;
+> +	spin_unlock(&wb->list_lock);
+> +
+>  	spin_unlock_bh(&wb->work_lock);
+>  
+>  	/*
+> 
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
