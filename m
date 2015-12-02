@@ -5,8 +5,8 @@ References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
 	<562AA15E.3010403@deltatee.com>
 	<CAPcyv4gQ-8-tL-rhAPzPxKzBLmWKnFcqSFVy4KVOM56_9gn6RA@mail.gmail.com>
 	<565F6A7A.4040302@deltatee.com>
-Date: Thu, 3 Dec 2015 18:16:38 -0800
-Message-ID: <CAPcyv4jjyzKgPMzdwms8xH-_RoKEGxRp1r4qxEcPYmPv7qStqw@mail.gmail.com>
+Date: Wed, 2 Dec 2015 14:04:58 -0800
+Message-ID: <CAPcyv4jxLiEnKt2rkEUXofqn1osZYRELOao84TatL-OatrY2dQ@mail.gmail.com>
 Subject: Re: [PATCH v2 00/20] get_user_pages() for dax mappings
 From: Dan Williams <dan.j.williams@intel.com>
 Content-Type: text/plain; charset=UTF-8
@@ -44,19 +44,12 @@ On Wed, Dec 2, 2015 at 2:02 PM, Logan Gunthorpe <logang@deltatee.com> wrote:
 > tests work fine. This hasn't been a problem on real hardware as we are using
 > a 64bit address space and thus the BAR addresses are better aligned.
 >
-
-I could loosen the restriction a bit to allow one unaligned mapping
-per section.  However, if another mapping request came along that
-tried to map a free part of the section it would fail because the code
-depends on a  "1 dev_pagemap per section" relationship.  Seems an ok
-compromise to me...
-
+>
 > I don't have much time at the moment to dig into the kernel panic myself so
 > hopefully what I've provided will help you find the issue. If you need any
 > more information let me know.
 
-Could you share the test setup for this one so I can try to reproduce?
- As far as I can see this looks like an ext4 internals issue.
+This is great. Thank you!  I'll take a look.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
