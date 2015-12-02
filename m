@@ -1,78 +1,68 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 5/9] libnvdimm, pfn: fix pfn seed creation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 14 Dec 2015 18:14:55 -0800
-Message-ID: <20151215021455.37090.36504.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v3 1/3] nvdimm: Clean-up access mode check.
+Date: Wed,  2 Dec 2015 14:05:19 -0700
+Message-Id: <e34ab0a631f856562cff746bd4df8f20ff655162.1449089647.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1449089647.git.jerry.hoemann@hpe.com>
+References: <cover.1449089647.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1449089647.git.jerry.hoemann@hpe.com>
+References: <cover.1449089647.git.jerry.hoemann@hpe.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: willy@linux.intel.com, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
+To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to btt, plant a new pfn seed when the existing one is activated.
+Change nd_ioctl and nvdimm_ioctl access mode check to use O_RDONLY.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- drivers/nvdimm/namespace_devs.c |   12 ++++++++++++
- drivers/nvdimm/nd-core.h        |    1 +
- drivers/nvdimm/region_devs.c    |    7 +++++++
- 3 files changed, 20 insertions(+)
+ drivers/nvdimm/bus.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index f981177524a1..ea8dd0cb28ca 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1707,6 +1707,18 @@ void nd_region_create_blk_seed(struct nd_region *nd_region)
- 		nd_device_register(nd_region->ns_seed);
- }
- 
-+void nd_region_create_pfn_seed(struct nd_region *nd_region)
-+{
-+	WARN_ON(!is_nvdimm_bus_locked(&nd_region->dev));
-+	nd_region->pfn_seed = nd_pfn_create(nd_region);
-+	/*
-+	 * Seed creation failures are not fatal, provisioning is simply
-+	 * disabled until memory becomes available
-+	 */
-+	if (!nd_region->pfn_seed)
-+		dev_err(&nd_region->dev, "failed to create pfn namespace\n");
-+}
-+
- void nd_region_create_btt_seed(struct nd_region *nd_region)
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 7e2c43f..1c81203 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -602,14 +602,14 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  {
- 	WARN_ON(!is_nvdimm_bus_locked(&nd_region->dev));
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 159aed532042..3249c498892a 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -52,6 +52,7 @@ void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev);
- struct nd_region;
- void nd_region_create_blk_seed(struct nd_region *nd_region);
- void nd_region_create_btt_seed(struct nd_region *nd_region);
-+void nd_region_create_pfn_seed(struct nd_region *nd_region);
- void nd_region_disable(struct nvdimm_bus *nvdimm_bus, struct device *dev);
- int nvdimm_bus_create_ndctl(struct nvdimm_bus *nvdimm_bus);
- void nvdimm_bus_destroy_ndctl(struct nvdimm_bus *nvdimm_bus);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 3d730d1f25db..9c632f73915e 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -490,6 +490,13 @@ static void nd_region_notify_driver_action(struct nvdimm_bus *nvdimm_bus,
- 			nd_region_create_blk_seed(nd_region);
- 		nvdimm_bus_unlock(dev);
- 	}
-+	if (is_nd_pfn(dev) && probe) {
-+		nd_region = to_nd_region(dev->parent);
-+		nvdimm_bus_lock(dev);
-+		if (nd_region->pfn_seed == dev)
-+			nd_region_create_pfn_seed(nd_region);
-+		nvdimm_bus_unlock(dev);
-+	}
- }
+ 	long id = (long) file->private_data;
+-	int rc = -ENXIO, read_only;
++	int rc = -ENXIO, ro;
+ 	struct nvdimm_bus *nvdimm_bus;
  
- void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev)
+-	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
++	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+ 		if (nvdimm_bus->id == id) {
+-			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
++			rc = __nd_ioctl(nvdimm_bus, NULL, ro, cmd, arg);
+ 			break;
+ 		}
+ 	}
+@@ -633,10 +633,10 @@ static int match_dimm(struct device *dev, void *data)
+ 
+ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+-	int rc = -ENXIO, read_only;
++	int rc = -ENXIO, ro;
+ 	struct nvdimm_bus *nvdimm_bus;
+ 
+-	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
++	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+ 		struct device *dev = device_find_child(&nvdimm_bus->dev,
+@@ -647,7 +647,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 			continue;
+ 
+ 		nvdimm = to_nvdimm(dev);
+-		rc = __nd_ioctl(nvdimm_bus, nvdimm, read_only, cmd, arg);
++		rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
+ 		put_device(dev);
+ 		break;
+ 	}
+-- 
+1.7.11.3
 
