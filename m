@@ -1,67 +1,45 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <1449102105.9855.15.camel@hpe.com>
 Subject: Re: [PATCH] mm: Fix mmap MAP_POPULATE for DAX pmd mapping
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Wed, 02 Dec 2015 17:21:45 -0700
-In-Reply-To: <1449078237.31589.30.camel@hpe.com>
 References: <1448309082-20851-1-git-send-email-toshi.kani@hpe.com>
-	 <CAPcyv4gY2SZZwiv9DtjRk4js3gS=vf4YLJvmsMJ196aps4ZHcQ@mail.gmail.com>
-	 <1449022764.31589.24.camel@hpe.com>
-	 <CAPcyv4hzjMkwx3AA+f5Y9zfp-egjO-b5+_EU7cGO5BGMQaiN_g@mail.gmail.com>
-	 <1449078237.31589.30.camel@hpe.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+ <CAPcyv4gY2SZZwiv9DtjRk4js3gS=vf4YLJvmsMJ196aps4ZHcQ@mail.gmail.com>
+ <1449022764.31589.24.camel@hpe.com>
+ <CAPcyv4hzjMkwx3AA+f5Y9zfp-egjO-b5+_EU7cGO5BGMQaiN_g@mail.gmail.com>
+ <1449078237.31589.30.camel@hpe.com>
+ <CAPcyv4ikJ73nzQTCOfnBRThkv=rZGPM76S7=6O3LSB4kQBeEpw@mail.gmail.com>
+ <CAPcyv4j1vA6eAtjsE=kGKeF1EqWWfR+NC7nUcRpfH_8MRqpM8Q@mail.gmail.com>
+ <1449084362.31589.37.camel@hpe.com>
+ <CAPcyv4jt7JmWCgcsd=p32M322sCyaar4Pj-k+F446XGZvzrO8A@mail.gmail.com>
+ <1449086521.31589.39.camel@hpe.com> <1449087125.31589.45.camel@hpe.com>
+ <CAPcyv4hvX_s3xN9UZ69v7npOhWVFehfGDPZG1MsDmKWBk4Gq1A@mail.gmail.com>
+ <1449092226.31589.50.camel@hpe.com>
+ <CAPcyv4jtVkptiFhiFP=2KXvDXs=Tw17pF=249sLj2fw-0vgsEg@mail.gmail.com>
+ <565F69FE.601@intel.com>
+ <CAPcyv4i0n=2+WMACVumvMHsXZ7xzBuzvO6WA9H06N_-S=s3ibQ@mail.gmail.com>
+From: Dave Hansen <dave.hansen@intel.com>
+Message-ID: <565F6C06.9060208@intel.com>
+Date: Wed, 2 Dec 2015 14:09:10 -0800
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4i0n=2+WMACVumvMHsXZ7xzBuzvO6WA9H06N_-S=s3ibQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, mauricio.porto@hpe.com, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Toshi Kani <toshi.kani@hpe.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, mauricio.porto@hpe.com, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, 2015-12-02 at 10:43 -0700, Toshi Kani wrote:
-> On Tue, 2015-12-01 at 19:45 -0800, Dan Williams wrote:
-> > On Tue, Dec 1, 2015 at 6:19 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> > > On Mon, 2015-11-30 at 14:08 -0800, Dan Williams wrote:
- :
-> > > > 
-> > > > Hey Toshi,
-> > > > 
-> > > > I ended up fixing this differently with follow_pmd_devmap() introduced
-> > > > in this series:
-> > > > 
-> > > > https://lists.01.org/pipermail/linux-nvdimm/2015-November/003033.html
-> > > > 
-> > > > Does the latest libnvdimm-pending branch [1] pass your test case?
-> > > 
-> > > Hi Dan,
-> > > 
-> > > I ran several test cases, and they all hit the case "pfn not in memmap" in
-> > > __dax_pmd_fault() during mmap(MAP_POPULATE).  Looking at the dax.pfn,
-> > > PFN_DEV is set but PFN_MAP is not.  I have not looked into why, but I 
-> > > thought I let you know first.  I've also seen the test thread got hung up 
-> > > at the end sometime.
-> > 
-> > That PFN_MAP flag will not be set by default for NFIT-defined
-> > persistent memory.  See pmem_should_map_pages() for pmem namespaces
-> > that will have it set by default, currently only e820 type-12 memory
-> > ranges.
-> > 
-> > NFIT-defined persistent memory can have a memmap array dynamically
-> > allocated by setting up a pfn device (similar to setting up a btt).
-> > We don't map it by default because the NFIT may describe hundreds of
-> > gigabytes of persistent and the overhead of the memmap may be too
-> > large to locate the memmap in ram.
-> 
-> Oh, I see.  I will setup the memmap array and run the tests again.
+On 12/02/2015 02:03 PM, Dan Williams wrote:
+>>> >> Is pfn_valid() a reliable check?  It seems to be based on a max_pfn
+>>> >> per node... what happens when pmem is located below that point.  I
+>>> >> haven't been able to convince myself that we won't get false
+>>> >> positives, but maybe I'm missing something.
+>> >
+>> > With sparsemem at least, it makes sure that you're looking at a valid
+>> > _section_.  See the pfn_valid() at ~include/linux/mmzone.h:1222.
+> At a minimum we would need to add "depends on SPARSEMEM" to "config FS_DAX_PMD".
 
-I setup a pfn device, and ran a few test cases again.  Yes, it solved the
-PFN_MAP issue.  However, I am no longer able to allocate FS blocks aligned by
-2MB, so PMD faults fall back to PTE.  They are off by 2 pages, which I suspect
-due to the pfn metadata.  If I pass a 2MB-aligned+2pages virtual address to
-mmap(MAP_POPULATE), the mmap() call gets hung up.
-
-Thanks,
--Toshi
-
+Yeah, it seems like an awful layering violation.  But, sparsemem is
+turned on everywhere (all the distros/users) that we care about, as far
+as I know.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
