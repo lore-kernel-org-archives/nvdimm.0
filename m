@@ -1,114 +1,42 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v2 20/25] libnvdimm,
- pmem: move request_queue allocation earlier in probe
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 09 Dec 2015 18:39:00 -0800
-Message-ID: <20151210023900.30368.15503.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Thu, 3 Dec 2015 13:38:45 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 1/3] block, fs: reliably communicate bdev end-of-life
+Message-ID: <20151203123845.GB21988@quack.suse.cz>
+References: <20151201235836.36836.90416.stgit@dwillia2-desk3.jf.intel.com>
+ <20151201235841.36836.69016.stgit@dwillia2-desk3.jf.intel.com>
+ <20151202111656.GB22125@quack.suse.cz>
+ <CAPcyv4j47YwQ2yexAB18wagN6WSmNn8v_pTwetc1OZdUzZBE8Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4j47YwQ2yexAB18wagN6WSmNn8v_pTwetc1OZdUzZBE8Q@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-block@vger.kernel.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Before the dynamically allocated struct pages from devm_memremap_pages()
-can be put to use outside the driver, we need a mechanism to track
-whether they are still in use at teardown.  Towards that goal reorder
-the initialization sequence to allow the 'q_usage_counter' from the
-request_queue to be used by the devm_memremap_pages() implementation (in
-subsequent patches).
+On Wed 02-12-15 07:37:58, Dan Williams wrote:
+> On Wed, Dec 2, 2015 at 3:16 AM, Jan Kara <jack@suse.cz> wrote:
+> >> generic_quiesce_super and generic_bdi_gone, are the default operations
+> >> when a filesystem does not implement ->quiesce(), ->bdi_gone().  They
+> >> invalidate inodes and unmap DAX-inodes respectively.  For now only
+> >> ->bdi_gone() has an associated super operation as xfs will implement
+> >> ->bdi_gone() in a later patch.
+> >
+> > So the patch looks good. Just for the callbacks to be generally useful we
+> > would need del_gendisk_queue() to be used for all devices, not just for
+> > pmem ones... But I guess this is better than nothing.
+> 
+> Once this goes in I'll go back and convert nvme and sd to
+> del_gendisk_queue.  That should give us coverage for the most
+> prominent block drivers.
 
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pmem.c |   33 ++++++++++++++++++++-------------
- 1 file changed, 20 insertions(+), 13 deletions(-)
+OK, that would be good enough. Feel free to add:
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 1d884318c67b..9060a64628ae 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -124,6 +124,7 @@ static struct pmem_device *pmem_alloc(struct device *dev,
- 		struct resource *res, int id)
- {
- 	struct pmem_device *pmem;
-+	struct request_queue *q;
- 
- 	pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
- 	if (!pmem)
-@@ -141,6 +142,10 @@ static struct pmem_device *pmem_alloc(struct device *dev,
- 		return ERR_PTR(-EBUSY);
- 	}
- 
-+	q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
-+	if (!q)
-+		return ERR_PTR(-ENOMEM);
-+
- 	pmem->pfn_flags = PFN_DEV;
- 	if (pmem_should_map_pages(dev)) {
- 		pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, res,
-@@ -151,9 +156,12 @@ static struct pmem_device *pmem_alloc(struct device *dev,
- 				pmem->phys_addr, pmem->size,
- 				ARCH_MEMREMAP_PMEM);
- 
--	if (IS_ERR(pmem->virt_addr))
-+	if (IS_ERR(pmem->virt_addr)) {
-+		blk_cleanup_queue(q);
- 		return (void __force *) pmem->virt_addr;
-+	}
- 
-+	pmem->pmem_queue = q;
- 	return pmem;
- }
- 
-@@ -173,10 +181,6 @@ static int pmem_attach_disk(struct device *dev,
- 	int nid = dev_to_node(dev);
- 	struct gendisk *disk;
- 
--	pmem->pmem_queue = blk_alloc_queue_node(GFP_KERNEL, nid);
--	if (!pmem->pmem_queue)
--		return -ENOMEM;
--
- 	blk_queue_make_request(pmem->pmem_queue, pmem_make_request);
- 	blk_queue_physical_block_size(pmem->pmem_queue, PAGE_SIZE);
- 	blk_queue_max_hw_sectors(pmem->pmem_queue, UINT_MAX);
-@@ -411,19 +415,22 @@ static int nd_pmem_probe(struct device *dev)
- 	dev_set_drvdata(dev, pmem);
- 	ndns->rw_bytes = pmem_rw_bytes;
- 
--	if (is_nd_btt(dev))
-+	if (is_nd_btt(dev)) {
-+		/* btt allocates its own request_queue */
-+		blk_cleanup_queue(pmem->pmem_queue);
-+		pmem->pmem_queue = NULL;
- 		return nvdimm_namespace_attach_btt(ndns);
-+	}
- 
- 	if (is_nd_pfn(dev))
- 		return nvdimm_namespace_attach_pfn(ndns);
- 
--	if (nd_btt_probe(ndns, pmem) == 0) {
--		/* we'll come back as btt-pmem */
--		return -ENXIO;
--	}
--
--	if (nd_pfn_probe(ndns, pmem) == 0) {
--		/* we'll come back as pfn-pmem */
-+	if (nd_btt_probe(ndns, pmem) == 0 || nd_pfn_probe(ndns, pmem) == 0) {
-+		/*
-+		 * We'll come back as either btt-pmem, or pfn-pmem, so
-+		 * drop the queue allocation for now.
-+		 */
-+		blk_cleanup_queue(pmem->pmem_queue);
- 		return -ENXIO;
- 	}
- 
+Acked-by: Jan Kara <jack@suse.cz>
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
