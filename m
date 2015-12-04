@@ -1,49 +1,47 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH 0/3] fs, bdev: handle end of life
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 01 Dec 2015 15:58:36 -0800
-Message-ID: <20151201235836.36836.90416.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org
-Cc: linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, xfs@oss.sgi.com, Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.com>, Tejun Heo <tj@kernel.org>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
+In-Reply-To: <1449006492-1474-1-git-send-email-krivenok.dmitry@gmail.com>
+References: <1449006492-1474-1-git-send-email-krivenok.dmitry@gmail.com>
+Date: Thu, 3 Dec 2015 18:52:32 -0800
+Message-ID: <CAPcyv4ghneEfKyOp35x2WurE52aWEfS-fGPg56oeOq407tTe6Q@mail.gmail.com>
+Subject: Re: [PATCH] nvdimm: improve diagnosibility of namespaces
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Dmitry V. Krivenok" <krivenok.dmitry@gmail.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-As mentioned in [PATCH 1/3] "block, fs: reliably communicate bdev
-end-of-life", historically we have waited for filesystem specific
-heuristics to attempt to guess when a block device is gone.  Sometimes
-this works, but in other cases the system can hang waiting for the fs to
-trigger its shutdown protocol.
+On Tue, Dec 1, 2015 at 1:48 PM, Dmitry V. Krivenok
+<krivenok.dmitry@gmail.com> wrote:
+> In order to bind namespace to the driver user must first
+> set all mandatory attributes in the following order:
+> - uuid
+> - size
+> - sector_size (for blk namespace only)
+>
+> If the order is wrong, then user either won't be able to set
+> the attribute or bind the namespace.
+>
+> This simple patch improves diagnosibility of common operations
+> with namespaces by printing some details about the error
+> instead of failing silently.
+>
+> Below are examples of error messages (assuming dyndbg is
+> enabled for nvdimms):
+>
+> [/]# echo 4194304 > /sys/bus/nd/devices/region5/namespace5.0/size
+> [  288.372612] nd namespace5.0: __size_store: uuid not set
+> [  288.374839] nd namespace5.0: size_store: 400000 fail (-6)
+> sh: write error: No such device or address
+> [/]#
+>
+> [/]# echo namespace5.0 > /sys/bus/nd/drivers/nd_blk/bind
+> [  554.671648] nd_blk namespace5.0: nvdimm_namespace_common_probe: sector size not set
+> [  554.674688]  ndbus1: nd_blk.probe(namespace5.0) = -19
+> sh: write error: No such device
+> [/]#
+>
+> Signed-off-by: Dmitry V. Krivenok <krivenok.dmitry@gmail.com>
 
-Now with DAX we need new actions, like unmapping all inodes, to be taken
-upon a shutdown event.  Those actions need to be taken whether the
-shutdown event comes from the block device being torn down, or some
-other file system specific event.
-
-For now, the approach taken in the following patches only affects xfs
-and block drivers that are converted to use del_gendisk_queue().  We can
-add more filesystems and driver support over time.
-
-Note that 'bdi_gone' was chosen over 'shutdown' so as not to be confused
-with generic_shutdown_super()
-
----
-
-Dan Williams (3):
-      block, fs: reliably communicate bdev end-of-life
-      xfs: handle shutdown notifications
-      writeback: fix false positive WARN in __mark_inode_dirty
-
-
- block/genhd.c                |   87 +++++++++++++++++++++++++++++++++++-------
- drivers/block/brd.c          |    3 -
- drivers/nvdimm/pmem.c        |    3 -
- drivers/s390/block/dcssblk.c |    6 +--
- fs/block_dev.c               |   79 +++++++++++++++++++++++++++++++++-----
- fs/xfs/xfs_super.c           |    9 ++++
- include/linux/fs.h           |    4 ++
- include/linux/genhd.h        |    1 
- mm/backing-dev.c             |    7 +++
- 9 files changed, 166 insertions(+), 33 deletions(-)
+Looks good I'll queue it for 4.5.
