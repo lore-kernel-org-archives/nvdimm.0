@@ -1,229 +1,128 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v3 6/6] nvdimm: Add IOCTL pass thru functions
-Date: Sun, 13 Dec 2015 18:54:27 -0700
-Message-Id: <50d7d7fedf292ce67c8626761d93f142813ad150.1450036445.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1450036445.git.jerry.hoemann@hpe.com>
-References: <cover.1450036445.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1450036445.git.jerry.hoemann@hpe.com>
-References: <cover.1450036445.git.jerry.hoemann@hpe.com>
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm fixes for 4.4-rc4
+Date: Fri, 4 Dec 2015 19:18:41 +0000
+Message-ID: <1449256717.24881.11.camel@intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-7"
+Content-ID: <B06AD95D3ACCDE44A7F696505E73D8EE@intel.com>
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Zwisler, Ross" <ross.zwisler@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add ioctl command ND_CMD_CALL_DSM to acpi_nfit_ctl and __nd_ioctl which
-allow kernel to call a nvdimm's _DSM as a passthru without using the
-marshaling code of the nd_cmd_desc.
+Hi Linus, please pull from...
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
----
- drivers/acpi/nfit.c  | 52 +++++++++++++++++++++++++++++++++++++++-------------
- drivers/nvdimm/bus.c | 47 ++++++++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 83 insertions(+), 16 deletions(-)
+    git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index c1b8d03..8a8ec3f 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -76,6 +76,10 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 	const u8 *uuid;
- 	u32 offset;
- 	int rc, i;
-+	__u64 rev = 1, func = cmd;
-+
-+	struct nd_cmd_dsmcall_pkg *pkg = buf;
-+	int dsm_call = (cmd == ND_CMD_CALL_DSM);
- 
- 	if (nvdimm) {
- 		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-@@ -99,6 +103,8 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		handle = adev->handle;
- 		dimm_name = "bus";
- 	}
-+	if (dsm_call)
-+		dsm_mask = ~0UL;
- 
- 	if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
- 		return -ENOTTY;
-@@ -118,15 +124,25 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		in_buf.buffer.length += nd_cmd_in_size(nvdimm, cmd, desc,
- 				i, buf);
- 
-+	if (dsm_call) {
-+		/* must skip over package wrapper */
-+		in_buf.buffer.pointer = (void *) &pkg->dsm_buf;
-+		in_buf.buffer.length = pkg->h.dsm_in;
-+		/* for pass thru must use value sent in from user space. */
-+		uuid = pkg->h.dsm_uuid;
-+		rev  = pkg->h.dsm_rev;
-+		func = pkg->h.dsm_fun_idx;
-+	}
-+
- 	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
--		dev_dbg(dev, "%s:%s cmd: %s input length: %d\n", __func__,
--				dimm_name, cmd_name, in_buf.buffer.length);
--		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
--				4, in_buf.buffer.pointer, min_t(u32, 128,
--					in_buf.buffer.length), true);
-+		dev_dbg(dev, "%s:%s cmd: %d: %llu input length: %d\n", __func__,
-+				dimm_name, cmd, func, in_buf.buffer.length);
-+		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
-+			in_buf.buffer.pointer,
-+			min_t(u32, 256, in_buf.buffer.length), true);
- 	}
- 
--	out_obj = acpi_evaluate_dsm(handle, uuid, 1, cmd, &in_obj);
-+	out_obj = acpi_evaluate_dsm(handle, uuid, rev, func, &in_obj);
- 	if (!out_obj) {
- 		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
- 				cmd_name);
-@@ -134,18 +150,28 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 	}
- 
- 	if (out_obj->package.type != ACPI_TYPE_BUFFER) {
--		dev_dbg(dev, "%s:%s unexpected output object type cmd: %s type: %d\n",
--				__func__, dimm_name, cmd_name, out_obj->type);
-+		dev_dbg(dev, "%s:%s unexpected output object type cmd: %s %llu, type: %d\n",
-+			__func__, dimm_name, cmd_name, func, out_obj->type);
- 		rc = -EINVAL;
- 		goto out;
- 	}
- 
- 	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
--		dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__,
--				dimm_name, cmd_name, out_obj->buffer.length);
--		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
--				4, out_obj->buffer.pointer, min_t(u32, 128,
--					out_obj->buffer.length), true);
-+		dev_dbg(dev, "%s:%s cmd %d: %llu output length %d\n", __func__,
-+				dimm_name, cmd, func, out_obj->buffer.length);
-+		print_hex_dump_debug("nvdimm out ", DUMP_PREFIX_OFFSET, 4, 4,
-+			out_obj->buffer.pointer,
-+			min_t(u32, 256, out_obj->buffer.length), true);
-+	}
-+
-+	if (dsm_call) {
-+		pkg->h.dsm_size = out_obj->buffer.length;
-+		memcpy(pkg->dsm_buf + pkg->h.dsm_in,
-+			out_obj->buffer.pointer,
-+			min(pkg->h.dsm_size, pkg->h.dsm_out));
-+
-+		ACPI_FREE(out_obj);
-+		return 0;
- 	}
- 
- 	for (i = 0, offset = 0; i < desc->out_num; i++) {
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 87fe545..8d3a64b 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -367,6 +367,12 @@ static const struct nd_cmd_desc __nd_cmd_dimm_descs[] = {
- 		.out_num = 3,
- 		.out_sizes = { 4, 4, UINT_MAX, },
- 	},
-+	[ND_CMD_CALL_DSM] = {
-+		.in_num = 2,
-+		.in_sizes = {sizeof(struct nd_cmd_dsmcall_pkg), UINT_MAX, },
-+		.out_num = 1,
-+		.out_sizes = { UINT_MAX, },
-+	},
- };
- 
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd)
-@@ -395,6 +401,12 @@ static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
- 		.out_num = 2,
- 		.out_sizes = { 4, UINT_MAX, },
- 	},
-+	[ND_CMD_CALL_DSM] = {
-+		.in_num = 2,
-+		.in_sizes = {sizeof(struct nd_cmd_dsmcall_pkg), UINT_MAX, },
-+		.out_num = 1,
-+		.out_sizes = { UINT_MAX, },
-+	},
- };
- 
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd)
-@@ -422,6 +434,10 @@ u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
- 		struct nd_cmd_vendor_hdr *hdr = buf;
- 
- 		return hdr->in_length;
-+	} else if (cmd == ND_CMD_CALL_DSM) {
-+		struct nd_cmd_dsmcall_pkg *pkg = buf;
-+
-+		return pkg->h.dsm_in;
- 	}
- 
- 	return UINT_MAX;
-@@ -444,6 +460,12 @@ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
- 		return out_field[1];
- 	else if (!nvdimm && cmd == ND_CMD_ARS_STATUS && idx == 1)
- 		return ND_CMD_ARS_STATUS_MAX;
-+	else if (cmd == ND_CMD_CALL_DSM) {
-+		struct nd_cmd_dsmcall_pkg *pkg =
-+				(struct nd_cmd_dsmcall_pkg *) in_field;
-+		return pkg->h.dsm_out;
-+	}
-+
- 
- 	return UINT_MAX;
- }
-@@ -491,19 +513,24 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 	void __user *p = (void __user *) arg;
- 	struct device *dev = &nvdimm_bus->dev;
- 	const char *cmd_name, *dimm_name;
--	unsigned long dsm_mask;
-+	unsigned long dsm_mask = ~0UL;
- 	void *buf;
- 	int rc, i;
- 
-+	struct nd_cmd_dsmcall_pkg *pkg;
-+	int dsm_call = (cmd == ND_CMD_CALL_DSM);
-+
- 	if (nvdimm) {
- 		desc = nd_cmd_dimm_desc(cmd);
- 		cmd_name = nvdimm_cmd_name(cmd);
--		dsm_mask = nvdimm->dsm_mask ? *(nvdimm->dsm_mask) : 0;
-+		if (!dsm_call)
-+			dsm_mask = nvdimm->dsm_mask ? *(nvdimm->dsm_mask) : 0;
- 		dimm_name = dev_name(&nvdimm->dev);
- 	} else {
- 		desc = nd_cmd_bus_desc(cmd);
- 		cmd_name = nvdimm_bus_cmd_name(cmd);
--		dsm_mask = nd_desc->dsm_mask;
-+		if (!dsm_call)
-+			dsm_mask = nd_desc->dsm_mask;
- 		dimm_name = "bus";
- 	}
- 
-@@ -517,6 +544,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		case ND_CMD_VENDOR:
- 		case ND_CMD_SET_CONFIG_DATA:
- 		case ND_CMD_ARS_START:
-+		case ND_CMD_CALL_DSM:
- 			dev_dbg(&nvdimm_bus->dev, "'%s' command while read-only.\n",
- 					nvdimm ? nvdimm_cmd_name(cmd)
- 					: nvdimm_bus_cmd_name(cmd));
-@@ -544,6 +572,19 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		in_len += in_size;
- 	}
- 
-+	if (dsm_call) {
-+		pkg = (struct nd_cmd_dsmcall_pkg *) in_env;
-+
-+		dev_dbg(dev, "%s:%s rev: %llu, idx: %llu, in: %zu, out: %zu, len %zu\n",
-+			__func__, dimm_name,
-+			pkg->h.dsm_rev, pkg->h.dsm_fun_idx,
-+			in_len, out_len, buf_len);
-+
-+		for (i = 0; i < ARRAY_SIZE(pkg->h.reserved2); i++)
-+			if (pkg->h.reserved2[i])
-+				return -EINVAL;
-+	}
-+
- 	/* process an output envelope */
- 	for (i = 0; i < desc->out_num; i++) {
- 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i,
--- 
-1.7.11.3
+...to receive:
 
+1/ NFIT parsing regression fixes from Linda. +AKA-The nvdimm hot-add
+implementation merged in 4.4-rc1 interpreted the specification in a way
+that breaks actual HPE platforms. +AKA-We are also closing the loop with
+the ACPI Working Group to get this clarification added to the spec.
+
+2/ Andy pointed out that his laptop without nvdimm resources is loading
+the e820-nvdimm module by default, fix that up to only load the module
+when an e820-type-12 range is present.
+
+The following changes since commit 31ade3b83e1821da5fbb2f11b5b3d4ab2ec39db8:
+
++AKA- Linux 4.4-rc3 (2015-11-29 18:58:26 -0800)
+
+are available in the git repository at:
+
++AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+
+for you to fetch changes up to 6b577c9d772c45448aec784ec235cea228b4d3ad:
+
++AKA- nfit: Adjust for different +AF8-FIT and NFIT headers (2015-11-30 14:51:46 -0800)
+
+----------------------------------------------------------------
+Dan Williams (1):
++AKAAoACgAKAAoACg-libnvdimm, e820: skip module loading when no type-12
+
+Linda Knippers (3):
++AKAAoACgAKAAoACg-nfit: Account for table size length variation
++AKAAoACgAKAAoACg-nfit: Fix the check for a successful NFIT merge
++AKAAoACgAKAAoACg-nfit: Adjust for different +AF8-FIT and NFIT headers
+
++AKA-arch/x86/kernel/pmem.c+AKAAoACgAKAAoACgAKAAoACgAKAAoAB8- 12 +-+-+-+-+-+-+-+-
++AKA-drivers/acpi/nfit.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8- 65 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+------------
++AKA-drivers/acpi/nfit.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoA-3 +--
++AKA-tools/testing/nvdimm/test/nfit.c +AHw- 49 +-+-+-+-+-+-+-+-+-+---------------------
++AKA-4 files changed, 76 insertions(+-), 53 deletions(-)
+
+commit 6b577c9d772c45448aec784ec235cea228b4d3ad
+Author: Linda Knippers +ADw-linda.knippers+AEA-hpe.com+AD4-
+Date:+AKAAoACg-Fri Nov 20 19:05:49 2015 -0500
+
++AKAAoACgAKA-nfit: Adjust for different +AF8-FIT and NFIT headers
++AKAAoACgAKA-
++AKAAoACgAKA-When support for +AF8-FIT was added, the code presumed that the data
++AKAAoACgAKA-returned by the +AF8-FIT method is identical to the NFIT table, which
++AKAAoACgAKA-starts with an acpi+AF8-table+AF8-header.+AKAAoA-However, the +AF8-FIT is defined
++AKAAoACgAKA-to return a data in the format of a series of NFIT type structure
++AKAAoACgAKA-entries and as a method, has an acpi+AF8-object header rather tahn
++AKAAoACgAKA-an acpi+AF8-table+AF8-header.
++AKAAoACgAKA-
++AKAAoACgAKA-To address the differences, explicitly save the acpi+AF8-table+AF8-header
++AKAAoACgAKA-from the NFIT, since it is accessible through /sys, and change
++AKAAoACgAKA-the nfit pointer in the acpi+AF8-desc structure to point to the
++AKAAoACgAKA-table entries rather than the headers.
++AKAAoACgAKA-
++AKAAoACgAKA-Reported-by: Jeff Moyer (jmoyer+AEA-redhat.com+AD4-
++AKAAoACgAKA-Signed-off-by: Linda Knippers +ADw-linda.knippers+AEA-hpe.com+AD4-
++AKAAoACgAKA-Acked-by: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
++AKAAoACgAKAAWw-vishal: fix up unit test for new header assumptions+AF0-
++AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
+
+commit ff5a55f89c6690a0b292f1a7e0cd4532961588d5
+Author: Linda Knippers +ADw-linda.knippers+AEA-hpe.com+AD4-
+Date:+AKAAoACg-Fri Nov 20 19:05:48 2015 -0500
+
++AKAAoACgAKA-nfit: Fix the check for a successful NFIT merge
++AKAAoACgAKA-
++AKAAoACgAKA-Missed previously due to a lack of test coverage on a platform that
++AKAAoACgAKA-provided an valid response to +AF8-FIT.
++AKAAoACgAKA-
++AKAAoACgAKA-Signed-off-by: Linda Knippers +ADw-linda.knippers+AEA-hpe.com+AD4-
++AKAAoACgAKA-Acked-by: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
++AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
+
+commit 826c416f3c9493b69630a811832cfb7c9007f840
+Author: Linda Knippers +ADw-linda.knippers+AEA-hpe.com+AD4-
+Date:+AKAAoACg-Fri Nov 20 19:05:47 2015 -0500
+
++AKAAoACgAKA-nfit: Account for table size length variation
++AKAAoACgAKA-
++AKAAoACgAKA-The size of NFIT tables don't necessarily match the size of the
++AKAAoACgAKA-data structures that we use for them.+AKAAoA-For example, the NVDIMM
++AKAAoACgAKA-Control Region Structure table is shorter for a device with
++AKAAoACgAKA-no block control windows than for a device with block control windows.
++AKAAoACgAKA-Other tables, such as Flush Hint Address Structure and the Interleave
++AKAAoACgAKA-Structure are variable length by definition.
++AKAAoACgAKA-
++AKAAoACgAKA-Account for the size difference when comparing table entries by
++AKAAoACgAKA-using the actual table size from the table header if it's less
++AKAAoACgAKA-than the structure size.
++AKAAoACgAKA-
++AKAAoACgAKA-Signed-off-by: Linda Knippers +ADw-linda.knippers+AEA-hpe.com+AD4-
++AKAAoACgAKA-Acked-by: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
++AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
+
+commit bc0d0d093b379b0b379c429e3348498287c8a9ca
+Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
+Date:+AKAAoACg-Mon Nov 30 09:10:33 2015 -0800
+
++AKAAoACgAKA-libnvdimm, e820: skip module loading when no type-12
++AKAAoACgAKA-
++AKAAoACgAKA-If there are no persistent memory ranges present then don't bother
++AKAAoACgAKA-creating the platform device.+AKAAoA-Otherwise, it loads the full libnvdimm
++AKAAoACgAKA-sub-system only to discover no resources present.
++AKAAoACgAKA-
++AKAAoACgAKA-Reported-by: Andy Lutomirski +ADw-luto+AEA-amacapital.net+AD4-
++AKAAoACgAKA-Acked-by: Andy Lutomirski +ADw-luto+AEA-amacapital.net+AD4-
++AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4
