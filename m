@@ -1,76 +1,23 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH 0/8] Support for transparent PUD pages
-Date: Thu, 24 Dec 2015 11:20:29 -0500
-Message-Id: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
-Sender: owner-linux-mm@kvack.org
-Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <1449038369-752-1-git-send-email-krivenok.dmitry@gmail.com>
+References: <1449038369-752-1-git-send-email-krivenok.dmitry@gmail.com>
+Date: Thu, 3 Dec 2015 18:52:53 -0800
+Message-ID: <CAPcyv4grSUHnFv_8=V_rmFuoDHkY5LPWzUqD_p1hW+OQuYfBrQ@mail.gmail.com>
+Subject: Re: [PATCH] nvdimm: do not show pfn_seed for non pmem regions
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Dmitry V. Krivenok" <krivenok.dmitry@gmail.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <willy@linux.intel.com>
+On Tue, Dec 1, 2015 at 10:39 PM, Dmitry V. Krivenok
+<krivenok.dmitry@gmail.com> wrote:
+> This simple change hides pfn_seed attribute for non pmem
+> regions because they don't support pfn anyway.
+>
+> Signed-off-by: Dmitry V. Krivenok <krivenok.dmitry@gmail.com>
+> ---
 
-We have customer demand to use 1GB pages to map DAX files.  Unlike the 2MB
-page support, the Linux MM does not currently support PUD pages, so I have
-attempted to add support for the necessary pieces for DAX huge PUD pages.
-
-Filesystem support is a bit sticky.  I have not been able to persuade ext4
-to give me more than 16MB of contiguous space, although it is aligned.
-XFS will give me 80MB short of 1GB, but it's not aligned.  I'm in no
-hurry to get patches 7 & 8 merged until the block allocation problem is
-solved in those filesystems.
-
-This patch set is against something approximately current -mm.  At this
-point, I would be most grateful for MM developers to give feedback on
-the first three patches.  Review from X86 maintainers on patch 4 would
-also be welcome.  I'd like to thank Ross Zwisler for his helpful review
-during development.
-
-I've done some light testing using a program to mmap a block device
-with DAX enabled, calling mincore() and examining /proc/smaps and
-/proc/pagemap.
-
-Matthew Wilcox (8):
-  mm: Add optional support for PUD-sized transparent hugepages
-  mincore: Add support for PUDs
-  procfs: Add support for PUDs to smaps, clear_refs and pagemap
-  x86: Add support for PUD-sized transparent hugepages
-  dax: Support for transparent PUD pages
-  block_dev: Support PUD DAX mappings
-  xfs: Support for transparent PUD pages
-  ext4: Transparent support for PUD-sized transparent huge pages
-
- arch/Kconfig                          |   3 +
- arch/x86/Kconfig                      |   1 +
- arch/x86/include/asm/paravirt.h       |  11 ++
- arch/x86/include/asm/paravirt_types.h |   2 +
- arch/x86/include/asm/pgtable.h        |  95 ++++++++++++++
- arch/x86/include/asm/pgtable_64.h     |  13 ++
- arch/x86/kernel/paravirt.c            |   1 +
- arch/x86/mm/pgtable.c                 |  31 +++++
- fs/block_dev.c                        |   7 +
- fs/dax.c                              | 239 +++++++++++++++++++++++++++++++---
- fs/ext4/file.c                        |  37 ++++++
- fs/proc/task_mmu.c                    | 109 ++++++++++++++++
- fs/xfs/xfs_file.c                     |  33 +++++
- fs/xfs/xfs_trace.h                    |   1 +
- include/asm-generic/pgtable.h         |  62 ++++++++-
- include/asm-generic/tlb.h             |  14 ++
- include/linux/dax.h                   |  21 +++
- include/linux/huge_mm.h               |  52 +++++++-
- include/linux/mm.h                    |  30 +++++
- include/linux/mmu_notifier.h          |  13 ++
- mm/huge_memory.c                      | 151 +++++++++++++++++++++
- mm/memory.c                           |  67 ++++++++++
- mm/mincore.c                          |  13 ++
- mm/pagewalk.c                         |  19 ++-
- mm/pgtable-generic.c                  |  14 ++
- 25 files changed, 1016 insertions(+), 23 deletions(-)
-
--- 
-2.6.2
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Looks good I'll queue it for 4.5.
