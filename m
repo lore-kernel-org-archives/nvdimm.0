@@ -4,82 +4,61 @@ References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
  <CAPcyv4gQ-8-tL-rhAPzPxKzBLmWKnFcqSFVy4KVOM56_9gn6RA@mail.gmail.com>
  <565F6A7A.4040302@deltatee.com>
  <CAPcyv4jjyzKgPMzdwms8xH-_RoKEGxRp1r4qxEcPYmPv7qStqw@mail.gmail.com>
- <566244CC.5080107@deltatee.com>
 From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <56661DBA.5000302@deltatee.com>
-Date: Mon, 7 Dec 2015 17:00:58 -0700
+Message-ID: <566244CC.5080107@deltatee.com>
+Date: Fri, 4 Dec 2015 18:58:36 -0700
 MIME-Version: 1.0
-In-Reply-To: <566244CC.5080107@deltatee.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+In-Reply-To: <CAPcyv4jjyzKgPMzdwms8xH-_RoKEGxRp1r4qxEcPYmPv7qStqw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Subject: Re: [PATCH v2 00/20] get_user_pages() for dax mappings
 Sender: owner-linux-mm@kvack.org
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Stephen Bates <Stephen.Bates@pmcs.com>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>, Stephen Bates <Stephen.Bates@pmcs.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan,
+Hey,
 
-I've done a bit of digging and here's some more information:
+On 03/12/15 07:16 PM, Dan Williams wrote:
+> I could loosen the restriction a bit to allow one unaligned mapping
+> per section.  However, if another mapping request came along that
+> tried to map a free part of the section it would fail because the code
+> depends on a  "1 dev_pagemap per section" relationship.  Seems an ok
+> compromise to me...
 
-* The crash occurs in ext4_end_io_unwritten when it tries to dereference 
-bh->b_assoc_map which is not necessarily NULL.
+Sure, that would work fine for us. I think it would be very unusual ;to 
+need to map two adjacent BARs in this way.
 
-* That function is called by __dax_pmd_fault, as the argument 
-complete_unwritten.
+> Could you share the test setup for this one so I can try to reproduce?
+>   As far as I can see this looks like an ext4 internals issue.
 
-* Looking in __dax_pmd_fault, the bug occurs if we hit either of the 
-first two 'goto fallback' lines. (In my case, it's hitting the first one.)
+Ok, well it's somewhat specialized and I can't run the failing test in a 
+VM because it requires infiniband hardware. We have a PCI card that has 
+a large memory backed BAR space. To use that with zone_device we have a 
+kernel patch that allows doing the zone device mapping with io memory 
+that has write combining enabled. Then we have an out of tree kernel 
+module that creates a block device from the PCI bar (similar to the pmem 
+code).
 
-* After the fallback code, it goes back to 'out', then checks '&bh'
-for the unwritten flag. But bh hasn't been initialized yet and, on my 
-setup, the unwritten flag happens to be set. So, it then calls 
-complete_unwritten with a garbage bh and crashes.
+I could send you all of that, assuming you have a suitable PCI device. 
+However, I'm hoping none of the above has anything to do with the failure.
 
-If I move the memset(&bh) up in the code, before the goto fallbacks can 
-occur, I can fix the crash.  I don't know if this is really the best way 
-to fix the problem though.
+The test that is failing is a very simple RDMA test with an mmaped DAX 
+file. So hopefully it has nothing to do with the fact that a PCI device 
+backs it. So if you have some IB hardware available you could try our 
+simple test code from here:
 
---
+https://github.com/sbates130272/io_peer_mem/tree/master/test
 
-However, unfortunately, fixing the above just uncovered another issue. 
-Now the MR de-registration seems to have completed but the task hangs 
-when it's trying to munmap the memory. (Stack trace at the end of this 
-email.)
+The server must be run with no arguments. Then the client can be run 
+with the address of the server as the first argument and a file that's 
+in a DAX fs (with a size greater than 4MB). The client and server should 
+be able to run on the same node, if necessary.
 
-It looks like the i_mmap_lock_write is hanging in unlink_file_vma. I'm 
-not really sure how to go about debugging this lock issue. If you have 
-any steps I can try to get you more information let me know. I'm also 
-happy to re-test if you have any other changes you'd like me to try.
-
-Thanks,
+Let me know if this helps or if there's anything else I can provide. I 
+can probably dig into it some more on Monday on our setup.
 
 Logan
-
-
-> [ 240.520522] INFO: task client:1997 blocked for more than 120 seconds.
-> [ 240.520638] Tainted: G O 4.4.0-rc3+donard2.5+ #87
-> [ 240.520741] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-> [ 240.520847] client D ffff88047fd14800 0 1997 1912 0x00000004
-> [ 240.520856] ffff88026bc7b240 0000000000000000 ffff88026bd38000 ffff88026bd37d30
-> [ 240.520861] fffffffeffffffff ffff88026bc7b240 00007f4297513000 ffff880473aba240
-> [ 240.520866] ffffffff81422896 ffff880470b34e40 ffffffff814242f1 ffff880476deddc0
-> [ 240.520871] Call Trace:
-> [ 240.520886] [<ffffffff81422896>] ? schedule+0x6c/0x79
-> [ 240.520893] [<ffffffff814242f1>] ? rwsem_down_write_failed+0x285/0x2cb
-> [ 240.520903] [<ffffffff8124d833>] ? call_rwsem_down_write_failed+0x13/0x20
-> [ 240.520907] [<ffffffff8124d833>] ? call_rwsem_down_write_failed+0x13/0x20
-> [ 240.520913] [<ffffffff81423b22>] ? down_write+0x24/0x33
-> [ 240.520923] [<ffffffff8110836e>] ? unlink_file_vma+0x28/0x4b
-> [ 240.520928] [<ffffffff811033e4>] ? free_pgtables+0x3c/0xba
-> [ 240.520933] [<ffffffff81107c15>] ? unmap_region+0xa4/0xc1
-> [ 240.520941] [<ffffffff8106c60c>] ? pick_next_task_fair+0x11b/0x347
-> [ 240.520947] [<ffffffff8110795f>] ? vma_gap_callbacks_propagate+0x16/0x2c
-> [ 240.520951] [<ffffffff81108101>] ? vma_rb_erase+0x161/0x18f
-> [ 240.520957] [<ffffffff81109524>] ? do_munmap+0x271/0x2e6
-> [ 240.520962] [<ffffffff811095d0>] ? vm_munmap+0x37/0x4f
-> [ 240.520967] [<ffffffff81109602>] ? SyS_munmap+0x1a/0x1f
-> [ 240.520971] [<ffffffff81424d57>] ? entry_SYSCALL_64_fastpath+0x12/0x6a
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
