@@ -1,158 +1,219 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Fri, 4 Dec 2015 04:04:49 +0000
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: ARM EFI stub and the EfiPersistentMemory type
-Message-ID: <20151204040447.GA1643@svinekod>
-References: <94D0CD8314A33A4D9D801C0FE68B40295BE85E04@G4W3202.americas.hpqcorp.net>
- <20151204030218.GA1523@svinekod>
- <CAKv+Gu_j7ES6Rh14hPuOUSX5sY2ywaiz=Q8m3YPZBED=i7r+8Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAKv+Gu_j7ES6Rh14hPuOUSX5sY2ywaiz=Q8m3YPZBED=i7r+8Q@mail.gmail.com>
+In-Reply-To: <20151204030218.GA1523@svinekod>
+References: <94D0CD8314A33A4D9D801C0FE68B40295BE85E04@G4W3202.americas.hpqcorp.net>
+	<20151204030218.GA1523@svinekod>
+Date: Sat, 5 Dec 2015 11:11:46 +0100
+Message-ID: <CAKv+Gu_j7ES6Rh14hPuOUSX5sY2ywaiz=Q8m3YPZBED=i7r+8Q@mail.gmail.com>
+Subject: Re: ARM EFI stub and the EfiPersistentMemory type
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+To: Mark Rutland <mark.rutland@arm.com>
 Cc: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, "leif.lindholm@linaro.org" <leif.lindholm@linaro.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "Kani, Toshimitsu" <toshi.kani@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "matt.fleming@intel.com" <matt.fleming@intel.com>, "bp@suse.de" <bp@suse.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "msalter@redhat.com" <msalter@redhat.com>, "roy.franz@linaro.org" <roy.franz@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sat, Dec 05, 2015 at 11:11:46AM +0100, Ard Biesheuvel wrote:
-> On 4 December 2015 at 04:02, Mark Rutland <mark.rutland@arm.com> wrote:
-> > Hi,
-> >
-> > On Fri, Dec 04, 2015 at 09:51:22PM +0000, Elliott, Robert (Persistent Memory) wrote:
-> >> drivers/firmware/efi/libstub/efi-stub-helper.c get_dram_base()
-> >> parses the UEFI memory map, but just looks at the EFI_MEMORY_WB
-> >> attribute while searching for the base memory address,
-> >> not the type:
-> >>
-> >> unsigned long get_dram_base(efi_system_table_t *sys_table_arg) {
-> >> ...
-> >>         for_each_efi_memory_desc(&map, md)
-> >>                 if (md->attribute & EFI_MEMORY_WB)
-> >>                         if (membase > md->phys_addr)
-> >>                                 membase = md->phys_addr;
+On 4 December 2015 at 04:02, Mark Rutland <mark.rutland@arm.com> wrote:
+> Hi,
+>
+> On Fri, Dec 04, 2015 at 09:51:22PM +0000, Elliott, Robert (Persistent Memory) wrote:
+>> drivers/firmware/efi/libstub/efi-stub-helper.c get_dram_base()
+>> parses the UEFI memory map, but just looks at the EFI_MEMORY_WB
+>> attribute while searching for the base memory address,
+>> not the type:
+>>
+>> unsigned long get_dram_base(efi_system_table_t *sys_table_arg) {
+>> ...
+>>         for_each_efi_memory_desc(&map, md)
+>>                 if (md->attribute & EFI_MEMORY_WB)
+>>                         if (membase > md->phys_addr)
+>>                                 membase = md->phys_addr;
+>
+> Checking the WB flag rather than the type was deliberate (though not
+> necessarily sufficient). The background here is:
+>
+> (a) The arm64 kernel maps memory as Normal Cacheable, Outer Write-back
+>     non-transient, Inner Write-back non-transient. This matches EFI_MEMORY_WB.
+>
+> (b) When creating page tables, the arm64 kernel will map memory in 64KiB or
+>     2MiB chunks, depending on the kernel's page size.
+>
+> (c) To be able to use as much memory as possible, the kernel needs to be loaded
+>     TEXT_OFFSET bytes from the first chunk of memory it can map in
+>     (naturally-aligned) 2MiB chunks.
+>
+> The rationale was so long as memory below TEXT_OFFSET could be mapped per
+> EFI_MEMORY_WB, so long as we didn't touch it we were fine, given it was
+> permitted to be mapped as EFI_MEMORY_WB.
+>
+> For instance, were all memory below TEXT_OFFSET RuntimeServicesData with
+> EFI_MEMORY_WB attributes, this is perfectly fine.
+>
+>> This is used by drivers/firmware/efi/libstub/arm-stub.c to
+>> decide where to place the kernel image:
+>>
+>> unsigned long efi_entry(void *handle, efi_system_table_t *sys_table, {
+>> ...
+>>         dram_base = get_dram_base(sys_table);
+>>         if (dram_base == EFI_ERROR) {
+>>                 pr_efi_err(sys_table, "Failed to find DRAM base\n");
+>>                 goto fail;
+>>         }
+>>         status = handle_kernel_image(sys_table, image_addr, &image_size,
+>>                                      &reserve_addr,
+>>                                      &reserve_size,
+>>                                      dram_base, image);
+>>
+>> Most types, including EfiPersistentMemory (14) and
+>> EfiReservedMemoryType (0), end up with WB|WT|WC|UC attributes.
+>
+> For EfiPersistentMemory, I understand that such allocations would be valid,
+> (given that such memory may be mapped as EFI_MEMORY_WB), but would be
+> suboptimal (i.e. that memory will be slower, and would be better suited for
+> other data).
+>
+> Is that understanding correct?
+>
+> Or are there correctness issues with placing the kernel in persistent memory,
+> even if using attributes consistent with EFI_MEMORY_WB?
+>
+> Is AllocatePages expected to allocate EfiPersistentMemory? The spec seems vague
+> on this point.
+>
 
-[...]
+AllocatePages should not return EfiPersistentMemory. That is the
+consensus, and if the spec does not convey this clearly, we should fix
+that.
+The primary reason is that the UEFI spec does not allow the nature of
+the contents of such regions to be described, and obviously, arbitrary
+allocations should not be served from regions which are not known to
+be vacant.
 
-> >> This is used by drivers/firmware/efi/libstub/arm-stub.c to
-> >> decide where to place the kernel image:
-> >>
-> >> unsigned long efi_entry(void *handle, efi_system_table_t *sys_table, {
-> >> ...
-> >>         dram_base = get_dram_base(sys_table);
-> >>         if (dram_base == EFI_ERROR) {
-> >>                 pr_efi_err(sys_table, "Failed to find DRAM base\n");
-> >>                 goto fail;
-> >>         }
-> >>         status = handle_kernel_image(sys_table, image_addr, &image_size,
-> >>                                      &reserve_addr,
-> >>                                      &reserve_size,
-> >>                                      dram_base, image);
-> >>
-> >> Most types, including EfiPersistentMemory (14) and
-> >> EfiReservedMemoryType (0), end up with WB|WT|WC|UC attributes.
+On top of that, the kernel routines that back efi_low_alloc() and
+efi_high_alloc() traverse the memory map and look for
+EfiConventionalMemory regions, and trying to allocate from the
+explicitly. (i.e., they ultimately invoke AllocatePages() with a fixed
+address which is a priori known to be backed by EfiConventionalMemory)
 
-[...]
+> Regarding EfiReservedMemory, the UEFI spec states that such regions should not
+> be allocated by UEFI applications, drivers, or OS loaders, so if we can
+> allocate from such regions, that is a bug that we should correct. I would hope
+> that AllocatePages would refuse to allocate from such regions, but I don't see
+> any guarantee to that effect.
+>
+> Regardless, if it is unsafe to map such regions with WB attributes (e.g.
+> because this could trigger bus errors), I don't believe that the EFI_MEMORY_WB
+> flag should be set. The spec doesn't seem to be clear on the precedence of
+> types vs attributes, but I may have missed something.
+>
 
-> > Is AllocatePages expected to allocate EfiPersistentMemory? The spec seems vague
-> > on this point.
-> >
-> 
-> AllocatePages should not return EfiPersistentMemory. That is the
-> consensus, and if the spec does not convey this clearly, we should fix
-> that.
-> The primary reason is that the UEFI spec does not allow the nature of
-> the contents of such regions to be described, and obviously, arbitrary
-> allocations should not be served from regions which are not known to
-> be vacant.
+The UEFI memory type attributes don't have a precedence since they are
+not normative regarding how it should be mapped by the OS, it only
+describes the various way the memory /could/ be mapped by the OS.
 
-That was my feeling too.
+>> So, if persistent memory happened to be below conventional memory,
+>> it appears that this code would end up loading the kernel into
+>> persistent memory, which would not be good.  The same for
+>> reserved memory ranges. I think it needs to check and only
+>> operate on EfiConventionalMemory (maybe with a few others).
+>
+> I agree that we should place the kernel in EfiConventionalMemory.
+>
+> As above, there may be (sub-2MiB) overlap with regions of other types, so long
+> as these can be mapped with EFI_MEMORY_WB attributes.
+>
+> So we need to allocate a chunk of memory such that:
+> * The chunk is in EfiConventionalMemory.
+> * The chunk is least image_size bytes in size.
+> * The chunk starts TEXT_OFFSET from a 2MiB aligned base.
+> * Any page sharing a same naturally-aligned 2MiB region with said chunk has
+>   EFI_MEMORY_WB attributes. Non-chunk pages might not have a
+>   EfiConventionalMemory type.
+> * The chunk is the lowest chunk meeting the other requirements above.
+>
+> Is there anything I've missed?
+>
 
-AllocatePages will refuse an allocation if the MemoryType parameter was
-EfiPersistentMemory, but I couldn't find any statement that a region of
-EfiPersistentMemory will not be converted to EfiLoaderData or similar to
-fulfill an allocation, as can happen for EfiConventionalMemory.
+The DRAM base is an arbitrary lower bound, and we don't actually need
+it for arm64: it was carried over from the ARM version of this code
+(which actually predates the arm64 version), where it is important
+that the compressed kernel image is not located below the lowest 128
+MB aligned boundary that is covered by normal DRAM. The reason is that
+the decompressor assumes that DRAM starts at the 128 MB aligned
+boundary below the compressed kernel image (it does not interpret the
+device tree or UEFI memory map at all)
 
-I think that could be clarified.
+Regards,
+Ard.
 
-> On top of that, the kernel routines that back efi_low_alloc() and
-> efi_high_alloc() traverse the memory map and look for
-> EfiConventionalMemory regions, and trying to allocate from the
-> explicitly. (i.e., they ultimately invoke AllocatePages() with a fixed
-> address which is a priori known to be backed by EfiConventionalMemory)
 
-Ok. That renders us safe for the case Robert had concerns.
-
-> > Regarding EfiReservedMemory, the UEFI spec states that such regions should not
-> > be allocated by UEFI applications, drivers, or OS loaders, so if we can
-> > allocate from such regions, that is a bug that we should correct. I would hope
-> > that AllocatePages would refuse to allocate from such regions, but I don't see
-> > any guarantee to that effect.
-> >
-> > Regardless, if it is unsafe to map such regions with WB attributes (e.g.
-> > because this could trigger bus errors), I don't believe that the EFI_MEMORY_WB
-> > flag should be set. The spec doesn't seem to be clear on the precedence of
-> > types vs attributes, but I may have missed something.
-> >
-> 
-> The UEFI memory type attributes don't have a precedence since they are
-> not normative regarding how it should be mapped by the OS, it only
-> describes the various way the memory /could/ be mapped by the OS.
-
-I understand that distinction. I think there's a problem if a region can have
-the WB flag and yet not be safe to map with WB attributes (i.e. the type takes
-precedence).
-
-When Linux proper parses the efi memory map (in reserve_regions), anything with
-a WB attribute is assumed safe to map, as is_normal_ram(md) will be true. So
-the CPU and caches may perform speculative fetches from such a region. If
-EfiUnusableMemory triggers ECC errors or similar in response to this, then we
-have a problem.
-
-It also looks like is_reserve_region(md) assumes that any memory type it
-doesn't know about isn't reserved, so long as it has the WB attribute. It may
-be worth making that more conservative.
-
-> >> So, if persistent memory happened to be below conventional memory,
-> >> it appears that this code would end up loading the kernel into
-> >> persistent memory, which would not be good.  The same for
-> >> reserved memory ranges. I think it needs to check and only
-> >> operate on EfiConventionalMemory (maybe with a few others).
-> >
-> > I agree that we should place the kernel in EfiConventionalMemory.
-> >
-> > As above, there may be (sub-2MiB) overlap with regions of other types, so long
-> > as these can be mapped with EFI_MEMORY_WB attributes.
-> >
-> > So we need to allocate a chunk of memory such that:
-> > * The chunk is in EfiConventionalMemory.
-> > * The chunk is least image_size bytes in size.
-> > * The chunk starts TEXT_OFFSET from a 2MiB aligned base.
-> > * Any page sharing a same naturally-aligned 2MiB region with said chunk has
-> >   EFI_MEMORY_WB attributes. Non-chunk pages might not have a
-> >   EfiConventionalMemory type.
-> > * The chunk is the lowest chunk meeting the other requirements above.
-
-Given we'll only allocate from EfiConventionalMemory, we're mostly fine here.
-
-There does appear to be a potential problem with sharing a 2MiB chunk with !WB
-regions, as we don't verify that all regions sharing a 2MiB chunk have the WB
-attribute. We don't appear to be hitting that in practice, or at least we are
-not seeing issues.
-
-> >
-> > Is there anything I've missed?
-> 
-> The DRAM base is an arbitrary lower bound, and we don't actually need
-> it for arm64: it was carried over from the ARM version of this code
-> (which actually predates the arm64 version), where it is important
-> that the compressed kernel image is not located below the lowest 128
-> MB aligned boundary that is covered by normal DRAM. The reason is that
-> the decompressor assumes that DRAM starts at the 128 MB aligned
-> boundary below the compressed kernel image (it does not interpret the
-> device tree or UEFI memory map at all)
-
-Ok.
-
-Thanks,
-Mark.
+>>
+>> Example UEFI memory map (on an x86 system):
+>>
+>> efi: mem00: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000000000000-0x0000000000092fff] (0 B for 588 KiB)
+>> efi: mem01: [Reserved           |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000000093000-0x0000000000093fff] (588 KiB for 4 KiB)
+>> efi: mem02: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000000094000-0x000000000009ffff] (592 KiB for 48 KiB)
+>> efi: mem03: [Loader Data        |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000000100000-0x00000000013e8fff] (1 MiB for 19364 KiB)
+>> efi: mem04: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000013e9000-0x0000000001ffffff] (20388 KiB for 12380 KiB)
+>> efi: mem05: [Loader Data        |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000002000000-0x00000000032e8fff] (32 MiB for 19364 KiB)
+>> efi: mem06: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000032e9000-0x000000000fffffff] (52132 KiB for 210012 KiB)
+>> efi: mem07: [Boot Code          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000010000000-0x0000000010048fff] (256 MiB for 292 KiB)
+>> efi: mem08: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000010049000-0x00000000234f4fff] (262436 KiB for 316080 KiB)
+>> efi: mem09: [Loader Data        |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000234f5000-0x000000003ecfffff] (578516 KiB for 450604 KiB)
+>> efi: mem10: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000003ed00000-0x000000003ed7ffff] (1005 MiB for 512 KiB)
+>> efi: mem11: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000003ed80000-0x000000006affbfff] (1029632 KiB for 723440 KiB)
+>> efi: mem12: [Reserved           |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006affc000-0x000000006b5fbfff] (1753072 KiB for 6 MiB)
+>> efi: mem13: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006b5fc000-0x000000006b5fcfff] (1759216 KiB for 4 KiB)
+>> efi: mem14: [Runtime Data       |RUN|  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006b5fd000-0x000000006b67dfff] (1759220 KiB for 516 KiB)
+>> efi: mem15: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006b67e000-0x000000006ecfafff] (1759736 KiB for 55796 KiB)
+>> efi: mem16: [Boot Code          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006ecfb000-0x000000006ecfbfff] (1815532 KiB for 4 KiB)
+>> efi: mem17: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006ecfc000-0x00000000712a5fff] (1815536 KiB for 38568 KiB)
+>> efi: mem18: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000712a6000-0x0000000071337fff] (1854104 KiB for 584 KiB)
+>> efi: mem19: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071338000-0x000000007135dfff] (1854688 KiB for 152 KiB)
+>> efi: mem20: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007135e000-0x0000000071387fff] (1854840 KiB for 168 KiB)
+>> efi: mem21: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071388000-0x000000007138bfff] (1855008 KiB for 16 KiB)
+>> efi: mem22: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007138c000-0x0000000071835fff] (1855024 KiB for 4776 KiB)
+>> efi: mem23: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071836000-0x0000000071836fff] (1859800 KiB for 4 KiB)
+>> efi: mem24: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071837000-0x0000000071856fff] (1859804 KiB for 128 KiB)
+>> efi: mem25: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071857000-0x0000000071857fff] (1859932 KiB for 4 KiB)
+>> efi: mem26: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071858000-0x0000000071859fff] (1859936 KiB for 8 KiB)
+>> efi: mem27: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007185a000-0x000000007185bfff] (1859944 KiB for 8 KiB)
+>> efi: mem28: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007185c000-0x000000007185cfff] (1859952 KiB for 4 KiB)
+>> efi: mem29: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007185d000-0x000000007185ffff] (1859956 KiB for 12 KiB)
+>> efi: mem30: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071860000-0x0000000071860fff] (1859968 KiB for 4 KiB)
+>> efi: mem31: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071861000-0x0000000071863fff] (1859972 KiB for 12 KiB)
+>> efi: mem32: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071864000-0x0000000071864fff] (1859984 KiB for 4 KiB)
+>> efi: mem33: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071865000-0x0000000071865fff] (1859988 KiB for 4 KiB)
+>> efi: mem34: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071866000-0x0000000071866fff] (1859992 KiB for 4 KiB)
+>> efi: mem35: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071867000-0x0000000071869fff] (1859996 KiB for 12 KiB)
+>> efi: mem36: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007186a000-0x000000007186afff] (1860008 KiB for 4 KiB)
+>> efi: mem37: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007186b000-0x000000007186bfff] (1860012 KiB for 4 KiB)
+>> efi: mem38: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007186c000-0x0000000072e0afff] (1860016 KiB for 22140 KiB)
+>> efi: mem39: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e0b000-0x0000000072e0efff] (1882156 KiB for 16 KiB)
+>> efi: mem40: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e0f000-0x0000000072e7bfff] (1882172 KiB for 436 KiB)
+>> efi: mem41: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e7c000-0x0000000072e7efff] (1882608 KiB for 12 KiB)
+>> efi: mem42: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e7f000-0x0000000072e80fff] (1882620 KiB for 8 KiB)
+>> efi: mem43: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e81000-0x0000000072e82fff] (1882628 KiB for 8 KiB)
+>> efi: mem44: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e83000-0x0000000076cfefff] (1882636 KiB for 63984 KiB)
+>> efi: mem45: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000076cff000-0x00000000774e0fff] (1946620 KiB for 8072 KiB)
+>> efi: mem46: [Loader Code        |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000774e1000-0x00000000774fefff] (1954692 KiB for 120 KiB)
+>> efi: mem47: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000774ff000-0x0000000077925fff] (1954812 KiB for 4252 KiB)
+>> efi: mem48: [Loader Data        |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000077926000-0x000000007792ffff] (1959064 KiB for 40 KiB)
+>> efi: mem49: [Boot Code          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000077930000-0x00000000784fefff] (1959104 KiB for 12092 KiB)
+>> efi: mem50: [Runtime Data       |RUN|  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000784ff000-0x00000000788fefff] (1971196 KiB for 4 MiB)
+>> efi: mem51: [Runtime Code       |RUN|  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000788ff000-0x00000000790fefff] (1975292 KiB for 8 MiB)
+>> efi: mem52: [Reserved           |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000790ff000-0x00000000791fefff] (1983484 KiB for 1 MiB)
+>> efi: mem53: [ACPI Memory NVS    |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000791ff000-0x000000007b5fefff] (1984508 KiB for 36 MiB)
+>> efi: mem54: [ACPI Reclaim Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007b5ff000-0x000000007b7fefff] (2021372 KiB for 2 MiB)
+>> efi: mem55: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007b7ff000-0x000000007b7fffff] (2023420 KiB for 4 KiB)
+>> efi: mem56: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000100000000-0x000000087fffffff] (4 GiB for 30 GiB)
+>> efi: mem57: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000c80000000-0x000000147fffffff] (50 GiB for 32 GiB)
+>> efi: mem58: [Memory Mapped I/O  |RUN|  |  |  |  |  |  |   |  |  |  |  ] range=[0x0000000080000000-0x000000008fffffff] (2 GiB for 256 MiB)
+>> efi: mem59: [Persistent Memory  |   |  |NV|  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000880000000-0x0000000c7fffffff] (34 GiB for 16 GiB)
+>> efi: mem60: [Persistent Memory  |   |  |NV|  |  |  |  |   |WB|WT|WC|UC] range=[0x0000001480000000-0x0000001a7fffffff] (82 GiB for 24 GiB)
+>>
+>>
+>> ---
+>> Robert Elliott, HPE Persistent Memory
+>>
+>>
