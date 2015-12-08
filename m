@@ -1,51 +1,82 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v6 7/7] xfs: call dax_pfn_mkwrite() for DAX fsync/msync
-Date: Wed, 23 Dec 2015 12:39:20 -0700
-Message-Id: <1450899560-26708-8-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH -mm 16/25] x86, mm: introduce _PAGE_DEVMAP
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 07 Dec 2015 17:34:01 -0800
+Message-ID: <20151208013401.25030.67383.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+_PAGE_DEVMAP is a hardware-unused pte bit that will later be used in the
+get_user_pages() path to identify pfns backed by the dynamic allocation
+established by devm_memremap_pages.  Upon seeing that bit the gup path
+will lookup and pin the allocation while the pages are in use.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Since the _PAGE_DEVMAP bit is > 32 it requires workarounds in
+pmd_flags() to allow it to build the realmode boot code as well as
+satsify pmd_bad();
+
+In file included from ./arch/x86/include/asm/boot.h:5:0,
+                 from arch/x86/realmode/rm/../../boot/boot.h:26,
+                 from arch/x86/realmode/rm/../../boot/regs.c:19,
+                 from arch/x86/realmode/rm/regs.c:1:
+./arch/x86/include/asm/pgtable_types.h: In function ‘pmd_pfn_mask’:
+./arch/x86/include/asm/pgtable_types.h:310:3: warning: left shift count >= width of type
+   return mask ^ _PAGE_DEVMAP;
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/xfs_file.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/page_types.h    |    3 ++-
+ arch/x86/include/asm/pgtable_types.h |    7 ++++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index f5392ab..40ffbb1 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1603,9 +1603,8 @@ xfs_filemap_pmd_fault(
- /*
-  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
-  * updates on write faults. In reality, it's need to serialise against
-- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
-- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
-- * barrier in place.
-+ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
-+ * to ensure we serialise the fault barrier in place.
-  */
- static int
- xfs_filemap_pfn_mkwrite(
-@@ -1628,6 +1627,8 @@ xfs_filemap_pfn_mkwrite(
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else if (IS_DAX(inode))
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
--- 
-2.6.3
+diff --git a/arch/x86/include/asm/page_types.h b/arch/x86/include/asm/page_types.h
+index c5b7fb2774d0..160a19786806 100644
+--- a/arch/x86/include/asm/page_types.h
++++ b/arch/x86/include/asm/page_types.h
+@@ -15,7 +15,8 @@
+ /* Cast PAGE_MASK to a signed type so that it is sign-extended if
+    virtual addresses are 32-bits but physical addresses are larger
+    (ie, 32-bit PAE). */
+-#define PHYSICAL_PAGE_MASK	(((signed long)PAGE_MASK) & __PHYSICAL_MASK)
++#define PHYSICAL_PAGE_MASK	(((signed long)PAGE_MASK) & (__PHYSICAL_MASK \
++						& ~_PAGE_DEVMAP))
+ 
+ #define PMD_PAGE_SIZE		(_AC(1, UL) << PMD_SHIFT)
+ #define PMD_PAGE_MASK		(~(PMD_PAGE_SIZE-1))
+diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
+index 116fc4ee586f..08475aab4c66 100644
+--- a/arch/x86/include/asm/pgtable_types.h
++++ b/arch/x86/include/asm/pgtable_types.h
+@@ -24,7 +24,9 @@
+ #define _PAGE_BIT_CPA_TEST	_PAGE_BIT_SOFTW1
+ #define _PAGE_BIT_HIDDEN	_PAGE_BIT_SOFTW3 /* hidden by kmemcheck */
+ #define _PAGE_BIT_SOFT_DIRTY	_PAGE_BIT_SOFTW3 /* software dirty tracking */
+-#define _PAGE_BIT_NX           63       /* No execute: only valid after cpuid check */
++#define _PAGE_BIT_SOFTW4	58	/* available for programmer */
++#define _PAGE_BIT_DEVMAP		_PAGE_BIT_SOFTW4
++#define _PAGE_BIT_NX		63	/* No execute: only valid after cpuid check */
+ 
+ /* If _PAGE_BIT_PRESENT is clear, we use these: */
+ /* - if the user mapped it with PROT_NONE; pte_present gives true */
+@@ -83,8 +85,11 @@
+ 
+ #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
+ #define _PAGE_NX	(_AT(pteval_t, 1) << _PAGE_BIT_NX)
++#define _PAGE_DEVMAP	(_AT(u64, 1) << _PAGE_BIT_DEVMAP)
++#define __HAVE_ARCH_PTE_DEVMAP
+ #else
+ #define _PAGE_NX	(_AT(pteval_t, 0))
++#define _PAGE_DEVMAP	(_AT(pteval_t, 0))
+ #endif
+ 
+ #define _PAGE_PROTNONE	(_AT(pteval_t, 1) << _PAGE_BIT_PROTNONE)
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
