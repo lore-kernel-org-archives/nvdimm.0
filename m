@@ -1,315 +1,108 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v6 4/7] dax: add support for fsync/msync
-Date: Wed, 23 Dec 2015 12:39:17 -0700
-Message-Id: <1450899560-26708-5-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH -mm 07/25] um: kill pfn_t
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 07 Dec 2015 17:33:13 -0800
+Message-ID: <20151208013313.25030.74005.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: akpm@linux-foundation.org
+Cc: linux-nvdimm@lists.01.org, Richard Weinberger <richard@nod.at>, Jeff Dike <jdike@addtoit.com>, Dave Hansen <dave@sr71.net>, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly handle fsync/msync in an efficient way DAX needs to track dirty
-pages so it is able to flush them durably to media on demand.
+The core has developed a need for a "pfn_t" type [1].  Convert the usage
+of pfn_t by usermode-linux to an unsigned long, and update pfn_to_phys()
+to drop its expectation of a typed pfn.
 
-The tracking of dirty pages is done via the radix tree in struct
-address_space.  This radix tree is already used by the page writeback
-infrastructure for tracking dirty pages associated with an open file, and
-it already has support for exceptional (non struct page*) entries.  We
-build upon these features to add exceptional entries to the radix tree for
-DAX dirty PMD or PTE pages at fault time.
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-September/002199.html
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dave Hansen <dave@sr71.net>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c            | 196 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- include/linux/dax.h |   2 +
- mm/filemap.c        |   6 ++
- 3 files changed, 198 insertions(+), 6 deletions(-)
+ arch/um/include/asm/page.h           |    7 +++----
+ arch/um/include/asm/pgtable-3level.h |    4 ++--
+ arch/um/include/asm/pgtable.h        |    2 +-
+ 3 files changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 82d0bff..050610d 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -24,6 +24,7 @@
- #include <linux/memcontrol.h>
- #include <linux/mm.h>
- #include <linux/mutex.h>
-+#include <linux/pagevec.h>
- #include <linux/pmem.h>
- #include <linux/sched.h>
- #include <linux/uio.h>
-@@ -323,6 +324,176 @@ static int copy_user_bh(struct page *to, struct inode *inode,
- 	return 0;
- }
+diff --git a/arch/um/include/asm/page.h b/arch/um/include/asm/page.h
+index 71c5d132062a..e13d41c392ae 100644
+--- a/arch/um/include/asm/page.h
++++ b/arch/um/include/asm/page.h
+@@ -18,6 +18,7 @@
  
-+#define NO_SECTOR -1
-+
-+static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
-+		sector_t sector, bool pmd_entry, bool dirty)
-+{
-+	struct radix_tree_root *page_tree = &mapping->page_tree;
-+	int error = 0;
-+	void *entry;
-+
-+	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
-+
-+	spin_lock_irq(&mapping->tree_lock);
-+	entry = radix_tree_lookup(page_tree, index);
-+
-+	if (entry) {
-+		if (!pmd_entry || RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
-+			goto dirty;
-+		radix_tree_delete(&mapping->page_tree, index);
-+		mapping->nrexceptional--;
-+	}
-+
-+	if (sector == NO_SECTOR) {
-+		/*
-+		 * This can happen during correct operation if our pfn_mkwrite
-+		 * fault raced against a hole punch operation.  If this
-+		 * happens the pte that was hole punched will have been
-+		 * unmapped and the radix tree entry will have been removed by
-+		 * the time we are called, but the call will still happen.  We
-+		 * will return all the way up to wp_pfn_shared(), where the
-+		 * pte_same() check will fail, eventually causing page fault
-+		 * to be retried by the CPU.
-+		 */
-+		goto unlock;
-+	}
-+
-+	error = radix_tree_insert(page_tree, index,
-+			RADIX_DAX_ENTRY(sector, pmd_entry));
-+	if (error)
-+		goto unlock;
-+
-+	mapping->nrexceptional++;
-+ dirty:
-+	if (dirty)
-+		radix_tree_tag_set(page_tree, index, PAGECACHE_TAG_DIRTY);
-+ unlock:
-+	spin_unlock_irq(&mapping->tree_lock);
-+	return error;
-+}
-+
-+static int dax_writeback_one(struct block_device *bdev,
-+		struct address_space *mapping, pgoff_t index, void *entry)
-+{
-+	struct radix_tree_root *page_tree = &mapping->page_tree;
-+	int type = RADIX_DAX_TYPE(entry);
-+	struct radix_tree_node *node;
-+	struct blk_dax_ctl dax;
-+	void **slot;
-+	int ret = 0;
-+
-+	spin_lock_irq(&mapping->tree_lock);
-+	/*
-+	 * Regular page slots are stabilized by the page lock even
-+	 * without the tree itself locked.  These unlocked entries
-+	 * need verification under the tree lock.
-+	 */
-+	if (!__radix_tree_lookup(page_tree, index, &node, &slot))
-+		goto unlock;
-+	if (*slot != entry)
-+		goto unlock;
-+
-+	/* another fsync thread may have already written back this entry */
-+	if (!radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
-+		goto unlock;
-+
-+	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
-+
-+	if (WARN_ON_ONCE(type != RADIX_DAX_PTE && type != RADIX_DAX_PMD)) {
-+		ret = -EIO;
-+		goto unlock;
-+	}
-+
-+	dax.sector = RADIX_DAX_SECTOR(entry);
-+	dax.size = (type == RADIX_DAX_PMD ? PMD_SIZE : PAGE_SIZE);
-+	spin_unlock_irq(&mapping->tree_lock);
-+
-+	/*
-+	 * We cannot hold tree_lock while calling dax_map_atomic() because it
-+	 * eventually calls cond_resched().
-+	 */
-+	ret = dax_map_atomic(bdev, &dax);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (WARN_ON_ONCE(ret < dax.size)) {
-+		ret = -EIO;
-+		dax_unmap_atomic(bdev, &dax);
-+		return ret;
-+	}
-+
-+	spin_lock_irq(&mapping->tree_lock);
-+	/*
-+	 * We need to revalidate our radix entry while holding tree_lock
-+	 * before we do the writeback.
-+	 */
-+	if (!__radix_tree_lookup(page_tree, index, &node, &slot))
-+		goto unmap;
-+	if (*slot != entry)
-+		goto unmap;
-+
-+	wb_cache_pmem(dax.addr, dax.size);
-+ unmap:
-+	dax_unmap_atomic(bdev, &dax);
-+ unlock:
-+	spin_unlock_irq(&mapping->tree_lock);
-+	return ret;
-+}
-+
-+/*
-+ * Flush the mapping to the persistent domain within the byte range of [start,
-+ * end]. This is required by data integrity operations to ensure file data is
-+ * on persistent storage prior to completion of the operation.
-+ */
-+int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
-+		loff_t end)
-+{
-+	struct inode *inode = mapping->host;
-+	struct block_device *bdev = inode->i_sb->s_bdev;
-+	pgoff_t indices[PAGEVEC_SIZE];
-+	pgoff_t start_page, end_page;
-+	struct pagevec pvec;
-+	void *entry;
-+	int i, ret = 0;
-+
-+	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
-+		return -EIO;
-+
-+	rcu_read_lock();
-+	entry = radix_tree_lookup(&mapping->page_tree, start & PMD_MASK);
-+	rcu_read_unlock();
-+
-+	/* see if the start of our range is covered by a PMD entry */
-+	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
-+		start &= PMD_MASK;
-+
-+	start_page = start >> PAGE_CACHE_SHIFT;
-+	end_page = end >> PAGE_CACHE_SHIFT;
-+
-+	tag_pages_for_writeback(mapping, start_page, end_page);
-+
-+	pagevec_init(&pvec, 0);
-+	while (1) {
-+		pvec.nr = find_get_entries_tag(mapping, start_page,
-+				PAGECACHE_TAG_TOWRITE, PAGEVEC_SIZE,
-+				pvec.pages, indices);
-+
-+		if (pvec.nr == 0)
-+			break;
-+
-+		for (i = 0; i < pvec.nr; i++) {
-+			ret = dax_writeback_one(bdev, mapping, indices[i],
-+					pvec.pages[i]);
-+			if (ret < 0)
-+				return ret;
-+		}
-+	}
-+	wmb_pmem();
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
-+
- static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 			struct vm_area_struct *vma, struct vm_fault *vmf)
- {
-@@ -362,6 +533,11 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 	}
- 	dax_unmap_atomic(bdev, &dax);
+ struct page;
  
-+	error = dax_radix_entry(mapping, vmf->pgoff, dax.sector, false,
-+			vmf->flags & FAULT_FLAG_WRITE);
-+	if (error)
-+		goto out;
-+
- 	error = vm_insert_mixed(vma, vaddr, dax.pfn);
++#include <linux/pfn.h>
+ #include <linux/types.h>
+ #include <asm/vm-flags.h>
  
-  out:
-@@ -486,6 +662,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		delete_from_page_cache(page);
- 		unlock_page(page);
- 		page_cache_release(page);
-+		page = NULL;
- 	}
+@@ -52,7 +53,6 @@ typedef struct { unsigned long pgd; } pgd_t;
+ #define pmd_val(x)	((x).pmd)
+ #define __pmd(x) ((pmd_t) { (x) } )
  
- 	/*
-@@ -579,7 +756,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	struct block_device *bdev = NULL;
- 	pgoff_t size, pgoff;
- 	sector_t block;
--	int result = 0;
-+	int error, result = 0;
+-typedef unsigned long long pfn_t;
+ typedef unsigned long long phys_t;
  
- 	/* dax pmd mappings require pfn_t_devmap() */
- 	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
-@@ -721,6 +898,16 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		}
- 		dax_unmap_atomic(bdev, &dax);
+ #else
+@@ -76,7 +76,6 @@ typedef struct { unsigned long pmd; } pmd_t;
+ #define pte_is_zero(p) (!((p).pte & ~_PAGE_NEWPAGE))
+ #define pte_set_val(p, phys, prot) (p).pte = (phys | pgprot_val(prot))
  
-+		if (write) {
-+			error = dax_radix_entry(mapping, pgoff, dax.sector,
-+					true, true);
-+			if (error) {
-+				dax_pmd_dbg(bdev, address,
-+						"PMD radix insertion failed");
-+				goto fallback;
-+			}
-+		}
-+
- 		dev_dbg(part_to_dev(bdev->bd_part),
- 				"%s: %s addr: %lx pfn: %lx sect: %llx\n",
- 				__func__, current->comm, address,
-@@ -779,15 +966,12 @@ EXPORT_SYMBOL_GPL(dax_pmd_fault);
-  * dax_pfn_mkwrite - handle first write to DAX page
-  * @vma: The virtual memory area where the fault occurred
-  * @vmf: The description of the fault
-- *
-  */
- int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
--	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
-+	struct file *file = vma->vm_file;
+-typedef unsigned long pfn_t;
+ typedef unsigned long phys_t;
  
--	sb_start_pagefault(sb);
--	file_update_time(vma->vm_file);
--	sb_end_pagefault(sb);
-+	dax_radix_entry(file->f_mapping, vmf->pgoff, NO_SECTOR, false, true);
- 	return VM_FAULT_NOPAGE;
- }
- EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index e9d57f68..8204c3d 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -41,4 +41,6 @@ static inline bool dax_mapping(struct address_space *mapping)
- {
- 	return mapping->host && IS_DAX(mapping->host);
- }
-+int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
-+		loff_t end);
  #endif
-diff --git a/mm/filemap.c b/mm/filemap.c
-index 1e215fc..2e7c8d9 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -482,6 +482,12 @@ int filemap_write_and_wait_range(struct address_space *mapping,
- {
- 	int err = 0;
+@@ -109,8 +108,8 @@ extern unsigned long uml_physmem;
+ #define __pa(virt) to_phys((void *) (unsigned long) (virt))
+ #define __va(phys) to_virt((unsigned long) (phys))
  
-+	if (dax_mapping(mapping) && mapping->nrexceptional) {
-+		err = dax_writeback_mapping_range(mapping, lstart, lend);
-+		if (err)
-+			return err;
-+	}
-+
- 	if (mapping->nrpages) {
- 		err = __filemap_fdatawrite_range(mapping, lstart, lend,
- 						 WB_SYNC_ALL);
--- 
-2.6.3
+-#define phys_to_pfn(p) ((pfn_t) ((p) >> PAGE_SHIFT))
+-#define pfn_to_phys(pfn) ((phys_t) ((pfn) << PAGE_SHIFT))
++#define phys_to_pfn(p) ((p) >> PAGE_SHIFT)
++#define pfn_to_phys(pfn) PFN_PHYS(pfn)
+ 
+ #define pfn_valid(pfn) ((pfn) < max_mapnr)
+ #define virt_addr_valid(v) pfn_valid(phys_to_pfn(__pa(v)))
+diff --git a/arch/um/include/asm/pgtable-3level.h b/arch/um/include/asm/pgtable-3level.h
+index 2b4274e7c095..bae8523a162f 100644
+--- a/arch/um/include/asm/pgtable-3level.h
++++ b/arch/um/include/asm/pgtable-3level.h
+@@ -98,7 +98,7 @@ static inline unsigned long pte_pfn(pte_t pte)
+ 	return phys_to_pfn(pte_val(pte));
+ }
+ 
+-static inline pte_t pfn_pte(pfn_t page_nr, pgprot_t pgprot)
++static inline pte_t pfn_pte(unsigned long page_nr, pgprot_t pgprot)
+ {
+ 	pte_t pte;
+ 	phys_t phys = pfn_to_phys(page_nr);
+@@ -107,7 +107,7 @@ static inline pte_t pfn_pte(pfn_t page_nr, pgprot_t pgprot)
+ 	return pte;
+ }
+ 
+-static inline pmd_t pfn_pmd(pfn_t page_nr, pgprot_t pgprot)
++static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
+ {
+ 	return __pmd((page_nr << PAGE_SHIFT) | pgprot_val(pgprot));
+ }
+diff --git a/arch/um/include/asm/pgtable.h b/arch/um/include/asm/pgtable.h
+index 18eb9924dda3..7485398d0737 100644
+--- a/arch/um/include/asm/pgtable.h
++++ b/arch/um/include/asm/pgtable.h
+@@ -271,7 +271,7 @@ static inline int pte_same(pte_t pte_a, pte_t pte_b)
+ 
+ #define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
+ #define __virt_to_page(virt) phys_to_page(__pa(virt))
+-#define page_to_phys(page) pfn_to_phys((pfn_t) page_to_pfn(page))
++#define page_to_phys(page) pfn_to_phys(page_to_pfn(page))
+ #define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
+ 
+ #define mk_pte(page, pgprot) \
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
