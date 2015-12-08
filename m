@@ -1,8 +1,8 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH -mm 19/25] list: introduce list_del_poison()
+Subject: [PATCH -mm 01/25] pmem, dax: clean up clear_pmem()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 07 Dec 2015 17:34:17 -0800
-Message-ID: <20151208013417.25030.89815.stgit@dwillia2-desk3.jf.intel.com>
+Date: Mon, 07 Dec 2015 17:32:41 -0800
+Message-ID: <20151208013241.25030.29103.stgit@dwillia2-desk3.jf.intel.com>
 In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
 References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
@@ -10,76 +10,60 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
 To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
+Cc: linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-ZONE_DEVICE pages always have an elevated count and will never be on an
-lru reclaim list.  That space in 'struct page' can be redirected for
-other uses, but for safety introduce a poison value that will always
-trip __list_add() to assert.  This allows half of the struct list_head
-storage to be reclaimed with some assurance to back up the assumption
-that the page count never goes to zero and a list_add() is never
-attempted.
+Both, __dax_pmd_fault, and clear_pmem() were taking special steps to
+clear memory a page at a time to take advantage of non-temporal
+clear_page() implementations.  However, x86_64 does not use
+non-temporal instructions for clear_page(), and arch_clear_pmem() was
+always incurring the cost of __arch_wb_cache_pmem().
 
+Clean up the assumption that doing clear_pmem() a page at a time is more
+performant.
+
+Reported-by: Dave Hansen <dave.hansen@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/list.h |   17 +++++++++++++++++
- lib/list_debug.c     |    4 ++++
- 2 files changed, 21 insertions(+)
+ arch/x86/include/asm/pmem.h |    7 +------
+ fs/dax.c                    |    4 +---
+ 2 files changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/include/linux/list.h b/include/linux/list.h
-index 5356f4d661a7..0d07bc1387aa 100644
---- a/include/linux/list.h
-+++ b/include/linux/list.h
-@@ -108,9 +108,26 @@ static inline void list_del(struct list_head *entry)
- 	entry->next = LIST_POISON1;
- 	entry->prev = LIST_POISON2;
- }
-+
-+#define list_del_poison list_del
- #else
- extern void __list_del_entry(struct list_head *entry);
- extern void list_del(struct list_head *entry);
-+extern struct list_head list_force_poison;
-+
-+/**
-+ * list_del_poison - poison an entry to always assert on list_add
-+ * @entry: the element to delete and poison
-+ *
-+ * Note: the assertion on list_add() only occurs when CONFIG_DEBUG_LIST=y,
-+ * otherwise this is identical to list_del()
-+ */
-+static inline void list_del_poison(struct list_head *entry)
-+{
-+	__list_del(entry->prev, entry->next);
-+	entry->next = &list_force_poison;
-+	entry->prev = &list_force_poison;
-+}
- #endif
- 
- /**
-diff --git a/lib/list_debug.c b/lib/list_debug.c
-index 3859bf63561c..d730c064a4df 100644
---- a/lib/list_debug.c
-+++ b/lib/list_debug.c
-@@ -12,6 +12,8 @@
- #include <linux/kernel.h>
- #include <linux/rculist.h>
- 
-+struct list_head list_force_poison;
-+
- /*
-  * Insert a new entry between two known consecutive entries.
-  *
-@@ -23,6 +25,8 @@ void __list_add(struct list_head *new,
- 			      struct list_head *prev,
- 			      struct list_head *next)
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index d8ce3ec816ab..1544fabcd7f9 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -132,12 +132,7 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
  {
-+	WARN(new->next == &list_force_poison || new->prev == &list_force_poison,
-+		"list_add attempted on force-poisoned entry\n");
- 	WARN(next->prev != prev,
- 		"list_add corruption. next->prev should be "
- 		"prev (%p), but was %p. (next=%p).\n",
+ 	void *vaddr = (void __force *)addr;
+ 
+-	/* TODO: implement the zeroing via non-temporal writes */
+-	if (size == PAGE_SIZE && ((unsigned long)vaddr & ~PAGE_MASK) == 0)
+-		clear_page(vaddr);
+-	else
+-		memset(vaddr, 0, size);
+-
++	memset(vaddr, 0, size);
+ 	__arch_wb_cache_pmem(vaddr, size);
+ }
+ 
+diff --git a/fs/dax.c b/fs/dax.c
+index 43671b68220e..19492cc65a30 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -641,9 +641,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 			goto fallback;
+ 
+ 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+-			int i;
+-			for (i = 0; i < PTRS_PER_PMD; i++)
+-				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
++			clear_pmem(kaddr, PMD_SIZE);
+ 			wmb_pmem();
+ 			count_vm_event(PGMAJFAULT);
+ 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
