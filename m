@@ -1,66 +1,70 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH -mm 05/25] mm, dax: fix livelock,
- allow dax pmd mappings to become writeable
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 07 Dec 2015 17:33:03 -0800
-Message-ID: <20151208013303.25030.56683.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <56661DBA.5000302@deltatee.com>
+References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
+	<562AA15E.3010403@deltatee.com>
+	<CAPcyv4gQ-8-tL-rhAPzPxKzBLmWKnFcqSFVy4KVOM56_9gn6RA@mail.gmail.com>
+	<565F6A7A.4040302@deltatee.com>
+	<CAPcyv4jjyzKgPMzdwms8xH-_RoKEGxRp1r4qxEcPYmPv7qStqw@mail.gmail.com>
+	<566244CC.5080107@deltatee.com>
+	<56661DBA.5000302@deltatee.com>
+Date: Mon, 7 Dec 2015 16:48:08 -0800
+Message-ID: <CAPcyv4iaWD0oxYfDWZr1Vsp0NYcYtBD3373vsY9YyQYYqis+mQ@mail.gmail.com>
+Subject: Re: [PATCH v2 00/20] get_user_pages() for dax mappings
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Toshi Kani <toshi.kani@hpe.com>, linux-nvdimm@lists.01.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Stephen Bates <Stephen.Bates@pmcs.com>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+On Mon, Dec 7, 2015 at 4:00 PM, Logan Gunthorpe <logang@deltatee.com> wrote:
+> Hi Dan,
+>
+> I've done a bit of digging and here's some more information:
+>
+> * The crash occurs in ext4_end_io_unwritten when it tries to dereference
+> bh->b_assoc_map which is not necessarily NULL.
+>
+> * That function is called by __dax_pmd_fault, as the argument
+> complete_unwritten.
+>
+> * Looking in __dax_pmd_fault, the bug occurs if we hit either of the first
+> two 'goto fallback' lines. (In my case, it's hitting the first one.)
+>
+> * After the fallback code, it goes back to 'out', then checks '&bh'
+> for the unwritten flag. But bh hasn't been initialized yet and, on my setup,
+> the unwritten flag happens to be set. So, it then calls complete_unwritten
+> with a garbage bh and crashes.
+>
+> If I move the memset(&bh) up in the code, before the goto fallbacks can
+> occur, I can fix the crash.  I don't know if this is really the best way to
+> fix the problem though.
 
-Prior to this change DAX PMD mappings that were made read-only were
-never able to be made writable again.  This is because the code in
-insert_pfn_pmd() that calls pmd_mkdirty() and pmd_mkwrite() would skip
-these calls if the PMD already existed in the page table.
+I believe you are hitting the same issue that Matthew hit here:
 
-Instead, if we are doing a write always mark the PMD entry as dirty and
-writeable.  Without this code we can get into a condition where we mark
-the PMD as read-only, and then on a subsequent write fault we get into
-an infinite loop of PMD faults where we try unsuccessfully to make the
-PMD writeable.
+https://patchwork.kernel.org/patch/7763851/
 
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Reported-by: Toshi Kani <toshi.kani@hpe.com>
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- mm/huge_memory.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+I have it fixed up in the latest that I pushed out last night to
+libnvdimm-pending.  Note the libnvdimm-pending branch is now based on
+linux-next as I needed to resolve collisions with transparent huge
+page work pending in the -mm tree.
 
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index b41793b12a2d..70323839bd0d 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -967,15 +967,13 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
- 	spinlock_t *ptl;
- 
- 	ptl = pmd_lock(mm, pmd);
--	if (pmd_none(*pmd)) {
--		entry = pmd_mkhuge(pfn_pmd(pfn, prot));
--		if (write) {
--			entry = pmd_mkyoung(pmd_mkdirty(entry));
--			entry = maybe_pmd_mkwrite(entry, vma);
--		}
--		set_pmd_at(mm, addr, pmd, entry);
--		update_mmu_cache_pmd(vma, addr, pmd);
-+	entry = pmd_mkhuge(pfn_pmd(pfn, prot));
-+	if (write) {
-+		entry = pmd_mkyoung(pmd_mkdirty(entry));
-+		entry = maybe_pmd_mkwrite(entry, vma);
- 	}
-+	set_pmd_at(mm, addr, pmd, entry);
-+	update_mmu_cache_pmd(vma, addr, pmd);
- 	spin_unlock(ptl);
- }
- 
+> However, unfortunately, fixing the above just uncovered another issue. Now
+> the MR de-registration seems to have completed but the task hangs when it's
+> trying to munmap the memory. (Stack trace at the end of this email.)
+>
+> It looks like the i_mmap_lock_write is hanging in unlink_file_vma. I'm not
+> really sure how to go about debugging this lock issue. If you have any steps
+> I can try to get you more information let me know. I'm also happy to re-test
+> if you have any other changes you'd like me to try.
+
+I worked through a crop of hangs and crashes triggered by Toshi's mmap
+test.  Give the latest a try if you get a chance and I'll fix it up if
+it still occurs.  I'll be pushing an updated branch again tonight with
+fixes for issues uncovered while running the nvml test suite.
+
+Thanks Logan!
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
