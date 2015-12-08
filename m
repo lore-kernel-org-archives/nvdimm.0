@@ -1,122 +1,173 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 1/7] pmem: add wb_cache_pmem() to the PMEM API
-Date: Tue,  8 Dec 2015 12:18:39 -0700
-Message-Id: <1449602325-20572-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH -mm 24/25] dax: provide diagnostics for pmd mapping failures
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 07 Dec 2015 17:34:43 -0800
+Message-ID: <20151208013443.25030.39965.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The function __arch_wb_cache_pmem() was already an internal implementation
-detail of the x86 PMEM API, but this functionality needs to be exported as
-part of the general PMEM API to handle the fsync/msync case for DAX mmaps.
+There is a wide gamut of conditions that can trigger the dax pmd path to
+fallback to pte mappings.  Ideally we'd have a syscall interface to
+determine mapping characteristics after the fact.  In the meantime
+provide debug messages.
 
-One thing worth noting is that we really do want this to be part of the
-PMEM API as opposed to a stand-alone function like clflush_cache_range()
-because of ordering restrictions.  By having wb_cache_pmem() as part of the
-PMEM API we can leave it unordered, call it multiple times to write back
-large amounts of memory, and then order the multiple calls with a single
-wmb_pmem().
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/pmem.h | 11 ++++++-----
- include/linux/pmem.h        | 22 +++++++++++++++++++++-
- 2 files changed, 27 insertions(+), 6 deletions(-)
+ fs/dax.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 48 insertions(+), 9 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index d8ce3ec..6c7ade0 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -67,18 +67,19 @@ static inline void arch_wmb_pmem(void)
- }
- 
- /**
-- * __arch_wb_cache_pmem - write back a cache range with CLWB
-+ * arch_wb_cache_pmem - write back a cache range with CLWB
-  * @vaddr:	virtual start address
-  * @size:	number of bytes to write back
-  *
-  * Write back a cache range using the CLWB (cache line write back)
-  * instruction.  This function requires explicit ordering with an
-- * arch_wmb_pmem() call.  This API is internal to the x86 PMEM implementation.
-+ * arch_wmb_pmem() call.
+diff --git a/fs/dax.c b/fs/dax.c
+index b9ab7138f5cb..7bfe6cd59636 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -557,6 +557,14 @@ EXPORT_SYMBOL_GPL(dax_fault);
   */
--static inline void __arch_wb_cache_pmem(void *vaddr, size_t size)
-+static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
- {
- 	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
- 	unsigned long clflush_mask = x86_clflush_size - 1;
-+	void *vaddr = (void __force *)addr;
- 	void *vend = vaddr + size;
- 	void *p;
+ #define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
  
-@@ -115,7 +116,7 @@ static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
- 	len = copy_from_iter_nocache(vaddr, bytes, i);
- 
- 	if (__iter_needs_pmem_wb(i))
--		__arch_wb_cache_pmem(vaddr, bytes);
-+		arch_wb_cache_pmem(addr, bytes);
- 
- 	return len;
- }
-@@ -138,7 +139,7 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
- 	else
- 		memset(vaddr, 0, size);
- 
--	__arch_wb_cache_pmem(vaddr, size);
-+	arch_wb_cache_pmem(addr, size);
- }
- 
- static inline bool __arch_has_wmb_pmem(void)
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index acfea8c..7c3d11a 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -53,12 +53,18 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
- {
- 	BUG();
- }
-+
-+static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
++static void dax_pmd_dbg(struct block_device *bdev, unsigned long address,
++		const char *reason)
 +{
-+	BUG();
++	pr_debug("%s%s dax_pmd: %s addr: %lx fallback: %s\n", bdev
++			? dev_name(part_to_dev(bdev->bd_part)) : "", bdev
++			? ": " : "", current->comm, address, reason);
 +}
- #endif
- 
- /*
-  * Architectures that define ARCH_HAS_PMEM_API must provide
-  * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(),
-- * arch_copy_from_iter_pmem(), arch_clear_pmem() and arch_has_wmb_pmem().
-+ * arch_copy_from_iter_pmem(), arch_clear_pmem(), arch_wb_cache_pmem()
-+ * and arch_has_wmb_pmem().
-  */
- static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
- {
-@@ -178,4 +184,18 @@ static inline void clear_pmem(void __pmem *addr, size_t size)
- 	else
- 		default_clear_pmem(addr, size);
- }
 +
-+/**
-+ * wb_cache_pmem - write back processor cache for PMEM memory range
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to write back
-+ *
-+ * Write back the processor cache range starting at 'addr' for 'size' bytes.
-+ * This function requires explicit ordering with a wmb_pmem() call.
-+ */
-+static inline void wb_cache_pmem(void __pmem *addr, size_t size)
-+{
-+	if (arch_has_pmem_api())
-+		arch_wb_cache_pmem(addr, size);
-+}
- #endif /* __PMEM_H__ */
--- 
-2.5.0
+ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		pmd_t *pmd, unsigned int flags, get_block_t get_block,
+ 		dax_iodone_t complete_unwritten)
+@@ -568,7 +576,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	unsigned blkbits = inode->i_blkbits;
+ 	unsigned long pmd_addr = address & PMD_MASK;
+ 	bool write = flags & FAULT_FLAG_WRITE;
+-	struct block_device *bdev;
++	struct block_device *bdev = NULL;
+ 	pgoff_t size, pgoff;
+ 	sector_t block;
+ 	int result = 0;
+@@ -580,21 +588,29 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	/* Fall back to PTEs if we're going to COW */
+ 	if (write && !(vma->vm_flags & VM_SHARED)) {
+ 		split_huge_pmd(vma, pmd, address);
++		dax_pmd_dbg(bdev, address, "cow write");
+ 		return VM_FAULT_FALLBACK;
+ 	}
+ 	/* If the PMD would extend outside the VMA */
+-	if (pmd_addr < vma->vm_start)
++	if (pmd_addr < vma->vm_start) {
++		dax_pmd_dbg(bdev, address, "vma start unaligned");
+ 		return VM_FAULT_FALLBACK;
+-	if ((pmd_addr + PMD_SIZE) > vma->vm_end)
++	}
++	if ((pmd_addr + PMD_SIZE) > vma->vm_end) {
++		dax_pmd_dbg(bdev, address, "vma end unaligned");
+ 		return VM_FAULT_FALLBACK;
++	}
+ 
+ 	pgoff = linear_page_index(vma, pmd_addr);
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (pgoff >= size)
+ 		return VM_FAULT_SIGBUS;
+ 	/* If the PMD would cover blocks out of the file */
+-	if ((pgoff | PG_PMD_COLOUR) >= size)
++	if ((pgoff | PG_PMD_COLOUR) >= size) {
++		dax_pmd_dbg(bdev, address,
++				"offset + huge page size > file size");
+ 		return VM_FAULT_FALLBACK;
++	}
+ 
+ 	memset(&bh, 0, sizeof(bh));
+ 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
+@@ -610,8 +626,10 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	 * just fall back to PTEs.  Calling get_block 512 times in a loop
+ 	 * would be silly.
+ 	 */
+-	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
++	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
++		dax_pmd_dbg(bdev, address, "block allocation size invalid");
+ 		goto fallback;
++	}
+ 
+ 	/*
+ 	 * If we allocated new storage, make sure no process has any
+@@ -634,23 +652,33 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		result = VM_FAULT_SIGBUS;
+ 		goto out;
+ 	}
+-	if ((pgoff | PG_PMD_COLOUR) >= size)
++	if ((pgoff | PG_PMD_COLOUR) >= size) {
++		dax_pmd_dbg(bdev, address, "pgoff unaligned");
+ 		goto fallback;
++	}
+ 
+ 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
+ 		spinlock_t *ptl;
+ 		pmd_t entry;
+ 		struct page *zero_page = get_huge_zero_page();
+ 
+-		if (unlikely(!zero_page))
++		if (unlikely(!zero_page)) {
++			dax_pmd_dbg(bdev, address, "no zero page");
+ 			goto fallback;
++		}
+ 
+ 		ptl = pmd_lock(vma->vm_mm, pmd);
+ 		if (!pmd_none(*pmd)) {
+ 			spin_unlock(ptl);
++			dax_pmd_dbg(bdev, address, "pmd already present");
+ 			goto fallback;
+ 		}
+ 
++		dev_dbg(part_to_dev(bdev->bd_part),
++				"%s: %s addr: %lx pfn: <zero> sect: %llx\n",
++				__func__, current->comm, address,
++				(unsigned long long) to_sector(&bh, inode));
++
+ 		entry = mk_pmd(zero_page, vma->vm_page_prot);
+ 		entry = pmd_mkhuge(entry);
+ 		set_pmd_at(vma->vm_mm, pmd_addr, pmd, entry);
+@@ -667,8 +695,13 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 			result = VM_FAULT_SIGBUS;
+ 			goto out;
+ 		}
+-		if (length < PMD_SIZE
+-				|| (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR)) {
++		if (length < PMD_SIZE) {
++			dax_pmd_dbg(bdev, address, "dax-length too small");
++			dax_unmap_atomic(bdev, &dax);
++			goto fallback;
++		}
++		if (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR) {
++			dax_pmd_dbg(bdev, address, "pfn unaligned");
+ 			dax_unmap_atomic(bdev, &dax);
+ 			goto fallback;
+ 		}
+@@ -679,6 +712,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		 */
+ 		if (pfn_t_has_page(dax.pfn)) {
+ 			dax_unmap_atomic(bdev, &dax);
++			dax_pmd_dbg(bdev, address, "pfn not in memmap");
+ 			goto fallback;
+ 		}
+ 
+@@ -691,6 +725,11 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		}
+ 		dax_unmap_atomic(bdev, &dax);
+ 
++		dev_dbg(part_to_dev(bdev->bd_part),
++				"%s: %s addr: %lx pfn: %lx sect: %llx\n",
++				__func__, current->comm, address,
++				pfn_t_to_pfn(dax.pfn),
++				(unsigned long long) dax.sector);
+ 		result |= vmf_insert_pfn_pmd(vma, address, pmd,
+ 				dax.pfn, write);
+ 	}
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
