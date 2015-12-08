@@ -1,51 +1,111 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH RESEND] ACPI/Kconfig: Make ACPI_NFIT depend on EFI_STUB on X86
-Date: Tue, 15 Dec 2015 09:59:06 -0700
-Message-Id: <1450198746-14161-1-git-send-email-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH -mm 12/25] libnvdimm, pfn,
+ pmem: allocate memmap array in persistent memory
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 07 Dec 2015 17:33:40 -0800
+Message-ID: <20151208013340.25030.7896.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.0 defines NFIT table and new persistent memory types for
-EFI memory table (EFI_PERSISTENT_MEMORY) and e820 table (E820_PMEM).
+Use the new vmem_altmap capability to enable the pmem driver to arrange
+for a struct page memmap to be established in persistent memory.
 
-setup_e820() enabled by EFI_STUB converts EFI_PERSISTENT_MEMORY to
-E820_PMEM for the e820_map table on x86 EFI platforms.  When EFI_STUB
-is disabled, x86 kernels rely on the bootloader to perform this
-conversion.
-
-It was found that the upstream grub bootloader since 2012 has a bug
-that converts EFI_PERSISTENT_MEMORY (or any new type) to E820_RAM,
-which causes the kernel to use persistent memory ranges as regular
-memory and corrupts the data in NVDIMM.
-
-Therefore, this patch sets ACPI_NFIT to depend on EFI_STUB on x86.
-This assures that ACPI_NFIT kernels are self-contained and are
-protected from the upstream grub bug on x86.
-
-Note, X86_PMEM_LEGACY allows the kernel to use the pmem driver on
-pre-ACPI 6.0 platforms, and does not require ACPI_NFIT enabled.
-
-References: http://www.mail-archive.com/grub-devel@gnu.org/msg23961.html
-Reported-by: Robert Elliott <elliott@hpe.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/ia64/include/asm/page.h |    1 +
+ drivers/nvdimm/pfn_devs.c    |    3 +--
+ drivers/nvdimm/pmem.c        |   19 +++++++++++++++++--
+ 3 files changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 5eef4cb..5368baa 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -441,6 +441,7 @@ config ACPI_NFIT
- 	depends on PHYS_ADDR_T_64BIT
- 	depends on BLK_DEV
- 	depends on ARCH_HAS_MMIO_FLUSH
-+	depends on !X86 || (X86 && EFI_STUB)
- 	select LIBNVDIMM
- 	help
- 	  Infrastructure to probe ACPI 6 compliant platforms for
+diff --git a/arch/ia64/include/asm/page.h b/arch/ia64/include/asm/page.h
+index ec48bb9f95e1..e8c486ef0d76 100644
+--- a/arch/ia64/include/asm/page.h
++++ b/arch/ia64/include/asm/page.h
+@@ -105,6 +105,7 @@ extern struct page *vmem_map;
+ #ifdef CONFIG_DISCONTIGMEM
+ # define page_to_pfn(page)	((unsigned long) (page - vmem_map))
+ # define pfn_to_page(pfn)	(vmem_map + (pfn))
++# define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+ #else
+ # include <asm-generic/memory_model.h>
+ #endif
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 71805a1aa0f3..a642cfacee07 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -83,8 +83,7 @@ static ssize_t mode_store(struct device *dev,
+ 
+ 		if (strncmp(buf, "pmem\n", n) == 0
+ 				|| strncmp(buf, "pmem", n) == 0) {
+-			/* TODO: allocate from PMEM support */
+-			rc = -ENOTTY;
++			nd_pfn->mode = PFN_MODE_PMEM;
+ 		} else if (strncmp(buf, "ram\n", n) == 0
+ 				|| strncmp(buf, "ram", n) == 0)
+ 			nd_pfn->mode = PFN_MODE_RAM;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 34fa2f003602..1d884318c67b 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -315,12 +315,16 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+ 	struct nd_pfn *nd_pfn = to_nd_pfn(ndns->claim);
+ 	struct device *dev = &nd_pfn->dev;
+-	struct vmem_altmap *altmap;
+ 	struct nd_region *nd_region;
++	struct vmem_altmap *altmap;
+ 	struct nd_pfn_sb *pfn_sb;
+ 	struct pmem_device *pmem;
+ 	phys_addr_t offset;
+ 	int rc;
++	struct vmem_altmap __altmap = {
++		.base_pfn = __phys_to_pfn(nsio->res.start),
++		.reserve = __phys_to_pfn(SZ_8K),
++	};
+ 
+ 	if (!nd_pfn->uuid || !nd_pfn->ndns)
+ 		return -ENODEV;
+@@ -348,6 +352,17 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
+ 			return -EINVAL;
+ 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
+ 		altmap = NULL;
++	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
++		nd_pfn->npfns = (resource_size(&nsio->res) - offset)
++			/ PAGE_SIZE;
++		if (le64_to_cpu(nd_pfn->pfn_sb->npfns) > nd_pfn->npfns)
++			dev_info(&nd_pfn->dev,
++					"number of pfns truncated from %lld to %ld\n",
++					le64_to_cpu(nd_pfn->pfn_sb->npfns),
++					nd_pfn->npfns);
++		altmap = & __altmap;
++		altmap->free = __phys_to_pfn(offset - SZ_8K);
++		altmap->alloc = 0;
+ 	} else {
+ 		rc = -ENXIO;
+ 		goto err;
+@@ -357,7 +372,7 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
+ 	pmem = dev_get_drvdata(dev);
+ 	devm_memunmap(dev, (void __force *) pmem->virt_addr);
+ 	pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, &nsio->res,
+-			NULL);
++			altmap);
+ 	pmem->pfn_flags |= PFN_MAP;
+ 	if (IS_ERR(pmem->virt_addr)) {
+ 		rc = PTR_ERR(pmem->virt_addr);
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
