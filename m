@@ -1,56 +1,49 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v2 06/25] dax: Split pmd map when fallback on COW
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 09 Dec 2015 18:37:41 -0800
-Message-ID: <20151210023741.30368.16173.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 5/7] ext2: call dax_pfn_mkwrite() for DAX fsync/msync
+Date: Tue,  8 Dec 2015 12:18:43 -0700
+Message-Id: <1449602325-20572-6-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: Toshi Kani <toshi.kani@hpe.com>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Toshi Kani <toshi.kani@hpe.com>
+To properly support the new DAX fsync/msync infrastructure filesystems
+need to call dax_pfn_mkwrite() so that DAX can track when user pages are
+dirtied.
 
-An infinite loop of PMD faults was observed when attempted to
-mlock() a private read-only PMD mmap'd range of a DAX file.
-
-__dax_pmd_fault() simply returns with VM_FAULT_FALLBACK when
-falling back to PTE on COW.  However, __handle_mm_fault()
-returns without falling back to handle_pte_fault() because
-a PMD map is present in this case.
-
-Change __dax_pmd_fault() to split the PMD map, if present,
-before returning with VM_FAULT_FALLBACK.
-
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- fs/dax.c |    4 +++-
+ fs/ext2/file.c | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 77fe5af896f3..fdd455030bf0 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -578,8 +578,10 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		return VM_FAULT_FALLBACK;
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index 11a42c5..2c88d68 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -102,8 +102,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ {
+ 	struct inode *inode = file_inode(vma->vm_file);
+ 	struct ext2_inode_info *ei = EXT2_I(inode);
+-	int ret = VM_FAULT_NOPAGE;
+ 	loff_t size;
++	int ret;
  
- 	/* Fall back to PTEs if we're going to COW */
--	if (write && !(vma->vm_flags & VM_SHARED))
-+	if (write && !(vma->vm_flags & VM_SHARED)) {
-+		split_huge_pmd(vma, pmd, address);
- 		return VM_FAULT_FALLBACK;
-+	}
- 	/* If the PMD would extend outside the VMA */
- 	if (pmd_addr < vma->vm_start)
- 		return VM_FAULT_FALLBACK;
+ 	sb_start_pagefault(inode->i_sb);
+ 	file_update_time(vma->vm_file);
+@@ -113,6 +113,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		ret = VM_FAULT_SIGBUS;
++	else
++		ret = dax_pfn_mkwrite(vma, vmf);
+ 
+ 	up_read(&ei->dax_sem);
+ 	sb_end_pagefault(inode->i_sb);
+-- 
+2.5.0
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
