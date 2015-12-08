@@ -1,41 +1,74 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v3 5/6] nvdimm: Increase max envelope size for IOCTL
-Date: Sun, 13 Dec 2015 18:54:26 -0700
-Message-Id: <86a53c9b31149819e77dfb564b2f451c55379052.1450036445.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1450036445.git.jerry.hoemann@hpe.com>
-References: <cover.1450036445.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1450036445.git.jerry.hoemann@hpe.com>
-References: <cover.1450036445.git.jerry.hoemann@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH -mm 25/25] dax: re-enable dax pmd mappings
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 07 Dec 2015 17:34:49 -0800
+Message-ID: <20151208013449.25030.62637.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In __nd_ioctl must first read in the fixed sized portion of an ioctl
-so that it can then determine the size of the variable part.
+Now that the get_user_pages() path knows how to handle dax-pmd mappings,
+remove the protections that disabled dax-pmd support.
 
-Prepare for ND_CMD_CALL_DSM calls which have larger fixed portion
-wrapper.
+Tests available from github.com/pmem/ndctl:
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+    make TESTS="lib/test-dax.sh lib/test-mmap.sh" check
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/libnvdimm.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/Kconfig |    3 ++-
+ fs/dax.c   |    8 ++------
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 3f021dc..b0a2f60 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -27,7 +27,7 @@ enum {
- 	/* need to set a limit somewhere, but yes, this is likely overkill */
- 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
- 	ND_CMD_MAX_ELEM = 4,
--	ND_CMD_MAX_ENVELOPE = 16,
-+	ND_CMD_MAX_ENVELOPE = 256,
- 	ND_CMD_ARS_STATUS_MAX = SZ_4K,
- 	ND_MAX_MAPPINGS = 32,
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 7a6ff07c183f..922893f8ab4a 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -50,7 +50,8 @@ config FS_DAX_PMD
+ 	bool
+ 	default FS_DAX
+ 	depends on FS_DAX
+-	depends on BROKEN
++	depends on ZONE_DEVICE
++	depends on TRANSPARENT_HUGEPAGE
  
--- 
-1.7.11.3
+ endif # BLOCK
+ 
+diff --git a/fs/dax.c b/fs/dax.c
+index 7bfe6cd59636..27ad9ac54de5 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -581,7 +581,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	sector_t block;
+ 	int result = 0;
+ 
+-	/* dax pmd mappings are broken wrt gup and fork */
++	/* dax pmd mappings require pfn_t_devmap() */
+ 	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
+ 		return VM_FAULT_FALLBACK;
+ 
+@@ -706,11 +706,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 			goto fallback;
+ 		}
+ 
+-		/*
+-		 * TODO: teach vmf_insert_pfn_pmd() to support
+-		 * 'pte_special' for pmds
+-		 */
+-		if (pfn_t_has_page(dax.pfn)) {
++		if (!pfn_t_devmap(dax.pfn)) {
+ 			dax_unmap_atomic(bdev, &dax);
+ 			dax_pmd_dbg(bdev, address, "pfn not in memmap");
+ 			goto fallback;
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
