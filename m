@@ -1,93 +1,49 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 00/11] Support System RAM resource type and EINJ to NVDIMM
-Date: Mon, 14 Dec 2015 16:37:15 -0700
-Message-Id: <1450136235-17012-1-git-send-email-toshi.kani@hpe.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 6/7] ext4: call dax_pfn_mkwrite() for DAX fsync/msync
+Date: Tue,  8 Dec 2015 12:18:44 -0700
+Message-Id: <1449602325-20572-7-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, bp@alien8.de
-Cc: torvalds@linux-foundation.org, rafael.j.wysocki@intel.com, dan.j.williams@intel.com, x86@kernel.org, konrad.wilk@oracle.com, xen-devel@lists.xenproject.org, dyoung@redhat.com, vgoyal@redhat.com, tangchen@cn.fujitsu.com, kgene@kernel.org, k.kozlowski@samsung.com, linux-samsung-soc@vger.kernel.org, vishal.l.verma@intel.com, tony.luck@intel.com, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch-set introduces a new I/O resource type, IORESOURCE_SYSTEM_RAM,
-for System RAM while keeping the current IORESOURCE_MEM type bit set for
-all memory-mapped ranges (including System RAM) for backward compatibility.
-With the new System RAM type, walking through the iomem resource table
-no longer requires to test with strcmp() against "System RAM".  After this
-infrastructure update, this patch changes EINJ to support NVDIMM.
+To properly support the new DAX fsync/msync infrastructure filesystems
+need to call dax_pfn_mkwrite() so that DAX can track when user pages are
+dirtied.
 
-Patches 1-2 add a new System RAM type, and make resource interfaces work
-with resource flags with modifier bits set.
-
-Patches 3-7 set the System RAM type to System RAM ranges.
-
-Patches 8-10 extend resource interfaces to check System RAM ranges with
-the System RAM type.
-
-Patch 11 changes the EINJ driver to allow injecting a memory error to
-NVDIMM.
-
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
-v1:
- - Searching for System RAM in the resource table should not require
-   strcmp(). (Borislav Petkov)
- - Add a new System RAM type as a modifier to IORESOURCE_MEM.
-   (Linus Torvalds)
- - NVDIMM check should remain with strcmp() against "Persistent Memory".
-   (Dan Williams)
- - Reset patch version.
+ fs/ext4/file.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-prev-v3:
- - Check the param2 value before target memory type. (Tony Luck)
- - Add a blank line before if-statement. Remove an unnecessary brakets.
-   (Borislav Petkov)
-
-prev-v2:
- - Change the EINJ driver to call region_intersects_ram() for checking
-   RAM with a specified size. (Dan Williams)
-
----
-Toshi Kani (11):
- 01/11 resource: Add System RAM resource type
- 02/11 resource: make resource flags handled properly
- 03/11 x86/e820: Set IORESOURCE_SYSTEM_RAM to System RAM
- 04/11 arch: Set IORESOURCE_SYSTEM_RAM to System RAM
- 05/11 xen: Set IORESOURCE_SYSTEM_RAM to System RAM
- 06/11 kexec: Set IORESOURCE_SYSTEM_RAM to System RAM
- 07/11 memory-hotplug: Set IORESOURCE_SYSTEM_RAM to System RAM
- 08/11 memremap: Change region_intersects() to use System RAM type
- 09/11 resource: Change walk_system_ram to use System RAM type
- 10/11 arm/samsung: Change s3c_pm_run_res() to use System RAM type
- 11/11 ACPI/EINJ: Allow memory error injection to NVDIMM
-
----
- arch/arm/kernel/setup.c          |  6 ++---
- arch/arm/plat-samsung/pm-check.c |  4 +--
- arch/arm64/kernel/setup.c        |  6 ++---
- arch/avr32/kernel/setup.c        |  6 ++---
- arch/ia64/kernel/efi.c           |  6 +++--
- arch/ia64/kernel/setup.c         |  6 ++---
- arch/m32r/kernel/setup.c         |  4 +--
- arch/mips/kernel/setup.c         | 10 +++++---
- arch/parisc/mm/init.c            |  6 ++---
- arch/powerpc/mm/mem.c            |  2 +-
- arch/s390/kernel/setup.c         |  8 +++---
- arch/score/kernel/setup.c        |  2 +-
- arch/sh/kernel/setup.c           |  8 +++---
- arch/sparc/mm/init_64.c          |  8 +++---
- arch/tile/kernel/setup.c         | 11 +++++---
- arch/unicore32/kernel/setup.c    |  6 ++---
- arch/x86/kernel/e820.c           | 18 +++++++++++++-
- arch/x86/kernel/setup.c          |  6 ++---
- drivers/acpi/apei/einj.c         | 15 ++++++++---
- drivers/xen/balloon.c            |  2 +-
- include/linux/ioport.h           | 11 ++++++++
- include/linux/mm.h               |  3 ++-
- kernel/kexec_core.c              |  6 ++---
- kernel/kexec_file.c              |  2 +-
- kernel/memremap.c                | 13 +++++-----
- kernel/resource.c                | 54 +++++++++++++++++++++-------------------
- mm/memory_hotplug.c              |  2 +-
- 27 files changed, 140 insertions(+), 91 deletions(-)
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 749b222..8c8965c 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -291,8 +291,8 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ {
+ 	struct inode *inode = file_inode(vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+-	int ret = VM_FAULT_NOPAGE;
+ 	loff_t size;
++	int ret;
+ 
+ 	sb_start_pagefault(sb);
+ 	file_update_time(vma->vm_file);
+@@ -300,6 +300,8 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		ret = VM_FAULT_SIGBUS;
++	else
++		ret = dax_pfn_mkwrite(vma, vmf);
+ 	up_read(&EXT4_I(inode)->i_mmap_sem);
+ 	sb_end_pagefault(sb);
+ 
+-- 
+2.5.0
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
