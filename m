@@ -1,85 +1,287 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 0/7] DAX fsync/msync support
-Date: Tue,  8 Dec 2015 12:18:38 -0700
-Message-Id: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH -mm 18/25] mm, dax: convert vmf_insert_pfn_pmd() to pfn_t
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 07 Dec 2015 17:34:11 -0800
+Message-ID: <20151208013411.25030.86914.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: akpm@linux-foundation.org
+Cc: Matthew Wilcox <willy@linux.intel.com>, linux-nvdimm@lists.01.org, Dave Hansen <dave@sr71.net>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch series adds a slimmed down version of fsync/msync support to
-DAX.  The major change versus v2 of this patch series is that we no longer
-remove DAX entries from the radix tree during fsync/msync calls.  Instead
-the list of DAX entries in the radix tree grows for the lifetime of the
-mapping.  We reclaim DAX entries from the radix tree via
-clear_exceptional_entry() for truncate, when the filesystem is unmounted,
-etc.
+Similar to the conversion of vm_insert_mixed() use pfn_t in the
+vmf_insert_pfn_pmd() to tag the resulting pte with _PAGE_DEVICE when the
+pfn is backed by a devm_memremap_pages() mapping.
 
-This change was made because if we try and remove radix tree entries during
-writeback operations there are a number of race conditions that exist
-between those writeback operations and page faults.  In the non-DAX case
-these races are dealt with using the page lock, but we don't have a good
-replacement lock with the same granularity.  These races could leave us in
-a place where we have a DAX page that is dirty and writeable from userspace
-but no longer in the radix tree.  This page would then be skipped during
-subsequent writeback operations, which is unacceptable.
+Cc: Dave Hansen <dave@sr71.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/sparc/include/asm/pgtable_64.h     |    1 +
+ arch/x86/include/asm/pgtable.h          |    6 ++++++
+ arch/x86/mm/pat.c                       |    4 ++--
+ drivers/gpu/drm/exynos/exynos_drm_gem.c |    2 +-
+ drivers/gpu/drm/msm/msm_gem.c           |    2 +-
+ drivers/gpu/drm/omapdrm/omap_gem.c      |    4 ++--
+ fs/dax.c                                |    2 +-
+ include/asm-generic/pgtable.h           |    6 ++++--
+ include/linux/huge_mm.h                 |    2 +-
+ include/linux/mm.h                      |   10 +++++++++-
+ mm/huge_memory.c                        |   10 ++++++----
+ mm/memory.c                             |    2 +-
+ 12 files changed, 35 insertions(+), 16 deletions(-)
 
-I do plan to continue to try and solve these race conditions so that we can
-have a more optimal fsync/msync solution for DAX, but I wanted to get this
-set out for v4.5 consideration while I continued working.  While
-suboptimal the solution in this series gives us correct behavior for DAX
-fsync/msync and seems like a reasonable short term compromise.
-
-This series is built upon v4.4-rc4 plus the recent ext4 DAX series from Jan
-Kara (http://www.spinics.net/lists/linux-ext4/msg49951.html) and a recent
-XFS fix from Dave Chinner (https://lkml.org/lkml/2015/12/2/923).  The tree
-with all this working can be found here:
-
-https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=fsync_v3
-
-Other changes versus v2:
- - Renamed dax_fsync() to dax_writeback_mapping_range(). (Dave Chinner)
- - Removed REQ_FUA/REQ_FLUSH support from the PMEM driver and instead just
-   make the call to wmb_pmem() in dax_writeback_mapping_range().  (Dan)
- - Reworked some BUG_ON() calls to be a WARN_ON() followed by an error
-   return.
- - Moved call to dax_writeback_mapping_range() from the filesystems down
-   into filemap_write_and_wait_range(). (Dave Chinner)
- - Fixed handling of DAX read faults so they create a radix tree entry but
-   don't mark it as dirty until the follow-up dax_pfn_mkwrite() call.
- - Update clear_exceptional_entry() and to dax_writeback_one() so they
-   validate the DAX radix tree entry before they use it. (Dave Chinner)
- - Added a comment to find_get_entries_tag() to explain the restart
-   condition. (Dave Chinner)
-
-Ross Zwisler (7):
-  pmem: add wb_cache_pmem() to the PMEM API
-  dax: support dirty DAX entries in radix tree
-  mm: add find_get_entries_tag()
-  dax: add support for fsync/sync
-  ext2: call dax_pfn_mkwrite() for DAX fsync/msync
-  ext4: call dax_pfn_mkwrite() for DAX fsync/msync
-  xfs: call dax_pfn_mkwrite() for DAX fsync/msync
-
- arch/x86/include/asm/pmem.h |  11 ++--
- fs/block_dev.c              |   3 +-
- fs/dax.c                    | 147 ++++++++++++++++++++++++++++++++++++++++++--
- fs/ext2/file.c              |   4 +-
- fs/ext4/file.c              |   4 +-
- fs/inode.c                  |   1 +
- fs/xfs/xfs_file.c           |   7 ++-
- include/linux/dax.h         |   7 +++
- include/linux/fs.h          |   1 +
- include/linux/pagemap.h     |   3 +
- include/linux/pmem.h        |  22 ++++++-
- include/linux/radix-tree.h  |   9 +++
- mm/filemap.c                |  84 ++++++++++++++++++++++++-
- mm/truncate.c               |  64 +++++++++++--------
- 14 files changed, 319 insertions(+), 48 deletions(-)
-
--- 
-2.5.0
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index e1a49f02b5b4..fdfd8c3a0887 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -245,6 +245,7 @@ static inline pte_t pfn_pte(unsigned long pfn, pgprot_t prot)
+ #define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#define pfn_pmd pfn_pmd
+ static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
+ {
+ 	pte_t pte = pfn_pte(page_nr, pgprot);
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index d06baa865a50..5209ca1161d2 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -281,6 +281,11 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
+ 	return pmd_set_flags(pmd, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
+ }
+ 
++static inline pmd_t pmd_mkdevmap(pmd_t pmd)
++{
++	return pmd_set_flags(pmd, _PAGE_DEVMAP);
++}
++
+ static inline pmd_t pmd_mkhuge(pmd_t pmd)
+ {
+ 	return pmd_set_flags(pmd, _PAGE_PSE);
+@@ -355,6 +360,7 @@ static inline pte_t pfn_pte(unsigned long page_nr, pgprot_t pgprot)
+ 		     massage_pgprot(pgprot));
+ }
+ 
++#define pfn_pmd pfn_pmd
+ static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
+ {
+ 	return __pmd(((phys_addr_t)page_nr << PAGE_SHIFT) |
+diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
+index 188e3e07eeeb..98efd3c02374 100644
+--- a/arch/x86/mm/pat.c
++++ b/arch/x86/mm/pat.c
+@@ -949,7 +949,7 @@ int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
+ }
+ 
+ int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
+-		     unsigned long pfn)
++		     pfn_t pfn)
+ {
+ 	enum page_cache_mode pcm;
+ 
+@@ -957,7 +957,7 @@ int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
+ 		return 0;
+ 
+ 	/* Set prot based on lookup */
+-	pcm = lookup_memtype((resource_size_t)pfn << PAGE_SHIFT);
++	pcm = lookup_memtype(pfn_t_to_phys(pfn));
+ 	*prot = __pgprot((pgprot_val(vma->vm_page_prot) & (~_PAGE_CACHE_MASK)) |
+ 			 cachemode2protval(pcm));
+ 
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_gem.c b/drivers/gpu/drm/exynos/exynos_drm_gem.c
+index 973df42fc1eb..d6a6dd7d0ffe 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_gem.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_gem.c
+@@ -491,7 +491,7 @@ int exynos_drm_gem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 
+ 	pfn = page_to_pfn(exynos_gem->pages[page_offset]);
+ 	ret = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
+-			pfn_to_pfn_t(pfn, PFN_DEV));
++			__pfn_to_pfn_t(pfn, PFN_DEV));
+ 
+ out:
+ 	switch (ret) {
+diff --git a/drivers/gpu/drm/msm/msm_gem.c b/drivers/gpu/drm/msm/msm_gem.c
+index 0f4ed5bfda83..6509d9b23912 100644
+--- a/drivers/gpu/drm/msm/msm_gem.c
++++ b/drivers/gpu/drm/msm/msm_gem.c
+@@ -223,7 +223,7 @@ int msm_gem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 			pfn, pfn << PAGE_SHIFT);
+ 
+ 	ret = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
+-			pfn_to_pfn_t(pfn, PFN_DEV));
++			__pfn_to_pfn_t(pfn, PFN_DEV));
+ 
+ out_unlock:
+ 	mutex_unlock(&dev->struct_mutex);
+diff --git a/drivers/gpu/drm/omapdrm/omap_gem.c b/drivers/gpu/drm/omapdrm/omap_gem.c
+index 910cb276a7ea..94b6d23ec202 100644
+--- a/drivers/gpu/drm/omapdrm/omap_gem.c
++++ b/drivers/gpu/drm/omapdrm/omap_gem.c
+@@ -386,7 +386,7 @@ static int fault_1d(struct drm_gem_object *obj,
+ 			pfn, pfn << PAGE_SHIFT);
+ 
+ 	return vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
+-			pfn_to_pfn_t(pfn, PFN_DEV));
++			__pfn_to_pfn_t(pfn, PFN_DEV));
+ }
+ 
+ /* Special handling for the case of faulting in 2d tiled buffers */
+@@ -480,7 +480,7 @@ static int fault_2d(struct drm_gem_object *obj,
+ 
+ 	for (i = n; i > 0; i--) {
+ 		vm_insert_mixed(vma, (unsigned long)vaddr,
+-				pfn_to_pfn_t(pfn, PFN_DEV));
++				__pfn_to_pfn_t(pfn, PFN_DEV));
+ 		pfn += usergart[fmt].stride_pfn;
+ 		vaddr += PAGE_SIZE * m;
+ 	}
+diff --git a/fs/dax.c b/fs/dax.c
+index 00088918baf2..b9ab7138f5cb 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -692,7 +692,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		dax_unmap_atomic(bdev, &dax);
+ 
+ 		result |= vmf_insert_pfn_pmd(vma, address, pmd,
+-				pfn_t_to_pfn(dax.pfn), write);
++				dax.pfn, write);
+ 	}
+ 
+  out:
+diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
+index 63abda1ac06d..bdff35e90889 100644
+--- a/include/asm-generic/pgtable.h
++++ b/include/asm-generic/pgtable.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_GENERIC_PGTABLE_H
+ #define _ASM_GENERIC_PGTABLE_H
+ 
++#include <linux/pfn.h>
++
+ #ifndef __ASSEMBLY__
+ #ifdef CONFIG_MMU
+ 
+@@ -549,7 +551,7 @@ static inline int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
+  * by vm_insert_pfn().
+  */
+ static inline int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
+-				   unsigned long pfn)
++				   pfn_t pfn)
+ {
+ 	return 0;
+ }
+@@ -577,7 +579,7 @@ extern int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
+ 			   unsigned long pfn, unsigned long addr,
+ 			   unsigned long size);
+ extern int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
+-			    unsigned long pfn);
++			    pfn_t pfn);
+ extern int track_pfn_copy(struct vm_area_struct *vma);
+ extern void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
+ 			unsigned long size);
+diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+index 72cd942edb22..0af95c1a2666 100644
+--- a/include/linux/huge_mm.h
++++ b/include/linux/huge_mm.h
+@@ -34,7 +34,7 @@ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			unsigned long addr, pgprot_t newprot,
+ 			int prot_numa);
+ int vmf_insert_pfn_pmd(struct vm_area_struct *, unsigned long addr, pmd_t *,
+-			unsigned long pfn, bool write);
++			pfn_t pfn, bool write);
+ 
+ enum transparent_hugepage_flag {
+ 	TRANSPARENT_HUGEPAGE_FLAG,
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index fb97d2023769..68b11b68b160 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1068,7 +1068,14 @@ static inline pte_t pfn_t_pte(pfn_t pfn, pgprot_t pgprot)
+ }
+ #endif
+ 
+-#ifdef __HAVE_ARCH_PTE_DEVICE
++#ifdef pfn_pmd
++static inline pmd_t pfn_t_pmd(pfn_t pfn, pgprot_t pgprot)
++{
++	return pfn_pmd(pfn_t_to_pfn(pfn), pgprot);
++}
++#endif
++
++#ifdef __HAVE_ARCH_PTE_DEVMAP
+ static inline bool pfn_t_devmap(pfn_t pfn)
+ {
+ 	const unsigned long flags = PFN_DEV|PFN_MAP;
+@@ -1081,6 +1088,7 @@ static inline bool pfn_t_devmap(pfn_t pfn)
+ 	return false;
+ }
+ pte_t pte_mkdevmap(pte_t pte);
++pmd_t pmd_mkdevmap(pmd_t pmd);
+ #endif
+ 
+ /*
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 70323839bd0d..c1491ce1d8ac 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -960,14 +960,16 @@ int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ }
+ 
+ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+-		pmd_t *pmd, unsigned long pfn, pgprot_t prot, bool write)
++		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t entry;
+ 	spinlock_t *ptl;
+ 
+ 	ptl = pmd_lock(mm, pmd);
+-	entry = pmd_mkhuge(pfn_pmd(pfn, prot));
++	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
++	if (pfn_t_devmap(pfn))
++		entry = pmd_mkdevmap(entry);
+ 	if (write) {
+ 		entry = pmd_mkyoung(pmd_mkdirty(entry));
+ 		entry = maybe_pmd_mkwrite(entry, vma);
+@@ -978,7 +980,7 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ }
+ 
+ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+-			pmd_t *pmd, unsigned long pfn, bool write)
++			pmd_t *pmd, pfn_t pfn, bool write)
+ {
+ 	pgprot_t pgprot = vma->vm_page_prot;
+ 	/*
+@@ -990,7 +992,7 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
+ 						(VM_PFNMAP|VM_MIXEDMAP));
+ 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
+-	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
++	BUG_ON(!pfn_t_devmap(pfn));
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return VM_FAULT_SIGBUS;
+diff --git a/mm/memory.c b/mm/memory.c
+index bba5cfbdf1fe..42a812d3c3af 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1566,7 +1566,7 @@ int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return -EFAULT;
+-	if (track_pfn_insert(vma, &pgprot, pfn))
++	if (track_pfn_insert(vma, &pgprot, __pfn_to_pfn_t(pfn, PFN_DEV)))
+ 		return -EINVAL;
+ 
+ 	ret = insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, PFN_DEV), pgprot);
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
