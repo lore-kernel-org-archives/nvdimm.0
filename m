@@ -1,96 +1,267 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH 2/3] xfs: handle shutdown notifications
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 01 Dec 2015 15:58:46 -0800
-Message-ID: <20151201235846.36836.1476.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151201235836.36836.90416.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151201235836.36836.90416.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org
-Cc: linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, xfs@oss.sgi.com
+Return-Path: <owner-linux-mm@kvack.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 4/7] dax: add support for fsync/sync
+Date: Tue,  8 Dec 2015 12:18:42 -0700
+Message-Id: <1449602325-20572-5-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Force a filesystem shutdown when the backing device is known to be dead.
-I.e. blk_queue_enter() permanently returns -ENODEV.
+To properly handle fsync/msync in an efficient way DAX needs to track dirty
+pages so it is able to flush them durably to media on demand.
 
-Cc: xfs@oss.sgi.com
-Suggested-by: Dave Chinner <david@fromorbit.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+The tracking of dirty pages is done via the radix tree in struct
+address_space.  This radix tree is already used by the page writeback
+infrastructure for tracking dirty pages associated with an open file, and
+it already has support for exceptional (non struct page*) entries.  We
+build upon these features to add exceptional entries to the radix tree for
+DAX dirty PMD or PTE pages at fault time.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- fs/block_dev.c     |    3 ++-
- fs/xfs/xfs_super.c |    9 +++++++++
- include/linux/fs.h |    2 ++
- 3 files changed, 13 insertions(+), 1 deletion(-)
+ fs/dax.c            | 147 +++++++++++++++++++++++++++++++++++++++++++++++++---
+ include/linux/dax.h |   2 +
+ mm/filemap.c        |   3 ++
+ 3 files changed, 146 insertions(+), 6 deletions(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 39989e990df9..dfe9a53a7c53 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -1802,7 +1802,7 @@ int __invalidate_device(struct block_device *bdev, bool kill_dirty)
- }
- EXPORT_SYMBOL(__invalidate_device);
- 
--static void generic_bdi_gone(struct super_block *sb)
-+void generic_bdi_gone(struct super_block *sb)
- {
- 	struct inode *inode, *_inode = NULL;
- 
-@@ -1828,6 +1828,7 @@ static void generic_bdi_gone(struct super_block *sb)
- 	spin_unlock(&sb->s_inode_list_lock);
- 	iput(_inode);
- }
-+EXPORT_SYMBOL(generic_bdi_gone);
- 
- void shutdown_partition(struct gendisk *disk, int partno)
- {
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index 36bd8825bfb0..63c36508e9db 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -1618,6 +1618,14 @@ xfs_fs_free_cached_objects(
- 	return xfs_reclaim_inodes_nr(XFS_M(sb), sc->nr_to_scan);
+diff --git a/fs/dax.c b/fs/dax.c
+index 43671b6..c65b0e4 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -24,6 +24,7 @@
+ #include <linux/memcontrol.h>
+ #include <linux/mm.h>
+ #include <linux/mutex.h>
++#include <linux/pagevec.h>
+ #include <linux/pmem.h>
+ #include <linux/sched.h>
+ #include <linux/uio.h>
+@@ -289,6 +290,131 @@ static int copy_user_bh(struct page *to, struct buffer_head *bh,
+ 	return 0;
  }
  
-+static void
-+xfs_fs_bdi_gone(
-+	struct super_block *sb)
++static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
++		void __pmem *addr, bool pmd_entry, bool dirty)
 +{
-+	xfs_force_shutdown(XFS_M(sb), SHUTDOWN_DEVICE_REQ);
-+	generic_bdi_gone(sb);
++	struct radix_tree_root *page_tree = &mapping->page_tree;
++	int error = 0;
++	void *entry;
++
++	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
++
++	spin_lock_irq(&mapping->tree_lock);
++	entry = radix_tree_lookup(page_tree, index);
++
++	if (entry) {
++		if (!pmd_entry || RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
++			goto dirty;
++		radix_tree_delete(&mapping->page_tree, index);
++		mapping->nrdax--;
++	}
++
++	if (!addr || RADIX_DAX_TYPE(addr)) {
++		WARN_ONCE(1, "%s: invalid address %p\n", __func__, addr);
++		goto unlock;
++	}
++
++	error = radix_tree_insert(page_tree, index,
++			RADIX_DAX_ENTRY(addr, pmd_entry));
++	if (error)
++		goto unlock;
++
++	mapping->nrdax++;
++ dirty:
++	if (dirty)
++		radix_tree_tag_set(page_tree, index, PAGECACHE_TAG_DIRTY);
++ unlock:
++	spin_unlock_irq(&mapping->tree_lock);
++	return error;
 +}
 +
- static const struct super_operations xfs_super_operations = {
- 	.alloc_inode		= xfs_fs_alloc_inode,
- 	.destroy_inode		= xfs_fs_destroy_inode,
-@@ -1632,6 +1640,7 @@ static const struct super_operations xfs_super_operations = {
- 	.show_options		= xfs_fs_show_options,
- 	.nr_cached_objects	= xfs_fs_nr_cached_objects,
- 	.free_cached_objects	= xfs_fs_free_cached_objects,
-+	.bdi_gone		= xfs_fs_bdi_gone,
- };
- 
- static struct file_system_type xfs_fs_type = {
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 0e201ed38045..b1e8e049e4b8 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2265,6 +2265,7 @@ extern struct super_block *freeze_bdev(struct block_device *);
- extern void emergency_thaw_all(void);
- extern int thaw_bdev(struct block_device *bdev, struct super_block *sb);
- extern int fsync_bdev(struct block_device *);
-+extern void generic_bdi_gone(struct super_block *sb);
- 
- extern struct super_block *blockdev_superblock;
- 
-@@ -2277,6 +2278,7 @@ static inline void bd_forget(struct inode *inode) {}
- static inline int sync_blockdev(struct block_device *bdev) { return 0; }
- static inline void kill_bdev(struct block_device *bdev) {}
- static inline void invalidate_bdev(struct block_device *bdev) {}
-+static inline void generic_bdi_gone(struct super_block *sb) {}
- 
- static inline struct super_block *freeze_bdev(struct block_device *sb)
++static void dax_writeback_one(struct address_space *mapping, pgoff_t index,
++		void *entry)
++{
++	struct radix_tree_root *page_tree = &mapping->page_tree;
++	int type = RADIX_DAX_TYPE(entry);
++	struct radix_tree_node *node;
++	void **slot;
++
++	if (type != RADIX_DAX_PTE && type != RADIX_DAX_PMD) {
++		WARN_ON_ONCE(1);
++		return;
++	}
++
++	spin_lock_irq(&mapping->tree_lock);
++	/*
++	 * Regular page slots are stabilized by the page lock even
++	 * without the tree itself locked.  These unlocked entries
++	 * need verification under the tree lock.
++	 */
++	if (!__radix_tree_lookup(page_tree, index, &node, &slot))
++		goto unlock;
++	if (*slot != entry)
++		goto unlock;
++
++	/* another fsync thread may have already written back this entry */
++	if (!radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
++		goto unlock;
++
++	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
++
++	if (type == RADIX_DAX_PMD)
++		wb_cache_pmem(RADIX_DAX_ADDR(entry), PMD_SIZE);
++	else
++		wb_cache_pmem(RADIX_DAX_ADDR(entry), PAGE_SIZE);
++ unlock:
++	spin_unlock_irq(&mapping->tree_lock);
++}
++
++/*
++ * Flush the mapping to the persistent domain within the byte range of [start,
++ * end]. This is required by data integrity operations to ensure file data is
++ * on persistent storage prior to completion of the operation.
++ */
++void dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
++		loff_t end)
++{
++	struct inode *inode = mapping->host;
++	pgoff_t indices[PAGEVEC_SIZE];
++	pgoff_t start_page, end_page;
++	struct pagevec pvec;
++	void *entry;
++	int i;
++
++	if (inode->i_blkbits != PAGE_SHIFT) {
++		WARN_ON_ONCE(1);
++		return;
++	}
++
++	rcu_read_lock();
++	entry = radix_tree_lookup(&mapping->page_tree, start & PMD_MASK);
++	rcu_read_unlock();
++
++	/* see if the start of our range is covered by a PMD entry */
++	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
++		start &= PMD_MASK;
++
++	start_page = start >> PAGE_CACHE_SHIFT;
++	end_page = end >> PAGE_CACHE_SHIFT;
++
++	tag_pages_for_writeback(mapping, start_page, end_page);
++
++	pagevec_init(&pvec, 0);
++	while (1) {
++		pvec.nr = find_get_entries_tag(mapping, start_page,
++				PAGECACHE_TAG_TOWRITE, PAGEVEC_SIZE,
++				pvec.pages, indices);
++
++		if (pvec.nr == 0)
++			break;
++
++		for (i = 0; i < pvec.nr; i++)
++			dax_writeback_one(mapping, indices[i], pvec.pages[i]);
++	}
++	wmb_pmem();
++}
++EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
++
+ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 			struct vm_area_struct *vma, struct vm_fault *vmf)
  {
+@@ -329,7 +455,11 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 	}
+ 
+ 	error = vm_insert_mixed(vma, vaddr, pfn);
++	if (error)
++		goto out;
+ 
++	error = dax_radix_entry(mapping, vmf->pgoff, addr, false,
++			vmf->flags & FAULT_FLAG_WRITE);
+  out:
+ 	i_mmap_unlock_read(mapping);
+ 
+@@ -452,6 +582,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		delete_from_page_cache(page);
+ 		unlock_page(page);
+ 		page_cache_release(page);
++		page = NULL;
+ 	}
+ 
+ 	/*
+@@ -539,7 +670,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	pgoff_t size, pgoff;
+ 	sector_t block, sector;
+ 	unsigned long pfn;
+-	int result = 0;
++	int error, result = 0;
+ 
+ 	/* dax pmd mappings are broken wrt gup and fork */
+ 	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
+@@ -651,6 +782,13 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		}
+ 
+ 		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
++
++		if (write) {
++			error = dax_radix_entry(mapping, pgoff, kaddr, true,
++					true);
++			if (error)
++				goto fallback;
++		}
+ 	}
+ 
+  out:
+@@ -702,15 +840,12 @@ EXPORT_SYMBOL_GPL(dax_pmd_fault);
+  * dax_pfn_mkwrite - handle first write to DAX page
+  * @vma: The virtual memory area where the fault occurred
+  * @vmf: The description of the fault
+- *
+  */
+ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
++	struct file *file = vma->vm_file;
+ 
+-	sb_start_pagefault(sb);
+-	file_update_time(vma->vm_file);
+-	sb_end_pagefault(sb);
++	dax_radix_entry(file->f_mapping, vmf->pgoff, NULL, false, true);
+ 	return VM_FAULT_NOPAGE;
+ }
+ EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index e9d57f68..11eb183 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -41,4 +41,6 @@ static inline bool dax_mapping(struct address_space *mapping)
+ {
+ 	return mapping->host && IS_DAX(mapping->host);
+ }
++void dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
++		loff_t end);
+ #endif
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 99dfbc9..9577783 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -482,6 +482,9 @@ int filemap_write_and_wait_range(struct address_space *mapping,
+ {
+ 	int err = 0;
+ 
++	if (dax_mapping(mapping) && mapping->nrdax)
++		dax_writeback_mapping_range(mapping, lstart, lend);
++
+ 	if (mapping->nrpages) {
+ 		err = __filemap_fdatawrite_range(mapping, lstart, lend,
+ 						 WB_SYNC_ALL);
+-- 
+2.5.0
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
