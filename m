@@ -1,70 +1,85 @@
 Return-Path: <owner-linux-mm@kvack.org>
-MIME-Version: 1.0
-In-Reply-To: <56661DBA.5000302@deltatee.com>
 References: <20151010005522.17221.87557.stgit@dwillia2-desk3.jf.intel.com>
-	<562AA15E.3010403@deltatee.com>
-	<CAPcyv4gQ-8-tL-rhAPzPxKzBLmWKnFcqSFVy4KVOM56_9gn6RA@mail.gmail.com>
-	<565F6A7A.4040302@deltatee.com>
-	<CAPcyv4jjyzKgPMzdwms8xH-_RoKEGxRp1r4qxEcPYmPv7qStqw@mail.gmail.com>
-	<566244CC.5080107@deltatee.com>
-	<56661DBA.5000302@deltatee.com>
-Date: Mon, 7 Dec 2015 16:48:08 -0800
-Message-ID: <CAPcyv4iaWD0oxYfDWZr1Vsp0NYcYtBD3373vsY9YyQYYqis+mQ@mail.gmail.com>
+ <562AA15E.3010403@deltatee.com>
+ <CAPcyv4gQ-8-tL-rhAPzPxKzBLmWKnFcqSFVy4KVOM56_9gn6RA@mail.gmail.com>
+ <565F6A7A.4040302@deltatee.com>
+ <CAPcyv4jjyzKgPMzdwms8xH-_RoKEGxRp1r4qxEcPYmPv7qStqw@mail.gmail.com>
+ <566244CC.5080107@deltatee.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <56661DBA.5000302@deltatee.com>
+Date: Mon, 7 Dec 2015 17:00:58 -0700
+MIME-Version: 1.0
+In-Reply-To: <566244CC.5080107@deltatee.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Subject: Re: [PATCH v2 00/20] get_user_pages() for dax mappings
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: Logan Gunthorpe <logang@deltatee.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: Stephen Bates <Stephen.Bates@pmcs.com>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Dec 7, 2015 at 4:00 PM, Logan Gunthorpe <logang@deltatee.com> wrote:
-> Hi Dan,
->
-> I've done a bit of digging and here's some more information:
->
-> * The crash occurs in ext4_end_io_unwritten when it tries to dereference
-> bh->b_assoc_map which is not necessarily NULL.
->
-> * That function is called by __dax_pmd_fault, as the argument
-> complete_unwritten.
->
-> * Looking in __dax_pmd_fault, the bug occurs if we hit either of the first
-> two 'goto fallback' lines. (In my case, it's hitting the first one.)
->
-> * After the fallback code, it goes back to 'out', then checks '&bh'
-> for the unwritten flag. But bh hasn't been initialized yet and, on my setup,
-> the unwritten flag happens to be set. So, it then calls complete_unwritten
-> with a garbage bh and crashes.
->
-> If I move the memset(&bh) up in the code, before the goto fallbacks can
-> occur, I can fix the crash.  I don't know if this is really the best way to
-> fix the problem though.
+Hi Dan,
 
-I believe you are hitting the same issue that Matthew hit here:
+I've done a bit of digging and here's some more information:
 
-https://patchwork.kernel.org/patch/7763851/
+* The crash occurs in ext4_end_io_unwritten when it tries to dereference 
+bh->b_assoc_map which is not necessarily NULL.
 
-I have it fixed up in the latest that I pushed out last night to
-libnvdimm-pending.  Note the libnvdimm-pending branch is now based on
-linux-next as I needed to resolve collisions with transparent huge
-page work pending in the -mm tree.
+* That function is called by __dax_pmd_fault, as the argument 
+complete_unwritten.
 
-> However, unfortunately, fixing the above just uncovered another issue. Now
-> the MR de-registration seems to have completed but the task hangs when it's
-> trying to munmap the memory. (Stack trace at the end of this email.)
->
-> It looks like the i_mmap_lock_write is hanging in unlink_file_vma. I'm not
-> really sure how to go about debugging this lock issue. If you have any steps
-> I can try to get you more information let me know. I'm also happy to re-test
-> if you have any other changes you'd like me to try.
+* Looking in __dax_pmd_fault, the bug occurs if we hit either of the 
+first two 'goto fallback' lines. (In my case, it's hitting the first one.)
 
-I worked through a crop of hangs and crashes triggered by Toshi's mmap
-test.  Give the latest a try if you get a chance and I'll fix it up if
-it still occurs.  I'll be pushing an updated branch again tonight with
-fixes for issues uncovered while running the nvml test suite.
+* After the fallback code, it goes back to 'out', then checks '&bh'
+for the unwritten flag. But bh hasn't been initialized yet and, on my 
+setup, the unwritten flag happens to be set. So, it then calls 
+complete_unwritten with a garbage bh and crashes.
 
-Thanks Logan!
+If I move the memset(&bh) up in the code, before the goto fallbacks can 
+occur, I can fix the crash.  I don't know if this is really the best way 
+to fix the problem though.
+
+--
+
+However, unfortunately, fixing the above just uncovered another issue. 
+Now the MR de-registration seems to have completed but the task hangs 
+when it's trying to munmap the memory. (Stack trace at the end of this 
+email.)
+
+It looks like the i_mmap_lock_write is hanging in unlink_file_vma. I'm 
+not really sure how to go about debugging this lock issue. If you have 
+any steps I can try to get you more information let me know. I'm also 
+happy to re-test if you have any other changes you'd like me to try.
+
+Thanks,
+
+Logan
+
+
+> [ 240.520522] INFO: task client:1997 blocked for more than 120 seconds.
+> [ 240.520638] Tainted: G O 4.4.0-rc3+donard2.5+ #87
+> [ 240.520741] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+> [ 240.520847] client D ffff88047fd14800 0 1997 1912 0x00000004
+> [ 240.520856] ffff88026bc7b240 0000000000000000 ffff88026bd38000 ffff88026bd37d30
+> [ 240.520861] fffffffeffffffff ffff88026bc7b240 00007f4297513000 ffff880473aba240
+> [ 240.520866] ffffffff81422896 ffff880470b34e40 ffffffff814242f1 ffff880476deddc0
+> [ 240.520871] Call Trace:
+> [ 240.520886] [<ffffffff81422896>] ? schedule+0x6c/0x79
+> [ 240.520893] [<ffffffff814242f1>] ? rwsem_down_write_failed+0x285/0x2cb
+> [ 240.520903] [<ffffffff8124d833>] ? call_rwsem_down_write_failed+0x13/0x20
+> [ 240.520907] [<ffffffff8124d833>] ? call_rwsem_down_write_failed+0x13/0x20
+> [ 240.520913] [<ffffffff81423b22>] ? down_write+0x24/0x33
+> [ 240.520923] [<ffffffff8110836e>] ? unlink_file_vma+0x28/0x4b
+> [ 240.520928] [<ffffffff811033e4>] ? free_pgtables+0x3c/0xba
+> [ 240.520933] [<ffffffff81107c15>] ? unmap_region+0xa4/0xc1
+> [ 240.520941] [<ffffffff8106c60c>] ? pick_next_task_fair+0x11b/0x347
+> [ 240.520947] [<ffffffff8110795f>] ? vma_gap_callbacks_propagate+0x16/0x2c
+> [ 240.520951] [<ffffffff81108101>] ? vma_rb_erase+0x161/0x18f
+> [ 240.520957] [<ffffffff81109524>] ? do_munmap+0x271/0x2e6
+> [ 240.520962] [<ffffffff811095d0>] ? vm_munmap+0x37/0x4f
+> [ 240.520967] [<ffffffff81109602>] ? SyS_munmap+0x1a/0x1f
+> [ 240.520971] [<ffffffff81424d57>] ? entry_SYSCALL_64_fastpath+0x12/0x6a
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
