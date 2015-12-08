@@ -1,298 +1,504 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v2 22/25] mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd
+Subject: [PATCH -mm 04/25] dax: fix lifetime of in-kernel dax mappings with
+ dax_map_atomic()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 09 Dec 2015 18:39:11 -0800
-Message-ID: <20151210023911.30368.68085.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+Date: Mon, 07 Dec 2015 17:32:57 -0800
+Message-ID: <20151208013257.25030.67713.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
 To: akpm@linux-foundation.org
-Cc: Andrea Arcangeli <aarcange@redhat.com>, Dave Hansen <dave@sr71.net>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, linux-mm@kvack.org, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Jens Axboe <axboe@fb.com>, linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A dax-huge-page mapping while it uses some thp helpers is ultimately not a
-transparent huge page.  The distinction is especially important in the
-get_user_pages() path.  pmd_devmap() is used to distinguish dax-pmds from
-pmd_huge() and pmd_trans_huge() which have slightly different semantics.
+The DAX implementation needs to protect new calls to ->direct_access()
+and usage of its return value against the driver for the underlying
+block device being disabled.  Use blk_queue_enter()/blk_queue_exit() to
+hold off blk_cleanup_queue() from proceeding, or otherwise fail new
+mapping requests if the request_queue is being torn down.
 
-Explicitly mark the pmd_trans_huge() helpers that dax needs by adding
-pmd_devmap() checks.
+This also introduces blk_dax_ctl to simplify the interface from fs/dax.c
+through dax_map_atomic() to bdev_direct_access().
 
-Also, before we introduce usages of pmd_pfn() in common code, include a
-definition for archs that have not needed it to date.
-
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+[willy: fix read() of a hole]
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/ia64/include/asm/pgtable.h      |    1 +
- arch/sh/include/asm/pgtable-3level.h |    1 +
- arch/x86/include/asm/pgtable.h       |    8 +++++++-
- include/asm-generic/pgtable.h        |    4 ++++
- include/linux/huge_mm.h              |    3 ++-
- include/linux/mm.h                   |    4 ++++
- mm/huge_memory.c                     |   33 +++++++++++++++++++--------------
- mm/memory.c                          |    8 ++++----
- mm/mprotect.c                        |    5 +++--
- mm/pgtable-generic.c                 |    2 +-
- 10 files changed, 46 insertions(+), 23 deletions(-)
+ fs/block_dev.c         |   13 +--
+ fs/dax.c               |  208 ++++++++++++++++++++++++++++++------------------
+ include/linux/blkdev.h |   17 +++-
+ 3 files changed, 150 insertions(+), 88 deletions(-)
 
-diff --git a/arch/ia64/include/asm/pgtable.h b/arch/ia64/include/asm/pgtable.h
-index 9f3ed9ee8f13..81d2af23958f 100644
---- a/arch/ia64/include/asm/pgtable.h
-+++ b/arch/ia64/include/asm/pgtable.h
-@@ -273,6 +273,7 @@ extern unsigned long VMALLOC_END;
- #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
- #define pmd_page_vaddr(pmd)		((unsigned long) __va(pmd_val(pmd) & _PFN_MASK))
- #define pmd_page(pmd)			virt_to_page((pmd_val(pmd) + PAGE_OFFSET))
-+#define pmd_pfn(pmd)			(pmd_val(pmd) >> PAGE_SHIFT)
- 
- #define pud_none(pud)			(!pud_val(pud))
- #define pud_bad(pud)			(!ia64_phys_addr_valid(pud_val(pud)))
-diff --git a/arch/sh/include/asm/pgtable-3level.h b/arch/sh/include/asm/pgtable-3level.h
-index 249a985d9648..bb29a80fb40e 100644
---- a/arch/sh/include/asm/pgtable-3level.h
-+++ b/arch/sh/include/asm/pgtable-3level.h
-@@ -29,6 +29,7 @@
- 
- typedef struct { unsigned long long pmd; } pmd_t;
- #define pmd_val(x)	((x).pmd)
-+#define pmd_pfn(x)	((pmd_val(x) & PMD_MASK) >> PAGE_SHIFT)
- #define __pmd(x)	((pmd_t) { (x) } )
- 
- static inline unsigned long pud_page_vaddr(pud_t pud)
-diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
-index e7b82509c267..c69f385d946f 100644
---- a/arch/x86/include/asm/pgtable.h
-+++ b/arch/x86/include/asm/pgtable.h
-@@ -164,7 +164,13 @@ static inline int pmd_large(pmd_t pte)
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline int pmd_trans_huge(pmd_t pmd)
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 653d14ccc86e..774851b1b201 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -450,10 +450,7 @@ EXPORT_SYMBOL_GPL(bdev_write_page);
+ /**
+  * bdev_direct_access() - Get the address for directly-accessibly memory
+  * @bdev: The device containing the memory
+- * @sector: The offset within the device
+- * @addr: Where to put the address of the memory
+- * @pfn: The Page Frame Number for the memory
+- * @size: The number of bytes requested
++ * @dax: control and output parameters for ->direct_access
+  *
+  * If a block device is made up of directly addressable memory, this function
+  * will tell the caller the PFN and the address of the memory.  The address
+@@ -464,10 +461,10 @@ EXPORT_SYMBOL_GPL(bdev_write_page);
+  * Return: negative errno if an error occurs, otherwise the number of bytes
+  * accessible at this address.
+  */
+-long bdev_direct_access(struct block_device *bdev, sector_t sector,
+-			void __pmem **addr, unsigned long *pfn, long size)
++long bdev_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
  {
--	return pmd_val(pmd) & _PAGE_PSE;
-+	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
+-	long avail;
++	sector_t sector = dax->sector;
++	long avail, size = dax->size;
+ 	const struct block_device_operations *ops = bdev->bd_disk->fops;
+ 
+ 	/*
+@@ -486,7 +483,7 @@ long bdev_direct_access(struct block_device *bdev, sector_t sector,
+ 	sector += get_start_sect(bdev);
+ 	if (sector % (PAGE_SIZE / 512))
+ 		return -EINVAL;
+-	avail = ops->direct_access(bdev, sector, addr, pfn);
++	avail = ops->direct_access(bdev, sector, &dax->addr, &dax->pfn);
+ 	if (!avail)
+ 		return -ERANGE;
+ 	if (avail > 0 && avail & ~PAGE_MASK)
+diff --git a/fs/dax.c b/fs/dax.c
+index 6e498c2570bf..68b04de71d19 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -30,45 +30,65 @@
+ #include <linux/vmstat.h>
+ #include <linux/sizes.h>
+ 
++static long dax_map_atomic(struct block_device *bdev, struct blk_dax_ctl *dax)
++{
++	struct request_queue *q = bdev->bd_queue;
++	long rc = -EIO;
++
++	dax->addr = (void __pmem *) ERR_PTR(-EIO);
++	if (blk_queue_enter(q, GFP_NOWAIT) != 0)
++		return rc;
++
++	rc = bdev_direct_access(bdev, dax);
++	if (rc < 0) {
++		dax->addr = (void __pmem *) ERR_PTR(rc);
++		blk_queue_exit(q);
++		return rc;
++	}
++	return rc;
 +}
 +
-+#define pmd_devmap pmd_devmap
-+static inline int pmd_devmap(pmd_t pmd)
++static void dax_unmap_atomic(struct block_device *bdev,
++		const struct blk_dax_ctl *dax)
 +{
-+	return !!(pmd_val(pmd) & _PAGE_DEVMAP);
- }
- 
- static inline int has_transparent_hugepage(void)
-diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
-index bdff35e90889..5459a66a8529 100644
---- a/include/asm-generic/pgtable.h
-+++ b/include/asm-generic/pgtable.h
-@@ -616,6 +616,10 @@ static inline int pmd_trans_huge(pmd_t pmd)
++	if (IS_ERR(dax->addr))
++		return;
++	blk_queue_exit(bdev->bd_queue);
++}
++
+ /*
+  * dax_clear_blocks() is called from within transaction context from XFS,
+  * and hence this means the stack from this point must follow GFP_NOFS
+  * semantics for all operations.
+  */
+-int dax_clear_blocks(struct inode *inode, sector_t block, long size)
++int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
  {
+ 	struct block_device *bdev = inode->i_sb->s_bdev;
+-	sector_t sector = block << (inode->i_blkbits - 9);
++	struct blk_dax_ctl dax = {
++		.sector = block << (inode->i_blkbits - 9),
++		.size = _size,
++	};
+ 
+ 	might_sleep();
+ 	do {
+-		void __pmem *addr;
+-		unsigned long pfn;
+ 		long count, sz;
+ 
+-		count = bdev_direct_access(bdev, sector, &addr, &pfn, size);
++		count = dax_map_atomic(bdev, &dax);
+ 		if (count < 0)
+ 			return count;
+ 		sz = min_t(long, count, SZ_1M);
+-		clear_pmem(addr, sz);
+-		size -= sz;
+-		sector += sz / 512;
++		clear_pmem(dax.addr, sz);
++		dax.size -= sz;
++		dax.sector += sz / 512;
++		dax_unmap_atomic(bdev, &dax);
+ 		cond_resched();
+-	} while (size);
++	} while (dax.size);
+ 
+ 	wmb_pmem();
  	return 0;
  }
-+static inline int pmd_devmap(pmd_t pmd)
+ EXPORT_SYMBOL_GPL(dax_clear_blocks);
+ 
+-static long dax_get_addr(struct buffer_head *bh, void __pmem **addr,
+-		unsigned blkbits)
+-{
+-	unsigned long pfn;
+-	sector_t sector = bh->b_blocknr << (blkbits - 9);
+-	return bdev_direct_access(bh->b_bdev, sector, addr, &pfn, bh->b_size);
+-}
+-
+ /* the clear_pmem() calls are ordered by a wmb_pmem() in the caller */
+ static void dax_new_buf(void __pmem *addr, unsigned size, unsigned first,
+ 		loff_t pos, loff_t end)
+@@ -98,19 +118,29 @@ static bool buffer_size_valid(struct buffer_head *bh)
+ 	return bh->b_state != 0;
+ }
+ 
++
++static sector_t to_sector(const struct buffer_head *bh,
++		const struct inode *inode)
 +{
-+	return 0;
++	sector_t sector = bh->b_blocknr << (inode->i_blkbits - 9);
++
++	return sector;
 +}
- #ifndef __HAVE_ARCH_PMD_WRITE
- static inline int pmd_write(pmd_t pmd)
- {
-diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index 8ca35a131904..40c4db60c9e0 100644
---- a/include/linux/huge_mm.h
-+++ b/include/linux/huge_mm.h
-@@ -104,7 +104,8 @@ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- #define split_huge_pmd(__vma, __pmd, __address)				\
- 	do {								\
- 		pmd_t *____pmd = (__pmd);				\
--		if (pmd_trans_huge(*____pmd))				\
-+		if (pmd_trans_huge(*____pmd)				\
-+					|| pmd_devmap(*____pmd))	\
- 			__split_huge_pmd(__vma, __pmd, __address);	\
- 	}  while (0)
- 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index c74e7eca24c0..d8d4c9ffa51f 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1935,6 +1935,10 @@ static inline void pgtable_pmd_page_dtor(struct page *page) {}
- #define pte_devmap(x) (0)
- #endif
- 
-+#ifndef pmd_devmap
-+#define pmd_devmap(x) (0)
-+#endif
 +
- static inline spinlock_t *pmd_lock(struct mm_struct *mm, pmd_t *pmd)
+ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 		      loff_t start, loff_t end, get_block_t get_block,
+ 		      struct buffer_head *bh)
  {
- 	spinlock_t *ptl = pmd_lockptr(mm, pmd);
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 545cec46f2f4..c9239e17a81c 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -1023,7 +1023,7 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 
- 	ret = -EAGAIN;
- 	pmd = *src_pmd;
--	if (unlikely(!pmd_trans_huge(pmd))) {
-+	if (unlikely(!pmd_trans_huge(pmd) && !pmd_devmap(pmd))) {
- 		pte_free(dst_mm, pgtable);
- 		goto out_unlock;
- 	}
-@@ -1046,17 +1046,20 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 		goto out_unlock;
- 	}
- 
--	src_page = pmd_page(pmd);
--	VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
--	get_page(src_page);
--	page_dup_rmap(src_page, true);
--	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
-+	if (pmd_trans_huge(pmd)) {
-+		/* thp accounting separate from pmd_devmap accounting */
-+		src_page = pmd_page(pmd);
-+		VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
-+		get_page(src_page);
-+		page_dup_rmap(src_page, true);
-+		add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
-+		atomic_long_inc(&dst_mm->nr_ptes);
-+		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
-+	}
- 
- 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
- 	pmd = pmd_mkold(pmd_wrprotect(pmd));
--	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
- 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
--	atomic_long_inc(&dst_mm->nr_ptes);
- 
- 	ret = 0;
- out_unlock:
-@@ -1744,7 +1747,7 @@ bool __pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma,
- 		spinlock_t **ptl)
- {
- 	*ptl = pmd_lock(vma->vm_mm, pmd);
--	if (likely(pmd_trans_huge(*pmd)))
-+	if (likely(pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
- 		return true;
- 	spin_unlock(*ptl);
- 	return false;
-@@ -2861,7 +2864,7 @@ static void __split_huge_pmd_locked(struct vm_area_struct *vma, pmd_t *pmd,
- 	VM_BUG_ON(haddr & ~HPAGE_PMD_MASK);
- 	VM_BUG_ON_VMA(vma->vm_start > haddr, vma);
- 	VM_BUG_ON_VMA(vma->vm_end < haddr + HPAGE_PMD_SIZE, vma);
--	VM_BUG_ON(!pmd_trans_huge(*pmd));
-+	VM_BUG_ON(!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd));
- 
- 	count_vm_event(THP_SPLIT_PMD);
- 
-@@ -2974,11 +2977,13 @@ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 
- 	mmu_notifier_invalidate_range_start(mm, haddr, haddr + HPAGE_PMD_SIZE);
- 	ptl = pmd_lock(mm, pmd);
--	if (unlikely(!pmd_trans_huge(*pmd)))
-+	if (unlikely(!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
- 		goto out;
--	page = pmd_page(*pmd);
- 	__split_huge_pmd_locked(vma, pmd, haddr, false);
--	if (PageMlocked(page))
+-	ssize_t retval = 0;
+-	loff_t pos = start;
+-	loff_t max = start;
+-	loff_t bh_max = start;
+-	void __pmem *addr;
+-	bool hole = false;
+-	bool need_wmb = false;
+-
+-	if (iov_iter_rw(iter) != WRITE)
++	loff_t pos = start, max = start, bh_max = start;
++	bool hole = false, need_wmb = false;
++	struct block_device *bdev = NULL;
++	int rw = iov_iter_rw(iter), rc;
++	long map_len = 0;
++	struct blk_dax_ctl dax = {
++		.addr = (void __pmem *) ERR_PTR(-EIO),
++	};
 +
-+	if (pmd_trans_huge(*pmd))
-+		page = pmd_page(*pmd);
-+	if (page && PageMlocked(page))
- 		get_page(page);
- 	else
- 		page = NULL;
-@@ -3011,7 +3016,7 @@ static void split_huge_pmd_address(struct vm_area_struct *vma,
- 		return;
++	if (rw == READ)
+ 		end = min(end, i_size_read(inode));
  
- 	pmd = pmd_offset(pud, address);
--	if (!pmd_present(*pmd) || !pmd_trans_huge(*pmd))
-+	if (!pmd_present(*pmd) || (!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
- 		return;
- 	/*
- 	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
-diff --git a/mm/memory.c b/mm/memory.c
-index a68f59db6b62..416b1295f8e0 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -949,7 +949,7 @@ static inline int copy_pmd_range(struct mm_struct *dst_mm, struct mm_struct *src
- 	src_pmd = pmd_offset(src_pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (pmd_trans_huge(*src_pmd)) {
-+		if (pmd_trans_huge(*src_pmd) || pmd_devmap(*src_pmd)) {
- 			int err;
- 			VM_BUG_ON(next-addr != HPAGE_PMD_SIZE);
- 			err = copy_huge_pmd(dst_mm, src_mm,
-@@ -1176,7 +1176,7 @@ static inline unsigned long zap_pmd_range(struct mmu_gather *tlb,
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (pmd_trans_huge(*pmd)) {
-+		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE) {
- #ifdef CONFIG_DEBUG_VM
- 				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
-@@ -3374,7 +3374,7 @@ static int __handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		int ret;
+ 	while (pos < end) {
+@@ -125,13 +155,13 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 			if (pos == bh_max) {
+ 				bh->b_size = PAGE_ALIGN(end - pos);
+ 				bh->b_state = 0;
+-				retval = get_block(inode, block, bh,
+-						   iov_iter_rw(iter) == WRITE);
+-				if (retval)
++				rc = get_block(inode, block, bh, rw == WRITE);
++				if (rc)
+ 					break;
+ 				if (!buffer_size_valid(bh))
+ 					bh->b_size = 1 << blkbits;
+ 				bh_max = pos - first + bh->b_size;
++				bdev = bh->b_bdev;
+ 			} else {
+ 				unsigned done = bh->b_size -
+ 						(bh_max - (pos - first));
+@@ -139,47 +169,53 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 				bh->b_size -= done;
+ 			}
  
- 		barrier();
--		if (pmd_trans_huge(orig_pmd)) {
-+		if (pmd_trans_huge(orig_pmd) || pmd_devmap(orig_pmd)) {
- 			unsigned int dirty = flags & FAULT_FLAG_WRITE;
- 
- 			if (pmd_protnone(orig_pmd))
-@@ -3403,7 +3403,7 @@ static int __handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 	    unlikely(__pte_alloc(mm, vma, pmd, address)))
- 		return VM_FAULT_OOM;
- 	/* if an huge pmd materialized from under us just retry later */
--	if (unlikely(pmd_trans_huge(*pmd)))
-+	if (unlikely(pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
- 		return 0;
- 	/*
- 	 * A regular pmd is established and it can't morph into a huge pmd
-diff --git a/mm/mprotect.c b/mm/mprotect.c
-index 9c1445dc8a4c..732e07baf76c 100644
---- a/mm/mprotect.c
-+++ b/mm/mprotect.c
-@@ -149,7 +149,8 @@ static inline unsigned long change_pmd_range(struct vm_area_struct *vma,
- 		unsigned long this_pages;
- 
- 		next = pmd_addr_end(addr, end);
--		if (!pmd_trans_huge(*pmd) && pmd_none_or_clear_bad(pmd))
-+		if (!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)
-+				&& pmd_none_or_clear_bad(pmd))
- 			continue;
- 
- 		/* invoke the mmu notifier if the pmd is populated */
-@@ -158,7 +159,7 @@ static inline unsigned long change_pmd_range(struct vm_area_struct *vma,
- 			mmu_notifier_invalidate_range_start(mm, mni_start, end);
+-			hole = iov_iter_rw(iter) != WRITE && !buffer_written(bh);
++			hole = rw == READ && !buffer_written(bh);
+ 			if (hole) {
+-				addr = NULL;
+ 				size = bh->b_size - first;
+ 			} else {
+-				retval = dax_get_addr(bh, &addr, blkbits);
+-				if (retval < 0)
++				dax_unmap_atomic(bdev, &dax);
++				dax.sector = to_sector(bh, inode);
++				dax.size = bh->b_size;
++				map_len = dax_map_atomic(bdev, &dax);
++				if (map_len < 0) {
++					rc = map_len;
+ 					break;
++				}
+ 				if (buffer_unwritten(bh) || buffer_new(bh)) {
+-					dax_new_buf(addr, retval, first, pos,
+-									end);
++					dax_new_buf(dax.addr, map_len, first,
++							pos, end);
+ 					need_wmb = true;
+ 				}
+-				addr += first;
+-				size = retval - first;
++				dax.addr += first;
++				size = map_len - first;
+ 			}
+ 			max = min(pos + size, end);
  		}
  
--		if (pmd_trans_huge(*pmd)) {
-+		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
- 				split_huge_pmd(vma, pmd, addr);
- 			else {
-diff --git a/mm/pgtable-generic.c b/mm/pgtable-generic.c
-index c311a2ec6fea..9d4767698a1c 100644
---- a/mm/pgtable-generic.c
-+++ b/mm/pgtable-generic.c
-@@ -132,7 +132,7 @@ pmd_t pmdp_huge_clear_flush(struct vm_area_struct *vma, unsigned long address,
+ 		if (iov_iter_rw(iter) == WRITE) {
+-			len = copy_from_iter_pmem(addr, max - pos, iter);
++			len = copy_from_iter_pmem(dax.addr, max - pos, iter);
+ 			need_wmb = true;
+ 		} else if (!hole)
+-			len = copy_to_iter((void __force *)addr, max - pos,
++			len = copy_to_iter((void __force *) dax.addr, max - pos,
+ 					iter);
+ 		else
+ 			len = iov_iter_zero(max - pos, iter);
+ 
+ 		if (!len) {
+-			retval = -EFAULT;
++			rc = -EFAULT;
+ 			break;
+ 		}
+ 
+ 		pos += len;
+-		addr += len;
++		if (!IS_ERR(dax.addr))
++			dax.addr += len;
+ 	}
+ 
+ 	if (need_wmb)
+ 		wmb_pmem();
++	dax_unmap_atomic(bdev, &dax);
+ 
+-	return (pos == start) ? retval : pos - start;
++	return (pos == start) ? rc : pos - start;
+ }
+ 
+ /**
+@@ -268,28 +304,35 @@ static int dax_load_hole(struct address_space *mapping, struct page *page,
+ 	return VM_FAULT_LOCKED;
+ }
+ 
+-static int copy_user_bh(struct page *to, struct buffer_head *bh,
+-			unsigned blkbits, unsigned long vaddr)
++static int copy_user_bh(struct page *to, struct inode *inode,
++		struct buffer_head *bh, unsigned long vaddr)
  {
- 	pmd_t pmd;
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
--	VM_BUG_ON(!pmd_trans_huge(*pmdp));
-+	VM_BUG_ON(!pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
- 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return pmd;
+-	void __pmem *vfrom;
++	struct blk_dax_ctl dax = {
++		.sector = to_sector(bh, inode),
++		.size = bh->b_size,
++	};
++	struct block_device *bdev = bh->b_bdev;
+ 	void *vto;
+ 
+-	if (dax_get_addr(bh, &vfrom, blkbits) < 0)
+-		return -EIO;
++	if (dax_map_atomic(bdev, &dax) < 0)
++		return PTR_ERR(dax.addr);
+ 	vto = kmap_atomic(to);
+-	copy_user_page(vto, (void __force *)vfrom, vaddr, to);
++	copy_user_page(vto, (void __force *)dax.addr, vaddr, to);
+ 	kunmap_atomic(vto);
++	dax_unmap_atomic(bdev, &dax);
+ 	return 0;
+ }
+ 
+ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 			struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	struct address_space *mapping = inode->i_mapping;
+-	sector_t sector = bh->b_blocknr << (inode->i_blkbits - 9);
+ 	unsigned long vaddr = (unsigned long)vmf->virtual_address;
+-	void __pmem *addr;
+-	unsigned long pfn;
++	struct address_space *mapping = inode->i_mapping;
++	struct block_device *bdev = bh->b_bdev;
++	struct blk_dax_ctl dax = {
++		.sector = to_sector(bh, inode),
++		.size = bh->b_size,
++	};
+ 	pgoff_t size;
+ 	int error;
+ 
+@@ -308,20 +351,18 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 		goto out;
+ 	}
+ 
+-	error = bdev_direct_access(bh->b_bdev, sector, &addr, &pfn, bh->b_size);
+-	if (error < 0)
+-		goto out;
+-	if (error < PAGE_SIZE) {
+-		error = -EIO;
++	if (dax_map_atomic(bdev, &dax) < 0) {
++		error = PTR_ERR(dax.addr);
+ 		goto out;
+ 	}
+ 
+ 	if (buffer_unwritten(bh) || buffer_new(bh)) {
+-		clear_pmem(addr, PAGE_SIZE);
++		clear_pmem(dax.addr, PAGE_SIZE);
+ 		wmb_pmem();
+ 	}
++	dax_unmap_atomic(bdev, &dax);
+ 
+-	error = vm_insert_mixed(vma, vaddr, pfn);
++	error = vm_insert_mixed(vma, vaddr, dax.pfn);
+ 
+  out:
+ 	i_mmap_unlock_read(mapping);
+@@ -415,7 +456,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	if (vmf->cow_page) {
+ 		struct page *new_page = vmf->cow_page;
+ 		if (buffer_written(&bh))
+-			error = copy_user_bh(new_page, &bh, blkbits, vaddr);
++			error = copy_user_bh(new_page, inode, &bh, vaddr);
+ 		else
+ 			clear_user_highpage(new_page, vaddr);
+ 		if (error)
+@@ -527,11 +568,9 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	unsigned blkbits = inode->i_blkbits;
+ 	unsigned long pmd_addr = address & PMD_MASK;
+ 	bool write = flags & FAULT_FLAG_WRITE;
+-	long length;
+-	void __pmem *kaddr;
++	struct block_device *bdev;
+ 	pgoff_t size, pgoff;
+-	sector_t block, sector;
+-	unsigned long pfn;
++	sector_t block;
+ 	int result = 0;
+ 
+ 	/* dax pmd mappings are broken wrt gup and fork */
+@@ -559,9 +598,9 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
+ 
+ 	bh.b_size = PMD_SIZE;
+-	length = get_block(inode, block, &bh, write);
+-	if (length)
++	if (get_block(inode, block, &bh, write) != 0)
+ 		return VM_FAULT_SIGBUS;
++	bdev = bh.b_bdev;
+ 	i_mmap_lock_read(mapping);
+ 
+ 	/*
+@@ -616,32 +655,40 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		result = VM_FAULT_NOPAGE;
+ 		spin_unlock(ptl);
+ 	} else {
+-		sector = bh.b_blocknr << (blkbits - 9);
+-		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
+-						bh.b_size);
++		struct blk_dax_ctl dax = {
++			.sector = to_sector(&bh, inode),
++			.size = PMD_SIZE,
++		};
++		long length = dax_map_atomic(bdev, &dax);
++
+ 		if (length < 0) {
+ 			result = VM_FAULT_SIGBUS;
+ 			goto out;
+ 		}
+-		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
++		if ((length < PMD_SIZE) || (dax.pfn & PG_PMD_COLOUR)) {
++			dax_unmap_atomic(bdev, &dax);
+ 			goto fallback;
++		}
+ 
+ 		/*
+ 		 * TODO: teach vmf_insert_pfn_pmd() to support
+ 		 * 'pte_special' for pmds
+ 		 */
+-		if (pfn_valid(pfn))
++		if (pfn_valid(dax.pfn)) {
++			dax_unmap_atomic(bdev, &dax);
+ 			goto fallback;
++		}
+ 
+ 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+-			clear_pmem(kaddr, PMD_SIZE);
++			clear_pmem(dax.addr, PMD_SIZE);
+ 			wmb_pmem();
+ 			count_vm_event(PGMAJFAULT);
+ 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+ 			result |= VM_FAULT_MAJOR;
+ 		}
++		dax_unmap_atomic(bdev, &dax);
+ 
+-		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
++		result |= vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
+ 	}
+ 
+  out:
+@@ -743,12 +790,17 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
+ 	if (err < 0)
+ 		return err;
+ 	if (buffer_written(&bh)) {
+-		void __pmem *addr;
+-		err = dax_get_addr(&bh, &addr, inode->i_blkbits);
+-		if (err < 0)
+-			return err;
+-		clear_pmem(addr + offset, length);
++		struct block_device *bdev = bh.b_bdev;
++		struct blk_dax_ctl dax = {
++			.sector = to_sector(&bh, inode),
++			.size = PAGE_CACHE_SIZE,
++		};
++
++		if (dax_map_atomic(bdev, &dax) < 0)
++			return PTR_ERR(dax.addr);
++		clear_pmem(dax.addr + offset, length);
+ 		wmb_pmem();
++		dax_unmap_atomic(bdev, &dax);
+ 	}
+ 
+ 	return 0;
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 12df3da13fb2..ae94b18999ab 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1617,6 +1617,20 @@ static inline bool integrity_req_gap_front_merge(struct request *req,
+ 
+ #endif /* CONFIG_BLK_DEV_INTEGRITY */
+ 
++/**
++ * struct blk_dax_ctl - control and output parameters for ->direct_access
++ * @sector: (input) offset relative to a block_device
++ * @addr: (output) kernel virtual address for @sector populated by driver
++ * @pfn: (output) page frame number for @addr populated by driver
++ * @size: (input) number of bytes requested
++ */
++struct blk_dax_ctl {
++	sector_t sector;
++	void __pmem *addr;
++	long size;
++	unsigned long pfn;
++};
++
+ struct block_device_operations {
+ 	int (*open) (struct block_device *, fmode_t);
+ 	void (*release) (struct gendisk *, fmode_t);
+@@ -1643,8 +1657,7 @@ extern int __blkdev_driver_ioctl(struct block_device *, fmode_t, unsigned int,
+ extern int bdev_read_page(struct block_device *, sector_t, struct page *);
+ extern int bdev_write_page(struct block_device *, sector_t, struct page *,
+ 						struct writeback_control *);
+-extern long bdev_direct_access(struct block_device *, sector_t,
+-		void __pmem **addr, unsigned long *pfn, long size);
++extern long bdev_direct_access(struct block_device *, struct blk_dax_ctl *);
+ #else /* CONFIG_BLOCK */
+ 
+ struct block_device;
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
