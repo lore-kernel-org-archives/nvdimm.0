@@ -1,68 +1,114 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v3 1/3] nvdimm: Clean-up access mode check.
-Date: Wed,  2 Dec 2015 14:05:19 -0700
-Message-Id: <e34ab0a631f856562cff746bd4df8f20ff655162.1449089647.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1449089647.git.jerry.hoemann@hpe.com>
-References: <cover.1449089647.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1449089647.git.jerry.hoemann@hpe.com>
-References: <cover.1449089647.git.jerry.hoemann@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH -mm 20/25] libnvdimm,
+ pmem: move request_queue allocation earlier in probe
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 07 Dec 2015 17:34:22 -0800
+Message-ID: <20151208013422.25030.59833.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change nd_ioctl and nvdimm_ioctl access mode check to use O_RDONLY.
+Before the dynamically allocated struct pages from devm_memremap_pages()
+can be put to use outside the driver, we need a mechanism to track
+whether they are still in use at teardown.  Towards that goal reorder
+the initialization sequence to allow the 'q_usage_counter' from the
+request_queue to be used by the devm_memremap_pages() implementation (in
+subsequent patches).
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/bus.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/nvdimm/pmem.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 7e2c43f..1c81203 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -602,14 +602,14 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 1d884318c67b..9060a64628ae 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -124,6 +124,7 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 		struct resource *res, int id)
  {
- 	long id = (long) file->private_data;
--	int rc = -ENXIO, read_only;
-+	int rc = -ENXIO, ro;
- 	struct nvdimm_bus *nvdimm_bus;
+ 	struct pmem_device *pmem;
++	struct request_queue *q;
  
--	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
- 	mutex_lock(&nvdimm_bus_list_mutex);
- 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
- 		if (nvdimm_bus->id == id) {
--			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
-+			rc = __nd_ioctl(nvdimm_bus, NULL, ro, cmd, arg);
- 			break;
- 		}
+ 	pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
+ 	if (!pmem)
+@@ -141,6 +142,10 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 		return ERR_PTR(-EBUSY);
  	}
-@@ -633,10 +633,10 @@ static int match_dimm(struct device *dev, void *data)
  
- static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	int rc = -ENXIO, read_only;
-+	int rc = -ENXIO, ro;
- 	struct nvdimm_bus *nvdimm_bus;
++	q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
++	if (!q)
++		return ERR_PTR(-ENOMEM);
++
+ 	pmem->pfn_flags = PFN_DEV;
+ 	if (pmem_should_map_pages(dev)) {
+ 		pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, res,
+@@ -151,9 +156,12 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 				pmem->phys_addr, pmem->size,
+ 				ARCH_MEMREMAP_PMEM);
  
--	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
- 	mutex_lock(&nvdimm_bus_list_mutex);
- 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
- 		struct device *dev = device_find_child(&nvdimm_bus->dev,
-@@ -647,7 +647,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 			continue;
+-	if (IS_ERR(pmem->virt_addr))
++	if (IS_ERR(pmem->virt_addr)) {
++		blk_cleanup_queue(q);
+ 		return (void __force *) pmem->virt_addr;
++	}
  
- 		nvdimm = to_nvdimm(dev);
--		rc = __nd_ioctl(nvdimm_bus, nvdimm, read_only, cmd, arg);
-+		rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
- 		put_device(dev);
- 		break;
++	pmem->pmem_queue = q;
+ 	return pmem;
+ }
+ 
+@@ -173,10 +181,6 @@ static int pmem_attach_disk(struct device *dev,
+ 	int nid = dev_to_node(dev);
+ 	struct gendisk *disk;
+ 
+-	pmem->pmem_queue = blk_alloc_queue_node(GFP_KERNEL, nid);
+-	if (!pmem->pmem_queue)
+-		return -ENOMEM;
+-
+ 	blk_queue_make_request(pmem->pmem_queue, pmem_make_request);
+ 	blk_queue_physical_block_size(pmem->pmem_queue, PAGE_SIZE);
+ 	blk_queue_max_hw_sectors(pmem->pmem_queue, UINT_MAX);
+@@ -411,19 +415,22 @@ static int nd_pmem_probe(struct device *dev)
+ 	dev_set_drvdata(dev, pmem);
+ 	ndns->rw_bytes = pmem_rw_bytes;
+ 
+-	if (is_nd_btt(dev))
++	if (is_nd_btt(dev)) {
++		/* btt allocates its own request_queue */
++		blk_cleanup_queue(pmem->pmem_queue);
++		pmem->pmem_queue = NULL;
+ 		return nvdimm_namespace_attach_btt(ndns);
++	}
+ 
+ 	if (is_nd_pfn(dev))
+ 		return nvdimm_namespace_attach_pfn(ndns);
+ 
+-	if (nd_btt_probe(ndns, pmem) == 0) {
+-		/* we'll come back as btt-pmem */
+-		return -ENXIO;
+-	}
+-
+-	if (nd_pfn_probe(ndns, pmem) == 0) {
+-		/* we'll come back as pfn-pmem */
++	if (nd_btt_probe(ndns, pmem) == 0 || nd_pfn_probe(ndns, pmem) == 0) {
++		/*
++		 * We'll come back as either btt-pmem, or pfn-pmem, so
++		 * drop the queue allocation for now.
++		 */
++		blk_cleanup_queue(pmem->pmem_queue);
+ 		return -ENXIO;
  	}
--- 
-1.7.11.3
+ 
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
