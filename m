@@ -1,56 +1,127 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 10 Dec 2015 13:24:38 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH v3 3/7] mm: add find_get_entries_tag()
-Message-ID: <20151210202438.GA6590@linux.intel.com>
-References: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
- <1449602325-20572-4-git-send-email-ross.zwisler@linux.intel.com>
- <CAA9_cmeVYinm4mMiDU4oz8fW4HQ3n1RqEbPHBW7A3OGmi9eXtw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAA9_cmeVYinm4mMiDU4oz8fW4HQ3n1RqEbPHBW7A3OGmi9eXtw@mail.gmail.com>
+In-Reply-To: <1449602325-20572-4-git-send-email-ross.zwisler@linux.intel.com>
+References: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
+	<1449602325-20572-4-git-send-email-ross.zwisler@linux.intel.com>
+Date: Wed, 9 Dec 2015 11:44:16 -0800
+Message-ID: <CAA9_cmeVYinm4mMiDU4oz8fW4HQ3n1RqEbPHBW7A3OGmi9eXtw@mail.gmail.com>
+Subject: Re: [PATCH v3 3/7] mm: add find_get_entries_tag()
+From: Dan Williams <dan.j.williams@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@gmail.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm <linux-mm@kvack.org>, Andreas Dilger <adilger.kernel@dilger.ca>, "H. Peter Anvin" <hpa@zytor.com>, Jeff Layton <jlayton@poochiereds.net>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, the arch/x86 maintainers <x86@kernel.org>, Ingo Molnar <mingo@redhat.com>, ext4 hackers <linux-ext4@vger.kernel.org>, xfs@oss.sgi.com, Alexander Viro <viro@zeniv.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Theodore Ts'o <tytso@mit.edu>, Jan Kara <jack@suse.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm <linux-mm@kvack.org>, Andreas Dilger <adilger.kernel@dilger.ca>, "H. Peter Anvin" <hpa@zytor.com>, Jeff Layton <jlayton@poochiereds.net>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, the arch/x86 maintainers <x86@kernel.org>, Ingo Molnar <mingo@redhat.com>, ext4 hackers <linux-ext4@vger.kernel.org>, xfs@oss.sgi.com, Alexander Viro <viro@zeniv.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Theodore Ts'o <tytso@mit.edu>, Jan Kara <jack@suse.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Dec 09, 2015 at 11:44:16AM -0800, Dan Williams wrote:
-> On Tue, Dec 8, 2015 at 11:18 AM, Ross Zwisler
-> <ross.zwisler@linux.intel.com> wrote:
-> > Add find_get_entries_tag() to the family of functions that include
-> > find_get_entries(), find_get_pages() and find_get_pages_tag().  This is
-> > needed for DAX dirty page handling because we need a list of both page
-> > offsets and radix tree entries ('indices' and 'entries' in this function)
-> > that are marked with the PAGECACHE_TAG_TOWRITE tag.
-> >
-> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-<> 
-> Why does this mostly duplicate find_get_entries()?
-> 
-> Surely find_get_entries() can be implemented as a special case of
-> find_get_entries_tag().
+On Tue, Dec 8, 2015 at 11:18 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> Add find_get_entries_tag() to the family of functions that include
+> find_get_entries(), find_get_pages() and find_get_pages_tag().  This is
+> needed for DAX dirty page handling because we need a list of both page
+> offsets and radix tree entries ('indices' and 'entries' in this function)
+> that are marked with the PAGECACHE_TAG_TOWRITE tag.
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  include/linux/pagemap.h |  3 +++
+>  mm/filemap.c            | 68 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 71 insertions(+)
+>
+> diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
+> index 26eabf5..4db0425 100644
+> --- a/include/linux/pagemap.h
+> +++ b/include/linux/pagemap.h
+> @@ -361,6 +361,9 @@ unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t start,
+>                                unsigned int nr_pages, struct page **pages);
+>  unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
+>                         int tag, unsigned int nr_pages, struct page **pages);
+> +unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
+> +                       int tag, unsigned int nr_entries,
+> +                       struct page **entries, pgoff_t *indices);
+>
+>  struct page *grab_cache_page_write_begin(struct address_space *mapping,
+>                         pgoff_t index, unsigned flags);
+> diff --git a/mm/filemap.c b/mm/filemap.c
+> index 167a4d9..99dfbc9 100644
+> --- a/mm/filemap.c
+> +++ b/mm/filemap.c
+> @@ -1498,6 +1498,74 @@ repeat:
+>  }
+>  EXPORT_SYMBOL(find_get_pages_tag);
+>
+> +/**
+> + * find_get_entries_tag - find and return entries that match @tag
+> + * @mapping:   the address_space to search
+> + * @start:     the starting page cache index
+> + * @tag:       the tag index
+> + * @nr_entries:        the maximum number of entries
+> + * @entries:   where the resulting entries are placed
+> + * @indices:   the cache indices corresponding to the entries in @entries
+> + *
+> + * Like find_get_entries, except we only return entries which are tagged with
+> + * @tag.
+> + */
+> +unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
+> +                       int tag, unsigned int nr_entries,
+> +                       struct page **entries, pgoff_t *indices)
+> +{
+> +       void **slot;
+> +       unsigned int ret = 0;
+> +       struct radix_tree_iter iter;
+> +
+> +       if (!nr_entries)
+> +               return 0;
+> +
+> +       rcu_read_lock();
+> +restart:
+> +       radix_tree_for_each_tagged(slot, &mapping->page_tree,
+> +                                  &iter, start, tag) {
+> +               struct page *page;
+> +repeat:
+> +               page = radix_tree_deref_slot(slot);
+> +               if (unlikely(!page))
+> +                       continue;
+> +               if (radix_tree_exception(page)) {
+> +                       if (radix_tree_deref_retry(page)) {
+> +                               /*
+> +                                * Transient condition which can only trigger
+> +                                * when entry at index 0 moves out of or back
+> +                                * to root: none yet gotten, safe to restart.
+> +                                */
+> +                               goto restart;
+> +                       }
+> +
+> +                       /*
+> +                        * A shadow entry of a recently evicted page, a swap
+> +                        * entry from shmem/tmpfs or a DAX entry.  Return it
+> +                        * without attempting to raise page count.
+> +                        */
+> +                       goto export;
+> +               }
+> +               if (!page_cache_get_speculative(page))
+> +                       goto repeat;
+> +
+> +               /* Has the page moved? */
+> +               if (unlikely(page != *slot)) {
+> +                       page_cache_release(page);
+> +                       goto repeat;
+> +               }
+> +export:
+> +               indices[ret] = iter.index;
+> +               entries[ret] = page;
+> +               if (++ret == nr_entries)
+> +                       break;
+> +       }
+> +       rcu_read_unlock();
+> +       return ret;
+> +}
+> +EXPORT_SYMBOL(find_get_entries_tag);
+> +
 
-I'm adding find_get_entries_tag() to the family of functions that already
-exist and include find_get_entries(), find_get_pages(),
-find_get_pages_contig() and find_get_pages_tag().
+Why does this mostly duplicate find_get_entries()?
 
-These functions all contain very similar code with small changes to the
-internal looping based on whether you're looking through all radix slots or
-only the ones that match a certain tag (radix_tree_for_each_slot() vs
-radix_tree_for_each_tagged()).
-
-We already have find_get_page() to get all pages in a range and
-find_get_pages_tag() to get all pages in the range with a certain tag.  We
-have find_get_entries() to get all pages and indices for a given range, but we
-are currently missing find_get_entries_tag() to do that same search based on a
-tag, which is what I'm adding.
-
-I agree that we could probably figure out a way to combine the code for
-find_get_entries() with find_get_entries_tag(), as we could do for the
-existing functions find_get_pages() and find_get_pages_tag().  I think we
-should probably add find_get_entries_tag() per this patch, though, and then
-decide whether to do any combining later as a separate step.
+Surely find_get_entries() can be implemented as a special case of
+find_get_entries_tag().
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
