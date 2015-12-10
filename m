@@ -1,51 +1,62 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v4 07/18] avr32: convert to asm-generic/memory_model.h
+Subject: [-mm PATCH v2 16/25] x86, mm: introduce _PAGE_DEVMAP
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 20 Dec 2015 21:44:44 -0800
-Message-ID: <20151221054444.34542.92752.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+Date: Wed, 09 Dec 2015 18:38:39 -0800
+Message-ID: <20151210023839.30368.51358.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
 To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Switch avr32/include/asm/page.h to use the common defintions for
-pfn_to_page(), page_to_pfn(), and ARCH_PFN_OFFSET.
+_PAGE_DEVMAP is a hardware-unused pte bit that will later be used in the
+get_user_pages() path to identify pfns backed by the dynamic allocation
+established by devm_memremap_pages.  Upon seeing that bit the gup path
+will lookup and pin the allocation while the pages are in use.
 
+Since the _PAGE_DEVMAP bit is > 32 it must be cast to u64 instead of a
+pteval_t to allow pmd_flags() usage in the realmode boot code to build.
+
+Cc: x86@kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/avr32/include/asm/page.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/include/asm/pgtable_types.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/arch/avr32/include/asm/page.h b/arch/avr32/include/asm/page.h
-index f805d1cb11bc..c5d2a3e2c62f 100644
---- a/arch/avr32/include/asm/page.h
-+++ b/arch/avr32/include/asm/page.h
-@@ -83,11 +83,9 @@ static inline int get_order(unsigned long size)
+diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
+index d1b76f88ccd1..04c27a013165 100644
+--- a/arch/x86/include/asm/pgtable_types.h
++++ b/arch/x86/include/asm/pgtable_types.h
+@@ -24,7 +24,9 @@
+ #define _PAGE_BIT_CPA_TEST	_PAGE_BIT_SOFTW1
+ #define _PAGE_BIT_HIDDEN	_PAGE_BIT_SOFTW3 /* hidden by kmemcheck */
+ #define _PAGE_BIT_SOFT_DIRTY	_PAGE_BIT_SOFTW3 /* software dirty tracking */
+-#define _PAGE_BIT_NX           63       /* No execute: only valid after cpuid check */
++#define _PAGE_BIT_SOFTW4	58	/* available for programmer */
++#define _PAGE_BIT_DEVMAP		_PAGE_BIT_SOFTW4
++#define _PAGE_BIT_NX		63	/* No execute: only valid after cpuid check */
  
- #ifndef CONFIG_NEED_MULTIPLE_NODES
+ /* If _PAGE_BIT_PRESENT is clear, we use these: */
+ /* - if the user mapped it with PROT_NONE; pte_present gives true */
+@@ -83,8 +85,11 @@
  
--#define PHYS_PFN_OFFSET		(CONFIG_PHYS_OFFSET >> PAGE_SHIFT)
-+#define ARCH_PFN_OFFSET		(CONFIG_PHYS_OFFSET >> PAGE_SHIFT)
+ #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
+ #define _PAGE_NX	(_AT(pteval_t, 1) << _PAGE_BIT_NX)
++#define _PAGE_DEVMAP	(_AT(u64, 1) << _PAGE_BIT_DEVMAP)
++#define __HAVE_ARCH_PTE_DEVMAP
+ #else
+ #define _PAGE_NX	(_AT(pteval_t, 0))
++#define _PAGE_DEVMAP	(_AT(pteval_t, 0))
+ #endif
  
--#define pfn_to_page(pfn)	(mem_map + ((pfn) - PHYS_PFN_OFFSET))
--#define page_to_pfn(page)	((unsigned long)((page) - mem_map) + PHYS_PFN_OFFSET)
--#define pfn_valid(pfn)		((pfn) >= PHYS_PFN_OFFSET && (pfn) < (PHYS_PFN_OFFSET + max_mapnr))
-+#define pfn_valid(pfn)		((pfn) >= ARCH_PFN_OFFSET && (pfn) < (ARCH_PFN_OFFSET + max_mapnr))
- #endif /* CONFIG_NEED_MULTIPLE_NODES */
- 
- #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
-@@ -101,4 +99,6 @@ static inline int get_order(unsigned long size)
-  */
- #define HIGHMEM_START		0x20000000UL
- 
-+#include <asm-generic/memory_model.h>
-+
- #endif /* __ASM_AVR32_PAGE_H */
+ #define _PAGE_PROTNONE	(_AT(pteval_t, 1) << _PAGE_BIT_PROTNONE)
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
