@@ -1,49 +1,80 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 5/7] ext2: call dax_pfn_mkwrite() for DAX fsync/msync
-Date: Tue,  8 Dec 2015 12:18:43 -0700
-Message-Id: <1449602325-20572-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [-mm PATCH v2 02/25] dax: increase granularity of
+ dax_clear_blocks() operations
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 09 Dec 2015 18:37:20 -0800
+Message-ID: <20151210023720.30368.14658.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, linux-nvdimm@lists.01.org, Jan Kara <jack@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+dax_clear_blocks is currently performing a cond_resched() after every
+PAGE_SIZE memset.  We need not check so frequently, for example md-raid
+only calls cond_resched() at stripe granularity.  Also, in preparation
+for introducing a dax_map_atomic() operation that temporarily pins a dax
+mapping move the call to cond_resched() to the outer loop.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+The worst case latency between calls to cond_resched() after this change
+is 500us the average latency is 133us.  This is up from a 10us max and
+4us average.
+
+Reviewed-by: Jan Kara <jack@suse.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/ext2/file.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/dax.c |   22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index 11a42c5..2c88d68 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -102,8 +102,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
- {
- 	struct inode *inode = file_inode(vma->vm_file);
- 	struct ext2_inode_info *ei = EXT2_I(inode);
--	int ret = VM_FAULT_NOPAGE;
- 	loff_t size;
-+	int ret;
+diff --git a/fs/dax.c b/fs/dax.c
+index 19492cc65a30..11721c0fc127 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -28,6 +28,7 @@
+ #include <linux/sched.h>
+ #include <linux/uio.h>
+ #include <linux/vmstat.h>
++#include <linux/sizes.h>
  
- 	sb_start_pagefault(inode->i_sb);
- 	file_update_time(vma->vm_file);
-@@ -113,6 +113,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else
-+		ret = dax_pfn_mkwrite(vma, vmf);
+ /*
+  * dax_clear_blocks() is called from within transaction context from XFS,
+@@ -43,24 +44,17 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
+ 	do {
+ 		void __pmem *addr;
+ 		unsigned long pfn;
+-		long count;
++		long count, sz;
  
- 	up_read(&ei->dax_sem);
- 	sb_end_pagefault(inode->i_sb);
--- 
-2.5.0
+ 		count = bdev_direct_access(bdev, sector, &addr, &pfn, size);
+ 		if (count < 0)
+ 			return count;
+-		BUG_ON(size < count);
+-		while (count > 0) {
+-			unsigned pgsz = PAGE_SIZE - offset_in_page(addr);
+-			if (pgsz > count)
+-				pgsz = count;
+-			clear_pmem(addr, pgsz);
+-			addr += pgsz;
+-			size -= pgsz;
+-			count -= pgsz;
+-			BUG_ON(pgsz & 511);
+-			sector += pgsz / 512;
+-			cond_resched();
+-		}
++		sz = min_t(long, count, SZ_128K);
++		clear_pmem(addr, sz);
++		size -= sz;
++		BUG_ON(sz & 511);
++		sector += sz / 512;
++		cond_resched();
+ 	} while (size);
+ 
+ 	wmb_pmem();
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
