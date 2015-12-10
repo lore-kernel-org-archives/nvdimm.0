@@ -1,103 +1,88 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Dmitry V. Krivenok" <krivenok.dmitry@gmail.com>
-Subject: [PATCH] nvdimm: improve diagnosibility of namespaces
-Date: Wed,  2 Dec 2015 00:48:12 +0300
-Message-Id: <1449006492-1474-1-git-send-email-krivenok.dmitry@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, "Dmitry V. Krivenok" <krivenok.dmitry@gmail.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [-mm PATCH v2 19/25] list: introduce list_del_poison()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 09 Dec 2015 18:38:55 -0800
+Message-ID: <20151210023855.30368.37457.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In order to bind namespace to the driver user must first
-set all mandatory attributes in the following order:
-- uuid
-- size
-- sector_size (for blk namespace only)
+ZONE_DEVICE pages always have an elevated count and will never be on an
+lru reclaim list.  That space in 'struct page' can be redirected for
+other uses, but for safety introduce a poison value that will always
+trip __list_add() to assert.  This allows half of the struct list_head
+storage to be reclaimed with some assurance to back up the assumption
+that the page count never goes to zero and a list_add() is never
+attempted.
 
-If the order is wrong, then user either won't be able to set
-the attribute or bind the namespace.
-
-This simple patch improves diagnosibility of common operations
-with namespaces by printing some details about the error
-instead of failing silently.
-
-Below are examples of error messages (assuming dyndbg is
-enabled for nvdimms):
-
-[/]# echo 4194304 > /sys/bus/nd/devices/region5/namespace5.0/size
-[  288.372612] nd namespace5.0: __size_store: uuid not set
-[  288.374839] nd namespace5.0: size_store: 400000 fail (-6)
-sh: write error: No such device or address
-[/]#
-
-[/]# echo namespace5.0 > /sys/bus/nd/drivers/nd_blk/bind
-[  554.671648] nd_blk namespace5.0: nvdimm_namespace_common_probe: sector size not set
-[  554.674688]  ndbus1: nd_blk.probe(namespace5.0) = -19
-sh: write error: No such device
-[/]#
-
-Signed-off-by: Dmitry V. Krivenok <krivenok.dmitry@gmail.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/namespace_devs.c | 26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ include/linux/list.h |   17 +++++++++++++++++
+ lib/list_debug.c     |    4 ++++
+ 2 files changed, 21 insertions(+)
 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 0955b2c..f981177 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -791,6 +791,15 @@ static void nd_namespace_pmem_set_size(struct nd_region *nd_region,
- 	res->end = nd_region->ndr_start + size - 1;
+diff --git a/include/linux/list.h b/include/linux/list.h
+index 5356f4d661a7..0d07bc1387aa 100644
+--- a/include/linux/list.h
++++ b/include/linux/list.h
+@@ -108,9 +108,26 @@ static inline void list_del(struct list_head *entry)
+ 	entry->next = LIST_POISON1;
+ 	entry->prev = LIST_POISON2;
  }
- 
-+static bool uuid_not_set(const u8 *uuid, struct device *dev, const char *where)
-+{
-+	if (!uuid) {
-+		dev_dbg(dev, "%s: uuid not set\n", where);
-+		return true;
-+	}
-+	return false;
-+}
 +
- static ssize_t __size_store(struct device *dev, unsigned long long val)
++#define list_del_poison list_del
+ #else
+ extern void __list_del_entry(struct list_head *entry);
+ extern void list_del(struct list_head *entry);
++extern struct list_head list_force_poison;
++
++/**
++ * list_del_poison - poison an entry to always assert on list_add
++ * @entry: the element to delete and poison
++ *
++ * Note: the assertion on list_add() only occurs when CONFIG_DEBUG_LIST=y,
++ * otherwise this is identical to list_del()
++ */
++static inline void list_del_poison(struct list_head *entry)
++{
++	__list_del(entry->prev, entry->next);
++	entry->next = &list_force_poison;
++	entry->prev = &list_force_poison;
++}
+ #endif
+ 
+ /**
+diff --git a/lib/list_debug.c b/lib/list_debug.c
+index 3859bf63561c..d730c064a4df 100644
+--- a/lib/list_debug.c
++++ b/lib/list_debug.c
+@@ -12,6 +12,8 @@
+ #include <linux/kernel.h>
+ #include <linux/rculist.h>
+ 
++struct list_head list_force_poison;
++
+ /*
+  * Insert a new entry between two known consecutive entries.
+  *
+@@ -23,6 +25,8 @@ void __list_add(struct list_head *new,
+ 			      struct list_head *prev,
+ 			      struct list_head *next)
  {
- 	resource_size_t allocated = 0, available = 0;
-@@ -820,8 +829,12 @@ static ssize_t __size_store(struct device *dev, unsigned long long val)
- 	 * We need a uuid for the allocation-label and dimm(s) on which
- 	 * to store the label.
- 	 */
--	if (!uuid || nd_region->ndr_mappings == 0)
-+	if (uuid_not_set(uuid, dev, __func__))
- 		return -ENXIO;
-+	if (nd_region->ndr_mappings == 0) {
-+		dev_dbg(dev, "%s: not associated with dimm(s)\n", __func__);
-+		return -ENXIO;
-+	}
- 
- 	div_u64_rem(val, SZ_4K * nd_region->ndr_mappings, &remainder);
- 	if (remainder) {
-@@ -1343,14 +1356,19 @@ struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev)
- 		struct nd_namespace_pmem *nspm;
- 
- 		nspm = to_nd_namespace_pmem(&ndns->dev);
--		if (!nspm->uuid) {
--			dev_dbg(&ndns->dev, "%s: uuid not set\n", __func__);
-+		if (uuid_not_set(nspm->uuid, &ndns->dev, __func__))
- 			return ERR_PTR(-ENODEV);
--		}
- 	} else if (is_namespace_blk(&ndns->dev)) {
- 		struct nd_namespace_blk *nsblk;
- 
- 		nsblk = to_nd_namespace_blk(&ndns->dev);
-+		if (uuid_not_set(nsblk->uuid, &ndns->dev, __func__))
-+			return ERR_PTR(-ENODEV);
-+		if (!nsblk->lbasize) {
-+			dev_dbg(&ndns->dev, "%s: sector size not set\n",
-+				__func__);
-+			return ERR_PTR(-ENODEV);
-+		}
- 		if (!nd_namespace_blk_validate(nsblk))
- 			return ERR_PTR(-ENODEV);
- 	}
--- 
-2.6.2
++	WARN(new->next == &list_force_poison || new->prev == &list_force_poison,
++		"list_add attempted on force-poisoned entry\n");
+ 	WARN(next->prev != prev,
+ 		"list_add corruption. next->prev should be "
+ 		"prev (%p), but was %p. (next=%p).\n",
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
