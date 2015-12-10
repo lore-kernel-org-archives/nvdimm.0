@@ -1,119 +1,411 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
-Subject: ARM EFI stub and the EfiPersistentMemory type
-Date: Fri, 4 Dec 2015 21:51:22 +0000
-Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295BE85E04@G4W3202.americas.hpqcorp.net>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [-mm PATCH v2 23/25] mm, x86: get_user_pages() for dax mappings
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 09 Dec 2015 18:39:16 -0800
+Message-ID: <20151210023916.30368.94401.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "Kani, Toshimitsu" <toshi.kani@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "matt.fleming@intel.com" <matt.fleming@intel.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "bp@suse.de" <bp@suse.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "leif.lindholm@linaro.org" <leif.lindholm@linaro.org>, "msalter@redhat.com" <msalter@redhat.com>, "roy.franz@linaro.org" <roy.franz@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: Andrea Arcangeli <aarcange@redhat.com>, Dave Hansen <dave@sr71.net>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Mel Gorman <mgorman@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Logan Gunthorpe <logang@deltatee.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-drivers/firmware/efi/libstub/efi-stub-helper.c get_dram_base() 
-parses the UEFI memory map, but just looks at the EFI_MEMORY_WB 
-attribute while searching for the base memory address, 
-not the type:
+A dax mapping establishes a pte with _PAGE_DEVMAP set when the driver
+has established a devm_memremap_pages() mapping, i.e. when the pfn_t
+return from ->direct_access() has PFN_DEV and PFN_MAP set.  Later, when
+encountering _PAGE_DEVMAP during a page table walk we lookup and pin a
+struct dev_pagemap instance to keep the result of pfn_to_page() valid
+until put_page().
 
-unsigned long get_dram_base(efi_system_table_t *sys_table_arg) {
-...
-        for_each_efi_memory_desc(&map, md)
-                if (md->attribute & EFI_MEMORY_WB)
-                        if (membase > md->phys_addr)
-                                membase = md->phys_addr;
-
-
-This is used by drivers/firmware/efi/libstub/arm-stub.c to
-decide where to place the kernel image:
-
-unsigned long efi_entry(void *handle, efi_system_table_t *sys_table, {
-...
-        dram_base = get_dram_base(sys_table);
-        if (dram_base == EFI_ERROR) {
-                pr_efi_err(sys_table, "Failed to find DRAM base\n");
-                goto fail;
-        }
-        status = handle_kernel_image(sys_table, image_addr, &image_size,
-                                     &reserve_addr,
-                                     &reserve_size,
-                                     dram_base, image);
-
-Most types, including EfiPersistentMemory (14) and 
-EfiReservedMemoryType (0), end up with WB|WT|WC|UC attributes.
-
-So, if persistent memory happened to be below conventional memory,
-it appears that this code would end up loading the kernel into
-persistent memory, which would not be good.  The same for 
-reserved memory ranges. I think it needs to check and only
-operate on EfiConventionalMemory (maybe with a few others).
-
-Example UEFI memory map (on an x86 system):
-
-efi: mem00: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000000000000-0x0000000000092fff] (0 B for 588 KiB)
-efi: mem01: [Reserved           |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000000093000-0x0000000000093fff] (588 KiB for 4 KiB)
-efi: mem02: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000000094000-0x000000000009ffff] (592 KiB for 48 KiB)
-efi: mem03: [Loader Data        |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000000100000-0x00000000013e8fff] (1 MiB for 19364 KiB)
-efi: mem04: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000013e9000-0x0000000001ffffff] (20388 KiB for 12380 KiB)
-efi: mem05: [Loader Data        |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000002000000-0x00000000032e8fff] (32 MiB for 19364 KiB)
-efi: mem06: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000032e9000-0x000000000fffffff] (52132 KiB for 210012 KiB)
-efi: mem07: [Boot Code          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000010000000-0x0000000010048fff] (256 MiB for 292 KiB)
-efi: mem08: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000010049000-0x00000000234f4fff] (262436 KiB for 316080 KiB)
-efi: mem09: [Loader Data        |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000234f5000-0x000000003ecfffff] (578516 KiB for 450604 KiB)
-efi: mem10: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000003ed00000-0x000000003ed7ffff] (1005 MiB for 512 KiB)
-efi: mem11: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000003ed80000-0x000000006affbfff] (1029632 KiB for 723440 KiB)
-efi: mem12: [Reserved           |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006affc000-0x000000006b5fbfff] (1753072 KiB for 6 MiB)
-efi: mem13: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006b5fc000-0x000000006b5fcfff] (1759216 KiB for 4 KiB)
-efi: mem14: [Runtime Data       |RUN|  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006b5fd000-0x000000006b67dfff] (1759220 KiB for 516 KiB)
-efi: mem15: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006b67e000-0x000000006ecfafff] (1759736 KiB for 55796 KiB)
-efi: mem16: [Boot Code          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006ecfb000-0x000000006ecfbfff] (1815532 KiB for 4 KiB)
-efi: mem17: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000006ecfc000-0x00000000712a5fff] (1815536 KiB for 38568 KiB)
-efi: mem18: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000712a6000-0x0000000071337fff] (1854104 KiB for 584 KiB)
-efi: mem19: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071338000-0x000000007135dfff] (1854688 KiB for 152 KiB)
-efi: mem20: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007135e000-0x0000000071387fff] (1854840 KiB for 168 KiB)
-efi: mem21: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071388000-0x000000007138bfff] (1855008 KiB for 16 KiB)
-efi: mem22: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007138c000-0x0000000071835fff] (1855024 KiB for 4776 KiB)
-efi: mem23: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071836000-0x0000000071836fff] (1859800 KiB for 4 KiB)
-efi: mem24: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071837000-0x0000000071856fff] (1859804 KiB for 128 KiB)
-efi: mem25: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071857000-0x0000000071857fff] (1859932 KiB for 4 KiB)
-efi: mem26: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071858000-0x0000000071859fff] (1859936 KiB for 8 KiB)
-efi: mem27: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007185a000-0x000000007185bfff] (1859944 KiB for 8 KiB)
-efi: mem28: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007185c000-0x000000007185cfff] (1859952 KiB for 4 KiB)
-efi: mem29: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007185d000-0x000000007185ffff] (1859956 KiB for 12 KiB)
-efi: mem30: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071860000-0x0000000071860fff] (1859968 KiB for 4 KiB)
-efi: mem31: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071861000-0x0000000071863fff] (1859972 KiB for 12 KiB)
-efi: mem32: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071864000-0x0000000071864fff] (1859984 KiB for 4 KiB)
-efi: mem33: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071865000-0x0000000071865fff] (1859988 KiB for 4 KiB)
-efi: mem34: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071866000-0x0000000071866fff] (1859992 KiB for 4 KiB)
-efi: mem35: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000071867000-0x0000000071869fff] (1859996 KiB for 12 KiB)
-efi: mem36: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007186a000-0x000000007186afff] (1860008 KiB for 4 KiB)
-efi: mem37: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007186b000-0x000000007186bfff] (1860012 KiB for 4 KiB)
-efi: mem38: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007186c000-0x0000000072e0afff] (1860016 KiB for 22140 KiB)
-efi: mem39: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e0b000-0x0000000072e0efff] (1882156 KiB for 16 KiB)
-efi: mem40: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e0f000-0x0000000072e7bfff] (1882172 KiB for 436 KiB)
-efi: mem41: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e7c000-0x0000000072e7efff] (1882608 KiB for 12 KiB)
-efi: mem42: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e7f000-0x0000000072e80fff] (1882620 KiB for 8 KiB)
-efi: mem43: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e81000-0x0000000072e82fff] (1882628 KiB for 8 KiB)
-efi: mem44: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000072e83000-0x0000000076cfefff] (1882636 KiB for 63984 KiB)
-efi: mem45: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000076cff000-0x00000000774e0fff] (1946620 KiB for 8072 KiB)
-efi: mem46: [Loader Code        |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000774e1000-0x00000000774fefff] (1954692 KiB for 120 KiB)
-efi: mem47: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000774ff000-0x0000000077925fff] (1954812 KiB for 4252 KiB)
-efi: mem48: [Loader Data        |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000077926000-0x000000007792ffff] (1959064 KiB for 40 KiB)
-efi: mem49: [Boot Code          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000077930000-0x00000000784fefff] (1959104 KiB for 12092 KiB)
-efi: mem50: [Runtime Data       |RUN|  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000784ff000-0x00000000788fefff] (1971196 KiB for 4 MiB)
-efi: mem51: [Runtime Code       |RUN|  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000788ff000-0x00000000790fefff] (1975292 KiB for 8 MiB)
-efi: mem52: [Reserved           |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000790ff000-0x00000000791fefff] (1983484 KiB for 1 MiB)
-efi: mem53: [ACPI Memory NVS    |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000791ff000-0x000000007b5fefff] (1984508 KiB for 36 MiB)
-efi: mem54: [ACPI Reclaim Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007b5ff000-0x000000007b7fefff] (2021372 KiB for 2 MiB)
-efi: mem55: [Boot Data          |   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x000000007b7ff000-0x000000007b7fffff] (2023420 KiB for 4 KiB)
-efi: mem56: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000100000000-0x000000087fffffff] (4 GiB for 30 GiB)
-efi: mem57: [Conventional Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000c80000000-0x000000147fffffff] (50 GiB for 32 GiB)
-efi: mem58: [Memory Mapped I/O  |RUN|  |  |  |  |  |  |   |  |  |  |  ] range=[0x0000000080000000-0x000000008fffffff] (2 GiB for 256 MiB)
-efi: mem59: [Persistent Memory  |   |  |NV|  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000880000000-0x0000000c7fffffff] (34 GiB for 16 GiB)
-efi: mem60: [Persistent Memory  |   |  |NV|  |  |  |  |   |WB|WT|WC|UC] range=[0x0000001480000000-0x0000001a7fffffff] (82 GiB for 24 GiB)
-
-
+Cc: Dave Hansen <dave@sr71.net>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: x86@kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Tested-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Robert Elliott, HPE Persistent Memory
+ arch/x86/mm/gup.c       |   56 ++++++++++++++++++++++++++++++++++--
+ include/linux/huge_mm.h |   10 ++++++
+ include/linux/mm.h      |   35 ++++++++++++++++------
+ mm/gup.c                |   18 +++++++++++
+ mm/huge_memory.c        |   74 +++++++++++++++++++++++++++++++++++++----------
+ mm/swap.c               |   15 ++++++++++
+ 6 files changed, 178 insertions(+), 30 deletions(-)
 
+diff --git a/arch/x86/mm/gup.c b/arch/x86/mm/gup.c
+index f8cb3e8ac250..26602434c33a 100644
+--- a/arch/x86/mm/gup.c
++++ b/arch/x86/mm/gup.c
+@@ -63,6 +63,16 @@ retry:
+ #endif
+ }
+ 
++static void undo_dev_pagemap(int *nr, int nr_start, struct page **pages)
++{
++	while ((*nr) - nr_start) {
++		struct page *page = pages[--(*nr)];
++
++		ClearPageReferenced(page);
++		put_page(page);
++	}
++}
++
+ /*
+  * The performance critical leaf functions are made noinline otherwise gcc
+  * inlines everything into a single function which results in too much
+@@ -71,7 +81,9 @@ retry:
+ static noinline int gup_pte_range(pmd_t pmd, unsigned long addr,
+ 		unsigned long end, int write, struct page **pages, int *nr)
+ {
++	struct dev_pagemap *pgmap = NULL;
+ 	unsigned long mask;
++	int nr_start = *nr;
+ 	pte_t *ptep;
+ 
+ 	mask = _PAGE_PRESENT|_PAGE_USER;
+@@ -89,13 +101,21 @@ static noinline int gup_pte_range(pmd_t pmd, unsigned long addr,
+ 			return 0;
+ 		}
+ 
+-		if ((pte_flags(pte) & (mask | _PAGE_SPECIAL)) != mask) {
++		page = pte_page(pte);
++		if (pte_devmap(pte)) {
++			pgmap = get_dev_pagemap(pte_pfn(pte), pgmap);
++			if (unlikely(!pgmap)) {
++				undo_dev_pagemap(nr, nr_start, pages);
++				pte_unmap(ptep);
++				return 0;
++			}
++		} else if ((pte_flags(pte) & (mask | _PAGE_SPECIAL)) != mask) {
+ 			pte_unmap(ptep);
+ 			return 0;
+ 		}
+ 		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
+-		page = pte_page(pte);
+ 		get_page(page);
++		put_dev_pagemap(pgmap);
+ 		SetPageReferenced(page);
+ 		pages[*nr] = page;
+ 		(*nr)++;
+@@ -114,6 +134,32 @@ static inline void get_head_page_multiple(struct page *page, int nr)
+ 	SetPageReferenced(page);
+ }
+ 
++static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
++		unsigned long end, struct page **pages, int *nr)
++{
++	int nr_start = *nr;
++	unsigned long pfn = pmd_pfn(pmd);
++	struct dev_pagemap *pgmap = NULL;
++
++	pfn += (addr & ~PMD_MASK) >> PAGE_SHIFT;
++	do {
++		struct page *page = pfn_to_page(pfn);
++
++		pgmap = get_dev_pagemap(pfn, pgmap);
++		if (unlikely(!pgmap)) {
++			undo_dev_pagemap(nr, nr_start, pages);
++			return 0;
++		}
++		SetPageReferenced(page);
++		pages[*nr] = page;
++		get_page(page);
++		put_dev_pagemap(pgmap);
++		(*nr)++;
++		pfn++;
++	} while (addr += PAGE_SIZE, addr != end);
++	return 1;
++}
++
+ static noinline int gup_huge_pmd(pmd_t pmd, unsigned long addr,
+ 		unsigned long end, int write, struct page **pages, int *nr)
+ {
+@@ -126,9 +172,13 @@ static noinline int gup_huge_pmd(pmd_t pmd, unsigned long addr,
+ 		mask |= _PAGE_RW;
+ 	if ((pmd_flags(pmd) & mask) != mask)
+ 		return 0;
++
++	VM_BUG_ON(!pfn_valid(pmd_pfn(pmd)));
++	if (pmd_devmap(pmd))
++		return __gup_device_huge_pmd(pmd, addr, end, pages, nr);
++
+ 	/* hugepages are never "special" */
+ 	VM_BUG_ON(pmd_flags(pmd) & _PAGE_SPECIAL);
+-	VM_BUG_ON(!pfn_valid(pmd_pfn(pmd)));
+ 
+ 	refs = 0;
+ 	head = pmd_page(pmd);
+diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+index 40c4db60c9e0..bc141a65b736 100644
+--- a/include/linux/huge_mm.h
++++ b/include/linux/huge_mm.h
+@@ -38,7 +38,6 @@ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			int prot_numa);
+ int vmf_insert_pfn_pmd(struct vm_area_struct *, unsigned long addr, pmd_t *,
+ 			pfn_t pfn, bool write);
+-
+ enum transparent_hugepage_flag {
+ 	TRANSPARENT_HUGEPAGE_FLAG,
+ 	TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
+@@ -55,6 +54,9 @@ enum transparent_hugepage_flag {
+ #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
++struct page *follow_devmap_pmd(struct vm_area_struct *vma, unsigned long addr,
++		pmd_t *pmd, int flags);
++
+ #define HPAGE_PMD_SHIFT PMD_SHIFT
+ #define HPAGE_PMD_SIZE	((1UL) << HPAGE_PMD_SHIFT)
+ #define HPAGE_PMD_MASK	(~(HPAGE_PMD_SIZE - 1))
+@@ -205,6 +207,12 @@ static inline bool is_huge_zero_page(struct page *page)
+ 	return false;
+ }
+ 
++
++static inline struct page *follow_devmap_pmd(struct vm_area_struct *vma,
++		unsigned long addr, pmd_t *pmd, int flags)
++{
++	return NULL;
++}
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ #endif /* _LINUX_HUGE_MM_H */
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index d8d4c9ffa51f..26ce7954bad0 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -460,16 +460,7 @@ static inline int page_count(struct page *page)
+ 	return atomic_read(&compound_head(page)->_count);
+ }
+ 
+-static inline void get_page(struct page *page)
+-{
+-	page = compound_head(page);
+-	/*
+-	 * Getting a normal page or the head of a compound page
+-	 * requires to already have an elevated page->_count.
+-	 */
+-	VM_BUG_ON_PAGE(atomic_read(&page->_count) <= 0, page);
+-	atomic_inc(&page->_count);
+-}
++extern bool __get_page_tail(struct page *page);
+ 
+ static inline struct page *virt_to_head_page(const void *x)
+ {
+@@ -762,6 +753,11 @@ struct dev_pagemap {
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap);
+ struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
++
++static inline bool is_zone_device_page(const struct page *page)
++{
++	return page_zonenum(page) == ZONE_DEVICE;
++}
+ #else
+ static inline void *devm_memremap_pages(struct device *dev,
+ 		struct resource *res, struct percpu_ref *ref,
+@@ -780,6 +776,11 @@ static inline struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
+ {
+ 	return NULL;
+ }
++
++static inline bool is_zone_device_page(const struct page *page)
++{
++	return false;
++}
+ #endif
+ 
+ #if defined(CONFIG_SPARSEMEM_VMEMMAP) && defined(CONFIG_ZONE_DEVICE)
+@@ -830,6 +831,20 @@ static inline void put_dev_pagemap(struct dev_pagemap *pgmap)
+ 		percpu_ref_put(pgmap->ref);
+ }
+ 
++static inline void get_page(struct page *page)
++{
++	if (is_zone_device_page(page))
++		percpu_ref_get(page->pgmap->ref);
++
++	page = compound_head(page);
++	/*
++	 * Getting a normal page or the head of a compound page
++	 * requires to already have an elevated page->_count.
++	 */
++	VM_BUG_ON_PAGE(atomic_read(&page->_count) <= 0, page);
++	atomic_inc(&page->_count);
++}
++
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #define SECTION_IN_PAGE_FLAGS
+ #endif
+diff --git a/mm/gup.c b/mm/gup.c
+index e95b0cb6ed81..60b86f2fbe95 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -98,7 +98,16 @@ retry:
+ 	}
+ 
+ 	page = vm_normal_page(vma, address, pte);
+-	if (unlikely(!page)) {
++	if (!page && pte_devmap(pte) && (flags & FOLL_GET)) {
++		/*
++		 * Only return device mapping pages in the FOLL_GET case since
++		 * they are only valid while holding the pgmap reference.
++		 */
++		if (get_dev_pagemap(pte_pfn(pte), NULL))
++			page = pte_page(pte);
++		else
++			goto no_page;
++	} else if (unlikely(!page)) {
+ 		if (flags & FOLL_DUMP) {
+ 			/* Avoid special (like zero) pages in core dumps */
+ 			page = ERR_PTR(-EFAULT);
+@@ -237,6 +246,13 @@ struct page *follow_page_mask(struct vm_area_struct *vma,
+ 	}
+ 	if ((flags & FOLL_NUMA) && pmd_protnone(*pmd))
+ 		return no_page_table(vma, flags);
++	if (pmd_devmap(*pmd)) {
++		ptl = pmd_lock(mm, pmd);
++		page = follow_devmap_pmd(vma, address, pmd, flags);
++		spin_unlock(ptl);
++		if (page)
++			return page;
++	}
+ 	if (likely(!pmd_trans_huge(*pmd)))
+ 		return follow_page_pte(vma, address, pmd, flags);
+ 
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index c9239e17a81c..76ccead6cf2c 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -1002,6 +1002,63 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	return VM_FAULT_NOPAGE;
+ }
+ 
++static void touch_pmd(struct vm_area_struct *vma, unsigned long addr,
++		pmd_t *pmd)
++{
++	pmd_t _pmd;
++
++	/*
++	 * We should set the dirty bit only for FOLL_WRITE but for now
++	 * the dirty bit in the pmd is meaningless.  And if the dirty
++	 * bit will become meaningful and we'll only set it with
++	 * FOLL_WRITE, an atomic set_bit will be required on the pmd to
++	 * set the young bit, instead of the current set_pmd_at.
++	 */
++	_pmd = pmd_mkyoung(pmd_mkdirty(*pmd));
++	if (pmdp_set_access_flags(vma, addr & HPAGE_PMD_MASK,
++				pmd, _pmd,  1))
++		update_mmu_cache_pmd(vma, addr, pmd);
++}
++
++struct page *follow_devmap_pmd(struct vm_area_struct *vma, unsigned long addr,
++		pmd_t *pmd, int flags)
++{
++	unsigned long pfn = pmd_pfn(*pmd);
++	struct mm_struct *mm = vma->vm_mm;
++	struct dev_pagemap *pgmap;
++	struct page *page;
++
++	assert_spin_locked(pmd_lockptr(mm, pmd));
++
++	if (flags & FOLL_WRITE && !pmd_write(*pmd))
++		return NULL;
++
++	if (pmd_present(*pmd) && pmd_devmap(*pmd))
++		/* pass */;
++	else
++		return NULL;
++
++	if (flags & FOLL_TOUCH)
++		touch_pmd(vma, addr, pmd);
++
++	/*
++	 * device mapped pages can only be returned if the
++	 * caller will manage the page reference count.
++	 */
++	if (!(flags & FOLL_GET))
++		return ERR_PTR(-EEXIST);
++
++	pfn += (addr & ~PMD_MASK) >> PAGE_SHIFT;
++	pgmap = get_dev_pagemap(pfn, NULL);
++	if (!pgmap)
++		return ERR_PTR(-EFAULT);
++	page = pfn_to_page(pfn);
++	get_page(page);
++	put_dev_pagemap(pgmap);
++
++	return page;
++}
++
+ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 		  pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
+ 		  struct vm_area_struct *vma)
+@@ -1359,21 +1416,8 @@ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
+ 
+ 	page = pmd_page(*pmd);
+ 	VM_BUG_ON_PAGE(!PageHead(page), page);
+-	if (flags & FOLL_TOUCH) {
+-		pmd_t _pmd;
+-		/*
+-		 * We should set the dirty bit only for FOLL_WRITE but
+-		 * for now the dirty bit in the pmd is meaningless.
+-		 * And if the dirty bit will become meaningful and
+-		 * we'll only set it with FOLL_WRITE, an atomic
+-		 * set_bit will be required on the pmd to set the
+-		 * young bit, instead of the current set_pmd_at.
+-		 */
+-		_pmd = pmd_mkyoung(pmd_mkdirty(*pmd));
+-		if (pmdp_set_access_flags(vma, addr & HPAGE_PMD_MASK,
+-					  pmd, _pmd,  1))
+-			update_mmu_cache_pmd(vma, addr, pmd);
+-	}
++	if (flags & FOLL_TOUCH)
++		touch_pmd(vma, addr, pmd);
+ 	if ((flags & FOLL_MLOCK) && (vma->vm_flags & VM_LOCKED)) {
+ 		/*
+ 		 * We don't mlock() pte-mapped THPs. This way we can avoid
+diff --git a/mm/swap.c b/mm/swap.c
+index 674e2c93da4e..34b0c34e231f 100644
+--- a/mm/swap.c
++++ b/mm/swap.c
+@@ -90,10 +90,25 @@ static void __put_compound_page(struct page *page)
+ 	(*dtor)(page);
+ }
+ 
++static bool put_device_page(struct page *page)
++{
++	/*
++	 * ZONE_DEVICE pages are never "onlined" so their reference
++	 * counts never reach zero.  They are always owned by a device
++	 * driver, not the mm core.  I.e. the page is 'idle' when the
++	 * count is 1.
++	 */
++	VM_BUG_ON_PAGE(atomic_read(&page->_count) == 1, page);
++	put_dev_pagemap(page->pgmap);
++	return atomic_dec_return(&page->_count) == 1;
++}
++
+ void __put_page(struct page *page)
+ {
+ 	if (unlikely(PageCompound(page)))
+ 		__put_compound_page(page);
++	else if (is_zone_device_page(page))
++		put_device_page(page);
+ 	else
+ 		__put_single_page(page);
+ }
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
