@@ -1,11 +1,11 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v3 04/25] dax: fix lifetime of in-kernel dax mappings
+Subject: [-mm PATCH v2 04/25] dax: fix lifetime of in-kernel dax mappings
  with dax_map_atomic()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 11 Dec 2015 10:11:53 -0800
-Message-ID: <20151211181108.19091.50770.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151210023731.30368.7209.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151210023731.30368.7209.stgit@dwillia2-desk3.jf.intel.com>
+Date: Wed, 09 Dec 2015 18:37:31 -0800
+Message-ID: <20151210023731.30368.7209.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -32,11 +32,6 @@ Cc: Matthew Wilcox <willy@linux.intel.com>
 Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-
-Changes since v2:
-
-Rebase on latest -next to pick up new definition of blk_queue_enter.
-
  fs/block_dev.c         |   13 +--
  fs/dax.c               |  208 ++++++++++++++++++++++++++++++------------------
  include/linux/blkdev.h |   17 +++-
@@ -82,7 +77,7 @@ index 6a0fc382e7af..6950aa8e6f4f 100644
  		return -ERANGE;
  	if (avail > 0 && avail & ~PAGE_MASK)
 diff --git a/fs/dax.c b/fs/dax.c
-index 1080fb50fa4d..5c548d821a2a 100644
+index 1080fb50fa4d..77fe5af896f3 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
 @@ -30,45 +30,65 @@
@@ -95,7 +90,7 @@ index 1080fb50fa4d..5c548d821a2a 100644
 +	long rc = -EIO;
 +
 +	dax->addr = (void __pmem *) ERR_PTR(-EIO);
-+	if (blk_queue_enter(q, true) != 0)
++	if (blk_queue_enter(q, GFP_NOWAIT) != 0)
 +		return rc;
 +
 +	rc = bdev_direct_access(bdev, dax);
