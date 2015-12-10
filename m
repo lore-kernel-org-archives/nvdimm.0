@@ -1,189 +1,111 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH -mm 00/25] get_user_pages() for dax pte and pmd mappings
+Subject: [-mm PATCH v2 20/25] libnvdimm,
+ pmem: move request_queue allocation earlier in probe
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 07 Dec 2015 17:32:36 -0800
-Message-ID: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+Date: Wed, 09 Dec 2015 18:39:00 -0800
+Message-ID: <20151210023900.30368.15503.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
 To: akpm@linux-foundation.org
-Cc: Dave Hansen <dave@sr71.net>, Toshi Kani <toshi.kani@hpe.com>, David Airlie <airlied@linux.ie>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, linux-mm@kvack.org, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, Andrea Arcangeli <aarcange@redhat.com>, kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, Richard Weinberger <richard@nod.at>, Peter Zijlstra <peterz@infradead.org>, Jeff Moyer <jmoyer@redhat.com>, Ingo Molnar <mingo@redhat.com>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jeff Dike <jdike@addtoit.com>, Jens Axboe <axboe@fb.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Christoffer Dall <christoffer.dall@linaro.org>, Jan Kara <jack@suse.com>, Paolo Bonzini <pbonzini@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Andrew, please pull dax-gup support into -mm.
+Before the dynamically allocated struct pages from devm_memremap_pages()
+can be put to use outside the driver, we need a mechanism to track
+whether they are still in use at teardown.  Towards that goal reorder
+the initialization sequence to allow the 'q_usage_counter' from the
+request_queue to be used by the devm_memremap_pages() implementation (in
+subsequent patches).
 
-This series, based on next-20151203, has been out for review in one form
-or another since September [1].  The concept was reviewed at Kernel
-Summit in the "ZONE_DEVICE" tech-topic presentation.  Since the RFC
-posting [2] it has received fixes and is now passing the unit tests from
-ndctl [3] and nvml [4].
-
-Logan Gunthorpe has also offered up functional testing of his use case
-for devm_memremap_pages() [5] (a "Tested-by" for the latest revision is
-still pending).
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-September/002199.html
-[2]: https://lists.01.org/pipermail/linux-nvdimm/2015-November/003033.html
-[3]: https://github.com/pmem/ndctl
-[4]: https://github.com/pmem/nvml
-[5]: https://lists.01.org/pipermail/linux-nvdimm/2015-October/002576.html
-
-A git tree of this set is available here:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm libnvdimm-pending
-
-The libnvdimm-pending branch has received a build success notification
-from the kbuild-test-robot over 105 configs.
-
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/nvdimm/pmem.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-Summary:
-
-To date, we have implemented two I/O usage models for persistent memory,
-PMEM (a persistent "ram disk") and DAX (mmap persistent memory into
-userspace).  This series adds a third, DAX-GUP, that allows DAX mappings
-to be the target of direct-i/o.  It allows userspace to coordinate
-DMA/RDMA from/to persistent memory.
-
-The implementation leverages the ZONE_DEVICE mm-zone that went into
-4.3-rc1 (also discussed at kernel summit) to flag pages that are owned
-and dynamically mapped by a device driver.  The pmem driver, after
-mapping a persistent memory range into the system memmap via
-devm_memremap_pages(), arranges for DAX to distinguish pfn-only versus
-page-backed pmem-pfns via flags in the new pfn_t type.
-
-The DAX code, upon seeing a PFN_DEV+PFN_MAP flagged pfn, flags the
-resulting pte(s) inserted into the process page tables with a new
-_PAGE_DEVMAP flag.  Later, when get_user_pages() is walking ptes it keys
-off _PAGE_DEVMAP to pin the device hosting the page range active.
-Finally, get_page() and put_page() are modified to take references
-against the device driver established page mapping.
-
-Finally, this need for "struct page" for persistent memory requires
-memory capacity to store the memmap array.  Given the memmap array for a
-large pool of persistent may exhaust available DRAM introduce a
-mechanism to allocate the memmap from persistent memory.  The new "struct
-vmem_altmap *"  parameter to devm_memremap_pages() enables
-arch_add_memory() to use reserved pmem capacity rather than the page
-allocator.
-
----
-
-Dan Williams (23):
-      pmem, dax: clean up clear_pmem()
-      dax: increase granularity of dax_clear_blocks() operations
-      dax: guarantee page aligned results from bdev_direct_access()
-      dax: fix lifetime of in-kernel dax mappings with dax_map_atomic()
-      um: kill pfn_t
-      kvm: rename pfn_t to kvm_pfn_t
-      mm, dax, pmem: introduce pfn_t
-      mm: introduce find_dev_pagemap()
-      x86, mm: introduce vmem_altmap to augment vmemmap_populate()
-      libnvdimm, pfn, pmem: allocate memmap array in persistent memory
-      avr32: convert to asm-generic/memory_model.h
-      hugetlb: fix compile error on tile
-      frv: fix compiler warning from definition of __pmd()
-      x86, mm: introduce _PAGE_DEVMAP
-      mm, dax, gpu: convert vm_insert_mixed to pfn_t
-      mm, dax: convert vmf_insert_pfn_pmd() to pfn_t
-      list: introduce list_del_poison()
-      libnvdimm, pmem: move request_queue allocation earlier in probe
-      mm, dax, pmem: introduce {get|put}_dev_pagemap() for dax-gup
-      mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd
-      mm, x86: get_user_pages() for dax mappings
-      dax: provide diagnostics for pmd mapping failures
-      dax: re-enable dax pmd mappings
-
-Ross Zwisler (1):
-      mm, dax: fix livelock, allow dax pmd mappings to become writeable
-
-Toshi Kani (1):
-      dax: Split pmd map when fallback on COW
-
-
- arch/alpha/include/asm/pgtable.h        |    1 
- arch/arm/include/asm/kvm_mmu.h          |    5 -
- arch/arm/kvm/mmu.c                      |   10 +
- arch/arm64/include/asm/kvm_mmu.h        |    3 
- arch/avr32/include/asm/page.h           |    8 -
- arch/frv/include/asm/page.h             |    2 
- arch/ia64/include/asm/page.h            |    1 
- arch/ia64/include/asm/pgtable.h         |    1 
- arch/m68k/include/asm/page_mm.h         |    1 
- arch/m68k/include/asm/page_no.h         |    1 
- arch/mips/include/asm/kvm_host.h        |    6 -
- arch/mips/kvm/emulate.c                 |    2 
- arch/mips/kvm/tlb.c                     |   14 +
- arch/mn10300/include/asm/page.h         |    1 
- arch/parisc/include/asm/pgtable.h       |    1 
- arch/powerpc/include/asm/kvm_book3s.h   |    4 
- arch/powerpc/include/asm/kvm_ppc.h      |    2 
- arch/powerpc/include/asm/pgtable.h      |    1 
- arch/powerpc/kvm/book3s.c               |    6 -
- arch/powerpc/kvm/book3s_32_mmu_host.c   |    2 
- arch/powerpc/kvm/book3s_64_mmu_host.c   |    2 
- arch/powerpc/kvm/e500.h                 |    2 
- arch/powerpc/kvm/e500_mmu_host.c        |    8 -
- arch/powerpc/kvm/trace_pr.h             |    2 
- arch/powerpc/sysdev/axonram.c           |    8 -
- arch/sh/include/asm/pgtable-3level.h    |    1 
- arch/sparc/include/asm/pgtable_64.h     |    2 
- arch/tile/include/asm/pgtable.h         |    1 
- arch/um/include/asm/page.h              |    7 -
- arch/um/include/asm/pgtable-3level.h    |    5 -
- arch/um/include/asm/pgtable.h           |    2 
- arch/x86/include/asm/page_types.h       |    3 
- arch/x86/include/asm/pgtable.h          |   26 +++
- arch/x86/include/asm/pgtable_types.h    |    7 +
- arch/x86/include/asm/pmem.h             |    7 -
- arch/x86/kvm/iommu.c                    |   11 +
- arch/x86/kvm/mmu.c                      |   37 ++--
- arch/x86/kvm/mmu_audit.c                |    2 
- arch/x86/kvm/paging_tmpl.h              |    6 -
- arch/x86/kvm/vmx.c                      |    2 
- arch/x86/kvm/x86.c                      |    2 
- arch/x86/mm/gup.c                       |   56 +++++-
- arch/x86/mm/init_64.c                   |   32 +++
- arch/x86/mm/pat.c                       |    4 
- drivers/block/brd.c                     |    4 
- drivers/gpu/drm/exynos/exynos_drm_gem.c |    3 
- drivers/gpu/drm/gma500/framebuffer.c    |    3 
- drivers/gpu/drm/msm/msm_gem.c           |    3 
- drivers/gpu/drm/omapdrm/omap_gem.c      |    6 -
- drivers/gpu/drm/ttm/ttm_bo_vm.c         |    3 
- drivers/nvdimm/pfn_devs.c               |    3 
- drivers/nvdimm/pmem.c                   |   70 +++++--
- drivers/s390/block/dcssblk.c            |   10 -
- fs/Kconfig                              |    3 
- fs/block_dev.c                          |   15 +-
- fs/dax.c                                |  290 +++++++++++++++++++----------
- include/asm-generic/pgtable.h           |   10 +
- include/linux/blkdev.h                  |   19 ++
- include/linux/huge_mm.h                 |   15 +-
- include/linux/hugetlb.h                 |    1 
- include/linux/io.h                      |   15 --
- include/linux/kvm_host.h                |   37 ++--
- include/linux/kvm_types.h               |    2 
- include/linux/list.h                    |   17 ++
- include/linux/memory_hotplug.h          |    3 
- include/linux/mm.h                      |  310 ++++++++++++++++++++++++++++++-
- include/linux/mm_types.h                |    5 +
- include/linux/pfn.h                     |    9 +
- kernel/memremap.c                       |  188 ++++++++++++++++++-
- lib/list_debug.c                        |    4 
- mm/gup.c                                |   18 ++
- mm/huge_memory.c                        |  131 +++++++++----
- mm/memory.c                             |   25 +--
- mm/memory_hotplug.c                     |   66 +++++--
- mm/mprotect.c                           |    5 -
- mm/page_alloc.c                         |   10 +
- mm/pgtable-generic.c                    |    2 
- mm/sparse-vmemmap.c                     |   37 ++++
- mm/sparse.c                             |    8 +
- mm/swap.c                               |   15 ++
- virt/kvm/kvm_main.c                     |   47 ++---
- 81 files changed, 1302 insertions(+), 417 deletions(-)
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 1d884318c67b..9060a64628ae 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -124,6 +124,7 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 		struct resource *res, int id)
+ {
+ 	struct pmem_device *pmem;
++	struct request_queue *q;
+ 
+ 	pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
+ 	if (!pmem)
+@@ -141,6 +142,10 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 		return ERR_PTR(-EBUSY);
+ 	}
+ 
++	q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
++	if (!q)
++		return ERR_PTR(-ENOMEM);
++
+ 	pmem->pfn_flags = PFN_DEV;
+ 	if (pmem_should_map_pages(dev)) {
+ 		pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, res,
+@@ -151,9 +156,12 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 				pmem->phys_addr, pmem->size,
+ 				ARCH_MEMREMAP_PMEM);
+ 
+-	if (IS_ERR(pmem->virt_addr))
++	if (IS_ERR(pmem->virt_addr)) {
++		blk_cleanup_queue(q);
+ 		return (void __force *) pmem->virt_addr;
++	}
+ 
++	pmem->pmem_queue = q;
+ 	return pmem;
+ }
+ 
+@@ -173,10 +181,6 @@ static int pmem_attach_disk(struct device *dev,
+ 	int nid = dev_to_node(dev);
+ 	struct gendisk *disk;
+ 
+-	pmem->pmem_queue = blk_alloc_queue_node(GFP_KERNEL, nid);
+-	if (!pmem->pmem_queue)
+-		return -ENOMEM;
+-
+ 	blk_queue_make_request(pmem->pmem_queue, pmem_make_request);
+ 	blk_queue_physical_block_size(pmem->pmem_queue, PAGE_SIZE);
+ 	blk_queue_max_hw_sectors(pmem->pmem_queue, UINT_MAX);
+@@ -411,19 +415,22 @@ static int nd_pmem_probe(struct device *dev)
+ 	dev_set_drvdata(dev, pmem);
+ 	ndns->rw_bytes = pmem_rw_bytes;
+ 
+-	if (is_nd_btt(dev))
++	if (is_nd_btt(dev)) {
++		/* btt allocates its own request_queue */
++		blk_cleanup_queue(pmem->pmem_queue);
++		pmem->pmem_queue = NULL;
+ 		return nvdimm_namespace_attach_btt(ndns);
++	}
+ 
+ 	if (is_nd_pfn(dev))
+ 		return nvdimm_namespace_attach_pfn(ndns);
+ 
+-	if (nd_btt_probe(ndns, pmem) == 0) {
+-		/* we'll come back as btt-pmem */
+-		return -ENXIO;
+-	}
+-
+-	if (nd_pfn_probe(ndns, pmem) == 0) {
+-		/* we'll come back as pfn-pmem */
++	if (nd_btt_probe(ndns, pmem) == 0 || nd_pfn_probe(ndns, pmem) == 0) {
++		/*
++		 * We'll come back as either btt-pmem, or pfn-pmem, so
++		 * drop the queue allocation for now.
++		 */
++		blk_cleanup_queue(pmem->pmem_queue);
+ 		return -ENXIO;
+ 	}
+ 
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
