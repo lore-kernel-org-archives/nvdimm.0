@@ -1,11 +1,11 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH -mm 03/25] dax: guarantee page aligned results from
+Subject: [-mm PATCH v2 03/25] dax: guarantee page aligned results from
  bdev_direct_access()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 07 Dec 2015 17:32:52 -0800
-Message-ID: <20151208013252.25030.89320.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+Date: Wed, 09 Dec 2015 18:37:25 -0800
+Message-ID: <20151210023725.30368.51320.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -26,7 +26,7 @@ Signed-off-by: Dan Williams <dan.j.williams@intel.com>
  2 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/fs/block_dev.c b/fs/block_dev.c
-index c27362de0039..653d14ccc86e 100644
+index fe0cc27929ec..6a0fc382e7af 100644
 --- a/fs/block_dev.c
 +++ b/fs/block_dev.c
 @@ -489,6 +489,8 @@ long bdev_direct_access(struct block_device *bdev, sector_t sector,
@@ -39,11 +39,11 @@ index c27362de0039..653d14ccc86e 100644
  }
  EXPORT_SYMBOL_GPL(bdev_direct_access);
 diff --git a/fs/dax.c b/fs/dax.c
-index e11d88835bb2..6e498c2570bf 100644
+index 11721c0fc127..1080fb50fa4d 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
 @@ -52,7 +52,6 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- 		sz = min_t(long, count, SZ_1M);
+ 		sz = min_t(long, count, SZ_128K);
  		clear_pmem(addr, sz);
  		size -= sz;
 -		BUG_ON(sz & 511);
