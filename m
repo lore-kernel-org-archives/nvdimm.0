@@ -1,10 +1,10 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v3 09/25] mm, dax, pmem: introduce pfn_t
+Subject: [-mm PATCH v2 09/25] mm, dax, pmem: introduce pfn_t
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 11 Dec 2015 10:22:28 -0800
-Message-ID: <20151211182014.19145.760.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151210023757.30368.20786.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151210023757.30368.20786.stgit@dwillia2-desk3.jf.intel.com>
+Date: Wed, 09 Dec 2015 18:37:57 -0800
+Message-ID: <20151210023757.30368.20786.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -33,22 +33,15 @@ Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-
-Changes since v2:
-
-Moved phys_to_pfn_t() out of line so it can be overridden for new unit
-tests in development.
-
  arch/powerpc/sysdev/axonram.c |    8 ++---
- drivers/block/brd.c           |    4 +--
- drivers/nvdimm/pmem.c         |   12 +++++---
- drivers/s390/block/dcssblk.c  |   10 +++----
- fs/dax.c                      |   10 ++++---
- include/linux/blkdev.h        |    4 +--
- include/linux/mm.h            |   63 +++++++++++++++++++++++++++++++++++++++++
+ drivers/block/brd.c           |    4 +-
+ drivers/nvdimm/pmem.c         |   12 +++++--
+ drivers/s390/block/dcssblk.c  |   10 ++----
+ fs/dax.c                      |   10 ++++--
+ include/linux/blkdev.h        |    4 +-
+ include/linux/mm.h            |   66 +++++++++++++++++++++++++++++++++++++++++
  include/linux/pfn.h           |    9 ++++++
- kernel/memremap.c             |    6 ++++
- 9 files changed, 103 insertions(+), 23 deletions(-)
+ 8 files changed, 100 insertions(+), 23 deletions(-)
 
 diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
 index c713b349d967..801e22fa0b02 100644
@@ -183,7 +176,7 @@ index 94a8f4ab57bc..b50c5cb5601f 100644
  	return dev_sz - offset;
  }
 diff --git a/fs/dax.c b/fs/dax.c
-index 3220da70ee20..a8670660d118 100644
+index fdd455030bf0..9aadf121a274 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
 @@ -362,7 +362,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
@@ -247,10 +240,10 @@ index d52eabc76a12..d82513675de3 100644
  				      unsigned int clearing);
  	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
 diff --git a/include/linux/mm.h b/include/linux/mm.h
-index a1e87a3e88c0..1fd3ba9a0924 100644
+index a1e87a3e88c0..dd05e24f904d 100644
 --- a/include/linux/mm.h
 +++ b/include/linux/mm.h
-@@ -884,6 +884,69 @@ static inline void set_page_memcg(struct page *page, struct mem_cgroup *memcg)
+@@ -884,6 +884,72 @@ static inline void set_page_memcg(struct page *page, struct mem_cgroup *memcg)
  #endif
  
  /*
@@ -280,7 +273,10 @@ index a1e87a3e88c0..1fd3ba9a0924 100644
 +	return __pfn_to_pfn_t(pfn, 0);
 +}
 +
-+extern pfn_t phys_to_pfn_t(dma_addr_t addr, unsigned long flags);
++static inline pfn_t phys_to_pfn_t(dma_addr_t addr, unsigned long flags)
++{
++	return __pfn_to_pfn_t(addr >> PAGE_SHIFT, flags);
++}
 +
 +static inline bool pfn_t_has_page(pfn_t pfn)
 +{
@@ -340,23 +336,6 @@ index 97f3e88aead4..2d8e49711b63 100644
  #endif
  
  #define PFN_ALIGN(x)	(((unsigned long)(x) + (PAGE_SIZE - 1)) & PAGE_MASK)
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 7658d32c5c78..4d3bf3cd09a9 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -147,6 +147,12 @@ void devm_memunmap(struct device *dev, void *addr)
- }
- EXPORT_SYMBOL(devm_memunmap);
- 
-+pfn_t phys_to_pfn_t(dma_addr_t addr, unsigned long flags)
-+{
-+	return __pfn_to_pfn_t(addr >> PAGE_SHIFT, flags);
-+}
-+EXPORT_SYMBOL(phys_to_pfn_t);
-+
- #ifdef CONFIG_ZONE_DEVICE
- struct page_map {
- 	struct resource res;
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
