@@ -1,49 +1,108 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 6/7] ext4: call dax_pfn_mkwrite() for DAX fsync/msync
-Date: Tue,  8 Dec 2015 12:18:44 -0700
-Message-Id: <1449602325-20572-7-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [-mm PATCH v2 12/25] libnvdimm, pfn,
+ pmem: allocate memmap array in persistent memory
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 09 Dec 2015 18:38:18 -0800
+Message-ID: <20151210023818.30368.10196.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+Use the new vmem_altmap capability to enable the pmem driver to arrange
+for a struct page memmap to be established in persistent memory.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/ext4/file.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/ia64/include/asm/page.h |    1 +
+ drivers/nvdimm/pfn_devs.c    |    3 +--
+ drivers/nvdimm/pmem.c        |   19 +++++++++++++++++--
+ 3 files changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 749b222..8c8965c 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -291,8 +291,8 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
- {
- 	struct inode *inode = file_inode(vma->vm_file);
- 	struct super_block *sb = inode->i_sb;
--	int ret = VM_FAULT_NOPAGE;
- 	loff_t size;
-+	int ret;
+diff --git a/arch/ia64/include/asm/page.h b/arch/ia64/include/asm/page.h
+index ec48bb9f95e1..e8c486ef0d76 100644
+--- a/arch/ia64/include/asm/page.h
++++ b/arch/ia64/include/asm/page.h
+@@ -105,6 +105,7 @@ extern struct page *vmem_map;
+ #ifdef CONFIG_DISCONTIGMEM
+ # define page_to_pfn(page)	((unsigned long) (page - vmem_map))
+ # define pfn_to_page(pfn)	(vmem_map + (pfn))
++# define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+ #else
+ # include <asm-generic/memory_model.h>
+ #endif
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 71805a1aa0f3..a642cfacee07 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -83,8 +83,7 @@ static ssize_t mode_store(struct device *dev,
  
- 	sb_start_pagefault(sb);
- 	file_update_time(vma->vm_file);
-@@ -300,6 +300,8 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 	up_read(&EXT4_I(inode)->i_mmap_sem);
- 	sb_end_pagefault(sb);
+ 		if (strncmp(buf, "pmem\n", n) == 0
+ 				|| strncmp(buf, "pmem", n) == 0) {
+-			/* TODO: allocate from PMEM support */
+-			rc = -ENOTTY;
++			nd_pfn->mode = PFN_MODE_PMEM;
+ 		} else if (strncmp(buf, "ram\n", n) == 0
+ 				|| strncmp(buf, "ram", n) == 0)
+ 			nd_pfn->mode = PFN_MODE_RAM;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 34fa2f003602..1d884318c67b 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -315,12 +315,16 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+ 	struct nd_pfn *nd_pfn = to_nd_pfn(ndns->claim);
+ 	struct device *dev = &nd_pfn->dev;
+-	struct vmem_altmap *altmap;
+ 	struct nd_region *nd_region;
++	struct vmem_altmap *altmap;
+ 	struct nd_pfn_sb *pfn_sb;
+ 	struct pmem_device *pmem;
+ 	phys_addr_t offset;
+ 	int rc;
++	struct vmem_altmap __altmap = {
++		.base_pfn = __phys_to_pfn(nsio->res.start),
++		.reserve = __phys_to_pfn(SZ_8K),
++	};
  
--- 
-2.5.0
+ 	if (!nd_pfn->uuid || !nd_pfn->ndns)
+ 		return -ENODEV;
+@@ -348,6 +352,17 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
+ 			return -EINVAL;
+ 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
+ 		altmap = NULL;
++	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
++		nd_pfn->npfns = (resource_size(&nsio->res) - offset)
++			/ PAGE_SIZE;
++		if (le64_to_cpu(nd_pfn->pfn_sb->npfns) > nd_pfn->npfns)
++			dev_info(&nd_pfn->dev,
++					"number of pfns truncated from %lld to %ld\n",
++					le64_to_cpu(nd_pfn->pfn_sb->npfns),
++					nd_pfn->npfns);
++		altmap = & __altmap;
++		altmap->free = __phys_to_pfn(offset - SZ_8K);
++		altmap->alloc = 0;
+ 	} else {
+ 		rc = -ENXIO;
+ 		goto err;
+@@ -357,7 +372,7 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
+ 	pmem = dev_get_drvdata(dev);
+ 	devm_memunmap(dev, (void __force *) pmem->virt_addr);
+ 	pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, &nsio->res,
+-			NULL);
++			altmap);
+ 	pmem->pfn_flags |= PFN_MAP;
+ 	if (IS_ERR(pmem->virt_addr)) {
+ 		rc = PTR_ERR(pmem->virt_addr);
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
