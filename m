@@ -1,10 +1,10 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v3 10/25] mm: introduce find_dev_pagemap()
+Subject: [-mm PATCH v2 10/25] mm: introduce find_dev_pagemap()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 11 Dec 2015 10:27:53 -0800
-Message-ID: <20151211182412.19179.54416.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151210023807.30368.57693.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151210023807.30368.57693.stgit@dwillia2-desk3.jf.intel.com>
+Date: Wed, 09 Dec 2015 18:38:07 -0800
+Message-ID: <20151210023807.30368.57693.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -40,11 +40,6 @@ Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Tested-by: Logan Gunthorpe <logang@deltatee.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Changes since v2:
-
-No changes, just a reflow of the patch to fixup the context differences
-from: "[-mm PATCH v3 09/25] mm, dax, pmem: introduce pfn_t"
-
  include/linux/io.h |   15 ---------
  include/linux/mm.h |   33 ++++++++++++++++++++
  kernel/memremap.c  |   84 +++++++++++++++++++++++++++++++++++++++++++++++-----
@@ -77,7 +72,7 @@ index 72c35e0a41d1..32403b5716e5 100644
   * Some systems do not have legacy ISA devices.
   * /dev/port is not a valid interface on these systems.
 diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 1fd3ba9a0924..ddc71b27493d 100644
+index dd05e24f904d..5e043fc04e52 100644
 --- a/include/linux/mm.h
 +++ b/include/linux/mm.h
 @@ -674,6 +674,39 @@ static inline enum zone_type page_zonenum(const struct page *page)
@@ -121,7 +116,7 @@ index 1fd3ba9a0924..ddc71b27493d 100644
  #define SECTION_IN_PAGE_FLAGS
  #endif
 diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 4d3bf3cd09a9..e9be623fda58 100644
+index 7658d32c5c78..9698d82e5e48 100644
 --- a/kernel/memremap.c
 +++ b/kernel/memremap.c
 @@ -10,6 +10,7 @@
@@ -132,8 +127,8 @@ index 4d3bf3cd09a9..e9be623fda58 100644
  #include <linux/device.h>
  #include <linux/types.h>
  #include <linux/io.h>
-@@ -154,22 +155,57 @@ pfn_t phys_to_pfn_t(dma_addr_t addr, unsigned long flags)
- EXPORT_SYMBOL(phys_to_pfn_t);
+@@ -148,22 +149,57 @@ void devm_memunmap(struct device *dev, void *addr)
+ EXPORT_SYMBOL(devm_memunmap);
  
  #ifdef CONFIG_ZONE_DEVICE
 +static DEFINE_MUTEX(pgmap_lock);
@@ -193,7 +188,7 @@ index 4d3bf3cd09a9..e9be623fda58 100644
  	struct page_map *page_map;
  	int error, nid;
  
-@@ -189,18 +225,50 @@ void *devm_memremap_pages(struct device *dev, struct resource *res)
+@@ -183,18 +219,50 @@ void *devm_memremap_pages(struct device *dev, struct resource *res)
  
  	memcpy(&page_map->res, res, sizeof(*res));
  
