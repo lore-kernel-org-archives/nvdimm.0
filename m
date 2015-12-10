@@ -1,51 +1,66 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 7/7] xfs: call dax_pfn_mkwrite() for DAX fsync/msync
-Date: Fri, 18 Dec 2015 22:22:20 -0700
-Message-Id: <1450502540-8744-8-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [-mm PATCH v2 05/25] mm, dax: fix livelock,
+ allow dax pmd mappings to become writeable
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 09 Dec 2015 18:37:36 -0800
+Message-ID: <20151210023736.30368.76631.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Toshi Kani <toshi.kani@hpe.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 
+Prior to this change DAX PMD mappings that were made read-only were
+never able to be made writable again.  This is because the code in
+insert_pfn_pmd() that calls pmd_mkdirty() and pmd_mkwrite() would skip
+these calls if the PMD already existed in the page table.
+
+Instead, if we are doing a write always mark the PMD entry as dirty and
+writeable.  Without this code we can get into a condition where we mark
+the PMD as read-only, and then on a subsequent write fault we get into
+an infinite loop of PMD faults where we try unsuccessfully to make the
+PMD writeable.
+
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/xfs_file.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index f5392ab..40ffbb1 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1603,9 +1603,8 @@ xfs_filemap_pmd_fault(
- /*
-  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
-  * updates on write faults. In reality, it's need to serialise against
-- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
-- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
-- * barrier in place.
-+ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
-+ * to ensure we serialise the fault barrier in place.
-  */
- static int
- xfs_filemap_pfn_mkwrite(
-@@ -1628,6 +1627,8 @@ xfs_filemap_pfn_mkwrite(
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else if (IS_DAX(inode))
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
--- 
-2.5.0
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index faf39bbf6292..a4bfeb07394b 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -967,15 +967,13 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	spinlock_t *ptl;
+ 
+ 	ptl = pmd_lock(mm, pmd);
+-	if (pmd_none(*pmd)) {
+-		entry = pmd_mkhuge(pfn_pmd(pfn, prot));
+-		if (write) {
+-			entry = pmd_mkyoung(pmd_mkdirty(entry));
+-			entry = maybe_pmd_mkwrite(entry, vma);
+-		}
+-		set_pmd_at(mm, addr, pmd, entry);
+-		update_mmu_cache_pmd(vma, addr, pmd);
++	entry = pmd_mkhuge(pfn_pmd(pfn, prot));
++	if (write) {
++		entry = pmd_mkyoung(pmd_mkdirty(entry));
++		entry = maybe_pmd_mkwrite(entry, vma);
+ 	}
++	set_pmd_at(mm, addr, pmd, entry);
++	update_mmu_cache_pmd(vma, addr, pmd);
+ 	spin_unlock(ptl);
+ }
+ 
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
