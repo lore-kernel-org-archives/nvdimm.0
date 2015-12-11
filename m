@@ -1,83 +1,72 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v2 02/25] dax: increase granularity of
- dax_clear_blocks() operations
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 09 Dec 2015 18:37:20 -0800
-Message-ID: <20151210023720.30368.14658.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Fri, 11 Dec 2015 12:00:05 -0700
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: Re: [PATCH v3 3/3] nvdimm: Add IOCTL pass thru functions
+Message-ID: <20151211190005.GA58528@tevye.fc.hp.com>
+Reply-To: Jerry.Hoemann@hpe.com
+References: <cover.1449089647.git.jerry.hoemann@hpe.com>
+ <f8e838fb666b7d05e5e1f7527d643181c6f6ba4d.1449089647.git.jerry.hoemann@hpe.com>
+ <CAPcyv4gFNnsbyTy8u-_jBF9JPYH_0a9dNX_R1oj2EH2sdrb=-g@mail.gmail.com>
+ <20151210002442.GA104756@tevye.fc.hp.com>
+ <CAPcyv4guEsT0KKivDkKP3YiW=8Ps8cDkjzY0seQuec3mkg0wMg@mail.gmail.com>
+ <20151211180950.GA57513@tevye.fc.hp.com>
+ <CAPcyv4h-8bm4nxO=5K6vRb3720rtaW8A-VHWRaZAhyw0_tjrvg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, linux-nvdimm@lists.01.org, Jan Kara <jack@suse.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4h-8bm4nxO=5K6vRb3720rtaW8A-VHWRaZAhyw0_tjrvg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_clear_blocks is currently performing a cond_resched() after every
-PAGE_SIZE memset.  We need not check so frequently, for example md-raid
-only calls cond_resched() at stripe granularity.  Also, in preparation
-for introducing a dax_map_atomic() operation that temporarily pins a dax
-mapping move the call to cond_resched() to the outer loop.
+On Fri, Dec 11, 2015 at 10:18:59AM -0800, Dan Williams wrote:
+> On Fri, Dec 11, 2015 at 10:09 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> > On Wed, Dec 09, 2015 at 04:48:55PM -0800, Dan Williams wrote:
+> >> Yes, updating the acpi_evaluate_dsm() definition seems the best choice.
+> >>
+> >
+> > I have a patch for this.  While not big (6 files), these files are
+> > outside of nvdimm and will have a two line of over a dozen reviewers/lists
+> > not previously reviewing this series.
+> 
+> For an acpi change no need to cc all those folks and lists.  Just cc
+> the following for that change:
+> 
+> Bob Moore <robert.moore@intel.com>
+> Lv Zheng <lv.zheng@intel.com>
+> Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> <linux-acpi@vger.kernel.org>
+> 
+> Why 6 files and not 2 for a prototype update?  I wouldn't go touch
+> existing callers of acpi_evaluate_dsm() if they have been living with
+> the potential truncation all this time there's no need to change.
 
-The worst case latency between calls to cond_resched() after this change
-is 500us the average latency is 133us.  This is up from a 10us max and
-4us average.
 
-Reviewed-by: Jan Kara <jack@suse.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |   22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+Wasn't sure the level of lint checking being done on the linux kernel.
+The examples were all of the variety of a caller using and int that
+would be passed to a function with a parameter that would now be
+an u64.  I think Lint can detect such issues.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 19492cc65a30..11721c0fc127 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -28,6 +28,7 @@
- #include <linux/sched.h>
- #include <linux/uio.h>
- #include <linux/vmstat.h>
-+#include <linux/sizes.h>
- 
- /*
-  * dax_clear_blocks() is called from within transaction context from XFS,
-@@ -43,24 +44,17 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long size)
- 	do {
- 		void __pmem *addr;
- 		unsigned long pfn;
--		long count;
-+		long count, sz;
- 
- 		count = bdev_direct_access(bdev, sector, &addr, &pfn, size);
- 		if (count < 0)
- 			return count;
--		BUG_ON(size < count);
--		while (count > 0) {
--			unsigned pgsz = PAGE_SIZE - offset_in_page(addr);
--			if (pgsz > count)
--				pgsz = count;
--			clear_pmem(addr, pgsz);
--			addr += pgsz;
--			size -= pgsz;
--			count -= pgsz;
--			BUG_ON(pgsz & 511);
--			sector += pgsz / 512;
--			cond_resched();
--		}
-+		sz = min_t(long, count, SZ_128K);
-+		clear_pmem(addr, sz);
-+		size -= sz;
-+		BUG_ON(sz & 511);
-+		sector += sz / 512;
-+		cond_resched();
- 	} while (size);
- 
- 	wmb_pmem();
+In addition to acpi_evaluate_dsm,  there are also:
+acpi_check_dsm, acpi_evaluate_dsm_typed using int for these.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Then there were other functions outside of acpica that passed
+value in ints that went to one of the three functions above.
+
+But, I can certainly limit the change to the acpica function
+declaration/definition.  From what I could see the other
+code would still work, just have potential lint issues.
+
+> 
+> > Do you want me to send this patch as one of this series (w/ the
+> > extra reviewers?)
+> 
+> Yes, send that patch with the series so the acpi developers have the
+> context for what motivated the change.
+
+-- 
+
+-----------------------------------------------------------------------------
+Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
+-----------------------------------------------------------------------------
