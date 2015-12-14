@@ -1,132 +1,49 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Sun, 13 Dec 2015 20:20:58 -0700
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v3 0/6] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Sun, 13 Dec 2015 18:54:21 -0700
-Message-Id: <cover.1450036445.git.jerry.hoemann@hpe.com>
+Subject: Re: [PATCH v3 1/6] acpica: Correct parameter type to
+ acpi_evaluate_dsm
+Message-ID: <20151214032058.GA19337@tevye.fc.hp.com>
+Reply-To: Jerry.Hoemann@hpe.com
+References: <cover.1450036445.git.jerry.hoemann@hpe.com>
+ <260ee0c6c9481ceae79b967a95b5e9fe76c2eabc.1450036445.git.jerry.hoemann@hpe.com>
+ <CAJZ5v0jiR80vFxLUN-L7hcChb8m6gasf77TMV6onOprSh_CVHA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0jiR80vFxLUN-L7hcChb8m6gasf77TMV6onOprSh_CVHA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, elliott@hpe.com, jmoyer <jmoyer@redhat.com>, krivenok.dmitry@gmail.com, linda.knippers@hpe.com, Robert Moore <robert.moore@intel.com>, Lv <lv.zheng@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, linux-nvdimm@lists.01.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Mon, Dec 14, 2015 at 03:07:22AM +0100, Rafael J. Wysocki wrote:
+> On Mon, Dec 14, 2015 at 2:54 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> > The ACPI spec speicifies that arguments "Revision ID" and
+> > "Function Index" to a _DSM are type "Integer."  Type Integers
+> > are 64 bit quantities.
+> >
+> > The function evaluate_dsm specifies these types as simple "int"
+> > which are 32 bits.  Correct type passed to acpi_evaluate_dsm
+> > and its callers and derived callers to pass correct type.
+> >
+> > acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
+> > and were corrected as well.
+> >
+> > Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+> 
+> The changes look OK to me, but this is not ACPICA material.
+> 
+> Please change the subject to something like "ACPI / utils: Fix
+> acpi_evaluate_dsm() argument type".
+> 
+> Thanks,
+> Rafael
 
-The NVDIMM code in the kernel supports an IOCTL interface to user
-space based upon the Intel Example DSM:
-
-	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
-
-This interface cannot be used by other NVDIMM DSMs that support
-incompatible functions.
-
-This patch set adds a generic "passthru" IOCTL interface which
-is not tied to a particular DSM.
-
-A new _IOC_NR ND_CMD_CALL_DSM == "10" is added for the pass thru call.
-
-The new data structure nd_cmd_dsmcall_pkg serves as a wrapper for
-the passthru calls.  This wrapper supplies the data that the kernel
-needs to make the _DSM call.
-
-Unlike the definitions of the _DSM functions themselves, the nd_cmd_dsmcall_pkg
-provides the calling information (input/output sizes) in an uniform
-manner making the kernel marshaling of the arguments straight
-forward.
-
-This shifts the marshaling burden from the kernel to the user
-space application while still permitting the kernel to internally
-call _DSM functions.
-
-The kernel functions __nd_ioctl and acpi_nfit_ctl were modified
-to accomodate ND_CMD_CALL_DSM.
-
-These changes are based upon the 4.3 kernel.
-
-
-Changes in version 4:
----------------------
-0. Added patch to correct parameter type passed to acpi_evaluate_dsm
-   ACPI defines arguments rev and fun as 64 bit quanties and the ioctl
-   exports to user face rev and func. We want those to match the ACPI spec.
-
-   Also modified acpi_evaluate_dsm_typed and acpi_check dsm which had
-   similar issue.
-
-1. nd_cmd_dsmcall_pkg rearange a reserve and rounded up total size
-   to 16 byte boundary.
-
-2. Created stand alone patch for the pre-existing security issue related
-   to "read only" IOCTL calls.
-
-3. Added patch for increasing envelope size of IOCTL.  Needed to
-   be able to read in the wrapper to know remaining size to copy in.
-
-   Note: in_env, out_env are statics sized based upon this change.
-
-4. Moved copyin code to table driven nd_cmd_desc 
-
-  Note, the last 40 lines or so of acpi_nfit_ctl will not return _DSM
-  data unless the size allocated in user space buffer equals
-  out_obj->buffer.length.
-
-  The semantic we want in the pass thru case is to return as much
-  of the _DSM data as the user space buffer would accomodate.
-
-  Hence, in acpi_nfit_ctl I have retained the line:
-
-		memcpy(pkg->dsm_buf + pkg->h.dsm_in,
-			out_obj->buffer.pointer,
-			min(pkg->h.dsm_size, pkg->h.dsm_out));
-
-  and the early return from the function.
-
-
-
-
-Changes in version 3:
----------------------
-1. Changed name ND_CMD_PASSTHRU to ND_CMD_CALL_DSM.
-
-2. Value of ND_CMD_CALL_DSM is 10, not 100.
-
-3. Changed name of nd_passthru_pkg to nd_cmd_dsmcall_pkg.
-
-4. Removed separate functions for handling ND_CMD_CALL_DSM.
-   Moved functionality to __nd_ioctl and acpi_nfit_ctl proper.
-   The resultant code looks very different from prior versions.
-
-5. BUGFIX: __nd_ioctl: Change the if read_only switch to use
-	 _IOC_NR cmd (not ioctl_cmd) for better protection.
-
-	Do we want to make a stand alone patch for this issue?
-
-
-Changes in version 2:
----------------------
-1. Cleanup access mode check in nd_ioctl and nvdimm_ioctl.
-2. Change name of ndn_pkg to nd_passthru_pkg
-3. Adjust sizes in nd_passthru_pkg. DSM intergers are 64 bit.
-4. No new ioctl type, instead tunnel into the existing number space.
-5. Push down one function level where determine ioctl cmd type.
-6. re-work diagnostic print/dump message in pass-thru functions.
-
-
-
-
-Jerry Hoemann (6):
-  acpica: Correct parameter type to acpi_evaluate_dsm
-  nvdimm: Clean-up access mode check.
-  nvdimm: Add wrapper for IOCTL pass thru
-  nvdimm: Fix security issue with DSM IOCTL.
-  nvdimm: Increase max envelope size for IOCTL
-  nvdimm: Add IOCTL pass thru functions
-
- drivers/acpi/nfit.c        | 52 ++++++++++++++++++++++++++---------
- drivers/acpi/utils.c       |  4 +--
- drivers/nvdimm/bus.c       | 67 +++++++++++++++++++++++++++++++++++++---------
- include/acpi/acpi_bus.h    |  6 ++---
- include/linux/libnvdimm.h  |  2 +-
- include/uapi/linux/ndctl.h | 19 +++++++++++++
- 6 files changed, 118 insertions(+), 32 deletions(-)
+  Will do.  thanks.
 
 -- 
-1.7.11.3
 
+-----------------------------------------------------------------------------
+Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
+-----------------------------------------------------------------------------
