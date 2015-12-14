@@ -1,50 +1,48 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH] ACPI/Kconfig: Make ACPI_NFIT depend on EFI_STUB on X86
-Date: Tue,  1 Dec 2015 09:20:21 -0700
-Message-Id: <1448986821-8065-1-git-send-email-toshi.kani@hpe.com>
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v3 4/6] nvdimm: Fix security issue with DSM IOCTL.
+Date: Sun, 13 Dec 2015 18:54:25 -0700
+Message-Id: <a438967f7ba34963ecc718a2ae19f93ac1257594.1450036445.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1450036445.git.jerry.hoemann@hpe.com>
+References: <cover.1450036445.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1450036445.git.jerry.hoemann@hpe.com>
+References: <cover.1450036445.git.jerry.hoemann@hpe.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.0 defines NFIT table and new persistent memory types for
-EFI memory table (EFI_PERSISTENT_MEMORY) and e820 table (E820_PMEM).
+Code attempts to prevent certain IOCTL DSM from being called
+when device is opened read only.  This security feature can
+be trivially overcome by changing the size portion of the
+ioctl_command which isn't used.
 
-setup_e820() enabled by EFI_STUB converts EFI_PERSISTENT_MEMORY to
-E820_PMEM for the e820_map table on x86.  When EFI_STUB is disabled,
-x86 kernels rely on the bootloader to perform this conversion.
+Check only the _IOC_NR (i.e. the command).
 
-It was found that the upstream grub bootloader since 2012 has a bug
-that converts EFI_PERSISTENT_MEMORY (or any new type) to E820_RAM,
-which causes the kernel to use persistent memory ranges as regular
-memory and corrupts the data in NVDIMM.
-
-Change ACPI_NFIT to depend on EFI_STUB on x86.  This assures that
-ACPI_NFIT kernels are self-contained and do not rely on the bootloader
-to support ACPI 6.0.
-
-Note, X86_PMEM_LEGACY allows the kernel to use the pmem driver on
-pre-ACPI 6.0 platforms, and does not require ACPI_NFIT enabled.
-
-References: http://www.mail-archive.com/grub-devel@gnu.org/msg23961.html
-Reported-by: Robert Elliott <elliott@hpe.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- drivers/acpi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/nvdimm/bus.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 25dbb76..a58041c 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -441,6 +441,7 @@ config ACPI_NFIT
- 	depends on PHYS_ADDR_T_64BIT
- 	depends on BLK_DEV
- 	depends on ARCH_HAS_MMIO_FLUSH
-+	depends on !X86 || (X86 && EFI_STUB)
- 	select LIBNVDIMM
- 	help
- 	  Infrastructure to probe ACPI 6 compliant platforms for
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 1c81203..87fe545 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -513,10 +513,10 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 
+ 	/* fail write commands (when read-only) */
+ 	if (read_only)
+-		switch (ioctl_cmd) {
+-		case ND_IOCTL_VENDOR:
+-		case ND_IOCTL_SET_CONFIG_DATA:
+-		case ND_IOCTL_ARS_START:
++		switch (cmd) {
++		case ND_CMD_VENDOR:
++		case ND_CMD_SET_CONFIG_DATA:
++		case ND_CMD_ARS_START:
+ 			dev_dbg(&nvdimm_bus->dev, "'%s' command while read-only.\n",
+ 					nvdimm ? nvdimm_cmd_name(cmd)
+ 					: nvdimm_bus_cmd_name(cmd));
+-- 
+1.7.11.3
+
