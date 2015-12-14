@@ -1,173 +1,93 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH -mm 24/25] dax: provide diagnostics for pmd mapping failures
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 07 Dec 2015 17:34:43 -0800
-Message-ID: <20151208013443.25030.39965.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 00/11] Support System RAM resource type and EINJ to NVDIMM
+Date: Mon, 14 Dec 2015 16:37:15 -0700
+Message-Id: <1450136235-17012-1-git-send-email-toshi.kani@hpe.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org, bp@alien8.de
+Cc: torvalds@linux-foundation.org, rafael.j.wysocki@intel.com, dan.j.williams@intel.com, x86@kernel.org, konrad.wilk@oracle.com, xen-devel@lists.xenproject.org, dyoung@redhat.com, vgoyal@redhat.com, tangchen@cn.fujitsu.com, kgene@kernel.org, k.kozlowski@samsung.com, linux-samsung-soc@vger.kernel.org, vishal.l.verma@intel.com, tony.luck@intel.com, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-There is a wide gamut of conditions that can trigger the dax pmd path to
-fallback to pte mappings.  Ideally we'd have a syscall interface to
-determine mapping characteristics after the fact.  In the meantime
-provide debug messages.
+This patch-set introduces a new I/O resource type, IORESOURCE_SYSTEM_RAM,
+for System RAM while keeping the current IORESOURCE_MEM type bit set for
+all memory-mapped ranges (including System RAM) for backward compatibility.
+With the new System RAM type, walking through the iomem resource table
+no longer requires to test with strcmp() against "System RAM".  After this
+infrastructure update, this patch changes EINJ to support NVDIMM.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Patches 1-2 add a new System RAM type, and make resource interfaces work
+with resource flags with modifier bits set.
+
+Patches 3-7 set the System RAM type to System RAM ranges.
+
+Patches 8-10 extend resource interfaces to check System RAM ranges with
+the System RAM type.
+
+Patch 11 changes the EINJ driver to allow injecting a memory error to
+NVDIMM.
+
 ---
- fs/dax.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 48 insertions(+), 9 deletions(-)
+v1:
+ - Searching for System RAM in the resource table should not require
+   strcmp(). (Borislav Petkov)
+ - Add a new System RAM type as a modifier to IORESOURCE_MEM.
+   (Linus Torvalds)
+ - NVDIMM check should remain with strcmp() against "Persistent Memory".
+   (Dan Williams)
+ - Reset patch version.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index b9ab7138f5cb..7bfe6cd59636 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -557,6 +557,14 @@ EXPORT_SYMBOL_GPL(dax_fault);
-  */
- #define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
- 
-+static void dax_pmd_dbg(struct block_device *bdev, unsigned long address,
-+		const char *reason)
-+{
-+	pr_debug("%s%s dax_pmd: %s addr: %lx fallback: %s\n", bdev
-+			? dev_name(part_to_dev(bdev->bd_part)) : "", bdev
-+			? ": " : "", current->comm, address, reason);
-+}
-+
- int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		pmd_t *pmd, unsigned int flags, get_block_t get_block,
- 		dax_iodone_t complete_unwritten)
-@@ -568,7 +576,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	unsigned blkbits = inode->i_blkbits;
- 	unsigned long pmd_addr = address & PMD_MASK;
- 	bool write = flags & FAULT_FLAG_WRITE;
--	struct block_device *bdev;
-+	struct block_device *bdev = NULL;
- 	pgoff_t size, pgoff;
- 	sector_t block;
- 	int result = 0;
-@@ -580,21 +588,29 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	/* Fall back to PTEs if we're going to COW */
- 	if (write && !(vma->vm_flags & VM_SHARED)) {
- 		split_huge_pmd(vma, pmd, address);
-+		dax_pmd_dbg(bdev, address, "cow write");
- 		return VM_FAULT_FALLBACK;
- 	}
- 	/* If the PMD would extend outside the VMA */
--	if (pmd_addr < vma->vm_start)
-+	if (pmd_addr < vma->vm_start) {
-+		dax_pmd_dbg(bdev, address, "vma start unaligned");
- 		return VM_FAULT_FALLBACK;
--	if ((pmd_addr + PMD_SIZE) > vma->vm_end)
-+	}
-+	if ((pmd_addr + PMD_SIZE) > vma->vm_end) {
-+		dax_pmd_dbg(bdev, address, "vma end unaligned");
- 		return VM_FAULT_FALLBACK;
-+	}
- 
- 	pgoff = linear_page_index(vma, pmd_addr);
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (pgoff >= size)
- 		return VM_FAULT_SIGBUS;
- 	/* If the PMD would cover blocks out of the file */
--	if ((pgoff | PG_PMD_COLOUR) >= size)
-+	if ((pgoff | PG_PMD_COLOUR) >= size) {
-+		dax_pmd_dbg(bdev, address,
-+				"offset + huge page size > file size");
- 		return VM_FAULT_FALLBACK;
-+	}
- 
- 	memset(&bh, 0, sizeof(bh));
- 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
-@@ -610,8 +626,10 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	 * just fall back to PTEs.  Calling get_block 512 times in a loop
- 	 * would be silly.
- 	 */
--	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
-+	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
-+		dax_pmd_dbg(bdev, address, "block allocation size invalid");
- 		goto fallback;
-+	}
- 
- 	/*
- 	 * If we allocated new storage, make sure no process has any
-@@ -634,23 +652,33 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		result = VM_FAULT_SIGBUS;
- 		goto out;
- 	}
--	if ((pgoff | PG_PMD_COLOUR) >= size)
-+	if ((pgoff | PG_PMD_COLOUR) >= size) {
-+		dax_pmd_dbg(bdev, address, "pgoff unaligned");
- 		goto fallback;
-+	}
- 
- 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
- 		spinlock_t *ptl;
- 		pmd_t entry;
- 		struct page *zero_page = get_huge_zero_page();
- 
--		if (unlikely(!zero_page))
-+		if (unlikely(!zero_page)) {
-+			dax_pmd_dbg(bdev, address, "no zero page");
- 			goto fallback;
-+		}
- 
- 		ptl = pmd_lock(vma->vm_mm, pmd);
- 		if (!pmd_none(*pmd)) {
- 			spin_unlock(ptl);
-+			dax_pmd_dbg(bdev, address, "pmd already present");
- 			goto fallback;
- 		}
- 
-+		dev_dbg(part_to_dev(bdev->bd_part),
-+				"%s: %s addr: %lx pfn: <zero> sect: %llx\n",
-+				__func__, current->comm, address,
-+				(unsigned long long) to_sector(&bh, inode));
-+
- 		entry = mk_pmd(zero_page, vma->vm_page_prot);
- 		entry = pmd_mkhuge(entry);
- 		set_pmd_at(vma->vm_mm, pmd_addr, pmd, entry);
-@@ -667,8 +695,13 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 			result = VM_FAULT_SIGBUS;
- 			goto out;
- 		}
--		if (length < PMD_SIZE
--				|| (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR)) {
-+		if (length < PMD_SIZE) {
-+			dax_pmd_dbg(bdev, address, "dax-length too small");
-+			dax_unmap_atomic(bdev, &dax);
-+			goto fallback;
-+		}
-+		if (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR) {
-+			dax_pmd_dbg(bdev, address, "pfn unaligned");
- 			dax_unmap_atomic(bdev, &dax);
- 			goto fallback;
- 		}
-@@ -679,6 +712,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		 */
- 		if (pfn_t_has_page(dax.pfn)) {
- 			dax_unmap_atomic(bdev, &dax);
-+			dax_pmd_dbg(bdev, address, "pfn not in memmap");
- 			goto fallback;
- 		}
- 
-@@ -691,6 +725,11 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		}
- 		dax_unmap_atomic(bdev, &dax);
- 
-+		dev_dbg(part_to_dev(bdev->bd_part),
-+				"%s: %s addr: %lx pfn: %lx sect: %llx\n",
-+				__func__, current->comm, address,
-+				pfn_t_to_pfn(dax.pfn),
-+				(unsigned long long) dax.sector);
- 		result |= vmf_insert_pfn_pmd(vma, address, pmd,
- 				dax.pfn, write);
- 	}
+prev-v3:
+ - Check the param2 value before target memory type. (Tony Luck)
+ - Add a blank line before if-statement. Remove an unnecessary brakets.
+   (Borislav Petkov)
+
+prev-v2:
+ - Change the EINJ driver to call region_intersects_ram() for checking
+   RAM with a specified size. (Dan Williams)
+
+---
+Toshi Kani (11):
+ 01/11 resource: Add System RAM resource type
+ 02/11 resource: make resource flags handled properly
+ 03/11 x86/e820: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 04/11 arch: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 05/11 xen: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 06/11 kexec: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 07/11 memory-hotplug: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 08/11 memremap: Change region_intersects() to use System RAM type
+ 09/11 resource: Change walk_system_ram to use System RAM type
+ 10/11 arm/samsung: Change s3c_pm_run_res() to use System RAM type
+ 11/11 ACPI/EINJ: Allow memory error injection to NVDIMM
+
+---
+ arch/arm/kernel/setup.c          |  6 ++---
+ arch/arm/plat-samsung/pm-check.c |  4 +--
+ arch/arm64/kernel/setup.c        |  6 ++---
+ arch/avr32/kernel/setup.c        |  6 ++---
+ arch/ia64/kernel/efi.c           |  6 +++--
+ arch/ia64/kernel/setup.c         |  6 ++---
+ arch/m32r/kernel/setup.c         |  4 +--
+ arch/mips/kernel/setup.c         | 10 +++++---
+ arch/parisc/mm/init.c            |  6 ++---
+ arch/powerpc/mm/mem.c            |  2 +-
+ arch/s390/kernel/setup.c         |  8 +++---
+ arch/score/kernel/setup.c        |  2 +-
+ arch/sh/kernel/setup.c           |  8 +++---
+ arch/sparc/mm/init_64.c          |  8 +++---
+ arch/tile/kernel/setup.c         | 11 +++++---
+ arch/unicore32/kernel/setup.c    |  6 ++---
+ arch/x86/kernel/e820.c           | 18 +++++++++++++-
+ arch/x86/kernel/setup.c          |  6 ++---
+ drivers/acpi/apei/einj.c         | 15 ++++++++---
+ drivers/xen/balloon.c            |  2 +-
+ include/linux/ioport.h           | 11 ++++++++
+ include/linux/mm.h               |  3 ++-
+ kernel/kexec_core.c              |  6 ++---
+ kernel/kexec_file.c              |  2 +-
+ kernel/memremap.c                | 13 +++++-----
+ kernel/resource.c                | 54 +++++++++++++++++++++-------------------
+ mm/memory_hotplug.c              |  2 +-
+ 27 files changed, 140 insertions(+), 91 deletions(-)
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
