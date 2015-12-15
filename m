@@ -1,85 +1,109 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v3 0/3] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Wed,  2 Dec 2015 14:05:18 -0700
-Message-Id: <cover.1449089647.git.jerry.hoemann@hpe.com>
+Subject: [PATCH 9/9] libnvdimm, pfn: move 'memory mode' indication to sysfs
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 14 Dec 2015 18:15:16 -0800
+Message-ID: <20151215021516.37090.8022.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+To: linux-nvdimm@lists.01.org
+Cc: willy@linux.intel.com, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+'Memory mode' is defined as the capability of a DAX mapping to be the
+source/target of DMA and other "direct I/O" scenarios.  While it
+currently requires allocating 'struct page' for each page frame of
+persistent memory in the namespace it will not always be the case.  Work
+continues on reducing the kernel's dependency on 'struct page'.
 
-The NVDIMM code in the kernel supports an IOCTL interface to user
-space based upon the Intel Example DSM:
+Let's not maintain a suffix that is expected to lose meaning over time.
+In other words a future 'raw mode' pmem namespace may be as capable as
+today's 'memory mode' namespace.  Undo the encoding of the mode in the
+device name and leave it to other tooling to determine the mode of the
+namespace from its attributes.
 
-	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+Reported-by: Matthew Wilcox <willy@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/namespace_devs.c |   41 +++++++++++++++++++++++++++------------
+ 1 file changed, 28 insertions(+), 13 deletions(-)
 
-This interface cannot be used by other NVDIMM DSMs that support
-incompatible functions.
-
-This patch set adds a generic "passthru" IOCTL interface which
-is not tied to a particular DSM.
-
-A new _IOC_NR ND_CMD_CALL_DSM == "10" is added for the pass thru call.
-
-The new data structure nd_cmd_dsmcall_pkg serves as a wrapper for
-the passthru calls.  This wrapper supplies the data that the kernel
-needs to make the _DSM call.
-
-Unlike the definitions of the _DSM functions themselves, the nd_cmd_dsmcall_pkg
-provides the calling information (input/output sizes) in an uniform
-manner making the kernel marshaling of the arguments straight
-forward.
-
-This shifts the marshaling burden from the kernel to the user
-space application while still permitting the kernel to internally
-calling _DSM functions.
-
-The kernel functions __nd_ioctl and acpi_nfit_ctl were modified
-to accomodate ND_CMD_CALL_DSM.
-
-These changes are based upon the 4.3 kernel.
-
-
-Changes in version 3:
----------------------
-1. Changed name ND_CMD_PASSTHRU to ND_CMD_CALL_DSM.
-
-2. Value of ND_CMD_CALL_DSM is 10, not 100.
-
-3. Changed name of nd_passthru_pkg to nd_cmd_dsmcall_pkg.
-
-4. Removed separate functions for handling ND_CMD_CALL_DSM.
-   Moved functionality to __nd_ioctl and acpi_nfit_ctl proper.
-   The resultant code looks very different from prior versions.
-
-5. BUGFIX: __nd_ioctl: Change the if read_only switch to use
-	 _IOC_NR cmd (not ioctl_cmd) for better protection.
-
-	Do we want to make a stand alone patch for this issue?
-
-
-Changes in version 2:
----------------------
-1. Cleanup access mode check in nd_ioctl and nvdimm_ioctl.
-2. Change name of ndn_pkg to nd_passthru_pkg
-3. Adjust sizes in nd_passthru_pkg. DSM intergers are 64 bit.
-4. No new ioctl type, instead tunnel into the existing number space.
-5. Push down one function level where determine ioctl cmd type.
-6. re-work diagnostic print/dump message in pass-thru functions.
-
-
-
-Jerry Hoemann (3):
-  nvdimm: Clean-up access mode check.
-  nvdimm: Add wrapper for IOCTL pass thru
-  nvdimm: Add IOCTL pass thru functions
-
- drivers/acpi/nfit.c        | 109 ++++++++++++++++++++++++++++-----------------
- drivers/nvdimm/bus.c       |  73 +++++++++++++++++++++---------
- include/uapi/linux/ndctl.h |  18 ++++++++
- 3 files changed, 139 insertions(+), 61 deletions(-)
-
--- 
-1.7.11.3
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index ea8dd0cb28ca..ee6dee41155a 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -104,20 +104,10 @@ const char *nvdimm_namespace_disk_name(struct nd_namespace_common *ndns,
+ 	struct nd_region *nd_region = to_nd_region(ndns->dev.parent);
+ 	const char *suffix = NULL;
+ 
+-	if (ndns->claim) {
+-		if (is_nd_btt(ndns->claim))
+-			suffix = "s";
+-		else if (is_nd_pfn(ndns->claim))
+-			suffix = "m";
+-		else
+-			dev_WARN_ONCE(&ndns->dev, 1,
+-					"unknown claim type by %s\n",
+-					dev_name(ndns->claim));
+-	}
++	if (ndns->claim && is_nd_btt(ndns->claim))
++		suffix = "s";
+ 
+ 	if (is_namespace_pmem(&ndns->dev) || is_namespace_io(&ndns->dev)) {
+-		if (!suffix && pmem_should_map_pages(&ndns->dev))
+-			suffix = "m";
+ 		sprintf(name, "pmem%d%s", nd_region->id, suffix ? suffix : "");
+ 	} else if (is_namespace_blk(&ndns->dev)) {
+ 		struct nd_namespace_blk *nsblk;
+@@ -1224,6 +1214,29 @@ static ssize_t holder_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(holder);
+ 
++static ssize_t mode_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_namespace_common *ndns = to_ndns(dev);
++	struct device *claim;
++	char *mode;
++	ssize_t rc;
++
++	device_lock(dev);
++	claim = ndns->claim;
++	if (pmem_should_map_pages(dev) || (claim && is_nd_pfn(claim)))
++		mode = "memory";
++	else if (claim && is_nd_btt(claim))
++		mode = "safe";
++	else
++		mode = "raw";
++	rc = sprintf(buf, "%s\n", mode);
++	device_unlock(dev);
++
++	return rc;
++}
++static DEVICE_ATTR_RO(mode);
++
+ static ssize_t force_raw_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+@@ -1247,6 +1260,7 @@ static DEVICE_ATTR_RW(force_raw);
+ static struct attribute *nd_namespace_attributes[] = {
+ 	&dev_attr_nstype.attr,
+ 	&dev_attr_size.attr,
++	&dev_attr_mode.attr,
+ 	&dev_attr_uuid.attr,
+ 	&dev_attr_holder.attr,
+ 	&dev_attr_resource.attr,
+@@ -1280,7 +1294,8 @@ static umode_t namespace_visible(struct kobject *kobj,
+ 
+ 	if (a == &dev_attr_nstype.attr || a == &dev_attr_size.attr
+ 			|| a == &dev_attr_holder.attr
+-			|| a == &dev_attr_force_raw.attr)
++			|| a == &dev_attr_force_raw.attr
++			|| a == &dev_attr_mode.attr)
+ 		return a->mode;
+ 
+ 	return 0;
 
