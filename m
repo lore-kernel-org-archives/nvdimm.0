@@ -1,53 +1,81 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v6 5/7] ext2: call dax_pfn_mkwrite() for DAX fsync/msync
-Date: Wed, 23 Dec 2015 12:39:18 -0700
-Message-Id: <1450899560-26708-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH 6/9] libnvdimm, pfn: enable pfn sysfs interface unit testing
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 14 Dec 2015 18:15:00 -0800
+Message-ID: <20151215021500.37090.54924.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: willy@linux.intel.com, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+The unit test infrastructure uses CMA and real memory to emulate nvdimm
+resources.  The call to devm_memremap_pages() can simply be mocked in
+the same manner as memremap and we mock phys_to_pfn_t() to clear PFN_MAP
+since these resources are not registered with in the pgmap_radix.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/ext2/file.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ tools/testing/nvdimm/Kbuild       |    2 ++
+ tools/testing/nvdimm/test/iomap.c |   30 ++++++++++++++++++++++++++++++
+ 2 files changed, 32 insertions(+)
 
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index 11a42c5..2c88d68 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -102,8 +102,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index 38b00ecb2ed5..a34bfd0c8928 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -9,6 +9,8 @@ ldflags-y += --wrap=memunmap
+ ldflags-y += --wrap=__devm_request_region
+ ldflags-y += --wrap=__request_region
+ ldflags-y += --wrap=__release_region
++ldflags-y += --wrap=devm_memremap_pages
++ldflags-y += --wrap=phys_to_pfn_t
+ 
+ DRIVERS := ../../../drivers
+ NVDIMM_SRC := $(DRIVERS)/nvdimm
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index b7251314bbc0..802d3a173ccf 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -94,6 +94,36 @@ void *__wrap_devm_memremap(struct device *dev, resource_size_t offset,
+ }
+ EXPORT_SYMBOL(__wrap_devm_memremap);
+ 
++void *__wrap_devm_memremap_pages(struct device *dev, struct resource *res)
++{
++	struct nfit_test_resource *nfit_res;
++	resource_size_t offset = res->start;
++
++	rcu_read_lock();
++	nfit_res = get_nfit_res(offset);
++	rcu_read_unlock();
++	if (nfit_res)
++		return nfit_res->buf + offset - nfit_res->res->start;
++	return devm_memremap_pages(dev, res);
++}
++EXPORT_SYMBOL(__wrap_devm_memremap_pages);
++
++#ifdef PFN_MAP
++pfn_t __wrap_phys_to_pfn_t(dma_addr_t addr, unsigned long flags)
++{
++	struct nfit_test_resource *nfit_res;
++
++	rcu_read_lock();
++	nfit_res = get_nfit_res(offset);
++	rcu_read_unlock();
++
++	if (nfit_res)
++		flags &= ~PFN_MAP;
++        return phys_to_pfn_t(addr >> PAGE_SHIFT, flags);
++}
++EXPORT_SYMBOL(__wrap_phys_to_pfn_t);
++#endif
++
+ void *__wrap_memremap(resource_size_t offset, size_t size,
+ 		unsigned long flags)
  {
- 	struct inode *inode = file_inode(vma->vm_file);
- 	struct ext2_inode_info *ei = EXT2_I(inode);
--	int ret = VM_FAULT_NOPAGE;
- 	loff_t size;
-+	int ret;
- 
- 	sb_start_pagefault(inode->i_sb);
- 	file_update_time(vma->vm_file);
-@@ -113,6 +113,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 
- 	up_read(&ei->dax_sem);
- 	sb_end_pagefault(inode->i_sb);
--- 
-2.6.3
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
