@@ -1,48 +1,40 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v3 4/6] nvdimm: Fix security issue with DSM IOCTL.
-Date: Sun, 13 Dec 2015 18:54:25 -0700
-Message-Id: <a438967f7ba34963ecc718a2ae19f93ac1257594.1450036445.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1450036445.git.jerry.hoemann@hpe.com>
-References: <cover.1450036445.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1450036445.git.jerry.hoemann@hpe.com>
-References: <cover.1450036445.git.jerry.hoemann@hpe.com>
+Subject: [PATCH 7/9] libnvdimm,
+ pfn: fix nd_pfn_validate() return value handling
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 14 Dec 2015 18:15:05 -0800
+Message-ID: <20151215021505.37090.61896.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+To: linux-nvdimm@lists.01.org
+Cc: willy@linux.intel.com, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Code attempts to prevent certain IOCTL DSM from being called
-when device is opened read only.  This security feature can
-be trivially overcome by changing the size portion of the
-ioctl_command which isn't used.
+The -ENODEV case indicates that the info-block needs to established.
+All other return codes cause nd_pfn_init() to abort.
 
-Check only the _IOC_NR (i.e. the command).
-
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/bus.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/nvdimm/pmem.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 1c81203..87fe545 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -513,10 +513,10 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index dc6866734f70..ab689bca727d 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -238,7 +238,9 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
  
- 	/* fail write commands (when read-only) */
- 	if (read_only)
--		switch (ioctl_cmd) {
--		case ND_IOCTL_VENDOR:
--		case ND_IOCTL_SET_CONFIG_DATA:
--		case ND_IOCTL_ARS_START:
-+		switch (cmd) {
-+		case ND_CMD_VENDOR:
-+		case ND_CMD_SET_CONFIG_DATA:
-+		case ND_CMD_ARS_START:
- 			dev_dbg(&nvdimm_bus->dev, "'%s' command while read-only.\n",
- 					nvdimm ? nvdimm_cmd_name(cmd)
- 					: nvdimm_bus_cmd_name(cmd));
--- 
-1.7.11.3
+ 	nd_pfn->pfn_sb = pfn_sb;
+ 	rc = nd_pfn_validate(nd_pfn);
+-	if (rc == 0 || rc == -EBUSY)
++	if (rc == -ENODEV)
++		/* no info block, do init */;
++	else
+ 		return rc;
+ 
+ 	nd_region = to_nd_region(nd_pfn->dev.parent);
 
