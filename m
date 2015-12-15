@@ -1,92 +1,106 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH 7/8] xfs: Support for transparent PUD pages
-Date: Thu, 24 Dec 2015 11:20:36 -0500
-Message-Id: <1450974037-24775-8-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
-Sender: owner-linux-mm@kvack.org
-Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH 1/9] libnvdimm, pfn: kill ND_PFN_ALIGN
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 14 Dec 2015 18:14:34 -0800
+Message-ID: <20151215021434.37090.56710.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: willy@linux.intel.com, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <willy@linux.intel.com>
+The alignment constraint isn't necessary now that devm_memremap_pages()
+allows for unaligned mappings.
 
-Call into DAX to provide support for PUD pages, just like the PMD cases.
-
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/xfs_file.c  | 33 +++++++++++++++++++++++++++++++++
- fs/xfs/xfs_trace.h |  1 +
- 2 files changed, 34 insertions(+)
+ drivers/nvdimm/nd.h       |    7 -------
+ drivers/nvdimm/pfn_devs.c |   11 +----------
+ drivers/nvdimm/pmem.c     |   15 ---------------
+ 3 files changed, 1 insertion(+), 32 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index f5392ab..a81b942 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1600,6 +1600,38 @@ xfs_filemap_pmd_fault(
- 	return ret;
- }
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 417e521d299c..2ce428e9b584 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -29,13 +29,6 @@ enum {
+ 	ND_MAX_LANES = 256,
+ 	SECTOR_SHIFT = 9,
+ 	INT_LBASIZE_ALIGNMENT = 64,
+-#if IS_ENABLED(CONFIG_NVDIMM_PFN)
+-	ND_PFN_ALIGN = PAGES_PER_SECTION * PAGE_SIZE,
+-	ND_PFN_MASK = ND_PFN_ALIGN - 1,
+-#else
+-	ND_PFN_ALIGN = 0,
+-	ND_PFN_MASK = 0,
+-#endif
+ };
  
-+STATIC int
-+xfs_filemap_pud_fault(
-+	struct vm_area_struct	*vma,
-+	unsigned long		addr,
-+	pud_t			*pud,
-+	unsigned int		flags)
-+{
-+	struct inode		*inode = file_inode(vma->vm_file);
-+	struct xfs_inode	*ip = XFS_I(inode);
-+	int			ret;
-+
-+	if (!IS_DAX(inode))
-+		return VM_FAULT_FALLBACK;
-+
-+	trace_xfs_filemap_pud_fault(ip);
-+
-+	if (flags & FAULT_FLAG_WRITE) {
-+		sb_start_pagefault(inode->i_sb);
-+		file_update_time(vma->vm_file);
-+	}
-+
-+	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-+	ret = __dax_pud_fault(vma, addr, pud, flags, xfs_get_blocks_dax_fault,
-+			      NULL);
-+	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-+
-+	if (flags & FAULT_FLAG_WRITE)
-+		sb_end_pagefault(inode->i_sb);
-+
-+	return ret;
-+}
-+
- /*
-  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
-  * updates on write faults. In reality, it's need to serialise against
-@@ -1637,6 +1669,7 @@ xfs_filemap_pfn_mkwrite(
- static const struct vm_operations_struct xfs_file_vm_ops = {
- 	.fault		= xfs_filemap_fault,
- 	.pmd_fault	= xfs_filemap_pmd_fault,
-+	.pud_fault	= xfs_filemap_pud_fault,
- 	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= xfs_filemap_page_mkwrite,
- 	.pfn_mkwrite	= xfs_filemap_pfn_mkwrite,
-diff --git a/fs/xfs/xfs_trace.h b/fs/xfs/xfs_trace.h
-index 877079eb..16442bb 100644
---- a/fs/xfs/xfs_trace.h
-+++ b/fs/xfs/xfs_trace.h
-@@ -688,6 +688,7 @@ DEFINE_INODE_EVENT(xfs_inode_free_eofblocks_invalid);
+ struct nvdimm_drvdata {
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 71805a1aa0f3..96c122918ee1 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -241,10 +241,6 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn)
+ 	if (!is_nd_pmem(nd_pfn->dev.parent))
+ 		return -ENODEV;
  
- DEFINE_INODE_EVENT(xfs_filemap_fault);
- DEFINE_INODE_EVENT(xfs_filemap_pmd_fault);
-+DEFINE_INODE_EVENT(xfs_filemap_pud_fault);
- DEFINE_INODE_EVENT(xfs_filemap_page_mkwrite);
- DEFINE_INODE_EVENT(xfs_filemap_pfn_mkwrite);
+-	/* section alignment for simple hotplug */
+-	if (nvdimm_namespace_capacity(ndns) < ND_PFN_ALIGN)
+-		return -ENODEV;
+-
+ 	if (nvdimm_read_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb)))
+ 		return -ENXIO;
  
--- 
-2.6.2
+@@ -286,12 +282,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn)
+ 	 */
+ 	offset = le64_to_cpu(pfn_sb->dataoff);
+ 	nsio = to_nd_namespace_io(&ndns->dev);
+-	if (nsio->res.start & ND_PFN_MASK) {
+-		dev_err(&nd_pfn->dev,
+-				"init failed: %s not section aligned\n",
+-				dev_name(&ndns->dev));
+-		return -EBUSY;
+-	} else if (offset >= resource_size(&nsio->res)) {
++	if (offset >= resource_size(&nsio->res)) {
+ 		dev_err(&nd_pfn->dev, "pfn array size exceeds capacity of %s\n",
+ 				dev_name(&ndns->dev));
+ 		return -EBUSY;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 8ee79893d2f5..520c00321dad 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -241,11 +241,6 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	if (rc == 0 || rc == -EBUSY)
+ 		return rc;
+ 
+-	/* section alignment for simple hotplug */
+-	if (nvdimm_namespace_capacity(ndns) < ND_PFN_ALIGN
+-			|| pmem->phys_addr & ND_PFN_MASK)
+-		return -ENODEV;
+-
+ 	nd_region = to_nd_region(nd_pfn->dev.parent);
+ 	if (nd_region->ro) {
+ 		dev_info(&nd_pfn->dev,
+@@ -326,16 +321,6 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
+ 	if (rc)
+ 		return rc;
+ 
+-	if (PAGE_SIZE != SZ_4K) {
+-		dev_err(dev, "only supported on systems with 4K PAGE_SIZE\n");
+-		return -ENXIO;
+-	}
+-	if (nsio->res.start & ND_PFN_MASK) {
+-		dev_err(dev, "%s not memory hotplug section aligned\n",
+-				dev_name(&ndns->dev));
+-		return -ENXIO;
+-	}
+-
+ 	pfn_sb = nd_pfn->pfn_sb;
+ 	offset = le64_to_cpu(pfn_sb->dataoff);
+ 	nd_pfn->mode = le32_to_cpu(nd_pfn->pfn_sb->mode);
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
