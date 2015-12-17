@@ -1,137 +1,39 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Thu, 17 Dec 2015 18:46:41 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: -next regression: "driver cohandle -EPROBE_DEFER from
- bus_type.match()"
-Message-ID: <20151217184641.GI8644@n2100.arm.linux.org.uk>
-References: <CAPcyv4hOJuT=i2A_0vDQHsL7MXNgVN_p17q3UW6EcTkxsCMmeg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 In-Reply-To: <CAPcyv4hOJuT=i2A_0vDQHsL7MXNgVN_p17q3UW6EcTkxsCMmeg@mail.gmail.com>
+References: <CAPcyv4hOJuT=i2A_0vDQHsL7MXNgVN_p17q3UW6EcTkxsCMmeg@mail.gmail.com>
+Date: Thu, 17 Dec 2015 10:50:48 -0700
+Message-ID: <CAOxpaSW=t6WCLrZryBE4j91nnWdT9ckiV_L9ZRsxS8NuOgcVrQ@mail.gmail.com>
+Subject: Re: -next regression: "driver cohandle -EPROBE_DEFER from bus_type.match()"
+From: Ross Zwisler <zwisler@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: tomeu.vizoso@collabora.com, m.szyprowski@samsung.com, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>, Stephen Rothwell <sfr@canb.auug.org.au>, tomeu.vizoso@collabora.com, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, m.szyprowski@samsung.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Dec 17, 2015 at 07:51:14AM -0800, Dan Williams wrote:
+On Thu, Dec 17, 2015 at 8:51 AM, Dan Williams <dan.j.williams@intel.com> wrote:
 > The commit below causes the libnvdimm sub-system to stop loading.
 > This is due to the fact that nvdimm_bus_match() returns the result of
 > test_bit() which may be negative.  If there are any other bus match
 > functions using test_bit they may be similarly impacted.
-> 
+>
 > Can we queue a fixup like the following to libnvdimm, and maybe
 > others, ahead of this driver core change?
+>
+> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+> index 7e2c43f701bc..2b2181cdeb63 100644
+> --- a/drivers/nvdimm/bus.c
+> +++ b/drivers/nvdimm/bus.c
+> @@ -62,7 +62,7 @@ static int nvdimm_bus_match(struct device *dev,
+> struct device_driver *drv)
+> {
+>        struct nd_device_driver *nd_drv = to_nd_device_driver(drv);
+>
+> -       return test_bit(to_nd_device_type(dev), &nd_drv->type);
+> +       return !!test_bit(to_nd_device_type(dev), &nd_drv->type);
 
-This is rather annoying.  Have we uncovered a latent bug in other
-architectures?  Well, looking through the test_bit() implementations,
-it looks like it.
-
-I'll drop the patch set for the time being, we can't go around breaking
-stuff like this.  However, I think the test_bit() result should be
-regularised across different architectures - it _looks_ to me like most
-implementations return 0/1 values, but there may be some that don't
-(maybe the assembly versions?)
-
-Here's the list I've pulled out so far from the "easy" cases, which all
-look like they're returning 0/1 values.
-
-asm-generic: 0/1
-
-/**
- * test_bit - Determine whether a bit is set
- * @nr: bit number to test
- * @addr: Address to start counting from
- */
-static inline int test_bit(int nr, const volatile unsigned long *addr)
-{
-        return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
-}
-
-alpha: 0/1
-
-static inline int
-test_bit(int nr, const volatile void * addr)
-{
-        return (1UL & (((const int *) addr)[nr >> 5] >> (nr & 31))) != 0UL;
-}
-
-arm: 0/1
-
-test_bit(unsigned int nr, const volatile unsigned long *addr)
-{
-        unsigned long mask;
-
-        addr += nr >> 5;
-
-        mask = 1UL << (nr & 0x1f);
-
-        return ((mask & *addr) != 0);
-}
-
-blackfin: 0/1
-
-static inline int test_bit(int nr, const volatile unsigned long *addr)
-{
-        volatile const unsigned long *a = addr + (nr >> 5);
-        return __raw_bit_test_asm(a, nr & 0x1f) != 0;
-}
-
-frv: 0/1
-
-static inline int
-__constant_test_bit(unsigned long nr, const volatile void *addr)
-{
-        return ((1UL << (nr & 31)) & (((const volatile unsigned int *) addr)[nr >> 5])) != 0;
-}
-(and similar for __test_bit)
-
-h8300 uses assembly... no idea
-
-hexagon uses assembly as well... no idea
-
-ia64: 0/1
-
-static __inline__ int
-test_bit (int nr, const volatile void *addr)
-{
-        return 1 & (((const volatile __u32 *) addr)[nr >> 5] >> (nr & 31));
-}
-
-m68k: 0/1
-
-static inline int test_bit(int nr, const unsigned long *vaddr)
-{
-        return (vaddr[nr >> 5] & (1UL << (nr & 31))) != 0;
-}
-
-mn10300: 0/1
-
-static inline int test_bit(unsigned long nr, const volatile void *addr)
-{
-        return 1UL & (((const volatile unsigned int *) addr)[nr >> 5] >> (nr & 31));
-}
-
-s390: 0/1
-
-static inline int test_bit(unsigned long nr, const volatile unsigned long *ptr)
-{
-        const volatile unsigned char *addr;
-
-        addr = ((const volatile unsigned char *)ptr);
-        addr += (nr ^ (BITS_PER_LONG - 8)) >> 3;
-        return (*addr >> (nr & 7)) & 1;
-}
-
-x86: 0/1 for constant, ? for variable
-
-static __always_inline int constant_test_bit(long nr, const volatile unsigned long *addr)
-{
-        return ((1UL << (nr & (BITS_PER_LONG-1))) &
-                (addr[nr >> _BITOPS_LONG_SHIFT])) != 0;
-}
-(presumably variable_test_bit is the same, but I don't know)
-
--- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+How is this call to test_bit() returning a negative value?  That can
+only happen if the bit number we supply is 63, correct?  I only see
+to_nd_device_type() returning 1-6 for the defines ND_DEVICE_DIMM thru
+ND_DEVICE_NAMESPACE_BLK?
