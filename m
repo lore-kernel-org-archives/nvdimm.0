@@ -1,111 +1,58 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v2 07/25] um: kill pfn_t
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 09 Dec 2015 18:37:47 -0800
-Message-ID: <20151210023747.30368.62997.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, Richard Weinberger <richard@nod.at>, Jeff Dike <jdike@addtoit.com>, Dave Hansen <dave@sr71.net>, linux-mm@kvack.org
+In-Reply-To: <20151217222656.1249.96719.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151217222656.1249.96719.stgit@dwillia2-desk3.jf.intel.com>
+Date: Thu, 17 Dec 2015 14:38:10 -0800
+Message-ID: <CAPcyv4hg8Tqs0h__-4hc8qVkekRok+osiXawHGnr==0ZQtAXsQ@mail.gmail.com>
+Subject: Re: [PATCH] block: fix del_gendisk() vs blkdev_ioctl crash
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jens Axboe <axboe@fb.com>
+Cc: linux-block@vger.kernel.org, Robert Hu <robert.hu@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The core has developed a need for a "pfn_t" type [1].  Convert the usage
-of pfn_t by usermode-linux to an unsigned long, and update pfn_to_phys()
-to drop its expectation of a typed pfn.
+On Thu, Dec 17, 2015 at 2:26 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> When tearing down a block device early in its lifetime, userspace may
+> still be performing discovery actions like blkdev_ioctl() to re-read
+> partitions.
+>
+> The nvdimm_revalidate_disk() implementation depends on
+> disk->driverfs_dev to be valid at entry.  However, it is set to NULL in
+> del_gendisk() and fatally this is happening *before* the disk device is
+> deleted from userspace view.
+>
+> There's no reason for del_gendisk() to clear ->driverfs_dev.  That
+> device is the parent of the disk.  It is guaranteed to not be freed
+> until the disk, as a child, drops its ->parent reference.
+>
+> We could also fix this issue locally in nvdimm_revalidate_disk() by
+> using disk_to_dev(disk)->parent, but lets fix it globally since
+> ->driverfs_dev follows the lifetime of the parent.  Longer term we
+> should probably just add a @parent parameter to add_disk(), and stop
+> carrying this pointer in the gendisk.
+>
+>  BUG: unable to handle kernel NULL pointer dereference at           (null)
+>  IP: [<ffffffffa00340a8>] nvdimm_revalidate_disk+0x18/0x90 [libnvdimm]
+>  CPU: 2 PID: 538 Comm: systemd-udevd Tainted: G           O    4.4.0-rc5 #2257
+>  [..]
+>  Call Trace:
+>   [<ffffffff8143e5c7>] rescan_partitions+0x87/0x2c0
+>   [<ffffffff810f37f9>] ? __lock_is_held+0x49/0x70
+>   [<ffffffff81438c62>] __blkdev_reread_part+0x72/0xb0
+>   [<ffffffff81438cc5>] blkdev_reread_part+0x25/0x40
+>   [<ffffffff8143982d>] blkdev_ioctl+0x4fd/0x9c0
+>   [<ffffffff811246c9>] ? current_kernel_time64+0x69/0xd0
+>   [<ffffffff812916dd>] block_ioctl+0x3d/0x50
+>   [<ffffffff81264c38>] do_vfs_ioctl+0x308/0x560
+>   [<ffffffff8115dbd1>] ? __audit_syscall_entry+0xb1/0x100
+>   [<ffffffff810031d6>] ? do_audit_syscall_entry+0x66/0x70
+>   [<ffffffff81264f09>] SyS_ioctl+0x79/0x90
+>   [<ffffffff81902672>] entry_SYSCALL_64_fastpath+0x12/0x76
+>
+> Reported-by: Robert Hu <robert.hu@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-September/002199.html
+I forgot to add:
 
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/um/include/asm/page.h           |    7 +++----
- arch/um/include/asm/pgtable-3level.h |    4 ++--
- arch/um/include/asm/pgtable.h        |    2 +-
- 3 files changed, 6 insertions(+), 7 deletions(-)
-
-diff --git a/arch/um/include/asm/page.h b/arch/um/include/asm/page.h
-index 71c5d132062a..e13d41c392ae 100644
---- a/arch/um/include/asm/page.h
-+++ b/arch/um/include/asm/page.h
-@@ -18,6 +18,7 @@
- 
- struct page;
- 
-+#include <linux/pfn.h>
- #include <linux/types.h>
- #include <asm/vm-flags.h>
- 
-@@ -52,7 +53,6 @@ typedef struct { unsigned long pgd; } pgd_t;
- #define pmd_val(x)	((x).pmd)
- #define __pmd(x) ((pmd_t) { (x) } )
- 
--typedef unsigned long long pfn_t;
- typedef unsigned long long phys_t;
- 
- #else
-@@ -76,7 +76,6 @@ typedef struct { unsigned long pmd; } pmd_t;
- #define pte_is_zero(p) (!((p).pte & ~_PAGE_NEWPAGE))
- #define pte_set_val(p, phys, prot) (p).pte = (phys | pgprot_val(prot))
- 
--typedef unsigned long pfn_t;
- typedef unsigned long phys_t;
- 
- #endif
-@@ -109,8 +108,8 @@ extern unsigned long uml_physmem;
- #define __pa(virt) to_phys((void *) (unsigned long) (virt))
- #define __va(phys) to_virt((unsigned long) (phys))
- 
--#define phys_to_pfn(p) ((pfn_t) ((p) >> PAGE_SHIFT))
--#define pfn_to_phys(pfn) ((phys_t) ((pfn) << PAGE_SHIFT))
-+#define phys_to_pfn(p) ((p) >> PAGE_SHIFT)
-+#define pfn_to_phys(pfn) PFN_PHYS(pfn)
- 
- #define pfn_valid(pfn) ((pfn) < max_mapnr)
- #define virt_addr_valid(v) pfn_valid(phys_to_pfn(__pa(v)))
-diff --git a/arch/um/include/asm/pgtable-3level.h b/arch/um/include/asm/pgtable-3level.h
-index 2b4274e7c095..bae8523a162f 100644
---- a/arch/um/include/asm/pgtable-3level.h
-+++ b/arch/um/include/asm/pgtable-3level.h
-@@ -98,7 +98,7 @@ static inline unsigned long pte_pfn(pte_t pte)
- 	return phys_to_pfn(pte_val(pte));
- }
- 
--static inline pte_t pfn_pte(pfn_t page_nr, pgprot_t pgprot)
-+static inline pte_t pfn_pte(unsigned long page_nr, pgprot_t pgprot)
- {
- 	pte_t pte;
- 	phys_t phys = pfn_to_phys(page_nr);
-@@ -107,7 +107,7 @@ static inline pte_t pfn_pte(pfn_t page_nr, pgprot_t pgprot)
- 	return pte;
- }
- 
--static inline pmd_t pfn_pmd(pfn_t page_nr, pgprot_t pgprot)
-+static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
- {
- 	return __pmd((page_nr << PAGE_SHIFT) | pgprot_val(pgprot));
- }
-diff --git a/arch/um/include/asm/pgtable.h b/arch/um/include/asm/pgtable.h
-index 18eb9924dda3..7485398d0737 100644
---- a/arch/um/include/asm/pgtable.h
-+++ b/arch/um/include/asm/pgtable.h
-@@ -271,7 +271,7 @@ static inline int pte_same(pte_t pte_a, pte_t pte_b)
- 
- #define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
- #define __virt_to_page(virt) phys_to_page(__pa(virt))
--#define page_to_phys(page) pfn_to_phys((pfn_t) page_to_pfn(page))
-+#define page_to_phys(page) pfn_to_phys(page_to_pfn(page))
- #define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
- 
- #define mk_pte(page, pgprot) \
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Cc: <stable@vger.kernel.org>
