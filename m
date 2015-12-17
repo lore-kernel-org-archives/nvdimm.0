@@ -1,58 +1,69 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <20151217222656.1249.96719.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151217222656.1249.96719.stgit@dwillia2-desk3.jf.intel.com>
-Date: Thu, 17 Dec 2015 14:38:10 -0800
-Message-ID: <CAPcyv4hg8Tqs0h__-4hc8qVkekRok+osiXawHGnr==0ZQtAXsQ@mail.gmail.com>
-Subject: Re: [PATCH] block: fix del_gendisk() vs blkdev_ioctl crash
+Subject: [PATCH] block: fix del_gendisk() vs blkdev_ioctl crash
 From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
+Date: Thu, 17 Dec 2015 14:26:56 -0800
+Message-ID: <20151217222656.1249.96719.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jens Axboe <axboe@fb.com>
-Cc: linux-block@vger.kernel.org, Robert Hu <robert.hu@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: axboe@fb.com
+Cc: linux-block@vger.kernel.org, Robert Hu <robert.hu@intel.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Dec 17, 2015 at 2:26 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> When tearing down a block device early in its lifetime, userspace may
-> still be performing discovery actions like blkdev_ioctl() to re-read
-> partitions.
->
-> The nvdimm_revalidate_disk() implementation depends on
-> disk->driverfs_dev to be valid at entry.  However, it is set to NULL in
-> del_gendisk() and fatally this is happening *before* the disk device is
-> deleted from userspace view.
->
-> There's no reason for del_gendisk() to clear ->driverfs_dev.  That
-> device is the parent of the disk.  It is guaranteed to not be freed
-> until the disk, as a child, drops its ->parent reference.
->
-> We could also fix this issue locally in nvdimm_revalidate_disk() by
-> using disk_to_dev(disk)->parent, but lets fix it globally since
-> ->driverfs_dev follows the lifetime of the parent.  Longer term we
-> should probably just add a @parent parameter to add_disk(), and stop
-> carrying this pointer in the gendisk.
->
->  BUG: unable to handle kernel NULL pointer dereference at           (null)
->  IP: [<ffffffffa00340a8>] nvdimm_revalidate_disk+0x18/0x90 [libnvdimm]
->  CPU: 2 PID: 538 Comm: systemd-udevd Tainted: G           O    4.4.0-rc5 #2257
->  [..]
->  Call Trace:
->   [<ffffffff8143e5c7>] rescan_partitions+0x87/0x2c0
->   [<ffffffff810f37f9>] ? __lock_is_held+0x49/0x70
->   [<ffffffff81438c62>] __blkdev_reread_part+0x72/0xb0
->   [<ffffffff81438cc5>] blkdev_reread_part+0x25/0x40
->   [<ffffffff8143982d>] blkdev_ioctl+0x4fd/0x9c0
->   [<ffffffff811246c9>] ? current_kernel_time64+0x69/0xd0
->   [<ffffffff812916dd>] block_ioctl+0x3d/0x50
->   [<ffffffff81264c38>] do_vfs_ioctl+0x308/0x560
->   [<ffffffff8115dbd1>] ? __audit_syscall_entry+0xb1/0x100
->   [<ffffffff810031d6>] ? do_audit_syscall_entry+0x66/0x70
->   [<ffffffff81264f09>] SyS_ioctl+0x79/0x90
->   [<ffffffff81902672>] entry_SYSCALL_64_fastpath+0x12/0x76
->
-> Reported-by: Robert Hu <robert.hu@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+When tearing down a block device early in its lifetime, userspace may
+still be performing discovery actions like blkdev_ioctl() to re-read
+partitions.
 
-I forgot to add:
+The nvdimm_revalidate_disk() implementation depends on
+disk->driverfs_dev to be valid at entry.  However, it is set to NULL in
+del_gendisk() and fatally this is happening *before* the disk device is
+deleted from userspace view.
 
-Cc: <stable@vger.kernel.org>
+There's no reason for del_gendisk() to clear ->driverfs_dev.  That
+device is the parent of the disk.  It is guaranteed to not be freed
+until the disk, as a child, drops its ->parent reference.
+
+We could also fix this issue locally in nvdimm_revalidate_disk() by
+using disk_to_dev(disk)->parent, but lets fix it globally since
+->driverfs_dev follows the lifetime of the parent.  Longer term we
+should probably just add a @parent parameter to add_disk(), and stop
+carrying this pointer in the gendisk.
+
+ BUG: unable to handle kernel NULL pointer dereference at           (null)
+ IP: [<ffffffffa00340a8>] nvdimm_revalidate_disk+0x18/0x90 [libnvdimm]
+ CPU: 2 PID: 538 Comm: systemd-udevd Tainted: G           O    4.4.0-rc5 #2257
+ [..]
+ Call Trace:
+  [<ffffffff8143e5c7>] rescan_partitions+0x87/0x2c0
+  [<ffffffff810f37f9>] ? __lock_is_held+0x49/0x70
+  [<ffffffff81438c62>] __blkdev_reread_part+0x72/0xb0
+  [<ffffffff81438cc5>] blkdev_reread_part+0x25/0x40
+  [<ffffffff8143982d>] blkdev_ioctl+0x4fd/0x9c0
+  [<ffffffff811246c9>] ? current_kernel_time64+0x69/0xd0
+  [<ffffffff812916dd>] block_ioctl+0x3d/0x50
+  [<ffffffff81264c38>] do_vfs_ioctl+0x308/0x560
+  [<ffffffff8115dbd1>] ? __audit_syscall_entry+0xb1/0x100
+  [<ffffffff810031d6>] ? do_audit_syscall_entry+0x66/0x70
+  [<ffffffff81264f09>] SyS_ioctl+0x79/0x90
+  [<ffffffff81902672>] entry_SYSCALL_64_fastpath+0x12/0x76
+
+Reported-by: Robert Hu <robert.hu@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ block/genhd.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/block/genhd.c b/block/genhd.c
+index e5cafa51567c..1a971bebbbfe 100644
+--- a/block/genhd.c
++++ b/block/genhd.c
+@@ -664,7 +664,6 @@ void del_gendisk(struct gendisk *disk)
+ 
+ 	kobject_put(disk->part0.holder_dir);
+ 	kobject_put(disk->slave_dir);
+-	disk->driverfs_dev = NULL;
+ 	if (!sysfs_deprecated)
+ 		sysfs_remove_link(block_depr, dev_name(disk_to_dev(disk)));
+ 	pm_runtime_set_memalloc_noio(disk_to_dev(disk), false);
+
