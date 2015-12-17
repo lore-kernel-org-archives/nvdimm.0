@@ -1,52 +1,56 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <1450427687.11503.14.camel@kernel.org>
-Subject: Re: [PATCH] BTT: Change nd_btt_arena_is_valid() to verify UUID
-From: Vishal Verma <vishal@kernel.org>
-Date: Fri, 18 Dec 2015 01:34:47 -0700
-In-Reply-To: <1450393200-6802-1-git-send-email-toshi.kani@hpe.com>
-References: <1450393200-6802-1-git-send-email-toshi.kani@hpe.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH] BTT: Change nd_btt_arena_is_valid() to verify UUID
+Date: Thu, 17 Dec 2015 16:00:00 -0700
+Message-Id: <1450393200-6802-1-git-send-email-toshi.kani@hpe.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>, dan.j.williams@intel.com"Williams, Dan J" <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, micah.parrish@hpe.com, linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: vishal.l.verma@intel.com, micah.parrish@hpe.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, 2015-12-17 at 16:00 -0700, Toshi Kani wrote:
-> When user unbinds a BTT disk and binds again with a different
-> sector size without wiping out the disk, a BTT disk is created
-> with a wrong size.
+When user unbinds a BTT disk and binds again with a different
+sector size without wiping out the disk, a BTT disk is created
+with a wrong size.
 
-I think this is an incorrect usage model in the first place. You
-shouldn't expect to disable a BTT, change the sector size or uuid
-behind it, and expect it to work with the new sector size on re-
-enabling.
+This is because the bind operation keeps the previous metadata,
+which leads nd_btt->lbasize inconsistent with internal_lbasize
+and external_lbasize in the arena.  A reboot also reattaches
+the BTT from the previous metadata.
 
-While this patch makes the BTT see the right size, it is really just an
-illusion, because if you try to read the pre-sector-size-change data,
-it will be scrambled, and thus practically lost.
+Change nd_btt_arena_is_valid() to check if nd_btt->uuid matches
+with super->uuid when a new UUID is set for binding.  This
+assures the bind operation writes the metadata with the values
+specified by user.
 
-Even with this patch, I can skip changing the UUID, just change the
-sector size, and re-enable it, and the total available size will appear
-to have changed.
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Micah Parrish <micah.parrish@hpe.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+---
+ drivers/nvdimm/btt_devs.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-For the case of legacy (non-nfit) namespaces, the only way to change a
-BTT's properties is to recreate it using 'force_raw'. For non-legacy
-namespaces, the recommended way is to recreate the namespace with a new
-uuid, and this will cause BTT to react to the parent_uuid change and
-not try to bind itself to stale metadata. Both cases will lose any data
-on the old BTT.
-
-Ideally, changing BTT properties shouldn't be allowed till the parent
-namespaces is recreated, but I'm not sure there is an easy way to
-enforce this -- Dan?
-
-Also, I wonder if this problem is solved by using libndctl to manage
-BTTs.
-
-
-Thanks,
-	-Vishal
-
-
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index cb47751..176ea25 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -218,6 +218,8 @@ static bool uuid_is_null(u8 *uuid)
+  * Check consistency of the btt info block with itself by validating
+  * the checksum, and with the parent namespace by verifying the
+  * parent_uuid contained in the info block with the one supplied in.
++ * When nd_btt->uuid is set for binding, verify if the metadata is
++ * stale.
+  *
+  * Returns:
+  * false for an invalid info block, true for a valid one
+@@ -234,6 +236,10 @@ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super)
+ 		if (memcmp(super->parent_uuid, parent_uuid, 16) != 0)
+ 			return false;
+ 
++	if (nd_btt->uuid)
++		if (memcmp(super->uuid, nd_btt->uuid, 16) != 0)
++			return false;
++
+ 	checksum = le64_to_cpu(super->checksum);
+ 	super->checksum = 0;
+ 	if (checksum != nd_sb_checksum((struct nd_gen_sb *) super))
