@@ -1,68 +1,309 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v3 2/6] nvdimm: Clean-up access mode check.
-Date: Sun, 13 Dec 2015 18:54:23 -0700
-Message-Id: <d6162736f23b774b5de015dfaa1a1d2f38081c45.1450036445.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1450036445.git.jerry.hoemann@hpe.com>
-References: <cover.1450036445.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1450036445.git.jerry.hoemann@hpe.com>
-References: <cover.1450036445.git.jerry.hoemann@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Fri, 18 Dec 2015 10:43:38 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v4 4/7] dax: add support for fsync/sync
+Message-ID: <20151218094338.GD4297@quack.suse.cz>
+References: <1450135903-20313-1-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1450135903-20313-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Jeff Moyer <jmoyer@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change nd_ioctl and nvdimm_ioctl access mode check to use O_RDONLY.
+On Mon 14-12-15 16:31:43, Ross Zwisler wrote:
+> To properly handle fsync/msync in an efficient way DAX needs to track dirty
+> pages so it is able to flush them durably to media on demand.
+> 
+> The tracking of dirty pages is done via the radix tree in struct
+> address_space.  This radix tree is already used by the page writeback
+> infrastructure for tracking dirty pages associated with an open file, and
+> it already has support for exceptional (non struct page*) entries.  We
+> build upon these features to add exceptional entries to the radix tree for
+> DAX dirty PMD or PTE pages at fault time.
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
----
- drivers/nvdimm/bus.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+In principle this looks good to me but I can finally judge only once we
+resolve the possible issue with conflicting exceptional entries I have
+pointed out in patch 2/7.
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 7e2c43f..1c81203 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -602,14 +602,14 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	long id = (long) file->private_data;
--	int rc = -ENXIO, read_only;
-+	int rc = -ENXIO, ro;
- 	struct nvdimm_bus *nvdimm_bus;
- 
--	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
- 	mutex_lock(&nvdimm_bus_list_mutex);
- 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
- 		if (nvdimm_bus->id == id) {
--			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
-+			rc = __nd_ioctl(nvdimm_bus, NULL, ro, cmd, arg);
- 			break;
- 		}
- 	}
-@@ -633,10 +633,10 @@ static int match_dimm(struct device *dev, void *data)
- 
- static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	int rc = -ENXIO, read_only;
-+	int rc = -ENXIO, ro;
- 	struct nvdimm_bus *nvdimm_bus;
- 
--	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
- 	mutex_lock(&nvdimm_bus_list_mutex);
- 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
- 		struct device *dev = device_find_child(&nvdimm_bus->dev,
-@@ -647,7 +647,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 			continue;
- 
- 		nvdimm = to_nvdimm(dev);
--		rc = __nd_ioctl(nvdimm_bus, nvdimm, read_only, cmd, arg);
-+		rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
- 		put_device(dev);
- 		break;
- 	}
+									Honza
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+> 
+> For v4 I'm just sending out this one changed patch in an effort to not spam
+> everyone.
+> 
+> Changes since v3:
+> 
+> - Rebased on top of ext4/master which provides the patches from Jan which I'm
+>   building upon.  The rebased tree can be found here: 
+> 
+> https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=fsync_v4
+> 
+> - Removed a WARN_ONCE() and added a comment for the case where we can get a
+>   dax_pfn_mkwrite() call that has lost a race with a hole punch operation.  
+> 
+> ---
+>  fs/dax.c            | 159 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+>  include/linux/dax.h |   2 +
+>  mm/filemap.c        |   3 +
+>  3 files changed, 158 insertions(+), 6 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 43671b6..19347cf 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/memcontrol.h>
+>  #include <linux/mm.h>
+>  #include <linux/mutex.h>
+> +#include <linux/pagevec.h>
+>  #include <linux/pmem.h>
+>  #include <linux/sched.h>
+>  #include <linux/uio.h>
+> @@ -289,6 +290,143 @@ static int copy_user_bh(struct page *to, struct buffer_head *bh,
+>  	return 0;
+>  }
+>  
+> +static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
+> +		void __pmem *addr, bool pmd_entry, bool dirty)
+> +{
+> +	struct radix_tree_root *page_tree = &mapping->page_tree;
+> +	int error = 0;
+> +	void *entry;
+> +
+> +	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+> +
+> +	spin_lock_irq(&mapping->tree_lock);
+> +	entry = radix_tree_lookup(page_tree, index);
+> +
+> +	if (entry) {
+> +		if (!pmd_entry || RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
+> +			goto dirty;
+> +		radix_tree_delete(&mapping->page_tree, index);
+> +		mapping->nrdax--;
+> +	}
+> +
+> +	if (!addr) {
+> +		/*
+> +		 * This can happen during correct operation if our pfn_mkwrite
+> +		 * fault raced against a hole punch operation.  If this
+> +		 * happens the pte that was hole punched will have been
+> +		 * unmapped and the radix tree entry will have been removed by
+> +		 * the time we are called, but the call will still happen.  We
+> +		 * will return all the way up to wp_pfn_shared(), where the
+> +		 * pte_same() check will fail, eventually causing page fault
+> +		 * to be retried by the CPU.
+> +		 */
+> +		goto unlock;
+> +	} else if (RADIX_DAX_TYPE(addr)) {
+> +		WARN_ONCE(1, "%s: invalid address %p\n", __func__, addr);
+> +		goto unlock;
+> +	}
+> +
+> +	error = radix_tree_insert(page_tree, index,
+> +			RADIX_DAX_ENTRY(addr, pmd_entry));
+> +	if (error)
+> +		goto unlock;
+> +
+> +	mapping->nrdax++;
+> + dirty:
+> +	if (dirty)
+> +		radix_tree_tag_set(page_tree, index, PAGECACHE_TAG_DIRTY);
+> + unlock:
+> +	spin_unlock_irq(&mapping->tree_lock);
+> +	return error;
+> +}
+> +
+> +static void dax_writeback_one(struct address_space *mapping, pgoff_t index,
+> +		void *entry)
+> +{
+> +	struct radix_tree_root *page_tree = &mapping->page_tree;
+> +	int type = RADIX_DAX_TYPE(entry);
+> +	struct radix_tree_node *node;
+> +	void **slot;
+> +
+> +	if (type != RADIX_DAX_PTE && type != RADIX_DAX_PMD) {
+> +		WARN_ON_ONCE(1);
+> +		return;
+> +	}
+> +
+> +	spin_lock_irq(&mapping->tree_lock);
+> +	/*
+> +	 * Regular page slots are stabilized by the page lock even
+> +	 * without the tree itself locked.  These unlocked entries
+> +	 * need verification under the tree lock.
+> +	 */
+> +	if (!__radix_tree_lookup(page_tree, index, &node, &slot))
+> +		goto unlock;
+> +	if (*slot != entry)
+> +		goto unlock;
+> +
+> +	/* another fsync thread may have already written back this entry */
+> +	if (!radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
+> +		goto unlock;
+> +
+> +	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
+> +
+> +	if (type == RADIX_DAX_PMD)
+> +		wb_cache_pmem(RADIX_DAX_ADDR(entry), PMD_SIZE);
+> +	else
+> +		wb_cache_pmem(RADIX_DAX_ADDR(entry), PAGE_SIZE);
+> + unlock:
+> +	spin_unlock_irq(&mapping->tree_lock);
+> +}
+> +
+> +/*
+> + * Flush the mapping to the persistent domain within the byte range of [start,
+> + * end]. This is required by data integrity operations to ensure file data is
+> + * on persistent storage prior to completion of the operation.
+> + */
+> +void dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
+> +		loff_t end)
+> +{
+> +	struct inode *inode = mapping->host;
+> +	pgoff_t indices[PAGEVEC_SIZE];
+> +	pgoff_t start_page, end_page;
+> +	struct pagevec pvec;
+> +	void *entry;
+> +	int i;
+> +
+> +	if (inode->i_blkbits != PAGE_SHIFT) {
+> +		WARN_ON_ONCE(1);
+> +		return;
+> +	}
+> +
+> +	rcu_read_lock();
+> +	entry = radix_tree_lookup(&mapping->page_tree, start & PMD_MASK);
+> +	rcu_read_unlock();
+> +
+> +	/* see if the start of our range is covered by a PMD entry */
+> +	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
+> +		start &= PMD_MASK;
+> +
+> +	start_page = start >> PAGE_CACHE_SHIFT;
+> +	end_page = end >> PAGE_CACHE_SHIFT;
+> +
+> +	tag_pages_for_writeback(mapping, start_page, end_page);
+> +
+> +	pagevec_init(&pvec, 0);
+> +	while (1) {
+> +		pvec.nr = find_get_entries_tag(mapping, start_page,
+> +				PAGECACHE_TAG_TOWRITE, PAGEVEC_SIZE,
+> +				pvec.pages, indices);
+> +
+> +		if (pvec.nr == 0)
+> +			break;
+> +
+> +		for (i = 0; i < pvec.nr; i++)
+> +			dax_writeback_one(mapping, indices[i], pvec.pages[i]);
+> +	}
+> +	wmb_pmem();
+> +}
+> +EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
+> +
+>  static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+>  			struct vm_area_struct *vma, struct vm_fault *vmf)
+>  {
+> @@ -329,7 +467,11 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+>  	}
+>  
+>  	error = vm_insert_mixed(vma, vaddr, pfn);
+> +	if (error)
+> +		goto out;
+>  
+> +	error = dax_radix_entry(mapping, vmf->pgoff, addr, false,
+> +			vmf->flags & FAULT_FLAG_WRITE);
+>   out:
+>  	i_mmap_unlock_read(mapping);
+>  
+> @@ -452,6 +594,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+>  		delete_from_page_cache(page);
+>  		unlock_page(page);
+>  		page_cache_release(page);
+> +		page = NULL;
+>  	}
+>  
+>  	/*
+> @@ -539,7 +682,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+>  	pgoff_t size, pgoff;
+>  	sector_t block, sector;
+>  	unsigned long pfn;
+> -	int result = 0;
+> +	int error, result = 0;
+>  
+>  	/* dax pmd mappings are broken wrt gup and fork */
+>  	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
+> @@ -651,6 +794,13 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+>  		}
+>  
+>  		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
+> +
+> +		if (write) {
+> +			error = dax_radix_entry(mapping, pgoff, kaddr, true,
+> +					true);
+> +			if (error)
+> +				goto fallback;
+> +		}
+>  	}
+>  
+>   out:
+> @@ -702,15 +852,12 @@ EXPORT_SYMBOL_GPL(dax_pmd_fault);
+>   * dax_pfn_mkwrite - handle first write to DAX page
+>   * @vma: The virtual memory area where the fault occurred
+>   * @vmf: The description of the fault
+> - *
+>   */
+>  int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+>  {
+> -	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
+> +	struct file *file = vma->vm_file;
+>  
+> -	sb_start_pagefault(sb);
+> -	file_update_time(vma->vm_file);
+> -	sb_end_pagefault(sb);
+> +	dax_radix_entry(file->f_mapping, vmf->pgoff, NULL, false, true);
+>  	return VM_FAULT_NOPAGE;
+>  }
+>  EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index e9d57f68..11eb183 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -41,4 +41,6 @@ static inline bool dax_mapping(struct address_space *mapping)
+>  {
+>  	return mapping->host && IS_DAX(mapping->host);
+>  }
+> +void dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
+> +		loff_t end);
+>  #endif
+> diff --git a/mm/filemap.c b/mm/filemap.c
+> index 99dfbc9..9577783 100644
+> --- a/mm/filemap.c
+> +++ b/mm/filemap.c
+> @@ -482,6 +482,9 @@ int filemap_write_and_wait_range(struct address_space *mapping,
+>  {
+>  	int err = 0;
+>  
+> +	if (dax_mapping(mapping) && mapping->nrdax)
+> +		dax_writeback_mapping_range(mapping, lstart, lend);
+> +
+>  	if (mapping->nrpages) {
+>  		err = __filemap_fdatawrite_range(mapping, lstart, lend,
+>  						 WB_SYNC_ALL);
+> -- 
+> 2.5.0
+> 
+> 
 -- 
-1.7.11.3
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
