@@ -1,72 +1,45 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v2 01/25] pmem, dax: clean up clear_pmem()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 09 Dec 2015 18:37:15 -0800
-Message-ID: <20151210023715.30368.74651.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Fri, 18 Dec 2015 13:27:51 +0000
+From: Matt Fleming <matt@codeblueprint.co.uk>
+Subject: Re: arm64/efi handling of persistent memory
+Message-ID: <20151218132751.GD2638@codeblueprint.co.uk>
+References: <94D0CD8314A33A4D9D801C0FE68B40295BEBD864@G9W0745.americas.hpqcorp.net>
+ <20151218110651.GL25034@bivouac.eciton.net>
+ <20151218115224.GE29219@leverpostej>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>, linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151218115224.GE29219@leverpostej>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Leif Lindholm <leif.lindholm@linaro.org>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, "Kani, Toshimitsu" <toshi.kani@hpe.com>, "Knippers, Linda" <linda.knippers@hpe.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Both, __dax_pmd_fault, and clear_pmem() were taking special steps to
-clear memory a page at a time to take advantage of non-temporal
-clear_page() implementations.  However, x86_64 does not use
-non-temporal instructions for clear_page(), and arch_clear_pmem() was
-always incurring the cost of __arch_wb_cache_pmem().
+On Fri, 18 Dec, at 11:52:24AM, Mark Rutland wrote:
+> On Fri, Dec 18, 2015 at 11:06:51AM +0000, Leif Lindholm wrote:
+> > On Fri, Dec 18, 2015 at 01:33:25AM +0000, Elliott, Robert (Persistent Memory) wrote:
+> > > Similar to the questions about the arm64 efi boot stub
+> > > handing persistent memory, some of the arm64 kernel code 
+> > > looks fishy.
+> 
+> [...]
+> 
+> > > 2. is_reserve_region() treating EFI_PERSISTENT_MEMORY the same
+> > > as EFI_CONVENTIONAL_MEMORY looks wrong.
+> > 
+> > Yeah... That one was introduced by
+> > ad5fb870c486 ("e820, efi: add ACPI 6.0 persistent memory types")
+> > without any ACKs from ARM people :/
+> 
+> Do we need to do anythign to avoid his kind of thing in future? e.g. a
+> MAINTAINERS patch for the ARM EFI bits?
+> 
+> Or do we just need to pay attention to linux-efi?
 
-Clean up the assumption that doing clear_pmem() a page at a time is more
-performant.
+It never hit linux-efi, and I wasn't Cc'd, which means the entries
+that do exist in MAINTAINERS were ignored anyway.
 
-Reported-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/include/asm/pmem.h |    7 +------
- fs/dax.c                    |    4 +---
- 2 files changed, 2 insertions(+), 9 deletions(-)
+Because what would usually happens in that situation is that I would
+ask ARM people to chime in.
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index d8ce3ec816ab..1544fabcd7f9 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -132,12 +132,7 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
- {
- 	void *vaddr = (void __force *)addr;
- 
--	/* TODO: implement the zeroing via non-temporal writes */
--	if (size == PAGE_SIZE && ((unsigned long)vaddr & ~PAGE_MASK) == 0)
--		clear_page(vaddr);
--	else
--		memset(vaddr, 0, size);
--
-+	memset(vaddr, 0, size);
- 	__arch_wb_cache_pmem(vaddr, size);
- }
- 
-diff --git a/fs/dax.c b/fs/dax.c
-index 43671b68220e..19492cc65a30 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -641,9 +641,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 			goto fallback;
- 
- 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
--			int i;
--			for (i = 0; i < PTRS_PER_PMD; i++)
--				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
-+			clear_pmem(kaddr, PMD_SIZE);
- 			wmb_pmem();
- 			count_vm_event(PGMAJFAULT);
- 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+It looks like all the NVDIMM changes came via Dan's nvdimm tree.
