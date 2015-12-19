@@ -1,108 +1,122 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH -mm 07/25] um: kill pfn_t
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 07 Dec 2015 17:33:13 -0800
-Message-ID: <20151208013313.25030.74005.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v5 1/7] pmem: add wb_cache_pmem() to the PMEM API
+Date: Fri, 18 Dec 2015 22:22:14 -0700
+Message-Id: <1450502540-8744-2-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, Richard Weinberger <richard@nod.at>, Jeff Dike <jdike@addtoit.com>, Dave Hansen <dave@sr71.net>, linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The core has developed a need for a "pfn_t" type [1].  Convert the usage
-of pfn_t by usermode-linux to an unsigned long, and update pfn_to_phys()
-to drop its expectation of a typed pfn.
+The function __arch_wb_cache_pmem() was already an internal implementation
+detail of the x86 PMEM API, but this functionality needs to be exported as
+part of the general PMEM API to handle the fsync/msync case for DAX mmaps.
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-September/002199.html
+One thing worth noting is that we really do want this to be part of the
+PMEM API as opposed to a stand-alone function like clflush_cache_range()
+because of ordering restrictions.  By having wb_cache_pmem() as part of the
+PMEM API we can leave it unordered, call it multiple times to write back
+large amounts of memory, and then order the multiple calls with a single
+wmb_pmem().
 
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- arch/um/include/asm/page.h           |    7 +++----
- arch/um/include/asm/pgtable-3level.h |    4 ++--
- arch/um/include/asm/pgtable.h        |    2 +-
- 3 files changed, 6 insertions(+), 7 deletions(-)
+ arch/x86/include/asm/pmem.h | 11 ++++++-----
+ include/linux/pmem.h        | 22 +++++++++++++++++++++-
+ 2 files changed, 27 insertions(+), 6 deletions(-)
 
-diff --git a/arch/um/include/asm/page.h b/arch/um/include/asm/page.h
-index 71c5d132062a..e13d41c392ae 100644
---- a/arch/um/include/asm/page.h
-+++ b/arch/um/include/asm/page.h
-@@ -18,6 +18,7 @@
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index d8ce3ec..6c7ade0 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -67,18 +67,19 @@ static inline void arch_wmb_pmem(void)
+ }
  
- struct page;
+ /**
+- * __arch_wb_cache_pmem - write back a cache range with CLWB
++ * arch_wb_cache_pmem - write back a cache range with CLWB
+  * @vaddr:	virtual start address
+  * @size:	number of bytes to write back
+  *
+  * Write back a cache range using the CLWB (cache line write back)
+  * instruction.  This function requires explicit ordering with an
+- * arch_wmb_pmem() call.  This API is internal to the x86 PMEM implementation.
++ * arch_wmb_pmem() call.
+  */
+-static inline void __arch_wb_cache_pmem(void *vaddr, size_t size)
++static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
+ {
+ 	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
+ 	unsigned long clflush_mask = x86_clflush_size - 1;
++	void *vaddr = (void __force *)addr;
+ 	void *vend = vaddr + size;
+ 	void *p;
  
-+#include <linux/pfn.h>
- #include <linux/types.h>
- #include <asm/vm-flags.h>
+@@ -115,7 +116,7 @@ static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+ 	len = copy_from_iter_nocache(vaddr, bytes, i);
  
-@@ -52,7 +53,6 @@ typedef struct { unsigned long pgd; } pgd_t;
- #define pmd_val(x)	((x).pmd)
- #define __pmd(x) ((pmd_t) { (x) } )
+ 	if (__iter_needs_pmem_wb(i))
+-		__arch_wb_cache_pmem(vaddr, bytes);
++		arch_wb_cache_pmem(addr, bytes);
  
--typedef unsigned long long pfn_t;
- typedef unsigned long long phys_t;
+ 	return len;
+ }
+@@ -138,7 +139,7 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
+ 	else
+ 		memset(vaddr, 0, size);
  
- #else
-@@ -76,7 +76,6 @@ typedef struct { unsigned long pmd; } pmd_t;
- #define pte_is_zero(p) (!((p).pte & ~_PAGE_NEWPAGE))
- #define pte_set_val(p, phys, prot) (p).pte = (phys | pgprot_val(prot))
+-	__arch_wb_cache_pmem(vaddr, size);
++	arch_wb_cache_pmem(addr, size);
+ }
  
--typedef unsigned long pfn_t;
- typedef unsigned long phys_t;
- 
+ static inline bool __arch_has_wmb_pmem(void)
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index acfea8c..7c3d11a 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -53,12 +53,18 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
+ {
+ 	BUG();
+ }
++
++static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
++{
++	BUG();
++}
  #endif
-@@ -109,8 +108,8 @@ extern unsigned long uml_physmem;
- #define __pa(virt) to_phys((void *) (unsigned long) (virt))
- #define __va(phys) to_virt((unsigned long) (phys))
  
--#define phys_to_pfn(p) ((pfn_t) ((p) >> PAGE_SHIFT))
--#define pfn_to_phys(pfn) ((phys_t) ((pfn) << PAGE_SHIFT))
-+#define phys_to_pfn(p) ((p) >> PAGE_SHIFT)
-+#define pfn_to_phys(pfn) PFN_PHYS(pfn)
- 
- #define pfn_valid(pfn) ((pfn) < max_mapnr)
- #define virt_addr_valid(v) pfn_valid(phys_to_pfn(__pa(v)))
-diff --git a/arch/um/include/asm/pgtable-3level.h b/arch/um/include/asm/pgtable-3level.h
-index 2b4274e7c095..bae8523a162f 100644
---- a/arch/um/include/asm/pgtable-3level.h
-+++ b/arch/um/include/asm/pgtable-3level.h
-@@ -98,7 +98,7 @@ static inline unsigned long pte_pfn(pte_t pte)
- 	return phys_to_pfn(pte_val(pte));
- }
- 
--static inline pte_t pfn_pte(pfn_t page_nr, pgprot_t pgprot)
-+static inline pte_t pfn_pte(unsigned long page_nr, pgprot_t pgprot)
+ /*
+  * Architectures that define ARCH_HAS_PMEM_API must provide
+  * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(),
+- * arch_copy_from_iter_pmem(), arch_clear_pmem() and arch_has_wmb_pmem().
++ * arch_copy_from_iter_pmem(), arch_clear_pmem(), arch_wb_cache_pmem()
++ * and arch_has_wmb_pmem().
+  */
+ static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
  {
- 	pte_t pte;
- 	phys_t phys = pfn_to_phys(page_nr);
-@@ -107,7 +107,7 @@ static inline pte_t pfn_pte(pfn_t page_nr, pgprot_t pgprot)
- 	return pte;
+@@ -178,4 +184,18 @@ static inline void clear_pmem(void __pmem *addr, size_t size)
+ 	else
+ 		default_clear_pmem(addr, size);
  }
- 
--static inline pmd_t pfn_pmd(pfn_t page_nr, pgprot_t pgprot)
-+static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
- {
- 	return __pmd((page_nr << PAGE_SHIFT) | pgprot_val(pgprot));
- }
-diff --git a/arch/um/include/asm/pgtable.h b/arch/um/include/asm/pgtable.h
-index 18eb9924dda3..7485398d0737 100644
---- a/arch/um/include/asm/pgtable.h
-+++ b/arch/um/include/asm/pgtable.h
-@@ -271,7 +271,7 @@ static inline int pte_same(pte_t pte_a, pte_t pte_b)
- 
- #define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
- #define __virt_to_page(virt) phys_to_page(__pa(virt))
--#define page_to_phys(page) pfn_to_phys((pfn_t) page_to_pfn(page))
-+#define page_to_phys(page) pfn_to_phys(page_to_pfn(page))
- #define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
- 
- #define mk_pte(page, pgprot) \
++
++/**
++ * wb_cache_pmem - write back processor cache for PMEM memory range
++ * @addr:	virtual start address
++ * @size:	number of bytes to write back
++ *
++ * Write back the processor cache range starting at 'addr' for 'size' bytes.
++ * This function requires explicit ordering with a wmb_pmem() call.
++ */
++static inline void wb_cache_pmem(void __pmem *addr, size_t size)
++{
++	if (arch_has_pmem_api())
++		arch_wb_cache_pmem(addr, size);
++}
+ #endif /* __PMEM_H__ */
+-- 
+2.5.0
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
