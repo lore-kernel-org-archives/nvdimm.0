@@ -1,71 +1,51 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v4 18/18] dax: re-enable dax pmd mappings
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 20 Dec 2015 21:45:42 -0800
-Message-ID: <20151221054542.34542.26520.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v5 7/7] xfs: call dax_pfn_mkwrite() for DAX fsync/msync
+Date: Fri, 18 Dec 2015 22:22:20 -0700
+Message-Id: <1450502540-8744-8-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that the get_user_pages() path knows how to handle dax-pmd mappings,
-remove the protections that disabled dax-pmd support.
+To properly support the new DAX fsync/msync infrastructure filesystems
+need to call dax_pfn_mkwrite() so that DAX can track when user pages are
+dirtied.
 
-Tests available from github.com/pmem/ndctl:
-
-    make TESTS="lib/test-dax.sh lib/test-mmap.sh" check
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- fs/Kconfig |    3 ++-
- fs/dax.c   |    8 ++------
- 2 files changed, 4 insertions(+), 7 deletions(-)
+ fs/xfs/xfs_file.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/fs/Kconfig b/fs/Kconfig
-index 6ce72d8d1ee1..ad8f4aa4161c 100644
---- a/fs/Kconfig
-+++ b/fs/Kconfig
-@@ -50,7 +50,8 @@ config FS_DAX_PMD
- 	bool
- 	default FS_DAX
- 	depends on FS_DAX
--	depends on BROKEN
-+	depends on ZONE_DEVICE
-+	depends on TRANSPARENT_HUGEPAGE
- 
- endif # BLOCK
- 
-diff --git a/fs/dax.c b/fs/dax.c
-index e1f251dc9654..7af879759064 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -592,7 +592,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	sector_t block;
- 	int result = 0;
- 
--	/* dax pmd mappings are broken wrt gup and fork */
-+	/* dax pmd mappings require pfn_t_devmap() */
- 	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
- 		return VM_FAULT_FALLBACK;
- 
-@@ -717,11 +717,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 			goto fallback;
- 		}
- 
--		/*
--		 * TODO: teach vmf_insert_pfn_pmd() to support
--		 * 'pte_special' for pmds
--		 */
--		if (pfn_t_has_page(dax.pfn)) {
-+		if (!pfn_t_devmap(dax.pfn)) {
- 			dax_unmap_atomic(bdev, &dax);
- 			dax_pmd_dbg(&bh, address, "pfn not in memmap");
- 			goto fallback;
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index f5392ab..40ffbb1 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1603,9 +1603,8 @@ xfs_filemap_pmd_fault(
+ /*
+  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
+  * updates on write faults. In reality, it's need to serialise against
+- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
+- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
+- * barrier in place.
++ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
++ * to ensure we serialise the fault barrier in place.
+  */
+ static int
+ xfs_filemap_pfn_mkwrite(
+@@ -1628,6 +1627,8 @@ xfs_filemap_pfn_mkwrite(
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		ret = VM_FAULT_SIGBUS;
++	else if (IS_DAX(inode))
++		ret = dax_pfn_mkwrite(vma, vmf);
+ 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
+ 	sb_end_pagefault(inode->i_sb);
+ 	return ret;
+-- 
+2.5.0
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
