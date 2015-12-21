@@ -1,123 +1,43 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 3/7] mm: add find_get_entries_tag()
-Date: Fri, 18 Dec 2015 22:22:16 -0700
-Message-Id: <1450502540-8744-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [-mm PATCH v4 09/18] frv: fix compiler warning from definition of
+ __pmd()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 20 Dec 2015 21:44:55 -0800
+Message-ID: <20151221054454.34542.22466.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add find_get_entries_tag() to the family of functions that include
-find_get_entries(), find_get_pages() and find_get_pages_tag().  This is
-needed for DAX dirty page handling because we need a list of both page
-offsets and radix tree entries ('indices' and 'entries' in this function)
-that are marked with the PAGECACHE_TAG_TOWRITE tag.
+Take into account that the pmd_t type is a array inside a struct, so it
+needs two levels of brackets to initialize.  Otherwise, a usage of __pmd
+generates a warning:
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+include/linux/mm.h:986:2: warning: missing braces around initializer [-Wmissing-braces]
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/pagemap.h |  3 +++
- mm/filemap.c            | 68 +++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 71 insertions(+)
+ arch/frv/include/asm/page.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
-index 26eabf5..4db0425 100644
---- a/include/linux/pagemap.h
-+++ b/include/linux/pagemap.h
-@@ -361,6 +361,9 @@ unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t start,
- 			       unsigned int nr_pages, struct page **pages);
- unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
- 			int tag, unsigned int nr_pages, struct page **pages);
-+unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
-+			int tag, unsigned int nr_entries,
-+			struct page **entries, pgoff_t *indices);
+diff --git a/arch/frv/include/asm/page.h b/arch/frv/include/asm/page.h
+index 8c97068ac8fc..688d8076a43a 100644
+--- a/arch/frv/include/asm/page.h
++++ b/arch/frv/include/asm/page.h
+@@ -34,7 +34,7 @@ typedef struct page *pgtable_t;
+ #define pgprot_val(x)	((x).pgprot)
  
- struct page *grab_cache_page_write_begin(struct address_space *mapping,
- 			pgoff_t index, unsigned flags);
-diff --git a/mm/filemap.c b/mm/filemap.c
-index 167a4d9..99dfbc9 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -1498,6 +1498,74 @@ repeat:
- }
- EXPORT_SYMBOL(find_get_pages_tag);
- 
-+/**
-+ * find_get_entries_tag - find and return entries that match @tag
-+ * @mapping:	the address_space to search
-+ * @start:	the starting page cache index
-+ * @tag:	the tag index
-+ * @nr_entries:	the maximum number of entries
-+ * @entries:	where the resulting entries are placed
-+ * @indices:	the cache indices corresponding to the entries in @entries
-+ *
-+ * Like find_get_entries, except we only return entries which are tagged with
-+ * @tag.
-+ */
-+unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
-+			int tag, unsigned int nr_entries,
-+			struct page **entries, pgoff_t *indices)
-+{
-+	void **slot;
-+	unsigned int ret = 0;
-+	struct radix_tree_iter iter;
-+
-+	if (!nr_entries)
-+		return 0;
-+
-+	rcu_read_lock();
-+restart:
-+	radix_tree_for_each_tagged(slot, &mapping->page_tree,
-+				   &iter, start, tag) {
-+		struct page *page;
-+repeat:
-+		page = radix_tree_deref_slot(slot);
-+		if (unlikely(!page))
-+			continue;
-+		if (radix_tree_exception(page)) {
-+			if (radix_tree_deref_retry(page)) {
-+				/*
-+				 * Transient condition which can only trigger
-+				 * when entry at index 0 moves out of or back
-+				 * to root: none yet gotten, safe to restart.
-+				 */
-+				goto restart;
-+			}
-+
-+			/*
-+			 * A shadow entry of a recently evicted page, a swap
-+			 * entry from shmem/tmpfs or a DAX entry.  Return it
-+			 * without attempting to raise page count.
-+			 */
-+			goto export;
-+		}
-+		if (!page_cache_get_speculative(page))
-+			goto repeat;
-+
-+		/* Has the page moved? */
-+		if (unlikely(page != *slot)) {
-+			page_cache_release(page);
-+			goto repeat;
-+		}
-+export:
-+		indices[ret] = iter.index;
-+		entries[ret] = page;
-+		if (++ret == nr_entries)
-+			break;
-+	}
-+	rcu_read_unlock();
-+	return ret;
-+}
-+EXPORT_SYMBOL(find_get_entries_tag);
-+
- /*
-  * CD/DVDs are error prone. When a medium error occurs, the driver may fail
-  * a _large_ part of the i/o request. Imagine the worst scenario:
--- 
-2.5.0
+ #define __pte(x)	((pte_t) { (x) } )
+-#define __pmd(x)	((pmd_t) { (x) } )
++#define __pmd(x)	((pmd_t) { { (x) } } )
+ #define __pud(x)	((pud_t) { (x) } )
+ #define __pgd(x)	((pgd_t) { (x) } )
+ #define __pgprot(x)	((pgprot_t) { (x) } )
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
