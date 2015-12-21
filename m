@@ -1,69 +1,54 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH -mm 01/25] pmem, dax: clean up clear_pmem()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 07 Dec 2015 17:32:41 -0800
-Message-ID: <20151208013241.25030.29103.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151208013236.25030.68781.stgit@dwillia2-desk3.jf.intel.com>
+Date: Mon, 21 Dec 2015 10:45:34 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v5 2/7] dax: support dirty DAX entries in radix tree
+Message-ID: <20151221174534.GA4978@linux.intel.com>
+References: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1450502540-8744-3-git-send-email-ross.zwisler@linux.intel.com>
+ <20151221171512.GA7030@quack.suse.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151221171512.GA7030@quack.suse.cz>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>, linux-nvdimm@lists.01.org
+To: Jan Kara <jack@suse.cz>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Both, __dax_pmd_fault, and clear_pmem() were taking special steps to
-clear memory a page at a time to take advantage of non-temporal
-clear_page() implementations.  However, x86_64 does not use
-non-temporal instructions for clear_page(), and arch_clear_pmem() was
-always incurring the cost of __arch_wb_cache_pmem().
+On Mon, Dec 21, 2015 at 06:15:12PM +0100, Jan Kara wrote:
+> On Fri 18-12-15 22:22:15, Ross Zwisler wrote:
+> > Add support for tracking dirty DAX entries in the struct address_space
+> > radix tree.  This tree is already used for dirty page writeback, and it
+> > already supports the use of exceptional (non struct page*) entries.
+> > 
+> > In order to properly track dirty DAX pages we will insert new exceptional
+> > entries into the radix tree that represent dirty DAX PTE or PMD pages.
+> > These exceptional entries will also contain the writeback addresses for the
+> > PTE or PMD faults that we can use at fsync/msync time.
+> > 
+> > There are currently two types of exceptional entries (shmem and shadow)
+> > that can be placed into the radix tree, and this adds a third.  We rely on
+> > the fact that only one type of exceptional entry can be found in a given
+> > radix tree based on its usage.  This happens for free with DAX vs shmem but
+> > we explicitly prevent shadow entries from being added to radix trees for
+> > DAX mappings.
+> > 
+> > The only shadow entries that would be generated for DAX radix trees would
+> > be to track zero page mappings that were created for holes.  These pages
+> > would receive minimal benefit from having shadow entries, and the choice
+> > to have only one type of exceptional entry in a given radix tree makes the
+> > logic simpler both in clear_exceptional_entry() and in the rest of DAX.
+> > 
+> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> 
+> The patch looks good to me. Just one comment: When we have this exclusion
+> between different types of exceptional entries, there is no real need to
+> have separate counters of 'shadow' and 'dax' entries, is there? We can have
+> one 'nrexceptional' counter and don't have to grow struct inode
+> unnecessarily which would be really welcome since DAX isn't a mainstream
+> feature. Could you please change the code? Thanks!
 
-Clean up the assumption that doing clear_pmem() a page at a time is more
-performant.
-
-Reported-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/include/asm/pmem.h |    7 +------
- fs/dax.c                    |    4 +---
- 2 files changed, 2 insertions(+), 9 deletions(-)
-
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index d8ce3ec816ab..1544fabcd7f9 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -132,12 +132,7 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
- {
- 	void *vaddr = (void __force *)addr;
- 
--	/* TODO: implement the zeroing via non-temporal writes */
--	if (size == PAGE_SIZE && ((unsigned long)vaddr & ~PAGE_MASK) == 0)
--		clear_page(vaddr);
--	else
--		memset(vaddr, 0, size);
--
-+	memset(vaddr, 0, size);
- 	__arch_wb_cache_pmem(vaddr, size);
- }
- 
-diff --git a/fs/dax.c b/fs/dax.c
-index 43671b68220e..19492cc65a30 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -641,9 +641,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 			goto fallback;
- 
- 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
--			int i;
--			for (i = 0; i < PTRS_PER_PMD; i++)
--				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
-+			clear_pmem(kaddr, PMD_SIZE);
- 			wmb_pmem();
- 			count_vm_event(PGMAJFAULT);
- 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+Sure, this sounds good.  Thanks!
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
