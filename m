@@ -1,61 +1,51 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <1450723855.5616.15.camel@intel.com>
-References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
-	<1450603122-7205-4-git-send-email-vishal@kernel.org>
-	<CAPcyv4je_6LPzfULJrGdkDRnc0mzc_ftd=t9942N2UO9rQZe0A@mail.gmail.com>
-	<1450723855.5616.15.camel@intel.com>
-Date: Mon, 21 Dec 2015 11:10:49 -0800
-Message-ID: <CAPcyv4jm6LTZR25xZJpVkjUPn2=Uu3XDOYtQ0GXo=kD2xLcoHA@mail.gmail.com>
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Subject: Re: [PATCH 3/3] pmem: Use the poison list to expose badblocks
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
+Date: Mon, 21 Dec 2015 18:50:54 +0000
+Message-ID: <1450723855.5616.15.camel@intel.com>
+References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
+	 <1450603122-7205-4-git-send-email-vishal@kernel.org>
+	 <CAPcyv4je_6LPzfULJrGdkDRnc0mzc_ftd=t9942N2UO9rQZe0A@mail.gmail.com>
+In-Reply-To: <CAPcyv4je_6LPzfULJrGdkDRnc0mzc_ftd=t9942N2UO9rQZe0A@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <6BF8A6551E555D4E8CC4927018774BFB@intel.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
 Cc: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Dec 21, 2015 at 10:50 AM, Verma, Vishal L
-<vishal.l.verma@intel.com> wrote:
-> On Sun, 2015-12-20 at 17:20 -0800, Dan Williams wrote:
->> On Sun, Dec 20, 2015 at 1:18 AM,  <vishal@kernel.org> wrote:
->> > From: Vishal Verma <vishal.l.verma@intel.com>
->> >
->> > Enable the gendisk badblocks feature for pmem namespaces.
->> > If the pmem namespace being created has any known poison associated
->> > with
->> > its physical address space, convert the poison ranges to bad sectors
->> > exposed using the badblocks interface.
->> >
->> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
->> > ---
->> >  drivers/nvdimm/pmem.c | 124
->> > ++++++++++++++++++++++++++++++++++++++++++++++++++
->> >  1 file changed, 124 insertions(+)
->>
->> I think we should move this new functionality to the core because
->> there is not much pmem driver specific.  It's all generic nvdimm-core
->> and block-core functionality.  The only missing information the core
->> routine needs is the gendisk and a data offset (if sector-zero is at
->> an offset from the base address range of the namespace).  Something
->> like:
->>
->> nvdimm_namespace_disk_poison(struct nd_namespace_common *ndns,
->>     resource_size_t offset, struct gendisk *disk)
->
-> This should be easy to do, however isn't it a bit counter-intuitive to
-> move this into core? The lower level drivers pmem/blk/btt are all owners
-> of their respective gendisks, and so doesn't it make more sense for them
-> to be in control of manipulating their gendisk data. Also, I can see
-> moving them if this was a common operation, but only pmem will ever need
-> to do this..
->
-> I'm not too strongly opposed to this however - the one thing that did
-> feel a bit awkward being in pmem was that we ask core for a struct
-> list_head and then walk it ourselves - pmem doesn't normally know about
-> the internals of nvdimm_bus, but with this we implicitly make it aware.
-
-Yeah, it's borderline, but teaching pmem how to walk a list that the
-core built up is what triggered the suggestion.  It's true that the
-pmem driver owns its gendisk, but that's why it gets to make the
-decision to call the library helper or not.
+T24gU3VuLCAyMDE1LTEyLTIwIGF0IDE3OjIwIC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIFN1biwgRGVjIDIwLCAyMDE1IGF0IDE6MTggQU0swqDCoDx2aXNoYWxAa2VybmVsLm9yZz4g
+d3JvdGU6DQo+ID4gRnJvbTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+
+DQo+ID4gDQo+ID4gRW5hYmxlIHRoZSBnZW5kaXNrIGJhZGJsb2NrcyBmZWF0dXJlIGZvciBwbWVt
+IG5hbWVzcGFjZXMuDQo+ID4gSWYgdGhlIHBtZW0gbmFtZXNwYWNlIGJlaW5nIGNyZWF0ZWQgaGFz
+IGFueSBrbm93biBwb2lzb24gYXNzb2NpYXRlZA0KPiA+IHdpdGgNCj4gPiBpdHMgcGh5c2ljYWwg
+YWRkcmVzcyBzcGFjZSwgY29udmVydCB0aGUgcG9pc29uIHJhbmdlcyB0byBiYWQgc2VjdG9ycw0K
+PiA+IGV4cG9zZWQgdXNpbmcgdGhlIGJhZGJsb2NrcyBpbnRlcmZhY2UuDQo+ID4gDQo+ID4gU2ln
+bmVkLW9mZi1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+ID4g
+LS0tDQo+ID4gwqBkcml2ZXJzL252ZGltbS9wbWVtLmMgfCAxMjQNCj4gPiArKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+IMKgMSBmaWxlIGNoYW5n
+ZWQsIDEyNCBpbnNlcnRpb25zKCspDQo+IA0KPiBJIHRoaW5rIHdlIHNob3VsZCBtb3ZlIHRoaXMg
+bmV3IGZ1bmN0aW9uYWxpdHkgdG8gdGhlIGNvcmUgYmVjYXVzZQ0KPiB0aGVyZSBpcyBub3QgbXVj
+aCBwbWVtIGRyaXZlciBzcGVjaWZpYy7CoMKgSXQncyBhbGwgZ2VuZXJpYyBudmRpbW0tY29yZQ0K
+PiBhbmQgYmxvY2stY29yZSBmdW5jdGlvbmFsaXR5LsKgwqBUaGUgb25seSBtaXNzaW5nIGluZm9y
+bWF0aW9uIHRoZSBjb3JlDQo+IHJvdXRpbmUgbmVlZHMgaXMgdGhlIGdlbmRpc2sgYW5kIGEgZGF0
+YSBvZmZzZXQgKGlmIHNlY3Rvci16ZXJvIGlzIGF0DQo+IGFuIG9mZnNldCBmcm9tIHRoZSBiYXNl
+IGFkZHJlc3MgcmFuZ2Ugb2YgdGhlIG5hbWVzcGFjZSkuwqDCoFNvbWV0aGluZw0KPiBsaWtlOg0K
+PiANCj4gbnZkaW1tX25hbWVzcGFjZV9kaXNrX3BvaXNvbihzdHJ1Y3QgbmRfbmFtZXNwYWNlX2Nv
+bW1vbiAqbmRucywNCj4gwqDCoMKgwqByZXNvdXJjZV9zaXplX3Qgb2Zmc2V0LCBzdHJ1Y3QgZ2Vu
+ZGlzayAqZGlzaykNCg0KVGhpcyBzaG91bGQgYmUgZWFzeSB0byBkbywgaG93ZXZlciBpc24ndCBp
+dCBhIGJpdCBjb3VudGVyLWludHVpdGl2ZSB0bw0KbW92ZSB0aGlzIGludG8gY29yZT8gVGhlIGxv
+d2VyIGxldmVsIGRyaXZlcnMgcG1lbS9ibGsvYnR0IGFyZSBhbGwgb3duZXJzDQpvZiB0aGVpciBy
+ZXNwZWN0aXZlIGdlbmRpc2tzLCBhbmQgc28gZG9lc24ndCBpdCBtYWtlIG1vcmUgc2Vuc2UgZm9y
+IHRoZW0NCnRvIGJlIGluIGNvbnRyb2wgb2YgbWFuaXB1bGF0aW5nIHRoZWlyIGdlbmRpc2sgZGF0
+YS4gQWxzbywgSSBjYW4gc2VlDQptb3ZpbmcgdGhlbSBpZiB0aGlzIHdhcyBhIGNvbW1vbiBvcGVy
+YXRpb24sIGJ1dCBvbmx5IHBtZW0gd2lsbCBldmVyIG5lZWQNCnRvIGRvIHRoaXMuLg0KDQpJJ20g
+bm90IHRvbyBzdHJvbmdseSBvcHBvc2VkIHRvIHRoaXMgaG93ZXZlciAtIHRoZSBvbmUgdGhpbmcg
+dGhhdCBkaWQNCmZlZWwgYSBiaXQgYXdrd2FyZCBiZWluZyBpbiBwbWVtIHdhcyB0aGF0IHdlIGFz
+ayBjb3JlIGZvciBhIHN0cnVjdA0KbGlzdF9oZWFkIGFuZCB0aGVuIHdhbGsgaXQgb3Vyc2VsdmVz
+IC0gcG1lbSBkb2Vzbid0IG5vcm1hbGx5IGtub3cgYWJvdXQNCnRoZSBpbnRlcm5hbHMgb2YgbnZk
+aW1tX2J1cywgYnV0IHdpdGggdGhpcyB3ZSBpbXBsaWNpdGx5IG1ha2UgaXQgYXdhcmUu
