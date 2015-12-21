@@ -1,80 +1,111 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH 8/8] ext4: Transparent support for PUD-sized transparent huge pages
-Date: Thu, 24 Dec 2015 11:20:37 -0500
-Message-Id: <1450974037-24775-9-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
+Subject: [-mm PATCH v4 13/18] libnvdimm,
+ pmem: move request_queue allocation earlier in probe
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 20 Dec 2015 21:45:16 -0800
+Message-ID: <20151221054516.34542.20220.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <willy@linux.intel.com>
+Before the dynamically allocated struct pages from devm_memremap_pages()
+can be put to use outside the driver, we need a mechanism to track
+whether they are still in use at teardown.  Towards that goal reorder
+the initialization sequence to allow the 'q_usage_counter' from the
+request_queue to be used by the devm_memremap_pages() implementation (in
+subsequent patches).
 
-Call into DAX to provide support for PUD pages, just like the PMD cases.
-
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/ext4/file.c | 37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ drivers/nvdimm/pmem.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 60683ab..b0cba51 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -262,6 +262,42 @@ static int ext4_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
- 	return result;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 6f8b1fc62c2a..2c6096ab2ce6 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -125,6 +125,7 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 		struct resource *res, int id)
+ {
+ 	struct pmem_device *pmem;
++	struct request_queue *q;
+ 
+ 	pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
+ 	if (!pmem)
+@@ -142,6 +143,10 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 		return ERR_PTR(-EBUSY);
+ 	}
+ 
++	q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
++	if (!q)
++		return ERR_PTR(-ENOMEM);
++
+ 	pmem->pfn_flags = PFN_DEV;
+ 	if (pmem_should_map_pages(dev)) {
+ 		pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, res,
+@@ -152,9 +157,12 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 				pmem->phys_addr, pmem->size,
+ 				ARCH_MEMREMAP_PMEM);
+ 
+-	if (IS_ERR(pmem->virt_addr))
++	if (IS_ERR(pmem->virt_addr)) {
++		blk_cleanup_queue(q);
+ 		return (void __force *) pmem->virt_addr;
++	}
+ 
++	pmem->pmem_queue = q;
+ 	return pmem;
  }
  
-+static int ext4_dax_pud_fault(struct vm_area_struct *vma, unsigned long addr,
-+						pud_t *pud, unsigned int flags)
-+{
-+	int result;
-+	handle_t *handle = NULL;
-+	struct inode *inode = file_inode(vma->vm_file);
-+	struct super_block *sb = inode->i_sb;
-+	bool write = flags & FAULT_FLAG_WRITE;
-+
-+	if (write) {
-+		sb_start_pagefault(sb);
-+		file_update_time(vma->vm_file);
-+		down_read(&EXT4_I(inode)->i_mmap_sem);
-+		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
-+				ext4_chunk_trans_blocks(inode,
-+							PMD_SIZE / PAGE_SIZE));
-+	} else
-+		down_read(&EXT4_I(inode)->i_mmap_sem);
-+
-+	if (IS_ERR(handle))
-+		result = VM_FAULT_SIGBUS;
-+	else
-+		result = __dax_pud_fault(vma, addr, pud, flags,
-+				ext4_dax_mmap_get_block, NULL);
-+
-+	if (write) {
-+		if (!IS_ERR(handle))
-+			ext4_journal_stop(handle);
-+		up_read(&EXT4_I(inode)->i_mmap_sem);
-+		sb_end_pagefault(sb);
-+	} else
-+		up_read(&EXT4_I(inode)->i_mmap_sem);
-+
-+	return result;
-+}
-+
- static int ext4_dax_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	int err;
-@@ -309,6 +345,7 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
- static const struct vm_operations_struct ext4_dax_vm_ops = {
- 	.fault		= ext4_dax_fault,
- 	.pmd_fault	= ext4_dax_pmd_fault,
-+	.pud_fault	= ext4_dax_pud_fault,
- 	.page_mkwrite	= ext4_dax_mkwrite,
- 	.pfn_mkwrite	= ext4_dax_pfn_mkwrite,
- };
--- 
-2.6.2
+@@ -174,10 +182,6 @@ static int pmem_attach_disk(struct device *dev,
+ 	int nid = dev_to_node(dev);
+ 	struct gendisk *disk;
+ 
+-	pmem->pmem_queue = blk_alloc_queue_node(GFP_KERNEL, nid);
+-	if (!pmem->pmem_queue)
+-		return -ENOMEM;
+-
+ 	blk_queue_make_request(pmem->pmem_queue, pmem_make_request);
+ 	blk_queue_physical_block_size(pmem->pmem_queue, PAGE_SIZE);
+ 	blk_queue_max_hw_sectors(pmem->pmem_queue, UINT_MAX);
+@@ -412,19 +416,22 @@ static int nd_pmem_probe(struct device *dev)
+ 	dev_set_drvdata(dev, pmem);
+ 	ndns->rw_bytes = pmem_rw_bytes;
+ 
+-	if (is_nd_btt(dev))
++	if (is_nd_btt(dev)) {
++		/* btt allocates its own request_queue */
++		blk_cleanup_queue(pmem->pmem_queue);
++		pmem->pmem_queue = NULL;
+ 		return nvdimm_namespace_attach_btt(ndns);
++	}
+ 
+ 	if (is_nd_pfn(dev))
+ 		return nvdimm_namespace_attach_pfn(ndns);
+ 
+-	if (nd_btt_probe(ndns, pmem) == 0) {
+-		/* we'll come back as btt-pmem */
+-		return -ENXIO;
+-	}
+-
+-	if (nd_pfn_probe(ndns, pmem) == 0) {
+-		/* we'll come back as pfn-pmem */
++	if (nd_btt_probe(ndns, pmem) == 0 || nd_pfn_probe(ndns, pmem) == 0) {
++		/*
++		 * We'll come back as either btt-pmem, or pfn-pmem, so
++		 * drop the queue allocation for now.
++		 */
++		blk_cleanup_queue(pmem->pmem_queue);
+ 		return -ENXIO;
+ 	}
+ 
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
