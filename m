@@ -1,69 +1,111 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH] block: fix del_gendisk() vs blkdev_ioctl crash
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [-mm PATCH v4 06/18] libnvdimm, pfn,
+ pmem: allocate memmap array in persistent memory
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 17 Dec 2015 14:26:56 -0800
-Message-ID: <20151217222656.1249.96719.stgit@dwillia2-desk3.jf.intel.com>
+Date: Sun, 20 Dec 2015 21:44:39 -0800
+Message-ID: <20151221054439.34542.18140.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@fb.com
-Cc: linux-block@vger.kernel.org, Robert Hu <robert.hu@intel.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When tearing down a block device early in its lifetime, userspace may
-still be performing discovery actions like blkdev_ioctl() to re-read
-partitions.
+Use the new vmem_altmap capability to enable the pmem driver to arrange
+for a struct page memmap to be established in persistent memory.
 
-The nvdimm_revalidate_disk() implementation depends on
-disk->driverfs_dev to be valid at entry.  However, it is set to NULL in
-del_gendisk() and fatally this is happening *before* the disk device is
-deleted from userspace view.
-
-There's no reason for del_gendisk() to clear ->driverfs_dev.  That
-device is the parent of the disk.  It is guaranteed to not be freed
-until the disk, as a child, drops its ->parent reference.
-
-We could also fix this issue locally in nvdimm_revalidate_disk() by
-using disk_to_dev(disk)->parent, but lets fix it globally since
-->driverfs_dev follows the lifetime of the parent.  Longer term we
-should probably just add a @parent parameter to add_disk(), and stop
-carrying this pointer in the gendisk.
-
- BUG: unable to handle kernel NULL pointer dereference at           (null)
- IP: [<ffffffffa00340a8>] nvdimm_revalidate_disk+0x18/0x90 [libnvdimm]
- CPU: 2 PID: 538 Comm: systemd-udevd Tainted: G           O    4.4.0-rc5 #2257
- [..]
- Call Trace:
-  [<ffffffff8143e5c7>] rescan_partitions+0x87/0x2c0
-  [<ffffffff810f37f9>] ? __lock_is_held+0x49/0x70
-  [<ffffffff81438c62>] __blkdev_reread_part+0x72/0xb0
-  [<ffffffff81438cc5>] blkdev_reread_part+0x25/0x40
-  [<ffffffff8143982d>] blkdev_ioctl+0x4fd/0x9c0
-  [<ffffffff811246c9>] ? current_kernel_time64+0x69/0xd0
-  [<ffffffff812916dd>] block_ioctl+0x3d/0x50
-  [<ffffffff81264c38>] do_vfs_ioctl+0x308/0x560
-  [<ffffffff8115dbd1>] ? __audit_syscall_entry+0xb1/0x100
-  [<ffffffff810031d6>] ? do_audit_syscall_entry+0x66/0x70
-  [<ffffffff81264f09>] SyS_ioctl+0x79/0x90
-  [<ffffffff81902672>] entry_SYSCALL_64_fastpath+0x12/0x76
-
-Reported-by: Robert Hu <robert.hu@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- block/genhd.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/ia64/include/asm/page.h |    1 +
+ drivers/nvdimm/pfn_devs.c    |    3 +--
+ drivers/nvdimm/pmem.c        |   19 +++++++++++++++++--
+ 3 files changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/block/genhd.c b/block/genhd.c
-index e5cafa51567c..1a971bebbbfe 100644
---- a/block/genhd.c
-+++ b/block/genhd.c
-@@ -664,7 +664,6 @@ void del_gendisk(struct gendisk *disk)
+diff --git a/arch/ia64/include/asm/page.h b/arch/ia64/include/asm/page.h
+index ec48bb9f95e1..e8c486ef0d76 100644
+--- a/arch/ia64/include/asm/page.h
++++ b/arch/ia64/include/asm/page.h
+@@ -105,6 +105,7 @@ extern struct page *vmem_map;
+ #ifdef CONFIG_DISCONTIGMEM
+ # define page_to_pfn(page)	((unsigned long) (page - vmem_map))
+ # define pfn_to_page(pfn)	(vmem_map + (pfn))
++# define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+ #else
+ # include <asm-generic/memory_model.h>
+ #endif
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 71805a1aa0f3..a642cfacee07 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -83,8 +83,7 @@ static ssize_t mode_store(struct device *dev,
  
- 	kobject_put(disk->part0.holder_dir);
- 	kobject_put(disk->slave_dir);
--	disk->driverfs_dev = NULL;
- 	if (!sysfs_deprecated)
- 		sysfs_remove_link(block_depr, dev_name(disk_to_dev(disk)));
- 	pm_runtime_set_memalloc_noio(disk_to_dev(disk), false);
+ 		if (strncmp(buf, "pmem\n", n) == 0
+ 				|| strncmp(buf, "pmem", n) == 0) {
+-			/* TODO: allocate from PMEM support */
+-			rc = -ENOTTY;
++			nd_pfn->mode = PFN_MODE_PMEM;
+ 		} else if (strncmp(buf, "ram\n", n) == 0
+ 				|| strncmp(buf, "ram", n) == 0)
+ 			nd_pfn->mode = PFN_MODE_RAM;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 103c1f7e6aca..6f8b1fc62c2a 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -316,12 +316,16 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+ 	struct nd_pfn *nd_pfn = to_nd_pfn(ndns->claim);
+ 	struct device *dev = &nd_pfn->dev;
+-	struct vmem_altmap *altmap;
+ 	struct nd_region *nd_region;
++	struct vmem_altmap *altmap;
+ 	struct nd_pfn_sb *pfn_sb;
+ 	struct pmem_device *pmem;
+ 	phys_addr_t offset;
+ 	int rc;
++	struct vmem_altmap __altmap = {
++		.base_pfn = __phys_to_pfn(nsio->res.start),
++		.reserve = __phys_to_pfn(SZ_8K),
++	};
+ 
+ 	if (!nd_pfn->uuid || !nd_pfn->ndns)
+ 		return -ENODEV;
+@@ -349,6 +353,17 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
+ 			return -EINVAL;
+ 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
+ 		altmap = NULL;
++	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
++		nd_pfn->npfns = (resource_size(&nsio->res) - offset)
++			/ PAGE_SIZE;
++		if (le64_to_cpu(nd_pfn->pfn_sb->npfns) > nd_pfn->npfns)
++			dev_info(&nd_pfn->dev,
++					"number of pfns truncated from %lld to %ld\n",
++					le64_to_cpu(nd_pfn->pfn_sb->npfns),
++					nd_pfn->npfns);
++		altmap = & __altmap;
++		altmap->free = __phys_to_pfn(offset - SZ_8K);
++		altmap->alloc = 0;
+ 	} else {
+ 		rc = -ENXIO;
+ 		goto err;
+@@ -358,7 +373,7 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
+ 	pmem = dev_get_drvdata(dev);
+ 	devm_memunmap(dev, (void __force *) pmem->virt_addr);
+ 	pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, &nsio->res,
+-			NULL);
++			altmap);
+ 	pmem->pfn_flags |= PFN_MAP;
+ 	if (IS_ERR(pmem->virt_addr)) {
+ 		rc = PTR_ERR(pmem->virt_addr);
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
