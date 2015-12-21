@@ -1,43 +1,66 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v4 09/18] frv: fix compiler warning from definition of
- __pmd()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 20 Dec 2015 21:44:55 -0800
-Message-ID: <20151221054454.34542.22466.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+Date: Mon, 21 Dec 2015 18:32:24 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v5 6/7] ext4: call dax_pfn_mkwrite() for DAX fsync/msync
+Message-ID: <20151221173223.GC7030@quack.suse.cz>
+References: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1450502540-8744-7-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1450502540-8744-7-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Take into account that the pmd_t type is a array inside a struct, so it
-needs two levels of brackets to initialize.  Otherwise, a usage of __pmd
-generates a warning:
+On Fri 18-12-15 22:22:19, Ross Zwisler wrote:
+> To properly support the new DAX fsync/msync infrastructure filesystems
+> need to call dax_pfn_mkwrite() so that DAX can track when user pages are
+> dirtied.
 
-include/linux/mm.h:986:2: warning: missing braces around initializer [-Wmissing-braces]
+The patch looks good to me. You can add:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/frv/include/asm/page.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/arch/frv/include/asm/page.h b/arch/frv/include/asm/page.h
-index 8c97068ac8fc..688d8076a43a 100644
---- a/arch/frv/include/asm/page.h
-+++ b/arch/frv/include/asm/page.h
-@@ -34,7 +34,7 @@ typedef struct page *pgtable_t;
- #define pgprot_val(x)	((x).pgprot)
- 
- #define __pte(x)	((pte_t) { (x) } )
--#define __pmd(x)	((pmd_t) { (x) } )
-+#define __pmd(x)	((pmd_t) { { (x) } } )
- #define __pud(x)	((pud_t) { (x) } )
- #define __pgd(x)	((pgd_t) { (x) } )
- #define __pgprot(x)	((pgprot_t) { (x) } )
+								Honza
+
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  fs/ext4/file.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+> index 749b222..8c8965c 100644
+> --- a/fs/ext4/file.c
+> +++ b/fs/ext4/file.c
+> @@ -291,8 +291,8 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
+>  {
+>  	struct inode *inode = file_inode(vma->vm_file);
+>  	struct super_block *sb = inode->i_sb;
+> -	int ret = VM_FAULT_NOPAGE;
+>  	loff_t size;
+> +	int ret;
+>  
+>  	sb_start_pagefault(sb);
+>  	file_update_time(vma->vm_file);
+> @@ -300,6 +300,8 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
+>  	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+>  	if (vmf->pgoff >= size)
+>  		ret = VM_FAULT_SIGBUS;
+> +	else
+> +		ret = dax_pfn_mkwrite(vma, vmf);
+>  	up_read(&EXT4_I(inode)->i_mmap_sem);
+>  	sb_end_pagefault(sb);
+>  
+> -- 
+> 2.5.0
+> 
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
