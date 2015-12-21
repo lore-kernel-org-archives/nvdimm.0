@@ -1,73 +1,228 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 16/16] ACPI/EINJ: Allow memory error injection to NVDIMM
-Date: Fri, 25 Dec 2015 15:09:25 -0700
-Message-Id: <1451081365-15190-16-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1451081365-15190-1-git-send-email-toshi.kani@hpe.com>
-References: <1451081365-15190-1-git-send-email-toshi.kani@hpe.com>
+Subject: [-mm PATCH v4 12/18] mm, dax: convert vmf_insert_pfn_pmd() to pfn_t
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 20 Dec 2015 21:45:10 -0800
+Message-ID: <20151221054510.34542.28666.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, bp@alien8.de
-Cc: linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vishal Verma <vishal.l.verma@intel.com>, Tony Luck <tony.luck@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Matthew Wilcox <willy@linux.intel.com>, Dave Hansen <dave@sr71.net>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In the case of memory error injection, einj_error_inject() checks
-if a target address is System RAM.  Change this check to allow
-injecting a memory error to NVDIMM by calling region_intersects()
-with IORES_DESC_PERSISTENT_MEMORY.  This enables memory error
-testing on both System RAM and NVDIMM.
+Similar to the conversion of vm_insert_mixed() use pfn_t in the
+vmf_insert_pfn_pmd() to tag the resulting pte with _PAGE_DEVICE when the
+pfn is backed by a devm_memremap_pages() mapping.
 
-In addition, page_is_ram() is replaced with region_intersects()
-with IORESOURCE_SYSTEM_RAM, so that it can verify a target address
-range with the requested size.
-
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
-Acked-by: Tony Luck <tony.luck@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Dave Hansen <dave@sr71.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/apei/einj.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ arch/x86/include/asm/pgtable.h |    5 +++++
+ arch/x86/mm/pat.c              |    5 +++--
+ fs/dax.c                       |    2 +-
+ include/asm-generic/pgtable.h  |    6 ++++--
+ include/linux/huge_mm.h        |    2 +-
+ include/linux/pfn_t.h          |    8 ++++++++
+ mm/huge_memory.c               |   11 +++++++----
+ mm/memory.c                    |    2 +-
+ 8 files changed, 30 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 0431883..16cae66 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 			     u64 param3, u64 param4)
- {
- 	int rc;
--	unsigned long pfn;
-+	u64 base_addr, size;
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index 176b9c4403fc..dc962ae41597 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -289,6 +289,11 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
+ 	return pmd_set_flags(pmd, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
+ }
  
- 	/* If user manually set "flags", make sure it is legal */
- 	if (flags && (flags &
-@@ -545,10 +545,17 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 	/*
- 	 * Disallow crazy address masks that give BIOS leeway to pick
- 	 * injection address almost anywhere. Insist on page or
--	 * better granularity and that target address is normal RAM.
-+	 * better granularity and that target address is normal RAM or
-+	 * NVDIMM.
- 	 */
--	pfn = PFN_DOWN(param1 & param2);
--	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
-+	base_addr = param1 & param2;
-+	size = ~param2 + 1;
++static inline pmd_t pmd_mkdevmap(pmd_t pmd)
++{
++	return pmd_set_flags(pmd, _PAGE_DEVMAP);
++}
 +
-+	if (((param2 & PAGE_MASK) != PAGE_MASK) ||
-+	    ((region_intersects(base_addr, size, IORESOURCE_SYSTEM_RAM,
-+			IORES_DESC_NONE) != REGION_INTERSECTS) &&
-+	     (region_intersects(base_addr, size, IORESOURCE_MEM,
-+			IORES_DESC_PERSISTENT_MEMORY) != REGION_INTERSECTS)))
+ static inline pmd_t pmd_mkhuge(pmd_t pmd)
+ {
+ 	return pmd_set_flags(pmd, _PAGE_PSE);
+diff --git a/arch/x86/mm/pat.c b/arch/x86/mm/pat.c
+index 188e3e07eeeb..6c7259fdcf6d 100644
+--- a/arch/x86/mm/pat.c
++++ b/arch/x86/mm/pat.c
+@@ -12,6 +12,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/pfn_t.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+ #include <linux/fs.h>
+@@ -949,7 +950,7 @@ int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
+ }
+ 
+ int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
+-		     unsigned long pfn)
++		     pfn_t pfn)
+ {
+ 	enum page_cache_mode pcm;
+ 
+@@ -957,7 +958,7 @@ int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
+ 		return 0;
+ 
+ 	/* Set prot based on lookup */
+-	pcm = lookup_memtype((resource_size_t)pfn << PAGE_SHIFT);
++	pcm = lookup_memtype(pfn_t_to_phys(pfn));
+ 	*prot = __pgprot((pgprot_val(vma->vm_page_prot) & (~_PAGE_CACHE_MASK)) |
+ 			 cachemode2protval(pcm));
+ 
+diff --git a/fs/dax.c b/fs/dax.c
+index 574763eed8a3..96ac3072463d 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -693,7 +693,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		dax_unmap_atomic(bdev, &dax);
+ 
+ 		result |= vmf_insert_pfn_pmd(vma, address, pmd,
+-				pfn_t_to_pfn(dax.pfn), write);
++				dax.pfn, write);
+ 	}
+ 
+  out:
+diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
+index 63abda1ac06d..bdff35e90889 100644
+--- a/include/asm-generic/pgtable.h
++++ b/include/asm-generic/pgtable.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_GENERIC_PGTABLE_H
+ #define _ASM_GENERIC_PGTABLE_H
+ 
++#include <linux/pfn.h>
++
+ #ifndef __ASSEMBLY__
+ #ifdef CONFIG_MMU
+ 
+@@ -549,7 +551,7 @@ static inline int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
+  * by vm_insert_pfn().
+  */
+ static inline int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
+-				   unsigned long pfn)
++				   pfn_t pfn)
+ {
+ 	return 0;
+ }
+@@ -577,7 +579,7 @@ extern int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
+ 			   unsigned long pfn, unsigned long addr,
+ 			   unsigned long size);
+ extern int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
+-			    unsigned long pfn);
++			    pfn_t pfn);
+ extern int track_pfn_copy(struct vm_area_struct *vma);
+ extern void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
+ 			unsigned long size);
+diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+index 0160201993d4..8ca35a131904 100644
+--- a/include/linux/huge_mm.h
++++ b/include/linux/huge_mm.h
+@@ -37,7 +37,7 @@ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			unsigned long addr, pgprot_t newprot,
+ 			int prot_numa);
+ int vmf_insert_pfn_pmd(struct vm_area_struct *, unsigned long addr, pmd_t *,
+-			unsigned long pfn, bool write);
++			pfn_t pfn, bool write);
+ 
+ enum transparent_hugepage_flag {
+ 	TRANSPARENT_HUGEPAGE_FLAG,
+diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
+index bdaa275d7623..0703b5360d31 100644
+--- a/include/linux/pfn_t.h
++++ b/include/linux/pfn_t.h
+@@ -77,6 +77,13 @@ static inline pte_t pfn_t_pte(pfn_t pfn, pgprot_t pgprot)
+ }
+ #endif
+ 
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static inline pmd_t pfn_t_pmd(pfn_t pfn, pgprot_t pgprot)
++{
++	return pfn_pmd(pfn_t_to_pfn(pfn), pgprot);
++}
++#endif
++
+ #ifdef __HAVE_ARCH_PTE_DEVMAP
+ static inline bool pfn_t_devmap(pfn_t pfn)
+ {
+@@ -90,5 +97,6 @@ static inline bool pfn_t_devmap(pfn_t pfn)
+ 	return false;
+ }
+ pte_t pte_mkdevmap(pte_t pte);
++pmd_t pmd_mkdevmap(pmd_t pmd);
+ #endif
+ #endif /* _LINUX_PFN_T_H_ */
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index a4bfeb07394b..7356857d7356 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -20,6 +20,7 @@
+ #include <linux/kthread.h>
+ #include <linux/khugepaged.h>
+ #include <linux/freezer.h>
++#include <linux/pfn_t.h>
+ #include <linux/mman.h>
+ #include <linux/pagemap.h>
+ #include <linux/migrate.h>
+@@ -960,14 +961,16 @@ int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ }
+ 
+ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+-		pmd_t *pmd, unsigned long pfn, pgprot_t prot, bool write)
++		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t entry;
+ 	spinlock_t *ptl;
+ 
+ 	ptl = pmd_lock(mm, pmd);
+-	entry = pmd_mkhuge(pfn_pmd(pfn, prot));
++	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
++	if (pfn_t_devmap(pfn))
++		entry = pmd_mkdevmap(entry);
+ 	if (write) {
+ 		entry = pmd_mkyoung(pmd_mkdirty(entry));
+ 		entry = maybe_pmd_mkwrite(entry, vma);
+@@ -978,7 +981,7 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ }
+ 
+ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+-			pmd_t *pmd, unsigned long pfn, bool write)
++			pmd_t *pmd, pfn_t pfn, bool write)
+ {
+ 	pgprot_t pgprot = vma->vm_page_prot;
+ 	/*
+@@ -990,7 +993,7 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
+ 						(VM_PFNMAP|VM_MIXEDMAP));
+ 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
+-	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
++	BUG_ON(!pfn_t_devmap(pfn));
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return VM_FAULT_SIGBUS;
+diff --git a/mm/memory.c b/mm/memory.c
+index d328ea7542b1..9483d2b1dd3b 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1567,7 +1567,7 @@ int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return -EFAULT;
+-	if (track_pfn_insert(vma, &pgprot, pfn))
++	if (track_pfn_insert(vma, &pgprot, __pfn_to_pfn_t(pfn, PFN_DEV)))
  		return -EINVAL;
  
- inject:
+ 	ret = insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, PFN_DEV), pgprot);
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
