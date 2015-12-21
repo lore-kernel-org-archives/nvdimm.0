@@ -1,16 +1,16 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v5 15/18] mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd
+Subject: [-mm PATCH v4 15/18] mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 24 Dec 2015 16:59:28 -0800
-Message-ID: <20151225005623.19962.1972.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151221054526.34542.25205.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151221054526.34542.25205.stgit@dwillia2-desk3.jf.intel.com>
+Date: Sun, 20 Dec 2015 21:45:26 -0800
+Message-ID: <20151221054526.34542.25205.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
 To: akpm@linux-foundation.org
-Cc: Andrea Arcangeli <aarcange@redhat.com>, Dave Hansen <dave@sr71.net>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, linux-mm@kvack.org, Mel Gorman <mgorman@suse.de>, Sasha Levin <sasha.levin@oracle.com>, Matthew Wilcox <willy@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>, Dave Hansen <dave@sr71.net>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, linux-mm@kvack.org, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
 A dax-huge-page mapping while it uses some thp helpers is ultimately not a
@@ -25,26 +25,19 @@ Cc: Dave Hansen <dave@sr71.net>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Matthew Wilcox <willy@linux.intel.com>
-Reported-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-
-Changes since v4:
-1/ Fold in a __split_huge_pmd() regression fix (Kirill)
-
-2/ Add a missing pmd_devmap() check to pmd_trans_huge_lock() (Willy)
-
  arch/x86/include/asm/pgtable.h |    9 ++++++++-
- include/linux/huge_mm.h        |    5 +++--
+ include/linux/huge_mm.h        |    3 ++-
  include/linux/mm.h             |    7 +++++++
- mm/huge_memory.c               |   38 +++++++++++++++++++++-----------------
+ mm/huge_memory.c               |   33 +++++++++++++++++++--------------
  mm/memory.c                    |    8 ++++----
  mm/mprotect.c                  |    5 +++--
  mm/pgtable-generic.c           |    2 +-
- 7 files changed, 47 insertions(+), 27 deletions(-)
+ 7 files changed, 44 insertions(+), 23 deletions(-)
 
 diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
 index dc962ae41597..993ce3c84ff4 100644
@@ -73,7 +66,7 @@ index dc962ae41597..993ce3c84ff4 100644
  
  static inline pte_t pte_set_flags(pte_t pte, pteval_t set)
 diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index 8ca35a131904..d39fa60bd6bf 100644
+index 8ca35a131904..40c4db60c9e0 100644
 --- a/include/linux/huge_mm.h
 +++ b/include/linux/huge_mm.h
 @@ -104,7 +104,8 @@ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
@@ -86,15 +79,6 @@ index 8ca35a131904..d39fa60bd6bf 100644
  			__split_huge_pmd(__vma, __pmd, __address);	\
  	}  while (0)
  
-@@ -124,7 +125,7 @@ static inline bool pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma,
- 		spinlock_t **ptl)
- {
- 	VM_BUG_ON_VMA(!rwsem_is_locked(&vma->vm_mm->mmap_sem), vma);
--	if (pmd_trans_huge(*pmd))
-+	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
- 		return __pmd_trans_huge_lock(pmd, vma, ptl);
- 	else
- 		return false;
 diff --git a/include/linux/mm.h b/include/linux/mm.h
 index 957afd1b10a5..96f396bbcc9f 100644
 --- a/include/linux/mm.h
@@ -114,7 +98,7 @@ index 957afd1b10a5..96f396bbcc9f 100644
  static inline int __pmd_alloc(struct mm_struct *mm, pud_t *pud,
  						unsigned long address)
 diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 7356857d7356..4521bec67364 100644
+index 7356857d7356..0c114fa08349 100644
 --- a/mm/huge_memory.c
 +++ b/mm/huge_memory.c
 @@ -1024,7 +1024,7 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
@@ -172,29 +156,24 @@ index 7356857d7356..4521bec67364 100644
  
  	count_vm_event(THP_SPLIT_PMD);
  
-@@ -2975,14 +2978,15 @@ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+@@ -2975,11 +2978,13 @@ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
  
  	mmu_notifier_invalidate_range_start(mm, haddr, haddr + HPAGE_PMD_SIZE);
  	ptl = pmd_lock(mm, pmd);
 -	if (unlikely(!pmd_trans_huge(*pmd)))
-+	if (pmd_trans_huge(*pmd)) {
-+		page = pmd_page(*pmd);
-+		if (PageMlocked(page))
-+			get_page(page);
-+		else
-+			page = NULL;
-+	} else if (!pmd_devmap(*pmd))
++	if (unlikely(!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
  		goto out;
 -	page = pmd_page(*pmd);
  	__split_huge_pmd_locked(vma, pmd, haddr, false);
 -	if (PageMlocked(page))
--		get_page(page);
--	else
--		page = NULL;
- out:
- 	spin_unlock(ptl);
- 	mmu_notifier_invalidate_range_end(mm, haddr, haddr + HPAGE_PMD_SIZE);
-@@ -3012,7 +3016,7 @@ static void split_huge_pmd_address(struct vm_area_struct *vma,
++
++	if (pmd_trans_huge(*pmd))
++		page = pmd_page(*pmd);
++	if (page && PageMlocked(page))
+ 		get_page(page);
+ 	else
+ 		page = NULL;
+@@ -3012,7 +3017,7 @@ static void split_huge_pmd_address(struct vm_area_struct *vma,
  		return;
  
  	pmd = pmd_offset(pud, address);
