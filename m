@@ -1,51 +1,69 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 0/2] Expose known poison in SPA ranges to the block layer
-Date: Thu, 24 Dec 2015 19:21:41 -0700
-Message-Id: <1451010103-11462-1-git-send-email-vishal.l.verma@intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>, Linda Knippers <linda.knippers@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 21 Dec 2015 18:32:02 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v5 5/7] ext2: call dax_pfn_mkwrite() for DAX fsync/msync
+Message-ID: <20151221173202.GB7030@quack.suse.cz>
+References: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1450502540-8744-6-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1450502540-8744-6-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-v2:
-  - Move poison list walking from pmem to core (Dan)
-  - If the pmem namespace starts at an offset, account for that (Dan)
-  - Fix a bug in extended status checking for ars_status
-  - Remove a duplicate include in pmem.c (only introduced in v1)
-  - When doing an ars_status, don't error out if an ARS has not yet
-    been performed.
-  - When checking if ARS is supported, also check the extended status
-    and make sure ARS for persistent memory is supported (as opposed to
-    just volatile memory)
-  - Print a dev_err message if find_poison fails
-  - Collapse patches 2 and 3 into a single patch
+On Fri 18-12-15 22:22:18, Ross Zwisler wrote:
+> To properly support the new DAX fsync/msync infrastructure filesystems
+> need to call dax_pfn_mkwrite() so that DAX can track when user pages are
+> dirtied.
 
-This series does a few things:
-- Retrieve all known poison in the system physical address (SPA) space
-  using ARS (Address Range Scrub) commands to firmware
-- Store this poison in a new 'nd_poison' structure
-- In pmem, consume the poison list and expose the ranges as bad sectors
+The patch looks good to me. You can add:
 
-This depends on the badblocks series sent out previously.
-A tree with the latest revisions of both the badblocks patchset and this
-can be found at:
-https://git.kernel.org/cgit/linux/kernel/git/vishal/nvdimm.git/log/?h=err_handling_latest
+Reviewed-by: Jan Kara <jack@suse.cz>
 
+								Honza
 
-Vishal Verma (2):
-  nfit_test: Enable DSMs for all test NFITs
-  libnvdimm: Add a poison list and export badblocks
-
- drivers/acpi/nfit.c              | 203 +++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/core.c            | 187 ++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/nd-core.h         |   3 +
- drivers/nvdimm/nd.h              |   6 ++
- drivers/nvdimm/pmem.c            |   6 ++
- include/linux/libnvdimm.h        |   1 +
- tools/testing/nvdimm/test/nfit.c |   9 ++
- 7 files changed, 415 insertions(+)
-
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  fs/ext2/file.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+> index 11a42c5..2c88d68 100644
+> --- a/fs/ext2/file.c
+> +++ b/fs/ext2/file.c
+> @@ -102,8 +102,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+>  {
+>  	struct inode *inode = file_inode(vma->vm_file);
+>  	struct ext2_inode_info *ei = EXT2_I(inode);
+> -	int ret = VM_FAULT_NOPAGE;
+>  	loff_t size;
+> +	int ret;
+>  
+>  	sb_start_pagefault(inode->i_sb);
+>  	file_update_time(vma->vm_file);
+> @@ -113,6 +113,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+>  	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+>  	if (vmf->pgoff >= size)
+>  		ret = VM_FAULT_SIGBUS;
+> +	else
+> +		ret = dax_pfn_mkwrite(vma, vmf);
+>  
+>  	up_read(&ei->dax_sem);
+>  	sb_end_pagefault(inode->i_sb);
+> -- 
+> 2.5.0
+> 
+> 
 -- 
-2.5.0
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
