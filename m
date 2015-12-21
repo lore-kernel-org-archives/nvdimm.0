@@ -1,10 +1,10 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v5 16/18] mm, x86: get_user_pages() for dax mappings
+Subject: [-mm PATCH v4 16/18] mm, x86: get_user_pages() for dax mappings
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 24 Dec 2015 17:03:48 -0800
-Message-ID: <20151225010039.20013.32610.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151221054532.34542.69282.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151221054532.34542.69282.stgit@dwillia2-desk3.jf.intel.com>
+Date: Sun, 20 Dec 2015 21:45:32 -0800
+Message-ID: <20151221054532.34542.69282.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -32,24 +32,15 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Tested-by: Logan Gunthorpe <logang@deltatee.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-
-Changes since v4:
-
-1/ Fix put_page() to drop the zone_device dev_pagemap reference, otherwise
-we hang at driver unload due to busy references.
-
-2/ Fix follow_page_pte() to properly handle the dev_pagemap reference
-count.
-
  arch/x86/include/asm/pgtable.h |    7 ++++
  arch/x86/mm/gup.c              |   57 +++++++++++++++++++++++++++++-
  include/linux/huge_mm.h        |   10 +++++
- include/linux/mm.h             |   59 ++++++++++++++++++++++---------
- kernel/memremap.c              |   12 ++++++
- mm/gup.c                       |   30 +++++++++++++++-
+ include/linux/mm.h             |   42 +++++++++++++++++-----
+ kernel/memremap.c              |   20 +++++++++++
+ mm/gup.c                       |   19 ++++++++++
  mm/huge_memory.c               |   75 ++++++++++++++++++++++++++++++++--------
- mm/swap.c                      |    1 +
- 8 files changed, 212 insertions(+), 39 deletions(-)
+ mm/swap.c                      |    3 ++
+ 8 files changed, 202 insertions(+), 31 deletions(-)
 
 diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
 index 993ce3c84ff4..40fe31853f07 100644
@@ -181,7 +172,7 @@ index f8cb3e8ac250..6d5eb5900372 100644
  	refs = 0;
  	head = pmd_page(pmd);
 diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index d39fa60bd6bf..cfe81e10bd54 100644
+index 40c4db60c9e0..bc141a65b736 100644
 --- a/include/linux/huge_mm.h
 +++ b/include/linux/huge_mm.h
 @@ -38,7 +38,6 @@ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
@@ -216,7 +207,7 @@ index d39fa60bd6bf..cfe81e10bd54 100644
  
  #endif /* _LINUX_HUGE_MM_H */
 diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 96f396bbcc9f..d802df18f08a 100644
+index 96f396bbcc9f..be0c31362baf 100644
 --- a/include/linux/mm.h
 +++ b/include/linux/mm.h
 @@ -16,6 +16,7 @@
@@ -245,26 +236,12 @@ index 96f396bbcc9f..d802df18f08a 100644
  static inline struct page *virt_to_head_page(const void *x)
  {
  	struct page *page = virt_to_page(x);
-@@ -499,13 +489,6 @@ static inline void init_page_count(struct page *page)
- 
- void __put_page(struct page *page);
- 
--static inline void put_page(struct page *page)
--{
--	page = compound_head(page);
--	if (put_page_testzero(page))
--		__put_page(page);
--}
--
- void put_pages_list(struct list_head *pages);
- 
- void split_page(struct page *page, unsigned int order);
-@@ -687,17 +670,50 @@ static inline enum zone_type page_zonenum(const struct page *page)
+@@ -687,17 +677,40 @@ static inline enum zone_type page_zonenum(const struct page *page)
  }
  
  #ifdef CONFIG_ZONE_DEVICE
 +void get_zone_device_page(struct page *page);
-+void put_zone_device_page(struct page *page);
++int release_zone_device_page(struct page *page);
  static inline bool is_zone_device_page(const struct page *page)
  {
  	return page_zonenum(page) == ZONE_DEVICE;
@@ -273,8 +250,9 @@ index 96f396bbcc9f..d802df18f08a 100644
 +static inline void get_zone_device_page(struct page *page)
 +{
 +}
-+static inline void put_zone_device_page(struct page *page)
++static inline int release_zone_device_page(struct page *page)
 +{
++	return 0;
 +}
  static inline bool is_zone_device_page(const struct page *page)
  {
@@ -296,21 +274,10 @@ index 96f396bbcc9f..d802df18f08a 100644
 +		get_zone_device_page(page);
 +}
 +
-+static inline void put_page(struct page *page)
-+{
-+	page = compound_head(page);
-+
-+	if (put_page_testzero(page))
-+		__put_page(page);
-+
-+	if (unlikely(is_zone_device_page(page)))
-+		put_zone_device_page(page);
-+}
-+
  #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
  #define SECTION_IN_PAGE_FLAGS
  #endif
-@@ -1478,6 +1494,13 @@ static inline int pmd_devmap(pmd_t pmd)
+@@ -1478,6 +1491,13 @@ static inline int pmd_devmap(pmd_t pmd)
  }
  #endif
  
@@ -325,10 +292,10 @@ index 96f396bbcc9f..d802df18f08a 100644
  static inline int __pmd_alloc(struct mm_struct *mm, pud_t *pud,
  						unsigned long address)
 diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 3eb8944265d5..e517a16cb426 100644
+index 3eb8944265d5..ccbb4beeaa71 100644
 --- a/kernel/memremap.c
 +++ b/kernel/memremap.c
-@@ -169,6 +169,18 @@ struct page_map {
+@@ -169,6 +169,26 @@ struct page_map {
  	struct vmem_altmap altmap;
  };
  
@@ -338,17 +305,25 @@ index 3eb8944265d5..e517a16cb426 100644
 +}
 +EXPORT_SYMBOL(get_zone_device_page);
 +
-+void put_zone_device_page(struct page *page)
++int release_zone_device_page(struct page *page)
 +{
++	/*
++	 * ZONE_DEVICE pages are never "onlined" so their reference
++	 * counts never reach zero.  They are always owned by a device
++	 * driver, not the mm core.  I.e. the page is 'idle' when the
++	 * count is 1.
++	 */
++	VM_BUG_ON_PAGE(atomic_read(&page->_count) == 1, page);
 +	put_dev_pagemap(page->pgmap);
++	return atomic_dec_return(&page->_count) == 1;
 +}
-+EXPORT_SYMBOL(put_zone_device_page);
++EXPORT_SYMBOL(release_zone_device_page);
 +
  static void pgmap_radix_release(struct resource *res)
  {
  	resource_size_t key;
 diff --git a/mm/gup.c b/mm/gup.c
-index e95b0cb6ed81..aa21c4b865a5 100644
+index e95b0cb6ed81..a484e0df88b6 100644
 --- a/mm/gup.c
 +++ b/mm/gup.c
 @@ -4,6 +4,7 @@
@@ -359,15 +334,7 @@ index e95b0cb6ed81..aa21c4b865a5 100644
  #include <linux/pagemap.h>
  #include <linux/rmap.h>
  #include <linux/swap.h>
-@@ -62,6 +63,7 @@ static struct page *follow_page_pte(struct vm_area_struct *vma,
- 		unsigned long address, pmd_t *pmd, unsigned int flags)
- {
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct dev_pagemap *pgmap = NULL;
- 	struct page *page;
- 	spinlock_t *ptl;
- 	pte_t *ptep, pte;
-@@ -98,7 +100,17 @@ retry:
+@@ -98,7 +99,16 @@ retry:
  	}
  
  	page = vm_normal_page(vma, address, pte);
@@ -377,8 +344,7 @@ index e95b0cb6ed81..aa21c4b865a5 100644
 +		 * Only return device mapping pages in the FOLL_GET case since
 +		 * they are only valid while holding the pgmap reference.
 +		 */
-+		pgmap = get_dev_pagemap(pte_pfn(pte), NULL);
-+		if (pgmap)
++		if (get_dev_pagemap(pte_pfn(pte), NULL))
 +			page = pte_page(pte);
 +		else
 +			goto no_page;
@@ -386,24 +352,7 @@ index e95b0cb6ed81..aa21c4b865a5 100644
  		if (flags & FOLL_DUMP) {
  			/* Avoid special (like zero) pages in core dumps */
  			page = ERR_PTR(-EFAULT);
-@@ -129,8 +141,15 @@ retry:
- 		goto retry;
- 	}
- 
--	if (flags & FOLL_GET)
-+	if (flags & FOLL_GET) {
- 		get_page(page);
-+
-+		/* drop the pgmap reference now that we hold the page */
-+		if (pgmap) {
-+			put_dev_pagemap(pgmap);
-+			pgmap = NULL;
-+		}
-+	}
- 	if (flags & FOLL_TOUCH) {
- 		if ((flags & FOLL_WRITE) &&
- 		    !pte_dirty(pte) && !PageDirty(page))
-@@ -237,6 +256,13 @@ struct page *follow_page_mask(struct vm_area_struct *vma,
+@@ -237,6 +247,13 @@ struct page *follow_page_mask(struct vm_area_struct *vma,
  	}
  	if ((flags & FOLL_NUMA) && pmd_protnone(*pmd))
  		return no_page_table(vma, flags);
@@ -418,7 +367,7 @@ index e95b0cb6ed81..aa21c4b865a5 100644
  		return follow_page_pte(vma, address, pmd, flags);
  
 diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 4521bec67364..38c04c804fe5 100644
+index 0c114fa08349..5fd0c4a30ae9 100644
 --- a/mm/huge_memory.c
 +++ b/mm/huge_memory.c
 @@ -22,6 +22,7 @@
@@ -518,7 +467,7 @@ index 4521bec67364..38c04c804fe5 100644
  		/*
  		 * We don't mlock() pte-mapped THPs. This way we can avoid
 diff --git a/mm/swap.c b/mm/swap.c
-index 674e2c93da4e..09fe5e97714a 100644
+index 674e2c93da4e..9a6e3db20e59 100644
 --- a/mm/swap.c
 +++ b/mm/swap.c
 @@ -24,6 +24,7 @@
@@ -529,6 +478,15 @@ index 674e2c93da4e..09fe5e97714a 100644
  #include <linux/percpu.h>
  #include <linux/cpu.h>
  #include <linux/notifier.h>
+@@ -94,6 +95,8 @@ void __put_page(struct page *page)
+ {
+ 	if (unlikely(PageCompound(page)))
+ 		__put_compound_page(page);
++	else if (unlikely(is_zone_device_page(page)))
++		release_zone_device_page(page);
+ 	else
+ 		__put_single_page(page);
+ }
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
