@@ -1,88 +1,103 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
-Subject: arm64/efi handling of persistent memory
-Date: Fri, 18 Dec 2015 01:33:25 +0000
-Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295BEBD864@G9W0745.americas.hpqcorp.net>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
 MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>
-Cc: "matt@codeblueprint.co.uk" <matt@codeblueprint.co.uk>, "leif.lindholm@linaro.org" <leif.lindholm@linaro.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "Kani, Toshimitsu" <toshi.kani@hpe.com>, "Knippers, Linda" <linda.knippers@hpe.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+In-Reply-To: <20151201235846.36836.1476.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151201235836.36836.90416.stgit@dwillia2-desk3.jf.intel.com>
+	<20151201235846.36836.1476.stgit@dwillia2-desk3.jf.intel.com>
+Date: Tue, 22 Dec 2015 18:39:31 -0800
+Message-ID: <CAPcyv4jCECQ55ZCXU1fmo52zHgv+1+pr0-UKUXmgMiRa0oovRQ@mail.gmail.com>
+Subject: Re: [PATCH 2/3] xfs: handle shutdown notifications
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: linux-block@vger.kernel.org, XFS Developers <xfs@oss.sgi.com>, Dave Chinner <david@fromorbit.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to the questions about the arm64 efi boot stub
-handing persistent memory, some of the arm64 kernel code 
-looks fishy.
+Dave, I'm looking to push out a branch with this patch included.  Any concerns?
 
-In arch/arm64/kernel/efi.c:
-
-static int __init is_normal_ram(efi_memory_desc_t *md)
-{
-        if (md->attribute & EFI_MEMORY_WB)
-                return 1;
-        return 0;
-}
-
-static __init int is_reserve_region(efi_memory_desc_t *md)
-{
-        switch (md->type) {
-        case EFI_LOADER_CODE:
-        case EFI_LOADER_DATA:
-        case EFI_BOOT_SERVICES_CODE:
-        case EFI_BOOT_SERVICES_DATA:
-        case EFI_CONVENTIONAL_MEMORY:
-        case EFI_PERSISTENT_MEMORY:
-                return 0;
-        default:
-                break;
-        }
-        return is_normal_ram(md);
-}
-
-static __init void reserve_regions(void)
-{
-...
-                if (is_normal_ram(md))
-                        early_init_dt_add_memory_arch(paddr, size);
-
-                if (is_reserve_region(md)) {
-                        memblock_reserve(paddr, size);
-...
-
-static bool __init efi_virtmap_init(void)
-{
-...
-                if (!is_normal_ram(md))
-                        prot = __pgprot(PROT_DEVICE_nGnRE);
-                else if (md->type == EFI_RUNTIME_SERVICES_CODE ||
-                         !PAGE_ALIGNED(md->phys_addr))
-                        prot = PAGE_KERNEL_EXEC;
-                else
-                        prot = PAGE_KERNEL;
-
-Concerns include:
-
-1. is_normal_ram() will see the WB bit and return 1 regardless
-of the type.  That seems similar to the arm EFI boot stub issue.
-The three callers are shown above.
-
-2. is_reserve_region() treating EFI_PERSISTENT_MEMORY the same
-as EFI_CONVENTIONAL_MEMORY looks wrong.
-
-3. We're contemplating working around the grub problem by
-reporting EFI_RESERVED_MEMORY plus the NV attribute rather
-than EFI_PERSISTENT_MEMORY.
-
-If this is done, then is_reserve_region() will fall through
-to is_normal_ram(), which will see the WB bit and return 1.
-That seems backwards... but seems correct for persistent
-memory, reporting it as a reserved region.  That might avoid the
-the EFI_PERSISTENT_MEMORY handling problem (if the preceding
-call to is_normal_ram() didn't already cause problems).
-
----
-Robert Elliott, HPE Persistent Memory
-
-
+On Tue, Dec 1, 2015 at 3:58 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> Force a filesystem shutdown when the backing device is known to be dead.
+> I.e. blk_queue_enter() permanently returns -ENODEV.
+>
+> Cc: xfs@oss.sgi.com
+> Suggested-by: Dave Chinner <david@fromorbit.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  fs/block_dev.c     |    3 ++-
+>  fs/xfs/xfs_super.c |    9 +++++++++
+>  include/linux/fs.h |    2 ++
+>  3 files changed, 13 insertions(+), 1 deletion(-)
+>
+> diff --git a/fs/block_dev.c b/fs/block_dev.c
+> index 39989e990df9..dfe9a53a7c53 100644
+> --- a/fs/block_dev.c
+> +++ b/fs/block_dev.c
+> @@ -1802,7 +1802,7 @@ int __invalidate_device(struct block_device *bdev, bool kill_dirty)
+>  }
+>  EXPORT_SYMBOL(__invalidate_device);
+>
+> -static void generic_bdi_gone(struct super_block *sb)
+> +void generic_bdi_gone(struct super_block *sb)
+>  {
+>         struct inode *inode, *_inode = NULL;
+>
+> @@ -1828,6 +1828,7 @@ static void generic_bdi_gone(struct super_block *sb)
+>         spin_unlock(&sb->s_inode_list_lock);
+>         iput(_inode);
+>  }
+> +EXPORT_SYMBOL(generic_bdi_gone);
+>
+>  void shutdown_partition(struct gendisk *disk, int partno)
+>  {
+> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+> index 36bd8825bfb0..63c36508e9db 100644
+> --- a/fs/xfs/xfs_super.c
+> +++ b/fs/xfs/xfs_super.c
+> @@ -1618,6 +1618,14 @@ xfs_fs_free_cached_objects(
+>         return xfs_reclaim_inodes_nr(XFS_M(sb), sc->nr_to_scan);
+>  }
+>
+> +static void
+> +xfs_fs_bdi_gone(
+> +       struct super_block *sb)
+> +{
+> +       xfs_force_shutdown(XFS_M(sb), SHUTDOWN_DEVICE_REQ);
+> +       generic_bdi_gone(sb);
+> +}
+> +
+>  static const struct super_operations xfs_super_operations = {
+>         .alloc_inode            = xfs_fs_alloc_inode,
+>         .destroy_inode          = xfs_fs_destroy_inode,
+> @@ -1632,6 +1640,7 @@ static const struct super_operations xfs_super_operations = {
+>         .show_options           = xfs_fs_show_options,
+>         .nr_cached_objects      = xfs_fs_nr_cached_objects,
+>         .free_cached_objects    = xfs_fs_free_cached_objects,
+> +       .bdi_gone               = xfs_fs_bdi_gone,
+>  };
+>
+>  static struct file_system_type xfs_fs_type = {
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 0e201ed38045..b1e8e049e4b8 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -2265,6 +2265,7 @@ extern struct super_block *freeze_bdev(struct block_device *);
+>  extern void emergency_thaw_all(void);
+>  extern int thaw_bdev(struct block_device *bdev, struct super_block *sb);
+>  extern int fsync_bdev(struct block_device *);
+> +extern void generic_bdi_gone(struct super_block *sb);
+>
+>  extern struct super_block *blockdev_superblock;
+>
+> @@ -2277,6 +2278,7 @@ static inline void bd_forget(struct inode *inode) {}
+>  static inline int sync_blockdev(struct block_device *bdev) { return 0; }
+>  static inline void kill_bdev(struct block_device *bdev) {}
+>  static inline void invalidate_bdev(struct block_device *bdev) {}
+> +static inline void generic_bdi_gone(struct super_block *sb) {}
+>
+>  static inline struct super_block *freeze_bdev(struct block_device *sb)
+>  {
+>
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
