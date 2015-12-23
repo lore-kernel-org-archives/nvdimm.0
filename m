@@ -1,343 +1,122 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH 4/8] x86: Add support for PUD-sized transparent hugepages
-Date: Thu, 24 Dec 2015 11:20:33 -0500
-Message-Id: <1450974037-24775-5-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v6 1/7] pmem: add wb_cache_pmem() to the PMEM API
+Date: Wed, 23 Dec 2015 12:39:14 -0700
+Message-Id: <1450899560-26708-2-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <willy@linux.intel.com>
+The function __arch_wb_cache_pmem() was already an internal implementation
+detail of the x86 PMEM API, but this functionality needs to be exported as
+part of the general PMEM API to handle the fsync/msync case for DAX mmaps.
 
-The x86-specific code needed to support the PUD uses in the transparent
-hugepages code.
+One thing worth noting is that we really do want this to be part of the
+PMEM API as opposed to a stand-alone function like clflush_cache_range()
+because of ordering restrictions.  By having wb_cache_pmem() as part of the
+PMEM API we can leave it unordered, call it multiple times to write back
+large amounts of memory, and then order the multiple calls with a single
+wmb_pmem().
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- arch/x86/Kconfig                      |  1 +
- arch/x86/include/asm/paravirt.h       | 11 ++++
- arch/x86/include/asm/paravirt_types.h |  2 +
- arch/x86/include/asm/pgtable.h        | 95 +++++++++++++++++++++++++++++++++++
- arch/x86/include/asm/pgtable_64.h     | 13 +++++
- arch/x86/kernel/paravirt.c            |  1 +
- arch/x86/mm/pgtable.c                 | 31 ++++++++++++
- 7 files changed, 154 insertions(+)
+ arch/x86/include/asm/pmem.h | 11 ++++++-----
+ include/linux/pmem.h        | 22 +++++++++++++++++++++-
+ 2 files changed, 27 insertions(+), 6 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index fd0c8ea..df99d21 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -89,6 +89,7 @@ config X86
- 	select HAVE_ARCH_SOFT_DIRTY		if X86_64
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
-+	select HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD if X86_64
- 	select HAVE_BPF_JIT			if X86_64
- 	select HAVE_CC_STACKPROTECTOR
- 	select HAVE_CMPXCHG_DOUBLE
-diff --git a/arch/x86/include/asm/paravirt.h b/arch/x86/include/asm/paravirt.h
-index c261402..db4f274 100644
---- a/arch/x86/include/asm/paravirt.h
-+++ b/arch/x86/include/asm/paravirt.h
-@@ -479,6 +479,17 @@ static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 			    native_pmd_val(pmd));
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index 1544fab..c57fd1e 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -67,18 +67,19 @@ static inline void arch_wmb_pmem(void)
  }
  
-+static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
-+			      pud_t *pudp, pud_t pud)
-+{
-+	if (sizeof(pudval_t) > sizeof(long))
-+		/* 5 arg words */
-+		pv_mmu_ops.set_pud_at(mm, addr, pudp, pud);
-+	else
-+		PVOP_VCALL4(pv_mmu_ops.set_pud_at, mm, addr, pudp,
-+			    native_pud_val(pud));
-+}
-+
- static inline void set_pmd(pmd_t *pmdp, pmd_t pmd)
+ /**
+- * __arch_wb_cache_pmem - write back a cache range with CLWB
++ * arch_wb_cache_pmem - write back a cache range with CLWB
+  * @vaddr:	virtual start address
+  * @size:	number of bytes to write back
+  *
+  * Write back a cache range using the CLWB (cache line write back)
+  * instruction.  This function requires explicit ordering with an
+- * arch_wmb_pmem() call.  This API is internal to the x86 PMEM implementation.
++ * arch_wmb_pmem() call.
+  */
+-static inline void __arch_wb_cache_pmem(void *vaddr, size_t size)
++static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
  {
- 	pmdval_t val = native_pmd_val(pmd);
-diff --git a/arch/x86/include/asm/paravirt_types.h b/arch/x86/include/asm/paravirt_types.h
-index 2489d6a..261c203 100644
---- a/arch/x86/include/asm/paravirt_types.h
-+++ b/arch/x86/include/asm/paravirt_types.h
-@@ -247,6 +247,8 @@ struct pv_mmu_ops {
- 	void (*set_pmd)(pmd_t *pmdp, pmd_t pmdval);
- 	void (*set_pmd_at)(struct mm_struct *mm, unsigned long addr,
- 			   pmd_t *pmdp, pmd_t pmdval);
-+	void (*set_pud_at)(struct mm_struct *mm, unsigned long addr,
-+			   pud_t *pudp, pud_t pudval);
- 	void (*pte_update)(struct mm_struct *mm, unsigned long addr,
- 			   pte_t *ptep);
+ 	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
+ 	unsigned long clflush_mask = x86_clflush_size - 1;
++	void *vaddr = (void __force *)addr;
+ 	void *vend = vaddr + size;
+ 	void *p;
  
-diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
-index c69f385..246bc5f 100644
---- a/arch/x86/include/asm/pgtable.h
-+++ b/arch/x86/include/asm/pgtable.h
-@@ -46,6 +46,7 @@ extern struct mm_struct *pgd_page_get_mm(struct page *page);
- #define set_pte(ptep, pte)		native_set_pte(ptep, pte)
- #define set_pte_at(mm, addr, ptep, pte)	native_set_pte_at(mm, addr, ptep, pte)
- #define set_pmd_at(mm, addr, pmdp, pmd)	native_set_pmd_at(mm, addr, pmdp, pmd)
-+#define set_pud_at(mm, addr, pudp, pud)	native_set_pud_at(mm, addr, pudp, pud)
+@@ -115,7 +116,7 @@ static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+ 	len = copy_from_iter_nocache(vaddr, bytes, i);
  
- #define set_pte_atomic(ptep, pte)					\
- 	native_set_pte_atomic(ptep, pte)
-@@ -114,6 +115,16 @@ static inline int pmd_young(pmd_t pmd)
- 	return pmd_flags(pmd) & _PAGE_ACCESSED;
+ 	if (__iter_needs_pmem_wb(i))
+-		__arch_wb_cache_pmem(vaddr, bytes);
++		arch_wb_cache_pmem(addr, bytes);
+ 
+ 	return len;
+ }
+@@ -133,7 +134,7 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
+ 	void *vaddr = (void __force *)addr;
+ 
+ 	memset(vaddr, 0, size);
+-	__arch_wb_cache_pmem(vaddr, size);
++	arch_wb_cache_pmem(addr, size);
  }
  
-+static inline int pud_dirty(pud_t pud)
-+{
-+	return pud_flags(pud) & _PAGE_DIRTY;
-+}
-+
-+static inline int pud_young(pud_t pud)
-+{
-+	return pud_flags(pud) & _PAGE_ACCESSED;
-+}
-+
- static inline int pte_write(pte_t pte)
+ static inline bool __arch_has_wmb_pmem(void)
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index acfea8c..7c3d11a 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -53,12 +53,18 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
  {
- 	return pte_flags(pte) & _PAGE_RW;
-@@ -167,12 +178,23 @@ static inline int pmd_trans_huge(pmd_t pmd)
- 	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
+ 	BUG();
  }
++
++static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
++{
++	BUG();
++}
+ #endif
  
-+static inline int pud_trans_huge(pud_t pud)
-+{
-+	return (pud_val(pud) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
-+}
-+
- #define pmd_devmap pmd_devmap
- static inline int pmd_devmap(pmd_t pmd)
- {
- 	return !!(pmd_val(pmd) & _PAGE_DEVMAP);
- }
- 
-+#define pud_devmap pud_devmap
-+static inline int pud_devmap(pud_t pud)
-+{
-+	return !!(pud_val(pud) & _PAGE_DEVMAP);
-+}
-+
- static inline int has_transparent_hugepage(void)
- {
- 	return cpu_has_pse;
-@@ -317,6 +339,45 @@ static inline pmd_t pmd_mknotpresent(pmd_t pmd)
- 	return pmd_clear_flags(pmd, _PAGE_PRESENT | _PAGE_PROTNONE);
- }
- 
-+static inline pud_t pud_set_flags(pud_t pud, pudval_t set)
-+{
-+	pudval_t v = native_pud_val(pud);
-+
-+	return __pud(v | set);
-+}
-+
-+static inline pud_t pud_clear_flags(pud_t pud, pudval_t clear)
-+{
-+	pudval_t v = native_pud_val(pud);
-+
-+	return __pud(v & ~clear);
-+}
-+
-+static inline pud_t pud_mkdevmap(pud_t pud)
-+{
-+	return pud_set_flags(pud, _PAGE_DEVMAP);
-+}
-+
-+static inline pud_t pud_mkhuge(pud_t pud)
-+{
-+	return pud_set_flags(pud, _PAGE_PSE);
-+}
-+
-+static inline pud_t pud_mkdirty(pud_t pud)
-+{
-+	return pud_set_flags(pud, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
-+}
-+
-+static inline pud_t pud_mkyoung(pud_t pud)
-+{
-+	return pud_set_flags(pud, _PAGE_ACCESSED);
-+}
-+
-+static inline pud_t pud_mkwrite(pud_t pud)
-+{
-+	return pud_set_flags(pud, _PAGE_RW);
-+}
-+
- #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- static inline int pte_soft_dirty(pte_t pte)
- {
-@@ -328,6 +389,11 @@ static inline int pmd_soft_dirty(pmd_t pmd)
- 	return pmd_flags(pmd) & _PAGE_SOFT_DIRTY;
- }
- 
-+static inline int pud_soft_dirty(pud_t pud)
-+{
-+	return pud_flags(pud) & _PAGE_SOFT_DIRTY;
-+}
-+
- static inline pte_t pte_mksoft_dirty(pte_t pte)
- {
- 	return pte_set_flags(pte, _PAGE_SOFT_DIRTY);
-@@ -378,6 +444,13 @@ static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
- 		     massage_pgprot(pgprot));
- }
- 
-+#define pfn_pud pfn_pud
-+static inline pud_t pfn_pud(unsigned long page_nr, pgprot_t pgprot)
-+{
-+	return __pud(((phys_addr_t)page_nr << PAGE_SHIFT) |
-+		     massage_pgprot(pgprot));
-+}
-+
- static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
- {
- 	pteval_t val = pte_val(pte);
-@@ -744,6 +817,12 @@ static inline void native_set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 	native_set_pmd(pmdp, pmd);
- }
- 
-+static inline void native_set_pud_at(struct mm_struct *mm, unsigned long addr,
-+				     pud_t *pudp , pud_t pud)
-+{
-+	native_set_pud(pudp, pud);
-+}
-+
- #ifndef CONFIG_PARAVIRT
  /*
-  * Rules for using pte_update - it must be called after any PTE update which
-@@ -822,10 +901,15 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm,
- extern int pmdp_set_access_flags(struct vm_area_struct *vma,
- 				 unsigned long address, pmd_t *pmdp,
- 				 pmd_t entry, int dirty);
-+extern int pudp_set_access_flags(struct vm_area_struct *vma,
-+				 unsigned long address, pud_t *pudp,
-+				 pud_t entry, int dirty);
- 
- #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
- extern int pmdp_test_and_clear_young(struct vm_area_struct *vma,
- 				     unsigned long addr, pmd_t *pmdp);
-+extern int pudp_test_and_clear_young(struct vm_area_struct *vma,
-+				     unsigned long addr, pud_t *pudp);
- 
- #define __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
- extern int pmdp_clear_flush_young(struct vm_area_struct *vma,
-@@ -845,6 +929,13 @@ static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm, unsigned long
- 	return native_pmdp_get_and_clear(pmdp);
- }
- 
-+#define __HAVE_ARCH_PUDP_HUGE_GET_AND_CLEAR
-+static inline pud_t pudp_huge_get_and_clear(struct mm_struct *mm, unsigned long addr,
-+				       pud_t *pudp)
-+{
-+	return native_pudp_get_and_clear(pudp);
-+}
-+
- #define __HAVE_ARCH_PMDP_SET_WRPROTECT
- static inline void pmdp_set_wrprotect(struct mm_struct *mm,
- 				      unsigned long addr, pmd_t *pmdp)
-@@ -893,6 +984,10 @@ static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
- 		unsigned long addr, pmd_t *pmd)
+  * Architectures that define ARCH_HAS_PMEM_API must provide
+  * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(),
+- * arch_copy_from_iter_pmem(), arch_clear_pmem() and arch_has_wmb_pmem().
++ * arch_copy_from_iter_pmem(), arch_clear_pmem(), arch_wb_cache_pmem()
++ * and arch_has_wmb_pmem().
+  */
+ static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
  {
- }
-+static inline void update_mmu_cache_pud(struct vm_area_struct *vma,
-+		unsigned long addr, pud_t *pud)
-+{
-+}
- 
- #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
-diff --git a/arch/x86/include/asm/pgtable_64.h b/arch/x86/include/asm/pgtable_64.h
-index 2ee7811..a3aa6b7 100644
---- a/arch/x86/include/asm/pgtable_64.h
-+++ b/arch/x86/include/asm/pgtable_64.h
-@@ -106,6 +106,19 @@ static inline void native_pud_clear(pud_t *pud)
- 	native_set_pud(pud, native_make_pud(0));
- }
- 
-+static inline pud_t native_pudp_get_and_clear(pud_t *pudp)
-+{
-+#ifdef CONFIG_SMP
-+	return native_make_pud(xchg(&pudp->pud, 0));
-+#else
-+	/* native_local_pudp_get_and_clear,
-+	   but duplicated because of cyclic dependency */
-+	pud_t ret = *pudp;
-+	native_pud_clear(pudp);
-+	return ret;
-+#endif
-+}
-+
- static inline void native_set_pgd(pgd_t *pgdp, pgd_t pgd)
- {
- 	*pgdp = pgd;
-diff --git a/arch/x86/kernel/paravirt.c b/arch/x86/kernel/paravirt.c
-index f08ac28..24d61f2 100644
---- a/arch/x86/kernel/paravirt.c
-+++ b/arch/x86/kernel/paravirt.c
-@@ -425,6 +425,7 @@ struct pv_mmu_ops pv_mmu_ops = {
- 	.pmd_clear = native_pmd_clear,
- #endif
- 	.set_pud = native_set_pud,
-+	.set_pud_at = native_set_pud_at,
- 
- 	.pmd_val = PTE_IDENT,
- 	.make_pmd = PTE_IDENT,
-diff --git a/arch/x86/mm/pgtable.c b/arch/x86/mm/pgtable.c
-index 4eb287e..b7c8df6 100644
---- a/arch/x86/mm/pgtable.c
-+++ b/arch/x86/mm/pgtable.c
-@@ -441,6 +441,26 @@ int pmdp_set_access_flags(struct vm_area_struct *vma,
- 
- 	return changed;
+@@ -178,4 +184,18 @@ static inline void clear_pmem(void __pmem *addr, size_t size)
+ 	else
+ 		default_clear_pmem(addr, size);
  }
 +
-+int pudp_set_access_flags(struct vm_area_struct *vma, unsigned long address,
-+			  pud_t *pudp, pud_t entry, int dirty)
++/**
++ * wb_cache_pmem - write back processor cache for PMEM memory range
++ * @addr:	virtual start address
++ * @size:	number of bytes to write back
++ *
++ * Write back the processor cache range starting at 'addr' for 'size' bytes.
++ * This function requires explicit ordering with a wmb_pmem() call.
++ */
++static inline void wb_cache_pmem(void __pmem *addr, size_t size)
 +{
-+	int changed = !pud_same(*pudp, entry);
-+
-+	VM_BUG_ON(address & ~HPAGE_PUD_MASK);
-+
-+	if (changed && dirty) {
-+		*pudp = entry;
-+		/*
-+		 * We had a write-protection fault here and changed the pud
-+		 * to to more permissive. No need to flush the TLB for that,
-+		 * #PF is architecturally guaranteed to do that and in the
-+		 * worst-case we'll generate a spurious fault.
-+		 */
-+	}
-+
-+	return changed;
++	if (arch_has_pmem_api())
++		arch_wb_cache_pmem(addr, size);
 +}
- #endif
- 
- int ptep_test_and_clear_young(struct vm_area_struct *vma,
-@@ -470,6 +490,17 @@ int pmdp_test_and_clear_young(struct vm_area_struct *vma,
- 
- 	return ret;
- }
-+int pudp_test_and_clear_young(struct vm_area_struct *vma,
-+			      unsigned long addr, pud_t *pudp)
-+{
-+	int ret = 0;
-+
-+	if (pud_young(*pudp))
-+		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED,
-+					 (unsigned long *)pudp);
-+
-+	return ret;
-+}
- #endif
- 
- int ptep_clear_flush_young(struct vm_area_struct *vma,
+ #endif /* __PMEM_H__ */
 -- 
-2.6.2
+2.6.3
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
