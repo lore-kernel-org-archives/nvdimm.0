@@ -1,54 +1,51 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH] list, perf: fix list_force_poison() build regression
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 31 Dec 2015 19:24:21 -0800
-Message-ID: <20160101032348.26352.75121.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v6 7/7] xfs: call dax_pfn_mkwrite() for DAX fsync/msync
+Date: Wed, 23 Dec 2015 12:39:20 -0700
+Message-Id: <1450899560-26708-8-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-nvdimm@lists.01.org, linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-    In file included from
-    /home/sfr/next/next/tools/include/linux/list.h:5:0,
-                     from arch/../util/map.h:6,
-                     from arch/../util/event.h:8,
-                     from arch/../util/debug.h:7,
-                     from arch/common.c:4:
-    include/linux/list.h: In function 'list_force_poison':
-    include/linux/list.h:123:56: error: unused parameter 'entry' [-Werror=unused-parameter]
-     static inline void list_force_poison(struct list_head *entry)
+To properly support the new DAX fsync/msync infrastructure filesystems
+need to call dax_pfn_mkwrite() so that DAX can track when user pages are
+dirtied.
 
-perf does not like the empty definition of list_force_poison.  For
-simplicity just switch to list_del in the non-debug case.
-
-Fixes "mm, dax, pmem: introduce {get|put}_dev_pagemap() for dax-gup" in
--next.
-
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- include/linux/list.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/xfs/xfs_file.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/list.h b/include/linux/list.h
-index d870ba3315f8..ebf5f358e8c3 100644
---- a/include/linux/list.h
-+++ b/include/linux/list.h
-@@ -120,9 +120,8 @@ extern void list_del(struct list_head *entry);
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index f5392ab..40ffbb1 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1603,9 +1603,8 @@ xfs_filemap_pmd_fault(
+ /*
+  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
+  * updates on write faults. In reality, it's need to serialise against
+- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
+- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
+- * barrier in place.
++ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
++ * to ensure we serialise the fault barrier in place.
   */
- extern void list_force_poison(struct list_head *entry);
- #else
--static inline void list_force_poison(struct list_head *entry)
--{
--}
-+/* fallback to the less strict LIST_POISON* definitions */
-+#define list_force_poison list_del
- #endif
- 
- /**
+ static int
+ xfs_filemap_pfn_mkwrite(
+@@ -1628,6 +1627,8 @@ xfs_filemap_pfn_mkwrite(
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		ret = VM_FAULT_SIGBUS;
++	else if (IS_DAX(inode))
++		ret = dax_pfn_mkwrite(vma, vmf);
+ 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
+ 	sb_end_pagefault(inode->i_sb);
+ 	return ret;
+-- 
+2.6.3
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
