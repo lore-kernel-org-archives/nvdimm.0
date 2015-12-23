@@ -1,51 +1,123 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
-Subject: RE: [PATCH v6 3/7] mm: add find_get_entries_tag()
-Date: Thu, 24 Dec 2015 00:28:24 +0000
-Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295BEC9A58@G9W0745.americas.hpqcorp.net>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v6 3/7] mm: add find_get_entries_tag()
+Date: Wed, 23 Dec 2015 12:39:16 -0700
+Message-Id: <1450899560-26708-4-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
 References: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
- <1450899560-26708-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1450899560-26708-4-git-send-email-ross.zwisler@linux.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
 Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, "J. Bruce Fields" <bfields@fieldses.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Andreas Dilger <adilger.kernel@dilger.ca>, "H. Peter Anvin" <hpa@zytor.com>, Jeff Layton <jlayton@poochiereds.net>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "x86@kernel.org" <x86@kernel.org>, Ingo Molnar <mingo@redhat.com>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Theodore Ts'o <tytso@mit.edu>, Jan Kara <jack@suse.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-> -----Original Message-----
-> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf O=
-f
-> Ross Zwisler
-> Sent: Wednesday, December 23, 2015 1:39 PM
-> Subject: [PATCH v6 3/7] mm: add find_get_entries_tag()
->=20
-...
-> diff --git a/mm/filemap.c b/mm/filemap.c
-...
-> +unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t sta=
-rt,
-> +			int tag, unsigned int nr_entries,
-> +			struct page **entries, pgoff_t *indices)
-> +{
-> +	void **slot;
-> +	unsigned int ret =3D 0;
-...
-> +	radix_tree_for_each_tagged(slot, &mapping->page_tree,
-> +				   &iter, start, tag) {
-...
-> +		indices[ret] =3D iter.index;
-> +		entries[ret] =3D page;
-> +		if (++ret =3D=3D nr_entries)
-> +			break;
-> +	}
+Add find_get_entries_tag() to the family of functions that include
+find_get_entries(), find_get_pages() and find_get_pages_tag().  This is
+needed for DAX dirty page handling because we need a list of both page
+offsets and radix tree entries ('indices' and 'entries' in this function)
+that are marked with the PAGECACHE_TAG_TOWRITE tag.
 
-Using >=3D would provide more safety from buffer overflow
-problems in case ret ever jumped ahead by more than one.
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
-Robert Elliott, HPE Persistent Memory
+ include/linux/pagemap.h |  3 +++
+ mm/filemap.c            | 68 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 71 insertions(+)
+
+diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
+index 4d08b6c..92395a0 100644
+--- a/include/linux/pagemap.h
++++ b/include/linux/pagemap.h
+@@ -361,6 +361,9 @@ unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t start,
+ 			       unsigned int nr_pages, struct page **pages);
+ unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
+ 			int tag, unsigned int nr_pages, struct page **pages);
++unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
++			int tag, unsigned int nr_entries,
++			struct page **entries, pgoff_t *indices);
+ 
+ struct page *grab_cache_page_write_begin(struct address_space *mapping,
+ 			pgoff_t index, unsigned flags);
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 7b8be78..1e215fc 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -1499,6 +1499,74 @@ repeat:
+ }
+ EXPORT_SYMBOL(find_get_pages_tag);
+ 
++/**
++ * find_get_entries_tag - find and return entries that match @tag
++ * @mapping:	the address_space to search
++ * @start:	the starting page cache index
++ * @tag:	the tag index
++ * @nr_entries:	the maximum number of entries
++ * @entries:	where the resulting entries are placed
++ * @indices:	the cache indices corresponding to the entries in @entries
++ *
++ * Like find_get_entries, except we only return entries which are tagged with
++ * @tag.
++ */
++unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
++			int tag, unsigned int nr_entries,
++			struct page **entries, pgoff_t *indices)
++{
++	void **slot;
++	unsigned int ret = 0;
++	struct radix_tree_iter iter;
++
++	if (!nr_entries)
++		return 0;
++
++	rcu_read_lock();
++restart:
++	radix_tree_for_each_tagged(slot, &mapping->page_tree,
++				   &iter, start, tag) {
++		struct page *page;
++repeat:
++		page = radix_tree_deref_slot(slot);
++		if (unlikely(!page))
++			continue;
++		if (radix_tree_exception(page)) {
++			if (radix_tree_deref_retry(page)) {
++				/*
++				 * Transient condition which can only trigger
++				 * when entry at index 0 moves out of or back
++				 * to root: none yet gotten, safe to restart.
++				 */
++				goto restart;
++			}
++
++			/*
++			 * A shadow entry of a recently evicted page, a swap
++			 * entry from shmem/tmpfs or a DAX entry.  Return it
++			 * without attempting to raise page count.
++			 */
++			goto export;
++		}
++		if (!page_cache_get_speculative(page))
++			goto repeat;
++
++		/* Has the page moved? */
++		if (unlikely(page != *slot)) {
++			page_cache_release(page);
++			goto repeat;
++		}
++export:
++		indices[ret] = iter.index;
++		entries[ret] = page;
++		if (++ret == nr_entries)
++			break;
++	}
++	rcu_read_unlock();
++	return ret;
++}
++EXPORT_SYMBOL(find_get_entries_tag);
++
+ /*
+  * CD/DVDs are error prone. When a medium error occurs, the driver may fail
+  * a _large_ part of the i/o request. Imagine the worst scenario:
+-- 
+2.6.3
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
