@@ -1,45 +1,50 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH] dax: fix dax_pmd_dbg build warning
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 31 Dec 2015 19:58:28 -0800
-Message-ID: <20160101035828.29910.59955.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v6 5/7] ext2: call dax_pfn_mkwrite() for DAX fsync/msync
+Date: Wed, 23 Dec 2015 12:39:18 -0700
+Message-Id: <1450899560-26708-6-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Fixes below warning from commit 3cb108f941deb
-"dax-add-support-for-fsync-sync-v6" in -next.
+To properly support the new DAX fsync/msync infrastructure filesystems
+need to call dax_pfn_mkwrite() so that DAX can track when user pages are
+dirtied.
 
-    fs/dax.c: In function ‘__dax_pmd_fault’:
-    fs/dax.c:916:15: warning: passing argument 1 of ‘__dax_dbg’ from incompatible pointer type
-         dax_pmd_dbg(bdev, address,
-                   ^
-    fs/dax.c:738:13: note: expected ‘struct buffer_head *’ but argument is of type ‘struct block_device *’
-     static void __dax_dbg(struct buffer_head *bh, unsigned long address,
-
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext2/file.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 4ff61b412383..41cf4ee0b859 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -913,7 +913,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 			error = dax_radix_entry(mapping, pgoff, dax.sector,
- 					true, true);
- 			if (error) {
--				dax_pmd_dbg(bdev, address,
-+				dax_pmd_dbg(&bh, address,
- 						"PMD radix insertion failed");
- 				goto fallback;
- 			}
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index 11a42c5..2c88d68 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -102,8 +102,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ {
+ 	struct inode *inode = file_inode(vma->vm_file);
+ 	struct ext2_inode_info *ei = EXT2_I(inode);
+-	int ret = VM_FAULT_NOPAGE;
+ 	loff_t size;
++	int ret;
+ 
+ 	sb_start_pagefault(inode->i_sb);
+ 	file_update_time(vma->vm_file);
+@@ -113,6 +113,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		ret = VM_FAULT_SIGBUS;
++	else
++		ret = dax_pfn_mkwrite(vma, vmf);
+ 
+ 	up_read(&ei->dax_sem);
+ 	sb_end_pagefault(inode->i_sb);
+-- 
+2.6.3
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
