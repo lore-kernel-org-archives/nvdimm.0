@@ -1,263 +1,335 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v4 15/18] mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 20 Dec 2015 21:45:26 -0800
-Message-ID: <20151221054526.34542.25205.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v6 2/7] dax: support dirty DAX entries in radix tree
+Date: Wed, 23 Dec 2015 12:39:15 -0700
+Message-Id: <1450899560-26708-3-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: Andrea Arcangeli <aarcange@redhat.com>, Dave Hansen <dave@sr71.net>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, linux-mm@kvack.org, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A dax-huge-page mapping while it uses some thp helpers is ultimately not a
-transparent huge page.  The distinction is especially important in the
-get_user_pages() path.  pmd_devmap() is used to distinguish dax-pmds from
-pmd_huge() and pmd_trans_huge() which have slightly different semantics.
+Add support for tracking dirty DAX entries in the struct address_space
+radix tree.  This tree is already used for dirty page writeback, and it
+already supports the use of exceptional (non struct page*) entries.
 
-Explicitly mark the pmd_trans_huge() helpers that dax needs by adding
-pmd_devmap() checks.
+In order to properly track dirty DAX pages we will insert new exceptional
+entries into the radix tree that represent dirty DAX PTE or PMD pages.
+These exceptional entries will also contain the writeback sectors for the
+PTE or PMD faults that we can use at fsync/msync time.
 
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+There are currently two types of exceptional entries (shmem and shadow)
+that can be placed into the radix tree, and this adds a third.  We rely on
+the fact that only one type of exceptional entry can be found in a given
+radix tree based on its usage.  This happens for free with DAX vs shmem but
+we explicitly prevent shadow entries from being added to radix trees for
+DAX mappings.
+
+The only shadow entries that would be generated for DAX radix trees would
+be to track zero page mappings that were created for holes.  These pages
+would receive minimal benefit from having shadow entries, and the choice
+to have only one type of exceptional entry in a given radix tree makes the
+logic simpler both in clear_exceptional_entry() and in the rest of DAX.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- arch/x86/include/asm/pgtable.h |    9 ++++++++-
- include/linux/huge_mm.h        |    3 ++-
- include/linux/mm.h             |    7 +++++++
- mm/huge_memory.c               |   33 +++++++++++++++++++--------------
- mm/memory.c                    |    8 ++++----
- mm/mprotect.c                  |    5 +++--
- mm/pgtable-generic.c           |    2 +-
- 7 files changed, 44 insertions(+), 23 deletions(-)
+ fs/block_dev.c             |  2 +-
+ fs/inode.c                 |  2 +-
+ include/linux/dax.h        |  5 ++++
+ include/linux/fs.h         |  3 +-
+ include/linux/radix-tree.h |  9 ++++++
+ mm/filemap.c               | 17 ++++++++----
+ mm/truncate.c              | 69 ++++++++++++++++++++++++++--------------------
+ mm/vmscan.c                |  9 +++++-
+ mm/workingset.c            |  4 +--
+ 9 files changed, 78 insertions(+), 42 deletions(-)
 
-diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
-index dc962ae41597..993ce3c84ff4 100644
---- a/arch/x86/include/asm/pgtable.h
-+++ b/arch/x86/include/asm/pgtable.h
-@@ -167,13 +167,20 @@ static inline int pmd_large(pmd_t pte)
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline int pmd_trans_huge(pmd_t pmd)
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 8c1f467..29b9c9b 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -75,7 +75,7 @@ void kill_bdev(struct block_device *bdev)
  {
--	return pmd_val(pmd) & _PAGE_PSE;
-+	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
- }
+ 	struct address_space *mapping = bdev->bd_inode->i_mapping;
  
- static inline int has_transparent_hugepage(void)
+-	if (mapping->nrpages == 0 && mapping->nrshadows == 0)
++	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+ 		return;
+ 
+ 	invalidate_bh_lrus();
+diff --git a/fs/inode.c b/fs/inode.c
+index 4c8f719..6e3e5d0 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -495,7 +495,7 @@ void clear_inode(struct inode *inode)
+ 	 */
+ 	spin_lock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(inode->i_data.nrpages);
+-	BUG_ON(inode->i_data.nrshadows);
++	BUG_ON(inode->i_data.nrexceptional);
+ 	spin_unlock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(!list_empty(&inode->i_data.private_list));
+ 	BUG_ON(!(inode->i_state & I_FREEING));
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index b415e52..e9d57f68 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -36,4 +36,9 @@ static inline bool vma_is_dax(struct vm_area_struct *vma)
  {
- 	return cpu_has_pse;
+ 	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
  }
 +
-+#ifdef __HAVE_ARCH_PTE_DEVMAP
-+static inline int pmd_devmap(pmd_t pmd)
++static inline bool dax_mapping(struct address_space *mapping)
 +{
-+	return !!(pmd_val(pmd) & _PAGE_DEVMAP);
++	return mapping->host && IS_DAX(mapping->host);
 +}
-+#endif
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- static inline pte_t pte_set_flags(pte_t pte, pteval_t set)
-diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index 8ca35a131904..40c4db60c9e0 100644
---- a/include/linux/huge_mm.h
-+++ b/include/linux/huge_mm.h
-@@ -104,7 +104,8 @@ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- #define split_huge_pmd(__vma, __pmd, __address)				\
- 	do {								\
- 		pmd_t *____pmd = (__pmd);				\
--		if (pmd_trans_huge(*____pmd))				\
-+		if (pmd_trans_huge(*____pmd)				\
-+					|| pmd_devmap(*____pmd))	\
- 			__split_huge_pmd(__vma, __pmd, __address);	\
- 	}  while (0)
- 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 957afd1b10a5..96f396bbcc9f 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1471,6 +1471,13 @@ static inline int __pud_alloc(struct mm_struct *mm, pgd_t *pgd,
- int __pud_alloc(struct mm_struct *mm, pgd_t *pgd, unsigned long address);
  #endif
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 12ba937..905565f 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -432,7 +432,8 @@ struct address_space {
+ 	struct rw_semaphore	i_mmap_rwsem;	/* protect tree, count, list */
+ 	/* Protected by tree_lock together with the radix tree */
+ 	unsigned long		nrpages;	/* number of total pages */
+-	unsigned long		nrshadows;	/* number of shadow entries */
++	/* number of shadow or DAX exceptional entries */
++	unsigned long		nrexceptional;
+ 	pgoff_t			writeback_index;/* writeback starts here */
+ 	const struct address_space_operations *a_ops;	/* methods */
+ 	unsigned long		flags;		/* error bits/gfp mask */
+diff --git a/include/linux/radix-tree.h b/include/linux/radix-tree.h
+index 33170db..ba8e0fc 100644
+--- a/include/linux/radix-tree.h
++++ b/include/linux/radix-tree.h
+@@ -51,6 +51,15 @@
+ #define RADIX_TREE_EXCEPTIONAL_ENTRY	2
+ #define RADIX_TREE_EXCEPTIONAL_SHIFT	2
  
-+#if !defined(__HAVE_ARCH_PTE_DEVMAP) || !defined(CONFIG_TRANSPARENT_HUGEPAGE)
-+static inline int pmd_devmap(pmd_t pmd)
-+{
-+	return 0;
-+}
-+#endif
++#define RADIX_DAX_MASK	0xf
++#define RADIX_DAX_SHIFT	4
++#define RADIX_DAX_PTE  (0x4 | RADIX_TREE_EXCEPTIONAL_ENTRY)
++#define RADIX_DAX_PMD  (0x8 | RADIX_TREE_EXCEPTIONAL_ENTRY)
++#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_MASK)
++#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
++#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
++		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE)))
 +
- #if defined(__PAGETABLE_PMD_FOLDED) || !defined(CONFIG_MMU)
- static inline int __pmd_alloc(struct mm_struct *mm, pud_t *pud,
- 						unsigned long address)
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 7356857d7356..0c114fa08349 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -1024,7 +1024,7 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 
- 	ret = -EAGAIN;
- 	pmd = *src_pmd;
--	if (unlikely(!pmd_trans_huge(pmd))) {
-+	if (unlikely(!pmd_trans_huge(pmd) && !pmd_devmap(pmd))) {
- 		pte_free(dst_mm, pgtable);
- 		goto out_unlock;
- 	}
-@@ -1047,17 +1047,20 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 		goto out_unlock;
- 	}
- 
--	src_page = pmd_page(pmd);
--	VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
--	get_page(src_page);
--	page_dup_rmap(src_page, true);
--	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
-+	if (pmd_trans_huge(pmd)) {
-+		/* thp accounting separate from pmd_devmap accounting */
-+		src_page = pmd_page(pmd);
-+		VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
-+		get_page(src_page);
-+		page_dup_rmap(src_page, true);
-+		add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
-+		atomic_long_inc(&dst_mm->nr_ptes);
-+		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
-+	}
- 
- 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
- 	pmd = pmd_mkold(pmd_wrprotect(pmd));
--	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
- 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
--	atomic_long_inc(&dst_mm->nr_ptes);
- 
- 	ret = 0;
- out_unlock:
-@@ -1745,7 +1748,7 @@ bool __pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma,
- 		spinlock_t **ptl)
+ static inline int radix_tree_is_indirect_ptr(void *ptr)
  {
- 	*ptl = pmd_lock(vma->vm_mm, pmd);
--	if (likely(pmd_trans_huge(*pmd)))
-+	if (likely(pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
- 		return true;
- 	spin_unlock(*ptl);
- 	return false;
-@@ -2862,7 +2865,7 @@ static void __split_huge_pmd_locked(struct vm_area_struct *vma, pmd_t *pmd,
- 	VM_BUG_ON(haddr & ~HPAGE_PMD_MASK);
- 	VM_BUG_ON_VMA(vma->vm_start > haddr, vma);
- 	VM_BUG_ON_VMA(vma->vm_end < haddr + HPAGE_PMD_SIZE, vma);
--	VM_BUG_ON(!pmd_trans_huge(*pmd));
-+	VM_BUG_ON(!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd));
+ 	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 847ee43..7b8be78 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -11,6 +11,7 @@
+  */
+ #include <linux/export.h>
+ #include <linux/compiler.h>
++#include <linux/dax.h>
+ #include <linux/fs.h>
+ #include <linux/uaccess.h>
+ #include <linux/capability.h>
+@@ -123,9 +124,9 @@ static void page_cache_tree_delete(struct address_space *mapping,
+ 	__radix_tree_lookup(&mapping->page_tree, page->index, &node, &slot);
  
- 	count_vm_event(THP_SPLIT_PMD);
- 
-@@ -2975,11 +2978,13 @@ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 
- 	mmu_notifier_invalidate_range_start(mm, haddr, haddr + HPAGE_PMD_SIZE);
- 	ptl = pmd_lock(mm, pmd);
--	if (unlikely(!pmd_trans_huge(*pmd)))
-+	if (unlikely(!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
- 		goto out;
--	page = pmd_page(*pmd);
- 	__split_huge_pmd_locked(vma, pmd, haddr, false);
--	if (PageMlocked(page))
+ 	if (shadow) {
+-		mapping->nrshadows++;
++		mapping->nrexceptional++;
+ 		/*
+-		 * Make sure the nrshadows update is committed before
++		 * Make sure the nrexceptional update is committed before
+ 		 * the nrpages update so that final truncate racing
+ 		 * with reclaim does not see both counters 0 at the
+ 		 * same time and miss a shadow entry.
+@@ -579,9 +580,13 @@ static int page_cache_tree_insert(struct address_space *mapping,
+ 		p = radix_tree_deref_slot_protected(slot, &mapping->tree_lock);
+ 		if (!radix_tree_exceptional_entry(p))
+ 			return -EEXIST;
 +
-+	if (pmd_trans_huge(*pmd))
-+		page = pmd_page(*pmd);
-+	if (page && PageMlocked(page))
- 		get_page(page);
- 	else
- 		page = NULL;
-@@ -3012,7 +3017,7 @@ static void split_huge_pmd_address(struct vm_area_struct *vma,
- 		return;
- 
- 	pmd = pmd_offset(pud, address);
--	if (!pmd_present(*pmd) || !pmd_trans_huge(*pmd))
-+	if (!pmd_present(*pmd) || (!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
- 		return;
- 	/*
- 	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
-diff --git a/mm/memory.c b/mm/memory.c
-index 9483d2b1dd3b..03b6fa406a28 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -950,7 +950,7 @@ static inline int copy_pmd_range(struct mm_struct *dst_mm, struct mm_struct *src
- 	src_pmd = pmd_offset(src_pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (pmd_trans_huge(*src_pmd)) {
-+		if (pmd_trans_huge(*src_pmd) || pmd_devmap(*src_pmd)) {
- 			int err;
- 			VM_BUG_ON(next-addr != HPAGE_PMD_SIZE);
- 			err = copy_huge_pmd(dst_mm, src_mm,
-@@ -1177,7 +1177,7 @@ static inline unsigned long zap_pmd_range(struct mmu_gather *tlb,
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (pmd_trans_huge(*pmd)) {
-+		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE) {
- #ifdef CONFIG_DEBUG_VM
- 				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
-@@ -3375,7 +3375,7 @@ static int __handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		int ret;
- 
- 		barrier();
--		if (pmd_trans_huge(orig_pmd)) {
-+		if (pmd_trans_huge(orig_pmd) || pmd_devmap(orig_pmd)) {
- 			unsigned int dirty = flags & FAULT_FLAG_WRITE;
- 
- 			if (pmd_protnone(orig_pmd))
-@@ -3404,7 +3404,7 @@ static int __handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 	    unlikely(__pte_alloc(mm, vma, pmd, address)))
- 		return VM_FAULT_OOM;
- 	/* if an huge pmd materialized from under us just retry later */
--	if (unlikely(pmd_trans_huge(*pmd)))
-+	if (unlikely(pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
- 		return 0;
- 	/*
- 	 * A regular pmd is established and it can't morph into a huge pmd
-diff --git a/mm/mprotect.c b/mm/mprotect.c
-index 9c1445dc8a4c..732e07baf76c 100644
---- a/mm/mprotect.c
-+++ b/mm/mprotect.c
-@@ -149,7 +149,8 @@ static inline unsigned long change_pmd_range(struct vm_area_struct *vma,
- 		unsigned long this_pages;
- 
- 		next = pmd_addr_end(addr, end);
--		if (!pmd_trans_huge(*pmd) && pmd_none_or_clear_bad(pmd))
-+		if (!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)
-+				&& pmd_none_or_clear_bad(pmd))
- 			continue;
- 
- 		/* invoke the mmu notifier if the pmd is populated */
-@@ -158,7 +159,7 @@ static inline unsigned long change_pmd_range(struct vm_area_struct *vma,
- 			mmu_notifier_invalidate_range_start(mm, mni_start, end);
++		if (WARN_ON(dax_mapping(mapping)))
++			return -EINVAL;
++
+ 		if (shadowp)
+ 			*shadowp = p;
+-		mapping->nrshadows--;
++		mapping->nrexceptional--;
+ 		if (node)
+ 			workingset_node_shadows_dec(node);
+ 	}
+@@ -1245,9 +1250,9 @@ repeat:
+ 			if (radix_tree_deref_retry(page))
+ 				goto restart;
+ 			/*
+-			 * A shadow entry of a recently evicted page,
+-			 * or a swap entry from shmem/tmpfs.  Return
+-			 * it without attempting to raise page count.
++			 * A shadow entry of a recently evicted page, a swap
++			 * entry from shmem/tmpfs or a DAX entry.  Return it
++			 * without attempting to raise page count.
+ 			 */
+ 			goto export;
  		}
+diff --git a/mm/truncate.c b/mm/truncate.c
+index 76e35ad..e3ee0e2 100644
+--- a/mm/truncate.c
++++ b/mm/truncate.c
+@@ -9,6 +9,7 @@
  
--		if (pmd_trans_huge(*pmd)) {
-+		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
- 				split_huge_pmd(vma, pmd, addr);
- 			else {
-diff --git a/mm/pgtable-generic.c b/mm/pgtable-generic.c
-index c311a2ec6fea..9d4767698a1c 100644
---- a/mm/pgtable-generic.c
-+++ b/mm/pgtable-generic.c
-@@ -132,7 +132,7 @@ pmd_t pmdp_huge_clear_flush(struct vm_area_struct *vma, unsigned long address,
+ #include <linux/kernel.h>
+ #include <linux/backing-dev.h>
++#include <linux/dax.h>
+ #include <linux/gfp.h>
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+@@ -34,31 +35,39 @@ static void clear_exceptional_entry(struct address_space *mapping,
+ 		return;
+ 
+ 	spin_lock_irq(&mapping->tree_lock);
+-	/*
+-	 * Regular page slots are stabilized by the page lock even
+-	 * without the tree itself locked.  These unlocked entries
+-	 * need verification under the tree lock.
+-	 */
+-	if (!__radix_tree_lookup(&mapping->page_tree, index, &node, &slot))
+-		goto unlock;
+-	if (*slot != entry)
+-		goto unlock;
+-	radix_tree_replace_slot(slot, NULL);
+-	mapping->nrshadows--;
+-	if (!node)
+-		goto unlock;
+-	workingset_node_shadows_dec(node);
+-	/*
+-	 * Don't track node without shadow entries.
+-	 *
+-	 * Avoid acquiring the list_lru lock if already untracked.
+-	 * The list_empty() test is safe as node->private_list is
+-	 * protected by mapping->tree_lock.
+-	 */
+-	if (!workingset_node_shadows(node) &&
+-	    !list_empty(&node->private_list))
+-		list_lru_del(&workingset_shadow_nodes, &node->private_list);
+-	__radix_tree_delete_node(&mapping->page_tree, node);
++
++	if (dax_mapping(mapping)) {
++		if (radix_tree_delete_item(&mapping->page_tree, index, entry))
++			mapping->nrexceptional--;
++	} else {
++		/*
++		 * Regular page slots are stabilized by the page lock even
++		 * without the tree itself locked.  These unlocked entries
++		 * need verification under the tree lock.
++		 */
++		if (!__radix_tree_lookup(&mapping->page_tree, index, &node,
++					&slot))
++			goto unlock;
++		if (*slot != entry)
++			goto unlock;
++		radix_tree_replace_slot(slot, NULL);
++		mapping->nrexceptional--;
++		if (!node)
++			goto unlock;
++		workingset_node_shadows_dec(node);
++		/*
++		 * Don't track node without shadow entries.
++		 *
++		 * Avoid acquiring the list_lru lock if already untracked.
++		 * The list_empty() test is safe as node->private_list is
++		 * protected by mapping->tree_lock.
++		 */
++		if (!workingset_node_shadows(node) &&
++		    !list_empty(&node->private_list))
++			list_lru_del(&workingset_shadow_nodes,
++					&node->private_list);
++		__radix_tree_delete_node(&mapping->page_tree, node);
++	}
+ unlock:
+ 	spin_unlock_irq(&mapping->tree_lock);
+ }
+@@ -228,7 +237,7 @@ void truncate_inode_pages_range(struct address_space *mapping,
+ 	int		i;
+ 
+ 	cleancache_invalidate_inode(mapping);
+-	if (mapping->nrpages == 0 && mapping->nrshadows == 0)
++	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+ 		return;
+ 
+ 	/* Offsets within partial pages */
+@@ -402,7 +411,7 @@ EXPORT_SYMBOL(truncate_inode_pages);
+  */
+ void truncate_inode_pages_final(struct address_space *mapping)
  {
- 	pmd_t pmd;
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
--	VM_BUG_ON(!pmd_trans_huge(*pmdp));
-+	VM_BUG_ON(!pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
- 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return pmd;
+-	unsigned long nrshadows;
++	unsigned long nrexceptional;
+ 	unsigned long nrpages;
+ 
+ 	/*
+@@ -416,14 +425,14 @@ void truncate_inode_pages_final(struct address_space *mapping)
+ 
+ 	/*
+ 	 * When reclaim installs eviction entries, it increases
+-	 * nrshadows first, then decreases nrpages.  Make sure we see
++	 * nrexceptional first, then decreases nrpages.  Make sure we see
+ 	 * this in the right order or we might miss an entry.
+ 	 */
+ 	nrpages = mapping->nrpages;
+ 	smp_rmb();
+-	nrshadows = mapping->nrshadows;
++	nrexceptional = mapping->nrexceptional;
+ 
+-	if (nrpages || nrshadows) {
++	if (nrpages || nrexceptional) {
+ 		/*
+ 		 * As truncation uses a lockless tree lookup, cycle
+ 		 * the tree lock to make sure any ongoing tree
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 44ec50f..30e0cd7 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -46,6 +46,7 @@
+ #include <linux/oom.h>
+ #include <linux/prefetch.h>
+ #include <linux/printk.h>
++#include <linux/dax.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/div64.h>
+@@ -671,9 +672,15 @@ static int __remove_mapping(struct address_space *mapping, struct page *page,
+ 		 * inode reclaim needs to empty out the radix tree or
+ 		 * the nodes are lost.  Don't plant shadows behind its
+ 		 * back.
++		 *
++		 * We also don't store shadows for DAX mappings because the
++		 * only page cache pages found in these are zero pages
++		 * covering holes, and because we don't want to mix DAX
++		 * exceptional entries and shadow exceptional entries in the
++		 * same page_tree.
+ 		 */
+ 		if (reclaimed && page_is_file_cache(page) &&
+-		    !mapping_exiting(mapping))
++		    !mapping_exiting(mapping) && !dax_mapping(mapping))
+ 			shadow = workingset_eviction(mapping, page);
+ 		__delete_from_page_cache(page, shadow, memcg);
+ 		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+diff --git a/mm/workingset.c b/mm/workingset.c
+index aa01713..61ead9e 100644
+--- a/mm/workingset.c
++++ b/mm/workingset.c
+@@ -351,8 +351,8 @@ static enum lru_status shadow_lru_isolate(struct list_head *item,
+ 			node->slots[i] = NULL;
+ 			BUG_ON(node->count < (1U << RADIX_TREE_COUNT_SHIFT));
+ 			node->count -= 1U << RADIX_TREE_COUNT_SHIFT;
+-			BUG_ON(!mapping->nrshadows);
+-			mapping->nrshadows--;
++			BUG_ON(!mapping->nrexceptional);
++			mapping->nrexceptional--;
+ 		}
+ 	}
+ 	BUG_ON(node->count);
+-- 
+2.6.3
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
