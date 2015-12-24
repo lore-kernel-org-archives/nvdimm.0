@@ -1,189 +1,54 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: vishal@kernel.org
-Subject: [PATCH 3/3] pmem: Use the poison list to expose badblocks
-Date: Sun, 20 Dec 2015 02:18:42 -0700
-Message-Id: <1450603122-7205-4-git-send-email-vishal@kernel.org>
-In-Reply-To: <1450603122-7205-1-git-send-email-vishal@kernel.org>
-References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>, Linda Knippers <linda.knippers@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
+Subject: RE: [PATCH v6 3/7] mm: add find_get_entries_tag()
+Date: Thu, 24 Dec 2015 00:28:24 +0000
+Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295BEC9A58@G9W0745.americas.hpqcorp.net>
+References: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1450899560-26708-4-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1450899560-26708-4-git-send-email-ross.zwisler@linux.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, "J. Bruce Fields" <bfields@fieldses.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Andreas Dilger <adilger.kernel@dilger.ca>, "H. Peter Anvin" <hpa@zytor.com>, Jeff Layton <jlayton@poochiereds.net>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "x86@kernel.org" <x86@kernel.org>, Ingo Molnar <mingo@redhat.com>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Theodore Ts'o <tytso@mit.edu>, Jan Kara <jack@suse.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Vishal Verma <vishal.l.verma@intel.com>
+> -----Original Message-----
+> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf O=
+f
+> Ross Zwisler
+> Sent: Wednesday, December 23, 2015 1:39 PM
+> Subject: [PATCH v6 3/7] mm: add find_get_entries_tag()
+>=20
+...
+> diff --git a/mm/filemap.c b/mm/filemap.c
+...
+> +unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t sta=
+rt,
+> +			int tag, unsigned int nr_entries,
+> +			struct page **entries, pgoff_t *indices)
+> +{
+> +	void **slot;
+> +	unsigned int ret =3D 0;
+...
+> +	radix_tree_for_each_tagged(slot, &mapping->page_tree,
+> +				   &iter, start, tag) {
+...
+> +		indices[ret] =3D iter.index;
+> +		entries[ret] =3D page;
+> +		if (++ret =3D=3D nr_entries)
+> +			break;
+> +	}
 
-Enable the gendisk badblocks feature for pmem namespaces.
-If the pmem namespace being created has any known poison associated with
-its physical address space, convert the poison ranges to bad sectors
-exposed using the badblocks interface.
-
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Using >=3D would provide more safety from buffer overflow
+problems in case ret ever jumped ahead by more than one.
 ---
- drivers/nvdimm/pmem.c | 124 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 124 insertions(+)
+Robert Elliott, HPE Persistent Memory
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 8ee7989..462570f 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -19,14 +19,18 @@
- #include <linux/blkdev.h>
- #include <linux/hdreg.h>
- #include <linux/init.h>
-+#include <linux/list.h>
- #include <linux/platform_device.h>
- #include <linux/module.h>
- #include <linux/memory_hotplug.h>
- #include <linux/moduleparam.h>
-+#include <linux/libnvdimm.h>
- #include <linux/vmalloc.h>
-+#include <linux/blkdev.h>
- #include <linux/slab.h>
- #include <linux/pmem.h>
- #include <linux/nd.h>
-+#include "nd-core.h"
- #include "pfn.h"
- #include "nd.h"
- 
-@@ -163,11 +167,122 @@ static void pmem_detach_disk(struct pmem_device *pmem)
- 	blk_cleanup_queue(pmem->pmem_queue);
- }
- 
-+/**
-+ * pmem_add_badblock_range() - Convert a physical address range to bad sectors
-+ * @disk:	the disk associated with the pmem namespace
-+ * @start:	start of the physical address range
-+ * @length:	number of bytes of poison to be added
-+ *
-+ * This assumes that the range provided with (start, length) is already within
-+ * the bounds of physical addresses for this namespace, i.e. lies in the
-+ * interval [pmem->phys_addr, pmem->phys_addr + pmem->size)
-+ */
-+static int pmem_add_badblock_range(struct gendisk *disk, u64 start, u64 length)
-+{
-+	unsigned int sector_size = queue_logical_block_size(disk->queue);
-+	struct pmem_device *pmem = disk->private_data;
-+	sector_t start_sector;
-+	u64 num_sectors;
-+	u32 rem;
-+
-+	start_sector = div_u64(start - pmem->phys_addr, sector_size);
-+	num_sectors = div_u64_rem(length, sector_size, &rem);
-+	if (rem)
-+		num_sectors++;
-+
-+	if (unlikely(num_sectors > (u64)INT_MAX)) {
-+		u64 remaining = num_sectors;
-+		sector_t s = start_sector;
-+		int rc;
-+
-+		while (remaining) {
-+			int done = min_t(u64, remaining, INT_MAX);
-+
-+			rc = disk_set_badblocks(disk, s, done);
-+			if (rc)
-+				return rc;
-+			remaining -= done;
-+			s += done;
-+		}
-+		return 0;
-+	} else
-+		return disk_set_badblocks(disk, start_sector, num_sectors);
-+}
-+
-+/*
-+ * The poison list generated during NFIT initialization may contain multiple,
-+ * possibly overlapping ranges in the SPA (System Physical Address) space.
-+ * Compare each of these ranges to the pmem namespace currently being
-+ * initialized, and add badblocks for the sub-ranges that match
-+ */
-+static int pmem_add_poison(struct gendisk *disk, struct nvdimm_bus *nvdimm_bus)
-+{
-+	struct pmem_device *pmem = disk->private_data;
-+	struct list_head *poison_list;
-+	struct nd_poison *pl;
-+	int rc;
-+
-+	poison_list = nvdimm_bus_get_poison_list(nvdimm_bus);
-+	if (list_empty(poison_list))
-+		return 0;
-+
-+	list_for_each_entry(pl, poison_list, list) {
-+		u64 pl_end = pl->start + pl->length - 1;
-+		u64 pmem_end = pmem->phys_addr + pmem->size - 1;
-+
-+		/* Discard intervals with no intersection */
-+		if (pl_end < pmem->phys_addr)
-+			continue;
-+		if (pl->start > pmem_end)
-+			continue;
-+		/* Deal with any overlap after start of the pmem range */
-+		if (pl->start >= pmem->phys_addr) {
-+			u64 start = pl->start;
-+			u64 len;
-+
-+			if (pl_end <= pmem_end)
-+				len = pl->length;
-+			else
-+				len = pmem->phys_addr + pmem->size - pl->start;
-+
-+			rc = pmem_add_badblock_range(disk, start, len);
-+			if (rc)
-+				return rc;
-+			dev_info(&nvdimm_bus->dev,
-+				"Found a poison range (0x%llx, 0x%llx)\n",
-+				start, len);
-+			continue;
-+		}
-+		/* Deal with overlap for poison starting before pmem range */
-+		if (pl->start < pmem->phys_addr) {
-+			u64 start = pmem->phys_addr;
-+			u64 len;
-+
-+			if (pl_end < pmem_end)
-+				len = pl->start + pl->length - pmem->phys_addr;
-+			else
-+				len = pmem->size;
-+
-+			rc = pmem_add_badblock_range(disk, start, len);
-+			if (rc)
-+				return rc;
-+			dev_info(&nvdimm_bus->dev,
-+				"Found a poison range (0x%llx, 0x%llx)\n",
-+				start, len);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int pmem_attach_disk(struct device *dev,
- 		struct nd_namespace_common *ndns, struct pmem_device *pmem)
- {
-+	struct nd_region *nd_region = to_nd_region(dev->parent);
-+	struct nvdimm_bus *nvdimm_bus;
- 	int nid = dev_to_node(dev);
- 	struct gendisk *disk;
-+	int ret;
- 
- 	pmem->pmem_queue = blk_alloc_queue_node(GFP_KERNEL, nid);
- 	if (!pmem->pmem_queue)
-@@ -196,6 +311,15 @@ static int pmem_attach_disk(struct device *dev,
- 	set_capacity(disk, (pmem->size - pmem->data_offset) / 512);
- 	pmem->pmem_disk = disk;
- 
-+	ret = disk_alloc_badblocks(disk);
-+	if (ret)
-+		return ret;
-+
-+	nvdimm_bus = to_nvdimm_bus(nd_region->dev.parent);
-+	ret = pmem_add_poison(disk, nvdimm_bus);
-+	if (ret)
-+		return ret;
-+
- 	add_disk(disk);
- 	revalidate_disk(disk);
- 
--- 
-2.5.0
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
