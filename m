@@ -1,94 +1,89 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 31 Dec 2015 10:30:27 +1100
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH 7/8] xfs: Support for transparent PUD pages
-Message-ID: <20151230233007.GA6682@dastard>
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH 7/8] xfs: Support for transparent PUD pages
+Date: Thu, 24 Dec 2015 11:20:36 -0500
+Message-Id: <1450974037-24775-8-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
 References: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
- <1450974037-24775-8-git-send-email-matthew.r.wilcox@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1450974037-24775-8-git-send-email-matthew.r.wilcox@intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Dec 24, 2015 at 11:20:36AM -0500, Matthew Wilcox wrote:
-> From: Matthew Wilcox <willy@linux.intel.com>
-> 
-> Call into DAX to provide support for PUD pages, just like the PMD cases.
-> 
-> Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-> ---
->  fs/xfs/xfs_file.c  | 33 +++++++++++++++++++++++++++++++++
->  fs/xfs/xfs_trace.h |  1 +
->  2 files changed, 34 insertions(+)
-> 
-> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-> index f5392ab..a81b942 100644
-> --- a/fs/xfs/xfs_file.c
-> +++ b/fs/xfs/xfs_file.c
-> @@ -1600,6 +1600,38 @@ xfs_filemap_pmd_fault(
->  	return ret;
->  }
->  
-> +STATIC int
-> +xfs_filemap_pud_fault(
-> +	struct vm_area_struct	*vma,
-> +	unsigned long		addr,
-> +	pud_t			*pud,
-> +	unsigned int		flags)
-> +{
-> +	struct inode		*inode = file_inode(vma->vm_file);
-> +	struct xfs_inode	*ip = XFS_I(inode);
-> +	int			ret;
-> +
-> +	if (!IS_DAX(inode))
-> +		return VM_FAULT_FALLBACK;
-> +
-> +	trace_xfs_filemap_pud_fault(ip);
-> +
-> +	if (flags & FAULT_FLAG_WRITE) {
-> +		sb_start_pagefault(inode->i_sb);
-> +		file_update_time(vma->vm_file);
-> +	}
-> +
-> +	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-> +	ret = __dax_pud_fault(vma, addr, pud, flags, xfs_get_blocks_dax_fault,
-> +			      NULL);
-> +	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-> +
-> +	if (flags & FAULT_FLAG_WRITE)
-> +		sb_end_pagefault(inode->i_sb);
-> +
-> +	return ret;
-> +}
-> +
->  /*
->   * pfn_mkwrite was originally inteneded to ensure we capture time stamp
->   * updates on write faults. In reality, it's need to serialise against
-> @@ -1637,6 +1669,7 @@ xfs_filemap_pfn_mkwrite(
->  static const struct vm_operations_struct xfs_file_vm_ops = {
->  	.fault		= xfs_filemap_fault,
->  	.pmd_fault	= xfs_filemap_pmd_fault,
-> +	.pud_fault	= xfs_filemap_pud_fault,
+From: Matthew Wilcox <willy@linux.intel.com>
 
-This is getting silly - we now have 3 different page fault handlers
-that all do exactly the same thing. Please abstract this so that the
-page/pmd/pud is transparent and gets passed through to the generic
-handler code that then handles the differences between page/pmd/pud
-internally.
+Call into DAX to provide support for PUD pages, just like the PMD cases.
 
-This, after all, is the original reason that the ->fault handler was
-introduced....
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+---
+ fs/xfs/xfs_file.c  | 33 +++++++++++++++++++++++++++++++++
+ fs/xfs/xfs_trace.h |  1 +
+ 2 files changed, 34 insertions(+)
 
-Cheers,
-
-Dave.
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index f5392ab..a81b942 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1600,6 +1600,38 @@ xfs_filemap_pmd_fault(
+ 	return ret;
+ }
+ 
++STATIC int
++xfs_filemap_pud_fault(
++	struct vm_area_struct	*vma,
++	unsigned long		addr,
++	pud_t			*pud,
++	unsigned int		flags)
++{
++	struct inode		*inode = file_inode(vma->vm_file);
++	struct xfs_inode	*ip = XFS_I(inode);
++	int			ret;
++
++	if (!IS_DAX(inode))
++		return VM_FAULT_FALLBACK;
++
++	trace_xfs_filemap_pud_fault(ip);
++
++	if (flags & FAULT_FLAG_WRITE) {
++		sb_start_pagefault(inode->i_sb);
++		file_update_time(vma->vm_file);
++	}
++
++	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
++	ret = __dax_pud_fault(vma, addr, pud, flags, xfs_get_blocks_dax_fault,
++			      NULL);
++	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
++
++	if (flags & FAULT_FLAG_WRITE)
++		sb_end_pagefault(inode->i_sb);
++
++	return ret;
++}
++
+ /*
+  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
+  * updates on write faults. In reality, it's need to serialise against
+@@ -1637,6 +1669,7 @@ xfs_filemap_pfn_mkwrite(
+ static const struct vm_operations_struct xfs_file_vm_ops = {
+ 	.fault		= xfs_filemap_fault,
+ 	.pmd_fault	= xfs_filemap_pmd_fault,
++	.pud_fault	= xfs_filemap_pud_fault,
+ 	.map_pages	= filemap_map_pages,
+ 	.page_mkwrite	= xfs_filemap_page_mkwrite,
+ 	.pfn_mkwrite	= xfs_filemap_pfn_mkwrite,
+diff --git a/fs/xfs/xfs_trace.h b/fs/xfs/xfs_trace.h
+index 877079eb..16442bb 100644
+--- a/fs/xfs/xfs_trace.h
++++ b/fs/xfs/xfs_trace.h
+@@ -688,6 +688,7 @@ DEFINE_INODE_EVENT(xfs_inode_free_eofblocks_invalid);
+ 
+ DEFINE_INODE_EVENT(xfs_filemap_fault);
+ DEFINE_INODE_EVENT(xfs_filemap_pmd_fault);
++DEFINE_INODE_EVENT(xfs_filemap_pud_fault);
+ DEFINE_INODE_EVENT(xfs_filemap_page_mkwrite);
+ DEFINE_INODE_EVENT(xfs_filemap_pfn_mkwrite);
+ 
 -- 
-Dave Chinner
-david@fromorbit.com
+2.6.2
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
