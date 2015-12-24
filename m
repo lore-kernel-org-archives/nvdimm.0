@@ -1,60 +1,203 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 0/7] DAX fsync/msync support
-Date: Fri, 18 Dec 2015 22:22:13 -0700
-Message-Id: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+Return-Path: <linux-ext4-owner@vger.kernel.org>
+From: Robert Elliott <elliott@hpe.com>
+Subject: [PATCH] ext2, ext4: include filesystem block size in error messages
+Date: Wed, 23 Dec 2015 18:10:01 -0600
+Message-Id: <1450915801-2320-1-git-send-email-elliott@hpe.com>
+Sender: linux-ext4-owner@vger.kernel.org
+To: jack@suse.com, tytso@mit.edu, adilger.kernel@dilger.ca, dan.j.williams@intel.com, choleraehyq@gmail.com
+Cc: david@fromorbit.com, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-kernel@vger.kernel.org, Robert Elliott <elliott@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes from v4:
- - Explicity prevent shadow entries from being added to radix trees for DAX
-   mappings in patch 2.  The only shadow entries that would be generated
-   for DAX radix trees would be to track zero page mappings that were
-   created for holes.  These pages would receive minimal benefit from
-   having shadow entries, and the choice to have only one type of
-   exceptional entry in a given radix tree makes the logic simpler both in
-   clear_exceptional_entry() and in the rest of DAX.  (Jan)
+Print the problematic value in messages about the filesystem
+block size.
 
- - Added Reviewed-by from Jan to patch 3.
+Normalize all of the blocksize messages that use "blocksize" to
+use "filesystem block size". This helps distinguish this block size
+from the underlying block device's logical block size (i.e.,
+sector size) and physical block size.
 
-This series is built upon ext4/master.  A working tree with this series
-applied can be found here:
+Example old messages:
+	EXT2-fs (pmem0): unable to set blocksize
+	EXT4-fs (pmem0): error: unsupported blocksize for dax
+	EXT4-fs (pmem0): unsupported blocksize for fs encryption
+	EXT2-fs (pmem0): bad blocksize %d
 
-https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=fsync_v5
+Example new message:
+	EXT4-fs (pmem0): error: unsupported filesystem block size 2048 for dax
 
-Ross Zwisler (7):
-  pmem: add wb_cache_pmem() to the PMEM API
-  dax: support dirty DAX entries in radix tree
-  mm: add find_get_entries_tag()
-  dax: add support for fsync/sync
-  ext2: call dax_pfn_mkwrite() for DAX fsync/msync
-  ext4: call dax_pfn_mkwrite() for DAX fsync/msync
-  xfs: call dax_pfn_mkwrite() for DAX fsync/msync
+Signed-off-by: Robert Elliott <elliott@hpe.com>
+---
+ fs/ext2/super.c | 17 +++++++++++------
+ fs/ext4/super.c | 33 ++++++++++++++++++++-------------
+ 2 files changed, 31 insertions(+), 19 deletions(-)
 
- arch/x86/include/asm/pmem.h |  11 +--
- fs/block_dev.c              |   3 +-
- fs/dax.c                    | 159 ++++++++++++++++++++++++++++++++++++++++++--
- fs/ext2/file.c              |   4 +-
- fs/ext4/file.c              |   4 +-
- fs/inode.c                  |   1 +
- fs/xfs/xfs_file.c           |   7 +-
- include/linux/dax.h         |   7 ++
- include/linux/fs.h          |   1 +
- include/linux/pagemap.h     |   3 +
- include/linux/pmem.h        |  22 +++++-
- include/linux/radix-tree.h  |   9 +++
- mm/filemap.c                |  84 ++++++++++++++++++++++-
- mm/truncate.c               |  64 ++++++++++--------
- mm/vmscan.c                 |   9 ++-
- 15 files changed, 339 insertions(+), 49 deletions(-)
-
+diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+index 748d35a..1186a5b 100644
+--- a/fs/ext2/super.c
++++ b/fs/ext2/super.c
+@@ -31,6 +31,7 @@
+ #include <linux/mount.h>
+ #include <linux/log2.h>
+ #include <linux/quotaops.h>
++#include <linux/stringify.h>
+ #include <asm/uaccess.h>
+ #include "ext2.h"
+ #include "xattr.h"
+@@ -822,7 +823,9 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+ 	 */
+ 	blocksize = sb_min_blocksize(sb, BLOCK_SIZE);
+ 	if (!blocksize) {
+-		ext2_msg(sb, KERN_ERR, "error: unable to set blocksize");
++		ext2_msg(sb, KERN_ERR,
++			 "error: unable to set filesystem block size "
++			 __stringify(BLOCK_SIZE));
+ 		goto failed_sbi;
+ 	}
+ 
+@@ -921,7 +924,8 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
+ 		if (blocksize != PAGE_SIZE) {
+ 			ext2_msg(sb, KERN_ERR,
+-					"error: unsupported blocksize for dax");
++			 "error: unsupported filesystem block size %d for dax",
++				 blocksize);
+ 			goto failed_mount;
+ 		}
+ 		if (!sb->s_bdev->bd_disk->fops->direct_access) {
+@@ -937,7 +941,7 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 		if (!sb_set_blocksize(sb, blocksize)) {
+ 			ext2_msg(sb, KERN_ERR,
+-				"error: bad blocksize %d", blocksize);
++			 "error: bad filesystem block size %d", blocksize);
+ 			goto failed_sbi;
+ 		}
+ 
+@@ -1007,14 +1011,15 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	if (sb->s_blocksize != bh->b_size) {
+ 		if (!silent)
+-			ext2_msg(sb, KERN_ERR, "error: unsupported blocksize");
++			ext2_msg(sb, KERN_ERR,
++				 "error: unsupported filesystem block size %lu",
++				 sb->s_blocksize);
+ 		goto failed_mount;
+ 	}
+ 
+ 	if (sb->s_blocksize != sbi->s_frag_size) {
+ 		ext2_msg(sb, KERN_ERR,
+-			"error: fragsize %lu != blocksize %lu"
+-			"(not supported yet)",
++	 "error: fragsize %lu != filesystem block size %lu (not supported yet)",
+ 			sbi->s_frag_size, sb->s_blocksize);
+ 		goto failed_mount;
+ 	}
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index c9ab67d..9e1c049 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -42,6 +42,7 @@
+ 
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
++#include <linux/stringify.h>
+ 
+ #include "ext4.h"
+ #include "ext4_extents.h"	/* Needed for trace points definition */
+@@ -1750,8 +1751,9 @@ static int parse_options(char *options, struct super_block *sb,
+ 			BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
+ 
+ 		if (blocksize < PAGE_CACHE_SIZE) {
+-			ext4_msg(sb, KERN_ERR, "can't mount with "
+-				 "dioread_nolock if block size != PAGE_SIZE");
++			ext4_msg(sb, KERN_ERR,
++				"can't mount with dioread_nolock if filesystem block size %d != PAGE_SIZE",
++				blocksize);
+ 			return 0;
+ 		}
+ 	}
+@@ -3147,7 +3149,9 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 	ret = -EINVAL;
+ 	blocksize = sb_min_blocksize(sb, EXT4_MIN_BLOCK_SIZE);
+ 	if (!blocksize) {
+-		ext4_msg(sb, KERN_ERR, "unable to set blocksize");
++		ext4_msg(sb, KERN_ERR,
++			 "unable to set filesystem block size "
++			 __stringify(EXT4_MIN_BLOCK_SIZE));
+ 		goto out_fail;
+ 	}
+ 
+@@ -3367,14 +3371,15 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (blocksize < EXT4_MIN_BLOCK_SIZE ||
+ 	    blocksize > EXT4_MAX_BLOCK_SIZE) {
+ 		ext4_msg(sb, KERN_ERR,
+-		       "Unsupported filesystem blocksize %d", blocksize);
++			 "Unsupported filesystem block size %d", blocksize);
+ 		goto failed_mount;
+ 	}
+ 
+ 	if (sbi->s_mount_opt & EXT4_MOUNT_DAX) {
+ 		if (blocksize != PAGE_SIZE) {
+ 			ext4_msg(sb, KERN_ERR,
+-					"error: unsupported blocksize for dax");
++			 "error: unsupported filesystem block size %d for dax",
++				 blocksize);
+ 			goto failed_mount;
+ 		}
+ 		if (!sb->s_bdev->bd_disk->fops->direct_access) {
+@@ -3393,7 +3398,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (sb->s_blocksize != blocksize) {
+ 		/* Validate the filesystem blocksize */
+ 		if (!sb_set_blocksize(sb, blocksize)) {
+-			ext4_msg(sb, KERN_ERR, "bad block size %d",
++			ext4_msg(sb, KERN_ERR, "bad filesystem block size %d",
+ 					blocksize);
+ 			goto failed_mount;
+ 		}
+@@ -3495,8 +3500,8 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (has_bigalloc) {
+ 		if (clustersize < blocksize) {
+ 			ext4_msg(sb, KERN_ERR,
+-				 "cluster size (%d) smaller than "
+-				 "block size (%d)", clustersize, blocksize);
++		 "cluster size (%d) smaller than filesystem block size (%d)",
++				clustersize, blocksize);
+ 			goto failed_mount;
+ 		}
+ 		sbi->s_cluster_bits = le32_to_cpu(es->s_log_cluster_size) -
+@@ -3519,9 +3524,9 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 		}
+ 	} else {
+ 		if (clustersize != blocksize) {
+-			ext4_warning(sb, "fragment/cluster size (%d) != "
+-				     "block size (%d)", clustersize,
+-				     blocksize);
++			ext4_warning(sb,
++		 "fragment/cluster size (%d) != filesystem block size (%d)",
++				     clustersize, blocksize);
+ 			clustersize = blocksize;
+ 		}
+ 		if (sbi->s_blocks_per_group > blocksize * 8) {
+@@ -3769,7 +3774,8 @@ no_journal:
+ 	if ((DUMMY_ENCRYPTION_ENABLED(sbi) || ext4_has_feature_encrypt(sb)) &&
+ 	    (blocksize != PAGE_CACHE_SIZE)) {
+ 		ext4_msg(sb, KERN_ERR,
+-			 "Unsupported blocksize for fs encryption");
++		 "Unsupported filesystem block size %d for fs encryption",
++			 blocksize);
+ 		goto failed_mount_wq;
+ 	}
+ 
+@@ -4112,7 +4118,8 @@ static journal_t *ext4_get_dev_journal(struct super_block *sb,
+ 	hblock = bdev_logical_block_size(bdev);
+ 	if (blocksize < hblock) {
+ 		ext4_msg(sb, KERN_ERR,
+-			"blocksize too small for journal device");
++			"filesystem block size %d too small for journal device",
++			blocksize);
+ 		goto out_bdev;
+ 	}
+ 
 -- 
-2.5.0
+2.4.3
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
