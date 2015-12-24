@@ -1,79 +1,52 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <1449022764.31589.24.camel@hpe.com>
-Subject: Re: [PATCH] mm: Fix mmap MAP_POPULATE for DAX pmd mapping
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Tue, 01 Dec 2015 19:19:24 -0700
-In-Reply-To: <CAPcyv4gY2SZZwiv9DtjRk4js3gS=vf4YLJvmsMJ196aps4ZHcQ@mail.gmail.com>
-References: <1448309082-20851-1-git-send-email-toshi.kani@hpe.com>
-	 <CAPcyv4gY2SZZwiv9DtjRk4js3gS=vf4YLJvmsMJ196aps4ZHcQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, mauricio.porto@hpe.com, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
+Subject: RE: A blocksize problem about dax and ext4
+Date: Thu, 24 Dec 2015 12:26:18 +0000
+Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295BEDCB5E@G9W0745.americas.hpqcorp.net>
+References: <CAM=YXF-aXxp19=uFDExUswpEfKXNN6LJScxAB-7-u-AgRiXJ2g@mail.gmail.com>
+ <CAPcyv4gYHuSWuugnELSO6B1rye+b89io3zJVUXwRt0wE1ZfPrA@mail.gmail.com>
+ <94D0CD8314A33A4D9D801C0FE68B40295BEC985F@G9W0745.americas.hpqcorp.net>
+ <20151224000021.GU19802@dastard>
+ <CAM=YXF9Dt-BuY9yM7d023a16gp=edGHeCDVTCwV-AEotj6sbFg@mail.gmail.com>
+ <CAPcyv4g1eHgm8oUvxFaJkRD-T7jAyw95FQ-q3_GC2JU_kkU-Kg@mail.gmail.com>
+ <CAM=YXF-wZEhodxVRN8nqyH9Vg7t85ut2-0PnEn9OvhpG_jX3mA@mail.gmail.com>
+ <94D0CD8314A33A4D9D801C0FE68B40295BEC9CDD@G9W0745.americas.hpqcorp.net>
+ <20151224101111.GA6438@infradead.org>
+In-Reply-To: <20151224101111.GA6438@infradead.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Cholerae Hu <choleraehyq@gmail.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Ted Tso <tytso@mit.edu>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, 2015-11-30 at 14:08 -0800, Dan Williams wrote:
-> On Mon, Nov 23, 2015 at 12:04 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> > The following oops was observed when mmap() with MAP_POPULATE
-> > pre-faulted pmd mappings of a DAX file.  follow_trans_huge_pmd()
-> > expects that a target address has a struct page.
-> > 
-> >   BUG: unable to handle kernel paging request at ffffea0012220000
-> >   follow_trans_huge_pmd+0xba/0x390
-> >   follow_page_mask+0x33d/0x420
-> >   __get_user_pages+0xdc/0x800
-> >   populate_vma_page_range+0xb5/0xe0
-> >   __mm_populate+0xc5/0x150
-> >   vm_mmap_pgoff+0xd5/0xe0
-> >   SyS_mmap_pgoff+0x1c1/0x290
-> >   SyS_mmap+0x1b/0x30
-> > 
-> > Fix it by making the PMD pre-fault handling consistent with PTE.
-> > After pre-faulted in faultin_page(), follow_page_mask() calls
-> > follow_trans_huge_pmd(), which is changed to call follow_pfn_pmd()
-> > for VM_PFNMAP or VM_MIXEDMAP.  follow_pfn_pmd() handles FOLL_TOUCH
-> > and returns with -EEXIST.
-> > 
-> > Reported-by: Mauricio Porto <mauricio.porto@hpe.com>
-> > Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-> > Cc: Matthew Wilcox <willy@linux.intel.com>
-> > Cc: Dan Williams <dan.j.williams@intel.com>
-> > Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> > ---
+
+
+> -----Original Message-----
+> From: Christoph Hellwig [mailto:hch@infradead.org]
+> Sent: Thursday, December 24, 2015 4:11 AM
+> Subject: Re: A blocksize problem about dax and ext4
 > 
-> Hey Toshi,
+> On Thu, Dec 24, 2015 at 02:47:07AM +0000, Elliott, Robert (Persistent
+> Memory) wrote:
+> > > Did you mean that I should make the blocksize bigger until the mount
+> > > command tell me that dax is enabled?
+> >
+> > To really use DAX, the filesystem block size must match the
+> > system CPU's page size, which is probably 4096 bytes.
 > 
-> I ended up fixing this differently with follow_pmd_devmap() introduced
-> in this series:
-> 
-> https://lists.01.org/pipermail/linux-nvdimm/2015-November/003033.html
-> 
-> Does the latest libnvdimm-pending branch [1] pass your test case?
+> No, it doesn't.  File you use for DAX must be aligne at page size
+> granularity.  For XFS you could do this with the per-inode extent
+> size hint for example even if the overall block size is smaller.
 
-Hi Dan,
+I think that's a future goal.
 
-I ran several test cases, and they all hit the case "pfn not in memmap" in
-__dax_pmd_fault() during mmap(MAP_POPULATE).  Looking at the dax.pfn, PFN_DEV is
-set but PFN_MAP is not.  I have not looked into why, but I thought I let you
-know first.  I've also seen the test thread got hung up at the end sometime.  
+Currently, the checks are like this:
 
-I also noticed that reason is not set in the case below.
+	if (sb->s_blocksize != PAGE_SIZE) {
+		xfs_alert(mp,
+		"Filesystem block size invalid for DAX Turning DAX off.");
 
-                if (length < PMD_SIZE
-                                || (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR)) {
-                        dax_unmap_atomic(bdev, &dax);
-                          goto fallback;
-                }
 
-Thanks,
--Toshi
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
