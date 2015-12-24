@@ -1,52 +1,60 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: vishal@kernel.org
-Subject: [PATCH 1/3] nfit_test: Enable DSMs for all test NFITs
-Date: Sun, 20 Dec 2015 02:18:40 -0700
-Message-Id: <1450603122-7205-2-git-send-email-vishal@kernel.org>
-In-Reply-To: <1450603122-7205-1-git-send-email-vishal@kernel.org>
-References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>, Linda Knippers <linda.knippers@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH 2/8] mincore: Add support for PUDs
+Date: Thu, 24 Dec 2015 11:20:31 -0500
+Message-Id: <1450974037-24775-3-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
+Sender: owner-linux-mm@kvack.org
+Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Vishal Verma <vishal.l.verma@intel.com>
+From: Matthew Wilcox <willy@linux.intel.com>
 
-In preparation for getting a poison list using ARS DSMs, enable DSMs for
-all manufactured NFITs supplied by the test framework.
+We don't actually care about the contents of the PUD, just set the bits
+to indicate presence and return.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 ---
- tools/testing/nvdimm/test/nfit.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/mincore.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 51cf825..298805a 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1088,6 +1088,8 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	struct acpi_nfit_memory_map *memdev;
- 	struct acpi_nfit_control_region *dcr;
- 	struct acpi_nfit_system_address *spa;
-+	struct nvdimm_bus_descriptor *nd_desc;
-+	struct acpi_nfit_desc *acpi_desc;
- 
- 	offset = 0;
- 	/* spa0 (flat range with no bdw aliasing) */
-@@ -1135,6 +1137,13 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	dcr->command_size = 0;
- 	dcr->status_offset = 0;
- 	dcr->status_size = 0;
-+
-+	acpi_desc = &t->acpi_desc;
-+	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
-+	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_dsm_force_en);
-+	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_dsm_force_en);
-+	nd_desc = &acpi_desc->nd_desc;
-+	nd_desc->ndctl = nfit_test_ctl;
+diff --git a/mm/mincore.c b/mm/mincore.c
+index 2a565ed..8e6ce12 100644
+--- a/mm/mincore.c
++++ b/mm/mincore.c
+@@ -108,6 +108,18 @@ static int mincore_unmapped_range(unsigned long addr, unsigned long end,
+ 	return 0;
  }
  
- static int nfit_test_blk_do_io(struct nd_blk_region *ndbr, resource_size_t dpa,
++static int mincore_pud_range(pud_t *pud, unsigned long addr, unsigned long end,
++			struct mm_walk *walk)
++{
++	unsigned char *vec = walk->private;
++	int nr = (end - addr) >> PAGE_SHIFT;
++
++	memset(vec, 1, nr);
++	walk->private += nr;
++
++	return 0;
++}
++
+ static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			struct mm_walk *walk)
+ {
+@@ -176,6 +188,7 @@ static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *v
+ 	unsigned long end;
+ 	int err;
+ 	struct mm_walk mincore_walk = {
++		.pud_entry = mincore_pud_range,
+ 		.pmd_entry = mincore_pte_range,
+ 		.pte_hole = mincore_unmapped_range,
+ 		.hugetlb_entry = mincore_hugetlb,
 -- 
-2.5.0
+2.6.2
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
