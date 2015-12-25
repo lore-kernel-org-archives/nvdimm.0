@@ -1,49 +1,73 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 5/7] ext2: call dax_pfn_mkwrite() for DAX fsync/msync
-Date: Fri, 18 Dec 2015 22:22:18 -0700
-Message-Id: <1450502540-8744-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1450502540-8744-1-git-send-email-ross.zwisler@linux.intel.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v2 16/16] ACPI/EINJ: Allow memory error injection to NVDIMM
+Date: Fri, 25 Dec 2015 15:09:25 -0700
+Message-Id: <1451081365-15190-16-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1451081365-15190-1-git-send-email-toshi.kani@hpe.com>
+References: <1451081365-15190-1-git-send-email-toshi.kani@hpe.com>
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: akpm@linux-foundation.org, bp@alien8.de
+Cc: linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vishal Verma <vishal.l.verma@intel.com>, Tony Luck <tony.luck@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+In the case of memory error injection, einj_error_inject() checks
+if a target address is System RAM.  Change this check to allow
+injecting a memory error to NVDIMM by calling region_intersects()
+with IORES_DESC_PERSISTENT_MEMORY.  This enables memory error
+testing on both System RAM and NVDIMM.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+In addition, page_is_ram() is replaced with region_intersects()
+with IORESOURCE_SYSTEM_RAM, so that it can verify a target address
+range with the requested size.
+
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org
+Acked-by: Tony Luck <tony.luck@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
 ---
- fs/ext2/file.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/acpi/apei/einj.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index 11a42c5..2c88d68 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -102,8 +102,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index 0431883..16cae66 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 			     u64 param3, u64 param4)
  {
- 	struct inode *inode = file_inode(vma->vm_file);
- 	struct ext2_inode_info *ei = EXT2_I(inode);
--	int ret = VM_FAULT_NOPAGE;
- 	loff_t size;
-+	int ret;
+ 	int rc;
+-	unsigned long pfn;
++	u64 base_addr, size;
  
- 	sb_start_pagefault(inode->i_sb);
- 	file_update_time(vma->vm_file);
-@@ -113,6 +113,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else
-+		ret = dax_pfn_mkwrite(vma, vmf);
+ 	/* If user manually set "flags", make sure it is legal */
+ 	if (flags && (flags &
+@@ -545,10 +545,17 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 	/*
+ 	 * Disallow crazy address masks that give BIOS leeway to pick
+ 	 * injection address almost anywhere. Insist on page or
+-	 * better granularity and that target address is normal RAM.
++	 * better granularity and that target address is normal RAM or
++	 * NVDIMM.
+ 	 */
+-	pfn = PFN_DOWN(param1 & param2);
+-	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
++	base_addr = param1 & param2;
++	size = ~param2 + 1;
++
++	if (((param2 & PAGE_MASK) != PAGE_MASK) ||
++	    ((region_intersects(base_addr, size, IORESOURCE_SYSTEM_RAM,
++			IORES_DESC_NONE) != REGION_INTERSECTS) &&
++	     (region_intersects(base_addr, size, IORESOURCE_MEM,
++			IORES_DESC_PERSISTENT_MEMORY) != REGION_INTERSECTS)))
+ 		return -EINVAL;
  
- 	up_read(&ei->dax_sem);
- 	sb_end_pagefault(inode->i_sb);
--- 
-2.5.0
+ inject:
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
