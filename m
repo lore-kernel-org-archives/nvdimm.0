@@ -1,51 +1,57 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 7/7] xfs: call dax_pfn_mkwrite() for DAX fsync/msync
-Date: Tue,  8 Dec 2015 12:18:45 -0700
-Message-Id: <1449602325-20572-8-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1449602325-20572-1-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+In-Reply-To: <20151221054433.34542.73933.stgit@dwillia2-desk3.jf.intel.com>
+References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+	<20151221054433.34542.73933.stgit@dwillia2-desk3.jf.intel.com>
+Date: Sun, 27 Dec 2015 16:40:08 +0800
+Message-ID: <CAA_GA1e8-MaekpLSya8YJJy-uu9izkH3g69c3q2OPut=YhioKA@mail.gmail.com>
+Subject: Re: [-mm PATCH v4 05/18] x86, mm: introduce vmem_altmap to augment vmemmap_populate()
+From: Bob Liu <lliubbo@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Dave Hansen <dave.hansen@linux.intel.com>, kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, x86@kernel.org, Linux-MM <linux-mm@kvack.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+On Mon, Dec 21, 2015 at 1:44 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> In support of providing struct page for large persistent memory
+> capacities, use struct vmem_altmap to change the default policy for
+> allocating memory for the memmap array.  The default vmemmap_populate()
+> allocates page table storage area from the page allocator.  Given
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/xfs/xfs_file.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+Nitpick, I think you mean 'memmap storage area' here?  Page table
+storage area still allocated from DRAM even after vmem_altmap
+introduced.
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index f5392ab..40ffbb1 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1603,9 +1603,8 @@ xfs_filemap_pmd_fault(
- /*
-  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
-  * updates on write faults. In reality, it's need to serialise against
-- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
-- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
-- * barrier in place.
-+ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
-+ * to ensure we serialise the fault barrier in place.
-  */
- static int
- xfs_filemap_pfn_mkwrite(
-@@ -1628,6 +1627,8 @@ xfs_filemap_pfn_mkwrite(
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else if (IS_DAX(inode))
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
--- 
-2.5.0
+Regards,
+Bob
+
+> persistent memory capacities relative to DRAM it may not be feasible to
+> store the memmap in 'System Memory'.  Instead vmem_altmap represents
+> pre-allocated "device pages" to satisfy vmemmap_alloc_block_buf()
+> requests.
+>
+> Cc: x86@kernel.org
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Reported-by: kbuild test robot <lkp@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  arch/x86/mm/init_64.c          |   33 ++++++++++++++---
+>  drivers/nvdimm/pmem.c          |    6 ++-
+>  include/linux/memory_hotplug.h |    3 +-
+>  include/linux/memremap.h       |   39 ++++++++++++++++++---
+>  include/linux/mm.h             |    9 ++++-
+>  kernel/memremap.c              |   72 +++++++++++++++++++++++++++++++++++++-
+>  mm/memory_hotplug.c            |   67 +++++++++++++++++++++++++----------
+>  mm/page_alloc.c                |   11 +++++-
+>  mm/sparse-vmemmap.c            |   76 +++++++++++++++++++++++++++++++++++++++-
+>  mm/sparse.c                    |    8 +++-
+>  10 files changed, 282 insertions(+), 42 deletions(-)
+>
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
