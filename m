@@ -1,67 +1,51 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 4/9] libnvdimm, pfn: add parent uuid validation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 14 Dec 2015 18:14:49 -0800
-Message-ID: <20151215021449.37090.17888.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151215021428.37090.30720.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: Re: [PATCH v2 14/16] x86,nvdimm,kexec: Use walk_iomem_res_desc() for
+ iomem search
+References: <1451081365-15190-1-git-send-email-toshi.kani@hpe.com>
+ <1451081365-15190-14-git-send-email-toshi.kani@hpe.com>
+ <20151226103804.GB21988@pd.tnic>
+From: Toshi Kani <toshi.kani@hpe.com>
+Message-ID: <567F315B.8080005@hpe.com>
+Date: Sat, 26 Dec 2015 17:31:23 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <20151226103804.GB21988@pd.tnic>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: willy@linux.intel.com, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: akpm@linux-foundation.org, linux-arch@vger.kernel.org, kexec@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Dave Young <dyoung@redhat.com>, x86@kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Track and check the uuid of the namespace hosting a pfn instance.  This
-forces the pfn info block to be invalidated if the namespace is
-re-configured with a different uuid.
++ cc: kexec list
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pfn_devs.c |   10 +++++++---
- drivers/nvdimm/pmem.c     |    1 +
- 2 files changed, 8 insertions(+), 3 deletions(-)
+On 12/26/2015 3:38 AM, Borislav Petkov wrote:
+> On Fri, Dec 25, 2015 at 03:09:23PM -0700, Toshi Kani wrote:
+>> Change to call walk_iomem_res_desc() for searching resource entries
+>> with the following names:
+>>   "ACPI Tables"
+>>   "ACPI Non-volatile Storage"
+>>   "Persistent Memory (legacy)"
+>>   "Crash kernel"
+>>
+>> Note, the caller of walk_iomem_res() with "GART" is left unchanged
+>> because this entry may be initialized by out-of-tree drivers, which
+>> do not have 'desc' set to IORES_DESC_GART.
+>
+> There's this out-of-tree bogus argument again. :\
+>
+> Why do we care about out-of-tree drivers?
+>
+> You can just as well fix the "GART" case too and kill walk_iomem_res()
+> altogether...
 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 95ecd7b0fab3..f9b674bc49db 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -273,10 +273,11 @@ struct device *nd_pfn_create(struct nd_region *nd_region)
- 
- int nd_pfn_validate(struct nd_pfn *nd_pfn)
- {
--	struct nd_namespace_common *ndns = nd_pfn->ndns;
--	struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
--	struct nd_namespace_io *nsio;
- 	u64 checksum, offset;
-+	struct nd_namespace_io *nsio;
-+	struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
-+	struct nd_namespace_common *ndns = nd_pfn->ndns;
-+	const u8 *parent_uuid = nd_dev_to_uuid(&ndns->dev);
- 
- 	if (!pfn_sb || !ndns)
- 		return -ENODEV;
-@@ -296,6 +297,9 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn)
- 		return -ENODEV;
- 	pfn_sb->checksum = cpu_to_le64(checksum);
- 
-+	if (memcmp(pfn_sb->parent_uuid, parent_uuid, 16) != 0)
-+		return -ENODEV;
-+
- 	switch (le32_to_cpu(pfn_sb->mode)) {
- 	case PFN_MODE_RAM:
- 		break;
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 5ba351e4f26a..dc6866734f70 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -270,6 +270,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	pfn_sb->npfns = cpu_to_le64(npfns);
- 	memcpy(pfn_sb->signature, PFN_SIG, PFN_SIG_LEN);
- 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
-+	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
- 	pfn_sb->version_major = cpu_to_le16(1);
- 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
- 	pfn_sb->checksum = cpu_to_le64(checksum);
+Right, but I do not see any "GART" case in the upstream code, so I 
+cannot change it...
 
+Thanks,
+-Toshi
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
