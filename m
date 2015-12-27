@@ -1,56 +1,85 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH] BTT: Change nd_btt_arena_is_valid() to verify UUID
-Date: Thu, 17 Dec 2015 16:00:00 -0700
-Message-Id: <1450393200-6802-1-git-send-email-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dan.j.williams@intel.com
-Cc: vishal.l.verma@intel.com, micah.parrish@hpe.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+MIME-Version: 1.0
+In-Reply-To: <CAA_GA1cYJhpqJkceYzJBpUj9Uvr68zGZzmphopu+7U+dEqCN3w@mail.gmail.com>
+References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+	<20151221054521.34542.62283.stgit@dwillia2-desk3.jf.intel.com>
+	<CAA_GA1cYJhpqJkceYzJBpUj9Uvr68zGZzmphopu+7U+dEqCN3w@mail.gmail.com>
+Date: Sun, 27 Dec 2015 11:02:44 -0800
+Message-ID: <CAPcyv4jvE3bB=oqjFRquHWV8f_o2XOX1oB9h_xMzA82sYVMOVQ@mail.gmail.com>
+Subject: Re: [-mm PATCH v4 14/18] mm, dax, pmem: introduce {get|put}_dev_pagemap()
+ for dax-gup
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: owner-linux-mm@kvack.org
+To: Bob Liu <lliubbo@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Dave Hansen <dave@sr71.net>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux-MM <linux-mm@kvack.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Logan Gunthorpe <logang@deltatee.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When user unbinds a BTT disk and binds again with a different
-sector size without wiping out the disk, a BTT disk is created
-with a wrong size.
+On Sun, Dec 27, 2015 at 12:46 AM, Bob Liu <lliubbo@gmail.com> wrote:
+> On Mon, Dec 21, 2015 at 1:45 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+>> get_dev_page() enables paths like get_user_pages() to pin a dynamically
+>> mapped pfn-range (devm_memremap_pages()) while the resulting struct page
+>> objects are in use.  Unlike get_page() it may fail if the device is, or
+>> is in the process of being, disabled.  While the initial lookup of the
+>> range may be an expensive list walk, the result is cached to speed up
+>> subsequent lookups which are likely to be in the same mapped range.
+>>
+>> devm_memremap_pages() now requires a reference counter to be specified
+>> at init time.  For pmem this means moving request_queue allocation into
+>> pmem_alloc() so the existing queue usage counter can track "device
+>> pages".
+>>
+>> ZONE_DEVICE pages always have an elevated count and will never be on an
+>> lru reclaim list.  That space in 'struct page' can be redirected for
+>> other uses, but for safety introduce a poison value that will always
+>> trip __list_add() to assert.  This allows half of the struct list_head
+>> storage to be reclaimed with some assurance to back up the assumption
+>> that the page count never goes to zero and a list_add() is never
+>> attempted.
+>>
+>> Cc: Dave Hansen <dave@sr71.net>
+>> Cc: Andrew Morton <akpm@linux-foundation.org>
+>> Cc: Matthew Wilcox <willy@linux.intel.com>
+>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+>> Tested-by: Logan Gunthorpe <logang@deltatee.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+[..]
+>> +static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
+>> +               struct dev_pagemap *pgmap)
+>> +{
+>> +       const struct resource *res = pgmap ? pgmap->res : NULL;
+>> +       resource_size_t phys = PFN_PHYS(pfn);
+>> +
+>> +       /*
+>> +        * In the cached case we're already holding a live reference so
+>> +        * we can simply do a blind increment
+>> +        */
+>> +       if (res && phys >= res->start && phys <= res->end) {
+>> +               percpu_ref_get(pgmap->ref);
+>> +               return pgmap;
+>> +       }
+>> +
+>> +       /* fall back to slow path lookup */
+>> +       rcu_read_lock();
+>> +       pgmap = find_dev_pagemap(phys);
+>
+> Is it possible just use pfn_to_page() and then return page->pgmap?
+> Then we can get rid of the pgmap_radix tree totally.
 
-This is because the bind operation keeps the previous metadata,
-which leads nd_btt->lbasize inconsistent with internal_lbasize
-and external_lbasize in the arena.  A reboot also reattaches
-the BTT from the previous metadata.
+No, for two reasons:
 
-Change nd_btt_arena_is_valid() to check if nd_btt->uuid matches
-with super->uuid when a new UUID is set for binding.  This
-assures the bind operation writes the metadata with the values
-specified by user.
+1/ find_dev_pagemap() is used in places where pfn_to_page() is not yet
+established (see: to_vmem_altmap())
 
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Micah Parrish <micah.parrish@hpe.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
----
- drivers/nvdimm/btt_devs.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+2/ at shutdown, new get_dev_pagemap() requests can race the memmap
+being torn down.  So, unless we already have a reference against the
+page_map, we always need to look it up under a lock to know that
+pfn_to_page() is returning a valid page.
 
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index cb47751..176ea25 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -218,6 +218,8 @@ static bool uuid_is_null(u8 *uuid)
-  * Check consistency of the btt info block with itself by validating
-  * the checksum, and with the parent namespace by verifying the
-  * parent_uuid contained in the info block with the one supplied in.
-+ * When nd_btt->uuid is set for binding, verify if the metadata is
-+ * stale.
-  *
-  * Returns:
-  * false for an invalid info block, true for a valid one
-@@ -234,6 +236,10 @@ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super)
- 		if (memcmp(super->parent_uuid, parent_uuid, 16) != 0)
- 			return false;
- 
-+	if (nd_btt->uuid)
-+		if (memcmp(super->uuid, nd_btt->uuid, 16) != 0)
-+			return false;
-+
- 	checksum = le64_to_cpu(super->checksum);
- 	super->checksum = 0;
- 	if (checksum != nd_sb_checksum((struct nd_gen_sb *) super))
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
