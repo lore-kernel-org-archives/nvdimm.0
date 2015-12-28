@@ -1,9 +1,9 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Mon, 28 Dec 2015 12:11:21 +0200
+Date: Mon, 28 Dec 2015 12:05:51 +0200
 From: "Kirill A. Shutemov" <kirill@shutemov.name>
 Subject: Re: [PATCH 1/8] mm: Add optional support for PUD-sized transparent
  hugepages
-Message-ID: <20151228101121.GB4589@node.shutemov.name>
+Message-ID: <20151228100551.GA4589@node.shutemov.name>
 References: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
  <1450974037-24775-2-git-send-email-matthew.r.wilcox@intel.com>
 MIME-Version: 1.0
@@ -16,12 +16,75 @@ Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lis
 List-ID: <linux-nvdimm@lists.01.org>
 
 On Thu, Dec 24, 2015 at 11:20:30AM -0500, Matthew Wilcox wrote:
-> The only major difference is how the new ->pud_entry method in mm_walk
-> works.  The ->pmd_entry method replaces the ->pte_entry method, whereas
-> the ->pud_entry method works along with either ->pmd_entry or ->pte_entry.
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 4bf3811..e14634f 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -1958,6 +1977,17 @@ static inline spinlock_t *pmd_lock(struct mm_struct *mm, pmd_t *pmd)
+>  	return ptl;
+>  }
+>  
+> +/*
+> + * No scalability reason to split PUD locks yet, but follow the same pattern
+> + * as the PMD locks to make it easier if we have to.
+> + */
 
-I think it makes pagewalk API confusing. We need something more coherent.
+I don't think it makes any good unless you convert all other places where
+we use page_table_lock to protect pud table (like __pud_alloc()) to the
+same API.
+I think this would deserve separate patch.
 
+> +static inline spinlock_t *pud_lock(struct mm_struct *mm, pud_t *pud)
+> +{
+> +	spinlock_t *ptl = &mm->page_table_lock;
+> +	spin_lock(ptl);
+> +	return ptl;
+> +}
+> +
+>  extern void free_area_init(unsigned long * zones_size);
+>  extern void free_area_init_node(int nid, unsigned long * zones_size,
+>  		unsigned long zone_start_pfn, unsigned long *zholes_size);
+
+...
+
+> diff --git a/mm/memory.c b/mm/memory.c
+> index 416b129..7328df0 100644
+> --- a/mm/memory.c
+> +++ b/mm/memory.c
+> @@ -1220,9 +1220,27 @@ static inline unsigned long zap_pud_range(struct mmu_gather *tlb,
+>  	pud = pud_offset(pgd, addr);
+>  	do {
+>  		next = pud_addr_end(addr, end);
+> +		if (pud_trans_huge(*pud) || pud_devmap(*pud)) {
+> +			if (next - addr != HPAGE_PUD_SIZE) {
+> +#ifdef CONFIG_DEBUG_VM
+
+IS_ENABLED(CONFIG_DEBUG_VM) ?
+
+> +				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
+> +					pr_err("%s: mmap_sem is unlocked! addr=0x%lx end=0x%lx vma->vm_start=0x%lx vma->vm_end=0x%lx\n",
+> +						__func__, addr, end,
+> +						vma->vm_start,
+> +						vma->vm_end);
+
+dump_vma(), I guess.
+
+> +					BUG();
+> +				}
+> +#endif
+> +				split_huge_pud(vma, pud, addr);
+> +			} else if (zap_huge_pud(tlb, vma, pud, addr))
+> +				goto next;
+> +			/* fall through */
+> +		}
+>  		if (pud_none_or_clear_bad(pud))
+>  			continue;
+>  		next = zap_pmd_range(tlb, vma, pud, addr, next, details);
+> +next:
+> +		cond_resched();
+>  	} while (pud++, addr = next, addr != end);
+>  
+>  	return addr;
 -- 
  Kirill A. Shutemov
 
