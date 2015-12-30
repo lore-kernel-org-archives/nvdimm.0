@@ -1,66 +1,94 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v2 05/25] mm, dax: fix livelock,
- allow dax pmd mappings to become writeable
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 09 Dec 2015 18:37:36 -0800
-Message-ID: <20151210023736.30368.76631.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151210023708.30368.92962.stgit@dwillia2-desk3.jf.intel.com>
+Date: Thu, 31 Dec 2015 10:30:27 +1100
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH 7/8] xfs: Support for transparent PUD pages
+Message-ID: <20151230233007.GA6682@dastard>
+References: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
+ <1450974037-24775-8-git-send-email-matthew.r.wilcox@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1450974037-24775-8-git-send-email-matthew.r.wilcox@intel.com>
 Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Toshi Kani <toshi.kani@hpe.com>, linux-nvdimm@lists.01.org
+To: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+On Thu, Dec 24, 2015 at 11:20:36AM -0500, Matthew Wilcox wrote:
+> From: Matthew Wilcox <willy@linux.intel.com>
+> 
+> Call into DAX to provide support for PUD pages, just like the PMD cases.
+> 
+> Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+> ---
+>  fs/xfs/xfs_file.c  | 33 +++++++++++++++++++++++++++++++++
+>  fs/xfs/xfs_trace.h |  1 +
+>  2 files changed, 34 insertions(+)
+> 
+> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> index f5392ab..a81b942 100644
+> --- a/fs/xfs/xfs_file.c
+> +++ b/fs/xfs/xfs_file.c
+> @@ -1600,6 +1600,38 @@ xfs_filemap_pmd_fault(
+>  	return ret;
+>  }
+>  
+> +STATIC int
+> +xfs_filemap_pud_fault(
+> +	struct vm_area_struct	*vma,
+> +	unsigned long		addr,
+> +	pud_t			*pud,
+> +	unsigned int		flags)
+> +{
+> +	struct inode		*inode = file_inode(vma->vm_file);
+> +	struct xfs_inode	*ip = XFS_I(inode);
+> +	int			ret;
+> +
+> +	if (!IS_DAX(inode))
+> +		return VM_FAULT_FALLBACK;
+> +
+> +	trace_xfs_filemap_pud_fault(ip);
+> +
+> +	if (flags & FAULT_FLAG_WRITE) {
+> +		sb_start_pagefault(inode->i_sb);
+> +		file_update_time(vma->vm_file);
+> +	}
+> +
+> +	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+> +	ret = __dax_pud_fault(vma, addr, pud, flags, xfs_get_blocks_dax_fault,
+> +			      NULL);
+> +	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+> +
+> +	if (flags & FAULT_FLAG_WRITE)
+> +		sb_end_pagefault(inode->i_sb);
+> +
+> +	return ret;
+> +}
+> +
+>  /*
+>   * pfn_mkwrite was originally inteneded to ensure we capture time stamp
+>   * updates on write faults. In reality, it's need to serialise against
+> @@ -1637,6 +1669,7 @@ xfs_filemap_pfn_mkwrite(
+>  static const struct vm_operations_struct xfs_file_vm_ops = {
+>  	.fault		= xfs_filemap_fault,
+>  	.pmd_fault	= xfs_filemap_pmd_fault,
+> +	.pud_fault	= xfs_filemap_pud_fault,
 
-Prior to this change DAX PMD mappings that were made read-only were
-never able to be made writable again.  This is because the code in
-insert_pfn_pmd() that calls pmd_mkdirty() and pmd_mkwrite() would skip
-these calls if the PMD already existed in the page table.
+This is getting silly - we now have 3 different page fault handlers
+that all do exactly the same thing. Please abstract this so that the
+page/pmd/pud is transparent and gets passed through to the generic
+handler code that then handles the differences between page/pmd/pud
+internally.
 
-Instead, if we are doing a write always mark the PMD entry as dirty and
-writeable.  Without this code we can get into a condition where we mark
-the PMD as read-only, and then on a subsequent write fault we get into
-an infinite loop of PMD faults where we try unsuccessfully to make the
-PMD writeable.
+This, after all, is the original reason that the ->fault handler was
+introduced....
 
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Reported-by: Toshi Kani <toshi.kani@hpe.com>
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- mm/huge_memory.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+Cheers,
 
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index faf39bbf6292..a4bfeb07394b 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -967,15 +967,13 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
- 	spinlock_t *ptl;
- 
- 	ptl = pmd_lock(mm, pmd);
--	if (pmd_none(*pmd)) {
--		entry = pmd_mkhuge(pfn_pmd(pfn, prot));
--		if (write) {
--			entry = pmd_mkyoung(pmd_mkdirty(entry));
--			entry = maybe_pmd_mkwrite(entry, vma);
--		}
--		set_pmd_at(mm, addr, pmd, entry);
--		update_mmu_cache_pmd(vma, addr, pmd);
-+	entry = pmd_mkhuge(pfn_pmd(pfn, prot));
-+	if (write) {
-+		entry = pmd_mkyoung(pmd_mkdirty(entry));
-+		entry = maybe_pmd_mkwrite(entry, vma);
- 	}
-+	set_pmd_at(mm, addr, pmd, entry);
-+	update_mmu_cache_pmd(vma, addr, pmd);
- 	spin_unlock(ptl);
- }
- 
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
