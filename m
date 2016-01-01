@@ -1,100 +1,54 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [-mm PATCH v4 03/18] mm: skip memory block registration for
- ZONE_DEVICE
+Subject: [-mm PATCH] list, perf: fix list_force_poison() build regression
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 20 Dec 2015 21:44:23 -0800
-Message-ID: <20151221054423.34542.13407.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
-References: <20151221054406.34542.64393.stgit@dwillia2-desk3.jf.intel.com>
+Date: Thu, 31 Dec 2015 19:24:21 -0800
+Message-ID: <20160101032348.26352.75121.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
 To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-nvdimm@lists.01.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prevent userspace from trying and failing to online ZONE_DEVICE pages
-which are meant to never be onlined.
+    In file included from
+    /home/sfr/next/next/tools/include/linux/list.h:5:0,
+                     from arch/../util/map.h:6,
+                     from arch/../util/event.h:8,
+                     from arch/../util/debug.h:7,
+                     from arch/common.c:4:
+    include/linux/list.h: In function 'list_force_poison':
+    include/linux/list.h:123:56: error: unused parameter 'entry' [-Werror=unused-parameter]
+     static inline void list_force_poison(struct list_head *entry)
 
-For example on platforms with a udev rule like the following:
+perf does not like the empty definition of list_force_poison.  For
+simplicity just switch to list_del in the non-debug case.
 
-  SUBSYSTEM=="memory", ACTION=="add", ATTR{state}=="offline", ATTR{state}="online"
+Fixes "mm, dax, pmem: introduce {get|put}_dev_pagemap() for dax-gup" in
+-next.
 
-...will generate futile attempts to online the ZONE_DEVICE sections.
-Example kernel messages:
-
-    Built 1 zonelists in Node order, mobility grouping on.  Total pages: 1004747
-    Policy zone: Normal
-    online_pages [mem 0x248000000-0x24fffffff] failed
-
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/base/memory.c |   13 +++++++++++++
- include/linux/mm.h    |   12 ++++++++++++
- 2 files changed, 25 insertions(+)
+ include/linux/list.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index 6d7b14c2798e..3e96083c1a9d 100644
---- a/drivers/base/memory.c
-+++ b/drivers/base/memory.c
-@@ -651,6 +651,13 @@ static int add_memory_block(int base_section_nr)
- 	return 0;
- }
- 
-+static bool is_zone_device_section(struct mem_section *ms)
-+{
-+	struct page *page;
-+
-+	page = sparse_decode_mem_map(ms->section_mem_map, __section_nr(ms));
-+	return is_zone_device_page(page);
-+}
- 
- /*
-  * need an interface for the VM to add new memory regions,
-@@ -661,6 +668,9 @@ int register_new_memory(int nid, struct mem_section *section)
- 	int ret = 0;
- 	struct memory_block *mem;
- 
-+	if (is_zone_device_section(section))
-+		return 0;
-+
- 	mutex_lock(&mem_sysfs_mutex);
- 
- 	mem = find_memory_block(section);
-@@ -697,6 +707,9 @@ static int remove_memory_section(unsigned long node_id,
- {
- 	struct memory_block *mem;
- 
-+	if (is_zone_device_section(section))
-+		return 0;
-+
- 	mutex_lock(&mem_sysfs_mutex);
- 	mem = find_memory_block(section);
- 	unregister_mem_sect_under_nodes(mem, __section_nr(section));
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index a8ae5f7e9e22..57e9546d40dc 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -686,6 +686,18 @@ static inline enum zone_type page_zonenum(const struct page *page)
- 	return (page->flags >> ZONES_PGSHIFT) & ZONES_MASK;
- }
- 
-+#ifdef CONFIG_ZONE_DEVICE
-+static inline bool is_zone_device_page(const struct page *page)
-+{
-+	return page_zonenum(page) == ZONE_DEVICE;
-+}
-+#else
-+static inline bool is_zone_device_page(const struct page *page)
-+{
-+	return false;
-+}
-+#endif
-+
- #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- #define SECTION_IN_PAGE_FLAGS
+diff --git a/include/linux/list.h b/include/linux/list.h
+index d870ba3315f8..ebf5f358e8c3 100644
+--- a/include/linux/list.h
++++ b/include/linux/list.h
+@@ -120,9 +120,8 @@ extern void list_del(struct list_head *entry);
+  */
+ extern void list_force_poison(struct list_head *entry);
+ #else
+-static inline void list_force_poison(struct list_head *entry)
+-{
+-}
++/* fallback to the less strict LIST_POISON* definitions */
++#define list_force_poison list_del
  #endif
+ 
+ /**
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
