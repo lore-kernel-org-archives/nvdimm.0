@@ -1,38 +1,54 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH 0/2] block: fix raw block device dax support
+Subject: [resend PATCH 0/3] fs, bdev: handle end of life
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 29 Jan 2016 07:18:35 -0800
-Message-ID: <20160129151835.18752.9423.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 04 Jan 2016 10:20:00 -0800
+Message-ID: <20160104181220.24118.96661.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-block@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, axboe@fb.com, Jeff Moyer <jmoyer@redhat.com>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
+To: xfs@oss.sgi.com
+Cc: linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Jens Axboe <axboe@fb.com>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.com>, Tejun Heo <tj@kernel.org>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The dax support for a raw block device did not account for page cache
-entries established by the kernel for partition reads.  This breaks dax
-as it assumes that page cache entries are limited to covering holes in
-files, or are exceptional entries marking dirty pages.
-
-Additionally, the facility to toggle dax at runtime fails to handle
-evacuating the page cache when switching from non-dax-mode to dax-mode.
-It needs to be rethought as enabling dax needs to be atomic with
-flushing the page cache.
+Per Dave, resend to include the xfs list on the full set.  These are
+against v4.4-rc5.
 
 ---
 
-Dan Williams (2):
-      block: revert runtime dax control of the raw block device
-      block: use DAX for partition table reads
+As mentioned in [PATCH 1/3] "block, fs: reliably communicate bdev
+end-of-life", historically we have waited for filesystem specific
+heuristics to attempt to guess when a block device is gone.  Sometimes
+this works, but in other cases the system can hang waiting for the fs to
+trigger its shutdown protocol.
+
+Now with DAX we need new actions, like unmapping all inodes, to be taken
+upon a shutdown event.  Those actions need to be taken whether the
+shutdown event comes from the block device being torn down, or some
+other file system specific event.
+
+For now, the approach taken in the following patches only affects xfs
+and block drivers that are converted to use del_gendisk_queue().  We can
+add more filesystems and driver support over time.
+
+Note that 'bdi_gone' was chosen over 'shutdown' so as not to be confused
+with generic_shutdown_super()
+
+---
+
+Dan Williams (3):
+      block, fs: reliably communicate bdev end-of-life
+      xfs: handle shutdown notifications
+      writeback: fix false positive WARN in __mark_inode_dirty
 
 
- block/ioctl.c             |   38 --------------------------------------
- block/partition-generic.c |   18 +++++++++++++++---
- fs/block_dev.c            |   28 ----------------------------
- fs/dax.c                  |   20 ++++++++++++++++++++
- include/linux/blkdev.h    |   10 ++++++++++
- include/linux/fs.h        |    3 ---
- include/uapi/linux/fs.h   |    1 -
- 7 files changed, 45 insertions(+), 73 deletions(-)
+ block/genhd.c                |   87 +++++++++++++++++++++++++++++++++++-------
+ drivers/block/brd.c          |    3 -
+ drivers/nvdimm/pmem.c        |    3 -
+ drivers/s390/block/dcssblk.c |    6 +--
+ fs/block_dev.c               |   79 +++++++++++++++++++++++++++++++++-----
+ fs/xfs/xfs_super.c           |    9 ++++
+ include/linux/fs.h           |    4 ++
+ include/linux/genhd.h        |    1 
+ mm/backing-dev.c             |    7 +++
+ 9 files changed, 166 insertions(+), 33 deletions(-)
