@@ -1,41 +1,66 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH v2 8/8] ext4: Support for PUD-sized transparent huge pages
-Date: Tue,  5 Jan 2016 13:30:10 -0500
-Message-Id: <1452018610-26090-9-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1452018610-26090-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1452018610-26090-1-git-send-email-matthew.r.wilcox@intel.com>
+Date: Mon, 4 Jan 2016 18:47:24 +1100
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [-mm PATCH] list, perf: fix list_force_poison() build
+ regression
+Message-ID: <20160104184724.444b879b@canb.auug.org.au>
+In-Reply-To: <20160101032348.26352.75121.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20160101032348.26352.75121.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: akpm@linux-foundation.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <willy@linux.intel.com>
+Hi Dan,
 
-ext4 needs to reserve enough space in the journal to allocate a PUD-sized
-page.
+On Thu, 31 Dec 2015 19:24:21 -0800 Dan Williams <dan.j.williams@intel.com> wrote:
+>
+>     In file included from
+>     /home/sfr/next/next/tools/include/linux/list.h:5:0,
+>                      from arch/../util/map.h:6,
+>                      from arch/../util/event.h:8,
+>                      from arch/../util/debug.h:7,
+>                      from arch/common.c:4:
+>     include/linux/list.h: In function 'list_force_poison':
+>     include/linux/list.h:123:56: error: unused parameter 'entry' [-Werror=unused-parameter]
+>      static inline void list_force_poison(struct list_head *entry)
+> 
+> perf does not like the empty definition of list_force_poison.  For
+> simplicity just switch to list_del in the non-debug case.
+> 
+> Fixes "mm, dax, pmem: introduce {get|put}_dev_pagemap() for dax-gup" in
+> -next.
+> 
+> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  include/linux/list.h |    5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/linux/list.h b/include/linux/list.h
+> index d870ba3315f8..ebf5f358e8c3 100644
+> --- a/include/linux/list.h
+> +++ b/include/linux/list.h
+> @@ -120,9 +120,8 @@ extern void list_del(struct list_head *entry);
+>   */
+>  extern void list_force_poison(struct list_head *entry);
+>  #else
+> -static inline void list_force_poison(struct list_head *entry)
+> -{
+> -}
+> +/* fallback to the less strict LIST_POISON* definitions */
+> +#define list_force_poison list_del
+>  #endif
+>  
+>  /**
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
----
- fs/ext4/file.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 6615499..7f850d5 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -211,6 +211,10 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- 			nblocks = ext4_chunk_trans_blocks(inode,
- 						PMD_SIZE / PAGE_SIZE);
- 			break;
-+		case FAULT_FLAG_SIZE_PUD:
-+			nblocks = ext4_chunk_trans_blocks(inode,
-+						PUD_SIZE / PAGE_SIZE);
-+			break;
- 		default:
- 			return VM_FAULT_FALLBACK;
- 		}
+I applied this to linux-next today.
 -- 
-2.6.4
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
