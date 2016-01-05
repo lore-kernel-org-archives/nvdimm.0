@@ -1,66 +1,58 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Mon, 4 Jan 2016 18:47:24 +1100
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [-mm PATCH] list, perf: fix list_force_poison() build
- regression
-Message-ID: <20160104184724.444b879b@canb.auug.org.au>
-In-Reply-To: <20160101032348.26352.75121.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160101032348.26352.75121.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH v2 4/8] mincore: Add support for PUDs
+Date: Tue,  5 Jan 2016 13:30:06 -0500
+Message-Id: <1452018610-26090-5-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1452018610-26090-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1452018610-26090-1-git-send-email-matthew.r.wilcox@intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: akpm@linux-foundation.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org
+Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan,
+From: Matthew Wilcox <willy@linux.intel.com>
 
-On Thu, 31 Dec 2015 19:24:21 -0800 Dan Williams <dan.j.williams@intel.com> wrote:
->
->     In file included from
->     /home/sfr/next/next/tools/include/linux/list.h:5:0,
->                      from arch/../util/map.h:6,
->                      from arch/../util/event.h:8,
->                      from arch/../util/debug.h:7,
->                      from arch/common.c:4:
->     include/linux/list.h: In function 'list_force_poison':
->     include/linux/list.h:123:56: error: unused parameter 'entry' [-Werror=unused-parameter]
->      static inline void list_force_poison(struct list_head *entry)
-> 
-> perf does not like the empty definition of list_force_poison.  For
-> simplicity just switch to list_del in the non-debug case.
-> 
-> Fixes "mm, dax, pmem: introduce {get|put}_dev_pagemap() for dax-gup" in
-> -next.
-> 
-> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  include/linux/list.h |    5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/include/linux/list.h b/include/linux/list.h
-> index d870ba3315f8..ebf5f358e8c3 100644
-> --- a/include/linux/list.h
-> +++ b/include/linux/list.h
-> @@ -120,9 +120,8 @@ extern void list_del(struct list_head *entry);
->   */
->  extern void list_force_poison(struct list_head *entry);
->  #else
-> -static inline void list_force_poison(struct list_head *entry)
-> -{
-> -}
-> +/* fallback to the less strict LIST_POISON* definitions */
-> +#define list_force_poison list_del
->  #endif
->  
->  /**
+We don't actually care about the contents of the PUD, as long as it's
+present (which is checked by the pagewalk code), so just set the bits
+to indicate presence and return.
 
-I applied this to linux-next today.
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+---
+ mm/mincore.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/mm/mincore.c b/mm/mincore.c
+index 2a565ed..8e6ce12 100644
+--- a/mm/mincore.c
++++ b/mm/mincore.c
+@@ -108,6 +108,18 @@ static int mincore_unmapped_range(unsigned long addr, unsigned long end,
+ 	return 0;
+ }
+ 
++static int mincore_pud_range(pud_t *pud, unsigned long addr, unsigned long end,
++			struct mm_walk *walk)
++{
++	unsigned char *vec = walk->private;
++	int nr = (end - addr) >> PAGE_SHIFT;
++
++	memset(vec, 1, nr);
++	walk->private += nr;
++
++	return 0;
++}
++
+ static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			struct mm_walk *walk)
+ {
+@@ -176,6 +188,7 @@ static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *v
+ 	unsigned long end;
+ 	int err;
+ 	struct mm_walk mincore_walk = {
++		.pud_entry = mincore_pud_range,
+ 		.pmd_entry = mincore_pte_range,
+ 		.pte_hole = mincore_unmapped_range,
+ 		.hugetlb_entry = mincore_hugetlb,
 -- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+2.6.4
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
