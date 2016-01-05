@@ -1,52 +1,55 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v2 3/4] xfs: unmap dax at shutdown (force_failure)
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 05 Jan 2016 20:56:32 -0800
-Message-ID: <20160106045632.38788.84927.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160106045616.38788.61076.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160106045616.38788.61076.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Tue, 5 Jan 2016 10:41:01 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v6 2/7] dax: support dirty DAX entries in radix tree
+Message-ID: <20160105094101.GB2724@quack.suse.cz>
+References: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1450899560-26708-3-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1450899560-26708-3-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When an exceptional event triggers xfs_force_shutdown() tear down dax
-mappings.  Quoting Dave,
+On Wed 23-12-15 12:39:15, Ross Zwisler wrote:
+> Add support for tracking dirty DAX entries in the struct address_space
+> radix tree.  This tree is already used for dirty page writeback, and it
+> already supports the use of exceptional (non struct page*) entries.
+> 
+> In order to properly track dirty DAX pages we will insert new exceptional
+> entries into the radix tree that represent dirty DAX PTE or PMD pages.
+> These exceptional entries will also contain the writeback sectors for the
+> PTE or PMD faults that we can use at fsync/msync time.
+> 
+> There are currently two types of exceptional entries (shmem and shadow)
+> that can be placed into the radix tree, and this adds a third.  We rely on
+> the fact that only one type of exceptional entry can be found in a given
+> radix tree based on its usage.  This happens for free with DAX vs shmem but
+> we explicitly prevent shadow entries from being added to radix trees for
+> DAX mappings.
+> 
+> The only shadow entries that would be generated for DAX radix trees would
+> be to track zero page mappings that were created for holes.  These pages
+> would receive minimal benefit from having shadow entries, and the choice
+> to have only one type of exceptional entry in a given radix tree makes the
+> logic simpler both in clear_exceptional_entry() and in the rest of DAX.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-    "The simple fact is that a /filesystem/ shutdown needs to do DAX
-    mapping invalidation regardless of whether the block device has
-    been unplugged or not. This is not a case of "this only happens
-    when we unplug the device", this is a user data protection
-    mechanism that we use to prevent corruption propagation once it
-    has been detected. A device unplug is just one type of
-    "corruption" that can occur."
+The patch looks good to me. You can add:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/xfs/xfs_fsops.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/fs/xfs/xfs_fsops.c b/fs/xfs/xfs_fsops.c
-index ee3aaa0a5317..0c6a52809dcc 100644
---- a/fs/xfs/xfs_fsops.c
-+++ b/fs/xfs/xfs_fsops.c
-@@ -828,6 +828,15 @@ xfs_do_force_shutdown(
- 	if (xfs_log_force_umount(mp, logerror))
- 		return;
- 
-+	/*
-+	 * If DAX is in use, we have to unmap all direct access virtual
-+	 * mappings to ensure nothing more gets written directly from
-+	 * userspace. This will force them to refault and that will
-+	 * result in them detecting the shutdown condition and hence
-+	 * will fail appropriately.
-+	 */
-+	unmap_dax_inodes(mp->m_super);
-+
- 	if (flags & SHUTDOWN_CORRUPT_INCORE) {
- 		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_CORRUPT,
-     "Corruption of in-memory data detected.  Shutting down filesystem");
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
