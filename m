@@ -1,293 +1,346 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v2 2/4] block: introduce del_gendisk_queue()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 05 Jan 2016 20:56:27 -0800
-Message-ID: <20160106045627.38788.90127.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160106045616.38788.61076.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160106045616.38788.61076.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH v2 6/8] x86: Add support for PUD-sized transparent hugepages
+Date: Tue,  5 Jan 2016 13:30:08 -0500
+Message-Id: <1452018610-26090-7-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1452018610-26090-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1452018610-26090-1-git-send-email-matthew.r.wilcox@intel.com>
+Sender: owner-linux-mm@kvack.org
+Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Historically we have waited for filesystem specific heuristics to
-attempt to guess when a block device is gone.  Sometimes this works, but
-in other cases the system can hang waiting for the fs to trigger its
-shutdown protocol.
+From: Matthew Wilcox <willy@linux.intel.com>
 
-The initial motivation for this investigation was to prevent DAX
-mappings (direct mmap access to persistent memory) from leaking past the
-lifetime of the hosting block device.  However, Dave points out that
-these shutdown operations are needed in other scenarios.  Quoting Dave:
+The x86-specific code needed to support the PUD uses in the transparent
+hugepages code.
 
-    For example, if we detect a free space corruption during allocation,
-    it is not safe to trust *any active mapping* because we can't trust
-    that we having handed out the same block to multiple owners. Hence
-    on such a filesystem shutdown, we have to prevent any new DAX
-    mapping from occurring and invalidate all existing mappings as we
-    cannot allow userspace to modify any data or metadata until we've
-    resolved the corruption situation.
-
-The current block device shutdown sequence of del_gendisk +
-blk_cleanup_queue is problematic.  We want to tell the fs after
-blk_cleanup_queue that there is no possibility of recovery, but by that
-time we have deleted partitions and lost the ability to find all the
-super-blocks on a block device.
-
-del_gendisk_queue() combines block device shutdown, blk_cleanup_queue(),
-with block device end of life notification, del_gendisk().  A later
-patch builds on this sequence to additionally communicate to the fs that
-it should force-fail all future i/o since the queue is permanently dead.
-
-Cc: Jan Kara <jack@suse.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dave Chinner <david@fromorbit.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 ---
- block/genhd.c                |   46 ++++++++++++++++++++++++++++++++++++++++++
- drivers/block/brd.c          |    9 +++-----
- drivers/nvdimm/pmem.c        |    3 +--
- drivers/s390/block/dcssblk.c |    6 ++---
- fs/block_dev.c               |   19 +++++++++++++++++
- fs/inode.c                   |   28 ++++++++++++++++++++++++++
- include/linux/fs.h           |    2 ++
- include/linux/genhd.h        |    1 +
- 8 files changed, 102 insertions(+), 12 deletions(-)
+ arch/x86/Kconfig                      |  1 +
+ arch/x86/include/asm/paravirt.h       | 11 ++++
+ arch/x86/include/asm/paravirt_types.h |  2 +
+ arch/x86/include/asm/pgtable.h        | 95 +++++++++++++++++++++++++++++++++++
+ arch/x86/include/asm/pgtable_64.h     | 13 +++++
+ arch/x86/kernel/paravirt.c            |  1 +
+ arch/x86/mm/pgtable.c                 | 31 ++++++++++++
+ 7 files changed, 154 insertions(+)
 
-diff --git a/block/genhd.c b/block/genhd.c
-index b1d1df42ba13..ac0d12c4f895 100644
---- a/block/genhd.c
-+++ b/block/genhd.c
-@@ -686,6 +686,52 @@ void del_gendisk(struct gendisk *disk)
- EXPORT_SYMBOL(del_gendisk);
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index fd0c8ea..df99d21 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -89,6 +89,7 @@ config X86
+ 	select HAVE_ARCH_SOFT_DIRTY		if X86_64
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
++	select HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD if X86_64
+ 	select HAVE_BPF_JIT			if X86_64
+ 	select HAVE_CC_STACKPROTECTOR
+ 	select HAVE_CMPXCHG_DOUBLE
+diff --git a/arch/x86/include/asm/paravirt.h b/arch/x86/include/asm/paravirt.h
+index c261402..db4f274 100644
+--- a/arch/x86/include/asm/paravirt.h
++++ b/arch/x86/include/asm/paravirt.h
+@@ -479,6 +479,17 @@ static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 			    native_pmd_val(pmd));
+ }
  
- /**
-+ * del_gendisk_queue - combined del_gendisk + blk_cleanup_queue
-+ * @disk: disk to delete, invalidate, unmap, and force-fail fs operations
-+ *
-+ * This is an alternative for open coded calls to:
-+ *     del_gendisk()
-+ *     blk_cleanup_queue()
-+ * It notifies filesystems / vfs that a block device is permanently dead
-+ * after the queue has been torn down.  This notification is needed for
-+ * triggering a filesystem to abort its error recovery and for (DAX)
-+ * capable devices.  DAX bypasses page cache and mappings go directly to
-+ * storage media.  When such a disk is removed the pfn backing a mapping
-+ * may be invalid or removed from the system.  Upon return accessing DAX
-+ * mappings of this disk will trigger SIGBUS.
-+ */
-+void del_gendisk_queue(struct gendisk *disk)
++static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
++			      pud_t *pudp, pud_t pud)
 +{
-+	struct disk_part_iter piter;
-+	struct hd_struct *part;
-+
-+	del_gendisk_start(disk);
-+
-+	/* pass1 sync fs + evict idle inodes */
-+	disk_part_iter_init(&piter, disk,
-+			     DISK_PITER_INCL_EMPTY | DISK_PITER_REVERSE);
-+	for_each_part(part, &piter)
-+		invalidate_partition(disk, part->partno);
-+	disk_part_iter_exit(&piter);
-+	invalidate_partition(disk, 0);
-+
-+	blk_cleanup_queue(disk->queue);
-+
-+	/* pass2 the queue is dead, halt dax */
-+	disk_part_iter_init(&piter, disk,
-+			     DISK_PITER_INCL_EMPTY | DISK_PITER_REVERSE);
-+	for_each_part(part, &piter) {
-+		force_failure_partition(disk, part->partno);
-+		delete_partition(disk, part->partno);
-+	}
-+	disk_part_iter_exit(&piter);
-+	force_failure_partition(disk, 0);
-+
-+	del_gendisk_end(disk);
-+}
-+EXPORT_SYMBOL(del_gendisk_queue);
-+
-+/**
-  * get_gendisk - get partitioning information for a given device
-  * @devt: device to get partitioning information for
-  * @partno: returned partition index
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index a5880f4ab40e..013ff58f9af8 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -532,7 +532,6 @@ out:
- static void brd_free(struct brd_device *brd)
- {
- 	put_disk(brd->brd_disk);
--	blk_cleanup_queue(brd->brd_queue);
- 	brd_free_pages(brd);
- 	kfree(brd);
- }
-@@ -560,7 +559,7 @@ out:
- static void brd_del_one(struct brd_device *brd)
- {
- 	list_del(&brd->brd_list);
--	del_gendisk(brd->brd_disk);
-+	del_gendisk_queue(brd->brd_disk);
- 	brd_free(brd);
- }
- 
-@@ -626,10 +625,8 @@ static int __init brd_init(void)
- 	return 0;
- 
- out_free:
--	list_for_each_entry_safe(brd, next, &brd_devices, brd_list) {
--		list_del(&brd->brd_list);
--		brd_free(brd);
--	}
-+	list_for_each_entry_safe(brd, next, &brd_devices, brd_list)
-+		brd_del_one(brd);
- 	unregister_blkdev(RAMDISK_MAJOR, "ramdisk");
- 
- 	pr_info("brd: module NOT loaded !!!\n");
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 8ee79893d2f5..6dd06e9d34b0 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -158,9 +158,8 @@ static void pmem_detach_disk(struct pmem_device *pmem)
- 	if (!pmem->pmem_disk)
- 		return;
- 
--	del_gendisk(pmem->pmem_disk);
-+	del_gendisk_queue(pmem->pmem_disk);
- 	put_disk(pmem->pmem_disk);
--	blk_cleanup_queue(pmem->pmem_queue);
- }
- 
- static int pmem_attach_disk(struct device *dev,
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 94a8f4ab57bc..0c3c968b57d9 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -388,8 +388,7 @@ removeseg:
- 	}
- 	list_del(&dev_info->lh);
- 
--	del_gendisk(dev_info->gd);
--	blk_cleanup_queue(dev_info->dcssblk_queue);
-+	del_gendisk_queue(dev_info->gd);
- 	dev_info->gd->queue = NULL;
- 	put_disk(dev_info->gd);
- 	up_write(&dcssblk_devices_sem);
-@@ -751,8 +750,7 @@ dcssblk_remove_store(struct device *dev, struct device_attribute *attr, const ch
- 	}
- 
- 	list_del(&dev_info->lh);
--	del_gendisk(dev_info->gd);
--	blk_cleanup_queue(dev_info->dcssblk_queue);
-+	del_gendisk_queue(dev_info->gd);
- 	dev_info->gd->queue = NULL;
- 	put_disk(dev_info->gd);
- 	device_unregister(&dev_info->dev);
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 44d4a1e9244e..9cff33b6baab 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -1799,6 +1799,25 @@ int __invalidate_device(struct block_device *bdev, bool kill_dirty)
- }
- EXPORT_SYMBOL(__invalidate_device);
- 
-+void force_failure_partition(struct gendisk *disk, int partno)
-+{
-+	struct block_device *bdev;
-+	struct super_block *sb;
-+
-+	bdev = bdget_disk(disk, partno);
-+	if (!bdev)
-+		return;
-+
-+	sb = get_super(bdev);
-+	if (!sb)
-+		goto out;
-+
-+	unmap_dax_inodes(sb);
-+	drop_super(sb);
-+ out:
-+	bdput(bdev);
++	if (sizeof(pudval_t) > sizeof(long))
++		/* 5 arg words */
++		pv_mmu_ops.set_pud_at(mm, addr, pudp, pud);
++	else
++		PVOP_VCALL4(pv_mmu_ops.set_pud_at, mm, addr, pudp,
++			    native_pud_val(pud));
 +}
 +
- void iterate_bdevs(void (*func)(struct block_device *, void *), void *arg)
+ static inline void set_pmd(pmd_t *pmdp, pmd_t pmd)
  {
- 	struct inode *inode, *old_inode = NULL;
-diff --git a/fs/inode.c b/fs/inode.c
-index 1be5f9003eb3..ed62e5f78f35 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -673,6 +673,34 @@ int invalidate_inodes(struct super_block *sb, bool kill_dirty)
- 	return busy;
+ 	pmdval_t val = native_pmd_val(pmd);
+diff --git a/arch/x86/include/asm/paravirt_types.h b/arch/x86/include/asm/paravirt_types.h
+index 2489d6a..261c203 100644
+--- a/arch/x86/include/asm/paravirt_types.h
++++ b/arch/x86/include/asm/paravirt_types.h
+@@ -247,6 +247,8 @@ struct pv_mmu_ops {
+ 	void (*set_pmd)(pmd_t *pmdp, pmd_t pmdval);
+ 	void (*set_pmd_at)(struct mm_struct *mm, unsigned long addr,
+ 			   pmd_t *pmdp, pmd_t pmdval);
++	void (*set_pud_at)(struct mm_struct *mm, unsigned long addr,
++			   pud_t *pudp, pud_t pudval);
+ 	void (*pte_update)(struct mm_struct *mm, unsigned long addr,
+ 			   pte_t *ptep);
+ 
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index c69f385..246bc5f 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -46,6 +46,7 @@ extern struct mm_struct *pgd_page_get_mm(struct page *page);
+ #define set_pte(ptep, pte)		native_set_pte(ptep, pte)
+ #define set_pte_at(mm, addr, ptep, pte)	native_set_pte_at(mm, addr, ptep, pte)
+ #define set_pmd_at(mm, addr, pmdp, pmd)	native_set_pmd_at(mm, addr, pmdp, pmd)
++#define set_pud_at(mm, addr, pudp, pud)	native_set_pud_at(mm, addr, pudp, pud)
+ 
+ #define set_pte_atomic(ptep, pte)					\
+ 	native_set_pte_atomic(ptep, pte)
+@@ -114,6 +115,16 @@ static inline int pmd_young(pmd_t pmd)
+ 	return pmd_flags(pmd) & _PAGE_ACCESSED;
  }
  
-+void unmap_dax_inodes(struct super_block *sb)
++static inline int pud_dirty(pud_t pud)
 +{
-+	struct inode *inode, *_inode = NULL;
-+
-+	spin_lock(&sb->s_inode_list_lock);
-+	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
-+		spin_lock(&inode->i_lock);
-+		if ((inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
-+				|| !IS_DAX(inode)) {
-+			spin_unlock(&inode->i_lock);
-+			continue;
-+		}
-+		__iget(inode);
-+		spin_unlock(&inode->i_lock);
-+		spin_unlock(&sb->s_inode_list_lock);
-+
-+		unmap_mapping_range(inode->i_mapping, 0, 0, 1);
-+		iput(_inode);
-+		_inode = inode;
-+		cond_resched();
-+
-+		spin_lock(&sb->s_inode_list_lock);
-+	}
-+	spin_unlock(&sb->s_inode_list_lock);
-+	iput(_inode);
++	return pud_flags(pud) & _PAGE_DIRTY;
 +}
-+EXPORT_SYMBOL(unmap_dax_inodes);
 +
++static inline int pud_young(pud_t pud)
++{
++	return pud_flags(pud) & _PAGE_ACCESSED;
++}
++
+ static inline int pte_write(pte_t pte)
+ {
+ 	return pte_flags(pte) & _PAGE_RW;
+@@ -167,12 +178,23 @@ static inline int pmd_trans_huge(pmd_t pmd)
+ 	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
+ }
+ 
++static inline int pud_trans_huge(pud_t pud)
++{
++	return (pud_val(pud) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
++}
++
+ #define pmd_devmap pmd_devmap
+ static inline int pmd_devmap(pmd_t pmd)
+ {
+ 	return !!(pmd_val(pmd) & _PAGE_DEVMAP);
+ }
+ 
++#define pud_devmap pud_devmap
++static inline int pud_devmap(pud_t pud)
++{
++	return !!(pud_val(pud) & _PAGE_DEVMAP);
++}
++
+ static inline int has_transparent_hugepage(void)
+ {
+ 	return cpu_has_pse;
+@@ -317,6 +339,45 @@ static inline pmd_t pmd_mknotpresent(pmd_t pmd)
+ 	return pmd_clear_flags(pmd, _PAGE_PRESENT | _PAGE_PROTNONE);
+ }
+ 
++static inline pud_t pud_set_flags(pud_t pud, pudval_t set)
++{
++	pudval_t v = native_pud_val(pud);
++
++	return __pud(v | set);
++}
++
++static inline pud_t pud_clear_flags(pud_t pud, pudval_t clear)
++{
++	pudval_t v = native_pud_val(pud);
++
++	return __pud(v & ~clear);
++}
++
++static inline pud_t pud_mkdevmap(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_DEVMAP);
++}
++
++static inline pud_t pud_mkhuge(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_PSE);
++}
++
++static inline pud_t pud_mkdirty(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
++}
++
++static inline pud_t pud_mkyoung(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_ACCESSED);
++}
++
++static inline pud_t pud_mkwrite(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_RW);
++}
++
+ #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline int pte_soft_dirty(pte_t pte)
+ {
+@@ -328,6 +389,11 @@ static inline int pmd_soft_dirty(pmd_t pmd)
+ 	return pmd_flags(pmd) & _PAGE_SOFT_DIRTY;
+ }
+ 
++static inline int pud_soft_dirty(pud_t pud)
++{
++	return pud_flags(pud) & _PAGE_SOFT_DIRTY;
++}
++
+ static inline pte_t pte_mksoft_dirty(pte_t pte)
+ {
+ 	return pte_set_flags(pte, _PAGE_SOFT_DIRTY);
+@@ -378,6 +444,13 @@ static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
+ 		     massage_pgprot(pgprot));
+ }
+ 
++#define pfn_pud pfn_pud
++static inline pud_t pfn_pud(unsigned long page_nr, pgprot_t pgprot)
++{
++	return __pud(((phys_addr_t)page_nr << PAGE_SHIFT) |
++		     massage_pgprot(pgprot));
++}
++
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	pteval_t val = pte_val(pte);
+@@ -744,6 +817,12 @@ static inline void native_set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 	native_set_pmd(pmdp, pmd);
+ }
+ 
++static inline void native_set_pud_at(struct mm_struct *mm, unsigned long addr,
++				     pud_t *pudp , pud_t pud)
++{
++	native_set_pud(pudp, pud);
++}
++
+ #ifndef CONFIG_PARAVIRT
  /*
-  * Isolate the inode from the LRU in preparation for freeing it.
-  *
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 3aa514254161..a0d55199e628 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2390,6 +2390,7 @@ extern int revalidate_disk(struct gendisk *);
- extern int check_disk_change(struct block_device *);
- extern int __invalidate_device(struct block_device *, bool);
- extern int invalidate_partition(struct gendisk *, int);
-+extern void force_failure_partition(struct gendisk *, int);
+  * Rules for using pte_update - it must be called after any PTE update which
+@@ -822,10 +901,15 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm,
+ extern int pmdp_set_access_flags(struct vm_area_struct *vma,
+ 				 unsigned long address, pmd_t *pmdp,
+ 				 pmd_t entry, int dirty);
++extern int pudp_set_access_flags(struct vm_area_struct *vma,
++				 unsigned long address, pud_t *pudp,
++				 pud_t entry, int dirty);
+ 
+ #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
+ extern int pmdp_test_and_clear_young(struct vm_area_struct *vma,
+ 				     unsigned long addr, pmd_t *pmdp);
++extern int pudp_test_and_clear_young(struct vm_area_struct *vma,
++				     unsigned long addr, pud_t *pudp);
+ 
+ #define __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
+ extern int pmdp_clear_flush_young(struct vm_area_struct *vma,
+@@ -845,6 +929,13 @@ static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm, unsigned long
+ 	return native_pmdp_get_and_clear(pmdp);
+ }
+ 
++#define __HAVE_ARCH_PUDP_HUGE_GET_AND_CLEAR
++static inline pud_t pudp_huge_get_and_clear(struct mm_struct *mm, unsigned long addr,
++				       pud_t *pudp)
++{
++	return native_pudp_get_and_clear(pudp);
++}
++
+ #define __HAVE_ARCH_PMDP_SET_WRPROTECT
+ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
+ 				      unsigned long addr, pmd_t *pmdp)
+@@ -893,6 +984,10 @@ static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
+ 		unsigned long addr, pmd_t *pmd)
+ {
+ }
++static inline void update_mmu_cache_pud(struct vm_area_struct *vma,
++		unsigned long addr, pud_t *pud)
++{
++}
+ 
+ #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
+diff --git a/arch/x86/include/asm/pgtable_64.h b/arch/x86/include/asm/pgtable_64.h
+index 2ee7811..a3aa6b7 100644
+--- a/arch/x86/include/asm/pgtable_64.h
++++ b/arch/x86/include/asm/pgtable_64.h
+@@ -106,6 +106,19 @@ static inline void native_pud_clear(pud_t *pud)
+ 	native_set_pud(pud, native_make_pud(0));
+ }
+ 
++static inline pud_t native_pudp_get_and_clear(pud_t *pudp)
++{
++#ifdef CONFIG_SMP
++	return native_make_pud(xchg(&pudp->pud, 0));
++#else
++	/* native_local_pudp_get_and_clear,
++	   but duplicated because of cyclic dependency */
++	pud_t ret = *pudp;
++	native_pud_clear(pudp);
++	return ret;
++#endif
++}
++
+ static inline void native_set_pgd(pgd_t *pgdp, pgd_t pgd)
+ {
+ 	*pgdp = pgd;
+diff --git a/arch/x86/kernel/paravirt.c b/arch/x86/kernel/paravirt.c
+index f08ac28..24d61f2 100644
+--- a/arch/x86/kernel/paravirt.c
++++ b/arch/x86/kernel/paravirt.c
+@@ -425,6 +425,7 @@ struct pv_mmu_ops pv_mmu_ops = {
+ 	.pmd_clear = native_pmd_clear,
  #endif
- unsigned long invalidate_mapping_pages(struct address_space *mapping,
- 					pgoff_t start, pgoff_t end);
-@@ -2544,6 +2545,7 @@ extern loff_t default_llseek(struct file *file, loff_t offset, int whence);
+ 	.set_pud = native_set_pud,
++	.set_pud_at = native_set_pud_at,
  
- extern loff_t vfs_llseek(struct file *file, loff_t offset, int whence);
+ 	.pmd_val = PTE_IDENT,
+ 	.make_pmd = PTE_IDENT,
+diff --git a/arch/x86/mm/pgtable.c b/arch/x86/mm/pgtable.c
+index 4eb287e..b7c8df6 100644
+--- a/arch/x86/mm/pgtable.c
++++ b/arch/x86/mm/pgtable.c
+@@ -441,6 +441,26 @@ int pmdp_set_access_flags(struct vm_area_struct *vma,
  
-+extern void unmap_dax_inodes(struct super_block *sb);
- extern int inode_init_always(struct super_block *, struct inode *);
- extern void inode_init_once(struct inode *);
- extern void address_space_init_once(struct address_space *mapping);
-diff --git a/include/linux/genhd.h b/include/linux/genhd.h
-index 847cc1d91634..028cf15a8a57 100644
---- a/include/linux/genhd.h
-+++ b/include/linux/genhd.h
-@@ -431,6 +431,7 @@ extern void part_round_stats(int cpu, struct hd_struct *part);
- /* block/genhd.c */
- extern void add_disk(struct gendisk *disk);
- extern void del_gendisk(struct gendisk *gp);
-+extern void del_gendisk_queue(struct gendisk *disk);
- extern struct gendisk *get_gendisk(dev_t dev, int *partno);
- extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
+ 	return changed;
+ }
++
++int pudp_set_access_flags(struct vm_area_struct *vma, unsigned long address,
++			  pud_t *pudp, pud_t entry, int dirty)
++{
++	int changed = !pud_same(*pudp, entry);
++
++	VM_BUG_ON(address & ~HPAGE_PUD_MASK);
++
++	if (changed && dirty) {
++		*pudp = entry;
++		/*
++		 * We had a write-protection fault here and changed the pud
++		 * to to more permissive. No need to flush the TLB for that,
++		 * #PF is architecturally guaranteed to do that and in the
++		 * worst-case we'll generate a spurious fault.
++		 */
++	}
++
++	return changed;
++}
+ #endif
  
+ int ptep_test_and_clear_young(struct vm_area_struct *vma,
+@@ -470,6 +490,17 @@ int pmdp_test_and_clear_young(struct vm_area_struct *vma,
+ 
+ 	return ret;
+ }
++int pudp_test_and_clear_young(struct vm_area_struct *vma,
++			      unsigned long addr, pud_t *pudp)
++{
++	int ret = 0;
++
++	if (pud_young(*pudp))
++		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED,
++					 (unsigned long *)pudp);
++
++	return ret;
++}
+ #endif
+ 
+ int ptep_clear_flush_young(struct vm_area_struct *vma,
+-- 
+2.6.4
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
