@@ -1,50 +1,71 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v7 1/9] dax: fix NULL pointer dereference in __dax_dbg()
-Date: Wed,  6 Jan 2016 11:00:55 -0700
-Message-Id: <1452103263-1592-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v3 17/17] ACPI/EINJ: Allow memory error injection to NVDIMM
+Date: Tue,  5 Jan 2016 11:54:41 -0700
+Message-Id: <1452020081-26534-17-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1452020081-26534-1-git-send-email-toshi.kani@hpe.com>
+References: <1452020081-26534-1-git-send-email-toshi.kani@hpe.com>
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
+To: akpm@linux-foundation.org, bp@alien8.de
+Cc: linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-__dax_dbg() currently assumes that bh->b_bdev is non-NULL, passing it into
-bdevname() where is is dereferenced.  This assumption isn't always true -
-when called for reads of holes, ext4_dax_mmap_get_block() returns a buffer
-head where bh->b_bdev is never set.  I hit this BUG while testing the DAX
-PMD fault path.
+In the case of memory error injection, einj_error_inject() checks
+if a target address is System RAM.  Change this check to allow
+injecting a memory error to NVDIMM by calling region_intersects()
+with IORES_DESC_PERSISTENT_MEMORY.  This enables memory error
+testing on both System RAM and NVDIMM.
 
-Instead, verify that we have a valid bh->b_bdev, else just say "unknown"
-for the block device.
+In addition, page_is_ram() is replaced with region_intersects()
+with IORESOURCE_SYSTEM_RAM, so that it can verify a target address
+range with the requested size.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org
+Acked-by: Tony Luck <tony.luck@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
 ---
- fs/dax.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/acpi/apei/einj.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 7af8797..03cc4a3 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -563,7 +563,12 @@ static void __dax_dbg(struct buffer_head *bh, unsigned long address,
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index 0431883..16cae66 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 			     u64 param3, u64 param4)
  {
- 	if (bh) {
- 		char bname[BDEVNAME_SIZE];
--		bdevname(bh->b_bdev, bname);
+ 	int rc;
+-	unsigned long pfn;
++	u64 base_addr, size;
+ 
+ 	/* If user manually set "flags", make sure it is legal */
+ 	if (flags && (flags &
+@@ -545,10 +545,17 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 	/*
+ 	 * Disallow crazy address masks that give BIOS leeway to pick
+ 	 * injection address almost anywhere. Insist on page or
+-	 * better granularity and that target address is normal RAM.
++	 * better granularity and that target address is normal RAM or
++	 * NVDIMM.
+ 	 */
+-	pfn = PFN_DOWN(param1 & param2);
+-	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
++	base_addr = param1 & param2;
++	size = ~param2 + 1;
 +
-+		if (bh->b_bdev)
-+			bdevname(bh->b_bdev, bname);
-+		else
-+			snprintf(bname, BDEVNAME_SIZE, "unknown");
-+
- 		pr_debug("%s: %s addr: %lx dev %s state %lx start %lld "
- 			"length %zd fallback: %s\n", fn, current->comm,
- 			address, bname, bh->b_state, (u64)bh->b_blocknr,
--- 
-2.5.0
++	if (((param2 & PAGE_MASK) != PAGE_MASK) ||
++	    ((region_intersects(base_addr, size, IORESOURCE_SYSTEM_RAM,
++			IORES_DESC_NONE) != REGION_INTERSECTS) &&
++	     (region_intersects(base_addr, size, IORESOURCE_MEM,
++			IORES_DESC_PERSISTENT_MEMORY) != REGION_INTERSECTS)))
+ 		return -EINVAL;
+ 
+ inject:
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
