@@ -1,61 +1,113 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v2 0/4] fs, block: handle end of life
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 05 Jan 2016 20:56:16 -0800
-Message-ID: <20160106045616.38788.61076.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Jens Axboe <axboe@fb.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v3 14/17] x86,nvdimm,kexec: Use walk_iomem_res_desc() for iomem search
+Date: Tue,  5 Jan 2016 11:54:38 -0700
+Message-Id: <1452020081-26534-14-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1452020081-26534-1-git-send-email-toshi.kani@hpe.com>
+References: <1452020081-26534-1-git-send-email-toshi.kani@hpe.com>
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org, bp@alien8.de
+Cc: linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Dave Young <dyoung@redhat.com>, Minfei Huang <mhuang@redhat.com>, x86@kernel.org, linux-nvdimm@lists.01.org, kexec@lists.infradead.org, Toshi Kani <toshi.kani@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v1 [1]:
+Change the callers of walk_iomem_res() with the following names
+to use walk_iomem_res(), instead.
 
-1/ move the del_gendisk() refactoring to its own patch (Dave)
+ "ACPI Tables"
+ "ACPI Non-volatile Storage"
+ "Persistent Memory (legacy)"
+ "Crash kernel"
 
-2/ add unmap_dax_inodes to the xfs shutdown path (Dave)
+Note, the caller of walk_iomem_res() with "GART" will be removed
+in a later patch.
 
-3/ kill the unnecessary ->quiesce super operation and rename ->bdi_gone
-   to ->force_failure. (Dave)
-
-4/ rework tricky call to get_super() with a NULL bdev parameter. (Dave)
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-January/003797.html
-
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Minfei Huang <mhuang@redhat.com>
+Cc: x86@kernel.org
+Cc: linux-nvdimm@lists.01.org
+Cc: kexec@lists.infradead.org
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
 ---
+ arch/x86/kernel/crash.c |    4 ++--
+ arch/x86/kernel/pmem.c  |    4 ++--
+ drivers/nvdimm/e820.c   |    2 +-
+ kernel/kexec_file.c     |    8 ++++----
+ 4 files changed, 9 insertions(+), 9 deletions(-)
 
-As mentioned in [PATCH v2 2/4] "block: introduce del_gendisk_queue()" ,
-historically we have waited for filesystem specific heuristics to
-attempt to guess when a block device is gone.  Sometimes this works, but
-in other cases the system can hang waiting for the fs to trigger its
-shutdown protocol.
+diff --git a/arch/x86/kernel/crash.c b/arch/x86/kernel/crash.c
+index 2c1910f..082373b 100644
+--- a/arch/x86/kernel/crash.c
++++ b/arch/x86/kernel/crash.c
+@@ -588,12 +588,12 @@ int crash_setup_memmap_entries(struct kimage *image, struct boot_params *params)
+ 	/* Add ACPI tables */
+ 	cmd.type = E820_ACPI;
+ 	flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+-	walk_iomem_res("ACPI Tables", flags, 0, -1, &cmd,
++	walk_iomem_res_desc(IORES_DESC_ACPI_TABLES, flags, 0, -1, &cmd,
+ 		       memmap_entry_callback);
+ 
+ 	/* Add ACPI Non-volatile Storage */
+ 	cmd.type = E820_NVS;
+-	walk_iomem_res("ACPI Non-volatile Storage", flags, 0, -1, &cmd,
++	walk_iomem_res_desc(IORES_DESC_ACPI_NV_STORAGE, flags, 0, -1, &cmd,
+ 			memmap_entry_callback);
+ 
+ 	/* Add crashk_low_res region */
+diff --git a/arch/x86/kernel/pmem.c b/arch/x86/kernel/pmem.c
+index 14415af..92f7014 100644
+--- a/arch/x86/kernel/pmem.c
++++ b/arch/x86/kernel/pmem.c
+@@ -13,11 +13,11 @@ static int found(u64 start, u64 end, void *data)
+ 
+ static __init int register_e820_pmem(void)
+ {
+-	char *pmem = "Persistent Memory (legacy)";
+ 	struct platform_device *pdev;
+ 	int rc;
+ 
+-	rc = walk_iomem_res(pmem, IORESOURCE_MEM, 0, -1, NULL, found);
++	rc = walk_iomem_res_desc(IORES_DESC_PERSISTENT_MEMORY_LEGACY,
++				 IORESOURCE_MEM, 0, -1, NULL, found);
+ 	if (rc <= 0)
+ 		return 0;
+ 
+diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
+index b0045a5..95825b3 100644
+--- a/drivers/nvdimm/e820.c
++++ b/drivers/nvdimm/e820.c
+@@ -55,7 +55,7 @@ static int e820_pmem_probe(struct platform_device *pdev)
+ 	for (p = iomem_resource.child; p ; p = p->sibling) {
+ 		struct nd_region_desc ndr_desc;
+ 
+-		if (strncmp(p->name, "Persistent Memory (legacy)", 26) != 0)
++		if (p->desc != IORES_DESC_PERSISTENT_MEMORY_LEGACY)
+ 			continue;
+ 
+ 		memset(&ndr_desc, 0, sizeof(ndr_desc));
+diff --git a/kernel/kexec_file.c b/kernel/kexec_file.c
+index c245085..6e31cea 100644
+--- a/kernel/kexec_file.c
++++ b/kernel/kexec_file.c
+@@ -522,10 +522,10 @@ int kexec_add_buffer(struct kimage *image, char *buffer, unsigned long bufsz,
+ 
+ 	/* Walk the RAM ranges and allocate a suitable range for the buffer */
+ 	if (image->type == KEXEC_TYPE_CRASH)
+-		ret = walk_iomem_res("Crash kernel",
+-				     IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
+-				     crashk_res.start, crashk_res.end, kbuf,
+-				     locate_mem_hole_callback);
++		ret = walk_iomem_res_desc(crashk_res.desc,
++				IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
++				crashk_res.start, crashk_res.end, kbuf,
++				locate_mem_hole_callback);
+ 	else
+ 		ret = walk_system_ram_res(0, -1, kbuf,
+ 					  locate_mem_hole_callback);
 
-Now with DAX we need new actions, like unmapping all inodes, to be taken
-upon a device loss event or fs corruption event.
-
-For now, the approach taken in the following patches only affects xfs
-and block drivers that are converted to use del_gendisk_queue().  We can
-add more filesystems and driver support over time.
-
----
-
-Dan Williams (4):
-      block: prepare for del_gendisk_queue()
-      block: introduce del_gendisk_queue()
-      xfs: unmap dax at shutdown (force_failure)
-      block, xfs: implement 'force_failure' notifications
-
-
- block/genhd.c                |   87 +++++++++++++++++++++++++++++++++++-------
- drivers/block/brd.c          |    9 +---
- drivers/nvdimm/pmem.c        |    3 -
- drivers/s390/block/dcssblk.c |    6 +--
- fs/block_dev.c               |   22 +++++++++++
- fs/inode.c                   |   28 ++++++++++++++
- fs/xfs/xfs_fsops.c           |    9 ++++
- fs/xfs/xfs_super.c           |    8 ++++
- include/linux/fs.h           |    3 +
- include/linux/genhd.h        |    1 
- 10 files changed, 150 insertions(+), 26 deletions(-)
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
