@@ -1,219 +1,336 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH v3 7/8] dax: Support for transparent PUD pages
-Date: Fri,  8 Jan 2016 14:49:51 -0500
-Message-Id: <1452282592-27290-8-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1452282592-27290-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1452282592-27290-1-git-send-email-matthew.r.wilcox@intel.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v7 4/9] dax: support dirty DAX entries in radix tree
+Date: Wed,  6 Jan 2016 11:00:58 -0700
+Message-Id: <1452103263-1592-5-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <willy@linux.intel.com>
+Add support for tracking dirty DAX entries in the struct address_space
+radix tree.  This tree is already used for dirty page writeback, and it
+already supports the use of exceptional (non struct page*) entries.
 
-The DAX support for transparent huge PUD pages
+In order to properly track dirty DAX pages we will insert new exceptional
+entries into the radix tree that represent dirty DAX PTE or PMD pages.
+These exceptional entries will also contain the writeback sectors for the
+PTE or PMD faults that we can use at fsync/msync time.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+There are currently two types of exceptional entries (shmem and shadow)
+that can be placed into the radix tree, and this adds a third.  We rely on
+the fact that only one type of exceptional entry can be found in a given
+radix tree based on its usage.  This happens for free with DAX vs shmem but
+we explicitly prevent shadow entries from being added to radix trees for
+DAX mappings.
+
+The only shadow entries that would be generated for DAX radix trees would
+be to track zero page mappings that were created for holes.  These pages
+would receive minimal benefit from having shadow entries, and the choice
+to have only one type of exceptional entry in a given radix tree makes the
+logic simpler both in clear_exceptional_entry() and in the rest of DAX.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c | 175 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 175 insertions(+)
+ fs/block_dev.c             |  2 +-
+ fs/inode.c                 |  2 +-
+ include/linux/dax.h        |  5 ++++
+ include/linux/fs.h         |  3 +-
+ include/linux/radix-tree.h |  9 ++++++
+ mm/filemap.c               | 17 ++++++++----
+ mm/truncate.c              | 69 ++++++++++++++++++++++++++--------------------
+ mm/vmscan.c                |  9 +++++-
+ mm/workingset.c            |  4 +--
+ 9 files changed, 78 insertions(+), 42 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 05ed547..f4cb4dd 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -906,6 +906,178 @@ static int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- }
- #endif /* !CONFIG_TRANSPARENT_HUGEPAGE */
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index e123641..303b7cd 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -75,7 +75,7 @@ void kill_bdev(struct block_device *bdev)
+ {
+ 	struct address_space *mapping = bdev->bd_inode->i_mapping;
  
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+/*
-+ * The 'colour' (ie low bits) within a PUD of a page offset.  This comes up
-+ * more often than one might expect in the below function.
-+ */
-+#define PG_PUD_COLOUR	((PUD_SIZE >> PAGE_SHIFT) - 1)
+-	if (mapping->nrpages == 0 && mapping->nrshadows == 0)
++	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+ 		return;
+ 
+ 	invalidate_bh_lrus();
+diff --git a/fs/inode.c b/fs/inode.c
+index 4c8f719..6e3e5d0 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -495,7 +495,7 @@ void clear_inode(struct inode *inode)
+ 	 */
+ 	spin_lock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(inode->i_data.nrpages);
+-	BUG_ON(inode->i_data.nrshadows);
++	BUG_ON(inode->i_data.nrexceptional);
+ 	spin_unlock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(!list_empty(&inode->i_data.private_list));
+ 	BUG_ON(!(inode->i_state & I_FREEING));
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index b415e52..e9d57f68 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -36,4 +36,9 @@ static inline bool vma_is_dax(struct vm_area_struct *vma)
+ {
+ 	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
+ }
 +
-+#define dax_pud_dbg(bh, address, reason)	__dax_dbg(bh, address, reason, "dax_pud")
-+
-+static int dax_pud_fault(struct vm_area_struct *vma, unsigned long address,
-+		pud_t *pud, unsigned int flags, get_block_t get_block,
-+		dax_iodone_t complete_unwritten)
++static inline bool dax_mapping(struct address_space *mapping)
 +{
-+	struct file *file = vma->vm_file;
-+	struct address_space *mapping = file->f_mapping;
-+	struct inode *inode = mapping->host;
-+	struct buffer_head bh;
-+	unsigned blkbits = inode->i_blkbits;
-+	unsigned long pud_addr = address & PUD_MASK;
-+	bool write = flags & FAULT_FLAG_WRITE;
-+	struct block_device *bdev = NULL;
-+	pgoff_t size, pgoff;
-+	sector_t block;
-+	int result = 0;
-+
-+	/* dax pud mappings require pfn_t_devmap() */
-+	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
-+		return VM_FAULT_FALLBACK;
-+
-+	/* Fall back to PTEs if we're going to COW */
-+	if (write && !(vma->vm_flags & VM_SHARED)) {
-+		split_huge_pud(vma, pud, address);
-+		dax_pud_dbg(NULL, address, "cow write");
-+		return VM_FAULT_FALLBACK;
-+	}
-+	/* If the PUD would extend outside the VMA */
-+	if (pud_addr < vma->vm_start) {
-+		dax_pud_dbg(NULL, address, "vma start unaligned");
-+		return VM_FAULT_FALLBACK;
-+	}
-+	if ((pud_addr + PUD_SIZE) > vma->vm_end) {
-+		dax_pud_dbg(NULL, address, "vma end unaligned");
-+		return VM_FAULT_FALLBACK;
-+	}
-+
-+	pgoff = linear_page_index(vma, pud_addr);
-+	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	if (pgoff >= size)
-+		return VM_FAULT_SIGBUS;
-+	/* If the PUD would cover blocks out of the file */
-+	if ((pgoff | PG_PUD_COLOUR) >= size) {
-+		dax_pud_dbg(NULL, address,
-+				"offset + huge page size > file size");
-+		return VM_FAULT_FALLBACK;
-+	}
-+
-+	memset(&bh, 0, sizeof(bh));
-+	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
-+
-+	bh.b_size = PUD_SIZE;
-+	if (get_block(inode, block, &bh, write) != 0)
-+		return VM_FAULT_SIGBUS;
-+	bdev = bh.b_bdev;
-+	i_mmap_lock_read(mapping);
-+
-+	/*
-+	 * If the filesystem isn't willing to tell us the length of a hole,
-+	 * just fall back to PTEs.  Calling get_block 512 times in a loop
-+	 * would be silly.
-+	 */
-+	if (!buffer_size_valid(&bh) || bh.b_size < PUD_SIZE) {
-+		dax_pud_dbg(&bh, address, "allocated block too small");
-+		goto fallback;
-+	}
-+
-+	/*
-+	 * If we allocated new storage, make sure no process has any
-+	 * zero pages covering this hole
-+	 */
-+	if (buffer_new(&bh)) {
-+		i_mmap_unlock_read(mapping);
-+		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PUD_SIZE, 0);
-+		i_mmap_lock_read(mapping);
-+	}
-+
-+	/*
-+	 * If a truncate happened while we were allocating blocks, we may
-+	 * leave blocks allocated to the file that are beyond EOF.  We can't
-+	 * take i_mutex here, so just leave them hanging; they'll be freed
-+	 * when the file is deleted.
-+	 */
-+	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	if (pgoff >= size) {
-+		result = VM_FAULT_SIGBUS;
-+		goto out;
-+	}
-+	if ((pgoff | PG_PUD_COLOUR) >= size) {
-+		dax_pud_dbg(&bh, address, "pgoff unaligned");
-+		goto fallback;
-+	}
-+
-+	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
-+		dax_pud_dbg(&bh, address, "no zero page");
-+		goto fallback;
-+	} else {
-+		struct blk_dax_ctl dax = {
-+			.sector = to_sector(&bh, inode),
-+			.size = PUD_SIZE,
-+		};
-+		long length = dax_map_atomic(bdev, &dax);
-+
-+		if (length < 0) {
-+			result = VM_FAULT_SIGBUS;
-+			goto out;
-+		}
-+		if (length < PUD_SIZE) {
-+			dax_pud_dbg(&bh, address, "dax-length too small");
-+			dax_unmap_atomic(bdev, &dax);
-+			goto fallback;
-+		}
-+		if (pfn_t_to_pfn(dax.pfn) & PG_PUD_COLOUR) {
-+			dax_pud_dbg(&bh, address, "pfn unaligned");
-+			dax_unmap_atomic(bdev, &dax);
-+			goto fallback;
-+		}
-+
-+		if (!pfn_t_devmap(dax.pfn)) {
-+			dax_unmap_atomic(bdev, &dax);
-+			dax_pud_dbg(&bh, address, "pfn not in memmap");
-+			goto fallback;
-+		}
-+
-+		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
-+			clear_pmem(dax.addr, PUD_SIZE);
-+			wmb_pmem();
-+			count_vm_event(PGMAJFAULT);
-+			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
-+			result |= VM_FAULT_MAJOR;
-+		}
-+		dax_unmap_atomic(bdev, &dax);
-+
-+		dev_dbg(part_to_dev(bdev->bd_part),
-+				"%s: %s addr: %lx pfn: %lx sect: %llx\n",
-+				__func__, current->comm, address,
-+				pfn_t_to_pfn(dax.pfn),
-+				(unsigned long long) dax.sector);
-+		result |= vmf_insert_pfn_pud(vma, address, pud,
-+				dax.pfn, write);
-+	}
-+
-+ out:
-+	i_mmap_unlock_read(mapping);
-+
-+	if (buffer_unwritten(&bh))
-+		complete_unwritten(&bh, !(result & VM_FAULT_ERROR));
-+
-+	return result;
-+
-+ fallback:
-+	count_vm_event(THP_FAULT_FALLBACK);
-+	result = VM_FAULT_FALLBACK;
-+	goto out;
++	return mapping->host && IS_DAX(mapping->host);
 +}
-+#else /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+static int dax_pud_fault(struct vm_area_struct *vma, unsigned long address,
-+		pud_t *pud, unsigned int flags, get_block_t get_block,
-+		dax_iodone_t complete_unwritten)
-+{
-+	return VM_FAULT_FALLBACK;
-+}
-+#endif /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ #endif
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index ddb7bad..fdab768 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -433,7 +433,8 @@ struct address_space {
+ 	struct rw_semaphore	i_mmap_rwsem;	/* protect tree, count, list */
+ 	/* Protected by tree_lock together with the radix tree */
+ 	unsigned long		nrpages;	/* number of total pages */
+-	unsigned long		nrshadows;	/* number of shadow entries */
++	/* number of shadow or DAX exceptional entries */
++	unsigned long		nrexceptional;
+ 	pgoff_t			writeback_index;/* writeback starts here */
+ 	const struct address_space_operations *a_ops;	/* methods */
+ 	unsigned long		flags;		/* error bits/gfp mask */
+diff --git a/include/linux/radix-tree.h b/include/linux/radix-tree.h
+index 57e7d87..7c88ad1 100644
+--- a/include/linux/radix-tree.h
++++ b/include/linux/radix-tree.h
+@@ -51,6 +51,15 @@
+ #define RADIX_TREE_EXCEPTIONAL_ENTRY	2
+ #define RADIX_TREE_EXCEPTIONAL_SHIFT	2
+ 
++#define RADIX_DAX_MASK	0xf
++#define RADIX_DAX_SHIFT	4
++#define RADIX_DAX_PTE  (0x4 | RADIX_TREE_EXCEPTIONAL_ENTRY)
++#define RADIX_DAX_PMD  (0x8 | RADIX_TREE_EXCEPTIONAL_ENTRY)
++#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_MASK)
++#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
++#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
++		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE)))
 +
- /**
-  * dax_fault - handle a page fault on a DAX file
-  * @vma: The virtual memory area where the fault occurred
-@@ -932,6 +1104,9 @@ int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	case FAULT_FLAG_SIZE_PMD:
- 		return dax_pmd_fault(vma, address, vmf->pmd, vmf->flags,
- 						get_block, iodone);
-+	case FAULT_FLAG_SIZE_PUD:
-+		return dax_pud_fault(vma, address, vmf->pud, vmf->flags,
-+						get_block, iodone);
- 	default:
- 		return VM_FAULT_FALLBACK;
+ static inline int radix_tree_is_indirect_ptr(void *ptr)
+ {
+ 	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 847ee43..7b8be78 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -11,6 +11,7 @@
+  */
+ #include <linux/export.h>
+ #include <linux/compiler.h>
++#include <linux/dax.h>
+ #include <linux/fs.h>
+ #include <linux/uaccess.h>
+ #include <linux/capability.h>
+@@ -123,9 +124,9 @@ static void page_cache_tree_delete(struct address_space *mapping,
+ 	__radix_tree_lookup(&mapping->page_tree, page->index, &node, &slot);
+ 
+ 	if (shadow) {
+-		mapping->nrshadows++;
++		mapping->nrexceptional++;
+ 		/*
+-		 * Make sure the nrshadows update is committed before
++		 * Make sure the nrexceptional update is committed before
+ 		 * the nrpages update so that final truncate racing
+ 		 * with reclaim does not see both counters 0 at the
+ 		 * same time and miss a shadow entry.
+@@ -579,9 +580,13 @@ static int page_cache_tree_insert(struct address_space *mapping,
+ 		p = radix_tree_deref_slot_protected(slot, &mapping->tree_lock);
+ 		if (!radix_tree_exceptional_entry(p))
+ 			return -EEXIST;
++
++		if (WARN_ON(dax_mapping(mapping)))
++			return -EINVAL;
++
+ 		if (shadowp)
+ 			*shadowp = p;
+-		mapping->nrshadows--;
++		mapping->nrexceptional--;
+ 		if (node)
+ 			workingset_node_shadows_dec(node);
  	}
+@@ -1245,9 +1250,9 @@ repeat:
+ 			if (radix_tree_deref_retry(page))
+ 				goto restart;
+ 			/*
+-			 * A shadow entry of a recently evicted page,
+-			 * or a swap entry from shmem/tmpfs.  Return
+-			 * it without attempting to raise page count.
++			 * A shadow entry of a recently evicted page, a swap
++			 * entry from shmem/tmpfs or a DAX entry.  Return it
++			 * without attempting to raise page count.
+ 			 */
+ 			goto export;
+ 		}
+diff --git a/mm/truncate.c b/mm/truncate.c
+index 76e35ad..e3ee0e2 100644
+--- a/mm/truncate.c
++++ b/mm/truncate.c
+@@ -9,6 +9,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/backing-dev.h>
++#include <linux/dax.h>
+ #include <linux/gfp.h>
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+@@ -34,31 +35,39 @@ static void clear_exceptional_entry(struct address_space *mapping,
+ 		return;
+ 
+ 	spin_lock_irq(&mapping->tree_lock);
+-	/*
+-	 * Regular page slots are stabilized by the page lock even
+-	 * without the tree itself locked.  These unlocked entries
+-	 * need verification under the tree lock.
+-	 */
+-	if (!__radix_tree_lookup(&mapping->page_tree, index, &node, &slot))
+-		goto unlock;
+-	if (*slot != entry)
+-		goto unlock;
+-	radix_tree_replace_slot(slot, NULL);
+-	mapping->nrshadows--;
+-	if (!node)
+-		goto unlock;
+-	workingset_node_shadows_dec(node);
+-	/*
+-	 * Don't track node without shadow entries.
+-	 *
+-	 * Avoid acquiring the list_lru lock if already untracked.
+-	 * The list_empty() test is safe as node->private_list is
+-	 * protected by mapping->tree_lock.
+-	 */
+-	if (!workingset_node_shadows(node) &&
+-	    !list_empty(&node->private_list))
+-		list_lru_del(&workingset_shadow_nodes, &node->private_list);
+-	__radix_tree_delete_node(&mapping->page_tree, node);
++
++	if (dax_mapping(mapping)) {
++		if (radix_tree_delete_item(&mapping->page_tree, index, entry))
++			mapping->nrexceptional--;
++	} else {
++		/*
++		 * Regular page slots are stabilized by the page lock even
++		 * without the tree itself locked.  These unlocked entries
++		 * need verification under the tree lock.
++		 */
++		if (!__radix_tree_lookup(&mapping->page_tree, index, &node,
++					&slot))
++			goto unlock;
++		if (*slot != entry)
++			goto unlock;
++		radix_tree_replace_slot(slot, NULL);
++		mapping->nrexceptional--;
++		if (!node)
++			goto unlock;
++		workingset_node_shadows_dec(node);
++		/*
++		 * Don't track node without shadow entries.
++		 *
++		 * Avoid acquiring the list_lru lock if already untracked.
++		 * The list_empty() test is safe as node->private_list is
++		 * protected by mapping->tree_lock.
++		 */
++		if (!workingset_node_shadows(node) &&
++		    !list_empty(&node->private_list))
++			list_lru_del(&workingset_shadow_nodes,
++					&node->private_list);
++		__radix_tree_delete_node(&mapping->page_tree, node);
++	}
+ unlock:
+ 	spin_unlock_irq(&mapping->tree_lock);
+ }
+@@ -228,7 +237,7 @@ void truncate_inode_pages_range(struct address_space *mapping,
+ 	int		i;
+ 
+ 	cleancache_invalidate_inode(mapping);
+-	if (mapping->nrpages == 0 && mapping->nrshadows == 0)
++	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+ 		return;
+ 
+ 	/* Offsets within partial pages */
+@@ -402,7 +411,7 @@ EXPORT_SYMBOL(truncate_inode_pages);
+  */
+ void truncate_inode_pages_final(struct address_space *mapping)
+ {
+-	unsigned long nrshadows;
++	unsigned long nrexceptional;
+ 	unsigned long nrpages;
+ 
+ 	/*
+@@ -416,14 +425,14 @@ void truncate_inode_pages_final(struct address_space *mapping)
+ 
+ 	/*
+ 	 * When reclaim installs eviction entries, it increases
+-	 * nrshadows first, then decreases nrpages.  Make sure we see
++	 * nrexceptional first, then decreases nrpages.  Make sure we see
+ 	 * this in the right order or we might miss an entry.
+ 	 */
+ 	nrpages = mapping->nrpages;
+ 	smp_rmb();
+-	nrshadows = mapping->nrshadows;
++	nrexceptional = mapping->nrexceptional;
+ 
+-	if (nrpages || nrshadows) {
++	if (nrpages || nrexceptional) {
+ 		/*
+ 		 * As truncation uses a lockless tree lookup, cycle
+ 		 * the tree lock to make sure any ongoing tree
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 44ec50f..30e0cd7 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -46,6 +46,7 @@
+ #include <linux/oom.h>
+ #include <linux/prefetch.h>
+ #include <linux/printk.h>
++#include <linux/dax.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/div64.h>
+@@ -671,9 +672,15 @@ static int __remove_mapping(struct address_space *mapping, struct page *page,
+ 		 * inode reclaim needs to empty out the radix tree or
+ 		 * the nodes are lost.  Don't plant shadows behind its
+ 		 * back.
++		 *
++		 * We also don't store shadows for DAX mappings because the
++		 * only page cache pages found in these are zero pages
++		 * covering holes, and because we don't want to mix DAX
++		 * exceptional entries and shadow exceptional entries in the
++		 * same page_tree.
+ 		 */
+ 		if (reclaimed && page_is_file_cache(page) &&
+-		    !mapping_exiting(mapping))
++		    !mapping_exiting(mapping) && !dax_mapping(mapping))
+ 			shadow = workingset_eviction(mapping, page);
+ 		__delete_from_page_cache(page, shadow, memcg);
+ 		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+diff --git a/mm/workingset.c b/mm/workingset.c
+index aa01713..61ead9e 100644
+--- a/mm/workingset.c
++++ b/mm/workingset.c
+@@ -351,8 +351,8 @@ static enum lru_status shadow_lru_isolate(struct list_head *item,
+ 			node->slots[i] = NULL;
+ 			BUG_ON(node->count < (1U << RADIX_TREE_COUNT_SHIFT));
+ 			node->count -= 1U << RADIX_TREE_COUNT_SHIFT;
+-			BUG_ON(!mapping->nrshadows);
+-			mapping->nrshadows--;
++			BUG_ON(!mapping->nrexceptional);
++			mapping->nrexceptional--;
+ 		}
+ 	}
+ 	BUG_ON(node->count);
 -- 
-2.6.4
+2.5.0
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
