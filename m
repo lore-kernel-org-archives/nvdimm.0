@@ -1,83 +1,92 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH v3 0/8] Support for transparent PUD pages for DAX files
-Date: Fri,  8 Jan 2016 14:49:44 -0500
-Message-Id: <1452282592-27290-1-git-send-email-matthew.r.wilcox@intel.com>
+Date: Wed, 6 Jan 2016 11:10:12 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v6 4/7] dax: add support for fsync/msync
+Message-ID: <20160106181012.GA7332@linux.intel.com>
+References: <1450899560-26708-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1450899560-26708-5-git-send-email-ross.zwisler@linux.intel.com>
+ <CAPcyv4jVJGPO8Yhz8WgSJTFw+o8=5n6yx17zchXA6C+wEKcajg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4jVJGPO8Yhz8WgSJTFw+o8=5n6yx17zchXA6C+wEKcajg@mail.gmail.com>
 Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, XFS Developers <xfs@oss.sgi.com>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <willy@linux.intel.com>
+On Sun, Jan 03, 2016 at 10:13:06AM -0800, Dan Williams wrote:
+> On Wed, Dec 23, 2015 at 11:39 AM, Ross Zwisler
+> <ross.zwisler@linux.intel.com> wrote:
+> > To properly handle fsync/msync in an efficient way DAX needs to track dirty
+> > pages so it is able to flush them durably to media on demand.
+> >
+> > The tracking of dirty pages is done via the radix tree in struct
+> > address_space.  This radix tree is already used by the page writeback
+> > infrastructure for tracking dirty pages associated with an open file, and
+> > it already has support for exceptional (non struct page*) entries.  We
+> > build upon these features to add exceptional entries to the radix tree for
+> > DAX dirty PMD or PTE pages at fault time.
+> >
+> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> 
+> I'm hitting the following report with the ndctl dax test [1] on
+> next-20151231.  I bisected it to
+>  commit 3cb108f941de "dax-add-support-for-fsync-sync-v6".  I'll take a
+> closer look tomorrow, but in case someone can beat me to it, here's
+> the back-trace:
+> 
+> ------------[ cut here ]------------
+> kernel BUG at fs/inode.c:497!
+> [..]
+> CPU: 1 PID: 3001 Comm: umount Tainted: G           O    4.4.0-rc7+ #2412
+> Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+> task: ffff8800da2a5a00 ti: ffff880307794000 task.ti: ffff880307794000
+> RIP: 0010:[<ffffffff81280171>]  [<ffffffff81280171>] clear_inode+0x71/0x80
+> RSP: 0018:ffff880307797d50  EFLAGS: 00010002
+> RAX: ffff8800da2a5a00 RBX: ffff8800ca2e7328 RCX: ffff8800da2a5a28
+> RDX: 0000000000000001 RSI: 0000000000000005 RDI: ffff8800ca2e7530
+> RBP: ffff880307797d60 R08: ffffffff82900ae0 R09: 0000000000000000
+> R10: ffff8800ca2e7548 R11: 0000000000000000 R12: ffff8800ca2e7530
+> R13: ffff8800ca2e7328 R14: ffff8800da2e88d0 R15: ffff8800da2e88d0
+> FS:  00007f2b22f4a880(0000) GS:ffff88031fc40000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 00005648abd933e8 CR3: 000000007f3fc000 CR4: 00000000000006e0
+> Stack:
+> ffff8800ca2e7328 ffff8800ca2e7000 ffff880307797d88 ffffffffa01c18af
+> ffff8800ca2e7328 ffff8800ca2e74d0 ffffffffa01ec740 ffff880307797db0
+> ffffffff81281038 ffff8800ca2e74c0 ffff880307797e00 ffff8800ca2e7328
+> Call Trace:
+> [<ffffffffa01c18af>] xfs_fs_evict_inode+0x5f/0x110 [xfs]
+> [<ffffffff81281038>] evict+0xb8/0x180
+> [<ffffffff8128113b>] dispose_list+0x3b/0x50
+> [<ffffffff81282014>] evict_inodes+0x144/0x170
+> [<ffffffff8126447f>] generic_shutdown_super+0x3f/0xf0
+> [<ffffffff81264837>] kill_block_super+0x27/0x70
+> [<ffffffff81264a53>] deactivate_locked_super+0x43/0x70
+> [<ffffffff81264e9c>] deactivate_super+0x5c/0x60
+> [<ffffffff81285aff>] cleanup_mnt+0x3f/0x90
+> [<ffffffff81285b92>] __cleanup_mnt+0x12/0x20
+> [<ffffffff810c4f26>] task_work_run+0x76/0x90
+> [<ffffffff81003e3a>] syscall_return_slowpath+0x20a/0x280
+> [<ffffffff8192671a>] int_ret_from_sys_call+0x25/0x9f
+> Code: 48 8d 93 30 03 00 00 48 39 c2 75 23 48 8b 83 d0 00 00 00 a8 20
+> 74 1a a8 40 75 18 48 c7 8
+> 3 d0 00 00 00 60 00 00 00 5b 41 5c 5d c3 <0f> 0b 0f 0b 0f 0b 0f 0b 0f
+> 0b 0f 1f 44 00 00 0f 1f
+> 44 00 00 55
+> RIP  [<ffffffff81280171>] clear_inode+0x71/0x80
+> RSP <ffff880307797d50>
+> ---[ end trace 3b1d8898a94a4fc1 ]---
+> 
+> [1]: git://git@github.com:pmem/ndctl.git pending
+> make TESTS="test/dax.sh" check
 
-Andrew, I think this is ready for a spin in -mm.
+This issue is fixed with patch 2 of v7:
 
-v3: Rebased against current mmtom
-v2: Reduced churn in filesystems by switching to ->huge_fault interface
-    Addressed concerns from Kirill
+https://lists.01.org/pipermail/linux-nvdimm/2016-January/003888.html
 
-We have customer demand to use 1GB pages to map DAX files.  Unlike the 2MB
-page support, the Linux MM does not currently support PUD pages, so I have
-attempted to add support for the necessary pieces for DAX huge PUD pages.
-
-Filesystems still need work to allocate 1GB pages.  With ext4, I can
-only get 16MB of contiguous space, although it is aligned.  With XFS,
-I can get 80MB less than 1GB, and it's not aligned.  The XFS problem
-may be due to the small amount of RAM in my test machine.
-
-This patch set is against something approximately current -mm.  I'd like
-to thank Dave Chinner & Kirill Shutemov for their reviews of v1.
-The conversion of pmd_fault & pud_fault to huge_fault is thanks to
-Dave's poking, and Kirill spotted a couple of problems in the MM code.
-Version 2 of the patch set is about 200 lines smaller (1016 insertions,
-23 deletions in v1).
-
-I've done some light testing using a program to mmap a block device
-with DAX enabled, calling mincore() and examining /proc/smaps and
-/proc/pagemap.
-
-Matthew Wilcox (8):
-  mm: Convert an open-coded VM_BUG_ON_VMA
-  mm,fs,dax: Change ->pmd_fault to ->huge_fault
-  mm: Add support for PUD-sized transparent hugepages
-  mincore: Add support for PUDs
-  procfs: Add support for PUDs to smaps, clear_refs and pagemap
-  x86: Add support for PUD-sized transparent hugepages
-  dax: Support for transparent PUD pages
-  ext4: Support for PUD-sized transparent huge pages
-
- Documentation/filesystems/dax.txt     |  12 +-
- arch/Kconfig                          |   3 +
- arch/x86/Kconfig                      |   1 +
- arch/x86/include/asm/paravirt.h       |  11 ++
- arch/x86/include/asm/paravirt_types.h |   2 +
- arch/x86/include/asm/pgtable.h        |  94 ++++++++++++
- arch/x86/include/asm/pgtable_64.h     |  13 ++
- arch/x86/kernel/paravirt.c            |   1 +
- arch/x86/mm/pgtable.c                 |  31 ++++
- fs/block_dev.c                        |  10 +-
- fs/dax.c                              | 272 +++++++++++++++++++++++++---------
- fs/ext2/file.c                        |  27 +---
- fs/ext4/file.c                        |  60 +++-----
- fs/proc/task_mmu.c                    | 109 ++++++++++++++
- fs/xfs/xfs_file.c                     |  25 ++--
- fs/xfs/xfs_trace.h                    |   2 +-
- include/asm-generic/pgtable.h         |  62 +++++++-
- include/asm-generic/tlb.h             |  14 ++
- include/linux/dax.h                   |  17 ---
- include/linux/huge_mm.h               |  50 +++++++
- include/linux/mm.h                    |  43 +++++-
- include/linux/mmu_notifier.h          |  13 ++
- include/linux/pfn_t.h                 |   8 +
- mm/huge_memory.c                      | 151 +++++++++++++++++++
- mm/memory.c                           | 101 +++++++++++--
- mm/mincore.c                          |  13 ++
- mm/pagewalk.c                         |  19 ++-
- mm/pgtable-generic.c                  |  14 ++
- 28 files changed, 980 insertions(+), 198 deletions(-)
-
--- 
-2.6.4
+Thanks for the report!
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
