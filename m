@@ -1,69 +1,41 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v7 0/9] DAX fsync/msync support
-Date: Wed,  6 Jan 2016 11:00:54 -0700
-Message-Id: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v5 5/6] nvdimm: Increase max envelope size for IOCTL
+Date: Wed,  6 Jan 2016 16:03:42 -0700
+Message-Id: <02c051f9c9d6af286c29e0899c65acb42064a725.1452121277.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
+References: <cover.1452121277.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
+References: <cover.1452121277.git.jerry.hoemann@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v6 [1]:
+In __nd_ioctl must first read in the fixed sized portion of an ioctl
+so that it can then determine the size of the variable part.
 
-1) Fixed an existing NULL pointer dereference bug in __dax_dbg() in patch 1.
+Prepare for ND_CMD_CALL_DSM calls which have larger fixed portion
+wrapper.
 
-2) Fixed an existing bug with the way holes are converted into DAX PMD
-entries in patch 2.  This solves a BUG_ON reported by Dan Williams.
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+---
+ include/linux/libnvdimm.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-3) Removed second verification of our radix tree entry before cache flush
-in dax_writeback_one(). (Jan Kara)
-
-4) Updated to the new argument list types for dax_pmd_dbg(). (Dan Williams)
-
-5) Fixed the text of a random debug message so that it accurately reflects
-the error being found.
-
-This series replaces v6 in the MM tree and in the "akpm" branch of the next
-tree.  A working tree can be found here:
-
-https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=fsync_v7
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-December/003663.html
-
-Ross Zwisler (9):
-  dax: fix NULL pointer dereference in __dax_dbg()
-  dax: fix conversion of holes to PMDs
-  pmem: add wb_cache_pmem() to the PMEM API
-  dax: support dirty DAX entries in radix tree
-  mm: add find_get_entries_tag()
-  dax: add support for fsync/msync
-  ext2: call dax_pfn_mkwrite() for DAX fsync/msync
-  ext4: call dax_pfn_mkwrite() for DAX fsync/msync
-  xfs: call dax_pfn_mkwrite() for DAX fsync/msync
-
- arch/x86/include/asm/pmem.h |  11 +--
- fs/block_dev.c              |   2 +-
- fs/dax.c                    | 214 ++++++++++++++++++++++++++++++++++++++++----
- fs/ext2/file.c              |   4 +-
- fs/ext4/file.c              |   4 +-
- fs/inode.c                  |   2 +-
- fs/xfs/xfs_file.c           |   7 +-
- include/linux/dax.h         |   7 ++
- include/linux/fs.h          |   3 +-
- include/linux/pagemap.h     |   3 +
- include/linux/pmem.h        |  22 ++++-
- include/linux/radix-tree.h  |   9 ++
- mm/filemap.c                |  91 +++++++++++++++++--
- mm/truncate.c               |  69 +++++++-------
- mm/vmscan.c                 |   9 +-
- mm/workingset.c             |   4 +-
- 16 files changed, 391 insertions(+), 70 deletions(-)
-
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 3f021dc..b0a2f60 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -27,7 +27,7 @@ enum {
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+ 	ND_CMD_MAX_ELEM = 4,
+-	ND_CMD_MAX_ENVELOPE = 16,
++	ND_CMD_MAX_ENVELOPE = 256,
+ 	ND_CMD_ARS_STATUS_MAX = SZ_4K,
+ 	ND_MAX_MAPPINGS = 32,
+ 
 -- 
-2.5.0
+1.7.11.3
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
