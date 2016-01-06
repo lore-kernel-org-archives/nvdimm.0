@@ -1,97 +1,69 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 5/5] dax: fix clearing of holes in __dax_pmd_fault()
-Date: Wed, 20 Jan 2016 20:36:48 -0700
-Message-Id: <1453347408-22830-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1453347408-22830-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1453347408-22830-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Subject: [PATCH v7 0/9] DAX fsync/msync support
+Date: Wed,  6 Jan 2016 11:00:54 -0700
+Message-Id: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
 To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-When the user reads from a DAX hole via a mmap we service page faults using
-zero-filled page cache pages.  These zero pages are also placed into the
-address_space radix tree.  When we get our first write for that space, we
-can allocate a PMD page worth of DAX storage to replace that hole.
+Changes since v6 [1]:
 
-When this happens we need to unmap the zero pages and remove them from the
-radix tree.  Prior to this patch we were unmapping *all* storage in our
-PMD's range, which is incorrect because it removed DAX entries as well on
-non-allocating page faults.
+1) Fixed an existing NULL pointer dereference bug in __dax_dbg() in patch 1.
 
-Instead, keep track of when get_block() actually gives us storage so that
-we can be sure to only remove zero pages that were covering holes.
+2) Fixed an existing bug with the way holes are converted into DAX PMD
+entries in patch 2.  This solves a BUG_ON reported by Dan Williams.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 32 ++++++++++++++++++++++----------
- 1 file changed, 22 insertions(+), 10 deletions(-)
+3) Removed second verification of our radix tree entry before cache flush
+in dax_writeback_one(). (Jan Kara)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 3b03580..cd19864 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -790,9 +790,9 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	bool write = flags & FAULT_FLAG_WRITE;
- 	struct block_device *bdev;
- 	pgoff_t size, pgoff;
--	loff_t lstart, lend;
- 	sector_t block;
- 	int error, result = 0;
-+	bool alloc = false;
- 
- 	/* dax pmd mappings require pfn_t_devmap() */
- 	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
-@@ -830,10 +830,17 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
- 
- 	bh.b_size = PMD_SIZE;
--	if (get_block(inode, block, &bh, write) != 0)
-+
-+	if (get_block(inode, block, &bh, 0) != 0)
- 		return VM_FAULT_SIGBUS;
-+
-+	if (!buffer_mapped(&bh) && write) {
-+		if (get_block(inode, block, &bh, 1) != 0)
-+			return VM_FAULT_SIGBUS;
-+		alloc = true;
-+	}
-+
- 	bdev = bh.b_bdev;
--	i_mmap_lock_read(mapping);
- 
- 	/*
- 	 * If the filesystem isn't willing to tell us the length of a hole,
-@@ -842,15 +849,20 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	 */
- 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
- 		dax_pmd_dbg(&bh, address, "allocated block too small");
--		goto fallback;
-+		return VM_FAULT_FALLBACK;
-+	}
-+
-+	/*
-+	 * If we allocated new storage, make sure no process has any
-+	 * zero pages covering this hole
-+	 */
-+	if (alloc) {
-+		loff_t lstart = pgoff << PAGE_SHIFT;
-+		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
-+
-+		truncate_pagecache_range(inode, lstart, lend);
- 	}
- 
--	/* make sure no process has any zero pages covering this hole */
--	lstart = pgoff << PAGE_SHIFT;
--	lend = lstart + PMD_SIZE - 1; /* inclusive */
--	i_mmap_unlock_read(mapping);
--	unmap_mapping_range(mapping, lstart, PMD_SIZE, 0);
--	truncate_inode_pages_range(mapping, lstart, lend);
- 	i_mmap_lock_read(mapping);
- 
- 	/*
+4) Updated to the new argument list types for dax_pmd_dbg(). (Dan Williams)
+
+5) Fixed the text of a random debug message so that it accurately reflects
+the error being found.
+
+This series replaces v6 in the MM tree and in the "akpm" branch of the next
+tree.  A working tree can be found here:
+
+https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=fsync_v7
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-December/003663.html
+
+Ross Zwisler (9):
+  dax: fix NULL pointer dereference in __dax_dbg()
+  dax: fix conversion of holes to PMDs
+  pmem: add wb_cache_pmem() to the PMEM API
+  dax: support dirty DAX entries in radix tree
+  mm: add find_get_entries_tag()
+  dax: add support for fsync/msync
+  ext2: call dax_pfn_mkwrite() for DAX fsync/msync
+  ext4: call dax_pfn_mkwrite() for DAX fsync/msync
+  xfs: call dax_pfn_mkwrite() for DAX fsync/msync
+
+ arch/x86/include/asm/pmem.h |  11 +--
+ fs/block_dev.c              |   2 +-
+ fs/dax.c                    | 214 ++++++++++++++++++++++++++++++++++++++++----
+ fs/ext2/file.c              |   4 +-
+ fs/ext4/file.c              |   4 +-
+ fs/inode.c                  |   2 +-
+ fs/xfs/xfs_file.c           |   7 +-
+ include/linux/dax.h         |   7 ++
+ include/linux/fs.h          |   3 +-
+ include/linux/pagemap.h     |   3 +
+ include/linux/pmem.h        |  22 ++++-
+ include/linux/radix-tree.h  |   9 ++
+ mm/filemap.c                |  91 +++++++++++++++++--
+ mm/truncate.c               |  69 +++++++-------
+ mm/vmscan.c                 |   9 +-
+ mm/workingset.c             |   4 +-
+ 16 files changed, 391 insertions(+), 70 deletions(-)
+
 -- 
 2.5.0
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
