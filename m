@@ -1,120 +1,53 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 4/5] dax: fix PMD handling for fsync/msync
-Date: Thu, 21 Jan 2016 10:46:03 -0700
-Message-Id: <1453398364-22537-5-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1453398364-22537-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1453398364-22537-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH v7 7/9] ext2: call dax_pfn_mkwrite() for DAX fsync/msync
+Date: Wed,  6 Jan 2016 11:01:01 -0700
+Message-Id: <1452103263-1592-8-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
 To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Fix the way that DAX PMD radix tree entries are handled.  With this patch
-we now check to see if a PMD entry exists in the radix tree on write, even
-if we are just trying to insert a PTE.  If it exists, we dirty that instead
-of inserting our own PTE entry.
-
-Fix a bug in the PMD path in dax_writeback_mapping_range() where we were
-previously passing a loff_t into radix_tree_lookup instead of a pgoff_t.
-
-Account for the fact that multiple fsync/msync operations may be happening
-at the same time and don't flush entries that are beyond end_index.
+To properly support the new DAX fsync/msync infrastructure filesystems
+need to call dax_pfn_mkwrite() so that DAX can track when user pages are
+dirtied.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c | 39 +++++++++++++++++++++++++++------------
- 1 file changed, 27 insertions(+), 12 deletions(-)
+ fs/ext2/file.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 55ae394..afacc30 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -327,19 +327,27 @@ static int copy_user_bh(struct page *to, struct inode *inode,
- }
- 
- #define NO_SECTOR -1
-+#define DAX_PMD_INDEX(page_index) (page_index & (PMD_MASK >> PAGE_CACHE_SHIFT))
- 
- static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
- 		sector_t sector, bool pmd_entry, bool dirty)
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index 11a42c5..2c88d68 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -102,8 +102,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
  {
- 	struct radix_tree_root *page_tree = &mapping->page_tree;
-+	pgoff_t pmd_index = DAX_PMD_INDEX(index);
- 	int type, error = 0;
- 	void *entry;
+ 	struct inode *inode = file_inode(vma->vm_file);
+ 	struct ext2_inode_info *ei = EXT2_I(inode);
+-	int ret = VM_FAULT_NOPAGE;
+ 	loff_t size;
++	int ret;
  
- 	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ 	sb_start_pagefault(inode->i_sb);
+ 	file_update_time(vma->vm_file);
+@@ -113,6 +113,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		ret = VM_FAULT_SIGBUS;
++	else
++		ret = dax_pfn_mkwrite(vma, vmf);
  
- 	spin_lock_irq(&mapping->tree_lock);
--	entry = radix_tree_lookup(page_tree, index);
- 
-+	entry = radix_tree_lookup(page_tree, pmd_index);
-+	if (RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD) {
-+		index = pmd_index;
-+		goto dirty;
-+	}
-+
-+	entry = radix_tree_lookup(page_tree, index);
- 	if (entry) {
- 		type = RADIX_DAX_TYPE(entry);
- 		if (WARN_ON_ONCE(type != RADIX_DAX_PTE &&
-@@ -460,31 +468,33 @@ int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
- {
- 	struct inode *inode = mapping->host;
- 	struct block_device *bdev = inode->i_sb->s_bdev;
-+	pgoff_t start_index, end_index, pmd_index;
- 	pgoff_t indices[PAGEVEC_SIZE];
--	pgoff_t start_page, end_page;
- 	struct pagevec pvec;
--	void *entry;
-+	bool done = false;
- 	int i, ret = 0;
-+	void *entry;
- 
- 	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
- 		return -EIO;
- 
-+	start_index = start >> PAGE_CACHE_SHIFT;
-+	end_index = end >> PAGE_CACHE_SHIFT;
-+	pmd_index = DAX_PMD_INDEX(start_index);
-+
- 	rcu_read_lock();
--	entry = radix_tree_lookup(&mapping->page_tree, start & PMD_MASK);
-+	entry = radix_tree_lookup(&mapping->page_tree, pmd_index);
- 	rcu_read_unlock();
- 
- 	/* see if the start of our range is covered by a PMD entry */
--	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
--		start &= PMD_MASK;
--
--	start_page = start >> PAGE_CACHE_SHIFT;
--	end_page = end >> PAGE_CACHE_SHIFT;
-+	if (RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
-+		start_index = pmd_index;
- 
--	tag_pages_for_writeback(mapping, start_page, end_page);
-+	tag_pages_for_writeback(mapping, start_index, end_index);
- 
- 	pagevec_init(&pvec, 0);
--	while (1) {
--		pvec.nr = find_get_entries_tag(mapping, start_page,
-+	while (!done) {
-+		pvec.nr = find_get_entries_tag(mapping, start_index,
- 				PAGECACHE_TAG_TOWRITE, PAGEVEC_SIZE,
- 				pvec.pages, indices);
- 
-@@ -492,6 +502,11 @@ int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
- 			break;
- 
- 		for (i = 0; i < pvec.nr; i++) {
-+			if (indices[i] > end_index) {
-+				done = true;
-+				break;
-+			}
-+
- 			ret = dax_writeback_one(bdev, mapping, indices[i],
- 					pvec.pages[i]);
- 			if (ret < 0)
+ 	up_read(&ei->dax_sem);
+ 	sb_end_pagefault(inode->i_sb);
 -- 
 2.5.0
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
