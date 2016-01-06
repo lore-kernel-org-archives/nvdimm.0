@@ -1,58 +1,51 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH v2 4/8] mincore: Add support for PUDs
-Date: Tue,  5 Jan 2016 13:30:06 -0500
-Message-Id: <1452018610-26090-5-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1452018610-26090-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1452018610-26090-1-git-send-email-matthew.r.wilcox@intel.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v7 9/9] xfs: call dax_pfn_mkwrite() for DAX fsync/msync
+Date: Wed,  6 Jan 2016 11:01:03 -0700
+Message-Id: <1452103263-1592-10-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <willy@linux.intel.com>
+To properly support the new DAX fsync/msync infrastructure filesystems
+need to call dax_pfn_mkwrite() so that DAX can track when user pages are
+dirtied.
 
-We don't actually care about the contents of the PUD, as long as it's
-present (which is checked by the pagewalk code), so just set the bits
-to indicate presence and return.
-
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- mm/mincore.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ fs/xfs/xfs_file.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/mm/mincore.c b/mm/mincore.c
-index 2a565ed..8e6ce12 100644
---- a/mm/mincore.c
-+++ b/mm/mincore.c
-@@ -108,6 +108,18 @@ static int mincore_unmapped_range(unsigned long addr, unsigned long end,
- 	return 0;
- }
- 
-+static int mincore_pud_range(pud_t *pud, unsigned long addr, unsigned long end,
-+			struct mm_walk *walk)
-+{
-+	unsigned char *vec = walk->private;
-+	int nr = (end - addr) >> PAGE_SHIFT;
-+
-+	memset(vec, 1, nr);
-+	walk->private += nr;
-+
-+	return 0;
-+}
-+
- static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			struct mm_walk *walk)
- {
-@@ -176,6 +188,7 @@ static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *v
- 	unsigned long end;
- 	int err;
- 	struct mm_walk mincore_walk = {
-+		.pud_entry = mincore_pud_range,
- 		.pmd_entry = mincore_pte_range,
- 		.pte_hole = mincore_unmapped_range,
- 		.hugetlb_entry = mincore_hugetlb,
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index ebe9b82..55e16e2 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1610,9 +1610,8 @@ xfs_filemap_pmd_fault(
+ /*
+  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
+  * updates on write faults. In reality, it's need to serialise against
+- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
+- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
+- * barrier in place.
++ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
++ * to ensure we serialise the fault barrier in place.
+  */
+ static int
+ xfs_filemap_pfn_mkwrite(
+@@ -1635,6 +1634,8 @@ xfs_filemap_pfn_mkwrite(
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		ret = VM_FAULT_SIGBUS;
++	else if (IS_DAX(inode))
++		ret = dax_pfn_mkwrite(vma, vmf);
+ 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
+ 	sb_end_pagefault(inode->i_sb);
+ 	return ret;
 -- 
-2.6.4
+2.5.0
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
