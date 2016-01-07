@@ -1,120 +1,84 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 00/17] Enhance iomem search interfaces and support EINJ to NVDIMM
-Date: Tue,  5 Jan 2016 11:54:28 -0700
-Message-Id: <1452020068-26492-1-git-send-email-toshi.kani@hpe.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, bp@alien8.de
-Cc: torvalds@linux-foundation.org, rafael.j.wysocki@intel.com, dan.j.williams@intel.com, dyoung@redhat.com, x86@kernel.org, linux-ia64@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, kexec@lists.infradead.org, xen-devel@lists.xenproject.org, linux-samsung-soc@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <568EF1AA.6070001@hpe.com>
+References: <1451010103-11462-1-git-send-email-vishal.l.verma@intel.com>
+	<1451010103-11462-3-git-send-email-vishal.l.verma@intel.com>
+	<568ED633.8020702@hpe.com>
+	<CAPcyv4g-z1Ua_uHHwSTeKfpf5ABHr5V+R3_SmFfPxZix2u8NAQ@mail.gmail.com>
+	<568EF1AA.6070001@hpe.com>
+Date: Thu, 7 Jan 2016 15:22:00 -0800
+Message-ID: <CAPcyv4i1dKrhEJkFWmLAmVRBi=tJUOT0WhxjGh-SVnbvFBuxpQ@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] libnvdimm: Add a poison list and export badblocks
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Linda Knippers <linda.knippers@hpe.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch-set enhances the iomem table and its search interfacs, and
-then changes EINJ to support NVDIMM.
+On Thu, Jan 7, 2016 at 3:15 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+> On 1/7/2016 5:49 PM, Dan Williams wrote:
+>> On Thu, Jan 7, 2016 at 1:18 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+>>>
+>>> On 12/24/2015 9:21 PM, Vishal Verma wrote:
+>>>> During region creation, perform Address Range Scrubs (ARS) for the SPA
+>>>> (System Physical Address) ranges to retrieve known poison locations from
+>>>> firmware. Add a new data structure 'nd_poison' which is used as a list
+>>>> in nvdimm_bus to store these poison locations.
+>>>>
+>>>> When creating a pmem namespace, if there is any known poison associated
+>>>> with its physical address space, convert the poison ranges to bad sectors
+>>>> that are exposed using the badblocks interface.
+>>>>
+>>>> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+>>>> ---
+>>>>  drivers/acpi/nfit.c       | 203 ++++++++++++++++++++++++++++++++++++++++++++++
+>>>>  drivers/nvdimm/core.c     | 187 ++++++++++++++++++++++++++++++++++++++++++
+>>>>  drivers/nvdimm/nd-core.h  |   3 +
+>>>>  drivers/nvdimm/nd.h       |   6 ++
+>>>>  drivers/nvdimm/pmem.c     |   6 ++
+>>>>  include/linux/libnvdimm.h |   1 +
+>>>>  6 files changed, 406 insertions(+)
+>>>>
+>>>> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+>>>
+>>> Why are the ARS function in acpi/nfit.c rather than in the core?
+>>> I realize that the interfaces are/will be defined in the ACPI spec but
+>>> it's not really part of the NFIT.
+>>>
+>>> Why isn't this part of the nvdimm core, where the calls are made?
+>>
+>> True.  acpi_nfit_find_poison() could easily become
+>> nvdimm_bus_find_poison() and move to the core.  However we only need
+>> to take that step when / if another nvdimm bus type show up that isn't
+>> nfit defined.  For now only nfit-defined nvdimms have a concept of
+>> ARS.
+>
+> Why not go ahead and move it now?
+>
+> I agree that ARS is related to NFIT, but practically everything else
+> in the core is as well.  It doesn't seem to belongs in nfit.c.  I
+> didn't even notice that's where it was since the subject line says
+> "libnvdimm".
 
- - Patches 1-2 add a new System RAM type, IORESOURCE_SYSTEM_RAM, and
-   make the iomem search interfaces work with resource flags with
-   modifier bits set.  IORESOURCE_SYSTEM_RAM has IORESOURCE_MEM bit set
-   for backward compatibility.
+Should be straightforward, will do.
 
- - Patch 3 adds a new field, I/O resource descriptor, into struct resource.
-   Drivers can assign their unique descritor to a range when they support
-   the iomem search interfaces.
+>>>> index aa45d48..ad6d8c6 100644
+>>>> --- a/drivers/acpi/nfit.c
+>>>> +++ b/drivers/acpi/nfit.c
+>>>> @@ -15,6 +15,7 @@
+[..]
+>>> I think you should get status, start, wait for completion, then process
+>>> records, at least that's how I read the example DSM spec and other
+>>> specs.  It says "You must first issue a Query ARS Status command...".
+>>
+>> We do the lead-in ars_status check above...
+>
+> Oh right, I missed that.
+>
+> The way the locking works, the registration of regions are serialized so we
+> can't never have overlapping calls to this function, right?  A comment
+> about how this is synchronized might be helpful since the lock is many
+> functions away.
 
- - Patches 4-9 changes initializations of resource entries.  They set
-   the System RAM type to System RAM ranges, set I/O resource descriptors
-   to the regions targeted by the iomem search interfaces, and change
-   to call kzalloc() where kmalloc() is used to allocate struct resource
-   ranges.
-
- - Patches 10-14 extend the iomem interfaces to check System RAM ranges
-   with the System RAM type and the I/O resource descriptor.
-
- - Patch 15-16 remove deprecated walk_iomem_res().
-
- - Patch 17 changes the EINJ driver to allow injecting a memory error
-   to NVDIMM.
-
----
-v3:
- - Remove the walk_iomem_res() call with "GART" in crash.c since it is
-   no longer needed. Then kill walk_iomem_res(). (Borislav Petkov,
-   Dave Young)
- - Change to use crashk_res.desc at the walk_iomem_res_desc() call in
-   kexec_add_buffer(). (Minfei Huang)
-
-v2:
- - Add 'desc' to struct resource, and add a new iomem interface to
-   search with the desc. (Borislav Petkov)
- - Add a check to checkpatch.pl to warn on new use of walk_iomem_res().
-   (Borislav Petkov)
-
-v1:
- - Searching for System RAM in the resource table should not require
-   strcmp(). (Borislav Petkov)
- - Add a new System RAM type as a modifier to IORESOURCE_MEM.
-   (Linus Torvalds)
- - NVDIMM check needs to be able to distinguish legacy and NFIT pmem
-   ranges. (Dan Williams)
-
----
-Toshi Kani (17):
- 01/17 resource: Add System RAM resource type
- 02/17 resource: make resource flags handled properly
- 03/17 resource: Add I/O resource descriptor
- 04/17 x86/e820: Set System RAM type and descriptor
- 05/17 ia64: Set System RAM type and descriptor
- 06/17 arch: Set IORESOURCE_SYSTEM_RAM to System RAM
- 07/17 kexec: Set IORESOURCE_SYSTEM_RAM to System RAM
- 08/17 xen, mm: Set IORESOURCE_SYSTEM_RAM to System RAM
- 09/17 drivers: Initialize resource entry to zero
- 10/17 resource: Change walk_system_ram to use System RAM type
- 11/17 arm/samsung: Change s3c_pm_run_res() to use System RAM type
- 12/17 memremap: Change region_intersects() to take @flags and @desc
- 13/17 resource: Add walk_iomem_res_desc()
- 14/17 x86,nvdimm,kexec: Use walk_iomem_res_desc() for iomem search
- 15/17 x86/kexec: Remove walk_iomem_res() call with GART
- 16/17 resource: Kill walk_iomem_res()
- 17/17 ACPI/EINJ: Allow memory error injection to NVDIMM
-
----
- arch/arm/kernel/setup.c            |  6 +--
- arch/arm/plat-samsung/pm-check.c   |  4 +-
- arch/arm64/kernel/setup.c          |  6 +--
- arch/avr32/kernel/setup.c          |  6 +--
- arch/ia64/kernel/efi.c             | 13 ++++--
- arch/ia64/kernel/setup.c           |  6 +--
- arch/m32r/kernel/setup.c           |  4 +-
- arch/mips/kernel/setup.c           | 10 +++--
- arch/parisc/mm/init.c              |  6 +--
- arch/powerpc/mm/mem.c              |  2 +-
- arch/s390/kernel/setup.c           |  8 ++--
- arch/score/kernel/setup.c          |  2 +-
- arch/sh/kernel/setup.c             |  8 ++--
- arch/sparc/mm/init_64.c            |  8 ++--
- arch/tile/kernel/setup.c           | 11 +++--
- arch/unicore32/kernel/setup.c      |  6 +--
- arch/x86/kernel/crash.c            | 41 ++-----------------
- arch/x86/kernel/e820.c             | 38 ++++++++++++++++-
- arch/x86/kernel/pmem.c             |  4 +-
- arch/x86/kernel/setup.c            |  6 +--
- drivers/acpi/acpi_platform.c       |  2 +-
- drivers/acpi/apei/einj.c           | 15 +++++--
- drivers/nvdimm/e820.c              |  2 +-
- drivers/parisc/eisa_enumerator.c   |  4 +-
- drivers/rapidio/rio.c              |  8 ++--
- drivers/sh/superhyway/superhyway.c |  2 +-
- drivers/xen/balloon.c              |  2 +-
- include/linux/ioport.h             | 33 ++++++++++++++-
- include/linux/mm.h                 |  3 +-
- kernel/kexec_core.c                |  8 ++--
- kernel/kexec_file.c                |  8 ++--
- kernel/memremap.c                  | 13 +++---
- kernel/resource.c                  | 83 ++++++++++++++++++++++----------------
- mm/memory_hotplug.c                |  2 +-
- 34 files changed, 225 insertions(+), 155 deletions(-)
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Sounds good.
