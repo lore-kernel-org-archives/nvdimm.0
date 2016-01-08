@@ -1,349 +1,623 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm-fixes for 4.5-rc2
-Date: Sun, 31 Jan 2016 19:29:46 +0000
-Message-ID: <1454268585.31193.9.camel@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-7"
-Content-ID: <BE1680A9F4FE49419F6BBC8FFA0C60CF@intel.com>
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH v3 2/8] mm,fs,dax: Change ->pmd_fault to ->huge_fault
+Date: Fri,  8 Jan 2016 14:49:46 -0500
+Message-Id: <1452282592-27290-3-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1452282592-27290-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1452282592-27290-1-git-send-email-matthew.r.wilcox@intel.com>
 Sender: owner-linux-mm@kvack.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from:
+From: Matthew Wilcox <willy@linux.intel.com>
 
-+AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm=
--fixes
+In preparation for adding the ability to handle PUD pages, convert
+->pmd_fault to ->huge_fault.  huge_fault() takes a vm_fault structure
+instead of separate (address, pmd, flags) parameters.  The vm_fault
+structure is extended to include a union of the different page table
+pointers that may be needed, and three flag bits are reserved to indicate
+which type of pointer is in the union.
 
-1/ Fixes to the libnvdimm 'pfn' device that establishes a reserved area
-for storing a struct page array.
+The DAX fault handlers are unified into one entry point, meaning that
+the filesystems can be largely unconcerned with what size of fault they
+are handling.  ext4 needs to know in order to reserve enough blocks in
+the journal, but ext2 and xfs are oblivious.
 
-2/ Fixes for dax operations on a raw block device to prevent pagecache
-collisions with dax mappings.
+The existing dax_fault and dax_mkwrite had no callers, so rename the
+__dax_fault and __dax_mkwrite to lose the initial underscores.
 
-3/ A fix for pfn+AF8-t usage in vm+AF8-insert+AF8-mixed that lead to a null=
- pointer
-de-reference.
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+---
+ Documentation/filesystems/dax.txt | 12 +++--
+ fs/block_dev.c                    | 10 +---
+ fs/dax.c                          | 97 +++++++++++++--------------------------
+ fs/ext2/file.c                    | 27 ++---------
+ fs/ext4/file.c                    | 56 +++++++---------------
+ fs/xfs/xfs_file.c                 | 25 +++++-----
+ fs/xfs/xfs_trace.h                |  2 +-
+ include/linux/dax.h               | 17 -------
+ include/linux/mm.h                | 20 ++++++--
+ mm/memory.c                       | 20 ++++++--
+ 10 files changed, 102 insertions(+), 184 deletions(-)
 
-These have received build success notification from the kbuild robot
-across 153 configs and pass the latest ndctl tests.
-
-Note that the below commits are also in -mm, but as Andrew is offline
-until tomorrow I thought it best to submit these for 4.5-rc2
-consideration. +AKA-Please yell if I should just wait next time:
-+AKA-
-65f87ee71852 fs, block: force direct-I/O for dax-enabled block devices
-03fc2da63b9a mm: fix pfn+AF8-t to page conversion in vm+AF8-insert+AF8-mixe=
-d
-76e9f0ee52b0 phys+AF8-to+AF8-pfn+AF8-t: use phys+AF8-addr+AF8-t
-
-
-The following changes since commit 92e963f50fc74041b5e9e744c330dca48e04f08d=
-:
-
-+AKA- Linux 4.5-rc1 (2016-01-24 13:06:47 -0800)
-
-are available in the git repository at:
-
-+AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm=
--fixes
-
-for you to fetch changes up to 76e9f0ee52b0be5761e29847e0ef01f23f24f1df:
-
-+AKA- phys+AF8-to+AF8-pfn+AF8-t: use phys+AF8-addr+AF8-t (2016-01-31 09:10:=
-19 -0800)
-
-----------------------------------------------------------------
-Dan Williams (8):
-+AKAAoACgAKAAoACg-libnvdimm: fix mode determination for e820 devices
-+AKAAoACgAKAAoACg-libnvdimm, pfn: fix restoring memmap location
-+AKAAoACgAKAAoACg-devm+AF8-memremap+AF8-pages: fix vmem+AF8-altmap lifetime=
- +- alignment handling
-+AKAAoACgAKAAoACg-fs, block: force direct-I/O for dax-enabled block devices
-+AKAAoACgAKAAoACg-block: revert runtime dax control of the raw block device
-+AKAAoACgAKAAoACg-block: use DAX for partition table reads
-+AKAAoACgAKAAoACg-mm: fix pfn+AF8-t to page conversion in vm+AF8-insert+AF8=
--mixed
-+AKAAoACgAKAAoACg-phys+AF8-to+AF8-pfn+AF8-t: use phys+AF8-addr+AF8-t
-
-+AKA-block/ioctl.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACg=
-AHw- 38 --------------------------------------
-+AKA-block/partition-generic.c+AKAAoACgAKAAoACgAKAAoACgAHw- 18 +-+-+-+-+-+-=
-+-+-+-+-+-+-+-+-+----
-+AKA-drivers/nvdimm/namespace+AF8-devs.c+AKAAoACgAHwAoACg-8 +-+-+-+-+----
-+AKA-drivers/nvdimm/pfn+AF8-devs.c+AKAAoACgAKAAoACgAKAAoACgAHwAoACg-4 +----
-+AKA-fs/block+AF8-dev.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKA=
-AoAB8- 28 ----------------------------
-+AKA-fs/dax.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAo=
-ACgAKAAoAB8- 20 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+AKA-include/linux/dax.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAHw- 11 +-=
-+-+-+-+-+-+-+-+-+-+-
-+AKA-include/linux/fs.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA=
--5 +-----
-+AKA-include/linux/pfn+AF8-t.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-=
-4 +-+---
-+AKA-include/uapi/linux/fs.h+AKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoA-1 -
-+AKA-kernel/memremap.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8- 20=
- +-+-+-+-+-+-+-+-+-+-+-+---------
-+AKA-mm/memory.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAK=
-AAoAB8AKAAoA-9 +-+-+-+-+-+-+---
-+AKA-tools/testing/nvdimm/test/iomap.c +AHwAoACg-2 +--
-+AKA-13 files changed, 75 insertions(+-), 93 deletions(-)
-
-commit 9c41242817f4b6d908886c0fdb036d9246c50630
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Sat Jan 23 15:34:10 2016 -0800
-
-+AKAAoACgAKA-libnvdimm: fix mode determination for e820 devices
-+AKAAoACgAKA-
-+AKAAoACgAKA-Correctly display +ACI-safe+ACI- mode when a btt is establishe=
-d on a e820/memmap
-+AKAAoACgAKA-defined pmem namespace.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+=
-AD4-
-
-commit 45eb570a0db3391c88cba04510a20fe7e4125497
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Fri Jan 29 17:42:51 2016 -0800
-
-+AKAAoACgAKA-libnvdimm, pfn: fix restoring memmap location
-+AKAAoACgAKA-
-+AKAAoACgAKA-This path was missed when turning on the memmap in pmem suppor=
-t.+AKAAoA-Permit
-+AKAAoACgAKA-'pmem' as a valid location for the map.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Reported-by: Jeff Moyer +ADw-jmoyer+AEA-redhat.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+=
-AD4-
-
-commit eb7d78c9e7f6418932bd5fbee45eb46d5ab05002
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Fri Jan 29 21:48:34 2016 -0800
-
-+AKAAoACgAKA-devm+AF8-memremap+AF8-pages: fix vmem+AF8-altmap lifetime +- a=
-lignment handling
-+AKAAoACgAKA-
-+AKAAoACgAKA-to+AF8-vmem+AF8-altmap() needs to return valid results until
-+AKAAoACgAKA-arch+AF8-remove+AF8-memory() completes.+AKAAoA-It also needs t=
-o be valid for any pfn
-+AKAAoACgAKA-in a section regardless of whether that pfn maps to data.+AKAA=
-oA-This escape
-+AKAAoACgAKA-was a result of a bug in the unit test.
-+AKAAoACgAKA-
-+AKAAoACgAKA-The signature of this bug is that free+AF8-pagetable() fails t=
-o retrieve a
-+AKAAoACgAKA-vmem+AF8-altmap and goes off into the weeds:
-+AKAAoACgAKA-
-+AKAAoACgAKAAoA-BUG: unable to handle kernel NULL pointer dereference at+AK=
-AAoACgAKAAoACgAKAAoACgAKAAoA-(null)
-+AKAAoACgAKAAoA-IP: +AFsAPA-ffffffff811d2629+AD4AXQ- get+AF8-pfnblock+AF8-f=
-lags+AF8-mask+-0x49/0x60
-+AKAAoACgAKAAoABb-..+AF0-
-+AKAAoACgAKAAoA-Call Trace:
-+AKAAoACgAKAAoACgAFsAPA-ffffffff811d3477+AD4AXQ- free+AF8-hot+AF8-cold+AF8-=
-page+-0x97/0x1d0
-+AKAAoACgAKAAoACgAFsAPA-ffffffff811d367a+AD4AXQ- +AF8AXw-free+AF8-pages+-0x=
-2a/0x40
-+AKAAoACgAKAAoACgAFsAPA-ffffffff8191e669+AD4AXQ- free+AF8-pagetable+-0x8c/0=
-xd4
-+AKAAoACgAKAAoACgAFsAPA-ffffffff8191ef4e+AD4AXQ- remove+AF8-pagetable+-0x37=
-a/0x808
-+AKAAoACgAKAAoACgAFsAPA-ffffffff8191b210+AD4AXQ- vmemmap+AF8-free+-0x10/0x2=
-0
-+AKAAoACgAKA-
-+AKAAoACgAKA-Fixes: 4b94ffdc4163 (+ACI-x86, mm: introduce vmem+AF8-altmap t=
-o augment vmemmap+AF8-populate()+ACI-)
-+AKAAoACgAKA-Cc: Andrew Morton +ADw-akpm+AEA-linux-foundation.org+AD4-
-+AKAAoACgAKA-Reported-by: Jeff Moyer +ADw-jmoyer+AEA-redhat.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+=
-AD4-
-
-commit 65f87ee71852a754f7981d0653e7136039b8798a
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Mon Jan 25 17:23:18 2016 -0800
-
-+AKAAoACgAKA-fs, block: force direct-I/O for dax-enabled block devices
-+AKAAoACgAKA-
-+AKAAoACgAKA-Similar to the file I/O path, re-direct all I/O to the DAX pat=
-h for I/O
-+AKAAoACgAKA-to a block-device special file.+AKAAoA-Both regular files and =
-device special
-+AKAAoACgAKA-files can use the common filp-+AD4-f+AF8-mapping-+AD4-host loo=
-kup to determing is
-+AKAAoACgAKA-DAX is enabled.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Otherwise, we confuse the DAX code that does not expect to fin=
-d live
-+AKAAoACgAKA-data in the page cache:
-+AKAAoACgAKA-
-+AKAAoACgAKAAoACgAKAAoA-------------+AFs- cut here +AF0-------------
-+AKAAoACgAKAAoACgAKAAoA-WARNING: CPU: 0 PID: 7676 at mm/filemap.c:217
-+AKAAoACgAKAAoACgAKAAoABfAF8-delete+AF8-from+AF8-page+AF8-cache+-0x9f6/0xb6=
-0()
-+AKAAoACgAKAAoACgAKAAoA-Modules linked in:
-+AKAAoACgAKAAoACgAKAAoA-CPU: 0 PID: 7676 Comm: a.out Not tainted 4.4.0+- +A=
-CM-276
-+AKAAoACgAKAAoACgAKAAoA-Hardware name: QEMU Standard PC (i440FX +- PIIX, 19=
-96), BIOS Bochs 01/01/2011
-+AKAAoACgAKAAoACgAKAAoACg-00000000ffffffff ffff88006d3f7738 ffffffff82999e2=
-d 0000000000000000
-+AKAAoACgAKAAoACgAKAAoACg-ffff8800620a0000 ffffffff86473d20 ffff88006d3f777=
-8 ffffffff81352089
-+AKAAoACgAKAAoACgAKAAoACg-ffffffff81658d36 ffffffff86473d20 00000000000000d=
-9 ffffea0000009d60
-+AKAAoACgAKAAoACgAKAAoA-Call Trace:
-+AKAAoACgAKAAoACgAKAAoACgAFsAPACgAKAAoACgAKA-inline+AKAAoACgAKAAoAA+AF0- +A=
-F8AXw-dump+AF8-stack lib/dump+AF8-stack.c:15
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff82999e2d+AD4AXQ- dump+AF8-stack+-0x=
-6f/0xa2 lib/dump+AF8-stack.c:50
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff81352089+AD4AXQ- warn+AF8-slowpath+=
-AF8-common+-0xd9/0x140 kernel/panic.c:482
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff813522b9+AD4AXQ- warn+AF8-slowpath+=
-AF8-null+-0x29/0x30 kernel/panic.c:515
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff81658d36+AD4AXQ- +AF8AXw-delete+AF8=
--from+AF8-page+AF8-cache+-0x9f6/0xb60 mm/filemap.c:217
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff81658fb2+AD4AXQ- delete+AF8-from+AF=
-8-page+AF8-cache+-0x112/0x200 mm/filemap.c:244
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff818af369+AD4AXQ- +AF8AXw-dax+AF8-fa=
-ult+-0x859/0x1800 fs/dax.c:487
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff8186f4f6+AD4AXQ- blkdev+AF8-dax+AF8=
--fault+-0x26/0x30 fs/block+AF8-dev.c:1730
-+AKAAoACgAKAAoACgAKAAoACgAFsAPACgAKAAoACgAKA-inline+AKAAoACgAKAAoAA+AF0- wp=
-+AF8-pfn+AF8-shared mm/memory.c:2208
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff816e9145+AD4AXQ- do+AF8-wp+AF8-page=
-+-0xc85/0x14f0 mm/memory.c:2307
-+AKAAoACgAKAAoACgAKAAoACgAFsAPACgAKAAoACgAKA-inline+AKAAoACgAKAAoAA+AF0- ha=
-ndle+AF8-pte+AF8-fault mm/memory.c:3323
-+AKAAoACgAKAAoACgAKAAoACgAFsAPACgAKAAoACgAKA-inline+AKAAoACgAKAAoAA+AF0- +A=
-F8AXw-handle+AF8-mm+AF8-fault mm/memory.c:3417
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff816ecec3+AD4AXQ- handle+AF8-mm+AF8-=
-fault+-0x2483/0x4640 mm/memory.c:3446
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff8127eff6+AD4AXQ- +AF8AXw-do+AF8-pag=
-e+AF8-fault+-0x376/0x960 arch/x86/mm/fault.c:1238
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff8127f738+AD4AXQ- trace+AF8-do+AF8-p=
-age+AF8-fault+-0xe8/0x420 arch/x86/mm/fault.c:1331
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff812705c4+AD4AXQ- do+AF8-async+AF8-p=
-age+AF8-fault+-0x14/0xd0 arch/x86/kernel/kvm.c:264
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff86338f78+AD4AXQ- async+AF8-page+AF8=
--fault+-0x28/0x30 arch/x86/entry/entry+AF8-64.S:986
-+AKAAoACgAKAAoACgAKAAoACgAFsAPA-ffffffff86336c36+AD4AXQ- entry+AF8-SYSCALL+=
-AF8-64+AF8-fastpath+-0x16/0x7a
-+AKAAoACgAKAAoACgAKAAoA-arch/x86/entry/entry+AF8-64.S:185
-+AKAAoACgAKAAoACgAKAAoA----+AFs- end trace dae21e0f85f1f98c +AF0----
-+AKAAoACgAKA-
-+AKAAoACgAKA-Fixes: 5a023cdba50c (+ACI-block: enable dax for raw block devi=
-ces+ACI-)
-+AKAAoACgAKA-Reported-by: Dmitry Vyukov +ADw-dvyukov+AEA-google.com+AD4-
-+AKAAoACgAKA-Reported-by: Kirill A. Shutemov +ADw-kirill+AEA-shutemov.name+=
-AD4-
-+AKAAoACgAKA-Suggested-by: Jan Kara +ADw-jack+AEA-suse.cz+AD4-
-+AKAAoACgAKA-Reviewed-by: Jan Kara +ADw-jack+AEA-suse.cz+AD4-
-+AKAAoACgAKA-Suggested-by: Matthew Wilcox +ADw-willy+AEA-linux.intel.com+AD=
-4-
-+AKAAoACgAKA-Tested-by: Ross Zwisler +ADw-ross.zwisler+AEA-linux.intel.com+=
-AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+=
-AD4-
-
-commit 9f4736fe7ca804aa79b5916221bb13dfc6221a0f
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Thu Jan 28 20:13:39 2016 -0800
-
-+AKAAoACgAKA-block: revert runtime dax control of the raw block device
-+AKAAoACgAKA-
-+AKAAoACgAKA-Dynamically enabling DAX requires that the page cache first be=
- flushed
-+AKAAoACgAKA-and invalidated.+AKAAoA-This must occur atomically with the ch=
-ange of DAX mode
-+AKAAoACgAKA-otherwise we confuse the fsync/msync tracking and violate data
-+AKAAoACgAKA-durability guarantees.+AKAAoA-Eliminate the possibilty of DAX-=
-disabled to
-+AKAAoACgAKA-DAX-enabled transitions for now and revisit this for the next =
-cycle.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Cc: Jan Kara +ADw-jack+AEA-suse.com+AD4-
-+AKAAoACgAKA-Cc: Jeff Moyer +ADw-jmoyer+AEA-redhat.com+AD4-
-+AKAAoACgAKA-Cc: Christoph Hellwig +ADw-hch+AEA-lst.de+AD4-
-+AKAAoACgAKA-Cc: Dave Chinner +ADw-david+AEA-fromorbit.com+AD4-
-+AKAAoACgAKA-Cc: Matthew Wilcox +ADw-willy+AEA-linux.intel.com+AD4-
-+AKAAoACgAKA-Cc: Andrew Morton +ADw-akpm+AEA-linux-foundation.org+AD4-
-+AKAAoACgAKA-Cc: Ross Zwisler +ADw-ross.zwisler+AEA-linux.intel.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+=
-AD4-
-
-commit d1a5f2b4d8a125943dcb6b032fc7eaefc2c78296
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Thu Jan 28 20:25:31 2016 -0800
-
-+AKAAoACgAKA-block: use DAX for partition table reads
-+AKAAoACgAKA-
-+AKAAoACgAKA-Avoid populating pagecache when the block device is in DAX mod=
-e.
-+AKAAoACgAKA-Otherwise these page cache entries collide with the fsync/msyn=
-c
-+AKAAoACgAKA-implementation and break data durability guarantees.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Cc: Jan Kara +ADw-jack+AEA-suse.com+AD4-
-+AKAAoACgAKA-Cc: Jeff Moyer +ADw-jmoyer+AEA-redhat.com+AD4-
-+AKAAoACgAKA-Cc: Christoph Hellwig +ADw-hch+AEA-lst.de+AD4-
-+AKAAoACgAKA-Cc: Dave Chinner +ADw-david+AEA-fromorbit.com+AD4-
-+AKAAoACgAKA-Cc: Andrew Morton +ADw-akpm+AEA-linux-foundation.org+AD4-
-+AKAAoACgAKA-Reported-by: Ross Zwisler +ADw-ross.zwisler+AEA-linux.intel.co=
-m+AD4-
-+AKAAoACgAKA-Tested-by: Ross Zwisler +ADw-ross.zwisler+AEA-linux.intel.com+=
-AD4-
-+AKAAoACgAKA-Reviewed-by: Matthew Wilcox +ADw-willy+AEA-linux.intel.com+AD4=
+diff --git a/Documentation/filesystems/dax.txt b/Documentation/filesystems/dax.txt
+index 7bde640..2fe9e74 100644
+--- a/Documentation/filesystems/dax.txt
++++ b/Documentation/filesystems/dax.txt
+@@ -49,6 +49,7 @@ These block devices may be used for inspiration:
+ - axonram: Axon DDR2 device driver
+ - brd: RAM backed block device driver
+ - dcssblk: s390 dcss block device driver
++- pmem: NV-DIMM Persistent Memory driver
+ 
+ 
+ Implementation Tips for Filesystem Writers
+@@ -61,9 +62,9 @@ Filesystem support consists of
+   dax_do_io() instead of blockdev_direct_IO() if S_DAX is set
+ - implementing an mmap file operation for DAX files which sets the
+   VM_MIXEDMAP and VM_HUGEPAGE flags on the VMA, and setting the vm_ops to
+-  include handlers for fault, pmd_fault and page_mkwrite (which should
+-  probably call dax_fault(), dax_pmd_fault() and dax_mkwrite(), passing the
+-  appropriate get_block() callback)
++  include handlers for fault, huge_fault and page_mkwrite (which should
++  probably call dax_fault() and dax_mkwrite(), passing the appropriate
++  get_block() callback)
+ - calling dax_truncate_page() instead of block_truncate_page() for DAX files
+ - calling dax_zero_page_range() instead of zero_user() for DAX files
+ - ensuring that there is sufficient locking between reads, writes,
+@@ -75,8 +76,9 @@ calls to get_block() (for example by a page-fault racing with a read()
+ or a write()) work correctly.
+ 
+ These filesystems may be used for inspiration:
+-- ext2: the second extended filesystem, see Documentation/filesystems/ext2.txt
+-- ext4: the fourth extended filesystem, see Documentation/filesystems/ext4.txt
++- ext2: see Documentation/filesystems/ext2.txt
++- ext4: see Documentation/filesystems/ext4.txt
++- xfs: see Documentation/filesystems/xfs.txt
+ 
+ 
+ Shortcomings
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 303b7cd..f56402d 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -1733,13 +1733,7 @@ static const struct address_space_operations def_blk_aops = {
+  */
+ static int blkdev_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	return __dax_fault(vma, vmf, blkdev_get_block, NULL);
+-}
 -
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+=
-AD4-
-
-commit 03fc2da63b9a33dce784a2075c7e068bb97cbf69
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Tue Jan 26 09:48:05 2016 -0800
-
-+AKAAoACgAKA-mm: fix pfn+AF8-t to page conversion in vm+AF8-insert+AF8-mixe=
-d
-+AKAAoACgAKA-
-+AKAAoACgAKA-pfn+AF8-t+AF8-to+AF8-page() honors the flags in the pfn+AF8-t =
-value to determine if a
-+AKAAoACgAKA-pfn is backed by a page.+AKAAoA-However, vm+AF8-insert+AF8-mix=
-ed() was originally
-+AKAAoACgAKA-written to use pfn+AF8-valid() to make this determination.+AKA=
-AoA-To restore the
-+AKAAoACgAKA-old/correct behavior, ignore the pfn+AF8-t flags in the +ACE-p=
-fn+AF8-t+AF8-devmap() case
-+AKAAoACgAKA-and fallback to trusting pfn+AF8-valid().
-+AKAAoACgAKA-
-+AKAAoACgAKA-Fixes: 01c8f1c44b83 (+ACI-mm, dax, gpu: convert vm+AF8-insert+=
-AF8-mixed to pfn+AF8-t+ACI-)
-+AKAAoACgAKA-Cc: Dave Hansen +ADw-dave+AEA-sr71.net+AD4-
-+AKAAoACgAKA-Cc: David Airlie +ADw-airlied+AEA-linux.ie+AD4-
-+AKAAoACgAKA-Reported-by: Tomi Valkeinen +ADw-tomi.valkeinen+AEA-ti.com+AD4=
+-static int blkdev_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+-		pmd_t *pmd, unsigned int flags)
+-{
+-	return __dax_pmd_fault(vma, addr, pmd, flags, blkdev_get_block, NULL);
++	return dax_fault(vma, vmf, blkdev_get_block, NULL);
+ }
+ 
+ static void blkdev_vm_open(struct vm_area_struct *vma)
+@@ -1766,7 +1760,7 @@ static const struct vm_operations_struct blkdev_dax_vm_ops = {
+ 	.open		= blkdev_vm_open,
+ 	.close		= blkdev_vm_close,
+ 	.fault		= blkdev_dax_fault,
+-	.pmd_fault	= blkdev_dax_pmd_fault,
++	.huge_fault	= blkdev_dax_fault,
+ 	.pfn_mkwrite	= blkdev_dax_fault,
+ };
+ 
+diff --git a/fs/dax.c b/fs/dax.c
+index 41cf4ee..05ed547 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -547,23 +547,7 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 	return error;
+ }
+ 
+-/**
+- * __dax_fault - handle a page fault on a DAX file
+- * @vma: The virtual memory area where the fault occurred
+- * @vmf: The description of the fault
+- * @get_block: The filesystem method used to translate file offsets to blocks
+- * @complete_unwritten: The filesystem method used to convert unwritten blocks
+- *	to written so the data written to them is exposed. This is required for
+- *	required by write faults for filesystems that will return unwritten
+- *	extent mappings from @get_block, but it is optional for reads as
+- *	dax_insert_mapping() will always zero unwritten blocks. If the fs does
+- *	not support unwritten extents, the it should pass NULL.
+- *
+- * When a page fault occurs, filesystems may call this helper in their
+- * fault handler for DAX files. __dax_fault() assumes the caller has done all
+- * the necessary locking for the page fault to proceed successfully.
+- */
+-int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
++static int dax_pte_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 			get_block_t get_block, dax_iodone_t complete_unwritten)
+ {
+ 	struct file *file = vma->vm_file;
+@@ -699,34 +683,6 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	}
+ 	goto out;
+ }
+-EXPORT_SYMBOL(__dax_fault);
 -
-+AKAAoACgAKA-Tested-by: Tomi Valkeinen +ADw-tomi.valkeinen+AEA-ti.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+=
-AD4-
-
-commit 76e9f0ee52b0be5761e29847e0ef01f23f24f1df
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Fri Jan 22 09:43:28 2016 -0800
-
-+AKAAoACgAKA-phys+AF8-to+AF8-pfn+AF8-t: use phys+AF8-addr+AF8-t
-+AKAAoACgAKA-
-+AKAAoACgAKA-A dma+AF8-addr+AF8-t is potentially smaller than a phys+AF8-ad=
-dr+AF8-t on some archs.
-+AKAAoACgAKA-Don't truncate the address when doing the pfn conversion.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Cc: Ross Zwisler +ADw-ross.zwisler+AEA-linux.intel.com+AD4-
-+AKAAoACgAKA-Reported-by: Matthew Wilcox +ADw-willy+AEA-linux.intel.com+AD4=
+-/**
+- * dax_fault - handle a page fault on a DAX file
+- * @vma: The virtual memory area where the fault occurred
+- * @vmf: The description of the fault
+- * @get_block: The filesystem method used to translate file offsets to blocks
+- *
+- * When a page fault occurs, filesystems may call this helper in their
+- * fault handler for DAX files.
+- */
+-int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+-	      get_block_t get_block, dax_iodone_t complete_unwritten)
+-{
+-	int result;
+-	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
 -
-+AKAAoACgAKAAWw-willy: fix pfn+AF8-t+AF8-to+AF8-phys as well+AF0-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+=
-AD4-=
+-	if (vmf->flags & FAULT_FLAG_WRITE) {
+-		sb_start_pagefault(sb);
+-		file_update_time(vma->vm_file);
+-	}
+-	result = __dax_fault(vma, vmf, get_block, complete_unwritten);
+-	if (vmf->flags & FAULT_FLAG_WRITE)
+-		sb_end_pagefault(sb);
+-
+-	return result;
+-}
+-EXPORT_SYMBOL_GPL(dax_fault);
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /*
+@@ -753,7 +709,7 @@ static void __dax_dbg(struct buffer_head *bh, unsigned long address,
+ 
+ #define dax_pmd_dbg(bh, address, reason)	__dax_dbg(bh, address, reason, "dax_pmd")
+ 
+-int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
++static int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		pmd_t *pmd, unsigned int flags, get_block_t get_block,
+ 		dax_iodone_t complete_unwritten)
+ {
+@@ -941,37 +897,46 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	result = VM_FAULT_FALLBACK;
+ 	goto out;
+ }
+-EXPORT_SYMBOL_GPL(__dax_pmd_fault);
++#else /* !CONFIG_TRANSPARENT_HUGEPAGE */
++static int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
++		pmd_t *pmd, unsigned int flags, get_block_t get_block,
++		dax_iodone_t complete_unwritten)
++{
++	return VM_FAULT_FALLBACK;
++}
++#endif /* !CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ /**
+- * dax_pmd_fault - handle a PMD fault on a DAX file
++ * dax_fault - handle a page fault on a DAX file
+  * @vma: The virtual memory area where the fault occurred
+  * @vmf: The description of the fault
+  * @get_block: The filesystem method used to translate file offsets to blocks
++ * @iodone: The filesystem method used to convert unwritten blocks
++ *	to written so the data written to them is exposed.  This is required
++ *	by write faults for filesystems that will return unwritten extent
++ *	mappings from @get_block, but it is optional for reads as
++ *	dax_insert_mapping() will always zero unwritten blocks.  If the fs
++ *	does not support unwritten extents, then it should pass NULL.
+  *
+  * When a page fault occurs, filesystems may call this helper in their
+- * pmd_fault handler for DAX files.
++ * fault handler for DAX files.  dax_fault() assumes the caller has done all
++ * the necessary locking for the page fault to proceed successfully.
+  */
+-int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+-			pmd_t *pmd, unsigned int flags, get_block_t get_block,
+-			dax_iodone_t complete_unwritten)
++int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
++		get_block_t get_block, dax_iodone_t iodone)
+ {
+-	int result;
+-	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
+-
+-	if (flags & FAULT_FLAG_WRITE) {
+-		sb_start_pagefault(sb);
+-		file_update_time(vma->vm_file);
++	unsigned long address = (unsigned long)vmf->virtual_address;
++	switch (vmf->flags & FAULT_FLAG_SIZE_MASK) {
++	case FAULT_FLAG_SIZE_PTE:
++		return dax_pte_fault(vma, vmf, get_block, iodone);
++	case FAULT_FLAG_SIZE_PMD:
++		return dax_pmd_fault(vma, address, vmf->pmd, vmf->flags,
++						get_block, iodone);
++	default:
++		return VM_FAULT_FALLBACK;
+ 	}
+-	result = __dax_pmd_fault(vma, address, pmd, flags, get_block,
+-				complete_unwritten);
+-	if (flags & FAULT_FLAG_WRITE)
+-		sb_end_pagefault(sb);
+-
+-	return result;
+ }
+-EXPORT_SYMBOL_GPL(dax_pmd_fault);
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++EXPORT_SYMBOL_GPL(dax_fault);
+ 
+ /**
+  * dax_pfn_mkwrite - handle first write to DAX page
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index 2c88d68..cf6f78c 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -51,7 +51,7 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	}
+ 	down_read(&ei->dax_sem);
+ 
+-	ret = __dax_fault(vma, vmf, ext2_get_block, NULL);
++	ret = dax_fault(vma, vmf, ext2_get_block, NULL);
+ 
+ 	up_read(&ei->dax_sem);
+ 	if (vmf->flags & FAULT_FLAG_WRITE)
+@@ -59,27 +59,6 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	return ret;
+ }
+ 
+-static int ext2_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+-						pmd_t *pmd, unsigned int flags)
+-{
+-	struct inode *inode = file_inode(vma->vm_file);
+-	struct ext2_inode_info *ei = EXT2_I(inode);
+-	int ret;
+-
+-	if (flags & FAULT_FLAG_WRITE) {
+-		sb_start_pagefault(inode->i_sb);
+-		file_update_time(vma->vm_file);
+-	}
+-	down_read(&ei->dax_sem);
+-
+-	ret = __dax_pmd_fault(vma, addr, pmd, flags, ext2_get_block, NULL);
+-
+-	up_read(&ei->dax_sem);
+-	if (flags & FAULT_FLAG_WRITE)
+-		sb_end_pagefault(inode->i_sb);
+-	return ret;
+-}
+-
+ static int ext2_dax_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct inode *inode = file_inode(vma->vm_file);
+@@ -90,7 +69,7 @@ static int ext2_dax_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	file_update_time(vma->vm_file);
+ 	down_read(&ei->dax_sem);
+ 
+-	ret = __dax_mkwrite(vma, vmf, ext2_get_block, NULL);
++	ret = dax_mkwrite(vma, vmf, ext2_get_block, NULL);
+ 
+ 	up_read(&ei->dax_sem);
+ 	sb_end_pagefault(inode->i_sb);
+@@ -123,7 +102,7 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ 
+ static const struct vm_operations_struct ext2_dax_vm_ops = {
+ 	.fault		= ext2_dax_fault,
+-	.pmd_fault	= ext2_dax_pmd_fault,
++	.huge_fault	= ext2_dax_fault,
+ 	.page_mkwrite	= ext2_dax_mkwrite,
+ 	.pfn_mkwrite	= ext2_dax_pfn_mkwrite,
+ };
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index fa899c9..665fc4b 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -202,54 +202,30 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 
+ 	if (write) {
+-		sb_start_pagefault(sb);
+-		file_update_time(vma->vm_file);
+-		down_read(&EXT4_I(inode)->i_mmap_sem);
+-		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
+-						EXT4_DATA_TRANS_BLOCKS(sb));
+-	} else
+-		down_read(&EXT4_I(inode)->i_mmap_sem);
+-
+-	if (IS_ERR(handle))
+-		result = VM_FAULT_SIGBUS;
+-	else
+-		result = __dax_fault(vma, vmf, ext4_dax_mmap_get_block, NULL);
+-
+-	if (write) {
+-		if (!IS_ERR(handle))
+-			ext4_journal_stop(handle);
+-		up_read(&EXT4_I(inode)->i_mmap_sem);
+-		sb_end_pagefault(sb);
+-	} else
+-		up_read(&EXT4_I(inode)->i_mmap_sem);
+-
+-	return result;
+-}
+-
+-static int ext4_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+-						pmd_t *pmd, unsigned int flags)
+-{
+-	int result;
+-	handle_t *handle = NULL;
+-	struct inode *inode = file_inode(vma->vm_file);
+-	struct super_block *sb = inode->i_sb;
+-	bool write = flags & FAULT_FLAG_WRITE;
++		unsigned nblocks;
++		switch (vmf->flags & FAULT_FLAG_SIZE_MASK) {
++		case FAULT_FLAG_SIZE_PTE:
++			nblocks = EXT4_DATA_TRANS_BLOCKS(sb);
++			break;
++		case FAULT_FLAG_SIZE_PMD:
++			nblocks = ext4_chunk_trans_blocks(inode,
++						PMD_SIZE / PAGE_SIZE);
++			break;
++		default:
++			return VM_FAULT_FALLBACK;
++		}
+ 
+-	if (write) {
+ 		sb_start_pagefault(sb);
+ 		file_update_time(vma->vm_file);
+ 		down_read(&EXT4_I(inode)->i_mmap_sem);
+-		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
+-				ext4_chunk_trans_blocks(inode,
+-							PMD_SIZE / PAGE_SIZE));
++		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE, nblocks);
+ 	} else
+ 		down_read(&EXT4_I(inode)->i_mmap_sem);
+ 
+ 	if (IS_ERR(handle))
+ 		result = VM_FAULT_SIGBUS;
+ 	else
+-		result = __dax_pmd_fault(vma, addr, pmd, flags,
+-				ext4_dax_mmap_get_block, NULL);
++		result = dax_fault(vma, vmf, ext4_dax_mmap_get_block, NULL);
+ 
+ 	if (write) {
+ 		if (!IS_ERR(handle))
+@@ -270,7 +246,7 @@ static int ext4_dax_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	sb_start_pagefault(inode->i_sb);
+ 	file_update_time(vma->vm_file);
+ 	down_read(&EXT4_I(inode)->i_mmap_sem);
+-	err = __dax_mkwrite(vma, vmf, ext4_dax_mmap_get_block, NULL);
++	err = dax_mkwrite(vma, vmf, ext4_dax_mmap_get_block, NULL);
+ 	up_read(&EXT4_I(inode)->i_mmap_sem);
+ 	sb_end_pagefault(inode->i_sb);
+ 
+@@ -310,7 +286,7 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ 
+ static const struct vm_operations_struct ext4_dax_vm_ops = {
+ 	.fault		= ext4_dax_fault,
+-	.pmd_fault	= ext4_dax_pmd_fault,
++	.huge_fault	= ext4_dax_fault,
+ 	.page_mkwrite	= ext4_dax_mkwrite,
+ 	.pfn_mkwrite	= ext4_dax_pfn_mkwrite,
+ };
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 55e16e2..6db703b 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1526,7 +1526,7 @@ xfs_filemap_page_mkwrite(
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 
+ 	if (IS_DAX(inode)) {
+-		ret = __dax_mkwrite(vma, vmf, xfs_get_blocks_dax_fault, NULL);
++		ret = dax_mkwrite(vma, vmf, xfs_get_blocks_dax_fault, NULL);
+ 	} else {
+ 		ret = block_page_mkwrite(vma, vmf, xfs_get_blocks);
+ 		ret = block_page_mkwrite_return(ret);
+@@ -1560,7 +1560,7 @@ xfs_filemap_fault(
+ 		 * changes to xfs_get_blocks_direct() to map unwritten extent
+ 		 * ioend for conversion on read-only mappings.
+ 		 */
+-		ret = __dax_fault(vma, vmf, xfs_get_blocks_dax_fault, NULL);
++		ret = dax_fault(vma, vmf, xfs_get_blocks_dax_fault, NULL);
+ 	} else
+ 		ret = filemap_fault(vma, vmf);
+ 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+@@ -1571,16 +1571,14 @@ xfs_filemap_fault(
+ /*
+  * Similar to xfs_filemap_fault(), the DAX fault path can call into here on
+  * both read and write faults. Hence we need to handle both cases. There is no
+- * ->pmd_mkwrite callout for huge pages, so we have a single function here to
++ * ->huge_mkwrite callout for huge pages, so we have a single function here to
+  * handle both cases here. @flags carries the information on the type of fault
+  * occuring.
+  */
+ STATIC int
+-xfs_filemap_pmd_fault(
++xfs_filemap_huge_fault(
+ 	struct vm_area_struct	*vma,
+-	unsigned long		addr,
+-	pmd_t			*pmd,
+-	unsigned int		flags)
++	struct vm_fault		*vmf)
+ {
+ 	struct inode		*inode = file_inode(vma->vm_file);
+ 	struct xfs_inode	*ip = XFS_I(inode);
+@@ -1589,26 +1587,25 @@ xfs_filemap_pmd_fault(
+ 	if (!IS_DAX(inode))
+ 		return VM_FAULT_FALLBACK;
+ 
+-	trace_xfs_filemap_pmd_fault(ip);
++	trace_xfs_filemap_huge_fault(ip);
+ 
+-	if (flags & FAULT_FLAG_WRITE) {
++	if (vmf->flags & FAULT_FLAG_WRITE) {
+ 		sb_start_pagefault(inode->i_sb);
+ 		file_update_time(vma->vm_file);
+ 	}
+ 
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-	ret = __dax_pmd_fault(vma, addr, pmd, flags, xfs_get_blocks_dax_fault,
+-			      NULL);
++	ret = dax_fault(vma, vmf, xfs_get_blocks_dax_fault, NULL);
+ 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 
+-	if (flags & FAULT_FLAG_WRITE)
++	if (vmf->flags & FAULT_FLAG_WRITE)
+ 		sb_end_pagefault(inode->i_sb);
+ 
+ 	return ret;
+ }
+ 
+ /*
+- * pfn_mkwrite was originally inteneded to ensure we capture time stamp
++ * pfn_mkwrite was originally intended to ensure we capture time stamp
+  * updates on write faults. In reality, it's need to serialise against
+  * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
+  * to ensure we serialise the fault barrier in place.
+@@ -1644,7 +1641,7 @@ xfs_filemap_pfn_mkwrite(
+ 
+ static const struct vm_operations_struct xfs_file_vm_ops = {
+ 	.fault		= xfs_filemap_fault,
+-	.pmd_fault	= xfs_filemap_pmd_fault,
++	.huge_fault	= xfs_filemap_huge_fault,
+ 	.map_pages	= filemap_map_pages,
+ 	.page_mkwrite	= xfs_filemap_page_mkwrite,
+ 	.pfn_mkwrite	= xfs_filemap_pfn_mkwrite,
+diff --git a/fs/xfs/xfs_trace.h b/fs/xfs/xfs_trace.h
+index 877079eb..8f810db 100644
+--- a/fs/xfs/xfs_trace.h
++++ b/fs/xfs/xfs_trace.h
+@@ -687,7 +687,7 @@ DEFINE_INODE_EVENT(xfs_inode_clear_eofblocks_tag);
+ DEFINE_INODE_EVENT(xfs_inode_free_eofblocks_invalid);
+ 
+ DEFINE_INODE_EVENT(xfs_filemap_fault);
+-DEFINE_INODE_EVENT(xfs_filemap_pmd_fault);
++DEFINE_INODE_EVENT(xfs_filemap_huge_fault);
+ DEFINE_INODE_EVENT(xfs_filemap_page_mkwrite);
+ DEFINE_INODE_EVENT(xfs_filemap_pfn_mkwrite);
+ 
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 8204c3d..8e58c36 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -12,25 +12,8 @@ int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
+ int dax_truncate_page(struct inode *, loff_t from, get_block_t);
+ int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
+ 		dax_iodone_t);
+-int __dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
+-		dax_iodone_t);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-int dax_pmd_fault(struct vm_area_struct *, unsigned long addr, pmd_t *,
+-				unsigned int flags, get_block_t, dax_iodone_t);
+-int __dax_pmd_fault(struct vm_area_struct *, unsigned long addr, pmd_t *,
+-				unsigned int flags, get_block_t, dax_iodone_t);
+-#else
+-static inline int dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+-				pmd_t *pmd, unsigned int flags, get_block_t gb,
+-				dax_iodone_t di)
+-{
+-	return VM_FAULT_FALLBACK;
+-}
+-#define __dax_pmd_fault dax_pmd_fault
+-#endif
+ int dax_pfn_mkwrite(struct vm_area_struct *, struct vm_fault *);
+ #define dax_mkwrite(vma, vmf, gb, iod)		dax_fault(vma, vmf, gb, iod)
+-#define __dax_mkwrite(vma, vmf, gb, iod)	__dax_fault(vma, vmf, gb, iod)
+ 
+ static inline bool vma_is_dax(struct vm_area_struct *vma)
+ {
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index e7f08d7..37e25f1 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -232,15 +232,21 @@ extern pgprot_t protection_map[16];
+ #define FAULT_FLAG_TRIED	0x20	/* Second try */
+ #define FAULT_FLAG_USER		0x40	/* The fault originated in userspace */
+ 
++#define FAULT_FLAG_SIZE_MASK	0x700	/* Support up to 8-level page tables */
++#define FAULT_FLAG_SIZE_PTE	0x000	/* First level (eg 4k) */
++#define FAULT_FLAG_SIZE_PMD	0x100	/* Second level (eg 2MB) */
++#define FAULT_FLAG_SIZE_PUD	0x200	/* Third level (eg 1GB) */
++#define FAULT_FLAG_SIZE_PGD	0x300	/* Fourth level (eg 512GB) */
++
+ /*
+- * vm_fault is filled by the the pagefault handler and passed to the vma's
++ * vm_fault is filled in by the pagefault handler and passed to the vma's
+  * ->fault function. The vma's ->fault is responsible for returning a bitmask
+  * of VM_FAULT_xxx flags that give details about how the fault was handled.
+  *
+  * MM layer fills up gfp_mask for page allocations but fault handler might
+  * alter it if its implementation requires a different allocation context.
+  *
+- * pgoff should be used in favour of virtual_address, if possible.
++ * pgoff should be used instead of virtual_address, if possible.
+  */
+ struct vm_fault {
+ 	unsigned int flags;		/* FAULT_FLAG_xxx flags */
+@@ -257,7 +263,12 @@ struct vm_fault {
+ 	/* for ->map_pages() only */
+ 	pgoff_t max_pgoff;		/* map pages for offset from pgoff till
+ 					 * max_pgoff inclusive */
+-	pte_t *pte;			/* pte entry associated with ->pgoff */
++	union {
++		pte_t *pte;		/* pte entry associated with ->pgoff */
++		pmd_t *pmd;
++		pud_t *pud;
++		pgd_t *pgd;
++	};
+ };
+ 
+ /*
+@@ -270,8 +281,7 @@ struct vm_operations_struct {
+ 	void (*close)(struct vm_area_struct * area);
+ 	int (*mremap)(struct vm_area_struct * area);
+ 	int (*fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
+-	int (*pmd_fault)(struct vm_area_struct *, unsigned long address,
+-						pmd_t *, unsigned int flags);
++	int (*huge_fault)(struct vm_area_struct *, struct vm_fault *vmf);
+ 	void (*map_pages)(struct vm_area_struct *vma, struct vm_fault *vmf);
+ 
+ 	/* notification that a previously read-only page is about to become
+diff --git a/mm/memory.c b/mm/memory.c
+index 4150112..492a228 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3245,10 +3245,16 @@ out:
+ static int create_huge_pmd(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, pmd_t *pmd, unsigned int flags)
+ {
++	struct vm_fault vmf = {
++		.virtual_address = (void __user *)address,
++		.flags = flags | FAULT_FLAG_SIZE_PMD,
++		.pmd = pmd,
++	};
++
+ 	if (vma_is_anonymous(vma))
+ 		return do_huge_pmd_anonymous_page(mm, vma, address, pmd, flags);
+-	if (vma->vm_ops->pmd_fault)
+-		return vma->vm_ops->pmd_fault(vma, address, pmd, flags);
++	if (vma->vm_ops->huge_fault)
++		return vma->vm_ops->huge_fault(vma, &vmf);
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+@@ -3256,10 +3262,16 @@ static int wp_huge_pmd(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, pmd_t *pmd, pmd_t orig_pmd,
+ 			unsigned int flags)
+ {
++	struct vm_fault vmf = {
++		.virtual_address = (void __user *)address,
++		.flags = flags | FAULT_FLAG_SIZE_PMD,
++		.pmd = pmd,
++	};
++
+ 	if (vma_is_anonymous(vma))
+ 		return do_huge_pmd_wp_page(mm, vma, address, pmd, orig_pmd);
+-	if (vma->vm_ops->pmd_fault)
+-		return vma->vm_ops->pmd_fault(vma, address, pmd, flags);
++	if (vma->vm_ops->huge_fault)
++		return vma->vm_ops->huge_fault(vma, &vmf);
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+-- 
+2.6.4
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
