@@ -1,103 +1,125 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 3/3] devm_memremap_pages: fix vmem_altmap lifetime +
- alignment handling
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 30 Jan 2016 10:42:19 -0800
-Message-ID: <20160130184219.17558.88859.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160130184203.17558.30413.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160130184203.17558.30413.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jeff Moyer <jmoyer@redhat.com>, linux-kernel@vger.kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v8 3/9] pmem: add wb_cache_pmem() to the PMEM API
+Date: Thu,  7 Jan 2016 22:27:53 -0700
+Message-Id: <1452230879-18117-4-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1452230879-18117-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1452230879-18117-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-to_vmem_altmap() needs to return valid results until
-arch_remove_memory() completes.  It also needs to be valid for any pfn
-in a section regardless of whether that pfn maps to data.  This escape
-was a result of a bug in the unit test.
+The function __arch_wb_cache_pmem() was already an internal implementation
+detail of the x86 PMEM API, but this functionality needs to be exported as
+part of the general PMEM API to handle the fsync/msync case for DAX mmaps.
 
-The signature of this bug is that free_pagetable() fails to retrieve a
-vmem_altmap and goes off into the weeds:
+One thing worth noting is that we really do want this to be part of the
+PMEM API as opposed to a stand-alone function like clflush_cache_range()
+because of ordering restrictions.  By having wb_cache_pmem() as part of the
+PMEM API we can leave it unordered, call it multiple times to write back
+large amounts of memory, and then order the multiple calls with a single
+wmb_pmem().
 
- BUG: unable to handle kernel NULL pointer dereference at           (null)
- IP: [<ffffffff811d2629>] get_pfnblock_flags_mask+0x49/0x60
- [..]
- Call Trace:
-  [<ffffffff811d3477>] free_hot_cold_page+0x97/0x1d0
-  [<ffffffff811d367a>] __free_pages+0x2a/0x40
-  [<ffffffff8191e669>] free_pagetable+0x8c/0xd4
-  [<ffffffff8191ef4e>] remove_pagetable+0x37a/0x808
-  [<ffffffff8191b210>] vmemmap_free+0x10/0x20
-
-Fixes: 4b94ffdc4163 ("x86, mm: introduce vmem_altmap to augment vmemmap_populate()")
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- kernel/memremap.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ arch/x86/include/asm/pmem.h | 11 ++++++-----
+ include/linux/pmem.h        | 22 +++++++++++++++++++++-
+ 2 files changed, 27 insertions(+), 6 deletions(-)
 
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index e517a16cb426..cbc3e97e2bb4 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -183,7 +183,11 @@ EXPORT_SYMBOL(put_zone_device_page);
- 
- static void pgmap_radix_release(struct resource *res)
- {
--	resource_size_t key;
-+	resource_size_t key, align_start, align_size, align_end;
-+
-+	align_start = res->start & ~(SECTION_SIZE - 1);
-+	align_size = ALIGN(resource_size(res), SECTION_SIZE);
-+	align_end = align_start + align_size - 1;
- 
- 	mutex_lock(&pgmap_lock);
- 	for (key = res->start; key <= res->end; key += SECTION_SIZE)
-@@ -226,12 +230,11 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
- 		percpu_ref_put(pgmap->ref);
- 	}
- 
--	pgmap_radix_release(res);
--
- 	/* pages are dead and unused, undo the arch mapping */
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
- 	arch_remove_memory(align_start, align_size);
-+	pgmap_radix_release(res);
- 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
- 			"%s: failed to free all reserved pages\n", __func__);
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index 1544fab..c57fd1e 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -67,18 +67,19 @@ static inline void arch_wmb_pmem(void)
  }
-@@ -267,7 +270,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 
+ /**
+- * __arch_wb_cache_pmem - write back a cache range with CLWB
++ * arch_wb_cache_pmem - write back a cache range with CLWB
+  * @vaddr:	virtual start address
+  * @size:	number of bytes to write back
+  *
+  * Write back a cache range using the CLWB (cache line write back)
+  * instruction.  This function requires explicit ordering with an
+- * arch_wmb_pmem() call.  This API is internal to the x86 PMEM implementation.
++ * arch_wmb_pmem() call.
+  */
+-static inline void __arch_wb_cache_pmem(void *vaddr, size_t size)
++static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
  {
- 	int is_ram = region_intersects(res->start, resource_size(res),
- 			"System RAM");
--	resource_size_t key, align_start, align_size;
-+	resource_size_t key, align_start, align_size, align_end;
- 	struct dev_pagemap *pgmap;
- 	struct page_map *page_map;
- 	unsigned long pfn;
-@@ -309,7 +312,10 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
+ 	unsigned long clflush_mask = x86_clflush_size - 1;
++	void *vaddr = (void __force *)addr;
+ 	void *vend = vaddr + size;
+ 	void *p;
  
- 	mutex_lock(&pgmap_lock);
- 	error = 0;
--	for (key = res->start; key <= res->end; key += SECTION_SIZE) {
-+	align_start = res->start & ~(SECTION_SIZE - 1);
-+	align_size = ALIGN(resource_size(res), SECTION_SIZE);
-+	align_end = align_start + align_size - 1;
-+	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
- 		struct dev_pagemap *dup;
+@@ -115,7 +116,7 @@ static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+ 	len = copy_from_iter_nocache(vaddr, bytes, i);
  
- 		rcu_read_lock();
-@@ -336,8 +342,6 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	if (nid < 0)
- 		nid = numa_mem_id();
+ 	if (__iter_needs_pmem_wb(i))
+-		__arch_wb_cache_pmem(vaddr, bytes);
++		arch_wb_cache_pmem(addr, bytes);
  
--	align_start = res->start & ~(SECTION_SIZE - 1);
--	align_size = ALIGN(resource_size(res), SECTION_SIZE);
- 	error = arch_add_memory(nid, align_start, align_size, true);
- 	if (error)
- 		goto err_add_memory;
+ 	return len;
+ }
+@@ -133,7 +134,7 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
+ 	void *vaddr = (void __force *)addr;
+ 
+ 	memset(vaddr, 0, size);
+-	__arch_wb_cache_pmem(vaddr, size);
++	arch_wb_cache_pmem(addr, size);
+ }
+ 
+ static inline bool __arch_has_wmb_pmem(void)
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index acfea8c..7c3d11a 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -53,12 +53,18 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
+ {
+ 	BUG();
+ }
++
++static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
++{
++	BUG();
++}
+ #endif
+ 
+ /*
+  * Architectures that define ARCH_HAS_PMEM_API must provide
+  * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(),
+- * arch_copy_from_iter_pmem(), arch_clear_pmem() and arch_has_wmb_pmem().
++ * arch_copy_from_iter_pmem(), arch_clear_pmem(), arch_wb_cache_pmem()
++ * and arch_has_wmb_pmem().
+  */
+ static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
+ {
+@@ -178,4 +184,18 @@ static inline void clear_pmem(void __pmem *addr, size_t size)
+ 	else
+ 		default_clear_pmem(addr, size);
+ }
++
++/**
++ * wb_cache_pmem - write back processor cache for PMEM memory range
++ * @addr:	virtual start address
++ * @size:	number of bytes to write back
++ *
++ * Write back the processor cache range starting at 'addr' for 'size' bytes.
++ * This function requires explicit ordering with a wmb_pmem() call.
++ */
++static inline void wb_cache_pmem(void __pmem *addr, size_t size)
++{
++	if (arch_has_pmem_api())
++		arch_wb_cache_pmem(addr, size);
++}
+ #endif /* __PMEM_H__ */
+-- 
+2.5.0
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
