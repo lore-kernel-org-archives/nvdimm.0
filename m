@@ -1,87 +1,64 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 1/5] block: prepare for del_gendisk_queue()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 07 Jan 2016 16:43:00 -0800
-Message-ID: <20160108004259.36061.83529.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v8 0/9] DAX fsync/msync support
+Date: Thu,  7 Jan 2016 22:27:50 -0700
+Message-Id: <1452230879-18117-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Refactor del_gendisk() into del_gendisk_start() and del_gendisk_end().
-These are common helpers that will be shared bewtween del_gendisk() and
-the to-be-introduced del_gendisk_queue().
+Changes since v7 [1]:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- block/genhd.c |   41 +++++++++++++++++++++++++++--------------
- 1 file changed, 27 insertions(+), 14 deletions(-)
+1) Update patch 1 so that we initialize bh->b_bdev before passing it to
+get_block() instead of working around the fact that it could still be NULL
+after get_block() completes. (Dan)
 
-diff --git a/block/genhd.c b/block/genhd.c
-index e5cafa51567c..b1d1df42ba13 100644
---- a/block/genhd.c
-+++ b/block/genhd.c
-@@ -634,24 +634,14 @@ void add_disk(struct gendisk *disk)
- }
- EXPORT_SYMBOL(add_disk);
- 
--void del_gendisk(struct gendisk *disk)
-+static void del_gendisk_start(struct gendisk *disk)
- {
--	struct disk_part_iter piter;
--	struct hd_struct *part;
--
- 	blk_integrity_del(disk);
- 	disk_del_events(disk);
-+}
- 
--	/* invalidate stuff */
--	disk_part_iter_init(&piter, disk,
--			     DISK_PITER_INCL_EMPTY | DISK_PITER_REVERSE);
--	while ((part = disk_part_iter_next(&piter))) {
--		invalidate_partition(disk, part->partno);
--		delete_partition(disk, part->partno);
--	}
--	disk_part_iter_exit(&piter);
--
--	invalidate_partition(disk, 0);
-+static void del_gendisk_end(struct gendisk *disk)
-+{
- 	set_capacity(disk, 0);
- 	disk->flags &= ~GENHD_FL_UP;
- 
-@@ -670,6 +660,29 @@ void del_gendisk(struct gendisk *disk)
- 	pm_runtime_set_memalloc_noio(disk_to_dev(disk), false);
- 	device_del(disk_to_dev(disk));
- }
-+
-+#define for_each_part(part, piter) \
-+	for (part = disk_part_iter_next(piter); part; \
-+			part = disk_part_iter_next(piter))
-+void del_gendisk(struct gendisk *disk)
-+{
-+	struct disk_part_iter piter;
-+	struct hd_struct *part;
-+
-+	del_gendisk_start(disk);
-+
-+	/* invalidate stuff */
-+	disk_part_iter_init(&piter, disk,
-+			     DISK_PITER_INCL_EMPTY | DISK_PITER_REVERSE);
-+	for_each_part(part, &piter) {
-+		invalidate_partition(disk, part->partno);
-+		delete_partition(disk, part->partno);
-+	}
-+	disk_part_iter_exit(&piter);
-+	invalidate_partition(disk, 0);
-+
-+	del_gendisk_end(disk);
-+}
- EXPORT_SYMBOL(del_gendisk);
- 
- /**
+2) Add a check to dax_radix_entry() so that we WARN_ON_ONCE() and exit
+gracefully if we find a page cache entry still in the radix tree when
+trying to insert a DAX entry.
+
+This series replaces v7 in the MM tree and in the "akpm" branch of the next
+tree.  A working tree can be found here:
+
+https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=fsync_v8
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-January/003886.html
+
+Ross Zwisler (9):
+  dax: fix NULL pointer dereference in __dax_dbg()
+  dax: fix conversion of holes to PMDs
+  pmem: add wb_cache_pmem() to the PMEM API
+  dax: support dirty DAX entries in radix tree
+  mm: add find_get_entries_tag()
+  dax: add support for fsync/msync
+  ext2: call dax_pfn_mkwrite() for DAX fsync/msync
+  ext4: call dax_pfn_mkwrite() for DAX fsync/msync
+  xfs: call dax_pfn_mkwrite() for DAX fsync/msync
+
+ arch/x86/include/asm/pmem.h |  11 +--
+ fs/block_dev.c              |   2 +-
+ fs/dax.c                    | 215 ++++++++++++++++++++++++++++++++++++++++----
+ fs/ext2/file.c              |   4 +-
+ fs/ext4/file.c              |   4 +-
+ fs/inode.c                  |   2 +-
+ fs/xfs/xfs_file.c           |   7 +-
+ include/linux/dax.h         |   7 ++
+ include/linux/fs.h          |   3 +-
+ include/linux/pagemap.h     |   3 +
+ include/linux/pmem.h        |  22 ++++-
+ include/linux/radix-tree.h  |   9 ++
+ mm/filemap.c                |  91 +++++++++++++++++--
+ mm/truncate.c               |  69 +++++++-------
+ mm/vmscan.c                 |   9 +-
+ mm/workingset.c             |   4 +-
+ 16 files changed, 393 insertions(+), 69 deletions(-)
+
+-- 
+2.5.0
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
