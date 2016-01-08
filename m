@@ -1,53 +1,55 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v7 7/9] ext2: call dax_pfn_mkwrite() for DAX fsync/msync
-Date: Wed,  6 Jan 2016 11:01:01 -0700
-Message-Id: <1452103263-1592-8-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Fri, 8 Jan 2016 11:15:44 +1100
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH v2 2/4] block: introduce del_gendisk_queue()
+Message-ID: <20160108001544.GQ21461@dastard>
+References: <20160106045616.38788.61076.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20160106045627.38788.90127.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160106045627.38788.90127.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+On Tue, Jan 05, 2016 at 08:56:27PM -0800, Dan Williams wrote:
+> Historically we have waited for filesystem specific heuristics to
+> attempt to guess when a block device is gone.  Sometimes this works, but
+> in other cases the system can hang waiting for the fs to trigger its
+> shutdown protocol.
+> 
+> The initial motivation for this investigation was to prevent DAX
+> mappings (direct mmap access to persistent memory) from leaking past the
+> lifetime of the hosting block device.  However, Dave points out that
+> these shutdown operations are needed in other scenarios.  Quoting Dave:
+> 
+>     For example, if we detect a free space corruption during allocation,
+>     it is not safe to trust *any active mapping* because we can't trust
+>     that we having handed out the same block to multiple owners. Hence
+>     on such a filesystem shutdown, we have to prevent any new DAX
+>     mapping from occurring and invalidate all existing mappings as we
+>     cannot allow userspace to modify any data or metadata until we've
+>     resolved the corruption situation.
+> 
+> The current block device shutdown sequence of del_gendisk +
+> blk_cleanup_queue is problematic.  We want to tell the fs after
+> blk_cleanup_queue that there is no possibility of recovery, but by that
+> time we have deleted partitions and lost the ability to find all the
+> super-blocks on a block device.
+> 
+> del_gendisk_queue() combines block device shutdown, blk_cleanup_queue(),
+> with block device end of life notification, del_gendisk().  A later
+> patch builds on this sequence to additionally communicate to the fs that
+> it should force-fail all future i/o since the queue is permanently dead.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/ext2/file.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+This still is two changes in one. Adding the force failure feature
+is a separate change to creating del_gendisk_queue().
 
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index 11a42c5..2c88d68 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -102,8 +102,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
- {
- 	struct inode *inode = file_inode(vma->vm_file);
- 	struct ext2_inode_info *ei = EXT2_I(inode);
--	int ret = VM_FAULT_NOPAGE;
- 	loff_t size;
-+	int ret;
- 
- 	sb_start_pagefault(inode->i_sb);
- 	file_update_time(vma->vm_file);
-@@ -113,6 +113,8 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 
- 	up_read(&ei->dax_sem);
- 	sb_end_pagefault(inode->i_sb);
+Cheers,
+
+Dave.
 -- 
-2.5.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Dave Chinner
+david@fromorbit.com
