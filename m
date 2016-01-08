@@ -1,41 +1,190 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Sat, 2 Jan 2016 11:43:09 -0500
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: Re: [PATCH 7/8] xfs: Support for transparent PUD pages
-Message-ID: <20160102164309.GK2457@linux.intel.com>
-References: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
- <1450974037-24775-8-git-send-email-matthew.r.wilcox@intel.com>
- <20151230233007.GA6682@dastard>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20151230233007.GA6682@dastard>
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH v3 5/8] procfs: Add support for PUDs to smaps, clear_refs and pagemap
+Date: Fri,  8 Jan 2016 14:49:49 -0500
+Message-Id: <1452282592-27290-6-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1452282592-27290-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1452282592-27290-1-git-send-email-matthew.r.wilcox@intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Dec 31, 2015 at 10:30:27AM +1100, Dave Chinner wrote:
-> > @@ -1637,6 +1669,7 @@ xfs_filemap_pfn_mkwrite(
-> >  static const struct vm_operations_struct xfs_file_vm_ops = {
-> >  	.fault		= xfs_filemap_fault,
-> >  	.pmd_fault	= xfs_filemap_pmd_fault,
-> > +	.pud_fault	= xfs_filemap_pud_fault,
-> 
-> This is getting silly - we now have 3 different page fault handlers
-> that all do exactly the same thing. Please abstract this so that the
-> page/pmd/pud is transparent and gets passed through to the generic
-> handler code that then handles the differences between page/pmd/pud
-> internally.
-> 
-> This, after all, is the original reason that the ->fault handler was
-> introduced....
+From: Matthew Wilcox <willy@linux.intel.com>
 
-I agree that it's silly, but this is the direction I was asked to go in by
-the MM people at the last MM summit.  There was agreement that this needs
-to be abstracted, but that should be left for a separate cleanup round.
-I did prototype something I called a vpte (virtual pte), but that's very
-much on the back burner for now.
+Because there's no 'struct page' for DAX THPs, a lot of this code is
+simpler than the PMD code it mimics.  Extra code would need to be added
+to support PUDs of anonymous or page-cache THPs.
+
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+---
+ fs/proc/task_mmu.c | 109 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 109 insertions(+)
+
+diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+index 65a1b6c..e45cbc2 100644
+--- a/fs/proc/task_mmu.c
++++ b/fs/proc/task_mmu.c
+@@ -595,6 +595,33 @@ static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
+ }
+ #endif
+ 
++static int smaps_pud_range(pud_t *pud, unsigned long addr, unsigned long end,
++		struct mm_walk *walk)
++{
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	struct vm_area_struct *vma = walk->vma;
++	struct mem_size_stats *mss = walk->private;
++
++	if (is_huge_zero_pud(*pud))
++		return 0;
++
++	mss->resident += HPAGE_PUD_SIZE;
++	if (vma->vm_flags & VM_SHARED) {
++		if (pud_dirty(*pud))
++			mss->shared_dirty += HPAGE_PUD_SIZE;
++		else
++			mss->shared_clean += HPAGE_PUD_SIZE;
++	} else {
++		if (pud_dirty(*pud))
++			mss->private_dirty += HPAGE_PUD_SIZE;
++		else
++			mss->private_clean += HPAGE_PUD_SIZE;
++	}
++#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++
++	return 0;
++}
++
+ static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			   struct mm_walk *walk)
+ {
+@@ -715,6 +742,7 @@ static int show_smap(struct seq_file *m, void *v, int is_pid)
+ 	struct vm_area_struct *vma = v;
+ 	struct mem_size_stats mss;
+ 	struct mm_walk smaps_walk = {
++		.pud_entry = smaps_pud_range,
+ 		.pmd_entry = smaps_pte_range,
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		.hugetlb_entry = smaps_hugetlb_range,
+@@ -897,13 +925,50 @@ static inline void clear_soft_dirty_pmd(struct vm_area_struct *vma,
+ 
+ 	set_pmd_at(vma->vm_mm, addr, pmdp, pmd);
+ }
++static inline void clear_soft_dirty_pud(struct vm_area_struct *vma,
++		unsigned long addr, pud_t *pudp)
++{
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	pud_t pud = pudp_huge_get_and_clear(vma->vm_mm, addr, pudp);
++
++	pud = pud_wrprotect(pud);
++	pud = pud_clear_soft_dirty(pud);
++
++	if (vma->vm_flags & VM_SOFTDIRTY)
++		vma->vm_flags &= ~VM_SOFTDIRTY;
++
++	set_pud_at(vma->vm_mm, addr, pudp, pud);
++#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++}
+ #else
+ static inline void clear_soft_dirty_pmd(struct vm_area_struct *vma,
+ 		unsigned long addr, pmd_t *pmdp)
+ {
+ }
++static inline void clear_soft_dirty_pud(struct vm_area_struct *vma,
++		unsigned long addr, pud_t *pudp)
++{
++}
+ #endif
+ 
++static int clear_refs_pud_range(pud_t *pud, unsigned long addr,
++				unsigned long end, struct mm_walk *walk)
++{
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	struct clear_refs_private *cp = walk->private;
++	struct vm_area_struct *vma = walk->vma;
++
++	if (cp->type == CLEAR_REFS_SOFT_DIRTY) {
++		clear_soft_dirty_pud(vma, addr, pud);
++	} else {
++		/* Clear accessed and referenced bits. */
++		pudp_test_and_clear_young(vma, addr, pud);
++	}
++#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++
++	return 0;
++}
++
+ static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
+ 				unsigned long end, struct mm_walk *walk)
+ {
+@@ -1013,6 +1078,7 @@ static ssize_t clear_refs_write(struct file *file, const char __user *buf,
+ 			.type = type,
+ 		};
+ 		struct mm_walk clear_refs_walk = {
++			.pud_entry = clear_refs_pud_range,
+ 			.pmd_entry = clear_refs_pte_range,
+ 			.test_walk = clear_refs_test_walk,
+ 			.mm = mm,
+@@ -1177,6 +1243,48 @@ static pagemap_entry_t pte_to_pagemap_entry(struct pagemapread *pm,
+ 	return make_pme(frame, flags);
+ }
+ 
++static int pagemap_pud_range(pud_t *pudp, unsigned long addr, unsigned long end,
++			     struct mm_walk *walk)
++{
++	int err = 0;
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	struct vm_area_struct *vma = walk->vma;
++	struct pagemapread *pm = walk->private;
++	u64 flags = 0, frame = 0;
++	pud_t pud = *pudp;
++
++	if ((vma->vm_flags & VM_SOFTDIRTY) || pud_soft_dirty(pud))
++		flags |= PM_SOFT_DIRTY;
++
++	/*
++	 * Currently pud for thp is always present because thp
++	 * can not be swapped-out, migrated, or HWPOISONed
++	 * (split in such cases instead.)
++	 * This if-check is just to prepare for future implementation.
++	 */
++	if (pud_present(pud)) {
++		flags |= PM_PRESENT;
++		if (!(vma->vm_flags & VM_SHARED))
++			flags |= PM_MMAP_EXCLUSIVE;
++
++		if (pm->show_pfn)
++			frame = pud_pfn(pud) +
++					((addr & ~PUD_MASK) >> PAGE_SHIFT);
++
++		for (; addr != end; addr += PAGE_SIZE) {
++			pagemap_entry_t pme = make_pme(frame, flags);
++
++			err = add_to_pagemap(addr, &pme, pm);
++			if (err)
++				break;
++			if (pm->show_pfn && (flags & PM_PRESENT))
++				frame++;
++		}
++	}
++#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++	return err;
++}
++
+ static int pagemap_pmd_range(pmd_t *pmdp, unsigned long addr, unsigned long end,
+ 			     struct mm_walk *walk)
+ {
+@@ -1355,6 +1463,7 @@ static ssize_t pagemap_read(struct file *file, char __user *buf,
+ 	if (!pm.buffer)
+ 		goto out_mm;
+ 
++	pagemap_walk.pud_entry = pagemap_pud_range;
+ 	pagemap_walk.pmd_entry = pagemap_pmd_range;
+ 	pagemap_walk.pte_hole = pagemap_pte_hole;
+ #ifdef CONFIG_HUGETLB_PAGE
+-- 
+2.6.4
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
