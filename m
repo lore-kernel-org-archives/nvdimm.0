@@ -1,61 +1,52 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 1/5] dax: never rely on bh.b_dev being set by get_block()
-Date: Thu, 21 Jan 2016 10:46:00 -0700
-Message-Id: <1453398364-22537-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1453398364-22537-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1453398364-22537-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v3 4/5] xfs: unmap dax at shutdown (force_failure)
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 07 Jan 2016 16:43:21 -0800
+Message-ID: <20160108004321.36061.17150.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: xfs@oss.sgi.com
+Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Dave Chinner <dchinner@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Previously in DAX we assumed that calls to get_block() would set bh.b_bdev,
-and we would then use that value even in error cases for debugging.  This
-caused a NULL pointer dereference in __dax_dbg() which was fixed by a
-previous commit, but that commit only changed the one place where we were
-hitting an error.
+When an exceptional event triggers xfs_force_shutdown() tear down dax
+mappings.  Quoting Dave,
 
-Instead, update dax.c so that we always initialize bh.b_bdev as best we can
-based on the information that DAX has.  get_block() may or may not update
-to a new value, but this at least lets us get something helpful from
-bh.b_bdev for error messages and not have to worry about whether it was set
-by get_block() or not.
+    "The simple fact is that a /filesystem/ shutdown needs to do DAX
+    mapping invalidation regardless of whether the block device has
+    been unplugged or not. This is not a case of "this only happens
+    when we unplug the device", this is a user data protection
+    mechanism that we use to prevent corruption propagation once it
+    has been detected. A device unplug is just one type of
+    "corruption" that can occur."
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Jan Kara <jack@suse.cz>
+Acked-by: Dave Chinner <dchinner@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 3 +++
- 1 file changed, 3 insertions(+)
+ fs/xfs/xfs_fsops.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 0db21ea..cee9e1b 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -246,6 +246,7 @@ ssize_t dax_do_io(struct kiocb *iocb, struct inode *inode,
- 	loff_t end = pos + iov_iter_count(iter);
+diff --git a/fs/xfs/xfs_fsops.c b/fs/xfs/xfs_fsops.c
+index ee3aaa0a5317..0c6a52809dcc 100644
+--- a/fs/xfs/xfs_fsops.c
++++ b/fs/xfs/xfs_fsops.c
+@@ -828,6 +828,15 @@ xfs_do_force_shutdown(
+ 	if (xfs_log_force_umount(mp, logerror))
+ 		return;
  
- 	memset(&bh, 0, sizeof(bh));
-+	bh.b_bdev = inode->i_sb->s_bdev;
- 
- 	if ((flags & DIO_LOCKING) && iov_iter_rw(iter) == READ) {
- 		struct address_space *mapping = inode->i_mapping;
-@@ -582,6 +583,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 
- 	memset(&bh, 0, sizeof(bh));
- 	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
-+	bh.b_bdev = inode->i_sb->s_bdev;
- 	bh.b_size = PAGE_SIZE;
- 
-  repeat:
-@@ -1018,6 +1020,7 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
- 	BUG_ON((offset + length) > PAGE_CACHE_SIZE);
- 
- 	memset(&bh, 0, sizeof(bh));
-+	bh.b_bdev = inode->i_sb->s_bdev;
- 	bh.b_size = PAGE_CACHE_SIZE;
- 	err = get_block(inode, index, &bh, 0);
- 	if (err < 0)
--- 
-2.5.0
-
++	/*
++	 * If DAX is in use, we have to unmap all direct access virtual
++	 * mappings to ensure nothing more gets written directly from
++	 * userspace. This will force them to refault and that will
++	 * result in them detecting the shutdown condition and hence
++	 * will fail appropriately.
++	 */
++	unmap_dax_inodes(mp->m_super);
++
+ 	if (flags & SHUTDOWN_CORRUPT_INCORE) {
+ 		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_CORRUPT,
+     "Corruption of in-memory data detected.  Shutting down filesystem");
