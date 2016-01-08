@@ -1,96 +1,61 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [resend PATCH 2/3] xfs: handle shutdown notifications
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 04 Jan 2016 10:20:11 -0800
-Message-ID: <20160104182011.24118.30446.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160104181220.24118.96661.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160104181220.24118.96661.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 8 Jan 2016 11:16:39 +1100
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH v2 3/4] xfs: unmap dax at shutdown (force_failure)
+Message-ID: <20160108001639.GR21461@dastard>
+References: <20160106045616.38788.61076.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20160106045632.38788.84927.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160106045632.38788.84927.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: xfs@oss.sgi.com, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Force a filesystem shutdown when the backing device is known to be dead.
-I.e. blk_queue_enter() permanently returns -ENODEV.
+On Tue, Jan 05, 2016 at 08:56:32PM -0800, Dan Williams wrote:
+> When an exceptional event triggers xfs_force_shutdown() tear down dax
+> mappings.  Quoting Dave,
+> 
+>     "The simple fact is that a /filesystem/ shutdown needs to do DAX
+>     mapping invalidation regardless of whether the block device has
+>     been unplugged or not. This is not a case of "this only happens
+>     when we unplug the device", this is a user data protection
+>     mechanism that we use to prevent corruption propagation once it
+>     has been detected. A device unplug is just one type of
+>     "corruption" that can occur."
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  fs/xfs/xfs_fsops.c |    9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/fs/xfs/xfs_fsops.c b/fs/xfs/xfs_fsops.c
+> index ee3aaa0a5317..0c6a52809dcc 100644
+> --- a/fs/xfs/xfs_fsops.c
+> +++ b/fs/xfs/xfs_fsops.c
+> @@ -828,6 +828,15 @@ xfs_do_force_shutdown(
+>  	if (xfs_log_force_umount(mp, logerror))
+>  		return;
+>  
+> +	/*
+> +	 * If DAX is in use, we have to unmap all direct access virtual
+> +	 * mappings to ensure nothing more gets written directly from
+> +	 * userspace. This will force them to refault and that will
+> +	 * result in them detecting the shutdown condition and hence
+> +	 * will fail appropriately.
+> +	 */
+> +	unmap_dax_inodes(mp->m_super);
+> +
+>  	if (flags & SHUTDOWN_CORRUPT_INCORE) {
+>  		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_CORRUPT,
+>      "Corruption of in-memory data detected.  Shutting down filesystem");
 
-Cc: xfs@oss.sgi.com
-Suggested-by: Dave Chinner <david@fromorbit.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/block_dev.c     |    3 ++-
- fs/xfs/xfs_super.c |    9 +++++++++
- include/linux/fs.h |    2 ++
- 3 files changed, 13 insertions(+), 1 deletion(-)
+Looks fine.
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 739e43a37e64..7d6c66148948 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -1806,7 +1806,7 @@ int __invalidate_device(struct block_device *bdev, bool kill_dirty)
- }
- EXPORT_SYMBOL(__invalidate_device);
- 
--static void generic_bdi_gone(struct super_block *sb)
-+void generic_bdi_gone(struct super_block *sb)
- {
- 	struct inode *inode, *_inode = NULL;
- 
-@@ -1832,6 +1832,7 @@ static void generic_bdi_gone(struct super_block *sb)
- 	spin_unlock(&sb->s_inode_list_lock);
- 	iput(_inode);
- }
-+EXPORT_SYMBOL(generic_bdi_gone);
- 
- void shutdown_partition(struct gendisk *disk, int partno)
- {
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index 36bd8825bfb0..63c36508e9db 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -1618,6 +1618,14 @@ xfs_fs_free_cached_objects(
- 	return xfs_reclaim_inodes_nr(XFS_M(sb), sc->nr_to_scan);
- }
- 
-+static void
-+xfs_fs_bdi_gone(
-+	struct super_block *sb)
-+{
-+	xfs_force_shutdown(XFS_M(sb), SHUTDOWN_DEVICE_REQ);
-+	generic_bdi_gone(sb);
-+}
-+
- static const struct super_operations xfs_super_operations = {
- 	.alloc_inode		= xfs_fs_alloc_inode,
- 	.destroy_inode		= xfs_fs_destroy_inode,
-@@ -1632,6 +1640,7 @@ static const struct super_operations xfs_super_operations = {
- 	.show_options		= xfs_fs_show_options,
- 	.nr_cached_objects	= xfs_fs_nr_cached_objects,
- 	.free_cached_objects	= xfs_fs_free_cached_objects,
-+	.bdi_gone		= xfs_fs_bdi_gone,
- };
- 
- static struct file_system_type xfs_fs_type = {
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 0e201ed38045..b1e8e049e4b8 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2265,6 +2265,7 @@ extern struct super_block *freeze_bdev(struct block_device *);
- extern void emergency_thaw_all(void);
- extern int thaw_bdev(struct block_device *bdev, struct super_block *sb);
- extern int fsync_bdev(struct block_device *);
-+extern void generic_bdi_gone(struct super_block *sb);
- 
- extern struct super_block *blockdev_superblock;
- 
-@@ -2277,6 +2278,7 @@ static inline void bd_forget(struct inode *inode) {}
- static inline int sync_blockdev(struct block_device *bdev) { return 0; }
- static inline void kill_bdev(struct block_device *bdev) {}
- static inline void invalidate_bdev(struct block_device *bdev) {}
-+static inline void generic_bdi_gone(struct super_block *sb) {}
- 
- static inline struct super_block *freeze_bdev(struct block_device *sb)
- {
+Acked-by: Dave Chinner <dchinner@redhat.com>
 
+-- 
+Dave Chinner
+david@fromorbit.com
