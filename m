@@ -1,309 +1,176 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v7 6/9] dax: add support for fsync/msync
-Date: Wed,  6 Jan 2016 11:01:00 -0700
-Message-Id: <1452103263-1592-7-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH v3 2/5] block: introduce del_gendisk_queue()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 07 Jan 2016 16:43:05 -0800
+Message-ID: <20160108004305.36061.31898.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: xfs@oss.sgi.com
+Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly handle fsync/msync in an efficient way DAX needs to track dirty
-pages so it is able to flush them durably to media on demand.
+The current block device shutdown sequence of del_gendisk +
+blk_cleanup_queue is problematic.  We want to tell the fs after
+blk_cleanup_queue that there is no possibility of recovery, but by that
+time we have deleted partitions and lost the ability to find all the
+super-blocks on a block device.
 
-The tracking of dirty pages is done via the radix tree in struct
-address_space.  This radix tree is already used by the page writeback
-infrastructure for tracking dirty pages associated with an open file, and
-it already has support for exceptional (non struct page*) entries.  We
-build upon these features to add exceptional entries to the radix tree for
-DAX dirty PMD or PTE pages at fault time.
+del_gendisk_queue() combines block device shutdown, blk_cleanup_queue(),
+with block device end of life notification, del_gendisk().  Later
+patches builds on this sequence to unmap all dax inodes and communicate
+to the fs that it should force-fail all future i/o since the queue is
+permanently dead.  For now this is routine is functionally equivalent to
+calling del_gendisk() + blk_cleanup_queue() in succession.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c            | 187 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- include/linux/dax.h |   2 +
- mm/filemap.c        |   6 ++
- 3 files changed, 189 insertions(+), 6 deletions(-)
+ block/genhd.c                |   43 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/block/brd.c          |    9 +++------
+ drivers/nvdimm/pmem.c        |    3 +--
+ drivers/s390/block/dcssblk.c |    6 ++----
+ include/linux/genhd.h        |    1 +
+ 5 files changed, 50 insertions(+), 12 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 9dc0c97..c107da6 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -24,6 +24,7 @@
- #include <linux/memcontrol.h>
- #include <linux/mm.h>
- #include <linux/mutex.h>
-+#include <linux/pagevec.h>
- #include <linux/pmem.h>
- #include <linux/sched.h>
- #include <linux/uio.h>
-@@ -324,6 +325,167 @@ static int copy_user_bh(struct page *to, struct inode *inode,
- 	return 0;
- }
+diff --git a/block/genhd.c b/block/genhd.c
+index b1d1df42ba13..a5bb768111cc 100644
+--- a/block/genhd.c
++++ b/block/genhd.c
+@@ -686,6 +686,49 @@ void del_gendisk(struct gendisk *disk)
+ EXPORT_SYMBOL(del_gendisk);
  
-+#define NO_SECTOR -1
-+
-+static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
-+		sector_t sector, bool pmd_entry, bool dirty)
-+{
-+	struct radix_tree_root *page_tree = &mapping->page_tree;
-+	int error = 0;
-+	void *entry;
-+
-+	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
-+
-+	spin_lock_irq(&mapping->tree_lock);
-+	entry = radix_tree_lookup(page_tree, index);
-+
-+	if (entry) {
-+		if (!pmd_entry || RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
-+			goto dirty;
-+		radix_tree_delete(&mapping->page_tree, index);
-+		mapping->nrexceptional--;
-+	}
-+
-+	if (sector == NO_SECTOR) {
-+		/*
-+		 * This can happen during correct operation if our pfn_mkwrite
-+		 * fault raced against a hole punch operation.  If this
-+		 * happens the pte that was hole punched will have been
-+		 * unmapped and the radix tree entry will have been removed by
-+		 * the time we are called, but the call will still happen.  We
-+		 * will return all the way up to wp_pfn_shared(), where the
-+		 * pte_same() check will fail, eventually causing page fault
-+		 * to be retried by the CPU.
-+		 */
-+		goto unlock;
-+	}
-+
-+	error = radix_tree_insert(page_tree, index,
-+			RADIX_DAX_ENTRY(sector, pmd_entry));
-+	if (error)
-+		goto unlock;
-+
-+	mapping->nrexceptional++;
-+ dirty:
-+	if (dirty)
-+		radix_tree_tag_set(page_tree, index, PAGECACHE_TAG_DIRTY);
-+ unlock:
-+	spin_unlock_irq(&mapping->tree_lock);
-+	return error;
-+}
-+
-+static int dax_writeback_one(struct block_device *bdev,
-+		struct address_space *mapping, pgoff_t index, void *entry)
-+{
-+	struct radix_tree_root *page_tree = &mapping->page_tree;
-+	int type = RADIX_DAX_TYPE(entry);
-+	struct radix_tree_node *node;
-+	struct blk_dax_ctl dax;
-+	void **slot;
-+	int ret = 0;
-+
-+	spin_lock_irq(&mapping->tree_lock);
-+	/*
-+	 * Regular page slots are stabilized by the page lock even
-+	 * without the tree itself locked.  These unlocked entries
-+	 * need verification under the tree lock.
-+	 */
-+	if (!__radix_tree_lookup(page_tree, index, &node, &slot))
-+		goto unlock;
-+	if (*slot != entry)
-+		goto unlock;
-+
-+	/* another fsync thread may have already written back this entry */
-+	if (!radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
-+		goto unlock;
-+
-+	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
-+
-+	if (WARN_ON_ONCE(type != RADIX_DAX_PTE && type != RADIX_DAX_PMD)) {
-+		ret = -EIO;
-+		goto unlock;
-+	}
-+
-+	dax.sector = RADIX_DAX_SECTOR(entry);
-+	dax.size = (type == RADIX_DAX_PMD ? PMD_SIZE : PAGE_SIZE);
-+	spin_unlock_irq(&mapping->tree_lock);
-+
-+	/*
-+	 * We cannot hold tree_lock while calling dax_map_atomic() because it
-+	 * eventually calls cond_resched().
-+	 */
-+	ret = dax_map_atomic(bdev, &dax);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (WARN_ON_ONCE(ret < dax.size)) {
-+		ret = -EIO;
-+		goto unmap;
-+	}
-+
-+	wb_cache_pmem(dax.addr, dax.size);
-+ unmap:
-+	dax_unmap_atomic(bdev, &dax);
-+	return ret;
-+
-+ unlock:
-+	spin_unlock_irq(&mapping->tree_lock);
-+	return ret;
-+}
-+
-+/*
-+ * Flush the mapping to the persistent domain within the byte range of [start,
-+ * end]. This is required by data integrity operations to ensure file data is
-+ * on persistent storage prior to completion of the operation.
+ /**
++ * del_gendisk_queue - combined del_gendisk + blk_cleanup_queue
++ * @disk: disk to delete, invalidate, unmap, and force-fail fs operations
++ *
++ * This is an alternative for open coded calls to:
++ *     del_gendisk()
++ *     blk_cleanup_queue()
++ * It notifies filesystems / vfs that a block device is permanently dead
++ * after the queue has been torn down.  This notification is needed for
++ * triggering a filesystem to abort its error recovery and for (DAX)
++ * capable devices.  DAX bypasses page cache and mappings go directly to
++ * storage media.  When such a disk is removed the pfn backing a mapping
++ * may be invalid or removed from the system.  Upon return accessing DAX
++ * mappings of this disk will trigger SIGBUS.
 + */
-+int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
-+		loff_t end)
++void del_gendisk_queue(struct gendisk *disk)
 +{
-+	struct inode *inode = mapping->host;
-+	struct block_device *bdev = inode->i_sb->s_bdev;
-+	pgoff_t indices[PAGEVEC_SIZE];
-+	pgoff_t start_page, end_page;
-+	struct pagevec pvec;
-+	void *entry;
-+	int i, ret = 0;
++	struct disk_part_iter piter;
++	struct hd_struct *part;
 +
-+	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
-+		return -EIO;
++	del_gendisk_start(disk);
 +
-+	rcu_read_lock();
-+	entry = radix_tree_lookup(&mapping->page_tree, start & PMD_MASK);
-+	rcu_read_unlock();
++	/* pass1 sync fs + evict idle inodes */
++	disk_part_iter_init(&piter, disk,
++			     DISK_PITER_INCL_EMPTY | DISK_PITER_REVERSE);
++	for_each_part(part, &piter)
++		invalidate_partition(disk, part->partno);
++	disk_part_iter_exit(&piter);
++	invalidate_partition(disk, 0);
 +
-+	/* see if the start of our range is covered by a PMD entry */
-+	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
-+		start &= PMD_MASK;
++	blk_cleanup_queue(disk->queue);
 +
-+	start_page = start >> PAGE_CACHE_SHIFT;
-+	end_page = end >> PAGE_CACHE_SHIFT;
++	/* pass2 the queue is dead */
++	disk_part_iter_init(&piter, disk,
++			     DISK_PITER_INCL_EMPTY | DISK_PITER_REVERSE);
++	for_each_part(part, &piter)
++		delete_partition(disk, part->partno);
++	disk_part_iter_exit(&piter);
 +
-+	tag_pages_for_writeback(mapping, start_page, end_page);
-+
-+	pagevec_init(&pvec, 0);
-+	while (1) {
-+		pvec.nr = find_get_entries_tag(mapping, start_page,
-+				PAGECACHE_TAG_TOWRITE, PAGEVEC_SIZE,
-+				pvec.pages, indices);
-+
-+		if (pvec.nr == 0)
-+			break;
-+
-+		for (i = 0; i < pvec.nr; i++) {
-+			ret = dax_writeback_one(bdev, mapping, indices[i],
-+					pvec.pages[i]);
-+			if (ret < 0)
-+				return ret;
-+		}
-+	}
-+	wmb_pmem();
-+	return 0;
++	del_gendisk_end(disk);
 +}
-+EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
++EXPORT_SYMBOL(del_gendisk_queue);
 +
- static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 			struct vm_area_struct *vma, struct vm_fault *vmf)
++/**
+  * get_gendisk - get partitioning information for a given device
+  * @devt: device to get partitioning information for
+  * @partno: returned partition index
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index a5880f4ab40e..013ff58f9af8 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -532,7 +532,6 @@ out:
+ static void brd_free(struct brd_device *brd)
  {
-@@ -363,6 +525,11 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 	}
- 	dax_unmap_atomic(bdev, &dax);
- 
-+	error = dax_radix_entry(mapping, vmf->pgoff, dax.sector, false,
-+			vmf->flags & FAULT_FLAG_WRITE);
-+	if (error)
-+		goto out;
-+
- 	error = vm_insert_mixed(vma, vaddr, dax.pfn);
- 
-  out:
-@@ -487,6 +654,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		delete_from_page_cache(page);
- 		unlock_page(page);
- 		page_cache_release(page);
-+		page = NULL;
- 	}
- 
- 	/*
-@@ -596,7 +764,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	pgoff_t size, pgoff;
- 	loff_t lstart, lend;
- 	sector_t block;
--	int result = 0;
-+	int error, result = 0;
- 
- 	/* dax pmd mappings require pfn_t_devmap() */
- 	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
-@@ -737,6 +905,16 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		}
- 		dax_unmap_atomic(bdev, &dax);
- 
-+		if (write) {
-+			error = dax_radix_entry(mapping, pgoff, dax.sector,
-+					true, true);
-+			if (error) {
-+				dax_pmd_dbg(&bh, address,
-+						"PMD radix insertion failed");
-+				goto fallback;
-+			}
-+		}
-+
- 		dev_dbg(part_to_dev(bdev->bd_part),
- 				"%s: %s addr: %lx pfn: %lx sect: %llx\n",
- 				__func__, current->comm, address,
-@@ -795,15 +973,12 @@ EXPORT_SYMBOL_GPL(dax_pmd_fault);
-  * dax_pfn_mkwrite - handle first write to DAX page
-  * @vma: The virtual memory area where the fault occurred
-  * @vmf: The description of the fault
-- *
-  */
- int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
--	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
-+	struct file *file = vma->vm_file;
- 
--	sb_start_pagefault(sb);
--	file_update_time(vma->vm_file);
--	sb_end_pagefault(sb);
-+	dax_radix_entry(file->f_mapping, vmf->pgoff, NO_SECTOR, false, true);
- 	return VM_FAULT_NOPAGE;
+ 	put_disk(brd->brd_disk);
+-	blk_cleanup_queue(brd->brd_queue);
+ 	brd_free_pages(brd);
+ 	kfree(brd);
  }
- EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index e9d57f68..8204c3d 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -41,4 +41,6 @@ static inline bool dax_mapping(struct address_space *mapping)
+@@ -560,7 +559,7 @@ out:
+ static void brd_del_one(struct brd_device *brd)
  {
- 	return mapping->host && IS_DAX(mapping->host);
+ 	list_del(&brd->brd_list);
+-	del_gendisk(brd->brd_disk);
++	del_gendisk_queue(brd->brd_disk);
+ 	brd_free(brd);
  }
-+int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
-+		loff_t end);
- #endif
-diff --git a/mm/filemap.c b/mm/filemap.c
-index 1e215fc..2e7c8d9 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -482,6 +482,12 @@ int filemap_write_and_wait_range(struct address_space *mapping,
- {
- 	int err = 0;
  
-+	if (dax_mapping(mapping) && mapping->nrexceptional) {
-+		err = dax_writeback_mapping_range(mapping, lstart, lend);
-+		if (err)
-+			return err;
-+	}
-+
- 	if (mapping->nrpages) {
- 		err = __filemap_fdatawrite_range(mapping, lstart, lend,
- 						 WB_SYNC_ALL);
--- 
-2.5.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+@@ -626,10 +625,8 @@ static int __init brd_init(void)
+ 	return 0;
+ 
+ out_free:
+-	list_for_each_entry_safe(brd, next, &brd_devices, brd_list) {
+-		list_del(&brd->brd_list);
+-		brd_free(brd);
+-	}
++	list_for_each_entry_safe(brd, next, &brd_devices, brd_list)
++		brd_del_one(brd);
+ 	unregister_blkdev(RAMDISK_MAJOR, "ramdisk");
+ 
+ 	pr_info("brd: module NOT loaded !!!\n");
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 8ee79893d2f5..6dd06e9d34b0 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -158,9 +158,8 @@ static void pmem_detach_disk(struct pmem_device *pmem)
+ 	if (!pmem->pmem_disk)
+ 		return;
+ 
+-	del_gendisk(pmem->pmem_disk);
++	del_gendisk_queue(pmem->pmem_disk);
+ 	put_disk(pmem->pmem_disk);
+-	blk_cleanup_queue(pmem->pmem_queue);
+ }
+ 
+ static int pmem_attach_disk(struct device *dev,
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index 94a8f4ab57bc..0c3c968b57d9 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -388,8 +388,7 @@ removeseg:
+ 	}
+ 	list_del(&dev_info->lh);
+ 
+-	del_gendisk(dev_info->gd);
+-	blk_cleanup_queue(dev_info->dcssblk_queue);
++	del_gendisk_queue(dev_info->gd);
+ 	dev_info->gd->queue = NULL;
+ 	put_disk(dev_info->gd);
+ 	up_write(&dcssblk_devices_sem);
+@@ -751,8 +750,7 @@ dcssblk_remove_store(struct device *dev, struct device_attribute *attr, const ch
+ 	}
+ 
+ 	list_del(&dev_info->lh);
+-	del_gendisk(dev_info->gd);
+-	blk_cleanup_queue(dev_info->dcssblk_queue);
++	del_gendisk_queue(dev_info->gd);
+ 	dev_info->gd->queue = NULL;
+ 	put_disk(dev_info->gd);
+ 	device_unregister(&dev_info->dev);
+diff --git a/include/linux/genhd.h b/include/linux/genhd.h
+index 847cc1d91634..028cf15a8a57 100644
+--- a/include/linux/genhd.h
++++ b/include/linux/genhd.h
+@@ -431,6 +431,7 @@ extern void part_round_stats(int cpu, struct hd_struct *part);
+ /* block/genhd.c */
+ extern void add_disk(struct gendisk *disk);
+ extern void del_gendisk(struct gendisk *gp);
++extern void del_gendisk_queue(struct gendisk *disk);
+ extern struct gendisk *get_gendisk(dev_t dev, int *partno);
+ extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
+ 
