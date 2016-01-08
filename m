@@ -1,180 +1,83 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 1/2] block: revert runtime dax control of the raw block
- device
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 29 Jan 2016 07:18:41 -0800
-Message-ID: <20160129151841.18752.6457.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160129151835.18752.9423.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160129151835.18752.9423.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v5 1/6] ACPI / util: Fix acpi_evaluate_dsm() argument type
+Date: Fri, 08 Jan 2016 01:07:04 +0100
+Message-ID: <1577689.MsoC4f0R7Z@vostro.rjw.lan>
+In-Reply-To: <37cf7fc6c93496b84fa3984d94d689d8337a176b.1452121277.git.jerry.hoemann@hpe.com>
+References: <cover.1452121277.git.jerry.hoemann@hpe.com> <37cf7fc6c93496b84fa3984d94d689d8337a176b.1452121277.git.jerry.hoemann@hpe.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-block@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, axboe@fb.com, Jeff Moyer <jmoyer@redhat.com>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
+To: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: ross.zwisler@linux.intel.com, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com, robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dynamically enabling DAX requires that the page cache first be flushed
-and invalidated.  This must occur atomically with the change of DAX mode
-otherwise we confuse the fsync/msync tracking and violate data
-durability guarantees.  Eliminate the possibilty of DAX-disabled to
-DAX-enabled transitions for now and revisit this for the next cycle.
+On Wednesday, January 06, 2016 04:03:38 PM Jerry Hoemann wrote:
+> The ACPI spec speicifies that arguments "Revision ID" and
+> "Function Index" to a _DSM are type "Integer."  Type Integers
+> are 64 bit quantities.
+> 
+> The function evaluate_dsm specifies these types as simple "int"
+> which are 32 bits.  Correct type passed to acpi_evaluate_dsm
+> and its callers and derived callers to pass correct type.
+> 
+> acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
+> and were corrected as well.
+> 
+> Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 
-Cc: Jan Kara <jack@suse.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- block/ioctl.c           |   38 --------------------------------------
- fs/block_dev.c          |   28 ----------------------------
- include/linux/fs.h      |    3 ---
- include/uapi/linux/fs.h |    1 -
- 4 files changed, 70 deletions(-)
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-diff --git a/block/ioctl.c b/block/ioctl.c
-index 77f5d17779d6..d8996bbd7f12 100644
---- a/block/ioctl.c
-+++ b/block/ioctl.c
-@@ -434,42 +434,6 @@ bool blkdev_dax_capable(struct block_device *bdev)
- 
- 	return true;
- }
--
--static int blkdev_daxset(struct block_device *bdev, unsigned long argp)
--{
--	unsigned long arg;
--	int rc = 0;
--
--	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
--
--	if (get_user(arg, (int __user *)(argp)))
--		return -EFAULT;
--	arg = !!arg;
--	if (arg == !!(bdev->bd_inode->i_flags & S_DAX))
--		return 0;
--
--	if (arg)
--		arg = S_DAX;
--
--	if (arg && !blkdev_dax_capable(bdev))
--		return -ENOTTY;
--
--	inode_lock(bdev->bd_inode);
--	if (bdev->bd_map_count == 0)
--		inode_set_flags(bdev->bd_inode, arg, S_DAX);
--	else
--		rc = -EBUSY;
--	inode_unlock(bdev->bd_inode);
--	return rc;
--}
--#else
--static int blkdev_daxset(struct block_device *bdev, int arg)
--{
--	if (arg)
--		return -ENOTTY;
--	return 0;
--}
- #endif
- 
- static int blkdev_flushbuf(struct block_device *bdev, fmode_t mode,
-@@ -634,8 +598,6 @@ int blkdev_ioctl(struct block_device *bdev, fmode_t mode, unsigned cmd,
- 	case BLKTRACESETUP:
- 	case BLKTRACETEARDOWN:
- 		return blk_trace_ioctl(bdev, cmd, argp);
--	case BLKDAXSET:
--		return blkdev_daxset(bdev, arg);
- 	case BLKDAXGET:
- 		return put_int(arg, !!(bdev->bd_inode->i_flags & S_DAX));
- 		break;
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 7b9cd49622b1..afb437484362 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -1736,37 +1736,13 @@ static int blkdev_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
- 	return __dax_pmd_fault(vma, addr, pmd, flags, blkdev_get_block, NULL);
- }
- 
--static void blkdev_vm_open(struct vm_area_struct *vma)
--{
--	struct inode *bd_inode = bdev_file_inode(vma->vm_file);
--	struct block_device *bdev = I_BDEV(bd_inode);
--
--	inode_lock(bd_inode);
--	bdev->bd_map_count++;
--	inode_unlock(bd_inode);
--}
--
--static void blkdev_vm_close(struct vm_area_struct *vma)
--{
--	struct inode *bd_inode = bdev_file_inode(vma->vm_file);
--	struct block_device *bdev = I_BDEV(bd_inode);
--
--	inode_lock(bd_inode);
--	bdev->bd_map_count--;
--	inode_unlock(bd_inode);
--}
--
- static const struct vm_operations_struct blkdev_dax_vm_ops = {
--	.open		= blkdev_vm_open,
--	.close		= blkdev_vm_close,
- 	.fault		= blkdev_dax_fault,
- 	.pmd_fault	= blkdev_dax_pmd_fault,
- 	.pfn_mkwrite	= blkdev_dax_fault,
- };
- 
- static const struct vm_operations_struct blkdev_default_vm_ops = {
--	.open		= blkdev_vm_open,
--	.close		= blkdev_vm_close,
- 	.fault		= filemap_fault,
- 	.map_pages	= filemap_map_pages,
- };
-@@ -1774,18 +1750,14 @@ static const struct vm_operations_struct blkdev_default_vm_ops = {
- static int blkdev_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct inode *bd_inode = bdev_file_inode(file);
--	struct block_device *bdev = I_BDEV(bd_inode);
- 
- 	file_accessed(file);
--	inode_lock(bd_inode);
--	bdev->bd_map_count++;
- 	if (IS_DAX(bd_inode)) {
- 		vma->vm_ops = &blkdev_dax_vm_ops;
- 		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
- 	} else {
- 		vma->vm_ops = &blkdev_default_vm_ops;
- 	}
--	inode_unlock(bd_inode);
- 
- 	return 0;
- }
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index b10002d4a5f5..ae681002100a 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -484,9 +484,6 @@ struct block_device {
- 	int			bd_fsfreeze_count;
- 	/* Mutex for freeze */
- 	struct mutex		bd_fsfreeze_mutex;
--#ifdef CONFIG_FS_DAX
--	int			bd_map_count;
--#endif
- };
- 
- /*
-diff --git a/include/uapi/linux/fs.h b/include/uapi/linux/fs.h
-index 41e0433b4a83..149bec83a907 100644
---- a/include/uapi/linux/fs.h
-+++ b/include/uapi/linux/fs.h
-@@ -222,7 +222,6 @@ struct fsxattr {
- #define BLKSECDISCARD _IO(0x12,125)
- #define BLKROTATIONAL _IO(0x12,126)
- #define BLKZEROOUT _IO(0x12,127)
--#define BLKDAXSET _IO(0x12,128)
- #define BLKDAXGET _IO(0x12,129)
- 
- #define BMAP_IOCTL 1		/* obsolete - kept for compatibility */
+> ---
+>  drivers/acpi/utils.c    | 4 ++--
+>  include/acpi/acpi_bus.h | 6 +++---
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 475c907..049cba4 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -628,7 +628,7 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
+>   * some old BIOSes do expect a buffer or an integer etc.
+>   */
+>  union acpi_object *
+> -acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
+> +acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+>  		  union acpi_object *argv4)
+>  {
+>  	acpi_status ret;
+> @@ -677,7 +677,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
+>   * functions. Currently only support 64 functions at maximum, should be
+>   * enough for now.
+>   */
+> -bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
+> +bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+>  {
+>  	int i;
+>  	u64 mask = 0;
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index ad0a5ff..8e6abcf 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -61,12 +61,12 @@ bool acpi_ata_match(acpi_handle handle);
+>  bool acpi_bay_match(acpi_handle handle);
+>  bool acpi_dock_match(acpi_handle handle);
+>  
+> -bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
+> +bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs);
+>  union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
+> -			int rev, int func, union acpi_object *argv4);
+> +			u64 rev, u64 func, union acpi_object *argv4);
+>  
+>  static inline union acpi_object *
+> -acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
+> +acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+>  			union acpi_object *argv4, acpi_object_type type)
+>  {
+>  	union acpi_object *obj;
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
