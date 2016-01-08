@@ -1,126 +1,58 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v7 5/9] mm: add find_get_entries_tag()
-Date: Wed,  6 Jan 2016 11:00:59 -0700
-Message-Id: <1452103263-1592-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Subject: [PATCH v3 0/5] fs, block: handle end of life
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 07 Jan 2016 16:42:54 -0800
+Message-ID: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: xfs@oss.sgi.com
+Cc: linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, Dave Chinner <dchinner@redhat.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Jens Axboe <axboe@fb.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add find_get_entries_tag() to the family of functions that include
-find_get_entries(), find_get_pages() and find_get_pages_tag().  This is
-needed for DAX dirty page handling because we need a list of both page
-offsets and radix tree entries ('indices' and 'entries' in this function)
-that are marked with the PAGECACHE_TAG_TOWRITE tag.
+Changes since v2 [1]:
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+1/ Split "block: introduce del_gendisk_queue()" into a patch that
+   introduces del_gendisk_queue() with no functional difference to the
+   open coded version and "block: introduce force_failure_partition()
+   and unmap_dax_inodes()" which adds the new behavior.
+
+2/ Collect Dave's ack on "xfs: unmap dax at shutdown (force_failure)"
+
 ---
- include/linux/pagemap.h |  3 +++
- mm/filemap.c            | 68 +++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 71 insertions(+)
 
-diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
-index 4d08b6c..92395a0 100644
---- a/include/linux/pagemap.h
-+++ b/include/linux/pagemap.h
-@@ -361,6 +361,9 @@ unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t start,
- 			       unsigned int nr_pages, struct page **pages);
- unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
- 			int tag, unsigned int nr_pages, struct page **pages);
-+unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
-+			int tag, unsigned int nr_entries,
-+			struct page **entries, pgoff_t *indices);
- 
- struct page *grab_cache_page_write_begin(struct address_space *mapping,
- 			pgoff_t index, unsigned flags);
-diff --git a/mm/filemap.c b/mm/filemap.c
-index 7b8be78..1e215fc 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -1499,6 +1499,74 @@ repeat:
- }
- EXPORT_SYMBOL(find_get_pages_tag);
- 
-+/**
-+ * find_get_entries_tag - find and return entries that match @tag
-+ * @mapping:	the address_space to search
-+ * @start:	the starting page cache index
-+ * @tag:	the tag index
-+ * @nr_entries:	the maximum number of entries
-+ * @entries:	where the resulting entries are placed
-+ * @indices:	the cache indices corresponding to the entries in @entries
-+ *
-+ * Like find_get_entries, except we only return entries which are tagged with
-+ * @tag.
-+ */
-+unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
-+			int tag, unsigned int nr_entries,
-+			struct page **entries, pgoff_t *indices)
-+{
-+	void **slot;
-+	unsigned int ret = 0;
-+	struct radix_tree_iter iter;
-+
-+	if (!nr_entries)
-+		return 0;
-+
-+	rcu_read_lock();
-+restart:
-+	radix_tree_for_each_tagged(slot, &mapping->page_tree,
-+				   &iter, start, tag) {
-+		struct page *page;
-+repeat:
-+		page = radix_tree_deref_slot(slot);
-+		if (unlikely(!page))
-+			continue;
-+		if (radix_tree_exception(page)) {
-+			if (radix_tree_deref_retry(page)) {
-+				/*
-+				 * Transient condition which can only trigger
-+				 * when entry at index 0 moves out of or back
-+				 * to root: none yet gotten, safe to restart.
-+				 */
-+				goto restart;
-+			}
-+
-+			/*
-+			 * A shadow entry of a recently evicted page, a swap
-+			 * entry from shmem/tmpfs or a DAX entry.  Return it
-+			 * without attempting to raise page count.
-+			 */
-+			goto export;
-+		}
-+		if (!page_cache_get_speculative(page))
-+			goto repeat;
-+
-+		/* Has the page moved? */
-+		if (unlikely(page != *slot)) {
-+			page_cache_release(page);
-+			goto repeat;
-+		}
-+export:
-+		indices[ret] = iter.index;
-+		entries[ret] = page;
-+		if (++ret == nr_entries)
-+			break;
-+	}
-+	rcu_read_unlock();
-+	return ret;
-+}
-+EXPORT_SYMBOL(find_get_entries_tag);
-+
- /*
-  * CD/DVDs are error prone. When a medium error occurs, the driver may fail
-  * a _large_ part of the i/o request. Imagine the worst scenario:
--- 
-2.5.0
+As mentioned in [PATCH v3 3/5] "block: introduce
+force_failure_partition() and unmap_dax_inodes()" historically we have
+waited for filesystem specific heuristics to attempt to guess when a
+block device is gone.  Sometimes this works, but in other cases the
+system can hang waiting for the fs to trigger its shutdown protocol.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Now with DAX we need new actions, like unmapping all inodes, to be taken
+upon a device loss event or fs corruption event.
+
+For now, the approach taken in the following patches only affects xfs
+and block drivers that are converted to use del_gendisk_queue().  We can
+add more filesystems and driver support over time.
+
+---
+
+Dan Williams (5):
+      block: prepare for del_gendisk_queue()
+      block: introduce del_gendisk_queue()
+      block: introduce force_failure_partition() and unmap_dax_inodes()
+      xfs: unmap dax at shutdown (force_failure)
+      block, xfs: implement 'force_failure' notifications
+
+
+ block/genhd.c                |   87 +++++++++++++++++++++++++++++++++++-------
+ drivers/block/brd.c          |    9 +---
+ drivers/nvdimm/pmem.c        |    3 -
+ drivers/s390/block/dcssblk.c |    6 +--
+ fs/block_dev.c               |   22 +++++++++++
+ fs/inode.c                   |   28 ++++++++++++++
+ fs/xfs/xfs_fsops.c           |    9 ++++
+ fs/xfs/xfs_super.c           |    8 ++++
+ include/linux/fs.h           |    3 +
+ include/linux/genhd.h        |    1 
+ 10 files changed, 150 insertions(+), 26 deletions(-)
