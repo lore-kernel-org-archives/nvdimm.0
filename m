@@ -1,127 +1,73 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH 3/6] dax: Use vmf->pgoff in fault handlers
-Date: Sun, 31 Jan 2016 23:19:52 +1100
-Message-Id: <1454242795-18038-4-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1454242795-18038-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1454242795-18038-1-git-send-email-matthew.r.wilcox@intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, willy@linux.intel.com
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <56952E17.5010007@hpe.com>
+References: <1450393200-6802-1-git-send-email-toshi.kani@hpe.com>
+	<1450427687.11503.14.camel@kernel.org>
+	<1450451737.20148.121.camel@hpe.com>
+	<CAPcyv4iBk+DwHRBu=zAzSYrqD3Ni_cdK2630FuREtAhtDk5rdw@mail.gmail.com>
+	<1450464730.10450.14.camel@hpe.com>
+	<CAPcyv4hsZcg5UB7wJJ25cM4dbOGBx5tj7j6U8bR7r8f7hpP0bw@mail.gmail.com>
+	<1452610938.19330.66.camel@hpe.com>
+	<CAPcyv4hodeRzf_2BwA0j6zdmPAoV21iBKbBFWkQ2oP0X+uU+1g@mail.gmail.com>
+	<56952E17.5010007@hpe.com>
+Date: Tue, 12 Jan 2016 08:51:20 -0800
+Message-ID: <CAPcyv4ik9Z+wnwPe+mhXzuVDmBhF9zh5bRQf0h4Mi9zN6ZQX+Q@mail.gmail.com>
+Subject: Re: [PATCH] BTT: Change nd_btt_arena_is_valid() to verify UUID
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linda Knippers <linda.knippers@hpe.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>, Vishal Verma <vishal@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, micah.parrish@hpe.com, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that the PMD and PUD fault handlers are passed pgoff, there's no
-need to calculate it themselves.
+On Tue, Jan 12, 2016 at 8:47 AM, Linda Knippers <linda.knippers@hpe.com> wrote:
+> On 1/12/2016 11:38 AM, Dan Williams wrote:
+>> On Tue, Jan 12, 2016 at 7:02 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
+>>> On Fri, 2015-12-18 at 14:23 -0800, Dan Williams wrote:
+>>>> On Fri, Dec 18, 2015 at 10:52 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
+>>>>> On Fri, 2015-12-18 at 09:54 -0800, Dan Williams wrote:
+>>>>>> On Fri, Dec 18, 2015 at 7:15 AM, Toshi Kani <toshi.kani@hpe.com>
+>>>>>> wrote:
+>>>>>>> On Fri, 2015-12-18 at 01:34 -0700, Vishal Verma wrote:
+>>>>>>>> Also, I wonder if this problem is solved by using libndctl to
+>>>>>>>> manage
+>>>>>>>> BTTs.
+>>>>>>>
+>>>>>>> I have not tested with libndctl yet, but I think our bind/unbind
+>>>>>>> scripts do the same procedures.
+>>>>>>
+>>>>>> We loop through all combinations of sector size in our unit test.  If
+>>>>>> you want to change the sector size the expectation is that the
+>>>>>> namespace is destroyed and fully re-created, especially due to the
+>>>>>> fact that changing sector size invalidates all data on the namespace.
+>>>>>>
+>>>>>> See: https://github.com/pmem/ndctl/blob/master/lib/test-libndctl.c
+>>>>>
+>>>>> The parent_uuid is not set on our NVDIMM-N systems.  I do not see
+>>>>> 'uuid' file under sysfs 'namespaceX.X' per namespace_visible(), either.
+>>>>> This concept of creating/destroying a namespace is a bit foreign to us
+>>>>> since we've never needed to do.  Can you elaborate how it's supposed to
+>>>>> work for NVDIMM-N?
+>>>>>
+>>>>
+>>>> Ugh, yes.  An oversight on my part, let me give this some thought.
+>>>> Whatever we decide, I want the libndctl api to be identical for the
+>>>> two cases.
+>>>>
+>>>> I expect the simplest option is to have
+>>>> ndctl_namespace_disable_invalidate() destroy the btt-info block in the
+>>>> NVDIMM-N case.
+>>>
+>>> Do you have any update on this?  If we are going to use ndctl to address
+>>> this issue, does it mean that we will have to use ndctl to manage BTT?
+>>
+>> This is my current proposal:
+>>
+>> https://github.com/pmem/ndctl/blob/pending/Documentation/ndctl-create-namespace.txt
+>
+> I don't really like "safe" as a mode choice.  The others are "memory" and "raw".
+> Could the one using the BTT be "sector" or "atomic" or "btt" or something other
+> than "safe"?  Using "safe" implies that the others aren't safe, but they are if
+> you use them for their intended purpose and know what you're doing.
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
----
- fs/dax.c | 26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 696ff90..d0e1334 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -709,7 +709,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	unsigned long pmd_addr = address & PMD_MASK;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	struct block_device *bdev;
--	pgoff_t size, pgoff;
-+	pgoff_t size;
- 	sector_t block;
- 	int error, result = 0;
- 	bool alloc = false;
-@@ -734,12 +734,11 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		return VM_FAULT_FALLBACK;
- 	}
- 
--	pgoff = linear_page_index(vma, pmd_addr);
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (pgoff >= size)
-+	if (vmf->pgoff >= size)
- 		return VM_FAULT_SIGBUS;
- 	/* If the PMD would cover blocks out of the file */
--	if ((pgoff | PG_PMD_COLOUR) >= size) {
-+	if ((vmf->pgoff | PG_PMD_COLOUR) >= size) {
- 		dax_pmd_dbg(NULL, address,
- 				"offset + huge page size > file size");
- 		return VM_FAULT_FALLBACK;
-@@ -747,7 +746,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 
- 	memset(&bh, 0, sizeof(bh));
- 	bh.b_bdev = inode->i_sb->s_bdev;
--	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
-+	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
- 
- 	bh.b_size = PMD_SIZE;
- 
-@@ -777,7 +776,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	 * zero pages covering this hole
- 	 */
- 	if (alloc) {
--		loff_t lstart = pgoff << PAGE_SHIFT;
-+		loff_t lstart = vmf->pgoff << PAGE_SHIFT;
- 		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
- 
- 		truncate_pagecache_range(inode, lstart, lend);
-@@ -863,8 +862,8 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		 * the write to insert a dirty entry.
- 		 */
- 		if (write) {
--			error = dax_radix_entry(mapping, pgoff, dax.sector,
--					true, true);
-+			error = dax_radix_entry(mapping, vmf->pgoff,
-+						dax.sector, true, true);
- 			if (error) {
- 				dax_pmd_dbg(&bh, address,
- 						"PMD radix insertion failed");
-@@ -921,7 +920,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	unsigned long pud_addr = address & PUD_MASK;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	struct block_device *bdev;
--	pgoff_t size, pgoff;
-+	pgoff_t size;
- 	sector_t block;
- 	int result = 0;
- 	bool alloc = false;
-@@ -946,12 +945,11 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		return VM_FAULT_FALLBACK;
- 	}
- 
--	pgoff = linear_page_index(vma, pud_addr);
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (pgoff >= size)
-+	if (vmf->pgoff >= size)
- 		return VM_FAULT_SIGBUS;
- 	/* If the PUD would cover blocks out of the file */
--	if ((pgoff | PG_PUD_COLOUR) >= size) {
-+	if ((vmf->pgoff | PG_PUD_COLOUR) >= size) {
- 		dax_pud_dbg(NULL, address,
- 				"offset + huge page size > file size");
- 		return VM_FAULT_FALLBACK;
-@@ -959,7 +957,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 
- 	memset(&bh, 0, sizeof(bh));
- 	bh.b_bdev = inode->i_sb->s_bdev;
--	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
-+	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
- 
- 	bh.b_size = PUD_SIZE;
- 
-@@ -989,7 +987,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	 * zero pages covering this hole
- 	 */
- 	if (alloc) {
--		loff_t lstart = pgoff << PAGE_SHIFT;
-+		loff_t lstart = vmf->pgoff << PAGE_SHIFT;
- 		loff_t lend = lstart + PUD_SIZE - 1; /* inclusive */
- 
- 		truncate_pagecache_range(inode, lstart, lend);
--- 
-2.7.0.rc3
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Of those alternatives I think "sector" mode is the most clear.
