@@ -1,98 +1,66 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/2] dax: fix bdev NULL pointer dereferences
-Date: Thu, 28 Jan 2016 12:35:04 -0700
-Message-Id: <1454009704-25959-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1454009704-25959-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1454009704-25959-1-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+In-Reply-To: <20160112013259.GC79247@tevye.fc.hp.com>
+References: <cover.1452121277.git.jerry.hoemann@hpe.com>
+	<CAPcyv4h_Oc3VVwtjp=+onSVq-Kuidd1r+9fbR-uo+DF_=e+jhg@mail.gmail.com>
+	<CAPcyv4h+R4Aa7Zu3qWfmWwk6SWt22wuOowJvtpFhVUCdamTWDA@mail.gmail.com>
+	<20160112013259.GC79247@tevye.fc.hp.com>
+Date: Tue, 12 Jan 2016 10:55:16 -0800
+Message-ID: <CAPcyv4ikzVM0uvDBpN=+A3+2v_SSvsD0GqP6PZ1S+8OUUhbK7A@mail.gmail.com>
+Subject: Re: [PATCH v5 0/6] nvdimm: Add an IOCTL pass thru for DSM calls
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-There are a number of places in dax.c that look up the struct block_device
-associated with an inode.  Previously this was done by just using
-inode->i_sb->s_bdev.  This is correct for inodes that exist within the
-filesystems supported by DAX (ext2, ext4 & XFS), but when running DAX
-against raw block devices this value is NULL.  This causes NULL pointer
-dereferences when these block_device pointers are used.
+On Mon, Jan 11, 2016 at 5:32 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> On Sun, Jan 10, 2016 at 04:03:18PM -0800, Dan Williams wrote:
+>> On Wed, Jan 6, 2016 at 3:58 PM, Dan Williams <dan.j.williams@intel.com>wrote:
+[..]
+>> 2/ Disallow potentially invalid calls to reach firmware.  At a minimum
+>> the kernel needs to know the uuid in advance for any dsm it wants to
+>> send.  I.e. check the 'dsm_fun_idx' against the dsm_mask.  This is
+>> also important for making sure the kernel can manage exclusive access
+>> to the configuration data area if present
+>> (ND_CMD_{GET|SET}_CONFIG_DATA).
+>
+>   Technically, the kernel doesn't need to know the uuid in advance
+>   as that is part of the bundle passed into the passthru.
 
-Instead, for raw block devices we need to look up the struct block_device
-using I_BDEV().  This patch fixes all the block_device lookups in dax.c so
-that they work properly for both filesystems and raw block devices.
+True, but the set of uuids the kernel ever needs to know about is
+likely small, and this policy mandates publication/notification of new
+command sets to the kernel community.  Later on it gives the kernel a
+touch point to implement dsm function number blacklisting which I
+think is a useful security feature.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+I'll leave the UUID parameter in the command in case a device ever
+implements multiple command sets and we need to select between two
+function number spaces.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 4fd6b0c..e60a5a7 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -32,6 +32,9 @@
- #include <linux/pfn_t.h>
- #include <linux/sizes.h>
- 
-+#define DAX_BDEV(inode) (S_ISBLK(inode->i_mode) ? I_BDEV(inode) \
-+				: inode->i_sb->s_bdev)
-+
- static long dax_map_atomic(struct block_device *bdev, struct blk_dax_ctl *dax)
- {
- 	struct request_queue *q = bdev->bd_queue;
-@@ -65,7 +68,7 @@ static void dax_unmap_atomic(struct block_device *bdev,
-  */
- int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
- {
--	struct block_device *bdev = inode->i_sb->s_bdev;
-+	struct block_device *bdev = DAX_BDEV(inode);
- 	struct blk_dax_ctl dax = {
- 		.sector = block << (inode->i_blkbits - 9),
- 		.size = _size,
-@@ -246,7 +249,7 @@ ssize_t dax_do_io(struct kiocb *iocb, struct inode *inode,
- 	loff_t end = pos + iov_iter_count(iter);
- 
- 	memset(&bh, 0, sizeof(bh));
--	bh.b_bdev = inode->i_sb->s_bdev;
-+	bh.b_bdev = DAX_BDEV(inode);
- 
- 	if ((flags & DIO_LOCKING) && iov_iter_rw(iter) == READ) {
- 		struct address_space *mapping = inode->i_mapping;
-@@ -468,7 +471,7 @@ int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
- 		loff_t end)
- {
- 	struct inode *inode = mapping->host;
--	struct block_device *bdev = inode->i_sb->s_bdev;
-+	struct block_device *bdev = DAX_BDEV(inode);
- 	pgoff_t start_index, end_index, pmd_index;
- 	pgoff_t indices[PAGEVEC_SIZE];
- 	struct pagevec pvec;
-@@ -608,7 +611,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 
- 	memset(&bh, 0, sizeof(bh));
- 	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
--	bh.b_bdev = inode->i_sb->s_bdev;
-+	bh.b_bdev = DAX_BDEV(inode);
- 	bh.b_size = PAGE_SIZE;
- 
-  repeat:
-@@ -827,7 +830,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	}
- 
- 	memset(&bh, 0, sizeof(bh));
--	bh.b_bdev = inode->i_sb->s_bdev;
-+	bh.b_bdev = DAX_BDEV(inode);
- 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
- 
- 	bh.b_size = PMD_SIZE;
-@@ -1080,7 +1083,7 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
- 	BUG_ON((offset + length) > PAGE_CACHE_SIZE);
- 
- 	memset(&bh, 0, sizeof(bh));
--	bh.b_bdev = inode->i_sb->s_bdev;
-+	bh.b_bdev = DAX_BDEV(inode);
- 	bh.b_size = PAGE_CACHE_SIZE;
- 	err = get_block(inode, index, &bh, 0);
- 	if (err < 0)
--- 
-2.5.0
+>
+>
+>   Are you concerned about firmware mis-behaving when presented
+>   with a (UUID, Function_Index) that is not supported?
+>   (and really we should add Revision ID to that tuple.)
+>
+>   In a prior version of the patch not sent upstream, I did "discover" the
+>   uuid and set up the dsm_mask.  However, this created a need to modify
+>   kernel each time uuid changes.  Also, i don't think this is necessary
+>   as FW should be gracefully validating its input arguments.  By
+>   not setting up/using dsm_mask in pass thru case, this can be tested.
+
+ACPICA will throw parse errors on mis-formatted DSMs.  We can't
+prevent all malformed calls, but this is basic input validation that
+the kernel can perform.
+
+>   I don't understand the exclusive access concern w/ config data.
+>   Could you please elaborate?
+
+See nd_cmd_clear_to_send()... when a dimm is active the kernel
+mandates that updates to the namespace labels go through sysfs.  This
+is a safety measure to prevent userspace from inadvertently clobbering
+in use labels.  Once the dimm goes idle (all 'region' devices related
+to the dimm are disabled) userspace can manually update the
+configuration data area.
