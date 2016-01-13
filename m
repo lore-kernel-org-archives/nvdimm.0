@@ -1,40 +1,62 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Stephen Bates <Stephen.Bates@pmcs.com>
-Subject: [LSF/MM ATTEND] blk-mq polling, nvme, pmem (for iomem) and
- non-block based SSDs.
-Date: Thu, 28 Jan 2016 22:24:27 +0000
-Message-ID: <36F6EBABA23FEF4391AF72944D228901EB6F1F59@BBYEXM01.pmc-sierra.internal>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Date: Wed, 13 Jan 2016 10:07:34 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v8 1/9] dax: fix NULL pointer dereference in __dax_dbg()
+Message-ID: <20160113090734.GC14630@quack.suse.cz>
+References: <1452230879-18117-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1452230879-18117-2-git-send-email-ross.zwisler@linux.intel.com>
+ <20160112093458.GR6262@quack.suse.cz>
+ <20160113070829.GA30496@linux.intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160113070829.GA30496@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: "lsf-pc@lists.linux-foundation.org" <lsf-pc@lists.linux-foundation.org>
-Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi
+On Wed 13-01-16 00:08:29, Ross Zwisler wrote:
+> On Tue, Jan 12, 2016 at 10:34:58AM +0100, Jan Kara wrote:
+> > On Thu 07-01-16 22:27:51, Ross Zwisler wrote:
+> > > In __dax_pmd_fault() we currently assume that get_block() will always set
+> > > bh.b_bdev and we unconditionally dereference it in __dax_dbg().  This
+> > > assumption isn't always true - when called for reads of holes
+> > > ext4_dax_mmap_get_block() returns a buffer head where bh->b_bdev is never
+> > > set.  I hit this BUG while testing the DAX PMD fault path.
+> > > 
+> > > Instead, initialize bh.b_bdev before passing bh into get_block().  It is
+> > > possible that the filesystem's get_block() will update bh.b_bdev, and this
+> > > is fine - we just want to initialize bh.b_bdev to something reasonable so
+> > > that the calls to __dax_dbg() work and print something useful.
+> > > 
+> > > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > > Cc: Dan Williams <dan.j.williams@intel.com>
+> > 
+> > Looks good. But don't you need to do the same for __dax_fault(),
+> > dax_zero_page_range() and similar places passing bh to dax functions?
+> > 
+> > 								Honza
+> 
+> I don't think we need it anywhere else.  The only reason that we need to
+> initialize the bh.b_bdev manually in the __dax_pmd_fault() path is that if the
+> get_block() call ends up finding a hole (so doesn't fill out b_bdev) we still
+> go through the dax_pmd_dbg() path to print an error message, which uses
+> b_bdev.  I believe that in the other paths where we hit a hole, such as
+> __dax_fault(), we don't use b_bdev because we don't have the same error path
+> prints, and the regular code for handling holes doesn't use b_bdev.
+> 
+> That being said, if you feel like it's cleaner to initialize it
+> everywhere so everything is consistent and we don't have to worry about
+> it, I'm fine to make the change.
 
-I would like to attend LSF/MM 2016 to participate in discussions around the=
- optimization of the block layer and memory management for low latency NVM =
-technologies. I'd be very interested in discussions pertaining to where we =
-can take the work being done to add polling into the block layer and tying =
-that into file-systems and applications. I would also be keen to discuss ho=
-w we might extend the recent work to facilitate large persistent memory reg=
-ions to IO memory (e.g. PCIe devices with large, persistent, memory regions=
-).
+Well, it seems more futureproof to me. In case someone decides to add some
+debug message later on...
 
-I am also keen to discuss topics associated with non-block based hardware d=
-evices including things like NVDIMM, OpenChannel SSDs and persistent memory=
- exposed on PCIe devices.
-
-I spend quite a bit of time working on elements of the block layer (especia=
-lly NVMe), the RDMA stack and (more recently) the NVDIMM/PMEM/DAX sections =
-of the kernel.
-
-Cheers
-
-Stephen
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
