@@ -1,58 +1,133 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Subject: [PATCH v3 0/5] fs, block: handle end of life
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 07 Jan 2016 16:42:54 -0800
-Message-ID: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Fri, 15 Jan 2016 14:10:32 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v8 6/9] dax: add support for fsync/msync
+Message-ID: <20160115131032.GK15950@quack.suse.cz>
+References: <1452230879-18117-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1452230879-18117-7-git-send-email-ross.zwisler@linux.intel.com>
+ <20160112105716.GT6262@quack.suse.cz>
+ <20160113073019.GB30496@linux.intel.com>
+ <20160113093525.GD14630@quack.suse.cz>
+ <20160113185802.GB5904@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, Dave Chinner <dchinner@redhat.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Jens Axboe <axboe@fb.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160113185802.GB5904@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v2 [1]:
+On Wed 13-01-16 11:58:02, Ross Zwisler wrote:
+> On Wed, Jan 13, 2016 at 10:35:25AM +0100, Jan Kara wrote:
+> > On Wed 13-01-16 00:30:19, Ross Zwisler wrote:
+> > > > And secondly: You must write-protect all mappings of the flushed range so
+> > > > that you get fault when the sector gets written-to again. We spoke about
+> > > > this in the past already but somehow it got lost and I forgot about it as
+> > > > well. You need something like rmap_walk_file()...
+> > > 
+> > > The code that write protected mappings and then cleaned the radix tree entries
+> > > did get written, and was part of v2:
+> > > 
+> > > https://lkml.org/lkml/2015/11/13/759
+> > > 
+> > > I removed all the code that cleaned PTE entries and radix tree entries for v3.
+> > > The reason behind this was that there was a race that I couldn't figure out
+> > > how to solve between the cleaning of the PTEs and the cleaning of the radix
+> > > tree entries.
+> > > 
+> > > The race goes like this:
+> > > 
+> > > Thread 1 (write)			Thread 2 (fsync)
+> > > ================			================
+> > > wp_pfn_shared()
+> > > pfn_mkwrite()
+> > > dax_radix_entry()
+> > > radix_tree_tag_set(DIRTY)
+> > > 					dax_writeback_mapping_range()
+> > > 					dax_writeback_one()
+> > > 					radix_tag_clear(DIRTY)
+> > > 					pgoff_mkclean()
+> > > ... return up to wp_pfn_shared()
+> > > wp_page_reuse()
+> > > pte_mkdirty()
+> > > 
+> > > After this sequence we end up with a dirty PTE that is writeable, but with a
+> > > clean radix tree entry.  This means that users can write to the page, but that
+> > > a follow-up fsync or msync won't flush this dirty data to media.
+> > > 
+> > > The overall issue is that in the write path that goes through wp_pfn_shared(),
+> > > the DAX code has control over when the radix tree entry is dirtied but not
+> > > when the PTE is made dirty and writeable.  This happens up in wp_page_reuse().
+> > > This means that we can't easily add locking, etc. to protect ourselves.
+> > > 
+> > > I spoke a bit about this with Dave Chinner and with Dave Hansen, but no really
+> > > easy solutions presented themselves in the absence of a page lock.  I do have
+> > > one idea, but I think it's pretty invasive and will need to wait for another
+> > > kernel cycle.
+> > > 
+> > > The current code that leaves the radix tree entry will give us correct
+> > > behavior - it'll just be less efficient because we will have an ever-growing
+> > > dirty set to flush.
+> > 
+> > Ahaa! Somehow I imagined tag_pages_for_writeback() clears DIRTY radix tree
+> > tags but it does not (I should have known, I have written that functions
+> > few years ago ;). Makes sense. Thanks for clarification.
+> > 
+> > > > > @@ -791,15 +976,12 @@ EXPORT_SYMBOL_GPL(dax_pmd_fault);
+> > > > >   * dax_pfn_mkwrite - handle first write to DAX page
+> > > > >   * @vma: The virtual memory area where the fault occurred
+> > > > >   * @vmf: The description of the fault
+> > > > > - *
+> > > > >   */
+> > > > >  int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+> > > > >  {
+> > > > > -	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
+> > > > > +	struct file *file = vma->vm_file;
+> > > > >  
+> > > > > -	sb_start_pagefault(sb);
+> > > > > -	file_update_time(vma->vm_file);
+> > > > > -	sb_end_pagefault(sb);
+> > > > > +	dax_radix_entry(file->f_mapping, vmf->pgoff, NO_SECTOR, false, true);
+> > > > 
+> > > > Why is NO_SECTOR argument correct here?
+> > > 
+> > > Right - so NO_SECTOR means "I expect there to already be an entry in the radix
+> > > tree - just make that entry dirty".  This works because pfn_mkwrite() always
+> > > follows a normal __dax_fault() or __dax_pmd_fault() call.  These fault calls
+> > > will insert the radix tree entry, regardless of whether the fault was for a
+> > > read or a write.  If the fault was for a write, the radix tree entry will also
+> > > be made dirty.
+> > >
+> > > For reads the radix tree entry will be inserted but left clean.  When the
+> > > first write happens we will get a pfn_mkwrite() call, which will call
+> > > dax_radix_entry() with the NO_SECTOR argument.  This will look up the radix
+> > > tree entry & set the dirty tag.
+> > 
+> > So the explanation of this should be somewhere so that everyone knows that
+> > we must have radix tree entries even for clean mapped blocks. Because upto
+> > know that was not clear to me.  Also __dax_pmd_fault() seems to insert
+> > entries only for write fault so the assumption doesn't seem to hold there?
+> 
+> Ah, right, sorry, the read fault() -> pfn_mkwrite() sequence only happens for
+> 4k pages.  You are right about our handling of 2MiB pages - for a read
+> followed by a write we will just call into the normal __dax_pmd_fault() code
+> again, which will do the get_block() call and insert a dirty radix tree entry.
+> Because we have to go all the way through the fault handler again at write
+> time there isn't a benefit to inserting a clean radix tree entry on read, so
+> we just skip it.
 
-1/ Split "block: introduce del_gendisk_queue()" into a patch that
-   introduces del_gendisk_queue() with no functional difference to the
-   open coded version and "block: introduce force_failure_partition()
-   and unmap_dax_inodes()" which adds the new behavior.
+Ouch, I wasn't aware of this asymetry between PMD and PTE faults. OK, so
+please just document this all somewhere because I'm pretty sure casual
+reader won't be able to figure this all out just from the code.
 
-2/ Collect Dave's ack on "xfs: unmap dax at shutdown (force_failure)"
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
----
-
-As mentioned in [PATCH v3 3/5] "block: introduce
-force_failure_partition() and unmap_dax_inodes()" historically we have
-waited for filesystem specific heuristics to attempt to guess when a
-block device is gone.  Sometimes this works, but in other cases the
-system can hang waiting for the fs to trigger its shutdown protocol.
-
-Now with DAX we need new actions, like unmapping all inodes, to be taken
-upon a device loss event or fs corruption event.
-
-For now, the approach taken in the following patches only affects xfs
-and block drivers that are converted to use del_gendisk_queue().  We can
-add more filesystems and driver support over time.
-
----
-
-Dan Williams (5):
-      block: prepare for del_gendisk_queue()
-      block: introduce del_gendisk_queue()
-      block: introduce force_failure_partition() and unmap_dax_inodes()
-      xfs: unmap dax at shutdown (force_failure)
-      block, xfs: implement 'force_failure' notifications
-
-
- block/genhd.c                |   87 +++++++++++++++++++++++++++++++++++-------
- drivers/block/brd.c          |    9 +---
- drivers/nvdimm/pmem.c        |    3 -
- drivers/s390/block/dcssblk.c |    6 +--
- fs/block_dev.c               |   22 +++++++++++
- fs/inode.c                   |   28 ++++++++++++++
- fs/xfs/xfs_fsops.c           |    9 ++++
- fs/xfs/xfs_super.c           |    8 ++++
- include/linux/fs.h           |    3 +
- include/linux/genhd.h        |    1 
- 10 files changed, 150 insertions(+), 26 deletions(-)
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
