@@ -1,41 +1,39 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Message-ID: <1453531056.15363.1.camel@kernel.org>
-Subject: [LSF/MM ATTEND] Persistent Memory Error Handling
-From: Vishal Verma <vishal@kernel.org>
-Date: Fri, 22 Jan 2016 23:37:36 -0700
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: owner-linux-mm@kvack.org
-To: lsf-pc@lists.linux-foundation.org
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, linux-mm@kvack.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 0/5] DAX fsync/msync fixes
+Date: Wed, 20 Jan 2016 20:36:43 -0700
+Message-Id: <1453347408-22830-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+This series fixes several issues in v8 of my "DAX fsync/msync support"
+patch series [1].  Thank you to Jan Kara for his excellent review.
 
-I'd like to attend LSF/MM. My primary topic of interest is the above as
-proposed by Jeff Moyer:
+Jan pointed out that we probably have an issue with the way hole punch
+interacts with the fsync/msync code.  This is the item that I'll work on
+next, but I wanted to send this series out now as I think it will be
+independent of the hole punch fixes.
 
-http://www.spinics.net/lists/linux-mm/msg100560.html
+This set applies cleanly on top of v8 of my "DAX fsync/msync support" set,
+which is in -mm and -next.  That set has not yet been merged for v4.5
+which is why the my work tree is still based on -next:
 
-I wrote the initial enabling for error handling that was merged for 4.5
-(Building a poison list in the libnvdimm subsystem, exposing it as
-'badblocks'), and am working on subsequent improvements in this areaa.
-These would include making the initial poison gathering asynchronous,
-and finer grained DAX control instead of turning DAX off entirely in
-the presence of poison which we currently do.
+https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=fsync_fixes
 
-Another topic of discussion I'd like to propose within this session is
-to explore if there are use cases that the now-generic badblocks
-implementation can fit. There is at least one opportunity of
-consolidation between md-raid's sysfs representation of badblocks, and
-the generically available one in gendisk.
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-January/003952.html
 
-Thanks,
-	-Vishal
+Ross Zwisler (5):
+  dax: never rely on bh.b_dev being set by get_block()
+  dax: clear TOWRITE flag after flush is complete
+  dax: improve documentation for fsync/msync
+  dax: fix PMD handling for fsync/msync
+  dax: fix clearing of holes in __dax_pmd_fault()
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+ fs/dax.c | 110 +++++++++++++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 86 insertions(+), 24 deletions(-)
+
+-- 
+2.5.0
+
