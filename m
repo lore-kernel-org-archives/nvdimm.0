@@ -1,52 +1,97 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 4/5] xfs: unmap dax at shutdown (force_failure)
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 07 Jan 2016 16:43:21 -0800
-Message-ID: <20160108004321.36061.17150.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Dave Chinner <dchinner@redhat.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 5/5] dax: fix clearing of holes in __dax_pmd_fault()
+Date: Wed, 20 Jan 2016 20:36:48 -0700
+Message-Id: <1453347408-22830-6-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1453347408-22830-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1453347408-22830-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When an exceptional event triggers xfs_force_shutdown() tear down dax
-mappings.  Quoting Dave,
+When the user reads from a DAX hole via a mmap we service page faults using
+zero-filled page cache pages.  These zero pages are also placed into the
+address_space radix tree.  When we get our first write for that space, we
+can allocate a PMD page worth of DAX storage to replace that hole.
 
-    "The simple fact is that a /filesystem/ shutdown needs to do DAX
-    mapping invalidation regardless of whether the block device has
-    been unplugged or not. This is not a case of "this only happens
-    when we unplug the device", this is a user data protection
-    mechanism that we use to prevent corruption propagation once it
-    has been detected. A device unplug is just one type of
-    "corruption" that can occur."
+When this happens we need to unmap the zero pages and remove them from the
+radix tree.  Prior to this patch we were unmapping *all* storage in our
+PMD's range, which is incorrect because it removed DAX entries as well on
+non-allocating page faults.
 
-Acked-by: Dave Chinner <dchinner@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Instead, keep track of when get_block() actually gives us storage so that
+we can be sure to only remove zero pages that were covering holes.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: Jan Kara <jack@suse.cz>
 ---
- fs/xfs/xfs_fsops.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ fs/dax.c | 32 ++++++++++++++++++++++----------
+ 1 file changed, 22 insertions(+), 10 deletions(-)
 
-diff --git a/fs/xfs/xfs_fsops.c b/fs/xfs/xfs_fsops.c
-index ee3aaa0a5317..0c6a52809dcc 100644
---- a/fs/xfs/xfs_fsops.c
-+++ b/fs/xfs/xfs_fsops.c
-@@ -828,6 +828,15 @@ xfs_do_force_shutdown(
- 	if (xfs_log_force_umount(mp, logerror))
- 		return;
+diff --git a/fs/dax.c b/fs/dax.c
+index 3b03580..cd19864 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -790,9 +790,9 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	bool write = flags & FAULT_FLAG_WRITE;
+ 	struct block_device *bdev;
+ 	pgoff_t size, pgoff;
+-	loff_t lstart, lend;
+ 	sector_t block;
+ 	int error, result = 0;
++	bool alloc = false;
  
-+	/*
-+	 * If DAX is in use, we have to unmap all direct access virtual
-+	 * mappings to ensure nothing more gets written directly from
-+	 * userspace. This will force them to refault and that will
-+	 * result in them detecting the shutdown condition and hence
-+	 * will fail appropriately.
-+	 */
-+	unmap_dax_inodes(mp->m_super);
+ 	/* dax pmd mappings require pfn_t_devmap() */
+ 	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
+@@ -830,10 +830,17 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
+ 
+ 	bh.b_size = PMD_SIZE;
+-	if (get_block(inode, block, &bh, write) != 0)
 +
- 	if (flags & SHUTDOWN_CORRUPT_INCORE) {
- 		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_CORRUPT,
-     "Corruption of in-memory data detected.  Shutting down filesystem");
++	if (get_block(inode, block, &bh, 0) != 0)
+ 		return VM_FAULT_SIGBUS;
++
++	if (!buffer_mapped(&bh) && write) {
++		if (get_block(inode, block, &bh, 1) != 0)
++			return VM_FAULT_SIGBUS;
++		alloc = true;
++	}
++
+ 	bdev = bh.b_bdev;
+-	i_mmap_lock_read(mapping);
+ 
+ 	/*
+ 	 * If the filesystem isn't willing to tell us the length of a hole,
+@@ -842,15 +849,20 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	 */
+ 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
+ 		dax_pmd_dbg(&bh, address, "allocated block too small");
+-		goto fallback;
++		return VM_FAULT_FALLBACK;
++	}
++
++	/*
++	 * If we allocated new storage, make sure no process has any
++	 * zero pages covering this hole
++	 */
++	if (alloc) {
++		loff_t lstart = pgoff << PAGE_SHIFT;
++		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
++
++		truncate_pagecache_range(inode, lstart, lend);
+ 	}
+ 
+-	/* make sure no process has any zero pages covering this hole */
+-	lstart = pgoff << PAGE_SHIFT;
+-	lend = lstart + PMD_SIZE - 1; /* inclusive */
+-	i_mmap_unlock_read(mapping);
+-	unmap_mapping_range(mapping, lstart, PMD_SIZE, 0);
+-	truncate_inode_pages_range(mapping, lstart, lend);
+ 	i_mmap_lock_read(mapping);
+ 
+ 	/*
+-- 
+2.5.0
+
