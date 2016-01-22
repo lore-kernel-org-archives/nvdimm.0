@@ -1,59 +1,62 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <1452610938.19330.66.camel@hpe.com>
-Subject: Re: [PATCH] BTT: Change nd_btt_arena_is_valid() to verify UUID
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Tue, 12 Jan 2016 08:02:18 -0700
-In-Reply-To: <CAPcyv4hsZcg5UB7wJJ25cM4dbOGBx5tj7j6U8bR7r8f7hpP0bw@mail.gmail.com>
-References: <1450393200-6802-1-git-send-email-toshi.kani@hpe.com>
-	 <1450427687.11503.14.camel@kernel.org>	<1450451737.20148.121.camel@hpe.com>
-	 <CAPcyv4iBk+DwHRBu=zAzSYrqD3Ni_cdK2630FuREtAhtDk5rdw@mail.gmail.com>
-	 <1450464730.10450.14.camel@hpe.com>
-	 <CAPcyv4hsZcg5UB7wJJ25cM4dbOGBx5tj7j6U8bR7r8f7hpP0bw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, micah.parrish@hpe.com, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 1/5] dax: never rely on bh.b_dev being set by get_block()
+Date: Fri, 22 Jan 2016 14:36:09 -0700
+Message-Id: <1453498573-6328-2-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1453498573-6328-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1453498573-6328-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, 2015-12-18 at 14:23 -0800, Dan Williams wrote:
-> On Fri, Dec 18, 2015 at 10:52 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> > On Fri, 2015-12-18 at 09:54 -0800, Dan Williams wrote:
-> > > On Fri, Dec 18, 2015 at 7:15 AM, Toshi Kani <toshi.kani@hpe.com>
-> > > wrote:
-> > > > On Fri, 2015-12-18 at 01:34 -0700, Vishal Verma wrote:
-> > > > > Also, I wonder if this problem is solved by using libndctl to
-> > > > > manage
-> > > > > BTTs.
-> > > > 
-> > > > I have not tested with libndctl yet, but I think our bind/unbind
-> > > > scripts do the same procedures.
-> > > 
-> > > We loop through all combinations of sector size in our unit test.  If
-> > > you want to change the sector size the expectation is that the
-> > > namespace is destroyed and fully re-created, especially due to the
-> > > fact that changing sector size invalidates all data on the namespace.
-> > > 
-> > > See: https://github.com/pmem/ndctl/blob/master/lib/test-libndctl.c
-> > 
-> > The parent_uuid is not set on our NVDIMM-N systems.  I do not see 
-> > 'uuid' file under sysfs 'namespaceX.X' per namespace_visible(), either.
-> > This concept of creating/destroying a namespace is a bit foreign to us
-> > since we've never needed to do.  Can you elaborate how it's supposed to
-> > work for NVDIMM-N?
-> > 
-> 
-> Ugh, yes.  An oversight on my part, let me give this some thought.
-> Whatever we decide, I want the libndctl api to be identical for the
-> two cases.
-> 
-> I expect the simplest option is to have
-> ndctl_namespace_disable_invalidate() destroy the btt-info block in the
-> NVDIMM-N case.
+Previously in DAX we assumed that calls to get_block() would set bh.b_bdev,
+and we would then use that value even in error cases for debugging.  This
+caused a NULL pointer dereference in __dax_dbg() which was fixed by a
+previous commit, but that commit only changed the one place where we were
+hitting an error.
 
-Do you have any update on this?  If we are going to use ndctl to address
-this issue, does it mean that we will have to use ndctl to manage BTT?
+Instead, update dax.c so that we always initialize bh.b_bdev as best we can
+based on the information that DAX has.  get_block() may or may not update
+to a new value, but this at least lets us get something helpful from
+bh.b_bdev for error messages and not have to worry about whether it was set
+by get_block() or not.
 
-Thanks,
--Toshi
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ fs/dax.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index 0db21ea..cee9e1b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -246,6 +246,7 @@ ssize_t dax_do_io(struct kiocb *iocb, struct inode *inode,
+ 	loff_t end = pos + iov_iter_count(iter);
+ 
+ 	memset(&bh, 0, sizeof(bh));
++	bh.b_bdev = inode->i_sb->s_bdev;
+ 
+ 	if ((flags & DIO_LOCKING) && iov_iter_rw(iter) == READ) {
+ 		struct address_space *mapping = inode->i_mapping;
+@@ -582,6 +583,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 
+ 	memset(&bh, 0, sizeof(bh));
+ 	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
++	bh.b_bdev = inode->i_sb->s_bdev;
+ 	bh.b_size = PAGE_SIZE;
+ 
+  repeat:
+@@ -1018,6 +1020,7 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
+ 	BUG_ON((offset + length) > PAGE_CACHE_SIZE);
+ 
+ 	memset(&bh, 0, sizeof(bh));
++	bh.b_bdev = inode->i_sb->s_bdev;
+ 	bh.b_size = PAGE_CACHE_SIZE;
+ 	err = get_block(inode, index, &bh, 0);
+ 	if (err < 0)
+-- 
+2.5.0
+
