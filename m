@@ -1,134 +1,87 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v5 0/6] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Wed,  6 Jan 2016 16:03:37 -0700
-Message-Id: <cover.1452121277.git.jerry.hoemann@hpe.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 3/5] dax: improve documentation for fsync/msync
+Date: Fri, 22 Jan 2016 14:36:11 -0700
+Message-Id: <1453498573-6328-4-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1453498573-6328-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1453498573-6328-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The NVDIMM code in the kernel supports an IOCTL interface to user
-space based upon the Intel Example DSM:
+Several of the subtleties and assumptions of the DAX fsync/msync
+implementation are not immediately obvious, so document them with comments.
 
-	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ fs/dax.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-This interface cannot be used by other NVDIMM DSMs that support
-incompatible functions.
-
-This patch set adds a generic "passthru" IOCTL interface which
-is not tied to a particular DSM.
-
-A new _IOC_NR ND_CMD_CALL_DSM == "10" is added for the pass thru call.
-
-The new data structure nd_cmd_dsmcall_pkg serves as a wrapper for
-the passthru calls.  This wrapper supplies the data that the kernel
-needs to make the _DSM call.
-
-Unlike the definitions of the _DSM functions themselves, the nd_cmd_dsmcall_pkg
-provides the calling information (input/output sizes) in an uniform
-manner making the kernel marshaling of the arguments straight
-forward.
-
-This shifts the marshaling burden from the kernel to the user
-space application while still permitting the kernel to internally
-call _DSM functions.
-
-The kernel functions __nd_ioctl and acpi_nfit_ctl were modified
-to accomodate ND_CMD_CALL_DSM.
-
-
-Changes in version 5:
----------------------
-0. Fixed submit comment for drivers/acpi/utils.c.
-
-
-Changes in version 4:
----------------------
-0. Added patch to correct parameter type passed to acpi_evaluate_dsm
-   ACPI defines arguments rev and fun as 64 bit quanties and the ioctl
-   exports to user face rev and func. We want those to match the ACPI spec.
-
-   Also modified acpi_evaluate_dsm_typed and acpi_check dsm which had
-   similar issue.
-
-1. nd_cmd_dsmcall_pkg rearange a reserve and rounded up total size
-   to 16 byte boundary.
-
-2. Created stand alone patch for the pre-existing security issue related
-   to "read only" IOCTL calls.
-
-3. Added patch for increasing envelope size of IOCTL.  Needed to
-   be able to read in the wrapper to know remaining size to copy in.
-
-   Note: in_env, out_env are statics sized based upon this change.
-
-4. Moved copyin code to table driven nd_cmd_desc 
-
-  Note, the last 40 lines or so of acpi_nfit_ctl will not return _DSM
-  data unless the size allocated in user space buffer equals
-  out_obj->buffer.length.
-
-  The semantic we want in the pass thru case is to return as much
-  of the _DSM data as the user space buffer would accomodate.
-
-  Hence, in acpi_nfit_ctl I have retained the line:
-
-		memcpy(pkg->dsm_buf + pkg->h.dsm_in,
-			out_obj->buffer.pointer,
-			min(pkg->h.dsm_size, pkg->h.dsm_out));
-
-  and the early return from the function.
-
-
-
-
-Changes in version 3:
----------------------
-1. Changed name ND_CMD_PASSTHRU to ND_CMD_CALL_DSM.
-
-2. Value of ND_CMD_CALL_DSM is 10, not 100.
-
-3. Changed name of nd_passthru_pkg to nd_cmd_dsmcall_pkg.
-
-4. Removed separate functions for handling ND_CMD_CALL_DSM.
-   Moved functionality to __nd_ioctl and acpi_nfit_ctl proper.
-   The resultant code looks very different from prior versions.
-
-5. BUGFIX: __nd_ioctl: Change the if read_only switch to use
-	 _IOC_NR cmd (not ioctl_cmd) for better protection.
-
-	Do we want to make a stand alone patch for this issue?
-
-
-Changes in version 2:
----------------------
-1. Cleanup access mode check in nd_ioctl and nvdimm_ioctl.
-2. Change name of ndn_pkg to nd_passthru_pkg
-3. Adjust sizes in nd_passthru_pkg. DSM intergers are 64 bit.
-4. No new ioctl type, instead tunnel into the existing number space.
-5. Push down one function level where determine ioctl cmd type.
-6. re-work diagnostic print/dump message in pass-thru functions.
-
-
-
-
-Jerry Hoemann (6):
-  ACPI / util: Fix acpi_evaluate_dsm() argument type
-  nvdimm: Clean-up access mode check.
-  nvdimm: Add wrapper for IOCTL pass thru
-  nvdimm: Fix security issue with DSM IOCTL.
-  nvdimm: Increase max envelope size for IOCTL
-  nvdimm: Add IOCTL pass thru functions
-
- drivers/acpi/nfit.c        | 52 ++++++++++++++++++++++++++---------
- drivers/acpi/utils.c       |  4 +--
- drivers/nvdimm/bus.c       | 67 +++++++++++++++++++++++++++++++++++++---------
- include/acpi/acpi_bus.h    |  6 ++---
- include/linux/libnvdimm.h  |  2 +-
- include/uapi/linux/ndctl.h | 19 +++++++++++++
- 6 files changed, 118 insertions(+), 32 deletions(-)
-
+diff --git a/fs/dax.c b/fs/dax.c
+index d589113..ab2faa9 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -335,6 +335,7 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
+ 	int type, error = 0;
+ 	void *entry;
+ 
++	WARN_ON_ONCE(pmd_entry && !dirty);
+ 	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ 
+ 	spin_lock_irq(&mapping->tree_lock);
+@@ -350,6 +351,13 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
+ 
+ 		if (!pmd_entry || type == RADIX_DAX_PMD)
+ 			goto dirty;
++
++		/*
++		 * We only insert dirty PMD entries into the radix tree.  This
++		 * means we don't need to worry about removing a dirty PTE
++		 * entry and inserting a clean PMD entry, thus reducing the
++		 * range we would flush with a follow-up fsync/msync call.
++		 */
+ 		radix_tree_delete(&mapping->page_tree, index);
+ 		mapping->nrexceptional--;
+ 	}
+@@ -912,6 +920,21 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		}
+ 		dax_unmap_atomic(bdev, &dax);
+ 
++		/*
++		 * For PTE faults we insert a radix tree entry for reads, and
++		 * leave it clean.  Then on the first write we dirty the radix
++		 * tree entry via the dax_pfn_mkwrite() path.  This sequence
++		 * allows the dax_pfn_mkwrite() call to be simpler and avoid a
++		 * call into get_block() to translate the pgoff to a sector in
++		 * order to be able to create a new radix tree entry.
++		 *
++		 * The PMD path doesn't have an equivalent to
++		 * dax_pfn_mkwrite(), though, so for a read followed by a
++		 * write we traverse all the way through __dax_pmd_fault()
++		 * twice.  This means we can just skip inserting a radix tree
++		 * entry completely on the initial read and just wait until
++		 * the write to insert a dirty entry.
++		 */
+ 		if (write) {
+ 			error = dax_radix_entry(mapping, pgoff, dax.sector,
+ 					true, true);
+@@ -985,6 +1008,14 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct file *file = vma->vm_file;
+ 
++	/*
++	 * We pass NO_SECTOR to dax_radix_entry() because we expect that a
++	 * RADIX_DAX_PTE entry already exists in the radix tree from a
++	 * previous call to __dax_fault().  We just want to look up that PTE
++	 * entry using vmf->pgoff and make sure the dirty tag is set.  This
++	 * saves us from having to make a call to get_block() here to look
++	 * up the sector.
++	 */
+ 	dax_radix_entry(file->f_mapping, vmf->pgoff, NO_SECTOR, false, true);
+ 	return VM_FAULT_NOPAGE;
+ }
 -- 
-1.7.11.3
-
+2.5.0
