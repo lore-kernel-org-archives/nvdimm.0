@@ -1,64 +1,78 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v8 0/9] DAX fsync/msync support
-Date: Thu,  7 Jan 2016 22:27:50 -0700
-Message-Id: <1452230879-18117-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Fri, 22 Jan 2016 15:53:45 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v2 1/5] dax: never rely on bh.b_dev being set by
+ get_block()
+Message-ID: <20160122145345.GJ16898@quack.suse.cz>
+References: <1453398364-22537-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1453398364-22537-2-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1453398364-22537-2-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v7 [1]:
+On Thu 21-01-16 10:46:00, Ross Zwisler wrote:
+> Previously in DAX we assumed that calls to get_block() would set bh.b_bdev,
+> and we would then use that value even in error cases for debugging.  This
+> caused a NULL pointer dereference in __dax_dbg() which was fixed by a
+> previous commit, but that commit only changed the one place where we were
+> hitting an error.
+> 
+> Instead, update dax.c so that we always initialize bh.b_bdev as best we can
+> based on the information that DAX has.  get_block() may or may not update
+> to a new value, but this at least lets us get something helpful from
+> bh.b_bdev for error messages and not have to worry about whether it was set
+> by get_block() or not.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Reported-by: Jan Kara <jack@suse.cz>
 
-1) Update patch 1 so that we initialize bh->b_bdev before passing it to
-get_block() instead of working around the fact that it could still be NULL
-after get_block() completes. (Dan)
+Looks good. You can add:
 
-2) Add a check to dax_radix_entry() so that we WARN_ON_ONCE() and exit
-gracefully if we find a page cache entry still in the radix tree when
-trying to insert a DAX entry.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-This series replaces v7 in the MM tree and in the "akpm" branch of the next
-tree.  A working tree can be found here:
+								Honza
 
-https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=fsync_v8
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-January/003886.html
-
-Ross Zwisler (9):
-  dax: fix NULL pointer dereference in __dax_dbg()
-  dax: fix conversion of holes to PMDs
-  pmem: add wb_cache_pmem() to the PMEM API
-  dax: support dirty DAX entries in radix tree
-  mm: add find_get_entries_tag()
-  dax: add support for fsync/msync
-  ext2: call dax_pfn_mkwrite() for DAX fsync/msync
-  ext4: call dax_pfn_mkwrite() for DAX fsync/msync
-  xfs: call dax_pfn_mkwrite() for DAX fsync/msync
-
- arch/x86/include/asm/pmem.h |  11 +--
- fs/block_dev.c              |   2 +-
- fs/dax.c                    | 215 ++++++++++++++++++++++++++++++++++++++++----
- fs/ext2/file.c              |   4 +-
- fs/ext4/file.c              |   4 +-
- fs/inode.c                  |   2 +-
- fs/xfs/xfs_file.c           |   7 +-
- include/linux/dax.h         |   7 ++
- include/linux/fs.h          |   3 +-
- include/linux/pagemap.h     |   3 +
- include/linux/pmem.h        |  22 ++++-
- include/linux/radix-tree.h  |   9 ++
- mm/filemap.c                |  91 +++++++++++++++++--
- mm/truncate.c               |  69 +++++++-------
- mm/vmscan.c                 |   9 +-
- mm/workingset.c             |   4 +-
- 16 files changed, 393 insertions(+), 69 deletions(-)
-
+> ---
+>  fs/dax.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 0db21ea..cee9e1b 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -246,6 +246,7 @@ ssize_t dax_do_io(struct kiocb *iocb, struct inode *inode,
+>  	loff_t end = pos + iov_iter_count(iter);
+>  
+>  	memset(&bh, 0, sizeof(bh));
+> +	bh.b_bdev = inode->i_sb->s_bdev;
+>  
+>  	if ((flags & DIO_LOCKING) && iov_iter_rw(iter) == READ) {
+>  		struct address_space *mapping = inode->i_mapping;
+> @@ -582,6 +583,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+>  
+>  	memset(&bh, 0, sizeof(bh));
+>  	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
+> +	bh.b_bdev = inode->i_sb->s_bdev;
+>  	bh.b_size = PAGE_SIZE;
+>  
+>   repeat:
+> @@ -1018,6 +1020,7 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
+>  	BUG_ON((offset + length) > PAGE_CACHE_SIZE);
+>  
+>  	memset(&bh, 0, sizeof(bh));
+> +	bh.b_bdev = inode->i_sb->s_bdev;
+>  	bh.b_size = PAGE_CACHE_SIZE;
+>  	err = get_block(inode, index, &bh, 0);
+>  	if (err < 0)
+> -- 
+> 2.5.0
+> 
+> 
 -- 
-2.5.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
