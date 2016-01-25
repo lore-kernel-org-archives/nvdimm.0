@@ -1,74 +1,159 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Sat, 2 Jan 2016 12:06:38 -0500
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: Re: [PATCH 1/8] mm: Add optional support for PUD-sized transparent
- hugepages
-Message-ID: <20160102170638.GL2457@linux.intel.com>
-References: <1450974037-24775-1-git-send-email-matthew.r.wilcox@intel.com>
- <1450974037-24775-2-git-send-email-matthew.r.wilcox@intel.com>
- <20151228100551.GA4589@node.shutemov.name>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Mon, 25 Jan 2016 15:40:57 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v2 5/5] dax: fix clearing of holes in __dax_pmd_fault()
+Message-ID: <20160125144057.GI24938@quack.suse.cz>
+References: <1453398364-22537-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1453398364-22537-6-git-send-email-ross.zwisler@linux.intel.com>
+ <20160122153719.GN16898@quack.suse.cz>
+ <20160122161251.GC22112@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20151228100551.GA4589@node.shutemov.name>
-Sender: owner-linux-mm@kvack.org
-To: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+In-Reply-To: <20160122161251.GC22112@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Dec 28, 2015 at 12:05:51PM +0200, Kirill A. Shutemov wrote:
-> On Thu, Dec 24, 2015 at 11:20:30AM -0500, Matthew Wilcox wrote:
-> > diff --git a/include/linux/mm.h b/include/linux/mm.h
-> > index 4bf3811..e14634f 100644
-> > --- a/include/linux/mm.h
-> > +++ b/include/linux/mm.h
-> > @@ -1958,6 +1977,17 @@ static inline spinlock_t *pmd_lock(struct mm_struct *mm, pmd_t *pmd)
-> >  	return ptl;
-> >  }
-> >  
-> > +/*
-> > + * No scalability reason to split PUD locks yet, but follow the same pattern
-> > + * as the PMD locks to make it easier if we have to.
-> > + */
+On Fri 22-01-16 09:12:51, Ross Zwisler wrote:
+> On Fri, Jan 22, 2016 at 04:37:19PM +0100, Jan Kara wrote:
+> > On Thu 21-01-16 10:46:04, Ross Zwisler wrote:
+> > > When the user reads from a DAX hole via a mmap we service page faults using
+> > > zero-filled page cache pages.  These zero pages are also placed into the
+> > > address_space radix tree.  When we get our first write for that space, we
+> > > can allocate a PMD page worth of DAX storage to replace that hole.
+> > > 
+> > > When this happens we need to unmap the zero pages and remove them from the
+> > > radix tree.  Prior to this patch we were unmapping *all* storage in our
+> > > PMD's range, which is incorrect because it removed DAX entries as well on
+> > > non-allocating page faults.
+> > > 
+> > > Instead, keep track of when get_block() actually gives us storage so that
+> > > we can be sure to only remove zero pages that were covering holes.
+> > > 
+> > > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > > Reported-by: Jan Kara <jack@suse.cz>
+> > 
+> > So the get_block() calls below are still racy so your allocation detection
+> > doesn't quite work reliably anyway. For that we need a change in the fault
+> > locking we were talking about and at that point we'll need to somewhat
+> > update __dax_pmd_fault() anyway. So I'm not sure if this intermediate
+> > change really makes sense... I'd rather first change the locking in the
+> > filesystems and then fixup remaining issues with __dax_pmd_fault().
 > 
-> I don't think it makes any good unless you convert all other places where
-> we use page_table_lock to protect pud table (like __pud_alloc()) to the
-> same API.
-> I think this would deserve separate patch.
-
-Sure, a separate patch to convert existing users of the PTL.  But I
-don't think it does any harm to introduce the PUD version of the PMD API.
-Maybe with a comment indicating that tere is significant work to be done
-in converting existing users to this API?
-
-> > diff --git a/mm/memory.c b/mm/memory.c
-> > index 416b129..7328df0 100644
-> > --- a/mm/memory.c
-> > +++ b/mm/memory.c
-> > @@ -1220,9 +1220,27 @@ static inline unsigned long zap_pud_range(struct mmu_gather *tlb,
-> >  	pud = pud_offset(pgd, addr);
-> >  	do {
-> >  		next = pud_addr_end(addr, end);
-> > +		if (pud_trans_huge(*pud) || pud_devmap(*pud)) {
-> > +			if (next - addr != HPAGE_PUD_SIZE) {
-> > +#ifdef CONFIG_DEBUG_VM
+> Agreed, the fault isolation code that we talked about previously is still
+> needed.  I've got an initial version coded up that I will send out as an RFC
+> today.  Those patches build directly on this patch.
 > 
-> IS_ENABLED(CONFIG_DEBUG_VM) ?
+> My thought behind sending this was that I worried that the fault isolation
+> code wouldn't make it into v4.5, as we're already in the merge window.  That
+> code by design has to touch both DAX and all the DAX filesystems (ext4, ext2
+> and XFS).  Although, I guess a race that could result in data corruption
+> probably warrants an -RC timed fix?
 > 
-> > +				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
-> > +					pr_err("%s: mmap_sem is unlocked! addr=0x%lx end=0x%lx vma->vm_start=0x%lx vma->vm_end=0x%lx\n",
-> > +						__func__, addr, end,
-> > +						vma->vm_start,
-> > +						vma->vm_end);
+> In any case, one way or another we really need this fix for v4.5.  Without it
+> each PMD fault we receive will unmap the PMD range - even if that range is in
+> use by other threads. So, you can get into the following situation:
 > 
-> dump_vma(), I guess.
+> Thread 1				Thread 2
+> --------				--------
+> PMD fault
+>   unmap range for all threads
+>   map range for just this thread
+> 					PMD fault
+> 					  unmap range for all threads
+> 					  map range for just this thread
+> PMD fault
+>   unmap range for all threads
+>   map range for just this thread
+> 	  				...
+> 
+> Where two threads that are doing I/O to the same PMD will thrash and cause
+> every access to trigger a PMD page fault.
 
-These two issues are copy-and-paste from the existing PMD code.  I'm happy
-to update the PMD code to the new-and-improved way of doing things;
-I'm just not keen to have the PMD and PUD code diverge unnecessarily.
+OK, so your patch doesn't really make the locking changes any more
+difficult so I don't mind going it in first. So feel free to add:
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
+
+> > > ---
+> > >  fs/dax.c | 32 ++++++++++++++++++++++----------
+> > >  1 file changed, 22 insertions(+), 10 deletions(-)
+> > > 
+> > > diff --git a/fs/dax.c b/fs/dax.c
+> > > index afacc30..263aed1 100644
+> > > --- a/fs/dax.c
+> > > +++ b/fs/dax.c
+> > > @@ -790,9 +790,9 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+> > >  	bool write = flags & FAULT_FLAG_WRITE;
+> > >  	struct block_device *bdev;
+> > >  	pgoff_t size, pgoff;
+> > > -	loff_t lstart, lend;
+> > >  	sector_t block;
+> > >  	int error, result = 0;
+> > > +	bool alloc = false;
+> > >  
+> > >  	/* dax pmd mappings require pfn_t_devmap() */
+> > >  	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
+> > > @@ -830,10 +830,17 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+> > >  	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
+> > >  
+> > >  	bh.b_size = PMD_SIZE;
+> > > -	if (get_block(inode, block, &bh, write) != 0)
+> > > +
+> > > +	if (get_block(inode, block, &bh, 0) != 0)
+> > >  		return VM_FAULT_SIGBUS;
+> > > +
+> > > +	if (!buffer_mapped(&bh) && write) {
+> > > +		if (get_block(inode, block, &bh, 1) != 0)
+> > > +			return VM_FAULT_SIGBUS;
+> > > +		alloc = true;
+> > > +	}
+> > > +
+> > >  	bdev = bh.b_bdev;
+> > > -	i_mmap_lock_read(mapping);
+> > >  
+> > >  	/*
+> > >  	 * If the filesystem isn't willing to tell us the length of a hole,
+> > > @@ -842,15 +849,20 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+> > >  	 */
+> > >  	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
+> > >  		dax_pmd_dbg(&bh, address, "allocated block too small");
+> > > -		goto fallback;
+> > > +		return VM_FAULT_FALLBACK;
+> > > +	}
+> > > +
+> > > +	/*
+> > > +	 * If we allocated new storage, make sure no process has any
+> > > +	 * zero pages covering this hole
+> > > +	 */
+> > > +	if (alloc) {
+> > > +		loff_t lstart = pgoff << PAGE_SHIFT;
+> > > +		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
+> > > +
+> > > +		truncate_pagecache_range(inode, lstart, lend);
+> > >  	}
+> > >  
+> > > -	/* make sure no process has any zero pages covering this hole */
+> > > -	lstart = pgoff << PAGE_SHIFT;
+> > > -	lend = lstart + PMD_SIZE - 1; /* inclusive */
+> > > -	i_mmap_unlock_read(mapping);
+> > > -	unmap_mapping_range(mapping, lstart, PMD_SIZE, 0);
+> > > -	truncate_inode_pages_range(mapping, lstart, lend);
+> > >  	i_mmap_lock_read(mapping);
+> > >  
+> > >  	/*
+> > > -- 
+> > > 2.5.0
+> > > 
+> > > 
+> > -- 
+> > Jan Kara <jack@suse.com>
+> > SUSE Labs, CR
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
