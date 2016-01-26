@@ -1,131 +1,46 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 1/2] x86/lib/copy_user_64.S: Handle 4-byte uncached copy
-Date: Thu, 28 Jan 2016 11:12:49 -0700
-Message-Id: <1454004770-6318-2-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1454004770-6318-1-git-send-email-toshi.kani@hpe.com>
-References: <1454004770-6318-1-git-send-email-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, bp@suse.de, dan.j.williams@intel.com
-Cc: ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, micah.parrish@hpe.com, brian.boylston@hpe.com, x86@kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+Return-Path: <linux-ext4-owner@vger.kernel.org>
+Date: Tue, 26 Jan 2016 09:47:46 -0500
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: Re: [RFC PATCH] dax, ext2, ext4, XFS: fix data corruption race
+Message-ID: <20160126144746.GL2948@linux.intel.com>
+References: <1453503971-5319-1-git-send-email-ross.zwisler@linux.intel.com>
+ <20160124220107.GI20456@dastard>
+ <20160125135921.GE24938@quack.suse.cz>
+ <20160126124812.GJ2948@linux.intel.com>
+ <20160126130521.GB23820@quack.suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160126130521.GB23820@quack.suse.cz>
+Sender: linux-ext4-owner@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Data corruption issues were observed in tests which initiated
-a system crash while accessing BTT devices.  This problem is
-reproducible.
+On Tue, Jan 26, 2016 at 02:05:21PM +0100, Jan Kara wrote:
+> On Tue 26-01-16 07:48:12, Matthew Wilcox wrote:
+> > I *think* that what Dave's proposing (and if he isn't, I'm proposing it
+> > for him) is that the filesystem takes its allocation lock shared during
+> > the ->fault handler, then in the ->page_mkwrite handler, it knows that an
+> > allocation is coming, so it takes its allocation lock in exclusive mode.
+> > 
+> > So read vs write faults won't be able to race because the allocation lock
+> > will prevent it.
+> 
+> So this is correct and clean design but we will take the lock in exclusive
+> mode (and thus hurt scalability) for every write fault, not just for the
+> ones allocating blocks. And at the moment we take exclusive lock for write
+> faults, there's no more need for having the hole page instantiated - we can
+> still do it for simplicity but it's no longer necessary to avoid data
+> corruption.
 
-The BTT driver calls pmem_rw_bytes() to update data in pmem
-devices.  This interface calls __copy_user_nocache(), which
-uses non-temporal stores so that the stores to pmem are
-persistent.
+In my mind we take it only for allocating writes, because we also include
+the patch to insert PFNs with the writable bit set in the dax_fault
+handler if the page fault was for writes.
 
-__copy_user_nocache() uses non-temporal stores when a request
-size is 8 bytes or larger (and is aligned by 8 bytes).  The
-BTT driver updates the BTT map table, which entry size is
-4 bytes.  Therefore, updates to the map table entries remain
-cached, and are not written to pmem after a crash.
-
-Change __copy_user_nocache() to use non-temporal store when
-a request size is 4 bytes.  The change extends the byte-copy
-path for a less-than-8-bytes request, and does not add any
-overhead to the regular path.
-
-Also add comments to clarify the cases cached copy is used.
-
-Reported-and-tested-by: Micah Parrish <micah.parrish@hpe.com>
-Reported-and-tested-by: Brian Boylston <brian.boylston@hpe.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
----
- arch/x86/lib/copy_user_64.S |   44 ++++++++++++++++++++++++++++++++-----------
- 1 file changed, 33 insertions(+), 11 deletions(-)
-
-diff --git a/arch/x86/lib/copy_user_64.S b/arch/x86/lib/copy_user_64.S
-index 982ce34..84b5578 100644
---- a/arch/x86/lib/copy_user_64.S
-+++ b/arch/x86/lib/copy_user_64.S
-@@ -232,12 +232,17 @@ ENDPROC(copy_user_enhanced_fast_string)
- 
- /*
-  * copy_user_nocache - Uncached memory copy with exception handling
-- * This will force destination/source out of cache for more performance.
-+ * This will force destination out of cache for more performance.
-+ *
-+ * Note: Cached memory copy is used when destination or size is not
-+ * naturally aligned. That is:
-+ *  - Require 8-byte alignment when size is 8 bytes or larger.
-+ *  - Require 4-byte alignment when size is 4 bytes.
-  */
- ENTRY(__copy_user_nocache)
- 	ASM_STAC
- 	cmpl $8,%edx
--	jb 20f		/* less then 8 bytes, go to byte copy loop */
-+	jb 20f
- 	ALIGN_DESTINATION
- 	movl %edx,%ecx
- 	andl $63,%edx
-@@ -274,15 +279,28 @@ ENTRY(__copy_user_nocache)
- 	decl %ecx
- 	jnz 18b
- 20:	andl %edx,%edx
--	jz 23f
-+	jz 26f
-+	movl %edi,%ecx
-+	andl $3,%ecx
-+	jnz 23f
- 	movl %edx,%ecx
--21:	movb (%rsi),%al
--22:	movb %al,(%rdi)
-+	andl $3,%edx
-+	shrl $2,%ecx
-+	jz 23f
-+21:	movl (%rsi),%r8d
-+22:	movnti %r8d,(%rdi)
-+	leaq 4(%rsi),%rsi
-+	leaq 4(%rdi),%rdi
-+	andl %edx,%edx
-+	jz 26f
-+23:	movl %edx,%ecx
-+24:	movb (%rsi),%al
-+25:	movb %al,(%rdi)
- 	incq %rsi
- 	incq %rdi
- 	decl %ecx
--	jnz 21b
--23:	xorl %eax,%eax
-+	jnz 24b
-+26:	xorl %eax,%eax
- 	ASM_CLAC
- 	sfence
- 	ret
-@@ -290,11 +308,13 @@ ENTRY(__copy_user_nocache)
- 	.section .fixup,"ax"
- 30:	shll $6,%ecx
- 	addl %ecx,%edx
--	jmp 60f
-+	jmp 70f
- 40:	lea (%rdx,%rcx,8),%rdx
--	jmp 60f
--50:	movl %ecx,%edx
--60:	sfence
-+	jmp 70f
-+50:	lea (%rdx,%rcx,4),%rdx
-+	jmp 70f
-+60:	movl %ecx,%edx
-+70:	sfence
- 	jmp copy_user_handle_tail
- 	.previous
- 
-@@ -318,4 +338,6 @@ ENTRY(__copy_user_nocache)
- 	_ASM_EXTABLE(19b,40b)
- 	_ASM_EXTABLE(21b,50b)
- 	_ASM_EXTABLE(22b,50b)
-+	_ASM_EXTABLE(24b,60b)
-+	_ASM_EXTABLE(25b,60b)
- ENDPROC(__copy_user_nocache)
+Although that only works when the *first* fault is a write ... if we
+read and page then write the same page, we will indeed take the lock
+in exclusive mode.  I think that's fixable too -- in the page_mkwrite
+handler, take the lock in exclusive mode only if there's a page in the
+radix tree.  I'll take a look at that optimisation after doing the first
+couple of steps.
