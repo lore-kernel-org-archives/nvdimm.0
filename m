@@ -1,76 +1,78 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v5 1/6] ACPI / util: Fix acpi_evaluate_dsm() argument type
-Date: Wed,  6 Jan 2016 16:03:38 -0700
-Message-Id: <37cf7fc6c93496b84fa3984d94d689d8337a176b.1452121277.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
-References: <cover.1452121277.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
-References: <cover.1452121277.git.jerry.hoemann@hpe.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: [PATCH 17/17] ACPI/EINJ: Allow memory error injection to NVDIMM
+Date: Tue, 26 Jan 2016 21:57:33 +0100
+Message-Id: <1453841853-11383-18-git-send-email-bp@alien8.de>
+In-Reply-To: <1453841853-11383-1-git-send-email-bp@alien8.de>
+References: <1453841853-11383-1-git-send-email-bp@alien8.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+To: Ingo Molnar <mingo@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm <linux-mm@kvack.org>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vishal Verma <vishal.l.verma@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The ACPI spec speicifies that arguments "Revision ID" and
-"Function Index" to a _DSM are type "Integer."  Type Integers
-are 64 bit quantities.
+From: Toshi Kani <toshi.kani@hpe.com>
 
-The function evaluate_dsm specifies these types as simple "int"
-which are 32 bits.  Correct type passed to acpi_evaluate_dsm
-and its callers and derived callers to pass correct type.
+In the case of memory error injection, einj_error_inject() checks if
+a target address is System RAM. Change this check to allow injecting
+a memory error into NVDIMM memory by calling region_intersects() with
+IORES_DESC_PERSISTENT_MEMORY. This enables memory error testing on both
+System RAM and NVDIMM.
 
-acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
-and were corrected as well.
+In addition, page_is_ram() is replaced with region_intersects() with
+IORESOURCE_SYSTEM_RAM, so that it can verify a target address range with
+the requested size.
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-mm <linux-mm@kvack.org>
+Cc: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Link: http://lkml.kernel.org/r/1452020081-26534-17-git-send-email-toshi.kani@hpe.com
+Signed-off-by: Borislav Petkov <bp@suse.de>
 ---
- drivers/acpi/utils.c    | 4 ++--
- include/acpi/acpi_bus.h | 6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/apei/einj.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 475c907..049cba4 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -628,7 +628,7 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
-  * some old BIOSes do expect a buffer or an integer etc.
-  */
- union acpi_object *
--acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
-+acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
- 		  union acpi_object *argv4)
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index 0431883653be..559c1173de1c 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 			     u64 param3, u64 param4)
  {
- 	acpi_status ret;
-@@ -677,7 +677,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
-  * functions. Currently only support 64 functions at maximum, should be
-  * enough for now.
-  */
--bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
-+bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
- {
- 	int i;
- 	u64 mask = 0;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index ad0a5ff..8e6abcf 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -61,12 +61,12 @@ bool acpi_ata_match(acpi_handle handle);
- bool acpi_bay_match(acpi_handle handle);
- bool acpi_dock_match(acpi_handle handle);
+ 	int rc;
+-	unsigned long pfn;
++	u64 base_addr, size;
  
--bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
-+bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs);
- union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
--			int rev, int func, union acpi_object *argv4);
-+			u64 rev, u64 func, union acpi_object *argv4);
+ 	/* If user manually set "flags", make sure it is legal */
+ 	if (flags && (flags &
+@@ -545,10 +545,17 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 	/*
+ 	 * Disallow crazy address masks that give BIOS leeway to pick
+ 	 * injection address almost anywhere. Insist on page or
+-	 * better granularity and that target address is normal RAM.
++	 * better granularity and that target address is normal RAM or
++	 * NVDIMM.
+ 	 */
+-	pfn = PFN_DOWN(param1 & param2);
+-	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
++	base_addr = param1 & param2;
++	size = ~param2 + 1;
++
++	if (((param2 & PAGE_MASK) != PAGE_MASK) ||
++	    ((region_intersects(base_addr, size, IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE)
++				!= REGION_INTERSECTS) &&
++	     (region_intersects(base_addr, size, IORESOURCE_MEM, IORES_DESC_PERSISTENT_MEMORY)
++				!= REGION_INTERSECTS)))
+ 		return -EINVAL;
  
- static inline union acpi_object *
--acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
-+acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
- 			union acpi_object *argv4, acpi_object_type type)
- {
- 	union acpi_object *obj;
+ inject:
 -- 
-1.7.11.3
-
+2.3.5
