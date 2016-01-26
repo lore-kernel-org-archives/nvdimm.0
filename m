@@ -1,46 +1,62 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 14/17] x86,nvdimm,kexec: Use walk_iomem_res_desc() for iomem search
-Date: Tue,  5 Jan 2016 11:54:38 -0700
-Message-Id: <1452020081-26534-14-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1452020081-26534-1-git-send-email-toshi.kani@hpe.com>
-References: <1452020081-26534-1-git-send-email-toshi.kani@hpe.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, bp@alien8.de
-Cc: linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Dave Young <dyoung@redhat.com>, Minfei Huang <mhuang@redhat.com>, x86@kernel.org, linux-nvdimm@lists.01.org, kexec@lists.infradead.org, Toshi Kani <toshi.kani@hpe.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Borislav Petkov <bp@alien8.de>
+Subject: [PATCH 14/17] x86, kexec, nvdimm: Use walk_iomem_res_desc() for iomem search
+Date: Tue, 26 Jan 2016 21:57:30 +0100
+Message-Id: <1453841853-11383-15-git-send-email-bp@alien8.de>
+In-Reply-To: <1453841853-11383-1-git-send-email-bp@alien8.de>
+References: <1453841853-11383-1-git-send-email-bp@alien8.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Don Zickus <dzickus@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, kexec@lists.infradead.org, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, linux-arch@vger.kernel.org, linux-mm <linux-mm@kvack.org>, linux-nvdimm@lists.01.org, Minfei Huang <mnfhuang@gmail.com>, "Peter Zijlstra (Intel)" <peterz@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Takao Indoh <indou.takao@jp.fujitsu.com>, Thomas Gleixner <tglx@linutronix.de>, x86-ml <x86@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change the callers of walk_iomem_res() with the following names
-to use walk_iomem_res(), instead.
+From: Toshi Kani <toshi.kani@hpe.com>
+
+Change the callers of walk_iomem_res() scanning for the following
+resources by name to use walk_iomem_res_desc() instead.
 
  "ACPI Tables"
  "ACPI Non-volatile Storage"
  "Persistent Memory (legacy)"
  "Crash kernel"
 
-Note, the caller of walk_iomem_res() with "GART" will be removed
-in a later patch.
+Note, the caller of walk_iomem_res() with "GART" will be removed in a
+later patch.
 
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Minfei Huang <mhuang@redhat.com>
-Cc: x86@kernel.org
-Cc: linux-nvdimm@lists.01.org
-Cc: kexec@lists.infradead.org
+Reviewed-by: Dave Young <dyoung@redhat.com>
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: kexec@lists.infradead.org
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Cc: linux-arch@vger.kernel.org
+Cc: linux-mm <linux-mm@kvack.org>
+Cc: linux-nvdimm@lists.01.org
+Cc: Minfei Huang <mnfhuang@gmail.com>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Takao Indoh <indou.takao@jp.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: x86-ml <x86@kernel.org>
+Link: http://lkml.kernel.org/r/1452020081-26534-14-git-send-email-toshi.kani@hpe.com
+Signed-off-by: Borislav Petkov <bp@suse.de>
 ---
- arch/x86/kernel/crash.c |    4 ++--
- arch/x86/kernel/pmem.c  |    4 ++--
- drivers/nvdimm/e820.c   |    2 +-
- kernel/kexec_file.c     |    8 ++++----
+ arch/x86/kernel/crash.c | 4 ++--
+ arch/x86/kernel/pmem.c  | 4 ++--
+ drivers/nvdimm/e820.c   | 2 +-
+ kernel/kexec_file.c     | 8 ++++----
  4 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/arch/x86/kernel/crash.c b/arch/x86/kernel/crash.c
-index 2c1910f..082373b 100644
+index 58f34319b29a..35e152eeb6e0 100644
 --- a/arch/x86/kernel/crash.c
 +++ b/arch/x86/kernel/crash.c
-@@ -588,12 +588,12 @@ int crash_setup_memmap_entries(struct kimage *image, struct boot_params *params)
+@@ -599,12 +599,12 @@ int crash_setup_memmap_entries(struct kimage *image, struct boot_params *params)
  	/* Add ACPI tables */
  	cmd.type = E820_ACPI;
  	flags = IORESOURCE_MEM | IORESOURCE_BUSY;
@@ -56,7 +72,7 @@ index 2c1910f..082373b 100644
  
  	/* Add crashk_low_res region */
 diff --git a/arch/x86/kernel/pmem.c b/arch/x86/kernel/pmem.c
-index 14415af..92f7014 100644
+index 14415aff1813..92f70147a9a6 100644
 --- a/arch/x86/kernel/pmem.c
 +++ b/arch/x86/kernel/pmem.c
 @@ -13,11 +13,11 @@ static int found(u64 start, u64 end, void *data)
@@ -74,7 +90,7 @@ index 14415af..92f7014 100644
  		return 0;
  
 diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
-index b0045a5..95825b3 100644
+index b0045a505dc8..95825b38559a 100644
 --- a/drivers/nvdimm/e820.c
 +++ b/drivers/nvdimm/e820.c
 @@ -55,7 +55,7 @@ static int e820_pmem_probe(struct platform_device *pdev)
@@ -87,10 +103,10 @@ index b0045a5..95825b3 100644
  
  		memset(&ndr_desc, 0, sizeof(ndr_desc));
 diff --git a/kernel/kexec_file.c b/kernel/kexec_file.c
-index c245085..6e31cea 100644
+index 2bfcdc064116..56b18eb1f001 100644
 --- a/kernel/kexec_file.c
 +++ b/kernel/kexec_file.c
-@@ -522,10 +522,10 @@ int kexec_add_buffer(struct kimage *image, char *buffer, unsigned long bufsz,
+@@ -524,10 +524,10 @@ int kexec_add_buffer(struct kimage *image, char *buffer, unsigned long bufsz,
  
  	/* Walk the RAM ranges and allocate a suitable range for the buffer */
  	if (image->type == KEXEC_TYPE_CRASH)
@@ -105,9 +121,5 @@ index c245085..6e31cea 100644
  	else
  		ret = walk_system_ram_res(0, -1, kbuf,
  					  locate_mem_hole_callback);
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+2.3.5
