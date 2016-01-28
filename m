@@ -1,69 +1,51 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 2/5] dax: clear TOWRITE flag after flush is complete
-Date: Fri, 22 Jan 2016 14:36:10 -0700
-Message-Id: <1453498573-6328-3-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1453498573-6328-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1453498573-6328-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH 1/2] block: fix pfn_mkwrite() DAX fault handler
+Date: Thu, 28 Jan 2016 12:35:03 -0700
+Message-Id: <1454009704-25959-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Previously in dax_writeback_one() we cleared the PAGECACHE_TAG_TOWRITE flag
-before we had actually flushed the tagged radix tree entry to media.  This
-is incorrect because of the following race:
-
-Thread 1				Thread 2
---------				--------
-dax_writeback_mapping_range()
-tag entry with PAGECACHE_TAG_TOWRITE
-					dax_writeback_mapping_range()
-					tag entry with PAGECACHE_TAG_TOWRITE
-					dax_writeback_one()
-					radix_tree_tag_clear(TOWRITE)
-TOWRITE flag is no longer set,
-  find_get_entries_tag() finds no
-  entries, return
-					flush entry to media
-
-In this case thread 1 returns before the data for the dirty entry is
-actually durable on media.
-
-Fix this by only clearing the PAGECACHE_TAG_TOWRITE flag after all flushing
-is complete.
+Previously the pfn_mkwrite() fault handler for raw block devices called
+bldev_dax_fault() -> __dax_fault() to do a full DAX page fault.  Really
+what the pfn_mkwrite() fault handler needs to do is call dax_pfn_mkwrite()
+to make sure that the radix tree entry for the given PTE is marked as dirty
+so that a follow-up fsync or msync call will flush it durably to media.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Fixes: 5a023cdba50c ("block: enable dax for raw block devices")
 ---
- fs/dax.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/block_dev.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index cee9e1b..d589113 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -407,8 +407,6 @@ static int dax_writeback_one(struct block_device *bdev,
- 	if (!radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
- 		goto unlock;
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 7b9cd49..fa0507a 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -1730,6 +1730,12 @@ static int blkdev_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	return __dax_fault(vma, vmf, blkdev_get_block, NULL);
+ }
  
--	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
--
- 	if (WARN_ON_ONCE(type != RADIX_DAX_PTE && type != RADIX_DAX_PMD)) {
- 		ret = -EIO;
- 		goto unlock;
-@@ -432,6 +430,10 @@ static int dax_writeback_one(struct block_device *bdev,
- 	}
- 
- 	wb_cache_pmem(dax.addr, dax.size);
++static int blkdev_dax_pfn_mkwrite(struct vm_area_struct *vma,
++		struct vm_fault *vmf)
++{
++	return dax_pfn_mkwrite(vma, vmf);
++}
 +
-+	spin_lock_irq(&mapping->tree_lock);
-+	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
-+	spin_unlock_irq(&mapping->tree_lock);
-  unmap:
- 	dax_unmap_atomic(bdev, &dax);
- 	return ret;
+ static int blkdev_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+ 		pmd_t *pmd, unsigned int flags)
+ {
+@@ -1761,7 +1767,7 @@ static const struct vm_operations_struct blkdev_dax_vm_ops = {
+ 	.close		= blkdev_vm_close,
+ 	.fault		= blkdev_dax_fault,
+ 	.pmd_fault	= blkdev_dax_pmd_fault,
+-	.pfn_mkwrite	= blkdev_dax_fault,
++	.pfn_mkwrite	= blkdev_dax_pfn_mkwrite,
+ };
+ 
+ static const struct vm_operations_struct blkdev_default_vm_ops = {
 -- 
 2.5.0
 
