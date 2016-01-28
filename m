@@ -1,37 +1,54 @@
-Return-Path: <owner-linux-mm@kvack.org>
-MIME-Version: 1.0
-In-Reply-To: <20160106173515.GA25980@agluck-desk.sc.intel.com>
-References: <cover.1451952351.git.tony.luck@intel.com>
-	<b5dc7a1ee68f48dc61c10959b2209851f6eb6aab.1451952351.git.tony.luck@intel.com>
-	<20160106123346.GC19507@pd.tnic>
-	<20160106173515.GA25980@agluck-desk.sc.intel.com>
-Date: Wed, 6 Jan 2016 09:48:31 -0800
-Message-ID: <CA+55aFx7_sP_R+n6c3Ew=KVcwJwwgXhB57pSG9Kh24oiAqd+vw@mail.gmail.com>
-Subject: Re: [PATCH v7 1/3] x86: Add classes to exception tables
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
-Sender: owner-linux-mm@kvack.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>, Peter Anvin <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, elliott@hpe.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, the arch/x86 maintainers <x86@kernel.org>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 2/2] pmem: Flush cache on unaligned request
+Date: Thu, 28 Jan 2016 11:12:50 -0700
+Message-Id: <1454004770-6318-3-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1454004770-6318-1-git-send-email-toshi.kani@hpe.com>
+References: <1454004770-6318-1-git-send-email-toshi.kani@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, bp@suse.de, dan.j.williams@intel.com
+Cc: ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, micah.parrish@hpe.com, brian.boylston@hpe.com, x86@kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Jan 6, 2016 at 9:35 AM, Luck, Tony <tony.luck@intel.com> wrote:
->
-> Linus, Peter, Ingo, Thomas: Can we head this direction? The code is cleaner
-> and more flexible. Or should we stick with Andy's clever way to squeeze a
-> couple of "class" bits into the fixup field of the exception table?
+arch_memcpy_to_pmem() calls __copy_user_nocache() to copy data
+via non-temporal stores.  However, __copy_user_nocache() still
+performs cached copy when a request is not naturally aligned or
+is less then 4 bytes.
 
-I'd rather not be clever in order to save just a tiny amount of space
-in the exception table, which isn't really criticial for anybody.
+Call clflush_cache_range() to flush destination when a request
+leads to cached copy.
 
-So I think Borislav's patch has the advantage of being pretty
-straightforward and allowing arbitrary fixups, in case we end up
-having localized special cases..
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+---
+ arch/x86/include/asm/pmem.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-               Linus
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index c57fd1e..f135064 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -45,6 +45,17 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+ 	if (WARN(unwritten, "%s: fault copying %p <- %p unwritten: %d\n",
+ 				__func__, dst, src, unwritten))
+ 		BUG();
++
++	/*
++	 * Flush the caches when the request is not naturally aligned.
++	 * Non-temporal stores are not used for unaligned copy.
++	 */
++	if (((n >= 8) &&
++		(!IS_ALIGNED((unsigned long)dst, 8) || !IS_ALIGNED(n, 8))) ||
++	    ((n <  8) &&
++		(!IS_ALIGNED((unsigned long)dst, 4) || (n != 4)))) {
++		clflush_cache_range(dst, n);
++	}
+ }
+ 
+ /**
