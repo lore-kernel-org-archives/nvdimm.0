@@ -1,92 +1,83 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH v4 0/8] Support for transparent PUD pages for DAX files
-Date: Sun, 31 Jan 2016 23:09:27 +1100
-Message-Id: <1454242175-16870-1-git-send-email-matthew.r.wilcox@intel.com>
+MIME-Version: 1.0
+From: Yigal Korman <yigal@plexistor.com>
+Date: Thu, 28 Jan 2016 13:49:06 +0200
+Message-ID: <CACTTzNZ1ExP2q5K9owdvFr1Ffe2dX-p5mqa_ayPt9XmXskHVQA@mail.gmail.com>
+Subject: [LSF/MM ATTEND] NVDIMM, Persistent Memory, RDMA
+Content-Type: multipart/alternative; boundary=001a114b75e8a9f0d5052a638219
 Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, willy@linux.intel.com
+To: lsf-pc@lists.linux-foundation.org
+Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, "linux-mm@kvack.org" <linux-mm@kvack.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-We have customer demand to use 1GB pages to map DAX files.  Unlike the 2MB
-page support, the Linux MM does not currently support PUD pages, so I have
-attempted to add support for the necessary pieces for DAX huge PUD pages.
+--001a114b75e8a9f0d5052a638219
+Content-Type: text/plain; charset=UTF-8
 
-Filesystems still need work to allocate 1GB pages.  With ext4, I can
-only get 16MB of contiguous space, although it is aligned.  With XFS,
-I can get 80MB less than 1GB, and it's not aligned.  The XFS problem
-may be due to the small amount of RAM in my test machine.
+Hi,
 
-This patch set is against something approximately current -mm.  I'd like
-to thank Dave Chinner & Kirill Shutemov for their reviews of v1.
-The conversion of pmd_fault & pud_fault to huge_fault is thanks to
-Dave's poking, and Kirill spotted a couple of problems in the MM code.
-Version 2 of the patch set is about 200 lines smaller (1016 insertions,
-23 deletions in v1).
+I would like to attend LSF/MM this year.
 
-I've done some light testing using a program to mmap a block device
-with DAX enabled, calling mincore() and examining /proc/smaps and
-/proc/pagemap.
+I believe I could contribute to the following discussions:
 
-v4: Updated to current mmotm
-    Converted pud_trans_huge_lock to the same calling conventions as
-    pmd_trans_huge_lock.
-    Fill in vm_fault ->gfp_flags and ->pgoff, at Jan Kara's suggestion
-    Replace use of page table lock with pud_lock in __pud_alloc (cosmetic)
-    Fix compilation problems with various config settings
-    Convert dax_pmd_fault and dax_pud_fault to take a vm_fault instead of
-    individual pieces
-    Add copy_huge_pud() and follow_devmap_pud() so fork() should now work
-    Fix typo of PMD for PUD
-v3: Rebased against current mmtom
-v2: Reduced churn in filesystems by switching to ->huge_fault interface
-    Addressed concerns from Kirill
+- Remote access to pmem on storage target:
+http://www.spinics.net/lists/linux-rdma/msg32848.html
+- Persistent Memory Error Handling:
+http://www.spinics.net/lists/linux-mm/msg100560.html
+- Huge Page Futures:
+http://www.spinics.net/lists/linux-mm/msg100646.html
+- RDMA passive target:
+http://www.spinics.net/lists/linux-rdma/msg32869.html
+- Block & Filesystem interface:
+http://www.spinics.net/lists/linux-fsdevel/msg93552.html
 
-Matthew Wilcox (8):
-  mm: Convert an open-coded VM_BUG_ON_VMA
-  mm,fs,dax: Change ->pmd_fault to ->huge_fault
-  mm: Add support for PUD-sized transparent hugepages
-  mincore: Add support for PUDs
-  procfs: Add support for PUDs to smaps, clear_refs and pagemap
-  x86: Add support for PUD-sized transparent hugepages
-  dax: Support for transparent PUD pages
-  ext4: Support for PUD-sized transparent huge pages
+I've worked on persistent memory for the last 1.5 years at Plexistor.
+And been following closely the development of the NVDIMM driver, pmem,
+DAX and the user-space NVML library.
 
- Documentation/filesystems/dax.txt     |  12 +-
- arch/Kconfig                          |   3 +
- arch/x86/Kconfig                      |   1 +
- arch/x86/include/asm/paravirt.h       |  11 ++
- arch/x86/include/asm/paravirt_types.h |   2 +
- arch/x86/include/asm/pgtable-2level.h |  19 +++
- arch/x86/include/asm/pgtable-3level.h |  31 ++++
- arch/x86/include/asm/pgtable.h        | 134 +++++++++++++++
- arch/x86/include/asm/pgtable_64.h     |  13 ++
- arch/x86/kernel/paravirt.c            |   1 +
- arch/x86/mm/pgtable.c                 |  31 ++++
- fs/block_dev.c                        |  10 +-
- fs/dax.c                              | 295 +++++++++++++++++++++++++---------
- fs/ext2/file.c                        |  27 +---
- fs/ext4/file.c                        |  60 +++----
- fs/proc/task_mmu.c                    | 109 +++++++++++++
- fs/xfs/xfs_file.c                     |  25 ++-
- fs/xfs/xfs_trace.h                    |   2 +-
- include/asm-generic/pgtable.h         |  74 ++++++++-
- include/asm-generic/tlb.h             |  14 ++
- include/linux/dax.h                   |  17 --
- include/linux/huge_mm.h               |  78 ++++++++-
- include/linux/mm.h                    |  48 +++++-
- include/linux/mmu_notifier.h          |  14 ++
- include/linux/pfn_t.h                 |   8 +
- mm/gup.c                              |   7 +
- mm/huge_memory.c                      | 246 ++++++++++++++++++++++++++++
- mm/memory.c                           | 135 ++++++++++++++--
- mm/mincore.c                          |  13 ++
- mm/pagewalk.c                         |  19 ++-
- mm/pgtable-generic.c                  |  14 ++
- 31 files changed, 1261 insertions(+), 212 deletions(-)
+I don't have many contributions [1] but I have some hands on experience
+in working with various NVDIMM vendors and testing NVDIMMs.
+So I hope my point of view can help with future designs.
 
--- 
-2.7.0.rc3
+I've also been doing some work and investigation into pmem over RDMA,
+and would like to attend these discussions as well.
+
+[1] http://www.spinics.net/lists/stable/msg110629.html
+
+Thank you,
+Yigal
+
+--001a114b75e8a9f0d5052a638219
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><div>Hi,</div><div><br></div><div>I would like to attend L=
+SF/MM this year.</div><div><br></div><div>I believe I could contribute to t=
+he following discussions:</div><div><br></div><div>- Remote access to pmem =
+on storage target:</div><div><a href=3D"http://www.spinics.net/lists/linux-=
+rdma/msg32848.html">http://www.spinics.net/lists/linux-rdma/msg32848.html</=
+a></div><div>- Persistent Memory Error Handling:</div><div><a href=3D"http:=
+//www.spinics.net/lists/linux-mm/msg100560.html">http://www.spinics.net/lis=
+ts/linux-mm/msg100560.html</a></div><div>- Huge Page Futures:</div><div><a =
+href=3D"http://www.spinics.net/lists/linux-mm/msg100646.html">http://www.sp=
+inics.net/lists/linux-mm/msg100646.html</a></div><div>- RDMA passive target=
+:</div><div><a href=3D"http://www.spinics.net/lists/linux-rdma/msg32869.htm=
+l">http://www.spinics.net/lists/linux-rdma/msg32869.html</a></div><div>- Bl=
+ock &amp; Filesystem interface:</div><div><a href=3D"http://www.spinics.net=
+/lists/linux-fsdevel/msg93552.html">http://www.spinics.net/lists/linux-fsde=
+vel/msg93552.html</a></div><div><br></div><div>I&#39;ve worked on persisten=
+t memory for the last 1.5 years at Plexistor.</div><div>And been following =
+closely the development of the NVDIMM driver, pmem,</div><div>DAX and the u=
+ser-space NVML library.</div><div><br></div><div>I don&#39;t have many cont=
+ributions [1] but I have some hands on experience</div><div>in working with=
+ various NVDIMM vendors and testing NVDIMMs.</div><div>So I hope my point o=
+f view can help with future designs.</div><div><br></div><div>I&#39;ve also=
+ been doing some work and investigation into pmem over RDMA,</div><div>and =
+would like to attend these discussions as well.</div><div><br></div><div>[1=
+] <a href=3D"http://www.spinics.net/lists/stable/msg110629.html">http://www=
+.spinics.net/lists/stable/msg110629.html</a></div><div><br></div><div>Thank=
+ you,</div><div>Yigal</div><div><br></div></div>
+
+--001a114b75e8a9f0d5052a638219--
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
