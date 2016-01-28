@@ -1,68 +1,43 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v5 2/6] nvdimm: Clean-up access mode check.
-Date: Wed,  6 Jan 2016 16:03:39 -0700
-Message-Id: <824aaf9da87202317e6d9fee01c4eeb79ce13688.1452121277.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
-References: <cover.1452121277.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
-References: <cover.1452121277.git.jerry.hoemann@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Stephen Bates <Stephen.Bates@pmcs.com>
+Subject: [LSF/MM ATTEND] blk-mq polling, nvme, pmem (for iomem) and
+ non-block based SSDs.
+Date: Thu, 28 Jan 2016 22:24:27 +0000
+Message-ID: <36F6EBABA23FEF4391AF72944D228901EB6F1F59@BBYEXM01.pmc-sierra.internal>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Sender: owner-linux-mm@kvack.org
+To: "lsf-pc@lists.linux-foundation.org" <lsf-pc@lists.linux-foundation.org>
+Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change nd_ioctl and nvdimm_ioctl access mode check to use O_RDONLY.
+Hi
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
----
- drivers/nvdimm/bus.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+I would like to attend LSF/MM 2016 to participate in discussions around the=
+ optimization of the block layer and memory management for low latency NVM =
+technologies. I'd be very interested in discussions pertaining to where we =
+can take the work being done to add polling into the block layer and tying =
+that into file-systems and applications. I would also be keen to discuss ho=
+w we might extend the recent work to facilitate large persistent memory reg=
+ions to IO memory (e.g. PCIe devices with large, persistent, memory regions=
+).
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 7e2c43f..1c81203 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -602,14 +602,14 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	long id = (long) file->private_data;
--	int rc = -ENXIO, read_only;
-+	int rc = -ENXIO, ro;
- 	struct nvdimm_bus *nvdimm_bus;
- 
--	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
- 	mutex_lock(&nvdimm_bus_list_mutex);
- 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
- 		if (nvdimm_bus->id == id) {
--			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
-+			rc = __nd_ioctl(nvdimm_bus, NULL, ro, cmd, arg);
- 			break;
- 		}
- 	}
-@@ -633,10 +633,10 @@ static int match_dimm(struct device *dev, void *data)
- 
- static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	int rc = -ENXIO, read_only;
-+	int rc = -ENXIO, ro;
- 	struct nvdimm_bus *nvdimm_bus;
- 
--	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
- 	mutex_lock(&nvdimm_bus_list_mutex);
- 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
- 		struct device *dev = device_find_child(&nvdimm_bus->dev,
-@@ -647,7 +647,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 			continue;
- 
- 		nvdimm = to_nvdimm(dev);
--		rc = __nd_ioctl(nvdimm_bus, nvdimm, read_only, cmd, arg);
-+		rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
- 		put_device(dev);
- 		break;
- 	}
--- 
-1.7.11.3
+I am also keen to discuss topics associated with non-block based hardware d=
+evices including things like NVDIMM, OpenChannel SSDs and persistent memory=
+ exposed on PCIe devices.
 
+I spend quite a bit of time working on elements of the block layer (especia=
+lly NVMe), the RDMA stack and (more recently) the NVDIMM/PMEM/DAX sections =
+of the kernel.
+
+Cheers
+
+Stephen
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
