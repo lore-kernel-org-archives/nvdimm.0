@@ -1,78 +1,58 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 3/5] dax: improve documentation for fsync/msync
-Date: Thu, 21 Jan 2016 10:46:02 -0700
-Message-Id: <1453398364-22537-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1453398364-22537-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1453398364-22537-1-git-send-email-ross.zwisler@linux.intel.com>
+Message-ID: <1454079412.2576.33.camel@hpe.com>
+Subject: Re: [PATCH 1/2] x86/lib/copy_user_64.S: Handle 4-byte uncached copy
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Fri, 29 Jan 2016 07:56:52 -0700
+In-Reply-To: <20160129082756.GA4326@gmail.com>
+References: <1454004770-6318-1-git-send-email-toshi.kani@hpe.com>
+	 <1454004770-6318-2-git-send-email-toshi.kani@hpe.com>
+	 <20160129082756.GA4326@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, bp@suse.de, dan.j.williams@intel.com, ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, micah.parrish@hpe.com, brian.boylston@hpe.com, x86@kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@kernel.org>, Denys Vlasenko <dvlasenk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Several of the subtleties and assumptions of the DAX fsync/msync
-implementation are not immediately obvious, so document them with comments.
+On Fri, 2016-01-29 at 09:27 +0100, Ingo Molnar wrote:
+> * Toshi Kani <toshi.kani@hpe.com> wrote:
+ :
+> > ---
+> >  arch/x86/lib/copy_user_64.S |   44 ++++++++++++++++++++++++++++++++---
+> > --------
+> >  1 file changed, 33 insertions(+), 11 deletions(-)
+> > 
+> > diff --git a/arch/x86/lib/copy_user_64.S b/arch/x86/lib/copy_user_64.S
+> > index 982ce34..84b5578 100644
+> > --- a/arch/x86/lib/copy_user_64.S
+> > +++ b/arch/x86/lib/copy_user_64.S
+> > @@ -232,12 +232,17 @@ ENDPROC(copy_user_enhanced_fast_string)
+> >  
+> >  /*
+> >   * copy_user_nocache - Uncached memory copy with exception handling
+> > - * This will force destination/source out of cache for more
+> > performance.
+> > + * This will force destination out of cache for more performance.
+> > + *
+> > + * Note: Cached memory copy is used when destination or size is not
+> > + * naturally aligned. That is:
+> > + *  - Require 8-byte alignment when size is 8 bytes or larger.
+> > + *  - Require 4-byte alignment when size is 4 bytes.
+> >   */
+> >  ENTRY(__copy_user_nocache)
+ :
+> So at minimum this patch needs to add quite a few comments to explain the
+> alignment dependent control flow.
+> 
+> Assembly code is hard enough to read as-is. Adding 20 more lines with 
+> zero in-line comments is a mistake.
+> 
+> Btw., while at it, please add comments for the control flow of the whole 
+> function.  Above a certain complexity that is a must for assembly
+> functions.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+Agreed.  I will add comments for the whole function.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index d589113..55ae394 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -350,6 +350,13 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
- 
- 		if (!pmd_entry || type == RADIX_DAX_PMD)
- 			goto dirty;
-+
-+		/*
-+		 * We only insert dirty PMD entries into the radix tree.  This
-+		 * means we don't need to worry about removing a dirty PTE
-+		 * entry and inserting a clean PMD entry, thus reducing the
-+		 * range we would flush with a follow-up fsync/msync call.
-+		 */
- 		radix_tree_delete(&mapping->page_tree, index);
- 		mapping->nrexceptional--;
- 	}
-@@ -912,6 +919,21 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		}
- 		dax_unmap_atomic(bdev, &dax);
- 
-+		/*
-+		 * For PTE faults we insert a radix tree entry for reads, and
-+		 * leave it clean.  Then on the first write we dirty the radix
-+		 * tree entry via the dax_pnf_mkwrite() path.  This sequence
-+		 * allows the dax_pfn_mkwrite() call to be simpler and avoid a
-+		 * call into get_block() to translate the pgoff to a sector in
-+		 * order to be able to create a new radix tree entry.
-+		 *
-+		 * The PMD path doesn't have an equivalent to
-+		 * dax_pfn_mkwrite(), though, so for a read followed by a
-+		 * write we traverse all the way through __dax_pmd_fault()
-+		 * twice.  This means we can just skip inserting a radix tree
-+		 * entry completely on the initial read and just wait until
-+		 * the write to insert a dirty entry.
-+		 */
- 		if (write) {
- 			error = dax_radix_entry(mapping, pgoff, dax.sector,
- 					true, true);
-@@ -985,6 +1007,14 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct file *file = vma->vm_file;
- 
-+	/*
-+	 * We pass NO_SECTOR to dax_radix_entry() because we expect that a
-+	 * RADIX_DAX_PTE entry already exists in the radix tree from a
-+	 * previous call to __dax_fault().  We just want to look up that PTE
-+	 * entry using vmf->pgoff and make sure the dirty tag is set.  This
-+	 * saves us from having to make a call to get_block() here to look
-+	 * up the sector.
-+	 */
- 	dax_radix_entry(file->f_mapping, vmf->pgoff, NO_SECTOR, false, true);
- 	return VM_FAULT_NOPAGE;
- }
--- 
-2.5.0
+Thanks,
+-Toshi
