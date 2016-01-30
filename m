@@ -1,79 +1,33 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 3/5] dax: improve documentation for fsync/msync
-Date: Wed, 20 Jan 2016 20:36:46 -0700
-Message-Id: <1453347408-22830-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1453347408-22830-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1453347408-22830-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <1454013825.2576.31.camel@hpe.com>
+References: <1454004770-6318-1-git-send-email-toshi.kani@hpe.com>
+	<CAPcyv4gc_wL6Bb8NxU42CAPN6v05MYnVVZiyijAQt9XZ6VNL_g@mail.gmail.com>
+	<1454013825.2576.31.camel@hpe.com>
+Date: Sat, 30 Jan 2016 09:44:17 -0800
+Message-ID: <CAPcyv4hsa-DCYO-YxMCKat5y-dDvGMMgJ5D-cib2TjhyNan4NA@mail.gmail.com>
+Subject: Re: [PATCH 0/2] Fix BTT data corruptions after crash
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, micah.parrish@hpe.com, brian.boylston@hpe.com, X86 ML <x86@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Several of the subtleties and assumptions of the DAX fsync/msync
-implementation are not immediately obvious, so document them with comments.
+On Thu, Jan 28, 2016 at 12:43 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> On Thu, 2016-01-28 at 12:12 -0800, Dan Williams wrote:
+[..]
+>> I'm wondering if we should just document that this routine does not
+>> support unaligned transfers?  Maybe backed by a debug mode that does
+>> the alignment check.
+>
+> Yes, I agree.  For this debug mode, do you have something in mind?  Or
+> should we add a new CONFIG option like CONFIG_PMEM_DEBUG?
+>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index d589113..55ae394 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -350,6 +350,13 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
- 
- 		if (!pmd_entry || type == RADIX_DAX_PMD)
- 			goto dirty;
-+
-+		/*
-+		 * We only insert dirty PMD entries into the radix tree.  This
-+		 * means we don't need to worry about removing a dirty PTE
-+		 * entry and inserting a clean PMD entry, thus reducing the
-+		 * range we would flush with a follow-up fsync/msync call.
-+		 */
- 		radix_tree_delete(&mapping->page_tree, index);
- 		mapping->nrexceptional--;
- 	}
-@@ -912,6 +919,21 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		}
- 		dax_unmap_atomic(bdev, &dax);
- 
-+		/*
-+		 * For PTE faults we insert a radix tree entry for reads, and
-+		 * leave it clean.  Then on the first write we dirty the radix
-+		 * tree entry via the dax_pnf_mkwrite() path.  This sequence
-+		 * allows the dax_pfn_mkwrite() call to be simpler and avoid a
-+		 * call into get_block() to translate the pgoff to a sector in
-+		 * order to be able to create a new radix tree entry.
-+		 *
-+		 * The PMD path doesn't have an equivalent to
-+		 * dax_pfn_mkwrite(), though, so for a read followed by a
-+		 * write we traverse all the way through __dax_pmd_fault()
-+		 * twice.  This means we can just skip inserting a radix tree
-+		 * entry completely on the initial read and just wait until
-+		 * the write to insert a dirty entry.
-+		 */
- 		if (write) {
- 			error = dax_radix_entry(mapping, pgoff, dax.sector,
- 					true, true);
-@@ -985,6 +1007,14 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct file *file = vma->vm_file;
- 
-+	/*
-+	 * We pass NO_SECTOR to dax_radix_entry() because we expect that a
-+	 * RADIX_DAX_PTE entry already exists in the radix tree from a
-+	 * previous call to __dax_fault().  We just want to look up that PTE
-+	 * entry using vmf->pgoff and make sure the dirty tag is set.  This
-+	 * saves us from having to make a call to get_block() here to look
-+	 * up the sector.
-+	 */
- 	dax_radix_entry(file->f_mapping, vmf->pgoff, NO_SECTOR, false, true);
- 	return VM_FAULT_NOPAGE;
- }
--- 
-2.5.0
-
+I hesitated to say yes to this since some simple alignment checks
+seems like a thin reason to add a new Kconfig symbol.  However, one
+way we can test that memcpy_to_pmem() properly bypasses the cache is
+to invalidate the cache contents that it touches.  This would have
+caught this bug without needing to do a power cycle test.  In
+otherwords in debug mode run an 'invd' loop after the copy.
