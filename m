@@ -1,176 +1,103 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH v3 2/5] block: introduce del_gendisk_queue()
+Subject: [PATCH 3/3] devm_memremap_pages: fix vmem_altmap lifetime +
+ alignment handling
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 07 Jan 2016 16:43:05 -0800
-Message-ID: <20160108004305.36061.31898.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160108004254.36061.32864.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 30 Jan 2016 10:42:19 -0800
+Message-ID: <20160130184219.17558.88859.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20160130184203.17558.30413.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20160130184203.17558.30413.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: xfs@oss.sgi.com
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jeff Moyer <jmoyer@redhat.com>, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The current block device shutdown sequence of del_gendisk +
-blk_cleanup_queue is problematic.  We want to tell the fs after
-blk_cleanup_queue that there is no possibility of recovery, but by that
-time we have deleted partitions and lost the ability to find all the
-super-blocks on a block device.
+to_vmem_altmap() needs to return valid results until
+arch_remove_memory() completes.  It also needs to be valid for any pfn
+in a section regardless of whether that pfn maps to data.  This escape
+was a result of a bug in the unit test.
 
-del_gendisk_queue() combines block device shutdown, blk_cleanup_queue(),
-with block device end of life notification, del_gendisk().  Later
-patches builds on this sequence to unmap all dax inodes and communicate
-to the fs that it should force-fail all future i/o since the queue is
-permanently dead.  For now this is routine is functionally equivalent to
-calling del_gendisk() + blk_cleanup_queue() in succession.
+The signature of this bug is that free_pagetable() fails to retrieve a
+vmem_altmap and goes off into the weeds:
 
+ BUG: unable to handle kernel NULL pointer dereference at           (null)
+ IP: [<ffffffff811d2629>] get_pfnblock_flags_mask+0x49/0x60
+ [..]
+ Call Trace:
+  [<ffffffff811d3477>] free_hot_cold_page+0x97/0x1d0
+  [<ffffffff811d367a>] __free_pages+0x2a/0x40
+  [<ffffffff8191e669>] free_pagetable+0x8c/0xd4
+  [<ffffffff8191ef4e>] remove_pagetable+0x37a/0x808
+  [<ffffffff8191b210>] vmemmap_free+0x10/0x20
+
+Fixes: 4b94ffdc4163 ("x86, mm: introduce vmem_altmap to augment vmemmap_populate()")
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- block/genhd.c                |   43 ++++++++++++++++++++++++++++++++++++++++++
- drivers/block/brd.c          |    9 +++------
- drivers/nvdimm/pmem.c        |    3 +--
- drivers/s390/block/dcssblk.c |    6 ++----
- include/linux/genhd.h        |    1 +
- 5 files changed, 50 insertions(+), 12 deletions(-)
+ kernel/memremap.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff --git a/block/genhd.c b/block/genhd.c
-index b1d1df42ba13..a5bb768111cc 100644
---- a/block/genhd.c
-+++ b/block/genhd.c
-@@ -686,6 +686,49 @@ void del_gendisk(struct gendisk *disk)
- EXPORT_SYMBOL(del_gendisk);
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index e517a16cb426..cbc3e97e2bb4 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -183,7 +183,11 @@ EXPORT_SYMBOL(put_zone_device_page);
  
- /**
-+ * del_gendisk_queue - combined del_gendisk + blk_cleanup_queue
-+ * @disk: disk to delete, invalidate, unmap, and force-fail fs operations
-+ *
-+ * This is an alternative for open coded calls to:
-+ *     del_gendisk()
-+ *     blk_cleanup_queue()
-+ * It notifies filesystems / vfs that a block device is permanently dead
-+ * after the queue has been torn down.  This notification is needed for
-+ * triggering a filesystem to abort its error recovery and for (DAX)
-+ * capable devices.  DAX bypasses page cache and mappings go directly to
-+ * storage media.  When such a disk is removed the pfn backing a mapping
-+ * may be invalid or removed from the system.  Upon return accessing DAX
-+ * mappings of this disk will trigger SIGBUS.
-+ */
-+void del_gendisk_queue(struct gendisk *disk)
-+{
-+	struct disk_part_iter piter;
-+	struct hd_struct *part;
-+
-+	del_gendisk_start(disk);
-+
-+	/* pass1 sync fs + evict idle inodes */
-+	disk_part_iter_init(&piter, disk,
-+			     DISK_PITER_INCL_EMPTY | DISK_PITER_REVERSE);
-+	for_each_part(part, &piter)
-+		invalidate_partition(disk, part->partno);
-+	disk_part_iter_exit(&piter);
-+	invalidate_partition(disk, 0);
-+
-+	blk_cleanup_queue(disk->queue);
-+
-+	/* pass2 the queue is dead */
-+	disk_part_iter_init(&piter, disk,
-+			     DISK_PITER_INCL_EMPTY | DISK_PITER_REVERSE);
-+	for_each_part(part, &piter)
-+		delete_partition(disk, part->partno);
-+	disk_part_iter_exit(&piter);
-+
-+	del_gendisk_end(disk);
-+}
-+EXPORT_SYMBOL(del_gendisk_queue);
-+
-+/**
-  * get_gendisk - get partitioning information for a given device
-  * @devt: device to get partitioning information for
-  * @partno: returned partition index
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index a5880f4ab40e..013ff58f9af8 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -532,7 +532,6 @@ out:
- static void brd_free(struct brd_device *brd)
+ static void pgmap_radix_release(struct resource *res)
  {
- 	put_disk(brd->brd_disk);
--	blk_cleanup_queue(brd->brd_queue);
- 	brd_free_pages(brd);
- 	kfree(brd);
- }
-@@ -560,7 +559,7 @@ out:
- static void brd_del_one(struct brd_device *brd)
- {
- 	list_del(&brd->brd_list);
--	del_gendisk(brd->brd_disk);
-+	del_gendisk_queue(brd->brd_disk);
- 	brd_free(brd);
- }
+-	resource_size_t key;
++	resource_size_t key, align_start, align_size, align_end;
++
++	align_start = res->start & ~(SECTION_SIZE - 1);
++	align_size = ALIGN(resource_size(res), SECTION_SIZE);
++	align_end = align_start + align_size - 1;
  
-@@ -626,10 +625,8 @@ static int __init brd_init(void)
- 	return 0;
- 
- out_free:
--	list_for_each_entry_safe(brd, next, &brd_devices, brd_list) {
--		list_del(&brd->brd_list);
--		brd_free(brd);
--	}
-+	list_for_each_entry_safe(brd, next, &brd_devices, brd_list)
-+		brd_del_one(brd);
- 	unregister_blkdev(RAMDISK_MAJOR, "ramdisk");
- 
- 	pr_info("brd: module NOT loaded !!!\n");
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 8ee79893d2f5..6dd06e9d34b0 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -158,9 +158,8 @@ static void pmem_detach_disk(struct pmem_device *pmem)
- 	if (!pmem->pmem_disk)
- 		return;
- 
--	del_gendisk(pmem->pmem_disk);
-+	del_gendisk_queue(pmem->pmem_disk);
- 	put_disk(pmem->pmem_disk);
--	blk_cleanup_queue(pmem->pmem_queue);
- }
- 
- static int pmem_attach_disk(struct device *dev,
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 94a8f4ab57bc..0c3c968b57d9 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -388,8 +388,7 @@ removeseg:
- 	}
- 	list_del(&dev_info->lh);
- 
--	del_gendisk(dev_info->gd);
--	blk_cleanup_queue(dev_info->dcssblk_queue);
-+	del_gendisk_queue(dev_info->gd);
- 	dev_info->gd->queue = NULL;
- 	put_disk(dev_info->gd);
- 	up_write(&dcssblk_devices_sem);
-@@ -751,8 +750,7 @@ dcssblk_remove_store(struct device *dev, struct device_attribute *attr, const ch
+ 	mutex_lock(&pgmap_lock);
+ 	for (key = res->start; key <= res->end; key += SECTION_SIZE)
+@@ -226,12 +230,11 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
+ 		percpu_ref_put(pgmap->ref);
  	}
  
- 	list_del(&dev_info->lh);
--	del_gendisk(dev_info->gd);
--	blk_cleanup_queue(dev_info->dcssblk_queue);
-+	del_gendisk_queue(dev_info->gd);
- 	dev_info->gd->queue = NULL;
- 	put_disk(dev_info->gd);
- 	device_unregister(&dev_info->dev);
-diff --git a/include/linux/genhd.h b/include/linux/genhd.h
-index 847cc1d91634..028cf15a8a57 100644
---- a/include/linux/genhd.h
-+++ b/include/linux/genhd.h
-@@ -431,6 +431,7 @@ extern void part_round_stats(int cpu, struct hd_struct *part);
- /* block/genhd.c */
- extern void add_disk(struct gendisk *disk);
- extern void del_gendisk(struct gendisk *gp);
-+extern void del_gendisk_queue(struct gendisk *disk);
- extern struct gendisk *get_gendisk(dev_t dev, int *partno);
- extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
+-	pgmap_radix_release(res);
+-
+ 	/* pages are dead and unused, undo the arch mapping */
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+ 	arch_remove_memory(align_start, align_size);
++	pgmap_radix_release(res);
+ 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
+ 			"%s: failed to free all reserved pages\n", __func__);
+ }
+@@ -267,7 +270,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ {
+ 	int is_ram = region_intersects(res->start, resource_size(res),
+ 			"System RAM");
+-	resource_size_t key, align_start, align_size;
++	resource_size_t key, align_start, align_size, align_end;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
+ 	unsigned long pfn;
+@@ -309,7 +312,10 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
  
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+-	for (key = res->start; key <= res->end; key += SECTION_SIZE) {
++	align_start = res->start & ~(SECTION_SIZE - 1);
++	align_size = ALIGN(resource_size(res), SECTION_SIZE);
++	align_end = align_start + align_size - 1;
++	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
+ 		struct dev_pagemap *dup;
+ 
+ 		rcu_read_lock();
+@@ -336,8 +342,6 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	if (nid < 0)
+ 		nid = numa_mem_id();
+ 
+-	align_start = res->start & ~(SECTION_SIZE - 1);
+-	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+ 	error = arch_add_memory(nid, align_start, align_size, true);
+ 	if (error)
+ 		goto err_add_memory;
