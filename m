@@ -1,51 +1,42 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v7 9/9] xfs: call dax_pfn_mkwrite() for DAX fsync/msync
-Date: Wed,  6 Jan 2016 11:01:03 -0700
-Message-Id: <1452103263-1592-10-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1452103263-1592-1-git-send-email-ross.zwisler@linux.intel.com>
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH v4 8/8] ext4: Support for PUD-sized transparent huge pages
+Date: Sun, 31 Jan 2016 23:09:35 +1100
+Message-Id: <1454242175-16870-9-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1454242175-16870-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1454242175-16870-1-git-send-email-matthew.r.wilcox@intel.com>
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+From: Matthew Wilcox <willy@linux.intel.com>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+ext4 needs to reserve enough space in the journal to allocate a PUD-sized
+page.
+
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 ---
- fs/xfs/xfs_file.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/ext4/file.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index ebe9b82..55e16e2 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1610,9 +1610,8 @@ xfs_filemap_pmd_fault(
- /*
-  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
-  * updates on write faults. In reality, it's need to serialise against
-- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
-- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
-- * barrier in place.
-+ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
-+ * to ensure we serialise the fault barrier in place.
-  */
- static int
- xfs_filemap_pfn_mkwrite(
-@@ -1635,6 +1634,8 @@ xfs_filemap_pfn_mkwrite(
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else if (IS_DAX(inode))
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 71859ed..ec6664a 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -211,6 +211,10 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 			nblocks = ext4_chunk_trans_blocks(inode,
+ 						PMD_SIZE / PAGE_SIZE);
+ 			break;
++		case FAULT_FLAG_SIZE_PUD:
++			nblocks = ext4_chunk_trans_blocks(inode,
++						PUD_SIZE / PAGE_SIZE);
++			break;
+ 		default:
+ 			return VM_FAULT_FALLBACK;
+ 		}
 -- 
-2.5.0
+2.7.0.rc3
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
