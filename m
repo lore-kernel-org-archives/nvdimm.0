@@ -1,190 +1,153 @@
 Return-Path: <owner-linux-mm@kvack.org>
 From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH v3 5/8] procfs: Add support for PUDs to smaps, clear_refs and pagemap
-Date: Fri,  8 Jan 2016 14:49:49 -0500
-Message-Id: <1452282592-27290-6-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1452282592-27290-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1452282592-27290-1-git-send-email-matthew.r.wilcox@intel.com>
+Subject: [PATCH 4/6] dax: Use PAGE_CACHE_SIZE where appropriate
+Date: Sun, 31 Jan 2016 23:19:53 +1100
+Message-Id: <1454242795-18038-5-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1454242795-18038-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1454242795-18038-1-git-send-email-matthew.r.wilcox@intel.com>
 Sender: owner-linux-mm@kvack.org
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, willy@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <willy@linux.intel.com>
+We were a little sloppy about using PAGE_SIZE instead of PAGE_CACHE_SIZE.
+The important thing to remember is that the VM is gicing us a pgoff_t
+and asking us to populate that.  If PAGE_CACHE_SIZE were larger than
+PAGE_SIZE, then we would not successfully fill in the PTEs for faults
+that occurred in the upper portions of PAGE_CACHE_SIZE.
 
-Because there's no 'struct page' for DAX THPs, a lot of this code is
-simpler than the PMD code it mimics.  Extra code would need to be added
-to support PUDs of anonymous or page-cache THPs.
+Of course, we actually only fill in one PTE, so this still doesn't solve
+the problem.  I have my doubts we will ever increase PAGE_CACHE_SIZE
+now that we have map_pages.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 ---
- fs/proc/task_mmu.c | 109 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 109 insertions(+)
+ fs/dax.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
-index 65a1b6c..e45cbc2 100644
---- a/fs/proc/task_mmu.c
-+++ b/fs/proc/task_mmu.c
-@@ -595,6 +595,33 @@ static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
- }
- #endif
+diff --git a/fs/dax.c b/fs/dax.c
+index d0e1334..f0c204d 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -558,14 +558,14 @@ static int dax_pte_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	int error;
+ 	int major = 0;
  
-+static int smaps_pud_range(pud_t *pud, unsigned long addr, unsigned long end,
-+		struct mm_walk *walk)
-+{
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	struct vm_area_struct *vma = walk->vma;
-+	struct mem_size_stats *mss = walk->private;
-+
-+	if (is_huge_zero_pud(*pud))
-+		return 0;
-+
-+	mss->resident += HPAGE_PUD_SIZE;
-+	if (vma->vm_flags & VM_SHARED) {
-+		if (pud_dirty(*pud))
-+			mss->shared_dirty += HPAGE_PUD_SIZE;
-+		else
-+			mss->shared_clean += HPAGE_PUD_SIZE;
-+	} else {
-+		if (pud_dirty(*pud))
-+			mss->private_dirty += HPAGE_PUD_SIZE;
-+		else
-+			mss->private_clean += HPAGE_PUD_SIZE;
-+	}
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+
-+	return 0;
-+}
-+
- static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			   struct mm_walk *walk)
- {
-@@ -715,6 +742,7 @@ static int show_smap(struct seq_file *m, void *v, int is_pid)
- 	struct vm_area_struct *vma = v;
- 	struct mem_size_stats mss;
- 	struct mm_walk smaps_walk = {
-+		.pud_entry = smaps_pud_range,
- 		.pmd_entry = smaps_pte_range,
- #ifdef CONFIG_HUGETLB_PAGE
- 		.hugetlb_entry = smaps_hugetlb_range,
-@@ -897,13 +925,50 @@ static inline void clear_soft_dirty_pmd(struct vm_area_struct *vma,
+-	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		return VM_FAULT_SIGBUS;
  
- 	set_pmd_at(vma->vm_mm, addr, pmdp, pmd);
- }
-+static inline void clear_soft_dirty_pud(struct vm_area_struct *vma,
-+		unsigned long addr, pud_t *pudp)
-+{
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	pud_t pud = pudp_huge_get_and_clear(vma->vm_mm, addr, pudp);
-+
-+	pud = pud_wrprotect(pud);
-+	pud = pud_clear_soft_dirty(pud);
-+
-+	if (vma->vm_flags & VM_SOFTDIRTY)
-+		vma->vm_flags &= ~VM_SOFTDIRTY;
-+
-+	set_pud_at(vma->vm_mm, addr, pudp, pud);
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+}
- #else
- static inline void clear_soft_dirty_pmd(struct vm_area_struct *vma,
- 		unsigned long addr, pmd_t *pmdp)
- {
- }
-+static inline void clear_soft_dirty_pud(struct vm_area_struct *vma,
-+		unsigned long addr, pud_t *pudp)
-+{
-+}
- #endif
+ 	memset(&bh, 0, sizeof(bh));
+-	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
++	block = (sector_t)vmf->pgoff << (PAGE_CACHE_SHIFT - blkbits);
+ 	bh.b_bdev = inode->i_sb->s_bdev;
+-	bh.b_size = PAGE_SIZE;
++	bh.b_size = PAGE_CACHE_SIZE;
  
-+static int clear_refs_pud_range(pud_t *pud, unsigned long addr,
-+				unsigned long end, struct mm_walk *walk)
-+{
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	struct clear_refs_private *cp = walk->private;
-+	struct vm_area_struct *vma = walk->vma;
-+
-+	if (cp->type == CLEAR_REFS_SOFT_DIRTY) {
-+		clear_soft_dirty_pud(vma, addr, pud);
-+	} else {
-+		/* Clear accessed and referenced bits. */
-+		pudp_test_and_clear_young(vma, addr, pud);
-+	}
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+
-+	return 0;
-+}
-+
- static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
- 				unsigned long end, struct mm_walk *walk)
- {
-@@ -1013,6 +1078,7 @@ static ssize_t clear_refs_write(struct file *file, const char __user *buf,
- 			.type = type,
- 		};
- 		struct mm_walk clear_refs_walk = {
-+			.pud_entry = clear_refs_pud_range,
- 			.pmd_entry = clear_refs_pte_range,
- 			.test_walk = clear_refs_test_walk,
- 			.mm = mm,
-@@ -1177,6 +1243,48 @@ static pagemap_entry_t pte_to_pagemap_entry(struct pagemapread *pm,
- 	return make_pme(frame, flags);
- }
+  repeat:
+ 	page = find_get_page(mapping, vmf->pgoff);
+@@ -582,7 +582,7 @@ static int dax_pte_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	}
  
-+static int pagemap_pud_range(pud_t *pudp, unsigned long addr, unsigned long end,
-+			     struct mm_walk *walk)
-+{
-+	int err = 0;
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	struct vm_area_struct *vma = walk->vma;
-+	struct pagemapread *pm = walk->private;
-+	u64 flags = 0, frame = 0;
-+	pud_t pud = *pudp;
-+
-+	if ((vma->vm_flags & VM_SOFTDIRTY) || pud_soft_dirty(pud))
-+		flags |= PM_SOFT_DIRTY;
-+
-+	/*
-+	 * Currently pud for thp is always present because thp
-+	 * can not be swapped-out, migrated, or HWPOISONed
-+	 * (split in such cases instead.)
-+	 * This if-check is just to prepare for future implementation.
-+	 */
-+	if (pud_present(pud)) {
-+		flags |= PM_PRESENT;
-+		if (!(vma->vm_flags & VM_SHARED))
-+			flags |= PM_MMAP_EXCLUSIVE;
-+
-+		if (pm->show_pfn)
-+			frame = pud_pfn(pud) +
-+					((addr & ~PUD_MASK) >> PAGE_SHIFT);
-+
-+		for (; addr != end; addr += PAGE_SIZE) {
-+			pagemap_entry_t pme = make_pme(frame, flags);
-+
-+			err = add_to_pagemap(addr, &pme, pm);
-+			if (err)
-+				break;
-+			if (pm->show_pfn && (flags & PM_PRESENT))
-+				frame++;
-+		}
-+	}
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+	return err;
-+}
-+
- static int pagemap_pmd_range(pmd_t *pmdp, unsigned long addr, unsigned long end,
- 			     struct mm_walk *walk)
- {
-@@ -1355,6 +1463,7 @@ static ssize_t pagemap_read(struct file *file, char __user *buf,
- 	if (!pm.buffer)
- 		goto out_mm;
+ 	error = get_block(inode, block, &bh, 0);
+-	if (!error && (bh.b_size < PAGE_SIZE))
++	if (!error && (bh.b_size < PAGE_CACHE_SIZE))
+ 		error = -EIO;		/* fs corruption? */
+ 	if (error)
+ 		goto unlock_page;
+@@ -593,7 +593,7 @@ static int dax_pte_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 			count_vm_event(PGMAJFAULT);
+ 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+ 			major = VM_FAULT_MAJOR;
+-			if (!error && (bh.b_size < PAGE_SIZE))
++			if (!error && (bh.b_size < PAGE_CACHE_SIZE))
+ 				error = -EIO;
+ 			if (error)
+ 				goto unlock_page;
+@@ -630,7 +630,7 @@ static int dax_pte_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		page = find_lock_page(mapping, vmf->pgoff);
  
-+	pagemap_walk.pud_entry = pagemap_pud_range;
- 	pagemap_walk.pmd_entry = pagemap_pmd_range;
- 	pagemap_walk.pte_hole = pagemap_pte_hole;
- #ifdef CONFIG_HUGETLB_PAGE
+ 	if (page) {
+-		unmap_mapping_range(mapping, vmf->pgoff << PAGE_SHIFT,
++		unmap_mapping_range(mapping, vmf->pgoff << PAGE_CACHE_SHIFT,
+ 							PAGE_CACHE_SIZE, 0);
+ 		delete_from_page_cache(page);
+ 		unlock_page(page);
+@@ -677,7 +677,7 @@ static int dax_pte_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+  * The 'colour' (ie low bits) within a PMD of a page offset.  This comes up
+  * more often than one might expect in the below function.
+  */
+-#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
++#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_CACHE_SHIFT) - 1)
+ 
+ static void __dax_dbg(struct buffer_head *bh, unsigned long address,
+ 		const char *reason, const char *fn)
+@@ -734,7 +734,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		return VM_FAULT_FALLBACK;
+ 	}
+ 
+-	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		return VM_FAULT_SIGBUS;
+ 	/* If the PMD would cover blocks out of the file */
+@@ -746,7 +746,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 
+ 	memset(&bh, 0, sizeof(bh));
+ 	bh.b_bdev = inode->i_sb->s_bdev;
+-	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
++	block = (sector_t)vmf->pgoff << (PAGE_CACHE_SHIFT - blkbits);
+ 
+ 	bh.b_size = PMD_SIZE;
+ 
+@@ -776,7 +776,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	 * zero pages covering this hole
+ 	 */
+ 	if (alloc) {
+-		loff_t lstart = vmf->pgoff << PAGE_SHIFT;
++		loff_t lstart = vmf->pgoff << PAGE_CACHE_SHIFT;
+ 		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
+ 
+ 		truncate_pagecache_range(inode, lstart, lend);
+@@ -904,7 +904,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+  * The 'colour' (ie low bits) within a PUD of a page offset.  This comes up
+  * more often than one might expect in the below function.
+  */
+-#define PG_PUD_COLOUR	((PUD_SIZE >> PAGE_SHIFT) - 1)
++#define PG_PUD_COLOUR	((PUD_SIZE >> PAGE_CACHE_SHIFT) - 1)
+ 
+ #define dax_pud_dbg(bh, address, reason)	__dax_dbg(bh, address, reason, "dax_pud")
+ 
+@@ -945,7 +945,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		return VM_FAULT_FALLBACK;
+ 	}
+ 
+-	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		return VM_FAULT_SIGBUS;
+ 	/* If the PUD would cover blocks out of the file */
+@@ -957,7 +957,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 
+ 	memset(&bh, 0, sizeof(bh));
+ 	bh.b_bdev = inode->i_sb->s_bdev;
+-	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
++	block = (sector_t)vmf->pgoff << (PAGE_CACHE_SHIFT - blkbits);
+ 
+ 	bh.b_size = PUD_SIZE;
+ 
+@@ -987,7 +987,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	 * zero pages covering this hole
+ 	 */
+ 	if (alloc) {
+-		loff_t lstart = vmf->pgoff << PAGE_SHIFT;
++		loff_t lstart = vmf->pgoff << PAGE_CACHE_SHIFT;
+ 		loff_t lend = lstart + PUD_SIZE - 1; /* inclusive */
+ 
+ 		truncate_pagecache_range(inode, lstart, lend);
 -- 
-2.6.4
+2.7.0.rc3
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
