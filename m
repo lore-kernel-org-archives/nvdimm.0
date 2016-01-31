@@ -1,87 +1,161 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 3/5] dax: improve documentation for fsync/msync
-Date: Fri, 22 Jan 2016 14:36:11 -0700
-Message-Id: <1453498573-6328-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1453498573-6328-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1453498573-6328-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH 6/6] dax: Factor dax_insert_pud_mapping out of dax_pud_fault
+Date: Sun, 31 Jan 2016 23:19:55 +1100
+Message-Id: <1454242795-18038-7-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1454242795-18038-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1454242795-18038-1-git-send-email-matthew.r.wilcox@intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, willy@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Several of the subtleties and assumptions of the DAX fsync/msync
-implementation are not immediately obvious, so document them with comments.
+Follow the factoring done for dax_pmd_fault.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 ---
- fs/dax.c | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ fs/dax.c | 100 +++++++++++++++++++++++++++++++++------------------------------
+ 1 file changed, 53 insertions(+), 47 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index d589113..ab2faa9 100644
+index ec31e6e..e9701d6 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -335,6 +335,7 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
- 	int type, error = 0;
- 	void *entry;
+@@ -915,6 +915,57 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
  
-+	WARN_ON_ONCE(pmd_entry && !dirty);
- 	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ #define dax_pud_dbg(bh, address, reason)	__dax_dbg(bh, address, reason, "dax_pud")
  
- 	spin_lock_irq(&mapping->tree_lock);
-@@ -350,6 +351,13 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
- 
- 		if (!pmd_entry || type == RADIX_DAX_PMD)
- 			goto dirty;
++static int dax_insert_pud_mapping(struct inode *inode, struct buffer_head *bh,
++			struct vm_area_struct *vma, struct vm_fault *vmf)
++{
++	int major = 0;
++	struct blk_dax_ctl dax = {
++		.sector = to_sector(bh, inode),
++		.size = PUD_SIZE,
++	};
++	struct block_device *bdev = bh->b_bdev;
++	bool write = vmf->flags & FAULT_FLAG_WRITE;
++	unsigned long address = (unsigned long)vmf->virtual_address;
++	long length = dax_map_atomic(bdev, &dax);
 +
-+		/*
-+		 * We only insert dirty PMD entries into the radix tree.  This
-+		 * means we don't need to worry about removing a dirty PTE
-+		 * entry and inserting a clean PMD entry, thus reducing the
-+		 * range we would flush with a follow-up fsync/msync call.
-+		 */
- 		radix_tree_delete(&mapping->page_tree, index);
- 		mapping->nrexceptional--;
- 	}
-@@ -912,6 +920,21 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		}
- 		dax_unmap_atomic(bdev, &dax);
- 
-+		/*
-+		 * For PTE faults we insert a radix tree entry for reads, and
-+		 * leave it clean.  Then on the first write we dirty the radix
-+		 * tree entry via the dax_pfn_mkwrite() path.  This sequence
-+		 * allows the dax_pfn_mkwrite() call to be simpler and avoid a
-+		 * call into get_block() to translate the pgoff to a sector in
-+		 * order to be able to create a new radix tree entry.
-+		 *
-+		 * The PMD path doesn't have an equivalent to
-+		 * dax_pfn_mkwrite(), though, so for a read followed by a
-+		 * write we traverse all the way through __dax_pmd_fault()
-+		 * twice.  This means we can just skip inserting a radix tree
-+		 * entry completely on the initial read and just wait until
-+		 * the write to insert a dirty entry.
-+		 */
- 		if (write) {
- 			error = dax_radix_entry(mapping, pgoff, dax.sector,
- 					true, true);
-@@ -985,6 +1008,14 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
++	if (length < 0)
++		return VM_FAULT_SIGBUS;
++	if (length < PUD_SIZE) {
++		dax_pud_dbg(bh, address, "dax-length too small");
++		goto unmap;
++	}
++	if (pfn_t_to_pfn(dax.pfn) & PG_PUD_COLOUR) {
++		dax_pud_dbg(bh, address, "pfn unaligned");
++		goto unmap;
++	}
++
++	if (!pfn_t_devmap(dax.pfn)) {
++		dax_pud_dbg(bh, address, "pfn not in memmap");
++		goto unmap;
++	}
++
++	if (buffer_unwritten(bh) || buffer_new(bh)) {
++		clear_pmem(dax.addr, PUD_SIZE);
++		wmb_pmem();
++		count_vm_event(PGMAJFAULT);
++		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
++		major = VM_FAULT_MAJOR;
++	}
++	dax_unmap_atomic(bdev, &dax);
++
++	dev_dbg(part_to_dev(bdev->bd_part),
++			"%s: %s addr: %lx pfn: %lx sect: %llx\n",
++			__func__, current->comm, address,
++			pfn_t_to_pfn(dax.pfn),
++			(unsigned long long) dax.sector);
++	return major | vmf_insert_pfn_pud(vma, address, vmf->pud,
++						dax.pfn, write);
++ unmap:
++	dax_unmap_atomic(bdev, &dax);
++	count_vm_event(THP_FAULT_FALLBACK);
++	return VM_FAULT_FALLBACK;
++}
++
+ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		get_block_t get_block, dax_iodone_t complete_unwritten)
  {
- 	struct file *file = vma->vm_file;
+@@ -926,10 +977,9 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	unsigned long address = (unsigned long)vmf->virtual_address;
+ 	unsigned long pud_addr = address & PUD_MASK;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+-	struct block_device *bdev;
+ 	pgoff_t size;
+ 	sector_t block;
+-	int result = 0;
++	int result;
+ 	bool alloc = false;
  
-+	/*
-+	 * We pass NO_SECTOR to dax_radix_entry() because we expect that a
-+	 * RADIX_DAX_PTE entry already exists in the radix tree from a
-+	 * previous call to __dax_fault().  We just want to look up that PTE
-+	 * entry using vmf->pgoff and make sure the dirty tag is set.  This
-+	 * saves us from having to make a call to get_block() here to look
-+	 * up the sector.
-+	 */
- 	dax_radix_entry(file->f_mapping, vmf->pgoff, NO_SECTOR, false, true);
- 	return VM_FAULT_NOPAGE;
- }
+ 	/* dax pud mappings require pfn_t_devmap() */
+@@ -977,8 +1027,6 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		alloc = true;
+ 	}
+ 
+-	bdev = bh.b_bdev;
+-
+ 	/*
+ 	 * If the filesystem isn't willing to tell us the length of a hole,
+ 	 * just fall back to PMDs.  Calling get_block 512 times in a loop
+@@ -1004,49 +1052,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		dax_pud_dbg(&bh, address, "no zero page");
+ 		goto fallback;
+ 	} else {
+-		struct blk_dax_ctl dax = {
+-			.sector = to_sector(&bh, inode),
+-			.size = PUD_SIZE,
+-		};
+-		long length = dax_map_atomic(bdev, &dax);
+-
+-		if (length < 0) {
+-			result = VM_FAULT_SIGBUS;
+-			goto out;
+-		}
+-		if (length < PUD_SIZE) {
+-			dax_pud_dbg(&bh, address, "dax-length too small");
+-			dax_unmap_atomic(bdev, &dax);
+-			goto fallback;
+-		}
+-		if (pfn_t_to_pfn(dax.pfn) & PG_PUD_COLOUR) {
+-			dax_pud_dbg(&bh, address, "pfn unaligned");
+-			dax_unmap_atomic(bdev, &dax);
+-			goto fallback;
+-		}
+-
+-		if (!pfn_t_devmap(dax.pfn)) {
+-			dax_unmap_atomic(bdev, &dax);
+-			dax_pud_dbg(&bh, address, "pfn not in memmap");
+-			goto fallback;
+-		}
+-
+-		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+-			clear_pmem(dax.addr, PUD_SIZE);
+-			wmb_pmem();
+-			count_vm_event(PGMAJFAULT);
+-			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+-			result |= VM_FAULT_MAJOR;
+-		}
+-		dax_unmap_atomic(bdev, &dax);
+-
+-		dev_dbg(part_to_dev(bdev->bd_part),
+-				"%s: %s addr: %lx pfn: %lx sect: %llx\n",
+-				__func__, current->comm, address,
+-				pfn_t_to_pfn(dax.pfn),
+-				(unsigned long long) dax.sector);
+-		result |= vmf_insert_pfn_pud(vma, address, vmf->pud,
+-				dax.pfn, write);
++		result = dax_insert_pud_mapping(inode, &bh, vma, vmf);
+ 	}
+ 
+  out:
 -- 
-2.5.0
+2.7.0.rc3
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
