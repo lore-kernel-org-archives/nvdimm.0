@@ -1,123 +1,41 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v8 5/9] mm: add find_get_entries_tag()
-Date: Thu,  7 Jan 2016 22:27:55 -0700
-Message-Id: <1452230879-18117-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1452230879-18117-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1452230879-18117-1-git-send-email-ross.zwisler@linux.intel.com>
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH 1/6] dax: Use vmf->gfp_mask
+Date: Sun, 31 Jan 2016 23:19:50 +1100
+Message-Id: <1454242795-18038-2-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1454242795-18038-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1454242795-18038-1-git-send-email-matthew.r.wilcox@intel.com>
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, willy@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add find_get_entries_tag() to the family of functions that include
-find_get_entries(), find_get_pages() and find_get_pages_tag().  This is
-needed for DAX dirty page handling because we need a list of both page
-offsets and radix tree entries ('indices' and 'entries' in this function)
-that are marked with the PAGECACHE_TAG_TOWRITE tag.
+We were assuming that it was OK to do a GFP_KERNEL allocation in page
+fault context.  That appears to be largely true, but filesystems are
+permitted to override that in their setting of mapping->gfp_flags, which
+the VM then massages into vmf->gfp_flags.  No practical difference for
+now, but there may come a day when we would have surprised a filesystem.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 ---
- include/linux/pagemap.h |  3 +++
- mm/filemap.c            | 68 +++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 71 insertions(+)
+ fs/dax.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
-index 4d08b6c..92395a0 100644
---- a/include/linux/pagemap.h
-+++ b/include/linux/pagemap.h
-@@ -361,6 +361,9 @@ unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t start,
- 			       unsigned int nr_pages, struct page **pages);
- unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
- 			int tag, unsigned int nr_pages, struct page **pages);
-+unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
-+			int tag, unsigned int nr_entries,
-+			struct page **entries, pgoff_t *indices);
- 
- struct page *grab_cache_page_write_begin(struct address_space *mapping,
- 			pgoff_t index, unsigned flags);
-diff --git a/mm/filemap.c b/mm/filemap.c
-index 7b8be78..1e215fc 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -1499,6 +1499,74 @@ repeat:
- }
- EXPORT_SYMBOL(find_get_pages_tag);
- 
-+/**
-+ * find_get_entries_tag - find and return entries that match @tag
-+ * @mapping:	the address_space to search
-+ * @start:	the starting page cache index
-+ * @tag:	the tag index
-+ * @nr_entries:	the maximum number of entries
-+ * @entries:	where the resulting entries are placed
-+ * @indices:	the cache indices corresponding to the entries in @entries
-+ *
-+ * Like find_get_entries, except we only return entries which are tagged with
-+ * @tag.
-+ */
-+unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
-+			int tag, unsigned int nr_entries,
-+			struct page **entries, pgoff_t *indices)
-+{
-+	void **slot;
-+	unsigned int ret = 0;
-+	struct radix_tree_iter iter;
-+
-+	if (!nr_entries)
-+		return 0;
-+
-+	rcu_read_lock();
-+restart:
-+	radix_tree_for_each_tagged(slot, &mapping->page_tree,
-+				   &iter, start, tag) {
-+		struct page *page;
-+repeat:
-+		page = radix_tree_deref_slot(slot);
-+		if (unlikely(!page))
-+			continue;
-+		if (radix_tree_exception(page)) {
-+			if (radix_tree_deref_retry(page)) {
-+				/*
-+				 * Transient condition which can only trigger
-+				 * when entry at index 0 moves out of or back
-+				 * to root: none yet gotten, safe to restart.
-+				 */
-+				goto restart;
-+			}
-+
-+			/*
-+			 * A shadow entry of a recently evicted page, a swap
-+			 * entry from shmem/tmpfs or a DAX entry.  Return it
-+			 * without attempting to raise page count.
-+			 */
-+			goto export;
-+		}
-+		if (!page_cache_get_speculative(page))
-+			goto repeat;
-+
-+		/* Has the page moved? */
-+		if (unlikely(page != *slot)) {
-+			page_cache_release(page);
-+			goto repeat;
-+		}
-+export:
-+		indices[ret] = iter.index;
-+		entries[ret] = page;
-+		if (++ret == nr_entries)
-+			break;
-+	}
-+	rcu_read_unlock();
-+	return ret;
-+}
-+EXPORT_SYMBOL(find_get_entries_tag);
-+
- /*
-  * CD/DVDs are error prone. When a medium error occurs, the driver may fail
-  * a _large_ part of the i/o request. Imagine the worst scenario:
+diff --git a/fs/dax.c b/fs/dax.c
+index 2f9bb89..11be8c7 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -292,7 +292,7 @@ static int dax_load_hole(struct address_space *mapping, struct page *page,
+ 	struct inode *inode = mapping->host;
+ 	if (!page)
+ 		page = find_or_create_page(mapping, vmf->pgoff,
+-						GFP_KERNEL | __GFP_ZERO);
++						vmf->gfp_mask | __GFP_ZERO);
+ 	if (!page)
+ 		return VM_FAULT_OOM;
+ 	/* Recheck i_size under page lock to avoid truncate race */
 -- 
-2.5.0
+2.7.0.rc3
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
