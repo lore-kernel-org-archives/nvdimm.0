@@ -1,42 +1,42 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
+Message-ID: <1454356235.7165.5.camel@hpe.com>
+Subject: Re: [PATCH 0/2] Fix BTT data corruptions after crash
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 0/2] Fix BTT data corruptions after crash
-Date: Thu, 11 Feb 2016 14:24:15 -0700
-Message-Id: <1455225857-12039-1-git-send-email-toshi.kani@hpe.com>
+Date: Mon, 01 Feb 2016 12:50:35 -0700
+In-Reply-To: <CAPcyv4hsa-DCYO-YxMCKat5y-dDvGMMgJ5D-cib2TjhyNan4NA@mail.gmail.com>
+References: <1454004770-6318-1-git-send-email-toshi.kani@hpe.com>
+	 <CAPcyv4gc_wL6Bb8NxU42CAPN6v05MYnVVZiyijAQt9XZ6VNL_g@mail.gmail.com>
+	 <1454013825.2576.31.camel@hpe.com>
+	 <CAPcyv4hsa-DCYO-YxMCKat5y-dDvGMMgJ5D-cib2TjhyNan4NA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, bp@suse.de, dan.j.williams@intel.com
-Cc: ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, micah.parrish@hpe.com, brian.boylston@hpe.com, x86@kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, micah.parrish@hpe.com, brian.boylston@hpe.com, X86 ML <x86@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Data corruption issues were observed in tests which initiated a system
-crash/reset while accessing BTT devices.  This problem is reproducible.
+On Sat, 2016-01-30 at 09:44 -0800, Dan Williams wrote:
+> On Thu, Jan 28, 2016 at 12:43 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> > On Thu, 2016-01-28 at 12:12 -0800, Dan Williams wrote:
+> [..]
+> > > I'm wondering if we should just document that this routine does not
+> > > support unaligned transfers?  Maybe backed by a debug mode that does
+> > > the alignment check.
+> > 
+> > Yes, I agree.  For this debug mode, do you have something in mind?  Or
+> > should we add a new CONFIG option like CONFIG_PMEM_DEBUG?
+> > 
+> 
+> I hesitated to say yes to this since some simple alignment checks
+> seems like a thin reason to add a new Kconfig symbol.  However, one
+> way we can test that memcpy_to_pmem() properly bypasses the cache is
+> to invalidate the cache contents that it touches.  This would have
+> caught this bug without needing to do a power cycle test.  In
+> otherwords in debug mode run an 'invd' loop after the copy.
 
-The BTT driver calls pmem_rw_bytes() to update data in pmem devices.
-This interface calls __copy_user_nocache(), which uses non-temporal
-stores so that the stores to pmem are persistent.
+That sounds like a good idea to try out.  Since this approach no longer
+depends on patch 1/2, I will separate this change from patch 1/2.
 
-__copy_user_nocache() uses non-temporal stores when a request size is
-8 bytes or larger (and is aligned by 8 bytes).  The BTT driver updates
-the BTT map table, which entry size is 4 bytes.  Therefore, updates to
-the map table entries remain cached, and are not written to pmem after
-a crash.  Since the BTT driver makes previous blocks free and uses them
-for subsequent writes, the map table ends up pointing to blocks allocated
-for other LBAs after a crash.
-
-Patch 1 cleans up __copy_user_nocache() before making changes.
-Patch 2 makes __copy_user_nocache() handle 4-byte nocache copy.
-
----
-v3:
- - Add a cleanup patch to rename numeric labels to descriptively named
-   labels with .L. (Ingo Molnar, Borislav Petkov)
-v2:
- - Add comments (Ingo Molnar).
----
-Toshi Kani (2):
- 1/2 x86/lib/copy_user_64.S: cleanup __copy_user_nocache()
- 2/2 x86/lib/copy_user_64.S: Handle 4-byte nocache copy
-
----
- arch/x86/lib/copy_user_64.S | 142 +++++++++++++++++++++++++++++++-------------
- 1 file changed, 101 insertions(+), 41 deletions(-)
+Thanks,
+-Toshi  
