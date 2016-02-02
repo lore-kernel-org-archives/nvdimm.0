@@ -1,184 +1,113 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 5/8] nfit, libnvdimm: async region scrub workqueue
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 23 Feb 2016 18:17:24 -0800
-Message-ID: <20160224021724.22776.70050.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 2/3] resource: Add iomem_set_desc() to set I/O descriptor
+Date: Tue,  2 Feb 2016 11:55:10 -0700
+Message-Id: <1454439311-23690-3-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
+References: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Introduce a workqueue that will be used to run address range scrub
-asynchronously with the rest of nvdimm device probing.
+ACPI 6.0 defines persistent memory ranges in multiple firmware
+interfaces, E820_PMEM type in e820, EFI_PERSISTENT_MEMORY type
+in EFI, and ACPI NFIT table.  This EFI spec change, however,
+hit a bug in the grub bootloader, which handles EFI_PERSISTENT_MEMORY
+as regular memory and potentially corrupts stored user data [1].
 
-Userspace still wants notification when probing operations complete, so
-introduce a new callback to flush this workqueue when userspace is
-awaiting probe completion.
+This issue leads FW vendors to consider using generic reserved
+type in e820 and EFI to cover persistent memory, so that no new
+type is used in e820 and EFI.  The kernel can initialize persistent
+memory from ACPI NFIT table alone.  This basic approach may
+continue in future that new types will only be defined to ACPI
+tables.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+This however causes a problem in the iomem table.  On x86, for
+instance, e820_reserve_resources() initializes top-level entries
+(iomem_resource.child) from the e820 table in early boot-time.
+The reserved type does not provide any specific type information.
+
+Hence, this patch adds iomem_set_desc(), which allows drivers
+to set IO descriptor to a corresponding top-level iomem entry
+that is not marked as BUSY.  Drivers, such as ACPI drivers, can
+call this interface to set a specific type when they enumerate
+ACPI tables later in the boot sequence or run-time.
+
+[1] https://lists.gnu.org/archive/html/grub-devel/2015-11/msg00209.html
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c       |   49 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/nfit.h       |    3 +++
- drivers/nvdimm/core.c     |    9 ++++++++
- include/linux/libnvdimm.h |    1 +
- 4 files changed, 62 insertions(+)
+ include/linux/ioport.h |    2 ++
+ kernel/resource.c      |   41 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 43 insertions(+)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 76c9444c9c60..4aa2bd54fc1d 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -34,6 +34,8 @@ static bool force_enable_dimms;
- module_param(force_enable_dimms, bool, S_IRUGO|S_IWUSR);
- MODULE_PARM_DESC(force_enable_dimms, "Ignore _STA (ACPI DIMM device) status");
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index afb4559..54f7435 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -260,6 +260,8 @@ extern void __devm_release_region(struct device *dev, struct resource *parent,
+ 				  resource_size_t start, resource_size_t n);
+ extern int iomem_map_sanity_check(resource_size_t addr, unsigned long size);
+ extern int iomem_is_exclusive(u64 addr);
++extern int iomem_set_desc(resource_size_t start, size_t size,
++	unsigned long desc);
  
-+static struct workqueue_struct *nfit_wq;
-+
- struct nfit_table_prev {
- 	struct list_head spas;
- 	struct list_head memdevs;
-@@ -1961,6 +1963,39 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+ extern int
+ walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 9df79ff..7d68297 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -1534,6 +1534,47 @@ int iomem_is_exclusive(u64 addr)
+ 	return err;
  }
- EXPORT_SYMBOL_GPL(acpi_nfit_init);
  
-+struct acpi_nfit_flush_work {
-+	struct work_struct work;
-+	struct completion cmp;
-+};
-+
-+static void flush_probe(struct work_struct *work)
++/**
++ * iomem_set_desc - set I/O descriptor to the corresponding iomem entry
++ * @start: start address
++ * @size: size of the range
++ * @desc: I/O descriptor
++ *
++ * Set IO descriptor to the corresponding top-level iomem entry.
++ * Return 0 for success, -EBUSY when the entry is marked as BUSY,
++ * -EINVAL when no corresponding entry is found.
++ */
++int iomem_set_desc(resource_size_t start, size_t size, unsigned long desc)
 +{
-+	struct acpi_nfit_flush_work *flush;
++	resource_size_t end = start + size - 1;
++	struct resource *p;
++	int match = 0, ret = -EINVAL;
 +
-+	flush = container_of(work, typeof(*flush), work);
-+	complete(&flush->cmp);
-+}
++	write_lock(&resource_lock);
 +
-+static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
-+{
-+	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
-+	struct device *dev = acpi_desc->dev;
-+	struct acpi_nfit_flush_work flush;
-+
-+	/* bounce the device lock to flush acpi_nfit_add / acpi_nfit_notify */
-+	device_lock(dev);
-+	device_unlock(dev);
-+
-+	/*
-+	 * Scrub work could take 10s of seconds, userspace may give up so we
-+	 * need to be interruptible while waiting.
-+	 */
-+	INIT_WORK_ONSTACK(&flush.work, flush_probe);
-+	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
-+	queue_work(nfit_wq, &flush.work);
-+	return wait_for_completion_interruptible(&flush.cmp);
-+}
-+
- void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
- {
- 	struct nvdimm_bus_descriptor *nd_desc;
-@@ -1971,6 +2006,7 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
- 	nd_desc = &acpi_desc->nd_desc;
- 	nd_desc->provider_name = "ACPI.NFIT";
- 	nd_desc->ndctl = acpi_nfit_ctl;
-+	nd_desc->flush_probe = acpi_nfit_flush_probe;
- 	nd_desc->attr_groups = acpi_nfit_attribute_groups;
- 
- 	INIT_LIST_HEAD(&acpi_desc->spa_maps);
-@@ -2048,6 +2084,8 @@ static int acpi_nfit_remove(struct acpi_device *adev)
- {
- 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
- 
-+	acpi_desc->cancel = 1;
-+	flush_workqueue(nfit_wq);
- 	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
- 	return 0;
- }
-@@ -2079,6 +2117,12 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- 		acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
- 		if (!acpi_desc->nvdimm_bus)
- 			goto out_unlock;
-+	} else {
-+		/*
-+		 * Finish previous registration before considering new
-+		 * regions.
-+		 */
-+		flush_workqueue(nfit_wq);
- 	}
- 
- 	/* Evaluate _FIT */
-@@ -2146,12 +2190,17 @@ static __init int nfit_init(void)
- 	acpi_str_to_uuid(UUID_NFIT_BUS, nfit_uuid[NFIT_DEV_BUS]);
- 	acpi_str_to_uuid(UUID_NFIT_DIMM, nfit_uuid[NFIT_DEV_DIMM]);
- 
-+	nfit_wq = create_singlethread_workqueue("nfit");
-+	if (!nfit_wq)
-+		return -ENOMEM;
-+
- 	return acpi_bus_register_driver(&acpi_nfit_driver);
- }
- 
- static __exit void nfit_exit(void)
- {
- 	acpi_bus_unregister_driver(&acpi_nfit_driver);
-+	destroy_workqueue(nfit_wq);
- }
- 
- module_init(nfit_init);
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 524dec0a3adb..e8388fee4cc6 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -14,6 +14,7 @@
-  */
- #ifndef __NFIT_H__
- #define __NFIT_H__
-+#include <linux/workqueue.h>
- #include <linux/libnvdimm.h>
- #include <linux/types.h>
- #include <linux/uuid.h>
-@@ -123,6 +124,8 @@ struct acpi_nfit_desc {
- 	struct list_head idts;
- 	struct nvdimm_bus *nvdimm_bus;
- 	struct device *dev;
-+	struct work_struct work;
-+	unsigned int cancel:1;
- 	unsigned long dimm_dsm_force_en;
- 	unsigned long bus_dsm_force_en;
- 	int (*blk_do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index f309e6bf6833..79646d0c3277 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -298,6 +298,15 @@ static int flush_regions_dimms(struct device *dev, void *data)
- static ssize_t wait_probe_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-+	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
-+	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
-+	int rc;
-+
-+	if (nd_desc->flush_probe) {
-+		rc = nd_desc->flush_probe(nd_desc);
-+		if (rc)
-+			return rc;
++	for (p = iomem_resource.child; p ; p = p->sibling) {
++		if (p->start < start)
++			continue;
++		if ((p->start == start) && (p->end == end))
++			match = 1;
++		break;
 +	}
- 	nd_synchronize();
- 	device_for_each_child(dev, NULL, flush_regions_dimms);
- 	return sprintf(buf, "1\n");
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index f398953270d1..2299f8742f7f 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -71,6 +71,7 @@ struct nvdimm_bus_descriptor {
- 	unsigned long dsm_mask;
- 	char *provider_name;
- 	ndctl_fn ndctl;
-+	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
- };
- 
- struct nd_cmd_desc {
++
++	if (match) {
++		if (p->flags & IORESOURCE_BUSY) {
++			ret = -EBUSY;
++		} else {
++			p->desc = desc;
++			ret = 0;
++		}
++	}
++
++	write_unlock(&resource_lock);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(iomem_set_desc);
++
+ struct resource_entry *resource_list_create_entry(struct resource *res,
+ 						  size_t extra_size)
+ {
