@@ -1,139 +1,76 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 4/5] dax: give DAX clearing code correct bdev
-Date: Mon, 22 Feb 2016 11:59:21 -0700
-Message-Id: <1456167562-28576-5-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1456167562-28576-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1456167562-28576-1-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+In-Reply-To: <20160203131931.GH12574@quack.suse.cz>
+References: <CAPcyv4jtbsc45r4EzZvLJhqCzB4X4nJmKdpQ8cE46gGkMaRB3w@mail.gmail.com>
+	<20160203131931.GH12574@quack.suse.cz>
+Date: Wed, 3 Feb 2016 14:21:18 -0800
+Message-ID: <CAPcyv4ir86vXoRKq9BR3WRhFQjVh_NkcY5PkG815kckn01Lvzg@mail.gmail.com>
+Subject: Re: [Lsf-pc] [LSF/MM TOPIC] Persistent memory: pmem as storage device
+ vs pmem as memory
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
+To: Jan Kara <jack@suse.cz>
+Cc: lsf-pc@lists.linux-foundation.org, linux-block@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_clear_blocks() needs a valid struct block_device and previously it was
-using inode->i_sb->s_bdev in all cases.  This is correct for normal inodes
-on mounted ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
-block devices and for XFS real-time devices.
+On Wed, Feb 3, 2016 at 5:19 AM, Jan Kara <jack@suse.cz> wrote:
+> On Tue 02-02-16 17:10:18, Dan Williams wrote:
+>> The current state of persistent memory enabling in Linux is that a
+>> physical memory range discovered by a device driver is exposed to the
+>> system as a block device.  That block device has the added property of
+>> being capable of DAX which, at its core, allows converting
+>> storage-device-sectors allocated to a file into pages that can be
+>> mmap()ed, DMAed, etc...
+>>
+>> In that quick two sentence summary the impacted kernel sub-systems
+>> span mm, fs, block, and a device-driver.  As a result when a
+>> persistent memory design question arises there are mm, fs, block, and
+>> device-driver specific implications to consider.  Are there existing
+>> persistent memory handling features that could be better handled with
+>> a more "memory" vs "device" perspective?  What are we trading off?
+>> More importantly how do our current interfaces hold up when
+>> considering new features?
+>>
+>> For example, how to support DAX in coordination with the BTT (atomic
+>> sector update) driver.  That might require a wider interface than the
+>> current bdev_direct_access() to tell the BTT driver when it is free to
+>> remap the block.  A wider ranging example, there are some that would
+>> like to see high capacity persistent memory as just another level in a
+>> system's volatile-memory hierarchy.  Depending on whom you ask that
+>> pmem tier looks like either page cache extensions, reworked/optimized
+>> swap, or a block-device-cache with DAX capabilities.
+>>
+>> For LSF/MM, with all the relevant parties in the room, it would be
+>> useful to share some successes/pain-points of the direction to date
+>> and look at the interfaces/coordination we might need between
+>> sub-systems going forward.  Especially with respect to supporting pmem
+>> as one of a set of new performance differentiated memory types that
+>> need to be considered by the mm sub-system.
+>
+> So do you want a BoF where we'd just exchange opinions and look into deeply
+> technical subtleties or do you want a general session where you'd like to
+> discuss some architectural decisions? Or both (but then we need to schedule
+> two sessions and clearly separate them)? For the general session my
+> experience shows you need rather clear problem statement (only the
+> integration with BTT looks like that in your proposal) or the discussion
+> leads nowhere...
 
-Instead, rename dax_clear_blocks() to dax_clear_sectors(), and change its
-arguments to take a bdev and a sector instead of an inode and a block.
-This better reflects what the function does, and it allows the filesystem
-and raw block device code to pass in an appropriate struct block_device.
+Yes, I think there are two topics one suitable for a BoF and the other
+that might be suitable as a plenary.  For the BoF, DAX+PMEM
+developers, I want to look at this DAX with BTT question.  It is
+interesting because the same interfaces needed to support DAX with BTT
+would also enable cache management (*sync) in the driver like a
+typical storage device, rather than the vfs.  In general, we seem to
+be having an ongoing storage-device vs memory debate, so I expect the
+discussion to be larger than this one issue.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c               | 9 ++++-----
- fs/ext2/inode.c        | 6 ++++--
- fs/xfs/xfs_aops.c      | 2 +-
- fs/xfs/xfs_aops.h      | 1 +
- fs/xfs/xfs_bmap_util.c | 3 ++-
- include/linux/dax.h    | 2 +-
- 6 files changed, 13 insertions(+), 10 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index fc2e314..9a173dd 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -79,15 +79,14 @@ struct page *read_dax_sector(struct block_device *bdev, sector_t n)
- }
- 
- /*
-- * dax_clear_blocks() is called from within transaction context from XFS,
-+ * dax_clear_sectors() is called from within transaction context from XFS,
-  * and hence this means the stack from this point must follow GFP_NOFS
-  * semantics for all operations.
-  */
--int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
-+int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size)
- {
--	struct block_device *bdev = inode->i_sb->s_bdev;
- 	struct blk_dax_ctl dax = {
--		.sector = block << (inode->i_blkbits - 9),
-+		.sector = _sector,
- 		.size = _size,
- 	};
- 
-@@ -109,7 +108,7 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
- 	wmb_pmem();
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(dax_clear_blocks);
-+EXPORT_SYMBOL_GPL(dax_clear_sectors);
- 
- /* the clear_pmem() calls are ordered by a wmb_pmem() in the caller */
- static void dax_new_buf(void __pmem *addr, unsigned size, unsigned first,
-diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index 27e2cdd..4467cbd 100644
---- a/fs/ext2/inode.c
-+++ b/fs/ext2/inode.c
-@@ -737,8 +737,10 @@ static int ext2_get_blocks(struct inode *inode,
- 		 * so that it's not found by another thread before it's
- 		 * initialised
- 		 */
--		err = dax_clear_blocks(inode, le32_to_cpu(chain[depth-1].key),
--						1 << inode->i_blkbits);
-+		err = dax_clear_sectors(inode->i_sb->s_bdev,
-+				le32_to_cpu(chain[depth-1].key) <<
-+				(inode->i_blkbits - 9),
-+				1 << inode->i_blkbits);
- 		if (err) {
- 			mutex_unlock(&ei->truncate_mutex);
- 			goto cleanup;
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index 379c089..fc20518 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -55,7 +55,7 @@ xfs_count_page_state(
- 	} while ((bh = bh->b_this_page) != head);
- }
- 
--STATIC struct block_device *
-+struct block_device *
- xfs_find_bdev_for_inode(
- 	struct inode		*inode)
- {
-diff --git a/fs/xfs/xfs_aops.h b/fs/xfs/xfs_aops.h
-index f6ffc9a..a4343c6 100644
---- a/fs/xfs/xfs_aops.h
-+++ b/fs/xfs/xfs_aops.h
-@@ -62,5 +62,6 @@ int	xfs_get_blocks_dax_fault(struct inode *inode, sector_t offset,
- 			         struct buffer_head *map_bh, int create);
- 
- extern void xfs_count_page_state(struct page *, int *, int *);
-+extern struct block_device *xfs_find_bdev_for_inode(struct inode *);
- 
- #endif /* __XFS_AOPS_H__ */
-diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
-index 45ec9e4..6c87601 100644
---- a/fs/xfs/xfs_bmap_util.c
-+++ b/fs/xfs/xfs_bmap_util.c
-@@ -75,7 +75,8 @@ xfs_zero_extent(
- 	ssize_t		size = XFS_FSB_TO_B(mp, count_fsb);
- 
- 	if (IS_DAX(VFS_I(ip)))
--		return dax_clear_blocks(VFS_I(ip), block, size);
-+		return dax_clear_sectors(xfs_find_bdev_for_inode(VFS_I(ip)),
-+				sector, size);
- 
- 	/*
- 	 * let the block layer decide on the fastest method of
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 818e450..7b6bced 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -7,7 +7,7 @@
- 
- ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
- 		  get_block_t, dio_iodone_t, int flags);
--int dax_clear_blocks(struct inode *, sector_t block, long size);
-+int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size);
- int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
- int dax_truncate_page(struct inode *, loff_t from, get_block_t);
- int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
--- 
-2.5.0
+Support for performance differentiated memory types needs wider
+discussion.  I can put forward a device-centric management model as a
+straw-man, but this does not address the higher order mm operations
+like migration between memory types and transparent fallback that will
+also be needed.  This is a follow on discussion from the session Dave
+Hansen and I lead at kernel summit in Seoul.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
