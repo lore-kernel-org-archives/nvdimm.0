@@ -1,57 +1,51 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 4 Feb 2016 08:50:39 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Date: Thu, 4 Feb 2016 15:33:44 +0100
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH] dax: dirty inode only if required
-Message-ID: <20160204155039.GA17818@linux.intel.com>
+Message-ID: <20160204143344.GA6895@quack.suse.cz>
 References: <87k2mkr2ud.fsf@openvz.org>
- <20160204143344.GA6895@quack.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20160204143344.GA6895@quack.suse.cz>
+In-Reply-To: <87k2mkr2ud.fsf@openvz.org>
 Sender: owner-linux-mm@kvack.org
-To: Jan Kara <jack@suse.cz>
-Cc: Dmitry Monakhov <dmonakhov@openvz.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, XFS Developers <xfs@oss.sgi.com>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: Dmitry Monakhov <dmonakhov@openvz.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, XFS Developers <xfs@oss.sgi.com>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Feb 04, 2016 at 03:33:44PM +0100, Jan Kara wrote:
-> On Thu 04-02-16 17:02:02, Dmitry Monakhov wrote:
-> > 
-> > Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
+On Thu 04-02-16 17:02:02, Dmitry Monakhov wrote:
 > 
-> Makes sense. You can add:
+> Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
+
+Makes sense. You can add:
+
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+> ---
+>  fs/dax.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> Reviewed-by: Jan Kara <jack@suse.cz>
-
-Looks good to me as well.
-
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-
-> 								Honza
-> > ---
-> >  fs/dax.c | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/fs/dax.c b/fs/dax.c
-> > index e0e9358..fc2e314 100644
-> > --- a/fs/dax.c
-> > +++ b/fs/dax.c
-> > @@ -358,7 +358,8 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
-> >  	void *entry;
-> >  
-> >  	WARN_ON_ONCE(pmd_entry && !dirty);
-> > -	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
-> > +	if (dirty)
-> > +		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
-> >  
-> >  	spin_lock_irq(&mapping->tree_lock);
-> >  
-> > -- 
-> > 1.8.3.1
-> > 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index e0e9358..fc2e314 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -358,7 +358,8 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
+>  	void *entry;
+>  
+>  	WARN_ON_ONCE(pmd_entry && !dirty);
+> -	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+> +	if (dirty)
+> +		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+>  
+>  	spin_lock_irq(&mapping->tree_lock);
+>  
 > -- 
-> Jan Kara <jack@suse.com>
-> SUSE Labs, CR
+> 1.8.3.1
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
