@@ -1,48 +1,57 @@
 Return-Path: <owner-linux-mm@kvack.org>
+Date: Thu, 4 Feb 2016 08:50:39 -0700
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 3/5] ext4: Online defrag not supported with DAX
-Date: Mon, 22 Feb 2016 11:59:20 -0700
-Message-Id: <1456167562-28576-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1456167562-28576-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1456167562-28576-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH] dax: dirty inode only if required
+Message-ID: <20160204155039.GA17818@linux.intel.com>
+References: <87k2mkr2ud.fsf@openvz.org>
+ <20160204143344.GA6895@quack.suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160204143344.GA6895@quack.suse.cz>
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
+To: Jan Kara <jack@suse.cz>
+Cc: Dmitry Monakhov <dmonakhov@openvz.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, XFS Developers <xfs@oss.sgi.com>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Online defrag operations for ext4 are hard coded to use the page cache.
-See ext4_ioctl() -> ext4_move_extents() -> move_extent_per_page()
+On Thu, Feb 04, 2016 at 03:33:44PM +0100, Jan Kara wrote:
+> On Thu 04-02-16 17:02:02, Dmitry Monakhov wrote:
+> > 
+> > Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
+> 
+> Makes sense. You can add:
+> 
+> Reviewed-by: Jan Kara <jack@suse.cz>
 
-When combined with DAX I/O, which circumvents the page cache, this can
-result in data corruption.  This was observed with xfstests ext4/307 and
-ext4/308.
+Looks good to me as well.
 
-Fix this by only allowing online defrag for non-DAX files.
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/ext4/ioctl.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
-index a99b010..eae5917 100644
---- a/fs/ext4/ioctl.c
-+++ b/fs/ext4/ioctl.c
-@@ -583,6 +583,11 @@ group_extend_out:
- 				 "Online defrag not supported with bigalloc");
- 			err = -EOPNOTSUPP;
- 			goto mext_out;
-+		} else if (IS_DAX(inode)) {
-+			ext4_msg(sb, KERN_ERR,
-+				 "Online defrag not supported with DAX");
-+			err = -EOPNOTSUPP;
-+			goto mext_out;
- 		}
- 
- 		err = mnt_want_write_file(filp);
--- 
-2.5.0
+> 								Honza
+> > ---
+> >  fs/dax.c | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/fs/dax.c b/fs/dax.c
+> > index e0e9358..fc2e314 100644
+> > --- a/fs/dax.c
+> > +++ b/fs/dax.c
+> > @@ -358,7 +358,8 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
+> >  	void *entry;
+> >  
+> >  	WARN_ON_ONCE(pmd_entry && !dirty);
+> > -	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+> > +	if (dirty)
+> > +		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+> >  
+> >  	spin_lock_irq(&mapping->tree_lock);
+> >  
+> > -- 
+> > 1.8.3.1
+> > 
+> -- 
+> Jan Kara <jack@suse.com>
+> SUSE Labs, CR
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
