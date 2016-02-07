@@ -1,54 +1,54 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Mon, 8 Feb 2016 09:03:29 +1100
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH 1/2] dax: pass bdev argument to dax_clear_blocks()
-Message-ID: <20160207220329.GK31407@dastard>
-References: <1454829553-29499-1-git-send-email-ross.zwisler@linux.intel.com>
- <1454829553-29499-2-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 In-Reply-To: <1454829553-29499-2-git-send-email-ross.zwisler@linux.intel.com>
+References: <1454829553-29499-1-git-send-email-ross.zwisler@linux.intel.com>
+	<1454829553-29499-2-git-send-email-ross.zwisler@linux.intel.com>
+Date: Sun, 7 Feb 2016 10:19:29 -0800
+Message-ID: <CAPcyv4jOAKeTXt0EvZzfxzqcaf+ZWrtsFeN2JFP_sf1HcTpVOw@mail.gmail.com>
+Subject: Re: [PATCH 1/2] dax: pass bdev argument to dax_clear_blocks()
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: owner-linux-mm@kvack.org
 To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, XFS Developers <xfs@oss.sgi.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun, Feb 07, 2016 at 12:19:12AM -0700, Ross Zwisler wrote:
+On Sat, Feb 6, 2016 at 11:19 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
 > dax_clear_blocks() needs a valid struct block_device and previously it was
 > using inode->i_sb->s_bdev in all cases.  This is correct for normal inodes
 > on mounted ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
 > block devices and for XFS real-time devices.
-> 
+>
 > Instead, have the caller pass in a struct block_device pointer which it
 > knows to be correct.
-....
-> diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
-> index 07ef29b..f722ba2 100644
-> --- a/fs/xfs/xfs_bmap_util.c
-> +++ b/fs/xfs/xfs_bmap_util.c
-> @@ -73,9 +73,11 @@ xfs_zero_extent(
->  	xfs_daddr_t	sector = xfs_fsb_to_db(ip, start_fsb);
->  	sector_t	block = XFS_BB_TO_FSBT(mp, sector);
->  	ssize_t		size = XFS_FSB_TO_B(mp, count_fsb);
-> +	struct inode	*inode = VFS_I(ip);
->  
->  	if (IS_DAX(VFS_I(ip)))
-> -		return dax_clear_blocks(VFS_I(ip), block, size);
-> +		return dax_clear_blocks(inode, xfs_find_bdev_for_inode(inode),
-> +				block, size);
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  fs/dax.c               | 4 ++--
+>  fs/ext2/inode.c        | 5 +++--
+>  fs/xfs/xfs_aops.c      | 2 +-
+>  fs/xfs/xfs_aops.h      | 1 +
+>  fs/xfs/xfs_bmap_util.c | 4 +++-
+>  include/linux/dax.h    | 3 ++-
+>  6 files changed, 12 insertions(+), 7 deletions(-)
+>
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 227974a..4592241 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -83,9 +83,9 @@ struct page *read_dax_sector(struct block_device *bdev, sector_t n)
+>   * and hence this means the stack from this point must follow GFP_NOFS
+>   * semantics for all operations.
+>   */
+> -int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
+> +int dax_clear_blocks(struct inode *inode, struct block_device *bdev,
+> +               sector_t block, long _size)
 
-Get rid of the local inode variable and use VFS_I(ip) like the code
-originally did. Do not change code that is unrelated to the
-modifcation being made, especially when it results in making
-the code an inconsistent mess of mixed pointer constructs....
+Since this is a bdev relative routine we should also resolve the
+sector, i.e. the signature should drop the inode:
 
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+int dax_clear_sectors(struct block_device *bdev, sector_t sector, long _size)
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
