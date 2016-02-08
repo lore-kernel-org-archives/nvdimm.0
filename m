@@ -1,95 +1,74 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 2/3] nfit,
- tools/testing/nvdimm: add format interface code definitions
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 08 Feb 2016 10:31:03 -0800
-Message-ID: <20160208183103.27820.18786.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160208183052.27820.68922.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160208183052.27820.68922.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 8 Feb 2016 08:34:43 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 1/2] dax: pass bdev argument to dax_clear_blocks()
+Message-ID: <20160208153443.GC2343@linux.intel.com>
+References: <1454829553-29499-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1454829553-29499-2-git-send-email-ross.zwisler@linux.intel.com>
+ <20160207220329.GK31407@dastard>
+ <20160208014409.GA2343@linux.intel.com>
+ <20160208051725.GM31407@dastard>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160208051725.GM31407@dastard>
+Sender: owner-linux-mm@kvack.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.1 and JEDEC Annex L Release 3 formalize the format interface
-code.  Add definitions and update their usage in the unit test.
+On Mon, Feb 08, 2016 at 04:17:25PM +1100, Dave Chinner wrote:
+> On Sun, Feb 07, 2016 at 06:44:09PM -0700, Ross Zwisler wrote:
+> > On Mon, Feb 08, 2016 at 09:03:29AM +1100, Dave Chinner wrote:
+> > > On Sun, Feb 07, 2016 at 12:19:12AM -0700, Ross Zwisler wrote:
+> > > > dax_clear_blocks() needs a valid struct block_device and previously it was
+> > > > using inode->i_sb->s_bdev in all cases.  This is correct for normal inodes
+> > > > on mounted ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
+> > > > block devices and for XFS real-time devices.
+> > > > 
+> > > > Instead, have the caller pass in a struct block_device pointer which it
+> > > > knows to be correct.
+> > > ....
+> > > > diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
+> > > > index 07ef29b..f722ba2 100644
+> > > > --- a/fs/xfs/xfs_bmap_util.c
+> > > > +++ b/fs/xfs/xfs_bmap_util.c
+> > > > @@ -73,9 +73,11 @@ xfs_zero_extent(
+> > > >  	xfs_daddr_t	sector = xfs_fsb_to_db(ip, start_fsb);
+> > > >  	sector_t	block = XFS_BB_TO_FSBT(mp, sector);
+> > > >  	ssize_t		size = XFS_FSB_TO_B(mp, count_fsb);
+> > > > +	struct inode	*inode = VFS_I(ip);
+> > > >  
+> > > >  	if (IS_DAX(VFS_I(ip)))
+> > > > -		return dax_clear_blocks(VFS_I(ip), block, size);
+> > > > +		return dax_clear_blocks(inode, xfs_find_bdev_for_inode(inode),
+> > > > +				block, size);
+> > > 
+> > > Get rid of the local inode variable and use VFS_I(ip) like the code
+> > > originally did. Do not change code that is unrelated to the
+> > > modifcation being made, especially when it results in making
+> > > the code an inconsistent mess of mixed pointer constructs....
+> > 
+> > The local 'inode' variable was added to avoid multiple calls for VFS_I() for
+> > the same 'ip'.
+> 
+> My point is you didn't achieve that. The end result of your patch
+> is:
+> 
+> 	struct inode	*inode = VFS_I(ip);
+> 
+> 	if (IS_DAX(VFS_I(ip)))
+> 		return dax_clear_blocks(inode, xfs_find_bdev_for_inode(inode),
+> 					block, size);
+> 
+> So now we have a local variable, but we still have 2 calls to
+> VFS_I(ip). i.e. this makes the code harder to read and understand
+> than before for no benefit.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit.h              |    6 ++++++
- tools/testing/nvdimm/test/nfit.c |    7 ++++++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+*facepalm*  Yep, thanks for the correction.
 
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 3d549a383659..6689b0aaf194 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -40,6 +40,12 @@ enum nfit_uuids {
- 	NFIT_UUID_MAX,
- };
- 
-+enum nfit_fic {
-+	NFIT_FIC_BYTE = 0x101, /* byte-addressable energy backed */
-+	NFIT_FIC_BLK = 0x201, /* block-addressable non-energy backed */
-+	NFIT_FIC_BYTEN = 0x301, /* byte-addressable non-energy backed */
-+};
-+
- enum {
- 	ND_BLK_READ_FLUSH = 1,
- 	ND_BLK_DCR_LATCH = 2,
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 90bd2ea41032..f9d37143e264 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -819,6 +819,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->device_id = 0;
- 	dcr->revision_id = 1;
- 	dcr->serial_number = ~handle[0];
-+	dcr->code = NFIT_FIC_BLK;
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -835,6 +836,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->device_id = 0;
- 	dcr->revision_id = 1;
- 	dcr->serial_number = ~handle[1];
-+	dcr->code = NFIT_FIC_BLK;
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -851,6 +853,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->device_id = 0;
- 	dcr->revision_id = 1;
- 	dcr->serial_number = ~handle[2];
-+	dcr->code = NFIT_FIC_BLK;
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -867,6 +870,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->device_id = 0;
- 	dcr->revision_id = 1;
- 	dcr->serial_number = ~handle[3];
-+	dcr->code = NFIT_FIC_BLK;
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -963,6 +967,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		dcr->device_id = 0;
- 		dcr->revision_id = 1;
- 		dcr->serial_number = ~handle[4];
-+		dcr->code = NFIT_FIC_BLK;
- 		dcr->windows = 1;
- 		dcr->window_size = DCR_SIZE;
- 		dcr->command_offset = 0;
-@@ -1132,7 +1137,7 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	dcr->device_id = 0;
- 	dcr->revision_id = 1;
- 	dcr->serial_number = ~0;
--	dcr->code = 0x201;
-+	dcr->code = NFIT_FIC_BYTE;
- 	dcr->windows = 0;
- 	dcr->window_size = 0;
- 	dcr->command_offset = 0;
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
