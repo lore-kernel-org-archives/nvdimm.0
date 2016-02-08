@@ -1,65 +1,36 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 1/3] resource: Make __request_region to inherit from immediate parent
-Date: Tue,  2 Feb 2016 11:55:09 -0700
-Message-Id: <1454439311-23690-2-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
-References: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
+MIME-Version: 1.0
+In-Reply-To: <56B8F952.2080602@hpe.com>
+References: <20160208183052.27820.68922.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20160208183058.27820.87950.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<56B8E842.9080506@hpe.com>
+	<56B8F952.2080602@hpe.com>
+Date: Mon, 8 Feb 2016 12:37:44 -0800
+Message-ID: <CAPcyv4idTuES6r1caUb2P8tWKp1RWU-ouG_Pime55cRn_Qkkyg@mail.gmail.com>
+Subject: Re: [PATCH 1/3] nfit: fix multi-interface dimm handling, acpi6.1 compatibility
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-kernel-owner@vger.kernel.org
-To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+To: Linda Knippers <linda.knippers@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-__request_region() sets 'flags' from a given 'parent' to inherit
-its attribute.  When a target resource has conflict, this function
-inserts a resource entry under the conflicted entry by updating
-'parent'.  In this case, the new resource entry needs to inherit
-attribute from the updated parent.
+On Mon, Feb 8, 2016 at 12:23 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+> On 2/8/2016 2:10 PM, Linda Knippers wrote:
+>> On 2/8/2016 1:30 PM, Dan Williams wrote:
+>>> ACPI 6.1 clarified that multi-interface dimms require multiple control
+>>> region entries (DCRs) per dimm.  Previously we were assuming that a
+>>> control region is only present when block-data-windows are present.
+>>
+>> We need to give this a quick test with NVDIMM-N because those types of
+>> NVDIMMs have control regions without block-data-windows.  We've fixed
+>> bugs related to that assumption a couple of times.
+>
+> I can't test the conditions for which these changes were made but the
+> code continues to work on my NVDIMM-N system where we have control
+> regions w/o block-data windows.
+>
 
-For instance, request_mem_region() calls __request_region() with
-'parent' set to &iomem_resource, which is the root entry of the
-whole iomem range.  When this request results in inserting a new
-entry "new" under "DEV-A", "new" needs to inherit from the immediate
-parent "DEV-A" as it holds specific attribute for the range.
-
-root (&iomem_resource)
- :
- + "DEV-A"
-    + "new"
-
-Change __request_region() to set 'flags' and 'desc' of a new entry
-from the immediate parent.
-
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
----
- kernel/resource.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 4983430..9df79ff 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -1085,15 +1085,16 @@ struct resource * __request_region(struct resource *parent,
- 	res->name = name;
- 	res->start = start;
- 	res->end = start + n - 1;
--	res->flags = resource_type(parent) | resource_ext_type(parent);
--	res->flags |= IORESOURCE_BUSY | flags;
--	res->desc = IORES_DESC_NONE;
- 
- 	write_lock(&resource_lock);
- 
- 	for (;;) {
- 		struct resource *conflict;
- 
-+		res->flags = resource_type(parent) | resource_ext_type(parent);
-+		res->flags |= IORESOURCE_BUSY | flags;
-+		res->desc = parent->desc;
-+
- 		conflict = __request_resource(parent, res);
- 		if (!conflict)
- 			break;
+Nice, thanks for the test report!  For my part I verified that the
+implementation passes the original plus the modified unit test as
+updated in [PATCH 3/3].
