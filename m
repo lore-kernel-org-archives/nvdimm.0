@@ -1,59 +1,95 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Tue, 23 Feb 2016 16:37:48 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH 1/6] dax: Use vmf->gfp_mask
-Message-ID: <20160223233748.GA32265@linux.intel.com>
-References: <1454242795-18038-1-git-send-email-matthew.r.wilcox@intel.com>
- <1454242795-18038-2-git-send-email-matthew.r.wilcox@intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH 2/3] nfit,
+ tools/testing/nvdimm: add format interface code definitions
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 08 Feb 2016 10:31:03 -0800
+Message-ID: <20160208183103.27820.18786.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20160208183052.27820.68922.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20160208183052.27820.68922.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1454242795-18038-2-git-send-email-matthew.r.wilcox@intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun, Jan 31, 2016 at 11:19:50PM +1100, Matthew Wilcox wrote:
-> We were assuming that it was OK to do a GFP_KERNEL allocation in page
-> fault context.  That appears to be largely true, but filesystems are
-> permitted to override that in their setting of mapping->gfp_flags, which
-> the VM then massages into vmf->gfp_flags.  No practical difference for
-> now, but there may come a day when we would have surprised a filesystem.
-> 
-> Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+ACPI 6.1 and JEDEC Annex L Release 3 formalize the format interface
+code.  Add definitions and update their usage in the unit test.
 
-Sure, this seems right.
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit.h              |    6 ++++++
+ tools/testing/nvdimm/test/nfit.c |    7 ++++++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-
-> ---
->  fs/dax.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 2f9bb89..11be8c7 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -292,7 +292,7 @@ static int dax_load_hole(struct address_space *mapping, struct page *page,
->  	struct inode *inode = mapping->host;
->  	if (!page)
->  		page = find_or_create_page(mapping, vmf->pgoff,
-> -						GFP_KERNEL | __GFP_ZERO);
-> +						vmf->gfp_mask | __GFP_ZERO);
->  	if (!page)
->  		return VM_FAULT_OOM;
->  	/* Recheck i_size under page lock to avoid truncate race */
-> -- 
-> 2.7.0.rc3
-> 
-> _______________________________________________
-> Linux-nvdimm mailing list
-> Linux-nvdimm@lists.01.org
-> https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index 3d549a383659..6689b0aaf194 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -40,6 +40,12 @@ enum nfit_uuids {
+ 	NFIT_UUID_MAX,
+ };
+ 
++enum nfit_fic {
++	NFIT_FIC_BYTE = 0x101, /* byte-addressable energy backed */
++	NFIT_FIC_BLK = 0x201, /* block-addressable non-energy backed */
++	NFIT_FIC_BYTEN = 0x301, /* byte-addressable non-energy backed */
++};
++
+ enum {
+ 	ND_BLK_READ_FLUSH = 1,
+ 	ND_BLK_DCR_LATCH = 2,
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 90bd2ea41032..f9d37143e264 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -819,6 +819,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->device_id = 0;
+ 	dcr->revision_id = 1;
+ 	dcr->serial_number = ~handle[0];
++	dcr->code = NFIT_FIC_BLK;
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -835,6 +836,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->device_id = 0;
+ 	dcr->revision_id = 1;
+ 	dcr->serial_number = ~handle[1];
++	dcr->code = NFIT_FIC_BLK;
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -851,6 +853,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->device_id = 0;
+ 	dcr->revision_id = 1;
+ 	dcr->serial_number = ~handle[2];
++	dcr->code = NFIT_FIC_BLK;
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -867,6 +870,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->device_id = 0;
+ 	dcr->revision_id = 1;
+ 	dcr->serial_number = ~handle[3];
++	dcr->code = NFIT_FIC_BLK;
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -963,6 +967,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 		dcr->device_id = 0;
+ 		dcr->revision_id = 1;
+ 		dcr->serial_number = ~handle[4];
++		dcr->code = NFIT_FIC_BLK;
+ 		dcr->windows = 1;
+ 		dcr->window_size = DCR_SIZE;
+ 		dcr->command_offset = 0;
+@@ -1132,7 +1137,7 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	dcr->device_id = 0;
+ 	dcr->revision_id = 1;
+ 	dcr->serial_number = ~0;
+-	dcr->code = 0x201;
++	dcr->code = NFIT_FIC_BYTE;
+ 	dcr->windows = 0;
+ 	dcr->window_size = 0;
+ 	dcr->command_offset = 0;
