@@ -1,73 +1,71 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Mon, 8 Feb 2016 16:17:25 +1100
-From: Dave Chinner <david@fromorbit.com>
+Content-Type: text/plain;
+	charset=us-ascii
+Mime-Version: 1.0 (1.0)
 Subject: Re: [PATCH 1/2] dax: pass bdev argument to dax_clear_blocks()
-Message-ID: <20160208051725.GM31407@dastard>
-References: <1454829553-29499-1-git-send-email-ross.zwisler@linux.intel.com>
- <1454829553-29499-2-git-send-email-ross.zwisler@linux.intel.com>
- <20160207220329.GK31407@dastard>
- <20160208014409.GA2343@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160208014409.GA2343@linux.intel.com>
+From: Ross Zwisler <zwisler@gmail.com>
+In-Reply-To: <20160208014601.GB2343@linux.intel.com>
+Date: Sun, 7 Feb 2016 21:29:38 -0700
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <00FE872A-9B2A-4492-A83C-59025ACB1F4A@gmail.com>
+References: <1454829553-29499-1-git-send-email-ross.zwisler@linux.intel.com> <1454829553-29499-2-git-send-email-ross.zwisler@linux.intel.com> <CAPcyv4jOAKeTXt0EvZzfxzqcaf+ZWrtsFeN2JFP_sf1HcTpVOw@mail.gmail.com> <20160208014601.GB2343@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Theodore Ts'o <tytso@mit.edu>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, XFS Developers <xfs@oss.sgi.com>, Linux MM <linux-mm@kvack.org>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun, Feb 07, 2016 at 06:44:09PM -0700, Ross Zwisler wrote:
-> On Mon, Feb 08, 2016 at 09:03:29AM +1100, Dave Chinner wrote:
-> > On Sun, Feb 07, 2016 at 12:19:12AM -0700, Ross Zwisler wrote:
-> > > dax_clear_blocks() needs a valid struct block_device and previously it was
-> > > using inode->i_sb->s_bdev in all cases.  This is correct for normal inodes
-> > > on mounted ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
-> > > block devices and for XFS real-time devices.
-> > > 
-> > > Instead, have the caller pass in a struct block_device pointer which it
-> > > knows to be correct.
-> > ....
-> > > diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
-> > > index 07ef29b..f722ba2 100644
-> > > --- a/fs/xfs/xfs_bmap_util.c
-> > > +++ b/fs/xfs/xfs_bmap_util.c
-> > > @@ -73,9 +73,11 @@ xfs_zero_extent(
-> > >  	xfs_daddr_t	sector = xfs_fsb_to_db(ip, start_fsb);
-> > >  	sector_t	block = XFS_BB_TO_FSBT(mp, sector);
-> > >  	ssize_t		size = XFS_FSB_TO_B(mp, count_fsb);
-> > > +	struct inode	*inode = VFS_I(ip);
-> > >  
-> > >  	if (IS_DAX(VFS_I(ip)))
-> > > -		return dax_clear_blocks(VFS_I(ip), block, size);
-> > > +		return dax_clear_blocks(inode, xfs_find_bdev_for_inode(inode),
-> > > +				block, size);
-> > 
-> > Get rid of the local inode variable and use VFS_I(ip) like the code
-> > originally did. Do not change code that is unrelated to the
-> > modifcation being made, especially when it results in making
-> > the code an inconsistent mess of mixed pointer constructs....
-> 
-> The local 'inode' variable was added to avoid multiple calls for VFS_I() for
-> the same 'ip'.
+> On Feb 7, 2016, at 6:46 PM, Ross Zwisler <ross.zwisler@linux.intel.com> wr=
+ote:
+>=20
+>> On Sun, Feb 07, 2016 at 10:19:29AM -0800, Dan Williams wrote:
+>> On Sat, Feb 6, 2016 at 11:19 PM, Ross Zwisler
+>> <ross.zwisler@linux.intel.com> wrote:
+>>> dax_clear_blocks() needs a valid struct block_device and previously it w=
+as
+>>> using inode->i_sb->s_bdev in all cases.  This is correct for normal inod=
+es
+>>> on mounted ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
+>>> block devices and for XFS real-time devices.
+>>>=20
+>>> Instead, have the caller pass in a struct block_device pointer which it
+>>> knows to be correct.
+>>>=20
+>>> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+>>> ---
+>>> fs/dax.c               | 4 ++--
+>>> fs/ext2/inode.c        | 5 +++--
+>>> fs/xfs/xfs_aops.c      | 2 +-
+>>> fs/xfs/xfs_aops.h      | 1 +
+>>> fs/xfs/xfs_bmap_util.c | 4 +++-
+>>> include/linux/dax.h    | 3 ++-
+>>> 6 files changed, 12 insertions(+), 7 deletions(-)
+>>>=20
+>>> diff --git a/fs/dax.c b/fs/dax.c
+>>> index 227974a..4592241 100644
+>>> --- a/fs/dax.c
+>>> +++ b/fs/dax.c
+>>> @@ -83,9 +83,9 @@ struct page *read_dax_sector(struct block_device *bdev=
+, sector_t n)
+>>>  * and hence this means the stack from this point must follow GFP_NOFS
+>>>  * semantics for all operations.
+>>>  */
+>>> -int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
+>>> +int dax_clear_blocks(struct inode *inode, struct block_device *bdev,
+>>> +               sector_t block, long _size)
+>>=20
+>> Since this is a bdev relative routine we should also resolve the
+>> sector, i.e. the signature should drop the inode:
+>>=20
+>> int dax_clear_sectors(struct block_device *bdev, sector_t sector, long _s=
+ize)
+>=20
+> The inode is still needed because dax_clear_blocks() needs inode->i_blkbit=
+s.
+> Unless there is some easy way to get this from the bdev that I'm not seein=
+g?
 
-My point is you didn't achieve that. The end result of your patch
-is:
-
-	struct inode	*inode = VFS_I(ip);
-
-	if (IS_DAX(VFS_I(ip)))
-		return dax_clear_blocks(inode, xfs_find_bdev_for_inode(inode),
-					block, size);
-
-So now we have a local variable, but we still have 2 calls to
-VFS_I(ip). i.e. this makes the code harder to read and understand
-than before for no benefit.
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Never mind, you are passing in the sector, not the block.  Sure, this seems b=
+etter - I'll fix this for v2.=
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
