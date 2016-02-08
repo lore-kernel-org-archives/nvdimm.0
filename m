@@ -1,221 +1,112 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.4 003/137] x86/uaccess/64: Make the __copy_user_nocache() assembly code more readable
-Date: Tue, 23 Feb 2016 19:32:14 -0800
-Message-Id: <20160224033417.389502021@linuxfoundation.org>
-In-Reply-To: <20160224033417.270530882@linuxfoundation.org>
-References: <20160224033417.270530882@linuxfoundation.org>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 8 Feb 2016 15:06:50 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v8 6/9] dax: add support for fsync/msync
+Message-ID: <20160208220650.GG2343@linux.intel.com>
+References: <1452230879-18117-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1452230879-18117-7-git-send-email-ross.zwisler@linux.intel.com>
+ <878u2xrjrw.fsf@openvz.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@amacapital.net>, Borislav Petkov <bp@alien8.de>, Borislav Petkov <bp@suse.de>, Brian Gerst <brgerst@gmail.com>, Denys Vlasenko <dvlasenk@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Luis R. Rodriguez" <mcgrof@suse.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, brian.boylston@hpe.com, dan.j.williams@intel.com, linux-nvdimm@lists.01.org, micah.parrish@hpe.com, ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <878u2xrjrw.fsf@openvz.org>
+Sender: owner-linux-mm@kvack.org
+To: Dmitry Monakhov <dmonlist@gmail.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-4.4-stable review patch.  If anyone has any objections, please let me know.
+On Sat, Feb 06, 2016 at 05:33:07PM +0300, Dmitry Monakhov wrote:
+> Ross Zwisler <ross.zwisler@linux.intel.com> writes:
+<>
+> > +static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
+> IMHO it would be sane to call that function as dax_radix_entry_insert() 
 
-------------------
+I think I may have actually had it named that at some point. :)  I changed it
+because it doesn't always insert an entry - in the read case for example we
+insert a clean entry, and then on the following dax_pfn_mkwrite() we call back
+in and mark it as dirty.
 
-From: Toshi Kani <toshi.kani@hpe.com>
+<>
+> > +/*
+> > + * Flush the mapping to the persistent domain within the byte range of [start,
+> > + * end]. This is required by data integrity operations to ensure file data is
+> > + * on persistent storage prior to completion of the operation.
+> > + */
+> > +int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
+> > +		loff_t end)
+> > +{
+> > +	struct inode *inode = mapping->host;
+> > +	struct block_device *bdev = inode->i_sb->s_bdev;
+> > +	pgoff_t indices[PAGEVEC_SIZE];
+> > +	pgoff_t start_page, end_page;
+> > +	struct pagevec pvec;
+> > +	void *entry;
+> > +	int i, ret = 0;
+> > +
+> > +	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
+> > +		return -EIO;
+> > +
+> > +	rcu_read_lock();
+> > +	entry = radix_tree_lookup(&mapping->page_tree, start & PMD_MASK);
+> > +	rcu_read_unlock();
+> > +
+> > +	/* see if the start of our range is covered by a PMD entry */
+> > +	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
+> > +		start &= PMD_MASK;
+> > +
+> > +	start_page = start >> PAGE_CACHE_SHIFT;
+> > +	end_page = end >> PAGE_CACHE_SHIFT;
+> > +
+> > +	tag_pages_for_writeback(mapping, start_page, end_page);
+> > +
+> > +	pagevec_init(&pvec, 0);
+> > +	while (1) {
+> > +		pvec.nr = find_get_entries_tag(mapping, start_page,
+> > +				PAGECACHE_TAG_TOWRITE, PAGEVEC_SIZE,
+> > +				pvec.pages, indices);
+> > +
+> > +		if (pvec.nr == 0)
+> > +			break;
+> > +
+> > +		for (i = 0; i < pvec.nr; i++) {
+> > +			ret = dax_writeback_one(bdev, mapping, indices[i],
+> > +					pvec.pages[i]);
+> > +			if (ret < 0)
+> > +				return ret;
+> > +		}
+> I think it would be more efficient to use batched locking like follows:
+>                 spin_lock_irq(&mapping->tree_lock);
+> 		for (i = 0; i < pvec.nr; i++) {
+>                     struct blk_dax_ctl dax[PAGEVEC_SIZE];                
+>                     radix_tree_tag_clear(page_tree, indices[i], PAGECACHE_TAG_TOWRITE);
+>                     /* It is also reasonable to merge adjacent dax
+>                      * regions in to one */
+>                     dax[i].sector = RADIX_DAX_SECTOR(entry);
+>                     dax[i].size = (type == RADIX_DAX_PMD ? PMD_SIZE : PAGE_SIZE);                    
+> 
+>                 }
+>                 spin_unlock_irq(&mapping->tree_lock);
+>                	if (blk_queue_enter(q, true) != 0)
+>                     goto error;
+>                 for (i = 0; i < pvec.nr; i++) {
+>                     rc = bdev_direct_access(bdev, dax[i]);
+>                     wb_cache_pmem(dax[i].addr, dax[i].size);
+>                 }
+>                 ret = blk_queue_exit(q, true)
 
-commit ee9737c924706aaa72c2ead93e3ad5644681dc1c upstream.
+I guess this could be more efficient, but as Jan said in his response we're
+currently focused on correctness.  I also wonder if it would be measurably
+better?
 
-Add comments to __copy_user_nocache() to clarify its procedures
-and alignment requirements.
+In any case, Jan is right - you have to clear the TOWRITE tag only after
+you've flushed, and you also need to include the entry verification code from
+dax_writeback_one() after you grab the tree lock.  Basically, I believe all
+the code in dax_writeback_one() is needed - this change would essentially just
+be inlining that code in dax_writeback_mapping_range() so you could do
+multiple operations without giving up a lock.
 
-Also change numeric branch target labels to named local labels.
-
-No code changed:
-
- arch/x86/lib/copy_user_64.o:
-
-    text    data     bss     dec     hex filename
-    1239       0       0    1239     4d7 copy_user_64.o.before
-    1239       0       0    1239     4d7 copy_user_64.o.after
-
- md5:
-    58bed94c2db98c1ca9a2d46d0680aaae  copy_user_64.o.before.asm
-    58bed94c2db98c1ca9a2d46d0680aaae  copy_user_64.o.after.asm
-
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Luis R. Rodriguez <mcgrof@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: brian.boylston@hpe.com
-Cc: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
-Cc: micah.parrish@hpe.com
-Cc: ross.zwisler@linux.intel.com
-Cc: vishal.l.verma@intel.com
-Link: http://lkml.kernel.org/r/1455225857-12039-2-git-send-email-toshi.kani@hpe.com
-[ Small readability edits and added object file comparison. ]
-Signed-off-by: Ingo Molnar <mingo@kernel.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
----
- arch/x86/lib/copy_user_64.S |  114 ++++++++++++++++++++++++++++----------------
- 1 file changed, 73 insertions(+), 41 deletions(-)
-
---- a/arch/x86/lib/copy_user_64.S
-+++ b/arch/x86/lib/copy_user_64.S
-@@ -232,17 +232,30 @@ ENDPROC(copy_user_enhanced_fast_string)
- 
- /*
-  * copy_user_nocache - Uncached memory copy with exception handling
-- * This will force destination/source out of cache for more performance.
-+ * This will force destination out of cache for more performance.
-+ *
-+ * Note: Cached memory copy is used when destination or size is not
-+ * naturally aligned. That is:
-+ *  - Require 8-byte alignment when size is 8 bytes or larger.
-  */
- ENTRY(__copy_user_nocache)
- 	ASM_STAC
-+
-+	/* If size is less than 8 bytes, go to byte copy */
- 	cmpl $8,%edx
--	jb 20f		/* less then 8 bytes, go to byte copy loop */
-+	jb .L_1b_cache_copy_entry
-+
-+	/* If destination is not 8-byte aligned, "cache" copy to align it */
- 	ALIGN_DESTINATION
-+
-+	/* Set 4x8-byte copy count and remainder */
- 	movl %edx,%ecx
- 	andl $63,%edx
- 	shrl $6,%ecx
--	jz 17f
-+	jz .L_8b_nocache_copy_entry	/* jump if count is 0 */
-+
-+	/* Perform 4x8-byte nocache loop-copy */
-+.L_4x8b_nocache_copy_loop:
- 1:	movq (%rsi),%r8
- 2:	movq 1*8(%rsi),%r9
- 3:	movq 2*8(%rsi),%r10
-@@ -262,60 +275,79 @@ ENTRY(__copy_user_nocache)
- 	leaq 64(%rsi),%rsi
- 	leaq 64(%rdi),%rdi
- 	decl %ecx
--	jnz 1b
--17:	movl %edx,%ecx
-+	jnz .L_4x8b_nocache_copy_loop
-+
-+	/* Set 8-byte copy count and remainder */
-+.L_8b_nocache_copy_entry:
-+	movl %edx,%ecx
- 	andl $7,%edx
- 	shrl $3,%ecx
--	jz 20f
--18:	movq (%rsi),%r8
--19:	movnti %r8,(%rdi)
-+	jz .L_1b_cache_copy_entry	/* jump if count is 0 */
-+
-+	/* Perform 8-byte nocache loop-copy */
-+.L_8b_nocache_copy_loop:
-+20:	movq (%rsi),%r8
-+21:	movnti %r8,(%rdi)
- 	leaq 8(%rsi),%rsi
- 	leaq 8(%rdi),%rdi
- 	decl %ecx
--	jnz 18b
--20:	andl %edx,%edx
--	jz 23f
-+	jnz .L_8b_nocache_copy_loop
-+
-+	/* If no byte left, we're done */
-+.L_1b_cache_copy_entry:
-+	andl %edx,%edx
-+	jz .L_finish_copy
-+
-+	/* Perform byte "cache" loop-copy for the remainder */
- 	movl %edx,%ecx
--21:	movb (%rsi),%al
--22:	movb %al,(%rdi)
-+.L_1b_cache_copy_loop:
-+40:	movb (%rsi),%al
-+41:	movb %al,(%rdi)
- 	incq %rsi
- 	incq %rdi
- 	decl %ecx
--	jnz 21b
--23:	xorl %eax,%eax
-+	jnz .L_1b_cache_copy_loop
-+
-+	/* Finished copying; fence the prior stores */
-+.L_finish_copy:
-+	xorl %eax,%eax
- 	ASM_CLAC
- 	sfence
- 	ret
- 
- 	.section .fixup,"ax"
--30:	shll $6,%ecx
-+.L_fixup_4x8b_copy:
-+	shll $6,%ecx
- 	addl %ecx,%edx
--	jmp 60f
--40:	lea (%rdx,%rcx,8),%rdx
--	jmp 60f
--50:	movl %ecx,%edx
--60:	sfence
-+	jmp .L_fixup_handle_tail
-+.L_fixup_8b_copy:
-+	lea (%rdx,%rcx,8),%rdx
-+	jmp .L_fixup_handle_tail
-+.L_fixup_1b_copy:
-+	movl %ecx,%edx
-+.L_fixup_handle_tail:
-+	sfence
- 	jmp copy_user_handle_tail
- 	.previous
- 
--	_ASM_EXTABLE(1b,30b)
--	_ASM_EXTABLE(2b,30b)
--	_ASM_EXTABLE(3b,30b)
--	_ASM_EXTABLE(4b,30b)
--	_ASM_EXTABLE(5b,30b)
--	_ASM_EXTABLE(6b,30b)
--	_ASM_EXTABLE(7b,30b)
--	_ASM_EXTABLE(8b,30b)
--	_ASM_EXTABLE(9b,30b)
--	_ASM_EXTABLE(10b,30b)
--	_ASM_EXTABLE(11b,30b)
--	_ASM_EXTABLE(12b,30b)
--	_ASM_EXTABLE(13b,30b)
--	_ASM_EXTABLE(14b,30b)
--	_ASM_EXTABLE(15b,30b)
--	_ASM_EXTABLE(16b,30b)
--	_ASM_EXTABLE(18b,40b)
--	_ASM_EXTABLE(19b,40b)
--	_ASM_EXTABLE(21b,50b)
--	_ASM_EXTABLE(22b,50b)
-+	_ASM_EXTABLE(1b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(2b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(3b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(4b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(5b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(6b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(7b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(8b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(9b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(10b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(11b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(12b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(13b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(14b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(15b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(16b,.L_fixup_4x8b_copy)
-+	_ASM_EXTABLE(20b,.L_fixup_8b_copy)
-+	_ASM_EXTABLE(21b,.L_fixup_8b_copy)
-+	_ASM_EXTABLE(40b,.L_fixup_1b_copy)
-+	_ASM_EXTABLE(41b,.L_fixup_1b_copy)
- ENDPROC(__copy_user_nocache)
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
