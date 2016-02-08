@@ -1,8 +1,8 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Mon, 8 Feb 2016 15:06:50 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Date: Mon, 8 Feb 2016 10:44:30 +0100
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH v8 6/9] dax: add support for fsync/msync
-Message-ID: <20160208220650.GG2343@linux.intel.com>
+Message-ID: <20160208094430.GA9451@quack.suse.cz>
 References: <1452230879-18117-1-git-send-email-ross.zwisler@linux.intel.com>
  <1452230879-18117-7-git-send-email-ross.zwisler@linux.intel.com>
  <878u2xrjrw.fsf@openvz.org>
@@ -15,23 +15,7 @@ To: Dmitry Monakhov <dmonlist@gmail.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, x86@kernel.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sat, Feb 06, 2016 at 05:33:07PM +0300, Dmitry Monakhov wrote:
-> Ross Zwisler <ross.zwisler@linux.intel.com> writes:
-<>
-> > +static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
-> IMHO it would be sane to call that function as dax_radix_entry_insert() 
-
-I think I may have actually had it named that at some point. :)  I changed it
-because it doesn't always insert an entry - in the read case for example we
-insert a clean entry, and then on the following dax_pfn_mkwrite() we call back
-in and mark it as dirty.
-
-<>
-> > +/*
-> > + * Flush the mapping to the persistent domain within the byte range of [start,
-> > + * end]. This is required by data integrity operations to ensure file data is
-> > + * on persistent storage prior to completion of the operation.
-> > + */
+On Sat 06-02-16 17:33:07, Dmitry Monakhov wrote:
 > > +int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
 > > +		loff_t end)
 > > +{
@@ -94,16 +78,56 @@ in and mark it as dirty.
 >                 }
 >                 ret = blk_queue_exit(q, true)
 
-I guess this could be more efficient, but as Jan said in his response we're
-currently focused on correctness.  I also wonder if it would be measurably
-better?
+We need to clear the radix tree tag only after flushing caches. But in
+principle I agree that some batching of radix tree tag manipulations should
+be doable. But frankly so far we have issues with correctness so speed is
+not our main concern.
 
-In any case, Jan is right - you have to clear the TOWRITE tag only after
-you've flushed, and you also need to include the entry verification code from
-dax_writeback_one() after you grab the tree lock.  Basically, I believe all
-the code in dax_writeback_one() is needed - this change would essentially just
-be inlining that code in dax_writeback_mapping_range() so you could do
-multiple operations without giving up a lock.
+> > +	}
+> > +	wmb_pmem();
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
+> > +
+> >  static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+> >  			struct vm_area_struct *vma, struct vm_fault *vmf)
+> >  {
+> > @@ -363,6 +532,11 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+> >  	}
+> >  	dax_unmap_atomic(bdev, &dax);
+> >  
+> > +	error = dax_radix_entry(mapping, vmf->pgoff, dax.sector, false,
+> > +			vmf->flags & FAULT_FLAG_WRITE);
+> > +	if (error)
+> > +		goto out;
+> > +
+> >  	error = vm_insert_mixed(vma, vaddr, dax.pfn);
+> >  
+> >   out:
+> > @@ -487,6 +661,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+> >  		delete_from_page_cache(page);
+> >  		unlock_page(page);
+> >  		page_cache_release(page);
+> > +		page = NULL;
+> >  	}
+> I've realized that I do not understand why dax_fault code works at all.
+> During dax_fault we want to remove page from mapping and insert dax-entry
+>  Basically code looks like follows:
+> 0 page = find_get_page()
+> 1 lock_page(page)
+> 2 delete_from_page_cache(page);
+> 3 unlock_page(page);
+> 4 dax_insert_mapping(inode, &bh, vma, vmf);
+> 
+> BUT what on earth protects us from other process to reinsert page again
+> after step(2) but before (4)?
+
+Nothing, it's a bug and Ross / Matthew are working on fixing it...
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
