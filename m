@@ -1,66 +1,45 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 0/8] nfit, libnvdimm: async address range scrub
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 23 Feb 2016 18:16:58 -0800
-Message-ID: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Message-ID: <1455035786.2925.81.camel@hpe.com>
+Subject: Re: [PATCH v2] x86/lib/copy_user_64.S: Handle 4-byte nocache copy
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Tue, 09 Feb 2016 09:36:26 -0700
+In-Reply-To: <20160209120816.GC500@gmail.com>
+References: <1454524511-29416-1-git-send-email-toshi.kani@hpe.com>
+	 <20160209102741.GA11313@gmail.com> <20160209111404.GA4434@pd.tnic>
+	 <20160209112732.GB500@gmail.com> <20160209115358.GB4434@pd.tnic>
+	 <20160209120816.GC500@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>
+Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, dan.j.williams@intel.com, ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, micah.parrish@hpe.com, brian.boylston@hpe.com, x86@kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Given the capacities of next generation persistent memory devices a
-scrub operation to find all poison may take 10s of seconds.  We want
-this scrub work to be done asynchronously with the rest of system
-initialization, so we move it out of line from the NFIT probing, i.e.
-acpi_nfit_add().
+On Tue, 2016-02-09 at 13:08 +0100, Ingo Molnar wrote:
+> * Borislav Petkov <bp@suse.de> wrote:
+> 
+> > On Tue, Feb 09, 2016 at 12:27:32PM +0100, Ingo Molnar wrote:
+> > > Btw., IIRC GAS is being silly about .L, i.e. there's a difference
+> > > between these 
+> > > two variants:
+> > > 
+> > >  .Lerror_entry_from_usermode_swapgs:
+> > >  .L_error_entry_from_usermode_swapgs:
+> > > 
+> > > the latter would be easier to read, but does not result in a local
+> > > label last I 
+> > > checked.
+> > > 
+> > > Right?
+> > 
+> > Seems to build ok here with "GNU assembler (GNU Binutils)
+> > 2.26.51.20151207".
+> > Perhaps some bug with older gas...?
+> 
+> Hm, indeed - I just tried it too.
+> 
+> This means that the (slightly) more readable .L_ prefix is preferred.
 
-However, we may want to synchronously wait for that scrubbing to
-complete before we probe any pmem devices.  Consider the case where
-consuming poison triggers a machine check and a reboot.  That event will
-trigger platform firmware to initiate a scrub.  The kernel should
-complete any firmware initiated scrubs as those likely indicate the
-presence of known poison.
-
-When errors are not present, platform firmware did not initiate
-scrubbing, we still scrub, but asynchronously.  This trades off a risk
-of hitting new unknown poison ranges with making the data available
-faster after loading the driver.
-
-This async scrub capability is also useful in the future when we
-integrate Tony Luck's mcsafe_copy() (or whatever it is
-eventually called).  After a machine check recovery event we can scrub
-the pmem namespace to see if there are any other latent errors and
-otherwise update the 'badblocks' list with the new entries.
-
-This passes the libndctl unit test suite, with some minor updates to
-account for the fact that when "modprobe nfit_test" returns not all
-regions are registered.
-
----
-
-Dan Williams (8):
-      libnvdimm, nfit: centralize command status translation
-      libnvdimm: protect nvdimm_{bus|namespace}_add_poison() with nvdimm_bus_lock()
-      libnvdimm: async notification support
-      nfit, tools/testing/nvdimm: unify common init for acpi_nfit_desc
-      nfit, libnvdimm: async region scrub workqueue
-      nfit: scrub and register regions in a workqueue
-      nfit: disable userspace initiated ars during scrub
-      tools/testing/nvdimm: expand ars unit testing
-
-
- drivers/acpi/nfit.c              |  761 +++++++++++++++++++++++++++-----------
- drivers/acpi/nfit.h              |   24 +
- drivers/nvdimm/bus.c             |   46 ++
- drivers/nvdimm/core.c            |  110 ++++-
- drivers/nvdimm/dimm_devs.c       |    6 
- drivers/nvdimm/nd.h              |    2 
- drivers/nvdimm/pmem.c            |   15 +
- drivers/nvdimm/region.c          |   12 +
- include/linux/libnvdimm.h        |    5 
- include/linux/nd.h               |    7 
- tools/testing/nvdimm/test/nfit.c |  133 +++++--
- 11 files changed, 809 insertions(+), 312 deletions(-)
+Thanks for the suggestions!  I will update the patch accordingly. 
+-Toshi
