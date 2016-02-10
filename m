@@ -1,13 +1,13 @@
 Return-Path: <owner-linux-mm@kvack.org>
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 4/6] dax: give DAX clearing code correct bdev
-Date: Tue, 16 Feb 2016 20:34:17 -0700
-Message-Id: <1455680059-20126-5-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 1/2] dax: supply DAX clearing code with correct bdev
+Date: Wed, 10 Feb 2016 13:48:55 -0700
+Message-Id: <1455137336-28720-2-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1455137336-28720-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1455137336-28720-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
 To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
 dax_clear_blocks() needs a valid struct block_device and previously it was
@@ -64,7 +64,7 @@ index fc2e314..9a173dd 100644
  /* the clear_pmem() calls are ordered by a wmb_pmem() in the caller */
  static void dax_new_buf(void __pmem *addr, unsigned size, unsigned first,
 diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index 27e2cdd..4467cbd 100644
+index 338eefd..b6b965b 100644
 --- a/fs/ext2/inode.c
 +++ b/fs/ext2/inode.c
 @@ -737,8 +737,10 @@ static int ext2_get_blocks(struct inode *inode,
@@ -105,7 +105,7 @@ index f6ffc9a..a4343c6 100644
  
  #endif /* __XFS_AOPS_H__ */
 diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
-index 45ec9e4..6c87601 100644
+index 07ef29b..ae9d755 100644
 --- a/fs/xfs/xfs_bmap_util.c
 +++ b/fs/xfs/xfs_bmap_util.c
 @@ -75,7 +75,8 @@ xfs_zero_extent(
