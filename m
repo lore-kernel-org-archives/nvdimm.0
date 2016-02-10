@@ -1,8 +1,8 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 11 Feb 2016 13:50:44 +0100
-From: Jan Kara <jack@suse.cz>
+Date: Thu, 11 Feb 2016 10:44:00 +1100
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH v2 2/2] dax: move writeback calls into the filesystems
-Message-ID: <20160211125044.GJ21760@quack.suse.cz>
+Message-ID: <20160210234400.GQ14668@dastard>
 References: <1455137336-28720-1-git-send-email-ross.zwisler@linux.intel.com>
  <1455137336-28720-3-git-send-email-ross.zwisler@linux.intel.com>
  <20160210220312.GP14668@dastard>
@@ -12,11 +12,10 @@ Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20160210224340.GA30938@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com, Jan Kara <jack@suse.cz>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed 10-02-16 15:43:40, Ross Zwisler wrote:
+On Wed, Feb 10, 2016 at 03:43:40PM -0700, Ross Zwisler wrote:
 > On Thu, Feb 11, 2016 at 09:03:12AM +1100, Dave Chinner wrote:
 > > On Wed, Feb 10, 2016 at 01:48:56PM -0700, Ross Zwisler wrote:
 > > > Previously calls to dax_writeback_mapping_range() for all DAX filesystems
@@ -75,21 +74,46 @@ On Wed 10-02-16 15:43:40, Ross Zwisler wrote:
 > to metadata inodes or something being marked as DAX (so dax_mapping(mapping)
 > returns true), but having dirty page cache pages that need to be written back
 > as part of the writeback.
-> 
-> Changing this so we always call generic_writepages() even in the DAX case
-> solved the xfstest failures. 
-> 
-> If this sounds incorrect, please let me know and I'll go and gather more data.
 
-So I think a more correct fix it to not set S_DAX for inodes that will have
-any pagecache pages - e.g. don't set S_DAX for block device inodes when
-filesystem is mounted on it (probably the easiest is to just refuse to
-mount filesystem on block device which has S_DAX set).
+Hmmm - the ext2 filesystem metadata uses the block device page cache
+to buffer inode writeback, and so writeback doesn't occur until
+sync_blockdev() is called.
 
-								Honza
+But the data access should be through the ext2 inode address space,
+not the block device address space, so DAX flushing occurs in
+ext2_writepages. So how is the block device inode being marked as
+a DAX inode?
+
+If it is being marked as a DAX inode, how is this valid when the
+filesystem metadata uses bufferheads and requires struct pages to be
+found in the block device mapping tree?  e.g. mkfs writes the
+metadata into the bdev via DAX, resulting in an DAX exceptional
+entry in the bdev radix tree, then __bread_gfp() comes along to read
+the same metadata after mount and expects to find pages in the
+blockdev radix tree?
+
+FWIW, this seems to be specifically a block device inode issue,
+though, not something that affects regular files in a filesystem.
+i.e. filesystem inodes can only be either DAX or non-DAX, and so
+there is no mixed mode flushing required, right?
+
+> Changing this so we always call generic_writepages() even in the
+> DAX case solved the xfstest failures. 
+> 
+> If this sounds incorrect, please let me know and I'll go and
+> gather more data.
+
+It seems to me that there's a problem here with DAX on block device
+inodes, but not for the filesystem mappings. At minimum, the block
+device needs a bloody big comment explaining this landmine so people
+don't forget why it is a special snowflake...
+
+Cheers,
+
+Dave.
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Dave Chinner
+david@fromorbit.com
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
