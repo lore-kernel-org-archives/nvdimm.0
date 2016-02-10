@@ -1,66 +1,56 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Wed, 10 Feb 2016 11:32:49 +0100
+Date: Wed, 10 Feb 2016 11:18:57 +0100
 From: Jan Kara <jack@suse.cz>
 Subject: Re: Another proposal for DAX fault locking
-Message-ID: <20160210103249.GD12245@quack.suse.cz>
+Message-ID: <20160210101857.GC12245@quack.suse.cz>
 References: <20160209172416.GB12245@quack.suse.cz>
- <CAPcyv4g1Z-2BzOfF7KAsSviMeNz+rFS1e1KR-VeE1SJxLYhNBg@mail.gmail.com>
+ <CALXu0Udxe4W9XRaCu=TOa5HE9bHtNcHBeFT6iiXmgUDOJh7iZA@mail.gmail.com>
+ <20160210081922.GC4763@suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4g1Z-2BzOfF7KAsSviMeNz+rFS1e1KR-VeE1SJxLYhNBg@mail.gmail.com>
+In-Reply-To: <20160210081922.GC4763@suse.de>
 Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dave Chinner <david@fromorbit.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>
+To: Mel Gorman <mgorman@suse.de>
+Cc: Cedric Blancher <cedric.blancher@gmail.com>, Jan Kara <jack@suse.cz>, Ross Zwisler <ross.zwisler@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Chinner <david@fromorbit.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-mm@kvack.org, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 09-02-16 10:18:53, Dan Williams wrote:
-> On Tue, Feb 9, 2016 at 9:24 AM, Jan Kara <jack@suse.cz> wrote:
-> > Hello,
-> >
-> > I was thinking about current issues with DAX fault locking [1] (data
-> > corruption due to racing faults allocating blocks) and also races which
-> > currently don't allow us to clear dirty tags in the radix tree due to races
-> > between faults and cache flushing [2]. Both of these exist because we don't
-> > have an equivalent of page lock available for DAX. While we have a
-> > reasonable solution available for problem [1], so far I'm not aware of a
-> > decent solution for [2]. After briefly discussing the issue with Mel he had
-> > a bright idea that we could used hashed locks to deal with [2] (and I think
-> > we can solve [1] with them as well). So my proposal looks as follows:
-> >
-> > DAX will have an array of mutexes (the array can be made per device but
-> > initially a global one should be OK). We will use mutexes in the array as a
-> > replacement for page lock - we will use hashfn(mapping, index) to get
-> > particular mutex protecting our offset in the mapping. On fault / page
-> > mkwrite, we'll grab the mutex similarly to page lock and release it once we
-> > are done updating page tables. This deals with races in [1]. When flushing
-> > caches we grab the mutex before clearing writeable bit in page tables
-> > and clearing dirty bit in the radix tree and drop it after we have flushed
-> > caches for the pfn. This deals with races in [2].
-> >
-> > Thoughts?
-> >
+On Wed 10-02-16 08:19:22, Mel Gorman wrote:
+> On Tue, Feb 09, 2016 at 07:46:05PM +0100, Cedric Blancher wrote:
+> > On 9 February 2016 at 18:24, Jan Kara <jack@suse.cz> wrote:
+> > > Hello,
+> > >
+> > > I was thinking about current issues with DAX fault locking [1] (data
+> > > corruption due to racing faults allocating blocks) and also races which
+> > > currently don't allow us to clear dirty tags in the radix tree due to races
+> > > between faults and cache flushing [2]. Both of these exist because we don't
+> > > have an equivalent of page lock available for DAX. While we have a
+> > > reasonable solution available for problem [1], so far I'm not aware of a
+> > > decent solution for [2]. After briefly discussing the issue with Mel he had
+> > > a bright idea that we could used hashed locks to deal with [2] (and I think
+> > > we can solve [1] with them as well). So my proposal looks as follows:
+> > >
+> > > DAX will have an array of mutexes
+> > 
+> > One folly here: Arrays of mutexes NEVER work unless you manage to
+> > align them to occupy one complete L2/L3 cache line each. Otherwise the
+> > CPUS will fight over cache lines each time they touch (read or write)
+> > a mutex, and it then becomes a O^n-like scalability problem if
+> > multiple mutexes occupy one cache line. It becomes WORSE as more
+> > mutexes fit into a single cache line and even more worse with the
+> > number of CPUS accessing such contested lines.
+> > 
 > 
-> I like the fact that this makes the locking explicit and
-> straightforward rather than something more tricky.  Can we make the
-> hashfn pfn based?  I'm thinking we could later reuse this as part of
-> the solution for eliminating the need to allocate struct page, and we
-> don't have the 'mapping' available in all paths...
+> That is a *potential* performance concern although I agree with you in that
+> mutex's false sharing a cache line would be a problem. However, it is a
+> performance concern that potentially is alleviated by alternative hashing
+> where as AFAIK the issues being faced currently are data corruption and
+> functional issues. I'd take a performance issue over a data corruption
+> issue any day of the week.
 
-So Mel originally suggested to use pfn for hashing as well. My concern with
-using pfn is that e.g. if you want to fill a hole, you don't have a pfn to
-lock. What you really need to protect is a logical offset in the file to
-serialize allocation of underlying blocks, its mapping into page tables,
-and flushing the blocks out of caches. So using inode/mapping and offset
-for the hashing is easier (it isn't obvious to me we can fix hole filling
-races with pfn-based locking).
-
-I'm not sure for which other purposes you'd like to use this lock and
-whether propagating file+offset to those call sites would make sense or
-not. struct page has the advantage that block mapping information is only
-attached to it, so when filling a hole, we can just allocate some page,
-attach it to the radix tree, use page lock for synchronization, and allocate
-blocks only after that. With pfns we cannot do this...
+Exactly. We have to add *some* locking to fix the data corruption. Cache
+aliasing of hashed mutexes may be an issue but I believe the result will be
+still better than a single mutex.
 
 								Honza
 -- 
