@@ -1,8 +1,8 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Fri, 12 Feb 2016 07:46:35 +1100
-From: Dave Chinner <david@fromorbit.com>
+Date: Thu, 11 Feb 2016 17:22:26 +0100
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH v2 2/2] dax: move writeback calls into the filesystems
-Message-ID: <20160211204635.GI19486@dastard>
+Message-ID: <20160211162226.GR21760@quack.suse.cz>
 References: <1455137336-28720-1-git-send-email-ross.zwisler@linux.intel.com>
  <1455137336-28720-3-git-send-email-ross.zwisler@linux.intel.com>
  <20160210220312.GP14668@dastard>
@@ -15,10 +15,10 @@ Content-Disposition: inline
 In-Reply-To: <CAPcyv4g60iOTd-ShBCfsK+B7xArcc5pWXWktNop53otDbUW-3g@mail.gmail.com>
 Sender: owner-linux-mm@kvack.org
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, XFS Developers <xfs@oss.sgi.com>
+Cc: Jan Kara <jack@suse.cz>, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, XFS Developers <xfs@oss.sgi.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Feb 11, 2016 at 07:22:00AM -0800, Dan Williams wrote:
+On Thu 11-02-16 07:22:00, Dan Williams wrote:
 > On Thu, Feb 11, 2016 at 4:50 AM, Jan Kara <jack@suse.cz> wrote:
 > > On Wed 10-02-16 15:43:40, Ross Zwisler wrote:
 > >> On Thu, Feb 11, 2016 at 09:03:12AM +1100, Dave Chinner wrote:
@@ -92,51 +92,26 @@ On Thu, Feb 11, 2016 at 07:22:00AM -0800, Dan Williams wrote:
 > 
 > I think we have a wider problem here.  See __blkdev_get, we set S_DAX
 > on all block devices that have ->direct_access() and have a
-> page-aligned starting address.
+> page-aligned starting address.  It seems to me we need to modify the
+> metadata i/o paths to bypass the page cache
 
-That's seeming like a premature optimisation to me now. I didn't
-say anything at the time because I was busy with other things and it
-didn't affect XFS.
+Heh, no way to do that easily. All the journalling machinery depends on
+buffers and pages...
 
-> It seems to me we need to modify the
-> metadata i/o paths to bypass the page cache,
-
-XFS doesn't use the block device page cache for it's metadata - it
-has it's own internal metadata cache structures and uses get_pages
-or heap memory to back it's metadata. But that doesn't make mixing
-DAX and pages in the block device mapping tree sane.
-
-What you are missing here is that the underlying architecture of
-journalling filesystems mean they can't use DAX for their metadata.
-Modifications have to be buffered, because they have to be written
-to the journal first before they are written back in place. IOWs, we
-need to buffer changes in volatile memory for some time, and that
-means we can't use DAX during transactional modifications.
-
-And to put the final nail in that coffin, metadata in XFS can be
-discontiguous multi-block objects - in those situations we vmap the
-underlying pages so they appear to the code to be a contiguous
-buffer, and that's something we can't do with DAX....
-
-> or teach the fsync code
+>, or teach the fsync code
 > how to flush populated data pages out of the radix.
 
-That doesn't solve the problem. Filesystems free and reallocate
-filesystem blocks without intermediate block device mapping
-invalidation calls, so what is one minute a data block accessed by
-DAX may become a metadata block that accessed via buffered IO.  It
-all goes to crap very quickly....
+This might be doable but it will be difficult to avoid aliasing issues and
+data corruption. And mainly I don't see the point: When you mount a
+filesystem on top of block device, you do not want to mess with the block
+device directly, even less using DAX. So we just have to find a way how to
+set S_DAX for normal open but clear it from fs path. At worst, we could
+clear S_DAX on the block device in mount_bdev() or something like that...
 
-However, I'd say fsync is not the place to address this. This block
-device cache aliasing issue is supposed to be what
-unmap_underlying_metadata() solves, right?
-
-Cheers,
-
-Dave.
+								Honza
 -- 
-Dave Chinner
-david@fromorbit.com
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
