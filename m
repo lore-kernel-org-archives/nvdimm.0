@@ -1,101 +1,87 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 11 Feb 2016 11:55:10 +0100
+Date: Thu, 11 Feb 2016 11:43:13 +0100
 From: Jan Kara <jack@suse.cz>
 Subject: Re: Another proposal for DAX fault locking
-Message-ID: <20160211105510.GG21760@quack.suse.cz>
+Message-ID: <20160211104313.GF21760@quack.suse.cz>
 References: <20160209172416.GB12245@quack.suse.cz>
  <CAPcyv4g1Z-2BzOfF7KAsSviMeNz+rFS1e1KR-VeE1SJxLYhNBg@mail.gmail.com>
  <20160210103249.GD12245@quack.suse.cz>
- <20160210220953.GW19486@dastard>
- <CALXu0Uf+WNuqOzgXi+eyouezgu4hU3Vu2ErGxjRTqOTv_B+cXg@mail.gmail.com>
+ <CAPcyv4jNXogNgtVVUaJC_YLPvHcb93dXYdfsfH6cSgHS2=GoDA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CALXu0Uf+WNuqOzgXi+eyouezgu4hU3Vu2ErGxjRTqOTv_B+cXg@mail.gmail.com>
+In-Reply-To: <CAPcyv4jNXogNgtVVUaJC_YLPvHcb93dXYdfsfH6cSgHS2=GoDA@mail.gmail.com>
 Sender: owner-linux-mm@kvack.org
-To: Cedric Blancher <cedric.blancher@gmail.com>
-Cc: Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dave Chinner <david@fromorbit.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Mel Gorman <mgorman@suse.de>, Matthew Wilcox <willy@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed 10-02-16 23:39:43, Cedric Blancher wrote:
-> AFAIK Solaris 11 uses a sparse tree instead of a array. Solves the
-> scalability problem AND deals with variable page size.
+On Wed 10-02-16 12:08:12, Dan Williams wrote:
+> On Wed, Feb 10, 2016 at 2:32 AM, Jan Kara <jack@suse.cz> wrote:
+> > On Tue 09-02-16 10:18:53, Dan Williams wrote:
+> >> On Tue, Feb 9, 2016 at 9:24 AM, Jan Kara <jack@suse.cz> wrote:
+> >> > Hello,
+> >> >
+> >> > I was thinking about current issues with DAX fault locking [1] (data
+> >> > corruption due to racing faults allocating blocks) and also races which
+> >> > currently don't allow us to clear dirty tags in the radix tree due to races
+> >> > between faults and cache flushing [2]. Both of these exist because we don't
+> >> > have an equivalent of page lock available for DAX. While we have a
+> >> > reasonable solution available for problem [1], so far I'm not aware of a
+> >> > decent solution for [2]. After briefly discussing the issue with Mel he had
+> >> > a bright idea that we could used hashed locks to deal with [2] (and I think
+> >> > we can solve [1] with them as well). So my proposal looks as follows:
+> >> >
+> >> > DAX will have an array of mutexes (the array can be made per device but
+> >> > initially a global one should be OK). We will use mutexes in the array as a
+> >> > replacement for page lock - we will use hashfn(mapping, index) to get
+> >> > particular mutex protecting our offset in the mapping. On fault / page
+> >> > mkwrite, we'll grab the mutex similarly to page lock and release it once we
+> >> > are done updating page tables. This deals with races in [1]. When flushing
+> >> > caches we grab the mutex before clearing writeable bit in page tables
+> >> > and clearing dirty bit in the radix tree and drop it after we have flushed
+> >> > caches for the pfn. This deals with races in [2].
+> >> >
+> >> > Thoughts?
+> >> >
+> >>
+> >> I like the fact that this makes the locking explicit and
+> >> straightforward rather than something more tricky.  Can we make the
+> >> hashfn pfn based?  I'm thinking we could later reuse this as part of
+> >> the solution for eliminating the need to allocate struct page, and we
+> >> don't have the 'mapping' available in all paths...
+> >
+> > So Mel originally suggested to use pfn for hashing as well. My concern with
+> > using pfn is that e.g. if you want to fill a hole, you don't have a pfn to
+> > lock. What you really need to protect is a logical offset in the file to
+> > serialize allocation of underlying blocks, its mapping into page tables,
+> > and flushing the blocks out of caches. So using inode/mapping and offset
+> > for the hashing is easier (it isn't obvious to me we can fix hole filling
+> > races with pfn-based locking).
+> >
+> > I'm not sure for which other purposes you'd like to use this lock and
+> > whether propagating file+offset to those call sites would make sense or
+> > not. struct page has the advantage that block mapping information is only
+> > attached to it, so when filling a hole, we can just allocate some page,
+> > attach it to the radix tree, use page lock for synchronization, and allocate
+> > blocks only after that. With pfns we cannot do this...
+> 
+> Right, I am thinking of the direct-I/O path's use of the page lock and
+> the occasions where it relies on page->mapping lookups.
 
-Well, but then you have to have this locking tree for every inode so the
-memory overhead is relatively large, no? I've played with range locking of
-mapping in the past but its performance was not stellar. Do you have any
-reference for what Solaris does?
+Well, but the main problem with direct IO is that it takes page *reference*
+via get_user_pages(). So that's something different from page lock. Maybe
+the new lock could be abused to provide necessary exclusion for direct IO
+use as well but that would need deep thinking... So far it seems
+problematic to me.
+
+> Given we already have support for dynamically allocating struct page I
+> don't think we need to have a "pfn to lock" lookup in the initial
+> implementation of this locking scheme.
+
+Agreed.
 
 								Honza
-
-> On 10 February 2016 at 23:09, Dave Chinner <david@fromorbit.com> wrote:
-> > On Wed, Feb 10, 2016 at 11:32:49AM +0100, Jan Kara wrote:
-> >> On Tue 09-02-16 10:18:53, Dan Williams wrote:
-> >> > On Tue, Feb 9, 2016 at 9:24 AM, Jan Kara <jack@suse.cz> wrote:
-> >> > > Hello,
-> >> > >
-> >> > > I was thinking about current issues with DAX fault locking [1] (data
-> >> > > corruption due to racing faults allocating blocks) and also races which
-> >> > > currently don't allow us to clear dirty tags in the radix tree due to races
-> >> > > between faults and cache flushing [2]. Both of these exist because we don't
-> >> > > have an equivalent of page lock available for DAX. While we have a
-> >> > > reasonable solution available for problem [1], so far I'm not aware of a
-> >> > > decent solution for [2]. After briefly discussing the issue with Mel he had
-> >> > > a bright idea that we could used hashed locks to deal with [2] (and I think
-> >> > > we can solve [1] with them as well). So my proposal looks as follows:
-> >> > >
-> >> > > DAX will have an array of mutexes (the array can be made per device but
-> >> > > initially a global one should be OK). We will use mutexes in the array as a
-> >> > > replacement for page lock - we will use hashfn(mapping, index) to get
-> >> > > particular mutex protecting our offset in the mapping. On fault / page
-> >> > > mkwrite, we'll grab the mutex similarly to page lock and release it once we
-> >> > > are done updating page tables. This deals with races in [1]. When flushing
-> >> > > caches we grab the mutex before clearing writeable bit in page tables
-> >> > > and clearing dirty bit in the radix tree and drop it after we have flushed
-> >> > > caches for the pfn. This deals with races in [2].
-> >> > >
-> >> > > Thoughts?
-> >> > >
-> >> >
-> >> > I like the fact that this makes the locking explicit and
-> >> > straightforward rather than something more tricky.  Can we make the
-> >> > hashfn pfn based?  I'm thinking we could later reuse this as part of
-> >> > the solution for eliminating the need to allocate struct page, and we
-> >> > don't have the 'mapping' available in all paths...
-> >>
-> >> So Mel originally suggested to use pfn for hashing as well. My concern with
-> >> using pfn is that e.g. if you want to fill a hole, you don't have a pfn to
-> >> lock. What you really need to protect is a logical offset in the file to
-> >> serialize allocation of underlying blocks, its mapping into page tables,
-> >> and flushing the blocks out of caches. So using inode/mapping and offset
-> >> for the hashing is easier (it isn't obvious to me we can fix hole filling
-> >> races with pfn-based locking).
-> >
-> > So how does that file+offset hash work when trying to lock different
-> > ranges?  file+offset hashing to determine the lock to use only works
-> > if we are dealing with fixed size ranges that the locks affect.
-> > e.g. offset has 4k granularity for a single page faults, but we also
-> > need to handle 2MB granularity for huge page faults, and IIRC 1GB
-> > granularity for giant page faults...
-> >
-> > What's the plan here?
-> >
-> > Cheers,
-> >
-> > Dave.
-> > --
-> > Dave Chinner
-> > david@fromorbit.com
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-fsdevel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> 
-> -- 
-> Cedric Blancher <cedric.blancher@gmail.com>
-> Institute Pasteur
 -- 
 Jan Kara <jack@suse.com>
 SUSE Labs, CR
