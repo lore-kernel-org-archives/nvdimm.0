@@ -1,71 +1,106 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: Re: [PATCH] kvm: do not SetPageDirty from kvm_set_pfn_dirty for file
+ mappings
+References: <20160211181306.7864.44244.stgit@maxim-thinkpad>
+ <87bn7mavl3.fsf@openvz.org>
+From: Maxim Patlasov <mpatlasov@virtuozzo.com>
+Message-ID: <56BE2084.4080101@virtuozzo.com>
+Date: Fri, 12 Feb 2016 10:12:20 -0800
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4i1dKrhEJkFWmLAmVRBi=tJUOT0WhxjGh-SVnbvFBuxpQ@mail.gmail.com>
-References: <1451010103-11462-1-git-send-email-vishal.l.verma@intel.com>
-	<1451010103-11462-3-git-send-email-vishal.l.verma@intel.com>
-	<568ED633.8020702@hpe.com>
-	<CAPcyv4g-z1Ua_uHHwSTeKfpf5ABHr5V+R3_SmFfPxZix2u8NAQ@mail.gmail.com>
-	<568EF1AA.6070001@hpe.com>
-	<CAPcyv4i1dKrhEJkFWmLAmVRBi=tJUOT0WhxjGh-SVnbvFBuxpQ@mail.gmail.com>
-Date: Sat, 13 Feb 2016 11:41:07 -0800
-Message-ID: <CAPcyv4gXyOfKhpJ0R8h2H5aNmvVXBfpRXhX4SsxSNavygDQnBw@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] libnvdimm: Add a poison list and export badblocks
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Linda Knippers <linda.knippers@hpe.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>
+In-Reply-To: <87bn7mavl3.fsf@openvz.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Sender: owner-linux-mm@kvack.org
+To: Dmitry Monakhov <dmonakhov@openvz.org>, pbonzini@redhat.com
+Cc: kvm@vger.kernel.org, linux-nvdimm@lists.01.org, gleb@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, devel@openvz.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jan 7, 2016 at 3:22 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Thu, Jan 7, 2016 at 3:15 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
->> On 1/7/2016 5:49 PM, Dan Williams wrote:
->>> On Thu, Jan 7, 2016 at 1:18 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
->>>>
->>>> On 12/24/2015 9:21 PM, Vishal Verma wrote:
->>>>> During region creation, perform Address Range Scrubs (ARS) for the SPA
->>>>> (System Physical Address) ranges to retrieve known poison locations from
->>>>> firmware. Add a new data structure 'nd_poison' which is used as a list
->>>>> in nvdimm_bus to store these poison locations.
->>>>>
->>>>> When creating a pmem namespace, if there is any known poison associated
->>>>> with its physical address space, convert the poison ranges to bad sectors
->>>>> that are exposed using the badblocks interface.
->>>>>
->>>>> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
->>>>> ---
->>>>>  drivers/acpi/nfit.c       | 203 ++++++++++++++++++++++++++++++++++++++++++++++
->>>>>  drivers/nvdimm/core.c     | 187 ++++++++++++++++++++++++++++++++++++++++++
->>>>>  drivers/nvdimm/nd-core.h  |   3 +
->>>>>  drivers/nvdimm/nd.h       |   6 ++
->>>>>  drivers/nvdimm/pmem.c     |   6 ++
->>>>>  include/linux/libnvdimm.h |   1 +
->>>>>  6 files changed, 406 insertions(+)
->>>>>
->>>>> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
->>>>
->>>> Why are the ARS function in acpi/nfit.c rather than in the core?
->>>> I realize that the interfaces are/will be defined in the ACPI spec but
->>>> it's not really part of the NFIT.
->>>>
->>>> Why isn't this part of the nvdimm core, where the calls are made?
->>>
->>> True.  acpi_nfit_find_poison() could easily become
->>> nvdimm_bus_find_poison() and move to the core.  However we only need
->>> to take that step when / if another nvdimm bus type show up that isn't
->>> nfit defined.  For now only nfit-defined nvdimms have a concept of
->>> ARS.
->>
->> Why not go ahead and move it now?
->>
->> I agree that ARS is related to NFIT, but practically everything else
->> in the core is as well.  It doesn't seem to belongs in nfit.c.  I
->> didn't even notice that's where it was since the subject line says
->> "libnvdimm".
+On 02/12/2016 05:48 AM, Dmitry Monakhov wrote:
+> Maxim Patlasov <mpatlasov@virtuozzo.com> writes:
 >
-> Should be straightforward, will do.
+>> The patch solves the following problem: file system specific routines
+>> involved in ordinary routine writeback process BUG_ON page_buffers()
+>> because a page goes to writeback without buffer-heads attached.
+>>
+>> The way how kvm_set_pfn_dirty calls SetPageDirty works only for anon
+>> mappings. For file mappings it is obviously incorrect - there page_mkwrite
+>> must be called. It's not easy to add page_mkwrite call to kvm_set_pfn_dirty
+>> because there is no universal way to find vma by pfn. But actually
+>> SetPageDirty may be simply skipped in those cases. Below is a
+>> justification.
+> Confirm. I've hit that BUGON
+> [ 4442.219121] ------------[ cut here ]------------
+> [ 4442.219188] kernel BUG at fs/ext4/inode.c:2285!
+> <...>
+>
+>> When guest modifies the content of a page with file mapping, kernel kvm
+>> makes the page dirty by the following call-path:
+>>
+>> vmx_handle_exit ->
+>>   handle_ept_violation ->
+>>    __get_user_pages ->
+>>     page_mkwrite ->
+>>      SetPageDirty
+>>
+>> Since then, the page is dirty from both guest and host point of view. Then
+>> the host makes writeback and marks the page as write-protected. So any
+>> further write from the guest triggers call-path above again.
+> Please elaborate exact call-path which marks host-page.
 
-So this turns out to not be straightforward because the ars record
-format is ACPI specific.  We would need to define a generic record
-format to move the poison processing to the core, and I don't see this
-being worth the effort until a non-ACPI ars record format appears.
+wb_workfn ->
+  wb_do_writeback ->
+   wb_writeback ->
+    __writeback_inodes_wb ->
+     writeback_sb_inodes ->
+      __writeback_single_inode ->
+       do_writepages ->
+        ext4_writepages ->
+         mpage_prepare_extent_to_map ->
+          mpage_process_page_bufs ->
+           mpage_submit_page ->
+            clear_page_dirty_for_io ->
+              page_mkclean ->
+               rmap_walk->
+                 rmap_walk_file ->
+                  page_mkclean_one->
+                   pte_wrprotect ->
+                     pte_clear_flags(pte, _PAGE_RW)
+
+Thanks,
+Maxim
+
+>> So, for file mappings, it's not possible to have new data written to a page
+>> inside the guest w/o corresponding SetPageDirty on the host.
+>>
+>> This makes explicit SetPageDirty from kvm_set_pfn_dirty redundant.
+>>
+>> Signed-off-by: Maxim Patlasov <mpatlasov@virtuozzo.com>
+>> ---
+>>   virt/kvm/kvm_main.c |    3 ++-
+>>   1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
+>> index a11cfd2..5a7d3fa 100644
+>> --- a/virt/kvm/kvm_main.c
+>> +++ b/virt/kvm/kvm_main.c
+>> @@ -1582,7 +1582,8 @@ void kvm_set_pfn_dirty(kvm_pfn_t pfn)
+>>   	if (!kvm_is_reserved_pfn(pfn)) {
+>>   		struct page *page = pfn_to_page(pfn);
+>>   
+>> -		if (!PageReserved(page))
+>> +		if (!PageReserved(page) &&
+>> +		    (!page->mapping || PageAnon(page)))
+>>   			SetPageDirty(page);
+>>   	}
+>>   }
+>>
+>> _______________________________________________
+>> Linux-nvdimm mailing list
+>> Linux-nvdimm@lists.01.org
+>> https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
