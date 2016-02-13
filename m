@@ -1,89 +1,71 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 04/10] lib/uuid: remove FSF address
-Date: Wed, 17 Feb 2016 14:17:22 +0200
-Message-Id: <1455711448-124103-5-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4i1dKrhEJkFWmLAmVRBi=tJUOT0WhxjGh-SVnbvFBuxpQ@mail.gmail.com>
+References: <1451010103-11462-1-git-send-email-vishal.l.verma@intel.com>
+	<1451010103-11462-3-git-send-email-vishal.l.verma@intel.com>
+	<568ED633.8020702@hpe.com>
+	<CAPcyv4g-z1Ua_uHHwSTeKfpf5ABHr5V+R3_SmFfPxZix2u8NAQ@mail.gmail.com>
+	<568EF1AA.6070001@hpe.com>
+	<CAPcyv4i1dKrhEJkFWmLAmVRBi=tJUOT0WhxjGh-SVnbvFBuxpQ@mail.gmail.com>
+Date: Sat, 13 Feb 2016 11:41:07 -0800
+Message-ID: <CAPcyv4gXyOfKhpJ0R8h2H5aNmvVXBfpRXhX4SsxSNavygDQnBw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] libnvdimm: Add a poison list and export badblocks
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Linda Knippers <linda.knippers@hpe.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-There is no point to keep an address in the file since it's a subject to
-change.
+On Thu, Jan 7, 2016 at 3:22 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Thu, Jan 7, 2016 at 3:15 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+>> On 1/7/2016 5:49 PM, Dan Williams wrote:
+>>> On Thu, Jan 7, 2016 at 1:18 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+>>>>
+>>>> On 12/24/2015 9:21 PM, Vishal Verma wrote:
+>>>>> During region creation, perform Address Range Scrubs (ARS) for the SPA
+>>>>> (System Physical Address) ranges to retrieve known poison locations from
+>>>>> firmware. Add a new data structure 'nd_poison' which is used as a list
+>>>>> in nvdimm_bus to store these poison locations.
+>>>>>
+>>>>> When creating a pmem namespace, if there is any known poison associated
+>>>>> with its physical address space, convert the poison ranges to bad sectors
+>>>>> that are exposed using the badblocks interface.
+>>>>>
+>>>>> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+>>>>> ---
+>>>>>  drivers/acpi/nfit.c       | 203 ++++++++++++++++++++++++++++++++++++++++++++++
+>>>>>  drivers/nvdimm/core.c     | 187 ++++++++++++++++++++++++++++++++++++++++++
+>>>>>  drivers/nvdimm/nd-core.h  |   3 +
+>>>>>  drivers/nvdimm/nd.h       |   6 ++
+>>>>>  drivers/nvdimm/pmem.c     |   6 ++
+>>>>>  include/linux/libnvdimm.h |   1 +
+>>>>>  6 files changed, 406 insertions(+)
+>>>>>
+>>>>> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+>>>>
+>>>> Why are the ARS function in acpi/nfit.c rather than in the core?
+>>>> I realize that the interfaces are/will be defined in the ACPI spec but
+>>>> it's not really part of the NFIT.
+>>>>
+>>>> Why isn't this part of the nvdimm core, where the calls are made?
+>>>
+>>> True.  acpi_nfit_find_poison() could easily become
+>>> nvdimm_bus_find_poison() and move to the core.  However we only need
+>>> to take that step when / if another nvdimm bus type show up that isn't
+>>> nfit defined.  For now only nfit-defined nvdimms have a concept of
+>>> ARS.
+>>
+>> Why not go ahead and move it now?
+>>
+>> I agree that ARS is related to NFIT, but practically everything else
+>> in the core is as well.  It doesn't seem to belongs in nfit.c.  I
+>> didn't even notice that's where it was since the subject line says
+>> "libnvdimm".
+>
+> Should be straightforward, will do.
 
-While here, update Intel Copyright years.
-
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- include/linux/uuid.h      | 6 +-----
- include/uapi/linux/uuid.h | 4 ----
- lib/uuid.c                | 6 +-----
- 3 files changed, 2 insertions(+), 14 deletions(-)
-
-diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index 616347f..6bd40d0 100644
---- a/include/linux/uuid.h
-+++ b/include/linux/uuid.h
-@@ -1,7 +1,7 @@
- /*
-  * UUID/GUID definition
-  *
-- * Copyright (C) 2010, Intel Corp.
-+ * Copyright (C) 2010, 2015 Intel Corp.
-  *	Huang Ying <ying.huang@intel.com>
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- #ifndef _LINUX_UUID_H_
- #define _LINUX_UUID_H_
-diff --git a/include/uapi/linux/uuid.h b/include/uapi/linux/uuid.h
-index 786f077..3738e5f 100644
---- a/include/uapi/linux/uuid.h
-+++ b/include/uapi/linux/uuid.h
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
- #ifndef _UAPI_LINUX_UUID_H_
-diff --git a/lib/uuid.c b/lib/uuid.c
-index 995865c..0918232 100644
---- a/lib/uuid.c
-+++ b/lib/uuid.c
-@@ -1,7 +1,7 @@
- /*
-  * Unified UUID/GUID definition
-  *
-- * Copyright (C) 2009, Intel Corp.
-+ * Copyright (C) 2009, 2015 Intel Corp.
-  *	Huang Ying <ying.huang@intel.com>
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
- #include <linux/kernel.h>
--- 
-2.7.0
+So this turns out to not be straightforward because the ars record
+format is ACPI specific.  We would need to define a generic record
+format to move the poison processing to the core, and I don't see this
+being worth the effort until a non-ACPI ars record format appears.
