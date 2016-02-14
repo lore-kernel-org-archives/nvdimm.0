@@ -1,65 +1,78 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 2/6] ext2, ext4: only set S_DAX for regular inodes
-Date: Tue, 16 Feb 2016 20:34:15 -0700
-Message-Id: <1455680059-20126-3-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
+Message-ID: <56C03FFB.1040401@gmail.com>
+Date: Sun, 14 Feb 2016 10:51:07 +0200
+From: Boaz Harrosh <openosd@gmail.com>
+MIME-Version: 1.0
+Subject: Re: Another proposal for DAX fault locking
+References: <20160209172416.GB12245@quack.suse.cz> <56BB758D.1000704@plexistor.com> <20160211103856.GE21760@quack.suse.cz>
+In-Reply-To: <20160211103856.GE21760@quack.suse.cz>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
+To: Jan Kara <jack@suse.cz>, Boaz Harrosh <boaz@plexistor.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, mgorman@suse.de, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When S_DAX is set on an inode we assume that if there are pages attached
-to the mapping (mapping->nrpages != 0), those pages are clean zero pages
-that were used to service reads from holes.  Any dirty data associated with
-the inode should be in the form of DAX exceptional entries
-(mapping->nrexceptional) that is written back via
-dax_writeback_mapping_range().
+On 02/11/2016 12:38 PM, Jan Kara wrote:
+> On Wed 10-02-16 19:38:21, Boaz Harrosh wrote:
+>> On 02/09/2016 07:24 PM, Jan Kara wrote:
+>>> Hello,
+>>>
+<>
+>>>
+>>> DAX will have an array of mutexes (the array can be made per device but
+>>> initially a global one should be OK). We will use mutexes in the array as a
+>>> replacement for page lock - we will use hashfn(mapping, index) to get
+>>> particular mutex protecting our offset in the mapping. On fault / page
+>>> mkwrite, we'll grab the mutex similarly to page lock and release it once we
+>>> are done updating page tables. This deals with races in [1]. When flushing
+>>> caches we grab the mutex before clearing writeable bit in page tables
+>>> and clearing dirty bit in the radix tree and drop it after we have flushed
+>>> caches for the pfn. This deals with races in [2].
+>>>
+>>> Thoughts?
+>>>
+>>
+>> You could also use one of the radix-tree's special-bits as a bit lock.
+>> So no need for any extra allocations.
+> 
+> Yes and I've suggested that once as well. But since we need sleeping
+> locks, you need some wait queues somewhere as well. So some allocations are
+> going to be needed anyway. 
 
-With the current code, though, this isn't always true.  For example, ext2
-and ext4 directory inodes can have S_DAX set, but have their dirty data
-stored as dirty page cache entries.  For these types of inodes, having
-S_DAX set doesn't really make sense since their I/O doesn't actually happen
-through the DAX code path.
+They are already sleeping locks and there are all the proper "wait queues"
+in place. I'm talking about
+   lock:
+	err = wait_on_bit_lock(&some_long, SOME_BIT_LOCK, ...);
+and
+   unlock:
+	WARN_ON(!test_and_clear_bit(SOME_BIT_LOCK, &some_long));
+	wake_up_bit(&some_long, SOME_BIT_LOCK);
 
-Instead, only allow S_DAX to be set for regular inodes for ext2 and ext4.
-This allows us to have strict DAX vs non-DAX paths in the writeback code.
+> And mutexes have much better properties than
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/ext2/inode.c | 2 +-
- fs/ext4/inode.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Just saying that page-locks are implemented just this way these days
+so it is the performance and characteristics we already know.
+(You are replacing page locks, no?)
 
-diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index 338eefd..27e2cdd 100644
---- a/fs/ext2/inode.c
-+++ b/fs/ext2/inode.c
-@@ -1296,7 +1296,7 @@ void ext2_set_inode_flags(struct inode *inode)
- 		inode->i_flags |= S_NOATIME;
- 	if (flags & EXT2_DIRSYNC_FL)
- 		inode->i_flags |= S_DIRSYNC;
--	if (test_opt(inode->i_sb, DAX))
-+	if (test_opt(inode->i_sb, DAX) && S_ISREG(inode->i_mode))
- 		inode->i_flags |= S_DAX;
- }
- 
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 83bc8bf..7088aa5 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -4127,7 +4127,7 @@ void ext4_set_inode_flags(struct inode *inode)
- 		new_fl |= S_NOATIME;
- 	if (flags & EXT4_DIRSYNC_FL)
- 		new_fl |= S_DIRSYNC;
--	if (test_opt(inode->i_sb, DAX))
-+	if (test_opt(inode->i_sb, DAX) && S_ISREG(inode->i_mode))
- 		new_fl |= S_DAX;
- 	inode_set_flags(inode, new_fl,
- 			S_SYNC|S_APPEND|S_IMMUTABLE|S_NOATIME|S_DIRSYNC|S_DAX);
--- 
-2.5.0
+> bit-locks so I prefer mutexes over cramming bit locks into radix tree. Plus
+> you'd have to be careful so that someone doesn't remove the bit from the
+> radix tree while you are working with it.
+> 
+
+Sure! need to be careful, is our middle name.
+
+That said. Is your call. Thank you for working on this. Your plan sounds
+very good as well, and is very much needed, because DAX's mmap performance
+success right now.
+[Maybe one small enhancement perhaps allocate an array of mutexes per NUMA
+ node and access the proper array through numa_node_id()]
+
+> 								Honza
+> 
+
+Thanks
+Boaz
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
