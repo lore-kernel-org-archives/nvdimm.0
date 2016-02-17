@@ -1,140 +1,158 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 3/3] nfit_test: Update SPD ID init handlings
-Date: Mon, 22 Feb 2016 14:55:30 -0700
-Message-Id: <1456178130-26468-4-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
-References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: robert.moore@intel.com, lv.zheng@intel.com, elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, Toshi Kani <toshi.kani@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Wed, 17 Feb 2016 22:37:38 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v3 4/6] dax: give DAX clearing code correct bdev
+Message-ID: <20160217213738.GJ14140@quack.suse.cz>
+References: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1455680059-20126-5-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1455680059-20126-5-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Update the test code that initializes SPD IDs of NFIT control
-region structures.  nfit_set_spd_id() is added to handle
-initialization of the SPD IDs, which are arrays of bytes.
+On Tue 16-02-16 20:34:17, Ross Zwisler wrote:
+> dax_clear_blocks() needs a valid struct block_device and previously it was
+> using inode->i_sb->s_bdev in all cases.  This is correct for normal inodes
+> on mounted ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
+> block devices and for XFS real-time devices.
+> 
+> Instead, rename dax_clear_blocks() to dax_clear_sectors(), and change its
+> arguments to take a bdev and a sector instead of an inode and a block.
+> This better reflects what the function does, and it allows the filesystem
+> and raw block device code to pass in an appropriate struct block_device.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Suggested-by: Dan Williams <dan.j.williams@intel.com>
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
----
- tools/testing/nvdimm/test/nfit.c |   64 +++++++++++++++++++++++---------------
- 1 file changed, 39 insertions(+), 25 deletions(-)
+The patch looks good to me. You can add:
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 90bd2ea..283e187 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -160,6 +160,14 @@ static struct nfit_test *to_nfit_test(struct device *dev)
- 	return container_of(pdev, struct nfit_test, pdev);
- }
- 
-+static void nfit_set_spd_id(u8 *dist, u64 value, size_t size)
-+{
-+	int shift;
-+
-+	for (shift = size - 1; shift >= 0; shift--, dist++)
-+		*dist = (u8)((value >> (8 * shift)) & 0xff);
-+}
-+
- static int nfit_test_cmd_get_config_size(struct nd_cmd_get_config_size *nd_cmd,
- 		unsigned int buf_len)
- {
-@@ -815,10 +823,11 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 0+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
--	dcr->serial_number = ~handle[0];
-+	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+	nfit_set_spd_id(dcr->serial_number, ~handle[0],
-+				sizeof(dcr->serial_number));
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -831,10 +840,11 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 1+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
--	dcr->serial_number = ~handle[1];
-+	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+	nfit_set_spd_id(dcr->serial_number, ~handle[1],
-+				sizeof(dcr->serial_number));
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -847,10 +857,11 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 2+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
--	dcr->serial_number = ~handle[2];
-+	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+	nfit_set_spd_id(dcr->serial_number, ~handle[2],
-+				sizeof(dcr->serial_number));
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -863,10 +874,11 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 3+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
--	dcr->serial_number = ~handle[3];
-+	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+	nfit_set_spd_id(dcr->serial_number, ~handle[3],
-+				sizeof(dcr->serial_number));
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -959,10 +971,11 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 		dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 		dcr->region_index = 4+1;
--		dcr->vendor_id = 0xabcd;
--		dcr->device_id = 0;
--		dcr->revision_id = 1;
--		dcr->serial_number = ~handle[4];
-+		nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+		nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+		nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+		nfit_set_spd_id(dcr->serial_number, ~handle[4],
-+					sizeof(dcr->serial_number));
- 		dcr->windows = 1;
- 		dcr->window_size = DCR_SIZE;
- 		dcr->command_offset = 0;
-@@ -1128,11 +1141,12 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 0+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
--	dcr->serial_number = ~0;
--	dcr->code = 0x201;
-+	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+	nfit_set_spd_id(dcr->serial_number, ~0,
-+				sizeof(dcr->serial_number));
-+	nfit_set_spd_id(dcr->code, 0x201, sizeof(dcr->code));
- 	dcr->windows = 0;
- 	dcr->window_size = 0;
- 	dcr->command_offset = 0;
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
+> ---
+>  fs/dax.c               | 9 ++++-----
+>  fs/ext2/inode.c        | 6 ++++--
+>  fs/xfs/xfs_aops.c      | 2 +-
+>  fs/xfs/xfs_aops.h      | 1 +
+>  fs/xfs/xfs_bmap_util.c | 3 ++-
+>  include/linux/dax.h    | 2 +-
+>  6 files changed, 13 insertions(+), 10 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index fc2e314..9a173dd 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -79,15 +79,14 @@ struct page *read_dax_sector(struct block_device *bdev, sector_t n)
+>  }
+>  
+>  /*
+> - * dax_clear_blocks() is called from within transaction context from XFS,
+> + * dax_clear_sectors() is called from within transaction context from XFS,
+>   * and hence this means the stack from this point must follow GFP_NOFS
+>   * semantics for all operations.
+>   */
+> -int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
+> +int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size)
+>  {
+> -	struct block_device *bdev = inode->i_sb->s_bdev;
+>  	struct blk_dax_ctl dax = {
+> -		.sector = block << (inode->i_blkbits - 9),
+> +		.sector = _sector,
+>  		.size = _size,
+>  	};
+>  
+> @@ -109,7 +108,7 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
+>  	wmb_pmem();
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(dax_clear_blocks);
+> +EXPORT_SYMBOL_GPL(dax_clear_sectors);
+>  
+>  /* the clear_pmem() calls are ordered by a wmb_pmem() in the caller */
+>  static void dax_new_buf(void __pmem *addr, unsigned size, unsigned first,
+> diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+> index 27e2cdd..4467cbd 100644
+> --- a/fs/ext2/inode.c
+> +++ b/fs/ext2/inode.c
+> @@ -737,8 +737,10 @@ static int ext2_get_blocks(struct inode *inode,
+>  		 * so that it's not found by another thread before it's
+>  		 * initialised
+>  		 */
+> -		err = dax_clear_blocks(inode, le32_to_cpu(chain[depth-1].key),
+> -						1 << inode->i_blkbits);
+> +		err = dax_clear_sectors(inode->i_sb->s_bdev,
+> +				le32_to_cpu(chain[depth-1].key) <<
+> +				(inode->i_blkbits - 9),
+> +				1 << inode->i_blkbits);
+>  		if (err) {
+>  			mutex_unlock(&ei->truncate_mutex);
+>  			goto cleanup;
+> diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+> index 379c089..fc20518 100644
+> --- a/fs/xfs/xfs_aops.c
+> +++ b/fs/xfs/xfs_aops.c
+> @@ -55,7 +55,7 @@ xfs_count_page_state(
+>  	} while ((bh = bh->b_this_page) != head);
+>  }
+>  
+> -STATIC struct block_device *
+> +struct block_device *
+>  xfs_find_bdev_for_inode(
+>  	struct inode		*inode)
+>  {
+> diff --git a/fs/xfs/xfs_aops.h b/fs/xfs/xfs_aops.h
+> index f6ffc9a..a4343c6 100644
+> --- a/fs/xfs/xfs_aops.h
+> +++ b/fs/xfs/xfs_aops.h
+> @@ -62,5 +62,6 @@ int	xfs_get_blocks_dax_fault(struct inode *inode, sector_t offset,
+>  			         struct buffer_head *map_bh, int create);
+>  
+>  extern void xfs_count_page_state(struct page *, int *, int *);
+> +extern struct block_device *xfs_find_bdev_for_inode(struct inode *);
+>  
+>  #endif /* __XFS_AOPS_H__ */
+> diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
+> index 45ec9e4..6c87601 100644
+> --- a/fs/xfs/xfs_bmap_util.c
+> +++ b/fs/xfs/xfs_bmap_util.c
+> @@ -75,7 +75,8 @@ xfs_zero_extent(
+>  	ssize_t		size = XFS_FSB_TO_B(mp, count_fsb);
+>  
+>  	if (IS_DAX(VFS_I(ip)))
+> -		return dax_clear_blocks(VFS_I(ip), block, size);
+> +		return dax_clear_sectors(xfs_find_bdev_for_inode(VFS_I(ip)),
+> +				sector, size);
+>  
+>  	/*
+>  	 * let the block layer decide on the fastest method of
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 818e450..7b6bced 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -7,7 +7,7 @@
+>  
+>  ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
+>  		  get_block_t, dio_iodone_t, int flags);
+> -int dax_clear_blocks(struct inode *, sector_t block, long size);
+> +int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size);
+>  int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
+>  int dax_truncate_page(struct inode *, loff_t from, get_block_t);
+>  int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
+> -- 
+> 2.5.0
+> 
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
