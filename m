@@ -1,113 +1,71 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 2/3] resource: Add iomem_set_desc() to set I/O descriptor
-Date: Tue,  2 Feb 2016 11:55:10 -0700
-Message-Id: <1454439311-23690-3-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
-References: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 08/10] sysctl: use generic UUID library
+Date: Wed, 17 Feb 2016 14:17:26 +0200
+Message-Id: <1455711448-124103-9-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.0 defines persistent memory ranges in multiple firmware
-interfaces, E820_PMEM type in e820, EFI_PERSISTENT_MEMORY type
-in EFI, and ACPI NFIT table.  This EFI spec change, however,
-hit a bug in the grub bootloader, which handles EFI_PERSISTENT_MEMORY
-as regular memory and potentially corrupts stored user data [1].
+UUID library provides uuid_be type and uuid_be_to_bin() function. This
+substitutes open coded variant by generic library calls.
 
-This issue leads FW vendors to consider using generic reserved
-type in e820 and EFI to cover persistent memory, so that no new
-type is used in e820 and EFI.  The kernel can initialize persistent
-memory from ACPI NFIT table alone.  This basic approach may
-continue in future that new types will only be defined to ACPI
-tables.
-
-This however causes a problem in the iomem table.  On x86, for
-instance, e820_reserve_resources() initializes top-level entries
-(iomem_resource.child) from the e820 table in early boot-time.
-The reserved type does not provide any specific type information.
-
-Hence, this patch adds iomem_set_desc(), which allows drivers
-to set IO descriptor to a corresponding top-level iomem entry
-that is not marked as BUSY.  Drivers, such as ACPI drivers, can
-call this interface to set a specific type when they enumerate
-ACPI tables later in the boot sequence or run-time.
-
-[1] https://lists.gnu.org/archive/html/grub-devel/2015-11/msg00209.html
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- include/linux/ioport.h |    2 ++
- kernel/resource.c      |   41 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 43 insertions(+)
+ kernel/sysctl_binary.c | 20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index afb4559..54f7435 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -260,6 +260,8 @@ extern void __devm_release_region(struct device *dev, struct resource *parent,
- 				  resource_size_t start, resource_size_t n);
- extern int iomem_map_sanity_check(resource_size_t addr, unsigned long size);
- extern int iomem_is_exclusive(u64 addr);
-+extern int iomem_set_desc(resource_size_t start, size_t size,
-+	unsigned long desc);
+diff --git a/kernel/sysctl_binary.c b/kernel/sysctl_binary.c
+index 509abe4..4e5ca94 100644
+--- a/kernel/sysctl_binary.c
++++ b/kernel/sysctl_binary.c
+@@ -13,6 +13,7 @@
+ #include <linux/ctype.h>
+ #include <linux/netdevice.h>
+ #include <linux/kernel.h>
++#include <linux/uuid.h>
+ #include <linux/slab.h>
+ #include <linux/compat.h>
  
- extern int
- walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 9df79ff..7d68297 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -1534,6 +1534,47 @@ int iomem_is_exclusive(u64 addr)
- 	return err;
- }
+@@ -1117,9 +1118,8 @@ static ssize_t bin_uuid(struct file *file,
  
-+/**
-+ * iomem_set_desc - set I/O descriptor to the corresponding iomem entry
-+ * @start: start address
-+ * @size: size of the range
-+ * @desc: I/O descriptor
-+ *
-+ * Set IO descriptor to the corresponding top-level iomem entry.
-+ * Return 0 for success, -EBUSY when the entry is marked as BUSY,
-+ * -EINVAL when no corresponding entry is found.
-+ */
-+int iomem_set_desc(resource_size_t start, size_t size, unsigned long desc)
-+{
-+	resource_size_t end = start + size - 1;
-+	struct resource *p;
-+	int match = 0, ret = -EINVAL;
-+
-+	write_lock(&resource_lock);
-+
-+	for (p = iomem_resource.child; p ; p = p->sibling) {
-+		if (p->start < start)
-+			continue;
-+		if ((p->start == start) && (p->end == end))
-+			match = 1;
-+		break;
-+	}
-+
-+	if (match) {
-+		if (p->flags & IORESOURCE_BUSY) {
-+			ret = -EBUSY;
-+		} else {
-+			p->desc = desc;
-+			ret = 0;
-+		}
-+	}
-+
-+	write_unlock(&resource_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(iomem_set_desc);
-+
- struct resource_entry *resource_list_create_entry(struct resource *res,
- 						  size_t extra_size)
- {
+ 	/* Only supports reads */
+ 	if (oldval && oldlen) {
+-		char buf[40], *str = buf;
+-		unsigned char uuid[16];
+-		int i;
++		char buf[UUID_STRING_LEN + 1];
++		uuid_be uuid;
+ 
+ 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
+ 		if (result < 0)
+@@ -1128,21 +1128,13 @@ static ssize_t bin_uuid(struct file *file,
+ 		buf[result] = '\0';
+ 
+ 		/* Convert the uuid to from a string to binary */
+-		for (i = 0; i < 16; i++) {
+-			if (!isxdigit(str[0]) || !isxdigit(str[1]))
+-				return -EIO;
+-
+-			uuid[i] = (hex_to_bin(str[0]) << 4) |
+-					hex_to_bin(str[1]);
+-			str += 2;
+-			if (*str == '-')
+-				str++;
+-		}
++		if (uuid_be_to_bin(buf, &uuid))
++			return -EIO;
+ 
+ 		if (oldlen > 16)
+ 			oldlen = 16;
+ 
+-		if (copy_to_user(oldval, uuid, oldlen))
++		if (copy_to_user(oldval, &uuid, oldlen))
+ 			return -EFAULT;
+ 
+ 		copied = oldlen;
+-- 
+2.7.0
