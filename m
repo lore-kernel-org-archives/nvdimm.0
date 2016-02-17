@@ -1,122 +1,82 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 1/2] dax: pass bdev argument to dax_clear_blocks()
-Date: Sun,  7 Feb 2016 00:19:12 -0700
-Message-Id: <1454829553-29499-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1454829553-29499-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1454829553-29499-1-git-send-email-ross.zwisler@linux.intel.com>
+Date: Wed, 17 Feb 2016 22:33:25 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v3 2/6] ext2, ext4: only set S_DAX for regular inodes
+Message-ID: <20160217213325.GH14140@quack.suse.cz>
+References: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1455680059-20126-3-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1455680059-20126-3-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_clear_blocks() needs a valid struct block_device and previously it was
-using inode->i_sb->s_bdev in all cases.  This is correct for normal inodes
-on mounted ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
-block devices and for XFS real-time devices.
+On Tue 16-02-16 20:34:15, Ross Zwisler wrote:
+> When S_DAX is set on an inode we assume that if there are pages attached
+> to the mapping (mapping->nrpages != 0), those pages are clean zero pages
+> that were used to service reads from holes.  Any dirty data associated with
+> the inode should be in the form of DAX exceptional entries
+> (mapping->nrexceptional) that is written back via
+> dax_writeback_mapping_range().
+> 
+> With the current code, though, this isn't always true.  For example, ext2
+> and ext4 directory inodes can have S_DAX set, but have their dirty data
+> stored as dirty page cache entries.  For these types of inodes, having
+> S_DAX set doesn't really make sense since their I/O doesn't actually happen
+> through the DAX code path.
+> 
+> Instead, only allow S_DAX to be set for regular inodes for ext2 and ext4.
+> This allows us to have strict DAX vs non-DAX paths in the writeback code.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Instead, have the caller pass in a struct block_device pointer which it
-knows to be correct.
+Looks good. You can add:
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c               | 4 ++--
- fs/ext2/inode.c        | 5 +++--
- fs/xfs/xfs_aops.c      | 2 +-
- fs/xfs/xfs_aops.h      | 1 +
- fs/xfs/xfs_bmap_util.c | 4 +++-
- include/linux/dax.h    | 3 ++-
- 6 files changed, 12 insertions(+), 7 deletions(-)
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 227974a..4592241 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -83,9 +83,9 @@ struct page *read_dax_sector(struct block_device *bdev, sector_t n)
-  * and hence this means the stack from this point must follow GFP_NOFS
-  * semantics for all operations.
-  */
--int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
-+int dax_clear_blocks(struct inode *inode, struct block_device *bdev,
-+		sector_t block, long _size)
- {
--	struct block_device *bdev = inode->i_sb->s_bdev;
- 	struct blk_dax_ctl dax = {
- 		.sector = block << (inode->i_blkbits - 9),
- 		.size = _size,
-diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index 338eefd..277a32b 100644
---- a/fs/ext2/inode.c
-+++ b/fs/ext2/inode.c
-@@ -737,8 +737,9 @@ static int ext2_get_blocks(struct inode *inode,
- 		 * so that it's not found by another thread before it's
- 		 * initialised
- 		 */
--		err = dax_clear_blocks(inode, le32_to_cpu(chain[depth-1].key),
--						1 << inode->i_blkbits);
-+		err = dax_clear_blocks(inode, inode->i_sb->s_bdev,
-+				le32_to_cpu(chain[depth-1].key),
-+				1 << inode->i_blkbits);
- 		if (err) {
- 			mutex_unlock(&ei->truncate_mutex);
- 			goto cleanup;
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index 379c089..fc20518 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -55,7 +55,7 @@ xfs_count_page_state(
- 	} while ((bh = bh->b_this_page) != head);
- }
- 
--STATIC struct block_device *
-+struct block_device *
- xfs_find_bdev_for_inode(
- 	struct inode		*inode)
- {
-diff --git a/fs/xfs/xfs_aops.h b/fs/xfs/xfs_aops.h
-index f6ffc9a..a4343c6 100644
---- a/fs/xfs/xfs_aops.h
-+++ b/fs/xfs/xfs_aops.h
-@@ -62,5 +62,6 @@ int	xfs_get_blocks_dax_fault(struct inode *inode, sector_t offset,
- 			         struct buffer_head *map_bh, int create);
- 
- extern void xfs_count_page_state(struct page *, int *, int *);
-+extern struct block_device *xfs_find_bdev_for_inode(struct inode *);
- 
- #endif /* __XFS_AOPS_H__ */
-diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
-index 07ef29b..f722ba2 100644
---- a/fs/xfs/xfs_bmap_util.c
-+++ b/fs/xfs/xfs_bmap_util.c
-@@ -73,9 +73,11 @@ xfs_zero_extent(
- 	xfs_daddr_t	sector = xfs_fsb_to_db(ip, start_fsb);
- 	sector_t	block = XFS_BB_TO_FSBT(mp, sector);
- 	ssize_t		size = XFS_FSB_TO_B(mp, count_fsb);
-+	struct inode	*inode = VFS_I(ip);
- 
- 	if (IS_DAX(VFS_I(ip)))
--		return dax_clear_blocks(VFS_I(ip), block, size);
-+		return dax_clear_blocks(inode, xfs_find_bdev_for_inode(inode),
-+				block, size);
- 
- 	/*
- 	 * let the block layer decide on the fastest method of
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 8204c3d..bad27b0 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -7,7 +7,8 @@
- 
- ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
- 		  get_block_t, dio_iodone_t, int flags);
--int dax_clear_blocks(struct inode *, sector_t block, long size);
-+int dax_clear_blocks(struct inode *inode, struct block_device *bdev,
-+		sector_t block, long _size);
- int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
- int dax_truncate_page(struct inode *, loff_t from, get_block_t);
- int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
+								Honza
+
+> ---
+>  fs/ext2/inode.c | 2 +-
+>  fs/ext4/inode.c | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+> index 338eefd..27e2cdd 100644
+> --- a/fs/ext2/inode.c
+> +++ b/fs/ext2/inode.c
+> @@ -1296,7 +1296,7 @@ void ext2_set_inode_flags(struct inode *inode)
+>  		inode->i_flags |= S_NOATIME;
+>  	if (flags & EXT2_DIRSYNC_FL)
+>  		inode->i_flags |= S_DIRSYNC;
+> -	if (test_opt(inode->i_sb, DAX))
+> +	if (test_opt(inode->i_sb, DAX) && S_ISREG(inode->i_mode))
+>  		inode->i_flags |= S_DAX;
+>  }
+>  
+> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+> index 83bc8bf..7088aa5 100644
+> --- a/fs/ext4/inode.c
+> +++ b/fs/ext4/inode.c
+> @@ -4127,7 +4127,7 @@ void ext4_set_inode_flags(struct inode *inode)
+>  		new_fl |= S_NOATIME;
+>  	if (flags & EXT4_DIRSYNC_FL)
+>  		new_fl |= S_DIRSYNC;
+> -	if (test_opt(inode->i_sb, DAX))
+> +	if (test_opt(inode->i_sb, DAX) && S_ISREG(inode->i_mode))
+>  		new_fl |= S_DAX;
+>  	inode_set_flags(inode, new_fl,
+>  			S_SYNC|S_APPEND|S_IMMUTABLE|S_NOATIME|S_DIRSYNC|S_DAX);
+> -- 
+> 2.5.0
+> 
+> 
 -- 
-2.5.0
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
