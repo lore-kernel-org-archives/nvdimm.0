@@ -1,140 +1,118 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 2/2] nfit_test: Update SPD ID init handlings
-Date: Fri, 19 Feb 2016 16:08:53 -0700
-Message-Id: <1455923333-13629-3-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1455923333-13629-1-git-send-email-toshi.kani@hpe.com>
-References: <1455923333-13629-1-git-send-email-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: robert.moore@intel.com, elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, Toshi Kani <toshi.kani@hpe.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Wed, 17 Feb 2016 22:55:34 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v3 1/6] block: disable block device DAX by default
+Message-ID: <20160217215534.GL14140@quack.suse.cz>
+References: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1455680059-20126-2-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1455680059-20126-2-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Al Viro <viro@ftp.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Update the test code that initializes SPD IDs of NFIT control
-region structures.  nfit_set_spd_id() is added to handle
-initialization to an array of bytes.
+On Tue 16-02-16 20:34:14, Ross Zwisler wrote:
+> From: Dan Williams <dan.j.williams@intel.com>
+> 
+> The recent *sync enabling discovered that we are inserting into the
+> block_device pagecache counter to the expectations of the dirty data
+> tracking for dax mappings.  This can lead to data corruption.
+> 
+> We want to support DAX for block devices eventually, but it requires
+> wider changes to properly manage the pagecache.
+> 
+>   [<ffffffff81576d93>] dump_stack+0x85/0xc2
+>   [<ffffffff812b9ee0>] dax_writeback_mapping_range+0x60/0xe0
+>   [<ffffffff812a1d4f>] blkdev_writepages+0x3f/0x50
+>   [<ffffffff811db011>] do_writepages+0x21/0x30
+>   [<ffffffff811cb6a6>] __filemap_fdatawrite_range+0xc6/0x100
+>   [<ffffffff811cb75a>] filemap_write_and_wait+0x4a/0xa0
+>   [<ffffffff812a15e0>] set_blocksize+0x70/0xd0
+>   [<ffffffff812a273d>] sb_set_blocksize+0x1d/0x50
+>   [<ffffffff8132ac9b>] ext4_fill_super+0x75b/0x3360
+>   [<ffffffff81583381>] ? vsnprintf+0x201/0x4c0
+>   [<ffffffff815836d9>] ? snprintf+0x49/0x60
+>   [<ffffffff81263010>] mount_bdev+0x180/0x1b0
+>   [<ffffffff8132a540>] ? ext4_calculate_overhead+0x370/0x370
+>   [<ffffffff8131ad95>] ext4_mount+0x15/0x20
+>   [<ffffffff81263908>] mount_fs+0x38/0x170
+> 
+> Mark the support broken so its disabled by default, but otherwise still
+> available for testing.
+> 
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Jens Axboe <axboe@fb.com>
+> Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+> Cc: Al Viro <viro@ftp.linux.org.uk>
+> Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Suggested-by: Dave Chinner <david@fromorbit.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
----
- tools/testing/nvdimm/test/nfit.c |   64 +++++++++++++++++++++++---------------
- 1 file changed, 39 insertions(+), 25 deletions(-)
+Makes sense. You can add:
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 90bd2ea..283e187 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -160,6 +160,14 @@ static struct nfit_test *to_nfit_test(struct device *dev)
- 	return container_of(pdev, struct nfit_test, pdev);
- }
- 
-+static void nfit_set_spd_id(u8 *dist, u64 value, size_t size)
-+{
-+	int shift;
-+
-+	for (shift = size - 1; shift >= 0; shift--, dist++)
-+		*dist = (u8)((value >> (8 * shift)) & 0xff);
-+}
-+
- static int nfit_test_cmd_get_config_size(struct nd_cmd_get_config_size *nd_cmd,
- 		unsigned int buf_len)
- {
-@@ -815,10 +823,11 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 0+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
--	dcr->serial_number = ~handle[0];
-+	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+	nfit_set_spd_id(dcr->serial_number, ~handle[0],
-+				sizeof(dcr->serial_number));
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -831,10 +840,11 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 1+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
--	dcr->serial_number = ~handle[1];
-+	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+	nfit_set_spd_id(dcr->serial_number, ~handle[1],
-+				sizeof(dcr->serial_number));
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -847,10 +857,11 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 2+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
--	dcr->serial_number = ~handle[2];
-+	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+	nfit_set_spd_id(dcr->serial_number, ~handle[2],
-+				sizeof(dcr->serial_number));
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -863,10 +874,11 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 3+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
--	dcr->serial_number = ~handle[3];
-+	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+	nfit_set_spd_id(dcr->serial_number, ~handle[3],
-+				sizeof(dcr->serial_number));
- 	dcr->windows = 1;
- 	dcr->window_size = DCR_SIZE;
- 	dcr->command_offset = 0;
-@@ -959,10 +971,11 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 		dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 		dcr->region_index = 4+1;
--		dcr->vendor_id = 0xabcd;
--		dcr->device_id = 0;
--		dcr->revision_id = 1;
--		dcr->serial_number = ~handle[4];
-+		nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+		nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+		nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+		nfit_set_spd_id(dcr->serial_number, ~handle[4],
-+					sizeof(dcr->serial_number));
- 		dcr->windows = 1;
- 		dcr->window_size = DCR_SIZE;
- 		dcr->command_offset = 0;
-@@ -1128,11 +1141,12 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 0+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
--	dcr->serial_number = ~0;
--	dcr->code = 0x201;
-+	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
-+	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
-+	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
-+	nfit_set_spd_id(dcr->serial_number, ~0,
-+				sizeof(dcr->serial_number));
-+	nfit_set_spd_id(dcr->code, 0x201, sizeof(dcr->code));
- 	dcr->windows = 0;
- 	dcr->window_size = 0;
- 	dcr->command_offset = 0;
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
+> ---
+>  block/Kconfig  | 13 +++++++++++++
+>  fs/block_dev.c |  6 +++++-
+>  2 files changed, 18 insertions(+), 1 deletion(-)
+> 
+> diff --git a/block/Kconfig b/block/Kconfig
+> index 161491d..0363cd7 100644
+> --- a/block/Kconfig
+> +++ b/block/Kconfig
+> @@ -88,6 +88,19 @@ config BLK_DEV_INTEGRITY
+>  	T10/SCSI Data Integrity Field or the T13/ATA External Path
+>  	Protection.  If in doubt, say N.
+>  
+> +config BLK_DEV_DAX
+> +	bool "Block device DAX support"
+> +	depends on FS_DAX
+> +	depends on BROKEN
+> +	help
+> +	  When DAX support is available (CONFIG_FS_DAX) raw block
+> +	  devices can also support direct userspace access to the
+> +	  storage capacity via MMAP(2) similar to a file on a
+> +	  DAX-enabled filesystem.  However, the DAX I/O-path disables
+> +	  some standard I/O-statistics, and the MMAP(2) path has some
+> +	  operational differences due to bypassing the page
+> +	  cache.  If in doubt, say N.
+> +
+>  config BLK_DEV_THROTTLING
+>  	bool "Block layer bio throttling support"
+>  	depends on BLK_CGROUP=y
+> diff --git a/fs/block_dev.c b/fs/block_dev.c
+> index 39b3a17..31c6d10 100644
+> --- a/fs/block_dev.c
+> +++ b/fs/block_dev.c
+> @@ -1201,7 +1201,11 @@ static int __blkdev_get(struct block_device *bdev, fmode_t mode, int for_part)
+>  		bdev->bd_disk = disk;
+>  		bdev->bd_queue = disk->queue;
+>  		bdev->bd_contains = bdev;
+> -		bdev->bd_inode->i_flags = disk->fops->direct_access ? S_DAX : 0;
+> +		if (IS_ENABLED(CONFIG_BLK_DEV_DAX) && disk->fops->direct_access)
+> +			bdev->bd_inode->i_flags = S_DAX;
+> +		else
+> +			bdev->bd_inode->i_flags = 0;
+> +
+>  		if (!partno) {
+>  			ret = -ENXIO;
+>  			bdev->bd_part = disk_get_part(disk, partno);
+> -- 
+> 2.5.0
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
