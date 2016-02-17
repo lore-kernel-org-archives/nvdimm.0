@@ -1,64 +1,47 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Wed, 17 Feb 2016 22:34:50 +0100
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v3 3/6] ext4: Online defrag not supported with DAX
-Message-ID: <20160217213450.GI14140@quack.suse.cz>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 3/6] ext4: Online defrag not supported with DAX
+Date: Tue, 16 Feb 2016 20:34:16 -0700
+Message-Id: <1455680059-20126-4-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
 References: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
- <1455680059-20126-4-git-send-email-ross.zwisler@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1455680059-20126-4-git-send-email-ross.zwisler@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 16-02-16 20:34:16, Ross Zwisler wrote:
-> Online defrag operations for ext4 are hard coded to use the page cache.
-> See ext4_ioctl() -> ext4_move_extents() -> move_extent_per_page()
-> 
-> When combined with DAX I/O, which circumvents the page cache, this can
-> result in data corruption.  This was observed with xfstests ext4/307 and
-> ext4/308.
-> 
-> Fix this by only allowing online defrag for non-DAX files.
-> 
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Online defrag operations for ext4 are hard coded to use the page cache.
+See ext4_ioctl() -> ext4_move_extents() -> move_extent_per_page()
 
-We need to handle this eventually but for now we are fine. You can add:
+When combined with DAX I/O, which circumvents the page cache, this can
+result in data corruption.  This was observed with xfstests ext4/307 and
+ext4/308.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+Fix this by only allowing online defrag for non-DAX files.
 
-								Honza
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ fs/ext4/ioctl.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-> ---
->  fs/ext4/ioctl.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
-> index 0f6c369..e32c86f 100644
-> --- a/fs/ext4/ioctl.c
-> +++ b/fs/ext4/ioctl.c
-> @@ -583,6 +583,11 @@ group_extend_out:
->  				 "Online defrag not supported with bigalloc");
->  			err = -EOPNOTSUPP;
->  			goto mext_out;
-> +		} else if (IS_DAX(inode)) {
-> +			ext4_msg(sb, KERN_ERR,
-> +				 "Online defrag not supported with DAX");
-> +			err = -EOPNOTSUPP;
-> +			goto mext_out;
->  		}
->  
->  		err = mnt_want_write_file(filp);
-> -- 
-> 2.5.0
-> 
-> 
+diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
+index 0f6c369..e32c86f 100644
+--- a/fs/ext4/ioctl.c
++++ b/fs/ext4/ioctl.c
+@@ -583,6 +583,11 @@ group_extend_out:
+ 				 "Online defrag not supported with bigalloc");
+ 			err = -EOPNOTSUPP;
+ 			goto mext_out;
++		} else if (IS_DAX(inode)) {
++			ext4_msg(sb, KERN_ERR,
++				 "Online defrag not supported with DAX");
++			err = -EOPNOTSUPP;
++			goto mext_out;
+ 		}
+ 
+ 		err = mnt_want_write_file(filp);
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.5.0
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
