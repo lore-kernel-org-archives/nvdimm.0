@@ -1,194 +1,184 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 2/8] libnvdimm: protect nvdimm_{bus|namespace}_add_poison()
- with nvdimm_bus_lock()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 23 Feb 2016 18:17:08 -0800
-Message-ID: <20160224021708.22776.34242.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 03/10] lib/uuid: introduce few more generic helpers for UUID
+Date: Wed, 17 Feb 2016 14:17:21 +0200
+Message-Id: <1455711448-124103-4-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for making poison list retrieval asynchronus to region
-registration, add protection for walking and mutating the bus-level
-poison list.
+There are new helpers in this patch:
 
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+uuid_is_valid		checks if a UUID is valid
+uuid_be_to_bin		converts from string to binary (big endian)
+uuid_le_to_bin		converts from string to binary (little endian)
+
+They will be used in future, i.e. in the following patches in the series.
+
+This also moves indices arrays to lib/uuid.c to be shared accross modules.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/nvdimm/core.c |  101 +++++++++++++++++++++++++++++++------------------
- 1 file changed, 63 insertions(+), 38 deletions(-)
+ include/linux/uuid.h | 13 ++++++++++
+ lib/uuid.c           | 70 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ lib/vsprintf.c       |  9 +++----
+ 3 files changed, 87 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 2e2832b83c93..f309e6bf6833 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -408,33 +408,11 @@ static void __add_badblock_range(struct badblocks *bb, u64 ns_offset, u64 len)
- 		set_badblock(bb, start_sector, num_sectors);
- }
+diff --git a/include/linux/uuid.h b/include/linux/uuid.h
+index 91c2b6d..616347f 100644
+--- a/include/linux/uuid.h
++++ b/include/linux/uuid.h
+@@ -22,6 +22,11 @@
  
--/**
-- * nvdimm_namespace_add_poison() - Convert a list of poison ranges to badblocks
-- * @ndns:	the namespace containing poison ranges
-- * @bb:		badblocks instance to populate
-- * @offset:	offset at the start of the namespace before 'sector 0'
-- *
-- * The poison list generated during NFIT initialization may contain multiple,
-- * possibly overlapping ranges in the SPA (System Physical Address) space.
-- * Compare each of these ranges to the namespace currently being initialized,
-- * and add badblocks to the gendisk for all matching sub-ranges
-- */
--void nvdimm_namespace_add_poison(struct nd_namespace_common *ndns,
--		struct badblocks *bb, resource_size_t offset)
-+static void namespace_add_poison(struct list_head *poison_list,
-+		struct badblocks *bb, struct resource *res)
+ #include <uapi/linux/uuid.h>
+ 
++/*
++ * The length of a UUID string ("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
++ * not including trailing NUL.
++ */
++#define	UUID_STRING_LEN		36
+ 
+ static inline int uuid_le_cmp(const uuid_le u1, const uuid_le u2)
  {
--	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
--	struct nd_region *nd_region = to_nd_region(ndns->dev.parent);
--	struct nvdimm_bus *nvdimm_bus;
--	struct list_head *poison_list;
--	u64 ns_start, ns_end, ns_size;
- 	struct nd_poison *pl;
+@@ -38,4 +43,12 @@ void generate_random_uuid(unsigned char uuid[16]);
+ extern void uuid_le_gen(uuid_le *u);
+ extern void uuid_be_gen(uuid_be *u);
  
--	ns_size = nvdimm_namespace_capacity(ndns) - offset;
--	ns_start = nsio->res.start + offset;
--	ns_end = nsio->res.end;
--
--	nvdimm_bus = to_nvdimm_bus(nd_region->dev.parent);
--	poison_list = &nvdimm_bus->poison_list;
- 	if (list_empty(poison_list))
- 		return;
++int __must_check uuid_is_valid(const char *uuid);
++
++extern const u8 uuid_le_index[16];
++extern const u8 uuid_be_index[16];
++
++int uuid_le_to_bin(const char *uuid, uuid_le *u);
++int uuid_be_to_bin(const char *uuid, uuid_be *u);
++
+ #endif
+diff --git a/lib/uuid.c b/lib/uuid.c
+index 6c81c0b..995865c 100644
+--- a/lib/uuid.c
++++ b/lib/uuid.c
+@@ -19,10 +19,17 @@
+  */
  
-@@ -442,37 +420,69 @@ void nvdimm_namespace_add_poison(struct nd_namespace_common *ndns,
- 		u64 pl_end = pl->start + pl->length - 1;
+ #include <linux/kernel.h>
++#include <linux/ctype.h>
++#include <linux/errno.h>
+ #include <linux/export.h>
+ #include <linux/uuid.h>
+ #include <linux/random.h>
  
- 		/* Discard intervals with no intersection */
--		if (pl_end < ns_start)
-+		if (pl_end < res->start)
- 			continue;
--		if (pl->start > ns_end)
-+		if (pl->start >  res->end)
- 			continue;
- 		/* Deal with any overlap after start of the namespace */
--		if (pl->start >= ns_start) {
-+		if (pl->start >= res->start) {
- 			u64 start = pl->start;
- 			u64 len;
- 
--			if (pl_end <= ns_end)
-+			if (pl_end <= res->end)
- 				len = pl->length;
- 			else
--				len = ns_start + ns_size - pl->start;
--			__add_badblock_range(bb, start - ns_start, len);
-+				len = res->start + resource_size(res)
-+					- pl->start;
-+			__add_badblock_range(bb, start - res->start, len);
- 			continue;
- 		}
- 		/* Deal with overlap for poison starting before the namespace */
--		if (pl->start < ns_start) {
-+		if (pl->start < res->start) {
- 			u64 len;
- 
--			if (pl_end < ns_end)
--				len = pl->start + pl->length - ns_start;
-+			if (pl_end < res->end)
-+				len = pl->start + pl->length - res->start;
- 			else
--				len = ns_size;
-+				len = resource_size(res);
- 			__add_badblock_range(bb, 0, len);
- 		}
- 	}
++const u8 uuid_le_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
++EXPORT_SYMBOL(uuid_le_index);
++const u8 uuid_be_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
++EXPORT_SYMBOL(uuid_be_index);
++
+ /***************************************************************
+  * Random UUID interface
+  *
+@@ -65,3 +72,66 @@ void uuid_be_gen(uuid_be *bu)
+ 	bu->b[6] = (bu->b[6] & 0x0F) | 0x40;
  }
+ EXPORT_SYMBOL_GPL(uuid_be_gen);
 +
 +/**
-+ * nvdimm_namespace_add_poison() - Convert a list of poison ranges to badblocks
-+ * @ndns:	the namespace containing poison ranges
-+ * @bb:		badblocks instance to populate
-+ * @offset:	offset at the start of the namespace before 'sector 0'
-+ *
-+ * The poison list generated during NFIT initialization may contain multiple,
-+ * possibly overlapping ranges in the SPA (System Physical Address) space.
-+ * Compare each of these ranges to the namespace currently being initialized,
-+ * and add badblocks to the gendisk for all matching sub-ranges
-+ */
-+void nvdimm_namespace_add_poison(struct nd_namespace_common *ndns,
-+		struct badblocks *bb, resource_size_t offset)
++  * uuid_is_valid - checks if UUID string valid
++  * @uuid:	UUID string to check
++  *
++  * Description:
++  * It checks if the UUID string is following the format:
++  *	xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
++  * where x is a hex digit.
++  *
++  * Return: 0 on success, %-EINVAL otherwise.
++  */
++int uuid_is_valid(const char *uuid)
 +{
-+	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
-+	struct nd_region *nd_region = to_nd_region(ndns->dev.parent);
-+	struct nvdimm_bus *nvdimm_bus;
-+	struct list_head *poison_list;
-+	struct resource res = {
-+		.start = nsio->res.start + offset,
-+		.end = nsio->res.end,
-+	};
++	unsigned int i;
 +
-+	nvdimm_bus = to_nvdimm_bus(nd_region->dev.parent);
-+	poison_list = &nvdimm_bus->poison_list;
++	if (strnlen(uuid, UUID_STRING_LEN) < UUID_STRING_LEN)
++		return -EINVAL;
 +
-+	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	namespace_add_poison(poison_list, bb, &res);
-+	nvdimm_bus_unlock(&nvdimm_bus->dev);
++	for (i = 0; i < UUID_STRING_LEN; i++) {
++		if (i == 8 || i == 13 || i == 18 || i == 23) {
++			if (uuid[i] != '-')
++				return -EINVAL;
++		} else if (!isxdigit(uuid[i])) {
++			return -EINVAL;
++		}
++	}
++
++	return 0;
 +}
- EXPORT_SYMBOL_GPL(nvdimm_namespace_add_poison);
- 
--static int __add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
-+static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- {
- 	struct nd_poison *pl;
- 
-@@ -487,12 +497,12 @@ static int __add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- 	return 0;
- }
- 
--int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
-+static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- {
- 	struct nd_poison *pl;
- 
- 	if (list_empty(&nvdimm_bus->poison_list))
--		return __add_poison(nvdimm_bus, addr, length);
-+		return add_poison(nvdimm_bus, addr, length);
- 
- 	/*
- 	 * There is a chance this is a duplicate, check for those first.
-@@ -512,7 +522,18 @@ int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- 	 * as any overlapping ranges will get resolved when the list is consumed
- 	 * and converted to badblocks
- 	 */
--	return __add_poison(nvdimm_bus, addr, length);
-+	return add_poison(nvdimm_bus, addr, length);
++EXPORT_SYMBOL(uuid_is_valid);
++
++static int __uuid_to_bin(const char *uuid, __u8 b[16], const u8 ei[16])
++{
++	static const u8 si[16] = {0,2,4,6,9,11,14,16,19,21,24,26,28,30,32,34};
++	unsigned int i;
++	int ret;
++
++	ret = uuid_is_valid(uuid);
++	if (ret)
++		return ret;
++
++	for (i = 0; i < 16; i++) {
++		int hi = hex_to_bin(uuid[si[i]] + 0);
++		int lo = hex_to_bin(uuid[si[i]] + 1);
++
++		b[ei[i]] = (hi << 4) | lo;
++	}
++
++	return 0;
 +}
 +
-+int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
++int uuid_le_to_bin(const char *uuid, uuid_le *u)
 +{
-+	int rc;
++	return __uuid_to_bin(uuid, u->b, uuid_le_index);
++}
++EXPORT_SYMBOL(uuid_le_to_bin);
 +
-+	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	rc = bus_add_poison(nvdimm_bus, addr, length);
-+	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+
-+	return rc;
- }
- EXPORT_SYMBOL_GPL(nvdimm_bus_add_poison);
++int uuid_be_to_bin(const char *uuid, uuid_be *u)
++{
++	return __uuid_to_bin(uuid, u->b, uuid_be_index);
++}
++EXPORT_SYMBOL(uuid_be_to_bin);
+diff --git a/lib/vsprintf.c b/lib/vsprintf.c
+index 17d976b..752e78d 100644
+--- a/lib/vsprintf.c
++++ b/lib/vsprintf.c
+@@ -30,6 +30,7 @@
+ #include <linux/ioport.h>
+ #include <linux/dcache.h>
+ #include <linux/cred.h>
++#include <linux/uuid.h>
+ #include <net/addrconf.h>
+ #ifdef CONFIG_BLOCK
+ #include <linux/blkdev.h>
+@@ -1304,19 +1305,17 @@ static noinline_for_stack
+ char *uuid_string(char *buf, char *end, const u8 *addr,
+ 		  struct printf_spec spec, const char *fmt)
+ {
+-	char uuid[sizeof("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")];
++	char uuid[UUID_STRING_LEN + 1];
+ 	char *p = uuid;
+ 	int i;
+-	static const u8 be[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+-	static const u8 le[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
+-	const u8 *index = be;
++	const u8 *index = uuid_be_index;
+ 	bool uc = false;
  
-@@ -553,7 +574,11 @@ void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus)
- 
- 	nd_synchronize();
- 	device_for_each_child(&nvdimm_bus->dev, NULL, child_unregister);
-+
-+	nvdimm_bus_lock(&nvdimm_bus->dev);
- 	free_poison_list(&nvdimm_bus->poison_list);
-+	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+
- 	nvdimm_bus_destroy_ndctl(nvdimm_bus);
- 
- 	device_unregister(&nvdimm_bus->dev);
+ 	switch (*(++fmt)) {
+ 	case 'L':
+ 		uc = true;		/* fall-through */
+ 	case 'l':
+-		index = le;
++		index = uuid_le_index;
+ 		break;
+ 	case 'B':
+ 		uc = true;
+-- 
+2.7.0
