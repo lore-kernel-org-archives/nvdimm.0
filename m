@@ -1,78 +1,52 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 09/10] efi: redefine type, constant, macro from generic code
-Date: Wed, 17 Feb 2016 14:17:27 +0200
-Message-Id: <1455711448-124103-10-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+MIME-Version: 1.0
+In-Reply-To: <20160217215420.GK14140@quack.suse.cz>
+References: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
+	<1455680059-20126-7-git-send-email-ross.zwisler@linux.intel.com>
+	<20160217215420.GK14140@quack.suse.cz>
+Date: Wed, 17 Feb 2016 14:18:13 -0800
+Message-ID: <CAPcyv4g3iCL1q7FoeTwKvtqo2mLfA=mfi1K5PdmZVjU+PA-gOA@mail.gmail.com>
+Subject: Re: [PATCH v3 6/6] block: use dax_do_io() if blkdev_dax_capable()
+From: Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Sender: owner-linux-mm@kvack.org
+To: Jan Kara <jack@suse.cz>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4 <linux-ext4@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, XFS Developers <xfs@oss.sgi.com>, Jens Axboe <axboe@fb.com>, Al Viro <viro@ftp.linux.org.uk>, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Generic UUID library defines structure type, macro to define UUID, and the
-length of the UUID string. This patch removes duplicate data structure
-definition, UUID string length constant  as well as macro for UUID handling.
+On Wed, Feb 17, 2016 at 1:54 PM, Jan Kara <jack@suse.cz> wrote:
+> On Tue 16-02-16 20:34:19, Ross Zwisler wrote:
+>> From: Dan Williams <dan.j.williams@intel.com>
+>>
+>> Setting S_DAX on an inode requires that the inode participate in the
+>> DAX-fsync mechanism which expects to use the pagecache for tracking
+>> potentially dirty cpu cachelines.  However, dax_do_io() participates in
+>> the standard pagecache sync semantics and arranges for dirty pages to be
+>> flushed through the driver when a direct-IO operation accesses the same
+>> ranges.
+>>
+>> It should always be valid to use the dax_do_io() path regardless of
+>> whether the block_device inode has S_DAX set.  In either case dirty
+>> pages or dirty cachelines are made durable before the direct-IO
+>> operation proceeds.
+>
+> Please no. I agree that going via DAX path for normal likely won't
+> introduce new data corruption issues. But I dislike having a special
+> case for block devices. Also you have no way of turning DAX off for block
+> devices AFAIU and as Dave said, DAX should be opt-in, not opt-out. Note
+> that you may actually want to go through the block layer for normal IO e.g.
+> because you use IO cgroups to limit processes so using DAX regresses some
+> functionality.
+>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- include/linux/efi.h  | 14 ++++----------
- include/linux/uuid.h |  2 +-
- 2 files changed, 5 insertions(+), 11 deletions(-)
+Sounds good.
 
-diff --git a/include/linux/efi.h b/include/linux/efi.h
-index 3c6cbbd..1a0dad5 100644
---- a/include/linux/efi.h
-+++ b/include/linux/efi.h
-@@ -21,6 +21,7 @@
- #include <linux/pfn.h>
- #include <linux/pstore.h>
- #include <linux/reboot.h>
-+#include <linux/uuid.h>
- 
- #include <asm/page.h>
- 
-@@ -43,17 +44,10 @@ typedef u16 efi_char16_t;		/* UNICODE character */
- typedef u64 efi_physical_addr_t;
- typedef void *efi_handle_t;
- 
--
--typedef struct {
--	u8 b[16];
--} efi_guid_t;
-+typedef uuid_le efi_guid_t;
- 
- #define EFI_GUID(a,b,c,d0,d1,d2,d3,d4,d5,d6,d7) \
--((efi_guid_t) \
--{{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
--  (b) & 0xff, ((b) >> 8) & 0xff, \
--  (c) & 0xff, ((c) >> 8) & 0xff, \
--  (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
-+	UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)
- 
- /*
-  * Generic EFI table header
-@@ -1025,7 +1019,7 @@ efi_reboot(enum reboot_mode reboot_mode, const char *__unused) {}
-  * Length of a GUID string (strlen("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
-  * not including trailing NUL
-  */
--#define EFI_VARIABLE_GUID_LEN 36
-+#define EFI_VARIABLE_GUID_LEN	UUID_STRING_LEN
- 
- /*
-  * The type of search to perform when calling boottime->locate_handle
-diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index 6bd40d0..bb778a4 100644
---- a/include/linux/uuid.h
-+++ b/include/linux/uuid.h
-@@ -20,7 +20,7 @@
- 
- /*
-  * The length of a UUID string ("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
-- * not including trailing NUL.
-+ * excluding trailing NUL.
-  */
- #define	UUID_STRING_LEN		36
- 
--- 
-2.7.0
+As Ross mentioned in the cover letter, I'm fine with dropping this one
+for now as we think through how to restore raw device DAX support.  In
+the meantime we can still force CONFIG_BLK_DEV_DAX=y for testing.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
