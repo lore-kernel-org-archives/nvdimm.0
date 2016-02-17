@@ -1,8 +1,8 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 10/10] efivars: use generic UUID library
-Date: Wed, 17 Feb 2016 14:17:28 +0200
-Message-Id: <1455711448-124103-11-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 07/10] sysctl: drop away useless label
+Date: Wed, 17 Feb 2016 14:17:25 +0200
+Message-Id: <1455711448-124103-8-git-send-email-andriy.shevchenko@linux.intel.com>
 In-Reply-To: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
 References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -10,85 +10,53 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Instead of opencoding let's use generic UUID library functions here.
+We have no locking in bin_uuid(). Thus, we may remove the out label and use
+return statements directly.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- fs/efivarfs/inode.c | 40 +++-------------------------------------
- 1 file changed, 3 insertions(+), 37 deletions(-)
+ kernel/sysctl_binary.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/fs/efivarfs/inode.c b/fs/efivarfs/inode.c
-index 3381b9d..b579e3a 100644
---- a/fs/efivarfs/inode.c
-+++ b/fs/efivarfs/inode.c
-@@ -11,6 +11,7 @@
- #include <linux/fs.h>
- #include <linux/ctype.h>
- #include <linux/slab.h>
-+#include <linux/uuid.h>
+diff --git a/kernel/sysctl_binary.c b/kernel/sysctl_binary.c
+index 7e7746a..509abe4 100644
+--- a/kernel/sysctl_binary.c
++++ b/kernel/sysctl_binary.c
+@@ -1123,15 +1123,14 @@ static ssize_t bin_uuid(struct file *file,
  
- #include "internal.h"
+ 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
+ 		if (result < 0)
+-			goto out;
++			return result;
  
-@@ -44,11 +45,7 @@ struct inode *efivarfs_get_inode(struct super_block *sb,
-  */
- bool efivarfs_valid_name(const char *str, int len)
- {
--	static const char dashes[EFI_VARIABLE_GUID_LEN] = {
--		[8] = 1, [13] = 1, [18] = 1, [23] = 1
--	};
- 	const char *s = str + len - EFI_VARIABLE_GUID_LEN;
--	int i;
+ 		buf[result] = '\0';
  
- 	/*
- 	 * We need a GUID, plus at least one letter for the variable name,
-@@ -66,37 +63,7 @@ bool efivarfs_valid_name(const char *str, int len)
- 	 *
- 	 *	12345678-1234-1234-1234-123456789abc
- 	 */
--	for (i = 0; i < EFI_VARIABLE_GUID_LEN; i++) {
--		if (dashes[i]) {
--			if (*s++ != '-')
--				return false;
--		} else {
--			if (!isxdigit(*s++))
--				return false;
--		}
--	}
--
--	return true;
--}
--
--static void efivarfs_hex_to_guid(const char *str, efi_guid_t *guid)
--{
--	guid->b[0] = hex_to_bin(str[6]) << 4 | hex_to_bin(str[7]);
--	guid->b[1] = hex_to_bin(str[4]) << 4 | hex_to_bin(str[5]);
--	guid->b[2] = hex_to_bin(str[2]) << 4 | hex_to_bin(str[3]);
--	guid->b[3] = hex_to_bin(str[0]) << 4 | hex_to_bin(str[1]);
--	guid->b[4] = hex_to_bin(str[11]) << 4 | hex_to_bin(str[12]);
--	guid->b[5] = hex_to_bin(str[9]) << 4 | hex_to_bin(str[10]);
--	guid->b[6] = hex_to_bin(str[16]) << 4 | hex_to_bin(str[17]);
--	guid->b[7] = hex_to_bin(str[14]) << 4 | hex_to_bin(str[15]);
--	guid->b[8] = hex_to_bin(str[19]) << 4 | hex_to_bin(str[20]);
--	guid->b[9] = hex_to_bin(str[21]) << 4 | hex_to_bin(str[22]);
--	guid->b[10] = hex_to_bin(str[24]) << 4 | hex_to_bin(str[25]);
--	guid->b[11] = hex_to_bin(str[26]) << 4 | hex_to_bin(str[27]);
--	guid->b[12] = hex_to_bin(str[28]) << 4 | hex_to_bin(str[29]);
--	guid->b[13] = hex_to_bin(str[30]) << 4 | hex_to_bin(str[31]);
--	guid->b[14] = hex_to_bin(str[32]) << 4 | hex_to_bin(str[33]);
--	guid->b[15] = hex_to_bin(str[34]) << 4 | hex_to_bin(str[35]);
-+	return uuid_is_valid(s);
+ 		/* Convert the uuid to from a string to binary */
+ 		for (i = 0; i < 16; i++) {
+-			result = -EIO;
+ 			if (!isxdigit(str[0]) || !isxdigit(str[1]))
+-				goto out;
++				return -EIO;
+ 
+ 			uuid[i] = (hex_to_bin(str[0]) << 4) |
+ 					hex_to_bin(str[1]);
+@@ -1143,15 +1142,12 @@ static ssize_t bin_uuid(struct file *file,
+ 		if (oldlen > 16)
+ 			oldlen = 16;
+ 
+-		result = -EFAULT;
+ 		if (copy_to_user(oldval, uuid, oldlen))
+-			goto out;
++			return -EFAULT;
+ 
+ 		copied = oldlen;
+ 	}
+-	result = copied;
+-out:
+-	return result;
++	return copied;
  }
  
- static int efivarfs_create(struct inode *dir, struct dentry *dentry,
-@@ -122,8 +89,7 @@ static int efivarfs_create(struct inode *dir, struct dentry *dentry,
- 	/* length of the variable name itself: remove GUID and separator */
- 	namelen = dentry->d_name.len - EFI_VARIABLE_GUID_LEN - 1;
- 
--	efivarfs_hex_to_guid(dentry->d_name.name + namelen + 1,
--			&var->var.VendorGuid);
-+	uuid_le_to_bin(dentry->d_name.name + namelen + 1, &var->var.VendorGuid);
- 
- 	for (i = 0; i < namelen; i++)
- 		var->var.VariableName[i] = dentry->d_name.name[i];
+ static ssize_t bin_dn_node_address(struct file *file,
 -- 
 2.7.0
