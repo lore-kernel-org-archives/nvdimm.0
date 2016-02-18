@@ -1,65 +1,128 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH] kvm: do not SetPageDirty from kvm_set_pfn_dirty for file
- mappings
-From: Maxim Patlasov <mpatlasov@virtuozzo.com>
-Date: Thu, 11 Feb 2016 10:13:29 -0800
-Message-ID: <20160211181306.7864.44244.stgit@maxim-thinkpad>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v3] x86/mm/vmfault: Make vmalloc_fault() handle large pages
+Date: Wed, 17 Feb 2016 18:16:54 -0700
+Message-Id: <1455758214-24623-1-git-send-email-toshi.kani@hpe.com>
 Sender: owner-linux-mm@kvack.org
-To: pbonzini@redhat.com
-Cc: kvm@vger.kernel.org, linux-nvdimm@lists.01.org, gleb@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, devel@openvz.org
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, bp@alien8.de
+Cc: henning.schild@siemens.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The patch solves the following problem: file system specific routines
-involved in ordinary routine writeback process BUG_ON page_buffers()
-because a page goes to writeback without buffer-heads attached.
+A kernel page fault oops with the callstack below was observed
+when a read syscall was made to a pmem device after a huge amount
+(>512GB) of vmalloc ranges was allocated by ioremap() on a x86_64
+system.
 
-The way how kvm_set_pfn_dirty calls SetPageDirty works only for anon
-mappings. For file mappings it is obviously incorrect - there page_mkwrite
-must be called. It's not easy to add page_mkwrite call to kvm_set_pfn_dirty
-because there is no universal way to find vma by pfn. But actually
-SetPageDirty may be simply skipped in those cases. Below is a
-justification.
+  vmalloc_fault
+  __do_page_fault
+  do_page_fault
+  page_fault
+  pmem_rw_bytes [nd_pmem]
+  btt_log_read [nd_btt]
+    :
+  SyS_finit_module
+  entry_SYSCALL_64_fastpath
 
-When guest modifies the content of a page with file mapping, kernel kvm
-makes the page dirty by the following call-path:
+Since 4.1, ioremap() supports large page (pud/pmd) mappings in
+x86_64 and PAE.  vmalloc_fault() however assumes that the vmalloc
+range is limited to pte mappings.
 
-vmx_handle_exit ->
- handle_ept_violation ->
-  __get_user_pages ->
-   page_mkwrite ->
-    SetPageDirty
+vmalloc faults do not normally happen in ioremap'd ranges since
+ioremap() sets up the kernel page tables, which are shared by
+user processes.  pgd_ctor() sets the kernel's pgd entries to
+user's during fork().  When allocation of the vmalloc ranges
+crosses a 512GB boundary, ioremap() allocates a new pud table
+and updates the kernel pgd entry to point it.  If user process's
+pgd entry does not have this update yet, a read/write syscall
+to the range will cause a vmalloc fault, which hits the Oops
+above as it does not handle a large page properly.
 
-Since then, the page is dirty from both guest and host point of view. Then
-the host makes writeback and marks the page as write-protected. So any
-further write from the guest triggers call-path above again.
+Following changes are made to vmalloc_fault().
 
-So, for file mappings, it's not possible to have new data written to a page
-inside the guest w/o corresponding SetPageDirty on the host.
+64-bit:
+- No change for the pgd sync operation as it handles large
+  pages already.
+- Add pud_huge() and pmd_huge() to the validation code to
+  handle large pages.
+- Change pud_page_vaddr() to pud_pfn() since an ioremap range
+  is not directly mapped (while the if-statement still works
+  with a bogus addr).
+- Change pmd_page() to pmd_pfn() since an ioremap range is not
+  backed by struct page (while the if-statement still works
+  with a bogus addr).
 
-This makes explicit SetPageDirty from kvm_set_pfn_dirty redundant.
+32-bit:
+- No change for the sync operation since the index3 pgd entry
+  covers the entire vmalloc range, which is always valid.
+  (A separate change to sync pgd entry is necessary if this
+   memory layout is changed regardless of the page size.)
+- Add pmd_huge() to the validation code to handle large pages.
+  This is for completeness since vmalloc_fault() won't happen
+  in ioremap'd ranges as its pgd entry is always valid.
 
-Signed-off-by: Maxim Patlasov <mpatlasov@virtuozzo.com>
+Reported-by: Henning Schild <henning.schild@siemens.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: <stable@vger.kernel.org> # 4.1+
 ---
- virt/kvm/kvm_main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+v3: Remove addresses from the callstack, and add cc to stable.
+v2: Add more descriptions about the issue in the change log.
+---
+ arch/x86/mm/fault.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
-index a11cfd2..5a7d3fa 100644
---- a/virt/kvm/kvm_main.c
-+++ b/virt/kvm/kvm_main.c
-@@ -1582,7 +1582,8 @@ void kvm_set_pfn_dirty(kvm_pfn_t pfn)
- 	if (!kvm_is_reserved_pfn(pfn)) {
- 		struct page *page = pfn_to_page(pfn);
+diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
+index eef44d9..e830c71 100644
+--- a/arch/x86/mm/fault.c
++++ b/arch/x86/mm/fault.c
+@@ -287,6 +287,9 @@ static noinline int vmalloc_fault(unsigned long address)
+ 	if (!pmd_k)
+ 		return -1;
  
--		if (!PageReserved(page))
-+		if (!PageReserved(page) &&
-+		    (!page->mapping || PageAnon(page)))
- 			SetPageDirty(page);
- 	}
- }
++	if (pmd_huge(*pmd_k))
++		return 0;
++
+ 	pte_k = pte_offset_kernel(pmd_k, address);
+ 	if (!pte_present(*pte_k))
+ 		return -1;
+@@ -360,8 +363,6 @@ void vmalloc_sync_all(void)
+  * 64-bit:
+  *
+  *   Handle a fault on the vmalloc area
+- *
+- * This assumes no large pages in there.
+  */
+ static noinline int vmalloc_fault(unsigned long address)
+ {
+@@ -403,17 +404,23 @@ static noinline int vmalloc_fault(unsigned long address)
+ 	if (pud_none(*pud_ref))
+ 		return -1;
+ 
+-	if (pud_none(*pud) || pud_page_vaddr(*pud) != pud_page_vaddr(*pud_ref))
++	if (pud_none(*pud) || pud_pfn(*pud) != pud_pfn(*pud_ref))
+ 		BUG();
+ 
++	if (pud_huge(*pud))
++		return 0;
++
+ 	pmd = pmd_offset(pud, address);
+ 	pmd_ref = pmd_offset(pud_ref, address);
+ 	if (pmd_none(*pmd_ref))
+ 		return -1;
+ 
+-	if (pmd_none(*pmd) || pmd_page(*pmd) != pmd_page(*pmd_ref))
++	if (pmd_none(*pmd) || pmd_pfn(*pmd) != pmd_pfn(*pmd_ref))
+ 		BUG();
+ 
++	if (pmd_huge(*pmd))
++		return 0;
++
+ 	pte_ref = pte_offset_kernel(pmd_ref, address);
+ 	if (!pte_present(*pte_ref))
+ 		return -1;
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
