@@ -1,38 +1,59 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: Dmitry Monakhov <dmonakhov@openvz.org>
+Date: Thu, 18 Feb 2016 11:12:23 +1100
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH v3 3/6] ext4: Online defrag not supported with DAX
+Message-ID: <20160218001223.GJ19486@dastard>
+References: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1455680059-20126-4-git-send-email-ross.zwisler@linux.intel.com>
+ <20160217215037.GB30126@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-Subject: [PATCH] dax: dirty inode only if required
-In-Reply-To: 1450899560-26708-5-git-send-email-ross.zwisler@linux.intel.com
-Date: Thu, 04 Feb 2016 17:02:02 +0300
-Message-ID: <87k2mkr2ud.fsf@openvz.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160217215037.GB30126@linux.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, XFS Developers <xfs@oss.sgi.com>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Wed, Feb 17, 2016 at 02:50:37PM -0700, Ross Zwisler wrote:
+> On Tue, Feb 16, 2016 at 08:34:16PM -0700, Ross Zwisler wrote:
+> > Online defrag operations for ext4 are hard coded to use the page cache.
+> > See ext4_ioctl() -> ext4_move_extents() -> move_extent_per_page()
+> > 
+> > When combined with DAX I/O, which circumvents the page cache, this can
+> > result in data corruption.  This was observed with xfstests ext4/307 and
+> > ext4/308.
+> > 
+> > Fix this by only allowing online defrag for non-DAX files.
+> 
+> Jan,
+> 
+> Thinking about this a bit more, it's probably the case that the data
+> corruption I was observing was due to us skipping the writeback of the dirty
+> page cache pages because S_DAX was set.
+> 
+> I do think we have a problem with defrag because it is doing the extent
+> swapping using the page cache, and we won't flush the dirty pages due to
+> S_DAX being set.
+> 
+> This patch is the quick and easy answer, and is perhaps appropriate for v4.5.
+> 
+> Looking forward, though, what do you think the correct solution is?  Making an
+> extent swapper that doesn't use the page cache (as I believe XFS has? see
+> xfs_swap_extents()),
 
-Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
----
- fs/dax.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+XFS does the data copy in userspace using direct IO so we don't
+care about whether DAX is enabled or not on either the source or
+destination inode. i.e. xfs_swap_extents() is a pure
+metadata operation, swapping the entire extent tree between two
+inodes if the source data has not changed while the copy was in
+progress.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index e0e9358..fc2e314 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -358,7 +358,8 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
- 	void *entry;
- 
- 	WARN_ON_ONCE(pmd_entry && !dirty);
--	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
-+	if (dirty)
-+		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
- 
- 	spin_lock_irq(&mapping->tree_lock);
- 
+Cheers,
+
+Dave.
 -- 
-1.8.3.1
+Dave Chinner
+david@fromorbit.com
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
