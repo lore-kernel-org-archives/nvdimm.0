@@ -1,55 +1,58 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 7535E1A1DF3
- for <linux-nvdimm@lists.01.org>; Fri, 26 Feb 2016 06:11:02 -0800 (PST)
-Message-ID: <1456495897.13244.144.camel@linux.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Thu, 18 Feb 2016 13:07:54 +0200
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 Subject: Re: [PATCH v1 06/10] device property: switch to use UUID API
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Date: Fri, 26 Feb 2016 16:11:37 +0200
-In-Reply-To: <7544228.v4QPX4F7J7@vostro.rjw.lan>
+Message-ID: <20160218110754.GG1742@lahna.fi.intel.com>
 References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
  <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
- <7544228.v4QPX4F7J7@vostro.rjw.lan>
-Mime-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-efi@vger.kernel.org, David Airlie <airlied@linux.ie>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, dri-devel@lists.freedesktop.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Mathias Nyman <mathias.nyman@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCAyMDE2LTAyLTE4IGF0IDAxOjAzICswMTAwLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90
-ZToKPiBPbiBXZWRuZXNkYXksIEZlYnJ1YXJ5IDE3LCAyMDE2IDAyOjE3OjI0IFBNIEFuZHkgU2hl
-dmNoZW5rbyB3cm90ZToKPiA+IFN3aXRjaCB0byB1c2UgYSBnZW5lcmljIFVVSUQgQVBJIGluc3Rl
-YWQgb2YgY3VzdG9tIGFwcHJvYWNoLiBJdAo+ID4gYWxsb3dzIHRvCj4gPiBkZWZpbmUgVVVJRHMs
-IGNvbXBhcmUgdGhlbSwgYW5kIHZhbGlkYXRlLgoKW10KCj4gPiArc3RhdGljIGNvbnN0IHV1aWRf
-bGUgYWRzX3V1aWQgPQo+ID4gKwlVVUlEX0xFKDB4ZGJiOGUzZTYsIDB4NTg4NiwgMHg0YmE2LAo+
-ID4gKwkJMHg4NywgMHg5NSwgMHgxMywgMHgxOSwgMHhmNSwgMHgyYSwgMHg5NiwgMHg2Yik7Cj4g
-PiDCoAo+ID4gwqBzdGF0aWMgYm9vbCBhY3BpX2VudW1lcmF0ZV9ub25kZXZfc3Vibm9kZXMoYWNw
-aV9oYW5kbGUgc2NvcGUsCj4gPiDCoAkJCQkJwqDCoMKgY29uc3QgdW5pb24gYWNwaV9vYmplY3QK
-PiA+ICpkZXNjLAo+ID4gQEAgLTEzOCw3ICsxMzYsNyBAQCBzdGF0aWMgYm9vbAo+ID4gYWNwaV9l
-bnVtZXJhdGVfbm9uZGV2X3N1Ym5vZGVzKGFjcGlfaGFuZGxlIHNjb3BlLAo+ID4gwqAJCcKgwqDC
-oMKgfHwgbGlua3MtPnR5cGUgIT0gQUNQSV9UWVBFX1BBQ0tBR0UpCj4gPiDCoAkJCWJyZWFrOwo+
-ID4gwqAKPiA+IC0JCWlmIChtZW1jbXAodXVpZC0+YnVmZmVyLnBvaW50ZXIsIGFkc191dWlkLAo+
-ID4gc2l6ZW9mKGFkc191dWlkKSkpCj4gPiArCQlpZiAodXVpZF9sZV9jbXAoKih1dWlkX2xlICop
-dXVpZC0+YnVmZmVyLnBvaW50ZXIsCj4gPiBhZHNfdXVpZCkpCj4gCj4gTWF5YmUgaXQncyB0b28g
-bGF0ZSwgYnV0IEkgZG9uJ3QgcXVpdGUgdW5kZXJzdGFuZCB0aGUgcG9pbnRlcgo+IG1hbmlwdWxh
-dGlvbnMgaGVyZS4KPiAKPiBJIGNhbiBzZWUgd2h5IHlvdSBuZWVkIGEgdHlwZSBjb252ZXJzaW9u
-IChhbHRob3VnaCBpdCBsb29rcyB1Z2x5KSwKPiBidXQgd2h5IGRvIHlvdQo+IG5lZWQgdG8gZGVy
-ZWZlcmVuY2UgaXQgdG9vPwoKVGhlIGZ1bmN0aW9uIHRha2VzIHRoYXQga2luZCBvZiB0eXBlIG9u
-IGlucHV0LiBUaGUgb3RoZXIgdmFyaWFudHMgYXJlCm5vdCBjb21waWxlZC4KUGVyaGFwcyB3ZSBi
-ZXR0ZXIgY2hhbmdlIHV1aWRfe2xifWVfY21wKCkgZmlyc3QgdG8gdGFrZSBub3JtYWwKcG9pbnRl
-cnMsIHRob3VnaCBJIHRoaW5rIHRoZSBpbml0aWFsIGlkZWEgd2FzIHRvIGdldCB0eXBlIGNoZWNr
-aW5nIGF0CmNvbXBpbGUgdGltZS4KCi0tIApBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hl
-bmtvQGxpbnV4LmludGVsLmNvbT4KSW50ZWwgRmlubGFuZCBPeQoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
-aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
-dGluZm8vbGludXgtbnZkaW1tCg==
+On Wed, Feb 17, 2016 at 02:17:24PM +0200, Andy Shevchenko wrote:
+> Switch to use a generic UUID API instead of custom approach. It allows to
+> define UUIDs, compare them, and validate.
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/acpi/property.c | 18 ++++++++----------
+>  1 file changed, 8 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 2aee416..1e75305 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -25,15 +25,13 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
+>  					const union acpi_object **obj);
+>  
+>  /* ACPI _DSD device properties UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301 */
+> -static const u8 prp_uuid[16] = {
+> -	0x14, 0xd8, 0xff, 0xda, 0xba, 0x6e, 0x8c, 0x4d,
+> -	0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01
+> -};
+> +static const uuid_le prp_uuid =
+> +	UUID_LE(0xdaffd814, 0x6eba, 0x4d8c,
+> +		0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01);
+>  /* ACPI _DSD data subnodes UUID: dbb8e3e6-5886-4ba6-8795-1319f52a966b */
+> -static const u8 ads_uuid[16] = {
+> -	0xe6, 0xe3, 0xb8, 0xdb, 0x86, 0x58, 0xa6, 0x4b,
+> -	0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b
+> -};
+> +static const uuid_le ads_uuid =
+> +	UUID_LE(0xdbb8e3e6, 0x5886, 0x4ba6,
+> +		0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b);
+
+This looks better than the original but it is still not too readable.
+
+I think it would be better to have uuid as string like:
+
+static const char *ads_uuid = "dbb8e3e6-5886-4ba6-8795-1319f52a966b";
+
+and then convert that to the right byte presentation when first time
+used. That would match the uuid format in the ACPI (and device
+properties) spec. and thus make it easier to read and understand.
