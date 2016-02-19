@@ -1,56 +1,33 @@
-Return-Path: <owner-linux-mm@kvack.org>
-MIME-Version: 1.0
-Date: Tue, 2 Feb 2016 17:10:18 -0800
-Message-ID: <CAPcyv4jtbsc45r4EzZvLJhqCzB4X4nJmKdpQ8cE46gGkMaRB3w@mail.gmail.com>
-Subject: [LSF/MM TOPIC] Persistent memory: pmem as storage device vs pmem as memory
-From: Dan Williams <dan.j.williams@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Sender: owner-linux-mm@kvack.org
-To: lsf-pc@lists.linux-foundation.org
-Cc: linux-block@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 0/2] ACPI 6.1 update for NFIT Control Region Structure
+Date: Fri, 19 Feb 2016 16:08:51 -0700
+Message-Id: <1455923333-13629-1-git-send-email-toshi.kani@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, dan.j.williams@intel.com
+Cc: robert.moore@intel.com, elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The current state of persistent memory enabling in Linux is that a
-physical memory range discovered by a device driver is exposed to the
-system as a block device.  That block device has the added property of
-being capable of DAX which, at its core, allows converting
-storage-device-sectors allocated to a file into pages that can be
-mmap()ed, DMAed, etc...
+ACPI 6.1, Table 5-133, updates NVDIMM Control Region Structure
+as follows.
+ - Valid Fields, Manufacturing Location, and Manufacturing Date
+   are added from reserved range.  No change in the structure size.
+ - IDs defined as SPD values are arrays of bytes.  The spec 
+   clarified that they need to be represented as arrays of bytes
+   as well.
 
-In that quick two sentence summary the impacted kernel sub-systems
-span mm, fs, block, and a device-driver.  As a result when a
-persistent memory design question arises there are mm, fs, block, and
-device-driver specific implications to consider.  Are there existing
-persistent memory handling features that could be better handled with
-a more "memory" vs "device" perspective?  What are we trading off?
-More importantly how do our current interfaces hold up when
-considering new features?
+Patch 1 changes 'struct acpi_nfit_control_region' and the NFIT driver.
+Patch 2 changes the nfit test driver.
 
-For example, how to support DAX in coordination with the BTT (atomic
-sector update) driver.  That might require a wider interface than the
-current bdev_direct_access() to tell the BTT driver when it is free to
-remap the block.  A wider ranging example, there are some that would
-like to see high capacity persistent memory as just another level in a
-system's volatile-memory hierarchy.  Depending on whom you ask that
-pmem tier looks like either page cache extensions, reworked/optimized
-swap, or a block-device-cache with DAX capabilities.
-
-For LSF/MM, with all the relevant parties in the room, it would be
-useful to share some successes/pain-points of the direction to date
-and look at the interfaces/coordination we might need between
-sub-systems going forward.  Especially with respect to supporting pmem
-as one of a set of new performance differentiated memory types that
-need to be considered by the mm sub-system.
+link: http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf
 
 ---
+Toshi Kani (2):
+ 1/2 ACPI/NFIT: Update Control Region Structure per ACPI 6.1
+ 2/2 nfit_test: Update SPD ID init handlings
 
-As a maintainer for libnvdimm I'm interested in participating in the
-"Persistent Memory Error Handling" from Jeff.  I'm also interested in
-the "HMM (heterogeneous memory manager) and GPU" topic from Jerome as
-it relates to mm handling of performance differentiated memory types.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+---
+ drivers/acpi/nfit.c              | 75 ++++++++++++++++++++++++++++++++++------
+ include/acpi/actbl1.h            | 24 ++++++++-----
+ tools/testing/nvdimm/test/nfit.c | 64 ++++++++++++++++++++--------------
+ 3 files changed, 119 insertions(+), 44 deletions(-)
