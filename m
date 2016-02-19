@@ -1,186 +1,142 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Message-ID: <1455925484.15454.2.camel@hpe.com>
-Subject: Re: [PATCH 1/2] ACPI/NFIT: Update Control Region Structure per ACPI
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 1/2] ACPI/NFIT: Update Control Region Structure per ACPI
  6.1
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Fri, 19 Feb 2016 16:44:44 -0700
-In-Reply-To: <CAPcyv4jUj=NzEHbZjiOUAqOva2ujwWfGSQHcFR-HVXdBwB2LvA@mail.gmail.com>
+Date: Fri, 19 Feb 2016 22:55:10 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44763A@ORSMSX110.amr.corp.intel.com>
 References: <1455923333-13629-1-git-send-email-toshi.kani@hpe.com>
-	 <1455923333-13629-2-git-send-email-toshi.kani@hpe.com>
-	 <CAPcyv4jUj=NzEHbZjiOUAqOva2ujwWfGSQHcFR-HVXdBwB2LvA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	<1455923333-13629-2-git-send-email-toshi.kani@hpe.com>
+ <CAPcyv4jUj=NzEHbZjiOUAqOva2ujwWfGSQHcFR-HVXdBwB2LvA@mail.gmail.com>
+In-Reply-To: <CAPcyv4jUj=NzEHbZjiOUAqOva2ujwWfGSQHcFR-HVXdBwB2LvA@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, devel@acpica.org, Lv Zheng <lv.zheng@intel.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, Toshi Kani <toshi.kani@hpe.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Zheng, Lv" <lv.zheng@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, 2016-02-19 at 14:34 -0800, Dan Williams wrote:
-> On Fri, Feb 19, 2016 at 3:08 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> > ACPI 6.1, Table 5-133, updates NVDIMM Control Region Structure
-> > as follows.
-> >  - Valid Fields, Manufacturing Location, and Manufacturing Date
-> >    are added from reserved range.  No change in the structure size.
-> >  - IDs defined as SPD values are arrays of bytes.  The spec
-> >    clarified that they need to be represented as arrays of bytes
-> >    as well.
-> > 
-> > This patch makes the following changes to support this update.
-> >  - Change 'struct acpi_nfit_control_region' to reflect the update.
-> >    SPD IDs are defined as arrays of bytes, so that they can be
-> >    treated in the same way regardless of CPU endianness and are
-> >    not miss-treated as little-endian numeric values.
-> >  - Change the NFIT driver to show SPD ID values as array of bytes
-> >    in sysfs.
-> >  - Change the NFIT driver to show Manufacturing Location and
-> >    Manufacturing Date when they are valid.
-> >  - Change the NFIT driver to show an NVDIMM unique ID as defined
-> >    in section 5.2.25.9 of the spec.
-> >  - Change sprintf format to use "0x" instead of "#" since "%#02x"
-> >    does not prepend '0' in some reason.
-> > 
-> > link: http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf
-> > Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> > Cc: Dan Williams <dan.j.williams@intel.com>
-> > Cc: Robert Moore <robert.moore@intel.com>
-> > Cc: Robert Elliott <elliott@hpe.com>
-> > Cc: <devel@acpica.org>
-> > ---
-> >  drivers/acpi/nfit.c   |   75
-> > ++++++++++++++++++++++++++++++++++++++++++-------
-> >  include/acpi/actbl1.h |   24 ++++++++++------
-> >  2 files changed, 80 insertions(+), 19 deletions(-)
-> 
-> Hi Toshi,
-> 
-> I general looks good, but note that changes to include/acpi/actbl1.h
-> need to go through the ACPICA project.  Then their normal import
-> process will bring it into the kernel.  I added Lv to the cc.
-
-Right. Thanks for adding Lv.
-
-> > 
-> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> > index ad6d8c6..06677d9 100644
-> > --- a/drivers/acpi/nfit.c
-> > +++ b/drivers/acpi/nfit.c
-> > @@ -722,7 +722,8 @@ static ssize_t vendor_show(struct device *dev,
-> >  {
-> >         struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-> > 
-> > -       return sprintf(buf, "%#x\n", dcr->vendor_id);
-> > +       return sprintf(buf, "0x%02x%02x\n",
-> > +                               dcr->vendor_id[0], dcr->vendor_id[1]);
-> >  }
-> >  static DEVICE_ATTR_RO(vendor);
-> > 
-> > @@ -731,7 +732,8 @@ static ssize_t rev_id_show(struct device *dev,
-> >  {
-> >         struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-> > 
-> > -       return sprintf(buf, "%#x\n", dcr->revision_id);
-> > +       return sprintf(buf, "0x%02x%02x\n",
-> > +                               dcr->revision_id[0], dcr-
-> > >revision_id[1]);
-> >  }
-> >  static DEVICE_ATTR_RO(rev_id);
-> > 
-> > @@ -740,7 +742,8 @@ static ssize_t device_show(struct device *dev,
-> >  {
-> >         struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-> > 
-> > -       return sprintf(buf, "%#x\n", dcr->device_id);
-> > +       return sprintf(buf, "0x%02x%02x\n",
-> > +                               dcr->device_id[0], dcr->device_id[1]);
-> >  }
-> >  static DEVICE_ATTR_RO(device);
-> > 
-> > @@ -749,7 +752,7 @@ static ssize_t format_show(struct device *dev,
-> >  {
-> >         struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-> > 
-> > -       return sprintf(buf, "%#x\n", dcr->code);
-> > +       return sprintf(buf, "0x%02x%02x\n", dcr->code[0], dcr-
-> > >code[1]);
-> >  }
-> >  static DEVICE_ATTR_RO(format);
-> > 
-> > @@ -758,7 +761,9 @@ static ssize_t serial_show(struct device *dev,
-> >  {
-> >         struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-> > 
-> > -       return sprintf(buf, "%#x\n", dcr->serial_number);
-> > +       return sprintf(buf, "0x%02x%02x%02x%02x\n",
-> > +                       dcr->serial_number[0], dcr->serial_number[1],
-> > +                       dcr->serial_number[2], dcr->serial_number[3]);
-> >  }
-> >  static DEVICE_ATTR_RO(serial);
-> 
-> These fixups look good.
-> 
-> Can we split the new sysfs attributes below into their own patch?
-
-Will do.
-
-> One more comments below:
-> 
-> > 
-> > @@ -776,6 +781,45 @@ static ssize_t flags_show(struct device *dev,
-> >  }
-> >  static DEVICE_ATTR_RO(flags);
-> > 
-> > +static ssize_t mfg_location_show(struct device *dev,
-> > +               struct device_attribute *attr, char *buf)
-> > +{
-> > +       struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-> > +
-> > +       return sprintf(buf, "0x%02x\n", dcr->manufacturing_location);
-> > +}
-> > +static DEVICE_ATTR_RO(mfg_location);
-> > +
-> > +static ssize_t mfg_date_show(struct device *dev,
-> > +               struct device_attribute *attr, char *buf)
-> > +{
-> > +       struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-> > +
-> > +       return sprintf(buf, "0x%02x%02x\n",
-> > +                       dcr->manufacturing_date[0], dcr-
-> > >manufacturing_date[1]);
-> > +}
-> > +static DEVICE_ATTR_RO(mfg_date);
-> > +
-> > +static ssize_t unique_id_show(struct device *dev,
-> > +               struct device_attribute *attr, char *buf)
-> > +{
-> > +       struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-> > +
-> > +       if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
-> > +               return sprintf(buf, "%02x%02x-%02x-%02x%02x-
-> > %02x%02x%02x%02x\n",
-> > +                       dcr->vendor_id[0], dcr->vendor_id[1],
-> > +                       dcr->manufacturing_location,
-> > +                       dcr->manufacturing_date[0], dcr-
-> > >manufacturing_date[1],
-> > +                       dcr->serial_number[0], dcr->serial_number[1],
-> > +                       dcr->serial_number[2], dcr->serial_number[3]);
-> > +       else
-> > +               return sprintf(buf, "%02x%02x-%02x%02x%02x%02x\n",
-> > +                       dcr->vendor_id[0], dcr->vendor_id[1],
-> > +                       dcr->serial_number[0], dcr->serial_number[1],
-> > +                       dcr->serial_number[2], dcr->serial_number[3]);
-> > +}
-> > +static DEVICE_ATTR_RO(unique_id);
-> 
-> Let's just call it 'id' as not to confuse it with a 'uuid'.  Also if
-> the manufacturing info is incorporated into the id then I don't think
-> we need separate 'mfg_location' and 'mfg_date' attributes.  If
-> userspace really wants those separately it can just dump the NFIT
-> table.
-
-Make sense. I will remove 'mfg_location' and 'mfg_date', and rename
-'unique_id' to 'id'.
-
-Thanks!
--Toshi
+TW9yZSBpbXBvcnRhbnRseSwgdGhlIGNoYW5nZXMgdG8gYWN0YmwxLmggbmVlZCB0byBiZSBiYWNr
+cG9ydGVkIHRvIHRoZSBuYXRpdmUgQUNQSUNBIGZvcm1hdC4NCg0KDQo+IC0tLS0tT3JpZ2luYWwg
+TWVzc2FnZS0tLS0tDQo+IEZyb206IERhbiBXaWxsaWFtcyBbbWFpbHRvOmRhbi5qLndpbGxpYW1z
+QGludGVsLmNvbV0NCj4gU2VudDogRnJpZGF5LCBGZWJydWFyeSAxOSwgMjAxNiAyOjM1IFBNDQo+
+IFRvOiBUb3NoaSBLYW5pDQo+IENjOiBSYWZhZWwgSi4gV3lzb2NraTsgTW9vcmUsIFJvYmVydDsg
+RWxsaW90dCwgUm9iZXJ0IChQZXJzaXN0ZW50IE1lbW9yeSk7DQo+IGxpbnV4LW52ZGltbUBsaXN0
+cy4wMS5vcmc7IExpbnV4IEFDUEk7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IGRl
+dmVsQGFjcGljYS5vcmc7IFpoZW5nLCBMdg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDEvMl0gQUNQ
+SS9ORklUOiBVcGRhdGUgQ29udHJvbCBSZWdpb24gU3RydWN0dXJlIHBlcg0KPiBBQ1BJIDYuMQ0K
+PiANCj4gT24gRnJpLCBGZWIgMTksIDIwMTYgYXQgMzowOCBQTSwgVG9zaGkgS2FuaSA8dG9zaGku
+a2FuaUBocGUuY29tPiB3cm90ZToNCj4gPiBBQ1BJIDYuMSwgVGFibGUgNS0xMzMsIHVwZGF0ZXMg
+TlZESU1NIENvbnRyb2wgUmVnaW9uIFN0cnVjdHVyZSBhcw0KPiA+IGZvbGxvd3MuDQo+ID4gIC0g
+VmFsaWQgRmllbGRzLCBNYW51ZmFjdHVyaW5nIExvY2F0aW9uLCBhbmQgTWFudWZhY3R1cmluZyBE
+YXRlDQo+ID4gICAgYXJlIGFkZGVkIGZyb20gcmVzZXJ2ZWQgcmFuZ2UuICBObyBjaGFuZ2UgaW4g
+dGhlIHN0cnVjdHVyZSBzaXplLg0KPiA+ICAtIElEcyBkZWZpbmVkIGFzIFNQRCB2YWx1ZXMgYXJl
+IGFycmF5cyBvZiBieXRlcy4gIFRoZSBzcGVjDQo+ID4gICAgY2xhcmlmaWVkIHRoYXQgdGhleSBu
+ZWVkIHRvIGJlIHJlcHJlc2VudGVkIGFzIGFycmF5cyBvZiBieXRlcw0KPiA+ICAgIGFzIHdlbGwu
+DQo+ID4NCj4gPiBUaGlzIHBhdGNoIG1ha2VzIHRoZSBmb2xsb3dpbmcgY2hhbmdlcyB0byBzdXBw
+b3J0IHRoaXMgdXBkYXRlLg0KPiA+ICAtIENoYW5nZSAnc3RydWN0IGFjcGlfbmZpdF9jb250cm9s
+X3JlZ2lvbicgdG8gcmVmbGVjdCB0aGUgdXBkYXRlLg0KPiA+ICAgIFNQRCBJRHMgYXJlIGRlZmlu
+ZWQgYXMgYXJyYXlzIG9mIGJ5dGVzLCBzbyB0aGF0IHRoZXkgY2FuIGJlDQo+ID4gICAgdHJlYXRl
+ZCBpbiB0aGUgc2FtZSB3YXkgcmVnYXJkbGVzcyBvZiBDUFUgZW5kaWFubmVzcyBhbmQgYXJlDQo+
+ID4gICAgbm90IG1pc3MtdHJlYXRlZCBhcyBsaXR0bGUtZW5kaWFuIG51bWVyaWMgdmFsdWVzLg0K
+PiA+ICAtIENoYW5nZSB0aGUgTkZJVCBkcml2ZXIgdG8gc2hvdyBTUEQgSUQgdmFsdWVzIGFzIGFy
+cmF5IG9mIGJ5dGVzDQo+ID4gICAgaW4gc3lzZnMuDQo+ID4gIC0gQ2hhbmdlIHRoZSBORklUIGRy
+aXZlciB0byBzaG93IE1hbnVmYWN0dXJpbmcgTG9jYXRpb24gYW5kDQo+ID4gICAgTWFudWZhY3R1
+cmluZyBEYXRlIHdoZW4gdGhleSBhcmUgdmFsaWQuDQo+ID4gIC0gQ2hhbmdlIHRoZSBORklUIGRy
+aXZlciB0byBzaG93IGFuIE5WRElNTSB1bmlxdWUgSUQgYXMgZGVmaW5lZA0KPiA+ICAgIGluIHNl
+Y3Rpb24gNS4yLjI1Ljkgb2YgdGhlIHNwZWMuDQo+ID4gIC0gQ2hhbmdlIHNwcmludGYgZm9ybWF0
+IHRvIHVzZSAiMHgiIGluc3RlYWQgb2YgIiMiIHNpbmNlICIlIzAyeCINCj4gPiAgICBkb2VzIG5v
+dCBwcmVwZW5kICcwJyBpbiBzb21lIHJlYXNvbi4NCj4gPg0KPiA+IGxpbms6IGh0dHA6Ly93d3cu
+dWVmaS5vcmcvc2l0ZXMvZGVmYXVsdC9maWxlcy9yZXNvdXJjZXMvQUNQSV82XzEucGRmDQo+ID4g
+U2lnbmVkLW9mZi1ieTogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPg0KPiA+IENjOiBS
+YWZhZWwgSi4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+DQo+ID4gQ2M6IERhbiBXaWxsaWFt
+cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiA+IENjOiBSb2JlcnQgTW9vcmUgPHJvYmVy
+dC5tb29yZUBpbnRlbC5jb20+DQo+ID4gQ2M6IFJvYmVydCBFbGxpb3R0IDxlbGxpb3R0QGhwZS5j
+b20+DQo+ID4gQ2M6IDxkZXZlbEBhY3BpY2Eub3JnPg0KPiA+IC0tLQ0KPiA+ICBkcml2ZXJzL2Fj
+cGkvbmZpdC5jICAgfCAgIDc1DQo+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKy0tLS0tLS0NCj4gPiAgaW5jbHVkZS9hY3BpL2FjdGJsMS5oIHwgICAyNCArKysrKysr
+KysrLS0tLS0tDQo+ID4gIDIgZmlsZXMgY2hhbmdlZCwgODAgaW5zZXJ0aW9ucygrKSwgMTkgZGVs
+ZXRpb25zKC0pDQo+IA0KPiBIaSBUb3NoaSwNCj4gDQo+IEkgZ2VuZXJhbCBsb29rcyBnb29kLCBi
+dXQgbm90ZSB0aGF0IGNoYW5nZXMgdG8gaW5jbHVkZS9hY3BpL2FjdGJsMS5oIG5lZWQNCj4gdG8g
+Z28gdGhyb3VnaCB0aGUgQUNQSUNBIHByb2plY3QuICBUaGVuIHRoZWlyIG5vcm1hbCBpbXBvcnQg
+cHJvY2VzcyB3aWxsDQo+IGJyaW5nIGl0IGludG8gdGhlIGtlcm5lbC4gIEkgYWRkZWQgTHYgdG8g
+dGhlIGNjLg0KPiANCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIv
+ZHJpdmVycy9hY3BpL25maXQuYyBpbmRleA0KPiA+IGFkNmQ4YzYuLjA2Njc3ZDkgMTAwNjQ0DQo+
+ID4gLS0tIGEvZHJpdmVycy9hY3BpL25maXQuYw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9uZml0
+LmMNCj4gPiBAQCAtNzIyLDcgKzcyMiw4IEBAIHN0YXRpYyBzc2l6ZV90IHZlbmRvcl9zaG93KHN0
+cnVjdCBkZXZpY2UgKmRldiwgIHsNCj4gPiAgICAgICAgIHN0cnVjdCBhY3BpX25maXRfY29udHJv
+bF9yZWdpb24gKmRjciA9IHRvX25maXRfZGNyKGRldik7DQo+ID4NCj4gPiAtICAgICAgIHJldHVy
+biBzcHJpbnRmKGJ1ZiwgIiUjeFxuIiwgZGNyLT52ZW5kb3JfaWQpOw0KPiA+ICsgICAgICAgcmV0
+dXJuIHNwcmludGYoYnVmLCAiMHglMDJ4JTAyeFxuIiwNCj4gPiArICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIGRjci0+dmVuZG9yX2lkWzBdLCBkY3ItPnZlbmRvcl9pZFsxXSk7DQo+ID4g
+IH0NCj4gPiAgc3RhdGljIERFVklDRV9BVFRSX1JPKHZlbmRvcik7DQo+ID4NCj4gPiBAQCAtNzMx
+LDcgKzczMiw4IEBAIHN0YXRpYyBzc2l6ZV90IHJldl9pZF9zaG93KHN0cnVjdCBkZXZpY2UgKmRl
+diwgIHsNCj4gPiAgICAgICAgIHN0cnVjdCBhY3BpX25maXRfY29udHJvbF9yZWdpb24gKmRjciA9
+IHRvX25maXRfZGNyKGRldik7DQo+ID4NCj4gPiAtICAgICAgIHJldHVybiBzcHJpbnRmKGJ1Ziwg
+IiUjeFxuIiwgZGNyLT5yZXZpc2lvbl9pZCk7DQo+ID4gKyAgICAgICByZXR1cm4gc3ByaW50Zihi
+dWYsICIweCUwMnglMDJ4XG4iLA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ZGNyLT5yZXZpc2lvbl9pZFswXSwNCj4gPiArIGRjci0+cmV2aXNpb25faWRbMV0pOw0KPiA+ICB9
+DQo+ID4gIHN0YXRpYyBERVZJQ0VfQVRUUl9STyhyZXZfaWQpOw0KPiA+DQo+ID4gQEAgLTc0MCw3
+ICs3NDIsOCBAQCBzdGF0aWMgc3NpemVfdCBkZXZpY2Vfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYs
+ICB7DQo+ID4gICAgICAgICBzdHJ1Y3QgYWNwaV9uZml0X2NvbnRyb2xfcmVnaW9uICpkY3IgPSB0
+b19uZml0X2RjcihkZXYpOw0KPiA+DQo+ID4gLSAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIl
+I3hcbiIsIGRjci0+ZGV2aWNlX2lkKTsNCj4gPiArICAgICAgIHJldHVybiBzcHJpbnRmKGJ1Ziwg
+IjB4JTAyeCUwMnhcbiIsDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBkY3It
+PmRldmljZV9pZFswXSwgZGNyLT5kZXZpY2VfaWRbMV0pOw0KPiA+ICB9DQo+ID4gIHN0YXRpYyBE
+RVZJQ0VfQVRUUl9STyhkZXZpY2UpOw0KPiA+DQo+ID4gQEAgLTc0OSw3ICs3NTIsNyBAQCBzdGF0
+aWMgc3NpemVfdCBmb3JtYXRfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsICB7DQo+ID4gICAgICAg
+ICBzdHJ1Y3QgYWNwaV9uZml0X2NvbnRyb2xfcmVnaW9uICpkY3IgPSB0b19uZml0X2RjcihkZXYp
+Ow0KPiA+DQo+ID4gLSAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIlI3hcbiIsIGRjci0+Y29k
+ZSk7DQo+ID4gKyAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIweCUwMnglMDJ4XG4iLCBkY3It
+PmNvZGVbMF0sDQo+ID4gKyBkY3ItPmNvZGVbMV0pOw0KPiA+ICB9DQo+ID4gIHN0YXRpYyBERVZJ
+Q0VfQVRUUl9STyhmb3JtYXQpOw0KPiA+DQo+ID4gQEAgLTc1OCw3ICs3NjEsOSBAQCBzdGF0aWMg
+c3NpemVfdCBzZXJpYWxfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsICB7DQo+ID4gICAgICAgICBz
+dHJ1Y3QgYWNwaV9uZml0X2NvbnRyb2xfcmVnaW9uICpkY3IgPSB0b19uZml0X2RjcihkZXYpOw0K
+PiA+DQo+ID4gLSAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIlI3hcbiIsIGRjci0+c2VyaWFs
+X251bWJlcik7DQo+ID4gKyAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIweCUwMnglMDJ4JTAy
+eCUwMnhcbiIsDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgZGNyLT5zZXJpYWxfbnVtYmVy
+WzBdLCBkY3ItPnNlcmlhbF9udW1iZXJbMV0sDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAg
+ZGNyLT5zZXJpYWxfbnVtYmVyWzJdLCBkY3ItPnNlcmlhbF9udW1iZXJbM10pOw0KPiA+ICB9DQo+
+ID4gIHN0YXRpYyBERVZJQ0VfQVRUUl9STyhzZXJpYWwpOw0KPiANCj4gVGhlc2UgZml4dXBzIGxv
+b2sgZ29vZC4NCj4gDQo+IENhbiB3ZSBzcGxpdCB0aGUgbmV3IHN5c2ZzIGF0dHJpYnV0ZXMgYmVs
+b3cgaW50byB0aGVpciBvd24gcGF0Y2g/ICBPbmUNCj4gbW9yZSBjb21tZW50cyBiZWxvdzoNCj4g
+DQo+ID4NCj4gPiBAQCAtNzc2LDYgKzc4MSw0NSBAQCBzdGF0aWMgc3NpemVfdCBmbGFnc19zaG93
+KHN0cnVjdCBkZXZpY2UgKmRldiwgIH0NCj4gPiBzdGF0aWMgREVWSUNFX0FUVFJfUk8oZmxhZ3Mp
+Ow0KPiA+DQo+ID4gK3N0YXRpYyBzc2l6ZV90IG1mZ19sb2NhdGlvbl9zaG93KHN0cnVjdCBkZXZp
+Y2UgKmRldiwNCj4gPiArICAgICAgICAgICAgICAgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0
+dHIsIGNoYXIgKmJ1Zikgew0KPiA+ICsgICAgICAgc3RydWN0IGFjcGlfbmZpdF9jb250cm9sX3Jl
+Z2lvbiAqZGNyID0gdG9fbmZpdF9kY3IoZGV2KTsNCj4gPiArDQo+ID4gKyAgICAgICByZXR1cm4g
+c3ByaW50ZihidWYsICIweCUwMnhcbiIsIGRjci0+bWFudWZhY3R1cmluZ19sb2NhdGlvbik7DQo+
+ID4gK30gc3RhdGljIERFVklDRV9BVFRSX1JPKG1mZ19sb2NhdGlvbik7DQo+ID4gKw0KPiA+ICtz
+dGF0aWMgc3NpemVfdCBtZmdfZGF0ZV9zaG93KHN0cnVjdCBkZXZpY2UgKmRldiwNCj4gPiArICAg
+ICAgICAgICAgICAgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1Zikgew0K
+PiA+ICsgICAgICAgc3RydWN0IGFjcGlfbmZpdF9jb250cm9sX3JlZ2lvbiAqZGNyID0gdG9fbmZp
+dF9kY3IoZGV2KTsNCj4gPiArDQo+ID4gKyAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIweCUw
+MnglMDJ4XG4iLA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGRjci0+bWFudWZhY3R1cmlu
+Z19kYXRlWzBdLA0KPiA+ICtkY3ItPm1hbnVmYWN0dXJpbmdfZGF0ZVsxXSk7IH0gc3RhdGljIERF
+VklDRV9BVFRSX1JPKG1mZ19kYXRlKTsNCj4gPiArDQo+ID4gK3N0YXRpYyBzc2l6ZV90IHVuaXF1
+ZV9pZF9zaG93KHN0cnVjdCBkZXZpY2UgKmRldiwNCj4gPiArICAgICAgICAgICAgICAgc3RydWN0
+IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1Zikgew0KPiA+ICsgICAgICAgc3RydWN0
+IGFjcGlfbmZpdF9jb250cm9sX3JlZ2lvbiAqZGNyID0gdG9fbmZpdF9kY3IoZGV2KTsNCj4gPiAr
+DQo+ID4gKyAgICAgICBpZiAoZGNyLT52YWxpZF9maWVsZHMgJiBBQ1BJX05GSVRfQ09OVFJPTF9N
+RkdfSU5GT19WQUxJRCkNCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIHNwcmludGYoYnVmLCAi
+JTAyeCUwMngtJTAyeC0lMDJ4JTAyeC0NCj4gJTAyeCUwMnglMDJ4JTAyeFxuIiwNCj4gPiArICAg
+ICAgICAgICAgICAgICAgICAgICBkY3ItPnZlbmRvcl9pZFswXSwgZGNyLT52ZW5kb3JfaWRbMV0s
+DQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgZGNyLT5tYW51ZmFjdHVyaW5nX2xvY2F0aW9u
+LA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGRjci0+bWFudWZhY3R1cmluZ19kYXRlWzBd
+LCBkY3ItDQo+ID5tYW51ZmFjdHVyaW5nX2RhdGVbMV0sDQo+ID4gKyAgICAgICAgICAgICAgICAg
+ICAgICAgZGNyLT5zZXJpYWxfbnVtYmVyWzBdLCBkY3ItPnNlcmlhbF9udW1iZXJbMV0sDQo+ID4g
+KyAgICAgICAgICAgICAgICAgICAgICAgZGNyLT5zZXJpYWxfbnVtYmVyWzJdLCBkY3ItPnNlcmlh
+bF9udW1iZXJbM10pOw0KPiA+ICsgICAgICAgZWxzZQ0KPiA+ICsgICAgICAgICAgICAgICByZXR1
+cm4gc3ByaW50ZihidWYsICIlMDJ4JTAyeC0lMDJ4JTAyeCUwMnglMDJ4XG4iLA0KPiA+ICsgICAg
+ICAgICAgICAgICAgICAgICAgIGRjci0+dmVuZG9yX2lkWzBdLCBkY3ItPnZlbmRvcl9pZFsxXSwN
+Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICBkY3ItPnNlcmlhbF9udW1iZXJbMF0sIGRjci0+
+c2VyaWFsX251bWJlclsxXSwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICBkY3ItPnNlcmlh
+bF9udW1iZXJbMl0sIGRjci0+c2VyaWFsX251bWJlclszXSk7DQo+ID4gK30gc3RhdGljIERFVklD
+RV9BVFRSX1JPKHVuaXF1ZV9pZCk7DQo+IA0KPiBMZXQncyBqdXN0IGNhbGwgaXQgJ2lkJyBhcyBu
+b3QgdG8gY29uZnVzZSBpdCB3aXRoIGEgJ3V1aWQnLiAgQWxzbyBpZiB0aGUNCj4gbWFudWZhY3R1
+cmluZyBpbmZvIGlzIGluY29ycG9yYXRlZCBpbnRvIHRoZSBpZCB0aGVuIEkgZG9uJ3QgdGhpbmsg
+d2UgbmVlZA0KPiBzZXBhcmF0ZSAnbWZnX2xvY2F0aW9uJyBhbmQgJ21mZ19kYXRlJyBhdHRyaWJ1
+dGVzLiAgSWYgdXNlcnNwYWNlIHJlYWxseQ0KPiB3YW50cyB0aG9zZSBzZXBhcmF0ZWx5IGl0IGNh
+biBqdXN0IGR1bXAgdGhlIE5GSVQgdGFibGUuDQo=
