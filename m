@@ -1,131 +1,140 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3] x86/mm/vmfault: Make vmalloc_fault() handle large pages
-Date: Wed, 17 Feb 2016 18:16:54 -0700
-Message-Id: <1455758214-24623-1-git-send-email-toshi.kani@hpe.com>
-Sender: owner-linux-mm@kvack.org
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, bp@alien8.de
-Cc: henning.schild@siemens.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, stable@vger.kernel.org
+Subject: [PATCH 2/2] nfit_test: Update SPD ID init handlings
+Date: Fri, 19 Feb 2016 16:08:53 -0700
+Message-Id: <1455923333-13629-3-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1455923333-13629-1-git-send-email-toshi.kani@hpe.com>
+References: <1455923333-13629-1-git-send-email-toshi.kani@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, dan.j.williams@intel.com
+Cc: robert.moore@intel.com, elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, Toshi Kani <toshi.kani@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A kernel page fault oops with the callstack below was observed
-when a read syscall was made to a pmem device after a huge amount
-(>512GB) of vmalloc ranges was allocated by ioremap() on a x86_64
-system.
+Update the test code that initializes SPD IDs of NFIT control
+region structures.  nfit_set_spd_id() is added to handle
+initialization to an array of bytes.
 
-  vmalloc_fault
-  __do_page_fault
-  do_page_fault
-  page_fault
-  pmem_rw_bytes [nd_pmem]
-  btt_log_read [nd_btt]
-    :
-  SyS_finit_module
-  entry_SYSCALL_64_fastpath
-
-Since 4.1, ioremap() supports large page (pud/pmd) mappings in
-x86_64 and PAE.  vmalloc_fault() however assumes that the vmalloc
-range is limited to pte mappings.
-
-vmalloc faults do not normally happen in ioremap'd ranges since
-ioremap() sets up the kernel page tables, which are shared by
-user processes.  pgd_ctor() sets the kernel's pgd entries to
-user's during fork().  When allocation of the vmalloc ranges
-crosses a 512GB boundary, ioremap() allocates a new pud table
-and updates the kernel pgd entry to point it.  If user process's
-pgd entry does not have this update yet, a read/write syscall
-to the range will cause a vmalloc fault, which hits the Oops
-above as it does not handle a large page properly.
-
-Following changes are made to vmalloc_fault().
-
-64-bit:
-- No change for the pgd sync operation as it handles large
-  pages already.
-- Add pud_huge() and pmd_huge() to the validation code to
-  handle large pages.
-- Change pud_page_vaddr() to pud_pfn() since an ioremap range
-  is not directly mapped (while the if-statement still works
-  with a bogus addr).
-- Change pmd_page() to pmd_pfn() since an ioremap range is not
-  backed by struct page (while the if-statement still works
-  with a bogus addr).
-
-32-bit:
-- No change for the sync operation since the index3 pgd entry
-  covers the entire vmalloc range, which is always valid.
-  (A separate change to sync pgd entry is necessary if this
-   memory layout is changed regardless of the page size.)
-- Add pmd_huge() to the validation code to handle large pages.
-  This is for completeness since vmalloc_fault() won't happen
-  in ioremap'd ranges as its pgd entry is always valid.
-
-Reported-by: Henning Schild <henning.schild@siemens.com>
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: <stable@vger.kernel.org> # 4.1+
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 ---
-v3: Remove addresses from the callstack, and add cc to stable.
-v2: Add more descriptions about the issue in the change log.
----
- arch/x86/mm/fault.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ tools/testing/nvdimm/test/nfit.c |   64 +++++++++++++++++++++++---------------
+ 1 file changed, 39 insertions(+), 25 deletions(-)
 
-diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
-index eef44d9..e830c71 100644
---- a/arch/x86/mm/fault.c
-+++ b/arch/x86/mm/fault.c
-@@ -287,6 +287,9 @@ static noinline int vmalloc_fault(unsigned long address)
- 	if (!pmd_k)
- 		return -1;
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 90bd2ea..283e187 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -160,6 +160,14 @@ static struct nfit_test *to_nfit_test(struct device *dev)
+ 	return container_of(pdev, struct nfit_test, pdev);
+ }
  
-+	if (pmd_huge(*pmd_k))
-+		return 0;
++static void nfit_set_spd_id(u8 *dist, u64 value, size_t size)
++{
++	int shift;
 +
- 	pte_k = pte_offset_kernel(pmd_k, address);
- 	if (!pte_present(*pte_k))
- 		return -1;
-@@ -360,8 +363,6 @@ void vmalloc_sync_all(void)
-  * 64-bit:
-  *
-  *   Handle a fault on the vmalloc area
-- *
-- * This assumes no large pages in there.
-  */
- static noinline int vmalloc_fault(unsigned long address)
++	for (shift = size - 1; shift >= 0; shift--, dist++)
++		*dist = (u8)((value >> (8 * shift)) & 0xff);
++}
++
+ static int nfit_test_cmd_get_config_size(struct nd_cmd_get_config_size *nd_cmd,
+ 		unsigned int buf_len)
  {
-@@ -403,17 +404,23 @@ static noinline int vmalloc_fault(unsigned long address)
- 	if (pud_none(*pud_ref))
- 		return -1;
- 
--	if (pud_none(*pud) || pud_page_vaddr(*pud) != pud_page_vaddr(*pud_ref))
-+	if (pud_none(*pud) || pud_pfn(*pud) != pud_pfn(*pud_ref))
- 		BUG();
- 
-+	if (pud_huge(*pud))
-+		return 0;
-+
- 	pmd = pmd_offset(pud, address);
- 	pmd_ref = pmd_offset(pud_ref, address);
- 	if (pmd_none(*pmd_ref))
- 		return -1;
- 
--	if (pmd_none(*pmd) || pmd_page(*pmd) != pmd_page(*pmd_ref))
-+	if (pmd_none(*pmd) || pmd_pfn(*pmd) != pmd_pfn(*pmd_ref))
- 		BUG();
- 
-+	if (pmd_huge(*pmd))
-+		return 0;
-+
- 	pte_ref = pte_offset_kernel(pmd_ref, address);
- 	if (!pte_present(*pte_ref))
- 		return -1;
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+@@ -815,10 +823,11 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 0+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
+-	dcr->serial_number = ~handle[0];
++	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++	nfit_set_spd_id(dcr->serial_number, ~handle[0],
++				sizeof(dcr->serial_number));
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -831,10 +840,11 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 1+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
+-	dcr->serial_number = ~handle[1];
++	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++	nfit_set_spd_id(dcr->serial_number, ~handle[1],
++				sizeof(dcr->serial_number));
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -847,10 +857,11 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 2+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
+-	dcr->serial_number = ~handle[2];
++	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++	nfit_set_spd_id(dcr->serial_number, ~handle[2],
++				sizeof(dcr->serial_number));
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -863,10 +874,11 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 3+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
+-	dcr->serial_number = ~handle[3];
++	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++	nfit_set_spd_id(dcr->serial_number, ~handle[3],
++				sizeof(dcr->serial_number));
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -959,10 +971,11 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 		dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 		dcr->region_index = 4+1;
+-		dcr->vendor_id = 0xabcd;
+-		dcr->device_id = 0;
+-		dcr->revision_id = 1;
+-		dcr->serial_number = ~handle[4];
++		nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++		nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++		nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++		nfit_set_spd_id(dcr->serial_number, ~handle[4],
++					sizeof(dcr->serial_number));
+ 		dcr->windows = 1;
+ 		dcr->window_size = DCR_SIZE;
+ 		dcr->command_offset = 0;
+@@ -1128,11 +1141,12 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 0+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
+-	dcr->serial_number = ~0;
+-	dcr->code = 0x201;
++	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++	nfit_set_spd_id(dcr->serial_number, ~0,
++				sizeof(dcr->serial_number));
++	nfit_set_spd_id(dcr->code, 0x201, sizeof(dcr->code));
+ 	dcr->windows = 0;
+ 	dcr->window_size = 0;
+ 	dcr->command_offset = 0;
