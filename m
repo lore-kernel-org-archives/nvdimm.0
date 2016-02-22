@@ -1,187 +1,200 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm, nfit: fixes for 4.5-rc6
-Date: Thu, 25 Feb 2016 05:47:31 +0000
-Message-ID: <1456379247.29791.20.camel@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-7"
-Content-ID: <AAFD07A2ED9D9A42B24E672C8AB16578@intel.com>
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 5/5] dax: move writeback calls into the filesystems
+Date: Mon, 22 Feb 2016 11:59:22 -0700
+Message-Id: <1456167562-28576-6-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1456167562-28576-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1456167562-28576-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from:
+Previously calls to dax_writeback_mapping_range() for all DAX filesystems
+(ext2, ext4 & xfs) were centralized in filemap_write_and_wait_range().
+dax_writeback_mapping_range() needs a struct block_device, and it used to
+get that from inode->i_sb->s_bdev.  This is correct for normal inodes
+mounted on ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
+block devices and for XFS real-time files.
 
-+AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+Instead, call dax_writeback_mapping_range() directly from the filesystem
+->writepages function so that it can supply us with a valid block
+device. This also fixes DAX code to properly flush caches in response to
+sync(2).
 
-...to receive:
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ fs/block_dev.c      | 13 ++++++++++++-
+ fs/dax.c            | 12 +++++++-----
+ fs/ext2/inode.c     |  8 ++++++++
+ fs/ext4/inode.c     |  4 ++++
+ fs/xfs/xfs_aops.c   |  4 ++++
+ include/linux/dax.h |  6 ++++--
+ mm/filemap.c        | 12 ++++--------
+ 7 files changed, 43 insertions(+), 16 deletions(-)
 
-1/ Two fixes for compatibility with the ACPI 6.1 specification.
-+AKA-Without these fixes multi-interface DIMMs will fail to be probed, and
-address range scrub commands to find memory errors will give results
-that the kernel will mis-interpret. +AKA-For multi-interface DIMMs Linux
-will accept either the original 6.0 implementation or 6.1. +AKA-For address
-range scrub we'll only support 6.1 since ACPI formalized this DSM
-differently than the original example +AFs-1+AF0- implemented in v4.2. +AKA-The
-expectation is that production systems will only ever ship the ACPI 6.1
-address range scrub command definition.+AKA-
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 31c6d10..826b164 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -1697,13 +1697,24 @@ static int blkdev_releasepage(struct page *page, gfp_t wait)
+ 	return try_to_free_buffers(page);
+ }
+ 
++static int blkdev_writepages(struct address_space *mapping,
++			     struct writeback_control *wbc)
++{
++	if (dax_mapping(mapping)) {
++		struct block_device *bdev = I_BDEV(mapping->host);
++
++		return dax_writeback_mapping_range(mapping, bdev, wbc);
++	}
++	return generic_writepages(mapping, wbc);
++}
++
+ static const struct address_space_operations def_blk_aops = {
+ 	.readpage	= blkdev_readpage,
+ 	.readpages	= blkdev_readpages,
+ 	.writepage	= blkdev_writepage,
+ 	.write_begin	= blkdev_write_begin,
+ 	.write_end	= blkdev_write_end,
+-	.writepages	= generic_writepages,
++	.writepages	= blkdev_writepages,
+ 	.releasepage	= blkdev_releasepage,
+ 	.direct_IO	= blkdev_direct_IO,
+ 	.is_dirty_writeback = buffer_check_dirty_writeback,
+diff --git a/fs/dax.c b/fs/dax.c
+index 9a173dd..7111724 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -484,11 +484,10 @@ static int dax_writeback_one(struct block_device *bdev,
+  * end]. This is required by data integrity operations to ensure file data is
+  * on persistent storage prior to completion of the operation.
+  */
+-int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
+-		loff_t end)
++int dax_writeback_mapping_range(struct address_space *mapping,
++		struct block_device *bdev, struct writeback_control *wbc)
+ {
+ 	struct inode *inode = mapping->host;
+-	struct block_device *bdev = inode->i_sb->s_bdev;
+ 	pgoff_t start_index, end_index, pmd_index;
+ 	pgoff_t indices[PAGEVEC_SIZE];
+ 	struct pagevec pvec;
+@@ -499,8 +498,11 @@ int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
+ 	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
+ 		return -EIO;
+ 
+-	start_index = start >> PAGE_CACHE_SHIFT;
+-	end_index = end >> PAGE_CACHE_SHIFT;
++	if (!mapping->nrexceptional || wbc->sync_mode != WB_SYNC_ALL)
++		return 0;
++
++	start_index = wbc->range_start >> PAGE_CACHE_SHIFT;
++	end_index = wbc->range_end >> PAGE_CACHE_SHIFT;
+ 	pmd_index = DAX_PMD_INDEX(start_index);
+ 
+ 	rcu_read_lock();
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 4467cbd..6bd58e6 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -876,6 +876,14 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
+ static int
+ ext2_writepages(struct address_space *mapping, struct writeback_control *wbc)
+ {
++#ifdef CONFIG_FS_DAX
++	if (dax_mapping(mapping)) {
++		return dax_writeback_mapping_range(mapping,
++						   mapping->host->i_sb->s_bdev,
++						   wbc);
++	}
++#endif
++
+ 	return mpage_writepages(mapping, wbc, ext2_get_block);
+ }
+ 
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 5708e68..aee960b 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -2478,6 +2478,10 @@ static int ext4_writepages(struct address_space *mapping,
+ 
+ 	trace_ext4_writepages(inode, wbc);
+ 
++	if (dax_mapping(mapping))
++		return dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev,
++						   wbc);
++
+ 	/*
+ 	 * No pages to write? This is mainly a kludge to avoid starting
+ 	 * a transaction for special inodes like journal inode on last iput()
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index fc20518..a9ebabfe 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -1208,6 +1208,10 @@ xfs_vm_writepages(
+ 	struct writeback_control *wbc)
+ {
+ 	xfs_iflags_clear(XFS_I(mapping->host), XFS_ITRUNCATED);
++	if (dax_mapping(mapping))
++		return dax_writeback_mapping_range(mapping,
++				xfs_find_bdev_for_inode(mapping->host), wbc);
++
+ 	return generic_writepages(mapping, wbc);
+ }
+ 
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 7b6bced..636dd59 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -52,6 +52,8 @@ static inline bool dax_mapping(struct address_space *mapping)
+ {
+ 	return mapping->host && IS_DAX(mapping->host);
+ }
+-int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
+-		loff_t end);
++
++struct writeback_control;
++int dax_writeback_mapping_range(struct address_space *mapping,
++		struct block_device *bdev, struct writeback_control *wbc);
+ #endif
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 23edcce..3461d97 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -446,7 +446,8 @@ int filemap_write_and_wait(struct address_space *mapping)
+ {
+ 	int err = 0;
+ 
+-	if (mapping->nrpages) {
++	if ((!dax_mapping(mapping) && mapping->nrpages) ||
++	    (dax_mapping(mapping) && mapping->nrexceptional)) {
+ 		err = filemap_fdatawrite(mapping);
+ 		/*
+ 		 * Even if the above returned error, the pages may be
+@@ -482,13 +483,8 @@ int filemap_write_and_wait_range(struct address_space *mapping,
+ {
+ 	int err = 0;
+ 
+-	if (dax_mapping(mapping) && mapping->nrexceptional) {
+-		err = dax_writeback_mapping_range(mapping, lstart, lend);
+-		if (err)
+-			return err;
+-	}
+-
+-	if (mapping->nrpages) {
++	if ((!dax_mapping(mapping) && mapping->nrpages) ||
++	    (dax_mapping(mapping) && mapping->nrexceptional)) {
+ 		err = __filemap_fdatawrite_range(mapping, lstart, lend,
+ 						 WB_SYNC_ALL);
+ 		/* See comment of filemap_write_and_wait() */
+-- 
+2.5.0
 
-2/ The wider async address range scrub work targeting 4.6 discovered
-that the original synchronous implementation in 4.5 is not sizing its
-return buffer correctly.
-
-3/ Arnd caught that my recent fix to the size of the pfn+AF8-t flags missed
-updating the flags variable used in the pmem driver.
-
-4/ Toshi found that we mishandle the memremap() return value in
-devm+AF8-memremap().
-
-This branch has received a clean build success notification from the
-kbuild robot across 105 configs.
-
-+AFs-1+AF0-:+AKA-http://pmem.io/documents/NVDIMM+AF8-DSM+AF8-Interface+AF8-Example.pdf
-
-
-The following changes since commit 18558cae0272f8fd9647e69d3fec1565a7949865:
-
-+AKA- Linux 4.5-rc4 (2016-02-14 13:05:20 -0800)
-
-are available in the git repository at:
-
-+AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
-
-for you to fetch changes up to c45442055dfdeb265cc20c9eeaa9fd11a75fbf51:
-
-+AKA- nvdimm: use 'u64' for pfn flags (2016-02-23 17:17:20 -0800)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-+AKAAoACgAKAAoACg-nvdimm: use 'u64' for pfn flags
-
-Dan Williams (3):
-+AKAAoACgAKAAoACg-nfit: fix multi-interface dimm handling, acpi6.1 compatibility
-+AKAAoACgAKAAoACg-libnvdimm, tools/testing/nvdimm: fix 'ars+AF8-status' output buffer sizing
-+AKAAoACgAKAAoACg-nfit: update address range scrub commands to the acpi 6.1 format
-
-Toshi Kani (1):
-+AKAAoACgAKAAoACg-devm+AF8-memremap: Fix error value when memremap failed
-
-+AKA-drivers/acpi/nfit.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8- 90 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---------------------
-+AKA-drivers/nvdimm/bus.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfA- 20 +-+-+-+------
-+AKA-drivers/nvdimm/pmem.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACg-2 +--
-+AKA-include/linux/libnvdimm.h+AKAAoACgAKAAoACgAKAAoAB8AKAAoA-3 +--
-+AKA-include/uapi/linux/ndctl.h+AKAAoACgAKAAoACgAKAAfA- 11 +-+-+-+--
-+AKA-kernel/memremap.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-4 +--
-+AKA-tools/testing/nvdimm/test/nfit.c +AHwAoACg-8 +-+-+--
-+AKA-7 files changed, 75 insertions(+-), 63 deletions(-)
-
-commit c45442055dfdeb265cc20c9eeaa9fd11a75fbf51
-Author: Arnd Bergmann +ADw-arnd+AEA-arndb.de+AD4-
-Date:+AKAAoACg-Mon Feb 22 22:58:34 2016 +-0100
-
-+AKAAoACgAKA-nvdimm: use 'u64' for pfn flags
-+AKAAoACgAKA-
-+AKAAoACgAKA-A recent bugfix changed pfn+AF8-t to always be 64-bit wide, but did not
-+AKAAoACgAKA-change the code in pmem.c, which is now broken on 32-bit architectures
-+AKAAoACgAKA-as reported by gcc:
-+AKAAoACgAKA-
-+AKAAoACgAKA-In file included from ../drivers/nvdimm/pmem.c:28:0:
-+AKAAoACgAKA-drivers/nvdimm/pmem.c: In function 'pmem+AF8-alloc':
-+AKAAoACgAKA-include/linux/pfn+AF8-t.h:15:17: error: large integer implicitly truncated to unsigned type +AFs--Werror+AD0-overflow+AF0-
-+AKAAoACgAKAAoAAj-define PFN+AF8-DEV (1ULL +ADwAPA- (BITS+AF8-PER+AF8-LONG+AF8-LONG - 3))
-+AKAAoACgAKA-
-+AKAAoACgAKA-This changes the intermediate pfn+AF8-flags in struct pmem+AF8-device to
-+AKAAoACgAKA-be 64 bit wide as well, so they can store the flags correctly.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Signed-off-by: Arnd Bergmann +ADw-arnd+AEA-arndb.de+AD4-
-+AKAAoACgAKA-Fixes: db78c22230d0 (+ACI-mm: fix pfn+AF8-t vs highmem+ACI-)
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit 93f834df9c2d4e362dfdc4b05daa0a4e18814836
-Author: Toshi Kani +ADw-toshi.kani+AEA-hpe.com+AD4-
-Date:+AKAAoACg-Sat Feb 20 14:32:24 2016 -0800
-
-+AKAAoACgAKA-devm+AF8-memremap: Fix error value when memremap failed
-+AKAAoACgAKA-
-+AKAAoACgAKA-devm+AF8-memremap() returns an ERR+AF8-PTR() value in case of error.
-+AKAAoACgAKA-However, it returns NULL when memremap() failed.+AKAAoA-This causes
-+AKAAoACgAKA-the caller, such as the pmem driver, to proceed and oops later.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Change devm+AF8-memremap() to return ERR+AF8-PTR(-ENXIO) when memremap()
-+AKAAoACgAKA-failed.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Signed-off-by: Toshi Kani +ADw-toshi.kani+AEA-hpe.com+AD4-
-+AKAAoACgAKA-Cc: Andrew Morton +ADw-akpm+AEA-linux-foundation.org+AD4-
-+AKAAoACgAKA-Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-+AKAAoACgAKA-Reviewed-by: Ross Zwisler +ADw-ross.zwisler+AEA-linux.intel.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit 4577b0665515e0abc7bc72562d6328d179598815
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Wed Feb 17 13:08:58 2016 -0800
-
-+AKAAoACgAKA-nfit: update address range scrub commands to the acpi 6.1 format
-+AKAAoACgAKA-
-+AKAAoACgAKA-The original format of these commands from the +ACI-NVDIMM DSM Interface
-+AKAAoACgAKA-Example+ACI- +AFs-1+AF0- are superseded by the ACPI 6.1 definition of the +ACI-NVDIMM Root
-+AKAAoACgAKA-Device +AF8-DSMs+ACI- +AFs-2+AF0-.
-+AKAAoACgAKA-
-+AKAAoACgAKAAWw-1+AF0-: http://pmem.io/documents/NVDIMM+AF8-DSM+AF8-Interface+AF8-Example.pdf
-+AKAAoACgAKAAWw-2+AF0-: http://www.uefi.org/sites/default/files/resources/ACPI+AF8-6+AF8-1.pdf
-+AKAAoACgAKAAoACgAKAAoACgACI-9.20.7 NVDIMM Root Device +AF8-DSMs+ACI-
-+AKAAoACgAKA-
-+AKAAoACgAKA-Changes include:
-+AKAAoACgAKA-1/ New 'restart' fields in ars+AF8-status, unfortunately these are
-+AKAAoACgAKAAoACgAKA-implemented in the middle of the existing definition so this change
-+AKAAoACgAKAAoACgAKA-is not backwards compatible.+AKAAoA-The expectation is that shipping
-+AKAAoACgAKAAoACgAKA-platforms will only ever support the ACPI 6.1 definition.
-+AKAAoACgAKA-
-+AKAAoACgAKA-2/ New status values for ars+AF8-start ('busy') and ars+AF8-status ('overflow').
-+AKAAoACgAKA-
-+AKAAoACgAKA-Cc: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
-+AKAAoACgAKA-Cc: Linda Knippers +ADw-linda.knippers+AEA-hpe.com+AD4-
-+AKAAoACgAKA-Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit 747ffe11b440ef9ea752888806d3aac677ca52a4
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Fri Feb 19 15:21:14 2016 -0800
-
-+AKAAoACgAKA-libnvdimm, tools/testing/nvdimm: fix 'ars+AF8-status' output buffer sizing
-+AKAAoACgAKA-
-+AKAAoACgAKA-Use the output length specified in the command to size the receive
-+AKAAoACgAKA-buffer rather than the arbitrary 4K limit.
-+AKAAoACgAKA-
-+AKAAoACgAKA-This bug was hiding the fact that the ndctl implementation of
-+AKAAoACgAKA-ndctl+AF8-bus+AF8-cmd+AF8-new+AF8-ars+AF8-status() was not specifying an output buffer size.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-+AKAAoACgAKA-Cc: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit 6697b2cf69d4363266ca47eaebc49ef13dabc1c9
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Thu Feb 4 16:51:00 2016 -0800
-
-+AKAAoACgAKA-nfit: fix multi-interface dimm handling, acpi6.1 compatibility
-+AKAAoACgAKA-
-+AKAAoACgAKA-ACPI 6.1 clarified that multi-interface dimms require multiple control
-+AKAAoACgAKA-region entries (DCRs) per dimm.+AKAAoA-Previously we were assuming that a
-+AKAAoACgAKA-control region is only present when block-data-windows are present.
-+AKAAoACgAKA-This implementation was done with an eye to be compatibility with the
-+AKAAoACgAKA-looser ACPI 6.0 interpretation of this table.
-+AKAAoACgAKA-
-+AKAAoACgAKA-1/ When coalescing the memory device (MEMDEV) tables for a single dimm,
-+AKAAoACgAKA-coalesce on device+AF8-handle rather than control region index.
-+AKAAoACgAKA-
-+AKAAoACgAKA-2/ Whenever we disocver a control region with non-zero block windows
-+AKAAoACgAKA-re-scan for block-data-window (BDW) entries.
-+AKAAoACgAKA-
-+AKAAoACgAKA-We may need to revisit this if a DIMM ever implements a format interface
-+AKAAoACgAKA-outside of blk or pmem, but that is not on the foreseeable horizon.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
