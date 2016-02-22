@@ -1,71 +1,140 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 08/10] sysctl: use generic UUID library
-Date: Wed, 17 Feb 2016 14:17:26 +0200
-Message-Id: <1455711448-124103-9-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v2 3/3] nfit_test: Update SPD ID init handlings
+Date: Mon, 22 Feb 2016 14:55:30 -0700
+Message-Id: <1456178130-26468-4-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
+References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: rjw@rjwysocki.net, dan.j.williams@intel.com
+Cc: robert.moore@intel.com, lv.zheng@intel.com, elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, Toshi Kani <toshi.kani@hpe.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-UUID library provides uuid_be type and uuid_be_to_bin() function. This
-substitutes open coded variant by generic library calls.
+Update the test code that initializes SPD IDs of NFIT control
+region structures.  nfit_set_spd_id() is added to handle
+initialization of the SPD IDs, which are arrays of bytes.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 ---
- kernel/sysctl_binary.c | 20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+ tools/testing/nvdimm/test/nfit.c |   64 +++++++++++++++++++++++---------------
+ 1 file changed, 39 insertions(+), 25 deletions(-)
 
-diff --git a/kernel/sysctl_binary.c b/kernel/sysctl_binary.c
-index 509abe4..4e5ca94 100644
---- a/kernel/sysctl_binary.c
-+++ b/kernel/sysctl_binary.c
-@@ -13,6 +13,7 @@
- #include <linux/ctype.h>
- #include <linux/netdevice.h>
- #include <linux/kernel.h>
-+#include <linux/uuid.h>
- #include <linux/slab.h>
- #include <linux/compat.h>
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 90bd2ea..283e187 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -160,6 +160,14 @@ static struct nfit_test *to_nfit_test(struct device *dev)
+ 	return container_of(pdev, struct nfit_test, pdev);
+ }
  
-@@ -1117,9 +1118,8 @@ static ssize_t bin_uuid(struct file *file,
- 
- 	/* Only supports reads */
- 	if (oldval && oldlen) {
--		char buf[40], *str = buf;
--		unsigned char uuid[16];
--		int i;
-+		char buf[UUID_STRING_LEN + 1];
-+		uuid_be uuid;
- 
- 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
- 		if (result < 0)
-@@ -1128,21 +1128,13 @@ static ssize_t bin_uuid(struct file *file,
- 		buf[result] = '\0';
- 
- 		/* Convert the uuid to from a string to binary */
--		for (i = 0; i < 16; i++) {
--			if (!isxdigit(str[0]) || !isxdigit(str[1]))
--				return -EIO;
--
--			uuid[i] = (hex_to_bin(str[0]) << 4) |
--					hex_to_bin(str[1]);
--			str += 2;
--			if (*str == '-')
--				str++;
--		}
-+		if (uuid_be_to_bin(buf, &uuid))
-+			return -EIO;
- 
- 		if (oldlen > 16)
- 			oldlen = 16;
- 
--		if (copy_to_user(oldval, uuid, oldlen))
-+		if (copy_to_user(oldval, &uuid, oldlen))
- 			return -EFAULT;
- 
- 		copied = oldlen;
--- 
-2.7.0
++static void nfit_set_spd_id(u8 *dist, u64 value, size_t size)
++{
++	int shift;
++
++	for (shift = size - 1; shift >= 0; shift--, dist++)
++		*dist = (u8)((value >> (8 * shift)) & 0xff);
++}
++
+ static int nfit_test_cmd_get_config_size(struct nd_cmd_get_config_size *nd_cmd,
+ 		unsigned int buf_len)
+ {
+@@ -815,10 +823,11 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 0+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
+-	dcr->serial_number = ~handle[0];
++	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++	nfit_set_spd_id(dcr->serial_number, ~handle[0],
++				sizeof(dcr->serial_number));
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -831,10 +840,11 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 1+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
+-	dcr->serial_number = ~handle[1];
++	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++	nfit_set_spd_id(dcr->serial_number, ~handle[1],
++				sizeof(dcr->serial_number));
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -847,10 +857,11 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 2+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
+-	dcr->serial_number = ~handle[2];
++	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++	nfit_set_spd_id(dcr->serial_number, ~handle[2],
++				sizeof(dcr->serial_number));
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -863,10 +874,11 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 3+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
+-	dcr->serial_number = ~handle[3];
++	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++	nfit_set_spd_id(dcr->serial_number, ~handle[3],
++				sizeof(dcr->serial_number));
+ 	dcr->windows = 1;
+ 	dcr->window_size = DCR_SIZE;
+ 	dcr->command_offset = 0;
+@@ -959,10 +971,11 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 		dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 		dcr->region_index = 4+1;
+-		dcr->vendor_id = 0xabcd;
+-		dcr->device_id = 0;
+-		dcr->revision_id = 1;
+-		dcr->serial_number = ~handle[4];
++		nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++		nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++		nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++		nfit_set_spd_id(dcr->serial_number, ~handle[4],
++					sizeof(dcr->serial_number));
+ 		dcr->windows = 1;
+ 		dcr->window_size = DCR_SIZE;
+ 		dcr->command_offset = 0;
+@@ -1128,11 +1141,12 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 0+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
+-	dcr->serial_number = ~0;
+-	dcr->code = 0x201;
++	nfit_set_spd_id(dcr->vendor_id, 0xabcd, sizeof(dcr->vendor_id));
++	nfit_set_spd_id(dcr->device_id, 0, sizeof(dcr->device_id));
++	nfit_set_spd_id(dcr->revision_id, 1, sizeof(dcr->revision_id));
++	nfit_set_spd_id(dcr->serial_number, ~0,
++				sizeof(dcr->serial_number));
++	nfit_set_spd_id(dcr->code, 0x201, sizeof(dcr->code));
+ 	dcr->windows = 0;
+ 	dcr->window_size = 0;
+ 	dcr->command_offset = 0;
