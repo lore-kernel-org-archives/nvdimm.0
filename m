@@ -1,205 +1,142 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 4/8] nfit,
- tools/testing/nvdimm: unify common init for acpi_nfit_desc
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 23 Feb 2016 18:17:19 -0800
-Message-ID: <20160224021719.22776.38487.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 4/5] dax: give DAX clearing code correct bdev
+Date: Mon, 22 Feb 2016 11:59:21 -0700
+Message-Id: <1456167562-28576-5-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1456167562-28576-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1456167562-28576-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-The nvdimm unit test infrastructure performs its own initialization of
-an acpi_nfit_desc to specify test overrides over the native
-implementation.  Make it clear which attributes and operations it is
-overriding by re-using acpi_nfit_init_desc() as a common starting point.
+dax_clear_blocks() needs a valid struct block_device and previously it was
+using inode->i_sb->s_bdev in all cases.  This is correct for normal inodes
+on mounted ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
+block devices and for XFS real-time devices.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Instead, rename dax_clear_blocks() to dax_clear_sectors(), and change its
+arguments to take a bdev and a sector instead of an inode and a block.
+This better reflects what the function does, and it allows the filesystem
+and raw block device code to pass in an appropriate struct block_device.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- drivers/acpi/nfit.c              |   44 ++++++++++++++------------------------
- drivers/acpi/nfit.h              |    2 +-
- tools/testing/nvdimm/test/nfit.c |   22 +++----------------
- 3 files changed, 20 insertions(+), 48 deletions(-)
+ fs/dax.c               | 9 ++++-----
+ fs/ext2/inode.c        | 6 ++++--
+ fs/xfs/xfs_aops.c      | 2 +-
+ fs/xfs/xfs_aops.h      | 1 +
+ fs/xfs/xfs_bmap_util.c | 3 ++-
+ include/linux/dax.h    | 2 +-
+ 6 files changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 4dd2b6808df5..76c9444c9c60 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -748,12 +748,11 @@ static struct attribute_group acpi_nfit_attribute_group = {
- 	.attrs = acpi_nfit_attributes,
- };
- 
--const struct attribute_group *acpi_nfit_attribute_groups[] = {
-+static const struct attribute_group *acpi_nfit_attribute_groups[] = {
- 	&nvdimm_bus_attribute_group,
- 	&acpi_nfit_attribute_group,
- 	NULL,
- };
--EXPORT_SYMBOL_GPL(acpi_nfit_attribute_groups);
- 
- static struct acpi_nfit_memory_map *to_nfit_memdev(struct device *dev)
- {
-@@ -1962,15 +1961,9 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+diff --git a/fs/dax.c b/fs/dax.c
+index fc2e314..9a173dd 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -79,15 +79,14 @@ struct page *read_dax_sector(struct block_device *bdev, sector_t n)
  }
- EXPORT_SYMBOL_GPL(acpi_nfit_init);
  
--static struct acpi_nfit_desc *acpi_nfit_desc_init(struct acpi_device *adev)
-+void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+ /*
+- * dax_clear_blocks() is called from within transaction context from XFS,
++ * dax_clear_sectors() is called from within transaction context from XFS,
+  * and hence this means the stack from this point must follow GFP_NOFS
+  * semantics for all operations.
+  */
+-int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
++int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size)
  {
- 	struct nvdimm_bus_descriptor *nd_desc;
--	struct acpi_nfit_desc *acpi_desc;
--	struct device *dev = &adev->dev;
--
--	acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
--	if (!acpi_desc)
--		return ERR_PTR(-ENOMEM);
+-	struct block_device *bdev = inode->i_sb->s_bdev;
+ 	struct blk_dax_ctl dax = {
+-		.sector = block << (inode->i_blkbits - 9),
++		.sector = _sector,
+ 		.size = _size,
+ 	};
  
- 	dev_set_drvdata(dev, acpi_desc);
- 	acpi_desc->dev = dev;
-@@ -1980,12 +1973,6 @@ static struct acpi_nfit_desc *acpi_nfit_desc_init(struct acpi_device *adev)
- 	nd_desc->ndctl = acpi_nfit_ctl;
- 	nd_desc->attr_groups = acpi_nfit_attribute_groups;
- 
--	acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, nd_desc);
--	if (!acpi_desc->nvdimm_bus) {
--		devm_kfree(dev, acpi_desc);
--		return ERR_PTR(-ENXIO);
--	}
--
- 	INIT_LIST_HEAD(&acpi_desc->spa_maps);
- 	INIT_LIST_HEAD(&acpi_desc->spas);
- 	INIT_LIST_HEAD(&acpi_desc->dcrs);
-@@ -1996,9 +1983,8 @@ static struct acpi_nfit_desc *acpi_nfit_desc_init(struct acpi_device *adev)
- 	INIT_LIST_HEAD(&acpi_desc->dimms);
- 	mutex_init(&acpi_desc->spa_map_mutex);
- 	mutex_init(&acpi_desc->init_mutex);
--
--	return acpi_desc;
+@@ -109,7 +108,7 @@ int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
+ 	wmb_pmem();
+ 	return 0;
  }
-+EXPORT_SYMBOL_GPL(acpi_nfit_desc_init);
+-EXPORT_SYMBOL_GPL(dax_clear_blocks);
++EXPORT_SYMBOL_GPL(dax_clear_sectors);
  
- static int acpi_nfit_add(struct acpi_device *adev)
+ /* the clear_pmem() calls are ordered by a wmb_pmem() in the caller */
+ static void dax_new_buf(void __pmem *addr, unsigned size, unsigned first,
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 27e2cdd..4467cbd 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -737,8 +737,10 @@ static int ext2_get_blocks(struct inode *inode,
+ 		 * so that it's not found by another thread before it's
+ 		 * initialised
+ 		 */
+-		err = dax_clear_blocks(inode, le32_to_cpu(chain[depth-1].key),
+-						1 << inode->i_blkbits);
++		err = dax_clear_sectors(inode->i_sb->s_bdev,
++				le32_to_cpu(chain[depth-1].key) <<
++				(inode->i_blkbits - 9),
++				1 << inode->i_blkbits);
+ 		if (err) {
+ 			mutex_unlock(&ei->truncate_mutex);
+ 			goto cleanup;
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index 379c089..fc20518 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -55,7 +55,7 @@ xfs_count_page_state(
+ 	} while ((bh = bh->b_this_page) != head);
+ }
+ 
+-STATIC struct block_device *
++struct block_device *
+ xfs_find_bdev_for_inode(
+ 	struct inode		*inode)
  {
-@@ -2017,12 +2003,13 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 		return 0;
- 	}
+diff --git a/fs/xfs/xfs_aops.h b/fs/xfs/xfs_aops.h
+index f6ffc9a..a4343c6 100644
+--- a/fs/xfs/xfs_aops.h
++++ b/fs/xfs/xfs_aops.h
+@@ -62,5 +62,6 @@ int	xfs_get_blocks_dax_fault(struct inode *inode, sector_t offset,
+ 			         struct buffer_head *map_bh, int create);
  
--	acpi_desc = acpi_nfit_desc_init(adev);
--	if (IS_ERR(acpi_desc)) {
--		dev_err(dev, "%s: error initializing acpi_desc: %ld\n",
--				__func__, PTR_ERR(acpi_desc));
--		return PTR_ERR(acpi_desc);
--	}
-+	acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
-+	if (!acpi_desc)
-+		return -ENOMEM;
-+	acpi_nfit_desc_init(acpi_desc, &adev->dev);
-+	acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
-+	if (!acpi_desc->nvdimm_bus)
-+		return -ENOMEM;
+ extern void xfs_count_page_state(struct page *, int *, int *);
++extern struct block_device *xfs_find_bdev_for_inode(struct inode *);
+ 
+ #endif /* __XFS_AOPS_H__ */
+diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
+index 45ec9e4..6c87601 100644
+--- a/fs/xfs/xfs_bmap_util.c
++++ b/fs/xfs/xfs_bmap_util.c
+@@ -75,7 +75,8 @@ xfs_zero_extent(
+ 	ssize_t		size = XFS_FSB_TO_B(mp, count_fsb);
+ 
+ 	if (IS_DAX(VFS_I(ip)))
+-		return dax_clear_blocks(VFS_I(ip), block, size);
++		return dax_clear_sectors(xfs_find_bdev_for_inode(VFS_I(ip)),
++				sector, size);
  
  	/*
- 	 * Save the acpi header for later and then skip it,
-@@ -2085,12 +2072,13 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- 	}
+ 	 * let the block layer decide on the fastest method of
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 818e450..7b6bced 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -7,7 +7,7 @@
  
- 	if (!acpi_desc) {
--		acpi_desc = acpi_nfit_desc_init(adev);
--		if (IS_ERR(acpi_desc)) {
--			dev_err(dev, "%s: error initializing acpi_desc: %ld\n",
--				__func__, PTR_ERR(acpi_desc));
-+		acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
-+		if (!acpi_desc)
-+			goto out_unlock;
-+		acpi_nfit_desc_init(acpi_desc, &adev->dev);
-+		acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
-+		if (!acpi_desc->nvdimm_bus)
- 			goto out_unlock;
--		}
- 	}
- 
- 	/* Evaluate _FIT */
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index f45b7d9b1d9e..524dec0a3adb 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -195,5 +195,5 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
- 
- const u8 *to_nfit_uuid(enum nfit_uuids id);
- int acpi_nfit_init(struct acpi_nfit_desc *nfit, acpi_size sz);
--extern const struct attribute_group *acpi_nfit_attribute_groups[];
-+void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev);
- #endif /* __NFIT_H__ */
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 9ead77970546..a66842e61bbc 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -499,7 +499,6 @@ static int nfit_test1_alloc(struct nfit_test *t)
- 
- static void nfit_test0_setup(struct nfit_test *t)
- {
--	struct nvdimm_bus_descriptor *nd_desc;
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct acpi_nfit_memory_map *memdev;
- 	void *nfit_buf = t->nfit_buf;
-@@ -1165,8 +1164,6 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_dsm_force_en);
--	nd_desc = &acpi_desc->nd_desc;
--	nd_desc->ndctl = nfit_test_ctl;
- }
- 
- static void nfit_test1_setup(struct nfit_test *t)
-@@ -1176,7 +1173,6 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	struct acpi_nfit_memory_map *memdev;
- 	struct acpi_nfit_control_region *dcr;
- 	struct acpi_nfit_system_address *spa;
--	struct nvdimm_bus_descriptor *nd_desc;
- 	struct acpi_nfit_desc *acpi_desc;
- 
- 	offset = 0;
-@@ -1226,8 +1222,6 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_dsm_force_en);
--	nd_desc = &acpi_desc->nd_desc;
--	nd_desc->ndctl = nfit_test_ctl;
- }
- 
- static int nfit_test_blk_do_io(struct nd_blk_region *ndbr, resource_size_t dpa,
-@@ -1310,26 +1304,16 @@ static int nfit_test_probe(struct platform_device *pdev)
- 
- 	nfit_test->setup(nfit_test);
- 	acpi_desc = &nfit_test->acpi_desc;
--	acpi_desc->dev = &pdev->dev;
-+	acpi_nfit_desc_init(acpi_desc, &pdev->dev);
- 	acpi_desc->nfit = nfit_test->nfit_buf;
- 	acpi_desc->blk_do_io = nfit_test_blk_do_io;
- 	nd_desc = &acpi_desc->nd_desc;
--	nd_desc->attr_groups = acpi_nfit_attribute_groups;
-+	nd_desc->provider_name = NULL;
-+	nd_desc->ndctl = nfit_test_ctl;
- 	acpi_desc->nvdimm_bus = nvdimm_bus_register(&pdev->dev, nd_desc);
- 	if (!acpi_desc->nvdimm_bus)
- 		return -ENXIO;
- 
--	INIT_LIST_HEAD(&acpi_desc->spa_maps);
--	INIT_LIST_HEAD(&acpi_desc->spas);
--	INIT_LIST_HEAD(&acpi_desc->dcrs);
--	INIT_LIST_HEAD(&acpi_desc->bdws);
--	INIT_LIST_HEAD(&acpi_desc->idts);
--	INIT_LIST_HEAD(&acpi_desc->flushes);
--	INIT_LIST_HEAD(&acpi_desc->memdevs);
--	INIT_LIST_HEAD(&acpi_desc->dimms);
--	mutex_init(&acpi_desc->spa_map_mutex);
--	mutex_init(&acpi_desc->init_mutex);
--
- 	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
- 	if (rc) {
- 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+ ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
+ 		  get_block_t, dio_iodone_t, int flags);
+-int dax_clear_blocks(struct inode *, sector_t block, long size);
++int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size);
+ int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
+ int dax_truncate_page(struct inode *, loff_t from, get_block_t);
+ int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
+-- 
+2.5.0
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
