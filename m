@@ -1,47 +1,56 @@
 Return-Path: <owner-linux-mm@kvack.org>
+Date: Tue, 23 Feb 2016 16:37:48 -0700
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 3/6] ext4: Online defrag not supported with DAX
-Date: Tue, 16 Feb 2016 20:34:16 -0700
-Message-Id: <1455680059-20126-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 1/6] dax: Use vmf->gfp_mask
+Message-ID: <20160223233748.GA32265@linux.intel.com>
+References: <1454242795-18038-1-git-send-email-matthew.r.wilcox@intel.com>
+ <1454242795-18038-2-git-send-email-matthew.r.wilcox@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1454242795-18038-2-git-send-email-matthew.r.wilcox@intel.com>
 Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
+To: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Online defrag operations for ext4 are hard coded to use the page cache.
-See ext4_ioctl() -> ext4_move_extents() -> move_extent_per_page()
+On Sun, Jan 31, 2016 at 11:19:50PM +1100, Matthew Wilcox wrote:
+> We were assuming that it was OK to do a GFP_KERNEL allocation in page
+> fault context.  That appears to be largely true, but filesystems are
+> permitted to override that in their setting of mapping->gfp_flags, which
+> the VM then massages into vmf->gfp_flags.  No practical difference for
+> now, but there may come a day when we would have surprised a filesystem.
+> 
+> Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 
-When combined with DAX I/O, which circumvents the page cache, this can
-result in data corruption.  This was observed with xfstests ext4/307 and
-ext4/308.
+Sure, this seems right.
 
-Fix this by only allowing online defrag for non-DAX files.
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/ext4/ioctl.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
-index 0f6c369..e32c86f 100644
---- a/fs/ext4/ioctl.c
-+++ b/fs/ext4/ioctl.c
-@@ -583,6 +583,11 @@ group_extend_out:
- 				 "Online defrag not supported with bigalloc");
- 			err = -EOPNOTSUPP;
- 			goto mext_out;
-+		} else if (IS_DAX(inode)) {
-+			ext4_msg(sb, KERN_ERR,
-+				 "Online defrag not supported with DAX");
-+			err = -EOPNOTSUPP;
-+			goto mext_out;
- 		}
- 
- 		err = mnt_want_write_file(filp);
--- 
-2.5.0
+> ---
+>  fs/dax.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 2f9bb89..11be8c7 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -292,7 +292,7 @@ static int dax_load_hole(struct address_space *mapping, struct page *page,
+>  	struct inode *inode = mapping->host;
+>  	if (!page)
+>  		page = find_or_create_page(mapping, vmf->pgoff,
+> -						GFP_KERNEL | __GFP_ZERO);
+> +						vmf->gfp_mask | __GFP_ZERO);
+>  	if (!page)
+>  		return VM_FAULT_OOM;
+>  	/* Recheck i_size under page lock to avoid truncate race */
+> -- 
+> 2.7.0.rc3
+> 
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
