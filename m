@@ -1,172 +1,162 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 3/8] libnvdimm: async notification support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 23 Feb 2016 18:17:14 -0800
-Message-ID: <20160224021714.22776.50929.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.4 005/137] x86/mm: Fix vmalloc_fault() to handle large pages properly
+Date: Tue, 23 Feb 2016 19:32:16 -0800
+Message-Id: <20160224033417.451988491@linuxfoundation.org>
+In-Reply-To: <20160224033417.270530882@linuxfoundation.org>
+References: <20160224033417.270530882@linuxfoundation.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Henning Schild <henning.schild@siemens.com>, Toshi Kani <toshi.kani@hpe.com>, Borislav Petkov <bp@alien8.de>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@amacapital.net>, Brian Gerst <brgerst@gmail.com>, Denys Vlasenko <dvlasenk@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Luis R. Rodriguez" <mcgrof@suse.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for asynchronous address range scrub support add an ability for
-the pmem driver to dynamically consume address range scrub results.
+4.4-stable review patch.  If anyone has any objections, please let me know.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+------------------
+
+From: Toshi Kani <toshi.kani@hpe.com>
+
+commit f4eafd8bcd5229e998aa252627703b8462c3b90f upstream.
+
+A kernel page fault oops with the callstack below was observed
+when a read syscall was made to a pmem device after a huge amount
+(>512GB) of vmalloc ranges was allocated by ioremap() on a x86_64
+system:
+
+     BUG: unable to handle kernel paging request at ffff880840000ff8
+     IP: vmalloc_fault+0x1be/0x300
+     PGD c7f03a067 PUD 0
+     Oops: 0000 [#1] SM
+     Call Trace:
+        __do_page_fault+0x285/0x3e0
+        do_page_fault+0x2f/0x80
+        ? put_prev_entity+0x35/0x7a0
+        page_fault+0x28/0x30
+        ? memcpy_erms+0x6/0x10
+        ? schedule+0x35/0x80
+        ? pmem_rw_bytes+0x6a/0x190 [nd_pmem]
+        ? schedule_timeout+0x183/0x240
+        btt_log_read+0x63/0x140 [nd_btt]
+         :
+        ? __symbol_put+0x60/0x60
+        ? kernel_read+0x50/0x80
+        SyS_finit_module+0xb9/0xf0
+        entry_SYSCALL_64_fastpath+0x1a/0xa4
+
+Since v4.1, ioremap() supports large page (pud/pmd) mappings in
+x86_64 and PAE.  vmalloc_fault() however assumes that the vmalloc
+range is limited to pte mappings.
+
+vmalloc faults do not normally happen in ioremap'd ranges since
+ioremap() sets up the kernel page tables, which are shared by
+user processes.  pgd_ctor() sets the kernel's PGD entries to
+user's during fork().  When allocation of the vmalloc ranges
+crosses a 512GB boundary, ioremap() allocates a new pud table
+and updates the kernel PGD entry to point it.  If user process's
+PGD entry does not have this update yet, a read/write syscall
+to the range will cause a vmalloc fault, which hits the Oops
+above as it does not handle a large page properly.
+
+Following changes are made to vmalloc_fault().
+
+64-bit:
+
+ - No change for the PGD sync operation as it handles large
+   pages already.
+ - Add pud_huge() and pmd_huge() to the validation code to
+   handle large pages.
+ - Change pud_page_vaddr() to pud_pfn() since an ioremap range
+   is not directly mapped (while the if-statement still works
+   with a bogus addr).
+ - Change pmd_page() to pmd_pfn() since an ioremap range is not
+   backed by struct page (while the if-statement still works
+   with a bogus addr).
+
+32-bit:
+ - No change for the sync operation since the index3 PGD entry
+   covers the entire vmalloc range, which is always valid.
+   (A separate change to sync PGD entry is necessary if this
+    memory layout is changed regardless of the page size.)
+ - Add pmd_huge() to the validation code to handle large pages.
+   This is for completeness since vmalloc_fault() won't happen
+   in ioremap'd ranges as its PGD entry is always valid.
+
+Reported-by: Henning Schild <henning.schild@siemens.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Acked-by: Borislav Petkov <bp@alien8.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Luis R. Rodriguez <mcgrof@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: linux-mm@kvack.org
+Cc: linux-nvdimm@lists.01.org
+Link: http://lkml.kernel.org/r/1455758214-24623-1-git-send-email-toshi.kani@hpe.com
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
 ---
- drivers/nvdimm/bus.c    |   26 ++++++++++++++++++++++++++
- drivers/nvdimm/nd.h     |    2 ++
- drivers/nvdimm/pmem.c   |   15 +++++++++++++++
- drivers/nvdimm/region.c |   12 ++++++++++++
- include/linux/nd.h      |    7 +++++++
- 5 files changed, 62 insertions(+)
+ arch/x86/mm/fault.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index c3ba888e3e3a..2508251439e7 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -133,6 +133,32 @@ static int nvdimm_bus_remove(struct device *dev)
- 	return rc;
- }
+--- a/arch/x86/mm/fault.c
++++ b/arch/x86/mm/fault.c
+@@ -287,6 +287,9 @@ static noinline int vmalloc_fault(unsign
+ 	if (!pmd_k)
+ 		return -1;
  
-+void nd_device_notify(struct device *dev, enum nvdimm_event event)
-+{
-+	device_lock(dev);
-+	if (dev->driver) {
-+		struct nd_device_driver *nd_drv;
++	if (pmd_huge(*pmd_k))
++		return 0;
 +
-+		nd_drv = to_nd_device_driver(dev->driver);
-+		if (nd_drv->notify)
-+			nd_drv->notify(dev, event);
-+	}
-+	device_unlock(dev);
-+}
-+EXPORT_SYMBOL(nd_device_notify);
-+
-+void nvdimm_region_notify(struct nd_region *nd_region, enum nvdimm_event event)
-+{
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(&nd_region->dev);
-+
-+	if (!nvdimm_bus)
-+		return;
-+
-+	/* caller is responsible for holding a reference on the device */
-+	nd_device_notify(&nd_region->dev, event);
-+}
-+EXPORT_SYMBOL_GPL(nvdimm_region_notify);
-+
- static struct bus_type nvdimm_bus_type = {
- 	.name = "nd",
- 	.uevent = nvdimm_bus_uevent,
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index ba1633b9da31..78b82f6dd191 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -18,6 +18,7 @@
- #include <linux/mutex.h>
- #include <linux/ndctl.h>
- #include <linux/types.h>
-+#include <linux/nd.h>
- #include "label.h"
+ 	pte_k = pte_offset_kernel(pmd_k, address);
+ 	if (!pte_present(*pte_k))
+ 		return -1;
+@@ -360,8 +363,6 @@ void vmalloc_sync_all(void)
+  * 64-bit:
+  *
+  *   Handle a fault on the vmalloc area
+- *
+- * This assumes no large pages in there.
+  */
+ static noinline int vmalloc_fault(unsigned long address)
+ {
+@@ -403,17 +404,23 @@ static noinline int vmalloc_fault(unsign
+ 	if (pud_none(*pud_ref))
+ 		return -1;
  
- enum {
-@@ -168,6 +169,7 @@ int nd_integrity_init(struct gendisk *disk, unsigned long meta_size);
- void wait_nvdimm_bus_probe_idle(struct device *dev);
- void nd_device_register(struct device *dev);
- void nd_device_unregister(struct device *dev, enum nd_async_mode mode);
-+void nd_device_notify(struct device *dev, enum nvdimm_event event);
- int nd_uuid_store(struct device *dev, u8 **uuid_out, const char *buf,
- 		size_t len);
- ssize_t nd_sector_size_show(unsigned long current_lbasize,
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 8d0b54670184..efc2a5e671c6 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -488,12 +488,27 @@ static int nd_pmem_remove(struct device *dev)
- 	return 0;
- }
+-	if (pud_none(*pud) || pud_page_vaddr(*pud) != pud_page_vaddr(*pud_ref))
++	if (pud_none(*pud) || pud_pfn(*pud) != pud_pfn(*pud_ref))
+ 		BUG();
  
-+static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
-+{
-+	struct pmem_device *pmem = dev_get_drvdata(dev);
-+	struct nd_namespace_common *ndns = pmem->ndns;
++	if (pud_huge(*pud))
++		return 0;
 +
-+	if (event != NVDIMM_REVALIDATE_POISON)
-+		return;
-+
-+	if (is_nd_btt(dev))
-+		nvdimm_namespace_add_poison(ndns, &pmem->bb, 0);
-+	else
-+		nvdimm_namespace_add_poison(ndns, &pmem->bb, pmem->data_offset);
-+}
-+
- MODULE_ALIAS("pmem");
- MODULE_ALIAS_ND_DEVICE(ND_DEVICE_NAMESPACE_IO);
- MODULE_ALIAS_ND_DEVICE(ND_DEVICE_NAMESPACE_PMEM);
- static struct nd_device_driver nd_pmem_driver = {
- 	.probe = nd_pmem_probe,
- 	.remove = nd_pmem_remove,
-+	.notify = nd_pmem_notify,
- 	.drv = {
- 		.name = "nd_pmem",
- 	},
-diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
-index 7da63eac78ee..4b7715e29cff 100644
---- a/drivers/nvdimm/region.c
-+++ b/drivers/nvdimm/region.c
-@@ -93,9 +93,21 @@ static int nd_region_remove(struct device *dev)
- 	return 0;
- }
+ 	pmd = pmd_offset(pud, address);
+ 	pmd_ref = pmd_offset(pud_ref, address);
+ 	if (pmd_none(*pmd_ref))
+ 		return -1;
  
-+static int child_notify(struct device *dev, void *data)
-+{
-+	nd_device_notify(dev, *(enum nvdimm_event *) data);
-+	return 0;
-+}
-+
-+static void nd_region_notify(struct device *dev, enum nvdimm_event event)
-+{
-+	device_for_each_child(dev, &event, child_notify);
-+}
-+
- static struct nd_device_driver nd_region_driver = {
- 	.probe = nd_region_probe,
- 	.remove = nd_region_remove,
-+	.notify = nd_region_notify,
- 	.drv = {
- 		.name = "nd_region",
- 	},
-diff --git a/include/linux/nd.h b/include/linux/nd.h
-index 507e47c86737..5489ab756d1a 100644
---- a/include/linux/nd.h
-+++ b/include/linux/nd.h
-@@ -16,11 +16,16 @@
- #include <linux/ndctl.h>
- #include <linux/device.h>
+-	if (pmd_none(*pmd) || pmd_page(*pmd) != pmd_page(*pmd_ref))
++	if (pmd_none(*pmd) || pmd_pfn(*pmd) != pmd_pfn(*pmd_ref))
+ 		BUG();
  
-+enum nvdimm_event {
-+	NVDIMM_REVALIDATE_POISON,
-+};
++	if (pmd_huge(*pmd))
++		return 0;
 +
- struct nd_device_driver {
- 	struct device_driver drv;
- 	unsigned long type;
- 	int (*probe)(struct device *dev);
- 	int (*remove)(struct device *dev);
-+	void (*notify)(struct device *dev, enum nvdimm_event event);
- };
- 
- static inline struct nd_device_driver *to_nd_device_driver(
-@@ -144,6 +149,8 @@ static inline int nvdimm_write_bytes(struct nd_namespace_common *ndns,
- 	MODULE_ALIAS("nd:t" __stringify(type) "*")
- #define ND_DEVICE_MODALIAS_FMT "nd:t%d"
- 
-+struct nd_region;
-+void nvdimm_region_notify(struct nd_region *nd_region, enum nvdimm_event event);
- int __must_check __nd_driver_register(struct nd_device_driver *nd_drv,
- 		struct module *module, const char *mod_name);
- #define nd_driver_register(driver) \
+ 	pte_ref = pte_offset_kernel(pmd_ref, address);
+ 	if (!pte_present(*pte_ref))
+ 		return -1;
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
