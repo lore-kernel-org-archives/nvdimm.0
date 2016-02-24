@@ -1,103 +1,221 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 1/5] block: disable block device DAX by default
-Date: Mon, 22 Feb 2016 11:59:18 -0700
-Message-Id: <1456167562-28576-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1456167562-28576-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1456167562-28576-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.4 003/137] x86/uaccess/64: Make the __copy_user_nocache() assembly code more readable
+Date: Tue, 23 Feb 2016 19:32:14 -0800
+Message-Id: <20160224033417.389502021@linuxfoundation.org>
+In-Reply-To: <20160224033417.270530882@linuxfoundation.org>
+References: <20160224033417.270530882@linuxfoundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Dan Williams <dan.j.williams@intel.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Al Viro <viro@ftp.linux.org.uk>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@amacapital.net>, Borislav Petkov <bp@alien8.de>, Borislav Petkov <bp@suse.de>, Brian Gerst <brgerst@gmail.com>, Denys Vlasenko <dvlasenk@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Luis R. Rodriguez" <mcgrof@suse.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, brian.boylston@hpe.com, dan.j.williams@intel.com, linux-nvdimm@lists.01.org, micah.parrish@hpe.com, ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
+4.4-stable review patch.  If anyone has any objections, please let me know.
 
-The recent *sync enabling discovered that we are inserting into the
-block_device pagecache counter to the expectations of the dirty data
-tracking for dax mappings.  This can lead to data corruption.
+------------------
 
-We want to support DAX for block devices eventually, but it requires
-wider changes to properly manage the pagecache.
+From: Toshi Kani <toshi.kani@hpe.com>
 
-  [<ffffffff81576d93>] dump_stack+0x85/0xc2
-  [<ffffffff812b9ee0>] dax_writeback_mapping_range+0x60/0xe0
-  [<ffffffff812a1d4f>] blkdev_writepages+0x3f/0x50
-  [<ffffffff811db011>] do_writepages+0x21/0x30
-  [<ffffffff811cb6a6>] __filemap_fdatawrite_range+0xc6/0x100
-  [<ffffffff811cb75a>] filemap_write_and_wait+0x4a/0xa0
-  [<ffffffff812a15e0>] set_blocksize+0x70/0xd0
-  [<ffffffff812a273d>] sb_set_blocksize+0x1d/0x50
-  [<ffffffff8132ac9b>] ext4_fill_super+0x75b/0x3360
-  [<ffffffff81583381>] ? vsnprintf+0x201/0x4c0
-  [<ffffffff815836d9>] ? snprintf+0x49/0x60
-  [<ffffffff81263010>] mount_bdev+0x180/0x1b0
-  [<ffffffff8132a540>] ? ext4_calculate_overhead+0x370/0x370
-  [<ffffffff8131ad95>] ext4_mount+0x15/0x20
-  [<ffffffff81263908>] mount_fs+0x38/0x170
+commit ee9737c924706aaa72c2ead93e3ad5644681dc1c upstream.
 
-Mark the support broken so its disabled by default, but otherwise still
-available for testing.
+Add comments to __copy_user_nocache() to clarify its procedures
+and alignment requirements.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Al Viro <viro@ftp.linux.org.uk>
-Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dave Chinner <david@fromorbit.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Also change numeric branch target labels to named local labels.
+
+No code changed:
+
+ arch/x86/lib/copy_user_64.o:
+
+    text    data     bss     dec     hex filename
+    1239       0       0    1239     4d7 copy_user_64.o.before
+    1239       0       0    1239     4d7 copy_user_64.o.after
+
+ md5:
+    58bed94c2db98c1ca9a2d46d0680aaae  copy_user_64.o.before.asm
+    58bed94c2db98c1ca9a2d46d0680aaae  copy_user_64.o.after.asm
+
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Luis R. Rodriguez <mcgrof@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: brian.boylston@hpe.com
+Cc: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
+Cc: micah.parrish@hpe.com
+Cc: ross.zwisler@linux.intel.com
+Cc: vishal.l.verma@intel.com
+Link: http://lkml.kernel.org/r/1455225857-12039-2-git-send-email-toshi.kani@hpe.com
+[ Small readability edits and added object file comparison. ]
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
 ---
- block/Kconfig  | 13 +++++++++++++
- fs/block_dev.c |  6 +++++-
- 2 files changed, 18 insertions(+), 1 deletion(-)
+ arch/x86/lib/copy_user_64.S |  114 ++++++++++++++++++++++++++++----------------
+ 1 file changed, 73 insertions(+), 41 deletions(-)
 
-diff --git a/block/Kconfig b/block/Kconfig
-index 161491d..0363cd7 100644
---- a/block/Kconfig
-+++ b/block/Kconfig
-@@ -88,6 +88,19 @@ config BLK_DEV_INTEGRITY
- 	T10/SCSI Data Integrity Field or the T13/ATA External Path
- 	Protection.  If in doubt, say N.
+--- a/arch/x86/lib/copy_user_64.S
++++ b/arch/x86/lib/copy_user_64.S
+@@ -232,17 +232,30 @@ ENDPROC(copy_user_enhanced_fast_string)
  
-+config BLK_DEV_DAX
-+	bool "Block device DAX support"
-+	depends on FS_DAX
-+	depends on BROKEN
-+	help
-+	  When DAX support is available (CONFIG_FS_DAX) raw block
-+	  devices can also support direct userspace access to the
-+	  storage capacity via MMAP(2) similar to a file on a
-+	  DAX-enabled filesystem.  However, the DAX I/O-path disables
-+	  some standard I/O-statistics, and the MMAP(2) path has some
-+	  operational differences due to bypassing the page
-+	  cache.  If in doubt, say N.
+ /*
+  * copy_user_nocache - Uncached memory copy with exception handling
+- * This will force destination/source out of cache for more performance.
++ * This will force destination out of cache for more performance.
++ *
++ * Note: Cached memory copy is used when destination or size is not
++ * naturally aligned. That is:
++ *  - Require 8-byte alignment when size is 8 bytes or larger.
+  */
+ ENTRY(__copy_user_nocache)
+ 	ASM_STAC
 +
- config BLK_DEV_THROTTLING
- 	bool "Block layer bio throttling support"
- 	depends on BLK_CGROUP=y
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 39b3a17..31c6d10 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -1201,7 +1201,11 @@ static int __blkdev_get(struct block_device *bdev, fmode_t mode, int for_part)
- 		bdev->bd_disk = disk;
- 		bdev->bd_queue = disk->queue;
- 		bdev->bd_contains = bdev;
--		bdev->bd_inode->i_flags = disk->fops->direct_access ? S_DAX : 0;
-+		if (IS_ENABLED(CONFIG_BLK_DEV_DAX) && disk->fops->direct_access)
-+			bdev->bd_inode->i_flags = S_DAX;
-+		else
-+			bdev->bd_inode->i_flags = 0;
++	/* If size is less than 8 bytes, go to byte copy */
+ 	cmpl $8,%edx
+-	jb 20f		/* less then 8 bytes, go to byte copy loop */
++	jb .L_1b_cache_copy_entry
 +
- 		if (!partno) {
- 			ret = -ENXIO;
- 			bdev->bd_part = disk_get_part(disk, partno);
--- 
-2.5.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
++	/* If destination is not 8-byte aligned, "cache" copy to align it */
+ 	ALIGN_DESTINATION
++
++	/* Set 4x8-byte copy count and remainder */
+ 	movl %edx,%ecx
+ 	andl $63,%edx
+ 	shrl $6,%ecx
+-	jz 17f
++	jz .L_8b_nocache_copy_entry	/* jump if count is 0 */
++
++	/* Perform 4x8-byte nocache loop-copy */
++.L_4x8b_nocache_copy_loop:
+ 1:	movq (%rsi),%r8
+ 2:	movq 1*8(%rsi),%r9
+ 3:	movq 2*8(%rsi),%r10
+@@ -262,60 +275,79 @@ ENTRY(__copy_user_nocache)
+ 	leaq 64(%rsi),%rsi
+ 	leaq 64(%rdi),%rdi
+ 	decl %ecx
+-	jnz 1b
+-17:	movl %edx,%ecx
++	jnz .L_4x8b_nocache_copy_loop
++
++	/* Set 8-byte copy count and remainder */
++.L_8b_nocache_copy_entry:
++	movl %edx,%ecx
+ 	andl $7,%edx
+ 	shrl $3,%ecx
+-	jz 20f
+-18:	movq (%rsi),%r8
+-19:	movnti %r8,(%rdi)
++	jz .L_1b_cache_copy_entry	/* jump if count is 0 */
++
++	/* Perform 8-byte nocache loop-copy */
++.L_8b_nocache_copy_loop:
++20:	movq (%rsi),%r8
++21:	movnti %r8,(%rdi)
+ 	leaq 8(%rsi),%rsi
+ 	leaq 8(%rdi),%rdi
+ 	decl %ecx
+-	jnz 18b
+-20:	andl %edx,%edx
+-	jz 23f
++	jnz .L_8b_nocache_copy_loop
++
++	/* If no byte left, we're done */
++.L_1b_cache_copy_entry:
++	andl %edx,%edx
++	jz .L_finish_copy
++
++	/* Perform byte "cache" loop-copy for the remainder */
+ 	movl %edx,%ecx
+-21:	movb (%rsi),%al
+-22:	movb %al,(%rdi)
++.L_1b_cache_copy_loop:
++40:	movb (%rsi),%al
++41:	movb %al,(%rdi)
+ 	incq %rsi
+ 	incq %rdi
+ 	decl %ecx
+-	jnz 21b
+-23:	xorl %eax,%eax
++	jnz .L_1b_cache_copy_loop
++
++	/* Finished copying; fence the prior stores */
++.L_finish_copy:
++	xorl %eax,%eax
+ 	ASM_CLAC
+ 	sfence
+ 	ret
+ 
+ 	.section .fixup,"ax"
+-30:	shll $6,%ecx
++.L_fixup_4x8b_copy:
++	shll $6,%ecx
+ 	addl %ecx,%edx
+-	jmp 60f
+-40:	lea (%rdx,%rcx,8),%rdx
+-	jmp 60f
+-50:	movl %ecx,%edx
+-60:	sfence
++	jmp .L_fixup_handle_tail
++.L_fixup_8b_copy:
++	lea (%rdx,%rcx,8),%rdx
++	jmp .L_fixup_handle_tail
++.L_fixup_1b_copy:
++	movl %ecx,%edx
++.L_fixup_handle_tail:
++	sfence
+ 	jmp copy_user_handle_tail
+ 	.previous
+ 
+-	_ASM_EXTABLE(1b,30b)
+-	_ASM_EXTABLE(2b,30b)
+-	_ASM_EXTABLE(3b,30b)
+-	_ASM_EXTABLE(4b,30b)
+-	_ASM_EXTABLE(5b,30b)
+-	_ASM_EXTABLE(6b,30b)
+-	_ASM_EXTABLE(7b,30b)
+-	_ASM_EXTABLE(8b,30b)
+-	_ASM_EXTABLE(9b,30b)
+-	_ASM_EXTABLE(10b,30b)
+-	_ASM_EXTABLE(11b,30b)
+-	_ASM_EXTABLE(12b,30b)
+-	_ASM_EXTABLE(13b,30b)
+-	_ASM_EXTABLE(14b,30b)
+-	_ASM_EXTABLE(15b,30b)
+-	_ASM_EXTABLE(16b,30b)
+-	_ASM_EXTABLE(18b,40b)
+-	_ASM_EXTABLE(19b,40b)
+-	_ASM_EXTABLE(21b,50b)
+-	_ASM_EXTABLE(22b,50b)
++	_ASM_EXTABLE(1b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(2b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(3b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(4b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(5b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(6b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(7b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(8b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(9b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(10b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(11b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(12b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(13b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(14b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(15b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(16b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(20b,.L_fixup_8b_copy)
++	_ASM_EXTABLE(21b,.L_fixup_8b_copy)
++	_ASM_EXTABLE(40b,.L_fixup_1b_copy)
++	_ASM_EXTABLE(41b,.L_fixup_1b_copy)
+ ENDPROC(__copy_user_nocache)
