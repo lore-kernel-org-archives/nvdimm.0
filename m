@@ -1,8 +1,8 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [PATCH 1/8] libnvdimm, nfit: centralize command status translation
+Subject: [PATCH 5/8] nfit, libnvdimm: async region scrub workqueue
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 23 Feb 2016 18:17:03 -0800
-Message-ID: <20160224021703.22776.46077.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 23 Feb 2016 18:17:24 -0800
+Message-ID: <20160224021724.22776.70050.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -10,415 +10,175 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The return value from an 'ndctl_fn' reports the command execution
-status, i.e. was the command properly formatted and was it successfully
-submitted to the bus provider.  The new 'cmd_rc' parameter allows the bus
-provider to communicate command specific results, translated into
-common error codes.
+Introduce a workqueue that will be used to run address range scrub
+asynchronously with the rest of nvdimm device probing.
 
-Convert the ARS commands to this scheme to:
+Userspace still wants notification when probing operations complete, so
+introduce a new callback to flush this workqueue when userspace is
+awaiting probe completion.
 
-1/ Consolidate status reporting
-
-2/ Prepare for for expanding ars unit test cases
-
-3/ Make the implementation more generic
-
-Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c              |  176 ++++++++++++++++++++++++++------------
- drivers/acpi/nfit.h              |   11 ++
- drivers/nvdimm/bus.c             |    2 
- drivers/nvdimm/dimm_devs.c       |    6 +
- include/linux/libnvdimm.h        |    2 
- tools/testing/nvdimm/test/nfit.c |    5 +
- 6 files changed, 140 insertions(+), 62 deletions(-)
+ drivers/acpi/nfit.c       |   49 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit.h       |    3 +++
+ drivers/nvdimm/core.c     |    9 ++++++++
+ include/linux/libnvdimm.h |    1 +
+ 4 files changed, 62 insertions(+)
 
 diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index fb53db187854..4dd2b6808df5 100644
+index 76c9444c9c60..4aa2bd54fc1d 100644
 --- a/drivers/acpi/nfit.c
 +++ b/drivers/acpi/nfit.c
-@@ -72,9 +72,80 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
- 	return to_acpi_device(acpi_desc->dev);
- }
+@@ -34,6 +34,8 @@ static bool force_enable_dimms;
+ module_param(force_enable_dimms, bool, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(force_enable_dimms, "Ignore _STA (ACPI DIMM device) status");
  
-+static int xlat_status(void *buf, unsigned int cmd)
++static struct workqueue_struct *nfit_wq;
++
+ struct nfit_table_prev {
+ 	struct list_head spas;
+ 	struct list_head memdevs;
+@@ -1961,6 +1963,39 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+ }
+ EXPORT_SYMBOL_GPL(acpi_nfit_init);
+ 
++struct acpi_nfit_flush_work {
++	struct work_struct work;
++	struct completion cmp;
++};
++
++static void flush_probe(struct work_struct *work)
 +{
-+	struct nd_cmd_ars_status *ars_status;
-+	struct nd_cmd_ars_start *ars_start;
-+	struct nd_cmd_ars_cap *ars_cap;
-+	u16 flags;
++	struct acpi_nfit_flush_work *flush;
 +
-+	switch (cmd) {
-+	case ND_CMD_ARS_CAP:
-+		ars_cap = buf;
-+		if ((ars_cap->status & 0xffff) == NFIT_ARS_CAP_NONE)
-+			return -ENOTTY;
-+
-+		/* Command failed */
-+		if (ars_cap->status & 0xffff)
-+			return -EIO;
-+
-+		/* No supported scan types for this range */
-+		flags = ND_ARS_PERSISTENT | ND_ARS_VOLATILE;
-+		if ((ars_cap->status >> 16 & flags) == 0)
-+			return -ENOTTY;
-+		break;
-+	case ND_CMD_ARS_START:
-+		ars_start = buf;
-+		/* ARS is in progress */
-+		if ((ars_start->status & 0xffff) == NFIT_ARS_START_BUSY)
-+			return -EBUSY;
-+
-+		/* Command failed */
-+		if (ars_start->status & 0xffff)
-+			return -EIO;
-+		break;
-+	case ND_CMD_ARS_STATUS:
-+		ars_status = buf;
-+		/* Command failed */
-+		if (ars_status->status & 0xffff)
-+			return -EIO;
-+		/* Check extended status (Upper two bytes) */
-+		if (ars_status->status == NFIT_ARS_STATUS_DONE)
-+			return 0;
-+
-+		/* ARS is in progress */
-+		if (ars_status->status == NFIT_ARS_STATUS_BUSY)
-+			return -EBUSY;
-+
-+		/* No ARS performed for the current boot */
-+		if (ars_status->status == NFIT_ARS_STATUS_NONE)
-+			return -EAGAIN;
-+
-+		/*
-+		 * ARS interrupted, either we overflowed or some other
-+		 * agent wants the scan to stop.  If we didn't overflow
-+		 * then just continue with the returned results.
-+		 */
-+		if (ars_status->status == NFIT_ARS_STATUS_INTR) {
-+			if (ars_status->flags & NFIT_ARS_F_OVERFLOW)
-+				return -ENOSPC;
-+			return 0;
-+		}
-+
-+		/* Unknown status */
-+		if (ars_status->status >> 16)
-+			return -EIO;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
++	flush = container_of(work, typeof(*flush), work);
++	complete(&flush->cmp);
 +}
 +
- static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
--		unsigned int buf_len)
-+		unsigned int buf_len, int *cmd_rc)
++static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
++{
++	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
++	struct device *dev = acpi_desc->dev;
++	struct acpi_nfit_flush_work flush;
++
++	/* bounce the device lock to flush acpi_nfit_add / acpi_nfit_notify */
++	device_lock(dev);
++	device_unlock(dev);
++
++	/*
++	 * Scrub work could take 10s of seconds, userspace may give up so we
++	 * need to be interruptible while waiting.
++	 */
++	INIT_WORK_ONSTACK(&flush.work, flush_probe);
++	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
++	queue_work(nfit_wq, &flush.work);
++	return wait_for_completion_interruptible(&flush.cmp);
++}
++
+ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
  {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
- 	const struct nd_cmd_desc *desc = NULL;
-@@ -185,6 +256,8 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 			 * unfilled in the output buffer
- 			 */
- 			rc = buf_len - offset - in_buf.buffer.length;
-+			if (cmd_rc)
-+				*cmd_rc = xlat_status(buf, cmd);
- 		} else {
- 			dev_err(dev, "%s:%s underrun cmd: %s buf_len: %d out_len: %d\n",
- 					__func__, dimm_name, cmd_name, buf_len,
-@@ -1105,7 +1178,7 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
- 	writeq(cmd, mmio->addr.base + offset);
- 	wmb_blk(nfit_blk);
+ 	struct nvdimm_bus_descriptor *nd_desc;
+@@ -1971,6 +2006,7 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+ 	nd_desc = &acpi_desc->nd_desc;
+ 	nd_desc->provider_name = "ACPI.NFIT";
+ 	nd_desc->ndctl = acpi_nfit_ctl;
++	nd_desc->flush_probe = acpi_nfit_flush_probe;
+ 	nd_desc->attr_groups = acpi_nfit_attribute_groups;
  
--	if (nfit_blk->dimm_flags & ND_BLK_DCR_LATCH)
-+	if (nfit_blk->dimm_flags & NFIT_BLK_DCR_LATCH)
- 		readq(mmio->addr.base + offset);
- }
- 
-@@ -1141,7 +1214,7 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
- 			memcpy_to_pmem(mmio->addr.aperture + offset,
- 					iobuf + copied, c);
- 		else {
--			if (nfit_blk->dimm_flags & ND_BLK_READ_FLUSH)
-+			if (nfit_blk->dimm_flags & NFIT_BLK_READ_FLUSH)
- 				mmio_flush_range((void __force *)
- 					mmio->addr.aperture + offset, c);
- 
-@@ -1328,13 +1401,13 @@ static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
- 
- 	memset(&flags, 0, sizeof(flags));
- 	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
--			sizeof(flags));
-+			sizeof(flags), NULL);
- 
- 	if (rc >= 0 && flags.status == 0)
- 		nfit_blk->dimm_flags = flags.flags;
- 	else if (rc == -ENOTTY) {
- 		/* fall back to a conservative default */
--		nfit_blk->dimm_flags = ND_BLK_DCR_LATCH | ND_BLK_READ_FLUSH;
-+		nfit_blk->dimm_flags = NFIT_BLK_DCR_LATCH | NFIT_BLK_READ_FLUSH;
- 		rc = 0;
- 	} else
- 		rc = -ENXIO;
-@@ -1473,19 +1546,27 @@ static void acpi_nfit_blk_region_disable(struct nvdimm_bus *nvdimm_bus,
- 	/* devm will free nfit_blk */
- }
- 
--static int ars_get_cap(struct nvdimm_bus_descriptor *nd_desc,
-+static int ars_get_cap(struct acpi_nfit_desc *acpi_desc,
- 		struct nd_cmd_ars_cap *cmd, u64 addr, u64 length)
+ 	INIT_LIST_HEAD(&acpi_desc->spa_maps);
+@@ -2048,6 +2084,8 @@ static int acpi_nfit_remove(struct acpi_device *adev)
  {
-+	struct nvdimm_bus_descriptor *nd_desc = &acpi_desc->nd_desc;
-+	int cmd_rc, rc;
-+
- 	cmd->address = addr;
- 	cmd->length = length;
--
--	return nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, cmd,
--			sizeof(*cmd));
-+	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, cmd,
-+			sizeof(*cmd), &cmd_rc);
-+	if (rc < 0)
-+		return rc;
-+	if (cmd_rc < 0)
-+		return cmd_rc;
-+	return 0;
+ 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
+ 
++	acpi_desc->cancel = 1;
++	flush_workqueue(nfit_wq);
+ 	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+ 	return 0;
  }
- 
- static int ars_do_start(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nd_cmd_ars_start *cmd, u64 addr, u64 length)
- {
-+	int cmd_rc;
- 	int rc;
- 
- 	cmd->address = addr;
-@@ -1494,52 +1575,49 @@ static int ars_do_start(struct nvdimm_bus_descriptor *nd_desc,
- 
- 	while (1) {
- 		rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_START, cmd,
--				sizeof(*cmd));
--		if (rc)
-+				sizeof(*cmd), &cmd_rc);
-+
-+		if (rc < 0)
- 			return rc;
--		switch (cmd->status) {
--		case 0:
--			return 0;
--		case 1:
--			/* ARS unsupported, but we should never get here */
--			return 0;
--		case 6:
-+
-+		if (cmd_rc == -EBUSY) {
- 			/* ARS is in progress */
- 			msleep(1000);
--			break;
--		default:
--			return -ENXIO;
-+			continue;
- 		}
-+
-+		if (cmd_rc < 0)
-+			return cmd_rc;
-+
-+		return 0;
- 	}
- }
- 
- static int ars_get_status(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nd_cmd_ars_status *cmd, u32 size)
- {
--	int rc;
-+	int rc, cmd_rc;
- 
- 	while (1) {
- 		rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_STATUS, cmd,
--			size);
--		if (rc || cmd->status & 0xffff)
--			return -ENXIO;
-+			size, &cmd_rc);
-+		if (rc < 0)
-+			return rc;
- 
--		/* Check extended status (Upper two bytes) */
--		switch (cmd->status >> 16) {
--		case 0:
--			return 0;
--		case 1:
--			/* ARS is in progress */
-+		/* FIXME make async and have a timeout */
-+		if (cmd_rc == -EBUSY) {
- 			msleep(1000);
--			break;
--		case 2:
--			/* No ARS performed for the current boot */
-+			continue;
-+		}
-+
-+		if (cmd_rc == -EAGAIN || cmd_rc == 0)
- 			return 0;
--		case 3:
--			/* TODO: error list overflow support */
--		default:
-+
-+		/* TODO: error list overflow support */
-+		if (cmd_rc == -ENOSPC)
- 			return -ENXIO;
--		}
-+
-+		return cmd_rc;
- 	}
- }
- 
-@@ -1590,19 +1668,9 @@ static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
- 	start = ndr_desc->res->start;
- 	len = ndr_desc->res->end - ndr_desc->res->start + 1;
- 
--	rc = ars_get_cap(nd_desc, ars_cap, start, len);
--	if (rc)
--		goto out;
--
--	/*
--	 * If ARS is unsupported, or if the 'Persistent Memory Scrub' flag in
--	 * extended status is not set, skip this but continue initialization
--	 */
--	if ((ars_cap->status & 0xffff) ||
--		!(ars_cap->status >> 16 & ND_ARS_PERSISTENT)) {
--		dev_warn(acpi_desc->dev,
--			"ARS unsupported (status: 0x%x), won't create an error list\n",
--			ars_cap->status);
-+	rc = ars_get_cap(acpi_desc, ars_cap, start, len);
-+	if (rc == -ENOTTY) {
-+		rc = 0;
- 		goto out;
+@@ -2079,6 +2117,12 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+ 		acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
+ 		if (!acpi_desc->nvdimm_bus)
+ 			goto out_unlock;
++	} else {
++		/*
++		 * Finish previous registration before considering new
++		 * regions.
++		 */
++		flush_workqueue(nfit_wq);
  	}
  
-@@ -1644,15 +1712,15 @@ static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
- 		u64 done, end;
+ 	/* Evaluate _FIT */
+@@ -2146,12 +2190,17 @@ static __init int nfit_init(void)
+ 	acpi_str_to_uuid(UUID_NFIT_BUS, nfit_uuid[NFIT_DEV_BUS]);
+ 	acpi_str_to_uuid(UUID_NFIT_DIMM, nfit_uuid[NFIT_DEV_DIMM]);
  
- 		rc = ars_do_start(nd_desc, ars_start, cur, remaining);
--		if (rc)
-+		if (rc < 0)
- 			goto out;
++	nfit_wq = create_singlethread_workqueue("nfit");
++	if (!nfit_wq)
++		return -ENOMEM;
++
+ 	return acpi_bus_register_driver(&acpi_nfit_driver);
+ }
  
- 		rc = ars_get_status(nd_desc, ars_status, ars_status_size);
--		if (rc)
-+		if (rc < 0)
- 			goto out;
+ static __exit void nfit_exit(void)
+ {
+ 	acpi_bus_unregister_driver(&acpi_nfit_driver);
++	destroy_workqueue(nfit_wq);
+ }
  
- 		rc = ars_status_process_records(nvdimm_bus, ars_status, cur);
--		if (rc)
-+		if (rc < 0)
- 			goto out;
- 
- 		end = min(cur + remaining,
+ module_init(nfit_init);
 diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 6689b0aaf194..f45b7d9b1d9e 100644
+index 524dec0a3adb..e8388fee4cc6 100644
 --- a/drivers/acpi/nfit.h
 +++ b/drivers/acpi/nfit.h
-@@ -47,8 +47,15 @@ enum nfit_fic {
- };
- 
- enum {
--	ND_BLK_READ_FLUSH = 1,
--	ND_BLK_DCR_LATCH = 2,
-+	NFIT_BLK_READ_FLUSH = 1,
-+	NFIT_BLK_DCR_LATCH = 2,
-+	NFIT_ARS_STATUS_DONE = 0,
-+	NFIT_ARS_STATUS_BUSY = 1 << 16,
-+	NFIT_ARS_STATUS_NONE = 2 << 16,
-+	NFIT_ARS_STATUS_INTR = 3 << 16,
-+	NFIT_ARS_START_BUSY = 6,
-+	NFIT_ARS_CAP_NONE = 1,
-+	NFIT_ARS_F_OVERFLOW = 1,
- };
- 
- struct nfit_spa {
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 5d28e9405f32..c3ba888e3e3a 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -587,7 +587,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 	if (rc)
- 		goto out_unlock;
- 
--	rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len);
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len, NULL);
- 	if (rc < 0)
- 		goto out_unlock;
- 	if (copy_to_user(p, buf, buf_len))
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 651b8d19d324..c56f88217924 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -75,7 +75,7 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
- 	memset(cmd, 0, sizeof(*cmd));
- 	nd_desc = nvdimm_bus->nd_desc;
- 	return nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
--			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd));
-+			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd), NULL);
- }
- 
- int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
-@@ -120,7 +120,7 @@ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
- 		cmd->in_offset = offset;
- 		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
- 				ND_CMD_GET_CONFIG_DATA, cmd,
--				cmd->in_length + sizeof(*cmd));
-+				cmd->in_length + sizeof(*cmd), NULL);
- 		if (rc || cmd->status) {
- 			rc = -ENXIO;
- 			break;
-@@ -171,7 +171,7 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
- 		status = ((void *) cmd) + cmd_size - sizeof(u32);
- 
- 		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
--				ND_CMD_SET_CONFIG_DATA, cmd, cmd_size);
-+				ND_CMD_SET_CONFIG_DATA, cmd, cmd_size, NULL);
- 		if (rc || *status) {
- 			rc = rc ? rc : -ENXIO;
- 			break;
+@@ -14,6 +14,7 @@
+  */
+ #ifndef __NFIT_H__
+ #define __NFIT_H__
++#include <linux/workqueue.h>
+ #include <linux/libnvdimm.h>
+ #include <linux/types.h>
+ #include <linux/uuid.h>
+@@ -123,6 +124,8 @@ struct acpi_nfit_desc {
+ 	struct list_head idts;
+ 	struct nvdimm_bus *nvdimm_bus;
+ 	struct device *dev;
++	struct work_struct work;
++	unsigned int cancel:1;
+ 	unsigned long dimm_dsm_force_en;
+ 	unsigned long bus_dsm_force_en;
+ 	int (*blk_do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index f309e6bf6833..79646d0c3277 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -298,6 +298,15 @@ static int flush_regions_dimms(struct device *dev, void *data)
+ static ssize_t wait_probe_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
++	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
++	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
++	int rc;
++
++	if (nd_desc->flush_probe) {
++		rc = nd_desc->flush_probe(nd_desc);
++		if (rc)
++			return rc;
++	}
+ 	nd_synchronize();
+ 	device_for_each_child(dev, NULL, flush_regions_dimms);
+ 	return sprintf(buf, "1\n");
 diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 141ffdd59960..f398953270d1 100644
+index f398953270d1..2299f8742f7f 100644
 --- a/include/linux/libnvdimm.h
 +++ b/include/linux/libnvdimm.h
-@@ -48,7 +48,7 @@ struct nvdimm;
- struct nvdimm_bus_descriptor;
- typedef int (*ndctl_fn)(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
--		unsigned int buf_len);
-+		unsigned int buf_len, int *cmd_rc);
+@@ -71,6 +71,7 @@ struct nvdimm_bus_descriptor {
+ 	unsigned long dsm_mask;
+ 	char *provider_name;
+ 	ndctl_fn ndctl;
++	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
+ };
  
- struct nd_namespace_label;
- struct nvdimm_drvdata;
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 27b808e0489a..9ead77970546 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -261,7 +261,7 @@ static int nfit_test_cmd_ars_status(struct nd_cmd_ars_status *nd_cmd,
- 
- static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
--		unsigned int buf_len)
-+		unsigned int buf_len, int *cmd_rc)
- {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 	struct nfit_test *t = container_of(acpi_desc, typeof(*t), acpi_desc);
-@@ -315,6 +315,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		}
- 	}
- 
-+	/* TODO: error status tests */
-+	if (cmd_rc)
-+		*cmd_rc = 0;
- 	return rc;
- }
- 
+ struct nd_cmd_desc {
