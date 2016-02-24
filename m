@@ -1,79 +1,123 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 0/5] DAX fixes, move flushing calls to FS
-Date: Mon, 22 Feb 2016 11:59:17 -0700
-Message-Id: <1456167562-28576-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH 7/8] nfit: disable userspace initiated ars during scrub
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 23 Feb 2016 18:17:35 -0800
+Message-ID: <20160224021735.22776.23957.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v3:
-- Added Reviewed-by tags from Jan Kara.
-- Dropped patch 6, "block: use dax_do_io() if blkdev_dax_capable()"
+While the nfit driver is issuing address range scrub commands and
+reaping the results do not permit an ars_start command issued from
+userspace.  The scrub thread assumes that all ars completions are for
+scrubs initiated by platform firmware at boot, or by the nfit driver.
 
-I believe that this series is ready for inclusion in v4.5.  I think it
-should be merged for v4.5 because it fixes serious issues with the DAX code
-including possible data corruption and kernel OOPSes.
-
-akpm, for the v4.5 merge do you want these patches to go through the -mm
-tree, or would it be better if I just sent them to Linus directly?
-
-A working tree can be found here:
-https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=fsync_bdev_v4
-
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Previous summary with issue impacts added:
+ drivers/acpi/nfit.c       |   23 +++++++++++++++++++++++
+ drivers/nvdimm/bus.c      |   18 +++++++++++++-----
+ include/linux/libnvdimm.h |    2 ++
+ 3 files changed, 38 insertions(+), 5 deletions(-)
 
-This patch series fixes several issues with the current DAX code:
-
-1) DAX is used by default on raw block devices that are capable of
-supporting it.  This creates an issue because there are still uses of the
-block device that use the page cache, and having one block device user
-doing DAX I/O and another doing page cache I/O can lead to data corruption.
-
-2) When S_DAX is set on an inode we assume that if there are pages attached
-to the mapping (mapping->nrpages != 0), those pages are clean zero pages
-that were used to service reads from holes.  This wasn't true in all cases.
-
-3) ext4 online defrag combined with DAX I/O could lead to data corruption.
-
-4) The DAX block/sector zeroing code needs a valid struct block_device,
-which it wasn't always getting.  This could lead to a kernel OOPS.
-
-5) The DAX writeback code needs a valid struct block_device, which it
-wasn't always getting.  This could lead to a kernel OOPS.
-
-6) The DAX writeback code needs to be called for sync(2) and syncfs(2).
-This could lead to data loss.
-
-Dan Williams (1):
-  block: disable block device DAX by default
-
-Ross Zwisler (4):
-  ext2, ext4: only set S_DAX for regular inodes
-  ext4: Online defrag not supported with DAX
-  dax: give DAX clearing code correct bdev
-  dax: move writeback calls into the filesystems
-
- block/Kconfig          | 13 +++++++++++++
- fs/block_dev.c         | 19 +++++++++++++++++--
- fs/dax.c               | 21 +++++++++++----------
- fs/ext2/inode.c        | 16 +++++++++++++---
- fs/ext4/inode.c        |  6 +++++-
- fs/ext4/ioctl.c        |  5 +++++
- fs/xfs/xfs_aops.c      |  6 +++++-
- fs/xfs/xfs_aops.h      |  1 +
- fs/xfs/xfs_bmap_util.c |  3 ++-
- include/linux/dax.h    |  8 +++++---
- mm/filemap.c           | 12 ++++--------
- 11 files changed, 81 insertions(+), 29 deletions(-)
-
--- 
-2.5.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 8e6a82e7a87f..2be263e1dc92 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -2186,6 +2186,28 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+ 	return wait_for_completion_interruptible(&flush.cmp);
+ }
+ 
++static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
++		struct nvdimm *nvdimm, unsigned int cmd)
++{
++	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
++
++	if (nvdimm)
++		return 0;
++	if (cmd != ND_CMD_ARS_START)
++		return 0;
++
++	/*
++	 * The kernel and userspace may race to initiate a scrub, but
++	 * the scrub thread is prepared to lose that initial race.  It
++	 * just needs guarantees that any ars it initiates are not
++	 * interrupted by any intervening start reqeusts from userspace.
++	 */
++	if (work_busy(&acpi_desc->work))
++		return -EBUSY;
++
++	return 0;
++}
++
+ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+ {
+ 	struct nvdimm_bus_descriptor *nd_desc;
+@@ -2197,6 +2219,7 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+ 	nd_desc->provider_name = "ACPI.NFIT";
+ 	nd_desc->ndctl = acpi_nfit_ctl;
+ 	nd_desc->flush_probe = acpi_nfit_flush_probe;
++	nd_desc->clear_to_send = acpi_nfit_clear_to_send;
+ 	nd_desc->attr_groups = acpi_nfit_attribute_groups;
+ 
+ 	INIT_LIST_HEAD(&acpi_desc->spa_maps);
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 2508251439e7..228c0e9f430e 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -490,16 +490,24 @@ void wait_nvdimm_bus_probe_idle(struct device *dev)
+ }
+ 
+ /* set_config requires an idle interleave set */
+-static int nd_cmd_clear_to_send(struct nvdimm *nvdimm, unsigned int cmd)
++static int nd_cmd_clear_to_send(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm, unsigned int cmd)
+ {
+-	struct nvdimm_bus *nvdimm_bus;
++	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
++
++	/* ask the bus provider if it would like to block this request */
++	if (nd_desc->clear_to_send) {
++		int rc = nd_desc->clear_to_send(nd_desc, nvdimm, cmd);
++
++		if (rc)
++			return rc;
++	}
+ 
+ 	if (!nvdimm || cmd != ND_CMD_SET_CONFIG_DATA)
+ 		return 0;
+ 
+-	nvdimm_bus = walk_to_nvdimm_bus(&nvdimm->dev);
++	/* prevent label manipulation while the kernel owns label updates */
+ 	wait_nvdimm_bus_probe_idle(&nvdimm_bus->dev);
+-
+ 	if (atomic_read(&nvdimm->busy))
+ 		return -EBUSY;
+ 	return 0;
+@@ -609,7 +617,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	}
+ 
+ 	nvdimm_bus_lock(&nvdimm_bus->dev);
+-	rc = nd_cmd_clear_to_send(nvdimm, cmd);
++	rc = nd_cmd_clear_to_send(nvdimm_bus, nvdimm, cmd);
+ 	if (rc)
+ 		goto out_unlock;
+ 
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 2299f8742f7f..833867b9ddc2 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -72,6 +72,8 @@ struct nvdimm_bus_descriptor {
+ 	char *provider_name;
+ 	ndctl_fn ndctl;
+ 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
++	int (*clear_to_send)(struct nvdimm_bus_descriptor *nd_desc,
++			struct nvdimm *nvdimm, unsigned int cmd);
+ };
+ 
+ struct nd_cmd_desc {
