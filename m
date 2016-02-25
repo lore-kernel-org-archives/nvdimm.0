@@ -1,200 +1,64 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 5/6] dax: move writeback calls into the filesystems
-Date: Tue, 16 Feb 2016 20:34:18 -0700
-Message-Id: <1455680059-20126-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com, Jan Kara <jack@suse.cz>
+Return-Path: <linux-ext4-owner@vger.kernel.org>
+Date: Thu, 25 Feb 2016 09:37:28 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH] ext2, ext4: Fix issue with missing journal entry
+Message-ID: <20160225083728.GA24965@quack.suse.cz>
+References: <1453921308-5544-1-git-send-email-ross.zwisler@linux.intel.com>
+ <20160128131630.GI7726@quack.suse.cz>
+ <20160128163211.GA19770@linux.intel.com>
+ <20160224204446.GB13473@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160224204446.GB13473@linux.intel.com>
+Sender: linux-ext4-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <willy@linux.intel.com>, linux-ext4@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Previously calls to dax_writeback_mapping_range() for all DAX filesystems
-(ext2, ext4 & xfs) were centralized in filemap_write_and_wait_range().
-dax_writeback_mapping_range() needs a struct block_device, and it used to
-get that from inode->i_sb->s_bdev.  This is correct for normal inodes
-mounted on ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
-block devices and for XFS real-time files.
+On Wed 24-02-16 13:44:46, Ross Zwisler wrote:
+> On Thu, Jan 28, 2016 at 09:32:11AM -0700, Ross Zwisler wrote:
+> > On Thu, Jan 28, 2016 at 02:16:30PM +0100, Jan Kara wrote:
+> > > On Wed 27-01-16 12:01:48, Ross Zwisler wrote:
+> > > > As it is currently written ext4_dax_mkwrite() assumes that the call into
+> > > > __dax_mkwrite() will not have to do a block allocation so it doesn't create
+> > > > a journal entry.  For a read that creates a zero page to cover a hole
+> > > > followed by a write that actually allocates storage this is incorrect.  The
+> > > > ext4_dax_mkwrite() -> __dax_mkwrite() -> __dax_fault() path calls
+> > > > get_blocks() to allocate storage.
+> > > > 
+> > > > Fix this by having the ->page_mkwrite fault handler call ext4_dax_fault()
+> > > > as this function already has all the logic needed to allocate a journal
+> > > > entry and call __dax_fault().
+> > > > 
+> > > > Also update the ext2 fault handlers in this same way to remove duplicate
+> > > > code and keep the logic between ext2 and ext4 the same.
+> > > > 
+> > > > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > > 
+> > > Ah, ok, you are right. The patch looks good but Matthew is reworking the
+> > > area more (so ext4_da_mkwrite() is likely to return) so it this worth it?
+> > > Or do you expect Matthew's patches to land much later?
+> > 
+> > Yep, Matthew is in the process of reworking all of the DAX fault handling.
+> > 
+> > I was thinking that we might want to take this patch for v4.5, since it fixes
+> > a bug that I'm guessing could lead to some sort of corruption (lack of a
+> > journal entry entry for an allocating write), and then Matthew's reworks would
+> > land in v4.6?
+> 
+> Hey Jan,
+> 
+> Looks like this patch didn't ever get merged for v4.5?  Is it still queued for
+> v4.6?
 
-Instead, call dax_writeback_mapping_range() directly from the filesystem
-->writepages function so that it can supply us with a valid block
-device. This also fixes DAX code to properly flush caches in response to
-sync(2).
+Ted has been pretty busy lately and we probably didn't make it sufficiently
+clear that he should pick up this patch. Ted, can you please pick up this
+patch and push it to 4.5? Thanks. Feel free to add my:
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/block_dev.c      | 13 ++++++++++++-
- fs/dax.c            | 12 +++++++-----
- fs/ext2/inode.c     |  8 ++++++++
- fs/ext4/inode.c     |  4 ++++
- fs/xfs/xfs_aops.c   |  4 ++++
- include/linux/dax.h |  6 ++++--
- mm/filemap.c        | 12 ++++--------
- 7 files changed, 43 insertions(+), 16 deletions(-)
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 31c6d10..826b164 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -1697,13 +1697,24 @@ static int blkdev_releasepage(struct page *page, gfp_t wait)
- 	return try_to_free_buffers(page);
- }
- 
-+static int blkdev_writepages(struct address_space *mapping,
-+			     struct writeback_control *wbc)
-+{
-+	if (dax_mapping(mapping)) {
-+		struct block_device *bdev = I_BDEV(mapping->host);
-+
-+		return dax_writeback_mapping_range(mapping, bdev, wbc);
-+	}
-+	return generic_writepages(mapping, wbc);
-+}
-+
- static const struct address_space_operations def_blk_aops = {
- 	.readpage	= blkdev_readpage,
- 	.readpages	= blkdev_readpages,
- 	.writepage	= blkdev_writepage,
- 	.write_begin	= blkdev_write_begin,
- 	.write_end	= blkdev_write_end,
--	.writepages	= generic_writepages,
-+	.writepages	= blkdev_writepages,
- 	.releasepage	= blkdev_releasepage,
- 	.direct_IO	= blkdev_direct_IO,
- 	.is_dirty_writeback = buffer_check_dirty_writeback,
-diff --git a/fs/dax.c b/fs/dax.c
-index 9a173dd..7111724 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -484,11 +484,10 @@ static int dax_writeback_one(struct block_device *bdev,
-  * end]. This is required by data integrity operations to ensure file data is
-  * on persistent storage prior to completion of the operation.
-  */
--int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
--		loff_t end)
-+int dax_writeback_mapping_range(struct address_space *mapping,
-+		struct block_device *bdev, struct writeback_control *wbc)
- {
- 	struct inode *inode = mapping->host;
--	struct block_device *bdev = inode->i_sb->s_bdev;
- 	pgoff_t start_index, end_index, pmd_index;
- 	pgoff_t indices[PAGEVEC_SIZE];
- 	struct pagevec pvec;
-@@ -499,8 +498,11 @@ int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
- 	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
- 		return -EIO;
- 
--	start_index = start >> PAGE_CACHE_SHIFT;
--	end_index = end >> PAGE_CACHE_SHIFT;
-+	if (!mapping->nrexceptional || wbc->sync_mode != WB_SYNC_ALL)
-+		return 0;
-+
-+	start_index = wbc->range_start >> PAGE_CACHE_SHIFT;
-+	end_index = wbc->range_end >> PAGE_CACHE_SHIFT;
- 	pmd_index = DAX_PMD_INDEX(start_index);
- 
- 	rcu_read_lock();
-diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index 4467cbd..6bd58e6 100644
---- a/fs/ext2/inode.c
-+++ b/fs/ext2/inode.c
-@@ -876,6 +876,14 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
- static int
- ext2_writepages(struct address_space *mapping, struct writeback_control *wbc)
- {
-+#ifdef CONFIG_FS_DAX
-+	if (dax_mapping(mapping)) {
-+		return dax_writeback_mapping_range(mapping,
-+						   mapping->host->i_sb->s_bdev,
-+						   wbc);
-+	}
-+#endif
-+
- 	return mpage_writepages(mapping, wbc, ext2_get_block);
- }
- 
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 7088aa5..c2d1b51 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -2450,6 +2450,10 @@ static int ext4_writepages(struct address_space *mapping,
- 
- 	trace_ext4_writepages(inode, wbc);
- 
-+	if (dax_mapping(mapping))
-+		return dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev,
-+						   wbc);
-+
- 	/*
- 	 * No pages to write? This is mainly a kludge to avoid starting
- 	 * a transaction for special inodes like journal inode on last iput()
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index fc20518..a9ebabfe 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -1208,6 +1208,10 @@ xfs_vm_writepages(
- 	struct writeback_control *wbc)
- {
- 	xfs_iflags_clear(XFS_I(mapping->host), XFS_ITRUNCATED);
-+	if (dax_mapping(mapping))
-+		return dax_writeback_mapping_range(mapping,
-+				xfs_find_bdev_for_inode(mapping->host), wbc);
-+
- 	return generic_writepages(mapping, wbc);
- }
- 
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 7b6bced..636dd59 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -52,6 +52,8 @@ static inline bool dax_mapping(struct address_space *mapping)
- {
- 	return mapping->host && IS_DAX(mapping->host);
- }
--int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
--		loff_t end);
-+
-+struct writeback_control;
-+int dax_writeback_mapping_range(struct address_space *mapping,
-+		struct block_device *bdev, struct writeback_control *wbc);
- #endif
-diff --git a/mm/filemap.c b/mm/filemap.c
-index 23edcce..3461d97 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -446,7 +446,8 @@ int filemap_write_and_wait(struct address_space *mapping)
- {
- 	int err = 0;
- 
--	if (mapping->nrpages) {
-+	if ((!dax_mapping(mapping) && mapping->nrpages) ||
-+	    (dax_mapping(mapping) && mapping->nrexceptional)) {
- 		err = filemap_fdatawrite(mapping);
- 		/*
- 		 * Even if the above returned error, the pages may be
-@@ -482,13 +483,8 @@ int filemap_write_and_wait_range(struct address_space *mapping,
- {
- 	int err = 0;
- 
--	if (dax_mapping(mapping) && mapping->nrexceptional) {
--		err = dax_writeback_mapping_range(mapping, lstart, lend);
--		if (err)
--			return err;
--	}
--
--	if (mapping->nrpages) {
-+	if ((!dax_mapping(mapping) && mapping->nrpages) ||
-+	    (dax_mapping(mapping) && mapping->nrexceptional)) {
- 		err = __filemap_fdatawrite_range(mapping, lstart, lend,
- 						 WB_SYNC_ALL);
- 		/* See comment of filemap_write_and_wait() */
+								Honza
 -- 
-2.5.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
