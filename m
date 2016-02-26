@@ -1,179 +1,53 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2] x86/lib/copy_user_64.S: Handle 4-byte nocache copy
-Date: Wed,  3 Feb 2016 11:35:11 -0700
-Message-Id: <1454524511-29416-1-git-send-email-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, bp@suse.de, dan.j.williams@intel.com
-Cc: ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, micah.parrish@hpe.com, brian.boylston@hpe.com, x86@kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 2C8C71A1E1A
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Feb 2016 05:45:57 -0800 (PST)
+Message-ID: <1456494391.13244.137.camel@linux.intel.com>
+Subject: Re: [PATCH v1 05/10] ACPI: switch to use generic UUID API
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Date: Fri, 26 Feb 2016 15:46:31 +0200
+In-Reply-To: <CAPcyv4inMjmt8eH_=bNE_=NMeYGmS75B5LxB=f7Cd762=3UKyQ@mail.gmail.com>
+References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1455711448-124103-6-git-send-email-andriy.shevchenko@linux.intel.com>
+ <CAPcyv4inMjmt8eH_=bNE_=NMeYGmS75B5LxB=f7Cd762=3UKyQ@mail.gmail.com>
+Mime-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-efi@vger.kernel.org, David Airlie <airlied@linux.ie>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mathias Nyman <mathias.nyman@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-api@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Data corruption issues were observed in tests which initiated
-a system crash/reset while accessing BTT devices.  This problem
-is reproducible.
-
-The BTT driver calls pmem_rw_bytes() to update data in pmem
-devices.  This interface calls __copy_user_nocache(), which
-uses non-temporal stores so that the stores to pmem are
-persistent.
-
-__copy_user_nocache() uses non-temporal stores when a request
-size is 8 bytes or larger (and is aligned by 8 bytes).  The
-BTT driver updates the BTT map table, which entry size is
-4 bytes.  Therefore, updates to the map table entries remain
-cached, and are not written to pmem after a crash.
-
-Change __copy_user_nocache() to use non-temporal store when
-a request size is 4 bytes.  The change extends the current
-byte-copy path for a less-than-8-bytes request, and does not
-add any overhead to the regular path.
-
-Also add comments to the code, and clarify the cases that
-lead cache copy.
-
-Reported-and-tested-by: Micah Parrish <micah.parrish@hpe.com>
-Reported-and-tested-by: Brian Boylston <brian.boylston@hpe.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
----
-v2:
- - Add comments (Ingo Molnar).
- - Make this patch as an individual patch since v2 debug changes
-   will not depend on this patch.
----
- arch/x86/lib/copy_user_64.S |   74 +++++++++++++++++++++++++++++++++++--------
- 1 file changed, 61 insertions(+), 13 deletions(-)
-
-diff --git a/arch/x86/lib/copy_user_64.S b/arch/x86/lib/copy_user_64.S
-index 982ce34..1641327 100644
---- a/arch/x86/lib/copy_user_64.S
-+++ b/arch/x86/lib/copy_user_64.S
-@@ -232,17 +232,30 @@ ENDPROC(copy_user_enhanced_fast_string)
- 
- /*
-  * copy_user_nocache - Uncached memory copy with exception handling
-- * This will force destination/source out of cache for more performance.
-+ * This will force destination out of cache for more performance.
-+ *
-+ * Note: Cached memory copy is used when destination or size is not
-+ * naturally aligned. That is:
-+ *  - Require 8-byte alignment when size is 8 bytes or larger.
-+ *  - Require 4-byte alignment when size is 4 bytes.
-  */
- ENTRY(__copy_user_nocache)
- 	ASM_STAC
-+
-+	/* If size is less than 8 bytes, goto 4-byte copy */
- 	cmpl $8,%edx
--	jb 20f		/* less then 8 bytes, go to byte copy loop */
-+	jb 20f
-+
-+	/* If destination is not 8-byte aligned, "cache" copy to align it */
- 	ALIGN_DESTINATION
-+
-+	/* Set 4x8-byte copy count and remainder */
- 	movl %edx,%ecx
- 	andl $63,%edx
- 	shrl $6,%ecx
--	jz 17f
-+	jz 17f		/* If count is 0, goto 8-byte copy */
-+
-+	/* Perform 4x8-byte nocache loop-copy */
- 1:	movq (%rsi),%r8
- 2:	movq 1*8(%rsi),%r9
- 3:	movq 2*8(%rsi),%r10
-@@ -263,26 +276,57 @@ ENTRY(__copy_user_nocache)
- 	leaq 64(%rdi),%rdi
- 	decl %ecx
- 	jnz 1b
-+
-+	/* Set 8-byte copy count and remainder */
- 17:	movl %edx,%ecx
- 	andl $7,%edx
- 	shrl $3,%ecx
--	jz 20f
-+	jz 20f		/* If count is 0, goto 4-byte copy */
-+
-+	/* Perform 8-byte nocache loop-copy */
- 18:	movq (%rsi),%r8
- 19:	movnti %r8,(%rdi)
- 	leaq 8(%rsi),%rsi
- 	leaq 8(%rdi),%rdi
- 	decl %ecx
- 	jnz 18b
-+
-+	/* If no byte left, we're done */
- 20:	andl %edx,%edx
--	jz 23f
-+	jz 26f
-+
-+	/* If destination is not 4-byte aligned, goto byte copy */
-+	movl %edi,%ecx
-+	andl $3,%ecx
-+	jnz 23f
-+
-+	/* Set 4-byte copy count (1 or 0) and remainder */
- 	movl %edx,%ecx
--21:	movb (%rsi),%al
--22:	movb %al,(%rdi)
-+	andl $3,%edx
-+	shrl $2,%ecx
-+	jz 23f		/* If count is 0, goto byte copy */
-+
-+	/* Perform 4-byte nocache copy */
-+21:	movl (%rsi),%r8d
-+22:	movnti %r8d,(%rdi)
-+	leaq 4(%rsi),%rsi
-+	leaq 4(%rdi),%rdi
-+
-+	/* If no byte left, we're done */
-+	andl %edx,%edx
-+	jz 26f
-+
-+	/* Perform byte "cache" loop-copy for the remainder */
-+23:	movl %edx,%ecx
-+24:	movb (%rsi),%al
-+25:	movb %al,(%rdi)
- 	incq %rsi
- 	incq %rdi
- 	decl %ecx
--	jnz 21b
--23:	xorl %eax,%eax
-+	jnz 24b
-+
-+	/* Finished copying; fence the prior stores */
-+26:	xorl %eax,%eax
- 	ASM_CLAC
- 	sfence
- 	ret
-@@ -290,11 +334,13 @@ ENTRY(__copy_user_nocache)
- 	.section .fixup,"ax"
- 30:	shll $6,%ecx
- 	addl %ecx,%edx
--	jmp 60f
-+	jmp 70f
- 40:	lea (%rdx,%rcx,8),%rdx
--	jmp 60f
--50:	movl %ecx,%edx
--60:	sfence
-+	jmp 70f
-+50:	lea (%rdx,%rcx,4),%rdx
-+	jmp 70f
-+60:	movl %ecx,%edx
-+70:	sfence
- 	jmp copy_user_handle_tail
- 	.previous
- 
-@@ -318,4 +364,6 @@ ENTRY(__copy_user_nocache)
- 	_ASM_EXTABLE(19b,40b)
- 	_ASM_EXTABLE(21b,50b)
- 	_ASM_EXTABLE(22b,50b)
-+	_ASM_EXTABLE(24b,60b)
-+	_ASM_EXTABLE(25b,60b)
- ENDPROC(__copy_user_nocache)
+T24gV2VkLCAyMDE2LTAyLTE3IGF0IDA5OjQ5IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
+T24gV2VkLCBGZWIgMTcsIDIwMTYgYXQgNDoxNyBBTSwgQW5keSBTaGV2Y2hlbmtvCj4gPGFuZHJp
+eS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT4gd3JvdGU6Cj4gPiBJbnN0ZWFkIG9mIG9wZW5j
+b2RpbmcgdGhlIGV4aXN0aW5nIGxpYnJhcnkgZnVuY3Rpb25zIGxldCdzIHVzZSB0aGVtCj4gPiBk
+aXJlY3RseS4KPiA+IAo+ID4gVGhlIGNvbnZlcnNpb24gZml4ZXMgYSBwb3RlbnRpYWwgYnVnIGlu
+IGludDM0MHhfdGhlcm1hbCBhcyB3ZWxsCj4gPiBzaW5jZSB3ZSBoYXZlCj4gPiB0byB1c2UgbWVt
+Y21wKCkgb24gYmluYXJ5IGRhdGEuCgpbLi5dCgo+ID4gK8KgwqDCoMKgwqDCoMKgdXVpZF9sZV90
+b19iaW4oVVVJRF9ORklUX0JVUywgJm5maXRfdXVpZFtORklUX0RFVl9CVVNdKTsKPiA+ICvCoMKg
+wqDCoMKgwqDCoHV1aWRfbGVfdG9fYmluKFVVSURfTkZJVF9ESU1NLCAmbmZpdF91dWlkW05GSVRf
+REVWX0RJTU1dKTsKPiAKPiBJIGRvbid0IHNlZSB0aGUgYmVuZWZpdCBvZiB0aGlzIGNoYW5nZS4K
+ClRoZSBiZW5lZml0IGlzIHRvIGhhdmUgbGVzcyBwbGFjZXMgKGlkZWFsbHkgb25lKSB3aGljaCBw
+cm92aWRlcyBVVUlECmhlbHBlciByb3V0aW5lcyBmb3Iga2VybmVsLgoKPiDCoMKgRm9yIHRoZSBO
+RklUIGRyaXZlciB3ZSB3ZW50Cj4gdGhyb3VnaCBhIGZpcmUgZHJpbGwgdHJ5aW5nIHRvIG1ha2Ug
+c3VyZSB0aGUgQUNQSSBzcGVjIGZvcm1hdCBvZiBhCj4gVVVJRCBtYXRjaGVkIHRoZSBMaW51eCBp
+bnRlcnByZXRhdGlvbiwgYW5kIHRoaXMgY2hhbmdlIG1ha2VzIHRoYXQKPiBoYXJkZXIgdG8gZGV0
+ZXJtaW5lLsKgwqAKCkhvdyBoYXJkZXI/IEF0IGxlYXN0IHlvdSBsb29rIGludG8gb25lIHBsYWNl
+IGFuZCBzZWUgZXhhY3RseSBhbGwKZnVuY3Rpb25zIHJlbGF0ZWQuIEJlc2lkZXMgdGhpcyBzZXJp
+ZXMgYWN0dWFsbHkgdXNlcyB0aGUgc2FtZSBhcHByb2FjaAp0aGF0IHdhcyB1c2VkIGluIEFDUEku
+Cgo+IEFDUEkgZHJpdmVycyBzaG91bGQgdXNlIEFDUElDQSB1dWlkIGhlbHBlcgo+IHJvdXRpbmVz
+IGluIG15IG9waW5pb24uCgpBcyBmYXIgYXMgSSBjYW4gc2VlIEFDUElDQSBsYWNrcyBvZiBuZWVk
+ZWQgQVBJLgoKLS0gCkFuZHkgU2hldmNoZW5rbyA8YW5kcml5LnNoZXZjaGVua29AbGludXguaW50
+ZWwuY29tPgpJbnRlbCBGaW5sYW5kIE95CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBs
+aXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1u
+dmRpbW0K
