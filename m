@@ -1,134 +1,89 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 6/6] block: use dax_do_io() if blkdev_dax_capable()
-Date: Tue, 16 Feb 2016 20:34:19 -0700
-Message-Id: <1455680059-20126-7-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1455680059-20126-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Dan Williams <dan.j.williams@intel.com>, "J. Bruce Fields" <bfields@fieldses.org>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Jeff Layton <jlayton@poochiereds.net>, Jens Axboe <axboe@kernel.dk>, Matthew Wilcox <willy@linux.intel.com>, linux-block@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Al Viro <viro@ftp.linux.org.uk>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id 279AE1A1DF3
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Feb 2016 06:28:37 -0800 (PST)
+Message-ID: <1456496951.13244.147.camel@linux.intel.com>
+Subject: Re: [PATCH v1 10/10] efivars: use generic UUID library
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Date: Fri, 26 Feb 2016 16:29:11 +0200
+In-Reply-To: <20160218150727.GK2651@codeblueprint.co.uk>
+References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1455711448-124103-11-git-send-email-andriy.shevchenko@linux.intel.com>
+ <20160218150727.GK2651@codeblueprint.co.uk>
+Mime-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: linux-efi@vger.kernel.org, David Airlie <airlied@linux.ie>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, dri-devel@lists.freedesktop.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Mathias Nyman <mathias.nyman@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
-
-Setting S_DAX on an inode requires that the inode participate in the
-DAX-fsync mechanism which expects to use the pagecache for tracking
-potentially dirty cpu cachelines.  However, dax_do_io() participates in
-the standard pagecache sync semantics and arranges for dirty pages to be
-flushed through the driver when a direct-IO operation accesses the same
-ranges.
-
-It should always be valid to use the dax_do_io() path regardless of
-whether the block_device inode has S_DAX set.  In either case dirty
-pages or dirty cachelines are made durable before the direct-IO
-operation proceeds.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Al Viro <viro@ftp.linux.org.uk>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- block/ioctl.c      |  1 +
- fs/block_dev.c     |  3 ++-
- include/linux/fs.h | 31 +++++++++++++++++++++----------
- 3 files changed, 24 insertions(+), 11 deletions(-)
-
-diff --git a/block/ioctl.c b/block/ioctl.c
-index d8996bb..7c64286 100644
---- a/block/ioctl.c
-+++ b/block/ioctl.c
-@@ -434,6 +434,7 @@ bool blkdev_dax_capable(struct block_device *bdev)
- 
- 	return true;
- }
-+EXPORT_SYMBOL(blkdev_dax_capable);
- #endif
- 
- static int blkdev_flushbuf(struct block_device *bdev, fmode_t mode,
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 826b164..0e937dd 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -166,8 +166,9 @@ blkdev_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
- {
- 	struct file *file = iocb->ki_filp;
- 	struct inode *inode = bdev_file_inode(file);
-+	struct block_device *bdev = I_BDEV(inode);
- 
--	if (IS_DAX(inode))
-+	if (blkdev_dax_capable(bdev))
- 		return dax_do_io(iocb, inode, iter, offset, blkdev_get_block,
- 				NULL, DIO_SKIP_DIO_COUNT);
- 	return __blockdev_direct_IO(iocb, inode, I_BDEV(inode), iter, offset,
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index ae68100..a3f5ee8 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -830,7 +830,14 @@ static inline unsigned imajor(const struct inode *inode)
- 	return MAJOR(inode->i_rdev);
- }
- 
-+#ifdef CONFIG_BLOCK
- extern struct block_device *I_BDEV(struct inode *inode);
-+#else
-+static inline struct block_device *I_BDEV(struct inode *inode)
-+{
-+	return NULL;
-+}
-+#endif
- 
- struct fown_struct {
- 	rwlock_t lock;          /* protects pid, uid, euid fields */
-@@ -2306,15 +2313,6 @@ extern struct super_block *freeze_bdev(struct block_device *);
- extern void emergency_thaw_all(void);
- extern int thaw_bdev(struct block_device *bdev, struct super_block *sb);
- extern int fsync_bdev(struct block_device *);
--#ifdef CONFIG_FS_DAX
--extern bool blkdev_dax_capable(struct block_device *bdev);
--#else
--static inline bool blkdev_dax_capable(struct block_device *bdev)
--{
--	return false;
--}
--#endif
--
- extern struct super_block *blockdev_superblock;
- 
- static inline bool sb_is_blkdev_sb(struct super_block *sb)
-@@ -2902,9 +2900,22 @@ extern int generic_show_options(struct seq_file *m, struct dentry *root);
- extern void save_mount_options(struct super_block *sb, char *options);
- extern void replace_mount_options(struct super_block *sb, char *options);
- 
-+#ifdef CONFIG_FS_DAX
-+extern bool blkdev_dax_capable(struct block_device *bdev);
-+#else
-+static inline bool blkdev_dax_capable(struct block_device *bdev)
-+{
-+	return false;
-+}
-+#endif
-+
- static inline bool io_is_direct(struct file *filp)
- {
--	return (filp->f_flags & O_DIRECT) || IS_DAX(filp->f_mapping->host);
-+	struct inode *inode = filp->f_mapping->host;
-+
-+	return (filp->f_flags & O_DIRECT) || IS_DAX(inode)
-+		|| (S_ISBLK(file_inode(filp)->i_mode)
-+				&& blkdev_dax_capable(I_BDEV(inode)));
- }
- 
- static inline int iocb_flags(struct file *file)
--- 
-2.5.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+T24gVGh1LCAyMDE2LTAyLTE4IGF0IDE1OjA3ICswMDAwLCBNYXR0IEZsZW1pbmcgd3JvdGU6Cj4g
+T24gV2VkLCAxNyBGZWIsIGF0IDAyOjE3OjI4UE0sIEFuZHkgU2hldmNoZW5rbyB3cm90ZToKPiA+
+IEluc3RlYWQgb2Ygb3BlbmNvZGluZyBsZXQncyB1c2UgZ2VuZXJpYyBVVUlEIGxpYnJhcnkgZnVu
+Y3Rpb25zCj4gPiBoZXJlLgo+ID4gCj4gPiBTaWduZWQtb2ZmLWJ5OiBBbmR5IFNoZXZjaGVua28g
+PGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT4KPiA+IC0tLQo+ID4gwqBmcy9lZml2
+YXJmcy9pbm9kZS5jIHwgNDAgKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LQo+ID4gwqAxIGZpbGUgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCspLCAzNyBkZWxldGlvbnMoLSkK
+PiA+IAo+ID4gZGlmZiAtLWdpdCBhL2ZzL2VmaXZhcmZzL2lub2RlLmMgYi9mcy9lZml2YXJmcy9p
+bm9kZS5jCj4gPiBpbmRleCAzMzgxYjlkLi5iNTc5ZTNhIDEwMDY0NAo+ID4gLS0tIGEvZnMvZWZp
+dmFyZnMvaW5vZGUuYwo+ID4gKysrIGIvZnMvZWZpdmFyZnMvaW5vZGUuYwo+ID4gQEAgLTExLDYg
+KzExLDcgQEAKPiA+IMKgI2luY2x1ZGUgPGxpbnV4L2ZzLmg+Cj4gPiDCoCNpbmNsdWRlIDxsaW51
+eC9jdHlwZS5oPgo+ID4gwqAjaW5jbHVkZSA8bGludXgvc2xhYi5oPgo+ID4gKyNpbmNsdWRlIDxs
+aW51eC91dWlkLmg+Cj4gPiDCoAo+ID4gwqAjaW5jbHVkZSAiaW50ZXJuYWwuaCIKPiA+IMKgCj4g
+PiBAQCAtNDQsMTEgKzQ1LDcgQEAgc3RydWN0IGlub2RlICplZml2YXJmc19nZXRfaW5vZGUoc3Ry
+dWN0Cj4gPiBzdXBlcl9ibG9jayAqc2IsCj4gPiDCoCAqLwo+ID4gwqBib29sIGVmaXZhcmZzX3Zh
+bGlkX25hbWUoY29uc3QgY2hhciAqc3RyLCBpbnQgbGVuKQo+ID4gwqB7Cj4gPiAtCXN0YXRpYyBj
+b25zdCBjaGFyIGRhc2hlc1tFRklfVkFSSUFCTEVfR1VJRF9MRU5dID0gewo+ID4gLQkJWzhdID0g
+MSwgWzEzXSA9IDEsIFsxOF0gPSAxLCBbMjNdID0gMQo+ID4gLQl9Owo+ID4gwqAJY29uc3QgY2hh
+ciAqcyA9IHN0ciArIGxlbiAtIEVGSV9WQVJJQUJMRV9HVUlEX0xFTjsKPiA+IC0JaW50IGk7Cj4g
+PiDCoAo+ID4gwqAJLyoKPiA+IMKgCcKgKiBXZSBuZWVkIGEgR1VJRCwgcGx1cyBhdCBsZWFzdCBv
+bmUgbGV0dGVyIGZvciB0aGUKPiA+IHZhcmlhYmxlIG5hbWUsCj4gPiBAQCAtNjYsMzcgKzYzLDcg
+QEAgYm9vbCBlZml2YXJmc192YWxpZF9uYW1lKGNvbnN0IGNoYXIgKnN0ciwgaW50Cj4gPiBsZW4p
+Cj4gPiDCoAnCoCoKPiA+IMKgCcKgKgkxMjM0NTY3OC0xMjM0LTEyMzQtMTIzNC0xMjM0NTY3ODlh
+YmMKPiA+IMKgCcKgKi8KPiA+IC0JZm9yIChpID0gMDsgaSA8IEVGSV9WQVJJQUJMRV9HVUlEX0xF
+TjsgaSsrKSB7Cj4gPiAtCQlpZiAoZGFzaGVzW2ldKSB7Cj4gPiAtCQkJaWYgKCpzKysgIT0gJy0n
+KQo+ID4gLQkJCQlyZXR1cm4gZmFsc2U7Cj4gPiAtCQl9IGVsc2Ugewo+ID4gLQkJCWlmICghaXN4
+ZGlnaXQoKnMrKykpCj4gPiAtCQkJCXJldHVybiBmYWxzZTsKPiA+IC0JCX0KPiA+IC0JfQo+ID4g
+LQo+ID4gLQlyZXR1cm4gdHJ1ZTsKPiA+IC19Cj4gPiAtCj4gPiAtc3RhdGljIHZvaWQgZWZpdmFy
+ZnNfaGV4X3RvX2d1aWQoY29uc3QgY2hhciAqc3RyLCBlZmlfZ3VpZF90Cj4gPiAqZ3VpZCkKPiA+
+IC17Cj4gPiAtCWd1aWQtPmJbMF0gPSBoZXhfdG9fYmluKHN0cls2XSkgPDwgNCB8IGhleF90b19i
+aW4oc3RyWzddKTsKPiA+IC0JZ3VpZC0+YlsxXSA9IGhleF90b19iaW4oc3RyWzRdKSA8PCA0IHwg
+aGV4X3RvX2JpbihzdHJbNV0pOwo+ID4gLQlndWlkLT5iWzJdID0gaGV4X3RvX2JpbihzdHJbMl0p
+IDw8IDQgfCBoZXhfdG9fYmluKHN0clszXSk7Cj4gPiAtCWd1aWQtPmJbM10gPSBoZXhfdG9fYmlu
+KHN0clswXSkgPDwgNCB8IGhleF90b19iaW4oc3RyWzFdKTsKPiA+IC0JZ3VpZC0+Yls0XSA9IGhl
+eF90b19iaW4oc3RyWzExXSkgPDwgNCB8Cj4gPiBoZXhfdG9fYmluKHN0clsxMl0pOwo+ID4gLQln
+dWlkLT5iWzVdID0gaGV4X3RvX2JpbihzdHJbOV0pIDw8IDQgfAo+ID4gaGV4X3RvX2JpbihzdHJb
+MTBdKTsKPiA+IC0JZ3VpZC0+Yls2XSA9IGhleF90b19iaW4oc3RyWzE2XSkgPDwgNCB8Cj4gPiBo
+ZXhfdG9fYmluKHN0clsxN10pOwo+ID4gLQlndWlkLT5iWzddID0gaGV4X3RvX2JpbihzdHJbMTRd
+KSA8PCA0IHwKPiA+IGhleF90b19iaW4oc3RyWzE1XSk7Cj4gPiAtCWd1aWQtPmJbOF0gPSBoZXhf
+dG9fYmluKHN0clsxOV0pIDw8IDQgfAo+ID4gaGV4X3RvX2JpbihzdHJbMjBdKTsKPiA+IC0JZ3Vp
+ZC0+Yls5XSA9IGhleF90b19iaW4oc3RyWzIxXSkgPDwgNCB8Cj4gPiBoZXhfdG9fYmluKHN0clsy
+Ml0pOwo+ID4gLQlndWlkLT5iWzEwXSA9IGhleF90b19iaW4oc3RyWzI0XSkgPDwgNCB8Cj4gPiBo
+ZXhfdG9fYmluKHN0clsyNV0pOwo+ID4gLQlndWlkLT5iWzExXSA9IGhleF90b19iaW4oc3RyWzI2
+XSkgPDwgNCB8Cj4gPiBoZXhfdG9fYmluKHN0clsyN10pOwo+ID4gLQlndWlkLT5iWzEyXSA9IGhl
+eF90b19iaW4oc3RyWzI4XSkgPDwgNCB8Cj4gPiBoZXhfdG9fYmluKHN0clsyOV0pOwo+ID4gLQln
+dWlkLT5iWzEzXSA9IGhleF90b19iaW4oc3RyWzMwXSkgPDwgNCB8Cj4gPiBoZXhfdG9fYmluKHN0
+clszMV0pOwo+ID4gLQlndWlkLT5iWzE0XSA9IGhleF90b19iaW4oc3RyWzMyXSkgPDwgNCB8Cj4g
+PiBoZXhfdG9fYmluKHN0clszM10pOwo+ID4gLQlndWlkLT5iWzE1XSA9IGhleF90b19iaW4oc3Ry
+WzM0XSkgPDwgNCB8Cj4gPiBoZXhfdG9fYmluKHN0clszNV0pOwo+ID4gKwlyZXR1cm4gdXVpZF9p
+c192YWxpZChzKTsKPiA+IMKgfQo+IAo+IEkgdGhpbmsgeW91J3ZlIGNvbmZ1c2VkIHlvdXJzZWxm
+IGhlcmUuIFlvdSd2ZSBpbnZlcnRlZCB0aGUgcmV0dXJuCj4gdmFsdWUgbWVhbmluZyBmb3IgZWZp
+dmFyZnNfdmFsaWRfbmFtZSgpLgo+IAo+IE5vcm1hbGx5IEkgd291bGQgZXhwZWN0IHRoaXMgY2hh
+bmdlIHRvIGJlIGNvcnJlY3QgYnV0IHV1aWRfaXNfdmFsaWQoKQo+IHJldHVybnMgMCBmb3Igc3Vj
+Y2VzcywgLUVJTlZBTCBmb3IgZmFpbHVyZS4gRWl0aGVyIHRoZSBmdW5jdGlvbiBpcwo+IG1pc25h
+bWVkIG9yIHRoZSByZXR1cm4gdmFsdWUgc2VtYW50aWNzIGFyZSB3cm9uZy4KCk9vcHMsIHRoYW5r
+cyBmb3Igbm90aWNpbmcgdGhpcy4gUmlnaHQgdGhlIHJldHVybiB2YWx1ZSBzaG91bGQgYmUKYWxp
+Z25lZC4KCi0tIApBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVs
+LmNvbT4KSW50ZWwgRmlubGFuZCBPeQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
