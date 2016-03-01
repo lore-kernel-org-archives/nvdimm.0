@@ -1,25 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ob0-x22f.google.com (mail-ob0-x22f.google.com
- [IPv6:2607:f8b0:4003:c01::22f])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AEAF91A1E3D
- for <linux-nvdimm@lists.01.org>; Tue,  1 Mar 2016 10:14:41 -0800 (PST)
-Received: by mail-ob0-x22f.google.com with SMTP id fz5so42677703obc.0
- for <linux-nvdimm@lists.01.org>; Tue, 01 Mar 2016 10:14:33 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1456853819.15454.45.camel@hpe.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id EF4221A1E57
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Mar 2016 09:41:56 -0800 (PST)
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
+ comply ACPI 6.1
+Date: Tue, 1 Mar 2016 17:41:46 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D7A1@ORSMSX110.amr.corp.intel.com>
 References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
  <1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
  <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
  <1456850284.15454.23.camel@hpe.com>
  <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D6E1@ORSMSX110.amr.corp.intel.com>
  <1456853819.15454.45.camel@hpe.com>
-Date: Tue, 1 Mar 2016 10:14:32 -0800
-Message-ID: <CAPcyv4hS44abMCs1sxdLW0YgMjP33Td0LbEWhXi9jqJ_ARU7CA@mail.gmail.com>
-Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
- comply ACPI 6.1
-From: Dan Williams <dan.j.williams@intel.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D782@ORSMSX110.amr.corp.intel.com>
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D782@ORSMSX110.amr.corp.intel.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,48 +24,115 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Moore, Robert  <robert.moore@intel.com>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zheng," Lv" <lv.zheng@intel.com>, "devel@acpica.org,  <devel@acpica.org>
+To: "Moore, Robert" <robert.moore@intel.com>, Toshi Kani <toshi.kani@hpe.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Mar 1, 2016 at 9:36 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> On Tue, 2016-03-01 at 16:03 +0000, Moore, Robert wrote:
->> We have a bunch of macros in include/acmacros.h -- like this:
->>
->> ACPI_MOVE_16_TO_16(d, s)
->
-> There is a problem in using the ACPICA byte-swap macros.  ACPI is little-
-> endian arch, so the macros are set to perform byte-swappings when the CPU
-> arch is big-endian.  This case, however, is the other way around.  The
-> fields in question are defined & stored as arrays of bytes.  If you treat
-> them as multi-bytes numeric values, then you need to byte-swap them when
-> the CPU arch is little-endian because arrays of bytes have the same
-> addressing as big-endian.
->
-> Another issue is that it is not clear who needs to perform the byte-
-> swapping among ACPICA and drivers.  If ACPICA, drivers must agree that
-> these fields are always treated as multi-bytes numeric values despite of
-> the spec.  If drivers, we need to make sure that only a single driver
-> performs this byte-swapping one time as ACPI tables are global structures.
->
-> I think it is much clearer to define the structure according to the ACPI
-> spec.
-
-I think the "ACPI tables are little-endian" assumption is pervasive
-throughout the implementation.
-
-Toshi, it seems all we need is conversions like:
-
-- sprintf(buf, "%#x\n", dcr->vendor_id);
-+ sprintf(buf, "%#x\n", le16_to_cpu(dcr->vendor_id));
-
-...for the values exported to userspace through sysfs, but otherwise
-leave the base table definitions as is.  Will this suffice?
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiA+IEFub3RoZXIgaXNzdWUgaXMgdGhhdCBpdCBpcyBub3QgY2xlYXIgd2hvIG5lZWRzIHRvIHBl
+cmZvcm0gdGhlIGJ5dGUtDQo+ID4gc3dhcHBpbmcgYW1vbmcgQUNQSUNBIGFuZCBkcml2ZXJzLiAg
+SWYgQUNQSUNBLCBkcml2ZXJzIG11c3QgYWdyZWUgdGhhdA0KDQoNCkFDUElDQSBkb2VzIG5vdCBl
+dmVyIGRvIGFueXRoaW5nIHdpdGggdGhlICJkYXRhIHRhYmxlcyIgbGlrZSBORklULCBvdGhlciB0
+aGFuIGhhbmRpbmcgb2ZmIHRoZSB0YWJsZSB3aGVuIHJlcXVlc3RlZCBieSBhIGRyaXZlci4NCg0K
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IERldmVsIFttYWlsdG86ZGV2
+ZWwtYm91bmNlc0BhY3BpY2Eub3JnXSBPbiBCZWhhbGYgT2YgTW9vcmUsIFJvYmVydA0KPiBTZW50
+OiBUdWVzZGF5LCBNYXJjaCAwMSwgMjAxNiA5OjM3IEFNDQo+IFRvOiBUb3NoaSBLYW5pOyByandA
+cmp3eXNvY2tpLm5ldDsgV2lsbGlhbXMsIERhbiBKDQo+IENjOiBsaW51eC1udmRpbW1AbGlzdHMu
+MDEub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBsaW51eC0NCj4gYWNwaUB2Z2Vy
+Lmtlcm5lbC5vcmc7IGVsbGlvdHRAaHBlLmNvbTsgZGV2ZWxAYWNwaWNhLm9yZw0KPiBTdWJqZWN0
+OiBSZTogW0RldmVsXSBbUEFUQ0ggdjIgMS8zXSBBQ1BJL05GSVQ6IFVwZGF0ZSBDb250cm9sIFJl
+Z2lvbg0KPiBTdHJ1Y3R1cmUgdG8gY29tcGx5IEFDUEkgNi4xDQo+IA0KPiANCj4gDQo+ID4gLS0t
+LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiBGcm9tOiBUb3NoaSBLYW5pIFttYWlsdG86dG9z
+aGkua2FuaUBocGUuY29tXQ0KPiA+IFNlbnQ6IFR1ZXNkYXksIE1hcmNoIDAxLCAyMDE2IDk6Mzcg
+QU0NCj4gPiBUbzogTW9vcmUsIFJvYmVydDsgcmp3QHJqd3lzb2NraS5uZXQ7IFdpbGxpYW1zLCBE
+YW4gSg0KPiA+IENjOiBaaGVuZywgTHY7IGVsbGlvdHRAaHBlLmNvbTsgbGludXgtbnZkaW1tQGxp
+c3RzLjAxLm9yZzsgbGludXgtDQo+ID4gYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWtlcm5l
+bEB2Z2VyLmtlcm5lbC5vcmc7IGRldmVsQGFjcGljYS5vcmcNCj4gPiBTdWJqZWN0OiBSZTogW1BB
+VENIIHYyIDEvM10gQUNQSS9ORklUOiBVcGRhdGUgQ29udHJvbCBSZWdpb24gU3RydWN0dXJlDQo+
+ID4gdG8gY29tcGx5IEFDUEkgNi4xDQo+ID4NCj4gPiBPbiBUdWUsIDIwMTYtMDMtMDEgYXQgMTY6
+MDMgKzAwMDAsIE1vb3JlLCBSb2JlcnQgd3JvdGU6DQo+ID4gPiBXZSBoYXZlIGEgYnVuY2ggb2Yg
+bWFjcm9zIGluIGluY2x1ZGUvYWNtYWNyb3MuaCAtLSBsaWtlIHRoaXM6DQo+ID4gPg0KPiA+ID4g
+QUNQSV9NT1ZFXzE2X1RPXzE2KGQsIHMpDQo+ID4NCj4gPiBUaGVyZSBpcyBhIHByb2JsZW0gaW4g
+dXNpbmcgdGhlIEFDUElDQSBieXRlLXN3YXAgbWFjcm9zLiDCoEFDUEkgaXMNCj4gPiBsaXR0bGUt
+IGVuZGlhbiBhcmNoLCBzbyB0aGUgbWFjcm9zIGFyZSBzZXQgdG8gcGVyZm9ybSBieXRlLXN3YXBw
+aW5ncw0KPiA+IHdoZW4gdGhlIENQVSBhcmNoIGlzIGJpZy1lbmRpYW4uIMKgVGhpcyBjYXNlLCBo
+b3dldmVyLCBpcyB0aGUgb3RoZXIgd2F5DQo+ID4gYXJvdW5kLiDCoFRoZSBmaWVsZHMgaW4gcXVl
+c3Rpb24gYXJlIGRlZmluZWQgJiBzdG9yZWQgYXMgYXJyYXlzIG9mIGJ5dGVzLg0KPiANCj4gVGhh
+dCdzIG5vdCB3aGF0IEkgc2VlIGluIHRoZSBBQ1BJIHNwZWMuIFRoZSBmaWVsZHMgYXJlIGRlZmlu
+ZWQgbGlrZSBhbnkNCj4gb3RoZXIgQUNQSSB0YWJsZS4NCj4gDQo+IFZlbmRvciBJRCAyIDYNCj4g
+SWRlbnRpZmllciBpbmRpY2F0aW5nIHRoZSB2ZW5kb3Igb2YgdGhlIE5WRElNTS4NCj4gVGhpcyBm
+aWVsZCBzaGFsbCBiZSBzZXQgdG8gdGhlIHZhbHVlIG9mIHRoZSBOVkRJTU0gU1BEIE1vZHVsZSBN
+YW51ZmFjdHVyZXINCj4gSUQgQ29kZSBmaWVsZCBhIHdpdGggYnl0ZSAwIHNldCB0byBERFI0IFNQ
+RCBieXRlDQo+IDMyMCBhbmQgYnl0ZSAxIHNldCB0byBERFI0IFNQRCBieXRlIDMyMS4NCj4gDQo+
+IERldmljZSBJRCAyIDgNCj4gSWRlbnRpZmllciBmb3IgdGhlIE5WRElNTSwgYXNzaWduZWQgYnkg
+dGhlIG1vZHVsZSB2ZW5kb3IuDQo+IFRoaXMgZmllbGQgc2hhbGwgYmUgc2V0IHRvIHRoZSB2YWx1
+ZSBvZiB0aGUgTlZESU1NIFNQRCBNb2R1bGUgUHJvZHVjdA0KPiBJZGVudGlmaWVyIGZpZWxkIGIg
+d2l0aCBieXRlIDAgc2V0IHRvIFNQRCBieXRlIDE5MiBhbmQgYnl0ZSAxIHNldCB0byBTUEQNCj4g
+Ynl0ZSAxOTMuDQo+IA0KPiBSZXZpc2lvbiBJRCAyIDEwDQo+IFJldmlzaW9uIG9mIHRoZSBOVkRJ
+TU0sIGFzc2lnbmVkIGJ5IHRoZSBtb2R1bGUgdmVuZG9yLg0KPiBCeXRlIDEgb2YgdGhpcyBmaWVs
+ZCBpcyByZXNlcnZlZC4NCj4gQnl0ZSAwIG9mIHRoaXMgZmllbGQgc2hhbGwgYmUgc2V0IHRvIHRo
+ZSB2YWx1ZSBvZiB0aGUgTlZESU1NIFNQRCBNb2R1bGUNCj4gUmV2aXNpb24gQ29kZSBmaWVsZCBh
+IChpLmUuLCBTUEQgYnl0ZSAzNDkpLg0KPiANCj4gDQo+IEV0Yy4NCj4gDQo+IA0KPiBJZiB5b3Ug
+dHJlYXQNCj4gPiB0aGVtIGFzIG11bHRpLWJ5dGVzIG51bWVyaWMgdmFsdWVzLCB0aGVuIHlvdSBu
+ZWVkIHRvIGJ5dGUtc3dhcCB0aGVtIHdoZW4NCj4gPiB0aGUgQ1BVIGFyY2ggaXMgbGl0dGxlLWVu
+ZGlhbiBiZWNhdXNlIGFycmF5cyBvZiBieXRlcyBoYXZlIHRoZSBzYW1lDQo+ID4gYWRkcmVzc2lu
+ZyBhcyBiaWctZW5kaWFuLg0KPiA+DQo+ID4gQW5vdGhlciBpc3N1ZSBpcyB0aGF0IGl0IGlzIG5v
+dCBjbGVhciB3aG8gbmVlZHMgdG8gcGVyZm9ybSB0aGUgYnl0ZS0NCj4gPiBzd2FwcGluZyBhbW9u
+ZyBBQ1BJQ0EgYW5kIGRyaXZlcnMuIMKgSWYgQUNQSUNBLCBkcml2ZXJzIG11c3QgYWdyZWUgdGhh
+dA0KPiA+IHRoZXNlIGZpZWxkcyBhcmUgYWx3YXlzIHRyZWF0ZWQgYXMgbXVsdGktYnl0ZXMgbnVt
+ZXJpYyB2YWx1ZXMgZGVzcGl0ZSBvZg0KPiA+IHRoZSBzcGVjLiDCoElmIGRyaXZlcnMsIHdlIG5l
+ZWQgdG8gbWFrZSBzdXJlIHRoYXQgb25seSBhIHNpbmdsZSBkcml2ZXINCj4gPiBwZXJmb3JtcyB0
+aGlzIGJ5dGUtc3dhcHBpbmcgb25lIHRpbWUgYXMgQUNQSSB0YWJsZXMgYXJlIGdsb2JhbA0KPiBz
+dHJ1Y3R1cmVzLg0KPiA+DQo+ID4gSSB0aGluayBpdCBpcyBtdWNoIGNsZWFyZXIgdG8gZGVmaW5l
+IHRoZSBzdHJ1Y3R1cmUgYWNjb3JkaW5nIHRvIHRoZSBBQ1BJDQo+ID4gc3BlYy4NCj4gPg0KPiA+
+IFRoYW5rcywNCj4gPiAtVG9zaGkNCj4gPg0KPiA+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
+LS0tLQ0KPiA+ID4gPiBGcm9tOiBUb3NoaSBLYW5pIFttYWlsdG86dG9zaGkua2FuaUBocGUuY29t
+XQ0KPiA+ID4gPiBTZW50OiBUdWVzZGF5LCBNYXJjaCAwMSwgMjAxNiA4OjM4IEFNDQo+ID4gPiA+
+IFRvOiBNb29yZSwgUm9iZXJ0OyByandAcmp3eXNvY2tpLm5ldDsgV2lsbGlhbXMsIERhbiBKDQo+
+ID4gPiA+IENjOiBaaGVuZywgTHY7IGVsbGlvdHRAaHBlLmNvbTsgbGludXgtbnZkaW1tQGxpc3Rz
+LjAxLm9yZzsgbGludXgtDQo+ID4gPiA+IGFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJu
+ZWxAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+ID4gPiA+IFN1YmplY3Q6IFJl
+OiBbUEFUQ0ggdjIgMS8zXSBBQ1BJL05GSVQ6IFVwZGF0ZSBDb250cm9sIFJlZ2lvbg0KPiA+ID4g
+PiBTdHJ1Y3R1cmUgdG8gY29tcGx5IEFDUEkgNi4xDQo+ID4gPiA+DQo+ID4gPiA+IE9uIFR1ZSwg
+MjAxNi0wMy0wMSBhdCAxNToxMyArMDAwMCwgTW9vcmUsIFJvYmVydCB3cm90ZToNCj4gPiA+ID4g
+Pg0KPiA+ID4gPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+ID4gPiA+IEZy
+b206IFRvc2hpIEthbmkgW21haWx0bzp0b3NoaS5rYW5pQGhwZS5jb21dDQo+ID4gPiA+ID4gPiBT
+ZW50OiBNb25kYXksIEZlYnJ1YXJ5IDIyLCAyMDE2IDE6NTUgUE0NCj4gPiA+ID4gPiA+IFRvOiBy
+andAcmp3eXNvY2tpLm5ldDsgV2lsbGlhbXMsIERhbiBKDQo+ID4gPiA+ID4gPiBDYzogTW9vcmUs
+IFJvYmVydDsgWmhlbmcsIEx2OyBlbGxpb3R0QGhwZS5jb207DQo+ID4gPiA+ID4gPiBsaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3IgZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+ID4gPiA+
+ID4gPiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnOyBUb3No
+aSBLYW5pDQo+ID4gPiA+ID4gPiBTdWJqZWN0OiBbUEFUQ0ggdjIgMS8zXSBBQ1BJL05GSVQ6IFVw
+ZGF0ZSBDb250cm9sIFJlZ2lvbg0KPiA+ID4gPiA+ID4gU3RydWN0dXJlIHRvIGNvbXBseSBBQ1BJ
+IDYuMQ0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+IEFDUEkgNi4xLCBUYWJsZSA1LTEzMywgdXBk
+YXRlcyBOVkRJTU0gQ29udHJvbCBSZWdpb24gU3RydWN0dXJlDQo+ID4gPiA+ID4gPiBhcyBmb2xs
+b3dzLg0KPiA+ID4gPiA+ID4gwqAtIFZhbGlkIEZpZWxkcywgTWFudWZhY3R1cmluZyBMb2NhdGlv
+biwgYW5kIE1hbnVmYWN0dXJpbmcgRGF0ZQ0KPiA+ID4gPiA+ID4gwqDCoMKgYXJlIGFkZGVkIGZy
+b20gcmVzZXJ2ZWQgcmFuZ2UuwqDCoE5vIGNoYW5nZSBpbiB0aGUgc3RydWN0dXJlDQo+ID4gc2l6
+ZS4NCj4gPiA+ID4gPiA+IMKgLSBJRHMgZGVmaW5lZCBhcyBTUEQgdmFsdWVzIGFyZSBhcnJheXMg
+b2YgYnl0ZXMuwqDCoFRoZSBzcGVjDQo+ID4gPiA+ID4gPiDCoMKgwqBjbGFyaWZpZWQgdGhhdCB0
+aGV5IG5lZWQgdG8gYmUgcmVwcmVzZW50ZWQgYXMgYXJyYXlzIG9mIGJ5dGVzDQo+ID4gPiA+ID4g
+PiDCoMKgwqBhcyB3ZWxsLg0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+IFRoaXMgcGF0Y2ggbWFr
+ZXMgdGhlIGZvbGxvd2luZyBjaGFuZ2VzIHRvIHN1cHBvcnQgdGhpcyB1cGRhdGUuDQo+ID4gPiA+
+ID4gPiDCoC0gQ2hhbmdlICdzdHJ1Y3QgYWNwaV9uZml0X2NvbnRyb2xfcmVnaW9uJyB0byByZWZs
+ZWN0IHRoZQ0KPiB1cGRhdGUuDQo+ID4gPiA+ID4gPiDCoMKgwqBTUEQgSURzIGFyZSBkZWZpbmVk
+IGFzIGFycmF5cyBvZiBieXRlcywgc28gdGhhdCB0aGV5IGNhbiBiZQ0KPiA+ID4gPiA+ID4gwqDC
+oMKgdHJlYXRlZCBpbiB0aGUgc2FtZSB3YXkgcmVnYXJkbGVzcyBvZiBDUFUgZW5kaWFubmVzcyBh
+bmQgYXJlDQo+ID4gPiA+ID4gPiDCoMKgwqBub3QgbWlzcy10cmVhdGVkIGFzIGxpdHRsZS1lbmRp
+YW4gbnVtZXJpYyB2YWx1ZXMuDQo+ID4gPiA+ID4NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IEkgZG9u
+J3QgdGhpbmsgd2UgYXJlIGdvaW5nIHRvIHN0YXJ0IGNoYW5naW5nIHRoZSBBQ1BJIHRhYmxlcw0K
+PiA+ID4gPiA+IGRlZmluZWQgaW4gdGhlIEFDUElDQSBoZWFkZXJzIGJlY2F1c2Ugb2YgdGhpcy4g
+V2UgZG8gaW4gZmFjdCBoYXZlDQo+ID4gPiA+ID4gbWFjcm9zIGZvciB0aGlzIHB1cnBvc2UuDQo+
+ID4gPiA+DQo+ID4gPiA+IENhbiB5b3UgZWxhYm9yYXRlIHdoYXQgbWFjcm9zIHlvdSBzdWdnZXN0
+IHRvIHVzZSBmb3IgdGhpcyBwdXJwb3NlPw0KPiA+ID4gPg0KPiA+ID4gPiBUaGFua3MsDQo+ID4g
+PiA+IC1Ub3NoaQ0KPiA+ID4gTiAgICAgciAgeSAgIGIgWCAgx6d2IF4gKd66ey5uICsgICAgeyBp
+IGIge2F5IB3Kh9qZICxqICAgZiAgIGggICB6IB4gdw0KPiA+ID4NCj4gPg0KPiA+ICAgIGo6K3Yg
+ICB3IGogbSAgICAgICAgIHpaKyAgICAg3aJqIiAgISBpDQo+IF9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fDQo+IERldmVsIG1haWxpbmcgbGlzdA0KPiBEZXZl
+bEBhY3BpY2Eub3JnDQo+IGh0dHBzOi8vbGlzdHMuYWNwaWNhLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2RldmVsDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpM
+aW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6
+Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
