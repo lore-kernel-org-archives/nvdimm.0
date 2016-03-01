@@ -1,23 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3428.houston.hp.com (g4t3428.houston.hp.com [15.201.208.56])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3818D1A1E46
- for <linux-nvdimm@lists.01.org>; Tue,  1 Mar 2016 10:35:51 -0800 (PST)
-Message-ID: <1456859438.15454.78.camel@hpe.com>
-Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
- comply ACPI 6.1
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Tue, 01 Mar 2016 12:10:38 -0700
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D782@ORSMSX110.amr.corp.intel.com>
+Received: from mail-ob0-x22f.google.com (mail-ob0-x22f.google.com
+ [IPv6:2607:f8b0:4003:c01::22f])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id AEAF91A1E3D
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Mar 2016 10:14:41 -0800 (PST)
+Received: by mail-ob0-x22f.google.com with SMTP id fz5so42677703obc.0
+ for <linux-nvdimm@lists.01.org>; Tue, 01 Mar 2016 10:14:33 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1456853819.15454.45.camel@hpe.com>
 References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
  <1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
  <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
  <1456850284.15454.23.camel@hpe.com>
  <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D6E1@ORSMSX110.amr.corp.intel.com>
  <1456853819.15454.45.camel@hpe.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D782@ORSMSX110.amr.corp.intel.com>
-Mime-Version: 1.0
+Date: Tue, 1 Mar 2016 10:14:32 -0800
+Message-ID: <CAPcyv4hS44abMCs1sxdLW0YgMjP33Td0LbEWhXi9jqJ_ARU7CA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
+ comply ACPI 6.1
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,66 +27,48 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Moore, Robert" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zheng," Lv" <lv.zheng@intel.com>, "devel@acpica.org,  <devel@acpica.org>
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Moore, Robert  <robert.moore@intel.com>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zheng," Lv" <lv.zheng@intel.com>, "devel@acpica.org,  <devel@acpica.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE2LTAzLTAxIGF0IDE3OjM3ICswMDAwLCBNb29yZSwgUm9iZXJ0IHdyb3RlOgo+
-IAo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiA+IEZyb206IFRvc2hpIEthbmkgW21h
-aWx0bzp0b3NoaS5rYW5pQGhwZS5jb21dCj4gPiBTZW50OiBUdWVzZGF5LCBNYXJjaCAwMSwgMjAx
-NiA5OjM3IEFNCj4gPiBUbzogTW9vcmUsIFJvYmVydDsgcmp3QHJqd3lzb2NraS5uZXQ7IFdpbGxp
-YW1zLCBEYW4gSgo+ID4gQ2M6IFpoZW5nLCBMdjsgZWxsaW90dEBocGUuY29tOyBsaW51eC1udmRp
-bW1AbGlzdHMuMDEub3JnOyBsaW51eC0KPiA+IGFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1r
-ZXJuZWxAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnCj4gPiBTdWJqZWN0OiBSZTog
-W1BBVENIIHYyIDEvM10gQUNQSS9ORklUOiBVcGRhdGUgQ29udHJvbCBSZWdpb24gU3RydWN0dXJl
-Cj4gPiB0bwo+ID4gY29tcGx5IEFDUEkgNi4xCj4gPiAKPiA+IE9uIFR1ZSwgMjAxNi0wMy0wMSBh
-dCAxNjowMyArMDAwMCwgTW9vcmUsIFJvYmVydCB3cm90ZToKPiA+ID4gV2UgaGF2ZSBhIGJ1bmNo
-IG9mIG1hY3JvcyBpbiBpbmNsdWRlL2FjbWFjcm9zLmggLS0gbGlrZSB0aGlzOgo+ID4gPiAKPiA+
-ID4gQUNQSV9NT1ZFXzE2X1RPXzE2KGQsIHMpCj4gPiAKPiA+IFRoZXJlIGlzIGEgcHJvYmxlbSBp
-biB1c2luZyB0aGUgQUNQSUNBIGJ5dGUtc3dhcCBtYWNyb3MuIMKgQUNQSSBpcwo+ID4gbGl0dGxl
-LWVuZGlhbiBhcmNoLCBzbyB0aGUgbWFjcm9zIGFyZSBzZXQgdG8gcGVyZm9ybSBieXRlLXN3YXBw
-aW5ncwo+ID4gd2hlbiB0aGUgQ1BVIGFyY2ggaXMgYmlnLWVuZGlhbi4gwqBUaGlzIGNhc2UsIGhv
-d2V2ZXIsIGlzIHRoZSBvdGhlciB3YXkKPiA+IGFyb3VuZC4gwqBUaGUgZmllbGRzIGluIHF1ZXN0
-aW9uIGFyZSBkZWZpbmVkICYgc3RvcmVkIGFzIGFycmF5cyBvZgo+ID4gYnl0ZXMuCj4gCj4gVGhh
-dCdzIG5vdCB3aGF0IEkgc2VlIGluIHRoZSBBQ1BJIHNwZWMuIFRoZSBmaWVsZHMgYXJlIGRlZmlu
-ZWQgbGlrZSBhbnkKPiBvdGhlciBBQ1BJIHRhYmxlLgo+IAo+IFZlbmRvciBJRCAyIDbCoAo+IElk
-ZW50aWZpZXIgaW5kaWNhdGluZyB0aGUgdmVuZG9yIG9mIHRoZSBOVkRJTU0uCj4gVGhpcyBmaWVs
-ZCBzaGFsbCBiZSBzZXQgdG8gdGhlIHZhbHVlIG9mIHRoZSBOVkRJTU0gU1BEIE1vZHVsZQo+IE1h
-bnVmYWN0dXJlciBJRCBDb2RlIGZpZWxkIGEgd2l0aCBieXRlIDAgc2V0IHRvIEREUjQgU1BEIGJ5
-dGUKPiAzMjAgYW5kIGJ5dGUgMSBzZXQgdG8gRERSNCBTUEQgYnl0ZSAzMjEuCgpUaGV5IGFyZSBk
-aWZmZXJlbnQgZnJvbSBvdGhlciBmaWVsZHMgYmVjYXVzZSB0aGUgc3BlYyBkZWZpbmVzICJieXRl
-CmxvY2F0aW9ucyIgb2YgdGhlIGZpZWxkcy4gwqBUaGUgYWJvdmUgY2FzZSwgVmVuZG9yIElELCBp
-cyBkZWZpbmVkIHRoYXQ6CsKgLcKgYnl0ZSAwIHNldCB0byBERFI0IFNQRCBieXRlIDMyMArCoC3C
-oGJ5dGUgMSBzZXQgdG8gRERSNCBTUEQgYnl0ZSAzMjEKCkZvciBpbnN0YW5jZSwgaWYgU1BEIGJ5
-dGUgMzIwIGlzIDB4MTIgYW5kIDMyMSBpcyAweDM0LCB0aGVuIHRoaXMgZmllbGQgaXMKc3RvcmVk
-IGFzICgweDEyLCAweDM0KS4gwqBJZiB5b3UgcmVhZCB0aGlzIGZpZWxkIGFzIGEgMTYtYml0IGlu
-dCB2YWx1ZSwgeW91CndpbGwgZ2V0IDB4MzQxMiBvbiBsaXR0bGUtZW5kaWFuIENQVXMsIHN1Y2gg
-YXMgeDg2LgoKU2VjdGlvbiA1LjIuMjUuOSBvZiBBQ1BJIDYuMSBmdXJ0aGVyIGNsYXJpZmllcyB0
-aGF0IFZlbmRvciBJRCBuZWVkcyB0byBiZQpyZXByZXNlbnRlZCBhcyAoIiUwMnglMDJ4IiwgYnl0
-ZTAsIGJ5dGUxKSwgd2hpY2ggaXMgIjEyMzQiIGluIHRoaXMgY2FzZS4KClNvLCB3ZSB3aWxsIG5l
-ZWQgdG8gYnl0ZS1zd2FwIHdoZW4gaXQgaXMgaGFuZGxlZCBhcyBhIDE2LWJpdCBpbnQgdmFsdWUg
-b24KbGl0dGxlLWVuZGlhbiBDUFVzLiDCoFRoaXMgaXMgZGlmZmVyZW50IGZyb20gb3RoZXIgZmll
-bGRzIHdpdGggbXVsdGktYnl0ZQpudW1lcmljIHZhbHVlcywgd2hpY2ggYXJlIHN0b3JlZCBpbiBs
-aXR0bGUtZW5kaWFuIGZvcm1hdCBpbiBBQ1BJLgoKSGVuY2UsIG15IHBhdGNoIGF2b2lkcyB0aGlz
-IGJ5dGUtc3dhcHBpbmcgYXMgSSBkZXNjcmliZWQgaW4gdGhlIGNoYW5nZSBsb2cKYmVsb3cuCgp8
-wqDCoC0gQ2hhbmdlICdzdHJ1Y3QgYWNwaV9uZml0X2NvbnRyb2xfcmVnaW9uJyB0byByZWZsZWN0
-IHRoZSB1cGRhdGUuCnzCoMKgwqDCoFNQRCBJRHMgYXJlIGRlZmluZWQgYXMgYXJyYXlzIG9mIGJ5
-dGVzLCBzbyB0aGF0IHRoZXkgY2FuIGJlCnzCoMKgwqDCoHRyZWF0ZWQgaW4gdGhlIHNhbWUgd2F5
-IHJlZ2FyZGxlc3Mgb2YgQ1BVIGVuZGlhbm5lc3MgYW5kIGFyZQp8wqDCoMKgwqBub3QgbWlzcy10
-cmVhdGVkIGFzIGxpdHRsZS1lbmRpYW4gbnVtZXJpYyB2YWx1ZXMuCgpJIGhvcGUgdGhpcyBtYWtl
-cyBpdCBjbGVhciBub3cuCgo+ID4gQW5vdGhlciBpc3N1ZSBpcyB0aGF0IGl0IGlzIG5vdCBjbGVh
-ciB3aG8gbmVlZHMgdG8gcGVyZm9ybSB0aGUgYnl0ZS0KPiA+IHN3YXBwaW5nIGFtb25nIEFDUElD
-QSBhbmQgZHJpdmVycy7CoMKgSWYgQUNQSUNBLCBkcml2ZXJzIG11c3QgYWdyZWUgdGhhdAo+Cj4g
-QUNQSUNBIGRvZXMgbm90IGV2ZXIgZG8gYW55dGhpbmcgd2l0aCB0aGUgImRhdGEgdGFibGVzIiBs
-aWtlIE5GSVQsIG90aGVyCj4gdGhhbiBoYW5kaW5nIG9mZiB0aGUgdGFibGUgd2hlbiByZXF1ZXN0
-ZWQgYnkgYSBkcml2ZXIuCgpTbywgdGhpcyBtZWFucyB0aGF0IHRoZSBhbHRlcm5hdGl2ZSBpcyB0
-byBjaGFuZ2UgdGhlIE5GSVQgZHJpdmVyIHRvIGRvIHRoZQpieXRlLXN3YXBwaW5nIGZvciB0aGUg
-ZmllbGRzIHdoZW4gdGhlIENQVSBhcmNoIGlzIGxpdHRsZS1lbmRpYW4uIMKgSWYgd2UKY2Fubm90
-IGNoYW5nZSB0aGUgc3RydWN0dXJlLCB3ZSB3aWxsIGhhdmUgdG8gdGFrZSB0aGlzIGNvdXJzZS4u
-LgoKVGhhbmtzLAotVG9zaGkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
-b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Tue, Mar 1, 2016 at 9:36 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> On Tue, 2016-03-01 at 16:03 +0000, Moore, Robert wrote:
+>> We have a bunch of macros in include/acmacros.h -- like this:
+>>
+>> ACPI_MOVE_16_TO_16(d, s)
+>
+> There is a problem in using the ACPICA byte-swap macros.  ACPI is little-
+> endian arch, so the macros are set to perform byte-swappings when the CPU
+> arch is big-endian.  This case, however, is the other way around.  The
+> fields in question are defined & stored as arrays of bytes.  If you treat
+> them as multi-bytes numeric values, then you need to byte-swap them when
+> the CPU arch is little-endian because arrays of bytes have the same
+> addressing as big-endian.
+>
+> Another issue is that it is not clear who needs to perform the byte-
+> swapping among ACPICA and drivers.  If ACPICA, drivers must agree that
+> these fields are always treated as multi-bytes numeric values despite of
+> the spec.  If drivers, we need to make sure that only a single driver
+> performs this byte-swapping one time as ACPI tables are global structures.
+>
+> I think it is much clearer to define the structure according to the ACPI
+> spec.
+
+I think the "ACPI tables are little-endian" assumption is pervasive
+throughout the implementation.
+
+Toshi, it seems all we need is conversions like:
+
+- sprintf(buf, "%#x\n", dcr->vendor_id);
++ sprintf(buf, "%#x\n", le16_to_cpu(dcr->vendor_id));
+
+...for the values exported to userspace through sysfs, but otherwise
+leave the base table definitions as is.  Will this suffice?
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
