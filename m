@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3426.houston.hp.com (g4t3426.houston.hp.com [15.201.208.54])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5794D1A1E54
- for <linux-nvdimm@lists.01.org>; Tue,  1 Mar 2016 07:58:38 -0800 (PST)
-Message-ID: <1456850284.15454.23.camel@hpe.com>
-Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id 7E0151A1E12
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Mar 2016 07:14:40 -0800 (PST)
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
  comply ACPI 6.1
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Tue, 01 Mar 2016 09:38:04 -0700
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
+Date: Tue, 1 Mar 2016 15:13:25 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
 References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
  <1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
-Mime-Version: 1.0
+In-Reply-To: <1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,40 +19,176 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Moore, Robert" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Williams, Dan J" <dan.j.williams@intel.com>
+To: Toshi Kani <toshi.kani@hpe.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Williams, Dan J" <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zheng," Lv" <lv.zheng@intel.com>, "devel@acpica.org,  <devel@acpica.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE2LTAzLTAxIGF0IDE1OjEzICswMDAwLCBNb29yZSwgUm9iZXJ0IHdyb3RlOgo+
-IAo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiA+IEZyb206IFRvc2hpIEthbmkgW21h
-aWx0bzp0b3NoaS5rYW5pQGhwZS5jb21dCj4gPiBTZW50OiBNb25kYXksIEZlYnJ1YXJ5IDIyLCAy
-MDE2IDE6NTUgUE0KPiA+IFRvOiByandAcmp3eXNvY2tpLm5ldDsgV2lsbGlhbXMsIERhbiBKCj4g
-PiBDYzogTW9vcmUsIFJvYmVydDsgWmhlbmcsIEx2OyBlbGxpb3R0QGhwZS5jb207IGxpbnV4LW52
-ZGltbUBsaXN0cy4wMS5vcgo+ID4gZzsKPiA+IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBs
-aW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOwo+ID4gZGV2ZWxAYWNwaWNhLm9yZzsgVG9zaGkg
-S2FuaQo+ID4gU3ViamVjdDogW1BBVENIIHYyIDEvM10gQUNQSS9ORklUOiBVcGRhdGUgQ29udHJv
-bCBSZWdpb24gU3RydWN0dXJlIHRvCj4gPiBjb21wbHkgQUNQSSA2LjEKPiA+IAo+ID4gQUNQSSA2
-LjEsIFRhYmxlIDUtMTMzLCB1cGRhdGVzIE5WRElNTSBDb250cm9sIFJlZ2lvbiBTdHJ1Y3R1cmUg
-YXMKPiA+IGZvbGxvd3MuCj4gPiDCoC0gVmFsaWQgRmllbGRzLCBNYW51ZmFjdHVyaW5nIExvY2F0
-aW9uLCBhbmQgTWFudWZhY3R1cmluZyBEYXRlCj4gPiDCoMKgwqBhcmUgYWRkZWQgZnJvbSByZXNl
-cnZlZCByYW5nZS7CoMKgTm8gY2hhbmdlIGluIHRoZSBzdHJ1Y3R1cmUgc2l6ZS4KPiA+IMKgLSBJ
-RHMgZGVmaW5lZCBhcyBTUEQgdmFsdWVzIGFyZSBhcnJheXMgb2YgYnl0ZXMuwqDCoFRoZSBzcGVj
-Cj4gPiDCoMKgwqBjbGFyaWZpZWQgdGhhdCB0aGV5IG5lZWQgdG8gYmUgcmVwcmVzZW50ZWQgYXMg
-YXJyYXlzIG9mIGJ5dGVzCj4gPiDCoMKgwqBhcyB3ZWxsLgo+ID4gCj4gPiBUaGlzIHBhdGNoIG1h
-a2VzIHRoZSBmb2xsb3dpbmcgY2hhbmdlcyB0byBzdXBwb3J0IHRoaXMgdXBkYXRlLgo+ID4gwqAt
-IENoYW5nZSAnc3RydWN0IGFjcGlfbmZpdF9jb250cm9sX3JlZ2lvbicgdG8gcmVmbGVjdCB0aGUg
-dXBkYXRlLgo+ID4gwqDCoMKgU1BEIElEcyBhcmUgZGVmaW5lZCBhcyBhcnJheXMgb2YgYnl0ZXMs
-IHNvIHRoYXQgdGhleSBjYW4gYmUKPiA+IMKgwqDCoHRyZWF0ZWQgaW4gdGhlIHNhbWUgd2F5IHJl
-Z2FyZGxlc3Mgb2YgQ1BVIGVuZGlhbm5lc3MgYW5kIGFyZQo+ID4gwqDCoMKgbm90IG1pc3MtdHJl
-YXRlZCBhcyBsaXR0bGUtZW5kaWFuIG51bWVyaWMgdmFsdWVzLgo+IAo+IAo+IEkgZG9uJ3QgdGhp
-bmsgd2UgYXJlIGdvaW5nIHRvIHN0YXJ0IGNoYW5naW5nIHRoZSBBQ1BJIHRhYmxlcyBkZWZpbmVk
-IGluCj4gdGhlIEFDUElDQSBoZWFkZXJzIGJlY2F1c2Ugb2YgdGhpcy4gV2UgZG8gaW4gZmFjdCBo
-YXZlIG1hY3JvcyBmb3IgdGhpcwo+IHB1cnBvc2UuCgpDYW4geW91IGVsYWJvcmF0ZSB3aGF0IG1h
-Y3JvcyB5b3Ugc3VnZ2VzdCB0byB1c2UgZm9yIHRoaXMgcHVycG9zZT8KClRoYW5rcywKLVRvc2hp
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
-ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3Rz
-LjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+
+
+> -----Original Message-----
+> From: Toshi Kani [mailto:toshi.kani@hpe.com]
+> Sent: Monday, February 22, 2016 1:55 PM
+> To: rjw@rjwysocki.net; Williams, Dan J
+> Cc: Moore, Robert; Zheng, Lv; elliott@hpe.com; linux-nvdimm@lists.01.org;
+> linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
+> devel@acpica.org; Toshi Kani
+> Subject: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
+> comply ACPI 6.1
+> 
+> ACPI 6.1, Table 5-133, updates NVDIMM Control Region Structure as follows.
+>  - Valid Fields, Manufacturing Location, and Manufacturing Date
+>    are added from reserved range.  No change in the structure size.
+>  - IDs defined as SPD values are arrays of bytes.  The spec
+>    clarified that they need to be represented as arrays of bytes
+>    as well.
+> 
+> This patch makes the following changes to support this update.
+>  - Change 'struct acpi_nfit_control_region' to reflect the update.
+>    SPD IDs are defined as arrays of bytes, so that they can be
+>    treated in the same way regardless of CPU endianness and are
+>    not miss-treated as little-endian numeric values.
+
+
+I don't think we are going to start changing the ACPI tables defined in the ACPICA headers because of this. We do in fact have macros for this purpose.
+
+
+
+>  - Change the NFIT driver to show SPD ID values as array of bytes
+>    in sysfs.
+>  - Change sprintf format to use "0x" instead of "#" since "%#02x"
+>    does not prepend '0' in some reason.
+> 
+> link: http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Lv Zheng <lv.zheng@intel.com>
+> Cc: Robert Elliott <elliott@hpe.com>
+> Cc: <devel@acpica.org>
+> ---
+>  drivers/acpi/nfit.c   |   20 +++++++++++++-------
+>  include/acpi/actbl1.h |   24 +++++++++++++++---------
+>  2 files changed, 28 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c index
+> ad6d8c6..4982a18 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -722,7 +722,8 @@ static ssize_t vendor_show(struct device *dev,  {
+>  	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
+> 
+> -	return sprintf(buf, "%#x\n", dcr->vendor_id);
+> +	return sprintf(buf, "0x%02x%02x\n",
+> +				dcr->vendor_id[0], dcr->vendor_id[1]);
+>  }
+>  static DEVICE_ATTR_RO(vendor);
+> 
+> @@ -731,7 +732,8 @@ static ssize_t rev_id_show(struct device *dev,  {
+>  	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
+> 
+> -	return sprintf(buf, "%#x\n", dcr->revision_id);
+> +	return sprintf(buf, "0x%02x%02x\n",
+> +				dcr->revision_id[0], dcr->revision_id[1]);
+>  }
+>  static DEVICE_ATTR_RO(rev_id);
+> 
+> @@ -740,7 +742,8 @@ static ssize_t device_show(struct device *dev,  {
+>  	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
+> 
+> -	return sprintf(buf, "%#x\n", dcr->device_id);
+> +	return sprintf(buf, "0x%02x%02x\n",
+> +				dcr->device_id[0], dcr->device_id[1]);
+>  }
+>  static DEVICE_ATTR_RO(device);
+> 
+> @@ -749,7 +752,7 @@ static ssize_t format_show(struct device *dev,  {
+>  	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
+> 
+> -	return sprintf(buf, "%#x\n", dcr->code);
+> +	return sprintf(buf, "0x%02x%02x\n", dcr->code[0], dcr->code[1]);
+>  }
+>  static DEVICE_ATTR_RO(format);
+> 
+> @@ -758,7 +761,9 @@ static ssize_t serial_show(struct device *dev,  {
+>  	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
+> 
+> -	return sprintf(buf, "%#x\n", dcr->serial_number);
+> +	return sprintf(buf, "0x%02x%02x%02x%02x\n",
+> +			dcr->serial_number[0], dcr->serial_number[1],
+> +			dcr->serial_number[2], dcr->serial_number[3]);
+>  }
+>  static DEVICE_ATTR_RO(serial);
+> 
+> @@ -956,7 +961,7 @@ static const struct attribute_group
+> *acpi_nfit_region_attribute_groups[] = {  struct nfit_set_info {
+>  	struct nfit_set_info_map {
+>  		u64 region_offset;
+> -		u32 serial_number;
+> +		u8 serial_number[4];
+>  		u32 pad;
+>  	} mapping[0];
+>  };
+> @@ -1025,7 +1030,8 @@ static int acpi_nfit_init_interleave_set(struct
+> acpi_nfit_desc *acpi_desc,
+>  		}
+> 
+>  		map->region_offset = memdev->region_offset;
+> -		map->serial_number = nfit_mem->dcr->serial_number;
+> +		memcpy(map->serial_number, nfit_mem->dcr->serial_number,
+> +				sizeof(map->serial_number));
+>  	}
+> 
+>  	sort(&info->mapping[0], nr, sizeof(struct nfit_set_info_map), diff -
+> -git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index
+> 16e0136..d8df62c 100644
+> --- a/include/acpi/actbl1.h
+> +++ b/include/acpi/actbl1.h
+> @@ -1040,15 +1040,18 @@ struct acpi_nfit_smbios {  struct
+> acpi_nfit_control_region {
+>  	struct acpi_nfit_header header;
+>  	u16 region_index;
+> -	u16 vendor_id;
+> -	u16 device_id;
+> -	u16 revision_id;
+> -	u16 subsystem_vendor_id;
+> -	u16 subsystem_device_id;
+> -	u16 subsystem_revision_id;
+> -	u8 reserved[6];		/* Reserved, must be zero */
+> -	u32 serial_number;
+> -	u16 code;
+> +	u8 vendor_id[2];
+> +	u8 device_id[2];
+> +	u8 revision_id[2];
+> +	u8 subsystem_vendor_id[2];
+> +	u8 subsystem_device_id[2];
+> +	u8 subsystem_revision_id[2];
+> +	u8 valid_fields;
+> +	u8 manufacturing_location;
+> +	u8 manufacturing_date[2];
+> +	u8 reserved[2];		/* Reserved, must be zero */
+> +	u8 serial_number[4];
+> +	u8 code[2];
+>  	u16 windows;
+>  	u64 window_size;
+>  	u64 command_offset;
+> @@ -1059,6 +1062,9 @@ struct acpi_nfit_control_region {
+>  	u8 reserved1[6];	/* Reserved, must be zero */
+>  };
+> 
+> +/* Valid Fields */
+> +#define ACPI_NFIT_CONTROL_MFG_INFO_VALID (1)	/* Manufacturing fields
+> are valid */
+> +
+>  /* Flags */
+> 
+>  #define ACPI_NFIT_CONTROL_BUFFERED      (1)	/* Block Data Windows
+> implementation is buffered */
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
