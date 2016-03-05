@@ -1,22 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qg0-x244.google.com (mail-qg0-x244.google.com
- [IPv6:2607:f8b0:400d:c04::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 20E3B1A1E0D
- for <linux-nvdimm@lists.01.org>; Fri,  4 Mar 2016 18:23:43 -0800 (PST)
-Received: by mail-qg0-x244.google.com with SMTP id p68so4524633qge.2
- for <linux-nvdimm@lists.01.org>; Fri, 04 Mar 2016 18:23:32 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1457146138.15454.277.camel@hpe.com>
-References: <20160303215304.1014.69931.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20160303215315.1014.95661.stgit@dwillia2-desk3.amr.corp.intel.com>
- <1457146138.15454.277.camel@hpe.com>
-Date: Fri, 4 Mar 2016 18:23:31 -0800
-Message-ID: <CAA9_cmc9vjChKqs7P1NG9r66TGapw0cYHfcajWh_O+hk433MTg@mail.gmail.com>
+Received: from g4t3427.houston.hp.com (g4t3427.houston.hp.com [15.201.208.55])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3E0511A1E2D
+ for <linux-nvdimm@lists.01.org>; Fri,  4 Mar 2016 17:56:28 -0800 (PST)
+Message-ID: <1457146138.15454.277.camel@hpe.com>
 Subject: Re: [PATCH v2 2/3] libnvdimm, pmem: adjust for section collisions
  with 'System RAM'
-From: Dan Williams <dan.j.williams@intel.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Fri, 04 Mar 2016 19:48:58 -0700
+In-Reply-To: <20160303215315.1014.95661.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20160303215304.1014.69931.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20160303215315.1014.95661.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,108 +20,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: linux-mm <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Mar 4, 2016 at 6:48 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> On Thu, 2016-03-03 at 13:53 -0800, Dan Williams wrote:
->> On a platform where 'Persistent Memory' and 'System RAM' are mixed
->> within a given sparsemem section, trim the namespace and notify about the
->> sub-optimal alignment.
->>
->> Cc: Toshi Kani <toshi.kani@hpe.com>
->> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> ---
->>  drivers/nvdimm/namespace_devs.c |    7 ++
->>  drivers/nvdimm/pfn.h            |   10 ++-
->>  drivers/nvdimm/pfn_devs.c       |    5 ++
->>  drivers/nvdimm/pmem.c           |  125 ++++++++++++++++++++++++++++-----
->> ------
->>  4 files changed, 111 insertions(+), 36 deletions(-)
->>
->> diff --git a/drivers/nvdimm/namespace_devs.c
->> b/drivers/nvdimm/namespace_devs.c
->> index 8ebfcaae3f5a..463756ca2d4b 100644
->> --- a/drivers/nvdimm/namespace_devs.c
->> +++ b/drivers/nvdimm/namespace_devs.c
->> @@ -133,6 +133,7 @@ bool nd_is_uuid_unique(struct device *dev, u8 *uuid)
->>  bool pmem_should_map_pages(struct device *dev)
->>  {
->>       struct nd_region *nd_region = to_nd_region(dev->parent);
->> +     struct nd_namespace_io *nsio;
->>
->>       if (!IS_ENABLED(CONFIG_ZONE_DEVICE))
->>               return false;
->> @@ -143,6 +144,12 @@ bool pmem_should_map_pages(struct device *dev)
->>       if (is_nd_pfn(dev) || is_nd_btt(dev))
->>               return false;
->>
->> +     nsio = to_nd_namespace_io(dev);
->> +     if (region_intersects(nsio->res.start, resource_size(&nsio-
->> >res),
->> +                             IORESOURCE_SYSTEM_RAM,
->> +                             IORES_DESC_NONE) == REGION_MIXED)
->
-> Should this be != REGION_DISJOINT for safe?
-
-Acutally, it's ok.  It doesn't need to be disjoint.  The problem is
-mixing an mm-zone within a given section.  If the region intersects
-system-ram then devm_memremap_pages() is a no-op and we can use the
-existing page allocation and linear mapping.
-
->
->> +             return false;
->> +
->
->  :
->
->> @@ -304,21 +311,56 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
->>       }
->>
->>       memset(pfn_sb, 0, sizeof(*pfn_sb));
->> -     npfns = (pmem->size - SZ_8K) / SZ_4K;
->> +
->> +     /*
->> +      * Check if pmem collides with 'System RAM' when section aligned
->> and
->> +      * trim it accordingly
->> +      */
->> +     nsio = to_nd_namespace_io(&ndns->dev);
->> +     start = PHYS_SECTION_ALIGN_DOWN(nsio->res.start);
->> +     size = resource_size(&nsio->res);
->> +     if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
->> +                             IORES_DESC_NONE) == REGION_MIXED) {
->> +
->> +             start = nsio->res.start;
->> +             start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
->> +     }
->> +
->> +     start = nsio->res.start;
->> +     size = PHYS_SECTION_ALIGN_UP(start + size) - start;
->> +     if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
->> +                             IORES_DESC_NONE) == REGION_MIXED) {
->> +             size = resource_size(&nsio->res);
->> +             end_trunc = start + size - PHYS_SECTION_ALIGN_DOWN(start
->> + size);
->> +     }
->
-> This check seems to assume that guest's regular memory layout does not
-> change.  That is, if there is no collision at first, there won't be any
-> later.  Is this a valid assumption?
-
-If platform firmware changes the physical alignment during the
-lifetime of the namespace there's not much we can do.  Another problem
-not addressed by this patch is firmware choosing to hot plug system
-ram into the same section as persistent memory.  As far as I can see
-all we do is ask firmware implementations to respect Linux section
-boundaries and otherwise not change alignments.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVGh1LCAyMDE2LTAzLTAzIGF0IDEzOjUzIC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
+T24gYSBwbGF0Zm9ybSB3aGVyZSAnUGVyc2lzdGVudCBNZW1vcnknIGFuZCAnU3lzdGVtIFJBTScg
+YXJlIG1peGVkCj4gd2l0aGluIGEgZ2l2ZW4gc3BhcnNlbWVtIHNlY3Rpb24sIHRyaW0gdGhlIG5h
+bWVzcGFjZSBhbmQgbm90aWZ5IGFib3V0IHRoZQo+IHN1Yi1vcHRpbWFsIGFsaWdubWVudC4KPiAK
+PiBDYzogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPgo+IENjOiBSb3NzIFp3aXNsZXIg
+PHJvc3Muendpc2xlckBsaW51eC5pbnRlbC5jb20+Cj4gU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxp
+YW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cj4gLS0tCj4gwqBkcml2ZXJzL252ZGltbS9u
+YW1lc3BhY2VfZGV2cy5jIHzCoMKgwqDCoDcgKysKPiDCoGRyaXZlcnMvbnZkaW1tL3Bmbi5owqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDEwICsrLQo+IMKgZHJpdmVycy9udmRpbW0vcGZu
+X2RldnMuY8KgwqDCoMKgwqDCoMKgfMKgwqDCoMKgNSArKwo+IMKgZHJpdmVycy9udmRpbW0vcG1l
+bS5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgMTI1ICsrKysrKysrKysrKysrKysrKysrKysr
+KysrKystLS0tLQo+IC0tLS0tLQo+IMKgNCBmaWxlcyBjaGFuZ2VkLCAxMTEgaW5zZXJ0aW9ucygr
+KSwgMzYgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL25hbWVz
+cGFjZV9kZXZzLmMKPiBiL2RyaXZlcnMvbnZkaW1tL25hbWVzcGFjZV9kZXZzLmMKPiBpbmRleCA4
+ZWJmY2FhZTNmNWEuLjQ2Mzc1NmNhMmQ0YiAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL252ZGltbS9u
+YW1lc3BhY2VfZGV2cy5jCj4gKysrIGIvZHJpdmVycy9udmRpbW0vbmFtZXNwYWNlX2RldnMuYwo+
+IEBAIC0xMzMsNiArMTMzLDcgQEAgYm9vbCBuZF9pc191dWlkX3VuaXF1ZShzdHJ1Y3QgZGV2aWNl
+ICpkZXYsIHU4ICp1dWlkKQo+IMKgYm9vbCBwbWVtX3Nob3VsZF9tYXBfcGFnZXMoc3RydWN0IGRl
+dmljZSAqZGV2KQo+IMKgewo+IMKgCXN0cnVjdCBuZF9yZWdpb24gKm5kX3JlZ2lvbiA9IHRvX25k
+X3JlZ2lvbihkZXYtPnBhcmVudCk7Cj4gKwlzdHJ1Y3QgbmRfbmFtZXNwYWNlX2lvICpuc2lvOwo+
+IMKgCj4gwqAJaWYgKCFJU19FTkFCTEVEKENPTkZJR19aT05FX0RFVklDRSkpCj4gwqAJCXJldHVy
+biBmYWxzZTsKPiBAQCAtMTQzLDYgKzE0NCwxMiBAQCBib29sIHBtZW1fc2hvdWxkX21hcF9wYWdl
+cyhzdHJ1Y3QgZGV2aWNlICpkZXYpCj4gwqAJaWYgKGlzX25kX3BmbihkZXYpIHx8IGlzX25kX2J0
+dChkZXYpKQo+IMKgCQlyZXR1cm4gZmFsc2U7Cj4gwqAKPiArCW5zaW8gPSB0b19uZF9uYW1lc3Bh
+Y2VfaW8oZGV2KTsKPiArCWlmIChyZWdpb25faW50ZXJzZWN0cyhuc2lvLT5yZXMuc3RhcnQsIHJl
+c291cmNlX3NpemUoJm5zaW8tCj4gPnJlcyksCj4gKwkJCQlJT1JFU09VUkNFX1NZU1RFTV9SQU0s
+Cj4gKwkJCQlJT1JFU19ERVNDX05PTkUpID09IFJFR0lPTl9NSVhFRCkKClNob3VsZCB0aGlzIGJl
+ICE9wqBSRUdJT05fRElTSk9JTlQgZm9yIHNhZmU/Cgo+ICsJCXJldHVybiBmYWxzZTsKPiArCgrC
+oDoKCj4gQEAgLTMwNCwyMSArMzExLDU2IEBAIHN0YXRpYyBpbnQgbmRfcGZuX2luaXQoc3RydWN0
+IG5kX3BmbiAqbmRfcGZuKQo+IMKgCX0KPiDCoAo+IMKgCW1lbXNldChwZm5fc2IsIDAsIHNpemVv
+ZigqcGZuX3NiKSk7Cj4gLQlucGZucyA9IChwbWVtLT5zaXplIC0gU1pfOEspIC8gU1pfNEs7Cj4g
+Kwo+ICsJLyoKPiArCcKgKiBDaGVjayBpZiBwbWVtIGNvbGxpZGVzIHdpdGggJ1N5c3RlbSBSQU0n
+IHdoZW4gc2VjdGlvbiBhbGlnbmVkCj4gYW5kCj4gKwnCoCogdHJpbSBpdCBhY2NvcmRpbmdseQo+
+ICsJwqAqLwo+ICsJbnNpbyA9IHRvX25kX25hbWVzcGFjZV9pbygmbmRucy0+ZGV2KTsKPiArCXN0
+YXJ0ID0gUEhZU19TRUNUSU9OX0FMSUdOX0RPV04obnNpby0+cmVzLnN0YXJ0KTsKPiArCXNpemUg
+PSByZXNvdXJjZV9zaXplKCZuc2lvLT5yZXMpOwo+ICsJaWYgKHJlZ2lvbl9pbnRlcnNlY3RzKHN0
+YXJ0LCBzaXplLCBJT1JFU09VUkNFX1NZU1RFTV9SQU0sCj4gKwkJCQlJT1JFU19ERVNDX05PTkUp
+ID09IFJFR0lPTl9NSVhFRCkgewo+ICsKPiArCQlzdGFydCA9IG5zaW8tPnJlcy5zdGFydDsKPiAr
+CQlzdGFydF9wYWQgPSBQSFlTX1NFQ1RJT05fQUxJR05fVVAoc3RhcnQpIC0gc3RhcnQ7Cj4gKwl9
+Cj4gKwo+ICsJc3RhcnQgPSBuc2lvLT5yZXMuc3RhcnQ7Cj4gKwlzaXplID0gUEhZU19TRUNUSU9O
+X0FMSUdOX1VQKHN0YXJ0ICsgc2l6ZSkgLSBzdGFydDsKPiArCWlmIChyZWdpb25faW50ZXJzZWN0
+cyhzdGFydCwgc2l6ZSwgSU9SRVNPVVJDRV9TWVNURU1fUkFNLAo+ICsJCQkJSU9SRVNfREVTQ19O
+T05FKSA9PSBSRUdJT05fTUlYRUQpIHsKPiArCQlzaXplID0gcmVzb3VyY2Vfc2l6ZSgmbnNpby0+
+cmVzKTsKPiArCQllbmRfdHJ1bmMgPSBzdGFydCArIHNpemUgLSBQSFlTX1NFQ1RJT05fQUxJR05f
+RE9XTihzdGFydAo+ICsgc2l6ZSk7Cj4gKwl9CgpUaGlzIGNoZWNrIHNlZW1zIHRvIGFzc3VtZSB0
+aGF0IGd1ZXN0J3MgcmVndWxhciBtZW1vcnkgbGF5b3V0IGRvZXMgbm90CmNoYW5nZS7CoMKgVGhh
+dCBpcywgaWYgdGhlcmUgaXMgbm8gY29sbGlzaW9uIGF0IGZpcnN0LCB0aGVyZSB3b24ndCBiZSBh
+bnkKbGF0ZXIuwqDCoElzIHRoaXMgYSB2YWxpZCBhc3N1bXB0aW9uPwoKVGhhbmtzLAotVG9zaGkK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZk
+aW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMu
+MDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
