@@ -1,20 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3426.houston.hp.com (g4t3426.houston.hp.com [15.201.208.54])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 543871A1F70
- for <linux-nvdimm@lists.01.org>; Mon,  7 Mar 2016 09:04:27 -0800 (PST)
-Message-ID: <1457373413.15454.334.camel@hpe.com>
-Subject: Re: [PATCH v2 2/3] libnvdimm, pmem: adjust for section collisions
- with 'System RAM'
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Mon, 07 Mar 2016 10:56:53 -0700
-In-Reply-To: <CAA9_cmc9vjChKqs7P1NG9r66TGapw0cYHfcajWh_O+hk433MTg@mail.gmail.com>
+Received: from mail-qg0-x244.google.com (mail-qg0-x244.google.com
+ [IPv6:2607:f8b0:400d:c04::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 20E3B1A1E0D
+ for <linux-nvdimm@lists.01.org>; Fri,  4 Mar 2016 18:23:43 -0800 (PST)
+Received: by mail-qg0-x244.google.com with SMTP id p68so4524633qge.2
+ for <linux-nvdimm@lists.01.org>; Fri, 04 Mar 2016 18:23:32 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1457146138.15454.277.camel@hpe.com>
 References: <20160303215304.1014.69931.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20160303215315.1014.95661.stgit@dwillia2-desk3.amr.corp.intel.com>
  <1457146138.15454.277.camel@hpe.com>
- <CAA9_cmc9vjChKqs7P1NG9r66TGapw0cYHfcajWh_O+hk433MTg@mail.gmail.com>
-Mime-Version: 1.0
+Date: Fri, 4 Mar 2016 18:23:31 -0800
+Message-ID: <CAA9_cmc9vjChKqs7P1NG9r66TGapw0cYHfcajWh_O+hk433MTg@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] libnvdimm, pmem: adjust for section collisions
+ with 'System RAM'
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,108 +24,108 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Toshi Kani <toshi.kani@hpe.com>
 Cc: linux-mm <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE2LTAzLTA0IGF0IDE4OjIzIC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
-T24gRnJpLCBNYXIgNCwgMjAxNiBhdCA2OjQ4IFBNLCBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhw
-ZS5jb20+IHdyb3RlOgo+ID4gT24gVGh1LCAyMDE2LTAzLTAzIGF0IDEzOjUzIC0wODAwLCBEYW4g
-V2lsbGlhbXMgd3JvdGU6Cj4gPiA+IE9uIGEgcGxhdGZvcm0gd2hlcmUgJ1BlcnNpc3RlbnQgTWVt
-b3J5JyBhbmQgJ1N5c3RlbSBSQU0nIGFyZSBtaXhlZAo+ID4gPiB3aXRoaW4gYSBnaXZlbiBzcGFy
-c2VtZW0gc2VjdGlvbiwgdHJpbSB0aGUgbmFtZXNwYWNlIGFuZCBub3RpZnkgYWJvdXQKPiA+ID4g
-dGhlCj4gPiA+IHN1Yi1vcHRpbWFsIGFsaWdubWVudC4KPiA+ID4gCj4gPiA+IENjOiBUb3NoaSBL
-YW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+Cj4gPiA+IENjOiBSb3NzIFp3aXNsZXIgPHJvc3Muendp
-c2xlckBsaW51eC5pbnRlbC5jb20+Cj4gPiA+IFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8
-ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgo+ID4gPiAtLS0KPiA+ID4gwqBkcml2ZXJzL252ZGlt
-bS9uYW1lc3BhY2VfZGV2cy5jIHzCoMKgwqDCoDcgKysKPiA+ID4gwqBkcml2ZXJzL252ZGltbS9w
-Zm4uaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxMCArKy0KPiA+ID4gwqBkcml2ZXJz
-L252ZGltbS9wZm5fZGV2cy5jwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqA1ICsrCj4gPiA+IMKgZHJp
-dmVycy9udmRpbW0vcG1lbS5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgMTI1ICsrKysrKysr
-KysrKysrKysrKysrKysrKysrKystCj4gPiA+IC0tLS0KPiA+ID4gLS0tLS0tCj4gPiA+IMKgNCBm
-aWxlcyBjaGFuZ2VkLCAxMTEgaW5zZXJ0aW9ucygrKSwgMzYgZGVsZXRpb25zKC0pCj4gPiA+IAo+
-ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vbmFtZXNwYWNlX2RldnMuYwo+ID4gPiBi
-L2RyaXZlcnMvbnZkaW1tL25hbWVzcGFjZV9kZXZzLmMKPiA+ID4gaW5kZXggOGViZmNhYWUzZjVh
-Li40NjM3NTZjYTJkNGIgMTAwNjQ0Cj4gPiA+IC0tLSBhL2RyaXZlcnMvbnZkaW1tL25hbWVzcGFj
-ZV9kZXZzLmMKPiA+ID4gKysrIGIvZHJpdmVycy9udmRpbW0vbmFtZXNwYWNlX2RldnMuYwo+ID4g
-PiBAQCAtMTMzLDYgKzEzMyw3IEBAIGJvb2wgbmRfaXNfdXVpZF91bmlxdWUoc3RydWN0IGRldmlj
-ZSAqZGV2LCB1OAo+ID4gPiAqdXVpZCkKPiA+ID4gwqBib29sIHBtZW1fc2hvdWxkX21hcF9wYWdl
-cyhzdHJ1Y3QgZGV2aWNlICpkZXYpCj4gPiA+IMKgewo+ID4gPiDCoMKgwqDCoMKgwqBzdHJ1Y3Qg
-bmRfcmVnaW9uICpuZF9yZWdpb24gPSB0b19uZF9yZWdpb24oZGV2LT5wYXJlbnQpOwo+ID4gPiAr
-wqDCoMKgwqDCoHN0cnVjdCBuZF9uYW1lc3BhY2VfaW8gKm5zaW87Cj4gPiA+IAo+ID4gPiDCoMKg
-wqDCoMKgwqBpZiAoIUlTX0VOQUJMRUQoQ09ORklHX1pPTkVfREVWSUNFKSkKPiA+ID4gwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldHVybiBmYWxzZTsKPiA+ID4gQEAgLTE0Myw2ICsxNDQs
-MTIgQEAgYm9vbCBwbWVtX3Nob3VsZF9tYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2KQo+ID4g
-PiDCoMKgwqDCoMKgwqBpZiAoaXNfbmRfcGZuKGRldikgfHwgaXNfbmRfYnR0KGRldikpCj4gPiA+
-IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gZmFsc2U7Cj4gPiA+IAo+ID4gPiAr
-wqDCoMKgwqDCoG5zaW8gPSB0b19uZF9uYW1lc3BhY2VfaW8oZGV2KTsKPiA+ID4gK8KgwqDCoMKg
-wqBpZiAocmVnaW9uX2ludGVyc2VjdHMobnNpby0+cmVzLnN0YXJ0LCByZXNvdXJjZV9zaXplKCZu
-c2lvLQo+ID4gPiA+IHJlcyksCj4gPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgSU9SRVNPVVJDRV9TWVNURU1fUkFNLAo+ID4gPiAr
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oElPUkVTX0RFU0NfTk9ORSkgPT0gUkVHSU9OX01JWEVEKQo+ID4gCj4gPiBTaG91bGQgdGhpcyBi
-ZSAhPSBSRUdJT05fRElTSk9JTlQgZm9yIHNhZmU/Cj4gCj4gQWN1dGFsbHksIGl0J3Mgb2suwqDC
-oEl0IGRvZXNuJ3QgbmVlZCB0byBiZSBkaXNqb2ludC7CoMKgVGhlIHByb2JsZW0gaXMKPiBtaXhp
-bmcgYW4gbW0tem9uZSB3aXRoaW4gYSBnaXZlbiBzZWN0aW9uLsKgwqBJZiB0aGUgcmVnaW9uIGlu
-dGVyc2VjdHMKPiBzeXN0ZW0tcmFtIHRoZW4gZGV2bV9tZW1yZW1hcF9wYWdlcygpIGlzIGEgbm8t
-b3AgYW5kIHdlIGNhbiB1c2UgdGhlCj4gZXhpc3RpbmcgcGFnZSBhbGxvY2F0aW9uIGFuZCBsaW5l
-YXIgbWFwcGluZy4KCk9oLCBJIHNlZS4KCj4gPiAKPiA+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgcmV0dXJuIGZhbHNlOwo+ID4gPiArCj4gPiAKPiA+IMKgOgo+ID4gCj4gPiA+IEBAIC0z
-MDQsMjEgKzMxMSw1NiBAQCBzdGF0aWMgaW50IG5kX3Bmbl9pbml0KHN0cnVjdCBuZF9wZm4gKm5k
-X3BmbikKPiA+ID4gwqDCoMKgwqDCoMKgfQo+ID4gPiAKPiA+ID4gwqDCoMKgwqDCoMKgbWVtc2V0
-KHBmbl9zYiwgMCwgc2l6ZW9mKCpwZm5fc2IpKTsKPiA+ID4gLcKgwqDCoMKgwqBucGZucyA9IChw
-bWVtLT5zaXplIC0gU1pfOEspIC8gU1pfNEs7Cj4gPiA+ICsKPiA+ID4gK8KgwqDCoMKgwqAvKgo+
-ID4gPiArwqDCoMKgwqDCoMKgKiBDaGVjayBpZiBwbWVtIGNvbGxpZGVzIHdpdGggJ1N5c3RlbSBS
-QU0nIHdoZW4gc2VjdGlvbgo+ID4gPiBhbGlnbmVkCj4gPiA+IGFuZAo+ID4gPiArwqDCoMKgwqDC
-oMKgKiB0cmltIGl0IGFjY29yZGluZ2x5Cj4gPiA+ICvCoMKgwqDCoMKgwqAqLwo+ID4gPiArwqDC
-oMKgwqDCoG5zaW8gPSB0b19uZF9uYW1lc3BhY2VfaW8oJm5kbnMtPmRldik7Cj4gPiA+ICvCoMKg
-wqDCoMKgc3RhcnQgPSBQSFlTX1NFQ1RJT05fQUxJR05fRE9XTihuc2lvLT5yZXMuc3RhcnQpOwo+
-ID4gPiArwqDCoMKgwqDCoHNpemUgPSByZXNvdXJjZV9zaXplKCZuc2lvLT5yZXMpOwo+ID4gPiAr
-wqDCoMKgwqDCoGlmIChyZWdpb25faW50ZXJzZWN0cyhzdGFydCwgc2l6ZSwgSU9SRVNPVVJDRV9T
-WVNURU1fUkFNLAo+ID4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoElPUkVTX0RFU0NfTk9ORSkgPT0gUkVHSU9OX01JWEVEKSB7Cj4g
-PiA+ICsKPiA+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgc3RhcnQgPSBuc2lvLT5yZXMu
-c3RhcnQ7Cj4gPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHN0YXJ0X3BhZCA9IFBIWVNf
-U0VDVElPTl9BTElHTl9VUChzdGFydCkgLSBzdGFydDsKPiA+ID4gK8KgwqDCoMKgwqB9Cj4gPiA+
-ICsKPiA+ID4gK8KgwqDCoMKgwqBzdGFydCA9IG5zaW8tPnJlcy5zdGFydDsKPiA+ID4gK8KgwqDC
-oMKgwqBzaXplID0gUEhZU19TRUNUSU9OX0FMSUdOX1VQKHN0YXJ0ICsgc2l6ZSkgLSBzdGFydDsK
-PiA+ID4gK8KgwqDCoMKgwqBpZiAocmVnaW9uX2ludGVyc2VjdHMoc3RhcnQsIHNpemUsIElPUkVT
-T1VSQ0VfU1lTVEVNX1JBTSwKPiA+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBJT1JFU19ERVNDX05PTkUpID09IFJFR0lPTl9NSVhF
-RCkgewo+ID4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBzaXplID0gcmVzb3VyY2Vfc2l6
-ZSgmbnNpby0+cmVzKTsKPiA+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZW5kX3RydW5j
-ID0gc3RhcnQgKyBzaXplIC0KPiA+ID4gUEhZU19TRUNUSU9OX0FMSUdOX0RPV04oc3RhcnQKPiA+
-ID4gKyBzaXplKTsKPiA+ID4gK8KgwqDCoMKgwqB9Cj4gPiAKPiA+IFRoaXMgY2hlY2sgc2VlbXMg
-dG8gYXNzdW1lIHRoYXQgZ3Vlc3QncyByZWd1bGFyIG1lbW9yeSBsYXlvdXQgZG9lcyBub3QKPiA+
-IGNoYW5nZS7CoMKgVGhhdCBpcywgaWYgdGhlcmUgaXMgbm8gY29sbGlzaW9uIGF0IGZpcnN0LCB0
-aGVyZSB3b24ndCBiZSBhbnkKPiA+IGxhdGVyLsKgwqBJcyB0aGlzIGEgdmFsaWQgYXNzdW1wdGlv
-bj8KPiAKPiBJZiBwbGF0Zm9ybSBmaXJtd2FyZSBjaGFuZ2VzIHRoZSBwaHlzaWNhbCBhbGlnbm1l
-bnQgZHVyaW5nIHRoZQo+IGxpZmV0aW1lIG9mIHRoZSBuYW1lc3BhY2UgdGhlcmUncyBub3QgbXVj
-aCB3ZSBjYW4gZG8uwqDCoAoKVGhlIHBoeXNpY2FsIGFsaWdubWVudCBjYW4gYmUgY2hhbmdlZCBh
-cyBsb25nIGFzIGl0IGlzIGxhcmdlIGVub3VnaCAoc2VlCmJlbG93KS4KCj4gQW5vdGhlciBwcm9i
-bGVtCj4gbm90IGFkZHJlc3NlZCBieSB0aGlzIHBhdGNoIGlzIGZpcm13YXJlIGNob29zaW5nIHRv
-IGhvdCBwbHVnIHN5c3RlbQo+IHJhbSBpbnRvIHRoZSBzYW1lIHNlY3Rpb24gYXMgcGVyc2lzdGVu
-dCBtZW1vcnkuwqDCoAoKWWVzLCBhbmQgaXQgZG9lcyBub3QgaGF2ZSB0byBiZSBhIGhvdC1wbHVn
-IG9wZXJhdGlvbi4gwqBNZW1vcnkgc2l6ZSBtYXkgYmUKY2hhbmdlZCBvZmYtbGluZS4gwqBEYXRh
-IGltYWdlIGNhbiBiZSBjb3BpZWQgdG8gZGlmZmVyZW50IGd1ZXN0cyBmb3IgaW5zdGFudApkZXBs
-b3ltZW50LCBvciBtYXkgYmUgbWlncmF0ZWQgdG8gYSBkaWZmZXJlbnQgZ3Vlc3QuCgo+IEFzIGZh
-ciBhcyBJIGNhbiBzZWUKPiBhbGwgd2UgZG8gaXMgYXNrIGZpcm13YXJlIGltcGxlbWVudGF0aW9u
-cyB0byByZXNwZWN0IExpbnV4IHNlY3Rpb24KPiBib3VuZGFyaWVzIGFuZCBvdGhlcndpc2Ugbm90
-IGNoYW5nZSBhbGlnbm1lbnRzLgoKSW4gYWRkaXRpb24gdG8gdGhlIHJlcXVpcmVtZW50IHRoYXQg
-cG1lbSByYW5nZSBhbGlnbm1lbnQgbWF5IG5vdCBjaGFuZ2UsCnRoZSBjb2RlIGFsc28gcmVxdWly
-ZXMgYSByZWd1bGFyIG1lbW9yeSByYW5nZSBkb2VzIG5vdCBjaGFuZ2UgdG8gaW50ZXJzZWN0Cndp
-dGggYSBwbWVtIHNlY3Rpb24gbGF0ZXIuIMKgVGhpcyBzZWVtcyBmcmFnaWxlIHRvIG1lIHNpbmNl
-IGd1ZXN0IGNvbmZpZyBtYXkKdmFyeSAvIGNoYW5nZSBhcyBJIG1lbnRpb25lZCBhYm92ZS4KClNv
-LCBzaG91bGRuJ3QgdGhlIGRyaXZlciBmYWlscyB0byBhdHRhY2ggd2hlbiB0aGUgcmFuZ2UgaXMg
-bm90IGFsaWduZWQgYnkKdGhlIHNlY3Rpb24gc2l6ZT8gwqBTaW5jZSB3ZSBuZWVkIHRvIHBsYWNl
-IGEgcmVxdWlyZW1lbnQgdG8gZmlybXdhcmUgYW55d2F5LAp3ZSBjYW4gc2ltcGx5IHN0YXRlIHRo
-YXQgaXQgbXVzdCBiZSBhbGlnbmVkIGJ5IDEyOE1pQiAoYXQgbGVhc3QpIG9uIHg4Ni4KwqBUaGVu
-LCBtZW1vcnkgYW5kIHBtZW0gcGh5c2ljYWwgbGF5b3V0cyBjYW4gYmUgY2hhbmdlZCBhcyBsb25n
-IGFzIHRoaXMKcmVxdWlyZW1lbnQgaXMgbWV0LgoKVGhhbmtzLAotVG9zaGkKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
-bGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxt
-YW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Fri, Mar 4, 2016 at 6:48 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> On Thu, 2016-03-03 at 13:53 -0800, Dan Williams wrote:
+>> On a platform where 'Persistent Memory' and 'System RAM' are mixed
+>> within a given sparsemem section, trim the namespace and notify about the
+>> sub-optimal alignment.
+>>
+>> Cc: Toshi Kani <toshi.kani@hpe.com>
+>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  drivers/nvdimm/namespace_devs.c |    7 ++
+>>  drivers/nvdimm/pfn.h            |   10 ++-
+>>  drivers/nvdimm/pfn_devs.c       |    5 ++
+>>  drivers/nvdimm/pmem.c           |  125 ++++++++++++++++++++++++++++-----
+>> ------
+>>  4 files changed, 111 insertions(+), 36 deletions(-)
+>>
+>> diff --git a/drivers/nvdimm/namespace_devs.c
+>> b/drivers/nvdimm/namespace_devs.c
+>> index 8ebfcaae3f5a..463756ca2d4b 100644
+>> --- a/drivers/nvdimm/namespace_devs.c
+>> +++ b/drivers/nvdimm/namespace_devs.c
+>> @@ -133,6 +133,7 @@ bool nd_is_uuid_unique(struct device *dev, u8 *uuid)
+>>  bool pmem_should_map_pages(struct device *dev)
+>>  {
+>>       struct nd_region *nd_region = to_nd_region(dev->parent);
+>> +     struct nd_namespace_io *nsio;
+>>
+>>       if (!IS_ENABLED(CONFIG_ZONE_DEVICE))
+>>               return false;
+>> @@ -143,6 +144,12 @@ bool pmem_should_map_pages(struct device *dev)
+>>       if (is_nd_pfn(dev) || is_nd_btt(dev))
+>>               return false;
+>>
+>> +     nsio = to_nd_namespace_io(dev);
+>> +     if (region_intersects(nsio->res.start, resource_size(&nsio-
+>> >res),
+>> +                             IORESOURCE_SYSTEM_RAM,
+>> +                             IORES_DESC_NONE) == REGION_MIXED)
+>
+> Should this be != REGION_DISJOINT for safe?
+
+Acutally, it's ok.  It doesn't need to be disjoint.  The problem is
+mixing an mm-zone within a given section.  If the region intersects
+system-ram then devm_memremap_pages() is a no-op and we can use the
+existing page allocation and linear mapping.
+
+>
+>> +             return false;
+>> +
+>
+>  :
+>
+>> @@ -304,21 +311,56 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+>>       }
+>>
+>>       memset(pfn_sb, 0, sizeof(*pfn_sb));
+>> -     npfns = (pmem->size - SZ_8K) / SZ_4K;
+>> +
+>> +     /*
+>> +      * Check if pmem collides with 'System RAM' when section aligned
+>> and
+>> +      * trim it accordingly
+>> +      */
+>> +     nsio = to_nd_namespace_io(&ndns->dev);
+>> +     start = PHYS_SECTION_ALIGN_DOWN(nsio->res.start);
+>> +     size = resource_size(&nsio->res);
+>> +     if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+>> +                             IORES_DESC_NONE) == REGION_MIXED) {
+>> +
+>> +             start = nsio->res.start;
+>> +             start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
+>> +     }
+>> +
+>> +     start = nsio->res.start;
+>> +     size = PHYS_SECTION_ALIGN_UP(start + size) - start;
+>> +     if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+>> +                             IORES_DESC_NONE) == REGION_MIXED) {
+>> +             size = resource_size(&nsio->res);
+>> +             end_trunc = start + size - PHYS_SECTION_ALIGN_DOWN(start
+>> + size);
+>> +     }
+>
+> This check seems to assume that guest's regular memory layout does not
+> change.  That is, if there is no collision at first, there won't be any
+> later.  Is this a valid assumption?
+
+If platform firmware changes the physical alignment during the
+lifetime of the namespace there's not much we can do.  Another problem
+not addressed by this patch is firmware choosing to hot plug system
+ram into the same section as persistent memory.  As far as I can see
+all we do is ask firmware implementations to respect Linux section
+boundaries and otherwise not change alignments.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
