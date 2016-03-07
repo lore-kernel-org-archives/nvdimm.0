@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 9D6121A1F75
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 15:55:55 -0800 (PST)
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH v5 08/14] x86: Fix whitespace issues
-Date: Thu, 10 Mar 2016 18:55:25 -0500
-Message-Id: <1457654131-4562-9-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
+Received: from youngberry.canonical.com (youngberry.canonical.com
+ [91.189.89.112]) (using TLSv1 with cipher AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id AE97A1A1E63
+ for <linux-nvdimm@lists.01.org>; Mon,  7 Mar 2016 14:55:48 -0800 (PST)
+From: Kamal Mostafa <kamal@canonical.com>
+Subject: [PATCH 4.2.y-ckt 172/273] x86/uaccess/64: Handle the caching of
+ 4-byte nocache copies properly in __copy_user_nocache()
+Date: Mon,  7 Mar 2016 14:49:23 -0800
+Message-Id: <1457391064-6660-173-git-send-email-kamal@canonical.com>
+In-Reply-To: <1457391064-6660-1-git-send-email-kamal@canonical.com>
+References: <1457391064-6660-1-git-send-email-kamal@canonical.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,71 +23,149 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
+Cc: Thomas Gleixner <tglx@linutronix.de>, Denys Vlasenko <dvlasenk@redhat.com>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Brian Gerst <brgerst@gmail.com>, Ingo Molnar <mingo@kernel.org>, Kamal Mostafa <kamal@canonical.com>, Andy Lutomirski <luto@amacapital.net>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, Toshi Kani <toshi.kani@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-checkpatch whines about these whitespace issues.  No code changes.
+4.2.8-ckt5 -stable review patch.  If anyone has any objections, please let me know.
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+---8<------------------------------------------------------------
+
+From: Toshi Kani <toshi.kani@hpe.com>
+
+commit a82eee7424525e34e98d821dd059ce14560a1e35 upstream.
+
+Data corruption issues were observed in tests which initiated
+a system crash/reset while accessing BTT devices.  This problem
+is reproducible.
+
+The BTT driver calls pmem_rw_bytes() to update data in pmem
+devices.  This interface calls __copy_user_nocache(), which
+uses non-temporal stores so that the stores to pmem are
+persistent.
+
+__copy_user_nocache() uses non-temporal stores when a request
+size is 8 bytes or larger (and is aligned by 8 bytes).  The
+BTT driver updates the BTT map table, which entry size is
+4 bytes.  Therefore, updates to the map table entries remain
+cached, and are not written to pmem after a crash.
+
+Change __copy_user_nocache() to use non-temporal store when
+a request size is 4 bytes.  The change extends the current
+byte-copy path for a less-than-8-bytes request, and does not
+add any overhead to the regular path.
+
+Reported-and-tested-by: Micah Parrish <micah.parrish@hpe.com>
+Reported-and-tested-by: Brian Boylston <brian.boylston@hpe.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Luis R. Rodriguez <mcgrof@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm@lists.01.org
+Link: http://lkml.kernel.org/r/1455225857-12039-3-git-send-email-toshi.kani@hpe.com
+[ Small readability edits. ]
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Kamal Mostafa <kamal@canonical.com>
 ---
- arch/x86/include/asm/pgtable-2level.h |  2 +-
- arch/x86/include/asm/pgtable.h        | 10 +++++-----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ arch/x86/lib/copy_user_64.S | 36 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 32 insertions(+), 4 deletions(-)
 
-diff --git a/arch/x86/include/asm/pgtable-2level.h b/arch/x86/include/asm/pgtable-2level.h
-index 520318f..2f558ba 100644
---- a/arch/x86/include/asm/pgtable-2level.h
-+++ b/arch/x86/include/asm/pgtable-2level.h
-@@ -11,7 +11,7 @@
-  * within a page table are directly modified.  Thus, the following
-  * hook is made available.
+diff --git a/arch/x86/lib/copy_user_64.S b/arch/x86/lib/copy_user_64.S
+index a644aad..27f89c7 100644
+--- a/arch/x86/lib/copy_user_64.S
++++ b/arch/x86/lib/copy_user_64.S
+@@ -237,13 +237,14 @@ ENDPROC(copy_user_enhanced_fast_string)
+  * Note: Cached memory copy is used when destination or size is not
+  * naturally aligned. That is:
+  *  - Require 8-byte alignment when size is 8 bytes or larger.
++ *  - Require 4-byte alignment when size is 4 bytes.
   */
--static inline void native_set_pte(pte_t *ptep , pte_t pte)
-+static inline void native_set_pte(pte_t *ptep, pte_t pte)
- {
- 	*ptep = pte;
- }
-diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
-index 35306ca..4cbc459 100644
---- a/arch/x86/include/asm/pgtable.h
-+++ b/arch/x86/include/asm/pgtable.h
-@@ -746,13 +746,13 @@ static inline pmd_t native_local_pmdp_get_and_clear(pmd_t *pmdp)
- #endif
+ ENTRY(__copy_user_nocache)
+ 	ASM_STAC
  
- static inline void native_set_pte_at(struct mm_struct *mm, unsigned long addr,
--				     pte_t *ptep , pte_t pte)
-+				     pte_t *ptep, pte_t pte)
- {
- 	native_set_pte(ptep, pte);
- }
+-	/* If size is less than 8 bytes, go to byte copy */
++	/* If size is less than 8 bytes, go to 4-byte copy */
+ 	cmpl $8,%edx
+-	jb .L_1b_cache_copy_entry
++	jb .L_4b_nocache_copy_entry
  
- static inline void native_set_pmd_at(struct mm_struct *mm, unsigned long addr,
--				     pmd_t *pmdp , pmd_t pmd)
-+				     pmd_t *pmdp, pmd_t pmd)
- {
- 	native_set_pmd(pmdp, pmd);
- }
-@@ -852,8 +852,8 @@ static inline int pmd_write(pmd_t pmd)
- }
+ 	/* If destination is not 8-byte aligned, "cache" copy to align it */
+ 	ALIGN_DESTINATION
+@@ -282,7 +283,7 @@ ENTRY(__copy_user_nocache)
+ 	movl %edx,%ecx
+ 	andl $7,%edx
+ 	shrl $3,%ecx
+-	jz .L_1b_cache_copy_entry	/* jump if count is 0 */
++	jz .L_4b_nocache_copy_entry	/* jump if count is 0 */
  
- #define __HAVE_ARCH_PMDP_HUGE_GET_AND_CLEAR
--static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm, unsigned long addr,
--				       pmd_t *pmdp)
-+static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm,
-+					unsigned long addr, pmd_t *pmdp)
- {
- 	return native_pmdp_get_and_clear(pmdp);
- }
-@@ -877,7 +877,7 @@ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
-  */
- static inline void clone_pgd_range(pgd_t *dst, pgd_t *src, int count)
- {
--       memcpy(dst, src, count * sizeof(pgd_t));
-+	memcpy(dst, src, count * sizeof(pgd_t));
- }
+ 	/* Perform 8-byte nocache loop-copy */
+ .L_8b_nocache_copy_loop:
+@@ -294,11 +295,33 @@ ENTRY(__copy_user_nocache)
+ 	jnz .L_8b_nocache_copy_loop
  
- #define PTE_SHIFT ilog2(PTRS_PER_PTE)
+ 	/* If no byte left, we're done */
+-.L_1b_cache_copy_entry:
++.L_4b_nocache_copy_entry:
++	andl %edx,%edx
++	jz .L_finish_copy
++
++	/* If destination is not 4-byte aligned, go to byte copy: */
++	movl %edi,%ecx
++	andl $3,%ecx
++	jnz .L_1b_cache_copy_entry
++
++	/* Set 4-byte copy count (1 or 0) and remainder */
++	movl %edx,%ecx
++	andl $3,%edx
++	shrl $2,%ecx
++	jz .L_1b_cache_copy_entry	/* jump if count is 0 */
++
++	/* Perform 4-byte nocache copy: */
++30:	movl (%rsi),%r8d
++31:	movnti %r8d,(%rdi)
++	leaq 4(%rsi),%rsi
++	leaq 4(%rdi),%rdi
++
++	/* If no bytes left, we're done: */
+ 	andl %edx,%edx
+ 	jz .L_finish_copy
+ 
+ 	/* Perform byte "cache" loop-copy for the remainder */
++.L_1b_cache_copy_entry:
+ 	movl %edx,%ecx
+ .L_1b_cache_copy_loop:
+ 40:	movb (%rsi),%al
+@@ -323,6 +346,9 @@ ENTRY(__copy_user_nocache)
+ .L_fixup_8b_copy:
+ 	lea (%rdx,%rcx,8),%rdx
+ 	jmp .L_fixup_handle_tail
++.L_fixup_4b_copy:
++	lea (%rdx,%rcx,4),%rdx
++	jmp .L_fixup_handle_tail
+ .L_fixup_1b_copy:
+ 	movl %ecx,%edx
+ .L_fixup_handle_tail:
+@@ -348,6 +374,8 @@ ENTRY(__copy_user_nocache)
+ 	_ASM_EXTABLE(16b,.L_fixup_4x8b_copy)
+ 	_ASM_EXTABLE(20b,.L_fixup_8b_copy)
+ 	_ASM_EXTABLE(21b,.L_fixup_8b_copy)
++	_ASM_EXTABLE(30b,.L_fixup_4b_copy)
++	_ASM_EXTABLE(31b,.L_fixup_4b_copy)
+ 	_ASM_EXTABLE(40b,.L_fixup_1b_copy)
+ 	_ASM_EXTABLE(41b,.L_fixup_1b_copy)
+ ENDPROC(__copy_user_nocache)
 -- 
 2.7.0
 
