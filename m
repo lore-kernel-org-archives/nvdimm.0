@@ -1,18 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5009.houston.hp.com (g9t5009.houston.hp.com [15.240.92.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0022B1A1E5D
- for <linux-nvdimm@lists.01.org>; Mon,  7 Mar 2016 14:10:42 -0800 (PST)
-Message-ID: <1457391787.15454.399.camel@hpe.com>
+Received: from mail-ob0-x22a.google.com (mail-ob0-x22a.google.com
+ [IPv6:2607:f8b0:4003:c01::22a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B60E01A1F0A
+ for <linux-nvdimm@lists.01.org>; Mon,  7 Mar 2016 10:15:01 -0800 (PST)
+Received: by mail-ob0-x22a.google.com with SMTP id xx9so112707515obc.2
+ for <linux-nvdimm@lists.01.org>; Mon, 07 Mar 2016 10:14:49 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1457108082-4610-1-git-send-email-toshi.kani@hpe.com>
+References: <1457108082-4610-1-git-send-email-toshi.kani@hpe.com>
+Date: Mon, 7 Mar 2016 10:14:48 -0800
+Message-ID: <CAPcyv4g8+6LBW08JZ3Ym0mAuo1bcwjGTeHrzS0p=QoJb4Mqeag@mail.gmail.com>
 Subject: Re: [PATCH v2-UPDATE 3/4] resource: Add device-managed
  insert/remove_resource()
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Mon, 07 Mar 2016 16:03:07 -0700
-In-Reply-To: <CAPcyv4g8+6LBW08JZ3Ym0mAuo1bcwjGTeHrzS0p=QoJb4Mqeag@mail.gmail.com>
-References: <1457108082-4610-1-git-send-email-toshi.kani@hpe.com>
- <CAPcyv4g8+6LBW08JZ3Ym0mAuo1bcwjGTeHrzS0p=QoJb4Mqeag@mail.gmail.com>
-Mime-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,78 +22,118 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki  <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE2LTAzLTA3IGF0IDEwOjE0IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6CsKg
-Ogo+ID4gKy8qKgo+ID4gKyAqIGRldm1faW5zZXJ0X3Jlc291cmNlKCkgLSBpbnNlcnQgYW4gSS9P
-IG9yIG1lbW9yeSByZXNvdXJjZQo+ID4gKyAqIEBkZXY6IGRldmljZSBmb3Igd2hpY2ggdG8gcHJv
-ZHVjZSB0aGUgcmVzb3VyY2UKPiA+ICsgKiBAcm9vdDogcm9vdCBvZiB0aGUgcmVzb3VyY2UgdHJl
-ZQo+ID4gKyAqIEBuZXc6IGRlc2NyaXB0b3Igb2YgdGhlIG5ldyByZXNvdXJjZQo+ID4gKyAqCj4g
-PiArICogVGhpcyBpcyBhIGRldmljZS1tYW5hZ2VkIHZlcnNpb24gb2YgaW5zZXJ0X3Jlc291cmNl
-KCkuIFRoZXJlIGlzCj4gPiB1c3VhbGx5Cj4gPiArICogbm8gbmVlZCB0byByZWxlYXNlIHJlc291
-cmNlcyByZXF1ZXN0ZWQgYnkgdGhpcyBmdW5jdGlvbiBleHBsaWNpdGx5Cj4gPiBzaW5jZQo+ID4g
-KyAqIHRoYXQgd2lsbCBiZSB0YWtlbiBjYXJlIG9mIHdoZW4gdGhlIGRldmljZSBpcyB1bmJvdW5k
-IGZyb20gaXRzIGJ1cwo+ID4gZHJpdmVyLgo+ID4gKyAqIElmIGZvciBzb21lIHJlYXNvbiB0aGUg
-cmVzb3VyY2UgbmVlZHMgdG8gYmUgcmVsZWFzZWQgZXhwbGljaXRseSwKPiA+IGJlY2F1c2UKPiA+
-ICsgKiBvZiBvcmRlcmluZyBpc3N1ZXMgZm9yIGV4YW1wbGUsIGJ1cyBkcml2ZXJzIG11c3QgY2Fs
-bAo+ID4gZGV2bV9yZW1vdmVfcmVzb3VyY2UoKQo+ID4gKyAqIHJhdGhlciB0aGFuIHRoZSByZWd1
-bGFyIHJlbW92ZV9yZXNvdXJjZSgpLgo+ID4gKyAqCj4gPiArICogZGV2bV9pbnNlcnRfcmVzb3Vy
-Y2UoKSBpcyBpbnRlbmRlZCBmb3IgcHJvZHVjZXJzIG9mIHJlc291cmNlcywgc3VjaAo+ID4gYXMK
-PiA+ICsgKiBGVyBtb2R1bGVzIGFuZCBidXMgZHJpdmVycy4KPiA+ICsgKgo+ID4gKyAqIFJldHVy
-bnMgMCBvbiBzdWNjZXNzIG9yIGEgbmVnYXRpdmUgZXJyb3IgY29kZSBvbiBmYWlsdXJlLgo+ID4g
-KyAqLwo+ID4gK2ludCBkZXZtX2luc2VydF9yZXNvdXJjZShzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0
-cnVjdCByZXNvdXJjZSAqcm9vdCwKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoHN0cnVjdCByZXNvdXJjZSAqbmV3KQo+ID4gK3sKPiA+ICvCoMKg
-wqDCoMKgwqDCoHN0cnVjdCByZXNvdXJjZSAqKnB0cjsKPiA+ICvCoMKgwqDCoMKgwqDCoGludCBy
-ZXQ7Cj4gPiArCj4gPiArwqDCoMKgwqDCoMKgwqBwdHIgPSBkZXZyZXNfYWxsb2MoX19kZXZtX3Jl
-bW92ZV9yZXNvdXJjZSwgc2l6ZW9mKCpwdHIpLAo+ID4gR0ZQX0tFUk5FTCk7Cj4gPiArwqDCoMKg
-wqDCoMKgwqBpZiAoIXB0cikKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1
-cm4gLUVOT01FTTsKPiA+ICsKPiA+ICvCoMKgwqDCoMKgwqDCoCpwdHIgPSBuZXc7Cj4gPiArCj4g
-PiArwqDCoMKgwqDCoMKgwqByZXQgPSBpbnNlcnRfcmVzb3VyY2Uocm9vdCwgbmV3KTsKPiA+ICvC
-oMKgwqDCoMKgwqDCoGlmIChyZXQpIHsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqBkZXZfZXJyKGRldiwgInVuYWJsZSB0byBpbnNlcnQgcmVzb3VyY2U6ICVwUiAoJWQpXG4iLAo+
-ID4gbmV3LCByZXQpOwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGRldnJlc19m
-cmVlKHB0cik7Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIC1FQlVT
-WTsKPiA+ICvCoMKgwqDCoMKgwqDCoH0KPiA+ICsKPiA+ICvCoMKgwqDCoMKgwqDCoGRldnJlc19h
-ZGQoZGV2LCBwdHIpOwo+ID4gK8KgwqDCoMKgwqDCoMKgcmV0dXJuIDA7Cj4gPiArfQo+ID4gK0VY
-UE9SVF9TWU1CT0xfR1BMKGRldm1faW5zZXJ0X3Jlc291cmNlKTsKPiAKPiBUaGUgb25seSBoZXNp
-dGF0aW9uIEkgaGF2ZSB3aXRoIHRoaXMgaXMgdGhhdCB0aGUga2VybmVsIGhhcyBnb3R0ZW4gYnkK
-PiBhIGxvbmcgdGltZSB3aXRob3V0IGFsbG93aW5nIGV4dGVybmFsIG1vZHVsZXMgdG8gaW5zZXJ0
-IHJlc291cmNlcy7CoMKgSWYKPiBrZWVwaW5nIGl0IHByaXZhdGUgYWxsIHRoaXMgdGltZSB3YXMg
-cHVycG9zZWZ1bCB0aGVuIG1heWJlIHdlIHNob3VsZAo+IG1ha2UgdGhpcyBuZXcgTlZESU1NLW5l
-ZWQgdG8gY2FsbCBpbnNlcnRfcmVzb3VyY2UoKSBwcml2YXRlIHRvIHRoZQo+IG5maXQgZHJpdmVy
-IGFuZCBidWlsdC1pbi1vbmx5LgoKSGVyZSBpcyBzb21lIGJhY2tncm91bmQgaW5mbyBvbiB0aGlz
-OgoKLSBFeHRlcm5hbCBtb2R1bGVzIGNhbiBhbHJlYWR5IGluc2VydCByZXNvdXJjZXMgdmlhIHBs
-YXRmb3JtX2RldmljZV9hZGQoKSwKd2hpY2ggaXMgdXNlZCBmb3IgaW5zZXJ0aW5nIHJlc291cmNl
-cyB0aGF0IG1heSBub3QgYmUgZW51bWVyYXRlZCBieQpzdGFuZGFyZCBGVyBpbnRlcmZhY2VzLiDC
-oFRoZXJlIGFyZSBvdmVyIDIwMCBjYWxsZXJzIGFscmVhZHkuCgotIFBDSSBtbWNmZyBkcml2ZXIg
-YW5kIEFDUEkgSFBFVCBkcml2ZXIgZmluZCB0aGVpciByZXNvdXJjZXMgZnJvbSBBQ1BJLCBhbmQK
-Y2FsbCBpbnNlcnRfcmVzb3VyY2UoKSB0byBpbnNlcnQgdGhlbSwgd2hpY2ggaXMgc2ltaWxhciB0
-byB3aGF0IHRoaXMKcGF0Y2hzZXQgdHJpZXMgdG8gZG8gd2l0aCBBQ1BJIE5GSVQuIMKgQm90aCBQ
-Q0kgYW5kIEhQRVQgZHJpdmVycyBkbyBub3QKc3VwcG9ydCB1bmxvYWRpbmcsIGhvd2V2ZXIuCsKg
-ICMgY2F0IC9wcm9jL2lvbWVtCsKgIMKgOgrCoCA4MDAwMDAwMC04ZmZmZmZmZiA6IFBDSSBNTUNP
-TkZJRyAwMDAwIFtidXMgMDAtZmZdCsKgIMKgIDgwMDAwMDAwLThmZmZmZmZmIDogcmVzZXJ2ZWQK
-wqAgwqA6CsKgIGZlZDAwMDAwLWZlZDAwM2ZmIDogSFBFVCAwCsKgIMKgIGZlZDAwMDAwLWZlZDAw
-M2ZmIDogUE5QMDEwMzowMAoKLSBFeGlzdGluZyBGVyBtb2R1bGVzIGFuZCBidXMgZHJpdmVycyB1
-c2luZyBpbnNlcnRfcmVzb3VyY2UoKSBhcmUgYnVpbHQtCmludG8gdGhlIGtlcm5lbCwgYW5kIGlu
-c2VydF9yZXNvdXJjZSgpIGlzIG5vdCBleHBvcnRlZC4gwqBJIHRoaW5rIHRoaXMgaXMKYmVjYXVz
-ZSB0aGVzZSBtb2R1bGVzIGRpZCBub3QgaGF2ZSB0byAob3IgbWF5IG5vdCkgc3VwcG9ydCB1bmxv
-YWRpbmcuCgotIEJvdGggdGhlIE5GSVQgZHJpdmVyIGFuZCBOVkRJTU0gYnVzIGRyaXZlcnMgYXJl
-IG5ldyBhbmQgc3VwcG9ydAp1bmxvYWRpbmcuIMKgVGhpcyBjYWxscyBmb3IgYW4gZXhwb3J0ZWQg
-aW50ZXJmYWNlIGZvciBpbnNlcnRfcmVzb3VyY2UoKS4KCi0gZGV2bSBpbXBsIG9mIGluc2VydC9y
-ZW1vdmVfcmVzb3VyY2UoKSBpcyBhZGRlZCB0byBhc3N1cmUgdGhhdCByZXNvdXJjZXMKYXJlIHBy
-b3Blcmx5IHJlbGVhc2VkIG9uIHVubG9hZGluZy4gwqBFeHBvcnRpbmcgZGV2bSBpbnRlcmZhY2Vz
-IG1ha2VzIHNlbnNlCih0byBtZSkuCgotIEhvd2V2ZXIsIGRldm1faW5zZXJ0L3JlbW92ZV9yZXNv
-dXJjZSgpIHNob3VsZCBub3QgYmUgY29uZnVzZWQgd2l0aApkZXZtX3JlcXVlc3QvcmVsZWFzZV9y
-ZXNvdXJjZSgpLiDCoEhlbmNlLCB0aGlzIHBhdGNoc2V0IGFkZHMgY29tbWVudHMgdG8KY2xhcmlm
-eSB0aGF0IHRoZXkgYXJlIHVzZWQgZm9yIHByb2R1Y2VycyBvZiByZXNvdXJjZXMuIMKgVGhlIHNh
-bWUgY29tbWVudHMKYXJlIGFkZGVkIHRvIGluc2VydC9yZW1vdmVfcmVzb3VyY2UoKSBhcyB3ZWxs
-LgoKVGhhbmtzLAotVG9zaGkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
-b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+[ adding Linus for the implications of exporting insert_resource() ]
+
+On Fri, Mar 4, 2016 at 8:14 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> insert_resource() and remove_resouce() are called by producers
+> of resources, such as FW modules and bus drivers.  These modules
+> may be implemented as loadable modules.
+>
+> Add device-managed implementaions of insert_resource() and
+> remove_resouce() functions.
+>
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Ingo Molnar <mingo@kernel.org>
+> Cc: Borislav Petkov <bp@suse.de>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> ---
+> v2-UPDATE:
+>  - Rename a helper remove func to __devm_remove_resource(). (Dan Williams)
+> ---
+>  include/linux/ioport.h |    5 +++
+>  kernel/resource.c      |   69 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 74 insertions(+)
+>
+> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+> index 8017b8b..3580038 100644
+> --- a/include/linux/ioport.h
+> +++ b/include/linux/ioport.h
+> @@ -259,6 +259,11 @@ extern struct resource * __devm_request_region(struct device *dev,
+>
+>  extern void __devm_release_region(struct device *dev, struct resource *parent,
+>                                   resource_size_t start, resource_size_t n);
+> +
+> +extern int devm_insert_resource(struct device *dev, struct resource *root,
+> +                                struct resource *new);
+> +extern void devm_remove_resource(struct device *dev, struct resource *old);
+> +
+>  extern int iomem_map_sanity_check(resource_size_t addr, unsigned long size);
+>  extern int iomem_is_exclusive(u64 addr);
+>
+> diff --git a/kernel/resource.c b/kernel/resource.c
+> index effb6ee..12a9d57 100644
+> --- a/kernel/resource.c
+> +++ b/kernel/resource.c
+> @@ -1449,6 +1449,75 @@ void __devm_release_region(struct device *dev, struct resource *parent,
+>  EXPORT_SYMBOL(__devm_release_region);
+>
+>  /*
+> + * Helper remove function for devm_insert_resource() and devm_remove_resource()
+> + */
+> +static void __devm_remove_resource(struct device *dev, void *ptr)
+> +{
+> +       struct resource **r = ptr;
+> +
+> +       remove_resource(*r);
+> +}
+> +
+> +/**
+> + * devm_insert_resource() - insert an I/O or memory resource
+> + * @dev: device for which to produce the resource
+> + * @root: root of the resource tree
+> + * @new: descriptor of the new resource
+> + *
+> + * This is a device-managed version of insert_resource(). There is usually
+> + * no need to release resources requested by this function explicitly since
+> + * that will be taken care of when the device is unbound from its bus driver.
+> + * If for some reason the resource needs to be released explicitly, because
+> + * of ordering issues for example, bus drivers must call devm_remove_resource()
+> + * rather than the regular remove_resource().
+> + *
+> + * devm_insert_resource() is intended for producers of resources, such as
+> + * FW modules and bus drivers.
+> + *
+> + * Returns 0 on success or a negative error code on failure.
+> + */
+> +int devm_insert_resource(struct device *dev, struct resource *root,
+> +                         struct resource *new)
+> +{
+> +       struct resource **ptr;
+> +       int ret;
+> +
+> +       ptr = devres_alloc(__devm_remove_resource, sizeof(*ptr), GFP_KERNEL);
+> +       if (!ptr)
+> +               return -ENOMEM;
+> +
+> +       *ptr = new;
+> +
+> +       ret = insert_resource(root, new);
+> +       if (ret) {
+> +               dev_err(dev, "unable to insert resource: %pR (%d)\n", new, ret);
+> +               devres_free(ptr);
+> +               return -EBUSY;
+> +       }
+> +
+> +       devres_add(dev, ptr);
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_insert_resource);
+
+The only hesitation I have with this is that the kernel has gotten by
+a long time without allowing external modules to insert resources.  If
+keeping it private all this time was purposeful then maybe we should
+make this new NVDIMM-need to call insert_resource() private to the
+nfit driver and built-in-only.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
