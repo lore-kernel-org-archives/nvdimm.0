@@ -1,12 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 2A0381A1E93
- for <linux-nvdimm@lists.01.org>; Mon, 28 Mar 2016 17:29:53 -0700 (PDT)
-Subject: [PATCH v3] x86, pmem: use memcpy_mcsafe() for memcpy_from_pmem()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 28 Mar 2016 17:28:45 -0700
-Message-ID: <20160329002845.10978.8879.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from youngberry.canonical.com (youngberry.canonical.com
+ [91.189.89.112]) (using TLSv1 with cipher AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id D97D71A1E8F
+ for <linux-nvdimm@lists.01.org>; Mon,  7 Mar 2016 14:35:40 -0800 (PST)
+From: Kamal Mostafa <kamal@canonical.com>
+Subject: [4.2.y-ckt stable] Patch "x86/uaccess/64: Make the
+ __copy_user_nocache() assembly code more readable" has been added to the
+ 4.2.y-ckt tree
+Date: Mon,  7 Mar 2016 14:34:20 -0800
+Message-Id: <1457390060-32410-1-git-send-email-kamal@canonical.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,116 +17,247 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: Ingo Molnar <mingo@kernel.org>, Denys Vlasenko <dvlasenk@redhat.com>, Kamal Mostafa <kamal@canonical.com>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Brian Gerst <brgerst@gmail.com>, micah.parrish@hpe.com, Andy Lutomirski <luto@amacapital.net>, brian.boylston@hpe.com, kernel-team@lists.ubuntu.com, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, Toshi Kani <toshi.kani@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Update the definition of memcpy_from_pmem() to return 0 or a negative
-error code.  Implement x86/arch_memcpy_from_pmem() with memcpy_mcsafe().
+This is a note to let you know that I have just added a patch titled
 
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
+    x86/uaccess/64: Make the __copy_user_nocache() assembly code more readable
+
+to the linux-4.2.y-queue branch of the 4.2.y-ckt extended stable tree 
+which can be found at:
+
+    http://kernel.ubuntu.com/git/ubuntu/linux.git/log/?h=linux-4.2.y-queue
+
+This patch is scheduled to be released in version 4.2.8-ckt5.
+
+If you, or anyone else, feels it should not be added to this tree, please 
+reply to this email.
+
+For more information about the 4.2.y-ckt tree, see
+https://wiki.ubuntu.com/Kernel/Dev/ExtendedStable
+
+Thanks.
+-Kamal
+
+---8<------------------------------------------------------------
+
+>From f31380e504e69c757e6e226caa0500c28c355c24 Mon Sep 17 00:00:00 2001
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Thu, 11 Feb 2016 14:24:16 -0700
+Subject: x86/uaccess/64: Make the __copy_user_nocache() assembly code more
+ readable
+
+commit ee9737c924706aaa72c2ead93e3ad5644681dc1c upstream.
+
+Add comments to __copy_user_nocache() to clarify its procedures
+and alignment requirements.
+
+Also change numeric branch target labels to named local labels.
+
+No code changed:
+
+ arch/x86/lib/copy_user_64.o:
+
+    text    data     bss     dec     hex filename
+    1239       0       0    1239     4d7 copy_user_64.o.before
+    1239       0       0    1239     4d7 copy_user_64.o.after
+
+ md5:
+    58bed94c2db98c1ca9a2d46d0680aaae  copy_user_64.o.before.asm
+    58bed94c2db98c1ca9a2d46d0680aaae  copy_user_64.o.after.asm
+
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Luis R. Rodriguez <mcgrof@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: brian.boylston@hpe.com
+Cc: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
+Cc: micah.parrish@hpe.com
+Cc: ross.zwisler@linux.intel.com
+Cc: vishal.l.verma@intel.com
+Link: http://lkml.kernel.org/r/1455225857-12039-2-git-send-email-toshi.kani@hpe.com
+[ Small readability edits and added object file comparison. ]
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Kamal Mostafa <kamal@canonical.com>
 ---
- arch/x86/include/asm/pmem.h |    9 +++++++++
- drivers/nvdimm/pmem.c       |    4 ++--
- include/linux/pmem.h        |   21 +++++++++++++++------
- 3 files changed, 26 insertions(+), 8 deletions(-)
+ arch/x86/lib/copy_user_64.S | 114 ++++++++++++++++++++++++++++----------------
+ 1 file changed, 73 insertions(+), 41 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index bf8b35d2035a..fbc5e92e1ecc 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -47,6 +47,15 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
- 		BUG();
- }
- 
-+static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
-+		size_t n)
-+{
-+	if (static_cpu_has(X86_FEATURE_MCE_RECOVERY))
-+		return memcpy_mcsafe(dst, (void __force *) src, n);
-+	memcpy(dst, (void __force *) src, n);
-+	return 0;
-+}
-+
- /**
-  * arch_wmb_pmem - synchronize writes to persistent memory
-  *
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index ca5721c306bb..cc31c6f1f88e 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -99,7 +99,7 @@ static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 		if (unlikely(bad_pmem))
- 			rc = -EIO;
- 		else {
--			memcpy_from_pmem(mem + off, pmem_addr, len);
-+			rc = memcpy_from_pmem(mem + off, pmem_addr, len);
- 			flush_dcache_page(page);
- 		}
- 	} else {
-@@ -295,7 +295,7 @@ static int pmem_rw_bytes(struct nd_namespace_common *ndns,
- 
- 		if (unlikely(is_bad_pmem(&pmem->bb, offset / 512, sz_align)))
- 			return -EIO;
--		memcpy_from_pmem(buf, pmem->virt_addr + offset, size);
-+		return memcpy_from_pmem(buf, pmem->virt_addr + offset, size);
- 	} else {
- 		memcpy_to_pmem(pmem->virt_addr + offset, buf, size);
- 		wmb_pmem();
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 3ec5309e29f3..cc948191a653 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -42,6 +42,12 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
- 	BUG();
- }
- 
-+static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
-+		size_t n)
-+{
-+	BUG();
-+}
-+
- static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
- 		struct iov_iter *i)
- {
-@@ -66,14 +72,17 @@ static inline void arch_invalidate_pmem(void __pmem *addr, size_t size)
- #endif
- 
+diff --git a/arch/x86/lib/copy_user_64.S b/arch/x86/lib/copy_user_64.S
+index 982ce34..a644aad 100644
+--- a/arch/x86/lib/copy_user_64.S
++++ b/arch/x86/lib/copy_user_64.S
+@@ -232,17 +232,30 @@ ENDPROC(copy_user_enhanced_fast_string)
+
  /*
-- * Architectures that define ARCH_HAS_PMEM_API must provide
-- * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(),
-- * arch_copy_from_iter_pmem(), arch_clear_pmem(), arch_wb_cache_pmem()
-- * and arch_has_wmb_pmem().
-+ * memcpy_from_pmem - read from persistent memory with error handling
-+ * @dst: destination buffer
-+ * @src: source buffer
-+ * @size: transfer length
+  * copy_user_nocache - Uncached memory copy with exception handling
+- * This will force destination/source out of cache for more performance.
++ * This will force destination out of cache for more performance.
 + *
-+ * Returns 0 on success negative error code on failure.
++ * Note: Cached memory copy is used when destination or size is not
++ * naturally aligned. That is:
++ *  - Require 8-byte alignment when size is 8 bytes or larger.
   */
--static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
-+static inline int memcpy_from_pmem(void *dst, void __pmem const *src,
-+		size_t size)
- {
--	memcpy(dst, (void __force const *) src, size);
-+	return arch_memcpy_from_pmem(dst, src, size);
- }
- 
- static inline bool arch_has_pmem_api(void)
+ ENTRY(__copy_user_nocache)
+ 	ASM_STAC
++
++	/* If size is less than 8 bytes, go to byte copy */
+ 	cmpl $8,%edx
+-	jb 20f		/* less then 8 bytes, go to byte copy loop */
++	jb .L_1b_cache_copy_entry
++
++	/* If destination is not 8-byte aligned, "cache" copy to align it */
+ 	ALIGN_DESTINATION
++
++	/* Set 4x8-byte copy count and remainder */
+ 	movl %edx,%ecx
+ 	andl $63,%edx
+ 	shrl $6,%ecx
+-	jz 17f
++	jz .L_8b_nocache_copy_entry	/* jump if count is 0 */
++
++	/* Perform 4x8-byte nocache loop-copy */
++.L_4x8b_nocache_copy_loop:
+ 1:	movq (%rsi),%r8
+ 2:	movq 1*8(%rsi),%r9
+ 3:	movq 2*8(%rsi),%r10
+@@ -262,60 +275,79 @@ ENTRY(__copy_user_nocache)
+ 	leaq 64(%rsi),%rsi
+ 	leaq 64(%rdi),%rdi
+ 	decl %ecx
+-	jnz 1b
+-17:	movl %edx,%ecx
++	jnz .L_4x8b_nocache_copy_loop
++
++	/* Set 8-byte copy count and remainder */
++.L_8b_nocache_copy_entry:
++	movl %edx,%ecx
+ 	andl $7,%edx
+ 	shrl $3,%ecx
+-	jz 20f
+-18:	movq (%rsi),%r8
+-19:	movnti %r8,(%rdi)
++	jz .L_1b_cache_copy_entry	/* jump if count is 0 */
++
++	/* Perform 8-byte nocache loop-copy */
++.L_8b_nocache_copy_loop:
++20:	movq (%rsi),%r8
++21:	movnti %r8,(%rdi)
+ 	leaq 8(%rsi),%rsi
+ 	leaq 8(%rdi),%rdi
+ 	decl %ecx
+-	jnz 18b
+-20:	andl %edx,%edx
+-	jz 23f
++	jnz .L_8b_nocache_copy_loop
++
++	/* If no byte left, we're done */
++.L_1b_cache_copy_entry:
++	andl %edx,%edx
++	jz .L_finish_copy
++
++	/* Perform byte "cache" loop-copy for the remainder */
+ 	movl %edx,%ecx
+-21:	movb (%rsi),%al
+-22:	movb %al,(%rdi)
++.L_1b_cache_copy_loop:
++40:	movb (%rsi),%al
++41:	movb %al,(%rdi)
+ 	incq %rsi
+ 	incq %rdi
+ 	decl %ecx
+-	jnz 21b
+-23:	xorl %eax,%eax
++	jnz .L_1b_cache_copy_loop
++
++	/* Finished copying; fence the prior stores */
++.L_finish_copy:
++	xorl %eax,%eax
+ 	ASM_CLAC
+ 	sfence
+ 	ret
+
+ 	.section .fixup,"ax"
+-30:	shll $6,%ecx
++.L_fixup_4x8b_copy:
++	shll $6,%ecx
+ 	addl %ecx,%edx
+-	jmp 60f
+-40:	lea (%rdx,%rcx,8),%rdx
+-	jmp 60f
+-50:	movl %ecx,%edx
+-60:	sfence
++	jmp .L_fixup_handle_tail
++.L_fixup_8b_copy:
++	lea (%rdx,%rcx,8),%rdx
++	jmp .L_fixup_handle_tail
++.L_fixup_1b_copy:
++	movl %ecx,%edx
++.L_fixup_handle_tail:
++	sfence
+ 	jmp copy_user_handle_tail
+ 	.previous
+
+-	_ASM_EXTABLE(1b,30b)
+-	_ASM_EXTABLE(2b,30b)
+-	_ASM_EXTABLE(3b,30b)
+-	_ASM_EXTABLE(4b,30b)
+-	_ASM_EXTABLE(5b,30b)
+-	_ASM_EXTABLE(6b,30b)
+-	_ASM_EXTABLE(7b,30b)
+-	_ASM_EXTABLE(8b,30b)
+-	_ASM_EXTABLE(9b,30b)
+-	_ASM_EXTABLE(10b,30b)
+-	_ASM_EXTABLE(11b,30b)
+-	_ASM_EXTABLE(12b,30b)
+-	_ASM_EXTABLE(13b,30b)
+-	_ASM_EXTABLE(14b,30b)
+-	_ASM_EXTABLE(15b,30b)
+-	_ASM_EXTABLE(16b,30b)
+-	_ASM_EXTABLE(18b,40b)
+-	_ASM_EXTABLE(19b,40b)
+-	_ASM_EXTABLE(21b,50b)
+-	_ASM_EXTABLE(22b,50b)
++	_ASM_EXTABLE(1b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(2b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(3b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(4b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(5b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(6b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(7b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(8b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(9b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(10b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(11b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(12b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(13b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(14b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(15b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(16b,.L_fixup_4x8b_copy)
++	_ASM_EXTABLE(20b,.L_fixup_8b_copy)
++	_ASM_EXTABLE(21b,.L_fixup_8b_copy)
++	_ASM_EXTABLE(40b,.L_fixup_1b_copy)
++	_ASM_EXTABLE(41b,.L_fixup_1b_copy)
+ ENDPROC(__copy_user_nocache)
+--
+2.7.0
 
 _______________________________________________
 Linux-nvdimm mailing list
