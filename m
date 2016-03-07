@@ -1,22 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3428.houston.hp.com (g4t3428.houston.hp.com [15.201.208.56])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7B4F11A1F77
- for <linux-nvdimm@lists.01.org>; Mon,  7 Mar 2016 10:06:15 -0800 (PST)
-Message-ID: <1457377121.15454.366.camel@hpe.com>
-Subject: Re: [PATCH v2 2/3] libnvdimm, pmem: adjust for section collisions
- with 'System RAM'
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Mon, 07 Mar 2016 11:58:41 -0700
-In-Reply-To: <CAPcyv4i2vtdz8BGGBWR2eGXhW8nuA9w+gvGJN5P__Ks_PyyRRg@mail.gmail.com>
+Received: from mail-oi0-x236.google.com (mail-oi0-x236.google.com
+ [IPv6:2607:f8b0:4003:c06::236])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 24F491A1F63
+ for <linux-nvdimm@lists.01.org>; Mon,  7 Mar 2016 09:18:57 -0800 (PST)
+Received: by mail-oi0-x236.google.com with SMTP id r187so83952111oih.3
+ for <linux-nvdimm@lists.01.org>; Mon, 07 Mar 2016 09:18:44 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1457373413.15454.334.camel@hpe.com>
 References: <20160303215304.1014.69931.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20160303215315.1014.95661.stgit@dwillia2-desk3.amr.corp.intel.com>
  <1457146138.15454.277.camel@hpe.com>
  <CAA9_cmc9vjChKqs7P1NG9r66TGapw0cYHfcajWh_O+hk433MTg@mail.gmail.com>
  <1457373413.15454.334.camel@hpe.com>
- <CAPcyv4i2vtdz8BGGBWR2eGXhW8nuA9w+gvGJN5P__Ks_PyyRRg@mail.gmail.com>
-Mime-Version: 1.0
+Date: Mon, 7 Mar 2016 09:18:42 -0800
+Message-ID: <CAPcyv4i2vtdz8BGGBWR2eGXhW8nuA9w+gvGJN5P__Ks_PyyRRg@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] libnvdimm, pmem: adjust for section collisions
+ with 'System RAM'
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,56 +26,39 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Toshi Kani <toshi.kani@hpe.com>
 Cc: linux-mm <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE2LTAzLTA3IGF0IDA5OjE4IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
-T24gTW9uLCBNYXIgNywgMjAxNiBhdCA5OjU2IEFNLCBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhw
-ZS5jb20+IHdyb3RlOgo+ID4gT24gRnJpLCAyMDE2LTAzLTA0IGF0IDE4OjIzIC0wODAwLCBEYW4g
-V2lsbGlhbXMgd3JvdGU6Cj4gPiA+IE9uIEZyaSwgTWFyIDQsIDIwMTYgYXQgNjo0OCBQTSwgVG9z
-aGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPgo+ID4gPiB3cm90ZToKPiBbLi5dCj4gPiA+IEFz
-IGZhciBhcyBJIGNhbiBzZWUKPiA+ID4gYWxsIHdlIGRvIGlzIGFzayBmaXJtd2FyZSBpbXBsZW1l
-bnRhdGlvbnMgdG8gcmVzcGVjdCBMaW51eCBzZWN0aW9uCj4gPiA+IGJvdW5kYXJpZXMgYW5kIG90
-aGVyd2lzZSBub3QgY2hhbmdlIGFsaWdubWVudHMuCj4gPiAKPiA+IEluIGFkZGl0aW9uIHRvIHRo
-ZSByZXF1aXJlbWVudCB0aGF0IHBtZW0gcmFuZ2UgYWxpZ25tZW50IG1heSBub3QKPiA+IGNoYW5n
-ZSwgdGhlIGNvZGUgYWxzbyByZXF1aXJlcyBhIHJlZ3VsYXIgbWVtb3J5IHJhbmdlIGRvZXMgbm90
-IGNoYW5nZQo+ID4gdG8gaW50ZXJzZWN0IHdpdGggYSBwbWVtIHNlY3Rpb24gbGF0ZXIuwqDCoFRo
-aXMgc2VlbXMgZnJhZ2lsZSB0byBtZSBzaW5jZQo+ID4gZ3Vlc3QgY29uZmlnIG1heSB2YXJ5IC8g
-Y2hhbmdlIGFzIEkgbWVudGlvbmVkIGFib3ZlLgo+ID4gCj4gPiBTbywgc2hvdWxkbid0IHRoZSBk
-cml2ZXIgZmFpbHMgdG8gYXR0YWNoIHdoZW4gdGhlIHJhbmdlIGlzIG5vdCBhbGlnbmVkCj4gPiBi
-eSB0aGUgc2VjdGlvbiBzaXplP8KgwqBTaW5jZSB3ZSBuZWVkIHRvIHBsYWNlIGEgcmVxdWlyZW1l
-bnQgdG8gZmlybXdhcmUKPiA+IGFueXdheSwgd2UgY2FuIHNpbXBseSBzdGF0ZSB0aGF0IGl0IG11
-c3QgYmUgYWxpZ25lZCBieSAxMjhNaUIgKGF0Cj4gPiBsZWFzdCkgb24geDg2LiDCoFRoZW4sIG1l
-bW9yeSBhbmQgcG1lbSBwaHlzaWNhbCBsYXlvdXRzIGNhbiBiZSBjaGFuZ2VkCj4gPiBhcyBsb25n
-IGFzIHRoaXMgcmVxdWlyZW1lbnQgaXMgbWV0Lgo+IAo+IFdlIGNhbiBzdGF0ZSB0aGF0IGl0IG11
-c3QgYmUgYWxpZ25lZCwgYnV0IHdpdGhvdXQgYSBoYXJkIHNwZWNpZmljYXRpb24KPiBJIGRvbid0
-IHNlZSBob3cgd2UgY2FuIGd1YXJhbnRlZSBpdC7CoMKgV2Ugd2lsbCBmYWlsIHRoZSBkcml2ZXIg
-bG9hZAo+IHdpdGggYSB3YXJuaW5nIGlmIG91ciBhbGlnbm1lbnQgZml4dXBzIGVuZCB1cCBnZXR0
-aW5nIGludmFsaWRhdGVkIGJ5IGEKPiBsYXRlciBjb25maWd1cmF0aW9uIGNoYW5nZSwgYnV0IGlu
-IHRoZSBtZWFudGltZSB3ZSBjb3ZlciB0aGUgZ2FwIG9mIGEKPiBCSU9TIHRoYXQgaGFzIGdlbmVy
-YXRlZCBhIHByb2JsZW1hdGljIGNvbmZpZ3VyYXRpb24uCgpJIGRvIG5vdCB0aGluayBpdCBoYXMg
-dG8gYmUgc3RhdGVkIGluIHRoZSBzcGVjIChhbHRob3VnaCBpdCBtYXkgYmUgYSBnb29kCmlkZWEg
-dG8gc3RhdGUgaXQgYXMgYW4gaW1wbGVtZW50YXRpb24gbm90ZSA6LSkuCgpUaGlzIGlzIGFuIE9T
-LXVuaXF1ZSByZXF1aXJlbWVudCAoYW5kIHRoZSBzaXplIGlzIHg4Ni1zcGVjaWZpYykgdGhhdCBp
-ZiBpdAp3YW50cyB0byBzdXBwb3J0IExpbnV4IHBtZW0gcGZuLCB0aGVuIHRoZSBhbGlnbm1lbnQg
-bmVlZHMgdG8gYmUgYXQgbGVhc3QKMTI4TWlCLiDCoFJlZ3VsYXIgcG1lbSBkb2VzIG5vdCBoYXZl
-IHRoaXMgcmVzdHJpY3Rpb24sIGJ1dCBpdCBuZWVkcyB0byBiZQphbGlnbmVkIGJ5IDJNaUIgb3Ig
-MUdpQiBmb3IgdXNpbmcgaHVnZSBwYWdlIG1hcHBpbmcsIHdoaWNoIGRvZXMgbm90IGhhdmUgdG8K
-YmUgc3RhdGVkIGluIHRoZSBzcGVjLCBlaXRoZXIuCgpGb3IgS1ZNIHRvIHN1cHBvcnQgdGhlIHBt
-ZW0gcGZuIGZlYXR1cmUgb24geDg2LCBpdCBuZWVkcyB0byBndWFyYW50ZWUgdGhpcwoxMjhNaUIg
-YWxpZ25tZW50LiDCoE90aGVyd2lzZSwgdGhpcyBmZWF0dXJlIGlzIG5vdCBzdXBwb3J0ZWQuIMKg
-KEkgZG8gbm90CndvcnJ5IGFib3V0IE5WRElNTS1OIHNpbmNlIGl0IGlzIG5hdHVyYWxseSBhbGln
-bmVkIGJ5IGl0cyBzaXplLikKCklmIHdlIGFsbG93IHVuYWxpZ25lZCBjYXNlcywgdGhlbiB0aGUg
-ZHJpdmVyIG5lZWRzIHRvIGRldGVjdCBjaGFuZ2UgZnJvbQp0aGUgaW5pdGlhbCBjb25kaXRpb24g
-YW5kIGZhaWwgdG8gYXR0YWNoIGZvciBwcm90ZWN0aW5nIGRhdGEuIMKgSSBkaWQgbm90CnNlZSBz
-dWNoIGNoZWNrIGluIHRoZSBjb2RlLCBidXQgSSBtYXkgaGF2ZSBvdmVybG9va2VkLiDCoFdlIGNh
-bm5vdCBjaGVjayBpZgpLVk0gaGFzIGFueSBndWFyYW50ZWUgdG8ga2VlcCB0aGUgYWxpZ25tZW50
-IGF0IHRoZSBpbml0aWFsIHNldHVwLCB0aG91Z2guCgpUaGFua3MsCi1Ub3NoaQpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGlu
-ZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFp
-bG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Mon, Mar 7, 2016 at 9:56 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> On Fri, 2016-03-04 at 18:23 -0800, Dan Williams wrote:
+>> On Fri, Mar 4, 2016 at 6:48 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
+[..]
+>> As far as I can see
+>> all we do is ask firmware implementations to respect Linux section
+>> boundaries and otherwise not change alignments.
+>
+> In addition to the requirement that pmem range alignment may not change,
+> the code also requires a regular memory range does not change to intersect
+> with a pmem section later.  This seems fragile to me since guest config may
+> vary / change as I mentioned above.
+>
+> So, shouldn't the driver fails to attach when the range is not aligned by
+> the section size?  Since we need to place a requirement to firmware anyway,
+> we can simply state that it must be aligned by 128MiB (at least) on x86.
+>  Then, memory and pmem physical layouts can be changed as long as this
+> requirement is met.
+
+We can state that it must be aligned, but without a hard specification
+I don't see how we can guarantee it.  We will fail the driver load
+with a warning if our alignment fixups end up getting invalidated by a
+later configuration change, but in the meantime we cover the gap of a
+BIOS that has generated a problematic configuration.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
