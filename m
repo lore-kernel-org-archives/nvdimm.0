@@ -1,12 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x22f.google.com (mail-oi0-x22f.google.com
- [IPv6:2607:f8b0:4003:c06::22f])
+Received: from mail-ob0-x234.google.com (mail-ob0-x234.google.com
+ [IPv6:2607:f8b0:4003:c01::234])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0C8CE1A1F77
- for <linux-nvdimm@lists.01.org>; Mon,  7 Mar 2016 10:37:46 -0800 (PST)
-Received: by mail-oi0-x22f.google.com with SMTP id m82so85701089oif.1
- for <linux-nvdimm@lists.01.org>; Mon, 07 Mar 2016 10:37:33 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 0ABB41A1F0A
+ for <linux-nvdimm@lists.01.org>; Mon,  7 Mar 2016 10:20:08 -0800 (PST)
+Received: by mail-ob0-x234.google.com with SMTP id fz5so113428375obc.0
+ for <linux-nvdimm@lists.01.org>; Mon, 07 Mar 2016 10:19:55 -0800 (PST)
 MIME-Version: 1.0
 In-Reply-To: <1457377121.15454.366.camel@hpe.com>
 References: <20160303215304.1014.69931.stgit@dwillia2-desk3.amr.corp.intel.com>
@@ -16,8 +16,8 @@ References: <20160303215304.1014.69931.stgit@dwillia2-desk3.amr.corp.intel.com>
  <1457373413.15454.334.camel@hpe.com>
  <CAPcyv4i2vtdz8BGGBWR2eGXhW8nuA9w+gvGJN5P__Ks_PyyRRg@mail.gmail.com>
  <1457377121.15454.366.camel@hpe.com>
-Date: Mon, 7 Mar 2016 10:37:32 -0800
-Message-ID: <CAPcyv4gpS=Lk6EQvWoubGrSehz7CO-g7+xRtqYDaJWGDxznnoQ@mail.gmail.com>
+Date: Mon, 7 Mar 2016 10:19:54 -0800
+Message-ID: <CAPcyv4iVCXS53eDxhwKE5RF2RqKKOaEy9BBUYFYT9B9+MAFFfw@mail.gmail.com>
 Subject: Re: [PATCH v2 2/3] libnvdimm, pmem: adjust for section collisions
  with 'System RAM'
 From: Dan Williams <dan.j.williams@intel.com>
@@ -33,10 +33,8 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Toshi Kani <toshi.kani@hpe.com>
-Cc: linux-mm <linux-mm@kvack.org>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: linux-mm <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
-
-[ adding Haozhong and Xiao for the alignment concerns below ]
 
 On Mon, Mar 7, 2016 at 10:58 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
 > On Mon, 2016-03-07 at 09:18 -0800, Dan Williams wrote:
@@ -74,7 +72,10 @@ On Mon, Mar 7, 2016 at 10:58 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
 > 128MiB.  Regular pmem does not have this restriction, but it needs to be
 > aligned by 2MiB or 1GiB for using huge page mapping, which does not have to
 > be stated in the spec, either.
->
+
+We can check that the alignment is correct when the namespace is first
+instantiated, but we're still stuck if the configuration ever changes.
+
 > For KVM to support the pmem pfn feature on x86, it needs to guarantee this
 > 128MiB alignment.  Otherwise, this feature is not supported.  (I do not
 > worry about NVDIMM-N since it is naturally aligned by its size.)
@@ -83,9 +84,12 @@ On Mon, Mar 7, 2016 at 10:58 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
 > the initial condition and fail to attach for protecting data.  I did not
 > see such check in the code, but I may have overlooked.  We cannot check if
 > KVM has any guarantee to keep the alignment at the initial setup, though.
->
-> Thanks,
-> -Toshi
+
+devm_memremap_pages() will fail if the driver tries to pass in an
+unaligned address [1] ...and now that I look again, that patch
+mishandles the aligning 'size', will fix.
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-February/004729.html
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
