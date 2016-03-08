@@ -1,23 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3427.houston.hp.com (g4t3427.houston.hp.com [15.201.208.55])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 004BC1A1F33
- for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 16:08:11 -0800 (PST)
-Message-ID: <1457485233.15454.530.camel@hpe.com>
-Subject: Re: [PATCH v2-UPDATE2 3/4] resource: Add device-managed
- insert/remove_resource()
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Tue, 08 Mar 2016 18:00:33 -0700
-In-Reply-To: <CA+55aFxJqjvsSz7eeobViGShoJV=FSx9gDbxK_L0WvSnh3xa3w@mail.gmail.com>
+Received: from mail-ig0-x244.google.com (mail-ig0-x244.google.com
+ [IPv6:2607:f8b0:4001:c05::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8A4F31A1EC8
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 15:31:23 -0800 (PST)
+Received: by mail-ig0-x244.google.com with SMTP id ww10so3612814igb.2
+ for <linux-nvdimm@lists.01.org>; Tue, 08 Mar 2016 15:31:09 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1457481844.15454.510.camel@hpe.com>
 References: <1457460530-17959-1-git-send-email-toshi.kani@hpe.com>
  <CA+55aFy=V-esUXZa2AogS685k+r9PyyNStkZrrUUkWSKvLFUGQ@mail.gmail.com>
  <CAPcyv4gT1RvnEquYXVo7sZscdUrkiWpG-Yvr_EX4=L25397X0g@mail.gmail.com>
  <CA+55aFxPn3J68MsqQd7OVv7jetZjPduP53MFmw2f_-z7=ebpXQ@mail.gmail.com>
  <CAPcyv4i2GwujqK=MDJpSKhvufJprmCV4vmQRpS_UP-n1kau+mg@mail.gmail.com>
  <1457481844.15454.510.camel@hpe.com>
- <CA+55aFxJqjvsSz7eeobViGShoJV=FSx9gDbxK_L0WvSnh3xa3w@mail.gmail.com>
-Mime-Version: 1.0
+Date: Tue, 8 Mar 2016 15:31:09 -0800
+Message-ID: <CA+55aFxJqjvsSz7eeobViGShoJV=FSx9gDbxK_L0WvSnh3xa3w@mail.gmail.com>
+Subject: Re: [PATCH v2-UPDATE2 3/4] resource: Add device-managed
+ insert/remove_resource()
+From: Linus Torvalds <torvalds@linux-foundation.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,59 +27,66 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: Toshi Kani <toshi.kani@hpe.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE2LTAzLTA4IGF0IDE1OjMxIC0wODAwLCBMaW51cyBUb3J2YWxkcyB3cm90ZToK
-PiBPbiBUdWUsIE1hciA4LCAyMDE2IGF0IDQ6MDQgUE0sIFRvc2hpIEthbmkgPHRvc2hpLmthbmlA
-aHBlLmNvbT4gd3JvdGU6Cj4gPiAKPiA+IFllcywgSSBwcmVmZXIgdGhlIGRldm0gc2VtYW50aWNz
-LsKgwqBpbnNlcnRfcmVzb3VyY2UoKSBhbmQKPiA+IHJlbW92ZV9yZXNvdXJjZSgpIGFyZSBub3Qg
-ZXhwb3J0ZWQgaW50ZXJmYWNlcy7CoMKgU28sIHdpdGgKPiA+IGRldm1fYWRkX2FjdGlvbigpLCB3
-ZSBzdGlsbCBuZWVkIHRvIGludHJvZHVjZSBidWlsdC1pbiBleHBvcnRlZAo+ID4gd3JhcHBlcnMg
-Zm9yIGluc2VydC9yZW1vdmVfcmVzb3VyY2UoKSwgdW5sZXNzIHdlIGNoYW5nZSB0byBleHBvcnQg
-dGhlbQo+ID4gZGlyZWN0bHkuwqDCoFNpbmNlIHdlIG5lZWQgdG8gZXhwb3J0ICJzb21ldGhpbmci
-LCBJIHRoaW5rIGl0IGlzIGJldHRlciB0bwo+ID4gZXhwb3J0IHRoZWlyIGRldm0gaW50ZXJmYWNl
-cy4KPiAKPiBTbyBJJ20gY29taW5nIGZyb20gdGhlIGJhY2tncm91bmQgdGhhdAo+IAo+IMKgKGEp
-IGxlc3MgY29kZSBpcyBiZXR0ZXIKPiAKPiDCoChiKSB0aGUgImRldm1fIiBpbnRlcmZhY2UgbWF5
-IGJlIGNvbnZlbmllbnQsIGJ1dCBpdCBoYXMgYWxzbwo+IHRyYWRpdGlvbmFsbHkgYWxzbyBiZWVu
-IGEgY2F1c2Ugb2YgcHJvYmxlbXMgYW5kIGxpbWl0YXRpb25zLgo+IAo+IE5vdywgdGhlIG1haW4g
-cHJvYmxlbXMgd2l0aCB0aGUgZGV2bSBpbnRlcmZhY2UgaGFzIGJlZW4gZWl0aGVyCj4gb3JkZXJp
-bmcgKHdoaWNoIGp1c3QgaXNuJ3QgYW4gaXNzdWUgd2l0aCByZXNvdXJjZSBhbGxvY2F0aW9uIC0g
-aXQncwo+IGJlZW4gYW4gaXNzdWUgd2l0aCBpcnFzKSBvciB0aGUgZmFjdCB0aGF0IGl0IGNhbid0
-IGFsd2F5cyBiZSB1c2VkIGlmCj4geW91J3JlIG5vdCBpbiB0aGUgcmlnaHQgY29udGV4dC4gU28g
-aXQncyAiY29udmVuaWVudCBidXQgcG90ZW50aWFsbHkKPiBpbmZsZXhpYmxlIi4KPiAKPiBBbmQg
-dGhlIHRoaW5nIGlzLCBJIHRoaW5rIGNvbnZlbmllbmNlIGZ1bmN0aW9ucyBtYWlubHkgbWFrZSBz
-ZW5zZSBmb3IKPiBwbGFjZXMgd2hlcmUgdGhlcmUgYXJlIG11bHRpcGxlIHVzZXJzLiBJZiB0aGVy
-ZSByZWFsbHkgaXMganVzdCBvbmUgb3IKPiB0d28gKG51bWJlciBjb21wbGV0ZWx5IHB1bGxlZCBv
-dXQgb2YgbXkgYXNzKSwgSSBkb24ndCBzZWUgdGhlIHBvaW50IG9mCj4gYSAiY29udmVuaWVuY2Ui
-IGZ1bmN0aW9uLCB3aGVuIHdlJ3ZlIGhhZCB0aGUgbWFpbiBhY3R1YWwgX2NvZGVfCj4gZnVuY3Rp
-b25hbGl0eSBmb3Igb3ZlciBhIGRlY2FkZS4KPiAKPiBTbyB1bmxlc3MgdGhlcmUgYXJlIG1vcmUg
-dXNlcnMsIEknZCBzdWdnZXN0IGp1c3QgZXhwb3J0aW5nIHRoZQo+IGluc2VydF9yZXNvdXJjZSBm
-dW5jdGlvbi4KPiAKPiBXZSBhbHJlYWR5IGV4cG9ydCBhbGxvY2F0ZV9yZXNvdXJjZSBhbmQgYWRq
-dXN0X3Jlc291cmNlLgo+IAo+IE5vdywgdGhlIF9vbmVfIGFyZ3VtZW50IGZvciBkZXZtX2luc2Vy
-dF9yZXNvdXJjZSgpIGlzIHRoYXQgd2UgZG8gaGF2ZQo+ICJkZXZtX3JlcXVlc3RfcmVzb3VyY2Uo
-KSIuCj4gCj4gQnV0IHF1aXRlIGZyYW5rbHksIGp1c3QgY291bnRpbmcgdGhlIG51bWJlciBvZiBk
-ZXZtX3JlcXVlc3RfcmVzb3VyY2UoKQo+IGNhbGxzIHdlYWtlbnMgdGhhdCBhcmd1bWVudC4gVGhl
-cmUncyA3IGNhbGxlcnMgaW4gdGhlIHdob2xlIGtlcm5lbC4KPiBUaGUgcmVndWxhciAicmVxdWVz
-dF9yZXNvdXJjZSgpIiBoYXMgMjAwKyBjYWxsZXJzLgo+IAo+IFRoYXQgbWF5IGJlIGR1ZSB0byBo
-aXN0b3JpY2FsIHJlYXNvbnMsIGJ1dCBpdCBtYXkgYWxzbyBiZSBhdCBsZWFzdAo+IHBhcnRpYWxs
-eSBkdWUgdG8gKGIpIGFib3ZlIC0gdGhlcmUgYXJlIGEgbnVtYmVyIG9mIGNhc2VzIHdoZXJlIHRo
-ZQo+ICJkZXZtX3h5eigpIiBtb2RlbCBkb2Vzbid0IHdvcmsgd2VsbC4KPiAKPiBTbyBJIHRoaW5r
-IHdlIHNob3VsZCBzZWUgdGhlICJkZXZtX3h5eigpIiBmb3JtcyBhcyBiZWluZyBhICJsZXQncyBt
-YWtlCj4gdGhpbmdzIGVhc3kgZm9yIGRyaXZlciB3cml0ZXJzIi4gSSBkbyBfbm90XyB0aGluayBp
-dCBtYWtlcyBzZW5zZSBmb3IKPiBvbmUtb2ZmIHVzZXJzLgo+IAo+IE5vdywgaWYgaXQgdHVybnMg
-b3V0IHRoYXQgdGhlcmUgYXJlIGxvdHMgb2Ygb3RoZXIgcG90ZW50aWFsIHVzZXJzIG9mCj4gZGV2
-bV9pbnNlcnRfcmVzb3VyY2UoKSwgdGhhdCB3b3VsZCBtYWtzIGFsbCBvZiBteSBhcmd1bWVudHMg
-Z28gYXdheS4KCkkgYWdyZWUgdGhhdCB0aGVyZSB3b24ndCBiZSBtYW55IHVzZXJzIG9mIGRldm1f
-aW5zZXJ0X3Jlc291cmNlKCkuIMKgU28sIEkgYW0KZ29pbmcgdG8gZXhwb3J0IGluc2VydF9yZXNv
-dXJjZSgpIGFuZCByZW1vdmVfcmVzb3VyY2UoKSBhcyB5b3Ugc3VnZ2VzdGVkLAphbmQgbGV0IHRo
-ZSBORklUIGRyaXZlciB0byBjYWxsIHRoZW0gdXNpbmcgZGV2bV9hZGRfYWN0aW9uKCkgYXMgYSBv
-bmUtb2ZmCnNvbHV0aW9uLgoKVGhhbmtzIQotVG9zaGkKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1u
-dmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8v
-bGludXgtbnZkaW1tCg==
+On Tue, Mar 8, 2016 at 4:04 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
+>
+> Yes, I prefer the devm semantics.  insert_resource() and remove_resource()
+> are not exported interfaces.  So, with devm_add_action(), we still need to
+> introduce built-in exported wrappers for insert/remove_resource(), unless
+> we change to export them directly.  Since we need to export "something", I
+> think it is better to export their devm interfaces.
+
+So I'm coming from the background that
+
+ (a) less code is better
+
+ (b) the "devm_" interface may be convenient, but it has also
+traditionally also been a cause of problems and limitations.
+
+Now, the main problems with the devm interface has been either
+ordering (which just isn't an issue with resource allocation - it's
+been an issue with irqs) or the fact that it can't always be used if
+you're not in the right context. So it's "convenient but potentially
+inflexible".
+
+And the thing is, I think convenience functions mainly make sense for
+places where there are multiple users. If there really is just one or
+two (number completely pulled out of my ass), I don't see the point of
+a "convenience" function, when we've had the main actual _code_
+functionality for over a decade.
+
+So unless there are more users, I'd suggest just exporting the
+insert_resource function.
+
+We already export allocate_resource and adjust_resource.
+
+Now, the _one_ argument for devm_insert_resource() is that we do have
+"devm_request_resource()".
+
+But quite frankly, just counting the number of devm_request_resource()
+calls weakens that argument. There's 7 callers in the whole kernel.
+The regular "request_resource()" has 200+ callers.
+
+That may be due to historical reasons, but it may also be at least
+partially due to (b) above - there are a number of cases where the
+"devm_xyz()" model doesn't work well.
+
+So I think we should see the "devm_xyz()" forms as being a "let's make
+things easy for driver writers". I do _not_ think it makes sense for
+one-off users.
+
+Now, if it turns out that there are lots of other potential users of
+devm_insert_resource(), that would maks all of my arguments go away.
+
+             Linus
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
