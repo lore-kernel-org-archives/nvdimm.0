@@ -1,21 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-wm0-x244.google.com (mail-wm0-x244.google.com
- [IPv6:2a00:1450:400c:c09::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 283671A1E91
- for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 09:33:25 -0800 (PST)
-Received: by mail-wm0-x244.google.com with SMTP id l68so5431880wml.3
- for <linux-nvdimm@lists.01.org>; Tue, 08 Mar 2016 09:33:11 -0800 (PST)
-Date: Tue, 8 Mar 2016 18:33:07 +0100
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2-UPDATE2 3/4] resource: Add device-managed
+Received: from g4t3426.houston.hp.com (g4t3426.houston.hp.com [15.201.208.54])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 73A0D1A1EBF
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 09:16:29 -0800 (PST)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v2-UPDATE2 3/4] resource: Add device-managed
  insert/remove_resource()
-Message-ID: <20160308173307.GB3017@gmail.com>
-References: <1457460530-17959-1-git-send-email-toshi.kani@hpe.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1457460530-17959-1-git-send-email-toshi.kani@hpe.com>
+Date: Tue,  8 Mar 2016 11:08:50 -0700
+Message-Id: <1457460530-17959-1-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,35 +16,136 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: linux-nvdimm@lists.01.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, bp@suse.de, akpm@linux-foundation.org
+To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+insert_resource() and remove_resouce() are called by producers
+of resources, such as FW modules and bus drivers.  These modules
+may be implemented as loadable modules.
 
-* Toshi Kani <toshi.kani@hpe.com> wrote:
+Add device-managed implementaions of insert_resource() and
+remove_resouce() functions.
 
-> insert_resource() and remove_resouce() are called by producers
-> of resources, such as FW modules and bus drivers.  These modules
-> may be implemented as loadable modules.
-> 
-> Add device-managed implementaions of insert_resource() and
-> remove_resouce() functions.
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> Cc: Ingo Molnar <mingo@kernel.org>
-> Cc: Borislav Petkov <bp@suse.de>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+---
+v2-UPDATE2:
+ - Update per Ingo's review comments; use ret, use WARN_ON_ONCE().
+v2-UPDATE:
+ - Rename a helper remove func to __devm_remove_resource(). (Dan Williams)
+---
+ include/linux/ioport.h |    5 +++
+ kernel/resource.c      |   72 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 77 insertions(+)
 
-Acked-by: Ingo Molnar <mingo@kernel.org>
-
-Thanks,
-
-	Ingo
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 8017b8b..3580038 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -259,6 +259,11 @@ extern struct resource * __devm_request_region(struct device *dev,
+ 
+ extern void __devm_release_region(struct device *dev, struct resource *parent,
+ 				  resource_size_t start, resource_size_t n);
++
++extern int devm_insert_resource(struct device *dev, struct resource *root,
++				 struct resource *new);
++extern void devm_remove_resource(struct device *dev, struct resource *old);
++
+ extern int iomem_map_sanity_check(resource_size_t addr, unsigned long size);
+ extern int iomem_is_exclusive(u64 addr);
+ 
+diff --git a/kernel/resource.c b/kernel/resource.c
+index effb6ee..86fdd28 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -1449,6 +1449,78 @@ void __devm_release_region(struct device *dev, struct resource *parent,
+ EXPORT_SYMBOL(__devm_release_region);
+ 
+ /*
++ * Helper remove function for devm_insert_resource() and devm_remove_resource()
++ */
++static void __devm_remove_resource(struct device *dev, void *ptr)
++{
++	struct resource **r = ptr;
++
++	remove_resource(*r);
++}
++
++/**
++ * devm_insert_resource() - insert an I/O or memory resource
++ * @dev: device for which to produce the resource
++ * @root: root of the resource tree
++ * @new: descriptor of the new resource
++ *
++ * This is a device-managed version of insert_resource(). There is usually
++ * no need to release resources requested by this function explicitly, since
++ * that will be taken care of when the device is unbound from its bus driver.
++ * If for some reason the resource needs to be released explicitly, because
++ * of ordering issues for example, bus drivers must call devm_remove_resource()
++ * rather than the regular remove_resource().
++ *
++ * devm_insert_resource() is intended for producers of resources, such as
++ * FW modules and bus drivers.
++ *
++ * Returns 0 on success or a negative error code on failure.
++ */
++int devm_insert_resource(struct device *dev, struct resource *root,
++			  struct resource *new)
++{
++	struct resource **ptr;
++	int ret;
++
++	ptr = devres_alloc(__devm_remove_resource, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr)
++		return -ENOMEM;
++
++	*ptr = new;
++
++	ret = insert_resource(root, new);
++	if (ret) {
++		dev_err(dev, "unable to insert resource: %pR (%d)\n", new, ret);
++		devres_free(ptr);
++		return ret;
++	}
++
++	devres_add(dev, ptr);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(devm_insert_resource);
++
++/**
++ * devm_remove_resource() - remove a previously inserted resource
++ * @dev: device for which to remove the resource
++ * @old: descriptor of the resource
++ *
++ * Remove a resource previously inserted using devm_insert_resource().
++ *
++ * devm_remove_resource() is intended for producers of resources, such as
++ * FW modules and bus drivers.
++ */
++void devm_remove_resource(struct device *dev, struct resource *old)
++{
++	int ret;
++
++	ret = devres_release(dev, __devm_remove_resource,
++			     devm_resource_match, old);
++	WARN_ON_ONCE(ret);
++}
++EXPORT_SYMBOL_GPL(devm_remove_resource);
++
++/*
+  * Called from init/main.c to reserve IO ports.
+  */
+ #define MAXRESERVE 4
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
