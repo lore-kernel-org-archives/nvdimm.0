@@ -1,15 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9EF7C1A1FC3
- for <linux-nvdimm@lists.01.org>; Mon, 21 Mar 2016 06:22:54 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 04/10] dax: Fix data corruption for written and mmapped files
-Date: Mon, 21 Mar 2016 14:22:49 +0100
-Message-Id: <1458566575-28063-5-git-send-email-jack@suse.cz>
-In-Reply-To: <1458566575-28063-1-git-send-email-jack@suse.cz>
-References: <1458566575-28063-1-git-send-email-jack@suse.cz>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id B3E3A1A1EC9
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 14:58:54 -0800 (PST)
+Subject: [PATCH] x86, pmem: use memcpy_mcsafe() for memcpy_from_pmem()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 08 Mar 2016 14:58:14 -0800
+Message-ID: <20160308225750.17292.87254.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,64 +14,112 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
+To: linux-nvdimm@lists.01.org
+Cc: Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a fault to a hole races with write filling the hole, it can happen
-that block zeroing in __dax_fault() overwrites the data copied by write.
-Since filesystem is supposed to provide pre-zeroed blocks for fault
-anyway, just remove the racy zeroing from dax code. The only catch is
-with read-faults over unwritten block where __dax_fault() filled in the
-block into page tables anyway. For that case we have to fall back to
-using hole page now.
+Update the definition of memcpy_from_pmem() to return 0 or -EIO on
+error.  Implement x86::arch_memcpy_from_pmem() with memcpy_mcsafe().
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+Note that this patch is built on a merge of tip/ras/core, tip/x86/asm, and
+nvdimm/for-4.6/acpi6.1 for the following reasons (respectively):
 
-diff --git a/fs/dax.c b/fs/dax.c
-index d496466652cd..50d81172438b 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -582,11 +582,6 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 		error = PTR_ERR(dax.addr);
- 		goto out;
- 	}
--
--	if (buffer_unwritten(bh) || buffer_new(bh)) {
--		clear_pmem(dax.addr, PAGE_SIZE);
--		wmb_pmem();
--	}
- 	dax_unmap_atomic(bdev, &dax);
+1/ memcpy_mcsafe() itself
+
+2/ X86_FEATURE_MCE_RECOVERY cpu capability
+
+3/ merge with the new 'clear poison' implementation:
+   https://lists.01.org/pipermail/linux-nvdimm/2016-March/004826.html
+
+ arch/x86/include/asm/pmem.h |    9 +++++++++
+ drivers/nvdimm/pmem.c       |    4 ++--
+ include/linux/pmem.h        |   14 ++++++++------
+ 3 files changed, 19 insertions(+), 8 deletions(-)
+
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index bf8b35d2035a..4df3820535c6 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -47,6 +47,15 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+ 		BUG();
+ }
  
- 	error = dax_radix_entry(mapping, vmf->pgoff, dax.sector, false,
-@@ -665,7 +660,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	if (error)
- 		goto unlock_page;
- 
--	if (!buffer_mapped(&bh) && !buffer_unwritten(&bh) && !vmf->cow_page) {
-+	if (!buffer_mapped(&bh) && !vmf->cow_page) {
- 		if (vmf->flags & FAULT_FLAG_WRITE) {
- 			error = get_block(inode, block, &bh, 1);
- 			count_vm_event(PGMAJFAULT);
-@@ -950,8 +945,6 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
++static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
++		size_t n)
++{
++	if (static_cpu_has(X86_FEATURE_MCE_RECOVERY))
++		return memcpy_mcsafe(dst, (void __force *) src, n) ? 0 : -EIO;
++	memcpy(dst, (void __force *) src, n);
++	return 0;
++}
++
+ /**
+  * arch_wmb_pmem - synchronize writes to persistent memory
+  *
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index adc387236fe7..2022d08c60ce 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -98,7 +98,7 @@ static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ 		if (unlikely(bad_pmem))
+ 			rc = -EIO;
+ 		else {
+-			memcpy_from_pmem(mem + off, pmem_addr, len);
++			rc = memcpy_from_pmem(mem + off, pmem_addr, len);
+ 			flush_dcache_page(page);
  		}
+ 	} else {
+@@ -295,7 +295,7 @@ static int pmem_rw_bytes(struct nd_namespace_common *ndns,
  
- 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
--			clear_pmem(dax.addr, PMD_SIZE);
--			wmb_pmem();
- 			count_vm_event(PGMAJFAULT);
- 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
- 			result |= VM_FAULT_MAJOR;
--- 
-2.6.2
+ 		if (unlikely(is_bad_pmem(&pmem->bb, offset / 512, sz_align)))
+ 			return -EIO;
+-		memcpy_from_pmem(buf, pmem->virt_addr + offset, size);
++		return memcpy_from_pmem(buf, pmem->virt_addr + offset, size);
+ 	} else {
+ 		memcpy_to_pmem(pmem->virt_addr + offset, buf, size);
+ 		wmb_pmem();
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 3ec5309e29f3..c46c5cf6538e 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -66,14 +66,16 @@ static inline void arch_invalidate_pmem(void __pmem *addr, size_t size)
+ #endif
+ 
+ /*
+- * Architectures that define ARCH_HAS_PMEM_API must provide
+- * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(),
+- * arch_copy_from_iter_pmem(), arch_clear_pmem(), arch_wb_cache_pmem()
+- * and arch_has_wmb_pmem().
++ * memcpy_from_pmem - read from persistent memory with error handling
++ * @dst: destination buffer
++ * @src: source buffer
++ *
++ * Returns 0 on success -EIO on failure.
+  */
+-static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
++static inline int memcpy_from_pmem(void *dst, void __pmem const *src,
++		size_t size)
+ {
+-	memcpy(dst, (void __force const *) src, size);
++	return arch_memcpy_from_pmem(dst, src, size);
+ }
+ 
+ static inline bool arch_has_pmem_api(void)
 
 _______________________________________________
 Linux-nvdimm mailing list
