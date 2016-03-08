@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id D0F501A1E05
- for <linux-nvdimm@lists.01.org>; Fri,  4 Mar 2016 17:08:03 -0800 (PST)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm, nfit: fix for 4.5-rc7
-Date: Sat, 5 Mar 2016 01:07:51 +0000
-Message-ID: <1457140067.17242.11.camel@intel.com>
-Content-Language: en-US
-Content-ID: <6F184B1EDD20654388FB444C71D8DB15@intel.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 580CB1A1F45
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 15:37:34 -0800 (PST)
+Subject: [ndctl PATCH 5/8] ndctl create-namespace: fall back to blk if no pmem
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 08 Mar 2016 15:36:54 -0800
+Message-ID: <20160308233654.18628.7830.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
+References: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,73 +16,140 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgorQUtBIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
-Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4u
-dG8gcmVjZWl2ZSBvbmUgc3RyYWdnbGluZyBmaXggZm9yIE5WRElNTSBzdXBwb3J0LgoKVGhlIEtW
-TS9RRU1VIGVuYWJsaW5nIGZvciBOVkRJTU1zIGhhcyByZWNlbnRseSByZWFjaGVkIHRoZSBwb2lu
-dCB3aGVyZQppdCBpcyBhYmxlIHRvIGFjY2VwdCBzb21lIEFDUEkgX0RTTSByZXF1ZXN0cyBmcm9t
-IGEgZ3Vlc3QgVk0uICtBS0EtSG93ZXZlcgp0aGV5IGltbWVkaWF0ZWx5IGZvdW5kIHRoYXQgdGhl
-IDQuNS1yYyBrZXJuZWwgaXMgdW51c2FibGUgYmVjYXVzZSB0aGUKa2VybmVsJ3MgJ25maXQnIGRy
-aXZlciBmYWlscyB0byBsb2FkIHVwb24gc2VlaW5nIGEgdmFsaWQgIm5vdApzdXBwb3J0ZWQiIHJl
-c3BvbnNlIGZyb20gdGhlIHZpcnR1YWwgQklPUyBmb3IgYW4gYWRkcmVzcyByYW5nZSBzY3J1Ygpj
-b21tYW5kLgoKSXQgaXMgbm90IG1hbmRhdG9yeSB0aGF0IGEgcGxhdGZvcm0gaW1wbGVtZW50IGFk
-ZHJlc3MgcmFuZ2Ugc2NydWJiaW5nLApzbyB0aGlzIGZpeCBmcm9tIFZpc2hhbCBwcm9wZXJseSB0
-cmVhdHMgdGhlICJub3Qgc3VwcG9ydGVkIiByZXNwb25zZSBhcwoic2tpcCBzY3J1YmJpbmcgYW5k
-IGNvbnRpbnVlIGxvYWRpbmcgdGhlIGRyaXZlciIuCgpUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2lu
-Y2UgY29tbWl0IGZjNzdkYmQzNGM1Yzk5YmNlNDZkNDBhMjQ5MTkzN2MzYmNiZDEwYWY6CgorQUtB
-IExpbnV4IDQuNS1yYzYgKDIwMTYtMDItMjggMDg6NDE6MjAgLTA4MDApCgphcmUgYXZhaWxhYmxl
-IGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoKCitBS0EgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHVi
-L3NjbS9saW51eC9rZXJuZWwvZ2l0L252ZGltbS9udmRpbW0gbGlibnZkaW1tLWZpeGVzCgpmb3Ig
-eW91IHRvIGZldGNoIGNoYW5nZXMgdXAgdG8gNmUyNDUyZGZmNDQ0MWUzZGMyNGQ0MTVjOGIyY2Rh
-OGEzYmE1MjExNjoKCitBS0EgbmZpdDogQ29udGludWUgaW5pdCBldmVuIGlmIEFSUyBjb21tYW5k
-cyBhcmUgdW5pbXBsZW1lbnRlZCAoMjAxNi0wMy0wNCAxNjo0NjoxMyAtMDgwMCkKCi0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
-VmlzaGFsIFZlcm1hICgxKToKK0FLQUFvQUNnQUtBQW9BQ2ctbmZpdDogQ29udGludWUgaW5pdCBl
-dmVuIGlmIEFSUyBjb21tYW5kcyBhcmUgdW5pbXBsZW1lbnRlZAoKK0FLQS1kcml2ZXJzL2FjcGkv
-bmZpdC5jIHwgMTUgKy0rLSstKy0rLSstKy0rLSstKy0rLS0tLS0KK0FLQS0xIGZpbGUgY2hhbmdl
-ZCwgMTEgaW5zZXJ0aW9ucygrLSksIDQgZGVsZXRpb25zKC0pCgpjb21taXQgNmUyNDUyZGZmNDQ0
-MWUzZGMyNGQ0MTVjOGIyY2RhOGEzYmE1MjExNgpBdXRob3I6IFZpc2hhbCBWZXJtYSA8dmlzaGFs
-LmwudmVybWFAaW50ZWwuY29tPgpEYXRlOitBS0FBb0FDZy1UaHUgTWFyIDMgMTU6Mzk6NDEgMjAx
-NiAtMDcwMAoKK0FLQUFvQUNnQUtBLW5maXQ6IENvbnRpbnVlIGluaXQgZXZlbiBpZiBBUlMgY29t
-bWFuZHMgYXJlIHVuaW1wbGVtZW50ZWQKK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FLQS1JZiBmaXJt
-d2FyZSBkb2Vzbid0IGltcGxlbWVudCBhbnkgb2YgdGhlIEFSUyBjb21tYW5kcywgdGFrZSB0aGF0
-IHRvCitBS0FBb0FDZ0FLQS1tZWFuIHRoYXQgQVJTIGlzIHVuc3VwcG9ydGVkLCBhbmQgY29udGlu
-dWUgdG8gaW5pdGlhbGl6ZSByZWdpb25zIHdpdGhvdXQKK0FLQUFvQUNnQUtBLWJhZCBibG9jayBs
-aXN0cy4gV2UgY2Fubm90IG1ha2UgdGhlIGFzc3VtcHRpb24gdGhhdCBBUlMgY29tbWFuZHMgd2ls
-bCBiZQorQUtBQW9BQ2dBS0EtdW5jb25kaXRpb25hbGx5IHN1cHBvcnRlZCBvbiBhbGwgTlZESU1N
-cy4KK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FLQS1SZXBvcnRlZC1ieTogSGFvemhvbmcgWmhhbmcg
-PGhhb3pob25nLnpoYW5nQGludGVsLmNvbT4KK0FLQUFvQUNnQUtBLVNpZ25lZC1vZmYtYnk6IFZp
-c2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPgorQUtBQW9BQ2dBS0EtQWNrZWQt
-Ynk6IFhpYW8gR3Vhbmdyb25nIDxndWFuZ3JvbmcueGlhb0BsaW51eC5pbnRlbC5jb20+CitBS0FB
-b0FDZ0FLQS1UZXN0ZWQtYnk6IEhhb3pob25nIFpoYW5nIDxoYW96aG9uZy56aGFuZ0BpbnRlbC5j
-b20+CitBS0FBb0FDZ0FLQS1TaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxp
-YW1zQGludGVsLmNvbT4KCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVy
-cy9hY3BpL25maXQuYwppbmRleCBmYjUzZGIxODc4NTQuLjM1OTQ3YWM4NzY0NCAxMDA2NDQKLS0t
-IGEvZHJpdmVycy9hY3BpL25maXQuYworLSstKy0gYi9kcml2ZXJzL2FjcGkvbmZpdC5jCkBAIC0x
-NTkwLDE0ICstMTU5MCwyMSBAQCBzdGF0aWMgaW50IGFjcGlfbmZpdF9maW5kX3BvaXNvbihzdHJ1
-Y3QgYWNwaV9uZml0X2Rlc2MgKmFjcGlfZGVzYywKK0FLQQlzdGFydCA9IG5kcl9kZXNjLT5yZXMt
-PnN0YXJ0OworQUtBCWxlbiA9IG5kcl9kZXNjLT5yZXMtPmVuZCAtIG5kcl9kZXNjLT5yZXMtPnN0
-YXJ0ICstIDE7CitBS0EKKy0JLyoKKy0JK0FLQSogSWYgQVJTIGlzIHVuaW1wbGVtZW50ZWQsIHVu
-c3VwcG9ydGVkLCBvciBpZiB0aGUgJ1BlcnNpc3RlbnQgTWVtb3J5CistCStBS0EqIFNjcnViJyBm
-bGFnIGluIGV4dGVuZGVkIHN0YXR1cyBpcyBub3Qgc2V0LCBza2lwIHRoaXMgYnV0IGNvbnRpbnVl
-CistCStBS0EqIGluaXRpYWxpemF0aW9uCistCStBS0EqLworQUtBCXJjID0gYXJzX2dldF9jYXAo
-bmRfZGVzYywgYXJzX2NhcCwgc3RhcnQsIGxlbik7CistCWlmIChyYyA9PSAtRU5PVFRZKSB7Cist
-CQlkZXZfZGJnKGFjcGlfZGVzYy0+ZGV2LAorLQkJCSJBZGRyZXNzIFJhbmdlIFNjcnViIGlzIG5v
-dCBpbXBsZW1lbnRlZCwgd29uJ3QgY3JlYXRlIGFuIGVycm9yIGxpc3QrQUZ3LW4iKTsKKy0JCXJj
-ID0gMDsKKy0JCWdvdG8gb3V0OworLQl9CitBS0EJaWYgKHJjKQorQUtBCQlnb3RvIG91dDsKK0FL
-QQotCS8qCi0JK0FLQSogSWYgQVJTIGlzIHVuc3VwcG9ydGVkLCBvciBpZiB0aGUgJ1BlcnNpc3Rl
-bnQgTWVtb3J5IFNjcnViJyBmbGFnIGluCi0JK0FLQSogZXh0ZW5kZWQgc3RhdHVzIGlzIG5vdCBz
-ZXQsIHNraXAgdGhpcyBidXQgY29udGludWUgaW5pdGlhbGl6YXRpb24KLQkrQUtBKi8KK0FLQQlp
-ZiAoKGFyc19jYXAtPnN0YXR1cyAmIDB4ZmZmZikgfHwKK0FLQQkJIShhcnNfY2FwLT5zdGF0dXMg
-Pj4gMTYgJiBORF9BUlNfUEVSU0lTVEVOVCkpIHsKK0FLQQkJZGV2X3dhcm4oYWNwaV9kZXNjLT5k
-ZXYsCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
-LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
-c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Arrange for ndctl create-namespace to search for blk capacity by
+default.  This supports a use case of calling 'ndctl create-namespace'
+with no options until it returns an error to allocate all the persistent
+memory capacity in a system.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ builtin-xaction-namespace.c |   68 ++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 51 insertions(+), 17 deletions(-)
+
+diff --git a/builtin-xaction-namespace.c b/builtin-xaction-namespace.c
+index 28999b3f8311..d83ad91a7258 100644
+--- a/builtin-xaction-namespace.c
++++ b/builtin-xaction-namespace.c
+@@ -37,6 +37,7 @@
+ static bool verbose;
+ static bool force;
+ static struct parameters {
++	bool do_scan;
+ 	const char *bus;
+ 	const char *map;
+ 	const char *type;
+@@ -109,21 +110,9 @@ enum namespace_action {
+ 	ACTION_CREATE,
+ };
+ 
+-/*
+- * parse_namespace_options - basic parsing sanity checks before we start
+- * looking at actual namespace devices and available resources.
+- */
+-static const char *parse_namespace_options(int argc, const char **argv,
+-		enum namespace_action mode, const struct option *options,
+-		char *xable_usage)
++static int set_defaults(void)
+ {
+-	const char * const u[] = {
+-		xable_usage,
+-		NULL
+-	};
+-	int i, rc = 0;
+-
+-        argc = parse_options(argc, argv, options, u, 0);
++	int rc = 0;
+ 
+ 	if (param.type) {
+ 		if (strcmp(param.type, "pmem") == 0)
+@@ -211,6 +200,28 @@ static const char *parse_namespace_options(int argc, const char **argv,
+ 	} else if (!param.reconfig)
+ 		param.sector_size = "4096";
+ 
++	return rc;
++}
++
++/*
++ * parse_namespace_options - basic parsing sanity checks before we start
++ * looking at actual namespace devices and available resources.
++ */
++static const char *parse_namespace_options(int argc, const char **argv,
++		enum namespace_action mode, const struct option *options,
++		char *xable_usage)
++{
++	const char * const u[] = {
++		xable_usage,
++		NULL
++	};
++	int i, rc = 0;
++
++	param.do_scan = argc == 1;
++        argc = parse_options(argc, argv, options, u, 0);
++
++	rc = set_defaults();
++
+ 	if (argc == 0 && mode != ACTION_CREATE) {
+ 		error("specify a namespace to %s, or \"all\"\n",
+ 				mode == ACTION_ENABLE ? "enable" : "disable");
+@@ -603,6 +614,8 @@ static int do_xaction_namespace(const char *namespace,
+ 					rc = 0;
+ 					continue;
+ 				}
++				if (rc == 0)
++					rc = 1;
+ 				goto done;
+ 			}
+ 			ndctl_namespace_foreach(region, ndns) {
+@@ -619,7 +632,11 @@ static int do_xaction_namespace(const char *namespace,
+ 					rc = ndctl_namespace_enable(ndns);
+ 					break;
+ 				case ACTION_CREATE:
+-					return namespace_reconfig(region, ndns);
++					rc = namespace_reconfig(region, ndns);
++					if (rc < 0)
++						goto done;
++					rc = 1;
++					goto done;
+ 				}
+ 				if (rc >= 0)
+ 					success++;
+@@ -682,8 +699,25 @@ int cmd_create_namespace(int argc, const char **argv)
+ 			ACTION_CREATE, create_options, xable_usage);
+ 	int created = do_xaction_namespace(namespace, ACTION_CREATE);
+ 
+-	if (created < 0)
++	if (created < 1 && param.do_scan) {
++		/*
++		 * In the default scan case we try pmem first and then
++		 * fallback to blk before giving up.
++		 */
++		memset(&param, 0, sizeof(param));
++		param.type = "blk";
++		set_defaults();
++		created = do_xaction_namespace(NULL, ACTION_CREATE);
++	}
++
++	if (created < 0 || (!namespace && created < 1)) {
+ 		fprintf(stderr, "failed to %s namespace\n", namespace
+ 				? "reconfigure" : "create");
+-	return created;
++		if (!namespace)
++			created = -ENODEV;
++	}
++
++	if (created < 0)
++		return created;
++	return 0;
+ }
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
