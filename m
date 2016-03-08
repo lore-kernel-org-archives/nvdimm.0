@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 936431A1F81
- for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:13:23 -0800 (PST)
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH 1/3] pfn_t: Change the encoding
-Date: Fri, 11 Mar 2016 16:13:02 -0500
-Message-Id: <1457730784-9890-2-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1457730784-9890-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1457730784-9890-1-git-send-email-matthew.r.wilcox@intel.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id B45131A1F4F
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 15:37:49 -0800 (PST)
+Subject: [ndctl PATCH 8/8] ndctl: test clear poison
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 08 Mar 2016 15:37:09 -0800
+Message-ID: <20160308233709.18628.37210.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
+References: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,97 +16,114 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-By moving the flag bits to the bottom, we encourage commonality
-between SGs with pages and those using pfn_t.  We can also then insert
-a pfn_t into a radix tree, as it uses the same two bits for indirect &
-exceptional indicators.
+Now that nfit_test arranges for poison to be injected into the middle of
+pmem ranges, add the following tests:
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+1/ Expect errors to be present and cause I/O failures
+
+2/ Expect writes to those sectors to clear poison
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/pfn_t.h | 41 ++++++++++++++++++++++++++++++-----------
- 1 file changed, 30 insertions(+), 11 deletions(-)
+ Makefile.am   |    3 ++-
+ test/clear.sh |   67 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 69 insertions(+), 1 deletion(-)
+ create mode 100755 test/clear.sh
 
-diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
-index 9499481..37c596c 100644
---- a/include/linux/pfn_t.h
-+++ b/include/linux/pfn_t.h
-@@ -8,16 +8,34 @@
-  * PFN_SG_LAST - pfn references a page and is the last scatterlist entry
-  * PFN_DEV - pfn is not covered by system memmap by default
-  * PFN_MAP - pfn has a dynamic page mapping established by a device driver
-+ *
-+ * Note that the bottom two bits in the pfn_t match the bottom two bits in the
-+ * scatterlist so sg_is_chain() and sg_is_last() work.  These bits are also
-+ * used by the radix tree for its own purposes, but a PFN cannot be in both a
-+ * radix tree and a scatterlist simultaneously.  If a PFN is moved between the
-+ * two usages, care should be taken to clear/set these bits appropriately.
-  */
--#define PFN_FLAGS_MASK (((u64) ~PAGE_MASK) << (BITS_PER_LONG_LONG - PAGE_SHIFT))
--#define PFN_SG_CHAIN (1ULL << (BITS_PER_LONG_LONG - 1))
--#define PFN_SG_LAST (1ULL << (BITS_PER_LONG_LONG - 2))
--#define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
--#define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
-+#define PFN_FLAG_BITS	4
-+#define PFN_FLAGS_MASK	((1 << PFN_FLAG_BITS) - 1)
-+#define __PFN_MAX	((1 << (BITS_PER_LONG - PFN_FLAG_BITS)) - 1)
-+#define PFN_SG_CHAIN	0x01UL
-+#define PFN_SG_LAST	0x02UL
-+#define PFN_SG_MASK	(PFN_SG_CHAIN | PFN_SG_LAST)
-+#define PFN_DEV		0x04UL
-+#define PFN_MAP		0x08UL
+diff --git a/Makefile.am b/Makefile.am
+index c8ce3177e5a2..ce97a15c7c0d 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -141,7 +141,8 @@ pkgconfig_DATA = lib/libndctl.pc
+ EXTRA_DIST += lib/libndctl.pc.in
+ CLEANFILES += lib/libndctl.pc
+ 
+-TESTS = test/libndctl test/dpa-alloc test/parent-uuid test/create.sh
++TESTS = test/libndctl test/dpa-alloc test/parent-uuid test/create.sh \
++	test/clear.sh
+ check_PROGRAMS = test/libndctl test/dpa-alloc test/parent-uuid
+ 
+ if ENABLE_DESTRUCTIVE
+diff --git a/test/clear.sh b/test/clear.sh
+new file mode 100755
+index 000000000000..e74522201231
+--- /dev/null
++++ b/test/clear.sh
+@@ -0,0 +1,67 @@
++#!/bin/bash -x
++DEV=""
++NDCTL="./ndctl"
++BUS="-b nfit_test.0"
++BUS1="-b nfit_test.1"
++json2var="s/[{}\",]//g; s/:/=/g"
++rc=77
 +
-+#if 0
-+#define PFN_T_BUG_ON(x)	BUG_ON(x)
-+#else
-+#define PFN_T_BUG_ON(x)	BUILD_BUG_ON_INVALID(x)
-+#endif
- 
- static inline pfn_t __pfn_to_pfn_t(unsigned long pfn, u64 flags)
- {
--	pfn_t pfn_t = { .val = pfn | (flags & PFN_FLAGS_MASK), };
-+	pfn_t pfn_t = { .val = (pfn << PFN_FLAG_BITS) | flags };
++set -e
 +
-+	PFN_T_BUG_ON(pfn & ~__PFN_MAX);
-+	PFN_T_BUG_ON(flags & ~PFN_FLAGS_MASK);
- 
- 	return pfn_t;
- }
-@@ -28,6 +46,12 @@ static inline pfn_t pfn_to_pfn_t(unsigned long pfn)
- 	return __pfn_to_pfn_t(pfn, 0);
- }
- 
-+static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
-+{
-+	unsigned long v = pfn.val;
-+	return v >> PFN_FLAG_BITS;
++err() {
++	echo "test/clear: failed at line $1"
++	exit $rc
 +}
 +
- extern pfn_t phys_to_pfn_t(phys_addr_t addr, u64 flags);
- 
- static inline bool pfn_t_has_page(pfn_t pfn)
-@@ -35,11 +59,6 @@ static inline bool pfn_t_has_page(pfn_t pfn)
- 	return (pfn.val & PFN_MAP) == PFN_MAP || (pfn.val & PFN_DEV) == 0;
- }
- 
--static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
--{
--	return pfn.val & ~PFN_FLAGS_MASK;
--}
--
- static inline struct page *pfn_t_to_page(pfn_t pfn)
- {
- 	if (pfn_t_has_page(pfn))
--- 
-2.7.0
++set -e
++trap 'err $LINENO' ERR
++
++# setup (reset nfit_test dimms)
++modprobe nfit_test
++$NDCTL disable-region $BUS all
++$NDCTL zero-labels $BUS all
++$NDCTL enable-region $BUS all
++
++rc=1
++
++# create pmem
++dev="x"
++json=$($NDCTL create-namespace $BUS -t pmem -m raw)
++eval $(echo $json | sed -e "$json2var")
++[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
++[ $mode != "raw" ] && echo "fail: $LINENO" && exit 1
++
++# check for expected errors in the middle of the namespace
++read sector len < /sys/block/$blockdev/badblocks
++[ $((sector * 2)) -ne $((size /512)) ] && echo "fail: $LINENO" && exit 1
++if dd if=/dev/$blockdev of=/dev/null iflag=direct bs=512 skip=$sector count=$len; then
++	echo "fail: $LINENO" && exit 1
++fi
++
++size_raw=$size
++sector_raw=$sector
++
++# convert pmem to memory mode
++json=$($NDCTL create-namespace -m memory -f -e $dev)
++eval $(echo $json | sed -e "$json2var")
++[ $mode != "memory" ] && echo "fail: $LINENO" && exit 1
++
++# check for errors relative to the offset injected by the pfn device
++read sector len < /sys/block/$blockdev/badblocks
++[ $((sector_raw - sector)) -ne $(((size_raw - size) / 512)) ] && echo "fail: $LINENO" && exit 1
++
++# check that writing clears the errors
++if ! dd of=/dev/$blockdev if=/dev/zero oflag=direct bs=512 seek=$sector count=$len; then
++	echo "fail: $LINENO" && exit 1
++fi
++
++if read sector len < /sys/block/$blockdev/badblocks; then
++	# fail if reading badblocks returns data
++	echo "fail: $LINENO" && exit 1
++fi
++
++$NDCTL disable-region $BUS all
++$NDCTL disable-region $BUS1 all
++modprobe -r nfit_test
++
++exit 0
 
 _______________________________________________
 Linux-nvdimm mailing list
