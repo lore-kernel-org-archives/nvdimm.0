@@ -1,11 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 5CD6B1A1FB8
- for <linux-nvdimm@lists.01.org>; Wed, 30 Mar 2016 18:50:21 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl: SUSE spec file fixups
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id 23BE81A1F36
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 15:37:29 -0800 (PST)
+Subject: [ndctl PATCH 4/8] ndctl: use the pfn trimmed size for memory mode
+ namespaces
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 30 Mar 2016 18:49:13 -0700
-Message-ID: <20160331014913.32880.99267.stgit@dwillia2-desk3.jf.intel.com>
+Date: Tue, 08 Mar 2016 15:36:49 -0800
+Message-ID: <20160308233649.18628.96818.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
+References: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,67 +24,82 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Per recent build.opensuse.org results:
+If the kernel reports the size of the namespace after the memmap
+allocation is removed use that value, otherwise don't emit raw namespace
+size since it is not accurate.
 
-1/ The SLE_12 target still mandates use of %defattr
-
-2/ The SUSE-rpmlint system now enforces license names from
-   https://license.opensuse.org
-
-3/ The libndctl version suffix needs to account for LIBNDCTL_AGE, not
-   just LIBNDCTL_CURRENT.
+For the btt case, the effective size is further constrained by the
+sector geometry, so userspace should just use the block device size.
+Otherwise, the size and base address of the namespace is useful for
+hypervisors that want to establish their own host-physical-address
+mappings for a guest to consume.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Makefile.am   |    6 ++++--
- ndctl.spec.in |    3 +++
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ util/json.c |   24 +++++++++++++++++-------
+ 1 file changed, 17 insertions(+), 7 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 3f7dca3d37e8..7de3d3c3c9eb 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -56,12 +56,14 @@ CLEANFILES += $(noinst_SCRIPTS)
+diff --git a/util/json.c b/util/json.c
+index b9a5e75164d8..288efee723ff 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -1,3 +1,4 @@
++#include <limits.h>
+ #include <util/json.h>
+ #include <uuid/uuid.h>
+ #include <json-c/json.h>
+@@ -76,6 +77,8 @@ bool util_namespace_active(struct ndctl_namespace *ndns)
+ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns)
+ {
+ 	struct json_object *jndns = json_object_new_object();
++	unsigned long long size = ULLONG_MAX;
++	enum ndctl_namespace_mode mode;
+ 	struct json_object *jobj;
+ 	const char *bdev = NULL;
+ 	struct ndctl_btt *btt;
+@@ -91,14 +94,22 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns)
+ 		goto err;
+ 	json_object_object_add(jndns, "dev", jobj);
  
- do_rhel_subst = sed -e 's,VERSION,$(VERSION),g' \
-             -e 's,DNAME,ndctl-devel,g' \
--            -e 's,LNAME,ndctl-libs,g'
-+            -e '/^%defattr.*/d' \
-+	    -e 's,LNAME,ndctl-libs,g'
+-	switch (ndctl_namespace_get_mode(ndns)) {
++	btt = ndctl_namespace_get_btt(ndns);
++	pfn = ndctl_namespace_get_pfn(ndns);
++	mode = ndctl_namespace_get_mode(ndns);
++	switch (mode) {
+ 	case NDCTL_NS_MODE_MEMORY:
++		if (pfn) /* dynamic memory mode */
++			size = ndctl_pfn_get_size(pfn);
++		else /* native/static memory mode */
++			size = ndctl_namespace_get_size(ndns);
+ 		jobj = json_object_new_string("memory");
+ 		break;
+ 	case NDCTL_NS_MODE_SAFE:
+ 		jobj = json_object_new_string("sector");
+ 		break;
+ 	case NDCTL_NS_MODE_RAW:
++		size = ndctl_namespace_get_size(ndns);
+ 		jobj = json_object_new_string("raw");
+ 		break;
+ 	default:
+@@ -107,13 +118,12 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns)
+ 	if (jobj)
+ 		json_object_object_add(jndns, "mode", jobj);
  
- do_sles_subst = sed -e 's,VERSION,$(VERSION),g' \
-             -e 's,DNAME,libndctl-devel,g' \
-             -e 's,%license,%doc,g' \
--            -e 's,LNAME,libndctl$(LIBNDCTL_CURRENT),g'
-+            -e 's,\(^License:.*GPL\)v2,\1-2.0,g' \
-+            -e "s,LNAME,libndctl$$(($(LIBNDCTL_CURRENT) - $(LIBNDCTL_AGE))),g"
+-	jobj = json_object_new_int64(ndctl_namespace_get_size(ndns));
+-	if (!jobj)
+-		goto err;
+-	json_object_object_add(jndns, "size", jobj);
++	if (size < ULLONG_MAX) {
++		jobj = json_object_new_int64(size);
++		if (jobj)
++			json_object_object_add(jndns, "size", jobj);
++	}
  
- rhel/ndctl.spec: ndctl.spec.in Makefile.am
- 	$(AM_V_GEN)$(MKDIR_P) rhel; $(do_rhel_subst) < $< > $@
-diff --git a/ndctl.spec.in b/ndctl.spec.in
-index 6f6e99bd743b..e24b31cc54f0 100644
---- a/ndctl.spec.in
-+++ b/ndctl.spec.in
-@@ -65,16 +65,19 @@ make check
- %postun -n LNAME -p /sbin/ldconfig
- 
- %files
-+%defattr(-,root,root)
- %license licenses/GPLv2 licenses/BSD-MIT licenses/CC0
- %{_bindir}/ndctl
- %{_mandir}/man1/*
- 
- %files -n LNAME
-+%defattr(-,root,root)
- %doc README.md
- %license COPYING licenses/BSD-MIT licenses/CC0
- %{_libdir}/libndctl.so.*
- 
- %files -n DNAME
-+%defattr(-,root,root)
- %license COPYING
- %{_includedir}/ndctl/
- %{_libdir}/libndctl.so
+-	btt = ndctl_namespace_get_btt(ndns);
+-	pfn = ndctl_namespace_get_pfn(ndns);
+ 	if (btt) {
+ 		ndctl_btt_get_uuid(btt, uuid);
+ 		uuid_unparse(uuid, buf);
 
 _______________________________________________
 Linux-nvdimm mailing list
