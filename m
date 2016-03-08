@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 5D4751A1F81
- for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:13:23 -0800 (PST)
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH 2/3] pfn_t: Support for huge PFNs
-Date: Fri, 11 Mar 2016 16:13:03 -0500
-Message-Id: <1457730784-9890-3-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1457730784-9890-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1457730784-9890-1-git-send-email-matthew.r.wilcox@intel.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 6F0EF1A1F3D
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 15:37:43 -0800 (PST)
+Subject: [ndctl PATCH 6/8] ndctl: make test/dax-dev more robust
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 08 Mar 2016 15:36:59 -0800
+Message-ID: <20160308233659.18628.6462.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
+References: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,89 +16,47 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We need to put entries in the radix tree that represent PMDs and PUDs.
-Use another bit to determine if this PFN entry represents a huge page
-or not.  If it does, we know the bottom few bits of the PFN are zero,
-so we can reuse them to distinguish between PMDs and PUDs.  Thanks to
-Neil Brown for suggesting this more compact encoding.
+Accept a pfn-enabled configuration for the test device to make the test
+suite more reliable when restarting after a failure or forced
+termination.
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/pfn_t.h | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ test/dax-dev.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
-index 37c596c..0ff4c4e 100644
---- a/include/linux/pfn_t.h
-+++ b/include/linux/pfn_t.h
-@@ -8,14 +8,21 @@
-  * PFN_SG_LAST - pfn references a page and is the last scatterlist entry
-  * PFN_DEV - pfn is not covered by system memmap by default
-  * PFN_MAP - pfn has a dynamic page mapping established by a device driver
-+ * PFN_HUGE - pfn represents a huge page
-  *
-  * Note that the bottom two bits in the pfn_t match the bottom two bits in the
-  * scatterlist so sg_is_chain() and sg_is_last() work.  These bits are also
-  * used by the radix tree for its own purposes, but a PFN cannot be in both a
-  * radix tree and a scatterlist simultaneously.  If a PFN is moved between the
-  * two usages, care should be taken to clear/set these bits appropriately.
-+ *
-+ * If PFN_HUGE is set, the bottom PMD_SHIFT-PAGE_SHIFT bits are known to be
-+ * zero.  We reuse them to indicate whether the PFN represents a PMD or a PUD.
-+ *
-+ * This scheme supports 27 bits on a 32-bit system (512GB of physical address
-+ * space) and 59 bits on a 64-bit system (2048EB of physical address space).
-  */
--#define PFN_FLAG_BITS	4
-+#define PFN_FLAG_BITS	5
- #define PFN_FLAGS_MASK	((1 << PFN_FLAG_BITS) - 1)
- #define __PFN_MAX	((1 << (BITS_PER_LONG - PFN_FLAG_BITS)) - 1)
- #define PFN_SG_CHAIN	0x01UL
-@@ -23,6 +30,11 @@
- #define PFN_SG_MASK	(PFN_SG_CHAIN | PFN_SG_LAST)
- #define PFN_DEV		0x04UL
- #define PFN_MAP		0x08UL
-+#define PFN_HUGE	0x10UL
-+#define PFN_SIZE_MASK	0x30UL
-+#define PFN_SIZE_PTE	0x00UL
-+#define PFN_SIZE_PMD	0x10UL
-+#define PFN_SIZE_PUD	0x30UL
+diff --git a/test/dax-dev.c b/test/dax-dev.c
+index 074fc9616743..3209eb148ed9 100755
+--- a/test/dax-dev.c
++++ b/test/dax-dev.c
+@@ -32,6 +32,7 @@ static int emit_e820_device(int loglevel, struct ndctl_test *test)
+ 	const char *bdev;
+ 	struct ndctl_ctx *ctx;
+ 	struct ndctl_bus *bus;
++	struct ndctl_pfn *pfn;
+ 	struct ndctl_region *region;
+ 	struct ndctl_namespace *ndns;
+ 	enum ndctl_namespace_mode mode;
+@@ -61,7 +62,11 @@ static int emit_e820_device(int loglevel, struct ndctl_test *test)
+ 	if (mode >= 0 && mode != NDCTL_NS_MODE_MEMORY)
+ 		goto out;
  
- #if 0
- #define PFN_T_BUG_ON(x)	BUG_ON(x)
-@@ -35,7 +47,7 @@ static inline pfn_t __pfn_to_pfn_t(unsigned long pfn, u64 flags)
- 	pfn_t pfn_t = { .val = (pfn << PFN_FLAG_BITS) | flags };
+-	bdev = ndctl_namespace_get_block_device(ndns);
++	pfn = ndctl_namespace_get_pfn(ndns);
++	if (pfn)
++		bdev = ndctl_pfn_get_block_device(pfn);
++	else
++		bdev = ndctl_namespace_get_block_device(ndns);
+ 	if (!bdev)
+ 		goto out;
  
- 	PFN_T_BUG_ON(pfn & ~__PFN_MAX);
--	PFN_T_BUG_ON(flags & ~PFN_FLAGS_MASK);
-+	PFN_T_BUG_ON(flags & ~(PFN_FLAGS_MASK | PFN_SIZE_MASK));
- 
- 	return pfn_t;
- }
-@@ -46,9 +58,12 @@ static inline pfn_t pfn_to_pfn_t(unsigned long pfn)
- 	return __pfn_to_pfn_t(pfn, 0);
- }
- 
-+/* The bottom bits of the PFN may be set if PFN_HUGE is set */
- static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
- {
- 	unsigned long v = pfn.val;
-+	if (v & PFN_HUGE)
-+		v &= ~PFN_SIZE_MASK;
- 	return v >> PFN_FLAG_BITS;
- }
- 
--- 
-2.7.0
 
 _______________________________________________
 Linux-nvdimm mailing list
