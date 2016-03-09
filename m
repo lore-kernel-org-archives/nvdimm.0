@@ -1,20 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ob0-x233.google.com (mail-ob0-x233.google.com
- [IPv6:2607:f8b0:4003:c01::233])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E6E261A1EC4
- for <linux-nvdimm@lists.01.org>; Wed,  9 Mar 2016 15:36:00 -0800 (PST)
-Received: by mail-ob0-x233.google.com with SMTP id m7so63550160obh.3
- for <linux-nvdimm@lists.01.org>; Wed, 09 Mar 2016 15:35:46 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20160309215702.20904.61407.stgit@noble>
-References: <20160309215702.20904.61407.stgit@noble>
-Date: Wed, 9 Mar 2016 15:35:45 -0800
-Message-ID: <CAPcyv4gcOdBmzhMoyEErwh9Q7sXmWprdYy=W-iSSj+JwT=n6YA@mail.gmail.com>
-Subject: Re: [PATCH 0/4] Remove un-needed 'major' registration when
+ by ml01.01.org (Postfix) with ESMTPS id 453C41A1F35
+ for <linux-nvdimm@lists.01.org>; Wed,  9 Mar 2016 14:05:15 -0800 (PST)
+From: NeilBrown <neilb@suse.com>
+Date: Thu, 10 Mar 2016 08:59:28 +1100
+Subject: [PATCH 0/4] Remove un-needed 'major' registration when
  alloc_disk(0) is used.
-From: Dan Williams <dan.j.williams@intel.com>
+Message-ID: <20160309215702.20904.61407.stgit@noble>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,40 +21,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: NeilBrown <neilb@suse.com>
-Cc: Jens Axboe <axboe@fb.com>, Maxim Levitsky <maximlevitsky@gmail.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-nvme@lists.infradead.org, Keith Busch <keith.busch@intel.com>
+To: Keith Busch <keith.busch@intel.com>, Maxim Levitsky <maximlevitsky@gmail.com>, Vishal Verma <vishal.l.verma@intel.com>, Jens Axboe <axboe@fb.com>, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Mar 9, 2016 at 1:59 PM, NeilBrown <neilb@suse.com> wrote:
-> When alloc_disk(0) is used, the ->major number is ignored and
-> irrelevant.  Yet several drivers register a major number anyway.
->
-> This series of patches removes the pointless registrations.  The pmem
-> driver also does this, but a patch has already been sent for that
-> driver.
->
-> Note that I am not in a position to test these beyond simple compile
-> testing.
->
-> Thanks,
-> NeilBrown
->
->
-> ---
->
-> NeilBrown (4):
->       nvdimm/blk: don't allocate unused major device number
->       nvdimm/btt: don't allocate unused major device number
+When alloc_disk(0) is used, the ->major number is ignored and
+irrelevant.  Yet several drivers register a major number anyway.
 
-The libnvdimm unit tests were fine with these, applied.
+This series of patches removes the pointless registrations.  The pmem
+driver also does this, but a patch has already been sent for that
+driver.
 
-Btw, because you mentioned it, our unit test infrastructure does not
-require real hardware.  See the ndctl readme [1], and if you have
-copious amounts of free time the lwn write up on how we're mocking
-resources [2].
+Note that I am not in a position to test these beyond simple compile
+testing.
 
-[1]: https://github.com/pmem/ndctl/blob/master/README.md
-[2]: https://lwn.net/Articles/654071/
+Thanks,
+NeilBrown
+
+
+---
+
+NeilBrown (4):
+      nvdimm/blk: don't allocate unused major device number
+      nvdimm/btt: don't allocate unused major device number
+      memstick: don't allocate unused major for ms_block
+      NVMe: don't allocate unused nvme_major
+
+
+ drivers/memstick/core/ms_block.c |   17 ++---------------
+ drivers/nvdimm/blk.c             |   18 +-----------------
+ drivers/nvdimm/btt.c             |   19 ++-----------------
+ drivers/nvme/host/core.c         |   16 +---------------
+ 4 files changed, 6 insertions(+), 64 deletions(-)
+
+--
+Signature
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
