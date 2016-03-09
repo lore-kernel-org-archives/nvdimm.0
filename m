@@ -1,14 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id CA4721A1F2D
- for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 14:47:58 -0800 (PST)
-Subject: [PATCH 1/3] nfit, libnvdimm: clear poison command support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 08 Mar 2016 14:47:18 -0800
-Message-ID: <20160308224718.16298.47066.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160308224713.16298.33547.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160308224713.16298.33547.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from g4t3427.houston.hp.com (g4t3427.houston.hp.com [15.201.208.55])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 004BC1A1F33
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 16:08:11 -0800 (PST)
+Message-ID: <1457485233.15454.530.camel@hpe.com>
+Subject: Re: [PATCH v2-UPDATE2 3/4] resource: Add device-managed
+ insert/remove_resource()
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Tue, 08 Mar 2016 18:00:33 -0700
+In-Reply-To: <CA+55aFxJqjvsSz7eeobViGShoJV=FSx9gDbxK_L0WvSnh3xa3w@mail.gmail.com>
+References: <1457460530-17959-1-git-send-email-toshi.kani@hpe.com>
+ <CA+55aFy=V-esUXZa2AogS685k+r9PyyNStkZrrUUkWSKvLFUGQ@mail.gmail.com>
+ <CAPcyv4gT1RvnEquYXVo7sZscdUrkiWpG-Yvr_EX4=L25397X0g@mail.gmail.com>
+ <CA+55aFxPn3J68MsqQd7OVv7jetZjPduP53MFmw2f_-z7=ebpXQ@mail.gmail.com>
+ <CAPcyv4i2GwujqK=MDJpSKhvufJprmCV4vmQRpS_UP-n1kau+mg@mail.gmail.com>
+ <1457481844.15454.510.camel@hpe.com>
+ <CA+55aFxJqjvsSz7eeobViGShoJV=FSx9gDbxK_L0WvSnh3xa3w@mail.gmail.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,237 +25,59 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add the boiler-plate for a 'clear error' command based on section
-9.20.7.6 "Function Index 4 - Clear Uncorrectable Error" from the ACPI
-6.1 specification, and add a reference implementation in nfit_test.
-
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit.c              |   12 +++++++++++-
- drivers/nvdimm/bus.c             |   19 +++++++++++++++++++
- include/uapi/linux/ndctl.h       |   13 +++++++++++++
- tools/testing/nvdimm/test/nfit.c |   29 +++++++++++++++++++++++++++++
- 4 files changed, 72 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 0def4ebf5d43..c067d7414007 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -87,6 +87,7 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
- 
- static int xlat_status(void *buf, unsigned int cmd)
- {
-+	struct nd_cmd_clear_error *clear_err;
- 	struct nd_cmd_ars_status *ars_status;
- 	struct nd_cmd_ars_start *ars_start;
- 	struct nd_cmd_ars_cap *ars_cap;
-@@ -149,6 +150,15 @@ static int xlat_status(void *buf, unsigned int cmd)
- 		if (ars_status->status >> 16)
- 			return -EIO;
- 		break;
-+	case ND_CMD_CLEAR_ERROR:
-+		clear_err = buf;
-+		if (clear_err->status & 0xffff)
-+			return -EIO;
-+		if (!clear_err->cleared)
-+			return -EIO;
-+		if (clear_err->length > clear_err->cleared)
-+			return clear_err->cleared;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -1002,7 +1012,7 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
- 	if (!adev)
- 		return;
- 
--	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_ARS_STATUS; i++)
-+	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_CLEAR_ERROR; i++)
- 		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
- 			set_bit(i, &nd_desc->dsm_mask);
- }
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 2e9ac22595ec..cb6fd64b13e3 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -421,6 +421,12 @@ static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
- 		.out_num = 3,
- 		.out_sizes = { 4, 4, UINT_MAX, },
- 	},
-+	[ND_CMD_CLEAR_ERROR] = {
-+		.in_num = 2,
-+		.in_sizes = { 8, 8, },
-+		.out_num = 3,
-+		.out_sizes = { 4, 4, 8, },
-+	},
- };
- 
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd)
-@@ -489,6 +495,13 @@ void wait_nvdimm_bus_probe_idle(struct device *dev)
- 	} while (true);
- }
- 
-+static int pmem_active(struct device *dev, void *data)
-+{
-+	if (is_nd_pmem(dev) && dev->driver)
-+		return -EBUSY;
-+	return 0;
-+}
-+
- /* set_config requires an idle interleave set */
- static int nd_cmd_clear_to_send(struct nvdimm_bus *nvdimm_bus,
- 		struct nvdimm *nvdimm, unsigned int cmd)
-@@ -503,6 +516,11 @@ static int nd_cmd_clear_to_send(struct nvdimm_bus *nvdimm_bus,
- 			return rc;
- 	}
- 
-+	/* require clear error to go through the pmem driver */
-+	if (!nvdimm && cmd == ND_CMD_CLEAR_ERROR)
-+		return device_for_each_child(&nvdimm_bus->dev, NULL,
-+				pmem_active);
-+
- 	if (!nvdimm || cmd != ND_CMD_SET_CONFIG_DATA)
- 		return 0;
- 
-@@ -551,6 +569,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		case ND_CMD_VENDOR:
- 		case ND_CMD_SET_CONFIG_DATA:
- 		case ND_CMD_ARS_START:
-+		case ND_CMD_CLEAR_ERROR:
- 			dev_dbg(&nvdimm_bus->dev, "'%s' command while read-only.\n",
- 					nvdimm ? nvdimm_cmd_name(cmd)
- 					: nvdimm_bus_cmd_name(cmd));
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index cc68b92124d4..0f001c571cdd 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -98,6 +98,14 @@ struct nd_cmd_ars_status {
- 	} __packed records[0];
- } __packed;
- 
-+struct nd_cmd_clear_error {
-+	__u64 address;
-+	__u64 length;
-+	__u32 status;
-+	__u8 reserved[4];
-+	__u64 cleared;
-+} __packed;
-+
- enum {
- 	ND_CMD_IMPLEMENTED = 0,
- 
-@@ -105,6 +113,7 @@ enum {
- 	ND_CMD_ARS_CAP = 1,
- 	ND_CMD_ARS_START = 2,
- 	ND_CMD_ARS_STATUS = 3,
-+	ND_CMD_CLEAR_ERROR = 4,
- 
- 	/* per-dimm commands */
- 	ND_CMD_SMART = 1,
-@@ -129,6 +138,7 @@ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
- 		[ND_CMD_ARS_CAP] = "ars_cap",
- 		[ND_CMD_ARS_START] = "ars_start",
- 		[ND_CMD_ARS_STATUS] = "ars_status",
-+		[ND_CMD_CLEAR_ERROR] = "clear_error",
- 	};
- 
- 	if (cmd < ARRAY_SIZE(names) && names[cmd])
-@@ -187,6 +197,9 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
- #define ND_IOCTL_ARS_STATUS		_IOWR(ND_IOCTL, ND_CMD_ARS_STATUS,\
- 					struct nd_cmd_ars_status)
- 
-+#define ND_IOCTL_CLEAR_ERROR		_IOWR(ND_IOCTL, ND_CMD_CLEAR_ERROR,\
-+					struct nd_cmd_ars_status)
-+
- #define ND_DEVICE_DIMM 1            /* nd_dimm: container for "config data" */
- #define ND_DEVICE_REGION_PMEM 2     /* nd_region: (parent of PMEM namespaces) */
- #define ND_DEVICE_REGION_BLK 3      /* nd_region: (parent of BLK namespaces) */
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 1555c09efba1..3187322eeed7 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -223,6 +223,7 @@ static int nfit_test_cmd_set_config_data(struct nd_cmd_set_config_hdr *nd_cmd,
- }
- 
- #define NFIT_TEST_ARS_RECORDS 4
-+#define NFIT_TEST_CLEAR_ERR_UNIT 256
- 
- static int nfit_test_cmd_ars_cap(struct nd_cmd_ars_cap *nd_cmd,
- 		unsigned int buf_len)
-@@ -233,6 +234,7 @@ static int nfit_test_cmd_ars_cap(struct nd_cmd_ars_cap *nd_cmd,
- 	nd_cmd->max_ars_out = sizeof(struct nd_cmd_ars_status)
- 		+ NFIT_TEST_ARS_RECORDS * sizeof(struct nd_ars_record);
- 	nd_cmd->status = (ND_ARS_PERSISTENT | ND_ARS_VOLATILE) << 16;
-+	nd_cmd->clear_err_unit = NFIT_TEST_CLEAR_ERR_UNIT;
- 
- 	return 0;
- }
-@@ -306,6 +308,28 @@ static int nfit_test_cmd_ars_status(struct ars_state *ars_state,
- 	return 0;
- }
- 
-+static int nfit_test_cmd_clear_error(struct nd_cmd_clear_error *clear_err,
-+		unsigned int buf_len, int *cmd_rc)
-+{
-+	const u64 mask = NFIT_TEST_CLEAR_ERR_UNIT - 1;
-+	if (buf_len < sizeof(*clear_err))
-+		return -EINVAL;
-+
-+	if ((clear_err->address & mask) || (clear_err->length & mask))
-+		return -EINVAL;
-+
-+	/*
-+	 * Report 'all clear' success for all commands even though a new
-+	 * scrub will find errors again.  This is enough to have the
-+	 * error removed from the 'badblocks' tracking in the pmem
-+	 * driver.
-+	 */
-+	clear_err->status = 0;
-+	clear_err->cleared = clear_err->length;
-+	*cmd_rc = 0;
-+	return 0;
-+}
-+
- static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len, int *cmd_rc)
-@@ -365,6 +389,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 			rc = nfit_test_cmd_ars_status(ars_state, buf, buf_len,
- 					cmd_rc);
- 			break;
-+		case ND_CMD_CLEAR_ERROR:
-+			rc = nfit_test_cmd_clear_error(buf, buf_len, cmd_rc);
-+			break;
- 		default:
- 			return -ENOTTY;
- 		}
-@@ -1230,6 +1257,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_dsm_force_en);
-+	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_dsm_force_en);
- }
- 
- static void nfit_test1_setup(struct nfit_test *t)
-@@ -1290,6 +1318,7 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_dsm_force_en);
-+	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_dsm_force_en);
- }
- 
- static int nfit_test_blk_do_io(struct nd_blk_region *ndbr, resource_size_t dpa,
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlLCAyMDE2LTAzLTA4IGF0IDE1OjMxIC0wODAwLCBMaW51cyBUb3J2YWxkcyB3cm90ZToK
+PiBPbiBUdWUsIE1hciA4LCAyMDE2IGF0IDQ6MDQgUE0sIFRvc2hpIEthbmkgPHRvc2hpLmthbmlA
+aHBlLmNvbT4gd3JvdGU6Cj4gPiAKPiA+IFllcywgSSBwcmVmZXIgdGhlIGRldm0gc2VtYW50aWNz
+LsKgwqBpbnNlcnRfcmVzb3VyY2UoKSBhbmQKPiA+IHJlbW92ZV9yZXNvdXJjZSgpIGFyZSBub3Qg
+ZXhwb3J0ZWQgaW50ZXJmYWNlcy7CoMKgU28sIHdpdGgKPiA+IGRldm1fYWRkX2FjdGlvbigpLCB3
+ZSBzdGlsbCBuZWVkIHRvIGludHJvZHVjZSBidWlsdC1pbiBleHBvcnRlZAo+ID4gd3JhcHBlcnMg
+Zm9yIGluc2VydC9yZW1vdmVfcmVzb3VyY2UoKSwgdW5sZXNzIHdlIGNoYW5nZSB0byBleHBvcnQg
+dGhlbQo+ID4gZGlyZWN0bHkuwqDCoFNpbmNlIHdlIG5lZWQgdG8gZXhwb3J0ICJzb21ldGhpbmci
+LCBJIHRoaW5rIGl0IGlzIGJldHRlciB0bwo+ID4gZXhwb3J0IHRoZWlyIGRldm0gaW50ZXJmYWNl
+cy4KPiAKPiBTbyBJJ20gY29taW5nIGZyb20gdGhlIGJhY2tncm91bmQgdGhhdAo+IAo+IMKgKGEp
+IGxlc3MgY29kZSBpcyBiZXR0ZXIKPiAKPiDCoChiKSB0aGUgImRldm1fIiBpbnRlcmZhY2UgbWF5
+IGJlIGNvbnZlbmllbnQsIGJ1dCBpdCBoYXMgYWxzbwo+IHRyYWRpdGlvbmFsbHkgYWxzbyBiZWVu
+IGEgY2F1c2Ugb2YgcHJvYmxlbXMgYW5kIGxpbWl0YXRpb25zLgo+IAo+IE5vdywgdGhlIG1haW4g
+cHJvYmxlbXMgd2l0aCB0aGUgZGV2bSBpbnRlcmZhY2UgaGFzIGJlZW4gZWl0aGVyCj4gb3JkZXJp
+bmcgKHdoaWNoIGp1c3QgaXNuJ3QgYW4gaXNzdWUgd2l0aCByZXNvdXJjZSBhbGxvY2F0aW9uIC0g
+aXQncwo+IGJlZW4gYW4gaXNzdWUgd2l0aCBpcnFzKSBvciB0aGUgZmFjdCB0aGF0IGl0IGNhbid0
+IGFsd2F5cyBiZSB1c2VkIGlmCj4geW91J3JlIG5vdCBpbiB0aGUgcmlnaHQgY29udGV4dC4gU28g
+aXQncyAiY29udmVuaWVudCBidXQgcG90ZW50aWFsbHkKPiBpbmZsZXhpYmxlIi4KPiAKPiBBbmQg
+dGhlIHRoaW5nIGlzLCBJIHRoaW5rIGNvbnZlbmllbmNlIGZ1bmN0aW9ucyBtYWlubHkgbWFrZSBz
+ZW5zZSBmb3IKPiBwbGFjZXMgd2hlcmUgdGhlcmUgYXJlIG11bHRpcGxlIHVzZXJzLiBJZiB0aGVy
+ZSByZWFsbHkgaXMganVzdCBvbmUgb3IKPiB0d28gKG51bWJlciBjb21wbGV0ZWx5IHB1bGxlZCBv
+dXQgb2YgbXkgYXNzKSwgSSBkb24ndCBzZWUgdGhlIHBvaW50IG9mCj4gYSAiY29udmVuaWVuY2Ui
+IGZ1bmN0aW9uLCB3aGVuIHdlJ3ZlIGhhZCB0aGUgbWFpbiBhY3R1YWwgX2NvZGVfCj4gZnVuY3Rp
+b25hbGl0eSBmb3Igb3ZlciBhIGRlY2FkZS4KPiAKPiBTbyB1bmxlc3MgdGhlcmUgYXJlIG1vcmUg
+dXNlcnMsIEknZCBzdWdnZXN0IGp1c3QgZXhwb3J0aW5nIHRoZQo+IGluc2VydF9yZXNvdXJjZSBm
+dW5jdGlvbi4KPiAKPiBXZSBhbHJlYWR5IGV4cG9ydCBhbGxvY2F0ZV9yZXNvdXJjZSBhbmQgYWRq
+dXN0X3Jlc291cmNlLgo+IAo+IE5vdywgdGhlIF9vbmVfIGFyZ3VtZW50IGZvciBkZXZtX2luc2Vy
+dF9yZXNvdXJjZSgpIGlzIHRoYXQgd2UgZG8gaGF2ZQo+ICJkZXZtX3JlcXVlc3RfcmVzb3VyY2Uo
+KSIuCj4gCj4gQnV0IHF1aXRlIGZyYW5rbHksIGp1c3QgY291bnRpbmcgdGhlIG51bWJlciBvZiBk
+ZXZtX3JlcXVlc3RfcmVzb3VyY2UoKQo+IGNhbGxzIHdlYWtlbnMgdGhhdCBhcmd1bWVudC4gVGhl
+cmUncyA3IGNhbGxlcnMgaW4gdGhlIHdob2xlIGtlcm5lbC4KPiBUaGUgcmVndWxhciAicmVxdWVz
+dF9yZXNvdXJjZSgpIiBoYXMgMjAwKyBjYWxsZXJzLgo+IAo+IFRoYXQgbWF5IGJlIGR1ZSB0byBo
+aXN0b3JpY2FsIHJlYXNvbnMsIGJ1dCBpdCBtYXkgYWxzbyBiZSBhdCBsZWFzdAo+IHBhcnRpYWxs
+eSBkdWUgdG8gKGIpIGFib3ZlIC0gdGhlcmUgYXJlIGEgbnVtYmVyIG9mIGNhc2VzIHdoZXJlIHRo
+ZQo+ICJkZXZtX3h5eigpIiBtb2RlbCBkb2Vzbid0IHdvcmsgd2VsbC4KPiAKPiBTbyBJIHRoaW5r
+IHdlIHNob3VsZCBzZWUgdGhlICJkZXZtX3h5eigpIiBmb3JtcyBhcyBiZWluZyBhICJsZXQncyBt
+YWtlCj4gdGhpbmdzIGVhc3kgZm9yIGRyaXZlciB3cml0ZXJzIi4gSSBkbyBfbm90XyB0aGluayBp
+dCBtYWtlcyBzZW5zZSBmb3IKPiBvbmUtb2ZmIHVzZXJzLgo+IAo+IE5vdywgaWYgaXQgdHVybnMg
+b3V0IHRoYXQgdGhlcmUgYXJlIGxvdHMgb2Ygb3RoZXIgcG90ZW50aWFsIHVzZXJzIG9mCj4gZGV2
+bV9pbnNlcnRfcmVzb3VyY2UoKSwgdGhhdCB3b3VsZCBtYWtzIGFsbCBvZiBteSBhcmd1bWVudHMg
+Z28gYXdheS4KCkkgYWdyZWUgdGhhdCB0aGVyZSB3b24ndCBiZSBtYW55IHVzZXJzIG9mIGRldm1f
+aW5zZXJ0X3Jlc291cmNlKCkuIMKgU28sIEkgYW0KZ29pbmcgdG8gZXhwb3J0IGluc2VydF9yZXNv
+dXJjZSgpIGFuZCByZW1vdmVfcmVzb3VyY2UoKSBhcyB5b3Ugc3VnZ2VzdGVkLAphbmQgbGV0IHRo
+ZSBORklUIGRyaXZlciB0byBjYWxsIHRoZW0gdXNpbmcgZGV2bV9hZGRfYWN0aW9uKCkgYXMgYSBv
+bmUtb2ZmCnNvbHV0aW9uLgoKVGhhbmtzIQotVG9zaGkKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8v
+bGludXgtbnZkaW1tCg==
