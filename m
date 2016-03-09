@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id B4C611A1F3E
- for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 15:37:18 -0800 (PST)
-Subject: [ndctl PATCH 2/8] ndctl: ndctl_{namespace|pfn}_get_resource
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 08 Mar 2016 15:36:38 -0800
-Message-ID: <20160308233638.18628.9488.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from g4t3427.houston.hp.com (g4t3427.houston.hp.com [15.201.208.55])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 51C571A1F58
+ for <linux-nvdimm@lists.01.org>; Wed,  9 Mar 2016 10:54:50 -0800 (PST)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v3 2/4] resource: Add remove_resource interface
+Date: Wed,  9 Mar 2016 12:47:04 -0700
+Message-Id: <1457552826-13987-2-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1457552826-13987-1-git-send-email-toshi.kani@hpe.com>
+References: <1457552826-13987-1-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,150 +17,159 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Retrieve the physical address corresponding to sector-0 of a pmem
-device.  Note that ndctl_pfn_get_resource() is only valid while the
-given pfn instance is enabled.
+insert_resource() and insert_resource_conflict() are called
+by resource producers to insert a new resource.  When there
+is any conflict, they move conflicting resources down to the
+children of the new resource.  There is no destructor of these
+interfaces, however.
 
-Reported-by: Haozhong Zhang <haozhong.zhang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Add remove_resource(), which removes a resource previously
+inserted by insert_resource() or insert_resource_conflict(),
+and moves the children up to where they were before.
+
+__release_resource() is changed to have @release_child, so
+that this function can be used for remove_resource() as well.
+
+Also add comments to clarify that these functions are intended
+for producers of resources to avoid any confusion with
+request/release_resource() for consumers.
+
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 ---
- lib/libndctl.c       |   36 +++++++++++++++++++++++++++++++++++-
- lib/libndctl.sym     |    3 +++
- lib/ndctl/libndctl.h |    3 +++
- 3 files changed, 41 insertions(+), 1 deletion(-)
+ include/linux/ioport.h |    1 +
+ kernel/resource.c      |   51 +++++++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 47 insertions(+), 5 deletions(-)
 
-diff --git a/lib/libndctl.c b/lib/libndctl.c
-index 56838c8a2a92..91e855bf525a 100644
---- a/lib/libndctl.c
-+++ b/lib/libndctl.c
-@@ -246,7 +246,7 @@ struct ndctl_namespace {
- 	char *bdev;
- 	int type, id, buf_len, raw_mode;
- 	int generation;
--	unsigned long long size;
-+	unsigned long long resource, size;
- 	char *alt_name;
- 	uuid_t uuid;
- 	struct ndctl_lbasize lbasize;
-@@ -297,6 +297,7 @@ struct ndctl_pfn {
- 	struct list_node list;
- 	enum ndctl_pfn_loc loc;
- 	unsigned long align;
-+	unsigned long long resource, size;
- 	char *pfn_path;
- 	char *pfn_buf;
- 	char *bdev;
-@@ -2669,6 +2670,12 @@ static int add_namespace(void *parent, int id, const char *ndns_base)
- 		goto err_read;
- 	ndns->size = strtoull(buf, NULL, 0);
- 
-+	sprintf(path, "%s/resource", ndns_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		ndns->resource = ULLONG_MAX;
-+	else
-+		ndns->resource = strtoull(buf, NULL, 0);
-+
- 	sprintf(path, "%s/force_raw", ndns_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
- 		goto err_read;
-@@ -3312,6 +3319,11 @@ NDCTL_EXPORT unsigned long long ndctl_namespace_get_size(struct ndctl_namespace
- 	return ndns->size;
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index afb4559..8017b8b 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -174,6 +174,7 @@ extern void reserve_region_with_split(struct resource *root,
+ extern struct resource *insert_resource_conflict(struct resource *parent, struct resource *new);
+ extern int insert_resource(struct resource *parent, struct resource *new);
+ extern void insert_resource_expand_to_fit(struct resource *root, struct resource *new);
++extern int remove_resource(struct resource *old);
+ extern void arch_remove_reservations(struct resource *avail);
+ extern int allocate_resource(struct resource *root, struct resource *new,
+ 			     resource_size_t size, resource_size_t min,
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 5a56e8f..effb6ee 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -233,9 +233,9 @@ static struct resource * __request_resource(struct resource *root, struct resour
+ 	}
  }
  
-+NDCTL_EXPORT unsigned long long ndctl_namespace_get_resource(struct ndctl_namespace *ndns)
-+{
-+	return ndns->resource;
-+}
-+
- static int namespace_set_size(struct ndctl_namespace *ndns,
- 		unsigned long long size)
+-static int __release_resource(struct resource *old)
++static int __release_resource(struct resource *old, bool release_child)
  {
-@@ -3853,6 +3865,18 @@ static int add_pfn(void *parent, int id, const char *pfn_base)
- 	else
- 		pfn->align = strtoul(buf, NULL, 0);
+-	struct resource *tmp, **p;
++	struct resource *tmp, **p, *chd;
  
-+	sprintf(path, "%s/resource", pfn_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		pfn->resource = ULLONG_MAX;
-+	else
-+		pfn->resource = strtoull(buf, NULL, 0);
-+
-+	sprintf(path, "%s/size", pfn_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		pfn->size = ULLONG_MAX;
-+	else
-+		pfn->size = strtoull(buf, NULL, 0);
-+
- 	free(path);
- 	ndctl_pfn_foreach(region, pfn_dup)
- 		if (pfn->id == pfn_dup->id) {
-@@ -3924,6 +3948,16 @@ NDCTL_EXPORT void ndctl_pfn_get_uuid(struct ndctl_pfn *pfn, uuid_t uu)
- 	memcpy(uu, pfn->uuid, sizeof(uuid_t));
+ 	p = &old->parent->child;
+ 	for (;;) {
+@@ -243,7 +243,17 @@ static int __release_resource(struct resource *old)
+ 		if (!tmp)
+ 			break;
+ 		if (tmp == old) {
+-			*p = tmp->sibling;
++			if (release_child || !(tmp->child)) {
++				*p = tmp->sibling;
++			} else {
++				for (chd = tmp->child;; chd = chd->sibling) {
++					chd->parent = tmp->parent;
++					if (!(chd->sibling))
++						break;
++				}
++				*p = tmp->child;
++				chd->sibling = tmp->sibling;
++			}
+ 			old->parent = NULL;
+ 			return 0;
+ 		}
+@@ -325,7 +335,7 @@ int release_resource(struct resource *old)
+ 	int retval;
+ 
+ 	write_lock(&resource_lock);
+-	retval = __release_resource(old);
++	retval = __release_resource(old, true);
+ 	write_unlock(&resource_lock);
+ 	return retval;
+ }
+@@ -679,7 +689,7 @@ static int reallocate_resource(struct resource *root, struct resource *old,
+ 		old->start = new.start;
+ 		old->end = new.end;
+ 	} else {
+-		__release_resource(old);
++		__release_resource(old, true);
+ 		*old = new;
+ 		conflict = __request_resource(root, old);
+ 		BUG_ON(conflict);
+@@ -825,6 +835,9 @@ static struct resource * __insert_resource(struct resource *parent, struct resou
+  * entirely fit within the range of the new resource, then the new
+  * resource is inserted and the conflicting resources become children of
+  * the new resource.
++ *
++ * This function is intended for producers of resources, such as FW modules
++ * and bus drivers.
+  */
+ struct resource *insert_resource_conflict(struct resource *parent, struct resource *new)
+ {
+@@ -842,6 +855,9 @@ struct resource *insert_resource_conflict(struct resource *parent, struct resour
+  * @new: new resource to insert
+  *
+  * Returns 0 on success, -EBUSY if the resource can't be inserted.
++ *
++ * This function is intended for producers of resources, such as FW modules
++ * and bus drivers.
+  */
+ int insert_resource(struct resource *parent, struct resource *new)
+ {
+@@ -885,6 +901,31 @@ void insert_resource_expand_to_fit(struct resource *root, struct resource *new)
+ 	write_unlock(&resource_lock);
  }
  
-+NDCTL_EXPORT unsigned long long ndctl_pfn_get_size(struct ndctl_pfn *pfn)
++/**
++ * remove_resource - Remove a resource in the resource tree
++ * @old: resource to remove
++ *
++ * Returns 0 on success, -EINVAL if the resource is not valid.
++ *
++ * This function removes a resource previously inserted by insert_resource()
++ * or insert_resource_conflict(), and moves the children (if any) up to
++ * where they were before.  insert_resource() and insert_resource_conflict()
++ * insert a new resource, and move any conflicting resources down to the
++ * children of the new resource.
++ *
++ * insert_resource(), insert_resource_conflict() and remove_resource() are
++ * intended for producers of resources, such as FW modules and bus drivers.
++ */
++int remove_resource(struct resource *old)
 +{
-+	return pfn->size;
++	int retval;
++
++	write_lock(&resource_lock);
++	retval = __release_resource(old, false);
++	write_unlock(&resource_lock);
++	return retval;
 +}
 +
-+NDCTL_EXPORT unsigned long long ndctl_pfn_get_resource(struct ndctl_pfn *pfn)
-+{
-+	return pfn->resource;
-+}
-+
- NDCTL_EXPORT int ndctl_pfn_set_uuid(struct ndctl_pfn *pfn, uuid_t uu)
+ static int __adjust_resource(struct resource *res, resource_size_t start,
+ 				resource_size_t size)
  {
- 	struct ndctl_ctx *ctx = ndctl_pfn_get_ctx(pfn);
-diff --git a/lib/libndctl.sym b/lib/libndctl.sym
-index 38c588cb8864..6c74e73189f6 100644
---- a/lib/libndctl.sym
-+++ b/lib/libndctl.sym
-@@ -149,6 +149,7 @@ global:
- 	ndctl_namespace_set_alt_name;
- 	ndctl_namespace_get_size;
- 	ndctl_namespace_set_size;
-+	ndctl_namespace_get_resource;
- 	ndctl_namespace_get_supported_sector_size;
- 	ndctl_namespace_get_sector_size;
- 	ndctl_namespace_get_num_sector_sizes;
-@@ -197,6 +198,8 @@ global:
- 	ndctl_pfn_get_location;
- 	ndctl_pfn_set_location;
- 	ndctl_pfn_get_align;
-+	ndctl_pfn_get_size;
-+	ndctl_pfn_get_resource;
- 	ndctl_pfn_set_align;
- 	ndctl_pfn_set_namespace;
- 	ndctl_pfn_get_bus;
-diff --git a/lib/ndctl/libndctl.h b/lib/ndctl/libndctl.h
-index 17770f78ce01..dbe98b0f159b 100644
---- a/lib/ndctl/libndctl.h
-+++ b/lib/ndctl/libndctl.h
-@@ -353,6 +353,7 @@ const char *ndctl_namespace_get_alt_name(struct ndctl_namespace *ndns);
- int ndctl_namespace_set_alt_name(struct ndctl_namespace *ndns,
- 		const char *alt_name);
- unsigned long long ndctl_namespace_get_size(struct ndctl_namespace *ndns);
-+unsigned long long ndctl_namespace_get_resource(struct ndctl_namespace *ndns);
- int ndctl_namespace_set_size(struct ndctl_namespace *ndns,
- 		unsigned long long size);
- unsigned int ndctl_namespace_get_supported_sector_size(
-@@ -430,6 +431,8 @@ int ndctl_pfn_set_uuid(struct ndctl_pfn *pfn, uuid_t uu);
- void ndctl_pfn_get_uuid(struct ndctl_pfn *pfn, uuid_t uu);
- int ndctl_pfn_set_align(struct ndctl_pfn *pfn, unsigned long align);
- unsigned long ndctl_pfn_get_align(struct ndctl_pfn *pfn);
-+unsigned long long ndctl_pfn_get_resource(struct ndctl_pfn *pfn);
-+unsigned long long ndctl_pfn_get_size(struct ndctl_pfn *pfn);
- int ndctl_pfn_set_namespace(struct ndctl_pfn *pfn, struct ndctl_namespace *ndns);
- struct ndctl_namespace *ndctl_pfn_get_namespace(struct ndctl_pfn *pfn);
- int ndctl_pfn_enable(struct ndctl_pfn *pfn);
-
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
