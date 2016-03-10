@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t6214.austin.hp.com (g1t6214.austin.hp.com [15.73.96.122])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BDFEE1A1F7F
- for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:17:01 -0800 (PST)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [RFC v6 2/8] nvdimm: Add wrapper for IOCTL pass thru
-Date: Fri, 11 Mar 2016 14:16:26 -0700
-Message-Id: <833a627a8cff27a72f946fa9432cacf2a855e485.1457730736.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1457730736.git.jerry.hoemann@hpe.com>
-References: <cover.1457730736.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1457730736.git.jerry.hoemann@hpe.com>
-References: <cover.1457730736.git.jerry.hoemann@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 431DD1A1F5B
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 11:18:54 -0800 (PST)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 07/12] dax: Fix data corruption for written and mmapped files
+Date: Thu, 10 Mar 2016 20:18:50 +0100
+Message-Id: <1457637535-21633-8-git-send-email-jack@suse.cz>
+In-Reply-To: <1457637535-21633-1-git-send-email-jack@suse.cz>
+References: <1457637535-21633-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,77 +22,59 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add struct nd_cmd_pkg which serves as a warapper for
-the data being passed via a pass thru to a NVDIMM DSM.
-This wrapper specifies the extra information in a uniform
-manner allowing the kenrel to call a DSM without knowing
-specifics of the DSM.
+When a fault to a hole races with write filling the hole, it can happen
+that block zeroing in __dax_fault() overwrites the data copied by write.
+Since filesystem is supposed to provide pre-zeroed blocks for fault
+anyway, just remove the racy zeroing from dax code. The only catch is
+with read-faults over unwritten block where __dax_fault() filled in the
+block into page tables anyway. For that case we have to fall back to
+using hole page now.
 
-Add dsm_call command to nvdimm_bus_cmd_name and nvdimm_cmd_name.
-
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- include/uapi/linux/ndctl.h | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ fs/dax.c | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 7cc28ab..459c6ba 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -125,6 +125,7 @@ enum {
- 	ND_CMD_VENDOR_EFFECT_LOG_SIZE = 7,
- 	ND_CMD_VENDOR_EFFECT_LOG = 8,
- 	ND_CMD_VENDOR = 9,
-+	ND_CMD_CALL_DSM = 10,
- };
+diff --git a/fs/dax.c b/fs/dax.c
+index f53b13d9644b..4aa440f9305b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -580,11 +580,6 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
+ 		error = PTR_ERR(dax.addr);
+ 		goto out;
+ 	}
+-
+-	if (buffer_unwritten(bh) || buffer_new(bh)) {
+-		clear_pmem(dax.addr, PAGE_SIZE);
+-		wmb_pmem();
+-	}
+ 	dax_unmap_atomic(bdev, &dax);
  
- enum {
-@@ -139,6 +140,7 @@ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
- 		[ND_CMD_ARS_START] = "ars_start",
- 		[ND_CMD_ARS_STATUS] = "ars_status",
- 		[ND_CMD_CLEAR_ERROR] = "clear_error",
-+		[ND_CMD_CALL_DSM] = "dsm_call",
- 	};
+ 	error = dax_radix_entry(mapping, vmf->pgoff, dax.sector, false,
+@@ -661,7 +656,7 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	if (error)
+ 		goto unlock_page;
  
- 	if (cmd < ARRAY_SIZE(names) && names[cmd])
-@@ -158,6 +160,7 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
- 		[ND_CMD_VENDOR_EFFECT_LOG_SIZE] = "effect_size",
- 		[ND_CMD_VENDOR_EFFECT_LOG] = "effect_log",
- 		[ND_CMD_VENDOR] = "vendor",
-+		[ND_CMD_CALL_DSM] = "dsm_call",
- 	};
+-	if (!buffer_mapped(&bh) && !buffer_unwritten(&bh) && !vmf->cow_page) {
++	if (!buffer_mapped(&bh) && !vmf->cow_page) {
+ 		if (vmf->flags & FAULT_FLAG_WRITE) {
+ 			error = get_block(inode, block, &bh, 1);
+ 			count_vm_event(PGMAJFAULT);
+@@ -933,8 +928,6 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		}
  
- 	if (cmd < ARRAY_SIZE(names) && names[cmd])
-@@ -224,4 +227,23 @@ enum ars_masks {
- 	ARS_STATUS_MASK = 0x0000FFFF,
- 	ARS_EXT_STATUS_SHIFT = 16,
- };
-+
-+
-+struct nd_cmd_pkg {
-+	__u32   ncp_type;
-+	__u32   ncp_rev;
-+	__u64   ncp_command;
-+	__u32   ncp_size_in;                    /* size of input payload */
-+	__u32   ncp_size_out;                   /* size of user buffer   */
-+	__u32   ncp_reserved2[9];               /* reserved must be zero */
-+	__u32   ncp_pot_size;                   /* potential output size */
-+	unsigned char ncp_payload[];            /* Contents of call      */
-+};
-+
-+#define NCP_TYPE_BUS                   1
-+#define NCP_TYPE_DIMM_INTEL1           2
-+#define NCP_TYPE_DIMM_N_HPE1           3
-+#define NCP_TYPE_DIMM_N_HPE2           4
-+
-+
- #endif /* __NDCTL_H__ */
+ 		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+-			clear_pmem(dax.addr, PMD_SIZE);
+-			wmb_pmem();
+ 			count_vm_event(PGMAJFAULT);
+ 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+ 			result |= VM_FAULT_MAJOR;
 -- 
-1.7.11.3
+2.6.2
 
 _______________________________________________
 Linux-nvdimm mailing list
