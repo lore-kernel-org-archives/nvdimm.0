@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C305F1A1EF8
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 11:18:52 -0800 (PST)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 02/12] radix-tree: make 'indirect' bit available to exception
- entries.
-Date: Thu, 10 Mar 2016 20:18:45 +0100
-Message-Id: <1457637535-21633-3-git-send-email-jack@suse.cz>
-In-Reply-To: <1457637535-21633-1-git-send-email-jack@suse.cz>
-References: <1457637535-21633-1-git-send-email-jack@suse.cz>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 5C04D1A1F75
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 15:55:55 -0800 (PST)
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH v5 07/14] x86: Unify native_*_get_and_clear !SMP case
+Date: Thu, 10 Mar 2016 18:55:24 -0500
+Message-Id: <1457654131-4562-8-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,86 +20,134 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: NeilBrown <neilb@suse.com>
+x86_32 and x86_64 had diverged slightly in their implementations
+of the non-SMP cases for native_ptep_get_and_clear() and
+native_pmdp_get_and_clear().  Unify the non-SMP cases in pgtable.h,
+leaving only the SMP cases in the other three files.
 
-A pointer to a radix_tree_node will always have the 'exception'
-bit cleared, so if the exception bit is set the value cannot
-be an indirect pointer.  Thus it is safe to make the 'indirect bit'
-available to store extra information in exception entries.
-
-This patch adds a 'PTR_MASK' and a value is only treated as
-an indirect (pointer) entry the 2 ls-bits are '01'.
-
-The change in radix-tree.c ensures the stored value still looks like an
-indirect pointer, and saves a load as well.
-
-We could swap the two bits and so keep all the exectional bits contigious.
-But I have other plans for that bit....
-
-Signed-off-by: NeilBrown <neilb@suse.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 ---
- include/linux/radix-tree.h | 11 +++++++++--
- lib/radix-tree.c           |  2 +-
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/pgtable-2level.h |  6 ------
+ arch/x86/include/asm/pgtable-3level.h |  7 +------
+ arch/x86/include/asm/pgtable.h        |  5 +++++
+ arch/x86/include/asm/pgtable_64.h     | 18 ++----------------
+ 4 files changed, 8 insertions(+), 28 deletions(-)
 
-diff --git a/include/linux/radix-tree.h b/include/linux/radix-tree.h
-index 968150ab8a1c..450c12b546b7 100644
---- a/include/linux/radix-tree.h
-+++ b/include/linux/radix-tree.h
-@@ -40,8 +40,13 @@
-  * Indirect pointer in fact is also used to tag the last pointer of a node
-  * when it is shrunk, before we rcu free the node. See shrink code for
-  * details.
-+ *
-+ * To allow an exception entry to only lose one bit, we ignore
-+ * the INDIRECT bit when the exception bit is set.  So an entry is
-+ * indirect if the least significant 2 bits are 01.
-  */
- #define RADIX_TREE_INDIRECT_PTR		1
-+#define RADIX_TREE_INDIRECT_MASK	3
- /*
-  * A common use of the radix tree is to store pointers to struct pages;
-  * but shmem/tmpfs needs also to store swap entries in the same tree:
-@@ -53,7 +58,8 @@
- 
- static inline int radix_tree_is_indirect_ptr(void *ptr)
+diff --git a/arch/x86/include/asm/pgtable-2level.h b/arch/x86/include/asm/pgtable-2level.h
+index fd74a11..520318f 100644
+--- a/arch/x86/include/asm/pgtable-2level.h
++++ b/arch/x86/include/asm/pgtable-2level.h
+@@ -42,17 +42,11 @@ static inline pte_t native_ptep_get_and_clear(pte_t *xp)
  {
--	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
-+	return ((unsigned long)ptr & RADIX_TREE_INDIRECT_MASK)
-+		== RADIX_TREE_INDIRECT_PTR;
+ 	return __pte(xchg(&xp->pte_low, 0));
+ }
+-#else
+-#define native_ptep_get_and_clear(xp) native_local_ptep_get_and_clear(xp)
+-#endif
+ 
+-#ifdef CONFIG_SMP
+ static inline pmd_t native_pmdp_get_and_clear(pmd_t *xp)
+ {
+ 	return __pmd(xchg((pmdval_t *)xp, 0));
+ }
+-#else
+-#define native_pmdp_get_and_clear(xp) native_local_pmdp_get_and_clear(xp)
+ #endif
+ 
+ /* Bit manipulation helper on pte/pgoff entry */
+diff --git a/arch/x86/include/asm/pgtable-3level.h b/arch/x86/include/asm/pgtable-3level.h
+index cdaa58c..b1b6412 100644
+--- a/arch/x86/include/asm/pgtable-3level.h
++++ b/arch/x86/include/asm/pgtable-3level.h
+@@ -149,11 +149,7 @@ static inline pte_t native_ptep_get_and_clear(pte_t *ptep)
+ 
+ 	return res;
+ }
+-#else
+-#define native_ptep_get_and_clear(xp) native_local_ptep_get_and_clear(xp)
+-#endif
+ 
+-#ifdef CONFIG_SMP
+ union split_pmd {
+ 	struct {
+ 		u32 pmd_low;
+@@ -161,6 +157,7 @@ union split_pmd {
+ 	};
+ 	pmd_t pmd;
+ };
++
+ static inline pmd_t native_pmdp_get_and_clear(pmd_t *pmdp)
+ {
+ 	union split_pmd res, *orig = (union split_pmd *)pmdp;
+@@ -172,8 +169,6 @@ static inline pmd_t native_pmdp_get_and_clear(pmd_t *pmdp)
+ 
+ 	return res.pmd;
+ }
+-#else
+-#define native_pmdp_get_and_clear(xp) native_local_pmdp_get_and_clear(xp)
+ #endif
+ 
+ /* Encode and de-code a swap entry */
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index 1ff49ec..35306ca 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -740,6 +740,11 @@ static inline pmd_t native_local_pmdp_get_and_clear(pmd_t *pmdp)
+ 	return res;
  }
  
- /*** radix-tree API starts here ***/
-@@ -221,7 +227,8 @@ static inline void *radix_tree_deref_slot_protected(void **pslot,
-  */
- static inline int radix_tree_deref_retry(void *arg)
++#ifndef CONFIG_SMP
++#define native_ptep_get_and_clear(p)	native_local_ptep_get_and_clear(p)
++#define native_pmdp_get_and_clear(p)	native_local_pmdp_get_and_clear(p)
++#endif
++
+ static inline void native_set_pte_at(struct mm_struct *mm, unsigned long addr,
+ 				     pte_t *ptep , pte_t pte)
  {
--	return unlikely((unsigned long)arg & RADIX_TREE_INDIRECT_PTR);
-+	return unlikely(((unsigned long)arg & RADIX_TREE_INDIRECT_MASK)
-+			== RADIX_TREE_INDIRECT_PTR);
+diff --git a/arch/x86/include/asm/pgtable_64.h b/arch/x86/include/asm/pgtable_64.h
+index 2ee7811..a0c0219 100644
+--- a/arch/x86/include/asm/pgtable_64.h
++++ b/arch/x86/include/asm/pgtable_64.h
+@@ -70,31 +70,17 @@ static inline void native_pmd_clear(pmd_t *pmd)
+ 	native_set_pmd(pmd, native_make_pmd(0));
  }
  
- /**
-diff --git a/lib/radix-tree.c b/lib/radix-tree.c
-index 6b79e9026e24..37d4643ab5c0 100644
---- a/lib/radix-tree.c
-+++ b/lib/radix-tree.c
-@@ -1305,7 +1305,7 @@ static inline void radix_tree_shrink(struct radix_tree_root *root)
- 		 * to force callers to retry.
- 		 */
- 		if (root->height == 0)
--			*((unsigned long *)&to_free->slots[0]) |=
-+			*((unsigned long *)&to_free->slots[0]) =
- 						RADIX_TREE_INDIRECT_PTR;
++#ifdef CONFIG_SMP
+ static inline pte_t native_ptep_get_and_clear(pte_t *xp)
+ {
+-#ifdef CONFIG_SMP
+ 	return native_make_pte(xchg(&xp->pte, 0));
+-#else
+-	/* native_local_ptep_get_and_clear,
+-	   but duplicated because of cyclic dependency */
+-	pte_t ret = *xp;
+-	native_pte_clear(NULL, 0, xp);
+-	return ret;
+-#endif
+ }
  
- 		radix_tree_node_free(to_free);
+ static inline pmd_t native_pmdp_get_and_clear(pmd_t *xp)
+ {
+-#ifdef CONFIG_SMP
+ 	return native_make_pmd(xchg(&xp->pmd, 0));
+-#else
+-	/* native_local_pmdp_get_and_clear,
+-	   but duplicated because of cyclic dependency */
+-	pmd_t ret = *xp;
+-	native_pmd_clear(xp);
+-	return ret;
+-#endif
+ }
++#endif
+ 
+ static inline void native_set_pud(pud_t *pudp, pud_t pud)
+ {
 -- 
-2.6.2
+2.7.0
 
 _______________________________________________
 Linux-nvdimm mailing list
