@@ -1,11 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 4F91C1A1EBD
- for <linux-nvdimm@lists.01.org>; Thu,  3 Mar 2016 14:40:00 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2] nfit: Continue init even if ARS commands are unimplemented
-Date: Thu,  3 Mar 2016 15:39:41 -0700
-Message-Id: <1457044781-15443-1-git-send-email-vishal.l.verma@intel.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 40ECD1A1F59
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 11:18:54 -0800 (PST)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 09/12] dax: Allow DAX code to replace exceptional entries
+Date: Thu, 10 Mar 2016 20:18:52 +0100
+Message-Id: <1457637535-21633-10-git-send-email-jack@suse.cz>
+In-Reply-To: <1457637535-21633-1-git-send-email-jack@suse.cz>
+References: <1457637535-21633-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,58 +22,73 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>, linux-acpi@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-If firmware doesn't implement any of the ARS commands, take that to
-mean that ARS is unsupported, and continue to initialize regions without
-bad block lists. We cannot make the assumption that ARS commands will be
-unconditionally supported on all NVDIMMs.
+Currently we forbid page_cache_tree_insert() to replace exceptional radix
+tree entries for DAX inodes. However to make DAX faults race free we will
+lock radix tree entries and when hole is created, we need to replace
+such locked radix tree entry with a hole page. So modify
+page_cache_tree_insert() to allow that.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
+ include/linux/dax.h |  6 ++++++
+ mm/filemap.c        | 18 +++++++++++-------
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
-v2:
-- improve the debug message when we his this unimplemented case (Dan).
-
- drivers/acpi/nfit.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index fb53db1..35947ac 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1590,14 +1590,21 @@ static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
- 	start = ndr_desc->res->start;
- 	len = ndr_desc->res->end - ndr_desc->res->start + 1;
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 7c45ac7ea1d1..4b63923e1f8d 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -3,8 +3,14 @@
  
-+	/*
-+	 * If ARS is unimplemented, unsupported, or if the 'Persistent Memory
-+	 * Scrub' flag in extended status is not set, skip this but continue
-+	 * initialization
-+	 */
- 	rc = ars_get_cap(nd_desc, ars_cap, start, len);
-+	if (rc == -ENOTTY) {
-+		dev_dbg(acpi_desc->dev,
-+			"Address Range Scrub is not implemented, won't create an error list\n");
-+		rc = 0;
-+		goto out;
-+	}
- 	if (rc)
- 		goto out;
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/radix-tree.h>
+ #include <asm/pgtable.h>
  
--	/*
--	 * If ARS is unsupported, or if the 'Persistent Memory Scrub' flag in
--	 * extended status is not set, skip this but continue initialization
--	 */
- 	if ((ars_cap->status & 0xffff) ||
- 		!(ars_cap->status >> 16 & ND_ARS_PERSISTENT)) {
- 		dev_warn(acpi_desc->dev,
++/*
++ * Since exceptional entries do not use indirect bit, we reuse it as a lock bit
++ */
++#define DAX_ENTRY_LOCK RADIX_TREE_INDIRECT_PTR
++
+ ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
+ 		  get_block_t, dio_iodone_t, int flags);
+ int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size);
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 3461d97ecb30..262e6eff0b66 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -583,14 +583,18 @@ static int page_cache_tree_insert(struct address_space *mapping,
+ 		if (!radix_tree_exceptional_entry(p))
+ 			return -EEXIST;
+ 
+-		if (WARN_ON(dax_mapping(mapping)))
+-			return -EINVAL;
+-
+-		if (shadowp)
+-			*shadowp = p;
+ 		mapping->nrexceptional--;
+-		if (node)
+-			workingset_node_shadows_dec(node);
++		if (!dax_mapping(mapping)) {
++			if (shadowp)
++				*shadowp = p;
++			if (node)
++				workingset_node_shadows_dec(node);
++		} else {
++			/* DAX can replace empty locked entry with a hole */
++			WARN_ON_ONCE(p !=
++				(void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
++					 DAX_ENTRY_LOCK));
++		}
+ 	}
+ 	radix_tree_replace_slot(slot, page);
+ 	mapping->nrpages++;
 -- 
-2.5.0
+2.6.2
 
 _______________________________________________
 Linux-nvdimm mailing list
