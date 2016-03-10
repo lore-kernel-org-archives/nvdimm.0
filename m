@@ -1,122 +1,500 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ by ml01.01.org (Postfix) with ESMTP id D354E1A1F6A
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 15:56:09 -0800 (PST)
 From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH v5 14/14] dax: Use vmf->pgoff in fault handlers
-Date: Thu, 10 Mar 2016 18:55:31 -0500
-Message-Id: <1457654131-4562-15-git-send-email-matthew.r.wilcox@intel.com>
+Subject: [PATCH v5 09/14] x86: Add support for PUD-sized transparent hugepages
+Date: Thu, 10 Mar 2016 18:55:26 -0500
+Message-Id: <1457654131-4562-10-git-send-email-matthew.r.wilcox@intel.com>
 In-Reply-To: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
 References: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, willy@linux.intel.com
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that the PMD and PUD fault handlers are passed pgoff, there's no
-need to calculate it themselves.
+From: Matthew Wilcox <willy@linux.intel.com>
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+The x86-specific code needed to support the PUD uses in the transparent
+hugepages code.
+
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 ---
- fs/dax.c | 26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ arch/x86/Kconfig                      |   1 +
+ arch/x86/include/asm/paravirt.h       |  11 +++
+ arch/x86/include/asm/paravirt_types.h |   2 +
+ arch/x86/include/asm/pgtable-2level.h |  13 +++
+ arch/x86/include/asm/pgtable-3level.h |  20 +++++
+ arch/x86/include/asm/pgtable.h        | 147 ++++++++++++++++++++++++++++++++++
+ arch/x86/include/asm/pgtable_64.h     |   5 ++
+ arch/x86/kernel/paravirt.c            |   1 +
+ arch/x86/mm/pgtable.c                 |  31 +++++++
+ 9 files changed, 231 insertions(+)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index c5d87be..5db3841 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -736,7 +736,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	unsigned long pmd_addr = address & PMD_MASK;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	struct block_device *bdev;
--	pgoff_t size, pgoff;
-+	pgoff_t size;
- 	sector_t block;
- 	int error, result = 0;
- 	bool alloc = false;
-@@ -761,12 +761,11 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		return VM_FAULT_FALLBACK;
- 	}
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 3b8290c..d28cc92 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -91,6 +91,7 @@ config X86
+ 	select HAVE_ARCH_SOFT_DIRTY		if X86_64
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
++	select HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD if X86_64
+ 	select HAVE_BPF_JIT			if X86_64
+ 	select HAVE_CC_STACKPROTECTOR
+ 	select HAVE_CMPXCHG_DOUBLE
+diff --git a/arch/x86/include/asm/paravirt.h b/arch/x86/include/asm/paravirt.h
+index 601f1b8..8fd5e50 100644
+--- a/arch/x86/include/asm/paravirt.h
++++ b/arch/x86/include/asm/paravirt.h
+@@ -486,6 +486,17 @@ static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 			    native_pmd_val(pmd));
+ }
  
--	pgoff = linear_page_index(vma, pmd_addr);
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (pgoff >= size)
-+	if (vmf->pgoff >= size)
- 		return VM_FAULT_SIGBUS;
- 	/* If the PMD would cover blocks out of the file */
--	if ((pgoff | PG_PMD_COLOUR) >= size) {
-+	if ((vmf->pgoff | PG_PMD_COLOUR) >= size) {
- 		dax_pmd_dbg(NULL, address,
- 				"offset + huge page size > file size");
- 		return VM_FAULT_FALLBACK;
-@@ -774,7 +773,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
++static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
++			      pud_t *pudp, pud_t pud)
++{
++	if (sizeof(pudval_t) > sizeof(long))
++		/* 5 arg words */
++		pv_mmu_ops.set_pud_at(mm, addr, pudp, pud);
++	else
++		PVOP_VCALL4(pv_mmu_ops.set_pud_at, mm, addr, pudp,
++			    native_pud_val(pud));
++}
++
+ static inline void set_pmd(pmd_t *pmdp, pmd_t pmd)
+ {
+ 	pmdval_t val = native_pmd_val(pmd);
+diff --git a/arch/x86/include/asm/paravirt_types.h b/arch/x86/include/asm/paravirt_types.h
+index e8c2326..38f416e 100644
+--- a/arch/x86/include/asm/paravirt_types.h
++++ b/arch/x86/include/asm/paravirt_types.h
+@@ -252,6 +252,8 @@ struct pv_mmu_ops {
+ 	void (*set_pmd)(pmd_t *pmdp, pmd_t pmdval);
+ 	void (*set_pmd_at)(struct mm_struct *mm, unsigned long addr,
+ 			   pmd_t *pmdp, pmd_t pmdval);
++	void (*set_pud_at)(struct mm_struct *mm, unsigned long addr,
++			   pud_t *pudp, pud_t pudval);
+ 	void (*pte_update)(struct mm_struct *mm, unsigned long addr,
+ 			   pte_t *ptep);
  
- 	memset(&bh, 0, sizeof(bh));
- 	bh.b_bdev = inode->i_sb->s_bdev;
--	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
-+	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
+diff --git a/arch/x86/include/asm/pgtable-2level.h b/arch/x86/include/asm/pgtable-2level.h
+index 2f558ba..38f55ed 100644
+--- a/arch/x86/include/asm/pgtable-2level.h
++++ b/arch/x86/include/asm/pgtable-2level.h
+@@ -21,6 +21,10 @@ static inline void native_set_pmd(pmd_t *pmdp, pmd_t pmd)
+ 	*pmdp = pmd;
+ }
  
- 	bh.b_size = PMD_SIZE;
++static inline void native_set_pud(pud_t *pudp, pud_t pud)
++{
++}
++
+ static inline void native_set_pte_atomic(pte_t *ptep, pte_t pte)
+ {
+ 	native_set_pte(ptep, pte);
+@@ -31,6 +35,10 @@ static inline void native_pmd_clear(pmd_t *pmdp)
+ 	native_set_pmd(pmdp, __pmd(0));
+ }
  
-@@ -804,7 +803,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	 * zero pages covering this hole
- 	 */
- 	if (alloc) {
--		loff_t lstart = pgoff << PAGE_SHIFT;
-+		loff_t lstart = vmf->pgoff << PAGE_SHIFT;
- 		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
++static inline void native_pud_clear(pud_t *pudp)
++{
++}
++
+ static inline void native_pte_clear(struct mm_struct *mm,
+ 				    unsigned long addr, pte_t *xp)
+ {
+@@ -47,6 +55,11 @@ static inline pmd_t native_pmdp_get_and_clear(pmd_t *xp)
+ {
+ 	return __pmd(xchg((pmdval_t *)xp, 0));
+ }
++
++static inline pud_t native_pudp_get_and_clear(pud_t *xp)
++{
++	return __pud(xchg((pudval_t *)xp, 0));
++}
+ #endif
  
- 		truncate_pagecache_range(inode, lstart, lend);
-@@ -890,8 +889,8 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		 * the write to insert a dirty entry.
- 		 */
- 		if (write) {
--			error = dax_radix_entry(mapping, pgoff, dax.sector,
--					true, true);
-+			error = dax_radix_entry(mapping, vmf->pgoff,
-+						dax.sector, true, true);
- 			if (error) {
- 				dax_pmd_dbg(&bh, address,
- 						"PMD radix insertion failed");
-@@ -942,7 +941,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	unsigned long pud_addr = address & PUD_MASK;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	struct block_device *bdev;
--	pgoff_t size, pgoff;
-+	pgoff_t size;
- 	sector_t block;
- 	int result = 0;
- 	bool alloc = false;
-@@ -967,12 +966,11 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		return VM_FAULT_FALLBACK;
- 	}
+ /* Bit manipulation helper on pte/pgoff entry */
+diff --git a/arch/x86/include/asm/pgtable-3level.h b/arch/x86/include/asm/pgtable-3level.h
+index b1b6412..fbf6ebc 100644
+--- a/arch/x86/include/asm/pgtable-3level.h
++++ b/arch/x86/include/asm/pgtable-3level.h
+@@ -169,6 +169,26 @@ static inline pmd_t native_pmdp_get_and_clear(pmd_t *pmdp)
  
--	pgoff = linear_page_index(vma, pud_addr);
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (pgoff >= size)
-+	if (vmf->pgoff >= size)
- 		return VM_FAULT_SIGBUS;
- 	/* If the PUD would cover blocks out of the file */
--	if ((pgoff | PG_PUD_COLOUR) >= size) {
-+	if ((vmf->pgoff | PG_PUD_COLOUR) >= size) {
- 		dax_pud_dbg(NULL, address,
- 				"offset + huge page size > file size");
- 		return VM_FAULT_FALLBACK;
-@@ -980,7 +978,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	return res.pmd;
+ }
++
++union split_pud {
++	struct {
++		u32 pud_low;
++		u32 pud_high;
++	};
++	pud_t pud;
++};
++
++static inline pud_t native_pudp_get_and_clear(pud_t *pudp)
++{
++	union split_pud res, *orig = (union split_pud *)pudp;
++
++	/* xchg acts as a barrier before setting of the high bits */
++	res.pud_low = xchg(&orig->pud_low, 0);
++	res.pud_high = orig->pud_high;
++	orig->pud_high = 0;
++
++	return res.pud;
++}
+ #endif
  
- 	memset(&bh, 0, sizeof(bh));
- 	bh.b_bdev = inode->i_sb->s_bdev;
--	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
-+	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
+ /* Encode and de-code a swap entry */
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index 4cbc459..0343699 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -46,6 +46,7 @@ extern struct mm_struct *pgd_page_get_mm(struct page *page);
+ #define set_pte(ptep, pte)		native_set_pte(ptep, pte)
+ #define set_pte_at(mm, addr, ptep, pte)	native_set_pte_at(mm, addr, ptep, pte)
+ #define set_pmd_at(mm, addr, pmdp, pmd)	native_set_pmd_at(mm, addr, pmdp, pmd)
++#define set_pud_at(mm, addr, pudp, pud)	native_set_pud_at(mm, addr, pudp, pud)
  
- 	bh.b_size = PUD_SIZE;
+ #define set_pte_atomic(ptep, pte)					\
+ 	native_set_pte_atomic(ptep, pte)
+@@ -122,6 +123,16 @@ static inline int pmd_young(pmd_t pmd)
+ 	return pmd_flags(pmd) & _PAGE_ACCESSED;
+ }
  
-@@ -1010,7 +1008,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	 * zero pages covering this hole
- 	 */
- 	if (alloc) {
--		loff_t lstart = pgoff << PAGE_SHIFT;
-+		loff_t lstart = vmf->pgoff << PAGE_SHIFT;
- 		loff_t lend = lstart + PUD_SIZE - 1; /* inclusive */
++static inline int pud_dirty(pud_t pud)
++{
++	return pud_flags(pud) & _PAGE_DIRTY;
++}
++
++static inline int pud_young(pud_t pud)
++{
++	return pud_flags(pud) & _PAGE_ACCESSED;
++}
++
+ static inline int pte_write(pte_t pte)
+ {
+ 	return pte_flags(pte) & _PAGE_RW;
+@@ -175,6 +186,18 @@ static inline int pmd_trans_huge(pmd_t pmd)
+ 	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
+ }
  
- 		truncate_pagecache_range(inode, lstart, lend);
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++static inline int pud_trans_huge(pud_t pud)
++{
++	return (pud_val(pud) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
++}
++#else
++static inline int pud_trans_huge(pud_t pud)
++{
++	return 0;
++}
++#endif
++
+ static inline int has_transparent_hugepage(void)
+ {
+ 	return cpu_has_pse;
+@@ -185,6 +208,18 @@ static inline int pmd_devmap(pmd_t pmd)
+ {
+ 	return !!(pmd_val(pmd) & _PAGE_DEVMAP);
+ }
++
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++static inline int pud_devmap(pud_t pud)
++{
++	return !!(pud_val(pud) & _PAGE_DEVMAP);
++}
++#else
++static inline int pud_devmap(pud_t pud)
++{
++	return 0;
++}
++#endif
+ #endif
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+@@ -326,6 +361,65 @@ static inline pmd_t pmd_mknotpresent(pmd_t pmd)
+ 	return pmd_clear_flags(pmd, _PAGE_PRESENT | _PAGE_PROTNONE);
+ }
+ 
++static inline pud_t pud_set_flags(pud_t pud, pudval_t set)
++{
++	pudval_t v = native_pud_val(pud);
++
++	return __pud(v | set);
++}
++
++static inline pud_t pud_clear_flags(pud_t pud, pudval_t clear)
++{
++	pudval_t v = native_pud_val(pud);
++
++	return __pud(v & ~clear);
++}
++
++static inline pud_t pud_mkold(pud_t pud)
++{
++	return pud_clear_flags(pud, _PAGE_ACCESSED);
++}
++
++static inline pud_t pud_mkclean(pud_t pud)
++{
++	return pud_clear_flags(pud, _PAGE_DIRTY);
++}
++
++static inline pud_t pud_wrprotect(pud_t pud)
++{
++	return pud_clear_flags(pud, _PAGE_RW);
++}
++
++static inline pud_t pud_mkdirty(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
++}
++
++static inline pud_t pud_mkdevmap(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_DEVMAP);
++}
++
++static inline pud_t pud_mkhuge(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_PSE);
++}
++
++static inline pud_t pud_mkyoung(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_ACCESSED);
++}
++
++static inline pud_t pud_mkwrite(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_RW);
++}
++
++static inline pud_t pud_mknotpresent(pud_t pud)
++{
++	return pud_clear_flags(pud, _PAGE_PRESENT | _PAGE_PROTNONE);
++}
++
+ #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline int pte_soft_dirty(pte_t pte)
+ {
+@@ -337,6 +431,11 @@ static inline int pmd_soft_dirty(pmd_t pmd)
+ 	return pmd_flags(pmd) & _PAGE_SOFT_DIRTY;
+ }
+ 
++static inline int pud_soft_dirty(pud_t pud)
++{
++	return pud_flags(pud) & _PAGE_SOFT_DIRTY;
++}
++
+ static inline pte_t pte_mksoft_dirty(pte_t pte)
+ {
+ 	return pte_set_flags(pte, _PAGE_SOFT_DIRTY);
+@@ -347,6 +446,11 @@ static inline pmd_t pmd_mksoft_dirty(pmd_t pmd)
+ 	return pmd_set_flags(pmd, _PAGE_SOFT_DIRTY);
+ }
+ 
++static inline pud_t pud_mksoft_dirty(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_SOFT_DIRTY);
++}
++
+ static inline pte_t pte_clear_soft_dirty(pte_t pte)
+ {
+ 	return pte_clear_flags(pte, _PAGE_SOFT_DIRTY);
+@@ -357,6 +461,11 @@ static inline pmd_t pmd_clear_soft_dirty(pmd_t pmd)
+ 	return pmd_clear_flags(pmd, _PAGE_SOFT_DIRTY);
+ }
+ 
++static inline pud_t pud_clear_soft_dirty(pud_t pud)
++{
++	return pud_clear_flags(pud, _PAGE_SOFT_DIRTY);
++}
++
+ #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
+ 
+ /*
+@@ -385,6 +494,13 @@ static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
+ 		     massage_pgprot(pgprot));
+ }
+ 
++#define pfn_pud pfn_pud
++static inline pud_t pfn_pud(unsigned long page_nr, pgprot_t pgprot)
++{
++	return __pud(((phys_addr_t)page_nr << PAGE_SHIFT) |
++		     massage_pgprot(pgprot));
++}
++
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	pteval_t val = pte_val(pte);
+@@ -740,9 +856,18 @@ static inline pmd_t native_local_pmdp_get_and_clear(pmd_t *pmdp)
+ 	return res;
+ }
+ 
++static inline pud_t native_local_pudp_get_and_clear(pud_t *pudp)
++{
++	pud_t res = *pudp;
++
++	native_pud_clear(pudp);
++	return res;
++}
++
+ #ifndef CONFIG_SMP
+ #define native_ptep_get_and_clear(p)	native_local_ptep_get_and_clear(p)
+ #define native_pmdp_get_and_clear(p)	native_local_pmdp_get_and_clear(p)
++#define native_pudp_get_and_clear(p)	native_local_pudp_get_and_clear(p)
+ #endif
+ 
+ static inline void native_set_pte_at(struct mm_struct *mm, unsigned long addr,
+@@ -757,6 +882,12 @@ static inline void native_set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 	native_set_pmd(pmdp, pmd);
+ }
+ 
++static inline void native_set_pud_at(struct mm_struct *mm, unsigned long addr,
++				     pud_t *pudp, pud_t pud)
++{
++	native_set_pud(pudp, pud);
++}
++
+ #ifndef CONFIG_PARAVIRT
+ /*
+  * Rules for using pte_update - it must be called after any PTE update which
+@@ -835,10 +966,15 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm,
+ extern int pmdp_set_access_flags(struct vm_area_struct *vma,
+ 				 unsigned long address, pmd_t *pmdp,
+ 				 pmd_t entry, int dirty);
++extern int pudp_set_access_flags(struct vm_area_struct *vma,
++				 unsigned long address, pud_t *pudp,
++				 pud_t entry, int dirty);
+ 
+ #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
+ extern int pmdp_test_and_clear_young(struct vm_area_struct *vma,
+ 				     unsigned long addr, pmd_t *pmdp);
++extern int pudp_test_and_clear_young(struct vm_area_struct *vma,
++				     unsigned long addr, pud_t *pudp);
+ 
+ #define __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
+ extern int pmdp_clear_flush_young(struct vm_area_struct *vma,
+@@ -858,6 +994,13 @@ static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm,
+ 	return native_pmdp_get_and_clear(pmdp);
+ }
+ 
++#define __HAVE_ARCH_PUDP_HUGE_GET_AND_CLEAR
++static inline pud_t pudp_huge_get_and_clear(struct mm_struct *mm,
++					unsigned long addr, pud_t *pudp)
++{
++	return native_pudp_get_and_clear(pudp);
++}
++
+ #define __HAVE_ARCH_PMDP_SET_WRPROTECT
+ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
+ 				      unsigned long addr, pmd_t *pmdp)
+@@ -906,6 +1049,10 @@ static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
+ 		unsigned long addr, pmd_t *pmd)
+ {
+ }
++static inline void update_mmu_cache_pud(struct vm_area_struct *vma,
++		unsigned long addr, pud_t *pud)
++{
++}
+ 
+ #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
+diff --git a/arch/x86/include/asm/pgtable_64.h b/arch/x86/include/asm/pgtable_64.h
+index a0c0219..d264589 100644
+--- a/arch/x86/include/asm/pgtable_64.h
++++ b/arch/x86/include/asm/pgtable_64.h
+@@ -80,6 +80,11 @@ static inline pmd_t native_pmdp_get_and_clear(pmd_t *xp)
+ {
+ 	return native_make_pmd(xchg(&xp->pmd, 0));
+ }
++
++static inline pud_t native_pudp_get_and_clear(pud_t *pudp)
++{
++	return native_make_pud(xchg(&pudp->pud, 0));
++}
+ #endif
+ 
+ static inline void native_set_pud(pud_t *pudp, pud_t pud)
+diff --git a/arch/x86/kernel/paravirt.c b/arch/x86/kernel/paravirt.c
+index f08ac28..24d61f2 100644
+--- a/arch/x86/kernel/paravirt.c
++++ b/arch/x86/kernel/paravirt.c
+@@ -425,6 +425,7 @@ struct pv_mmu_ops pv_mmu_ops = {
+ 	.pmd_clear = native_pmd_clear,
+ #endif
+ 	.set_pud = native_set_pud,
++	.set_pud_at = native_set_pud_at,
+ 
+ 	.pmd_val = PTE_IDENT,
+ 	.make_pmd = PTE_IDENT,
+diff --git a/arch/x86/mm/pgtable.c b/arch/x86/mm/pgtable.c
+index 4eb287e..b7c8df6 100644
+--- a/arch/x86/mm/pgtable.c
++++ b/arch/x86/mm/pgtable.c
+@@ -441,6 +441,26 @@ int pmdp_set_access_flags(struct vm_area_struct *vma,
+ 
+ 	return changed;
+ }
++
++int pudp_set_access_flags(struct vm_area_struct *vma, unsigned long address,
++			  pud_t *pudp, pud_t entry, int dirty)
++{
++	int changed = !pud_same(*pudp, entry);
++
++	VM_BUG_ON(address & ~HPAGE_PUD_MASK);
++
++	if (changed && dirty) {
++		*pudp = entry;
++		/*
++		 * We had a write-protection fault here and changed the pud
++		 * to to more permissive. No need to flush the TLB for that,
++		 * #PF is architecturally guaranteed to do that and in the
++		 * worst-case we'll generate a spurious fault.
++		 */
++	}
++
++	return changed;
++}
+ #endif
+ 
+ int ptep_test_and_clear_young(struct vm_area_struct *vma,
+@@ -470,6 +490,17 @@ int pmdp_test_and_clear_young(struct vm_area_struct *vma,
+ 
+ 	return ret;
+ }
++int pudp_test_and_clear_young(struct vm_area_struct *vma,
++			      unsigned long addr, pud_t *pudp)
++{
++	int ret = 0;
++
++	if (pud_young(*pudp))
++		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED,
++					 (unsigned long *)pudp);
++
++	return ret;
++}
+ #endif
+ 
+ int ptep_clear_flush_young(struct vm_area_struct *vma,
 -- 
 2.7.0
 
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
