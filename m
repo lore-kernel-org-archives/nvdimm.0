@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 0AC191A1E2A
- for <linux-nvdimm@lists.01.org>; Tue,  1 Mar 2016 17:45:13 -0800 (PST)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 0/8] nfit, libnvdimm: async address range scrub
-Date: Wed, 2 Mar 2016 01:45:03 +0000
-Message-ID: <1456883098.4525.9.camel@intel.com>
-References: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <464B2A60F1359C4CA00C70D3709709D7@intel.com>
-MIME-Version: 1.0
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id A72A11A1EF8
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 15:55:55 -0800 (PST)
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH v5 12/14] dax: Use vmf->gfp_mask
+Date: Thu, 10 Mar 2016 18:55:29 -0500
+Message-Id: <1457654131-4562-13-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,67 +15,44 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE2LTAyLTIzIGF0IDE4OjE2IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IEdpdmVuIHRoZSBjYXBhY2l0aWVzIG9mIG5leHQgZ2VuZXJhdGlvbiBwZXJzaXN0ZW50IG1lbW9y
-eSBkZXZpY2VzIGENCj4gc2NydWIgb3BlcmF0aW9uIHRvIGZpbmQgYWxsIHBvaXNvbiBtYXkgdGFr
-ZSAxMHMgb2Ygc2Vjb25kcy7CoMKgV2Ugd2FudA0KPiB0aGlzIHNjcnViIHdvcmsgdG8gYmUgZG9u
-ZSBhc3luY2hyb25vdXNseSB3aXRoIHRoZSByZXN0IG9mIHN5c3RlbQ0KPiBpbml0aWFsaXphdGlv
-biwgc28gd2UgbW92ZSBpdCBvdXQgb2YgbGluZSBmcm9tIHRoZSBORklUIHByb2JpbmcsIGkuZS4N
-Cj4gYWNwaV9uZml0X2FkZCgpLg0KPiANCj4gSG93ZXZlciwgd2UgbWF5IHdhbnQgdG8gc3luY2hy
-b25vdXNseSB3YWl0IGZvciB0aGF0IHNjcnViYmluZyB0bw0KPiBjb21wbGV0ZSBiZWZvcmUgd2Ug
-cHJvYmUgYW55IHBtZW0gZGV2aWNlcy7CoMKgQ29uc2lkZXIgdGhlIGNhc2Ugd2hlcmUNCj4gY29u
-c3VtaW5nIHBvaXNvbiB0cmlnZ2VycyBhIG1hY2hpbmUgY2hlY2sgYW5kIGEgcmVib290LsKgwqBU
-aGF0IGV2ZW50DQo+IHdpbGwNCj4gdHJpZ2dlciBwbGF0Zm9ybSBmaXJtd2FyZSB0byBpbml0aWF0
-ZSBhIHNjcnViLsKgwqBUaGUga2VybmVsIHNob3VsZA0KPiBjb21wbGV0ZSBhbnkgZmlybXdhcmUg
-aW5pdGlhdGVkIHNjcnVicyBhcyB0aG9zZSBsaWtlbHkgaW5kaWNhdGUgdGhlDQo+IHByZXNlbmNl
-IG9mIGtub3duIHBvaXNvbi4NCj4gDQo+IFdoZW4gZXJyb3JzIGFyZSBub3QgcHJlc2VudCwgcGxh
-dGZvcm0gZmlybXdhcmUgZGlkIG5vdCBpbml0aWF0ZQ0KPiBzY3J1YmJpbmcsIHdlIHN0aWxsIHNj
-cnViLCBidXQgYXN5bmNocm9ub3VzbHkuwqDCoFRoaXMgdHJhZGVzIG9mZiBhIHJpc2sNCj4gb2Yg
-aGl0dGluZyBuZXcgdW5rbm93biBwb2lzb24gcmFuZ2VzIHdpdGggbWFraW5nIHRoZSBkYXRhIGF2
-YWlsYWJsZQ0KPiBmYXN0ZXIgYWZ0ZXIgbG9hZGluZyB0aGUgZHJpdmVyLg0KPiANCj4gVGhpcyBh
-c3luYyBzY3J1YiBjYXBhYmlsaXR5IGlzIGFsc28gdXNlZnVsIGluIHRoZSBmdXR1cmUgd2hlbiB3
-ZQ0KPiBpbnRlZ3JhdGUgVG9ueSBMdWNrJ3MgbWNzYWZlX2NvcHkoKSAob3Igd2hhdGV2ZXIgaXQg
-aXMNCj4gZXZlbnR1YWxseSBjYWxsZWQpLsKgwqBBZnRlciBhIG1hY2hpbmUgY2hlY2sgcmVjb3Zl
-cnkgZXZlbnQgd2UgY2FuIHNjcnViDQo+IHRoZSBwbWVtIG5hbWVzcGFjZSB0byBzZWUgaWYgdGhl
-cmUgYXJlIGFueSBvdGhlciBsYXRlbnQgZXJyb3JzIGFuZA0KPiBvdGhlcndpc2UgdXBkYXRlIHRo
-ZSAnYmFkYmxvY2tzJyBsaXN0IHdpdGggdGhlIG5ldyBlbnRyaWVzLg0KPiANCj4gVGhpcyBwYXNz
-ZXMgdGhlIGxpYm5kY3RsIHVuaXQgdGVzdCBzdWl0ZSwgd2l0aCBzb21lIG1pbm9yIHVwZGF0ZXMg
-dG8NCj4gYWNjb3VudCBmb3IgdGhlIGZhY3QgdGhhdCB3aGVuICJtb2Rwcm9iZSBuZml0X3Rlc3Qi
-IHJldHVybnMgbm90IGFsbA0KPiByZWdpb25zIGFyZSByZWdpc3RlcmVkLg0KPiANCj4gLS0tDQo+
-IA0KPiBEYW4gV2lsbGlhbXMgKDgpOg0KPiDCoMKgwqDCoMKgwqBsaWJudmRpbW0sIG5maXQ6IGNl
-bnRyYWxpemUgY29tbWFuZCBzdGF0dXMgdHJhbnNsYXRpb24NCj4gwqDCoMKgwqDCoMKgbGlibnZk
-aW1tOiBwcm90ZWN0IG52ZGltbV97YnVzfG5hbWVzcGFjZX1fYWRkX3BvaXNvbigpIHdpdGgNCj4g
-bnZkaW1tX2J1c19sb2NrKCkNCj4gwqDCoMKgwqDCoMKgbGlibnZkaW1tOiBhc3luYyBub3RpZmlj
-YXRpb24gc3VwcG9ydA0KPiDCoMKgwqDCoMKgwqBuZml0LCB0b29scy90ZXN0aW5nL252ZGltbTog
-dW5pZnkgY29tbW9uIGluaXQgZm9yIGFjcGlfbmZpdF9kZXNjDQo+IMKgwqDCoMKgwqDCoG5maXQs
-IGxpYm52ZGltbTogYXN5bmMgcmVnaW9uIHNjcnViIHdvcmtxdWV1ZQ0KPiDCoMKgwqDCoMKgwqBu
-Zml0OiBzY3J1YiBhbmQgcmVnaXN0ZXIgcmVnaW9ucyBpbiBhIHdvcmtxdWV1ZQ0KPiDCoMKgwqDC
-oMKgwqBuZml0OiBkaXNhYmxlIHVzZXJzcGFjZSBpbml0aWF0ZWQgYXJzIGR1cmluZyBzY3J1Yg0K
-PiDCoMKgwqDCoMKgwqB0b29scy90ZXN0aW5nL252ZGltbTogZXhwYW5kIGFycyB1bml0IHRlc3Rp
-bmcNCj4gDQo+IA0KPiDCoGRyaXZlcnMvYWNwaS9uZml0LmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgfMKgwqA3NjEgKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+IC0tLS0tLS0tLS0t
-DQo+IMKgZHJpdmVycy9hY3BpL25maXQuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDC
-oMKgMjQgKw0KPiDCoGRyaXZlcnMvbnZkaW1tL2J1cy5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqB8wqDCoMKgNDYgKysNCj4gwqBkcml2ZXJzL252ZGltbS9jb3JlLmPCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqB8wqDCoDExMCArKysrLQ0KPiDCoGRyaXZlcnMvbnZkaW1tL2RpbW1fZGV2cy5jwqDC
-oMKgwqDCoMKgwqB8wqDCoMKgwqA2wqANCj4gwqBkcml2ZXJzL252ZGltbS9uZC5owqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqDCoDLCoA0KPiDCoGRyaXZlcnMvbnZkaW1tL3BtZW0u
-Y8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxNSArDQo+IMKgZHJpdmVycy9udmRpbW0v
-cmVnaW9uLmPCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxMiArDQo+IMKgaW5jbHVkZS9saW51
-eC9saWJudmRpbW0uaMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqA1wqANCj4gwqBpbmNsdWRlL2xp
-bnV4L25kLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqA3wqANCj4gwqB0
-b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYyB8wqDCoDEzMyArKysrKy0tDQo+IMKgMTEg
-ZmlsZXMgY2hhbmdlZCwgODA5IGluc2VydGlvbnMoKyksIDMxMiBkZWxldGlvbnMoLSkNCg0KDQpI
-aSBEYW4sDQoNCkxvb2tzIGdvb2QgdG8gbWUsIHRoYW5rcyBmb3Iga25vY2tpbmcgdGhpcyBvdXQh
-DQoNCkZvciB0aGUgc2VyaWVzLA0KUmV2aWV3ZWQtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
-dmVybWFAaW50ZWwuY29tPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5v
-cmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+We were assuming that it was OK to do a GFP_KERNEL allocation in page
+fault context.  That appears to be largely true, but filesystems are
+permitted to override that in their setting of mapping->gfp_flags, which
+the VM then massages into vmf->gfp_flags.  No practical difference for
+now, but there may come a day when we would have surprised a filesystem.
+
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ fs/dax.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index 35f0709..50636e1 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -316,7 +316,7 @@ static int dax_load_hole(struct address_space *mapping, struct page *page,
+ 	struct inode *inode = mapping->host;
+ 	if (!page)
+ 		page = find_or_create_page(mapping, vmf->pgoff,
+-						GFP_KERNEL | __GFP_ZERO);
++						vmf->gfp_mask | __GFP_ZERO);
+ 	if (!page)
+ 		return VM_FAULT_OOM;
+ 	/* Recheck i_size under page lock to avoid truncate race */
+-- 
+2.7.0
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
