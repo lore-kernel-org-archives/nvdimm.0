@@ -1,18 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 982521A1DF8
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 12:10:26 -0800 (PST)
-From: "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
-Subject: RE: [PATCH 05/12] dax: Remove synchronization using i_mmap_lock
-Date: Thu, 10 Mar 2016 20:10:09 +0000
-Message-ID: <100D68C7BA14664A8938383216E40DE042207AA9@FMSMSX114.amr.corp.intel.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 22EA31A1F51
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 12:04:57 -0800 (PST)
+Date: Thu, 10 Mar 2016 21:05:01 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 05/12] dax: Remove synchronization using i_mmap_lock
+Message-ID: <20160310200501.GA23203@quack.suse.cz>
 References: <1457637535-21633-1-git-send-email-jack@suse.cz>
  <1457637535-21633-6-git-send-email-jack@suse.cz>
  <100D68C7BA14664A8938383216E40DE0422079E9@FMSMSX114.amr.corp.intel.com>
- <20160310200501.GA23203@quack.suse.cz>
-In-Reply-To: <20160310200501.GA23203@quack.suse.cz>
-Content-Language: en-US
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <100D68C7BA14664A8938383216E40DE0422079E9@FMSMSX114.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,34 +25,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, NeilBrown <neilb@suse.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
+Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, NeilBrown <neilb@suse.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
-
-Here's the race:
-
-CPU 0				CPU 1
-do_cow_fault()
-__do_fault()
-takes sem
-dax_fault()
-releases sem
-				truncate()
-				unmap_mapping_range()
-				i_mmap_lock_write()
-				unmap_mapping_range_tree()
-				i_mmap_unlock_write()
-do_set_pte()
-
-Holding i_mmap_lock_read() from inside __do_fault() prevents the truncate from proceeding until the page is inseted with do_set_pte().
-
-
------Original Message-----
-From: Jan Kara [mailto:jack@suse.cz] 
-Sent: Thursday, March 10, 2016 12:05 PM
-To: Wilcox, Matthew R
-Cc: Jan Kara; linux-fsdevel@vger.kernel.org; Ross Zwisler; Williams, Dan J; linux-nvdimm@lists.01.org; NeilBrown
-Subject: Re: [PATCH 05/12] dax: Remove synchronization using i_mmap_lock
 
 On Thu 10-03-16 19:55:21, Wilcox, Matthew R wrote:
 > This locking's still necessary.  i_mmap_sem has already been released by
