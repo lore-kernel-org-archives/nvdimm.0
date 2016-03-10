@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C5F6B1A1EF9
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 11:18:52 -0800 (PST)
-From: Jan Kara <jack@suse.cz>
-Subject: [RFC] [PATCH 0/12] DAX page fault locking
-Date: Thu, 10 Mar 2016 20:18:43 +0100
-Message-Id: <1457637535-21633-1-git-send-email-jack@suse.cz>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 349451A1EF8
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 15:55:53 -0800 (PST)
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH v5 02/14] mm: Convert an open-coded VM_BUG_ON_VMA
+Date: Thu, 10 Mar 2016 18:55:19 -0500
+Message-Id: <1457654131-4562-3-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,33 +20,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
+From: Matthew Wilcox <willy@linux.intel.com>
 
-this is my first attempt at DAX page fault locking rewrite. It is mostly
-just a dump of current status of my git tree so that people can see where I'm
-going before weekend. It should be complete but so far it is only compile
-tested.
+Spotted during PUD support review.
 
-The basic idea is that we use a bit in an exceptional radix tree entry as
-a lock bit and use it similarly to how page lock is used for normal faults.
-That way we fix races between hole instantiation and read faults of the
-same index. For now I have disabled PMD faults since there the issues with
-page fault locking are even worse. I think we will need something like
-Matthew's multi-order radix tree to fix the races for PMD faults but I
-want to have a look at those once locking for normal pages is working.
+Reported-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+---
+ mm/memory.c | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-In the end I have decided to implement the bit locking directly in the DAX
-code. Originally I was thinking we could provide something generic directly
-in the radix tree code but the functions DAX needs are rather specific.
-Maybe someone else will have a good idea how to distill some generally useful
-functions out of what I've implemented for DAX but for now I didn't bother
-with that.
+diff --git a/mm/memory.c b/mm/memory.c
+index a975fd4..12fc10e 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1182,15 +1182,7 @@ static inline unsigned long zap_pmd_range(struct mmu_gather *tlb,
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE) {
+-#ifdef CONFIG_DEBUG_VM
+-				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
+-					pr_err("%s: mmap_sem is unlocked! addr=0x%lx end=0x%lx vma->vm_start=0x%lx vma->vm_end=0x%lx\n",
+-						__func__, addr, end,
+-						vma->vm_start,
+-						vma->vm_end);
+-					BUG();
+-				}
+-#endif
++				VM_BUG_ON_VMA(!rwsem_is_locked(&tlb->mm->mmap_sem), vma);
+ 				split_huge_pmd(vma, pmd, addr);
+ 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
+ 				goto next;
+-- 
+2.7.0
 
-								Honza
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
