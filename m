@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 821171A1EDF
- for <linux-nvdimm@lists.01.org>; Wed, 23 Mar 2016 18:27:06 -0700 (PDT)
-Subject: [PATCH 08/13] libnvdimm,
- blk: move i/o infrastructure to nd_namespace_blk
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 23 Mar 2016 18:26:03 -0700
-Message-ID: <20160324012603.21436.60864.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 3C0F01A1EF8
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 15:55:55 -0800 (PST)
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH v5 06/14] procfs: Add support for PUDs to smaps,
+ clear_refs and pagemap
+Date: Thu, 10 Mar 2016 18:55:23 -0500
+Message-Id: <1457654131-4562-7-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,330 +16,190 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Consolidate the information for issuing i/o to a blk-namespace, and
-eliminate some pointer chasing.
+From: Matthew Wilcox <willy@linux.intel.com>
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Because there's no 'struct page' for DAX THPs, a lot of this code is
+simpler than the PMD code it mimics.  Extra code would need to be added
+to support PUDs of anonymous or page-cache THPs.
+
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 ---
- drivers/nvdimm/blk.c |  137 +++++++++++++++++++++++++-------------------------
- include/linux/nd.h   |    2 +
- 2 files changed, 71 insertions(+), 68 deletions(-)
+ fs/proc/task_mmu.c | 109 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 109 insertions(+)
 
-diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
-index c8635b3d88a8..4c14ecdc792b 100644
---- a/drivers/nvdimm/blk.c
-+++ b/drivers/nvdimm/blk.c
-@@ -21,17 +21,19 @@
- #include <linux/sizes.h>
- #include "nd.h"
- 
--struct nd_blk_device {
--	struct nd_namespace_blk *nsblk;
--	struct nd_blk_region *ndbr;
--	size_t disk_size;
--	u32 sector_size;
--	u32 internal_lbasize;
--};
-+static u32 nsblk_meta_size(struct nd_namespace_blk *nsblk)
-+{
-+	return nsblk->lbasize - ((nsblk->lbasize >= 4096) ? 4096 : 512);
-+}
- 
--static u32 nd_blk_meta_size(struct nd_blk_device *blk_dev)
-+static u32 nsblk_internal_lbasize(struct nd_namespace_blk *nsblk)
- {
--	return blk_dev->nsblk->lbasize - blk_dev->sector_size;
-+	return roundup(nsblk->lbasize, INT_LBASIZE_ALIGNMENT);
-+}
-+
-+static u32 nsblk_sector_size(struct nd_namespace_blk *nsblk)
-+{
-+	return nsblk->lbasize - nsblk_meta_size(nsblk);
- }
- 
- static resource_size_t to_dev_offset(struct nd_namespace_blk *nsblk,
-@@ -55,20 +57,29 @@ static resource_size_t to_dev_offset(struct nd_namespace_blk *nsblk,
- 	return SIZE_MAX;
- }
- 
-+static struct nd_blk_region *to_ndbr(struct nd_namespace_blk *nsblk)
-+{
-+	struct nd_region *nd_region;
-+	struct device *parent;
-+
-+	parent = nsblk->common.dev.parent;
-+	nd_region = container_of(parent, struct nd_region, dev);
-+	return container_of(nd_region, struct nd_blk_region, nd_region);
-+}
-+
- #ifdef CONFIG_BLK_DEV_INTEGRITY
--static int nd_blk_rw_integrity(struct nd_blk_device *blk_dev,
--				struct bio_integrity_payload *bip, u64 lba,
--				int rw)
-+static int nd_blk_rw_integrity(struct nd_namespace_blk *nsblk,
-+		struct bio_integrity_payload *bip, u64 lba, int rw)
- {
--	unsigned int len = nd_blk_meta_size(blk_dev);
-+	struct nd_blk_region *ndbr = to_ndbr(nsblk);
-+	unsigned int len = nsblk_meta_size(nsblk);
- 	resource_size_t	dev_offset, ns_offset;
--	struct nd_namespace_blk *nsblk;
--	struct nd_blk_region *ndbr;
-+	u32 internal_lbasize, sector_size;
- 	int err = 0;
- 
--	nsblk = blk_dev->nsblk;
--	ndbr = blk_dev->ndbr;
--	ns_offset = lba * blk_dev->internal_lbasize + blk_dev->sector_size;
-+	internal_lbasize = nsblk_internal_lbasize(nsblk);
-+	sector_size = nsblk_sector_size(nsblk);
-+	ns_offset = lba * internal_lbasize + sector_size;
- 	dev_offset = to_dev_offset(nsblk, ns_offset, len);
- 	if (dev_offset == SIZE_MAX)
- 		return -EIO;
-@@ -102,25 +113,26 @@ static int nd_blk_rw_integrity(struct nd_blk_device *blk_dev,
- }
- 
- #else /* CONFIG_BLK_DEV_INTEGRITY */
--static int nd_blk_rw_integrity(struct nd_blk_device *blk_dev,
--				struct bio_integrity_payload *bip, u64 lba,
--				int rw)
-+static int nd_blk_rw_integrity(struct nd_namespace_blk *nsblk,
-+		struct bio_integrity_payload *bip, u64 lba, int rw)
- {
- 	return 0;
+diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+index 9df4316..197f37d 100644
+--- a/fs/proc/task_mmu.c
++++ b/fs/proc/task_mmu.c
+@@ -586,6 +586,33 @@ static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
  }
  #endif
  
--static int nd_blk_do_bvec(struct nd_blk_device *blk_dev,
--			struct bio_integrity_payload *bip, struct page *page,
--			unsigned int len, unsigned int off, int rw,
--			sector_t sector)
-+static int nsblk_do_bvec(struct nd_namespace_blk *nsblk,
-+		struct bio_integrity_payload *bip, struct page *page,
-+		unsigned int len, unsigned int off, int rw, sector_t sector)
- {
--	struct nd_blk_region *ndbr = blk_dev->ndbr;
-+	struct nd_blk_region *ndbr = to_ndbr(nsblk);
- 	resource_size_t	dev_offset, ns_offset;
-+	u32 internal_lbasize, sector_size;
- 	int err = 0;
- 	void *iobuf;
- 	u64 lba;
- 
-+	internal_lbasize = nsblk_internal_lbasize(nsblk);
-+	sector_size = nsblk_sector_size(nsblk);
- 	while (len) {
- 		unsigned int cur_len;
- 
-@@ -130,11 +142,11 @@ static int nd_blk_do_bvec(struct nd_blk_device *blk_dev,
- 		 * Block Window setup/move steps. the do_io routine is capable
- 		 * of handling len <= PAGE_SIZE.
- 		 */
--		cur_len = bip ? min(len, blk_dev->sector_size) : len;
-+		cur_len = bip ? min(len, sector_size) : len;
- 
--		lba = div_u64(sector << SECTOR_SHIFT, blk_dev->sector_size);
--		ns_offset = lba * blk_dev->internal_lbasize;
--		dev_offset = to_dev_offset(blk_dev->nsblk, ns_offset, cur_len);
-+		lba = div_u64(sector << SECTOR_SHIFT, sector_size);
-+		ns_offset = lba * internal_lbasize;
-+		dev_offset = to_dev_offset(nsblk, ns_offset, cur_len);
- 		if (dev_offset == SIZE_MAX)
- 			return -EIO;
- 
-@@ -145,13 +157,13 @@ static int nd_blk_do_bvec(struct nd_blk_device *blk_dev,
- 			return err;
- 
- 		if (bip) {
--			err = nd_blk_rw_integrity(blk_dev, bip, lba, rw);
-+			err = nd_blk_rw_integrity(nsblk, bip, lba, rw);
- 			if (err)
- 				return err;
- 		}
- 		len -= cur_len;
- 		off += cur_len;
--		sector += blk_dev->sector_size >> SECTOR_SHIFT;
-+		sector += sector_size >> SECTOR_SHIFT;
- 	}
- 
- 	return err;
-@@ -160,7 +172,7 @@ static int nd_blk_do_bvec(struct nd_blk_device *blk_dev,
- static blk_qc_t nd_blk_make_request(struct request_queue *q, struct bio *bio)
- {
- 	struct bio_integrity_payload *bip;
--	struct nd_blk_device *blk_dev;
-+	struct nd_namespace_blk *nsblk;
- 	struct bvec_iter iter;
- 	unsigned long start;
- 	struct bio_vec bvec;
-@@ -179,17 +191,17 @@ static blk_qc_t nd_blk_make_request(struct request_queue *q, struct bio *bio)
- 	}
- 
- 	bip = bio_integrity(bio);
--	blk_dev = q->queuedata;
-+	nsblk = q->queuedata;
- 	rw = bio_data_dir(bio);
- 	do_acct = nd_iostat_start(bio, &start);
- 	bio_for_each_segment(bvec, bio, iter) {
- 		unsigned int len = bvec.bv_len;
- 
- 		BUG_ON(len > PAGE_SIZE);
--		err = nd_blk_do_bvec(blk_dev, bip, bvec.bv_page, len,
--					bvec.bv_offset, rw, iter.bi_sector);
-+		err = nsblk_do_bvec(nsblk, bip, bvec.bv_page, len,
-+				bvec.bv_offset, rw, iter.bi_sector);
- 		if (err) {
--			dev_info(&blk_dev->nsblk->common.dev,
-+			dev_dbg(&nsblk->common.dev,
- 					"io error in %s sector %lld, len %d,\n",
- 					(rw == READ) ? "READ" : "WRITE",
- 					(unsigned long long) iter.bi_sector, len);
-@@ -205,17 +217,16 @@ static blk_qc_t nd_blk_make_request(struct request_queue *q, struct bio *bio)
- 	return BLK_QC_T_NONE;
- }
- 
--static int nd_blk_rw_bytes(struct nd_namespace_common *ndns,
-+static int nsblk_rw_bytes(struct nd_namespace_common *ndns,
- 		resource_size_t offset, void *iobuf, size_t n, int rw)
- {
--	struct nd_blk_device *blk_dev = dev_get_drvdata(ndns->claim);
--	struct nd_namespace_blk *nsblk = blk_dev->nsblk;
--	struct nd_blk_region *ndbr = blk_dev->ndbr;
-+	struct nd_namespace_blk *nsblk = to_nd_namespace_blk(&ndns->dev);
-+	struct nd_blk_region *ndbr = to_ndbr(nsblk);
- 	resource_size_t	dev_offset;
- 
- 	dev_offset = to_dev_offset(nsblk, offset, n);
- 
--	if (unlikely(offset + n > blk_dev->disk_size)) {
-+	if (unlikely(offset + n > nsblk->size)) {
- 		dev_WARN_ONCE(&ndns->dev, 1, "request out of range\n");
- 		return -EFAULT;
- 	}
-@@ -242,16 +253,16 @@ static void nd_blk_release_disk(void *disk)
- 	put_disk(disk);
- }
- 
--static int nd_blk_attach_disk(struct device *dev,
--		struct nd_namespace_common *ndns, struct nd_blk_device *blk_dev)
-+static int nsblk_attach_disk(struct nd_namespace_blk *nsblk)
- {
-+	struct device *dev = &nsblk->common.dev;
- 	resource_size_t available_disk_size;
- 	struct request_queue *q;
- 	struct gendisk *disk;
- 	u64 internal_nlba;
- 
--	internal_nlba = div_u64(blk_dev->disk_size, blk_dev->internal_lbasize);
--	available_disk_size = internal_nlba * blk_dev->sector_size;
-+	internal_nlba = div_u64(nsblk->size, nsblk_internal_lbasize(nsblk));
-+	available_disk_size = internal_nlba * nsblk_sector_size(nsblk);
- 
- 	q = blk_alloc_queue(GFP_KERNEL);
- 	if (!q)
-@@ -264,9 +275,9 @@ static int nd_blk_attach_disk(struct device *dev,
- 	blk_queue_make_request(q, nd_blk_make_request);
- 	blk_queue_max_hw_sectors(q, UINT_MAX);
- 	blk_queue_bounce_limit(q, BLK_BOUNCE_ANY);
--	blk_queue_logical_block_size(q, blk_dev->sector_size);
-+	blk_queue_logical_block_size(q, nsblk_sector_size(nsblk));
- 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, q);
--	q->queuedata = blk_dev;
-+	q->queuedata = nsblk;
- 
- 	disk = alloc_disk(0);
- 	if (!disk)
-@@ -276,17 +287,17 @@ static int nd_blk_attach_disk(struct device *dev,
- 		return -ENOMEM;
- 	}
- 
--	disk->driverfs_dev	= &ndns->dev;
-+	disk->driverfs_dev	= dev;
- 	disk->first_minor	= 0;
- 	disk->fops		= &nd_blk_fops;
- 	disk->queue		= q;
- 	disk->flags		= GENHD_FL_EXT_DEVT;
--	nvdimm_namespace_disk_name(ndns, disk->disk_name);
-+	nvdimm_namespace_disk_name(&nsblk->common, disk->disk_name);
- 	set_capacity(disk, 0);
- 	add_disk(disk);
- 
--	if (nd_blk_meta_size(blk_dev)) {
--		int rc = nd_integrity_init(disk, nd_blk_meta_size(blk_dev));
-+	if (nsblk_meta_size(nsblk)) {
-+		int rc = nd_integrity_init(disk, nsblk_meta_size(nsblk));
- 
- 		if (rc)
- 			return rc;
-@@ -301,33 +312,23 @@ static int nd_blk_probe(struct device *dev)
- {
- 	struct nd_namespace_common *ndns;
- 	struct nd_namespace_blk *nsblk;
--	struct nd_blk_device *blk_dev;
- 
- 	ndns = nvdimm_namespace_common_probe(dev);
- 	if (IS_ERR(ndns))
- 		return PTR_ERR(ndns);
- 
--	blk_dev = devm_kzalloc(dev, sizeof(*blk_dev), GFP_KERNEL);
--	if (!blk_dev)
--		return -ENOMEM;
--
- 	nsblk = to_nd_namespace_blk(&ndns->dev);
--	blk_dev->disk_size = nvdimm_namespace_capacity(ndns);
--	blk_dev->ndbr = to_nd_blk_region(dev->parent);
--	blk_dev->nsblk = to_nd_namespace_blk(&ndns->dev);
--	blk_dev->internal_lbasize = roundup(nsblk->lbasize,
--						INT_LBASIZE_ALIGNMENT);
--	blk_dev->sector_size = ((nsblk->lbasize >= 4096) ? 4096 : 512);
--	dev_set_drvdata(dev, blk_dev);
--
--	ndns->rw_bytes = nd_blk_rw_bytes;
-+	nsblk->size = nvdimm_namespace_capacity(ndns);
-+	dev_set_drvdata(dev, nsblk);
++static int smaps_pud_range(pud_t *pud, unsigned long addr, unsigned long end,
++		struct mm_walk *walk)
++{
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	struct vm_area_struct *vma = walk->vma;
++	struct mem_size_stats *mss = walk->private;
 +
-+	ndns->rw_bytes = nsblk_rw_bytes;
- 	if (is_nd_btt(dev))
- 		return nvdimm_namespace_attach_btt(ndns);
--	else if (nd_btt_probe(dev, ndns, blk_dev) == 0) {
-+	else if (nd_btt_probe(dev, ndns, nsblk) == 0) {
- 		/* we'll come back as btt-blk */
- 		return -ENXIO;
- 	} else
--		return nd_blk_attach_disk(dev, ndns, blk_dev);
-+		return nsblk_attach_disk(nsblk);
++	if (is_huge_zero_pud(*pud))
++		return 0;
++
++	mss->resident += HPAGE_PUD_SIZE;
++	if (vma->vm_flags & VM_SHARED) {
++		if (pud_dirty(*pud))
++			mss->shared_dirty += HPAGE_PUD_SIZE;
++		else
++			mss->shared_clean += HPAGE_PUD_SIZE;
++	} else {
++		if (pud_dirty(*pud))
++			mss->private_dirty += HPAGE_PUD_SIZE;
++		else
++			mss->private_clean += HPAGE_PUD_SIZE;
++	}
++#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++
++	return 0;
++}
++
+ static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			   struct mm_walk *walk)
+ {
+@@ -720,6 +747,7 @@ static int show_smap(struct seq_file *m, void *v, int is_pid)
+ 	struct vm_area_struct *vma = v;
+ 	struct mem_size_stats mss;
+ 	struct mm_walk smaps_walk = {
++		.pud_entry = smaps_pud_range,
+ 		.pmd_entry = smaps_pte_range,
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		.hugetlb_entry = smaps_hugetlb_range,
+@@ -903,13 +931,50 @@ static inline void clear_soft_dirty_pmd(struct vm_area_struct *vma,
+ 
+ 	set_pmd_at(vma->vm_mm, addr, pmdp, pmd);
+ }
++static inline void clear_soft_dirty_pud(struct vm_area_struct *vma,
++		unsigned long addr, pud_t *pudp)
++{
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	pud_t pud = pudp_huge_get_and_clear(vma->vm_mm, addr, pudp);
++
++	pud = pud_wrprotect(pud);
++	pud = pud_clear_soft_dirty(pud);
++
++	if (vma->vm_flags & VM_SOFTDIRTY)
++		vma->vm_flags &= ~VM_SOFTDIRTY;
++
++	set_pud_at(vma->vm_mm, addr, pudp, pud);
++#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++}
+ #else
+ static inline void clear_soft_dirty_pmd(struct vm_area_struct *vma,
+ 		unsigned long addr, pmd_t *pmdp)
+ {
+ }
++static inline void clear_soft_dirty_pud(struct vm_area_struct *vma,
++		unsigned long addr, pud_t *pudp)
++{
++}
+ #endif
+ 
++static int clear_refs_pud_range(pud_t *pud, unsigned long addr,
++				unsigned long end, struct mm_walk *walk)
++{
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	struct clear_refs_private *cp = walk->private;
++	struct vm_area_struct *vma = walk->vma;
++
++	if (cp->type == CLEAR_REFS_SOFT_DIRTY) {
++		clear_soft_dirty_pud(vma, addr, pud);
++	} else {
++		/* Clear accessed and referenced bits. */
++		pudp_test_and_clear_young(vma, addr, pud);
++	}
++#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++
++	return 0;
++}
++
+ static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
+ 				unsigned long end, struct mm_walk *walk)
+ {
+@@ -1020,6 +1085,7 @@ static ssize_t clear_refs_write(struct file *file, const char __user *buf,
+ 			.type = type,
+ 		};
+ 		struct mm_walk clear_refs_walk = {
++			.pud_entry = clear_refs_pud_range,
+ 			.pmd_entry = clear_refs_pte_range,
+ 			.test_walk = clear_refs_test_walk,
+ 			.mm = mm,
+@@ -1184,6 +1250,48 @@ static pagemap_entry_t pte_to_pagemap_entry(struct pagemapread *pm,
+ 	return make_pme(frame, flags);
  }
  
- static int nd_blk_remove(struct device *dev)
-diff --git a/include/linux/nd.h b/include/linux/nd.h
-index 5489ab756d1a..5ea4aec7fd63 100644
---- a/include/linux/nd.h
-+++ b/include/linux/nd.h
-@@ -82,6 +82,7 @@ struct nd_namespace_pmem {
-  * @uuid: namespace name supplied in the dimm label
-  * @id: ida allocated id
-  * @lbasize: blk namespaces have a native sector size when btt not present
-+ * @size: sum of all the resource ranges allocated to this namespace
-  * @num_resources: number of dpa extents to claim
-  * @res: discontiguous dpa extents for given dimm
-  */
-@@ -91,6 +92,7 @@ struct nd_namespace_blk {
- 	u8 *uuid;
- 	int id;
- 	unsigned long lbasize;
-+	resource_size_t size;
- 	int num_resources;
- 	struct resource **res;
- };
++static int pagemap_pud_range(pud_t *pudp, unsigned long addr, unsigned long end,
++			     struct mm_walk *walk)
++{
++	int err = 0;
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	struct vm_area_struct *vma = walk->vma;
++	struct pagemapread *pm = walk->private;
++	u64 flags = 0, frame = 0;
++	pud_t pud = *pudp;
++
++	if ((vma->vm_flags & VM_SOFTDIRTY) || pud_soft_dirty(pud))
++		flags |= PM_SOFT_DIRTY;
++
++	/*
++	 * Currently pud for thp is always present because thp
++	 * can not be swapped-out, migrated, or HWPOISONed
++	 * (split in such cases instead.)
++	 * This if-check is just to prepare for future implementation.
++	 */
++	if (pud_present(pud)) {
++		flags |= PM_PRESENT;
++		if (!(vma->vm_flags & VM_SHARED))
++			flags |= PM_MMAP_EXCLUSIVE;
++
++		if (pm->show_pfn)
++			frame = pud_pfn(pud) +
++					((addr & ~PUD_MASK) >> PAGE_SHIFT);
++
++		for (; addr != end; addr += PAGE_SIZE) {
++			pagemap_entry_t pme = make_pme(frame, flags);
++
++			err = add_to_pagemap(addr, &pme, pm);
++			if (err)
++				break;
++			if (pm->show_pfn && (flags & PM_PRESENT))
++				frame++;
++		}
++	}
++#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++	return err;
++}
++
+ static int pagemap_pmd_range(pmd_t *pmdp, unsigned long addr, unsigned long end,
+ 			     struct mm_walk *walk)
+ {
+@@ -1363,6 +1471,7 @@ static ssize_t pagemap_read(struct file *file, char __user *buf,
+ 	if (!pm.buffer)
+ 		goto out_mm;
+ 
++	pagemap_walk.pud_entry = pagemap_pud_range;
+ 	pagemap_walk.pmd_entry = pagemap_pmd_range;
+ 	pagemap_walk.pte_hole = pagemap_pte_hole;
+ #ifdef CONFIG_HUGETLB_PAGE
+-- 
+2.7.0
 
 _______________________________________________
 Linux-nvdimm mailing list
