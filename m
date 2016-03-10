@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t6216.austin.hp.com (g1t6216.austin.hp.com [15.73.96.123])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 74DA71A1F7F
- for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:17:01 -0800 (PST)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [RFC v6 1/8] ACPI / util: Fix acpi_evaluate_dsm() argument type
-Date: Fri, 11 Mar 2016 14:16:25 -0700
-Message-Id: <4ba7d479bbdca8f70a58b5bea882410eb25c6246.1457730736.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1457730736.git.jerry.hoemann@hpe.com>
-References: <cover.1457730736.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1457730736.git.jerry.hoemann@hpe.com>
-References: <cover.1457730736.git.jerry.hoemann@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id C5F6B1A1EF9
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 11:18:52 -0800 (PST)
+From: Jan Kara <jack@suse.cz>
+Subject: [RFC] [PATCH 0/12] DAX page fault locking
+Date: Thu, 10 Mar 2016 20:18:43 +0100
+Message-Id: <1457637535-21633-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,72 +20,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The ACPI spec speicifies that arguments "Revision ID" and
-"Function Index" to a _DSM are type "Integer."  Type Integers
-are 64 bit quantities.
+Hello,
 
-The function evaluate_dsm specifies these types as simple "int"
-which are 32 bits.  Correct type passed to acpi_evaluate_dsm
-and its callers and derived callers to pass correct type.
+this is my first attempt at DAX page fault locking rewrite. It is mostly
+just a dump of current status of my git tree so that people can see where I'm
+going before weekend. It should be complete but so far it is only compile
+tested.
 
-acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
-and were corrected as well.
+The basic idea is that we use a bit in an exceptional radix tree entry as
+a lock bit and use it similarly to how page lock is used for normal faults.
+That way we fix races between hole instantiation and read faults of the
+same index. For now I have disabled PMD faults since there the issues with
+page fault locking are even worse. I think we will need something like
+Matthew's multi-order radix tree to fix the races for PMD faults but I
+want to have a look at those once locking for normal pages is working.
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
----
- drivers/acpi/utils.c    | 4 ++--
- include/acpi/acpi_bus.h | 6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+In the end I have decided to implement the bit locking directly in the DAX
+code. Originally I was thinking we could provide something generic directly
+in the radix tree code but the functions DAX needs are rather specific.
+Maybe someone else will have a good idea how to distill some generally useful
+functions out of what I've implemented for DAX but for now I didn't bother
+with that.
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index f2f9873..87bd54d 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -629,7 +629,7 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
-  * some old BIOSes do expect a buffer or an integer etc.
-  */
- union acpi_object *
--acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
-+acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
- 		  union acpi_object *argv4)
- {
- 	acpi_status ret;
-@@ -678,7 +678,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
-  * functions. Currently only support 64 functions at maximum, should be
-  * enough for now.
-  */
--bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
-+bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
- {
- 	int i;
- 	u64 mask = 0;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 14362a8..f092cc6 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -61,12 +61,12 @@ bool acpi_ata_match(acpi_handle handle);
- bool acpi_bay_match(acpi_handle handle);
- bool acpi_dock_match(acpi_handle handle);
- 
--bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
-+bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs);
- union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
--			int rev, int func, union acpi_object *argv4);
-+			u64 rev, u64 func, union acpi_object *argv4);
- 
- static inline union acpi_object *
--acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
-+acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
- 			union acpi_object *argv4, acpi_object_type type)
- {
- 	union acpi_object *obj;
--- 
-1.7.11.3
-
+								Honza
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
