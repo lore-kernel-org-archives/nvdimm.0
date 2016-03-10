@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 1663C1A1DED
- for <linux-nvdimm@lists.01.org>; Wed, 16 Mar 2016 17:55:21 -0700 (PDT)
-Subject: [ndctl PATCH 1/5] ndctl: update pkg-config description
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 16 Mar 2016 17:54:35 -0700
-Message-ID: <20160317005435.3025.49300.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160317005429.3025.395.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160317005429.3025.395.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 767101A1EF8
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 15:55:53 -0800 (PST)
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH v5 01/14] mmdebug: Always evaluate the arguments to VM_BUG_ON_*
+Date: Thu, 10 Mar 2016 18:55:18 -0500
+Message-Id: <1457654131-4562-2-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,34 +15,59 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use the same description as rpmspec file which references "libnvdimm"
-instead of "nd".
+I recently got the order of arguments to VM_BUG_ON_VMA the wrong way
+around, which was only noticable when compiling with CONFIG_DEBUG_VM.
+Prevent the next mistake of this kind by making the macros evaluate both
+their arguments at compile time (this has no effect on the built kernel).
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 ---
- lib/libndctl.pc.in |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mmdebug.h | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/lib/libndctl.pc.in b/lib/libndctl.pc.in
-index a8ac4b799fdc..2af9ad18a6fc 100644
---- a/lib/libndctl.pc.in
-+++ b/lib/libndctl.pc.in
-@@ -4,7 +4,7 @@ libdir=@libdir@
- includedir=@includedir@
- 
- Name: libndctl
--Description: Device discovery and manipulation for the "nd" subsystem
-+Description: Manage "libnvdimm" subsystem devices (Non-volatile Memory)
- Version: @VERSION@
- Libs: -L${libdir} -lndctl
- Libs.private:
+diff --git a/include/linux/mmdebug.h b/include/linux/mmdebug.h
+index de7be78..abfc316 100644
+--- a/include/linux/mmdebug.h
++++ b/include/linux/mmdebug.h
+@@ -41,9 +41,24 @@ void dump_mm(const struct mm_struct *mm);
+ #define VM_WARN_ONCE(cond, format...) WARN_ONCE(cond, format)
+ #else
+ #define VM_BUG_ON(cond) BUILD_BUG_ON_INVALID(cond)
+-#define VM_BUG_ON_PAGE(cond, page) VM_BUG_ON(cond)
+-#define VM_BUG_ON_VMA(cond, vma) VM_BUG_ON(cond)
+-#define VM_BUG_ON_MM(cond, mm) VM_BUG_ON(cond)
++#define VM_BUG_ON_PAGE(cond, page)					\
++	do {								\
++		if (0) dump_page(page, "");				\
++		VM_BUG_ON(cond);					\
++	} while (0)
++
++#define VM_BUG_ON_VMA(cond, vma)					\
++	do {								\
++		if (0) dump_vma(vma);					\
++		VM_BUG_ON(cond);					\
++	} while (0)
++
++#define VM_BUG_ON_MM(cond, mm)						\
++	do {								\
++		if (0) dump_mm(mm);					\
++		VM_BUG_ON(cond);					\
++	} while (0)
++
+ #define VM_WARN_ON(cond) BUILD_BUG_ON_INVALID(cond)
+ #define VM_WARN_ON_ONCE(cond) BUILD_BUG_ON_INVALID(cond)
+ #define VM_WARN_ONCE(cond, format...) BUILD_BUG_ON_INVALID(cond)
+-- 
+2.7.0
 
 _______________________________________________
 Linux-nvdimm mailing list
