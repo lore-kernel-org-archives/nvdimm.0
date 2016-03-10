@@ -1,12 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id 6C9F51A1E4D
- for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 09:45:11 -0800 (PST)
-Subject: [ndctl PATCH] ndctl: remove %defattr from spec file template
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 11 Mar 2016 09:44:28 -0800
-Message-ID: <20160311174428.33053.76522.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id BD0521A1EF7
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 11:18:52 -0800 (PST)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 04/12] ocfs2: Fix return value from ocfs2_page_mkwrite()
+Date: Thu, 10 Mar 2016 20:18:47 +0100
+Message-Id: <1457637535-21633-5-git-send-email-jack@suse.cz>
+In-Reply-To: <1457637535-21633-1-git-send-email-jack@suse.cz>
+References: <1457637535-21633-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,49 +17,40 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Ralf Corsepius <rc040203@freenet.de>
+To: linux-fsdevel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Per Ralf Corsepius:
-"Except if you want to support very outdated distros (IIRC, < rhel5),
-%defattr(-,root,root) is not necessary, anymore and should not be used
-in specs anymore."
+ocfs2_page_mkwrite() could mistakenly return error code instead of
+mkwrite status value. Fix it.
 
-Reported-by: Ralf Corsepius <rc040203@freenet.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- ndctl.spec.in |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/ocfs2/mmap.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/ndctl.spec.in b/ndctl.spec.in
-index e24b31cc54f0..6f6e99bd743b 100644
---- a/ndctl.spec.in
-+++ b/ndctl.spec.in
-@@ -65,19 +65,16 @@ make check
- %postun -n LNAME -p /sbin/ldconfig
+diff --git a/fs/ocfs2/mmap.c b/fs/ocfs2/mmap.c
+index 9581d190f6e1..77ebc2bc1cca 100644
+--- a/fs/ocfs2/mmap.c
++++ b/fs/ocfs2/mmap.c
+@@ -147,6 +147,10 @@ static int ocfs2_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	ret = ocfs2_inode_lock(inode, &di_bh, 1);
+ 	if (ret < 0) {
+ 		mlog_errno(ret);
++		if (ret == -ENOMEM)
++			ret = VM_FAULT_OOM;
++		else
++			ret = VM_FAULT_SIGBUS;
+ 		goto out;
+ 	}
  
- %files
--%defattr(-,root,root)
- %license licenses/GPLv2 licenses/BSD-MIT licenses/CC0
- %{_bindir}/ndctl
- %{_mandir}/man1/*
- 
- %files -n LNAME
--%defattr(-,root,root)
- %doc README.md
- %license COPYING licenses/BSD-MIT licenses/CC0
- %{_libdir}/libndctl.so.*
- 
- %files -n DNAME
--%defattr(-,root,root)
- %license COPYING
- %{_includedir}/ndctl/
- %{_libdir}/libndctl.so
+-- 
+2.6.2
 
 _______________________________________________
 Linux-nvdimm mailing list
