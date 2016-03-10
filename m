@@ -1,83 +1,122 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5008.houston.hp.com (g9t5008.houston.hp.com [15.240.92.66])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5E1F31A1E8D
- for <linux-nvdimm@lists.01.org>; Wed,  2 Mar 2016 13:58:24 -0800 (PST)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 0/4] Support persistent memory as reserved type in e820/EFI
-Date: Wed,  2 Mar 2016 15:50:52 -0700
-Message-Id: <1456959056-12316-1-git-send-email-toshi.kani@hpe.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH v5 14/14] dax: Use vmf->pgoff in fault handlers
+Date: Thu, 10 Mar 2016 18:55:31 -0500
+Message-Id: <1457654131-4562-15-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, willy@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.0 defines persistent memory (PMEM) ranges in multiple
-firmware interfaces, e820, EFI, and ACPI NFIT table.  This EFI
-change, however, leads to hit a bug in the grub bootloader, which
-treats EFI_PERSISTENT_MEMORY type as regular memory and corrupts
-stored user data [1].
+Now that the PMD and PUD fault handlers are passed pgoff, there's no
+need to calculate it themselves.
 
-Therefore, BIOS may set generic reserved type in e820 and EFI
-to cover PMEM ranges.  The kernel can initialize PMEM ranges
-from ACPI NFIT table alone.
-
-This scheme cause a problem in the iomem table, though.  On x86,
-for instance, e820_reserve_resources() initializes top-level entries
-(iomem_resource.child) from the e820 table at early boot-time.
-This creates "reserved" entry for a PMEM range, which does not allow
-region_intersects() to check with PMEM type.
-
-This patch-set introduces devm_insert/remove_resource(), and changes
-the NFIT driver to insert a PMEM entry to the iomem table.
-
-[1] https://lists.gnu.org/archive/html/grub-devel/2015-11/msg00209.html
-
-Patch 1 fixes __request_region() to handle inheritance of attribute
-properly.  This patch is independent from this series.
-
-Patch 2 adds remove_resource() interface.
-
-Patch 3 adds devm_insert_resource() and devm_remove_resouce().  
-
-Patch 4 changes the ACPI nfit driver to call devm_insert_resource() to
-insert a PMEM range from NFIT.
-
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 ---
-v2:
- - Change the NFIT driver to call insert_resource() to insert a PMEM entry
-   when necessary. (Dan Williams)
- - The NFIT driver still needs to allow unloading. (Dan Williams)
+ fs/dax.c | 26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
----
-This patch-set is based on the tip tree, which has the following patchset.
-https://lkml.org/lkml/2016/1/26/886
+diff --git a/fs/dax.c b/fs/dax.c
+index c5d87be..5db3841 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -736,7 +736,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	unsigned long pmd_addr = address & PMD_MASK;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	struct block_device *bdev;
+-	pgoff_t size, pgoff;
++	pgoff_t size;
+ 	sector_t block;
+ 	int error, result = 0;
+ 	bool alloc = false;
+@@ -761,12 +761,11 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		return VM_FAULT_FALLBACK;
+ 	}
+ 
+-	pgoff = linear_page_index(vma, pmd_addr);
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-	if (pgoff >= size)
++	if (vmf->pgoff >= size)
+ 		return VM_FAULT_SIGBUS;
+ 	/* If the PMD would cover blocks out of the file */
+-	if ((pgoff | PG_PMD_COLOUR) >= size) {
++	if ((vmf->pgoff | PG_PMD_COLOUR) >= size) {
+ 		dax_pmd_dbg(NULL, address,
+ 				"offset + huge page size > file size");
+ 		return VM_FAULT_FALLBACK;
+@@ -774,7 +773,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 
+ 	memset(&bh, 0, sizeof(bh));
+ 	bh.b_bdev = inode->i_sb->s_bdev;
+-	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
++	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
+ 
+ 	bh.b_size = PMD_SIZE;
+ 
+@@ -804,7 +803,7 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	 * zero pages covering this hole
+ 	 */
+ 	if (alloc) {
+-		loff_t lstart = pgoff << PAGE_SHIFT;
++		loff_t lstart = vmf->pgoff << PAGE_SHIFT;
+ 		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
+ 
+ 		truncate_pagecache_range(inode, lstart, lend);
+@@ -890,8 +889,8 @@ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		 * the write to insert a dirty entry.
+ 		 */
+ 		if (write) {
+-			error = dax_radix_entry(mapping, pgoff, dax.sector,
+-					true, true);
++			error = dax_radix_entry(mapping, vmf->pgoff,
++						dax.sector, true, true);
+ 			if (error) {
+ 				dax_pmd_dbg(&bh, address,
+ 						"PMD radix insertion failed");
+@@ -942,7 +941,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	unsigned long pud_addr = address & PUD_MASK;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	struct block_device *bdev;
+-	pgoff_t size, pgoff;
++	pgoff_t size;
+ 	sector_t block;
+ 	int result = 0;
+ 	bool alloc = false;
+@@ -967,12 +966,11 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		return VM_FAULT_FALLBACK;
+ 	}
+ 
+-	pgoff = linear_page_index(vma, pud_addr);
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-	if (pgoff >= size)
++	if (vmf->pgoff >= size)
+ 		return VM_FAULT_SIGBUS;
+ 	/* If the PUD would cover blocks out of the file */
+-	if ((pgoff | PG_PUD_COLOUR) >= size) {
++	if ((vmf->pgoff | PG_PUD_COLOUR) >= size) {
+ 		dax_pud_dbg(NULL, address,
+ 				"offset + huge page size > file size");
+ 		return VM_FAULT_FALLBACK;
+@@ -980,7 +978,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 
+ 	memset(&bh, 0, sizeof(bh));
+ 	bh.b_bdev = inode->i_sb->s_bdev;
+-	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
++	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
+ 
+ 	bh.b_size = PUD_SIZE;
+ 
+@@ -1010,7 +1008,7 @@ static int dax_pud_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	 * zero pages covering this hole
+ 	 */
+ 	if (alloc) {
+-		loff_t lstart = pgoff << PAGE_SHIFT;
++		loff_t lstart = vmf->pgoff << PAGE_SHIFT;
+ 		loff_t lend = lstart + PUD_SIZE - 1; /* inclusive */
+ 
+ 		truncate_pagecache_range(inode, lstart, lend);
+-- 
+2.7.0
 
----
-Toshi Kani (4):
- 1/4 resource: Change __request_region to inherit from immediate parent
- 2/4 resource: Add remove_resource interface
- 3/4 resource: Add device-managed insert/remove_resource()
- 4/4 ACPI: Change NFIT driver to insert new resource
-
----
- drivers/acpi/nfit.c    |  30 ++++++++++++
- include/linux/ioport.h |   6 +++
- kernel/resource.c      | 127 +++++++++++++++++++++++++++++++++++++++++++++----
- 3 files changed, 155 insertions(+), 8 deletions(-)
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
