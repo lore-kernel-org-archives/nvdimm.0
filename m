@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t4623.austin.hp.com (g2t4623.austin.hp.com [15.73.212.78])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 078491A1E91
- for <linux-nvdimm@lists.01.org>; Tue, 15 Mar 2016 14:32:42 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v7 6/7] nvdimm: Add IOCTL pass thru functions
-Date: Tue, 15 Mar 2016 15:32:15 -0600
-Message-Id: <bbd70375c7933fce41c26c980d5f45f1415ae437.1458076114.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1458076114.git.jerry.hoemann@hpe.com>
-References: <cover.1458076114.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1458076114.git.jerry.hoemann@hpe.com>
-References: <cover.1458076114.git.jerry.hoemann@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id C305F1A1EF8
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 11:18:52 -0800 (PST)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 02/12] radix-tree: make 'indirect' bit available to exception
+ entries.
+Date: Thu, 10 Mar 2016 20:18:45 +0100
+Message-Id: <1457637535-21633-3-git-send-email-jack@suse.cz>
+In-Reply-To: <1457637535-21633-1-git-send-email-jack@suse.cz>
+References: <1457637535-21633-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,368 +23,86 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add ioctl command ND_CMD_CALL_DSM to acpi_nfit_ctl and __nd_ioctl which
-allow kernel to call a nvdimm's _DSM as a passthru without using the
-marshaling code of the nd_cmd_desc.
+From: NeilBrown <neilb@suse.com>
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+A pointer to a radix_tree_node will always have the 'exception'
+bit cleared, so if the exception bit is set the value cannot
+be an indirect pointer.  Thus it is safe to make the 'indirect bit'
+available to store extra information in exception entries.
+
+This patch adds a 'PTR_MASK' and a value is only treated as
+an indirect (pointer) entry the 2 ls-bits are '01'.
+
+The change in radix-tree.c ensures the stored value still looks like an
+indirect pointer, and saves a load as well.
+
+We could swap the two bits and so keep all the exectional bits contigious.
+But I have other plans for that bit....
+
+Signed-off-by: NeilBrown <neilb@suse.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- drivers/acpi/nfit.c  | 142 ++++++++++++++++++++++++++++++++++++++++++++-------
- drivers/nvdimm/bus.c |  45 +++++++++++++++-
- 2 files changed, 168 insertions(+), 19 deletions(-)
+ include/linux/radix-tree.h | 11 +++++++++--
+ lib/radix-tree.c           |  2 +-
+ 2 files changed, 10 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index d0f35e6..2ff777a 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -56,6 +56,21 @@ struct nfit_table_prev {
- 	struct list_head flushes;
- };
+diff --git a/include/linux/radix-tree.h b/include/linux/radix-tree.h
+index 968150ab8a1c..450c12b546b7 100644
+--- a/include/linux/radix-tree.h
++++ b/include/linux/radix-tree.h
+@@ -40,8 +40,13 @@
+  * Indirect pointer in fact is also used to tag the last pointer of a node
+  * when it is shrunk, before we rcu free the node. See shrink code for
+  * details.
++ *
++ * To allow an exception entry to only lose one bit, we ignore
++ * the INDIRECT bit when the exception bit is set.  So an entry is
++ * indirect if the least significant 2 bits are 01.
+  */
+ #define RADIX_TREE_INDIRECT_PTR		1
++#define RADIX_TREE_INDIRECT_MASK	3
+ /*
+  * A common use of the radix tree is to store pointers to struct pages;
+  * but shmem/tmpfs needs also to store swap entries in the same tree:
+@@ -53,7 +58,8 @@
  
-+struct cmd_family_tbl {
-+	enum nfit_uuids	key_uuid;	/* Internal handle		*/
-+	int		key_type;	/* Exported handle		*/
-+	int		rev;		/* _DSM rev			*/
-+	u64		mask;		/* 0 bit excludes underlying func.*/
-+};
-+
-+struct cmd_family_tbl nfit_cmd_family_tbl[] = {
-+	{ NFIT_DEV_BUS,		ND_TYPE_BUS,		1, ~0UL},
-+	{ NFIT_DEV_DIMM,	ND_TYPE_DIMM_INTEL1,	1, ~0UL},
-+	{ NFIT_DEV_DIMM_N_HPE1, ND_TYPE_DIMM_N_HPE1,	1, ~0UL},
-+	{ NFIT_DEV_DIMM_N_HPE2, ND_TYPE_DIMM_N_HPE2,	1, ~0UL},
-+	{ -1, -1, -1, 0},
-+};
-+
- static u8 nfit_uuid[NFIT_UUID_MAX][16];
- 
- const u8 *to_nfit_uuid(enum nfit_uuids id)
-@@ -64,6 +79,18 @@ const u8 *to_nfit_uuid(enum nfit_uuids id)
- }
- EXPORT_SYMBOL(to_nfit_uuid);
- 
-+static int
-+known_nvdimm_type(u32 type, struct cmd_family_tbl *tbl)
-+{
-+	int i;
-+
-+	for (i = 0;  tbl[i].key_type >= 0 ; i++) {
-+		if (tbl[i].key_type == type)
-+			return 1;
-+	}
-+	return 0;
-+}
-+
- static struct acpi_nfit_desc *to_acpi_nfit_desc(
- 		struct nvdimm_bus_descriptor *nd_desc)
+ static inline int radix_tree_is_indirect_ptr(void *ptr)
  {
-@@ -171,8 +198,9 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		unsigned int buf_len, int *cmd_rc)
+-	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
++	return ((unsigned long)ptr & RADIX_TREE_INDIRECT_MASK)
++		== RADIX_TREE_INDIRECT_PTR;
+ }
+ 
+ /*** radix-tree API starts here ***/
+@@ -221,7 +227,8 @@ static inline void *radix_tree_deref_slot_protected(void **pslot,
+  */
+ static inline int radix_tree_deref_retry(void *arg)
  {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
--	const struct nd_cmd_desc *desc = NULL;
- 	union acpi_object in_obj, in_buf, *out_obj;
-+	struct nd_cmd_pkg *call_dsm = NULL;
-+	const struct nd_cmd_desc *desc = NULL;
- 	struct device *dev = acpi_desc->dev;
- 	const char *cmd_name, *dimm_name;
- 	unsigned long dsm_mask;
-@@ -180,6 +208,12 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 	const u8 *uuid;
- 	u32 offset;
- 	int rc, i;
-+	__u64 rev = 1, func = cmd;
-+
-+	if (cmd == ND_CMD_CALL) {
-+		call_dsm = buf;
-+		func = call_dsm->nd_command;
-+	}
- 
- 	if (nvdimm) {
- 		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-@@ -191,7 +225,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		cmd_name = nvdimm_cmd_name(cmd);
- 		dsm_mask = nfit_mem->dsm_mask;
- 		desc = nd_cmd_dimm_desc(cmd);
--		uuid = to_nfit_uuid(NFIT_DEV_DIMM);
-+		uuid = nfit_mem->dsm_uuid;
- 		handle = adev->handle;
- 	} else {
- 		struct acpi_device *adev = to_acpi_dev(acpi_desc);
-@@ -207,7 +241,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 	if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
- 		return -ENOTTY;
- 
--	if (!test_bit(cmd, &dsm_mask))
-+	if (!test_bit(func, &dsm_mask))
- 		return -ENOTTY;
- 
- 	in_obj.type = ACPI_TYPE_PACKAGE;
-@@ -218,25 +252,48 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 	in_buf.buffer.length = 0;
- 
- 	/* libnvdimm has already validated the input envelope */
--	for (i = 0; i < desc->in_num; i++)
-+	for (i = 0; i < desc->in_num; i++) {
- 		in_buf.buffer.length += nd_cmd_in_size(nvdimm, cmd, desc,
- 				i, buf);
-+	}
-+
-+	if (call_dsm) {
-+		/* must skip over package wrapper */
-+		in_buf.buffer.pointer = (void *) &call_dsm->nd_payload;
-+		in_buf.buffer.length = call_dsm->nd_size_in;
-+		if (!known_nvdimm_type(call_dsm->nd_family, nfit_cmd_family_tbl)) {
-+			dev_dbg(dev, "%s:%s unsupported uuid\n", dimm_name,
-+					cmd_name);
-+			return -EINVAL;
-+		}
-+	}
- 
- 	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
--		dev_dbg(dev, "%s:%s cmd: %s input length: %d\n", __func__,
--				dimm_name, cmd_name, in_buf.buffer.length);
--		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
--				4, in_buf.buffer.pointer, min_t(u32, 128,
--					in_buf.buffer.length), true);
-+		dev_dbg(dev, "%s:%s cmd: %d: %llu input length: %d\n", __func__,
-+				dimm_name, cmd, func, in_buf.buffer.length);
-+		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
-+			in_buf.buffer.pointer,
-+			min_t(u32, 256, in_buf.buffer.length), true);
-+
- 	}
- 
--	out_obj = acpi_evaluate_dsm(handle, uuid, 1, cmd, &in_obj);
-+	out_obj = acpi_evaluate_dsm(handle, uuid, rev, func, &in_obj);
- 	if (!out_obj) {
--		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
--				cmd_name);
-+		dev_dbg(dev, "%s:%s unexpected output object type cmd: %s %llu, type: %d\n",
-+			__func__, dimm_name, cmd_name, func, out_obj->type);
- 		return -EINVAL;
- 	}
- 
-+	if (call_dsm) {
-+		call_dsm->nd_fw_size = out_obj->buffer.length;
-+		memcpy(call_dsm->nd_payload + call_dsm->nd_size_in,
-+			out_obj->buffer.pointer,
-+			min(call_dsm->nd_fw_size, call_dsm->nd_size_out));
-+
-+		ACPI_FREE(out_obj);
-+		return 0;
-+	}
-+
- 	if (out_obj->package.type != ACPI_TYPE_BUFFER) {
- 		dev_dbg(dev, "%s:%s unexpected output object type cmd: %s type: %d\n",
- 				__func__, dimm_name, cmd_name, out_obj->type);
-@@ -918,13 +975,60 @@ static struct nvdimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
- 	return NULL;
+-	return unlikely((unsigned long)arg & RADIX_TREE_INDIRECT_PTR);
++	return unlikely(((unsigned long)arg & RADIX_TREE_INDIRECT_MASK)
++			== RADIX_TREE_INDIRECT_PTR);
  }
  
-+
-+/*
-+ * determine if the _DSM specified by UUID is supported and return
-+ * mask of supported functions in nd_cmd_mask.
-+ */
-+
-+static int acpi_nfit_sup_func(acpi_handle handle, const u8 *uuid,
-+		int rev, unsigned long *nd_cmd_mask)
-+{
-+	int i;
-+	u64 mask = 0;
-+	union acpi_object *obj;
-+
-+	obj = acpi_evaluate_dsm(handle, uuid, rev, 0, NULL);
-+	if (!obj)
-+		return 0;
-+	/* For compatibility, old BIOSes may return an integer */
-+	if (obj->type == ACPI_TYPE_INTEGER)
-+		mask = obj->integer.value;
-+	else if (obj->type == ACPI_TYPE_BUFFER)
-+		for (i = 0; i < obj->buffer.length && i < 8; i++)
-+			mask |= (((u8)obj->buffer.pointer[i]) << (i * 8));
-+	ACPI_FREE(obj);
-+
-+	*nd_cmd_mask = mask;
-+
-+	return !!mask;
-+}
-+
-+
-+static inline void
-+to_nfit_uuid_msk(acpi_handle handle, struct cmd_family_tbl *tbl,
-+		u8 const **cmd_uuid, unsigned long *cmd_mask)
-+{
-+	unsigned long mask = 0;
-+	int i;
-+
-+	for (i = 0;  tbl[i].key_uuid >= 0 ; i++) {
-+		const u8 *uuid = to_nfit_uuid(tbl[i].key_uuid);
-+		int rev = tbl[i].rev;
-+
-+		if (acpi_nfit_sup_func(handle, uuid, rev, &mask)) {
-+			*cmd_mask = mask & tbl[i].mask;
-+			*cmd_uuid = uuid;
-+			break;
-+		}
-+	}
-+}
-+
- static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 		struct nfit_mem *nfit_mem, u32 device_handle)
- {
- 	struct acpi_device *adev, *adev_dimm;
- 	struct device *dev = acpi_desc->dev;
--	const u8 *uuid = to_nfit_uuid(NFIT_DEV_DIMM);
--	int i;
+ /**
+diff --git a/lib/radix-tree.c b/lib/radix-tree.c
+index 6b79e9026e24..37d4643ab5c0 100644
+--- a/lib/radix-tree.c
++++ b/lib/radix-tree.c
+@@ -1305,7 +1305,7 @@ static inline void radix_tree_shrink(struct radix_tree_root *root)
+ 		 * to force callers to retry.
+ 		 */
+ 		if (root->height == 0)
+-			*((unsigned long *)&to_free->slots[0]) |=
++			*((unsigned long *)&to_free->slots[0]) =
+ 						RADIX_TREE_INDIRECT_PTR;
  
- 	nfit_mem->dsm_mask = acpi_desc->dimm_dsm_force_en;
- 	adev = to_acpi_dev(acpi_desc);
-@@ -939,9 +1043,8 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 		return force_enable_dimms ? 0 : -ENODEV;
- 	}
- 
--	for (i = ND_CMD_SMART; i <= ND_CMD_VENDOR; i++)
--		if (acpi_check_dsm(adev_dimm->handle, uuid, 1, 1ULL << i))
--			set_bit(i, &nfit_mem->dsm_mask);
-+	to_nfit_uuid_msk(adev_dimm->handle, nfit_cmd_family_tbl,
-+			&nfit_mem->dsm_uuid, &nfit_mem->dsm_mask);
- 
- 	return 0;
- }
-@@ -1012,7 +1115,8 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
- 	if (!adev)
- 		return;
- 
--	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_CLEAR_ERROR; i++)
-+	nd_desc->call_dsm = 1;
-+	for (i = 0; i <= ND_CMD_CLEAR_ERROR; i++)
- 		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
- 			set_bit(i, &nd_desc->dsm_mask);
- }
-@@ -2463,6 +2567,8 @@ static __init int nfit_init(void)
- 	acpi_str_to_uuid(UUID_PERSISTENT_VIRTUAL_CD, nfit_uuid[NFIT_SPA_PCD]);
- 	acpi_str_to_uuid(UUID_NFIT_BUS, nfit_uuid[NFIT_DEV_BUS]);
- 	acpi_str_to_uuid(UUID_NFIT_DIMM, nfit_uuid[NFIT_DEV_DIMM]);
-+	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE1, nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
-+	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE2, nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
- 
- 	nfit_wq = create_singlethread_workqueue("nfit");
- 	if (!nfit_wq)
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 3355748..4ff5787 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -439,6 +439,12 @@ static const struct nd_cmd_desc __nd_cmd_dimm_descs[] = {
- 		.out_num = 3,
- 		.out_sizes = { 4, 4, UINT_MAX, },
- 	},
-+	[ND_CMD_CALL] = {
-+		.in_num = 2,
-+		.in_sizes = {sizeof(struct nd_cmd_pkg), UINT_MAX, },
-+		.out_num = 1,
-+		.out_sizes = { UINT_MAX, },
-+	},
- };
- 
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd)
-@@ -473,6 +479,12 @@ static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
- 		.out_num = 3,
- 		.out_sizes = { 4, 4, 8, },
- 	},
-+	[ND_CMD_CALL] = {
-+		.in_num = 2,
-+		.in_sizes = {sizeof(struct nd_cmd_pkg), UINT_MAX, },
-+		.out_num = 1,
-+		.out_sizes = { UINT_MAX, },
-+	},
- };
- 
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd)
-@@ -500,6 +512,10 @@ u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
- 		struct nd_cmd_vendor_hdr *hdr = buf;
- 
- 		return hdr->in_length;
-+	} else if (cmd == ND_CMD_CALL) {
-+		struct nd_cmd_pkg *pkg = buf;
-+
-+		return pkg->nd_size_in;
- 	}
- 
- 	return UINT_MAX;
-@@ -522,6 +538,12 @@ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
- 		return out_field[1];
- 	else if (!nvdimm && cmd == ND_CMD_ARS_STATUS && idx == 2)
- 		return out_field[1] - 8;
-+	else if (cmd == ND_CMD_CALL) {
-+		struct nd_cmd_pkg *pkg =
-+				(struct nd_cmd_pkg *) in_field;
-+		return pkg->nd_size_out;
-+	}
-+
- 
- 	return UINT_MAX;
- }
-@@ -588,7 +610,9 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 	unsigned int cmd = _IOC_NR(ioctl_cmd);
- 	void __user *p = (void __user *) arg;
- 	struct device *dev = &nvdimm_bus->dev;
-+	struct nd_cmd_pkg call_dsm;
- 	const char *cmd_name, *dimm_name;
-+	unsigned int func = cmd;
- 	unsigned long dsm_mask;
- 	void *buf;
- 	int rc, i;
-@@ -605,8 +629,16 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		dimm_name = "bus";
- 	}
- 
-+	if (cmd == ND_CMD_CALL) {
-+		if (!nd_desc->call_dsm)
-+			return -ENOTTY;
-+		if (copy_from_user(&call_dsm, p, sizeof(call_dsm)))
-+			return -EFAULT;
-+		func = call_dsm.nd_command;
-+	}
-+
- 	if (!desc || (desc->out_num + desc->in_num == 0) ||
--			!test_bit(cmd, &dsm_mask))
-+			!test_bit(func, &dsm_mask))
- 		return -ENOTTY;
- 
- 	/* fail write commands (when read-only) */
-@@ -616,6 +648,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		case ND_CMD_SET_CONFIG_DATA:
- 		case ND_CMD_ARS_START:
- 		case ND_CMD_CLEAR_ERROR:
-+		case ND_CMD_CALL:
- 			dev_dbg(&nvdimm_bus->dev, "'%s' command while read-only.\n",
- 					nvdimm ? nvdimm_cmd_name(cmd)
- 					: nvdimm_bus_cmd_name(cmd));
-@@ -643,6 +676,16 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		in_len += in_size;
- 	}
- 
-+	if (cmd == ND_CMD_CALL) {
-+		dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
-+				__func__, dimm_name, call_dsm.nd_command,
-+				in_len, out_len, buf_len);
-+
-+		for (i = 0; i < ARRAY_SIZE(call_dsm.nd_reserved2); i++)
-+			if (call_dsm.nd_reserved2[i])
-+				return -EINVAL;
-+	}
-+
- 	/* process an output envelope */
- 	for (i = 0; i < desc->out_num; i++) {
- 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i,
+ 		radix_tree_node_free(to_free);
 -- 
-1.7.11.3
+2.6.2
 
 _______________________________________________
 Linux-nvdimm mailing list
