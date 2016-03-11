@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 40ECD1A1F59
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 11:18:54 -0800 (PST)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 09/12] dax: Allow DAX code to replace exceptional entries
-Date: Thu, 10 Mar 2016 20:18:52 +0100
-Message-Id: <1457637535-21633-10-git-send-email-jack@suse.cz>
-In-Reply-To: <1457637535-21633-1-git-send-email-jack@suse.cz>
-References: <1457637535-21633-1-git-send-email-jack@suse.cz>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ by ml01.01.org (Postfix) with ESMTP id 78F161A1F7F
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:13:23 -0800 (PST)
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH 3/3] pfn_t: New functions pfn_t_add and pfn_t_cmp
+Date: Fri, 11 Mar 2016 16:13:04 -0500
+Message-Id: <1457730784-9890-4-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1457730784-9890-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1457730784-9890-1-git-send-email-matthew.r.wilcox@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,73 +20,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently we forbid page_cache_tree_insert() to replace exceptional radix
-tree entries for DAX inodes. However to make DAX faults race free we will
-lock radix tree entries and when hole is created, we need to replace
-such locked radix tree entry with a hole page. So modify
-page_cache_tree_insert() to allow that.
+When we find a huge PFN in the radix tree, we need to add the low
+bits of the index to it in order to find the PFN we are looking for.
+Since we want the result to stay in pfn_t form, create pfn_t_add().
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+We also need to compare PFNs, for example to determine if the PFN
+represents a zero page.  At the moment, we only have use for comparing
+equality, but a general compare operation is no more code and may prove
+useful in the future.
+
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 ---
- include/linux/dax.h |  6 ++++++
- mm/filemap.c        | 18 +++++++++++-------
- 2 files changed, 17 insertions(+), 7 deletions(-)
+ include/linux/pfn_t.h | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 7c45ac7ea1d1..4b63923e1f8d 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -3,8 +3,14 @@
+diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
+index 0ff4c4e..c3bb5fe 100644
+--- a/include/linux/pfn_t.h
++++ b/include/linux/pfn_t.h
+@@ -67,6 +67,22 @@ static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
+ 	return v >> PFN_FLAG_BITS;
+ }
  
- #include <linux/fs.h>
- #include <linux/mm.h>
-+#include <linux/radix-tree.h>
- #include <asm/pgtable.h>
- 
-+/*
-+ * Since exceptional entries do not use indirect bit, we reuse it as a lock bit
-+ */
-+#define DAX_ENTRY_LOCK RADIX_TREE_INDIRECT_PTR
++static inline __must_check pfn_t pfn_t_add(const pfn_t pfn, int val)
++{
++	pfn_t tmp = pfn;
++	if (tmp.val & PFN_HUGE)
++		tmp.val &= ~PFN_SIZE_MASK;
++	tmp.val &= ~PFN_SG_MASK;
++	tmp.val += val << PFN_FLAG_BITS;
++	return tmp;
++}
 +
- ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
- 		  get_block_t, dio_iodone_t, int flags);
- int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size);
-diff --git a/mm/filemap.c b/mm/filemap.c
-index 3461d97ecb30..262e6eff0b66 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -583,14 +583,18 @@ static int page_cache_tree_insert(struct address_space *mapping,
- 		if (!radix_tree_exceptional_entry(p))
- 			return -EEXIST;
++/* Like memcmp, returns <0 if a<b, 0 if a=b and >0 if b>a */
++static inline int pfn_t_cmp(pfn_t a, pfn_t b)
++{
++	return pfn_t_to_pfn(b) - pfn_t_to_pfn(a);
++}
++
+ extern pfn_t phys_to_pfn_t(phys_addr_t addr, u64 flags);
  
--		if (WARN_ON(dax_mapping(mapping)))
--			return -EINVAL;
--
--		if (shadowp)
--			*shadowp = p;
- 		mapping->nrexceptional--;
--		if (node)
--			workingset_node_shadows_dec(node);
-+		if (!dax_mapping(mapping)) {
-+			if (shadowp)
-+				*shadowp = p;
-+			if (node)
-+				workingset_node_shadows_dec(node);
-+		} else {
-+			/* DAX can replace empty locked entry with a hole */
-+			WARN_ON_ONCE(p !=
-+				(void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
-+					 DAX_ENTRY_LOCK));
-+		}
- 	}
- 	radix_tree_replace_slot(slot, page);
- 	mapping->nrpages++;
+ static inline bool pfn_t_has_page(pfn_t pfn)
 -- 
-2.6.2
+2.7.0
 
 _______________________________________________
 Linux-nvdimm mailing list
