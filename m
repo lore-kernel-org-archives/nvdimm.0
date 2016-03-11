@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t4618.austin.hp.com (g2t4618.austin.hp.com [15.73.212.83])
+Received: from g2t4619.austin.hp.com (g2t4619.austin.hp.com [15.73.212.82])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B1A0E1A1F86
- for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:17:02 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 959B51A1F86
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:17:03 -0800 (PST)
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [RFC v6 4/8] nvdimm: Add UUIDs
-Date: Fri, 11 Mar 2016 14:16:28 -0700
-Message-Id: <7bf521fc82a9a29c11906db569b06085ac5d90c0.1457730736.git.jerry.hoemann@hpe.com>
+Subject: [RFC v6 6/8] libnvdimm: advertise 'call_dsm' support
+Date: Fri, 11 Mar 2016 14:16:30 -0700
+Message-Id: <a62fd7ffa0521fbbf0c1f453f72c9ce222ff62ed.1457730736.git.jerry.hoemann@hpe.com>
 In-Reply-To: <cover.1457730736.git.jerry.hoemann@hpe.com>
 References: <cover.1457730736.git.jerry.hoemann@hpe.com>
 In-Reply-To: <cover.1457730736.git.jerry.hoemann@hpe.com>
@@ -28,43 +28,57 @@ To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add UUID associated with HPE Type N NVDIMM.
+Indicate to userspace that the generic 'dsm_call' capability is
+available for the given control device.  Over time we want to deprecate
+the per-dsm function ioctl commands and direct everything through the
+generic envelope.
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.h | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/nvdimm/core.c      | 3 +++
+ drivers/nvdimm/dimm_devs.c | 8 +++++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index c75576b..10dd0d3 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -23,6 +23,8 @@
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index 79646d0..cc449e0 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -253,6 +253,9 @@ static ssize_t commands_show(struct device *dev,
  
- #define UUID_NFIT_BUS "2f10e7a4-9e91-11e4-89d3-123b93f75cba"
- #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
-+#define UUID_NFIT_DIMM_N_HPE1 "9002c334-acf3-4c0e-9642-a235f0d53bc6"
-+#define UUID_NFIT_DIMM_N_HPE2 "5008664B-B758-41A0-A03C-27C2F2D04F7E"
- #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
- 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
- 		| ACPI_NFIT_MEM_NOT_ARMED)
-@@ -38,6 +40,8 @@ enum nfit_uuids {
- 	NFIT_SPA_PCD,
- 	NFIT_DEV_BUS,
- 	NFIT_DEV_DIMM,
-+	NFIT_DEV_DIMM_N_HPE1,
-+	NFIT_DEV_DIMM_N_HPE2,
- 	NFIT_UUID_MAX,
- };
+ 	for_each_set_bit(cmd, &nd_desc->dsm_mask, BITS_PER_LONG)
+ 		len += sprintf(buf + len, "%s ", nvdimm_bus_cmd_name(cmd));
++	if (nd_desc->call_dsm)
++		len += sprintf(buf + len, "%s ",
++				nvdimm_bus_cmd_name(ND_CMD_CALL_DSM));
+ 	len += sprintf(buf + len, "\n");
+ 	return len;
+ }
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index c56f882..c2a9f58 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -274,14 +274,20 @@ EXPORT_SYMBOL_GPL(nvdimm_provider_data);
+ static ssize_t commands_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus_descriptor *nd_desc;
+ 	int cmd, len = 0;
  
-@@ -110,6 +114,7 @@ struct nfit_mem {
- 	struct list_head list;
- 	struct acpi_device *adev;
- 	unsigned long dsm_mask;
-+	const u8 *dsm_uuid;
- };
+-	if (!nvdimm->dsm_mask)
++	if (!nvdimm->dsm_mask || !nvdimm_bus)
+ 		return sprintf(buf, "\n");
  
- struct acpi_nfit_desc {
+ 	for_each_set_bit(cmd, nvdimm->dsm_mask, BITS_PER_LONG)
+ 		len += sprintf(buf + len, "%s ", nvdimm_cmd_name(cmd));
++	nd_desc = nvdimm_bus->nd_desc;
++	if (nd_desc->call_dsm)
++		len += sprintf(buf + len, "%s ",
++				nvdimm_cmd_name(ND_CMD_CALL_DSM));
+ 	len += sprintf(buf + len, "\n");
+ 	return len;
+ }
 -- 
 1.7.11.3
 
