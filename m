@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 4BF561A1EF5
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 17:17:50 -0800 (PST)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [ndctl PATCH 1/3] ndctl: fix ndctl_bus_cmd_new_ars_status()
- input validation
-Date: Fri, 11 Mar 2016 01:17:32 +0000
-Message-ID: <1457659048.4525.37.camel@intel.com>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ by ml01.01.org (Postfix) with ESMTP id 7374A1A1F64
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 16:46:00 -0800 (PST)
+Subject: [ndctl PATCH 1/3] ndctl: fix ndctl_bus_cmd_new_ars_status() input
+ validation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 10 Mar 2016 16:45:16 -0800
+Message-ID: <20160311004516.27582.37530.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20160311004511.27582.63304.stgit@dwillia2-desk3.jf.intel.com>
 References: <20160311004511.27582.63304.stgit@dwillia2-desk3.jf.intel.com>
- <20160311004516.27582.37530.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160311004516.27582.37530.stgit@dwillia2-desk3.jf.intel.com>
-Content-Language: en-US
-Content-ID: <2D24ECB6EBFC8B4D9032F63F73342FDE@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,41 +17,52 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCAyMDE2LTAzLTEwIGF0IDE2OjQ1IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IENoZWNrIHRoYXQgYXJzX3N0YXR1cywgcmF0aGVyIHRoYW4gYXJzX2NhcCwgY29tbWFuZHMgYXJl
-IHN1cHBvcnRlZCBhbmQNCj4gdmFsaWRhdGUgdGhhdCB0aGUgcmVmZXJlbmNlIGFyc19jYXAgcGFz
-c2VkIGluIGlzIGluZGVlZCBhbmQgYXJzX2NhcA0KDQpzL2FuZC9hbi8NCg0KPiBjb21tYW5kLg0K
-PiANCj4gQ2M6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPg0KPiBTaWdu
-ZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gLS0t
-DQo+IMKgbGliL2xpYm5kY3RsLWFycy5jIHzCoMKgwqDCoDYgKysrLS0tDQo+IMKgMSBmaWxlIGNo
-YW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQg
-YS9saWIvbGlibmRjdGwtYXJzLmMgYi9saWIvbGlibmRjdGwtYXJzLmMNCj4gaW5kZXggYWQ4NTE5
-MTg5OGQ0Li42M2QwZTU1NDRhMzYgMTAwNjQ0DQo+IC0tLSBhL2xpYi9saWJuZGN0bC1hcnMuYw0K
-PiArKysgYi9saWIvbGlibmRjdGwtYXJzLmMNCj4gQEAgLTU1LDcgKzU1LDcgQEAgTkRDVExfRVhQ
-T1JUIHN0cnVjdCBuZGN0bF9jbWQNCj4gKm5kY3RsX2J1c19jbWRfbmV3X2Fyc19zdGFydChzdHJ1
-Y3QgbmRjdGxfY21kICphcnMNCj4gwqAJCWRiZyhjdHgsICJ1bnN1cHBvcnRlZCBjbWRcbiIpOw0K
-PiDCoAkJcmV0dXJuIE5VTEw7DQo+IMKgCX0NCj4gLQlpZiAoYXJzX2NhcC0+c3RhdHVzICE9IDAp
-IHsNCj4gKwlpZiAoYXJzX2NhcC0+dHlwZSAhPSBORF9DTURfQVJTX0NBUCB8fCBhcnNfY2FwLT5z
-dGF0dXMgIT0gMCkNCj4gew0KPiDCoAkJZGJnKGN0eCwgImV4cGVjdGVkIHN1Y2Vzc2Z1bGx5IGNv
-bXBsZXRlZCBhcnNfY2FwDQo+IGNvbW1hbmRcbiIpOw0KPiDCoAkJcmV0dXJuIE5VTEw7DQo+IMKg
-CX0NCj4gQEAgLTk0LDExICs5NCwxMSBAQCBORENUTF9FWFBPUlQgc3RydWN0IG5kY3RsX2NtZA0K
-PiAqbmRjdGxfYnVzX2NtZF9uZXdfYXJzX3N0YXR1cyhzdHJ1Y3QgbmRjdGxfY21kICphcg0KPiDC
-oAlzdHJ1Y3QgbmRjdGxfY21kICpjbWQ7DQo+IMKgCXNpemVfdCBzaXplOw0KPiDCoA0KPiAtCWlm
-ICghbmRjdGxfYnVzX2lzX2NtZF9zdXBwb3J0ZWQoYnVzLCBORF9DTURfQVJTX0NBUCkpIHsNCj4g
-KwlpZiAoIW5kY3RsX2J1c19pc19jbWRfc3VwcG9ydGVkKGJ1cywgTkRfQ01EX0FSU19TVEFUVVMp
-KSB7DQoNCkdvb2QgY2F0Y2ggOikNCg0KPiDCoAkJZGJnKGN0eCwgInVuc3VwcG9ydGVkIGNtZFxu
-Iik7DQo+IMKgCQlyZXR1cm4gTlVMTDsNCj4gwqAJfQ0KPiAtCWlmIChhcnNfY2FwLT5zdGF0dXMg
-IT0gMCkgew0KPiArCWlmIChhcnNfY2FwLT50eXBlICE9IE5EX0NNRF9BUlNfQ0FQIHx8IGFyc19j
-YXAtPnN0YXR1cyAhPSAwKQ0KPiB7DQo+IMKgCQlkYmcoY3R4LCAiZXhwZWN0ZWQgc3VjZXNzZnVs
-bHkgY29tcGxldGVkIGFyc19jYXANCj4gY29tbWFuZFxuIik7DQo+IMKgCQlyZXR1cm4gTlVMTDsN
-Cj4gwqAJfQ0KPiANCg0KUmV2aWV3ZWQtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFA
-aW50ZWwuY29tPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0
-cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Check that ars_status, rather than ars_cap, commands are supported and
+validate that the reference ars_cap passed in is indeed and ars_cap
+command.
+
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ lib/libndctl-ars.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/libndctl-ars.c b/lib/libndctl-ars.c
+index ad85191898d4..63d0e5544a36 100644
+--- a/lib/libndctl-ars.c
++++ b/lib/libndctl-ars.c
+@@ -55,7 +55,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_bus_cmd_new_ars_start(struct ndctl_cmd *ars
+ 		dbg(ctx, "unsupported cmd\n");
+ 		return NULL;
+ 	}
+-	if (ars_cap->status != 0) {
++	if (ars_cap->type != ND_CMD_ARS_CAP || ars_cap->status != 0) {
+ 		dbg(ctx, "expected sucessfully completed ars_cap command\n");
+ 		return NULL;
+ 	}
+@@ -94,11 +94,11 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_bus_cmd_new_ars_status(struct ndctl_cmd *ar
+ 	struct ndctl_cmd *cmd;
+ 	size_t size;
+ 
+-	if (!ndctl_bus_is_cmd_supported(bus, ND_CMD_ARS_CAP)) {
++	if (!ndctl_bus_is_cmd_supported(bus, ND_CMD_ARS_STATUS)) {
+ 		dbg(ctx, "unsupported cmd\n");
+ 		return NULL;
+ 	}
+-	if (ars_cap->status != 0) {
++	if (ars_cap->type != ND_CMD_ARS_CAP || ars_cap->status != 0) {
+ 		dbg(ctx, "expected sucessfully completed ars_cap command\n");
+ 		return NULL;
+ 	}
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
