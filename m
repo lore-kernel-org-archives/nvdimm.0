@@ -1,20 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ob0-x22d.google.com (mail-ob0-x22d.google.com
- [IPv6:2607:f8b0:4003:c01::22d])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BAF001A1E1E
- for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:40:36 -0800 (PST)
-Received: by mail-ob0-x22d.google.com with SMTP id m7so125932694obh.3
- for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:40:20 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1457730784-9890-2-git-send-email-matthew.r.wilcox@intel.com>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 936431A1F81
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:13:23 -0800 (PST)
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH 1/3] pfn_t: Change the encoding
+Date: Fri, 11 Mar 2016 16:13:02 -0500
+Message-Id: <1457730784-9890-2-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1457730784-9890-1-git-send-email-matthew.r.wilcox@intel.com>
 References: <1457730784-9890-1-git-send-email-matthew.r.wilcox@intel.com>
- <1457730784-9890-2-git-send-email-matthew.r.wilcox@intel.com>
-Date: Fri, 11 Mar 2016 13:40:20 -0800
-Message-ID: <CAPcyv4g82US298_mCd75toj9kEeyDhw0cP_Ott0R8fOydWNsSg@mail.gmail.com>
-Subject: Re: [PATCH 1/3] pfn_t: Change the encoding
-From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,27 +15,98 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Linux MM <linux-mm@kvack.org>, Dave Hansen <dave.hansen@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Mar 11, 2016 at 1:13 PM, Matthew Wilcox
-<matthew.r.wilcox@intel.com> wrote:
-> By moving the flag bits to the bottom, we encourage commonality
-> between SGs with pages and those using pfn_t.  We can also then insert
-> a pfn_t into a radix tree, as it uses the same two bits for indirect &
-> exceptional indicators.
+By moving the flag bits to the bottom, we encourage commonality
+between SGs with pages and those using pfn_t.  We can also then insert
+a pfn_t into a radix tree, as it uses the same two bits for indirect &
+exceptional indicators.
 
-It's not immediately clear to me what we gain with SG entry
-commonality.  The down side is that we lose the property that
-pfn_to_pfn_t() is a nop.  This was Dave's suggestion so that the
-nominal case did not change the binary layout of a typical pfn.
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+---
+ include/linux/pfn_t.h | 41 ++++++++++++++++++++++++++++++-----------
+ 1 file changed, 30 insertions(+), 11 deletions(-)
 
-Can we just bit swizzle a pfn_t on insertion/retrieval from the radix?
+diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
+index 9499481..37c596c 100644
+--- a/include/linux/pfn_t.h
++++ b/include/linux/pfn_t.h
+@@ -8,16 +8,34 @@
+  * PFN_SG_LAST - pfn references a page and is the last scatterlist entry
+  * PFN_DEV - pfn is not covered by system memmap by default
+  * PFN_MAP - pfn has a dynamic page mapping established by a device driver
++ *
++ * Note that the bottom two bits in the pfn_t match the bottom two bits in the
++ * scatterlist so sg_is_chain() and sg_is_last() work.  These bits are also
++ * used by the radix tree for its own purposes, but a PFN cannot be in both a
++ * radix tree and a scatterlist simultaneously.  If a PFN is moved between the
++ * two usages, care should be taken to clear/set these bits appropriately.
+  */
+-#define PFN_FLAGS_MASK (((u64) ~PAGE_MASK) << (BITS_PER_LONG_LONG - PAGE_SHIFT))
+-#define PFN_SG_CHAIN (1ULL << (BITS_PER_LONG_LONG - 1))
+-#define PFN_SG_LAST (1ULL << (BITS_PER_LONG_LONG - 2))
+-#define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
+-#define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
++#define PFN_FLAG_BITS	4
++#define PFN_FLAGS_MASK	((1 << PFN_FLAG_BITS) - 1)
++#define __PFN_MAX	((1 << (BITS_PER_LONG - PFN_FLAG_BITS)) - 1)
++#define PFN_SG_CHAIN	0x01UL
++#define PFN_SG_LAST	0x02UL
++#define PFN_SG_MASK	(PFN_SG_CHAIN | PFN_SG_LAST)
++#define PFN_DEV		0x04UL
++#define PFN_MAP		0x08UL
++
++#if 0
++#define PFN_T_BUG_ON(x)	BUG_ON(x)
++#else
++#define PFN_T_BUG_ON(x)	BUILD_BUG_ON_INVALID(x)
++#endif
+ 
+ static inline pfn_t __pfn_to_pfn_t(unsigned long pfn, u64 flags)
+ {
+-	pfn_t pfn_t = { .val = pfn | (flags & PFN_FLAGS_MASK), };
++	pfn_t pfn_t = { .val = (pfn << PFN_FLAG_BITS) | flags };
++
++	PFN_T_BUG_ON(pfn & ~__PFN_MAX);
++	PFN_T_BUG_ON(flags & ~PFN_FLAGS_MASK);
+ 
+ 	return pfn_t;
+ }
+@@ -28,6 +46,12 @@ static inline pfn_t pfn_to_pfn_t(unsigned long pfn)
+ 	return __pfn_to_pfn_t(pfn, 0);
+ }
+ 
++static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
++{
++	unsigned long v = pfn.val;
++	return v >> PFN_FLAG_BITS;
++}
++
+ extern pfn_t phys_to_pfn_t(phys_addr_t addr, u64 flags);
+ 
+ static inline bool pfn_t_has_page(pfn_t pfn)
+@@ -35,11 +59,6 @@ static inline bool pfn_t_has_page(pfn_t pfn)
+ 	return (pfn.val & PFN_MAP) == PFN_MAP || (pfn.val & PFN_DEV) == 0;
+ }
+ 
+-static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
+-{
+-	return pfn.val & ~PFN_FLAGS_MASK;
+-}
+-
+ static inline struct page *pfn_t_to_page(pfn_t pfn)
+ {
+ 	if (pfn_t_has_page(pfn))
+-- 
+2.7.0
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
