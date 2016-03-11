@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t6213.austin.hp.com (g1t6213.austin.hp.com [15.73.96.121])
+Received: from g1t6216.austin.hp.com (g1t6216.austin.hp.com [15.73.96.123])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F0C41A1F9F
- for <linux-nvdimm@lists.01.org>; Tue, 15 Mar 2016 14:32:42 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 74DA71A1F7F
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:17:01 -0800 (PST)
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v7 7/7] tools/testing/nvdimm: 'call_dsm' support
-Date: Tue, 15 Mar 2016 15:32:16 -0600
-Message-Id: <2b41cf171844ad7da3fe6d42b778f0f5b64eaf4c.1458076114.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1458076114.git.jerry.hoemann@hpe.com>
-References: <cover.1458076114.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1458076114.git.jerry.hoemann@hpe.com>
-References: <cover.1458076114.git.jerry.hoemann@hpe.com>
+Subject: [RFC v6 1/8] ACPI / util: Fix acpi_evaluate_dsm() argument type
+Date: Fri, 11 Mar 2016 14:16:25 -0700
+Message-Id: <4ba7d479bbdca8f70a58b5bea882410eb25c6246.1457730736.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1457730736.git.jerry.hoemann@hpe.com>
+References: <cover.1457730736.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1457730736.git.jerry.hoemann@hpe.com>
+References: <cover.1457730736.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,57 +28,65 @@ To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Enable nfit_test to use the generic 'call_dsm' envelope.
+The ACPI spec speicifies that arguments "Revision ID" and
+"Function Index" to a _DSM are type "Integer."  Type Integers
+are 64 bit quantities.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+The function evaluate_dsm specifies these types as simple "int"
+which are 32 bits.  Correct type passed to acpi_evaluate_dsm
+and its callers and derived callers to pass correct type.
+
+acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
+and were corrected as well.
+
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- tools/testing/nvdimm/test/nfit.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ drivers/acpi/utils.c    | 4 ++--
+ include/acpi/acpi_bus.h | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 3187322..9cdce4b 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -336,12 +336,21 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index f2f9873..87bd54d 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -629,7 +629,7 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
+  * some old BIOSes do expect a buffer or an integer etc.
+  */
+ union acpi_object *
+-acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
++acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+ 		  union acpi_object *argv4)
  {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 	struct nfit_test *t = container_of(acpi_desc, typeof(*t), acpi_desc);
-+	unsigned int func = cmd;
- 	int i, rc = 0, __cmd_rc;
+ 	acpi_status ret;
+@@ -678,7 +678,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
+  * functions. Currently only support 64 functions at maximum, should be
+  * enough for now.
+  */
+-bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
++bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+ {
+ 	int i;
+ 	u64 mask = 0;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 14362a8..f092cc6 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -61,12 +61,12 @@ bool acpi_ata_match(acpi_handle handle);
+ bool acpi_bay_match(acpi_handle handle);
+ bool acpi_dock_match(acpi_handle handle);
  
- 	if (!cmd_rc)
- 		cmd_rc = &__cmd_rc;
- 	*cmd_rc = 0;
+-bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
++bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs);
+ union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
+-			int rev, int func, union acpi_object *argv4);
++			u64 rev, u64 func, union acpi_object *argv4);
  
-+	if (cmd == ND_CMD_CALL) {
-+		struct nd_cmd_pkg *call_dsm = buf;
-+
-+		buf_len = call_dsm->nd_size_in + call_dsm->nd_size_out;
-+		buf = (void *) call_dsm->nd_payload;
-+		func = call_dsm->nd_command;
-+	}
-+
- 	if (nvdimm) {
- 		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 
-@@ -356,7 +365,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		if (i >= ARRAY_SIZE(handle))
- 			return -ENXIO;
- 
--		switch (cmd) {
-+		switch (func) {
- 		case ND_CMD_GET_CONFIG_SIZE:
- 			rc = nfit_test_cmd_get_config_size(buf, buf_len);
- 			break;
-@@ -377,7 +386,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		if (!nd_desc || !test_bit(cmd, &nd_desc->dsm_mask))
- 			return -ENOTTY;
- 
--		switch (cmd) {
-+		switch (func) {
- 		case ND_CMD_ARS_CAP:
- 			rc = nfit_test_cmd_ars_cap(buf, buf_len);
- 			break;
+ static inline union acpi_object *
+-acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
++acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+ 			union acpi_object *argv4, acpi_object_type type)
+ {
+ 	union acpi_object *obj;
 -- 
 1.7.11.3
 
