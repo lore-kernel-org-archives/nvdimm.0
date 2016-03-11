@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from youngberry.canonical.com (youngberry.canonical.com
- [91.189.89.112]) (using TLSv1 with cipher AES256-SHA (256/256 bits))
+Received: from g1t6216.austin.hp.com (g1t6216.austin.hp.com [15.73.96.123])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B0B171A1F19
- for <linux-nvdimm@lists.01.org>; Mon,  7 Mar 2016 14:55:48 -0800 (PST)
-From: Kamal Mostafa <kamal@canonical.com>
-Subject: [PATCH 4.2.y-ckt 176/273] x86/mm: Fix vmalloc_fault() to handle large
- pages properly
-Date: Mon,  7 Mar 2016 14:49:27 -0800
-Message-Id: <1457391064-6660-177-git-send-email-kamal@canonical.com>
-In-Reply-To: <1457391064-6660-1-git-send-email-kamal@canonical.com>
-References: <1457391064-6660-1-git-send-email-kamal@canonical.com>
+ by ml01.01.org (Postfix) with ESMTPS id EAA161A1F86
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:17:02 -0800 (PST)
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [RFC v6 5/8] nvdimm: data structure changes for dsm calls
+Date: Fri, 11 Mar 2016 14:16:29 -0700
+Message-Id: <5f25808e2cbbe5485a43b08e0c56f42aa6ae7468.1457730736.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1457730736.git.jerry.hoemann@hpe.com>
+References: <cover.1457730736.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1457730736.git.jerry.hoemann@hpe.com>
+References: <cover.1457730736.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,154 +24,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: Ingo Molnar <mingo@kernel.org>, Denys Vlasenko <dvlasenk@redhat.com>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Brian Gerst <brgerst@gmail.com>, Kamal Mostafa <kamal@canonical.com>, Andy Lutomirski <luto@amacapital.net>, linux-mm@kvack.org, "H . Peter Anvin" <hpa@zytor.com>, Toshi Kani <toshi.kani@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-4.2.8-ckt5 -stable review patch.  If anyone has any objections, please let me know.
+Indicate "dsm_call" capability.
+Track uuid.
 
----8<------------------------------------------------------------
-
-From: Toshi Kani <toshi.kani@hpe.com>
-
-commit f4eafd8bcd5229e998aa252627703b8462c3b90f upstream.
-
-A kernel page fault oops with the callstack below was observed
-when a read syscall was made to a pmem device after a huge amount
-(>512GB) of vmalloc ranges was allocated by ioremap() on a x86_64
-system:
-
-     BUG: unable to handle kernel paging request at ffff880840000ff8
-     IP: vmalloc_fault+0x1be/0x300
-     PGD c7f03a067 PUD 0
-     Oops: 0000 [#1] SM
-     Call Trace:
-        __do_page_fault+0x285/0x3e0
-        do_page_fault+0x2f/0x80
-        ? put_prev_entity+0x35/0x7a0
-        page_fault+0x28/0x30
-        ? memcpy_erms+0x6/0x10
-        ? schedule+0x35/0x80
-        ? pmem_rw_bytes+0x6a/0x190 [nd_pmem]
-        ? schedule_timeout+0x183/0x240
-        btt_log_read+0x63/0x140 [nd_btt]
-         :
-        ? __symbol_put+0x60/0x60
-        ? kernel_read+0x50/0x80
-        SyS_finit_module+0xb9/0xf0
-        entry_SYSCALL_64_fastpath+0x1a/0xa4
-
-Since v4.1, ioremap() supports large page (pud/pmd) mappings in
-x86_64 and PAE.  vmalloc_fault() however assumes that the vmalloc
-range is limited to pte mappings.
-
-vmalloc faults do not normally happen in ioremap'd ranges since
-ioremap() sets up the kernel page tables, which are shared by
-user processes.  pgd_ctor() sets the kernel's PGD entries to
-user's during fork().  When allocation of the vmalloc ranges
-crosses a 512GB boundary, ioremap() allocates a new pud table
-and updates the kernel PGD entry to point it.  If user process's
-PGD entry does not have this update yet, a read/write syscall
-to the range will cause a vmalloc fault, which hits the Oops
-above as it does not handle a large page properly.
-
-Following changes are made to vmalloc_fault().
-
-64-bit:
-
- - No change for the PGD sync operation as it handles large
-   pages already.
- - Add pud_huge() and pmd_huge() to the validation code to
-   handle large pages.
- - Change pud_page_vaddr() to pud_pfn() since an ioremap range
-   is not directly mapped (while the if-statement still works
-   with a bogus addr).
- - Change pmd_page() to pmd_pfn() since an ioremap range is not
-   backed by struct page (while the if-statement still works
-   with a bogus addr).
-
-32-bit:
- - No change for the sync operation since the index3 PGD entry
-   covers the entire vmalloc range, which is always valid.
-   (A separate change to sync PGD entry is necessary if this
-    memory layout is changed regardless of the page size.)
- - Add pmd_huge() to the validation code to handle large pages.
-   This is for completeness since vmalloc_fault() won't happen
-   in ioremap'd ranges as its PGD entry is always valid.
-
-Reported-by: Henning Schild <henning.schild@siemens.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Acked-by: Borislav Petkov <bp@alien8.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Luis R. Rodriguez <mcgrof@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-mm@kvack.org
-Cc: linux-nvdimm@lists.01.org
-Link: http://lkml.kernel.org/r/1455758214-24623-1-git-send-email-toshi.kani@hpe.com
-Signed-off-by: Ingo Molnar <mingo@kernel.org>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- arch/x86/mm/fault.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ include/linux/libnvdimm.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
-index 9dc9098..1d3beaf 100644
---- a/arch/x86/mm/fault.c
-+++ b/arch/x86/mm/fault.c
-@@ -286,6 +286,9 @@ static noinline int vmalloc_fault(unsigned long address)
- 	if (!pmd_k)
- 		return -1;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index af31d1c..83996b6 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -68,7 +68,9 @@ struct nd_mapping {
  
-+	if (pmd_huge(*pmd_k))
-+		return 0;
-+
- 	pte_k = pte_offset_kernel(pmd_k, address);
- 	if (!pte_present(*pte_k))
- 		return -1;
-@@ -357,8 +360,6 @@ void vmalloc_sync_all(void)
-  * 64-bit:
-  *
-  *   Handle a fault on the vmalloc area
-- *
-- * This assumes no large pages in there.
-  */
- static noinline int vmalloc_fault(unsigned long address)
- {
-@@ -400,17 +401,23 @@ static noinline int vmalloc_fault(unsigned long address)
- 	if (pud_none(*pud_ref))
- 		return -1;
- 
--	if (pud_none(*pud) || pud_page_vaddr(*pud) != pud_page_vaddr(*pud_ref))
-+	if (pud_none(*pud) || pud_pfn(*pud) != pud_pfn(*pud_ref))
- 		BUG();
- 
-+	if (pud_huge(*pud))
-+		return 0;
-+
- 	pmd = pmd_offset(pud, address);
- 	pmd_ref = pmd_offset(pud_ref, address);
- 	if (pmd_none(*pmd_ref))
- 		return -1;
- 
--	if (pmd_none(*pmd) || pmd_page(*pmd) != pmd_page(*pmd_ref))
-+	if (pmd_none(*pmd) || pmd_pfn(*pmd) != pmd_pfn(*pmd_ref))
- 		BUG();
- 
-+	if (pmd_huge(*pmd))
-+		return 0;
-+
- 	pte_ref = pte_offset_kernel(pmd_ref, address);
- 	if (!pte_present(*pte_ref))
- 		return -1;
+ struct nvdimm_bus_descriptor {
+ 	const struct attribute_group **attr_groups;
++	unsigned int call_dsm:1;
+ 	unsigned long dsm_mask;
++	const u8 *dsm_uuid;
+ 	char *provider_name;
+ 	ndctl_fn ndctl;
+ 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
 -- 
-2.7.0
+1.7.11.3
 
 _______________________________________________
 Linux-nvdimm mailing list
