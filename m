@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x22e.google.com (mail-oi0-x22e.google.com
- [IPv6:2607:f8b0:4003:c06::22e])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4BEA11A1F5F
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 20:08:48 -0800 (PST)
-Received: by mail-oi0-x22e.google.com with SMTP id c203so77182951oia.2
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 20:08:33 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1457659174.4525.39.camel@intel.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id F1C571A1EF8
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 17:19:55 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH 3/3] ndctl: add 'clear error' command support
+Date: Fri, 11 Mar 2016 01:19:39 +0000
+Message-ID: <1457659174.4525.39.camel@intel.com>
 References: <20160311004511.27582.63304.stgit@dwillia2-desk3.jf.intel.com>
  <20160311004526.27582.46416.stgit@dwillia2-desk3.jf.intel.com>
- <1457659174.4525.39.camel@intel.com>
-Date: Thu, 10 Mar 2016 20:08:32 -0800
-Message-ID: <CAPcyv4j7-G1eVsm8ovAbNuf3tLRt-gTUmL_4BvgouRK5N_0eSg@mail.gmail.com>
-Subject: Re: [ndctl PATCH 3/3] ndctl: add 'clear error' command support
-From: Dan Williams <dan.j.williams@intel.com>
+In-Reply-To: <20160311004526.27582.46416.stgit@dwillia2-desk3.jf.intel.com>
+Content-Language: en-US
+Content-ID: <62AACE7D1EA8A4429856A154A7E3E673@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,100 +19,57 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Mar 10, 2016 at 5:19 PM, Verma, Vishal L
-<vishal.l.verma@intel.com> wrote:
-> On Thu, 2016-03-10 at 16:45 -0800, Dan Williams wrote:
->> Import the clear error command definition from the latest kernel, wire
->> it up with a new ndctl_bus_cmd_new_clear_error() api, and add an
->> invocation to the unit test.
->>
->> Since, the unit test requires the ability to recall the range of an
->> ars_cap command a new ndctl_cmd_ars_cap_get_range() api is added.
->>
->> Reported-by: Vishal Verma <vishal.l.verma@intel.com>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> ---
->>  configure.ac           |   19 +++++++
->>  lib/libndctl-ars.c     |  125
->> +++++++++++++++++++++++++++++++++++++++++++-----
->>  lib/libndctl-private.h |    5 ++
->>  lib/libndctl.c         |    3 +
->>  lib/libndctl.sym       |    3 +
->>  lib/ndctl/libndctl.h   |   41 +++++++++++++++-
->>  ndctl.h                |   13 +++++
->>  test/libndctl.c        |   62 +++++++++++++++++++++++-
->>  8 files changed, 253 insertions(+), 18 deletions(-)
->>
->>
->
-> <>
->
->> diff --git a/ndctl.h b/ndctl.h
->> index 0c50ff4dc3b1..11c4adf7f49c 100644
->> --- a/ndctl.h
->> +++ b/ndctl.h
->> @@ -98,6 +98,14 @@ struct nd_cmd_ars_status {
->>       } __attribute__((packed)) records[0];
->>  } __attribute__((packed));
->>
->> +struct nd_cmd_clear_error {
->> +     __u64 address;
->> +     __u64 length;
->> +     __u32 status;
->> +     __u8 reserved[4];
->> +     __u64 cleared;
->> +} __attribute__((packed));
->> +
->>  enum {
->>       ND_CMD_IMPLEMENTED = 0,
->>
->> @@ -105,6 +113,7 @@ enum {
->>       ND_CMD_ARS_CAP = 1,
->>       ND_CMD_ARS_START = 2,
->>       ND_CMD_ARS_STATUS = 3,
->> +     ND_CMD_CLEAR_ERROR = 4,
->>
->>       /* per-dimm commands */
->>       ND_CMD_SMART = 1,
->> @@ -129,6 +138,7 @@ static __inline__ const char
->> *nvdimm_bus_cmd_name(unsigned cmd)
->>               [ND_CMD_ARS_CAP] = "ars_cap",
->>               [ND_CMD_ARS_START] = "ars_start",
->>               [ND_CMD_ARS_STATUS] = "ars_status",
->> +             [ND_CMD_CLEAR_ERROR] = "clear_error",
->>       };
->>
->>       if (cmd < ARRAY_SIZE(names) && names[cmd])
->> @@ -187,6 +197,9 @@ static __inline__ const char
->> *nvdimm_cmd_name(unsigned cmd)
->>  #define ND_IOCTL_ARS_STATUS          _IOWR(ND_IOCTL,
->> ND_CMD_ARS_STATUS,\
->>                                       struct nd_cmd_ars_status)
->>
->> +#define ND_IOCTL_CLEAR_ERROR         _IOWR(ND_IOCTL,
->> ND_CMD_CLEAR_ERROR,\
->> +                                     struct nd_cmd_ars_status)
->> +
->
-> Did you copy from the old version of this kernel header with the copy-
-> paste error :)
->
-
-If I said "no" I don't think you'd believe me.
-
-> Rest of it looks good,
-> Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
-
-Thanks!
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVGh1LCAyMDE2LTAzLTEwIGF0IDE2OjQ1IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IEltcG9ydCB0aGUgY2xlYXIgZXJyb3IgY29tbWFuZCBkZWZpbml0aW9uIGZyb20gdGhlIGxhdGVz
+dCBrZXJuZWwsIHdpcmUNCj4gaXQgdXAgd2l0aCBhIG5ldyBuZGN0bF9idXNfY21kX25ld19jbGVh
+cl9lcnJvcigpIGFwaSwgYW5kIGFkZCBhbg0KPiBpbnZvY2F0aW9uIHRvIHRoZSB1bml0IHRlc3Qu
+DQo+IA0KPiBTaW5jZSwgdGhlIHVuaXQgdGVzdCByZXF1aXJlcyB0aGUgYWJpbGl0eSB0byByZWNh
+bGwgdGhlIHJhbmdlIG9mIGFuDQo+IGFyc19jYXAgY29tbWFuZCBhIG5ldyBuZGN0bF9jbWRfYXJz
+X2NhcF9nZXRfcmFuZ2UoKSBhcGkgaXMgYWRkZWQuDQo+IA0KPiBSZXBvcnRlZC1ieTogVmlzaGFs
+IFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IERhbiBX
+aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiAtLS0NCj4gwqBjb25maWd1cmUu
+YWPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDE5ICsrKysrKysNCj4gwqBsaWIvbGlibmRj
+dGwtYXJzLmPCoMKgwqDCoMKgfMKgwqAxMjUNCj4gKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKy0tLS0tDQo+IMKgbGliL2xpYm5kY3RsLXByaXZhdGUuaCB8wqDCoMKg
+wqA1ICsrDQo+IMKgbGliL2xpYm5kY3RsLmPCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqAzICsN
+Cj4gwqBsaWIvbGlibmRjdGwuc3ltwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqAzICsNCj4gwqBsaWIv
+bmRjdGwvbGlibmRjdGwuaMKgwqDCoHzCoMKgwqA0MSArKysrKysrKysrKysrKystDQo+IMKgbmRj
+dGwuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDEzICsrKysrDQo+IMKg
+dGVzdC9saWJuZGN0bC5jwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqA2MiArKysrKysrKysrKysrKysr
+KysrKysrKy0NCj4gwqA4IGZpbGVzIGNoYW5nZWQsIDI1MyBpbnNlcnRpb25zKCspLCAxOCBkZWxl
+dGlvbnMoLSkNCj4gDQo+IA0KDQo8Pg0KDQo+IGRpZmYgLS1naXQgYS9uZGN0bC5oIGIvbmRjdGwu
+aA0KPiBpbmRleCAwYzUwZmY0ZGMzYjEuLjExYzRhZGY3ZjQ5YyAxMDA2NDQNCj4gLS0tIGEvbmRj
+dGwuaA0KPiArKysgYi9uZGN0bC5oDQo+IEBAIC05OCw2ICs5OCwxNCBAQCBzdHJ1Y3QgbmRfY21k
+X2Fyc19zdGF0dXMgew0KPiDCoAl9IF9fYXR0cmlidXRlX18oKHBhY2tlZCkpIHJlY29yZHNbMF07
+DQo+IMKgfSBfX2F0dHJpYnV0ZV9fKChwYWNrZWQpKTsNCj4gwqANCj4gK3N0cnVjdCBuZF9jbWRf
+Y2xlYXJfZXJyb3Igew0KPiArCV9fdTY0IGFkZHJlc3M7DQo+ICsJX191NjQgbGVuZ3RoOw0KPiAr
+CV9fdTMyIHN0YXR1czsNCj4gKwlfX3U4IHJlc2VydmVkWzRdOw0KPiArCV9fdTY0IGNsZWFyZWQ7
+DQo+ICt9IF9fYXR0cmlidXRlX18oKHBhY2tlZCkpOw0KPiArDQo+IMKgZW51bSB7DQo+IMKgCU5E
+X0NNRF9JTVBMRU1FTlRFRCA9IDAsDQo+IMKgDQo+IEBAIC0xMDUsNiArMTEzLDcgQEAgZW51bSB7
+DQo+IMKgCU5EX0NNRF9BUlNfQ0FQID0gMSwNCj4gwqAJTkRfQ01EX0FSU19TVEFSVCA9IDIsDQo+
+IMKgCU5EX0NNRF9BUlNfU1RBVFVTID0gMywNCj4gKwlORF9DTURfQ0xFQVJfRVJST1IgPSA0LA0K
+PiDCoA0KPiDCoAkvKiBwZXItZGltbSBjb21tYW5kcyAqLw0KPiDCoAlORF9DTURfU01BUlQgPSAx
+LA0KPiBAQCAtMTI5LDYgKzEzOCw3IEBAIHN0YXRpYyBfX2lubGluZV9fIGNvbnN0IGNoYXINCj4g
+Km52ZGltbV9idXNfY21kX25hbWUodW5zaWduZWQgY21kKQ0KPiDCoAkJW05EX0NNRF9BUlNfQ0FQ
+XSA9ICJhcnNfY2FwIiwNCj4gwqAJCVtORF9DTURfQVJTX1NUQVJUXSA9ICJhcnNfc3RhcnQiLA0K
+PiDCoAkJW05EX0NNRF9BUlNfU1RBVFVTXSA9ICJhcnNfc3RhdHVzIiwNCj4gKwkJW05EX0NNRF9D
+TEVBUl9FUlJPUl0gPSAiY2xlYXJfZXJyb3IiLA0KPiDCoAl9Ow0KPiDCoA0KPiDCoAlpZiAoY21k
+IDwgQVJSQVlfU0laRShuYW1lcykgJiYgbmFtZXNbY21kXSkNCj4gQEAgLTE4Nyw2ICsxOTcsOSBA
+QCBzdGF0aWMgX19pbmxpbmVfXyBjb25zdCBjaGFyDQo+ICpudmRpbW1fY21kX25hbWUodW5zaWdu
+ZWQgY21kKQ0KPiDCoCNkZWZpbmUgTkRfSU9DVExfQVJTX1NUQVRVUwkJX0lPV1IoTkRfSU9DVEws
+DQo+IE5EX0NNRF9BUlNfU1RBVFVTLFwNCj4gwqAJCQkJCXN0cnVjdCBuZF9jbWRfYXJzX3N0YXR1
+cykNCj4gwqANCj4gKyNkZWZpbmUgTkRfSU9DVExfQ0xFQVJfRVJST1IJCV9JT1dSKE5EX0lPQ1RM
+LA0KPiBORF9DTURfQ0xFQVJfRVJST1IsXA0KPiArCQkJCQlzdHJ1Y3QgbmRfY21kX2Fyc19zdGF0
+dXMpDQo+ICsNCg0KRGlkIHlvdSBjb3B5IGZyb20gdGhlIG9sZCB2ZXJzaW9uIG9mIHRoaXMga2Vy
+bmVsIGhlYWRlciB3aXRoIHRoZSBjb3B5LQ0KcGFzdGUgZXJyb3IgOikNCg0KDQpSZXN0IG9mIGl0
+IGxvb2tzIGdvb2QsDQpSZXZpZXdlZC1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBp
+bnRlbC5jb20+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRw
+czovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
