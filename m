@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t6214.austin.hp.com (g1t6214.austin.hp.com [15.73.96.122])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C724C1A1E91
- for <linux-nvdimm@lists.01.org>; Tue, 15 Mar 2016 14:32:40 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v7 1/7] ACPI / util: Fix acpi_evaluate_dsm() argument type
-Date: Tue, 15 Mar 2016 15:32:10 -0600
-Message-Id: <08f28cea22399155ce1a9c4d9d35adfb379c87cb.1458076114.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1458076114.git.jerry.hoemann@hpe.com>
-References: <cover.1458076114.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1458076114.git.jerry.hoemann@hpe.com>
-References: <cover.1458076114.git.jerry.hoemann@hpe.com>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 5D4751A1F81
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 13:13:23 -0800 (PST)
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: [PATCH 2/3] pfn_t: Support for huge PFNs
+Date: Fri, 11 Mar 2016 16:13:03 -0500
+Message-Id: <1457730784-9890-3-git-send-email-matthew.r.wilcox@intel.com>
+In-Reply-To: <1457730784-9890-1-git-send-email-matthew.r.wilcox@intel.com>
+References: <1457730784-9890-1-git-send-email-matthew.r.wilcox@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,71 +20,84 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The ACPI spec speicifies that arguments "Revision ID" and
-"Function Index" to a _DSM are type "Integer."  Type Integers
-are 64 bit quantities.
+We need to put entries in the radix tree that represent PMDs and PUDs.
+Use another bit to determine if this PFN entry represents a huge page
+or not.  If it does, we know the bottom few bits of the PFN are zero,
+so we can reuse them to distinguish between PMDs and PUDs.  Thanks to
+Neil Brown for suggesting this more compact encoding.
 
-The function evaluate_dsm specifies these types as simple "int"
-which are 32 bits.  Correct type passed to acpi_evaluate_dsm
-and its callers and derived callers to pass correct type.
-
-acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
-and were corrected as well.
-
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 ---
- drivers/acpi/utils.c    | 4 ++--
- include/acpi/acpi_bus.h | 6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ include/linux/pfn_t.h | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index f2f9873..87bd54d 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -629,7 +629,7 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
-  * some old BIOSes do expect a buffer or an integer etc.
+diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
+index 37c596c..0ff4c4e 100644
+--- a/include/linux/pfn_t.h
++++ b/include/linux/pfn_t.h
+@@ -8,14 +8,21 @@
+  * PFN_SG_LAST - pfn references a page and is the last scatterlist entry
+  * PFN_DEV - pfn is not covered by system memmap by default
+  * PFN_MAP - pfn has a dynamic page mapping established by a device driver
++ * PFN_HUGE - pfn represents a huge page
+  *
+  * Note that the bottom two bits in the pfn_t match the bottom two bits in the
+  * scatterlist so sg_is_chain() and sg_is_last() work.  These bits are also
+  * used by the radix tree for its own purposes, but a PFN cannot be in both a
+  * radix tree and a scatterlist simultaneously.  If a PFN is moved between the
+  * two usages, care should be taken to clear/set these bits appropriately.
++ *
++ * If PFN_HUGE is set, the bottom PMD_SHIFT-PAGE_SHIFT bits are known to be
++ * zero.  We reuse them to indicate whether the PFN represents a PMD or a PUD.
++ *
++ * This scheme supports 27 bits on a 32-bit system (512GB of physical address
++ * space) and 59 bits on a 64-bit system (2048EB of physical address space).
   */
- union acpi_object *
--acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
-+acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
- 		  union acpi_object *argv4)
- {
- 	acpi_status ret;
-@@ -678,7 +678,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
-  * functions. Currently only support 64 functions at maximum, should be
-  * enough for now.
-  */
--bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
-+bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
- {
- 	int i;
- 	u64 mask = 0;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 14362a8..f092cc6 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -61,12 +61,12 @@ bool acpi_ata_match(acpi_handle handle);
- bool acpi_bay_match(acpi_handle handle);
- bool acpi_dock_match(acpi_handle handle);
+-#define PFN_FLAG_BITS	4
++#define PFN_FLAG_BITS	5
+ #define PFN_FLAGS_MASK	((1 << PFN_FLAG_BITS) - 1)
+ #define __PFN_MAX	((1 << (BITS_PER_LONG - PFN_FLAG_BITS)) - 1)
+ #define PFN_SG_CHAIN	0x01UL
+@@ -23,6 +30,11 @@
+ #define PFN_SG_MASK	(PFN_SG_CHAIN | PFN_SG_LAST)
+ #define PFN_DEV		0x04UL
+ #define PFN_MAP		0x08UL
++#define PFN_HUGE	0x10UL
++#define PFN_SIZE_MASK	0x30UL
++#define PFN_SIZE_PTE	0x00UL
++#define PFN_SIZE_PMD	0x10UL
++#define PFN_SIZE_PUD	0x30UL
  
--bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
-+bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs);
- union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
--			int rev, int func, union acpi_object *argv4);
-+			u64 rev, u64 func, union acpi_object *argv4);
+ #if 0
+ #define PFN_T_BUG_ON(x)	BUG_ON(x)
+@@ -35,7 +47,7 @@ static inline pfn_t __pfn_to_pfn_t(unsigned long pfn, u64 flags)
+ 	pfn_t pfn_t = { .val = (pfn << PFN_FLAG_BITS) | flags };
  
- static inline union acpi_object *
--acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
-+acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
- 			union acpi_object *argv4, acpi_object_type type)
+ 	PFN_T_BUG_ON(pfn & ~__PFN_MAX);
+-	PFN_T_BUG_ON(flags & ~PFN_FLAGS_MASK);
++	PFN_T_BUG_ON(flags & ~(PFN_FLAGS_MASK | PFN_SIZE_MASK));
+ 
+ 	return pfn_t;
+ }
+@@ -46,9 +58,12 @@ static inline pfn_t pfn_to_pfn_t(unsigned long pfn)
+ 	return __pfn_to_pfn_t(pfn, 0);
+ }
+ 
++/* The bottom bits of the PFN may be set if PFN_HUGE is set */
+ static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
  {
- 	union acpi_object *obj;
+ 	unsigned long v = pfn.val;
++	if (v & PFN_HUGE)
++		v &= ~PFN_SIZE_MASK;
+ 	return v >> PFN_FLAG_BITS;
+ }
+ 
 -- 
-1.7.11.3
+2.7.0
 
 _______________________________________________
 Linux-nvdimm mailing list
