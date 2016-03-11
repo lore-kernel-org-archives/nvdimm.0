@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3426.houston.hp.com (g4t3426.houston.hp.com [15.201.208.54])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C0DAD1A1F88
- for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 15:29:59 -0800 (PST)
-Date: Fri, 11 Mar 2016 16:29:41 -0700
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: Re: [RFC v6 2/8] nvdimm: Add wrapper for IOCTL pass thru
-Message-ID: <20160311232941.GA139754@tevye.fc.hp.com>
+Received: from mail-ob0-x229.google.com (mail-ob0-x229.google.com
+ [IPv6:2607:f8b0:4003:c01::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 018811A1F75
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 14:04:21 -0800 (PST)
+Received: by mail-ob0-x229.google.com with SMTP id m7so126434116obh.3
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 14:04:05 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <833a627a8cff27a72f946fa9432cacf2a855e485.1457730736.git.jerry.hoemann@hpe.com>
 References: <cover.1457730736.git.jerry.hoemann@hpe.com>
  <833a627a8cff27a72f946fa9432cacf2a855e485.1457730736.git.jerry.hoemann@hpe.com>
- <CAPcyv4gBg5g2Zj6xE0RC0k68t+x8KY9zaJprRC4UYP3HAX3oew@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4gBg5g2Zj6xE0RC0k68t+x8KY9zaJprRC4UYP3HAX3oew@mail.gmail.com>
-Reply-To: Jerry.Hoemann@hpe.com
+Date: Fri, 11 Mar 2016 14:04:04 -0800
+Message-ID: <CAPcyv4gBg5g2Zj6xE0RC0k68t+x8KY9zaJprRC4UYP3HAX3oew@mail.gmail.com>
+Subject: Re: [RFC v6 2/8] nvdimm: Add wrapper for IOCTL pass thru
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,130 +26,96 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Jerry Hoemann <jerry.hoemann@hpe.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Mar 11, 2016 at 02:04:04PM -0800, Dan Williams wrote:
-> On Fri, Mar 11, 2016 at 1:16 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> > +
-> > +
-> > +struct nd_cmd_pkg {
-> > +       __u32   ncp_type;
-> 
-> I think 'family' is more clear, to signify the class of commands that
-> the 'command' parameter references.
+On Fri, Mar 11, 2016 at 1:16 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> Add struct nd_cmd_pkg which serves as a warapper for
+> the data being passed via a pass thru to a NVDIMM DSM.
+> This wrapper specifies the extra information in a uniform
+> manner allowing the kenrel to call a DSM without knowing
+> specifics of the DSM.
+>
+> Add dsm_call command to nvdimm_bus_cmd_name and nvdimm_cmd_name.
+>
+> Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+> ---
+>  include/uapi/linux/ndctl.h | 22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
+>
+> diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+> index 7cc28ab..459c6ba 100644
+> --- a/include/uapi/linux/ndctl.h
+> +++ b/include/uapi/linux/ndctl.h
+> @@ -125,6 +125,7 @@ enum {
+>         ND_CMD_VENDOR_EFFECT_LOG_SIZE = 7,
+>         ND_CMD_VENDOR_EFFECT_LOG = 8,
+>         ND_CMD_VENDOR = 9,
+> +       ND_CMD_CALL_DSM = 10,
+>  };
+>
+>  enum {
+> @@ -139,6 +140,7 @@ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
+>                 [ND_CMD_ARS_START] = "ars_start",
+>                 [ND_CMD_ARS_STATUS] = "ars_status",
+>                 [ND_CMD_CLEAR_ERROR] = "clear_error",
+> +               [ND_CMD_CALL_DSM] = "dsm_call",
+>         };
+>
+>         if (cmd < ARRAY_SIZE(names) && names[cmd])
+> @@ -158,6 +160,7 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
+>                 [ND_CMD_VENDOR_EFFECT_LOG_SIZE] = "effect_size",
+>                 [ND_CMD_VENDOR_EFFECT_LOG] = "effect_log",
+>                 [ND_CMD_VENDOR] = "vendor",
+> +               [ND_CMD_CALL_DSM] = "dsm_call",
+>         };
+>
+>         if (cmd < ARRAY_SIZE(names) && names[cmd])
+> @@ -224,4 +227,23 @@ enum ars_masks {
+>         ARS_STATUS_MASK = 0x0000FFFF,
+>         ARS_EXT_STATUS_SHIFT = 16,
+>  };
+> +
+> +
+> +struct nd_cmd_pkg {
+> +       __u32   ncp_type;
 
+I think 'family' is more clear, to signify the class of commands that
+the 'command' parameter references.  Also let's drop the ncp_ prefix,
+it's non-idiomatic with the rest of the definitions in this file.
 
-Oh, family of commands for a DSM.  I was thinking you wanted
-family of DSM for a given nvdimm type which didn't seem quite
-right.
+> +       __u32   ncp_rev;
 
-I'll change.
+Why do we need a separate revision field?  A 'revision' change
+effectively selects a different 'family' of commands, so I don't think
+we need to reflect that ACPI-specific aspect of the commands at this
+level.
 
+> +       __u64   ncp_command;
+> +       __u32   ncp_size_in;                    /* size of input payload */
+> +       __u32   ncp_size_out;                   /* size of user buffer   */
 
->					 Also let's drop the ncp_ prefix,
-> it's non-idiomatic with the rest of the definitions in this file.
+What's "user" in this context?  How about "/* size of output payload */"
 
+> +       __u32   ncp_reserved2[9];               /* reserved must be zero */
+> +       __u32   ncp_pot_size;                   /* potential output size */
 
-I like field names with prefixes that refer back to the structure they're
-defined in.  It makes reading code easier.  (e.g. how many times is
-"size" defined in a struct?)
+It's not 'potential'' it's the 'actual' output size written by the
+kernel/firmware, right?
 
-would you be okay with a prefix "nd_"?  it doesn't quite tie as closely
-to the struct, but it should make them unique w/in the kernel.
+> +       unsigned char ncp_payload[];            /* Contents of call      */
+> +};
+> +
+> +#define NCP_TYPE_BUS                   1
+> +#define NCP_TYPE_DIMM_INTEL1           2
+> +#define NCP_TYPE_DIMM_N_HPE1           3
+> +#define NCP_TYPE_DIMM_N_HPE2           4
 
+s/NCP_TYPE_/ND_FAMILY_/
 
-> 
-> > +       __u32   ncp_rev;
-> 
-> Why do we need a separate revision field?  A revision change
-> effectively selects a different 'family' of commands, so I don't think
-> we need to reflect that ACPI-specific aspect of the commands at this
-> level.
-
- To be clear, if/when a DSM specification is extended in the future, with
- a new command added (all other commands remaining) and the revision to
- the DSM is incremented, you want to have a new family defined/used
- by the ioctl interface?
-
- I should be able to do this.
-
-
-
-> 
-> > +       __u64   ncp_command;
-> > +       __u32   ncp_size_in;                    /* size of input payload */
-> > +       __u32   ncp_size_out;                   /* size of user buffer   */
-> 
-> What's "user" in this context?  How about "/* size of output payload */"
-
-Yes, a confusing name.
-
-This is total space (including input portion) that the user
-space caller has set aside for the output of the DSM call.
-
-The kernel when copying out to user space will not exceed
-the size given.
-
-Need to convey that both of these are INPUT parameter the caller
-is passing.
-
-
-> 
-> > +       __u32   ncp_reserved2[9];               /* reserved must be zero */
-> > +       __u32   ncp_pot_size;                   /* potential output size */
-> 
-> It's not 'potential'' it's the 'actual' output size written by the
-> kernel/firmware, right?
-
-
-No, it is potential.
-
-Going though multiple version of the spec, I would see dsm calls
-where the amount of the data the dsm returned was not something that
-the caller could know apriori.
-
-So, the interface returns the amount of data that will fit in
-the space provided and tell the user app in ncp_pot_size the
-amount of data it wants to return.  If what the dsm call wants to
-return fits in the space provided, it is what is written.  If what
-the DSM would want to return is greater, it is the greater.
-
-This allows for idempotent calls to be redone with appropriately
-sized buffer.
-
-
-This interface needs a man page.  :)
-
-I will put a larger comment block in the next version.
-
-
-
-> 
-> > +       unsigned char ncp_payload[];            /* Contents of call      */
-> > +};
-> > +
-> > +#define NCP_TYPE_BUS                   1
-> > +#define NCP_TYPE_DIMM_INTEL1           2
-> > +#define NCP_TYPE_DIMM_N_HPE1           3
-> > +#define NCP_TYPE_DIMM_N_HPE2           4
-> 
-> s/NCP_TYPE_/ND_FAMILY_/
-
-  Will do.
-
-> 
-> I think it would be helpful to put comments in the code here about
-> where these families are defined.
-
-  Will do.
-
--- 
-
------------------------------------------------------------------------------
-Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
------------------------------------------------------------------------------
+I think it would be helpful to put comments in the code here about
+where these families are defined.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
