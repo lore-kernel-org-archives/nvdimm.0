@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t4621.austin.hp.com (g2t4621.austin.hp.com [15.73.212.80])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B33EE1A1FA1
- for <linux-nvdimm@lists.01.org>; Mon, 21 Mar 2016 12:37:54 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v8 02/10] nvdimm: Add wrapper for IOCTL pass thru
-Date: Mon, 21 Mar 2016 13:37:02 -0600
-Message-Id: <fc6407acd4f88fad4a74d1be19bc46de01f0d809.1458583367.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
-References: <cover.1458583367.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
-References: <cover.1458583367.git.jerry.hoemann@hpe.com>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 4BF561A1EF5
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 17:17:50 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH 1/3] ndctl: fix ndctl_bus_cmd_new_ars_status()
+ input validation
+Date: Fri, 11 Mar 2016 01:17:32 +0000
+Message-ID: <1457659048.4525.37.camel@intel.com>
+References: <20160311004511.27582.63304.stgit@dwillia2-desk3.jf.intel.com>
+ <20160311004516.27582.37530.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20160311004516.27582.37530.stgit@dwillia2-desk3.jf.intel.com>
+Content-Language: en-US
+Content-ID: <2D24ECB6EBFC8B4D9032F63F73342FDE@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,122 +20,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add struct nd_cmd_pkg which serves as a warapper for
-the data being passed via a pass thru to a NVDIMM DSM.
-This wrapper specifies the extra information in a uniform
-manner allowing the kenrel to call a DSM without knowing
-specifics of the DSM.
-
-Add dsm_call command to nvdimm_bus_cmd_name and nvdimm_cmd_name.
-
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
----
- include/uapi/linux/ndctl.h | 53 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 53 insertions(+)
-
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 7cc28ab..c043cd1 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -114,6 +114,7 @@ enum {
- 	ND_CMD_ARS_START = 2,
- 	ND_CMD_ARS_STATUS = 3,
- 	ND_CMD_CLEAR_ERROR = 4,
-+	/* 10 reserved for ND_CMD_CALL below */
- 
- 	/* per-dimm commands */
- 	ND_CMD_SMART = 1,
-@@ -125,6 +126,7 @@ enum {
- 	ND_CMD_VENDOR_EFFECT_LOG_SIZE = 7,
- 	ND_CMD_VENDOR_EFFECT_LOG = 8,
- 	ND_CMD_VENDOR = 9,
-+	ND_CMD_CALL = 10,
- };
- 
- enum {
-@@ -139,6 +141,7 @@ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
- 		[ND_CMD_ARS_START] = "ars_start",
- 		[ND_CMD_ARS_STATUS] = "ars_status",
- 		[ND_CMD_CLEAR_ERROR] = "clear_error",
-+		[ND_CMD_CALL] = "cmd_call",
- 	};
- 
- 	if (cmd < ARRAY_SIZE(names) && names[cmd])
-@@ -158,6 +161,7 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
- 		[ND_CMD_VENDOR_EFFECT_LOG_SIZE] = "effect_size",
- 		[ND_CMD_VENDOR_EFFECT_LOG] = "effect_log",
- 		[ND_CMD_VENDOR] = "vendor",
-+		[ND_CMD_CALL] = "cmd_call",
- 	};
- 
- 	if (cmd < ARRAY_SIZE(names) && names[cmd])
-@@ -224,4 +228,53 @@ enum ars_masks {
- 	ARS_STATUS_MASK = 0x0000FFFF,
- 	ARS_EXT_STATUS_SHIFT = 16,
- };
-+
-+
-+/*
-+ * struct nd_cmd_pkg
-+ *
-+ * is a wrapper to a quasi pass thru interface for invoking firmware
-+ * associated with nvdimms.
-+ *
-+ * INPUT PARAMETERS
-+ *
-+ * nd_family corresponds to the firmware (e.g. DSM) interface.
-+ *
-+ * nd_command are the function index advertised by the firmware.
-+ *
-+ * nd_size_in is the size of the input parameters being passed to firmware
-+ *
-+ * OUTPUT PARAMETERS
-+ *
-+ * nd_fw_size is the size of the data firmware wants to return for
-+ * the call.  If nd_fw_size is greater than size of nd_size_out, only
-+ * the first nd_size_out bytes are returned.
-+ */
-+
-+struct nd_cmd_pkg {
-+	__u64   nd_family;		/* family of commands, eg ND_TYPE_BUS */
-+	__u64   nd_command;
-+	__u32   nd_size_in;		/* INPUT: size of input args */
-+	__u32   nd_size_out;		/* INPUT: size of payload */
-+	__u32   nd_reserved2[9];	/* reserved must be zero */
-+	__u32   nd_fw_size;		/* OUTPUT: size fw wants to return */
-+	unsigned char nd_payload[];	/* Contents of call      */
-+};
-+
-+/*
-+ * the list nd_family of commands.  The mapping to firmware handles
-+ * is definied in the nfit_cmd_family_tbl
-+ *
-+ */
-+#define ND_TYPE_BUS			1
-+#define ND_TYPE_DIMM_INTEL1		2
-+#define ND_TYPE_DIMM_N_HPE1		3
-+#define ND_TYPE_DIMM_N_HPE2		4
-+
-+
-+#define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
-+					struct nd_cmd_pkg)
-+
-+
-+
- #endif /* __NDCTL_H__ */
--- 
-1.7.11.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVGh1LCAyMDE2LTAzLTEwIGF0IDE2OjQ1IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IENoZWNrIHRoYXQgYXJzX3N0YXR1cywgcmF0aGVyIHRoYW4gYXJzX2NhcCwgY29tbWFuZHMgYXJl
+IHN1cHBvcnRlZCBhbmQNCj4gdmFsaWRhdGUgdGhhdCB0aGUgcmVmZXJlbmNlIGFyc19jYXAgcGFz
+c2VkIGluIGlzIGluZGVlZCBhbmQgYXJzX2NhcA0KDQpzL2FuZC9hbi8NCg0KPiBjb21tYW5kLg0K
+PiANCj4gQ2M6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPg0KPiBTaWdu
+ZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gLS0t
+DQo+IMKgbGliL2xpYm5kY3RsLWFycy5jIHzCoMKgwqDCoDYgKysrLS0tDQo+IMKgMSBmaWxlIGNo
+YW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQg
+YS9saWIvbGlibmRjdGwtYXJzLmMgYi9saWIvbGlibmRjdGwtYXJzLmMNCj4gaW5kZXggYWQ4NTE5
+MTg5OGQ0Li42M2QwZTU1NDRhMzYgMTAwNjQ0DQo+IC0tLSBhL2xpYi9saWJuZGN0bC1hcnMuYw0K
+PiArKysgYi9saWIvbGlibmRjdGwtYXJzLmMNCj4gQEAgLTU1LDcgKzU1LDcgQEAgTkRDVExfRVhQ
+T1JUIHN0cnVjdCBuZGN0bF9jbWQNCj4gKm5kY3RsX2J1c19jbWRfbmV3X2Fyc19zdGFydChzdHJ1
+Y3QgbmRjdGxfY21kICphcnMNCj4gwqAJCWRiZyhjdHgsICJ1bnN1cHBvcnRlZCBjbWRcbiIpOw0K
+PiDCoAkJcmV0dXJuIE5VTEw7DQo+IMKgCX0NCj4gLQlpZiAoYXJzX2NhcC0+c3RhdHVzICE9IDAp
+IHsNCj4gKwlpZiAoYXJzX2NhcC0+dHlwZSAhPSBORF9DTURfQVJTX0NBUCB8fCBhcnNfY2FwLT5z
+dGF0dXMgIT0gMCkNCj4gew0KPiDCoAkJZGJnKGN0eCwgImV4cGVjdGVkIHN1Y2Vzc2Z1bGx5IGNv
+bXBsZXRlZCBhcnNfY2FwDQo+IGNvbW1hbmRcbiIpOw0KPiDCoAkJcmV0dXJuIE5VTEw7DQo+IMKg
+CX0NCj4gQEAgLTk0LDExICs5NCwxMSBAQCBORENUTF9FWFBPUlQgc3RydWN0IG5kY3RsX2NtZA0K
+PiAqbmRjdGxfYnVzX2NtZF9uZXdfYXJzX3N0YXR1cyhzdHJ1Y3QgbmRjdGxfY21kICphcg0KPiDC
+oAlzdHJ1Y3QgbmRjdGxfY21kICpjbWQ7DQo+IMKgCXNpemVfdCBzaXplOw0KPiDCoA0KPiAtCWlm
+ICghbmRjdGxfYnVzX2lzX2NtZF9zdXBwb3J0ZWQoYnVzLCBORF9DTURfQVJTX0NBUCkpIHsNCj4g
+KwlpZiAoIW5kY3RsX2J1c19pc19jbWRfc3VwcG9ydGVkKGJ1cywgTkRfQ01EX0FSU19TVEFUVVMp
+KSB7DQoNCkdvb2QgY2F0Y2ggOikNCg0KPiDCoAkJZGJnKGN0eCwgInVuc3VwcG9ydGVkIGNtZFxu
+Iik7DQo+IMKgCQlyZXR1cm4gTlVMTDsNCj4gwqAJfQ0KPiAtCWlmIChhcnNfY2FwLT5zdGF0dXMg
+IT0gMCkgew0KPiArCWlmIChhcnNfY2FwLT50eXBlICE9IE5EX0NNRF9BUlNfQ0FQIHx8IGFyc19j
+YXAtPnN0YXR1cyAhPSAwKQ0KPiB7DQo+IMKgCQlkYmcoY3R4LCAiZXhwZWN0ZWQgc3VjZXNzZnVs
+bHkgY29tcGxldGVkIGFyc19jYXANCj4gY29tbWFuZFxuIik7DQo+IMKgCQlyZXR1cm4gTlVMTDsN
+Cj4gwqAJfQ0KPiANCg0KUmV2aWV3ZWQtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFA
+aW50ZWwuY29tPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0
+cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
