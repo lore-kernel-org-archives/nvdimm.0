@@ -1,11 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 951011A1F5E
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 15:55:53 -0800 (PST)
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH v5 00/14] Support for transparent PUD pages for DAX files
-Date: Thu, 10 Mar 2016 18:55:17 -0500
-Message-Id: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id C841D1A1E40
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Mar 2016 14:55:18 -0800 (PST)
+Date: Fri, 11 Mar 2016 15:54:23 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 01/12] DAX: move RADIX_DAX_ definitions to dax.c
+Message-ID: <20160311225423.GB30106@linux.intel.com>
+References: <1457637535-21633-1-git-send-email-jack@suse.cz>
+ <1457637535-21633-2-git-send-email-jack@suse.cz>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1457637535-21633-2-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,115 +18,74 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, Wilcox,
 List-ID: <linux-nvdimm@lists.01.org>
 
-We have customer demand to use 1GB pages to map DAX files.  Unlike the 2MB
-page support, the Linux MM does not currently support PUD pages, so I have
-attempted to add support for the necessary pieces for DAX huge PUD pages.
+On Thu, Mar 10, 2016 at 08:18:44PM +0100, Jan Kara wrote:
+> From: NeilBrown <neilb@suse.com>
+> 
+> These don't belong in radix-tree.c any more than PAGECACHE_TAG_* do.
+> Let's try to maintain the idea that radix-tree simply implements an
+> abstract data type.
+> 
+> Signed-off-by: NeilBrown <neilb@suse.com>
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-Filesystems still need work to allocate 1GB pages.  With ext4, I can
-only get 16MB of contiguous space, although it is aligned.  With XFS,
-I can get 80MB less than 1GB, and it's not aligned.  The XFS problem
-may be due to the small amount of RAM in my test machine.
+Acked-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-This patch set is against v4.5-rc7-mmots-2016-03-08-15-59.  I'd like
-to thank Dave Chinner & Kirill Shutemov for their reviews of v1.
-The conversion of pmd_fault & pud_fault to huge_fault is thanks to Dave's
-poking, and Kirill spotted a couple of problems in the MM code.
-
-I've done some light testing using a program to mmap a block device
-with DAX enabled, calling mincore() and examining /proc/smaps and
-/proc/pagemap.
-
-v5: Fix compilation bug with GCC 4.5 and earlier by initialising vm_fault.pmd
-    and vm_fault.pud later
-  - Fix report from Sergey Senozhatsky about compilation on x86-64 with
-    CONFIG_TRANSPARENT_HUGEPAGE=n (also reported by Sudip Mukherjee)
-  - Fix report from Stephen Rothwell about touch_pud() / follow_devmap_pud()
-    not compiling on pSeries by moving these functions under
-    CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-  - Fix wrong order of arguments to VM_BUG_ON_VMA (reported by Andrew Morton)
-  - Fix VM_BUG_ON_* not checking its arguments in non-debug case
-  - Fix duplicate definition of native_pud_clear() with X86_PAE
-  - Fix linking with X86_PAE by making pud_trans_huge() and pud_devmap()
-    return 0
-  - Fix several whitespace issues in x86 patches
-  - Add some DAX cleanups on top of the 1GB changes
-
-v4: Updated to current mmotm
-  - Converted pud_trans_huge_lock to the same calling conventions as
-    pmd_trans_huge_lock.
-  - Fill in vm_fault ->gfp_flags and ->pgoff, at Jan Kara's suggestion
-  - Replace use of page table lock with pud_lock in __pud_alloc (cosmetic)
-  - Fix compilation problems with various config settings
-  - Convert dax_pmd_fault and dax_pud_fault to take a vm_fault instead of
-    individual pieces
-  - Add copy_huge_pud() and follow_devmap_pud() so fork() should now work
-  - Fix typo of PMD for PUD
-
-v3: Rebased against current mmtom
-v2: Reduced churn in filesystems by switching to ->huge_fault interface
-    Addressed concerns from Kirill
-
-Matthew Wilcox (14):
-  mmdebug: Always evaluate the arguments to VM_BUG_ON_*
-  mm: Convert an open-coded VM_BUG_ON_VMA
-  mm,fs,dax: Change ->pmd_fault to ->huge_fault
-  mm: Add support for PUD-sized transparent hugepages
-  mincore: Add support for PUDs
-  procfs: Add support for PUDs to smaps, clear_refs and pagemap
-  x86: Unify native_*_get_and_clear !SMP case
-  x86: Fix whitespace issues
-  x86: Add support for PUD-sized transparent hugepages
-  dax: Support for transparent PUD pages
-  ext4: Support for PUD-sized transparent huge pages
-  dax: Use vmf->gfp_mask
-  dax: Remove unnecessary rechecking of i_size
-  dax: Use vmf->pgoff in fault handlers
-
- Documentation/filesystems/dax.txt     |  12 +-
- arch/Kconfig                          |   3 +
- arch/x86/Kconfig                      |   1 +
- arch/x86/include/asm/paravirt.h       |  11 +
- arch/x86/include/asm/paravirt_types.h |   2 +
- arch/x86/include/asm/pgtable-2level.h |  21 +-
- arch/x86/include/asm/pgtable-3level.h |  27 ++-
- arch/x86/include/asm/pgtable.h        | 162 ++++++++++++++-
- arch/x86/include/asm/pgtable_64.h     |  23 +--
- arch/x86/kernel/paravirt.c            |   1 +
- arch/x86/mm/pgtable.c                 |  31 +++
- fs/block_dev.c                        |  10 +-
- fs/dax.c                              | 370 ++++++++++++++++++++--------------
- fs/ext2/file.c                        |  25 +--
- fs/ext4/file.c                        |  58 ++----
- fs/proc/task_mmu.c                    | 109 ++++++++++
- fs/xfs/xfs_file.c                     |  25 +--
- fs/xfs/xfs_trace.h                    |   2 +-
- include/asm-generic/pgtable.h         |  73 ++++++-
- include/asm-generic/tlb.h             |  14 ++
- include/linux/dax.h                   |  32 +--
- include/linux/huge_mm.h               |  84 +++++++-
- include/linux/mm.h                    |  48 ++++-
- include/linux/mmdebug.h               |  21 +-
- include/linux/mmu_notifier.h          |  14 ++
- include/linux/pfn_t.h                 |   8 +
- mm/gup.c                              |   7 +
- mm/huge_memory.c                      | 246 ++++++++++++++++++++++
- mm/memory.c                           | 131 ++++++++++--
- mm/mincore.c                          |  13 ++
- mm/pagewalk.c                         |  19 +-
- mm/pgtable-generic.c                  |  13 ++
- 32 files changed, 1284 insertions(+), 332 deletions(-)
-
--- 
-2.7.0
+> ---
+>  fs/dax.c                   | 9 +++++++++
+>  include/linux/radix-tree.h | 9 ---------
+>  2 files changed, 9 insertions(+), 9 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 711172450da6..9c4d697fb6fc 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -32,6 +32,15 @@
+>  #include <linux/pfn_t.h>
+>  #include <linux/sizes.h>
+>  
+> +#define RADIX_DAX_MASK	0xf
+> +#define RADIX_DAX_SHIFT	4
+> +#define RADIX_DAX_PTE  (0x4 | RADIX_TREE_EXCEPTIONAL_ENTRY)
+> +#define RADIX_DAX_PMD  (0x8 | RADIX_TREE_EXCEPTIONAL_ENTRY)
+> +#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_MASK)
+> +#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
+> +#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
+> +		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE)))
+> +
+>  static long dax_map_atomic(struct block_device *bdev, struct blk_dax_ctl *dax)
+>  {
+>  	struct request_queue *q = bdev->bd_queue;
+> diff --git a/include/linux/radix-tree.h b/include/linux/radix-tree.h
+> index f54be7082207..968150ab8a1c 100644
+> --- a/include/linux/radix-tree.h
+> +++ b/include/linux/radix-tree.h
+> @@ -51,15 +51,6 @@
+>  #define RADIX_TREE_EXCEPTIONAL_ENTRY	2
+>  #define RADIX_TREE_EXCEPTIONAL_SHIFT	2
+>  
+> -#define RADIX_DAX_MASK	0xf
+> -#define RADIX_DAX_SHIFT	4
+> -#define RADIX_DAX_PTE  (0x4 | RADIX_TREE_EXCEPTIONAL_ENTRY)
+> -#define RADIX_DAX_PMD  (0x8 | RADIX_TREE_EXCEPTIONAL_ENTRY)
+> -#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_MASK)
+> -#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
+> -#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
+> -		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE)))
+> -
+>  static inline int radix_tree_is_indirect_ptr(void *ptr)
+>  {
+>  	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
+> -- 
+> 2.6.2
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
