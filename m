@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id 580CB1A1F45
- for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 15:37:34 -0800 (PST)
-Subject: [ndctl PATCH 5/8] ndctl create-namespace: fall back to blk if no pmem
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 08 Mar 2016 15:36:54 -0800
-Message-ID: <20160308233654.18628.7830.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
+Received: from mail-oi0-x232.google.com (mail-oi0-x232.google.com
+ [IPv6:2607:f8b0:4003:c06::232])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3D2E81A1E09
+ for <linux-nvdimm@lists.01.org>; Mon, 14 Mar 2016 08:56:45 -0700 (PDT)
+Received: by mail-oi0-x232.google.com with SMTP id m82so136791484oif.1
+ for <linux-nvdimm@lists.01.org>; Mon, 14 Mar 2016 08:56:27 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1457970816-5625-1-git-send-email-jthumshirn@suse.de>
+References: <1457970816-5625-1-git-send-email-jthumshirn@suse.de>
+Date: Mon, 14 Mar 2016 08:56:26 -0700
+Message-ID: <CAPcyv4i3nZOamraFAvi3mDD_ZjAaKidaR+VvP47OWGKNTw7tJA@mail.gmail.com>
+Subject: Re: [ndctl PATCH] ndctl: Bail out with unkown command in case of an
+ unknown command
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,135 +26,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Arrange for ndctl create-namespace to search for blk capacity by
-default.  This supports a use case of calling 'ndctl create-namespace'
-with no options until it returns an error to allocate all the persistent
-memory capacity in a system.
+On Mon, Mar 14, 2016 at 8:53 AM, Johannes Thumshirn <jthumshirn@suse.de> wrote:
+> handle_internal_command() only returns to main if it doesn't find the
+> specified command and does not set an errno.
+>
+> When running an unknown command you get the following error message:
+> $ ./ndctl asd
+> Failed to run command 'asd': Success
+>
+> Instead of a more appropriate:
+> $ ./ndctl asd
+> Unknown command: 'asd'
+>
+> Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
+> ---
+>  ndctl.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+>
+> diff --git a/ndctl.c b/ndctl.c
+> index ded1588..18b5dc6 100644
+> --- a/ndctl.c
+> +++ b/ndctl.c
+> @@ -159,8 +159,7 @@ int main(int argc, const char **argv)
+>                 goto out;
+>         }
+>         handle_internal_command(argc, argv);
+> -       fprintf(stderr, "Failed to run command '%s': %s\n",
+> -               argv[0], strerror(errno));
+> +       fprintf(stderr, "Unknown command: '%s'\n", argv[0]);
+>  out:
+>         return 1;
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- builtin-xaction-namespace.c |   68 ++++++++++++++++++++++++++++++++-----------
- 1 file changed, 51 insertions(+), 17 deletions(-)
-
-diff --git a/builtin-xaction-namespace.c b/builtin-xaction-namespace.c
-index 28999b3f8311..d83ad91a7258 100644
---- a/builtin-xaction-namespace.c
-+++ b/builtin-xaction-namespace.c
-@@ -37,6 +37,7 @@
- static bool verbose;
- static bool force;
- static struct parameters {
-+	bool do_scan;
- 	const char *bus;
- 	const char *map;
- 	const char *type;
-@@ -109,21 +110,9 @@ enum namespace_action {
- 	ACTION_CREATE,
- };
- 
--/*
-- * parse_namespace_options - basic parsing sanity checks before we start
-- * looking at actual namespace devices and available resources.
-- */
--static const char *parse_namespace_options(int argc, const char **argv,
--		enum namespace_action mode, const struct option *options,
--		char *xable_usage)
-+static int set_defaults(void)
- {
--	const char * const u[] = {
--		xable_usage,
--		NULL
--	};
--	int i, rc = 0;
--
--        argc = parse_options(argc, argv, options, u, 0);
-+	int rc = 0;
- 
- 	if (param.type) {
- 		if (strcmp(param.type, "pmem") == 0)
-@@ -211,6 +200,28 @@ static const char *parse_namespace_options(int argc, const char **argv,
- 	} else if (!param.reconfig)
- 		param.sector_size = "4096";
- 
-+	return rc;
-+}
-+
-+/*
-+ * parse_namespace_options - basic parsing sanity checks before we start
-+ * looking at actual namespace devices and available resources.
-+ */
-+static const char *parse_namespace_options(int argc, const char **argv,
-+		enum namespace_action mode, const struct option *options,
-+		char *xable_usage)
-+{
-+	const char * const u[] = {
-+		xable_usage,
-+		NULL
-+	};
-+	int i, rc = 0;
-+
-+	param.do_scan = argc == 1;
-+        argc = parse_options(argc, argv, options, u, 0);
-+
-+	rc = set_defaults();
-+
- 	if (argc == 0 && mode != ACTION_CREATE) {
- 		error("specify a namespace to %s, or \"all\"\n",
- 				mode == ACTION_ENABLE ? "enable" : "disable");
-@@ -603,6 +614,8 @@ static int do_xaction_namespace(const char *namespace,
- 					rc = 0;
- 					continue;
- 				}
-+				if (rc == 0)
-+					rc = 1;
- 				goto done;
- 			}
- 			ndctl_namespace_foreach(region, ndns) {
-@@ -619,7 +632,11 @@ static int do_xaction_namespace(const char *namespace,
- 					rc = ndctl_namespace_enable(ndns);
- 					break;
- 				case ACTION_CREATE:
--					return namespace_reconfig(region, ndns);
-+					rc = namespace_reconfig(region, ndns);
-+					if (rc < 0)
-+						goto done;
-+					rc = 1;
-+					goto done;
- 				}
- 				if (rc >= 0)
- 					success++;
-@@ -682,8 +699,25 @@ int cmd_create_namespace(int argc, const char **argv)
- 			ACTION_CREATE, create_options, xable_usage);
- 	int created = do_xaction_namespace(namespace, ACTION_CREATE);
- 
--	if (created < 0)
-+	if (created < 1 && param.do_scan) {
-+		/*
-+		 * In the default scan case we try pmem first and then
-+		 * fallback to blk before giving up.
-+		 */
-+		memset(&param, 0, sizeof(param));
-+		param.type = "blk";
-+		set_defaults();
-+		created = do_xaction_namespace(NULL, ACTION_CREATE);
-+	}
-+
-+	if (created < 0 || (!namespace && created < 1)) {
- 		fprintf(stderr, "failed to %s namespace\n", namespace
- 				? "reconfigure" : "create");
--	return created;
-+		if (!namespace)
-+			created = -ENODEV;
-+	}
-+
-+	if (created < 0)
-+		return created;
-+	return 0;
- }
-
+Looks good to me, applied.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
