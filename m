@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t6220.austin.hp.com (g1t6220.austin.hp.com [15.73.96.84])
+Received: from g1t6216.austin.hp.com (g1t6216.austin.hp.com [15.73.96.123])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 72E6E1A1E91
- for <linux-nvdimm@lists.01.org>; Tue, 15 Mar 2016 14:32:39 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 824F81A1E91
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Mar 2016 14:32:40 -0700 (PDT)
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v7 0/7] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Tue, 15 Mar 2016 15:32:09 -0600
-Message-Id: <cover.1458076114.git.jerry.hoemann@hpe.com>
+Subject: [PATCH v7 2/7] nvdimm: Add wrapper for IOCTL pass thru
+Date: Tue, 15 Mar 2016 15:32:11 -0600
+Message-Id: <6205de98024dfa849a668aedd678bf699eb9e20c.1458076114.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458076114.git.jerry.hoemann@hpe.com>
+References: <cover.1458076114.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458076114.git.jerry.hoemann@hpe.com>
+References: <cover.1458076114.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,200 +28,109 @@ To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Add struct nd_cmd_pkg which serves as a warapper for
+the data being passed via a pass thru to a NVDIMM DSM.
+This wrapper specifies the extra information in a uniform
+manner allowing the kenrel to call a DSM without knowing
+specifics of the DSM.
 
-The NVDIMM code in the kernel supports an IOCTL interface to user
-space based upon the Intel Example DSM:
+Add dsm_call command to nvdimm_bus_cmd_name and nvdimm_cmd_name.
 
-	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+---
+ include/uapi/linux/ndctl.h | 53 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
 
-This interface cannot be used by other NVDIMM DSMs that support
-incompatible functions.
-
-An alternative DSM specification for Type N DSM being developed
-by Hewlett Packard Enterprise can be found at:
-
-	https://github.com/HewlettPackard/hpe-nvm/tree/master/Documentation
-
-To accommodate multiple and conflicting DSM specifications, this patch
-set adds a generic "passthru" IOCTL interface which is not tied to
-a particular DSM.
-
-A new _IOC_NR ND_CMD_CALL == "10" is added for the pass thru call.
-
-The new data structure nd_cmd_pkg serves as a wrapper for the
-passthru calls.  This wrapper supplies the data that the kernel
-needs to make the _DSM call.
-
-Unlike the definitions of the _DSM functions themselves, the nd_cmd_pkg
-provides the calling information (input/output sizes) in an uniform
-manner making the kernel marshaling of the arguments straight
-forward.
-
-This shifts the marshaling burden from the kernel to the user
-space application while still permitting the kernel to internally
-call _DSM functions.
-
-The kernel functions __nd_ioctl and acpi_nfit_ctl were modified
-to accommodate ND_CMD_CALL.
-
-Changes in version 7:
---------------------
-0. change name ND_CMD_CALL_DSM to ND_CMD_CALL
-    - part of abstracting out DSM missed in version 6.
-
-1. change name in struct nd_call_dsm
-    a) "ncp_" -> "nd_"
-    b) ncp_pot_size -> nd_fw_size
-    c) ncp_type -> nd_family
-    o) cascade name changes to other patches
-
-2. Expanded comment around data structure nd_cmd_pkg
-
-3. At Dan's request, hard coding "root" UUID.
-    a) retract extension of dsm_uuid to nvdimm_bus_descriptor.
-    b) reverted nfit.c/acpi_nfit_init_dsms() with the exception of
-	allowing function 0 in mask.
-
-4. At Dan's request, removed "rev" from nd_cmd_pkg.  Hard-coding
-    use of rev "1" in acpi_nfit_ctl.
-
-
-Changes in version 6:
----------------------
-Built against
-git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm.git
-libnvdimm-pending
-
-0. Patches "Clean-up access mode check" and "Fix security issue with DSM IOCTL"
-   already in above libnvdimm-pending.  So omitted here.
-
-1. Incorporated changes from Dan's RFC patch set
-   https://lists.01.org/pipermail/linux-nvdimm/2016-January/004049.html
-
-2. Dan asked me to abstract out the DSM aspects from the ndm_cmd_dsmcall_pkg.
-   This became nd_cmd_pkg.  UUIDs are no longer passed in from
-   user applications.
-
-3. To accommodate multiple UUIDS, added table cmd_type_tbl which is used
-   to determine UUID for the acpi object by calling function 0 for
-   each UUID in table until success.
-
-   This table also provides a MASK field that the kernel can use
-   to exclude functions being called.
-
-   This table can be thought of a list of "acceptable" DSMs.
-
-4. The cmd_type_tbl is also used by acpi_nfit_ctl to map the
-   external handle of calls to internal handle, UUID.
-
-   Note, code only validates that the requested type of call is one in
-   cmd_type_tbl, but it might not necessarily be the same found during
-   acpi_nfit_add_dimm.  The ACPI SPEC appears to allow and firmware
-   does implement multiple UUID per object.
-
-   In the case where type is in table, but the UUID isn't supported
-   by the underlying firmware, firmware shall return an error when
-   called.
-
-   This allows for use of a secondary DSM on an object.  This could
-   be considered a feature or a defect.  This can be tightened
-   up if needed.
-
-
-
-Changes in version 5:
----------------------
-0. Fixed submit comment for drivers/acpi/utils.c.
-
-
-Changes in version 4:
----------------------
-0. Added patch to correct parameter type passed to acpi_evaluate_dsm
-   ACPI defines arguments rev and fun as 64 bit quantities and the ioctl
-   exports to user face rev and func. We want those to match the ACPI spec.
-
-   Also modified acpi_evaluate_dsm_typed and acpi_check dsm which had
-   similar issue.
-
-1. nd_cmd_dsmcall_pkg rearrange a reserve and rounded up total size
-   to 16 byte boundary.
-
-2. Created stand alone patch for the pre-existing security issue related
-   to "read only" IOCTL calls.
-
-3. Added patch for increasing envelope size of IOCTL.  Needed to
-   be able to read in the wrapper to know remaining size to copy in.
-
-   Note: in_env, out_env are statics sized based upon this change.
-
-4. Moved copyin code to table driven nd_cmd_desc 
-
-  Note, the last 40 lines or so of acpi_nfit_ctl will not return _DSM
-  data unless the size allocated in user space buffer equals
-  out_obj->buffer.length.
-
-  The semantic we want in the pass thru case is to return as much
-  of the _DSM data as the user space buffer would accommodate.
-
-  Hence, in acpi_nfit_ctl I have retained the line:
-
-		memcpy(pkg->dsm_buf + pkg->h.dsm_in,
-			out_obj->buffer.pointer,
-			min(pkg->h.dsm_size, pkg->h.dsm_out));
-
-  and the early return from the function.
-
-
-
-
-Changes in version 3:
----------------------
-1. Changed name ND_CMD_PASSTHRU to ND_CMD_CALL_DSM.
-
-2. Value of ND_CMD_CALL_DSM is 10, not 100.
-
-3. Changed name of nd_passthru_pkg to nd_cmd_dsmcall_pkg.
-
-4. Removed separate functions for handling ND_CMD_CALL_DSM.
-   Moved functionality to __nd_ioctl and acpi_nfit_ctl proper.
-   The resultant code looks very different from prior versions.
-
-5. BUGFIX: __nd_ioctl: Change the if read_only switch to use
-	 _IOC_NR cmd (not ioctl_cmd) for better protection.
-
-	Do we want to make a stand alone patch for this issue?
-
-
-Changes in version 2:
----------------------
-1. Cleanup access mode check in nd_ioctl and nvdimm_ioctl.
-2. Change name of ndn_pkg to nd_passthru_pkg
-3. Adjust sizes in nd_passthru_pkg. DSM integers are 64 bit.
-4. No new ioctl type, instead tunnel into the existing number space.
-5. Push down one function level where determine ioctl cmd type.
-6. re-work diagnostic print/dump message in pass-thru functions.
-
-Jerry Hoemann (7):
-  ACPI / util: Fix acpi_evaluate_dsm() argument type
-  nvdimm: Add wrapper for IOCTL pass thru
-  nvdimm: Increase max envelope size for IOCTL
-  nvdimm: Add UUIDs
-  libnvdimm: advertise 'call_dsm' support
-  nvdimm: Add IOCTL pass thru functions
-  tools/testing/nvdimm: 'call_dsm' support
-
- drivers/acpi/nfit.c              | 142 ++++++++++++++++++++++++++++++++++-----
- drivers/acpi/nfit.h              |   5 ++
- drivers/acpi/utils.c             |   4 +-
- drivers/nvdimm/bus.c             |  45 ++++++++++++-
- drivers/nvdimm/core.c            |   3 +
- drivers/nvdimm/dimm_devs.c       |   8 ++-
- include/acpi/acpi_bus.h          |   6 +-
- include/linux/libnvdimm.h        |   3 +-
- include/uapi/linux/ndctl.h       |  53 +++++++++++++++
- tools/testing/nvdimm/test/nfit.c |  13 +++-
- 10 files changed, 254 insertions(+), 28 deletions(-)
-
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 7cc28ab..c043cd1 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -114,6 +114,7 @@ enum {
+ 	ND_CMD_ARS_START = 2,
+ 	ND_CMD_ARS_STATUS = 3,
+ 	ND_CMD_CLEAR_ERROR = 4,
++	/* 10 reserved for ND_CMD_CALL below */
+ 
+ 	/* per-dimm commands */
+ 	ND_CMD_SMART = 1,
+@@ -125,6 +126,7 @@ enum {
+ 	ND_CMD_VENDOR_EFFECT_LOG_SIZE = 7,
+ 	ND_CMD_VENDOR_EFFECT_LOG = 8,
+ 	ND_CMD_VENDOR = 9,
++	ND_CMD_CALL = 10,
+ };
+ 
+ enum {
+@@ -139,6 +141,7 @@ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
+ 		[ND_CMD_ARS_START] = "ars_start",
+ 		[ND_CMD_ARS_STATUS] = "ars_status",
+ 		[ND_CMD_CLEAR_ERROR] = "clear_error",
++		[ND_CMD_CALL] = "cmd_call",
+ 	};
+ 
+ 	if (cmd < ARRAY_SIZE(names) && names[cmd])
+@@ -158,6 +161,7 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
+ 		[ND_CMD_VENDOR_EFFECT_LOG_SIZE] = "effect_size",
+ 		[ND_CMD_VENDOR_EFFECT_LOG] = "effect_log",
+ 		[ND_CMD_VENDOR] = "vendor",
++		[ND_CMD_CALL] = "cmd_call",
+ 	};
+ 
+ 	if (cmd < ARRAY_SIZE(names) && names[cmd])
+@@ -224,4 +228,53 @@ enum ars_masks {
+ 	ARS_STATUS_MASK = 0x0000FFFF,
+ 	ARS_EXT_STATUS_SHIFT = 16,
+ };
++
++
++/*
++ * struct nd_cmd_pkg
++ *
++ * is a wrapper to a quasi pass thru interface for invoking firmware
++ * associated with nvdimms.
++ *
++ * INPUT PARAMETERS
++ *
++ * nd_family corresponds to the firmware (e.g. DSM) interface.
++ *
++ * nd_command are the function index advertised by the firmware.
++ *
++ * nd_size_in is the size of the input parameters being passed to firmware
++ *
++ * OUTPUT PARAMETERS
++ *
++ * nd_fw_size is the size of the data firmware wants to return for
++ * the call.  If nd_fw_size is greater than size of nd_size_out, only
++ * the first nd_size_out bytes are returned.
++ */
++
++struct nd_cmd_pkg {
++	__u64   nd_family;		/* family of commands, eg ND_TYPE_BUS */
++	__u64   nd_command;
++	__u32   nd_size_in;		/* INPUT: size of input args */
++	__u32   nd_size_out;		/* INPUT: size of payload */
++	__u32   nd_reserved2[9];	/* reserved must be zero */
++	__u32   nd_fw_size;		/* OUTPUT: size fw wants to return */
++	unsigned char nd_payload[];	/* Contents of call      */
++};
++
++/*
++ * the list nd_family of commands.  The mapping to firmware handles
++ * is definied in the nfit_cmd_family_tbl
++ *
++ */
++#define ND_TYPE_BUS			1
++#define ND_TYPE_DIMM_INTEL1		2
++#define ND_TYPE_DIMM_N_HPE1		3
++#define ND_TYPE_DIMM_N_HPE2		4
++
++
++#define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
++					struct nd_cmd_pkg)
++
++
++
+ #endif /* __NDCTL_H__ */
 -- 
 1.7.11.3
 
