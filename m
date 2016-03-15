@@ -1,12 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 01DB61A1E2E
- for <linux-nvdimm@lists.01.org>; Sun,  6 Mar 2016 10:17:46 -0800 (PST)
-Subject: [PATCH] libnvdimm, pmem: fix ia64 build, use PHYS_PFN
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 06 Mar 2016 10:17:11 -0800
-Message-ID: <20160306181711.39220.94549.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from g1t6214.austin.hp.com (g1t6214.austin.hp.com [15.73.96.122])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C724C1A1E91
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Mar 2016 14:32:40 -0700 (PDT)
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v7 1/7] ACPI / util: Fix acpi_evaluate_dsm() argument type
+Date: Tue, 15 Mar 2016 15:32:10 -0600
+Message-Id: <08f28cea22399155ce1a9c4d9d35adfb379c87cb.1458076114.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458076114.git.jerry.hoemann@hpe.com>
+References: <cover.1458076114.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458076114.git.jerry.hoemann@hpe.com>
+References: <cover.1458076114.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,60 +19,76 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: kbuild test robot <fengguang.wu@intel.com>, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-   drivers/nvdimm/pmem.c: In function 'nvdimm_namespace_attach_pfn':
-   drivers/nvdimm/pmem.c:367:3: error: implicit declaration of function
-   	'__phys_to_pfn' [-Werror=implicit-function-declaration]
-   .base_pfn = __phys_to_pfn(nsio->res.start),
+The ACPI spec speicifies that arguments "Revision ID" and
+"Function Index" to a _DSM are type "Integer."  Type Integers
+are 64 bit quantities.
 
-ia64 does not provide __phys_to_pfn(), just use the PHYS_PFN() alias.
+The function evaluate_dsm specifies these types as simple "int"
+which are 32 bits.  Correct type passed to acpi_evaluate_dsm
+and its callers and derived callers to pass correct type.
 
-Cc: Guenter Roeck <linux@roeck-us.net>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
+and were corrected as well.
+
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- drivers/nvdimm/pmem.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/utils.c    | 4 ++--
+ include/acpi/acpi_bus.h | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 0cb450e1b400..74e2569910d8 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -407,15 +407,15 @@ static int nvdimm_namespace_detach_pfn(struct nd_namespace_common *ndns)
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index f2f9873..87bd54d 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -629,7 +629,7 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
+  * some old BIOSes do expect a buffer or an integer etc.
   */
- static unsigned long init_altmap_base(resource_size_t base)
+ union acpi_object *
+-acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
++acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+ 		  union acpi_object *argv4)
  {
--	unsigned long base_pfn = __phys_to_pfn(base);
-+	unsigned long base_pfn = PHYS_PFN(base);
- 
- 	return PFN_SECTION_ALIGN_DOWN(base_pfn);
- }
- 
- static unsigned long init_altmap_reserve(resource_size_t base)
+ 	acpi_status ret;
+@@ -678,7 +678,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
+  * functions. Currently only support 64 functions at maximum, should be
+  * enough for now.
+  */
+-bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
++bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
  {
--	unsigned long reserve = __phys_to_pfn(SZ_8K);
--	unsigned long base_pfn = __phys_to_pfn(base);
-+	unsigned long reserve = PHYS_PFN(SZ_8K);
-+	unsigned long base_pfn = PHYS_PFN(base);
+ 	int i;
+ 	u64 mask = 0;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 14362a8..f092cc6 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -61,12 +61,12 @@ bool acpi_ata_match(acpi_handle handle);
+ bool acpi_bay_match(acpi_handle handle);
+ bool acpi_dock_match(acpi_handle handle);
  
- 	reserve += base_pfn - PFN_SECTION_ALIGN_DOWN(base_pfn);
- 	return reserve;
-@@ -458,7 +458,7 @@ static int __nvdimm_namespace_attach_pfn(struct nd_pfn *nd_pfn)
- 					le64_to_cpu(nd_pfn->pfn_sb->npfns),
- 					nd_pfn->npfns);
- 		altmap = & __altmap;
--		altmap->free = __phys_to_pfn(pmem->data_offset - SZ_8K);
-+		altmap->free = PHYS_PFN(pmem->data_offset - SZ_8K);
- 		altmap->alloc = 0;
- 	} else {
- 		rc = -ENXIO;
+-bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
++bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs);
+ union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
+-			int rev, int func, union acpi_object *argv4);
++			u64 rev, u64 func, union acpi_object *argv4);
+ 
+ static inline union acpi_object *
+-acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
++acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+ 			union acpi_object *argv4, acpi_object_type type)
+ {
+ 	union acpi_object *obj;
+-- 
+1.7.11.3
 
 _______________________________________________
 Linux-nvdimm mailing list
