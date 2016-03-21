@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id B8E011A1F87
- for <linux-nvdimm@lists.01.org>; Tue, 29 Mar 2016 19:00:52 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 5/5] dax: handle media errors in dax_do_io
-Date: Tue, 29 Mar 2016 19:59:50 -0600
-Message-Id: <1459303190-20072-6-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1459303190-20072-1-git-send-email-vishal.l.verma@intel.com>
-References: <1459303190-20072-1-git-send-email-vishal.l.verma@intel.com>
+Received: from g2t4619.austin.hp.com (g2t4619.austin.hp.com [15.73.212.82])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 721671A1FDC
+ for <linux-nvdimm@lists.01.org>; Mon, 21 Mar 2016 12:37:55 -0700 (PDT)
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v8 05/10] nvdimm: Add IOCTL pass thru functions
+Date: Mon, 21 Mar 2016 13:37:05 -0600
+Message-Id: <e228edeeaa2f6527af89f10089e4bb6939de2532.1458583367.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
+References: <cover.1458583367.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
+References: <cover.1458583367.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,212 +24,358 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_do_io (called for read() or write() for a dax file system) may fail
-in the presence of bad blocks or media errors. Since we expect that a
-write should clear media errors on nvdimms, make dax_do_io fall back to
-the direct_IO path, which will send down a bio to the driver, which can
-then attempt to clear the error.
+Add ioctl command ND_CMD_CALL_DSM to acpi_nfit_ctl and __nd_ioctl which
+allow kernel to call a nvdimm's _DSM as a passthru without using the
+marshaling code of the nd_cmd_desc.
 
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- fs/block_dev.c     | 17 ++++++++++++++---
- fs/ext2/inode.c    | 22 +++++++++++++++-------
- fs/ext4/indirect.c | 18 +++++++++++++-----
- fs/ext4/inode.c    | 21 ++++++++++++++-------
- fs/xfs/xfs_aops.c  | 14 ++++++++++++--
- 5 files changed, 68 insertions(+), 24 deletions(-)
+ drivers/acpi/nfit.c  | 141 ++++++++++++++++++++++++++++++++++++++++++++-------
+ drivers/nvdimm/bus.c |  43 +++++++++++++++-
+ 2 files changed, 166 insertions(+), 18 deletions(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index c5837fa..d6113b9 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -166,13 +166,24 @@ blkdev_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
- {
- 	struct file *file = iocb->ki_filp;
- 	struct inode *inode = bdev_file_inode(file);
-+	ssize_t ret, ret_saved = 0;
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index d0f35e6..9511ab4 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -56,6 +56,21 @@ struct nfit_table_prev {
+ 	struct list_head flushes;
+ };
  
--	if (IS_DAX(inode))
--		return dax_do_io(iocb, inode, iter, offset, blkdev_get_block,
-+	if (IS_DAX(inode)) {
-+		ret = dax_do_io(iocb, inode, iter, offset, blkdev_get_block,
- 				NULL, DIO_SKIP_DIO_COUNT);
--	return __blockdev_direct_IO(iocb, inode, I_BDEV(inode), iter, offset,
-+		if (ret == -EIO && (iov_iter_rw(iter) == WRITE))
-+			ret_saved = ret;
-+		else
-+			return ret;
-+	}
++struct cmd_family_tbl {
++	enum nfit_uuids	key_uuid;	/* Internal handle		*/
++	int		key_type;	/* Exported handle		*/
++	int		rev;		/* _DSM rev			*/
++	u64		mask;		/* 0 bit excludes underlying func.*/
++};
 +
-+	ret = __blockdev_direct_IO(iocb, inode, I_BDEV(inode), iter, offset,
- 				    blkdev_get_block, NULL, NULL,
- 				    DIO_SKIP_DIO_COUNT);
-+	if (ret < 0 && ret_saved)
-+		return ret_saved;
++struct cmd_family_tbl nfit_cmd_family_tbl[] = {
++	{ NFIT_DEV_BUS,		ND_TYPE_BUS,		1, ~0UL},
++	{ NFIT_DEV_DIMM,	ND_TYPE_DIMM_INTEL1,	1, ~0UL},
++	{ NFIT_DEV_DIMM_N_HPE1, ND_TYPE_DIMM_N_HPE1,	1, ~0UL},
++	{ NFIT_DEV_DIMM_N_HPE2, ND_TYPE_DIMM_N_HPE2,	1, ~0UL},
++	{ -1, -1, -1, 0},
++};
 +
-+	return ret;
+ static u8 nfit_uuid[NFIT_UUID_MAX][16];
+ 
+ const u8 *to_nfit_uuid(enum nfit_uuids id)
+@@ -64,6 +79,19 @@ const u8 *to_nfit_uuid(enum nfit_uuids id)
  }
+ EXPORT_SYMBOL(to_nfit_uuid);
  
- int __sync_blockdev(struct block_device *bdev, int wait)
-diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index 824f249..64792c6 100644
---- a/fs/ext2/inode.c
-+++ b/fs/ext2/inode.c
-@@ -859,14 +859,22 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
- 	struct address_space *mapping = file->f_mapping;
- 	struct inode *inode = mapping->host;
- 	size_t count = iov_iter_count(iter);
--	ssize_t ret;
-+	ssize_t ret, ret_saved = 0;
++static const u8 *
++family_to_uuid(int type)
++{
++	struct cmd_family_tbl *tbl = nfit_cmd_family_tbl;
++	int i;
++
++	for (i = 0;  tbl[i].key_type >= 0 ; i++) {
++		if (tbl[i].key_type == type)
++			return to_nfit_uuid(tbl[i].key_uuid);
++	}
++	return 0;
++}
++
+ static struct acpi_nfit_desc *to_acpi_nfit_desc(
+ 		struct nvdimm_bus_descriptor *nd_desc)
+ {
+@@ -171,8 +199,9 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		unsigned int buf_len, int *cmd_rc)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
+-	const struct nd_cmd_desc *desc = NULL;
+ 	union acpi_object in_obj, in_buf, *out_obj;
++	struct nd_cmd_pkg *call_dsm = NULL;
++	const struct nd_cmd_desc *desc = NULL;
+ 	struct device *dev = acpi_desc->dev;
+ 	const char *cmd_name, *dimm_name;
+ 	unsigned long dsm_mask;
+@@ -180,6 +209,12 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	const u8 *uuid;
+ 	u32 offset;
+ 	int rc, i;
++	__u64 rev = 1, func = cmd;
++
++	if (cmd == ND_CMD_CALL) {
++		call_dsm = buf;
++		func = call_dsm->nd_command;
++	}
  
--	if (IS_DAX(inode))
--		ret = dax_do_io(iocb, inode, iter, offset, ext2_get_block, NULL,
--				DIO_LOCKING);
--	else
--		ret = blockdev_direct_IO(iocb, inode, iter, offset,
--					 ext2_get_block);
-+	if (IS_DAX(inode)) {
-+		ret = dax_do_io(iocb, inode, iter, offset, ext2_get_block,
-+				NULL, DIO_LOCKING | DIO_SKIP_HOLES);
-+		if (ret == -EIO && iov_iter_rw(iter) == WRITE)
-+			ret_saved = ret;
-+		else
-+			goto out;
+ 	if (nvdimm) {
+ 		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+@@ -207,7 +242,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
+ 		return -ENOTTY;
+ 
+-	if (!test_bit(cmd, &dsm_mask))
++	if (!test_bit(func, &dsm_mask))
+ 		return -ENOTTY;
+ 
+ 	in_obj.type = ACPI_TYPE_PACKAGE;
+@@ -218,25 +253,49 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	in_buf.buffer.length = 0;
+ 
+ 	/* libnvdimm has already validated the input envelope */
+-	for (i = 0; i < desc->in_num; i++)
++	for (i = 0; i < desc->in_num; i++) {
+ 		in_buf.buffer.length += nd_cmd_in_size(nvdimm, cmd, desc,
+ 				i, buf);
 +	}
 +
-+	ret = blockdev_direct_IO(iocb, inode, iter, offset, ext2_get_block);
-+	if (ret < 0 && ret_saved)
-+		ret = ret_saved;
-+
-+ out:
- 	if (ret < 0 && iov_iter_rw(iter) == WRITE)
- 		ext2_write_failed(mapping, offset + count);
- 	return ret;
-diff --git a/fs/ext4/indirect.c b/fs/ext4/indirect.c
-index 3027fa6..798f341 100644
---- a/fs/ext4/indirect.c
-+++ b/fs/ext4/indirect.c
-@@ -716,14 +716,22 @@ retry:
- 						   NULL, NULL, 0);
- 		inode_dio_end(inode);
- 	} else {
-+		ssize_t ret_saved = 0;
-+
- locked:
--		if (IS_DAX(inode))
-+		if (IS_DAX(inode)) {
- 			ret = dax_do_io(iocb, inode, iter, offset,
- 					ext4_dio_get_block, NULL, DIO_LOCKING);
--		else
--			ret = blockdev_direct_IO(iocb, inode, iter, offset,
--						 ext4_dio_get_block);
--
-+			if (ret == -EIO && iov_iter_rw(iter) == WRITE)
-+				ret_saved = ret;
-+			else
-+				goto skip_dio;
++	if (call_dsm) {
++		/* must skip over package wrapper */
++		in_buf.buffer.pointer = (void *) &call_dsm->nd_payload;
++		in_buf.buffer.length = call_dsm->nd_size_in;
++		uuid = family_to_uuid(call_dsm->nd_family);
++		if (!uuid) {
++			dev_dbg(dev, "%s:%s unsupported uuid\n", dimm_name,
++					cmd_name);
++			return -EINVAL;
 +		}
-+		ret = blockdev_direct_IO(iocb, inode, iter, offset,
-+					 ext4_get_block);
-+		if (ret < 0 && ret_saved)
-+			ret = ret_saved;
-+skip_dio:
- 		if (unlikely(iov_iter_rw(iter) == WRITE && ret < 0)) {
- 			loff_t isize = i_size_read(inode);
- 			loff_t end = offset + count;
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index dab84a2..27f07c2 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -3341,7 +3341,7 @@ static ssize_t ext4_ext_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
- {
- 	struct file *file = iocb->ki_filp;
- 	struct inode *inode = file->f_mapping->host;
--	ssize_t ret;
-+	ssize_t ret, ret_saved = 0;
- 	size_t count = iov_iter_count(iter);
- 	int overwrite = 0;
- 	get_block_t *get_block_func = NULL;
-@@ -3401,15 +3401,22 @@ static ssize_t ext4_ext_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
- #ifdef CONFIG_EXT4_FS_ENCRYPTION
- 	BUG_ON(ext4_encrypted_inode(inode) && S_ISREG(inode->i_mode));
- #endif
--	if (IS_DAX(inode))
-+	if (IS_DAX(inode)) {
- 		ret = dax_do_io(iocb, inode, iter, offset, get_block_func,
- 				ext4_end_io_dio, dio_flags);
--	else
--		ret = __blockdev_direct_IO(iocb, inode,
--					   inode->i_sb->s_bdev, iter, offset,
--					   get_block_func,
--					   ext4_end_io_dio, NULL, dio_flags);
-+		if (ret == -EIO && iov_iter_rw(iter) == WRITE)
-+			ret_saved = ret;
-+		else
-+			goto skip_dio;
 +	}
  
-+	ret = __blockdev_direct_IO(iocb, inode,
-+				   inode->i_sb->s_bdev, iter, offset,
-+				   get_block_func,
-+				   ext4_end_io_dio, NULL, dio_flags);
-+	if (ret < 0 && ret_saved)
-+		ret = ret_saved;
-+ skip_dio:
- 	if (ret > 0 && !overwrite && ext4_test_inode_state(inode,
- 						EXT4_STATE_DIO_UNWRITTEN)) {
- 		int err;
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index d445a64..7cfcf86 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -1413,6 +1413,7 @@ xfs_vm_direct_IO(
- 	dio_iodone_t		*endio = NULL;
- 	int			flags = 0;
- 	struct block_device	*bdev;
-+	ssize_t 		ret, ret_saved = 0;
- 
- 	if (iov_iter_rw(iter) == WRITE) {
- 		endio = xfs_end_io_direct_write;
-@@ -1420,13 +1421,22 @@ xfs_vm_direct_IO(
+ 	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+-		dev_dbg(dev, "%s:%s cmd: %s input length: %d\n", __func__,
+-				dimm_name, cmd_name, in_buf.buffer.length);
+-		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
+-				4, in_buf.buffer.pointer, min_t(u32, 128,
+-					in_buf.buffer.length), true);
++		dev_dbg(dev, "%s:%s cmd: %d: %llu input length: %d\n", __func__,
++				dimm_name, cmd, func, in_buf.buffer.length);
++		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
++			in_buf.buffer.pointer,
++			min_t(u32, 256, in_buf.buffer.length), true);
++
  	}
  
- 	if (IS_DAX(inode)) {
--		return dax_do_io(iocb, inode, iter, offset,
-+		ret = dax_do_io(iocb, inode, iter, offset,
- 				 xfs_get_blocks_direct, endio, 0);
-+		if (ret == -EIO && iov_iter_rw(iter) == WRITE)
-+			ret_saved = ret;
-+		else
-+			return ret;
+-	out_obj = acpi_evaluate_dsm(handle, uuid, 1, cmd, &in_obj);
++	out_obj = acpi_evaluate_dsm(handle, uuid, rev, func, &in_obj);
+ 	if (!out_obj) {
+-		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
+-				cmd_name);
++		dev_dbg(dev, "%s:%s unexpected output object type cmd: %s %llu, type: %d\n",
++			__func__, dimm_name, cmd_name, func, out_obj->type);
+ 		return -EINVAL;
  	}
  
- 	bdev = xfs_find_bdev_for_inode(inode);
--	return  __blockdev_direct_IO(iocb, inode, bdev, iter, offset,
-+	ret = __blockdev_direct_IO(iocb, inode, bdev, iter, offset,
- 			xfs_get_blocks_direct, endio, NULL, flags);
++	if (call_dsm) {
++		call_dsm->nd_fw_size = out_obj->buffer.length;
++		memcpy(call_dsm->nd_payload + call_dsm->nd_size_in,
++			out_obj->buffer.pointer,
++			min(call_dsm->nd_fw_size, call_dsm->nd_size_out));
 +
-+	if (ret < 0 && ret_saved)
-+		ret = ret_saved;
++		ACPI_FREE(out_obj);
++		return 0;
++	}
 +
-+	return ret;
+ 	if (out_obj->package.type != ACPI_TYPE_BUFFER) {
+ 		dev_dbg(dev, "%s:%s unexpected output object type cmd: %s type: %d\n",
+ 				__func__, dimm_name, cmd_name, out_obj->type);
+@@ -918,13 +977,60 @@ static struct nvdimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
+ 	return NULL;
  }
  
- /*
++
++/*
++ * determine if the _DSM specified by UUID is supported and return
++ * mask of supported functions in nd_cmd_mask.
++ */
++
++static int acpi_nfit_sup_func(acpi_handle handle, const u8 *uuid,
++		int rev, unsigned long *nd_cmd_mask)
++{
++	int i;
++	u64 mask = 0;
++	union acpi_object *obj;
++
++	obj = acpi_evaluate_dsm(handle, uuid, rev, 0, NULL);
++	if (!obj)
++		return 0;
++	/* For compatibility, old BIOSes may return an integer */
++	if (obj->type == ACPI_TYPE_INTEGER)
++		mask = obj->integer.value;
++	else if (obj->type == ACPI_TYPE_BUFFER)
++		for (i = 0; i < obj->buffer.length && i < 8; i++)
++			mask |= (((u8)obj->buffer.pointer[i]) << (i * 8));
++	ACPI_FREE(obj);
++
++	*nd_cmd_mask = mask;
++
++	return !!mask;
++}
++
++
++static inline void
++to_nfit_uuid_msk(acpi_handle handle, struct cmd_family_tbl *tbl,
++		u8 const **cmd_uuid, unsigned long *cmd_mask)
++{
++	unsigned long mask = 0;
++	int i;
++
++	for (i = 0;  tbl[i].key_uuid >= 0 ; i++) {
++		const u8 *uuid = to_nfit_uuid(tbl[i].key_uuid);
++		int rev = tbl[i].rev;
++
++		if (acpi_nfit_sup_func(handle, uuid, rev, &mask)) {
++			*cmd_mask = mask & tbl[i].mask;
++			*cmd_uuid = uuid;
++			break;
++		}
++	}
++}
++
+ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_mem *nfit_mem, u32 device_handle)
+ {
+ 	struct acpi_device *adev, *adev_dimm;
+ 	struct device *dev = acpi_desc->dev;
+-	const u8 *uuid = to_nfit_uuid(NFIT_DEV_DIMM);
+-	int i;
+ 
+ 	nfit_mem->dsm_mask = acpi_desc->dimm_dsm_force_en;
+ 	adev = to_acpi_dev(acpi_desc);
+@@ -939,9 +1045,8 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		return force_enable_dimms ? 0 : -ENODEV;
+ 	}
+ 
+-	for (i = ND_CMD_SMART; i <= ND_CMD_VENDOR; i++)
+-		if (acpi_check_dsm(adev_dimm->handle, uuid, 1, 1ULL << i))
+-			set_bit(i, &nfit_mem->dsm_mask);
++	to_nfit_uuid_msk(adev_dimm->handle, nfit_cmd_family_tbl,
++			&nfit_mem->dsm_uuid, &nfit_mem->dsm_mask);
+ 
+ 	return 0;
+ }
+@@ -1012,7 +1117,7 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
+ 	if (!adev)
+ 		return;
+ 
+-	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_CLEAR_ERROR; i++)
++	for (i = 0; i <= ND_CMD_CLEAR_ERROR; i++)
+ 		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
+ 			set_bit(i, &nd_desc->dsm_mask);
+ }
+@@ -2463,6 +2568,8 @@ static __init int nfit_init(void)
+ 	acpi_str_to_uuid(UUID_PERSISTENT_VIRTUAL_CD, nfit_uuid[NFIT_SPA_PCD]);
+ 	acpi_str_to_uuid(UUID_NFIT_BUS, nfit_uuid[NFIT_DEV_BUS]);
+ 	acpi_str_to_uuid(UUID_NFIT_DIMM, nfit_uuid[NFIT_DEV_DIMM]);
++	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE1, nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
++	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE2, nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
+ 
+ 	nfit_wq = create_singlethread_workqueue("nfit");
+ 	if (!nfit_wq)
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 3355748..f205d10 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -439,6 +439,12 @@ static const struct nd_cmd_desc __nd_cmd_dimm_descs[] = {
+ 		.out_num = 3,
+ 		.out_sizes = { 4, 4, UINT_MAX, },
+ 	},
++	[ND_CMD_CALL] = {
++		.in_num = 2,
++		.in_sizes = {sizeof(struct nd_cmd_pkg), UINT_MAX, },
++		.out_num = 1,
++		.out_sizes = { UINT_MAX, },
++	},
+ };
+ 
+ const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd)
+@@ -473,6 +479,12 @@ static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
+ 		.out_num = 3,
+ 		.out_sizes = { 4, 4, 8, },
+ 	},
++	[ND_CMD_CALL] = {
++		.in_num = 2,
++		.in_sizes = {sizeof(struct nd_cmd_pkg), UINT_MAX, },
++		.out_num = 1,
++		.out_sizes = { UINT_MAX, },
++	},
+ };
+ 
+ const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd)
+@@ -500,6 +512,10 @@ u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
+ 		struct nd_cmd_vendor_hdr *hdr = buf;
+ 
+ 		return hdr->in_length;
++	} else if (cmd == ND_CMD_CALL) {
++		struct nd_cmd_pkg *pkg = buf;
++
++		return pkg->nd_size_in;
+ 	}
+ 
+ 	return UINT_MAX;
+@@ -522,6 +538,12 @@ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
+ 		return out_field[1];
+ 	else if (!nvdimm && cmd == ND_CMD_ARS_STATUS && idx == 2)
+ 		return out_field[1] - 8;
++	else if (cmd == ND_CMD_CALL) {
++		struct nd_cmd_pkg *pkg =
++				(struct nd_cmd_pkg *) in_field;
++		return pkg->nd_size_out;
++	}
++
+ 
+ 	return UINT_MAX;
+ }
+@@ -588,7 +610,9 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	unsigned int cmd = _IOC_NR(ioctl_cmd);
+ 	void __user *p = (void __user *) arg;
+ 	struct device *dev = &nvdimm_bus->dev;
++	struct nd_cmd_pkg call_dsm;
+ 	const char *cmd_name, *dimm_name;
++	unsigned int func = cmd;
+ 	unsigned long dsm_mask;
+ 	void *buf;
+ 	int rc, i;
+@@ -605,8 +629,14 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 		dimm_name = "bus";
+ 	}
+ 
++	if (cmd == ND_CMD_CALL) {
++		if (copy_from_user(&call_dsm, p, sizeof(call_dsm)))
++			return -EFAULT;
++		func = call_dsm.nd_command;
++	}
++
+ 	if (!desc || (desc->out_num + desc->in_num == 0) ||
+-			!test_bit(cmd, &dsm_mask))
++			!test_bit(func, &dsm_mask))
+ 		return -ENOTTY;
+ 
+ 	/* fail write commands (when read-only) */
+@@ -616,6 +646,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 		case ND_CMD_SET_CONFIG_DATA:
+ 		case ND_CMD_ARS_START:
+ 		case ND_CMD_CLEAR_ERROR:
++		case ND_CMD_CALL:
+ 			dev_dbg(&nvdimm_bus->dev, "'%s' command while read-only.\n",
+ 					nvdimm ? nvdimm_cmd_name(cmd)
+ 					: nvdimm_bus_cmd_name(cmd));
+@@ -643,6 +674,16 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 		in_len += in_size;
+ 	}
+ 
++	if (cmd == ND_CMD_CALL) {
++		dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
++				__func__, dimm_name, call_dsm.nd_command,
++				in_len, out_len, buf_len);
++
++		for (i = 0; i < ARRAY_SIZE(call_dsm.nd_reserved2); i++)
++			if (call_dsm.nd_reserved2[i])
++				return -EINVAL;
++	}
++
+ 	/* process an output envelope */
+ 	for (i = 0; i < desc->out_num; i++) {
+ 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i,
 -- 
-2.5.5
+1.7.11.3
 
 _______________________________________________
 Linux-nvdimm mailing list
