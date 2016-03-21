@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t4618.austin.hp.com (g2t4618.austin.hp.com [15.73.212.83])
+Received: from g2t4620.austin.hp.com (g2t4620.austin.hp.com [15.73.212.81])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1BBB21A1F54
- for <linux-nvdimm@lists.01.org>; Mon, 21 Mar 2016 12:37:55 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id BE27B1A1FA1
+ for <linux-nvdimm@lists.01.org>; Mon, 21 Mar 2016 12:37:53 -0700 (PDT)
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v8 03/10] nvdimm: Increase max envelope size for IOCTL
-Date: Mon, 21 Mar 2016 13:37:03 -0600
-Message-Id: <13b0e4f0f89fe78194e131f396655c15dc78c0da.1458583367.git.jerry.hoemann@hpe.com>
+Subject: [PATCH v8 01/10] ACPI / util: Fix acpi_evaluate_dsm() argument type
+Date: Mon, 21 Mar 2016 13:37:01 -0600
+Message-Id: <62437ae11bf1d45dad9fda5d290fe353926dd48b.1458583367.git.jerry.hoemann@hpe.com>
 In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
 References: <cover.1458583367.git.jerry.hoemann@hpe.com>
 In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
@@ -28,30 +28,65 @@ To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In __nd_ioctl must first read in the fixed sized portion of an ioctl
-so that it can then determine the size of the variable part.
+The ACPI spec speicifies that arguments "Revision ID" and
+"Function Index" to a _DSM are type "Integer."  Type Integers
+are 64 bit quantities.
 
-Prepare for ND_CMD_CALL_DSM calls which have larger fixed portion
-wrapper.
+The function evaluate_dsm specifies these types as simple "int"
+which are 32 bits.  Correct type passed to acpi_evaluate_dsm
+and its callers and derived callers to pass correct type.
+
+acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
+and were corrected as well.
 
 Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- include/linux/libnvdimm.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/utils.c    | 4 ++--
+ include/acpi/acpi_bus.h | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 833867b..af31d1c 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -27,7 +27,7 @@ enum {
- 	/* need to set a limit somewhere, but yes, this is likely overkill */
- 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
- 	ND_CMD_MAX_ELEM = 5,
--	ND_CMD_MAX_ENVELOPE = 16,
-+	ND_CMD_MAX_ENVELOPE = 256,
- 	ND_MAX_MAPPINGS = 32,
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index f2f9873..87bd54d 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -629,7 +629,7 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
+  * some old BIOSes do expect a buffer or an integer etc.
+  */
+ union acpi_object *
+-acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
++acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+ 		  union acpi_object *argv4)
+ {
+ 	acpi_status ret;
+@@ -678,7 +678,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
+  * functions. Currently only support 64 functions at maximum, should be
+  * enough for now.
+  */
+-bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
++bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+ {
+ 	int i;
+ 	u64 mask = 0;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 14362a8..f092cc6 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -61,12 +61,12 @@ bool acpi_ata_match(acpi_handle handle);
+ bool acpi_bay_match(acpi_handle handle);
+ bool acpi_dock_match(acpi_handle handle);
  
- 	/* region flag indicating to direct-map persistent memory by default */
+-bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
++bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs);
+ union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
+-			int rev, int func, union acpi_object *argv4);
++			u64 rev, u64 func, union acpi_object *argv4);
+ 
+ static inline union acpi_object *
+-acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
++acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+ 			union acpi_object *argv4, acpi_object_type type)
+ {
+ 	union acpi_object *obj;
 -- 
 1.7.11.3
 
