@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 767101A1EF8
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 15:55:53 -0800 (PST)
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH v5 01/14] mmdebug: Always evaluate the arguments to VM_BUG_ON_*
-Date: Thu, 10 Mar 2016 18:55:18 -0500
-Message-Id: <1457654131-4562-2-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
+Received: from g2t4619.austin.hp.com (g2t4619.austin.hp.com [15.73.212.82])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3EF141A1FA1
+ for <linux-nvdimm@lists.01.org>; Mon, 21 Mar 2016 12:37:55 -0700 (PDT)
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v8 04/10] nvdimm: Add UUIDs
+Date: Mon, 21 Mar 2016 13:37:04 -0600
+Message-Id: <bf6777e246a73f3c3ee4f079a29ac25983e830e2.1458583367.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
+References: <cover.1458583367.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
+References: <cover.1458583367.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,54 +24,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-I recently got the order of arguments to VM_BUG_ON_VMA the wrong way
-around, which was only noticable when compiling with CONFIG_DEBUG_VM.
-Prevent the next mistake of this kind by making the macros evaluate both
-their arguments at compile time (this has no effect on the built kernel).
+Add UUID associated with HPE Type N NVDIMM.
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- include/linux/mmdebug.h | 21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ drivers/acpi/nfit.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/include/linux/mmdebug.h b/include/linux/mmdebug.h
-index de7be78..abfc316 100644
---- a/include/linux/mmdebug.h
-+++ b/include/linux/mmdebug.h
-@@ -41,9 +41,24 @@ void dump_mm(const struct mm_struct *mm);
- #define VM_WARN_ONCE(cond, format...) WARN_ONCE(cond, format)
- #else
- #define VM_BUG_ON(cond) BUILD_BUG_ON_INVALID(cond)
--#define VM_BUG_ON_PAGE(cond, page) VM_BUG_ON(cond)
--#define VM_BUG_ON_VMA(cond, vma) VM_BUG_ON(cond)
--#define VM_BUG_ON_MM(cond, mm) VM_BUG_ON(cond)
-+#define VM_BUG_ON_PAGE(cond, page)					\
-+	do {								\
-+		if (0) dump_page(page, "");				\
-+		VM_BUG_ON(cond);					\
-+	} while (0)
-+
-+#define VM_BUG_ON_VMA(cond, vma)					\
-+	do {								\
-+		if (0) dump_vma(vma);					\
-+		VM_BUG_ON(cond);					\
-+	} while (0)
-+
-+#define VM_BUG_ON_MM(cond, mm)						\
-+	do {								\
-+		if (0) dump_mm(mm);					\
-+		VM_BUG_ON(cond);					\
-+	} while (0)
-+
- #define VM_WARN_ON(cond) BUILD_BUG_ON_INVALID(cond)
- #define VM_WARN_ON_ONCE(cond) BUILD_BUG_ON_INVALID(cond)
- #define VM_WARN_ONCE(cond, format...) BUILD_BUG_ON_INVALID(cond)
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index c75576b..10dd0d3 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -23,6 +23,8 @@
+ 
+ #define UUID_NFIT_BUS "2f10e7a4-9e91-11e4-89d3-123b93f75cba"
+ #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
++#define UUID_NFIT_DIMM_N_HPE1 "9002c334-acf3-4c0e-9642-a235f0d53bc6"
++#define UUID_NFIT_DIMM_N_HPE2 "5008664B-B758-41A0-A03C-27C2F2D04F7E"
+ #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
+ 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
+ 		| ACPI_NFIT_MEM_NOT_ARMED)
+@@ -38,6 +40,8 @@ enum nfit_uuids {
+ 	NFIT_SPA_PCD,
+ 	NFIT_DEV_BUS,
+ 	NFIT_DEV_DIMM,
++	NFIT_DEV_DIMM_N_HPE1,
++	NFIT_DEV_DIMM_N_HPE2,
+ 	NFIT_UUID_MAX,
+ };
+ 
+@@ -110,6 +114,7 @@ struct nfit_mem {
+ 	struct list_head list;
+ 	struct acpi_device *adev;
+ 	unsigned long dsm_mask;
++	const u8 *dsm_uuid;
+ };
+ 
+ struct acpi_nfit_desc {
 -- 
-2.7.0
+1.7.11.3
 
 _______________________________________________
 Linux-nvdimm mailing list
