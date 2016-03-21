@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t4620.austin.hp.com (g2t4620.austin.hp.com [15.73.212.81])
+Received: from g2t4623.austin.hp.com (g2t4623.austin.hp.com [15.73.212.78])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D07EE1A1FEB
+ by ml01.01.org (Postfix) with ESMTPS id 253211A1FDC
  for <linux-nvdimm@lists.01.org>; Mon, 21 Mar 2016 12:37:56 -0700 (PDT)
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v8 08/10] nvdimm: command ioctl support
-Date: Mon, 21 Mar 2016 13:37:08 -0600
-Message-Id: <ab6f389579b1cac1be56983488a62086d7fc31bb.1458583367.git.jerry.hoemann@hpe.com>
+Subject: [PATCH v8 06/10] libnvdimm: nvdimm_bus_descriptor field name change
+Date: Mon, 21 Mar 2016 13:37:06 -0600
+Message-Id: <1d3d65e68d30452a9750fa541165b8fe909778c2.1458583367.git.jerry.hoemann@hpe.com>
 In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
 References: <cover.1458583367.git.jerry.hoemann@hpe.com>
 In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
@@ -28,39 +28,103 @@ To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Flags to indicate if object supports the full set of ND_IOCTL
-commands (lack indicates just the pass thru.)
+Change the the name of:
+
+	nvdimm_bus_descriptor.dsm_mask
+to
+	nvdimm_bus_descriptor.cmd_mask
 
 Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- drivers/acpi/nfit.h      | 1 +
- drivers/nvdimm/nd-core.h | 1 +
- 2 files changed, 2 insertions(+)
+ drivers/acpi/nfit.c              | 6 +++---
+ drivers/nvdimm/bus.c             | 2 +-
+ drivers/nvdimm/core.c            | 2 +-
+ include/linux/libnvdimm.h        | 2 +-
+ tools/testing/nvdimm/test/nfit.c | 2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 10dd0d3..bf353fa 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -115,6 +115,7 @@ struct nfit_mem {
- 	struct acpi_device *adev;
- 	unsigned long dsm_mask;
- 	const u8 *dsm_uuid;
-+	int    cmd_ioctl;
- };
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 9511ab4..8d933b3 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -232,7 +232,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		struct acpi_device *adev = to_acpi_dev(acpi_desc);
  
- struct acpi_nfit_desc {
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 1d1500f..0933f66 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -38,6 +38,7 @@ struct nvdimm {
- 	unsigned long flags;
- 	void *provider_data;
- 	unsigned long *dsm_mask;
-+	int cmd_ioctl;
- 	struct device dev;
- 	atomic_t busy;
- 	int id;
+ 		cmd_name = nvdimm_bus_cmd_name(cmd);
+-		dsm_mask = nd_desc->dsm_mask;
++		dsm_mask = nd_desc->cmd_mask;
+ 		desc = nd_cmd_bus_desc(cmd);
+ 		uuid = to_nfit_uuid(NFIT_DEV_BUS);
+ 		handle = adev->handle;
+@@ -1112,14 +1112,14 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
+ 	struct acpi_device *adev;
+ 	int i;
+ 
+-	nd_desc->dsm_mask = acpi_desc->bus_dsm_force_en;
++	nd_desc->cmd_mask = acpi_desc->bus_dsm_force_en;
+ 	adev = to_acpi_dev(acpi_desc);
+ 	if (!adev)
+ 		return;
+ 
+ 	for (i = 0; i <= ND_CMD_CLEAR_ERROR; i++)
+ 		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
+-			set_bit(i, &nd_desc->dsm_mask);
++			set_bit(i, &nd_desc->cmd_mask);
+ }
+ 
+ static ssize_t range_index_show(struct device *dev,
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index f205d10..dcfcd8e 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -625,7 +625,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	} else {
+ 		desc = nd_cmd_bus_desc(cmd);
+ 		cmd_name = nvdimm_bus_cmd_name(cmd);
+-		dsm_mask = nd_desc->dsm_mask;
++		dsm_mask = nd_desc->cmd_mask;
+ 		dimm_name = "bus";
+ 	}
+ 
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index 79646d0..ce80767 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -251,7 +251,7 @@ static ssize_t commands_show(struct device *dev,
+ 	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
+ 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
+ 
+-	for_each_set_bit(cmd, &nd_desc->dsm_mask, BITS_PER_LONG)
++	for_each_set_bit(cmd, &nd_desc->cmd_mask, BITS_PER_LONG)
+ 		len += sprintf(buf + len, "%s ", nvdimm_bus_cmd_name(cmd));
+ 	len += sprintf(buf + len, "\n");
+ 	return len;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index af31d1c..67a1ba0 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -68,7 +68,7 @@ struct nd_mapping {
+ 
+ struct nvdimm_bus_descriptor {
+ 	const struct attribute_group **attr_groups;
+-	unsigned long dsm_mask;
++	unsigned long cmd_mask;
+ 	char *provider_name;
+ 	ndctl_fn ndctl;
+ 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 3187322..1d3b8ce 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -374,7 +374,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	} else {
+ 		struct ars_state *ars_state = &t->ars_state;
+ 
+-		if (!nd_desc || !test_bit(cmd, &nd_desc->dsm_mask))
++		if (!nd_desc || !test_bit(cmd, &nd_desc->cmd_mask))
+ 			return -ENOTTY;
+ 
+ 		switch (cmd) {
 -- 
 1.7.11.3
 
