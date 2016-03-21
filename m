@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from g2t4618.austin.hp.com (g2t4618.austin.hp.com [15.73.212.83])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9CA431A1FC2
- for <linux-nvdimm@lists.01.org>; Mon, 21 Mar 2016 06:22:54 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 02/10] radix-tree: make 'indirect' bit available to exception
- entries.
-Date: Mon, 21 Mar 2016 14:22:47 +0100
-Message-Id: <1458566575-28063-3-git-send-email-jack@suse.cz>
-In-Reply-To: <1458566575-28063-1-git-send-email-jack@suse.cz>
-References: <1458566575-28063-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 1BBB21A1F54
+ for <linux-nvdimm@lists.01.org>; Mon, 21 Mar 2016 12:37:55 -0700 (PDT)
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v8 03/10] nvdimm: Increase max envelope size for IOCTL
+Date: Mon, 21 Mar 2016 13:37:03 -0600
+Message-Id: <13b0e4f0f89fe78194e131f396655c15dc78c0da.1458583367.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
+References: <cover.1458583367.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
+References: <cover.1458583367.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,86 +24,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: NeilBrown <neilb@suse.com>
+In __nd_ioctl must first read in the fixed sized portion of an ioctl
+so that it can then determine the size of the variable part.
 
-A pointer to a radix_tree_node will always have the 'exception'
-bit cleared, so if the exception bit is set the value cannot
-be an indirect pointer.  Thus it is safe to make the 'indirect bit'
-available to store extra information in exception entries.
+Prepare for ND_CMD_CALL_DSM calls which have larger fixed portion
+wrapper.
 
-This patch adds a 'PTR_MASK' and a value is only treated as
-an indirect (pointer) entry the 2 ls-bits are '01'.
-
-The change in radix-tree.c ensures the stored value still looks like an
-indirect pointer, and saves a load as well.
-
-We could swap the two bits and so keep all the exectional bits contigious.
-But I have other plans for that bit....
-
-Signed-off-by: NeilBrown <neilb@suse.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- include/linux/radix-tree.h | 11 +++++++++--
- lib/radix-tree.c           |  2 +-
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ include/linux/libnvdimm.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/radix-tree.h b/include/linux/radix-tree.h
-index d08d6ec3bf53..2bc8c5829441 100644
---- a/include/linux/radix-tree.h
-+++ b/include/linux/radix-tree.h
-@@ -41,8 +41,13 @@
-  * Indirect pointer in fact is also used to tag the last pointer of a node
-  * when it is shrunk, before we rcu free the node. See shrink code for
-  * details.
-+ *
-+ * To allow an exception entry to only lose one bit, we ignore
-+ * the INDIRECT bit when the exception bit is set.  So an entry is
-+ * indirect if the least significant 2 bits are 01.
-  */
- #define RADIX_TREE_INDIRECT_PTR		1
-+#define RADIX_TREE_INDIRECT_MASK	3
- /*
-  * A common use of the radix tree is to store pointers to struct pages;
-  * but shmem/tmpfs needs also to store swap entries in the same tree:
-@@ -54,7 +59,8 @@
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 833867b..af31d1c 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -27,7 +27,7 @@ enum {
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+ 	ND_CMD_MAX_ELEM = 5,
+-	ND_CMD_MAX_ENVELOPE = 16,
++	ND_CMD_MAX_ENVELOPE = 256,
+ 	ND_MAX_MAPPINGS = 32,
  
- static inline int radix_tree_is_indirect_ptr(void *ptr)
- {
--	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
-+	return ((unsigned long)ptr & RADIX_TREE_INDIRECT_MASK)
-+		== RADIX_TREE_INDIRECT_PTR;
- }
- 
- /*** radix-tree API starts here ***/
-@@ -222,7 +228,8 @@ static inline void *radix_tree_deref_slot_protected(void **pslot,
-  */
- static inline int radix_tree_deref_retry(void *arg)
- {
--	return unlikely((unsigned long)arg & RADIX_TREE_INDIRECT_PTR);
-+	return unlikely(((unsigned long)arg & RADIX_TREE_INDIRECT_MASK)
-+			== RADIX_TREE_INDIRECT_PTR);
- }
- 
- /**
-diff --git a/lib/radix-tree.c b/lib/radix-tree.c
-index 1624c4117961..c6af1a445b67 100644
---- a/lib/radix-tree.c
-+++ b/lib/radix-tree.c
-@@ -1412,7 +1412,7 @@ static inline void radix_tree_shrink(struct radix_tree_root *root)
- 		 * to force callers to retry.
- 		 */
- 		if (root->height == 0)
--			*((unsigned long *)&to_free->slots[0]) |=
-+			*((unsigned long *)&to_free->slots[0]) =
- 						RADIX_TREE_INDIRECT_PTR;
- 
- 		radix_tree_node_free(to_free);
+ 	/* region flag indicating to direct-map persistent memory by default */
 -- 
-2.6.2
+1.7.11.3
 
 _______________________________________________
 Linux-nvdimm mailing list
