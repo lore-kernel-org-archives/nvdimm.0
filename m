@@ -1,140 +1,70 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: NeilBrown <neilb@suse.com>
-Date: Wed, 09 Mar 2016 09:21:54 +1100
-Subject: [PATCH] pmem: don't allocate unused major device number
-Message-ID: <87k2lclif1.fsf@notabene.neil.brown.name>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from g2t4620.austin.hp.com (g2t4620.austin.hp.com [15.73.212.81])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id D07EE1A1FEB
+ for <linux-nvdimm@lists.01.org>; Mon, 21 Mar 2016 12:37:56 -0700 (PDT)
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v8 08/10] nvdimm: command ioctl support
+Date: Mon, 21 Mar 2016 13:37:08 -0600
+Message-Id: <ab6f389579b1cac1be56983488a62086d7fc31bb.1458583367.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
+References: <cover.1458583367.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
+References: <cover.1458583367.git.jerry.hoemann@hpe.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha256; protocol="application/pgp-signature"
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Flags to indicate if object supports the full set of ND_IOCTL
+commands (lack indicates just the pass thru.)
 
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+---
+ drivers/acpi/nfit.h      | 1 +
+ drivers/nvdimm/nd-core.h | 1 +
+ 2 files changed, 2 insertions(+)
 
-When alloc_disk(0) or alloc_disk-node(0, XX) is used, the ->major
-number is completely ignored:  all devices are allocated with a
-major of BLOCK_EXT_MAJOR.
-
-So there is no point allocating pmem_major.
-
-Signed-off-by: NeilBrown <neilb@suse.com>
-=2D--
- drivers/nvdimm/pmem.c | 19 +------------------
- 1 file changed, 1 insertion(+), 18 deletions(-)
-
-Hi Dan et al,
- I was recently educating myself about the behavior of alloc_disk(0).
- As I understand it, the ->major is ignored and all device numbers for all
- partitions (including '0') are allocated on demand with major number of
- BLOCK_EXT_MAJOR.
-
- So I was a little surprised to find that pmem.c allocated a major
- number which is never used - historical anomaly I suspect.
- I was a bit more surprised at the comment in:
-
-  Commit: 9f53f9fa4ad1 ("libnvdimm, pmem: add libnvdimm support to the pmem=
- driver")
-
- "The minor numbers are also more predictable by passing 0 to alloc_disk()."
-
- How can they possibly be more predictable given that they are allocated
- on-demand?  Maybe discovery order is very predictable???
-
- In any case, I propose this patch but cannot test it (beyond compiling)
- as I don't have relevant hardware.  And maybe some user-space code greps
- /proc/devices for "pmem" to determine if "pmem" is compiled in (though
- I sincerely hope not).
- So I cannot be certain that this patch won't break anything, but am
- hoping that if you like it you might test it.
-
- If it does prove acceptable, then similar changes would be appropriate
- for btt.c and blk.c.   And drivers/memstick/core/ms_block.c and
- drivers/nvme/host/core.c. (gotta stamp out this cargo cult)
-
- drivers/lightnvm/core.c is the only driver which uses alloc_disk(0) and
- doesn't provide a 'major' number. :-(
-
-Thanks,
-NeilBrown
-
-
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 8d0b54670184..ec7e9e6a768e 100644
-=2D-- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -47,8 +47,6 @@ struct pmem_device {
- 	struct badblocks	bb;
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index 10dd0d3..bf353fa 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -115,6 +115,7 @@ struct nfit_mem {
+ 	struct acpi_device *adev;
+ 	unsigned long dsm_mask;
+ 	const u8 *dsm_uuid;
++	int    cmd_ioctl;
  };
-=20
-=2Dstatic int pmem_major;
-=2D
- static bool is_bad_pmem(struct badblocks *bb, sector_t sector, unsigned in=
-t len)
- {
- 	if (bb->count) {
-@@ -228,8 +226,6 @@ static int pmem_attach_disk(struct device *dev,
- 		return -ENOMEM;
- 	}
-=20
-=2D	disk->major		=3D pmem_major;
-=2D	disk->first_minor	=3D 0;
- 	disk->fops		=3D &pmem_fops;
- 	disk->private_data	=3D pmem;
- 	disk->queue		=3D pmem->pmem_queue;
-@@ -502,26 +498,13 @@ static struct nd_device_driver nd_pmem_driver =3D {
-=20
- static int __init pmem_init(void)
- {
-=2D	int error;
-=2D
-=2D	pmem_major =3D register_blkdev(0, "pmem");
-=2D	if (pmem_major < 0)
-=2D		return pmem_major;
-=2D
-=2D	error =3D nd_driver_register(&nd_pmem_driver);
-=2D	if (error) {
-=2D		unregister_blkdev(pmem_major, "pmem");
-=2D		return error;
-=2D	}
-=2D
-=2D	return 0;
-+	return nd_driver_register(&nd_pmem_driver);
- }
- module_init(pmem_init);
-=20
- static void pmem_exit(void)
- {
- 	driver_unregister(&nd_pmem_driver.drv);
-=2D	unregister_blkdev(pmem_major, "pmem");
- }
- module_exit(pmem_exit);
-=20
-=2D-=20
-2.7.2
+ 
+ struct acpi_nfit_desc {
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 1d1500f..0933f66 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -38,6 +38,7 @@ struct nvdimm {
+ 	unsigned long flags;
+ 	void *provider_data;
+ 	unsigned long *dsm_mask;
++	int cmd_ioctl;
+ 	struct device dev;
+ 	atomic_t busy;
+ 	int id;
+-- 
+1.7.11.3
 
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJW31CCAAoJEDnsnt1WYoG5/akP/016iTedEN6HqNhAWOYB9hWt
-IAQA3JqZlo33HhNXfRia1ZqywHsyouwBzcXJ4Qzcnv+8pQR5P6iLGkLUHZq2z8qp
-+YZDdxVT3mWDWJF5ArRsX0RU78lLMxIGQnS2a253lwIzKgTahbMxKx2NtbHhSQVU
-U4AobsmCQNCkw56fvZTdPDexuUzLpXYGoby5b8kdtpwv2nTyBp7scfnJtpKgCnN2
-CbkwCpkNLgCMNxkWmiPV1VW8RCNUCsvtVRIbU/BWpnsAFNapLhh7rksSjwc+8oEj
-VeZkg4+/k7kqS/DwVchi59Kb65De4NlHKvcyY2zAVfG16iWG7uDAWUe/scknbRyQ
-+/EfvmogkHQCiMrE7lqiH6YD/tiQbxjJD8yAvZYQQvWtpUNTWkgYbal4+gAsckNh
-jSBj4XHlcDw14P9Mr8ILDNSkRJ2kNzsDpE811YbbXrlrNxgGc9nL2h4V2s/pEd2p
-QiWSeSrxj6Ef8PEBDqhSNZOh8vCuL+celTvixTDdoBuG8SvSZr0/zOEwTvLVToZw
-mdyGdenRKH2jFhLj+7Nnc+BWqzMQMnW6Hxb86NHrevLzmmj1K0DISkbN1RVWc3dp
-imBrIaPSGLs2yPW9TvazATqqAmUG/al+ZaMcBrAgLZ4w6rcDEjTHJyEAUm/gOpws
-NP4LfPLZNYZNUhyrKBhm
-=7Lgp
------END PGP SIGNATURE-----
---=-=-=--
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
