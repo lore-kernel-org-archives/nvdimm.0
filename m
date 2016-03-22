@@ -1,13 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8A5871A1E69
- for <linux-nvdimm@lists.01.org>; Wed, 23 Mar 2016 02:45:50 -0700 (PDT)
-Date: Wed, 23 Mar 2016 10:45:51 +0100
-From: Jan Kara <jack@suse.cz>
+Received: from ipmail04.adl6.internode.on.net (ipmail04.adl6.internode.on.net
+ [150.101.137.141]) by ml01.01.org (Postfix) with ESMTP id 43ED71A1E03
+ for <linux-nvdimm@lists.01.org>; Tue, 22 Mar 2016 14:15:43 -0700 (PDT)
+Date: Wed, 23 Mar 2016 08:15:15 +1100
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [RFC v2] [PATCH 0/10] DAX page fault locking
-Message-ID: <20160323094551.GA4512@quack.suse.cz>
+Message-ID: <20160322211515.GP11812@dastard>
 References: <1458566575-28063-1-git-send-email-jack@suse.cz>
  <20160322193212.GA11164@linux.intel.com>
  <1458680853.6393.592.camel@hpe.com>
@@ -29,7 +27,7 @@ To: Toshi Kani <toshi.kani@hpe.com>
 Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, brian.boylston@hpe.com, Wilcox,
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 22-03-16 15:07:33, Toshi Kani wrote:
+On Tue, Mar 22, 2016 at 03:07:33PM -0600, Toshi Kani wrote:
 > On Tue, 2016-03-22 at 13:32 -0600, Ross Zwisler wrote:
 > > On Mon, Mar 21, 2016 at 02:22:45PM +0100, Jan Kara wrote:
 > > > [Sorry for repost but I accidentally sent initial email without
@@ -64,15 +62,16 @@ re.
 > If there is anything we can do to make this test useful as regression
 > tests?
 
-Thanks for the pointer, I forgot about this useful test. As Dave said the
-best way for this to not get lost is to include it in xfstests. Since I
-want to run the test regularly anyway, I can integrate it myself.
+It's gplv2, so wrap it in a xfstests harness script and send it to
+fstests@vger.kernel.org.
 
-								Honza
+Cheers,
+
+Dave.
 -- =
 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
