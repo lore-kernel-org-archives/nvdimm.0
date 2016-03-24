@@ -1,13 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 649841A1F86
- for <linux-nvdimm@lists.01.org>; Tue, 29 Mar 2016 19:00:52 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 2/5] dax: fallback from pmd to pte on error
-Date: Tue, 29 Mar 2016 19:59:47 -0600
-Message-Id: <1459303190-20072-3-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1459303190-20072-1-git-send-email-vishal.l.verma@intel.com>
-References: <1459303190-20072-1-git-send-email-vishal.l.verma@intel.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B248B1A1E1D
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 03:42:12 -0700 (PDT)
+Date: Thu, 24 Mar 2016 11:42:14 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 05/10] dax: Allow DAX code to replace exceptional entries
+Message-ID: <20160324104214.GA4025@quack.suse.cz>
+References: <1458566575-28063-1-git-send-email-jack@suse.cz>
+ <1458566575-28063-6-git-send-email-jack@suse.cz>
+ <20160323175258.GD5544@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20160323175258.GD5544@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,45 +21,98 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
+On Wed 23-03-16 11:52:58, Ross Zwisler wrote:
+> On Mon, Mar 21, 2016 at 02:22:50PM +0100, Jan Kara wrote:
+> > Currently we forbid page_cache_tree_insert() to replace exceptional radix
+> > tree entries for DAX inodes. However to make DAX faults race free we will
+> > lock radix tree entries and when hole is created, we need to replace
+> > such locked radix tree entry with a hole page. So modify
+> > page_cache_tree_insert() to allow that.
+> 
+> Perhaps this is addressed later in the series, but at first glance this seems
+> unsafe to me - what happens of we had tasks waiting on the locked entry?  Are
+> they woken up when we replace the locked entry with a page cache entry?
+> 
+> If they are woken up, will they be alright with the fact that they were
+> sleeping on a lock for an exceptional entry, and now that lock no longer
+> exists?  The radix tree entry will now be filled with a zero page hole, and so
+> they can't acquire the lock they were sleeping for - instead if they wanted to
+> lock that page they'd need to lock the zero page page lock, right?
 
-In preparation for consulting a badblocks list in pmem_direct_access(),
-teach dax_pmd_fault() to fallback rather than fail immediately upon
-encountering an error.  The thought being that reducing the span of the
-dax request may avoid the error region.
+Correct. What you describes can happen and the DAX entry locking code
+counts with that. I guess I could comment on that in the changelog.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 90322eb..ec6417b 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -945,8 +945,8 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		long length = dax_map_atomic(bdev, &dax);
- 
- 		if (length < 0) {
--			result = VM_FAULT_SIGBUS;
--			goto out;
-+			dax_pmd_dbg(&bh, address, "dax-error fallback");
-+			goto fallback;
- 		}
- 		if (length < PMD_SIZE) {
- 			dax_pmd_dbg(&bh, address, "dax-length too small");
+								Honza
+> 
+> > Signed-off-by: Jan Kara <jack@suse.cz>
+> > ---
+> >  include/linux/dax.h |  6 ++++++
+> >  mm/filemap.c        | 18 +++++++++++-------
+> >  2 files changed, 17 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/include/linux/dax.h b/include/linux/dax.h
+> > index 7c45ac7ea1d1..4b63923e1f8d 100644
+> > --- a/include/linux/dax.h
+> > +++ b/include/linux/dax.h
+> > @@ -3,8 +3,14 @@
+> >  
+> >  #include <linux/fs.h>
+> >  #include <linux/mm.h>
+> > +#include <linux/radix-tree.h>
+> >  #include <asm/pgtable.h>
+> >  
+> > +/*
+> > + * Since exceptional entries do not use indirect bit, we reuse it as a lock bit
+> > + */
+> > +#define DAX_ENTRY_LOCK RADIX_TREE_INDIRECT_PTR
+> > +
+> >  ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
+> >  		  get_block_t, dio_iodone_t, int flags);
+> >  int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size);
+> > diff --git a/mm/filemap.c b/mm/filemap.c
+> > index 7c00f105845e..fbebedaf719e 100644
+> > --- a/mm/filemap.c
+> > +++ b/mm/filemap.c
+> > @@ -597,14 +597,18 @@ static int page_cache_tree_insert(struct address_space *mapping,
+> >  		if (!radix_tree_exceptional_entry(p))
+> >  			return -EEXIST;
+> >  
+> > -		if (WARN_ON(dax_mapping(mapping)))
+> > -			return -EINVAL;
+> > -
+> > -		if (shadowp)
+> > -			*shadowp = p;
+> >  		mapping->nrexceptional--;
+> > -		if (node)
+> > -			workingset_node_shadows_dec(node);
+> > +		if (!dax_mapping(mapping)) {
+> > +			if (shadowp)
+> > +				*shadowp = p;
+> > +			if (node)
+> > +				workingset_node_shadows_dec(node);
+> > +		} else {
+> > +			/* DAX can replace empty locked entry with a hole */
+> > +			WARN_ON_ONCE(p !=
+> > +				(void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
+> > +					 DAX_ENTRY_LOCK));
+> > +		}
+> >  	}
+> >  	radix_tree_replace_slot(slot, page);
+> >  	mapping->nrpages++;
+> > -- 
+> > 2.6.2
+> > 
 -- 
-2.5.5
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
