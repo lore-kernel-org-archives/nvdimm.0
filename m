@@ -1,13 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id A72A11A1EF8
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 15:55:55 -0800 (PST)
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: [PATCH v5 12/14] dax: Use vmf->gfp_mask
-Date: Thu, 10 Mar 2016 18:55:29 -0500
-Message-Id: <1457654131-4562-13-git-send-email-matthew.r.wilcox@intel.com>
-In-Reply-To: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
-References: <1457654131-4562-1-git-send-email-matthew.r.wilcox@intel.com>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id DC86B1A1E84
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 16:18:14 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH 0/5] dax: handling of media errors
+Date: Thu, 24 Mar 2016 17:17:25 -0600
+Message-Id: <1458861450-17705-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,37 +18,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Dave Chinner <david@fromorbit.com>, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-We were assuming that it was OK to do a GFP_KERNEL allocation in page
-fault context.  That appears to be largely true, but filesystems are
-permitted to override that in their setting of mapping->gfp_flags, which
-the VM then massages into vmf->gfp_flags.  No practical difference for
-now, but there may come a day when we would have surprised a filesystem.
+Until now, dax has been disabled if media errors were found on
+any device. This series attempts to address that.
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The first three patches from Dan re-enable dax even when media
+errors are present.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 35f0709..50636e1 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -316,7 +316,7 @@ static int dax_load_hole(struct address_space *mapping, struct page *page,
- 	struct inode *inode = mapping->host;
- 	if (!page)
- 		page = find_or_create_page(mapping, vmf->pgoff,
--						GFP_KERNEL | __GFP_ZERO);
-+						vmf->gfp_mask | __GFP_ZERO);
- 	if (!page)
- 		return VM_FAULT_OOM;
- 	/* Recheck i_size under page lock to avoid truncate race */
+The fourth patch from Matthew removes the
+zeroout path from dax entirely, making zeroout operations always
+go through the driver (The motivation is that if a backing device
+has media errors, and we create a sparse file on it, we don't
+want the initial zeroing to happen via dax, we want to give the
+block driver a chance to clear the errors).
+
+The fifth patch changes the behaviour of dax_do_io by adding a
+wrapper around it that is passed all the arguments also needed by
+__blockdev_do_direct_IO. If (the new) __dax_do_io fails with -EIO
+due to a bad block, we simply retry with the direct_IO path which
+forces the IO to go through the block driver, and can attempt to
+clear the error.
+
+Dan Williams (3):
+  block, dax: pass blk_dax_ctl through to drivers
+  dax: fallback from pmd to pte on error
+  dax: enable dax in the presence of known media errors (badblocks)
+
+Vishal Verma (2):
+  dax: use sb_issue_zerout instead of calling dax_clear_sectors
+  dax: handle media errors in dax_do_io
+
+ arch/powerpc/sysdev/axonram.c | 10 +++----
+ block/ioctl.c                 |  9 ------
+ drivers/block/brd.c           |  9 +++---
+ drivers/nvdimm/pmem.c         | 17 ++++++++---
+ drivers/s390/block/dcssblk.c  | 12 ++++----
+ fs/block_dev.c                |  7 +++--
+ fs/dax.c                      | 70 +++++++++++++++++++++----------------------
+ fs/ext2/inode.c               | 12 ++++----
+ fs/ext4/indirect.c            | 11 ++++---
+ fs/ext4/inode.c               |  5 ++--
+ fs/xfs/xfs_aops.c             |  7 +++--
+ fs/xfs/xfs_bmap_util.c        |  9 ------
+ include/linux/blkdev.h        |  3 +-
+ include/linux/dax.h           |  7 +++--
+ 14 files changed, 93 insertions(+), 95 deletions(-)
+
 -- 
-2.7.0
+2.5.5
 
 _______________________________________________
 Linux-nvdimm mailing list
