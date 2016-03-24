@@ -1,23 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x22c.google.com (mail-oi0-x22c.google.com
- [IPv6:2607:f8b0:4003:c06::22c])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 339B61A1E94
- for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 08:22:38 -0700 (PDT)
-Received: by mail-oi0-x22c.google.com with SMTP id d205so64643004oia.0
- for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 08:22:12 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <2448247.bv1n5rEkZ3@c203>
+ by ml01.01.org (Postfix) with ESMTPS id 55B891A1E94
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 08:15:56 -0700 (PDT)
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCH 05/13] libnvdimm,
+ blk: use devm_add_action to release bdev resources
+Date: Thu, 24 Mar 2016 16:15:28 +0100
+Message-ID: <2448247.bv1n5rEkZ3@c203>
+In-Reply-To: <CAPcyv4gXw+a5uuZ_hwmb6n=P2x9fGfD_5TxAKZ+sB8=XePoJVA@mail.gmail.com>
 References: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
  <44211312.XSqkvMyyJm@c203>
  <CAPcyv4gXw+a5uuZ_hwmb6n=P2x9fGfD_5TxAKZ+sB8=XePoJVA@mail.gmail.com>
- <2448247.bv1n5rEkZ3@c203>
-Date: Thu, 24 Mar 2016 08:21:52 -0700
-Message-ID: <CAPcyv4h6x3uePr0Srr_nQDeWyO2u1nhZeUE_2jpAePsBFmUdCQ@mail.gmail.com>
-Subject: Re: [PATCH 05/13] libnvdimm,
- blk: use devm_add_action to release bdev resources
-From: Dan Williams <dan.j.williams@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,35 +21,81 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Johannes Thumshirn <jthumshirn@suse.de>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCBNYXIgMjQsIDIwMTYgYXQgODoxNSBBTSwgSm9oYW5uZXMgVGh1bXNoaXJuIDxqdGh1
-bXNoaXJuQHN1c2UuZGU+IHdyb3RlOgo+IE9uIERvbm5lcnN0YWcsIDI0LiBNw6RyeiAyMDE2IDA4
-OjE0OjEwIENFVCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4+IE9uIFRodSwgTWFyIDI0LCAyMDE2IGF0
-IDQ6NDggQU0sIEpvaGFubmVzIFRodW1zaGlybiA8anRodW1zaGlybkBzdXNlLmRlPgo+IHdyb3Rl
-Ogo+PiA+IE9uIE1pdHR3b2NoLCAyMy4gTcOkcnogMjAxNiAxODoyNTo0NyBDRVQgRGFuIFdpbGxp
-YW1zIHdyb3RlOgo+PiA+PiBSZWdpc3RlciBhIGNhbGxiYWNrIHRvIGNsZWFuIHVwIHRoZSByZXF1
-ZXN0X3F1ZXVlIGFuZCBwdXQgdGhlIGdlbmRpc2sgYXQKPj4gPj4gZHJpdmVyIGRpc2FibGUgdGlt
-ZS4KPj4gPj4KPj4gPj4gQ2M6IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVs
-LmNvbT4KPj4gPj4gU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0Bp
-bnRlbC5jb20+Cj4+ID4KPj4gPiBbLi4uXQo+PiA+Cj4+ID4+ICBzdGF0aWMgaW50IG5kX2Jsa19y
-ZW1vdmUoc3RydWN0IGRldmljZSAqZGV2KQo+PiA+PiAgewo+PiA+Pgo+PiA+PiAtICAgICBzdHJ1
-Y3QgbmRfYmxrX2RldmljZSAqYmxrX2RldiA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwo+PiA+PiAt
-Cj4+ID4+Cj4+ID4+ICAgICAgIGlmIChpc19uZF9idHQoZGV2KSkKPj4gPj4KPj4gPj4gICAgICAg
-ICAgICAgICBudmRpbW1fbmFtZXNwYWNlX2RldGFjaF9idHQodG9fbmRfYnR0KGRldikpOwo+PiA+
-Pgo+PiA+PiAtICAgICBlbHNlCj4+ID4+IC0gICAgICAgICAgICAgbmRfYmxrX2RldGFjaF9kaXNr
-KGJsa19kZXYpOwo+PiA+PiAtICAgICBrZnJlZShibGtfZGV2KTsKPj4gPj4gLQo+PiA+Pgo+PiA+
-PiAgICAgICByZXR1cm4gMDsKPj4gPj4KPj4gPj4gIH0KPj4gPgo+PiA+IENhbid0IHRoaXMgYmUg
-dm9pZD8KPj4KPj4gVGhhdCdzIG5vdCBob3cgdGhlIGNvcmUgZGVmaW5lcyB0aGlzOgo+Pgo+PiBz
-dHJ1Y3QgZGV2aWNlX2RyaXZlciB7Cj4+IC4uLgo+PiAgICAgICAgIGludCAoKnJlbW92ZSkgKHN0
-cnVjdCBkZXZpY2UgKmRldik7Cj4+IC4uLgo+PiB9Owo+Cj4gQWggT0ssIGRpZG4ndCBzZWUgdGhp
-cywgc29ycnkKCk5vIHdvcnJpZXMuICBUaGFua3MgZm9yIHRoZSByZXZpZXchCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
-IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Donnerstag, 24. M=E4rz 2016 08:14:10 CET Dan Williams wrote:
+> On Thu, Mar 24, 2016 at 4:48 AM, Johannes Thumshirn <jthumshirn@suse.de> =
+
+wrote:
+> > On Mittwoch, 23. M=E4rz 2016 18:25:47 CET Dan Williams wrote:
+> >> Register a callback to clean up the request_queue and put the gendisk =
+at
+> >> driver disable time.
+> >> =
+
+> >> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> >> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > =
+
+> > [...]
+> > =
+
+> >>  static int nd_blk_remove(struct device *dev)
+> >>  {
+> >> =
+
+> >> -     struct nd_blk_device *blk_dev =3D dev_get_drvdata(dev);
+> >> -
+> >> =
+
+> >>       if (is_nd_btt(dev))
+> >>       =
+
+> >>               nvdimm_namespace_detach_btt(to_nd_btt(dev));
+> >> =
+
+> >> -     else
+> >> -             nd_blk_detach_disk(blk_dev);
+> >> -     kfree(blk_dev);
+> >> -
+> >> =
+
+> >>       return 0;
+> >>  =
+
+> >>  }
+> > =
+
+> > Can't this be void?
+> =
+
+> That's not how the core defines this:
+> =
+
+> struct device_driver {
+> ...
+>         int (*remove) (struct device *dev);
+> ...
+> };
+
+Ah OK, didn't see this, sorry
+
+-- =
+
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
