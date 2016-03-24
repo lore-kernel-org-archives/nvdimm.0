@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from youngberry.canonical.com (youngberry.canonical.com
- [91.189.89.112]) (using TLSv1 with cipher AES256-SHA (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AE97A1A1E63
- for <linux-nvdimm@lists.01.org>; Mon,  7 Mar 2016 14:55:48 -0800 (PST)
-From: Kamal Mostafa <kamal@canonical.com>
-Subject: [PATCH 4.2.y-ckt 172/273] x86/uaccess/64: Handle the caching of
- 4-byte nocache copies properly in __copy_user_nocache()
-Date: Mon,  7 Mar 2016 14:49:23 -0800
-Message-Id: <1457391064-6660-173-git-send-email-kamal@canonical.com>
-In-Reply-To: <1457391064-6660-1-git-send-email-kamal@canonical.com>
-References: <1457391064-6660-1-git-send-email-kamal@canonical.com>
+ by ml01.01.org (Postfix) with ESMTPS id D79B41A1E89
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 06:43:08 -0700 (PDT)
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCH 10/13] libnvdimm, pmem: clean up resource print / request
+Date: Thu, 24 Mar 2016 14:42:41 +0100
+Message-ID: <2214985.N0lbEPPVQ8@c203>
+In-Reply-To: <20160324012613.21436.14814.stgit@dwillia2-desk3.jf.intel.com>
+References: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
+ <20160324012613.21436.14814.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,156 +19,33 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: Thomas Gleixner <tglx@linutronix.de>, Denys Vlasenko <dvlasenk@redhat.com>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Brian Gerst <brgerst@gmail.com>, Ingo Molnar <mingo@kernel.org>, Kamal Mostafa <kamal@canonical.com>, Andy Lutomirski <luto@amacapital.net>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, Toshi Kani <toshi.kani@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-4.2.8-ckt5 -stable review patch.  If anyone has any objections, please let me know.
+On Mittwoch, 23. M=E4rz 2016 18:26:13 CET Dan Williams wrote:
+> The leading '0x' in front of %pa is redundant, also we can just use %pR
+> to simplify the print statement.  The request parameters can be directly
+> taken from the resource as well.
+> =
 
----8<------------------------------------------------------------
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
 
-From: Toshi Kani <toshi.kani@hpe.com>
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 
-commit a82eee7424525e34e98d821dd059ce14560a1e35 upstream.
+-- =
 
-Data corruption issues were observed in tests which initiated
-a system crash/reset while accessing BTT devices.  This problem
-is reproducible.
-
-The BTT driver calls pmem_rw_bytes() to update data in pmem
-devices.  This interface calls __copy_user_nocache(), which
-uses non-temporal stores so that the stores to pmem are
-persistent.
-
-__copy_user_nocache() uses non-temporal stores when a request
-size is 8 bytes or larger (and is aligned by 8 bytes).  The
-BTT driver updates the BTT map table, which entry size is
-4 bytes.  Therefore, updates to the map table entries remain
-cached, and are not written to pmem after a crash.
-
-Change __copy_user_nocache() to use non-temporal store when
-a request size is 4 bytes.  The change extends the current
-byte-copy path for a less-than-8-bytes request, and does not
-add any overhead to the regular path.
-
-Reported-and-tested-by: Micah Parrish <micah.parrish@hpe.com>
-Reported-and-tested-by: Brian Boylston <brian.boylston@hpe.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Luis R. Rodriguez <mcgrof@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: linux-nvdimm@lists.01.org
-Link: http://lkml.kernel.org/r/1455225857-12039-3-git-send-email-toshi.kani@hpe.com
-[ Small readability edits. ]
-Signed-off-by: Ingo Molnar <mingo@kernel.org>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
----
- arch/x86/lib/copy_user_64.S | 36 ++++++++++++++++++++++++++++++++----
- 1 file changed, 32 insertions(+), 4 deletions(-)
-
-diff --git a/arch/x86/lib/copy_user_64.S b/arch/x86/lib/copy_user_64.S
-index a644aad..27f89c7 100644
---- a/arch/x86/lib/copy_user_64.S
-+++ b/arch/x86/lib/copy_user_64.S
-@@ -237,13 +237,14 @@ ENDPROC(copy_user_enhanced_fast_string)
-  * Note: Cached memory copy is used when destination or size is not
-  * naturally aligned. That is:
-  *  - Require 8-byte alignment when size is 8 bytes or larger.
-+ *  - Require 4-byte alignment when size is 4 bytes.
-  */
- ENTRY(__copy_user_nocache)
- 	ASM_STAC
- 
--	/* If size is less than 8 bytes, go to byte copy */
-+	/* If size is less than 8 bytes, go to 4-byte copy */
- 	cmpl $8,%edx
--	jb .L_1b_cache_copy_entry
-+	jb .L_4b_nocache_copy_entry
- 
- 	/* If destination is not 8-byte aligned, "cache" copy to align it */
- 	ALIGN_DESTINATION
-@@ -282,7 +283,7 @@ ENTRY(__copy_user_nocache)
- 	movl %edx,%ecx
- 	andl $7,%edx
- 	shrl $3,%ecx
--	jz .L_1b_cache_copy_entry	/* jump if count is 0 */
-+	jz .L_4b_nocache_copy_entry	/* jump if count is 0 */
- 
- 	/* Perform 8-byte nocache loop-copy */
- .L_8b_nocache_copy_loop:
-@@ -294,11 +295,33 @@ ENTRY(__copy_user_nocache)
- 	jnz .L_8b_nocache_copy_loop
- 
- 	/* If no byte left, we're done */
--.L_1b_cache_copy_entry:
-+.L_4b_nocache_copy_entry:
-+	andl %edx,%edx
-+	jz .L_finish_copy
-+
-+	/* If destination is not 4-byte aligned, go to byte copy: */
-+	movl %edi,%ecx
-+	andl $3,%ecx
-+	jnz .L_1b_cache_copy_entry
-+
-+	/* Set 4-byte copy count (1 or 0) and remainder */
-+	movl %edx,%ecx
-+	andl $3,%edx
-+	shrl $2,%ecx
-+	jz .L_1b_cache_copy_entry	/* jump if count is 0 */
-+
-+	/* Perform 4-byte nocache copy: */
-+30:	movl (%rsi),%r8d
-+31:	movnti %r8d,(%rdi)
-+	leaq 4(%rsi),%rsi
-+	leaq 4(%rdi),%rdi
-+
-+	/* If no bytes left, we're done: */
- 	andl %edx,%edx
- 	jz .L_finish_copy
- 
- 	/* Perform byte "cache" loop-copy for the remainder */
-+.L_1b_cache_copy_entry:
- 	movl %edx,%ecx
- .L_1b_cache_copy_loop:
- 40:	movb (%rsi),%al
-@@ -323,6 +346,9 @@ ENTRY(__copy_user_nocache)
- .L_fixup_8b_copy:
- 	lea (%rdx,%rcx,8),%rdx
- 	jmp .L_fixup_handle_tail
-+.L_fixup_4b_copy:
-+	lea (%rdx,%rcx,4),%rdx
-+	jmp .L_fixup_handle_tail
- .L_fixup_1b_copy:
- 	movl %ecx,%edx
- .L_fixup_handle_tail:
-@@ -348,6 +374,8 @@ ENTRY(__copy_user_nocache)
- 	_ASM_EXTABLE(16b,.L_fixup_4x8b_copy)
- 	_ASM_EXTABLE(20b,.L_fixup_8b_copy)
- 	_ASM_EXTABLE(21b,.L_fixup_8b_copy)
-+	_ASM_EXTABLE(30b,.L_fixup_4b_copy)
-+	_ASM_EXTABLE(31b,.L_fixup_4b_copy)
- 	_ASM_EXTABLE(40b,.L_fixup_1b_copy)
- 	_ASM_EXTABLE(41b,.L_fixup_1b_copy)
- ENDPROC(__copy_user_nocache)
--- 
-2.7.0
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 
 _______________________________________________
 Linux-nvdimm mailing list
