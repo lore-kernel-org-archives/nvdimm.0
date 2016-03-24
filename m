@@ -1,19 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-ob0-x232.google.com (mail-ob0-x232.google.com
+ [IPv6:2607:f8b0:4003:c01::232])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 75AF01A1E94
- for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 08:22:37 -0700 (PDT)
-From: Johannes Thumshirn <jthumshirn@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id D7A931A1E94
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 08:21:46 -0700 (PDT)
+Received: by mail-ob0-x232.google.com with SMTP id kf9so34750574obc.1
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 08:21:21 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <7155730.1PoRE68eiN@c203>
+References: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
+ <20160324012603.21436.60864.stgit@dwillia2-desk3.jf.intel.com>
+ <7155730.1PoRE68eiN@c203>
+Date: Thu, 24 Mar 2016 08:21:20 -0700
+Message-ID: <CAPcyv4jVtFtvPZkW3N8uevOfRPvs6nL=F8TWgw2tE15Xhf3RyA@mail.gmail.com>
 Subject: Re: [PATCH 08/13] libnvdimm,
  blk: move i/o infrastructure to nd_namespace_blk
-Date: Thu, 24 Mar 2016 16:22:10 +0100
-Message-ID: <9996648.qnGD5sR833@c203>
-In-Reply-To: <CAPcyv4jVtFtvPZkW3N8uevOfRPvs6nL=F8TWgw2tE15Xhf3RyA@mail.gmail.com>
-References: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
- <7155730.1PoRE68eiN@c203>
- <CAPcyv4jVtFtvPZkW3N8uevOfRPvs6nL=F8TWgw2tE15Xhf3RyA@mail.gmail.com>
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,74 +24,37 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Johannes Thumshirn <jthumshirn@suse.de>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Donnerstag, 24. M=E4rz 2016 08:21:20 CET Dan Williams wrote:
-> On Thu, Mar 24, 2016 at 5:22 AM, Johannes Thumshirn <jthumshirn@suse.de> =
-
-wrote:
-> > On Mittwoch, 23. M=E4rz 2016 18:26:03 CET Dan Williams wrote:
-> >> Consolidate the information for issuing i/o to a blk-namespace, and
-> >> eliminate some pointer chasing.
-> >> =
-
-> >> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> >> ---
-> > =
-
-> > [...]
-> > =
-
-> >>               BUG_ON(len > PAGE_SIZE);
-> >> =
-
-> >> -             err =3D nd_blk_do_bvec(blk_dev, bip, bvec.bv_page, len,
-> >> -                                     bvec.bv_offset, rw,
-> >> iter.bi_sector);
-> >> +             err =3D nsblk_do_bvec(nsblk, bip, bvec.bv_page, len,
-> >> +                             bvec.bv_offset, rw, iter.bi_sector);
-> >> =
-
-> >>               if (err) {
-> >> =
-
-> >> -                     dev_info(&blk_dev->nsblk->common.dev,
-> >> +                     dev_dbg(&nsblk->common.dev,
-> >> =
-
-> >>                                       "io error in %s sector %lld, len
-> >>                                       %d,\n",
-> >>                                       (rw =3D=3D READ) ? "READ" : "WRI=
-TE",
-> >>                                       (unsigned long long)
-> >>                                       iter.bi_sector, len);
-> > =
-
-> > Why is an I/O error suddently a debug message instead of an error?
-> =
-
-> True, that's a jarring change not described in the log, should
-> probably be its own patch.  The rationale is that upper layers already
-> have error prints for failed commands and this one is redundant.
-
-OK, thanks for the clarification
-
--- =
-
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
-HRB 21284 (AG N=FCrnberg)
-Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVGh1LCBNYXIgMjQsIDIwMTYgYXQgNToyMiBBTSwgSm9oYW5uZXMgVGh1bXNoaXJuIDxqdGh1
+bXNoaXJuQHN1c2UuZGU+IHdyb3RlOgo+IE9uIE1pdHR3b2NoLCAyMy4gTcOkcnogMjAxNiAxODoy
+NjowMyBDRVQgRGFuIFdpbGxpYW1zIHdyb3RlOgo+PiBDb25zb2xpZGF0ZSB0aGUgaW5mb3JtYXRp
+b24gZm9yIGlzc3VpbmcgaS9vIHRvIGEgYmxrLW5hbWVzcGFjZSwgYW5kCj4+IGVsaW1pbmF0ZSBz
+b21lIHBvaW50ZXIgY2hhc2luZy4KPj4KPj4gU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxk
+YW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cj4+IC0tLQo+IFsuLi5dCj4+ICAgICAgICAgICAgICAg
+QlVHX09OKGxlbiA+IFBBR0VfU0laRSk7Cj4+IC0gICAgICAgICAgICAgZXJyID0gbmRfYmxrX2Rv
+X2J2ZWMoYmxrX2RldiwgYmlwLCBidmVjLmJ2X3BhZ2UsIGxlbiwKPj4gLSAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICBidmVjLmJ2X29mZnNldCwgcncsIGl0ZXIuYmlfc2VjdG9y
+KTsKPj4gKyAgICAgICAgICAgICBlcnIgPSBuc2Jsa19kb19idmVjKG5zYmxrLCBiaXAsIGJ2ZWMu
+YnZfcGFnZSwgbGVuLAo+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICBidmVjLmJ2X29m
+ZnNldCwgcncsIGl0ZXIuYmlfc2VjdG9yKTsKPj4gICAgICAgICAgICAgICBpZiAoZXJyKSB7Cj4+
+IC0gICAgICAgICAgICAgICAgICAgICBkZXZfaW5mbygmYmxrX2Rldi0+bnNibGstPmNvbW1vbi5k
+ZXYsCj4+ICsgICAgICAgICAgICAgICAgICAgICBkZXZfZGJnKCZuc2Jsay0+Y29tbW9uLmRldiwK
+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiaW8gZXJyb3IgaW4gJXMg
+c2VjdG9yICVsbGQsIGxlbiAlZCxcbiIsCj4+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgKHJ3ID09IFJFQUQpID8gIlJFQUQiIDogIldSSVRFIiwKPj4gICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAodW5zaWduZWQgbG9uZyBsb25nKSBpdGVyLmJpX3Nl
+Y3RvciwgbGVuKTsKPgo+IFdoeSBpcyBhbiBJL08gZXJyb3Igc3VkZGVudGx5IGEgZGVidWcgbWVz
+c2FnZSBpbnN0ZWFkIG9mIGFuIGVycm9yPwoKVHJ1ZSwgdGhhdCdzIGEgamFycmluZyBjaGFuZ2Ug
+bm90IGRlc2NyaWJlZCBpbiB0aGUgbG9nLCBzaG91bGQKcHJvYmFibHkgYmUgaXRzIG93biBwYXRj
+aC4gIFRoZSByYXRpb25hbGUgaXMgdGhhdCB1cHBlciBsYXllcnMgYWxyZWFkeQpoYXZlIGVycm9y
+IHByaW50cyBmb3IgZmFpbGVkIGNvbW1hbmRzIGFuZCB0aGlzIG9uZSBpcyByZWR1bmRhbnQuCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
+bSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAx
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
