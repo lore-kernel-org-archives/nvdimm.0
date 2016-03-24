@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D79B41A1E89
- for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 06:43:08 -0700 (PDT)
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: [PATCH 10/13] libnvdimm, pmem: clean up resource print / request
-Date: Thu, 24 Mar 2016 14:42:41 +0100
-Message-ID: <2214985.N0lbEPPVQ8@c203>
-In-Reply-To: <20160324012613.21436.14814.stgit@dwillia2-desk3.jf.intel.com>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ by ml01.01.org (Postfix) with ESMTP id 4D27C1A1EE4
+ for <linux-nvdimm@lists.01.org>; Wed, 23 Mar 2016 18:27:17 -0700 (PDT)
+Subject: [PATCH 10/13] libnvdimm, pmem: clean up resource print / request
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 23 Mar 2016 18:26:13 -0700
+Message-ID: <20160324012613.21436.14814.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
 References: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
- <20160324012613.21436.14814.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,33 +16,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mittwoch, 23. M=E4rz 2016 18:26:13 CET Dan Williams wrote:
-> The leading '0x' in front of %pa is redundant, also we can just use %pR
-> to simplify the print statement.  The request parameters can be directly
-> taken from the resource as well.
-> =
+The leading '0x' in front of %pa is redundant, also we can just use %pR
+to simplify the print statement.  The request parameters can be directly
+taken from the resource as well.
 
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/pmem.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
-
--- =
-
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
-HRB 21284 (AG N=FCrnberg)
-Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 97bc91b944b7..c9ae1673bb17 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -210,10 +210,9 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 	if (!arch_has_wmb_pmem())
+ 		dev_warn(dev, "unable to guarantee persistence of writes\n");
+ 
+-	if (!devm_request_mem_region(dev, pmem->phys_addr, pmem->size,
+-			dev_name(dev))) {
+-		dev_warn(dev, "could not reserve region [0x%pa:0x%zx]\n",
+-				&pmem->phys_addr, pmem->size);
++	if (!devm_request_mem_region(dev, res->start, resource_size(res),
++				dev_name(dev))) {
++		dev_warn(dev, "could not reserve region %pR\n", res);
+ 		return ERR_PTR(-EBUSY);
+ 	}
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
