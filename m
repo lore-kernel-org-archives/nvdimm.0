@@ -1,14 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 010B71A1EF7
- for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 16:18:24 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 3/5] dax: enable dax in the presence of known media errors
- (badblocks)
-Date: Thu, 24 Mar 2016 17:17:28 -0600
-Message-Id: <1458861450-17705-4-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1458861450-17705-1-git-send-email-vishal.l.verma@intel.com>
-References: <1458861450-17705-1-git-send-email-vishal.l.verma@intel.com>
+Received: from mail-oi0-x22f.google.com (mail-oi0-x22f.google.com
+ [IPv6:2607:f8b0:4003:c06::22f])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 4F2671A1E94
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 07:49:06 -0700 (PDT)
+Received: by mail-oi0-x22f.google.com with SMTP id r187so64166752oih.3
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 07:48:40 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <2305610.tLOzfXxl0W@c203>
+References: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
+ <20160324012526.21436.70359.stgit@dwillia2-desk3.jf.intel.com>
+ <2305610.tLOzfXxl0W@c203>
+Date: Thu, 24 Mar 2016 07:48:07 -0700
+Message-ID: <CAPcyv4i+7=k8AEtcq_7XyktQMaAbQzy3ezvxj_ziLDakwwotiw@mail.gmail.com>
+Subject: Re: [PATCH 01/13] libnvdimm, pfn: fix nvdimm_namespace_add_poison()
+ vs section alignment
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,77 +24,33 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Dave Chinner <david@fromorbit.com>, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+To: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
-
-From: Dan Williams <dan.j.williams@intel.com>
-
-1/ If a mapping overlaps a bad sector fail the request.
-
-2/ Do not opportunistically report more dax-capable capacity than is
-   requested when errors present.
-
-[vishal: fix a conflict with system RAM collision patches]
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- block/ioctl.c         | 9 ---------
- drivers/nvdimm/pmem.c | 8 ++++++++
- 2 files changed, 8 insertions(+), 9 deletions(-)
-
-diff --git a/block/ioctl.c b/block/ioctl.c
-index d8996bb..cd7f392 100644
---- a/block/ioctl.c
-+++ b/block/ioctl.c
-@@ -423,15 +423,6 @@ bool blkdev_dax_capable(struct block_device *bdev)
- 			|| (bdev->bd_part->nr_sects % (PAGE_SIZE / 512)))
- 		return false;
- 
--	/*
--	 * If the device has known bad blocks, force all I/O through the
--	 * driver / page cache.
--	 *
--	 * TODO: support finer grained dax error handling
--	 */
--	if (disk->bb && disk->bb->count)
--		return false;
--
- 	return true;
- }
- #endif
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index da10554..eac5f93 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -174,9 +174,17 @@ static long pmem_direct_access(struct block_device *bdev,
- 	struct pmem_device *pmem = bdev->bd_disk->private_data;
- 	resource_size_t offset = sector * 512 + pmem->data_offset;
- 
-+	if (unlikely(is_bad_pmem(&pmem->bb, sector, dax->size)))
-+		return -EIO;
- 	dax->addr = pmem->virt_addr + offset;
- 	dax->pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
- 
-+	/*
-+	 * If badblocks are present, limit known good range to the
-+	 * requested range.
-+	 */
-+	if (unlikely(pmem->bb.count))
-+		return dax->size;
- 	return pmem->size - pmem->pfn_pad - offset;
- }
- 
--- 
-2.5.5
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVGh1LCBNYXIgMjQsIDIwMTYgYXQgMzoxMCBBTSwgSm9oYW5uZXMgVGh1bXNoaXJuIDxqdGh1
+bXNoaXJuQHN1c2UuZGU+IHdyb3RlOgo+IE9uIE1pdHR3b2NoLCAyMy4gTcOkcnogMjAxNiAxODoy
+NToyNiBDRVQgRGFuIFdpbGxpYW1zIHdyb3RlOgo+PiBXaGVuIHNlY3Rpb24gYWxpZ25tZW50IHBh
+ZGRpbmcgaXMgaW4gZWZmZWN0IHdlIG5lZWQgdG8gc2hpZnQgLyB0cnVuY2F0ZQo+PiB0aGUgcmFu
+Z2UgdGhhdCBpcyBxdWVyaWVkIGZvciBwb2lzb24gYnkgdGhlICdzdGFydF9wYWQnIG9yICdlbmRf
+dHJ1bmMnCj4+IHJlc2VydmF0aW9ucy4KPj4KPj4gSXQncyBlYXNpZXN0IGlmIHdlIGp1c3QgcGFz
+cyBpbiBhbiBhZGp1c3RlZCByZXNvdXJjZSByYW5nZSByYXRoZXIgdGhhbgo+PiBkZXJpdmluZyBp
+dCBmcm9tIHRoZSBwYXNzZWQgaW4gbmFtZXNwYWNlLiAgV2l0aCB0aGUgcmVzb3VyY2UgcmFuZ2UK
+Pj4gcmVzb2x1dGlvbiBwdXNoZWQgb3V0IHRvIHRoZSBjYWxsZXIgd2UgY2FuIGFsc28gcHVzaCB0
+aGUKPj4gbmFtZXNwYWNlLXRvLXJlZ2lvbiBsb29rdXAgdG8gdGhlIGNhbGxlciBhbmQgZHJvcCB0
+aGUgaW1wbGljaXQgcG1lbS10eXBlCj4+IGFzc3VtcHRpb24gYWJvdXQgdGhlIHBhc3NlZCBpbiBu
+YW1lc3BhY2Ugb2JqZWN0Lgo+Pgo+PiBDYzogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBp
+bnRlbC5jb20+Cj4+IENjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4KPj4gU2lnbmVkLW9mZi1i
+eTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cj4KPiBEb2VzIHRoaXMg
+cmVhbGx5IHF1YWxpZnkgZm9yIGluY2x1c2lvbiBpbnRvIHN0YWJsZT8KCkRlcGVuZHMgb24gd2hl
+biB3ZSBwdXNoIGl0LiAgSWYgd2Ugd2FpdCBmb3IgdGhlIDQuNyBtZXJnZSB3aW5kb3cgdGhpcwp3
+aWxsIGJlIC1zdGFibGUgbWF0ZXJpYWwgdG8gZml4IDQuNi4gIFRoZSBsYWNrIG9mIHVyZ2VuY3kg
+aXMgZHJpdmVuIGJ5CnRoZSBmYWN0IHRoYXQgdGhlcmUgaXMgc3RpbGwgdGltZSB0byB3b3JrIHdp
+dGggQklPUyBpbXBsZW1lbnRhdGlvbnMgdG8KYWRkcmVzcyB0aGUgMTI4TUIgYWxpZ25tZW50IHBy
+b2JsZW0uCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
+bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
+L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
