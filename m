@@ -1,253 +1,185 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t6213.austin.hp.com (g1t6213.austin.hp.com [15.73.96.121])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7D6801A1F54
- for <linux-nvdimm@lists.01.org>; Mon, 21 Mar 2016 12:37:53 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v8 00/10] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Mon, 21 Mar 2016 13:37:00 -0600
-Message-Id: <cover.1458583367.git.jerry.hoemann@hpe.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH 1/5] block, dax: pass blk_dax_ctl through to drivers
+Date: Thu, 24 Mar 2016 17:17:26 -0600
+Message-Id: <1458861450-17705-2-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1458861450-17705-1-git-send-email-vishal.l.verma@intel.com>
+References: <1458861450-17705-1-git-send-email-vishal.l.verma@intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-The NVDIMM code in the kernel supports an IOCTL interface to user
-space based upon the Intel Example DSM:
-
-	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
-
-This interface cannot be used by other NVDIMM DSMs that support
-incompatible functions.
-
-An alternative DSM specification for Type N DSM being developed
-by Hewlett Packard Enterprise can be found at:
-
-	https://github.com/HewlettPackard/hpe-nvm/tree/master/Documentation
-
-To accommodate multiple and conflicting DSM specifications, this patch
-set adds a generic "pass-thru" IOCTL interface which is not tied to
-a particular DSM.
-
-A new _IOC_NR ND_CMD_CALL == "10" is added for the pass thru call.
-
-The new data structure nd_cmd_pkg serves as a wrapper for the
-pass-thru calls.  This wrapper supplies the data that the kernel
-needs to make the _DSM call.
-
-Unlike the definitions of the _DSM functions themselves, the nd_cmd_pkg
-provides the calling information (input/output sizes) in an uniform
-manner making the kernel marshaling of the arguments straight
-forward.
-
-This shifts the marshaling burden from the kernel to the user
-space application while still permitting the kernel to internally
-call _DSM functions.
-
-The kernel functions __nd_ioctl and acpi_nfit_ctl were modified
-to accommodate ND_CMD_CALL.
-
-Changes in version 8:
----------------------
-1. augmented family_to_uuid() to return uuid.  This to address bug
-   in prior version where acpi_nfit_ctl wasn't updating uuid
-   with value associated with command family.
-
-2. patch 0006 changes name of nvdimm_bus_descriptor.dsm_mask to .cmd_mask
-
-3. patch 0008 adds field cmd_ioctl if kernel supports full ioctl
-   as with Intel example dsm.
-
-4. patch 0009 make determination if kernel supports the full
-   cmd_ioctl for that dsm.  Updates the commands_show function
-   to invert the sense of display of commands.  All dsm support
-   pass-thru, only the Intel Example DSM supports the full
-   ioctl interface.
-
-5. patch 0010 adds explicit ioctl interface to return command mask.
-   This was done in part to avoid "unknown" command in sysfs.
-
-
-
-Changes in version 7:
---------------------
-0. change name ND_CMD_CALL_DSM to ND_CMD_CALL
-    - part of abstracting out DSM missed in version 6.
-
-1. change name in struct nd_call_dsm
-    a) "ncp_" -> "nd_"
-    b) ncp_pot_size -> nd_fw_size
-    c) ncp_type -> nd_family
-    o) cascade name changes to other patches
-
-2. Expanded comment around data structure nd_cmd_pkg
-
-3. At Dan's request, hard coding "root" UUID.
-    a) retract extension of dsm_uuid to nvdimm_bus_descriptor.
-    b) reverted nfit.c/acpi_nfit_init_dsms() with the exception of
-	allowing function 0 in mask.
-
-4. At Dan's request, removed "rev" from nd_cmd_pkg.  Hard-coding
-    use of rev "1" in acpi_nfit_ctl.
-
-
-Changes in version 6:
----------------------
-Built against
-git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm.git
-libnvdimm-pending
-
-0. Patches "Clean-up access mode check" and "Fix security issue with DSM IOCTL"
-   already in above libnvdimm-pending.  So omitted here.
-
-1. Incorporated changes from Dan's RFC patch set
-   https://lists.01.org/pipermail/linux-nvdimm/2016-January/004049.html
-
-2. Dan asked me to abstract out the DSM aspects from the ndm_cmd_dsmcall_pkg.
-   This became nd_cmd_pkg.  UUIDs are no longer passed in from
-   user applications.
-
-3. To accommodate multiple UUIDS, added table cmd_type_tbl which is used
-   to determine UUID for the acpi object by calling function 0 for
-   each UUID in table until success.
-
-   This table also provides a MASK field that the kernel can use
-   to exclude functions being called.
-
-   This table can be thought of a list of "acceptable" DSMs.
-
-4. The cmd_type_tbl is also used by acpi_nfit_ctl to map the
-   external handle of calls to internal handle, UUID.
-
-   Note, code only validates that the requested type of call is one in
-   cmd_type_tbl, but it might not necessarily be the same found during
-   acpi_nfit_add_dimm.  The ACPI SPEC appears to allow and firmware
-   does implement multiple UUID per object.
-
-   In the case where type is in table, but the UUID isn't supported
-   by the underlying firmware, firmware shall return an error when
-   called.
-
-   This allows for use of a secondary DSM on an object.  This could
-   be considered a feature or a defect.  This can be tightened
-   up if needed.
-
-
-
-Changes in version 5:
----------------------
-0. Fixed submit comment for drivers/acpi/utils.c.
-
-
-Changes in version 4:
----------------------
-0. Added patch to correct parameter type passed to acpi_evaluate_dsm
-   ACPI defines arguments rev and fun as 64 bit quantities and the ioctl
-   exports to user face rev and func. We want those to match the ACPI spec.
-
-   Also modified acpi_evaluate_dsm_typed and acpi_check dsm which had
-   similar issue.
-
-1. nd_cmd_dsmcall_pkg rearrange a reserve and rounded up total size
-   to 16 byte boundary.
-
-2. Created stand alone patch for the pre-existing security issue related
-   to "read only" IOCTL calls.
-
-3. Added patch for increasing envelope size of IOCTL.  Needed to
-   be able to read in the wrapper to know remaining size to copy in.
-
-   Note: in_env, out_env are statics sized based upon this change.
-
-4. Moved copyin code to table driven nd_cmd_desc 
-
-  Note, the last 40 lines or so of acpi_nfit_ctl will not return _DSM
-  data unless the size allocated in user space buffer equals
-  out_obj->buffer.length.
-
-  The semantic we want in the pass thru case is to return as much
-  of the _DSM data as the user space buffer would accommodate.
-
-  Hence, in acpi_nfit_ctl I have retained the line:
-
-		memcpy(pkg->dsm_buf + pkg->h.dsm_in,
-			out_obj->buffer.pointer,
-			min(pkg->h.dsm_size, pkg->h.dsm_out));
-
-  and the early return from the function.
-
-
-
-
-Changes in version 3:
----------------------
-1. Changed name ND_CMD_PASSTHRU to ND_CMD_CALL_DSM.
-
-2. Value of ND_CMD_CALL_DSM is 10, not 100.
-
-3. Changed name of nd_passthru_pkg to nd_cmd_dsmcall_pkg.
-
-4. Removed separate functions for handling ND_CMD_CALL_DSM.
-   Moved functionality to __nd_ioctl and acpi_nfit_ctl proper.
-   The resultant code looks very different from prior versions.
-
-5. BUGFIX: __nd_ioctl: Change the if read_only switch to use
-	 _IOC_NR cmd (not ioctl_cmd) for better protection.
-
-	Do we want to make a stand alone patch for this issue?
-
-
-Changes in version 2:
----------------------
-1. Cleanup access mode check in nd_ioctl and nvdimm_ioctl.
-2. Change name of ndn_pkg to nd_passthru_pkg
-3. Adjust sizes in nd_passthru_pkg. DSM integers are 64 bit.
-4. No new ioctl type, instead tunnel into the existing number space.
-5. Push down one function level where determine ioctl cmd type.
-6. re-work diagnostic print/dump message in pass-thru functions.
-
-Jerry Hoemann (10):
-  ACPI / util: Fix acpi_evaluate_dsm() argument type
-  nvdimm: Add wrapper for IOCTL pass thru
-  nvdimm: Increase max envelope size for IOCTL
-  nvdimm: Add UUIDs
-  nvdimm: Add IOCTL pass thru functions
-  libnvdimm: nvdimm_bus_descriptor field name change
-  tools/testing/nvdimm: 'call_dsm' support
-  nvdimm: command ioctl support
-  nvdimm: sysfs shows which dsm support full command ioctl.
-  nvdimm: Add ioctl to return command mask.
-
- drivers/acpi/nfit.c              | 154 +++++++++++++++++++++++++++++++++------
- drivers/acpi/nfit.h              |   6 ++
- drivers/acpi/utils.c             |   4 +-
- drivers/nvdimm/bus.c             |  55 +++++++++++++-
- drivers/nvdimm/core.c            |   3 +-
- drivers/nvdimm/dimm_devs.c       |  12 ++-
- drivers/nvdimm/nd-core.h         |   1 +
- include/acpi/acpi_bus.h          |   6 +-
- include/linux/libnvdimm.h        |   6 +-
- include/uapi/linux/ndctl.h       |  62 ++++++++++++++++
- tools/testing/nvdimm/test/nfit.c |  15 +++-
- 11 files changed, 283 insertions(+), 41 deletions(-)
-
+From: Dan Williams <dan.j.williams@intel.com>
+
+From: Dan Williams <dan.j.williams@intel.com>
+
+This is in preparation for doing badblocks checking against the
+requested sector range in the driver.  Currently we opportunistically
+return as much data that can be "dax'd" starting at the given sector.
+When errors are present we want to limit that range to the first
+encountered error, or fail the dax request if the range encompasses an
+error.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/powerpc/sysdev/axonram.c | 10 +++++-----
+ drivers/block/brd.c           |  9 +++++----
+ drivers/nvdimm/pmem.c         |  9 +++++----
+ drivers/s390/block/dcssblk.c  | 12 ++++++------
+ fs/block_dev.c                |  2 +-
+ include/linux/blkdev.h        |  3 +--
+ 6 files changed, 23 insertions(+), 22 deletions(-)
+
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index 0d112b9..d85673f 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -139,17 +139,17 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
+ 
+ /**
+  * axon_ram_direct_access - direct_access() method for block device
+- * @device, @sector, @data: see block_device_operations method
++ * @dax: see block_device_operations method
+  */
+ static long
+-axon_ram_direct_access(struct block_device *device, sector_t sector,
+-		       void __pmem **kaddr, pfn_t *pfn)
++axon_ram_direct_access(struct block_device *device, struct blk_dax_ctl *dax)
+ {
++	sector_t sector = get_start_sect(device) + dax->sector;
+ 	struct axon_ram_bank *bank = device->bd_disk->private_data;
+ 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
+ 
+-	*kaddr = (void __pmem __force *) bank->io_addr + offset;
+-	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
++	dax->addr = (void __pmem __force *) bank->io_addr + offset;
++	dax->pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
+ 	return bank->size - offset;
+ }
+ 
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index cb27190..0b8bcfa 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -380,9 +380,10 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
+ }
+ 
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+-static long brd_direct_access(struct block_device *bdev, sector_t sector,
+-			void __pmem **kaddr, pfn_t *pfn)
++static long brd_direct_access(struct block_device *bdev,
++		struct blk_dax_ctl *dax)
+ {
++	sector_t sector = get_start_sect(bdev) + dax->sector;
+ 	struct brd_device *brd = bdev->bd_disk->private_data;
+ 	struct page *page;
+ 
+@@ -391,8 +392,8 @@ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+ 	page = brd_insert_page(brd, sector);
+ 	if (!page)
+ 		return -ENOSPC;
+-	*kaddr = (void __pmem *)page_address(page);
+-	*pfn = page_to_pfn_t(page);
++	dax->addr = (void __pmem *)page_address(page);
++	dax->pfn = page_to_pfn_t(page);
+ 
+ 	return PAGE_SIZE;
+ }
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index ca5721c..da10554 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -167,14 +167,15 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ 	return rc;
+ }
+ 
+-static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+-		      void __pmem **kaddr, pfn_t *pfn)
++static long pmem_direct_access(struct block_device *bdev,
++		struct blk_dax_ctl *dax)
+ {
++	sector_t sector = get_start_sect(bdev) + dax->sector;
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
+ 	resource_size_t offset = sector * 512 + pmem->data_offset;
+ 
+-	*kaddr = pmem->virt_addr + offset;
+-	*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
++	dax->addr = pmem->virt_addr + offset;
++	dax->pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
+ 
+ 	return pmem->size - pmem->pfn_pad - offset;
+ }
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index ce7b701..e5bda68 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -30,8 +30,8 @@ static int dcssblk_open(struct block_device *bdev, fmode_t mode);
+ static void dcssblk_release(struct gendisk *disk, fmode_t mode);
+ static blk_qc_t dcssblk_make_request(struct request_queue *q,
+ 						struct bio *bio);
+-static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
+-			 void __pmem **kaddr, pfn_t *pfn);
++static long dcssblk_direct_access(struct block_device *bdev,
++		struct blk_dax_ctl *dax)
+ 
+ static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
+ 
+@@ -883,9 +883,9 @@ fail:
+ }
+ 
+ static long
+-dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+-			void __pmem **kaddr, pfn_t *pfn)
++dcssblk_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
+ {
++	sector_t secnum = get_start_sect(bdev) + dax->sector;
+ 	struct dcssblk_dev_info *dev_info;
+ 	unsigned long offset, dev_sz;
+ 
+@@ -894,8 +894,8 @@ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+ 		return -ENODEV;
+ 	dev_sz = dev_info->end - dev_info->start;
+ 	offset = secnum * 512;
+-	*kaddr = (void __pmem *) (dev_info->start + offset);
+-	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
++	dax->addr = (void __pmem *) (dev_info->start + offset);
++	dax->pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
+ 
+ 	return dev_sz - offset;
+ }
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 826b164..9c0765b 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -488,7 +488,7 @@ long bdev_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
+ 	sector += get_start_sect(bdev);
+ 	if (sector % (PAGE_SIZE / 512))
+ 		return -EINVAL;
+-	avail = ops->direct_access(bdev, sector, &dax->addr, &dax->pfn);
++	avail = ops->direct_access(bdev, dax);
+ 	if (!avail)
+ 		return -ERANGE;
+ 	if (avail > 0 && avail & ~PAGE_MASK)
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 413c84f..f8c65b8 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1653,8 +1653,7 @@ struct block_device_operations {
+ 	int (*rw_page)(struct block_device *, sector_t, struct page *, int rw);
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+-	long (*direct_access)(struct block_device *, sector_t, void __pmem **,
+-			pfn_t *);
++	long (*direct_access)(struct block_device *, struct blk_dax_ctl *dax);
+ 	unsigned int (*check_events) (struct gendisk *disk,
+ 				      unsigned int clearing);
+ 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
 -- 
-1.7.11.3
+2.5.5
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
