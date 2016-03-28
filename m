@@ -1,25 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ob0-x232.google.com (mail-ob0-x232.google.com
- [IPv6:2607:f8b0:4003:c01::232])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 71C7E1A1E9F
- for <linux-nvdimm@lists.01.org>; Mon, 28 Mar 2016 16:34:45 -0700 (PDT)
-Received: by mail-ob0-x232.google.com with SMTP id kf9so106122294obc.1
- for <linux-nvdimm@lists.01.org>; Mon, 28 Mar 2016 16:34:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1459195288.15523.3.camel@intel.com>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 0BEA11A1E1B
+ for <linux-nvdimm@lists.01.org>; Mon, 28 Mar 2016 13:02:00 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 4/5] dax: use sb_issue_zerout instead of calling
+ dax_clear_sectors
+Date: Mon, 28 Mar 2016 20:01:29 +0000
+Message-ID: <1459195288.15523.3.camel@intel.com>
 References: <1458861450-17705-1-git-send-email-vishal.l.verma@intel.com>
  <1458861450-17705-5-git-send-email-vishal.l.verma@intel.com>
  <CAPcyv4iKK=1Nhz4QqEkhc4gum+UvUS4a=+Sza2zSa1Kyrth41w@mail.gmail.com>
  <1458939796.5501.8.camel@intel.com>
  <CAPcyv4jWqVcav7dQPh7WHpqB6QDrCezO5jbd9QW9xH3zsU4C1w@mail.gmail.com>
- <1459195288.15523.3.camel@intel.com>
-Date: Mon, 28 Mar 2016 16:34:16 -0700
-Message-ID: <CAPcyv4jFwh679arTNoUzLZpJCSoR+KhMdEmwqddCU1RWOrjD=Q@mail.gmail.com>
-Subject: Re: [PATCH 4/5] dax: use sb_issue_zerout instead of calling
- dax_clear_sectors
-From: Dan Williams <dan.j.williams@intel.com>
+In-Reply-To: <CAPcyv4jWqVcav7dQPh7WHpqB6QDrCezO5jbd9QW9xH3zsU4C1w@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <59E72D7F52648141A4EC0A334887F2DC@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,113 +23,84 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: "axboe@fb.com" <axboe@fb.com>, "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "david@fromorbit.com" <david@fromorbit.com>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, Wilcox,
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "axboe@fb.com" <axboe@fb.com>, "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "david@fromorbit.com" <david@fromorbit.com>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, Wilcox, Matthew
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Mar 28, 2016 at 1:01 PM, Verma, Vishal L
-<vishal.l.verma@intel.com> wrote:
-> On Fri, 2016-03-25 at 14:20 -0700, Dan Williams wrote:
->> On Fri, Mar 25, 2016 at 2:03 PM, Verma, Vishal L
->> <vishal.l.verma@intel.com> wrote:
->> >
->> > On Fri, 2016-03-25 at 11:47 -0700, Dan Williams wrote:
->> > >
->> > > On Thu, Mar 24, 2016 at 4:17 PM, Vishal Verma <vishal.l.verma@int
->> > > el.c
->> > > om> wrote:
->> > > >
->> > > >
->> > > > From: Matthew Wilcox <matthew.r.wilcox@intel.com>
->> > > >
->> > > > dax_clear_sectors() cannot handle poisoned blocks.  These must
->> > > > be
->> > > > zeroed using the BIO interface instead.  Convert ext2 and XFS
->> > > > to
->> > > > use
->> > > > only sb_issue_zerout().
->> > > >
->> > > > Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
->> > > > [vishal: Also remove the dax_clear_sectors function entirely]
->> > > > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
->> > > > ---
->> > > >  fs/dax.c               | 32 --------------------------------
->> > > >  fs/ext2/inode.c        |  7 +++----
->> > > >  fs/xfs/xfs_bmap_util.c |  9 ---------
->> > > >  include/linux/dax.h    |  1 -
->> > > >  4 files changed, 3 insertions(+), 46 deletions(-)
->> > > >
->> > > > diff --git a/fs/dax.c b/fs/dax.c
->> > > > index bb7e9f8..a30481e 100644
->> > > > --- a/fs/dax.c
->> > > > +++ b/fs/dax.c
->> > > > @@ -78,38 +78,6 @@ struct page *read_dax_sector(struct
->> > > > block_device
->> > > > *bdev, sector_t n)
->> > > >         return page;
->> > > >  }
->> > > >
->> > > > -/*
->> > > > - * dax_clear_sectors() is called from within transaction
->> > > > context
->> > > > from XFS,
->> > > > - * and hence this means the stack from this point must follow
->> > > > GFP_NOFS
->> > > > - * semantics for all operations.
->> > > > - */
->> > > > -int dax_clear_sectors(struct block_device *bdev, sector_t
->> > > > _sector,
->> > > > long _size)
->> > > > -{
->> > > > -       struct blk_dax_ctl dax = {
->> > > > -               .sector = _sector,
->> > > > -               .size = _size,
->> > > > -       };
->> > > > -
->> > > > -       might_sleep();
->> > > > -       do {
->> > > > -               long count, sz;
->> > > > -
->> > > > -               count = dax_map_atomic(bdev, &dax);
->> > > > -               if (count < 0)
->> > > > -                       return count;
->> > > > -               sz = min_t(long, count, SZ_128K);
->> > > > -               clear_pmem(dax.addr, sz);
->> > > > -               dax.size -= sz;
->> > > > -               dax.sector += sz / 512;
->> > > > -               dax_unmap_atomic(bdev, &dax);
->> > > > -               cond_resched();
->> > > > -       } while (dax.size);
->> > > > -
->> > > > -       wmb_pmem();
->> > > > -       return 0;
->> > > > -}
->> > > > -EXPORT_SYMBOL_GPL(dax_clear_sectors);
->> > > What about the other unwritten extent conversions in the dax
->> > > path?
->> > > Shouldn't those be converted to block-layer zero-outs as well?
->> > Could you point me to where these might be? I thought once we've
->> > converted all the zeroout type callers (by removing
->> > dax_clear_sectors),
->> > and fixed up dax_do_io to try a driver fallback, we've handled all
->> > the
->> > media error cases in dax..
->> grep for usages of clear_pmem()... which I was hoping to eliminate
->> after this change to push zeroing down to the driver.
->
-> Ok, so I looked at these, and it looks like the majority of callers of
-> clear_pmem are from the fault path (either pmd or regular), and in
-> those cases we should be 'protected', as we would have failed at a
-> prior step (dax_map_atomic).
-
-Seems kind of sad to fail the fault due to a bad block when we were
-going to zero it anyway, right?  I'm not seeing a compelling reason to
-keep any zeroing in fs/dax.c.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCAyMDE2LTAzLTI1IGF0IDE0OjIwIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIEZyaSwgTWFyIDI1LCAyMDE2IGF0IDI6MDMgUE0sIFZlcm1hLCBWaXNoYWwgTA0KPiA8dmlz
+aGFsLmwudmVybWFAaW50ZWwuY29tPiB3cm90ZToNCj4gPiANCj4gPiBPbiBGcmksIDIwMTYtMDMt
+MjUgYXQgMTE6NDcgLTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4gPiA+IA0KPiA+ID4gT24g
+VGh1LCBNYXIgMjQsIDIwMTYgYXQgNDoxNyBQTSwgVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJt
+YUBpbnQNCj4gPiA+IGVsLmMNCj4gPiA+IG9tPiB3cm90ZToNCj4gPiA+ID4gDQo+ID4gPiA+IA0K
+PiA+ID4gPiBGcm9tOiBNYXR0aGV3IFdpbGNveCA8bWF0dGhldy5yLndpbGNveEBpbnRlbC5jb20+
+DQo+ID4gPiA+IA0KPiA+ID4gPiBkYXhfY2xlYXJfc2VjdG9ycygpIGNhbm5vdCBoYW5kbGUgcG9p
+c29uZWQgYmxvY2tzLsKgwqBUaGVzZSBtdXN0DQo+ID4gPiA+IGJlDQo+ID4gPiA+IHplcm9lZCB1
+c2luZyB0aGUgQklPIGludGVyZmFjZSBpbnN0ZWFkLsKgwqBDb252ZXJ0IGV4dDIgYW5kIFhGUw0K
+PiA+ID4gPiB0bw0KPiA+ID4gPiB1c2UNCj4gPiA+ID4gb25seSBzYl9pc3N1ZV96ZXJvdXQoKS4N
+Cj4gPiA+ID4gDQo+ID4gPiA+IFNpZ25lZC1vZmYtYnk6IE1hdHRoZXcgV2lsY294IDxtYXR0aGV3
+LnIud2lsY294QGludGVsLmNvbT4NCj4gPiA+ID4gW3Zpc2hhbDogQWxzbyByZW1vdmUgdGhlIGRh
+eF9jbGVhcl9zZWN0b3JzIGZ1bmN0aW9uIGVudGlyZWx5XQ0KPiA+ID4gPiBTaWduZWQtb2ZmLWJ5
+OiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4NCj4gPiA+ID4gLS0tDQo+
+ID4gPiA+IMKgZnMvZGF4LmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8IDMyIC0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4gPiA+IMKgZnMvZXh0Mi9pbm9kZS5jwqDC
+oMKgwqDCoMKgwqDCoHzCoMKgNyArKystLS0tDQo+ID4gPiA+IMKgZnMveGZzL3hmc19ibWFwX3V0
+aWwuYyB8wqDCoDkgLS0tLS0tLS0tDQo+ID4gPiA+IMKgaW5jbHVkZS9saW51eC9kYXguaMKgwqDC
+oMKgfMKgwqAxIC0NCj4gPiA+ID4gwqA0IGZpbGVzIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwg
+NDYgZGVsZXRpb25zKC0pDQo+ID4gPiA+IA0KPiA+ID4gPiBkaWZmIC0tZ2l0IGEvZnMvZGF4LmMg
+Yi9mcy9kYXguYw0KPiA+ID4gPiBpbmRleCBiYjdlOWY4Li5hMzA0ODFlIDEwMDY0NA0KPiA+ID4g
+PiAtLS0gYS9mcy9kYXguYw0KPiA+ID4gPiArKysgYi9mcy9kYXguYw0KPiA+ID4gPiBAQCAtNzgs
+MzggKzc4LDYgQEAgc3RydWN0IHBhZ2UgKnJlYWRfZGF4X3NlY3RvcihzdHJ1Y3QNCj4gPiA+ID4g
+YmxvY2tfZGV2aWNlDQo+ID4gPiA+ICpiZGV2LCBzZWN0b3JfdCBuKQ0KPiA+ID4gPiDCoMKgwqDC
+oMKgwqDCoMKgcmV0dXJuIHBhZ2U7DQo+ID4gPiA+IMKgfQ0KPiA+ID4gPiANCj4gPiA+ID4gLS8q
+DQo+ID4gPiA+IC0gKiBkYXhfY2xlYXJfc2VjdG9ycygpIGlzIGNhbGxlZCBmcm9tIHdpdGhpbiB0
+cmFuc2FjdGlvbg0KPiA+ID4gPiBjb250ZXh0DQo+ID4gPiA+IGZyb20gWEZTLA0KPiA+ID4gPiAt
+ICogYW5kIGhlbmNlIHRoaXMgbWVhbnMgdGhlIHN0YWNrIGZyb20gdGhpcyBwb2ludCBtdXN0IGZv
+bGxvdw0KPiA+ID4gPiBHRlBfTk9GUw0KPiA+ID4gPiAtICogc2VtYW50aWNzIGZvciBhbGwgb3Bl
+cmF0aW9ucy4NCj4gPiA+ID4gLSAqLw0KPiA+ID4gPiAtaW50IGRheF9jbGVhcl9zZWN0b3JzKHN0
+cnVjdCBibG9ja19kZXZpY2UgKmJkZXYsIHNlY3Rvcl90DQo+ID4gPiA+IF9zZWN0b3IsDQo+ID4g
+PiA+IGxvbmcgX3NpemUpDQo+ID4gPiA+IC17DQo+ID4gPiA+IC3CoMKgwqDCoMKgwqDCoHN0cnVj
+dCBibGtfZGF4X2N0bCBkYXggPSB7DQo+ID4gPiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqAuc2VjdG9yID0gX3NlY3RvciwNCj4gPiA+ID4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoC5zaXplID0gX3NpemUsDQo+ID4gPiA+IC3CoMKgwqDCoMKgwqDCoH07DQo+ID4gPiA+
+IC0NCj4gPiA+ID4gLcKgwqDCoMKgwqDCoMKgbWlnaHRfc2xlZXAoKTsNCj4gPiA+ID4gLcKgwqDC
+oMKgwqDCoMKgZG8gew0KPiA+ID4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbG9u
+ZyBjb3VudCwgc3o7DQo+ID4gPiA+IC0NCj4gPiA+ID4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoGNvdW50ID0gZGF4X21hcF9hdG9taWMoYmRldiwgJmRheCk7DQo+ID4gPiA+IC3CoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBpZiAoY291bnQgPCAwKQ0KPiA+ID4gPiAtwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldHVybiBjb3VudDsNCj4g
+PiA+ID4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHN6ID0gbWluX3QobG9uZywgY291
+bnQsIFNaXzEyOEspOw0KPiA+ID4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgY2xl
+YXJfcG1lbShkYXguYWRkciwgc3opOw0KPiA+ID4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgZGF4LnNpemUgLT0gc3o7DQo+ID4gPiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqBkYXguc2VjdG9yICs9IHN6IC8gNTEyOw0KPiA+ID4gPiAtwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgZGF4X3VubWFwX2F0b21pYyhiZGV2LCAmZGF4KTsNCj4gPiA+ID4gLcKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGNvbmRfcmVzY2hlZCgpOw0KPiA+ID4gPiAtwqDCoMKg
+wqDCoMKgwqB9IHdoaWxlIChkYXguc2l6ZSk7DQo+ID4gPiA+IC0NCj4gPiA+ID4gLcKgwqDCoMKg
+wqDCoMKgd21iX3BtZW0oKTsNCj4gPiA+ID4gLcKgwqDCoMKgwqDCoMKgcmV0dXJuIDA7DQo+ID4g
+PiA+IC19DQo+ID4gPiA+IC1FWFBPUlRfU1lNQk9MX0dQTChkYXhfY2xlYXJfc2VjdG9ycyk7DQo+
+ID4gPiBXaGF0IGFib3V0IHRoZSBvdGhlciB1bndyaXR0ZW4gZXh0ZW50IGNvbnZlcnNpb25zIGlu
+IHRoZSBkYXgNCj4gPiA+IHBhdGg/DQo+ID4gPiBTaG91bGRuJ3QgdGhvc2UgYmUgY29udmVydGVk
+IHRvIGJsb2NrLWxheWVyIHplcm8tb3V0cyBhcyB3ZWxsPw0KPiA+IENvdWxkIHlvdSBwb2ludCBt
+ZSB0byB3aGVyZSB0aGVzZSBtaWdodCBiZT8gSSB0aG91Z2h0IG9uY2Ugd2UndmUNCj4gPiBjb252
+ZXJ0ZWQgYWxsIHRoZSB6ZXJvb3V0IHR5cGUgY2FsbGVycyAoYnkgcmVtb3ZpbmcNCj4gPiBkYXhf
+Y2xlYXJfc2VjdG9ycyksDQo+ID4gYW5kIGZpeGVkIHVwIGRheF9kb19pbyB0byB0cnkgYSBkcml2
+ZXIgZmFsbGJhY2ssIHdlJ3ZlIGhhbmRsZWQgYWxsDQo+ID4gdGhlDQo+ID4gbWVkaWEgZXJyb3Ig
+Y2FzZXMgaW4gZGF4Li4NCj4gZ3JlcCBmb3IgdXNhZ2VzIG9mIGNsZWFyX3BtZW0oKS4uLiB3aGlj
+aCBJIHdhcyBob3BpbmcgdG8gZWxpbWluYXRlDQo+IGFmdGVyIHRoaXMgY2hhbmdlIHRvIHB1c2gg
+emVyb2luZyBkb3duIHRvIHRoZSBkcml2ZXIuDQoNCk9rLCBzbyBJIGxvb2tlZCBhdCB0aGVzZSwg
+YW5kIGl0IGxvb2tzIGxpa2UgdGhlIG1ham9yaXR5IG9mIGNhbGxlcnMgb2YNCmNsZWFyX3BtZW0g
+YXJlIGZyb20gdGhlIGZhdWx0IHBhdGggKGVpdGhlciBwbWQgb3IgcmVndWxhciksIGFuZCBpbg0K
+dGhvc2UgY2FzZXMgd2Ugc2hvdWxkIGJlICdwcm90ZWN0ZWQnLCBhcyB3ZSB3b3VsZCBoYXZlIGZh
+aWxlZCBhdCBhDQpwcmlvciBzdGVwIChkYXhfbWFwX2F0b21pYykuDQoNClRoZSB0d28gY2FzZXMg
+dGhhdCBtYXkgbm90IGJlIHdlbGwgaGFuZGxlZCBhcmUgdGhlIGNhbGxzIHRvDQpkYXhfemVyb19w
+YWdlX3JhbmdlIGFuZCBkYXhfdHJ1bmNhdGVfcGFnZSB3aGljaCBhcmUgY2FsbGVkIGZyb20gZmls
+ZQ0Kc3lzdGVtcy4gSSB0aGluayB3ZSBtYXkgbmVlZCB0byBkbyBhIGZhbGxiYWNrIHRvIHRoZSBk
+cml2ZXIgZm9yIHRob3NlDQpjYXNlcyBqdXN0IGxpa2Ugd2UgZG8gZm9yIGRheF9kaXJlY3RfaW8u
+LiBUaG91Z2h0cz8KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0
+dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
