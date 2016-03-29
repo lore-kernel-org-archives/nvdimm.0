@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 673691A1EBF
- for <linux-nvdimm@lists.01.org>; Mon, 14 Mar 2016 14:23:27 -0700 (PDT)
-Date: Mon, 14 Mar 2016 17:23:44 -0400
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: Re: [PATCH RFC 1/1] Add support for ZONE_DEVICE IO memory with
- struct pages.
-Message-ID: <20160314212344.GC23727@linux.intel.com>
-References: <1457979277-26791-1-git-send-email-stephen.bates@pmcs.com>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id C3CFA1A1DF3
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Mar 2016 15:18:49 -0700 (PDT)
+Date: Tue, 29 Mar 2016 16:17:47 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 10/10] dax: Remove i_mmap_lock protection
+Message-ID: <20160329221747.GB21264@linux.intel.com>
+References: <1458566575-28063-1-git-send-email-jack@suse.cz>
+ <1458566575-28063-11-git-send-email-jack@suse.cz>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <1457979277-26791-1-git-send-email-stephen.bates@pmcs.com>
+In-Reply-To: <1458566575-28063-11-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,28 +22,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Stephen Bates <stephen.bates@pmcs.com>
-Cc: haggaie@mellanox.com, javier@cnexlabs.com, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, sagig@mellanox.com, linux-mm@kvack.org, artemyko@mellanox.com, hch@infradead.org, leonro@mellanox.com, jgunthorpe@obsidianresearch.com
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, Wilcox,
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Mar 14, 2016 at 12:14:37PM -0600, Stephen Bates wrote:
-> 3. Coherency Issues. When IOMEM is written from both the CPU and a PCIe
-> peer there is potential for coherency issues and for writes to occur out
-> of order. This is something that users of this feature need to be
-> cognizant of and may necessitate the use of CONFIG_EXPERT. Though really,
-> this isn't much different than the existing situation with RDMA: if
-> userspace sets up an MR for remote use, they need to be careful about
-> using that memory region themselves.
+On Mon, Mar 21, 2016 at 02:22:55PM +0100, Jan Kara wrote:
+> Currently faults are protected against truncate by filesystem specific
+> i_mmap_sem and page lock in case of hole page. Cow faults are protected
+> DAX radix tree entry locking. So there's no need for i_mmap_lock in DAX
+> code. Remove it.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-There's more to the coherency problem than this.  As I understand it, on
-x86, memory in a PCI BAR does not participate in the coherency protocol.
-So you can get a situation where CPU A stores 4 bytes to offset 8 in a
-cacheline, then CPU B stores 4 bytes to offset 16 in the same cacheline,
-and CPU A's write mysteriously goes missing.
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-I may have misunderstood the exact details when this was explained to me a
-few years ago, but the details were horrible enough to run away screaming.
-Pretending PCI BARs are real memory?  Just Say No.
+> ---
+>  fs/dax.c | 7 -------
+>  1 file changed, 7 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 2fcf4e8a17c5..a2a370db59b7 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -795,8 +795,6 @@ static int dax_insert_mapping(struct address_space *mapping,
+>  	int error;
+>  	void *ret;
+>  
+> -	i_mmap_lock_read(mapping);
+> -
+>  	if (dax_map_atomic(bdev, &dax) < 0) {
+>  		error = PTR_ERR(dax.addr);
+>  		goto out;
+> @@ -821,7 +819,6 @@ static int dax_insert_mapping(struct address_space *mapping,
+>  
+>  	error = vm_insert_mixed(vma, vaddr, dax.pfn);
+>   out:
+> -	i_mmap_unlock_read(mapping);
+>  	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
+>  	return error;
+>  }
+> @@ -1063,8 +1060,6 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+>  		truncate_pagecache_range(inode, lstart, lend);
+>  	}
+>  
+> -	i_mmap_lock_read(mapping);
+> -
+>  	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
+>  		spinlock_t *ptl;
+>  		pmd_t entry;
+> @@ -1162,8 +1157,6 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+>  	}
+>  
+>   out:
+> -	i_mmap_unlock_read(mapping);
+> -
+>  	return result;
+>  
+>   fallback:
+> -- 
+> 2.6.2
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
