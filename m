@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id 6F0EF1A1F3D
- for <linux-nvdimm@lists.01.org>; Tue,  8 Mar 2016 15:37:43 -0800 (PST)
-Subject: [ndctl PATCH 6/8] ndctl: make test/dax-dev more robust
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 08 Mar 2016 15:36:59 -0800
-Message-ID: <20160308233659.18628.6462.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160308233628.18628.13786.stgit@dwillia2-desk3.jf.intel.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 1E7AC1A1ECF
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Mar 2016 01:31:00 -0700 (PDT)
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCH v2] libnvdimm, pmem, pfn: move pfn setup to the core
+Date: Tue, 29 Mar 2016 10:30:29 +0200
+Message-ID: <2638204.pZcbzaxJPz@c203>
+In-Reply-To: <20160325221435.32144.82024.stgit@dwillia2-desk3.jf.intel.com>
+References: <20160324012624.21436.9035.stgit@dwillia2-desk3.jf.intel.com>
+ <20160325221435.32144.82024.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,47 +19,37 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Accept a pfn-enabled configuration for the test device to make the test
-suite more reliable when restarting after a failure or forced
-termination.
+On Freitag, 25. M=E4rz 2016 15:15:30 CEST Dan Williams wrote:
+> Now that pmem internals have been disentangled from pfn setup, that code
+> can move to the core.  This is in preparation for adding another user of
+> the pfn-device capabilities.
+> =
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/dax-dev.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+> Changes in v2:
+> * Cleaned up the -ENODEV checking in nd_pfn_init() (Johannes)
 
-diff --git a/test/dax-dev.c b/test/dax-dev.c
-index 074fc9616743..3209eb148ed9 100755
---- a/test/dax-dev.c
-+++ b/test/dax-dev.c
-@@ -32,6 +32,7 @@ static int emit_e820_device(int loglevel, struct ndctl_test *test)
- 	const char *bdev;
- 	struct ndctl_ctx *ctx;
- 	struct ndctl_bus *bus;
-+	struct ndctl_pfn *pfn;
- 	struct ndctl_region *region;
- 	struct ndctl_namespace *ndns;
- 	enum ndctl_namespace_mode mode;
-@@ -61,7 +62,11 @@ static int emit_e820_device(int loglevel, struct ndctl_test *test)
- 	if (mode >= 0 && mode != NDCTL_NS_MODE_MEMORY)
- 		goto out;
- 
--	bdev = ndctl_namespace_get_block_device(ndns);
-+	pfn = ndctl_namespace_get_pfn(ndns);
-+	if (pfn)
-+		bdev = ndctl_pfn_get_block_device(pfn);
-+	else
-+		bdev = ndctl_namespace_get_block_device(ndns);
- 	if (!bdev)
- 		goto out;
- 
+Looks good,
+
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+
+-- =
+
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 
 _______________________________________________
 Linux-nvdimm mailing list
