@@ -1,13 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- by ml01.01.org (Postfix) with ESMTP id 251D51A1DF0
- for <linux-nvdimm@lists.01.org>; Wed, 16 Mar 2016 17:55:26 -0700 (PDT)
-Subject: [ndctl PATCH 2/5] ndctl: fix blk-ns test cleanup
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ by ml01.01.org (Postfix) with ESMTP id 85E881A1DF3
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Mar 2016 15:24:27 -0700 (PDT)
+Subject: [ndctl PATCH] ndctl: update minimum kernel for ARS tests
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 16 Mar 2016 17:54:40 -0700
-Message-ID: <20160317005440.3025.71496.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160317005429.3025.395.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160317005429.3025.395.stgit@dwillia2-desk3.jf.intel.com>
+Date: Tue, 29 Mar 2016 15:23:20 -0700
+Message-ID: <20160329222320.31212.67532.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,38 +21,28 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-ndctl_namespace_foreach_safe() needs to be used when a namespace is
-deleted while iterating.  Otherwise, we can walk off into uninitialized
-memory and segfault.
+In 4.6 the kernel is updated to the new ACPI 6.1 definition of the ARS
+command set.  The unit test for ARS commands expects these latest
+definitions, so disable this test by default on older kernels.
 
-Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/blk_namespaces.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ test/libndctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/test/blk_namespaces.c b/test/blk_namespaces.c
-index 968af2797feb..41c5ce0b1bd7 100644
---- a/test/blk_namespaces.c
-+++ b/test/blk_namespaces.c
-@@ -214,7 +214,7 @@ int test_blk_namespaces(int log_level)
- 	char bdev[50];
- 	struct ndctl_ctx *ctx;
- 	struct ndctl_bus *bus;
--	struct ndctl_namespace *ndns[2];
-+	struct ndctl_namespace *ndns[2], *_n;
- 	struct ndctl_region *region, *blk_region = NULL;
- 	struct ndctl_dimm *dimm;
+diff --git a/test/libndctl.c b/test/libndctl.c
+index 2dd1eb6fcb0a..0cab89208867 100644
+--- a/test/libndctl.c
++++ b/test/libndctl.c
+@@ -1847,7 +1847,7 @@ static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+ 	if (rc)
+ 		goto out;
  
-@@ -307,7 +307,7 @@ int test_blk_namespaces(int log_level)
+-	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 3, 0)))
++	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 6, 0)))
+ 		goto out;
  
-  err_cleanup:
- 	if (blk_region) {
--		ndctl_namespace_foreach(blk_region, ndns[0])
-+		ndctl_namespace_foreach_safe(blk_region, ndns[0], _n)
- 			if (ndctl_namespace_get_size(ndns[0]) != 0)
- 				disable_blk_namespace(ndns[0]);
- 	}
+ 	/* Check Bus commands */
 
 _______________________________________________
 Linux-nvdimm mailing list
