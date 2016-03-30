@@ -1,12 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 7979A1A1ECD
- for <linux-nvdimm@lists.01.org>; Wed, 23 Mar 2016 18:26:25 -0700 (PDT)
-Subject: [PATCH 00/13] prep for device-dax, untangle pfn-device setup
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 23 Mar 2016 18:25:21 -0700
-Message-ID: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id D41511A1F7E
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Mar 2016 19:00:48 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v2 0/5] dax: handling of media errors
+Date: Tue, 29 Mar 2016 19:59:45 -0600
+Message-Id: <1459303190-20072-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,63 +13,81 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The infrastructure for setting up a pfn-device (struct page memmap array
-allocation for reserved memory) is generally useful.  Untangle it from
-the pmem driver and make it available as core libnvdimm functionality.
-The motivation for this work is an investigation into a standalone
-device-dax facility, but the changes stand on their own.
+Until now, dax has been disabled if media errors were found on
+any device. This series attempts to address that.
 
-Outside of exporting nvdimm_setup_pfn() as a generic facility this also
-includes the following benefits:
+The first three patches from Dan re-enable dax even when media
+errors are present.
 
-1/ fix a section alignment vs badblocks tracking bug
+The fourth patch from Matthew removes the
+zeroout path from dax entirely, making zeroout operations always
+go through the driver (The motivation is that if a backing device
+has media errors, and we create a sparse file on it, we don't
+want the initial zeroing to happen via dax, we want to give the
+block driver a chance to clear the errors).
 
-2/ struct pmem_device sheds 24 bytes
+One pending item is addressing clear_pmem usages in dax.c. clear_pmem is
+'unsafe' as it attempts to simply memcpy, and does not go through the driver.
+We have a few options of solving this:
+ 1. Remove all usages of clear_pmem that are not sector-aligned. For the
+    ones that are aligned, replace them with a bio submission that goes
+    through the driver to clear errors.
+ 2. Export from the block layer, either an API to zero sub-sector ranges,
+    or in general, clear errors in a range. The dax attempts to clear_pmem
+    can then use either of these and not be hit be media errors.
 
-3/ struct blk_device is replaced with some (smaller in total) extensions
-   to struct nd_namespace_blk.
+I'll send out a v3 with a crack at option 1, but I wanted to get these
+changes (especially the ones in xfs) out for review.
 
-4/ Reduce pointer chasing by retrieving driver private data from
-   ->queuedata rather than bio->bi_bdev->bd_disk->private_data.
-
----
-
-Dan Williams (13):
-      libnvdimm, pfn: fix nvdimm_namespace_add_poison() vs section alignment
-      libnvdimm, pmem: kill pmem->ndns
-      libnvdimm, pfn, convert nd_pfn_probe() to devm
-      libnvdimm, btt, convert nd_btt_probe() to devm
-      libnvdimm, blk: use devm_add_action to release bdev resources
-      libnvdimm, blk: use ->queuedata for driver private data
-      libnvdimm, pmem: use ->queuedata for driver private data
-      libnvdimm, blk: move i/o infrastructure to nd_namespace_blk
-      libnvdimm, pmem: use devm_add_action to release bdev resources
-      libnvdimm, pmem: clean up resource print / request
-      libnvdimm, pmem, pfn: make pmem_rw_bytes generic and refactor pfn setup
-      libnvdimm, pmem, pfn: move pfn setup to the core
-      libnvdimm, pmem: kill ->pmem_queue and ->pmem_disk
+The fifth patch changes all the callers of dax_do_io to check for
+EIO, and fallback to direct_IO as needed. This forces the IO to
+go through the block driver, and can attempt to clear the error.
 
 
- drivers/nvdimm/blk.c              |  208 ++++++++--------
- drivers/nvdimm/btt.c              |   20 +-
- drivers/nvdimm/btt_devs.c         |   24 +-
- drivers/nvdimm/claim.c            |   61 +++++
- drivers/nvdimm/core.c             |   41 ++-
- drivers/nvdimm/nd.h               |   50 +++-
- drivers/nvdimm/pfn_devs.c         |  208 +++++++++++++++-
- drivers/nvdimm/pmem.c             |  475 +++++++++----------------------------
- include/linux/nd.h                |   11 +
- tools/testing/nvdimm/Kbuild       |    1 
- tools/testing/nvdimm/test/iomap.c |   27 ++
- 11 files changed, 579 insertions(+), 547 deletions(-)
+v2:
+ - Use blockdev_issue_zeroout in xfs instead of sb_issue_zeroout (Christoph)
+ - Un-wrapper-ize dax_do_io and leave the fallback to direct_IO to callers
+   (Christoph)
+ - Rebase to v4.6-rc1 (fixup a couple of conflicts in ext4 and xfs)
+
+
+Dan Williams (3):
+  block, dax: pass blk_dax_ctl through to drivers
+  dax: fallback from pmd to pte on error
+  dax: enable dax in the presence of known media errors (badblocks)
+
+Vishal Verma (2):
+  dax: use sb_issue_zerout instead of calling dax_clear_sectors
+  dax: handle media errors in dax_do_io
+
+ arch/powerpc/sysdev/axonram.c | 10 +++++-----
+ block/ioctl.c                 |  9 ---------
+ drivers/block/brd.c           |  9 +++++----
+ drivers/nvdimm/pmem.c         | 17 +++++++++++++----
+ drivers/s390/block/dcssblk.c  | 12 ++++++------
+ fs/block_dev.c                | 19 +++++++++++++++----
+ fs/dax.c                      | 36 ++----------------------------------
+ fs/ext2/inode.c               | 29 ++++++++++++++++++-----------
+ fs/ext4/indirect.c            | 18 +++++++++++++-----
+ fs/ext4/inode.c               | 21 ++++++++++++++-------
+ fs/xfs/xfs_aops.c             | 14 ++++++++++++--
+ fs/xfs/xfs_bmap_util.c        | 15 ++++-----------
+ include/linux/blkdev.h        |  3 +--
+ include/linux/dax.h           |  1 -
+ 14 files changed, 108 insertions(+), 105 deletions(-)
+
+-- 
+2.5.5
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
