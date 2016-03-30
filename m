@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id BA02A1A1EE0
- for <linux-nvdimm@lists.01.org>; Wed, 23 Mar 2016 18:26:42 -0700 (PDT)
-Subject: [PATCH 02/13] libnvdimm, pmem: kill pmem->ndns
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 23 Mar 2016 18:25:32 -0700
-Message-ID: <20160324012532.21436.78937.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id 72C241A1F99
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Mar 2016 14:29:58 -0700 (PDT)
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL v2] libnvdimm, pmem: hook up memcpy_mcsafe
+Date: Wed, 30 Mar 2016 21:29:26 +0000
+Message-ID: <1459373365.14360.5.camel@intel.com>
+Content-Language: en-US
+Content-ID: <940231BEC7151D4AAC773E617639D2C8@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,165 +16,109 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "mingo@kernel.org" <mingo@kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-We can derive the common namespace from other information.  We also do
-not need to cache it because all the usages are in slow paths.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/blk.c  |    2 +-
- drivers/nvdimm/btt.c  |    3 +--
- drivers/nvdimm/nd.h   |    2 +-
- drivers/nvdimm/pmem.c |   40 ++++++++++++++++++++++------------------
- 4 files changed, 25 insertions(+), 22 deletions(-)
-
-diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
-index e9ff9229d942..24649396b638 100644
---- a/drivers/nvdimm/blk.c
-+++ b/drivers/nvdimm/blk.c
-@@ -336,7 +336,7 @@ static int nd_blk_remove(struct device *dev)
- 	struct nd_blk_device *blk_dev = dev_get_drvdata(dev);
- 
- 	if (is_nd_btt(dev))
--		nvdimm_namespace_detach_btt(to_nd_btt(dev)->ndns);
-+		nvdimm_namespace_detach_btt(to_nd_btt(dev));
- 	else
- 		nd_blk_detach_disk(blk_dev);
- 	kfree(blk_dev);
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index c32cbb593600..48e036621d05 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1406,9 +1406,8 @@ int nvdimm_namespace_attach_btt(struct nd_namespace_common *ndns)
- }
- EXPORT_SYMBOL(nvdimm_namespace_attach_btt);
- 
--int nvdimm_namespace_detach_btt(struct nd_namespace_common *ndns)
-+int nvdimm_namespace_detach_btt(struct nd_btt *nd_btt)
- {
--	struct nd_btt *nd_btt = to_nd_btt(ndns->claim);
- 	struct btt *btt = nd_btt->btt;
- 
- 	btt_fini(btt);
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 875c524fafb0..b0a4ab91307b 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -263,7 +263,7 @@ struct resource *nvdimm_allocate_dpa(struct nvdimm_drvdata *ndd,
- resource_size_t nvdimm_namespace_capacity(struct nd_namespace_common *ndns);
- struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev);
- int nvdimm_namespace_attach_btt(struct nd_namespace_common *ndns);
--int nvdimm_namespace_detach_btt(struct nd_namespace_common *ndns);
-+int nvdimm_namespace_detach_btt(struct nd_btt *nd_btt);
- const char *nvdimm_namespace_disk_name(struct nd_namespace_common *ndns,
- 		char *name);
- void nvdimm_badblocks_populate(struct nd_region *nd_region,
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index e27a293bd9cc..b13b9095f620 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -35,7 +35,6 @@
- struct pmem_device {
- 	struct request_queue	*pmem_queue;
- 	struct gendisk		*pmem_disk;
--	struct nd_namespace_common *ndns;
- 
- 	/* One contiguous memory region per device */
- 	phys_addr_t		phys_addr;
-@@ -422,9 +421,8 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	return -ENXIO;
- }
- 
--static int nvdimm_namespace_detach_pfn(struct nd_namespace_common *ndns)
-+static int nvdimm_namespace_detach_pfn(struct nd_pfn *nd_pfn)
- {
--	struct nd_pfn *nd_pfn = to_nd_pfn(ndns->claim);
- 	struct pmem_device *pmem;
- 
- 	/* free pmem disk */
-@@ -523,7 +521,7 @@ static int __nvdimm_namespace_attach_pfn(struct nd_pfn *nd_pfn)
- 
- 	return rc;
-  err:
--	nvdimm_namespace_detach_pfn(ndns);
-+	nvdimm_namespace_detach_pfn(nd_pfn);
- 	return rc;
- 
- }
-@@ -559,7 +557,6 @@ static int nd_pmem_probe(struct device *dev)
- 	if (IS_ERR(pmem))
- 		return PTR_ERR(pmem);
- 
--	pmem->ndns = ndns;
- 	dev_set_drvdata(dev, pmem);
- 	ndns->rw_bytes = pmem_rw_bytes;
- 	if (devm_init_badblocks(dev, &pmem->bb))
-@@ -593,9 +590,9 @@ static int nd_pmem_remove(struct device *dev)
- 	struct pmem_device *pmem = dev_get_drvdata(dev);
- 
- 	if (is_nd_btt(dev))
--		nvdimm_namespace_detach_btt(pmem->ndns);
-+		nvdimm_namespace_detach_btt(to_nd_btt(dev));
- 	else if (is_nd_pfn(dev))
--		nvdimm_namespace_detach_pfn(pmem->ndns);
-+		nvdimm_namespace_detach_pfn(to_nd_pfn(dev));
- 	else
- 		pmem_detach_disk(pmem);
- 
-@@ -604,26 +601,33 @@ static int nd_pmem_remove(struct device *dev)
- 
- static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
- {
--	struct pmem_device *pmem = dev_get_drvdata(dev);
--	struct nd_namespace_common *ndns = pmem->ndns;
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
--	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
--	struct resource res = {
--		.start = nsio->res.start + pmem->data_offset,
--		.end = nsio->res.end,
--	};
-+	struct pmem_device *pmem = dev_get_drvdata(dev);
-+	resource_size_t offset = 0, end_trunc = 0;
-+	struct nd_namespace_common *ndns;
-+	struct nd_namespace_io *nsio;
-+	struct resource res;
- 
- 	if (event != NVDIMM_REVALIDATE_POISON)
- 		return;
- 
--	if (is_nd_pfn(dev)) {
-+	if (is_nd_btt(dev)) {
-+		struct nd_btt *nd_btt = to_nd_btt(dev);
-+
-+		ndns = nd_btt->ndns;
-+	} else if (is_nd_pfn(dev)) {
- 		struct nd_pfn *nd_pfn = to_nd_pfn(dev);
- 		struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
- 
--		res.start += __le32_to_cpu(pfn_sb->start_pad);
--		res.end -= __le32_to_cpu(pfn_sb->end_trunc);
--	}
-+		ndns = nd_pfn->ndns;
-+		offset = pmem->data_offset + __le32_to_cpu(pfn_sb->start_pad);
-+		end_trunc = __le32_to_cpu(pfn_sb->end_trunc);
-+	} else
-+		ndns = to_ndns(dev);
- 
-+	nsio = to_nd_namespace_io(&ndns->dev);
-+	res.start = nsio->res.start + offset;
-+	res.end = nsio->res.end - end_trunc;
- 	nvdimm_badblocks_populate(nd_region, &pmem->bb, &res);
- }
- 
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgorQUtBIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
+Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1mb3ItbmV4dAoK
+Tm93IHRoYXQgbWNzYWZlX21lbWNweSgpIGhhcyBsYW5kZWQsIGFuZCB0aGUgcmV0dXJuIHZhbHVl
+IHdhcyBiZWVuCmNsYXJpZmllZCBpbiBjb21taXQgY2JmOGI1YTJiNjQ5ICJ4ODYvbW0sIHg4Ni9t
+Y2U6IEZpeCByZXR1cm4KdHlwZS92YWx1ZSBmb3IgbWVtY3B5X21jc2FmZSgpIiwgbGV0J3MgaG9v
+ayB1cCBpdHMgcHJpbWFyeSB1c2FnZSBpbiB0aGUKcG1lbSBkcml2ZXIuCgpUaGUgY29tcGlsYXRp
+b24gcHJvYmxlbXMgZnJvbSB0aGUgaW5pdGlhbCBwb3N0aW5nIGhhdmUgYmVlbiBmaXhlZCwgdGhp
+cwpoYXMgYXBwZWFyZWQgaW4gYSAtbmV4dCByZWxlYXNlIHdpdGggbm8gcmVwb3J0ZWQgaXNzdWVz
+LCBhbmQgaXQgcGlja2VkCnVwIGFuIGFjayBmcm9tIEluZ28uICtBS0EtVGhlcmUgaXMgbm8gcHJl
+c3NpbmcgbmVlZCB0byBtZXJnZSB0aGlzIGluIDQuNi0KcmMyLiArQUtBLUhvd2V2ZXIsIGlmIHdl
+IHdhaXQgdW50aWwgNC43IHRoZSBuZXcgbWVtY3B5X21jc2FmZSgpIGNhcGFiaWxpdHkKd2lsbCBz
+aGlwIHdpdGhvdXQgYSB1c2VyIGluIDQuNi1maW5hbC4KCi0tLQpUaGUgZm9sbG93aW5nIGNoYW5n
+ZXMgc2luY2UgY29tbWl0IGY1NTUzMmEwYzBiOGJiNjE0OGY0ZTA3ODUzYjg3NmVmNzNiYzY5Y2E6
+CgorQUtBIExpbnV4IDQuNi1yYzEgKDIwMTYtMDMtMjYgMTY6MDM6MjQgLTA3MDApCgphcmUgYXZh
+aWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoKCitBS0EgZ2l0Oi8vZ2l0Lmtlcm5lbC5v
+cmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L252ZGltbS9udmRpbW0gbGlibnZkaW1tLWZvci1u
+ZXh0Cgpmb3IgeW91IHRvIGZldGNoIGNoYW5nZXMgdXAgdG8gZmMwYzIwMjgxMzVjN2Y3NWZjZTM2
+YjkwZTQ0ZWZiODAwM2E5MTczYjoKCitBS0EgeDg2LCBwbWVtOiB1c2UgbWVtY3B5X21jc2FmZSgp
+IGZvciBtZW1jcHlfZnJvbV9wbWVtKCkgKDIwMTYtMDMtMjggMTc6MTk6MzEgLTA3MDApCgotLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tCkRhbiBXaWxsaWFtcyAoMSk6CitBS0FBb0FDZ0FLQUFvQUNnLXg4NiwgcG1lbTogdXNlIG1l
+bWNweV9tY3NhZmUoKSBmb3IgbWVtY3B5X2Zyb21fcG1lbSgpCgpjb21taXQgZmMwYzIwMjgxMzVj
+N2Y3NWZjZTM2YjkwZTQ0ZWZiODAwM2E5MTczYgpBdXRob3I6IERhbiBXaWxsaWFtcyA8ZGFuLmou
+d2lsbGlhbXNAaW50ZWwuY29tPgpEYXRlOitBS0FBb0FDZy1UdWUgTWFyIDggMTA6MzA6MTkgMjAx
+NiAtMDgwMAoKK0FLQUFvQUNnQUtBLXg4NiwgcG1lbTogdXNlIG1lbWNweV9tY3NhZmUoKSBmb3Ig
+bWVtY3B5X2Zyb21fcG1lbSgpCitBS0FBb0FDZ0FLQQorQUtBQW9BQ2dBS0EtVXBkYXRlIHRoZSBk
+ZWZpbml0aW9uIG9mIG1lbWNweV9mcm9tX3BtZW0oKSB0byByZXR1cm4gMCBvciBhIG5lZ2F0aXZl
+CitBS0FBb0FDZ0FLQS1lcnJvciBjb2RlLitBS0FBb0EtSW1wbGVtZW50IHg4Ni9hcmNoX21lbWNw
+eV9mcm9tX3BtZW0oKSB3aXRoIG1lbWNweV9tY3NhZmUoKS4KK0FLQUFvQUNnQUtBCitBS0FBb0FD
+Z0FLQS1DYzogQm9yaXNsYXYgUGV0a292IDxicEBhbGllbjguZGU+CitBS0FBb0FDZ0FLQS1DYzog
+VG9ueSBMdWNrIDx0b255Lmx1Y2tAaW50ZWwuY29tPgorQUtBQW9BQ2dBS0EtQ2M6IFRob21hcyBH
+bGVpeG5lciA8dGdseEBsaW51dHJvbml4LmRlPgorQUtBQW9BQ2dBS0EtQ2M6IEFuZHkgTHV0b21p
+cnNraSA8bHV0b0BhbWFjYXBpdGFsLm5ldD4KK0FLQUFvQUNnQUtBLUNjOiBQZXRlciBaaWpsc3Ry
+YSA8cGV0ZXJ6QGluZnJhZGVhZC5vcmc+CitBS0FBb0FDZ0FLQS1DYzogQW5kcmV3IE1vcnRvbiA8
+YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KK0FLQUFvQUNnQUtBLUNjOiBMaW51cyBUb3J2YWxk
+cyA8dG9ydmFsZHNAbGludXgtZm91bmRhdGlvbi5vcmc+CitBS0FBb0FDZ0FLQS1BY2tlZC1ieTog
+SW5nbyBNb2xuYXIgPG1pbmdvQGtlcm5lbC5vcmc+CitBS0FBb0FDZ0FLQS1SZXZpZXdlZC1ieTog
+Um9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPgorQUtBQW9BQ2dBS0Et
+U2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Ci0t
+LQorQUtBLWFyY2gveDg2L2luY2x1ZGUvYXNtL3BtZW0uaCB8K0FLQUFvQS05ICstKy0rLSstKy0r
+LSstKy0rLQorQUtBLWRyaXZlcnMvbnZkaW1tL3BtZW0uYytBS0FBb0FDZ0FLQUFvQUNnQUtBfCtB
+S0FBb0EtNCArLSstLS0KK0FLQS1pbmNsdWRlL2xpbnV4L3BtZW0uaCtBS0FBb0FDZ0FLQUFvQUNn
+QUtBQW9BfCAyMiArLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLS0tLS0tLQorQUtBLTMg
+ZmlsZXMgY2hhbmdlZCwgMjcgaW5zZXJ0aW9ucygrLSksIDggZGVsZXRpb25zKC0pCgpkaWZmIC0t
+Z2l0IGEvYXJjaC94ODYvaW5jbHVkZS9hc20vcG1lbS5oIGIvYXJjaC94ODYvaW5jbHVkZS9hc20v
+cG1lbS5oCmluZGV4IGJmOGIzNWQyMDM1YS4uZmJjNWU5MmUxZWNjIDEwMDY0NAotLS0gYS9hcmNo
+L3g4Ni9pbmNsdWRlL2FzbS9wbWVtLmgKKy0rLSstIGIvYXJjaC94ODYvaW5jbHVkZS9hc20vcG1l
+bS5oCkBAIC00Nyw2ICstNDcsMTUgQEAgc3RhdGljIGlubGluZSB2b2lkIGFyY2hfbWVtY3B5X3Rv
+X3BtZW0odm9pZCBfX3BtZW0gKmRzdCwgY29uc3Qgdm9pZCAqc3JjLAorQUtBCQlCVUcoKTsKK0FL
+QX0KK0FLQQorLXN0YXRpYyBpbmxpbmUgaW50IGFyY2hfbWVtY3B5X2Zyb21fcG1lbSh2b2lkICpk
+c3QsIGNvbnN0IHZvaWQgX19wbWVtICpzcmMsCistCQlzaXplX3QgbikKKy17CistCWlmIChzdGF0
+aWNfY3B1X2hhcyhYODZfRkVBVFVSRV9NQ0VfUkVDT1ZFUlkpKQorLQkJcmV0dXJuIG1lbWNweV9t
+Y3NhZmUoZHN0LCAodm9pZCBfX2ZvcmNlICopIHNyYywgbik7CistCW1lbWNweShkc3QsICh2b2lk
+IF9fZm9yY2UgKikgc3JjLCBuKTsKKy0JcmV0dXJuIDA7CistfQorLQorQUtBLS8qKgorQUtBICog
+YXJjaF93bWJfcG1lbSAtIHN5bmNocm9uaXplIHdyaXRlcyB0byBwZXJzaXN0ZW50IG1lbW9yeQor
+QUtBICoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3BtZW0uYyBiL2RyaXZlcnMvbnZkaW1t
+L3BtZW0uYwppbmRleCBjYTU3MjFjMzA2YmIuLmNjMzFjNmYxZjg4ZSAxMDA2NDQKLS0tIGEvZHJp
+dmVycy9udmRpbW0vcG1lbS5jCistKy0rLSBiL2RyaXZlcnMvbnZkaW1tL3BtZW0uYwpAQCAtOTks
+NyArLTk5LDcgQEAgc3RhdGljIGludCBwbWVtX2RvX2J2ZWMoc3RydWN0IHBtZW1fZGV2aWNlICpw
+bWVtLCBzdHJ1Y3QgcGFnZSAqcGFnZSwKK0FLQQkJaWYgKHVubGlrZWx5KGJhZF9wbWVtKSkKK0FL
+QQkJCXJjID0gLUVJTzsKK0FLQQkJZWxzZSB7Ci0JCQltZW1jcHlfZnJvbV9wbWVtKG1lbSArLSBv
+ZmYsIHBtZW1fYWRkciwgbGVuKTsKKy0JCQlyYyA9IG1lbWNweV9mcm9tX3BtZW0obWVtICstIG9m
+ZiwgcG1lbV9hZGRyLCBsZW4pOworQUtBCQkJZmx1c2hfZGNhY2hlX3BhZ2UocGFnZSk7CitBS0EJ
+CX0KK0FLQQl9IGVsc2UgewpAQCAtMjk1LDcgKy0yOTUsNyBAQCBzdGF0aWMgaW50IHBtZW1fcndf
+Ynl0ZXMoc3RydWN0IG5kX25hbWVzcGFjZV9jb21tb24gKm5kbnMsCitBS0EKK0FLQQkJaWYgKHVu
+bGlrZWx5KGlzX2JhZF9wbWVtKCZwbWVtLT5iYiwgb2Zmc2V0IC8gNTEyLCBzel9hbGlnbikpKQor
+QUtBCQkJcmV0dXJuIC1FSU87Ci0JCW1lbWNweV9mcm9tX3BtZW0oYnVmLCBwbWVtLT52aXJ0X2Fk
+ZHIgKy0gb2Zmc2V0LCBzaXplKTsKKy0JCXJldHVybiBtZW1jcHlfZnJvbV9wbWVtKGJ1ZiwgcG1l
+bS0+dmlydF9hZGRyICstIG9mZnNldCwgc2l6ZSk7CitBS0EJfSBlbHNlIHsKK0FLQQkJbWVtY3B5
+X3RvX3BtZW0ocG1lbS0+dmlydF9hZGRyICstIG9mZnNldCwgYnVmLCBzaXplKTsKK0FLQQkJd21i
+X3BtZW0oKTsKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvcG1lbS5oIGIvaW5jbHVkZS9saW51
+eC9wbWVtLmgKaW5kZXggM2VjNTMwOWUyOWYzLi5hYzZkODcyY2UwNjcgMTAwNjQ0Ci0tLSBhL2lu
+Y2x1ZGUvbGludXgvcG1lbS5oCistKy0rLSBiL2luY2x1ZGUvbGludXgvcG1lbS5oCkBAIC00Miw2
+ICstNDIsMTMgQEAgc3RhdGljIGlubGluZSB2b2lkIGFyY2hfbWVtY3B5X3RvX3BtZW0odm9pZCBf
+X3BtZW0gKmRzdCwgY29uc3Qgdm9pZCAqc3JjLAorQUtBCUJVRygpOworQUtBfQorQUtBCistc3Rh
+dGljIGlubGluZSBpbnQgYXJjaF9tZW1jcHlfZnJvbV9wbWVtKHZvaWQgKmRzdCwgY29uc3Qgdm9p
+ZCBfX3BtZW0gKnNyYywKKy0JCXNpemVfdCBuKQorLXsKKy0JQlVHKCk7CistCXJldHVybiAtRUZB
+VUxUOworLX0KKy0KK0FLQS1zdGF0aWMgaW5saW5lIHNpemVfdCBhcmNoX2NvcHlfZnJvbV9pdGVy
+X3BtZW0odm9pZCBfX3BtZW0gKmFkZHIsIHNpemVfdCBieXRlcywKK0FLQQkJc3RydWN0IGlvdl9p
+dGVyICppKQorQUtBewpAQCAtNjYsMTQgKy03MywxNyBAQCBzdGF0aWMgaW5saW5lIHZvaWQgYXJj
+aF9pbnZhbGlkYXRlX3BtZW0odm9pZCBfX3BtZW0gKmFkZHIsIHNpemVfdCBzaXplKQorQUtBI2Vu
+ZGlmCitBS0EKK0FLQS0vKgotICogQXJjaGl0ZWN0dXJlcyB0aGF0IGRlZmluZSBBUkNIX0hBU19Q
+TUVNX0FQSSBtdXN0IHByb3ZpZGUKLSAqIGltcGxlbWVudGF0aW9ucyBmb3IgYXJjaF9tZW1jcHlf
+dG9fcG1lbSgpLCBhcmNoX3dtYl9wbWVtKCksCi0gKiBhcmNoX2NvcHlfZnJvbV9pdGVyX3BtZW0o
+KSwgYXJjaF9jbGVhcl9wbWVtKCksIGFyY2hfd2JfY2FjaGVfcG1lbSgpCi0gKiBhbmQgYXJjaF9o
+YXNfd21iX3BtZW0oKS4KKy0gKiBtZW1jcHlfZnJvbV9wbWVtIC0gcmVhZCBmcm9tIHBlcnNpc3Rl
+bnQgbWVtb3J5IHdpdGggZXJyb3IgaGFuZGxpbmcKKy0gKiBAZHN0OiBkZXN0aW5hdGlvbiBidWZm
+ZXIKKy0gKiBAc3JjOiBzb3VyY2UgYnVmZmVyCistICogQHNpemU6IHRyYW5zZmVyIGxlbmd0aAor
+LSAqCistICogUmV0dXJucyAwIG9uIHN1Y2Nlc3MgbmVnYXRpdmUgZXJyb3IgY29kZSBvbiBmYWls
+dXJlLgorQUtBICovCi1zdGF0aWMgaW5saW5lIHZvaWQgbWVtY3B5X2Zyb21fcG1lbSh2b2lkICpk
+c3QsIHZvaWQgX19wbWVtIGNvbnN0ICpzcmMsIHNpemVfdCBzaXplKQorLXN0YXRpYyBpbmxpbmUg
+aW50IG1lbWNweV9mcm9tX3BtZW0odm9pZCAqZHN0LCB2b2lkIF9fcG1lbSBjb25zdCAqc3JjLAor
+LQkJc2l6ZV90IHNpemUpCitBS0F7Ci0JbWVtY3B5KGRzdCwgKHZvaWQgX19mb3JjZSBjb25zdCAq
+KSBzcmMsIHNpemUpOworLQlyZXR1cm4gYXJjaF9tZW1jcHlfZnJvbV9wbWVtKGRzdCwgc3JjLCBz
+aXplKTsKK0FLQX0KK0FLQQorQUtBLXN0YXRpYyBpbmxpbmUgYm9vbCBhcmNoX2hhc19wbWVtX2Fw
+aSh2b2lkKQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpM
+aW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6
+Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
