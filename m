@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 972D21A1E3A
- for <linux-nvdimm@lists.01.org>; Tue, 29 Mar 2016 20:02:05 -0700 (PDT)
-Date: Wed, 30 Mar 2016 11:00:12 +0800
-From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH v2 5/5] dax: handle media errors in dax_do_io
-Message-ID: <201603301035.IXzhGMnJ%fengguang.wu@intel.com>
-MIME-Version: 1.0
-In-Reply-To: <1459303190-20072-6-git-send-email-vishal.l.verma@intel.com>
-Content-Disposition: inline
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id B8E011A1F87
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Mar 2016 19:00:52 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v2 5/5] dax: handle media errors in dax_do_io
+Date: Tue, 29 Mar 2016 19:59:50 -0600
+Message-Id: <1459303190-20072-6-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1459303190-20072-1-git-send-email-vishal.l.verma@intel.com>
+References: <1459303190-20072-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,69 +15,218 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, kbuild-all@01.org, Christoph Hellwig <hch@infradead.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Matthew Wilcox <matthew.r.wilcox@intel.com>
+To: linux-nvdimm@lists.01.org
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Vishal,
+dax_do_io (called for read() or write() for a dax file system) may fail
+in the presence of bad blocks or media errors. Since we expect that a
+write should clear media errors on nvdimms, make dax_do_io fall back to
+the direct_IO path, which will send down a bio to the driver, which can
+then attempt to clear the error.
 
-[auto build test WARNING on linux-nvdimm/libnvdimm-for-next]
-[also build test WARNING on v4.6-rc1 next-20160329]
-[cannot apply to xfs/for-next]
-[if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
-
-url:    https://github.com/0day-ci/linux/commits/Vishal-Verma/dax-handling-of-media-errors/20160330-100409
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-for-next
-config: x86_64-randconfig-i0-03300245 (attached as .config)
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=x86_64 
-
-Note: it may well be a FALSE warning. FWIW you are at least aware of it now.
-http://gcc.gnu.org/wiki/Better_Uninitialized_Warnings
-
-All warnings (new ones prefixed by >>):
-
-   fs/ext4/indirect.c: In function 'ext4_ind_direct_IO':
->> fs/ext4/indirect.c:719:11: warning: 'ret_saved' may be used uninitialized in this function [-Wmaybe-uninitialized]
-      ssize_t ret_saved = 0;
-              ^
-
-vim +/ret_saved +719 fs/ext4/indirect.c
-
-   703			smp_mb();
-   704			if (unlikely(ext4_test_inode_state(inode,
-   705							    EXT4_STATE_DIOREAD_LOCK))) {
-   706				inode_dio_end(inode);
-   707				goto locked;
-   708			}
-   709			if (IS_DAX(inode))
-   710				ret = dax_do_io(iocb, inode, iter, offset,
-   711						ext4_dio_get_block, NULL, 0);
-   712			else
-   713				ret = __blockdev_direct_IO(iocb, inode,
-   714							   inode->i_sb->s_bdev, iter,
-   715							   offset, ext4_dio_get_block,
-   716							   NULL, NULL, 0);
-   717			inode_dio_end(inode);
-   718		} else {
- > 719			ssize_t ret_saved = 0;
-   720	
-   721	locked:
-   722			if (IS_DAX(inode)) {
-   723				ret = dax_do_io(iocb, inode, iter, offset,
-   724						ext4_dio_get_block, NULL, DIO_LOCKING);
-   725				if (ret == -EIO && iov_iter_rw(iter) == WRITE)
-   726					ret_saved = ret;
-   727				else
-
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ fs/block_dev.c     | 17 ++++++++++++++---
+ fs/ext2/inode.c    | 22 +++++++++++++++-------
+ fs/ext4/indirect.c | 18 +++++++++++++-----
+ fs/ext4/inode.c    | 21 ++++++++++++++-------
+ fs/xfs/xfs_aops.c  | 14 ++++++++++++--
+ 5 files changed, 68 insertions(+), 24 deletions(-)
+
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index c5837fa..d6113b9 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -166,13 +166,24 @@ blkdev_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = bdev_file_inode(file);
++	ssize_t ret, ret_saved = 0;
+ 
+-	if (IS_DAX(inode))
+-		return dax_do_io(iocb, inode, iter, offset, blkdev_get_block,
++	if (IS_DAX(inode)) {
++		ret = dax_do_io(iocb, inode, iter, offset, blkdev_get_block,
+ 				NULL, DIO_SKIP_DIO_COUNT);
+-	return __blockdev_direct_IO(iocb, inode, I_BDEV(inode), iter, offset,
++		if (ret == -EIO && (iov_iter_rw(iter) == WRITE))
++			ret_saved = ret;
++		else
++			return ret;
++	}
++
++	ret = __blockdev_direct_IO(iocb, inode, I_BDEV(inode), iter, offset,
+ 				    blkdev_get_block, NULL, NULL,
+ 				    DIO_SKIP_DIO_COUNT);
++	if (ret < 0 && ret_saved)
++		return ret_saved;
++
++	return ret;
+ }
+ 
+ int __sync_blockdev(struct block_device *bdev, int wait)
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 824f249..64792c6 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -859,14 +859,22 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
+ 	struct address_space *mapping = file->f_mapping;
+ 	struct inode *inode = mapping->host;
+ 	size_t count = iov_iter_count(iter);
+-	ssize_t ret;
++	ssize_t ret, ret_saved = 0;
+ 
+-	if (IS_DAX(inode))
+-		ret = dax_do_io(iocb, inode, iter, offset, ext2_get_block, NULL,
+-				DIO_LOCKING);
+-	else
+-		ret = blockdev_direct_IO(iocb, inode, iter, offset,
+-					 ext2_get_block);
++	if (IS_DAX(inode)) {
++		ret = dax_do_io(iocb, inode, iter, offset, ext2_get_block,
++				NULL, DIO_LOCKING | DIO_SKIP_HOLES);
++		if (ret == -EIO && iov_iter_rw(iter) == WRITE)
++			ret_saved = ret;
++		else
++			goto out;
++	}
++
++	ret = blockdev_direct_IO(iocb, inode, iter, offset, ext2_get_block);
++	if (ret < 0 && ret_saved)
++		ret = ret_saved;
++
++ out:
+ 	if (ret < 0 && iov_iter_rw(iter) == WRITE)
+ 		ext2_write_failed(mapping, offset + count);
+ 	return ret;
+diff --git a/fs/ext4/indirect.c b/fs/ext4/indirect.c
+index 3027fa6..798f341 100644
+--- a/fs/ext4/indirect.c
++++ b/fs/ext4/indirect.c
+@@ -716,14 +716,22 @@ retry:
+ 						   NULL, NULL, 0);
+ 		inode_dio_end(inode);
+ 	} else {
++		ssize_t ret_saved = 0;
++
+ locked:
+-		if (IS_DAX(inode))
++		if (IS_DAX(inode)) {
+ 			ret = dax_do_io(iocb, inode, iter, offset,
+ 					ext4_dio_get_block, NULL, DIO_LOCKING);
+-		else
+-			ret = blockdev_direct_IO(iocb, inode, iter, offset,
+-						 ext4_dio_get_block);
+-
++			if (ret == -EIO && iov_iter_rw(iter) == WRITE)
++				ret_saved = ret;
++			else
++				goto skip_dio;
++		}
++		ret = blockdev_direct_IO(iocb, inode, iter, offset,
++					 ext4_get_block);
++		if (ret < 0 && ret_saved)
++			ret = ret_saved;
++skip_dio:
+ 		if (unlikely(iov_iter_rw(iter) == WRITE && ret < 0)) {
+ 			loff_t isize = i_size_read(inode);
+ 			loff_t end = offset + count;
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index dab84a2..27f07c2 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3341,7 +3341,7 @@ static ssize_t ext4_ext_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+-	ssize_t ret;
++	ssize_t ret, ret_saved = 0;
+ 	size_t count = iov_iter_count(iter);
+ 	int overwrite = 0;
+ 	get_block_t *get_block_func = NULL;
+@@ -3401,15 +3401,22 @@ static ssize_t ext4_ext_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
+ #ifdef CONFIG_EXT4_FS_ENCRYPTION
+ 	BUG_ON(ext4_encrypted_inode(inode) && S_ISREG(inode->i_mode));
+ #endif
+-	if (IS_DAX(inode))
++	if (IS_DAX(inode)) {
+ 		ret = dax_do_io(iocb, inode, iter, offset, get_block_func,
+ 				ext4_end_io_dio, dio_flags);
+-	else
+-		ret = __blockdev_direct_IO(iocb, inode,
+-					   inode->i_sb->s_bdev, iter, offset,
+-					   get_block_func,
+-					   ext4_end_io_dio, NULL, dio_flags);
++		if (ret == -EIO && iov_iter_rw(iter) == WRITE)
++			ret_saved = ret;
++		else
++			goto skip_dio;
++	}
+ 
++	ret = __blockdev_direct_IO(iocb, inode,
++				   inode->i_sb->s_bdev, iter, offset,
++				   get_block_func,
++				   ext4_end_io_dio, NULL, dio_flags);
++	if (ret < 0 && ret_saved)
++		ret = ret_saved;
++ skip_dio:
+ 	if (ret > 0 && !overwrite && ext4_test_inode_state(inode,
+ 						EXT4_STATE_DIO_UNWRITTEN)) {
+ 		int err;
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index d445a64..7cfcf86 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -1413,6 +1413,7 @@ xfs_vm_direct_IO(
+ 	dio_iodone_t		*endio = NULL;
+ 	int			flags = 0;
+ 	struct block_device	*bdev;
++	ssize_t 		ret, ret_saved = 0;
+ 
+ 	if (iov_iter_rw(iter) == WRITE) {
+ 		endio = xfs_end_io_direct_write;
+@@ -1420,13 +1421,22 @@ xfs_vm_direct_IO(
+ 	}
+ 
+ 	if (IS_DAX(inode)) {
+-		return dax_do_io(iocb, inode, iter, offset,
++		ret = dax_do_io(iocb, inode, iter, offset,
+ 				 xfs_get_blocks_direct, endio, 0);
++		if (ret == -EIO && iov_iter_rw(iter) == WRITE)
++			ret_saved = ret;
++		else
++			return ret;
+ 	}
+ 
+ 	bdev = xfs_find_bdev_for_inode(inode);
+-	return  __blockdev_direct_IO(iocb, inode, bdev, iter, offset,
++	ret = __blockdev_direct_IO(iocb, inode, bdev, iter, offset,
+ 			xfs_get_blocks_direct, endio, NULL, flags);
++
++	if (ret < 0 && ret_saved)
++		ret = ret_saved;
++
++	return ret;
+ }
+ 
+ /*
+-- 
+2.5.5
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
