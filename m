@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id 48FD11A1E3F
- for <linux-nvdimm@lists.01.org>; Mon, 29 Feb 2016 18:56:57 -0800 (PST)
-Subject: [PATCH 1/2] libnvdimm,
- pmem: fix 'pfn' support for section-misaligned namespaces
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 29 Feb 2016 18:56:26 -0800
-Message-ID: <20160301025626.12812.4840.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20160301025620.12812.87268.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160301025620.12812.87268.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id 972D21A1E3A
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Mar 2016 20:02:05 -0700 (PDT)
+Date: Wed, 30 Mar 2016 11:00:12 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v2 5/5] dax: handle media errors in dax_do_io
+Message-ID: <201603301035.IXzhGMnJ%fengguang.wu@intel.com>
 MIME-Version: 1.0
+In-Reply-To: <1459303190-20072-6-git-send-email-vishal.l.verma@intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,74 +20,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, kbuild-all@01.org, Christoph Hellwig <hch@infradead.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Matthew Wilcox <matthew.r.wilcox@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The altmap for a section-misaligned namespace needs to arrange for the
-base_pfn to be section-aligned.  As a result the 'reserve' region (pfns
-from base that do not have a struct page) must be increased.  Otherwise
-we trip the altmap validation check in __add_pages:
+Hi Vishal,
 
-	if (altmap->base_pfn != phys_start_pfn
-			|| vmem_altmap_offset(altmap) > nr_pages) {
-		pr_warn_once("memory add fail, invalid altmap\n");
-		return -EINVAL;
-	}
+[auto build test WARNING on linux-nvdimm/libnvdimm-for-next]
+[also build test WARNING on v4.6-rc1 next-20160329]
+[cannot apply to xfs/for-next]
+[if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+url:    https://github.com/0day-ci/linux/commits/Vishal-Verma/dax-handling-of-media-errors/20160330-100409
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-for-next
+config: x86_64-randconfig-i0-03300245 (attached as .config)
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=x86_64 
+
+Note: it may well be a FALSE warning. FWIW you are at least aware of it now.
+http://gcc.gnu.org/wiki/Better_Uninitialized_Warnings
+
+All warnings (new ones prefixed by >>):
+
+   fs/ext4/indirect.c: In function 'ext4_ind_direct_IO':
+>> fs/ext4/indirect.c:719:11: warning: 'ret_saved' may be used uninitialized in this function [-Wmaybe-uninitialized]
+      ssize_t ret_saved = 0;
+              ^
+
+vim +/ret_saved +719 fs/ext4/indirect.c
+
+   703			smp_mb();
+   704			if (unlikely(ext4_test_inode_state(inode,
+   705							    EXT4_STATE_DIOREAD_LOCK))) {
+   706				inode_dio_end(inode);
+   707				goto locked;
+   708			}
+   709			if (IS_DAX(inode))
+   710				ret = dax_do_io(iocb, inode, iter, offset,
+   711						ext4_dio_get_block, NULL, 0);
+   712			else
+   713				ret = __blockdev_direct_IO(iocb, inode,
+   714							   inode->i_sb->s_bdev, iter,
+   715							   offset, ext4_dio_get_block,
+   716							   NULL, NULL, 0);
+   717			inode_dio_end(inode);
+   718		} else {
+ > 719			ssize_t ret_saved = 0;
+   720	
+   721	locked:
+   722			if (IS_DAX(inode)) {
+   723				ret = dax_do_io(iocb, inode, iter, offset,
+   724						ext4_dio_get_block, NULL, DIO_LOCKING);
+   725				if (ret == -EIO && iov_iter_rw(iter) == WRITE)
+   726					ret_saved = ret;
+   727				else
+
 ---
- drivers/nvdimm/pmem.c |   29 +++++++++++++++++++++++++++--
- 1 file changed, 27 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index efc2a5e671c6..6a6283ab974c 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -356,6 +356,31 @@ static int nvdimm_namespace_detach_pfn(struct nd_namespace_common *ndns)
- 	return 0;
- }
- 
-+/*
-+ * We hotplug memory at section granularity, pad the reserved area from
-+ * the previous section base to the namespace base address.
-+ */
-+static unsigned long init_altmap_base(resource_size_t base)
-+{
-+	unsigned long base_pfn = __phys_to_pfn(base);
-+
-+#ifdef CONFIG_SPARSEMEM
-+	base_pfn = SECTION_ALIGN_DOWN(base_pfn);
-+#endif
-+	return base_pfn;
-+}
-+
-+static unsigned long init_altmap_reserve(resource_size_t base)
-+{
-+	unsigned long base_pfn = __phys_to_pfn(base);
-+	unsigned long reserve = __phys_to_pfn(SZ_8K);
-+
-+#ifdef CONFIG_SPARSEMEM
-+	reserve += base_pfn - SECTION_ALIGN_DOWN(base_pfn);
-+#endif
-+	return reserve;
-+}
-+
- static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
- {
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
-@@ -369,8 +394,8 @@ static int nvdimm_namespace_attach_pfn(struct nd_namespace_common *ndns)
- 	phys_addr_t offset;
- 	int rc;
- 	struct vmem_altmap __altmap = {
--		.base_pfn = __phys_to_pfn(nsio->res.start),
--		.reserve = __phys_to_pfn(SZ_8K),
-+		.base_pfn = init_altmap_base(nsio->res.start),
-+		.reserve = init_altmap_reserve(nsio->res.start),
- 	};
- 
- 	if (!nd_pfn->uuid || !nd_pfn->ndns)
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
