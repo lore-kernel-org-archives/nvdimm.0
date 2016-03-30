@@ -1,11 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id DC86B1A1E84
- for <linux-nvdimm@lists.01.org>; Thu, 24 Mar 2016 16:18:14 -0700 (PDT)
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 7D00A1A1F87
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Mar 2016 19:00:52 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 0/5] dax: handling of media errors
-Date: Thu, 24 Mar 2016 17:17:25 -0600
-Message-Id: <1458861450-17705-1-git-send-email-vishal.l.verma@intel.com>
+Subject: [PATCH v2 3/5] dax: enable dax in the presence of known media errors
+ (badblocks)
+Date: Tue, 29 Mar 2016 19:59:48 -0600
+Message-Id: <1459303190-20072-4-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1459303190-20072-1-git-send-email-vishal.l.verma@intel.com>
+References: <1459303190-20072-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,54 +22,65 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Dave Chinner <david@fromorbit.com>, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Until now, dax has been disabled if media errors were found on
-any device. This series attempts to address that.
+From: Dan Williams <dan.j.williams@intel.com>
 
-The first three patches from Dan re-enable dax even when media
-errors are present.
+1/ If a mapping overlaps a bad sector fail the request.
 
-The fourth patch from Matthew removes the
-zeroout path from dax entirely, making zeroout operations always
-go through the driver (The motivation is that if a backing device
-has media errors, and we create a sparse file on it, we don't
-want the initial zeroing to happen via dax, we want to give the
-block driver a chance to clear the errors).
+2/ Do not opportunistically report more dax-capable capacity than is
+   requested when errors present.
 
-The fifth patch changes the behaviour of dax_do_io by adding a
-wrapper around it that is passed all the arguments also needed by
-__blockdev_do_direct_IO. If (the new) __dax_do_io fails with -EIO
-due to a bad block, we simply retry with the direct_IO path which
-forces the IO to go through the block driver, and can attempt to
-clear the error.
+[vishal: fix a conflict with system RAM collision patches]
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ block/ioctl.c         | 9 ---------
+ drivers/nvdimm/pmem.c | 8 ++++++++
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-Dan Williams (3):
-  block, dax: pass blk_dax_ctl through to drivers
-  dax: fallback from pmd to pte on error
-  dax: enable dax in the presence of known media errors (badblocks)
-
-Vishal Verma (2):
-  dax: use sb_issue_zerout instead of calling dax_clear_sectors
-  dax: handle media errors in dax_do_io
-
- arch/powerpc/sysdev/axonram.c | 10 +++----
- block/ioctl.c                 |  9 ------
- drivers/block/brd.c           |  9 +++---
- drivers/nvdimm/pmem.c         | 17 ++++++++---
- drivers/s390/block/dcssblk.c  | 12 ++++----
- fs/block_dev.c                |  7 +++--
- fs/dax.c                      | 70 +++++++++++++++++++++----------------------
- fs/ext2/inode.c               | 12 ++++----
- fs/ext4/indirect.c            | 11 ++++---
- fs/ext4/inode.c               |  5 ++--
- fs/xfs/xfs_aops.c             |  7 +++--
- fs/xfs/xfs_bmap_util.c        |  9 ------
- include/linux/blkdev.h        |  3 +-
- include/linux/dax.h           |  7 +++--
- 14 files changed, 93 insertions(+), 95 deletions(-)
-
+diff --git a/block/ioctl.c b/block/ioctl.c
+index d8996bb..cd7f392 100644
+--- a/block/ioctl.c
++++ b/block/ioctl.c
+@@ -423,15 +423,6 @@ bool blkdev_dax_capable(struct block_device *bdev)
+ 			|| (bdev->bd_part->nr_sects % (PAGE_SIZE / 512)))
+ 		return false;
+ 
+-	/*
+-	 * If the device has known bad blocks, force all I/O through the
+-	 * driver / page cache.
+-	 *
+-	 * TODO: support finer grained dax error handling
+-	 */
+-	if (disk->bb && disk->bb->count)
+-		return false;
+-
+ 	return true;
+ }
+ #endif
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index da10554..eac5f93 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -174,9 +174,17 @@ static long pmem_direct_access(struct block_device *bdev,
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
+ 	resource_size_t offset = sector * 512 + pmem->data_offset;
+ 
++	if (unlikely(is_bad_pmem(&pmem->bb, sector, dax->size)))
++		return -EIO;
+ 	dax->addr = pmem->virt_addr + offset;
+ 	dax->pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
+ 
++	/*
++	 * If badblocks are present, limit known good range to the
++	 * requested range.
++	 */
++	if (unlikely(pmem->bb.count))
++		return dax->size;
+ 	return pmem->size - pmem->pfn_pad - offset;
+ }
+ 
 -- 
 2.5.5
 
