@@ -1,15 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3427.houston.hp.com (g4t3427.houston.hp.com [15.201.208.55])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1DFB91A1F5B
- for <linux-nvdimm@lists.01.org>; Wed,  9 Mar 2016 10:54:53 -0800 (PST)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 3/4] resource: Export insert_resource and remove_resource
-Date: Wed,  9 Mar 2016 12:47:05 -0700
-Message-Id: <1457552826-13987-3-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1457552826-13987-1-git-send-email-toshi.kani@hpe.com>
-References: <1457552826-13987-1-git-send-email-toshi.kani@hpe.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E0BFA1A1E3A
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Mar 2016 00:49:27 -0700 (PDT)
+Date: Wed, 30 Mar 2016 09:49:26 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 4/5] dax: use sb_issue_zerout instead of calling
+ dax_clear_sectors
+Message-ID: <20160330074926.GC12776@quack.suse.cz>
+References: <1458861450-17705-1-git-send-email-vishal.l.verma@intel.com>
+ <1458861450-17705-5-git-send-email-vishal.l.verma@intel.com>
+ <CAPcyv4iKK=1Nhz4QqEkhc4gum+UvUS4a=+Sza2zSa1Kyrth41w@mail.gmail.com>
+ <1458939796.5501.8.camel@intel.com>
+ <CAPcyv4jWqVcav7dQPh7WHpqB6QDrCezO5jbd9QW9xH3zsU4C1w@mail.gmail.com>
+ <1459195288.15523.3.camel@intel.com>
+ <CAPcyv4jFwh679arTNoUzLZpJCSoR+KhMdEmwqddCU1RWOrjD=Q@mail.gmail.com>
+ <1459277829.6412.3.camel@intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1459277829.6412.3.camel@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,53 +27,42 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "axboe@fb.com" <axboe@fb.com>, "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "david@fromorbit.com" <david@fromorbit.com>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Wilcox,
 List-ID: <linux-nvdimm@lists.01.org>
 
-insert_resource() and remove_resouce() are called by producers
-of resources, such as FW modules and bus drivers.  These modules
-may be implemented as loadable modules.
+On Tue 29-03-16 18:57:16, Verma, Vishal L wrote:
+> On Mon, 2016-03-28 at 16:34 -0700, Dan Williams wrote:
+> =
 
-Export insert_resource() and remove_resouce() so that they can
-be called from such modules.
+> <>
+> =
 
-link: https://lkml.org/lkml/2016/3/8/872
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
----
- kernel/resource.c |    2 ++
- 1 file changed, 2 insertions(+)
+> > Seems kind of sad to fail the fault due to a bad block when we were
+> > going to zero it anyway, right?=A0=A0I'm not seeing a compelling reason=
+ to
+> > keep any zeroing in fs/dax.c.
+> =
 
-diff --git a/kernel/resource.c b/kernel/resource.c
-index effb6ee..2e78ead 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -866,6 +866,7 @@ int insert_resource(struct resource *parent, struct resource *new)
- 	conflict = insert_resource_conflict(parent, new);
- 	return conflict ? -EBUSY : 0;
- }
-+EXPORT_SYMBOL_GPL(insert_resource);
- 
- /**
-  * insert_resource_expand_to_fit - Insert a resource into the resource tree
-@@ -925,6 +926,7 @@ int remove_resource(struct resource *old)
- 	write_unlock(&resource_lock);
- 	return retval;
- }
-+EXPORT_SYMBOL_GPL(remove_resource);
- 
- static int __adjust_resource(struct resource *res, resource_size_t start,
- 				resource_size_t size)
+> Agreed - but how do we do this? clear_pmem needs to be able to clear an
+> arbitrary number of bytes, but to go through the driver, we'd need to
+> send down a bio? If only the driver had an rw_bytes like interface that
+> could be used by anyone... :)
+
+Actually, my patches for page fault locking remove zeroing from
+dax_insert_mapping() and __dax_pmd_fault() - the zeroing now happens from
+the filesystem only and the zeroing in those two functions is just a dead
+code...
+
+								Honza
+-- =
+
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
