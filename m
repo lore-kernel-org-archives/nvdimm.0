@@ -1,87 +1,86 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id 520301A1ED4
- for <linux-nvdimm@lists.01.org>; Wed, 23 Mar 2016 18:27:01 -0700 (PDT)
-Subject: [PATCH 07/13] libnvdimm, pmem: use ->queuedata for driver private data
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 23 Mar 2016 18:25:58 -0700
-Message-ID: <20160324012558.21436.93381.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160324012520.21436.22505.stgit@dwillia2-desk3.jf.intel.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: NeilBrown <neilb@suse.com>
+Date: Fri, 01 Apr 2016 11:34:56 +1100
+Subject: Re: [PATCH 12/12] dax: New fault locking
+In-Reply-To: <20160331085449.GB11041@quack.suse.cz>
+References: <1457637535-21633-1-git-send-email-jack@suse.cz> <1457637535-21633-13-git-send-email-jack@suse.cz> <87h9gdj3dt.fsf@notabene.neil.brown.name> <87egbbh1cr.fsf@notabene.neil.brown.name> <20160318141618.GF7152@quack.suse.cz> <20160318153919.GG7152@quack.suse.cz> <87h9fycj71.fsf@notabene.neil.brown.name> <20160323110011.GD4512@quack.suse.cz> <87oa9vs2hb.fsf@notabene.neil.brown.name> <20160331085449.GB11041@quack.suse.cz>
+Message-ID: <87oa9uqi8f.fsf@notabene.neil.brown.name>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha256; protocol="application/pgp-signature"
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Save a pointer chase by storing the driver private data in the
-request_queue rather than the gendisk.
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pmem.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+On Thu, Mar 31 2016, Jan Kara wrote:
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 1e492c66d105..ff336dd26064 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -121,8 +121,7 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
- 	unsigned long start;
- 	struct bio_vec bvec;
- 	struct bvec_iter iter;
--	struct block_device *bdev = bio->bi_bdev;
--	struct pmem_device *pmem = bdev->bd_disk->private_data;
-+	struct pmem_device *pmem = q->queuedata;
- 
- 	do_acct = nd_iostat_start(bio, &start);
- 	bio_for_each_segment(bvec, bio, iter) {
-@@ -147,7 +146,7 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
- static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- 		       struct page *page, int rw)
- {
--	struct pmem_device *pmem = bdev->bd_disk->private_data;
-+	struct pmem_device *pmem = bdev->bd_queue->queuedata;
- 	int rc;
- 
- 	rc = pmem_do_bvec(pmem, page, PAGE_CACHE_SIZE, 0, rw, sector);
-@@ -169,7 +168,7 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- static long pmem_direct_access(struct block_device *bdev, sector_t sector,
- 		      void __pmem **kaddr, pfn_t *pfn)
- {
--	struct pmem_device *pmem = bdev->bd_disk->private_data;
-+	struct pmem_device *pmem = bdev->bd_queue->queuedata;
- 	resource_size_t offset = sector * 512 + pmem->data_offset;
- 
- 	*kaddr = pmem->virt_addr + offset;
-@@ -253,6 +252,7 @@ static int pmem_attach_disk(struct device *dev,
- 	blk_queue_max_hw_sectors(pmem->pmem_queue, UINT_MAX);
- 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
- 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, pmem->pmem_queue);
-+	pmem->pmem_queue->queuedata = pmem;
- 
- 	disk = alloc_disk_node(0, nid);
- 	if (!disk) {
-@@ -261,7 +261,6 @@ static int pmem_attach_disk(struct device *dev,
- 	}
- 
- 	disk->fops		= &pmem_fops;
--	disk->private_data	= pmem;
- 	disk->queue		= pmem->pmem_queue;
- 	disk->flags		= GENHD_FL_EXT_DEVT;
- 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
+> On Thu 31-03-16 15:20:00, NeilBrown wrote:
+>> On Wed, Mar 23 2016, Jan Kara wrote:
+>>=20
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+>> > But how does this really help? If lookup_unlocked_mapping_entry() finds
+>> > there is no entry (and it was there before), the process deleting the =
+entry
+>> > (or replacing it with something else) is responsible for waking up
+>> > everybody.
+>>=20
+>> "everybody" - yes.  But it doesn't wake everybody does it?  It just
+>> wakes one.
+>>=20
+>> +		__wake_up(wq, TASK_NORMAL, 1, &key);
+>>                                            ^one!
+>>=20
+>> Or am I misunderstanding how exclusive waiting works?
+>
+> Ah, OK. I have already fixed that in my local version of the patches so
+> that we wake-up everybody after deleting the entry but forgot to tell you.
+> So I have there now:
+>
+> 		__wake_up(wq, TASK_NORMAL, 0, &key);
+
+"0" meaning "MAX_INT+1" (or something).  I didn't realize you could do
+that, but it makes perfect sense.
+
+>
+> Are you OK with the code now?
+
+Certainly less unhappy.  Assume that I am OK but I'll try to have
+another look when you post again and make sure any lingering doubts are
+gone.
+
+Thanks,
+NeilBrown
+
+
+>
+> 								Honza
+> --=20
+> Jan Kara <jack@suse.com>
+> SUSE Labs, CR
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJW/cIwAAoJEDnsnt1WYoG5kGUQALop5KpnCN+YoMcvSfZpcO4n
+Ss3k8U/fk16Yw+W0vrcFcbazFcPBCdCHOAYXNQnLw2IqfE00HdBe/IiSo5ndcFTG
+HV4AU4PeZw0bB96k5p0aHsnnIkAcv95OQslcC2kcbnPNx8UTleQG6cqLb6QQuxVT
+bGeHPwV9id31Ks3MGqJncqebFw0LipJ+VIl7bLGA4yprYYoxnYJW/QaTcf6Sa7VX
+/kxZ5rfSYMX9uKjuvE7QACVUV7Z0m5Yci6b/YX/wQTOopckHozFz50qWekcNsoyt
+w8WhFvyNdfiCFLjBNq9aKrHzlkqs0HHWeod3b7cR3HiOqS5of+tO9rX5bq2/8dVu
+mYLO2Z6lKPhIw2BfrM0kt2xuvsSVdFizJccVaj0BOKZvgA/Fyt3h6cd19s07Vhrv
+Q0FAduYuiRCNCZsG84RFwhFwSAoCf973CDK7OWdhLYoTh5pWD9w85rbLsoPOllm7
+naH0m6JDytWTCXFLYwPExl37u1dfLCDWfgBngA0vNhtHztTKGGpZkI+nPD/qYYN9
+0IIT0MZoCYMNKHgnjJu9CrR6Hmbp89RTj34s3WozCD4/cD+bzwKtfutEKw4HXV4B
+OV1HKY1LMOPVZOyIYa81tDIQjiL37FBbFpo3FG57laROutOHtk0R7nuBa7RGaMmr
+xktDpB8QB5uh+DyvKZp1
+=tDMz
+-----END PGP SIGNATURE-----
+--=-=-=--
