@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 92B7D1A1E0B
- for <linux-nvdimm@lists.01.org>; Thu,  7 Apr 2016 10:41:13 -0700 (PDT)
-Date: Thu, 7 Apr 2016 13:41:11 -0400
-From: Matthew Wilcox <willy@linux.intel.com>
+Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 28E4C1A1FB5
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Apr 2016 10:52:57 -0700 (PDT)
+Message-ID: <1459964672.20338.41.camel@hpe.com>
 Subject: Re: [PATCH] x86 get_unmapped_area: Add PMD alignment for DAX PMD mmap
-Message-ID: <20160407174111.GG2781@linux.intel.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Wed, 06 Apr 2016 11:44:32 -0600
+In-Reply-To: <20160406165027.GA2781@linux.intel.com>
 References: <1459951089-14911-1-git-send-email-toshi.kani@hpe.com>
  <20160406165027.GA2781@linux.intel.com>
- <1459964672.20338.41.camel@hpe.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1459964672.20338.41.camel@hpe.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,46 +19,77 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>
+To: Matthew Wilcox <willy@linux.intel.com>
 Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-mm@kvack.org, hpa@zytor.com, tglx@linutronix.de, bp@suse.de, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Apr 06, 2016 at 11:44:32AM -0600, Toshi Kani wrote:
-> > The NVML chooses appropriate addresses and gets a properly aligned
-> > address without any kernel code.
-> =
-
-> An application like NVML can continue to specify a specific address to
-> mmap(). =A0Most existing applications, however, do not specify an address=
- to
-> mmap(). =A0With this patch, specifying an address will remain optional.
-
-The point is that this *can* be done in userspace.  You need to sell us
-on the advantages of doing it in the kernel.
-
-> > I think this is the wrong place for it, if we decide that this is the
-> > right thing to do.=A0=A0The filesystem has a get_unmapped_area() which
-> > should be used instead.
-> =
-
-> Yes, I considered adding a filesystem entry point, but decided going this
-> way because:
-> =A0-=A0arch_get_unmapped_area() and=A0arch_get_unmapped_area_topdown() ar=
-e arch-
-> specific code. =A0Therefore, this filesystem entry point will need arch-
-> specific implementation.=A0
-> =A0- There is nothing filesystem specific about requesting PMD alignment.
-
-See http://article.gmane.org/gmane.linux.kernel.mm/149227 for Hugh's
-approach for shmem.  I strongly believe that if we're going to do this
-i the kernel, we should build on this approach, and not hack something
-into each architecture's generic get_unmapped_area.
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gV2VkLCAyMDE2LTA0LTA2IGF0IDEyOjUwIC0wNDAwLCBNYXR0aGV3IFdpbGNveCB3cm90ZToK
+PiBPbiBXZWQsIEFwciAwNiwgMjAxNiBhdCAwNzo1ODowOUFNIC0wNjAwLCBUb3NoaSBLYW5pIHdy
+b3RlOgo+ID4gCj4gPiBXaGVuIENPTkZJR19GU19EQVhfUE1EIGlzIHNldCwgREFYIHN1cHBvcnRz
+IG1tYXAoKSB1c2luZyBQTUQgcGFnZQo+ID4gc2l6ZS7CoMKgVGhpcyBmZWF0dXJlIHJlbGllcyBv
+biBib3RoIG1tYXAgdmlydHVhbCBhZGRyZXNzIGFuZCBGUwo+ID4gYmxvY2sgZGF0YSAoaS5lLiBw
+aHlzaWNhbCBhZGRyZXNzKSB0byBiZSBhbGlnbmVkIGJ5IHRoZSBQTUQgcGFnZQo+ID4gc2l6ZS7C
+oMKgVXNlcnMgY2FuIHVzZSBta2ZzIG9wdGlvbnMgdG8gc3BlY2lmeSBGUyB0byBhbGlnbiBibG9j
+awo+ID4gYWxsb2NhdGlvbnMuwqDCoEhvd2V2ZXIsIGFsaWduaW5nIG1tYXAoKSBhZGRyZXNzIHJl
+cXVpcmVzIGFwcGxpY2F0aW9uCj4gPiBjaGFuZ2VzIHRvIG1tYXAoKSBjYWxscywgc3VjaCBhczoK
+PiA+IAo+ID4gwqAtwqDCoC8qIGxldCB0aGUga2VybmVsIHRvIGFzc2lnbiBhIG1tYXAgYWRkciAq
+Lwo+ID4gwqAtwqDCoG1wdHIgPSBtbWFwKE5VTEwsIGZzaXplLCBQUk9UX1JFQUR8UFJPVF9XUklU
+RSwgRkxBR1MsIGZkLCAwKTsKPiA+IAo+ID4gwqArwqDCoC8qIDEuIG9idGFpbiBhIFBNRC1hbGln
+bmVkIHZpcnR1YWwgYWRkcmVzcyAqLwo+ID4gwqArwqDCoHJldCA9IHBvc2l4X21lbWFsaWduKCZt
+cHRyLCBQTURfU0laRSwgZnNpemUpOwo+ID4gwqArwqDCoGlmICghcmV0KQo+ID4gwqArwqDCoMKg
+wqBmcmVlKG1wdHIpO8KgwqAvKiAyLiByZWxlYXNlIHRoZSB2aXJ0IGFkZHIgKi8KPiA+IMKgKwo+
+ID4gwqArwqDCoC8qIDMuIHRoZW4gcGFzcyB0aGUgUE1ELWFsaWduZWQgdmlydCBhZGRyIHRvIG1t
+YXAoKSAqLwo+ID4gwqArwqDCoG1wdHIgPSBtbWFwKG1wdHIsIGZzaXplLCBQUk9UX1JFQUR8UFJP
+VF9XUklURSwgRkxBR1MsIGZkLCAwKTsKPiA+IAo+ID4gVGhlc2UgY2hhbmdlcyBhZGQgdW5uZWNl
+c3NhcnkgZGVwZW5kZW5jeSB0byBEQVggYW5kIFBNRCBwYWdlIHNpemUKPiA+IGludG8gYXBwbGlj
+YXRpb24gY29kZS7CoMKgVGhlIGtlcm5lbCBzaG91bGQgYXNzaWduIGEgbW1hcCBhZGRyZXNzCj4g
+PiBhcHByb3ByaWF0ZSBmb3IgdGhlIG9wZXJhdGlvbi4KPgo+IEkgcXVlc3Rpb24gdGhlIG5lZWQg
+Zm9yIHRoaXMgcGF0Y2guwqDCoENob29zaW5nIGFuIGFwcHJvcHJpYXRlIGJhc2UgYWRkcmVzcwo+
+IGlzIHRoZSBsZWFzdCBvZiB0aGUgY2hhbmdlcyBuZWVkZWQgZm9yIGFuIGFwcGxpY2F0aW9uIHRv
+IHRha2UgYWR2YW50YWdlCj4gb2YgREFYLsKgwqAKCkFuIGFwcGxpY2F0aW9uIGFsc28gbmVlZHMg
+dG8gbWFrZSBzdXJlIHRoYXQgYSBnaXZlbiByYW5nZSBbYmFzZSAtCmJhc2Urc2l6ZV0gaXMgZnJl
+ZSBpbiBWTUEuIMKgVGhlIGFib3ZlIGV4YW1wbGUgdXNlcyBwb3NpeF9tZW1hbGlnbigpIHRvIGZp
+bmQKc3VjaCBhIHJhbmdlLCB3aGljaCBpbiB0dXJuIGNhbGxzIG1tYXAoKSB3aXRoIHNpemUgYXMg
+KGZzaXplICsgUE1EX1NJWkUpIGluCnRoaXMgY2FzZS4KCj4gVGhlIE5WTUwgY2hvb3NlcyBhcHBy
+b3ByaWF0ZSBhZGRyZXNzZXMgYW5kIGdldHMgYSBwcm9wZXJseSBhbGlnbmVkCj4gYWRkcmVzcyB3
+aXRob3V0IGFueSBrZXJuZWwgY29kZS4KCkFuIGFwcGxpY2F0aW9uIGxpa2UgTlZNTCBjYW4gY29u
+dGludWUgdG8gc3BlY2lmeSBhIHNwZWNpZmljIGFkZHJlc3MgdG8KbW1hcCgpLiDCoE1vc3QgZXhp
+c3RpbmcgYXBwbGljYXRpb25zLCBob3dldmVyLCBkbyBub3Qgc3BlY2lmeSBhbiBhZGRyZXNzIHRv
+Cm1tYXAoKS4gwqBXaXRoIHRoaXMgcGF0Y2gsIHNwZWNpZnlpbmcgYW4gYWRkcmVzcyB3aWxsIHJl
+bWFpbiBvcHRpb25hbC4KCj4gPiBDaGFuZ2UgYXJjaF9nZXRfdW5tYXBwZWRfYXJlYSgpIGFuZCBh
+cmNoX2dldF91bm1hcHBlZF9hcmVhX3RvcGRvd24oKQo+ID4gdG8gcmVxdWVzdCBQTURfU0laRSBh
+bGlnbm1lbnQgd2hlbiB0aGUgcmVxdWVzdCBpcyBmb3IgYSBEQVggZmlsZSBhbmQKPiA+IGl0cyBt
+YXBwaW5nIHJhbmdlIGlzIGxhcmdlIGVub3VnaCBmb3IgdXNpbmcgYSBQTUQgcGFnZS4KPgo+IEkg
+dGhpbmsgdGhpcyBpcyB0aGUgd3JvbmcgcGxhY2UgZm9yIGl0LCBpZiB3ZSBkZWNpZGUgdGhhdCB0
+aGlzIGlzIHRoZQo+IHJpZ2h0IHRoaW5nIHRvIGRvLsKgwqBUaGUgZmlsZXN5c3RlbSBoYXMgYSBn
+ZXRfdW5tYXBwZWRfYXJlYSgpIHdoaWNoCj4gc2hvdWxkIGJlIHVzZWQgaW5zdGVhZC4KClllcywg
+SSBjb25zaWRlcmVkIGFkZGluZyBhIGZpbGVzeXN0ZW0gZW50cnkgcG9pbnQsIGJ1dCBkZWNpZGVk
+IGdvaW5nIHRoaXMKd2F5IGJlY2F1c2U6CsKgLcKgYXJjaF9nZXRfdW5tYXBwZWRfYXJlYSgpIGFu
+ZMKgYXJjaF9nZXRfdW5tYXBwZWRfYXJlYV90b3Bkb3duKCkgYXJlIGFyY2gtCnNwZWNpZmljIGNv
+ZGUuIMKgVGhlcmVmb3JlLCB0aGlzIGZpbGVzeXN0ZW0gZW50cnkgcG9pbnQgd2lsbCBuZWVkIGFy
+Y2gtCnNwZWNpZmljIGltcGxlbWVudGF0aW9uLsKgCsKgLSBUaGVyZSBpcyBub3RoaW5nIGZpbGVz
+eXN0ZW0gc3BlY2lmaWMgYWJvdXQgcmVxdWVzdGluZyBQTUQgYWxpZ25tZW50LgoKPiA+IAo+ID4g
+QEAgLTE1Nyw2ICsxNTcsMTMgQEAgYXJjaF9nZXRfdW5tYXBwZWRfYXJlYShzdHJ1Y3QgZmlsZSAq
+ZmlscCwgdW5zaWduZWQKPiA+IGxvbmcgYWRkciwKPiA+IMKgCQlpbmZvLmFsaWduX21hc2sgPSBn
+ZXRfYWxpZ25fbWFzaygpOwo+ID4gwqAJCWluZm8uYWxpZ25fb2Zmc2V0ICs9IGdldF9hbGlnbl9i
+aXRzKCk7Cj4gPiDCoAl9Cj4gPiArCWlmIChmaWxwICYmIElTX0VOQUJMRUQoQ09ORklHX0ZTX0RB
+WF9QTUQpICYmCj4gPiBJU19EQVgoZmlsZV9pbm9kZShmaWxwKSkpIHsKPgo+IEFuZCB0aGVyZSdz
+IG5ldmVyIGEgbmVlZCBmb3IgdGhlIElTX0VOQUJMRUQuwqDCoElTX0RBWCgpIGNvbXBpbGVzIHRv
+ICcwJyBpZgo+IENPTkZJR19GU19EQVggaXMgZGlzYWJsZWQuCgpDT05GSUdfRlNfREFYX1BNRCBj
+YW4gYmUgZGlzYWJsZWQgd2hpbGUgQ09ORklHX0ZTX0RBWCBpcyBlbmFibGVkLgoKPiBBbmQgd2hl
+cmUgd291bGQgdGhpcyBlbmQ/wqDCoFdvdWxkIHlvdSBhbHNvIGNoYW5nZSB0aGlzIGNvZGUgdG8g
+bG9vayBmb3IKPiAxR0IgZW50cmllcyBpZiBDT05GSUdfRlNfREFYX1BVRCBpcyBlbmFibGVkP8Kg
+wqBGYXIgYmV0dGVyIHRvIGhhdmUgdGhpcwo+IGluIHRoZSBpbmRpdmlkdWFsIGZpbGVzeXN0ZW0g
+KHByb2JhYmx5IGNhbGxpbmcgYSBjb21tb24gaGVscGVyIGluIHRoZSBEQVgKPiBjb2RlKS4KClll
+cywgaXQgY2FuIGJlIGVhc2lseSBleHRlbmRlZCB0byBzdXBwb3J0IFBVRC4gwqBUaGlzIGF2b2lk
+cyBhbm90aGVyIHJvdW5kCm9mIGFwcGxpY2F0aW9uIGNoYW5nZXMgdG8gYWxpZ24gd2l0aCB0aGUg
+UFVEIHNpemUuCgpJZiB0aGUgUFVEIHN1cHBvcnQgdHVybnMgb3V0IHRvIGJlIGZpbGVzeXN0ZW0g
+c3BlY2lmaWMsIHdlIG1heSBuZWVkIGEKY2FwYWJpbGl0eSBiaXQgaW4gYWRkaXRpb24gdG8gQ09O
+RklHX0ZTX0RBWF9QVUQuCgpUaGFua3MsCi1Ub3NoaQpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52
+ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+aW51eC1udmRpbW0K
