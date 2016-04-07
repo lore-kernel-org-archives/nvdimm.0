@@ -1,14 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 595761A1F1A
- for <linux-nvdimm@lists.01.org>; Thu,  7 Apr 2016 15:43:20 -0700 (PDT)
-Subject: [ndctl PATCH v2] ndctl, list: add a '--health' option
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 07 Apr 2016 15:42:29 -0700
-Message-ID: <20160407224113.24903.58908.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160407010720.30641.60021.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160407010720.30641.60021.stgit@dwillia2-desk3.jf.intel.com>
+Received: from mail-ob0-x230.google.com (mail-ob0-x230.google.com
+ [IPv6:2607:f8b0:4003:c01::230])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 316831A1F2D
+ for <linux-nvdimm@lists.01.org>; Thu,  7 Apr 2016 06:16:12 -0700 (PDT)
+Received: by mail-ob0-x230.google.com with SMTP id j9so52318280obd.3
+ for <linux-nvdimm@lists.01.org>; Thu, 07 Apr 2016 06:16:12 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1502009.VVHIfC1a8J@c203>
+References: <20160407010659.30641.26139.stgit@dwillia2-desk3.jf.intel.com>
+ <20160407010720.30641.60021.stgit@dwillia2-desk3.jf.intel.com>
+ <1502009.VVHIfC1a8J@c203>
+Date: Thu, 7 Apr 2016 06:16:11 -0700
+Message-ID: <CAPcyv4j9OVmbfShcwvqndhUA1wdZK+soDut6rT3xfPXv7-Q1Vw@mail.gmail.com>
+Subject: Re: [ndctl PATCH 4/5] ndctl, list: add a '--health' option
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,282 +27,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dump dimm smart data in the dimm listing when '--health' is specified.
+On Thu, Apr 7, 2016 at 1:41 AM, Johannes Thumshirn <jthumshirn@suse.de> wrote:
+> On Mittwoch, 6. April 2016 18:07:20 CEST Dan Williams wrote:
+>> Dump dimm smart data in the dimm listing when '--health' is specified.
+>>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>
+> [...]
+>
+>> @@ -200,6 +201,7 @@ int cmd_list(int argc, const char **argv)
+>>                               "filter by region-type"),
+>>               OPT_BOOLEAN('B', "buses", &list.buses, "include bus info"),
+>>               OPT_BOOLEAN('D', "dimms", &list.dimms, "include dimm info"),
+>> +             OPT_BOOLEAN('H', "health", &list.health, "include dimm health"),
+>>               OPT_BOOLEAN('R', "regions", &list.regions,
+>>                               "include region info"),
+>>               OPT_BOOLEAN('N', "namespaces", &list.namespaces,
+>> @@ -299,6 +301,15 @@ int cmd_list(int argc, const char **argv)
+>>                               continue;
+>>                       }
+>>
+>> +                     if (list.health) {
+>> +                             struct json_object *jhealth;
+>> +
+>> +                             jhealth = util_dimm_health_to_json(dimm);
+>> +                             if (jhealth)
+>> +                                     json_object_object_add(jdimm, "health",
+>> +                                                     jhealth);
+>
+> Maybe some sort of error message for the else path? Either here or in
+> util_dimm_health_to_json()?
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes in v2:
-* add an error message if health retrieval fails unexpectedly (jth)
-* add threshold data to the health listing
-
- Documentation/ndctl-list.txt |   21 ++++++
- builtin-list.c               |   21 ++++++
- util/json.c                  |  150 ++++++++++++++++++++++++++++++++++++++++++
- util/json.h                  |    1 
- 4 files changed, 192 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/ndctl-list.txt b/Documentation/ndctl-list.txt
-index 806548196118..a5f209f99408 100644
---- a/Documentation/ndctl-list.txt
-+++ b/Documentation/ndctl-list.txt
-@@ -3,7 +3,7 @@ ndctl-list(1)
- 
- NAME
- ----
--ndctl-list - dump the platform nvdimm device topology in json
-+ndctl-list - dump the platform nvdimm device topology and attributes in json
- 
- SYNOPSIS
- --------
-@@ -72,6 +72,25 @@ include::xable-region-options.txt[]
- --dimms::
- 	Include dimm info in the listing
- 
-+-H::
-+--health::
-+	Include dimm health info in the listing.  For example:
-+[verse]
-+{
-+  "dev":"nmem0",
-+  "health":{
-+    "health_state":"non-critical",
-+    "temperature_celsius":23,
-+    "spares_percentage":75,
-+    "alarm_temperature":true,
-+    "alarm_spares":true,
-+    "temperature_threshold":40,
-+    "spares_threshold":5,
-+    "life_used_percentage":5,
-+    "shutdown_state":"clean"
-+  }
-+}
-+
- -R::
- --regions::
- 	Include region info in the listing
-diff --git a/builtin-list.c b/builtin-list.c
-index df0871ab544a..f930b9e44c2c 100644
---- a/builtin-list.c
-+++ b/builtin-list.c
-@@ -22,6 +22,7 @@ static struct {
- 	bool regions;
- 	bool namespaces;
- 	bool idle;
-+	bool health;
- } list;
- 
- static struct {
-@@ -200,6 +201,7 @@ int cmd_list(int argc, const char **argv)
- 				"filter by region-type"),
- 		OPT_BOOLEAN('B', "buses", &list.buses, "include bus info"),
- 		OPT_BOOLEAN('D', "dimms", &list.dimms, "include dimm info"),
-+		OPT_BOOLEAN('H', "health", &list.health, "include dimm health"),
- 		OPT_BOOLEAN('R', "regions", &list.regions,
- 				"include region info"),
- 		OPT_BOOLEAN('N', "namespaces", &list.namespaces,
-@@ -299,6 +301,25 @@ int cmd_list(int argc, const char **argv)
- 				continue;
- 			}
- 
-+			if (list.health) {
-+				struct json_object *jhealth;
-+
-+				jhealth = util_dimm_health_to_json(dimm);
-+				if (jhealth)
-+					json_object_object_add(jdimm, "health",
-+							jhealth);
-+				else if (ndctl_dimm_is_cmd_supported(dimm,
-+							ND_CMD_SMART)) {
-+					/*
-+					 * Failed to retrieve health data from
-+					 * a dimm that otherwise supports smart
-+					 * data retrieval commands.
-+					 */
-+					fail("\n");
-+					continue;
-+				}
-+			}
-+
- 			/*
- 			 * Without a bus we are collecting dimms anonymously
- 			 * across the platform.
-diff --git a/util/json.c b/util/json.c
-index 288efee723ff..6369a4eec291 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -61,6 +61,156 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm)
- 	return NULL;
- }
- 
-+static double parse_smart_temperature(unsigned int temp)
-+{
-+	bool negative = !!(temp & (1 << 15));
-+	double t;
-+
-+	temp &= ~(1 << 15);
-+	t = temp;
-+	t /= 16;
-+	if (negative)
-+		t *= -1;
-+	return t;
-+}
-+
-+static void smart_threshold_to_json(struct ndctl_dimm *dimm,
-+		struct json_object *jhealth)
-+{
-+	unsigned int alarm_control;
-+	struct json_object *jobj;
-+	struct ndctl_cmd *cmd;
-+	int rc;
-+
-+	cmd = ndctl_dimm_cmd_new_smart_threshold(dimm);
-+	if (!cmd)
-+		return;
-+
-+	rc = ndctl_cmd_submit(cmd);
-+	if (rc || ndctl_cmd_get_firmware_status(cmd))
-+		goto out;
-+
-+	alarm_control = ndctl_cmd_smart_threshold_get_alarm_control(cmd);
-+	if (alarm_control & ND_SMART_TEMP_TRIP) {
-+		unsigned int temp;
-+		double t;
-+
-+		temp = ndctl_cmd_smart_threshold_get_temperature(cmd);
-+		t = parse_smart_temperature(temp);
-+		jobj = json_object_new_double(t);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"temperature_threshold", jobj);
-+	}
-+
-+	if (alarm_control & ND_SMART_SPARE_TRIP) {
-+		unsigned int spares;
-+
-+		spares = ndctl_cmd_smart_threshold_get_spares(cmd);
-+		jobj = json_object_new_int(spares);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"spares_threshold", jobj);
-+	}
-+
-+ out:
-+	ndctl_cmd_unref(cmd);
-+}
-+
-+struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm)
-+{
-+	struct json_object *jhealth = json_object_new_object();
-+	struct json_object *jobj;
-+	struct ndctl_cmd *cmd;
-+	unsigned int flags;
-+	int rc;
-+
-+	if (!jhealth)
-+		return NULL;
-+
-+	cmd = ndctl_dimm_cmd_new_smart(dimm);
-+	if (!cmd)
-+		goto err;
-+
-+	rc = ndctl_cmd_submit(cmd);
-+	if (rc || ndctl_cmd_get_firmware_status(cmd))
-+		goto err;
-+
-+	flags = ndctl_cmd_smart_get_flags(cmd);
-+	if (flags & ND_SMART_HEALTH_VALID) {
-+		unsigned int health = ndctl_cmd_smart_get_health(cmd);
-+
-+		if (health & ND_SMART_FATAL_HEALTH)
-+			jobj = json_object_new_string("fatal");
-+		else if (health & ND_SMART_CRITICAL_HEALTH)
-+			jobj = json_object_new_string("critical");
-+		else if (health & ND_SMART_NON_CRITICAL_HEALTH)
-+			jobj = json_object_new_string("non-critical");
-+		else
-+			jobj = json_object_new_string("ok");
-+		if (jobj)
-+			json_object_object_add(jhealth, "health_state", jobj);
-+	}
-+
-+	if (flags & ND_SMART_TEMP_VALID) {
-+		unsigned int temp = ndctl_cmd_smart_get_temperature(cmd);
-+		double t = parse_smart_temperature(temp);
-+
-+		jobj = json_object_new_double(t);
-+		if (jobj)
-+			json_object_object_add(jhealth, "temperature_celsius", jobj);
-+	}
-+
-+	if (flags & ND_SMART_SPARES_VALID) {
-+		unsigned int spares = ndctl_cmd_smart_get_spares(cmd);
-+
-+		jobj = json_object_new_int(spares);
-+		if (jobj)
-+			json_object_object_add(jhealth, "spares_percentage", jobj);
-+	}
-+
-+	if (flags & ND_SMART_ALARM_VALID) {
-+		unsigned int alarm_flags = ndctl_cmd_smart_get_spares(cmd);
-+		bool temp_flag = !!(alarm_flags & ND_SMART_TEMP_TRIP);
-+		bool spares_flag = !!(alarm_flags & ND_SMART_SPARE_TRIP);
-+
-+		jobj = json_object_new_boolean(temp_flag);
-+		if (jobj)
-+			json_object_object_add(jhealth, "alarm_temperature", jobj);
-+
-+		jobj = json_object_new_boolean(spares_flag);
-+		if (jobj)
-+			json_object_object_add(jhealth, "alarm_spares", jobj);
-+	}
-+
-+	smart_threshold_to_json(dimm, jhealth);
-+
-+	if (flags & ND_SMART_USED_VALID) {
-+		unsigned int life_used = ndctl_cmd_smart_get_life_used(cmd);
-+
-+		jobj = json_object_new_int(life_used);
-+		if (jobj)
-+			json_object_object_add(jhealth, "life_used_percentage", jobj);
-+	}
-+
-+	if (flags & ND_SMART_SHUTDOWN_VALID) {
-+		unsigned int shutdown = ndctl_cmd_smart_get_shutdown_state(cmd);
-+
-+		jobj = json_object_new_string(shutdown ? "dirty" : "clean");
-+		if (jobj)
-+			json_object_object_add(jhealth, "shutdown_state", jobj);
-+	}
-+
-+	ndctl_cmd_unref(cmd);
-+	return jhealth;
-+ err:
-+	json_object_put(jhealth);
-+	if (cmd)
-+		ndctl_cmd_unref(cmd);
-+	return NULL;
-+}
-+
-+
- bool util_namespace_active(struct ndctl_namespace *ndns)
- {
- 	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
-diff --git a/util/json.h b/util/json.h
-index 653bbd9beef1..79962cacc35c 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -6,6 +6,7 @@
- bool util_namespace_active(struct ndctl_namespace *ndns);
- struct json_object *util_bus_to_json(struct ndctl_bus *bus);
- struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm);
-+struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm);
- struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping);
- struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns);
- #endif /* __NDCTL_JSON_H__ */
-
+Yeah, I wasn't sure how to differentiate "dimm does not support smart"
+vs "dimm smart data retrieval failed" in this routine.  However,
+you're right a debug message at a minimum is needed.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
