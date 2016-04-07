@@ -1,47 +1,64 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v4 2/7] dax: fallback from pmd to pte on error
-Date: Thu, 28 Apr 2016 15:16:53 -0600
-Message-Id: <1461878218-3844-3-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
-References: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
-Sender: owner-linux-mm@kvack.org
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 605691A1FAC
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Apr 2016 18:07:50 -0700 (PDT)
+Subject: [ndctl PATCH 0/5] smart support and 'list' enhancements
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 06 Apr 2016 18:06:59 -0700
+Message-ID: <20160407010659.30641.26139.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew@wil.cx>, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
+1/ Provide helper routines for higher level management software to issue
+   SMART data retrieval commands.
 
-In preparation for consulting a badblocks list in pmem_direct_access(),
-teach dax_pmd_fault() to fallback rather than fail immediately upon
-encountering an error.  The thought being that reducing the span of the
-dax request may avoid the error region.
+2/ Add a reference implementation of SMART data retrieval by extending
+   the 'list' command to emit json with SMART key/value data.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+3/ With health information available it is useful to know which
+   namespaces are impacted by a dimm that reports a bad health status,
+   so a 'filter by dimm' mechanism is added to the 'list' command.
+
 ---
- fs/dax.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 5a34f08..52f0044 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1111,8 +1111,8 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		long length = dax_map_atomic(bdev, &dax);
- 
- 		if (length < 0) {
--			result = VM_FAULT_SIGBUS;
--			goto out;
-+			dax_pmd_dbg(&bh, address, "dax-error fallback");
-+			goto fallback;
- 		}
- 		if (length < PMD_SIZE) {
- 			dax_pmd_dbg(&bh, address, "dax-length too small");
--- 
-2.5.5
+Dan Williams (5):
+      ndctl: rebuild libndctl.h when libndctl.h.in changes
+      ndctl: helper for S.M.A.R.T. data retrieval
+      ndctl, list: clean up default behavior
+      ndctl, list: add a '--health' option
+      ndctl, list: add 'filter by dimm' capability
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+ Documentation/ndctl-list.txt |   29 ++++++++++++-
+ Makefile.am                  |    8 +++
+ builtin-list.c               |   31 +++++++++++--
+ configure.ac                 |   26 +++++++++++
+ lib/libndctl-private.h       |    1 
+ lib/libndctl-smart.c         |   81 +++++++++++++++++++++++++++++++++++
+ lib/libndctl.c               |    1 
+ lib/libndctl.sym             |   10 ++++
+ lib/ndctl/libndctl.h.in      |   55 ++++++++++++++++++++++++
+ ndctl.h                      |   29 +++++++++++++
+ test/libndctl.c              |   68 +++++++++++++++++++++++++++++
+ util/filter.c                |   83 ++++++++++++++++++++++++++++++++++++
+ util/filter.h                |    5 ++
+ util/json.c                  |   97 ++++++++++++++++++++++++++++++++++++++++++
+ util/json.h                  |    1 
+ 15 files changed, 516 insertions(+), 9 deletions(-)
+ create mode 100644 lib/libndctl-smart.c
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
