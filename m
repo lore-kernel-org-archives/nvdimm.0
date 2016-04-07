@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 25BF51A20F0
- for <linux-nvdimm@lists.01.org>; Sat, 23 Apr 2016 12:14:02 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 3/7] dax: enable dax in the presence of known media errors
- (badblocks)
-Date: Sat, 23 Apr 2016 13:13:38 -0600
-Message-Id: <1461438822-3592-4-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
-References: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 144111A1E55
+ for <linux-nvdimm@lists.01.org>; Thu,  7 Apr 2016 01:38:18 -0700 (PDT)
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [ndctl PATCH 3/5] ndctl, list: clean up default behavior
+Date: Thu, 07 Apr 2016 10:38:16 +0200
+Message-ID: <11241582.V4noDax4yR@c203>
+In-Reply-To: <20160407010714.30641.19033.stgit@dwillia2-desk3.jf.intel.com>
+References: <20160407010659.30641.26139.stgit@dwillia2-desk3.jf.intel.com>
+ <20160407010714.30641.19033.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,73 +19,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
+On Mittwoch, 6. April 2016 18:07:14 CEST Dan Williams wrote:
+> Only list namespaces by default when no other option is specified.
+> Otherwise, to limit the listing to dimm info a user would need to run:
+> =
 
-1/ If a mapping overlaps a bad sector fail the request.
+> 	ndctl list --dimms --no-namespaces
+> =
 
-2/ Do not opportunistically report more dax-capable capacity than is
-   requested when errors present.
+> ...with the change this is reduced to:
+> =
 
-[vishal: fix a conflict with system RAM collision patches]
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- block/ioctl.c         | 9 ---------
- drivers/nvdimm/pmem.c | 8 ++++++++
- 2 files changed, 8 insertions(+), 9 deletions(-)
+> 	ndctl list --dimms
+> =
 
-diff --git a/block/ioctl.c b/block/ioctl.c
-index 4ff1f92..bf80bfd 100644
---- a/block/ioctl.c
-+++ b/block/ioctl.c
-@@ -423,15 +423,6 @@ bool blkdev_dax_capable(struct block_device *bdev)
- 			|| (bdev->bd_part->nr_sects % (PAGE_SIZE / 512)))
- 		return false;
- 
--	/*
--	 * If the device has known bad blocks, force all I/O through the
--	 * driver / page cache.
--	 *
--	 * TODO: support finer grained dax error handling
--	 */
--	if (disk->bb && disk->bb->count)
--		return false;
--
- 	return true;
- }
- #endif
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index f72733c..4567d9a 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -188,9 +188,17 @@ static long pmem_direct_access(struct block_device *bdev,
- 	struct pmem_device *pmem = bdev->bd_disk->private_data;
- 	resource_size_t offset = sector * 512 + pmem->data_offset;
- 
-+	if (unlikely(is_bad_pmem(&pmem->bb, sector, dax->size)))
-+		return -EIO;
- 	dax->addr = pmem->virt_addr + offset;
- 	dax->pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
- 
-+	/*
-+	 * If badblocks are present, limit known good range to the
-+	 * requested range.
-+	 */
-+	if (unlikely(pmem->bb.count))
-+		return dax->size;
- 	return pmem->size - pmem->pfn_pad - offset;
- }
- 
--- 
-2.5.5
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+
+Looks good,
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+
+-- =
+
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 
 _______________________________________________
 Linux-nvdimm mailing list
