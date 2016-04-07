@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5008.houston.hp.com (g9t5008.houston.hp.com [15.240.92.66])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B2D7F1A1F32
- for <linux-nvdimm@lists.01.org>; Thu,  7 Apr 2016 14:29:00 -0700 (PDT)
-Message-ID: <1460064033.20338.74.camel@hpe.com>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id 92B7D1A1E0B
+ for <linux-nvdimm@lists.01.org>; Thu,  7 Apr 2016 10:41:13 -0700 (PDT)
+Date: Thu, 7 Apr 2016 13:41:11 -0400
+From: Matthew Wilcox <willy@linux.intel.com>
 Subject: Re: [PATCH] x86 get_unmapped_area: Add PMD alignment for DAX PMD mmap
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Thu, 07 Apr 2016 15:20:33 -0600
-In-Reply-To: <20160407174111.GG2781@linux.intel.com>
+Message-ID: <20160407174111.GG2781@linux.intel.com>
 References: <1459951089-14911-1-git-send-email-toshi.kani@hpe.com>
- <20160406165027.GA2781@linux.intel.com> <1459964672.20338.41.camel@hpe.com>
- <20160407174111.GG2781@linux.intel.com>
-Mime-Version: 1.0
+ <20160406165027.GA2781@linux.intel.com>
+ <1459964672.20338.41.camel@hpe.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1459964672.20338.41.camel@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,51 +19,46 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Matthew Wilcox <willy@linux.intel.com>
+To: Toshi Kani <toshi.kani@hpe.com>
 Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-mm@kvack.org, hpa@zytor.com, tglx@linutronix.de, bp@suse.de, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCAyMDE2LTA0LTA3IGF0IDEzOjQxIC0wNDAwLCBNYXR0aGV3IFdpbGNveCB3cm90ZToK
-PiBPbiBXZWQsIEFwciAwNiwgMjAxNiBhdCAxMTo0NDozMkFNIC0wNjAwLCBUb3NoaSBLYW5pIHdy
-b3RlOgo+ID4gPiAKPiA+ID4gVGhlIE5WTUwgY2hvb3NlcyBhcHByb3ByaWF0ZSBhZGRyZXNzZXMg
-YW5kIGdldHMgYSBwcm9wZXJseSBhbGlnbmVkCj4gPiA+IGFkZHJlc3Mgd2l0aG91dCBhbnkga2Vy
-bmVsIGNvZGUuCj4gPgo+ID4gQW4gYXBwbGljYXRpb24gbGlrZSBOVk1MIGNhbiBjb250aW51ZSB0
-byBzcGVjaWZ5IGEgc3BlY2lmaWMgYWRkcmVzcyB0bwo+ID4gbW1hcCgpLiDCoE1vc3QgZXhpc3Rp
-bmcgYXBwbGljYXRpb25zLCBob3dldmVyLCBkbyBub3Qgc3BlY2lmeSBhbiBhZGRyZXNzCj4gPiB0
-byBtbWFwKCkuIMKgV2l0aCB0aGlzIHBhdGNoLCBzcGVjaWZ5aW5nIGFuIGFkZHJlc3Mgd2lsbCBy
-ZW1haW4KPiA+IG9wdGlvbmFsLgo+Cj4gVGhlIHBvaW50IGlzIHRoYXQgdGhpcyAqY2FuKiBiZSBk
-b25lIGluIHVzZXJzcGFjZS7CoMKgWW91IG5lZWQgdG8gc2VsbCB1cwo+IG9uIHRoZSBhZHZhbnRh
-Z2VzIG9mIGRvaW5nIGl0IGluIHRoZSBrZXJuZWwuCgpTdXJlLiDCoEFzIEkgc2FpZCwgdGhlIHBv
-aW50IGlzIHRoYXQgd2UgZG8gbm90IG5lZWQgdG8gbW9kaWZ5IGV4aXN0aW5nCmFwcGxpY2F0aW9u
-cyBmb3IgdXNpbmcgREFYIFBNRCBtYXBwaW5ncy4KCkZvciBpbnN0YW5jZSwgZmlvIHdpdGggImlv
-ZW5naW5lPW1tYXAiIHBlcmZvcm1zIEkvT3Mgd2l0aCBtbWFwKCkuCmh0dHBzOi8vZ2l0aHViLmNv
-bS9jYWl1cy9maW8vYmxvYi9tYXN0ZXIvZW5naW5lcy9tbWFwLmMKCldpdGggdGhpcyBjaGFuZ2Us
-IHVubW9kaWZpZWQgZmlvIGNhbiBiZSB1c2VkIGZvciB0ZXN0aW5nIHdpdGggREFYIFBNRAptYXBw
-aW5ncy4gwqBUaGVyZSBhcmUgbWFueSBleGFtcGxlcyBsaWtlIHRoaXMsIGFuZCBJIGRvIG5vdCB0
-aGluayB3ZSB3YW50IHRvCm1vZGlmeSBhbGwgYXBwbGljYXRpb25zIHRoYXQgd2Ugd2FudCB0byBl
-dmFsdWF0ZS90ZXN0IHdpdGguCgo+ID4gPiBJIHRoaW5rIHRoaXMgaXMgdGhlIHdyb25nIHBsYWNl
-IGZvciBpdCwgaWYgd2UgZGVjaWRlIHRoYXQgdGhpcyBpcyB0aGUKPiA+ID4gcmlnaHQgdGhpbmcg
-dG8gZG8uwqDCoFRoZSBmaWxlc3lzdGVtIGhhcyBhIGdldF91bm1hcHBlZF9hcmVhKCkgd2hpY2gK
-PiA+ID4gc2hvdWxkIGJlIHVzZWQgaW5zdGVhZC4KPiA+Cj4gPiBZZXMsIEkgY29uc2lkZXJlZCBh
-ZGRpbmcgYSBmaWxlc3lzdGVtIGVudHJ5IHBvaW50LCBidXQgZGVjaWRlZCBnb2luZwo+ID4gdGhp
-cyB3YXkgYmVjYXVzZToKPiA+IMKgLcKgYXJjaF9nZXRfdW5tYXBwZWRfYXJlYSgpIGFuZMKgYXJj
-aF9nZXRfdW5tYXBwZWRfYXJlYV90b3Bkb3duKCkgYXJlCj4gPiBhcmNoLXNwZWNpZmljIGNvZGUu
-IMKgVGhlcmVmb3JlLCB0aGlzIGZpbGVzeXN0ZW0gZW50cnkgcG9pbnQgd2lsbCBuZWVkCj4gPiBh
-cmNoLXNwZWNpZmljIGltcGxlbWVudGF0aW9uLsKgCj4gPiDCoC0gVGhlcmUgaXMgbm90aGluZyBm
-aWxlc3lzdGVtIHNwZWNpZmljIGFib3V0IHJlcXVlc3RpbmcgUE1EIGFsaWdubWVudC4KPgo+IFNl
-ZSBodHRwOi8vYXJ0aWNsZS5nbWFuZS5vcmcvZ21hbmUubGludXgua2VybmVsLm1tLzE0OTIyNyBm
-b3IgSHVnaCdzCj4gYXBwcm9hY2ggZm9yIHNobWVtLsKgwqBJIHN0cm9uZ2x5IGJlbGlldmUgdGhh
-dCBpZiB3ZSdyZSBnb2luZyB0byBkbyB0aGlzCj4gaSB0aGUga2VybmVsLCB3ZSBzaG91bGQgYnVp
-bGQgb24gdGhpcyBhcHByb2FjaCwgYW5kIG5vdCBoYWNrIHNvbWV0aGluZwo+IGludG8gZWFjaCBh
-cmNoaXRlY3R1cmUncyBnZW5lcmljIGdldF91bm1hcHBlZF9hcmVhLgoKVGhhbmtzIGZvciB0aGUg
-cG9pbnRlci4gwqBZZXMsIHdlIGNhbiBjYWxsIGN1cnJlbnQtPm1tLT5nZXRfdW5tYXBwZWRfYXJl
-YSgpCndpdGggc2l6ZSArIFBNRF9TSVpFLCBhbmQgYWRqdXN0IHdpdGggdGhlIGFsaWdubWVudCBp
-biBhIGZpbGVzeXN0ZW0gZW50cnkKcG9pbnQuIMKgSSB3aWxsIHVwZGF0ZSB0aGUgcGF0Y2ggd2l0
-aCB0aGlzIGFwcHJvYWNoLgoKLVRvc2hpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
-c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
-ZGltbQo=
+On Wed, Apr 06, 2016 at 11:44:32AM -0600, Toshi Kani wrote:
+> > The NVML chooses appropriate addresses and gets a properly aligned
+> > address without any kernel code.
+> =
+
+> An application like NVML can continue to specify a specific address to
+> mmap(). =A0Most existing applications, however, do not specify an address=
+ to
+> mmap(). =A0With this patch, specifying an address will remain optional.
+
+The point is that this *can* be done in userspace.  You need to sell us
+on the advantages of doing it in the kernel.
+
+> > I think this is the wrong place for it, if we decide that this is the
+> > right thing to do.=A0=A0The filesystem has a get_unmapped_area() which
+> > should be used instead.
+> =
+
+> Yes, I considered adding a filesystem entry point, but decided going this
+> way because:
+> =A0-=A0arch_get_unmapped_area() and=A0arch_get_unmapped_area_topdown() ar=
+e arch-
+> specific code. =A0Therefore, this filesystem entry point will need arch-
+> specific implementation.=A0
+> =A0- There is nothing filesystem specific about requesting PMD alignment.
+
+See http://article.gmane.org/gmane.linux.kernel.mm/149227 for Hugh's
+approach for shmem.  I strongly believe that if we're going to do this
+i the kernel, we should build on this approach, and not hack something
+into each architecture's generic get_unmapped_area.
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
