@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CD3B61A22CD
- for <linux-nvdimm@lists.01.org>; Tue, 19 Apr 2016 11:11:42 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] autogen.sh: allow a --force to be sent to autoreconf
-Date: Tue, 19 Apr 2016 12:11:17 -0600
-Message-Id: <1461089477-11334-1-git-send-email-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BCD341A1E77
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Apr 2016 00:23:04 -0700 (PDT)
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [ndctl PATCH v2] ndctl: helper for S.M.A.R.T. data retrieval
+Date: Fri, 08 Apr 2016 09:23:02 +0200
+Message-ID: <6171433.zikVuAYXSy@c203>
+In-Reply-To: <20160407223854.24870.72609.stgit@dwillia2-desk3.jf.intel.com>
+References: <20160407010709.30641.55484.stgit@dwillia2-desk3.jf.intel.com>
+ <20160407223854.24870.72609.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,51 +19,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Vishal Verma <vishal@kernel.org>
+On Donnerstag, 7. April 2016 15:39:04 CEST Dan Williams wrote:
+> Helper functions to issue the "SMART and Health Info (Function Index 1)"
+> DSM and parse its results.
+> =
 
-Sometimes based on your libtool version, you may see something like:
+>     http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+> =
 
-libtool: Version mismatch error.  This is libtool 2.4.2, but the
-libtool: definition of this LT_INIT comes from libtool 2.4.6.
-libtool: You should recreate aclocal.m4 with macros from libtool 2.4.2
-libtool: and run autoconf again.
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+> Changes in v2:
+> * pull in the updated ndctl.h from the kernel (jth)
+> * add helper routines for issuing smart threshold commands
+> * extend the unit test to validate smart threshold data passthrough
 
-which can be fixed by passing --force to autoreconf.
+Thanks,
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 
-Let autogen.sh pass any commandline arguments on to autoreconf to allow
-one to fix this.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- autogen.sh | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+-- =
 
-diff --git a/autogen.sh b/autogen.sh
-index 2970a3b..a23cf53 100755
---- a/autogen.sh
-+++ b/autogen.sh
-@@ -7,7 +7,9 @@ if [ -f .git/hooks/pre-commit.sample -a ! -f .git/hooks/pre-commit ] ; then
- fi
- 
- $(dirname $0)/git-version-gen
--autoreconf --install --symlink
-+reconf_args=''
-+[ -n "$*" ] && reconf_args="$*"
-+autoreconf --install --symlink $reconf_args
- 
- libdir() {
-         echo $(cd $1/$(gcc -print-multi-os-directory); pwd)
--- 
-2.5.5
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 
 _______________________________________________
 Linux-nvdimm mailing list
