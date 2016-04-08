@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from na01-bn1-obe.outbound.protection.outlook.com
- (mail-bn1on0763.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fc10::763])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DFC3A1A1F3F
- for <linux-nvdimm@lists.01.org>; Tue,  5 Apr 2016 06:40:36 -0700 (PDT)
-From: Prashant Tawade <ptawade@inphi.com>
-Subject: DDR4 NVDIMM
-Date: Tue, 5 Apr 2016 13:40:33 +0000
-Message-ID: <CY1PR14MB0409CDF34EDEDB29959E2406B19E0@CY1PR14MB0409.namprd14.prod.outlook.com>
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id EE8741A1E77
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Apr 2016 00:20:53 -0700 (PDT)
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [ndctl PATCH v2] ndctl, list: add a '--health' option
+Date: Fri, 08 Apr 2016 09:20:50 +0200
+Message-ID: <5045500.AxyWr25szt@c203>
+In-Reply-To: <20160407224113.24903.58908.stgit@dwillia2-desk3.jf.intel.com>
+References: <20160407010720.30641.60021.stgit@dwillia2-desk3.jf.intel.com>
+ <20160407224113.24903.58908.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,25 +19,37 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+On Donnerstag, 7. April 2016 15:42:29 CEST Dan Williams wrote:
+> Dump dimm smart data in the dimm listing when '--health' is specified.
+> =
 
-I am testing the DDR4 NVDIMM on Debian 4.5.0-rc7. I enabled X86_PMEM_LEGACY, ACPI_NFIT and ACPI_NFIT_DEBUG with "make menuconfig". BIOS displays the following message
-Just added 4G of Persistent (ADR) memory at =0x100000000
-Just added 4G of Persistent (ADR) memory at =0x200000000
-Just added 4G of Persistent (ADR) memory at =0x300000000
-Just added 0x80000000 of Persistent (ADR) memory at =0x480000000
-But, I do not see any persistent or protected memory with "dmesg | grep e820". There are no debug messages with any errors showing on screen or in the kernel log. How do I debug this?
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+> Changes in v2:
+> * add an error message if health retrieval fails unexpectedly (jth)
+> * add threshold data to the health listing
 
-Where does the data hand-off from BIOS/UEFI to kernel taking place?  How do I trace the debug path for X86_PMEM_LEGACY and how does it work with/without ACPI_NFIT enabled?
+Thanks for working that in,
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 
-Prashant
+
+-- =
+
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
