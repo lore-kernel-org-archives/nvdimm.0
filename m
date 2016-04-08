@@ -1,25 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yw0-x243.google.com (mail-yw0-x243.google.com
- [IPv6:2607:f8b0:4002:c05::243])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EBCF31A1EFF
- for <linux-nvdimm@lists.01.org>; Fri,  8 Apr 2016 16:46:05 -0700 (PDT)
-Received: by mail-yw0-x243.google.com with SMTP id h6so14897576ywc.1
- for <linux-nvdimm@lists.01.org>; Fri, 08 Apr 2016 16:46:05 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1460109638.6620.41.camel@linux.intel.com>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 3AA831A1E7C
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Apr 2016 02:59:44 -0700 (PDT)
+Message-ID: <1460109638.6620.41.camel@linux.intel.com>
+Subject: Re: [PATCH v1 06/10] device property: switch to use UUID API
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Date: Fri, 08 Apr 2016 13:00:38 +0300
+In-Reply-To: <877fg828lr.fsf@yhuang-dev.intel.com>
 References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
  <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
  <7544228.v4QPX4F7J7@vostro.rjw.lan>
  <1456495897.13244.144.camel@linux.intel.com>
  <1460047286.6620.26.camel@linux.intel.com>
  <877fg828lr.fsf@yhuang-dev.intel.com>
- <1460109638.6620.41.camel@linux.intel.com>
-Date: Sat, 9 Apr 2016 07:46:04 +0800
-Message-ID: <CAC=cRTO9rmWLoqgCuY-_HprykJfQU62GcHucUnvM657f5ZuxCw@mail.gmail.com>
-Subject: Re: [PATCH v1 06/10] device property: switch to use UUID API
-From: huang ying <huang.ying.caritas@gmail.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,184 +21,96 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-efi@vger.kernel.org, David Airlie <airlied@linux.ie>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, dri-devel@lists.freedesktop.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying  <ying.huang@intel.com>, Zhang Rui <rui.zhang@intel.com>, Mathias Nyman" <mathias.nyman@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, linux-api@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: "Huang, Ying" <ying.huang@intel.com>
+Cc: linux-efi@vger.kernel.org, David Airlie <airlied@linux.ie>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, dri-devel@lists.freedesktop.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Mathias Nyman <mathias.nyman@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Apr 8, 2016 at 6:00 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> On Fri, 2016-04-08 at 09:27 +0800, Huang, Ying wrote:
->> Andy Shevchenko <andriy.shevchenko@linux.intel.com> writes:
->>
->> >
->> > On Fri, 2016-02-26 at 16:11 +0200, Andy Shevchenko wrote:
->> > >
->> > > On Thu, 2016-02-18 at 01:03 +0100, Rafael J. Wysocki wrote:
->> > > >
->> > > >
->> > > > On Wednesday, February 17, 2016 02:17:24 PM Andy Shevchenko
->> > > > wrote:
->> > > > >
->> > > > >
->> > > > > Switch to use a generic UUID API instead of custom approach.
->> > > > > It
->> > > > > allows to
->> > > > > define UUIDs, compare them, and validate.
->> > > []
->> > >
->> > Summon initial author of the UUID library.
->> >
->> > Summary: the API of comparison functions is rather strange. What the
->> > point to not take pointers directly? (Moreover I hope compiler too
->> > clever not to make a copy of constant arguments there)
->> >
->> > I could only imagine the case you are trying to avoid temporary
->> > variables for constants like NULL_UUID.
->> >
->> > Issue with this is the ugliness in the users of that, in
->> > particularly
->> > present in ACPI (drivers/acpi/apei/ghes.c).
->> >
->> > I would like to have more clear interface for that. Perhaps we may
->> > add
->> > something like
->> >
->> > cmp_p(pointer, non-pointer);
->> > cmp_pp(pointer, pointer);
->> >
->> > to not break existing API for now.
->> >
->> > It would be useful for many cases in the kernel.
->> You can take a look at the drivers/acpi/apei/erst.c for uuid_le_cmp
->> usage.
->>
->> #define
->> CPER_CREATOR_PSTORE                                             \
->>         UUID_LE(0x75a574e3, 0x5052, 0x4b29, 0x8a, 0x8e, 0xbe,
->> 0x2c,     \
->>                 0x64, 0x90, 0xb8, 0x9d)
->>
->>         if (uuid_le_cmp(rcd->hdr.creator_id, CPER_CREATOR_PSTORE) !=
->> 0)
->>                 goto skip;
->>
->> Looks better?
->
-> I don't quite understand the issues with
->
-> if (uuid_le_cmp(&rcd->hdr.creator_id, &CPER_CREATOR_PSTORE) != 0)
-
-I tried to make uuid_le looks like a primitive data type and UUID
-constant looks like primitive type constants if possible.  If we can
-define data as uuid_le/be, then it will look just like that.  But if
-there are too many places we cannot use uuid_le/be directly, I am OK
-to convert the interface to use pointer instead.
-
-> or, like I mentioned previously, we may introduce _cmp_p() and use like
->
-> if (uuid_le_cmp_p(&rcd->hdr.creator_id, CPER_CREATOR_PSTORE) != 0)
-
-Personally, I don't like this interface. It is better for two
-parameters to have same data type.
-
-> if it looks better (again, I don't know if compiler is going to copy the last argument).
->
->>
->> This is the typical use case in mind when I write the uuid.h.
->>
->> As for uuid_le_cmp usage in drivers/acpi/apei/ghes.c,
->>
->>               if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
->>                                CPER_SEC_PLATFORM_MEM)) {
->
-> Ditto
->
-> if (!uuid_le_cmp_p((uuid_le *)gdata->section_type,
-> CPER_SEC_PLATFORM_MEM)) {
->
->>
->> The code looks not good mainly because acpi_hest_generic_data is not
->> defined with uuid_le in mind.
->>
->> struct acpi_hest_generic_data {
->>       u8 section_type[16];
->>       u32 error_severity;
->>       u16 revision;
->>       u8 validation_bits;
->>       u8 flags;
->>       u32 error_data_length;
->>       u8 fru_id[16];
->>       u8 fru_text[20];
->> };
->>
->> If section_type was defined as uuid_le instead of u8[16], the
->> uuid_le_cmp usage would look better.  So I suggest to use uuid_le/be
->> in
->> data structure definition in new code if possible.
->
-> This is understandable for such structures, but we might get a UUID from
-> a buffer which is pointer to u8. It's not possible to convert to uuid_*
-> since it's too generic stuff and might require to introduce
-> ACPI_TYPE_UUID with standardization and all necessary work. Apparently
-> not the shortest way.
-
-If this is just a special case that happens seldom, we can just work
-around it with *(uuid_le/be *)buf.  If it is common, we can change the
-interface or add a new interface.
-
-Best Regards,
-Huang, YIng
-
->> >
->> > >
->> > > >
->> > > >
->> > > > >
->> > > > >
->> > > > > +static const uuid_le ads_uuid =
->> > > > > +     UUID_LE(0xdbb8e3e6, 0x5886, 0x4ba6,
->> > > > > +             0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96,
->> > > > > 0x6b);
->> > > > >
->> > > > >  static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
->> > > > >                                          const union
->> > > > > acpi_object
->> > > > > *desc,
->> > > > > @@ -138,7 +136,7 @@ static bool
->> > > > > acpi_enumerate_nondev_subnodes(acpi_handle scope,
->> > > > >                   || links->type != ACPI_TYPE_PACKAGE)
->> > > > >                       break;
->> > > > >
->> > > > > -             if (memcmp(uuid->buffer.pointer, ads_uuid,
->> > > > > sizeof(ads_uuid)))
->> > > > > +             if (uuid_le_cmp(*(uuid_le *)uuid-
->> > > > > >buffer.pointer,
->> > > > > ads_uuid))
->> > > > Maybe it's too late, but I don't quite understand the pointer
->> > > > manipulations here.
->> > > >
->> > > > I can see why you need a type conversion (although it looks
->> > > > ugly),
->> > > > but why do you
->> > > > need to dereference it too?
->> > > The function takes that kind of type on input. The other variants
->> > > are
->> > > not compiled.
->> > > Perhaps we better change uuid_{lb}e_cmp() first to take normal
->> > > pointers, though I think the initial idea was to get type checking
->> > > at
->> > > compile time.
->> > >
->
-> --
-> Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Intel Finland Oy
->
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCAyMDE2LTA0LTA4IGF0IDA5OjI3ICswODAwLCBIdWFuZywgWWluZyB3cm90ZToKPiBB
+bmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT4gd3JpdGVz
+Ogo+IAo+ID4gCj4gPiBPbiBGcmksIDIwMTYtMDItMjYgYXQgMTY6MTEgKzAyMDAsIEFuZHkgU2hl
+dmNoZW5rbyB3cm90ZToKPiA+ID4gCj4gPiA+IE9uIFRodSwgMjAxNi0wMi0xOCBhdCAwMTowMyAr
+MDEwMCwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6Cj4gPiA+ID4gCj4gPiA+ID4gCj4gPiA+ID4g
+T24gV2VkbmVzZGF5LCBGZWJydWFyeSAxNywgMjAxNiAwMjoxNzoyNCBQTSBBbmR5IFNoZXZjaGVu
+a28KPiA+ID4gPiB3cm90ZToKPiA+ID4gPiA+IAo+ID4gPiA+ID4gCj4gPiA+ID4gPiBTd2l0Y2gg
+dG8gdXNlIGEgZ2VuZXJpYyBVVUlEIEFQSSBpbnN0ZWFkIG9mIGN1c3RvbSBhcHByb2FjaC4KPiA+
+ID4gPiA+IEl0Cj4gPiA+ID4gPiBhbGxvd3MgdG8KPiA+ID4gPiA+IGRlZmluZSBVVUlEcywgY29t
+cGFyZSB0aGVtLCBhbmQgdmFsaWRhdGUuCj4gPiA+IFtdCj4gPiA+IAo+ID4gU3VtbW9uIGluaXRp
+YWwgYXV0aG9yIG9mIHRoZSBVVUlEIGxpYnJhcnkuCj4gPiAKPiA+IFN1bW1hcnk6IHRoZSBBUEkg
+b2YgY29tcGFyaXNvbiBmdW5jdGlvbnMgaXMgcmF0aGVyIHN0cmFuZ2UuIFdoYXQgdGhlCj4gPiBw
+b2ludCB0byBub3QgdGFrZSBwb2ludGVycyBkaXJlY3RseT8gKE1vcmVvdmVyIEkgaG9wZSBjb21w
+aWxlciB0b28KPiA+IGNsZXZlciBub3QgdG8gbWFrZSBhIGNvcHkgb2YgY29uc3RhbnQgYXJndW1l
+bnRzIHRoZXJlKQo+ID4gCj4gPiBJIGNvdWxkIG9ubHkgaW1hZ2luZSB0aGUgY2FzZSB5b3UgYXJl
+IHRyeWluZyB0byBhdm9pZCB0ZW1wb3JhcnkKPiA+IHZhcmlhYmxlcyBmb3IgY29uc3RhbnRzIGxp
+a2UgTlVMTF9VVUlELgo+ID4gCj4gPiBJc3N1ZSB3aXRoIHRoaXMgaXMgdGhlIHVnbGluZXNzIGlu
+IHRoZSB1c2VycyBvZiB0aGF0LCBpbgo+ID4gcGFydGljdWxhcmx5Cj4gPiBwcmVzZW50IGluIEFD
+UEkgKGRyaXZlcnMvYWNwaS9hcGVpL2doZXMuYykuCj4gPiAKPiA+IEkgd291bGQgbGlrZSB0byBo
+YXZlIG1vcmUgY2xlYXIgaW50ZXJmYWNlIGZvciB0aGF0LiBQZXJoYXBzIHdlIG1heQo+ID4gYWRk
+Cj4gPiBzb21ldGhpbmcgbGlrZQo+ID4gCj4gPiBjbXBfcChwb2ludGVyLCBub24tcG9pbnRlcik7
+Cj4gPiBjbXBfcHAocG9pbnRlciwgcG9pbnRlcik7Cj4gPiAKPiA+IHRvIG5vdCBicmVhayBleGlz
+dGluZyBBUEkgZm9yIG5vdy4KPiA+IAo+ID4gSXQgd291bGQgYmUgdXNlZnVsIGZvciBtYW55IGNh
+c2VzIGluIHRoZSBrZXJuZWwuCj4gWW91IGNhbiB0YWtlIGEgbG9vayBhdCB0aGUgZHJpdmVycy9h
+Y3BpL2FwZWkvZXJzdC5jIGZvciB1dWlkX2xlX2NtcAo+IHVzYWdlLgo+IAo+ICNkZWZpbmUKPiBD
+UEVSX0NSRUFUT1JfUFNUT1JFwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgXAo+IMKg
+wqDCoMKgwqDCoMKgwqBVVUlEX0xFKDB4NzVhNTc0ZTMsIDB4NTA1MiwgMHg0YjI5LCAweDhhLCAw
+eDhlLCAweGJlLAo+IDB4MmMswqDCoMKgwqDCoFwKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoDB4NjQsIDB4OTAsIDB4YjgsIDB4OWQpCj4gCj4gwqDCoMKgwqDCoMKgwqDCoGlmICh1
+dWlkX2xlX2NtcChyY2QtPmhkci5jcmVhdG9yX2lkLCBDUEVSX0NSRUFUT1JfUFNUT1JFKSAhPQo+
+IDApCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBnb3RvIHNraXA7Cj4gCj4gTG9v
+a3MgYmV0dGVyPwoKSSBkb24ndCBxdWl0ZSB1bmRlcnN0YW5kIHRoZSBpc3N1ZXMgd2l0aMKgCgpp
+ZiAodXVpZF9sZV9jbXAoJnJjZC0+aGRyLmNyZWF0b3JfaWQsICZDUEVSX0NSRUFUT1JfUFNUT1JF
+KSAhPSAwKQoKb3IsIGxpa2UgSSBtZW50aW9uZWQgcHJldmlvdXNseSwgd2UgbWF5IGludHJvZHVj
+ZSBfY21wX3AoKSBhbmQgdXNlIGxpa2UKCmlmICh1dWlkX2xlX2NtcF9wKCZyY2QtPmhkci5jcmVh
+dG9yX2lkLCBDUEVSX0NSRUFUT1JfUFNUT1JFKSAhPSAwKQoKaWYgaXQgbG9va3MgYmV0dGVyIChh
+Z2FpbiwgSSBkb24ndCBrbm93IGlmIGNvbXBpbGVyIGlzIGdvaW5nIHRvIGNvcHkgdGhlIGxhc3Qg
+YXJndW1lbnQpLgoKPiAKPiBUaGlzIGlzIHRoZSB0eXBpY2FsIHVzZSBjYXNlIGluIG1pbmQgd2hl
+biBJIHdyaXRlIHRoZSB1dWlkLmguCj4gCj4gQXMgZm9yIHV1aWRfbGVfY21wIHVzYWdlIGluIGRy
+aXZlcnMvYWNwaS9hcGVpL2doZXMuYywKPiAKPiAJCWlmICghdXVpZF9sZV9jbXAoKih1dWlkX2xl
+ICopZ2RhdGEtPnNlY3Rpb25fdHlwZSwKPiAJCQkJwqBDUEVSX1NFQ19QTEFURk9STV9NRU0pKSB7
+CgpEaXR0bwoKaWYgKCF1dWlkX2xlX2NtcF9wKCh1dWlkX2xlICopZ2RhdGEtPnNlY3Rpb25fdHlw
+ZSwKQ1BFUl9TRUNfUExBVEZPUk1fTUVNKSkgewoKPiAKPiBUaGUgY29kZSBsb29rcyBub3QgZ29v
+ZCBtYWlubHkgYmVjYXVzZSBhY3BpX2hlc3RfZ2VuZXJpY19kYXRhIGlzIG5vdAo+IGRlZmluZWQg
+d2l0aCB1dWlkX2xlIGluIG1pbmQuCj4gCj4gc3RydWN0IGFjcGlfaGVzdF9nZW5lcmljX2RhdGEg
+ewo+IAl1OCBzZWN0aW9uX3R5cGVbMTZdOwo+IAl1MzIgZXJyb3Jfc2V2ZXJpdHk7Cj4gCXUxNiBy
+ZXZpc2lvbjsKPiAJdTggdmFsaWRhdGlvbl9iaXRzOwo+IAl1OCBmbGFnczsKPiAJdTMyIGVycm9y
+X2RhdGFfbGVuZ3RoOwo+IAl1OCBmcnVfaWRbMTZdOwo+IAl1OCBmcnVfdGV4dFsyMF07Cj4gfTsK
+PiAKPiBJZiBzZWN0aW9uX3R5cGUgd2FzIGRlZmluZWQgYXMgdXVpZF9sZSBpbnN0ZWFkIG9mIHU4
+WzE2XSwgdGhlCj4gdXVpZF9sZV9jbXAgdXNhZ2Ugd291bGQgbG9vayBiZXR0ZXIuwqDCoFNvIEkg
+c3VnZ2VzdCB0byB1c2UgdXVpZF9sZS9iZQo+IGluCj4gZGF0YSBzdHJ1Y3R1cmUgZGVmaW5pdGlv
+biBpbiBuZXcgY29kZSBpZiBwb3NzaWJsZS4KClRoaXMgaXMgdW5kZXJzdGFuZGFibGUgZm9yIHN1
+Y2ggc3RydWN0dXJlcywgYnV0IHdlIG1pZ2h0IGdldCBhIFVVSUQgZnJvbQphIGJ1ZmZlciB3aGlj
+aCBpcyBwb2ludGVyIHRvIHU4LiBJdCdzIG5vdCBwb3NzaWJsZSB0byBjb252ZXJ0IHRvIHV1aWRf
+KgpzaW5jZSBpdCdzIHRvbyBnZW5lcmljIHN0dWZmIGFuZCBtaWdodCByZXF1aXJlIHRvIGludHJv
+ZHVjZQpBQ1BJX1RZUEVfVVVJRCB3aXRoIHN0YW5kYXJkaXphdGlvbiBhbmQgYWxsIG5lY2Vzc2Fy
+eSB3b3JrLiBBcHBhcmVudGx5Cm5vdCB0aGUgc2hvcnRlc3Qgd2F5LgoKPiAKPiBCZXN0IFJlZ2Fy
+ZHMsCj4gSHVhbmcsIFlpbmcKPiAKPiA+IAo+ID4gPiAKPiA+ID4gPiAKPiA+ID4gPiAKPiA+ID4g
+PiA+IAo+ID4gPiA+ID4gCj4gPiA+ID4gPiArc3RhdGljIGNvbnN0IHV1aWRfbGUgYWRzX3V1aWQg
+PQo+ID4gPiA+ID4gKwlVVUlEX0xFKDB4ZGJiOGUzZTYsIDB4NTg4NiwgMHg0YmE2LAo+ID4gPiA+
+ID4gKwkJMHg4NywgMHg5NSwgMHgxMywgMHgxOSwgMHhmNSwgMHgyYSwgMHg5NiwKPiA+ID4gPiA+
+IDB4NmIpOwo+ID4gPiA+ID4gwqAKPiA+ID4gPiA+IMKgc3RhdGljIGJvb2wgYWNwaV9lbnVtZXJh
+dGVfbm9uZGV2X3N1Ym5vZGVzKGFjcGlfaGFuZGxlIHNjb3BlLAo+ID4gPiA+ID4gwqAJCQkJCcKg
+wqDCoGNvbnN0IHVuaW9uCj4gPiA+ID4gPiBhY3BpX29iamVjdAo+ID4gPiA+ID4gKmRlc2MsCj4g
+PiA+ID4gPiBAQCAtMTM4LDcgKzEzNiw3IEBAIHN0YXRpYyBib29sCj4gPiA+ID4gPiBhY3BpX2Vu
+dW1lcmF0ZV9ub25kZXZfc3Vibm9kZXMoYWNwaV9oYW5kbGUgc2NvcGUsCj4gPiA+ID4gPiDCoAkJ
+wqDCoMKgwqB8fCBsaW5rcy0+dHlwZSAhPSBBQ1BJX1RZUEVfUEFDS0FHRSkKPiA+ID4gPiA+IMKg
+CQkJYnJlYWs7Cj4gPiA+ID4gPiDCoAo+ID4gPiA+ID4gLQkJaWYgKG1lbWNtcCh1dWlkLT5idWZm
+ZXIucG9pbnRlciwgYWRzX3V1aWQsCj4gPiA+ID4gPiBzaXplb2YoYWRzX3V1aWQpKSkKPiA+ID4g
+PiA+ICsJCWlmICh1dWlkX2xlX2NtcCgqKHV1aWRfbGUgKil1dWlkLQo+ID4gPiA+ID4gPmJ1ZmZl
+ci5wb2ludGVyLAo+ID4gPiA+ID4gYWRzX3V1aWQpKQo+ID4gPiA+IE1heWJlIGl0J3MgdG9vIGxh
+dGUsIGJ1dCBJIGRvbid0IHF1aXRlIHVuZGVyc3RhbmQgdGhlIHBvaW50ZXIKPiA+ID4gPiBtYW5p
+cHVsYXRpb25zIGhlcmUuCj4gPiA+ID4gCj4gPiA+ID4gSSBjYW4gc2VlIHdoeSB5b3UgbmVlZCBh
+IHR5cGUgY29udmVyc2lvbiAoYWx0aG91Z2ggaXQgbG9va3MKPiA+ID4gPiB1Z2x5KSwKPiA+ID4g
+PiBidXQgd2h5IGRvIHlvdQo+ID4gPiA+IG5lZWQgdG8gZGVyZWZlcmVuY2UgaXQgdG9vPwo+ID4g
+PiBUaGUgZnVuY3Rpb24gdGFrZXMgdGhhdCBraW5kIG9mIHR5cGUgb24gaW5wdXQuIFRoZSBvdGhl
+ciB2YXJpYW50cwo+ID4gPiBhcmUKPiA+ID4gbm90IGNvbXBpbGVkLgo+ID4gPiBQZXJoYXBzIHdl
+IGJldHRlciBjaGFuZ2UgdXVpZF97bGJ9ZV9jbXAoKSBmaXJzdCB0byB0YWtlIG5vcm1hbAo+ID4g
+PiBwb2ludGVycywgdGhvdWdoIEkgdGhpbmsgdGhlIGluaXRpYWwgaWRlYSB3YXMgdG8gZ2V0IHR5
+cGUgY2hlY2tpbmcKPiA+ID4gYXQKPiA+ID4gY29tcGlsZSB0aW1lLgo+ID4gPiAKCi0tIApBbmR5
+IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT4KSW50ZWwgRmlu
+bGFuZCBPeQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+TGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBz
+Oi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
