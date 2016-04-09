@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t4623.austin.hp.com (g2t4623.austin.hp.com [15.73.212.78])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A15111A1F29
- for <linux-nvdimm@lists.01.org>; Wed, 27 Apr 2016 15:46:52 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v10 2/7] libnvdimm: nvdimm_bus_descriptor field name change
-Date: Wed, 27 Apr 2016 16:46:14 -0600
-Message-Id: <6b5f11e48c01d44bab7bb5c616f02237c56cb057.1461793650.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1461793650.git.jerry.hoemann@hpe.com>
-References: <cover.1461793650.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1461793650.git.jerry.hoemann@hpe.com>
-References: <cover.1461793650.git.jerry.hoemann@hpe.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id 431B01A1ECD
+ for <linux-nvdimm@lists.01.org>; Sat,  9 Apr 2016 12:40:42 -0700 (PDT)
+Subject: [ndctl PATCH 4/4] ndctl: new 'destroy-namespace' utility
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 09 Apr 2016 12:39:51 -0700
+Message-ID: <20160409193951.2002.44452.stgit@dwillia2-desk3.jf.intel.com>
+In-Reply-To: <20160409193930.2002.71855.stgit@dwillia2-desk3.jf.intel.com>
+References: <20160409193930.2002.71855.stgit@dwillia2-desk3.jf.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,114 +16,228 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change the the name of:
+Undo a create-namespace operation.  Zero any info blocks, revoke all
+claims, and unallocate the region capacity.
 
-        nvdimm_bus_descriptor.dsm_mask
-to
-        nvdimm_bus_descriptor.cmd_mask
-
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c              | 6 +++---
- drivers/nvdimm/bus.c             | 2 +-
- drivers/nvdimm/core.c            | 2 +-
- include/linux/libnvdimm.h        | 2 +-
- tools/testing/nvdimm/test/nfit.c | 2 +-
- 5 files changed, 7 insertions(+), 7 deletions(-)
+ Documentation/Makefile.am                 |    1 
+ Documentation/ndctl-destroy-namespace.txt |   27 +++++++++++++
+ builtin-xaction-namespace.c               |   61 +++++++++++++++++++++++++----
+ builtin.h                                 |    1 
+ ndctl.c                                   |    3 +
+ 5 files changed, 84 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/ndctl-destroy-namespace.txt
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 2379f79..cc5999e 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -235,7 +235,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		struct acpi_device *adev = to_acpi_dev(acpi_desc);
+diff --git a/Documentation/Makefile.am b/Documentation/Makefile.am
+index 7fb49b8e4538..470f5d003f6c 100644
+--- a/Documentation/Makefile.am
++++ b/Documentation/Makefile.am
+@@ -7,6 +7,7 @@ man1_MANS = \
+ 	ndctl-enable-namespace.1 \
+ 	ndctl-disable-namespace.1 \
+ 	ndctl-create-namespace.1 \
++	ndctl-destroy-namespace.1 \
+ 	ndctl-list.1
  
- 		cmd_name = nvdimm_bus_cmd_name(cmd);
--		dsm_mask = nd_desc->dsm_mask;
-+		dsm_mask = nd_desc->cmd_mask;
- 		desc = nd_cmd_bus_desc(cmd);
- 		uuid = to_nfit_uuid(NFIT_DEV_BUS);
- 		handle = adev->handle;
-@@ -1096,14 +1096,14 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
- 	struct acpi_device *adev;
- 	int i;
+ CLEANFILES = $(man1_MANS)
+diff --git a/Documentation/ndctl-destroy-namespace.txt b/Documentation/ndctl-destroy-namespace.txt
+new file mode 100644
+index 000000000000..623820533cec
+--- /dev/null
++++ b/Documentation/ndctl-destroy-namespace.txt
+@@ -0,0 +1,27 @@
++ndctl-destroy-namespace(1)
++=========================
++
++NAME
++----
++ndctl-destroy-namespace - destroy the given namespace(s)
++
++SYNOPSIS
++--------
++[verse]
++'ndctl destroy-namespace' <namespace> [<options>]
++
++include::namespace-description.txt[]
++
++OPTIONS
++-------
++include::xable-namespace-options.txt[]
++-f::
++--force::
++	Unless this option is specified the 'destroy namespace'
++	operation will fail if the namespace is presently active.
++	Specifying --force causes the namespace to be disabled before
++	the operation is attempted.
++
++SEE ALSO
++--------
++linkndctl:ndctl-create-namespace[1]
+diff --git a/builtin-xaction-namespace.c b/builtin-xaction-namespace.c
+index d83ad91a7258..1e1cdb30f4d6 100644
+--- a/builtin-xaction-namespace.c
++++ b/builtin-xaction-namespace.c
+@@ -98,6 +98,13 @@ static const struct option base_options[] = {
+ 	OPT_END(),
+ };
  
--	nd_desc->dsm_mask = acpi_desc->bus_dsm_force_en;
-+	nd_desc->cmd_mask = acpi_desc->bus_dsm_force_en;
- 	adev = to_acpi_dev(acpi_desc);
- 	if (!adev)
- 		return;
++static const struct option destroy_options[] = {
++	BASE_OPTIONS(),
++	OPT_BOOLEAN('f', "force", &force,
++			"destroy namespace even if currently active"),
++	OPT_END(),
++};
++
+ static const struct option create_options[] = {
+ 	BASE_OPTIONS(),
+ 	CREATE_OPTIONS(),
+@@ -108,6 +115,7 @@ enum namespace_action {
+ 	ACTION_ENABLE,
+ 	ACTION_DISABLE,
+ 	ACTION_CREATE,
++	ACTION_DESTROY,
+ };
  
- 	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_CLEAR_ERROR; i++)
- 		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
--			set_bit(i, &nd_desc->dsm_mask);
-+			set_bit(i, &nd_desc->cmd_mask);
+ static int set_defaults(void)
+@@ -493,20 +501,16 @@ static int zero_info_block(struct ndctl_namespace *ndns)
+ 	return rc;
  }
  
- static ssize_t range_index_show(struct device *dev,
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 685e3ba..ed8bfae 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -625,7 +625,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 	} else {
- 		desc = nd_cmd_bus_desc(cmd);
- 		cmd_name = nvdimm_bus_cmd_name(cmd);
--		dsm_mask = nd_desc->dsm_mask;
-+		dsm_mask = nd_desc->cmd_mask;
- 		dimm_name = "bus";
+-static int namespace_reconfig(struct ndctl_region *region,
++static int namespace_destroy(struct ndctl_region *region,
+ 		struct ndctl_namespace *ndns)
+ {
+ 	const char *devname = ndctl_namespace_get_devname(ndns);
+ 	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
+ 	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
+-	struct parsed_parameters p;
+ 	const char *bdev = NULL;
+ 	char path[50];
+ 	int fd, rc;
+ 
+-	if (validate_namespace_options(ndns, &p))
+-		return -EINVAL;
+-
+ 	if (ndctl_region_get_ro(region)) {
+ 		error("%s: read-only, re-configuration disabled\n",
+ 				devname);
+@@ -557,9 +561,26 @@ static int namespace_reconfig(struct ndctl_region *region,
+ 		return rc;
  	}
  
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 182a93f..e8688a1 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -251,7 +251,7 @@ static ssize_t commands_show(struct device *dev,
- 	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
- 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
++	return 0;
++}
++
++static int namespace_reconfig(struct ndctl_region *region,
++		struct ndctl_namespace *ndns)
++{
++	struct parsed_parameters p;
++	int rc;
++
++	if (validate_namespace_options(ndns, &p))
++		return -EINVAL;
++
++	rc = namespace_destroy(region, ndns);
++	if (rc)
++		return rc;
++
+ 	ndns = ndctl_region_get_namespace_seed(region);
+ 	if (is_namespace_active(ndns)) {
+-		debug("%s: no %s namespace seed\n", devname,
++		debug("%s: no %s namespace seed\n",
++				ndctl_region_get_devname(region),
+ 				ndns ? "idle" : "available");
+ 		return -ENODEV;
+ 	}
+@@ -570,8 +591,8 @@ static int namespace_reconfig(struct ndctl_region *region,
+ static int do_xaction_namespace(const char *namespace,
+ 		enum namespace_action action)
+ {
++	struct ndctl_namespace *ndns, *_n;
+ 	int rc = -ENXIO, success = 0;
+-	struct ndctl_namespace *ndns;
+ 	struct ndctl_region *region;
+ 	const char *ndns_name;
+ 	struct ndctl_ctx *ctx;
+@@ -618,7 +639,7 @@ static int do_xaction_namespace(const char *namespace,
+ 					rc = 1;
+ 				goto done;
+ 			}
+-			ndctl_namespace_foreach(region, ndns) {
++			ndctl_namespace_foreach_safe(region, ndns, _n) {
+ 				ndns_name = ndctl_namespace_get_devname(ndns);
  
--	for_each_set_bit(cmd, &nd_desc->dsm_mask, BITS_PER_LONG)
-+	for_each_set_bit(cmd, &nd_desc->cmd_mask, BITS_PER_LONG)
- 		len += sprintf(buf + len, "%s ", nvdimm_bus_cmd_name(cmd));
- 	len += sprintf(buf + len, "\n");
- 	return len;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index af31d1c..67a1ba0 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -68,7 +68,7 @@ struct nd_mapping {
- 
- struct nvdimm_bus_descriptor {
- 	const struct attribute_group **attr_groups;
--	unsigned long dsm_mask;
-+	unsigned long cmd_mask;
- 	char *provider_name;
- 	ndctl_fn ndctl;
- 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 3187322..1d3b8ce 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -374,7 +374,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 	} else {
- 		struct ars_state *ars_state = &t->ars_state;
- 
--		if (!nd_desc || !test_bit(cmd, &nd_desc->dsm_mask))
-+		if (!nd_desc || !test_bit(cmd, &nd_desc->cmd_mask))
- 			return -ENOTTY;
- 
- 		switch (cmd) {
--- 
-1.7.11.3
+ 				if (strcmp(namespace, "all") != 0
+@@ -631,6 +652,9 @@ static int do_xaction_namespace(const char *namespace,
+ 				case ACTION_ENABLE:
+ 					rc = ndctl_namespace_enable(ndns);
+ 					break;
++				case ACTION_DESTROY:
++					rc = namespace_destroy(region, ndns);
++					break;
+ 				case ACTION_CREATE:
+ 					rc = namespace_reconfig(region, ndns);
+ 					if (rc < 0)
+@@ -721,3 +745,24 @@ int cmd_create_namespace(int argc, const char **argv)
+ 		return created;
+ 	return 0;
+ }
++
++int cmd_destroy_namespace(int argc , const char **argv)
++{
++	char *xable_usage = "ndctl destroy-namespace <namespace> [<options>]";
++	const char *namespace = parse_namespace_options(argc, argv,
++			ACTION_DESTROY, destroy_options, xable_usage);
++	int destroyed = do_xaction_namespace(namespace, ACTION_DESTROY);
++
++	if (destroyed < 0) {
++		fprintf(stderr, "error destroying namespaces: %s\n",
++				strerror(-destroyed));
++		return destroyed;
++	} else if (destroyed == 0) {
++		fprintf(stderr, "destroyed 0 namespaces\n");
++		return 0;
++	} else {
++		fprintf(stderr, "destroyed %d namespace%s\n", destroyed,
++				destroyed > 1 ? "s" : "");
++		return 0;
++	}
++}
+diff --git a/builtin.h b/builtin.h
+index 9c207552b254..53ec25b8a76a 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -11,6 +11,7 @@ struct cmd_struct {
+ int cmd_create_nfit(int argc, const char **argv);
+ int cmd_enable_namespace(int argc, const char **argv);
+ int cmd_create_namespace(int argc, const char **argv);
++int cmd_destroy_namespace(int argc, const char **argv);
+ int cmd_disable_namespace(int argc, const char **argv);
+ int cmd_enable_region(int argc, const char **argv);
+ int cmd_disable_region(int argc, const char **argv);
+diff --git a/ndctl.c b/ndctl.c
+index bed194979cc0..6db1b2ffa0c0 100644
+--- a/ndctl.c
++++ b/ndctl.c
+@@ -26,8 +26,9 @@ static struct cmd_struct commands[] = {
+ 	{ "version", cmd_version },
+ 	{ "create-nfit", cmd_create_nfit },
+ 	{ "enable-namespace", cmd_enable_namespace },
+-	{ "create-namespace", cmd_create_namespace },
+ 	{ "disable-namespace", cmd_disable_namespace },
++	{ "create-namespace", cmd_create_namespace },
++	{ "destroy-namespace", cmd_destroy_namespace },
+ 	{ "enable-region", cmd_enable_region },
+ 	{ "disable-region", cmd_disable_region },
+ 	{ "zero-labels", cmd_zero_labels },
 
 _______________________________________________
 Linux-nvdimm mailing list
