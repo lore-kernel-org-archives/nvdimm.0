@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id B95021A1F2D
- for <linux-nvdimm@lists.01.org>; Mon, 25 Apr 2016 12:51:01 -0700 (PDT)
-Subject: [ndctl PATCH 2/7] ndctl,
- create-namespace: check for ZONE_DEVICE=n kernels
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 25 Apr 2016 12:49:59 -0700
-Message-ID: <146161379994.21779.2908319412060950116.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146161378966.21779.1219526957524644729.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146161378966.21779.1219526957524644729.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 529E71A1E66
+ for <linux-nvdimm@lists.01.org>; Sat,  9 Apr 2016 10:48:43 -0700 (PDT)
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm fixes for 4.6-rc3
+Date: Sat, 9 Apr 2016 17:48:25 +0000
+Message-ID: <1460224104.6400.12.camel@intel.com>
+Content-Language: en-US
+Content-ID: <991B30DCB49615479ECCFB0D795BCC00@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -17,122 +16,49 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a kernel does not support ZONE_DEVICE it is unable to support
-pfn-device configurations.  Use the absence of a pfn-seed as the
-indicator of this configuration to fail the operation with an error
-rather than crashing.
-
-Reported-by: Linda Knippers <linda.knippers@hpe.com>
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- builtin-xaction-namespace.c |   35 +++++++++++++++++++++++++++--------
- 1 file changed, 27 insertions(+), 8 deletions(-)
-
-diff --git a/builtin-xaction-namespace.c b/builtin-xaction-namespace.c
-index 97bb36525d7c..40f62822facd 100644
---- a/builtin-xaction-namespace.c
-+++ b/builtin-xaction-namespace.c
-@@ -38,6 +38,7 @@ static bool verbose;
- static bool force;
- static struct parameters {
- 	bool do_scan;
-+	bool mode_default;
- 	const char *bus;
- 	const char *map;
- 	const char *type;
-@@ -153,6 +154,7 @@ static int set_defaults(enum namespace_action mode)
- 			param.mode = "memory";
- 		else
- 			param.mode = "safe";
-+		param.mode_default = true;
- 	}
- 
- 	if (param.map) {
-@@ -265,10 +267,13 @@ static bool do_setup_pfn(struct ndctl_namespace *ndns,
- 	if (p->mode != NDCTL_NS_MODE_MEMORY)
- 		return false;
- 
--	if (ndctl_namespace_get_mode(ndns) != NDCTL_NS_MODE_MEMORY)
--		return true;
--
--	if (p->loc == NDCTL_PFN_LOC_PMEM)
-+	/*
-+	 * Dynamically allocated namespaces always require a pfn
-+	 * instance, and a pfn device is required to place the memmap
-+	 * array in device memory.
-+	 */
-+	if (!ndns || ndctl_namespace_get_mode(ndns) != NDCTL_NS_MODE_MEMORY
-+			|| p->loc == NDCTL_PFN_LOC_PMEM)
- 		return true;
- 
- 	return false;
-@@ -330,6 +335,7 @@ static int is_namespace_active(struct ndctl_namespace *ndns)
- 
- /*
-  * validate_namespace_options - init parameters for setup_namespace
-+ * @region: parent of the namespace to create / reconfigure
-  * @ndns: specified when we are reconfiguring, NULL otherwise
-  * @p: parameters to fill
-  *
-@@ -342,8 +348,8 @@ static int is_namespace_active(struct ndctl_namespace *ndns)
-  * the target namespace we need to do basic sanity checks here for
-  * pmem-only attributes specified for blk namespace and vice versa.
-  */
--static int validate_namespace_options(struct ndctl_namespace *ndns,
--		struct parsed_parameters *p)
-+static int validate_namespace_options(struct ndctl_region *region,
-+		struct ndctl_namespace *ndns, struct parsed_parameters *p)
- {
- 	int rc = 0;
- 
-@@ -428,6 +434,19 @@ static int validate_namespace_options(struct ndctl_namespace *ndns,
- 	} else if (p->mode == NDCTL_NS_MODE_MEMORY)
- 		p->loc = NDCTL_PFN_LOC_PMEM;
- 
-+	/* check if we need, and whether the kernel supports, pfn devices */
-+	if (do_setup_pfn(ndns, p)) {
-+		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
-+
-+		if (!pfn && param.mode_default) {
-+			debug("memory mode not available\n");
-+			p->mode = NDCTL_NS_MODE_RAW;
-+		} else if (!pfn) {
-+			error("operation failed, memory mode not available\n");
-+			return -EINVAL;
-+		}
-+	}
-+
- 	return 0;
- }
- 
-@@ -438,7 +457,7 @@ static int namespace_create(struct ndctl_region *region)
- 	struct ndctl_namespace *ndns;
- 	struct parsed_parameters p;
- 
--	if (validate_namespace_options(NULL, &p))
-+	if (validate_namespace_options(region, NULL, &p))
- 		return -EINVAL;
- 
- 	if (ndctl_region_get_ro(region)) {
-@@ -578,7 +597,7 @@ static int namespace_reconfig(struct ndctl_region *region,
- 	struct parsed_parameters p;
- 	int rc;
- 
--	if (validate_namespace_options(ndns, &p))
-+	if (validate_namespace_options(region, ndns, &p))
- 		return -EINVAL;
- 
- 	rc = namespace_destroy(region, ndns);
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgorQUtBIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
+Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4u
+dG8gcmVjZWl2ZSAzIGZpeGVzLCB0aGUgZmlyc3QgMiBhcmUgdGFnZ2VkIGZvciAtc3RhYmxlLgoK
+MS8gVGhlIG5kY3RsIHV0aWxpdHkvbGlicmFyeSBnYWluZWQgZXhwYW5kZWQgdW5pdCB0ZXN0cyBp
+bGx1bWluYXRpbmcgYQpsb25nIHN0YW5kaW5nIGJ1ZyBpbiB0aGUgbGlibnZkaW1tIFNNQVJUIGRh
+dGEgcmV0cmlldmFsIGltcGxlbWVudGF0aW9uLgorQUtBLUl0IGhhcyBiZWVuIGJyb2tlbiBzaW5j
+ZSBpdHMgaW5pdGlhbCBpbXBsZW1lbnRhdGlvbiwgbm93IGZpeGVkLgoKMi8gQW5vdGhlciBvbmUg
+bGluZSBmaXggZm9yIHRoZSBkZXRlY3Rpb24gb2Ygc3RhbGUgaW5mbyBibG9ja3MuCitBS0EtV2l0
+aG91dCB0aGlzIGNoYW5nZSB1c2Vyc3BhY2UgY2FuIGdldCBpbnRvIGEgc2l0dWF0aW9uIHdoZXJl
+IGl0IGlzCnVuYWJsZSB0byByZWNvbmZpZ3VyZSBhIG5hbWVzcGFjZS4KCjMvIEZpeCB0aGUgYmFk
+YmxvY2sgaW5pdGlhbGl6YXRpb24gcGF0aCBpbiB0aGUgcHJlc2VuY2Ugb2YgdGhlIG5ldyAoaW4K
+NCw2LXJjMSkgc2VjdGlvbiBhbGlnbm1lbnQgd29ya2Fyb3VuZHMuICtBS0EtV2l0aG91dCB0aGlz
+IGNoYW5nZSBiYWRibG9ja3MKd2lsbCBiZSByZXBvcnRlZCBhdCB0aGUgd3Jvbmcgb2Zmc2V0LgoK
+VGhlc2UgaGF2ZSByZWNlaXZlZCBhIGJ1aWxkIHN1Y2Nlc3MgcmVwb3J0IGZyb20gdGhlIGtidWls
+ZCByb2JvdCBhbmQKaGF2ZSBhcHBlYXJlZCBpbiAtbmV4dCB3aXRoIG5vIHJlcG9ydGVkIGlzc3Vl
+cy4KClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgOTczNWEyMjc5OWI5MjE0ZDE3
+ZDNjMjMxZmUzNzdmYzg1MmYwNDJlOToKCitBS0EgTGludXggNC42LXJjMiAoMjAxNi0wNC0wMyAw
+OTowOTo0MCAtMDUwMCkKCmFyZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBvc2l0b3J5IGF0OgoK
+K0FLQSBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1t
+L252ZGltbSBsaWJudmRpbW0tZml4ZXMKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0byBh
+MzkwMTgwMjkxZGQ5YTIzOTJiYmFiNDI0MmNkZTcxMmMzMjZlZmM2OgoKK0FLQSBsaWJudmRpbW0s
+IHBmbjogZml4IG52ZGltbV9uYW1lc3BhY2VfYWRkX3BvaXNvbigpIHZzIHNlY3Rpb24gYWxpZ25t
+ZW50ICgyMDE2LTA0LTA3IDIwOjAyOjA2IC0wNzAwKQoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpEYW4gV2lsbGlhbXMgKDMp
+OgorQUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW06IGZpeCBzbWFydCBkYXRhIHJldHJpZXZhbAor
+QUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW0sIHBmbjogZml4IHV1aWQgdmFsaWRhdGlvbgorQUtB
+QW9BQ2dBS0FBb0FDZy1saWJudmRpbW0sIHBmbjogZml4IG52ZGltbV9uYW1lc3BhY2VfYWRkX3Bv
+aXNvbigpIHZzIHNlY3Rpb24gYWxpZ25tZW50CgorQUtBLWRyaXZlcnMvbnZkaW1tL2J1cy5jK0FL
+QUFvQUNnQUtBQW9BQ2d8K0FLQUFvQS0yICstLQorQUtBLWRyaXZlcnMvbnZkaW1tL2NvcmUuYytB
+S0FBb0FDZ0FLQUFvQXwgNDEgKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0r
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQorQUtBLWRyaXZlcnMvbnZkaW1tL25kLmgrQUtBQW9BQ2dB
+S0FBb0FDZ0FLQXwrQUtBQW9BLTQgKy0rLS0tCitBS0EtZHJpdmVycy9udmRpbW0vcGZuX2RldnMu
+YyB8K0FLQUFvQS0yICstLQorQUtBLWRyaXZlcnMvbnZkaW1tL3BtZW0uYytBS0FBb0FDZ0FLQUFv
+QXwgMzYgKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0r
+LSstKy0rLS0tLS0tLS0KK0FLQS01IGZpbGVzIGNoYW5nZWQsIDUzIGluc2VydGlvbnMoKy0pLCAz
+MiBkZWxldGlvbnMoLSkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
+Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
