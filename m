@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 2D6281A2217
- for <linux-nvdimm@lists.01.org>; Fri, 22 Apr 2016 12:48:33 -0700 (PDT)
-Subject: [ndctl PATCH 8/8] ndctl,
- create-namespace: check for ZONE_DEVICE=n kernels
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 22 Apr 2016 12:47:43 -0700
-Message-ID: <146135446379.4228.7996799346697687015.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146135442234.4228.904225076597683142.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146135442234.4228.904225076597683142.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mail-ob0-x231.google.com (mail-ob0-x231.google.com
+ [IPv6:2607:f8b0:4003:c01::231])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C9A511A221D
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Apr 2016 11:25:05 -0700 (PDT)
+Received: by mail-ob0-x231.google.com with SMTP id bg3so116106646obb.1
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Apr 2016 11:25:05 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <bf6777e246a73f3c3ee4f079a29ac25983e830e2.1458583367.git.jerry.hoemann@hpe.com>
+References: <cover.1458583367.git.jerry.hoemann@hpe.com>
+ <bf6777e246a73f3c3ee4f079a29ac25983e830e2.1458583367.git.jerry.hoemann@hpe.com>
+Date: Mon, 11 Apr 2016 11:25:04 -0700
+Message-ID: <CAPcyv4gtcA64LNMOh8Rv8rpUdF-CJeyu-69kDub-tJCEK2CwLQ@mail.gmail.com>
+Subject: Re: [PATCH v8 04/10] nvdimm: Add UUIDs
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,65 +26,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a kernel does not support ZONE_DEVICE it is unable to support
-pfn-device configurations.  Use the absence of a pfn-seed as the
-indicator of this configuration to fail the operation with an error
-rather than crashing.
+On Mon, Mar 21, 2016 at 12:37 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> Add UUID associated with HPE Type N NVDIMM.
+>
+> Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+> ---
+>  drivers/acpi/nfit.h | 5 +++++
+>  1 file changed, 5 insertions(+)
+>
+> diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+> index c75576b..10dd0d3 100644
+> --- a/drivers/acpi/nfit.h
+> +++ b/drivers/acpi/nfit.h
+> @@ -23,6 +23,8 @@
+>
+>  #define UUID_NFIT_BUS "2f10e7a4-9e91-11e4-89d3-123b93f75cba"
+>  #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
+> +#define UUID_NFIT_DIMM_N_HPE1 "9002c334-acf3-4c0e-9642-a235f0d53bc6"
+> +#define UUID_NFIT_DIMM_N_HPE2 "5008664B-B758-41A0-A03C-27C2F2D04F7E"
 
-Reported-by: Linda Knippers <linda.knippers@hpe.com>
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- builtin-xaction-namespace.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
-
-diff --git a/builtin-xaction-namespace.c b/builtin-xaction-namespace.c
-index 6ae8d7aee849..6ff969cd696e 100644
---- a/builtin-xaction-namespace.c
-+++ b/builtin-xaction-namespace.c
-@@ -38,6 +38,7 @@ static bool verbose;
- static bool force;
- static struct parameters {
- 	bool do_scan;
-+	bool mode_default;
- 	const char *bus;
- 	const char *map;
- 	const char *type;
-@@ -153,6 +154,7 @@ static int set_defaults(enum namespace_action mode)
- 			param.mode = "memory";
- 		else
- 			param.mode = "safe";
-+		param.mode_default = true;
- 	}
- 
- 	if (param.map) {
-@@ -428,6 +430,22 @@ static int validate_namespace_options(struct ndctl_namespace *ndns,
- 	} else if (p->mode == NDCTL_NS_MODE_MEMORY)
- 		p->loc = NDCTL_PFN_LOC_PMEM;
- 
-+	/* check if we need, and whether the kernel supports, pfn devices */
-+	if (do_setup_pfn(ndns, p)) {
-+		struct ndctl_region *region;
-+		struct ndctl_pfn *pfn;
-+
-+		region = ndctl_namespace_get_region(ndns);
-+		pfn = ndctl_region_get_pfn_seed(region);
-+		if (!pfn && param.mode_default) {
-+			debug("memory mode not available\n");
-+			p->mode = NDCTL_NS_MODE_RAW;
-+		} else if (!pfn) {
-+			error("operation failed, memory mode not available\n");
-+			return -EINVAL;
-+		}
-+	}
-+
- 	return 0;
- }
- 
-
+I'll lowercase this definition when applying the patch.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
