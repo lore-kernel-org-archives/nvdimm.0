@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 14F251A1F6C
- for <linux-nvdimm@lists.01.org>; Wed,  6 Apr 2016 18:08:26 -0700 (PDT)
-Subject: [ndctl PATCH 5/5] ndctl, list: add 'filter by dimm' capability
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 06 Apr 2016 18:07:25 -0700
-Message-ID: <20160407010725.30641.58180.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160407010659.30641.26139.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160407010659.30641.26139.stgit@dwillia2-desk3.jf.intel.com>
+Received: from mail-ob0-x236.google.com (mail-ob0-x236.google.com
+ [IPv6:2607:f8b0:4003:c01::236])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 2E6C01A1F3F
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Apr 2016 15:19:04 -0700 (PDT)
+Received: by mail-ob0-x236.google.com with SMTP id bg3so120175640obb.1
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Apr 2016 15:19:04 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <cover.1458583367.git.jerry.hoemann@hpe.com>
+References: <cover.1458583367.git.jerry.hoemann@hpe.com>
+Date: Mon, 11 Apr 2016 15:19:03 -0700
+Message-ID: <CAPcyv4gs+YGY2XJ02sZigdKVZ46THh3y=LzFOO8fRgDZfsfChQ@mail.gmail.com>
+Subject: Re: [PATCH v8 00/10] nvdimm: Add an IOCTL pass thru for DSM calls
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,200 +25,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is to support scenarios where the user is searching for information
-relative to a given dimm.  For example if a dimm is faltering, this
-command can show all the namespaces impacted if the dimm failed:
+On Mon, Mar 21, 2016 at 12:37 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+>
+> The NVDIMM code in the kernel supports an IOCTL interface to user
+> space based upon the Intel Example DSM:
+>
+>         http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+>
+> This interface cannot be used by other NVDIMM DSMs that support
+> incompatible functions.
+>
+> An alternative DSM specification for Type N DSM being developed
+> by Hewlett Packard Enterprise can be found at:
+>
+>         https://github.com/HewlettPackard/hpe-nvm/tree/master/Documentation
 
-	ndctl list -d nmem0 -N
+These links should appear in the patch changelog that uses details
+from the given specification.  Otherwise useful information like this
+is simply thrown away since the cover letter of a patch series is not
+stored in the git history.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- Documentation/ndctl-list.txt |    8 ++++
- builtin-list.c               |   13 ++++++-
- util/filter.c                |   83 ++++++++++++++++++++++++++++++++++++++++++
- util/filter.h                |    5 +++
- 4 files changed, 107 insertions(+), 2 deletions(-)
+> To accommodate multiple and conflicting DSM specifications, this patch
+> set adds a generic "pass-thru" IOCTL interface which is not tied to
+> a particular DSM.
+>
+> A new _IOC_NR ND_CMD_CALL == "10" is added for the pass thru call.
+>
+> The new data structure nd_cmd_pkg serves as a wrapper for the
+> pass-thru calls.  This wrapper supplies the data that the kernel
+> needs to make the _DSM call.
+>
+> Unlike the definitions of the _DSM functions themselves, the nd_cmd_pkg
+> provides the calling information (input/output sizes) in an uniform
+> manner making the kernel marshaling of the arguments straight
+> forward.
+>
+> This shifts the marshaling burden from the kernel to the user
+> space application while still permitting the kernel to internally
+> call _DSM functions.
+>
+> The kernel functions __nd_ioctl and acpi_nfit_ctl were modified
+> to accommodate ND_CMD_CALL.
+>
 
-diff --git a/Documentation/ndctl-list.txt b/Documentation/ndctl-list.txt
-index 36398aa34b42..0a23ea130a1e 100644
---- a/Documentation/ndctl-list.txt
-+++ b/Documentation/ndctl-list.txt
-@@ -60,6 +60,14 @@ OPTIONS
- --region=::
- include::xable-region-options.txt[]
- 
-+-d::
-+--dimm=::
-+	An 'nmemX' device name, or dimm id number. Filter listing by
-+	devices that reference the given dimm. For example to see all
-+	namespaces comprised of storage capacity on nmem0:
-+[verse]
-+# ndctl list --dimm=nmem0 --namespaces
-+
- -t::
- --type=::
- 	Filter listing by region type ('pmem' or 'blk')
-diff --git a/builtin-list.c b/builtin-list.c
-index 8b65767c37be..885f61297a3c 100644
---- a/builtin-list.c
-+++ b/builtin-list.c
-@@ -29,6 +29,7 @@ static struct {
- 	const char *bus;
- 	const char *region;
- 	const char *type;
-+	const char *dimm;
- } param;
- 
- static int did_fail;
-@@ -197,6 +198,8 @@ int cmd_list(int argc, const char **argv)
- 		OPT_STRING('b', "bus", &param.bus, "bus-id", "filter by bus"),
- 		OPT_STRING('r', "region", &param.region, "region-id",
- 				"filter by region"),
-+		OPT_STRING('d', "dimm", &param.dimm, "dimm-id",
-+				"filter by dimm"),
- 		OPT_STRING('t', "type", &param.type, "region-type",
- 				"filter by region-type"),
- 		OPT_BOOLEAN('B', "buses", &list.buses, "include bus info"),
-@@ -254,7 +257,8 @@ int cmd_list(int argc, const char **argv)
- 		struct ndctl_region *region;
- 		struct ndctl_dimm *dimm;
- 
--		if (!util_bus_filter(bus, param.bus))
-+		if (!util_bus_filter(bus, param.bus)
-+				|| !util_bus_filter_by_dimm(bus, param.dimm))
- 			continue;
- 
- 		if (list.buses) {
-@@ -281,6 +285,9 @@ int cmd_list(int argc, const char **argv)
- 			if (!list.dimms)
- 				break;
- 
-+			if (!util_dimm_filter(dimm, param.dimm))
-+				continue;
-+
- 			if (!list.idle && !ndctl_dimm_is_enabled(dimm))
- 				continue;
- 
-@@ -320,7 +327,9 @@ int cmd_list(int argc, const char **argv)
- 		ndctl_region_foreach(bus, region) {
- 			struct json_object *jregion;
- 
--			if (!util_region_filter(region, param.region))
-+			if (!util_region_filter(region, param.region)
-+					|| !util_region_filter_by_dimm(region,
-+						param.dimm))
- 				continue;
- 
- 			if (type && ndctl_region_get_type(region) != type)
-diff --git a/util/filter.c b/util/filter.c
-index 8c8dbf1a8887..ea0f4dd2da13 100644
---- a/util/filter.c
-+++ b/util/filter.c
-@@ -54,3 +54,86 @@ struct ndctl_region *util_region_filter(struct ndctl_region *region,
- 
- 	return NULL;
- }
-+
-+struct ndctl_dimm *util_dimm_filter(struct ndctl_dimm *dimm, const char *ident)
-+{
-+	char *end = NULL;
-+	const char *name;
-+	unsigned long dimm_id, id;
-+
-+	if (!ident || strcmp(ident, "all") == 0)
-+		return dimm;
-+
-+	dimm_id = strtoul(ident, &end, 0);
-+	if (end == ident || end[0])
-+		dimm_id = ULONG_MAX;
-+
-+	name = ndctl_dimm_get_devname(dimm);
-+	id = ndctl_dimm_get_id(dimm);
-+
-+	if (dimm_id < ULONG_MAX && dimm_id == id)
-+		return dimm;
-+
-+	if (dimm_id == ULONG_MAX && strcmp(ident, name) == 0)
-+		return dimm;
-+
-+	return NULL;
-+}
-+
-+struct ndctl_bus *util_bus_filter_by_dimm(struct ndctl_bus *bus,
-+		const char *ident)
-+{
-+	char *end = NULL;
-+	const char *name;
-+	struct ndctl_dimm *dimm;
-+	unsigned long dimm_id, id;
-+
-+	if (!ident || strcmp(ident, "all") == 0)
-+		return bus;
-+
-+	dimm_id = strtoul(ident, &end, 0);
-+	if (end == ident || end[0])
-+		dimm_id = ULONG_MAX;
-+
-+	ndctl_dimm_foreach(bus, dimm) {
-+		id = ndctl_dimm_get_id(dimm);
-+		name = ndctl_dimm_get_devname(dimm);
-+
-+		if (dimm_id < ULONG_MAX && dimm_id == id)
-+			return bus;
-+
-+		if (dimm_id == ULONG_MAX && strcmp(ident, name) == 0)
-+			return bus;
-+	}
-+
-+	return NULL;
-+}
-+
-+struct ndctl_region *util_region_filter_by_dimm(struct ndctl_region *region,
-+		const char *ident)
-+{
-+	char *end = NULL;
-+	const char *name;
-+	struct ndctl_dimm *dimm;
-+	unsigned long dimm_id, id;
-+
-+	if (!ident || strcmp(ident, "all") == 0)
-+		return region;
-+
-+	dimm_id = strtoul(ident, &end, 0);
-+	if (end == ident || end[0])
-+		dimm_id = ULONG_MAX;
-+
-+	ndctl_dimm_foreach_in_region(region, dimm) {
-+		id = ndctl_dimm_get_id(dimm);
-+		name = ndctl_dimm_get_devname(dimm);
-+
-+		if (dimm_id < ULONG_MAX && dimm_id == id)
-+			return region;
-+
-+		if (dimm_id == ULONG_MAX && strcmp(ident, name) == 0)
-+			return region;
-+	}
-+
-+	return NULL;
-+}
-diff --git a/util/filter.h b/util/filter.h
-index bc5c2557a65c..17ce895425fb 100644
---- a/util/filter.h
-+++ b/util/filter.h
-@@ -3,4 +3,9 @@
- struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *ident);
- struct ndctl_region *util_region_filter(struct ndctl_region *region,
- 		const char *ident);
-+struct ndctl_dimm *util_dimm_filter(struct ndctl_dimm *dimm, const char *ident);
-+struct ndctl_bus *util_bus_filter_by_dimm(struct ndctl_bus *bus,
-+		const char *ident);
-+struct ndctl_region *util_region_filter_by_dimm(struct ndctl_region *region,
-+		const char *ident);
- #endif
+I have applied the first 4 patches with some fixups to the change log
+and squashing the patch4 into patch2.  Please base the next revision
+of this series on top of the for-4.7/dsm branch:
 
+https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/log/?h=for-4.7/dsm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
