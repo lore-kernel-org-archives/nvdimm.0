@@ -1,13 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-From: Eric Shang <EricShang@zhaoxin.com>
-Subject: =?gb2312?B?tPC4tDogZXh0NCBlcnJvcg==?=
-Date: Thu, 14 Apr 2016 06:33:42 +0000
-Message-ID: <0255994B402DE243B1DFC1057A00655201AEFE@ZXSHMBX02.zhaoxin.com>
+Date: Wed, 13 Apr 2016 23:22:07 -0400
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: Re: ext4 error
+Message-ID: <20160414032207.GC16656@thunk.org>
 References: <0255994B402DE243B1DFC1057A00655201AC6F@ZXSHMBX02.zhaoxin.com>
- <20160414032207.GC16656@thunk.org>
-In-Reply-To: <20160414032207.GC16656@thunk.org>
-Content-Language: zh-CN
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <0255994B402DE243B1DFC1057A00655201AC6F@ZXSHMBX02.zhaoxin.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,90 +14,50 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Theodore Ts'o <tytso@mit.edu>
+To: Eric Shang <EricShang@zhaoxin.com>
 Cc: "jack@suse.cz" <jack@suse.cz>, "david@fromorbit.com" <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgVGhlb2RvcmWjug0KCVRoYW5rcyBzbyBtdWNoISBUaGUgaXNzdWUgaXMgdmVyeSByYW5kb20s
-IGJ1dCBjYW4gcmVwcm9kdWNlIG1heSBpbiBzdHJlc3MgZm9yIDEyIGhvdXIsIEkgd2FudCB0byBk
-byBzb21lIGZpbGUgc3lzdGVtIHN0cmVzcywgYnV0IG5lZWQgdG8gZmluZCBvdXQgdGhlIG1haW5s
-eSBjYXVzZSBvciBzdGVwcyBvZiB0aGlzIGlzc3VlIGZpcnN0LiBJIHJlcHJvZHVjZSB0aGlzIHBh
-bmljIGJ5IHRoZSBwcm9jZXNzIHlvdSBtZW50aW9uZWQgd2l0aCB0aGUgZm9sbG93aW5nIHN0ZXBz
-LiBCdXQgc3RpbGwgdW5rbm93biBpcyB0aGlzIHRoZSByb290IGNhdXNlLg0KCTEpIGZvcmNlIGZy
-ZWUgYSBpbm9kZSB3aXRoIHVzZWQgYnkgb25lIGZpbGUgYnkgZGVidWdmcyBmcmVlaSBjb21tb25k
-IChib290IGZyb20gYW5vdGhlciBmaWxlc3lzdGVtIGZyb20gc2RjYXJkKS4NCgkyKSBib290IHRo
-ZSBzeXN0ZW0sIGNyZWF0ZSBvbmUgbmV3IGZpbGUuIFRoZSBmaWxlIHdpbGwgdXNlIHRoZSBzYW1l
-IGlub2RlIHdoaWNoIEkgZnJlZWQuDQoJMykgZGVsZXRlZCB0aGUgbmV3IGNyZWF0ZWQgZmlsZS4g
-VGhlbiBkcm9wIHRoZSBjYWNoZSBieSAjZWNobyAzID4gL3Byb2Mvc3lzL3ZtL2Ryb3BfY2FjaGVz
-DQoJNCkgcnVuICNscyBhbmQgaXQgd2lsbCBjYXVzZSBleHQ0IGVycm9yIGFuZCBrZXJuZWwgcGFu
-aWMuDQoNCiAgICBCdXQgSSBzdGlsbCBoYXZlIHNvbWUgcXVlc3Rpb25zLCBiZWNhdXNlIGVhY2gg
-Ym9vdCB1cCBvZiB0aGUgc3lzdGVtLCB3aWxsIHJ1biBmc2NrLCBpZiB0aGUgZmlsZXN5c3RlbSBp
-cyBjb3JydXB0ZWQsIEkgdGhpbmsgaXQgd2lsbCBmaXggaXQuIEJ1dCBsb29rcyBsaWtlIGFmdGVy
-IGRvIHRoZSBzdGVwIDEpIHdoZW4gYm9vdCB1cCBmc2NrIGNhbiBmaW5kIHRoaXMgZnJlZSBidXQg
-dXNlZCBpbm9kZSBlcnJvci4gVW5sZXNzIEkgcnVuIGZzY2suZXh0NCB3aXRoIC1mLiB3ZSBvZnRl
-biBzaG93ZG93biB0aGUgcG93ZXIgZGlyZWN0bHksIHRoaXMgY2FuIGNhdXNlIGRpcnR5IGlub2Rl
-IGJpdCBtYXA/DQogICAgSSBjaGVjayB0aGUga2VybmVsIGZzIGNvZGUsIGl0J3MgdmVyeSBjb21w
-bGV4LCB3aGVuIGRlbGV0ZSBhIGZpbGUgZnJvbSBwYXJlbnQgZGVudHJ5LCB3aWxsIHVzZSBhIGJo
-IHRvIHJlYWQgdGhlIGRlbnRyeSBhbmQgdGhlbiBkZWxldGUgdGhlIGVudHJ5IG9mIHRoZSBmaWxl
-IGluIGJoLCBhbmQgdGhlbiBtYXJrIHRoZSBiaCBkaXJ0eS4gV2FpdCBmb3Igdm0gZmx1c2ggdGhp
-cyBkaXJ0eSBwYWdlIHRvIGJsb2NrIGRldmljZSg/KS4gYnV0IG9uIHRoZSBvdGhlciBzaWRlIHBh
-cmVudCBkZW50cnkgY2FjaGUgbWF5IHB1dCBpbiB1bnVzZWQgbHJ1IGxpc3QsIHdoaWNoIG1heSBi
-ZSBmcmVlZCB3aGVuIG1lbW9yeSBwcmVzc3VyZS4gSXMgdGhlcmUgYW55IHN5bmNocm9ub3VzIHdp
-dGggZGlydHkgcGFnZSBmbHVzaCBhbmQgZGNhY2hlIGZsdXNoPyBUaGFua3MhDQoNCkJlc3QgUmVn
-YXJkcw0KRXJpY1NoYW5nDQoNCg0KLS0tLS3Tyrz+1K28/i0tLS0tDQq3orz+yMs6IFRoZW9kb3Jl
-IFRzJ28gW21haWx0bzp0eXRzb0BtaXQuZWR1XSANCreiy83KsbzkOiAyMDE2xOo01MIxNMjVIDEx
-OjIyDQrK1bz+yMs6IEVyaWMgU2hhbmcNCrOty806IE1hdHRoZXcgV2lsY294OyBUb3NoaSBLYW5p
-OyBha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnOyBkYW4uai53aWxsaWFtc0BpbnRlbC5jb207IHZp
-cm9AemVuaXYubGludXgub3JnLnVrOyByb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tOyBraXJp
-bGwuc2h1dGVtb3ZAbGludXguaW50ZWwuY29tOyBkYXZpZEBmcm9tb3JiaXQuY29tOyBqYWNrQHN1
-c2UuY3o7IGFkaWxnZXIua2VybmVsQGRpbGdlci5jYTsgbGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-ZzsgbGludXgtZnNkZXZlbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWV4dDRAdmdlci5rZXJuZWwu
-b3JnOyB4ZnNAb3NzLnNnaS5jb207IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcNCtb3zOI6
-IFJlOiBleHQ0IGVycm9yDQoNCk9uIFdlZCwgQXByIDEzLCAyMDE2IGF0IDAxOjQ0OjU1UE0gKzAw
-MDAsIEVyaWMgU2hhbmcgd3JvdGU6DQo+IEhJIEFsbDoNCj4gICBJIG1lZXQgYW4gZXh0NCBlcnJv
-ciwgZm9sbG93aW5nIGlzIHRoZSBlcnJvciBsb2cuIEFmdGVyIHBhbmljLCBJIGNoZWNrIHRoZSBl
-bW1jIGJ5IHRoZSB0b29sIGRlYnVmcywgdGhlIGlub2RlIDY5ODc4IGlfbmxpbmsgaXMgbm90IHpl
-cm8uIEFuZCB0aGlzIGlub2RlIGRvbid0IGJlbG9uZyB0byBwYXJlbnQgZGlyIDY5ODcsIGl0IGJl
-bG9uZyB0byBvdGhlciBmaWxlKHRoaXMgaW5vZGUgYmVsb25nIHRvIHR3byBmaWxlcyB3aGVuIGNo
-ZWNrIGJ5IGRlYnVnZnMgbmNoZWNrKSwgSSBndWVzcyB0aGFuIHRoaXMgaW5vZGUgaGFzIGJlZWQg
-ZGVsZXRlZCBpbiBtZW1vcnkgYW5kIGFscmVhZHkgdXNlZCBieSBvdGhlciBmaWxlLiBCdXQgdGhl
-IHBhcmVudCBkZW50cnkgYnVmZl9oZWFkIG5vdCBmbHVzaCB0byBlbW1jLiBCdXQgd2hlbiBsb29r
-dXAgdGhpcyBkZW50cnkgY2FuJ3QgZmluZCBpdCcgaW4gZGVudHJ5IGNhY2hlLCBhbmQgdGhlbiBs
-b29rdXBfcmVhbCwgcmVhZCB0aGUgZGVudHJ5IGZyb20gZW1tYywgZ2V0IHRoZSBmaWxlIGlub2Rl
-IHdoaWNoIGFscmVhZHkgYmUgZGVsZXRlZC4gDQo+ICAgQ2FuIGFueSBnaXZlIG1lIHNvbWUgaGVs
-cCBob3cgdG8gY2hlY2sgdGhpcyBpc3N1ZS4gTXkga2VybmVsIHZlcnNpb24gaXMgMy4xOCBmb3Jt
-IEFuZHJvaWQgLiBJIHRoaW5rcyBzb21ldGhpbmcgd3Jvbmcgd2l0aCBkZW50cnkgY2FjaGUgZmx1
-c2ggYW5kIGRpcnR5IGJ1ZmZfaGVhZCBmbHVzaCB0byBlbW1jLiBUaGFua3MgYWxsIQ0KDQpJZiBJ
-IGhhZCB0byBndWVzcywgdGhpcyB3YXMgY2F1c2VkIHN0YXJ0aW5nIHdpdGggYSBjb3JydXB0ZWQg
-ZmlsZSBzeXN0ZW0sIHdoZXJlIHRoZSBpbm9kZSBhbGxvY2F0aW9uIGJpdG1hcCBzaG93ZWQgdGhh
-dCBhbiBpbm9kZSB3aGljaCB3YXMgaW4gdXNlIGJ5IHRoZSBmaWxlIHN5c3RlbSwgd2FzIGVycm9u
-ZW91c2x5IHNob3dpbmcgaXQgYXMgZnJlZS4NClRoaXMgYWxsb3dlZCBpdCB0byBiZSBhbGxvY2F0
-ZWQgZm9yIHVzZSBpbiBhIHNlY29uZCBmaWxlICh3aGljaCB3b3VsZCBoYXZlIHdpcGVkIG91dCB0
-aGUgY29udGVudHMgZm9yIHRoZSBvcmlnaW5hbCBmaWxlIHN0b3JlZCBhdCB0aGF0IGlub2RlKS4g
-IExhdGVyIG9uLCB0aGUgZmlsZSB3YXMgZGVsZXRlZCB2aWEgZWl0aGVyIHRoZSBvbGRlciBvciBu
-ZXdlciBwYXRobmFtZSwgd2hpY2ggZHJvcHBlZCB0aGUgcmVmIGNvdW50IHRvIHplcm8sIGFuZCB0
-aGVuIGFuIGFjY2VzcyB2aWEgdGhlIG90aGVyIHBhdGhuYW1lIHdvdWxkIGhhdmUgcmVzdWx0ZWQg
-aW4gdGhpcyBlcnJvci4NCg0KQWZ0ZXIgdGhlIHBhbmljLCB0aGUgb24tZGlzayBkYXRhIHN0cnVj
-dHVyZXMgd291bGRuJ3QgaGF2ZSBiZWVuIHVwZGF0ZWQgZnJvbSB3aGF0ZXZlciB0aGUgaW4tbWVt
-b3J5IGRhdGEgc3RydWN0dXJlcyBtaWdodCBoYXZlIGJlZW4gKCJLZXJuZWwgcGFuaWMgLSBub3Qg
-c3luY2luZyIpLiAgU28gd2hhdCB5b3Ugc2VlIGZyb20gdXNpbmcgZGVidWdmcyBhZnRlciB0aGUg
-Y3Jhc2ggbWlnaHQgbm90IGJlIHJlcHJlc2VuYXRhdGl2ZSBvZiB3aGF0IHlvdSBzYXcgYmVmb3Jl
-IHRoZSBjcmFzaC4NCg0KSSdtIG5vdCBzdXJlIHRoZXJlJ3MgbXVjaCBkZWJ1Z2dpbmcgdGhhdCBj
-YW4gYmUgZG9uZSwgYmVjYXVzZSB0aGVyZSBhcmUgYW55IG51bWJlciBvZiBzb3VyY2VzIGZvciB0
-aGUgb3JpZ2luYWwgY29ycnVwdGlvbi4gIEl0IGNvdWxkIGJlIGNhdXNlZCBieSBhIGhhcmR3YXJl
-IGlzc3VlIGluIHRoZSBmbGFzaCBvciB0aGUgbWVtb3J5LCBvciBpdCBjb3VsZCBiZSBjYXVzZWQg
-YnkgYSB3aWxkIHBvaW50ZXIgY29ycnVwdGluZyBhIGRpc2sgYnVmZmVyLCBldGMuIGV0Yy4gIFRo
-ZSBwYW5pYyB3b24ndCByZXN1bHQgaW4gYSB1c2VmdWwgc3RhY2sgdHJhY2UgYmVjYXVzZSB0aGF0
-J3Mgd2hlbiB0aGUgcHJvYmxlbSB3YXMgKm5vdGljZWQqLiAgQnV0IHRoYXQncyB2ZXJ5IGRpZmZl
-cmVudCBmcm9tIHdoZXJlIHRoZSBmaWxlIHN5c3RlbSBjb3JydXB0aW9uIHdhcyAqaW50cm9kdWNl
-ZCouDQoNCklmIHlvdSBjYW4gcmVsaWFibHkgcmVwcm9kdWNlIHRoaXMgc29ydCBvZiBmYWlsdXJl
-LCB0aGVuIGl0IGJlY29tZXMgcG9zc2libGUgdG8gdHJ5IHRvIHRyYWNrIGl0IGRvd24uICBCdXQg
-aWYgaXQncyBhIG9uZS1vZmYgZXZlbnQsIHRoZXJlJ3Mgbm90IG11Y2ggYW55b25lIGNhbiBkby4N
-Cg0KQmVzdCByZWdhcmRzLA0KDQoJCQkJCQktIFRlZA0KX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1u
-dmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8v
-bGludXgtbnZkaW1tCg==
+On Wed, Apr 13, 2016 at 01:44:55PM +0000, Eric Shang wrote:
+> HI All:
+>   I meet an ext4 error, following is the error log. After panic, I check the emmc by the tool debufs, the inode 69878 i_nlink is not zero. And this inode don't belong to parent dir 6987, it belong to other file(this inode belong to two files when check by debugfs ncheck), I guess than this inode has beed deleted in memory and already used by other file. But the parent dentry buff_head not flush to emmc. But when lookup this dentry can't find it' in dentry cache, and then lookup_real, read the dentry from emmc, get the file inode which already be deleted. 
+>   Can any give me some help how to check this issue. My kernel version is 3.18 form Android . I thinks something wrong with dentry cache flush and dirty buff_head flush to emmc. Thanks all!
+
+If I had to guess, this was caused starting with a corrupted file
+system, where the inode allocation bitmap showed that an inode which
+was in use by the file system, was erroneously showing it as free.
+This allowed it to be allocated for use in a second file (which would
+have wiped out the contents for the original file stored at that
+inode).  Later on, the file was deleted via either the older or newer
+pathname, which dropped the ref count to zero, and then an access via
+the other pathname would have resulted in this error.
+
+After the panic, the on-disk data structures wouldn't have been
+updated from whatever the in-memory data structures might have been
+("Kernel panic - not syncing").  So what you see from using debugfs
+after the crash might not be represenatative of what you saw before
+the crash.
+
+I'm not sure there's much debugging that can be done, because there
+are any number of sources for the original corruption.  It could be
+caused by a hardware issue in the flash or the memory, or it could be
+caused by a wild pointer corrupting a disk buffer, etc. etc.  The
+panic won't result in a useful stack trace because that's when the
+problem was *noticed*.  But that's very different from where the file
+system corruption was *introduced*.
+
+If you can reliably reproduce this sort of failure, then it becomes
+possible to try to track it down.  But if it's a one-off event,
+there's not much anyone can do.
+
+Best regards,
+
+						- Ted
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
