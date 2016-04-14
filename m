@@ -1,12 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Date: Wed, 13 Apr 2016 23:22:07 -0400
-From: Theodore Ts'o <tytso@mit.edu>
-Subject: Re: ext4 error
-Message-ID: <20160414032207.GC16656@thunk.org>
+Received: from ZXSHCAS01.zhaoxin.com (unknown [180.169.121.82])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7202E1A2073
+ for <linux-nvdimm@lists.01.org>; Wed, 13 Apr 2016 19:03:00 -0700 (PDT)
+From: Eric Shang <EricShang@zhaoxin.com>
+Subject: =?utf-8?B?562U5aSNOiBleHQ0IGVycm9y?=
+Date: Thu, 14 Apr 2016 02:02:18 +0000
+Message-ID: <0255994B402DE243B1DFC1057A00655201AE84@ZXSHMBX02.zhaoxin.com>
 References: <0255994B402DE243B1DFC1057A00655201AC6F@ZXSHMBX02.zhaoxin.com>
+ <1460556627.24985.28.camel@hpe.com>
+In-Reply-To: <1460556627.24985.28.camel@hpe.com>
+Content-Language: zh-CN
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <0255994B402DE243B1DFC1057A00655201AC6F@ZXSHMBX02.zhaoxin.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,50 +20,49 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Eric Shang <EricShang@zhaoxin.com>
-Cc: "jack@suse.cz" <jack@suse.cz>, "david@fromorbit.com" <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
+To: Toshi Kani <toshi.kani@hpe.com>, Matthew Wilcox <willy@linux.intel.com>
+Cc: "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "david@fromorbit.com" <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "tytso@mit.edu" <tytso@mit.edu>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Apr 13, 2016 at 01:44:55PM +0000, Eric Shang wrote:
-> HI All:
->   I meet an ext4 error, following is the error log. After panic, I check the emmc by the tool debufs, the inode 69878 i_nlink is not zero. And this inode don't belong to parent dir 6987, it belong to other file(this inode belong to two files when check by debugfs ncheck), I guess than this inode has beed deleted in memory and already used by other file. But the parent dentry buff_head not flush to emmc. But when lookup this dentry can't find it' in dentry cache, and then lookup_real, read the dentry from emmc, get the file inode which already be deleted. 
->   Can any give me some help how to check this issue. My kernel version is 3.18 form Android . I thinks something wrong with dentry cache flush and dirty buff_head flush to emmc. Thanks all!
-
-If I had to guess, this was caused starting with a corrupted file
-system, where the inode allocation bitmap showed that an inode which
-was in use by the file system, was erroneously showing it as free.
-This allowed it to be allocated for use in a second file (which would
-have wiped out the contents for the original file stored at that
-inode).  Later on, the file was deleted via either the older or newer
-pathname, which dropped the ref count to zero, and then an access via
-the other pathname would have resulted in this error.
-
-After the panic, the on-disk data structures wouldn't have been
-updated from whatever the in-memory data structures might have been
-("Kernel panic - not syncing").  So what you see from using debugfs
-after the crash might not be represenatative of what you saw before
-the crash.
-
-I'm not sure there's much debugging that can be done, because there
-are any number of sources for the original corruption.  It could be
-caused by a hardware issue in the flash or the memory, or it could be
-caused by a wild pointer corrupting a disk buffer, etc. etc.  The
-panic won't result in a useful stack trace because that's when the
-problem was *noticed*.  But that's very different from where the file
-system corruption was *introduced*.
-
-If you can reliably reproduce this sort of failure, then it becomes
-possible to try to track it down.  But if it's a one-off event,
-there's not much anyone can do.
-
-Best regards,
-
-						- Ted
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgVG9zaGk6DQoJVGhhbmtzISBJIHRoaW5rIHRoaXMgbm90IHJlbGF0ZSB0byBEQVggYW5kIGRh
+eF9nZXRfdW5tYXBwZWRfYXJlYSwgSSBhbSBhIGp1bmlvciBrZXJuZWwgbWFpbnRhaW5lciBmb3Ig
+b3VyIGNvbXBhbnkuIFRoaXMgaXNzdWUgYm90aGVyIG1lIGxvbmcgdGltZSwgbG9va3MgbGlrZSBr
+ZXJuZWwgZXh0NCBpc3N1ZSBvciBvdXIgZW1tYyBkcml2ZXIgaXNzdWUsIEkgd2lsbCBkaWcgaXQg
+b3V0LCBUaGFua3MhDQoNCkJlc3QgUmVnYXJkcw0KRXJpY1NoYW5nDQoNCg0KLS0tLS3pgq7ku7bl
+jp/ku7YtLS0tLQ0K5Y+R5Lu25Lq6OiBUb3NoaSBLYW5pIFttYWlsdG86dG9zaGkua2FuaUBocGUu
+Y29tXSANCuWPkemAgeaXtumXtDogMjAxNuW5tDTmnIgxM+aXpSAyMjoxMA0K5pS25Lu25Lq6OiBF
+cmljIFNoYW5nOyBNYXR0aGV3IFdpbGNveA0K5oqE6YCBOiBha3BtQGxpbnV4LWZvdW5kYXRpb24u
+b3JnOyBkYW4uai53aWxsaWFtc0BpbnRlbC5jb207IHZpcm9AemVuaXYubGludXgub3JnLnVrOyBy
+b3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tOyBraXJpbGwuc2h1dGVtb3ZAbGludXguaW50ZWwu
+Y29tOyBkYXZpZEBmcm9tb3JiaXQuY29tOyBqYWNrQHN1c2UuY3o7IHR5dHNvQG1pdC5lZHU7IGFk
+aWxnZXIua2VybmVsQGRpbGdlci5jYTsgbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZzsgbGludXgt
+ZnNkZXZlbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWV4dDRAdmdlci5rZXJuZWwub3JnOyB4ZnNA
+b3NzLnNnaS5jb207IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcNCuS4u+mimDogUmU6IGV4
+dDQgZXJyb3INCg0KT24gV2VkLCAyMDE2LTA0LTEzIGF0IDEzOjQ0ICswMDAwLCBFcmljIFNoYW5n
+IHdyb3RlOg0KPiBISSBBbGw6DQo+IMKgIEkgbWVldCBhbiBleHQ0IGVycm9yLCBmb2xsb3dpbmcg
+aXMgdGhlIGVycm9yIGxvZy4gQWZ0ZXIgcGFuaWMsIEkgDQo+IGNoZWNrIHRoZSBlbW1jIGJ5IHRo
+ZSB0b29sIGRlYnVmcywgdGhlIGlub2RlIDY5ODc4IGlfbmxpbmsgaXMgbm90IA0KPiB6ZXJvLiBB
+bmQgdGhpcyBpbm9kZSBkb24ndCBiZWxvbmcgdG8gcGFyZW50IGRpciA2OTg3LCBpdCBiZWxvbmcg
+dG8gDQo+IG90aGVyIGZpbGUodGhpcyBpbm9kZSBiZWxvbmcgdG8gdHdvIGZpbGVzIHdoZW4gY2hl
+Y2sgYnkgZGVidWdmcyANCj4gbmNoZWNrKSwgSSBndWVzcyB0aGFuIHRoaXMgaW5vZGUgaGFzIGJl
+ZWQgZGVsZXRlZCBpbiBtZW1vcnkgYW5kIA0KPiBhbHJlYWR5IHVzZWQgYnkgb3RoZXIgZmlsZS4g
+QnV0IHRoZSBwYXJlbnQgZGVudHJ5IGJ1ZmZfaGVhZCBub3QgZmx1c2ggDQo+IHRvIGVtbWMuIEJ1
+dCB3aGVuIGxvb2t1cCB0aGlzIGRlbnRyeSBjYW4ndCBmaW5kIGl0JyBpbiBkZW50cnkgY2FjaGUs
+IA0KPiBhbmQgdGhlbiBsb29rdXBfcmVhbCwgcmVhZCB0aGUgZGVudHJ5IGZyb20gZW1tYywgZ2V0
+IHRoZSBmaWxlIGlub2RlIHdoaWNoIGFscmVhZHkgYmUgZGVsZXRlZC4NCj4gwqAgQ2FuIGFueSBn
+aXZlIG1lIHNvbWUgaGVscCBob3cgdG8gY2hlY2sgdGhpcyBpc3N1ZS4gTXkga2VybmVsIHZlcnNp
+b24gDQo+IGlzIDMuMTggZm9ybSBBbmRyb2lkIC4gSSB0aGlua3Mgc29tZXRoaW5nIHdyb25nIHdp
+dGggZGVudHJ5IGNhY2hlIA0KPiBmbHVzaCBhbmQgZGlydHkgYnVmZl9oZWFkIGZsdXNoIHRvIGVt
+bWMuIFRoYW5rcyBhbGwhDQoNCkFyZSB5b3Ugc29tZWhvdyB1c2luZyBEQVggYW5kIG15IGRheF9n
+ZXRfdW5tYXBwZWRfYXJlYSBwYXRjaGVzIGluIHlvdXIgQW5kcm9pZA0KMy4xOCBrZXJuZWw/IEkg
+ZG91YnQgdGhpcyBpcyB0aGUgY2FzZSwgYnV0IEkgdGhvdWdodCBJIHNob3VsZCBjaGVjayBzaW5j
+ZSB5b3UgcmVwb3J0ZWQgaXQgdG8gbWUgYW5kIE1hdHRoZXcgd2l0aCB0aGUgc2FtZSBjYyBsaXN0
+Lg0KDQpJZiB5b3UgYXJlIHNpbXBseSB1c2luZyBhIGRpc3RyaWJ1dGVkIEFuZHJvaWQga2VybmVs
+LCB5b3Ugc2hvdWxkIHJlcG9ydCBpdCB0byBBbmRyb2lkIGVtYWlsIGxpc3Qgb3IgYnVnIHRyYWNr
+ZXIuDQoNCi1Ub3NoaQ0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
+Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
