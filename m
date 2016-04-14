@@ -1,21 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x235.google.com (mail-oi0-x235.google.com
- [IPv6:2607:f8b0:4003:c06::235])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 650331A21E2
- for <linux-nvdimm@lists.01.org>; Mon, 11 Apr 2016 14:43:40 -0700 (PDT)
-Received: by mail-oi0-x235.google.com with SMTP id w85so225155194oiw.0
- for <linux-nvdimm@lists.01.org>; Mon, 11 Apr 2016 14:43:40 -0700 (PDT)
+From: Eric Shang <EricShang@zhaoxin.com>
+Subject: =?gb2312?B?tPC4tDogZXh0NCBlcnJvcg==?=
+Date: Thu, 14 Apr 2016 06:33:42 +0000
+Message-ID: <0255994B402DE243B1DFC1057A00655201AEFE@ZXSHMBX02.zhaoxin.com>
+References: <0255994B402DE243B1DFC1057A00655201AC6F@ZXSHMBX02.zhaoxin.com>
+ <20160414032207.GC16656@thunk.org>
+In-Reply-To: <20160414032207.GC16656@thunk.org>
+Content-Language: zh-CN
 MIME-Version: 1.0
-In-Reply-To: <a016b07e1705c6b37ae9aa4d0a1896e6b7eb6f75.1458583367.git.jerry.hoemann@hpe.com>
-References: <cover.1458583367.git.jerry.hoemann@hpe.com>
- <a016b07e1705c6b37ae9aa4d0a1896e6b7eb6f75.1458583367.git.jerry.hoemann@hpe.com>
-Date: Mon, 11 Apr 2016 14:43:39 -0700
-Message-ID: <CAPcyv4jJ1muO8zZPa_5ZQxWKBCdiYrOM=40Bsw_yM54+tJL5Tw@mail.gmail.com>
-Subject: Re: [PATCH v8 09/10] nvdimm: sysfs shows which dsm support full
- command ioctl.
-From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,31 +15,90 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jerry Hoemann <jerry.hoemann@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Theodore Ts'o <tytso@mit.edu>
+Cc: "jack@suse.cz" <jack@suse.cz>, "david@fromorbit.com" <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Mar 21, 2016 at 12:37 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> NVDIMM DSMs whose functions map to the Intel Example DSM, can
-> be called with the ND_IOCTL_.* ioctl interface.  Those that
-> don't map, can only be called with the pass thru command.
->
-> Save this indication in struct nvdimm to be passed to
-> the sysfs interface.
->
-
-I'm having trouble understanding the intent of cmd_ioctl.  I don't
-want a flag for "supports Intel Example DSM", I want a mask of ND
-commands the bus provider knows how to handle in its ->ndctl() entry
-point for the given dimm.  The bus provider is free to provide a
-translation of ND command to the bus specific command.  It's just an
-arbitrary coincidence that the current list of ND commands matches the
-Intel ACPI _DSM command format.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgVGhlb2RvcmWjug0KCVRoYW5rcyBzbyBtdWNoISBUaGUgaXNzdWUgaXMgdmVyeSByYW5kb20s
+IGJ1dCBjYW4gcmVwcm9kdWNlIG1heSBpbiBzdHJlc3MgZm9yIDEyIGhvdXIsIEkgd2FudCB0byBk
+byBzb21lIGZpbGUgc3lzdGVtIHN0cmVzcywgYnV0IG5lZWQgdG8gZmluZCBvdXQgdGhlIG1haW5s
+eSBjYXVzZSBvciBzdGVwcyBvZiB0aGlzIGlzc3VlIGZpcnN0LiBJIHJlcHJvZHVjZSB0aGlzIHBh
+bmljIGJ5IHRoZSBwcm9jZXNzIHlvdSBtZW50aW9uZWQgd2l0aCB0aGUgZm9sbG93aW5nIHN0ZXBz
+LiBCdXQgc3RpbGwgdW5rbm93biBpcyB0aGlzIHRoZSByb290IGNhdXNlLg0KCTEpIGZvcmNlIGZy
+ZWUgYSBpbm9kZSB3aXRoIHVzZWQgYnkgb25lIGZpbGUgYnkgZGVidWdmcyBmcmVlaSBjb21tb25k
+IChib290IGZyb20gYW5vdGhlciBmaWxlc3lzdGVtIGZyb20gc2RjYXJkKS4NCgkyKSBib290IHRo
+ZSBzeXN0ZW0sIGNyZWF0ZSBvbmUgbmV3IGZpbGUuIFRoZSBmaWxlIHdpbGwgdXNlIHRoZSBzYW1l
+IGlub2RlIHdoaWNoIEkgZnJlZWQuDQoJMykgZGVsZXRlZCB0aGUgbmV3IGNyZWF0ZWQgZmlsZS4g
+VGhlbiBkcm9wIHRoZSBjYWNoZSBieSAjZWNobyAzID4gL3Byb2Mvc3lzL3ZtL2Ryb3BfY2FjaGVz
+DQoJNCkgcnVuICNscyBhbmQgaXQgd2lsbCBjYXVzZSBleHQ0IGVycm9yIGFuZCBrZXJuZWwgcGFu
+aWMuDQoNCiAgICBCdXQgSSBzdGlsbCBoYXZlIHNvbWUgcXVlc3Rpb25zLCBiZWNhdXNlIGVhY2gg
+Ym9vdCB1cCBvZiB0aGUgc3lzdGVtLCB3aWxsIHJ1biBmc2NrLCBpZiB0aGUgZmlsZXN5c3RlbSBp
+cyBjb3JydXB0ZWQsIEkgdGhpbmsgaXQgd2lsbCBmaXggaXQuIEJ1dCBsb29rcyBsaWtlIGFmdGVy
+IGRvIHRoZSBzdGVwIDEpIHdoZW4gYm9vdCB1cCBmc2NrIGNhbiBmaW5kIHRoaXMgZnJlZSBidXQg
+dXNlZCBpbm9kZSBlcnJvci4gVW5sZXNzIEkgcnVuIGZzY2suZXh0NCB3aXRoIC1mLiB3ZSBvZnRl
+biBzaG93ZG93biB0aGUgcG93ZXIgZGlyZWN0bHksIHRoaXMgY2FuIGNhdXNlIGRpcnR5IGlub2Rl
+IGJpdCBtYXA/DQogICAgSSBjaGVjayB0aGUga2VybmVsIGZzIGNvZGUsIGl0J3MgdmVyeSBjb21w
+bGV4LCB3aGVuIGRlbGV0ZSBhIGZpbGUgZnJvbSBwYXJlbnQgZGVudHJ5LCB3aWxsIHVzZSBhIGJo
+IHRvIHJlYWQgdGhlIGRlbnRyeSBhbmQgdGhlbiBkZWxldGUgdGhlIGVudHJ5IG9mIHRoZSBmaWxl
+IGluIGJoLCBhbmQgdGhlbiBtYXJrIHRoZSBiaCBkaXJ0eS4gV2FpdCBmb3Igdm0gZmx1c2ggdGhp
+cyBkaXJ0eSBwYWdlIHRvIGJsb2NrIGRldmljZSg/KS4gYnV0IG9uIHRoZSBvdGhlciBzaWRlIHBh
+cmVudCBkZW50cnkgY2FjaGUgbWF5IHB1dCBpbiB1bnVzZWQgbHJ1IGxpc3QsIHdoaWNoIG1heSBi
+ZSBmcmVlZCB3aGVuIG1lbW9yeSBwcmVzc3VyZS4gSXMgdGhlcmUgYW55IHN5bmNocm9ub3VzIHdp
+dGggZGlydHkgcGFnZSBmbHVzaCBhbmQgZGNhY2hlIGZsdXNoPyBUaGFua3MhDQoNCkJlc3QgUmVn
+YXJkcw0KRXJpY1NoYW5nDQoNCg0KLS0tLS3Tyrz+1K28/i0tLS0tDQq3orz+yMs6IFRoZW9kb3Jl
+IFRzJ28gW21haWx0bzp0eXRzb0BtaXQuZWR1XSANCreiy83KsbzkOiAyMDE2xOo01MIxNMjVIDEx
+OjIyDQrK1bz+yMs6IEVyaWMgU2hhbmcNCrOty806IE1hdHRoZXcgV2lsY294OyBUb3NoaSBLYW5p
+OyBha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnOyBkYW4uai53aWxsaWFtc0BpbnRlbC5jb207IHZp
+cm9AemVuaXYubGludXgub3JnLnVrOyByb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tOyBraXJp
+bGwuc2h1dGVtb3ZAbGludXguaW50ZWwuY29tOyBkYXZpZEBmcm9tb3JiaXQuY29tOyBqYWNrQHN1
+c2UuY3o7IGFkaWxnZXIua2VybmVsQGRpbGdlci5jYTsgbGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
+ZzsgbGludXgtZnNkZXZlbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWV4dDRAdmdlci5rZXJuZWwu
+b3JnOyB4ZnNAb3NzLnNnaS5jb207IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcNCtb3zOI6
+IFJlOiBleHQ0IGVycm9yDQoNCk9uIFdlZCwgQXByIDEzLCAyMDE2IGF0IDAxOjQ0OjU1UE0gKzAw
+MDAsIEVyaWMgU2hhbmcgd3JvdGU6DQo+IEhJIEFsbDoNCj4gICBJIG1lZXQgYW4gZXh0NCBlcnJv
+ciwgZm9sbG93aW5nIGlzIHRoZSBlcnJvciBsb2cuIEFmdGVyIHBhbmljLCBJIGNoZWNrIHRoZSBl
+bW1jIGJ5IHRoZSB0b29sIGRlYnVmcywgdGhlIGlub2RlIDY5ODc4IGlfbmxpbmsgaXMgbm90IHpl
+cm8uIEFuZCB0aGlzIGlub2RlIGRvbid0IGJlbG9uZyB0byBwYXJlbnQgZGlyIDY5ODcsIGl0IGJl
+bG9uZyB0byBvdGhlciBmaWxlKHRoaXMgaW5vZGUgYmVsb25nIHRvIHR3byBmaWxlcyB3aGVuIGNo
+ZWNrIGJ5IGRlYnVnZnMgbmNoZWNrKSwgSSBndWVzcyB0aGFuIHRoaXMgaW5vZGUgaGFzIGJlZWQg
+ZGVsZXRlZCBpbiBtZW1vcnkgYW5kIGFscmVhZHkgdXNlZCBieSBvdGhlciBmaWxlLiBCdXQgdGhl
+IHBhcmVudCBkZW50cnkgYnVmZl9oZWFkIG5vdCBmbHVzaCB0byBlbW1jLiBCdXQgd2hlbiBsb29r
+dXAgdGhpcyBkZW50cnkgY2FuJ3QgZmluZCBpdCcgaW4gZGVudHJ5IGNhY2hlLCBhbmQgdGhlbiBs
+b29rdXBfcmVhbCwgcmVhZCB0aGUgZGVudHJ5IGZyb20gZW1tYywgZ2V0IHRoZSBmaWxlIGlub2Rl
+IHdoaWNoIGFscmVhZHkgYmUgZGVsZXRlZC4gDQo+ICAgQ2FuIGFueSBnaXZlIG1lIHNvbWUgaGVs
+cCBob3cgdG8gY2hlY2sgdGhpcyBpc3N1ZS4gTXkga2VybmVsIHZlcnNpb24gaXMgMy4xOCBmb3Jt
+IEFuZHJvaWQgLiBJIHRoaW5rcyBzb21ldGhpbmcgd3Jvbmcgd2l0aCBkZW50cnkgY2FjaGUgZmx1
+c2ggYW5kIGRpcnR5IGJ1ZmZfaGVhZCBmbHVzaCB0byBlbW1jLiBUaGFua3MgYWxsIQ0KDQpJZiBJ
+IGhhZCB0byBndWVzcywgdGhpcyB3YXMgY2F1c2VkIHN0YXJ0aW5nIHdpdGggYSBjb3JydXB0ZWQg
+ZmlsZSBzeXN0ZW0sIHdoZXJlIHRoZSBpbm9kZSBhbGxvY2F0aW9uIGJpdG1hcCBzaG93ZWQgdGhh
+dCBhbiBpbm9kZSB3aGljaCB3YXMgaW4gdXNlIGJ5IHRoZSBmaWxlIHN5c3RlbSwgd2FzIGVycm9u
+ZW91c2x5IHNob3dpbmcgaXQgYXMgZnJlZS4NClRoaXMgYWxsb3dlZCBpdCB0byBiZSBhbGxvY2F0
+ZWQgZm9yIHVzZSBpbiBhIHNlY29uZCBmaWxlICh3aGljaCB3b3VsZCBoYXZlIHdpcGVkIG91dCB0
+aGUgY29udGVudHMgZm9yIHRoZSBvcmlnaW5hbCBmaWxlIHN0b3JlZCBhdCB0aGF0IGlub2RlKS4g
+IExhdGVyIG9uLCB0aGUgZmlsZSB3YXMgZGVsZXRlZCB2aWEgZWl0aGVyIHRoZSBvbGRlciBvciBu
+ZXdlciBwYXRobmFtZSwgd2hpY2ggZHJvcHBlZCB0aGUgcmVmIGNvdW50IHRvIHplcm8sIGFuZCB0
+aGVuIGFuIGFjY2VzcyB2aWEgdGhlIG90aGVyIHBhdGhuYW1lIHdvdWxkIGhhdmUgcmVzdWx0ZWQg
+aW4gdGhpcyBlcnJvci4NCg0KQWZ0ZXIgdGhlIHBhbmljLCB0aGUgb24tZGlzayBkYXRhIHN0cnVj
+dHVyZXMgd291bGRuJ3QgaGF2ZSBiZWVuIHVwZGF0ZWQgZnJvbSB3aGF0ZXZlciB0aGUgaW4tbWVt
+b3J5IGRhdGEgc3RydWN0dXJlcyBtaWdodCBoYXZlIGJlZW4gKCJLZXJuZWwgcGFuaWMgLSBub3Qg
+c3luY2luZyIpLiAgU28gd2hhdCB5b3Ugc2VlIGZyb20gdXNpbmcgZGVidWdmcyBhZnRlciB0aGUg
+Y3Jhc2ggbWlnaHQgbm90IGJlIHJlcHJlc2VuYXRhdGl2ZSBvZiB3aGF0IHlvdSBzYXcgYmVmb3Jl
+IHRoZSBjcmFzaC4NCg0KSSdtIG5vdCBzdXJlIHRoZXJlJ3MgbXVjaCBkZWJ1Z2dpbmcgdGhhdCBj
+YW4gYmUgZG9uZSwgYmVjYXVzZSB0aGVyZSBhcmUgYW55IG51bWJlciBvZiBzb3VyY2VzIGZvciB0
+aGUgb3JpZ2luYWwgY29ycnVwdGlvbi4gIEl0IGNvdWxkIGJlIGNhdXNlZCBieSBhIGhhcmR3YXJl
+IGlzc3VlIGluIHRoZSBmbGFzaCBvciB0aGUgbWVtb3J5LCBvciBpdCBjb3VsZCBiZSBjYXVzZWQg
+YnkgYSB3aWxkIHBvaW50ZXIgY29ycnVwdGluZyBhIGRpc2sgYnVmZmVyLCBldGMuIGV0Yy4gIFRo
+ZSBwYW5pYyB3b24ndCByZXN1bHQgaW4gYSB1c2VmdWwgc3RhY2sgdHJhY2UgYmVjYXVzZSB0aGF0
+J3Mgd2hlbiB0aGUgcHJvYmxlbSB3YXMgKm5vdGljZWQqLiAgQnV0IHRoYXQncyB2ZXJ5IGRpZmZl
+cmVudCBmcm9tIHdoZXJlIHRoZSBmaWxlIHN5c3RlbSBjb3JydXB0aW9uIHdhcyAqaW50cm9kdWNl
+ZCouDQoNCklmIHlvdSBjYW4gcmVsaWFibHkgcmVwcm9kdWNlIHRoaXMgc29ydCBvZiBmYWlsdXJl
+LCB0aGVuIGl0IGJlY29tZXMgcG9zc2libGUgdG8gdHJ5IHRvIHRyYWNrIGl0IGRvd24uICBCdXQg
+aWYgaXQncyBhIG9uZS1vZmYgZXZlbnQsIHRoZXJlJ3Mgbm90IG11Y2ggYW55b25lIGNhbiBkby4N
+Cg0KQmVzdCByZWdhcmRzLA0KDQoJCQkJCQktIFRlZA0KX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8v
+bGludXgtbnZkaW1tCg==
