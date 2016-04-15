@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-wm0-x242.google.com (mail-wm0-x242.google.com
- [IPv6:2a00:1450:400c:c09::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 49D761A1FB9
- for <linux-nvdimm@lists.01.org>; Thu, 14 Apr 2016 20:20:18 -0700 (PDT)
-Received: by mail-wm0-x242.google.com with SMTP id y144so2573564wmd.0
- for <linux-nvdimm@lists.01.org>; Thu, 14 Apr 2016 20:20:18 -0700 (PDT)
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ by ml01.01.org (Postfix) with ESMTP id D37C11A20E7
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Apr 2016 13:12:23 -0700 (PDT)
+Date: Fri, 15 Apr 2016 14:10:58 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH] dax: integrate *sync code & multi-order radix tree
+Message-ID: <20160415201058.GA20412@linux.intel.com>
+References: <1460667804-21725-1-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
-Date: Fri, 15 Apr 2016 11:20:16 +0800
-Message-ID: <CADJHv_sawA8SXviUX6My5MKeqWMLbWLG=DrM7RCgrjkjGj2f5Q@mail.gmail.com>
-Subject: binary execution from DAX mount hang since next-20160407
-From: Xiong Zhou <jencce.kernel@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <1460667804-21725-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,50 +21,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: hughd@google.com, Linux-Next <linux-next@vger.kernel.org>
-Cc: Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-nvdimm@lists.01.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi, all
+On Thu, Apr 14, 2016 at 03:03:24PM -0600, Ross Zwisler wrote:
+> With the new addition of the multi-order radix tree support we can simplify
+> the DAX *sync PMD support a bit.  Instead of manually checking to see if
+> our index is covered by a PMD entry we can rely on the new radix tree to
+> return the PMD entry if present.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Since tag next-20160407 in linux-next repo, executing binary
-from/in DAX mount hangs.
+Sorry, I should have explicitly called out that this patch (indeed, all
+multi-order uses of the radix tree) need to be built upon the recent
+multi-order fixes from Matthew and me:
 
-It does not hang if mount without dax option.
-It hangs with both xfs and ext4.
-It does not hang if execute from a -t tmpfs mount.
-It does not hang on next-20160406 and still hangs on 0414 tree.
+https://lkml.org/lkml/2016/4/14/481
 
-# ps -axjf
-...
-S+       0   0:00  |       \_ sh -x thl.sh
-R+       0  42:33  |           \_ [hl]
-..
-# cat thl.sh
-mkfs.ext4 /dev/pmem0
-mount -o dax /dev/pmem0 /daxmnt
-cp hl /daxmnt
-/daxmnt/hl
-# cat hl.c
-void main()
-{
-        printf("ok\n");
-}
-# cc hl.c -o hl
+I've posted a working tree here:
 
-Bisecting commits between 0406 and 0407 tag, points to this:
-
-d7c7d56ca61aec18e5e0cb3a64e50073c42195f7 is the first bad commit
-commit d7c7d56ca61aec18e5e0cb3a64e50073c42195f7
-Author: Hugh Dickins <hughd@google.com>
-Date:   Thu Apr 7 14:00:12 2016 +1000
-
-    huge tmpfs: avoid premature exposure of new pagetable
-
-Bisect log and config are attatched.
+https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_mo_radix
 
 Thanks,
-Xiong
+- Ross
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
