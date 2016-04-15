@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id F30351A2353
- for <linux-nvdimm@lists.01.org>; Fri, 15 Apr 2016 09:58:21 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 898ED1A236F
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Apr 2016 00:11:41 -0700 (PDT)
+From: Johannes Thumshirn <jthumshirn@suse.de>
 Subject: Re: [PATCH] libnvdimm, pmem: clarify the write+clear_poison+write flow
-Date: Fri, 15 Apr 2016 16:58:20 +0000
-Message-ID: <1460739500.3012.4.camel@intel.com>
-References: <146068804768.24085.7722589204633361307.stgit@dwillia2-desk3.jf.intel.com>
+Date: Fri, 15 Apr 2016 09:11:39 +0200
+Message-ID: <1569643.CdmplTuF3X@c203>
 In-Reply-To: <146068804768.24085.7722589204633361307.stgit@dwillia2-desk3.jf.intel.com>
-Content-Language: en-US
-Content-ID: <39A453E113C88640B3D1A80D7F3D399C@intel.com>
+References: <146068804768.24085.7722589204633361307.stgit@dwillia2-desk3.jf.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,45 +18,40 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCAyMDE2LTA0LTE0IGF0IDE5OjQwIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IFRoZSBBQ1BJIHNwZWNpZmljYXRpb24gZG9lcyBub3Qgc3BlY2lmeSB0aGUgc3RhdGUgb2YgZGF0
-YSBhZnRlciBhDQo+IGNsZWFyDQo+IHBvaXNvbiBvcGVyYXRpb24uwqDCoFBvdGVudGlhbCBmdXR1
-cmUgbGlibnZkaW1tIGJ1cyBpbXBsZW1lbnRhdGlvbnMgZm9yDQo+IG90aGVyIGFyY2hpdGVjdHVy
-ZXMgYWxzbyBtaWdodCBub3Qgc3BlY2lmeSBvciBkaXNhZ3JlZSBvbiB0aGUgc3RhdGUNCj4gb2YN
-Cj4gZGF0YSBhZnRlciBjbGVhciBwb2lzb24uwqDCoENsYXJpZnkgd2h5IHdlIHdyaXRlIHR3aWNl
-Lg0KPiANCj4gUmVwb3J0ZWQtYnk6IEplZmYgTW95ZXIgPGptb3llckByZWRoYXQuY29tPg0KPiBS
-ZXBvcnRlZC1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IFNp
-Z25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiAt
-LS0NCj4gwqBkcml2ZXJzL252ZGltbS9wbWVtLmMgfMKgwqDCoDE0ICsrKysrKysrKysrKysrDQo+
-IMKgMSBmaWxlIGNoYW5nZWQsIDE0IGluc2VydGlvbnMoKykNCg0KTG9va3MgZ29vZCwgdGhhbmtz
-IQ0KDQpSZXZpZXdlZC1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+
-DQoNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL252ZGltbS9wbWVtLmMgYi9kcml2ZXJzL252
-ZGltbS9wbWVtLmMNCj4gaW5kZXggYzZiZWZhYTljNzA4Li5kOWEwZGJjMmQwMjMgMTAwNjQ0DQo+
-IC0tLSBhL2RyaXZlcnMvbnZkaW1tL3BtZW0uYw0KPiArKysgYi9kcml2ZXJzL252ZGltbS9wbWVt
-LmMNCj4gQEAgLTg2LDYgKzg2LDIwIEBAIHN0YXRpYyBpbnQgcG1lbV9kb19idmVjKHN0cnVjdCBw
-bWVtX2RldmljZSAqcG1lbSwNCj4gc3RydWN0IHBhZ2UgKnBhZ2UsDQo+IMKgCQkJZmx1c2hfZGNh
-Y2hlX3BhZ2UocGFnZSk7DQo+IMKgCQl9DQo+IMKgCX0gZWxzZSB7DQo+ICsJCS8qDQo+ICsJCcKg
-KiBOb3RlIHRoYXQgd2Ugd3JpdGUgdGhlIGRhdGEgYm90aCBiZWZvcmUgYW5kIGFmdGVyDQo+ICsJ
-CcKgKiBjbGVhcmluZyBwb2lzb24uwqDCoFRoZSB3cml0ZSBiZWZvcmUgY2xlYXIgcG9pc29uDQo+
-ICsJCcKgKiBoYW5kbGVzIHNpdHVhdGlvbnMgd2hlcmUgdGhlIGxhdGVzdCB3cml0dGVuIGRhdGEN
-Cj4gaXMNCj4gKwkJwqAqIHByZXNlcnZlZCBhbmQgdGhlIGNsZWFyIHBvaXNvbiBvcGVyYXRpb24g
-c2ltcGx5DQo+IG1hcmtzDQo+ICsJCcKgKiB0aGUgYWRkcmVzcyByYW5nZSBhcyB2YWxpZCB3aXRo
-b3V0IGNoYW5naW5nIHRoZQ0KPiBkYXRhLg0KPiArCQnCoCogSW4gdGhpcyBjYXNlIGFwcGxpY2F0
-aW9uIHNvZnR3YXJlIGNhbiBhc3N1bWUgdGhhdA0KPiBhbg0KPiArCQnCoCogaW50ZXJydXB0ZWQg
-d3JpdGUgd2lsbCBlaXRoZXIgcmV0dXJuIHRoZSBuZXcgZ29vZA0KPiArCQnCoCogZGF0YSBvciBh
-biBlcnJvci4NCj4gKwkJwqAqDQo+ICsJCcKgKiBIb3dldmVyLCBpZiBwbWVtX2NsZWFyX3BvaXNv
-bigpIGxlYXZlcyB0aGUgZGF0YQ0KPiBpbiBhbg0KPiArCQnCoCogaW5kZXRlcm1pbmF0ZSBzdGF0
-ZSB3ZSBuZWVkIHRvIHBlcmZvcm0gdGhlIHdyaXRlDQo+ICsJCcKgKiBhZnRlciBjbGVhciBwb2lz
-b24uDQo+ICsJCcKgKi8NCj4gwqAJCWZsdXNoX2RjYWNoZV9wYWdlKHBhZ2UpOw0KPiDCoAkJbWVt
-Y3B5X3RvX3BtZW0ocG1lbV9hZGRyLCBtZW0gKyBvZmYsIGxlbik7DQo+IMKgCQlpZiAodW5saWtl
-bHkoYmFkX3BtZW0pKSB7DQo+IApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4w
-MS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Donnerstag, 14. April 2016 19:40:47 CEST Dan Williams wrote:
+> The ACPI specification does not specify the state of data after a clear
+> poison operation.  Potential future libnvdimm bus implementations for
+> other architectures also might not specify or disagree on the state of
+> data after clear poison.  Clarify why we write twice.
+> =
+
+> Reported-by: Jeff Moyer <jmoyer@redhat.com>
+> Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+
+-- =
+
+Johannes Thumshirn                                                         =
+                       Storage
+jthumshirn@suse.de                                                         =
+    +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
