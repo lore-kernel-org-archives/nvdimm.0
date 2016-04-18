@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id 0542B1A1F6C
- for <linux-nvdimm@lists.01.org>; Wed,  6 Apr 2016 18:08:05 -0700 (PDT)
-Subject: [ndctl PATCH 3/5] ndctl, list: clean up default behavior
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 06 Apr 2016 18:07:14 -0700
-Message-ID: <20160407010714.30641.19033.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160407010659.30641.26139.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160407010659.30641.26139.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B9C1D1A2156
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Apr 2016 14:35:51 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 02/18] ext4: Fix race in transient ENOSPC detection
+Date: Mon, 18 Apr 2016 23:35:25 +0200
+Message-Id: <1461015341-20153-3-git-send-email-jack@suse.cz>
+In-Reply-To: <1461015341-20153-1-git-send-email-jack@suse.cz>
+References: <1461015341-20153-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,66 +17,51 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Only list namespaces by default when no other option is specified.
-Otherwise, to limit the listing to dimm info a user would need to run:
+When there are blocks to free in the running transaction, block
+allocator can return ENOSPC although the filesystem has some blocks to
+free. We use ext4_should_retry_alloc() to force commit of the current
+transaction and return whether anything was committed so that it makes
+sense to retry the allocation. However the transaction may get committed
+after block allocation fails but before we call
+ext4_should_retry_alloc(). So ext4_should_retry_alloc() returns false
+because there is nothing to commit and we wrongly return ENOSPC.
 
-	ndctl list --dimms --no-namespaces
+Fix the race by unconditionally returning 1 from ext4_should_retry_alloc()
+when we tried to commit a transaction. This should not add any
+unnecessary retries since we had a transaction running a while ago when
+trying to allocate blocks and we want to retry the allocation once that
+transaction has committed anyway.
 
-...with the change this is reduced to:
-
-	ndctl list --dimms
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- Documentation/ndctl-list.txt |    2 +-
- builtin-list.c               |    7 ++++---
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ fs/ext4/balloc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/ndctl-list.txt b/Documentation/ndctl-list.txt
-index abf3ff07cfa9..806548196118 100644
---- a/Documentation/ndctl-list.txt
-+++ b/Documentation/ndctl-list.txt
-@@ -79,7 +79,7 @@ include::xable-region-options.txt[]
- -N::
- --namespaces::
- 	Include namespace info in the listing.  Namespace info is
--	included by default, specify '--no-namespaces' to omit.
-+	listed by default if no other options are specified to the command.
+diff --git a/fs/ext4/balloc.c b/fs/ext4/balloc.c
+index fe1f50fe764f..3020fd70c392 100644
+--- a/fs/ext4/balloc.c
++++ b/fs/ext4/balloc.c
+@@ -610,7 +610,8 @@ int ext4_should_retry_alloc(struct super_block *sb, int *retries)
  
- -i::
- --idle::
-diff --git a/builtin-list.c b/builtin-list.c
-index 413b36ac0208..df0871ab544a 100644
---- a/builtin-list.c
-+++ b/builtin-list.c
-@@ -22,9 +22,7 @@ static struct {
- 	bool regions;
- 	bool namespaces;
- 	bool idle;
--} list = {
--	.namespaces = true,
--};
-+} list;
+ 	jbd_debug(1, "%s: retrying operation after ENOSPC\n", sb->s_id);
  
- static struct {
- 	const char *bus;
-@@ -222,6 +220,9 @@ int cmd_list(int argc, const char **argv)
- 	unsigned int type = 0;
- 	int i, rc;
+-	return jbd2_journal_force_commit_nested(EXT4_SB(sb)->s_journal);
++	jbd2_journal_force_commit_nested(EXT4_SB(sb)->s_journal);
++	return 1;
+ }
  
-+	if (argc == 1)
-+		list.namespaces = true;
-+
-         argc = parse_options(argc, argv, options, u, 0);
- 	for (i = 0; i < argc; i++)
- 		error("unknown parameter \"%s\"\n", argv[i]);
+ /*
+-- 
+2.6.6
 
 _______________________________________________
 Linux-nvdimm mailing list
