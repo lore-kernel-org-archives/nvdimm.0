@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id 431B01A1ECD
- for <linux-nvdimm@lists.01.org>; Sat,  9 Apr 2016 12:40:42 -0700 (PDT)
-Subject: [ndctl PATCH 4/4] ndctl: new 'destroy-namespace' utility
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 09 Apr 2016 12:39:51 -0700
-Message-ID: <20160409193951.2002.44452.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160409193930.2002.71855.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160409193930.2002.71855.stgit@dwillia2-desk3.jf.intel.com>
+Received: from mail-wm0-x242.google.com (mail-wm0-x242.google.com
+ [IPv6:2a00:1450:400c:c09::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 4C0C81A216E
+ for <linux-nvdimm@lists.01.org>; Sun, 17 Apr 2016 19:50:10 -0700 (PDT)
+Received: by mail-wm0-x242.google.com with SMTP id l6so20876392wml.3
+ for <linux-nvdimm@lists.01.org>; Sun, 17 Apr 2016 19:50:10 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <alpine.LSU.2.11.1604150104350.5801@eggly.anvils>
+References: <CADJHv_sawA8SXviUX6My5MKeqWMLbWLG=DrM7RCgrjkjGj2f5Q@mail.gmail.com>
+ <alpine.LSU.2.11.1604150104350.5801@eggly.anvils>
+Date: Mon, 18 Apr 2016 10:50:08 +0800
+Message-ID: <CADJHv_ts7_Qu8oZ=kCbYPOR7NzbMFJxze31b9EdFj9gqWrRhEA@mail.gmail.com>
+Subject: Re: binary execution from DAX mount hang since next-20160407
+From: Xiong Zhou <jencce.kernel@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,225 +26,100 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Hugh Dickins <hughd@google.com>
+Cc: Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, linux-mm@kvack.org, Linux-Next <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Undo a create-namespace operation.  Zero any info blocks, revoke all
-claims, and unallocate the region capacity.
+On Fri, Apr 15, 2016 at 4:38 PM, Hugh Dickins <hughd@google.com> wrote:
+> On Fri, 15 Apr 2016, Xiong Zhou wrote:
+>
+>> Hi, all
+>>
+>> Since tag next-20160407 in linux-next repo, executing binary
+>> from/in DAX mount hangs.
+>>
+>> It does not hang if mount without dax option.
+>> It hangs with both xfs and ext4.
+>> It does not hang if execute from a -t tmpfs mount.
+>> It does not hang on next-20160406 and still hangs on 0414 tree.
+>>
+>> # ps -axjf
+>> ...
+>> S+       0   0:00  |       \_ sh -x thl.sh
+>> R+       0  42:33  |           \_ [hl]
+>> ..
+>> # cat thl.sh
+>> mkfs.ext4 /dev/pmem0
+>> mount -o dax /dev/pmem0 /daxmnt
+>> cp hl /daxmnt
+>> /daxmnt/hl
+>> # cat hl.c
+>> void main()
+>> {
+>>         printf("ok\n");
+>> }
+>> # cc hl.c -o hl
+>>
+>> Bisecting commits between 0406 and 0407 tag, points to this:
+>>
+>> d7c7d56ca61aec18e5e0cb3a64e50073c42195f7 is the first bad commit
+>> commit d7c7d56ca61aec18e5e0cb3a64e50073c42195f7
+>> Author: Hugh Dickins <hughd@google.com>
+>> Date:   Thu Apr 7 14:00:12 2016 +1000
+>>
+>>     huge tmpfs: avoid premature exposure of new pagetable
+>>
+>> Bisect log and config are attatched.
+>
+> Excellent and very helpful bug report: thank you very much for taking
+> the trouble to make such a good report.
+>
+> I see why this happens now: I've not been paying enough attention
+> to the DAX changes.
+>
+> The fix requires a repositioning of where I allocate the new page
+> table: which is a change we knew we had to make for other reasons,
+> but it did not appear to be a high priority compared with other things
+> - until your bug report showing that I have broken DAX rather badly.
+>
+> In return for your excellent bug report, I can immediately offer
+> the most shameful patch I have ever posted: which has the virtue of
+> simplicity, and will work so long as you have plenty of free memory;
+> but might deadlock if it has to go into page reclaim (or maybe not:
+> perhaps the DAXness would leave it as merely a lockdep violation).
+>
+> Maybe not so much worse than the current hang, but still shameful:
+> I'm appending it here just in case you're in a hurry to see your "ok"
+> program working on DAX; but I think I'd better rearrange priorities
+> and try to provide a proper fix as soon as possible.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- Documentation/Makefile.am                 |    1 
- Documentation/ndctl-destroy-namespace.txt |   27 +++++++++++++
- builtin-xaction-namespace.c               |   61 +++++++++++++++++++++++++----
- builtin.h                                 |    1 
- ndctl.c                                   |    3 +
- 5 files changed, 84 insertions(+), 9 deletions(-)
- create mode 100644 Documentation/ndctl-destroy-namespace.txt
+No hurry, :)  Take your time.
 
-diff --git a/Documentation/Makefile.am b/Documentation/Makefile.am
-index 7fb49b8e4538..470f5d003f6c 100644
---- a/Documentation/Makefile.am
-+++ b/Documentation/Makefile.am
-@@ -7,6 +7,7 @@ man1_MANS = \
- 	ndctl-enable-namespace.1 \
- 	ndctl-disable-namespace.1 \
- 	ndctl-create-namespace.1 \
-+	ndctl-destroy-namespace.1 \
- 	ndctl-list.1
- 
- CLEANFILES = $(man1_MANS)
-diff --git a/Documentation/ndctl-destroy-namespace.txt b/Documentation/ndctl-destroy-namespace.txt
-new file mode 100644
-index 000000000000..623820533cec
---- /dev/null
-+++ b/Documentation/ndctl-destroy-namespace.txt
-@@ -0,0 +1,27 @@
-+ndctl-destroy-namespace(1)
-+=========================
-+
-+NAME
-+----
-+ndctl-destroy-namespace - destroy the given namespace(s)
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl destroy-namespace' <namespace> [<options>]
-+
-+include::namespace-description.txt[]
-+
-+OPTIONS
-+-------
-+include::xable-namespace-options.txt[]
-+-f::
-+--force::
-+	Unless this option is specified the 'destroy namespace'
-+	operation will fail if the namespace is presently active.
-+	Specifying --force causes the namespace to be disabled before
-+	the operation is attempted.
-+
-+SEE ALSO
-+--------
-+linkndctl:ndctl-create-namespace[1]
-diff --git a/builtin-xaction-namespace.c b/builtin-xaction-namespace.c
-index d83ad91a7258..1e1cdb30f4d6 100644
---- a/builtin-xaction-namespace.c
-+++ b/builtin-xaction-namespace.c
-@@ -98,6 +98,13 @@ static const struct option base_options[] = {
- 	OPT_END(),
- };
- 
-+static const struct option destroy_options[] = {
-+	BASE_OPTIONS(),
-+	OPT_BOOLEAN('f', "force", &force,
-+			"destroy namespace even if currently active"),
-+	OPT_END(),
-+};
-+
- static const struct option create_options[] = {
- 	BASE_OPTIONS(),
- 	CREATE_OPTIONS(),
-@@ -108,6 +115,7 @@ enum namespace_action {
- 	ACTION_ENABLE,
- 	ACTION_DISABLE,
- 	ACTION_CREATE,
-+	ACTION_DESTROY,
- };
- 
- static int set_defaults(void)
-@@ -493,20 +501,16 @@ static int zero_info_block(struct ndctl_namespace *ndns)
- 	return rc;
- }
- 
--static int namespace_reconfig(struct ndctl_region *region,
-+static int namespace_destroy(struct ndctl_region *region,
- 		struct ndctl_namespace *ndns)
- {
- 	const char *devname = ndctl_namespace_get_devname(ndns);
- 	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
- 	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
--	struct parsed_parameters p;
- 	const char *bdev = NULL;
- 	char path[50];
- 	int fd, rc;
- 
--	if (validate_namespace_options(ndns, &p))
--		return -EINVAL;
--
- 	if (ndctl_region_get_ro(region)) {
- 		error("%s: read-only, re-configuration disabled\n",
- 				devname);
-@@ -557,9 +561,26 @@ static int namespace_reconfig(struct ndctl_region *region,
- 		return rc;
- 	}
- 
-+	return 0;
-+}
-+
-+static int namespace_reconfig(struct ndctl_region *region,
-+		struct ndctl_namespace *ndns)
-+{
-+	struct parsed_parameters p;
-+	int rc;
-+
-+	if (validate_namespace_options(ndns, &p))
-+		return -EINVAL;
-+
-+	rc = namespace_destroy(region, ndns);
-+	if (rc)
-+		return rc;
-+
- 	ndns = ndctl_region_get_namespace_seed(region);
- 	if (is_namespace_active(ndns)) {
--		debug("%s: no %s namespace seed\n", devname,
-+		debug("%s: no %s namespace seed\n",
-+				ndctl_region_get_devname(region),
- 				ndns ? "idle" : "available");
- 		return -ENODEV;
- 	}
-@@ -570,8 +591,8 @@ static int namespace_reconfig(struct ndctl_region *region,
- static int do_xaction_namespace(const char *namespace,
- 		enum namespace_action action)
- {
-+	struct ndctl_namespace *ndns, *_n;
- 	int rc = -ENXIO, success = 0;
--	struct ndctl_namespace *ndns;
- 	struct ndctl_region *region;
- 	const char *ndns_name;
- 	struct ndctl_ctx *ctx;
-@@ -618,7 +639,7 @@ static int do_xaction_namespace(const char *namespace,
- 					rc = 1;
- 				goto done;
- 			}
--			ndctl_namespace_foreach(region, ndns) {
-+			ndctl_namespace_foreach_safe(region, ndns, _n) {
- 				ndns_name = ndctl_namespace_get_devname(ndns);
- 
- 				if (strcmp(namespace, "all") != 0
-@@ -631,6 +652,9 @@ static int do_xaction_namespace(const char *namespace,
- 				case ACTION_ENABLE:
- 					rc = ndctl_namespace_enable(ndns);
- 					break;
-+				case ACTION_DESTROY:
-+					rc = namespace_destroy(region, ndns);
-+					break;
- 				case ACTION_CREATE:
- 					rc = namespace_reconfig(region, ndns);
- 					if (rc < 0)
-@@ -721,3 +745,24 @@ int cmd_create_namespace(int argc, const char **argv)
- 		return created;
- 	return 0;
- }
-+
-+int cmd_destroy_namespace(int argc , const char **argv)
-+{
-+	char *xable_usage = "ndctl destroy-namespace <namespace> [<options>]";
-+	const char *namespace = parse_namespace_options(argc, argv,
-+			ACTION_DESTROY, destroy_options, xable_usage);
-+	int destroyed = do_xaction_namespace(namespace, ACTION_DESTROY);
-+
-+	if (destroyed < 0) {
-+		fprintf(stderr, "error destroying namespaces: %s\n",
-+				strerror(-destroyed));
-+		return destroyed;
-+	} else if (destroyed == 0) {
-+		fprintf(stderr, "destroyed 0 namespaces\n");
-+		return 0;
-+	} else {
-+		fprintf(stderr, "destroyed %d namespace%s\n", destroyed,
-+				destroyed > 1 ? "s" : "");
-+		return 0;
-+	}
-+}
-diff --git a/builtin.h b/builtin.h
-index 9c207552b254..53ec25b8a76a 100644
---- a/builtin.h
-+++ b/builtin.h
-@@ -11,6 +11,7 @@ struct cmd_struct {
- int cmd_create_nfit(int argc, const char **argv);
- int cmd_enable_namespace(int argc, const char **argv);
- int cmd_create_namespace(int argc, const char **argv);
-+int cmd_destroy_namespace(int argc, const char **argv);
- int cmd_disable_namespace(int argc, const char **argv);
- int cmd_enable_region(int argc, const char **argv);
- int cmd_disable_region(int argc, const char **argv);
-diff --git a/ndctl.c b/ndctl.c
-index bed194979cc0..6db1b2ffa0c0 100644
---- a/ndctl.c
-+++ b/ndctl.c
-@@ -26,8 +26,9 @@ static struct cmd_struct commands[] = {
- 	{ "version", cmd_version },
- 	{ "create-nfit", cmd_create_nfit },
- 	{ "enable-namespace", cmd_enable_namespace },
--	{ "create-namespace", cmd_create_namespace },
- 	{ "disable-namespace", cmd_disable_namespace },
-+	{ "create-namespace", cmd_create_namespace },
-+	{ "destroy-namespace", cmd_destroy_namespace },
- 	{ "enable-region", cmd_enable_region },
- 	{ "disable-region", cmd_disable_region },
- 	{ "zero-labels", cmd_zero_labels },
+>
+> Never-to-be-Signed-off-by: an anonymous hacker
+>
+> --- 4.6-rc2-mm1/mm/memory.c     2016-04-10 10:12:06.167769232 -0700
+> +++ linux/mm/memory.c   2016-04-15 00:54:06.427085026 -0700
+> @@ -2874,7 +2874,7 @@ static int __do_fault(struct vm_area_str
+>                 ret = VM_FAULT_HWPOISON;
+>                 goto err;
+>         }
+> -
+> + out:
+>         /*
+>          * Use pte_alloc instead of pte_alloc_map, because we can't
+>          * run pte_offset_map on the pmd, if an huge pmd could
+> @@ -2892,7 +2892,7 @@ static int __do_fault(struct vm_area_str
+>                 ret = VM_FAULT_NOPAGE;
+>                 goto err;
+>         }
+> - out:
+> +
+>         *page = vmf.page;
+>         return ret;
+>  err:
 
+Yes, "ok" is printed ok!
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
