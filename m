@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- by ml01.01.org (Postfix) with ESMTP id 10AEF1A1E8F
- for <linux-nvdimm@lists.01.org>; Sat,  9 Apr 2016 12:40:32 -0700 (PDT)
-Subject: [ndctl PATCH 2/4] ndctl: use filter utility routines zero-labels
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 09 Apr 2016 12:39:41 -0700
-Message-ID: <20160409193941.2002.26602.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160409193930.2002.71855.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160409193930.2002.71855.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id CCAA61A2270
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Apr 2016 14:35:51 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [RFC v3] [PATCH 0/18] DAX page fault locking
+Date: Mon, 18 Apr 2016 23:35:23 +0200
+Message-Id: <1461015341-20153-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,101 +15,53 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use the common routines for filtering a bus or a dimm by name/id.
+Hello,
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- builtin-zero-labels.c |   27 +++++++--------------------
- 1 file changed, 7 insertions(+), 20 deletions(-)
+this is my third attempt at DAX page fault locking rewrite. The patch set has
+passed xfstests both with and without DAX mount option on ext4 and xfs for
+me and also additional page fault beating using the new page fault stress
+tests I have added to xfstests. So I'd be grateful if you guys could have a
+closer look at the patches so that they can be merged. Thanks.
 
-diff --git a/builtin-zero-labels.c b/builtin-zero-labels.c
-index ae2bb3a8fdb0..649bd9eb9c08 100644
---- a/builtin-zero-labels.c
-+++ b/builtin-zero-labels.c
-@@ -4,6 +4,7 @@
- #include <unistd.h>
- #include <limits.h>
- #include <syslog.h>
-+#include <util/filter.h>
- #include <util/parse-options.h>
- #include <ndctl/libndctl.h>
- 
-@@ -11,11 +12,10 @@ static int do_zero_dimm(struct ndctl_dimm *dimm, const char **argv, int argc,
- 		bool verbose)
- {
- 	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
--	const char *name = ndctl_dimm_get_devname(dimm);
- 	int i, rc, log;
- 
- 	for (i = 0; i < argc; i++)
--		if (strcmp(argv[i], "all") == 0 || strcmp(argv[i], name) == 0)
-+		if (util_dimm_filter(dimm, argv[i]))
- 			break;
- 	if (i >= argc)
- 		return -ENODEV;
-@@ -31,7 +31,7 @@ static int do_zero_dimm(struct ndctl_dimm *dimm, const char **argv, int argc,
- 
- int cmd_zero_labels(int argc, const char **argv)
- {
--	const char *nmem_bus = NULL, *provider;
-+	const char *nmem_bus = NULL;
- 	bool verbose = false;
- 	const struct option nmem_options[] = {
- 		OPT_STRING('b', "bus", &nmem_bus, "bus-id",
-@@ -39,7 +39,6 @@ int cmd_zero_labels(int argc, const char **argv)
- 		OPT_BOOLEAN('v',"verbose", &verbose, "turn on debug"),
- 		OPT_END(),
- 	};
--	unsigned long bus_id = ULONG_MAX, dimm_id;
- 	const char * const u[] = {
- 		"ndctl zero-labels <nmem0> [<nmem1>..<nmemN>] [<options>]",
- 		NULL
-@@ -54,9 +53,11 @@ int cmd_zero_labels(int argc, const char **argv)
- 	if (argc == 0)
- 		usage_with_options(u, nmem_options);
- 	for (i = 0; i < argc; i++) {
-+		unsigned long id;
-+
- 		if (strcmp(argv[i], "all") == 0)
- 			continue;
--		if (sscanf(argv[i], "nmem%lu", &dimm_id) != 1) {
-+		if (sscanf(argv[i], "nmem%lu", &id) != 1) {
- 			fprintf(stderr, "unknown extra parameter \"%s\"\n",
- 					argv[i]);
- 			usage_with_options(u, nmem_options);
-@@ -67,23 +68,9 @@ int cmd_zero_labels(int argc, const char **argv)
- 	if (rc < 0)
- 		return rc;
- 
--	if (nmem_bus) {
--		char *end = NULL;
--
--		bus_id = strtoul(nmem_bus, &end, 0);
--		if (end)
--			bus_id = ULONG_MAX;
--	}
--
- 	count = 0;
-         ndctl_bus_foreach(ctx, bus) {
--		unsigned int id = ndctl_bus_get_id(bus);
--
--		provider = ndctl_bus_get_provider(bus);
--		if (bus_id < ULONG_MAX && bus_id != id)
--			continue;
--		else if (bus_id == ULONG_MAX && nmem_bus
--				&& strcmp(nmem_bus, provider) != 0)
-+		if (!util_bus_filter(bus, nmem_bus))
- 			continue;
- 
- 		ndctl_dimm_foreach(bus, dimm) {
+Changes since v2:
+- lot of additional ext4 fixes and cleanups
+- make PMD page faults depend on CONFIG_BROKEN instead of #if 0
+- fixed page reference leak when replacing hole page with a pfn
+- added some reviewed-by tags
+- rebased on top of current Linus' tree
 
+Changes since v1:
+- handle wakeups of exclusive waiters properly
+- fix cow fault races
+- other minor stuff
+
+General description
+
+The basic idea is that we use a bit in an exceptional radix tree entry as
+a lock bit and use it similarly to how page lock is used for normal faults.
+That way we fix races between hole instantiation and read faults of the
+same index. For now I have disabled PMD faults since there the issues with
+page fault locking are even worse. Now that Matthew's multi-order radix tree
+has landed, I can have a look into using that for proper locking of PMD faults
+but first I want normal pages sorted out.
+
+In the end I have decided to implement the bit locking directly in the DAX
+code. Originally I was thinking we could provide something generic directly
+in the radix tree code but the functions DAX needs are rather specific.
+Maybe someone else will have a good idea how to distill some generally useful
+functions out of what I've implemented for DAX but for now I didn't bother
+with that.
+
+								Honza
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
