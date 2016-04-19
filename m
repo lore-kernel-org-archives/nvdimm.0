@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5FCA11A1F75
- for <linux-nvdimm@lists.01.org>; Mon,  4 Apr 2016 01:34:13 -0700 (PDT)
-Date: Thu, 31 Mar 2016 18:27:30 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 08/10] dax: New fault locking
-Message-ID: <20160331162730.GB10434@quack.suse.cz>
-References: <1458566575-28063-1-git-send-email-jack@suse.cz>
- <1458566575-28063-9-git-send-email-jack@suse.cz>
- <20160329215732.GA21264@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2B3E61A1EA0
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Apr 2016 19:36:56 -0700 (PDT)
+Subject: Re: [PATCH v3 1/2] dax: add dax_get_unmapped_area for pmd mappings
+References: <1460652511-19636-1-git-send-email-toshi.kani@hpe.com>
+ <1460652511-19636-2-git-send-email-toshi.kani@hpe.com>
+ <20160418204708.GB17889@quack2.suse.cz>
+From: Toshi Kani <toshi.kani@hpe.com>
+Message-ID: <571599BE.7090202@hpe.com>
+Date: Mon, 18 Apr 2016 22:36:46 -0400
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20160329215732.GA21264@linux.intel.com>
+In-Reply-To: <20160418204708.GB17889@quack2.suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,175 +20,71 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, "Wilcox, Matthew R" <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: "tytso@mit.edu" <tytso@mit.edu>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "david@fromorbit.com" <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Thanks for review Ross! I have implemented your comments unless I state
-here otherwise.
+On 4/18/2016 4:47 PM, Jan Kara wrote:
+> On Thu 14-04-16 10:48:30, Toshi Kani wrote:
+>> +
+>> +/**
+>> + * dax_get_unmapped_area - handle get_unmapped_area for a DAX file
+>> + * @filp: The file being mmap'd, if not NULL
+>> + * @addr: The mmap address. If NULL, the kernel assigns the address
+>> + * @len: The mmap size in bytes
+>> + * @pgoff: The page offset in the file where the mapping starts from.
+>> + * @flags: The mmap flags
+>> + *
+>> + * This function can be called by a filesystem for get_unmapped_area().
+>> + * When a target file is a DAX file, it aligns the mmap address at the
+>> + * beginning of the file by the pmd size.
+>> + */
+>> +unsigned long dax_get_unmapped_area(struct file *filp, unsigned long addr,
+>> +		unsigned long len, unsigned long pgoff, unsigned long flags)
+>> +{
+>> +	unsigned long off, off_end, off_pmd, len_pmd, addr_pmd;
+> I think we need to use 'loff_t' for the offsets for things to work on
+> 32-bits.
 
-On Tue 29-03-16 15:57:32, Ross Zwisler wrote:
-> On Mon, Mar 21, 2016 at 02:22:53PM +0100, Jan Kara wrote:
-> > +	wait_queue_head_t *wq = dax_entry_waitqueue(mapping, index);
-> > +
-> > +	init_wait(&wait.wait);
-> > +	wait.wait.func = wake_exceptional_entry_func;
-> > +	wait.key.root = &mapping->page_tree;
-> > +	wait.key.index = index;
-> > +
-> > +	for (;;) {
-> > +		ret = __radix_tree_lookup(&mapping->page_tree, index, NULL,
-> > +					  &slot);
-> > +		if (!ret || !radix_tree_exceptional_entry(ret) ||
-> > +		    !slot_locked(slot)) {
-> > +			if (slotp)
-> > +				*slotp = slot;
-> > +			return ret;
-> > +		}
-> > +		prepare_to_wait_exclusive(wq, &wait.wait, TASK_UNINTERRUPTIBLE);
-> 
-> Should we make this TASK_INTERRUPTIBLE so we don't end up with an unkillable
-> zombie?
+Agreed. Will change to loff_t.
 
-Well, and do you want to deal with signal handling all the way up? The wait
-should be pretty short given the nature of pmem so I didn't see a big point
-in bothering with signal handling...
+>> +	if (!IS_ENABLED(CONFIG_FS_DAX_PMD) ||
+>> +	    !filp || addr || !IS_DAX(filp->f_mapping->host))
+>> +		goto out;
+>> +
+>> +	off = pgoff << PAGE_SHIFT;
+> And here we need to type to loff_t before the shift...
 
-> > +		spin_unlock_irq(&mapping->tree_lock);
-> > +		schedule();
-> > +		finish_wait(wq, &wait.wait);
-> > +		spin_lock_irq(&mapping->tree_lock);
-> > +	}
-> > +}
-> > +
-> > +/*
-> > + * Find radix tree entry at given index. If it points to a page, return with
-> > + * the page locked. If it points to the exceptional entry, return with the
-> > + * radix tree entry locked. If the radix tree doesn't contain given index,
-> > + * create empty exceptional entry for the index and return with it locked.
-> > + *
-> > + * Note: Unlike filemap_fault() we don't honor FAULT_FLAG_RETRY flags. For
-> > + * persistent memory the benefit is doubtful. We can add that later if we can
-> > + * show it helps.
-> > + */
-> > +static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index)
-> > +{
-> > +	void *ret, **slot;
-> > +
-> > +restart:
-> > +	spin_lock_irq(&mapping->tree_lock);
-> > +	ret = lookup_unlocked_mapping_entry(mapping, index, &slot);
-> > +	/* No entry for given index? Make sure radix tree is big enough. */
-> > +	if (!ret) {
-> > +		int err;
-> > +
-> > +		spin_unlock_irq(&mapping->tree_lock);
-> > +		err = radix_tree_preload(
-> > +				mapping_gfp_mask(mapping) & ~__GFP_HIGHMEM);
-> 
-> What is the benefit to preloading the radix tree?  It looks like we have
-> to drop the mapping->tree_lock, deal with an error, regrab the lock and
-> then deal with a possible collision with an entry that was inserted while
-> we didn't hold the lock.
-> 
-> Can we just try and insert it, then if it fails with -ENOMEM we just do
-> our normal error path, dropping the tree_lock and returning the error?
+Right.
 
-If we don't preload, the allocations will happen with GFP_ATOMIC. That
-should be avoided if possible since atomic allocations are pretty
-restricted. So basically all the pagecache first allocates nodes we may
-need before acquiring locks and then uses these nodes later and I have
-mirrored that behavior. Note that we take the hit for dropping the lock
-only if we really need to allocate new radix tree node so about once per 64
-new entries. So it is not too bad.
+>> +	off_end = off + len;
+>> +	off_pmd = round_up(off, PMD_SIZE);  /* pmd-aligned offset */
+>> +
+>> +	if ((off_end <= off_pmd) || ((off_end - off_pmd) < PMD_SIZE))
+> None of these parenthesis is actually needed (and IMHO they make the code
+> less readable, not more).
 
-> > -	WARN_ON_ONCE(pmd_entry && !dirty);
-> >  	if (dirty)
-> >  		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
-> >  
-> > -	spin_lock_irq(&mapping->tree_lock);
-> > -
-> > -	entry = radix_tree_lookup(page_tree, pmd_index);
-> > -	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD) {
-> > -		index = pmd_index;
-> > -		goto dirty;
-> > +	/* Replacing hole page with block mapping? */
-> > +	if (!radix_tree_exceptional_entry(entry)) {
-> > +		hole_fill = true;
-> > +		error = radix_tree_preload(gfp_mask);
-> > +		if (error)
-> > +			return ERR_PTR(error);
-> >  	}
-> >  
-> > -	entry = radix_tree_lookup(page_tree, index);
-> > -	if (entry) {
-> > -		type = RADIX_DAX_TYPE(entry);
-> > -		if (WARN_ON_ONCE(type != RADIX_DAX_PTE &&
-> > -					type != RADIX_DAX_PMD)) {
-> > -			error = -EIO;
-> > +	spin_lock_irq(&mapping->tree_lock);
-> > +	ret = (void *)((unsigned long)RADIX_DAX_ENTRY(sector, false) |
-> > +		       DAX_ENTRY_LOCK);
-> > +	if (hole_fill) {
-> > +		__delete_from_page_cache(entry, NULL);
-> > +		error = radix_tree_insert(page_tree, index, ret);
-> > +		if (error) {
-> > +			ret = ERR_PTR(error);
-> >  			goto unlock;
-> >  		}
-> > +		mapping->nrexceptional++;
-> > +	} else {
-> > +		void **slot;
-> > +		void *ret2;
-> >  
-> > -		if (!pmd_entry || type == RADIX_DAX_PMD)
-> > -			goto dirty;
-> > -
-> > -		/*
-> > -		 * We only insert dirty PMD entries into the radix tree.  This
-> > -		 * means we don't need to worry about removing a dirty PTE
-> > -		 * entry and inserting a clean PMD entry, thus reducing the
-> > -		 * range we would flush with a follow-up fsync/msync call.
-> > -		 */
-> > -		radix_tree_delete(&mapping->page_tree, index);
-> > -		mapping->nrexceptional--;
-> > -	}
-> > -
-> > -	if (sector == NO_SECTOR) {
-> > -		/*
-> > -		 * This can happen during correct operation if our pfn_mkwrite
-> > -		 * fault raced against a hole punch operation.  If this
-> > -		 * happens the pte that was hole punched will have been
-> > -		 * unmapped and the radix tree entry will have been removed by
-> > -		 * the time we are called, but the call will still happen.  We
-> > -		 * will return all the way up to wp_pfn_shared(), where the
-> > -		 * pte_same() check will fail, eventually causing page fault
-> > -		 * to be retried by the CPU.
-> > -		 */
-> > -		goto unlock;
-> > +		ret2 = __radix_tree_lookup(page_tree, index, NULL, &slot);
-> 
-> You don't need ret2.  You can just compare 'entry' with '*slot' - see
-> dax_writeback_one() for an example.
+OK.  Will remove the parenthesis.
 
-Hum, but if we want to do this cleanly (and get all the lockdep
-verification), we should use
+>> +		goto out;
+>> +
+>> +	len_pmd = len + PMD_SIZE;
+>> +	if ((off + len_pmd) < off)
+>> +		goto out;
+>> +
+>> +	addr_pmd = current->mm->get_unmapped_area(filp, addr, len_pmd,
+>> +						  pgoff, flags);
+>> +	if (!IS_ERR_VALUE(addr_pmd)) {
+>> +		addr_pmd += (off - addr_pmd) & (PMD_SIZE - 1);
+>> +		return addr_pmd;
+> Otherwise the patch looks good to me.
 
-radix_tree_deref_slot_protected(slot, &mapping->tree_lock)
-
-instead of *slot. And at that point my fingers hurt so much that I just
-create a new variable for caching the result ;). BTW, this has prompted me
-to also fix lock_slot, unlock_slot, slot_locked to use proper RCU
-primitives for modifying slot contents.
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Great. Thanks Jan!
+-Toshi
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
