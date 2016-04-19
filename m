@@ -1,24 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id 33A1D1A2023
- for <linux-nvdimm@lists.01.org>; Fri,  1 Apr 2016 12:18:26 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 4/5] dax: use sb_issue_zerout instead of calling
- dax_clear_sectors
-Date: Fri, 1 Apr 2016 19:17:52 +0000
-Message-ID: <1459538265.23200.8.camel@intel.com>
-References: <1458861450-17705-1-git-send-email-vishal.l.verma@intel.com>
- <1458861450-17705-5-git-send-email-vishal.l.verma@intel.com>
- <CAPcyv4iKK=1Nhz4QqEkhc4gum+UvUS4a=+Sza2zSa1Kyrth41w@mail.gmail.com>
- <1458939796.5501.8.camel@intel.com>
- <CAPcyv4jWqVcav7dQPh7WHpqB6QDrCezO5jbd9QW9xH3zsU4C1w@mail.gmail.com>
- <1459195288.15523.3.camel@intel.com>
- <CAPcyv4jFwh679arTNoUzLZpJCSoR+KhMdEmwqddCU1RWOrjD=Q@mail.gmail.com>
- <1459277829.6412.3.camel@intel.com> <20160330074926.GC12776@quack.suse.cz>
-In-Reply-To: <20160330074926.GC12776@quack.suse.cz>
-Content-Language: en-US
-Content-ID: <BCDA0CA9B9E5EA4C9093399005FC4758@intel.com>
+Received: from mail-pa0-x22d.google.com (mail-pa0-x22d.google.com
+ [IPv6:2607:f8b0:400e:c03::22d])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 713121A1F43
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Apr 2016 08:19:19 -0700 (PDT)
+Received: by mail-pa0-x22d.google.com with SMTP id r5so6930058pag.1
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Apr 2016 08:19:19 -0700 (PDT)
+Date: Tue, 19 Apr 2016 11:19:04 -0400
+From: Jerome Glisse <j.glisse@gmail.com>
+Subject: Re: [PATCH 17/18] dax: Use radix tree entry lock to protect cow faults
+Message-ID: <20160419151904.GA17318@gmail.com>
+References: <1461015341-20153-1-git-send-email-jack@suse.cz>
+ <1461015341-20153-18-git-send-email-jack@suse.cz>
+ <20160419114609.GA13932@gmail.com>
+ <20160419143343.GC22413@quack2.suse.cz>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20160419143343.GC22413@quack2.suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,36 +25,74 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "jack@suse.cz" <jack@suse.cz>
-Cc: "axboe@fb.com" <axboe@fb.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "david@fromorbit.com" <david@fromorbit.com>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Wilcox, Matthew
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCAyMDE2LTAzLTMwIGF0IDA5OjQ5ICswMjAwLCBKYW4gS2FyYSB3cm90ZToNCj4gT24g
-VHVlIDI5LTAzLTE2IDE4OjU3OjE2LCBWZXJtYSwgVmlzaGFsIEwgd3JvdGU6DQo+ID4gDQo+ID4g
-T24gTW9uLCAyMDE2LTAzLTI4IGF0IDE2OjM0IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-ID4gDQo+ID4gPD4NCj4gPiANCj4gPiA+IA0KPiA+ID4gU2VlbXMga2luZCBvZiBzYWQgdG8gZmFp
-bCB0aGUgZmF1bHQgZHVlIHRvIGEgYmFkIGJsb2NrIHdoZW4gd2UNCj4gPiA+IHdlcmUNCj4gPiA+
-IGdvaW5nIHRvIHplcm8gaXQgYW55d2F5LCByaWdodD/CoMKgSSdtIG5vdCBzZWVpbmcgYSBjb21w
-ZWxsaW5nDQo+ID4gPiByZWFzb24gdG8NCj4gPiA+IGtlZXAgYW55IHplcm9pbmcgaW4gZnMvZGF4
-LmMuDQo+ID4gQWdyZWVkIC0gYnV0IGhvdyBkbyB3ZSBkbyB0aGlzPyBjbGVhcl9wbWVtIG5lZWRz
-IHRvIGJlIGFibGUgdG8gY2xlYXINCj4gPiBhbg0KPiA+IGFyYml0cmFyeSBudW1iZXIgb2YgYnl0
-ZXMsIGJ1dCB0byBnbyB0aHJvdWdoIHRoZSBkcml2ZXIsIHdlJ2QgbmVlZA0KPiA+IHRvDQo+ID4g
-c2VuZCBkb3duIGEgYmlvPyBJZiBvbmx5IHRoZSBkcml2ZXIgaGFkIGFuIHJ3X2J5dGVzIGxpa2Ug
-aW50ZXJmYWNlDQo+ID4gdGhhdA0KPiA+IGNvdWxkIGJlIHVzZWQgYnkgYW55b25lLi4uIDopDQo+
-IEFjdHVhbGx5LCBteSBwYXRjaGVzIGZvciBwYWdlIGZhdWx0IGxvY2tpbmcgcmVtb3ZlIHplcm9p
-bmcgZnJvbQ0KPiBkYXhfaW5zZXJ0X21hcHBpbmcoKSBhbmQgX19kYXhfcG1kX2ZhdWx0KCkgLSB0
-aGUgemVyb2luZyBub3cgaGFwcGVucw0KPiBmcm9tDQo+IHRoZSBmaWxlc3lzdGVtIG9ubHkgYW5k
-IHRoZSB6ZXJvaW5nIGluIHRob3NlIHR3byBmdW5jdGlvbnMgaXMganVzdCBhDQo+IGRlYWQNCj4g
-Y29kZS4uLg0KDQpUaGF0IHNob3VsZCBtYWtlIHRoaW5ncyBlYXNpZXIhIERvIHlvdSBoYXZlIGEg
-dHJlZSBJIGNvdWxkIG1lcmdlIGluIHRvDQpnZXQgdGhpcz8gKFdJUCBpcyBvayBhcyB3ZSBrbm93
-IHRoYXQgbXkgc2VyaWVzIHdpbGwgZGVwZW5kIG9uIHlvdXJzLi4pDQpvciwgaWYgeW91IGNhbiBk
-aXN0aWxsIG91dCB0aGF0IHBhdGNoIG9uIGEgNC42LXJjMSBiYXNlLCBJIGNvdWxkIGNhcnJ5DQpp
-dCBpbiBteSBzZXJpZXMgdG9vICh5b3VyIHYyJ3MgMy8xMCBkb2Vzbid0IGFwcGx5IG9uIDQuNi1y
-YzEuLikNCg0KVGhhbmtzLA0KCS1WaXNoYWwKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1A
-bGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
-bnZkaW1tCg==
+On Tue, Apr 19, 2016 at 04:33:43PM +0200, Jan Kara wrote:
+> On Tue 19-04-16 07:46:09, Jerome Glisse wrote:
+> > On Mon, Apr 18, 2016 at 11:35:40PM +0200, Jan Kara wrote:
+> > > diff --git a/mm/memory.c b/mm/memory.c
+> > > index 93897f23cc11..f09cdb8d48fa 100644
+> > > --- a/mm/memory.c
+> > > +++ b/mm/memory.c
+> > > @@ -63,6 +63,7 @@
+> > >  #include <linux/dma-debug.h>
+> > >  #include <linux/debugfs.h>
+> > >  #include <linux/userfaultfd_k.h>
+> > > +#include <linux/dax.h>
+> > >  =
+
+> > >  #include <asm/io.h>
+> > >  #include <asm/mmu_context.h>
+> > > @@ -2785,7 +2786,8 @@ oom:
+> > >   */
+> > >  static int __do_fault(struct vm_area_struct *vma, unsigned long addr=
+ess,
+> > >  			pgoff_t pgoff, unsigned int flags,
+> > > -			struct page *cow_page, struct page **page)
+> > > +			struct page *cow_page, struct page **page,
+> > > +			void **entry)
+> > >  {
+> > >  	struct vm_fault vmf;
+> > >  	int ret;
+> > > @@ -2800,8 +2802,10 @@ static int __do_fault(struct vm_area_struct *v=
+ma, unsigned long address,
+> > >  	ret =3D vma->vm_ops->fault(vma, &vmf);
+> > >  	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RET=
+RY)))
+> > >  		return ret;
+> > > -	if (!vmf.page)
+> > > -		goto out;
+> > =
+
+> > Removing the above sounds seriously bogus to me as it means that below
+> > if (unlikely(PageHWPoison(vmf.page))) could dereference a NULL pointer.
+> =
+
+> If you do not return a valid page, you must return appropriate return code
+> from the ->fault handler. That being VM_FAULT_NOPAGE, VM_FAULT_DAX_LOCKED,
+> or some error. That has always been the case except for DAX abuse which w=
+as
+> added by commit 2e4cdab0584f "mm: allow page fault handlers to perform the
+> COW" about an year ago. And my patch fixes this abuse.
+> =
+
+> I'm not aware of any other code that would start abusing the return value
+> from the ->fault handler. If some such code indeed got merged during the
+> last year, it should be fixed as well.
+> =
+
+
+Ok my bad i missed that.
+
+Cheers,
+J=E9r=F4me
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
