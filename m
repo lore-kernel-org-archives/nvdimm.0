@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- by ml01.01.org (Postfix) with ESMTP id 35E361A1F42
- for <linux-nvdimm@lists.01.org>; Thu, 28 Apr 2016 14:17:28 -0700 (PDT)
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id CD3B61A22CD
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Apr 2016 11:11:42 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v4 6/7] dax: for truncate/hole-punch,
- do zeroing through the driver if possible
-Date: Thu, 28 Apr 2016 15:16:57 -0600
-Message-Id: <1461878218-3844-7-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
-References: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] autogen.sh: allow a --force to be sent to autoreconf
+Date: Tue, 19 Apr 2016 12:11:17 -0600
+Message-Id: <1461089477-11334-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,77 +21,43 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew@wil.cx>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@infradead.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+Cc: Vishal Verma <vishal@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In the truncate or hole-punch path in dax, we clear out sub-page ranges.
-If these sub-page ranges are sector aligned and sized, we can do the
-zeroing through the driver instead so that error-clearing is handled
-automatically.
+From: Vishal Verma <vishal@kernel.org>
 
-For sub-sector ranges, we still have to rely on clear_pmem and have the
-possibility of tripping over errors.
+Sometimes based on your libtool version, you may see something like:
 
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
+libtool: Version mismatch error.  This is libtool 2.4.2, but the
+libtool: definition of this LT_INIT comes from libtool 2.4.6.
+libtool: You should recreate aclocal.m4 with macros from libtool 2.4.2
+libtool: and run autoconf again.
+
+which can be fixed by passing --force to autoreconf.
+
+Let autogen.sh pass any commandline arguments on to autoreconf to allow
+one to fix this.
+
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/dax.c | 30 +++++++++++++++++++++++++-----
- 1 file changed, 25 insertions(+), 5 deletions(-)
+ autogen.sh | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 5948d9b..d8c974e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1196,6 +1196,20 @@ out:
- }
- EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
+diff --git a/autogen.sh b/autogen.sh
+index 2970a3b..a23cf53 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -7,7 +7,9 @@ if [ -f .git/hooks/pre-commit.sample -a ! -f .git/hooks/pre-commit ] ; then
+ fi
  
-+static bool dax_range_is_aligned(struct block_device *bdev,
-+				 struct blk_dax_ctl *dax, unsigned int offset,
-+				 unsigned int length)
-+{
-+	unsigned short sector_size = bdev_logical_block_size(bdev);
-+
-+	if (((u64)dax->addr + offset) % sector_size)
-+		return false;
-+	if (length % sector_size)
-+		return false;
-+
-+	return true;
-+}
-+
- /**
-  * dax_zero_page_range - zero a range within a page of a DAX file
-  * @inode: The file being truncated
-@@ -1240,11 +1254,17 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
- 			.size = PAGE_SIZE,
- 		};
+ $(dirname $0)/git-version-gen
+-autoreconf --install --symlink
++reconf_args=''
++[ -n "$*" ] && reconf_args="$*"
++autoreconf --install --symlink $reconf_args
  
--		if (dax_map_atomic(bdev, &dax) < 0)
--			return PTR_ERR(dax.addr);
--		clear_pmem(dax.addr + offset, length);
--		wmb_pmem();
--		dax_unmap_atomic(bdev, &dax);
-+		if (dax_range_is_aligned(bdev, &dax, offset, length))
-+			return blkdev_issue_zeroout(bdev, dax.sector,
-+					length / bdev_logical_block_size(bdev),
-+					GFP_NOFS, true);
-+		else {
-+			if (dax_map_atomic(bdev, &dax) < 0)
-+				return PTR_ERR(dax.addr);
-+			clear_pmem(dax.addr + offset, length);
-+			wmb_pmem();
-+			dax_unmap_atomic(bdev, &dax);
-+		}
- 	}
- 
- 	return 0;
+ libdir() {
+         echo $(cd $1/$(gcc -print-multi-os-directory); pwd)
 -- 
 2.5.5
 
