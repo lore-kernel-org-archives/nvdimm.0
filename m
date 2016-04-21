@@ -1,23 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x232.google.com (mail-oi0-x232.google.com
- [IPv6:2607:f8b0:4003:c06::232])
+Received: from mail-oi0-x22c.google.com (mail-oi0-x22c.google.com
+ [IPv6:2607:f8b0:4003:c06::22c])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D0D561A1F70
- for <linux-nvdimm@lists.01.org>; Thu, 21 Apr 2016 04:39:46 -0700 (PDT)
-Received: by mail-oi0-x232.google.com with SMTP id k142so79230136oib.1
- for <linux-nvdimm@lists.01.org>; Thu, 21 Apr 2016 04:39:46 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id B2DED1A1E5C
+ for <linux-nvdimm@lists.01.org>; Wed, 20 Apr 2016 18:29:43 -0700 (PDT)
+Received: by mail-oi0-x22c.google.com with SMTP id k142so62996248oib.1
+ for <linux-nvdimm@lists.01.org>; Wed, 20 Apr 2016 18:29:43 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4icU6=7UX_YD7SyqkioN+uT5KxPhm6YC_8FDE7gMFnAdA@mail.gmail.com>
+In-Reply-To: <20160420225545.GD29474@tevye.fc.hp.com>
 References: <cover.1460936121.git.jerry.hoemann@hpe.com>
  <3e5bf78e359a066ae18debe3921d2f585060785e.1460936121.git.jerry.hoemann@hpe.com>
  <CAPcyv4i4hh3PYjDk823u4rnqHB-Xh=1V19pxLUXAF0JyJiyvLA@mail.gmail.com>
  <20160420164647.GA29474@tevye.fc.hp.com>
  <CAPcyv4hM6QRth5t=Sqmo7qGZuoO0_hpFBvcp6GpYoqgS8Hdq2A@mail.gmail.com>
  <20160420225545.GD29474@tevye.fc.hp.com>
- <CAPcyv4icU6=7UX_YD7SyqkioN+uT5KxPhm6YC_8FDE7gMFnAdA@mail.gmail.com>
-Date: Thu, 21 Apr 2016 04:39:46 -0700
-Message-ID: <CAPcyv4jo4KKh8P-F=3VmCH8tbNX3skBOSPwEYnf=+GSaKdVirQ@mail.gmail.com>
+Date: Wed, 20 Apr 2016 18:29:42 -0700
+Message-ID: <CAPcyv4icU6=7UX_YD7SyqkioN+uT5KxPhm6YC_8FDE7gMFnAdA@mail.gmail.com>
 Subject: Re: [RFC v9 1/5] nvdimm: Add IOCTL pass thru functions
 From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -35,33 +34,104 @@ To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Apr 20, 2016 at 6:29 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Wed, Apr 20, 2016 at 3:55 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-[..]
->>> > Disagree.  We've discussed this previously.  The passthru interface needs
->>> > to handle the case where the caller doesn't know in advance the size
->>> > of the return.  These cases are not errors, just a different semantic.
->>>
->>> I don't think the passthru interface deserves a different semantic.
->>> It does handle the case that the caller does not know the size, it
->>> returns -errno on too small, 0 on just right, and postive number on
->>> too big.
+On Wed, Apr 20, 2016 at 3:55 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> On Wed, Apr 20, 2016 at 01:08:05PM -0700, Dan Williams wrote:
+>> On Wed, Apr 20, 2016 at 9:46 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+>> > On Mon, Apr 18, 2016 at 07:15:24PM -0700, Dan Williams wrote:
+>> >> On Sun, Apr 17, 2016 at 4:38 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+>> >> > Add ioctl command ND_CMD_CALL_DSM to acpi_nfit_ctl and __nd_ioctl which
+>> >> > allow kernel to call a nvdimm's _DSM as a passthru without using the
+>> >> > marshaling code of the nd_cmd_desc.
+>> >> >
+>> >> > This supports DSM as defined in:
+>> >> >
+>> >> >     http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+>> >> >     https://github.com/HewlettPackard/hpe-nvm/tree/master/Documentation
+>> >> >
+>> >> > Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+>> >> > ---
+>> >> >  drivers/acpi/nfit.c  | 108 +++++++++++++++++++++++++++++++++++++++++++++------
+>> >> >  drivers/nvdimm/bus.c |  43 +++++++++++++++++++-
+>> >> >  2 files changed, 139 insertions(+), 12 deletions(-)
+>> >> >
+>> >> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+>> >> > index d0f35e6..7dffcb5 100644
+>> >> > --- a/drivers/acpi/nfit.c
+>> >> > +++ b/drivers/acpi/nfit.c
+>> >> > @@ -56,6 +56,24 @@ struct nfit_table_prev {
+>> >> >         struct list_head flushes;
+>> >> >  };
+>> >> >
+>> >> > +struct cmd_family_tbl {
+>> >> > +       enum nfit_uuids key_uuid;       /* Internal handle              */
+>> >> > +       int             key_type;       /* Exported handle              */
+>> >> > +       int             rev;            /* _DSM rev                     */
+>> >> > +};
+>> >> > +
+>> >> > +/*
+>> >> > + * If adding new cmd family, determine maximum function index
+>> >> > + */
+>> >> > +#define ND_MAX_CMD     20
+>> >> > +
+>> >> > +struct cmd_family_tbl nfit_cmd_family_tbl[] = {
+>> >>
+>> >> Should be 'static', probably 'const' as well.
+>> >
+>> >   Yes.
+>> >
+>> >
+>> >>
+>> >> > +       { NFIT_DEV_DIMM,        ND_TYPE_DIMM_INTEL1,    1},
+>> >> > +       { NFIT_DEV_DIMM_N_HPE1, ND_TYPE_DIMM_N_HPE1,    1},
+>> >> > +       { NFIT_DEV_DIMM_N_HPE2, ND_TYPE_DIMM_N_HPE2,    1},
+>> >> > +       { -1, -1, -1},
+>> >> > +};
+>> >> > +
+>> >
+>> >   ...
+>> >
+>> >
+>> >> >
+>> >> > +       if (call_dsm) {
+>> >> > +               call_dsm->nd_fw_size = out_obj->buffer.length;
+>> >> > +               memcpy(call_dsm->nd_payload + call_dsm->nd_size_in,
+>> >> > +                       out_obj->buffer.pointer,
+>> >> > +                       min(call_dsm->nd_fw_size, call_dsm->nd_size_out));
+>> >>
+>> >> Hmm, further down in this routine we return -ENXIO if the output
+>> >> payload is too small, 0 if the output payload exactly matches the size
+>> >> of the BIOS output, and a positive number of remaining bytes if the
+>> >> output payload is larger than the BIOS output.  Yes, we can calculate
+>> >> this same result ourselves from the contents of the nd_cmd_pkg
+>> >> structure, but lets make the return value common for all the ioctls.
+>> >> Especially for the error case where we shouldn't successfully complete
+>> >> the ioctl if userspace failed to provide enough buffer space.
+>> >> +
+>> >> +               ACPI_FREE(out_obj);
+>> >> +               return 0;
+>> >> +       }
+>> >
+>> >
+>> > Disagree.  We've discussed this previously.  The passthru interface needs
+>> > to handle the case where the caller doesn't know in advance the size
+>> > of the return.  These cases are not errors, just a different semantic.
 >>
->> I was using semantic in context of the underlying FW call.
->> HPE fw has different semantics from Intel's fw.
->>
->> -ENXIO is overloaded.  More than one type of calling "error" could
->> produce that return code.  As such, user can't rely upon the contents of
->> of payload to determine what correct size should be as user doesn't know
->> why -ENXIO was returned.
+>> I don't think the passthru interface deserves a different semantic.
+>> It does handle the case that the caller does not know the size, it
+>> returns -errno on too small, 0 on just right, and postive number on
+>> too big.
 >
-> Ah, yes, this is indeed convincing.  Ok, keep it where it is at.
-> Apologies for making you argue that that again I had re-overlooked
-> that aspect since the last time we discussed this.
+> I was using semantic in context of the underlying FW call.
+> HPE fw has different semantics from Intel's fw.
+>
+> -ENXIO is overloaded.  More than one type of calling "error" could
+> produce that return code.  As such, user can't rely upon the contents of
+> of payload to determine what correct size should be as user doesn't know
+> why -ENXIO was returned.
 
-Btw, please include this explanation as a comment in the code so
-future readers don't try to reconcile the difference and come to the
-wrong conclusion like I happened to do... twice.
+Ah, yes, this is indeed convincing.  Ok, keep it where it is at.
+Apologies for making you argue that that again I had re-overlooked
+that aspect since the last time we discussed this.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
