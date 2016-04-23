@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t6214.austin.hp.com (g1t6214.austin.hp.com [15.73.96.122])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 767191A1F2D
- for <linux-nvdimm@lists.01.org>; Wed, 27 Apr 2016 15:46:54 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v10 4/7] nvdimm: Add concept of cmd mask
-Date: Wed, 27 Apr 2016 16:46:16 -0600
-Message-Id: <c9885736ba7237065a6e01e8da89cf625161cf39.1461793650.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1461793650.git.jerry.hoemann@hpe.com>
-References: <cover.1461793650.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1461793650.git.jerry.hoemann@hpe.com>
-References: <cover.1461793650.git.jerry.hoemann@hpe.com>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 5D62B1A2142
+ for <linux-nvdimm@lists.01.org>; Sat, 23 Apr 2016 12:14:05 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v3 5/7] dax: handle media errors in dax_do_io
+Date: Sat, 23 Apr 2016 13:13:40 -0600
+Message-Id: <1461438822-3592-6-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
+References: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,229 +20,158 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DSMs have a mask of commands implemented on the DSM.
+dax_do_io (called for read() or write() for a dax file system) may fail
+in the presence of bad blocks or media errors. Since we expect that a
+write should clear media errors on nvdimms, make dax_do_io fall back to
+the direct_IO path, which will send down a bio to the driver, which can
+then attempt to clear the error.
 
-The current IOCTL interface exported for the NVDIMM DSM maps directly
-onto the underlying DSM.
-
-With the addition of the pass thru mechanism, the IOCTL doesn't map
-directly onto the underlying DSM functions as the Pass thru isn't itself
-a DSM function and some DSM can use only the pass thru.
-
-These changes separate out the concept of a command mask that applies
-to function that are supported by the IOCTL and a dsm mask that apply
-to the underlying firmware.
-
-There is one noticiable exception, the cmd_mask == the dsm_mask
-for root functions.
-
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/acpi/nfit.c        | 27 +++++++++++++++++++++++----
- drivers/acpi/nfit.h        |  1 +
- drivers/nvdimm/bus.c       | 10 ++++------
- drivers/nvdimm/dimm_devs.c | 12 ++++++------
- drivers/nvdimm/nd-core.h   |  2 +-
- include/linux/libnvdimm.h  |  2 +-
- 6 files changed, 36 insertions(+), 18 deletions(-)
+ fs/block_dev.c      |  5 +++--
+ fs/ext2/inode.c     |  5 +++--
+ fs/ext4/inode.c     |  5 +++--
+ fs/xfs/xfs_aops.c   |  8 ++++----
+ include/linux/dax.h | 30 ++++++++++++++++++++++++++++++
+ 5 files changed, 43 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index cc5999e..a15fd92 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -60,6 +60,7 @@ struct cmd_family_tbl {
- 	enum nfit_uuids	key_uuid;	/* Internal handle		*/
- 	int		key_type;	/* Exported handle		*/
- 	int		rev;		/* _DSM rev			*/
-+	int		does_ioctls;	/* Family supports all commands? */
- };
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 79defba..7c90516 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -168,8 +168,9 @@ blkdev_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
+ 	struct inode *inode = bdev_file_inode(file);
  
- /*
-@@ -68,9 +69,9 @@ struct cmd_family_tbl {
- #define ND_MAX_DSM_FUN_IDX	20
+ 	if (IS_DAX(inode))
+-		return dax_do_io(iocb, inode, iter, offset, blkdev_get_block,
+-				NULL, DIO_SKIP_DIO_COUNT);
++		return dax_io_fallback(iocb, inode, I_BDEV(inode), iter, offset,
++				blkdev_get_block, blkdev_get_block,
++				NULL, NULL, DIO_SKIP_DIO_COUNT);
+ 	return __blockdev_direct_IO(iocb, inode, I_BDEV(inode), iter, offset,
+ 				    blkdev_get_block, NULL, NULL,
+ 				    DIO_SKIP_DIO_COUNT);
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 35f2b0bf..1cec54b 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -862,8 +862,9 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
+ 	ssize_t ret;
  
- static const struct cmd_family_tbl nfit_cmd_family_tbl[] = {
--	{ NFIT_DEV_DIMM,	ND_TYPE_DIMM_INTEL1,	1},
--	{ NFIT_DEV_DIMM_N_HPE1, ND_TYPE_DIMM_N_HPE1,	1},
--	{ NFIT_DEV_DIMM_N_HPE2, ND_TYPE_DIMM_N_HPE2,	1},
-+	{ NFIT_DEV_DIMM,	ND_TYPE_DIMM_INTEL1,	1, 1},
-+	{ NFIT_DEV_DIMM_N_HPE1, ND_TYPE_DIMM_N_HPE1,	1, 0},
-+	{ NFIT_DEV_DIMM_N_HPE2, ND_TYPE_DIMM_N_HPE2,	1, 0},
- 	{ -1, -1, -1},
- };
+ 	if (IS_DAX(inode))
+-		ret = dax_do_io(iocb, inode, iter, offset, ext2_get_block, NULL,
+-				DIO_LOCKING);
++		ret = dax_io_fallback(iocb, inode, inode->i_sb->s_bdev, iter,
++				offset, ext2_get_block, ext2_get_block,
++				NULL, NULL, DIO_LOCKING | DIO_SKIP_HOLES);
+ 	else
+ 		ret = blockdev_direct_IO(iocb, inode, iter, offset,
+ 					 ext2_get_block);
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 6d5d5c1..d29848b 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3411,8 +3411,9 @@ static ssize_t ext4_direct_IO_write(struct kiocb *iocb, struct iov_iter *iter,
+ 	BUG_ON(ext4_encrypted_inode(inode) && S_ISREG(inode->i_mode));
+ #endif
+ 	if (IS_DAX(inode)) {
+-		ret = dax_do_io(iocb, inode, iter, offset, get_block_func,
+-				ext4_end_io_dio, dio_flags);
++		ret = dax_io_fallback(iocb, inode, inode->i_sb->s_bdev, iter,
++				offset, get_block_func, get_block_func,
++				ext4_end_io_dio, NULL, dio_flags);
+ 	} else
+ 		ret = __blockdev_direct_IO(iocb, inode,
+ 					   inode->i_sb->s_bdev, iter, offset,
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index e49b240..48fe10a 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -1412,7 +1412,7 @@ xfs_vm_direct_IO(
+ 	struct inode		*inode = iocb->ki_filp->f_mapping->host;
+ 	dio_iodone_t		*endio = NULL;
+ 	int			flags = 0;
+-	struct block_device	*bdev;
++	struct block_device     *bdev = xfs_find_bdev_for_inode(inode);
  
-@@ -1002,6 +1003,20 @@ static int determine_uuid(acpi_handle handle, u8 const **cmd_uuid)
- 	return 0;
+ 	if (iov_iter_rw(iter) == WRITE) {
+ 		endio = xfs_end_io_direct_write;
+@@ -1420,11 +1420,11 @@ xfs_vm_direct_IO(
+ 	}
+ 
+ 	if (IS_DAX(inode)) {
+-		return dax_do_io(iocb, inode, iter, offset,
+-				 xfs_get_blocks_direct, endio, 0);
++		return dax_io_fallback(iocb, inode, bdev, iter, offset,
++				xfs_get_blocks_direct, xfs_get_blocks_direct,
++				endio, NULL, flags);
+ 	}
+ 
+-	bdev = xfs_find_bdev_for_inode(inode);
+ 	return  __blockdev_direct_IO(iocb, inode, bdev, iter, offset,
+ 			xfs_get_blocks_direct, endio, NULL, flags);
  }
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 426841a..7200e6f 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -3,6 +3,7 @@
  
-+static int determine_cmd_mask(u8 const *cmd_uuid)
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/uio.h>
+ #include <linux/radix-tree.h>
+ #include <asm/pgtable.h>
+ 
+@@ -64,4 +65,33 @@ static inline bool dax_mapping(struct address_space *mapping)
+ struct writeback_control;
+ int dax_writeback_mapping_range(struct address_space *mapping,
+ 		struct block_device *bdev, struct writeback_control *wbc);
++/*
++ * This is a wrapper for dax_do_io which may be used for writes, and will
++ * perform a fallback to direct_io semantics if the dax_io fails due to a
++ * media error.
++ */
++static inline ssize_t dax_io_fallback(struct kiocb *iocb, struct inode *inode,
++		struct block_device *bdev, struct iov_iter *iter, loff_t pos,
++		get_block_t dax_get_block, get_block_t dio_get_block,
++		dio_iodone_t end_io, dio_submit_t submit_io, int flags)
 +{
-+	const struct cmd_family_tbl *tbl = nfit_cmd_family_tbl;
-+	int i;
++	ssize_t retval;
 +
-+	for (i = 0;  tbl[i].key_uuid >= 0 ; i++) {
-+		const u8 *uuid = to_nfit_uuid(tbl[i].key_uuid);
-+
-+		if (memcmp(uuid, cmd_uuid, 16) == 0)
-+			return tbl[i].does_ioctls;
++	retval = dax_do_io(iocb, inode, iter, pos, dax_get_block, end_io,
++			flags);
++	if (iov_iter_rw(iter) == WRITE && retval == -EIO) {
++		/*
++		 * __dax_do_io may have failed a write due to a bad block.
++		 * Retry with direct_io, and if the direct_IO also fails
++		 * (with the exception of -EIOCBQUEUED), return -EIO as
++		 * that was the original error that led us down the
++		 * direct_IO path.
++		 */
++		retval = __blockdev_direct_IO(iocb, inode, bdev, iter, pos,
++				dio_get_block, end_io, submit_io, flags);
++		if (retval < 0 && retval != -EIOCBQUEUED)
++			return -EIO;
 +	}
-+	return 0;
++	return retval;
 +}
-+
- 
- static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 		struct nfit_mem *nfit_mem, u32 device_handle)
-@@ -1032,6 +1047,10 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 		if (acpi_check_dsm(adev_dimm->handle, uuid, 1, 1ULL << i))
- 			set_bit(i, &nfit_mem->dsm_mask);
- 
-+	nfit_mem->cmd_mask = (1 << ND_CMD_CALL);
-+	if (determine_cmd_mask(uuid))
-+		nfit_mem->cmd_mask |= nfit_mem->dsm_mask;
-+
- 	return 0;
- }
- 
-@@ -1067,7 +1086,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 
- 		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
- 				acpi_nfit_dimm_attribute_groups,
--				flags, &nfit_mem->dsm_mask);
-+				flags, nfit_mem->cmd_mask);
- 		if (!nvdimm)
- 			return -ENOMEM;
- 
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 7179ea6..e2fcab3 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -114,6 +114,7 @@ struct nfit_mem {
- 	struct list_head list;
- 	struct acpi_device *adev;
- 	unsigned long dsm_mask;
-+	unsigned long cmd_mask;
- 	const u8 *dsm_uuid;
- };
- 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index ed8bfae..395a9fb 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -612,31 +612,29 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 	struct device *dev = &nvdimm_bus->dev;
- 	struct nd_cmd_pkg pkg;
- 	const char *cmd_name, *dimm_name;
--	unsigned int func = cmd;
--	unsigned long dsm_mask;
-+	unsigned long cmd_mask;
- 	void *buf;
- 	int rc, i;
- 
- 	if (nvdimm) {
- 		desc = nd_cmd_dimm_desc(cmd);
- 		cmd_name = nvdimm_cmd_name(cmd);
--		dsm_mask = nvdimm->dsm_mask ? *(nvdimm->dsm_mask) : 0;
-+		cmd_mask = nvdimm->cmd_mask;
- 		dimm_name = dev_name(&nvdimm->dev);
- 	} else {
- 		desc = nd_cmd_bus_desc(cmd);
- 		cmd_name = nvdimm_bus_cmd_name(cmd);
--		dsm_mask = nd_desc->cmd_mask;
-+		cmd_mask = nd_desc->cmd_mask;
- 		dimm_name = "bus";
- 	}
- 
- 	if (cmd == ND_CMD_CALL) {
- 		if (copy_from_user(&pkg, p, sizeof(pkg)))
- 			return -EFAULT;
--		func = pkg.nd_command;
- 	}
- 
- 	if (!desc || (desc->out_num + desc->in_num == 0) ||
--			!test_bit(func, &dsm_mask))
-+			!test_bit(cmd, &cmd_mask))
- 		return -ENOTTY;
- 
- 	/* fail write commands (when read-only) */
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index c56f882..b86b45a 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -37,9 +37,9 @@ static int __validate_dimm(struct nvdimm_drvdata *ndd)
- 
- 	nvdimm = to_nvdimm(ndd->dev);
- 
--	if (!nvdimm->dsm_mask)
-+	if (!nvdimm->cmd_mask)
- 		return -ENXIO;
--	if (!test_bit(ND_CMD_GET_CONFIG_DATA, nvdimm->dsm_mask))
-+	if (!test_bit(ND_CMD_GET_CONFIG_DATA, &nvdimm->cmd_mask))
- 		return -ENXIO;
- 
- 	return 0;
-@@ -277,10 +277,10 @@ static ssize_t commands_show(struct device *dev,
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
- 	int cmd, len = 0;
- 
--	if (!nvdimm->dsm_mask)
-+	if (!nvdimm->cmd_mask)
- 		return sprintf(buf, "\n");
- 
--	for_each_set_bit(cmd, nvdimm->dsm_mask, BITS_PER_LONG)
-+	for_each_set_bit(cmd, &nvdimm->cmd_mask, BITS_PER_LONG)
- 		len += sprintf(buf + len, "%s ", nvdimm_cmd_name(cmd));
- 	len += sprintf(buf + len, "\n");
- 	return len;
-@@ -340,7 +340,7 @@ EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
- 
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
--		unsigned long *dsm_mask)
-+		unsigned long cmd_mask)
- {
- 	struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
- 	struct device *dev;
-@@ -355,7 +355,7 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 	}
- 	nvdimm->provider_data = provider_data;
- 	nvdimm->flags = flags;
--	nvdimm->dsm_mask = dsm_mask;
-+	nvdimm->cmd_mask = cmd_mask;
- 	atomic_set(&nvdimm->busy, 0);
- 	dev = &nvdimm->dev;
- 	dev_set_name(dev, "nmem%d", nvdimm->id);
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 1d1500f..da0d322 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -37,7 +37,7 @@ struct nvdimm_bus {
- struct nvdimm {
- 	unsigned long flags;
- 	void *provider_data;
--	unsigned long *dsm_mask;
-+	unsigned long cmd_mask;
- 	struct device dev;
- 	atomic_t busy;
- 	int id;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 67a1ba0..41c975a 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -133,7 +133,7 @@ const char *nvdimm_name(struct nvdimm *nvdimm);
- void *nvdimm_provider_data(struct nvdimm *nvdimm);
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
--		unsigned long *dsm_mask);
-+		unsigned long cmd_mask);
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
- u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
+ #endif
 -- 
-1.7.11.3
+2.5.5
 
 _______________________________________________
 Linux-nvdimm mailing list
