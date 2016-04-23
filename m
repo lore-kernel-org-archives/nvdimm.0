@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 818D31A2292
- for <linux-nvdimm@lists.01.org>; Mon, 18 Apr 2016 14:35:55 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 17/18] dax: Use radix tree entry lock to protect cow faults
-Date: Mon, 18 Apr 2016 23:35:40 +0200
-Message-Id: <1461015341-20153-18-git-send-email-jack@suse.cz>
-In-Reply-To: <1461015341-20153-1-git-send-email-jack@suse.cz>
-References: <1461015341-20153-1-git-send-email-jack@suse.cz>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id F31071A207E
+ for <linux-nvdimm@lists.01.org>; Sat, 23 Apr 2016 12:13:58 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v3 1/7] block, dax: pass blk_dax_ctl through to drivers
+Date: Sat, 23 Apr 2016 13:13:36 -0600
+Message-Id: <1461438822-3592-2-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
+References: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,237 +20,175 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When doing cow faults, we cannot directly fill in PTE as we do for other
-faults as we rely on generic code to do proper accounting of the cowed page.
-We also have no page to lock to protect against races with truncate as
-other faults have and we need the protection to extend until the moment
-generic code inserts cowed page into PTE thus at that point we have no
-protection of fs-specific i_mmap_sem. So far we relied on using
-i_mmap_lock for the protection however that is completely special to cow
-faults. To make fault locking more uniform use DAX entry lock instead.
+From: Dan Williams <dan.j.williams@intel.com>
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+This is in preparation for doing badblocks checking against the
+requested sector range in the driver.  Currently we opportunistically
+return as much data that can be "dax'd" starting at the given sector.
+When errors are present we want to limit that range to the first
+encountered error, or fail the dax request if the range encompasses an
+error.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c            | 12 +++++-------
- include/linux/dax.h |  7 +++++++
- include/linux/mm.h  |  7 +++++++
- mm/memory.c         | 38 ++++++++++++++++++--------------------
- 4 files changed, 37 insertions(+), 27 deletions(-)
+ arch/powerpc/sysdev/axonram.c | 10 +++++-----
+ drivers/block/brd.c           |  9 +++++----
+ drivers/nvdimm/pmem.c         |  9 +++++----
+ drivers/s390/block/dcssblk.c  | 12 ++++++------
+ fs/block_dev.c                |  2 +-
+ include/linux/blkdev.h        |  3 +--
+ 6 files changed, 23 insertions(+), 22 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index be68d18a98c1..d907bf8b07a0 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -509,7 +509,7 @@ static void wake_mapping_entry_waiter(struct address_space *mapping,
- 	}
- }
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index 0d112b9..d85673f 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -139,17 +139,17 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
  
--static void unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
-+void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
- {
- 	void *ret, **slot;
- 
-@@ -532,7 +532,7 @@ static void put_locked_mapping_entry(struct address_space *mapping,
- 		unlock_page(entry);
- 		put_page(entry);
- 	} else {
--		unlock_mapping_entry(mapping, index);
-+		dax_unlock_mapping_entry(mapping, index);
- 	}
- }
- 
-@@ -912,12 +912,10 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			goto unlock_entry;
- 		if (!radix_tree_exceptional_entry(entry)) {
- 			vmf->page = entry;
--		} else {
--			unlock_mapping_entry(mapping, vmf->pgoff);
--			i_mmap_lock_read(mapping);
--			vmf->page = NULL;
-+			return VM_FAULT_LOCKED;
- 		}
--		return VM_FAULT_LOCKED;
-+		vmf->entry = entry;
-+		return VM_FAULT_DAX_LOCKED;
- 	}
- 
- 	if (!buffer_mapped(&bh)) {
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index c5522f912344..ef94fa71368c 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -20,12 +20,19 @@ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- 
- #ifdef CONFIG_FS_DAX
- struct page *read_dax_sector(struct block_device *bdev, sector_t n);
-+void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index);
- #else
- static inline struct page *read_dax_sector(struct block_device *bdev,
- 		sector_t n)
- {
- 	return ERR_PTR(-ENXIO);
- }
-+/* Shouldn't ever be called when dax is disabled. */
-+static inline void dax_unlock_mapping_entry(struct address_space *mapping,
-+					    pgoff_t index)
-+{
-+	BUG();
-+}
- #endif
- 
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_BROKEN)
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index a55e5be0894f..0ef9dc720ec3 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -299,6 +299,12 @@ struct vm_fault {
- 					 * is set (which is also implied by
- 					 * VM_FAULT_ERROR).
- 					 */
-+	void *entry;			/* ->fault handler can alternatively
-+					 * return locked DAX entry. In that
-+					 * case handler should return
-+					 * VM_FAULT_DAX_LOCKED and fill in
-+					 * entry here.
-+					 */
- 	/* for ->map_pages() only */
- 	pgoff_t max_pgoff;		/* map pages for offset from pgoff till
- 					 * max_pgoff inclusive */
-@@ -1084,6 +1090,7 @@ static inline void clear_page_pfmemalloc(struct page *page)
- #define VM_FAULT_LOCKED	0x0200	/* ->fault locked the returned page */
- #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
- #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
-+#define VM_FAULT_DAX_LOCKED 0x1000	/* ->fault has locked DAX entry */
- 
- #define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
- 
-diff --git a/mm/memory.c b/mm/memory.c
-index 93897f23cc11..f09cdb8d48fa 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -63,6 +63,7 @@
- #include <linux/dma-debug.h>
- #include <linux/debugfs.h>
- #include <linux/userfaultfd_k.h>
-+#include <linux/dax.h>
- 
- #include <asm/io.h>
- #include <asm/mmu_context.h>
-@@ -2785,7 +2786,8 @@ oom:
+ /**
+  * axon_ram_direct_access - direct_access() method for block device
+- * @device, @sector, @data: see block_device_operations method
++ * @dax: see block_device_operations method
   */
- static int __do_fault(struct vm_area_struct *vma, unsigned long address,
- 			pgoff_t pgoff, unsigned int flags,
--			struct page *cow_page, struct page **page)
-+			struct page *cow_page, struct page **page,
-+			void **entry)
+ static long
+-axon_ram_direct_access(struct block_device *device, sector_t sector,
+-		       void __pmem **kaddr, pfn_t *pfn)
++axon_ram_direct_access(struct block_device *device, struct blk_dax_ctl *dax)
  {
- 	struct vm_fault vmf;
- 	int ret;
-@@ -2800,8 +2802,10 @@ static int __do_fault(struct vm_area_struct *vma, unsigned long address,
- 	ret = vma->vm_ops->fault(vma, &vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
--	if (!vmf.page)
--		goto out;
-+	if (ret & VM_FAULT_DAX_LOCKED) {
-+		*entry = vmf.entry;
-+		return ret;
-+	}
++	sector_t sector = get_start_sect(device) + dax->sector;
+ 	struct axon_ram_bank *bank = device->bd_disk->private_data;
+ 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
  
- 	if (unlikely(PageHWPoison(vmf.page))) {
- 		if (ret & VM_FAULT_LOCKED)
-@@ -2815,7 +2819,6 @@ static int __do_fault(struct vm_area_struct *vma, unsigned long address,
- 	else
- 		VM_BUG_ON_PAGE(!PageLocked(vmf.page), vmf.page);
- 
-- out:
- 	*page = vmf.page;
- 	return ret;
+-	*kaddr = (void __pmem __force *) bank->io_addr + offset;
+-	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
++	dax->addr = (void __pmem __force *) bank->io_addr + offset;
++	dax->pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
+ 	return bank->size - offset;
  }
-@@ -2987,7 +2990,7 @@ static int do_read_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		pte_unmap_unlock(pte, ptl);
- 	}
  
--	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
-+	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page, NULL);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 51a071e..71521c1 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -380,9 +380,10 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
+ }
  
-@@ -3010,6 +3013,7 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		pgoff_t pgoff, unsigned int flags, pte_t orig_pte)
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+-static long brd_direct_access(struct block_device *bdev, sector_t sector,
+-			void __pmem **kaddr, pfn_t *pfn)
++static long brd_direct_access(struct block_device *bdev,
++		struct blk_dax_ctl *dax)
  {
- 	struct page *fault_page, *new_page;
-+	void *fault_entry;
- 	struct mem_cgroup *memcg;
- 	spinlock_t *ptl;
- 	pte_t *pte;
-@@ -3027,26 +3031,24 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		return VM_FAULT_OOM;
- 	}
++	sector_t sector = get_start_sect(bdev) + dax->sector;
+ 	struct brd_device *brd = bdev->bd_disk->private_data;
+ 	struct page *page;
  
--	ret = __do_fault(vma, address, pgoff, flags, new_page, &fault_page);
-+	ret = __do_fault(vma, address, pgoff, flags, new_page, &fault_page,
-+			 &fault_entry);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
+@@ -391,8 +392,8 @@ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+ 	page = brd_insert_page(brd, sector);
+ 	if (!page)
+ 		return -ENOSPC;
+-	*kaddr = (void __pmem *)page_address(page);
+-	*pfn = page_to_pfn_t(page);
++	dax->addr = (void __pmem *)page_address(page);
++	dax->pfn = page_to_pfn_t(page);
  
--	if (fault_page)
-+	if (!(ret & VM_FAULT_DAX_LOCKED))
- 		copy_user_highpage(new_page, fault_page, address, vma);
- 	__SetPageUptodate(new_page);
+ 	return PAGE_SIZE;
+ }
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index f798899..f72733c 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -181,14 +181,15 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ 	return rc;
+ }
  
- 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
- 	if (unlikely(!pte_same(*pte, orig_pte))) {
- 		pte_unmap_unlock(pte, ptl);
--		if (fault_page) {
-+		if (!(ret & VM_FAULT_DAX_LOCKED)) {
- 			unlock_page(fault_page);
- 			put_page(fault_page);
- 		} else {
--			/*
--			 * The fault handler has no page to lock, so it holds
--			 * i_mmap_lock for read to protect against truncate.
--			 */
--			i_mmap_unlock_read(vma->vm_file->f_mapping);
-+			dax_unlock_mapping_entry(vma->vm_file->f_mapping,
-+						 pgoff);
- 		}
- 		goto uncharge_out;
- 	}
-@@ -3054,15 +3056,11 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 	mem_cgroup_commit_charge(new_page, memcg, false, false);
- 	lru_cache_add_active_or_unevictable(new_page, vma);
- 	pte_unmap_unlock(pte, ptl);
--	if (fault_page) {
-+	if (!(ret & VM_FAULT_DAX_LOCKED)) {
- 		unlock_page(fault_page);
- 		put_page(fault_page);
- 	} else {
--		/*
--		 * The fault handler has no page to lock, so it holds
--		 * i_mmap_lock for read to protect against truncate.
--		 */
--		i_mmap_unlock_read(vma->vm_file->f_mapping);
-+		dax_unlock_mapping_entry(vma->vm_file->f_mapping, pgoff);
- 	}
- 	return ret;
- uncharge_out:
-@@ -3082,7 +3080,7 @@ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 	int dirtied = 0;
- 	int ret, tmp;
+-static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+-		      void __pmem **kaddr, pfn_t *pfn)
++static long pmem_direct_access(struct block_device *bdev,
++		struct blk_dax_ctl *dax)
+ {
++	sector_t sector = get_start_sect(bdev) + dax->sector;
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
+ 	resource_size_t offset = sector * 512 + pmem->data_offset;
  
--	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
-+	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page, NULL);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
+-	*kaddr = pmem->virt_addr + offset;
+-	*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
++	dax->addr = pmem->virt_addr + offset;
++	dax->pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
  
+ 	return pmem->size - pmem->pfn_pad - offset;
+ }
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index b839086..613f587 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -30,8 +30,8 @@ static int dcssblk_open(struct block_device *bdev, fmode_t mode);
+ static void dcssblk_release(struct gendisk *disk, fmode_t mode);
+ static blk_qc_t dcssblk_make_request(struct request_queue *q,
+ 						struct bio *bio);
+-static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
+-			 void __pmem **kaddr, pfn_t *pfn);
++static long dcssblk_direct_access(struct block_device *bdev,
++		struct blk_dax_ctl *dax)
+ 
+ static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
+ 
+@@ -883,9 +883,9 @@ fail:
+ }
+ 
+ static long
+-dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+-			void __pmem **kaddr, pfn_t *pfn)
++dcssblk_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
+ {
++	sector_t secnum = get_start_sect(bdev) + dax->sector;
+ 	struct dcssblk_dev_info *dev_info;
+ 	unsigned long offset, dev_sz;
+ 
+@@ -894,8 +894,8 @@ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+ 		return -ENODEV;
+ 	dev_sz = dev_info->end - dev_info->start;
+ 	offset = secnum * 512;
+-	*kaddr = (void __pmem *) (dev_info->start + offset);
+-	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
++	dax->addr = (void __pmem *) (dev_info->start + offset);
++	dax->pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
+ 
+ 	return dev_sz - offset;
+ }
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index b25bb23..79defba 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -488,7 +488,7 @@ long bdev_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
+ 	sector += get_start_sect(bdev);
+ 	if (sector % (PAGE_SIZE / 512))
+ 		return -EINVAL;
+-	avail = ops->direct_access(bdev, sector, &dax->addr, &dax->pfn);
++	avail = ops->direct_access(bdev, dax);
+ 	if (!avail)
+ 		return -ERANGE;
+ 	if (avail > 0 && avail & ~PAGE_MASK)
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 669e419..9d8c6d5 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1656,8 +1656,7 @@ struct block_device_operations {
+ 	int (*rw_page)(struct block_device *, sector_t, struct page *, int rw);
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+-	long (*direct_access)(struct block_device *, sector_t, void __pmem **,
+-			pfn_t *);
++	long (*direct_access)(struct block_device *, struct blk_dax_ctl *dax);
+ 	unsigned int (*check_events) (struct gendisk *disk,
+ 				      unsigned int clearing);
+ 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
 -- 
-2.6.6
+2.5.5
 
 _______________________________________________
 Linux-nvdimm mailing list
