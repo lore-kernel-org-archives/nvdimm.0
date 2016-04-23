@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id 95D4D1A1FA7
- for <linux-nvdimm@lists.01.org>; Wed,  6 Apr 2016 18:07:55 -0700 (PDT)
-Subject: [ndctl PATCH 1/5] ndctl: rebuild libndctl.h when libndctl.h.in changes
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 06 Apr 2016 18:07:04 -0700
-Message-ID: <20160407010704.30641.88286.stgit@dwillia2-desk3.jf.intel.com>
-In-Reply-To: <20160407010659.30641.26139.stgit@dwillia2-desk3.jf.intel.com>
-References: <20160407010659.30641.26139.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id BE5D11A21A2
+ for <linux-nvdimm@lists.01.org>; Sat, 23 Apr 2016 12:14:09 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v3 7/7] dax: fix a comment in dax_zero_page_range and
+ dax_truncate_page
+Date: Sat, 23 Apr 2016 13:13:42 -0600
+Message-Id: <1461438822-3592-8-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
+References: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,36 +16,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Since libnctl.h is build via an AC_CONFIG_COMMANDS() statement we want
-configure to re-run if libndctl.h.in is changed.
+The distinction between PAGE_SIZE and PAGE_CACHE_SIZE was removed in
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+09cbfea mm, fs: get rid of PAGE_CACHE_* and page_cache_{get,release}
+macros
+
+The comments for the above functions described a distinction between
+those, that is now redundant, so remove those paragraphs
+
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- Makefile.am |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/dax.c | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 7de3d3c3c9eb..379f6404671f 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -29,7 +29,9 @@ AM_LDFLAGS = \
- 	-Wl,--gc-sections \
- 	-Wl,--as-needed
- 
--BUILT_SOURCES = $(top_srcdir)/version.m4
-+BUILT_SOURCES = $(top_srcdir)/version.m4 $(top_srcdir)/lib/ndctl/libndctl.h
-+$(top_srcdir)/lib/ndctl/libndctl.h: $(top_srcdir)/lib/ndctl/libndctl.h.in
-+	touch $(top_srcdir)/version.m4
- $(top_srcdir)/version.m4: FORCE
- 	$(AM_V_GEN)$(top_srcdir)/git-version-gen
- 
+diff --git a/fs/dax.c b/fs/dax.c
+index d8c974e..b8fa85a 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1221,12 +1221,6 @@ static bool dax_range_is_aligned(struct block_device *bdev,
+  * page in a DAX file.  This is intended for hole-punch operations.  If
+  * you are truncating a file, the helper function dax_truncate_page() may be
+  * more convenient.
+- *
+- * We work in terms of PAGE_SIZE here for commonality with
+- * block_truncate_page(), but we could go down to PAGE_SIZE if the filesystem
+- * took care of disposing of the unnecessary blocks.  Even if the filesystem
+- * block size is smaller than PAGE_SIZE, we have to zero the rest of the page
+- * since the file might be mmapped.
+  */
+ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
+ 							get_block_t get_block)
+@@ -1279,12 +1273,6 @@ EXPORT_SYMBOL_GPL(dax_zero_page_range);
+  *
+  * Similar to block_truncate_page(), this function can be called by a
+  * filesystem when it is truncating a DAX file to handle the partial page.
+- *
+- * We work in terms of PAGE_SIZE here for commonality with
+- * block_truncate_page(), but we could go down to PAGE_SIZE if the filesystem
+- * took care of disposing of the unnecessary blocks.  Even if the filesystem
+- * block size is smaller than PAGE_SIZE, we have to zero the rest of the page
+- * since the file might be mmapped.
+  */
+ int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
+ {
+-- 
+2.5.5
 
 _______________________________________________
 Linux-nvdimm mailing list
