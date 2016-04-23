@@ -1,69 +1,107 @@
-Return-Path: <linux-ext4-owner@vger.kernel.org>
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 15/18] dax: Allow DAX code to replace exceptional entries
-Date: Mon, 18 Apr 2016 23:35:38 +0200
-Message-Id: <1461015341-20153-16-git-send-email-jack@suse.cz>
-In-Reply-To: <1461015341-20153-1-git-send-email-jack@suse.cz>
-References: <1461015341-20153-1-git-send-email-jack@suse.cz>
-Sender: linux-ext4-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org
-Cc: linux-ext4@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>, Jan Kara <jack@suse.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from g4t3427.houston.hp.com (g4t3427.houston.hp.com [15.201.208.55])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 404E01A20F4
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Apr 2016 17:30:12 -0700 (PDT)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v4 2/2] ext2/4, xfs,
+ blk: call thp_get_unmapped_area() for pmd mappings
+Date: Fri, 22 Apr 2016 18:21:23 -0600
+Message-Id: <1461370883-7664-3-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1461370883-7664-1-git-send-email-toshi.kani@hpe.com>
+References: <1461370883-7664-1-git-send-email-toshi.kani@hpe.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: akpm@linux-foundation.org
+Cc: tytso@mit.edu, jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, adilger.kernel@dilger.ca, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently we forbid page_cache_tree_insert() to replace exceptional radix
-tree entries for DAX inodes. However to make DAX faults race free we will
-lock radix tree entries and when hole is created, we need to replace
-such locked radix tree entry with a hole page. So modify
-page_cache_tree_insert() to allow that.
+To support DAX pmd mappings with unmodified applications,
+filesystems need to align an mmap address by the pmd size.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Call thp_get_unmapped_area() from f_op->get_unmapped_area.
+
+Note, there is no change in behavior for a non-DAX file.
+
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 ---
- include/linux/dax.h |  1 +
- mm/filemap.c        | 18 +++++++++++-------
- 2 files changed, 12 insertions(+), 7 deletions(-)
+ fs/block_dev.c    |    1 +
+ fs/ext2/file.c    |    1 +
+ fs/ext4/file.c    |    1 +
+ fs/xfs/xfs_file.c |    1 +
+ 4 files changed, 4 insertions(+)
 
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index bef5c44f71b3..fd4aeae65ed7 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -3,6 +3,7 @@
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 20a2c02..a4aa26d 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -1798,6 +1798,7 @@ const struct file_operations def_blk_fops = {
+ 	.write_iter	= blkdev_write_iter,
+ 	.mmap		= blkdev_mmap,
+ 	.fsync		= blkdev_fsync,
++	.get_unmapped_area = thp_get_unmapped_area,
+ 	.unlocked_ioctl	= block_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= compat_blkdev_ioctl,
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index c1400b1..92209a1 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -172,6 +172,7 @@ const struct file_operations ext2_file_operations = {
+ 	.open		= dquot_file_open,
+ 	.release	= ext2_release_file,
+ 	.fsync		= ext2_fsync,
++	.get_unmapped_area = thp_get_unmapped_area,
+ 	.splice_read	= generic_file_splice_read,
+ 	.splice_write	= iter_file_splice_write,
+ };
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index fa2208b..ceb8279 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -708,6 +708,7 @@ const struct file_operations ext4_file_operations = {
+ 	.open		= ext4_file_open,
+ 	.release	= ext4_release_file,
+ 	.fsync		= ext4_sync_file,
++	.get_unmapped_area = thp_get_unmapped_area,
+ 	.splice_read	= generic_file_splice_read,
+ 	.splice_write	= iter_file_splice_write,
+ 	.fallocate	= ext4_fallocate,
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 569938a..0225927 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1708,6 +1708,7 @@ const struct file_operations xfs_file_operations = {
+ 	.open		= xfs_file_open,
+ 	.release	= xfs_file_release,
+ 	.fsync		= xfs_file_fsync,
++	.get_unmapped_area = thp_get_unmapped_area,
+ 	.fallocate	= xfs_file_fallocate,
+ };
  
- #include <linux/fs.h>
- #include <linux/mm.h>
-+#include <linux/radix-tree.h>
- #include <asm/pgtable.h>
- 
- /* We use lowest available exceptional entry bit for locking */
-diff --git a/mm/filemap.c b/mm/filemap.c
-index f2479af09da9..3effd5c8f2f6 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -597,14 +597,18 @@ static int page_cache_tree_insert(struct address_space *mapping,
- 		if (!radix_tree_exceptional_entry(p))
- 			return -EEXIST;
- 
--		if (WARN_ON(dax_mapping(mapping)))
--			return -EINVAL;
--
--		if (shadowp)
--			*shadowp = p;
- 		mapping->nrexceptional--;
--		if (node)
--			workingset_node_shadows_dec(node);
-+		if (!dax_mapping(mapping)) {
-+			if (shadowp)
-+				*shadowp = p;
-+			if (node)
-+				workingset_node_shadows_dec(node);
-+		} else {
-+			/* DAX can replace empty locked entry with a hole */
-+			WARN_ON_ONCE(p !=
-+				(void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
-+					 RADIX_DAX_ENTRY_LOCK));
-+		}
- 	}
- 	radix_tree_replace_slot(slot, page);
- 	mapping->nrpages++;
--- 
-2.6.6
-
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
