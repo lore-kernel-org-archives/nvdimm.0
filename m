@@ -1,12 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- by ml01.01.org (Postfix) with ESMTP id 5E6981A1F5B
- for <linux-nvdimm@lists.01.org>; Thu, 28 Apr 2016 19:43:11 -0700 (PDT)
-Subject: [PATCH v11 0/5] libnvidmm, nfit: dimm command marshaling
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 28 Apr 2016 19:42:22 -0700
-Message-ID: <146189774241.29835.12947278159500915461.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 99F9B1A20C8
+ for <linux-nvdimm@lists.01.org>; Sat, 23 Apr 2016 12:14:00 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v3 2/7] dax: fallback from pmd to pte on error
+Date: Sat, 23 Apr 2016 13:13:37 -0600
+Message-Id: <1461438822-3592-3-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
+References: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,72 +15,45 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Christoph Hellwig <hch@infradead.org>, linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Jerry and I have been working towards a way to support the ACPI DSM
-command set needed by HPE DIMMs.  The HPE command sets differ
-from the original Intel-defined command set already upstream.
+From: Dan Williams <dan.j.williams@intel.com>
 
-Ideally the kernel would only implement a single standard command
-format, however the standard is not yet available and devices
-implementing an alternate command set are already shipping.
+In preparation for consulting a badblocks list in pmem_direct_access(),
+teach dax_pmd_fault() to fallback rather than fail immediately upon
+encountering an error.  The thought being that reducing the span of the
+dax request may avoid the error region.
 
-This rework of Jerry's initial patches [1] aims to support shipping
-devices while encouraging future / follow-on command definitions to wait
-for the standardization process to complete by:
-
-1/ Requiring public documentation of commands
-
-2/ Providing a mechanism to disable vendor-specific functionality
-
-See patch 2 for more details.  This patch passes the existing nvdimm
-unit tests, but I have yet to extend the tests to target this new
-mechanism.
-
-
-Changes since v10: [1]
-1/ Rewrote the commit message for the patch that introduces ND_CMD_CALL
-
-2/ Replace 'nfit_cmd_family_tbl' with nfit_mem->family to clean up some
-   lookup code.
-
-3/ Squash and reorganize the 7 patches into a smaller set.  Commit
-   8467ba4fc94a from my for-4.7/dsm branch [2] was also squashed.
-
-4/ Add sysfs attributes for the dimm family and DSM function-supported
-   mask.
-
-5/ Add a module parameter to disable vendor specific commands
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-April/005484.html
-[2]: https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/commit/?h=for-4.7/dsm&id=8467ba4fc94a
-
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ fs/dax.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Dan Williams (5):
-      nfit, libnvdimm: clarify "commands" vs "_DSMs"
-      nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism
-      nfit: disable vendor specific commands
-      tools/testing/nvdimm: ND_CMD_CALL support
-      nfit: add sysfs dimm 'family' and 'dsm_mask' attributes
+diff --git a/fs/dax.c b/fs/dax.c
+index 5a34f08..52f0044 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1111,8 +1111,8 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		long length = dax_map_atomic(bdev, &dax);
+ 
+ 		if (length < 0) {
+-			result = VM_FAULT_SIGBUS;
+-			goto out;
++			dax_pmd_dbg(&bh, address, "dax-error fallback");
++			goto fallback;
+ 		}
+ 		if (length < PMD_SIZE) {
+ 			dax_pmd_dbg(&bh, address, "dax-length too small");
+-- 
+2.5.5
 
-
- drivers/acpi/nfit.c              |  145 +++++++++++++++++++++++++++++++++-----
- drivers/acpi/nfit.h              |   18 ++++-
- drivers/nvdimm/bus.c             |   47 +++++++++++-
- drivers/nvdimm/core.c            |    2 -
- drivers/nvdimm/dimm_devs.c       |   18 +++--
- drivers/nvdimm/nd-core.h         |    2 -
- include/linux/libnvdimm.h        |    5 +
- include/uapi/linux/ndctl.h       |   42 +++++++++++
- tools/testing/nvdimm/test/nfit.c |   46 ++++++++----
- 9 files changed, 275 insertions(+), 50 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
