@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 529E71A1E66
- for <linux-nvdimm@lists.01.org>; Sat,  9 Apr 2016 10:48:43 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.6-rc3
-Date: Sat, 9 Apr 2016 17:48:25 +0000
-Message-ID: <1460224104.6400.12.camel@intel.com>
-Content-Language: en-US
-Content-ID: <991B30DCB49615479ECCFB0D795BCC00@intel.com>
-MIME-Version: 1.0
+Received: from g4t3427.houston.hp.com (g4t3427.houston.hp.com [15.201.208.55])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id AF44C1A1EF0
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Apr 2016 17:30:08 -0700 (PDT)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v4 0/2] Align mmap address for DAX pmd mappings
+Date: Fri, 22 Apr 2016 18:21:21 -0600
+Message-Id: <1461370883-7664-1-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,49 +15,64 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: akpm@linux-foundation.org
+Cc: tytso@mit.edu, jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, adilger.kernel@dilger.ca, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgorQUtBIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
-Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4u
-dG8gcmVjZWl2ZSAzIGZpeGVzLCB0aGUgZmlyc3QgMiBhcmUgdGFnZ2VkIGZvciAtc3RhYmxlLgoK
-MS8gVGhlIG5kY3RsIHV0aWxpdHkvbGlicmFyeSBnYWluZWQgZXhwYW5kZWQgdW5pdCB0ZXN0cyBp
-bGx1bWluYXRpbmcgYQpsb25nIHN0YW5kaW5nIGJ1ZyBpbiB0aGUgbGlibnZkaW1tIFNNQVJUIGRh
-dGEgcmV0cmlldmFsIGltcGxlbWVudGF0aW9uLgorQUtBLUl0IGhhcyBiZWVuIGJyb2tlbiBzaW5j
-ZSBpdHMgaW5pdGlhbCBpbXBsZW1lbnRhdGlvbiwgbm93IGZpeGVkLgoKMi8gQW5vdGhlciBvbmUg
-bGluZSBmaXggZm9yIHRoZSBkZXRlY3Rpb24gb2Ygc3RhbGUgaW5mbyBibG9ja3MuCitBS0EtV2l0
-aG91dCB0aGlzIGNoYW5nZSB1c2Vyc3BhY2UgY2FuIGdldCBpbnRvIGEgc2l0dWF0aW9uIHdoZXJl
-IGl0IGlzCnVuYWJsZSB0byByZWNvbmZpZ3VyZSBhIG5hbWVzcGFjZS4KCjMvIEZpeCB0aGUgYmFk
-YmxvY2sgaW5pdGlhbGl6YXRpb24gcGF0aCBpbiB0aGUgcHJlc2VuY2Ugb2YgdGhlIG5ldyAoaW4K
-NCw2LXJjMSkgc2VjdGlvbiBhbGlnbm1lbnQgd29ya2Fyb3VuZHMuICtBS0EtV2l0aG91dCB0aGlz
-IGNoYW5nZSBiYWRibG9ja3MKd2lsbCBiZSByZXBvcnRlZCBhdCB0aGUgd3Jvbmcgb2Zmc2V0LgoK
-VGhlc2UgaGF2ZSByZWNlaXZlZCBhIGJ1aWxkIHN1Y2Nlc3MgcmVwb3J0IGZyb20gdGhlIGtidWls
-ZCByb2JvdCBhbmQKaGF2ZSBhcHBlYXJlZCBpbiAtbmV4dCB3aXRoIG5vIHJlcG9ydGVkIGlzc3Vl
-cy4KClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgOTczNWEyMjc5OWI5MjE0ZDE3
-ZDNjMjMxZmUzNzdmYzg1MmYwNDJlOToKCitBS0EgTGludXggNC42LXJjMiAoMjAxNi0wNC0wMyAw
-OTowOTo0MCAtMDUwMCkKCmFyZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBvc2l0b3J5IGF0OgoK
-K0FLQSBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1t
-L252ZGltbSBsaWJudmRpbW0tZml4ZXMKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0byBh
-MzkwMTgwMjkxZGQ5YTIzOTJiYmFiNDI0MmNkZTcxMmMzMjZlZmM2OgoKK0FLQSBsaWJudmRpbW0s
-IHBmbjogZml4IG52ZGltbV9uYW1lc3BhY2VfYWRkX3BvaXNvbigpIHZzIHNlY3Rpb24gYWxpZ25t
-ZW50ICgyMDE2LTA0LTA3IDIwOjAyOjA2IC0wNzAwKQoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpEYW4gV2lsbGlhbXMgKDMp
-OgorQUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW06IGZpeCBzbWFydCBkYXRhIHJldHJpZXZhbAor
-QUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW0sIHBmbjogZml4IHV1aWQgdmFsaWRhdGlvbgorQUtB
-QW9BQ2dBS0FBb0FDZy1saWJudmRpbW0sIHBmbjogZml4IG52ZGltbV9uYW1lc3BhY2VfYWRkX3Bv
-aXNvbigpIHZzIHNlY3Rpb24gYWxpZ25tZW50CgorQUtBLWRyaXZlcnMvbnZkaW1tL2J1cy5jK0FL
-QUFvQUNnQUtBQW9BQ2d8K0FLQUFvQS0yICstLQorQUtBLWRyaXZlcnMvbnZkaW1tL2NvcmUuYytB
-S0FBb0FDZ0FLQUFvQXwgNDEgKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0r
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQorQUtBLWRyaXZlcnMvbnZkaW1tL25kLmgrQUtBQW9BQ2dB
-S0FBb0FDZ0FLQXwrQUtBQW9BLTQgKy0rLS0tCitBS0EtZHJpdmVycy9udmRpbW0vcGZuX2RldnMu
-YyB8K0FLQUFvQS0yICstLQorQUtBLWRyaXZlcnMvbnZkaW1tL3BtZW0uYytBS0FBb0FDZ0FLQUFv
-QXwgMzYgKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0r
-LSstKy0rLS0tLS0tLS0KK0FLQS01IGZpbGVzIGNoYW5nZWQsIDUzIGluc2VydGlvbnMoKy0pLCAz
-MiBkZWxldGlvbnMoLSkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+When CONFIG_FS_DAX_PMD is set, DAX supports mmap() using pmd page
+size.  This feature relies on both mmap virtual address and FS
+block (i.e. physical address) to be aligned by the pmd page size.
+Users can use mkfs options to specify FS to align block allocations.
+However, aligning mmap address requires code changes to existing
+applications for providing a pmd-aligned address to mmap().
+
+For instance, fio with "ioengine=mmap" performs I/Os with mmap() [1].
+It calls mmap() with a NULL address, which needs to be changed to
+provide a pmd-aligned address for testing with DAX pmd mappings.
+Changing all applications that call mmap() with NULL is undesirable.
+
+This patch-set extends filesystems to align an mmap address for
+a DAX file so that unmodified applications can use DAX pmd mappings.
+
+[1]: https://github.com/axboe/fio/blob/master/engines/mmap.c
+
+v4:
+ - Use loff_t for offset and cast before shift (Jan Kara)
+ - Remove redundant paranthesis (Jan Kara)
+ - Allow integration with huge page cache support (Matthew Wilcox)
+ - Prepare for PUD mapping support (Mike Kravetz, Matthew Wilcox)
+
+v3:
+ - Check overflow condition to offset + length. (Matthew Wilcox)
+ - Remove indent by using gotos. (Matthew Wilcox)
+ - Define dax_get_unmapped_area to NULL when CONFIG_FS_DAX is unset.
+   (Matthew Wilcox)
+ - Squash all filesystem patches together. (Matthew Wilcox)
+
+v2:
+ - Change filesystems to provide their get_unmapped_area().
+   (Matthew Wilcox)
+ - Add more description about the benefit. (Matthew Wilcox)
+
+---
+Toshi Kani (2):
+ 1/2 thp, dax: add thp_get_unmapped_area for pmd mappings
+ 2/2 ext2/4, xfs, blk: call thp_get_unmapped_area() for pmd mappings
+
+---
+ fs/block_dev.c          |  1 +
+ fs/ext2/file.c          |  1 +
+ fs/ext4/file.c          |  1 +
+ fs/xfs/xfs_file.c       |  1 +
+ include/linux/huge_mm.h |  7 +++++++
+ mm/huge_memory.c        | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 54 insertions(+)
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
