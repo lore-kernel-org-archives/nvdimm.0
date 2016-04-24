@@ -1,19 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lb0-x22d.google.com (mail-lb0-x22d.google.com
+ [IPv6:2a00:1450:4010:c04::22d])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BD2D81A1E16
- for <linux-nvdimm@lists.01.org>; Mon, 25 Apr 2016 09:15:05 -0700 (PDT)
-Message-ID: <1461600377.8149.76.camel@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 99FC71A1F5F
+ for <linux-nvdimm@lists.01.org>; Sun, 24 Apr 2016 15:51:02 -0700 (PDT)
+Received: by mail-lb0-x22d.google.com with SMTP id ys16so69243878lbb.3
+ for <linux-nvdimm@lists.01.org>; Sun, 24 Apr 2016 15:51:02 -0700 (PDT)
+Date: Mon, 25 Apr 2016 01:50:57 +0300
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
 Subject: Re: [PATCH v4 1/2] thp, dax: add thp_get_unmapped_area for pmd
  mappings
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Mon, 25 Apr 2016 10:06:17 -0600
-In-Reply-To: <20160424225057.GA6670@node.shutemov.name>
+Message-ID: <20160424225057.GA6670@node.shutemov.name>
 References: <1461370883-7664-1-git-send-email-toshi.kani@hpe.com>
  <1461370883-7664-2-git-send-email-toshi.kani@hpe.com>
- <20160424225057.GA6670@node.shutemov.name>
-Mime-Version: 1.0
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1461370883-7664-2-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,92 +24,156 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kirill A. Shutemov" <kirill@shutemov.name>, Hugh Dickins <hughd@google.com>
+To: Toshi Kani <toshi.kani@hpe.com>, Hugh Dickins <hughd@google.com>
 Cc: tytso@mit.edu, jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, adilger.kernel@dilger.ca, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE2LTA0LTI1IGF0IDAxOjUwICswMzAwLCBLaXJpbGwgQS4gU2h1dGVtb3Ygd3Jv
-dGU6Cj4gT24gRnJpLCBBcHIgMjIsIDIwMTYgYXQgMDY6MjE6MjJQTSAtMDYwMCwgVG9zaGkgS2Fu
-aSB3cm90ZToKPiA+IArCoDoKPiA+ICt1bnNpZ25lZCBsb25nIF9fdGhwX2dldF91bm1hcHBlZF9h
-cmVhKHN0cnVjdCBmaWxlICpmaWxwLCB1bnNpZ25lZCBsb25nCj4gPiBsZW4sCj4gPiArCQlsb2Zm
-X3Qgb2ZmLCB1bnNpZ25lZCBsb25nIGZsYWdzLCB1bnNpZ25lZCBsb25nIHNpemUpCj4gPiArewo+
-ID4gKwl1bnNpZ25lZCBsb25nIGFkZHI7Cj4gPiArCWxvZmZfdCBvZmZfZW5kID0gb2ZmICsgbGVu
-Owo+ID4gKwlsb2ZmX3Qgb2ZmX2FsaWduID0gcm91bmRfdXAob2ZmLCBzaXplKTsKPiA+ICsJdW5z
-aWduZWQgbG9uZyBsZW5fcGFkOwo+ID4gKwo+ID4gKwlpZiAob2ZmX2VuZCA8PSBvZmZfYWxpZ24g
-fHwgKG9mZl9lbmQgLSBvZmZfYWxpZ24pIDwgc2l6ZSkKPiA+ICsJCXJldHVybiAwOwo+ID4gKwo+
-ID4gKwlsZW5fcGFkID0gbGVuICsgc2l6ZTsKPiA+ICsJaWYgKGxlbl9wYWQgPCBsZW4gfHwgKG9m
-ZiArIGxlbl9wYWQpIDwgb2ZmKQo+ID4gKwkJcmV0dXJuIDA7Cj4gPiArCj4gPiArCWFkZHIgPSBj
-dXJyZW50LT5tbS0+Z2V0X3VubWFwcGVkX2FyZWEoZmlscCwgMCwgbGVuX3BhZCwKPiA+ICsJCQkJ
-CcKgwqDCoMKgwqDCoG9mZiA+PiBQQUdFX1NISUZULAo+ID4gZmxhZ3MpOwo+ID4gKwlpZiAoSVNf
-RVJSX1ZBTFVFKGFkZHIpKQo+ID4gKwkJcmV0dXJuIDA7Cj4gPiArCj4gPiArCWFkZHIgKz0gKG9m
-ZiAtIGFkZHIpICYgKHNpemUgLSAxKTsKPiA+ICsJcmV0dXJuIGFkZHI7Cj4KPiBIdWdoIGhhcyBt
-b3JlIHNhbml0eSBjaGVja3MgYmVmb3JlIGFuZCBhZnRlciBjYWxsIHRvIGdldF91bm1hcHBlZF9h
-cmVhKCkuCj4gUGxlYXNlLCBjb25zaWRlciBib3Jyb3dpbmcgdGhlbS4KClRoaXMgZnVuY3Rpb24g
-b25seSBjaGVja3MgaWYgdGhlIHJlcXVlc3QgaXMgcXVhbGlmaWVkIGZvciBUSFAgbWFwcGluZ3Mu
-IEl0CnRyaWVzIG5vdCB0byBzdGVwIGludG8gdGhlIGltcGxlbWVudGF0aW9uIG9mIHRoZSBhbGxv
-Y2F0aW9uIGNvZGUgY3VycmVudC0KPm1tLT5nZXRfdW5tYXBwZWRfYXJlYSgpLCBzdWNoIGFzwqBh
-cmNoX2dldF91bm1hcHBlZF9hcmVhX3RvcGRvd24oKSBvbiB4ODYuCgpMZXQgbWUgd2FsayB0aHJ1
-IEh1Z2gncyBjaGVja3MgdG8gbWFrZSBzdXJlIEkgYW0gbm90IG1pc3Npbmcgc29tZXRoaW5nOgoK
-LS0tKEh1Z2gncyBjaGVja3MpLS0tCnwgKwlpZiAobGVuID4gVEFTS19TSVpFKQp8ICsJCXJldHVy
-biAtRU5PTUVNOwoKVGhpcyBjaGVjayBpcyBtYWRlIGJ5IGFyY2hfZ2V0X3VubWFwcGVkX2FyZWFf
-dG9wZG93bigpLgoKfCArCnwgKwlnZXRfYXJlYSA9IGN1cnJlbnQtPm1tLT5nZXRfdW5tYXBwZWRf
-YXJlYTsKfCArCWFkZHIgPSBnZXRfYXJlYShmaWxlLCB1YWRkciwgbGVuLCBwZ29mZiwgZmxhZ3Mp
-Owp8ICsKfCArCWlmICghSVNfRU5BQkxFRChDT05GSUdfVFJBTlNQQVJFTlRfSFVHRVBBR0UpKQp8
-ICsJCXJldHVybiBhZGRyOwoKdGhwX2dldF91bm1hcHBlZF9hcmVhKCkgaXMgZGVmaW5lZCB0byBO
-VUxMIGluIHRoaXMgY2FzZS4KCnwgKwlpZiAoSVNfRVJSX1ZBTFVFKGFkZHIpKQp8ICsJCXJldHVy
-biBhZGRyOwoKQ2hlY2tlZCBpbiBteSBwYXRjaC4KCnwgKwlpZiAoYWRkciAmIH5QQUdFX01BU0sp
-CnwgKwkJcmV0dXJuIGFkZHI7CgphcmNoX2dldF91bm1hcHBlZF9hcmVhX3RvcGRvd24oKSBhbGln
-bnMgJ2FkZHInIHVubGVzcyBNQVBfRklYRUQgaXMgc2V0LiBObwpuZWVkIHRvIGNoZWNrIGluIHRo
-aXMgZnVuYy4KCnwgKwlpZiAoYWRkciA+IFRBU0tfU0laRSAtIGxlbikKfCArCQlyZXR1cm4gYWRk
-cjsKClRoZSBhbGxvY2F0aW9uIGNvZGUgbmVlZHMgdG8gYXNzdXJlIHRoaXMgY2FzZS4KCnwgKwlp
-ZiAoc2htZW1faHVnZSA9PSBTSE1FTV9IVUdFX0RFTlkpCnwgKwkJcmV0dXJuIGFkZHI7CgpUaGlz
-IGNoZWNrIGlzIHNwZWNpZmljIHRvIEh1Z2gncyBwYXRjaC4KCnwgKwlpZiAobGVuIDwgSFBBR0Vf
-UE1EX1NJWkUpCnwgKwkJcmV0dXJuIGFkZHI7CgpDaGVja2VkIGluIG15IHBhdGNoLgoKfCArCWlm
-IChmbGFncyAmIE1BUF9GSVhFRCkKfCArCQlyZXR1cm4gYWRkcjsKCkNoZWNrZWQgYnkgYXJjaF9n
-ZXRfdW5tYXBwZWRfYXJlYV90b3Bkb3duKCkuCgp8ICsJLyoKfCArCcKgKiBPdXIgcHJpb3JpdHkg
-aXMgdG8gc3VwcG9ydCBNQVBfU0hBUkVEIG1hcHBlZCBodWdlbHk7CnwgKwnCoCogYW5kIHN1cHBv
-cnQgTUFQX1BSSVZBVEUgbWFwcGVkIGh1Z2VseSB0b28sIHVudGlsIGl0IGlzIENPV2VkLgp8ICsJ
-wqAqIEJ1dCBpZiBjYWxsZXIgc3BlY2lmaWVkIGFuIGFkZHJlc3MgaGludCwgcmVzcGVjdCB0aGF0
-IGFzCmJlZm9yZS4KfCArCcKgKi8KfCArCWlmICh1YWRkcikKfCArCQlyZXR1cm4gYWRkcjsKCkNo
-ZWNrZWQgaW4gbXkgcGF0Y2guCgooY3V0KQoKfCArCW9mZnNldCA9IChwZ29mZiA8PCBQQUdFX1NI
-SUZUKSAmIChIUEFHRV9QTURfU0laRS0xKTsKfCArCWlmIChvZmZzZXQgJiYgb2Zmc2V0ICsgbGVu
-IDwgMiAqIEhQQUdFX1BNRF9TSVpFKQp8ICsJCXJldHVybiBhZGRyOwoKQ2hlY2tlZCBpbiBteSBw
-YXRjaC4KCnwgKwlpZiAoKGFkZHIgJiAoSFBBR0VfUE1EX1NJWkUtMSkpID09IG9mZnNldCkKfCAr
-CQlyZXR1cm4gYWRkcjsKClRoaXMgaXMgYSBsdWNreSBjYXNlLCBpLmUuIHRoZSAxc3QgZ2V0X3Vu
-bWFwcGVkX2FyZWEoKSBjYWxsIHJldHVybmVkIGFuCmFsaWduZWQgYWRkci4gTm90IGFwcGxpY2Fi
-bGUgdG8gbXkgcGF0Y2guCgp8ICsKfCArCWluZmxhdGVkX2xlbiA9IGxlbiArIEhQQUdFX1BNRF9T
-SVpFIC0gUEFHRV9TSVpFOwp8ICsJaWYgKGluZmxhdGVkX2xlbiA+IFRBU0tfU0laRSkKfCArCQly
-ZXR1cm4gYWRkcjsKCkNoZWNrZWQgYnkgYXJjaF9nZXRfdW5tYXBwZWRfYXJlYV90b3Bkb3duKCku
-Cgp8ICsJaWYgKGluZmxhdGVkX2xlbiA8IGxlbikKfCArCQlyZXR1cm4gYWRkcjsKCkNoZWNrZWQg
-aW4gbXkgcGF0Y2guCgp8ICsJaW5mbGF0ZWRfYWRkciA9IGdldF9hcmVhKE5VTEwsIDAsIGluZmxh
-dGVkX2xlbiwgMCwgZmxhZ3MpOwoKTm90IHN1cmUgd2h5IHBhc3NpbmcgJ2ZpbHAnIGFuZCAnb2Zm
-JyBhcyBOVUxMIGhlcmUuCgp8ICsJaWYgKElTX0VSUl9WQUxVRShpbmZsYXRlZF9hZGRyKSkKfCAr
-CQlyZXR1cm4gYWRkcjsKCkNoZWNrZWQgaW4gbXkgcGF0Y2guCgp8ICsJaWYgKGluZmxhdGVkX2Fk
-ZHIgJiB+UEFHRV9NQVNLKQp8ICsJCXJldHVybiBhZGRyOwoKSG1tLi4uIGlmIHRoaXMgaGFwcGVu
-cywgaXQgaXMgYSBidWcgaW4gdGhlIGFsbG9jYXRpb24gY29kZS4gSSBkbyBub3QgdGhpbmsKdGhp
-cyBjaGVjayBpcyBuZWNlc3NhcnkuCgp8ICsJaW5mbGF0ZWRfb2Zmc2V0ID0gaW5mbGF0ZWRfYWRk
-ciAmIChIUEFHRV9QTURfU0laRS0xKTsKfCArCWluZmxhdGVkX2FkZHIgKz0gb2Zmc2V0IC0gaW5m
-bGF0ZWRfb2Zmc2V0Owp8ICsJaWYgKGluZmxhdGVkX29mZnNldCA+IG9mZnNldCkKfCArCQlpbmZs
-YXRlZF9hZGRyICs9IEhQQUdFX1BNRF9TSVpFOwp8ICsKfCArCWlmIChpbmZsYXRlZF9hZGRyID4g
-VEFTS19TSVpFIC0gbGVuKQp8ICsJCXJldHVybiBhZGRyOwoKVGhlIGFsbG9jYXRpb24gY29kZSBu
-ZWVkcyB0byBhc3N1cmUgdGhpcy4KCnwgKwlyZXR1cm4gaW5mbGF0ZWRfYWRkcjsKCj4gPiAKPiA+
-ICt9Cj4gPiArCj4gPiArdW5zaWduZWQgbG9uZyB0aHBfZ2V0X3VubWFwcGVkX2FyZWEoc3RydWN0
-IGZpbGUgKmZpbHAsIHVuc2lnbmVkIGxvbmcKPiA+IGFkZHIsCj4gPiArCQl1bnNpZ25lZCBsb25n
-IGxlbiwgdW5zaWduZWQgbG9uZyBwZ29mZiwgdW5zaWduZWQgbG9uZwo+ID4gZmxhZ3MpCj4gPiAr
-ewo+ID4gKwlsb2ZmX3Qgb2ZmID0gKGxvZmZfdClwZ29mZiA8PCBQQUdFX1NISUZUOwo+ID4gKwo+
-ID4gKwlpZiAoYWRkcikKPiA+ICsJCWdvdG8gb3V0Owo+Cj4gSSB0aGluayBpdCdzIHRvbyBzdHJv
-bmcgcmVhY3Rpb24gdG8gaGludCwgaXNuJ3QgaXQ/Cj4gV2UgZGVmaW5hdGVseSBuZWVkIHRoaXMg
-Zm9yIE1BUF9GSVhFRC4gQnV0IGluIGdlbmVyYWw/IE1heWJlLgoKSXQgY2FsbHMgYXJjaCdzIGdl
-dF91bm1hcHBlZF9hcmVhKCkgdG8gcHJvY2VlZCB3aXRoIHRoZSBvcmlnaW5hbCBhcmdzIHdoZW4K
-J2FkZHInIGlzIHBhc3NlZC4gVGhlIGFyY2gncyBnZXRfdW5tYXBwZWRfYXJlKCkgdGhlbiBoYW5k
-bGVzICdhZGRyJyBhcyBhCmhpbnQgd2hlbiBNQVBfRklYRUQgaXMgbm90IHNldC4gVGhpcyBjYW4g
-YmUgdXNlZCBhcyBhIGhpbnQgdG8gYXZvaWQgdXNpbmcKVEhQIG1hcHBpbmdzIGlmIGEgbm9uLWFs
-aWduZWQgYWRkcmVzcyBpcyBwYXNzZWQuIEh1Z2gncyBjb2RlIGhhbmRsZXMgaXQgaW4KdGhlIHNh
-bWUgd2F5IGFzIHdlbGwuCgpUaGFua3MsCi1Ub3NoaQpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52
-ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1udmRpbW0K
+On Fri, Apr 22, 2016 at 06:21:22PM -0600, Toshi Kani wrote:
+> When CONFIG_FS_DAX_PMD is set, DAX supports mmap() using pmd page
+> size.  This feature relies on both mmap virtual address and FS
+> block (i.e. physical address) to be aligned by the pmd page size.
+> Users can use mkfs options to specify FS to align block allocations.
+> However, aligning mmap address requires code changes to existing
+> applications for providing a pmd-aligned address to mmap().
+> 
+> For instance, fio with "ioengine=mmap" performs I/Os with mmap() [1].
+> It calls mmap() with a NULL address, which needs to be changed to
+> provide a pmd-aligned address for testing with DAX pmd mappings.
+> Changing all applications that call mmap() with NULL is undesirable.
+> 
+> Add thp_get_unmapped_area(), which can be called by filesystem's
+> get_unmapped_area to align an mmap address by the pmd size for
+> a DAX file.  It calls the default handler, mm->get_unmapped_area(),
+> to find a range and then aligns it for a DAX file.
+> 
+> thp_get_unmapped_area() can be extended for huge page cache support.
+> 
+> The patch is based on Matthew Wilcox's change that allows adding
+> support of the pud page size easily.
+
+See Hugh's implementation:
+
+http://lkml.kernel.org/r/alpine.LSU.2.11.1604051420110.5965@eggly.anvils
+
+> [1]: https://github.com/axboe/fio/blob/master/engines/mmap.c
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Matthew Wilcox <willy@linux.intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Cc: Dave Chinner <david@fromorbit.com>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Theodore Ts'o <tytso@mit.edu>
+> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+> Cc: Mike Kravetz <mike.kravetz@oracle.com>
+> ---
+>  include/linux/huge_mm.h |    7 +++++++
+>  mm/huge_memory.c        |   43 +++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 50 insertions(+)
+> 
+> diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+> index 7008623..3769674 100644
+> --- a/include/linux/huge_mm.h
+> +++ b/include/linux/huge_mm.h
+> @@ -85,6 +85,10 @@ extern bool is_vma_temporary_stack(struct vm_area_struct *vma);
+>  
+>  extern unsigned long transparent_hugepage_flags;
+>  
+> +extern unsigned long thp_get_unmapped_area(struct file *filp,
+> +		unsigned long addr, unsigned long len, unsigned long pgoff,
+> +		unsigned long flags);
+> +
+>  extern void prep_transhuge_page(struct page *page);
+>  extern void free_transhuge_page(struct page *page);
+>  
+> @@ -163,6 +167,9 @@ struct page *get_huge_zero_page(void);
+>  #define transparent_hugepage_enabled(__vma) 0
+>  
+>  #define transparent_hugepage_flags 0UL
+> +
+> +#define thp_get_unmapped_area	NULL
+> +
+>  static inline int
+>  split_huge_page_to_list(struct page *page, struct list_head *list)
+>  {
+> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+> index 86f9f8b..2181c7f 100644
+> --- a/mm/huge_memory.c
+> +++ b/mm/huge_memory.c
+> @@ -790,6 +790,49 @@ void prep_transhuge_page(struct page *page)
+>  	set_compound_page_dtor(page, TRANSHUGE_PAGE_DTOR);
+>  }
+>  
+> +unsigned long __thp_get_unmapped_area(struct file *filp, unsigned long len,
+> +		loff_t off, unsigned long flags, unsigned long size)
+> +{
+> +	unsigned long addr;
+> +	loff_t off_end = off + len;
+> +	loff_t off_align = round_up(off, size);
+> +	unsigned long len_pad;
+> +
+> +	if (off_end <= off_align || (off_end - off_align) < size)
+> +		return 0;
+> +
+> +	len_pad = len + size;
+> +	if (len_pad < len || (off + len_pad) < off)
+> +		return 0;
+> +
+> +	addr = current->mm->get_unmapped_area(filp, 0, len_pad,
+> +					      off >> PAGE_SHIFT, flags);
+> +	if (IS_ERR_VALUE(addr))
+> +		return 0;
+> +
+> +	addr += (off - addr) & (size - 1);
+> +	return addr;
+
+Hugh has more sanity checks before and after call to get_unmapped_area().
+Please, consider borrowing them.
+
+> +}
+> +
+> +unsigned long thp_get_unmapped_area(struct file *filp, unsigned long addr,
+> +		unsigned long len, unsigned long pgoff, unsigned long flags)
+> +{
+> +	loff_t off = (loff_t)pgoff << PAGE_SHIFT;
+> +
+> +	if (addr)
+> +		goto out;
+
+I think it's too strong reaction to hint, isn't it?
+We definately need this for MAP_FIXED. But in general? Maybe.
+
+> +	if (!IS_DAX(filp->f_mapping->host) || !IS_ENABLED(CONFIG_FS_DAX_PMD))
+> +		goto out;
+> +
+> +	addr = __thp_get_unmapped_area(filp, len, off, flags, PMD_SIZE);
+> +	if (addr)
+> +		return addr;
+> +
+> + out:
+> +	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(thp_get_unmapped_area);
+> +
+>  static int __do_huge_pmd_anonymous_page(struct mm_struct *mm,
+>  					struct vm_area_struct *vma,
+>  					unsigned long address, pmd_t *pmd,
+> 
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+-- 
+ Kirill A. Shutemov
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
