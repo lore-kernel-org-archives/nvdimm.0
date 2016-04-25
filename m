@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id BE5D11A21A2
- for <linux-nvdimm@lists.01.org>; Sat, 23 Apr 2016 12:14:09 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 7/7] dax: fix a comment in dax_zero_page_range and
- dax_truncate_page
-Date: Sat, 23 Apr 2016 13:13:42 -0600
-Message-Id: <1461438822-3592-8-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
-References: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTP id 0696E1A1F02
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Apr 2016 12:51:15 -0700 (PDT)
+Subject: [ndctl PATCH 7/7] ndctl: fix unchecked return value
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 25 Apr 2016 12:50:26 -0700
+Message-ID: <146161382607.21779.2208336715925326189.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146161378966.21779.1219526957524644729.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146161378966.21779.1219526957524644729.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,62 +16,35 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The distinction between PAGE_SIZE and PAGE_CACHE_SIZE was removed in
+Static analysis flags the sscanf() in get_system_kver() for return-value
+checking. Fall back to the system kernel headers version.
 
-09cbfea mm, fs: get rid of PAGE_CACHE_* and page_cache_{get,release}
-macros
-
-The comments for the above functions described a distinction between
-those, that is now redundant, so remove those paragraphs
-
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 12 ------------
- 1 file changed, 12 deletions(-)
+ test/core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index d8c974e..b8fa85a 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1221,12 +1221,6 @@ static bool dax_range_is_aligned(struct block_device *bdev,
-  * page in a DAX file.  This is intended for hole-punch operations.  If
-  * you are truncating a file, the helper function dax_truncate_page() may be
-  * more convenient.
-- *
-- * We work in terms of PAGE_SIZE here for commonality with
-- * block_truncate_page(), but we could go down to PAGE_SIZE if the filesystem
-- * took care of disposing of the unnecessary blocks.  Even if the filesystem
-- * block size is smaller than PAGE_SIZE, we have to zero the rest of the page
-- * since the file might be mmapped.
-  */
- int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
- 							get_block_t get_block)
-@@ -1279,12 +1273,6 @@ EXPORT_SYMBOL_GPL(dax_zero_page_range);
-  *
-  * Similar to block_truncate_page(), this function can be called by a
-  * filesystem when it is truncating a DAX file to handle the partial page.
-- *
-- * We work in terms of PAGE_SIZE here for commonality with
-- * block_truncate_page(), but we could go down to PAGE_SIZE if the filesystem
-- * took care of disposing of the unnecessary blocks.  Even if the filesystem
-- * block size is smaller than PAGE_SIZE, we have to zero the rest of the page
-- * since the file might be mmapped.
-  */
- int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
- {
--- 
-2.5.5
+diff --git a/test/core.c b/test/core.c
+index dba9c4c38ab1..b5703273fa76 100644
+--- a/test/core.c
++++ b/test/core.c
+@@ -19,7 +19,8 @@ static unsigned int get_system_kver(void)
+ 
+ 	uname(&utsname);
+ 
+-	sscanf(utsname.release, "%d.%d.%d", &a, &b, &c);
++	if (sscanf(utsname.release, "%d.%d.%d", &a, &b, &c) != 3)
++		return LINUX_VERSION_CODE;
+ 
+ 	return KERNEL_VERSION(a,b,c);
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
