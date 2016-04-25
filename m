@@ -1,98 +1,83 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v4 0/7] dax: handling media errors
-Date: Thu, 28 Apr 2016 15:16:51 -0600
-Message-Id: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew@wil.cx>, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from g4t3426.houston.hp.com (g4t3426.houston.hp.com [15.201.208.54])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 5370A1A1F20
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Apr 2016 14:43:47 -0700 (PDT)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v3 2/2] acpi/nfit: Add sysfs "id" for NVDIMM ID
+Date: Mon, 25 Apr 2016 15:34:59 -0600
+Message-Id: <1461620099-11933-3-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1461620099-11933-1-git-send-email-toshi.kani@hpe.com>
+References: <1461620099-11933-1-git-send-email-toshi.kani@hpe.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: rjw@rjwysocki.net, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, robert.moore@intel.com, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Until now, dax has been disabled if media errors were found on
-any device. This series attempts to address that.
+ACPI 6.1, section 5.2.25.9, defines an identifier for an NVDIMM.
 
-The first three patches from Dan re-enable dax even when media
-errors are present.
+Change the NFIT driver to add a new sysfs file "id" under nfit
+directory.
 
-The fourth patch from Matthew removes the zeroout path from dax
-entirely, making zeroout operations always go through the driver
-(The motivation is that if a backing device has media errors,
-and we create a sparse file on it, we don't want the initial
-zeroing to happen via dax, we want to give the block driver a
-chance to clear the errors).
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Robert Elliott <elliott@hpe.com>
+---
+ drivers/acpi/nfit.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-The fifth patch changes how DAX IO is re-routed as direct IO.
-We add a new iocb flag for DAX to distinguish it from actual
-direct IO, and if we're in O_DIRECT, use the regular direct_IO
-path instead of DAX. This gives us an opportunity to do recovery
-by doing O_DIRECT writes that will go through the driver to clear
-errors from bad sectors.
-
-Patch 6 reduces our calls to clear_pmem from dax in the
-truncate/hole-punch cases. We check if the range being truncated
-is sector aligned/sized, and if so, send blkdev_issue_zeroout
-instead of clear_pmem so that errors can be handled better by
-the driver.
-
-Patch 7 fixes a redundant comment in DAX and is mostly unrelated
-to the rest of this series.
-
-This series also depends on/is based on Jan Kara's DAX Locking
-fixes series [1].
-
-
-[1]: http://www.spinics.net/lists/linux-mm/msg105819.html
-
-v4:
- - Remove the dax->direct_IO fallbacks entirely. Instead, go through
-   the usual direct_IO path when we're in O_DIRECT, and use dax_IO
-   for other, non O_DIRECT IO. (Dan, Christoph)
-
-v3:
- - Wrapper-ize the direct_IO fallback again and make an exception
-   for -EIOCBQUEUED (Jeff, Dan)
- - Reduce clear_pmem usage in DAX to the minimum
-
-
-Dan Williams (3):
-  block, dax: pass blk_dax_ctl through to drivers
-  dax: fallback from pmd to pte on error
-  dax: enable dax in the presence of known media errors (badblocks)
-
-Matthew Wilcox (1):
-  dax: use sb_issue_zerout instead of calling dax_clear_sectors
-
-Vishal Verma (3):
-  fs: prioritize and separate direct_io from dax_io
-  dax: for truncate/hole-punch, do zeroing through the driver if
-    possible
-  dax: fix a comment in dax_zero_page_range and dax_truncate_page
-
- arch/powerpc/sysdev/axonram.c | 10 +++---
- block/ioctl.c                 |  9 -----
- drivers/block/brd.c           |  9 ++---
- drivers/block/loop.c          |  2 +-
- drivers/nvdimm/pmem.c         | 17 +++++++---
- drivers/s390/block/dcssblk.c  | 12 +++----
- fs/block_dev.c                | 19 ++++++++---
- fs/dax.c                      | 78 +++++++++++++++----------------------------
- fs/ext2/inode.c               | 23 ++++++++-----
- fs/ext4/file.c                |  2 +-
- fs/ext4/inode.c               | 19 +++++++----
- fs/xfs/xfs_aops.c             | 20 +++++++----
- fs/xfs/xfs_bmap_util.c        | 15 +++------
- fs/xfs/xfs_file.c             |  4 +--
- include/linux/blkdev.h        |  3 +-
- include/linux/dax.h           |  1 -
- include/linux/fs.h            | 15 +++++++--
- mm/filemap.c                  |  4 +--
- 18 files changed, 134 insertions(+), 128 deletions(-)
-
--- 
-2.5.5
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 5dc243c..5a7199d 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -870,6 +870,24 @@ static ssize_t flags_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(flags);
+ 
++static ssize_t id_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
++
++	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
++		return sprintf(buf, "%04x-%02x-%04x-%08x\n",
++				be16_to_cpu(dcr->vendor_id),
++				dcr->manufacturing_location,
++				be16_to_cpu(dcr->manufacturing_date),
++				be32_to_cpu(dcr->serial_number));
++	else
++		return sprintf(buf, "%04x-%08x\n",
++				be16_to_cpu(dcr->vendor_id),
++				be32_to_cpu(dcr->serial_number));
++}
++static DEVICE_ATTR_RO(id);
++
+ static struct attribute *acpi_nfit_dimm_attributes[] = {
+ 	&dev_attr_handle.attr,
+ 	&dev_attr_phys_id.attr,
+@@ -879,6 +897,7 @@ static struct attribute *acpi_nfit_dimm_attributes[] = {
+ 	&dev_attr_serial.attr,
+ 	&dev_attr_rev_id.attr,
+ 	&dev_attr_flags.attr,
++	&dev_attr_id.attr,
+ 	NULL,
+ };
+ 
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
