@@ -1,12 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 7E6C41A1E0C
- for <linux-nvdimm@lists.01.org>; Sat,  9 Apr 2016 12:40:21 -0700 (PDT)
-Subject: [ndctl PATCH 0/4] read-labels, destroy-namespace, and misc updates
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 09 Apr 2016 12:39:30 -0700
-Message-ID: <20160409193930.2002.71855.stgit@dwillia2-desk3.jf.intel.com>
-MIME-Version: 1.0
+Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id BD2D81A1E16
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Apr 2016 09:15:05 -0700 (PDT)
+Message-ID: <1461600377.8149.76.camel@hpe.com>
+Subject: Re: [PATCH v4 1/2] thp, dax: add thp_get_unmapped_area for pmd
+ mappings
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Mon, 25 Apr 2016 10:06:17 -0600
+In-Reply-To: <20160424225057.GA6670@node.shutemov.name>
+References: <1461370883-7664-1-git-send-email-toshi.kani@hpe.com>
+ <1461370883-7664-2-git-send-email-toshi.kani@hpe.com>
+ <20160424225057.GA6670@node.shutemov.name>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,57 +21,92 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Kirill A. Shutemov" <kirill@shutemov.name>, Hugh Dickins <hughd@google.com>
+Cc: tytso@mit.edu, jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, adilger.kernel@dilger.ca, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-For debug it is useful to be able to dump a DIMM's label area, this
-includes a json dump option in addition to a raw binary format.
-
-For completeness with create-namespace, add a destroy-namespace
-facility.  This simply refactors the namespace teardown that occurs
-during reconfiguration into its own utility.
-
-Finally, a few cleanups and fixups for compiling against older ndctl.h
-headers.
-
----
-
-Dan Williams (4):
-      ndctl: fix compile in the HAVE_NDCTL_{ARS|CLEAR_ERROR}=n cases
-      ndctl: use filter utility routines zero-labels
-      ndctl: new 'read-labels' utility
-      ndctl: new 'destroy-namespace' utility
-
-
- Documentation/Makefile.am                 |    6 
- Documentation/labels-description.txt      |    6 
- Documentation/labels-options.txt          |   13 +
- Documentation/ndctl-destroy-namespace.txt |   27 ++
- Documentation/ndctl-read-labels.txt       |   30 ++
- Documentation/ndctl-zero-labels.txt       |   23 --
- Makefile.am                               |    1 
- builtin-list.c                            |   21 -
- builtin-read-labels.c                     |  420 +++++++++++++++++++++++++++++
- builtin-xaction-namespace.c               |   61 ++++
- builtin-zero-labels.c                     |   27 --
- builtin.h                                 |    2 
- lib/libndctl-ars.c                        |   18 +
- lib/libndctl.c                            |   10 +
- ndctl.c                                   |    4 
- test/libndctl.c                           |   55 +---
- util/json.c                               |   15 +
- util/json.h                               |    3 
- 18 files changed, 638 insertions(+), 104 deletions(-)
- create mode 100644 Documentation/labels-description.txt
- create mode 100644 Documentation/labels-options.txt
- create mode 100644 Documentation/ndctl-destroy-namespace.txt
- create mode 100644 Documentation/ndctl-read-labels.txt
- create mode 100644 builtin-read-labels.c
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCAyMDE2LTA0LTI1IGF0IDAxOjUwICswMzAwLCBLaXJpbGwgQS4gU2h1dGVtb3Ygd3Jv
+dGU6Cj4gT24gRnJpLCBBcHIgMjIsIDIwMTYgYXQgMDY6MjE6MjJQTSAtMDYwMCwgVG9zaGkgS2Fu
+aSB3cm90ZToKPiA+IArCoDoKPiA+ICt1bnNpZ25lZCBsb25nIF9fdGhwX2dldF91bm1hcHBlZF9h
+cmVhKHN0cnVjdCBmaWxlICpmaWxwLCB1bnNpZ25lZCBsb25nCj4gPiBsZW4sCj4gPiArCQlsb2Zm
+X3Qgb2ZmLCB1bnNpZ25lZCBsb25nIGZsYWdzLCB1bnNpZ25lZCBsb25nIHNpemUpCj4gPiArewo+
+ID4gKwl1bnNpZ25lZCBsb25nIGFkZHI7Cj4gPiArCWxvZmZfdCBvZmZfZW5kID0gb2ZmICsgbGVu
+Owo+ID4gKwlsb2ZmX3Qgb2ZmX2FsaWduID0gcm91bmRfdXAob2ZmLCBzaXplKTsKPiA+ICsJdW5z
+aWduZWQgbG9uZyBsZW5fcGFkOwo+ID4gKwo+ID4gKwlpZiAob2ZmX2VuZCA8PSBvZmZfYWxpZ24g
+fHwgKG9mZl9lbmQgLSBvZmZfYWxpZ24pIDwgc2l6ZSkKPiA+ICsJCXJldHVybiAwOwo+ID4gKwo+
+ID4gKwlsZW5fcGFkID0gbGVuICsgc2l6ZTsKPiA+ICsJaWYgKGxlbl9wYWQgPCBsZW4gfHwgKG9m
+ZiArIGxlbl9wYWQpIDwgb2ZmKQo+ID4gKwkJcmV0dXJuIDA7Cj4gPiArCj4gPiArCWFkZHIgPSBj
+dXJyZW50LT5tbS0+Z2V0X3VubWFwcGVkX2FyZWEoZmlscCwgMCwgbGVuX3BhZCwKPiA+ICsJCQkJ
+CcKgwqDCoMKgwqDCoG9mZiA+PiBQQUdFX1NISUZULAo+ID4gZmxhZ3MpOwo+ID4gKwlpZiAoSVNf
+RVJSX1ZBTFVFKGFkZHIpKQo+ID4gKwkJcmV0dXJuIDA7Cj4gPiArCj4gPiArCWFkZHIgKz0gKG9m
+ZiAtIGFkZHIpICYgKHNpemUgLSAxKTsKPiA+ICsJcmV0dXJuIGFkZHI7Cj4KPiBIdWdoIGhhcyBt
+b3JlIHNhbml0eSBjaGVja3MgYmVmb3JlIGFuZCBhZnRlciBjYWxsIHRvIGdldF91bm1hcHBlZF9h
+cmVhKCkuCj4gUGxlYXNlLCBjb25zaWRlciBib3Jyb3dpbmcgdGhlbS4KClRoaXMgZnVuY3Rpb24g
+b25seSBjaGVja3MgaWYgdGhlIHJlcXVlc3QgaXMgcXVhbGlmaWVkIGZvciBUSFAgbWFwcGluZ3Mu
+IEl0CnRyaWVzIG5vdCB0byBzdGVwIGludG8gdGhlIGltcGxlbWVudGF0aW9uIG9mIHRoZSBhbGxv
+Y2F0aW9uIGNvZGUgY3VycmVudC0KPm1tLT5nZXRfdW5tYXBwZWRfYXJlYSgpLCBzdWNoIGFzwqBh
+cmNoX2dldF91bm1hcHBlZF9hcmVhX3RvcGRvd24oKSBvbiB4ODYuCgpMZXQgbWUgd2FsayB0aHJ1
+IEh1Z2gncyBjaGVja3MgdG8gbWFrZSBzdXJlIEkgYW0gbm90IG1pc3Npbmcgc29tZXRoaW5nOgoK
+LS0tKEh1Z2gncyBjaGVja3MpLS0tCnwgKwlpZiAobGVuID4gVEFTS19TSVpFKQp8ICsJCXJldHVy
+biAtRU5PTUVNOwoKVGhpcyBjaGVjayBpcyBtYWRlIGJ5IGFyY2hfZ2V0X3VubWFwcGVkX2FyZWFf
+dG9wZG93bigpLgoKfCArCnwgKwlnZXRfYXJlYSA9IGN1cnJlbnQtPm1tLT5nZXRfdW5tYXBwZWRf
+YXJlYTsKfCArCWFkZHIgPSBnZXRfYXJlYShmaWxlLCB1YWRkciwgbGVuLCBwZ29mZiwgZmxhZ3Mp
+Owp8ICsKfCArCWlmICghSVNfRU5BQkxFRChDT05GSUdfVFJBTlNQQVJFTlRfSFVHRVBBR0UpKQp8
+ICsJCXJldHVybiBhZGRyOwoKdGhwX2dldF91bm1hcHBlZF9hcmVhKCkgaXMgZGVmaW5lZCB0byBO
+VUxMIGluIHRoaXMgY2FzZS4KCnwgKwlpZiAoSVNfRVJSX1ZBTFVFKGFkZHIpKQp8ICsJCXJldHVy
+biBhZGRyOwoKQ2hlY2tlZCBpbiBteSBwYXRjaC4KCnwgKwlpZiAoYWRkciAmIH5QQUdFX01BU0sp
+CnwgKwkJcmV0dXJuIGFkZHI7CgphcmNoX2dldF91bm1hcHBlZF9hcmVhX3RvcGRvd24oKSBhbGln
+bnMgJ2FkZHInIHVubGVzcyBNQVBfRklYRUQgaXMgc2V0LiBObwpuZWVkIHRvIGNoZWNrIGluIHRo
+aXMgZnVuYy4KCnwgKwlpZiAoYWRkciA+IFRBU0tfU0laRSAtIGxlbikKfCArCQlyZXR1cm4gYWRk
+cjsKClRoZSBhbGxvY2F0aW9uIGNvZGUgbmVlZHMgdG8gYXNzdXJlIHRoaXMgY2FzZS4KCnwgKwlp
+ZiAoc2htZW1faHVnZSA9PSBTSE1FTV9IVUdFX0RFTlkpCnwgKwkJcmV0dXJuIGFkZHI7CgpUaGlz
+IGNoZWNrIGlzIHNwZWNpZmljIHRvIEh1Z2gncyBwYXRjaC4KCnwgKwlpZiAobGVuIDwgSFBBR0Vf
+UE1EX1NJWkUpCnwgKwkJcmV0dXJuIGFkZHI7CgpDaGVja2VkIGluIG15IHBhdGNoLgoKfCArCWlm
+IChmbGFncyAmIE1BUF9GSVhFRCkKfCArCQlyZXR1cm4gYWRkcjsKCkNoZWNrZWQgYnkgYXJjaF9n
+ZXRfdW5tYXBwZWRfYXJlYV90b3Bkb3duKCkuCgp8ICsJLyoKfCArCcKgKiBPdXIgcHJpb3JpdHkg
+aXMgdG8gc3VwcG9ydCBNQVBfU0hBUkVEIG1hcHBlZCBodWdlbHk7CnwgKwnCoCogYW5kIHN1cHBv
+cnQgTUFQX1BSSVZBVEUgbWFwcGVkIGh1Z2VseSB0b28sIHVudGlsIGl0IGlzIENPV2VkLgp8ICsJ
+wqAqIEJ1dCBpZiBjYWxsZXIgc3BlY2lmaWVkIGFuIGFkZHJlc3MgaGludCwgcmVzcGVjdCB0aGF0
+IGFzCmJlZm9yZS4KfCArCcKgKi8KfCArCWlmICh1YWRkcikKfCArCQlyZXR1cm4gYWRkcjsKCkNo
+ZWNrZWQgaW4gbXkgcGF0Y2guCgooY3V0KQoKfCArCW9mZnNldCA9IChwZ29mZiA8PCBQQUdFX1NI
+SUZUKSAmIChIUEFHRV9QTURfU0laRS0xKTsKfCArCWlmIChvZmZzZXQgJiYgb2Zmc2V0ICsgbGVu
+IDwgMiAqIEhQQUdFX1BNRF9TSVpFKQp8ICsJCXJldHVybiBhZGRyOwoKQ2hlY2tlZCBpbiBteSBw
+YXRjaC4KCnwgKwlpZiAoKGFkZHIgJiAoSFBBR0VfUE1EX1NJWkUtMSkpID09IG9mZnNldCkKfCAr
+CQlyZXR1cm4gYWRkcjsKClRoaXMgaXMgYSBsdWNreSBjYXNlLCBpLmUuIHRoZSAxc3QgZ2V0X3Vu
+bWFwcGVkX2FyZWEoKSBjYWxsIHJldHVybmVkIGFuCmFsaWduZWQgYWRkci4gTm90IGFwcGxpY2Fi
+bGUgdG8gbXkgcGF0Y2guCgp8ICsKfCArCWluZmxhdGVkX2xlbiA9IGxlbiArIEhQQUdFX1BNRF9T
+SVpFIC0gUEFHRV9TSVpFOwp8ICsJaWYgKGluZmxhdGVkX2xlbiA+IFRBU0tfU0laRSkKfCArCQly
+ZXR1cm4gYWRkcjsKCkNoZWNrZWQgYnkgYXJjaF9nZXRfdW5tYXBwZWRfYXJlYV90b3Bkb3duKCku
+Cgp8ICsJaWYgKGluZmxhdGVkX2xlbiA8IGxlbikKfCArCQlyZXR1cm4gYWRkcjsKCkNoZWNrZWQg
+aW4gbXkgcGF0Y2guCgp8ICsJaW5mbGF0ZWRfYWRkciA9IGdldF9hcmVhKE5VTEwsIDAsIGluZmxh
+dGVkX2xlbiwgMCwgZmxhZ3MpOwoKTm90IHN1cmUgd2h5IHBhc3NpbmcgJ2ZpbHAnIGFuZCAnb2Zm
+JyBhcyBOVUxMIGhlcmUuCgp8ICsJaWYgKElTX0VSUl9WQUxVRShpbmZsYXRlZF9hZGRyKSkKfCAr
+CQlyZXR1cm4gYWRkcjsKCkNoZWNrZWQgaW4gbXkgcGF0Y2guCgp8ICsJaWYgKGluZmxhdGVkX2Fk
+ZHIgJiB+UEFHRV9NQVNLKQp8ICsJCXJldHVybiBhZGRyOwoKSG1tLi4uIGlmIHRoaXMgaGFwcGVu
+cywgaXQgaXMgYSBidWcgaW4gdGhlIGFsbG9jYXRpb24gY29kZS4gSSBkbyBub3QgdGhpbmsKdGhp
+cyBjaGVjayBpcyBuZWNlc3NhcnkuCgp8ICsJaW5mbGF0ZWRfb2Zmc2V0ID0gaW5mbGF0ZWRfYWRk
+ciAmIChIUEFHRV9QTURfU0laRS0xKTsKfCArCWluZmxhdGVkX2FkZHIgKz0gb2Zmc2V0IC0gaW5m
+bGF0ZWRfb2Zmc2V0Owp8ICsJaWYgKGluZmxhdGVkX29mZnNldCA+IG9mZnNldCkKfCArCQlpbmZs
+YXRlZF9hZGRyICs9IEhQQUdFX1BNRF9TSVpFOwp8ICsKfCArCWlmIChpbmZsYXRlZF9hZGRyID4g
+VEFTS19TSVpFIC0gbGVuKQp8ICsJCXJldHVybiBhZGRyOwoKVGhlIGFsbG9jYXRpb24gY29kZSBu
+ZWVkcyB0byBhc3N1cmUgdGhpcy4KCnwgKwlyZXR1cm4gaW5mbGF0ZWRfYWRkcjsKCj4gPiAKPiA+
+ICt9Cj4gPiArCj4gPiArdW5zaWduZWQgbG9uZyB0aHBfZ2V0X3VubWFwcGVkX2FyZWEoc3RydWN0
+IGZpbGUgKmZpbHAsIHVuc2lnbmVkIGxvbmcKPiA+IGFkZHIsCj4gPiArCQl1bnNpZ25lZCBsb25n
+IGxlbiwgdW5zaWduZWQgbG9uZyBwZ29mZiwgdW5zaWduZWQgbG9uZwo+ID4gZmxhZ3MpCj4gPiAr
+ewo+ID4gKwlsb2ZmX3Qgb2ZmID0gKGxvZmZfdClwZ29mZiA8PCBQQUdFX1NISUZUOwo+ID4gKwo+
+ID4gKwlpZiAoYWRkcikKPiA+ICsJCWdvdG8gb3V0Owo+Cj4gSSB0aGluayBpdCdzIHRvbyBzdHJv
+bmcgcmVhY3Rpb24gdG8gaGludCwgaXNuJ3QgaXQ/Cj4gV2UgZGVmaW5hdGVseSBuZWVkIHRoaXMg
+Zm9yIE1BUF9GSVhFRC4gQnV0IGluIGdlbmVyYWw/IE1heWJlLgoKSXQgY2FsbHMgYXJjaCdzIGdl
+dF91bm1hcHBlZF9hcmVhKCkgdG8gcHJvY2VlZCB3aXRoIHRoZSBvcmlnaW5hbCBhcmdzIHdoZW4K
+J2FkZHInIGlzIHBhc3NlZC4gVGhlIGFyY2gncyBnZXRfdW5tYXBwZWRfYXJlKCkgdGhlbiBoYW5k
+bGVzICdhZGRyJyBhcyBhCmhpbnQgd2hlbiBNQVBfRklYRUQgaXMgbm90IHNldC4gVGhpcyBjYW4g
+YmUgdXNlZCBhcyBhIGhpbnQgdG8gYXZvaWQgdXNpbmcKVEhQIG1hcHBpbmdzIGlmIGEgbm9uLWFs
+aWduZWQgYWRkcmVzcyBpcyBwYXNzZWQuIEh1Z2gncyBjb2RlIGhhbmRsZXMgaXQgaW4KdGhlIHNh
+bWUgd2F5IGFzIHdlbGwuCgpUaGFua3MsCi1Ub3NoaQpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52
+ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+aW51eC1udmRpbW0K
