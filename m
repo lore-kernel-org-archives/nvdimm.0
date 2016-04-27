@@ -1,71 +1,88 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 867B21A1F40
- for <linux-nvdimm@lists.01.org>; Thu,  7 Apr 2016 09:40:33 -0700 (PDT)
-Message-ID: <1460047286.6620.26.camel@linux.intel.com>
-Subject: Re: [PATCH v1 06/10] device property: switch to use UUID API
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Date: Thu, 07 Apr 2016 19:41:26 +0300
-In-Reply-To: <1456495897.13244.144.camel@linux.intel.com>
-References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
- <7544228.v4QPX4F7J7@vostro.rjw.lan>
- <1456495897.13244.144.camel@linux.intel.com>
-Mime-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Huang Ying <ying.huang@intel.com>
-Cc: linux-efi@vger.kernel.org, David Airlie <airlied@linux.ie>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, dri-devel@lists.freedesktop.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Mathias Nyman <mathias.nyman@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Return-Path: <owner-linux-mm@kvack.org>
+From: NeilBrown <nfbrown@novell.com>
+Date: Wed, 27 Apr 2016 14:27:59 +1000
+Subject: Re: [PATCH 16/18] dax: New fault locking
+In-Reply-To: <1461015341-20153-17-git-send-email-jack@suse.cz>
+References: <1461015341-20153-1-git-send-email-jack@suse.cz> <1461015341-20153-17-git-send-email-jack@suse.cz>
+Message-ID: <87h9enwu9c.fsf@notabene.neil.brown.name>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha256; protocol="application/pgp-signature"
+Sender: owner-linux-mm@kvack.org
+To: Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org
+Cc: linux-ext4@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE2LTAyLTI2IGF0IDE2OjExICswMjAwLCBBbmR5IFNoZXZjaGVua28gd3JvdGU6
-Cj4gT24gVGh1LCAyMDE2LTAyLTE4IGF0IDAxOjAzICswMTAwLCBSYWZhZWwgSi4gV3lzb2NraSB3
-cm90ZToKPiA+IAo+ID4gT24gV2VkbmVzZGF5LCBGZWJydWFyeSAxNywgMjAxNiAwMjoxNzoyNCBQ
-TSBBbmR5IFNoZXZjaGVua28gd3JvdGU6Cj4gPiA+IAo+ID4gPiBTd2l0Y2ggdG8gdXNlIGEgZ2Vu
-ZXJpYyBVVUlEIEFQSSBpbnN0ZWFkIG9mIGN1c3RvbSBhcHByb2FjaC4gSXQKPiA+ID4gYWxsb3dz
-IHRvCj4gPiA+IGRlZmluZSBVVUlEcywgY29tcGFyZSB0aGVtLCBhbmQgdmFsaWRhdGUuCj4gW10K
-PiAKClN1bW1vbiBpbml0aWFsIGF1dGhvciBvZiB0aGUgVVVJRCBsaWJyYXJ5LgoKU3VtbWFyeTog
-dGhlIEFQSSBvZiBjb21wYXJpc29uIGZ1bmN0aW9ucyBpcyByYXRoZXIgc3RyYW5nZS4gV2hhdCB0
-aGUKcG9pbnQgdG8gbm90IHRha2UgcG9pbnRlcnMgZGlyZWN0bHk/IChNb3Jlb3ZlciBJIGhvcGUg
-Y29tcGlsZXIgdG9vCmNsZXZlciBub3QgdG8gbWFrZSBhIGNvcHkgb2YgY29uc3RhbnQgYXJndW1l
-bnRzIHRoZXJlKQoKSSBjb3VsZCBvbmx5IGltYWdpbmUgdGhlIGNhc2UgeW91IGFyZSB0cnlpbmcg
-dG8gYXZvaWQgdGVtcG9yYXJ5CnZhcmlhYmxlcyBmb3IgY29uc3RhbnRzIGxpa2UgTlVMTF9VVUlE
-LgoKSXNzdWUgd2l0aCB0aGlzIGlzIHRoZSB1Z2xpbmVzcyBpbiB0aGUgdXNlcnMgb2YgdGhhdCwg
-aW4gcGFydGljdWxhcmx5CnByZXNlbnQgaW4gQUNQSSAoZHJpdmVycy9hY3BpL2FwZWkvZ2hlcy5j
-KS4KCkkgd291bGQgbGlrZSB0byBoYXZlIG1vcmUgY2xlYXIgaW50ZXJmYWNlIGZvciB0aGF0LiBQ
-ZXJoYXBzIHdlIG1heSBhZGQKc29tZXRoaW5nIGxpa2UKCmNtcF9wKHBvaW50ZXIsIG5vbi1wb2lu
-dGVyKTsKY21wX3BwKHBvaW50ZXIsIHBvaW50ZXIpOwoKdG8gbm90IGJyZWFrIGV4aXN0aW5nIEFQ
-SSBmb3Igbm93LgoKSXQgd291bGQgYmUgdXNlZnVsIGZvciBtYW55IGNhc2VzIGluIHRoZSBrZXJu
-ZWwuCgo+ID4gCj4gPiA+IAo+ID4gPiArc3RhdGljIGNvbnN0IHV1aWRfbGUgYWRzX3V1aWQgPQo+
-ID4gPiArCVVVSURfTEUoMHhkYmI4ZTNlNiwgMHg1ODg2LCAweDRiYTYsCj4gPiA+ICsJCTB4ODcs
-IDB4OTUsIDB4MTMsIDB4MTksIDB4ZjUsIDB4MmEsIDB4OTYsIDB4NmIpOwo+ID4gPiDCoAo+ID4g
-PiDCoHN0YXRpYyBib29sIGFjcGlfZW51bWVyYXRlX25vbmRldl9zdWJub2RlcyhhY3BpX2hhbmRs
-ZSBzY29wZSwKPiA+ID4gwqAJCQkJCcKgwqDCoGNvbnN0IHVuaW9uCj4gPiA+IGFjcGlfb2JqZWN0
-Cj4gPiA+ICpkZXNjLAo+ID4gPiBAQCAtMTM4LDcgKzEzNiw3IEBAIHN0YXRpYyBib29sCj4gPiA+
-IGFjcGlfZW51bWVyYXRlX25vbmRldl9zdWJub2RlcyhhY3BpX2hhbmRsZSBzY29wZSwKPiA+ID4g
-wqAJCcKgwqDCoMKgfHwgbGlua3MtPnR5cGUgIT0gQUNQSV9UWVBFX1BBQ0tBR0UpCj4gPiA+IMKg
-CQkJYnJlYWs7Cj4gPiA+IMKgCj4gPiA+IC0JCWlmIChtZW1jbXAodXVpZC0+YnVmZmVyLnBvaW50
-ZXIsIGFkc191dWlkLAo+ID4gPiBzaXplb2YoYWRzX3V1aWQpKSkKPiA+ID4gKwkJaWYgKHV1aWRf
-bGVfY21wKCoodXVpZF9sZSAqKXV1aWQtPmJ1ZmZlci5wb2ludGVyLAo+ID4gPiBhZHNfdXVpZCkp
-Cj4gPiBNYXliZSBpdCdzIHRvbyBsYXRlLCBidXQgSSBkb24ndCBxdWl0ZSB1bmRlcnN0YW5kIHRo
-ZSBwb2ludGVyCj4gPiBtYW5pcHVsYXRpb25zIGhlcmUuCj4gPiAKPiA+IEkgY2FuIHNlZSB3aHkg
-eW91IG5lZWQgYSB0eXBlIGNvbnZlcnNpb24gKGFsdGhvdWdoIGl0IGxvb2tzIHVnbHkpLAo+ID4g
-YnV0IHdoeSBkbyB5b3UKPiA+IG5lZWQgdG8gZGVyZWZlcmVuY2UgaXQgdG9vPwo+IFRoZSBmdW5j
-dGlvbiB0YWtlcyB0aGF0IGtpbmQgb2YgdHlwZSBvbiBpbnB1dC4gVGhlIG90aGVyIHZhcmlhbnRz
-IGFyZQo+IG5vdCBjb21waWxlZC4KPiBQZXJoYXBzIHdlIGJldHRlciBjaGFuZ2UgdXVpZF97bGJ9
-ZV9jbXAoKSBmaXJzdCB0byB0YWtlIG5vcm1hbAo+IHBvaW50ZXJzLCB0aG91Z2ggSSB0aGluayB0
-aGUgaW5pdGlhbCBpZGVhIHdhcyB0byBnZXQgdHlwZSBjaGVja2luZyBhdAo+IGNvbXBpbGUgdGlt
-ZS4KPiAKCi0tIApBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVs
-LmNvbT4KSW50ZWwgRmlubGFuZCBPeQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
-dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
-aW1tCg==
+--=-=-=
+Content-Type: text/plain
+
+On Tue, Apr 19 2016, Jan Kara wrote:
+
+> Currently DAX page fault locking is racy.
+>
+> CPU0 (write fault)		CPU1 (read fault)
+>
+> __dax_fault()			__dax_fault()
+>   get_block(inode, block, &bh, 0) -> not mapped
+> 				  get_block(inode, block, &bh, 0)
+> 				    -> not mapped
+>   if (!buffer_mapped(&bh))
+>     if (vmf->flags & FAULT_FLAG_WRITE)
+>       get_block(inode, block, &bh, 1) -> allocates blocks
+>   if (page) -> no
+> 				  if (!buffer_mapped(&bh))
+> 				    if (vmf->flags & FAULT_FLAG_WRITE) {
+> 				    } else {
+> 				      dax_load_hole();
+> 				    }
+>   dax_insert_mapping()
+>
+> And we are in a situation where we fail in dax_radix_entry() with -EIO.
+>
+> Another problem with the current DAX page fault locking is that there is
+> no race-free way to clear dirty tag in the radix tree. We can always
+> end up with clean radix tree and dirty data in CPU cache.
+>
+> We fix the first problem by introducing locking of exceptional radix
+> tree entries in DAX mappings acting very similarly to page lock and thus
+> synchronizing properly faults against the same mapping index. The same
+> lock can later be used to avoid races when clearing radix tree dirty
+> tag.
+>
+> Signed-off-by: Jan Kara <jack@suse.cz>
+
+Reviewed-by: NeilBrown <neilb@suse.com> (for the exception locking bits)
+
+I really like how you have structured the code - makes it fairly
+obviously correct!
+
+Thanks,
+NeilBrown
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXID/PAAoJEDnsnt1WYoG5/wIQAKFDb1mOFeI0Ln2z9haVCtBT
+D2BwkEbPGydmbOYBKh6EK8BC01xb9RIfT5qiVDhqOtjpex3w7VitcxhaxbI93xpj
+RROhwEZI2fKmp88Kd9kpScQRC7mbASyKT0NpVCKHSahkXAektcMcJWB+6cTFUWue
+7jBuNIHz5yt5hrFnZcuIOzn5BJ0Gh8rfJBL7Ozxnz2hoXhTbK7V0sBheNQD/GmBl
+v3t97PLs9PUL0w82TtojZ49hW7TfUBMzKK6+w8TGxxgl+fuNqmSrG/3kjyWmuy9X
+VYwK3nvi3OTjVB6QkBGFCa5gairCQuwkBM8ERPoJvVRxCMhkDdznYwaFBg/n6gIi
+j1vVnOfMLgMGw0R8SIwVZPvOIyrNkZ0kNz8Rs0v56y5lgcfYQxrpScX9tgkBkf1a
++nkegrsG9pS3t9bHyu4sFpG6O0R5q0x6UgL8nK1wW3nPWZADPo6eyO//xrQO8cHO
+s6efKQ7urJIRKVIlvBzO3slQ/txLRPO3HKJDc6Ubevv+eYWwChwfT171PIZTfyiI
+7ohIXuCqTDBfjHwfp8oaFPQuE1EJ9+g7MjZe5CyUqO0Qrt0hPOkR8WEzdjHbU1Rg
+TetGwAproG5GeDFOsqfKXYLStNQoBwP7ZWz/lzRJry79RmSF4/4frDU3VUe7QV68
+JjNvHPEjHXKKqIxrDjU8
+=le4b
+-----END PGP SIGNATURE-----
+--=-=-=--
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
