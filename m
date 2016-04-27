@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t6223.austin.hp.com (g1t6223.austin.hp.com [15.73.96.124])
+Received: from g1t6220.austin.hp.com (g1t6220.austin.hp.com [15.73.96.84])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EAB3C1A1F28
- for <linux-nvdimm@lists.01.org>; Wed, 27 Apr 2016 15:46:51 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 767DE1A1F28
+ for <linux-nvdimm@lists.01.org>; Wed, 27 Apr 2016 15:46:52 -0700 (PDT)
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v10 0/7] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Wed, 27 Apr 2016 16:46:12 -0600
-Message-Id: <cover.1461793650.git.jerry.hoemann@hpe.com>
+Subject: [PATCH v10 1/7] nvdimm: Add IOCTL pass thru functions
+Date: Wed, 27 Apr 2016 16:46:13 -0600
+Message-Id: <9fb3374b26ed6f1c619be92e4e0b4670c0671d19.1461793650.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1461793650.git.jerry.hoemann@hpe.com>
+References: <cover.1461793650.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1461793650.git.jerry.hoemann@hpe.com>
+References: <cover.1461793650.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,283 +28,319 @@ To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-The NVDIMM code in the kernel supports an IOCTL interface to user
-space based upon the Intel Example DSM:
-
-	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
-
-This interface cannot be used by other NVDIMM DSMs that support
-incompatible functions.
-
-An alternative DSM specification for Type N DSM being developed
-by Hewlett Packard Enterprise can be found at:
-
-	https://github.com/HewlettPackard/hpe-nvm/tree/master/Documentation
-
-To accommodate multiple and conflicting DSM specifications, this patch
-set adds a generic "pass-thru" IOCTL interface which is not tied to
-a particular DSM.
-
-A new _IOC_NR ND_CMD_CALL == "30" is added for the pass thru call.
-
-The new data structure nd_cmd_pkg serves as a wrapper for the
-pass-thru calls.  This wrapper supplies the data that the kernel
-needs to make the _DSM call.
-
-Unlike the definitions of the _DSM functions themselves, the nd_cmd_pkg
-provides the calling information (input/output sizes) in an uniform
-manner making the kernel marshaling of the arguments straight
-forward.
-
-This shifts the marshaling burden from the kernel to the user
-space application while still permitting the kernel to internally
-call _DSM functions.
-
-The kernel functions __nd_ioctl and acpi_nfit_ctl were modified
-to accommodate ND_CMD_CALL.
-
-Changes in version 10:
----------------------
-Code review comments:
-0. "static const" on nfit_cmd_family_tbl
-1. change name ND_MAX_CMD to ND_MAX_DSM_FUN_IDX
-2. use nfit_cmd_family_tbl locally
-3. add comment on passthru return semantics for size mis-match.
-4. Misc white space changes.
-5. Change name call_dsm back to pkg
-6. set bit ND_CMD_CALL to acpi_desc->bus_dsm_force_en in nfit_test0_setup
-
-
-0005-nvdimm-Extend-nfit_cmd_family_tbl-to-allow-masking-d:
----------------------------------------------------------
-A new patch was added specifically dealing with the nfit_cmd_family_tbl.
-A mask to be bit-and with the firmware dsm_mask was added.
-A mask to be bit-or with the cmd_mask were added.
-The table is searched once and pointer to the entry was returned.
-This allows for the minor modification required for each nvdimm type.
-I left this as a separate patch so change was more obvious for 
-reviewers, but it can be squashed later.
-
-
-0006-tools-testing-nvdimm-dimm_dsm_force_en:
---------------------------------------------
-A new patch was added to change name of dimm_dsm_force_en and
-to set its value in nfit_test0_setup().
-
-
-0007-nvmdimm-ND_CMD_CALL:
--------------------------
-An RFC patch was added to change value of ND_CMD_CALL to 30 to avoid/delay
-collision with commands which are directly mapped to the Intel DSM.
-The maintainers tree has ND_CMD_CALL value set to 10.  I'm okay with either
-value as long as it doesn't change once accepted.
-
-
-
-
-Changes in version 9:
----------------------
-0. Based on https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/log/?h=for-4.7/dsm
-
-1. Fixed a broken printk statement in error path.
-
-Addressed the following code review requests:
-
-1. Separated determination of uuid and dsm_mask into separate functions.
-
-2. Reverted to the repeatedly calling acpi_check_dsm for each bit in
-   dsm_mask instead of just calling firmware once.  Function is
-   called 22 times per nvdimm.
-
-4. Removed bit mask from nfit_cmd_family_tbl.
-
-5. Added separate cmd_mask to struct nfit_mem.
-
-6. Changed *dsm_mask to cmd_mask in struct nvdimm.
-   
-7. changed __nd_ioctl to filter based upon cmd_mask not dsm_mask.
-
-
-
-
-Changes in version 8:
----------------------
-1. augmented family_to_uuid() to return uuid.  This to address bug
-   in prior version where acpi_nfit_ctl wasn't updating uuid
-   with value associated with command family.
-
-2. patch 0006 changes name of nvdimm_bus_descriptor.dsm_mask to .cmd_mask
-
-3. patch 0008 adds field cmd_ioctl if kernel supports full ioctl
-   as with Intel example dsm.
-
-4. patch 0009 make determination if kernel supports the full
-   cmd_ioctl for that dsm.  Updates the commands_show function
-   to invert the sense of display of commands.  All dsm support
-   pass-thru, only Intel example support the full ioctl interface.
-
-5. patch 0010 adds explicit ioctl interface to return command mask.
-   This was done in part to avoid "unknown" command in sysfs.
-
-
-
-Changes in version 7:
---------------------
-0. change name ND_CMD_CALL_DSM to ND_CMD_CALL
-    - part of abstracting out DSM missed in version 6.
-
-1. change name in struct nd_call_dsm
-    a) "ncp_" -> "nd_"
-    b) ncp_pot_size -> nd_fw_size
-    c) ncp_type -> nd_family
-    o) cascade name changes to other patches
-
-2. Expanded comment around data structure nd_cmd_pkg
-
-3. At Dan's request, hard coding "root" UUID.
-    a) retract extension of dsm_uuid to nvdimm_bus_descriptor.
-    b) reverted nfit.c/acpi_nfit_init_dsms() with the exception of
-	allowing function 0 in mask.
-
-4. At Dan's request, removed "rev" from nd_cmd_pkg.  Hard-coding
-    use of rev "1" in acpi_nfit_ctl.
-
-
-Changes in version 6:
----------------------
-Built against
-git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm.git
-libnvdimm-pending
-
-0. Patches "Clean-up access mode check" and "Fix security issue with DSM IOCTL"
-   already in above libnvdimm-pending.  So omitted here.
-
-1. Incorporated changes from Dan's RFC patch set
-   https://lists.01.org/pipermail/linux-nvdimm/2016-January/004049.html
-
-2. Dan asked me to abstract out the DSM aspects from the ndm_cmd_dsmcall_pkg.
-   This became nd_cmd_pkg.  UUIDs are no longer passed in from
-   user applications.
-
-3. To accommodate multiple UUIDS, added table cmd_type_tbl which is used
-   to determine UUID for the acpi object by calling function 0 for
-   each UUID in table until success.
-
-   This table also provides a MASK field that the kernel can use
-   to exclude functions being called.
-
-   This table can be thought of a list of "acceptable" DSMs.
-
-4. The cmd_type_tbl is also used by acpi_nfit_ctl to map the
-   external handle of calls to internal handle, UUID.
-
-   Note, code only validates that the requested type of call is one in
-   cmd_type_tbl, but it might not necessarily be the same found during
-   acpi_nfit_add_dimm.  The ACPI SPEC appears to allow and firmware
-   does implement multiple UUID per object.
-
-   In the case where type is in table, but the UUID isn't supported
-   by the underlying firmware, firmware shall return an error when
-   called.
-
-   This allows for use of a secondary DSM on an object.  This could
-   be considered a feature or a defect.  This can be tightened
-   up if needed.
-
-
-
-Changes in version 5:
----------------------
-0. Fixed submit comment for drivers/acpi/utils.c.
-
-
-Changes in version 4:
----------------------
-0. Added patch to correct parameter type passed to acpi_evaluate_dsm
-   ACPI defines arguments rev and fun as 64 bit quantities and the ioctl
-   exports to user face rev and func. We want those to match the ACPI spec.
-
-   Also modified acpi_evaluate_dsm_typed and acpi_check dsm which had
-   similar issue.
-
-1. nd_cmd_dsmcall_pkg rearrange a reserve and rounded up total size
-   to 16 byte boundary.
-
-2. Created stand alone patch for the pre-existing security issue related
-   to "read only" IOCTL calls.
-
-3. Added patch for increasing envelope size of IOCTL.  Needed to
-   be able to read in the wrapper to know remaining size to copy in.
-
-   Note: in_env, out_env are statics sized based upon this change.
-
-4. Moved copyin code to table driven nd_cmd_desc 
-
-  Note, the last 40 lines or so of acpi_nfit_ctl will not return _DSM
-  data unless the size allocated in user space buffer equals
-  out_obj->buffer.length.
-
-  The semantic we want in the pass thru case is to return as much
-  of the _DSM data as the user space buffer would accommodate.
-
-  Hence, in acpi_nfit_ctl I have retained the line:
-
-		memcpy(pkg->dsm_buf + pkg->h.dsm_in,
-			out_obj->buffer.pointer,
-			min(pkg->h.dsm_size, pkg->h.dsm_out));
-
-  and the early return from the function.
-
-
-
-
-Changes in version 3:
----------------------
-1. Changed name ND_CMD_PASSTHRU to ND_CMD_CALL_DSM.
-
-2. Value of ND_CMD_CALL_DSM is 10, not 100.
-
-3. Changed name of nd_passthru_pkg to nd_cmd_dsmcall_pkg.
-
-4. Removed separate functions for handling ND_CMD_CALL_DSM.
-   Moved functionality to __nd_ioctl and acpi_nfit_ctl proper.
-   The resultant code looks very different from prior versions.
-
-5. BUGFIX: __nd_ioctl: Change the if read_only switch to use
-	 _IOC_NR cmd (not ioctl_cmd) for better protection.
-
-	Do we want to make a stand alone patch for this issue?
-
-
-Changes in version 2:
----------------------
-1. Cleanup access mode check in nd_ioctl and nvdimm_ioctl.
-2. Change name of ndn_pkg to nd_passthru_pkg
-3. Adjust sizes in nd_passthru_pkg. DSM integers are 64 bit.
-4. No new ioctl type, instead tunnel into the existing number space.
-5. Push down one function level where determine ioctl cmd type.
-6. re-work diagnostic print/dump message in pass-thru functions.
-Jerry Hoemann (7):
-  nvdimm: Add IOCTL pass thru functions
-  libnvdimm: nvdimm_bus_descriptor field name change
-  tools/testing/nvdimm: 'call_dsm' support
-  nvdimm: Add concept of cmd mask
-  nvdimm: Extend nfit_cmd_family_tbl to allow masking dsm_mask
-  tools/testing/nvdimm: dimm_dsm_force_en
-  nvmdimm: ND_CMD_CALL
-
- drivers/acpi/nfit.c              | 127 ++++++++++++++++++++++++++++++++++-----
- drivers/acpi/nfit.h              |   3 +-
- drivers/nvdimm/bus.c             |  47 +++++++++++++--
- drivers/nvdimm/core.c            |   2 +-
- drivers/nvdimm/dimm_devs.c       |  12 ++--
- drivers/nvdimm/nd-core.h         |   2 +-
- include/linux/libnvdimm.h        |   4 +-
- include/uapi/linux/ndctl.h       |   2 +-
- tools/testing/nvdimm/test/nfit.c |  22 +++++--
- 9 files changed, 184 insertions(+), 37 deletions(-)
-
+Add ioctl command ND_CMD_CALL_DSM to acpi_nfit_ctl and __nd_ioctl which
+allow kernel to call a nvdimm's _DSM as a passthru without using the
+marshaling code of the nd_cmd_desc.
+
+This supports DSM as defined in:
+
+    http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+    https://github.com/HewlettPackard/hpe-nvm/tree/master/Documentation
+
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+---
+ drivers/acpi/nfit.c  | 111 ++++++++++++++++++++++++++++++++++++++++++++++-----
+ drivers/nvdimm/bus.c |  43 +++++++++++++++++++-
+ 2 files changed, 143 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index d0f35e6..2379f79 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -56,6 +56,24 @@ struct nfit_table_prev {
+ 	struct list_head flushes;
+ };
+ 
++struct cmd_family_tbl {
++	enum nfit_uuids	key_uuid;	/* Internal handle		*/
++	int		key_type;	/* Exported handle		*/
++	int		rev;		/* _DSM rev			*/
++};
++
++/*
++ * If adding new cmd family, determine maximum function index
++ */
++#define ND_MAX_DSM_FUN_IDX	20
++
++static const struct cmd_family_tbl nfit_cmd_family_tbl[] = {
++	{ NFIT_DEV_DIMM,	ND_TYPE_DIMM_INTEL1,	1},
++	{ NFIT_DEV_DIMM_N_HPE1, ND_TYPE_DIMM_N_HPE1,	1},
++	{ NFIT_DEV_DIMM_N_HPE2, ND_TYPE_DIMM_N_HPE2,	1},
++	{ -1, -1, -1},
++};
++
+ static u8 nfit_uuid[NFIT_UUID_MAX][16];
+ 
+ const u8 *to_nfit_uuid(enum nfit_uuids id)
+@@ -64,6 +82,19 @@ const u8 *to_nfit_uuid(enum nfit_uuids id)
+ }
+ EXPORT_SYMBOL(to_nfit_uuid);
+ 
++static const u8 *
++family_to_uuid(int type)
++{
++	const struct cmd_family_tbl *tbl = nfit_cmd_family_tbl;
++	int i;
++
++	for (i = 0;  tbl[i].key_type >= 0 ; i++) {
++		if (tbl[i].key_type == type)
++			return to_nfit_uuid(tbl[i].key_uuid);
++	}
++	return 0;
++}
++
+ static struct acpi_nfit_desc *to_acpi_nfit_desc(
+ 		struct nvdimm_bus_descriptor *nd_desc)
+ {
+@@ -171,8 +202,9 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		unsigned int buf_len, int *cmd_rc)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
+-	const struct nd_cmd_desc *desc = NULL;
+ 	union acpi_object in_obj, in_buf, *out_obj;
++	struct nd_cmd_pkg *call_dsm = NULL;
++	const struct nd_cmd_desc *desc = NULL;
+ 	struct device *dev = acpi_desc->dev;
+ 	const char *cmd_name, *dimm_name;
+ 	unsigned long dsm_mask;
+@@ -180,6 +212,12 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	const u8 *uuid;
+ 	u32 offset;
+ 	int rc, i;
++	__u64 rev = 1, func = cmd;
++
++	if (cmd == ND_CMD_CALL) {
++		call_dsm = buf;
++		func = call_dsm->nd_command;
++	}
+ 
+ 	if (nvdimm) {
+ 		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+@@ -207,7 +245,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
+ 		return -ENOTTY;
+ 
+-	if (!test_bit(cmd, &dsm_mask))
++	if (!test_bit(func, &dsm_mask))
+ 		return -ENOTTY;
+ 
+ 	in_obj.type = ACPI_TYPE_PACKAGE;
+@@ -222,21 +260,50 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		in_buf.buffer.length += nd_cmd_in_size(nvdimm, cmd, desc,
+ 				i, buf);
+ 
++	if (call_dsm) {
++		/* must skip over package wrapper */
++		in_buf.buffer.pointer = (void *) &call_dsm->nd_payload;
++		in_buf.buffer.length = call_dsm->nd_size_in;
++		uuid = family_to_uuid(call_dsm->nd_family);
++		if (!uuid) {
++			dev_dbg(dev, "%s:%s unsupported uuid\n", dimm_name,
++					cmd_name);
++			return -EINVAL;
++		}
++	}
++
+ 	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+-		dev_dbg(dev, "%s:%s cmd: %s input length: %d\n", __func__,
+-				dimm_name, cmd_name, in_buf.buffer.length);
+-		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
+-				4, in_buf.buffer.pointer, min_t(u32, 128,
+-					in_buf.buffer.length), true);
++		dev_dbg(dev, "%s:%s cmd: %d: %llu input length: %d\n", __func__,
++				dimm_name, cmd, func, in_buf.buffer.length);
++		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
++			in_buf.buffer.pointer,
++			min_t(u32, 256, in_buf.buffer.length), true);
++
+ 	}
+ 
+-	out_obj = acpi_evaluate_dsm(handle, uuid, 1, cmd, &in_obj);
++	out_obj = acpi_evaluate_dsm(handle, uuid, rev, func, &in_obj);
+ 	if (!out_obj) {
+ 		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
+ 				cmd_name);
+ 		return -EINVAL;
+ 	}
+ 
++	if (call_dsm) {
++		call_dsm->nd_fw_size = out_obj->buffer.length;
++		memcpy(call_dsm->nd_payload + call_dsm->nd_size_in,
++			out_obj->buffer.pointer,
++			min(call_dsm->nd_fw_size, call_dsm->nd_size_out));
++
++		ACPI_FREE(out_obj);
++		/*
++		 * Need to support FW function w/o known size in advance.
++		 * Caller can determine required size based upon nd_fw_size.
++		 * If call returned -ENXIO (like elsewhere) then caller wouldn't
++		 * be able to rely upon data returned to make calculation.
++		 */
++		return 0;
++	}
++
+ 	if (out_obj->package.type != ACPI_TYPE_BUFFER) {
+ 		dev_dbg(dev, "%s:%s unexpected output object type cmd: %s type: %d\n",
+ 				__func__, dimm_name, cmd_name, out_obj->type);
+@@ -918,12 +985,30 @@ static struct nvdimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
+ 	return NULL;
+ }
+ 
++static int determine_uuid(acpi_handle handle, u8 const **cmd_uuid)
++{
++	const struct cmd_family_tbl *tbl = nfit_cmd_family_tbl;
++	int i;
++
++	for (i = 0;  tbl[i].key_uuid >= 0 ; i++) {
++		const u8 *uuid = to_nfit_uuid(tbl[i].key_uuid);
++		int rev = tbl[i].rev;
++
++		if (acpi_check_dsm(handle, uuid, rev, 1ULL)) {
++			*cmd_uuid = uuid;
++			return 1;
++		}
++	}
++	return 0;
++}
++
++
+ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_mem *nfit_mem, u32 device_handle)
+ {
+ 	struct acpi_device *adev, *adev_dimm;
+ 	struct device *dev = acpi_desc->dev;
+-	const u8 *uuid = to_nfit_uuid(NFIT_DEV_DIMM);
++	const u8 *uuid;
+ 	int i;
+ 
+ 	nfit_mem->dsm_mask = acpi_desc->dimm_dsm_force_en;
+@@ -939,7 +1024,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		return force_enable_dimms ? 0 : -ENODEV;
+ 	}
+ 
+-	for (i = ND_CMD_SMART; i <= ND_CMD_VENDOR; i++)
++	if (!determine_uuid(adev_dimm->handle, &nfit_mem->dsm_uuid))
++		return force_enable_dimms ? 0 : -ENODEV;
++
++	uuid = nfit_mem->dsm_uuid;
++	for (i = 0; i <= ND_MAX_DSM_FUN_IDX; i++)
+ 		if (acpi_check_dsm(adev_dimm->handle, uuid, 1, 1ULL << i))
+ 			set_bit(i, &nfit_mem->dsm_mask);
+ 
+@@ -2463,6 +2552,8 @@ static __init int nfit_init(void)
+ 	acpi_str_to_uuid(UUID_PERSISTENT_VIRTUAL_CD, nfit_uuid[NFIT_SPA_PCD]);
+ 	acpi_str_to_uuid(UUID_NFIT_BUS, nfit_uuid[NFIT_DEV_BUS]);
+ 	acpi_str_to_uuid(UUID_NFIT_DIMM, nfit_uuid[NFIT_DEV_DIMM]);
++	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE1, nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
++	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE2, nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
+ 
+ 	nfit_wq = create_singlethread_workqueue("nfit");
+ 	if (!nfit_wq)
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 19f822d..685e3ba 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -439,6 +439,12 @@ static const struct nd_cmd_desc __nd_cmd_dimm_descs[] = {
+ 		.out_num = 3,
+ 		.out_sizes = { 4, 4, UINT_MAX, },
+ 	},
++	[ND_CMD_CALL] = {
++		.in_num = 2,
++		.in_sizes = { sizeof(struct nd_cmd_pkg), UINT_MAX, },
++		.out_num = 1,
++		.out_sizes = { UINT_MAX, },
++	},
+ };
+ 
+ const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd)
+@@ -473,6 +479,12 @@ static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
+ 		.out_num = 3,
+ 		.out_sizes = { 4, 4, 8, },
+ 	},
++	[ND_CMD_CALL] = {
++		.in_num = 2,
++		.in_sizes = { sizeof(struct nd_cmd_pkg), UINT_MAX, },
++		.out_num = 1,
++		.out_sizes = { UINT_MAX, },
++	},
+ };
+ 
+ const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd)
+@@ -500,6 +512,10 @@ u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
+ 		struct nd_cmd_vendor_hdr *hdr = buf;
+ 
+ 		return hdr->in_length;
++	} else if (cmd == ND_CMD_CALL) {
++		struct nd_cmd_pkg *pkg = buf;
++
++		return pkg->nd_size_in;
+ 	}
+ 
+ 	return UINT_MAX;
+@@ -522,6 +538,12 @@ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
+ 		return out_field[1];
+ 	else if (!nvdimm && cmd == ND_CMD_ARS_STATUS && idx == 2)
+ 		return out_field[1] - 8;
++	else if (cmd == ND_CMD_CALL) {
++		struct nd_cmd_pkg *pkg = (struct nd_cmd_pkg *) in_field;
++
++		return pkg->nd_size_out;
++	}
++
+ 
+ 	return UINT_MAX;
+ }
+@@ -588,7 +610,9 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	unsigned int cmd = _IOC_NR(ioctl_cmd);
+ 	void __user *p = (void __user *) arg;
+ 	struct device *dev = &nvdimm_bus->dev;
++	struct nd_cmd_pkg pkg;
+ 	const char *cmd_name, *dimm_name;
++	unsigned int func = cmd;
+ 	unsigned long dsm_mask;
+ 	void *buf;
+ 	int rc, i;
+@@ -605,8 +629,14 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 		dimm_name = "bus";
+ 	}
+ 
++	if (cmd == ND_CMD_CALL) {
++		if (copy_from_user(&pkg, p, sizeof(pkg)))
++			return -EFAULT;
++		func = pkg.nd_command;
++	}
++
+ 	if (!desc || (desc->out_num + desc->in_num == 0) ||
+-			!test_bit(cmd, &dsm_mask))
++			!test_bit(func, &dsm_mask))
+ 		return -ENOTTY;
+ 
+ 	/* fail write commands (when read-only) */
+@@ -616,6 +646,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 		case ND_CMD_SET_CONFIG_DATA:
+ 		case ND_CMD_ARS_START:
+ 		case ND_CMD_CLEAR_ERROR:
++		case ND_CMD_CALL:
+ 			dev_dbg(&nvdimm_bus->dev, "'%s' command while read-only.\n",
+ 					nvdimm ? nvdimm_cmd_name(cmd)
+ 					: nvdimm_bus_cmd_name(cmd));
+@@ -643,6 +674,16 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 		in_len += in_size;
+ 	}
+ 
++	if (cmd == ND_CMD_CALL) {
++		dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
++				__func__, dimm_name, pkg.nd_command,
++				in_len, out_len, buf_len);
++
++		for (i = 0; i < ARRAY_SIZE(pkg.nd_reserved2); i++)
++			if (pkg.nd_reserved2[i])
++				return -EINVAL;
++	}
++
+ 	/* process an output envelope */
+ 	for (i = 0; i < desc->out_num; i++) {
+ 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i,
 -- 
 1.7.11.3
 
