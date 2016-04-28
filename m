@@ -1,65 +1,47 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 1AF371A20D1
- for <linux-nvdimm@lists.01.org>; Fri, 22 Apr 2016 12:47:57 -0700 (PDT)
-Subject: [ndctl PATCH 1/8] ndctl,
- create-namespace: make zero_info_block() more robust
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 22 Apr 2016 12:47:07 -0700
-Message-ID: <146135442769.4228.5883488750920483205.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146135442234.4228.904225076597683142.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146135442234.4228.904225076597683142.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4 2/7] dax: fallback from pmd to pte on error
+Date: Thu, 28 Apr 2016 15:16:53 -0600
+Message-Id: <1461878218-3844-3-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
+References: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
+Sender: owner-linux-mm@kvack.org
 To: linux-nvdimm@lists.01.org
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew@wil.cx>, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Arrange for zero_info_block() to continue in the case when the namespace
-cannot be enabled.  This allows a partially configured namespace to be
-reset.
+From: Dan Williams <dan.j.williams@intel.com>
+
+In preparation for consulting a badblocks list in pmem_direct_access(),
+teach dax_pmd_fault() to fallback rather than fail immediately upon
+encountering an error.  The thought being that reducing the span of the
+dax request may avoid the error region.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- builtin-xaction-namespace.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ fs/dax.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/builtin-xaction-namespace.c b/builtin-xaction-namespace.c
-index d83ad91a7258..3e13a1c0c3a1 100644
---- a/builtin-xaction-namespace.c
-+++ b/builtin-xaction-namespace.c
-@@ -463,12 +463,17 @@ static int zero_info_block(struct ndctl_namespace *ndns)
- 	char path[50];
- 	void *buf;
+diff --git a/fs/dax.c b/fs/dax.c
+index 5a34f08..52f0044 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1111,8 +1111,8 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		long length = dax_map_atomic(bdev, &dax);
  
-+	ndctl_namespace_set_raw_mode(ndns, 1);
-+	rc = ndctl_namespace_enable(ndns);
-+	if (rc < 0) {
-+		debug("%s failed to enable for zeroing, continuing\n", devname);
-+		rc = 0;
-+		goto out;
-+	}
-+
- 	if (posix_memalign(&buf, 4096, 4096) != 0)
- 		return -ENXIO;
- 
--	ndctl_namespace_set_raw_mode(ndns, 1);
--	ndctl_namespace_enable(ndns);
--
- 	sprintf(path, "/dev/%s", ndctl_namespace_get_block_device(ndns));
- 	fd = open(path, O_RDWR|O_DIRECT|O_EXCL);
- 	if (fd < 0) {
+ 		if (length < 0) {
+-			result = VM_FAULT_SIGBUS;
+-			goto out;
++			dax_pmd_dbg(&bh, address, "dax-error fallback");
++			goto fallback;
+ 		}
+ 		if (length < PMD_SIZE) {
+ 			dax_pmd_dbg(&bh, address, "dax-length too small");
+-- 
+2.5.5
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
