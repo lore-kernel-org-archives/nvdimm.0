@@ -1,63 +1,183 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 65FD81A2174
- for <linux-nvdimm@lists.01.org>; Tue, 12 Apr 2016 13:48:10 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 3/5] xfs: call dax_get_unmapped_area() for DAX pmd mappings
-Date: Tue, 12 Apr 2016 14:39:30 -0600
-Message-Id: <1460493572-31667-2-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1460493572-31667-1-git-send-email-toshi.kani@hpe.com>
-References: <1460493572-31667-1-git-send-email-toshi.kani@hpe.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-fsdevel@vger.kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4 1/7] block, dax: pass blk_dax_ctl through to drivers
+Date: Thu, 28 Apr 2016 15:16:52 -0600
+Message-Id: <1461878218-3844-2-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
+References: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew@wil.cx>, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To support DAX pmd mappings with unmodified applications,
-filesystems need to align an mmap address by the pmd size.
+From: Dan Williams <dan.j.williams@intel.com>
 
-Call dax_get_unmapped_area() from f_op->get_unmapped_area.
+This is in preparation for doing badblocks checking against the
+requested sector range in the driver.  Currently we opportunistically
+return as much data that can be "dax'd" starting at the given sector.
+When errors are present we want to limit that range to the first
+encountered error, or fail the dax request if the range encompasses an
+error.
 
-Note, there is no change in behavior for a non-DAX file.
-
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: <xfs@oss.sgi.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/xfs_file.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/powerpc/sysdev/axonram.c | 10 +++++-----
+ drivers/block/brd.c           |  9 +++++----
+ drivers/nvdimm/pmem.c         |  9 +++++----
+ drivers/s390/block/dcssblk.c  | 12 ++++++------
+ fs/block_dev.c                |  2 +-
+ include/linux/blkdev.h        |  3 +--
+ 6 files changed, 23 insertions(+), 22 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 569938a..51c554b 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1708,6 +1708,9 @@ const struct file_operations xfs_file_operations = {
- 	.open		= xfs_file_open,
- 	.release	= xfs_file_release,
- 	.fsync		= xfs_file_fsync,
-+#ifdef CONFIG_FS_DAX
-+	.get_unmapped_area = dax_get_unmapped_area,
-+#endif
- 	.fallocate	= xfs_file_fallocate,
- };
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index 0d112b9..d85673f 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -139,17 +139,17 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
  
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+ /**
+  * axon_ram_direct_access - direct_access() method for block device
+- * @device, @sector, @data: see block_device_operations method
++ * @dax: see block_device_operations method
+  */
+ static long
+-axon_ram_direct_access(struct block_device *device, sector_t sector,
+-		       void __pmem **kaddr, pfn_t *pfn)
++axon_ram_direct_access(struct block_device *device, struct blk_dax_ctl *dax)
+ {
++	sector_t sector = get_start_sect(device) + dax->sector;
+ 	struct axon_ram_bank *bank = device->bd_disk->private_data;
+ 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
+ 
+-	*kaddr = (void __pmem __force *) bank->io_addr + offset;
+-	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
++	dax->addr = (void __pmem __force *) bank->io_addr + offset;
++	dax->pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
+ 	return bank->size - offset;
+ }
+ 
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 51a071e..71521c1 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -380,9 +380,10 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
+ }
+ 
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+-static long brd_direct_access(struct block_device *bdev, sector_t sector,
+-			void __pmem **kaddr, pfn_t *pfn)
++static long brd_direct_access(struct block_device *bdev,
++		struct blk_dax_ctl *dax)
+ {
++	sector_t sector = get_start_sect(bdev) + dax->sector;
+ 	struct brd_device *brd = bdev->bd_disk->private_data;
+ 	struct page *page;
+ 
+@@ -391,8 +392,8 @@ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+ 	page = brd_insert_page(brd, sector);
+ 	if (!page)
+ 		return -ENOSPC;
+-	*kaddr = (void __pmem *)page_address(page);
+-	*pfn = page_to_pfn_t(page);
++	dax->addr = (void __pmem *)page_address(page);
++	dax->pfn = page_to_pfn_t(page);
+ 
+ 	return PAGE_SIZE;
+ }
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index f798899..f72733c 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -181,14 +181,15 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ 	return rc;
+ }
+ 
+-static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+-		      void __pmem **kaddr, pfn_t *pfn)
++static long pmem_direct_access(struct block_device *bdev,
++		struct blk_dax_ctl *dax)
+ {
++	sector_t sector = get_start_sect(bdev) + dax->sector;
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
+ 	resource_size_t offset = sector * 512 + pmem->data_offset;
+ 
+-	*kaddr = pmem->virt_addr + offset;
+-	*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
++	dax->addr = pmem->virt_addr + offset;
++	dax->pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
+ 
+ 	return pmem->size - pmem->pfn_pad - offset;
+ }
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index b839086..613f587 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -30,8 +30,8 @@ static int dcssblk_open(struct block_device *bdev, fmode_t mode);
+ static void dcssblk_release(struct gendisk *disk, fmode_t mode);
+ static blk_qc_t dcssblk_make_request(struct request_queue *q,
+ 						struct bio *bio);
+-static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
+-			 void __pmem **kaddr, pfn_t *pfn);
++static long dcssblk_direct_access(struct block_device *bdev,
++		struct blk_dax_ctl *dax)
+ 
+ static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
+ 
+@@ -883,9 +883,9 @@ fail:
+ }
+ 
+ static long
+-dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+-			void __pmem **kaddr, pfn_t *pfn)
++dcssblk_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
+ {
++	sector_t secnum = get_start_sect(bdev) + dax->sector;
+ 	struct dcssblk_dev_info *dev_info;
+ 	unsigned long offset, dev_sz;
+ 
+@@ -894,8 +894,8 @@ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+ 		return -ENODEV;
+ 	dev_sz = dev_info->end - dev_info->start;
+ 	offset = secnum * 512;
+-	*kaddr = (void __pmem *) (dev_info->start + offset);
+-	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
++	dax->addr = (void __pmem *) (dev_info->start + offset);
++	dax->pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
+ 
+ 	return dev_sz - offset;
+ }
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index b25bb23..79defba 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -488,7 +488,7 @@ long bdev_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
+ 	sector += get_start_sect(bdev);
+ 	if (sector % (PAGE_SIZE / 512))
+ 		return -EINVAL;
+-	avail = ops->direct_access(bdev, sector, &dax->addr, &dax->pfn);
++	avail = ops->direct_access(bdev, dax);
+ 	if (!avail)
+ 		return -ERANGE;
+ 	if (avail > 0 && avail & ~PAGE_MASK)
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 669e419..9d8c6d5 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1656,8 +1656,7 @@ struct block_device_operations {
+ 	int (*rw_page)(struct block_device *, sector_t, struct page *, int rw);
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+-	long (*direct_access)(struct block_device *, sector_t, void __pmem **,
+-			pfn_t *);
++	long (*direct_access)(struct block_device *, struct blk_dax_ctl *dax);
+ 	unsigned int (*check_events) (struct gendisk *disk,
+ 				      unsigned int clearing);
+ 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
+-- 
+2.5.5
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
