@@ -1,11 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 8A4DA1A1DEC
- for <linux-nvdimm@lists.01.org>; Thu, 14 Apr 2016 14:04:05 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH] dax: integrate *sync code & multi-order radix tree
-Date: Thu, 14 Apr 2016 15:03:24 -0600
-Message-Id: <1460667804-21725-1-git-send-email-ross.zwisler@linux.intel.com>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id 987001A1F6A
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Apr 2016 19:43:32 -0700 (PDT)
+Subject: [PATCH v11 4/5] tools/testing/nvdimm: ND_CMD_CALL support
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 28 Apr 2016 19:42:44 -0700
+Message-ID: <146189776391.29835.5942531917681816412.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146189774241.29835.12947278159500915461.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146189774241.29835.12947278159500915461.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,120 +16,74 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the new addition of the multi-order radix tree support we can simplify
-the DAX *sync PMD support a bit.  Instead of manually checking to see if
-our index is covered by a PMD entry we can rely on the new radix tree to
-return the PMD entry if present.
+Enable nfit_test to use nd_cmd_pkg marshaling.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 31 +++++++++++--------------------
- 1 file changed, 11 insertions(+), 20 deletions(-)
+ tools/testing/nvdimm/test/nfit.c |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 735a608..3f87fcc 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -40,6 +40,7 @@
- #define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
- #define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
- 		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE)))
-+#define RADIX_DAX_ORDER(pmd) (pmd ? PMD_SHIFT - PAGE_SHIFT : 0)
- 
- static long dax_map_atomic(struct block_device *bdev, struct blk_dax_ctl *dax)
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index ed899a411c22..e09a300eb8e0 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -336,6 +336,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
  {
-@@ -360,13 +361,11 @@ static int copy_user_bh(struct page *to, struct inode *inode,
- }
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+ 	struct nfit_test *t = container_of(acpi_desc, typeof(*t), acpi_desc);
++	unsigned int func = cmd;
+ 	int i, rc = 0, __cmd_rc;
  
- #define NO_SECTOR -1
--#define DAX_PMD_INDEX(page_index) (page_index & (PMD_MASK >> PAGE_CACHE_SHIFT))
+ 	if (!cmd_rc)
+@@ -346,7 +347,21 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 		unsigned long cmd_mask = nvdimm_cmd_mask(nvdimm);
  
- static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
- 		sector_t sector, bool pmd_entry, bool dirty)
- {
- 	struct radix_tree_root *page_tree = &mapping->page_tree;
--	pgoff_t pmd_index = DAX_PMD_INDEX(index);
- 	int type, error = 0;
- 	void *entry;
+-		if (!nfit_mem || !test_bit(cmd, &cmd_mask))
++		if (!nfit_mem)
++			return -ENOTTY;
++
++		if (cmd == ND_CMD_CALL) {
++			struct nd_cmd_pkg *call_pkg = buf;
++
++			buf_len = call_pkg->nd_size_in + call_pkg->nd_size_out;
++			buf = (void *) call_pkg->nd_payload;
++			func = call_pkg->nd_command;
++			if (call_pkg->nd_family != nfit_mem->family)
++				return -ENOTTY;
++		}
++
++		if (!test_bit(cmd, &cmd_mask)
++				|| !test_bit(func, &nfit_mem->dsm_mask))
+ 			return -ENOTTY;
  
-@@ -376,12 +375,6 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
+ 		/* lookup label space for the given dimm */
+@@ -357,7 +372,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		if (i >= ARRAY_SIZE(handle))
+ 			return -ENXIO;
  
- 	spin_lock_irq(&mapping->tree_lock);
+-		switch (cmd) {
++		switch (func) {
+ 		case ND_CMD_GET_CONFIG_SIZE:
+ 			rc = nfit_test_cmd_get_config_size(buf, buf_len);
+ 			break;
+@@ -378,7 +393,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		if (!nd_desc || !test_bit(cmd, &nd_desc->cmd_mask))
+ 			return -ENOTTY;
  
--	entry = radix_tree_lookup(page_tree, pmd_index);
--	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD) {
--		index = pmd_index;
--		goto dirty;
--	}
--
- 	entry = radix_tree_lookup(page_tree, index);
- 	if (entry) {
- 		type = RADIX_DAX_TYPE(entry);
-@@ -418,7 +411,8 @@ static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
- 		goto unlock;
- 	}
- 
--	error = radix_tree_insert(page_tree, index,
-+	error = __radix_tree_insert(page_tree, index,
-+			RADIX_DAX_ORDER(pmd_entry),
- 			RADIX_DAX_ENTRY(sector, pmd_entry));
- 	if (error)
- 		goto unlock;
-@@ -462,6 +456,13 @@ static int dax_writeback_one(struct block_device *bdev,
- 		goto unlock;
- 	}
- 
-+	/*
-+	 * Even if dax_writeback_mapping_range() was given a wbc->range_start
-+	 * in the middle of a PMD, the 'index' we are given will be aligned to
-+	 * the start index of the PMD, as will the sector we pull from
-+	 * 'entry'.  This allows us to flush for PMD_SIZE and not have to
-+	 * worry about partial PMD writebacks.
-+	 */
- 	dax.sector = RADIX_DAX_SECTOR(entry);
- 	dax.size = (type == RADIX_DAX_PMD ? PMD_SIZE : PAGE_SIZE);
- 	spin_unlock_irq(&mapping->tree_lock);
-@@ -502,12 +503,11 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- 		struct block_device *bdev, struct writeback_control *wbc)
- {
- 	struct inode *inode = mapping->host;
--	pgoff_t start_index, end_index, pmd_index;
-+	pgoff_t start_index, end_index;
- 	pgoff_t indices[PAGEVEC_SIZE];
- 	struct pagevec pvec;
- 	bool done = false;
- 	int i, ret = 0;
--	void *entry;
- 
- 	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
- 		return -EIO;
-@@ -517,15 +517,6 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- 
- 	start_index = wbc->range_start >> PAGE_CACHE_SHIFT;
- 	end_index = wbc->range_end >> PAGE_CACHE_SHIFT;
--	pmd_index = DAX_PMD_INDEX(start_index);
--
--	rcu_read_lock();
--	entry = radix_tree_lookup(&mapping->page_tree, pmd_index);
--	rcu_read_unlock();
--
--	/* see if the start of our range is covered by a PMD entry */
--	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
--		start_index = pmd_index;
- 
- 	tag_pages_for_writeback(mapping, start_index, end_index);
- 
--- 
-2.5.5
+-		switch (cmd) {
++		switch (func) {
+ 		case ND_CMD_ARS_CAP:
+ 			rc = nfit_test_cmd_ars_cap(buf, buf_len);
+ 			break;
 
 _______________________________________________
 Linux-nvdimm mailing list
