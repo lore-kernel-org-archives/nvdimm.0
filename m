@@ -1,138 +1,172 @@
-Return-Path: <linux-ext4-owner@vger.kernel.org>
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 12/18] dax: Remove redundant inode size checks
-Date: Mon, 18 Apr 2016 23:35:35 +0200
-Message-Id: <1461015341-20153-13-git-send-email-jack@suse.cz>
-In-Reply-To: <1461015341-20153-1-git-send-email-jack@suse.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ by ml01.01.org (Postfix) with ESMTP id AB80A1A1F5A
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 11:01:59 -0700 (PDT)
+Date: Fri, 29 Apr 2016 12:01:58 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 08/18] ext4: Pre-zero allocated blocks for DAX IO
+Message-ID: <20160429180158.GC5888@linux.intel.com>
 References: <1461015341-20153-1-git-send-email-jack@suse.cz>
-Sender: linux-ext4-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org
-Cc: linux-ext4@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>, Jan Kara <jack@suse.cz>
+ <1461015341-20153-9-git-send-email-jack@suse.cz>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1461015341-20153-9-git-send-email-jack@suse.cz>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Callers of dax fault handlers must make sure these calls cannot race
-with truncate. Thus it is enough to check inode size when entering the
-function and we don't have to recheck it again later in the handler.
-Note that inode size itself can be decreased while the fault handler
-runs but filesystem locking prevents against any radix tree or block
-mapping information changes resulting from the truncate and that is what
-we really care about.
+On Mon, Apr 18, 2016 at 11:35:31PM +0200, Jan Kara wrote:
+> Currently ext4 treats DAX IO the same way as direct IO. I.e., it
+> allocates unwritten extents before IO is done and converts unwritten
+> extents afterwards. However this way DAX IO can race with page fault to
+> the same area:
+> 
+> ext4_ext_direct_IO()				dax_fault()
+>   dax_io()
+>     get_block() - allocates unwritten extent
+>     copy_from_iter_pmem()
+> 						  get_block() - converts
+> 						    unwritten block to
+> 						    written and zeroes it
+> 						    out
+>   ext4_convert_unwritten_extents()
+> 
+> So data written with DAX IO gets lost. Similarly dax_new_buf() called
+> from dax_io() can overwrite data that has been already written to the
+> block via mmap.
+> 
+> Fix the problem by using pre-zeroed blocks for DAX IO the same way as we
+> use them for DAX mmap. The downside of this solution is that every
+> allocating write writes each block twice (once zeros, once data). Fixing
+> the race with locking is possible as well however we would need to
+> lock-out faults for the whole range written to by DAX IO. And that is
+> not easy to do without locking-out faults for the whole file which seems
+> too aggressive.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 60 +-----------------------------------------------------------
- 1 file changed, 1 insertion(+), 59 deletions(-)
+Just a couple of simplifications - feel free to ignore them if you don't think
+they are worth the effort.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 42bf65b4e752..d7addfab2094 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -305,20 +305,11 @@ EXPORT_SYMBOL_GPL(dax_do_io);
- static int dax_load_hole(struct address_space *mapping, struct page *page,
- 							struct vm_fault *vmf)
- {
--	unsigned long size;
--	struct inode *inode = mapping->host;
- 	if (!page)
- 		page = find_or_create_page(mapping, vmf->pgoff,
- 						GFP_KERNEL | __GFP_ZERO);
- 	if (!page)
- 		return VM_FAULT_OOM;
--	/* Recheck i_size under page lock to avoid truncate race */
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (vmf->pgoff >= size) {
--		unlock_page(page);
--		put_page(page);
--		return VM_FAULT_SIGBUS;
--	}
- 
- 	vmf->page = page;
- 	return VM_FAULT_LOCKED;
-@@ -549,24 +540,10 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 		.sector = to_sector(bh, inode),
- 		.size = bh->b_size,
- 	};
--	pgoff_t size;
- 	int error;
- 
- 	i_mmap_lock_read(mapping);
- 
--	/*
--	 * Check truncate didn't happen while we were allocating a block.
--	 * If it did, this block may or may not be still allocated to the
--	 * file.  We can't tell the filesystem to free it because we can't
--	 * take i_mutex here.  In the worst case, the file still has blocks
--	 * allocated past the end of the file.
--	 */
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (unlikely(vmf->pgoff >= size)) {
--		error = -EIO;
--		goto out;
--	}
--
- 	if (dax_map_atomic(bdev, &dax) < 0) {
- 		error = PTR_ERR(dax.addr);
- 		goto out;
-@@ -632,15 +609,6 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			put_page(page);
- 			goto repeat;
- 		}
--		size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--		if (unlikely(vmf->pgoff >= size)) {
--			/*
--			 * We have a struct page covering a hole in the file
--			 * from a read fault and we've raced with a truncate
--			 */
--			error = -EIO;
--			goto unlock_page;
--		}
- 	}
- 
- 	error = get_block(inode, block, &bh, 0);
-@@ -673,17 +641,8 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		if (error)
- 			goto unlock_page;
- 		vmf->page = page;
--		if (!page) {
-+		if (!page)
- 			i_mmap_lock_read(mapping);
--			/* Check we didn't race with truncate */
--			size = (i_size_read(inode) + PAGE_SIZE - 1) >>
--								PAGE_SHIFT;
--			if (vmf->pgoff >= size) {
--				i_mmap_unlock_read(mapping);
--				error = -EIO;
--				goto out;
--			}
--		}
- 		return VM_FAULT_LOCKED;
- 	}
- 
-@@ -861,23 +820,6 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 
- 	i_mmap_lock_read(mapping);
- 
--	/*
--	 * If a truncate happened while we were allocating blocks, we may
--	 * leave blocks allocated to the file that are beyond EOF.  We can't
--	 * take i_mutex here, so just leave them hanging; they'll be freed
--	 * when the file is deleted.
--	 */
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (pgoff >= size) {
--		result = VM_FAULT_SIGBUS;
--		goto out;
--	}
--	if ((pgoff | PG_PMD_COLOUR) >= size) {
--		dax_pmd_dbg(&bh, address,
--				"offset + huge page size > file size");
--		goto fallback;
--	}
--
- 	if (!write && !buffer_mapped(&bh)) {
- 		spinlock_t *ptl;
- 		pmd_t entry;
--- 
-2.6.6
+> ---
+>  fs/ext4/ext4.h  | 11 +++++++++--
+>  fs/ext4/file.c  |  4 ++--
+>  fs/ext4/inode.c | 42 +++++++++++++++++++++++++++++++++---------
+>  3 files changed, 44 insertions(+), 13 deletions(-)
+> 
+> diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
+> index 35792b430fb6..173da8faff81 100644
+> --- a/fs/ext4/ext4.h
+> +++ b/fs/ext4/ext4.h
+> @@ -2521,8 +2521,8 @@ struct buffer_head *ext4_getblk(handle_t *, struct inode *, ext4_lblk_t, int);
+>  struct buffer_head *ext4_bread(handle_t *, struct inode *, ext4_lblk_t, int);
+>  int ext4_get_block_unwritten(struct inode *inode, sector_t iblock,
+>  			     struct buffer_head *bh_result, int create);
+> -int ext4_dax_mmap_get_block(struct inode *inode, sector_t iblock,
+> -			    struct buffer_head *bh_result, int create);
+> +int ext4_dax_get_block(struct inode *inode, sector_t iblock,
+> +		       struct buffer_head *bh_result, int create);
+>  int ext4_get_block(struct inode *inode, sector_t iblock,
+>  		   struct buffer_head *bh_result, int create);
+>  int ext4_dio_get_block(struct inode *inode, sector_t iblock,
+> @@ -3328,6 +3328,13 @@ static inline void ext4_clear_io_unwritten_flag(ext4_io_end_t *io_end)
+>  	}
+>  }
+>  
+> +static inline bool ext4_aligned_io(struct inode *inode, loff_t off, loff_t len)
+> +{
+> +	int blksize = 1 << inode->i_blkbits;
+> +
+> +	return IS_ALIGNED(off, blksize) && IS_ALIGNED(off + len, blksize);
 
+This could be just a tiny bit simpler by doing
+
+	return IS_ALIGNED(off, blksize) && IS_ALIGNED(len, blksize);
+						      ^^^
+
+You've already made sure 'off' is aligned, so if 'len' is aligned 'off+len'
+will be aligned.
+
+> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+> index 23fd0e0a9223..6d5d5c1db293 100644
+> --- a/fs/ext4/inode.c
+> +++ b/fs/ext4/inode.c
+> @@ -3215,12 +3215,17 @@ static int ext4_releasepage(struct page *page, gfp_t wait)
+>  }
+>  
+>  #ifdef CONFIG_FS_DAX
+> -int ext4_dax_mmap_get_block(struct inode *inode, sector_t iblock,
+> -			    struct buffer_head *bh_result, int create)
+> +/*
+> + * Get block function for DAX IO and mmap faults. It takes care of converting
+> + * unwritten extents to written ones and initializes new / converted blocks
+> + * to zeros.
+> + */
+> +int ext4_dax_get_block(struct inode *inode, sector_t iblock,
+> +		       struct buffer_head *bh_result, int create)
+>  {
+>  	int ret;
+>  
+> -	ext4_debug("ext4_dax_mmap_get_block: inode %lu, create flag %d\n",
+> +	ext4_debug("ext4_dax_get_block: inode %lu, create flag %d\n",
+>  		   inode->i_ino, create);
+
+This pattern could be improved by using "%s" and __func__ for the function
+name.  That way you don't have to hunt through all your debug code and update
+strings when you rename a function. More importantly it prevents the strings
+from getting out of sync with the function name, resulting in confusing debug
+messages.
+
+>  	if (!create)
+>  		return _ext4_get_block(inode, iblock, bh_result, 0);
+> @@ -3233,9 +3238,9 @@ int ext4_dax_mmap_get_block(struct inode *inode, sector_t iblock,
+>  
+>  	if (buffer_unwritten(bh_result)) {
+>  		/*
+> -		 * We are protected by i_mmap_sem so we know block cannot go
+> -		 * away from under us even though we dropped i_data_sem.
+> -		 * Convert extent to written and write zeros there.
+> +		 * We are protected by i_mmap_sem or i_mutex so we know block
+> +		 * cannot go away from under us even though we dropped
+> +		 * i_data_sem. Convert extent to written and write zeros there.
+>  		 */
+>  		ret = ext4_get_block_trans(inode, iblock, bh_result,
+>  					   EXT4_GET_BLOCKS_CONVERT |
+> @@ -3250,6 +3255,14 @@ int ext4_dax_mmap_get_block(struct inode *inode, sector_t iblock,
+>  	clear_buffer_new(bh_result);
+>  	return 0;
+>  }
+> +#else
+> +/* Just define empty function, it will never get called. */
+> +int ext4_dax_get_block(struct inode *inode, sector_t iblock,
+> +		       struct buffer_head *bh_result, int create)
+> +{
+> +	BUG();
+> +	return 0;
+> +}
+
+You don't need this stub.  All the uses of ext4_dax_get_block() are either
+within their own '#ifdef CONFIG_FS_DAX' sections, or they are in an 
+"if (IS_DAX)" conditional.  The latter will also be compiled out if
+CONFIG_FS_DAX isn't defined.  This is because of the way that S_DAX is
+defined:
+
+  #define S_DAX		8192	/* Direct Access, avoiding the page cache */
+  #else
+  #define S_DAX		0	/* Make all the DAX code disappear */
+  #endif
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
