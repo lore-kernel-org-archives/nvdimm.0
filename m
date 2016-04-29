@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 577051A20B9
- for <linux-nvdimm@lists.01.org>; Sat, 23 Apr 2016 12:14:07 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 6/7] dax: for truncate/hole-punch,
- do zeroing through the driver if possible
-Date: Sat, 23 Apr 2016 13:13:41 -0600
-Message-Id: <1461438822-3592-7-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
-References: <1461438822-3592-1-git-send-email-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTP id EDFEF1A1F7C
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 13:04:03 -0700 (PDT)
+Date: Fri, 29 Apr 2016 14:03:45 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 14/18] dax: Define DAX lock bit for radix tree
+ exceptional entry
+Message-ID: <20160429200345.GH5888@linux.intel.com>
+References: <1461015341-20153-1-git-send-email-jack@suse.cz>
+ <1461015341-20153-15-git-send-email-jack@suse.cz>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1461015341-20153-15-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,86 +19,24 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Al Viro <viro@zeniv.linux.org.uk>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In the truncate or hole-punch path in dax, we clear out sub-page ranges.
-If these sub-page ranges are sector aligned and sized, we can do the
-zeroing through the driver instead so that error-clearing is handled
-automatically.
+On Mon, Apr 18, 2016 at 11:35:37PM +0200, Jan Kara wrote:
+> We will use lowest available bit in the radix tree exceptional entry for
+> locking of the entry. Define it. Also clean up definitions of DAX entry
+> type bits in DAX exceptional entries to use defined constants instead of
+> hardcoding numbers and cleanup checking of these bits to not rely on how
+> other bits in the entry are set.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-For sub-sector ranges, we still have to rely on clear_pmem and have the
-possibility of tripping over errors.
-
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- fs/dax.c | 30 +++++++++++++++++++++++++-----
- 1 file changed, 25 insertions(+), 5 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 5948d9b..d8c974e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1196,6 +1196,20 @@ out:
- }
- EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
- 
-+static bool dax_range_is_aligned(struct block_device *bdev,
-+				 struct blk_dax_ctl *dax, unsigned int offset,
-+				 unsigned int length)
-+{
-+	unsigned short sector_size = bdev_logical_block_size(bdev);
-+
-+	if (((u64)dax->addr + offset) % sector_size)
-+		return false;
-+	if (length % sector_size)
-+		return false;
-+
-+	return true;
-+}
-+
- /**
-  * dax_zero_page_range - zero a range within a page of a DAX file
-  * @inode: The file being truncated
-@@ -1240,11 +1254,17 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
- 			.size = PAGE_SIZE,
- 		};
- 
--		if (dax_map_atomic(bdev, &dax) < 0)
--			return PTR_ERR(dax.addr);
--		clear_pmem(dax.addr + offset, length);
--		wmb_pmem();
--		dax_unmap_atomic(bdev, &dax);
-+		if (dax_range_is_aligned(bdev, &dax, offset, length))
-+			return blkdev_issue_zeroout(bdev, dax.sector,
-+					length / bdev_logical_block_size(bdev),
-+					GFP_NOFS, true);
-+		else {
-+			if (dax_map_atomic(bdev, &dax) < 0)
-+				return PTR_ERR(dax.addr);
-+			clear_pmem(dax.addr + offset, length);
-+			wmb_pmem();
-+			dax_unmap_atomic(bdev, &dax);
-+		}
- 	}
- 
- 	return 0;
--- 
-2.5.5
-
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
