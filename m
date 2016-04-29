@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A20D31A20EF
- for <linux-nvdimm@lists.01.org>; Mon, 18 Apr 2016 14:35:51 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 03/18] DAX: move RADIX_DAX_ definitions to dax.c
-Date: Mon, 18 Apr 2016 23:35:26 +0200
-Message-Id: <1461015341-20153-4-git-send-email-jack@suse.cz>
-In-Reply-To: <1461015341-20153-1-git-send-email-jack@suse.cz>
-References: <1461015341-20153-1-git-send-email-jack@suse.cz>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ by ml01.01.org (Postfix) with ESMTP id 3ED911A1F6B
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Apr 2016 19:43:27 -0700 (PDT)
+Subject: [PATCH v11 3/5] nfit: disable vendor specific commands
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 28 Apr 2016 19:42:38 -0700
+Message-ID: <146189775877.29835.10222495726082344157.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146189774241.29835.12947278159500915461.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146189774241.29835.12947278159500915461.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,72 +16,63 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, NeilBrown <neilb@suse.com>, linux-mm@kvack.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: NeilBrown <neilb@suse.com>
+Module option to limit userspace to the publicly defined command set.
+For cases where private DIMM commands may be interfering with the
+kernel's handling of DIMM state this option can be set to block vendor
+specific commands.
 
-These don't belong in radix-tree.c any more than PAGECACHE_TAG_* do.
-Let's try to maintain the idea that radix-tree simply implements an
-abstract data type.
-
-Acked-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Matthew Wilcox <willy@linux.intel.com>
-Signed-off-by: NeilBrown <neilb@suse.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Jerry Hoemann <jerry.hoemann@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c                   | 9 +++++++++
- include/linux/radix-tree.h | 9 ---------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/acpi/nfit.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 75ba46d82a76..08799a510b4d 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -32,6 +32,15 @@
- #include <linux/pfn_t.h>
- #include <linux/sizes.h>
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 710d3a07d178..30801fe3367b 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -45,6 +45,11 @@ module_param(scrub_overflow_abort, uint, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(scrub_overflow_abort,
+ 		"Number of times we overflow ARS results before abort");
  
-+#define RADIX_DAX_MASK	0xf
-+#define RADIX_DAX_SHIFT	4
-+#define RADIX_DAX_PTE  (0x4 | RADIX_TREE_EXCEPTIONAL_ENTRY)
-+#define RADIX_DAX_PMD  (0x8 | RADIX_TREE_EXCEPTIONAL_ENTRY)
-+#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_MASK)
-+#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
-+#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
-+		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE)))
++static bool disable_vendor_specific;
++module_param(disable_vendor_specific, bool, S_IRUGO);
++MODULE_PARM_DESC(disable_vendor_specific,
++		"Limit commands to the publicly specified set\n");
 +
- static long dax_map_atomic(struct block_device *bdev, struct blk_dax_ctl *dax)
- {
- 	struct request_queue *q = bdev->bd_queue;
-diff --git a/include/linux/radix-tree.h b/include/linux/radix-tree.h
-index 51a97ac8bfbf..d08d6ec3bf53 100644
---- a/include/linux/radix-tree.h
-+++ b/include/linux/radix-tree.h
-@@ -52,15 +52,6 @@
- #define RADIX_TREE_EXCEPTIONAL_ENTRY	2
- #define RADIX_TREE_EXCEPTIONAL_SHIFT	2
+ static struct workqueue_struct *nfit_wq;
  
--#define RADIX_DAX_MASK	0xf
--#define RADIX_DAX_SHIFT	4
--#define RADIX_DAX_PTE  (0x4 | RADIX_TREE_EXCEPTIONAL_ENTRY)
--#define RADIX_DAX_PMD  (0x8 | RADIX_TREE_EXCEPTIONAL_ENTRY)
--#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_MASK)
--#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
--#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
--		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE)))
--
- static inline int radix_tree_is_indirect_ptr(void *ptr)
- {
- 	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
--- 
-2.6.6
+ struct nfit_table_prev {
+@@ -989,13 +994,17 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 
+ 	/* limit the supported commands to those that are publicly documented */
+ 	nfit_mem->family = i;
+-	if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
++	if (nfit_mem->family == NVDIMM_FAMILY_INTEL) {
+ 		dsm_mask = 0x3fe;
+-	else if (nfit_mem->family == NVDIMM_FAMILY_HPE1)
++		if (disable_vendor_specific)
++			dsm_mask &= ~(1 << ND_CMD_VENDOR);
++	} else if (nfit_mem->family == NVDIMM_FAMILY_HPE1)
+ 		dsm_mask = 0x1c3c76;
+-	else if (nfit_mem->family == NVDIMM_FAMILY_HPE2)
++	else if (nfit_mem->family == NVDIMM_FAMILY_HPE2) {
+ 		dsm_mask = 0x1fe;
+-	else {
++		if (disable_vendor_specific)
++			dsm_mask &= ~(1 << 8);
++	} else {
+ 		dev_err(dev, "unknown dimm command family\n");
+ 		nfit_mem->family = -1;
+ 		return force_enable_dimms ? 0 : -ENODEV;
 
 _______________________________________________
 Linux-nvdimm mailing list
