@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 39A731A2285
- for <linux-nvdimm@lists.01.org>; Mon, 18 Apr 2016 14:35:53 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 09/18] dax: Remove zeroing from dax_io()
-Date: Mon, 18 Apr 2016 23:35:32 +0200
-Message-Id: <1461015341-20153-10-git-send-email-jack@suse.cz>
-In-Reply-To: <1461015341-20153-1-git-send-email-jack@suse.cz>
-References: <1461015341-20153-1-git-send-email-jack@suse.cz>
+Received: from g4t3427.houston.hp.com (g4t3427.houston.hp.com [15.201.208.55])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0E2611A1F81
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 11:48:13 -0700 (PDT)
+Message-ID: <1461955165.27137.0.camel@hpe.com>
+Subject: Re: [PATCH] nfit: fix format interface code byte order per ACPI6.1
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Fri, 29 Apr 2016 12:39:25 -0600
+In-Reply-To: <CAPcyv4jUkr-h+Wor9Pda35CS17VAKC8pAm4xkO7A0eRQWUSd2A@mail.gmail.com>
+References: <146189587309.28821.2994135280775533869.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <5723676F.9000006@hpe.com>
+ <CAPcyv4jUkr-h+Wor9Pda35CS17VAKC8pAm4xkO7A0eRQWUSd2A@mail.gmail.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,96 +20,40 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-ext4@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, Linda Knippers <linda.knippers@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-All the filesystems are now zeroing blocks themselves for DAX IO to avoid
-races between dax_io() and dax_fault(). Remove the zeroing code from
-dax_io() and add warning to catch the case when somebody unexpectedly
-returns new or unwritten buffer.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 28 ++++++++++------------------
- 1 file changed, 10 insertions(+), 18 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index ccb8bc399d78..7c0036dd1570 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -119,18 +119,6 @@ int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size)
- }
- EXPORT_SYMBOL_GPL(dax_clear_sectors);
- 
--/* the clear_pmem() calls are ordered by a wmb_pmem() in the caller */
--static void dax_new_buf(void __pmem *addr, unsigned size, unsigned first,
--		loff_t pos, loff_t end)
--{
--	loff_t final = end - pos + first; /* The final byte of the buffer */
--
--	if (first > 0)
--		clear_pmem(addr, first);
--	if (final < size)
--		clear_pmem(addr + final, size - final);
--}
--
- static bool buffer_written(struct buffer_head *bh)
- {
- 	return buffer_mapped(bh) && !buffer_unwritten(bh);
-@@ -169,6 +157,9 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 	struct blk_dax_ctl dax = {
- 		.addr = (void __pmem *) ERR_PTR(-EIO),
- 	};
-+	unsigned blkbits = inode->i_blkbits;
-+	sector_t file_blks = (i_size_read(inode) + (1 << blkbits) - 1)
-+								>> blkbits;
- 
- 	if (rw == READ)
- 		end = min(end, i_size_read(inode));
-@@ -176,7 +167,6 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 	while (pos < end) {
- 		size_t len;
- 		if (pos == max) {
--			unsigned blkbits = inode->i_blkbits;
- 			long page = pos >> PAGE_SHIFT;
- 			sector_t block = page << (PAGE_SHIFT - blkbits);
- 			unsigned first = pos - (block << blkbits);
-@@ -192,6 +182,13 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 					bh->b_size = 1 << blkbits;
- 				bh_max = pos - first + bh->b_size;
- 				bdev = bh->b_bdev;
-+				/*
-+				 * We allow uninitialized buffers for writes
-+				 * beyond EOF as those cannot race with faults
-+				 */
-+				WARN_ON_ONCE(
-+					(buffer_new(bh) && block < file_blks) ||
-+					(rw == WRITE && buffer_unwritten(bh)));
- 			} else {
- 				unsigned done = bh->b_size -
- 						(bh_max - (pos - first));
-@@ -211,11 +208,6 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 					rc = map_len;
- 					break;
- 				}
--				if (buffer_unwritten(bh) || buffer_new(bh)) {
--					dax_new_buf(dax.addr, map_len, first,
--							pos, end);
--					need_wmb = true;
--				}
- 				dax.addr += first;
- 				size = map_len - first;
- 			}
--- 
-2.6.6
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCAyMDE2LTA0LTI5IGF0IDA4OjE4IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
+T24gRnJpLCBBcHIgMjksIDIwMTYgYXQgNjo1MyBBTSwgTGluZGEgS25pcHBlcnMgPGxpbmRhLmtu
+aXBwZXJzQGhwZS5jb20+Cj4gd3JvdGU6Cj4gPsKgCj4gPiBPbiA0LzI4LzIwMTYgMTA6MTEgUE0s
+IERhbiBXaWxsaWFtcyB3cm90ZToKPiA+ID4gCj4gPiA+IEFDUEk2LjEgY2xhcmlmaWVzIHRoYXQg
+RENSIGZpZWxkcyBhcmUgc3RvcmVkIGFzIGFuIGFycmF5IG9mIGJ5dGVzLAo+ID4gPiB1cGRhdGUg
+dGhlIGZvcm1hdCBpbnRlcmZhY2UgY29kZSBjb25zdGFudHMgdG8gbWF0Y2guCj4gPiA+IAo+ID4g
+PiBDYzogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPgo+ID4gPiBTaWduZWQtb2ZmLWJ5
+OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KPiA+ID4gLS0tCj4gPiA+
+IMKgZHJpdmVycy9hY3BpL25maXQuaCB8wqDCoMKgMTIgKysrKysrKy0tLS0tCj4gPiA+IMKgMSBm
+aWxlIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygrKSwgNSBkZWxldGlvbnMoLSkKPiA+ID4gCj4gPiA+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5oIGIvZHJpdmVycy9hY3BpL25maXQuaAo+
+ID4gPiBpbmRleCBjNzU1NzZiMmQ1MGUuLjkyZWE1ZDA2YzdmZSAxMDA2NDQKPiA+ID4gLS0tIGEv
+ZHJpdmVycy9hY3BpL25maXQuaAo+ID4gPiArKysgYi9kcml2ZXJzL2FjcGkvbmZpdC5oCj4gPiA+
+IEBAIC00MSwxMSArNDEsMTMgQEAgZW51bSBuZml0X3V1aWRzIHsKPiA+ID4gwqDCoMKgwqDCoMKg
+TkZJVF9VVUlEX01BWCwKPiA+ID4gwqB9Owo+ID4gPiAKPiA+ID4gLWVudW0gbmZpdF9maWMgewo+
+ID4gPiAtwqDCoMKgwqDCoE5GSVRfRklDX0JZVEUgPSAweDEwMSwgLyogYnl0ZS1hZGRyZXNzYWJs
+ZSBlbmVyZ3kgYmFja2VkICovCj4gPiA+IC3CoMKgwqDCoMKgTkZJVF9GSUNfQkxLID0gMHgyMDEs
+IC8qIGJsb2NrLWFkZHJlc3NhYmxlIG5vbi1lbmVyZ3kgYmFja2VkICovCj4gPiA+IC3CoMKgwqDC
+oMKgTkZJVF9GSUNfQllURU4gPSAweDMwMSwgLyogYnl0ZS1hZGRyZXNzYWJsZSBub24tZW5lcmd5
+IGJhY2tlZAo+ID4gPiAqLwo+ID4gPiAtfTsKPiA+ID4gKy8qCj4gPiA+ICsgKiBSZWdpb24gZm9y
+bWF0IGludGVyZmFjZSBjb2RlcyBhcmUgc3RvcmVkIGFzIGFuIGFycmF5IG9mIGJ5dGVzIGluCj4g
+PiA+IHRoZQo+ID4gPiArICogTkZJVCBESU1NIENvbnRyb2wgUmVnaW9uIHN0cnVjdHVyZQo+ID4g
+PiArICovCj4gPiA+ICsjZGVmaW5lIE5GSVRfRklDX0JZVEUgY3B1X3RvX2JlMTYoMHgxMDEpIC8q
+IGJ5dGUtYWRkcmVzc2FibGUgZW5lcmd5Cj4gPiA+ICovCj4gPiBlbmVyZ3kgYmFja2VkPwo+Cj4g
+WXVwLCB3aWxsIGZpeC4KCldpdGggdGhhdCBjaGFuZ2U6CgpSZXZpZXdlZC1ieTogVG9zaGkgS2Fu
+aSA8dG9zaGkua2FuaUBocGUuY29tPgoKVGhhbmtzLAotVG9zaGkKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
+TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW52ZGltbQo=
