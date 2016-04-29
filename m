@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7D8551A1F8A
- for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 13:48:30 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 3/3] xfs: Add alignment check for DAX mount
-Date: Fri, 29 Apr 2016 14:39:35 -0600
-Message-Id: <1461962375-3720-4-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1461962375-3720-1-git-send-email-toshi.kani@hpe.com>
-References: <1461962375-3720-1-git-send-email-toshi.kani@hpe.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id 48D421A1F83
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 12:08:06 -0700 (PDT)
+Date: Fri, 29 Apr 2016 13:08:05 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 11/18] dax: Fix condition for filling of PMD holes
+Message-ID: <20160429190805.GF5888@linux.intel.com>
+References: <1461015341-20153-1-git-send-email-jack@suse.cz>
+ <1461015341-20153-12-git-send-email-jack@suse.cz>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1461015341-20153-12-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,46 +18,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, david@fromorbit.com, jack@suse.cz
-Cc: tytso@mit.edu, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a partition is not aligned by 4KB, mount -o dax succeeds,
-but any read/write access to the filesystem fails, except for
-metadata update.
+On Mon, Apr 18, 2016 at 11:35:34PM +0200, Jan Kara wrote:
+> Currently dax_pmd_fault() decides to fill a PMD-sized hole only if
+> returned buffer has BH_Uptodate set. However that doesn't get set for
+> any mapping buffer so that branch is actually a dead code. The
+> BH_Uptodate check doesn't make any sense so just remove it.
 
-Add alignment check to xfs_fs_fill_super() when -o dax is
-specified.
+I'm not sure about this one.  In my testing (which was a while ago) I was
+also never able to exercise this code path and create huge zero pages.   My
+concern is that by removing the buffer_uptodate() check, we will all of a
+sudden start running through a code path that was previously unreachable.
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dave Chinner <david@fromorbit.com> (supporter:XFS FILESYSTEM)
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/xfs/xfs_super.c |    5 +++++
- 1 file changed, 5 insertions(+)
+AFAICT the buffer_uptodate() was part of the original PMD commit.  Did we ever
+get buffers with BH_Uptodate set?  Has this code ever been run?  Does it work?
 
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index 187e14b..a17aebc 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -1563,6 +1563,11 @@ xfs_fs_fill_super(
- 			xfs_alert(mp,
- 		"Filesystem block size invalid for DAX Turning DAX off.");
- 			mp->m_flags &= ~XFS_MOUNT_DAX;
-+		} else if (sb->s_bdev->bd_part->start_sect % (PAGE_SIZE / 512)
-+		   || sb->s_bdev->bd_part->nr_sects % (PAGE_SIZE / 512)) {
-+			xfs_alert(mp,
-+		"Partition alignment invalid for DAX Turning DAX off.");
-+			mp->m_flags &= ~XFS_MOUNT_DAX;
- 		} else if (!sb->s_bdev->bd_disk->fops->direct_access) {
- 			xfs_alert(mp,
- 		"Block device does not support DAX Turning DAX off.");
+I suppose this concern is mitigated by the fact that later in this series you 
+disable the PMD path entirely, but maybe we should just leave it as is and
+turn it off, then clean it up if/when we reenable it when we add multi-order
+radix tree locking for PMDs?
+
+> Signed-off-by: Jan Kara <jack@suse.cz>
+> ---
+>  fs/dax.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 237581441bc1..42bf65b4e752 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -878,7 +878,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+>  		goto fallback;
+>  	}
+>  
+> -	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
+> +	if (!write && !buffer_mapped(&bh)) {
+>  		spinlock_t *ptl;
+>  		pmd_t entry;
+>  		struct page *zero_page = get_huge_zero_page();
+> -- 
+> 2.6.6
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
