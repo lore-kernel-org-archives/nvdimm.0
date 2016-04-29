@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C83421A201D
- for <linux-nvdimm@lists.01.org>; Thu, 14 Apr 2016 09:57:15 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 43CFC1A1F87
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 13:48:29 -0700 (PDT)
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 1/2] dax: add dax_get_unmapped_area for pmd mappings
-Date: Thu, 14 Apr 2016 10:48:30 -0600
-Message-Id: <1460652511-19636-2-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1460652511-19636-1-git-send-email-toshi.kani@hpe.com>
-References: <1460652511-19636-1-git-send-email-toshi.kani@hpe.com>
+Subject: [PATCH 2/3] ext2: Add alignment check for DAX mount
+Date: Fri, 29 Apr 2016 14:39:34 -0600
+Message-Id: <1461962375-3720-3-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1461962375-3720-1-git-send-email-toshi.kani@hpe.com>
+References: <1461962375-3720-1-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,115 +22,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, viro@zeniv.linux.org.uk
-Cc: tytso@mit.edu, linux-nvdimm@lists.01.org, jack@suse.cz, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org, kirill.shutemov@linux.intel.com
+To: dan.j.williams@intel.com, david@fromorbit.com, jack@suse.cz
+Cc: tytso@mit.edu, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When CONFIG_FS_DAX_PMD is set, DAX supports mmap() using pmd page
-size.  This feature relies on both mmap virtual address and FS
-block (i.e. physical address) to be aligned by the pmd page size.
-Users can use mkfs options to specify FS to align block allocations.
-However, aligning mmap address requires code changes to existing
-applications for providing a pmd-aligned address to mmap().
+When a partition is not aligned by 4KB, mount -o dax succeeds,
+but any read/write access to the filesystem fails, except for
+metadata update.
 
-For instance, fio with "ioengine=mmap" performs I/Os with mmap() [1].
-It calls mmap() with a NULL address, which needs to be changed to
-provide a pmd-aligned address for testing with DAX pmd mappings.
-Changing all applications that call mmap() with NULL is undesirable.
+Add alignment check to ext2_fill_super() when -o dax is specified.
 
-Add dax_get_unmapped_area(), which can be called by filesystem's
-get_unmapped_area to align an mmap address by the pmd size for
-a DAX file.  It calls the default handler, mm->get_unmapped_area(),
-to find a range and then aligns it for a DAX file.
-
-[1]: https://github.com/axboe/fio/blob/master/engines/mmap.c
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jan Kara <jack@suse.cz>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- fs/dax.c            |   43 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/dax.h |    3 +++
- 2 files changed, 46 insertions(+)
+ fs/ext2/super.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 75ba46d..f8ddd27 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1158,3 +1158,46 @@ int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
- 	return dax_zero_page_range(inode, from, length, get_block);
- }
- EXPORT_SYMBOL_GPL(dax_truncate_page);
-+
-+/**
-+ * dax_get_unmapped_area - handle get_unmapped_area for a DAX file
-+ * @filp: The file being mmap'd, if not NULL
-+ * @addr: The mmap address. If NULL, the kernel assigns the address
-+ * @len: The mmap size in bytes
-+ * @pgoff: The page offset in the file where the mapping starts from.
-+ * @flags: The mmap flags
-+ *
-+ * This function can be called by a filesystem for get_unmapped_area().
-+ * When a target file is a DAX file, it aligns the mmap address at the
-+ * beginning of the file by the pmd size.
-+ */
-+unsigned long dax_get_unmapped_area(struct file *filp, unsigned long addr,
-+		unsigned long len, unsigned long pgoff, unsigned long flags)
-+{
-+	unsigned long off, off_end, off_pmd, len_pmd, addr_pmd;
-+
-+	if (!IS_ENABLED(CONFIG_FS_DAX_PMD) ||
-+	    !filp || addr || !IS_DAX(filp->f_mapping->host))
-+		goto out;
-+
-+	off = pgoff << PAGE_SHIFT;
-+	off_end = off + len;
-+	off_pmd = round_up(off, PMD_SIZE);  /* pmd-aligned offset */
-+
-+	if ((off_end <= off_pmd) || ((off_end - off_pmd) < PMD_SIZE))
-+		goto out;
-+
-+	len_pmd = len + PMD_SIZE;
-+	if ((off + len_pmd) < off)
-+		goto out;
-+
-+	addr_pmd = current->mm->get_unmapped_area(filp, addr, len_pmd,
-+						  pgoff, flags);
-+	if (!IS_ERR_VALUE(addr_pmd)) {
-+		addr_pmd += (off - addr_pmd) & (PMD_SIZE - 1);
-+		return addr_pmd;
-+	}
-+out:
-+	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
-+}
-+EXPORT_SYMBOL_GPL(dax_get_unmapped_area);
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 636dd59..184b171 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -17,12 +17,15 @@ int __dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
- 
- #ifdef CONFIG_FS_DAX
- struct page *read_dax_sector(struct block_device *bdev, sector_t n);
-+unsigned long dax_get_unmapped_area(struct file *filp, unsigned long addr,
-+		unsigned long len, unsigned long pgoff, unsigned long flags);
- #else
- static inline struct page *read_dax_sector(struct block_device *bdev,
- 		sector_t n)
- {
- 	return ERR_PTR(-ENXIO);
- }
-+#define dax_get_unmapped_area	NULL
- #endif
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+index b78caf2..34e32d9 100644
+--- a/fs/ext2/super.c
++++ b/fs/ext2/super.c
+@@ -927,6 +927,12 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+ 					"error: unsupported blocksize for dax");
+ 			goto failed_mount;
+ 		}
++		if (sb->s_bdev->bd_part->start_sect % (PAGE_SIZE / 512) ||
++		    sb->s_bdev->bd_part->nr_sects % (PAGE_SIZE / 512)) {
++			ext2_msg(sb, KERN_ERR,
++					"error: unaligned partition for dax");
++			goto failed_mount;
++		}
+ 		if (!sb->s_bdev->bd_disk->fops->direct_access) {
+ 			ext2_msg(sb, KERN_ERR,
+ 					"error: device does not support dax");
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
