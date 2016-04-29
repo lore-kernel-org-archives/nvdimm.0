@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t4622.austin.hp.com (g2t4622.austin.hp.com [15.73.212.79])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 103B01A2169
- for <linux-nvdimm@lists.01.org>; Sun, 17 Apr 2016 16:38:58 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [RFC v9 5/5] nvdimm: Add ioctl to return command mask.
-Date: Sun, 17 Apr 2016 17:38:47 -0600
-Message-Id: <9f04df3b80c68dd6406cfee5ce11a2cd8ed33b64.1460936121.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1460936121.git.jerry.hoemann@hpe.com>
-References: <cover.1460936121.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1460936121.git.jerry.hoemann@hpe.com>
-References: <cover.1460936121.git.jerry.hoemann@hpe.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id F00551A1F89
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 16:31:54 -0700 (PDT)
+Subject: [ndctl PATCH] ndctl: add
+ ndctl_dimm_get_subsystem_{vendor|device|rev_id} apis
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 29 Apr 2016 16:31:06 -0700
+Message-ID: <146197266650.7588.13786076772465535000.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,97 +15,196 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Ryon Jensen <ryon.jensen@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pass thru calls return command mask.  Previously, bit zero
-wasn't part of command mask, but as it is now, this left commands_show
-displaying "unknown" for function zero.  Add an ioctl interface
-to return command mask.
+Similar to PCI device subsystem identifiers, these values are used by
+upper level management software.
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Reported-by: Ryon Jensen <ryon.jensen@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/bus.c       | 10 ++++++++--
- include/uapi/linux/ndctl.h |  9 +++++++++
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ lib/libndctl.c          |   48 ++++++++++++++++++++++++++++++++++++++++-------
+ lib/libndctl.sym        |    3 +++
+ lib/ndctl/libndctl.h.in |    3 +++
+ test/libndctl.c         |   19 ++++++++++++++-----
+ 4 files changed, 61 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index b133301..047c364 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -404,7 +404,10 @@ void nvdimm_bus_destroy_ndctl(struct nvdimm_bus *nvdimm_bus)
+diff --git a/lib/libndctl.c b/lib/libndctl.c
+index d33081cce8ed..b98463e90342 100644
+--- a/lib/libndctl.c
++++ b/lib/libndctl.c
+@@ -128,6 +128,9 @@ struct ndctl_dimm {
+ 	unsigned short vendor_id;
+ 	unsigned short device_id;
+ 	unsigned short revision_id;
++	unsigned short subsystem_vendor_id;
++	unsigned short subsystem_device_id;
++	unsigned short subsystem_revision_id;
+ 	unsigned long dsm_mask;
+ 	char *unique_id;
+ 	char *dimm_path;
+@@ -1245,10 +1248,13 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
+ 
+ 	dimm->handle = -1;
+ 	dimm->phys_id = -1;
+-	dimm->vendor_id = -1;
+ 	dimm->serial = -1;
++	dimm->vendor_id = -1;
+ 	dimm->device_id = -1;
+ 	dimm->revision_id = -1;
++	dimm->subsystem_vendor_id = -1;
++	dimm->subsystem_device_id = -1;
++	dimm->subsystem_revision_id = -1;
+ 	for (i = 0; i < formats; i++)
+ 		dimm->format[i] = -1;
+ 
+@@ -1276,16 +1282,14 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
+ 		goto err_read;
+ 	dimm->phys_id = strtoul(buf, NULL, 0);
+ 
+-	sprintf(path, "%s/nfit/vendor", dimm_base);
+-	if (sysfs_read_attr(ctx, path, buf) < 0)
+-		dimm->vendor_id = -1;
+-	else
+-		dimm->vendor_id = strtoul(buf, NULL, 0);
+-
+ 	sprintf(path, "%s/nfit/serial", dimm_base);
+ 	if (sysfs_read_attr(ctx, path, buf) == 0)
+ 		dimm->serial = strtoul(buf, NULL, 0);
+ 
++	sprintf(path, "%s/nfit/vendor", dimm_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		dimm->vendor_id = strtoul(buf, NULL, 0);
++
+ 	sprintf(path, "%s/nfit/device", dimm_base);
+ 	if (sysfs_read_attr(ctx, path, buf) == 0)
+ 		dimm->device_id = strtoul(buf, NULL, 0);
+@@ -1294,6 +1298,18 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
+ 	if (sysfs_read_attr(ctx, path, buf) == 0)
+ 		dimm->revision_id = strtoul(buf, NULL, 0);
+ 
++	sprintf(path, "%s/nfit/subsystem_vendor", dimm_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		dimm->subsystem_vendor_id = strtoul(buf, NULL, 0);
++
++	sprintf(path, "%s/nfit/subsystem_device", dimm_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		dimm->subsystem_device_id = strtoul(buf, NULL, 0);
++
++	sprintf(path, "%s/nfit/subsystem_rev_id", dimm_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		dimm->subsystem_revision_id = strtoul(buf, NULL, 0);
++
+ 	dimm->formats = formats;
+ 	sprintf(path, "%s/nfit/format", dimm_base);
+ 	if (sysfs_read_attr(ctx, path, buf) == 0)
+@@ -1368,6 +1384,24 @@ NDCTL_EXPORT unsigned short ndctl_dimm_get_revision(struct ndctl_dimm *dimm)
+ 	return dimm->revision_id;
  }
  
- static const struct nd_cmd_desc __nd_cmd_dimm_descs[] = {
--	[ND_CMD_IMPLEMENTED] = { },
-+	[ND_CMD_IMPLEMENTED] = {
-+		.out_num = 1,
-+		.out_sizes = { 8, },
-+	},
- 	[ND_CMD_SMART] = {
- 		.out_num = 2,
- 		.out_sizes = { 4, 128, },
-@@ -456,7 +459,10 @@ const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd)
- EXPORT_SYMBOL_GPL(nd_cmd_dimm_desc);
- 
- static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
--	[ND_CMD_IMPLEMENTED] = { },
-+	[ND_CMD_IMPLEMENTED] = {
-+		.out_num = 1,
-+		.out_sizes = { 1, },
-+	},
- 	[ND_CMD_ARS_CAP] = {
- 		.in_num = 2,
- 		.in_sizes = { 8, 8, },
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 9214af7..8c086b9 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -20,6 +20,10 @@ struct nd_cmd_smart {
- 	__u8 data[128];
- } __packed;
- 
-+struct nd_cmd_mask {
-+	__u8 data[8];
-+} __packed;
++NDCTL_EXPORT unsigned short ndctl_dimm_get_subsystem_vendor(
++		struct ndctl_dimm *dimm)
++{
++	return dimm->subsystem_vendor_id;
++}
 +
- struct nd_cmd_smart_threshold {
- 	__u32 status;
- 	__u8 data[8];
-@@ -136,6 +140,7 @@ enum {
- static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
- {
- 	static const char * const names[] = {
-+		[ND_CMD_IMPLEMENTED] = "cmd_mask",
- 		[ND_CMD_ARS_CAP] = "ars_cap",
- 		[ND_CMD_ARS_START] = "ars_start",
- 		[ND_CMD_ARS_STATUS] = "ars_status",
-@@ -150,6 +155,7 @@ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
- static inline const char *nvdimm_cmd_name(unsigned cmd)
- {
- 	static const char * const names[] = {
-+		[ND_CMD_IMPLEMENTED] = "cmd_mask",
- 		[ND_CMD_SMART] = "smart",
- 		[ND_CMD_SMART_THRESHOLD] = "smart_thresh",
- 		[ND_CMD_DIMM_FLAGS] = "flags",
-@@ -169,6 +175,9 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
- 
- #define ND_IOCTL 'N'
- 
-+#define ND_IOCTL_CMD_MASK		_IOWR(ND_IOCTL, ND_CMD_IMPLEMENTED,\
-+					struct nd_cmd_mask)
++NDCTL_EXPORT unsigned short ndctl_dimm_get_subsystem_device(
++		struct ndctl_dimm *dimm)
++{
++	return dimm->subsystem_device_id;
++}
 +
- #define ND_IOCTL_SMART			_IOWR(ND_IOCTL, ND_CMD_SMART,\
- 					struct nd_cmd_smart)
++NDCTL_EXPORT unsigned short ndctl_dimm_get_subsystem_revision(
++		struct ndctl_dimm *dimm)
++{
++	return dimm->subsystem_revision_id;
++}
++
+ NDCTL_EXPORT unsigned short ndctl_dimm_get_format(struct ndctl_dimm *dimm)
+ {
+ 	return dimm->format[0];
+diff --git a/lib/libndctl.sym b/lib/libndctl.sym
+index 06dd50a6bb15..dc9e69d637da 100644
+--- a/lib/libndctl.sym
++++ b/lib/libndctl.sym
+@@ -40,6 +40,9 @@ global:
+ 	ndctl_dimm_get_vendor;
+ 	ndctl_dimm_get_device;
+ 	ndctl_dimm_get_revision;
++	ndctl_dimm_get_subsystem_vendor;
++	ndctl_dimm_get_subsystem_device;
++	ndctl_dimm_get_subsystem_revision;
+ 	ndctl_dimm_get_format;
+ 	ndctl_dimm_get_formats;
+ 	ndctl_dimm_get_formatN;
+diff --git a/lib/ndctl/libndctl.h.in b/lib/ndctl/libndctl.h.in
+index 29845eb88843..3241e92535a5 100644
+--- a/lib/ndctl/libndctl.h.in
++++ b/lib/ndctl/libndctl.h.in
+@@ -120,6 +120,9 @@ unsigned short ndctl_dimm_get_phys_id(struct ndctl_dimm *dimm);
+ unsigned short ndctl_dimm_get_vendor(struct ndctl_dimm *dimm);
+ unsigned short ndctl_dimm_get_device(struct ndctl_dimm *dimm);
+ unsigned short ndctl_dimm_get_revision(struct ndctl_dimm *dimm);
++unsigned short ndctl_dimm_get_subsystem_vendor(struct ndctl_dimm *dimm);
++unsigned short ndctl_dimm_get_subsystem_device(struct ndctl_dimm *dimm);
++unsigned short ndctl_dimm_get_subsystem_revision(struct ndctl_dimm *dimm);
+ unsigned short ndctl_dimm_get_format(struct ndctl_dimm *dimm);
+ int ndctl_dimm_get_formats(struct ndctl_dimm *dimm);
+ int ndctl_dimm_get_formatN(struct ndctl_dimm *dimm, int i);
+diff --git a/test/libndctl.c b/test/libndctl.c
+index dcd4d509659e..fb4a2eac74f9 100644
+--- a/test/libndctl.c
++++ b/test/libndctl.c
+@@ -116,6 +116,7 @@ static const char *NFIT_PROVIDER1 = "nfit_test.1";
+ struct dimm {
+ 	unsigned int handle;
+ 	unsigned int phys_id;
++	unsigned int subsystem_vendor;
+ 	union {
+ 		unsigned long flags;
+ 		struct {
+@@ -134,15 +135,15 @@ struct dimm {
+ 	(((n & 0xfff) << 16) | ((s & 0xf) << 12) | ((i & 0xf) << 8) \
+ 	 | ((c & 0xf) << 4) | (d & 0xf))
+ static struct dimm dimms0[] = {
+-	{ DIMM_HANDLE(0, 0, 0, 0, 0), 0, { 0 }, 2, { 0x201, 0x301, }, },
+-	{ DIMM_HANDLE(0, 0, 0, 0, 1), 1, { 0 }, 2, { 0x201, 0x301, }, },
+-	{ DIMM_HANDLE(0, 0, 1, 0, 0), 2, { 0 }, 2, { 0x201, 0x301, }, },
+-	{ DIMM_HANDLE(0, 0, 1, 0, 1), 3, { 0 }, 2, { 0x201, 0x301, }, },
++	{ DIMM_HANDLE(0, 0, 0, 0, 0), 0, 0, { 0 }, 2, { 0x201, 0x301, }, },
++	{ DIMM_HANDLE(0, 0, 0, 0, 1), 1, 0, { 0 }, 2, { 0x201, 0x301, }, },
++	{ DIMM_HANDLE(0, 0, 1, 0, 0), 2, 0, { 0 }, 2, { 0x201, 0x301, }, },
++	{ DIMM_HANDLE(0, 0, 1, 0, 1), 3, 0, { 0 }, 2, { 0x201, 0x301, }, },
+ };
  
--- 
-1.7.11.3
+ static struct dimm dimms1[] = {
+ 	{
+-		DIMM_HANDLE(0, 0, 0, 0, 0), 0, {
++		DIMM_HANDLE(0, 0, 0, 0, 0), 0, 0, {
+ 			.f_arm = 1,
+ 			.f_save = 1,
+ 			.f_flush = 1,
+@@ -2052,6 +2053,14 @@ static int check_dimms(struct ndctl_bus *bus, struct dimm *dimms, int n,
+ 			}
+ 		}
+ 
++		if (ndctl_dimm_get_subsystem_vendor(dimm)
++				!= dimms[i].subsystem_vendor) {
++			fprintf(stderr, "dimm%d expected subsystem vendor: %d got: %d\n",
++					i, dimms[i].subsystem_vendor,
++					ndctl_dimm_get_subsystem_vendor(dimm));
++			return -ENXIO;
++		}
++
+ 		rc = check_commands(bus, dimm, bus_commands, dimm_commands, test);
+ 		if (rc)
+ 			return rc;
 
 _______________________________________________
 Linux-nvdimm mailing list
