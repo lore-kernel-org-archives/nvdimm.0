@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3425.houston.hp.com (g4t3425.houston.hp.com [15.201.208.53])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D62301A1EE5
- for <linux-nvdimm@lists.01.org>; Mon, 25 Apr 2016 14:43:44 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 0/2] Support ACPI 6.1 update in NFIT Control Region
- Structure
-Date: Mon, 25 Apr 2016 15:34:57 -0600
-Message-Id: <1461620099-11933-1-git-send-email-toshi.kani@hpe.com>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 1BB481A1F82
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 11:56:09 -0700 (PDT)
+Date: Fri, 29 Apr 2016 12:56:08 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 09/18] dax: Remove zeroing from dax_io()
+Message-ID: <20160429185608.GD5888@linux.intel.com>
+References: <1461015341-20153-1-git-send-email-jack@suse.cz>
+ <1461015341-20153-10-git-send-email-jack@suse.cz>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1461015341-20153-10-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,49 +18,23 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, robert.moore@intel.com, linux-nvdimm@lists.01.org
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.1, Table 5-133, updates NVDIMM Control Region Structure as
-follows.
- - Valid Fields, Manufacturing Location, and Manufacturing Date
-   are added from reserved range.  No change in the structure size.
- - IDs (SPD values) are stored as arrays of bytes (i.e. big-endian
-   format).  The spec clarifies that they need to be represented
-   as arrays of bytes as well.
+On Mon, Apr 18, 2016 at 11:35:32PM +0200, Jan Kara wrote:
+> All the filesystems are now zeroing blocks themselves for DAX IO to avoid
+> races between dax_io() and dax_fault(). Remove the zeroing code from
+> dax_io() and add warning to catch the case when somebody unexpectedly
+> returns new or unwritten buffer.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-Patch 1 changes the NFIT driver to comply with ACPI 6.1.
-Patch 2 adds a new sysfs file "id" to show NVDIMM ID defined in ACPI 6.1.
-
-The patch-set applies on linux-pm.git acpica.
-
-link: http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf
-
----
-v3:
- - Need to coordinate with ACPICA update (Bob Moore, Dan Williams)
- - Integrate with ACPICA changes in struct acpi_nfit_control_region.
-   (commit 138a95547ab0)
-
-v2:
- - Remove 'mfg_location' and 'mfg_date'. (Dan Williams)
- - Rename 'unique_id' to 'id' and make this change as a separate patch.
-   (Dan Williams)
-
----
-Toshi Kani (3):
- 1/2 acpi/nfit: Update nfit driver to comply with ACPI 6.1
- 2/3 acpi/nfit: Add sysfs "id" for NVDIMM ID
-
----
- drivers/acpi/nfit.c | 29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
