@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x22c.google.com (mail-oi0-x22c.google.com
- [IPv6:2607:f8b0:4003:c06::22c])
+Received: from mail-ob0-x233.google.com (mail-ob0-x233.google.com
+ [IPv6:2607:f8b0:4003:c01::233])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E81E71A1F8C
- for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 17:12:39 -0700 (PDT)
-Received: by mail-oi0-x22c.google.com with SMTP id x201so136399957oif.3
- for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 17:12:39 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id B84211A1E93
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 17:04:25 -0700 (PDT)
+Received: by mail-ob0-x233.google.com with SMTP id bg3so63520554obb.1
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 17:04:25 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <5723EFEE.9060200@hpe.com>
+In-Reply-To: <1461974599.11211.6.camel@kernel.org>
 References: <5723EFEE.9060200@hpe.com>
-Date: Fri, 29 Apr 2016 17:12:38 -0700
-Message-ID: <CAPcyv4ga02=z-MJDQM2pER=cuwtEk6qaLLG5++p9fs-qQuvr8g@mail.gmail.com>
+	<1461974599.11211.6.camel@kernel.org>
+Date: Fri, 29 Apr 2016 17:04:24 -0700
+Message-ID: <CAPcyv4hK2m+6HTHCWkgLEanTwwa9jQ2a+jrbx3UrtrMAs1LrAg@mail.gmail.com>
 Subject: Re: acpi_nfit_query_poison() broken on non-ARS systems
 From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -25,104 +26,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Linda Knippers <linda.knippers@hpe.com>
+To: Vishal Verma <vishal@kernel.org>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Apr 29, 2016 at 4:36 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
-> I tested Vishal's original ARS patches and they worked correctly on my test
-> system, which doesn't support ARS.  By worked correctly, I mean that they
-> properly looked at the status of the Query ARS Capabilities function and saw
-> that it indicated that the function is not supported.  The original code
-> skipped the rest of the ARS processing.
-
-Why doesn't the firmware just not export the ARS function in the
-supported functions list?
-
-We should still fix this bug, but the whole "implement a function to
-say this function is not implemented" seems a bit of a waste.
-
-> The code I tested has been re-worked a number of times and now it no longer
-> looks at the status of the Query function.  It assumes that if the DSM worked
-> at all, it must be ok and happily uses fields that is shouldn't be looking at.
+On Fri, Apr 29, 2016 at 5:03 PM, Vishal Verma <vishal@kernel.org> wrote:
+> On Fri, 2016-04-29 at 19:36 -0400, Linda Knippers wrote:
 >
-> If you look here:
->
->> static int acpi_nfit_query_poison(struct acpi_nfit_desc *acpi_desc,
->>                 struct nfit_spa *nfit_spa)
->> {
->>         struct acpi_nfit_system_address *spa = nfit_spa->spa;
->>         int rc;
+> [snip]
 >>
->>         if (!nfit_spa->max_ars) {
->
-> On a platform that doesn't support ARS, max_ars will always be zero
-> so you'll keep executing this code when it seems like you're trying
-> to avoid that.
->
->>                 struct nd_cmd_ars_cap ars_cap;
+>> > static int acpi_nfit_query_poison(struct acpi_nfit_desc *acpi_desc,
+>> >                 struct nfit_spa *nfit_spa)
+>> > {
+>> >         struct acpi_nfit_system_address *spa = nfit_spa->spa;
+>> >         int rc;
+>> >
+>> >         if (!nfit_spa->max_ars) {
+>> On a platform that doesn't support ARS, max_ars will always be zero
+>> so you'll keep executing this code when it seems like you're trying
+>> to avoid that.
 >>
->>                 memset(&ars_cap, 0, sizeof(ars_cap));
->>                 rc = ars_get_cap(acpi_desc, &ars_cap, nfit_spa);
->>                 if (rc < 0)
->>                         return rc;
+>> >
+>> >                 struct nd_cmd_ars_cap ars_cap;
+>> >
+>> >                 memset(&ars_cap, 0, sizeof(ars_cap));
+>> >                 rc = ars_get_cap(acpi_desc, &ars_cap, nfit_spa);
+>> >                 if (rc < 0)
+>> >                         return rc;
+>> The call succeeds so this return isn't taken, but then the code
+>> assumes
+>> everything is good.  It should check ars_cap.status so see if the
+>> function
+>> is supported or if there was an error and return something
+>> appropriate.
+>> In previous version of the code, that's what acpi_nfit_find_poison()
+>> did.
+>> Instead, this function continues, using data that's not right and
+>> making
+>> more calls that also aren't supported.
 >
-> The call succeeds so this return isn't taken, but then the code assumes
-> everything is good.  It should check ars_cap.status so see if the function
-> is supported or if there was an error and return something appropriate.
-> In previous version of the code, that's what acpi_nfit_find_poison() did.
-> Instead, this function continues, using data that's not right and making
-> more calls that also aren't supported.
+> Good point - I think we should add a check here and make sure ARS is
+> supported using the status field. I can work on a patch. Thanks for the
+> report!
 
-Hmm, we should be bailing on any non-zero status, why is that getting skipped?
+...but we do, or are supposed to, fail on any non-zero status:
 
                 /* Command failed */
                 if (ars_cap->status & 0xffff)
                         return -EIO;
-
->
->>                 nfit_spa->max_ars = ars_cap.max_ars_out;
->>                 nfit_spa->clear_err_unit = ars_cap.clear_err_unit;
->
-> Since we don't bail out, the above values are zero but not actually checked
-> by subsequent users.
->
->>                 /* check that the supported scrub types match the spa type */
->>                 if (nfit_spa_type(spa) == NFIT_SPA_VOLATILE &&
->>                                 ((ars_cap.status >> 16) & ND_ARS_VOLATILE) == 0)
->>                         return -ENOTTY;
->>                 else if (nfit_spa_type(spa) == NFIT_SPA_PM &&
->>                                 ((ars_cap.status >> 16) & ND_ARS_PERSISTENT) == 0)
->>                         return -ENOTTY;
->>         }
->>
->>         if (ars_status_alloc(acpi_desc, nfit_spa->max_ars))
->>                 return -ENOMEM;
->>
->>         rc = ars_get_status(acpi_desc);
->>         if (rc < 0 && rc != -ENOSPC)
->>                 return rc;
->>
->>         if (ars_status_process_records(acpi_desc->nvdimm_bus,
->>                                 acpi_desc->ars_status))
->>                 return -ENOMEM;
->>
->>         return 0;
->> }
->
-> I don't know if you want to change how this function works or change how
-> ars_get_cap works but something needs to change.  You actually do check the
-> status in xlat_status() if the call was initiated from user space but you don't
-> check when it's initiated from within the kernel.
-
-Hmm, why do you say that? xlat_status() only gets skipped if the
-output buffer is underrun and in that case the underrun should trigger
--ENXIO to be returned.
-
-> For reference, below is the dmesg output from my system running the latest
-> upstream kernel.
-
-Can you add some debug tracing to xlat_status()?  Something is not lining up.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
