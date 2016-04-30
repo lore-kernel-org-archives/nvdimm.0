@@ -1,20 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ob0-x233.google.com (mail-ob0-x233.google.com
- [IPv6:2607:f8b0:4003:c01::233])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B84211A1E93
- for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 17:04:25 -0700 (PDT)
-Received: by mail-ob0-x233.google.com with SMTP id bg3so63520554obb.1
- for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 17:04:25 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1461974599.11211.6.camel@kernel.org>
-References: <5723EFEE.9060200@hpe.com>
-	<1461974599.11211.6.camel@kernel.org>
-Date: Fri, 29 Apr 2016 17:04:24 -0700
-Message-ID: <CAPcyv4hK2m+6HTHCWkgLEanTwwa9jQ2a+jrbx3UrtrMAs1LrAg@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 23BEB1A1F8C
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 17:03:22 -0700 (PDT)
+Message-ID: <1461974599.11211.6.camel@kernel.org>
 Subject: Re: acpi_nfit_query_poison() broken on non-ARS systems
-From: Dan Williams <dan.j.williams@intel.com>
+From: Vishal Verma <vishal@kernel.org>
+Date: Fri, 29 Apr 2016 18:03:19 -0600
+In-Reply-To: <5723EFEE.9060200@hpe.com>
+References: <5723EFEE.9060200@hpe.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,59 +18,40 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal@kernel.org>
+To: Linda Knippers <linda.knippers@hpe.com>, "Williams, Dan J" <dan.j.williams@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Apr 29, 2016 at 5:03 PM, Vishal Verma <vishal@kernel.org> wrote:
-> On Fri, 2016-04-29 at 19:36 -0400, Linda Knippers wrote:
->
-> [snip]
->>
->> > static int acpi_nfit_query_poison(struct acpi_nfit_desc *acpi_desc,
->> >                 struct nfit_spa *nfit_spa)
->> > {
->> >         struct acpi_nfit_system_address *spa = nfit_spa->spa;
->> >         int rc;
->> >
->> >         if (!nfit_spa->max_ars) {
->> On a platform that doesn't support ARS, max_ars will always be zero
->> so you'll keep executing this code when it seems like you're trying
->> to avoid that.
->>
->> >
->> >                 struct nd_cmd_ars_cap ars_cap;
->> >
->> >                 memset(&ars_cap, 0, sizeof(ars_cap));
->> >                 rc = ars_get_cap(acpi_desc, &ars_cap, nfit_spa);
->> >                 if (rc < 0)
->> >                         return rc;
->> The call succeeds so this return isn't taken, but then the code
->> assumes
->> everything is good.  It should check ars_cap.status so see if the
->> function
->> is supported or if there was an error and return something
->> appropriate.
->> In previous version of the code, that's what acpi_nfit_find_poison()
->> did.
->> Instead, this function continues, using data that's not right and
->> making
->> more calls that also aren't supported.
->
-> Good point - I think we should add a check here and make sure ARS is
-> supported using the status field. I can work on a patch. Thanks for the
-> report!
-
-...but we do, or are supposed to, fail on any non-zero status:
-
-                /* Command failed */
-                if (ars_cap->status & 0xffff)
-                        return -EIO;
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCAyMDE2LTA0LTI5IGF0IDE5OjM2IC0wNDAwLCBMaW5kYSBLbmlwcGVycyB3cm90ZToK
+CltzbmlwXQo+wqAKPiA+IHN0YXRpYyBpbnQgYWNwaV9uZml0X3F1ZXJ5X3BvaXNvbihzdHJ1Y3Qg
+YWNwaV9uZml0X2Rlc2MgKmFjcGlfZGVzYywKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgc3RydWN0IG5maXRfc3BhICpuZml0X3NwYSkKPiA+IHsKPiA+IMKgwqDCoMKgwqDCoMKg
+wqBzdHJ1Y3QgYWNwaV9uZml0X3N5c3RlbV9hZGRyZXNzICpzcGEgPSBuZml0X3NwYS0+c3BhOwo+
+ID4gwqDCoMKgwqDCoMKgwqDCoGludCByYzsKPiA+IAo+ID4gwqDCoMKgwqDCoMKgwqDCoGlmICgh
+bmZpdF9zcGEtPm1heF9hcnMpIHsKPiBPbiBhIHBsYXRmb3JtIHRoYXQgZG9lc24ndCBzdXBwb3J0
+IEFSUywgbWF4X2FycyB3aWxsIGFsd2F5cyBiZSB6ZXJvCj4gc28geW91J2xsIGtlZXAgZXhlY3V0
+aW5nIHRoaXMgY29kZSB3aGVuIGl0IHNlZW1zIGxpa2UgeW91J3JlIHRyeWluZwo+IHRvIGF2b2lk
+IHRoYXQuCj4gCj4gPiAKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgc3RydWN0
+IG5kX2NtZF9hcnNfY2FwIGFyc19jYXA7Cj4gPiAKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgbWVtc2V0KCZhcnNfY2FwLCAwLCBzaXplb2YoYXJzX2NhcCkpOwo+ID4gwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYyA9IGFyc19nZXRfY2FwKGFjcGlfZGVzYywgJmFy
+c19jYXAsIG5maXRfc3BhKTsKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgaWYg
+KHJjIDwgMCkKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoHJldHVybiByYzsKPiBUaGUgY2FsbCBzdWNjZWVkcyBzbyB0aGlzIHJldHVybiBpc24ndCB0
+YWtlbiwgYnV0IHRoZW4gdGhlIGNvZGUKPiBhc3N1bWVzCj4gZXZlcnl0aGluZyBpcyBnb29kLsKg
+wqBJdCBzaG91bGQgY2hlY2sgYXJzX2NhcC5zdGF0dXMgc28gc2VlIGlmIHRoZQo+IGZ1bmN0aW9u
+Cj4gaXMgc3VwcG9ydGVkIG9yIGlmIHRoZXJlIHdhcyBhbiBlcnJvciBhbmQgcmV0dXJuIHNvbWV0
+aGluZwo+IGFwcHJvcHJpYXRlLgo+IEluIHByZXZpb3VzIHZlcnNpb24gb2YgdGhlIGNvZGUsIHRo
+YXQncyB3aGF0IGFjcGlfbmZpdF9maW5kX3BvaXNvbigpCj4gZGlkLgo+IEluc3RlYWQsIHRoaXMg
+ZnVuY3Rpb24gY29udGludWVzLCB1c2luZyBkYXRhIHRoYXQncyBub3QgcmlnaHQgYW5kCj4gbWFr
+aW5nCj4gbW9yZSBjYWxscyB0aGF0IGFsc28gYXJlbid0IHN1cHBvcnRlZC4KCkdvb2QgcG9pbnQg
+LSBJIHRoaW5rIHdlIHNob3VsZCBhZGQgYSBjaGVjayBoZXJlIGFuZCBtYWtlIHN1cmUgQVJTIGlz
+CnN1cHBvcnRlZCB1c2luZyB0aGUgc3RhdHVzIGZpZWxkLiBJIGNhbiB3b3JrIG9uIGEgcGF0Y2gu
+IFRoYW5rcyBmb3IgdGhlCnJlcG9ydCEKCgktVmlzaGFsCgoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51
+eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbGludXgtbnZkaW1tCg==
