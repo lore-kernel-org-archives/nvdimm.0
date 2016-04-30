@@ -1,14 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 904591A1E98
- for <linux-nvdimm@lists.01.org>; Fri, 29 Apr 2016 14:56:06 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v4 8/7] Documentation: add error handling information to
- dax.txt
-Date: Fri, 29 Apr 2016 15:55:42 -0600
-Message-Id: <1461966942-21205-1-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
-References: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTP id 5BBB01A1F86
+ for <linux-nvdimm@lists.01.org>; Sat, 30 Apr 2016 14:03:12 -0700 (PDT)
+Subject: [PATCH] libnvdimm, pfn: fix memmap reservation sizing
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 30 Apr 2016 14:02:23 -0700
+Message-ID: <146205014370.20579.17366708223180896686.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,77 +14,70 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <matthew@wil.cx>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@infradead.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+Cc: Namratha Kothapalli <namratha.n.kothapalli@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This just provides information of the basic paths that can be used to
-deal with (i.e. clear) media errors from the file system point-of-view.
+When configuring a pfn-device instance to allocate the memmap array it
+needs to account for the fact that vmemmap_populate_hugepages()
+allocates struct page blocks in HPAGE_SIZE chunks.  We need to align the
+reserved area size to 2MB otherwise arch_add_memory() runs out of memory
+while establishing the memmap:
 
-Cc: Dave Chinner <david@fromorbit.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+ WARNING: CPU: 0 PID: 496 at arch/x86/mm/init_64.c:704 arch_add_memory+0xe7/0xf0
+ [..]
+ Call Trace:
+  [<ffffffff8148bdb3>] dump_stack+0x85/0xc2
+  [<ffffffff810a749b>] __warn+0xcb/0xf0
+  [<ffffffff810a75cd>] warn_slowpath_null+0x1d/0x20
+  [<ffffffff8106a497>] arch_add_memory+0xe7/0xf0
+  [<ffffffff811d2097>] devm_memremap_pages+0x287/0x450
+  [<ffffffff811d1ffa>] ? devm_memremap_pages+0x1ea/0x450
+  [<ffffffffa0000298>] __wrap_devm_memremap_pages+0x58/0x70 [nfit_test_iomap]
+  [<ffffffffa0047a58>] pmem_attach_disk+0x318/0x420 [nd_pmem]
+  [<ffffffffa0047bcf>] nd_pmem_probe+0x6f/0x90 [nd_pmem]
+  [<ffffffffa0009469>] nvdimm_bus_probe+0x69/0x110 [libnvdimm]
+ [..]
+  ndbus0: nd_pmem.probe(pfn3.0) = -12
+ nd_pmem: probe of pfn3.0 failed with error -12
+libndctl: ndctl_pfn_enable: pfn3.0: failed to enable
+
+Reported-by: Namratha Kothapalli <namratha.n.kothapalli@intel.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/nvdimm/pmem.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-While this isn't a design document for new mechanisms for adding
-error recovery/redundancy at the block/fs layers, this attempts to
-explain the bare essentials required for anything operating above
-the pmem block driver in the stack.
-
- Documentation/filesystems/dax.txt | 34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
-
-diff --git a/Documentation/filesystems/dax.txt b/Documentation/filesystems/dax.txt
-index 7bde640..71cd8fa 100644
---- a/Documentation/filesystems/dax.txt
-+++ b/Documentation/filesystems/dax.txt
-@@ -79,6 +79,40 @@ These filesystems may be used for inspiration:
- - ext4: the fourth extended filesystem, see Documentation/filesystems/ext4.txt
- 
- 
-+Handling Media Errors
-+---------------------
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index f798899338ed..5101f3ab4f29 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -397,10 +397,17 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	 */
+ 	start += start_pad;
+ 	npfns = (pmem->size - start_pad - end_trunc - SZ_8K) / SZ_4K;
+-	if (nd_pfn->mode == PFN_MODE_PMEM)
+-		offset = ALIGN(start + SZ_8K + 64 * npfns, nd_pfn->align)
++	if (nd_pfn->mode == PFN_MODE_PMEM) {
++		unsigned long memmap_size;
 +
-+The libnvdimm subsystem stores a record of known media error locations for
-+each pmem block device (in gendisk->badblocks). If we fault at such location,
-+or one with a latent error not yet discovered, the application can expect
-+to receive a SIGBUS. Libnvdimm also allows clearing of these errors by simply
-+writing the affected sectors (through the pmem driver, and if the underlying
-+NVDIMM supports the clear_poison DSM defined by ACPI).
-+
-+Since DAX IO normally doesn't go through the driver/bio path, applications or
-+sysadmins have an option to restore the lost data from a prior backup/inbuilt
-+redundancy in the following two ways:
-+
-+1. Delete the affected file, and restore from a backup (sysadmin route):
-+   This will free the file system blocks that were being used by the file,
-+   and the next time they're allocated, they will be zeroed first, which
-+   happens through the driver, and will clear bad sectors.
-+
-+2. Open the file with O_DIRECT, and restore a sector's worth of data at the
-+   bad location (application route):
-+   We allow O_DIRECT writes to go through the normal O_DIRECT path that sends
-+   bios down through the driver. If an application is able to restore its own
-+   data, it can use this path to clear errors.
-+
-+These are the two basic paths that allow DAX filesystems to continue operating
-+in the presence of media errors. More robust error recovery mechanisms can be
-+built on top of this in the future, for example, involving redundancy/mirroring
-+provided at the block layer through DM, or additionally, at the filesystem
-+level. These would have to rely on the above two tenets, that error clearing
-+can happen either by sending an IO through the driver, or zeroing (also through
-+the driver).
-+
-+
- Shortcomings
- ------------
- 
--- 
-2.5.5
++		/*
++		 * vmemmap_populate_hugepages() allocates the memmap array in
++		 * HPAGE_SIZE chunks.
++		 */
++		memmap_size = ALIGN(64 * npfns, HPAGE_SIZE);
++		offset = ALIGN(start + SZ_8K + memmap_size, nd_pfn->align)
+ 			- start;
+-	else if (nd_pfn->mode == PFN_MODE_RAM)
++	} else if (nd_pfn->mode == PFN_MODE_RAM)
+ 		offset = ALIGN(start + SZ_8K, nd_pfn->align) - start;
+ 	else
+ 		goto err;
 
 _______________________________________________
 Linux-nvdimm mailing list
