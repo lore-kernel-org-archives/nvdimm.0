@@ -1,21 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x232.google.com (mail-oi0-x232.google.com
- [IPv6:2607:f8b0:4003:c06::232])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g2t4618.austin.hp.com (g2t4618.austin.hp.com [15.73.212.83])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 29DAB1A1E89
- for <linux-nvdimm@lists.01.org>; Sun,  1 May 2016 17:33:33 -0700 (PDT)
-Received: by mail-oi0-x232.google.com with SMTP id x19so174019118oix.2
- for <linux-nvdimm@lists.01.org>; Sun, 01 May 2016 17:33:33 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <57265CA5.8040503@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id D29671A1E35
+ for <linux-nvdimm@lists.01.org>; Sun,  1 May 2016 12:44:39 -0700 (PDT)
+Subject: Re: acpi_nfit_query_poison() broken on non-ARS systems
 References: <5723EFEE.9060200@hpe.com>
  <CAPcyv4ga02=z-MJDQM2pER=cuwtEk6qaLLG5++p9fs-qQuvr8g@mail.gmail.com>
- <5726400D.10700@hpe.com> <57265CA5.8040503@hpe.com>
-Date: Sun, 1 May 2016 17:33:32 -0700
-Message-ID: <CAPcyv4g6431bUPLq3RpmoukHDeR3-n93FE=p85yhrC+gskYdjw@mail.gmail.com>
-Subject: Re: acpi_nfit_query_poison() broken on non-ARS systems
-From: Dan Williams <dan.j.williams@intel.com>
+ <5726400D.10700@hpe.com>
+From: Linda Knippers <linda.knippers@hpe.com>
+Message-ID: <57265CA5.8040503@hpe.com>
+Date: Sun, 1 May 2016 15:44:37 -0400
+MIME-Version: 1.0
+In-Reply-To: <5726400D.10700@hpe.com>
+Content-Type: multipart/mixed; boundary="------------040406070805030303060005"
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,66 +21,175 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Linda Knippers <linda.knippers@hpe.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun, May 1, 2016 at 12:44 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
->
->
-> On 5/1/2016 1:42 PM, Linda Knippers wrote:
-> <snip>
->>>
->>> Can you add some debug tracing to xlat_status()?  Something is not lining up.
->
-> I put a printk at the top of xlat_status() as well as in each case statement.
+This is a multi-part message in MIME format.
+--------------040406070805030303060005
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+
+
+On 5/1/2016 1:42 PM, Linda Knippers wrote:
+<snip>
 >>
->> xlat_status() is not called from acpi_nfit_query_poison(), which is called at
->> boot time.  Not sure if we're getting there from acpi_nfit_scrub() or
->> acpi_nfit_async_scrub().
->
-> Ok, it actually is being called, but only for the start command.  See attached.
->
-> BTW, this is with your rewrite of Jerry's patches but I saw the same
-> behavior before I applied them as that's what the previous dmesg output
-> was from.
->
-> One thing you'll notice in this new dmesg output is that unlike before,
-> the acpi_nfit_ctl() function prints the DSM number, not the DSM name,
-> when displaying the input. It prints the DSM name when displaying the
-> output.
->
+>> Can you add some debug tracing to xlat_status()?  Something is not lining up.
 
-Found it.  This is one of those brown-paper-bag bugs that tells me I
-need to figure out a way to unit/regression test the interface between
-acpi_nfit_ctl() and acpi_evalaute_dsm().  In this case I injected a
-__wrap_acpi_evaulate_dsm(), but I can't ship it as a new test in
-nfit_test because it relies on an enabled BIOS for all the other
-cases.
+I put a printk at the top of xlat_status() as well as in each case statement.
+> 
+> xlat_status() is not called from acpi_nfit_query_poison(), which is called at
+> boot time.  Not sure if we're getting there from acpi_nfit_scrub() or
+> acpi_nfit_async_scrub().
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index d0f35e63640b..24ef312fdba3 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -287,8 +288,11 @@ static int acpi_nfit_ctl(struct
-nvdimm_bus_descriptor *nd_desc,
-                                        offset);
-                        rc = -ENXIO;
-                }
--       } else
-+       } else {
-                rc = 0;
-+               if (cmd_rc)
-+                       *cmd_rc = xlat_status(buf, cmd);
-+       }
+Ok, it actually is being called, but only for the start command.  See attached.
 
-  out:
-        ACPI_FREE(out_obj);
+BTW, this is with your rewrite of Jerry's patches but I saw the same
+behavior before I applied them as that's what the previous dmesg output
+was from.
+
+One thing you'll notice in this new dmesg output is that unlike before,
+the acpi_nfit_ctl() function prints the DSM number, not the DSM name,
+when displaying the input. It prints the DSM name when displaying the
+output.
+
+-- ljk
+> 
+> -- ljk
+> 
+
+--------------040406070805030303060005
+Content-Type: text/plain; charset=UTF-8;
+ name="ars_debug.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="ars_debug.txt"
+
+WyAgIDMzLjc3MDEwNF0gbmZpdCBBQ1BJMDAxMjowMDogYWRkX3NwYTogc3BhIGluZGV4OiAx
+IHR5cGU6IHBtZW0KWyAgIDMzLjc3MDEwN10gbmZpdCBBQ1BJMDAxMjowMDogYWRkX21lbWRl
+djogbWVtZGV2IGhhbmRsZTogMHgxMCBzcGE6IDEgZGNyOiAxClsgICAzMy43NzAxMDldIG5m
+aXQgQUNQSTAwMTI6MDA6IGFkZF9kY3I6IGRjciBpbmRleDogMSB3aW5kb3dzOiAwClsgICAz
+My43NzAxMTFdIG5maXQgQUNQSTAwMTI6MDA6IGFkZF9zcGE6IHNwYSBpbmRleDogMiB0eXBl
+OiBwbWVtClsgICAzMy43NzAxMTNdIG5maXQgQUNQSTAwMTI6MDA6IGFkZF9tZW1kZXY6IG1l
+bWRldiBoYW5kbGU6IDB4MTIwIHNwYTogMiBkY3I6IDIKWyAgIDMzLjc3MDExNV0gbmZpdCBB
+Q1BJMDAxMjowMDogYWRkX2RjcjogZGNyIGluZGV4OiAyIHdpbmRvd3M6IDAKWyAgIDMzLjc3
+MDExNl0gbmZpdCBBQ1BJMDAxMjowMDogYWRkX3NwYTogc3BhIGluZGV4OiAzIHR5cGU6IHBt
+ZW0KWyAgIDMzLjc3MDExOF0gbmZpdCBBQ1BJMDAxMjowMDogYWRkX21lbWRldjogbWVtZGV2
+IGhhbmRsZTogMHgxMDEwIHNwYTogMyBkY3I6IDMKWyAgIDMzLjc3MDEyMF0gbmZpdCBBQ1BJ
+MDAxMjowMDogYWRkX2RjcjogZGNyIGluZGV4OiAzIHdpbmRvd3M6IDAKWyAgIDMzLjc3MDEy
+Ml0gbmZpdCBBQ1BJMDAxMjowMDogYWRkX3NwYTogc3BhIGluZGV4OiA0IHR5cGU6IHBtZW0K
+WyAgIDMzLjc3MDEyM10gbmZpdCBBQ1BJMDAxMjowMDogYWRkX21lbWRldjogbWVtZGV2IGhh
+bmRsZTogMHgxMTIwIHNwYTogNCBkY3I6IDQKWyAgIDMzLjc3MDEyNV0gbmZpdCBBQ1BJMDAx
+MjowMDogYWRkX2RjcjogZGNyIGluZGV4OiA0IHdpbmRvd3M6IDAKWyAgIDMzLjc3MTcxOV0g
+bnZkaW1tIG5tZW0wOiBudmRpbW1faW5pdF9uc2FyZWEgW2xpYm52ZGltbV06IHZhbGlkYXRl
+X2RpbW0gZXJyb3I6IC02ClsgICAzMy43NzE3MjFdIG52ZGltbSBubWVtMDogbnZkaW1tX2Ry
+dmRhdGFfcmVsZWFzZQpbICAgMzMuNzcxNzI0XSAgbmRidXMwOiBudmRpbW0ucHJvYmUobm1l
+bTApID0gLTYKWyAgIDMzLjc3MjIyOV0gbnZkaW1tIG5tZW0xOiBudmRpbW1faW5pdF9uc2Fy
+ZWEgW2xpYm52ZGltbV06IHZhbGlkYXRlX2RpbW0gZXJyb3I6IC02ClsgICAzMy43NzIyMzBd
+IG52ZGltbSBubWVtMTogbnZkaW1tX2RydmRhdGFfcmVsZWFzZQpbICAgMzMuNzcyMjMyXSAg
+bmRidXMwOiBudmRpbW0ucHJvYmUobm1lbTEpID0gLTYKWyAgIDMzLjc3MzEzNV0gbnZkaW1t
+IG5tZW0yOiBudmRpbW1faW5pdF9uc2FyZWEgW2xpYm52ZGltbV06IHZhbGlkYXRlX2RpbW0g
+ZXJyb3I6IC02ClsgICAzMy43NzMxMzZdIG52ZGltbSBubWVtMjogbnZkaW1tX2RydmRhdGFf
+cmVsZWFzZQpbICAgMzMuNzczMTM4XSAgbmRidXMwOiBudmRpbW0ucHJvYmUobm1lbTIpID0g
+LTYKWyAgIDMzLjc3NDA4NF0gbnZkaW1tIG5tZW0zOiBudmRpbW1faW5pdF9uc2FyZWEgW2xp
+Ym52ZGltbV06IHZhbGlkYXRlX2RpbW0gZXJyb3I6IC02ClsgICAzMy43NzQwODZdIG52ZGlt
+bSBubWVtMzogbnZkaW1tX2RydmRhdGFfcmVsZWFzZQpbICAgMzMuNzc0MDg3XSAgbmRidXMw
+OiBudmRpbW0ucHJvYmUobm1lbTMpID0gLTYKWyAgIDMzLjc3NDEwMV0gIG5kYnVzMDogbnZk
+aW1tX2J1c19jaGVja19kaW1tX2NvdW50OiBjb3VudDogNApbICAgMzMuNzc0MTE1XSBuZml0
+IEFDUEkwMDEyOjAwOiBhY3BpX25maXRfY3RsOmJ1cyBjbWQ6IDE6IGZ1bmM6IDEgaW5wdXQg
+bGVuZ3RoOiAxNgpbICAgMzMuNzc0MTE5XSBudmRpbW0gaW4gIDAwMDAwMDAwOiA4MDAwMDAw
+MCAwMDAwMDAwNCAwMDAwMDAwMCAwMDAwMDAwMiAgLi4uLi4uLi4uLi4uLi4uLgpbICAgMzMu
+Nzc0MzA2XSBuZml0IEFDUEkwMDEyOjAwOiBhY3BpX25maXRfY3RsOmJ1cyBjbWQ6IGFyc19j
+YXAgb3V0cHV0IGxlbmd0aDogMTYKWyAgIDMzLjc3NDMwOV0gYXJzX2NhcDAwMDAwMDAwOiAw
+MDAwMDAwMSAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAgLi4uLi4uLi4uLi4uLi4uLgpb
+ICAgMzMuNzc0MzQ3XSBuZml0IEFDUEkwMDEyOjAwOiBhY3BpX25maXRfY3RsOmJ1cyBjbWQ6
+IDE6IGZ1bmM6IDEgaW5wdXQgbGVuZ3RoOiAxNgpbICAgMzMuNzc0MzUwXSBudmRpbW0gaW4g
+IDAwMDAwMDAwOiA4MDAwMDAwMCAwMDAwMDAwNiAwMDAwMDAwMCAwMDAwMDAwMiAgLi4uLi4u
+Li4uLi4uLi4uLgpbICAgMzMuNzc0NDE2XSAgbmRidXMwOiBuZF9yZWdpb24ucHJvYmUocmVn
+aW9uMCkgPSAwClsgICAzMy43NzQ1MDFdIG5maXQgQUNQSTAwMTI6MDA6IGFjcGlfbmZpdF9j
+dGw6YnVzIGNtZDogYXJzX2NhcCBvdXRwdXQgbGVuZ3RoOiAxNgpbICAgMzMuNzc0NTAzXSBh
+cnNfY2FwMDAwMDAwMDA6IDAwMDAwMDAxIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwICAu
+Li4uLi4uLi4uLi4uLi4uClsgICAzMy43NzQ1NDVdIG5maXQgQUNQSTAwMTI6MDA6IGFjcGlf
+bmZpdF9jdGw6YnVzIGNtZDogMjogZnVuYzogMiBpbnB1dCBsZW5ndGg6IDI0ClsgICAzMy43
+NzQ1NDddIG52ZGltbSBpbiAgMDAwMDAwMDA6IDgwMDAwMDAwIDAwMDAwMDA2IDAwMDAwMDAw
+IDAwMDAwMDAyICAuLi4uLi4uLi4uLi4uLi4uClsgICAzMy43NzQ1NDldIG52ZGltbSBpbiAg
+MDAwMDAwMTA6IDAwMDAwMDAyIDAwMDAwMDAwICAgICAgICAgICAgICAgICAgICAuLi4uLi4u
+LgpbICAgMzMuNzc0NjAyXSAgbmRidXMwOiBuZF9yZWdpb24ucHJvYmUocmVnaW9uMSkgPSAw
+ClsgICAzMy43NzQ2NjJdIG5maXQgQUNQSTAwMTI6MDA6IGFjcGlfbmZpdF9jdGw6YnVzIGNt
+ZDogYXJzX3N0YXJ0IG91dHB1dCBsZW5ndGg6IDQKWyAgIDMzLjc3NDY2NF0gYXJzX3N0YXJ0
+MDAwMDAwMDA6IDAwMDAwMDAxICAgICAgICAgICAgICAgICAgICAgICAgICAgICAuLi4uClsg
+ICAzMy43NzQ2NjhdIG5maXQgQUNQSTAwMTI6MDA6IGFjcGlfbmZpdF9jdGw6YnVzIG91dHB1
+dCBvYmplY3QgdW5kZXJmbG93IGNtZDogYXJzX3N0YXJ0IGZpZWxkOiAxClsgICAzMy43NzQ2
+NzBdICBuZGJ1czA6IG5kX3JlZ2lvbi5wcm9iZShyZWdpb24yKSA9IDAKWyAgIDMzLjc3NDY3
+MV0geGxhdF9zdGF0dXM6IGNhbGxlZCB3aXRoIGNtZCAyClsgICAzMy43NzQ2NzJdIHhsYXRf
+c3RhdHVzOiBORF9DTURfQVJTX1NUQVJUIHN0YXR1cyAweDEKWyAgIDMzLjc3NDY3Nl0gbmZp
+dCBBQ1BJMDAxMjowMDogYWNwaV9uZml0X2N0bDpidXMgY21kOiAyOiBmdW5jOiAyIGlucHV0
+IGxlbmd0aDogMjQKWyAgIDMzLjc3NDY3OF0gIG5kYnVzMDogbmRfcmVnaW9uLnByb2JlKHJl
+Z2lvbjMpID0gMApbICAgMzMuNzc0NjgwXSBudmRpbW0gaW4gIDAwMDAwMDAwOiA4MDAwMDAw
+MCAwMDAwMDAwYyAwMDAwMDAwMCAwMDAwMDAwMiAgLi4uLi4uLi4uLi4uLi4uLgpbICAgMzMu
+Nzc0NjgzXSBudmRpbW0gaW4gIDAwMDAwMDEwOiAwMDAwMDAwMiAwMDAwMDAwMCAgICAgICAg
+ICAgICAgICAgICAgLi4uLi4uLi4KWyAgIDMzLjc3NDc4M10gbmZpdCBBQ1BJMDAxMjowMDog
+YWNwaV9uZml0X2N0bDpidXMgY21kOiBhcnNfc3RhcnQgb3V0cHV0IGxlbmd0aDogNApbICAg
+MzMuNzc0Nzg0XSBhcnNfc3RhcnQwMDAwMDAwMDogMDAwMDAwMDEgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIC4uLi4KWyAgIDMzLjc3NDc4Nl0gbmZpdCBBQ1BJMDAxMjowMDogYWNw
+aV9uZml0X2N0bDpidXMgb3V0cHV0IG9iamVjdCB1bmRlcmZsb3cgY21kOiBhcnNfc3RhcnQg
+ZmllbGQ6IDEKWyAgIDMzLjc3NDc4N10geGxhdF9zdGF0dXM6IGNhbGxlZCB3aXRoIGNtZCAy
+ClsgICAzMy43NzQ3ODddIHhsYXRfc3RhdHVzOiBORF9DTURfQVJTX1NUQVJUIHN0YXR1cyAw
+eDEKWyAgIDMzLjc3NDc4OV0gbmZpdCBBQ1BJMDAxMjowMDogYWNwaV9uZml0X2N0bDpidXMg
+Y21kOiAyOiBmdW5jOiAyIGlucHV0IGxlbmd0aDogMjQKWyAgIDMzLjc3NDc5MV0gbnZkaW1t
+IGluICAwMDAwMDAwMDogODAwMDAwMDAgMDAwMDAwMGUgMDAwMDAwMDAgMDAwMDAwMDIgIC4u
+Li4uLi4uLi4uLi4uLi4KWyAgIDMzLjc3NDc5M10gbnZkaW1tIGluICAwMDAwMDAxMDogMDAw
+MDAwMDIgMDAwMDAwMDAgICAgICAgICAgICAgICAgICAgIC4uLi4uLi4uClsgICAzMy43NzQ4
+NzVdIG5maXQgQUNQSTAwMTI6MDA6IGFjcGlfbmZpdF9jdGw6YnVzIGNtZDogYXJzX3N0YXJ0
+IG91dHB1dCBsZW5ndGg6IDQKWyAgIDMzLjc3NDg3Nl0gYXJzX3N0YXJ0MDAwMDAwMDA6IDAw
+MDAwMDAxICAgICAgICAgICAgICAgICAgICAgICAgICAgICAuLi4uClsgICAzMy43NzQ4Nzhd
+IG5maXQgQUNQSTAwMTI6MDA6IGFjcGlfbmZpdF9jdGw6YnVzIG91dHB1dCBvYmplY3QgdW5k
+ZXJmbG93IGNtZDogYXJzX3N0YXJ0IGZpZWxkOiAxClsgICAzMy43NzQ4NzldIHhsYXRfc3Rh
+dHVzOiBjYWxsZWQgd2l0aCBjbWQgMgpbICAgMzMuNzc0ODc5XSB4bGF0X3N0YXR1czogTkRf
+Q01EX0FSU19TVEFSVCBzdGF0dXMgMHgxClsgICAzNC4yMzAzNjddIG5kX3BtZW0gbmFtZXNw
+YWNlMC4wOiB1bmFibGUgdG8gZ3VhcmFudGVlIHBlcnNpc3RlbmNlIG9mIHdyaXRlcwpbICAg
+MzQuMjY0MzEyXSBuZF9wbWVtIG5hbWVzcGFjZTAuMDogbmRfYnR0X3Byb2JlOiBidHQ6IGJ0
+dDAuMQpbICAgMzQuMjc4MzgxXSAgbmRidXMwOiBuZF9wbWVtLnByb2JlKG5hbWVzcGFjZTAu
+MCkgPSAtNgpbICAgMzQuMjc4NDU5XSBuZF9wbWVtIGJ0dDAuMTogdW5hYmxlIHRvIGd1YXJh
+bnRlZSBwZXJzaXN0ZW5jZSBvZiB3cml0ZXMKWyAgIDM0LjI3ODQ2NF0gIG5kYnVzMDogbmRf
+cG1lbS5wcm9iZShidHQwLjApID0gLTE5ClsgICAzNC4yNzg0OTBdIG5kX3BtZW0gbmFtZXNw
+YWNlMS4wOiB1bmFibGUgdG8gZ3VhcmFudGVlIHBlcnNpc3RlbmNlIG9mIHdyaXRlcwpbICAg
+MzQuMjc4NjY0XSBuZF9wbWVtIG5hbWVzcGFjZTEuMDogbmRfYnR0X3Byb2JlOiBidHQ6IDxu
+b25lPgpbICAgMzQuMjc4NjY1XSAgYnR0MS4xOiBuZF9idHRfcmVsZWFzZQpbICAgMzQuMjc5
+MTUzXSBwbWVtMTogZGV0ZWN0ZWQgY2FwYWNpdHkgY2hhbmdlIGZyb20gMCB0byA4NTg5OTM0
+NTkyClsgICAzNC4yNzkxNTddICBuZGJ1czA6IG5kX3BtZW0ucHJvYmUobmFtZXNwYWNlMS4w
+KSA9IDAKWyAgIDM0LjI3OTE2NF0gIG5kYnVzMDogbmRfcG1lbS5wcm9iZShidHQxLjApID0g
+LTE5ClsgICAzNC4yNzkxNzNdIG5kX3BtZW0gbmFtZXNwYWNlMi4wOiB1bmFibGUgdG8gZ3Vh
+cmFudGVlIHBlcnNpc3RlbmNlIG9mIHdyaXRlcwpbICAgMzQuMjc5MzI1XSBuZF9wbWVtIG5h
+bWVzcGFjZTIuMDogbmRfYnR0X3Byb2JlOiBidHQ6IGJ0dDIuMQpbICAgMzQuNDA0OTMyXSAg
+bmRidXMwOiBuZF9wbWVtLnByb2JlKG5hbWVzcGFjZTIuMCkgPSAtNgpbICAgMzQuNDA0OTUw
+XSBuZF9wbWVtIGJ0dDIuMTogdW5hYmxlIHRvIGd1YXJhbnRlZSBwZXJzaXN0ZW5jZSBvZiB3
+cml0ZXMKWyAgIDM0LjQwNDk1NF0gIG5kYnVzMDogbmRfcG1lbS5wcm9iZShidHQyLjApID0g
+LTE5ClsgICAzNC40MDQ5NjBdICBuZGJ1czA6IG5kX3BtZW0ucHJvYmUoYnR0My4wKSA9IC0x
+OQpbICAgMzQuNDA0OTY5XSBuZF9wbWVtIG5hbWVzcGFjZTMuMDogdW5hYmxlIHRvIGd1YXJh
+bnRlZSBwZXJzaXN0ZW5jZSBvZiB3cml0ZXMKWyAgIDM0LjQwNTEyNV0gbmRfcG1lbSBuYW1l
+c3BhY2UzLjA6IG5kX2J0dF9wcm9iZTogYnR0OiBidHQzLjEKWyAgIDM0LjQ2ODEwM10gIG5k
+YnVzMDogbmRfcG1lbS5wcm9iZShuYW1lc3BhY2UzLjApID0gLTYKWyAgIDM0LjQ2ODEzMF0g
+bmRfcG1lbSBidHQzLjE6IHVuYWJsZSB0byBndWFyYW50ZWUgcGVyc2lzdGVuY2Ugb2Ygd3Jp
+dGVzClsgICAzNC40Njg0MzFdIHBtZW0wczogZGV0ZWN0ZWQgY2FwYWNpdHkgY2hhbmdlIGZy
+b20gMCB0byA4NTIzMTgyMDgwClsgICAzNC40Njg0ODZdICBuZGJ1czA6IG5kX3BtZW0ucHJv
+YmUoYnR0MC4xKSA9IDAKWyAgIDM0LjUyODIzOV0gcG1lbTNzOiBkZXRlY3RlZCBjYXBhY2l0
+eSBjaGFuZ2UgZnJvbSAwIHRvIDg1ODA0NzI4MzIKWyAgIDM0LjUyOTA1NV0gcG1lbTJzOiBk
+ZXRlY3RlZCBjYXBhY2l0eSBjaGFuZ2UgZnJvbSAwIHRvIDg1ODA0NzI4MzIKWyAgIDM0LjUy
+OTEyNl0gIG5kYnVzMDogbmRfcG1lbS5wcm9iZShidHQyLjEpID0gMApbICAgMzQuNjg0ODMz
+XSAgbmRidXMwOiBuZF9wbWVtLnByb2JlKGJ0dDMuMSkgPSAwCg==
+--------------040406070805030303060005
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--------------040406070805030303060005--
