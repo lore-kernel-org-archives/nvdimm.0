@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t6220.austin.hp.com (g1t6220.austin.hp.com [15.73.96.84])
+Received: from g1t6213.austin.hp.com (g1t6213.austin.hp.com [15.73.96.121])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3A22B1A1E83
- for <linux-nvdimm@lists.01.org>; Sun,  1 May 2016 10:42:39 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id AB7001A1E01
+ for <linux-nvdimm@lists.01.org>; Sun,  1 May 2016 10:27:36 -0700 (PDT)
 Subject: Re: acpi_nfit_query_poison() broken on non-ARS systems
-References: <5723EFEE.9060200@hpe.com>
- <CAPcyv4ga02=z-MJDQM2pER=cuwtEk6qaLLG5++p9fs-qQuvr8g@mail.gmail.com>
+References: <5723EFEE.9060200@hpe.com> <1461974599.11211.6.camel@kernel.org>
+ <CAPcyv4hK2m+6HTHCWkgLEanTwwa9jQ2a+jrbx3UrtrMAs1LrAg@mail.gmail.com>
+ <1461975305.11211.11.camel@kernel.org>
+ <CAPcyv4iYZoAENTKZ4w5OyWoAb0q9qWqYqoG0F4Cfjtc6jAp4Xg@mail.gmail.com>
+ <1461975534.11211.12.camel@kernel.org>
 From: Linda Knippers <linda.knippers@hpe.com>
-Message-ID: <5726400D.10700@hpe.com>
-Date: Sun, 1 May 2016 13:42:37 -0400
+Message-ID: <57263C85.4070405@hpe.com>
+Date: Sun, 1 May 2016 13:27:33 -0400
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4ga02=z-MJDQM2pER=cuwtEk6qaLLG5++p9fs-qQuvr8g@mail.gmail.com>
+In-Reply-To: <1461975534.11211.12.camel@kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,127 +22,71 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Vishal Verma <vishal@kernel.org>, Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-On 4/29/2016 8:12 PM, Dan Williams wrote:
-> On Fri, Apr 29, 2016 at 4:36 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
->> I tested Vishal's original ARS patches and they worked correctly on my test
->> system, which doesn't support ARS.  By worked correctly, I mean that they
->> properly looked at the status of the Query ARS Capabilities function and saw
->> that it indicated that the function is not supported.  The original code
->> skipped the rest of the ARS processing.
-> 
-> Why doesn't the firmware just not export the ARS function in the
-> supported functions list?
-
-It's a root device function.  In theory a platform might support ARS for some
-SPA ranges but not for others so even if the function is supported in general,
-it might not be supported for all ranges.  An SPA range might also support ARS
-but not the ability to clear an error.  I think you have to check all these
-things.
-
-> We should still fix this bug, but the whole "implement a function to
-> say this function is not implemented" seems a bit of a waste.
-
-Even if all the functions are supported, you still have to check the status
-because something could fail.
-> 
->> The code I tested has been re-worked a number of times and now it no longer
->> looks at the status of the Query function.  It assumes that if the DSM worked
->> at all, it must be ok and happily uses fields that is shouldn't be looking at.
->>
->> If you look here:
->>
->>> static int acpi_nfit_query_poison(struct acpi_nfit_desc *acpi_desc,
->>>                 struct nfit_spa *nfit_spa)
->>> {
->>>         struct acpi_nfit_system_address *spa = nfit_spa->spa;
->>>         int rc;
->>>
->>>         if (!nfit_spa->max_ars) {
->>
->> On a platform that doesn't support ARS, max_ars will always be zero
->> so you'll keep executing this code when it seems like you're trying
->> to avoid that.
->>
->>>                 struct nd_cmd_ars_cap ars_cap;
->>>
->>>                 memset(&ars_cap, 0, sizeof(ars_cap));
->>>                 rc = ars_get_cap(acpi_desc, &ars_cap, nfit_spa);
->>>                 if (rc < 0)
->>>                         return rc;
->>
->> The call succeeds so this return isn't taken, but then the code assumes
->> everything is good.  It should check ars_cap.status so see if the function
->> is supported or if there was an error and return something appropriate.
->> In previous version of the code, that's what acpi_nfit_find_poison() did.
->> Instead, this function continues, using data that's not right and making
->> more calls that also aren't supported.
-> 
-> Hmm, we should be bailing on any non-zero status, why is that getting skipped?
-> 
->                 /* Command failed */
->                 if (ars_cap->status & 0xffff)
->                         return -EIO;
-> 
->>
->>>                 nfit_spa->max_ars = ars_cap.max_ars_out;
->>>                 nfit_spa->clear_err_unit = ars_cap.clear_err_unit;
->>
->> Since we don't bail out, the above values are zero but not actually checked
->> by subsequent users.
->>
->>>                 /* check that the supported scrub types match the spa type */
->>>                 if (nfit_spa_type(spa) == NFIT_SPA_VOLATILE &&
->>>                                 ((ars_cap.status >> 16) & ND_ARS_VOLATILE) == 0)
->>>                         return -ENOTTY;
->>>                 else if (nfit_spa_type(spa) == NFIT_SPA_PM &&
->>>                                 ((ars_cap.status >> 16) & ND_ARS_PERSISTENT) == 0)
->>>                         return -ENOTTY;
->>>         }
->>>
->>>         if (ars_status_alloc(acpi_desc, nfit_spa->max_ars))
->>>                 return -ENOMEM;
->>>
->>>         rc = ars_get_status(acpi_desc);
->>>         if (rc < 0 && rc != -ENOSPC)
->>>                 return rc;
->>>
->>>         if (ars_status_process_records(acpi_desc->nvdimm_bus,
->>>                                 acpi_desc->ars_status))
->>>                 return -ENOMEM;
->>>
->>>         return 0;
->>> }
->>
->> I don't know if you want to change how this function works or change how
->> ars_get_cap works but something needs to change.  You actually do check the
->> status in xlat_status() if the call was initiated from user space but you don't
->> check when it's initiated from within the kernel.
-> 
-> Hmm, why do you say that? xlat_status() only gets skipped if the
-> output buffer is underrun and in that case the underrun should trigger
-> -ENXIO to be returned.
-> 
->> For reference, below is the dmesg output from my system running the latest
->> upstream kernel.
-> 
-> Can you add some debug tracing to xlat_status()?  Something is not lining up.
-
-xlat_status() is not called from acpi_nfit_query_poison(), which is called at
-boot time.  Not sure if we're getting there from acpi_nfit_scrub() or
-acpi_nfit_async_scrub().
-
--- ljk
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+CgpPbiA0LzI5LzIwMTYgODoxOCBQTSwgVmlzaGFsIFZlcm1hIHdyb3RlOgo+IE9uIEZyaSwgMjAx
+Ni0wNC0yOSBhdCAxNzoxNSAtMDcwMCwgRGFuIFdpbGxpYW1zIHdyb3RlOgo+PiBPbiBGcmksIEFw
+ciAyOSwgMjAxNiBhdCA1OjE1IFBNLCBWaXNoYWwgVmVybWEgPHZpc2hhbEBrZXJuZWwub3JnPgo+
+PiB3cm90ZToKPj4+Cj4+PiBPbiBGcmksIDIwMTYtMDQtMjkgYXQgMTc6MDQgLTA3MDAsIERhbiBX
+aWxsaWFtcyB3cm90ZToKPj4+Pgo+Pj4+IE9uIEZyaSwgQXByIDI5LCAyMDE2IGF0IDU6MDMgUE0s
+IFZpc2hhbCBWZXJtYSA8dmlzaGFsQGtlcm5lbC5vcmc+Cj4+Pj4gd3JvdGU6Cj4+Pj4+Cj4+Pj4+
+Cj4+Pj4+IE9uIEZyaSwgMjAxNi0wNC0yOSBhdCAxOTozNiAtMDQwMCwgTGluZGEgS25pcHBlcnMg
+d3JvdGU6Cj4+Pj4+Cj4+Pj4+IFtzbmlwXQo+Pj4+Pj4KPj4+Pj4+Cj4+Pj4+Pgo+Pj4+Pj4+Cj4+
+Pj4+Pj4KPj4+Pj4+PiBzdGF0aWMgaW50IGFjcGlfbmZpdF9xdWVyeV9wb2lzb24oc3RydWN0IGFj
+cGlfbmZpdF9kZXNjCj4+Pj4+Pj4gKmFjcGlfZGVzYywKPj4+Pj4+PiAgICAgICAgICAgICAgICAg
+c3RydWN0IG5maXRfc3BhICpuZml0X3NwYSkKPj4+Pj4+PiB7Cj4+Pj4+Pj4gICAgICAgICBzdHJ1
+Y3QgYWNwaV9uZml0X3N5c3RlbV9hZGRyZXNzICpzcGEgPSBuZml0X3NwYS0KPj4+Pj4+Pj4gc3Bh
+Owo+Pj4+Pj4+ICAgICAgICAgaW50IHJjOwo+Pj4+Pj4+Cj4+Pj4+Pj4gICAgICAgICBpZiAoIW5m
+aXRfc3BhLT5tYXhfYXJzKSB7Cj4+Pj4+PiBPbiBhIHBsYXRmb3JtIHRoYXQgZG9lc24ndCBzdXBw
+b3J0IEFSUywgbWF4X2FycyB3aWxsIGFsd2F5cwo+Pj4+Pj4gYmUKPj4+Pj4+IHplcm8KPj4+Pj4+
+IHNvIHlvdSdsbCBrZWVwIGV4ZWN1dGluZyB0aGlzIGNvZGUgd2hlbiBpdCBzZWVtcyBsaWtlIHlv
+dSdyZQo+Pj4+Pj4gdHJ5aW5nCj4+Pj4+PiB0byBhdm9pZCB0aGF0Lgo+Pj4+Pj4KPj4+Pj4+Pgo+
+Pj4+Pj4+Cj4+Pj4+Pj4KPj4+Pj4+PiAgICAgICAgICAgICAgICAgc3RydWN0IG5kX2NtZF9hcnNf
+Y2FwIGFyc19jYXA7Cj4+Pj4+Pj4KPj4+Pj4+PiAgICAgICAgICAgICAgICAgbWVtc2V0KCZhcnNf
+Y2FwLCAwLCBzaXplb2YoYXJzX2NhcCkpOwo+Pj4+Pj4+ICAgICAgICAgICAgICAgICByYyA9IGFy
+c19nZXRfY2FwKGFjcGlfZGVzYywgJmFyc19jYXAsCj4+Pj4+Pj4gbmZpdF9zcGEpOwo+Pj4+Pj4+
+ICAgICAgICAgICAgICAgICBpZiAocmMgPCAwKQo+Pj4+Pj4+ICAgICAgICAgICAgICAgICAgICAg
+ICAgIHJldHVybiByYzsKPj4+Pj4+IFRoZSBjYWxsIHN1Y2NlZWRzIHNvIHRoaXMgcmV0dXJuIGlz
+bid0IHRha2VuLCBidXQgdGhlbiB0aGUKPj4+Pj4+IGNvZGUKPj4+Pj4+IGFzc3VtZXMKPj4+Pj4+
+IGV2ZXJ5dGhpbmcgaXMgZ29vZC4gIEl0IHNob3VsZCBjaGVjayBhcnNfY2FwLnN0YXR1cyBzbyBz
+ZWUgaWYKPj4+Pj4+IHRoZQo+Pj4+Pj4gZnVuY3Rpb24KPj4+Pj4+IGlzIHN1cHBvcnRlZCBvciBp
+ZiB0aGVyZSB3YXMgYW4gZXJyb3IgYW5kIHJldHVybiBzb21ldGhpbmcKPj4+Pj4+IGFwcHJvcHJp
+YXRlLgo+Pj4+Pj4gSW4gcHJldmlvdXMgdmVyc2lvbiBvZiB0aGUgY29kZSwgdGhhdCdzIHdoYXQK
+Pj4+Pj4+IGFjcGlfbmZpdF9maW5kX3BvaXNvbigpCj4+Pj4+PiBkaWQuCj4+Pj4+PiBJbnN0ZWFk
+LCB0aGlzIGZ1bmN0aW9uIGNvbnRpbnVlcywgdXNpbmcgZGF0YSB0aGF0J3Mgbm90IHJpZ2h0Cj4+
+Pj4+PiBhbmQKPj4+Pj4+IG1ha2luZwo+Pj4+Pj4gbW9yZSBjYWxscyB0aGF0IGFsc28gYXJlbid0
+IHN1cHBvcnRlZC4KPj4+Pj4gR29vZCBwb2ludCAtIEkgdGhpbmsgd2Ugc2hvdWxkIGFkZCBhIGNo
+ZWNrIGhlcmUgYW5kIG1ha2Ugc3VyZQo+Pj4+PiBBUlMKPj4+Pj4gaXMKPj4+Pj4gc3VwcG9ydGVk
+IHVzaW5nIHRoZSBzdGF0dXMgZmllbGQuIEkgY2FuIHdvcmsgb24gYSBwYXRjaC4gVGhhbmtzCj4+
+Pj4+IGZvcgo+Pj4+PiB0aGUKPj4+Pj4gcmVwb3J0IQo+Pj4+IC4uLmJ1dCB3ZSBkbywgb3IgYXJl
+IHN1cHBvc2VkIHRvLCBmYWlsIG9uIGFueSBub24temVybyBzdGF0dXM6Cj4+Pj4KPj4+PiAgICAg
+ICAgICAgICAgICAgLyogQ29tbWFuZCBmYWlsZWQgKi8KPj4+PiAgICAgICAgICAgICAgICAgaWYg
+KGFyc19jYXAtPnN0YXR1cyAmIDB4ZmZmZikKPj4+PiAgICAgICAgICAgICAgICAgICAgICAgICBy
+ZXR1cm4gLUVJTzsKPj4+IFRoaXMgZG9lc24ndCBjaGVjayB0aGUgZXh0ZW5kZWQgc3RhdHVzLCBk
+b2VzIGl0Li4KPj4+IEkgdGhpbmsgd2UnZCBhbHNvIHdhbnQgc29tZXRoaW5nIGxpa2U6Cj4+Pgo+
+Pj4gICAgICAgICAgICAgICAgIC8qIEFSUyBub3Qgc3VwcG9ydGVkICovPgo+Pj4gICAgICAgICAg
+ICAgICAgIGlmIChhcnNfY2FwLT5zdGF0dXMgJiAweGZmZmYwMDAwID09IDApCj4+PiAgICAgICAg
+ICAgICAgICAgICAgICAgICByZXR1cm4gLUVPUE5PVFNVUFA7Cj4+Pgo+Pj4gRnJvbSBBQ1BJIDYu
+MToKPj4+IEV4dGVuZGVkIFN0YXR1cyAoTGVuIDIpIChPZmYgMikKPj4+IEJpdFswXSDigJMgSWYg
+c2V0IHRvIDEsIGluZGljYXRlcyBWb2xhdGlsZSBNZW1vcnkgc2NydWIgaXMgc3VwcG9ydGVkCj4+
+PiBCaXRbMV0g4oCTIElmIHNldCB0byAxLCBpbmRpY2F0ZXMgUGVyc2lzdGVudCBNZW1vcnkgU2Ny
+dWIgaXMKPj4+IHN1cHBvcnRlZAo+Pj4gQml0c1sxNToyXSDigJMgUmVzZXJ2ZWQKPj4gU2VlIHhs
+YXRfc3RhdHVzKCk6Cj4+Cj4+ICAgICAgICAgICAgICAgICAvKiBObyBzdXBwb3J0ZWQgc2NhbiB0
+eXBlcyBmb3IgdGhpcyByYW5nZSAqLwo+PiAgICAgICAgICAgICAgICAgZmxhZ3MgPSBORF9BUlNf
+UEVSU0lTVEVOVCB8IE5EX0FSU19WT0xBVElMRTsKPj4gICAgICAgICAgICAgICAgIGlmICgoYXJz
+X2NhcC0+c3RhdHVzID4+IDE2ICYgZmxhZ3MpID09IDApCj4+ICAgICAgICAgICAgICAgICAgICAg
+ICAgIHJldHVybiAtRU5PVFRZO1wKPiAKPiBBaCBtaXNzZWQgdGhhdCAtIHRoYW5rcy4gWWVwIGlu
+IHRoYXQgY2FzZSBzb21ldGhpbmcgaXMgd2VpcmQgOikKClRoZSBwcm9ibGVtIGlzIHRoYXQgeGxh
+dF9zdGF0dXMoKSBpc24ndCBjYWxsZWQgd2hlbiB5b3UncmUgaW5pdGlhdGluZyB0aGUKc2VxdWVu
+Y2UgZnJvbSBhY3BpX25maXRfcXVlcnlfcG9pc29uKCkuICBJIHRoaW5rIGl0J3Mgb25seSBjYWxs
+ZWQgd2hlbgp0aGUgRFNNIGlzIGluaXRpYXRlZCBmcm9tIHVzZXIgc3BhY2UuCgpJZiB5b3UgZ28g
+YmFjayB0byBteSBvcmlnaW5hbCBtZXNzYWdlLCB5b3UnbGwgc2VlIHRoYXQuCgotLSBsamsKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1t
+IG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEu
+b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
