@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5008.houston.hp.com (g9t5008.houston.hp.com [15.240.92.66])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2F8801A1E8C
- for <linux-nvdimm@lists.01.org>; Mon,  2 May 2016 13:03:18 -0700 (PDT)
-Message-ID: <1462218865.27137.18.camel@hpe.com>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id B0A521A1E29
+ for <linux-nvdimm@lists.01.org>; Mon,  2 May 2016 12:50:29 -0700 (PDT)
+Date: Mon, 2 May 2016 13:50:27 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH v2 3/3] xfs: Add alignment check for DAX mount
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Mon, 02 May 2016 13:54:25 -0600
-In-Reply-To: <20160502195027.GC14421@linux.intel.com>
+Message-ID: <20160502195027.GC14421@linux.intel.com>
 References: <1462214578-27122-1-git-send-email-toshi.kani@hpe.com>
  <1462214578-27122-4-git-send-email-toshi.kani@hpe.com>
- <20160502195027.GC14421@linux.intel.com>
-Mime-Version: 1.0
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1462214578-27122-4-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,43 +18,87 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
+To: Toshi Kani <toshi.kani@hpe.com>
 Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, hch@infradead.org, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org, tytso@mit.edu
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE2LTA1LTAyIGF0IDEzOjUwIC0wNjAwLCBSb3NzIFp3aXNsZXIgd3JvdGU6Cj4g
-T24gTW9uLCBNYXkgMDIsIDIwMTYgYXQgMTI6NDI6NThQTSAtMDYwMCwgVG9zaGkgS2FuaSB3cm90
-ZToKwqA6Cj4gPiDCoAkJeGZzX3dhcm4obXAsCj4gPiAtCSJEQVggZW5hYmxlZC4gV2FybmluZzog
-RVhQRVJJTUVOVEFMLCB1c2UgYXQgeW91ciBvd24gcmlzayIpOwo+ID4gKwkJIkRBWCBlbmFibGVk
-LiBXYXJuaW5nOiBFWFBFUklNRU5UQUwsIHVzZSBhdCB5b3VyIG93bgo+ID4gcmlzayIpOwo+ID4g
-wqAJCWlmIChzYi0+c19ibG9ja3NpemUgIT0gUEFHRV9TSVpFKSB7Cj4gPiDCoAkJCXhmc19hbGVy
-dChtcCwKPiA+IMKgCQkiRmlsZXN5c3RlbSBibG9jayBzaXplIGludmFsaWQgZm9yIERBWCBUdXJu
-aW5nIERBWAo+ID4gb2ZmLiIpOwo+ID4gwqAJCQltcC0+bV9mbGFncyAmPSB+WEZTX01PVU5UX0RB
-WDsKPiA+IC0JCX0gZWxzZSBpZiAoIXNiLT5zX2JkZXYtPmJkX2Rpc2stPmZvcHMtPmRpcmVjdF9h
-Y2Nlc3MpCj4gPiB7Cj4gPiAtCQkJeGZzX2FsZXJ0KG1wLAo+ID4gLQkJIkJsb2NrIGRldmljZSBk
-b2VzIG5vdCBzdXBwb3J0IERBWCBUdXJuaW5nIERBWCBvZmYuIik7Cj4gPiArCQl9IGVsc2UgaWYg
-KChlcnJvciA9IGJkZXZfZGlyZWN0X2FjY2VzcyhzYi0+c19iZGV2LAo+ID4gJmRheCkpIDwgMCkg
-ewo+ID4gKwkJCXN3aXRjaCAoZXJyb3IpIHsKPiA+ICsJCQljYXNlIC1FT1BOT1RTVVBQOgo+ID4g
-KwkJCQl4ZnNfYWxlcnQobXAsCj4gPiArCQkJIkJsb2NrIGRldmljZSBkb2VzIG5vdCBzdXBwb3J0
-IERBWCBUdXJuaW5nIERBWAo+ID4gb2ZmLiIpOwo+Cj4gU2luY2UgeW91J3JlIGFscmVhZHkgaW4g
-aGVyZSBlZGl0aW5nIGFsbCB0aGUgc3RyaW5ncywgY2FuIHlvdSBhZGQgYQo+IHBlcmlvZCB0byBt
-YWtlIGl0IG1vcmUgcmVhZGFibGU/wqDCoMKgQXBwbGllcyB0byBhbGwgc3RyaW5ncy4KClJpZ2h0
-LiBXaWxsIGRvLgoKPiA+IAo+ID4gKwkJCSJCbG9jayBkZXZpY2UgZG9lcyBub3Qgc3VwcG9ydCBE
-QVguIFR1cm5pbmcKPiA+IERBWCBvZmYuIik7Cj4gCQkJCQkJCcKgwqBeCj4gCj4gPiAKPiA+ICsJ
-CQkJYnJlYWs7Cj4gPiArCQkJY2FzZSAtRUlOVkFMOgo+ID4gKwkJCQl4ZnNfYWxlcnQobXAsCj4g
-PiArCQkJIlBhcnRpdGlvbiBhbGlnbm1lbnQgaW52YWxpZCBmb3IgREFYIFR1cm5pbmcKPiA+IERB
-WCBvZmYuIik7Cj4gPiArCQkJCWJyZWFrOwo+ID4gKwkJCWRlZmF1bHQ6Cj4gPiArCQkJCXhmc19h
-bGVydChtcCwKPiA+ICsJCQkiREFYIGFjY2VzcyBmYWlsZWQgKCVkKSBEQVggVHVybmluZyBEQVgg
-b2ZmLiIsCj4gPiBlcnJvcik7Cj4KPiBJIERBWCB0aGluayB5b3UgbWlnaHQgREFYIGhhdmUgdG9v
-IG1hbnkgREFYZXMgaW4gaGVyZS4gOikKCk9vcHMhIDopCgo+ID4gCj4gPiArCQkJfQo+ID4gwqAJ
-CQltcC0+bV9mbGFncyAmPSB+WEZTX01PVU5UX0RBWDsKPiA+IMKgCQl9Cj4gPiDCoAl9Cj4KPiBP
-dGhlciB0aGFuIHRoZSBuaXQtcGlja2luZyBhYm91dCB0aGUgc3RyaW5ncywgdGhpcyBzZWVtcyBm
-aW5lLgo+IAo+IFlvdSBjYW4gYWRkIHRoaXMgZm9yIHRoZSBzZXJpZXM6Cj4gUmV2aWV3ZWQtYnk6
-IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4KClRoYW5rcyEKLVRv
-c2hpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
-LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
-c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Mon, May 02, 2016 at 12:42:58PM -0600, Toshi Kani wrote:
+> When a partition is not aligned by 4KB, mount -o dax succeeds,
+> but any read/write access to the filesystem fails, except for
+> metadata update.
+> 
+> Call bdev_direct_access to check the alignment when -o dax is
+> specified.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Dave Chinner <david@fromorbit.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: Christoph Hellwig <hch@infradead.org>
+> Cc: Boaz Harrosh <boaz@plexistor.com>
+> ---
+>  fs/xfs/xfs_super.c |   23 +++++++++++++++++++----
+>  1 file changed, 19 insertions(+), 4 deletions(-)
+> 
+> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+> index 187e14b..b7ee323 100644
+> --- a/fs/xfs/xfs_super.c
+> +++ b/fs/xfs/xfs_super.c
+> @@ -1557,15 +1557,30 @@ xfs_fs_fill_super(
+>  		sb->s_flags |= MS_I_VERSION;
+>  
+>  	if (mp->m_flags & XFS_MOUNT_DAX) {
+> +		struct blk_dax_ctl dax = {
+> +			.sector = 0,
+> +			.size = PAGE_SIZE,
+> +		};
+>  		xfs_warn(mp,
+> -	"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+> +		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+>  		if (sb->s_blocksize != PAGE_SIZE) {
+>  			xfs_alert(mp,
+>  		"Filesystem block size invalid for DAX Turning DAX off.");
+>  			mp->m_flags &= ~XFS_MOUNT_DAX;
+> -		} else if (!sb->s_bdev->bd_disk->fops->direct_access) {
+> -			xfs_alert(mp,
+> -		"Block device does not support DAX Turning DAX off.");
+> +		} else if ((error = bdev_direct_access(sb->s_bdev, &dax)) < 0) {
+> +			switch (error) {
+> +			case -EOPNOTSUPP:
+> +				xfs_alert(mp,
+> +			"Block device does not support DAX Turning DAX off.");
+
+Since you're already in here editing all the strings, can you add a period to
+make it more readable?   Applies to all strings.
+
+> +			"Block device does not support DAX. Turning DAX off.");
+							  ^
+
+> +				break;
+> +			case -EINVAL:
+> +				xfs_alert(mp,
+> +			"Partition alignment invalid for DAX Turning DAX off.");
+> +				break;
+> +			default:
+> +				xfs_alert(mp,
+> +			"DAX access failed (%d) DAX Turning DAX off.", error);
+
+I DAX think you might DAX have too many DAXes in here. :)
+
+> +			}
+>  			mp->m_flags &= ~XFS_MOUNT_DAX;
+>  		}
+>  	}
+
+Other than the nit-picking about the strings, this seems fine.
+
+You can add this for the series:
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
