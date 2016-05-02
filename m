@@ -1,19 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from g2t4620.austin.hp.com (g2t4620.austin.hp.com [15.73.212.81])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0722C1A1F8C
- for <linux-nvdimm@lists.01.org>; Mon,  2 May 2016 06:09:16 -0700 (PDT)
-Date: Mon, 2 May 2016 15:09:09 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 08/18] ext4: Pre-zero allocated blocks for DAX IO
-Message-ID: <20160502130909.GE17362@quack2.suse.cz>
-References: <1461015341-20153-1-git-send-email-jack@suse.cz>
- <1461015341-20153-9-git-send-email-jack@suse.cz>
- <20160429180158.GC5888@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 534251A1ECF
+ for <linux-nvdimm@lists.01.org>; Mon,  2 May 2016 08:05:09 -0700 (PDT)
+Subject: Re: acpi_nfit_query_poison() broken on non-ARS systems
+References: <5723EFEE.9060200@hpe.com>
+ <CAPcyv4ga02=z-MJDQM2pER=cuwtEk6qaLLG5++p9fs-qQuvr8g@mail.gmail.com>
+ <5726400D.10700@hpe.com> <57265CA5.8040503@hpe.com>
+ <CAPcyv4g6431bUPLq3RpmoukHDeR3-n93FE=p85yhrC+gskYdjw@mail.gmail.com>
+From: Linda Knippers <linda.knippers@hpe.com>
+Message-ID: <57276CA3.2040204@hpe.com>
+Date: Mon, 2 May 2016 11:05:07 -0400
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20160429180158.GC5888@linux.intel.com>
+In-Reply-To: <CAPcyv4g6431bUPLq3RpmoukHDeR3-n93FE=p85yhrC+gskYdjw@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,135 +25,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 29-04-16 12:01:58, Ross Zwisler wrote:
-> On Mon, Apr 18, 2016 at 11:35:31PM +0200, Jan Kara wrote:
-> > ---
-> >  fs/ext4/ext4.h  | 11 +++++++++--
-> >  fs/ext4/file.c  |  4 ++--
-> >  fs/ext4/inode.c | 42 +++++++++++++++++++++++++++++++++---------
-> >  3 files changed, 44 insertions(+), 13 deletions(-)
-> > 
-> > diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
-> > index 35792b430fb6..173da8faff81 100644
-> > --- a/fs/ext4/ext4.h
-> > +++ b/fs/ext4/ext4.h
-> > @@ -2521,8 +2521,8 @@ struct buffer_head *ext4_getblk(handle_t *, struct inode *, ext4_lblk_t, int);
-> >  struct buffer_head *ext4_bread(handle_t *, struct inode *, ext4_lblk_t, int);
-> >  int ext4_get_block_unwritten(struct inode *inode, sector_t iblock,
-> >  			     struct buffer_head *bh_result, int create);
-> > -int ext4_dax_mmap_get_block(struct inode *inode, sector_t iblock,
-> > -			    struct buffer_head *bh_result, int create);
-> > +int ext4_dax_get_block(struct inode *inode, sector_t iblock,
-> > +		       struct buffer_head *bh_result, int create);
-> >  int ext4_get_block(struct inode *inode, sector_t iblock,
-> >  		   struct buffer_head *bh_result, int create);
-> >  int ext4_dio_get_block(struct inode *inode, sector_t iblock,
-> > @@ -3328,6 +3328,13 @@ static inline void ext4_clear_io_unwritten_flag(ext4_io_end_t *io_end)
-> >  	}
-> >  }
-> >  
-> > +static inline bool ext4_aligned_io(struct inode *inode, loff_t off, loff_t len)
-> > +{
-> > +	int blksize = 1 << inode->i_blkbits;
-> > +
-> > +	return IS_ALIGNED(off, blksize) && IS_ALIGNED(off + len, blksize);
-> 
-> This could be just a tiny bit simpler by doing
-> 
-> 	return IS_ALIGNED(off, blksize) && IS_ALIGNED(len, blksize);
-> 						      ^^^
-> 
-> You've already made sure 'off' is aligned, so if 'len' is aligned 'off+len'
-> will be aligned.
 
-Good point, done.
 
-> > diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-> > index 23fd0e0a9223..6d5d5c1db293 100644
-> > --- a/fs/ext4/inode.c
-> > +++ b/fs/ext4/inode.c
-> > @@ -3215,12 +3215,17 @@ static int ext4_releasepage(struct page *page, gfp_t wait)
-> >  }
-> >  
-> >  #ifdef CONFIG_FS_DAX
-> > -int ext4_dax_mmap_get_block(struct inode *inode, sector_t iblock,
-> > -			    struct buffer_head *bh_result, int create)
-> > +/*
-> > + * Get block function for DAX IO and mmap faults. It takes care of converting
-> > + * unwritten extents to written ones and initializes new / converted blocks
-> > + * to zeros.
-> > + */
-> > +int ext4_dax_get_block(struct inode *inode, sector_t iblock,
-> > +		       struct buffer_head *bh_result, int create)
-> >  {
-> >  	int ret;
-> >  
-> > -	ext4_debug("ext4_dax_mmap_get_block: inode %lu, create flag %d\n",
-> > +	ext4_debug("ext4_dax_get_block: inode %lu, create flag %d\n",
-> >  		   inode->i_ino, create);
+On 5/1/2016 8:33 PM, Dan Williams wrote:
+
+> Found it.  This is one of those brown-paper-bag bugs that tells me I
+> need to figure out a way to unit/regression test the interface between
+> acpi_nfit_ctl() and acpi_evalaute_dsm().  In this case I injected a
+> __wrap_acpi_evaulate_dsm(), but I can't ship it as a new test in
+> nfit_test because it relies on an enabled BIOS for all the other
+> cases.
+
+Thanks.  I'll give it a try.
+
+-- ljk
 > 
-> This pattern could be improved by using "%s" and __func__ for the function
-> name.  That way you don't have to hunt through all your debug code and update
-> strings when you rename a function. More importantly it prevents the strings
-> from getting out of sync with the function name, resulting in confusing debug
-> messages.
-
-Actually, ext4_debug() already automatically prepends the function name. So
-I've just discarded it from the format string.
-
-> >  	if (!create)
-> >  		return _ext4_get_block(inode, iblock, bh_result, 0);
-> > @@ -3233,9 +3238,9 @@ int ext4_dax_mmap_get_block(struct inode *inode, sector_t iblock,
-> >  
-> >  	if (buffer_unwritten(bh_result)) {
-> >  		/*
-> > -		 * We are protected by i_mmap_sem so we know block cannot go
-> > -		 * away from under us even though we dropped i_data_sem.
-> > -		 * Convert extent to written and write zeros there.
-> > +		 * We are protected by i_mmap_sem or i_mutex so we know block
-> > +		 * cannot go away from under us even though we dropped
-> > +		 * i_data_sem. Convert extent to written and write zeros there.
-> >  		 */
-> >  		ret = ext4_get_block_trans(inode, iblock, bh_result,
-> >  					   EXT4_GET_BLOCKS_CONVERT |
-> > @@ -3250,6 +3255,14 @@ int ext4_dax_mmap_get_block(struct inode *inode, sector_t iblock,
-> >  	clear_buffer_new(bh_result);
-> >  	return 0;
-> >  }
-> > +#else
-> > +/* Just define empty function, it will never get called. */
-> > +int ext4_dax_get_block(struct inode *inode, sector_t iblock,
-> > +		       struct buffer_head *bh_result, int create)
-> > +{
-> > +	BUG();
-> > +	return 0;
-> > +}
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index d0f35e63640b..24ef312fdba3 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -287,8 +288,11 @@ static int acpi_nfit_ctl(struct
+> nvdimm_bus_descriptor *nd_desc,
+>                                         offset);
+>                         rc = -ENXIO;
+>                 }
+> -       } else
+> +       } else {
+>                 rc = 0;
+> +               if (cmd_rc)
+> +                       *cmd_rc = xlat_status(buf, cmd);
+> +       }
 > 
-> You don't need this stub.  All the uses of ext4_dax_get_block() are either
-> within their own '#ifdef CONFIG_FS_DAX' sections, or they are in an 
-> "if (IS_DAX)" conditional.  The latter will also be compiled out if
-> CONFIG_FS_DAX isn't defined.  This is because of the way that S_DAX is
-> defined:
+>   out:
+>         ACPI_FREE(out_obj);
 > 
->   #define S_DAX		8192	/* Direct Access, avoiding the page cache */
->   #else
->   #define S_DAX		0	/* Make all the DAX code disappear */
->   #endif
-
-OK, I agree it's likely not needed but I'm somewhat wary of relying on this
-compiler optimization. In some more complex cases for some compilers they
-needn't be able to infer that the code is actually dead and you'll get
-compilation error. IMO not worth those 7 lines of trivial code... So I've
-kept this.
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
