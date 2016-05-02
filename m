@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id 8FAA71A1FCD
- for <linux-nvdimm@lists.01.org>; Wed, 18 May 2016 13:57:25 -0700 (PDT)
-Subject: [PATCH v3 5/5] libnvdimm: release ida resources
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 18 May 2016 13:56:33 -0700
-Message-ID: <146360499323.37439.11321597319333400688.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146360496572.37439.6497663679891935585.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146360496572.37439.6497663679891935585.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mail-wm0-x233.google.com (mail-wm0-x233.google.com
+ [IPv6:2a00:1450:400c:c09::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 28AB11A1EDC
+ for <linux-nvdimm@lists.01.org>; Mon,  2 May 2016 12:22:14 -0700 (PDT)
+Received: by mail-wm0-x233.google.com with SMTP id g17so2370691wme.1
+ for <linux-nvdimm@lists.01.org>; Mon, 02 May 2016 12:22:14 -0700 (PDT)
+Message-ID: <5727A8E2.8000507@plexistor.com>
+Date: Mon, 02 May 2016 22:22:10 +0300
+From: Boaz Harrosh <boaz@plexistor.com>
 MIME-Version: 1.0
+Subject: Re: [PATCH v4 5/7] fs: prioritize and separate direct_io from dax_io
+References: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>	<1461878218-3844-6-git-send-email-vishal.l.verma@intel.com>	<5727753F.6090104@plexistor.com>	<CAPcyv4jWPTDbbw6uMFEEt2Kazgw+wb5Pfwroej--uQPE+AtUbA@mail.gmail.com>	<57277EDA.9000803@plexistor.com>	<CAPcyv4jnz69a3S+XZgLaLojHZmpfoVXGDkJkt_1Q=8kk0gik9w@mail.gmail.com>	<572791E1.7000103@plexistor.com>	<CAPcyv4hGV07gpADT32xn=3brEq75P4RJA592vp-1A+jXMQCeOQ@mail.gmail.com>	<57279D57.5020800@plexistor.com>
+ <CAPcyv4i3QteM508fVams8DxzoPTo5AXT6RQQ4=gR-iAN-B4-6g@mail.gmail.com>
+In-Reply-To: <CAPcyv4i3QteM508fVams8DxzoPTo5AXT6RQQ4=gR-iAN-B4-6g@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,76 +26,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, hch@lst.de
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <matthew@wil.cx>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, XFS Developers <xfs@oss.sgi.com>, linux-block@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@infradead.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4 <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ida instances allocate some internal memory for ->free_bitmap in
-addition to the base 'struct ida'.  Use ida_destroy() to release that
-memory at module_exit().
+On 05/02/2016 09:48 PM, Dan Williams wrote:
+<>
+>> And then it keeps broken the aligned buffered writes, which are still
+>> broken after this set.
+> 
+> ...identical to the current situation with a traditional disk.
+> 
 
-Reported-by: Johannes Thumshirn <jthumshirn@suse.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/core.c        |    3 +++
- drivers/nvdimm/dimm_devs.c   |    5 +++++
- drivers/nvdimm/nd-core.h     |    2 ++
- drivers/nvdimm/region_devs.c |    5 +++++
- 4 files changed, 15 insertions(+)
+Not true!! please see what I wrote "aligned buffered writes"
+If there are no reads involved then there are no errors returned
+to application.
 
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 182a93fe3712..847532de087a 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -648,6 +648,9 @@ static __exit void libnvdimm_exit(void)
- 	nd_region_exit();
- 	nvdimm_exit();
- 	nvdimm_bus_exit();
-+	nd_region_devs_exit();
-+	nvdimm_devs_exit();
-+	ida_destroy(&nd_ida);
- }
- 
- MODULE_LICENSE("GPL v2");
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index c56f88217924..6cca03eaa345 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -546,3 +546,8 @@ int nvdimm_bus_check_dimm_count(struct nvdimm_bus *nvdimm_bus, int dimm_count)
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(nvdimm_bus_check_dimm_count);
-+
-+void __exit nvdimm_devs_exit(void)
-+{
-+	ida_destroy(&dimm_ida);
-+}
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index cb65308c0329..4136c1a82539 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -49,6 +49,8 @@ bool is_nd_blk(struct device *dev);
- struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev);
- int __init nvdimm_bus_init(void);
- void nvdimm_bus_exit(void);
-+void nvdimm_devs_exit(void);
-+void nd_region_devs_exit(void);
- void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev);
- struct nd_region;
- void nd_region_create_blk_seed(struct nd_region *nd_region);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 9e1b054e0e61..40fcfea26fbb 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -793,3 +793,8 @@ struct nd_region *nvdimm_volatile_region_create(struct nvdimm_bus *nvdimm_bus,
- 			__func__);
- }
- EXPORT_SYMBOL_GPL(nvdimm_volatile_region_create);
-+
-+void __exit nd_region_devs_exit(void)
-+{
-+	ida_destroy(&region_ida);
-+}
+>> I have by now read the v2 patches. And I think you guys did not yet try
+>> the proper fix for dax_do_io. I think you need to go deeper into the loops
+>> and selectively call bdev_* when error on a specific page copy. No need to
+>> go through direct_IO path at all.
+> 
+> We still reach a point where the minimum granularity of
+> bdev_direct_access() is larger than a sector, so you end up still
+> needing to have the application understand how to send a properly
+> aligned I/O.  The semantics of how to send a properly aligned
+> direct-I/O are already well understood, so we simply reuse that path.
+> 
+
+You are making a mountain out of a mouse. The simple copy of a file
+from start (offset ZERO) to end-of-file which is the most common usage
+on earth is perfectly aligned and needs not any O_DIRECT and is what is used
+everywhere.
+
+>> Do you need that I send you a patch to demonstrate what I mean?
+> 
+> I remain skeptical of what you are proposing, but yes, a patch has a
+> better chance to move the discussion forward.
+> 
+
+Sigh! OK
+Boaz
 
 _______________________________________________
 Linux-nvdimm mailing list
