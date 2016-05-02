@@ -1,19 +1,27 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- by ml01.01.org (Postfix) with ESMTP id BAD511A1F9C
- for <linux-nvdimm@lists.01.org>; Mon,  2 May 2016 11:52:04 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v4 5/7] fs: prioritize and separate direct_io from dax_io
-Date: Mon, 2 May 2016 18:52:02 +0000
-Message-ID: <1462215110.1421.43.camel@intel.com>
+Received: from mail-oi0-x22a.google.com (mail-oi0-x22a.google.com
+ [IPv6:2607:f8b0:4003:c06::22a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 9CF4D1A1F01
+ for <linux-nvdimm@lists.01.org>; Mon,  2 May 2016 11:48:16 -0700 (PDT)
+Received: by mail-oi0-x22a.google.com with SMTP id k142so202107243oib.1
+ for <linux-nvdimm@lists.01.org>; Mon, 02 May 2016 11:48:16 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <57279D57.5020800@plexistor.com>
 References: <1461878218-3844-1-git-send-email-vishal.l.verma@intel.com>
  <1461878218-3844-6-git-send-email-vishal.l.verma@intel.com>
- <5727753F.6090104@plexistor.com> <1462204291.11211.20.camel@kernel.org>
- <57277A59.3000306@plexistor.com>
-In-Reply-To: <57277A59.3000306@plexistor.com>
-Content-Language: en-US
-Content-ID: <6CC4C63FB2C3A74E9884555DCBF97A11@intel.com>
-MIME-Version: 1.0
+ <5727753F.6090104@plexistor.com>
+ <CAPcyv4jWPTDbbw6uMFEEt2Kazgw+wb5Pfwroej--uQPE+AtUbA@mail.gmail.com>
+ <57277EDA.9000803@plexistor.com>
+ <CAPcyv4jnz69a3S+XZgLaLojHZmpfoVXGDkJkt_1Q=8kk0gik9w@mail.gmail.com>
+ <572791E1.7000103@plexistor.com>
+ <CAPcyv4hGV07gpADT32xn=3brEq75P4RJA592vp-1A+jXMQCeOQ@mail.gmail.com>
+ <57279D57.5020800@plexistor.com>
+Date: Mon, 2 May 2016 11:48:15 -0700
+Message-ID: <CAPcyv4i3QteM508fVams8DxzoPTo5AXT6RQQ4=gR-iAN-B4-6g@mail.gmail.com>
+Subject: Re: [PATCH v4 5/7] fs: prioritize and separate direct_io from dax_io
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,96 +29,75 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "boaz@plexistor.com" <boaz@plexistor.com>
-Cc: "hch@infradead.org" <hch@infradead.org>, "jack@suse.cz" <jack@suse.cz>, "matthew@wil.cx" <matthew@wil.cx>, "axboe@fb.com" <axboe@fb.com>, "david@fromorbit.com" <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>
+To: Boaz Harrosh <boaz@plexistor.com>
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <matthew@wil.cx>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, XFS Developers <xfs@oss.sgi.com>, linux-block@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@infradead.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4 <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE2LTA1LTAyIGF0IDE5OjAzICswMzAwLCBCb2F6IEhhcnJvc2ggd3JvdGU6DQo+
-IE9uIDA1LzAyLzIwMTYgMDY6NTEgUE0sIFZpc2hhbCBWZXJtYSB3cm90ZToNCj4gPiANCj4gPiBP
-biBNb24sIDIwMTYtMDUtMDIgYXQgMTg6NDEgKzAzMDAsIEJvYXogSGFycm9zaCB3cm90ZToNCj4g
-PiA+IA0KPiA+ID4gT24gMDQvMjkvMjAxNiAxMjoxNiBBTSwgVmlzaGFsIFZlcm1hIHdyb3RlOg0K
-PiA+ID4gPiANCj4gPiA+ID4gDQo+ID4gPiA+IEFsbCBJTyBpbiBhIGRheCBmaWxlc3lzdGVtIHVz
-ZWQgdG8gZ28gdGhyb3VnaCBkYXhfZG9faW8sIHdoaWNoDQo+ID4gPiA+IGNhbm5vdA0KPiA+ID4g
-PiBoYW5kbGUgbWVkaWEgZXJyb3JzLCBhbmQgdGh1cyBjYW5ub3QgcHJvdmlkZSBhIHJlY292ZXJ5
-IHBhdGgNCj4gPiA+ID4gdGhhdA0KPiA+ID4gPiBjYW4NCj4gPiA+ID4gc2VuZCBhIHdyaXRlIHRo
-cm91Z2ggdGhlIGRyaXZlciB0byBjbGVhciBlcnJvcnMuDQo+ID4gPiA+IA0KPiA+ID4gPiBBZGQg
-YSBuZXcgaW9jYiBmbGFnIGZvciBEQVgsIGFuZCBzZXQgaXQgb25seSBmb3IgREFYIG1vdW50cy4g
-SW4NCj4gPiA+ID4gdGhlDQo+ID4gPiA+IElPDQo+ID4gPiA+IHBhdGggZm9yIERBWCBmaWxlc3lz
-dGVtcywgdXNlIHRoZSBzYW1lIGRpcmVjdF9JTyBwYXRoIGZvciBib3RoDQo+ID4gPiA+IERBWA0K
-PiA+ID4gPiBhbmQNCj4gPiA+ID4gZGlyZWN0X2lvIGlvY2JzLCBidXQgdXNlIHRoZSBmbGFncyB0
-byBpZGVudGlmeSB3aGVuIHdlIGFyZSBpbg0KPiA+ID4gPiBPX0RJUkVDVA0KPiA+ID4gPiBtb2Rl
-IHZzIG5vbiBPX0RJUkVDVCB3aXRoIERBWCwgYW5kIGZvciBPX0RJUkVDVCwgdXNlIHRoZQ0KPiA+
-ID4gPiBjb252ZW50aW9uYWwNCj4gPiA+ID4gZGlyZWN0X0lPIHBhdGggaW5zdGVhZCBvZiBEQVgu
-DQo+ID4gPiA+IA0KPiA+ID4gUmVhbGx5PyBXaGF0IGFyZSB5b3VyIHRoaW5raW5nIGhlcmU/DQo+
-ID4gPiANCj4gPiA+IFdoYXQgYWJvdXQgYWxsIHRoZSBjdXJyZW50IHVzZXJzIG9mIE9fRElSRUNU
-LCB5b3UgaGF2ZSBqdXN0IG1hZGUNCj4gPiA+IHRoZW0NCj4gPiA+IDQgdGltZXMgc2xvd2VyIGFu
-ZCAibGVzcyBjb25jdXJyZW50KiIgdGhlbiAiYnVmZnJlZCBpbyIgdXNlcnMuDQo+ID4gPiBTaW5j
-ZQ0KPiA+ID4gZGlyZWN0X0lPIHBhdGggd2lsbCBxdWV1ZSBhbiBJTyByZXF1ZXN0IGFuZCBhbGwu
-DQo+ID4gPiAoQW5kIGlmIGl0IGlzIG5vdCBzbyBzbG93IHRoZW4gd2h5IGRvIHdlIG5lZWQgZGF4
-X2RvX2lvIGF0IGFsbD8NCj4gPiA+IFtSaGV0b3JpY2FsXSkNCj4gPiA+IA0KPiA+ID4gSSBoYXRl
-IGl0IHRoYXQgeW91IG92ZXJsb2FkIHRoZSBzZW1hbnRpY3Mgb2YgYSBrbm93biBhbmQgZXhwZWN0
-ZWQNCj4gPiA+IE9fRElSRUNUIGZsYWcsIGZvciBzcGVjaWFsIHBtZW0gcXVpcmtzLiBUaGlzIGlz
-IGFuIGluY29tcGF0aWJsZQ0KPiA+ID4gYW5kIHVucmVsYXRlZCBvdmVybG9hZCBvZiB0aGUgc2Vt
-YW50aWNzIG9mIE9fRElSRUNULg0KPiA+IFdlIG92ZXJsb2FkZWQgT19ESVJFQ1QgYSBsb25nIHRp
-bWUgYWdvIHdoZW4gd2UgbWFkZSBEQVggcGlnZ3liYWNrIG9uDQo+ID4gdGhlIHNhbWUgcGF0aDoN
-Cj4gPiANCj4gPiBzdGF0aWMgaW5saW5lIGJvb2wgaW9faXNfZGlyZWN0KHN0cnVjdCBmaWxlICpm
-aWxwKQ0KPiA+IHsNCj4gPiAJcmV0dXJuIChmaWxwLT5mX2ZsYWdzICYgT19ESVJFQ1QpIHx8IElT
-X0RBWChmaWxwLT5mX21hcHBpbmctDQo+ID4gPmhvc3QpOw0KPiA+IH0NCj4gPiANCj4gTm8gYXMg
-ZmFyIGFzIHRoZSB1c2VyIGlzIGNvbmNlcm5lZCB3ZSBoYXZlIG5vdC4gVGhlIE9fRElSRUNUIHVz
-ZXINCj4gaXMgc3RpbGwgZ2V0dGluZyBhbGwgdGhlIHNlbWFudGljcyBoZSB3YW50cywgLmkuZSBu
-byBzeW5jcyBubw0KPiBtZW1vcnkgY2FjaGUgdXNhZ2UsIG5vIGNvcGllcyAuLi4NCj4gDQo+IE9u
-bHkgd2l0aCBEQVggdGhlIGJ1ZmZlcmVkIElPIGlzIHRoZSBzYW1lIHNpbmNlIHdpdGggcG1lbSBp
-dCBpcw0KPiBmYXN0ZXIuDQo+IFRoZW4gd2h5IG5vdD8gVGhlIGJhc2ljIGNvbnRyYWN0IHdpdGgg
-dGhlIHVzZXIgZGlkIG5vdCBicmVhay4NCj4gDQo+IFRoZSBhYm92ZSB3YXMganVzdCBhbiBpbXBs
-ZW1lbnRhdGlvbiBkZXRhaWwgdG8gZWFzaWx5IG5hdmlnYXRlDQo+IHRocm91Z2ggdGhlIExpbnV4
-IHZmcyBJTyBzdGFjayBhbmQgbWFrZSB0aGUgbGVhc3QgYW1vdW50IG9mIGNoYW5nZXMNCj4gaW4g
-ZXZlcnkgRlMgdGhhdCB3YW50ZWQgdG8gc3VwcG9ydCBEQVguKEFuZCBzaW5jZSBkYXhfZG9faW8g
-aXMgbXVjaA0KPiBtb3JlIGxpa2UgZGlyZWN0X0lPIHRoZW4gbGlrZSBwYWdlLWNhY2hlIElPKQ0K
-PiANCj4gPiANCj4gPiBZZXMgT19ESVJFQ1Qgb24gYSBEQVggbW91bnRlZCBmaWxlIHN5c3RlbSB3
-aWxsIG5vdyBiZSBzbG93ZXIsIGJ1dCAtDQo+ID4gDQo+ID4gPiANCj4gPiA+IA0KPiA+ID4gPiAN
-Cj4gPiA+ID4gDQo+ID4gPiA+IFRoaXMgYWxsb3dzIHVzIGEgcmVjb3ZlcnkgcGF0aCBpbiB0aGUg
-Zm9ybSBvZiBvcGVuaW5nIHRoZSBmaWxlDQo+ID4gPiA+IHdpdGgNCj4gPiA+ID4gT19ESVJFQ1Qg
-YW5kIHdyaXRpbmcgdG8gaXQgd2l0aCB0aGUgdXN1YWwgT19ESVJFQ1Qgc2VtYW50aWNzDQo+ID4g
-PiA+IChzZWN0b3INCj4gPiA+ID4gYWxpZ25tZW50IHJlc3RyaWN0aW9ucykuDQo+ID4gPiA+IA0K
-PiA+ID4gSSB1bmRlcnN0YW5kIHRoYXQgeW91IHdhbnQgYSBzZWN0b3IgYWxpZ25lZCBJTywgcmln
-aHQ/IGZvciB0aGUNCj4gPiA+IGNsZWFyIG9mIGVycm9ycy4gQnV0IEkgaGF0ZSBpdCB0aGF0IHlv
-dSBmb3JjZWQgYWxsIE9fRElSRUNUIElPDQo+ID4gPiB0byBiZSBzbG93IGZvciB0aGlzLg0KPiA+
-ID4gQ2FuIHlvdSBub3QgbWFrZSBkYXhfZG9faW8gaGFuZGxlIG1lZGlhIGVycm9ycz8gQXQgbGVh
-c3QgZm9yIHRoZQ0KPiA+ID4gcGFydHMgb2YgdGhlIElPIHRoYXQgYXJlIGFsaWduZWQuDQo+ID4g
-PiAoQW5kIHlvdXIgcmVjb3ZlcnkgcGF0aCBhcHBsaWNhdGlvbiBhYm92ZSBjYW4gdXNlIG9ubHkg
-YWxpZ25lZA0KPiA+ID4gwqBJTyB0byBtYWtlIHN1cmUpDQo+ID4gPiANCj4gPiA+IFBsZWFzZSBs
-b29rIGZvciBhbm90aGVyIHNvbHV0aW9uLiBFdmVuIGEgc3BlY2lhbA0KPiA+ID4gSU9DVExfREFY
-X0NMRUFSX0VSUk9SDQo+ID4gwqAtIHNlZSBhbGwgdGhlIHZlcnNpb25zIG9mIHRoaXMgc2VyaWVz
-IHByaW9yIHRvIHRoaXMgb25lLCB3aGVyZSB3ZQ0KPiA+IHRyeQ0KPiA+IHRvIGRvIGEgZmFsbGJh
-Y2suLi4NCj4gPiANCj4gQW5kPw0KPiANCj4gU28gbm93IGFsbCBPX0RJUkVDVCBBUFBzIGdvIDQg
-dGltZXMgc2xvd2VyLiBJIHdpbGwgaGF2ZSBhIGxvb2sgYnV0IGlmDQo+IGl0IGlzIHJlYWxseSBz
-byBiYWQgdGhhbiBwbGVhc2UgY29uc2lkZXIgYW4gSU9DVEwgb3Igc3lzY2FsbC4gT3IgYQ0KPiBz
-cGVjaWFsDQo+IE9fREFYX0VSUk9SUyBmbGFnIC4uLg0KDQpJJ20gY3VyaW91cyB3aGVyZSB0aGUg
-NHggc2xvd2VyIGNvbWVzIGZyb20uLiBUaGUgT19ESVJFQ1QgcGF0aCBpcyBzdGlsbA0Kd2l0aG91
-dCBwYWdlLWNhY2hlIGNvcGllcywgYW5kIG5vciBkb2VzIGl0IGdvIHRocm91Z2ggcmVxdWVzdCBx
-dWV1ZXMNCihzaW5jZSBwbWVtIGlzIGEgYmlvLWJhc2VkIGRyaXZlcikuIFRoZSBvbmx5IG92ZXJo
-ZWFkIGlzIHRoYXQgb2YNCnN1Ym1pdHRpbmcgYSBiaW8gLSBhbmQgd2hpbGUgSSBhZ3JlZSBpdCBp
-cyBtb3JlIG92ZXJoZWFkIHRoYW4gZGF4X2RvX2lvLA0KNHggc2VlbXMgYSBiaXQgaGlnaC4NCg0K
-PiANCj4gUGxlYXNlIGRvIG5vdCB0cmFzaCBhbGwgdGhlIE9fRElSRUNUIHVzZXJzLCB0aGV5IGFy
-ZSB0aGUgbW9yZQ0KPiBpbXBvcnRhbnQNCj4gY2xpZW50cywgbGlrZSBEQnMgYW5kIFZNcy4NCg0K
-U2hvdWxkbid0IHRoZXkgYmUgdXNpbmcgbW1hcHMgYW5kIGRheCBmYXVsdHM/IEkgd2FzIHVuZGVy
-IHRoZSBpbXByZXNzaW9uDQp0aGF0IHRoZSBkYXhfZG9faW8gcGF0aCBpcyBhIG5pY2UtdG8taGF2
-ZSwgYnV0IGZvciBhbnlvbmUgdGhhdCB3aWxsIHdhbnQNCnRvIHVzZSBEQVgsIHRoZXkgd2lsbCB3
-YW50IHRoZSBtbWFwL2ZhdWx0IHBhdGgsIG5vdCB0aGUgSU8gcGF0aC4gVGhpcyBpcw0KanVzdCBt
-YWtpbmcgdGhlIElPIHBhdGggJ21vcmUgY29ycmVjdCcgYnkgYWxsb3dpbmcgaXQgYSB3YXkgdG8g
-ZGVhbCB3aXRoDQplcnJvcnMuDQoNCj4gDQo+IFRoYW5rcw0KPiBCb2F6DQo+IA0KPiA+IA0KPiA+
-ID4gDQo+ID4gPiANCj4gPiA+IFsqImxlc3MgY29uY3VycmVudCIgYmVjYXVzZSBvZiB0aGUgcXVl
-dWluZyBkb25lIGluIGJkZXYuIE5vdGUgaG93DQo+ID4gPiDCoCBwbWVtIGlzIG5vdCBldmVuIG11
-bHRpLXF1ZXVlLCBhbmQgZXZlbiBpZiBpdCB3YXMgaXQgd2lsbCBiZSBtdWNoDQo+ID4gPiDCoCBz
-bG93ZXIgdGhlbiBEQVggYmVjYXVzZSBvZiB0aGUgY29kZSBkZXB0aCBhbmQgYWxsIHRoZSBsb2Nr
-cyBhbmQNCj4gPiA+IHRhc2sNCj4gPiA+IMKgIHN3aXRjaGVzIGRvbmUgaW4gdGhlIGJsb2NrIGxh
-eWVyLiBJbiBEQVggdGhlIGZpbmFsIG1lbWNweSBpcw0KPiA+ID4gZG9uZQ0KPiA+ID4gZGlyZWN0
-bHkNCj4gPiA+IMKgIG9uIHRoZSB1c2VyLW1vZGUgdGhyZWFkXQ0KPiA+ID4gDQo+ID4gPiBUaGFu
-a3MNCj4gPiA+IEJvYXoNCj4gPiA+IApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRp
-bW0K
+On Mon, May 2, 2016 at 11:32 AM, Boaz Harrosh <boaz@plexistor.com> wrote:
+> On 05/02/2016 09:10 PM, Dan Williams wrote:
+> <>
+>>
+>> The semantic I am talking about preserving is:
+>>
+>> buffered / unaligned write of a bad sector => -EIO on reading into the
+>> page cache
+>>
+>
+> What about aligned buffered write? like write 0-to-eof
+> This still broken? (and is what restore apps do)
+>
+>> ...and that the only guaranteed way to clear an error (assuming the
+>> block device supports it) is an O_DIRECT write.
+>>
+>
+> Sure fixing dax_do_io will guaranty that.
+>
+> <>
+>> I still think we're talking past each other on this point.
+>
+> Yes we are!
+>
+>> This patch
+>> set is not overloading error semantics, it's fixing the error handling
+>> problem that was introduced in this commit:
+>>
+>>    d475c6346a38 dax,ext2: replace XIP read and write with DAX I/O
+>>
+>> ...where we started overloading O_DIRECT and dax_do_io() semantics.
+>>
+>
+> But above does not fix them does it? it just completely NULLs DAX for
+> O_DIRECT which is a great pity, why did we do all this work in the first
+> place.
+
+This is hyperbole.  We don't impact "all the work" we did for the mmap
+I/O case and the acceleration of the non-direct-I/O case.
+
+> And then it keeps broken the aligned buffered writes, which are still
+> broken after this set.
+
+...identical to the current situation with a traditional disk.
+
+> I have by now read the v2 patches. And I think you guys did not yet try
+> the proper fix for dax_do_io. I think you need to go deeper into the loops
+> and selectively call bdev_* when error on a specific page copy. No need to
+> go through direct_IO path at all.
+
+We still reach a point where the minimum granularity of
+bdev_direct_access() is larger than a sector, so you end up still
+needing to have the application understand how to send a properly
+aligned I/O.  The semantics of how to send a properly aligned
+direct-I/O are already well understood, so we simply reuse that path.
+
+> Do you need that I send you a patch to demonstrate what I mean?
+
+I remain skeptical of what you are proposing, but yes, a patch has a
+better chance to move the discussion forward.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
