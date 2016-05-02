@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
- [IPv6:2607:f8b0:4003:c06::243])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 052FE1A1F04
- for <linux-nvdimm@lists.01.org>; Thu, 26 May 2016 09:38:56 -0700 (PDT)
-Received: by mail-oi0-x243.google.com with SMTP id h125so5446840oib.2
- for <linux-nvdimm@lists.01.org>; Thu, 26 May 2016 09:38:44 -0700 (PDT)
-From: Stuart Hayes <stuart.w.hayes@gmail.com>
-Subject: [PATCH] nfit: add Microsoft NVDIMM DSM command set to white list
-Message-ID: <5cff32b5-7849-4e9d-0ba8-1f12e21814a9@gmail.com>
-Date: Thu, 26 May 2016 11:38:41 -0500
+ by ml01.01.org (Postfix) with ESMTPS id EE6EA1A1E88
+ for <linux-nvdimm@lists.01.org>; Mon,  2 May 2016 06:19:46 -0700 (PDT)
+Date: Mon, 2 May 2016 15:19:43 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 13/18] dax: Make huge page handling depend of CONFIG_BROKEN
+Message-ID: <20160502131943.GG17362@quack2.suse.cz>
+References: <1461015341-20153-1-git-send-email-jack@suse.cz>
+ <1461015341-20153-14-git-send-email-jack@suse.cz>
+ <20160429195340.GG5888@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20160429195340.GG5888@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,98 +21,97 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add the Microsoft _DSM command set to the white list of NVDIMM command sets.
+On Fri 29-04-16 13:53:40, Ross Zwisler wrote:
+> On Mon, Apr 18, 2016 at 11:35:36PM +0200, Jan Kara wrote:
+> > Currently the handling of huge pages for DAX is racy. For example the
+> > following can happen:
+> > 
+> > CPU0 (THP write fault)			CPU1 (normal read fault)
+> > 
+> > __dax_pmd_fault()			__dax_fault()
+> >   get_block(inode, block, &bh, 0) -> not mapped
+> > 					get_block(inode, block, &bh, 0)
+> > 					  -> not mapped
+> >   if (!buffer_mapped(&bh) && write)
+> >     get_block(inode, block, &bh, 1) -> allocates blocks
+> >   truncate_pagecache_range(inode, lstart, lend);
+> > 					dax_load_hole();
+> > 
+> > This results in data corruption since process on CPU1 won't see changes
+> > into the file done by CPU0.
+> > 
+> > The race can happen even if two normal faults race however with THP the
+> > situation is even worse because the two faults don't operate on the same
+> > entries in the radix tree and we want to use these entries for
+> > serialization. So make THP support in DAX code depend on CONFIG_BROKEN
+> > for now.
+> > 
+> > Signed-off-by: Jan Kara <jack@suse.cz>
+> > ---
+> >  fs/dax.c            | 2 +-
+> >  include/linux/dax.h | 2 +-
+> >  2 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/fs/dax.c b/fs/dax.c
+> > index d7addfab2094..388327f56fa8 100644
+> > --- a/fs/dax.c
+> > +++ b/fs/dax.c
+> > @@ -707,7 +707,7 @@ int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+> >  }
+> >  EXPORT_SYMBOL_GPL(dax_fault);
+> >  
+> > -#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+> > +#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_BROKEN)
+> >  /*
+> >   * The 'colour' (ie low bits) within a PMD of a page offset.  This comes up
+> >   * more often than one might expect in the below function.
+> > diff --git a/include/linux/dax.h b/include/linux/dax.h
+> > index 7c45ac7ea1d1..0591f4853228 100644
+> > --- a/include/linux/dax.h
+> > +++ b/include/linux/dax.h
+> > @@ -23,7 +23,7 @@ static inline struct page *read_dax_sector(struct block_device *bdev,
+> >  }
+> >  #endif
+> >  
+> > -#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+> > +#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_BROKEN)
+> >  int dax_pmd_fault(struct vm_area_struct *, unsigned long addr, pmd_t *,
+> >  				unsigned int flags, get_block_t);
+> >  int __dax_pmd_fault(struct vm_area_struct *, unsigned long addr, pmd_t *,
+> > -- 
+> > 2.6.6
+> 
+> Ah, sorry, I think by "make PMD depend on CONFIG_BROKEN" Dan & I meant this:
+> 
+> diff --git a/fs/Kconfig b/fs/Kconfig
+> index 6725f59..b8fcb41 100644
+> --- a/fs/Kconfig
+> +++ b/fs/Kconfig
+> @@ -52,6 +52,7 @@ config FS_DAX_PMD
+>         depends on FS_DAX
+>         depends on ZONE_DEVICE
+>         depends on TRANSPARENT_HUGEPAGE
+> +       depends on BROKEN
+>  
+>  endif # BLOCK
+> 
+> This has the benefit that you have only one place to quickly reenable PMD code
+> if/when we want to work on it.
 
-This command set is documented at https://msdn.microsoft.com/library/windows/hardware/mt604741.
+OK, makes sense. I've changed this.
 
-Signed-off-by: Stuart Hayes <stuart.w.hayes@gmail.com>
----
-  drivers/acpi/nfit.c        | 9 ++++++---
-  drivers/acpi/nfit.h        | 4 ++++
-  include/uapi/linux/ndctl.h | 1 +
-  3 files changed, 11 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 2215fc8..48fc575 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1130,11 +1130,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
-  	}
-  
-  	/*
--	 * Until standardization materializes we need to consider up to 3
-+	 * Until standardization materializes we need to consider several
-  	 * different command sets.  Note, that checking for function0 (bit0)
-  	 * tells us if any commands are reachable through this uuid.
-  	 */
--	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
-+	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
-  		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
-  			break;
-  
-@@ -1150,7 +1150,9 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
-  		dsm_mask = 0x1fe;
-  		if (disable_vendor_specific)
-  			dsm_mask &= ~(1 << 8);
--	} else {
-+	} else if (nfit_mem->family == NVDIMM_FAMILY_MSFT)
-+		dsm_mask = 0xffffffff;
-+	else {
-  		dev_err(dev, "unknown dimm command family\n");
-  		nfit_mem->family = -1;
-  		return force_enable_dimms ? 0 : -ENODEV;
-@@ -2692,6 +2694,7 @@ static __init int nfit_init(void)
-  	acpi_str_to_uuid(UUID_NFIT_DIMM, nfit_uuid[NFIT_DEV_DIMM]);
-  	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE1, nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
-  	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE2, nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
-+	acpi_str_to_uuid(UUID_NFIT_DIMM_N_MSFT, nfit_uuid[NFIT_DEV_DIMM_N_MSFT]);
-  
-  	nfit_wq = create_singlethread_workqueue("nfit");
-  	if (!nfit_wq)
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 11cb383..f06fa91 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -31,6 +31,9 @@
-  #define UUID_NFIT_DIMM_N_HPE1 "9002c334-acf3-4c0e-9642-a235f0d53bc6"
-  #define UUID_NFIT_DIMM_N_HPE2 "5008664b-b758-41a0-a03c-27c2f2d04f7e"
-  
-+/* https://msdn.microsoft.com/library/windows/hardware/mt604741 */
-+#define UUID_NFIT_DIMM_N_MSFT "1ee68b36-d4bd-4a1a-9a16-4f8e53d46e05"
-+
-  #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
-  		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
-  		| ACPI_NFIT_MEM_NOT_ARMED)
-@@ -40,6 +43,7 @@ enum nfit_uuids {
-  	NFIT_DEV_DIMM = NVDIMM_FAMILY_INTEL,
-  	NFIT_DEV_DIMM_N_HPE1 = NVDIMM_FAMILY_HPE1,
-  	NFIT_DEV_DIMM_N_HPE2 = NVDIMM_FAMILY_HPE2,
-+	NFIT_DEV_DIMM_N_MSFT = NVDIMM_FAMILY_MSFT,
-  	NFIT_SPA_VOLATILE,
-  	NFIT_SPA_PM,
-  	NFIT_SPA_DCR,
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 309915f..ba5a8c7 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -298,6 +298,7 @@ struct nd_cmd_pkg {
-  #define NVDIMM_FAMILY_INTEL 0
-  #define NVDIMM_FAMILY_HPE1 1
-  #define NVDIMM_FAMILY_HPE2 2
-+#define NVDIMM_FAMILY_MSFT 3
-  
-  #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
-  					struct nd_cmd_pkg)
+								Honza
 -- 
-1.8.3.1
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
