@@ -1,158 +1,76 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 214151A1F75
- for <linux-nvdimm@lists.01.org>; Wed, 11 May 2016 02:59:24 -0700 (PDT)
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 2 May 2016 15:16:36 +0200
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 7/7] dax: Remove redundant inode size checks
-Date: Wed, 11 May 2016 11:58:53 +0200
-Message-Id: <1462960733-29634-8-git-send-email-jack@suse.cz>
-In-Reply-To: <1462960733-29634-1-git-send-email-jack@suse.cz>
-References: <1462960733-29634-1-git-send-email-jack@suse.cz>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Subject: Re: [PATCH 11/18] dax: Fix condition for filling of PMD holes
+Message-ID: <20160502131636.GF17362@quack2.suse.cz>
+References: <1461015341-20153-1-git-send-email-jack@suse.cz>
+ <1461015341-20153-12-git-send-email-jack@suse.cz>
+ <20160429190805.GF5888@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Ted Tso <tytso@mit.edu>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160429190805.GF5888@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Callers of dax fault handlers must make sure these calls cannot race
-with truncate. Thus it is enough to check inode size when entering the
-function and we don't have to recheck it again later in the handler.
-Note that inode size itself can be decreased while the fault handler
-runs but filesystem locking prevents against any radix tree or block
-mapping information changes resulting from the truncate and that is what
-we really care about.
+On Fri 29-04-16 13:08:05, Ross Zwisler wrote:
+> On Mon, Apr 18, 2016 at 11:35:34PM +0200, Jan Kara wrote:
+> > Currently dax_pmd_fault() decides to fill a PMD-sized hole only if
+> > returned buffer has BH_Uptodate set. However that doesn't get set for
+> > any mapping buffer so that branch is actually a dead code. The
+> > BH_Uptodate check doesn't make any sense so just remove it.
+> 
+> I'm not sure about this one.  In my testing (which was a while ago) I was
+> also never able to exercise this code path and create huge zero pages.   My
+> concern is that by removing the buffer_uptodate() check, we will all of a
+> sudden start running through a code path that was previously unreachable.
+> 
+> AFAICT the buffer_uptodate() was part of the original PMD commit.  Did we ever
+> get buffers with BH_Uptodate set?  Has this code ever been run?  Does it work?
+> 
+> I suppose this concern is mitigated by the fact that later in this series you 
+> disable the PMD path entirely, but maybe we should just leave it as is and
+> turn it off, then clean it up if/when we reenable it when we add multi-order
+> radix tree locking for PMDs?
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 60 +-----------------------------------------------------------
- 1 file changed, 1 insertion(+), 59 deletions(-)
+Well, I did this as a separate commit exactly because I'm not sure about
+the impact since nobody was actually able to test this code. So we can
+easily bisect later if we find issues. The code just didn't make sense to
+me that way and later in the series I update it to use radix tree locking
+which would be hard to do without having code which actually makes some
+sense. So I'd prefer to keep this change...
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 237581441bc1..9bc6624251b4 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -305,20 +305,11 @@ EXPORT_SYMBOL_GPL(dax_do_io);
- static int dax_load_hole(struct address_space *mapping, struct page *page,
- 							struct vm_fault *vmf)
- {
--	unsigned long size;
--	struct inode *inode = mapping->host;
- 	if (!page)
- 		page = find_or_create_page(mapping, vmf->pgoff,
- 						GFP_KERNEL | __GFP_ZERO);
- 	if (!page)
- 		return VM_FAULT_OOM;
--	/* Recheck i_size under page lock to avoid truncate race */
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (vmf->pgoff >= size) {
--		unlock_page(page);
--		put_page(page);
--		return VM_FAULT_SIGBUS;
--	}
- 
- 	vmf->page = page;
- 	return VM_FAULT_LOCKED;
-@@ -549,24 +540,10 @@ static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 		.sector = to_sector(bh, inode),
- 		.size = bh->b_size,
- 	};
--	pgoff_t size;
- 	int error;
- 
- 	i_mmap_lock_read(mapping);
- 
--	/*
--	 * Check truncate didn't happen while we were allocating a block.
--	 * If it did, this block may or may not be still allocated to the
--	 * file.  We can't tell the filesystem to free it because we can't
--	 * take i_mutex here.  In the worst case, the file still has blocks
--	 * allocated past the end of the file.
--	 */
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (unlikely(vmf->pgoff >= size)) {
--		error = -EIO;
--		goto out;
--	}
--
- 	if (dax_map_atomic(bdev, &dax) < 0) {
- 		error = PTR_ERR(dax.addr);
- 		goto out;
-@@ -632,15 +609,6 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			put_page(page);
- 			goto repeat;
- 		}
--		size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--		if (unlikely(vmf->pgoff >= size)) {
--			/*
--			 * We have a struct page covering a hole in the file
--			 * from a read fault and we've raced with a truncate
--			 */
--			error = -EIO;
--			goto unlock_page;
--		}
- 	}
- 
- 	error = get_block(inode, block, &bh, 0);
-@@ -673,17 +641,8 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		if (error)
- 			goto unlock_page;
- 		vmf->page = page;
--		if (!page) {
-+		if (!page)
- 			i_mmap_lock_read(mapping);
--			/* Check we didn't race with truncate */
--			size = (i_size_read(inode) + PAGE_SIZE - 1) >>
--								PAGE_SHIFT;
--			if (vmf->pgoff >= size) {
--				i_mmap_unlock_read(mapping);
--				error = -EIO;
--				goto out;
--			}
--		}
- 		return VM_FAULT_LOCKED;
- 	}
- 
-@@ -861,23 +820,6 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 
- 	i_mmap_lock_read(mapping);
- 
--	/*
--	 * If a truncate happened while we were allocating blocks, we may
--	 * leave blocks allocated to the file that are beyond EOF.  We can't
--	 * take i_mutex here, so just leave them hanging; they'll be freed
--	 * when the file is deleted.
--	 */
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (pgoff >= size) {
--		result = VM_FAULT_SIGBUS;
--		goto out;
--	}
--	if ((pgoff | PG_PMD_COLOUR) >= size) {
--		dax_pmd_dbg(&bh, address,
--				"offset + huge page size > file size");
--		goto fallback;
--	}
--
- 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
- 		spinlock_t *ptl;
- 		pmd_t entry;
+								Honza
+
+> > Signed-off-by: Jan Kara <jack@suse.cz>
+> > ---
+> >  fs/dax.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/fs/dax.c b/fs/dax.c
+> > index 237581441bc1..42bf65b4e752 100644
+> > --- a/fs/dax.c
+> > +++ b/fs/dax.c
+> > @@ -878,7 +878,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+> >  		goto fallback;
+> >  	}
+> >  
+> > -	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
+> > +	if (!write && !buffer_mapped(&bh)) {
+> >  		spinlock_t *ptl;
+> >  		pmd_t entry;
+> >  		struct page *zero_page = get_huge_zero_page();
+> > -- 
+> > 2.6.6
+> > 
 -- 
-2.6.6
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
