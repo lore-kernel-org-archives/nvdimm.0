@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id BC6A81A1FE6
- for <linux-nvdimm@lists.01.org>; Sat, 14 May 2016 23:27:19 -0700 (PDT)
-Subject: [PATCH v2 2/3] /dev/dax, core: file operations and dax-mmap
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 14 May 2016 23:26:29 -0700
-Message-ID: <146329358943.17948.12857084981536373315.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146329357870.17948.14240958684074905846.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146329357870.17948.14240958684074905846.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from g4t3426.houston.hp.com (g4t3426.houston.hp.com [15.201.208.54])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 60BE81A1F4D
+ for <linux-nvdimm@lists.01.org>; Wed,  4 May 2016 08:54:57 -0700 (PDT)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v2-UPDATE 3/3] xfs: Add alignment check for DAX mount
+Date: Wed,  4 May 2016 09:46:01 -0600
+Message-Id: <1462376761-15584-1-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,441 +15,77 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, hch@lst.de, linux-block@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: dan.j.williams@intel.com, david@fromorbit.com
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, hch@infradead.org, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org, tytso@mit.edu
 List-ID: <linux-nvdimm@lists.01.org>
 
-The "Device DAX" core enables dax mappings of performance / feature
-differentiated memory.  An open mapping or file handle keeps the backing
-struct device live, but new mappings are only possible while the device
-is enabled.   Faults are handled under rcu_read_lock to synchronize
-with the enabled state of the device.
+When a partition is not aligned by 4KB, mount -o dax succeeds,
+but any read/write access to the filesystem fails, except for
+metadata update.
 
-Similar to the filesystem-dax case the backing memory may optionally
-have struct page entries.  However, unlike fs-dax there is no support
-for private mappings, or mappings that are not backed by media (see
-use of zero-page in fs-dax).
+Call bdev_direct_access to check the alignment when -o dax is
+specified.
 
-Mappings are always guaranteed to match the alignment of the dax_region.
-If the dax_region is configured to have a 2MB alignment, all mappings
-are guaranteed to be backed by a pmd entry.  Contrast this determinism
-with the fs-dax case where pmd mappings are opportunistic.  If userspace
-attempts to force a misaligned mapping, the driver will fail the mmap
-attempt.  See dax_dev_check_vma() for other scenarios that are rejected,
-like MAP_PRIVATE mappings.
-
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Reviewed-by: Boaz Harrosh <boaz@plexistor.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Boaz Harrosh <boaz@plexistor.com>
 ---
- drivers/dax/Kconfig |    1 
- drivers/dax/dax.c   |  316 +++++++++++++++++++++++++++++++++++++++++++++++++++
- mm/huge_memory.c    |    1 
- mm/hugetlb.c        |    1 
- 4 files changed, 319 insertions(+)
+v2-UPDATE
+ - Add a period and fix a typo in error messages (Ross Zwisler)
+---
+ fs/xfs/xfs_super.c |   25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
-index 86ffbaa891ad..cedab7572de3 100644
---- a/drivers/dax/Kconfig
-+++ b/drivers/dax/Kconfig
-@@ -1,6 +1,7 @@
- menuconfig DEV_DAX
- 	tristate "DAX: direct access to differentiated memory"
- 	default m if NVDIMM_DAX
-+	depends on TRANSPARENT_HUGEPAGE
- 	help
- 	  Support raw access to differentiated (persistence, bandwidth,
- 	  latency...) memory via an mmap(2) capable character
-diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-index 8207fb33a992..b2fe8a0ce866 100644
---- a/drivers/dax/dax.c
-+++ b/drivers/dax/dax.c
-@@ -49,6 +49,7 @@ struct dax_region {
-  * @region - parent region
-  * @dev - device backing the character device
-  * @kref - enable this data to be tracked in filp->private_data
-+ * @alive - !alive + rcu grace period == no new mappings can be established
-  * @id - child id in the region
-  * @num_resources - number of physical address extents in this device
-  * @res - array of physical address ranges
-@@ -57,6 +58,7 @@ struct dax_dev {
- 	struct dax_region *region;
- 	struct device *dev;
- 	struct kref kref;
-+	bool alive;
- 	int id;
- 	int num_resources;
- 	struct resource res[0];
-@@ -150,6 +152,10 @@ static void destroy_dax_dev(void *_dev)
+diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+index 187e14b..ac18fae 100644
+--- a/fs/xfs/xfs_super.c
++++ b/fs/xfs/xfs_super.c
+@@ -1557,15 +1557,30 @@ xfs_fs_fill_super(
+ 		sb->s_flags |= MS_I_VERSION;
  
- 	dev_dbg(dev, "%s\n", __func__);
- 
-+	/* disable and flush fault handlers, TODO unmap inodes */
-+	dax_dev->alive = false;
-+	synchronize_rcu();
-+
- 	get_device(dev);
- 	device_unregister(dev);
- 	ida_simple_remove(&dax_region->ida, dax_dev->id);
-@@ -173,6 +179,7 @@ int devm_create_dax_dev(struct dax_region *dax_region, struct resource *res,
- 	memcpy(dax_dev->res, res, sizeof(*res) * count);
- 	dax_dev->num_resources = count;
- 	kref_init(&dax_dev->kref);
-+	dax_dev->alive = true;
- 	dax_dev->region = dax_region;
- 	kref_get(&dax_region->kref);
- 
-@@ -217,9 +224,318 @@ int devm_create_dax_dev(struct dax_region *dax_region, struct resource *res,
- }
- EXPORT_SYMBOL_GPL(devm_create_dax_dev);
- 
-+/* return an unmapped area aligned to the dax region specified alignment */
-+static unsigned long dax_dev_get_unmapped_area(struct file *filp,
-+		unsigned long addr, unsigned long len, unsigned long pgoff,
-+		unsigned long flags)
-+{
-+	unsigned long off, off_end, off_align, len_align, addr_align, align;
-+	struct dax_dev *dax_dev = filp ? filp->private_data : NULL;
-+	struct dax_region *dax_region;
-+
-+	if (!dax_dev || addr)
-+		goto out;
-+
-+	dax_region = dax_dev->region;
-+	align = dax_region->align;
-+	off = pgoff << PAGE_SHIFT;
-+	off_end = off + len;
-+	off_align = round_up(off, align);
-+
-+	if ((off_end <= off_align) || ((off_end - off_align) < align))
-+		goto out;
-+
-+	len_align = len + align;
-+	if ((off + len_align) < off)
-+		goto out;
-+
-+	addr_align = current->mm->get_unmapped_area(filp, addr, len_align,
-+			pgoff, flags);
-+	if (!IS_ERR_VALUE(addr_align)) {
-+		addr_align += (off - addr_align) & (align - 1);
-+		return addr_align;
-+	}
-+ out:
-+	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
-+}
-+
-+static int __match_devt(struct device *dev, const void *data)
-+{
-+	const dev_t *devt = data;
-+
-+	return dev->devt == *devt;
-+}
-+
-+static struct device *dax_dev_find(dev_t dev_t)
-+{
-+	return class_find_device(dax_class, NULL, &dev_t, __match_devt);
-+}
-+
-+static int dax_dev_open(struct inode *inode, struct file *filp)
-+{
-+	struct dax_dev *dax_dev = NULL;
-+	struct device *dev;
-+
-+	dev = dax_dev_find(inode->i_rdev);
-+	if (!dev)
-+		return -ENXIO;
-+
-+	device_lock(dev);
-+	dax_dev = dev_get_drvdata(dev);
-+	if (dax_dev) {
-+		dev_dbg(dev, "%s\n", __func__);
-+		filp->private_data = dax_dev;
-+		kref_get(&dax_dev->kref);
-+		inode->i_flags = S_DAX;
-+	}
-+	device_unlock(dev);
-+
-+	if (!dax_dev) {
-+		put_device(dev);
-+		return -ENXIO;
-+	}
-+	return 0;
-+}
-+
-+static int dax_dev_release(struct inode *inode, struct file *filp)
-+{
-+	struct dax_dev *dax_dev = filp->private_data;
-+	struct device *dev = dax_dev->dev;
-+
-+	dev_dbg(dax_dev->dev, "%s\n", __func__);
-+	dax_dev_put(dax_dev);
-+	put_device(dev);
-+
-+	return 0;
-+}
-+
-+static int check_vma(struct dax_dev *dax_dev, struct vm_area_struct *vma,
-+		const char *func)
-+{
-+	struct dax_region *dax_region = dax_dev->region;
-+	struct device *dev = dax_dev->dev;
-+	unsigned long mask;
-+
-+	if (!dax_dev->alive)
-+		return -ENXIO;
-+
-+	/* prevent private / writable mappings from being established */
-+	if ((vma->vm_flags & (VM_NORESERVE|VM_SHARED|VM_WRITE)) == VM_WRITE) {
-+		dev_dbg(dev, "%s: %s: fail, attempted private mapping\n",
-+				current->comm, func);
-+		return -EINVAL;
-+	}
-+
-+	mask = dax_region->align - 1;
-+	if (vma->vm_start & mask || vma->vm_end & mask) {
-+		dev_dbg(dev, "%s: %s: fail, unaligned vma (%#lx - %#lx, %#lx)\n",
-+				current->comm, func, vma->vm_start, vma->vm_end,
-+				mask);
-+		return -EINVAL;
-+	}
-+
-+	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) == PFN_DEV
-+			&& (vma->vm_flags & VM_DONTCOPY) == 0) {
-+		dev_dbg(dev, "%s: %s: fail, dax range requires MADV_DONTFORK\n",
-+				current->comm, func);
-+		return -EINVAL;
-+	}
-+
-+	if (!vma_is_dax(vma)) {
-+		dev_dbg(dev, "%s: %s: fail, vma is not DAX capable\n",
-+				current->comm, func);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static phys_addr_t pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
-+		unsigned long size)
-+{
-+	struct resource *res;
-+	phys_addr_t phys;
-+	int i;
-+
-+	for (i = 0; i < dax_dev->num_resources; i++) {
-+		res = &dax_dev->res[i];
-+		phys = pgoff * PAGE_SIZE + res->start;
-+		if (phys >= res->start && phys <= res->end)
-+			break;
-+		pgoff -= PHYS_PFN(resource_size(res));
-+	}
-+
-+	if (i < dax_dev->num_resources) {
-+		res = &dax_dev->res[i];
-+		if (phys + size - 1 <= res->end)
-+			return phys;
-+	}
-+
-+	return -1;
-+}
-+
-+static int __dax_dev_fault(struct dax_dev *dax_dev, struct vm_area_struct *vma,
-+		struct vm_fault *vmf)
-+{
-+	unsigned long vaddr = (unsigned long) vmf->virtual_address;
-+	struct device *dev = dax_dev->dev;
-+	struct dax_region *dax_region;
-+	int rc = VM_FAULT_SIGBUS;
-+	phys_addr_t phys;
-+	pfn_t pfn;
-+
-+	if (check_vma(dax_dev, vma, __func__))
-+		return VM_FAULT_SIGBUS;
-+
-+	dax_region = dax_dev->region;
-+	if (dax_region->align > PAGE_SIZE) {
-+		dev_dbg(dev, "%s: alignment > fault size\n", __func__);
-+		return VM_FAULT_SIGBUS;
-+	}
-+
-+	phys = pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
-+	if (phys == -1) {
-+		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
-+				vmf->pgoff);
-+		return VM_FAULT_SIGBUS;
-+	}
-+
-+	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-+
-+	rc = vm_insert_mixed(vma, vaddr, pfn);
-+
-+	if (rc == -ENOMEM)
-+		return VM_FAULT_OOM;
-+	if (rc < 0 && rc != -EBUSY)
-+		return VM_FAULT_SIGBUS;
-+
-+	return VM_FAULT_NOPAGE;
-+}
-+
-+static int dax_dev_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	int rc;
-+	struct file *filp = vma->vm_file;
-+	struct dax_dev *dax_dev = filp->private_data;
-+
-+	dev_dbg(dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
-+			current->comm, (vmf->flags & FAULT_FLAG_WRITE)
-+			? "write" : "read", vma->vm_start, vma->vm_end);
-+	rcu_read_lock();
-+	rc = __dax_dev_fault(dax_dev, vma, vmf);
-+	rcu_read_unlock();
-+
-+	return rc;
-+}
-+
-+static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
-+		struct vm_area_struct *vma, unsigned long addr, pmd_t *pmd,
-+		unsigned int flags)
-+{
-+	unsigned long pmd_addr = addr & PMD_MASK;
-+	struct device *dev = dax_dev->dev;
-+	struct dax_region *dax_region;
-+	phys_addr_t phys;
-+	pgoff_t pgoff;
-+	pfn_t pfn;
-+
-+	if (check_vma(dax_dev, vma, __func__))
-+		return VM_FAULT_SIGBUS;
-+
-+	dax_region = dax_dev->region;
-+	if (dax_region->align > PMD_SIZE) {
-+		dev_dbg(dev, "%s: alignment > fault size\n", __func__);
-+		return VM_FAULT_SIGBUS;
-+	}
-+
-+	/* dax pmd mappings require pfn_t_devmap() */
-+	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) != (PFN_DEV|PFN_MAP)) {
-+		dev_dbg(dev, "%s: alignment > fault size\n", __func__);
-+		return VM_FAULT_SIGBUS;
-+	}
-+
-+	pgoff = linear_page_index(vma, pmd_addr);
-+	phys = pgoff_to_phys(dax_dev, pgoff, PAGE_SIZE);
-+	if (phys == -1) {
-+		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
-+				pgoff);
-+		return VM_FAULT_SIGBUS;
-+	}
-+
-+	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-+
-+	return vmf_insert_pfn_pmd(vma, addr, pmd, pfn,
-+			flags & FAULT_FLAG_WRITE);
-+}
-+
-+static int dax_dev_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
-+		pmd_t *pmd, unsigned int flags)
-+{
-+	int rc;
-+	struct file *filp = vma->vm_file;
-+	struct dax_dev *dax_dev = filp->private_data;
-+
-+	dev_dbg(dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
-+			current->comm, (flags & FAULT_FLAG_WRITE)
-+			? "write" : "read", vma->vm_start, vma->vm_end);
-+
-+	rcu_read_lock();
-+	rc = __dax_dev_pmd_fault(dax_dev, vma, addr, pmd, flags);
-+	rcu_read_unlock();
-+
-+	return rc;
-+}
-+
-+static void dax_dev_vm_open(struct vm_area_struct *vma)
-+{
-+	struct file *filp = vma->vm_file;
-+	struct dax_dev *dax_dev = filp->private_data;
-+
-+	dev_dbg(dax_dev->dev, "%s\n", __func__);
-+	kref_get(&dax_dev->kref);
-+}
-+
-+static void dax_dev_vm_close(struct vm_area_struct *vma)
-+{
-+	struct file *filp = vma->vm_file;
-+	struct dax_dev *dax_dev = filp->private_data;
-+
-+	dev_dbg(dax_dev->dev, "%s\n", __func__);
-+	dax_dev_put(dax_dev);
-+}
-+
-+static const struct vm_operations_struct dax_dev_vm_ops = {
-+	.fault = dax_dev_fault,
-+	.pmd_fault = dax_dev_pmd_fault,
-+	.open = dax_dev_vm_open,
-+	.close = dax_dev_vm_close,
-+};
-+
-+static int dax_dev_mmap(struct file *filp, struct vm_area_struct *vma)
-+{
-+	struct dax_dev *dax_dev = filp->private_data;
-+	int rc;
-+
-+	dev_dbg(dax_dev->dev, "%s\n", __func__);
-+
-+	rc = check_vma(dax_dev, vma, __func__);
-+	if (rc)
-+		return rc;
-+
-+	kref_get(&dax_dev->kref);
-+	vma->vm_ops = &dax_dev_vm_ops;
-+	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-+	return 0;
-+
-+}
-+
- static const struct file_operations dax_fops = {
- 	.llseek = noop_llseek,
- 	.owner = THIS_MODULE,
-+	.open = dax_dev_open,
-+	.release = dax_dev_release,
-+	.get_unmapped_area = dax_dev_get_unmapped_area,
-+	.mmap = dax_dev_mmap,
- };
- 
- static int __init dax_init(void)
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 86f9f8b82f8e..52ea012d8a80 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -1013,6 +1013,7 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
- 	insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write);
- 	return VM_FAULT_NOPAGE;
- }
-+EXPORT_SYMBOL_GPL(vmf_insert_pfn_pmd);
- 
- static void touch_pmd(struct vm_area_struct *vma, unsigned long addr,
- 		pmd_t *pmd)
-diff --git a/mm/hugetlb.c b/mm/hugetlb.c
-index 19d0d08b396f..b14e98129b07 100644
---- a/mm/hugetlb.c
-+++ b/mm/hugetlb.c
-@@ -624,6 +624,7 @@ pgoff_t linear_hugepage_index(struct vm_area_struct *vma,
- {
- 	return vma_hugecache_offset(hstate_vma(vma), vma, address);
- }
-+EXPORT_SYMBOL_GPL(linear_hugepage_index);
- 
- /*
-  * Return the size of the pages allocated when backing a VMA. In the majority
-
+ 	if (mp->m_flags & XFS_MOUNT_DAX) {
++		struct blk_dax_ctl dax = {
++			.sector = 0,
++			.size = PAGE_SIZE,
++		};
+ 		xfs_warn(mp,
+-	"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
++		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+ 		if (sb->s_blocksize != PAGE_SIZE) {
+ 			xfs_alert(mp,
+-		"Filesystem block size invalid for DAX Turning DAX off.");
++		"Filesystem block size invalid for DAX. Turning DAX off.");
+ 			mp->m_flags &= ~XFS_MOUNT_DAX;
+-		} else if (!sb->s_bdev->bd_disk->fops->direct_access) {
+-			xfs_alert(mp,
+-		"Block device does not support DAX Turning DAX off.");
++		} else if ((error = bdev_direct_access(sb->s_bdev, &dax)) < 0) {
++			switch (error) {
++			case -EOPNOTSUPP:
++				xfs_alert(mp,
++			"Block device does not support DAX. Turning DAX off.");
++				break;
++			case -EINVAL:
++				xfs_alert(mp,
++			"Partition alignment invalid for DAX. Turning DAX off.");
++				break;
++			default:
++				xfs_alert(mp,
++			"DAX access failed (%d). Turning DAX off.", error);
++			}
+ 			mp->m_flags &= ~XFS_MOUNT_DAX;
+ 		}
+ 	}
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
