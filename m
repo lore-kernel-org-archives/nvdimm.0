@@ -1,89 +1,128 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v5 0/5] dax: handling media errors (clear-on-zero only)
-Date: Fri,  6 May 2016 15:53:06 -0600
-Message-Id: <1462571591-3361-1-git-send-email-vishal.l.verma@intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>, Boaz Harrosh <boaz@plexistor.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ by ml01.01.org (Postfix) with ESMTP id 395201A1F3D
+ for <linux-nvdimm@lists.01.org>; Thu,  5 May 2016 16:37:08 -0700 (PDT)
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm fixes for 4.6-rc7
+Date: Thu, 5 May 2016 23:37:06 +0000
+Message-ID: <1462491421.29583.9.camel@intel.com>
+Content-Language: en-US
+Content-ID: <A607F884E418B943B338F3D79A079D8D@intel.com>
+MIME-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: base64
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Until now, dax has been disabled if media errors were found on
-any device. This series attempts to address that.
-
-The first two patches from Dan re-enable dax even when media
-errors are present.
-
-The third patch from Matthew removes the zeroout path from dax
-entirely, making zeroout operations always go through the driver
-(The motivation is that if a backing device has media errors,
-and we create a sparse file on it, we don't want the initial
-zeroing to happen via dax, we want to give the block driver a
-chance to clear the errors).
-
-Patch 4 reduces our calls to clear_pmem from dax in the
-truncate/hole-punch cases. We check if the range being truncated
-is sector aligned/sized, and if so, send blkdev_issue_zeroout
-instead of clear_pmem so that errors can be handled better by
-the driver.
-
-Patch 5 fixes a redundant comment in DAX and is mostly unrelated
-to the rest of this series.
-
-This series also depends on/is based on Jan Kara's DAX Locking
-fixes series [1].
-
-
-[1]: http://www.spinics.net/lists/linux-mm/msg105819.html
-
-v5:
- - Drop the patch that attempts to clear-errors-on-write till we
-   reach consensus on how to handle that.
- - Don't pass blk_dax_ctl to direct_access, instead pass in all the
-   required arguments individually (Christoph, Dan)
-
-v4:
- - Remove the dax->direct_IO fallbacks entirely. Instead, go through
-   the usual direct_IO path when we're in O_DIRECT, and use dax_IO
-   for other, non O_DIRECT IO. (Dan, Christoph)
-
-v3:
- - Wrapper-ize the direct_IO fallback again and make an exception
-   for -EIOCBQUEUED (Jeff, Dan)
- - Reduce clear_pmem usage in DAX to the minimum
-
-
-Dan Williams (2):
-  dax: fallback from pmd to pte on error
-  dax: enable dax in the presence of known media errors (badblocks)
-
-Matthew Wilcox (1):
-  dax: use sb_issue_zerout instead of calling dax_clear_sectors
-
-Vishal Verma (2):
-  dax: for truncate/hole-punch, do zeroing through the driver if
-    possible
-  dax: fix a comment in dax_zero_page_range and dax_truncate_page
-
- Documentation/filesystems/dax.txt | 32 ++++++++++++++++
- arch/powerpc/sysdev/axonram.c     |  2 +-
- block/ioctl.c                     |  9 -----
- drivers/block/brd.c               |  2 +-
- drivers/nvdimm/pmem.c             | 10 ++++-
- drivers/s390/block/dcssblk.c      |  2 +-
- fs/block_dev.c                    |  2 +-
- fs/dax.c                          | 78 ++++++++++++++-------------------------
- fs/ext2/inode.c                   |  7 ++--
- fs/xfs/xfs_bmap_util.c            | 15 ++------
- include/linux/blkdev.h            |  2 +-
- include/linux/dax.h               |  1 -
- 12 files changed, 80 insertions(+), 82 deletions(-)
-
--- 
-2.5.5
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgorQUtBIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
+Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4u
+dG8gcmVjZWl2ZToKCjEvIEEgZml4IGZvciB0aGUgcGVyc2lzdGVudCBtZW1vcnkgJ3N0cnVjdCBw
+YWdlJyBkcml2ZXIuICtBS0EtVGhlCmltcGxlbWVudGF0aW9uIG92ZXJsb29rZWQgdGhlIGZhY3Qg
+dGhhdCBwYWdlcyBhcmUgYWxsb2NhdGVkIGluIDJNQgp1bml0cyBsZWFkaW5nIHRvIC1FTk9NRU0g
+d2hlbiBlc3RhYmxpc2hpbmcgc29tZSBjb25maWd1cmF0aW9ucy4gK0FLQS1JdCdzCnRhZ2dlZCBm
+b3IgLXN0YWJsZSBhcyB0aGUgcHJvYmxlbSB3YXMgaW50cm9kdWNlZCB3aXRoIHRoZSBpbml0aWFs
+CmltcGxlbWVudGF0aW9uIGluIDQuNS4KCjIvIFRoZSBuZXcgImVycm9yIHN0YXR1cyB0cmFuc2xh
+dGlvbiIgcm91dGluZSwgaW50cm9kdWNlZCB3aXRoIHRoZSA0LjYKdXBkYXRlcyB0byB0aGUgbmZp
+dCBkcml2ZXIsIG1pc3NlZCBhIG5lY2Vzc2FyeSBwYXRoIGluIGFjcGlfbmZpdF9jdGwoKS4KK0FL
+QS1FbmQgcmVzdWx0IGlzIHRoYXQgd2UgYXJlIGZhbHNlbHkgYXNzdW1pbmcgY29tbWFuZHMgY29t
+cGxldGUKc3VjY2Vzc2Z1bGx5IHdoZW4gdGhlIGVtYmVkZGVkIHN0YXR1cyBzYXlzIG90aGVyd2lz
+ZS4KCkZ1bGwgY2hhbmdlbG9nIGFuZCBkaWZmIGJlbG93LCB0aGVzZSBoYXZlIHJlY2VpdmVkIGEg
+cG9zaXRpdmUgYnVpbGQKbm90aWZpY2F0aW9uIGZyb20gdGhlIGtidWlsZCByb2JvdCBvdmVyIDEw
+NyBjb25maWdzLgotLS0KClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgMDJkYTJk
+NzIxNzRjNjE5ODhlYjQ0NTZiNTNmNDA1ZTNlYmRlYmNlNDoKCitBS0EgTGludXggNC42LXJjNSAo
+MjAxNi0wNC0yNCAxNjoxNzowNSAtMDcwMCkKCmFyZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBv
+c2l0b3J5IGF0OgoKK0FLQSBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5l
+bC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMKCmZvciB5b3UgdG8gZmV0Y2ggY2hh
+bmdlcyB1cCB0byAyZWVhNjU4MjlkYzZjMjBkY2NiZTc5NzI2ZmQwZjNmZTdmOGFhNDNiOgoKK0FL
+QSBuZml0OiBmaXggdHJhbnNsYXRpb24gb2YgY29tbWFuZCBzdGF0dXMgcmVzdWx0cyAoMjAxNi0w
+NS0wMiAwOToxMTo1MyAtMDcwMCkKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRGFuIFdpbGxpYW1zICgyKToKK0FLQUFvQUNn
+QUtBQW9BQ2ctbGlibnZkaW1tLCBwZm46IGZpeCBtZW1tYXAgcmVzZXJ2YXRpb24gc2l6aW5nCitB
+S0FBb0FDZ0FLQUFvQUNnLW5maXQ6IGZpeCB0cmFuc2xhdGlvbiBvZiBjb21tYW5kIHN0YXR1cyBy
+ZXN1bHRzCgorQUtBLWRyaXZlcnMvYWNwaS9uZml0LmMrQUtBQW9BQ2d8K0FLQUFvQS01ICstKy0r
+LSstLQorQUtBLWRyaXZlcnMvbnZkaW1tL3BtZW0uYyB8IDEzICstKy0rLSstKy0rLSstKy0rLSst
+LS0tCitBS0EtMiBmaWxlcyBjaGFuZ2VkLCAxNCBpbnNlcnRpb25zKCstKSwgNCBkZWxldGlvbnMo
+LSkKCgpjb21taXQgNjU4OTIyZTU3Yjg0N2JiNzExMmFhNjdmNjQ0MWI2YmJjNjU1NDQxMgpBdXRo
+b3I6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpEYXRlOitBS0FBb0FD
+Zy1TYXQgQXByIDMwIDEzOjA3OjA2IDIwMTYgLTA3MDAKCitBS0FBb0FDZ0FLQS1saWJudmRpbW0s
+IHBmbjogZml4IG1lbW1hcCByZXNlcnZhdGlvbiBzaXppbmcKK0FLQUFvQUNnQUtBCitBS0FBb0FD
+Z0FLQS1XaGVuIGNvbmZpZ3VyaW5nIGEgcGZuLWRldmljZSBpbnN0YW5jZSB0byBhbGxvY2F0ZSB0
+aGUgbWVtbWFwIGFycmF5IGl0CitBS0FBb0FDZ0FLQS1uZWVkcyB0byBhY2NvdW50IGZvciB0aGUg
+ZmFjdCB0aGF0IHZtZW1tYXBfcG9wdWxhdGVfaHVnZXBhZ2VzKCkKK0FLQUFvQUNnQUtBLWFsbG9j
+YXRlcyBzdHJ1Y3QgcGFnZSBibG9ja3MgaW4gSFBBR0VfU0laRSBjaHVua3MuK0FLQUFvQS1XZSBu
+ZWVkIHRvIGFsaWduIHRoZQorQUtBQW9BQ2dBS0EtcmVzZXJ2ZWQgYXJlYSBzaXplIHRvIDJNQiBv
+dGhlcndpc2UgYXJjaF9hZGRfbWVtb3J5KCkgcnVucyBvdXQgb2YgbWVtb3J5CitBS0FBb0FDZ0FL
+QS13aGlsZSBlc3RhYmxpc2hpbmcgdGhlIG1lbW1hcDoKK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FL
+QUFvQS1XQVJOSU5HOiBDUFU6IDAgUElEOiA0OTYgYXQgYXJjaC94ODYvbW0vaW5pdF82NC5jOjcw
+NCBhcmNoX2FkZF9tZW1vcnkrLTB4ZTcvMHhmMAorQUtBQW9BQ2dBS0FBb0FbLi5dCitBS0FBb0FD
+Z0FLQUFvQS1DYWxsIFRyYWNlOgorQUtBQW9BQ2dBS0FBb0FDZ1s8ZmZmZmZmZmY4MTQ4YmRiMz5d
+IGR1bXBfc3RhY2srLTB4ODUvMHhjMgorQUtBQW9BQ2dBS0FBb0FDZ1s8ZmZmZmZmZmY4MTBhNzQ5
+Yj5dIF9fd2FybistMHhjYi8weGYwCitBS0FBb0FDZ0FLQUFvQUNnWzxmZmZmZmZmZjgxMGE3NWNk
+Pl0gd2Fybl9zbG93cGF0aF9udWxsKy0weDFkLzB4MjAKK0FLQUFvQUNnQUtBQW9BQ2dbPGZmZmZm
+ZmZmODEwNmE0OTc+XSBhcmNoX2FkZF9tZW1vcnkrLTB4ZTcvMHhmMAorQUtBQW9BQ2dBS0FBb0FD
+Z1s8ZmZmZmZmZmY4MTFkMjA5Nz5dIGRldm1fbWVtcmVtYXBfcGFnZXMrLTB4Mjg3LzB4NDUwCitB
+S0FBb0FDZ0FLQUFvQUNnWzxmZmZmZmZmZjgxMWQxZmZhPl0gPyBkZXZtX21lbXJlbWFwX3BhZ2Vz
+Ky0weDFlYS8weDQ1MAorQUtBQW9BQ2dBS0FBb0FDZ1s8ZmZmZmZmZmZhMDAwMDI5OD5dIF9fd3Jh
+cF9kZXZtX21lbXJlbWFwX3BhZ2VzKy0weDU4LzB4NzAgW25maXRfdGVzdF9pb21hcF0KK0FLQUFv
+QUNnQUtBQW9BQ2dbPGZmZmZmZmZmYTAwNDdhNTg+XSBwbWVtX2F0dGFjaF9kaXNrKy0weDMxOC8w
+eDQyMCBbbmRfcG1lbV0KK0FLQUFvQUNnQUtBQW9BQ2dbPGZmZmZmZmZmYTAwNDdiY2Y+XSBuZF9w
+bWVtX3Byb2JlKy0weDZmLzB4OTAgW25kX3BtZW1dCitBS0FBb0FDZ0FLQUFvQUNnWzxmZmZmZmZm
+ZmEwMDA5NDY5Pl0gbnZkaW1tX2J1c19wcm9iZSstMHg2OS8weDExMCBbbGlibnZkaW1tXQorQUtB
+QW9BQ2dBS0FBb0FbLi5dCitBS0FBb0FDZ0FLQUFvQUNnLW5kYnVzMDogbmRfcG1lbS5wcm9iZShw
+Zm4zLjApID0gLTEyCitBS0FBb0FDZ0FLQUFvQS1uZF9wbWVtOiBwcm9iZSBvZiBwZm4zLjAgZmFp
+bGVkIHdpdGggZXJyb3IgLTEyCitBS0FBb0FDZ0FLQS1saWJuZGN0bDogbmRjdGxfcGZuX2VuYWJs
+ZTogcGZuMy4wOiBmYWlsZWQgdG8gZW5hYmxlCitBS0FBb0FDZ0FLQQorQUtBQW9BQ2dBS0EtUmVw
+b3J0ZWQtYnk6IE5hbXJhdGhhIEtvdGhhcGFsbGkgPG5hbXJhdGhhLm4ua290aGFwYWxsaUBpbnRl
+bC5jb20+CitBS0FBb0FDZ0FLQS1DYzogPHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmc+CitBS0FBb0FD
+Z0FLQS1TaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
+bT4KCmRpZmYgLS1naXQgYS9kcml2ZXJzL252ZGltbS9wbWVtLmMgYi9kcml2ZXJzL252ZGltbS9w
+bWVtLmMKaW5kZXggZjc5ODg5OTMzOGVkLi41MTAxZjNhYjRmMjkgMTAwNjQ0Ci0tLSBhL2RyaXZl
+cnMvbnZkaW1tL3BtZW0uYworLSstKy0gYi9kcml2ZXJzL252ZGltbS9wbWVtLmMKQEAgLTM5Nywx
+MCArLTM5NywxNyBAQCBzdGF0aWMgaW50IG5kX3Bmbl9pbml0KHN0cnVjdCBuZF9wZm4gKm5kX3Bm
+bikKK0FLQQkrQUtBKi8KK0FLQQlzdGFydCArLT0gc3RhcnRfcGFkOworQUtBCW5wZm5zID0gKHBt
+ZW0tPnNpemUgLSBzdGFydF9wYWQgLSBlbmRfdHJ1bmMgLSBTWl84SykgLyBTWl80SzsKLQlpZiAo
+bmRfcGZuLT5tb2RlID09IFBGTl9NT0RFX1BNRU0pCi0JCW9mZnNldCA9IEFMSUdOKHN0YXJ0ICst
+IFNaXzhLICstIDY0ICogbnBmbnMsIG5kX3Bmbi0+YWxpZ24pCistCWlmIChuZF9wZm4tPm1vZGUg
+PT0gUEZOX01PREVfUE1FTSkgeworLQkJdW5zaWduZWQgbG9uZyBtZW1tYXBfc2l6ZTsKKy0KKy0J
+CS8qCistCQkrQUtBKiB2bWVtbWFwX3BvcHVsYXRlX2h1Z2VwYWdlcygpIGFsbG9jYXRlcyB0aGUg
+bWVtbWFwIGFycmF5IGluCistCQkrQUtBKiBIUEFHRV9TSVpFIGNodW5rcy4KKy0JCStBS0EqLwor
+LQkJbWVtbWFwX3NpemUgPSBBTElHTig2NCAqIG5wZm5zLCBIUEFHRV9TSVpFKTsKKy0JCW9mZnNl
+dCA9IEFMSUdOKHN0YXJ0ICstIFNaXzhLICstIG1lbW1hcF9zaXplLCBuZF9wZm4tPmFsaWduKQor
+QUtBCQkJLSBzdGFydDsKLQllbHNlIGlmIChuZF9wZm4tPm1vZGUgPT0gUEZOX01PREVfUkFNKQor
+LQl9IGVsc2UgaWYgKG5kX3Bmbi0+bW9kZSA9PSBQRk5fTU9ERV9SQU0pCitBS0EJCW9mZnNldCA9
+IEFMSUdOKHN0YXJ0ICstIFNaXzhLLCBuZF9wZm4tPmFsaWduKSAtIHN0YXJ0OworQUtBCWVsc2UK
+K0FLQQkJZ290byBlcnI7Cgpjb21taXQgMmVlYTY1ODI5ZGM2YzIwZGNjYmU3OTcyNmZkMGYzZmU3
+ZjhhYTQzYgpBdXRob3I6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpE
+YXRlOitBS0FBb0FDZy1Nb24gTWF5IDIgMDk6MTE6NTMgMjAxNiAtMDcwMAoKK0FLQUFvQUNnQUtB
+LW5maXQ6IGZpeCB0cmFuc2xhdGlvbiBvZiBjb21tYW5kIHN0YXR1cyByZXN1bHRzCitBS0FBb0FD
+Z0FLQQorQUtBQW9BQ2dBS0EtV2hlbiB0cmFuc3BvcnRhdGlvbiBvZiB0aGUgY29tbWFuZCBjb21w
+bGV0ZXMgc3VjY2Vzc2Z1bGx5LCBpdCBpbmRpY2F0ZXMKK0FLQUFvQUNnQUtBLXRoYXQgdGhlICdz
+dGF0dXMnIHJlc3VsdCBpcyB2YWxpZC4rQUtBQW9BLUZpeCB0aGUgbWlzc2VkIGNoZWNraW5nIGFu
+ZAorQUtBQW9BQ2dBS0EtdHJhbnNsYXRpb24gb2YgdGhlIHN0YXR1cyBmaWVsZCBhdCB0aGUgZW5k
+IG9mIGFjcGlfbmZpdF9jdGwoKS4KK0FLQUFvQUNnQUtBLU90aGVyd2lzZSwgd2UgZmFpbCB0byBo
+YW5kbGUgcmVwb3J0ZWQgZXJyb3JzIGFuZCBhc3N1bWUgY29tbWFuZHMKK0FLQUFvQUNnQUtBLWNv
+bXBsZXRlIHN1Y2Nlc3NmdWxseS4KK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FLQS1SZXBvcnRlZC1i
+eTogTGluZGEgS25pcHBlcnMgPGxpbmRhLmtuaXBwZXJzQGhwZS5jb20+CitBS0FBb0FDZ0FLQS1S
+ZXZpZXdlZC1ieTogSm9oYW5uZXMgVGh1bXNoaXJuIDxqdGh1bXNoaXJuQHN1c2UuZGU+CitBS0FB
+b0FDZ0FLQS1TaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVs
+LmNvbT4KCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVycy9hY3BpL25m
+aXQuYwppbmRleCBkMGYzNWU2MzY0MGIuLjYzY2M5ZGJlNGYzYiAxMDA2NDQKLS0tIGEvZHJpdmVy
+cy9hY3BpL25maXQuYworLSstKy0gYi9kcml2ZXJzL2FjcGkvbmZpdC5jCkBAIC0yODcsOCArLTI4
+NywxMSBAQCBzdGF0aWMgaW50IGFjcGlfbmZpdF9jdGwoc3RydWN0IG52ZGltbV9idXNfZGVzY3Jp
+cHRvciAqbmRfZGVzYywKK0FLQQkJCQkJb2Zmc2V0KTsKK0FLQQkJCXJjID0gLUVOWElPOworQUtB
+CQl9Ci0JfSBlbHNlCistCX0gZWxzZSB7CitBS0EJCXJjID0gMDsKKy0JCWlmIChjbWRfcmMpCist
+CQkJKmNtZF9yYyA9IHhsYXRfc3RhdHVzKGJ1ZiwgY21kKTsKKy0JfQorQUtBCitBS0Egb3V0Ogor
+QUtBCUFDUElfRlJFRShvdXRfb2JqKTsKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
