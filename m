@@ -2,14 +2,19 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0AAC81A1F5C
- for <linux-nvdimm@lists.01.org>; Wed, 11 May 2016 02:39:25 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id E08C41A1F6D
+ for <linux-nvdimm@lists.01.org>; Thu,  5 May 2016 01:03:51 -0700 (PDT)
+Date: Thu, 5 May 2016 10:03:46 +0200
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 1/4] ext4: Handle transient ENOSPC properly for DAX
-Date: Wed, 11 May 2016 11:39:08 +0200
-Message-Id: <1462959551-28622-2-git-send-email-jack@suse.cz>
-In-Reply-To: <1462959551-28622-1-git-send-email-jack@suse.cz>
-References: <1462959551-28622-1-git-send-email-jack@suse.cz>
+Subject: Re: [PATCH v2 3/3] xfs: Add alignment check for DAX mount
+Message-ID: <20160505080346.GB1970@quack2.suse.cz>
+References: <1462214578-27122-1-git-send-email-toshi.kani@hpe.com>
+ <1462214578-27122-4-git-send-email-toshi.kani@hpe.com>
+ <20160504231855.GA26977@dastard>
+ <1462405286.27137.88.camel@hpe.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1462405286.27137.88.camel@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,124 +22,53 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ted Tso <tytso@mit.edu>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, hch@infradead.org, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org, tytso@mit.edu
 List-ID: <linux-nvdimm@lists.01.org>
 
-ext4_dax_get_blocks() was accidentally omitted fixing get blocks
-handlers to properly handle transient ENOSPC errors. Fix it now to use
-ext4_get_blocks_trans() helper which takes care of these errors.
+On Wed 04-05-16 17:41:26, Toshi Kani wrote:
+> On Thu, 2016-05-05 at 09:18 +1000, Dave Chinner wrote:
+> > On Mon, May 02, 2016 at 12:42:58PM -0600, Toshi Kani wrote:
+> > > 
+> :
+> > Please write a helper along the lines of:
+> > 
+> > 	error = blkdev_supports_dax(sb->s_bdev, sb->s_blocksize);
+> > 
+> > and encapsulate all this, including the specific error messages in the
+> > helper (i.e. "Block device %s does not support DAX."). Then the rest
+> > of the filesystem code looks something like this:
+> > 
+> > 	if (mp->m_flags & XFS_MOUNT_DAX) {
+> > 		error = blkdev_supports_dax(sb->s_bdev, sb->s_blocksize);
+> > 		if (error) {
+> > 			xfs_alert(mp,
+> > 		"DAX unsupported by block device. Turning off DAX.");
+> > 			mp->m_flags &= ~XFS_MOUNT_DAX;
+> > 		}
+> > 	}
+> > 
+> > And each filesystem can choose to do what it wants with the error
+> > without having to care exactly why DAX is not supported.
+> 
+> Yes, I had this change in mind and was wondering if you are OK with it
+> since I am incline to keep the ext2/4 message style as majority rule. :)
+> https://lkml.org/lkml/2016/5/3/543
+> 
+> Assuming that's OK, I will make this change.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/ext4/inode.c | 75 +++++++++++++++------------------------------------------
- 1 file changed, 20 insertions(+), 55 deletions(-)
+Yeah, just send me ext2 changes on top of your v2 and I can pull it to my
+tree.
 
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 981a1fc30eaa..3e0c06028668 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -3218,72 +3218,37 @@ static int ext4_releasepage(struct page *page, gfp_t wait)
- int ext4_dax_mmap_get_block(struct inode *inode, sector_t iblock,
- 			    struct buffer_head *bh_result, int create)
- {
--	int ret, err;
--	int credits;
--	struct ext4_map_blocks map;
--	handle_t *handle = NULL;
--	int flags = 0;
-+	int ret;
- 
- 	ext4_debug("ext4_dax_mmap_get_block: inode %lu, create flag %d\n",
- 		   inode->i_ino, create);
--	map.m_lblk = iblock;
--	map.m_len = bh_result->b_size >> inode->i_blkbits;
--	credits = ext4_chunk_trans_blocks(inode, map.m_len);
--	if (create) {
--		flags |= EXT4_GET_BLOCKS_PRE_IO | EXT4_GET_BLOCKS_CREATE_ZERO;
--		handle = ext4_journal_start(inode, EXT4_HT_MAP_BLOCKS, credits);
--		if (IS_ERR(handle)) {
--			ret = PTR_ERR(handle);
--			return ret;
--		}
--	}
-+	if (!create)
-+		return _ext4_get_block(inode, iblock, bh_result, 0);
- 
--	ret = ext4_map_blocks(handle, inode, &map, flags);
--	if (create) {
--		err = ext4_journal_stop(handle);
--		if (ret >= 0 && err < 0)
--			ret = err;
--	}
--	if (ret <= 0)
--		goto out;
--	if (map.m_flags & EXT4_MAP_UNWRITTEN) {
--		int err2;
-+	ret = ext4_get_block_trans(inode, iblock, bh_result,
-+				   EXT4_GET_BLOCKS_PRE_IO |
-+				   EXT4_GET_BLOCKS_CREATE_ZERO);
-+	if (ret < 0)
-+		return ret;
- 
-+	if (buffer_unwritten(bh_result)) {
- 		/*
- 		 * We are protected by i_mmap_sem so we know block cannot go
- 		 * away from under us even though we dropped i_data_sem.
- 		 * Convert extent to written and write zeros there.
--		 *
--		 * Note: We may get here even when create == 0.
- 		 */
--		handle = ext4_journal_start(inode, EXT4_HT_MAP_BLOCKS, credits);
--		if (IS_ERR(handle)) {
--			ret = PTR_ERR(handle);
--			goto out;
--		}
--
--		err = ext4_map_blocks(handle, inode, &map,
--		      EXT4_GET_BLOCKS_CONVERT | EXT4_GET_BLOCKS_CREATE_ZERO);
--		if (err < 0)
--			ret = err;
--		err2 = ext4_journal_stop(handle);
--		if (err2 < 0 && ret > 0)
--			ret = err2;
--	}
--out:
--	WARN_ON_ONCE(ret == 0 && create);
--	if (ret > 0) {
--		map_bh(bh_result, inode->i_sb, map.m_pblk);
--		/*
--		 * At least for now we have to clear BH_New so that DAX code
--		 * doesn't attempt to zero blocks again in a racy way.
--		 */
--		map.m_flags &= ~EXT4_MAP_NEW;
--		ext4_update_bh_state(bh_result, map.m_flags);
--		bh_result->b_size = map.m_len << inode->i_blkbits;
--		ret = 0;
-+		ret = ext4_get_block_trans(inode, iblock, bh_result,
-+					   EXT4_GET_BLOCKS_CONVERT |
-+					   EXT4_GET_BLOCKS_CREATE_ZERO);
-+		if (ret < 0)
-+			return ret;
- 	}
--	return ret;
-+	/*
-+	 * At least for now we have to clear BH_New so that DAX code
-+	 * doesn't attempt to zero blocks again in a racy way.
-+	 */
-+	clear_buffer_new(bh_result);
-+	return 0;
- }
- #endif
- 
+
+								Honza
 -- 
-2.6.6
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
