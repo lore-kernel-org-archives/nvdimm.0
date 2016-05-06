@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t5424.austin.hp.com (g1t5424.austin.hp.com [15.216.225.54])
+Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5C2B81A1F74
- for <linux-nvdimm@lists.01.org>; Tue, 10 May 2016 09:33:03 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 4C17E1A1F7E
+ for <linux-nvdimm@lists.01.org>; Thu,  5 May 2016 17:39:03 -0700 (PDT)
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v4 1/6] block: Add vfs_msg() interface
-Date: Tue, 10 May 2016 10:23:52 -0600
-Message-Id: <1462897437-16626-2-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1462897437-16626-1-git-send-email-toshi.kani@hpe.com>
-References: <1462897437-16626-1-git-send-email-toshi.kani@hpe.com>
+Subject: [PATCH v3 5/5] xfs: Add alignment check for DAX mount
+Date: Thu,  5 May 2016 18:29:56 -0600
+Message-Id: <1462494596-20938-6-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1462494596-20938-1-git-send-email-toshi.kani@hpe.com>
+References: <1462494596-20938-1-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,85 +23,50 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com, jack@suse.cz, david@fromorbit.com, viro@zeniv.linux.org.uk
-Cc: hch@infradead.org, tytso@mit.edu, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, axboe@fb.com, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org
+Cc: hch@infradead.org, tytso@mit.edu, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, axboe@fb.com, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation of moving DAX capability checks to the block layer
-from filesystem code, add a VFS message interface that aligns with
-filesystem's message format.
+When a partition is not aligned by 4KB, mount -o dax succeeds,
+but any read/write access to the filesystem fails, except for
+metadata update.
 
-For instance, a vfs_msg() message followed by XFS messages in case
-of a dax mount error may look like:
-
-  VFS (pmem0p1): error: unaligned partition for dax
-  XFS (pmem0p1): DAX unsupported by block device. Turning off DAX.
-  XFS (pmem0p1): Mounting V5 Filesystem
-   :
-
-vfs_msg() is largely based on ext4_msg().
+Call bdev_supports_dax() to perform proper precondition checks
+which includes this partition alignment check.
 
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Boaz Harrosh <boaz@plexistor.com>
 ---
- fs/block_dev.c         |   12 ++++++++++++
- include/linux/blkdev.h |   11 +++++++++++
- 2 files changed, 23 insertions(+)
+ fs/xfs/xfs_super.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 20a2c02..7be17c4 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -50,6 +50,18 @@ struct block_device *I_BDEV(struct inode *inode)
- }
- EXPORT_SYMBOL(I_BDEV);
+diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+index 187e14b..cc177da 100644
+--- a/fs/xfs/xfs_super.c
++++ b/fs/xfs/xfs_super.c
+@@ -1558,14 +1558,12 @@ xfs_fs_fill_super(
  
-+void __vfs_msg(struct super_block *sb, const char *prefix, const char *fmt, ...)
-+{
-+	struct va_format vaf;
-+	va_list args;
+ 	if (mp->m_flags & XFS_MOUNT_DAX) {
+ 		xfs_warn(mp,
+-	"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+-		if (sb->s_blocksize != PAGE_SIZE) {
+-			xfs_alert(mp,
+-		"Filesystem block size invalid for DAX Turning DAX off.");
+-			mp->m_flags &= ~XFS_MOUNT_DAX;
+-		} else if (!sb->s_bdev->bd_disk->fops->direct_access) {
++		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
 +
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+	printk_ratelimited("%sVFS (%s): %pV\n", prefix, sb->s_id, &vaf);
-+	va_end(args);
-+}
-+
- static void bdev_write_inode(struct block_device *bdev)
- {
- 	struct inode *inode = bdev->bd_inode;
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 669e419..78c48ab 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -767,6 +767,17 @@ static inline void rq_flush_dcache_pages(struct request *rq)
- }
- #endif
- 
-+#ifdef CONFIG_PRINTK
-+#define vfs_msg(sb, level, fmt, ...)				\
-+	__vfs_msg(sb, level, fmt, ##__VA_ARGS__)
-+#else
-+#define vfs_msg(sb, level, fmt, ...)				\
-+do {								\
-+	no_printk(fmt, ##__VA_ARGS__);				\
-+	__vfs_msg(sb, "", " ");					\
-+} while (0)
-+#endif
-+
- extern int blk_register_queue(struct gendisk *disk);
- extern void blk_unregister_queue(struct gendisk *disk);
- extern blk_qc_t generic_make_request(struct bio *bio);
++		error = bdev_supports_dax(sb, sb->s_blocksize);
++		if (error) {
+ 			xfs_alert(mp,
+-		"Block device does not support DAX Turning DAX off.");
++			"DAX unsupported by block device. Turning off DAX.");
+ 			mp->m_flags &= ~XFS_MOUNT_DAX;
+ 		}
+ 	}
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
