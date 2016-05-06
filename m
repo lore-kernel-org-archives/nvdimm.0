@@ -1,15 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 828251A1F8E
- for <linux-nvdimm@lists.01.org>; Thu, 12 May 2016 09:29:35 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 6/7] dax: Use radix tree entry lock to protect cow faults
-Date: Thu, 12 May 2016 18:29:19 +0200
-Message-Id: <1463070560-1979-7-git-send-email-jack@suse.cz>
-In-Reply-To: <1463070560-1979-1-git-send-email-jack@suse.cz>
-References: <1463070560-1979-1-git-send-email-jack@suse.cz>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id A040F1A1E83
+ for <linux-nvdimm@lists.01.org>; Fri,  6 May 2016 14:54:19 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v3] test: Add a unit test for dax error handling
+Date: Fri,  6 May 2016 15:54:01 -0600
+Message-Id: <1462571641-3508-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,236 +19,346 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Ted Tso <tytso@mit.edu>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When doing cow faults, we cannot directly fill in PTE as we do for other
-faults as we rely on generic code to do proper accounting of the cowed page.
-We also have no page to lock to protect against races with truncate as
-other faults have and we need the protection to extend until the moment
-generic code inserts cowed page into PTE thus at that point we have no
-protection of fs-specific i_mmap_sem. So far we relied on using
-i_mmap_lock for the protection however that is completely special to cow
-faults. To make fault locking more uniform use DAX entry lock instead.
+When we have a namespace with media errors, DAX should fail when trying
+to map the bad blocks for direct access, but a regular write() to the
+same sector should go through the driver and clear the error.
+This test checks for all of the above happening - failure for a read()
+on a file with a bad block, failure on an mmap-read for the same, and
+finally a successful write that clears the bad block.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+It also tests that a hole punch to a badblock (if the hole-punch is
+sector aligned and sized) clears the error.
+
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/dax.c            | 12 +++++-------
- include/linux/dax.h |  7 +++++++
- include/linux/mm.h  |  7 +++++++
- mm/memory.c         | 38 ++++++++++++++++++--------------------
- 4 files changed, 37 insertions(+), 27 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index e7ecc80eb62d..a09d19f5371e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -510,7 +510,7 @@ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
- 	}
- }
+v3: Disable the parts that test error clearing with writes through DAX
+
+v2: Also test that punching a hole clears poison.
+
+ Makefile.am        |   5 +-
+ test/dax-errors.c  | 146 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ test/dax-errors.sh | 134 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 283 insertions(+), 2 deletions(-)
+ create mode 100644 test/dax-errors.c
+ create mode 100755 test/dax-errors.sh
+
+diff --git a/Makefile.am b/Makefile.am
+index 3f7dca3..27b06a6 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -145,8 +145,8 @@ EXTRA_DIST += lib/libndctl.pc.in
+ CLEANFILES += lib/libndctl.pc
  
--static void unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
-+void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
- {
- 	void *ret, **slot;
+ TESTS = test/libndctl test/dpa-alloc test/parent-uuid test/create.sh \
+-	test/clear.sh
+-check_PROGRAMS = test/libndctl test/dpa-alloc test/parent-uuid
++	test/clear.sh test/dax-errors.sh
++check_PROGRAMS = test/libndctl test/dpa-alloc test/parent-uuid test/dax-errors
  
-@@ -533,7 +533,7 @@ static void put_locked_mapping_entry(struct address_space *mapping,
- 		unlock_page(entry);
- 		put_page(entry);
- 	} else {
--		unlock_mapping_entry(mapping, index);
-+		dax_unlock_mapping_entry(mapping, index);
- 	}
- }
+ if ENABLE_DESTRUCTIVE
+ TESTS += test/blk-ns test/pmem-ns test/pcommit
+@@ -179,3 +179,4 @@ test_dax_dev_LDADD = lib/libndctl.la
  
-@@ -916,12 +916,10 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			goto unlock_entry;
- 		if (!radix_tree_exceptional_entry(entry)) {
- 			vmf->page = entry;
--		} else {
--			unlock_mapping_entry(mapping, vmf->pgoff);
--			i_mmap_lock_read(mapping);
--			vmf->page = NULL;
-+			return VM_FAULT_LOCKED;
- 		}
--		return VM_FAULT_LOCKED;
-+		vmf->entry = entry;
-+		return VM_FAULT_DAX_LOCKED;
- 	}
- 
- 	if (!buffer_mapped(&bh)) {
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index d3d788b44d66..4ba71bdc0669 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -22,12 +22,19 @@ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
- 
- #ifdef CONFIG_FS_DAX
- struct page *read_dax_sector(struct block_device *bdev, sector_t n);
-+void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index);
- #else
- static inline struct page *read_dax_sector(struct block_device *bdev,
- 		sector_t n)
- {
- 	return ERR_PTR(-ENXIO);
- }
-+/* Shouldn't ever be called when dax is disabled. */
-+static inline void dax_unlock_mapping_entry(struct address_space *mapping,
-+					    pgoff_t index)
+ test_dax_pmd_SOURCES = test/dax-pmd.c
+ test_mmap_SOURCES = test/mmap.c
++test_dax_err_SOURCES = test/dax-errors.c
+diff --git a/test/dax-errors.c b/test/dax-errors.c
+new file mode 100644
+index 0000000..11d0031
+--- /dev/null
++++ b/test/dax-errors.c
+@@ -0,0 +1,146 @@
++#include <stdio.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <sys/types.h>
++#include <sys/wait.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <string.h>
++#include <errno.h>
++#include <sys/ioctl.h>
++#include <stdlib.h>
++#include <linux/fs.h>
++#include <linux/fiemap.h>
++#include <setjmp.h>
++
++#define fail() fprintf(stderr, "%s: failed at: %d\n", __func__, __LINE__)
++
++static sigjmp_buf sj_env;
++static int sig_count;
++
++static void sigbus_hdl(int sig, siginfo_t *siginfo, void *ptr)
 +{
-+	BUG();
++	fprintf(stderr, "** Received a SIGBUS **\n");
++	sig_count++;
++	siglongjmp(sj_env, 1);
 +}
- #endif
- 
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE)
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 864d7221de84..c08bf7b6903f 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -299,6 +299,12 @@ struct vm_fault {
- 					 * is set (which is also implied by
- 					 * VM_FAULT_ERROR).
- 					 */
-+	void *entry;			/* ->fault handler can alternatively
-+					 * return locked DAX entry. In that
-+					 * case handler should return
-+					 * VM_FAULT_DAX_LOCKED and fill in
-+					 * entry here.
-+					 */
- 	/* for ->map_pages() only */
- 	pgoff_t max_pgoff;		/* map pages for offset from pgoff till
- 					 * max_pgoff inclusive */
-@@ -1086,6 +1092,7 @@ static inline void clear_page_pfmemalloc(struct page *page)
- #define VM_FAULT_LOCKED	0x0200	/* ->fault locked the returned page */
- #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
- #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
-+#define VM_FAULT_DAX_LOCKED 0x1000	/* ->fault has locked DAX entry */
- 
- #define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
- 
-diff --git a/mm/memory.c b/mm/memory.c
-index 52c218e2b724..7f063c9ad711 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -63,6 +63,7 @@
- #include <linux/dma-debug.h>
- #include <linux/debugfs.h>
- #include <linux/userfaultfd_k.h>
-+#include <linux/dax.h>
- 
- #include <asm/io.h>
- #include <asm/mmu_context.h>
-@@ -2818,7 +2819,8 @@ oom:
-  */
- static int __do_fault(struct vm_area_struct *vma, unsigned long address,
- 			pgoff_t pgoff, unsigned int flags,
--			struct page *cow_page, struct page **page)
-+			struct page *cow_page, struct page **page,
-+			void **entry)
- {
- 	struct vm_fault vmf;
- 	int ret;
-@@ -2833,8 +2835,10 @@ static int __do_fault(struct vm_area_struct *vma, unsigned long address,
- 	ret = vma->vm_ops->fault(vma, &vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
--	if (!vmf.page)
--		goto out;
-+	if (ret & VM_FAULT_DAX_LOCKED) {
-+		*entry = vmf.entry;
-+		return ret;
++
++static int test_dax_read_err(int fd)
++{
++	void *base, *buf;
++	int rc = 0;
++
++	if (fd < 0) {
++		fail();
++		return -ENXIO;
 +	}
- 
- 	if (unlikely(PageHWPoison(vmf.page))) {
- 		if (ret & VM_FAULT_LOCKED)
-@@ -2848,7 +2852,6 @@ static int __do_fault(struct vm_area_struct *vma, unsigned long address,
- 	else
- 		VM_BUG_ON_PAGE(!PageLocked(vmf.page), vmf.page);
- 
-- out:
- 	*page = vmf.page;
- 	return ret;
- }
-@@ -3020,7 +3023,7 @@ static int do_read_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		pte_unmap_unlock(pte, ptl);
- 	}
- 
--	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
-+	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page, NULL);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
-@@ -3043,6 +3046,7 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		pgoff_t pgoff, unsigned int flags, pte_t orig_pte)
- {
- 	struct page *fault_page, *new_page;
-+	void *fault_entry;
- 	struct mem_cgroup *memcg;
- 	spinlock_t *ptl;
- 	pte_t *pte;
-@@ -3060,26 +3064,24 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		return VM_FAULT_OOM;
- 	}
- 
--	ret = __do_fault(vma, address, pgoff, flags, new_page, &fault_page);
-+	ret = __do_fault(vma, address, pgoff, flags, new_page, &fault_page,
-+			 &fault_entry);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
- 
--	if (fault_page)
-+	if (!(ret & VM_FAULT_DAX_LOCKED))
- 		copy_user_highpage(new_page, fault_page, address, vma);
- 	__SetPageUptodate(new_page);
- 
- 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
- 	if (unlikely(!pte_same(*pte, orig_pte))) {
- 		pte_unmap_unlock(pte, ptl);
--		if (fault_page) {
-+		if (!(ret & VM_FAULT_DAX_LOCKED)) {
- 			unlock_page(fault_page);
- 			put_page(fault_page);
- 		} else {
--			/*
--			 * The fault handler has no page to lock, so it holds
--			 * i_mmap_lock for read to protect against truncate.
--			 */
--			i_mmap_unlock_read(vma->vm_file->f_mapping);
-+			dax_unlock_mapping_entry(vma->vm_file->f_mapping,
-+						 pgoff);
- 		}
- 		goto uncharge_out;
- 	}
-@@ -3087,15 +3089,11 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 	mem_cgroup_commit_charge(new_page, memcg, false, false);
- 	lru_cache_add_active_or_unevictable(new_page, vma);
- 	pte_unmap_unlock(pte, ptl);
--	if (fault_page) {
-+	if (!(ret & VM_FAULT_DAX_LOCKED)) {
- 		unlock_page(fault_page);
- 		put_page(fault_page);
- 	} else {
--		/*
--		 * The fault handler has no page to lock, so it holds
--		 * i_mmap_lock for read to protect against truncate.
--		 */
--		i_mmap_unlock_read(vma->vm_file->f_mapping);
-+		dax_unlock_mapping_entry(vma->vm_file->f_mapping, pgoff);
- 	}
- 	return ret;
- uncharge_out:
-@@ -3115,7 +3113,7 @@ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 	int dirtied = 0;
- 	int ret, tmp;
- 
--	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
-+	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page, NULL);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
++
++	if (posix_memalign(&buf, 4096, 4096) != 0)
++		return -ENOMEM;
++
++	base = mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
++	if (base == MAP_FAILED) {
++		perror("mmap");
++		rc = -ENXIO;
++		goto err_mmap;
++	}
++
++	if (sigsetjmp(sj_env, 1)) {
++		if (sig_count == 1) {
++			fprintf(stderr, "Failed to read from mapped file\n");
++			free(buf);
++			if (base) {
++				if (munmap(base, 4096) < 0) {
++					fail();
++					return 1;
++				}
++			}
++			return 1;
++		}
++		return sig_count;
++	}
++
++	/* read a page through DAX (should fail due to a bad block) */
++	memcpy(buf, base, 4096);
++
++ err_mmap:
++	free(buf);
++	return rc;
++}
++
++/* TODO: disabled till we get clear-on-write in the kernel */
++#if 0
++static int test_dax_write_clear(int fd)
++{
++	void *buf;
++	int rc = 0;
++
++	if (fd < 0) {
++		fail();
++		return -ENXIO;
++	}
++
++	if (posix_memalign(&buf, 4096, 4096) != 0)
++		return -ENOMEM;
++	memset(buf, 0, 4096);
++
++	/*
++	 * Attempt to write zeroes to the first page of the file using write()
++	 * This should clear the pmem errors/bad blocks
++	 */
++	printf("Attempting to write\n");
++	if (write(fd, buf, 4096) < 0)
++		rc = errno;
++
++	free(buf);
++	return rc;
++}
++#endif
++
++int main(int argc, char *argv[])
++{
++	int fd, rc;
++	struct sigaction act;
++
++	if (argc < 1)
++		return -EINVAL;
++
++	memset(&act, 0, sizeof(act));
++	act.sa_sigaction = sigbus_hdl;
++	act.sa_flags = SA_SIGINFO;
++
++	if (sigaction(SIGBUS, &act, 0)) {
++		fail();
++		return 1;
++	}
++
++	fd = open(argv[1], O_RDWR | O_DIRECT);
++
++	/* Start the test. First, we do an mmap-read, and expect it to fail */
++	rc = test_dax_read_err(fd);
++	if (rc == 0) {
++		fprintf(stderr, "Expected read to fail, but it succeeded\n");
++		rc = -ENXIO;
++		goto out;
++	}
++	if (rc > 1) {
++		fprintf(stderr, "Received a second SIGBUS, exiting.\n");
++		rc = -ENXIO;
++		goto out;
++	}
++	printf("  mmap-read failed as expected\n");
++	rc = 0;
++
++	/* Next, do a regular (O_DIRECT) write() */
++	/* TODO: Disable this till we have clear-on-write in the kernel
++	 * rc = test_dax_write_clear(fd);
++	 *
++	 * if (rc)
++	 *	perror("write");
++	 */
++
++ out:
++	if (fd >= 0)
++		close(fd);
++	return rc;
++}
+diff --git a/test/dax-errors.sh b/test/dax-errors.sh
+new file mode 100755
+index 0000000..cf9dd3a
+--- /dev/null
++++ b/test/dax-errors.sh
+@@ -0,0 +1,134 @@
++#!/bin/bash -x
++
++DEV=""
++NDCTL="./ndctl"
++BUS="-b nfit_test.0"
++BUS1="-b nfit_test.1"
++MNT=test_dax_mnt
++FILE=image
++json2var="s/[{}\",]//g; s/:/=/g"
++rc=77
++
++err() {
++	rc=1
++	echo "test/dax-errors: failed at line $1"
++	rm -f $FILE
++	rm -f $MNT/$FILE
++	if [ -n "$blockdev" ]; then
++		umount /dev/$blockdev
++	else
++		rc=77
++	fi
++	rmdir $MNT
++	exit $rc
++}
++
++set -e
++mkdir -p $MNT
++trap 'err $LINENO' ERR
++
++# setup (reset nfit_test dimms)
++modprobe nfit_test
++$NDCTL disable-region $BUS all
++$NDCTL zero-labels $BUS all
++$NDCTL enable-region $BUS all
++
++rc=1
++
++# create pmem
++dev="x"
++json=$($NDCTL create-namespace $BUS -t pmem -m raw)
++eval $(echo $json | sed -e "$json2var")
++[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
++[ $mode != "raw" ] && echo "fail: $LINENO" && exit 1
++
++# check for expected errors in the middle of the namespace
++read sector len < /sys/block/$blockdev/badblocks
++[ $((sector * 2)) -ne $((size /512)) ] && echo "fail: $LINENO" && exit 1
++if dd if=/dev/$blockdev of=/dev/null iflag=direct bs=512 skip=$sector count=$len; then
++	echo "fail: $LINENO" && exit 1
++fi
++
++# check that writing clears the errors
++if ! dd of=/dev/$blockdev if=/dev/zero oflag=direct bs=512 seek=$sector count=$len; then
++	echo "fail: $LINENO" && exit 1
++fi
++
++if read sector len < /sys/block/$blockdev/badblocks; then
++	# fail if reading badblocks returns data
++	echo "fail: $LINENO" && exit 1
++fi
++
++#mkfs.xfs /dev/$blockdev -b size=4096 -f
++mkfs.ext4 /dev/$blockdev -b 4096
++mount /dev/$blockdev $MNT -o dax
++
++# prepare an image file with random data
++dd if=/dev/urandom of=$FILE bs=4096 count=4
++test -s $FILE
++
++# copy it to the dax file system
++cp $FILE $MNT/$FILE
++
++# Get the start sector for the file
++start_sect=$(filefrag -v -b512 $MNT/$FILE | grep -E "^[ ]+[0-9]+.*" | head -1 | awk '{ print $4 }' | cut -d. -f1)
++test -n "$start_sect"
++echo "start sector of the file is $start_sect"
++
++# inject badblocks for one page at the start of the file
++echo $start_sect 8 > /sys/block/$blockdev/badblocks
++
++# make sure reading the first block of the file fails as expected
++: The following 'dd' is expected to hit an I/O Error
++dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1 && err $LINENO || true
++
++# run the dax-errors test
++test -x test/dax-errors
++test/dax-errors $MNT/$FILE
++
++# TODO: disable this check till we have clear-on-write in the kernel
++#if read sector len < /sys/block/$blockdev/badblocks; then
++#	# fail if reading badblocks returns data
++#	echo "fail: $LINENO" && exit 1
++#fi
++
++# TODO Due to the above, we have to clear the existing badblock manually
++read sector len < /sys/block/$blockdev/badblocks
++if ! dd of=/dev/$blockdev if=/dev/zero oflag=direct bs=512 seek=$sector count=$len; then
++	echo "fail: $LINENO" && exit 1
++fi
++
++
++# test that a hole punch to a dax file also clears errors
++dd if=/dev/urandom of=$MNT/$FILE oflag=direct bs=4096 count=4
++start_sect=$(filefrag -v -b512 $MNT/$FILE | grep -E "^[ ]+[0-9]+.*" | head -1 | awk '{ print $4 }' | cut -d. -f1)
++test -n "$start_sect"
++echo "holepunch test: start sector: $start_sect"
++
++# inject a badblock at the second sector of the first page
++echo $((start_sect + 1)) 1 > /sys/block/$blockdev/badblocks
++
++# verify badblock by reading
++: The following 'dd' is expected to hit an I/O Error
++dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1 && err $LINENO || true
++
++# hole punch the second sector, and verify it clears the
++# badblock (and doesn't fail)
++if ! fallocate -p -o 0 -l 1024 $MNT/$FILE; then
++	echo "fail: $LINENO" && exit 1
++fi
++[ -n "$(cat /sys/block/$blockdev/badblocks)" ] && echo "error: $LINENO" && exit 1
++
++# cleanup
++rm -f $FILE
++rm -f $MNT/$FILE
++if [ -n "$blockdev" ]; then
++	umount /dev/$blockdev
++fi
++rmdir $MNT
++
++$NDCTL disable-region $BUS all
++$NDCTL disable-region $BUS1 all
++modprobe -r nfit_test
++
++exit 0
 -- 
-2.6.6
+2.5.5
 
 _______________________________________________
 Linux-nvdimm mailing list
