@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- by ml01.01.org (Postfix) with ESMTP id 395201A1F3D
- for <linux-nvdimm@lists.01.org>; Thu,  5 May 2016 16:37:08 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.6-rc7
-Date: Thu, 5 May 2016 23:37:06 +0000
-Message-ID: <1462491421.29583.9.camel@intel.com>
-Content-Language: en-US
-Content-ID: <A607F884E418B943B338F3D79A079D8D@intel.com>
+ by ml01.01.org (Postfix) with ESMTP id 54AC21A1EC5
+ for <linux-nvdimm@lists.01.org>; Sun,  8 May 2016 15:36:35 -0700 (PDT)
+Subject: [PATCH 7/7] Revert "block: enable dax for raw block devices"
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 08 May 2016 15:35:47 -0700
+Message-ID: <146274694730.10891.7231167163753231080.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146274690999.10891.10714722986208180484.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146274690999.10891.10714722986208180484.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,113 +16,242 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-block@vger.kernel.org, Jan Kara <jack@suse.com>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgorQUtBIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
-Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4u
-dG8gcmVjZWl2ZToKCjEvIEEgZml4IGZvciB0aGUgcGVyc2lzdGVudCBtZW1vcnkgJ3N0cnVjdCBw
-YWdlJyBkcml2ZXIuICtBS0EtVGhlCmltcGxlbWVudGF0aW9uIG92ZXJsb29rZWQgdGhlIGZhY3Qg
-dGhhdCBwYWdlcyBhcmUgYWxsb2NhdGVkIGluIDJNQgp1bml0cyBsZWFkaW5nIHRvIC1FTk9NRU0g
-d2hlbiBlc3RhYmxpc2hpbmcgc29tZSBjb25maWd1cmF0aW9ucy4gK0FLQS1JdCdzCnRhZ2dlZCBm
-b3IgLXN0YWJsZSBhcyB0aGUgcHJvYmxlbSB3YXMgaW50cm9kdWNlZCB3aXRoIHRoZSBpbml0aWFs
-CmltcGxlbWVudGF0aW9uIGluIDQuNS4KCjIvIFRoZSBuZXcgImVycm9yIHN0YXR1cyB0cmFuc2xh
-dGlvbiIgcm91dGluZSwgaW50cm9kdWNlZCB3aXRoIHRoZSA0LjYKdXBkYXRlcyB0byB0aGUgbmZp
-dCBkcml2ZXIsIG1pc3NlZCBhIG5lY2Vzc2FyeSBwYXRoIGluIGFjcGlfbmZpdF9jdGwoKS4KK0FL
-QS1FbmQgcmVzdWx0IGlzIHRoYXQgd2UgYXJlIGZhbHNlbHkgYXNzdW1pbmcgY29tbWFuZHMgY29t
-cGxldGUKc3VjY2Vzc2Z1bGx5IHdoZW4gdGhlIGVtYmVkZGVkIHN0YXR1cyBzYXlzIG90aGVyd2lz
-ZS4KCkZ1bGwgY2hhbmdlbG9nIGFuZCBkaWZmIGJlbG93LCB0aGVzZSBoYXZlIHJlY2VpdmVkIGEg
-cG9zaXRpdmUgYnVpbGQKbm90aWZpY2F0aW9uIGZyb20gdGhlIGtidWlsZCByb2JvdCBvdmVyIDEw
-NyBjb25maWdzLgotLS0KClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgMDJkYTJk
-NzIxNzRjNjE5ODhlYjQ0NTZiNTNmNDA1ZTNlYmRlYmNlNDoKCitBS0EgTGludXggNC42LXJjNSAo
-MjAxNi0wNC0yNCAxNjoxNzowNSAtMDcwMCkKCmFyZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBv
-c2l0b3J5IGF0OgoKK0FLQSBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5l
-bC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMKCmZvciB5b3UgdG8gZmV0Y2ggY2hh
-bmdlcyB1cCB0byAyZWVhNjU4MjlkYzZjMjBkY2NiZTc5NzI2ZmQwZjNmZTdmOGFhNDNiOgoKK0FL
-QSBuZml0OiBmaXggdHJhbnNsYXRpb24gb2YgY29tbWFuZCBzdGF0dXMgcmVzdWx0cyAoMjAxNi0w
-NS0wMiAwOToxMTo1MyAtMDcwMCkKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRGFuIFdpbGxpYW1zICgyKToKK0FLQUFvQUNn
-QUtBQW9BQ2ctbGlibnZkaW1tLCBwZm46IGZpeCBtZW1tYXAgcmVzZXJ2YXRpb24gc2l6aW5nCitB
-S0FBb0FDZ0FLQUFvQUNnLW5maXQ6IGZpeCB0cmFuc2xhdGlvbiBvZiBjb21tYW5kIHN0YXR1cyBy
-ZXN1bHRzCgorQUtBLWRyaXZlcnMvYWNwaS9uZml0LmMrQUtBQW9BQ2d8K0FLQUFvQS01ICstKy0r
-LSstLQorQUtBLWRyaXZlcnMvbnZkaW1tL3BtZW0uYyB8IDEzICstKy0rLSstKy0rLSstKy0rLSst
-LS0tCitBS0EtMiBmaWxlcyBjaGFuZ2VkLCAxNCBpbnNlcnRpb25zKCstKSwgNCBkZWxldGlvbnMo
-LSkKCgpjb21taXQgNjU4OTIyZTU3Yjg0N2JiNzExMmFhNjdmNjQ0MWI2YmJjNjU1NDQxMgpBdXRo
-b3I6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpEYXRlOitBS0FBb0FD
-Zy1TYXQgQXByIDMwIDEzOjA3OjA2IDIwMTYgLTA3MDAKCitBS0FBb0FDZ0FLQS1saWJudmRpbW0s
-IHBmbjogZml4IG1lbW1hcCByZXNlcnZhdGlvbiBzaXppbmcKK0FLQUFvQUNnQUtBCitBS0FBb0FD
-Z0FLQS1XaGVuIGNvbmZpZ3VyaW5nIGEgcGZuLWRldmljZSBpbnN0YW5jZSB0byBhbGxvY2F0ZSB0
-aGUgbWVtbWFwIGFycmF5IGl0CitBS0FBb0FDZ0FLQS1uZWVkcyB0byBhY2NvdW50IGZvciB0aGUg
-ZmFjdCB0aGF0IHZtZW1tYXBfcG9wdWxhdGVfaHVnZXBhZ2VzKCkKK0FLQUFvQUNnQUtBLWFsbG9j
-YXRlcyBzdHJ1Y3QgcGFnZSBibG9ja3MgaW4gSFBBR0VfU0laRSBjaHVua3MuK0FLQUFvQS1XZSBu
-ZWVkIHRvIGFsaWduIHRoZQorQUtBQW9BQ2dBS0EtcmVzZXJ2ZWQgYXJlYSBzaXplIHRvIDJNQiBv
-dGhlcndpc2UgYXJjaF9hZGRfbWVtb3J5KCkgcnVucyBvdXQgb2YgbWVtb3J5CitBS0FBb0FDZ0FL
-QS13aGlsZSBlc3RhYmxpc2hpbmcgdGhlIG1lbW1hcDoKK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FL
-QUFvQS1XQVJOSU5HOiBDUFU6IDAgUElEOiA0OTYgYXQgYXJjaC94ODYvbW0vaW5pdF82NC5jOjcw
-NCBhcmNoX2FkZF9tZW1vcnkrLTB4ZTcvMHhmMAorQUtBQW9BQ2dBS0FBb0FbLi5dCitBS0FBb0FD
-Z0FLQUFvQS1DYWxsIFRyYWNlOgorQUtBQW9BQ2dBS0FBb0FDZ1s8ZmZmZmZmZmY4MTQ4YmRiMz5d
-IGR1bXBfc3RhY2srLTB4ODUvMHhjMgorQUtBQW9BQ2dBS0FBb0FDZ1s8ZmZmZmZmZmY4MTBhNzQ5
-Yj5dIF9fd2FybistMHhjYi8weGYwCitBS0FBb0FDZ0FLQUFvQUNnWzxmZmZmZmZmZjgxMGE3NWNk
-Pl0gd2Fybl9zbG93cGF0aF9udWxsKy0weDFkLzB4MjAKK0FLQUFvQUNnQUtBQW9BQ2dbPGZmZmZm
-ZmZmODEwNmE0OTc+XSBhcmNoX2FkZF9tZW1vcnkrLTB4ZTcvMHhmMAorQUtBQW9BQ2dBS0FBb0FD
-Z1s8ZmZmZmZmZmY4MTFkMjA5Nz5dIGRldm1fbWVtcmVtYXBfcGFnZXMrLTB4Mjg3LzB4NDUwCitB
-S0FBb0FDZ0FLQUFvQUNnWzxmZmZmZmZmZjgxMWQxZmZhPl0gPyBkZXZtX21lbXJlbWFwX3BhZ2Vz
-Ky0weDFlYS8weDQ1MAorQUtBQW9BQ2dBS0FBb0FDZ1s8ZmZmZmZmZmZhMDAwMDI5OD5dIF9fd3Jh
-cF9kZXZtX21lbXJlbWFwX3BhZ2VzKy0weDU4LzB4NzAgW25maXRfdGVzdF9pb21hcF0KK0FLQUFv
-QUNnQUtBQW9BQ2dbPGZmZmZmZmZmYTAwNDdhNTg+XSBwbWVtX2F0dGFjaF9kaXNrKy0weDMxOC8w
-eDQyMCBbbmRfcG1lbV0KK0FLQUFvQUNnQUtBQW9BQ2dbPGZmZmZmZmZmYTAwNDdiY2Y+XSBuZF9w
-bWVtX3Byb2JlKy0weDZmLzB4OTAgW25kX3BtZW1dCitBS0FBb0FDZ0FLQUFvQUNnWzxmZmZmZmZm
-ZmEwMDA5NDY5Pl0gbnZkaW1tX2J1c19wcm9iZSstMHg2OS8weDExMCBbbGlibnZkaW1tXQorQUtB
-QW9BQ2dBS0FBb0FbLi5dCitBS0FBb0FDZ0FLQUFvQUNnLW5kYnVzMDogbmRfcG1lbS5wcm9iZShw
-Zm4zLjApID0gLTEyCitBS0FBb0FDZ0FLQUFvQS1uZF9wbWVtOiBwcm9iZSBvZiBwZm4zLjAgZmFp
-bGVkIHdpdGggZXJyb3IgLTEyCitBS0FBb0FDZ0FLQS1saWJuZGN0bDogbmRjdGxfcGZuX2VuYWJs
-ZTogcGZuMy4wOiBmYWlsZWQgdG8gZW5hYmxlCitBS0FBb0FDZ0FLQQorQUtBQW9BQ2dBS0EtUmVw
-b3J0ZWQtYnk6IE5hbXJhdGhhIEtvdGhhcGFsbGkgPG5hbXJhdGhhLm4ua290aGFwYWxsaUBpbnRl
-bC5jb20+CitBS0FBb0FDZ0FLQS1DYzogPHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmc+CitBS0FBb0FD
-Z0FLQS1TaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
-bT4KCmRpZmYgLS1naXQgYS9kcml2ZXJzL252ZGltbS9wbWVtLmMgYi9kcml2ZXJzL252ZGltbS9w
-bWVtLmMKaW5kZXggZjc5ODg5OTMzOGVkLi41MTAxZjNhYjRmMjkgMTAwNjQ0Ci0tLSBhL2RyaXZl
-cnMvbnZkaW1tL3BtZW0uYworLSstKy0gYi9kcml2ZXJzL252ZGltbS9wbWVtLmMKQEAgLTM5Nywx
-MCArLTM5NywxNyBAQCBzdGF0aWMgaW50IG5kX3Bmbl9pbml0KHN0cnVjdCBuZF9wZm4gKm5kX3Bm
-bikKK0FLQQkrQUtBKi8KK0FLQQlzdGFydCArLT0gc3RhcnRfcGFkOworQUtBCW5wZm5zID0gKHBt
-ZW0tPnNpemUgLSBzdGFydF9wYWQgLSBlbmRfdHJ1bmMgLSBTWl84SykgLyBTWl80SzsKLQlpZiAo
-bmRfcGZuLT5tb2RlID09IFBGTl9NT0RFX1BNRU0pCi0JCW9mZnNldCA9IEFMSUdOKHN0YXJ0ICst
-IFNaXzhLICstIDY0ICogbnBmbnMsIG5kX3Bmbi0+YWxpZ24pCistCWlmIChuZF9wZm4tPm1vZGUg
-PT0gUEZOX01PREVfUE1FTSkgeworLQkJdW5zaWduZWQgbG9uZyBtZW1tYXBfc2l6ZTsKKy0KKy0J
-CS8qCistCQkrQUtBKiB2bWVtbWFwX3BvcHVsYXRlX2h1Z2VwYWdlcygpIGFsbG9jYXRlcyB0aGUg
-bWVtbWFwIGFycmF5IGluCistCQkrQUtBKiBIUEFHRV9TSVpFIGNodW5rcy4KKy0JCStBS0EqLwor
-LQkJbWVtbWFwX3NpemUgPSBBTElHTig2NCAqIG5wZm5zLCBIUEFHRV9TSVpFKTsKKy0JCW9mZnNl
-dCA9IEFMSUdOKHN0YXJ0ICstIFNaXzhLICstIG1lbW1hcF9zaXplLCBuZF9wZm4tPmFsaWduKQor
-QUtBCQkJLSBzdGFydDsKLQllbHNlIGlmIChuZF9wZm4tPm1vZGUgPT0gUEZOX01PREVfUkFNKQor
-LQl9IGVsc2UgaWYgKG5kX3Bmbi0+bW9kZSA9PSBQRk5fTU9ERV9SQU0pCitBS0EJCW9mZnNldCA9
-IEFMSUdOKHN0YXJ0ICstIFNaXzhLLCBuZF9wZm4tPmFsaWduKSAtIHN0YXJ0OworQUtBCWVsc2UK
-K0FLQQkJZ290byBlcnI7Cgpjb21taXQgMmVlYTY1ODI5ZGM2YzIwZGNjYmU3OTcyNmZkMGYzZmU3
-ZjhhYTQzYgpBdXRob3I6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpE
-YXRlOitBS0FBb0FDZy1Nb24gTWF5IDIgMDk6MTE6NTMgMjAxNiAtMDcwMAoKK0FLQUFvQUNnQUtB
-LW5maXQ6IGZpeCB0cmFuc2xhdGlvbiBvZiBjb21tYW5kIHN0YXR1cyByZXN1bHRzCitBS0FBb0FD
-Z0FLQQorQUtBQW9BQ2dBS0EtV2hlbiB0cmFuc3BvcnRhdGlvbiBvZiB0aGUgY29tbWFuZCBjb21w
-bGV0ZXMgc3VjY2Vzc2Z1bGx5LCBpdCBpbmRpY2F0ZXMKK0FLQUFvQUNnQUtBLXRoYXQgdGhlICdz
-dGF0dXMnIHJlc3VsdCBpcyB2YWxpZC4rQUtBQW9BLUZpeCB0aGUgbWlzc2VkIGNoZWNraW5nIGFu
-ZAorQUtBQW9BQ2dBS0EtdHJhbnNsYXRpb24gb2YgdGhlIHN0YXR1cyBmaWVsZCBhdCB0aGUgZW5k
-IG9mIGFjcGlfbmZpdF9jdGwoKS4KK0FLQUFvQUNnQUtBLU90aGVyd2lzZSwgd2UgZmFpbCB0byBo
-YW5kbGUgcmVwb3J0ZWQgZXJyb3JzIGFuZCBhc3N1bWUgY29tbWFuZHMKK0FLQUFvQUNnQUtBLWNv
-bXBsZXRlIHN1Y2Nlc3NmdWxseS4KK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FLQS1SZXBvcnRlZC1i
-eTogTGluZGEgS25pcHBlcnMgPGxpbmRhLmtuaXBwZXJzQGhwZS5jb20+CitBS0FBb0FDZ0FLQS1S
-ZXZpZXdlZC1ieTogSm9oYW5uZXMgVGh1bXNoaXJuIDxqdGh1bXNoaXJuQHN1c2UuZGU+CitBS0FB
-b0FDZ0FLQS1TaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVs
-LmNvbT4KCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVycy9hY3BpL25m
-aXQuYwppbmRleCBkMGYzNWU2MzY0MGIuLjYzY2M5ZGJlNGYzYiAxMDA2NDQKLS0tIGEvZHJpdmVy
-cy9hY3BpL25maXQuYworLSstKy0gYi9kcml2ZXJzL2FjcGkvbmZpdC5jCkBAIC0yODcsOCArLTI4
-NywxMSBAQCBzdGF0aWMgaW50IGFjcGlfbmZpdF9jdGwoc3RydWN0IG52ZGltbV9idXNfZGVzY3Jp
-cHRvciAqbmRfZGVzYywKK0FLQQkJCQkJb2Zmc2V0KTsKK0FLQQkJCXJjID0gLUVOWElPOworQUtB
-CQl9Ci0JfSBlbHNlCistCX0gZWxzZSB7CitBS0EJCXJjID0gMDsKKy0JCWlmIChjbWRfcmMpCist
-CQkJKmNtZF9yYyA9IHhsYXRfc3RhdHVzKGJ1ZiwgY21kKTsKKy0JfQorQUtBCitBS0Egb3V0Ogor
-QUtBCUFDUElfRlJFRShvdXRfb2JqKTsKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
-dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
-aW1tCg==
+This reverts commit 5a023cdba50c5f5f2bc351783b3131699deb3937.
+
+The functionality is superseded by the new "Device DAX" facility.
+
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ block/ioctl.c           |   32 ----------------
+ fs/block_dev.c          |   96 ++++++++++++++---------------------------------
+ include/linux/fs.h      |    8 ----
+ include/uapi/linux/fs.h |    1 
+ 4 files changed, 29 insertions(+), 108 deletions(-)
+
+diff --git a/block/ioctl.c b/block/ioctl.c
+index 4ff1f92f89ca..698c7933d582 100644
+--- a/block/ioctl.c
++++ b/block/ioctl.c
+@@ -407,35 +407,6 @@ static inline int is_unrecognized_ioctl(int ret)
+ 		ret == -ENOIOCTLCMD;
+ }
+ 
+-#ifdef CONFIG_FS_DAX
+-bool blkdev_dax_capable(struct block_device *bdev)
+-{
+-	struct gendisk *disk = bdev->bd_disk;
+-
+-	if (!disk->fops->direct_access)
+-		return false;
+-
+-	/*
+-	 * If the partition is not aligned on a page boundary, we can't
+-	 * do dax I/O to it.
+-	 */
+-	if ((bdev->bd_part->start_sect % (PAGE_SIZE / 512))
+-			|| (bdev->bd_part->nr_sects % (PAGE_SIZE / 512)))
+-		return false;
+-
+-	/*
+-	 * If the device has known bad blocks, force all I/O through the
+-	 * driver / page cache.
+-	 *
+-	 * TODO: support finer grained dax error handling
+-	 */
+-	if (disk->bb && disk->bb->count)
+-		return false;
+-
+-	return true;
+-}
+-#endif
+-
+ static int blkdev_flushbuf(struct block_device *bdev, fmode_t mode,
+ 		unsigned cmd, unsigned long arg)
+ {
+@@ -598,9 +569,6 @@ int blkdev_ioctl(struct block_device *bdev, fmode_t mode, unsigned cmd,
+ 	case BLKTRACESETUP:
+ 	case BLKTRACETEARDOWN:
+ 		return blk_trace_ioctl(bdev, cmd, argp);
+-	case BLKDAXGET:
+-		return put_int(arg, !!(bdev->bd_inode->i_flags & S_DAX));
+-		break;
+ 	case IOC_PR_REGISTER:
+ 		return blkdev_pr_register(bdev, argp);
+ 	case IOC_PR_RESERVE:
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 20a2c02b77c4..36ee10ca503e 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -29,6 +29,7 @@
+ #include <linux/log2.h>
+ #include <linux/cleancache.h>
+ #include <linux/dax.h>
++#include <linux/badblocks.h>
+ #include <asm/uaccess.h>
+ #include "internal.h"
+ 
+@@ -1159,6 +1160,33 @@ void bd_set_size(struct block_device *bdev, loff_t size)
+ }
+ EXPORT_SYMBOL(bd_set_size);
+ 
++static bool blkdev_dax_capable(struct block_device *bdev)
++{
++	struct gendisk *disk = bdev->bd_disk;
++
++	if (!disk->fops->direct_access || !IS_ENABLED(CONFIG_FS_DAX))
++		return false;
++
++	/*
++	 * If the partition is not aligned on a page boundary, we can't
++	 * do dax I/O to it.
++	 */
++	if ((bdev->bd_part->start_sect % (PAGE_SIZE / 512))
++			|| (bdev->bd_part->nr_sects % (PAGE_SIZE / 512)))
++		return false;
++
++	/*
++	 * If the device has known bad blocks, force all I/O through the
++	 * driver / page cache.
++	 *
++	 * TODO: support finer grained dax error handling
++	 */
++	if (disk->bb && disk->bb->count)
++		return false;
++
++	return true;
++}
++
+ static void __blkdev_put(struct block_device *bdev, fmode_t mode, int for_part);
+ 
+ /*
+@@ -1724,79 +1752,13 @@ static const struct address_space_operations def_blk_aops = {
+ 	.is_dirty_writeback = buffer_check_dirty_writeback,
+ };
+ 
+-#ifdef CONFIG_FS_DAX
+-/*
+- * In the raw block case we do not need to contend with truncation nor
+- * unwritten file extents.  Without those concerns there is no need for
+- * additional locking beyond the mmap_sem context that these routines
+- * are already executing under.
+- *
+- * Note, there is no protection if the block device is dynamically
+- * resized (partition grow/shrink) during a fault. A stable block device
+- * size is already not enforced in the blkdev_direct_IO path.
+- *
+- * For DAX, it is the responsibility of the block device driver to
+- * ensure the whole-disk device size is stable while requests are in
+- * flight.
+- *
+- * Finally, unlike the filemap_page_mkwrite() case there is no
+- * filesystem superblock to sync against freezing.  We still include a
+- * pfn_mkwrite callback for dax drivers to receive write fault
+- * notifications.
+- */
+-static int blkdev_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+-{
+-	return __dax_fault(vma, vmf, blkdev_get_block, NULL);
+-}
+-
+-static int blkdev_dax_pfn_mkwrite(struct vm_area_struct *vma,
+-		struct vm_fault *vmf)
+-{
+-	return dax_pfn_mkwrite(vma, vmf);
+-}
+-
+-static int blkdev_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+-		pmd_t *pmd, unsigned int flags)
+-{
+-	return __dax_pmd_fault(vma, addr, pmd, flags, blkdev_get_block, NULL);
+-}
+-
+-static const struct vm_operations_struct blkdev_dax_vm_ops = {
+-	.fault		= blkdev_dax_fault,
+-	.pmd_fault	= blkdev_dax_pmd_fault,
+-	.pfn_mkwrite	= blkdev_dax_pfn_mkwrite,
+-};
+-
+-static const struct vm_operations_struct blkdev_default_vm_ops = {
+-	.fault		= filemap_fault,
+-	.map_pages	= filemap_map_pages,
+-};
+-
+-static int blkdev_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	struct inode *bd_inode = bdev_file_inode(file);
+-
+-	file_accessed(file);
+-	if (IS_DAX(bd_inode)) {
+-		vma->vm_ops = &blkdev_dax_vm_ops;
+-		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
+-	} else {
+-		vma->vm_ops = &blkdev_default_vm_ops;
+-	}
+-
+-	return 0;
+-}
+-#else
+-#define blkdev_mmap generic_file_mmap
+-#endif
+-
+ const struct file_operations def_blk_fops = {
+ 	.open		= blkdev_open,
+ 	.release	= blkdev_close,
+ 	.llseek		= block_llseek,
+ 	.read_iter	= blkdev_read_iter,
+ 	.write_iter	= blkdev_write_iter,
+-	.mmap		= blkdev_mmap,
++	.mmap		= generic_file_mmap,
+ 	.fsync		= blkdev_fsync,
+ 	.unlocked_ioctl	= block_ioctl,
+ #ifdef CONFIG_COMPAT
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 70e61b58baaf..8363a10660f6 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2320,14 +2320,6 @@ extern struct super_block *freeze_bdev(struct block_device *);
+ extern void emergency_thaw_all(void);
+ extern int thaw_bdev(struct block_device *bdev, struct super_block *sb);
+ extern int fsync_bdev(struct block_device *);
+-#ifdef CONFIG_FS_DAX
+-extern bool blkdev_dax_capable(struct block_device *bdev);
+-#else
+-static inline bool blkdev_dax_capable(struct block_device *bdev)
+-{
+-	return false;
+-}
+-#endif
+ 
+ extern struct super_block *blockdev_superblock;
+ 
+diff --git a/include/uapi/linux/fs.h b/include/uapi/linux/fs.h
+index a079d50376e1..fbff8b28aa35 100644
+--- a/include/uapi/linux/fs.h
++++ b/include/uapi/linux/fs.h
+@@ -222,7 +222,6 @@ struct fsxattr {
+ #define BLKSECDISCARD _IO(0x12,125)
+ #define BLKROTATIONAL _IO(0x12,126)
+ #define BLKZEROOUT _IO(0x12,127)
+-#define BLKDAXGET _IO(0x12,129)
+ 
+ #define BMAP_IOCTL 1		/* obsolete - kept for compatibility */
+ #define FIBMAP	   _IO(0x00,1)	/* bmap access */
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
