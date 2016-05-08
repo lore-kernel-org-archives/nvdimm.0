@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- by ml01.01.org (Postfix) with ESMTP id 54AC21A1EC5
- for <linux-nvdimm@lists.01.org>; Sun,  8 May 2016 15:36:35 -0700 (PDT)
-Subject: [PATCH 7/7] Revert "block: enable dax for raw block devices"
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 4FFFF1A1EC8
+ for <linux-nvdimm@lists.01.org>; Sun,  8 May 2016 15:40:44 -0700 (PDT)
+Subject: [ndctl PATCH 2/2] ndctl: utility support for dax devices
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 08 May 2016 15:35:47 -0700
-Message-ID: <146274694730.10891.7231167163753231080.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146274690999.10891.10714722986208180484.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146274690999.10891.10714722986208180484.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sun, 08 May 2016 15:39:56 -0700
+Message-ID: <146274719671.12219.14728869739783138076.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146274718628.12219.9049769475511391374.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146274718628.12219.9049769475511391374.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,235 +21,209 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-block@vger.kernel.org, Jan Kara <jack@suse.com>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This reverts commit 5a023cdba50c5f5f2bc351783b3131699deb3937.
+Teach destroy-namespace, create-namespace, and other utility routines
+considerations for dax devices.  A dax device is just another mode of a
+pfn device, so adopt workalike code in routines that consider pfn
+devices.
 
-The functionality is superseded by the new "Device DAX" facility.
-
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- block/ioctl.c           |   32 ----------------
- fs/block_dev.c          |   96 ++++++++++++++---------------------------------
- include/linux/fs.h      |    8 ----
- include/uapi/linux/fs.h |    1 
- 4 files changed, 29 insertions(+), 108 deletions(-)
+ Documentation/ndctl-create-namespace.txt |   12 +++++++++++
+ builtin-xaction-namespace.c              |   33 +++++++++++++++++++++++++++---
+ util/json.c                              |   17 +++++++++++++++
+ 3 files changed, 58 insertions(+), 4 deletions(-)
 
-diff --git a/block/ioctl.c b/block/ioctl.c
-index 4ff1f92f89ca..698c7933d582 100644
---- a/block/ioctl.c
-+++ b/block/ioctl.c
-@@ -407,35 +407,6 @@ static inline int is_unrecognized_ioctl(int ret)
- 		ret == -ENOIOCTLCMD;
- }
+diff --git a/Documentation/ndctl-create-namespace.txt b/Documentation/ndctl-create-namespace.txt
+index 8d919255e04f..a2f5e5b8b9ac 100644
+--- a/Documentation/ndctl-create-namespace.txt
++++ b/Documentation/ndctl-create-namespace.txt
+@@ -64,6 +64,18 @@ OPTIONS
+ 	  "System RAM" or from a reserved portion of pmem (see the --map=
+ 	  option).
  
--#ifdef CONFIG_FS_DAX
--bool blkdev_dax_capable(struct block_device *bdev)
--{
--	struct gendisk *disk = bdev->bd_disk;
--
--	if (!disk->fops->direct_access)
--		return false;
--
--	/*
--	 * If the partition is not aligned on a page boundary, we can't
--	 * do dax I/O to it.
--	 */
--	if ((bdev->bd_part->start_sect % (PAGE_SIZE / 512))
--			|| (bdev->bd_part->nr_sects % (PAGE_SIZE / 512)))
--		return false;
--
--	/*
--	 * If the device has known bad blocks, force all I/O through the
--	 * driver / page cache.
--	 *
--	 * TODO: support finer grained dax error handling
--	 */
--	if (disk->bb && disk->bb->count)
--		return false;
--
--	return true;
--}
--#endif
--
- static int blkdev_flushbuf(struct block_device *bdev, fmode_t mode,
- 		unsigned cmd, unsigned long arg)
++	- "dax": Device DAX is the device-centric analogue of Filesystem
++	  DAX (CONFIG_FS_DAX).  It allows memory ranges to be allocated
++	  and mapped without need of an intervening file system.  Device
++	  DAX is strict, precise and predictable.  Specifically this
++	  interface:
++
++	  * Guarantees fault granularity with respect to a given page
++	    size (pte, pmd, or pud) set at configuration time.
++
++	  * Enforces deterministic behavior by being strict about what
++	    fault scenarios are supported.
++
+ -s::
+ --size=::
+ 	For NVDIMM devices that support namespace labels, set the
+diff --git a/builtin-xaction-namespace.c b/builtin-xaction-namespace.c
+index d20e9167dc81..286628b16532 100644
+--- a/builtin-xaction-namespace.c
++++ b/builtin-xaction-namespace.c
+@@ -145,6 +145,8 @@ static int set_defaults(enum namespace_action mode)
+ 		      /* pass */;
+ 		else if (strcmp(param.mode, "raw") == 0)
+ 		      /* pass */;
++		else if (strcmp(param.mode, "dax") == 0)
++		      /* pass */;
+ 		else {
+ 			error("invalid mode '%s'\n", param.mode);
+ 			rc = -EINVAL;
+@@ -303,6 +305,14 @@ static int setup_namespace(struct ndctl_region *region,
+ 		try(ndctl_pfn, set_align, pfn, SZ_2M);
+ 		try(ndctl_pfn, set_namespace, pfn, ndns);
+ 		rc = ndctl_pfn_enable(pfn);
++	} else if (p->mode == NDCTL_NS_MODE_DAX) {
++		struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
++
++		try(ndctl_dax, set_uuid, dax, uuid);
++		try(ndctl_dax, set_location, dax, p->loc);
++		try(ndctl_dax, set_align, dax, SZ_2M);
++		try(ndctl_dax, set_namespace, dax, ndns);
++		rc = ndctl_dax_enable(dax);
+ 	} else if (p->mode == NDCTL_NS_MODE_SAFE) {
+ 		struct ndctl_btt *btt = ndctl_region_get_btt_seed(region);
+ 
+@@ -330,6 +340,7 @@ static int is_namespace_active(struct ndctl_namespace *ndns)
  {
-@@ -598,9 +569,6 @@ int blkdev_ioctl(struct block_device *bdev, fmode_t mode, unsigned cmd,
- 	case BLKTRACESETUP:
- 	case BLKTRACETEARDOWN:
- 		return blk_trace_ioctl(bdev, cmd, argp);
--	case BLKDAXGET:
--		return put_int(arg, !!(bdev->bd_inode->i_flags & S_DAX));
--		break;
- 	case IOC_PR_REGISTER:
- 		return blkdev_pr_register(bdev, argp);
- 	case IOC_PR_RESERVE:
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 20a2c02b77c4..36ee10ca503e 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -29,6 +29,7 @@
- #include <linux/log2.h>
- #include <linux/cleancache.h>
- #include <linux/dax.h>
-+#include <linux/badblocks.h>
- #include <asm/uaccess.h>
- #include "internal.h"
- 
-@@ -1159,6 +1160,33 @@ void bd_set_size(struct block_device *bdev, loff_t size)
+ 	return ndns && (ndctl_namespace_is_enabled(ndns)
+ 		|| ndctl_namespace_get_pfn(ndns)
++		|| ndctl_namespace_get_dax(ndns)
+ 		|| ndctl_namespace_get_btt(ndns));
  }
- EXPORT_SYMBOL(bd_set_size);
  
-+static bool blkdev_dax_capable(struct block_device *bdev)
-+{
-+	struct gendisk *disk = bdev->bd_disk;
+@@ -385,6 +396,8 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 			p->mode = NDCTL_NS_MODE_SAFE;
+ 		else if (strcmp(param.mode, "safe") == 0)
+ 			p->mode = NDCTL_NS_MODE_SAFE;
++		else if (strcmp(param.mode, "dax") == 0)
++			p->mode = NDCTL_NS_MODE_DAX;
+ 		else
+ 			p->mode = NDCTL_NS_MODE_RAW;
+ 
+@@ -431,7 +444,7 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 				ndctl_namespace_get_devname(ndns));
+ 			return -EINVAL;
+ 		}
+-	} else if (p->mode == NDCTL_NS_MODE_MEMORY)
++	} else if (p->mode == NDCTL_NS_MODE_MEMORY || NDCTL_NS_MODE_DAX)
+ 		p->loc = NDCTL_PFN_LOC_PMEM;
+ 
+ 	/* check if we need, and whether the kernel supports, pfn devices */
+@@ -447,6 +460,16 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		}
+ 	}
+ 
++	/* check if we need, and whether the kernel supports, dax devices */
++	if (p->mode == NDCTL_NS_MODE_DAX) {
++		struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
 +
-+	if (!disk->fops->direct_access || !IS_ENABLED(CONFIG_FS_DAX))
-+		return false;
++		if (!dax) {
++			error("operation failed, dax mode not available\n");
++			return -EINVAL;
++		}
++	}
 +
-+	/*
-+	 * If the partition is not aligned on a page boundary, we can't
-+	 * do dax I/O to it.
-+	 */
-+	if ((bdev->bd_part->start_sect % (PAGE_SIZE / 512))
-+			|| (bdev->bd_part->nr_sects % (PAGE_SIZE / 512)))
-+		return false;
-+
-+	/*
-+	 * If the device has known bad blocks, force all I/O through the
-+	 * driver / page cache.
-+	 *
-+	 * TODO: support finer grained dax error handling
-+	 */
-+	if (disk->bb && disk->bb->count)
-+		return false;
-+
-+	return true;
-+}
-+
- static void __blkdev_put(struct block_device *bdev, fmode_t mode, int for_part);
+ 	return 0;
+ }
  
- /*
-@@ -1724,79 +1752,13 @@ static const struct address_space_operations def_blk_aops = {
- 	.is_dirty_writeback = buffer_check_dirty_writeback,
- };
+@@ -533,8 +556,10 @@ static int namespace_destroy(struct ndctl_region *region,
+ {
+ 	const char *devname = ndctl_namespace_get_devname(ndns);
+ 	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
++	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
+ 	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
+ 	const char *bdev = NULL;
++	bool dax_active = false;
+ 	char path[50];
+ 	int fd, rc;
  
--#ifdef CONFIG_FS_DAX
--/*
-- * In the raw block case we do not need to contend with truncation nor
-- * unwritten file extents.  Without those concerns there is no need for
-- * additional locking beyond the mmap_sem context that these routines
-- * are already executing under.
-- *
-- * Note, there is no protection if the block device is dynamically
-- * resized (partition grow/shrink) during a fault. A stable block device
-- * size is already not enforced in the blkdev_direct_IO path.
-- *
-- * For DAX, it is the responsibility of the block device driver to
-- * ensure the whole-disk device size is stable while requests are in
-- * flight.
-- *
-- * Finally, unlike the filemap_page_mkwrite() case there is no
-- * filesystem superblock to sync against freezing.  We still include a
-- * pfn_mkwrite callback for dax drivers to receive write fault
-- * notifications.
-- */
--static int blkdev_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
--{
--	return __dax_fault(vma, vmf, blkdev_get_block, NULL);
--}
--
--static int blkdev_dax_pfn_mkwrite(struct vm_area_struct *vma,
--		struct vm_fault *vmf)
--{
--	return dax_pfn_mkwrite(vma, vmf);
--}
--
--static int blkdev_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
--		pmd_t *pmd, unsigned int flags)
--{
--	return __dax_pmd_fault(vma, addr, pmd, flags, blkdev_get_block, NULL);
--}
--
--static const struct vm_operations_struct blkdev_dax_vm_ops = {
--	.fault		= blkdev_dax_fault,
--	.pmd_fault	= blkdev_dax_pmd_fault,
--	.pfn_mkwrite	= blkdev_dax_pfn_mkwrite,
--};
--
--static const struct vm_operations_struct blkdev_default_vm_ops = {
--	.fault		= filemap_fault,
--	.map_pages	= filemap_map_pages,
--};
--
--static int blkdev_mmap(struct file *file, struct vm_area_struct *vma)
--{
--	struct inode *bd_inode = bdev_file_inode(file);
--
--	file_accessed(file);
--	if (IS_DAX(bd_inode)) {
--		vma->vm_ops = &blkdev_dax_vm_ops;
--		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
--	} else {
--		vma->vm_ops = &blkdev_default_vm_ops;
--	}
--
--	return 0;
--}
--#else
--#define blkdev_mmap generic_file_mmap
--#endif
--
- const struct file_operations def_blk_fops = {
- 	.open		= blkdev_open,
- 	.release	= blkdev_close,
- 	.llseek		= block_llseek,
- 	.read_iter	= blkdev_read_iter,
- 	.write_iter	= blkdev_write_iter,
--	.mmap		= blkdev_mmap,
-+	.mmap		= generic_file_mmap,
- 	.fsync		= blkdev_fsync,
- 	.unlocked_ioctl	= block_ioctl,
- #ifdef CONFIG_COMPAT
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 70e61b58baaf..8363a10660f6 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2320,14 +2320,6 @@ extern struct super_block *freeze_bdev(struct block_device *);
- extern void emergency_thaw_all(void);
- extern int thaw_bdev(struct block_device *bdev, struct super_block *sb);
- extern int fsync_bdev(struct block_device *);
--#ifdef CONFIG_FS_DAX
--extern bool blkdev_dax_capable(struct block_device *bdev);
--#else
--static inline bool blkdev_dax_capable(struct block_device *bdev)
--{
--	return false;
--}
--#endif
+@@ -546,12 +571,14 @@ static int namespace_destroy(struct ndctl_region *region,
  
- extern struct super_block *blockdev_superblock;
+ 	if (pfn && ndctl_pfn_is_enabled(pfn))
+ 		bdev = ndctl_pfn_get_block_device(pfn);
++	else if (dax && ndctl_dax_is_enabled(dax))
++		dax_active = true;
+ 	else if (btt && ndctl_btt_is_enabled(btt))
+ 		bdev = ndctl_btt_get_block_device(btt);
+ 	else if (ndctl_namespace_is_enabled(ndns))
+ 		bdev = ndctl_namespace_get_block_device(ndns);
  
-diff --git a/include/uapi/linux/fs.h b/include/uapi/linux/fs.h
-index a079d50376e1..fbff8b28aa35 100644
---- a/include/uapi/linux/fs.h
-+++ b/include/uapi/linux/fs.h
-@@ -222,7 +222,6 @@ struct fsxattr {
- #define BLKSECDISCARD _IO(0x12,125)
- #define BLKROTATIONAL _IO(0x12,126)
- #define BLKZEROOUT _IO(0x12,127)
--#define BLKDAXGET _IO(0x12,129)
+-	if (bdev && !force) {
++	if ((bdev || dax_active) && !force) {
+ 		error("%s is active, specify --force for re-configuration\n",
+ 				devname);
+ 		return -EBUSY;
+@@ -578,7 +605,7 @@ static int namespace_destroy(struct ndctl_region *region,
+ 		}
+ 	}
  
- #define BMAP_IOCTL 1		/* obsolete - kept for compatibility */
- #define FIBMAP	   _IO(0x00,1)	/* bmap access */
+-	if (pfn || btt) {
++	if (pfn || btt || dax) {
+ 		rc = zero_info_block(ndns);
+ 		if (rc)
+ 			return rc;
+diff --git a/util/json.c b/util/json.c
+index 1d914da318fa..d144039bb559 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -88,10 +88,12 @@ bool util_namespace_active(struct ndctl_namespace *ndns)
+ {
+ 	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
+ 	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
++	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
+ 
+ 	if ((btt && ndctl_btt_is_enabled(btt))
+ 			|| (pfn && ndctl_pfn_is_enabled(pfn))
+-			|| (!btt && !pfn
++			|| (dax && ndctl_dax_is_enabled(dax))
++			|| (!btt && !pfn && !dax
+ 				&& ndctl_namespace_is_enabled(ndns)))
+ 		return true;
+ 	return false;
+@@ -106,6 +108,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns)
+ 	const char *bdev = NULL;
+ 	struct ndctl_btt *btt;
+ 	struct ndctl_pfn *pfn;
++	struct ndctl_dax *dax;
+ 	char buf[40];
+ 	uuid_t uuid;
+ 
+@@ -118,6 +121,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns)
+ 	json_object_object_add(jndns, "dev", jobj);
+ 
+ 	btt = ndctl_namespace_get_btt(ndns);
++	dax = ndctl_namespace_get_dax(ndns);
+ 	pfn = ndctl_namespace_get_pfn(ndns);
+ 	mode = ndctl_namespace_get_mode(ndns);
+ 	switch (mode) {
+@@ -128,6 +132,10 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns)
+ 			size = ndctl_namespace_get_size(ndns);
+ 		jobj = json_object_new_string("memory");
+ 		break;
++	case NDCTL_NS_MODE_DAX:
++		size = ndctl_dax_get_size(dax);
++		jobj = json_object_new_string("dax");
++		break;
+ 	case NDCTL_NS_MODE_SAFE:
+ 		jobj = json_object_new_string("sector");
+ 		break;
+@@ -169,6 +177,13 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns)
+ 			goto err;
+ 		json_object_object_add(jndns, "uuid", jobj);
+ 		bdev = ndctl_pfn_get_block_device(pfn);
++	} else if (dax) {
++		ndctl_dax_get_uuid(dax, uuid);
++		uuid_unparse(uuid, buf);
++		jobj = json_object_new_string(buf);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jndns, "uuid", jobj);
+ 	} else if (ndctl_namespace_get_type(ndns) != ND_DEVICE_NAMESPACE_IO) {
+ 		const char *name;
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
