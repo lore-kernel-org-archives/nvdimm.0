@@ -1,13 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id A87F21A1DEE
- for <linux-nvdimm@lists.01.org>; Fri, 20 May 2016 17:51:20 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 1/2] ndctl: fix a segfault in parse-options.c
-Date: Fri, 20 May 2016 18:50:54 -0600
-Message-Id: <1463791855-24615-2-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1463791855-24615-1-git-send-email-vishal.l.verma@intel.com>
-References: <1463791855-24615-1-git-send-email-vishal.l.verma@intel.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C550C1A1EDF
+ for <linux-nvdimm@lists.01.org>; Mon,  9 May 2016 01:31:29 -0700 (PDT)
+Date: Mon, 9 May 2016 10:31:25 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v3 4/5] ext2: Add alignment check for DAX mount
+Message-ID: <20160509083125.GC11897@quack2.suse.cz>
+References: <1462494596-20938-1-git-send-email-toshi.kani@hpe.com>
+ <1462494596-20938-5-git-send-email-toshi.kani@hpe.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1462494596-20938-5-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,43 +20,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: hch@infradead.org, jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, axboe@fb.com, adilger.kernel@dilger.ca, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, tytso@mit.edu
 List-ID: <linux-nvdimm@lists.01.org>
 
-Running something like ndctl create-namespace --list-cmds
-would reliably sigfault ndctl due to a null pointer dereference.
+On Thu 05-05-16 18:29:55, Toshi Kani wrote:
+> When a partition is not aligned by 4KB, mount -o dax succeeds,
+> but any read/write access to the filesystem fails, except for
+> metadata update.
+> 
+> Call bdev_supports_dax() to perform proper precondition checks
+> which includes this partition alignment check.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: Christoph Hellwig <hch@infradead.org>
+> Cc: Boaz Harrosh <boaz@plexistor.com>
 
-Add a check before the dereference to fix it.
+Looks good to me. Since this patch depends on the first two in your series,
+just feel free to add:
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- util/parse-options.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/util/parse-options.c b/util/parse-options.c
-index f170eb0..387eecd 100644
---- a/util/parse-options.c
-+++ b/util/parse-options.c
-@@ -472,8 +472,9 @@ int parse_options_subcommand(int argc, const char **argv, const struct option *o
- 		}
- 		exit(130);
- 	case PARSE_OPT_LIST_SUBCMDS:
--		for (int i = 0; subcommands[i]; i++)
--			printf("%s ", subcommands[i]);
-+		if (subcommands)
-+			for (int i = 0; subcommands[i]; i++)
-+				printf("%s ", subcommands[i]);
- 		exit(130);
- 	default: /* PARSE_OPT_UNKNOWN */
- 		if (ctx.argv[0][1] == '-') {
+and merge it along with other patches. I've removed the ext2 patch from
+the previous version from my tree.
+
+								Honza
 -- 
-2.5.5
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
