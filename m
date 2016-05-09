@@ -1,14 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 9768D1A1E67
- for <linux-nvdimm@lists.01.org>; Fri,  6 May 2016 14:53:58 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v5 4/5] dax: for truncate/hole-punch,
- do zeroing through the driver if possible
-Date: Fri,  6 May 2016 15:53:10 -0600
-Message-Id: <1462571591-3361-5-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1462571591-3361-1-git-send-email-vishal.l.verma@intel.com>
-References: <1462571591-3361-1-git-send-email-vishal.l.verma@intel.com>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ by ml01.01.org (Postfix) with ESMTP id 73F0B1A1E85
+ for <linux-nvdimm@lists.01.org>; Mon,  9 May 2016 09:59:40 -0700 (PDT)
+Subject: [ndctl PATCH] ndctl: switch to ndctl-VERSION tag format
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 09 May 2016 09:58:52 -0700
+Message-ID: <146281313239.8759.6868284165112471255.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,128 +14,116 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In the truncate or hole-punch path in dax, we clear out sub-page ranges.
-If these sub-page ranges are sector aligned and sized, we can do the
-zeroing through the driver instead so that error-clearing is handled
-automatically.
+As Jeff notes, tarballs with names like v52.tar.gz are awful because
+they are not very descriptive.  Switch to a 'package-version' format,
+i.e. ndctl-52.tar.gz.
 
-For sub-sector ranges, we still have to rely on clear_pmem and have the
-possibility of tripping over errors.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/filesystems/dax.txt | 32 ++++++++++++++++++++++++++++++++
- fs/dax.c                          | 30 +++++++++++++++++++++++++-----
- 2 files changed, 57 insertions(+), 5 deletions(-)
+ git-version          |   25 +++++++++++++++----------
+ make-git-snapshot.sh |    4 ++--
+ ndctl.spec.in        |    4 ++--
+ 3 files changed, 19 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/filesystems/dax.txt b/Documentation/filesystems/dax.txt
-index 7bde640..ce4587d 100644
---- a/Documentation/filesystems/dax.txt
-+++ b/Documentation/filesystems/dax.txt
-@@ -79,6 +79,38 @@ These filesystems may be used for inspiration:
- - ext4: the fourth extended filesystem, see Documentation/filesystems/ext4.txt
+diff --git a/git-version b/git-version
+index 629f6d4a213d..ea6e26880aea 100755
+--- a/git-version
++++ b/git-version
+@@ -1,15 +1,25 @@
+ #!/bin/bash
  
- 
-+Handling Media Errors
-+---------------------
-+
-+The libnvdimm subsystem stores a record of known media error locations for
-+each pmem block device (in gendisk->badblocks). If we fault at such location,
-+or one with a latent error not yet discovered, the application can expect
-+to receive a SIGBUS. Libnvdimm also allows clearing of these errors by simply
-+writing the affected sectors (through the pmem driver, and if the underlying
-+NVDIMM supports the clear_poison DSM defined by ACPI).
-+
-+Since DAX IO normally doesn't go through the driver/bio path, applications or
-+sysadmins have an option to restore the lost data from a prior backup/inbuilt
-+redundancy in the following ways:
-+
-+1. Delete the affected file, and restore from a backup (sysadmin route):
-+   This will free the file system blocks that were being used by the file,
-+   and the next time they're allocated, they will be zeroed first, which
-+   happens through the driver, and will clear bad sectors.
-+
-+2. Truncate or hole-punch the part of the file that has a bad-block (at least
-+   an entire aligned sector has to be hole-punched, but not necessarily an
-+   entire filesystem block).
-+
-+These are the two basic paths that allow DAX filesystems to continue operating
-+in the presence of media errors. More robust error recovery mechanisms can be
-+built on top of this in the future, for example, involving redundancy/mirroring
-+provided at the block layer through DM, or additionally, at the filesystem
-+level. These would have to rely on the above two tenets, that error clearing
-+can happen either by sending an IO through the driver, or zeroing (also through
-+the driver).
-+
-+
- Shortcomings
- ------------
- 
-diff --git a/fs/dax.c b/fs/dax.c
-index 5948d9b..d8c974e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1196,6 +1196,20 @@ out:
- }
- EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
- 
-+static bool dax_range_is_aligned(struct block_device *bdev,
-+				 struct blk_dax_ctl *dax, unsigned int offset,
-+				 unsigned int length)
-+{
-+	unsigned short sector_size = bdev_logical_block_size(bdev);
-+
-+	if (((u64)dax->addr + offset) % sector_size)
-+		return false;
-+	if (length % sector_size)
-+		return false;
-+
-+	return true;
++to_ver() {
++	VN=$1
++	#drop leading 'ndctl-' out of the version so its a pure number
++	if [ ${VN:0:6} = "ndctl-" ]; then
++			VN=${VN:6}
++	fi
++	echo $VN
 +}
 +
- /**
-  * dax_zero_page_range - zero a range within a page of a DAX file
-  * @inode: The file being truncated
-@@ -1240,11 +1254,17 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
- 			.size = PAGE_SIZE,
- 		};
+ dirty() {
++	VN=$(to_ver $1)
+ 	git update-index -q --refresh
+ 	if test -z "$(git diff-index --name-only HEAD --)"; then
+-		echo "$1"
++		echo "$VN"
+ 	else
+-		echo "${1}.dirty"
++		echo "${VN}.dirty"
+ 	fi
+ }
  
--		if (dax_map_atomic(bdev, &dax) < 0)
--			return PTR_ERR(dax.addr);
--		clear_pmem(dax.addr + offset, length);
--		wmb_pmem();
--		dax_unmap_atomic(bdev, &dax);
-+		if (dax_range_is_aligned(bdev, &dax, offset, length))
-+			return blkdev_issue_zeroout(bdev, dax.sector,
-+					length / bdev_logical_block_size(bdev),
-+					GFP_NOFS, true);
-+		else {
-+			if (dax_map_atomic(bdev, &dax) < 0)
-+				return PTR_ERR(dax.addr);
-+			clear_pmem(dax.addr + offset, length);
-+			wmb_pmem();
-+			dax_unmap_atomic(bdev, &dax);
-+		}
- 	}
+-DEF_VER=v52
++DEF_VER=52
  
- 	return 0;
--- 
-2.5.5
+ LF='
+ '
+@@ -19,10 +29,10 @@ LF='
+ if test -f version; then
+ 	VN=$(cat version) || VN="$DEF_VER"
+ elif test -d ${GIT_DIR:-.git} -o -f .git &&
+-	VN=$(git describe --match "v[0-9]*" --abbrev=7 HEAD 2>/dev/null) &&
++	VN=$(git describe --match "ndctl-[0-9]*" --abbrev=7 HEAD 2>/dev/null) &&
+ 	case "$VN" in
+ 	*$LF*) (exit 1) ;;
+-	v[0-9]*)
++	ndctl-[0-9]*)
+ 		VN="$(dirty $VN)"
+ 	esac; then
+ 	VN=$(echo "$VN" | sed -e 's/-/./g');
+@@ -33,9 +43,4 @@ EOF
+ 	VN="$(dirty ${DEF_VER}.git$COMMIT)"
+ fi
+ 
+-#drop leading 'v' out of the version so its a pure number
+-if [ ${VN:0:1} = v ]; then
+-	VN=${VN:1}
+-fi
+-
+ echo $VN
+diff --git a/make-git-snapshot.sh b/make-git-snapshot.sh
+index 2825ac4321cd..142419d623fe 100755
+--- a/make-git-snapshot.sh
++++ b/make-git-snapshot.sh
+@@ -16,6 +16,6 @@ git clone $REFERENCE "$UPSTREAM" "$WORKDIR"
+ 
+ VERSION=$(./git-version)
+ DIRNAME="ndctl-${VERSION}"
+-git archive --remote="$WORKDIR" --format=tar --prefix="$DIRNAME/" HEAD | gzip > $OUTDIR/"v${VERSION}.tar.gz"
++git archive --remote="$WORKDIR" --format=tar --prefix="$DIRNAME/" HEAD | gzip > $OUTDIR/"ndctl-${VERSION}.tar.gz"
+ 
+-echo "Written $OUTDIR/v${VERSION}.tar.gz"
++echo "Written $OUTDIR/ndctl-${VERSION}.tar.gz"
+diff --git a/ndctl.spec.in b/ndctl.spec.in
+index 0bdd2463698c..b8129e533e13 100644
+--- a/ndctl.spec.in
++++ b/ndctl.spec.in
+@@ -5,7 +5,7 @@ Summary:	Manage "libnvdimm" subsystem devices (Non-volatile Memory)
+ License:	GPLv2
+ Group:		System Environment/Base
+ Url:		https://github.com/pmem/ndctl
+-Source0:	https://github.com/pmem/ndctl/archive/v%{version}.tar.gz
++Source0:	https://github.com/pmem/ndctl/archive/ndctl-%{version}.tar.gz
+ 
+ BuildRequires:	autoconf
+ BuildRequires:	asciidoc
+@@ -45,7 +45,7 @@ Group:		System Environment/Libraries
+ Libraries for %{name}.
+ 
+ %prep
+-%setup -q v%{version}
++%setup -q ndctl-%{version}
+ 
+ %build
+ echo "VERSION" > version
 
 _______________________________________________
 Linux-nvdimm mailing list
