@@ -1,35 +1,101 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 07B461A1ED5
+ for <linux-nvdimm@lists.01.org>; Mon,  9 May 2016 02:38:32 -0700 (PDT)
+Date: Mon, 9 May 2016 11:38:28 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [RFC v3] [PATCH 0/18] DAX page fault locking
-Date: Mon, 9 May 2016 21:28:06 +0000
-Message-ID: <1462829283.3149.7.camel@intel.com>
+Message-ID: <20160509093828.GF11897@quack2.suse.cz>
 References: <1461015341-20153-1-git-send-email-jack@suse.cz>
-In-Reply-To: <1461015341-20153-1-git-send-email-jack@suse.cz>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <82E77DBF790009479E8C05254ED55650@intel.com>
-Content-Transfer-Encoding: base64
+ <20160506203308.GA12506@linux.intel.com>
 MIME-Version: 1.0
-Sender: owner-linux-mm@kvack.org
-To: "jack@suse.cz" <jack@suse.cz>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-Cc: "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20160506203308.GA12506@linux.intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE2LTA0LTE4IGF0IDIzOjM1ICswMjAwLCBKYW4gS2FyYSB3cm90ZToNCj4gPD4N
-Cg0KSGkgSmFuLA0KDQpJJ3ZlIG5vdGljZWQgdGhhdCBwYXRjaGVzIDEgdGhyb3VnaCAxMiBvZiB5
-b3VyIHNlcmllcyBhcmUgcmVsYXRpdmVseQ0KaW5kZXBlbmRlbnQsIGFuZCBhcmUgcHJvYmFibHkg
-bW9yZSBzdGFibGUgdGhhbiB0aGUgcmVtYWluaW5nIHBhcnQgb2YNCnRoZSBzZXJpZXMgdGhhdCBh
-Y3R1YWxseSBjaGFuZ2VzIGxvY2tpbmcuDQoNCk15IGRheCBlcnJvciBoYW5kbGluZyBzZXJpZXMg
-YWxzbyBkZXBlbmRzIG9uIHRoZSBwYXRjaGVzIHRoYXQgY2hhbmdlDQp6ZXJvaW5nIGluIERBWCAo
-cGF0Y2hlcyA1LCA2LCA5KS4NCg0KVG8gYWxsb3cgdGhlIGVycm9yIGhhbmRsaW5nIHN0dWZmIHRv
-IG1vdmUgZmFzdGVyLCBjYW4gd2Ugc3BsaXQgdGhlc2UNCmludG8gdHdvIHBhdGNoc2V0cz8NCg0K
-SSB3YXMgaG9waW5nIHRvIHNlbmQgdGhlIGRheCBlcnJvciBoYW5kbGluZyBzZXJpZXMgdGhyb3Vn
-aCB0aGUgbnZkaW1tDQp0cmVlLCBhbmQgaWYgeW91J2QgbGlrZSwgSSBjYW4gYWxzbyBwcmVwZW5k
-IHlvdXIgcGF0Y2hlcyAxLTEyIHdpdGggbXkNCnNlcmllcy4NCg0KTGV0IG1lIGtub3cgeW91ciBw
-cmVmZXJlbmNlLg0KDQpUaGFua3MsDQoJLVZpc2hhbA==
+On Fri 06-05-16 14:33:08, Ross Zwisler wrote:
+> On Mon, Apr 18, 2016 at 11:35:23PM +0200, Jan Kara wrote:
+> > Hello,
+> > 
+> > this is my third attempt at DAX page fault locking rewrite. The patch set has
+> > passed xfstests both with and without DAX mount option on ext4 and xfs for
+> > me and also additional page fault beating using the new page fault stress
+> > tests I have added to xfstests. So I'd be grateful if you guys could have a
+> > closer look at the patches so that they can be merged. Thanks.
+> > 
+> > Changes since v2:
+> > - lot of additional ext4 fixes and cleanups
+> > - make PMD page faults depend on CONFIG_BROKEN instead of #if 0
+> > - fixed page reference leak when replacing hole page with a pfn
+> > - added some reviewed-by tags
+> > - rebased on top of current Linus' tree
+> > 
+> > Changes since v1:
+> > - handle wakeups of exclusive waiters properly
+> > - fix cow fault races
+> > - other minor stuff
+> > 
+> > General description
+> > 
+> > The basic idea is that we use a bit in an exceptional radix tree entry as
+> > a lock bit and use it similarly to how page lock is used for normal faults.
+> > That way we fix races between hole instantiation and read faults of the
+> > same index. For now I have disabled PMD faults since there the issues with
+> > page fault locking are even worse. Now that Matthew's multi-order radix tree
+> > has landed, I can have a look into using that for proper locking of PMD faults
+> > but first I want normal pages sorted out.
+> > 
+> > In the end I have decided to implement the bit locking directly in the DAX
+> > code. Originally I was thinking we could provide something generic directly
+> > in the radix tree code but the functions DAX needs are rather specific.
+> > Maybe someone else will have a good idea how to distill some generally useful
+> > functions out of what I've implemented for DAX but for now I didn't bother
+> > with that.
+> > 
+> > 								Honza
+> 
+> Hey Jan,
+> 
+> Another hit in testing, which may or may not be related to the last one.  The
+> BUG is a few lines off from the previous report:
+> 	kernel BUG at mm/workingset.c:423!
+> vs
+> 	kernel BUG at mm/workingset.c:435!
+> 
+> I've been able to consistently hit this one using DAX + ext4 with generic/086.
+> For some reason generic/086 always passes when run by itself, but fails
+> consistently if you run it after a set of other tests.  Here is a relatively
+> fast set that reproduces it:
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks for reports! It is strange that I didn't see this happening but I've
+been testing against somewhat older base so maybe something has changed.
+Anyway the culprit seems to be that workingset tracking code messes with
+radix tree which is managed by DAX and these two were never meant to
+coexist so assertions naturally trip. In particular we should not add radix
+tree node to working-set list of nodes for eviction in
+page_cache_tree_delete() for DAX inodes. However that seems to happen in
+your case and so far I don't quite understand why...
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
