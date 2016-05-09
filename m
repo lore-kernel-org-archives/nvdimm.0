@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from g1t5424.austin.hp.com (g1t5424.austin.hp.com [15.216.225.54])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 147D61A1F1C
- for <linux-nvdimm@lists.01.org>; Thu, 12 May 2016 09:29:34 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 1/7] dax: Fix condition for filling of PMD holes
-Date: Thu, 12 May 2016 18:29:14 +0200
-Message-Id: <1463070560-1979-2-git-send-email-jack@suse.cz>
-In-Reply-To: <1463070560-1979-1-git-send-email-jack@suse.cz>
-References: <1463070560-1979-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 73BD01A1ECA
+ for <linux-nvdimm@lists.01.org>; Mon,  9 May 2016 15:59:49 -0700 (PDT)
+Message-ID: <1462834244.27137.117.camel@hpe.com>
+Subject: Re: [PATCH v3 2/5] block: Add bdev_supports_dax() for dax mount checks
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Mon, 09 May 2016 16:50:44 -0600
+In-Reply-To: <1462833254.27137.113.camel@hpe.com>
+References: <1462494596-20938-1-git-send-email-toshi.kani@hpe.com>
+ <1462494596-20938-3-git-send-email-toshi.kani@hpe.com>
+ <CAPcyv4hKpvF6uqBzV+1seUzFfxDZM-ApordAL_NecRLNcdNgwg@mail.gmail.com>
+ <1462817565.27137.102.camel@hpe.com>
+ <CAPcyv4g6mPsmHM6OSTi78n_KBKCZrb1ou90=xWuhc7eGyx0DPg@mail.gmail.com>
+ <20160509211903.GW18496@dastard> <1462833254.27137.113.camel@hpe.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,42 +23,32 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Ted Tso <tytso@mit.edu>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, micah.parrish@hpe.com, Christoph Hellwig <hch@infradead.org>, Andreas Dilger <adilger.kernel@dilger.ca>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently dax_pmd_fault() decides to fill a PMD-sized hole only if
-returned buffer has BH_Uptodate set. However that doesn't get set for
-any mapping buffer so that branch is actually a dead code. The
-BH_Uptodate check doesn't make any sense so just remove it.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 9bc6624251b4..d7addfab2094 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -820,7 +820,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 
- 	i_mmap_lock_read(mapping);
- 
--	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
-+	if (!write && !buffer_mapped(&bh)) {
- 		spinlock_t *ptl;
- 		pmd_t entry;
- 		struct page *zero_page = get_huge_zero_page();
--- 
-2.6.6
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCAyMDE2LTA1LTA5IGF0IDE2OjM0IC0wNjAwLCBUb3NoaSBLYW5pIHdyb3RlOgo+IE9u
+IFR1ZSwgMjAxNi0wNS0xMCBhdCAwNzoxOSArMTAwMCwgRGF2ZSBDaGlubmVyIHdyb3RlOgrCoDoK
+PiA+ID4gPiA+IAo+ID4gPiA+ID4gVGhpcyBwYXRjaCBzaG91bGQgcmVwbGFjZSBibGtkZXZfZGF4
+X2NhcGFibGUoKSwgb3IganVzdCByZXVzZQo+ID4gPiA+ID4gdGhhdCBleGlzdGluZyByb3V0aW5l
+LCBvciBhbSBJIG1pc3Npbmcgc29tZXRoaW5nPwo+ID4gPiA+Cj4gPiA+ID4gR29vZCBxdWVzdGlv
+bi7CoMKgYmRldl9zdXBwb3J0c19kYXgoKSBpcyBhIGhlbHBlciBmdW5jdGlvbiB0YWlsb3JlZAo+
+ID4gPiA+IGZvciB0aGUgZmlsZXN5c3RlbSdzIG1vdW50IC1vIGRheCBjYXNlLsKgwqBXaGlsZSBi
+bGtkZXZfZGF4X2NhcGFibGUoKQo+ID4gPiA+IGlzIHNpbWlsYXIsIGl0IGRvZXMgbm90IG5lZWQg
+ZXJyb3IgbWVzc2FnZXMgbGlrZSAiZGV2aWNlIGRvZXMgbm90Cj4gPiA+ID4gc3VwcG9ydCBkYXgi
+IHNpbmNlIGl0IGltcGxpY2l0bHkgZW5hYmxlcyBkYXggd2hlbiBjYXBhYmxlLsKgwqBTbywgSQo+
+ID4gPiA+IHRoaW5rIHdlIGNhbiBrZWVwIGJsa2Rldl9kYXhfY2FwYWJsZSgpLCBidXQgY2hhbmdl
+IGl0IHRvIGNhbGwKPiA+ID4gPiBiZGV2X2RpcmVjdF9hY2Nlc3MoKSBzbyB0aGF0IGFjdHVhbCBj
+aGVjayBpcyBwZXJmb3JtZWQgaW4gYSBzaW5nbGUKPiA+ID4gPiBwbGFjZS4KPiA+ID4KPiA+ID4g
+U291bmRzIGdvb2QgdG8gbWUuCj4gPgo+ID4gQ2FuIHlvdSBuYW1lIHRoZW0gY29uc2lzdGVudGx5
+IHRoZW4/IGkuZS4gYmxrZGV2X2RheF9zdXBwb3J0ZWQoKSBhbmQKPiA+IGJsa2Rldl9kYXhfY2Fw
+YWJsZSgpPwo+Cj4gU3VyZS4gwqBXaWxsIGRvLgoKSSB3aWxsIGtlZXAgdGhlICJiZGV2XyIgcHJl
+Zml4IHRvIGJlIGNvbnNpc3RlbnQgd2l0aCBiZGV2X2RpcmVjdF9hY2Nlc3MoKSwKaS5lLiBiZGV2
+X2RheF9zdXBwb3J0ZWQoKSBhbmQgYmRldl9kYXhfY2FwYWJsZSgpLgoKLVRvc2hpCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
+aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
