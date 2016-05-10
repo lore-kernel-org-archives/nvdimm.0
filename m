@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t5424.austin.hp.com (g1t5424.austin.hp.com [15.216.225.54])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9658F1A1F7C
- for <linux-nvdimm@lists.01.org>; Thu,  5 May 2016 17:38:57 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 2/5] block: Add bdev_supports_dax() for dax mount checks
-Date: Thu,  5 May 2016 18:29:53 -0600
-Message-Id: <1462494596-20938-3-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1462494596-20938-1-git-send-email-toshi.kani@hpe.com>
-References: <1462494596-20938-1-git-send-email-toshi.kani@hpe.com>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ by ml01.01.org (Postfix) with ESMTP id AB6F91A1F7F
+ for <linux-nvdimm@lists.01.org>; Tue, 10 May 2016 11:49:39 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v6 3/5] dax: use sb_issue_zerout instead of calling
+ dax_clear_sectors
+Date: Tue, 10 May 2016 12:49:14 -0600
+Message-Id: <1462906156-22303-4-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1462906156-22303-1-git-send-email-vishal.l.verma@intel.com>
+References: <1462906156-22303-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,99 +21,139 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, jack@suse.cz, david@fromorbit.com, viro@zeniv.linux.org.uk
-Cc: hch@infradead.org, tytso@mit.edu, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, axboe@fb.com, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX imposes additional requirements to a device.  Add
-bdev_supports_dax() which performs all the precondition checks
-necessary for filesystem to mount the device with dax option.
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
 
-Also add a new check to verify if a partition is aligned by 4KB.
-When a partition is unaligned, any dax read/write access fails,
-except for metadata update.
+dax_clear_sectors() cannot handle poisoned blocks.  These must be
+zeroed using the BIO interface instead.  Convert ext2 and XFS to use
+only sb_issue_zerout().
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Boaz Harrosh <boaz@plexistor.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+[vishal: Also remove the dax_clear_sectors function entirely]
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/block_dev.c         |   42 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/blkdev.h |    1 +
- 2 files changed, 43 insertions(+)
+ fs/dax.c               | 32 --------------------------------
+ fs/ext2/inode.c        |  7 +++----
+ fs/xfs/xfs_bmap_util.c | 15 ++++-----------
+ include/linux/dax.h    |  1 -
+ 4 files changed, 7 insertions(+), 48 deletions(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 7be17c4..e51a2c3 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -509,6 +509,48 @@ long bdev_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
+diff --git a/fs/dax.c b/fs/dax.c
+index 52f0044..5948d9b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -116,38 +116,6 @@ struct page *read_dax_sector(struct block_device *bdev, sector_t n)
+ 	return page;
  }
- EXPORT_SYMBOL_GPL(bdev_direct_access);
  
-+/**
-+ * bdev_supports_dax() - Check if the block device supports DAX
-+ * @sb: The superblock of the device
-+ * @blocksize: The block size of the device
-+ *
-+ * Return: negative errno if unsupported, 0 if supported.
-+ */
-+int bdev_supports_dax(struct super_block *sb, int blocksize)
-+{
-+	struct blk_dax_ctl dax = {
-+		.sector = 0,
-+		.size = PAGE_SIZE,
-+	};
-+	int err;
-+
-+	if (blocksize != PAGE_SIZE) {
-+		vfs_msg(sb, KERN_ERR, "error: unsupported blocksize for dax");
-+		return -EINVAL;
-+	}
-+
-+	err = bdev_direct_access(sb->s_bdev, &dax);
-+	if (err < 0) {
-+		switch (err) {
-+		case -EOPNOTSUPP:
-+			vfs_msg(sb, KERN_ERR,
-+				"error: device does not support dax");
-+			break;
-+		case -EINVAL:
-+			vfs_msg(sb, KERN_ERR,
-+				"error: unaligned partition for dax");
-+			break;
-+		default:
-+			vfs_msg(sb, KERN_ERR,
-+				"error: dax access failed (%d)", err);
-+		}
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(bdev_supports_dax);
-+
+-/*
+- * dax_clear_sectors() is called from within transaction context from XFS,
+- * and hence this means the stack from this point must follow GFP_NOFS
+- * semantics for all operations.
+- */
+-int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size)
+-{
+-	struct blk_dax_ctl dax = {
+-		.sector = _sector,
+-		.size = _size,
+-	};
+-
+-	might_sleep();
+-	do {
+-		long count, sz;
+-
+-		count = dax_map_atomic(bdev, &dax);
+-		if (count < 0)
+-			return count;
+-		sz = min_t(long, count, SZ_128K);
+-		clear_pmem(dax.addr, sz);
+-		dax.size -= sz;
+-		dax.sector += sz / 512;
+-		dax_unmap_atomic(bdev, &dax);
+-		cond_resched();
+-	} while (dax.size);
+-
+-	wmb_pmem();
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(dax_clear_sectors);
+-
+ static bool buffer_written(struct buffer_head *bh)
+ {
+ 	return buffer_mapped(bh) && !buffer_unwritten(bh);
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 1f07b75..35f2b0bf 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -26,6 +26,7 @@
+ #include <linux/highuid.h>
+ #include <linux/pagemap.h>
+ #include <linux/dax.h>
++#include <linux/blkdev.h>
+ #include <linux/quotaops.h>
+ #include <linux/writeback.h>
+ #include <linux/buffer_head.h>
+@@ -737,10 +738,8 @@ static int ext2_get_blocks(struct inode *inode,
+ 		 * so that it's not found by another thread before it's
+ 		 * initialised
+ 		 */
+-		err = dax_clear_sectors(inode->i_sb->s_bdev,
+-				le32_to_cpu(chain[depth-1].key) <<
+-				(inode->i_blkbits - 9),
+-				1 << inode->i_blkbits);
++		err = sb_issue_zeroout(inode->i_sb,
++				le32_to_cpu(chain[depth-1].key), 1, GFP_NOFS);
+ 		if (err) {
+ 			mutex_unlock(&ei->truncate_mutex);
+ 			goto cleanup;
+diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
+index 3b63098..930ac6a 100644
+--- a/fs/xfs/xfs_bmap_util.c
++++ b/fs/xfs/xfs_bmap_util.c
+@@ -72,18 +72,11 @@ xfs_zero_extent(
+ 	struct xfs_mount *mp = ip->i_mount;
+ 	xfs_daddr_t	sector = xfs_fsb_to_db(ip, start_fsb);
+ 	sector_t	block = XFS_BB_TO_FSBT(mp, sector);
+-	ssize_t		size = XFS_FSB_TO_B(mp, count_fsb);
+-
+-	if (IS_DAX(VFS_I(ip)))
+-		return dax_clear_sectors(xfs_find_bdev_for_inode(VFS_I(ip)),
+-				sector, size);
+-
+-	/*
+-	 * let the block layer decide on the fastest method of
+-	 * implementing the zeroing.
+-	 */
+-	return sb_issue_zeroout(mp->m_super, block, count_fsb, GFP_NOFS);
+ 
++	return blkdev_issue_zeroout(xfs_find_bdev_for_inode(VFS_I(ip)),
++		block << (mp->m_super->s_blocksize_bits - 9),
++		count_fsb << (mp->m_super->s_blocksize_bits - 9),
++		GFP_NOFS, true);
+ }
+ 
  /*
-  * pseudo-fs
-  */
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 78c48ab..6a792aa 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1688,6 +1688,7 @@ extern int bdev_read_page(struct block_device *, sector_t, struct page *);
- extern int bdev_write_page(struct block_device *, sector_t, struct page *,
- 						struct writeback_control *);
- extern long bdev_direct_access(struct block_device *, struct blk_dax_ctl *);
-+extern int bdev_supports_dax(struct super_block *, int);
- #else /* CONFIG_BLOCK */
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index ef94fa7..426841a 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -11,7 +11,6 @@
  
- struct block_device;
+ ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
+ 		  get_block_t, dio_iodone_t, int flags);
+-int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size);
+ int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
+ int dax_truncate_page(struct inode *, loff_t from, get_block_t);
+ int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
+-- 
+2.5.5
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
