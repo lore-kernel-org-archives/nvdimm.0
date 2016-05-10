@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from g1t5424.austin.hp.com (g1t5424.austin.hp.com [15.216.225.54])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C1EE61A1F53
- for <linux-nvdimm@lists.01.org>; Wed, 11 May 2016 01:05:44 -0700 (PDT)
-Date: Wed, 11 May 2016 10:05:37 +0200
-From: Jan Kara <jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 574E21A1E92
+ for <linux-nvdimm@lists.01.org>; Tue, 10 May 2016 14:45:28 -0700 (PDT)
+Message-ID: <1462916186.27137.133.camel@hpe.com>
 Subject: Re: [PATCH v4 6/6] block: Update blkdev_dax_capable() for consistency
-Message-ID: <20160511080537.GA14744@quack2.suse.cz>
+From: Toshi Kani <toshi.kani@hpe.com>
+Date: Tue, 10 May 2016 15:36:26 -0600
+In-Reply-To: <CAPcyv4jZqr3Grst5tHLOh9OnREBh+DzMKqQhU6qGpb1dASgxYQ@mail.gmail.com>
 References: <1462897437-16626-1-git-send-email-toshi.kani@hpe.com>
  <1462897437-16626-7-git-send-email-toshi.kani@hpe.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1462897437-16626-7-git-send-email-toshi.kani@hpe.com>
+ <CAPcyv4jZqr3Grst5tHLOh9OnREBh+DzMKqQhU6qGpb1dASgxYQ@mail.gmail.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,42 +20,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: hch@infradead.org, jack@suse.cz, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, axboe@fb.com, adilger.kernel@dilger.ca, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, tytso@mit.edu
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@infradead.org>, linux-block@vger.kernel.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, david <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, micah.parrish@hpe.com, Jens Axboe <axboe@fb.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 10-05-16 10:23:57, Toshi Kani wrote:
-> blkdev_dax_capable() is similar to bdev_dax_supported(), but needs
-> to remain as a separate interface for checking dax capability of
-> a raw block device.
-> 
-> Rename and relocate blkdev_dax_capable() to keep them maintained
-> consistently, and call bdev_direct_access() for the dax capability
-> check.
-...
-> +bool bdev_dax_capable(struct block_device *bdev)
-> +{
-> +	struct gendisk *disk = bdev->bd_disk;
-> +	struct blk_dax_ctl dax = {
-> +		.size = PAGE_SIZE,
-> +	};
-> +
-> +	if (!IS_ENABLED(CONFIG_FS_DAX))
-> +		return false;
-
-Frankly, I prefer the #ifdef CONFIG_FS_DAX and just compile the code out
-when DAX is not enabled (like it was with blkdev_dax_capable()). That way we
-don't grow the kernel for people who don't care about DAX.
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlLCAyMDE2LTA1LTEwIGF0IDEyOjQ5IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
+T24gVHVlLCBNYXkgMTAsIDIwMTYgYXQgOToyMyBBTSwgVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBo
+cGUuY29tPiB3cm90ZToKPiA+IAo+ID4gYmxrZGV2X2RheF9jYXBhYmxlKCkgaXMgc2ltaWxhciB0
+byBiZGV2X2RheF9zdXBwb3J0ZWQoKSwgYnV0IG5lZWRzCj4gPiB0byByZW1haW4gYXMgYSBzZXBh
+cmF0ZSBpbnRlcmZhY2UgZm9yIGNoZWNraW5nIGRheCBjYXBhYmlsaXR5IG9mCj4gPiBhIHJhdyBi
+bG9jayBkZXZpY2UuCj4gPiAKPiA+IFJlbmFtZSBhbmQgcmVsb2NhdGUgYmxrZGV2X2RheF9jYXBh
+YmxlKCkgdG8ga2VlcCB0aGVtIG1haW50YWluZWQKPiA+IGNvbnNpc3RlbnRseSwgYW5kIGNhbGwg
+YmRldl9kaXJlY3RfYWNjZXNzKCkgZm9yIHRoZSBkYXggY2FwYWJpbGl0eQo+ID4gY2hlY2suCj4g
+PiAKPiA+IFRoZXJlIGlzIG5vIGNoYW5nZSBpbiB0aGUgYmVoYXZpb3IuCsKgOgo+ID4gZGlmZiAt
+LWdpdCBhL2Jsb2NrL2lvY3RsLmMgYi9ibG9jay9pb2N0bC5jCj4gPiBpbmRleCA0ZmYxZjkyLi43
+ZWVkYTA3IDEwMDY0NAo+ID4gLS0tIGEvYmxvY2svaW9jdGwuYwo+ID4gKysrIGIvYmxvY2svaW9j
+dGwuYwo+ID4gQEAgLTQsNyArNCw2IEBACj4gPiDCoCNpbmNsdWRlIDxsaW51eC9nZnAuaD4KPiA+
+IMKgI2luY2x1ZGUgPGxpbnV4L2Jsa3BnLmg+Cj4gPiDCoCNpbmNsdWRlIDxsaW51eC9oZHJlZy5o
+Pgo+ID4gLSNpbmNsdWRlIDxsaW51eC9iYWRibG9ja3MuaD4KPiA+IMKgI2luY2x1ZGUgPGxpbnV4
+L2JhY2tpbmctZGV2Lmg+Cj4gPiDCoCNpbmNsdWRlIDxsaW51eC9mcy5oPgo+ID4gwqAjaW5jbHVk
+ZSA8bGludXgvYmxrdHJhY2VfYXBpLmg+Cj4gPiBAQCAtNDA3LDM1ICs0MDYsNiBAQCBzdGF0aWMg
+aW5saW5lIGludCBpc191bnJlY29nbml6ZWRfaW9jdGwoaW50IHJldCkKPiA+IMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0ID09IC1FTk9JT0NUTENNRDsKPiA+IMKgfQo+ID4gCj4g
+PiAtI2lmZGVmIENPTkZJR19GU19EQVgKPiA+IC1ib29sIGJsa2Rldl9kYXhfY2FwYWJsZShzdHJ1
+Y3QgYmxvY2tfZGV2aWNlICpiZGV2KQo+ID4gLXsKPiA+IC3CoMKgwqDCoMKgwqDCoHN0cnVjdCBn
+ZW5kaXNrICpkaXNrID0gYmRldi0+YmRfZGlzazsKPiA+IC0KPiA+IC3CoMKgwqDCoMKgwqDCoGlm
+ICghZGlzay0+Zm9wcy0+ZGlyZWN0X2FjY2VzcykKPiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqByZXR1cm4gZmFsc2U7Cj4gPiAtCj4gPiAtwqDCoMKgwqDCoMKgwqAvKgo+ID4gLcKg
+wqDCoMKgwqDCoMKgwqAqIElmIHRoZSBwYXJ0aXRpb24gaXMgbm90IGFsaWduZWQgb24gYSBwYWdl
+IGJvdW5kYXJ5LCB3ZSBjYW4ndAo+ID4gLcKgwqDCoMKgwqDCoMKgwqAqIGRvIGRheCBJL08gdG8g
+aXQuCj4gPiAtwqDCoMKgwqDCoMKgwqDCoCovCj4gPiAtwqDCoMKgwqDCoMKgwqBpZiAoKGJkZXYt
+PmJkX3BhcnQtPnN0YXJ0X3NlY3QgJSAoUEFHRV9TSVpFIC8gNTEyKSkKPiA+IC3CoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfHwgKGJkZXYtPmJkX3BhcnQtPm5y
+X3NlY3RzICUgKFBBR0VfU0laRSAvCj4gPiA1MTIpKSkKPiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqByZXR1cm4gZmFsc2U7Cj4gPiAtCj4gPiAtwqDCoMKgwqDCoMKgwqAvKgo+ID4g
+LcKgwqDCoMKgwqDCoMKgwqAqIElmIHRoZSBkZXZpY2UgaGFzIGtub3duIGJhZCBibG9ja3MsIGZv
+cmNlIGFsbCBJL08gdGhyb3VnaAo+ID4gdGhlCj4gPiAtwqDCoMKgwqDCoMKgwqDCoCogZHJpdmVy
+IC8gcGFnZSBjYWNoZS4KPiA+IC3CoMKgwqDCoMKgwqDCoMKgKgo+ID4gLcKgwqDCoMKgwqDCoMKg
+wqAqIFRPRE86IHN1cHBvcnQgZmluZXIgZ3JhaW5lZCBkYXggZXJyb3IgaGFuZGxpbmcKPiA+IC3C
+oMKgwqDCoMKgwqDCoMKgKi8KPiA+IC3CoMKgwqDCoMKgwqDCoGlmIChkaXNrLT5iYiAmJiBkaXNr
+LT5iYi0+Y291bnQpCj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIGZh
+bHNlOwo+ID4gLQo+ID4gLcKgwqDCoMKgwqDCoMKgcmV0dXJuIHRydWU7Cj4gPiAtfQo+ID4gLSNl
+bmRpZgo+Cj4gVGhpcyB3aWxsIGNvbGxpZGUgd2l0aCBteSBwZW5kaW5nIGNoYW5nZSB0byByZXZl
+cnQgcmF3IGJsb2NrIGRldmljZQo+IGRheCBzdXBwb3J0LCBhbmQgYWxzbyB3aXRoIFZpc2hhbCdz
+IERBWCBlcnJvciBoYW5kbGluZyBjaGFuZ2VzLsKgwqBGb3IKPiBjb29yZGluYXRpb24gcHVycG9z
+ZXMgSSdtIHRoaW5pbmcgdGhpcyBzaG91bGQgYWxsIGdvIG9uIHRvcCBvZiB0aGUKPiBicmFuY2gg
+dGhhdCBWaXNoYWwgaXMgcHV0dGluZyB0b2dldGhlciB3aXRoIHRoZSBkYXggemVyb2luZyBjaGFu
+Z2VzCj4gZnJvbSBKYW4gYW5kIENocmlzdG9waCBhcyB3ZWxsLgoKVGhpcyBwYXRjaCBkb2VzIG5v
+dCBkZXBlbmQgb24gdGhlIHJlc3Qgb2YgdGhlIHNlcmllcywgc28gaXQgY2FuIGJlIGhhbmRsZWQK
+c2VwYXJhdGVseS4gwqBUaGVyZSBpcyBhIG1pbm9yIGNvbmZsaWN0IC0tIGJkZXZfZGF4X2NhcGFi
+bGUoKSBpcyBwdXQgdW5kZXIKYmRldl9kYXhfc3VwcG9ydGVkKCkgaW4gdGhlIHNhbWUgZmlsZS4g
+wqBUaGlzIHNob3VsZCBiZSBlYXN5IHRvIHJlc29sdmUsIGJ1dApsZXQgbWUga25vdyBpZiB5b3Ug
+bmVlZCBtZSB0byBtZXJnZSBpdCB1cC4KClRoYW5rcywKLVRvc2hpCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
+TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW52ZGltbQo=
