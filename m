@@ -2,18 +2,17 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2DA591A1F49
- for <linux-nvdimm@lists.01.org>; Tue, 10 May 2016 08:28:19 -0700 (PDT)
-Date: Tue, 10 May 2016 17:28:14 +0200
+ by ml01.01.org (Postfix) with ESMTPS id E4DF91A1F4A
+ for <linux-nvdimm@lists.01.org>; Tue, 10 May 2016 04:52:14 -0700 (PDT)
+Date: Tue, 10 May 2016 13:52:10 +0200
 From: Jan Kara <jack@suse.cz>
 Subject: Re: [RFC v3] [PATCH 0/18] DAX page fault locking
-Message-ID: <20160510152814.GQ11897@quack2.suse.cz>
+Message-ID: <20160510115210.GJ11897@quack2.suse.cz>
 References: <1461015341-20153-1-git-send-email-jack@suse.cz>
- <20160506203308.GA12506@linux.intel.com>
- <20160509093828.GF11897@quack2.suse.cz>
+ <1462829283.3149.7.camel@intel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20160509093828.GF11897@quack2.suse.cz>
+In-Reply-To: <1462829283.3149.7.camel@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,82 +24,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Ted Tso <tytso@mit.edu>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon 09-05-16 11:38:28, Jan Kara wrote:
-> On Fri 06-05-16 14:33:08, Ross Zwisler wrote:
-> > On Mon, Apr 18, 2016 at 11:35:23PM +0200, Jan Kara wrote:
-> > > Hello,
-> > > 
-> > > this is my third attempt at DAX page fault locking rewrite. The patch set has
-> > > passed xfstests both with and without DAX mount option on ext4 and xfs for
-> > > me and also additional page fault beating using the new page fault stress
-> > > tests I have added to xfstests. So I'd be grateful if you guys could have a
-> > > closer look at the patches so that they can be merged. Thanks.
-> > > 
-> > > Changes since v2:
-> > > - lot of additional ext4 fixes and cleanups
-> > > - make PMD page faults depend on CONFIG_BROKEN instead of #if 0
-> > > - fixed page reference leak when replacing hole page with a pfn
-> > > - added some reviewed-by tags
-> > > - rebased on top of current Linus' tree
-> > > 
-> > > Changes since v1:
-> > > - handle wakeups of exclusive waiters properly
-> > > - fix cow fault races
-> > > - other minor stuff
-> > > 
-> > > General description
-> > > 
-> > > The basic idea is that we use a bit in an exceptional radix tree entry as
-> > > a lock bit and use it similarly to how page lock is used for normal faults.
-> > > That way we fix races between hole instantiation and read faults of the
-> > > same index. For now I have disabled PMD faults since there the issues with
-> > > page fault locking are even worse. Now that Matthew's multi-order radix tree
-> > > has landed, I can have a look into using that for proper locking of PMD faults
-> > > but first I want normal pages sorted out.
-> > > 
-> > > In the end I have decided to implement the bit locking directly in the DAX
-> > > code. Originally I was thinking we could provide something generic directly
-> > > in the radix tree code but the functions DAX needs are rather specific.
-> > > Maybe someone else will have a good idea how to distill some generally useful
-> > > functions out of what I've implemented for DAX but for now I didn't bother
-> > > with that.
-> > > 
-> > > 								Honza
-> > 
-> > Hey Jan,
-> > 
-> > Another hit in testing, which may or may not be related to the last one.  The
-> > BUG is a few lines off from the previous report:
-> > 	kernel BUG at mm/workingset.c:423!
-> > vs
-> > 	kernel BUG at mm/workingset.c:435!
-> > 
-> > I've been able to consistently hit this one using DAX + ext4 with generic/086.
-> > For some reason generic/086 always passes when run by itself, but fails
-> > consistently if you run it after a set of other tests.  Here is a relatively
-> > fast set that reproduces it:
+Hi!
+
+On Mon 09-05-16 21:28:06, Verma, Vishal L wrote:
+> On Mon, 2016-04-18 at 23:35 +0200, Jan Kara wrote:
+> I've noticed that patches 1 through 12 of your series are relatively
+> independent, and are probably more stable than the remaining part of
+> the series that actually changes locking.
+
+Yes.
+
+> My dax error handling series also depends on the patches that change
+> zeroing in DAX (patches 5, 6, 9).
 > 
-> Thanks for reports! It is strange that I didn't see this happening but I've
-> been testing against somewhat older base so maybe something has changed.
-> Anyway the culprit seems to be that workingset tracking code messes with
-> radix tree which is managed by DAX and these two were never meant to
-> coexist so assertions naturally trip. In particular we should not add radix
-> tree node to working-set list of nodes for eviction in
-> page_cache_tree_delete() for DAX inodes. However that seems to happen in
-> your case and so far I don't quite understand why...
+> To allow the error handling stuff to move faster, can we split these
+> into two patchsets?
+>
+> I was hoping to send the dax error handling series through the nvdimm
+> tree, and if you'd like, I can also prepend your patches 1-12 with my
+> series.
 
-Somehow, I'm not able to reproduce the warnings... Anyway, I think I see
-what's going on. Can you check whether the warning goes away when you
-change the condition at the end of page_cache_tree_delete() to:
-
-        if (!dax_mapping(mapping) && !workingset_node_pages(node) &&
-            list_empty(&node->private_list)) {
-
-Thanks!
+So I'm thinking how to best merge this. There are some ext4 patches which
+are not trivial (mainly "ext4: Refactor direct IO code"). These can go in
+as far as I'm concerned but there is a potential for conflicts in ext4
+tree and I'd definitely want to give them full test run in the ext4 tree.
+The best what I can think of is to pull ext4 related changes into a stable
+branch in ext4 tree and then pull that branch into nvdimm tree. Ted, what
+do you think? If you agree, I can separate the patches into three parts -
+one for ext4 tree, stable patches for nvdimm tree, and then remaining
+patches.
 
 								Honza
 -- 
