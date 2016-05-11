@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2E4771A1F8A
- for <linux-nvdimm@lists.01.org>; Tue, 10 May 2016 09:33:08 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v4 4/6] ext2: Add alignment check for DAX mount
-Date: Tue, 10 May 2016 10:23:55 -0600
-Message-Id: <1462897437-16626-5-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1462897437-16626-1-git-send-email-toshi.kani@hpe.com>
-References: <1462897437-16626-1-git-send-email-toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id EA2E01A1E8F
+ for <linux-nvdimm@lists.01.org>; Wed, 11 May 2016 02:39:24 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 2/4] ext4: Fix race in transient ENOSPC detection
+Date: Wed, 11 May 2016 11:39:09 +0200
+Message-Id: <1462959551-28622-3-git-send-email-jack@suse.cz>
+In-Reply-To: <1462959551-28622-1-git-send-email-jack@suse.cz>
+References: <1462959551-28622-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,51 +22,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, jack@suse.cz, david@fromorbit.com, viro@zeniv.linux.org.uk
-Cc: hch@infradead.org, tytso@mit.edu, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, axboe@fb.com, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org
+To: Ted Tso <tytso@mit.edu>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a partition is not aligned by 4KB, mount -o dax succeeds,
-but any read/write access to the filesystem fails, except for
-metadata update.
+When there are blocks to free in the running transaction, block
+allocator can return ENOSPC although the filesystem has some blocks to
+free. We use ext4_should_retry_alloc() to force commit of the current
+transaction and return whether anything was committed so that it makes
+sense to retry the allocation. However the transaction may get committed
+after block allocation fails but before we call
+ext4_should_retry_alloc(). So ext4_should_retry_alloc() returns false
+because there is nothing to commit and we wrongly return ENOSPC.
 
-Call bdev_dax_supported() to perform proper precondition checks
-which includes this partition alignment check.
+Fix the race by unconditionally returning 1 from ext4_should_retry_alloc()
+when we tried to commit a transaction. This should not add any
+unnecessary retries since we had a transaction running a while ago when
+trying to allocate blocks and we want to retry the allocation once that
+transaction has committed anyway.
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Boaz Harrosh <boaz@plexistor.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/ext2/super.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ fs/ext4/balloc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/fs/ext2/super.c b/fs/ext2/super.c
-index b78caf2..1d93795 100644
---- a/fs/ext2/super.c
-+++ b/fs/ext2/super.c
-@@ -922,16 +922,9 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
- 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
+diff --git a/fs/ext4/balloc.c b/fs/ext4/balloc.c
+index fe1f50fe764f..3020fd70c392 100644
+--- a/fs/ext4/balloc.c
++++ b/fs/ext4/balloc.c
+@@ -610,7 +610,8 @@ int ext4_should_retry_alloc(struct super_block *sb, int *retries)
  
- 	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
--		if (blocksize != PAGE_SIZE) {
--			ext2_msg(sb, KERN_ERR,
--					"error: unsupported blocksize for dax");
-+		err = bdev_dax_supported(sb, blocksize);
-+		if (err)
- 			goto failed_mount;
--		}
--		if (!sb->s_bdev->bd_disk->fops->direct_access) {
--			ext2_msg(sb, KERN_ERR,
--					"error: device does not support dax");
--			goto failed_mount;
--		}
- 	}
+ 	jbd_debug(1, "%s: retrying operation after ENOSPC\n", sb->s_id);
  
- 	/* If the blocksize doesn't match, re-read the thing.. */
+-	return jbd2_journal_force_commit_nested(EXT4_SB(sb)->s_journal);
++	jbd2_journal_force_commit_nested(EXT4_SB(sb)->s_journal);
++	return 1;
+ }
+ 
+ /*
+-- 
+2.6.6
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
