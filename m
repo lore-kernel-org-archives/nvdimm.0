@@ -1,61 +1,132 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DD28E1A1E5A
- for <linux-nvdimm@lists.01.org>; Thu, 12 May 2016 01:38:57 -0700 (PDT)
-Date: Thu, 12 May 2016 10:38:52 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v7 5/6] dax: for truncate/hole-punch, do zeroing through
- the driver if possible
-Message-ID: <20160512083852.GB10306@quack2.suse.cz>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v7 5/6] dax: for truncate/hole-punch, do zeroing through the driver if possible
+Date: Wed, 11 May 2016 15:08:51 -0600
+Message-Id: <1463000932-31680-6-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
 References: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
- <1463000932-31680-6-git-send-email-vishal.l.verma@intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1463000932-31680-6-git-send-email-vishal.l.verma@intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, Christoph Hellwig <hch@infradead.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>, Boaz Harrosh <boaz@plexistor.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed 11-05-16 15:08:51, Vishal Verma wrote:
-> In the truncate or hole-punch path in dax, we clear out sub-page ranges.
-> If these sub-page ranges are sector aligned and sized, we can do the
-> zeroing through the driver instead so that error-clearing is handled
-> automatically.
-> 
-> For sub-sector ranges, we still have to rely on clear_pmem and have the
-> possibility of tripping over errors.
-> 
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Cc: Jeff Moyer <jmoyer@redhat.com>
-> Cc: Christoph Hellwig <hch@infradead.org>
-> Cc: Dave Chinner <david@fromorbit.com>
-> Cc: Jan Kara <jack@suse.cz>
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+In the truncate or hole-punch path in dax, we clear out sub-page ranges.
+If these sub-page ranges are sector aligned and sized, we can do the
+zeroing through the driver instead so that error-clearing is handled
+automatically.
 
-The patch looks good to me now. Feel free to add:
+For sub-sector ranges, we still have to rely on clear_pmem and have the
+possibility of tripping over errors.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ Documentation/filesystems/dax.txt | 32 ++++++++++++++++++++++++++++++++
+ fs/dax.c                          | 30 +++++++++++++++++++++++++-----
+ 2 files changed, 57 insertions(+), 5 deletions(-)
 
-								Honza
+diff --git a/Documentation/filesystems/dax.txt b/Documentation/filesystems/dax.txt
+index 7bde640..ce4587d 100644
+--- a/Documentation/filesystems/dax.txt
++++ b/Documentation/filesystems/dax.txt
+@@ -79,6 +79,38 @@ These filesystems may be used for inspiration:
+ - ext4: the fourth extended filesystem, see Documentation/filesystems/ext4.txt
+ 
+ 
++Handling Media Errors
++---------------------
++
++The libnvdimm subsystem stores a record of known media error locations for
++each pmem block device (in gendisk->badblocks). If we fault at such location,
++or one with a latent error not yet discovered, the application can expect
++to receive a SIGBUS. Libnvdimm also allows clearing of these errors by simply
++writing the affected sectors (through the pmem driver, and if the underlying
++NVDIMM supports the clear_poison DSM defined by ACPI).
++
++Since DAX IO normally doesn't go through the driver/bio path, applications or
++sysadmins have an option to restore the lost data from a prior backup/inbuilt
++redundancy in the following ways:
++
++1. Delete the affected file, and restore from a backup (sysadmin route):
++   This will free the file system blocks that were being used by the file,
++   and the next time they're allocated, they will be zeroed first, which
++   happens through the driver, and will clear bad sectors.
++
++2. Truncate or hole-punch the part of the file that has a bad-block (at least
++   an entire aligned sector has to be hole-punched, but not necessarily an
++   entire filesystem block).
++
++These are the two basic paths that allow DAX filesystems to continue operating
++in the presence of media errors. More robust error recovery mechanisms can be
++built on top of this in the future, for example, involving redundancy/mirroring
++provided at the block layer through DM, or additionally, at the filesystem
++level. These would have to rely on the above two tenets, that error clearing
++can happen either by sending an IO through the driver, or zeroing (also through
++the driver).
++
++
+ Shortcomings
+ ------------
+ 
+diff --git a/fs/dax.c b/fs/dax.c
+index 651d4b1..0b9a169 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -947,6 +947,19 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ }
+ EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
+ 
++static bool dax_range_is_aligned(struct block_device *bdev,
++				 unsigned int offset, unsigned int length)
++{
++	unsigned short sector_size = bdev_logical_block_size(bdev);
++
++	if (!IS_ALIGNED(offset, sector_size))
++		return false;
++	if (!IS_ALIGNED(length, sector_size))
++		return false;
++
++	return true;
++}
++
+ int __dax_zero_page_range(struct block_device *bdev, sector_t sector,
+ 		unsigned int offset, unsigned int length)
+ {
+@@ -955,11 +968,18 @@ int __dax_zero_page_range(struct block_device *bdev, sector_t sector,
+ 		.size		= PAGE_SIZE,
+ 	};
+ 
+-	if (dax_map_atomic(bdev, &dax) < 0)
+-		return PTR_ERR(dax.addr);
+-	clear_pmem(dax.addr + offset, length);
+-	wmb_pmem();
+-	dax_unmap_atomic(bdev, &dax);
++	if (dax_range_is_aligned(bdev, offset, length)) {
++		sector_t start_sector = dax.sector + (offset >> 9);
++
++		return blkdev_issue_zeroout(bdev, start_sector,
++				length >> 9, GFP_NOFS, true);
++	} else {
++		if (dax_map_atomic(bdev, &dax) < 0)
++			return PTR_ERR(dax.addr);
++		clear_pmem(dax.addr + offset, length);
++		wmb_pmem();
++		dax_unmap_atomic(bdev, &dax);
++	}
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(__dax_zero_page_range);
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+2.5.5
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
