@@ -1,78 +1,107 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 824251A1E1A
- for <linux-nvdimm@lists.01.org>; Sat, 21 May 2016 14:56:04 -0700 (PDT)
-Subject: [ndctl PATCH 0/5] Device DAX support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 21 May 2016 14:55:10 -0700
-Message-ID: <146386771020.1884.14405221977201209581.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v7 0/6] dax: handling media errors (clear-on-zero only)
+Date: Wed, 11 May 2016 15:08:46 -0600
+Message-Id: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
+Sender: owner-linux-mm@kvack.org
 To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>, Boaz Harrosh <boaz@plexistor.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Extend libndctl with a libdaxctl helper library to enumerate the devices
-that appear underneath a libnvdimm namespace in "dax" mode.  libdaxctl
-is meant to be independent from libndctl as device-dax instances may
-arise from other memory ranges besides persistent memory.  It is a
-generic enumeration facility for performance / featured differentiated
-memory ranges when the kernel arranges for them to be exposed as a
-devices.
+Until now, dax has been disabled if media errors were found on
+any device. This series attempts to address that.
+
+The first two patches from Dan re-enable dax even when media
+errors are present.
+
+The third patch from Matthew removes the zeroout path from dax
+entirely, making zeroout operations always go through the driver
+(The motivation is that if a backing device has media errors,
+and we create a sparse file on it, we don't want the initial
+zeroing to happen via dax, we want to give the block driver a
+chance to clear the errors).
+
+Patch 4 from Christoph exports a low level dax helper for zeroing
+
+Patch 5 reduces our calls to clear_pmem from dax in the
+truncate/hole-punch cases. We check if the range being truncated
+is sector aligned/sized, and if so, send blkdev_issue_zeroout
+instead of clear_pmem so that errors can be handled better by
+the driver.
+
+Patch 6 fixes a redundant comment in DAX and is mostly unrelated
+to the rest of this series.
+
+This series also depends on/is based on Jan Kara's Ext4 and DAX
+fixups series:
+http://marc.info/?l=linux-ext4&m=146295959100848&w=2
+http://marc.info/?l=linux-ext4&m=146296078001307&w=2
+
+v7:
+ - Fix the dax alignment check to only check 'offset' and 'length'
+   for alignment as that's all that is needed. (Jan)
+ - Fix the blockdev_issue_zeroout call to zero the correct sector
+ - Rebase to v4.6-rc7 + the two patch-series from Jan linked above
+ - Add a patch from Christoph's iomap series:
+   http://www.spinics.net/lists/xfs/msg39656.html
+
+v6:
+ - Use IS_ALIGNED in dax_range_is_aligned instead of open coding
+   an alignment check (Jan)
+ - Collect all Reveiwed-by tags so far.
+
+v5:
+ - Drop the patch that attempts to clear-errors-on-write till we
+   reach consensus on how to handle that.
+ - Don't pass blk_dax_ctl to direct_access, instead pass in all the
+   required arguments individually (Christoph, Dan)
+
+v4:
+ - Remove the dax->direct_IO fallbacks entirely. Instead, go through
+   the usual direct_IO path when we're in O_DIRECT, and use dax_IO
+   for other, non O_DIRECT IO. (Dan, Christoph)
+
+v3:
+ - Wrapper-ize the direct_IO fallback again and make an exception
+   for -EIOCBQUEUED (Jeff, Dan)
+ - Reduce clear_pmem usage in DAX to the minimum
 
 
----
 
-Dan Williams (5):
-      util: centralize logging
-      util: centralize sysfs helpers
-      test: fix 'pfn alignment too big' checks
-      daxctl: initial boilerplate
-      daxctl: enumeration api and unit test for "Device DAX"
+Christoph Hellwig (1):
+  dax: export a low-level __dax_zero_page_range helper
 
+Dan Williams (2):
+  dax: fallback from pmd to pte on error
+  dax: enable dax in the presence of known media errors (badblocks)
 
- Makefile.am                    |    2 
- Makefile.am.in                 |    3 
- configure.ac                   |    1 
- daxctl/Makefile.am             |   28 ++
- daxctl/lib/libdaxctl-private.h |   40 +++
- daxctl/lib/libdaxctl.c         |  353 ++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.pc.in     |   11 +
- daxctl/lib/libdaxctl.sym       |   32 +++
- daxctl/libdaxctl.h             |   64 +++++
- ndctl/Makefile.am              |   21 +-
- ndctl/lib/libndctl-private.h   |   65 ++---
- ndctl/lib/libndctl-smart.c     |    1 
- ndctl/lib/libndctl.c           |  219 ++++--------------
- ndctl/lib/libndctl.sym         |    2 
- ndctl/libndctl.h.in            |    3 
- test/Makefile.am               |    4 
- test/libndctl.c                |  500 ++++++++++++++++++++++++++++++++++------
- util/log.c                     |   65 +++++
- util/log.h                     |   69 ++++++
- util/sysfs.c                   |  128 ++++++++++
- util/sysfs.h                   |   40 +++
- 21 files changed, 1350 insertions(+), 301 deletions(-)
- create mode 100644 daxctl/Makefile.am
- create mode 100644 daxctl/lib/libdaxctl-private.h
- create mode 100644 daxctl/lib/libdaxctl.c
- create mode 100644 daxctl/lib/libdaxctl.pc.in
- create mode 100644 daxctl/lib/libdaxctl.sym
- create mode 100644 daxctl/libdaxctl.h
- create mode 100644 util/log.c
- create mode 100644 util/log.h
- create mode 100644 util/sysfs.c
- create mode 100644 util/sysfs.h
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Matthew Wilcox (1):
+  dax: use sb_issue_zerout instead of calling dax_clear_sectors
+
+Vishal Verma (2):
+  dax: for truncate/hole-punch, do zeroing through the driver if
+    possible
+  dax: fix a comment in dax_zero_page_range and dax_truncate_page
+
+ Documentation/filesystems/dax.txt |  32 ++++++++++++
+ arch/powerpc/sysdev/axonram.c     |   2 +-
+ block/ioctl.c                     |   9 ----
+ drivers/block/brd.c               |   2 +-
+ drivers/nvdimm/pmem.c             |  10 +++-
+ drivers/s390/block/dcssblk.c      |   2 +-
+ fs/block_dev.c                    |   2 +-
+ fs/dax.c                          | 104 ++++++++++++++++----------------------
+ fs/ext2/inode.c                   |   7 ++-
+ fs/xfs/xfs_bmap_util.c            |  15 ++----
+ include/linux/blkdev.h            |   2 +-
+ include/linux/dax.h               |   8 ++-
+ 12 files changed, 103 insertions(+), 92 deletions(-)
+
+-- 
+2.5.5
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
