@@ -1,14 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 7BE7B1A1E96
- for <linux-nvdimm@lists.01.org>; Sun,  8 May 2016 15:36:15 -0700 (PDT)
-Subject: [PATCH 2/7] libnvdimm, dax: introduce device-dax infrastructure
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 08 May 2016 15:35:21 -0700
-Message-ID: <146274692109.10891.2851263545727809769.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146274690999.10891.10714722986208180484.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146274690999.10891.10714722986208180484.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ by ml01.01.org (Postfix) with ESMTP id 4DA501A1F77
+ for <linux-nvdimm@lists.01.org>; Wed, 11 May 2016 14:09:45 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v4] test: Add a unit test for dax error handling
+Date: Wed, 11 May 2016 15:09:28 -0600
+Message-Id: <1463000968-31819-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,677 +13,352 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-block@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Device DAX is the device-centric analogue of Filesystem DAX
-(CONFIG_FS_DAX).  It allows persistent memory ranges to be allocated and
-mapped without need of an intervening file system.  This initial
-infrastructure arranges for a libnvdimm pfn-device to be represented as
-a different device-type so that it can be attached to a driver other
-than the pmem driver.
+When we have a namespace with media errors, DAX should fail when trying
+to map the bad blocks for direct access, but a regular write() to the
+same sector should go through the driver and clear the error.
+This test checks for all of the above happening - failure for a read()
+on a file with a bad block, failure on an mmap-read for the same, and
+finally a successful write that clears the bad block.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+It also tests that a hole punch to a badblock (if the hole-punch is
+sector aligned and sized) clears the error.
+
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/Kconfig          |   13 +++++
- drivers/nvdimm/Makefile         |    1 
- drivers/nvdimm/bus.c            |    4 ++
- drivers/nvdimm/claim.c          |    2 +
- drivers/nvdimm/dax_devs.c       |   99 +++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/namespace_devs.c |   19 +++++++
- drivers/nvdimm/nd-core.h        |    1 
- drivers/nvdimm/nd.h             |   25 ++++++++++
- drivers/nvdimm/pfn_devs.c       |  100 ++++++++++++++++++++++++++-------------
- drivers/nvdimm/region.c         |    2 +
- drivers/nvdimm/region_devs.c    |   29 +++++++++++
- include/uapi/linux/ndctl.h      |    2 +
- tools/testing/nvdimm/Kbuild     |    1 
- 13 files changed, 264 insertions(+), 34 deletions(-)
- create mode 100644 drivers/nvdimm/dax_devs.c
 
-diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-index 53c11621d5b1..7c8a3bf07884 100644
---- a/drivers/nvdimm/Kconfig
-+++ b/drivers/nvdimm/Kconfig
-@@ -88,4 +88,17 @@ config NVDIMM_PFN
+v4:
+ - Change the hole-punch test to punch a more exact hole - the previous
+   version hid a kernel bug where the wrong sector would be zeroed.
+
+ Makefile.am        |   5 +-
+ test/dax-errors.c  | 146 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ test/dax-errors.sh | 134 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 283 insertions(+), 2 deletions(-)
+ create mode 100644 test/dax-errors.c
+ create mode 100755 test/dax-errors.sh
+
+diff --git a/Makefile.am b/Makefile.am
+index 3f7dca3..27b06a6 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -145,8 +145,8 @@ EXTRA_DIST += lib/libndctl.pc.in
+ CLEANFILES += lib/libndctl.pc
  
- 	  Select Y if unsure
+ TESTS = test/libndctl test/dpa-alloc test/parent-uuid test/create.sh \
+-	test/clear.sh
+-check_PROGRAMS = test/libndctl test/dpa-alloc test/parent-uuid
++	test/clear.sh test/dax-errors.sh
++check_PROGRAMS = test/libndctl test/dpa-alloc test/parent-uuid test/dax-errors
  
-+config NVDIMM_DAX
-+	bool "NVDIMM DAX: Raw access to persistent memory"
-+	default LIBNVDIMM
-+	depends on NVDIMM_PFN
-+	help
-+	  Support raw device dax access to a persistent memory
-+	  namespace.  For environments that want to hard partition
-+	  peristent memory, this capability provides a mechanism to
-+	  sub-divide a namespace into character devices that can only be
-+	  accessed via DAX (mmap(2)).
-+
-+	  Select Y if unsure
-+
- endif
-diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
-index ea84d3c4e8e5..909554c3f955 100644
---- a/drivers/nvdimm/Makefile
-+++ b/drivers/nvdimm/Makefile
-@@ -23,3 +23,4 @@ libnvdimm-y += label.o
- libnvdimm-$(CONFIG_ND_CLAIM) += claim.o
- libnvdimm-$(CONFIG_BTT) += btt_devs.o
- libnvdimm-$(CONFIG_NVDIMM_PFN) += pfn_devs.o
-+libnvdimm-$(CONFIG_NVDIMM_DAX) += dax_devs.o
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 19f822d7f652..97589e3cb852 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -40,6 +40,8 @@ static int to_nd_device_type(struct device *dev)
- 		return ND_DEVICE_REGION_PMEM;
- 	else if (is_nd_blk(dev))
- 		return ND_DEVICE_REGION_BLK;
-+	else if (is_nd_dax(dev))
-+		return ND_DEVICE_DAX_PMEM;
- 	else if (is_nd_pmem(dev->parent) || is_nd_blk(dev->parent))
- 		return nd_region_to_nstype(to_nd_region(dev->parent));
+ if ENABLE_DESTRUCTIVE
+ TESTS += test/blk-ns test/pmem-ns test/pcommit
+@@ -179,3 +179,4 @@ test_dax_dev_LDADD = lib/libndctl.la
  
-@@ -246,6 +248,8 @@ static void nd_async_device_unregister(void *d, async_cookie_t cookie)
- 
- void __nd_device_register(struct device *dev)
- {
-+	if (!dev)
-+		return;
- 	dev->bus = &nvdimm_bus_type;
- 	get_device(dev);
- 	async_schedule_domain(nd_async_device_register, dev,
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 6bbd0a36994a..5f53db59a058 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -85,6 +85,8 @@ static bool is_idle(struct device *dev, struct nd_namespace_common *ndns)
- 		seed = nd_region->btt_seed;
- 	else if (is_nd_pfn(dev))
- 		seed = nd_region->pfn_seed;
-+	else if (is_nd_dax(dev))
-+		seed = nd_region->dax_seed;
- 
- 	if (seed == dev || ndns || dev->driver)
- 		return false;
-diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
+ test_dax_pmd_SOURCES = test/dax-pmd.c
+ test_mmap_SOURCES = test/mmap.c
++test_dax_err_SOURCES = test/dax-errors.c
+diff --git a/test/dax-errors.c b/test/dax-errors.c
 new file mode 100644
-index 000000000000..f90f7549e7f4
+index 0000000..11d0031
 --- /dev/null
-+++ b/drivers/nvdimm/dax_devs.c
-@@ -0,0 +1,99 @@
-+/*
-+ * Copyright(c) 2013-2016 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#include <linux/device.h>
-+#include <linux/sizes.h>
-+#include <linux/slab.h>
-+#include <linux/mm.h>
-+#include "nd-core.h"
-+#include "nd.h"
++++ b/test/dax-errors.c
+@@ -0,0 +1,146 @@
++#include <stdio.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <sys/types.h>
++#include <sys/wait.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <string.h>
++#include <errno.h>
++#include <sys/ioctl.h>
++#include <stdlib.h>
++#include <linux/fs.h>
++#include <linux/fiemap.h>
++#include <setjmp.h>
 +
-+static void nd_dax_release(struct device *dev)
++#define fail() fprintf(stderr, "%s: failed at: %d\n", __func__, __LINE__)
++
++static sigjmp_buf sj_env;
++static int sig_count;
++
++static void sigbus_hdl(int sig, siginfo_t *siginfo, void *ptr)
 +{
-+	struct nd_region *nd_region = to_nd_region(dev->parent);
-+	struct nd_dax *nd_dax = to_nd_dax(dev);
-+	struct nd_pfn *nd_pfn = &nd_dax->nd_pfn;
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+	nd_detach_ndns(dev, &nd_pfn->ndns);
-+	ida_simple_remove(&nd_region->dax_ida, nd_pfn->id);
-+	kfree(nd_pfn->uuid);
-+	kfree(nd_dax);
++	fprintf(stderr, "** Received a SIGBUS **\n");
++	sig_count++;
++	siglongjmp(sj_env, 1);
 +}
 +
-+static struct device_type nd_dax_device_type = {
-+	.name = "nd_dax",
-+	.release = nd_dax_release,
-+};
-+
-+bool is_nd_dax(struct device *dev)
++static int test_dax_read_err(int fd)
 +{
-+	return dev ? dev->type == &nd_dax_device_type : false;
-+}
-+EXPORT_SYMBOL(is_nd_dax);
++	void *base, *buf;
++	int rc = 0;
 +
-+struct nd_dax *to_nd_dax(struct device *dev)
-+{
-+	struct nd_dax *nd_dax = container_of(dev, struct nd_dax, nd_pfn.dev);
-+
-+	WARN_ON(!is_nd_dax(dev));
-+	return nd_dax;
-+}
-+EXPORT_SYMBOL(to_nd_dax);
-+
-+static const struct attribute_group *nd_dax_attribute_groups[] = {
-+	&nd_pfn_attribute_group,
-+	&nd_device_attribute_group,
-+	&nd_numa_attribute_group,
-+	NULL,
-+};
-+
-+static struct nd_dax *nd_dax_alloc(struct nd_region *nd_region)
-+{
-+	struct nd_pfn *nd_pfn;
-+	struct nd_dax *nd_dax;
-+	struct device *dev;
-+
-+	nd_dax = kzalloc(sizeof(*nd_dax), GFP_KERNEL);
-+	if (!nd_dax)
-+		return NULL;
-+
-+	nd_pfn = &nd_dax->nd_pfn;
-+	nd_pfn->id = ida_simple_get(&nd_region->dax_ida, 0, 0, GFP_KERNEL);
-+	if (nd_pfn->id < 0) {
-+		kfree(nd_dax);
-+		return NULL;
++	if (fd < 0) {
++		fail();
++		return -ENXIO;
 +	}
 +
-+	dev = &nd_pfn->dev;
-+	dev_set_name(dev, "dax%d.%d", nd_region->id, nd_pfn->id);
-+	dev->groups = nd_dax_attribute_groups;
-+	dev->type = &nd_dax_device_type;
-+	dev->parent = &nd_region->dev;
++	if (posix_memalign(&buf, 4096, 4096) != 0)
++		return -ENOMEM;
 +
-+	return nd_dax;
++	base = mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
++	if (base == MAP_FAILED) {
++		perror("mmap");
++		rc = -ENXIO;
++		goto err_mmap;
++	}
++
++	if (sigsetjmp(sj_env, 1)) {
++		if (sig_count == 1) {
++			fprintf(stderr, "Failed to read from mapped file\n");
++			free(buf);
++			if (base) {
++				if (munmap(base, 4096) < 0) {
++					fail();
++					return 1;
++				}
++			}
++			return 1;
++		}
++		return sig_count;
++	}
++
++	/* read a page through DAX (should fail due to a bad block) */
++	memcpy(buf, base, 4096);
++
++ err_mmap:
++	free(buf);
++	return rc;
 +}
 +
-+struct device *nd_dax_create(struct nd_region *nd_region)
++/* TODO: disabled till we get clear-on-write in the kernel */
++#if 0
++static int test_dax_write_clear(int fd)
 +{
-+	struct device *dev = NULL;
-+	struct nd_dax *nd_dax;
++	void *buf;
++	int rc = 0;
 +
-+	if (!is_nd_pmem(&nd_region->dev))
-+		return NULL;
++	if (fd < 0) {
++		fail();
++		return -ENXIO;
++	}
 +
-+	nd_dax = nd_dax_alloc(nd_region);
-+	if (nd_dax)
-+		dev = nd_pfn_devinit(&nd_dax->nd_pfn, NULL);
-+	__nd_device_register(dev);
-+	return dev;
-+}
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index e5ad5162bf34..c5e3196c45b0 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1288,6 +1288,8 @@ static ssize_t mode_show(struct device *dev,
- 		mode = "safe";
- 	else if (claim && is_nd_pfn(claim))
- 		mode = "memory";
-+	else if (claim && is_nd_dax(claim))
-+		mode = "dax";
- 	else if (!claim && pmem_should_map_pages(dev))
- 		mode = "memory";
- 	else
-@@ -1379,14 +1381,17 @@ struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev)
- {
- 	struct nd_btt *nd_btt = is_nd_btt(dev) ? to_nd_btt(dev) : NULL;
- 	struct nd_pfn *nd_pfn = is_nd_pfn(dev) ? to_nd_pfn(dev) : NULL;
-+	struct nd_dax *nd_dax = is_nd_dax(dev) ? to_nd_dax(dev) : NULL;
- 	struct nd_namespace_common *ndns = NULL;
- 	resource_size_t size;
- 
--	if (nd_btt || nd_pfn) {
-+	if (nd_btt || nd_pfn || nd_dax) {
- 		if (nd_btt)
- 			ndns = nd_btt->ndns;
- 		else if (nd_pfn)
- 			ndns = nd_pfn->ndns;
-+		else if (nd_dax)
-+			ndns = nd_dax->nd_pfn.ndns;
- 
- 		if (!ndns)
- 			return ERR_PTR(-ENODEV);
-@@ -1779,6 +1784,18 @@ void nd_region_create_blk_seed(struct nd_region *nd_region)
- 		nd_device_register(nd_region->ns_seed);
- }
- 
-+void nd_region_create_dax_seed(struct nd_region *nd_region)
-+{
-+	WARN_ON(!is_nvdimm_bus_locked(&nd_region->dev));
-+	nd_region->dax_seed = nd_dax_create(nd_region);
++	if (posix_memalign(&buf, 4096, 4096) != 0)
++		return -ENOMEM;
++	memset(buf, 0, 4096);
++
 +	/*
-+	 * Seed creation failures are not fatal, provisioning is simply
-+	 * disabled until memory becomes available
++	 * Attempt to write zeroes to the first page of the file using write()
++	 * This should clear the pmem errors/bad blocks
 +	 */
-+	if (!nd_region->dax_seed)
-+		dev_err(&nd_region->dev, "failed to create dax namespace\n");
-+}
++	printf("Attempting to write\n");
++	if (write(fd, buf, 4096) < 0)
++		rc = errno;
 +
- void nd_region_create_pfn_seed(struct nd_region *nd_region)
- {
- 	WARN_ON(!is_nvdimm_bus_locked(&nd_region->dev));
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 1d1500f3d8b5..cb65308c0329 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -54,6 +54,7 @@ struct nd_region;
- void nd_region_create_blk_seed(struct nd_region *nd_region);
- void nd_region_create_btt_seed(struct nd_region *nd_region);
- void nd_region_create_pfn_seed(struct nd_region *nd_region);
-+void nd_region_create_dax_seed(struct nd_region *nd_region);
- void nd_region_disable(struct nvdimm_bus *nvdimm_bus, struct device *dev);
- int nvdimm_bus_create_ndctl(struct nvdimm_bus *nvdimm_bus);
- void nvdimm_bus_destroy_ndctl(struct nvdimm_bus *nvdimm_bus);
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 6c36509662e4..46910b8f32b1 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -101,10 +101,12 @@ struct nd_region {
- 	struct ida ns_ida;
- 	struct ida btt_ida;
- 	struct ida pfn_ida;
-+	struct ida dax_ida;
- 	unsigned long flags;
- 	struct device *ns_seed;
- 	struct device *btt_seed;
- 	struct device *pfn_seed;
-+	struct device *dax_seed;
- 	u16 ndr_mappings;
- 	u64 ndr_size;
- 	u64 ndr_start;
-@@ -161,6 +163,10 @@ struct nd_pfn {
- 	struct nd_namespace_common *ndns;
- };
- 
-+struct nd_dax {
-+	struct nd_pfn nd_pfn;
-+};
-+
- enum nd_async_mode {
- 	ND_SYNC,
- 	ND_ASYNC,
-@@ -224,7 +230,10 @@ struct nd_pfn *to_nd_pfn(struct device *dev);
- int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns);
- bool is_nd_pfn(struct device *dev);
- struct device *nd_pfn_create(struct nd_region *nd_region);
-+struct device *nd_pfn_devinit(struct nd_pfn *nd_pfn,
-+		struct nd_namespace_common *ndns);
- int nd_pfn_validate(struct nd_pfn *nd_pfn);
-+extern struct attribute_group nd_pfn_attribute_group;
- #else
- static inline int nd_pfn_probe(struct device *dev,
- 		struct nd_namespace_common *ndns)
-@@ -248,6 +257,22 @@ static inline int nd_pfn_validate(struct nd_pfn *nd_pfn)
- }
- #endif
- 
-+struct nd_dax *to_nd_dax(struct device *dev);
-+#if IS_ENABLED(CONFIG_NVDIMM_DAX)
-+bool is_nd_dax(struct device *dev);
-+struct device *nd_dax_create(struct nd_region *nd_region);
-+#else
-+static inline bool is_nd_dax(struct device *dev)
-+{
-+	return false;
-+}
-+
-+static inline struct device *nd_dax_create(struct nd_region *nd_region)
-+{
-+	return NULL;
++	free(buf);
++	return rc;
 +}
 +#endif
 +
- struct nd_region *to_nd_region(struct device *dev);
- int nd_region_to_nstype(struct nd_region *nd_region);
- int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index e8693fe65e49..6ade2eb7615d 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
-+ * Copyright(c) 2013-2016 Intel Corporation. All rights reserved.
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of version 2 of the GNU General Public License as
-@@ -54,10 +54,29 @@ struct nd_pfn *to_nd_pfn(struct device *dev)
- }
- EXPORT_SYMBOL(to_nd_pfn);
- 
-+static struct nd_pfn *to_nd_pfn_safe(struct device *dev)
++int main(int argc, char *argv[])
 +{
-+	/*
-+	 * pfn device attributes are re-used by dax device instances, so we
-+	 * need to be careful to correct device-to-nd_pfn conversion.
++	int fd, rc;
++	struct sigaction act;
++
++	if (argc < 1)
++		return -EINVAL;
++
++	memset(&act, 0, sizeof(act));
++	act.sa_sigaction = sigbus_hdl;
++	act.sa_flags = SA_SIGINFO;
++
++	if (sigaction(SIGBUS, &act, 0)) {
++		fail();
++		return 1;
++	}
++
++	fd = open(argv[1], O_RDWR | O_DIRECT);
++
++	/* Start the test. First, we do an mmap-read, and expect it to fail */
++	rc = test_dax_read_err(fd);
++	if (rc == 0) {
++		fprintf(stderr, "Expected read to fail, but it succeeded\n");
++		rc = -ENXIO;
++		goto out;
++	}
++	if (rc > 1) {
++		fprintf(stderr, "Received a second SIGBUS, exiting.\n");
++		rc = -ENXIO;
++		goto out;
++	}
++	printf("  mmap-read failed as expected\n");
++	rc = 0;
++
++	/* Next, do a regular (O_DIRECT) write() */
++	/* TODO: Disable this till we have clear-on-write in the kernel
++	 * rc = test_dax_write_clear(fd);
++	 *
++	 * if (rc)
++	 *	perror("write");
 +	 */
-+	if (is_nd_pfn(dev))
-+		return to_nd_pfn(dev);
 +
-+	if (is_nd_dax(dev)) {
-+		struct nd_dax *nd_dax = to_nd_dax(dev);
-+
-+		return &nd_dax->nd_pfn;
-+	}
-+
-+	WARN_ON(1);
-+	return NULL;
-+}
-+
- static ssize_t mode_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
- 
- 	switch (nd_pfn->mode) {
- 	case PFN_MODE_RAM:
-@@ -72,7 +91,7 @@ static ssize_t mode_show(struct device *dev,
- static ssize_t mode_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t len)
- {
--	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
- 	ssize_t rc = 0;
- 
- 	device_lock(dev);
-@@ -106,7 +125,7 @@ static DEVICE_ATTR_RW(mode);
- static ssize_t align_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
- 
- 	return sprintf(buf, "%lx\n", nd_pfn->align);
- }
-@@ -134,7 +153,7 @@ static ssize_t __align_store(struct nd_pfn *nd_pfn, const char *buf)
- static ssize_t align_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t len)
- {
--	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
- 	ssize_t rc;
- 
- 	device_lock(dev);
-@@ -152,7 +171,7 @@ static DEVICE_ATTR_RW(align);
- static ssize_t uuid_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
- 
- 	if (nd_pfn->uuid)
- 		return sprintf(buf, "%pUb\n", nd_pfn->uuid);
-@@ -162,7 +181,7 @@ static ssize_t uuid_show(struct device *dev,
- static ssize_t uuid_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t len)
- {
--	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
- 	ssize_t rc;
- 
- 	device_lock(dev);
-@@ -178,7 +197,7 @@ static DEVICE_ATTR_RW(uuid);
- static ssize_t namespace_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
- 	ssize_t rc;
- 
- 	nvdimm_bus_lock(dev);
-@@ -191,7 +210,7 @@ static ssize_t namespace_show(struct device *dev,
- static ssize_t namespace_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t len)
- {
--	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
- 	ssize_t rc;
- 
- 	device_lock(dev);
-@@ -209,7 +228,7 @@ static DEVICE_ATTR_RW(namespace);
- static ssize_t resource_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
- 	ssize_t rc;
- 
- 	device_lock(dev);
-@@ -235,7 +254,7 @@ static DEVICE_ATTR_RO(resource);
- static ssize_t size_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
- 	ssize_t rc;
- 
- 	device_lock(dev);
-@@ -270,7 +289,7 @@ static struct attribute *nd_pfn_attributes[] = {
- 	NULL,
- };
- 
--static struct attribute_group nd_pfn_attribute_group = {
-+struct attribute_group nd_pfn_attribute_group = {
- 	.attrs = nd_pfn_attributes,
- };
- 
-@@ -281,15 +300,31 @@ static const struct attribute_group *nd_pfn_attribute_groups[] = {
- 	NULL,
- };
- 
--static struct device *__nd_pfn_create(struct nd_region *nd_region,
-+struct device *nd_pfn_devinit(struct nd_pfn *nd_pfn,
- 		struct nd_namespace_common *ndns)
- {
--	struct nd_pfn *nd_pfn;
--	struct device *dev;
-+	struct device *dev = &nd_pfn->dev;
- 
--	/* we can only create pages for contiguous ranged of pmem */
--	if (!is_nd_pmem(&nd_region->dev))
-+	if (!nd_pfn)
-+		return NULL;
-+
-+	nd_pfn->mode = PFN_MODE_NONE;
-+	nd_pfn->align = HPAGE_SIZE;
-+	dev = &nd_pfn->dev;
-+	device_initialize(&nd_pfn->dev);
-+	if (ndns && !__nd_attach_ndns(&nd_pfn->dev, ndns, &nd_pfn->ndns)) {
-+		dev_dbg(&ndns->dev, "%s failed, already claimed by %s\n",
-+				__func__, dev_name(ndns->claim));
-+		put_device(dev);
- 		return NULL;
-+	}
-+	return dev;
-+}
-+
-+static struct nd_pfn *nd_pfn_alloc(struct nd_region *nd_region)
-+{
-+	struct nd_pfn *nd_pfn;
-+	struct device *dev;
- 
- 	nd_pfn = kzalloc(sizeof(*nd_pfn), GFP_KERNEL);
- 	if (!nd_pfn)
-@@ -301,29 +336,27 @@ static struct device *__nd_pfn_create(struct nd_region *nd_region,
- 		return NULL;
- 	}
- 
--	nd_pfn->mode = PFN_MODE_NONE;
--	nd_pfn->align = HPAGE_SIZE;
- 	dev = &nd_pfn->dev;
- 	dev_set_name(dev, "pfn%d.%d", nd_region->id, nd_pfn->id);
--	dev->parent = &nd_region->dev;
--	dev->type = &nd_pfn_device_type;
- 	dev->groups = nd_pfn_attribute_groups;
--	device_initialize(&nd_pfn->dev);
--	if (ndns && !__nd_attach_ndns(&nd_pfn->dev, ndns, &nd_pfn->ndns)) {
--		dev_dbg(&ndns->dev, "%s failed, already claimed by %s\n",
--				__func__, dev_name(ndns->claim));
--		put_device(dev);
--		return NULL;
--	}
--	return dev;
-+	dev->type = &nd_pfn_device_type;
-+	dev->parent = &nd_region->dev;
-+
-+	return nd_pfn;
- }
- 
- struct device *nd_pfn_create(struct nd_region *nd_region)
- {
--	struct device *dev = __nd_pfn_create(nd_region, NULL);
-+	struct nd_pfn *nd_pfn;
-+	struct device *dev;
-+
-+	if (!is_nd_pmem(&nd_region->dev))
-+		return NULL;
-+
-+	nd_pfn = nd_pfn_alloc(nd_region);
-+	dev = nd_pfn_devinit(nd_pfn, NULL);
- 
--	if (dev)
--		__nd_device_register(dev);
-+	__nd_device_register(dev);
- 	return dev;
- }
- 
-@@ -423,7 +456,8 @@ int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns)
- 		return -ENODEV;
- 
- 	nvdimm_bus_lock(&ndns->dev);
--	pfn_dev = __nd_pfn_create(nd_region, ndns);
-+	nd_pfn = nd_pfn_alloc(nd_region);
-+	pfn_dev = nd_pfn_devinit(nd_pfn, ndns);
- 	nvdimm_bus_unlock(&ndns->dev);
- 	if (!pfn_dev)
- 		return -ENOMEM;
-diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
-index 4b7715e29cff..05a912359939 100644
---- a/drivers/nvdimm/region.c
-+++ b/drivers/nvdimm/region.c
-@@ -54,6 +54,7 @@ static int nd_region_probe(struct device *dev)
- 
- 	nd_region->btt_seed = nd_btt_create(nd_region);
- 	nd_region->pfn_seed = nd_pfn_create(nd_region);
-+	nd_region->dax_seed = nd_dax_create(nd_region);
- 	if (err == 0)
- 		return 0;
- 
-@@ -86,6 +87,7 @@ static int nd_region_remove(struct device *dev)
- 	nd_region->ns_seed = NULL;
- 	nd_region->btt_seed = NULL;
- 	nd_region->pfn_seed = NULL;
-+	nd_region->dax_seed = NULL;
- 	dev_set_drvdata(dev, NULL);
- 	nvdimm_bus_unlock(dev);
- 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 139bf71ca549..9e1b054e0e61 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -306,6 +306,23 @@ static ssize_t pfn_seed_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(pfn_seed);
- 
-+static ssize_t dax_seed_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+	ssize_t rc;
-+
-+	nvdimm_bus_lock(dev);
-+	if (nd_region->dax_seed)
-+		rc = sprintf(buf, "%s\n", dev_name(nd_region->dax_seed));
-+	else
-+		rc = sprintf(buf, "\n");
-+	nvdimm_bus_unlock(dev);
-+
++ out:
++	if (fd >= 0)
++		close(fd);
 +	return rc;
 +}
-+static DEVICE_ATTR_RO(dax_seed);
+diff --git a/test/dax-errors.sh b/test/dax-errors.sh
+new file mode 100755
+index 0000000..51fe082
+--- /dev/null
++++ b/test/dax-errors.sh
+@@ -0,0 +1,134 @@
++#!/bin/bash -x
 +
- static ssize_t read_only_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -335,6 +352,7 @@ static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_mappings.attr,
- 	&dev_attr_btt_seed.attr,
- 	&dev_attr_pfn_seed.attr,
-+	&dev_attr_dax_seed.attr,
- 	&dev_attr_read_only.attr,
- 	&dev_attr_set_cookie.attr,
- 	&dev_attr_available_size.attr,
-@@ -353,6 +371,9 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
- 	if (!is_nd_pmem(dev) && a == &dev_attr_pfn_seed.attr)
- 		return 0;
- 
-+	if (!is_nd_pmem(dev) && a == &dev_attr_dax_seed.attr)
-+		return 0;
++DEV=""
++NDCTL="./ndctl"
++BUS="-b nfit_test.0"
++BUS1="-b nfit_test.1"
++MNT=test_dax_mnt
++FILE=image
++json2var="s/[{}\",]//g; s/:/=/g"
++rc=77
 +
- 	if (a != &dev_attr_set_cookie.attr
- 			&& a != &dev_attr_available_size.attr)
- 		return a->mode;
-@@ -441,6 +462,13 @@ static void nd_region_notify_driver_action(struct nvdimm_bus *nvdimm_bus,
- 			nd_region_create_pfn_seed(nd_region);
- 		nvdimm_bus_unlock(dev);
- 	}
-+	if (is_nd_dax(dev) && probe) {
-+		nd_region = to_nd_region(dev->parent);
-+		nvdimm_bus_lock(dev);
-+		if (nd_region->dax_seed == dev)
-+			nd_region_create_dax_seed(nd_region);
-+		nvdimm_bus_unlock(dev);
-+	}
- }
- 
- void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev)
-@@ -718,6 +746,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 	ida_init(&nd_region->ns_ida);
- 	ida_init(&nd_region->btt_ida);
- 	ida_init(&nd_region->pfn_ida);
-+	ida_init(&nd_region->dax_ida);
- 	dev = &nd_region->dev;
- 	dev_set_name(dev, "region%d", nd_region->id);
- 	dev->parent = &nvdimm_bus->dev;
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 7cc28ab05b87..4f29d247f709 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -206,6 +206,7 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
- #define ND_DEVICE_NAMESPACE_IO 4    /* legacy persistent memory */
- #define ND_DEVICE_NAMESPACE_PMEM 5  /* PMEM namespace (may alias with BLK) */
- #define ND_DEVICE_NAMESPACE_BLK 6   /* BLK namespace (may alias with PMEM) */
-+#define ND_DEVICE_DAX_PMEM 7        /* Device DAX interface to pmem */
- 
- enum nd_driver_flags {
- 	ND_DRIVER_DIMM            = 1 << ND_DEVICE_DIMM,
-@@ -214,6 +215,7 @@ enum nd_driver_flags {
- 	ND_DRIVER_NAMESPACE_IO    = 1 << ND_DEVICE_NAMESPACE_IO,
- 	ND_DRIVER_NAMESPACE_PMEM  = 1 << ND_DEVICE_NAMESPACE_PMEM,
- 	ND_DRIVER_NAMESPACE_BLK   = 1 << ND_DEVICE_NAMESPACE_BLK,
-+	ND_DRIVER_DAX_PMEM	  = 1 << ND_DEVICE_DAX_PMEM,
- };
- 
- enum {
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index d5bc8c080b44..5ff6d3c126a9 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -50,6 +50,7 @@ libnvdimm-y += $(NVDIMM_SRC)/label.o
- libnvdimm-$(CONFIG_ND_CLAIM) += $(NVDIMM_SRC)/claim.o
- libnvdimm-$(CONFIG_BTT) += $(NVDIMM_SRC)/btt_devs.o
- libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
-+libnvdimm-$(CONFIG_NVDIMM_DAX) += $(NVDIMM_SRC)/dax_devs.o
- libnvdimm-y += config_check.o
- 
- obj-m += test/
++err() {
++	rc=1
++	echo "test/dax-errors: failed at line $1"
++	rm -f $FILE
++	rm -f $MNT/$FILE
++	if [ -n "$blockdev" ]; then
++		umount /dev/$blockdev
++	else
++		rc=77
++	fi
++	rmdir $MNT
++	exit $rc
++}
++
++set -e
++mkdir -p $MNT
++trap 'err $LINENO' ERR
++
++# setup (reset nfit_test dimms)
++modprobe nfit_test
++$NDCTL disable-region $BUS all
++$NDCTL zero-labels $BUS all
++$NDCTL enable-region $BUS all
++
++rc=1
++
++# create pmem
++dev="x"
++json=$($NDCTL create-namespace $BUS -t pmem -m raw)
++eval $(echo $json | sed -e "$json2var")
++[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
++[ $mode != "raw" ] && echo "fail: $LINENO" && exit 1
++
++# check for expected errors in the middle of the namespace
++read sector len < /sys/block/$blockdev/badblocks
++[ $((sector * 2)) -ne $((size /512)) ] && echo "fail: $LINENO" && exit 1
++if dd if=/dev/$blockdev of=/dev/null iflag=direct bs=512 skip=$sector count=$len; then
++	echo "fail: $LINENO" && exit 1
++fi
++
++# check that writing clears the errors
++if ! dd of=/dev/$blockdev if=/dev/zero oflag=direct bs=512 seek=$sector count=$len; then
++	echo "fail: $LINENO" && exit 1
++fi
++
++if read sector len < /sys/block/$blockdev/badblocks; then
++	# fail if reading badblocks returns data
++	echo "fail: $LINENO" && exit 1
++fi
++
++#mkfs.xfs /dev/$blockdev -b size=4096 -f
++mkfs.ext4 /dev/$blockdev -b 4096
++mount /dev/$blockdev $MNT -o dax
++
++# prepare an image file with random data
++dd if=/dev/urandom of=$FILE bs=4096 count=4
++test -s $FILE
++
++# copy it to the dax file system
++cp $FILE $MNT/$FILE
++
++# Get the start sector for the file
++start_sect=$(filefrag -v -b512 $MNT/$FILE | grep -E "^[ ]+[0-9]+.*" | head -1 | awk '{ print $4 }' | cut -d. -f1)
++test -n "$start_sect"
++echo "start sector of the file is $start_sect"
++
++# inject badblocks for one page at the start of the file
++echo $start_sect 8 > /sys/block/$blockdev/badblocks
++
++# make sure reading the first block of the file fails as expected
++: The following 'dd' is expected to hit an I/O Error
++dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1 && err $LINENO || true
++
++# run the dax-errors test
++test -x test/dax-errors
++test/dax-errors $MNT/$FILE
++
++# TODO: disable this check till we have clear-on-write in the kernel
++#if read sector len < /sys/block/$blockdev/badblocks; then
++#	# fail if reading badblocks returns data
++#	echo "fail: $LINENO" && exit 1
++#fi
++
++# TODO Due to the above, we have to clear the existing badblock manually
++read sector len < /sys/block/$blockdev/badblocks
++if ! dd of=/dev/$blockdev if=/dev/zero oflag=direct bs=512 seek=$sector count=$len; then
++	echo "fail: $LINENO" && exit 1
++fi
++
++
++# test that a hole punch to a dax file also clears errors
++dd if=/dev/urandom of=$MNT/$FILE oflag=direct bs=4096 count=4
++start_sect=$(filefrag -v -b512 $MNT/$FILE | grep -E "^[ ]+[0-9]+.*" | head -1 | awk '{ print $4 }' | cut -d. -f1)
++test -n "$start_sect"
++echo "holepunch test: start sector: $start_sect"
++
++# inject a badblock at the second sector of the first page
++echo $((start_sect + 1)) 1 > /sys/block/$blockdev/badblocks
++
++# verify badblock by reading
++: The following 'dd' is expected to hit an I/O Error
++dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1 && err $LINENO || true
++
++# hole punch the second sector, and verify it clears the
++# badblock (and doesn't fail)
++if ! fallocate -p -o 512 -l 512 $MNT/$FILE; then
++	echo "fail: $LINENO" && exit 1
++fi
++[ -n "$(cat /sys/block/$blockdev/badblocks)" ] && echo "error: $LINENO" && exit 1
++
++# cleanup
++rm -f $FILE
++rm -f $MNT/$FILE
++if [ -n "$blockdev" ]; then
++	umount /dev/$blockdev
++fi
++rmdir $MNT
++
++$NDCTL disable-region $BUS all
++$NDCTL disable-region $BUS1 all
++modprobe -r nfit_test
++
++exit 0
+-- 
+2.5.5
 
 _______________________________________________
 Linux-nvdimm mailing list
