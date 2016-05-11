@@ -1,107 +1,141 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v7 0/6] dax: handling media errors (clear-on-zero only)
-Date: Wed, 11 May 2016 15:08:46 -0600
-Message-Id: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>, Boaz Harrosh <boaz@plexistor.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0AAC81A1F5C
+ for <linux-nvdimm@lists.01.org>; Wed, 11 May 2016 02:39:25 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 1/4] ext4: Handle transient ENOSPC properly for DAX
+Date: Wed, 11 May 2016 11:39:08 +0200
+Message-Id: <1462959551-28622-2-git-send-email-jack@suse.cz>
+In-Reply-To: <1462959551-28622-1-git-send-email-jack@suse.cz>
+References: <1462959551-28622-1-git-send-email-jack@suse.cz>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Ted Tso <tytso@mit.edu>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Until now, dax has been disabled if media errors were found on
-any device. This series attempts to address that.
+ext4_dax_get_blocks() was accidentally omitted fixing get blocks
+handlers to properly handle transient ENOSPC errors. Fix it now to use
+ext4_get_blocks_trans() helper which takes care of these errors.
 
-The first two patches from Dan re-enable dax even when media
-errors are present.
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ fs/ext4/inode.c | 75 +++++++++++++++------------------------------------------
+ 1 file changed, 20 insertions(+), 55 deletions(-)
 
-The third patch from Matthew removes the zeroout path from dax
-entirely, making zeroout operations always go through the driver
-(The motivation is that if a backing device has media errors,
-and we create a sparse file on it, we don't want the initial
-zeroing to happen via dax, we want to give the block driver a
-chance to clear the errors).
-
-Patch 4 from Christoph exports a low level dax helper for zeroing
-
-Patch 5 reduces our calls to clear_pmem from dax in the
-truncate/hole-punch cases. We check if the range being truncated
-is sector aligned/sized, and if so, send blkdev_issue_zeroout
-instead of clear_pmem so that errors can be handled better by
-the driver.
-
-Patch 6 fixes a redundant comment in DAX and is mostly unrelated
-to the rest of this series.
-
-This series also depends on/is based on Jan Kara's Ext4 and DAX
-fixups series:
-http://marc.info/?l=linux-ext4&m=146295959100848&w=2
-http://marc.info/?l=linux-ext4&m=146296078001307&w=2
-
-v7:
- - Fix the dax alignment check to only check 'offset' and 'length'
-   for alignment as that's all that is needed. (Jan)
- - Fix the blockdev_issue_zeroout call to zero the correct sector
- - Rebase to v4.6-rc7 + the two patch-series from Jan linked above
- - Add a patch from Christoph's iomap series:
-   http://www.spinics.net/lists/xfs/msg39656.html
-
-v6:
- - Use IS_ALIGNED in dax_range_is_aligned instead of open coding
-   an alignment check (Jan)
- - Collect all Reveiwed-by tags so far.
-
-v5:
- - Drop the patch that attempts to clear-errors-on-write till we
-   reach consensus on how to handle that.
- - Don't pass blk_dax_ctl to direct_access, instead pass in all the
-   required arguments individually (Christoph, Dan)
-
-v4:
- - Remove the dax->direct_IO fallbacks entirely. Instead, go through
-   the usual direct_IO path when we're in O_DIRECT, and use dax_IO
-   for other, non O_DIRECT IO. (Dan, Christoph)
-
-v3:
- - Wrapper-ize the direct_IO fallback again and make an exception
-   for -EIOCBQUEUED (Jeff, Dan)
- - Reduce clear_pmem usage in DAX to the minimum
-
-
-
-Christoph Hellwig (1):
-  dax: export a low-level __dax_zero_page_range helper
-
-Dan Williams (2):
-  dax: fallback from pmd to pte on error
-  dax: enable dax in the presence of known media errors (badblocks)
-
-Matthew Wilcox (1):
-  dax: use sb_issue_zerout instead of calling dax_clear_sectors
-
-Vishal Verma (2):
-  dax: for truncate/hole-punch, do zeroing through the driver if
-    possible
-  dax: fix a comment in dax_zero_page_range and dax_truncate_page
-
- Documentation/filesystems/dax.txt |  32 ++++++++++++
- arch/powerpc/sysdev/axonram.c     |   2 +-
- block/ioctl.c                     |   9 ----
- drivers/block/brd.c               |   2 +-
- drivers/nvdimm/pmem.c             |  10 +++-
- drivers/s390/block/dcssblk.c      |   2 +-
- fs/block_dev.c                    |   2 +-
- fs/dax.c                          | 104 ++++++++++++++++----------------------
- fs/ext2/inode.c                   |   7 ++-
- fs/xfs/xfs_bmap_util.c            |  15 ++----
- include/linux/blkdev.h            |   2 +-
- include/linux/dax.h               |   8 ++-
- 12 files changed, 103 insertions(+), 92 deletions(-)
-
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 981a1fc30eaa..3e0c06028668 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3218,72 +3218,37 @@ static int ext4_releasepage(struct page *page, gfp_t wait)
+ int ext4_dax_mmap_get_block(struct inode *inode, sector_t iblock,
+ 			    struct buffer_head *bh_result, int create)
+ {
+-	int ret, err;
+-	int credits;
+-	struct ext4_map_blocks map;
+-	handle_t *handle = NULL;
+-	int flags = 0;
++	int ret;
+ 
+ 	ext4_debug("ext4_dax_mmap_get_block: inode %lu, create flag %d\n",
+ 		   inode->i_ino, create);
+-	map.m_lblk = iblock;
+-	map.m_len = bh_result->b_size >> inode->i_blkbits;
+-	credits = ext4_chunk_trans_blocks(inode, map.m_len);
+-	if (create) {
+-		flags |= EXT4_GET_BLOCKS_PRE_IO | EXT4_GET_BLOCKS_CREATE_ZERO;
+-		handle = ext4_journal_start(inode, EXT4_HT_MAP_BLOCKS, credits);
+-		if (IS_ERR(handle)) {
+-			ret = PTR_ERR(handle);
+-			return ret;
+-		}
+-	}
++	if (!create)
++		return _ext4_get_block(inode, iblock, bh_result, 0);
+ 
+-	ret = ext4_map_blocks(handle, inode, &map, flags);
+-	if (create) {
+-		err = ext4_journal_stop(handle);
+-		if (ret >= 0 && err < 0)
+-			ret = err;
+-	}
+-	if (ret <= 0)
+-		goto out;
+-	if (map.m_flags & EXT4_MAP_UNWRITTEN) {
+-		int err2;
++	ret = ext4_get_block_trans(inode, iblock, bh_result,
++				   EXT4_GET_BLOCKS_PRE_IO |
++				   EXT4_GET_BLOCKS_CREATE_ZERO);
++	if (ret < 0)
++		return ret;
+ 
++	if (buffer_unwritten(bh_result)) {
+ 		/*
+ 		 * We are protected by i_mmap_sem so we know block cannot go
+ 		 * away from under us even though we dropped i_data_sem.
+ 		 * Convert extent to written and write zeros there.
+-		 *
+-		 * Note: We may get here even when create == 0.
+ 		 */
+-		handle = ext4_journal_start(inode, EXT4_HT_MAP_BLOCKS, credits);
+-		if (IS_ERR(handle)) {
+-			ret = PTR_ERR(handle);
+-			goto out;
+-		}
+-
+-		err = ext4_map_blocks(handle, inode, &map,
+-		      EXT4_GET_BLOCKS_CONVERT | EXT4_GET_BLOCKS_CREATE_ZERO);
+-		if (err < 0)
+-			ret = err;
+-		err2 = ext4_journal_stop(handle);
+-		if (err2 < 0 && ret > 0)
+-			ret = err2;
+-	}
+-out:
+-	WARN_ON_ONCE(ret == 0 && create);
+-	if (ret > 0) {
+-		map_bh(bh_result, inode->i_sb, map.m_pblk);
+-		/*
+-		 * At least for now we have to clear BH_New so that DAX code
+-		 * doesn't attempt to zero blocks again in a racy way.
+-		 */
+-		map.m_flags &= ~EXT4_MAP_NEW;
+-		ext4_update_bh_state(bh_result, map.m_flags);
+-		bh_result->b_size = map.m_len << inode->i_blkbits;
+-		ret = 0;
++		ret = ext4_get_block_trans(inode, iblock, bh_result,
++					   EXT4_GET_BLOCKS_CONVERT |
++					   EXT4_GET_BLOCKS_CREATE_ZERO);
++		if (ret < 0)
++			return ret;
+ 	}
+-	return ret;
++	/*
++	 * At least for now we have to clear BH_New so that DAX code
++	 * doesn't attempt to zero blocks again in a racy way.
++	 */
++	clear_buffer_new(bh_result);
++	return 0;
+ }
+ #endif
+ 
 -- 
-2.5.5
+2.6.6
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
