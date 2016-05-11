@@ -1,123 +1,66 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id E9B371A1E1A
- for <linux-nvdimm@lists.01.org>; Sat, 21 May 2016 14:58:39 -0700 (PDT)
-Subject: [PATCH] libnvdimm, dax: fix deletion
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 21 May 2016 14:57:46 -0700
-Message-ID: <146386786589.2036.17061026414100900039.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v7 6/6] dax: fix a comment in dax_zero_page_range and dax_truncate_page
+Date: Wed, 11 May 2016 15:08:52 -0600
+Message-Id: <1463000932-31680-7-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
+References: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
+Sender: owner-linux-mm@kvack.org
 To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>, Boaz Harrosh <boaz@plexistor.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The ndctl unit tests discovered that the dax enabling omitted updates to
-nd_detach_and_reset().  This routine clears device the configuration
-when the namespace is detached.  Without this clearing userspace may
-assume that the device is in the process of being configured by another
-agent in the system.
+The distinction between PAGE_SIZE and PAGE_CACHE_SIZE was removed in
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+09cbfea mm, fs: get rid of PAGE_CACHE_* and page_cache_{get,release}
+macros
+
+The comments for the above functions described a distinction between
+those, that is now redundant, so remove those paragraphs
+
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/claim.c    |   23 +++++++++++++++++++++--
- drivers/nvdimm/nd-core.h  |    1 +
- drivers/nvdimm/pfn_devs.c |   19 -------------------
- 3 files changed, 22 insertions(+), 21 deletions(-)
+ fs/dax.c | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 5f53db59a058..8b2e3c4fb0ad 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -93,6 +93,25 @@ static bool is_idle(struct device *dev, struct nd_namespace_common *ndns)
- 	return true;
- }
- 
-+struct nd_pfn *to_nd_pfn_safe(struct device *dev)
-+{
-+	/*
-+	 * pfn device attributes are re-used by dax device instances, so we
-+	 * need to be careful to correct device-to-nd_pfn conversion.
-+	 */
-+	if (is_nd_pfn(dev))
-+		return to_nd_pfn(dev);
-+
-+	if (is_nd_dax(dev)) {
-+		struct nd_dax *nd_dax = to_nd_dax(dev);
-+
-+		return &nd_dax->nd_pfn;
-+	}
-+
-+	WARN_ON(1);
-+	return NULL;
-+}
-+
- static void nd_detach_and_reset(struct device *dev,
- 		struct nd_namespace_common **_ndns)
+diff --git a/fs/dax.c b/fs/dax.c
+index 0b9a169..ea936b3 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -995,12 +995,6 @@ EXPORT_SYMBOL_GPL(__dax_zero_page_range);
+  * page in a DAX file.  This is intended for hole-punch operations.  If
+  * you are truncating a file, the helper function dax_truncate_page() may be
+  * more convenient.
+- *
+- * We work in terms of PAGE_SIZE here for commonality with
+- * block_truncate_page(), but we could go down to PAGE_SIZE if the filesystem
+- * took care of disposing of the unnecessary blocks.  Even if the filesystem
+- * block size is smaller than PAGE_SIZE, we have to zero the rest of the page
+- * since the file might be mmapped.
+  */
+ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
+ 							get_block_t get_block)
+@@ -1035,12 +1029,6 @@ EXPORT_SYMBOL_GPL(dax_zero_page_range);
+  *
+  * Similar to block_truncate_page(), this function can be called by a
+  * filesystem when it is truncating a DAX file to handle the partial page.
+- *
+- * We work in terms of PAGE_SIZE here for commonality with
+- * block_truncate_page(), but we could go down to PAGE_SIZE if the filesystem
+- * took care of disposing of the unnecessary blocks.  Even if the filesystem
+- * block size is smaller than PAGE_SIZE, we have to zero the rest of the page
+- * since the file might be mmapped.
+  */
+ int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
  {
-@@ -106,8 +125,8 @@ static void nd_detach_and_reset(struct device *dev,
- 		nd_btt->lbasize = 0;
- 		kfree(nd_btt->uuid);
- 		nd_btt->uuid = NULL;
--	} else if (is_nd_pfn(dev)) {
--		struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-+	} else if (is_nd_pfn(dev) || is_nd_dax(dev)) {
-+		struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
- 
- 		kfree(nd_pfn->uuid);
- 		nd_pfn->uuid = NULL;
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 4136c1a82539..6c42eda025f9 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -94,4 +94,5 @@ bool __nd_attach_ndns(struct device *dev, struct nd_namespace_common *attach,
- ssize_t nd_namespace_store(struct device *dev,
- 		struct nd_namespace_common **_ndns, const char *buf,
- 		size_t len);
-+struct nd_pfn *to_nd_pfn_safe(struct device *dev);
- #endif /* __ND_CORE_H__ */
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 04f71d6d304d..436191c47077 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -54,25 +54,6 @@ struct nd_pfn *to_nd_pfn(struct device *dev)
- }
- EXPORT_SYMBOL(to_nd_pfn);
- 
--static struct nd_pfn *to_nd_pfn_safe(struct device *dev)
--{
--	/*
--	 * pfn device attributes are re-used by dax device instances, so we
--	 * need to be careful to correct device-to-nd_pfn conversion.
--	 */
--	if (is_nd_pfn(dev))
--		return to_nd_pfn(dev);
--
--	if (is_nd_dax(dev)) {
--		struct nd_dax *nd_dax = to_nd_dax(dev);
--
--		return &nd_dax->nd_pfn;
--	}
--
--	WARN_ON(1);
--	return NULL;
--}
--
- static ssize_t mode_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
+-- 
+2.5.5
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
