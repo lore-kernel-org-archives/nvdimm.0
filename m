@@ -1,52 +1,146 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 83DF81A1ED5
- for <linux-nvdimm@lists.01.org>; Mon,  2 May 2016 02:35:30 -0700 (PDT)
-Date: Mon, 2 May 2016 11:35:26 +0200
-From: Johannes Thumshirn <jthmshirn@suse.de>
-Subject: Re: [PATCH] nfit: export subsystem ids as attributes
-Message-ID: <20160502093526.GG25505@c203.arch.suse.de>
-References: <146197256983.7472.9730965818719498272.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <146197256983.7472.9730965818719498272.stgit@dwillia2-desk3.amr.corp.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ryon Jensen <ryon.jensen@intel.com>, linux-nvdimm@lists.01.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v7 3/6] dax: use sb_issue_zerout instead of calling dax_clear_sectors
+Date: Wed, 11 May 2016 15:08:49 -0600
+Message-Id: <1463000932-31680-4-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
+References: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>, Boaz Harrosh <boaz@plexistor.com>, Vishal Verma <vishal.l.verma@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Apr 29, 2016 at 04:29:29PM -0700, Dan Williams wrote:
-> Similar to pci-sysfs export the subsystem information available in the
-> NFIT.  ACPI 6.1 clarifies that this data is copied as an array of bytes
-> from the DIMM SPD data.
-> =
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
 
-> Reported-by: Ryon Jensen <ryon.jensen@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+dax_clear_sectors() cannot handle poisoned blocks.  These must be
+zeroed using the BIO interface instead.  Convert ext2 and XFS to use
+only sb_issue_zerout().
 
-Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+[vishal: Also remove the dax_clear_sectors function entirely]
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ fs/dax.c               | 32 --------------------------------
+ fs/ext2/inode.c        |  7 +++----
+ fs/xfs/xfs_bmap_util.c | 15 ++++-----------
+ include/linux/dax.h    |  1 -
+ 4 files changed, 7 insertions(+), 48 deletions(-)
 
--- =
+diff --git a/fs/dax.c b/fs/dax.c
+index d602410..0abbbb6 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -87,38 +87,6 @@ struct page *read_dax_sector(struct block_device *bdev, sector_t n)
+ 	return page;
+ }
+ 
+-/*
+- * dax_clear_sectors() is called from within transaction context from XFS,
+- * and hence this means the stack from this point must follow GFP_NOFS
+- * semantics for all operations.
+- */
+-int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size)
+-{
+-	struct blk_dax_ctl dax = {
+-		.sector = _sector,
+-		.size = _size,
+-	};
+-
+-	might_sleep();
+-	do {
+-		long count, sz;
+-
+-		count = dax_map_atomic(bdev, &dax);
+-		if (count < 0)
+-			return count;
+-		sz = min_t(long, count, SZ_128K);
+-		clear_pmem(dax.addr, sz);
+-		dax.size -= sz;
+-		dax.sector += sz / 512;
+-		dax_unmap_atomic(bdev, &dax);
+-		cond_resched();
+-	} while (dax.size);
+-
+-	wmb_pmem();
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(dax_clear_sectors);
+-
+ static bool buffer_written(struct buffer_head *bh)
+ {
+ 	return buffer_mapped(bh) && !buffer_unwritten(bh);
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 1f07b75..35f2b0bf 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -26,6 +26,7 @@
+ #include <linux/highuid.h>
+ #include <linux/pagemap.h>
+ #include <linux/dax.h>
++#include <linux/blkdev.h>
+ #include <linux/quotaops.h>
+ #include <linux/writeback.h>
+ #include <linux/buffer_head.h>
+@@ -737,10 +738,8 @@ static int ext2_get_blocks(struct inode *inode,
+ 		 * so that it's not found by another thread before it's
+ 		 * initialised
+ 		 */
+-		err = dax_clear_sectors(inode->i_sb->s_bdev,
+-				le32_to_cpu(chain[depth-1].key) <<
+-				(inode->i_blkbits - 9),
+-				1 << inode->i_blkbits);
++		err = sb_issue_zeroout(inode->i_sb,
++				le32_to_cpu(chain[depth-1].key), 1, GFP_NOFS);
+ 		if (err) {
+ 			mutex_unlock(&ei->truncate_mutex);
+ 			goto cleanup;
+diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
+index 3b63098..930ac6a 100644
+--- a/fs/xfs/xfs_bmap_util.c
++++ b/fs/xfs/xfs_bmap_util.c
+@@ -72,18 +72,11 @@ xfs_zero_extent(
+ 	struct xfs_mount *mp = ip->i_mount;
+ 	xfs_daddr_t	sector = xfs_fsb_to_db(ip, start_fsb);
+ 	sector_t	block = XFS_BB_TO_FSBT(mp, sector);
+-	ssize_t		size = XFS_FSB_TO_B(mp, count_fsb);
+-
+-	if (IS_DAX(VFS_I(ip)))
+-		return dax_clear_sectors(xfs_find_bdev_for_inode(VFS_I(ip)),
+-				sector, size);
+-
+-	/*
+-	 * let the block layer decide on the fastest method of
+-	 * implementing the zeroing.
+-	 */
+-	return sb_issue_zeroout(mp->m_super, block, count_fsb, GFP_NOFS);
+ 
++	return blkdev_issue_zeroout(xfs_find_bdev_for_inode(VFS_I(ip)),
++		block << (mp->m_super->s_blocksize_bits - 9),
++		count_fsb << (mp->m_super->s_blocksize_bits - 9),
++		GFP_NOFS, true);
+ }
+ 
+ /*
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 7c45ac7..7f853ff 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -7,7 +7,6 @@
+ 
+ ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
+ 		  get_block_t, dio_iodone_t, int flags);
+-int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size);
+ int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
+ int dax_truncate_page(struct inode *, loff_t from, get_block_t);
+ int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
+-- 
+2.5.5
 
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
-HRB 21284 (AG N=FCrnberg)
-Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
