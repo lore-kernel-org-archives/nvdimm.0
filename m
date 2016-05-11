@@ -1,71 +1,156 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ABDCC1A1F74
- for <linux-nvdimm@lists.01.org>; Tue, 10 May 2016 09:33:03 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v4 0/6] Add alignment check for DAX mount
-Date: Tue, 10 May 2016 10:23:51 -0600
-Message-Id: <1462897437-16626-1-git-send-email-toshi.kani@hpe.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, jack@suse.cz, david@fromorbit.com, viro@zeniv.linux.org.uk
-Cc: hch@infradead.org, tytso@mit.edu, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, axboe@fb.com, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v7 2/6] dax: enable dax in the presence of known media errors (badblocks)
+Date: Wed, 11 May 2016 15:08:48 -0600
+Message-Id: <1463000932-31680-3-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
+References: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>, Boaz Harrosh <boaz@plexistor.com>, Vishal Verma <vishal.l.verma@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a partition is not aligned by 4KB, mount -o dax succeeds,
-but any read/write access to the filesystem fails, except for
-metadata update.  Add alignment check to ext4, ext2, and xfs.
+From: Dan Williams <dan.j.williams@intel.com>
 
-- Patch 1-2 add bdev_dax_supported() which performs all the checks
-  necessary for dax mount.
-- Patch 3-5 change fillesystems to call bdev_dax_supported().
-- Patch 6 is a cleanup to keep dax capability checks consistent.
+1/ If a mapping overlaps a bad sector fail the request.
 
-v4:
- - blkdev_dax_capable() is similar to bdev_dax_supported().
-   Manage them consistently. (Dan Williams, Dave Chinner)
+2/ Do not opportunistically report more dax-capable capacity than is
+   requested when errors present.
 
-v3:
- - Remove boilerplate code from filesytems (Christoph Hellwig)
- - Add a helper function to perform all checks (Dave Chinner)
-
-v2:
- - Use a helper function via ->direct_access for the check.
-   (Christoph Hellwig)
- - Call bdev_direct_access() with sector 0 for the check.
-   (Boaz Harrosh)
-
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+[vishal: fix a conflict with system RAM collision patches]
+[vishal: add a 'size' parameter to ->direct_access]
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
-Toshi Kani (6):
- 1/6 block: Add vfs_msg() interface
- 2/6 block: Add bdev_dax_supported() for dax mount checks
- 3/6 ext4: Add alignment check for DAX mount
- 4/6 ext2: Add alignment check for DAX mount
- 5/6 xfs: Add alignment check for DAX mount
- 6/6 block: Update blkdev_dax_capable() for consistency
+ arch/powerpc/sysdev/axonram.c |  2 +-
+ block/ioctl.c                 |  9 ---------
+ drivers/block/brd.c           |  2 +-
+ drivers/nvdimm/pmem.c         | 10 +++++++++-
+ drivers/s390/block/dcssblk.c  |  2 +-
+ fs/block_dev.c                |  2 +-
+ include/linux/blkdev.h        |  2 +-
+ 7 files changed, 14 insertions(+), 15 deletions(-)
 
----
- block/ioctl.c          | 30 ----------------
- fs/block_dev.c         | 96 ++++++++++++++++++++++++++++++++++++++++++++++++--
- fs/ext2/super.c        | 11 ++----
- fs/ext4/super.c        | 11 ++----
- fs/xfs/xfs_super.c     | 12 +++----
- include/linux/blkdev.h | 13 +++++++
- include/linux/fs.h     |  8 -----
- 7 files changed, 116 insertions(+), 65 deletions(-)
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index 0d112b9..ff75d70 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -143,7 +143,7 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
+  */
+ static long
+ axon_ram_direct_access(struct block_device *device, sector_t sector,
+-		       void __pmem **kaddr, pfn_t *pfn)
++		       void __pmem **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct axon_ram_bank *bank = device->bd_disk->private_data;
+ 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
+diff --git a/block/ioctl.c b/block/ioctl.c
+index 4ff1f92..bf80bfd 100644
+--- a/block/ioctl.c
++++ b/block/ioctl.c
+@@ -423,15 +423,6 @@ bool blkdev_dax_capable(struct block_device *bdev)
+ 			|| (bdev->bd_part->nr_sects % (PAGE_SIZE / 512)))
+ 		return false;
+ 
+-	/*
+-	 * If the device has known bad blocks, force all I/O through the
+-	 * driver / page cache.
+-	 *
+-	 * TODO: support finer grained dax error handling
+-	 */
+-	if (disk->bb && disk->bb->count)
+-		return false;
+-
+ 	return true;
+ }
+ #endif
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 51a071e..c04bd9b 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -381,7 +381,7 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
+ 
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+-			void __pmem **kaddr, pfn_t *pfn)
++			void __pmem **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct brd_device *brd = bdev->bd_disk->private_data;
+ 	struct page *page;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 5101f3a..b68f04d 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -182,14 +182,22 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ }
+ 
+ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+-		      void __pmem **kaddr, pfn_t *pfn)
++		      void __pmem **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
+ 	resource_size_t offset = sector * 512 + pmem->data_offset;
+ 
++	if (unlikely(is_bad_pmem(&pmem->bb, sector, size)))
++		return -EIO;
+ 	*kaddr = pmem->virt_addr + offset;
+ 	*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
+ 
++	/*
++	 * If badblocks are present, limit known good range to the
++	 * requested range.
++	 */
++	if (unlikely(pmem->bb.count))
++		return size;
+ 	return pmem->size - pmem->pfn_pad - offset;
+ }
+ 
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index b839086..c45d538 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -884,7 +884,7 @@ fail:
+ 
+ static long
+ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+-			void __pmem **kaddr, pfn_t *pfn)
++			void __pmem **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct dcssblk_dev_info *dev_info;
+ 	unsigned long offset, dev_sz;
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index b25bb23..02c68c4 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -488,7 +488,7 @@ long bdev_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
+ 	sector += get_start_sect(bdev);
+ 	if (sector % (PAGE_SIZE / 512))
+ 		return -EINVAL;
+-	avail = ops->direct_access(bdev, sector, &dax->addr, &dax->pfn);
++	avail = ops->direct_access(bdev, sector, &dax->addr, &dax->pfn, size);
+ 	if (!avail)
+ 		return -ERANGE;
+ 	if (avail > 0 && avail & ~PAGE_MASK)
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 669e419..55ed530 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1657,7 +1657,7 @@ struct block_device_operations {
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	long (*direct_access)(struct block_device *, sector_t, void __pmem **,
+-			pfn_t *);
++			pfn_t *, long);
+ 	unsigned int (*check_events) (struct gendisk *disk,
+ 				      unsigned int clearing);
+ 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
+-- 
+2.5.5
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
