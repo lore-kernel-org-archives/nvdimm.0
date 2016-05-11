@@ -1,12 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 225741A1E70
- for <linux-nvdimm@lists.01.org>; Wed, 25 May 2016 16:27:38 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl, list: display named devices by default
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 25 May 2016 16:26:41 -0700
-Message-ID: <146421880119.1718.16999953314573964681.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id F41701A1F60
+ for <linux-nvdimm@lists.01.org>; Wed, 11 May 2016 02:59:23 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 6/7] dax: Remove pointless writeback from dax_do_io()
+Date: Wed, 11 May 2016 11:58:52 +0200
+Message-Id: <1462960733-29634-7-git-send-email-jack@suse.cz>
+In-Reply-To: <1462960733-29634-1-git-send-email-jack@suse.cz>
+References: <1462960733-29634-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,80 +17,57 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Ted Tso <tytso@mit.edu>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Instead of being silent when no list options are specified, default to
-list the device if it is the only parameter specified.  For example,
-before:
+dax_do_io() is calling filemap_write_and_wait() if DIO_LOCKING flags is
+set. Presumably this was copied over from direct IO code. However DAX
+inodes have no pagecache pages to write so the call is pointless. Remove
+it.
 
-    # ndctl list -d nmem0
-    #
-
-...after:
-
-    # ndctl list -d nmem0
-    {
-      "dev":"nmem0",
-      "id":"cdab-ffffffff"
-    }
-    #
-
-...in other words omit the need for --dimms to be specified for this
-case.
-
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- ndctl/builtin-list.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ fs/dax.c | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff --git a/ndctl/builtin-list.c b/ndctl/builtin-list.c
-index 2080337252c8..5c5dc5a5db5b 100644
---- a/ndctl/builtin-list.c
-+++ b/ndctl/builtin-list.c
-@@ -179,6 +179,11 @@ static struct json_object *region_to_json(struct ndctl_region *region)
- 	return NULL;
+diff --git a/fs/dax.c b/fs/dax.c
+index 7c0036dd1570..237581441bc1 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -268,15 +268,8 @@ ssize_t dax_do_io(struct kiocb *iocb, struct inode *inode,
+ 	memset(&bh, 0, sizeof(bh));
+ 	bh.b_bdev = inode->i_sb->s_bdev;
+ 
+-	if ((flags & DIO_LOCKING) && iov_iter_rw(iter) == READ) {
+-		struct address_space *mapping = inode->i_mapping;
++	if ((flags & DIO_LOCKING) && iov_iter_rw(iter) == READ)
+ 		inode_lock(inode);
+-		retval = filemap_write_and_wait_range(mapping, pos, end - 1);
+-		if (retval) {
+-			inode_unlock(inode);
+-			goto out;
+-		}
+-	}
+ 
+ 	/* Protects against truncate */
+ 	if (!(flags & DIO_SKIP_DIO_COUNT))
+@@ -297,7 +290,6 @@ ssize_t dax_do_io(struct kiocb *iocb, struct inode *inode,
+ 
+ 	if (!(flags & DIO_SKIP_DIO_COUNT))
+ 		inode_dio_end(inode);
+- out:
+ 	return retval;
  }
- 
-+static int num_list_flags(void)
-+{
-+	return list.buses + list.dimms + list.regions + list.namespaces;
-+}
-+
- int cmd_list(int argc, const char **argv)
- {
- 	const struct option options[] = {
-@@ -212,9 +217,6 @@ int cmd_list(int argc, const char **argv)
- 	unsigned int type = 0;
- 	int i, rc;
- 
--	if (argc == 1)
--		list.namespaces = true;
--
-         argc = parse_options(argc, argv, options, u, 0);
- 	for (i = 0; i < argc; i++)
- 		error("unknown parameter \"%s\"\n", argv[i]);
-@@ -228,6 +230,15 @@ int cmd_list(int argc, const char **argv)
- 	if (argc)
- 		usage_with_options(u, options);
- 
-+	if (num_list_flags() == 0) {
-+		list.buses = !!param.bus;
-+		list.regions = !!param.region;
-+		list.dimms = !!param.dimm;
-+	}
-+
-+	if (num_list_flags() == 0)
-+		list.namespaces = true;
-+
- 	if (param.type) {
- 		if (strcmp(param.type, "pmem") == 0)
- 			type = ND_DEVICE_REGION_PMEM;
+ EXPORT_SYMBOL_GPL(dax_do_io);
+-- 
+2.6.6
 
 _______________________________________________
 Linux-nvdimm mailing list
