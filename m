@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E9E711A1F05
- for <linux-nvdimm@lists.01.org>; Mon,  2 May 2016 11:51:54 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 0/3] Add alignment check for DAX mount
-Date: Mon,  2 May 2016 12:42:55 -0600
-Message-Id: <1462214578-27122-1-git-send-email-toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1D2871A1F4A
+ for <linux-nvdimm@lists.01.org>; Thu, 12 May 2016 09:29:34 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 0/7 v4] DAX page fault locking
+Date: Thu, 12 May 2016 18:29:13 +0200
+Message-Id: <1463070560-1979-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,33 +20,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, jack@suse.cz, david@fromorbit.com
-Cc: tytso@mit.edu, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, hch@infradead.org, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Ted Tso <tytso@mit.edu>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a partition is not aligned by 4KB, mount -o dax succeeds,
-but any read/write access to the filesystem fails, except for
-metadata update.
+Hello,
 
-Add alignment check to ext4, ext2, and xfs.
+this is my fourth attempt at DAX page fault locking rewrite. The patch set has
+passed xfstests both with and without DAX mount option on ext4 and xfs for
+me (including new xfstests for stressing DAX mmap behavior). Also all tests
+are passing for Ross now. All the patches except for PMD fault handling ones
+got reviewed by Ross so I think they are in a reasonably good shape. For now
+I'm not aware of any outstanding issues so can we merge the patches through
+NVDIMM tree please?
 
-v2:
- - Use a helper function via ->direct_access for the check.
-   (Christoph Hellwig)
- - Call bdev_direct_access() with sector 0 for the check.
-   (Boaz Harrosh)
+Changes since v3:
+- split patch set into three - ext4 bits, cleanups & easy fixes, this part
+- fixed missed wakeups on exceptional entry locks (Ross)
+- fixed misaccounting of number of used entries in a radix tree node
+- fixed bad interaction with workingset code
+- other minor changes based on review comments
 
----
-Toshi Kani (3):
- 1/3 ext4: Add alignment check for DAX mount
- 2/3 ext2: Add alignment check for DAX mount
- 3/3 xfs: Add alignment check for DAX mount
+Changes since v2:
+- lot of additional ext4 fixes and cleanups
+- make PMD page faults depend on CONFIG_BROKEN instead of #if 0
+- fixed page reference leak when replacing hole page with a pfn
+- added some reviewed-by tags
+- rebased on top of current Linus' tree
 
----
- fs/ext2/super.c    | 21 +++++++++++++++++++--
- fs/ext4/super.c    | 20 ++++++++++++++++++--
- fs/xfs/xfs_super.c | 23 +++++++++++++++++++----
- 3 files changed, 56 insertions(+), 8 deletions(-)
+Changes since v1:
+- handle wakeups of exclusive waiters properly
+- fix cow fault races
+- other minor stuff
+
+General description
+
+The basic idea is that we use a bit in an exceptional radix tree entry as
+a lock bit and use it similarly to how page lock is used for normal faults.
+That way we fix races between hole instantiation and read faults of the
+same index. For now I have disabled PMD faults since there the issues with
+page fault locking are even worse. Now that Matthew's multi-order radix tree
+has landed, I can have a look into using that for proper locking of PMD faults
+but first I want normal pages sorted out.
+
+								Honza
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
