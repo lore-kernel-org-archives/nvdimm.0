@@ -1,19 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
- [15.241.140.78])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22c.google.com (mail-oi0-x22c.google.com
+ [IPv6:2607:f8b0:4003:c06::22c])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1BD571A1F55
- for <linux-nvdimm@lists.01.org>; Tue, 17 May 2016 16:12:05 -0700 (PDT)
-Message-ID: <1463526170.27137.202.camel@hpe.com>
-Subject: Re: [PATCH v4 6/6] block: Update blkdev_dax_capable() for consistency
-From: Toshi Kani <toshi.kani@hpe.com>
-Date: Tue, 17 May 2016 17:02:50 -0600
-In-Reply-To: <CAPcyv4im1zfO9PtnBMm9OArwYz9h8DkP-9CC+73GDOUx6XNDRQ@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 736C21A1F89
+ for <linux-nvdimm@lists.01.org>; Tue, 17 May 2016 15:07:39 -0700 (PDT)
+Received: by mail-oi0-x22c.google.com with SMTP id x201so48061048oif.3
+ for <linux-nvdimm@lists.01.org>; Tue, 17 May 2016 15:07:34 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1462897437-16626-7-git-send-email-toshi.kani@hpe.com>
 References: <1462897437-16626-1-git-send-email-toshi.kani@hpe.com>
  <1462897437-16626-7-git-send-email-toshi.kani@hpe.com>
- <CAPcyv4im1zfO9PtnBMm9OArwYz9h8DkP-9CC+73GDOUx6XNDRQ@mail.gmail.com>
-Mime-Version: 1.0
+Date: Tue, 17 May 2016 15:07:33 -0700
+Message-ID: <CAPcyv4im1zfO9PtnBMm9OArwYz9h8DkP-9CC+73GDOUx6XNDRQ@mail.gmail.com>
+Subject: Re: [PATCH v4 6/6] block: Update blkdev_dax_capable() for consistency
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,58 +22,144 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Toshi Kani <toshi.kani@hpe.com>
 Cc: Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@infradead.org>, linux-block@vger.kernel.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, david <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, micah.parrish@hpe.com, Jens Axboe <axboe@fb.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE2LTA1LTE3IGF0IDE1OjA3IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
-T24gVHVlLCBNYXkgMTAsIDIwMTYgYXQgOToyMyBBTSwgVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBo
-cGUuY29tPiB3cm90ZToKPiA+IAo+ID4gYmxrZGV2X2RheF9jYXBhYmxlKCkgaXMgc2ltaWxhciB0
-byBiZGV2X2RheF9zdXBwb3J0ZWQoKSwgYnV0IG5lZWRzCj4gPiB0byByZW1haW4gYXMgYSBzZXBh
-cmF0ZSBpbnRlcmZhY2UgZm9yIGNoZWNraW5nIGRheCBjYXBhYmlsaXR5IG9mCj4gPiBhIHJhdyBi
-bG9jayBkZXZpY2UuCj4gPiAKPiA+IFJlbmFtZSBhbmQgcmVsb2NhdGUgYmxrZGV2X2RheF9jYXBh
-YmxlKCkgdG8ga2VlcCB0aGVtIG1haW50YWluZWQKPiA+IGNvbnNpc3RlbnRseSwgYW5kIGNhbGwg
-YmRldl9kaXJlY3RfYWNjZXNzKCkgZm9yIHRoZSBkYXggY2FwYWJpbGl0eQo+ID4gY2hlY2suCj4g
-PiAKPiA+IFRoZXJlIGlzIG5vIGNoYW5nZSBpbiB0aGUgYmVoYXZpb3IuCj4gPiAKwqA6Cj4gPiAr
-LyoqCj4gPiArICogYmRldl9kYXhfY2FwYWJsZSgpIC0gUmV0dXJuIGlmIHRoZSByYXcgZGV2aWNl
-IGlzIGNhcGFibGUgZm9yIGRheAo+ID4gKyAqIEBiZGV2OiBUaGUgZGV2aWNlIGZvciByYXcgYmxv
-Y2sgZGV2aWNlIGFjY2Vzcwo+ID4gKyAqLwo+ID4gK2Jvb2wgYmRldl9kYXhfY2FwYWJsZShzdHJ1
-Y3QgYmxvY2tfZGV2aWNlICpiZGV2KQo+ID4gK3sKPiA+ICvCoMKgwqDCoMKgwqDCoHN0cnVjdCBn
-ZW5kaXNrICpkaXNrID0gYmRldi0+YmRfZGlzazsKPiA+ICvCoMKgwqDCoMKgwqDCoHN0cnVjdCBi
-bGtfZGF4X2N0bCBkYXggPSB7Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgLnNp
-emUgPSBQQUdFX1NJWkUsCj4gPiArwqDCoMKgwqDCoMKgwqB9Owo+ID4gKwo+ID4gK8KgwqDCoMKg
-wqDCoMKgaWYgKCFJU19FTkFCTEVEKENPTkZJR19GU19EQVgpKQo+ID4gK8KgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoHJldHVybiBmYWxzZTsKPiA+ICsKPiA+ICvCoMKgwqDCoMKgwqDCoGRh
-eC5zZWN0b3IgPSAwOwo+ID4gK8KgwqDCoMKgwqDCoMKgaWYgKGJkZXZfZGlyZWN0X2FjY2Vzcyhi
-ZGV2LCAmZGF4KSA8IDApCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJu
-IGZhbHNlOwo+ID4gKwo+ID4gK8KgwqDCoMKgwqDCoMKgZGF4LnNlY3RvciA9IGJkZXYtPmJkX3Bh
-cnQtPm5yX3NlY3RzIC0gKFBBR0VfU0laRSAvIDUxMik7Cj4gPiArwqDCoMKgwqDCoMKgwqBpZiAo
-YmRldl9kaXJlY3RfYWNjZXNzKGJkZXYsICZkYXgpIDwgMCkKPiA+ICvCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqByZXR1cm4gZmFsc2U7Cj4KPiBTbyBJIGp1c3Qgbm90aWNlZCB0aGF0IHRo
-aXMgbmV3IGltcGxlbWVudGF0aW9uIG9mIGJkZXZfZGF4X2NhcGFibGUoKQo+IHByZXZlbnRzIHVz
-IGZyb20gZW5hYmxpbmcgREFYIGluIHRoZSBwcmVzZW5jZSBvZiBlcnJvcnMsIHdoaWNoIHdhcyB0
-aGUKPiBnb2FsIG9mIFZpc2hhbCdzIHBlbmRpbmcgcGF0Y2hlcyBmb3IgNC43Lgo+IAo+IEkgbGlr
-ZSB0aGUgZ29hbCBvZiBjZW50cmFsaXppbmcgY2hlY2tzLCBidXQgdGhpcyBjb2xsaWRlcyB0aGUg
-YmFzZSBEQVgKPiBjYXBhYmlsaXR5IHdpdGggdGhlIGFiaWxpdHkgdG8gcGVyZm9ybSBhbiBhY3R1
-YWwgYWNjZXNzZXMgYXQgYSBnaXZlbgo+IGFkZHJlc3MuCj4gCj4gQWxsIHRoZSBpbW1lZGlhdGUg
-c29sdXRpb25zIHRoYXQgY29tZSB0byBtaW5kIHJpZ2h0IG5vdyBhcmUgcHJldHR5Cj4gdWdseSwg
-bGlrZSBhbiBpZ25vcmUgZXJyb3JzIGZsYWcuLi4KPiAKPiBIbW0sIHdoYXQgYWJvdXQgZXhwbGlj
-aXRseSByZXR1cm5pbmcgLUVCQURCTE9DSyBhbmQgdXBkYXRpbmcgc2l6ZSB0bwo+IHJldHVybiB0
-aGUgb2Zmc2V0IG9mIHRoZSBlcnJvcj/CoMKgVGhhdCBtaWdodCBiZSB1c2VmdWwgaW5mb3JtYXRp
-b24gdG8KPiBoYXZlIGluIGdlbmVyYWwuLi4KClRoZSBmdW5jdGlvbiBvbmx5IGNoZWNrcyBhIFBB
-R0VfU0laRSByYW5nZSBhdCB0aGUgc3RhcnQgYW5kIHRoZSBlbmQsIGJ1dCBJCmFncmVlIHRoYXQg
-aXQgY2FuIGhhbmRsZSAtRUJBREJMT0NLIChvciAtRUlPKSBmcm9tIGJkZXZfZGlyZWN0X2FjY2Vz
-cygpIGFzCmFuIGVycm9yIGJ1dCB0aGUgZGV2aWNlIGlzIERBWC1jYXBhYmxlLiDCoGJkZXZfZGF4
-X3N1cHBvcnRlZCgpIG1heSBuZWVkIHRoZQpzYW1lIGNoYW5nZSBhcyB3ZWxsIChhbHRob3VnaCBJ
-IHdvbmRlciBob3cgYSBiYWQgYmxvY2sgYXQgdGhlIHN0YXJ0IGlzCmhhbmRsZWQpLiDCoFNoYWxs
-IEkgc2VuZCB5b3UgYSBwYXRjaCBmb3IgdGhpcyBjaGFuZ2U/IMKgKEJUVywgZG8gd2UgaGF2ZSBh
-CnBhdGNoIHRoYXQgZGVmaW5lcyBFQkFEQkxPQ0sgYWxyZWFkeT8pIMKgSSB0aGluayB0aGUgZXJy
-b3Igb2Zmc2V0IHdvdWxkIGJlCnVzZWZ1bCwgYnV0IHRoYXQgY2hhbmdlIGNhbiBiZSBtYWRlIHdo
-ZW4gd2UgdXNlIGl0LgoKVGhhbmtzLAotVG9zaGkKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRp
-bW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
-dXgtbnZkaW1tCg==
+On Tue, May 10, 2016 at 9:23 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> blkdev_dax_capable() is similar to bdev_dax_supported(), but needs
+> to remain as a separate interface for checking dax capability of
+> a raw block device.
+>
+> Rename and relocate blkdev_dax_capable() to keep them maintained
+> consistently, and call bdev_direct_access() for the dax capability
+> check.
+>
+> There is no change in the behavior.
+>
+> Link: https://lkml.org/lkml/2016/5/9/950
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+> Cc: Jens Axboe <axboe@fb.com>
+> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Dave Chinner <david@fromorbit.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: Christoph Hellwig <hch@infradead.org>
+> Cc: Boaz Harrosh <boaz@plexistor.com>
+> ---
+>  block/ioctl.c          |   30 ------------------------------
+>  fs/block_dev.c         |   39 +++++++++++++++++++++++++++++++++++++--
+>  include/linux/blkdev.h |    1 +
+>  include/linux/fs.h     |    8 --------
+>  4 files changed, 38 insertions(+), 40 deletions(-)
+>
+> diff --git a/block/ioctl.c b/block/ioctl.c
+> index 4ff1f92..7eeda07 100644
+> --- a/block/ioctl.c
+> +++ b/block/ioctl.c
+> @@ -4,7 +4,6 @@
+>  #include <linux/gfp.h>
+>  #include <linux/blkpg.h>
+>  #include <linux/hdreg.h>
+> -#include <linux/badblocks.h>
+>  #include <linux/backing-dev.h>
+>  #include <linux/fs.h>
+>  #include <linux/blktrace_api.h>
+> @@ -407,35 +406,6 @@ static inline int is_unrecognized_ioctl(int ret)
+>                 ret == -ENOIOCTLCMD;
+>  }
+>
+> -#ifdef CONFIG_FS_DAX
+> -bool blkdev_dax_capable(struct block_device *bdev)
+> -{
+> -       struct gendisk *disk = bdev->bd_disk;
+> -
+> -       if (!disk->fops->direct_access)
+> -               return false;
+> -
+> -       /*
+> -        * If the partition is not aligned on a page boundary, we can't
+> -        * do dax I/O to it.
+> -        */
+> -       if ((bdev->bd_part->start_sect % (PAGE_SIZE / 512))
+> -                       || (bdev->bd_part->nr_sects % (PAGE_SIZE / 512)))
+> -               return false;
+> -
+> -       /*
+> -        * If the device has known bad blocks, force all I/O through the
+> -        * driver / page cache.
+> -        *
+> -        * TODO: support finer grained dax error handling
+> -        */
+> -       if (disk->bb && disk->bb->count)
+> -               return false;
+> -
+> -       return true;
+> -}
+> -#endif
+> -
+>  static int blkdev_flushbuf(struct block_device *bdev, fmode_t mode,
+>                 unsigned cmd, unsigned long arg)
+>  {
+> diff --git a/fs/block_dev.c b/fs/block_dev.c
+> index db55638..5d79093 100644
+> --- a/fs/block_dev.c
+> +++ b/fs/block_dev.c
+> @@ -29,6 +29,7 @@
+>  #include <linux/log2.h>
+>  #include <linux/cleancache.h>
+>  #include <linux/dax.h>
+> +#include <linux/badblocks.h>
+>  #include <asm/uaccess.h>
+>  #include "internal.h"
+>
+> @@ -554,6 +555,40 @@ int bdev_dax_supported(struct super_block *sb, int blocksize)
+>  }
+>  EXPORT_SYMBOL_GPL(bdev_dax_supported);
+>
+> +/**
+> + * bdev_dax_capable() - Return if the raw device is capable for dax
+> + * @bdev: The device for raw block device access
+> + */
+> +bool bdev_dax_capable(struct block_device *bdev)
+> +{
+> +       struct gendisk *disk = bdev->bd_disk;
+> +       struct blk_dax_ctl dax = {
+> +               .size = PAGE_SIZE,
+> +       };
+> +
+> +       if (!IS_ENABLED(CONFIG_FS_DAX))
+> +               return false;
+> +
+> +       dax.sector = 0;
+> +       if (bdev_direct_access(bdev, &dax) < 0)
+> +               return false;
+> +
+> +       dax.sector = bdev->bd_part->nr_sects - (PAGE_SIZE / 512);
+> +       if (bdev_direct_access(bdev, &dax) < 0)
+> +               return false;
+
+So I just noticed that this new implementation of bdev_dax_capable()
+prevents us from enabling DAX in the presence of errors, which was the
+goal of Vishal's pending patches for 4.7.
+
+I like the goal of centralizing checks, but this collides the base DAX
+capability with the ability to perform an actual accesses at a given
+address.
+
+All the immediate solutions that come to mind right now are pretty
+ugly, like an ignore errors flag...
+
+Hmm, what about explicitly returning -EBADBLOCK and updating size to
+return the offset of the error?  That might be useful information to
+have in general...
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
