@@ -1,76 +1,125 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Mon, 2 May 2016 15:16:36 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 11/18] dax: Fix condition for filling of PMD holes
-Message-ID: <20160502131636.GF17362@quack2.suse.cz>
-References: <1461015341-20153-1-git-send-email-jack@suse.cz>
- <1461015341-20153-12-git-send-email-jack@suse.cz>
- <20160429190805.GF5888@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160429190805.GF5888@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@linux.intel.com>
+In-Reply-To: <20160518133422.6dfbad0b@canb.auug.org.au>
+References: <1463510194.29294.77.camel@intel.com>
+	<20160518133422.6dfbad0b@canb.auug.org.au>
+Date: Tue, 17 May 2016 23:31:26 -0600
+Message-ID: <CADDOmiLQAmOd8ADGSwtqd4WDKJmNT4CFu9veF0Z_emN9sqX3Mg@mail.gmail.com>
+Subject: Re: dax-misc branch for linux-next
+From: Vishal Verma <vishal@kernel.org>
+Content-Type: multipart/alternative; boundary=94eb2c070d4c39e6620533172baa
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>, hch@infradead.org, jack@suse.cz, linux-nvdimm@lists.01.org, tytso@mit.edu, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 29-04-16 13:08:05, Ross Zwisler wrote:
-> On Mon, Apr 18, 2016 at 11:35:34PM +0200, Jan Kara wrote:
-> > Currently dax_pmd_fault() decides to fill a PMD-sized hole only if
-> > returned buffer has BH_Uptodate set. However that doesn't get set for
-> > any mapping buffer so that branch is actually a dead code. The
-> > BH_Uptodate check doesn't make any sense so just remove it.
-> 
-> I'm not sure about this one.  In my testing (which was a while ago) I was
-> also never able to exercise this code path and create huge zero pages.   My
-> concern is that by removing the buffer_uptodate() check, we will all of a
-> sudden start running through a code path that was previously unreachable.
-> 
-> AFAICT the buffer_uptodate() was part of the original PMD commit.  Did we ever
-> get buffers with BH_Uptodate set?  Has this code ever been run?  Does it work?
-> 
-> I suppose this concern is mitigated by the fact that later in this series you 
-> disable the PMD path entirely, but maybe we should just leave it as is and
-> turn it off, then clean it up if/when we reenable it when we add multi-order
-> radix tree locking for PMDs?
+--94eb2c070d4c39e6620533172baa
+Content-Type: text/plain; charset=UTF-8
 
-Well, I did this as a separate commit exactly because I'm not sure about
-the impact since nobody was actually able to test this code. So we can
-easily bisect later if we find issues. The code just didn't make sense to
-me that way and later in the series I update it to use radix tree locking
-which would be hard to do without having code which actually makes some
-sense. So I'd prefer to keep this change...
+On Tue, May 17, 2016 at 9:34 PM, Stephen Rothwell <sfr@canb.auug.org.au>
+wrote:
 
-								Honza
+> Hi Vishal,
+>
+> On Tue, 17 May 2016 18:36:47 +0000 "Verma, Vishal L" <
+> vishal.l.verma@intel.com> wrote:
+> >
+> > I understand this is a bit out of the norm, but:
+> >
+> > Could you please merge
+> >
+> >       https://git.kernel.org/cgit/linux/kernel/git/nvdimm/nvdimm.git
+>  dax-misc
+> >
+> > into linux-next for some coverage.
+> >
+> > It is a bit late to the ready-before-merge-window deadline, due to
+> > having to coordinate dependencies between trees/patchsets. I'm hoping to
+> > send a pull request for this later in the merge window (once ext4 is
+> > merged).
+>
+> Added from today.
+>
+> Thanks for adding your subsystem tree as a participant of linux-next.  As
+> you may know, this is not a judgement of your code.  The purpose of
+> linux-next is for integration testing and to lower the impact of
+> conflicts between subsystems in the next merge window.
+>
+> You will need to ensure that the patches/commits in your tree/series have
+> been:
+>      * submitted under GPL v2 (or later) and include the Contributor's
+>         Signed-off-by,
+>      * posted to the relevant mailing list,
+>      * reviewed by you (or another maintainer of your subsystem tree),
+>      * successfully unit tested, and
+>      * destined for the current or next Linux merge window.
+>
+> Basically, this should be just what you would send to Linus (or ask him
+> to fetch).  It is allowed to be rebased if you deem it necessary.
+>
 
-> > Signed-off-by: Jan Kara <jack@suse.cz>
-> > ---
-> >  fs/dax.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/fs/dax.c b/fs/dax.c
-> > index 237581441bc1..42bf65b4e752 100644
-> > --- a/fs/dax.c
-> > +++ b/fs/dax.c
-> > @@ -878,7 +878,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
-> >  		goto fallback;
-> >  	}
-> >  
-> > -	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
-> > +	if (!write && !buffer_mapped(&bh)) {
-> >  		spinlock_t *ptl;
-> >  		pmd_t entry;
-> >  		struct page *zero_page = get_huge_zero_page();
-> > -- 
-> > 2.6.6
-> > 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Thanks for merging, Stephen, and also for resolving the conflicts. I meant
+to post a branch with the example resolution for the nvdimm tree, but
+somehow it completely slipped my mind.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+--94eb2c070d4c39e6620533172baa
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><div class=3D"gmail_extra"><div class=3D"gmail_quote">On T=
+ue, May 17, 2016 at 9:34 PM, Stephen Rothwell <span dir=3D"ltr">&lt;<a href=
+=3D"mailto:sfr@canb.auug.org.au" target=3D"_blank">sfr@canb.auug.org.au</a>=
+&gt;</span> wrote:<br><blockquote class=3D"gmail_quote" style=3D"margin:0 0=
+ 0 .8ex;border-left:1px #ccc solid;padding-left:1ex"><div id=3D":12y" class=
+=3D"a3s aXjCH m154c1efa7602d149">Hi Vishal,<br>
+<span class=3D""><br>
+On Tue, 17 May 2016 18:36:47 +0000 &quot;Verma, Vishal L&quot; &lt;<a href=
+=3D"mailto:vishal.l.verma@intel.com">vishal.l.verma@intel.com</a>&gt; wrote=
+:<br>
+&gt;<br>
+&gt; I understand this is a bit out of the norm, but:<br>
+&gt;<br>
+&gt; Could you please merge<br>
+&gt;<br>
+&gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0<a href=3D"https://git.kernel.org/cgit/linux=
+/kernel/git/nvdimm/nvdimm.git" rel=3D"noreferrer" target=3D"_blank">https:/=
+/git.kernel.org/cgit/linux/kernel/git/nvdimm/nvdimm.git</a>=C2=A0dax-misc<b=
+r>
+&gt;<br>
+&gt; into linux-next for some coverage.<br>
+&gt;<br>
+&gt; It is a bit late to the ready-before-merge-window deadline, due to<br>
+&gt; having to coordinate dependencies between trees/patchsets. I&#39;m hop=
+ing to<br>
+&gt; send a pull request for this later in the merge window (once ext4 is<b=
+r>
+&gt; merged).<br>
+<br>
+</span>Added from today.<br>
+<br>
+Thanks for adding your subsystem tree as a participant of linux-next.=C2=A0=
+ As<br>
+you may know, this is not a judgement of your code.=C2=A0 The purpose of<br=
+>
+linux-next is for integration testing and to lower the impact of<br>
+conflicts between subsystems in the next merge window.<br>
+<br>
+You will need to ensure that the patches/commits in your tree/series have<b=
+r>
+been:<br>
+=C2=A0 =C2=A0 =C2=A0* submitted under GPL v2 (or later) and include the Con=
+tributor&#39;s<br>
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 Signed-off-by,<br>
+=C2=A0 =C2=A0 =C2=A0* posted to the relevant mailing list,<br>
+=C2=A0 =C2=A0 =C2=A0* reviewed by you (or another maintainer of your subsys=
+tem tree),<br>
+=C2=A0 =C2=A0 =C2=A0* successfully unit tested, and<br>
+=C2=A0 =C2=A0 =C2=A0* destined for the current or next Linux merge window.<=
+br>
+<br>
+Basically, this should be just what you would send to Linus (or ask him<br>
+to fetch).=C2=A0 It is allowed to be rebased if you deem it necessary.</div=
+></blockquote></div><div class=3D"gmail_extra"><br></div>Thanks for merging=
+, Stephen, and also for resolving the conflicts. I meant to post a branch w=
+ith the example resolution for the nvdimm tree, but somehow it completely s=
+lipped my mind.</div></div>
+
+--94eb2c070d4c39e6620533172baa--
