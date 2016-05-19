@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t5424.austin.hp.com (g1t5424.austin.hp.com [15.216.225.54])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x236.google.com (mail-oi0-x236.google.com
+ [IPv6:2607:f8b0:4003:c06::236])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 170961A1F90
- for <linux-nvdimm@lists.01.org>; Tue, 10 May 2016 09:33:10 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v4 5/6] xfs: Add alignment check for DAX mount
-Date: Tue, 10 May 2016 10:23:56 -0600
-Message-Id: <1462897437-16626-6-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1462897437-16626-1-git-send-email-toshi.kani@hpe.com>
-References: <1462897437-16626-1-git-send-email-toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8938C1A1FC2
+ for <linux-nvdimm@lists.01.org>; Wed, 18 May 2016 17:07:50 -0700 (PDT)
+Received: by mail-oi0-x236.google.com with SMTP id x201so103557153oif.3
+ for <linux-nvdimm@lists.01.org>; Wed, 18 May 2016 17:07:44 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <146352716208.1711.15183238430520498418.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146352716208.1711.15183238430520498418.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 18 May 2016 17:07:43 -0700
+Message-ID: <CAPcyv4h40yYc0++7bPfWwHu76i-1yk8qMTC5oYf3TjT1nESSnw@mail.gmail.com>
+Subject: Re: [ndctl PATCH] ndctl: reorganize file structure, use per
+ sub-directory makefiles
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,57 +22,32 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, jack@suse.cz, david@fromorbit.com, viro@zeniv.linux.org.uk
-Cc: hch@infradead.org, tytso@mit.edu, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, axboe@fb.com, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a partition is not aligned by 4KB, mount -o dax succeeds,
-but any read/write access to the filesystem fails, except for
-metadata update.
+On Tue, May 17, 2016 at 4:19 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> In preparation for daxctl / libdaxctl move the ndctl infrastructure to
+> its own sub-directory.
+>
+> This also moves tests to have their own Makefile rather than continuing
+> to clutter up one top-level Makefile.am.
+>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+[..]
+>  rename lib/ndctl/libndctl.h.in => ndctl/lib/libndctl.h.in (100%)
 
-Call bdev_dax_supported() to perform proper precondition checks
-which includes this partition alignment check.
+This needs to be:
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Boaz Harrosh <boaz@plexistor.com>
----
- fs/xfs/xfs_super.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ {lib/ndctl => ndctl}/libndctl.h.in
 
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index 187e14b..39f4e6a 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -1558,14 +1558,12 @@ xfs_fs_fill_super(
- 
- 	if (mp->m_flags & XFS_MOUNT_DAX) {
- 		xfs_warn(mp,
--	"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
--		if (sb->s_blocksize != PAGE_SIZE) {
--			xfs_alert(mp,
--		"Filesystem block size invalid for DAX Turning DAX off.");
--			mp->m_flags &= ~XFS_MOUNT_DAX;
--		} else if (!sb->s_bdev->bd_disk->fops->direct_access) {
-+		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
-+
-+		error = bdev_dax_supported(sb, sb->s_blocksize);
-+		if (error) {
- 			xfs_alert(mp,
--		"Block device does not support DAX Turning DAX off.");
-+			"DAX unsupported by block device. Turning off DAX.");
- 			mp->m_flags &= ~XFS_MOUNT_DAX;
- 		}
- 	}
+...otherwise the build breaks because "#include <ndctl/libndctl.h>"
+breaks.  This failure is hidden if /usr/include/linux/ndctl/libndctl.h
+exists.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
