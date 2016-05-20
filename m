@@ -1,20 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from na01-bn1-obe.outbound.protection.outlook.com
- (mail-bn1bon0740.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fc10::1:740])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 172091A1E27
- for <linux-nvdimm@lists.01.org>; Fri, 20 May 2016 08:48:33 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id 9EB2D1A1E1C
+ for <linux-nvdimm@lists.01.org>; Fri, 20 May 2016 04:34:01 -0700 (PDT)
+Date: Fri, 20 May 2016 19:32:28 +0800
+From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH] remove unused blkdev_dax_capable() function
-Date: Fri, 20 May 2016 15:48:23 +0000
-Message-ID: <1463758753.32042.26.camel@hpe.com>
-References: <201605201900.FlOCWSKP%fengguang.wu@intel.com>
-In-Reply-To: <201605201900.FlOCWSKP%fengguang.wu@intel.com>
-Content-Language: en-US
-Content-ID: <350B145B6DF2E044922F97B943D37633@NAMPRD84.PROD.OUTLOOK.COM>
+Message-ID: <201605201900.FlOCWSKP%fengguang.wu@intel.com>
 MIME-Version: 1.0
+In-Reply-To: <3280835.MNk2ItMooy@wuerfel>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,60 +16,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "lkp@intel.com" <lkp@intel.com>, "arnd@arndb.de" <arnd@arndb.de>
-Cc: "hch@infradead.org" <hch@infradead.org>, "tytso@mit.edu" <tytso@mit.edu>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "axboe@fb.com" <axboe@fb.com>, "david@fromorbit.com" <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Parrish, Micah \\ linux-block@vger.kernel.org (HP Servers Linux R&D)\" <micah.parrish@hpe.com>,)" <linux-block@vger.kernel.org>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "jack@suse.cz" <jack@suse.cz>, "kbuild-all@01.org" <kbuild-all@01.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: hch@infradead.org, jack@suse.cz, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, axboe@fb.com, adilger.kernel@dilger.ca, kbuild-all@01.org, linux-fsdevel@vger.kernel.org, tytso@mit.edu, viro@zeniv.linux.org.uk
 List-ID: <linux-nvdimm@lists.01.org>
 
-RllJLCBmcy9ibG9ja19kZXYuYyBoYXMgbXVsdGlwbGUgdXBkYXRlcyBzaW5jZSB0aGVuIGluY2x1
-ZGluZyB0aGUgY29kZSBpbg0KcXVlc3Rpb24uIEkganVzdCBidWlsdCB0b3QgLW5leHQgbTY0IGtl
-cm5lbCB3aXRoIHRoZSBhdHRhY2hlZCBjb25maWcgZmlsZSwNCmFuZCBjb25maXJtZWQgbm8gY29t
-cGlsZSBlcnJvciBvbiB0aGUgZmlsZS4NCi1Ub3NoaQ0KDQpPbiBGcmksIDIwMTYtMDUtMjAgYXQg
-MTk6MzIgKzA4MDAsIGtidWlsZCB0ZXN0IHJvYm90IHdyb3RlOg0KPiBIaSwNCj4gDQo+IFthdXRv
-IGJ1aWxkIHRlc3QgRVJST1Igb24gbmV4dC0yMDE2MDUxN10NCj4gW2Nhbm5vdCBhcHBseSB0byB2
-NC42LXJjNyB2NC42LXJjNiB2NC42LXJjNSB2NC42XQ0KPiBbaWYgeW91ciBwYXRjaCBpcyBhcHBs
-aWVkIHRvIHRoZSB3cm9uZyBnaXQgdHJlZSwgcGxlYXNlIGRyb3AgdXMgYSBub3RlIHRvDQo+IGhl
-bHAgaW1wcm92ZSB0aGUgc3lzdGVtXQ0KPiANCj4gdXJsOsKgwqDCoMKgaHR0cHM6Ly9naXRodWIu
-Y29tLzBkYXktY2kvbGludXgvY29tbWl0cy9Bcm5kLUJlcmdtYW5uL3JlbW92ZS11bnUNCj4gc2Vk
-LWJsa2Rldl9kYXhfY2FwYWJsZS1mdW5jdGlvbi8yMDE2MDUxOC0xNTU3MjkNCj4gY29uZmlnOiBt
-NjhrLWFsbHllc2NvbmZpZyAoYXR0YWNoZWQgYXMgLmNvbmZpZykNCj4gY29tcGlsZXI6IG02OGst
-bGludXgtZ2NjIChHQ0MpIDQuOS4wDQo+IHJlcHJvZHVjZToNCj4gwqDCoMKgwqDCoMKgwqDCoHdn
-ZXQgaHR0cHM6Ly9naXQua2VybmVsLm9yZy9jZ2l0L2xpbnV4L2tlcm5lbC9naXQvd2ZnL2xrcC10
-ZXN0cy5nDQo+IGl0L3BsYWluL3NiaW4vbWFrZS5jcm9zcyAtTyB+L2Jpbi9tYWtlLmNyb3NzDQo+
-IMKgwqDCoMKgwqDCoMKgwqBjaG1vZCAreCB+L2Jpbi9tYWtlLmNyb3NzDQo+IMKgwqDCoMKgwqDC
-oMKgwqAjIHNhdmUgdGhlIGF0dGFjaGVkIC5jb25maWcgdG8gbGludXggYnVpbGQgdHJlZQ0KPiDC
-oMKgwqDCoMKgwqDCoMKgbWFrZS5jcm9zcyBBUkNIPW02OGvCoA0KPiANCj4gQWxsIGVycm9ycyAo
-bmV3IG9uZXMgcHJlZml4ZWQgYnkgPj4pOg0KPiANCj4gwqDCoMKgZnMvYmxvY2tfZGV2LmM6IElu
-IGZ1bmN0aW9uICdfX2Jsa2Rldl9nZXQnOg0KPiA+IA0KPiA+ID4gDQo+ID4gPiBmcy9ibG9ja19k
-ZXYuYzoxMjQyOjU6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbg0KPiA+
-ID4gJ2Jsa2Rldl9kYXhfY2FwYWJsZScgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFy
-YXRpb25dDQo+IMKgwqDCoMKgwqDCoMKgwqBpZiAoIWJsa2Rldl9kYXhfY2FwYWJsZShiZGV2KSkN
-Cj4gwqDCoMKgwqDCoMKgwqDCoF4NCj4gwqDCoMKgY2MxOiBzb21lIHdhcm5pbmdzIGJlaW5nIHRy
-ZWF0ZWQgYXMgZXJyb3JzDQo+IA0KPiB2aW0gKy9ibGtkZXZfZGF4X2NhcGFibGUgKzEyNDIgZnMv
-YmxvY2tfZGV2LmMNCj4gDQo+IGQzMzc0ODI1IE5laWxCcm93bsKgwqDCoMKgMjAwOS0wMS0wOcKg
-wqAxMjM2wqDCoAkJCQkJDQo+IGdvdG8gcmVzdGFydDsNCj4gZDMzNzQ4MjUgTmVpbEJyb3duwqDC
-oMKgwqAyMDA5LTAxLTA5wqDCoDEyMzfCoMKgCQkJCX0NCj4gMTE5NmY4YjggVGVqdW4gSGVvwqDC
-oMKgwqAyMDExLTA0LTIxwqDCoDEyMzjCoMKgCQkJfQ0KPiA3ZTY5NzIzZiBUZWp1biBIZW/CoMKg
-wqDCoDIwMTEtMDUtMjPCoMKgMTIzOcKgwqANCj4gNWEwMjNjZGIgRGFuIFdpbGxpYW1zIDIwMTUt
-MTEtMzDCoMKgMTI0MMKgwqAJCQlpZiAoIXJldCkNCj4gew0KPiA3ZTY5NzIzZiBUZWp1biBIZW/C
-oMKgwqDCoDIwMTEtMDUtMjPCoMKgMTI0McKgwqAJCQkJYg0KPiBkX3NldF9zaXplKGJkZXYsKGxv
-ZmZfdClnZXRfY2FwYWNpdHkoZGlzayk8PDkpOw0KPiA1YTAyM2NkYiBEYW4gV2lsbGlhbXMgMjAx
-NS0xMS0zMCBAMTI0MsKgwqAJCQkJaQ0KPiBmICghYmxrZGV2X2RheF9jYXBhYmxlKGJkZXYpKQ0K
-PiA1YTAyM2NkYiBEYW4gV2lsbGlhbXMgMjAxNS0xMS0zMMKgwqAxMjQzwqDCoAkJCQkJDQo+IGJk
-ZXYtPmJkX2lub2RlLT5pX2ZsYWdzICY9IH5TX0RBWDsNCj4gNWEwMjNjZGIgRGFuIFdpbGxpYW1z
-IDIwMTUtMTEtMzDCoMKgMTI0NMKgwqAJCQl9DQo+IDdlNjk3MjNmIFRlanVuIEhlb8KgwqDCoMKg
-MjAxMS0wNS0yM8KgwqAxMjQ1wqDCoA0KPiANCj4gOjo6Ojo6IFRoZSBjb2RlIGF0IGxpbmUgMTI0
-MiB3YXMgZmlyc3QgaW50cm9kdWNlZCBieSBjb21taXQNCj4gOjo6Ojo6IDVhMDIzY2RiYTUwYzVm
-NWYyYmMzNTE3ODNiMzEzMTY5OWRlYjM5MzcgYmxvY2s6IGVuYWJsZSBkYXggZm9yIHJhdw0KPiBi
-bG9jayBkZXZpY2VzDQo+IA0KPiA6Ojo6OjogVE86IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlh
-bXNAaW50ZWwuY29tPg0KPiA6Ojo6OjogQ0M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNA
-aW50ZWwuY29tPg0KPiANCj4gLS0tDQo+IDAtREFZIGtlcm5lbCB0ZXN0IGluZnJhc3RydWN0dXJl
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBPcGVuIFNvdXJjZSBUZWNobm9sb2d5DQo+
-IENlbnRlcg0KPiBodHRwczovL2xpc3RzLjAxLm9yZy9waXBlcm1haWwva2J1aWxkLWFsbMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgSW50ZWwNCj4gQ29ycG9yYXRpb24KX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1t
-IG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEu
-b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Hi,
+
+[auto build test ERROR on next-20160517]
+[cannot apply to v4.6-rc7 v4.6-rc6 v4.6-rc5 v4.6]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Arnd-Bergmann/remove-unused-blkdev_dax_capable-function/20160518-155729
+config: m68k-allyesconfig (attached as .config)
+compiler: m68k-linux-gcc (GCC) 4.9.0
+reproduce:
+        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=m68k 
+
+All errors (new ones prefixed by >>):
+
+   fs/block_dev.c: In function '__blkdev_get':
+>> fs/block_dev.c:1242:5: error: implicit declaration of function 'blkdev_dax_capable' [-Werror=implicit-function-declaration]
+        if (!blkdev_dax_capable(bdev))
+        ^
+   cc1: some warnings being treated as errors
+
+vim +/blkdev_dax_capable +1242 fs/block_dev.c
+
+d3374825 NeilBrown    2009-01-09  1236  					goto restart;
+d3374825 NeilBrown    2009-01-09  1237  				}
+1196f8b8 Tejun Heo    2011-04-21  1238  			}
+7e69723f Tejun Heo    2011-05-23  1239  
+5a023cdb Dan Williams 2015-11-30  1240  			if (!ret) {
+7e69723f Tejun Heo    2011-05-23  1241  				bd_set_size(bdev,(loff_t)get_capacity(disk)<<9);
+5a023cdb Dan Williams 2015-11-30 @1242  				if (!blkdev_dax_capable(bdev))
+5a023cdb Dan Williams 2015-11-30  1243  					bdev->bd_inode->i_flags &= ~S_DAX;
+5a023cdb Dan Williams 2015-11-30  1244  			}
+7e69723f Tejun Heo    2011-05-23  1245  
+
+:::::: The code at line 1242 was first introduced by commit
+:::::: 5a023cdba50c5f5f2bc351783b3131699deb3937 block: enable dax for raw block devices
+
+:::::: TO: Dan Williams <dan.j.williams@intel.com>
+:::::: CC: Dan Williams <dan.j.williams@intel.com>
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
