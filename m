@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A5E131A1F7C
- for <linux-nvdimm@lists.01.org>; Thu,  5 May 2016 17:38:56 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 1/5] block: Add vfs_msg() interface
-Date: Thu,  5 May 2016 18:29:52 -0600
-Message-Id: <1462494596-20938-2-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1462494596-20938-1-git-send-email-toshi.kani@hpe.com>
-References: <1462494596-20938-1-git-send-email-toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 76DF61A1DF7
+ for <linux-nvdimm@lists.01.org>; Fri, 20 May 2016 01:01:45 -0700 (PDT)
+Date: Fri, 20 May 2016 10:01:36 +0200
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCH v3 2/5] /dev/dax, pmem: direct access to persistent memory
+Message-ID: <20160520080136.GG4413@c203.arch.suse.de>
+References: <146360496572.37439.6497663679891935585.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <146360497642.37439.12866290214925858506.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <146360497642.37439.12866290214925858506.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,90 +20,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, jack@suse.cz, david@fromorbit.com, viro@zeniv.linux.org.uk
-Cc: hch@infradead.org, tytso@mit.edu, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, micah.parrish@hpe.com, axboe@fb.com, adilger.kernel@dilger.ca, linux-fsdevel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation of moving DAX capability checks to the block layer
-from filesystem code, add a VFS message interface that aligns with
-filesystem's message format.
+On Wed, May 18, 2016 at 01:56:16PM -0700, Dan Williams wrote:
+> Device DAX is the device-centric analogue of Filesystem DAX
+> (CONFIG_FS_DAX).  It allows memory ranges to be allocated and mapped
+> without need of an intervening file system.  Device DAX is strict,
+> precise and predictable.  Specifically this interface:
+> =
 
-For instance, a vfs_msg() message followed by XFS messages in case
-of a dax mount error may look like:
+> 1/ Guarantees fault granularity with respect to a given page size (pte,
+> pmd, or pud) set at configuration time.
+> =
 
-  VFS (pmem0p1): error: unaligned partition for dax
-  XFS (pmem0p1): DAX unsupported by block device. Turning off DAX.
-  XFS (pmem0p1): Mounting V5 Filesystem
-   :
+> 2/ Enforces deterministic behavior by being strict about what fault
+> scenarios are supported.
+> =
 
-vfs_msg() is largely based on ext4_msg().
+> For example, by forcing MADV_DONTFORK semantics and omitting MAP_PRIVATE
+> support device-dax guarantees that a mapping always behaves/performs the
+> same once established.  It is the "what you see is what you get" access
+> mechanism to differentiated memory vs filesystem DAX which has
+> filesystem specific implementation semantics.
+> =
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Boaz Harrosh <boaz@plexistor.com>
----
- fs/block_dev.c         |   12 ++++++++++++
- include/linux/blkdev.h |   11 +++++++++++
- 2 files changed, 23 insertions(+)
+> Persistent memory is the first target, but the mechanism is also
+> targeted for exclusive allocations of performance differentiated memory
+> ranges.
+> =
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 20a2c02..7be17c4 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -50,6 +50,18 @@ struct block_device *I_BDEV(struct inode *inode)
- }
- EXPORT_SYMBOL(I_BDEV);
- 
-+void __vfs_msg(struct super_block *sb, const char *prefix, const char *fmt, ...)
-+{
-+	struct va_format vaf;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+	printk_ratelimited("%sVFS (%s): %pV\n", prefix, sb->s_id, &vaf);
-+	va_end(args);
-+}
-+
- static void bdev_write_inode(struct block_device *bdev)
- {
- 	struct inode *inode = bdev->bd_inode;
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 669e419..78c48ab 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -767,6 +767,17 @@ static inline void rq_flush_dcache_pages(struct request *rq)
- }
- #endif
- 
-+#ifdef CONFIG_PRINTK
-+#define vfs_msg(sb, level, fmt, ...)				\
-+	__vfs_msg(sb, level, fmt, ##__VA_ARGS__)
-+#else
-+#define vfs_msg(sb, level, fmt, ...)				\
-+do {								\
-+	no_printk(fmt, ##__VA_ARGS__);				\
-+	__vfs_msg(sb, "", " ");					\
-+} while (0)
-+#endif
-+
- extern int blk_register_queue(struct gendisk *disk);
- extern void blk_unregister_queue(struct gendisk *disk);
- extern blk_qc_t generic_make_request(struct bio *bio);
+> This commit is limited to the base device driver infrastructure to
+> associate a dax device with pmem range.
+> =
+
+> Cc: Jeff Moyer <jmoyer@redhat.com>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+
+-- =
+
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
