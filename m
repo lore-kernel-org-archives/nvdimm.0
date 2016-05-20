@@ -1,13 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 52B0E1A1E76
- for <linux-nvdimm@lists.01.org>; Fri,  6 May 2016 14:53:43 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v5 1/5] dax: fallback from pmd to pte on error
-Date: Fri,  6 May 2016 15:53:07 -0600
-Message-Id: <1462571591-3361-2-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1462571591-3361-1-git-send-email-vishal.l.verma@intel.com>
-References: <1462571591-3361-1-git-send-email-vishal.l.verma@intel.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id CEECA1A1DFD
+ for <linux-nvdimm@lists.01.org>; Fri, 20 May 2016 00:30:11 -0700 (PDT)
+Date: Fri, 20 May 2016 09:29:57 +0200
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCH v3 1/5] libnvdimm: stop requiring a driver ->remove()
+ method
+Message-ID: <20160520072957.GA4413@c203.arch.suse.de>
+References: <146360496572.37439.6497663679891935585.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <146360497107.37439.10316060945952347673.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <146360497107.37439.10316060945952347673.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,45 +21,35 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jens Axboe <axboe@fb.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, xfs@oss.sgi.com, linux-block@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-block@vger.kernel.org, hch@lst.de, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
+On Wed, May 18, 2016 at 01:56:11PM -0700, Dan Williams wrote:
+> The dax_pmem driver was implementing an empty ->remove() method to
+> satisfy the nvdimm bus driver that unconditionally calls ->remove().
+> Teach the core bus driver to check if ->remove() is NULL to remove that
+> requirement.
+> =
 
-In preparation for consulting a badblocks list in pmem_direct_access(),
-teach dax_pmd_fault() to fallback rather than fail immediately upon
-encountering an error.  The thought being that reducing the span of the
-dax request may avoid the error region.
+> Reported-by: Johannes Thumshirn <jthumshirn@suse.de>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Looks good,
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 5a34f08..52f0044 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1111,8 +1111,8 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		long length = dax_map_atomic(bdev, &dax);
- 
- 		if (length < 0) {
--			result = VM_FAULT_SIGBUS;
--			goto out;
-+			dax_pmd_dbg(&bh, address, "dax-error fallback");
-+			goto fallback;
- 		}
- 		if (length < PMD_SIZE) {
- 			dax_pmd_dbg(&bh, address, "dax-length too small");
--- 
-2.5.5
+-- =
 
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
