@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from na01-bn1-obe.outbound.protection.outlook.com
- (mail-bn1bon0725.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fc10::1:725])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 505641A1E30
- for <linux-nvdimm@lists.01.org>; Fri, 20 May 2016 10:50:01 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 4A66E1A1E2E
+ for <linux-nvdimm@lists.01.org>; Fri, 20 May 2016 10:35:08 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Subject: Re: [PATCH v4 0/6] Add alignment check for DAX mount
-Date: Fri, 20 May 2016 17:49:51 +0000
-Message-ID: <1463766042.32042.34.camel@hpe.com>
+Date: Fri, 20 May 2016 17:34:59 +0000
+Message-ID: <1463765696.3005.2.camel@intel.com>
 References: <1462897437-16626-1-git-send-email-toshi.kani@hpe.com>
  <f265e4ce-9271-1d83-35bc-794f2e2129df@sandeen.net>
- <1463755257.32042.15.camel@hpe.com> <1463765696.3005.2.camel@intel.com>
-In-Reply-To: <1463765696.3005.2.camel@intel.com>
+ <1463755257.32042.15.camel@hpe.com>
+In-Reply-To: <1463755257.32042.15.camel@hpe.com>
 Content-Language: en-US
-Content-ID: <7C0572B86745F0408E89AD7E9B9D7224@NAMPRD84.PROD.OUTLOOK.COM>
+Content-ID: <72CEEF3F0DD5A74F901B6D9DBD9FC7D1@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -28,30 +24,27 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "jack@suse.cz" <jack@suse.cz>, "david@fromorbit.com" <david@fromorbit.com>, "sandeen@sandeen.net" <sandeen@sandeen.net>, "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>
-Cc: "hch@infradead.org" <hch@infradead.org>, "tytso@mit.edu" <tytso@mit.edu>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "axboe@fb.com" <axboe@fb.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Parrish, Micah \\ linux-block@vger.kernel.org (HP Servers Linux R&D)\" <micah.parrish@hpe.com>,)" <linux-block@vger.kernel.org>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "jack@suse.cz" <jack@suse.cz>, "sandeen@sandeen.net" <sandeen@sandeen.net>, "david@fromorbit.com" <david@fromorbit.com>
+Cc: "hch@infradead.org" <hch@infradead.org>, "tytso@mit.edu" <tytso@mit.edu>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "axboe@fb.com" <axboe@fb.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "micah.parrish@hpe.com" <micah.parrish@hpe.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE2LTA1LTIwIGF0IDE3OjM0ICswMDAwLCBWZXJtYSwgVmlzaGFsIEwgd3JvdGU6
-DQo+IE9uIEZyaSwgMjAxNi0wNS0yMCBhdCAxNDo1MCArMDAwMCwgS2FuaSwgVG9zaGltaXRzdSB3
-cm90ZToNCj4gPiBPbiBUaHUsIDIwMTYtMDUtMTkgYXQgMTg6MzcgLTA1MDAsIEVyaWMgU2FuZGVl
-biB3cm90ZToNCj4gPiA+IE9uIDUvMTAvMTYgMTE6MjMgQU0sIFRvc2hpIEthbmkgd3JvdGU6DQo+
-ID4gPiA+wqANCj4gPiA+ID4gV2hlbiBhIHBhcnRpdGlvbiBpcyBub3QgYWxpZ25lZCBieSA0S0Is
-IG1vdW50IC1vIGRheCBzdWNjZWVkcywNCj4gPiA+DQo+ID4gPiBTb3JyeSBmb3IgYmVpbmcgbGF0
-ZSwgYnV0IC0NCj4gPiA+IA0KPiA+ID4gU2hvdWxkbid0IHRoaXMgYW5kIGFsbCBzdWJzZXF1ZW50
-IHBhdGNoIGNvbW1pdHMgcmVmZXIgdG8NCj4gPiA+IFBBR0VfU0laRSwgcmF0aGVyIHRoYW4gIjRr
-Qj8iDQo+ID4NCj4gPiBSaWdodCwgdGhlIHBhdGNoIGNvbW1pdHMgc2hvdWxkIHJlZmVyIHRvIFBB
-R0VfU0laRSB0byBtYXRjaCB3aXRoIHRoZQ0KPiA+IGNvZGUgY2hhbmdlcy7CoMKgSSBhbSBhZnJh
-aWQgaXQgbWF5IGJlIGEgYml0IHRvbyBsYXRlIHRvIHVwZGF0ZSwNCj4gPiB0aG91Z2guLi4NCj4g
-PiANCj4gPiBWaXNoYWwsIGRvIHlvdSB0aGluayB5b3UgY2FuIHR3ZWFrIHRoZSBsb2dzLCAiNEtC
-IiB0byAiUEFHRV9TSVpFIj8NCj4gPiANCj4gPiBUaGFua3MsDQo+ID4gLVRvc2hpDQo+DQo+IEhp
-IFRvc2hpLA0KPiANCj4gSXMgaXQganVzdCBjb21taXQgbWVzc2FnZSBjaGFuZ2VzPyBJZiBzbyBJ
-J20gbm90IHN1cmUgaXQgaXMgd29ydGh3aGlsZQ0KPiB0byByZWJhc2UgZXZlcnl0aGluZyBmb3Ig
-dGhhdCAtIGkuZS4gbXkgZGF4IGVycm9yIGhhbmRsaW5nIHNlcmllcyBhbmQNCj4gUm9zcycgZGF4
-LWxvY2tpbmcgYnJhbmNoIHdvdWxkIGJvdGggaGF2ZSB0byBiZSByZWJhc2VkLi4NCj4gDQo+IElm
-IHRoZXJlIGFyZSBhbmQgZml4ZXMgZm9yIGNvZGUsIHdlIGNhbiBkbyB0aGVtIGFzIGFuIGFkZC1v
-biBwYXRjaA0KPiB0aG91Z2guDQoNCkhpIFZpc2hhbCwNCg0KWWVzLCBpdCBpcyBqdXN0IGNvbW1p
-dCBtZXNzYWdlcywgYW5kIGl0J3MgT0sgbm90IHRvIG1ha2UgdGhpcyBjaGFuZ2UuDQoNClRoYW5r
-cywNCi1Ub3NoaQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0
-cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+T24gRnJpLCAyMDE2LTA1LTIwIGF0IDE0OjUwICswMDAwLCBLYW5pLCBUb3NoaW1pdHN1IHdyb3Rl
+Og0KPiBPbiBUaHUsIDIwMTYtMDUtMTkgYXQgMTg6MzcgLTA1MDAsIEVyaWMgU2FuZGVlbiB3cm90
+ZToNCj4gPiANCj4gPiBPbiA1LzEwLzE2IDExOjIzIEFNLCBUb3NoaSBLYW5pIHdyb3RlOg0KPiA+
+ID4gDQo+ID4gPiANCj4gPiA+IFdoZW4gYSBwYXJ0aXRpb24gaXMgbm90IGFsaWduZWQgYnkgNEtC
+LCBtb3VudCAtbyBkYXggc3VjY2VlZHMsDQo+ID4gU29ycnkgZm9yIGJlaW5nIGxhdGUsIGJ1dCAt
+DQo+ID4gDQo+ID4gU2hvdWxkbid0IHRoaXMgYW5kIGFsbCBzdWJzZXF1ZW50IHBhdGNoIGNvbW1p
+dHMgcmVmZXIgdG8NCj4gPiBQQUdFX1NJWkUsIHJhdGhlciB0aGFuICI0a0I/Ig0KPiBSaWdodCwg
+dGhlIHBhdGNoIGNvbW1pdHMgc2hvdWxkIHJlZmVyIHRvIFBBR0VfU0laRSB0byBtYXRjaCB3aXRo
+IHRoZQ0KPiBjb2RlDQo+IGNoYW5nZXMuwqDCoEkgYW0gYWZyYWlkIGl0IG1heSBiZSBhIGJpdCB0
+b28gbGF0ZSB0byB1cGRhdGUsIHRob3VnaC4uLg0KPiANCj4gVmlzaGFsLCBkbyB5b3UgdGhpbmsg
+eW91IGNhbiB0d2VhayB0aGUgbG9ncywgIjRLQiIgdG8gIlBBR0VfU0laRSI/DQo+IA0KPiBUaGFu
+a3MsDQo+IC1Ub3NoaQ0KDQpIaSBUb3NoaSwNCg0KSXMgaXQganVzdCBjb21taXQgbWVzc2FnZSBj
+aGFuZ2VzPyBJZiBzbyBJJ20gbm90IHN1cmUgaXQgaXMgd29ydGh3aGlsZQ0KdG8gcmViYXNlIGV2
+ZXJ5dGhpbmcgZm9yIHRoYXQgLSBpLmUuIG15IGRheCBlcnJvciBoYW5kbGluZyBzZXJpZXMgYW5k
+DQpSb3NzJyBkYXgtbG9ja2luZyBicmFuY2ggd291bGQgYm90aCBoYXZlIHRvIGJlIHJlYmFzZWQu
+Lg0KDQpJZiB0aGVyZSBhcmUgYW5kIGZpeGVzIGZvciBjb2RlLCB3ZSBjYW4gZG8gdGhlbSBhcyBh
+biBhZGQtb24gcGF0Y2gNCnRob3VnaC4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
