@@ -1,156 +1,78 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v7 2/6] dax: enable dax in the presence of known media errors (badblocks)
-Date: Wed, 11 May 2016 15:08:48 -0600
-Message-Id: <1463000932-31680-3-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
-References: <1463000932-31680-1-git-send-email-vishal.l.verma@intel.com>
-Sender: owner-linux-mm@kvack.org
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 824251A1E1A
+ for <linux-nvdimm@lists.01.org>; Sat, 21 May 2016 14:56:04 -0700 (PDT)
+Subject: [ndctl PATCH 0/5] Device DAX support
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 21 May 2016 14:55:10 -0700
+Message-ID: <146386771020.1884.14405221977201209581.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, xfs@oss.sgi.com, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jens Axboe <axboe@fb.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jeff Moyer <jmoyer@redhat.com>, Boaz Harrosh <boaz@plexistor.com>, Vishal Verma <vishal.l.verma@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
+Extend libndctl with a libdaxctl helper library to enumerate the devices
+that appear underneath a libnvdimm namespace in "dax" mode.  libdaxctl
+is meant to be independent from libndctl as device-dax instances may
+arise from other memory ranges besides persistent memory.  It is a
+generic enumeration facility for performance / featured differentiated
+memory ranges when the kernel arranges for them to be exposed as a
+devices.
 
-1/ If a mapping overlaps a bad sector fail the request.
 
-2/ Do not opportunistically report more dax-capable capacity than is
-   requested when errors present.
-
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-[vishal: fix a conflict with system RAM collision patches]
-[vishal: add a 'size' parameter to ->direct_access]
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- arch/powerpc/sysdev/axonram.c |  2 +-
- block/ioctl.c                 |  9 ---------
- drivers/block/brd.c           |  2 +-
- drivers/nvdimm/pmem.c         | 10 +++++++++-
- drivers/s390/block/dcssblk.c  |  2 +-
- fs/block_dev.c                |  2 +-
- include/linux/blkdev.h        |  2 +-
- 7 files changed, 14 insertions(+), 15 deletions(-)
 
-diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
-index 0d112b9..ff75d70 100644
---- a/arch/powerpc/sysdev/axonram.c
-+++ b/arch/powerpc/sysdev/axonram.c
-@@ -143,7 +143,7 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
-  */
- static long
- axon_ram_direct_access(struct block_device *device, sector_t sector,
--		       void __pmem **kaddr, pfn_t *pfn)
-+		       void __pmem **kaddr, pfn_t *pfn, long size)
- {
- 	struct axon_ram_bank *bank = device->bd_disk->private_data;
- 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
-diff --git a/block/ioctl.c b/block/ioctl.c
-index 4ff1f92..bf80bfd 100644
---- a/block/ioctl.c
-+++ b/block/ioctl.c
-@@ -423,15 +423,6 @@ bool blkdev_dax_capable(struct block_device *bdev)
- 			|| (bdev->bd_part->nr_sects % (PAGE_SIZE / 512)))
- 		return false;
- 
--	/*
--	 * If the device has known bad blocks, force all I/O through the
--	 * driver / page cache.
--	 *
--	 * TODO: support finer grained dax error handling
--	 */
--	if (disk->bb && disk->bb->count)
--		return false;
--
- 	return true;
- }
- #endif
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 51a071e..c04bd9b 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -381,7 +381,7 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
- 
- #ifdef CONFIG_BLK_DEV_RAM_DAX
- static long brd_direct_access(struct block_device *bdev, sector_t sector,
--			void __pmem **kaddr, pfn_t *pfn)
-+			void __pmem **kaddr, pfn_t *pfn, long size)
- {
- 	struct brd_device *brd = bdev->bd_disk->private_data;
- 	struct page *page;
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 5101f3a..b68f04d 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -182,14 +182,22 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- }
- 
- static long pmem_direct_access(struct block_device *bdev, sector_t sector,
--		      void __pmem **kaddr, pfn_t *pfn)
-+		      void __pmem **kaddr, pfn_t *pfn, long size)
- {
- 	struct pmem_device *pmem = bdev->bd_disk->private_data;
- 	resource_size_t offset = sector * 512 + pmem->data_offset;
- 
-+	if (unlikely(is_bad_pmem(&pmem->bb, sector, size)))
-+		return -EIO;
- 	*kaddr = pmem->virt_addr + offset;
- 	*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
- 
-+	/*
-+	 * If badblocks are present, limit known good range to the
-+	 * requested range.
-+	 */
-+	if (unlikely(pmem->bb.count))
-+		return size;
- 	return pmem->size - pmem->pfn_pad - offset;
- }
- 
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index b839086..c45d538 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -884,7 +884,7 @@ fail:
- 
- static long
- dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
--			void __pmem **kaddr, pfn_t *pfn)
-+			void __pmem **kaddr, pfn_t *pfn, long size)
- {
- 	struct dcssblk_dev_info *dev_info;
- 	unsigned long offset, dev_sz;
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index b25bb23..02c68c4 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -488,7 +488,7 @@ long bdev_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
- 	sector += get_start_sect(bdev);
- 	if (sector % (PAGE_SIZE / 512))
- 		return -EINVAL;
--	avail = ops->direct_access(bdev, sector, &dax->addr, &dax->pfn);
-+	avail = ops->direct_access(bdev, sector, &dax->addr, &dax->pfn, size);
- 	if (!avail)
- 		return -ERANGE;
- 	if (avail > 0 && avail & ~PAGE_MASK)
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 669e419..55ed530 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1657,7 +1657,7 @@ struct block_device_operations {
- 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
- 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
- 	long (*direct_access)(struct block_device *, sector_t, void __pmem **,
--			pfn_t *);
-+			pfn_t *, long);
- 	unsigned int (*check_events) (struct gendisk *disk,
- 				      unsigned int clearing);
- 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
--- 
-2.5.5
+Dan Williams (5):
+      util: centralize logging
+      util: centralize sysfs helpers
+      test: fix 'pfn alignment too big' checks
+      daxctl: initial boilerplate
+      daxctl: enumeration api and unit test for "Device DAX"
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+ Makefile.am                    |    2 
+ Makefile.am.in                 |    3 
+ configure.ac                   |    1 
+ daxctl/Makefile.am             |   28 ++
+ daxctl/lib/libdaxctl-private.h |   40 +++
+ daxctl/lib/libdaxctl.c         |  353 ++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.pc.in     |   11 +
+ daxctl/lib/libdaxctl.sym       |   32 +++
+ daxctl/libdaxctl.h             |   64 +++++
+ ndctl/Makefile.am              |   21 +-
+ ndctl/lib/libndctl-private.h   |   65 ++---
+ ndctl/lib/libndctl-smart.c     |    1 
+ ndctl/lib/libndctl.c           |  219 ++++--------------
+ ndctl/lib/libndctl.sym         |    2 
+ ndctl/libndctl.h.in            |    3 
+ test/Makefile.am               |    4 
+ test/libndctl.c                |  500 ++++++++++++++++++++++++++++++++++------
+ util/log.c                     |   65 +++++
+ util/log.h                     |   69 ++++++
+ util/sysfs.c                   |  128 ++++++++++
+ util/sysfs.h                   |   40 +++
+ 21 files changed, 1350 insertions(+), 301 deletions(-)
+ create mode 100644 daxctl/Makefile.am
+ create mode 100644 daxctl/lib/libdaxctl-private.h
+ create mode 100644 daxctl/lib/libdaxctl.c
+ create mode 100644 daxctl/lib/libdaxctl.pc.in
+ create mode 100644 daxctl/lib/libdaxctl.sym
+ create mode 100644 daxctl/libdaxctl.h
+ create mode 100644 util/log.c
+ create mode 100644 util/log.h
+ create mode 100644 util/sysfs.c
+ create mode 100644 util/sysfs.h
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
