@@ -1,15 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1F1111A1F66
- for <linux-nvdimm@lists.01.org>; Thu, 12 May 2016 09:29:34 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 4/7] dax: Allow DAX code to replace exceptional entries
-Date: Thu, 12 May 2016 18:29:17 +0200
-Message-Id: <1463070560-1979-5-git-send-email-jack@suse.cz>
-In-Reply-To: <1463070560-1979-1-git-send-email-jack@suse.cz>
-References: <1463070560-1979-1-git-send-email-jack@suse.cz>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id E9B371A1E1A
+ for <linux-nvdimm@lists.01.org>; Sat, 21 May 2016 14:58:39 -0700 (PDT)
+Subject: [PATCH] libnvdimm, dax: fix deletion
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 21 May 2016 14:57:46 -0700
+Message-ID: <146386786589.2036.17061026414100900039.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,75 +14,108 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Ted Tso <tytso@mit.edu>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently we forbid page_cache_tree_insert() to replace exceptional radix
-tree entries for DAX inodes. However to make DAX faults race free we will
-lock radix tree entries and when hole is created, we need to replace
-such locked radix tree entry with a hole page. So modify
-page_cache_tree_insert() to allow that.
+The ndctl unit tests discovered that the dax enabling omitted updates to
+nd_detach_and_reset().  This routine clears device the configuration
+when the namespace is detached.  Without this clearing userspace may
+assume that the device is in the process of being configured by another
+agent in the system.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/dax.h |  1 +
- mm/filemap.c        | 21 ++++++++++++++-------
- 2 files changed, 15 insertions(+), 7 deletions(-)
+ drivers/nvdimm/claim.c    |   23 +++++++++++++++++++++--
+ drivers/nvdimm/nd-core.h  |    1 +
+ drivers/nvdimm/pfn_devs.c |   19 -------------------
+ 3 files changed, 22 insertions(+), 21 deletions(-)
 
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index d0883daa66d9..8558d3770a30 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -3,6 +3,7 @@
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index 5f53db59a058..8b2e3c4fb0ad 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -93,6 +93,25 @@ static bool is_idle(struct device *dev, struct nd_namespace_common *ndns)
+ 	return true;
+ }
  
- #include <linux/fs.h>
- #include <linux/mm.h>
-+#include <linux/radix-tree.h>
- #include <asm/pgtable.h>
++struct nd_pfn *to_nd_pfn_safe(struct device *dev)
++{
++	/*
++	 * pfn device attributes are re-used by dax device instances, so we
++	 * need to be careful to correct device-to-nd_pfn conversion.
++	 */
++	if (is_nd_pfn(dev))
++		return to_nd_pfn(dev);
++
++	if (is_nd_dax(dev)) {
++		struct nd_dax *nd_dax = to_nd_dax(dev);
++
++		return &nd_dax->nd_pfn;
++	}
++
++	WARN_ON(1);
++	return NULL;
++}
++
+ static void nd_detach_and_reset(struct device *dev,
+ 		struct nd_namespace_common **_ndns)
+ {
+@@ -106,8 +125,8 @@ static void nd_detach_and_reset(struct device *dev,
+ 		nd_btt->lbasize = 0;
+ 		kfree(nd_btt->uuid);
+ 		nd_btt->uuid = NULL;
+-	} else if (is_nd_pfn(dev)) {
+-		struct nd_pfn *nd_pfn = to_nd_pfn(dev);
++	} else if (is_nd_pfn(dev) || is_nd_dax(dev)) {
++		struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
  
- /* We use lowest available exceptional entry bit for locking */
-diff --git a/mm/filemap.c b/mm/filemap.c
-index f2479af09da9..dfe55c2cfb34 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -597,14 +597,21 @@ static int page_cache_tree_insert(struct address_space *mapping,
- 		if (!radix_tree_exceptional_entry(p))
- 			return -EEXIST;
+ 		kfree(nd_pfn->uuid);
+ 		nd_pfn->uuid = NULL;
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 4136c1a82539..6c42eda025f9 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -94,4 +94,5 @@ bool __nd_attach_ndns(struct device *dev, struct nd_namespace_common *attach,
+ ssize_t nd_namespace_store(struct device *dev,
+ 		struct nd_namespace_common **_ndns, const char *buf,
+ 		size_t len);
++struct nd_pfn *to_nd_pfn_safe(struct device *dev);
+ #endif /* __ND_CORE_H__ */
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 04f71d6d304d..436191c47077 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -54,25 +54,6 @@ struct nd_pfn *to_nd_pfn(struct device *dev)
+ }
+ EXPORT_SYMBOL(to_nd_pfn);
  
--		if (WARN_ON(dax_mapping(mapping)))
--			return -EINVAL;
+-static struct nd_pfn *to_nd_pfn_safe(struct device *dev)
+-{
+-	/*
+-	 * pfn device attributes are re-used by dax device instances, so we
+-	 * need to be careful to correct device-to-nd_pfn conversion.
+-	 */
+-	if (is_nd_pfn(dev))
+-		return to_nd_pfn(dev);
 -
--		if (shadowp)
--			*shadowp = p;
- 		mapping->nrexceptional--;
--		if (node)
--			workingset_node_shadows_dec(node);
-+		if (!dax_mapping(mapping)) {
-+			if (shadowp)
-+				*shadowp = p;
-+			if (node)
-+				workingset_node_shadows_dec(node);
-+		} else {
-+			/* DAX can replace empty locked entry with a hole */
-+			WARN_ON_ONCE(p !=
-+				(void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
-+					 RADIX_DAX_ENTRY_LOCK));
-+			/* DAX accounts exceptional entries as normal pages */
-+			if (node)
-+				workingset_node_pages_dec(node);
-+		}
- 	}
- 	radix_tree_replace_slot(slot, page);
- 	mapping->nrpages++;
--- 
-2.6.6
+-	if (is_nd_dax(dev)) {
+-		struct nd_dax *nd_dax = to_nd_dax(dev);
+-
+-		return &nd_dax->nd_pfn;
+-	}
+-
+-	WARN_ON(1);
+-	return NULL;
+-}
+-
+ static ssize_t mode_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
 
 _______________________________________________
 Linux-nvdimm mailing list
