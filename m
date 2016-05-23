@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CCAA61A2270
- for <linux-nvdimm@lists.01.org>; Mon, 18 Apr 2016 14:35:51 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [RFC v3] [PATCH 0/18] DAX page fault locking
-Date: Mon, 18 Apr 2016 23:35:23 +0200
-Message-Id: <1461015341-20153-1-git-send-email-jack@suse.cz>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 2328E1A1DFA
+ for <linux-nvdimm@lists.01.org>; Mon, 23 May 2016 14:08:46 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 1/2] ndctl: fix a segfault in parse-options.c
+Date: Mon, 23 May 2016 15:07:55 -0600
+Message-Id: <1464037676-5776-2-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1464037676-5776-1-git-send-email-vishal.l.verma@intel.com>
+References: <1464037676-5776-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,48 +20,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
+Running something like ndctl create-namespace --list-cmds
+would reliably segfault ndctl due to a null pointer dereference.
 
-this is my third attempt at DAX page fault locking rewrite. The patch set has
-passed xfstests both with and without DAX mount option on ext4 and xfs for
-me and also additional page fault beating using the new page fault stress
-tests I have added to xfstests. So I'd be grateful if you guys could have a
-closer look at the patches so that they can be merged. Thanks.
+Add a check before the dereference to fix it.
 
-Changes since v2:
-- lot of additional ext4 fixes and cleanups
-- make PMD page faults depend on CONFIG_BROKEN instead of #if 0
-- fixed page reference leak when replacing hole page with a pfn
-- added some reviewed-by tags
-- rebased on top of current Linus' tree
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ util/parse-options.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Changes since v1:
-- handle wakeups of exclusive waiters properly
-- fix cow fault races
-- other minor stuff
+diff --git a/util/parse-options.c b/util/parse-options.c
+index f170eb0..387eecd 100644
+--- a/util/parse-options.c
++++ b/util/parse-options.c
+@@ -472,8 +472,9 @@ int parse_options_subcommand(int argc, const char **argv, const struct option *o
+ 		}
+ 		exit(130);
+ 	case PARSE_OPT_LIST_SUBCMDS:
+-		for (int i = 0; subcommands[i]; i++)
+-			printf("%s ", subcommands[i]);
++		if (subcommands)
++			for (int i = 0; subcommands[i]; i++)
++				printf("%s ", subcommands[i]);
+ 		exit(130);
+ 	default: /* PARSE_OPT_UNKNOWN */
+ 		if (ctx.argv[0][1] == '-') {
+-- 
+2.5.5
 
-General description
-
-The basic idea is that we use a bit in an exceptional radix tree entry as
-a lock bit and use it similarly to how page lock is used for normal faults.
-That way we fix races between hole instantiation and read faults of the
-same index. For now I have disabled PMD faults since there the issues with
-page fault locking are even worse. Now that Matthew's multi-order radix tree
-has landed, I can have a look into using that for proper locking of PMD faults
-but first I want normal pages sorted out.
-
-In the end I have decided to implement the bit locking directly in the DAX
-code. Originally I was thinking we could provide something generic directly
-in the radix tree code but the functions DAX needs are rather specific.
-Maybe someone else will have a good idea how to distill some generally useful
-functions out of what I've implemented for DAX but for now I didn't bother
-with that.
-
-								Honza
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
