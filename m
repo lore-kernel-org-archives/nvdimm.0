@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 9DB4A1A1FC9
- for <linux-nvdimm@lists.01.org>; Wed, 18 May 2016 13:57:03 -0700 (PDT)
-Subject: [PATCH v3 1/5] libnvdimm: stop requiring a driver ->remove() method
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 18 May 2016 13:56:11 -0700
-Message-ID: <146360497107.37439.10316060945952347673.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146360496572.37439.6497663679891935585.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146360496572.37439.6497663679891935585.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
+ [IPv6:2607:f8b0:4003:c06::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 41FDE1A1DFA
+ for <linux-nvdimm@lists.01.org>; Mon, 23 May 2016 14:16:16 -0700 (PDT)
+Received: by mail-oi0-x233.google.com with SMTP id b65so154240525oia.1
+ for <linux-nvdimm@lists.01.org>; Mon, 23 May 2016 14:16:07 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1464037676-5776-3-git-send-email-vishal.l.verma@intel.com>
+References: <1464037676-5776-1-git-send-email-vishal.l.verma@intel.com>
+ <1464037676-5776-3-git-send-email-vishal.l.verma@intel.com>
+Date: Mon, 23 May 2016 14:16:06 -0700
+Message-ID: <CAPcyv4gy+4=_eBKrzW=P-JmTXZoOnvkp+HCLvT-SOXuBfRB17w@mail.gmail.com>
+Subject: Re: [ndctl PATCH v2 2/2] ndctl: add bash completion
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,50 +26,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, hch@lst.de
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The dax_pmem driver was implementing an empty ->remove() method to
-satisfy the nvdimm bus driver that unconditionally calls ->remove().
-Teach the core bus driver to check if ->remove() is NULL to remove that
-requirement.
+On Mon, May 23, 2016 at 2:07 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> Add bash completion support to ndctl and integrate it with autotools.
+> The completion is based on perf/git, and the usage experience is very
+> similar.
+>
+> We do dynamic generation of options using --list-opts for the different
+> subcommands. We also attempt to complete long-options that take an
+> additional parameter (such as --region=region0), and non-option
+> arguments, such as the namespace for a 'disable-namespace' command.
+>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Reported-by: Johannes Thumshirn <jthumshirn@suse.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/bus.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 97589e3cb852..7cbc3d58d176 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -124,9 +124,10 @@ static int nvdimm_bus_remove(struct device *dev)
- 	struct nd_device_driver *nd_drv = to_nd_device_driver(dev->driver);
- 	struct module *provider = to_bus_provider(dev);
- 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
--	int rc;
-+	int rc = 0;
- 
--	rc = nd_drv->remove(dev);
-+	if (nd_drv->remove)
-+		rc = nd_drv->remove(dev);
- 	nd_region_disable(nvdimm_bus, dev);
- 
- 	dev_dbg(&nvdimm_bus->dev, "%s.remove(%s) = %d\n", dev->driver->name,
-@@ -296,8 +297,8 @@ int __nd_driver_register(struct nd_device_driver *nd_drv, struct module *owner,
- 		return -EINVAL;
- 	}
- 
--	if (!nd_drv->probe || !nd_drv->remove) {
--		pr_debug("->probe() and ->remove() must be specified\n");
-+	if (!nd_drv->probe) {
-+		pr_debug("%s ->probe() must be specified\n", mod_name);
- 		return -EINVAL;
- 	}
- 
-
+Looks good to me, applied.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
