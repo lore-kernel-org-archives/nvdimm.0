@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 0BB2F1A1EC1
- for <linux-nvdimm@lists.01.org>; Sun,  8 May 2016 15:40:39 -0700 (PDT)
-Subject: [ndctl PATCH 1/2] ndctl: add library support for 'dax' devices
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 08 May 2016 15:39:51 -0700
-Message-ID: <146274719141.12219.9663252577433495595.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146274718628.12219.9049769475511391374.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146274718628.12219.9049769475511391374.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTP id 84A941A1E64
+ for <linux-nvdimm@lists.01.org>; Sun, 22 May 2016 17:01:24 -0700 (PDT)
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm for 4.7
+Date: Mon, 23 May 2016 00:01:14 +0000
+Message-ID: <1463961667.16105.17.camel@intel.com>
+Content-Language: en-US
+Content-ID: <5359A05357EAF24798623025949F5B77@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,759 +16,184 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Given a 'dax' device is simply a 'pfn' device with a different driver,
-we can reuse most of the pfn API implementation.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- configure.ac            |   26 +++
- lib/libndctl.c          |  367 ++++++++++++++++++++++++++++++++++++++++++++---
- lib/libndctl.sym        |   25 +++
- lib/ndctl/libndctl.h.in |   38 +++++
- 4 files changed, 436 insertions(+), 20 deletions(-)
-
-diff --git a/configure.ac b/configure.ac
-index c50ba3dfc1d9..aefcf09835d0 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -145,6 +145,25 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
- )
- AM_CONDITIONAL([ENABLE_CLEAR_ERROR], [test "x$enable_clear_err" = "xyes"])
- 
-+AC_MSG_CHECKING([for device DAX support])
-+AC_LANG(C)
-+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-+			#ifdef HAVE_NDCTL_H
-+			#include <linux/ndctl.h>
-+			#else
-+			#include "ndctl.h"
-+			#endif
-+			]], [[
-+			int x = ND_DEVICE_NAMESPACE_DAX;
-+			]]
-+		)], [AC_MSG_RESULT([yes])
-+		     enable_dev_dax=yes
-+		     AC_DEFINE([HAVE_NDCTL_DEVICE_DAX], [1],
-+				[Define to 1 if ndctl.h has device DAX support.])
-+		], [AC_MSG_RESULT([no])]
-+)
-+AM_CONDITIONAL([ENABLE_DEV_DAX], [test "x$enable_dev_dax" = "xyes"])
-+
- AC_MSG_CHECKING([for SMART support])
- AC_LANG(C)
- AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-@@ -181,15 +200,22 @@ AC_CONFIG_COMMANDS([gen-libndctl.h],
- 		else
- 			enable_clear_err=0
- 		fi
-+		if test "x$enable_dev_dax" = "xyes"; then
-+			enable_dev_dax=1
-+		else
-+			enable_dev_dax=0
-+		fi
- 		sed -e s/HAVE_NDCTL_ARS/$enable_ars/ \
- 		    -e s/HAVE_NDCTL_SMART/$enable_smart/ \
- 		    -e s/HAVE_NDCTL_CLEAR_ERROR/$enable_clear_err/ \
-+		    -e s/HAVE_NDCTL_DEV_DAX/$enable_dev_dax/ \
- 		< lib/ndctl/libndctl.h.in > lib/ndctl/libndctl.h
- 		]],
- 		[[
- 		enable_ars=$enable_ars
- 		enable_smart=$enable_smart
- 		enable_clear_err=$enable_clear_err
-+		enable_dev_dax=$enable_dev_dax
- 		]])
- 
- AC_CHECK_HEADERS_ONCE([linux/version.h])
-diff --git a/lib/libndctl.c b/lib/libndctl.c
-index b98463e90342..c9ade76c26d2 100644
---- a/lib/libndctl.c
-+++ b/lib/libndctl.c
-@@ -195,6 +195,7 @@ struct ndctl_region {
- 	int namespaces_init;
- 	int btts_init;
- 	int pfns_init;
-+	int daxs_init;
- 	unsigned long long size;
- 	char *region_path;
- 	char *region_buf;
-@@ -202,11 +203,13 @@ struct ndctl_region {
- 	int generation;
- 	struct list_head btts;
- 	struct list_head pfns;
-+	struct list_head daxs;
- 	struct list_head mappings;
- 	struct list_head namespaces;
- 	struct list_head stale_namespaces;
- 	struct list_head stale_btts;
- 	struct list_head stale_pfns;
-+	struct list_head stale_daxs;
- 	struct list_node list;
- 	/**
- 	 * struct ndctl_interleave_set - extra info for interleave sets
-@@ -313,6 +316,10 @@ struct ndctl_pfn {
- 	int id, generation;
- };
- 
-+struct ndctl_dax {
-+	struct ndctl_pfn pfn;
-+};
-+
- /**
-  * struct ndctl_ctx - library user context to find "nd" instances
-  *
-@@ -542,7 +549,7 @@ static void free_stale_btts(struct ndctl_region *region)
- 		free_btt(btt, &region->stale_btts);
- }
- 
--static void free_pfn(struct ndctl_pfn *pfn, struct list_head *head)
-+static void __free_pfn(struct ndctl_pfn *pfn, struct list_head *head, void *to_free)
- {
- 	if (head)
- 		list_del_from(head, &pfn->list);
-@@ -550,7 +557,17 @@ static void free_pfn(struct ndctl_pfn *pfn, struct list_head *head)
- 	free(pfn->pfn_path);
- 	free(pfn->pfn_buf);
- 	free(pfn->bdev);
--	free(pfn);
-+	free(to_free);
-+}
-+
-+static void free_pfn(struct ndctl_pfn *pfn, struct list_head *head)
-+{
-+	__free_pfn(pfn, head, pfn);
-+}
-+
-+static void free_dax(struct ndctl_dax *dax, struct list_head *head)
-+{
-+	__free_pfn(&dax->pfn, head, dax);
- }
- 
- static void free_pfns(struct ndctl_region *region)
-@@ -561,6 +578,14 @@ static void free_pfns(struct ndctl_region *region)
- 		free_pfn(pfn, &region->pfns);
- }
- 
-+static void free_daxs(struct ndctl_region *region)
-+{
-+	struct ndctl_dax *dax, *_b;
-+
-+	list_for_each_safe(&region->daxs, dax, _b, pfn.list)
-+		free_dax(dax, &region->daxs);
-+}
-+
- static void free_stale_pfns(struct ndctl_region *region)
- {
- 	struct ndctl_pfn *pfn, *_b;
-@@ -569,6 +594,14 @@ static void free_stale_pfns(struct ndctl_region *region)
- 		free_pfn(pfn, &region->stale_pfns);
- }
- 
-+static void free_stale_daxs(struct ndctl_region *region)
-+{
-+	struct ndctl_dax *dax, *_b;
-+
-+	list_for_each_safe(&region->stale_daxs, dax, _b, pfn.list)
-+		free_dax(dax, &region->stale_daxs);
-+}
-+
- static void free_region(struct ndctl_region *region)
- {
- 	struct ndctl_bus *bus = region->bus;
-@@ -582,6 +615,8 @@ static void free_region(struct ndctl_region *region)
- 	free_stale_btts(region);
- 	free_pfns(region);
- 	free_stale_pfns(region);
-+	free_daxs(region);
-+	free_stale_daxs(region);
- 	free_namespaces(region);
- 	free_stale_namespaces(region);
- 	list_del_from(&bus->regions, &region->list);
-@@ -1100,6 +1135,29 @@ NDCTL_EXPORT struct ndctl_pfn *ndctl_region_get_pfn_seed(struct ndctl_region *re
- 	return NULL;
- }
- 
-+NDCTL_EXPORT struct ndctl_dax *ndctl_region_get_dax_seed(struct ndctl_region *region)
-+{
-+	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-+	char *path = region->region_buf;
-+	int len = region->buf_len;
-+	struct ndctl_dax *dax;
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	if (snprintf(path, len, "%s/dax_seed", region->region_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				ndctl_region_get_devname(region));
-+		return NULL;
-+	}
-+
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		return NULL;
-+
-+	ndctl_dax_foreach(region, dax)
-+		if (strcmp(buf, ndctl_dax_get_devname(dax)) == 0)
-+			return dax;
-+	return NULL;
-+}
-+
- NDCTL_EXPORT int ndctl_region_get_ro(struct ndctl_region *region)
- {
- 	return region->ro;
-@@ -1603,8 +1661,10 @@ static int add_region(void *parent, int id, const char *region_base)
- 		goto err_region;
- 	list_head_init(&region->btts);
- 	list_head_init(&region->pfns);
-+	list_head_init(&region->daxs);
- 	list_head_init(&region->stale_btts);
- 	list_head_init(&region->stale_pfns);
-+	list_head_init(&region->stale_daxs);
- 	list_head_init(&region->mappings);
- 	list_head_init(&region->namespaces);
- 	list_head_init(&region->stale_namespaces);
-@@ -1804,6 +1864,9 @@ static const char *ndctl_device_type_name(int type)
- 	case ND_DEVICE_NAMESPACE_IO:   return "namespace_io";
- 	case ND_DEVICE_NAMESPACE_PMEM: return "namespace_pmem";
- 	case ND_DEVICE_NAMESPACE_BLK:  return "namespace_blk";
-+#ifdef HAVE_NDCTL_DEVICE_DAX
-+	case ND_DEVICE_DAX_PMEM:       return "dax_pmem";
-+#endif
- 	default:                       return "unknown";
- 	}
- }
-@@ -2401,6 +2464,7 @@ NDCTL_EXPORT void ndctl_region_cleanup(struct ndctl_region *region)
- 	free_stale_namespaces(region);
- 	free_stale_btts(region);
- 	free_stale_pfns(region);
-+	free_stale_daxs(region);
- }
- 
- static int ndctl_region_disable(struct ndctl_region *region, int cleanup)
-@@ -2420,9 +2484,11 @@ static int ndctl_region_disable(struct ndctl_region *region, int cleanup)
- 	region->namespaces_init = 0;
- 	region->btts_init = 0;
- 	region->pfns_init = 0;
-+	region->daxs_init = 0;
- 	list_append_list(&region->stale_namespaces, &region->namespaces);
- 	list_append_list(&region->stale_btts, &region->btts);
- 	list_append_list(&region->stale_pfns, &region->pfns);
-+	list_append_list(&region->stale_daxs, &region->daxs);
- 	region->generation++;
- 	if (cleanup)
- 		ndctl_region_cleanup(region);
-@@ -2969,6 +3035,30 @@ NDCTL_EXPORT struct ndctl_pfn *ndctl_namespace_get_pfn(struct ndctl_namespace *n
- 	return NULL;
- }
- 
-+NDCTL_EXPORT struct ndctl_dax *ndctl_namespace_get_dax(struct ndctl_namespace *ndns)
-+{
-+	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
-+	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
-+	char *path = ndns->ndns_buf;
-+	int len = ndns->buf_len;
-+	struct ndctl_dax *dax;
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	if (snprintf(path, len, "%s/holder", ndns->ndns_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				ndctl_namespace_get_devname(ndns));
-+		return NULL;
-+	}
-+
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		return NULL;
-+
-+	ndctl_dax_foreach(region, dax)
-+		if (strcmp(buf, ndctl_dax_get_devname(dax)) == 0)
-+			return dax;
-+	return NULL;
-+}
-+
- NDCTL_EXPORT const char *ndctl_namespace_get_block_device(struct ndctl_namespace *ndns)
- {
- 	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
-@@ -3009,6 +3099,8 @@ NDCTL_EXPORT enum ndctl_namespace_mode ndctl_namespace_get_mode(
- 
- 	if (strcmp("memory", buf) == 0)
- 		return NDCTL_NS_MODE_MEMORY;
-+	if (strcmp("dax", buf) == 0)
-+		return NDCTL_NS_MODE_DAX;
- 	if (strcmp("raw", buf) == 0)
- 		return NDCTL_NS_MODE_RAW;
- 	if (strcmp("safe", buf) == 0)
-@@ -3141,6 +3233,7 @@ static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath)
- 
- static int add_btt(void *parent, int id, const char *btt_base);
- static int add_pfn(void *parent, int id, const char *pfn_base);
-+static int add_dax(void *parent, int id, const char *dax_base);
- 
- static void btts_init(struct ndctl_region *region)
- {
-@@ -3168,14 +3261,29 @@ static void pfns_init(struct ndctl_region *region)
- 	device_parse(bus->ctx, bus, region->region_path, pfn_fmt, region, add_pfn);
- }
- 
-+static void daxs_init(struct ndctl_region *region)
-+{
-+	struct ndctl_bus *bus = ndctl_region_get_bus(region);
-+	char dax_fmt[20];
-+
-+	if (region->daxs_init)
-+		return;
-+	region->daxs_init = 1;
-+
-+	sprintf(dax_fmt, "dax%d.", region->id);
-+	device_parse(bus->ctx, bus, region->region_path, dax_fmt, region, add_dax);
-+}
-+
- static void region_refresh_children(struct ndctl_region *region)
- {
- 	region->namespaces_init = 0;
- 	region->btts_init = 0;
- 	region->pfns_init = 0;
-+	region->daxs_init = 0;
- 	namespaces_init(region);
- 	btts_init(region);
- 	pfns_init(region);
-+	daxs_init(region);
- }
- 
- /*
-@@ -3197,14 +3305,15 @@ NDCTL_EXPORT int ndctl_namespace_enable(struct ndctl_namespace *ndns)
- 
- 	/*
- 	 * Rescan now as successfully enabling a namespace device leads
--	 * to a new one being created, and potentially btts or pfns being
--	 * attached
-+	 * to a new one being created, and potentially btts, pfns, or
-+	 * daxs being attached
- 	 */
- 	region_refresh_children(region);
- 
- 	if (!ndctl_namespace_is_enabled(ndns)) {
- 		struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
- 		struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
-+		struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
- 
- 		if (btt && ndctl_btt_is_enabled(btt)) {
- 			dbg(ctx, "%s: enabled via %s\n", devname,
-@@ -3216,6 +3325,11 @@ NDCTL_EXPORT int ndctl_namespace_enable(struct ndctl_namespace *ndns)
- 					ndctl_pfn_get_devname(pfn));
- 			return 1;
- 		}
-+		if (dax && ndctl_dax_is_enabled(dax)) {
-+			dbg(ctx, "%s: enabled via %s\n", devname,
-+					ndctl_dax_get_devname(dax));
-+			return 1;
-+		}
- 
- 		err(ctx, "%s: failed to enable\n", devname);
- 		return rc ? rc : -ENXIO;
-@@ -3253,12 +3367,16 @@ NDCTL_EXPORT int ndctl_namespace_disable_invalidate(struct ndctl_namespace *ndns
- {
- 	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
- 	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
-+	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
- 	int rc = 0;
- 
- 	if (btt)
- 		rc = ndctl_btt_delete(btt);
- 	if (pfn)
- 		rc = ndctl_pfn_delete(pfn);
-+	if (dax)
-+		rc = ndctl_dax_delete(dax);
-+
- 	if (rc)
- 		return rc;
- 
-@@ -3914,23 +4032,17 @@ NDCTL_EXPORT int ndctl_btt_is_configured(struct ndctl_btt *btt)
- 	return 0;
- }
- 
--static int add_pfn(void *parent, int id, const char *pfn_base)
-+static int __add_pfn(struct ndctl_pfn *pfn, const char *pfn_base)
- {
--	struct ndctl_ctx *ctx = ndctl_region_get_ctx(parent);
-+	struct ndctl_ctx *ctx = ndctl_region_get_ctx(pfn->region);
- 	char *path = calloc(1, strlen(pfn_base) + 100);
--	struct ndctl_region *region = parent;
--	struct ndctl_pfn *pfn, *pfn_dup;
-+	struct ndctl_region *region = pfn->region;
- 	char buf[SYSFS_ATTR_SIZE];
- 	int rc = -ENOMEM;
- 
- 	if (!path)
- 		return -ENOMEM;
- 
--	pfn = calloc(1, sizeof(*pfn));
--	if (!pfn)
--		goto err_pfn;
--	pfn->id = id;
--	pfn->region = region;
- 	pfn->generation = region->generation;
- 
- 	pfn->pfn_path = strdup(pfn_base);
-@@ -3986,6 +4098,32 @@ static int add_pfn(void *parent, int id, const char *pfn_base)
- 		pfn->size = strtoull(buf, NULL, 0);
- 
- 	free(path);
-+	return 0;
-+
-+ err_read:
-+	free(pfn->pfn_buf);
-+	free(pfn->pfn_path);
-+	free(path);
-+	return rc;
-+}
-+
-+static int add_pfn(void *parent, int id, const char *pfn_base)
-+{
-+	struct ndctl_pfn *pfn = calloc(1, sizeof(*pfn)), *pfn_dup;
-+	struct ndctl_region *region = parent;
-+	int rc;
-+
-+	if (!pfn)
-+		return -ENOMEM;
-+
-+	pfn->id = id;
-+	pfn->region = region;
-+	rc = __add_pfn(pfn, pfn_base);
-+	if (rc < 0) {
-+		free(pfn);
-+		return rc;
-+	}
-+
- 	ndctl_pfn_foreach(region, pfn_dup)
- 		if (pfn->id == pfn_dup->id) {
- 			pfn_dup->resource = pfn->resource;
-@@ -3995,15 +4133,42 @@ static int add_pfn(void *parent, int id, const char *pfn_base)
- 		}
- 
- 	list_add(&region->pfns, &pfn->list);
-+
- 	return 0;
-+}
- 
-- err_read:
--	free(pfn->pfn_buf);
--	free(pfn->pfn_path);
--	free(pfn);
-- err_pfn:
--	free(path);
--	return rc;
-+static int add_dax(void *parent, int id, const char *dax_base)
-+{
-+	struct ndctl_dax *dax = calloc(1, sizeof(*dax)), *dax_dup;
-+	struct ndctl_region *region = parent;
-+	struct ndctl_pfn *pfn = &dax->pfn;
-+	int rc;
-+
-+	if (!dax)
-+		return -ENOMEM;
-+
-+	pfn->id = id;
-+	pfn->region = region;
-+	rc = __add_pfn(pfn, dax_base);
-+	if (rc < 0) {
-+		free(dax);
-+		return rc;
-+	}
-+
-+	ndctl_dax_foreach(region, dax_dup) {
-+		struct ndctl_pfn *pfn_dup = &dax_dup->pfn;
-+
-+		if (pfn->id == pfn_dup->id) {
-+			pfn_dup->resource = pfn->resource;
-+			pfn_dup->size = pfn->size;
-+			free_dax(dax, NULL);
-+			return 1;
-+		}
-+	}
-+
-+	list_add(&region->daxs, &dax->pfn.list);
-+
-+	return 0;
- }
- 
- NDCTL_EXPORT struct ndctl_pfn *ndctl_pfn_get_first(struct ndctl_region *region)
-@@ -4311,3 +4476,165 @@ NDCTL_EXPORT int ndctl_pfn_is_configured(struct ndctl_pfn *pfn)
- 
- 	return 0;
- }
-+
-+NDCTL_EXPORT struct ndctl_dax *ndctl_dax_get_first(struct ndctl_region *region)
-+{
-+	daxs_init(region);
-+
-+	return list_top(&region->daxs, struct ndctl_dax, pfn.list);
-+}
-+
-+NDCTL_EXPORT struct ndctl_dax *ndctl_dax_get_next(struct ndctl_dax *dax)
-+{
-+	struct ndctl_region *region = dax->pfn.region;
-+
-+	return list_next(&region->daxs, dax, pfn.list);
-+}
-+
-+NDCTL_EXPORT unsigned int ndctl_dax_get_id(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_id(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT struct ndctl_namespace *ndctl_dax_get_namespace(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_namespace(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT void ndctl_dax_get_uuid(struct ndctl_dax *dax, uuid_t uu)
-+{
-+	ndctl_pfn_get_uuid(&dax->pfn, uu);
-+}
-+
-+NDCTL_EXPORT unsigned long long ndctl_dax_get_size(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_size(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT unsigned long long ndctl_dax_get_resource(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_resource(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT int ndctl_dax_set_uuid(struct ndctl_dax *dax, uuid_t uu)
-+{
-+	return ndctl_pfn_set_uuid(&dax->pfn, uu);
-+}
-+
-+NDCTL_EXPORT enum ndctl_pfn_loc ndctl_dax_get_location(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_location(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT int ndctl_dax_set_location(struct ndctl_dax *dax,
-+		enum ndctl_pfn_loc loc)
-+{
-+	return ndctl_pfn_set_location(&dax->pfn, loc);
-+}
-+
-+NDCTL_EXPORT unsigned long ndctl_dax_get_align(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_align(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT int ndctl_dax_set_align(struct ndctl_dax *dax, unsigned long align)
-+{
-+	return ndctl_pfn_set_align(&dax->pfn, align);
-+}
-+
-+NDCTL_EXPORT int ndctl_dax_set_namespace(struct ndctl_dax *dax,
-+		struct ndctl_namespace *ndns)
-+{
-+	return ndctl_pfn_set_namespace(&dax->pfn, ndns);
-+}
-+
-+NDCTL_EXPORT struct ndctl_bus *ndctl_dax_get_bus(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_bus(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT struct ndctl_ctx *ndctl_dax_get_ctx(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_ctx(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT const char *ndctl_dax_get_devname(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_devname(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT int ndctl_dax_is_valid(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_is_valid(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT int ndctl_dax_is_enabled(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_is_enabled(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT struct ndctl_region *ndctl_dax_get_region(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_region(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT int ndctl_dax_enable(struct ndctl_dax *dax)
-+{
-+	struct ndctl_region *region = ndctl_dax_get_region(dax);
-+	const char *devname = ndctl_dax_get_devname(dax);
-+	struct ndctl_ctx *ctx = ndctl_dax_get_ctx(dax);
-+	struct ndctl_pfn *pfn = &dax->pfn;
-+
-+	if (ndctl_dax_is_enabled(dax))
-+		return 0;
-+
-+	ndctl_bind(ctx, pfn->module, devname);
-+
-+	if (!ndctl_dax_is_enabled(dax)) {
-+		err(ctx, "%s: failed to enable\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	dbg(ctx, "%s: enabled\n", devname);
-+
-+	/*
-+	 * Rescan now as successfully enabling a dax device leads to a
-+	 * new one being created, and potentially the backing namespace
-+	 * as well.
-+	 */
-+	region_refresh_children(region);
-+
-+	return 0;
-+}
-+
-+NDCTL_EXPORT int ndctl_dax_delete(struct ndctl_dax *dax)
-+{
-+	struct ndctl_region *region = ndctl_dax_get_region(dax);
-+	struct ndctl_ctx *ctx = ndctl_dax_get_ctx(dax);
-+	struct ndctl_pfn *pfn = &dax->pfn;
-+	int rc;
-+
-+	if (!ndctl_dax_is_valid(dax)) {
-+		free_dax(dax, &region->stale_daxs);
-+		return 0;
-+	}
-+
-+	ndctl_unbind(ctx, pfn->pfn_path);
-+
-+	rc = ndctl_dax_set_namespace(dax, NULL);
-+	if (rc) {
-+		dbg(ctx, "%s: failed to clear namespace: %d\n",
-+			ndctl_dax_get_devname(dax), rc);
-+		return rc;
-+	}
-+
-+	free_dax(dax, &region->daxs);
-+	region->daxs_init = 0;
-+
-+	return 0;
-+}
-+
-+NDCTL_EXPORT int ndctl_dax_is_configured(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_is_configured(&dax->pfn);
-+}
-diff --git a/lib/libndctl.sym b/lib/libndctl.sym
-index dc9e69d637da..d5b0ab624aaa 100644
---- a/lib/libndctl.sym
-+++ b/lib/libndctl.sym
-@@ -152,6 +152,7 @@ global:
- 	ndctl_namespace_get_bus;
- 	ndctl_namespace_get_btt;
- 	ndctl_namespace_get_pfn;
-+	ndctl_namespace_get_dax;
- 	ndctl_namespace_get_region;
- 	ndctl_namespace_get_id;
- 	ndctl_namespace_get_devname;
-@@ -236,4 +237,28 @@ global:
- 	ndctl_pfn_enable;
- 	ndctl_pfn_delete;
- 	ndctl_pfn_is_configured;
-+	ndctl_region_get_dax_seed;
-+	ndctl_namespace_get_dax;
-+	ndctl_dax_get_first;
-+	ndctl_dax_get_next;
-+	ndctl_dax_get_id;
-+	ndctl_dax_get_namespace;
-+	ndctl_dax_get_uuid;
-+	ndctl_dax_get_size;
-+	ndctl_dax_get_resource;
-+	ndctl_dax_set_uuid;
-+	ndctl_dax_get_location;
-+	ndctl_dax_set_location;
-+	ndctl_dax_get_align;
-+	ndctl_dax_set_align;
-+	ndctl_dax_set_namespace;
-+	ndctl_dax_get_bus;
-+	ndctl_dax_get_ctx;
-+	ndctl_dax_get_devname;
-+	ndctl_dax_is_valid;
-+	ndctl_dax_is_enabled;
-+	ndctl_dax_get_region;
-+	ndctl_dax_enable;
-+	ndctl_dax_delete;
-+	ndctl_dax_is_configured;
- } LIBNDCTL_1;
-diff --git a/lib/ndctl/libndctl.h.in b/lib/ndctl/libndctl.h.in
-index 3241e92535a5..6a7510964ae2 100644
---- a/lib/ndctl/libndctl.h.in
-+++ b/lib/ndctl/libndctl.h.in
-@@ -455,6 +455,7 @@ struct ndctl_bus *ndctl_namespace_get_bus(struct ndctl_namespace *ndns);
- struct ndctl_region *ndctl_namespace_get_region(struct ndctl_namespace *ndns);
- struct ndctl_btt *ndctl_namespace_get_btt(struct ndctl_namespace *ndns);
- struct ndctl_pfn *ndctl_namespace_get_pfn(struct ndctl_namespace *ndns);
-+struct ndctl_dax *ndctl_namespace_get_dax(struct ndctl_namespace *ndns);
- unsigned int ndctl_namespace_get_id(struct ndctl_namespace *ndns);
- const char *ndctl_namespace_get_devname(struct ndctl_namespace *ndns);
- unsigned int ndctl_namespace_get_type(struct ndctl_namespace *ndns);
-@@ -464,6 +465,7 @@ enum ndctl_namespace_mode {
- 	NDCTL_NS_MODE_MEMORY,
- 	NDCTL_NS_MODE_SAFE,
- 	NDCTL_NS_MODE_RAW,
-+	NDCTL_NS_MODE_DAX,
- };
- enum ndctl_namespace_mode ndctl_namespace_get_mode(
- 		struct ndctl_namespace *ndns);
-@@ -566,6 +568,42 @@ int ndctl_pfn_enable(struct ndctl_pfn *pfn);
- int ndctl_pfn_delete(struct ndctl_pfn *pfn);
- int ndctl_pfn_is_configured(struct ndctl_pfn *pfn);
- 
-+#define ndctl_dax_foreach(region, dax) \
-+        for (dax = ndctl_dax_get_first(region); \
-+             dax != NULL; \
-+             dax = ndctl_dax_get_next(dax))
-+#define ndctl_dax_foreach_safe(region, dax, _dax) \
-+	for (dax = ndctl_dax_get_first(region), \
-+	     _dax = ndctl_dax_get_next(dax); \
-+	     dax != NULL; \
-+	     dax = _dax, \
-+	     _dax = _dax ? ndctl_dax_get_next(_dax) : NULL)
-+struct ndctl_dax *ndctl_region_get_dax_seed(struct ndctl_region *region);
-+struct ndctl_dax *ndctl_namespace_get_dax(struct ndctl_namespace *ndns);
-+struct ndctl_dax *ndctl_dax_get_first(struct ndctl_region *region);
-+struct ndctl_dax *ndctl_dax_get_next(struct ndctl_dax *dax);
-+unsigned int ndctl_dax_get_id(struct ndctl_dax *dax);
-+struct ndctl_namespace *ndctl_dax_get_namespace(struct ndctl_dax *dax);
-+void ndctl_dax_get_uuid(struct ndctl_dax *dax, uuid_t uu);
-+unsigned long long ndctl_dax_get_size(struct ndctl_dax *dax);
-+unsigned long long ndctl_dax_get_resource(struct ndctl_dax *dax);
-+int ndctl_dax_set_uuid(struct ndctl_dax *dax, uuid_t uu);
-+enum ndctl_pfn_loc ndctl_dax_get_location(struct ndctl_dax *dax);
-+int ndctl_dax_set_location(struct ndctl_dax *dax, enum ndctl_pfn_loc loc);
-+unsigned long ndctl_dax_get_align(struct ndctl_dax *dax);
-+int ndctl_dax_set_align(struct ndctl_dax *dax, unsigned long align);
-+int ndctl_dax_set_namespace(struct ndctl_dax *dax,
-+		struct ndctl_namespace *ndns);
-+struct ndctl_bus *ndctl_dax_get_bus(struct ndctl_dax *dax);
-+struct ndctl_ctx *ndctl_dax_get_ctx(struct ndctl_dax *dax);
-+const char *ndctl_dax_get_devname(struct ndctl_dax *dax);
-+int ndctl_dax_is_valid(struct ndctl_dax *dax);
-+int ndctl_dax_is_enabled(struct ndctl_dax *dax);
-+struct ndctl_region *ndctl_dax_get_region(struct ndctl_dax *dax);
-+int ndctl_dax_enable(struct ndctl_dax *dax);
-+int ndctl_dax_delete(struct ndctl_dax *dax);
-+int ndctl_dax_is_configured(struct ndctl_dax *dax);
-+
- #ifdef __cplusplus
- } /* extern "C" */
- #endif
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgorQUtBIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
+Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIHRhZ3MvbGlibnZkaW1tLWZvci00
+LjcKCi4uLnRvIHJlY2VpdmUgdGhlIGRldmljZSBkcml2ZXIgcmVsYXRlZCBudmRpbW0gdG9waWMg
+YnJhbmNoZXMgZm9yIDQuNy4KClRoZSBidWxrIG9mIHRoaXMgdXBkYXRlIHdhcyBzdGFiaWxpemVk
+IGJlZm9yZSB0aGUgbWVyZ2Ugd2luZG93IGFuZAphcHBlYXJlZCBpbiAtbmV4dC4gK0FLQS1UaGUg
+ImRldmljZSBkYXgiIGltcGxlbWVudGF0aW9uIHdhcyByZXZpc2VkIHRoaXMKd2VlayBpbiByZXNw
+b25zZSB0byByZXZpZXcgZmVlZGJhY2ssIGFuZCB0byBhZGRyZXNzIGZhaWx1cmVzIGRldGVjdGVk
+CmJ5IHRoZSByZWNlbnRseSBleHBhbmRlZCBuZGN0bCB1bml0IHRlc3Qgc3VpdGUuCgpOb3QgaW5j
+bHVkZWQgaW4gdGhpcyBwdWxsIHJlcXVlc3QgYXJlIHR3byBkYXggdG9waWMgYnJhbmNoZXMgKGRh
+eCBlcnJvcgpoYW5kbGluZywgYW5kIGRheCByYWRpeC10cmVlIGxvY2tpbmcpLiArQUtBLVRoZXNl
+IHRvcGljcyB3ZXJlIGRlZmVycmVkIHRvCmdldCBhIGZldyBtb3JlIGRheXMgb2YgLW5leHQgaW50
+ZWdyYXRpb24gdGVzdGluZywgYW5kIHRvIGNvb3JkaW5hdGUgYQpicmFuY2ggYmFzZWxpbmUgd2l0
+aCBUZWQgYW5kIHRoZSBleHQ0IHRyZWUuICtBS0EtVmlzaGFsIGFuZCBSb3NzIHdpbGwgc2VuZAp0
+aGUgZXJyb3IgaGFuZGxpbmcgYW5kIGxvY2tpbmcgdG9waWNzIHJlc3BlY3RpdmVseSBpbiB0aGUg
+bmV4dCBmZXcKZGF5cy4KClRoaXMgYnJhbmNoIGhhcyByZWNlaXZlZCBhIHBvc2l0aXZlIGJ1aWxk
+IHJlc3VsdCBmcm9tIHRoZSBrYnVpbGQgcm9ib3QKYWNyb3NzIDIyNiBjb25maWdzLgoKVGhlIGZv
+bGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCAxYjhkMmFmZGU1NGZhZGU5NDMzOWY1NzNjNGUw
+NTY0NGY5YWU5ODY2OgoKK0FLQSBsaWJudmRpbW0sIHBmbjogZml4IEFSQ0g9YWxwaGEgYWxsbW9k
+Y29uZmlnIGJ1aWxkIGZhaWx1cmUgKDIwMTYtMDUtMDYgMTA6MjA6MTAgLTA3MDApCgphcmUgYXZh
+aWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoKCitBS0EgZ2l0Oi8vZ2l0Lmtlcm5lbC5v
+cmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L252ZGltbS9udmRpbW0gdGFncy9saWJudmRpbW0t
+Zm9yLTQuNwoKZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIDM2MDkyZWU4YmE2OTVmY2Uw
+MjNiMjExOGVjZWNhNmMyYTU2YjEzMzE6CgorQUtBIE1lcmdlIGJyYW5jaCAnZm9yLTQuNy9kYXgn
+IGludG8gbGlibnZkaW1tLWZvci1uZXh0ICgyMDE2LTA1LTIxIDEyOjMzOjA0IC0wNzAwKQoKLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLQpsaWJudmRpbW0gZm9yIDQuNwoKMS8gRGV2aWNlIERBWCBmb3IgcGVyc2lzdGVudCBtZW1v
+cnk6CitBS0FBb0FDZy1EZXZpY2UgREFYIGlzIHRoZSBkZXZpY2UtY2VudHJpYyBhbmFsb2d1ZSBv
+ZiBGaWxlc3lzdGVtIERBWAorQUtBQW9BQ2coQ09ORklHX0ZTX0RBWCkuK0FLQUFvQS1JdCBhbGxv
+d3MgbWVtb3J5IHJhbmdlcyB0byBiZSBhbGxvY2F0ZWQgYW5kIG1hcHBlZAorQUtBQW9BQ2ctd2l0
+aG91dCBuZWVkIG9mIGFuIGludGVydmVuaW5nIGZpbGUgc3lzdGVtLitBS0FBb0EtRGV2aWNlIERB
+WCBpcyBzdHJpY3QsCitBS0FBb0FDZy1wcmVjaXNlIGFuZCBwcmVkaWN0YWJsZS4rQUtBQW9BLVNw
+ZWNpZmljYWxseSB0aGlzIGludGVyZmFjZToKCitBS0FBb0FDZy1hKSBHdWFyYW50ZWVzIGZhdWx0
+IGdyYW51bGFyaXR5IHdpdGggcmVzcGVjdCB0byBhIGdpdmVuIHBhZ2Ugc2l6ZQorQUtBQW9BQ2dB
+S0FBb0FDZyhwdGUsIHBtZCwgb3IgcHVkKSBzZXQgYXQgY29uZmlndXJhdGlvbiB0aW1lLgoKK0FL
+QUFvQUNnLWIpIEVuZm9yY2VzIGRldGVybWluaXN0aWMgYmVoYXZpb3IgYnkgYmVpbmcgc3RyaWN0
+IGFib3V0IHdoYXQgZmF1bHQKK0FLQUFvQUNnQUtBQW9BQ2ctc2NlbmFyaW9zIGFyZSBzdXBwb3J0
+ZWQuCgorQUtBQW9BQ2ctUGVyc2lzdGVudCBtZW1vcnkgaXMgdGhlIGZpcnN0IHRhcmdldCwgYnV0
+IHRoZSBtZWNoYW5pc20gaXMgYWxzbworQUtBQW9BQ2ctdGFyZ2V0ZWQgZm9yIGV4Y2x1c2l2ZSBh
+bGxvY2F0aW9ucyBvZiBwZXJmb3JtYW5jZS9mZWF0dXJlIGRpZmZlcmVudGlhdGVkCitBS0FBb0FD
+Zy1tZW1vcnkgcmFuZ2VzLgoKMi8gU3VwcG9ydCBmb3IgdGhlIEhQRSBEU00gKGRldmljZSBzcGVj
+aWZpYyBtZXRob2QpIGNvbW1hbmQgZm9ybWF0cy4KK0FLQUFvQUNnLVRoaXMgZW5hYmxlcyBtYW5h
+Z2VtZW50IG9mIHRoZXNlIGZpcnN0IGdlbmVyYXRpb24gZGV2aWNlcyB1bnRpbCBhCitBS0FBb0FD
+Zy11bmlmaWVkIERTTSBzcGVjaWZpY2F0aW9uIG1hdGVyaWFsaXplcy4KCjMvIEZ1cnRoZXIgQUNQ
+SSA2LjEgY29tcGxpYW5jZSB3aXRoIHN1cHBvcnQgZm9yIHRoZSBjb21tb24gZGltbQorQUtBQW9B
+Q2ctaWRlbnRpZmllciBmb3JtYXQuCgo0LyBWYXJpb3VzIGZpeGVzIGFuZCBjbGVhbnVwcyBhY3Jv
+c3MgdGhlIHN1YnN5c3RlbS4KCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRGFuIFdpbGxpYW1zICg0MCk6CitBS0FBb0FDZ0FL
+QUFvQUNnLWxpYm52ZGltbSwgbmZpdDogcmVwb3J0IG11bHRpcGxlIGludGVyZmFjZSBjb2RlcyBw
+ZXItZGltbQorQUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW0sIHRlc3Q6IGFkZCBtb2NrIFNNQVJU
+IGRhdGEgcGF5bG9hZAorQUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW0sIHBtZW06IGtpbGwgcG1l
+bS0+bmRucworQUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW0sIHBmbiwgY29udmVydCBuZF9wZm5f
+cHJvYmUoKSB0byBkZXZtCitBS0FBb0FDZ0FLQUFvQUNnLWxpYm52ZGltbSwgYnR0LCBjb252ZXJ0
+IG5kX2J0dF9wcm9iZSgpIHRvIGRldm0KK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBidHQ6
+IGFkZCBidHQgc3RhcnR1cCBkZWJ1ZworQUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW0sIGJsazog
+dXNlIGRldm1fYWRkX2FjdGlvbiB0byByZWxlYXNlIGJkZXYgcmVzb3VyY2VzCitBS0FBb0FDZ0FL
+QUFvQUNnLWxpYm52ZGltbSwgYmxrOiB1c2UgLT5xdWV1ZWRhdGEgZm9yIGRyaXZlciBwcml2YXRl
+IGRhdGEKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBwbWVtOiB1c2UgLT5xdWV1ZWRhdGEg
+Zm9yIGRyaXZlciBwcml2YXRlIGRhdGEKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBibGs6
+IHF1aWV0IGkvbyBlcnJvciByZXBvcnRpbmcKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBi
+bGs6IG1vdmUgaS9vIGluZnJhc3RydWN0dXJlIHRvIG5kX25hbWVzcGFjZV9ibGsKK0FLQUFvQUNn
+QUtBQW9BQ2ctbGlibnZkaW1tLCBwbWVtOiB1c2UgZGV2bV9hZGRfYWN0aW9uIHRvIHJlbGVhc2Ug
+YmRldiByZXNvdXJjZXMKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBwbWVtOiBjbGVhbiB1
+cCByZXNvdXJjZSBwcmludCAvIHJlcXVlc3QKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBw
+bWVtLCBwZm46IG1ha2UgcG1lbV9yd19ieXRlcyBnZW5lcmljIGFuZCByZWZhY3RvciBwZm4gc2V0
+dXAKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBwbWVtLCBwZm46IG1vdmUgcGZuIHNldHVw
+IHRvIHRoZSBjb3JlCitBS0FBb0FDZ0FLQUFvQUNnLWxpYm52ZGltbSwgcG1lbToga2lsbCAtPnBt
+ZW1fcXVldWUgYW5kIC0+cG1lbV9kaXNrCitBS0FBb0FDZ0FLQUFvQUNnLWxpYm52ZGltbTogY2xl
+YW51cCBudmRpbW1fbmFtZXNwYWNlX2NvbW1vbl9wcm9iZSgpLCBraWxsICdob3N0JworQUtBQW9B
+Q2dBS0FBb0FDZy1uZml0LCBsaWJudmRpbW06IGNsYXJpZnkgImNvbW1hbmRzIiB2cyAiX0RTTXMi
+CitBS0FBb0FDZ0FLQUFvQUNnLW5maXQsIGxpYm52ZGltbTogbGltaXRlZC93aGl0ZWxpc3RlZCBk
+aW1tIGNvbW1hbmQgbWFyc2hhbGluZyBtZWNoYW5pc20KK0FLQUFvQUNnQUtBQW9BQ2ctbmZpdDog
+Zml4IGZvcm1hdCBpbnRlcmZhY2UgY29kZSBieXRlIG9yZGVyIHBlciBBQ1BJNi4xCitBS0FBb0FD
+Z0FLQUFvQUNnLW5maXQ6IGV4cG9ydCBzdWJzeXN0ZW0gaWRzIGFzIGF0dHJpYnV0ZXMKK0FLQUFv
+QUNnQUtBQW9BQ2ctbmZpdDogZGlzYWJsZSB2ZW5kb3Igc3BlY2lmaWMgY29tbWFuZHMKK0FLQUFv
+QUNnQUtBQW9BQ2ctdG9vbHMvdGVzdGluZy9udmRpbW06IE5EX0NNRF9DQUxMIHN1cHBvcnQKK0FL
+QUFvQUNnQUtBQW9BQ2ctbmZpdDogYWRkIHN5c2ZzIGRpbW0gJ2ZhbWlseScgYW5kICdkc21fbWFz
+aycgYXR0cmlidXRlcworQUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW0sIGRheDogaW50cm9kdWNl
+IGRldmljZS1kYXggaW5mcmFzdHJ1Y3R1cmUKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBk
+YXg6IHJlc2VydmUgc3BhY2UgdG8gc3RvcmUgbGFiZWxzIGZvciBkZXZpY2UtZGF4CitBS0FBb0FD
+Z0FLQUFvQUNnLWxpYm52ZGltbSwgZGF4OiByZWNvcmQgdGhlIHNwZWNpZmllZCBhbGlnbm1lbnQg
+b2YgYSBkYXgtZGV2aWNlIGluc3RhbmNlCitBS0FBb0FDZ0FLQUFvQUNnLWxpYm52ZGltbTogc3Rv
+cCByZXF1aXJpbmcgYSBkcml2ZXIgLT5yZW1vdmUoKSBtZXRob2QKK0FLQUFvQUNnQUtBQW9BQ2ct
+TWVyZ2UgYnJhbmNoICdmb3ItNC43L2RheCcgaW50byBsaWJudmRpbW0tZm9yLW5leHQKK0FLQUFv
+QUNnQUtBQW9BQ2ctTWVyZ2UgYnJhbmNoICdmb3ItNC43L2xpYm52ZGltbScgaW50byBsaWJudmRp
+bW0tZm9yLW5leHQKK0FLQUFvQUNnQUtBQW9BQ2ctTWVyZ2UgYnJhbmNoICdmb3ItNC43L2RzbScg
+aW50byBsaWJudmRpbW0tZm9yLW5leHQKK0FLQUFvQUNnQUtBQW9BQ2ctTWVyZ2UgYnJhbmNoICdm
+b3ItNC43L2FjcGk2LjEnIGludG8gbGlibnZkaW1tLWZvci1uZXh0CitBS0FBb0FDZ0FLQUFvQUNn
+LS9kZXYvZGF4LCBwbWVtOiBkaXJlY3QgYWNjZXNzIHRvIHBlcnNpc3RlbnQgbWVtb3J5CitBS0FB
+b0FDZ0FLQUFvQUNnLS9kZXYvZGF4LCBjb3JlOiBmaWxlIG9wZXJhdGlvbnMgYW5kIGRheC1tbWFw
+CitBS0FBb0FDZ0FLQUFvQUNnLVJldmVydCAiYmxvY2s6IGVuYWJsZSBkYXggZm9yIHJhdyBibG9j
+ayBkZXZpY2VzIgorQUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW06IHJlbGVhc2UgaWRhIHJlc291
+cmNlcworQUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW0sIGRheDogYXV0b2RldGVjdCBzdXBwb3J0
+CitBS0FBb0FDZ0FLQUFvQUNnLWxpYm52ZGltbSwgZGF4OiBmaXggYWxpZ25tZW50IHZhbGlkYXRp
+b24KK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBkYXg6IGZpeCBkZWxldGlvbgorQUtBQW9B
+Q2dBS0FBb0FDZy1NZXJnZSBicmFuY2ggJ2Zvci00LjcvZGF4JyBpbnRvIGxpYm52ZGltbS1mb3It
+bmV4dAoKSmVycnkgSG9lbWFubiAoMik6CitBS0FBb0FDZ0FLQUFvQUNnLWFjcGk6IHdpZGVuIGFj
+cGlfZXZhbHVhdGVfZHNtKCkgcmV2aXNpb24gYW5kIGZ1bmN0aW9uLWluZGV4IGFyZ3VtZW50cwor
+QUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW06IGluY3JlYXNlIG1heCBlbnZlbG9wZSBzaXplIGZv
+ciBpb2N0bAoKTGVlLCBDaHVuLVlpICgxKToKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBu
+Zml0OiBVc2UgQUNQSV9TSUdfTkZJVCBpbnN0ZWFkIG9mIGhhcmQgY29kZWQgc3RyaW5nCgpUb3No
+aSBLYW5pICgyKToKK0FLQUFvQUNnQUtBQW9BQ2ctYWNwaS9uZml0OiBVcGRhdGUgbmZpdCBkcml2
+ZXIgdG8gY29tcGx5IHdpdGggQUNQSSA2LjEKK0FLQUFvQUNnQUtBQW9BQ2ctYWNwaS9uZml0OiBB
+ZGQgc3lzZnMgImlkIiBmb3IgTlZESU1NIElECgorQUtBLWJsb2NrL2lvY3RsLmMrQUtBQW9BQ2dB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0F8K0FL
+QUFvQS0zMiAtLS0KK0FLQS1kcml2ZXJzL0tjb25maWcrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2d8K0FLQUFvQUNnLTIgKy0KK0FLQS1kcml2
+ZXJzL01ha2VmaWxlK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FB
+b0FDZ0FLQUFvQXwrQUtBQW9BQ2ctMSArLQorQUtBLWRyaXZlcnMvYWNwaS9uZml0LmMrQUtBQW9B
+Q2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQXwgMjgyICstKy0rLSstKy0r
+LSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstLS0tCitBS0EtZHJpdmVycy9hY3BpL25m
+aXQuaCtBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BfCtBS0FB
+b0EtMzEgKy0rLS0KK0FLQS1kcml2ZXJzL2FjcGkvdXRpbHMuYytBS0FBb0FDZ0FLQUFvQUNnQUtB
+QW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBfCtBS0FBb0FDZy00ICstLQorQUtBLWRyaXZlcnMvZGF4
+L0tjb25maWcrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQXwr
+QUtBQW9BLTI2ICstKy0rLQorQUtBLWRyaXZlcnMvZGF4L01ha2VmaWxlK0FLQUFvQUNnQUtBQW9B
+Q2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0F8K0FLQUFvQUNnLTQgKy0KK0FLQS1kcml2ZXJz
+L2RheC9kYXguYytBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9B
+Q2dBS0F8IDU3NSArLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSst
+Ky0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstCitB
+S0EtZHJpdmVycy9kYXgvZGF4LmgrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FB
+b0FDZ0FLQUFvQUNnQUtBfCtBS0FBb0EtMjQgKy0rLSstCitBS0EtZHJpdmVycy9kYXgvcG1lbS5j
+K0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ3wgMTU4ICst
+Ky0rLSstKy0rLSstKy0rLSstKy0rLSstKy0KK0FLQS1kcml2ZXJzL252ZGltbS9LY29uZmlnK0FL
+QUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BfCtBS0FBb0EtMTMgKy0rLQorQUtB
+LWRyaXZlcnMvbnZkaW1tL01ha2VmaWxlK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNn
+QUtBfCtBS0FBb0FDZy0xICstCitBS0EtZHJpdmVycy9udmRpbW0vYmxrLmMrQUtBQW9BQ2dBS0FB
+b0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQXwgMjA4ICstKy0rLSstKy0rLSstKy0rLS0t
+LS0tLS0tLQorQUtBLWRyaXZlcnMvbnZkaW1tL2J0dC5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FD
+Z0FLQUFvQUNnQUtBQW9BQ2dBS0F8K0FLQUFvQS0yNiArLSstLQorQUtBLWRyaXZlcnMvbnZkaW1t
+L2J0dF9kZXZzLmMrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BfCtBS0FBb0EtMjQgKy0t
+LQorQUtBLWRyaXZlcnMvbnZkaW1tL2J1cy5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFv
+QUNnQUtBQW9BQ2dBS0F8K0FLQUFvQS02MyArLSstKy0rLSstLQorQUtBLWRyaXZlcnMvbnZkaW1t
+L2NsYWltLmMrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0F8K0FLQUFvQS04
+NiArLSstKy0rLSstKy0rLS0KK0FLQS1kcml2ZXJzL252ZGltbS9jb3JlLmMrQUtBQW9BQ2dBS0FB
+b0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ3wrQUtBQW9BQ2ctNSArLS0KK0FLQS1kcml2ZXJz
+L252ZGltbS9kYXhfZGV2cy5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQXwgMTM0ICst
+Ky0rLSstKy0rLSstKy0rLSstKy0rLQorQUtBLWRyaXZlcnMvbnZkaW1tL2RpbW1fZGV2cy5jK0FL
+QUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQXwrQUtBQW9BLTIzICstLQorQUtBLWRyaXZlcnMvbnZk
+aW1tL25hbWVzcGFjZV9kZXZzLmMrQUtBQW9BQ2dBS0FBb0F8K0FLQUFvQS0zOCArLSstLS0KK0FL
+QS1kcml2ZXJzL252ZGltbS9uZC1jb3JlLmgrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9B
+Q2d8K0FLQUFvQUNnLTYgKy0tCitBS0EtZHJpdmVycy9udmRpbW0vbmQuaCtBS0FBb0FDZ0FLQUFv
+QUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BfCtBS0FBb0EtODMgKy0rLSstKy0rLSst
+Ky0tCitBS0EtZHJpdmVycy9udmRpbW0vcGZuLmgrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtB
+QW9BQ2dBS0FBb0FDZ0FLQXwrQUtBQW9BQ2ctNSArLS0KK0FLQS1kcml2ZXJzL252ZGltbS9wZm5f
+ZGV2cy5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQXwgMzE1ICstKy0rLSstKy0rLSst
+Ky0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstLS0tLS0KK0FLQS1kcml2ZXJzL252ZGltbS9w
+bWVtLmMrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ3wgNDkzICstKy0r
+LSstKy0rLSstKy0rLSstLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCitBS0EtZHJp
+dmVycy9udmRpbW0vcmVnaW9uLmMrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0F8
+K0FLQUFvQUNnLTIgKy0KK0FLQS1kcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jK0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0F8K0FLQUFvQS0zNCArLSstKy0KK0FLQS1mcy9ibG9ja19kZXYuYytBS0FB
+b0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQXwr
+QUtBQW9BLTk2ICstKy0rLS0tLS0tLQorQUtBLWluY2x1ZGUvYWNwaS9hY3BpX2J1cy5oK0FLQUFv
+QUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBfCtBS0FBb0FDZy02ICstLQorQUtBLWluY2x1
+ZGUvbGludXgvZnMuaCtBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtB
+QW9BQ2d8K0FLQUFvQUNnLTggLQorQUtBLWluY2x1ZGUvbGludXgvbGlibnZkaW1tLmgrQUtBQW9B
+Q2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BfCtBS0FBb0FDZy03ICstLQorQUtBLWluY2x1ZGUvbGlu
+dXgvbmQuaCtBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2d8
+K0FLQUFvQS0xMSArLS0KK0FLQS1pbmNsdWRlL3VhcGkvbGludXgvZnMuaCtBS0FBb0FDZ0FLQUFv
+QUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQXwrQUtBQW9BQ2ctMSAtCitBS0EtaW5jbHVkZS91YXBpL2xp
+bnV4L25kY3RsLmgrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBfCtBS0FBb0EtODAgKy0rLSst
+Ky0rLSstLQorQUtBLW1tL2h1Z2VfbWVtb3J5LmMrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtB
+QW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BfCtBS0FBb0FDZy0xICstCitBS0EtbW0vaHVnZXRs
+Yi5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFv
+QUNnQUtBQW9BQ2d8K0FLQUFvQUNnLTEgKy0KK0FLQS10b29scy90ZXN0aW5nL252ZGltbS9LYnVp
+bGQrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnfCtBS0FBb0EtMTEgKy0KK0FLQS10b29scy90ZXN0
+aW5nL252ZGltbS9jb25maWdfY2hlY2suYyB8K0FLQUFvQUNnLTIgKy0KK0FLQS10b29scy90ZXN0
+aW5nL252ZGltbS90ZXN0L2lvbWFwLmMrQUtBQW9BQ2d8K0FLQUFvQS0yNyArLSstLQorQUtBLXRv
+b2xzL3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jK0FLQUFvQUNnQUtBfCtBS0FBb0EtOTAgKy0r
+LSstKy0rLSstLS0KK0FLQS00MiBmaWxlcyBjaGFuZ2VkLCAyMjUyIGluc2VydGlvbnMoKy0pLCA3
+ODcgZGVsZXRpb25zKC0pCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
+ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
