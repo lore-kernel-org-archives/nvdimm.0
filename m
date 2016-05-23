@@ -1,19 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5009.houston.hp.com (g9t5009.houston.hp.com [15.240.92.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EE90B1A1E98
- for <linux-nvdimm@lists.01.org>; Thu,  5 May 2016 11:01:38 -0700 (PDT)
-Date: Thu, 5 May 2016 12:01:35 -0600
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: Re: [PATCH v11 2/5] nfit, libnvdimm: limited/whitelisted dimm
- command marshaling mechanism
-Message-ID: <20160505180135.GD6808@tevye.fc.hp.com>
-References: <146189774241.29835.12947278159500915461.stgit@dwillia2-desk3.amr.corp.intel.com>
- <146189775335.29835.217177508880335589.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 7D76B1A1E0F
+ for <linux-nvdimm@lists.01.org>; Mon, 23 May 2016 16:52:06 -0700 (PDT)
+Date: Mon, 23 May 2016 17:51:43 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [GIT PULL] dax-misc for 4.7
+Message-ID: <20160523235143.GD17835@omniknight.lm.intel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <146189775335.29835.217177508880335589.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,250 +15,128 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Reply-To: Jerry.Hoemann@hpe.com
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>, linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Apr 28, 2016 at 07:42:33PM -0700, Dan Williams wrote:
+Hi Linus, please pull from:
 
-...
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/dax-misc-for-4.7
 
+...to receive the dax error handling topic branch for 4.7.
 
-> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index 1b98e9dc6138..710d3a07d178 100644
-> --- a/drivers/acpi/nfit.c
-> +++ b/drivers/acpi/nfit.c
-> @@ -171,33 +171,46 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
->  		unsigned int buf_len, int *cmd_rc)
->  {
->  	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
-> -	const struct nd_cmd_desc *desc = NULL;
->  	union acpi_object in_obj, in_buf, *out_obj;
-> +	const struct nd_cmd_desc *desc = NULL;
->  	struct device *dev = acpi_desc->dev;
-> +	struct nd_cmd_pkg *call_pkg = NULL;
->  	const char *cmd_name, *dimm_name;
-> -	unsigned long cmd_mask;
-> +	unsigned long cmd_mask, dsm_mask;
->  	acpi_handle handle;
-> +	unsigned int func;
->  	const u8 *uuid;
->  	u32 offset;
->  	int rc, i;
->  
-> +	func = cmd;
-> +	if (cmd == ND_CMD_CALL) {
-> +		call_pkg = buf;
-> +		func = call_pkg->nd_command;
-> +	}
-> +
->  	if (nvdimm) {
->  		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
->  		struct acpi_device *adev = nfit_mem->adev;
->  
->  		if (!adev)
->  			return -ENOTTY;
-> +		if (call_pkg && nfit_mem->family != call_pkg->nd_family)
-> +			return -ENOTTY;
-> +
->  		dimm_name = nvdimm_name(nvdimm);
->  		cmd_name = nvdimm_cmd_name(cmd);
->  		cmd_mask = nvdimm_cmd_mask(nvdimm);
-> +		dsm_mask = nfit_mem->dsm_mask;
->  		desc = nd_cmd_dimm_desc(cmd);
-> -		uuid = to_nfit_uuid(NFIT_DEV_DIMM);
-> +		uuid = to_nfit_uuid(nfit_mem->family);
->  		handle = adev->handle;
->  	} else {
->  		struct acpi_device *adev = to_acpi_dev(acpi_desc);
->  
->  		cmd_name = nvdimm_bus_cmd_name(cmd);
->  		cmd_mask = nd_desc->cmd_mask;
-> +		dsm_mask = cmd_mask;
->  		desc = nd_cmd_bus_desc(cmd);
->  		uuid = to_nfit_uuid(NFIT_DEV_BUS);
->  		handle = adev->handle;
-> @@ -207,7 +220,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
->  	if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
->  		return -ENOTTY;
->  
-> -	if (!test_bit(cmd, &cmd_mask))
-> +	if (!test_bit(cmd, &cmd_mask) || !test_bit(func, &dsm_mask))
->  		return -ENOTTY;
->  
->  	in_obj.type = ACPI_TYPE_PACKAGE;
-> @@ -222,21 +235,44 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
->  		in_buf.buffer.length += nd_cmd_in_size(nvdimm, cmd, desc,
->  				i, buf);
->  
-> +	if (call_pkg) {
-> +		/* skip over package wrapper */
-> +		in_buf.buffer.pointer = (void *) &call_pkg->nd_payload;
-> +		in_buf.buffer.length = call_pkg->nd_size_in;
-> +	}
-> +
->  	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
-> -		dev_dbg(dev, "%s:%s cmd: %s input length: %d\n", __func__,
-> -				dimm_name, cmd_name, in_buf.buffer.length);
-> -		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
-> -				4, in_buf.buffer.pointer, min_t(u32, 128,
-> -					in_buf.buffer.length), true);
-> +		dev_dbg(dev, "%s:%s cmd: %d: func: %d input length: %d\n",
-> +				__func__, dimm_name, cmd, func,
-> +				in_buf.buffer.length);
-> +		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
-> +			in_buf.buffer.pointer,
-> +			min_t(u32, 256, in_buf.buffer.length), true);
->  	}
->  
-> -	out_obj = acpi_evaluate_dsm(handle, uuid, 1, cmd, &in_obj);
-> +	out_obj = acpi_evaluate_dsm(handle, uuid, 1, func, &in_obj);
->  	if (!out_obj) {
->  		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
->  				cmd_name);
->  		return -EINVAL;
->  	}
->  
-> +	if (call_pkg) {
-> +		call_pkg->nd_fw_size = out_obj->buffer.length;
-> +		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
-> +			out_obj->buffer.pointer,
-> +			min(call_pkg->nd_fw_size, call_pkg->nd_size_out));
-> +
-> +		ACPI_FREE(out_obj);
-> +		/*
-> +		 * Need to support FW function w/o known size in advance.
-> +		 * Caller can determine required size based upon nd_fw_size.
-> +		 * If call erroed (like elsewhere) then caller wouldn't
-                           ^^^^^^^
-			typo:  returned error?
+Most of these changes have been stable since before the merge window, but getting
+the different trees/patchsets integrated into this topic branch took a couple more
+days. These have also been in linux-next for almost a week, and have received a
+positive 0day notification for a successful build for 118 configs.
+
+Note that this branch depends on Ted's ext4 dev branch, and should be merged after
+that. The pull request is based on this branch so that the shortlog and diffstat
+look correct.
+
+The merge with libnvdimm-for-next will cause a conflict, and I have a branch
+with the expected resolution at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-for-4.7-merge
+
+Notably, the automatic merge ends up with two copies of a function in fs/block_dev.c
+blkdev_dax_capable(), and bdev_dax_capable(), where blkdev_dax_capable is unused, and
+should be removed [1].
+
+[1]: http://www.spinics.net/lists/kernel/msg2258671.html
 
 
+The following changes since commit 12735f881952c32b31bc4e433768f18489f79ec9:
 
-> +		 * be able to rely upon data returned to make calculation.
-> +		 */
-> +		return 0;
-> +	}
-> +
->  	if (out_obj->package.type != ACPI_TYPE_BUFFER) {
->  		dev_dbg(dev, "%s:%s unexpected output object type cmd: %s type: %d\n",
->  				__func__, dimm_name, cmd_name, out_obj->type);
-> @@ -923,11 +959,13 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
->  {
->  	struct acpi_device *adev, *adev_dimm;
->  	struct device *dev = acpi_desc->dev;
-> -	const u8 *uuid = to_nfit_uuid(NFIT_DEV_DIMM);
-> +	unsigned long dsm_mask;
-> +	const u8 *uuid;
->  	int i;
->  
->  	/* nfit test assumes 1:1 relationship between commands and dsms */
->  	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
-> +	nfit_mem->family = NVDIMM_FAMILY_INTEL;
->  	adev = to_acpi_dev(acpi_desc);
->  	if (!adev)
->  		return 0;
-> @@ -940,7 +978,31 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
->  		return force_enable_dimms ? 0 : -ENODEV;
->  	}
->  
-> -	for (i = ND_CMD_SMART; i <= ND_CMD_VENDOR; i++)
-> +	/*
-> +	 * Until standardization materializes we need to consider up to 3
-> +	 * different command sets.  Note, that checking for function0 (bit0)
-> +	 * tells us if any commands are reachable through this uuid.
-> +	 */
-> +	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
-> +		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
-> +			break;
-> +
-> +	/* limit the supported commands to those that are publicly documented */
-> +	nfit_mem->family = i;
-> +	if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
-> +		dsm_mask = 0x3fe;
-> +	else if (nfit_mem->family == NVDIMM_FAMILY_HPE1)
-> +		dsm_mask = 0x1c3c76;
+  ext4: pre-zero allocated blocks for DAX IO (2016-05-13 00:51:15 -0400)
 
+are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/dax-misc-for-4.7
 
-			^ Missing defined function 0.
+for you to fetch changes up to 40543f62cbdce42633e3fe10923099feee272e1f:
 
+  dax: fix a comment in dax_zero_page_range and dax_truncate_page (2016-05-18 12:16:58 -0600)
 
+----------------------------------------------------------------
+DAX error handling for 4.7
 
-> +	else if (nfit_mem->family == NVDIMM_FAMILY_HPE2)
-> +		dsm_mask = 0x1fe;
+- Until now, dax has been disabled if media errors were found on
+  any device. This enables the use of DAX in the presence of these
+  errors by making all sector-aligned zeroing go through the driver.
+- The driver (already) has the ability to clear errors on writes that
+  are sent through the block layer using 'DSMs' defined in ACPI 6.1.
 
+Other misc changes:
 
+- When mounting DAX filesystems, check to make sure the partition
+  is page aligned. This is a requirement for DAX, and previously, we
+  allowed such unaligned mounts to succeed, but subsequent reads/writes
+  would fail.
 
+- Misc/cleanup fixes from Jan that remove unused code from DAX related to
+  zeroing, writeback, and some size checks.
 
-			^ Missing defined function 0.
+----------------------------------------------------------------
+Christoph Hellwig (1):
+      dax: export a low-level __dax_zero_page_range helper
 
+Dan Williams (2):
+      dax: fallback from pmd to pte on error
+      dax: enable dax in the presence of known media errors (badblocks)
 
+Jan Kara (7):
+      dax: Remove complete_unwritten argument
+      ext2: Fix block zeroing in ext2_get_blocks() for DAX
+      ext2: Avoid DAX zeroing to corrupt data
+      dax: Remove dead zeroing code from fault handlers
+      dax: Remove zeroing from dax_io()
+      dax: Remove pointless writeback from dax_do_io()
+      dax: Remove redundant inode size checks
 
-> +	else {
-> +		dev_err(dev, "unknown dimm command family\n");
-> +		nfit_mem->family = -1;
-> +		return force_enable_dimms ? 0 : -ENODEV;
-> +	}
-> +
-> +	uuid = to_nfit_uuid(nfit_mem->family);
-> +	for_each_set_bit(i, &dsm_mask, BITS_PER_LONG)
->  		if (acpi_check_dsm(adev_dimm->handle, uuid, 1, 1ULL << i))
->  			set_bit(i, &nfit_mem->dsm_mask);
->  
-> @@ -953,8 +1015,8 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
->  	int dimm_count = 0;
->  
->  	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-> +		unsigned long flags = 0, cmd_mask;
->  		struct nvdimm *nvdimm;
-> -		unsigned long flags = 0;
->  		u32 device_handle;
->  		u16 mem_flags;
->  		int rc;
-> @@ -978,12 +1040,17 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
->  			continue;
->  
->  		/*
-> -		 * For now there is 1:1 relationship between cmd_mask and
-> -		 * dsm_mask.
-> +		 * TODO: provide translation for non-NVDIMM_FAMILY_INTEL
-> +		 * devices (i.e. from nd_cmd to acpi_dsm) to standardize the
-> +		 * userspace interface.
->  		 */
-> +		cmd_mask = 1UL << ND_CMD_CALL;
-> +		if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
-> +			cmd_mask |= nfit_mem->dsm_mask;
-> +
->  		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
->  				acpi_nfit_dimm_attribute_groups,
-> -				flags, nfit_mem->dsm_mask);
-> +				flags, cmd_mask);
->  		if (!nvdimm)
->  			return -ENOMEM;
->  
-> @@ -2468,6 +2535,8 @@ static __init int nfit_init(void)
->  	acpi_str_to_uuid(UUID_PERSISTENT_VIRTUAL_CD, nfit_uuid[NFIT_SPA_PCD]);
->  	acpi_str_to_uuid(UUID_NFIT_BUS, nfit_uuid[NFIT_DEV_BUS]);
->  	acpi_str_to_uuid(UUID_NFIT_DIMM, nfit_uuid[NFIT_DEV_DIMM]);
-> +	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE1, nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
-> +	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE2, nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
->  
->  	nfit_wq = create_singlethread_workqueue("nfit");
->  	if (!nfit_wq)
+Matthew Wilcox (1):
+      dax: use sb_issue_zerout instead of calling dax_clear_sectors
 
-...
+NeilBrown (1):
+      DAX: move RADIX_DAX_ definitions to dax.c
 
--- 
+Toshi Kani (6):
+      block: Add vfs_msg() interface
+      block: Add bdev_dax_supported() for dax mount checks
+      ext4: Add alignment check for DAX mount
+      ext2: Add alignment check for DAX mount
+      xfs: Add alignment check for DAX mount
+      block: Update blkdev_dax_capable() for consistency
 
------------------------------------------------------------------------------
-Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
------------------------------------------------------------------------------
+Vishal Verma (2):
+      dax: for truncate/hole-punch, do zeroing through the driver if possible
+      dax: fix a comment in dax_zero_page_range and dax_truncate_page
+
+ Documentation/filesystems/dax.txt |  32 +++++
+ arch/powerpc/sysdev/axonram.c     |   2 +-
+ block/ioctl.c                     |  30 -----
+ drivers/block/brd.c               |   2 +-
+ drivers/nvdimm/pmem.c             |  10 +-
+ drivers/s390/block/dcssblk.c      |   4 +-
+ fs/block_dev.c                    |  91 ++++++++++++-
+ fs/dax.c                          | 266 +++++++++++---------------------------
+ fs/ext2/file.c                    |   4 +-
+ fs/ext2/inode.c                   |  12 +-
+ fs/ext2/super.c                   |  11 +-
+ fs/ext4/file.c                    |   4 +-
+ fs/ext4/super.c                   |  11 +-
+ fs/xfs/xfs_bmap_util.c            |  15 +--
+ fs/xfs/xfs_file.c                 |   7 +-
+ fs/xfs/xfs_super.c                |  12 +-
+ include/linux/blkdev.h            |  15 ++-
+ include/linux/dax.h               |  25 ++--
+ include/linux/fs.h                |   9 --
+ include/linux/radix-tree.h        |   9 --
+ 20 files changed, 257 insertions(+), 314 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
