@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from cloudserver094114.home.net.pl (cloudserver094114.home.net.pl
- [79.96.170.134]) by ml01.01.org (Postfix) with SMTP id B64861A1F9C
- for <linux-nvdimm@lists.01.org>; Sat, 28 May 2016 05:09:35 -0700 (PDT)
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: IS_ERR_VALUE misuses
-Date: Sat, 28 May 2016 14:13:07 +0200
-Message-ID: <7925824.43sdZ8TD9E@vostro.rjw.lan>
-In-Reply-To: <CA+55aFyi8_m0EJGcChe_SW_zzJUTJjPJjhEFbJzEL3gyhFNDLQ@mail.gmail.com>
-References: <CA+55aFyi8_m0EJGcChe_SW_zzJUTJjPJjhEFbJzEL3gyhFNDLQ@mail.gmail.com>
+Received: from mail-oi0-x22d.google.com (mail-oi0-x22d.google.com
+ [IPv6:2607:f8b0:4003:c06::22d])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 944881A1EDC
+ for <linux-nvdimm@lists.01.org>; Fri, 27 May 2016 13:45:44 -0700 (PDT)
+Received: by mail-oi0-x22d.google.com with SMTP id w184so184761319oiw.2
+ for <linux-nvdimm@lists.01.org>; Fri, 27 May 2016 13:45:32 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4hpZENy-bh_4a_fAar3Ufe4g6Fxd2mpazCYn_xQJAwxKg@mail.gmail.com>
+References: <CA+55aFyi8_m0EJGcChe_SW_zzJUTJjPJjhEFbJzEL3gyhFNDLQ@mail.gmail.com>
+ <CAPcyv4hpZENy-bh_4a_fAar3Ufe4g6Fxd2mpazCYn_xQJAwxKg@mail.gmail.com>
+Date: Fri, 27 May 2016 13:45:31 -0700
+Message-ID: <CAPcyv4immsBDL2vwZnN9QsfCaqKSLShKf-q2vPgw_mDVrTcPcA@mail.gmail.com>
+Subject: Re: IS_ERR_VALUE misuses
+From: Dan Williams <dan.j.williams@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,63 +22,90 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, srinivas.kandagatla@linaro.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Friday, May 27, 2016 01:15:12 PM Linus Torvalds wrote:
-> This is just a heads-up: for some reason the acpi layer and nvdimm use
-> the IS_ERR_VALUE() macro, and they use it incorrectly.
-> 
-> To see warnings about it, change the macro from
-> 
-> #define IS_ERR_VALUE(x) unlikely((x) >= (unsigned long)-MAX_ERRNO)
-> 
-> to do a cast to a pointer and back (ie make the "(x)" part be
-> "(unsigned long)(void *)(x)" instead, which then will cause warnings
-> like
-> 
->   warning: cast to pointer from integer of different size
-> [-Wint-to-pointer-cast]
-> 
-> when passed an "int" argument.
-> 
-> The reason "int" arguments are wrong is that the macro really is
-> designed to test the upper range of a pointer value. It happens to
-> work for signed integers too, but looking at the users, pretty much
-> none of them are right. The ACPI and nvdimm users are all about the
-> perfectly standard "zero for success, negative error code for
-> failure", and so using
-> 
->     if (IS_ERROR_VALUE(rc))
->         return rc;
-> 
-> is just plain garbage. The code generally should just do
-> 
->     if (rc)
->         return rc;
-> 
-> which is simpler, smaller, and generates better code.
-> 
-> This bug seems to have been so common in the power management code
-> that we even have a coccinelle script for it. But for some reason
-> several uses remain in acpi_debug.c and now there are cases in
-> drivers/nvdimm/ too.
-> 
-> There are random various crap cases like that elsewhere too, but acpi
-> and nvdimm were just more dense with this bug than most other places.
-
-Under drivers/acpi/ I could only find IS_ERR_VALUE() in acpi_dbg.c, but
-those instances should be removed by the Arnd's patch if I'm not mistaken.
-
-Thanks,
-Rafael
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+WyBBZGRpbmcgU3Jpbml2YXMgXQoKT24gRnJpLCBNYXkgMjcsIDIwMTYgYXQgMTo0MSBQTSwgRGFu
+IFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+IHdyb3RlOgo+IE9uIEZyaSwgTWF5
+IDI3LCAyMDE2IGF0IDE6MTUgUE0sIExpbnVzIFRvcnZhbGRzCj4gPHRvcnZhbGRzQGxpbnV4LWZv
+dW5kYXRpb24ub3JnPiB3cm90ZToKPj4gVGhpcyBpcyBqdXN0IGEgaGVhZHMtdXA6IGZvciBzb21l
+IHJlYXNvbiB0aGUgYWNwaSBsYXllciBhbmQgbnZkaW1tIHVzZQo+PiB0aGUgSVNfRVJSX1ZBTFVF
+KCkgbWFjcm8sIGFuZCB0aGV5IHVzZSBpdCBpbmNvcnJlY3RseS4KPj4KPj4gVG8gc2VlIHdhcm5p
+bmdzIGFib3V0IGl0LCBjaGFuZ2UgdGhlIG1hY3JvIGZyb20KPj4KPj4gI2RlZmluZSBJU19FUlJf
+VkFMVUUoeCkgdW5saWtlbHkoKHgpID49ICh1bnNpZ25lZCBsb25nKS1NQVhfRVJSTk8pCj4+Cj4+
+IHRvIGRvIGEgY2FzdCB0byBhIHBvaW50ZXIgYW5kIGJhY2sgKGllIG1ha2UgdGhlICIoeCkiIHBh
+cnQgYmUKPj4gIih1bnNpZ25lZCBsb25nKSh2b2lkICopKHgpIiBpbnN0ZWFkLCB3aGljaCB0aGVu
+IHdpbGwgY2F1c2Ugd2FybmluZ3MKPj4gbGlrZQo+Pgo+PiAgIHdhcm5pbmc6IGNhc3QgdG8gcG9p
+bnRlciBmcm9tIGludGVnZXIgb2YgZGlmZmVyZW50IHNpemUKPj4gWy1XaW50LXRvLXBvaW50ZXIt
+Y2FzdF0KPj4KPj4gd2hlbiBwYXNzZWQgYW4gImludCIgYXJndW1lbnQuCj4+Cj4+IFRoZSByZWFz
+b24gImludCIgYXJndW1lbnRzIGFyZSB3cm9uZyBpcyB0aGF0IHRoZSBtYWNybyByZWFsbHkgaXMK
+Pj4gZGVzaWduZWQgdG8gdGVzdCB0aGUgdXBwZXIgcmFuZ2Ugb2YgYSBwb2ludGVyIHZhbHVlLiBJ
+dCBoYXBwZW5zIHRvCj4+IHdvcmsgZm9yIHNpZ25lZCBpbnRlZ2VycyB0b28sIGJ1dCBsb29raW5n
+IGF0IHRoZSB1c2VycywgcHJldHR5IG11Y2gKPj4gbm9uZSBvZmRyaXZlcnMvbnZtZW0gdGhlbSBh
+cmUgcmlnaHQuIFRoZSBBQ1BJIGFuZCBudmRpbW0gdXNlcnMgYXJlIGFsbCBhYm91dCB0aGUKPj4g
+cGVyZmVjdGx5IHN0YW5kYXJkICJ6ZXJvIGZvciBzdWNjZXNzLCBuZWdhdGl2ZSBlcnJvciBjb2Rl
+IGZvcgo+PiBmYWlsdXJlIiwgYW5kIHNvIHVzaW5nCj4+Cj4+ICAgICBpZiAoSVNfRVJST1JfVkFM
+VUUocmMpKQo+PiAgICAgICAgIHJldHVybiByYzsKPj4KPj4gaXMganVzdCBwbGFpbiBnYXJiYWdl
+LiBUaGUgY29kZSBnZW5lcmFsbHkgc2hvdWxkIGp1c3QgZG8KPj4KPj4gICAgIGlmIChyYykKPj4g
+ICAgICAgICByZXR1cm4gcmM7Cj4+Cj4+IHdoaWNoIGlzIHNpbXBsZXIsIHNtYWxsZXIsIGFuZCBn
+ZW5lcmF0ZXMgYmV0dGVyIGNvZGUuCj4+Cj4+IFRoaXMgYnVnIHNlZW1zIHRvIGhhdmUgYmVlbiBz
+byBjb21tb24gaW4gdGhlIHBvd2VyIG1hbmFnZW1lbnQgY29kZQo+PiB0aGF0IHdlIGV2ZW4gaGF2
+ZSBhIGNvY2NpbmVsbGUgc2NyaXB0IGZvciBpdC4gQnV0IGZvciBzb21lIHJlYXNvbgo+PiBzZXZl
+cmFsIHVzZXMgcmVtYWluIGluIGFjcGlfZGVidWcuYyBhbmQgbm93IHRoZXJlIGFyZSBjYXNlcyBp
+bgo+PiBkcml2ZXJzL252ZGltbS8gdG9vLgo+Pgo+PiBUaGVyZSBhcmUgcmFuZG9tIHZhcmlvdXMg
+Y3JhcCBjYXNlcyBsaWtlIHRoYXQgZWxzZXdoZXJlIHRvbywgYnV0IGFjcGkKPj4gYW5kIG52ZGlt
+bSB3ZXJlIGp1c3QgbW9yZSBkZW5zZSB3aXRoIHRoaXMgYnVnIHRoYW4gbW9zdCBvdGhlciBwbGFj
+ZXMuCj4+Cj4+IFRoZSBidWcgaXNuJ3QgZmF0YWwgLSBhcyBtZW50aW9uZWQsIElTX0VSUk9SX1ZB
+TFVFKCkgX2RvZXNfIGFjdHVhbGx5Cj4+IHdvcmsgb24gdGhlIHJhbmdlIG9mIGludGVnZXJzIHRo
+YXQgYXJlIG5vcm1hbCBlcnJvcnMsIGJ1dCBpdCdzCj4+IHBvaW50bGVzcyBhbmQgYWN0aXZlbHkg
+bWlzbGVhZGluZywgYW5kIGl0J3Mgbm90IG1lYW50IGZvciB0aGF0IHVzZS4gU28KPj4gaXQganVz
+dCBhZGRzIGNvbXBsZXhpdHkgYW5kIHdvcnNlIGNvZGUgZ2VuZXJhdGlvbiBmb3Igbm8gYWN0dWFs
+IGdhaW4uCj4+Cj4+IEkgbm90aWNlZCB0aGlzIHdoZW4gSSB3YXMgbG9va2luZyBhdCBzaW1pbGFy
+IGlkaW9jeSBpbiBmcy9nZnMyLCB3aGVyZQo+PiB0aGUgY29kZSBpbiBxdWVzdGlvbiBjYXVzZWQg
+d2FybmluZ3MgKGZvciBvdGhlciByZWFzb25zLCBidXQgdGhlIG1haW4KPj4gcmVhc29uIHdhcyAi
+Y29kZSB0b28gY29tcGxleCBmb3IgZ2NjIHRvIHVuZGVyc3RhbmQgaXQiKQo+Pgo+Cj4gU28sIEkg
+cmVjb21waWxlZCB3aXRoIHRoYXQgY2hhbmdlIGFuZCBkaWRuJ3Qgc2VlIGFueSBuZXcgd2Fybmlu
+Z3MuCj4gV2hpbGUgIm1ha2UgY29jY2ljaGVjayIgZGlkIHBvaW50IG91dCB0aGUgZm9sbG93aW5n
+IGNsZWFuIHVwLCBJIGRpZAo+IG5vdCBzZWUgd2hlcmUgZHJpdmVycy9udmRpbW0vIHBhc3NlcyBh
+bnl0aGluZyBidXQgYSBwb2ludGVyIHRvIElTX0VSUiwKPiB3aGF0IGFtIEkgbWlzc2luZz8KCgpB
+aCwgaXQgbG9va3MgbGlrZSB0aGlzIGZlZWRiYWNrIGlzIG1lYW50IGZvciBkcml2ZXJzL252bWVt
+LyBub3QgZHJpdmVycy9udmRpbW0vCgpkcml2ZXJzL252bWVtL2NvcmUuYzogSW4gZnVuY3Rpb24g
+4oCYYmluX2F0dHJfbnZtZW1fcmVhZOKAmToKZHJpdmVycy9udm1lbS9jb3JlLmM6MTE2OjQxOiB3
+YXJuaW5nOiBjYXN0IHRvIHBvaW50ZXIgZnJvbSBpbnRlZ2VyIG9mCmRpZmZlcmVudCBzaXplIFst
+V2ludC10by1wb2ludGVyLWNhc3RdCmRyaXZlcnMvbnZtZW0vY29yZS5jOiBJbiBmdW5jdGlvbiDi
+gJhiaW5fYXR0cl9udm1lbV93cml0ZeKAmToKZHJpdmVycy9udm1lbS9jb3JlLmM6MTUwOjQxOiB3
+YXJuaW5nOiBjYXN0IHRvIHBvaW50ZXIgZnJvbSBpbnRlZ2VyIG9mCmRpZmZlcmVudCBzaXplIFst
+V2ludC10by1wb2ludGVyLWNhc3RdCmRyaXZlcnMvbnZtZW0vY29yZS5jOiBJbiBmdW5jdGlvbiDi
+gJhudm1lbV9hZGRfY2VsbHPigJk6CmRyaXZlcnMvbnZtZW0vY29yZS5jOjM2OTo0Mjogd2Fybmlu
+ZzogY2FzdCB0byBwb2ludGVyIGZyb20gaW50ZWdlciBvZgpkaWZmZXJlbnQgc2l6ZSBbLVdpbnQt
+dG8tcG9pbnRlci1jYXN0XQpkcml2ZXJzL252bWVtL2NvcmUuYzogSW4gZnVuY3Rpb24g4oCYX19u
+dm1lbV9jZWxsX3JlYWTigJk6CmRyaXZlcnMvbnZtZW0vY29yZS5jOjk2Njo0MTogd2FybmluZzog
+Y2FzdCB0byBwb2ludGVyIGZyb20gaW50ZWdlciBvZgpkaWZmZXJlbnQgc2l6ZSBbLVdpbnQtdG8t
+cG9pbnRlci1jYXN0XQpkcml2ZXJzL252bWVtL2NvcmUuYzogSW4gZnVuY3Rpb24g4oCYbnZtZW1f
+Y2VsbF9yZWFk4oCZOgpkcml2ZXJzL252bWVtL2NvcmUuYzoxMDAxOjQxOiB3YXJuaW5nOiBjYXN0
+IHRvIHBvaW50ZXIgZnJvbSBpbnRlZ2VyIG9mCmRpZmZlcmVudCBzaXplIFstV2ludC10by1wb2lu
+dGVyLWNhc3RdCmRyaXZlcnMvbnZtZW0vY29yZS5jOiBJbiBmdW5jdGlvbiDigJhudm1lbV9jZWxs
+X3dyaXRl4oCZOgpkcml2ZXJzL252bWVtL2NvcmUuYzoxMDg2OjQxOiB3YXJuaW5nOiBjYXN0IHRv
+IHBvaW50ZXIgZnJvbSBpbnRlZ2VyIG9mCmRpZmZlcmVudCBzaXplIFstV2ludC10by1wb2ludGVy
+LWNhc3RdCmRyaXZlcnMvbnZtZW0vY29yZS5jOiBJbiBmdW5jdGlvbiDigJhudm1lbV9kZXZpY2Vf
+Y2VsbF9yZWFk4oCZOgpkcml2ZXJzL252bWVtL2NvcmUuYzoxMTE0OjQxOiB3YXJuaW5nOiBjYXN0
+IHRvIHBvaW50ZXIgZnJvbSBpbnRlZ2VyIG9mCmRpZmZlcmVudCBzaXplIFstV2ludC10by1wb2lu
+dGVyLWNhc3RdCmRyaXZlcnMvbnZtZW0vY29yZS5jOjExMTg6NDE6IHdhcm5pbmc6IGNhc3QgdG8g
+cG9pbnRlciBmcm9tIGludGVnZXIgb2YKZGlmZmVyZW50IHNpemUgWy1XaW50LXRvLXBvaW50ZXIt
+Y2FzdF0KZHJpdmVycy9udm1lbS9jb3JlLmM6IEluIGZ1bmN0aW9uIOKAmG52bWVtX2RldmljZV9j
+ZWxsX3dyaXRl4oCZOgpkcml2ZXJzL252bWVtL2NvcmUuYzoxMTQ0OjQxOiB3YXJuaW5nOiBjYXN0
+IHRvIHBvaW50ZXIgZnJvbSBpbnRlZ2VyIG9mCmRpZmZlcmVudCBzaXplIFstV2ludC10by1wb2lu
+dGVyLWNhc3RdCmRyaXZlcnMvbnZtZW0vY29yZS5jOiBJbiBmdW5jdGlvbiDigJhudm1lbV9kZXZp
+Y2VfcmVhZOKAmToKZHJpdmVycy9udm1lbS9jb3JlLmM6MTE3Mzo0MTogd2FybmluZzogY2FzdCB0
+byBwb2ludGVyIGZyb20gaW50ZWdlciBvZgpkaWZmZXJlbnQgc2l6ZSBbLVdpbnQtdG8tcG9pbnRl
+ci1jYXN0XQpkcml2ZXJzL252bWVtL2NvcmUuYzogSW4gZnVuY3Rpb24g4oCYbnZtZW1fZGV2aWNl
+X3dyaXRl4oCZOgpkcml2ZXJzL252bWVtL2NvcmUuYzoxMjAxOjQxOiB3YXJuaW5nOiBjYXN0IHRv
+IHBvaW50ZXIgZnJvbSBpbnRlZ2VyIG9mCmRpZmZlcmVudCBzaXplIFstV2ludC10by1wb2ludGVy
+LWNhc3RdCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
+bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
+L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
