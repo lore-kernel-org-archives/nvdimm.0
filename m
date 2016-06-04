@@ -1,12 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 33A9C1A1E50
- for <linux-nvdimm@lists.01.org>; Sat,  4 Jun 2016 13:54:02 -0700 (PDT)
-Subject: [PATCH 05/13] tools/testing/nvdimm: simulate multiple flush hints
- per-dimm
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ by ml01.01.org (Postfix) with ESMTP id 215971A1E49
+ for <linux-nvdimm@lists.01.org>; Sat,  4 Jun 2016 13:53:46 -0700 (PDT)
+Subject: [PATCH 02/13] nfit: always associate flush hints
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 04 Jun 2016 13:52:59 -0700
-Message-ID: <146507357957.8347.4487942038262448529.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 04 Jun 2016 13:52:43 -0700
+Message-ID: <146507356341.8347.17433436005261377755.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -25,138 +24,65 @@ To: linux-nvdimm@lists.01.org
 Cc: david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Sample nfit data to test the kernel's handling of the multiple
-flush-hint case.
+Before enabling use of flush hints for pmem regions, we need to make
+sure they are always associated.  Move the initialization of nfit_flush
+out of the block-window specific init path to the general init path.
 
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/nvdimm/test/nfit.c |   55 +++++++++++++++++++++++---------------
- 1 file changed, 33 insertions(+), 22 deletions(-)
+ drivers/acpi/nfit.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index c919866853a0..7454ab01f666 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -98,6 +98,7 @@
- enum {
- 	NUM_PM  = 3,
- 	NUM_DCR = 5,
-+	NUM_HINTS = 8,
- 	NUM_BDW = NUM_DCR,
- 	NUM_SPA = NUM_PM + NUM_DCR + NUM_BDW,
- 	NUM_MEM = NUM_DCR + NUM_BDW + 2 /* spa0 iset */ + 4 /* spa1 iset */,
-@@ -584,7 +585,8 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 			+ offsetof(struct acpi_nfit_control_region,
- 					window_size) * NUM_DCR
- 			+ sizeof(struct acpi_nfit_data_region) * NUM_BDW
--			+ sizeof(struct acpi_nfit_flush_address) * NUM_DCR;
-+			+ (sizeof(struct acpi_nfit_flush_address)
-+					+ sizeof(u64) * NUM_HINTS) * NUM_DCR;
- 	int i;
- 
- 	t->nfit_buf = test_alloc(t, nfit_size, &t->nfit_dma);
-@@ -614,7 +616,8 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 			return -ENOMEM;
- 		sprintf(t->label[i], "label%d", i);
- 
--		t->flush[i] = test_alloc(t, 8, &t->flush_dma[i]);
-+		t->flush[i] = test_alloc(t, sizeof(u64) * NUM_HINTS,
-+				&t->flush_dma[i]);
- 		if (!t->flush[i])
- 			return -ENOMEM;
- 	}
-@@ -648,6 +651,8 @@ static int nfit_test1_alloc(struct nfit_test *t)
- 
- static void nfit_test0_setup(struct nfit_test *t)
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 2215fc847fa9..4771872810ef 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -614,7 +614,6 @@ static void nfit_mem_init_bdw(struct acpi_nfit_desc *acpi_desc,
  {
-+	const int flush_hint_size = sizeof(struct acpi_nfit_flush_address)
-+		+ (sizeof(u64) * NUM_HINTS);
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct acpi_nfit_memory_map *memdev;
- 	void *nfit_buf = t->nfit_buf;
-@@ -655,7 +660,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	struct acpi_nfit_control_region *dcr;
- 	struct acpi_nfit_data_region *bdw;
- 	struct acpi_nfit_flush_address *flush;
--	unsigned int offset;
-+	unsigned int offset, i;
- 
- 	/*
- 	 * spa0 (interleave first half of dimm0 and dimm1, note storage
-@@ -1141,37 +1146,41 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	/* flush0 (dimm0) */
- 	flush = nfit_buf + offset;
- 	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
--	flush->header.length = sizeof(struct acpi_nfit_flush_address);
-+	flush->header.length = flush_hint_size;
- 	flush->device_handle = handle[0];
--	flush->hint_count = 1;
--	flush->hint_address[0] = t->flush_dma[0];
-+	flush->hint_count = NUM_HINTS;
-+	for (i = 0; i < NUM_HINTS; i++)
-+		flush->hint_address[i] = t->flush_dma[0] + i * sizeof(u64);
- 
- 	/* flush1 (dimm1) */
--	flush = nfit_buf + offset + sizeof(struct acpi_nfit_flush_address) * 1;
-+	flush = nfit_buf + offset + flush_hint_size * 1;
- 	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
--	flush->header.length = sizeof(struct acpi_nfit_flush_address);
-+	flush->header.length = flush_hint_size;
- 	flush->device_handle = handle[1];
--	flush->hint_count = 1;
--	flush->hint_address[0] = t->flush_dma[1];
-+	flush->hint_count = NUM_HINTS;
-+	for (i = 0; i < NUM_HINTS; i++)
-+		flush->hint_address[i] = t->flush_dma[1] + i * sizeof(u64);
- 
- 	/* flush2 (dimm2) */
--	flush = nfit_buf + offset + sizeof(struct acpi_nfit_flush_address) * 2;
-+	flush = nfit_buf + offset + flush_hint_size  * 2;
- 	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
--	flush->header.length = sizeof(struct acpi_nfit_flush_address);
-+	flush->header.length = flush_hint_size;
- 	flush->device_handle = handle[2];
--	flush->hint_count = 1;
--	flush->hint_address[0] = t->flush_dma[2];
-+	flush->hint_count = NUM_HINTS;
-+	for (i = 0; i < NUM_HINTS; i++)
-+		flush->hint_address[i] = t->flush_dma[2] + i * sizeof(u64);
- 
- 	/* flush3 (dimm3) */
--	flush = nfit_buf + offset + sizeof(struct acpi_nfit_flush_address) * 3;
-+	flush = nfit_buf + offset + flush_hint_size * 3;
- 	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
--	flush->header.length = sizeof(struct acpi_nfit_flush_address);
-+	flush->header.length = flush_hint_size;
- 	flush->device_handle = handle[3];
--	flush->hint_count = 1;
--	flush->hint_address[0] = t->flush_dma[3];
-+	flush->hint_count = NUM_HINTS;
-+	for (i = 0; i < NUM_HINTS; i++)
-+		flush->hint_address[i] = t->flush_dma[3] + i * sizeof(u64);
- 
- 	if (t->setup_hotplug) {
--		offset = offset + sizeof(struct acpi_nfit_flush_address) * 4;
-+		offset = offset + flush_hint_size * 4;
- 		/* dcr-descriptor4: blk */
- 		dcr = nfit_buf + offset;
- 		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
-@@ -1300,10 +1309,12 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		/* flush3 (dimm4) */
- 		flush = nfit_buf + offset;
- 		flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
--		flush->header.length = sizeof(struct acpi_nfit_flush_address);
-+		flush->header.length = flush_hint_size;
- 		flush->device_handle = handle[4];
--		flush->hint_count = 1;
--		flush->hint_address[0] = t->flush_dma[4];
-+		flush->hint_count = NUM_HINTS;
-+		for (i = 0; i < NUM_HINTS; i++)
-+			flush->hint_address[i] = t->flush_dma[4]
-+				+ i * sizeof(u64);
+ 	u16 dcr = __to_nfit_memdev(nfit_mem)->region_index;
+ 	struct nfit_memdev *nfit_memdev;
+-	struct nfit_flush *nfit_flush;
+ 	struct nfit_bdw *nfit_bdw;
+ 	struct nfit_idt *nfit_idt;
+ 	u16 idt_idx, range_index;
+@@ -647,14 +646,6 @@ static void nfit_mem_init_bdw(struct acpi_nfit_desc *acpi_desc,
+ 			nfit_mem->idt_bdw = nfit_idt->idt;
+ 			break;
+ 		}
+-
+-		list_for_each_entry(nfit_flush, &acpi_desc->flushes, list) {
+-			if (nfit_flush->flush->device_handle !=
+-					nfit_memdev->memdev->device_handle)
+-				continue;
+-			nfit_mem->nfit_flush = nfit_flush;
+-			break;
+-		}
+ 		break;
+ 	}
+ }
+@@ -675,6 +666,7 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
  	}
  
- 	post_ars_status(&t->ars_state, t->spa_set_dma[0], SPA0_SIZE);
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
++		struct nfit_flush *nfit_flush;
+ 		struct nfit_dcr *nfit_dcr;
+ 		u32 device_handle;
+ 		u16 dcr;
+@@ -721,6 +713,13 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
+ 			break;
+ 		}
+ 
++		list_for_each_entry(nfit_flush, &acpi_desc->flushes, list) {
++			if (nfit_flush->flush->device_handle != device_handle)
++				continue;
++			nfit_mem->nfit_flush = nfit_flush;
++			break;
++		}
++
+ 		if (dcr && !nfit_mem->dcr) {
+ 			dev_err(acpi_desc->dev, "SPA %d missing DCR %d\n",
+ 					spa->range_index, dcr);
 
 _______________________________________________
 Linux-nvdimm mailing list
