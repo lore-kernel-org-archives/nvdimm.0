@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
- [15.241.140.78])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E34341A1DF9
- for <linux-nvdimm@lists.01.org>; Mon, 13 Jun 2016 15:32:10 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 0/6] Support DAX for device-mapper dm-linear devices
-Date: Mon, 13 Jun 2016 16:21:31 -0600
-Message-Id: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 6B2B21A1E4C
+ for <linux-nvdimm@lists.01.org>; Sat,  4 Jun 2016 15:33:04 -0700 (PDT)
+Date: Sun, 5 Jun 2016 06:18:02 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 13/13] pmem: kill __pmem address space
+Message-ID: <201606050624.7WDIopgc%fengguang.wu@intel.com>
+MIME-Version: 1.0
+In-Reply-To: <146507362269.8347.11260236515601063041.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,50 +16,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: agk@redhat.com, snitzer@redhat.com, dan.j.williams@intel.com
-Cc: axboe@kernel.dk, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, dm-devel@redhat.com, viro@zeniv.linux.org.uk
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, kbuild-all@01.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch-set adds DAX support to device-mapper dm-linear devices
-used by LVM.  It works with LVM commands as follows:
- - Creation of a logical volume with all DAX capable devices (such
-   as pmem) sets the logical volume DAX capable as well.
- - Once a logical volume is set to DAX capable, the volume may not
-   be extended with non-DAX capable devices.
+Hi,
 
-The direct_access interface is added to dm and dm-linear to map
-a request to a target device.
+[auto build test WARNING on v4.7-rc1]
+[also build test WARNING on next-20160603]
+[cannot apply to linux-nvdimm/libnvdimm-for-next tip/x86/core]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
- - Patch 1-2 introduce GENHD_FL_DAX flag to indicate DAX capability.
- - Patch 3-4 add direct_access functions to dm and dm-linear.
- - Patch 5-6 set GENHD_FL_DAX to dm when all targets are DAX capable.
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/deprecate-pcommit/20160605-045935
+config: s390-default_defconfig (attached as .config)
+compiler: s390x-linux-gnu-gcc (Debian 5.3.1-8) 5.3.1 20160205
+reproduce:
+        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=s390 
+
+All warnings (new ones prefixed by >>):
+
+   drivers/s390/block/dcssblk.c: In function 'dcssblk_direct_access':
+>> drivers/s390/block/dcssblk.c:897:9: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+     *kaddr = dev_info->start + offset;
+            ^
+
+vim +897 drivers/s390/block/dcssblk.c
+
+   881		bio_io_error(bio);
+   882		return BLK_QC_T_NONE;
+   883	}
+   884	
+   885	static long
+   886	dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+   887				void **kaddr, pfn_t *pfn, long size)
+   888	{
+   889		struct dcssblk_dev_info *dev_info;
+   890		unsigned long offset, dev_sz;
+   891	
+   892		dev_info = bdev->bd_disk->private_data;
+   893		if (!dev_info)
+   894			return -ENODEV;
+   895		dev_sz = dev_info->end - dev_info->start;
+   896		offset = secnum * 512;
+ > 897		*kaddr = dev_info->start + offset;
+   898		*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
+   899	
+   900		return dev_sz - offset;
+   901	}
+   902	
+   903	static void
+   904	dcssblk_check_params(void)
+   905	{
 
 ---
-Toshi Kani (6):
- 1/6 genhd: Add GENHD_FL_DAX to gendisk flags
- 2/6 block: Check GENHD_FL_DAX for DAX capability
- 3/6 dm: Add dm_blk_direct_access() for mapped device
- 4/6 dm-linear: Add linear_direct_access()
- 5/6 dm, dm-linear: Add dax_supported to dm_target
- 6/6 dm: Enable DAX support for mapper device
-
----
- drivers/block/brd.c           |  2 +-
- drivers/md/dm-linear.c        | 19 +++++++++++++++++++
- drivers/md/dm-table.c         | 12 +++++++++---
- drivers/md/dm.c               | 38 ++++++++++++++++++++++++++++++++++++--
- drivers/md/dm.h               |  7 +++++++
- drivers/nvdimm/pmem.c         |  2 +-
- drivers/s390/block/dcssblk.c  |  1 +
- fs/block_dev.c                |  5 +++--
- include/linux/device-mapper.h | 15 +++++++++++++++
- include/linux/genhd.h         |  2 +-
- 10 files changed, 93 insertions(+), 10 deletions(-)
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
