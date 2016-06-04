@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 446561A1E02
- for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 12:31:25 -0700 (PDT)
-Subject: [PATCH v5 3/5] um: track 'parent' device in a local variable
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 06AF81A1E4C
+ for <linux-nvdimm@lists.01.org>; Sat,  4 Jun 2016 13:54:29 -0700 (PDT)
+Subject: [PATCH 10/13] pmem: kill wmb_pmem()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 27 Jun 2016 12:30:08 -0700
-Message-ID: <146705580842.39775.16180359577535598750.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146705579255.39775.12551436695635245858.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146705579255.39775.12551436695635245858.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 04 Jun 2016 13:53:25 -0700
+Message-ID: <146507360564.8347.14991384832117517627.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,49 +20,197 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: axboe@fb.com
-Cc: linux-nvdimm@lists.01.org, Richard Weinberger <richard@nod.at>, Jeff Dike <jdike@addtoit.com>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, Bart Van Assche <bart.vanassche@sandisk.com>, hch@lst.de
+To: linux-nvdimm@lists.01.org
+Cc: david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the removal of 'driverfs_dev' from 'struct gendisk'
-use a local variable to track the parented vs un-parented case in
-ubd_disk_register().
+All users have been replaced with flushing in the pmem driver.
 
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/um/drivers/ubd_kern.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/pmem.h |   36 ++-------------------------------
+ include/linux/pmem.h        |   47 ++++---------------------------------------
+ 2 files changed, 6 insertions(+), 77 deletions(-)
 
-diff --git a/arch/um/drivers/ubd_kern.c b/arch/um/drivers/ubd_kern.c
-index ef6b4d960bad..f3540270d096 100644
---- a/arch/um/drivers/ubd_kern.c
-+++ b/arch/um/drivers/ubd_kern.c
-@@ -801,6 +801,7 @@ static void ubd_device_release(struct device *dev)
- static int ubd_disk_register(int major, u64 size, int unit,
- 			     struct gendisk **disk_out)
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index fbc5e92e1ecc..a8cf2a6b14d9 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -26,8 +26,7 @@
+  * @n: length of the copy in bytes
+  *
+  * Copy data to persistent memory media via non-temporal stores so that
+- * a subsequent arch_wmb_pmem() can flush cpu and memory controller
+- * write buffers to guarantee durability.
++ * a subsequent pmem driver flush operation will drain posted write queues.
+  */
+ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+ 		size_t n)
+@@ -57,32 +56,12 @@ static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
+ }
+ 
+ /**
+- * arch_wmb_pmem - synchronize writes to persistent memory
+- *
+- * After a series of arch_memcpy_to_pmem() operations this drains data
+- * from cpu write buffers and any platform (memory controller) buffers
+- * to ensure that written data is durable on persistent memory media.
+- */
+-static inline void arch_wmb_pmem(void)
+-{
+-	/*
+-	 * wmb() to 'sfence' all previous writes such that they are
+-	 * architecturally visible to 'pcommit'.  Note, that we've
+-	 * already arranged for pmem writes to avoid the cache via
+-	 * arch_memcpy_to_pmem().
+-	 */
+-	wmb();
+-	pcommit_sfence();
+-}
+-
+-/**
+  * arch_wb_cache_pmem - write back a cache range with CLWB
+  * @vaddr:	virtual start address
+  * @size:	number of bytes to write back
+  *
+  * Write back a cache range using the CLWB (cache line write back)
+- * instruction.  This function requires explicit ordering with an
+- * arch_wmb_pmem() call.
++ * instruction.
+  */
+ static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
  {
-+	struct device *parent = NULL;
- 	struct gendisk *disk;
+@@ -113,7 +92,6 @@ static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
+  * @i:		iterator with source data
+  *
+  * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+- * This function requires explicit ordering with an arch_wmb_pmem() call.
+  */
+ static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+ 		struct iov_iter *i)
+@@ -136,7 +114,6 @@ static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+  * @size:	number of bytes to zero
+  *
+  * Write zeros into the memory range starting at 'addr' for 'size' bytes.
+- * This function requires explicit ordering with an arch_wmb_pmem() call.
+  */
+ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
+ {
+@@ -150,14 +127,5 @@ static inline void arch_invalidate_pmem(void __pmem *addr, size_t size)
+ {
+ 	clflush_cache_range((void __force *) addr, size);
+ }
+-
+-static inline bool __arch_has_wmb_pmem(void)
+-{
+-	/*
+-	 * We require that wmb() be an 'sfence', that is only guaranteed on
+-	 * 64-bit builds
+-	 */
+-	return static_cpu_has(X86_FEATURE_PCOMMIT);
+-}
+ #endif /* CONFIG_ARCH_HAS_PMEM_API */
+ #endif /* __ASM_X86_PMEM_H__ */
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 57d146fe44dd..9e3ea94b8157 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -26,16 +26,6 @@
+  * calling these symbols with arch_has_pmem_api() and redirect to the
+  * implementation in asm/pmem.h.
+  */
+-static inline bool __arch_has_wmb_pmem(void)
+-{
+-	return false;
+-}
+-
+-static inline void arch_wmb_pmem(void)
+-{
+-	BUG();
+-}
+-
+ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+ 		size_t n)
+ {
+@@ -101,20 +91,6 @@ static inline int memcpy_from_pmem(void *dst, void __pmem const *src,
+ 		return default_memcpy_from_pmem(dst, src, size);
+ }
  
- 	disk = alloc_disk(1 << UBD_SHIFT);
-@@ -823,12 +824,12 @@ static int ubd_disk_register(int major, u64 size, int unit,
- 		ubd_devs[unit].pdev.dev.release = ubd_device_release;
- 		dev_set_drvdata(&ubd_devs[unit].pdev.dev, &ubd_devs[unit]);
- 		platform_device_register(&ubd_devs[unit].pdev);
--		disk->driverfs_dev = &ubd_devs[unit].pdev.dev;
-+		parent = &ubd_devs[unit].pdev.dev;
- 	}
+-/**
+- * arch_has_wmb_pmem - true if wmb_pmem() ensures durability
+- *
+- * For a given cpu implementation within an architecture it is possible
+- * that wmb_pmem() resolves to a nop.  In the case this returns
+- * false, pmem api users are unable to ensure durability and may want to
+- * fall back to a different data consistency model, or otherwise notify
+- * the user.
+- */
+-static inline bool arch_has_wmb_pmem(void)
+-{
+-	return arch_has_pmem_api() && __arch_has_wmb_pmem();
+-}
+-
+ /*
+  * These defaults seek to offer decent performance and minimize the
+  * window between i/o completion and writes being durable on media.
+@@ -152,7 +128,7 @@ static inline void default_clear_pmem(void __pmem *addr, size_t size)
+  * being effectively evicted from, or never written to, the processor
+  * cache hierarchy after the copy completes.  After memcpy_to_pmem()
+  * data may still reside in cpu or platform buffers, so this operation
+- * must be followed by a wmb_pmem().
++ * must be followed by a blkdev_issue_flush() on the pmem block device.
+  */
+ static inline void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
+ {
+@@ -163,28 +139,13 @@ static inline void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
+ }
  
- 	disk->private_data = &ubd_devs[unit];
- 	disk->queue = ubd_devs[unit].queue;
--	add_disk(disk);
-+	device_add_disk(parent, disk);
- 
- 	*disk_out = disk;
- 	return 0;
+ /**
+- * wmb_pmem - synchronize writes to persistent memory
+- *
+- * After a series of memcpy_to_pmem() operations this drains data from
+- * cpu write buffers and any platform (memory controller) buffers to
+- * ensure that written data is durable on persistent memory media.
+- */
+-static inline void wmb_pmem(void)
+-{
+-	if (arch_has_wmb_pmem())
+-		arch_wmb_pmem();
+-	else
+-		wmb();
+-}
+-
+-/**
+  * copy_from_iter_pmem - copy data from an iterator to PMEM
+  * @addr:	PMEM destination address
+  * @bytes:	number of bytes to copy
+  * @i:		iterator with source data
+  *
+  * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+- * This function requires explicit ordering with a wmb_pmem() call.
++ * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+ static inline size_t copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+ 		struct iov_iter *i)
+@@ -200,7 +161,7 @@ static inline size_t copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+  * @size:	number of bytes to zero
+  *
+  * Write zeros into the memory range starting at 'addr' for 'size' bytes.
+- * This function requires explicit ordering with a wmb_pmem() call.
++ * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+ static inline void clear_pmem(void __pmem *addr, size_t size)
+ {
+@@ -230,7 +191,7 @@ static inline void invalidate_pmem(void __pmem *addr, size_t size)
+  * @size:	number of bytes to write back
+  *
+  * Write back the processor cache range starting at 'addr' for 'size' bytes.
+- * This function requires explicit ordering with a wmb_pmem() call.
++ * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+ static inline void wb_cache_pmem(void __pmem *addr, size_t size)
+ {
 
 _______________________________________________
 Linux-nvdimm mailing list
