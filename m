@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 6B2B21A1E4C
- for <linux-nvdimm@lists.01.org>; Sat,  4 Jun 2016 15:33:04 -0700 (PDT)
-Date: Sun, 5 Jun 2016 06:18:02 +0800
-From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH 13/13] pmem: kill __pmem address space
-Message-ID: <201606050624.7WDIopgc%fengguang.wu@intel.com>
+ by ml01.01.org (Postfix) with ESMTP id 9207D1A1E44
+ for <linux-nvdimm@lists.01.org>; Sat,  4 Jun 2016 13:54:45 -0700 (PDT)
+Subject: [PATCH 13/13] pmem: kill __pmem address space
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 04 Jun 2016 13:53:42 -0700
+Message-ID: <146507362269.8347.11260236515601063041.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <146507362269.8347.11260236515601063041.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,64 +20,555 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, kbuild-all@01.org, hch@lst.de
+To: linux-nvdimm@lists.01.org
+Cc: david@fromorbit.com, hch@lst.de, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+The __pmem address space was meant to annotate codepaths that touch
+persistent memory and need to coordinate a call to wmb_pmem().  Now that
+wmb_pmem() is gone, there is little need to keep this annotation.
 
-[auto build test WARNING on v4.7-rc1]
-[also build test WARNING on next-20160603]
-[cannot apply to linux-nvdimm/libnvdimm-for-next tip/x86/core]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Dan-Williams/deprecate-pcommit/20160605-045935
-config: s390-default_defconfig (attached as .config)
-compiler: s390x-linux-gnu-gcc (Debian 5.3.1-8) 5.3.1 20160205
-reproduce:
-        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # save the attached .config to linux build tree
-        make.cross ARCH=s390 
-
-All warnings (new ones prefixed by >>):
-
-   drivers/s390/block/dcssblk.c: In function 'dcssblk_direct_access':
->> drivers/s390/block/dcssblk.c:897:9: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-     *kaddr = dev_info->start + offset;
-            ^
-
-vim +897 drivers/s390/block/dcssblk.c
-
-   881		bio_io_error(bio);
-   882		return BLK_QC_T_NONE;
-   883	}
-   884	
-   885	static long
-   886	dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
-   887				void **kaddr, pfn_t *pfn, long size)
-   888	{
-   889		struct dcssblk_dev_info *dev_info;
-   890		unsigned long offset, dev_sz;
-   891	
-   892		dev_info = bdev->bd_disk->private_data;
-   893		if (!dev_info)
-   894			return -ENODEV;
-   895		dev_sz = dev_info->end - dev_info->start;
-   896		offset = secnum * 512;
- > 897		*kaddr = dev_info->start + offset;
-   898		*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
-   899	
-   900		return dev_sz - offset;
-   901	}
-   902	
-   903	static void
-   904	dcssblk_check_params(void)
-   905	{
-
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ Documentation/filesystems/Locking |    2 +
+ arch/powerpc/sysdev/axonram.c     |    4 +-
+ arch/x86/include/asm/pmem.h       |   41 +++++++++-------------
+ drivers/acpi/nfit.c               |    3 +-
+ drivers/acpi/nfit.h               |    2 +
+ drivers/block/brd.c               |    4 +-
+ drivers/nvdimm/pmem.c             |    8 ++--
+ drivers/s390/block/dcssblk.c      |    6 ++-
+ fs/dax.c                          |    6 ++-
+ include/linux/blkdev.h            |    6 ++-
+ include/linux/compiler.h          |    2 -
+ include/linux/nd.h                |    2 +
+ include/linux/pmem.h              |   70 +++++++++----------------------------
+ scripts/checkpatch.pl             |    1 -
+ 14 files changed, 55 insertions(+), 102 deletions(-)
+
+diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
+index 75eea7ce3d7c..d9c37ec4c760 100644
+--- a/Documentation/filesystems/Locking
++++ b/Documentation/filesystems/Locking
+@@ -395,7 +395,7 @@ prototypes:
+ 	int (*release) (struct gendisk *, fmode_t);
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+-	int (*direct_access) (struct block_device *, sector_t, void __pmem **,
++	int (*direct_access) (struct block_device *, sector_t, void **,
+ 				unsigned long *);
+ 	int (*media_changed) (struct gendisk *);
+ 	void (*unlock_native_capacity) (struct gendisk *);
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index ff75d70f7285..154cd9110c08 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -143,12 +143,12 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
+  */
+ static long
+ axon_ram_direct_access(struct block_device *device, sector_t sector,
+-		       void __pmem **kaddr, pfn_t *pfn, long size)
++		       void **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct axon_ram_bank *bank = device->bd_disk->private_data;
+ 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
+ 
+-	*kaddr = (void __pmem __force *) bank->io_addr + offset;
++	*kaddr = bank->io_addr + offset;
+ 	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
+ 	return bank->size - offset;
+ }
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index a8cf2a6b14d9..643eba42d620 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -28,10 +28,9 @@
+  * Copy data to persistent memory media via non-temporal stores so that
+  * a subsequent pmem driver flush operation will drain posted write queues.
+  */
+-static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+-		size_t n)
++static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+ {
+-	int unwritten;
++	int rem;
+ 
+ 	/*
+ 	 * We are copying between two kernel buffers, if
+@@ -39,19 +38,17 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+ 	 * fault) we would have already reported a general protection fault
+ 	 * before the WARN+BUG.
+ 	 */
+-	unwritten = __copy_from_user_inatomic_nocache((void __force *) dst,
+-			(void __user *) src, n);
+-	if (WARN(unwritten, "%s: fault copying %p <- %p unwritten: %d\n",
+-				__func__, dst, src, unwritten))
++	rem = __copy_from_user_inatomic_nocache(dst, (void __user *) src, n);
++	if (WARN(rem, "%s: fault copying %p <- %p unwritten: %d\n",
++				__func__, dst, src, rem))
+ 		BUG();
+ }
+ 
+-static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
+-		size_t n)
++static inline int arch_memcpy_from_pmem(void *dst, const void *src, size_t n)
+ {
+ 	if (static_cpu_has(X86_FEATURE_MCE_RECOVERY))
+-		return memcpy_mcsafe(dst, (void __force *) src, n);
+-	memcpy(dst, (void __force *) src, n);
++		return memcpy_mcsafe(dst, src, n);
++	memcpy(dst, src, n);
+ 	return 0;
+ }
+ 
+@@ -63,15 +60,14 @@ static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
+  * Write back a cache range using the CLWB (cache line write back)
+  * instruction.
+  */
+-static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
++static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ {
+ 	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
+ 	unsigned long clflush_mask = x86_clflush_size - 1;
+-	void *vaddr = (void __force *)addr;
+-	void *vend = vaddr + size;
++	void *vend = addr + size;
+ 	void *p;
+ 
+-	for (p = (void *)((unsigned long)vaddr & ~clflush_mask);
++	for (p = (void *)((unsigned long)addr & ~clflush_mask);
+ 	     p < vend; p += x86_clflush_size)
+ 		clwb(p);
+ }
+@@ -93,14 +89,13 @@ static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
+  *
+  * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+  */
+-static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
++static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+ 		struct iov_iter *i)
+ {
+-	void *vaddr = (void __force *)addr;
+ 	size_t len;
+ 
+ 	/* TODO: skip the write-back by always using non-temporal stores */
+-	len = copy_from_iter_nocache(vaddr, bytes, i);
++	len = copy_from_iter_nocache(addr, bytes, i);
+ 
+ 	if (__iter_needs_pmem_wb(i))
+ 		arch_wb_cache_pmem(addr, bytes);
+@@ -115,17 +110,15 @@ static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+  *
+  * Write zeros into the memory range starting at 'addr' for 'size' bytes.
+  */
+-static inline void arch_clear_pmem(void __pmem *addr, size_t size)
++static inline void arch_clear_pmem(void *addr, size_t size)
+ {
+-	void *vaddr = (void __force *)addr;
+-
+-	memset(vaddr, 0, size);
++	memset(addr, 0, size);
+ 	arch_wb_cache_pmem(addr, size);
+ }
+ 
+-static inline void arch_invalidate_pmem(void __pmem *addr, size_t size)
++static inline void arch_invalidate_pmem(void *addr, size_t size)
+ {
+-	clflush_cache_range((void __force *) addr, size);
++	clflush_cache_range(addr, size);
+ }
+ #endif /* CONFIG_ARCH_HAS_PMEM_API */
+ #endif /* __ASM_X86_PMEM_H__ */
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 4643dd7a4284..2b556c084576 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1612,8 +1612,7 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+ 
+ 	spa_map->type = type;
+ 	if (type == SPA_MAP_APERTURE)
+-		spa_map->addr.aperture = (void __pmem *)memremap(start, n,
+-							ARCH_MEMREMAP_PMEM);
++		spa_map->addr.aperture = memremap(start, n, ARCH_MEMREMAP_PMEM);
+ 	else
+ 		spa_map->addr.base = ioremap_nocache(start, n);
+ 
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index 9c8a6cf760be..626b107c6d6c 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -161,7 +161,7 @@ enum nd_blk_mmio_selector {
+ struct nd_blk_addr {
+ 	union {
+ 		void __iomem *base;
+-		void __pmem  *aperture;
++		void *aperture;
+ 	};
+ };
+ 
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index c04bd9bc39fd..5f1fe4e6208d 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -381,7 +381,7 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
+ 
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+-			void __pmem **kaddr, pfn_t *pfn, long size)
++			void **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct brd_device *brd = bdev->bd_disk->private_data;
+ 	struct page *page;
+@@ -391,7 +391,7 @@ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+ 	page = brd_insert_page(brd, sector);
+ 	if (!page)
+ 		return -ENOSPC;
+-	*kaddr = (void __pmem *)page_address(page);
++	*kaddr = page_address(page);
+ 	*pfn = page_to_pfn_t(page);
+ 
+ 	return PAGE_SIZE;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 79539b6498c9..fd645585b71d 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -38,7 +38,7 @@ struct pmem_device {
+ 	/* when non-zero this device is hosting a 'pfn' instance */
+ 	phys_addr_t		data_offset;
+ 	u64			pfn_flags;
+-	void __pmem		*virt_addr;
++	void			*virt_addr;
+ 	/* immutable base size of the namespace */
+ 	size_t			size;
+ 	/* trim size when namespace capacity has been section aligned */
+@@ -87,7 +87,7 @@ static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ 	bool bad_pmem = false;
+ 	void *mem = kmap_atomic(page);
+ 	phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
+-	void __pmem *pmem_addr = pmem->virt_addr + pmem_off;
++	void *pmem_addr = pmem->virt_addr + pmem_off;
+ 
+ 	if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
+ 		bad_pmem = true;
+@@ -176,7 +176,7 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ }
+ 
+ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+-		      void __pmem **kaddr, pfn_t *pfn, long size)
++		      void **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct pmem_device *pmem = bdev->bd_queue->queuedata;
+ 	resource_size_t offset = sector * 512 + pmem->data_offset;
+@@ -287,7 +287,7 @@ static int pmem_attach_disk(struct device *dev,
+ 
+ 	if (IS_ERR(addr))
+ 		return PTR_ERR(addr);
+-	pmem->virt_addr = (void __pmem *) addr;
++	pmem->virt_addr = addr;
+ 
+ 	has_flush = nvdimm_has_flush(nd_region);
+ 	if (has_flush < 0)
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index bed53c46dd90..ac0345bedd9d 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -31,7 +31,7 @@ static void dcssblk_release(struct gendisk *disk, fmode_t mode);
+ static blk_qc_t dcssblk_make_request(struct request_queue *q,
+ 						struct bio *bio);
+ static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
+-			 void __pmem **kaddr, pfn_t *pfn, long size);
++			 void **kaddr, pfn_t *pfn, long size);
+ 
+ static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
+ 
+@@ -884,7 +884,7 @@ fail:
+ 
+ static long
+ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+-			void __pmem **kaddr, pfn_t *pfn, long size)
++			void **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct dcssblk_dev_info *dev_info;
+ 	unsigned long offset, dev_sz;
+@@ -894,7 +894,7 @@ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+ 		return -ENODEV;
+ 	dev_sz = dev_info->end - dev_info->start;
+ 	offset = secnum * 512;
+-	*kaddr = (void __pmem *) (dev_info->start + offset);
++	*kaddr = dev_info->start + offset;
+ 	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
+ 
+ 	return dev_sz - offset;
+diff --git a/fs/dax.c b/fs/dax.c
+index 434f421da660..c8312f6441bc 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -75,13 +75,13 @@ static long dax_map_atomic(struct block_device *bdev, struct blk_dax_ctl *dax)
+ 	struct request_queue *q = bdev->bd_queue;
+ 	long rc = -EIO;
+ 
+-	dax->addr = (void __pmem *) ERR_PTR(-EIO);
++	dax->addr = ERR_PTR(-EIO);
+ 	if (blk_queue_enter(q, true) != 0)
+ 		return rc;
+ 
+ 	rc = bdev_direct_access(bdev, dax);
+ 	if (rc < 0) {
+-		dax->addr = (void __pmem *) ERR_PTR(rc);
++		dax->addr = ERR_PTR(rc);
+ 		blk_queue_exit(q);
+ 		return rc;
+ 	}
+@@ -152,7 +152,7 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 	int rw = iov_iter_rw(iter), rc;
+ 	long map_len = 0;
+ 	struct blk_dax_ctl dax = {
+-		.addr = (void __pmem *) ERR_PTR(-EIO),
++		.addr = ERR_PTR(-EIO),
+ 	};
+ 	unsigned blkbits = inode->i_blkbits;
+ 	sector_t file_blks = (i_size_read(inode) + (1 << blkbits) - 1)
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 3d9cf326574f..fde908b2836b 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1659,7 +1659,7 @@ static inline bool integrity_req_gap_front_merge(struct request *req,
+  */
+ struct blk_dax_ctl {
+ 	sector_t sector;
+-	void __pmem *addr;
++	void *addr;
+ 	long size;
+ 	pfn_t pfn;
+ };
+@@ -1670,8 +1670,8 @@ struct block_device_operations {
+ 	int (*rw_page)(struct block_device *, sector_t, struct page *, int rw);
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+-	long (*direct_access)(struct block_device *, sector_t, void __pmem **,
+-			pfn_t *, long);
++	long (*direct_access)(struct block_device *, sector_t, void **, pfn_t *,
++			long);
+ 	unsigned int (*check_events) (struct gendisk *disk,
+ 				      unsigned int clearing);
+ 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
+diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+index 793c0829e3a3..b966974938ed 100644
+--- a/include/linux/compiler.h
++++ b/include/linux/compiler.h
+@@ -17,7 +17,6 @@
+ # define __release(x)	__context__(x,-1)
+ # define __cond_lock(x,c)	((c) ? ({ __acquire(x); 1; }) : 0)
+ # define __percpu	__attribute__((noderef, address_space(3)))
+-# define __pmem		__attribute__((noderef, address_space(5)))
+ #ifdef CONFIG_SPARSE_RCU_POINTER
+ # define __rcu		__attribute__((noderef, address_space(4)))
+ #else /* CONFIG_SPARSE_RCU_POINTER */
+@@ -45,7 +44,6 @@ extern void __chk_io_ptr(const volatile void __iomem *);
+ # define __cond_lock(x,c) (c)
+ # define __percpu
+ # define __rcu
+-# define __pmem
+ # define __private
+ # define ACCESS_PRIVATE(p, member) ((p)->member)
+ #endif /* __CHECKER__ */
+diff --git a/include/linux/nd.h b/include/linux/nd.h
+index aee2761d294c..47271d366be5 100644
+--- a/include/linux/nd.h
++++ b/include/linux/nd.h
+@@ -67,7 +67,7 @@ struct nd_namespace_io {
+ 	struct nd_namespace_common common;
+ 	struct resource res;
+ 	resource_size_t size;
+-	void __pmem *addr;
++	void *addr;
+ 	struct badblocks bb;
+ };
+ 
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 9e3ea94b8157..e856c2cb0fe8 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -26,37 +26,35 @@
+  * calling these symbols with arch_has_pmem_api() and redirect to the
+  * implementation in asm/pmem.h.
+  */
+-static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+-		size_t n)
++static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+ {
+ 	BUG();
+ }
+ 
+-static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
+-		size_t n)
++static inline int arch_memcpy_from_pmem(void *dst, const void *src, size_t n)
+ {
+ 	BUG();
+ 	return -EFAULT;
+ }
+ 
+-static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
++static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+ 		struct iov_iter *i)
+ {
+ 	BUG();
+ 	return 0;
+ }
+ 
+-static inline void arch_clear_pmem(void __pmem *addr, size_t size)
++static inline void arch_clear_pmem(void *addr, size_t size)
+ {
+ 	BUG();
+ }
+ 
+-static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
++static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ {
+ 	BUG();
+ }
+ 
+-static inline void arch_invalidate_pmem(void __pmem *addr, size_t size)
++static inline void arch_invalidate_pmem(void *addr, size_t size)
+ {
+ 	BUG();
+ }
+@@ -67,13 +65,6 @@ static inline bool arch_has_pmem_api(void)
+ 	return IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API);
+ }
+ 
+-static inline int default_memcpy_from_pmem(void *dst, void __pmem const *src,
+-		size_t size)
+-{
+-	memcpy(dst, (void __force *) src, size);
+-	return 0;
+-}
+-
+ /*
+  * memcpy_from_pmem - read from persistent memory with error handling
+  * @dst: destination buffer
+@@ -82,40 +73,13 @@ static inline int default_memcpy_from_pmem(void *dst, void __pmem const *src,
+  *
+  * Returns 0 on success negative error code on failure.
+  */
+-static inline int memcpy_from_pmem(void *dst, void __pmem const *src,
+-		size_t size)
++static inline int memcpy_from_pmem(void *dst, void const *src, size_t size)
+ {
+ 	if (arch_has_pmem_api())
+ 		return arch_memcpy_from_pmem(dst, src, size);
+ 	else
+-		return default_memcpy_from_pmem(dst, src, size);
+-}
+-
+-/*
+- * These defaults seek to offer decent performance and minimize the
+- * window between i/o completion and writes being durable on media.
+- * However, it is undefined / architecture specific whether
+- * ARCH_MEMREMAP_PMEM + default_memcpy_to_pmem is sufficient for
+- * making data durable relative to i/o completion.
+- */
+-static inline void default_memcpy_to_pmem(void __pmem *dst, const void *src,
+-		size_t size)
+-{
+-	memcpy((void __force *) dst, src, size);
+-}
+-
+-static inline size_t default_copy_from_iter_pmem(void __pmem *addr,
+-		size_t bytes, struct iov_iter *i)
+-{
+-	return copy_from_iter_nocache((void __force *)addr, bytes, i);
+-}
+-
+-static inline void default_clear_pmem(void __pmem *addr, size_t size)
+-{
+-	if (size == PAGE_SIZE && ((unsigned long)addr & ~PAGE_MASK) == 0)
+-		clear_page((void __force *)addr);
+-	else
+-		memset((void __force *)addr, 0, size);
++		memcpy(dst, src, size);
++	return 0;
+ }
+ 
+ /**
+@@ -130,12 +94,12 @@ static inline void default_clear_pmem(void __pmem *addr, size_t size)
+  * data may still reside in cpu or platform buffers, so this operation
+  * must be followed by a blkdev_issue_flush() on the pmem block device.
+  */
+-static inline void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
++static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
+ {
+ 	if (arch_has_pmem_api())
+ 		arch_memcpy_to_pmem(dst, src, n);
+ 	else
+-		default_memcpy_to_pmem(dst, src, n);
++		memcpy(dst, src, n);
+ }
+ 
+ /**
+@@ -147,12 +111,12 @@ static inline void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
+  * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+  * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+-static inline size_t copy_from_iter_pmem(void __pmem *addr, size_t bytes,
++static inline size_t copy_from_iter_pmem(void *addr, size_t bytes,
+ 		struct iov_iter *i)
+ {
+ 	if (arch_has_pmem_api())
+ 		return arch_copy_from_iter_pmem(addr, bytes, i);
+-	return default_copy_from_iter_pmem(addr, bytes, i);
++	return copy_from_iter_nocache(addr, bytes, i);
+ }
+ 
+ /**
+@@ -163,12 +127,12 @@ static inline size_t copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+  * Write zeros into the memory range starting at 'addr' for 'size' bytes.
+  * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+-static inline void clear_pmem(void __pmem *addr, size_t size)
++static inline void clear_pmem(void *addr, size_t size)
+ {
+ 	if (arch_has_pmem_api())
+ 		arch_clear_pmem(addr, size);
+ 	else
+-		default_clear_pmem(addr, size);
++		memset(addr, 0, size);
+ }
+ 
+ /**
+@@ -179,7 +143,7 @@ static inline void clear_pmem(void __pmem *addr, size_t size)
+  * For platforms that support clearing poison this flushes any poisoned
+  * ranges out of the cache
+  */
+-static inline void invalidate_pmem(void __pmem *addr, size_t size)
++static inline void invalidate_pmem(void *addr, size_t size)
+ {
+ 	if (arch_has_pmem_api())
+ 		arch_invalidate_pmem(addr, size);
+@@ -193,7 +157,7 @@ static inline void invalidate_pmem(void __pmem *addr, size_t size)
+  * Write back the processor cache range starting at 'addr' for 'size' bytes.
+  * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+-static inline void wb_cache_pmem(void __pmem *addr, size_t size)
++static inline void wb_cache_pmem(void *addr, size_t size)
+ {
+ 	if (arch_has_pmem_api())
+ 		arch_wb_cache_pmem(addr, size);
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 6750595bd7b8..32f01a1a28bb 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -313,7 +313,6 @@ our $Sparse	= qr{
+ 			__kernel|
+ 			__force|
+ 			__iomem|
+-			__pmem|
+ 			__must_check|
+ 			__init_refok|
+ 			__kprobes|
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
