@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pa0-x244.google.com (mail-pa0-x244.google.com
- [IPv6:2607:f8b0:400e:c03::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7E3EC1A1E01
- for <linux-nvdimm@lists.01.org>; Sun, 26 Jun 2016 23:48:47 -0700 (PDT)
-Received: by mail-pa0-x244.google.com with SMTP id ts6so14618532pac.0
- for <linux-nvdimm@lists.01.org>; Sun, 26 Jun 2016 23:48:13 -0700 (PDT)
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH v3] acpi, nfit: treat volatile virtual CD region as pmem
-Date: Mon, 27 Jun 2016 14:46:00 +0800
-Message-Id: <1467009960-20580-1-git-send-email-jlee@suse.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 43E611A1E48
+ for <linux-nvdimm@lists.01.org>; Sat,  4 Jun 2016 13:54:07 -0700 (PDT)
+Subject: [PATCH 06/13] libnvdimm: cycle flush hints per-cpu
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 04 Jun 2016 13:53:04 -0700
+Message-ID: <146507358471.8347.2701817405271061869.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,114 +16,94 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linda Knippers <linda.knippers@hpe.com>
-Cc: "Lee, Chun-Yi" <jlee@suse.com>, linux-acpi@vger.kernel.org, Gary Lin <GLin@suse.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds logic to treat volatile virtual CD region as pmem
-region, then /dev/pmem* device can be mounted with iso9660.
+When the NFIT provides multiple flush hint addresses per-dimm it is
+expressing that the platform is capable of processing multiple flush
+requests in parallel.  There is some fixed cost per flush request, let
+the cost be shared in parallel on multiple cpus.
 
-It's useful to work with the httpboot in EFI firmware to pull a remote
-ISO file to the local memory region for booting and installation.
+Since there may not be enough flush hint addresses for each cpu to have
+one keep a per-cpu index of the last used hint, and assume that access
+pattern randomness will keep the flush-hint usage somewhat staggered.
 
-Wiki page of UEFI HTTPBoot with OVMF:
-	https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
-
-The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
-it contains empty _STA but without _DSM:
-
-DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
-{
-    Scope (\_SB)
-    {
-        Device (NVDR)
-        {
-            Name (_HID, "ACPI0012")  // _HID: Hardware ID
-            Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
-            Method (_STA, 0, NotSerialized)  // _STA: Status
-            {
-                Return (0x0F)
-            }
-        }
-    }
-}
-
-In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
-Structure Index" of VCD SPA shall be set to zero. That means VCD SPA
-will not be associated by any NVDIMM region mapping.
-
-The VCD's SPA Range Structure in NFIT is similar to virtual disk region
-as following:
-
-[028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
-[02Ah 0042   2]                       Length : 0038
-
-[02Ch 0044   2]                  Range Index : 0000
-[02Eh 0046   2]        Flags (decoded below) : 0000
-                   Add/Online Operation Only : 0
-                      Proximity Domain Valid : 0
-[030h 0048   4]                     Reserved : 00000000
-[034h 0052   4]             Proximity Domain : 00000000
-[038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
-[048h 0072   8]           Address Range Base : 00000000B6ABD018
-[050h 0080   8]         Address Range Length : 0000000005500000
-[058h 0088   8]         Memory Map Attribute : 0000000000000000
-
-The way to not associate a SPA range is to never reference it from a "flush hint",
-"interleave", or "control region" table.
-
-After testing on OVMF, pmem driver can support the region that it doesn't
-assoicate to any NVDIMM mapping. So, treat VCD like pmem is a idea to get
-a pmem block device that it contains iso. 
-
-v3:
-To simplify patch, removed VCD region in libnvdimm.
- 
-v2:
-Removed the code for setting VCD to a read-only region.
-
-Cc: Gary Lin <GLin@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linda Knippers <linda.knippers@hpe.com>
-Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c          |  8 +++++++-
- drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
- include/linux/libnvdimm.h    |  2 ++
- 3 files changed, 34 insertions(+), 2 deletions(-)
+ drivers/nvdimm/dimm_devs.c   |    2 ++
+ drivers/nvdimm/nd.h          |    1 +
+ drivers/nvdimm/region_devs.c |    8 ++++++--
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-Index: linux/drivers/acpi/nfit.c
-===================================================================
---- linux.orig/drivers/acpi/nfit.c
-+++ linux/drivers/acpi/nfit.c
-@@ -1995,7 +1995,7 @@ static int acpi_nfit_register_region(str
- 	if (nfit_spa->nd_region)
- 		return 0;
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index e58e8ba155aa..c7061932ad40 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -35,10 +35,12 @@ struct nvdimm_drvdata *nvdimm_alloc_drvdata(struct device *dev)
  
--	if (spa->range_index == 0) {
-+	if (spa->range_index == 0 && nfit_spa_type(spa) != NFIT_SPA_VCD) {
- 		dev_dbg(acpi_desc->dev, "%s: detected invalid spa index\n",
- 				__func__);
- 		return 0;
-@@ -2059,6 +2059,11 @@ static int acpi_nfit_register_region(str
- 				ndr_desc);
- 		if (!nfit_spa->nd_region)
- 			rc = -ENOMEM;
-+	} else if (nfit_spa_type(spa) == NFIT_SPA_VCD) {
-+		nfit_spa->nd_region = nvdimm_pmem_region_create(nvdimm_bus,
-+				ndr_desc);
-+		if (!nfit_spa->nd_region)
-+			rc = -ENOMEM;
+ int nvdimm_populate_flush_hints(struct device *dev)
+ {
++	struct nvdimm *nvdimm = to_nvdimm(dev);
+ 	struct nvdimm_drvdata *ndd = dev_get_drvdata(dev);
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
+ 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
+ 
++	ndd->flush_mask = (1 << ilog2(nvdimm->flush_hints)) - 1;
+ 	if (nd_desc->populate_flush_hints)
+ 		return nd_desc->populate_flush_hints(dev, ndd->flush_wpq);
+ 	return 0;
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 4bba7c50961d..3ce169d49e64 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -47,6 +47,7 @@ struct nvdimm_drvdata {
+ 	int ns_current, ns_next;
+ 	struct resource dpa;
+ 	struct kref kref;
++	unsigned int flush_mask;
+ 	void __iomem *flush_wpq[0];
+ };
+ 
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 5b6f85d00bb5..76ff68d432fb 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -22,6 +22,7 @@
+ #include "nd.h"
+ 
+ static DEFINE_IDA(region_ida);
++static DEFINE_PER_CPU(int, flush_idx);
+ 
+ static void nd_region_release(struct device *dev)
+ {
+@@ -814,6 +815,7 @@ void nvdimm_flush(struct nd_region *nd_region)
+ 	 */
+ 	wmb();
+ 	for (i = 0; i < nd_region->ndr_mappings; i++) {
++		int idx;
+ 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+ 		struct nvdimm_drvdata *ndd = to_ndd_unlocked(nd_mapping);
+ 
+@@ -822,8 +824,10 @@ void nvdimm_flush(struct nd_region *nd_region)
+ 		 * arrange for all associated regions to be disabled
+ 		 * before the dimm is disabled.
+ 		 */
+-		if (ndd->flush_wpq[0])
+-			writeq(1, ndd->flush_wpq[0]);
++		if (ndd->flush_wpq[0]) {
++			idx = this_cpu_inc_return(flush_idx) & ndd->flush_mask;
++			writeq(1, ndd->flush_wpq[idx]);
++		}
  	}
- 
-  out:
+ 	wmb();
+ }
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
