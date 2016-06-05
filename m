@@ -2,13 +2,13 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from smtp.nue.novell.com (smtp.nue.novell.com [195.135.221.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AB5C41A1E66
- for <linux-nvdimm@lists.01.org>; Sun,  5 Jun 2016 07:52:59 -0700 (PDT)
-Date: Sun, 5 Jun 2016 22:52:24 +0800
+ by ml01.01.org (Postfix) with ESMTPS id CF3311A1E66
+ for <linux-nvdimm@lists.01.org>; Sun,  5 Jun 2016 07:47:07 -0700 (PDT)
+Date: Sun, 5 Jun 2016 22:45:36 +0800
 From: joeyli <jlee@suse.com>
 Subject: Re: [PATCH] libnvdimm, nfit: treat volatile virtual CD region as
  read-only pmem
-Message-ID: <20160605145224.GC4558@linux-rxt1.site>
+Message-ID: <20160605144536.GB4558@linux-rxt1.site>
 References: <1464938015-5489-1-git-send-email-jlee@suse.com>
  <CAPcyv4iLb9qzXZTLL5z-RH_CRObnRfzx=vGTvVvieJUEwNvtRw@mail.gmail.com>
  <20160604110156.GA4558@linux-rxt1.site>
@@ -113,7 +113,6 @@ region?
 
 Thanks a lot!
 Joey Lee
-
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
