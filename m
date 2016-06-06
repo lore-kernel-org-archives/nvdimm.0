@@ -1,12 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id EC2281A1E00
- for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 11:38:54 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl: update readme for vmalloc() based nfit_test
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 27 Jun 2016 11:37:38 -0700
-Message-ID: <146705265796.37678.13860374642984087356.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from g1t6216.austin.hp.com (g1t6216.austin.hp.com [15.73.96.123])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 33A251A1ECD
+ for <linux-nvdimm@lists.01.org>; Mon,  6 Jun 2016 14:15:52 -0700 (PDT)
+Subject: Re: [PATCH 01/13] driver core, libnvdimm: disable manual unbind of
+ dimms while region active
+References: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <146507355828.8347.11600179233094511139.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <0d64fc79-fdfa-9d50-c8b8-fc7c3e79f1f4@hpe.com>
+ <CAPcyv4j2saB7=k=uw3Ze-cmsHW-PkHY=Xez4AomAxWUFR1-x2Q@mail.gmail.com>
+ <2860536d-ce69-1d2e-4ca5-ca2f10b9695e@hpe.com>
+ <CAPcyv4jvpfUHzdeNc+yVi-iS-e2kOx+7Tpoqx7xBfN12=rg6-A@mail.gmail.com>
+ <25251cc2-b34a-504e-394f-b2062d1542ce@hpe.com>
+ <CAPcyv4h5qejPHGZri6SDDAV9pON6-DFn1bgPeD6fjTRKXkF26A@mail.gmail.com>
+From: Linda Knippers <linda.knippers@hpe.com>
+Message-ID: <6447d556-531c-fefb-24ec-0f7b333bacef@hpe.com>
+Date: Mon, 6 Jun 2016 17:15:29 -0400
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4h5qejPHGZri6SDDAV9pON6-DFn1bgPeD6fjTRKXkF26A@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,55 +30,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Christoph Hellwig <hch@lst.de>, david <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In v4.8 when we have vmalloc() based nfit_test the test configuration no
-longer requires a CMA allocation.  While we're updating the document,
-also refresh the configuration variables.
 
-Reported-by: Yigal Korman <yigal@plexistor.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- README.md |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/README.md b/README.md
-index 76f93dafe4cb..a3def786f188 100644
---- a/README.md
-+++ b/README.md
-@@ -26,19 +26,25 @@ loaded.  To build and install nfit_test.ko:
- `git clone -b libnvdimm-for-next
- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git`  
- 
--2. Configure the kernel to make some memory available to CMA (contiguous
--   memory allocator).
--This will be used to emulate DAX.  
-+2. Skip to step 3 if the kernel version is >= v4.8.  Otherwise, for
-+   kernel versions < v4.8, configure the kernel to make some memory
-+   available to CMA (contiguous memory allocator). This will be used to
-+   emulate DAX.  
- `CONFIG_DMA_CMA=y`  
- `CONFIG_CMA_SIZE_MBYTES=200`  
- **or**  
- `cma=200M` on the kernel command line.  
- 
--3. Compile all components of the libnvdimm sub-system as modules:  
-+3. Compile the libnvdimm sub-system as a module, make sure "zone device"
-+   memory is enabled, and enable the btt, pfn, and dax features of the
-+   sub-system:  
-+`CONFIG_ZONE_DEVICE=y`  
- `CONFIG_LIBNVDIMM=m`  
- `CONFIG_BLK_DEV_PMEM=m`  
- `CONFIG_ND_BLK=m`  
--`CONFIG_ND_BTT=m`  
-+`CONFIG_BTT=y`  
-+`CONFIG_NVDIMM_PFN=y`  
-+`CONFIG_NVDIMM_DAX=y`  
- 
- 4. Build and install the unit test enabled libnvdimm modules in the
-    following order.  The unit test modules need to be in place prior to
+On 6/6/2016 4:36 PM, Dan Williams wrote:
+> On Mon, Jun 6, 2016 at 1:20 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+> [..]
+>>> A solution to the posted-write-queue flushing needs to be available
+>>> and a platform can choose to use flush hints or ADR.  If the NFIT
+>>> defines an NVDIMM device without hints we assume the platform must
+>>> have ADR.  If the platform NFIT neglects to define an NVDIMM to
+>>> physical address range mapping, we warn about a potentially broken
+>>> BIOS.  Hopefully we can make this clearer in future versions of the
+>>> spec.
+>>
+>> You lost me on those last 2 sentences.  An NVDIMM doesn't have to have
+>> an SPA range, but that seems to be unrelated to pcommit or flushes.
+> 
+> Ok, now you've lost me...
+> 
+> We need a SPA range to be able to do I/O whether that SPA range is
+> direct access to media or a block-window aperture.  If an NFIT
+> inculdes a "System Physical Address (SPA) Range Structure", but
+> neglects to include a corresponding "NVDIMM Region Mapping Structure"
+> then the kernel has no idea what actual dimm device(s) back that
+> memory region.  Without a memory device mapping it is undefined
+> whether I/O to a SPA range requires flushing or not.
 
+Right, if you have an SPA Range Structure, you need an NVDIMM Region
+Mapping Structure referencing it (although now I'm wondering if that's
+true if it's one of the other GUID types, like a virtual CD...).  But the
+reverse isn't true.  You can have a Region mapping Structure without an
+SPA range, and that's what I thought you were flagging as an error in
+your previous sentence.
+
+> This patch set silences the warning about "not being able to guarantee
+> persistence" when the BIOS provides a "NVDIMM Region Mapping
+> Structure".  When that structure is present the kernel uses flush
+> hints when provided, but ADR otherwise.  See the implementation of
+> nvdimm_flush() in patch 4.
+
+Ok, I see that now.
+
+Patch 0 and the commit messages could have used a bit more info.
+The big picture was a bit difficult to see and patch 4 doesn't say
+anything about finishing in the TODOs from the previous patch.
+
+Thanks,
+
+-- ljk
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
