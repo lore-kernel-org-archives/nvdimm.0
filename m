@@ -2,21 +2,20 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from smtp.nue.novell.com (smtp.nue.novell.com [195.135.221.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 45D5E1A1E1B
- for <linux-nvdimm@lists.01.org>; Sat, 11 Jun 2016 19:10:49 -0700 (PDT)
-Date: Sun, 12 Jun 2016 10:10:10 +0800
+ by ml01.01.org (Postfix) with ESMTPS id A600A1A1E1B
+ for <linux-nvdimm@lists.01.org>; Sat, 11 Jun 2016 18:59:41 -0700 (PDT)
+Date: Sun, 12 Jun 2016 09:58:59 +0800
 From: joeyli <jlee@suse.com>
 Subject: Re: [PATCH] libnvdimm, nfit: treat volatile virtual CD region as
  read-only pmem
-Message-ID: <20160612021010.GJ4558@linux-rxt1.site>
+Message-ID: <20160612015859.GI4558@linux-rxt1.site>
 References: <1464938015-5489-1-git-send-email-jlee@suse.com>
  <CAPcyv4iLb9qzXZTLL5z-RH_CRObnRfzx=vGTvVvieJUEwNvtRw@mail.gmail.com>
  <20160604110156.GA4558@linux-rxt1.site>
  <888aeb53-69b4-652b-8f89-822af4622acf@hpe.com>
- <CAPcyv4jxq3XME9a7Upv0BvuaFvULCtqa9=L6L29nOeBGPiZZsA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4jxq3XME9a7Upv0BvuaFvULCtqa9=L6L29nOeBGPiZZsA@mail.gmail.com>
+In-Reply-To: <888aeb53-69b4-652b-8f89-822af4622acf@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,131 +23,141 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Linda Knippers <linda.knippers@hpe.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Lee,
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jun 09, 2016 at 03:34:52PM -0700, Dan Williams wrote:
-> On Thu, Jun 9, 2016 at 3:08 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
-> > On 6/4/2016 7:01 AM, joeyli wrote:
-> >> Hi Dan,
-> >>
-> >> Thanks for your review.
-> >>
-> >> On Fri, Jun 03, 2016 at 12:27:34PM -0700, Dan Williams wrote:
-> >>> On Fri, Jun 3, 2016 at 12:13 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
-> >>>> This patch adds codes to treat a volatile virtual CD region as a
-> >>>> read-only pmem region, then read-only /dev/pmem* device can be mounted
-> >>>> with iso9660.
-> >>>>
-> >>>> It's useful to work with the httpboot in EFI firmware to pull a remote
-> >>>> ISO file to the local memory region for booting and installation.
-> >>>>
-> >>>> Wiki page of UEFI HTTPBoot with OVMF:
-> >>>>         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
-> >>>>
-> >>>> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
-> >>>> Cc: Gary Lin <GLin@suse.com>
-> >>>> Cc: Dan Williams <dan.j.williams@intel.com>
-> >>>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> >>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >>>> ---
-> >>>>  drivers/acpi/nfit.c          |  8 +++++++-
-> >>>>  drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
-> >>>>  include/linux/libnvdimm.h    |  2 ++
-> >>>>  3 files changed, 34 insertions(+), 2 deletions(-)
-> >>>>
-> >>>> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> >>>> index 2215fc8..b100a17 100644
-> >>>> --- a/drivers/acpi/nfit.c
-> >>>> +++ b/drivers/acpi/nfit.c
-> >>>> @@ -1949,6 +1949,7 @@ static int acpi_nfit_init_mapping(struct acpi_nfit_desc *acpi_desc,
-> >>>>         switch (nfit_spa_type(spa)) {
-> >>>>         case NFIT_SPA_PM:
-> >>>>         case NFIT_SPA_VOLATILE:
-> >>>> +       case NFIT_SPA_VCD:
-> >>>>                 nd_mapping->start = memdev->address;
-> >>>>                 nd_mapping->size = memdev->region_size;
-> >>>>                 break;
-> >>>
-> >>> Why do we need to distinguish NFIT_SPA_VOLATILE vs NFIT_SPA_VCD, i.e.
-> >>> what happens if something writes to a VCD device?
-> >>
-> >> Actually I didn't try to write SPA-VCD device before. Every time I mount it
-> >> that the system responses read-only:
-> >>
-> >> # mount /dev/pmem0 /mnt/
-> >> mount: /dev/pmem0 is write-protected, mounting read-only
-> >>
-> >> If it can be written, then I think there have no difference between
-> >> NFIT_SPA_VOLATILE with NFIT_SPA_VCD region.
-> >
-> > It's not clear to me what the expectations for this type of device are, or
-> > whether they should be read-only.  The ACPI spec is not helpful here.
-> > The other Disk Region and CD Region types are also unclear.  Anyone
-> > care to define them?
-> >
-> >> I implemented this patch to treat VCD region as read-only pmem because the
-> >> pmem region generates /dev/pmem* device that it can be mounted.
-> >
-> > I'm a bit worried about this type of device showing up as a "pmem" device.
-> > I realize they're described in the NFIT (not sure why but they are) but do
-> > any of the operations that we support for other pmem devices work on these?
-> 
-> It would be just another pmem device, so it would support all of them.
-> 
-> > Do root device DSMs make any sense?
-> 
-> Root device DSMs take a physical address so they could apply, but I
-> assume a firmware could simply refuse to run any operations against
-> them.
-> 
-
-Yes, I pasted the ACPI0012 root device in another mail that it doesn't
-have _DSM method.
-
-> > Are there other DSMs?
-> 
-> Not that I can think of...
-> 
-> > What will happen if someone uses ndctl to reconfigure the device?
-> 
-> It won't know or care about the difference.  Unless there's a negative
-> side effect of allowing writes to a "volatile cd" it would be yet
-> another pmem device.
->
-
-I didn't try to using ndctl because the ACPI device doesn't have _DSM method.
- 
-> > I'm especially concerned on systems that might have one of these devices
-> > and also have NVDIMMs.  Do all the pmem devices get numbered different if
-> > this device comes and goes across reboots?  (I know, we shouldn't rely on
-> > those names but it will still confuse people.)  Can they be some other name
-> > that better represents what they're trying to be?
-> 
-> If they all go through the same driver they should have the same
-> naming scheme.  Software should be identifying the block device via
-> blkid, not kernel device name.
-
-Honestly I didn't have machine to test this function with a real NVDIMM memory.
-
-This function may also applies to the machines that do not have NVDIMM memory
-but it provides httpboot function with ISO file for booting or installation. So
-it only generates a ACPI0012 root device and a simple NFIT that it only contains
-one SPA range structure.
-
-If we don't want to treat VCD type as PMEM device (I will removed the read-only
-parts in patch), then I think that we need another NVDIMM driver to generate
-block device for VCD type.
-
-
-Thanks a lot!
-Joey Lee
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgTGluZGEsIAoKVGhhbmtzIGZvciB5b3VyIHJldmlldyBhbmQgY29tbWVudHMuCgpPbiBUaHUs
+IEp1biAwOSwgMjAxNiBhdCAwNjowODoxN1BNIC0wNDAwLCBMaW5kYSBLbmlwcGVycyB3cm90ZToK
+PiBPbiA2LzQvMjAxNiA3OjAxIEFNLCBqb2V5bGkgd3JvdGU6Cj4gPiBIaSBEYW4sIAo+ID4gCj4g
+PiBUaGFua3MgZm9yIHlvdXIgcmV2aWV3Lgo+ID4gCj4gPiBPbiBGcmksIEp1biAwMywgMjAxNiBh
+dCAxMjoyNzozNFBNIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4gPj4gT24gRnJpLCBKdW4g
+MywgMjAxNiBhdCAxMjoxMyBBTSwgTGVlLCBDaHVuLVlpIDxqb2V5bGkua2VybmVsQGdtYWlsLmNv
+bT4gd3JvdGU6Cj4gPj4+IFRoaXMgcGF0Y2ggYWRkcyBjb2RlcyB0byB0cmVhdCBhIHZvbGF0aWxl
+IHZpcnR1YWwgQ0QgcmVnaW9uIGFzIGEKPiA+Pj4gcmVhZC1vbmx5IHBtZW0gcmVnaW9uLCB0aGVu
+IHJlYWQtb25seSAvZGV2L3BtZW0qIGRldmljZSBjYW4gYmUgbW91bnRlZAo+ID4+PiB3aXRoIGlz
+bzk2NjAuCj4gPj4+Cj4gPj4+IEl0J3MgdXNlZnVsIHRvIHdvcmsgd2l0aCB0aGUgaHR0cGJvb3Qg
+aW4gRUZJIGZpcm13YXJlIHRvIHB1bGwgYSByZW1vdGUKPiA+Pj4gSVNPIGZpbGUgdG8gdGhlIGxv
+Y2FsIG1lbW9yeSByZWdpb24gZm9yIGJvb3RpbmcgYW5kIGluc3RhbGxhdGlvbi4KPiA+Pj4KPiA+
+Pj4gV2lraSBwYWdlIG9mIFVFRkkgSFRUUEJvb3Qgd2l0aCBPVk1GOgo+ID4+PiAgICAgICAgIGh0
+dHBzOi8vZW4ub3BlbnN1c2Uub3JnL1VFRklfSFRUUEJvb3Rfd2l0aF9PVk1GCj4gPj4+Cj4gPj4+
+IFNpZ25lZC1vZmYtYnk6IExlZSwgQ2h1bi1ZaSA8amxlZUBzdXNlLmNvbT4KPiA+Pj4gQ2M6IEdh
+cnkgTGluIDxHTGluQHN1c2UuY29tPgo+ID4+PiBDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxs
+aWFtc0BpbnRlbC5jb20+Cj4gPj4+IENjOiBSb3NzIFp3aXNsZXIgPHJvc3Muendpc2xlckBsaW51
+eC5pbnRlbC5jb20+Cj4gPj4+IENjOiAiUmFmYWVsIEouIFd5c29ja2kiIDxyandAcmp3eXNvY2tp
+Lm5ldD4KPiA+Pj4gLS0tCj4gPj4+ICBkcml2ZXJzL2FjcGkvbmZpdC5jICAgICAgICAgIHwgIDgg
+KysrKysrKy0KPiA+Pj4gIGRyaXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMgfCAyNiArKysrKysr
+KysrKysrKysrKysrKysrKysrLQo+ID4+PiAgaW5jbHVkZS9saW51eC9saWJudmRpbW0uaCAgICB8
+ICAyICsrCj4gPj4+ICAzIGZpbGVzIGNoYW5nZWQsIDM0IGluc2VydGlvbnMoKyksIDIgZGVsZXRp
+b25zKC0pCj4gPj4+Cj4gPj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJp
+dmVycy9hY3BpL25maXQuYwo+ID4+PiBpbmRleCAyMjE1ZmM4Li5iMTAwYTE3IDEwMDY0NAo+ID4+
+PiAtLS0gYS9kcml2ZXJzL2FjcGkvbmZpdC5jCj4gPj4+ICsrKyBiL2RyaXZlcnMvYWNwaS9uZml0
+LmMKPiA+Pj4gQEAgLTE5NDksNiArMTk0OSw3IEBAIHN0YXRpYyBpbnQgYWNwaV9uZml0X2luaXRf
+bWFwcGluZyhzdHJ1Y3QgYWNwaV9uZml0X2Rlc2MgKmFjcGlfZGVzYywKPiA+Pj4gICAgICAgICBz
+d2l0Y2ggKG5maXRfc3BhX3R5cGUoc3BhKSkgewo+ID4+PiAgICAgICAgIGNhc2UgTkZJVF9TUEFf
+UE06Cj4gPj4+ICAgICAgICAgY2FzZSBORklUX1NQQV9WT0xBVElMRToKPiA+Pj4gKyAgICAgICBj
+YXNlIE5GSVRfU1BBX1ZDRDoKPiA+Pj4gICAgICAgICAgICAgICAgIG5kX21hcHBpbmctPnN0YXJ0
+ID0gbWVtZGV2LT5hZGRyZXNzOwo+ID4+PiAgICAgICAgICAgICAgICAgbmRfbWFwcGluZy0+c2l6
+ZSA9IG1lbWRldi0+cmVnaW9uX3NpemU7Cj4gPj4+ICAgICAgICAgICAgICAgICBicmVhazsKPiA+
+Pgo+ID4+IFdoeSBkbyB3ZSBuZWVkIHRvIGRpc3Rpbmd1aXNoIE5GSVRfU1BBX1ZPTEFUSUxFIHZz
+IE5GSVRfU1BBX1ZDRCwgaS5lLgo+ID4+IHdoYXQgaGFwcGVucyBpZiBzb21ldGhpbmcgd3JpdGVz
+IHRvIGEgVkNEIGRldmljZT8KPiA+IAo+ID4gQWN0dWFsbHkgSSBkaWRuJ3QgdHJ5IHRvIHdyaXRl
+IFNQQS1WQ0QgZGV2aWNlIGJlZm9yZS4gRXZlcnkgdGltZSBJIG1vdW50IGl0Cj4gPiB0aGF0IHRo
+ZSBzeXN0ZW0gcmVzcG9uc2VzIHJlYWQtb25seToKPiA+IAo+ID4gIyBtb3VudCAvZGV2L3BtZW0w
+IC9tbnQvCj4gPiBtb3VudDogL2Rldi9wbWVtMCBpcyB3cml0ZS1wcm90ZWN0ZWQsIG1vdW50aW5n
+IHJlYWQtb25seQo+ID4gCj4gPiBJZiBpdCBjYW4gYmUgd3JpdHRlbiwgdGhlbiBJIHRoaW5rIHRo
+ZXJlIGhhdmUgbm8gZGlmZmVyZW5jZSBiZXR3ZWVuCj4gPiBORklUX1NQQV9WT0xBVElMRSB3aXRo
+IE5GSVRfU1BBX1ZDRCByZWdpb24uCj4gCj4gSXQncyBub3QgY2xlYXIgdG8gbWUgd2hhdCB0aGUg
+ZXhwZWN0YXRpb25zIGZvciB0aGlzIHR5cGUgb2YgZGV2aWNlIGFyZSwgb3IKPiB3aGV0aGVyIHRo
+ZXkgc2hvdWxkIGJlIHJlYWQtb25seS4gIFRoZSBBQ1BJIHNwZWMgaXMgbm90IGhlbHBmdWwgaGVy
+ZS4KPiBUaGUgb3RoZXIgRGlzayBSZWdpb24gYW5kIENEIFJlZ2lvbiB0eXBlcyBhcmUgYWxzbyB1
+bmNsZWFyLiAgQW55b25lCj4gY2FyZSB0byBkZWZpbmUgdGhlbT8KPgoKSW4gQUNQSSBzcGVjIDYu
+MSwgaXQgc2FpZCAiYSB2b2xhdGlsZSBtZW1vcnkgcmVnaW9uIHRoYXQgY29udGFpbnMgYW4gSVNP
+IGltYWdlIjoKClRoaXMgR1VJRCBkZWZpbmVzIGEgUkFNIERpc2sgc3VwcG9ydGluZyBhIFZpcnR1
+YWwgQ0QgUmVnaW9uIOKAkyBWb2xhdGlsZSAoYSB2b2xhdGlsZSBtZW1vcnkKcmVnaW9uIHRoYXQg
+Y29udGFpbnMgYW4gSVNPIGltYWdlKToKeyAweDNENUFCRDMwLDB4NDE3NSwweDg3Q0UsMHg2RCww
+eDY0LDB4RDIsMHhBRCwweEU1LDB4MjMsMHhDNCwweEJCIH0KCkkgdGhpbmsgdGhlIGJlaGF2aW9y
+IHRoYXQgaXMgdGhlIHNhbWUgd2l0aCBhIHZvbGF0aWxlIG1lbW9yeSByZWdpb24gYnV0IGl0CmNv
+bnRhaW5zIElTTy4KCkkgYWdyZWUgZG9lc24ndCBoYXZlIGFueSBzcGVjIHRoYXQgaXQgbWVudGlv
+bnMgdGhlIHR5cGUgc2hvdWxkIGJlIHJlYWQtb25seSwgSQp3aWxsIHJlbW92ZSB0aGUgY29kZSBp
+biBwYXRjaC4KCkkgYWxzbyBhZ3JlZSB0aGF0IGl0IGRvZXNuJ3QgaGF2ZSBkZXRhaWwgZGVzY3Jp
+cHRpb24gb2YgdGhvc2UgcmFtIGRpc2sKdHlwZXMuIERvIHlvdSBoYXZlIGFueSBpZGVhIG9yIGNv
+bW1lbnQgdGhhdCB5b3Ugd2FudCB0byBhZGQgdG8gc3BlYz8gRWl0aGVyCmZvciBBQ1BJIG9yIFVF
+Rkk/CiAKPiA+IEkgaW1wbGVtZW50ZWQgdGhpcyBwYXRjaCB0byB0cmVhdCBWQ0QgcmVnaW9uIGFz
+IHJlYWQtb25seSBwbWVtIGJlY2F1c2UgdGhlCj4gPiBwbWVtIHJlZ2lvbiBnZW5lcmF0ZXMgL2Rl
+di9wbWVtKiBkZXZpY2UgdGhhdCBpdCBjYW4gYmUgbW91bnRlZC4KPiAKPiBJJ20gYSBiaXQgd29y
+cmllZCBhYm91dCB0aGlzIHR5cGUgb2YgZGV2aWNlIHNob3dpbmcgdXAgYXMgYSAicG1lbSIgZGV2
+aWNlLgo+IEkgcmVhbGl6ZSB0aGV5J3JlIGRlc2NyaWJlZCBpbiB0aGUgTkZJVCAobm90IHN1cmUg
+d2h5IGJ1dCB0aGV5IGFyZSkgYnV0IGRvCj4gYW55IG9mIHRoZSBvcGVyYXRpb25zIHRoYXQgd2Ug
+c3VwcG9ydCBmb3Igb3RoZXIgcG1lbSBkZXZpY2VzIHdvcmsgb24gdGhlc2U/Cj4gRG8gcm9vdCBk
+ZXZpY2UgRFNNcyBtYWtlIGFueSBzZW5zZT8gIEFyZSB0aGVyZSBvdGhlciBEU01zPyAgV2hhdCB3
+aWxsIGhhcHBlbgo+IGlmIHNvbWVvbmUgdXNlcyBuZGN0bCB0byByZWNvbmZpZ3VyZSB0aGUgZGV2
+aWNlPwo+CgpCeSB1c2luZyB0aGUgUmFtZGlzayBmdW5jdGlvbiBpbiBFREsyL09WTUYsIGl0IG9u
+bHkgZ2VuZXJhdGVzIGEgQUNQSTAwMTIgcm9vdApkZXZpY2UgdGhhdCBpdCBjb250YWlucyBhIGVt
+cHR5IF9TVEEgYnV0IG5vIF9EU00gc3VwcG9ydDoKCkRlZmluaXRpb25CbG9jayAoInNzZHQyLmFt
+bCIsICJTU0RUIiwgMiwgIklOVEVMICIsICJSYW1EaXNrICIsIDB4MDAwMDEwMDApCnsKICAgIFNj
+b3BlIChcX1NCKQogICAgeyAgIAogICAgICAgIERldmljZSAoTlZEUikKICAgICAgICB7ICAgCiAg
+ICAgICAgICAgIE5hbWUgKF9ISUQsICJBQ1BJMDAxMiIpICAvLyBfSElEOiBIYXJkd2FyZSBJRAog
+ICAgICAgICAgICBOYW1lIChfU1RSLCBVbmljb2RlICgiTlZESU1NIFJvb3QgRGV2aWNlIikpICAv
+LyBfU1RSOiBEZXNjcmlwdGlvbiBTdHJpbmcKICAgICAgICAgICAgTWV0aG9kIChfU1RBLCAwLCBO
+b3RTZXJpYWxpemVkKSAgLy8gX1NUQTogU3RhdHVzCiAgICAgICAgICAgIHsgICAKICAgICAgICAg
+ICAgICAgIFJldHVybiAoMHgwRikKICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0KfQoKU28g
+dGhlcmUgaGF2ZSBubyB3YXkgdG8gY29udHJvbCB0aGlzIHJvb3QgZGV2aWNlIHRocm91Z2ggX0RT
+TS4gVGhlIEFDUEkwMDEyCnJvb3QgZGV2aWNlIGlzIHVzZWQgdG8gdHJpZ2dlciB0aGUgbmZpdCBk
+cml2ZXIgaW4gYWNwaS4KCkkgd2lsbCBwdXQgdGhlIGFib3ZlIHBhcnNlciByZXN1bHQgdG8gdGhl
+IHBhdGNoIGRlc2NyaXB0aW9uIGluIG5leHQgdmVyc2lvbi4KCgpPbiB0aGUgb3RoZXIgaGFuZCwg
+aGVyZSBpcyB0aGUgTkZJVCB0aGF0IGl0IGlzIGdlbmVyYXRlZCBieSBPVk1GOgoKWzAwMGggMDAw
+MCAgIDRdICAgICAgICAgICAgICAgICAgICBTaWduYXR1cmUgOiAiTkZJVCIgICAgW05WRElNTSBG
+aXJtd2FyZSBJbnRlcmZhY2UgVGFibGVdClswMDRoIDAwMDQgICA0XSAgICAgICAgICAgICAgICAg
+VGFibGUgTGVuZ3RoIDogMDAwMDAwNjAKWzAwOGggMDAwOCAgIDFdICAgICAgICAgICAgICAgICAg
+ICAgUmV2aXNpb24gOiAwMQpbMDA5aCAwMDA5ICAgMV0gICAgICAgICAgICAgICAgICAgICBDaGVj
+a3N1bSA6IDBDClswMEFoIDAwMTAgICA2XSAgICAgICAgICAgICAgICAgICAgICAgT2VtIElEIDog
+IklOVEVMICIKWzAxMGggMDAxNiAgIDhdICAgICAgICAgICAgICAgICBPZW0gVGFibGUgSUQgOiAi
+RURLMiAgICAiClswMThoIDAwMjQgICA0XSAgICAgICAgICAgICAgICAgT2VtIFJldmlzaW9uIDog
+MDAwMDAwMDIKWzAxQ2ggMDAyOCAgIDRdICAgICAgICAgICAgICBBc2wgQ29tcGlsZXIgSUQgOiAi
+ICAgICIKWzAyMGggMDAzMiAgIDRdICAgICAgICBBc2wgQ29tcGlsZXIgUmV2aXNpb24gOiAwMTAw
+MDAxMwoKWzAyNGggMDAzNiAgIDRdICAgICAgICAgICAgICAgICAgICAgUmVzZXJ2ZWQgOiAwMDAw
+MDAwMAoKWzAyOGggMDA0MCAgIDJdICAgICAgICAgICAgICAgIFN1YnRhYmxlIFR5cGUgOiAwMDAw
+IFtTeXN0ZW0gUGh5c2ljYWwgQWRkcmVzcyBSYW5nZV0KWzAyQWggMDA0MiAgIDJdICAgICAgICAg
+ICAgICAgICAgICAgICBMZW5ndGggOiAwMDM4CgpbMDJDaCAwMDQ0ICAgMl0gICAgICAgICAgICAg
+ICAgICBSYW5nZSBJbmRleCA6IDAwMDAKWzAyRWggMDA0NiAgIDJdICAgICAgICBGbGFncyAoZGVj
+b2RlZCBiZWxvdykgOiAwMDAwCiAgICAgICAgICAgICAgICAgICBBZGQvT25saW5lIE9wZXJhdGlv
+biBPbmx5IDogMAogICAgICAgICAgICAgICAgICAgICAgUHJveGltaXR5IERvbWFpbiBWYWxpZCA6
+IDAKWzAzMGggMDA0OCAgIDRdICAgICAgICAgICAgICAgICAgICAgUmVzZXJ2ZWQgOiAwMDAwMDAw
+MApbMDM0aCAwMDUyICAgNF0gICAgICAgICAgICAgUHJveGltaXR5IERvbWFpbiA6IDAwMDAwMDAw
+ClswMzhoIDAwNTYgIDE2XSAgICAgICAgICAgQWRkcmVzcyBSYW5nZSBHVUlEIDogNzdBQjUzNUEt
+NDVGQy02MjRCLTU1NjAtRjdCMjgxRDFGOTZFClswNDhoIDAwNzIgICA4XSAgICAgICAgICAgQWRk
+cmVzcyBSYW5nZSBCYXNlIDogMDAwMDAwMDBCNkFCRDAxOApbMDUwaCAwMDgwICAgOF0gICAgICAg
+ICBBZGRyZXNzIFJhbmdlIExlbmd0aCA6IDAwMDAwMDAwMDU1MDAwMDAKWzA1OGggMDA4OCAgIDhd
+ICAgICAgICAgTWVtb3J5IE1hcCBBdHRyaWJ1dGUgOiAwMDAwMDAwMDAwMDAwMDAwCgpUaGUgIkFk
+ZHJlc3MgUmFuZ2UgR1VJRCIgaXMgYSAiVmlydHVhbCBEaXNrIFJlZ2lvbiDigJMgVm9sYXRpbGUi
+IGJ1dCBub3QgYSBWQ0QKYmVjYXVzZSBJIHVzZWQgdGhlIFJhbWRpc2sgZnVuY3Rpb24gaW4gRURL
+MiB0byBnZW5lcmF0ZSB0aGUgTkZJVC4gV2hlbiB1c2luZwpodHRwIGJvb3Qgd2l0aCBhIGlzbyBm
+aWxlLCB0aGlzIEdVSUQgd2lsbCBiZSBjaGFuZ2VkIHRvIFZDRCB0eXBlLgoKQXMgdGhlIGFib3Zl
+IE5GSVQsIHRoZXJlIGhhdmUgIkFkZHJlc3MgUmFuZ2UgQmFzZSIgYW5kICJBZGRyZXNzIFJhbmdl
+IExlbmd0aCIKYnV0IHRoZSAiUmFuZ2UgSW5kZXgiIHdpbGwgYmUgemVyby4gU28gbXkgcGF0Y2gg
+aWdub3JlcyB0aGUgIlJhbmdlIEluZGV4IgpjaGVja2luZyBvbiBWQ0QgdHlwZS4KIAo+IEknbSBl
+c3BlY2lhbGx5IGNvbmNlcm5lZCBvbiBzeXN0ZW1zIHRoYXQgbWlnaHQgaGF2ZSBvbmUgb2YgdGhl
+c2UgZGV2aWNlcwo+IGFuZCBhbHNvIGhhdmUgTlZESU1Ncy4gIERvIGFsbCB0aGUgcG1lbSBkZXZp
+Y2VzIGdldCBudW1iZXJlZCBkaWZmZXJlbnQgaWYKPiB0aGlzIGRldmljZSBjb21lcyBhbmQgZ29l
+cyBhY3Jvc3MgcmVib290cz8gIChJIGtub3csIHdlIHNob3VsZG4ndCByZWx5IG9uCj4gdGhvc2Ug
+bmFtZXMgYnV0IGl0IHdpbGwgc3RpbGwgY29uZnVzZSBwZW9wbGUuKSAgQ2FuIHRoZXkgYmUgc29t
+ZSBvdGhlciBuYW1lCj4gdGhhdCBiZXR0ZXIgcmVwcmVzZW50cyB3aGF0IHRoZXkncmUgdHJ5aW5n
+IHRvIGJlPwo+IAo+ID4gTWF5YmUgSSBtaXNzZWQuIERvZXMgTkZJVF9TUEFfVk9MQVRJTEUgcmVn
+aW9uIGFsc28gZ2VuZXJhdGUgYSBkZXZpY2UgaW4gL2Rldgo+ID4gdGhhdCBpdCBjYW4gYmUgbW91
+bnRlZCB3aXRoIGZpbGVzeXN0ZW0/IAo+IAo+IFllcy4KPiAKPiAtLSBsamsKPgoKSSBjaGVja2Vk
+IHRoZSBOVkRJTU0gZHJpdmVyLCB0aGVyZSBoYXZlIDMgZHJpdmVycyBjYWxsIHJlZ2lzdGVyX2Js
+a2RldigpIHRoYXQKbWF5IGdlbmVyYXRlcyAibmRfYmxrIiwgImJ0dCIgYW5kICJwbWVtIiBibG9j
+ayBkZXZpY2VzLiBCdXQgSSBkaWRuJ3QgZmluZCB0aGUKYmxvY2sgZGV2aWNlIHRoYXQgaXQgcmVm
+bGVjdHMgdG8gdm9sYXRpbGUgbWVtb3J5IFNQQSByZWdpb24uIEhvdyBjYW4gSSBtb3VudAphIHZv
+bGF0aWxlIG1lbW9yeSByZWdpb24gd2l0aCBhIGZpbGVzeXN0ZW0/CgpJIGhhdmUgdHJpZWQgdG8g
+Y2FsbCBudmRpbW1fdm9sYXRpbGVfcmVnaW9uX2NyZWF0ZSgpIGluIG15IHBhdGNoIHdoZW4gVkNE
+CnJlZ2lvbiBzaG93cyB1cC4gQnV0IEkgZGlkbid0IGZpbmQgYW55IG5ldyBibG9jayBkZXZpY2Ug
+aW4gL2Rldi9kZXZpY2VzLgoKClRoYW5rcyBhIGxvdCEKSm9leSBMZWUgCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxp
+c3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
