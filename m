@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id 81CAA1A1E00
- for <linux-nvdimm@lists.01.org>; Sun, 26 Jun 2016 16:26:31 -0700 (PDT)
-Subject: [ndctl PATCH 9/9] test, libndctl: kill some dead code
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 26 Jun 2016 16:25:15 -0700
-Message-ID: <146698351517.40541.8674344835909731999.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
+ [15.241.140.78])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 34B9B1A1E34
+ for <linux-nvdimm@lists.01.org>; Mon, 13 Jun 2016 15:32:21 -0700 (PDT)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 5/6] dm, dm-linear: Add dax_supported to dm_target
+Date: Mon, 13 Jun 2016 16:21:36 -0600
+Message-Id: <1465856497-19698-6-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
+References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,43 +18,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: agk@redhat.com, snitzer@redhat.com, dan.j.williams@intel.com
+Cc: axboe@kernel.dk, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, dm-devel@redhat.com, viro@zeniv.linux.org.uk
 List-ID: <linux-nvdimm@lists.01.org>
 
-check_namespaces() used to do some i/o testing, but that's long since
-been replaced.  Clean up some straggling statements.
+Extend 'struct dm_target' to have dax_supported bit, which allows
+dm-table to check if a dm-target supports DAX.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Change dm-linear to set this bit when its target physical device
+supports DAX.
+
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Mike Snitzer <snitzer@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- test/libndctl.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/md/dm-linear.c        |    2 ++
+ include/linux/device-mapper.h |    5 +++++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/test/libndctl.c b/test/libndctl.c
-index 947849d7176b..b03fc27a5f0b 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -1460,7 +1460,6 @@ static int check_namespaces(struct ndctl_region *region,
- 	ndns_save = NULL;
- 	for (i = 0; (namespace = namespaces[i]); i++) {
- 		struct ndctl_namespace *ndns;
--		int fd = -1;
- 		uuid_t uu;
+diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
+index 49bd7d2..6fdbbc8 100644
+--- a/drivers/md/dm-linear.c
++++ b/drivers/md/dm-linear.c
+@@ -59,6 +59,8 @@ static int linear_ctr(struct dm_target *ti, unsigned int argc, char **argv)
+ 	ti->num_flush_bios = 1;
+ 	ti->num_discard_bios = 1;
+ 	ti->num_write_same_bios = 1;
++	if (lc->dev->bdev->bd_disk->flags & GENHD_FL_DAX)
++		ti->dax_supported = 1;
+ 	ti->private = lc;
+ 	return 0;
  
- 		snprintf(devname, sizeof(devname), "namespace%d.%d",
-@@ -1651,8 +1650,6 @@ static int check_namespaces(struct ndctl_region *region,
- 				break;
- 			}
- 		}
--		if (fd >= 0)
--			close(fd);
- 		namespace->do_configure = 0;
+diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
+index 16e6c8c..9b72989 100644
+--- a/include/linux/device-mapper.h
++++ b/include/linux/device-mapper.h
+@@ -290,6 +290,11 @@ struct dm_target {
+ 	 * Set if this target does not return zeroes on discarded blocks.
+ 	 */
+ 	bool discard_zeroes_data_unsupported:1;
++
++	/*
++	 * Set if the target supports DAX (direct access).
++	 */
++	bool dax_supported:1;
+ };
  
- 		__ndns_save = realloc(ndns_save,
-
+ /* Each target can link one of these into the table */
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
