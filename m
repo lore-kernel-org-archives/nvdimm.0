@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-From: Jeff Moyer <jmoyer@redhat.com>
+Date: Tue, 14 Jun 2016 11:41:31 -0400
+From: Mike Snitzer <snitzer@redhat.com>
 Subject: Re: [PATCH 0/6] Support DAX for device-mapper dm-linear devices
+Message-ID: <20160614154131.GB25876@redhat.com>
 References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
  <CAPcyv4jdM1phR=kGoP2-7tfsVvbNe2C6hHNS5TD28ALGZQQTSw@mail.gmail.com>
  <1465861755.3504.185.camel@hpe.com>
  <x49fusf282h.fsf@segfault.boston.devel.redhat.com>
- <20160614154131.GB25876@redhat.com>
-Date: Tue, 14 Jun 2016 16:19:19 -0400
-In-Reply-To: <20160614154131.GB25876@redhat.com> (Mike Snitzer's message of
- "Tue, 14 Jun 2016 11:41:31 -0400")
-Message-ID: <x49inxbzfp4.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <x49fusf282h.fsf@segfault.boston.devel.redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,79 +17,53 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Mike Snitzer <snitzer@redhat.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: "axboe@kernel.dk" <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "agk@redhat.com" <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-TWlrZSBTbml0emVyIDxzbml0emVyQHJlZGhhdC5jb20+IHdyaXRlczoKCj4gT24gVHVlLCBKdW4g
-MTQgMjAxNiBhdCAgOTo1MGFtIC0wNDAwLAo+IEplZmYgTW95ZXIgPGptb3llckByZWRoYXQuY29t
-PiB3cm90ZToKPgo+PiAiS2FuaSwgVG9zaGltaXRzdSIgPHRvc2hpLmthbmlAaHBlLmNvbT4gd3Jp
-dGVzOgo+PiAKPj4gPj4gSSBoYWQgZG0tbGluZWFyIGFuZCBtZC1yYWlkMCBzdXBwb3J0IG9uIG15
-IGxpc3Qgb2YgdGhpbmdzIHRvIGxvb2sgYXQsCj4+ID4+IGRpZCB5b3UgaGF2ZSByYWlkMCBpbiB5
-b3VyIHBsYW5zPwo+PiA+Cj4+ID4gWWVzLCBJIGhvcGUgdG8gZXh0ZW5kIGZ1cnRoZXIgYW5kIHJh
-aWQwIGlzIGEgZ29vZCBjYW5kaWRhdGUuIMKgwqAKPj4gCj4+IGRtLWZsYWtleSB3b3VsZCBhbGxv
-dyBtb3JlIHhmc3Rlc3RzIHRlc3QgY2FzZXMgdG8gcnVuLiAgSSdkIHNheSB0aGF0J3MKPj4gbW9y
-ZSBpbXBvcnRhbnQgdGhhbiBsaW5lYXIgb3IgcmFpZDAuICA7LSkKPgo+IFJlZ2FyZGxlc3Mgb2Yg
-d2hpY2ggdGFyZ2V0KHMpIGdyb3cgREFYIHN1cHBvcnQgdGhlIG1vc3QgcHJlc3NpbmcgaW5pdGlh
-bAo+IGNvbmNlcm4gaXMgZ2V0dGluZyB0aGUgRE0gZGV2aWNlIHN0YWNraW5nIGNvcnJlY3QuICBB
-bmQgdmVyaWZ5aW5nIHRoYXQKPiBJTyB0aGF0IGNyb3NzIHBtZW0gZGV2aWNlIGJvdW5kYXJpZXMg
-YXJlIGJlaW5nIHByb3Blcmx5IHNwbGl0IGJ5IERNCj4gY29yZSAodmlhIGRyaXZlcnMvbWQvZG0u
-YzpfX3NwbGl0X2FuZF9wcm9jZXNzX25vbl9mbHVzaCgpJ3MgY2FsbCB0bwo+IG1heF9pb19sZW4p
-LgoKVGhhdCB3YXMgYSB0b25ndWUtaW4tY2hlZWsgY29tbWVudC4gIFlvdSdyZSByZWFkaW5nIHdh
-eSB0b28gbXVjaCBpbnRvCml0LgoKPj4gQWxzbywgdGhlIG5leHQgc3RlcCBpbiB0aGlzIHdvcmsg
-aXMgdG8gdGhlbiBkZWNpZGUgaG93IHRvIGRldGVybWluZSBvbgo+PiB3aGF0IG51bWEgbm9kZSBh
-biBMQkEgcmVzaWRlcy4gIFdlIGhhZCBkaXNjdXNzZWQgdGhpcyBhdCBhIHByaW9yCj4+IHBsdW1i
-ZXJzIGNvbmZlcmVuY2UsIGFuZCBJIHRoaW5rIHRoZSBjb25zZW5zdXMgd2FzIHRvIHVzZSB4YXR0
-cnMuCj4+IFRvc2hpLCBkbyB5b3UgYWxzbyBwbGFuIHRvIGRvIHRoYXQgd29yaz8KPgo+IEhvdyBk
-b2VzIHRoZSBhc3NvY2lhdGVkIE5VTUEgbm9kZSByZWxhdGUgdG8gdGhpcz8gIERvZXMgdGhlCj4g
-RE0gcmVxdWVzdHNfcXVldWUgbmVlZCB0byBiZSBzZXR1cCB0byBvbmx5IGFsbG9jYXRlIGZyb20g
-dGhlIE5VTUEgbm9kZQo+IHRoZSBwbWVtIGRldmljZSBpcyBhdHRhY2hlZCB0bz8gIEkgcmVjZW50
-bHkgYWRkZWQgc3VwcG9ydCBmb3IgdGhpcyB0bwo+IERNLiAgQnV0IHRoZXJlIHdpbGwgbGlrZWx5
-IGJlIHNvbWUgY29kZSBuZWVkIHRvIHByb3BhZ2F0ZSB0aGUgTlVNQSBub2RlCj4gaWQgYWNjb3Jk
-aW5nbHkuCgpJIGFzc3VtZSB5b3UgbWVhbiBhbGxvY2F0ZSBtZW1vcnkgKHRoZSB2b2xhdGlsZSBr
-aW5kKS4gIFRoYXQgc2hvdWxkIHdvcmsKdGhlIHNhbWUgYmV0d2VlbiBwbWVtIGFuZCByZWd1bGFy
-IGJsb2NrIGRldmljZXMsIG5vPwoKV2hhdCBJIHdhcyBnZXR0aW5nIGF0IHdhcyB0aGF0IGFwcGxp
-Y2F0aW9ucyBtYXkgd2FudCB0byBrbm93IG9uIHdoaWNoCm5vZGUgdGhlaXIgZGF0YSByZXNpZGVz
-LiAgUmlnaHQgbm93LCBpdCdzIGVhc3kgdG8gdGVsbCBiZWNhdXNlIGEgc2luZ2xlCmRldmljZSBj
-YW5ub3Qgc3BhbiBudW1hIG5vZGVzLCBvciwgaWYgaXQgZG9lcywgaXQgZG9lcyBzbyB2aWEgYW4K
-aW50ZXJsZWF2ZSwgc28gbnVtYSBpbmZvcm1hdGlvbiBpc24ndCBpbnRlcmVzdGluZy4gIEhvd2V2
-ZXIsIG9uY2UgZGF0YQpvbiBhIHNpbmdsZSBmaWxlIHN5c3RlbSBjYW4gYmUgcGxhY2VkIG9uIG11
-bHRpcGxlIGRpZmZlcmVudCBudW1hIG5vZGVzLAphcHBsaWNhdGlvbnMgbWF5IHdhbnQgdG8gcXVl
-cnkgYW5kL29yIGNvbnRyb2wgdGhhdCBwbGFjZW1lbnQuCgpIZXJlJ3MgYSBzbmlwcGV0IGZyb20g
-YSBibG9nIHBvc3QgSSBuZXZlciBmaW5pc2hlZDoKClRoZXJlIGFyZSB0d28gZXNzZW50aWFsIHF1
-ZXN0aW9ucyB0aGF0IG5lZWQgdG8gYmUgYW5zd2VyZWQgcmVnYXJkaW5nCnBlcnNpc3RlbnQgbWVt
-b3J5IGFuZCBOVU1BOiBmaXJzdCwgd291bGQgYW4gYXBwbGljYXRpb24gYmVuZWZpdCBmcm9tCmJl
-aW5nIGFibGUgdG8gcXVlcnkgdGhlIE5VTUEgbG9jYWxpdHkgb2YgaXRzIGRhdGEsIGFuZCBzZWNv
-bmQsIHdvdWxkCmFuIGFwcGxpY2F0aW9uIGJlbmVmaXQgZnJvbSBiZWluZyBhYmxlIHRvIHNwZWNp
-ZnkgYSBwbGFjZW1lbnQgcG9saWN5CmZvciBpdHMgZGF0YT8gIFRoaXMgYXJ0aWNsZSBpcyBhbiBh
-dHRlbXB0IHRvIHN1bW1hcml6ZSB0aGUgY3VycmVudApzdGF0ZSBvZiBoYXJkd2FyZSBhbmQgc29m
-dHdhcmUgaW4gb3JkZXIgdG8gY29uc2lkZXIgdGhlIGFib3ZlIHR3bwpxdWVzdGlvbnMuICBXZSBi
-ZWdpbiB3aXRoIGEgc2hvcnQgbGlzdCBvZiB1c2UgY2FzZXMgZm9yIHRoZXNlCmludGVyZmFjZXMs
-IHdoaWNoIHdpbGwgZnJhbWUgdGhlIGRpc2N1c3Npb24uCgpGaXJzdCwgbGV0J3MgY29uc2lkZXIg
-YW4gaW50ZXJmYWNlIHRoYXQgYWxsb3dzIGFuIGFwcGxpY2F0aW9uIHRvIHF1ZXJ5CnRoZSBOVU1B
-IHBsYWNlbWVudCBvZiBleGlzdGluZyBkYXRhLiAgV2l0aCBzdWNoIGluZm9ybWF0aW9uLCBhbgph
-cHBsaWNhdGlvbiBtYXkgd2FudCB0byBwZXJmb3JtIHRoZSBmb2xsb3dpbmcgYWN0aW9uczoKCi0g
-cmVsb2NhdGUgYXBwbGljYXRpb24gcHJvY2Vzc2VzIHRvIHRoZSBzYW1lIE5VTUEgbm9kZSBhcyB0
-aGVpciBkYXRhLgogIChJbnRlcmZhY2VzIGZvciBtb3ZpbmcgYSBwcm9jZXNzIGFyZSByZWFkaWx5
-IGF2YWlsYWJsZS4pCi0gc3BlY2lmeSBhIG1lbW9yeSAoUkFNKSBhbGxvY2F0aW9uIHBvbGljeSBz
-byB0aGF0IG1lbW9yeSBhbGxvY2F0aW9ucwogIGNvbWUgZnJvbSB0aGUgc2FtZSBOVU1BIG5vZGUg
-YXMgdGhlIGRhdGEuCgpTZWNvbmQsIHdlIGNvbnNpZGVyIGFuIGludGVyZmFjZSB0aGF0IGFsbG93
-cyBhbiBhcHBsaWNhdGlvbiB0byBzcGVjaWZ5CmEgcGxhY2VtZW50IHBvbGljeSBmb3IgbmV3IGRh
-dGEuICBVc2luZyB0aGlzIGludGVyZmFjZSwgYW4gYXBwbGljYXRpb24KbWF5OgoKLSBlbnN1cmUg
-ZGF0YSBpcyBzdG9yZWQgb24gdGhlIHNhbWUgTlVNQSBub2RlIGFzIHRoZSBvbmUgb24gd2hpY2gg
-dGhlCiAgYXBwbGljYXRpb24gaXMgcnVubmluZwotIGVuc3VyZSBkYXRhIGlzIHN0b3JlZCBvbiB0
-aGUgc2FtZSBOVU1BIG5vZGUgYXMgYW4gSS9PIGFkYXB0ZXIgc3VjaAogIGFzIGEgbmV0d29yayBj
-YXJkLCB0aGF0IGlzIGEgcHJvZHVjZXIgb2YgZGF0YSBzdG9yZWQgdG8gTlZNLgotIGVuc3VyZSBk
-YXRhIGlzIHN0b3JlZCBvbiBhIGRpZmZlcmVudCBOVU1BIG5vZGU6CiAgLSBzbyB0aGF0IHRoZSBk
-YXRhIGlzIHN0b3JlZCBvbiB0aGUgc2FtZSBOVU1BIG5vZGUgYXMgcmVsYXRlZCBkYXRhCiAgLSBi
-ZWNhdXNlIHRoZSBkYXRhIGRvZXMgbm90IG5lZWQgdGhlIGZhc3RlciBhY2Nlc3MgYWZmb3JkZWQg
-YnkgbG9jYWwKICAgIE5VTUEgcGxhY2VtZW50LiAgUHJlc3VtYWJseSB0aGlzIGlzIGEgdHJhZGUt
-b2ZmLCBhbmQgb3RoZXIgZGF0YQogICAgd2lsbCByZXF1aXJlIGxvY2FsIHBsYWNlbWVudCB0byBt
-ZWV0IHRoZSBwZXJmb3JtYW5jZSBnb2FscyBvZiB0aGUKICAgIGFwcGxpY2F0aW9uLgoKQ2hlZXJz
-LApKZWZmCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
-bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
-L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Tue, Jun 14 2016 at  9:50am -0400,
+Jeff Moyer <jmoyer@redhat.com> wrote:
+
+> "Kani, Toshimitsu" <toshi.kani@hpe.com> writes:
+> =
+
+> >> I had dm-linear and md-raid0 support on my list of things to look at,
+> >> did you have raid0 in your plans?
+> >
+> > Yes, I hope to extend further and raid0 is a good candidate. =A0=A0
+> =
+
+> dm-flakey would allow more xfstests test cases to run.  I'd say that's
+> more important than linear or raid0.  ;-)
+
+Regardless of which target(s) grow DAX support the most pressing initial
+concern is getting the DM device stacking correct.  And verifying that
+IO that cross pmem device boundaries are being properly split by DM
+core (via drivers/md/dm.c:__split_and_process_non_flush()'s call to
+max_io_len).
+
+My hope is to nail down the DM core and its dependencies in block etc.
+Doing so in terms of dm-linear doesn't seem like wasted effort
+considering you told me it'd be useful to have for pmem devices.
+ =
+
+> Also, the next step in this work is to then decide how to determine on
+> what numa node an LBA resides.  We had discussed this at a prior
+> plumbers conference, and I think the consensus was to use xattrs.
+> Toshi, do you also plan to do that work?
+
+How does the associated NUMA node relate to this?  Does the
+DM requests_queue need to be setup to only allocate from the NUMA node
+the pmem device is attached to?  I recently added support for this to
+DM.  But there will likely be some code need to propagate the NUMA node
+id accordingly.
+
+Mike
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
