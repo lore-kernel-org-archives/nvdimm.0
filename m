@@ -1,13 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F1AB51A1E0A
- for <linux-nvdimm@lists.01.org>; Wed, 22 Jun 2016 17:05:43 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 0/3] Support DAX for device-mapper dm-linear devices
-Date: Wed, 22 Jun 2016 17:54:51 -0600
-Message-Id: <1466639694-25394-1-git-send-email-toshi.kani@hpe.com>
+Date: Tue, 14 Jun 2016 22:35:02 -0400
+From: Mike Snitzer <snitzer@redhat.com>
+Subject: Re: [PATCH 0/6] Support DAX for device-mapper dm-linear devices
+Message-ID: <20160615023502.GC5443@redhat.com>
+References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
+ <CAPcyv4jdM1phR=kGoP2-7tfsVvbNe2C6hHNS5TD28ALGZQQTSw@mail.gmail.com>
+ <1465861755.3504.185.camel@hpe.com>
+ <x49fusf282h.fsf@segfault.boston.devel.redhat.com>
+ <20160614154131.GB25876@redhat.com>
+ <x49inxbzfp4.fsf@segfault.boston.devel.redhat.com>
+ <20160615014658.GA5443@redhat.com>
+ <CAPcyv4g6hRciQHA=QMf3BUKxHOpyZCUSX1E9Huc8U2GxqHK4vA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4g6hRciQHA=QMf3BUKxHOpyZCUSX1E9Huc8U2GxqHK4vA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,50 +21,92 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: snitzer@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, dm-devel@redhat.com, viro@zeniv.linux.org.uk, agk@redhat.com
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "axboe@kernel.dk" <axboe@kernel.dk>, "dm-devel@redhat.com" <dm-devel@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "agk@redhat.com" <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch-set adds DAX support to device-mapper dm-linear devices
-used by LVM.  It works with LVM commands as follows:
- - Creation of a logical volume with all DAX capable devices (such
-   as pmem) sets the logical volume DAX capable as well.
- - Once a logical volume is set to DAX capable, the volume may not
-   be extended with non-DAX capable devices.
+On Tue, Jun 14 2016 at 10:07pm -0400,
+Dan Williams <dan.j.williams@intel.com> wrote:
 
-The direct_access interface is added to dm and dm-linear to map
-a request to a target device.
+> On Tue, Jun 14, 2016 at 6:46 PM, Mike Snitzer <snitzer@redhat.com> wrote:
+> > On Tue, Jun 14 2016 at  4:19pm -0400,
+> > Jeff Moyer <jmoyer@redhat.com> wrote:
+> >
+> >> Mike Snitzer <snitzer@redhat.com> writes:
+> >>
+> >> > On Tue, Jun 14 2016 at  9:50am -0400,
+> >> > Jeff Moyer <jmoyer@redhat.com> wrote:
+> >> >
+> >> >> "Kani, Toshimitsu" <toshi.kani@hpe.com> writes:
+> >> >>
+> >> >> >> I had dm-linear and md-raid0 support on my list of things to look at,
+> >> >> >> did you have raid0 in your plans?
+> >> >> >
+> >> >> > Yes, I hope to extend further and raid0 is a good candidate.
+> >> >>
+> >> >> dm-flakey would allow more xfstests test cases to run.  I'd say that's
+> >> >> more important than linear or raid0.  ;-)
+> >> >
+> >> > Regardless of which target(s) grow DAX support the most pressing initial
+> >> > concern is getting the DM device stacking correct.  And verifying that
+> >> > IO that cross pmem device boundaries are being properly split by DM
+> >> > core (via drivers/md/dm.c:__split_and_process_non_flush()'s call to
+> >> > max_io_len).
+> >>
+> >> That was a tongue-in-cheek comment.  You're reading way too much into
+> >> it.
+> >>
+> >> >> Also, the next step in this work is to then decide how to determine on
+> >> >> what numa node an LBA resides.  We had discussed this at a prior
+> >> >> plumbers conference, and I think the consensus was to use xattrs.
+> >> >> Toshi, do you also plan to do that work?
+> >> >
+> >> > How does the associated NUMA node relate to this?  Does the
+> >> > DM requests_queue need to be setup to only allocate from the NUMA node
+> >> > the pmem device is attached to?  I recently added support for this to
+> >> > DM.  But there will likely be some code need to propagate the NUMA node
+> >> > id accordingly.
+> >>
+> >> I assume you mean allocate memory (the volatile kind).  That should work
+> >> the same between pmem and regular block devices, no?
+> >
+> > This is the commit I made to train DM to be numa node aware:
+> > 115485e83f497fdf9b4 ("dm: add 'dm_numa_node' module parameter")
+> 
+> Hmm, but this is global for all DM device instances.
 
-The patches replace v1 series at:
-http://git.kernel.org/cgit/linux/kernel/git/snitzer/linux.git/log/?h=wip
+Right, only because I didn't have a convenient way to allow the user to
+specify it on a per-device level.  But I'll defer skinning that cat for
+now since in this pmem case we'd inherit from the underlying device(s)
 
-v2:
- - Fix issue with partitioning.
- - Change to add DAX flag to a request queue.
+> > As is the DM code is focused on memory allocations.  But I think blk-mq
+> > may use the NUMA node for via tag_set->numa_node.  But that is moot
+> > given pmem is bio-based right?
+> 
+> Right.
+> 
+> >
+> > Steps could be taken to make all threads DM creates for a a given device
+> > get pinned to the specified NUMA node too.
+> 
+> I think it would be useful if a DM instance inherited the numa node
+> from the component devices by default (assuming they're all from the
+> same node).  A "dev_to_node(disk_to_dev(disk))" conversion works for
+> pmem devices.
 
----
-Toshi Kani (3):
- 1/3 block: add QUEUE_FLAG_DAX for devices to advertise their DAX support
- 2/3 dm: add infrastructure for DAX support
- 3/3 dm linear: add DAX support
+OK, I can look to make that happen.
+ 
+> As far as I understand, Jeff wants to go further and have a linear
+> span across component devices from different nodes with an interface
+> to do an LBA-to-numa-node conversion.
 
----
- drivers/block/brd.c           |  4 +++-
- drivers/md/dm-linear.c        | 23 ++++++++++++++++++++++-
- drivers/md/dm-table.c         | 23 ++++++++++++++++++++---
- drivers/md/dm.c               | 36 +++++++++++++++++++++++++++++++++++-
- drivers/md/dm.h               |  1 +
- drivers/nvdimm/pmem.c         |  1 +
- drivers/s390/block/dcssblk.c  |  1 +
- fs/block_dev.c                |  5 +++--
- include/linux/blkdev.h        |  2 ++
- include/linux/device-mapper.h | 16 ++++++++++++++++
- 10 files changed, 104 insertions(+), 8 deletions(-)
+All that variability makes DM's ability to do anything sane with it
+close to impossible considering memory pools, threads, etc are all
+pinned during the first activation of the DM device.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
