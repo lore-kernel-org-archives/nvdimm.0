@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 981A41A1E2E
- for <linux-nvdimm@lists.01.org>; Mon, 13 Jun 2016 15:32:13 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 1/6] genhd: Add GENHD_FL_DAX to gendisk flags
-Date: Mon, 13 Jun 2016 16:21:32 -0600
-Message-Id: <1465856497-19698-2-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
-References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 893CC1A1E53
+ for <linux-nvdimm@lists.01.org>; Fri, 17 Jun 2016 09:36:00 -0700 (PDT)
+Subject: [PATCH v3 3/3] block: remove ->driverfs_dev
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 17 Jun 2016 09:34:49 -0700
+Message-ID: <146618128983.31030.5935615517632155377.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146618127395.31030.11800447312061202344.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146618127395.31030.11800447312061202344.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,90 +16,81 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: agk@redhat.com, snitzer@redhat.com, dan.j.williams@intel.com
-Cc: axboe@kernel.dk, linux-s390@vger.kernel.org, linux-nvdimm@lists.01.org, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, dm-devel@redhat.com, viro@zeniv.linux.org.uk, Martin Schwidefsky <schwidefsky@de.ibm.com>
+To: linux-block@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, axboe@fb.com, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently, presence of direct_access() in block_device_operations
-indicates support of DAX on its block device.  Because
-block_device_operations is instantiated with 'const', this DAX
-capablity may not be enabled conditinally.
+Now that all drivers that specify a ->driverfs_dev have been converted
+to device_add_disk(), the pointer can be removed from struct gendisk.
 
-In preparation for supporting DAX to device-mapper devices, add
-GENHD_FL_DAX to gendisk flags to indicate that this block device
-supports DAX.  This will allow to set the DAX capability based on
-how mapped device is composed.
-
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@fb.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: <linux-s390@vger.kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/block/brd.c          |    2 +-
- drivers/nvdimm/pmem.c        |    2 +-
- drivers/s390/block/dcssblk.c |    1 +
- include/linux/genhd.h        |    2 +-
- 4 files changed, 4 insertions(+), 3 deletions(-)
+ block/genhd.c         |    5 ++---
+ drivers/nvdimm/bus.c  |    2 +-
+ include/linux/genhd.h |    4 +---
+ 3 files changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index c04bd9b..43a6765 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -518,7 +518,7 @@ static struct brd_device *brd_alloc(int i)
- 	disk->fops		= &brd_fops;
- 	disk->private_data	= brd;
- 	disk->queue		= brd->brd_queue;
--	disk->flags		= GENHD_FL_EXT_DEVT;
-+	disk->flags		= GENHD_FL_EXT_DEVT | GENHD_FL_DAX;
- 	sprintf(disk->disk_name, "ram%d", i);
- 	set_capacity(disk, rd_size * 2);
+diff --git a/block/genhd.c b/block/genhd.c
+index 932e70c113d0..a18d35390f1d 100644
+--- a/block/genhd.c
++++ b/block/genhd.c
+@@ -800,10 +800,9 @@ void __init printk_all_partitions(void)
+ 			       , disk_name(disk, part->partno, name_buf),
+ 			       part->info ? part->info->uuid : "");
+ 			if (is_part0) {
+-				if (disk->driverfs_dev != NULL &&
+-				    disk->driverfs_dev->driver != NULL)
++				if (dev->parent && dev->parent->driver)
+ 					printk(" driver: %s\n",
+-					      disk->driverfs_dev->driver->name);
++					      dev->parent->driver->name);
+ 				else
+ 					printk(" (driver?)\n");
+ 			} else
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index f085f8bceae8..5e4e5c772ea5 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -312,7 +312,7 @@ EXPORT_SYMBOL(__nd_driver_register);
  
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 608fc44..3847449 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -295,7 +295,7 @@ static int pmem_attach_disk(struct device *dev,
- 
- 	disk->fops		= &pmem_fops;
- 	disk->queue		= q;
--	disk->flags		= GENHD_FL_EXT_DEVT;
-+	disk->flags		= GENHD_FL_EXT_DEVT | GENHD_FL_DAX;
- 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
- 	disk->driverfs_dev = dev;
- 	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index bed53c4..60b1857 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -616,6 +616,7 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
- 	dev_info->gd->queue = dev_info->dcssblk_queue;
- 	dev_info->gd->private_data = dev_info;
- 	dev_info->gd->driverfs_dev = &dev_info->dev;
-+	dev_info->gd->flags = GENHD_FL_DAX;
- 	blk_queue_make_request(dev_info->dcssblk_queue, dcssblk_make_request);
- 	blk_queue_logical_block_size(dev_info->dcssblk_queue, 4096);
+ int nvdimm_revalidate_disk(struct gendisk *disk)
+ {
+-	struct device *dev = disk->driverfs_dev;
++	struct device *dev = disk_to_dev(disk)->parent;
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+ 	const char *pol = nd_region->ro ? "only" : "write";
  
 diff --git a/include/linux/genhd.h b/include/linux/genhd.h
-index 359a8e4..9dc3a3d 100644
+index df1dabbfd388..1dbf52f9c24b 100644
 --- a/include/linux/genhd.h
 +++ b/include/linux/genhd.h
-@@ -131,7 +131,7 @@ struct hd_struct {
- };
+@@ -205,7 +205,6 @@ struct gendisk {
+ 	void *private_data;
  
- #define GENHD_FL_REMOVABLE			1
--/* 2 is unused */
-+#define GENHD_FL_DAX				2
- #define GENHD_FL_MEDIA_CHANGE_NOTIFY		4
- #define GENHD_FL_CD				8
- #define GENHD_FL_UP				16
+ 	int flags;
+-	struct device *driverfs_dev;  // FIXME: remove
+ 	struct kobject *slave_dir;
+ 
+ 	struct timer_rand_state *random;
+@@ -417,8 +416,7 @@ extern void part_round_stats(int cpu, struct hd_struct *part);
+ extern void device_add_disk(struct device *parent, struct gendisk *disk);
+ static inline void add_disk(struct gendisk *disk)
+ {
+-	/* temporary while we convert callers to device_add_disk */
+-	device_add_disk(disk->driverfs_dev, disk);
++	device_add_disk(NULL, disk);
+ }
+ 
+ extern void del_gendisk(struct gendisk *gp);
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
