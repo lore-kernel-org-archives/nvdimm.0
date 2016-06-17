@@ -1,15 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 696F81A1DFC
- for <linux-nvdimm@lists.01.org>; Mon, 20 Jun 2016 11:49:21 -0700 (PDT)
-Date: Mon, 20 Jun 2016 12:48:27 -0600
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id 368801A1E16
+ for <linux-nvdimm@lists.01.org>; Thu, 16 Jun 2016 18:05:05 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: Re: [RFC PATCH 0/2] Initial support for badblock checking in xfs
-Message-ID: <20160620184812.GA21878@omniknight.lm.intel.com>
-References: <1466125419-17736-1-git-send-email-vishal.l.verma@intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1466125419-17736-1-git-send-email-vishal.l.verma@intel.com>
+Subject: [RFC PATCH 0/2] Initial support for badblock checking in xfs
+Date: Thu, 16 Jun 2016 19:03:37 -0600
+Message-Id: <1466125419-17736-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,6 +13,7 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
@@ -25,94 +22,61 @@ To: linux-nvdimm@lists.01.org, xfs@oss.sgi.com
 Cc: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, "Darrick J. Wong" <darrick.wong@oracle.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 06/16, Vishal Verma wrote:
-> These are early/RFC patches to add badblock support in xfs.
-> 
-> Patch 1 should be relatively straightforward - it adds a notifier chain
-> to badblocks that filesystems can register with.
-> 
-> Patch 2 is the beginnings of xfs support. So far, I have the notifier
-> registration and building the initial badblock list happening in
-> xfs_mountfs. The next steps (and I may need some help with this as I'm
-> no (x)fs developer :)) are to add this badblocks info to the reverse
-> mapping tree, and then to check for it before accessing the media.
-> 
-> Right now, this just prints the sector numbers/counts/{added, removed}
-> to the kernel log, for both the initial list, and subsequent notifier
-> hits.
-> 
-> While I've tested this with a fake pmem device using libnvdimm's
-> nfit_test framework, it should also work using badblock injection with
-> any block device:
-> 
-> # mkfs.xfs -f /dev/<device>
-> # echo 122 1 > /sys/block/<device>/badblocks
-> # echo 124 1 > /sys/block/<device>/badblocks
-> # mount -t xfs /dev/<device> /mnt
-> ... in log:
-> [  +8.803776] XFS (pmem7): Mounting V4 Filesystem
-> [  +0.009633] XFS (pmem7): Ending clean mount
-> [  +0.001655] XFS (pmem7): got badblocks: sector 122, count 1
-> [  +0.002018] XFS (pmem7): got badblocks: sector 124, count 1
-> 
-> # echo 132 5 | > /sys/block/<device>/badblocks
-> [Jun16 18:56] XFS (pmem7): xfs badblock added sector 132 (count 5)
-> 
-> This is all based on Darrik's rmap work at:
-> https://github.com/djwong/linux/tree/rmap-reflink-devel
-> 
-> Since this is based on a v4.5-rc kernel, it lacks pmem support for
-> clearing badblocks on zeroing/writing, so those parts can't easily
-> be tested yet. The clearing work is in 4.7-rs kernels, and once we
-> rebase to that, that should also be available.
+These are early/RFC patches to add badblock support in xfs.
 
-Just fyi, These patches should also cleanly apply to Darrick's for-next
-rebase:
-	https://github.com/djwong/linux/tree/djwong-devel
+Patch 1 should be relatively straightforward - it adds a notifier chain
+to badblocks that filesystems can register with.
 
-With this, I can now test badblock clearing also:
+Patch 2 is the beginnings of xfs support. So far, I have the notifier
+registration and building the initial badblock list happening in
+xfs_mountfs. The next steps (and I may need some help with this as I'm
+no (x)fs developer :)) are to add this badblocks info to the reverse
+mapping tree, and then to check for it before accessing the media.
 
-$ cat /sys/block/pmem7/badblocks 
-122 1
-124 1
-126 1
-128 1
+Right now, this just prints the sector numbers/counts/{added, removed}
+to the kernel log, for both the initial list, and subsequent notifier
+hits.
 
-$ sudo dd if=/dev/zero of=/dev/pmem7 bs=512 count=8 seek=120
-oflag=direct
-8+0 records in
-8+0 records out
-4096 bytes (4.1 kB) copied, 0.0206735 s, 198 kB/s
+While I've tested this with a fake pmem device using libnvdimm's
+nfit_test framework, it should also work using badblock injection with
+any block device:
 
-[  +9.510106] nd_pmem namespace7.0: pmem_clear_poison: 78 clear 1 sector
-[  +0.001827] XFS (pmem7): xfs badblock cleared sector 120 (count 1)
+# mkfs.xfs -f /dev/<device>
+# echo 122 1 > /sys/block/<device>/badblocks
+# echo 124 1 > /sys/block/<device>/badblocks
+# mount -t xfs /dev/<device> /mnt
+... in log:
+[  +8.803776] XFS (pmem7): Mounting V4 Filesystem
+[  +0.009633] XFS (pmem7): Ending clean mount
+[  +0.001655] XFS (pmem7): got badblocks: sector 122, count 1
+[  +0.002018] XFS (pmem7): got badblocks: sector 124, count 1
 
-[  +0.002772] nd_pmem namespace7.0: pmem_clear_poison: 7a clear 1 sector
-[  +0.002527] XFS (pmem7): xfs badblock cleared sector 122 (count 1)
+# echo 132 5 | > /sys/block/<device>/badblocks
+[Jun16 18:56] XFS (pmem7): xfs badblock added sector 132 (count 5)
 
-[  +0.003004] nd_pmem namespace7.0: pmem_clear_poison: 7c clear 1 sector
-[  +0.002215] XFS (pmem7): xfs badblock cleared sector 124 (count 1)
+This is all based on Darrik's rmap work at:
+https://github.com/djwong/linux/tree/rmap-reflink-devel
 
-[  +0.003063] nd_pmem namespace7.0: pmem_clear_poison: 7e clear 1 sector
-[  +0.002307] XFS (pmem7): xfs badblock cleared sector 126 (count 1)
+Since this is based on a v4.5-rc kernel, it lacks pmem support for
+clearing badblocks on zeroing/writing, so those parts can't easily
+be tested yet. The clearing work is in 4.7-rs kernels, and once we
+rebase to that, that should also be available.
 
 
-> 
-> 
-> Vishal Verma (2):
->   block, badblocks: add a notifier for badblocks
->   xfs: initial/partial support for badblocks
-> 
->  block/badblocks.c         |  79 +++++++++++++++++++++++++++++++++--
->  fs/xfs/xfs_linux.h        |   1 +
->  fs/xfs/xfs_mount.c        | 104 ++++++++++++++++++++++++++++++++++++++++++++++
->  fs/xfs/xfs_mount.h        |   1 +
->  include/linux/badblocks.h |  19 +++++++++
->  5 files changed, 201 insertions(+), 3 deletions(-)
-> 
-> -- 
-> 2.5.5
-> 
+Vishal Verma (2):
+  block, badblocks: add a notifier for badblocks
+  xfs: initial/partial support for badblocks
+
+ block/badblocks.c         |  79 +++++++++++++++++++++++++++++++++--
+ fs/xfs/xfs_linux.h        |   1 +
+ fs/xfs/xfs_mount.c        | 104 ++++++++++++++++++++++++++++++++++++++++++++++
+ fs/xfs/xfs_mount.h        |   1 +
+ include/linux/badblocks.h |  19 +++++++++
+ 5 files changed, 201 insertions(+), 3 deletions(-)
+
+-- 
+2.5.5
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
