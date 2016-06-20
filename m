@@ -1,15 +1,16 @@
-From: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
 Subject: Re: [PATCH 0/6] Support DAX for device-mapper dm-linear devices
-Date: Mon, 20 Jun 2016 14:00:43 -0400
-Message-ID: <20160620180043.GA21261@redhat.com>
+Date: Mon, 20 Jun 2016 18:31:14 +0000
+Message-ID: <1466446861.3504.243.camel@hpe.com>
 References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
- <20160613225756.GA18417@redhat.com>
+ <20160613225756.GA18417@redhat.com> <20160620180043.GA21261@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160613225756.GA18417-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160620180043.GA21261-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <B99D5D903A87B34EBB194BCECC4FC3D8-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,56 +20,53 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Cc: axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org, agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: "snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org" <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon, Jun 13 2016 at  6:57pm -0400,
-Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-
-> On Mon, Jun 13 2016 at  6:21pm -0400,
-> Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
-> 
-> > This patch-set adds DAX support to device-mapper dm-linear devices
-> > used by LVM.  It works with LVM commands as follows:
-> >  - Creation of a logical volume with all DAX capable devices (such
-> >    as pmem) sets the logical volume DAX capable as well.
-> >  - Once a logical volume is set to DAX capable, the volume may not
-> >    be extended with non-DAX capable devices.
-> > 
-> > The direct_access interface is added to dm and dm-linear to map
-> > a request to a target device.
-> > 
-> >  - Patch 1-2 introduce GENHD_FL_DAX flag to indicate DAX capability.
-> >  - Patch 3-4 add direct_access functions to dm and dm-linear.
-> >  - Patch 5-6 set GENHD_FL_DAX to dm when all targets are DAX capable.
-> > 
-> > ---
-> > Toshi Kani (6):
-> >  1/6 genhd: Add GENHD_FL_DAX to gendisk flags
-> >  2/6 block: Check GENHD_FL_DAX for DAX capability
-> >  3/6 dm: Add dm_blk_direct_access() for mapped device
-> >  4/6 dm-linear: Add linear_direct_access()
-> >  5/6 dm, dm-linear: Add dax_supported to dm_target
-> >  6/6 dm: Enable DAX support for mapper device
-> 
-> Thanks a lot for doing this.  I recently added it to my TODO so your
-> patches come at a great time.
-> 
-> I'll try to get to reviewing/testing your work by the end of this week.
-
-I rebased your patches on linux-dm.git's 'for-next' (which includes what
-I've already staged for the 4.8 merge window).  And I folded/changed
-some of the DM patches so that there are only 2 now (1 for DM core and 1
-for dm-linear).  Please see the 4 topmost commits in my 'wip' here:
-
-http://git.kernel.org/cgit/linux/kernel/git/snitzer/linux.git/log/?h=wip
-
-Feel free to pick these patches up to use as the basis for continued
-work or re-posting of this set.. either that or I could post them as v2
-on your behalf.
-
-As for testing, I've verified that basic IO works to a pmem-based DM
-linear device and that mixed table types are rejected as expected.
-
-Mike
+T24gTW9uLCAyMDE2LTA2LTIwIGF0IDE0OjAwIC0wNDAwLCBNaWtlIFNuaXR6ZXIgd3JvdGU6DQo+
+IE9uIE1vbiwgSnVuIDEzIDIwMTYgYXTCoMKgNjo1N3BtIC0wNDAwLA0KPiBNaWtlIFNuaXR6ZXIg
+PHNuaXR6ZXJAcmVkaGF0LmNvbT4gd3JvdGU6DQo+IA0KPiA+IA0KPiA+IE9uIE1vbiwgSnVuIDEz
+IDIwMTYgYXTCoMKgNjoyMXBtIC0wNDAwLA0KPiA+IFRvc2hpIEthbmkgPHRvc2hpLmthbmlAaHBl
+LmNvbT4gd3JvdGU6DQo+ID4gDQo+ID4gPiANCj4gPiA+IFRoaXMgcGF0Y2gtc2V0IGFkZHMgREFY
+IHN1cHBvcnQgdG8gZGV2aWNlLW1hcHBlciBkbS1saW5lYXIgZGV2aWNlcw0KPiA+ID4gdXNlZCBi
+eSBMVk0uwqDCoEl0IHdvcmtzIHdpdGggTFZNIGNvbW1hbmRzIGFzIGZvbGxvd3M6DQo+ID4gPiDC
+oC0gQ3JlYXRpb24gb2YgYSBsb2dpY2FsIHZvbHVtZSB3aXRoIGFsbCBEQVggY2FwYWJsZSBkZXZp
+Y2VzIChzdWNoDQo+ID4gPiDCoMKgwqBhcyBwbWVtKSBzZXRzIHRoZSBsb2dpY2FsIHZvbHVtZSBE
+QVggY2FwYWJsZSBhcyB3ZWxsLg0KPiA+ID4gwqAtIE9uY2UgYSBsb2dpY2FsIHZvbHVtZSBpcyBz
+ZXQgdG8gREFYIGNhcGFibGUsIHRoZSB2b2x1bWUgbWF5IG5vdA0KPiA+ID4gwqDCoMKgYmUgZXh0
+ZW5kZWQgd2l0aCBub24tREFYIGNhcGFibGUgZGV2aWNlcy4NCj4gPiA+IA0KPiA+ID4gVGhlIGRp
+cmVjdF9hY2Nlc3MgaW50ZXJmYWNlIGlzIGFkZGVkIHRvIGRtIGFuZCBkbS1saW5lYXIgdG8gbWFw
+DQo+ID4gPiBhIHJlcXVlc3QgdG8gYSB0YXJnZXQgZGV2aWNlLg0KPiA+ID4gDQo+ID4gPiDCoC0g
+UGF0Y2ggMS0yIGludHJvZHVjZSBHRU5IRF9GTF9EQVggZmxhZyB0byBpbmRpY2F0ZSBEQVggY2Fw
+YWJpbGl0eS4NCj4gPiA+IMKgLSBQYXRjaCAzLTQgYWRkIGRpcmVjdF9hY2Nlc3MgZnVuY3Rpb25z
+IHRvIGRtIGFuZCBkbS1saW5lYXIuDQo+ID4gPiDCoC0gUGF0Y2ggNS02IHNldCBHRU5IRF9GTF9E
+QVggdG8gZG0gd2hlbiBhbGwgdGFyZ2V0cyBhcmUgREFYIGNhcGFibGUuDQo+ID4gPiANCj4gPiA+
+IC0tLQ0KPiA+ID4gVG9zaGkgS2FuaSAoNik6DQo+ID4gPiDCoDEvNiBnZW5oZDogQWRkIEdFTkhE
+X0ZMX0RBWCB0byBnZW5kaXNrIGZsYWdzDQo+ID4gPiDCoDIvNiBibG9jazogQ2hlY2sgR0VOSERf
+RkxfREFYIGZvciBEQVggY2FwYWJpbGl0eQ0KPiA+ID4gwqAzLzYgZG06IEFkZCBkbV9ibGtfZGly
+ZWN0X2FjY2VzcygpIGZvciBtYXBwZWQgZGV2aWNlDQo+ID4gPiDCoDQvNiBkbS1saW5lYXI6IEFk
+ZCBsaW5lYXJfZGlyZWN0X2FjY2VzcygpDQo+ID4gPiDCoDUvNiBkbSwgZG0tbGluZWFyOiBBZGQg
+ZGF4X3N1cHBvcnRlZCB0byBkbV90YXJnZXQNCj4gPiA+IMKgNi82IGRtOiBFbmFibGUgREFYIHN1
+cHBvcnQgZm9yIG1hcHBlciBkZXZpY2UNCj4gPiBUaGFua3MgYSBsb3QgZm9yIGRvaW5nIHRoaXMu
+wqDCoEkgcmVjZW50bHkgYWRkZWQgaXQgdG8gbXkgVE9ETyBzbyB5b3VyDQo+ID4gcGF0Y2hlcyBj
+b21lIGF0IGEgZ3JlYXQgdGltZS4NCj4gPiANCj4gPiBJJ2xsIHRyeSB0byBnZXQgdG8gcmV2aWV3
+aW5nL3Rlc3RpbmcgeW91ciB3b3JrIGJ5IHRoZSBlbmQgb2YgdGhpcyB3ZWVrLg0KPg0KPiBJIHJl
+YmFzZWQgeW91ciBwYXRjaGVzIG9uIGxpbnV4LWRtLmdpdCdzICdmb3ItbmV4dCcgKHdoaWNoIGlu
+Y2x1ZGVzIHdoYXQNCj4gSSd2ZSBhbHJlYWR5IHN0YWdlZCBmb3IgdGhlIDQuOCBtZXJnZSB3aW5k
+b3cpLsKgwqBBbmQgSSBmb2xkZWQvY2hhbmdlZA0KPiBzb21lIG9mIHRoZSBETSBwYXRjaGVzIHNv
+IHRoYXQgdGhlcmUgYXJlIG9ubHkgMiBub3cgKDEgZm9yIERNIGNvcmUgYW5kIDENCj4gZm9yIGRt
+LWxpbmVhcikuwqDCoFBsZWFzZSBzZWUgdGhlIDQgdG9wbW9zdCBjb21taXRzIGluIG15ICd3aXAn
+IGhlcmU6DQo+IA0KPiBodHRwOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51eC9rZXJuZWwvZ2l0
+L3NuaXR6ZXIvbGludXguZ2l0L2xvZy8/aD13aXANCj4gDQo+IEZlZWwgZnJlZSB0byBwaWNrIHRo
+ZXNlIHBhdGNoZXMgdXAgdG8gdXNlIGFzIHRoZSBiYXNpcyBmb3IgY29udGludWVkDQo+IHdvcmsg
+b3IgcmUtcG9zdGluZyBvZiB0aGlzIHNldC4uIGVpdGhlciB0aGF0IG9yIEkgY291bGQgcG9zdCB0
+aGVtIGFzIHYyDQo+IG9uIHlvdXIgYmVoYWxmLg0KPiANCj4gQXMgZm9yIHRlc3RpbmcsIEkndmUg
+dmVyaWZpZWQgdGhhdCBiYXNpYyBJTyB3b3JrcyB0byBhIHBtZW0tYmFzZWQgRE0NCj4gbGluZWFy
+IGRldmljZSBhbmQgdGhhdCBtaXhlZCB0YWJsZSB0eXBlcyBhcmUgcmVqZWN0ZWQgYXMgZXhwZWN0
+ZWQuDQoNCkdyZWF0ISBJIHdpbGwgc2VuZCBhZGRpdGlvbmFsIHBhdGNoLCBhZGQgREFYIHN1cHBv
+cnQgdG8gZG0tc3RyaXBlLCBvbiB0b3Agb2YNCnRoZXNlIG9uY2UgSSBmaW5pc2ggbXkgdGVzdGlu
+Zy4NCg0KVGhhbmtzLA0KLVRvc2hpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
+LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
+bQo=
