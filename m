@@ -1,17 +1,18 @@
 From: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH 0/6] Support DAX for device-mapper dm-linear devices
-Date: Mon, 20 Jun 2016 15:40:26 -0400
-Message-ID: <20160620194026.GA21657@redhat.com>
+Date: Mon, 20 Jun 2016 15:52:17 -0400
+Message-ID: <20160620195217.GB21657@redhat.com>
 References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
  <20160613225756.GA18417@redhat.com>
  <20160620180043.GA21261@redhat.com>
  <1466446861.3504.243.camel@hpe.com>
+ <20160620194026.GA21657@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1466446861.3504.243.camel-ZPxbGqLxI0U@public.gmane.org>
+In-Reply-To: <20160620194026.GA21657-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,68 +26,52 @@ To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
 Cc: "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, sandeen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org" <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-T24gTW9uLCBKdW4gMjAgMjAxNiBhdCAgMjozMXBtIC0wNDAwLApLYW5pLCBUb3NoaW1pdHN1IDx0
-b3NoaS5rYW5pQGhwZS5jb20+IHdyb3RlOgoKPiBPbiBNb24sIDIwMTYtMDYtMjAgYXQgMTQ6MDAg
-LTA0MDAsIE1pa2UgU25pdHplciB3cm90ZToKPiA+Cj4gPiBJIHJlYmFzZWQgeW91ciBwYXRjaGVz
-IG9uIGxpbnV4LWRtLmdpdCdzICdmb3ItbmV4dCcgKHdoaWNoIGluY2x1ZGVzIHdoYXQKPiA+IEkn
-dmUgYWxyZWFkeSBzdGFnZWQgZm9yIHRoZSA0LjggbWVyZ2Ugd2luZG93KS7CoMKgQW5kIEkgZm9s
-ZGVkL2NoYW5nZWQKPiA+IHNvbWUgb2YgdGhlIERNIHBhdGNoZXMgc28gdGhhdCB0aGVyZSBhcmUg
-b25seSAyIG5vdyAoMSBmb3IgRE0gY29yZSBhbmQgMQo+ID4gZm9yIGRtLWxpbmVhcikuwqDCoFBs
-ZWFzZSBzZWUgdGhlIDQgdG9wbW9zdCBjb21taXRzIGluIG15ICd3aXAnIGhlcmU6Cj4gPiAKPiA+
-IGh0dHA6Ly9naXQua2VybmVsLm9yZy9jZ2l0L2xpbnV4L2tlcm5lbC9naXQvc25pdHplci9saW51
-eC5naXQvbG9nLz9oPXdpcAo+ID4gCj4gPiBGZWVsIGZyZWUgdG8gcGljayB0aGVzZSBwYXRjaGVz
-IHVwIHRvIHVzZSBhcyB0aGUgYmFzaXMgZm9yIGNvbnRpbnVlZAo+ID4gd29yayBvciByZS1wb3N0
-aW5nIG9mIHRoaXMgc2V0Li4gZWl0aGVyIHRoYXQgb3IgSSBjb3VsZCBwb3N0IHRoZW0gYXMgdjIK
-PiA+IG9uIHlvdXIgYmVoYWxmLgo+ID4gCj4gPiBBcyBmb3IgdGVzdGluZywgSSd2ZSB2ZXJpZmll
-ZCB0aGF0IGJhc2ljIElPIHdvcmtzIHRvIGEgcG1lbS1iYXNlZCBETQo+ID4gbGluZWFyIGRldmlj
-ZSBhbmQgdGhhdCBtaXhlZCB0YWJsZSB0eXBlcyBhcmUgcmVqZWN0ZWQgYXMgZXhwZWN0ZWQuCj4g
-Cj4gR3JlYXQhIEkgd2lsbCBzZW5kIGFkZGl0aW9uYWwgcGF0Y2gsIGFkZCBEQVggc3VwcG9ydCB0
-byBkbS1zdHJpcGUsIG9uIHRvcCBvZgo+IHRoZXNlIG9uY2UgSSBmaW5pc2ggbXkgdGVzdGluZy4K
-CkkgZGlkIHNvbWUgZnVydGhlciB0ZXN0aW5nIGFuZCBhbSBzZWVpbmcgc29tZSBYRlMgY29ycnVw
-dGlvbiB3aGVuCnRlc3RpbmcgYSBETSBsaW5lYXIgZGV2aWNlIHRoYXQgc3BhbnMgbXVsdGlwbGUg
-cG1lbSBkZXZpY2VzLiAgSSBjcmVhdGVkCjIgcGFydGl0aW9ucyBvbnRvcCBvZiAvZGV2L3BtZW0w
-ICh3aGljaCBJIGNyZWF0ZWQgdXNpbmcgdGhlIGhvd3RvIGZyb20KaHR0cHM6Ly9udmRpbW0ud2lr
-aS5rZXJuZWwub3JnKS4gIFRoZW4gSSBkaWQ6CgojIHB2Y3JlYXRlIC9kZXYvcG1lbTBwMQojIHB2
-Y3JlYXRlIC9kZXYvcG1lbTBwMgojIHZnY3JlYXRlIHBtZW0gL2Rldi9wbWVtMHAxIC9kZXYvcG1l
-bTBwMgojIGx2Y3JlYXRlIC1MIDIuOUcgLW4gbHYgcG1lbQoKIyBsc2JsayAvZGV2L3BtZW0wCk5B
-TUUgICAgICAgIE1BSjpNSU4gUk0gIFNJWkUgUk8gVFlQRSBNT1VOVFBPSU5UCnBtZW0wICAgICAg
-IDI1OTowICAgIDAgICAgNkcgIDAgZGlzawrilJzilIBwbWVtMHAxICAgMjU5OjEgICAgMCAgICAx
-RyAgMCBwYXJ0CuKUgiDilJTilIBwbWVtLWx2IDI1Mzo0ICAgIDAgIDIuOUcgIDAgbHZtCuKUlOKU
-gHBtZW0wcDIgICAyNTk6MiAgICAwICAgIDJHICAwIHBhcnQKICDilJTilIBwbWVtLWx2IDI1Mzo0
-ICAgIDAgIDIuOUcgIDAgbHZtCgojIGRtc2V0dXAgdGFibGUgcG1lbS1sdgowIDQxODYxMTIgbGlu
-ZWFyIDI1OToyIDIwNDgKNDE4NjExMiAxOTAwNTQ0IGxpbmVhciAyNTk6MSAyMDQ4CgojIG1rZnMu
-eGZzIC9kZXYvcG1lbS9sdgojIG1vdW50IC1vIGRheCAtdCB4ZnMgL2Rldi9wbWVtL2x2IC9tbnQv
-ZGF4ClsxMTQ1Mi4yMTIwMzRdIFhGUyAoZG0tNCk6IERBWCBlbmFibGVkLiBXYXJuaW5nOiBFWFBF
-UklNRU5UQUwsIHVzZSBhdCB5b3VyIG93biByaXNrClsxMTQ1Mi4yMjAzMjNdIFhGUyAoZG0tNCk6
-IE1vdW50aW5nIFY0IEZpbGVzeXN0ZW0KWzExNDUyLjIyNjUyNl0gWEZTIChkbS00KTogRW5kaW5n
-IGNsZWFuIG1vdW50CgojIGRkIGlmPS9kZXYvemVybyBvZj0vbW50L2RheC9tZWggYnM9MTAyNEsg
-b2ZsYWc9ZGlyZWN0ClsxMTcyOS43NTQ2NzFdIFhGUyAoZG0tNCk6IE1ldGFkYXRhIGNvcnJ1cHRp
-b24gZGV0ZWN0ZWQgYXQgeGZzX2FnZl9yZWFkX3ZlcmlmeSsweDcwLzB4MTIwIFt4ZnNdLCB4ZnNf
-YWdmIGJsb2NrIDB4NDVhODA4ClsxMTcyOS43NjY0MjNdIFhGUyAoZG0tNCk6IFVubW91bnQgYW5k
-IHJ1biB4ZnNfcmVwYWlyClsxMTcyOS43NzE3NzRdIFhGUyAoZG0tNCk6IEZpcnN0IDY0IGJ5dGVz
-IG9mIGNvcnJ1cHRlZCBtZXRhZGF0YSBidWZmZXI6ClsxMTcyOS43Nzg4NjldIGZmZmY4ODAwYjgw
-MzgwMDA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwICAu
-Li4uLi4uLi4uLi4uLi4uClsxMTcyOS43ODg1ODJdIGZmZmY4ODAwYjgwMzgwMTA6IDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwICAuLi4uLi4uLi4uLi4uLi4u
-ClsxMTcyOS43OTgyOTNdIGZmZmY4ODAwYjgwMzgwMjA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwICAuLi4uLi4uLi4uLi4uLi4uClsxMTcyOS44MDgwMDJd
-IGZmZmY4ODAwYjgwMzgwMzA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwICAuLi4uLi4uLi4uLi4uLi4uClsxMTcyOS44MTc3MTVdIFhGUyAoZG0tNCk6IG1l
-dGFkYXRhIEkvTyBlcnJvcjogYmxvY2sgMHg0NWE4MDggKCJ4ZnNfdHJhbnNfcmVhZF9idWZfbWFw
-IikgZXJyb3IgMTE3IG51bWJsa3MgOAoKV2hlbiB0aGlzIFhGUyBjb3JydXB0aW9uIG9jY3VycyBj
-b3JydXB0aW9uIHRoZW4gYWxzbyBtYW5pZmVzdHMgaW4gbHZtMidzCm1ldGFkYXRhOgoKIyB2Z3Jl
-bW92ZSBwbWVtCkRvIHlvdSByZWFsbHkgd2FudCB0byByZW1vdmUgdm9sdW1lIGdyb3VwICJwbWVt
-IiBjb250YWluaW5nIDEgbG9naWNhbCB2b2x1bWVzPyBbeS9uXTogeQpEbyB5b3UgcmVhbGx5IHdh
-bnQgdG8gcmVtb3ZlIGFjdGl2ZSBsb2dpY2FsIHZvbHVtZSBsdj8gW3kvbl06IHkKICBJbmNvcnJl
-Y3QgbWV0YWRhdGEgYXJlYSBoZWFkZXIgY2hlY2tzdW0gb24gL2Rldi9wbWVtMHAxIGF0IG9mZnNl
-dCA0MDk2CiAgV0FSTklORzogRmFpbGVkIHRvIHdyaXRlIGFuIE1EQSBvZiBWRyBwbWVtLgogIElu
-Y29ycmVjdCBtZXRhZGF0YSBhcmVhIGhlYWRlciBjaGVja3N1bSBvbiAvZGV2L3BtZW0wcDIgYXQg
-b2Zmc2V0IDQwOTYKICBXQVJOSU5HOiBGYWlsZWQgdG8gd3JpdGUgYW4gTURBIG9mIFZHIHBtZW0u
-CiAgRmFpbGVkIHRvIHdyaXRlIFZHIHBtZW0uCiAgSW5jb3JyZWN0IG1ldGFkYXRhIGFyZWEgaGVh
-ZGVyIGNoZWNrc3VtIG9uIC9kZXYvcG1lbTBwMiBhdCBvZmZzZXQgNDA5NgogIEluY29ycmVjdCBt
-ZXRhZGF0YSBhcmVhIGhlYWRlciBjaGVja3N1bSBvbiAvZGV2L3BtZW0wcDEgYXQgb2Zmc2V0IDQw
-OTYKCklmIEkgZG9uJ3QgdXNlIFhGUywgYW5kIG9ubHkgaXNzdWUgSU8gZGlyZWN0bHkgdG8gdGhl
-IC9kZXYvcG1lbS9sdiwgSQpkb24ndCBzZWUgdGhpcyBjb3JydXB0aW9uLgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
-aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
-bi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Mon, Jun 20 2016 at  3:40pm -0400,
+Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+ 
+> # dd if=/dev/zero of=/mnt/dax/meh bs=1024K oflag=direct
+> [11729.754671] XFS (dm-4): Metadata corruption detected at xfs_agf_read_verify+0x70/0x120 [xfs], xfs_agf block 0x45a808
+> [11729.766423] XFS (dm-4): Unmount and run xfs_repair
+> [11729.771774] XFS (dm-4): First 64 bytes of corrupted metadata buffer:
+> [11729.778869] ffff8800b8038000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> [11729.788582] ffff8800b8038010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> [11729.798293] ffff8800b8038020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> [11729.808002] ffff8800b8038030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> [11729.817715] XFS (dm-4): metadata I/O error: block 0x45a808 ("xfs_trans_read_buf_map") error 117 numblks 8
+> 
+> When this XFS corruption occurs corruption then also manifests in lvm2's
+> metadata:
+> 
+> # vgremove pmem
+> Do you really want to remove volume group "pmem" containing 1 logical volumes? [y/n]: y
+> Do you really want to remove active logical volume lv? [y/n]: y
+>   Incorrect metadata area header checksum on /dev/pmem0p1 at offset 4096
+>   WARNING: Failed to write an MDA of VG pmem.
+>   Incorrect metadata area header checksum on /dev/pmem0p2 at offset 4096
+>   WARNING: Failed to write an MDA of VG pmem.
+>   Failed to write VG pmem.
+>   Incorrect metadata area header checksum on /dev/pmem0p2 at offset 4096
+>   Incorrect metadata area header checksum on /dev/pmem0p1 at offset 4096
+> 
+> If I don't use XFS, and only issue IO directly to the /dev/pmem/lv, I
+> don't see this corruption.
+
+I did the same test with ext4 instead of xfs and it resulted in the same
+type of systemic corruption (lvm2 metadata corrupted too):
+
+[12816.407147] EXT4-fs (dm-4): DAX enabled. Warning: EXPERIMENTAL, use at your own risk
+[12816.416123] EXT4-fs (dm-4): mounted filesystem with ordered data mode. Opts: dax
+[12816.766855] EXT4-fs error (device dm-4): ext4_mb_generate_buddy:758: group 9, block bitmap and bg descriptor inconsistent: 32768 vs 32395 free clusters
+[12816.782016] EXT4-fs error (device dm-4): ext4_mb_generate_buddy:758: group 10, block bitmap and bg descriptor inconsistent: 32768 vs 16384 free clusters
+[12816.797491] JBD2: Spotted dirty metadata buffer (dev = dm-4, blocknr = 0). There's a risk of filesystem corruption in case of system crash.
+
+# vgremove pmem
+Do you really want to remove volume group "pmem" containing 1 logical volumes? [y/n]: y
+Do you really want to remove active logical volume lv? [y/n]: y
+  Incorrect metadata area header checksum on /dev/pmem0p1 at offset 4096
+  WARNING: Failed to write an MDA of VG pmem.
+  Incorrect metadata area header checksum on /dev/pmem0p2 at offset 4096
+  WARNING: Failed to write an MDA of VG pmem.
+  Failed to write VG pmem.
+  Incorrect metadata area header checksum on /dev/pmem0p2 at offset 4096
+  Incorrect metadata area header checksum on /dev/pmem0p1 at offset 4096
