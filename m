@@ -1,18 +1,18 @@
-From: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
 Subject: Re: [PATCH 0/6] Support DAX for device-mapper dm-linear devices
-Date: Mon, 20 Jun 2016 15:52:17 -0400
-Message-ID: <20160620195217.GB21657@redhat.com>
+Date: Mon, 20 Jun 2016 20:11:35 +0000
+Message-ID: <1466452883.3504.244.camel@hpe.com>
 References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
- <20160613225756.GA18417@redhat.com>
- <20160620180043.GA21261@redhat.com>
- <1466446861.3504.243.camel@hpe.com>
- <20160620194026.GA21657@redhat.com>
+ <20160613225756.GA18417@redhat.com> <20160620180043.GA21261@redhat.com>
+ <1466446861.3504.243.camel@hpe.com> <20160620194026.GA21657@redhat.com>
+ <20160620195217.GB21657@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160620194026.GA21657-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160620195217.GB21657-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <72F21725EFE6764B8B0BF9A47C01BB6F-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,56 +22,70 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Cc: "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, sandeen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org" <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "sandeen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sandeen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org" <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon, Jun 20 2016 at  3:40pm -0400,
-Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
- 
-> # dd if=/dev/zero of=/mnt/dax/meh bs=1024K oflag=direct
-> [11729.754671] XFS (dm-4): Metadata corruption detected at xfs_agf_read_verify+0x70/0x120 [xfs], xfs_agf block 0x45a808
-> [11729.766423] XFS (dm-4): Unmount and run xfs_repair
-> [11729.771774] XFS (dm-4): First 64 bytes of corrupted metadata buffer:
-> [11729.778869] ffff8800b8038000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-> [11729.788582] ffff8800b8038010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-> [11729.798293] ffff8800b8038020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-> [11729.808002] ffff8800b8038030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-> [11729.817715] XFS (dm-4): metadata I/O error: block 0x45a808 ("xfs_trans_read_buf_map") error 117 numblks 8
-> 
-> When this XFS corruption occurs corruption then also manifests in lvm2's
-> metadata:
-> 
-> # vgremove pmem
-> Do you really want to remove volume group "pmem" containing 1 logical volumes? [y/n]: y
-> Do you really want to remove active logical volume lv? [y/n]: y
->   Incorrect metadata area header checksum on /dev/pmem0p1 at offset 4096
->   WARNING: Failed to write an MDA of VG pmem.
->   Incorrect metadata area header checksum on /dev/pmem0p2 at offset 4096
->   WARNING: Failed to write an MDA of VG pmem.
->   Failed to write VG pmem.
->   Incorrect metadata area header checksum on /dev/pmem0p2 at offset 4096
->   Incorrect metadata area header checksum on /dev/pmem0p1 at offset 4096
-> 
-> If I don't use XFS, and only issue IO directly to the /dev/pmem/lv, I
-> don't see this corruption.
-
-I did the same test with ext4 instead of xfs and it resulted in the same
-type of systemic corruption (lvm2 metadata corrupted too):
-
-[12816.407147] EXT4-fs (dm-4): DAX enabled. Warning: EXPERIMENTAL, use at your own risk
-[12816.416123] EXT4-fs (dm-4): mounted filesystem with ordered data mode. Opts: dax
-[12816.766855] EXT4-fs error (device dm-4): ext4_mb_generate_buddy:758: group 9, block bitmap and bg descriptor inconsistent: 32768 vs 32395 free clusters
-[12816.782016] EXT4-fs error (device dm-4): ext4_mb_generate_buddy:758: group 10, block bitmap and bg descriptor inconsistent: 32768 vs 16384 free clusters
-[12816.797491] JBD2: Spotted dirty metadata buffer (dev = dm-4, blocknr = 0). There's a risk of filesystem corruption in case of system crash.
-
-# vgremove pmem
-Do you really want to remove volume group "pmem" containing 1 logical volumes? [y/n]: y
-Do you really want to remove active logical volume lv? [y/n]: y
-  Incorrect metadata area header checksum on /dev/pmem0p1 at offset 4096
-  WARNING: Failed to write an MDA of VG pmem.
-  Incorrect metadata area header checksum on /dev/pmem0p2 at offset 4096
-  WARNING: Failed to write an MDA of VG pmem.
-  Failed to write VG pmem.
-  Incorrect metadata area header checksum on /dev/pmem0p2 at offset 4096
-  Incorrect metadata area header checksum on /dev/pmem0p1 at offset 4096
+T24gTW9uLCAyMDE2LTA2LTIwIGF0IDE1OjUyIC0wNDAwLCBNaWtlIFNuaXR6ZXIgd3JvdGU6DQo+
+IE9uIE1vbiwgSnVuIDIwIDIwMTYgYXTCoMKgMzo0MHBtIC0wNDAwLA0KPiBNaWtlIFNuaXR6ZXIg
+PHNuaXR6ZXJAcmVkaGF0LmNvbT4gd3JvdGU6DQo+IMKgDQo+ID4gDQo+ID4gIyBkZCBpZj0vZGV2
+L3plcm8gb2Y9L21udC9kYXgvbWVoIGJzPTEwMjRLIG9mbGFnPWRpcmVjdA0KPiA+IFsxMTcyOS43
+NTQ2NzFdIFhGUyAoZG0tNCk6IE1ldGFkYXRhIGNvcnJ1cHRpb24gZGV0ZWN0ZWQgYXQNCj4gPiB4
+ZnNfYWdmX3JlYWRfdmVyaWZ5KzB4NzAvMHgxMjAgW3hmc10sIHhmc19hZ2YgYmxvY2sgMHg0NWE4
+MDgNCj4gPiBbMTE3MjkuNzY2NDIzXSBYRlMgKGRtLTQpOiBVbm1vdW50IGFuZCBydW4geGZzX3Jl
+cGFpcg0KPiA+IFsxMTcyOS43NzE3NzRdIFhGUyAoZG0tNCk6IEZpcnN0IDY0IGJ5dGVzIG9mIGNv
+cnJ1cHRlZCBtZXRhZGF0YSBidWZmZXI6DQo+ID4gWzExNzI5Ljc3ODg2OV0gZmZmZjg4MDBiODAz
+ODAwMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCj4gPiAwMCAwMCAw
+MMKgwqAuLi4uLi4uLi4uLi4uLi4uDQo+ID4gWzExNzI5Ljc4ODU4Ml0gZmZmZjg4MDBiODAzODAx
+MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCj4gPiAwMCAwMCAwMMKg
+wqAuLi4uLi4uLi4uLi4uLi4uDQo+ID4gWzExNzI5Ljc5ODI5M10gZmZmZjg4MDBiODAzODAyMDog
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCj4gPiAwMCAwMCAwMMKgwqAu
+Li4uLi4uLi4uLi4uLi4uDQo+ID4gWzExNzI5LjgwODAwMl0gZmZmZjg4MDBiODAzODAzMDogMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCj4gPiAwMCAwMCAwMMKgwqAuLi4u
+Li4uLi4uLi4uLi4uDQo+ID4gWzExNzI5LjgxNzcxNV0gWEZTIChkbS00KTogbWV0YWRhdGEgSS9P
+IGVycm9yOiBibG9jayAweDQ1YTgwOA0KPiA+ICgieGZzX3RyYW5zX3JlYWRfYnVmX21hcCIpIGVy
+cm9yIDExNyBudW1ibGtzIDgNCj4gPiANCj4gPiBXaGVuIHRoaXMgWEZTIGNvcnJ1cHRpb24gb2Nj
+dXJzIGNvcnJ1cHRpb24gdGhlbiBhbHNvIG1hbmlmZXN0cyBpbiBsdm0yJ3MNCj4gPiBtZXRhZGF0
+YToNCj4gPiANCj4gPiAjIHZncmVtb3ZlIHBtZW0NCj4gPiBEbyB5b3UgcmVhbGx5IHdhbnQgdG8g
+cmVtb3ZlIHZvbHVtZSBncm91cCAicG1lbSIgY29udGFpbmluZyAxIGxvZ2ljYWwNCj4gPiB2b2x1
+bWVzPyBbeS9uXTogeQ0KPiA+IERvIHlvdSByZWFsbHkgd2FudCB0byByZW1vdmUgYWN0aXZlIGxv
+Z2ljYWwgdm9sdW1lIGx2PyBbeS9uXTogeQ0KPiA+IMKgIEluY29ycmVjdCBtZXRhZGF0YSBhcmVh
+IGhlYWRlciBjaGVja3N1bSBvbiAvZGV2L3BtZW0wcDEgYXQgb2Zmc2V0IDQwOTYNCj4gPiDCoCBX
+QVJOSU5HOiBGYWlsZWQgdG8gd3JpdGUgYW4gTURBIG9mIFZHIHBtZW0uDQo+ID4gwqAgSW5jb3Jy
+ZWN0IG1ldGFkYXRhIGFyZWEgaGVhZGVyIGNoZWNrc3VtIG9uIC9kZXYvcG1lbTBwMiBhdCBvZmZz
+ZXQgNDA5Ng0KPiA+IMKgIFdBUk5JTkc6IEZhaWxlZCB0byB3cml0ZSBhbiBNREEgb2YgVkcgcG1l
+bS4NCj4gPiDCoCBGYWlsZWQgdG8gd3JpdGUgVkcgcG1lbS4NCj4gPiDCoCBJbmNvcnJlY3QgbWV0
+YWRhdGEgYXJlYSBoZWFkZXIgY2hlY2tzdW0gb24gL2Rldi9wbWVtMHAyIGF0IG9mZnNldCA0MDk2
+DQo+ID4gwqAgSW5jb3JyZWN0IG1ldGFkYXRhIGFyZWEgaGVhZGVyIGNoZWNrc3VtIG9uIC9kZXYv
+cG1lbTBwMSBhdCBvZmZzZXQgNDA5Ng0KPiA+IA0KPiA+IElmIEkgZG9uJ3QgdXNlIFhGUywgYW5k
+IG9ubHkgaXNzdWUgSU8gZGlyZWN0bHkgdG8gdGhlIC9kZXYvcG1lbS9sdiwgSQ0KPiA+IGRvbid0
+IHNlZSB0aGlzIGNvcnJ1cHRpb24uDQo+IEkgZGlkIHRoZSBzYW1lIHRlc3Qgd2l0aCBleHQ0IGlu
+c3RlYWQgb2YgeGZzIGFuZCBpdCByZXN1bHRlZCBpbiB0aGUgc2FtZQ0KPiB0eXBlIG9mIHN5c3Rl
+bWljIGNvcnJ1cHRpb24gKGx2bTIgbWV0YWRhdGEgY29ycnVwdGVkIHRvbyk6DQo+IA0KPiBbMTI4
+MTYuNDA3MTQ3XSBFWFQ0LWZzIChkbS00KTogREFYIGVuYWJsZWQuIFdhcm5pbmc6IEVYUEVSSU1F
+TlRBTCwgdXNlIGF0DQo+IHlvdXIgb3duIHJpc2sNCj4gWzEyODE2LjQxNjEyM10gRVhUNC1mcyAo
+ZG0tNCk6IG1vdW50ZWQgZmlsZXN5c3RlbSB3aXRoIG9yZGVyZWQgZGF0YSBtb2RlLg0KPiBPcHRz
+OiBkYXgNCj4gWzEyODE2Ljc2Njg1NV0gRVhUNC1mcyBlcnJvciAoZGV2aWNlIGRtLTQpOiBleHQ0
+X21iX2dlbmVyYXRlX2J1ZGR5Ojc1ODoNCj4gZ3JvdXAgOSwgYmxvY2sgYml0bWFwIGFuZCBiZyBk
+ZXNjcmlwdG9yIGluY29uc2lzdGVudDogMzI3NjggdnMgMzIzOTUgZnJlZQ0KPiBjbHVzdGVycw0K
+PiBbMTI4MTYuNzgyMDE2XSBFWFQ0LWZzIGVycm9yIChkZXZpY2UgZG0tNCk6IGV4dDRfbWJfZ2Vu
+ZXJhdGVfYnVkZHk6NzU4Og0KPiBncm91cCAxMCwgYmxvY2sgYml0bWFwIGFuZCBiZyBkZXNjcmlw
+dG9yIGluY29uc2lzdGVudDogMzI3NjggdnMgMTYzODQgZnJlZQ0KPiBjbHVzdGVycw0KPiBbMTI4
+MTYuNzk3NDkxXSBKQkQyOiBTcG90dGVkIGRpcnR5IG1ldGFkYXRhIGJ1ZmZlciAoZGV2ID0gZG0t
+NCwgYmxvY2tuciA9DQo+IDApLiBUaGVyZSdzIGEgcmlzayBvZiBmaWxlc3lzdGVtIGNvcnJ1cHRp
+b24gaW4gY2FzZSBvZiBzeXN0ZW0gY3Jhc2guDQo+IA0KPiAjIHZncmVtb3ZlIHBtZW0NCj4gRG8g
+eW91IHJlYWxseSB3YW50IHRvIHJlbW92ZSB2b2x1bWUgZ3JvdXAgInBtZW0iIGNvbnRhaW5pbmcg
+MSBsb2dpY2FsDQo+IHZvbHVtZXM/IFt5L25dOiB5DQo+IERvIHlvdSByZWFsbHkgd2FudCB0byBy
+ZW1vdmUgYWN0aXZlIGxvZ2ljYWwgdm9sdW1lIGx2PyBbeS9uXTogeQ0KPiDCoCBJbmNvcnJlY3Qg
+bWV0YWRhdGEgYXJlYSBoZWFkZXIgY2hlY2tzdW0gb24gL2Rldi9wbWVtMHAxIGF0IG9mZnNldCA0
+MDk2DQo+IMKgIFdBUk5JTkc6IEZhaWxlZCB0byB3cml0ZSBhbiBNREEgb2YgVkcgcG1lbS4NCj4g
+wqAgSW5jb3JyZWN0IG1ldGFkYXRhIGFyZWEgaGVhZGVyIGNoZWNrc3VtIG9uIC9kZXYvcG1lbTBw
+MiBhdCBvZmZzZXQgNDA5Ng0KPiDCoCBXQVJOSU5HOiBGYWlsZWQgdG8gd3JpdGUgYW4gTURBIG9m
+IFZHIHBtZW0uDQo+IMKgIEZhaWxlZCB0byB3cml0ZSBWRyBwbWVtLg0KPiDCoCBJbmNvcnJlY3Qg
+bWV0YWRhdGEgYXJlYSBoZWFkZXIgY2hlY2tzdW0gb24gL2Rldi9wbWVtMHAyIGF0IG9mZnNldCA0
+MDk2DQo+IMKgIEluY29ycmVjdCBtZXRhZGF0YSBhcmVhIGhlYWRlciBjaGVja3N1bSBvbiAvZGV2
+L3BtZW0wcDEgYXQgb2Zmc2V0IDQwOTYNCg0KSSB3aWxsIGxvb2sgaW50byB0aGUgaXNzdWUuDQoN
+ClRoYW5rcyBmb3IgdGhlIHRlc3RpbmchDQotVG9zaGkNCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgt
+bnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xpbnV4LW52ZGltbQo=
