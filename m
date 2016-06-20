@@ -1,18 +1,21 @@
-From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+From: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH 0/6] Support DAX for device-mapper dm-linear devices
-Date: Mon, 20 Jun 2016 21:28:00 +0000
-Message-ID: <1466457467.3504.249.camel@hpe.com>
+Date: Mon, 20 Jun 2016 18:22:36 -0400
+Message-ID: <20160620222236.GA22461@redhat.com>
 References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
- <20160613225756.GA18417@redhat.com> <20160620180043.GA21261@redhat.com>
- <1466446861.3504.243.camel@hpe.com> <20160620194026.GA21657@redhat.com>
- <20160620195217.GB21657@redhat.com> <1466452883.3504.244.camel@hpe.com>
+ <20160613225756.GA18417@redhat.com>
+ <20160620180043.GA21261@redhat.com>
+ <1466446861.3504.243.camel@hpe.com>
+ <20160620194026.GA21657@redhat.com>
+ <20160620195217.GB21657@redhat.com>
+ <1466452883.3504.244.camel@hpe.com>
+ <1466457467.3504.249.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1466452883.3504.244.camel-ZPxbGqLxI0U@public.gmane.org>
-Content-Language: en-US
-Content-ID: <6BF6767E1A048D4E8255034D80B96A64-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1466457467.3504.249.camel-ZPxbGqLxI0U@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,41 +25,94 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
 Cc: "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "sandeen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sandeen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org" <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-T24gTW9uLCAyMDE2LTA2LTIwIGF0IDE0OjAxIC0wNjAwLCBLYW5pLCBUb3NoaW1pdHN1IHdyb3Rl
-Og0KPiBPbiBNb24sIDIwMTYtMDYtMjAgYXQgMTU6NTIgLTA0MDAsIE1pa2UgU25pdHplciB3cm90
-ZToNCj4gPiANCj4gPiBPbiBNb24sIEp1biAyMCAyMDE2IGF0wqDCoDM6NDBwbSAtMDQwMCwNCj4g
-PiBNaWtlIFNuaXR6ZXIgPHNuaXR6ZXJAcmVkaGF0LmNvbT4gd3JvdGU6DQo+ID4gwqANCsKgOg0K
-PiA+ID4gSWYgSSBkb24ndCB1c2UgWEZTLCBhbmQgb25seSBpc3N1ZSBJTyBkaXJlY3RseSB0byB0
-aGUgL2Rldi9wbWVtL2x2LCBJDQo+ID4gPiBkb24ndCBzZWUgdGhpcyBjb3JydXB0aW9uLg0KPiA+
-DQo+ID4gSSBkaWQgdGhlIHNhbWUgdGVzdCB3aXRoIGV4dDQgaW5zdGVhZCBvZiB4ZnMgYW5kIGl0
-IHJlc3VsdGVkIGluIHRoZSBzYW1lDQo+ID4gdHlwZSBvZiBzeXN0ZW1pYyBjb3JydXB0aW9uIChs
-dm0yIG1ldGFkYXRhIGNvcnJ1cHRlZCB0b28pOg0KPiA+IA0KwqA6DQo+IEkgd2lsbCBsb29rIGlu
-dG8gdGhlIGlzc3VlLg0KDQpIaSBNaWtlLA0KDQpDYW4geW91IGZvbGQgdGhlIGZvbGxvd2luZyBw
-YXRjaCB0byB0aGUgZG0tbGluZWFyIHBhdGNoPw0KDQpUaGFua3MsDQotVHNvaGkNCg0KLS0tLS0t
-DQpTdWJqZWN0OiBbUEFUQ0hdIGRtLWxpbmVhcjogRml4IHBhcnRpdGlvbiBoYW5kbGluZyBmb3Ig
-REFYDQoNClBhcnRpdGlvbiBoYW5kbGluZyB3YXMgbWlzc2luZyBpbiBsaW5lYXJfZGlyZWN0X2Fj
-Y2VzcygpLg0KQ2FsbCBiZGV2X2RpcmVjdF9hY2Nlc3MoKSwgaW5zdGVhZCBvZiBkaXJlY3RseSBj
-YWxsaW5nDQp0YXJnZXQgZGlyZWN0X2FjY2VzcyBmdW5jdGlvbi4NCg0KU2lnbmVkLW9mZi1ieTog
-VG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPg0KLS0tDQrCoGRyaXZlcnMvbWQvZG0tbGlu
-ZWFyLmMgfMKgwqDCoDE0ICsrKysrKysrKystLS0tDQrCoDEgZmlsZSBjaGFuZ2VkLCAxMCBpbnNl
-cnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZC9kbS1s
-aW5lYXIuYyBiL2RyaXZlcnMvbWQvZG0tbGluZWFyLmMNCmluZGV4IDMyNWFhMDYuLjM4MzIzZTQg
-MTAwNjQ0DQotLS0gYS9kcml2ZXJzL21kL2RtLWxpbmVhci5jDQorKysgYi9kcml2ZXJzL21kL2Rt
-LWxpbmVhci5jDQpAQCAtMTQ4LDEwICsxNDgsMTYgQEAgc3RhdGljIGxvbmcgbGluZWFyX2RpcmVj
-dF9hY2Nlc3Moc3RydWN0IGRtX3RhcmdldCAqdGksDQpzZWN0b3JfdCBzZWN0b3IsDQrCoHsNCsKg
-CXN0cnVjdCBsaW5lYXJfYyAqbGMgPSB0aS0+cHJpdmF0ZTsNCsKgCXN0cnVjdCBibG9ja19kZXZp
-Y2UgKmJkZXYgPSBsYy0+ZGV2LT5iZGV2Ow0KLQljb25zdCBzdHJ1Y3QgYmxvY2tfZGV2aWNlX29w
-ZXJhdGlvbnMgKmJkX29wcyA9IGJkZXYtPmJkX2Rpc2stPmZvcHM7DQotDQotCXJldHVybiBiZF9v
-cHMtPmRpcmVjdF9hY2Nlc3MoYmRldiwgbGluZWFyX21hcF9zZWN0b3IodGksIHNlY3RvciksDQot
-CQkJCcKgwqDCoMKgwqBrYWRkciwgcGZuLCBzaXplKTsNCisJc3RydWN0IGJsa19kYXhfY3RsIGRh
-eCA9IHsNCisJCS5zZWN0b3IgPSBsaW5lYXJfbWFwX3NlY3Rvcih0aSwgc2VjdG9yKSwNCisJCS5z
-aXplID0gc2l6ZSwNCisJfTsNCisJbG9uZyByZXQ7DQorDQorCXJldCA9IGJkZXZfZGlyZWN0X2Fj
-Y2VzcyhiZGV2LCAmZGF4KTsNCisJKmthZGRyID0gZGF4LmFkZHI7DQorCSpwZm4gPSBkYXgucGZu
-Ow0KKwlyZXR1cm4gcmV0Ow0KwqB9DQrCoA0KwqBzdGF0aWMgc3RydWN0IHRhcmdldF90eXBlIGxp
-bmVhcl90YXJnZXQgPSB7Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Mon, Jun 20 2016 at  5:28pm -0400,
+Kani, Toshimitsu <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
+
+> On Mon, 2016-06-20 at 14:01 -0600, Kani, Toshimitsu wrote:
+> > On Mon, 2016-06-20 at 15:52 -0400, Mike Snitzer wrote:
+> > > =
+
+> > > On Mon, Jun 20 2016 at=A0=A03:40pm -0400,
+> > > Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> > > =A0
+> =A0:
+> > > > If I don't use XFS, and only issue IO directly to the /dev/pmem/lv,=
+ I
+> > > > don't see this corruption.
+> > >
+> > > I did the same test with ext4 instead of xfs and it resulted in the s=
+ame
+> > > type of systemic corruption (lvm2 metadata corrupted too):
+> > > =
+
+> =A0:
+> > I will look into the issue.
+> =
+
+> Hi Mike,
+> =
+
+> Can you fold the following patch to the dm-linear patch?
+> =
+
+> Thanks,
+> -Tsohi
+> =
+
+> ------
+> Subject: [PATCH] dm-linear: Fix partition handling for DAX
+> =
+
+> Partition handling was missing in linear_direct_access().
+> Call bdev_direct_access(), instead of directly calling
+> target direct_access function.
+> =
+
+> Signed-off-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+> ---
+> =A0drivers/md/dm-linear.c |=A0=A0=A014 ++++++++++----
+> =A01 file changed, 10 insertions(+), 4 deletions(-)
+> =
+
+> diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
+> index 325aa06..38323e4 100644
+> --- a/drivers/md/dm-linear.c
+> +++ b/drivers/md/dm-linear.c
+> @@ -148,10 +148,16 @@ static long linear_direct_access(struct dm_target *=
+ti,
+> sector_t sector,
+> =A0{
+> =A0	struct linear_c *lc =3D ti->private;
+> =A0	struct block_device *bdev =3D lc->dev->bdev;
+> -	const struct block_device_operations *bd_ops =3D bdev->bd_disk->fops;
+> -
+> -	return bd_ops->direct_access(bdev, linear_map_sector(ti, sector),
+> -				=A0=A0=A0=A0=A0kaddr, pfn, size);
+> +	struct blk_dax_ctl dax =3D {
+> +		.sector =3D linear_map_sector(ti, sector),
+> +		.size =3D size,
+> +	};
+> +	long ret;
+> +
+> +	ret =3D bdev_direct_access(bdev, &dax);
+> +	*kaddr =3D dax.addr;
+> +	*pfn =3D dax.pfn;
+> +	return ret;
+> =A0}
+> =A0
+> =A0static struct target_type linear_target =3D {
+
+Looks good, I folded it in and tested it to work.  Pushed to my 'wip'
+branch.
+
+No longer seeing any corruption in my test that was using partitions to
+span pmem devices with a dm-linear device.
+
+Jens, any chance you'd be open to picking up the first 2 patches in this
+series?  Or would you like to see them folded or something different?
+
+Mike
