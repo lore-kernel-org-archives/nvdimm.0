@@ -1,13 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 291091A1E02
- for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 12:31:20 -0700 (PDT)
-Subject: [PATCH v5 2/5] mmc: move 'parent' tracking to mmc_blk_data
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id 99E0D1A1E04
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Jun 2016 13:47:14 -0700 (PDT)
+Subject: [PATCH v4 0/5] Introduce device_add_disk() to kill
+ gendisk.driverfs_dev
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 27 Jun 2016 12:30:03 -0700
-Message-ID: <146705580308.39775.10937037092465199137.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146705579255.39775.12551436695635245858.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146705579255.39775.12551436695635245858.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 21 Jun 2016 13:46:01 -0700
+Message-ID: <146654196111.34694.7735150373057824399.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,51 +20,75 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: axboe@fb.com
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, Bart Van Assche <bart.vanassche@sandisk.com>, hch@lst.de
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Ulf Hansson <ulf.hansson@linaro.org>, "Martin K. Petersen" <martin.petersen@oracle.com>, "Michael S. Tsirkin" <mst@redhat.com>, Richard Weinberger <richard@nod.at>, Jeff Dike <jdike@addtoit.com>, linux-kernel@vger.kernel.org, hch@lst.de, Keith Busch <keith.busch@intel.com>, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Bart Van Assche <bart.vanassche@sandisk.com>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the removal of 'driverfs_dev' from 'struct gendisk',
-carry this data in mmc_blk_data. It is used for registration of parent
-disks and partitions.
+Changes since v3 [1]:
 
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+1/ Broke out the non-trivial conversions into their own patches.
+
+2/ Fix a behavior change in arch/um/drivers/ubd_kern.c. This driver
+   optionally creates parented and un-parented block devices.  (Bart)
+
+3/ Fix a behavior change in drivers/mmc/card/block.c. This driver does
+   not use blk-core infrastructure for partitions and instead registers
+   partitions as gendisk-children of the whole device gendisk.
+   Crediting Bart since his report triggered this re-review.
+
+4/ Use the local CARD_TO_DEV() helper in drivers/block/rsxx/dev.c.
+
+5/ Use the local 'dev' variable that represents the parent device in
+   drivers/scsi/sd.c.
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-June/005988.html
+
 ---
- drivers/mmc/card/block.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mmc/card/block.c b/drivers/mmc/card/block.c
-index 383184743f9a..d1733424bf6e 100644
---- a/drivers/mmc/card/block.c
-+++ b/drivers/mmc/card/block.c
-@@ -93,6 +93,7 @@ static DEFINE_SPINLOCK(mmc_blk_lock);
-  */
- struct mmc_blk_data {
- 	spinlock_t	lock;
-+	struct device	*parent;
- 	struct gendisk	*disk;
- 	struct mmc_queue queue;
- 	struct list_head part;
-@@ -2270,7 +2271,7 @@ again:
- 	md->disk->fops = &mmc_bdops;
- 	md->disk->private_data = md;
- 	md->disk->queue = md->queue.queue;
--	md->disk->driverfs_dev = parent;
-+	md->parent = parent;
- 	set_disk_ro(md->disk, md->read_only || default_ro);
- 	md->disk->flags = GENHD_FL_EXT_DEVT;
- 	if (area_type & (MMC_BLK_DATA_AREA_RPMB | MMC_BLK_DATA_AREA_BOOT))
-@@ -2458,7 +2459,7 @@ static int mmc_add_disk(struct mmc_blk_data *md)
- 	int ret;
- 	struct mmc_card *card = md->queue.card;
- 
--	add_disk(md->disk);
-+	device_add_disk(md->parent, md->disk);
- 	md->force_ro.show = force_ro_show;
- 	md->force_ro.store = force_ro_store;
- 	sysfs_attr_init(&md->force_ro.attr);
+Answer the "// FIXME: remove" include/linux/genhd.h.  This should be
+functionally equivalent to the previous state.  These patches received a
+build success notification from the kbuild robot across 122 configs.
 
+---
+
+Dan Williams (5):
+      block: introduce device_add_disk()
+      mmc: move 'parent' tracking to mmc_blk_data
+      um: track 'parent' device in a local variable
+      block: convert to device_add_disk()
+      block: remove ->driverfs_dev
+
+
+ arch/powerpc/sysdev/axonram.c       |    3 +--
+ arch/um/drivers/ubd_kern.c          |    5 +++--
+ block/genhd.c                       |   18 +++++++++---------
+ drivers/block/cciss.c               |    3 +--
+ drivers/block/floppy.c              |    3 +--
+ drivers/block/mtip32xx/mtip32xx.c   |    5 ++---
+ drivers/block/ps3disk.c             |    3 +--
+ drivers/block/ps3vram.c             |    3 +--
+ drivers/block/rsxx/dev.c            |    4 +---
+ drivers/block/skd_main.c            |    8 +++-----
+ drivers/block/sunvdc.c              |    3 +--
+ drivers/block/virtio_blk.c          |    3 +--
+ drivers/block/xen-blkfront.c        |    3 +--
+ drivers/ide/ide-cd.c                |    3 +--
+ drivers/ide/ide-gd.c                |    3 +--
+ drivers/memstick/core/ms_block.c    |    3 +--
+ drivers/memstick/core/mspro_block.c |    3 +--
+ drivers/mmc/card/block.c            |    5 +++--
+ drivers/mtd/mtd_blkdevs.c           |    4 +---
+ drivers/nvdimm/blk.c                |    3 +--
+ drivers/nvdimm/btt.c                |    3 +--
+ drivers/nvdimm/bus.c                |    2 +-
+ drivers/nvdimm/pmem.c               |    3 +--
+ drivers/nvme/host/core.c            |    3 +--
+ drivers/s390/block/dasd_genhd.c     |    3 +--
+ drivers/s390/block/dcssblk.c        |    3 +--
+ drivers/s390/block/scm_blk.c        |    3 +--
+ drivers/scsi/sd.c                   |    3 +--
+ drivers/scsi/sr.c                   |    3 +--
+ include/linux/genhd.h               |    8 ++++++--
+ 30 files changed, 50 insertions(+), 72 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
