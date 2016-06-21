@@ -1,23 +1,11 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/6] Support DAX for device-mapper dm-linear devices
-Date: Tue, 21 Jun 2016 09:25:14 -0700
-Message-ID: <CAPcyv4gFREc94ANuFD_Lyddx3iqRTN2UDebgeJe3LqPL8xrVzg@mail.gmail.com>
-References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
- <20160613225756.GA18417@redhat.com>
- <20160620180043.GA21261@redhat.com>
- <1466446861.3504.243.camel@hpe.com>
- <20160620194026.GA21657@redhat.com>
- <20160620195217.GB21657@redhat.com>
- <1466452883.3504.244.camel@hpe.com>
- <1466457467.3504.249.camel@hpe.com>
- <20160620222236.GA22461@redhat.com>
- <20160621134147.GA26392@redhat.com>
- <1466523280.3504.262.camel@hpe.com>
+From: "qg" <wtpbwmv-hQTYpdcdkTzYtjvyW6yDsg@public.gmane.org>
+Subject: xyrkz6e9nwxekgrw9pdm
+Date: Wed, 22 Jun 2016 00:19:51 +0800
+Message-ID: <20160622001959157021@hxecx.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1466523280.3504.262.camel-ZPxbGqLxI0U@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,41 +15,163 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Cc: "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "sandeen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sandeen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "axboe-b10kYP2dOMg@public.gmane.org" <axboe-b10kYP2dOMg@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org" <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Jun 21, 2016 at 8:44 AM, Kani, Toshimitsu <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
-> On Tue, 2016-06-21 at 09:41 -0400, Mike Snitzer wrote:
->> On Mon, Jun 20 2016 at  6:22pm -0400,
->> Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->> >
->> > On Mon, Jun 20 2016 at  5:28pm -0400,
->> > Kani, Toshimitsu <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
->> >
->  :
->> > Looks good, I folded it in and tested it to work.  Pushed to my 'wip'
->> > branch.
->> >
->> > No longer seeing any corruption in my test that was using partitions to
->> > span pmem devices with a dm-linear device.
->> >
->> > Jens, any chance you'd be open to picking up the first 2 patches in this
->> > series?  Or would you like to see them folded or something different?
->>
->> I'm now wondering if we'd be better off setting a new QUEUE_FLAG_DAX
->> rather than establish GENHD_FL_DAX on the genhd?
->>
->> It'd be quite a bit easier to allow upper layers (e.g. XFS and ext4) to
->> check for a queue flag.
->
-> I think GENHD_FL_DAX is more appropriate since DAX does not use a request
-> queue, except for protecting the underlining device being disabled while
-> direct_access() is called (b2e0d1625e19).
->
-> About protecting direct_access, this patch assumes that the underlining
-> device cannot be disabled until dtr() is called.  Is this correct?  If not,
-> I will need to call dax_map_atomic().
-
-Kernel internal usages of dax should be using dax_map_atomic() to
-safely resolve device removal races.
+DQog5LyB5Lia5a6J5YWo44CB546v5aKD77yIRUhT77yJ57O757uf5YyW5a6e5oiY6K6t57uDLULl
+jZXlhYMNCuivvueoi+amgui/sA0K546v5aKD5YGl5bq35a6J5YWo77yIRUhT77yJ5Zyo546w5Luj
+5LyB5Lia55qE5q2j5bi46L+Q6JCl5Lit6LW3552A6LaK5p2l6LaK6YeN6KaB55qE5L2c55So77yM
+5LiT5Lia55qERUhT566h55CG5Lq65ZGY5Zyo5LyB5Lia566h55CG5Lit5om/5ouF55qE6KeS6Imy
+5Lmf5pel55uK6YeN6KaB77yM5LuW5Lus6ZyA6KaB5o6M5o+h5YWo6Z2i55qERUhT55+l6K+G77yM
+5Liw5a+M55qE566h55CG57uP6aqM5ZKM5rKf6YCa5Y2P6LCD6IO95Yqb77yM5Z2a6Z+n55qE5q+F
+5Yqb5ZKM5oyB5LmL5Lul5oGS55qE5Yaz5b+D77yM5omN6IO96IKp6LSf6LW35Lyg5pKt5LyB5Lia
+5paH5YyW5ZKMRUhT55CG5b+15Lyg5pKt55qE6YeN5Lu744CC5Lul5LiL6Zeu6aKY6YO95pivRUhT
+566h55CG6ICF5Zyo5pel5bi45bel5L2c5Lit5b+F6aG76KaB6Z2i5a+555qE6K++6aKY77yaDQrv
+gbHlpoLkvZXlu7rnq4votbfns7vnu5/nmoTjgIHmnInmlYjnmoRFSFPnrqHnkIbkvZPns7vvvIzl
+sL3lj6/og73nmoTpmY3kvY7po47pmanvvIzmjqfliLbnjq/looPlronlhajkuovmlYXnmoTlj5Hn
+lJ/vvJ8NCu+BseWmguS9lemBv+WFjUVIU+WlveWDj+S9oOS4gOS4quS6uuS6i+eahOWwtOWwrO+8
+nw0K74Gx5aaC5p6c5YGa5aW9546w5Zy65bKX5L2NRUhT55qE5pyJ5pWI566h55CG77yfDQrvgbHl
+poLkvZXmi5PlsZXlkZjlt6Xnn6Xor4bvvIzlgZrlpb1FSFPln7norq3lubbmlLnov5vlkZjlt6Xl
+r7nlvoXnjq/looPlronlhajnrqHnkIbnmoTmgIHluqbvvJ8NCu+BseWmguS9leW+l+WIsOeuoeeQ
+huWxgueahOaUr+aMge+8jOiuqeeuoeeQhuiAheiDveWPguS4juWIsEVIU+euoeeQhuS4readpe+8
+nw0K5Zug5q2k77yMRUhT566h55CG6ICF5pei6KaB5o+Q5Y2H5LiT5Lia5oqA5pyv55+l6K+G77yM
+5pu06KaB5o+Q6auY5Lq65ZGY566h55CG55qE6L2v5oqA6IO977yM5Zyo5YWF5YiG55CG6Kej5q+P
+5LiA6aG55bel5L2c55qE5oSP5LmJ5ZCO77yM6K6p5bel5L2c5Y+Y5b6X5Y2T5pyJ5oiQ5pWI77yM
+6K6p6Ieq5bex55qE5b6X5Yiw5pu05aSn5Y+R5bGV56m66Ze044CCDQrmnKzmrKHln7norq3ml6Lm
+nInkvIHkuJpFSFPmlofljJbjgIHnm7jlhbPms5Xop4TlkoznkIborrrnn6Xor4bnmoTku4vnu43v
+vIzlj4jmnInlrp7pmYXmoYjkvovnmoTliIbmnpDkuI7mvJTnu4PvvIzmm7TkvJrns7vnu5/lnLDk
+u4vnu43lhYjov5vnmoRFSFPkvZPns7vlkozot6jlm73lhazlj7jnmoTnrqHnkIbnu4/pqozvvIzl
+ubbnu5PlkIjln7norq3luIjljYHlh6DlubTmnaXlpJrlrrbot6jlm73lhazlj7jnjq/looPlgaXl
+urflronlhajnrqHnkIbnmoTnu4/pqozvvIzlkozlrablkZjlhbHlkIzliIbkuqvkuqTmtYHlhYjo
+v5vnmoRFSFPnkIblv7XlkoznrqHnkIbmioDmnK/vvIzlvIDpmJTlrablkZjnmoTop4bop5LvvIzm
+j5Dpq5jnrqHnkIbnu4/pqozvvIzkv4Pov5vkvIHkuJrnrqHnkIbnu6nmlYjnmoTmj5Dpq5jjgIIN
+Cuivvueoi+eugOS7iw0K5Z+56K6t5a+56LGhMS7ku47kuotFSFPlt6XkvZwy5bm05Lul5LiK55qE
+5LiT5Lia5Lq65ZGYMi7kvIHkuJrmgLvnu4/nkIbjgIHliIbnrqHpooblr7znrYkNCuaOiOivvuW9
+ouW8j++8muefpeivhuiusuaOiOOAgeinhumikeWIhuaekOOAgeahiOS+i+WxleekuuOAgeinkuiJ
+suaJrua8lOetiQ0K6K++56iL5pe26Ze077yaMuWkqSDvvIgyMDE25bm0MDfmnIgyMS0yMuaXpeiL
+j+W3nuOAgTA45pyIMjAtMjHml6Xoi4/lt57jgIExMOaciDIyLTIz5pel6IuP5bee44CBMTHmnIgx
+OS0yMOaXpea3seWcs++8iQ0K6K++56iL6LS555So77yaNDgwMOWFgy/kurovMuWkqeOAkOWMheWQ
+q++8muivvueoi+i1hOaWmei0ueOAgeWNiOmkkOOAgeiMtueCueOAgeOAkQ0K6IGU57O75pa55byP
+77yaMDUxMi02ODcwMDY1MyAgIO+8iDDvvIkxODAxNTU5NjMyNw0K5rOo5piO77ya6K+l6K++56iL
+MuWkqeS4uuS4gOS4quWNleWFg++8jEHljZXlhYPkuI5C5Y2V5YWD5YaF5a655piv5a6M5YWo54us
+56uL55qE77yM5a6i5oi35Y+v5qC55o2u6Ieq5bex6ZyA5rGC6YCJ5oup5Y+C5YqgQeWNleWFg+aI
+luiAhULljZXlhYPvvIzmiJZBQuWNleWFg+Wdh+WPguWKoA0K6K++56iL54m56ImyDQrlrp7miJjn
+moTnrqHnkIblt6XlhbflpoLkvZXkuovljYrlip/lgI3nmoTmj5DljYdFSFPnu6nmlYjvvIzlnKjk
+uo7mj5Dpq5jkvIHkuJrlkITnuqfnrqHnkIbogIXlkozlkZjlt6XnmoTlj4LkuI7luqbjgILor77n
+qIvkuK3vvIzlsIbnnYDph43orrLop6Pni6zlrrbnoJTlj5HnmoTigJzlm5vlt6fov5DnlKjigJ3j
+gIHigJzpo47pmanns7vnu5/mjqfliLbigJ3jgIHigJxFSFPnrqHnkIbkvZPns7vmqKHlnovigJ3j
+gIHigJxFSFPlrqHmoLjmioDmnK/igJ3nrYnlrp7miJjlnovnrqHnkIblt6XlhbfvvIzmjIflr7zl
+rablkZjovr7miJDmraTnm67nmoTjgIINCui0o+S7u+S9k+ezu+aehOW7uui0o+S7u+S5puW5tOW5
+tOetvuiuou+8jOS9huaOqOivv+aJr+earueOsOixoeS+neeEtuaZrumBje+8jEVIU+S7jeaJv+aL
+hei+g+Wkp+mjjumZqe+8jOi/meagt+eahOeOsOixoeS4pemHjemYu+a7nuS6hkVIU+e7qeaViOaP
+kOWNh+OAguacrOivvueoi+WwhuS7juKAnOiBjOi0o+KAneOAgeKAnOe7qeaViOKAneOAgeKAnOiA
+g+aguOKAneS4ieS4que7tOW6pu+8jOiuqeS8geS4mumrmOWxguOAgeeuoeeQhuWxguOAgeePree7
+hOmVv+OAgeS9nOS4muS6uuWRmOWPikVIU+S6uuWRmOWQhOWPuOWFtuiBjO+8jOWFseWQjOaPkOWN
+h0VIU+e7qeaViOOAgg0KRUhT566h55CG5L2T57O75p6E5bu65bu656uLRU1T44CBT0hTQVPmiJbl
+ronmoIfkvZPns7vvvIzku6XlupTku5jlrqHmoLjkuLrnm67nmoTnmoTkvIHkuJrmma7pgY3lrZjl
+nKjjgILlpoLkvZXlu7rnq4vkvZPns7vml6Log73pgJrov4for4TlrqHvvIzlj4jog73orqnkvIHk
+uJpFSFPlt6XkvZzmjInopoHmsYLov5DooYzotbfmnaXvvIzor77nqIvkuK3ni6zlrrbnoJTlj5Hn
+moTigJzkupTln7rigJ3kvZPns7vmnoTlu7rms5XvvIzkuIDlrprog73luK7liLDkvaDjgIINCuiu
+vuiuoUVIU+S6uuWRmOaIkOmVv+i3r+W+hOS8geS4mkVIU+euoeeQhuW6lOS7juKAnOiiq+WKqOeu
+oeeQhuKAneOAgeKAnOWuiOazleKAneOAgeKAnOS9k+ezu+aehOW7uuKAneOAgeKAnOaJp+ihjOaW
+h+WMluWfueWFu+KAneOAgeKAnEVIU+aWh+WMluW9ouaIkOKAneetie+8jOW+quW6j+a4kOi/m+ea
+hOWQkeWJjeaOqOi/m++8jOiAjEVIU+euoeeQhuiAheS5n+W6lOivpeWcqOS4jeWQjOmYtuauteaJ
+rua8lOS4jeWQjOinkuiJsuOAguivvueoi+S4reWwhuaMh+WvvOWFtuWcqOS4jeWQjOmYtuauteea
+hOinkuiJsuWumuS9jeS4juWxpeiBjOOAgg0K6K++56iL5pS26I63DQrpo47pmanns7vnu5/mjqfl
+iLbmjozmj6Hln7rkuo7po47pmanor4bliKvjgIHpo47pmanmjqfliLbjgIHkvZzkuJrmjIflr7zk
+uabnvJbliLbjgIHogIPmoLjor5XljbfjgIHnm67op4bljJbnrYnns7vnu5/nmoTmjqfliLbmioDl
+t6fvvIzmj5DljYfpo47pmanmjqfliLbnmoTlrp7miJjog73lipsNCkVIU+S9k+ezu+aehOW7uuaO
+jOaPoUVIU+S9k+ezu+aehOW7uuaKgOW3p+WSjEVIU+azleW+i+azleinhOOAgUVIU+iBjOi0o+OA
+geebruagh+aMh+agh+etieWFs+mUruW3peWFt+eahOS9v+eUqOaKgOW3p++8jOaPkOWNh0VIU+eu
+oeeQhuiAheWcqOS8geS4mueahOW9seWTjeWKm++8jOaPkOWNh+W3peS9nOaViOeOhw0K5paH5YyW
+5p6E5bu65o6M5o+hRUhT5paH5YyW55qE5p6E5bu65ZKMRUhT5a6j5Lyg44CB5rS75Yqo5byA5bGV
+55qE6L2v5oqA6IO977yM5L+D6L+bRUhT5paH5YyW55qE6YCQ5q2l5b2i5oiQDQrpq5jmlYjmsp/p
+gJrmioDlt6fmjozmj6FFSFPnrqHnkIbkuK3vvIzkuI3lkIzpg6jpl6jjgIHkuIrkuIvnuqfkurrl
+kZjnmoTmsp/pgJrlkozpl67popjlupTlr7nmioDlt6fvvIzorqnmm7TlpJrkurrkuLvliqjlj4Lk
+uI7liLBFSFPlt6XkvZzkuK3mnaUNCuivvueoi+Wkp+e6sg0K74OM5Li76aKY5LiA77ya5Lit5Zu9
+RUhT566h55CG546w54q2DQphKeWuieWFqOeUn+S6p+WPkeWxleeKtuWGteS4juS4reWbveWuieWF
+qOeUn+S6p+eOsOeKtg0KYinogYzkuJrnl4XpmLLmsrvlj5Hnl4Xmg4XlhrXkuI7kvIHkuJrogYzk
+uJrnl4XnrqHnkIbnjrDnirYNCmMp5oiR5Zu95Zyw55CG546v5aKD5rGh5p+T54q25Ya1DQpkKeah
+iOS+i++8mkVIU+S6i+aVheWvueS8geS4mueahOW9seWTjQ0KZSnlm73lhoXkvIHkuJpFSFPnrqHn
+kIbnmoTkupTlpKfnvLrpmbcNCmYpRUhT566h55CG5Lit55qE6LS555So5puy57q/5qih5Z6LDQpn
+KeaXtuS7o+WRvOWUpOS4k+S4mkVIU+euoeeQhuS6uuWRmA0K74OM5Li76aKY5LqM77yaRUhT5LiT
+5Lia5Lq65ZGY6IO95Yqb5qih5Z6LDQphKUVIU+S4k+S4muS6uuWRmOmcgOimgeaUueWPmOeahOmX
+rumimOeOsOeKtuS4juinkuiJsumUmeS9jQ0KYinmoYjkvovvvJrlv5nnooznmoRFSFPnu4/nkIYN
+CmMpRUhT5LiT5Lia5Lq65ZGY5LiJ5aSn6KeS6ImyDQpkKeWBmuWlveeuoeeQhuWxgueahOWPguiw
+iw0KZSnmoYjkvovvvJrpobnnm67nlLPor7fmiqXlkYrnmoTigJzkuInmnInigJ3nvJblhpnljp/l
+iJkNCmYp5ouF5b2TRUhT5L2T57O76K6+6K6h5biIDQpnKUVIU+S4k+S4muS6uuWRmOS4ieinkuiD
+veWKm+aooeWeiw0KaClFSFPkuJPkuJrkurrlkZjln7rmnKzogYzkuJrntKDlhbsNCu+DjOS4u+mi
+mOS4ie+8miBFSFPnrqHnkIbkvZPns7vmnoTlu7oNCmEpRUhT566h55CG5L2T57O76K6+6K6hDQrv
+g5hFSFPkvZPns7vmnoTlu7rmqKHlnosNCu+DmEVIU+S9k+ezu+eahOaWh+S7tuaetuaehA0K74OY
+RUhT6IGM6LSj5ZKM5rS75Yqo55+p6Zi15qih5Z6LDQrvg5hFSFPkvZPns7vkuoznuqfmlofku7bn
+vJblhpnnmoTkupTkuKrljp/liJkNCu+DmOeoi+W6j+aWh+S7tue8luWGmeS5i+a1geeoi+Wbvue7
+mOWItuaKgOW3pw0K74OY5ryU57uD77ya5Z+65LqO5rOV5b6L5rOV6KeE55qE56iL5bqP5paH5Lu2
+57yW57uHDQpiKUVIU+azleW+i+azleinhOeuoeeQhg0K74OY5rOV5b6L5rOV6KeE5ZyoRUhT5L2T
+57O75Lit55qE5LiJ5aSn5L2c55SoDQrvg5jms5Xlvovms5Xop4TnrqHnkIbln7rmnKzmtYHnqIsN
+Cu+DmOmAgueUqOazleW+i+azleinhOivhOS7t+S4juWFrOWPuOWQiOinhOaAp+ivhOWuoQ0KYylF
+SFPotKPogYzjgIHnm67moIfkuI7nu6nmlYjns7vnu5/orr7orqENCu+DmOeglOiuqO+8muWmguS9
+lemBv+WFjeWQhOmDqOmXqOWQhOmXqOWcqEVIU+aJp+ihjOS4reaOqOivv+OAgeaJr+earg0K74OY
+RUhTIEtQSeS9k+ezu+iuvuiuoe+8muehruWumuebruagh++8jOWxleekuue7qeaViA0K74OYRUhT
+55uu5qCH55qE6K6+6K6h77ya5Z+65LqO6IGM6LSj77yM57uT5p6c5LiO6L+H56iL5Lik5Liq57qs
+5bqmDQrvg5jorqnpg6jpl6jliqjotbfmnaXvvJrlhYXliIbov5DnlKhFSFPnm67moIfnmoTmsp/p
+gJrmioDlt6cNCu+DmOahiOS+i+a8lOe7g++8muWfuuS6jumDqOmXqOiBjOi0o+e7mOWItumDqOmX
+qOe7qeaViOeuoeWItuWbvg0K74OYRUhT57up5pWI6ICD5qC45LiO5bGl6LSj5rKf6YCaDQpkKUVI
+U+ajgOafpeeahOWunuaWvQ0K74OYRUhT5qOA5p+l55qE55uu5qCH5LiO5Y+C5LiO6ICFDQrvg5hF
+SFPmo4Dmn6XnmoTkuInpobnlh4blpIcNCu+DmOiuqUVIU+ajgOafpeabtOWunuaViO+8mueri+S9
+k+W8j+afpeajgOihqOiuvuiuoQ0K74OYRUhT5qOA5p+l6Zet546vDQrvg5jkuLrlhrPnrZbogIXm
+j5DkvpvlhbPplK7kvp3mja7vvJrmn4/mi4nlm77lnKhFSFPmo4Dmn6XkuK3nmoTov5DnlKgNCmUp
+RUhT5bqU5oCl5L2T57O76K6+6K6hDQrvg5jnoJTorqjvvJrlsI/lgbflhaXlrqTnm5fnqoPvvIzo
+v5vlsYvku6XlkI7mnIDlhYjlubLku4DkuYjvvJ8NCu+DmOmihOahiOeahOW/heimgeaApw0K74OY
+6aKE5qGI5p625p6EDQrvg5jnoJTorqjvvJrmoLnmja7mj5Dkvpvkv6Hmga/vvIzov5vooYzmoYjk
+vovnoJTorqgNCu+DmOmihOahiOe8luWGmeatpemqpA0K74OY5LqL5pWF5ZON5bqU57qn5YirDQrv
+g5jlupTmgKXmlZHmj7Torr7lpIfkuI7nianotYTlgqjlpIflkoznrqHnkIYNCu+DmOWmguS9lee8
+luWItuW6lOaApemihOahiA0K74OY5LyB5Lia6ZyA6KaB6ICD6JmR55qE5bi46KeB5bqU5oCl5LqL
+5oCBDQrvg5jnvJbliLbpooTmoYjnmoTln7rmnKzljp/liJkNCmYp5Y+Y5pu0566h55CG55qE5a6e
+5pa96KaB6aKGDQpnKeS4ieWQjOaXtuWunuaWvea1geeoi+S4juWfuuacrOimgeaxgg0K74OM5Li7
+6aKY5Zub77ya5Z+65LqORUhT5Zug57Sg55qE57O757uf5o6n5Yi2DQphKeWNsemZqea6kOi+qOiv
+huS4jumjjumZqeivhOS8sA0K74OY5bKX5L2N5pON5L2c5q2l6aqk5YiS5YiG5oqA5benDQrvg5jl
+jbHpmanmupDorqTnn6XkuI7ljbHpmanmupDovqjor4bmioDlt6cNCu+DmOaguOW/g++8muWNsemZ
+qea6kOeahOeJueeCueS4juWNsemZqea6kOeahOWbm+enjeaWueazlQ0K74OY5ryU57uD77ya5Y2x
+6Zmp5rqQ6K+G5Yir5LiO5o6n5Yi2DQrvg5jpo47pmanor4TkvLDln7rmnKzmlrnms5XkuI7ljp/l
+iJkNCu+DmOmjjumZqeivhOS8sOiMg+S+i++8muWOhOWnhumbt+eJueivhOS7t+azleS4juefqemY
+teazlQ0K74OY5Z+65LqO4oCc5rqQ4oCd5Zug5YiG5p6Q5Yi25a6a5o6n5Yi25a+5562WDQrvg5jl
+jbHpmanmupDmsrvnkIbmqKHlnosNCu+DmOabtOaWsOiusOW9leeahOaXtuacuuS4juWOn+WImQ0K
+74OY5Z+65LqO5rWB56iL5a6e5pa955qE546v5aKD5Zug57Sg6K+G5YirDQrvg5jph43opoHnjq/l
+ooPlm6DntKDor4TkvLDmlrnms5UNCu+DmOe8luWItuS4gOe6v+WRmOW3peWPr+WPguS4jueahOeO
+r+Wig+aOp+WItuaOquaWvQ0KYilFSFPlm6DntKDnm7jlhbPkvZzkuJrmjIflr7zkuabnvJbliLbk
+uI7njrDlnLrnm67op4bljJYgDQrvg5jmoYjkvovvvJrkuI3lrp7nlKhTT1Dku4Xku4XnlKjkuo7l
+upTku5jlrqHmoLgNCu+DmOS4gOWll+i2s+S7pe+8muWwhkVIU+S9nOS4muaMh+WvvOS5puiejeWF
+peWunumZheW3peS9nA0K74OY5L2c5Lia5oyH5a+85Lmm6L6o6K+G6L+H56iL5Lit55qE5LiJ5aSn
+5YWz5rOo5Zug57Sg5LiO5LqU5aSn5Y6f5YiZDQrvg5jnm67op4bljJbnmoTmhI/kuYkNCu+DmOeL
+rOWutueglOWPke+8muebruinhuWMluWcqEVIU+euoeeQhuS4rei/kOeUqA0K74OY5qGI5L6L77ya
+RUhT546w5Zy65qCH6K+G55qE5qCH5YeG5YyW57yW5Yi25oqA5benDQpjKUVIU+WfueiureS4jued
+o+WvvOS9k+ezu+aehOW7ug0K74OY5bKX5L2N5Z+56K6t5ZyoRUhT566h55CG5Lit55qE6YeN6KaB
+5oCnDQrvg5jlpoLkvZXlu7rnq4vmnInmlYjnmoTlspfkvY1FSFPln7norq0NCu+DmOWfuuS6jlRX
+Seivvueoi+S9k+ezu+eahOWyl+S9jUVIU+WfueiureaWueazlQ0K74OY6aKg6KaG5Lyg5Yqo5qih
+5byP77ya6KGM5Li65a6J5YWo566h55CG77yIQkJT77yJ5ZyoRUhT566h55CG5Lit55qE5pyJ5pWI
+6L+Q55SoDQrvg5jnuqDmraPlkZjlt6XooYzkuLrkupTmraXms5UNCu+DmOe9muasvuS4jeaYr+Wk
+hOe9mueahOWFqOmDqO+8muato+ehruiupOefpeWkhOe9muihjOS4ug0K74OM5Li76aKY5LqU77ya
+RUhT5paH5YyW5p6E5bu6DQph77yJ5paH5YyW55qE5a6a5LmJ5LiO55CG6Kej6KaB6aKGDQpi77yJ
+5qGI5L6L77ya5paH5YyW6YOo55qE5qC45b+D6IGM6IO9DQpj77yJ5Z+65LqO6KGM5Li65Lmg5oOv
+5Z+55YW75Zui6Zif5paH5YyWDQpk77yJ5qGI5L6L77ya6ZW/5Z+O5rG96L2m5LyB5Lia5paH5YyW
+5b2i5oiQ5YCf6Ym0DQpl77yJ5bi46KeBRUhT5pS55ZaE5rS75YqoDQrvg5jkuI3ku4Xku4XmmK/k
+uIDnp43lvaLlvI/vvJpFSFPmtLvliqjnmoTmhI/kuYkNCu+DmOahiOS+i++8muWunuaViEVIU+a0
+u+WKqOeahOS6lOWkp+WxleeOsOW9ouW8jw0K74OY5bCP5Lyk5a6z44CB5bCP5LqL5pWF5o+Q5oql
+DQrvg5jlkIjnkIbljJblu7rorq4NCmbvvIlFSFPlrqPkvKDkuI7mtLvliqjnmoTlvIDlsZXopoHp
+ooYNCu+DmEVIU+Wuo+S8oOeahOebruaghw0K74OYRUhT5a6j5Lyg55qE5bi46KeB5bGV546w5b2i
+5byPDQrvg5jlrqPkvKDnmoTlhavlrZfmlrnpkogNCu+DjOS4u+mimOWFre+8mkVIU+euoeeQhuiA
+heayn+mAmuaKgOacrw0KYSnkuI3lho3mnInpmpTpmILvvJpFSFPkurrlkZjnmoTpq5jmlYjmsp/p
+gJrmioDlt6cNCu+DmOayn+mAmueahOWOn+eQhu+8muaOpeWPl+S4juiupOWPrw0K74OY5b285q2k
+55CG6Kej5ZKM5o6l5Y+X77ya6auY5pWI5rKf6YCa55qE55uu55qEDQrvg5hFSFPnrqHnkIbogIXn
+moTnl5vvvJrpg6jpl6jnmoTlj4LkuI7luqbkuI7msp/pgJoNCu+DmOeglOWPke+8mkVIU+mrmOaV
+iOayn+mAmueahOS4ieS4quimgee0oOWSjOWFq+S4quetlueVpQ0K74OY6K6p5pu05aSa5Lq65o6l
+5Y+X77yaRUhT5Lq65ZGY55qE5Zub5aSn5rKf6YCa5a+56LGh5LiO5rKf6YCa562W55WlDQpiKUVI
+U+euoeeQhuS4reeahOmXrumimOW6lOWvueS4juaKgOW3pw0K74OY5ben55So6ICB5p2/77ya5aaC
+5L2V6K6p6ICB5p2/5YWz5rOoRUhT566h55CG57up5pWIDQrvg5jlt6fnlKjmiqXooajvvJpFSFMg
+S1BJ6K6+5a6a5LiO6L+Q6KGM55uR5rWLDQrvg5jlt6fnlKjmoYjkvovvvJpFSFPnrqHnkIbkurrl
+kZjlpoLkvZXov5DnlKjljovlipvnrqHnkIYNCu+DmOW3p+eUqOawm+WbtO+8muWmguS9leiuqeWF
+qOWRmOWPguS4jkVIU+euoeeQhg0KDQoNCg0KDQp3bnBlb2ZvdmY0aHlkdXZyaGN6eDZmc3BscG4w
+bWZmZGljcDBqaWN4ZW0yeHRjbWNtYXBmb3FyY2RjMmo2OGoyNnlwa2x0OGM5dGJuaGJvdXZycmts
+ZnYwbHFhcTYxdnU5a2oKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
+Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
