@@ -1,11 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id F305C1A1E04
- for <linux-nvdimm@lists.01.org>; Tue, 21 Jun 2016 14:01:57 -0700 (PDT)
-Date: Wed, 22 Jun 2016 04:59:51 +0800
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 489FB1A1E5B
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Jun 2016 10:32:29 -0700 (PDT)
+Date: Wed, 22 Jun 2016 01:31:00 +0800
 From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH 3/3] dax: Clear dirty entry tags on cache flush
-Message-ID: <201606220412.YCDu7dfb%fengguang.wu@intel.com>
+Message-ID: <201606220132.oV9yZWCR%fengguang.wu@intel.com>
 MIME-Version: 1.0
 In-Reply-To: <1466523915-14644-4-git-send-email-jack@suse.cz>
 Content-Disposition: inline
@@ -31,18 +31,30 @@ Hi,
 [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
 url:    https://github.com/0day-ci/linux/commits/Jan-Kara/dax-Clear-dirty-bits-after-flushing-caches/20160621-234931
-config: i386-allyesconfig (attached as .config)
+config: i386-allmodconfig (attached as .config)
 compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
 reproduce:
         # save the attached .config to linux build tree
         make ARCH=i386 
 
-All errors (new ones prefixed by >>):
+All error/warnings (new ones prefixed by >>):
 
+   In file included from include/linux/pagemap.h:10:0,
+                    from include/linux/blkdev.h:14,
+                    from fs/dax.c:18:
    fs/dax.c: In function 'dax_mapping_entry_mkclean':
->> fs/dax.c:714:343: error: incompatible type for argument 1 of '__kunmap_atomic'
+>> arch/x86/include/asm/pgtable_32.h:52:38: error: incompatible type for argument 1 of '__kunmap_atomic'
+    #define pte_unmap(pte) kunmap_atomic((pte))
+                                         ^
+   include/linux/highmem.h:127:18: note: in definition of macro 'kunmap_atomic'
+     __kunmap_atomic(addr);                                  \
+                     ^~~~
+>> include/linux/mm.h:1681:2: note: in expansion of macro 'pte_unmap'
+     pte_unmap(pte);     \
+     ^~~~~~~~~
+>> fs/dax.c:714:3: note: in expansion of macro 'pte_unmap_unlock'
       pte_unmap_unlock(pte, ptl);
-                                                                                                                                                                                                                                                                                                                                                          ^
+      ^~~~~~~~~~~~~~~~
    In file included from include/linux/highmem.h:34:0,
                     from include/linux/pagemap.h:10,
                     from include/linux/blkdev.h:14,
@@ -51,8 +63,18 @@ All errors (new ones prefixed by >>):
     void __kunmap_atomic(void *kvaddr);
          ^~~~~~~~~~~~~~~
 
-vim +/__kunmap_atomic +714 fs/dax.c
+vim +/pte_unmap_unlock +714 fs/dax.c
 
+   698			address = pgoff_address(index, vma);
+   699			changed = false;
+   700			if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
+   701				continue;
+   702			if (pfn != pte_pfn(*ptep))
+   703				goto unlock;
+   704			if (!pte_dirty(*ptep) && !pte_write(*ptep))
+   705				goto unlock;
+   706	
+   707			flush_cache_page(vma, address, pfn);
    708			pte = ptep_clear_flush(vma, address, ptep);
    709			pte = pte_wrprotect(pte);
    710			pte = pte_mkclean(pte);
@@ -63,6 +85,11 @@ vim +/__kunmap_atomic +714 fs/dax.c
    715	
    716			if (changed)
    717				mmu_notifier_invalidate_page(vma->vm_mm, address);
+   718		}
+   719		i_mmap_unlock_read(mapping);
+   720	}
+   721	
+   722	static int dax_writeback_one(struct block_device *bdev,
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
