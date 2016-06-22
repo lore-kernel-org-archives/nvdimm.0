@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
- [15.241.140.78])
+Received: from g4t3427.houston.hpe.com (g4t3427.houston.hpe.com
+ [15.241.140.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 924B61A1E33
- for <linux-nvdimm@lists.01.org>; Mon, 13 Jun 2016 15:32:15 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id CAB101A1E21
+ for <linux-nvdimm@lists.01.org>; Wed, 22 Jun 2016 17:05:50 -0700 (PDT)
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 2/6] block: Check GENHD_FL_DAX for DAX capability
-Date: Mon, 13 Jun 2016 16:21:33 -0600
-Message-Id: <1465856497-19698-3-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
-References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
+Subject: [PATCH v2 3/3] dm linear: add DAX support
+Date: Wed, 22 Jun 2016 17:54:54 -0600
+Message-Id: <1466639694-25394-4-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <1466639694-25394-1-git-send-email-toshi.kani@hpe.com>
+References: <1466639694-25394-1-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,46 +23,75 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: agk@redhat.com, snitzer@redhat.com, dan.j.williams@intel.com
-Cc: axboe@kernel.dk, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, dm-devel@redhat.com, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org
+To: snitzer@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, dm-devel@redhat.com, viro@zeniv.linux.org.uk, agk@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that GENHD_FL_DAX is set to all drivers supporting DAX,
-change bdev_direct_access() and __blkdev_get() to check this
-GENHD_FL_DAX flag.
+Change dm-linear to implement direct_access function,
+linear_direct_access(), which maps sector and calls direct_access
+function of its physical target device.
+
+Change dm-linear to sets 'dax_supported' when its target physical device
+supports DAX.
 
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: <linux-fsdevel@vger.kernel.org>
 ---
- fs/block_dev.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/md/dm-linear.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 71ccab1..61935ee 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -493,7 +493,7 @@ long bdev_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
+diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
+index 05c35aa..c7fdd1d 100644
+--- a/drivers/md/dm-linear.c
++++ b/drivers/md/dm-linear.c
+@@ -59,6 +59,8 @@ static int linear_ctr(struct dm_target *ti, unsigned int argc, char **argv)
+ 	ti->num_flush_bios = 1;
+ 	ti->num_discard_bios = 1;
+ 	ti->num_write_same_bios = 1;
++	if (blk_queue_dax(lc->dev->bdev->bd_queue))
++		ti->dax_supported = true;
+ 	ti->private = lc;
+ 	return 0;
  
- 	if (size < 0)
- 		return size;
--	if (!ops->direct_access)
-+	if (!(bdev->bd_disk->flags & GENHD_FL_DAX) || !ops->direct_access)
- 		return -EOPNOTSUPP;
- 	if ((sector + DIV_ROUND_UP(size, 512)) >
- 					part_nr_sects_read(bdev->bd_part))
-@@ -1287,7 +1287,8 @@ static int __blkdev_get(struct block_device *bdev, fmode_t mode, int for_part)
- 		bdev->bd_disk = disk;
- 		bdev->bd_queue = disk->queue;
- 		bdev->bd_contains = bdev;
--		if (IS_ENABLED(CONFIG_BLK_DEV_DAX) && disk->fops->direct_access)
-+		if (IS_ENABLED(CONFIG_BLK_DEV_DAX) &&
-+		    disk->flags & GENHD_FL_DAX)
- 			bdev->bd_inode->i_flags = S_DAX;
- 		else
- 			bdev->bd_inode->i_flags = 0;
+@@ -141,9 +143,27 @@ static int linear_iterate_devices(struct dm_target *ti,
+ 	return fn(ti, lc->dev, lc->start, ti->len, data);
+ }
+ 
++static long linear_direct_access(struct dm_target *ti, sector_t sector,
++				 void __pmem **kaddr, pfn_t *pfn, long size)
++{
++	struct linear_c *lc = ti->private;
++	struct block_device *bdev = lc->dev->bdev;
++	struct blk_dax_ctl dax = {
++		.sector = linear_map_sector(ti, sector),
++		.size = size,
++	};
++	long ret;
++
++	ret = bdev_direct_access(bdev, &dax);
++	*kaddr = dax.addr;
++	*pfn = dax.pfn;
++
++	return ret;
++}
++
+ static struct target_type linear_target = {
+ 	.name   = "linear",
+-	.version = {1, 2, 1},
++	.version = {1, 3, 0},
+ 	.module = THIS_MODULE,
+ 	.ctr    = linear_ctr,
+ 	.dtr    = linear_dtr,
+@@ -151,6 +171,7 @@ static struct target_type linear_target = {
+ 	.status = linear_status,
+ 	.prepare_ioctl = linear_prepare_ioctl,
+ 	.iterate_devices = linear_iterate_devices,
++	.direct_access = linear_direct_access,
+ };
+ 
+ int __init dm_linear_init(void)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
