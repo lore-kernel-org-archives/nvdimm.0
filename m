@@ -1,110 +1,208 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+From: Mike Snitzer <snitzer@redhat.com>
 Subject: Re: [PATCH 0/6] Support DAX for device-mapper dm-linear devices
-Date: Wed, 22 Jun 2016 20:16:13 +0000
-Message-ID: <1466625958.3504.340.camel@hpe.com>
-References: <20160613225756.GA18417@redhat.com>
-	 <20160620180043.GA21261@redhat.com> <1466446861.3504.243.camel@hpe.com>
-	 <20160620194026.GA21657@redhat.com> <20160620195217.GB21657@redhat.com>
-	 <1466452883.3504.244.camel@hpe.com> <1466457467.3504.249.camel@hpe.com>
-	 <20160620222236.GA22461@redhat.com> <20160621134147.GA26392@redhat.com>
-	 <1466523280.3504.262.camel@hpe.com> <20160621181728.GA27821@redhat.com>
-	 <1466616868.3504.320.camel@hpe.com>
-	 <CAPcyv4gqiNQ-FRqCV3WxBzjUBZNY6eZVA9ioc0q+Lm=oG8bWAg@mail.gmail.com>
+Date: Wed, 22 Jun 2016 18:38:42 -0400
+Message-ID: <20160622223842.GA34512@redhat.com>
+References: <20160620195217.GB21657@redhat.com>
+ <1466452883.3504.244.camel@hpe.com>
+ <1466457467.3504.249.camel@hpe.com>
+ <20160620222236.GA22461@redhat.com>
+ <20160621134147.GA26392@redhat.com>
+ <1466523280.3504.262.camel@hpe.com>
+ <20160621181728.GA27821@redhat.com>
+ <1466616868.3504.320.camel@hpe.com>
+ <CAPcyv4gqiNQ-FRqCV3WxBzjUBZNY6eZVA9ioc0q+Lm=oG8bWAg@mail.gmail.com>
+ <1466625958.3504.340.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-raid-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4gqiNQ-FRqCV3WxBzjUBZNY6eZVA9ioc0q+Lm=oG8bWAg@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <5E20F3A3C83CE84B838D7A9A8C911F14@NAMPRD84.PROD.OUTLOOK.COM>
-Sender: linux-raid-owner@vger.kernel.org
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "sandeen@redhat.com" <sandeen@redhat.com>, "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>, "agk@redhat.com" <agk@redhat.com>, "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>, "snitzer@redhat.com" <snitzer@redhat.com>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "axboe@kernel.dk" <axboe@kernel.dk>, "axboe@fb.com" <axboe@fb.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "dm-devel@redhat.com" <dm-devel@redhat.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1466625958.3504.340.camel@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "sandeen@redhat.com" <sandeen@redhat.com>, "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>, "agk@redhat.com" <agk@redhat.com>, "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "axboe@kernel.dk" <axboe@kernel.dk>, "axboe@fb.com" <axboe@fb.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "dm-devel@redhat.com" <dm-devel@redhat.com>
 List-Id: linux-nvdimm@lists.01.org
 
-T24gV2VkLCAyMDE2LTA2LTIyIGF0IDEyOjE1IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIFdlZCwgSnVuIDIyLCAyMDE2IGF0IDEwOjQ0IEFNLCBLYW5pLCBUb3NoaW1pdHN1IDx0b3No
-aS5rYW5pQGhwZS5jb20+DQo+IHdyb3RlOg0KPiA+IE9uIFR1ZSwgMjAxNi0wNi0yMSBhdCAxNDox
-NyAtMDQwMCwgTWlrZSBTbml0emVyIHdyb3RlOg0KPiA+ID4gDQo+ID4gPiBPbiBUdWUsIEp1biAy
-MSAyMDE2IGF0IDExOjQ0YW0gLTA0MDAsDQo+ID4gPiBLYW5pLCBUb3NoaW1pdHN1IDx0b3NoaS5r
-YW5pQGhwZS5jb20+IHdyb3RlOg0KPiA+ID4gPiANCj4gPiA+ID4gT24gVHVlLCAyMDE2LTA2LTIx
-IGF0IDA5OjQxIC0wNDAwLCBNaWtlIFNuaXR6ZXIgd3JvdGU6DQo+ID4gPiA+ID4gT24gTW9uLCBK
-dW4gMjAgMjAxNiBhdMKgwqA2OjIycG0gLTA0MDAsDQo+ID4gPiA+ID4gTWlrZSBTbml0emVyIDxz
-bml0emVyQHJlZGhhdC5jb20+IHdyb3RlOg0KPiA+ID4gPiA+IEknbSBub3cgd29uZGVyaW5nIGlm
-IHdlJ2QgYmUgYmV0dGVyIG9mZiBzZXR0aW5nIGEgbmV3IFFVRVVFX0ZMQUdfREFYDQo+ID4gPiA+
-ID4gcmF0aGVyIHRoYW4gZXN0YWJsaXNoIEdFTkhEX0ZMX0RBWCBvbiB0aGUgZ2VuaGQ/DQo+ID4g
-PiA+ID4gDQo+ID4gPiA+ID4gSXQnZCBiZSBxdWl0ZSBhIGJpdCBlYXNpZXIgdG8gYWxsb3cgdXBw
-ZXIgbGF5ZXJzIChlLmcuIFhGUyBhbmQgZXh0NCkNCj4gPiA+ID4gPiB0byBjaGVjayBmb3IgYSBx
-dWV1ZSBmbGFnLg0KPiA+ID4gPsKgDQo+ID4gPiA+IEkgdGhpbmsgR0VOSERfRkxfREFYIGlzIG1v
-cmUgYXBwcm9wcmlhdGUgc2luY2UgREFYIGRvZXMgbm90IHVzZSBhDQo+ID4gPiA+IHJlcXVlc3Qg
-cXVldWUsIGV4Y2VwdCBmb3IgcHJvdGVjdGluZyB0aGUgdW5kZXJsaW5pbmcgZGV2aWNlIGJlaW5n
-DQo+ID4gPiA+IGRpc2FibGVkIHdoaWxlIGRpcmVjdF9hY2Nlc3MoKSBpcyBjYWxsZWQgKGIyZTBk
-MTYyNWUxOSkuDQo+ID4gPsKgDQo+ID4gPiBUaGUgZGV2aWNlcyBpbiBxdWVzdGlvbiBoYXZlIGEg
-cmVxdWVzdF9xdWV1ZS7CoMKgQWxsIGJpby1iYXNlZCBkZXZpY2UgaGF2ZQ0KPiA+ID4gYSByZXF1
-ZXN0X3F1ZXVlLg0KPiA+DQo+ID4gREFYLWNhcGFibGUgZGV2aWNlcyBoYXZlIHR3byBvcGVyYXRp
-b24gbW9kZXMsIGJpby1iYXNlZCBhbmQgREFYLsKgwqBJIGFncmVlDQo+ID4gdGhhdCBiaW8tYmFz
-ZWQgb3BlcmF0aW9uIGlzIGFzc29jaWF0ZWQgd2l0aCBhIHJlcXVlc3QgcXVldWUsIGFuZCBpdHMN
-Cj4gPiBjYXBhYmlsaXRpZXMgc2hvdWxkIGJlIHNldCB0byBpdC7CoMKgREFYLCBvbiB0aGUgb3Ro
-ZXIgaGFuZCwgaXMgcmF0aGVyDQo+ID4gaW5kZXBlbmRlbnQgZnJvbSBhIHJlcXVlc3QgcXVldWUu
-DQo+ID4gDQo+ID4gPiBJIGRvbid0IGhhdmUgYSBiaWcgcHJvYmxlbSB3aXRoIEdFTkhEX0ZMX0RB
-WC7CoMKgSnVzdCB3YW50ZWQgdG8gcG9pbnQgb3V0DQo+ID4gPiB0aGF0IHN1Y2ggYmxvY2sgZGV2
-aWNlIGNhcGFiaWxpdGllcyBhcmUgZ2VuZXJhbGx5IGFkdmVydGlzZWQgaW4gdGVybXMgb2YNCj4g
-PiA+IGEgUVVFVUVfRkxBRy4NCj4gPg0KPiA+IEkgZG8gbm90IGhhdmUgYSBzdHJvbmcgb3Bpbmlv
-biwgYnV0IGZlZWwgYSBiaXQgb2RkIHRvIGFzc29jaWF0ZSBEQVggdG8gYQ0KPiA+IHJlcXVlc3Qg
-cXVldWUuDQo+DQo+IEdpdmVuIHRoYXQgd2UgZG8gbm90IHN1cHBvcnQgZGF4IHRvIGEgcmF3IGJs
-b2NrIGRldmljZSBbMV0gaXQgc2VlbXMgYQ0KPiBnZW5kaXNrIGZsYWcgaXMgbW9yZSBtaXNsZWFk
-aW5nIHRoYW4gcmVxdWVzdF9xdWV1ZSBmbGFnIHRoYXQgc3BlY2lmaWVzDQo+IHdoYXQgcmVxdWVz
-dHMgY2FuIGJlIG1hZGUgb2YgdGhlIGRldmljZS4NCj4gDQo+IFsxXTogYWNjOTNkMzBkN2Q0IFJl
-dmVydCAiYmxvY2s6IGVuYWJsZSBkYXggZm9yIHJhdyBibG9jayBkZXZpY2VzIg0KDQpPaCwgSSBz
-ZWUuIMKgSSB3aWxsIGNoYW5nZSB0byB1c2UgcmVxdWVzdF9xdWV1ZSBmbGFnLg0KDQoNCj4gPiA+
-ID4gQWJvdXQgcHJvdGVjdGluZyBkaXJlY3RfYWNjZXNzLCB0aGlzIHBhdGNoIGFzc3VtZXMgdGhh
-dCB0aGUNCj4gPiA+ID4gdW5kZXJsaW5pbmcgZGV2aWNlIGNhbm5vdCBiZSBkaXNhYmxlZCB1bnRp
-bCBkdHIoKSBpcyBjYWxsZWQuwqDCoElzIHRoaXMNCj4gPiA+ID4gY29ycmVjdD/CoMKgSWYgbm90
-LCBJIHdpbGwgbmVlZCB0byBjYWxsIGRheF9tYXBfYXRvbWljKCkuDQo+ID4gPg0KPiA+ID4gT25l
-IG9mIHRoZSBiaWcgZGVzaWduIGNvbnNpZGVyYXRpb25zIGZvciBETSB0aGF0IGEgRE0gZGV2aWNl
-IGNhbiBiZQ0KPiA+ID4gc3VzcGVuZGVkICh3aXRoIG9yIHdpdGhvdXQgZmx1c2gpIGFuZCBhbnkg
-bmV3IElPIHdpbGwgYmUgYmxvY2tlZCB1bnRpbA0KPiA+ID4gdGhlIERNIGRldmljZSBpcyByZXN1
-bWVkLg0KPiA+ID4gDQo+ID4gPiBTbyBpZGVhbGx5IERNIHNob3VsZCBiZSBhYmxlIHRvIGhhdmUg
-dGhlIHNhbWUgY2FwYWJpbGl0eSBldmVuIGlmIHVzaW5nDQo+ID4gPiBEQVguDQo+ID4NCj4gPiBT
-dXBwb3J0aW5nIHN1c3BlbmQgZm9yIERBWCBpcyBjaGFsbGVuZ2luZyBzaW5jZSBpdCBhbGxvd3Mg
-dXNlcg0KPiA+IGFwcGxpY2F0aW9ucyB0byBhY2Nlc3MgYSBkZXZpY2UgZGlyZWN0bHkuwqDCoE9u
-Y2UgYSBkZXZpY2UgcmFuZ2UgaXMgbW1hcCdkLA0KPiA+IHRoZXJlIGlzIG5vIGtlcm5lbCBpbnRl
-cnZlbnRpb24gdG8gYWNjZXNzIHRoZSByYW5nZSwgdW5sZXNzIHdlIGludmFsaWRhdGUNCj4gPiB1
-c2VyIG1hcHBpbmdzLsKgwqBUaGlzIGlzbid0IGRvbmUgdG9kYXkgZXZlbiBhZnRlciBhIGRyaXZl
-ciBpcyB1bmJpbmQnZCBmcm9tDQo+ID4gYSBkZXZpY2UuDQo+ID4gDQo+ID4gPiBCdXQgdGhhdCBp
-cyBkaWZmZXJlbnQgdGhhbiB3aGF0IGNvbW1pdCBiMmUwZDE2MjVlMTkgaXMgYWRkcmVzc2luZy7C
-oMKgRm9yDQo+ID4gPiBETSwgSSB3b3VsZG4ndCB0aGluayB5b3UnZCBuZWVkIHRoZSBleHRyYSBw
-cm90ZWN0aW9ucyB0aGF0DQo+ID4gPiBkYXhfbWFwX2F0b21pYygpIGlzIHByb3ZpZGluZyBnaXZl
-biB0aGF0IHRoZSB1bmRlcmx5aW5nIGJsb2NrIGRldmljZQ0KPiA+ID4gbGlmZXRpbWUgaXMgbWFu
-YWdlZCB2aWEgRE0gY29yZSdzIGRtX2dldF9kZXZpY2UvZG1fcHV0X2RldmljZSAoc2VlIGFsc286
-DQo+ID4gPiBkbS5jOm9wZW5fdGFibGVfZGV2aWNlL2Nsb3NlX3RhYmxlX2RldmljZSkuDQo+ID4N
-Cj4gPiBJIHRob3VnaHQgc28gYXMgd2VsbC7CoMKgQnV0IEkgcmVhbGl6ZWQgdGhhdCB0aGVyZSBp
-cyAoYWxtb3N0KSBub3RoaW5nIHRoYXQNCj4gPiBjYW4gcHJldmVudCB0aGUgdW5iaW5kIG9wZXJh
-dGlvbi7CoMKgSXQgY2Fubm90IGZhaWwsIGVpdGhlci7CoMKgVGhpcyB1bmJpbmQNCj4gPiBwcm9j
-ZWVkcyBldmVuIHdoZW4gYSBkZXZpY2UgaXMgaW4tdXNlLsKgwqBJbiBjYXNlIG9mIGEgcG1lbSBk
-ZXZpY2UsIGl0IGlzDQo+ID4gb25seSBwcm90ZWN0ZWQgYnkgcG1lbV9yZWxlYXNlX3F1ZXVlKCks
-IHdoaWNoIGlzIGNhbGxlZCB3aGVuIGEgcG1lbSBkZXZpY2UNCj4gPiBpcyBiZWluZyBkZWxldGVk
-IGFuZCBjYWxscyBibGtfY2xlYW51cF9xdWV1ZSgpIHRvIHNlcmlhbGl6ZSBhIGNyaXRpY2FsDQo+
-ID4gc2VjdGlvbiBiZXR3ZWVuDQo+ID4gYmxrX3F1ZXVlX2VudGVyKCkgYW5kIGJsa19xdWV1ZV9l
-eGl0KCkgcGVyIGIyZTBkMTYyNWUxOS7CoMKgVGhpcyBwcmV2ZW50cw0KPiA+IGZyb20gYSBrZXJu
-ZWwgRFRMQiBmYXVsdCwgYnV0IGRvZXMgbm90IHByZXZlbnQgYSBkZXZpY2UgZGlzYXBwZWFyZWQg
-d2hpbGUNCj4gPiBpbi11c2UuDQo+ID4gDQo+ID4gUHJvdGVjdGluZyBETSdzIHVuZGVybGluaW5n
-IGRldmljZSB3aXRoIGJsa19xdWV1ZV9lbnRlcigpIChvciBzb21ldGhpbmcNCj4gPiBzaW1pbGFy
-KSByZXF1aXJlcyBtb3JlIHRob3VnaHRzLi4uwqDCoGJsa19xdWV1ZV9lbnRlcigpIHRvIGEgRE0g
-ZGV2aWNlDQo+ID4gY2Fubm90IGJlIHJlZGlyZWN0ZWQgdG8gaXRzIHVuZGVybGluaW5nIGRldmlj
-ZS7CoMKgU28sIHRoaXMgaXMgVEJEIGZvcg0KPiA+IG5vdy7CoMKgQnV0IEkgZG8gbm90IHRoaW5r
-IHRoaXMgaXMgYSBibG9ja2VyIGlzc3VlIHNpbmNlIGRvaW5nIHVuYmluZCB0byBhDQo+ID4gdW5k
-ZXJsaW5pbmcgZGV2aWNlIGlzIHF1aXRlIGhhcm1mdWwgbm8gbWF0dGVyIHdoYXQgd2UgZG8gLSBl
-dmVuIGlmIGl0IGlzDQo+ID4gcHJvdGVjdGVkIHdpdGggYmxrX3F1ZXVlX2VudGVyKCkuDQo+DQo+
-IEkgc3RpbGwgaGF2ZSB0aGUgImJsb2NrIGRldmljZSByZW1vdmVkIiBub3RpZmljYXRpb24gcGF0
-Y2hlcyBvbiBteQ0KPiB0b2RvIGxpc3QuwqDCoEl0J3Mgbm90IGEgYmxvY2tlciwgYnV0IHRoZXJl
-IGFyZSBzY2VuYXJpb3Mgd2hlcmUgd2UgY2FuDQo+IGtlZXAgYWNjZXNzaW5nIG1lbW9yeSB2aWEg
-ZGF4IG9mIGEgZGlzYWJsZWQgZGV2aWNlIGxlYWRpbmcgdG8gbWVtb3J5DQo+IGNvcnJ1cHRpb24u
-wqDCoA0KDQpSaWdodCwgSSBub3RpY2VkIHRoYXQgdXNlciBhcHBsaWNhdGlvbnMgY2FuIGFjY2Vz
-cyBtbWFwJ2QgcmFuZ2VzIG9uIGEgZGlzYWJsZWQNCmRldmljZS4NCg0KPiBJJ2xsIGJ1bXAgdGhh
-dCB1cCBpbiBteSBxdWV1ZSBub3cgdGhhdCB3ZSBhcmUgbG9va2luZyBhdA0KPiBhZGRpdGlvbmFs
-IHNjZW5hcmlvcyB3aGVyZSBsZXR0aW5nIERBWCBtYXBwaW5ncyBsZWFrIHBhc3QgdGhlDQo+IHJl
-Y29uZmlndXJhdGlvbiBvZiBhIGJsb2NrIGRldmljZSBjb3VsZCBsZWFkIHRvIHRyb3VibGUuDQoN
-CkdyZWF0LiDCoFdpdGggRE0sIHJlbW92aW5nIGEgdW5kZXJsaW5pbmcgZGV2aWNlIHdoaWxlIGlu
-LXVzZSBjYW4gbGVhZCB0bw0KdHJvdWJsZSwgZXNwLiB3aXRoIFJBSUQwLiDCoFVzZXJzIG5lZWQg
-dG8gcmVtb3ZlIGEgZGV2aWNlIGZyb20gRE0gZmlyc3QuLi4NCg0KVGhhbmtzLA0KLVRvc2hp
+On Wed, Jun 22 2016 at  4:16P -0400,
+Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
+
+> On Wed, 2016-06-22 at 12:15 -0700, Dan Williams wrote:
+> > On Wed, Jun 22, 2016 at 10:44 AM, Kani, Toshimitsu <toshi.kani@hpe.=
+com>
+> > wrote:
+> > > On Tue, 2016-06-21 at 14:17 -0400, Mike Snitzer wrote:
+> > > >=20
+> > > > On Tue, Jun 21 2016 at 11:44am -0400,
+> > > > Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
+> > > > >=20
+> > > > > On Tue, 2016-06-21 at 09:41 -0400, Mike Snitzer wrote:
+> > > > > > On Mon, Jun 20 2016 at=A0=A06:22pm -0400,
+> > > > > > Mike Snitzer <snitzer@redhat.com> wrote:
+> > > > > > I'm now wondering if we'd be better off setting a new QUEUE=
+_FLAG_DAX
+> > > > > > rather than establish GENHD_FL_DAX on the genhd?
+> > > > > >=20
+> > > > > > It'd be quite a bit easier to allow upper layers (e.g. XFS =
+and ext4)
+> > > > > > to check for a queue flag.
+> > > > >=A0
+> > > > > I think GENHD_FL_DAX is more appropriate since DAX does not u=
+se a
+> > > > > request queue, except for protecting the underlining device b=
+eing
+> > > > > disabled while direct_access() is called (b2e0d1625e19).
+> > > >=A0
+> > > > The devices in question have a request_queue.=A0=A0All bio-base=
+d device have
+> > > > a request_queue.
+> > >
+> > > DAX-capable devices have two operation modes, bio-based and DAX.=A0=
+=A0I agree
+> > > that bio-based operation is associated with a request queue, and =
+its
+> > > capabilities should be set to it.=A0=A0DAX, on the other hand, is=
+ rather
+> > > independent from a request queue.
+> > >=20
+> > > > I don't have a big problem with GENHD_FL_DAX.=A0=A0Just wanted =
+to point out
+> > > > that such block device capabilities are generally advertised in=
+ terms of
+> > > > a QUEUE_FLAG.
+> > >
+> > > I do not have a strong opinion, but feel a bit odd to associate D=
+AX to a
+> > > request queue.
+> >
+> > Given that we do not support dax to a raw block device [1] it seems=
+ a
+> > gendisk flag is more misleading than request_queue flag that specif=
+ies
+> > what requests can be made of the device.
+> >=20
+> > [1]: acc93d30d7d4 Revert "block: enable dax for raw block devices"
+>=20
+> Oh, I see. =A0I will change to use request_queue flag.
+
+I implemented the block patch for this yesterday but based on your
+feedback I stopped there (didn't carry the change through to the DM cor=
+e
+and DM linear -- can easily do so tomorrow though).
+
+=46eel free to use this as a starting point and fix/extend and add a
+proper header:
+
+=46rom e88736ce322f248157da6c7d402e940adafffa1e Mon Sep 17 00:00:00 200=
+1
+=46rom: Mike Snitzer <snitzer@redhat.com>
+Date: Tue, 21 Jun 2016 12:23:29 -0400
+Subject: [PATCH] block: add QUEUE_FLAG_DAX for devices to advertise the=
+ir DAX support
+
+Signed-off-by: Mike Snitzer <snitzer@redhat.com>
+---
+ drivers/block/brd.c          | 3 +++
+ drivers/nvdimm/pmem.c        | 1 +
+ drivers/s390/block/dcssblk.c | 1 +
+ fs/block_dev.c               | 5 +++--
+ include/linux/blkdev.h       | 2 ++
+ 5 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index f5b0d6f..13eee12 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -508,6 +508,9 @@ static struct brd_device *brd_alloc(int i)
+ 	brd->brd_queue->limits.discard_granularity =3D PAGE_SIZE;
+ 	blk_queue_max_discard_sectors(brd->brd_queue, UINT_MAX);
+ 	brd->brd_queue->limits.discard_zeroes_data =3D 1;
++#ifdef CONFIG_BLK_DEV_RAM_DAX
++	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
++#endif
+ 	queue_flag_set_unlocked(QUEUE_FLAG_DISCARD, brd->brd_queue);
+=20
+ 	disk =3D brd->brd_disk =3D alloc_disk(max_part);
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 608fc44..53b701b 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -283,6 +283,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	blk_queue_max_hw_sectors(q, UINT_MAX);
+ 	blk_queue_bounce_limit(q, BLK_BOUNCE_ANY);
+ 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, q);
++	queue_flag_set_unlocked(QUEUE_FLAG_DAX, q);
+ 	q->queuedata =3D pmem;
+=20
+ 	disk =3D alloc_disk_node(0, nid);
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.=
+c
+index bed53c4..093e9e1 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -618,6 +618,7 @@ dcssblk_add_store(struct device *dev, struct device=
+_attribute *attr, const char
+ 	dev_info->gd->driverfs_dev =3D &dev_info->dev;
+ 	blk_queue_make_request(dev_info->dcssblk_queue, dcssblk_make_request)=
+;
+ 	blk_queue_logical_block_size(dev_info->dcssblk_queue, 4096);
++	queue_flag_set_unlocked(QUEUE_FLAG_DAX, dev_info->dcssblk_queue);
+=20
+ 	seg_byte_size =3D (dev_info->end - dev_info->start + 1);
+ 	set_capacity(dev_info->gd, seg_byte_size >> 9); // size in sectors
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 71ccab1..9bcb3a9 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -484,6 +484,7 @@ long bdev_direct_access(struct block_device *bdev, =
+struct blk_dax_ctl *dax)
+ 	sector_t sector =3D dax->sector;
+ 	long avail, size =3D dax->size;
+ 	const struct block_device_operations *ops =3D bdev->bd_disk->fops;
++	struct request_queue *q =3D bdev_get_queue(bdev);
+=20
+ 	/*
+ 	 * The device driver is allowed to sleep, in order to make the
+@@ -493,7 +494,7 @@ long bdev_direct_access(struct block_device *bdev, =
+struct blk_dax_ctl *dax)
+=20
+ 	if (size < 0)
+ 		return size;
+-	if (!ops->direct_access)
++	if (!blk_queue_dax(q) || !ops->direct_access)
+ 		return -EOPNOTSUPP;
+ 	if ((sector + DIV_ROUND_UP(size, 512)) >
+ 					part_nr_sects_read(bdev->bd_part))
+@@ -1287,7 +1288,7 @@ static int __blkdev_get(struct block_device *bdev=
+, fmode_t mode, int for_part)
+ 		bdev->bd_disk =3D disk;
+ 		bdev->bd_queue =3D disk->queue;
+ 		bdev->bd_contains =3D bdev;
+-		if (IS_ENABLED(CONFIG_BLK_DEV_DAX) && disk->fops->direct_access)
++		if (IS_ENABLED(CONFIG_BLK_DEV_DAX) && blk_queue_dax(disk->queue))
+ 			bdev->bd_inode->i_flags =3D S_DAX;
+ 		else
+ 			bdev->bd_inode->i_flags =3D 0;
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 9746d22..d5cb326 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -505,6 +505,7 @@ struct request_queue {
+ #define QUEUE_FLAG_WC	       23	/* Write back caching */
+ #define QUEUE_FLAG_FUA	       24	/* device supports FUA writes */
+ #define QUEUE_FLAG_FLUSH_NQ    25	/* flush not queueuable */
++#define QUEUE_FLAG_DAX	       26	/* device supports DAX */
+=20
+ #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
+ 				 (1 << QUEUE_FLAG_STACKABLE)	|	\
+@@ -594,6 +595,7 @@ static inline void queue_flag_clear(unsigned int fl=
+ag, struct request_queue *q)
+ #define blk_queue_discard(q)	test_bit(QUEUE_FLAG_DISCARD, &(q)->queue_=
+flags)
+ #define blk_queue_secdiscard(q)	(blk_queue_discard(q) && \
+ 	test_bit(QUEUE_FLAG_SECDISCARD, &(q)->queue_flags))
++#define blk_queue_dax(q)	test_bit(QUEUE_FLAG_DAX, &(q)->queue_flags)
+=20
+ #define blk_noretry_request(rq) \
+ 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
+--=20
+2.7.4 (Apple Git-66)
