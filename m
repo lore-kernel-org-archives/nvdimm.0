@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 6/8] xfs: direct calls in the direct I/O path
-Date: Wed, 22 Jun 2016 17:27:14 +0200
-Message-ID: <1466609236-23801-7-git-send-email-hch@lst.de>
+Subject: [PATCH 8/8] xfs: fix locking for DAX writes
+Date: Wed, 22 Jun 2016 17:27:16 +0200
+Message-ID: <1466609236-23801-9-git-send-email-hch@lst.de>
 References: <1466609236-23801-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,106 +21,60 @@ To: xfs-VZNHf3L845pBDgjK7y7TUQ@public.gmane.org
 Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-We control both the callers and callees of ->direct_IO, so remove the
-indirect calls.
+So far DAX writes inherited the locking from direct I/O writes, but the direct
+I/O model of using shared locks for writes is actually wrong for DAX.  For
+direct I/O we're out of any standards and don't have to provide the Posix
+required exclusion between writers, but for DAX which gets transparently
+enable on applications without any knowledge of it we can't simply drop the
+requirement.  Even worse this only happens for aligned writes and thus
+doesn't show up for many typical use cases.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- fs/xfs/xfs_aops.c | 24 +++++-------------------
- fs/xfs/xfs_aops.h |  3 +++
- fs/xfs/xfs_file.c | 17 +++++++++++++++--
- 3 files changed, 23 insertions(+), 21 deletions(-)
+ fs/xfs/xfs_file.c | 20 +-------------------
+ 1 file changed, 1 insertion(+), 19 deletions(-)
 
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index 80714eb..b368277 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -1303,7 +1303,7 @@ xfs_get_blocks_dax_fault(
-  * whereas if we have flags set we will always be called in task context
-  * (i.e. from a workqueue).
-  */
--STATIC int
-+int
- xfs_end_io_direct_write(
- 	struct kiocb		*iocb,
- 	loff_t			offset,
-@@ -1374,24 +1374,10 @@ xfs_vm_direct_IO(
- 	struct kiocb		*iocb,
- 	struct iov_iter		*iter)
- {
--	struct inode		*inode = iocb->ki_filp->f_mapping->host;
--	dio_iodone_t		*endio = NULL;
--	int			flags = 0;
--	struct block_device	*bdev;
--
--	if (iov_iter_rw(iter) == WRITE) {
--		endio = xfs_end_io_direct_write;
--		flags = DIO_ASYNC_EXTEND;
--	}
--
--	if (IS_DAX(inode)) {
--		return dax_do_io(iocb, inode, iter,
--				 xfs_get_blocks_direct, endio, 0);
--	}
--
--	bdev = xfs_find_bdev_for_inode(inode);
--	return  __blockdev_direct_IO(iocb, inode, bdev, iter,
--			xfs_get_blocks_direct, endio, NULL, flags);
-+	/*
-+	 * We just need the method present so that open/fcntl allow direct I/O.
-+	 */
-+	return -EINVAL;
- }
- 
- STATIC sector_t
-diff --git a/fs/xfs/xfs_aops.h b/fs/xfs/xfs_aops.h
-index 814aab7..bf2d9a1 100644
---- a/fs/xfs/xfs_aops.h
-+++ b/fs/xfs/xfs_aops.h
-@@ -60,6 +60,9 @@ int	xfs_get_blocks_direct(struct inode *inode, sector_t offset,
- int	xfs_get_blocks_dax_fault(struct inode *inode, sector_t offset,
- 			         struct buffer_head *map_bh, int create);
- 
-+int	xfs_end_io_direct_write(struct kiocb *iocb, loff_t offset,
-+		ssize_t size, void *private);
-+
- extern void xfs_count_page_state(struct page *, int *, int *);
- extern struct block_device *xfs_find_bdev_for_inode(struct inode *);
- 
 diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index f761f49..24b267d 100644
+index 0e74325..413c9e0 100644
 --- a/fs/xfs/xfs_file.c
 +++ b/fs/xfs/xfs_file.c
-@@ -317,7 +317,13 @@ xfs_file_dio_aio_read(
+@@ -714,24 +714,11 @@ xfs_file_dax_write(
+ 	struct address_space	*mapping = iocb->ki_filp->f_mapping;
+ 	struct inode		*inode = mapping->host;
+ 	struct xfs_inode	*ip = XFS_I(inode);
+-	struct xfs_mount	*mp = ip->i_mount;
+ 	ssize_t			ret = 0;
+-	int			unaligned_io = 0;
+-	int			iolock;
++	int			iolock = XFS_IOLOCK_EXCL;
+ 	struct iov_iter		data;
+ 
+-	/* "unaligned" here means not aligned to a filesystem block */
+-	if ((iocb->ki_pos & mp->m_blockmask) ||
+-	    ((iocb->ki_pos + iov_iter_count(from)) & mp->m_blockmask)) {
+-		unaligned_io = 1;
+-		iolock = XFS_IOLOCK_EXCL;
+-	} else if (mapping->nrpages) {
+-		iolock = XFS_IOLOCK_EXCL;
+-	} else {
+-		iolock = XFS_IOLOCK_SHARED;
+-	}
+ 	xfs_rw_ilock(ip, iolock);
+-
+ 	ret = xfs_file_aio_write_checks(iocb, from, &iolock);
+ 	if (ret)
+ 		goto out;
+@@ -747,11 +734,6 @@ xfs_file_dax_write(
+ 		WARN_ON_ONCE(ret);
  	}
  
- 	data = *to;
--	ret = mapping->a_ops->direct_IO(iocb, &data);
-+	if (IS_DAX(inode)) {
-+		ret = dax_do_io(iocb, inode, &data, xfs_get_blocks_direct,
-+				NULL, 0);
-+	} else {
-+		ret = __blockdev_direct_IO(iocb, inode, target->bt_bdev, &data,
-+				xfs_get_blocks_direct, NULL, NULL, 0);
-+	}
- 	if (ret > 0) {
- 		iocb->ki_pos += ret;
- 		iov_iter_advance(to, ret);
-@@ -650,7 +656,14 @@ xfs_file_dio_aio_write(
- 	trace_xfs_file_direct_write(ip, count, iocb->ki_pos);
+-	if (iolock == XFS_IOLOCK_EXCL && !unaligned_io) {
+-		xfs_rw_ilock_demote(ip, XFS_IOLOCK_EXCL);
+-		iolock = XFS_IOLOCK_SHARED;
+-	}
+-
+ 	trace_xfs_file_dax_write(ip, iov_iter_count(from), iocb->ki_pos);
  
  	data = *from;
--	ret = mapping->a_ops->direct_IO(iocb, &data);
-+	if (IS_DAX(inode)) {
-+		ret = dax_do_io(iocb, inode, &data, xfs_get_blocks_direct,
-+				xfs_end_io_direct_write, 0);
-+	} else {
-+		ret = __blockdev_direct_IO(iocb, inode, target->bt_bdev, &data,
-+				xfs_get_blocks_direct, xfs_end_io_direct_write,
-+				NULL, DIO_ASYNC_EXTEND);
-+	}
- 
- 	/* see generic_file_direct_write() for why this is necessary */
- 	if (mapping->nrpages) {
 -- 
 2.1.4
