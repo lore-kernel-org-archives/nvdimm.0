@@ -1,114 +1,110 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Subject: Re: [PATCH 0/6] Support DAX for device-mapper dm-linear devices
-Date: Wed, 22 Jun 2016 12:15:25 -0700
-Message-ID: <CAPcyv4gqiNQ-FRqCV3WxBzjUBZNY6eZVA9ioc0q+Lm=oG8bWAg@mail.gmail.com>
+Date: Wed, 22 Jun 2016 20:16:13 +0000
+Message-ID: <1466625958.3504.340.camel@hpe.com>
 References: <20160613225756.GA18417@redhat.com>
- <20160620180043.GA21261@redhat.com>
- <1466446861.3504.243.camel@hpe.com> <20160620194026.GA21657@redhat.com>
- <20160620195217.GB21657@redhat.com> <1466452883.3504.244.camel@hpe.com>
- <1466457467.3504.249.camel@hpe.com> <20160620222236.GA22461@redhat.com>
- <20160621134147.GA26392@redhat.com> <1466523280.3504.262.camel@hpe.com>
- <20160621181728.GA27821@redhat.com> <1466616868.3504.320.camel@hpe.com>
+	 <20160620180043.GA21261@redhat.com> <1466446861.3504.243.camel@hpe.com>
+	 <20160620194026.GA21657@redhat.com> <20160620195217.GB21657@redhat.com>
+	 <1466452883.3504.244.camel@hpe.com> <1466457467.3504.249.camel@hpe.com>
+	 <20160620222236.GA22461@redhat.com> <20160621134147.GA26392@redhat.com>
+	 <1466523280.3504.262.camel@hpe.com> <20160621181728.GA27821@redhat.com>
+	 <1466616868.3504.320.camel@hpe.com>
+	 <CAPcyv4gqiNQ-FRqCV3WxBzjUBZNY6eZVA9ioc0q+Lm=oG8bWAg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1466616868.3504.320.camel-ZPxbGqLxI0U@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Cc: "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "sandeen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sandeen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "axboe-b10kYP2dOMg@public.gmane.org" <axboe-b10kYP2dOMg@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org" <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-raid-owner@vger.kernel.org>
+In-Reply-To: <CAPcyv4gqiNQ-FRqCV3WxBzjUBZNY6eZVA9ioc0q+Lm=oG8bWAg@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <5E20F3A3C83CE84B838D7A9A8C911F14@NAMPRD84.PROD.OUTLOOK.COM>
+Sender: linux-raid-owner@vger.kernel.org
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "sandeen@redhat.com" <sandeen@redhat.com>, "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>, "agk@redhat.com" <agk@redhat.com>, "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>, "snitzer@redhat.com" <snitzer@redhat.com>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "axboe@kernel.dk" <axboe@kernel.dk>, "axboe@fb.com" <axboe@fb.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "dm-devel@redhat.com" <dm-devel@redhat.com>
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, Jun 22, 2016 at 10:44 AM, Kani, Toshimitsu <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
-> On Tue, 2016-06-21 at 14:17 -0400, Mike Snitzer wrote:
->> On Tue, Jun 21 2016 at 11:44am -0400,
->> Kani, Toshimitsu <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
->> >
->> > On Tue, 2016-06-21 at 09:41 -0400, Mike Snitzer wrote:
->> > >
->> > > On Mon, Jun 20 2016 at  6:22pm -0400,
->> > > Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->  :
->> > > I'm now wondering if we'd be better off setting a new QUEUE_FLAG_DAX
->> > > rather than establish GENHD_FL_DAX on the genhd?
->> > >
->> > > It'd be quite a bit easier to allow upper layers (e.g. XFS and ext4) to
->> > > check for a queue flag.
->> >
->> > I think GENHD_FL_DAX is more appropriate since DAX does not use a request
->> > queue, except for protecting the underlining device being disabled while
->> > direct_access() is called (b2e0d1625e19).
->>
->> The devices in question have a request_queue.  All bio-based device have
->> a request_queue.
->
-> DAX-capable devices have two operation modes, bio-based and DAX.  I agree that
-> bio-based operation is associated with a request queue, and its capabilities
-> should be set to it.  DAX, on the other hand, is rather independent from a
-> request queue.
->
->> I don't have a big problem with GENHD_FL_DAX.  Just wanted to point out
->> that such block device capabilities are generally advertised in terms of
->> a QUEUE_FLAG.
->
-> I do not have a strong opinion, but feel a bit odd to associate DAX to a
-> request queue.
-
-Given that we do not support dax to a raw block device [1] it seems a
-gendisk flag is more misleading than request_queue flag that specifies
-what requests can be made of the device.
-
-[1]: acc93d30d7d4 Revert "block: enable dax for raw block devices"
-
-
->> > About protecting direct_access, this patch assumes that the underlining
->> > device cannot be disabled until dtr() is called.  Is this correct?  If
->> > not, I will need to call dax_map_atomic().
->>
->> One of the big design considerations for DM that a DM device can be
->> suspended (with or without flush) and any new IO will be blocked until
->> the DM device is resumed.
->>
->> So ideally DM should be able to have the same capability even if using
->> DAX.
->
-> Supporting suspend for DAX is challenging since it allows user applications to
-> access a device directly.  Once a device range is mmap'd, there is no kernel
-> intervention to access the range, unless we invalidate user mappings.  This
-> isn't done today even after a driver is unbind'd from a device.
->
->> But that is different than what commit b2e0d1625e19 is addressing.  For
->> DM, I wouldn't think you'd need the extra protections that
->> dax_map_atomic() is providing given that the underlying block device
->> lifetime is managed via DM core's dm_get_device/dm_put_device (see also:
->> dm.c:open_table_device/close_table_device).
->
-> I thought so as well.  But I realized that there is (almost) nothing that can
-> prevent the unbind operation.  It cannot fail, either.  This unbind proceeds
-> even when a device is in-use.  In case of a pmem device, it is only protected
-> by pmem_release_queue(), which is called when a pmem device is being deleted
-> and calls blk_cleanup_queue() to serialize a critical section between
-> blk_queue_enter() and blk_queue_exit() per b2e0d1625e19.  This prevents from a
-> kernel DTLB fault, but does not prevent a device disappeared while in-use.
->
-> Protecting DM's underlining device with blk_queue_enter() (or something
-> similar) requires more thoughts...  blk_queue_enter() to a DM device cannot be
-> redirected to its underlining device.  So, this is TBD for now.  But I do not
-> think this is a blocker issue since doing unbind to a underlining device is
-> quite harmful no matter what we do - even if it is protected with
-> blk_queue_enter().
-
-I still have the "block device removed" notification patches on my
-todo list.  It's not a blocker, but there are scenarios where we can
-keep accessing memory via dax of a disabled device leading to memory
-corruption.  I'll bump that up in my queue now that we are looking at
-additional scenarios where letting DAX mappings leak past the
-reconfiguration of a block device could lead to trouble.
+T24gV2VkLCAyMDE2LTA2LTIyIGF0IDEyOjE1IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIFdlZCwgSnVuIDIyLCAyMDE2IGF0IDEwOjQ0IEFNLCBLYW5pLCBUb3NoaW1pdHN1IDx0b3No
+aS5rYW5pQGhwZS5jb20+DQo+IHdyb3RlOg0KPiA+IE9uIFR1ZSwgMjAxNi0wNi0yMSBhdCAxNDox
+NyAtMDQwMCwgTWlrZSBTbml0emVyIHdyb3RlOg0KPiA+ID4gDQo+ID4gPiBPbiBUdWUsIEp1biAy
+MSAyMDE2IGF0IDExOjQ0YW0gLTA0MDAsDQo+ID4gPiBLYW5pLCBUb3NoaW1pdHN1IDx0b3NoaS5r
+YW5pQGhwZS5jb20+IHdyb3RlOg0KPiA+ID4gPiANCj4gPiA+ID4gT24gVHVlLCAyMDE2LTA2LTIx
+IGF0IDA5OjQxIC0wNDAwLCBNaWtlIFNuaXR6ZXIgd3JvdGU6DQo+ID4gPiA+ID4gT24gTW9uLCBK
+dW4gMjAgMjAxNiBhdMKgwqA2OjIycG0gLTA0MDAsDQo+ID4gPiA+ID4gTWlrZSBTbml0emVyIDxz
+bml0emVyQHJlZGhhdC5jb20+IHdyb3RlOg0KPiA+ID4gPiA+IEknbSBub3cgd29uZGVyaW5nIGlm
+IHdlJ2QgYmUgYmV0dGVyIG9mZiBzZXR0aW5nIGEgbmV3IFFVRVVFX0ZMQUdfREFYDQo+ID4gPiA+
+ID4gcmF0aGVyIHRoYW4gZXN0YWJsaXNoIEdFTkhEX0ZMX0RBWCBvbiB0aGUgZ2VuaGQ/DQo+ID4g
+PiA+ID4gDQo+ID4gPiA+ID4gSXQnZCBiZSBxdWl0ZSBhIGJpdCBlYXNpZXIgdG8gYWxsb3cgdXBw
+ZXIgbGF5ZXJzIChlLmcuIFhGUyBhbmQgZXh0NCkNCj4gPiA+ID4gPiB0byBjaGVjayBmb3IgYSBx
+dWV1ZSBmbGFnLg0KPiA+ID4gPsKgDQo+ID4gPiA+IEkgdGhpbmsgR0VOSERfRkxfREFYIGlzIG1v
+cmUgYXBwcm9wcmlhdGUgc2luY2UgREFYIGRvZXMgbm90IHVzZSBhDQo+ID4gPiA+IHJlcXVlc3Qg
+cXVldWUsIGV4Y2VwdCBmb3IgcHJvdGVjdGluZyB0aGUgdW5kZXJsaW5pbmcgZGV2aWNlIGJlaW5n
+DQo+ID4gPiA+IGRpc2FibGVkIHdoaWxlIGRpcmVjdF9hY2Nlc3MoKSBpcyBjYWxsZWQgKGIyZTBk
+MTYyNWUxOSkuDQo+ID4gPsKgDQo+ID4gPiBUaGUgZGV2aWNlcyBpbiBxdWVzdGlvbiBoYXZlIGEg
+cmVxdWVzdF9xdWV1ZS7CoMKgQWxsIGJpby1iYXNlZCBkZXZpY2UgaGF2ZQ0KPiA+ID4gYSByZXF1
+ZXN0X3F1ZXVlLg0KPiA+DQo+ID4gREFYLWNhcGFibGUgZGV2aWNlcyBoYXZlIHR3byBvcGVyYXRp
+b24gbW9kZXMsIGJpby1iYXNlZCBhbmQgREFYLsKgwqBJIGFncmVlDQo+ID4gdGhhdCBiaW8tYmFz
+ZWQgb3BlcmF0aW9uIGlzIGFzc29jaWF0ZWQgd2l0aCBhIHJlcXVlc3QgcXVldWUsIGFuZCBpdHMN
+Cj4gPiBjYXBhYmlsaXRpZXMgc2hvdWxkIGJlIHNldCB0byBpdC7CoMKgREFYLCBvbiB0aGUgb3Ro
+ZXIgaGFuZCwgaXMgcmF0aGVyDQo+ID4gaW5kZXBlbmRlbnQgZnJvbSBhIHJlcXVlc3QgcXVldWUu
+DQo+ID4gDQo+ID4gPiBJIGRvbid0IGhhdmUgYSBiaWcgcHJvYmxlbSB3aXRoIEdFTkhEX0ZMX0RB
+WC7CoMKgSnVzdCB3YW50ZWQgdG8gcG9pbnQgb3V0DQo+ID4gPiB0aGF0IHN1Y2ggYmxvY2sgZGV2
+aWNlIGNhcGFiaWxpdGllcyBhcmUgZ2VuZXJhbGx5IGFkdmVydGlzZWQgaW4gdGVybXMgb2YNCj4g
+PiA+IGEgUVVFVUVfRkxBRy4NCj4gPg0KPiA+IEkgZG8gbm90IGhhdmUgYSBzdHJvbmcgb3Bpbmlv
+biwgYnV0IGZlZWwgYSBiaXQgb2RkIHRvIGFzc29jaWF0ZSBEQVggdG8gYQ0KPiA+IHJlcXVlc3Qg
+cXVldWUuDQo+DQo+IEdpdmVuIHRoYXQgd2UgZG8gbm90IHN1cHBvcnQgZGF4IHRvIGEgcmF3IGJs
+b2NrIGRldmljZSBbMV0gaXQgc2VlbXMgYQ0KPiBnZW5kaXNrIGZsYWcgaXMgbW9yZSBtaXNsZWFk
+aW5nIHRoYW4gcmVxdWVzdF9xdWV1ZSBmbGFnIHRoYXQgc3BlY2lmaWVzDQo+IHdoYXQgcmVxdWVz
+dHMgY2FuIGJlIG1hZGUgb2YgdGhlIGRldmljZS4NCj4gDQo+IFsxXTogYWNjOTNkMzBkN2Q0IFJl
+dmVydCAiYmxvY2s6IGVuYWJsZSBkYXggZm9yIHJhdyBibG9jayBkZXZpY2VzIg0KDQpPaCwgSSBz
+ZWUuIMKgSSB3aWxsIGNoYW5nZSB0byB1c2UgcmVxdWVzdF9xdWV1ZSBmbGFnLg0KDQoNCj4gPiA+
+ID4gQWJvdXQgcHJvdGVjdGluZyBkaXJlY3RfYWNjZXNzLCB0aGlzIHBhdGNoIGFzc3VtZXMgdGhh
+dCB0aGUNCj4gPiA+ID4gdW5kZXJsaW5pbmcgZGV2aWNlIGNhbm5vdCBiZSBkaXNhYmxlZCB1bnRp
+bCBkdHIoKSBpcyBjYWxsZWQuwqDCoElzIHRoaXMNCj4gPiA+ID4gY29ycmVjdD/CoMKgSWYgbm90
+LCBJIHdpbGwgbmVlZCB0byBjYWxsIGRheF9tYXBfYXRvbWljKCkuDQo+ID4gPg0KPiA+ID4gT25l
+IG9mIHRoZSBiaWcgZGVzaWduIGNvbnNpZGVyYXRpb25zIGZvciBETSB0aGF0IGEgRE0gZGV2aWNl
+IGNhbiBiZQ0KPiA+ID4gc3VzcGVuZGVkICh3aXRoIG9yIHdpdGhvdXQgZmx1c2gpIGFuZCBhbnkg
+bmV3IElPIHdpbGwgYmUgYmxvY2tlZCB1bnRpbA0KPiA+ID4gdGhlIERNIGRldmljZSBpcyByZXN1
+bWVkLg0KPiA+ID4gDQo+ID4gPiBTbyBpZGVhbGx5IERNIHNob3VsZCBiZSBhYmxlIHRvIGhhdmUg
+dGhlIHNhbWUgY2FwYWJpbGl0eSBldmVuIGlmIHVzaW5nDQo+ID4gPiBEQVguDQo+ID4NCj4gPiBT
+dXBwb3J0aW5nIHN1c3BlbmQgZm9yIERBWCBpcyBjaGFsbGVuZ2luZyBzaW5jZSBpdCBhbGxvd3Mg
+dXNlcg0KPiA+IGFwcGxpY2F0aW9ucyB0byBhY2Nlc3MgYSBkZXZpY2UgZGlyZWN0bHkuwqDCoE9u
+Y2UgYSBkZXZpY2UgcmFuZ2UgaXMgbW1hcCdkLA0KPiA+IHRoZXJlIGlzIG5vIGtlcm5lbCBpbnRl
+cnZlbnRpb24gdG8gYWNjZXNzIHRoZSByYW5nZSwgdW5sZXNzIHdlIGludmFsaWRhdGUNCj4gPiB1
+c2VyIG1hcHBpbmdzLsKgwqBUaGlzIGlzbid0IGRvbmUgdG9kYXkgZXZlbiBhZnRlciBhIGRyaXZl
+ciBpcyB1bmJpbmQnZCBmcm9tDQo+ID4gYSBkZXZpY2UuDQo+ID4gDQo+ID4gPiBCdXQgdGhhdCBp
+cyBkaWZmZXJlbnQgdGhhbiB3aGF0IGNvbW1pdCBiMmUwZDE2MjVlMTkgaXMgYWRkcmVzc2luZy7C
+oMKgRm9yDQo+ID4gPiBETSwgSSB3b3VsZG4ndCB0aGluayB5b3UnZCBuZWVkIHRoZSBleHRyYSBw
+cm90ZWN0aW9ucyB0aGF0DQo+ID4gPiBkYXhfbWFwX2F0b21pYygpIGlzIHByb3ZpZGluZyBnaXZl
+biB0aGF0IHRoZSB1bmRlcmx5aW5nIGJsb2NrIGRldmljZQ0KPiA+ID4gbGlmZXRpbWUgaXMgbWFu
+YWdlZCB2aWEgRE0gY29yZSdzIGRtX2dldF9kZXZpY2UvZG1fcHV0X2RldmljZSAoc2VlIGFsc286
+DQo+ID4gPiBkbS5jOm9wZW5fdGFibGVfZGV2aWNlL2Nsb3NlX3RhYmxlX2RldmljZSkuDQo+ID4N
+Cj4gPiBJIHRob3VnaHQgc28gYXMgd2VsbC7CoMKgQnV0IEkgcmVhbGl6ZWQgdGhhdCB0aGVyZSBp
+cyAoYWxtb3N0KSBub3RoaW5nIHRoYXQNCj4gPiBjYW4gcHJldmVudCB0aGUgdW5iaW5kIG9wZXJh
+dGlvbi7CoMKgSXQgY2Fubm90IGZhaWwsIGVpdGhlci7CoMKgVGhpcyB1bmJpbmQNCj4gPiBwcm9j
+ZWVkcyBldmVuIHdoZW4gYSBkZXZpY2UgaXMgaW4tdXNlLsKgwqBJbiBjYXNlIG9mIGEgcG1lbSBk
+ZXZpY2UsIGl0IGlzDQo+ID4gb25seSBwcm90ZWN0ZWQgYnkgcG1lbV9yZWxlYXNlX3F1ZXVlKCks
+IHdoaWNoIGlzIGNhbGxlZCB3aGVuIGEgcG1lbSBkZXZpY2UNCj4gPiBpcyBiZWluZyBkZWxldGVk
+IGFuZCBjYWxscyBibGtfY2xlYW51cF9xdWV1ZSgpIHRvIHNlcmlhbGl6ZSBhIGNyaXRpY2FsDQo+
+ID4gc2VjdGlvbiBiZXR3ZWVuDQo+ID4gYmxrX3F1ZXVlX2VudGVyKCkgYW5kIGJsa19xdWV1ZV9l
+eGl0KCkgcGVyIGIyZTBkMTYyNWUxOS7CoMKgVGhpcyBwcmV2ZW50cw0KPiA+IGZyb20gYSBrZXJu
+ZWwgRFRMQiBmYXVsdCwgYnV0IGRvZXMgbm90IHByZXZlbnQgYSBkZXZpY2UgZGlzYXBwZWFyZWQg
+d2hpbGUNCj4gPiBpbi11c2UuDQo+ID4gDQo+ID4gUHJvdGVjdGluZyBETSdzIHVuZGVybGluaW5n
+IGRldmljZSB3aXRoIGJsa19xdWV1ZV9lbnRlcigpIChvciBzb21ldGhpbmcNCj4gPiBzaW1pbGFy
+KSByZXF1aXJlcyBtb3JlIHRob3VnaHRzLi4uwqDCoGJsa19xdWV1ZV9lbnRlcigpIHRvIGEgRE0g
+ZGV2aWNlDQo+ID4gY2Fubm90IGJlIHJlZGlyZWN0ZWQgdG8gaXRzIHVuZGVybGluaW5nIGRldmlj
+ZS7CoMKgU28sIHRoaXMgaXMgVEJEIGZvcg0KPiA+IG5vdy7CoMKgQnV0IEkgZG8gbm90IHRoaW5r
+IHRoaXMgaXMgYSBibG9ja2VyIGlzc3VlIHNpbmNlIGRvaW5nIHVuYmluZCB0byBhDQo+ID4gdW5k
+ZXJsaW5pbmcgZGV2aWNlIGlzIHF1aXRlIGhhcm1mdWwgbm8gbWF0dGVyIHdoYXQgd2UgZG8gLSBl
+dmVuIGlmIGl0IGlzDQo+ID4gcHJvdGVjdGVkIHdpdGggYmxrX3F1ZXVlX2VudGVyKCkuDQo+DQo+
+IEkgc3RpbGwgaGF2ZSB0aGUgImJsb2NrIGRldmljZSByZW1vdmVkIiBub3RpZmljYXRpb24gcGF0
+Y2hlcyBvbiBteQ0KPiB0b2RvIGxpc3QuwqDCoEl0J3Mgbm90IGEgYmxvY2tlciwgYnV0IHRoZXJl
+IGFyZSBzY2VuYXJpb3Mgd2hlcmUgd2UgY2FuDQo+IGtlZXAgYWNjZXNzaW5nIG1lbW9yeSB2aWEg
+ZGF4IG9mIGEgZGlzYWJsZWQgZGV2aWNlIGxlYWRpbmcgdG8gbWVtb3J5DQo+IGNvcnJ1cHRpb24u
+wqDCoA0KDQpSaWdodCwgSSBub3RpY2VkIHRoYXQgdXNlciBhcHBsaWNhdGlvbnMgY2FuIGFjY2Vz
+cyBtbWFwJ2QgcmFuZ2VzIG9uIGEgZGlzYWJsZWQNCmRldmljZS4NCg0KPiBJJ2xsIGJ1bXAgdGhh
+dCB1cCBpbiBteSBxdWV1ZSBub3cgdGhhdCB3ZSBhcmUgbG9va2luZyBhdA0KPiBhZGRpdGlvbmFs
+IHNjZW5hcmlvcyB3aGVyZSBsZXR0aW5nIERBWCBtYXBwaW5ncyBsZWFrIHBhc3QgdGhlDQo+IHJl
+Y29uZmlndXJhdGlvbiBvZiBhIGJsb2NrIGRldmljZSBjb3VsZCBsZWFkIHRvIHRyb3VibGUuDQoN
+CkdyZWF0LiDCoFdpdGggRE0sIHJlbW92aW5nIGEgdW5kZXJsaW5pbmcgZGV2aWNlIHdoaWxlIGlu
+LXVzZSBjYW4gbGVhZCB0bw0KdHJvdWJsZSwgZXNwLiB3aXRoIFJBSUQwLiDCoFVzZXJzIG5lZWQg
+dG8gcmVtb3ZlIGEgZGV2aWNlIGZyb20gRE0gZmlyc3QuLi4NCg0KVGhhbmtzLA0KLVRvc2hp
