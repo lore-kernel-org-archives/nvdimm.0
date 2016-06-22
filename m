@@ -1,7 +1,8 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 2/8] xfs: kill ioflags
-Date: Wed, 22 Jun 2016 17:27:10 +0200
-Message-ID: <1466609236-23801-3-git-send-email-hch@lst.de>
+Subject: [PATCH 4/8] xfs: split xfs_file_read_iter into buffered and direct
+ I/O helpers
+Date: Wed, 22 Jun 2016 17:27:12 +0200
+Message-ID: <1466609236-23801-5-git-send-email-hch@lst.de>
 References: <1466609236-23801-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,173 +22,158 @@ To: xfs-VZNHf3L845pBDgjK7y7TUQ@public.gmane.org
 Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Now that we have the direct I/O kiocb flag there is no real need to sample
-the value inside of XFS, and the invis flag was always just partially used
-and isn't worth keeping this infrastructure around for.   This also splits
-the read tracepoint into buffered vs direct as we've done for writes a long
-time ago.
+Similar to what we did on the write side a while ago.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- fs/xfs/xfs_file.c  | 26 +++++++++-----------------
- fs/xfs/xfs_inode.h | 10 ----------
- fs/xfs/xfs_trace.h | 19 ++++++++-----------
- 3 files changed, 17 insertions(+), 38 deletions(-)
+ fs/xfs/xfs_file.c | 83 ++++++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 57 insertions(+), 26 deletions(-)
 
 diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 713991c..b32e6b0 100644
+index 09a5a78..e584333 100644
 --- a/fs/xfs/xfs_file.c
 +++ b/fs/xfs/xfs_file.c
-@@ -249,18 +249,12 @@ xfs_file_read_iter(
- 	struct xfs_mount	*mp = ip->i_mount;
- 	size_t			size = iov_iter_count(to);
+@@ -239,35 +239,33 @@ xfs_file_fsync(
+ }
+ 
+ STATIC ssize_t
+-xfs_file_read_iter(
++xfs_file_dio_aio_read(
+ 	struct kiocb		*iocb,
+ 	struct iov_iter		*to)
+ {
+-	struct file		*file = iocb->ki_filp;
+-	struct inode		*inode = file->f_mapping->host;
++	struct address_space	*mapping = iocb->ki_filp->f_mapping;
++	struct inode		*inode = mapping->host;
+ 	struct xfs_inode	*ip = XFS_I(inode);
+-	struct xfs_mount	*mp = ip->i_mount;
+-	size_t			size = iov_iter_count(to);
++	size_t			count = iov_iter_count(to);
++	struct xfs_buftarg	*target;
  	ssize_t			ret = 0;
--	int			ioflags = 0;
- 	xfs_fsize_t		n;
- 	loff_t			pos = iocb->ki_pos;
+-	loff_t			pos = iocb->ki_pos;
  
- 	XFS_STATS_INC(mp, xs_read_calls);
+-	XFS_STATS_INC(mp, xs_read_calls);
++	trace_xfs_file_direct_read(ip, count, iocb->ki_pos);
  
--	if (unlikely(iocb->ki_flags & IOCB_DIRECT))
--		ioflags |= XFS_IO_ISDIRECT;
--	if (file->f_mode & FMODE_NOCMTIME)
--		ioflags |= XFS_IO_INVIS;
+-	if ((iocb->ki_flags & IOCB_DIRECT) && !IS_DAX(inode)) {
+-		xfs_buftarg_t	*target =
+-			XFS_IS_REALTIME_INODE(ip) ?
+-				mp->m_rtdev_targp : mp->m_ddev_targp;
++	if (XFS_IS_REALTIME_INODE(ip))
++		target = ip->i_mount->m_rtdev_targp;
++	else
++		target = ip->i_mount->m_ddev_targp;
++
++	if (!IS_DAX(inode)) {
+ 		/* DIO must be aligned to device logical sector size */
+-		if ((pos | size) & target->bt_logical_sectormask) {
+-			if (pos == i_size_read(inode))
++		if ((iocb->ki_pos | count) & target->bt_logical_sectormask) {
++			if (iocb->ki_pos == i_size_read(inode))
+ 				return 0;
+ 			return -EINVAL;
+ 		}
+ 	}
+ 
+-	if (XFS_FORCED_SHUTDOWN(mp))
+-		return -EIO;
 -
--	if ((ioflags & XFS_IO_ISDIRECT) && !IS_DAX(inode)) {
-+	if ((iocb->ki_flags & IOCB_DIRECT) && !IS_DAX(inode)) {
- 		xfs_buftarg_t	*target =
- 			XFS_IS_REALTIME_INODE(ip) ?
- 				mp->m_rtdev_targp : mp->m_ddev_targp;
-@@ -293,7 +287,7 @@ xfs_file_read_iter(
+ 	/*
+ 	 * Locking is a bit tricky here. If we take an exclusive lock for direct
+ 	 * IO, we effectively serialise all new concurrent read IO to this file
+@@ -279,7 +277,7 @@ xfs_file_read_iter(
  	 * serialisation.
  	 */
  	xfs_rw_ilock(ip, XFS_IOLOCK_SHARED);
--	if ((ioflags & XFS_IO_ISDIRECT) && inode->i_mapping->nrpages) {
-+	if ((iocb->ki_flags & IOCB_DIRECT) && inode->i_mapping->nrpages) {
+-	if ((iocb->ki_flags & IOCB_DIRECT) && inode->i_mapping->nrpages) {
++	if (mapping->nrpages) {
  		xfs_rw_iunlock(ip, XFS_IOLOCK_SHARED);
  		xfs_rw_ilock(ip, XFS_IOLOCK_EXCL);
  
-@@ -327,7 +321,10 @@ xfs_file_read_iter(
+@@ -294,8 +292,8 @@ xfs_file_read_iter(
+ 		 * flush and reduce the chances of repeated iolock cycles going
+ 		 * forward.
+ 		 */
+-		if (inode->i_mapping->nrpages) {
+-			ret = filemap_write_and_wait(VFS_I(ip)->i_mapping);
++		if (mapping->nrpages) {
++			ret = filemap_write_and_wait(mapping);
+ 			if (ret) {
+ 				xfs_rw_iunlock(ip, XFS_IOLOCK_EXCL);
+ 				return ret;
+@@ -306,23 +304,56 @@ xfs_file_read_iter(
+ 			 * we fail to invalidate a page, but this should never
+ 			 * happen on XFS. Warn if it does fail.
+ 			 */
+-			ret = invalidate_inode_pages2(VFS_I(ip)->i_mapping);
++			ret = invalidate_inode_pages2(mapping);
+ 			WARN_ON_ONCE(ret);
+ 			ret = 0;
+ 		}
  		xfs_rw_ilock_demote(ip, XFS_IOLOCK_EXCL);
  	}
  
--	trace_xfs_file_read(ip, size, pos, ioflags);
-+	if (iocb->ki_flags & IOCB_DIRECT)
-+		trace_xfs_file_direct_read(ip, size, pos);
-+	else
-+		trace_xfs_file_buffered_read(ip, size, pos);
++	ret = generic_file_read_iter(iocb, to);
++	xfs_rw_iunlock(ip, XFS_IOLOCK_SHARED);
++
++	return ret;
++}
++
++STATIC ssize_t
++xfs_file_buffered_aio_read(
++	struct kiocb		*iocb,
++	struct iov_iter		*to)
++{
++	struct xfs_inode	*ip = XFS_I(file_inode(iocb->ki_filp));
++	ssize_t			ret;
++
++	trace_xfs_file_buffered_read(ip, iov_iter_count(to), iocb->ki_pos);
++
++	xfs_rw_ilock(ip, XFS_IOLOCK_SHARED);
++	ret = generic_file_read_iter(iocb, to);
++	xfs_rw_iunlock(ip, XFS_IOLOCK_SHARED);
++
++	return ret;
++}
++
++STATIC ssize_t
++xfs_file_read_iter(
++	struct kiocb		*iocb,
++	struct iov_iter		*to)
++{
++	struct xfs_mount	*mp = XFS_I(file_inode(iocb->ki_filp))->i_mount;
++	ssize_t			ret = 0;
++
++	XFS_STATS_INC(mp, xs_read_calls);
++
++	if (XFS_FORCED_SHUTDOWN(mp))
++		return -EIO;
++
+ 	if (iocb->ki_flags & IOCB_DIRECT)
+-		trace_xfs_file_direct_read(ip, size, pos);
++		ret = xfs_file_dio_aio_read(iocb, to);
+ 	else
+-		trace_xfs_file_buffered_read(ip, size, pos);
++		ret = xfs_file_buffered_aio_read(iocb, to);
  
- 	ret = generic_file_read_iter(iocb, to);
+-	ret = generic_file_read_iter(iocb, to);
  	if (ret > 0)
-@@ -346,18 +343,14 @@ xfs_file_splice_read(
- 	unsigned int		flags)
- {
- 	struct xfs_inode	*ip = XFS_I(infilp->f_mapping->host);
--	int			ioflags = 0;
- 	ssize_t			ret;
- 
- 	XFS_STATS_INC(ip->i_mount, xs_read_calls);
- 
--	if (infilp->f_mode & FMODE_NOCMTIME)
--		ioflags |= XFS_IO_INVIS;
+ 		XFS_STATS_ADD(mp, xs_read_bytes, ret);
 -
- 	if (XFS_FORCED_SHUTDOWN(ip->i_mount))
- 		return -EIO;
+-	xfs_rw_iunlock(ip, XFS_IOLOCK_SHARED);
+ 	return ret;
+ }
  
--	trace_xfs_file_splice_read(ip, count, *ppos, ioflags);
-+	trace_xfs_file_splice_read(ip, count, *ppos);
+@@ -578,7 +609,7 @@ xfs_file_dio_aio_write(
+ 	end = iocb->ki_pos + count - 1;
  
  	/*
- 	 * DAX inodes cannot ues the page cache for splice, so we have to push
-@@ -620,7 +613,7 @@ xfs_file_dio_aio_write(
- 		iolock = XFS_IOLOCK_SHARED;
- 	}
- 
--	trace_xfs_file_direct_write(ip, count, iocb->ki_pos, 0);
-+	trace_xfs_file_direct_write(ip, count, iocb->ki_pos);
- 
- 	data = *from;
- 	ret = mapping->a_ops->direct_IO(iocb, &data);
-@@ -670,8 +663,7 @@ xfs_file_buffered_aio_write(
- 	current->backing_dev_info = inode_to_bdi(inode);
- 
- write_retry:
--	trace_xfs_file_buffered_write(ip, iov_iter_count(from),
--				      iocb->ki_pos, 0);
-+	trace_xfs_file_buffered_write(ip, iov_iter_count(from), iocb->ki_pos);
- 	ret = iomap_file_buffered_write(iocb, from, &xfs_iomap_ops);
- 	if (likely(ret >= 0))
- 		iocb->ki_pos += ret;
-diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
-index 0c19d3d..8eb78ec 100644
---- a/fs/xfs/xfs_inode.h
-+++ b/fs/xfs/xfs_inode.h
-@@ -473,14 +473,4 @@ do { \
- 
- extern struct kmem_zone	*xfs_inode_zone;
- 
--/*
-- * Flags for read/write calls
-- */
--#define XFS_IO_ISDIRECT	0x00001		/* bypass page cache */
--#define XFS_IO_INVIS	0x00002		/* don't update inode timestamps */
--
--#define XFS_IO_FLAGS \
--	{ XFS_IO_ISDIRECT,	"DIRECT" }, \
--	{ XFS_IO_INVIS,		"INVIS"}
--
- #endif	/* __XFS_INODE_H__ */
-diff --git a/fs/xfs/xfs_trace.h b/fs/xfs/xfs_trace.h
-index 6787a9f..2504f94 100644
---- a/fs/xfs/xfs_trace.h
-+++ b/fs/xfs/xfs_trace.h
-@@ -1135,15 +1135,14 @@ TRACE_EVENT(xfs_log_assign_tail_lsn,
- )
- 
- DECLARE_EVENT_CLASS(xfs_file_class,
--	TP_PROTO(struct xfs_inode *ip, size_t count, loff_t offset, int flags),
--	TP_ARGS(ip, count, offset, flags),
-+	TP_PROTO(struct xfs_inode *ip, size_t count, loff_t offset),
-+	TP_ARGS(ip, count, offset),
- 	TP_STRUCT__entry(
- 		__field(dev_t, dev)
- 		__field(xfs_ino_t, ino)
- 		__field(xfs_fsize_t, size)
- 		__field(loff_t, offset)
- 		__field(size_t, count)
--		__field(int, flags)
- 	),
- 	TP_fast_assign(
- 		__entry->dev = VFS_I(ip)->i_sb->s_dev;
-@@ -1151,23 +1150,21 @@ DECLARE_EVENT_CLASS(xfs_file_class,
- 		__entry->size = ip->i_d.di_size;
- 		__entry->offset = offset;
- 		__entry->count = count;
--		__entry->flags = flags;
- 	),
--	TP_printk("dev %d:%d ino 0x%llx size 0x%llx "
--		  "offset 0x%llx count 0x%zx ioflags %s",
-+	TP_printk("dev %d:%d ino 0x%llx size 0x%llx offset 0x%llx count 0x%zx",
- 		  MAJOR(__entry->dev), MINOR(__entry->dev),
- 		  __entry->ino,
- 		  __entry->size,
- 		  __entry->offset,
--		  __entry->count,
--		  __print_flags(__entry->flags, "|", XFS_IO_FLAGS))
-+		  __entry->count)
- )
- 
- #define DEFINE_RW_EVENT(name)		\
- DEFINE_EVENT(xfs_file_class, name,	\
--	TP_PROTO(struct xfs_inode *ip, size_t count, loff_t offset, int flags),	\
--	TP_ARGS(ip, count, offset, flags))
--DEFINE_RW_EVENT(xfs_file_read);
-+	TP_PROTO(struct xfs_inode *ip, size_t count, loff_t offset),	\
-+	TP_ARGS(ip, count, offset))
-+DEFINE_RW_EVENT(xfs_file_buffered_read);
-+DEFINE_RW_EVENT(xfs_file_direct_read);
- DEFINE_RW_EVENT(xfs_file_buffered_write);
- DEFINE_RW_EVENT(xfs_file_direct_write);
- DEFINE_RW_EVENT(xfs_file_splice_read);
+-	 * See xfs_file_read_iter() for why we do a full-file flush here.
++	 * See xfs_file_dio_aio_read() for why we do a full-file flush here.
+ 	 */
+ 	if (mapping->nrpages) {
+ 		ret = filemap_write_and_wait(VFS_I(ip)->i_mapping);
 -- 
 2.1.4
