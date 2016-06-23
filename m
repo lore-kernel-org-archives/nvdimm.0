@@ -1,23 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-lf0-x22a.google.com (mail-lf0-x22a.google.com
- [IPv6:2a00:1450:4010:c07::22a])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from na01-bl2-obe.outbound.protection.outlook.com
+ (mail-bl2on0792.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fc09::792])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 480241A1DFA
- for <linux-nvdimm@lists.01.org>; Thu, 23 Jun 2016 11:06:28 -0700 (PDT)
-Received: by mail-lf0-x22a.google.com with SMTP id q132so100950467lfe.3
- for <linux-nvdimm@lists.01.org>; Thu, 23 Jun 2016 11:05:56 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1466702773.3504.363.camel@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 543541A1DFA
+ for <linux-nvdimm@lists.01.org>; Thu, 23 Jun 2016 10:37:03 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2 1/3] block: add QUEUE_FLAG_DAX for devices to advertise
+ their DAX support
+Date: Thu, 23 Jun 2016 17:36:29 +0000
+Message-ID: <1466702773.3504.363.camel@hpe.com>
 References: <1466639694-25394-1-git-send-email-toshi.kani@hpe.com>
  <1466639694-25394-2-git-send-email-toshi.kani@hpe.com>
  <CACTTzNYAxtY-d8+8Vo=Y2WpuXVaSkJk9PC7DcHXKJuU=gqvXFw@mail.gmail.com>
- <1466702773.3504.363.camel@hpe.com>
-From: Yigal Korman <yigal@plexistor.com>
-Date: Thu, 23 Jun 2016 21:05:34 +0300
-Message-ID: <CACTTzNY-sQYGGy-NhGP2hCUH2ynpDD-g74sJt4zY9c9RvGGFKw@mail.gmail.com>
-Subject: Re: [PATCH v2 1/3] block: add QUEUE_FLAG_DAX for devices to advertise
- their DAX support
+In-Reply-To: <CACTTzNYAxtY-d8+8Vo=Y2WpuXVaSkJk9PC7DcHXKJuU=gqvXFw@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <A05A57BD466AE547BFBD6DA231D4B9FD@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,166 +25,65 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+To: "yigal@plexistor.com" <yigal@plexistor.com>
 Cc: "axboe@kernel.dk" <axboe@kernel.dk>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "snitzer@redhat.com" <snitzer@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>, "agk@redhat.com" <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jun 23, 2016 at 8:36 PM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
-> On Thu, 2016-06-23 at 19:31 +0300, Yigal Korman wrote:
->> On Thu, Jun 23, 2016 at 2:54 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
->> >
->> >
->> > Currently, presence of direct_access() in block_device_operations
->> > indicates support of DAX on its block device.  Because
->> > block_device_operations is instantiated with 'const', this DAX
->> > capablity may not be enabled conditinally.
->> >
->> > In preparation for supporting DAX to device-mapper devices, add
->> > QUEUE_FLAG_DAX to request_queue flags to advertise their DAX
->> > support.  This will allow to set the DAX capability based on how
->> > mapped device is composed.
->>
->> Hi Toshi,
->> This patch is very helpful!
->> I think QUEUE_FLAG_DAX can also help with identifying dax devices in
->> userspace.
->> Perhaps you'd be willing to squash the patch below with this one or
->> add it to your submission?
->
-> Hi Yigal,
->
-> Good idea.  Mike can probably take it into his tree, but I will include it
-> into the series if I needed to submit v3.
->
-> Acked-by: Toshi Kani <toshi.kani@hpe.com>
-
-Great, Thanks!
-I'll follow the thread to see if it goes through or needs to be resubmitted.
-
->
-> I have one minor comment below.
-
-My reply below as well.
-
->
->> [PATCH] block: expose QUEUE_FLAG_DAX in sysfs
->>
->> There's currently no way to identify DAX enabled devices in userspace.
->>
->> Signed-off-by: Yigal Korman <yigal@plexistor.com>
->> ---
->>  block/blk-sysfs.c | 15 +++++++++++++++
->>  1 file changed, 15 insertions(+)
->>
->> diff --git a/block/blk-sysfs.c b/block/blk-sysfs.c
->> index 9920596..d55126d 100644
->> --- a/block/blk-sysfs.c
->> +++ b/block/blk-sysfs.c
->> @@ -379,6 +379,15 @@ static ssize_t queue_wc_store(struct
->> request_queue *q, const char *page,
->>         return count;
->>  }
->>
->> +static ssize_t queue_dax_show(struct request_queue *q, char *page)
->> +{
->> +       int bit;
->> +
->> +       bit = test_bit(QUEUE_FLAG_DAX, &q->queue_flags);
->> +
->> +       return queue_var_show(bit, page);
->
-> This can be:
->         return queue_var_show(blk_queue_dax(q), page);
-
-Oh, sure, of course you're right. thanks.
-
-Subject: [PATCH] block: expose QUEUE_FLAG_DAX in sysfs
-
-There's currently no way to identify DAX enabled devices in userspace.
-
-Signed-off-by: Yigal Korman <yigal@plexistor.com>
-Acked-by: Toshi Kani <toshi.kani@hpe.com>
----
- block/blk-sysfs.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/block/blk-sysfs.c b/block/blk-sysfs.c
-index 9920596..f87a7e7 100644
---- a/block/blk-sysfs.c
-+++ b/block/blk-sysfs.c
-@@ -379,6 +379,11 @@ static ssize_t queue_wc_store(struct
-request_queue *q, const char *page,
-        return count;
- }
-
-+static ssize_t queue_dax_show(struct request_queue *q, char *page)
-+{
-+       return queue_var_show(blk_queue_dax(q), page);
-+}
-+
- static struct queue_sysfs_entry queue_requests_entry = {
-        .attr = {.name = "nr_requests", .mode = S_IRUGO | S_IWUSR },
-        .show = queue_requests_show,
-@@ -516,6 +521,11 @@ static struct queue_sysfs_entry queue_wc_entry = {
-        .store = queue_wc_store,
- };
-
-+static struct queue_sysfs_entry queue_dax_entry = {
-+       .attr = {.name = "dax", .mode = S_IRUGO },
-+       .show = queue_dax_show,
-+};
-+
- static struct attribute *default_attrs[] = {
-        &queue_requests_entry.attr,
-        &queue_ra_entry.attr,
-@@ -542,6 +552,7 @@ static struct attribute *default_attrs[] = {
-        &queue_random_entry.attr,
-        &queue_poll_entry.attr,
-        &queue_wc_entry.attr,
-+       &queue_dax_entry.attr,
-        NULL,
- };
-
---
-1.9.3
-
-Thanks,
-Yigal
-
->
-> Thanks,
-> -Toshi
->
->> +}
->> +
->>  static struct queue_sysfs_entry queue_requests_entry = {
->>         .attr = {.name = "nr_requests", .mode = S_IRUGO | S_IWUSR },
->>         .show = queue_requests_show,
->> @@ -516,6 +525,11 @@ static struct queue_sysfs_entry queue_wc_entry = {
->>         .store = queue_wc_store,
->>  };
->>
->> +static struct queue_sysfs_entry queue_dax_entry = {
->> +       .attr = {.name = "dax", .mode = S_IRUGO },
->> +       .show = queue_dax_show,
->> +};
->> +
->>  static struct attribute *default_attrs[] = {
->>         &queue_requests_entry.attr,
->>         &queue_ra_entry.attr,
->> @@ -542,6 +556,7 @@ static struct attribute *default_attrs[] = {
->>         &queue_random_entry.attr,
->>         &queue_poll_entry.attr,
->>         &queue_wc_entry.attr,
->> +       &queue_dax_entry.attr,
->>         NULL,
->>  };
->>
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVGh1LCAyMDE2LTA2LTIzIGF0IDE5OjMxICswMzAwLCBZaWdhbCBLb3JtYW4gd3JvdGU6DQo+
+IE9uIFRodSwgSnVuIDIzLCAyMDE2IGF0IDI6NTQgQU0sIFRvc2hpIEthbmkgPHRvc2hpLmthbmlA
+aHBlLmNvbT4gd3JvdGU6DQo+ID4gDQo+ID4gDQo+ID4gQ3VycmVudGx5LCBwcmVzZW5jZSBvZiBk
+aXJlY3RfYWNjZXNzKCkgaW4gYmxvY2tfZGV2aWNlX29wZXJhdGlvbnMNCj4gPiBpbmRpY2F0ZXMg
+c3VwcG9ydCBvZiBEQVggb24gaXRzIGJsb2NrIGRldmljZS7CoMKgQmVjYXVzZQ0KPiA+IGJsb2Nr
+X2RldmljZV9vcGVyYXRpb25zIGlzIGluc3RhbnRpYXRlZCB3aXRoICdjb25zdCcsIHRoaXMgREFY
+DQo+ID4gY2FwYWJsaXR5IG1heSBub3QgYmUgZW5hYmxlZCBjb25kaXRpbmFsbHkuDQo+ID4gDQo+
+ID4gSW4gcHJlcGFyYXRpb24gZm9yIHN1cHBvcnRpbmcgREFYIHRvIGRldmljZS1tYXBwZXIgZGV2
+aWNlcywgYWRkDQo+ID4gUVVFVUVfRkxBR19EQVggdG8gcmVxdWVzdF9xdWV1ZSBmbGFncyB0byBh
+ZHZlcnRpc2UgdGhlaXIgREFYDQo+ID4gc3VwcG9ydC7CoMKgVGhpcyB3aWxsIGFsbG93IHRvIHNl
+dCB0aGUgREFYIGNhcGFiaWxpdHkgYmFzZWQgb24gaG93DQo+ID4gbWFwcGVkIGRldmljZSBpcyBj
+b21wb3NlZC4NCj4gDQo+IEhpIFRvc2hpLA0KPiBUaGlzIHBhdGNoIGlzIHZlcnkgaGVscGZ1bCEN
+Cj4gSSB0aGluayBRVUVVRV9GTEFHX0RBWCBjYW4gYWxzbyBoZWxwIHdpdGggaWRlbnRpZnlpbmcg
+ZGF4IGRldmljZXMgaW4NCj4gdXNlcnNwYWNlLg0KPiBQZXJoYXBzIHlvdSdkIGJlIHdpbGxpbmcg
+dG8gc3F1YXNoIHRoZSBwYXRjaCBiZWxvdyB3aXRoIHRoaXMgb25lIG9yDQo+IGFkZCBpdCB0byB5
+b3VyIHN1Ym1pc3Npb24/DQoNCkhpIFlpZ2FsLA0KDQpHb29kIGlkZWEuIMKgTWlrZSBjYW4gcHJv
+YmFibHkgdGFrZSBpdCBpbnRvIGhpcyB0cmVlLCBidXQgSSB3aWxsIGluY2x1ZGUgaXQNCmludG8g
+dGhlIHNlcmllcyBpZiBJIG5lZWRlZCB0byBzdWJtaXQgdjMuDQoNCkFja2VkLWJ5OiBUb3NoaSBL
+YW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+DQoNCkkgaGF2ZSBvbmUgbWlub3IgY29tbWVudCBiZWxv
+dy4NCg0KPiBbUEFUQ0hdIGJsb2NrOiBleHBvc2UgUVVFVUVfRkxBR19EQVggaW4gc3lzZnMNCj4g
+DQo+IFRoZXJlJ3MgY3VycmVudGx5IG5vIHdheSB0byBpZGVudGlmeSBEQVggZW5hYmxlZCBkZXZp
+Y2VzIGluIHVzZXJzcGFjZS4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFlpZ2FsIEtvcm1hbiA8eWln
+YWxAcGxleGlzdG9yLmNvbT4NCj4gLS0tDQo+IMKgYmxvY2svYmxrLXN5c2ZzLmMgfCAxNSArKysr
+KysrKysrKysrKysNCj4gwqAxIGZpbGUgY2hhbmdlZCwgMTUgaW5zZXJ0aW9ucygrKQ0KPiANCj4g
+ZGlmZiAtLWdpdCBhL2Jsb2NrL2Jsay1zeXNmcy5jIGIvYmxvY2svYmxrLXN5c2ZzLmMNCj4gaW5k
+ZXggOTkyMDU5Ni4uZDU1MTI2ZCAxMDA2NDQNCj4gLS0tIGEvYmxvY2svYmxrLXN5c2ZzLmMNCj4g
+KysrIGIvYmxvY2svYmxrLXN5c2ZzLmMNCj4gQEAgLTM3OSw2ICszNzksMTUgQEAgc3RhdGljIHNz
+aXplX3QgcXVldWVfd2Nfc3RvcmUoc3RydWN0DQo+IHJlcXVlc3RfcXVldWUgKnEsIGNvbnN0IGNo
+YXIgKnBhZ2UsDQo+IMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gY291bnQ7DQo+IMKgfQ0KPiANCj4g
+K3N0YXRpYyBzc2l6ZV90IHF1ZXVlX2RheF9zaG93KHN0cnVjdCByZXF1ZXN0X3F1ZXVlICpxLCBj
+aGFyICpwYWdlKQ0KPiArew0KPiArwqDCoMKgwqDCoMKgwqBpbnQgYml0Ow0KPiArDQo+ICvCoMKg
+wqDCoMKgwqDCoGJpdCA9IHRlc3RfYml0KFFVRVVFX0ZMQUdfREFYLCAmcS0+cXVldWVfZmxhZ3Mp
+Ow0KPiArDQo+ICvCoMKgwqDCoMKgwqDCoHJldHVybiBxdWV1ZV92YXJfc2hvdyhiaXQsIHBhZ2Up
+Ow0KDQpUaGlzIGNhbiBiZToNCglyZXR1cm4gcXVldWVfdmFyX3Nob3coYmxrX3F1ZXVlX2RheChx
+KSwgcGFnZSk7DQoNClRoYW5rcywNCi1Ub3NoaQ0KDQo+ICt9DQo+ICsNCj4gwqBzdGF0aWMgc3Ry
+dWN0IHF1ZXVlX3N5c2ZzX2VudHJ5IHF1ZXVlX3JlcXVlc3RzX2VudHJ5ID0gew0KPiDCoMKgwqDC
+oMKgwqDCoMKgLmF0dHIgPSB7Lm5hbWUgPSAibnJfcmVxdWVzdHMiLCAubW9kZSA9IFNfSVJVR08g
+fCBTX0lXVVNSIH0sDQo+IMKgwqDCoMKgwqDCoMKgwqAuc2hvdyA9IHF1ZXVlX3JlcXVlc3RzX3No
+b3csDQo+IEBAIC01MTYsNiArNTI1LDExIEBAIHN0YXRpYyBzdHJ1Y3QgcXVldWVfc3lzZnNfZW50
+cnkgcXVldWVfd2NfZW50cnkgPSB7DQo+IMKgwqDCoMKgwqDCoMKgwqAuc3RvcmUgPSBxdWV1ZV93
+Y19zdG9yZSwNCj4gwqB9Ow0KPiANCj4gK3N0YXRpYyBzdHJ1Y3QgcXVldWVfc3lzZnNfZW50cnkg
+cXVldWVfZGF4X2VudHJ5ID0gew0KPiArwqDCoMKgwqDCoMKgwqAuYXR0ciA9IHsubmFtZSA9ICJk
+YXgiLCAubW9kZSA9IFNfSVJVR08gfSwNCj4gK8KgwqDCoMKgwqDCoMKgLnNob3cgPSBxdWV1ZV9k
+YXhfc2hvdywNCj4gK307DQo+ICsNCj4gwqBzdGF0aWMgc3RydWN0IGF0dHJpYnV0ZSAqZGVmYXVs
+dF9hdHRyc1tdID0gew0KPiDCoMKgwqDCoMKgwqDCoMKgJnF1ZXVlX3JlcXVlc3RzX2VudHJ5LmF0
+dHIsDQo+IMKgwqDCoMKgwqDCoMKgwqAmcXVldWVfcmFfZW50cnkuYXR0ciwNCj4gQEAgLTU0Miw2
+ICs1NTYsNyBAQCBzdGF0aWMgc3RydWN0IGF0dHJpYnV0ZSAqZGVmYXVsdF9hdHRyc1tdID0gew0K
+PiDCoMKgwqDCoMKgwqDCoMKgJnF1ZXVlX3JhbmRvbV9lbnRyeS5hdHRyLA0KPiDCoMKgwqDCoMKg
+wqDCoMKgJnF1ZXVlX3BvbGxfZW50cnkuYXR0ciwNCj4gwqDCoMKgwqDCoMKgwqDCoCZxdWV1ZV93
+Y19lbnRyeS5hdHRyLA0KPiArwqDCoMKgwqDCoMKgwqAmcXVldWVfZGF4X2VudHJ5LmF0dHIsDQo+
+IMKgwqDCoMKgwqDCoMKgwqBOVUxMLA0KPiDCoH07DQo+IA0KX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51
+eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbGludXgtbnZkaW1tCg==
