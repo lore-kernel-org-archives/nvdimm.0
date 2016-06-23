@@ -1,14 +1,15 @@
-From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/3] daxctl_region_unref: fix a potential null pointer
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/3] util_namespace_to_json: fix potential null pointer
  dereference
-Date: Thu, 23 Jun 2016 15:59:49 -0400
-Message-ID: <20160623195950.30968-3-jmoyer@redhat.com>
+Date: Thu, 23 Jun 2016 13:12:49 -0700
+Message-ID: <CAPcyv4i9gPufyzCLcZi64Mh=1W-zv44D3vrEVqkOutw=JtXssA@mail.gmail.com>
 References: <20160623195950.30968-1-jmoyer@redhat.com>
+ <20160623195950.30968-2-jmoyer@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20160623195950.30968-1-jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160623195950.30968-2-jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,37 +19,34 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-Move the assignment of ctx to after the NULL check.
+On Thu, Jun 23, 2016 at 12:59 PM, Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> Coverity pointed out that "dax" could be NULL, and it goes unchecked.
+>
+> Signed-off-by: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
+>  ndctl/util/json.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/ndctl/util/json.c b/ndctl/util/json.c
+> index d144039..92e50fa 100644
+> --- a/ndctl/util/json.c
+> +++ b/ndctl/util/json.c
+> @@ -133,6 +133,8 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns)
+>                 jobj = json_object_new_string("memory");
+>                 break;
+>         case NDCTL_NS_MODE_DAX:
+> +               if (!dax)
+> +                       goto err;
+>                 size = ndctl_dax_get_size(dax);
+>                 jobj = json_object_new_string("dax");
+>                 break;
 
-Signed-off-by: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- daxctl/lib/libdaxctl.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index a8ad58d..9d71a29 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -181,7 +181,7 @@ static void free_dev(struct daxctl_dev *dev, struct list_head *head)
- 
- DAXCTL_EXPORT void daxctl_region_unref(struct daxctl_region *region)
- {
--	struct daxctl_ctx *ctx = region->ctx;
-+	struct daxctl_ctx *ctx;
- 	struct daxctl_dev *dev, *_d;
- 
- 	if (!region)
-@@ -190,6 +190,7 @@ DAXCTL_EXPORT void daxctl_region_unref(struct daxctl_region *region)
- 	if (region->refcount)
- 		return;
- 
-+	ctx = region->ctx;
- 	info(ctx, "region%d released\n", region->id);
- 	list_for_each_safe(&region->devices, dev, _d, list)
- 		free_dev(dev, &region->devices);
--- 
-2.8.2.335.g4bb51ae
+The other patches look good, this one points out a problem with
+ndctl_namespace_get_mode() which should be using a cached value rather
+reading it from sysfs directly.  When we snapshot it with a cached
+value it becomes impossible to have ndctl_namespace_get_mode() ==
+NDCTL_NS_MODE_DAX and ndctl_namespace_get_dax() == NULL.
