@@ -1,8 +1,7 @@
 From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/3] util_namespace_to_json: fix potential null pointer
- dereference
-Date: Thu, 23 Jun 2016 15:59:48 -0400
-Message-ID: <20160623195950.30968-2-jmoyer@redhat.com>
+Subject: [PATCH 3/3] validate_namespace_options: fix bogus test
+Date: Thu, 23 Jun 2016 15:59:50 -0400
+Message-ID: <20160623195950.30968-4-jmoyer@redhat.com>
 References: <20160623195950.30968-1-jmoyer@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,25 +21,26 @@ To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Coverity pointed out that "dax" could be NULL, and it goes unchecked.
+Another coverity find.  The patch is self-explanatory, I hope.
 
 Signed-off-by: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- ndctl/util/json.c | 2 ++
- 1 file changed, 2 insertions(+)
+ ndctl/builtin-xaction-namespace.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/ndctl/util/json.c b/ndctl/util/json.c
-index d144039..92e50fa 100644
---- a/ndctl/util/json.c
-+++ b/ndctl/util/json.c
-@@ -133,6 +133,8 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns)
- 		jobj = json_object_new_string("memory");
- 		break;
- 	case NDCTL_NS_MODE_DAX:
-+		if (!dax)
-+			goto err;
- 		size = ndctl_dax_get_size(dax);
- 		jobj = json_object_new_string("dax");
- 		break;
+diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
+index 8ce7c3e..7411a01 100644
+--- a/ndctl/builtin-xaction-namespace.c
++++ b/ndctl/builtin-xaction-namespace.c
+@@ -444,7 +444,8 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 				ndctl_namespace_get_devname(ndns));
+ 			return -EINVAL;
+ 		}
+-	} else if (p->mode == NDCTL_NS_MODE_MEMORY || NDCTL_NS_MODE_DAX)
++	} else if (p->mode == NDCTL_NS_MODE_MEMORY ||
++		   p->mode == NDCTL_NS_MODE_DAX)
+ 		p->loc = NDCTL_PFN_LOC_PMEM;
+ 
+ 	/* check if we need, and whether the kernel supports, pfn devices */
 -- 
 2.8.2.335.g4bb51ae
