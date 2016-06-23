@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 7B6DE1A1E4C
- for <linux-nvdimm@lists.01.org>; Sat,  4 Jun 2016 13:54:17 -0700 (PDT)
-Subject: [PATCH 08/13] fs/dax: remove wmb_pmem()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 04 Jun 2016 13:53:15 -0700
-Message-ID: <146507359516.8347.7034634737785410916.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3A6751A1E04
+ for <linux-nvdimm@lists.01.org>; Thu, 23 Jun 2016 02:52:45 -0700 (PDT)
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: [PATCH] libnvdimm: initialize struct blk_integrity with 0
+Date: Thu, 23 Jun 2016 11:52:04 +0200
+Message-Id: <20160623095204.32167-1-jthumshirn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,69 +15,40 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: david@fromorbit.com, linux-kernel@vger.kernel.org, hch@lst.de
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Flushing posted-write queues is now deferred to REQ_FLUSH context, or
-otherwise handled by an ADR event at the platform level.
+Initialize struct blk_integrity with 0 as blk_integrity_register() takes the
+then unitialized struct blk_integrity::flags and ORs it to the resulting block
+integrity structure.
 
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
 ---
- fs/dax.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/nvdimm/core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 761495bf5eb9..434f421da660 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -147,7 +147,7 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 		      struct buffer_head *bh)
- {
- 	loff_t pos = start, max = start, bh_max = start;
--	bool hole = false, need_wmb = false;
-+	bool hole = false;
- 	struct block_device *bdev = NULL;
- 	int rw = iov_iter_rw(iter), rc;
- 	long map_len = 0;
-@@ -213,7 +213,6 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index be89764..32e4fe2 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -601,7 +601,8 @@ int nd_integrity_init(struct gendisk *disk, unsigned long meta_size)
+ 	if (meta_size == 0)
+ 		return 0;
  
- 		if (iov_iter_rw(iter) == WRITE) {
- 			len = copy_from_iter_pmem(dax.addr, max - pos, iter);
--			need_wmb = true;
- 		} else if (!hole)
- 			len = copy_to_iter((void __force *) dax.addr, max - pos,
- 					iter);
-@@ -230,8 +229,6 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 			dax.addr += len;
- 	}
+-	bi.profile = NULL;
++	memset(&bi, 0, sizeof(bi));
++
+ 	bi.tuple_size = meta_size;
+ 	bi.tag_size = meta_size;
  
--	if (need_wmb)
--		wmb_pmem();
- 	dax_unmap_atomic(bdev, &dax);
- 
- 	return (pos == start) ? rc : pos - start;
-@@ -783,7 +780,6 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- 				return ret;
- 		}
- 	}
--	wmb_pmem();
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
-@@ -1227,7 +1223,6 @@ int __dax_zero_page_range(struct block_device *bdev, sector_t sector,
- 		if (dax_map_atomic(bdev, &dax) < 0)
- 			return PTR_ERR(dax.addr);
- 		clear_pmem(dax.addr + offset, length);
--		wmb_pmem();
- 		dax_unmap_atomic(bdev, &dax);
- 	}
- 	return 0;
+-- 
+2.8.4
 
 _______________________________________________
 Linux-nvdimm mailing list
