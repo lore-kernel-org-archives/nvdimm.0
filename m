@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-wm0-x22e.google.com (mail-wm0-x22e.google.com
+ [IPv6:2a00:1450:400c:c09::22e])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 49B5B1A1E51
- for <linux-nvdimm@lists.01.org>; Tue, 21 Jun 2016 08:45:54 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 1/3] dax: Make cache flushing protected by entry lock
-Date: Tue, 21 Jun 2016 17:45:13 +0200
-Message-Id: <1466523915-14644-2-git-send-email-jack@suse.cz>
-In-Reply-To: <1466523915-14644-1-git-send-email-jack@suse.cz>
-References: <1466523915-14644-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id F21201A1E04
+ for <linux-nvdimm@lists.01.org>; Thu, 23 Jun 2016 04:52:43 -0700 (PDT)
+Received: by mail-wm0-x22e.google.com with SMTP id v199so123310328wmv.0
+ for <linux-nvdimm@lists.01.org>; Thu, 23 Jun 2016 04:52:12 -0700 (PDT)
+Message-ID: <576BCD68.8010500@plexistor.com>
+Date: Thu, 23 Jun 2016 14:52:08 +0300
+From: Boaz Harrosh <boaz@plexistor.com>
+MIME-Version: 1.0
+Subject: Re: [PATCH] x86/mm: only allow memmap=XX!YY over existing RAM
+References: <1466408039-7497-1-git-send-email-yigal@plexistor.com>
+In-Reply-To: <1466408039-7497-1-git-send-email-yigal@plexistor.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,125 +21,57 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Jan Kara <jack@suse.cz>
+To: Yigal Korman <yigal@plexistor.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently, flushing of caches for DAX mappings was ignoring entry lock.
-So far this was ok (modulo a bug that a difference in entry lock could
-cause cache flushing to be mistakenly skipped) but in the following
-patches we will write-protect PTEs on cache flushing and clear dirty
-tags. For that we will need more exclusion. So do cache flushing under
-an entry lock. This allows us to remove one lock-unlock pair of
-mapping->tree_lock as a bonus.
+On 06/20/2016 10:33 AM, Yigal Korman wrote:
+> Before this patch, passing a range that is beyond the physical memory
+> range will succeed, the user will see a /dev/pmem0 and will be able to
+> access it. Reads will always return 0 and writes will be silently
+> ignored.
+> 
+> I've gotten more than one bug report about mkfs.{xfs,ext4} or nvml
+> failing that were eventually tracked down to be wrong values passed to
+> memmap.
+> 
+> This patch prevents the above issue by instead of adding a new memory
+> range, only update a RAM memory range with the PRAM type. This way,
+> passing the wrong memmap will either not give you a pmem at all or give
+> you a smaller one that actually has RAM behind it.
+> 
+> And if someone still needs to fake a pmem that doesn't have RAM behind
+> it, they can simply do memmap=XX@YY,XX!YY.
+> 
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 62 +++++++++++++++++++++++++++++++++++++++-----------------------
- 1 file changed, 39 insertions(+), 23 deletions(-)
+We are running with this patch for a while in the lab and it does
+solve the problem above with no maleffects so:
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 761495bf5eb9..5209f8cd0bee 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -669,35 +669,54 @@ static int dax_writeback_one(struct block_device *bdev,
- 		struct address_space *mapping, pgoff_t index, void *entry)
- {
- 	struct radix_tree_root *page_tree = &mapping->page_tree;
--	int type = RADIX_DAX_TYPE(entry);
--	struct radix_tree_node *node;
-+	int type;
- 	struct blk_dax_ctl dax;
--	void **slot;
- 	int ret = 0;
-+	void *entry2, **slot;
- 
--	spin_lock_irq(&mapping->tree_lock);
- 	/*
--	 * Regular page slots are stabilized by the page lock even
--	 * without the tree itself locked.  These unlocked entries
--	 * need verification under the tree lock.
-+	 * A page got tagged dirty in DAX mapping? Something is seriously
-+	 * wrong.
- 	 */
--	if (!__radix_tree_lookup(page_tree, index, &node, &slot))
--		goto unlock;
--	if (*slot != entry)
--		goto unlock;
--
--	/* another fsync thread may have already written back this entry */
--	if (!radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
--		goto unlock;
-+	if (WARN_ON(!radix_tree_exceptional_entry(entry)))
-+		return -EIO;
- 
-+	spin_lock_irq(&mapping->tree_lock);
-+	entry2 = get_unlocked_mapping_entry(mapping, index, &slot);
-+	/* Entry got punched out / reallocated? */
-+	if (!entry2 || !radix_tree_exceptional_entry(entry2))
-+		goto put_unlock;
-+	/*
-+	 * Entry got reallocated elsewhere? No need to writeback. We have to
-+	 * compare sectors as we must not bail out due to difference in lockbit
-+	 * or entry type.
-+	 */
-+	if (RADIX_DAX_SECTOR(entry2) != RADIX_DAX_SECTOR(entry))
-+		goto put_unlock;
-+	type = RADIX_DAX_TYPE(entry2);
- 	if (WARN_ON_ONCE(type != RADIX_DAX_PTE && type != RADIX_DAX_PMD)) {
- 		ret = -EIO;
--		goto unlock;
-+		goto put_unlock;
- 	}
-+	entry = entry2;
-+
-+	/* Another fsync thread may have already written back this entry */
-+	if (!radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
-+		goto put_unlock;
-+	/* Lock the entry to serialize with page faults */
-+	entry = lock_slot(mapping, slot);
-+	/*
-+	 * We can clear the tag now but we have to be careful so that concurrent
-+	 * dax_writeback_one() calls for the same index cannot finish before we
-+	 * actually flush the caches. This is achieved as the calls will look
-+	 * at the entry only under tree_lock and once they do that they will
-+	 * see the entry locked and wait for it to unlock.
-+	 */
-+	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
-+	spin_unlock_irq(&mapping->tree_lock);
- 
- 	dax.sector = RADIX_DAX_SECTOR(entry);
- 	dax.size = (type == RADIX_DAX_PMD ? PMD_SIZE : PAGE_SIZE);
--	spin_unlock_irq(&mapping->tree_lock);
- 
- 	/*
- 	 * We cannot hold tree_lock while calling dax_map_atomic() because it
-@@ -713,15 +732,12 @@ static int dax_writeback_one(struct block_device *bdev,
- 	}
- 
- 	wb_cache_pmem(dax.addr, dax.size);
--
--	spin_lock_irq(&mapping->tree_lock);
--	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
--	spin_unlock_irq(&mapping->tree_lock);
-- unmap:
-+unmap:
- 	dax_unmap_atomic(bdev, &dax);
- 	return ret;
- 
-- unlock:
-+put_unlock:
-+	put_unlocked_mapping_entry(mapping, index, entry2);
- 	spin_unlock_irq(&mapping->tree_lock);
- 	return ret;
- }
--- 
-2.6.6
+Tested-by: Boaz Harrosh <boaz@plexistor.com>
+
+> Signed-off-by: Yigal Korman <yigal@plexistor.com>
+> ---
+>  arch/x86/kernel/e820.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+> index 621b501..4bd4207 100644
+> --- a/arch/x86/kernel/e820.c
+> +++ b/arch/x86/kernel/e820.c
+> @@ -878,7 +878,7 @@ static int __init parse_memmap_one(char *p)
+>  		e820_add_region(start_at, mem_size, E820_RESERVED);
+>  	} else if (*p == '!') {
+>  		start_at = memparse(p+1, &p);
+> -		e820_add_region(start_at, mem_size, E820_PRAM);
+> +		e820_update_range(start_at, mem_size, E820_RAM, E820_PRAM);
+>  	} else
+>  		e820_remove_range(mem_size, ULLONG_MAX - mem_size, E820_RAM, 1);
+>  
+> 
 
 _______________________________________________
 Linux-nvdimm mailing list
