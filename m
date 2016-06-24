@@ -1,92 +1,91 @@
-From: <reina-A/EycnKJOq9/KuSEe6gnYQ@public.gmane.org>
-Subject: ESPAGNE , maison neuve avec piscine pour 193500 euros
-Date: Fri, 24 Jun 2016 07:29:04 +0200
-Message-ID: <d2130536cae0c080997d23bf252b3356@news.espagne.com>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: xfs: untangle the direct I/O and DAX path, fix DAX locking
+Date: Fri, 24 Jun 2016 17:13:18 +1000
+Message-ID: <20160624071318.GE12670@dastard>
+References: <1466609236-23801-1-git-send-email-hch@lst.de>
+ <20160623232446.GA12670@dastard>
+ <CAPcyv4iWVyJ3vb+_dtehGRxT9WXwAxNXoDMNeNtxO+=njHNAhg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4iWVyJ3vb+_dtehGRxT9WXwAxNXoDMNeNtxO+=njHNAhg@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@ml01.01.org>, XFS Developers <xfs@oss.sgi.com>
 List-Id: linux-nvdimm@lists.01.org
 
-CgoKIAoKCgoKCgoKCgoKCgoKCgoKCgoKUkVJTkEgSU5NTyBFU1BBR05FCkludmVzdGlyIGF1IHNv
-bGVpbCBkZSBsYSBtw6lkaXRlcnJhbsOpZQpIT1RMSU5FU2VydmljZSBjb21tZXJjaWFsIGVuIEZy
-YW7Dp2FpcyAgOiArMzQgOTY2IDc4MiA0MTRTZXJ2aWNlIGNvbW1lcmNpYWwgZW4gQW5nbGFpcyAg
-OiArMzQgOTY2IDc4MiAxNzhTZXJ2aWNlIGdlc3Rpb24gbG9jYXRpdmUgOiArMzQgNjIyIDYzMCA3
-NDhTZXJ2aWNlIHRyYXZhdXggJmFtcDsgYXByw6hzLXZlbnRlIDogKzM0IDk2NiA3ODIgMTc4ClRv
-dXRlcyBub3MgbWFpc29ucyDDoCB2ZW5kcmUgZW4gRVNQQUdORSBlbiBjbGlxdWFudCBJQ0kKCgoK
-CgoKCgoKCgoKCgoKCgoKCgpNYWlzb24gYXZlYyBwaXNjaW5lIHByaXbDqWUgw6AgcGFydGlyIGRl
-IDIwNi41MDDigqwKCgoKCgoKCgpDb21wbGV4ZSByw6lzaWRlbnRpZWwgbW9kZXJuZSDDoCBDaXVk
-YWQgUXVlc2FkYS4gU3VwZXJiZSBjb21wbGV4ZSBkZSB2aWxsYXMgaW5kw6lwZW5kYW50ZXMgZGFu
-cyBsJ3VuIGRlcyBwbHVzIGJlYXV4IHF1YXJ0aWVycyBkZSBDaXVkYWQgUXVlc2FkYSBldCDDoCBz
-ZXVsZW1lbnQgMTAgbWludXRlcyBkZXMgc3VwZXJiZXMgcGxhZ2VzIGRlIEd1YXJkYW1hci4gUXVl
-c2FkYSBlc3QgdW5lIGdyYW5kZSBhZ2dsb23DqXJhdGlvbiBzaXR1w6llIGVudHJlIFRvcnJldmll
-amEgZXQgR3VhcmRhbWFyLCBkb3TDqWUgZCd1bmUgaW5mcmFzdHJ1Y3R1cmUgb3B0aW1hbGUgZGUg
-c2VydmljZXMgOiDDqWNvbGVzLCBiYW5xdWVzLCBzdXBlcm1hcmNow6lzLCB0ZXJyYWluIGRlIGdv
-bGYsIGjDtHRlbCwgcGFyYyBhcXVhdGlxdWXigKZFbiBzb21tZSwgdG91dCBjZSBkb250IHZvdXMg
-YXZleiBiZXNvaW4gcG91ciB5IGF2b2lyIHVuZSB2aWUgYWdyw6lhYmxlIGV0IGZhY2lsZS4gTGVz
-IHZpbGxhcyBzb250IGNvbnN0cnVpdGVzIHN1ciBkZXMgdGVycmFpbnMgZGUgc3VwZXJmaWNpZXMg
-Y29tcHJpc2VzIGVudHJlIDE1NiBldCAyMzggbcKyLCBjb25maWd1csOpZXMgc3VyIGRldXggw6l0
-YWdlcywgYXZlYyB0cm9pcyBjaGFtYnJlcyBldCwgZW4gZm9uY3Rpb24gZHUgbW9kw6hsZSwgMyBz
-YWxsZXMgZGUgYmFpbnMgb3UgMiBzYWxsZXMgZGUgYmFpbnMgcGx1cyBjYWJpbmV0IGRlIHRvaWxl
-dHRlIHBvdXIgaW52aXTDqXMuIExlcyBsb2dlbWVudHMgaW5jbHVlbnQgZGVzIGV4dHJhcyBwYXJt
-aSBsZXNxdWVscywgY2hhdWZmYWdlIGF1IHNvbCBkYW5zIGxlcyBzYWxsZXMgZGUgYmFpbnMsIGJh
-aWdub2lyZSBkJ2h5ZHJvbWFzc2FnZSBkYW5zIGxhIHNhbGxlIGRlIGJhaW5zIGRlIGxhIGNoYW1i
-cmUgcHJpbmNpcGFsZSBldCBzb250IGxpdnLDqXMgYXZlYyBqYXJkaW4gZGUgdHlwZSBtw6lkaXRl
-cnJhbsOpZW4gLlRvdXRlcyBub3MgbWFpc29ucyDDoCB2ZW5kcmUgZW4gRVNQQUdORSBlbiBjbGlx
-dWFudCBJQ0kKCgpBcHBhcnRlbWVudCDDoCAzMDAgbSBkZSBsYSBwbGFnZSDDoCBwYXJ0aXIgZGUg
-MTM5LjkwMOKCrAoKCgoKCgoKCkFwcGFydGVtZW50cyBtb2Rlcm5lcyBzaXR1w6lzIMOgIDMwMCBt
-w6h0cmVzIGRlIGxhIHBsYWdlIGRlIExhcyBNaWwgUGFsbWVyYXMsIMOgIFRvcnJlIGRlIGxhIEhv
-cmFkYWRhLiBMJ3VuZSBkZXMgbWVpbGxldXJlcyBldCBwbHVzIGdyYW5kZXMgcGxhZ2VzIGRlIHRv
-dXRlIGxhIENvc3RhIEJsYW5jYSBTdXIsIHF1aSBzZSBiw6luw6lmaWNpZSBkdSBEcmFwZWF1IEJs
-ZXUsIGV0IHF1aSBhIHRvdXMgbGVzIHNlcnZpY2VzIMOgIHByb3hpbWl0w6kuIExhIHpvbmUgb2Zm
-cmUgZGVzIGFjdGl2aXTDqXMgcG91ciB0b3V0ZSBsYSBmYW1pbGxlLCBkZXMgY29tbWVyY2VzIGV0
-IGRlcyB6b25lcyBkZSBsb2lzaXJzIG5vY3R1cm5lLiBEaXNwb25pYmxlcyBhdXNzaSBkZXMgYXBw
-YXJ0ZW1lbnRzIGF2ZWMgamFyZGluIHBhdsOpIGV0IGRlcyAxw6hyZSDDqXRhZ2VzIGF2ZWMgZGVz
-IGdyYW5kZXMgdGVycmFzc2VzIGV0IHVuIHNvbGFyaXVtIHByaXbDqS4gVG91cyBsZXMgYXBwYXJ0
-ZW1lbnRzIHByw6lzZW50ZW50IGRlcyBmaW5pdGlvbnMgbW9kZXJuZXMgZXQgZCdleGNlbGxlbnRl
-IHF1YWxpdMOpLCBhdmVjIGN1aXNpbmUgZXQgc2FsbGVzIGRlIGJhaW5zIGRlIGRlc2lnbi4gTGEg
-csOpc2lkZW5jZSBkaXNwb3NlIGQndW5lIHpvbmUgamFyZGluw6llIGV0IHVuZSBwaXNjaW5lIGVu
-IGNvcHJvcHJpw6l0w6kuIFRvdXRlcyBub3MgbWFpc29ucyDDoCB2ZW5kcmUgZW4gRVNQQUdORSBl
-biBjbGlxdWFudCBJQ0kKCgpWaWxsYSB2dWUgbWVyIMOgIHBhcnRpciBkZSAgMzc1LjAwMOKCrAoK
-CgoKCgoKCkltcHJlc3Npb25uYW50ZXMgdmlsbGFzIGluZMOpcGVuZGFudGVzIGF2ZWMgdnVlIHN1
-ciBsYSBtZXIgw6AgR3VhcmRhbWFyLCB0b3V0IHByw6hzIGR1IGNlbnRyZS12aWxsZSBldCBzYSBm
-YWJ1bGV1c2UgcGxhZ2UuIFVuIGVuZHJvaXQgaWTDqWFsLCBhdXNzaSBiaWVuIHBvdXIgcsOpc2lk
-ZXIgZGUgZmHDp29uIHBlcm1hbmVudGUgcXVlIHBvdXIgbGVzIHDDqXJpb2RlcyBkZSB2YWNhbmNl
-LiBHdWFyZGFtYXIgZXN0IGF2ZWMgVG9ycmV2aWVqYSBldCBTYW50YSBQb2xhLCBs4oCZdW5lIGRl
-cyBwcmluY2lwYWxlcyB2aWxsZXMgZGUgbGEgQ29zdGEgQmxhbmNhIFN1ZCBldCBlbGxlIGNvbXB0
-ZSBwb3VyIGNlbGEgdW4gbGFyZ2Ugw6l2ZW50YWlsIGRlIHNlcnZpY2VzIGV0IGVzdCB0csOocyBk
-ZXNzZXJ2aWUgcGFyIHJvdXRlIGF2ZWMgbOKAmUHDqXJvcG9ydCBk4oCZQWxpY2FudGUgZXQgbGVz
-IHZpbGxlcyDDoCBwcm94aW1pdMOpLiBMZXMgbWFpc29ucyBwcsOpc2VudGVudCB1biBkZXNpZ24g
-bW9kZXJuZSwgYXZlYyB1bmUgcHLDqWRvbWluYW5jZSBkZSBsYSBjb3VsZXVyIGJsYW5jaGUgZXQg
-ZGVzIGVzcGFjZXMgb3V2ZXJ0cy4gVG91dGVzIGxlcyB2aWxsYXMgb250IDMgY2hhbWJyZXMgZXQg
-MiBzYWxsZXMgZGUgYmFpbnMsIGV0IHNvbnQgY29uc3RydWl0ZXMgc3VyIGRlcyB0ZXJyYWlucyBk
-ZSAyNDAgw6AgMjUwIG0yIGV0IGluY2x1ZW50IHVuZSBwaXNjaW5lIGF2ZWMgdW4gc3lzdMOobWUg
-bW9kZXJuZSBkZSBjaHV0ZSBk4oCZZWF1IGVuIGNhc2NhZGUuIEVsbGVzIHByw6lzZW50ZW50IGRl
-cyBmaW5pdGlvbnMgZGUgZ3JhbmRlIHF1YWxpdMOpLCBjb21tZSBsZSBjaGF1ZmZhZ2UgcGFyIHNv
-bCByYWRpYW50IGRhbnMgbGVzIHNhbGxlcyBkZSBiYWlucywgdW5lIGN1aXNpbmUgbHV4dWV1c2Ug
-ZGUgZGVzaWduIGV0IHN5c3TDqG1lIGRlIGRvbW90aXF1ZSAuVG91dGVzIG5vcyBtYWlzb25zIMOg
-IHZlbmRyZSBlbiBFU1BBR05FIGVuIGNsaXF1YW50IElDSQoKCgoKCgpBdi4gZGUgRGF5YSBOdWV2
-YSwgNiBBdi4gZGUgRGF5YSBOdWV2YSwgNiwgQWxtb3JhZMOtLCBBbGljYW50ZSwgRXNwYcOxYSsz
-NCA5NjYgNzgyIDE3OCAvIHJlaW5hQGlubW9iaWxpYXJpYXJlaW5hLmNvbSB3d3cuaW5tb3JlaW5h
-LmNvbQpDb25mb3Jtw6ltZW50IMOgIGwnYXJ0aWNsZSAzNCBkZSBsYSBsb2kgNzgtMTcgZHUgNiBq
-YW52aWVyIDE5NzggcmVsYXRpdmUgw6AgbCdpbmZvcm1hdGlxdWUsYXV4IGZpY2hpZXJzIGV0IGF1
-eCBsaWJlcnTDqXMsIHZvdXMgZGlzcG9zZXogZCd1biBkcm9pdCBkJ2FjY8OocyxkZSByZWN0aWZp
-Y2F0aW9uIGRlcyBkb25uw6llcyBub21pbmF0aXZlcyB2b3VzIGNvbmNlcm5hbnQuIFNpIGNlIG1l
-c3NhZ2Ugdm91cyBhIGNhdXPDqSB1biBkw6lzYWdyw6ltZW50LCB2ZXVpbGxleiBub3VzIGVuIGV4
-Y3VzZXIuUG91ciBjZXNzZXIgZGUgcmVjZXZvaXIgbm9zIGluZm9ybWF0aW9ucyBzdXIgdm90cmUg
-YWRyZXNzZSBlbWFpbCAsIGNsaXF1ZXogc3VyIGxlIGxpZW4gY2ktZGVzc291cyAKSmUgbmUgc291
-aGFpdGUgcGx1cyByZWNldm9pciB2b3MgcHVibGljYXRpb25zLCB2ZXVpbGxleiBtZSByZXRpcmVy
-IGRlIHZvdHJlIGxpc3RlIGQnZW52b2kuCiAKIAoKIApfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52
-ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1udmRpbW0K
+On Thu, Jun 23, 2016 at 06:14:47PM -0700, Dan Williams wrote:
+> On Thu, Jun 23, 2016 at 4:24 PM, Dave Chinner <david@fromorbit.com> wrote:
+> > On Wed, Jun 22, 2016 at 05:27:08PM +0200, Christoph Hellwig wrote:
+> >> The last patch is what started the series:  XFS currently uses the
+> >> direct I/O locking strategy for DAX because DAX was overloaded onto
+> >> the direct I/O path.  For XFS this means that we only take a shared
+> >> inode lock instead of the normal exclusive one for writes IFF they
+> >> are properly aligned.  While this is fine for O_DIRECT which requires
+> >> explicit opt-in from the application it's not fine for DAX where we'll
+> >> suddenly lose expected and required synchronization of the file system
+> >> happens to use DAX undeneath.
+> >
+> > Except we did that *intentionally* - by definition there is no
+> > cache to bypass with DAX and so all IO is "direct". That, combined
+> > with the fact that all Linux filesystems except XFS break the POSIX
+> > exclusive writer rule you are quoting to begin with, it seemed
+> > pointless to enforce it for DAX....
+> 
+> If we're going to be strict about POSIX fsync() semantics we should be
+> strict about this exclusive write semantic.  In other words why is it
+> ok to loosen one and not the other, if application compatibility is
+> the concern?
+
+This is a POSIX compliant fsync() implementation:
+
+int fsync(int fd)
+{
+	return 0;
+}
+
+That's not what we require from Linux filesystems and storage
+subsystems.  Our data integrity requirements are not actually
+defined by POSIX - we go way beyond what POSIX actually requires us
+to implement. If all we cared about is POSIX, then the above is how
+we'd implement fsync() simply because it's fast. Everyone implements
+fsync differently, so portable applications can't actually rely on
+the POSIX standard fsync() implementation to keep their data safe...
+
+IOWs, we don't give a shit about what POSIX says about fsync
+because, in practice, it's useless. Instead, we implement something
+that *works* and provides users with real data integrity guarantees.
+
+If you like the POSIX specs for data integrity, go use
+sync_file_range() - it doesn't guarantee data integrity, just like
+posix compliant fsync(). And yes, applications that use
+sync_file_range() are known to lose data when systems crash...
+
+The POSIX exclusive write requirement is a different case. No linux
+filesystem except XFS has ever met that requirement (in 20 something
+years), yet I don't see applications falling over with corrupt data
+from non-exclusive writes all the time, nor do I see application
+developers shouting at us to provide it. i.e. reality tells us this
+isn't a POSIX behaviour that applications rely on because everyone
+implements it differently.
+
+So, like fsync(), if everyone implements it differently,
+applications don't rely on posix smeantics to serialise access to
+overlapping ranges of a file. And if that's the case, then
+why even bother exclusive write locking in the filesystem when there
+is no need for serialisation of page cache contents?
+
+We don't do it because POSIX says so, because we already ignore what
+POSIX says about this topic for technical reasons. So why should we
+make DAX conform to POSIX exclusive writer behaviour when DAX is
+being specifically aimed at high performance, highly concurrent
+applications where exclusive writer behaviour will cause major
+performance issues?
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
