@@ -1,68 +1,82 @@
-From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Subject: Re: [PATCH v3 3/4] dm: add infrastructure for DAX support
-Date: Fri, 24 Jun 2016 15:56:17 +0000
-Message-ID: <1466783775.3504.398.camel@hpe.com>
-References: <1466715953-40692-1-git-send-email-snitzer@redhat.com>
- <1466715953-40692-4-git-send-email-snitzer@redhat.com>
- <1466724984.3504.380.camel@hpe.com> <20160624014930.GA10540@redhat.com>
- <1466782822.3504.391.camel@hpe.com> <20160624154446.GB13898@redhat.com>
+From: Mike Snitzer <snitzer@redhat.com>
+Subject: Re: dm stripe: add DAX support
+Date: Fri, 24 Jun 2016 14:29:00 -0400
+Message-ID: <20160624182859.GD13898@redhat.com>
+References: <1466792610-30369-1-git-send-email-toshi.kani@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20160624154446.GB13898-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <1BCBD1B392DB054E9B2F4070C38A5D87-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org" <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1466792610-30369-1-git-send-email-toshi.kani@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: linux-nvdimm@ml01.01.org, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, dm-devel@redhat.com, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Alasdair Kergon <agk@redhat.com>
 List-Id: linux-nvdimm@lists.01.org
 
-T24gRnJpLCAyMDE2LTA2LTI0IGF0IDExOjQ0IC0wNDAwLCBNaWtlIFNuaXR6ZXIgd3JvdGU6DQo+
-IE9uIEZyaSwgSnVuIDI0IDIwMTYgYXQgMTE6NDBhbSAtMDQwMCwNCj4gS2FuaSwgVG9zaGltaXRz
-dSA8dG9zaGkua2FuaUBocGUuY29tPiB3cm90ZToNCj4gPiBPbiBUaHUsIDIwMTYtMDYtMjMgYXQg
-MjE6NDkgLTA0MDAsIE1pa2UgU25pdHplciB3cm90ZToNCj4gPiA+IA0KPiA+ID4gT24gVGh1LCBK
-dW4gMjMgMjAxNiBhdMKgwqA3OjM2cG0gLTA0MDAsDQo+ID4gPiBLYW5pLCBUb3NoaW1pdHN1IDx0
-b3NoaS5rYW5pQGhwZS5jb20+IHdyb3RlOg0KPiA+ID4gPiBUaGFua3MgZm9yIHRoZSB1cGRhdGUu
-IMKgSSBoYXZlIGEgcXVlc3Rpb24gYWJvdXQgdGhlIGFib3ZlIGNoYW5nZS4NCj4gPiA+ID4gwqBU
-YXJnZXRzIG1heSBoYXZlIHRoZWlyIG93biBwYXJhbWV0ZXJzLiDCoEZvciBpbnN0YW5jZSwgZG0t
-c3RyaXBlIGhhcw0KPiA+ID4gPiAnY2h1bmtfc2l6ZScsIHdoaWNoIGlzIGNoZWNrZWQgaW4gc3Ry
-aXBlX2N0cigpLiDCoERBWCBhZGRzIGFkZGl0aW9uYWwNCj4gPiA+ID4gcmVzdHJpY3Rpb24gdGhh
-dCBjaHVua19zaXplIG5lZWRzIHRvIGJlIGFsaWduZWQgYnkgcGFnZSBzaXplLiDCoFNvLCBJDQo+
-ID4gPiA+IHRoaW5rIHdlIG5lZWQgdG8ga2VlcCB0YXJnZXQgcmVzcG9uc2libGUgdG8gdmVyaWZ5
-IGlmIERBWCBjYW4gYmUNCj4gPiA+ID4gc3VwcG9ydGVkLiDCoFdoYXQgZG8geW91IHRoaW5rPw0K
-PiA+ID7CoA0KPiA+ID4gV2UndmUgbmV2ZXIgaGFkIHRvIGNvbmNlcm4gdGhlIGRtLXN0cmlwZSB0
-YXJnZXQgd2l0aCBoYXJkd2FyZQ0KPiA+ID4gc3BlY2lmaWMgY2h1bmtfc2l6ZSB2YWxpZGF0aW9u
-LsKgwqBUaGUgdXNlciBpcyBhYmxlIHRvIHNwZWNpZnkgdGhlDQo+ID4gPiBjaHVua19zaXplIHZp
-YSBsdm0yJ3MgbHZjcmVhdGUgLUkgYXJndW1lbnQuwqDCoFllcyB0aGlzIGdpdmVzIHVzZXJzIGVu
-b3VnaA0KPiA+ID4gcm9wZSB0byBoYW5nIHRoZW1zZWx2ZXMgYnV0IGl0IGlzIHZlcnkgZWFzeSB0
-byBjb25maWd1cmUgYSBkbS1zdHJpcGUNCj4gPiA+IGRldmljZSB3aXRoIHRoZSBhcHByb3ByaWF0
-ZSBjaHVuayBzaXplIChQQUdFX1NJWkUpIGZyb20gdXNlcnNwYWNlLg0KPiA+ID4gDQo+ID4gPiBC
-dXQgbHZtMiBjb3VsZCBldmVuIGJlIHRyYWluZWQgdG8gbWFrZSBzdXJlIHRoZSBjaHVua19zaXpl
-IGlzIGEgZmFjdG9yDQo+ID4gPiBvZiBwaHlzaWNhbF9ibG9ja19zaXplIChQQUdFX1NJWkUgaW4g
-dGhlIGNhc2Ugb2YgcG1lbSkgaWYgdGhlIHVuZGVybHlpbmcNCj4gPiA+IGRldmljZXMgZXhwb3J0
-IHF1ZXVlL2RheD0xDQo+ID4NCj4gPiBsdmNyZWF0ZcKgLUkgb25seSBhbGxvd3MgbXVsdGlwbGUg
-b2YgcGFnZSBzaXplLCBzbyB3ZSBhcmUgT0sgd2l0aCBsdm0yLiDCoEkNCj4gPiB3YXMgd29uZGVy
-aW5nIGlmIHRoZSBjaGVjayBpbiBsdm0yIGlzIGVub3VnaC4gwqBBcmUgdGhlcmUgYW55IG90aGVy
-IHRvb2xzDQo+ID4gdGhhdCBtYXkgYmUgdXNlZCB0byBjb25maWd1cmUgc3RyaXBlIHNpemU/IMKg
-Q2FuIHdlIHRydXN0IHVzZXJzcGFjZSBvbg0KPiA+IHRoaXM/DQo+DQo+IE90aGVyIHRoYW4gbHZt
-MiwgSSdtIG5vdCBhd2FyZSBvZiBhbnkgb3RoZXIgdXNlcnNwYWNlIHRvb2wgdGhhdCBpcw0KPiBk
-cml2aW5nIHRoZSBkbS1zdHJpcGUgdGFyZ2V0IGNvbmZpZ3VyYXRpb24uwqDCoFNvIEkgdGhpbmsg
-d2UgY2FuIHRydXN0DQo+IHVzZXJzcGFjZSBoZXJlIHVudGlsIHByb3ZlbiBvdGhlcndpc2UuwqDC
-oA0KDQpHb29kLg0KDQo+IEdvb2QgbmV3cyBpcyB0aGF0IGFueQ0KPiBtaXNjb25maWd1cmF0aW9u
-IHdpbGwgc2ltcGx5IG5vdCB3b3JrIHJpZ2h0P8KgwqBFcnJvcnMgd291bGQgcmVzdWx0IGZyb20N
-Cj4gaW1wcm9wZXJseSBzaXplZCBJTyByaWdodD8NCg0KZGF4IHByb3ZpZGVzIGRpcmVjdCBhY2Nl
-c3Mgd2l0aCByZXNwZWN0IHRvIGRhdGEuIMKgU28sIHllcywgSU8gdG8gZGF0YSBmYWlscywNCmJ1
-dCBJTyB0byBtZXRhZGF0YSBzdGlsbCBzdWNjZWVkcy4gwqBUaGlzIG1heSByZXN1bHQgaW4gY3Jl
-YXRpbmcgZW1wdHkgZmlsZXMsDQpldGMuDQoNClRoYW5rcywNCi1Ub3NoaQpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
-aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
-bi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Fri, Jun 24 2016 at  2:23pm -0400,
+Toshi Kani <toshi.kani@hpe.com> wrote:
+
+> Change dm-stripe to implement direct_access function,
+> stripe_direct_access(), which maps bdev and sector and
+> calls direct_access function of its physical target device.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Alasdair Kergon <agk@redhat.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  drivers/md/dm-stripe.c |   25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+> 
+> diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
+> index 48f1c01..8925f6a 100644
+> --- a/drivers/md/dm-stripe.c
+> +++ b/drivers/md/dm-stripe.c
+> @@ -308,6 +308,30 @@ static int stripe_map(struct dm_target *ti, struct bio *bio)
+>  	return DM_MAPIO_REMAPPED;
+>  }
+>  
+> +static long stripe_direct_access(struct dm_target *ti, sector_t sector,
+> +		void __pmem **kaddr, pfn_t *pfn, long size)
+> +{
+> +	struct stripe_c *sc;
+> +	struct block_device *bdev;
+> +	uint32_t stripe;
+> +	struct blk_dax_ctl dax = {
+> +		.size = size,
+> +	};
+> +	long ret;
+> +
+> +	sc = ti->private;
+> +	stripe_map_sector(sc, sector, &stripe, &dax.sector);
+> +
+> +	dax.sector += sc->stripe[stripe].physical_start;
+> +	bdev = sc->stripe[stripe].dev->bdev;
+> +
+> +	ret = bdev_direct_access(bdev, &dax);
+> +	*kaddr = dax.addr;
+> +	*pfn = dax.pfn;
+> +
+> +	return ret;
+> +}
+> +
+>  /*
+>   * Stripe status:
+>   *
+> @@ -425,6 +449,7 @@ static struct target_type stripe_target = {
+>  	.status = stripe_status,
+>  	.iterate_devices = stripe_iterate_devices,
+>  	.io_hints = stripe_io_hints,
+> +	.direct_access = stripe_direct_access,
+>  };
+>  
+>  int __init dm_stripe_init(void)
+
+Thanks, once jens queues the block changes I'll be able to pull this in
+to linux-dm.git
+
+BTW, if in your testing you could evaluate/quantify any extra overhead
+from DM that'd be useful to share.  It could be there are bottlenecks
+that need to be fixed, etc.
+
+Mike
