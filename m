@@ -1,66 +1,65 @@
-From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Subject: Re: dm stripe: add DAX support
-Date: Fri, 24 Jun 2016 20:46:31 +0000
-Message-ID: <1466801190.3504.411.camel@hpe.com>
-References: <1466792610-30369-1-git-send-email-toshi.kani@hpe.com>
- <201606250312.OzHHesq4%fengguang.wu@intel.com>
- <20160624200239.GA15587@redhat.com>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: xfs: untangle the direct I/O and DAX path, fix DAX locking
+Date: Sat, 25 Jun 2016 09:00:45 +1000
+Message-ID: <20160624230045.GG12670@dastard>
+References: <1466609236-23801-1-git-send-email-hch@lst.de>
+ <20160623232446.GA12670@dastard>
+ <20160624072612.GA22205@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20160624200239.GA15587-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <02E894F273BD694B959C66D17098EC9E-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "kbuild-all-JC7UmRfGjtg@public.gmane.org" <kbuild-all-JC7UmRfGjtg@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160624072612.GA22205@lst.de>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: xfs@oss.sgi.com, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org
 List-Id: linux-nvdimm@lists.01.org
 
-T24gRnJpLCAyMDE2LTA2LTI0IGF0IDE2OjAyIC0wNDAwLCBNaWtlIFNuaXR6ZXIgd3JvdGU6DQo+
-IE9uIEZyaSwgSnVuIDI0IDIwMTYgYXTCoMKgMzo1OHBtIC0wNDAwLA0KPiBrYnVpbGQgdGVzdCBy
-b2JvdCA8bGtwQGludGVsLmNvbT4gd3JvdGU6DQo+IA0KPiA+IA0KPiA+IEhpLA0KPiA+IA0KPiA+
-IFthdXRvIGJ1aWxkIHRlc3QgV0FSTklORyBvbiBkbS9mb3ItbmV4dF0NCj4gPiBbYWxzbyBidWls
-ZCB0ZXN0IFdBUk5JTkcgb24gdjQuNy1yYzQgbmV4dC0yMDE2MDYyNF0NCj4gPiBbaWYgeW91ciBw
-YXRjaCBpcyBhcHBsaWVkIHRvIHRoZSB3cm9uZyBnaXQgdHJlZSwgcGxlYXNlIGRyb3AgdXMgYSBu
-b3RlIHRvDQo+ID4gaGVscCBpbXByb3ZlIHRoZSBzeXN0ZW1dDQo+ID4gDQo+ID4gdXJsOsKgwqDC
-oMKgaHR0cHM6Ly9naXRodWIuY29tLzBkYXktY2kvbGludXgvY29tbWl0cy9Ub3NoaS1LYW5pL2Rt
-LXN0cmlwZS1hZGQtDQo+ID4gREFYLXN1cHBvcnQvMjAxNjA2MjUtMDIyNjAwDQo+ID4gYmFzZTrC
-oMKgwqBodHRwczovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9kZXZp
-Y2UtbWFwcGVyL2xpbnUNCj4gPiB4LWRtLmdpdCBmb3ItbmV4dA0KPiA+IGNvbmZpZzogbTY4ay1z
-dW4zX2RlZmNvbmZpZyAoYXR0YWNoZWQgYXMgLmNvbmZpZykNCj4gPiBjb21waWxlcjogbTY4ay1s
-aW51eC1nY2MgKEdDQykgNC45LjANCj4gPiByZXByb2R1Y2U6DQo+ID4gwqDCoMKgwqDCoMKgwqDC
-oHdnZXQgaHR0cHM6Ly9naXQua2VybmVsLm9yZy9jZ2l0L2xpbnV4L2tlcm5lbC9naXQvd2ZnL2xr
-cC10ZXN0cy5naQ0KPiA+IHQvcGxhaW4vc2Jpbi9tYWtlLmNyb3NzIC1PIH4vYmluL21ha2UuY3Jv
-c3MNCj4gPiDCoMKgwqDCoMKgwqDCoMKgY2htb2QgK3ggfi9iaW4vbWFrZS5jcm9zcw0KPiA+IMKg
-wqDCoMKgwqDCoMKgwqAjIHNhdmUgdGhlIGF0dGFjaGVkIC5jb25maWcgdG8gbGludXggYnVpbGQg
-dHJlZQ0KPiA+IMKgwqDCoMKgwqDCoMKgwqBtYWtlLmNyb3NzIEFSQ0g9bTY4a8KgDQo+ID4gDQo+
-ID4gQWxsIHdhcm5pbmdzIChuZXcgb25lcyBwcmVmaXhlZCBieSA+Pik6DQo+ID4gDQo+ID4gwqDC
-oMKgZHJpdmVycy9tZC9kbS1zdHJpcGUuYzo0NTI6MjogZXJyb3I6IHVua25vd24gZmllbGQgJ2Rp
-cmVjdF9hY2Nlc3MnDQo+ID4gc3BlY2lmaWVkIGluIGluaXRpYWxpemVyDQo+ID4gwqDCoMKgwqDC
-oC5kaXJlY3RfYWNjZXNzID0gc3RyaXBlX2RpcmVjdF9hY2Nlc3MsDQo+ID4gwqDCoMKgwqDCoF4N
-Cj4gPiDCoMKgwqBkcml2ZXJzL21kL2RtLXN0cmlwZS5jOjQ1MjoyOiB3YXJuaW5nOiBtaXNzaW5n
-IGJyYWNlcyBhcm91bmQNCj4gPiBpbml0aWFsaXplciBbLVdtaXNzaW5nLWJyYWNlc10NCj4gPiDC
-oMKgwqBkcml2ZXJzL21kL2RtLXN0cmlwZS5jOjQ1MjoyOiB3YXJuaW5nOiAobmVhciBpbml0aWFs
-aXphdGlvbiBmb3INCj4gPiAnc3RyaXBlX3RhcmdldC5saXN0JykgWy1XbWlzc2luZy1icmFjZXNd
-DQo+ID4gPiANCj4gPiA+ID4gDQo+ID4gPiA+IGRyaXZlcnMvbWQvZG0tc3RyaXBlLmM6NDUyOjI6
-IHdhcm5pbmc6IGluaXRpYWxpemF0aW9uIGZyb20NCj4gPiA+ID4gaW5jb21wYXRpYmxlIHBvaW50
-ZXIgdHlwZQ0KPiA+IMKgwqDCoGRyaXZlcnMvbWQvZG0tc3RyaXBlLmM6NDUyOjI6IHdhcm5pbmc6
-IChuZWFyIGluaXRpYWxpemF0aW9uIGZvcg0KPiA+ICdzdHJpcGVfdGFyZ2V0Lmxpc3QubmV4dCcp
-DQo+DQo+IEZZSSwgb3ZlcnplYWxvdXMga2J1aWxkIHJvYm90IGJ1aWxkIGZhaWx1cmUgaGVyZS4u
-IEkgaGF2ZW4ndCBzdGFnZWQgdGhlDQo+IHByZXJlcSBETSBjb3JlIGNoYW5nZXMgeWV0IGJlY2F1
-c2UgSSdtIHdhaXRpbmcgZm9yIEplbnMgdG8gdGFrZSB0aGUgMg0KPiBibG9jayBjaGFuZ2VzIHRo
-b3NlIGRlcGVuZCBvbi4NCg0KVGhpcyBwYXRjaCBhcHBsaWVzIG9uIHRvcCBvZiB3aXAuIMKgQ291
-bGQgdGhpcyBiZSBiZWNhdXNlICdmb3ItbmV4dCcgZG9lcyBub3QNCmhhdmUgdGhlIHByZXZpb3Vz
-IGRtL2RtLWxpbmVhciBzZXJpZXM/DQoNClRoYW5rcywNCi1Ub3NoaSDCoApfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
-aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
-bi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Fri, Jun 24, 2016 at 09:26:12AM +0200, Christoph Hellwig wrote:
+> On Fri, Jun 24, 2016 at 09:24:46AM +1000, Dave Chinner wrote:
+> > Except we did that *intentionally* - by definition there is no
+> > cache to bypass with DAX and so all IO is "direct". That, combined
+> > with the fact that all Linux filesystems except XFS break the POSIX
+> > exclusive writer rule you are quoting to begin with, it seemed
+> > pointless to enforce it for DAX....
+> 
+> No file system breaks the exclusive writer rule - most filesystem
+> don't make writers atomic vs readers.
+> 
+> More importantly every other filesystem (well there only are ext2
+> and ext4..) exludes DAX writers against other DAX writers.
+> 
+> > So, before taking any patches to change that behaviour in XFS, a
+> > wider discussion about the policy needs to be had. I don't think
+> > we should care about POSIX here - if you have an application that
+> > needs this serialisation, turn off DAX. That's why I made it a
+> > per-inode inheritable flag and why the mount option will go away
+> > over time.
+> 
+> Sorry, but this is simply broken - allowing apps to opt-in behavior
+> (e.g. like we're using O_DIRECT) is always fine.  Requriring
+> filesystem-specific tuning that has affect outside the app to get
+> existing documented behavior is not how to design APIs.
+
+Using DAX is an *admin decision*, not an application decision.
+Indeed, it's a mount option right now, and that's most definitely not
+something the application can turn on or off! Inode flags allow the
+admin to decide that two apps working on the same filesystem can use
+(or not use) DAX independently, rather than needing to put them on
+different filesystems.
+
+> Maybe we'll need to opt-in to use DAX for mmap, but giving the same
+> existing behavior for read and write and avoiding a copy to the pagecache
+> is an obvious win.
+
+You can't use DAX just for mmap. It's an inode scope behaviour -
+once it's turned on, all accesses to that inode - regardless of user
+interface - must use DAX. It's all or nothing, not a per file
+descript/mmap context option.
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
