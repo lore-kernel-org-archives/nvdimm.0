@@ -1,15 +1,17 @@
-From: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
 Subject: Re: dm stripe: add DAX support
-Date: Fri, 24 Jun 2016 16:02:40 -0400
-Message-ID: <20160624200239.GA15587@redhat.com>
+Date: Fri, 24 Jun 2016 20:46:31 +0000
+Message-ID: <1466801190.3504.411.camel@hpe.com>
 References: <1466792610-30369-1-git-send-email-toshi.kani@hpe.com>
  <201606250312.OzHHesq4%fengguang.wu@intel.com>
+ <20160624200239.GA15587@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <201606250312.OzHHesq4%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160624200239.GA15587-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <02E894F273BD694B959C66D17098EC9E-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,41 +21,46 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org, Alasdair Kergon <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "kbuild-all-JC7UmRfGjtg@public.gmane.org" <kbuild-all-JC7UmRfGjtg@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Fri, Jun 24 2016 at  3:58pm -0400,
-kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-
-> Hi,
-> 
-> [auto build test WARNING on dm/for-next]
-> [also build test WARNING on v4.7-rc4 next-20160624]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Toshi-Kani/dm-stripe-add-DAX-support/20160625-022600
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm.git for-next
-> config: m68k-sun3_defconfig (attached as .config)
-> compiler: m68k-linux-gcc (GCC) 4.9.0
-> reproduce:
->         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=m68k 
-> 
-> All warnings (new ones prefixed by >>):
-> 
->    drivers/md/dm-stripe.c:452:2: error: unknown field 'direct_access' specified in initializer
->      .direct_access = stripe_direct_access,
->      ^
->    drivers/md/dm-stripe.c:452:2: warning: missing braces around initializer [-Wmissing-braces]
->    drivers/md/dm-stripe.c:452:2: warning: (near initialization for 'stripe_target.list') [-Wmissing-braces]
-> >> drivers/md/dm-stripe.c:452:2: warning: initialization from incompatible pointer type
->    drivers/md/dm-stripe.c:452:2: warning: (near initialization for 'stripe_target.list.next')
-
-FYI, overzealous kbuild robot build failure here.. I haven't staged the
-prereq DM core changes yet because I'm waiting for Jens to take the 2
-block changes those depend on.
-
-Mike
+T24gRnJpLCAyMDE2LTA2LTI0IGF0IDE2OjAyIC0wNDAwLCBNaWtlIFNuaXR6ZXIgd3JvdGU6DQo+
+IE9uIEZyaSwgSnVuIDI0IDIwMTYgYXTCoMKgMzo1OHBtIC0wNDAwLA0KPiBrYnVpbGQgdGVzdCBy
+b2JvdCA8bGtwQGludGVsLmNvbT4gd3JvdGU6DQo+IA0KPiA+IA0KPiA+IEhpLA0KPiA+IA0KPiA+
+IFthdXRvIGJ1aWxkIHRlc3QgV0FSTklORyBvbiBkbS9mb3ItbmV4dF0NCj4gPiBbYWxzbyBidWls
+ZCB0ZXN0IFdBUk5JTkcgb24gdjQuNy1yYzQgbmV4dC0yMDE2MDYyNF0NCj4gPiBbaWYgeW91ciBw
+YXRjaCBpcyBhcHBsaWVkIHRvIHRoZSB3cm9uZyBnaXQgdHJlZSwgcGxlYXNlIGRyb3AgdXMgYSBu
+b3RlIHRvDQo+ID4gaGVscCBpbXByb3ZlIHRoZSBzeXN0ZW1dDQo+ID4gDQo+ID4gdXJsOsKgwqDC
+oMKgaHR0cHM6Ly9naXRodWIuY29tLzBkYXktY2kvbGludXgvY29tbWl0cy9Ub3NoaS1LYW5pL2Rt
+LXN0cmlwZS1hZGQtDQo+ID4gREFYLXN1cHBvcnQvMjAxNjA2MjUtMDIyNjAwDQo+ID4gYmFzZTrC
+oMKgwqBodHRwczovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9kZXZp
+Y2UtbWFwcGVyL2xpbnUNCj4gPiB4LWRtLmdpdCBmb3ItbmV4dA0KPiA+IGNvbmZpZzogbTY4ay1z
+dW4zX2RlZmNvbmZpZyAoYXR0YWNoZWQgYXMgLmNvbmZpZykNCj4gPiBjb21waWxlcjogbTY4ay1s
+aW51eC1nY2MgKEdDQykgNC45LjANCj4gPiByZXByb2R1Y2U6DQo+ID4gwqDCoMKgwqDCoMKgwqDC
+oHdnZXQgaHR0cHM6Ly9naXQua2VybmVsLm9yZy9jZ2l0L2xpbnV4L2tlcm5lbC9naXQvd2ZnL2xr
+cC10ZXN0cy5naQ0KPiA+IHQvcGxhaW4vc2Jpbi9tYWtlLmNyb3NzIC1PIH4vYmluL21ha2UuY3Jv
+c3MNCj4gPiDCoMKgwqDCoMKgwqDCoMKgY2htb2QgK3ggfi9iaW4vbWFrZS5jcm9zcw0KPiA+IMKg
+wqDCoMKgwqDCoMKgwqAjIHNhdmUgdGhlIGF0dGFjaGVkIC5jb25maWcgdG8gbGludXggYnVpbGQg
+dHJlZQ0KPiA+IMKgwqDCoMKgwqDCoMKgwqBtYWtlLmNyb3NzIEFSQ0g9bTY4a8KgDQo+ID4gDQo+
+ID4gQWxsIHdhcm5pbmdzIChuZXcgb25lcyBwcmVmaXhlZCBieSA+Pik6DQo+ID4gDQo+ID4gwqDC
+oMKgZHJpdmVycy9tZC9kbS1zdHJpcGUuYzo0NTI6MjogZXJyb3I6IHVua25vd24gZmllbGQgJ2Rp
+cmVjdF9hY2Nlc3MnDQo+ID4gc3BlY2lmaWVkIGluIGluaXRpYWxpemVyDQo+ID4gwqDCoMKgwqDC
+oC5kaXJlY3RfYWNjZXNzID0gc3RyaXBlX2RpcmVjdF9hY2Nlc3MsDQo+ID4gwqDCoMKgwqDCoF4N
+Cj4gPiDCoMKgwqBkcml2ZXJzL21kL2RtLXN0cmlwZS5jOjQ1MjoyOiB3YXJuaW5nOiBtaXNzaW5n
+IGJyYWNlcyBhcm91bmQNCj4gPiBpbml0aWFsaXplciBbLVdtaXNzaW5nLWJyYWNlc10NCj4gPiDC
+oMKgwqBkcml2ZXJzL21kL2RtLXN0cmlwZS5jOjQ1MjoyOiB3YXJuaW5nOiAobmVhciBpbml0aWFs
+aXphdGlvbiBmb3INCj4gPiAnc3RyaXBlX3RhcmdldC5saXN0JykgWy1XbWlzc2luZy1icmFjZXNd
+DQo+ID4gPiANCj4gPiA+ID4gDQo+ID4gPiA+IGRyaXZlcnMvbWQvZG0tc3RyaXBlLmM6NDUyOjI6
+IHdhcm5pbmc6IGluaXRpYWxpemF0aW9uIGZyb20NCj4gPiA+ID4gaW5jb21wYXRpYmxlIHBvaW50
+ZXIgdHlwZQ0KPiA+IMKgwqDCoGRyaXZlcnMvbWQvZG0tc3RyaXBlLmM6NDUyOjI6IHdhcm5pbmc6
+IChuZWFyIGluaXRpYWxpemF0aW9uIGZvcg0KPiA+ICdzdHJpcGVfdGFyZ2V0Lmxpc3QubmV4dCcp
+DQo+DQo+IEZZSSwgb3ZlcnplYWxvdXMga2J1aWxkIHJvYm90IGJ1aWxkIGZhaWx1cmUgaGVyZS4u
+IEkgaGF2ZW4ndCBzdGFnZWQgdGhlDQo+IHByZXJlcSBETSBjb3JlIGNoYW5nZXMgeWV0IGJlY2F1
+c2UgSSdtIHdhaXRpbmcgZm9yIEplbnMgdG8gdGFrZSB0aGUgMg0KPiBibG9jayBjaGFuZ2VzIHRo
+b3NlIGRlcGVuZCBvbi4NCg0KVGhpcyBwYXRjaCBhcHBsaWVzIG9uIHRvcCBvZiB3aXAuIMKgQ291
+bGQgdGhpcyBiZSBiZWNhdXNlICdmb3ItbmV4dCcgZG9lcyBub3QNCmhhdmUgdGhlIHByZXZpb3Vz
+IGRtL2RtLWxpbmVhciBzZXJpZXM/DQoNClRoYW5rcywNCi1Ub3NoaSDCoApfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
+aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
+bi9saXN0aW5mby9saW51eC1udmRpbW0K
