@@ -1,53 +1,74 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+From: Christoph Hellwig <hch@lst.de>
 Subject: Re: xfs: untangle the direct I/O and DAX path, fix DAX locking
-Date: Fri, 24 Jun 2016 09:26:12 +0200
-Message-ID: <20160624072612.GA22205@lst.de>
-References: <1466609236-23801-1-git-send-email-hch@lst.de>
- <20160623232446.GA12670@dastard>
+Date: Fri, 24 Jun 2016 09:31:09 +0200
+Message-ID: <20160624073109.GB22205@lst.de>
+References: <1466609236-23801-1-git-send-email-hch@lst.de> <20160623232446.GA12670@dastard> <CAPcyv4iWVyJ3vb+_dtehGRxT9WXwAxNXoDMNeNtxO+=njHNAhg@mail.gmail.com> <20160624071318.GE12670@dastard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160623232446.GA12670@dastard>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
-Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, xfs-VZNHf3L845pBDgjK7y7TUQ@public.gmane.org
+In-Reply-To: <20160624071318.GE12670@dastard>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@ml01.01.org>, XFS Developers <xfs@oss.sgi.com>
 List-Id: linux-nvdimm@lists.01.org
 
-On Fri, Jun 24, 2016 at 09:24:46AM +1000, Dave Chinner wrote:
-> Except we did that *intentionally* - by definition there is no
-> cache to bypass with DAX and so all IO is "direct". That, combined
-> with the fact that all Linux filesystems except XFS break the POSIX
-> exclusive writer rule you are quoting to begin with, it seemed
-> pointless to enforce it for DAX....
+On Fri, Jun 24, 2016 at 05:13:18PM +1000, Dave Chinner wrote:
+> This is a POSIX compliant fsync() implementation:
+> 
+> int fsync(int fd)
+> {
+> 	return 0;
+> }
 
-No file system breaks the exclusive writer rule - most filesystem
-don't make writers atomic vs readers.
+Depends on what you mean with "Posix".  Modern Posix which includex
+XPG has the _POSIX_SYNCHRONIZED_IO option, which Linux implements.  For
+that Posix says about fsync:
 
-More importantly every other filesystem (well there only are ext2
-and ext4..) exludes DAX writers against other DAX writers.
+    [SIO] [Option Start] If _POSIX_SYNCHRONIZED_IO is defined, the fsync()
+    function shall force all currently queued I/O operations associated with
+    the file indicated by file descriptor fildes to the synchronized I/O
+    completion state. All I/O operations shall be completed as defined for
+    synchronized I/O file integrity completion. [Option End]
 
-> So, before taking any patches to change that behaviour in XFS, a
-> wider discussion about the policy needs to be had. I don't think
-> we should care about POSIX here - if you have an application that
-> needs this serialisation, turn off DAX. That's why I made it a
-> per-inode inheritable flag and why the mount option will go away
-> over time.
 
-Sorry, but this is simply broken - allowing apps to opt-in behavior
-(e.g. like we're using O_DIRECT) is always fine.  Requriring
-filesystem-specific tuning that has affect outside the app to get
-existing documented behavior is not how to design APIs.
+Whereas synchronized I/O file integrity completion is defined as:
 
-Maybe we'll need to opt-in to use DAX for mmap, but giving the same
-existing behavior for read and write and avoiding a copy to the pagecache
-is an obvious win.
+     3.378 Synchronized I/O Data Integrity Completion
+
+     For read, when the operation has been completed or diagnosed if
+     unsuccessful. The read is complete only when an image of the data has been
+     successfully transferred to the requesting process. If there were any
+     pending write requests affecting the data to be read at the time that the
+     synchronized read operation was requested, these write requests are
+     successfully transferred prior to reading the data.
+
+     For write, when the operation has been completed or diagnosed if
+     unsuccessful. The write is complete only when the data specified in the
+     write request is successfully transferred and all file system information
+     required to retrieve the data is successfully transferred.
+
+     File attributes that are not necessary for data retrieval (access time,
+     modification time, status change time) need not be successfully
+     transferred prior to returning to the calling process.
+
+     3.379 Synchronized I/O File Integrity Completion
+
+     Identical to a synchronized I/O data integrity completion with the
+     addition that all file attributes relative to the I/O operation (including
+     access time, modification time, status change time) are successfully
+     transferred prior to returning to the calling process.
+
+
+So in this case Posix very much requires data to be on a stable
+medium.
+
+> The POSIX exclusive write requirement is a different case. No linux
+> filesystem except XFS has ever met that requirement (in 20 something
+> years), yet I don't see applications falling over with corrupt data
+> from non-exclusive writes all the time, nor do I see application
+> developers shouting at us to provide it. i.e. reality tells us this
+> isn't a POSIX behaviour that applications rely on because everyone
+> implements it differently.
+
+Every file system exludes writes from other writes.
