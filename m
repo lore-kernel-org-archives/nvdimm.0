@@ -1,12 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 99E0D1A1E04
- for <linux-nvdimm@lists.01.org>; Tue, 21 Jun 2016 13:47:14 -0700 (PDT)
-Subject: [PATCH v4 0/5] Introduce device_add_disk() to kill
- gendisk.driverfs_dev
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 711661A1E12
+ for <linux-nvdimm@lists.01.org>; Sat, 25 Jun 2016 10:42:18 -0700 (PDT)
+Subject: [PATCH 1/2] mm: CONFIG_ZONE_DEVICE stop depending on CONFIG_EXPERT
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 21 Jun 2016 13:46:01 -0700
-Message-ID: <146654196111.34694.7735150373057824399.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 25 Jun 2016 10:41:02 -0700
+Message-ID: <146687646274.39261.14267596518720371009.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146687645727.39261.14620086569655191314.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146687645727.39261.14620086569655191314.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,76 +20,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: axboe@fb.com
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Ulf Hansson <ulf.hansson@linaro.org>, "Martin K. Petersen" <martin.petersen@oracle.com>, "Michael S. Tsirkin" <mst@redhat.com>, Richard Weinberger <richard@nod.at>, Jeff Dike <jdike@addtoit.com>, linux-kernel@vger.kernel.org, hch@lst.de, Keith Busch <keith.busch@intel.com>, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Bart Van Assche <bart.vanassche@sandisk.com>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Eric Sandeen <sandeen@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v3 [1]:
+When it was first introduced CONFIG_ZONE_DEVICE depended on disabling
+CONFIG_ZONE_DMA, a configuration choice reserved for "experts".
+However, now that the ZONE_DMA conflict has been eliminated it no longer
+makes sense to require CONFIG_EXPERT.
 
-1/ Broke out the non-trivial conversions into their own patches.
-
-2/ Fix a behavior change in arch/um/drivers/ubd_kern.c. This driver
-   optionally creates parented and un-parented block devices.  (Bart)
-
-3/ Fix a behavior change in drivers/mmc/card/block.c. This driver does
-   not use blk-core infrastructure for partitions and instead registers
-   partitions as gendisk-children of the whole device gendisk.
-   Crediting Bart since his report triggered this re-review.
-
-4/ Use the local CARD_TO_DEV() helper in drivers/block/rsxx/dev.c.
-
-5/ Use the local 'dev' variable that represents the parent device in
-   drivers/scsi/sd.c.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-June/005988.html
-
+Reported-by: Eric Sandeen <sandeen@redhat.com>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Answer the "// FIXME: remove" include/linux/genhd.h.  This should be
-functionally equivalent to the previous state.  These patches received a
-build success notification from the kbuild robot across 122 configs.
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 3e2daef3c946..d109a7a0c1c4 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -673,7 +673,7 @@ config IDLE_PAGE_TRACKING
+ 	  See Documentation/vm/idle_page_tracking.txt for more details.
+ 
+ config ZONE_DEVICE
+-	bool "Device memory (pmem, etc...) hotplug support" if EXPERT
++	bool "Device memory (pmem, etc...) hotplug support"
+ 	depends on MEMORY_HOTPLUG
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
 
----
-
-Dan Williams (5):
-      block: introduce device_add_disk()
-      mmc: move 'parent' tracking to mmc_blk_data
-      um: track 'parent' device in a local variable
-      block: convert to device_add_disk()
-      block: remove ->driverfs_dev
-
-
- arch/powerpc/sysdev/axonram.c       |    3 +--
- arch/um/drivers/ubd_kern.c          |    5 +++--
- block/genhd.c                       |   18 +++++++++---------
- drivers/block/cciss.c               |    3 +--
- drivers/block/floppy.c              |    3 +--
- drivers/block/mtip32xx/mtip32xx.c   |    5 ++---
- drivers/block/ps3disk.c             |    3 +--
- drivers/block/ps3vram.c             |    3 +--
- drivers/block/rsxx/dev.c            |    4 +---
- drivers/block/skd_main.c            |    8 +++-----
- drivers/block/sunvdc.c              |    3 +--
- drivers/block/virtio_blk.c          |    3 +--
- drivers/block/xen-blkfront.c        |    3 +--
- drivers/ide/ide-cd.c                |    3 +--
- drivers/ide/ide-gd.c                |    3 +--
- drivers/memstick/core/ms_block.c    |    3 +--
- drivers/memstick/core/mspro_block.c |    3 +--
- drivers/mmc/card/block.c            |    5 +++--
- drivers/mtd/mtd_blkdevs.c           |    4 +---
- drivers/nvdimm/blk.c                |    3 +--
- drivers/nvdimm/btt.c                |    3 +--
- drivers/nvdimm/bus.c                |    2 +-
- drivers/nvdimm/pmem.c               |    3 +--
- drivers/nvme/host/core.c            |    3 +--
- drivers/s390/block/dasd_genhd.c     |    3 +--
- drivers/s390/block/dcssblk.c        |    3 +--
- drivers/s390/block/scm_blk.c        |    3 +--
- drivers/scsi/sd.c                   |    3 +--
- drivers/scsi/sr.c                   |    3 +--
- include/linux/genhd.h               |    8 ++++++--
- 30 files changed, 50 insertions(+), 72 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
