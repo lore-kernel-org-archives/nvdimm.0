@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id C15FD1A1E04
- for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 12:31:14 -0700 (PDT)
-Subject: [PATCH v5 1/5] block: introduce device_add_disk()
+ by ml01.01.org (Postfix) with ESMTP id 81CAA1A1E00
+ for <linux-nvdimm@lists.01.org>; Sun, 26 Jun 2016 16:26:31 -0700 (PDT)
+Subject: [ndctl PATCH 9/9] test, libndctl: kill some dead code
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 27 Jun 2016 12:29:58 -0700
-Message-ID: <146705579791.39775.15665203168655855394.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146705579255.39775.12551436695635245858.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146705579255.39775.12551436695635245858.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sun, 26 Jun 2016 16:25:15 -0700
+Message-ID: <146698351517.40541.8674344835909731999.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,106 +20,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: axboe@fb.com
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, Bart Van Assche <bart.vanassche@sandisk.com>, hch@lst.de
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for removing the ->driverfs_dev member of a gendisk, add
-an api that takes the parent device as a parameter to add_disk().  For
-now this maintains the status quo of WARN()ing on failure, but not
-return a error code.
+check_namespaces() used to do some i/o testing, but that's long since
+been replaced.  Clean up some straggling statements.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
-Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- block/genhd.c         |   17 +++++++++++------
- include/linux/genhd.h |    8 +++++++-
- 2 files changed, 18 insertions(+), 7 deletions(-)
+ test/libndctl.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/block/genhd.c b/block/genhd.c
-index 9f42526b4d62..fb2d9aeb75a5 100644
---- a/block/genhd.c
-+++ b/block/genhd.c
-@@ -506,7 +506,7 @@ static int exact_lock(dev_t devt, void *data)
- 	return 0;
- }
+diff --git a/test/libndctl.c b/test/libndctl.c
+index 947849d7176b..b03fc27a5f0b 100644
+--- a/test/libndctl.c
++++ b/test/libndctl.c
+@@ -1460,7 +1460,6 @@ static int check_namespaces(struct ndctl_region *region,
+ 	ndns_save = NULL;
+ 	for (i = 0; (namespace = namespaces[i]); i++) {
+ 		struct ndctl_namespace *ndns;
+-		int fd = -1;
+ 		uuid_t uu;
  
--static void register_disk(struct gendisk *disk)
-+static void register_disk(struct device *parent, struct gendisk *disk)
- {
- 	struct device *ddev = disk_to_dev(disk);
- 	struct block_device *bdev;
-@@ -514,7 +514,7 @@ static void register_disk(struct gendisk *disk)
- 	struct hd_struct *part;
- 	int err;
+ 		snprintf(devname, sizeof(devname), "namespace%d.%d",
+@@ -1651,8 +1650,6 @@ static int check_namespaces(struct ndctl_region *region,
+ 				break;
+ 			}
+ 		}
+-		if (fd >= 0)
+-			close(fd);
+ 		namespace->do_configure = 0;
  
--	ddev->parent = disk->driverfs_dev;
-+	ddev->parent = parent;
- 
- 	dev_set_name(ddev, "%s", disk->disk_name);
- 
-@@ -573,7 +573,8 @@ exit:
- }
- 
- /**
-- * add_disk - add partitioning information to kernel list
-+ * device_add_disk - add partitioning information to kernel list
-+ * @parent: parent device for the disk
-  * @disk: per-device partitioning information
-  *
-  * This function registers the partitioning information in @disk
-@@ -581,7 +582,7 @@ exit:
-  *
-  * FIXME: error handling
-  */
--void add_disk(struct gendisk *disk)
-+void device_add_disk(struct device *parent, struct gendisk *disk)
- {
- 	struct backing_dev_info *bdi;
- 	dev_t devt;
-@@ -617,7 +618,11 @@ void add_disk(struct gendisk *disk)
- 
- 	blk_register_region(disk_devt(disk), disk->minors, NULL,
- 			    exact_match, exact_lock, disk);
--	register_disk(disk);
-+
-+	/* temporary while we convert usages to use disk_to_dev(disk)->parent */
-+	disk->driverfs_dev = parent;
-+
-+	register_disk(parent, disk);
- 	blk_register_queue(disk);
- 
- 	/*
-@@ -633,7 +638,7 @@ void add_disk(struct gendisk *disk)
- 	disk_add_events(disk);
- 	blk_integrity_add(disk);
- }
--EXPORT_SYMBOL(add_disk);
-+EXPORT_SYMBOL(device_add_disk);
- 
- void del_gendisk(struct gendisk *disk)
- {
-diff --git a/include/linux/genhd.h b/include/linux/genhd.h
-index 359a8e4bd44d..df1dabbfd388 100644
---- a/include/linux/genhd.h
-+++ b/include/linux/genhd.h
-@@ -414,7 +414,13 @@ static inline void free_part_info(struct hd_struct *part)
- extern void part_round_stats(int cpu, struct hd_struct *part);
- 
- /* block/genhd.c */
--extern void add_disk(struct gendisk *disk);
-+extern void device_add_disk(struct device *parent, struct gendisk *disk);
-+static inline void add_disk(struct gendisk *disk)
-+{
-+	/* temporary while we convert callers to device_add_disk */
-+	device_add_disk(disk->driverfs_dev, disk);
-+}
-+
- extern void del_gendisk(struct gendisk *gp);
- extern struct gendisk *get_gendisk(dev_t dev, int *partno);
- extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
+ 		__ndns_save = realloc(ndns_save,
 
 _______________________________________________
 Linux-nvdimm mailing list
