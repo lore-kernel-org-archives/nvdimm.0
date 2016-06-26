@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
- [15.241.140.78])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6AD401A1E30
- for <linux-nvdimm@lists.01.org>; Mon, 13 Jun 2016 15:32:19 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 4/6] dm-linear: Add linear_direct_access()
-Date: Mon, 13 Jun 2016 16:21:35 -0600
-Message-Id: <1465856497-19698-5-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
-References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ by ml01.01.org (Postfix) with ESMTP id 496081A1E10
+ for <linux-nvdimm@lists.01.org>; Sun, 26 Jun 2016 16:26:21 -0700 (PDT)
+Subject: [ndctl PATCH 7/9] ndctl, create-namespace: fix device-dax vs --map=
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 26 Jun 2016 16:25:04 -0700
+Message-ID: <146698350487.40541.7666344068449948979.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,63 +16,36 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: agk@redhat.com, snitzer@redhat.com, dan.j.williams@intel.com
-Cc: axboe@kernel.dk, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, dm-devel@redhat.com, viro@zeniv.linux.org.uk
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change dm-linear to implement direct_access function,
-linear_direct_access(), which maps sector and calls
-direct_access function of its target device.
+Teach validate_namespace_options() about the valid device-dax scenario
+of specifying a map location.
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/md/dm-linear.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ ndctl/builtin-xaction-namespace.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index 05c35aa..49bd7d2 100644
---- a/drivers/md/dm-linear.c
-+++ b/drivers/md/dm-linear.c
-@@ -141,6 +141,22 @@ static int linear_iterate_devices(struct dm_target *ti,
- 	return fn(ti, lc->dev, lc->start, ti->len, data);
- }
+diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
+index 7bf3320473ff..24a8d08c58f2 100644
+--- a/ndctl/builtin-xaction-namespace.c
++++ b/ndctl/builtin-xaction-namespace.c
+@@ -442,7 +442,8 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		else
+ 			p->loc = NDCTL_PFN_LOC_PMEM;
  
-+static long linear_direct_access(struct dm_target *ti, sector_t sector,
-+		void __pmem **kaddr, pfn_t *pfn, long size)
-+{
-+	struct linear_c *lc;
-+	struct block_device *tbdev;
-+	const struct block_device_operations *tops;
-+	sector_t tsector;
-+
-+	lc = ti->private;
-+	tbdev = lc->dev->bdev;
-+	tops = tbdev->bd_disk->fops;
-+	tsector = linear_map_sector(ti, sector);
-+
-+	return tops->direct_access(tbdev, tsector, kaddr, pfn, size);
-+}
-+
- static struct target_type linear_target = {
- 	.name   = "linear",
- 	.version = {1, 2, 1},
-@@ -151,6 +167,7 @@ static struct target_type linear_target = {
- 	.status = linear_status,
- 	.prepare_ioctl = linear_prepare_ioctl,
- 	.iterate_devices = linear_iterate_devices,
-+	.direct_access = linear_direct_access,
- };
- 
- int __init dm_linear_init(void)
+-		if (ndns && p->mode != NDCTL_NS_MODE_MEMORY) {
++		if (ndns && p->mode != NDCTL_NS_MODE_MEMORY
++			&& p->mode != NDCTL_NS_MODE_DAX) {
+ 			debug("%s: --map= only valid for memory mode namespace\n",
+ 				ndctl_namespace_get_devname(ndns));
+ 			return -EINVAL;
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
