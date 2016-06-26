@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x241.google.com (mail-oi0-x241.google.com
- [IPv6:2607:f8b0:4003:c06::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C8E161A1DF7
- for <linux-nvdimm@lists.01.org>; Wed,  8 Jun 2016 14:48:19 -0700 (PDT)
-Received: by mail-oi0-x241.google.com with SMTP id k63so4152073oib.2
- for <linux-nvdimm@lists.01.org>; Wed, 08 Jun 2016 14:47:59 -0700 (PDT)
-Subject: Re: [PATCH] nfit: add Microsoft NVDIMM DSM command set to white list
-References: <5cff32b5-7849-4e9d-0ba8-1f12e21814a9@gmail.com>
-From: Stuart Hayes <stuart.w.hayes@gmail.com>
-Message-ID: <790a33bd-98e9-89c8-6667-e135ada69f80@gmail.com>
-Date: Wed, 8 Jun 2016 16:47:54 -0500
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id 4677F1A1E01
+ for <linux-nvdimm@lists.01.org>; Sun, 26 Jun 2016 16:25:55 -0700 (PDT)
+Subject: [ndctl PATCH 2/9] test,
+ libndctl: invalidate dax info blocks before reuse
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 26 Jun 2016 16:24:38 -0700
+Message-ID: <146698347889.40541.8448936636550885217.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <5cff32b5-7849-4e9d-0ba8-1f12e21814a9@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,101 +17,55 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+A recent kernel fix addressed cases where a live setting change
+mismatches with the current contents of the info block.  Rather than
+silently overwrite the new settings with the info block contents the
+kernel now invalidates the info block if the uuid changes, but otherwise
+warns if a setting is mismatched.
 
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ test/libndctl.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-On 5/26/2016 11:38 AM, Stuart Hayes wrote:
-> Add the Microsoft _DSM command set to the white list of NVDIMM command sets.
->
-> This command set is documented at https://msdn.microsoft.com/library/windows/hardware/mt604741.
->
-> Signed-off-by: Stuart Hayes <stuart.w.hayes@gmail.com>
-> ---
->  drivers/acpi/nfit.c        | 9 ++++++---
->  drivers/acpi/nfit.h        | 4 ++++
->  include/uapi/linux/ndctl.h | 1 +
->  3 files changed, 11 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index 2215fc8..48fc575 100644
-> --- a/drivers/acpi/nfit.c
-> +++ b/drivers/acpi/nfit.c
-> @@ -1130,11 +1130,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
->      }
->
->      /*
-> -     * Until standardization materializes we need to consider up to 3
-> +     * Until standardization materializes we need to consider several
->       * different command sets.  Note, that checking for function0 (bit0)
->       * tells us if any commands are reachable through this uuid.
->       */
-> -    for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
-> +    for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
->          if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
->              break;
->
-> @@ -1150,7 +1150,9 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
->          dsm_mask = 0x1fe;
->          if (disable_vendor_specific)
->              dsm_mask &= ~(1 << 8);
-> -    } else {
-> +    } else if (nfit_mem->family == NVDIMM_FAMILY_MSFT)
-> +        dsm_mask = 0xffffffff;
-> +    else {
->          dev_err(dev, "unknown dimm command family\n");
->          nfit_mem->family = -1;
->          return force_enable_dimms ? 0 : -ENODEV;
-> @@ -2692,6 +2694,7 @@ static __init int nfit_init(void)
->      acpi_str_to_uuid(UUID_NFIT_DIMM, nfit_uuid[NFIT_DEV_DIMM]);
->      acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE1, nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
->      acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE2, nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
-> +    acpi_str_to_uuid(UUID_NFIT_DIMM_N_MSFT, nfit_uuid[NFIT_DEV_DIMM_N_MSFT]);
->
->      nfit_wq = create_singlethread_workqueue("nfit");
->      if (!nfit_wq)
-> diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-> index 11cb383..f06fa91 100644
-> --- a/drivers/acpi/nfit.h
-> +++ b/drivers/acpi/nfit.h
-> @@ -31,6 +31,9 @@
->  #define UUID_NFIT_DIMM_N_HPE1 "9002c334-acf3-4c0e-9642-a235f0d53bc6"
->  #define UUID_NFIT_DIMM_N_HPE2 "5008664b-b758-41a0-a03c-27c2f2d04f7e"
->
-> +/* https://msdn.microsoft.com/library/windows/hardware/mt604741 */
-> +#define UUID_NFIT_DIMM_N_MSFT "1ee68b36-d4bd-4a1a-9a16-4f8e53d46e05"
-> +
->  #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
->          | ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
->          | ACPI_NFIT_MEM_NOT_ARMED)
-> @@ -40,6 +43,7 @@ enum nfit_uuids {
->      NFIT_DEV_DIMM = NVDIMM_FAMILY_INTEL,
->      NFIT_DEV_DIMM_N_HPE1 = NVDIMM_FAMILY_HPE1,
->      NFIT_DEV_DIMM_N_HPE2 = NVDIMM_FAMILY_HPE2,
-> +    NFIT_DEV_DIMM_N_MSFT = NVDIMM_FAMILY_MSFT,
->      NFIT_SPA_VOLATILE,
->      NFIT_SPA_PM,
->      NFIT_SPA_DCR,
-> diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-> index 309915f..ba5a8c7 100644
-> --- a/include/uapi/linux/ndctl.h
-> +++ b/include/uapi/linux/ndctl.h
-> @@ -298,6 +298,7 @@ struct nd_cmd_pkg {
->  #define NVDIMM_FAMILY_INTEL 0
->  #define NVDIMM_FAMILY_HPE1 1
->  #define NVDIMM_FAMILY_HPE2 2
-> +#define NVDIMM_FAMILY_MSFT 3
->
->  #define ND_IOCTL_CALL            _IOWR(ND_IOCTL, ND_CMD_CALL,\
->                      struct nd_cmd_pkg)
+diff --git a/test/libndctl.c b/test/libndctl.c
+index 147f69d0c27a..8346108aacec 100644
+--- a/test/libndctl.c
++++ b/test/libndctl.c
+@@ -787,6 +787,12 @@ static int check_dax_create(struct ndctl_region *region,
+ 	for (i = 0; i < ARRAY_SIZE(dax_s->locs); i++) {
+ 		fprintf(stderr, "%s: %ld\n", __func__, ARRAY_SIZE(dax_s->aligns));
+ 		for (j = 0; j < ARRAY_SIZE(dax_s->aligns); j++) {
++			/*
++			 * The kernel enforces invalidating the previous
++			 * info block when the current uuid is does not
++			 * validate with the contents of the info block.
++			 */
++			dax_s->uuid[0]++;
+ 			rc = __check_dax_create(region, ndns, namespace,
+ 					dax_s->locs[i], dax_s->aligns[j],
+ 					dax_s->uuid);
+@@ -923,6 +929,12 @@ static int check_pfn_create(struct ndctl_region *region,
+ 
+ 	for (i = 0; i < ARRAY_SIZE(pfn_s->locs); i++) {
+ 		for (j = 0; j < ARRAY_SIZE(pfn_s->aligns); j++) {
++			/*
++			 * The kernel enforces invalidating the previous
++			 * info block when the current uuid is does not
++			 * validate with the contents of the info block.
++			 */
++			pfn_s->uuid[0]++;
+ 			rc = __check_pfn_create(region, ndns, namespace, buf,
+ 					pfn_s->locs[i], pfn_s->aligns[j],
+ 					pfn_s->uuid);
 
-Is there a problem with this patch?  I never saw any responses, and wasn't sure if maybe I goofed.  Thanks!
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
