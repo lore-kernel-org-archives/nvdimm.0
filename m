@@ -1,11 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id E296F1A1E05
- for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 12:31:35 -0700 (PDT)
-Subject: [PATCH v5 5/5] block: remove ->driverfs_dev
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id C15FD1A1E04
+ for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 12:31:14 -0700 (PDT)
+Subject: [PATCH v5 1/5] block: introduce device_add_disk()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 27 Jun 2016 12:30:19 -0700
-Message-ID: <146705581912.39775.9811510607157155243.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 27 Jun 2016 12:29:58 -0700
+Message-ID: <146705579791.39775.15665203168655855394.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <146705579255.39775.12551436695635245858.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <146705579255.39775.12551436695635245858.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -21,86 +21,105 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: axboe@fb.com
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, hch@lst.de
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, Bart Van Assche <bart.vanassche@sandisk.com>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that all drivers that specify a ->driverfs_dev have been converted
-to device_add_disk(), the pointer can be removed from struct gendisk.
+In preparation for removing the ->driverfs_dev member of a gendisk, add
+an api that takes the parent device as a parameter to add_disk().  For
+now this maintains the status quo of WARN()ing on failure, but not
+return a error code.
 
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- block/genhd.c         |    9 ++-------
- drivers/nvdimm/bus.c  |    2 +-
- include/linux/genhd.h |    4 +---
- 3 files changed, 4 insertions(+), 11 deletions(-)
+ block/genhd.c         |   17 +++++++++++------
+ include/linux/genhd.h |    8 +++++++-
+ 2 files changed, 18 insertions(+), 7 deletions(-)
 
 diff --git a/block/genhd.c b/block/genhd.c
-index fb2d9aeb75a5..a18d35390f1d 100644
+index 9f42526b4d62..fb2d9aeb75a5 100644
 --- a/block/genhd.c
 +++ b/block/genhd.c
-@@ -618,10 +618,6 @@ void device_add_disk(struct device *parent, struct gendisk *disk)
+@@ -506,7 +506,7 @@ static int exact_lock(dev_t devt, void *data)
+ 	return 0;
+ }
+ 
+-static void register_disk(struct gendisk *disk)
++static void register_disk(struct device *parent, struct gendisk *disk)
+ {
+ 	struct device *ddev = disk_to_dev(disk);
+ 	struct block_device *bdev;
+@@ -514,7 +514,7 @@ static void register_disk(struct gendisk *disk)
+ 	struct hd_struct *part;
+ 	int err;
+ 
+-	ddev->parent = disk->driverfs_dev;
++	ddev->parent = parent;
+ 
+ 	dev_set_name(ddev, "%s", disk->disk_name);
+ 
+@@ -573,7 +573,8 @@ exit:
+ }
+ 
+ /**
+- * add_disk - add partitioning information to kernel list
++ * device_add_disk - add partitioning information to kernel list
++ * @parent: parent device for the disk
+  * @disk: per-device partitioning information
+  *
+  * This function registers the partitioning information in @disk
+@@ -581,7 +582,7 @@ exit:
+  *
+  * FIXME: error handling
+  */
+-void add_disk(struct gendisk *disk)
++void device_add_disk(struct device *parent, struct gendisk *disk)
+ {
+ 	struct backing_dev_info *bdi;
+ 	dev_t devt;
+@@ -617,7 +618,11 @@ void add_disk(struct gendisk *disk)
  
  	blk_register_region(disk_devt(disk), disk->minors, NULL,
  			    exact_match, exact_lock, disk);
--
--	/* temporary while we convert usages to use disk_to_dev(disk)->parent */
--	disk->driverfs_dev = parent;
--
- 	register_disk(parent, disk);
+-	register_disk(disk);
++
++	/* temporary while we convert usages to use disk_to_dev(disk)->parent */
++	disk->driverfs_dev = parent;
++
++	register_disk(parent, disk);
  	blk_register_queue(disk);
  
-@@ -804,10 +800,9 @@ void __init printk_all_partitions(void)
- 			       , disk_name(disk, part->partno, name_buf),
- 			       part->info ? part->info->uuid : "");
- 			if (is_part0) {
--				if (disk->driverfs_dev != NULL &&
--				    disk->driverfs_dev->driver != NULL)
-+				if (dev->parent && dev->parent->driver)
- 					printk(" driver: %s\n",
--					      disk->driverfs_dev->driver->name);
-+					      dev->parent->driver->name);
- 				else
- 					printk(" (driver?)\n");
- 			} else
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index f085f8bceae8..5e4e5c772ea5 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -312,7 +312,7 @@ EXPORT_SYMBOL(__nd_driver_register);
+ 	/*
+@@ -633,7 +638,7 @@ void add_disk(struct gendisk *disk)
+ 	disk_add_events(disk);
+ 	blk_integrity_add(disk);
+ }
+-EXPORT_SYMBOL(add_disk);
++EXPORT_SYMBOL(device_add_disk);
  
- int nvdimm_revalidate_disk(struct gendisk *disk)
+ void del_gendisk(struct gendisk *disk)
  {
--	struct device *dev = disk->driverfs_dev;
-+	struct device *dev = disk_to_dev(disk)->parent;
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
- 	const char *pol = nd_region->ro ? "only" : "write";
- 
 diff --git a/include/linux/genhd.h b/include/linux/genhd.h
-index df1dabbfd388..1dbf52f9c24b 100644
+index 359a8e4bd44d..df1dabbfd388 100644
 --- a/include/linux/genhd.h
 +++ b/include/linux/genhd.h
-@@ -205,7 +205,6 @@ struct gendisk {
- 	void *private_data;
+@@ -414,7 +414,13 @@ static inline void free_part_info(struct hd_struct *part)
+ extern void part_round_stats(int cpu, struct hd_struct *part);
  
- 	int flags;
--	struct device *driverfs_dev;  // FIXME: remove
- 	struct kobject *slave_dir;
- 
- 	struct timer_rand_state *random;
-@@ -417,8 +416,7 @@ extern void part_round_stats(int cpu, struct hd_struct *part);
- extern void device_add_disk(struct device *parent, struct gendisk *disk);
- static inline void add_disk(struct gendisk *disk)
- {
--	/* temporary while we convert callers to device_add_disk */
--	device_add_disk(disk->driverfs_dev, disk);
-+	device_add_disk(NULL, disk);
- }
- 
+ /* block/genhd.c */
+-extern void add_disk(struct gendisk *disk);
++extern void device_add_disk(struct device *parent, struct gendisk *disk);
++static inline void add_disk(struct gendisk *disk)
++{
++	/* temporary while we convert callers to device_add_disk */
++	device_add_disk(disk->driverfs_dev, disk);
++}
++
  extern void del_gendisk(struct gendisk *gp);
+ extern struct gendisk *get_gendisk(dev_t dev, int *partno);
+ extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
 
 _______________________________________________
 Linux-nvdimm mailing list
