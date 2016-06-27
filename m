@@ -1,11 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 88E331A1DF5
- for <linux-nvdimm@lists.01.org>; Wed, 29 Jun 2016 14:25:12 -0700 (PDT)
-Subject: [PATCH] nfit: fix format interface code byte order
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id EC2281A1E00
+ for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 11:38:54 -0700 (PDT)
+Subject: [ndctl PATCH] ndctl: update readme for vmalloc() based nfit_test
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 29 Jun 2016 14:23:06 -0700
-Message-ID: <146723538651.36406.6119946272192578535.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 27 Jun 2016 11:37:38 -0700
+Message-ID: <146705265796.37678.13860374642984087356.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,88 +19,53 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Kristin Jacque <kristin.jacque@intel.com>, Robert Moore <robert.moore@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Per JEDEC Annex L Release 3 the SPD data is:
+In v4.8 when we have vmalloc() based nfit_test the test configuration no
+longer requires a CMA allocation.  While we're updating the document,
+also refresh the configuration variables.
 
-Bits 9~5 00 000 = Function Undefined
-         00 001 = Byte addressable energy backed
-         00 010 = Block addressed
-         00 011 = Byte addressable, no energy backed
-         All other codes reserved
-Bits 4~0 0 0000 = Proprietary interface
-         0 0001 = Standard interface 1
-         All other codes reserved; see Definitions of Functions
-
-...and per the ACPI 6.1 spec:
-
-    byte0: Bits 4~0 (0 or 1)
-    byte1: Bits 9~5 (1, 2, or 3)
-
-...so a format interface code displayed as 0x301 should be stored in the
-nfit as (0x1, 0x3), little-endian.
-
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Robert Elliott <elliott@hpe.com>
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=121161
-Fixes: 30ec5fd464d5 ("nfit: fix format interface code byte order per ACPI6.1")
-Fixes: 5ad9a7fde07a ("acpi/nfit: Update nfit driver to comply with ACPI 6.1")
-Reported-by: Kristin Jacque <kristin.jacque@intel.com>
+Reported-by: Yigal Korman <yigal@plexistor.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c |    6 +++---
- drivers/acpi/nfit.h |   10 +++++-----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ README.md |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 32579a7b71d5..ac6ddcc080d4 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -928,7 +928,7 @@ static ssize_t format_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
+diff --git a/README.md b/README.md
+index 76f93dafe4cb..a3def786f188 100644
+--- a/README.md
++++ b/README.md
+@@ -26,19 +26,25 @@ loaded.  To build and install nfit_test.ko:
+ `git clone -b libnvdimm-for-next
+ git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git`  
  
--	return sprintf(buf, "0x%04x\n", be16_to_cpu(dcr->code));
-+	return sprintf(buf, "0x%04x\n", le16_to_cpu(dcr->code));
- }
- static DEVICE_ATTR_RO(format);
+-2. Configure the kernel to make some memory available to CMA (contiguous
+-   memory allocator).
+-This will be used to emulate DAX.  
++2. Skip to step 3 if the kernel version is >= v4.8.  Otherwise, for
++   kernel versions < v4.8, configure the kernel to make some memory
++   available to CMA (contiguous memory allocator). This will be used to
++   emulate DAX.  
+ `CONFIG_DMA_CMA=y`  
+ `CONFIG_CMA_SIZE_MBYTES=200`  
+ **or**  
+ `cma=200M` on the kernel command line.  
  
-@@ -961,8 +961,8 @@ static ssize_t format1_show(struct device *dev,
- 				continue;
- 			if (nfit_dcr->dcr->code == dcr->code)
- 				continue;
--			rc = sprintf(buf, "%#x\n",
--					be16_to_cpu(nfit_dcr->dcr->code));
-+			rc = sprintf(buf, "0x%04x\n",
-+					le16_to_cpu(nfit_dcr->dcr->code));
- 			break;
- 		}
- 		if (rc != ENXIO)
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 11cb38348aef..02b9ea1e8d2e 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -53,12 +53,12 @@ enum nfit_uuids {
- };
+-3. Compile all components of the libnvdimm sub-system as modules:  
++3. Compile the libnvdimm sub-system as a module, make sure "zone device"
++   memory is enabled, and enable the btt, pfn, and dax features of the
++   sub-system:  
++`CONFIG_ZONE_DEVICE=y`  
+ `CONFIG_LIBNVDIMM=m`  
+ `CONFIG_BLK_DEV_PMEM=m`  
+ `CONFIG_ND_BLK=m`  
+-`CONFIG_ND_BTT=m`  
++`CONFIG_BTT=y`  
++`CONFIG_NVDIMM_PFN=y`  
++`CONFIG_NVDIMM_DAX=y`  
  
- /*
-- * Region format interface codes are stored as an array of bytes in the
-- * NFIT DIMM Control Region structure
-+ * Region format interface codes are stored with the interface as the
-+ * LSB and the function as the MSB.
-  */
--#define NFIT_FIC_BYTE cpu_to_be16(0x101) /* byte-addressable energy backed */
--#define NFIT_FIC_BLK cpu_to_be16(0x201) /* block-addressable non-energy backed */
--#define NFIT_FIC_BYTEN cpu_to_be16(0x301) /* byte-addressable non-energy backed */
-+#define NFIT_FIC_BYTE cpu_to_le16(0x101) /* byte-addressable energy backed */
-+#define NFIT_FIC_BLK cpu_to_le16(0x201) /* block-addressable non-energy backed */
-+#define NFIT_FIC_BYTEN cpu_to_le16(0x301) /* byte-addressable non-energy backed */
- 
- enum {
- 	NFIT_BLK_READ_FLUSH = 1,
+ 4. Build and install the unit test enabled libnvdimm modules in the
+    following order.  The unit test modules need to be in place prior to
 
 _______________________________________________
 Linux-nvdimm mailing list
