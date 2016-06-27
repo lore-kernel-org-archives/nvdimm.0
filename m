@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id A0FD91A1E21
- for <linux-nvdimm@lists.01.org>; Fri, 17 Jun 2016 09:35:44 -0700 (PDT)
-Subject: [PATCH v3 0/3] Introduce device_add_disk() to kill
- gendisk.driverfs_dev
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 17 Jun 2016 09:34:34 -0700
-Message-ID: <146618127395.31030.11800447312061202344.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 6AF431A1E01
+ for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 16:05:24 -0700 (PDT)
+Date: Mon, 27 Jun 2016 17:04:09 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH 0/9] updates for vmalloc-based nfit_test and
+ device-dax
+Message-ID: <20160627230409.GE20767@omniknight.lm.intel.com>
+References: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,66 +22,59 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-block@vger.kernel.org
-Cc: axboe@fb.com, Ulf Hansson <ulf.hansson@linaro.org>, "Martin K. Petersen" <martin.petersen@oracle.com>, "Michael S. Tsirkin" <mst@redhat.com>, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, James Bottomley <James.Bottomley@hansenpartnership.com>, linux-nvdimm@lists.01.org, Keith Busch <keith.busch@intel.com>, David Woodhouse <dwmw2@infradead.org>, Christoph Hellwig <hch@lst.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v2 [1]:
+On 06/26, Dan Williams wrote:
+> The kernel is moving from CMA to vmalloc() backed resources to expand
+> the range of kernels that the tests can be compiled against.  As a
+> result some of the huge page tests need to move from nfit_test to
+> memmap=ss!nn defined memory ranges.
+> 
+> The new device-dax test exposed some bugs and missing capabilities in
+> the 'create-namespace' and 'list' commands.
+> 
+> ---
+> 
+> Dan Williams (9):
+>       ndctl: deprecate pcommit
+>       test, libndctl: invalidate dax info blocks before reuse
+>       ndctl, list: list device-dax instances beneath a namespace
+>       ndctl, list: allow limiting namespace listing
+>       ndctl: add libs dependency to spec file
+>       ndctl, create-namespace: fix blk-namepsaces vs device-dax
+>       ndctl, create-namespace: fix device-dax vs --map=
+>       test, libndctl: move pfn + dax configurations to a destructive test
+>       test, libndctl: kill some dead code
+> 
+> 
+>  Documentation/ndctl-list.txt      |    6 +++
+>  ndctl.spec.in                     |    2 +
+>  ndctl/Makefile.am                 |    3 -
+>  ndctl/builtin-bat.c               |    5 --
+>  ndctl/builtin-list.c              |    6 +++
+>  ndctl/builtin-xaction-namespace.c |   12 ++++-
+>  ndctl/util/json.c                 |   40 ++++++++++++++++++
+>  test.h                            |    1 
+>  test/Makefile.am                  |    8 +---
+>  test/dax-dev.c                    |   22 +++++++---
+>  test/dax.sh                       |    5 +-
+>  test/device-dax.c                 |   32 ++++++++++++++
+>  test/device-dax.sh                |   30 ++++++++++++++
+>  test/libndctl.c                   |   82 ++++++++++++++++---------------------
+>  test/mmap.sh                      |    7 +++
+>  test/pcommit.c                    |   76 ----------------------------------
+>  util/filter.c                     |   21 +++++++++
+>  util/filter.h                     |    2 +
+>  18 files changed, 211 insertions(+), 149 deletions(-)
+>  create mode 100644 test/device-dax.c
+>  create mode 100755 test/device-dax.sh
+>  delete mode 100644 test/pcommit.c
 
-* Rebase on top of linux-block.git for-4.8/drivers
+Looks good!
 
-[1]: https://lkml.org/lkml/2016/3/11/414
-
----
-
-Answer the "// FIXME: remove" include/linux/genhd.h.  This should be
-functionally equivalent to the previous state.  These patches received a
-build success notification from the kbuild robot across 116 configs.
-
-The following series implements...
-
----
-
-Dan Williams (3):
-      block: introduce device_add_disk()
-      block: convert to device_add_disk()
-      block: remove ->driverfs_dev
-
-
- arch/powerpc/sysdev/axonram.c       |    3 +--
- arch/um/drivers/ubd_kern.c          |    3 +--
- block/genhd.c                       |   18 +++++++++---------
- drivers/block/cciss.c               |    3 +--
- drivers/block/floppy.c              |    3 +--
- drivers/block/mtip32xx/mtip32xx.c   |    5 ++---
- drivers/block/ps3disk.c             |    3 +--
- drivers/block/ps3vram.c             |    3 +--
- drivers/block/rsxx/dev.c            |    4 +---
- drivers/block/skd_main.c            |    8 +++-----
- drivers/block/sunvdc.c              |    3 +--
- drivers/block/virtio_blk.c          |    3 +--
- drivers/block/xen-blkfront.c        |    3 +--
- drivers/ide/ide-cd.c                |    3 +--
- drivers/ide/ide-gd.c                |    3 +--
- drivers/memstick/core/ms_block.c    |    3 +--
- drivers/memstick/core/mspro_block.c |    3 +--
- drivers/mmc/card/block.c            |    3 +--
- drivers/mtd/mtd_blkdevs.c           |    4 +---
- drivers/nvdimm/blk.c                |    3 +--
- drivers/nvdimm/btt.c                |    3 +--
- drivers/nvdimm/bus.c                |    2 +-
- drivers/nvdimm/pmem.c               |    3 +--
- drivers/nvme/host/core.c            |    3 +--
- drivers/s390/block/dasd_genhd.c     |    3 +--
- drivers/s390/block/dcssblk.c        |    3 +--
- drivers/s390/block/scm_blk.c        |    3 +--
- drivers/scsi/sd.c                   |    3 +--
- drivers/scsi/sr.c                   |    3 +--
- include/linux/genhd.h               |    8 ++++++--
- 30 files changed, 46 insertions(+), 72 deletions(-)
-
---
-Signature
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
