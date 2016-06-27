@@ -1,12 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 917F11A1E01
- for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 14:28:26 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2] ndctl: make completion smarter wrt mode/type/idle
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id D9F121A1E01
+ for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 14:19:33 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH] ndctl: make completion smarter wrt mode/type/idle
  options
-Date: Mon, 27 Jun 2016 15:27:25 -0600
-Message-Id: <1467062845-24290-1-git-send-email-vishal.l.verma@intel.com>
+Date: Mon, 27 Jun 2016 21:18:57 +0000
+Message-ID: <1467062314.7176.14.camel@intel.com>
+References: <1467060218-20256-1-git-send-email-vishal.l.verma@intel.com>
+ <CAPcyv4jpikCiOGyhoZZ70cWr9BAZibriGtNPJbQ1BeedXjJM2g@mail.gmail.com>
+In-Reply-To: <CAPcyv4jpikCiOGyhoZZ70cWr9BAZibriGtNPJbQ1BeedXjJM2g@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <CC4CEB8D3596614FACFFEC8743CAE9B5@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,120 +20,30 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add three new 'filters' for mode, type, and idle.
-
-'mode' and 'type' work with each other to prevent a blk namespace from
-showing modes like 'dax' or 'memory', or if those modes are specified,
-then limiting 'type' to 'pmem'.
-
-Also show completions for --map= only if mode is 'memory'.
-
-For idle filtering (typically relevant for 'ndctl list', only show idle
-{namespaces, regions} in the completion id a --idle has been specified
-on the command line so far. This makes sense because trying to list an
-idle namespace without --idle (even if you know that is the one you
-want) won't show any output withot --idle.
-
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
-
-v2: Remove filtering for --map=  (Dan)
-
- contrib/ndctl | 27 +++++++++++++++++++++++----
- 1 file changed, 23 insertions(+), 4 deletions(-)
-
-diff --git a/contrib/ndctl b/contrib/ndctl
-index b7a82fc..160a9dc 100755
---- a/contrib/ndctl
-+++ b/contrib/ndctl
-@@ -110,6 +110,8 @@ __ndctl_get_regions()
- {
- 	local opts="--regions $*"
- 	[ -n "$bus_filter" ] && opts="$opts --bus=$bus_filter"
-+	[ -n "$type_filter" ] && opts="$opts --type=$type_filter"
-+	[ -n "$idle_filter" ] && opts="$opts --idle"
- 	echo "$(ndctl list $opts | grep -E "^\s*\"dev\":" | cut -d\" -f4)"
- }
- 
-@@ -118,6 +120,8 @@ __ndctl_get_ns()
- 	opts="--namespaces $*"
- 	[ -n "$bus_filter" ] && opts="$opts --bus=$bus_filter"
- 	[ -n "$reg_filter" ] && opts="$opts --bus=$reg_filter"
-+	[ -n "$type_filter" ] && opts="$opts --type=$type_filter"
-+	[ -n "$idle_filter" ] && opts="$opts --idle"
- 	echo "$(ndctl list $opts | grep -E "^\s*\"dev\":" | cut -d\" -f4)"
- }
- 
-@@ -147,7 +151,7 @@ __ndctl_comp_options()
- 			opts=$(__ndctl_get_dimms)
- 			;;
- 		--namespace)
--			opts=$(__ndctl_get_ns -i)
-+			opts=$(__ndctl_get_ns)
- 			;;
- 		--reconfig)
- 			# It is ok to reconfig disabled namespaces
-@@ -155,9 +159,15 @@ __ndctl_comp_options()
- 			;;
- 		--type)
- 			opts="pmem blk"
-+			if [[ "$mode_filter" == @(dax|memory) ]]; then
-+				opts="pmem"
-+			fi
- 			;;
- 		--mode)
- 			opts="raw sector memory dax"
-+			if [[ "$type_filter" == "blk" ]]; then
-+				opts="raw sector"
-+			fi
- 			;;
- 		--map)
- 			opts="mem dev"
-@@ -224,13 +234,13 @@ __ndctl_prev_skip_opts ()
- 	done
- }
- 
--bus_filter=''
--reg_filter=''
--
- __ndctl_init_filters()
- {
- 	bus_filter=''
- 	reg_filter=''
-+	type_filter=''
-+	idle_filter=''
-+	mode_filter=''
- 
- 	for __word in "${words[@]}"; do
- 		if [[ "$__word" =~ --bus=(.*) ]]; then
-@@ -245,6 +255,15 @@ __ndctl_init_filters()
- 			local regions=$(__ndctl_get_regions -i)
- 			[[ "$regions" == *"$reg_filter"* ]] || reg_filter=''
- 		fi
-+		if [[ "$__word" =~ --idle ]]; then
-+			idle_filter="1"
-+		fi
-+		if [[ "$__word" =~ --type=(.*) ]]; then
-+			type_filter="${BASH_REMATCH[1]}"
-+		fi
-+		if [[ "$__word" =~ --mode=(.*) ]]; then
-+			mode_filter="${BASH_REMATCH[1]}"
-+		fi
- 	done
- }
- 
--- 
-2.5.5
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCAyMDE2LTA2LTI3IGF0IDE0OjEzIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIE1vbiwgSnVuIDI3LCAyMDE2IGF0IDE6NDMgUE0sIFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
+dmVybWFAaW50ZWwuY28NCj4gbT4gd3JvdGU6DQo+ID4gDQo+ID4gQWRkIHRocmVlIG5ldyAnZmls
+dGVycycgZm9yIG1vZGUsIHR5cGUsIGFuZCBpZGxlLg0KPiA+IA0KPiA+ICdtb2RlJyBhbmQgJ3R5
+cGUnIHdvcmsgd2l0aCBlYWNoIG90aGVyIHRvIHByZXZlbnQgYSBibGsgbmFtZXNwYWNlDQo+ID4g
+ZnJvbQ0KPiA+IHNob3dpbmcgbW9kZXMgbGlrZSAnZGF4JyBvciAnbWVtb3J5Jywgb3IgaWYgdGhv
+c2UgbW9kZXMgYXJlDQo+ID4gc3BlY2lmaWVkLA0KPiA+IHRoZW4gbGltaXRpbmcgJ3R5cGUnIHRv
+ICdwbWVtJy4NCj4gPiANCj4gPiBBbHNvIHNob3cgY29tcGxldGlvbnMgZm9yIC0tbWFwPSBvbmx5
+IGlmIG1vZGUgaXMgJ21lbW9yeScuDQo+IC0tbWFwPSBpcyBhbHNvIHZhbGlkIHdoZW4gdGhlIG1v
+ZGUgaXMgJ2RheCcuDQo+IA0KPiBUaGVyZSdzIGFsc28gYW4gYXNzdW1wdGlvbiBpbiB0aGUgLS1y
+ZWNvbmZpZz0gY2FzZSBmb3INCj4gJ2NyZWF0ZS1uYW1lc3BhY2UnIHRoYXQgcGFyYW1ldGVycyBh
+cmUgaW5oZXJpdGVkIGZyb20gdGhlIHRhcmdldA0KPiBuYW1lc3BhY2UuwqDCoEZvciBleGFtcGxl
+LCBpdCBtaWdodCBiZSBzdXJwcmlzaW5nIHRoYXQgY29tcGxldGlvbnMgYXJlDQo+IG5vdCBwcm92
+aWRlZCBmb3IgLS1tYXA9IHdoZW4gdGhlIG1vZGUgaXMgaW1wbGllZCBieSB0aGUgcHJvdmlkZWQN
+Cj4gbmFtZXNwYWNlLg0KDQpHb29kIHBvaW50IC0gSSBndWVzcyB0aGVuIGl0IG1ha2VzIHNlbnNl
+IHRvIGRyb3AgdGhlIGNoZWNraW5nIGVudGlyZWx5DQpmb3IgLS1tYXAuLiBJJ2xsIHNlbmQgYSB2
+Mi4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
+bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
+dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
