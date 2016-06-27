@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
- [15.241.140.78])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 849BF1A1E36
- for <linux-nvdimm@lists.01.org>; Mon, 13 Jun 2016 15:32:17 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 3/6] dm: Add dm_blk_direct_access() for mapped device
-Date: Mon, 13 Jun 2016 16:21:34 -0600
-Message-Id: <1465856497-19698-4-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
-References: <1465856497-19698-1-git-send-email-toshi.kani@hpe.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 755F31A1E01
+ for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 14:29:54 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH v2] ndctl: make completion smarter wrt
+ mode/type/idle options
+Date: Mon, 27 Jun 2016 21:29:18 +0000
+Message-ID: <1467062935.7176.15.camel@intel.com>
+References: <1467062845-24290-1-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1467062845-24290-1-git-send-email-vishal.l.verma@intel.com>
+Content-Language: en-US
+Content-ID: <73C41846C1866B43A31E0173CCCE0E1B@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,107 +19,71 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: agk@redhat.com, snitzer@redhat.com, dan.j.williams@intel.com
-Cc: axboe@kernel.dk, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, dm-devel@redhat.com, viro@zeniv.linux.org.uk
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change mapped device to implement direct_access function,
-dm_blk_direct_access(), which calls a target direct_access
-function.  'struct target_type' is extended to have target
-direct_access interface.  This function limits direct
-accessible size to the dm_target's limit with max_io_len().
-
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- drivers/md/dm.c               |   29 +++++++++++++++++++++++++++++
- include/linux/device-mapper.h |   10 ++++++++++
- 2 files changed, 39 insertions(+)
-
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 1b2f962..6e9f958 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1473,6 +1473,34 @@ int dm_set_target_max_io_len(struct dm_target *ti, sector_t len)
- }
- EXPORT_SYMBOL_GPL(dm_set_target_max_io_len);
- 
-+static long dm_blk_direct_access(struct block_device *bdev, sector_t sector,
-+	void __pmem **kaddr, pfn_t *pfn, long size)
-+{
-+	struct mapped_device *md = bdev->bd_disk->private_data;
-+	struct dm_table *map;
-+	struct dm_target *ti;
-+	int srcu_idx;
-+	long len, ret = -EIO;
-+
-+	map = dm_get_live_table(md, &srcu_idx);
-+	if (!map)
-+		return ret;
-+
-+	ti = dm_table_find_target(map, sector);
-+	if (!dm_target_is_valid(ti))
-+		goto out;
-+
-+	len = max_io_len(sector, ti) << SECTOR_SHIFT;
-+	size = min(len, size);
-+
-+	if (ti->type->direct_access)
-+		ret = ti->type->direct_access(ti, sector, kaddr, pfn, size);
-+
-+out:
-+	dm_put_live_table(md, srcu_idx);
-+	return min(ret, size);
-+}
-+
- /*
-  * A target may call dm_accept_partial_bio only from the map routine.  It is
-  * allowed for all bio types except REQ_FLUSH.
-@@ -3721,6 +3749,7 @@ static const struct block_device_operations dm_blk_dops = {
- 	.open = dm_blk_open,
- 	.release = dm_blk_close,
- 	.ioctl = dm_blk_ioctl,
-+	.direct_access = dm_blk_direct_access,
- 	.getgeo = dm_blk_getgeo,
- 	.pr_ops = &dm_pr_ops,
- 	.owner = THIS_MODULE
-diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
-index 0830c9e..16e6c8c 100644
---- a/include/linux/device-mapper.h
-+++ b/include/linux/device-mapper.h
-@@ -116,6 +116,15 @@ typedef void (*dm_io_hints_fn) (struct dm_target *ti,
-  */
- typedef int (*dm_busy_fn) (struct dm_target *ti);
- 
-+/*
-+ * Returns:
-+ *  < 0 : error
-+ * >= 0 : the number of bytes accessible at the address
-+ */
-+typedef long (*dm_direct_access_fn) (struct dm_target *ti, sector_t sector,
-+				     void __pmem **kaddr, pfn_t *pfn,
-+				     long size);
-+
- void dm_error(const char *message);
- 
- struct dm_dev {
-@@ -162,6 +171,7 @@ struct target_type {
- 	dm_busy_fn busy;
- 	dm_iterate_devices_fn iterate_devices;
- 	dm_io_hints_fn io_hints;
-+	dm_direct_access_fn direct_access;
- 
- 	/* For internal device-mapper use. */
- 	struct list_head list;
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCAyMDE2LTA2LTI3IGF0IDE1OjI3IC0wNjAwLCBWaXNoYWwgVmVybWEgd3JvdGU6DQo+
+IEFkZCB0aHJlZSBuZXcgJ2ZpbHRlcnMnIGZvciBtb2RlLCB0eXBlLCBhbmQgaWRsZS4NCj4gDQo+
+ICdtb2RlJyBhbmQgJ3R5cGUnIHdvcmsgd2l0aCBlYWNoIG90aGVyIHRvIHByZXZlbnQgYSBibGsg
+bmFtZXNwYWNlIGZyb20NCj4gc2hvd2luZyBtb2RlcyBsaWtlICdkYXgnIG9yICdtZW1vcnknLCBv
+ciBpZiB0aG9zZSBtb2RlcyBhcmUgc3BlY2lmaWVkLA0KPiB0aGVuIGxpbWl0aW5nICd0eXBlJyB0
+byAncG1lbScuDQo+IA0KPiBBbHNvIHNob3cgY29tcGxldGlvbnMgZm9yIC0tbWFwPSBvbmx5IGlm
+IG1vZGUgaXMgJ21lbW9yeScuDQoNCk9vcHMsIHRoaXMgbGluZSBzaG91bGQndmUgYmVlbiBkZWxl
+dGVkLi4gQ2FuIHlvdSBmaXh1cCBwbGVhc2U/DQoNCj4gDQo+IEZvciBpZGxlIGZpbHRlcmluZyAo
+dHlwaWNhbGx5IHJlbGV2YW50IGZvciAnbmRjdGwgbGlzdCcsIG9ubHkgc2hvdw0KPiBpZGxlDQo+
+IHtuYW1lc3BhY2VzLCByZWdpb25zfSBpbiB0aGUgY29tcGxldGlvbiBpZCBhIC0taWRsZSBoYXMg
+YmVlbiBzcGVjaWZpZWQNCj4gb24gdGhlIGNvbW1hbmQgbGluZSBzbyBmYXIuIFRoaXMgbWFrZXMg
+c2Vuc2UgYmVjYXVzZSB0cnlpbmcgdG8gbGlzdCBhbg0KPiBpZGxlIG5hbWVzcGFjZSB3aXRob3V0
+IC0taWRsZSAoZXZlbiBpZiB5b3Uga25vdyB0aGF0IGlzIHRoZSBvbmUgeW91DQo+IHdhbnQpIHdv
+bid0IHNob3cgYW55IG91dHB1dCB3aXRob3QgLS1pZGxlLg0KPiANCj4gU2lnbmVkLW9mZi1ieTog
+VmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IC0tLQ0KPiANCj4gdjI6
+IFJlbW92ZSBmaWx0ZXJpbmcgZm9yIC0tbWFwPcKgwqAoRGFuKQ0KPiANCj4gwqBjb250cmliL25k
+Y3RsIHwgMjcgKysrKysrKysrKysrKysrKysrKysrKystLS0tDQo+IMKgMSBmaWxlIGNoYW5nZWQs
+IDIzIGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvY29u
+dHJpYi9uZGN0bCBiL2NvbnRyaWIvbmRjdGwNCj4gaW5kZXggYjdhODJmYy4uMTYwYTlkYyAxMDA3
+NTUNCj4gLS0tIGEvY29udHJpYi9uZGN0bA0KPiArKysgYi9jb250cmliL25kY3RsDQo+IEBAIC0x
+MTAsNiArMTEwLDggQEAgX19uZGN0bF9nZXRfcmVnaW9ucygpDQo+IMKgew0KPiDCoAlsb2NhbCBv
+cHRzPSItLXJlZ2lvbnMgJCoiDQo+IMKgCVsgLW4gIiRidXNfZmlsdGVyIiBdICYmIG9wdHM9IiRv
+cHRzIC0tYnVzPSRidXNfZmlsdGVyIg0KPiArCVsgLW4gIiR0eXBlX2ZpbHRlciIgXSAmJiBvcHRz
+PSIkb3B0cyAtLXR5cGU9JHR5cGVfZmlsdGVyIg0KPiArCVsgLW4gIiRpZGxlX2ZpbHRlciIgXSAm
+JiBvcHRzPSIkb3B0cyAtLWlkbGUiDQo+IMKgCWVjaG8gIiQobmRjdGwgbGlzdCAkb3B0cyB8IGdy
+ZXAgLUUgIl5ccypcImRldlwiOiIgfCBjdXQgLWRcIg0KPiAtZjQpIg0KPiDCoH0NCj4gwqANCj4g
+QEAgLTExOCw2ICsxMjAsOCBAQCBfX25kY3RsX2dldF9ucygpDQo+IMKgCW9wdHM9Ii0tbmFtZXNw
+YWNlcyAkKiINCj4gwqAJWyAtbiAiJGJ1c19maWx0ZXIiIF0gJiYgb3B0cz0iJG9wdHMgLS1idXM9
+JGJ1c19maWx0ZXIiDQo+IMKgCVsgLW4gIiRyZWdfZmlsdGVyIiBdICYmIG9wdHM9IiRvcHRzIC0t
+YnVzPSRyZWdfZmlsdGVyIg0KPiArCVsgLW4gIiR0eXBlX2ZpbHRlciIgXSAmJiBvcHRzPSIkb3B0
+cyAtLXR5cGU9JHR5cGVfZmlsdGVyIg0KPiArCVsgLW4gIiRpZGxlX2ZpbHRlciIgXSAmJiBvcHRz
+PSIkb3B0cyAtLWlkbGUiDQo+IMKgCWVjaG8gIiQobmRjdGwgbGlzdCAkb3B0cyB8IGdyZXAgLUUg
+Il5ccypcImRldlwiOiIgfCBjdXQgLWRcIg0KPiAtZjQpIg0KPiDCoH0NCj4gwqANCj4gQEAgLTE0
+Nyw3ICsxNTEsNyBAQCBfX25kY3RsX2NvbXBfb3B0aW9ucygpDQo+IMKgCQkJb3B0cz0kKF9fbmRj
+dGxfZ2V0X2RpbW1zKQ0KPiDCoAkJCTs7DQo+IMKgCQktLW5hbWVzcGFjZSkNCj4gLQkJCW9wdHM9
+JChfX25kY3RsX2dldF9ucyAtaSkNCj4gKwkJCW9wdHM9JChfX25kY3RsX2dldF9ucykNCj4gwqAJ
+CQk7Ow0KPiDCoAkJLS1yZWNvbmZpZykNCj4gwqAJCQkjIEl0IGlzIG9rIHRvIHJlY29uZmlnIGRp
+c2FibGVkIG5hbWVzcGFjZXMNCj4gQEAgLTE1NSw5ICsxNTksMTUgQEAgX19uZGN0bF9jb21wX29w
+dGlvbnMoKQ0KPiDCoAkJCTs7DQo+IMKgCQktLXR5cGUpDQo+IMKgCQkJb3B0cz0icG1lbSBibGsi
+DQo+ICsJCQlpZiBbWyAiJG1vZGVfZmlsdGVyIiA9PSBAKGRheHxtZW1vcnkpIF1dOw0KPiB0aGVu
+DQo+ICsJCQkJb3B0cz0icG1lbSINCj4gKwkJCWZpDQo+IMKgCQkJOzsNCj4gwqAJCS0tbW9kZSkN
+Cj4gwqAJCQlvcHRzPSJyYXcgc2VjdG9yIG1lbW9yeSBkYXgiDQo+ICsJCQlpZiBbWyAiJHR5cGVf
+ZmlsdGVyIiA9PSAiYmxrIiBdXTsgdGhlbg0KPiArCQkJCW9wdHM9InJhdyBzZWN0b3IiDQo+ICsJ
+CQlmaQ0KPiDCoAkJCTs7DQo+IMKgCQktLW1hcCkNCj4gwqAJCQlvcHRzPSJtZW0gZGV2Ig0KPiBA
+QCAtMjI0LDEzICsyMzQsMTMgQEAgX19uZGN0bF9wcmV2X3NraXBfb3B0cyAoKQ0KPiDCoAlkb25l
+DQo+IMKgfQ0KPiDCoA0KPiAtYnVzX2ZpbHRlcj0nJw0KPiAtcmVnX2ZpbHRlcj0nJw0KPiAtDQo+
+IMKgX19uZGN0bF9pbml0X2ZpbHRlcnMoKQ0KPiDCoHsNCj4gwqAJYnVzX2ZpbHRlcj0nJw0KPiDC
+oAlyZWdfZmlsdGVyPScnDQo+ICsJdHlwZV9maWx0ZXI9JycNCj4gKwlpZGxlX2ZpbHRlcj0nJw0K
+PiArCW1vZGVfZmlsdGVyPScnDQo+IMKgDQo+IMKgCWZvciBfX3dvcmQgaW4gIiR7d29yZHNbQF19
+IjsgZG8NCj4gwqAJCWlmIFtbICIkX193b3JkIiA9fiAtLWJ1cz0oLiopIF1dOyB0aGVuDQo+IEBA
+IC0yNDUsNiArMjU1LDE1IEBAIF9fbmRjdGxfaW5pdF9maWx0ZXJzKCkNCj4gwqAJCQlsb2NhbCBy
+ZWdpb25zPSQoX19uZGN0bF9nZXRfcmVnaW9ucyAtaSkNCj4gwqAJCQlbWyAiJHJlZ2lvbnMiID09
+ICoiJHJlZ19maWx0ZXIiKiBdXSB8fA0KPiByZWdfZmlsdGVyPScnDQo+IMKgCQlmaQ0KPiArCQlp
+ZiBbWyAiJF9fd29yZCIgPX4gLS1pZGxlIF1dOyB0aGVuDQo+ICsJCQlpZGxlX2ZpbHRlcj0iMSIN
+Cj4gKwkJZmkNCj4gKwkJaWYgW1sgIiRfX3dvcmQiID1+IC0tdHlwZT0oLiopIF1dOyB0aGVuDQo+
+ICsJCQl0eXBlX2ZpbHRlcj0iJHtCQVNIX1JFTUFUQ0hbMV19Ig0KPiArCQlmaQ0KPiArCQlpZiBb
+WyAiJF9fd29yZCIgPX4gLS1tb2RlPSguKikgXV07IHRoZW4NCj4gKwkJCW1vZGVfZmlsdGVyPSIk
+e0JBU0hfUkVNQVRDSFsxXX0iDQo+ICsJCWZpDQo+IMKgCWRvbmUNCj4gwqB9DQo+IMKgCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBt
+YWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
