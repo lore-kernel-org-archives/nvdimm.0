@@ -1,65 +1,66 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: xfs: untangle the direct I/O and DAX path, fix DAX locking
-Date: Sat, 25 Jun 2016 09:00:45 +1000
-Message-ID: <20160624230045.GG12670@dastard>
-References: <1466609236-23801-1-git-send-email-hch@lst.de>
- <20160623232446.GA12670@dastard>
- <20160624072612.GA22205@lst.de>
+From: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] ndctl: delete duplicate -v on "ndctl destroy-namespace
+ --help" page
+Date: Mon, 27 Jun 2016 19:01:46 +0800
+Message-ID: <1467025306-12846-1-git-send-email-yizhan@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160624072612.GA22205@lst.de>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: xfs@oss.sgi.com, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Fri, Jun 24, 2016 at 09:26:12AM +0200, Christoph Hellwig wrote:
-> On Fri, Jun 24, 2016 at 09:24:46AM +1000, Dave Chinner wrote:
-> > Except we did that *intentionally* - by definition there is no
-> > cache to bypass with DAX and so all IO is "direct". That, combined
-> > with the fact that all Linux filesystems except XFS break the POSIX
-> > exclusive writer rule you are quoting to begin with, it seemed
-> > pointless to enforce it for DAX....
-> 
-> No file system breaks the exclusive writer rule - most filesystem
-> don't make writers atomic vs readers.
-> 
-> More importantly every other filesystem (well there only are ext2
-> and ext4..) exludes DAX writers against other DAX writers.
-> 
-> > So, before taking any patches to change that behaviour in XFS, a
-> > wider discussion about the policy needs to be had. I don't think
-> > we should care about POSIX here - if you have an application that
-> > needs this serialisation, turn off DAX. That's why I made it a
-> > per-inode inheritable flag and why the mount option will go away
-> > over time.
-> 
-> Sorry, but this is simply broken - allowing apps to opt-in behavior
-> (e.g. like we're using O_DIRECT) is always fine.  Requriring
-> filesystem-specific tuning that has affect outside the app to get
-> existing documented behavior is not how to design APIs.
+"ndctl destroy-namespace --help" page display below two -v option:
+[1]-v, --verbose
+	Emit debug messages for the namespace operation
+[2]-v, --verbose
+	Emit debug messages for the namespace destruction operation
 
-Using DAX is an *admin decision*, not an application decision.
-Indeed, it's a mount option right now, and that's most definitely not
-something the application can turn on or off! Inode flags allow the
-admin to decide that two apps working on the same filesystem can use
-(or not use) DAX independently, rather than needing to put them on
-different filesystems.
+Delete the first one which included from xable-namespace-options.txt
 
-> Maybe we'll need to opt-in to use DAX for mmap, but giving the same
-> existing behavior for read and write and avoiding a copy to the pagecache
-> is an obvious win.
+Signed-off-by: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ Documentation/ndctl-destroy-namespace.txt | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-You can't use DAX just for mmap. It's an inode scope behaviour -
-once it's turned on, all accesses to that inode - regardless of user
-interface - must use DAX. It's all or nothing, not a per file
-descript/mmap context option.
-
-Cheers,
-
-Dave.
+diff --git a/Documentation/ndctl-destroy-namespace.txt b/Documentation/ndctl-destroy-namespace.txt
+index ea6d285..3ebb0e8 100644
+--- a/Documentation/ndctl-destroy-namespace.txt
++++ b/Documentation/ndctl-destroy-namespace.txt
+@@ -14,7 +14,15 @@ include::namespace-description.txt[]
+ 
+ OPTIONS
+ -------
+-include::xable-namespace-options.txt[]
++<namespace>::
++A 'namespaceX.Y' device name. The keyword 'all' can be specified to carry out
++the operation on every namespace in the system, optionally filtered by region
++(see --region=option)
++
++-r::
++--region=::
++include::xable-region-options.txt[]
++
+ -f::
+ --force::
+ 	Unless this option is specified the 'destroy namespace'
+@@ -26,7 +34,6 @@ include::xable-namespace-options.txt[]
+ --verbose::
+ 	Emit debug messages for the namespace destruction operation
+ 
+-
+ SEE ALSO
+ --------
+ linkndctl:ndctl-create-namespace[1]
 -- 
-Dave Chinner
-david@fromorbit.com
+2.5.0
