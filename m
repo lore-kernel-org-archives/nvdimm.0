@@ -1,52 +1,83 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH 1/2] mm: CONFIG_ZONE_DEVICE stop depending on CONFIG_EXPERT
-Date: Mon, 27 Jun 2016 09:39:31 -0400
-Message-ID: <x49a8i692ek.fsf@segfault.boston.devel.redhat.com>
-References: <146687645727.39261.14620086569655191314.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<146687646274.39261.14267596518720371009.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Postmaster" <mdaemon-h606tYA93WWFX2APIN6yfw@public.gmane.org>
+Subject: =?utf-8?b?6K2m5ZGKOiDmlLbku7bnrrEtbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZy0=?=
+ =?utf-8?b?5piv5pyJ6ZmQ55qEIFs4IOacquS8oOmAkueahOa2iOaBr10=?=
+Date: Mon, 27 Jun 2016 03:44:30 +0300
+Message-ID: <20160627181218.02E5A1A1E00@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <146687646274.39261.14267596518720371009.stgit@dwillia2-desk3.amr.corp.intel.com>
-	(Dan Williams's message of "Sat, 25 Jun 2016 10:41:02 -0700")
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: akpm@linux-foundation.org, linux-mm@kvack.org, Eric Sandeen <sandeen@redhat.com>, linux-kernel@vger.kernel.org, linux-nvdimm@ml01.01.org
+Content-Type: multipart/mixed; boundary="===============8269634167563491599=="
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Description: Mail message body
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Dan Williams <dan.j.williams@intel.com> writes:
+You will not see this in a MIME-aware mail reader.
+--===============8269634167563491599==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Description: Mail message body
 
-> When it was first introduced CONFIG_ZONE_DEVICE depended on disabling
-> CONFIG_ZONE_DMA, a configuration choice reserved for "experts".
-> However, now that the ZONE_DMA conflict has been eliminated it no longer
-> makes sense to require CONFIG_EXPERT.
->
-> Reported-by: Eric Sandeen <sandeen@redhat.com>
-> Reported-by: Jeff Moyer <jmoyer@redhat.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+=5728=60A8=7684SMTP/ POP=8BBE=7F6E=4E00=4E2A=9519=8BEF=963B=6B62=67D0=4E9B=
+=4F20=5165=7684=7535=5B50=90AE=4EF6=2026=2026
+ =
 
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
+    =
 
-> ---
->  mm/Kconfig |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/mm/Kconfig b/mm/Kconfig
-> index 3e2daef3c946..d109a7a0c1c4 100644
-> --- a/mm/Kconfig
-> +++ b/mm/Kconfig
-> @@ -673,7 +673,7 @@ config IDLE_PAGE_TRACKING
->  	  See Documentation/vm/idle_page_tracking.txt for more details.
->  
->  config ZONE_DEVICE
-> -	bool "Device memory (pmem, etc...) hotplug support" if EXPERT
-> +	bool "Device memory (pmem, etc...) hotplug support"
->  	depends on MEMORY_HOTPLUG
->  	depends on MEMORY_HOTREMOVE
->  	depends on SPARSEMEM_VMEMMAP
+   =65F6=95F4=FF1A	 2016-06-26
+  =6536=4EF6=4EBA=FF1A	 linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+ =
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+   =6295=9012=8BE6=60C5=FF1A	 =89C1=9644=4EF6
+  =9000=4FE1=89E3=91CA=FF1A	  =5728=60A8=7684SMTP/ POP=8BBE=7F6E=4E00=4E2A=
+=9519=8BEF=963B=6B62=67D0=4E9B=4F20=5165=7684=7535=5B50=90AE=4EF6=2026=2026=
+ 550-5.1.1 :POP=914D=7F6E=6587=672C=65E0=6CD5=9A8C=8BC1
+  =5EFA=8BAE=89E3=51B3=65B9=6848=FF1A	    =
+
+ =
+
+
+ =
+
+ =53D1=9001=62A5=544A=FF0C=6765=5E2E=52A9=6211=4EEC=7684=56E2=961F=89E3=
+=51B3=4E86=8FD9=4E2A=95EE=9898:=53D1=9001=62A5=544A
+ =
+
+ =4F60=7684=7535=5B50=90AE=4EF6=53EF=80FD=4F1A=88AB=5B8C=5168=5835=585E=
+=FF0C=5982=679C=4E0D=62A5=8FD9=4E2A=9519=8BEF=3002
+
+
+  =53C2=8003=4FE1=606F=FF1A	    =
+
+ This is the mail system at host regular1.263xmail.com.
+ =
+
+ host mail07.irisgraphic.com[216.14.208.27] said: 451 DNS temporary failure=
+ (#4.3.0) (in reply to RCPT TO command)
+
+
+
+----------------
+=6B64=90AE=4EF6=4E3A=7CFB=7EDF=81EA=52A8=53D1=9001=FF0C=8BF7=4E0D=8981=76F4=
+=63A5=56DE=590D:)
+  =20
+
+--===============8269634167563491599==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============8269634167563491599==--
