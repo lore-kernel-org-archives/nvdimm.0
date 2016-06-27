@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from na01-by2-obe.outbound.protection.outlook.com
- (mail-by2on0640.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fc0c::640])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B23AF1A1E03
- for <linux-nvdimm@lists.01.org>; Tue, 28 Jun 2016 00:23:53 -0700 (PDT)
-Subject: Re: [PATCH v5 3/5] um: track 'parent' device in a local variable
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id 446561A1E02
+ for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 12:31:25 -0700 (PDT)
+Subject: [PATCH v5 3/5] um: track 'parent' device in a local variable
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 27 Jun 2016 12:30:08 -0700
+Message-ID: <146705580842.39775.16180359577535598750.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146705579255.39775.12551436695635245858.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <146705579255.39775.12551436695635245858.stgit@dwillia2-desk3.amr.corp.intel.com>
- <146705580842.39775.16180359577535598750.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Message-ID: <5965be1f-6b0b-d6f7-f6b0-d73b9be87267@sandisk.com>
-Date: Tue, 28 Jun 2016 09:23:05 +0200
 MIME-Version: 1.0
-In-Reply-To: <146705580842.39775.16180359577535598750.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,20 +16,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, axboe@fb.com
+To: axboe@fb.com
 Cc: linux-nvdimm@lists.01.org, Richard Weinberger <richard@nod.at>, Jeff Dike <jdike@addtoit.com>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, Bart Van Assche <bart.vanassche@sandisk.com>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 06/27/2016 09:30 PM, Dan Williams wrote:
-> In preparation for the removal of 'driverfs_dev' from 'struct gendisk'
-> use a local variable to track the parented vs un-parented case in
-> ubd_disk_register().
+In preparation for the removal of 'driverfs_dev' from 'struct gendisk'
+use a local variable to track the parented vs un-parented case in
+ubd_disk_register().
 
-Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Bart Van Assche <bart.vanassche@sandisk.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/um/drivers/ubd_kern.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/arch/um/drivers/ubd_kern.c b/arch/um/drivers/ubd_kern.c
+index ef6b4d960bad..f3540270d096 100644
+--- a/arch/um/drivers/ubd_kern.c
++++ b/arch/um/drivers/ubd_kern.c
+@@ -801,6 +801,7 @@ static void ubd_device_release(struct device *dev)
+ static int ubd_disk_register(int major, u64 size, int unit,
+ 			     struct gendisk **disk_out)
+ {
++	struct device *parent = NULL;
+ 	struct gendisk *disk;
+ 
+ 	disk = alloc_disk(1 << UBD_SHIFT);
+@@ -823,12 +824,12 @@ static int ubd_disk_register(int major, u64 size, int unit,
+ 		ubd_devs[unit].pdev.dev.release = ubd_device_release;
+ 		dev_set_drvdata(&ubd_devs[unit].pdev.dev, &ubd_devs[unit]);
+ 		platform_device_register(&ubd_devs[unit].pdev);
+-		disk->driverfs_dev = &ubd_devs[unit].pdev.dev;
++		parent = &ubd_devs[unit].pdev.dev;
+ 	}
+ 
+ 	disk->private_data = &ubd_devs[unit];
+ 	disk->queue = ubd_devs[unit].queue;
+-	add_disk(disk);
++	device_add_disk(parent, disk);
+ 
+ 	*disk_out = disk;
+ 	return 0;
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
