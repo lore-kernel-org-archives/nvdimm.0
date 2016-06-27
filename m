@@ -1,66 +1,52 @@
-From: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] ndctl: delete duplicate -v on "ndctl destroy-namespace
- --help" page
-Date: Mon, 27 Jun 2016 19:01:46 +0800
-Message-ID: <1467025306-12846-1-git-send-email-yizhan@redhat.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH 1/2] mm: CONFIG_ZONE_DEVICE stop depending on CONFIG_EXPERT
+Date: Mon, 27 Jun 2016 09:39:31 -0400
+Message-ID: <x49a8i692ek.fsf@segfault.boston.devel.redhat.com>
+References: <146687645727.39261.14620086569655191314.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<146687646274.39261.14267596518720371009.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Content-Type: text/plain
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <146687646274.39261.14267596518720371009.stgit@dwillia2-desk3.amr.corp.intel.com>
+	(Dan Williams's message of "Sat, 25 Jun 2016 10:41:02 -0700")
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org, Eric Sandeen <sandeen@redhat.com>, linux-kernel@vger.kernel.org, linux-nvdimm@ml01.01.org
 List-Id: linux-nvdimm@lists.01.org
 
-"ndctl destroy-namespace --help" page display below two -v option:
-[1]-v, --verbose
-	Emit debug messages for the namespace operation
-[2]-v, --verbose
-	Emit debug messages for the namespace destruction operation
+Dan Williams <dan.j.williams@intel.com> writes:
 
-Delete the first one which included from xable-namespace-options.txt
+> When it was first introduced CONFIG_ZONE_DEVICE depended on disabling
+> CONFIG_ZONE_DMA, a configuration choice reserved for "experts".
+> However, now that the ZONE_DMA conflict has been eliminated it no longer
+> makes sense to require CONFIG_EXPERT.
+>
+> Reported-by: Eric Sandeen <sandeen@redhat.com>
+> Reported-by: Jeff Moyer <jmoyer@redhat.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Signed-off-by: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- Documentation/ndctl-destroy-namespace.txt | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
 
-diff --git a/Documentation/ndctl-destroy-namespace.txt b/Documentation/ndctl-destroy-namespace.txt
-index ea6d285..3ebb0e8 100644
---- a/Documentation/ndctl-destroy-namespace.txt
-+++ b/Documentation/ndctl-destroy-namespace.txt
-@@ -14,7 +14,15 @@ include::namespace-description.txt[]
- 
- OPTIONS
- -------
--include::xable-namespace-options.txt[]
-+<namespace>::
-+A 'namespaceX.Y' device name. The keyword 'all' can be specified to carry out
-+the operation on every namespace in the system, optionally filtered by region
-+(see --region=option)
-+
-+-r::
-+--region=::
-+include::xable-region-options.txt[]
-+
- -f::
- --force::
- 	Unless this option is specified the 'destroy namespace'
-@@ -26,7 +34,6 @@ include::xable-namespace-options.txt[]
- --verbose::
- 	Emit debug messages for the namespace destruction operation
- 
--
- SEE ALSO
- --------
- linkndctl:ndctl-create-namespace[1]
--- 
-2.5.0
+> ---
+>  mm/Kconfig |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/mm/Kconfig b/mm/Kconfig
+> index 3e2daef3c946..d109a7a0c1c4 100644
+> --- a/mm/Kconfig
+> +++ b/mm/Kconfig
+> @@ -673,7 +673,7 @@ config IDLE_PAGE_TRACKING
+>  	  See Documentation/vm/idle_page_tracking.txt for more details.
+>  
+>  config ZONE_DEVICE
+> -	bool "Device memory (pmem, etc...) hotplug support" if EXPERT
+> +	bool "Device memory (pmem, etc...) hotplug support"
+>  	depends on MEMORY_HOTPLUG
+>  	depends on MEMORY_HOTREMOVE
+>  	depends on SPARSEMEM_VMEMMAP
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
