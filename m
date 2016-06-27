@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id 6AF431A1E01
- for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 16:05:24 -0700 (PDT)
-Date: Mon, 27 Jun 2016 17:04:09 -0600
-From: Vishal Verma <vishal.l.verma@intel.com>
+Received: from mail-lf0-x22c.google.com (mail-lf0-x22c.google.com
+ [IPv6:2a00:1450:4010:c07::22c])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 835DB1A1E00
+ for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 04:38:23 -0700 (PDT)
+Received: by mail-lf0-x22c.google.com with SMTP id l188so153289037lfe.2
+ for <linux-nvdimm@lists.01.org>; Mon, 27 Jun 2016 04:37:49 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Yigal Korman <yigal@plexistor.com>
+Date: Mon, 27 Jun 2016 14:37:28 +0300
+Message-ID: <CACTTzNa=JNiDbfCshWJE4YNbKJpjpscRXha9W1QiYaM-vPjrVA@mail.gmail.com>
 Subject: Re: [ndctl PATCH 0/9] updates for vmalloc-based nfit_test and
  device-dax
-Message-ID: <20160627230409.GE20767@omniknight.lm.intel.com>
-References: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <146698346627.40541.14661847967712551305.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,17 +30,20 @@ To: Dan Williams <dan.j.williams@intel.com>
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 06/26, Dan Williams wrote:
+On Mon, Jun 27, 2016 at 2:24 AM, Dan Williams <dan.j.williams@intel.com> wrote:
 > The kernel is moving from CMA to vmalloc() backed resources to expand
 > the range of kernels that the tests can be compiled against.  As a
 > result some of the huge page tests need to move from nfit_test to
 > memmap=ss!nn defined memory ranges.
-> 
+
+Don't forget to update README.md, it describes how to use CMA for the testing...
+
+>
 > The new device-dax test exposed some bugs and missing capabilities in
 > the 'create-namespace' and 'list' commands.
-> 
+>
 > ---
-> 
+>
 > Dan Williams (9):
 >       ndctl: deprecate pcommit
 >       test, libndctl: invalidate dax info blocks before reuse
@@ -47,8 +54,8 @@ On 06/26, Dan Williams wrote:
 >       ndctl, create-namespace: fix device-dax vs --map=
 >       test, libndctl: move pfn + dax configurations to a destructive test
 >       test, libndctl: kill some dead code
-> 
-> 
+>
+>
 >  Documentation/ndctl-list.txt      |    6 +++
 >  ndctl.spec.in                     |    2 +
 >  ndctl/Makefile.am                 |    3 -
@@ -56,7 +63,7 @@ On 06/26, Dan Williams wrote:
 >  ndctl/builtin-list.c              |    6 +++
 >  ndctl/builtin-xaction-namespace.c |   12 ++++-
 >  ndctl/util/json.c                 |   40 ++++++++++++++++++
->  test.h                            |    1 
+>  test.h                            |    1
 >  test/Makefile.am                  |    8 +---
 >  test/dax-dev.c                    |   22 +++++++---
 >  test/dax.sh                       |    5 +-
@@ -71,10 +78,10 @@ On 06/26, Dan Williams wrote:
 >  create mode 100644 test/device-dax.c
 >  create mode 100755 test/device-dax.sh
 >  delete mode 100644 test/pcommit.c
-
-Looks good!
-
-Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
