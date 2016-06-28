@@ -1,15 +1,17 @@
-From: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
 Subject: Re: [PATCH 1/2] dm: update table type check for dax
-Date: Tue, 28 Jun 2016 16:07:15 -0400
-Message-ID: <20160628200714.GC8300@redhat.com>
+Date: Tue, 28 Jun 2016 20:23:24 +0000
+Message-ID: <1467145398.3504.439.camel@hpe.com>
 References: <1467142636-21094-1-git-send-email-toshi.kani@hpe.com>
  <1467142636-21094-2-git-send-email-toshi.kani@hpe.com>
+ <20160628200714.GC8300@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1467142636-21094-2-git-send-email-toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+In-Reply-To: <20160628200714.GC8300-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <CC3D77EC1505104AA4FE21289D8FF6E1-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,68 +21,33 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: "snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Jun 28 2016 at  3:37pm -0400,
-Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
-
-> Allow table type DM_TYPE_BIO_BASED to extend with
-> DM_TYPE_DAX_BIO_BASED since DM_TYPE_DAX_BIO_BASED
-> supports bio-based requests.
-> 
-> Signed-off-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-> Cc: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Alasdair Kergon <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/md/dm-ioctl.c |   11 ++++++++++-
->  1 file changed, 10 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/md/dm-ioctl.c b/drivers/md/dm-ioctl.c
-> index b59e3459..0f32791 100644
-> --- a/drivers/md/dm-ioctl.c
-> +++ b/drivers/md/dm-ioctl.c
-> @@ -1267,6 +1267,15 @@ static int populate_table(struct dm_table *table,
->  	return dm_table_complete(table);
->  }
->  
-> +static bool is_valid_type(unsigned cur, unsigned new)
-> +{
-> +	if (cur == new ||
-> +	    (cur == DM_TYPE_BIO_BASED && new == DM_TYPE_DAX_BIO_BASED))
-> +		return true;
-> +
-> +	return false;
-> +}
-> +
->  static int table_load(struct dm_ioctl *param, size_t param_size)
->  {
->  	int r;
-> @@ -1309,7 +1318,7 @@ static int table_load(struct dm_ioctl *param, size_t param_size)
->  			DMWARN("unable to set up device queue for new table.");
->  			goto err_unlock_md_type;
->  		}
-> -	} else if (dm_get_md_type(md) != dm_table_get_type(t)) {
-> +	} else if (!is_valid_type(dm_get_md_type(md), dm_table_get_type(t))) {
->  		DMWARN("can't change device type after initial table load.");
->  		r = -EINVAL;
->  		goto err_unlock_md_type;
-> 
-
-You said in the 0th header: "Patch 1 solves an error when lvremove is
-made to a snapshot device."
-
-I'm not seeing why this patch 1 fixes anything specific to snapshot
-device removal (but I can see why patch 2 makes snapshot creation
-"work").  I'll apply your 2nd patch and see if I can see what you mean.
-
-I actually see this error, without either of your 2 proposed patches
-applied, when I try to create a snapshot of a DAX capable LV:
-
-# lvcreate -s -n snap -L 100M pmem/lv
-  device-mapper: reload ioctl on (253:7) failed: Invalid argument
-  Failed to lock logical volume pmem/lv.
-  Aborting. Manual intervention required.
-Jun 28 15:57:28 rhel-storage-02 kernel: device-mapper: ioctl: can't change device type after initial table load.
+T24gVHVlLCAyMDE2LTA2LTI4IGF0IDE2OjA3IC0wNDAwLCBNaWtlIFNuaXR6ZXIgd3JvdGU6DQo+
+IE9uIFR1ZSwgSnVuIDI4IDIwMTYgYXTCoMKgMzozN3BtIC0wNDAwLA0KPiBUb3NoaSBLYW5pIDx0
+b3NoaS5rYW5pQGhwZS5jb20+IHdyb3RlOg0KwqA6DQo+IFlvdSBzYWlkIGluIHRoZSAwdGggaGVh
+ZGVyOiAiUGF0Y2ggMSBzb2x2ZXMgYW4gZXJyb3Igd2hlbiBsdnJlbW92ZSBpcw0KPiBtYWRlIHRv
+IGEgc25hcHNob3QgZGV2aWNlLiINCj4gDQo+IEknbSBub3Qgc2VlaW5nIHdoeSB0aGlzIHBhdGNo
+IDEgZml4ZXMgYW55dGhpbmcgc3BlY2lmaWMgdG8gc25hcHNob3QNCj4gZGV2aWNlIHJlbW92YWwg
+KGJ1dCBJIGNhbiBzZWUgd2h5IHBhdGNoIDIgbWFrZXMgc25hcHNob3QgY3JlYXRpb24NCj4gIndv
+cmsiKS7CoMKgSSdsbCBhcHBseSB5b3VyIDJuZCBwYXRjaCBhbmQgc2VlIGlmIEkgY2FuIHNlZSB3
+aGF0IHlvdSBtZWFuLg0KPiANCj4gSSBhY3R1YWxseSBzZWUgdGhpcyBlcnJvciwgd2l0aG91dCBl
+aXRoZXIgb2YgeW91ciAyIHByb3Bvc2VkIHBhdGNoZXMNCj4gYXBwbGllZCwgd2hlbiBJIHRyeSB0
+byBjcmVhdGUgYSBzbmFwc2hvdCBvZiBhIERBWCBjYXBhYmxlIExWOg0KPiANCj4gIyBsdmNyZWF0
+ZSAtcyAtbiBzbmFwIC1MIDEwME0gcG1lbS9sdg0KPiDCoCBkZXZpY2UtbWFwcGVyOiByZWxvYWQg
+aW9jdGwgb24gKDI1Mzo3KSBmYWlsZWQ6IEludmFsaWQgYXJndW1lbnQNCj4gwqAgRmFpbGVkIHRv
+IGxvY2sgbG9naWNhbCB2b2x1bWUgcG1lbS9sdi4NCj4gwqAgQWJvcnRpbmcuIE1hbnVhbCBpbnRl
+cnZlbnRpb24gcmVxdWlyZWQuDQo+IEp1biAyOCAxNTo1NzoyOCByaGVsLXN0b3JhZ2UtMDIga2Vy
+bmVsOiBkZXZpY2UtbWFwcGVyOiBpb2N0bDogY2FuJ3QgY2hhbmdlDQo+IGRldmljZSB0eXBlIGFm
+dGVyIGluaXRpYWwgdGFibGUgbG9hZC4NCg0KWWVzLCBwYXRjaCAyIGZpeGVzIHRoaXMgZXJyb3Iu
+DQoNCkkgaGF2ZSBub3QgbG9va2VkIGludG8gd2h5IGx2cmVtb3ZlIGRvZXMgdGhpcywgYnV0IGx2
+cmVtb3ZlIHRvIGEgc25hcHNob3QNCmRldmljZSBmYWlscyB0byByZWxvYWQgRE0gdGFibGUgb2Yg
+IjxkZXY+LWx2c25hcCIgZGV2aWNlICh3aGljaCBpcyBtYXJrZWQgYXMNCkRNX1RZUEVfQklPX0JB
+U0VEKSB3aXRoIERNX1RZUEVfREFYX0JJT19CQVNFRC4gwqBQYXRjaCAxIGZpeGVzIHRoaXMgZXJy
+b3IuIMKgSQ0KdGhpbmsgaXQgYWxzbyBnZW5lcmFsbHkgbWFrZXMgc2Vuc2UgdG8gYWxsb3cgdGhp
+cyBjYXNlLg0KDQpUaGFua3MsDQotVG9zaGkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1A
+bGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
+bnZkaW1tCg==
