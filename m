@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CB23B1A1DF1
- for <linux-nvdimm@lists.01.org>; Fri, 24 Jun 2016 03:30:00 -0700 (PDT)
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: [PATCH] e820: use module_platform_driver
-Date: Fri, 24 Jun 2016 12:29:24 +0200
-Message-Id: <1466764164-69726-1-git-send-email-jthumshirn@suse.de>
+Received: from g2t2352.austin.hpe.com (g2t2352.austin.hpe.com [15.233.44.25])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0D26B1A1E06
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Jun 2016 12:38:00 -0700 (PDT)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 0/2] Support DAX for device-mapper dm-linear devices
+Date: Tue, 28 Jun 2016 13:37:14 -0600
+Message-Id: <1467142636-21094-1-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,45 +20,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org
+To: snitzer@redhat.com
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, dm-devel@redhat.com, agk@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-User module_platform_driver macro instead of open-coding it.
+I noticed that dm-snap reloads DM table of target mapped-device, which
+fails for dax-capable device after dax support is added.  Ideally,
+adding dax support to dm-snap solves the issue, but it cannot be done
+easily.  This patch-set allows dm-snap to work with dax-capable target
+devices when bio-based operation is used.
 
-Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
+dax operation is unsupported with dm-snap, such that:
+ a) After snapshot is taken, mount with dax option to a target device
+    or a snapshot device fails.  They can be mounted without dax.
+ b) After snapshot is taken to a dax-mounted target device, any writes 
+    to the target device fails (EIO).
+
+b) can be protected by changing lvcreate to fail when snapshot is
+requested to a dax-mounted target device. 
+
+- Patch 1 solves an error when lvremove is made to a snapshot device.
+- Patch 2 solves an error when lvcreate --snapshot is made to a dax-
+  capable device.
+
 ---
- drivers/nvdimm/e820.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+Toshi Kani (2):
+ 1/2 dm: update table type check for dax
+ 2/2 dm snap: add fake origin_direct_access
 
-diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
-index 95825b3..6c449fe 100644
---- a/drivers/nvdimm/e820.c
-+++ b/drivers/nvdimm/e820.c
-@@ -82,19 +82,8 @@ static struct platform_driver e820_pmem_driver = {
- 		.name = "e820_pmem",
- 	},
- };
--
--static __init int e820_pmem_init(void)
--{
--	return platform_driver_register(&e820_pmem_driver);
--}
--
--static __exit void e820_pmem_exit(void)
--{
--	platform_driver_unregister(&e820_pmem_driver);
--}
-+module_platform_driver(e820_pmem_driver);
- 
- MODULE_ALIAS("platform:e820_pmem*");
- MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Intel Corporation");
--module_init(e820_pmem_init);
--module_exit(e820_pmem_exit);
--- 
-1.8.5.6
-
+---
+ drivers/md/dm-ioctl.c | 11 ++++++++++-
+ drivers/md/dm-snap.c  |  8 ++++++++
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
