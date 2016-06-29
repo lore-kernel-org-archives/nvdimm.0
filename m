@@ -1,17 +1,18 @@
-From: Boaz Harrosh <boaz-/8YdC2HfS5554TAoqtyWWQ@public.gmane.org>
-Subject: Re: xfs: untangle the direct I/O and DAX path, fix DAX locking
-Date: Wed, 29 Jun 2016 15:23:48 +0300
-Message-ID: <5773BDD4.60705@plexistor.com>
-References: <1466609236-23801-1-git-send-email-hch@lst.de>
- <20160623232446.GA12670@dastard> <20160624072612.GA22205@lst.de>
- <20160624230045.GG12670@dastard> <20160628131059.GA30475@lst.de>
- <57727B27.7060104@plexistor.com> <20160628133928.GB31283@lst.de>
- <5772820E.2080403@plexistor.com> <20160628153925.GA2643@lst.de>
+From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH 1/2] dm: update table type check for dax
+Date: Wed, 29 Jun 2016 15:19:05 +0000
+Message-ID: <1467213538.3504.442.camel@hpe.com>
+References: <1467142636-21094-1-git-send-email-toshi.kani@hpe.com>
+ <1467142636-21094-2-git-send-email-toshi.kani@hpe.com>
+ <20160628200714.GC8300@redhat.com> <1467145398.3504.439.camel@hpe.com>
+ <20160629004049.GA9721@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20160628153925.GA2643-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <20160629004049.GA9721-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <55DC4A9F57B87C4B8A7431721C9D1254-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,62 +22,58 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Boaz Harrosh <boaz-/8YdC2HfS5554TAoqtyWWQ@public.gmane.org>
-Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, xfs-VZNHf3L845pBDgjK7y7TUQ@public.gmane.org
+To: "snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On 06/28/2016 06:39 PM, Christoph Hellwig wrote:
-> On Tue, Jun 28, 2016 at 04:56:30PM +0300, Boaz Harrosh wrote:
->> Actually with O_APPEND each write request should write a different region
->> of the file, there are no overlapping writes. And no issue of which version of the
->> write came last and got its data written.
-> 
-> You have one fd for multiple threads or processes (it doesn't matter if
-> you're using O_APPEND or not), and all of them write to it.
-> 
-
-Yes so? but they do not write to the same (overlapping) region of the
-file, each thread usually writes to his own record.
-
-> i_size is only updated once the write finishes, so having multiple
-> concurrent writes will mean multiple records go into the same regions.
-> Now to be fair in current XFS writes beyond i_size will always take
-> the lock exclusively, so for this case we will not get concurrent
-> writes and thus data corruption anyway.  
-
-Exactly that I understand. And it must be so.
-
-> But if you have a cycling
-> log that gets overwritten (say a database journal) we're back to
-> square one.
-> 
-
-No! In this "cycling log" case the application (the DB) has an Head and a Tail
-pointers each thread grabs the next available record and writes to it. The IO
-is not overlapping, each thread writes to his own record, and even if they
-write at the same time they do not over-write each other. As long as they
-properly sync on the Head pointer the write itself can happen in parallel. This is not a
-good example and will work perfectly well with the old (current) DAX code.
-(Even if such records where 4k aligned)
-
->> I still don't see how an application can use the fact that two writers
->> will not give them mixed records. And surly it does not work on a shared
->> FS. So I was really wondering if you know of any such app
-> 
-> If it doesn't work for two threads using the same fd on a shared fs
-> the fs is broken.
-
-What works? the above cycling log, sure it will work, also on current
-dax code.
-
-I wish you could write a test to demonstrate this bug. Sorry for my
-slowness but I don't see it. I do not see how the fact that there is
-only a single memcpy in progress can help an application.
-Yes sure isize update must be synced, which it is in current code.
-
-Thanks Christoph, I've taken too much of your time, I guess the QA
-will need to bang every possible application and see what breaks when
-multiple parallel writers are allowed on a single file. So far for
-whatever I use in a VM it all works just the same.
-
-Boaz
+T24gVHVlLCAyMDE2LTA2LTI4IGF0IDIwOjQwIC0wNDAwLCBNaWtlIFNuaXR6ZXIgd3JvdGU6DQo+
+IE9uIFR1ZSwgSnVuIDI4IDIwMTYgYXTCoMKgNDoyM3BtIC0wNDAwLA0KPiBLYW5pLCBUb3NoaW1p
+dHN1IDx0b3NoaS5rYW5pQGhwZS5jb20+IHdyb3RlOg0KPiANCj4gPiBPbiBUdWUsIDIwMTYtMDYt
+MjggYXQgMTY6MDcgLTA0MDAsIE1pa2UgU25pdHplciB3cm90ZToNCj4gPiA+IA0KPiA+ID4gT24g
+VHVlLCBKdW4gMjggMjAxNiBhdMKgwqAzOjM3cG0gLTA0MDAsDQo+ID4gPiBUb3NoaSBLYW5pIDx0
+b3NoaS5rYW5pQGhwZS5jb20+IHdyb3RlOg0KPiA+IMKgOg0KPiA+ID4gDQo+ID4gPiBZb3Ugc2Fp
+ZCBpbiB0aGUgMHRoIGhlYWRlcjogIlBhdGNoIDEgc29sdmVzIGFuIGVycm9yIHdoZW4gbHZyZW1v
+dmUgaXMNCj4gPiA+IG1hZGUgdG8gYSBzbmFwc2hvdCBkZXZpY2UuIg0KPiA+ID4gDQo+ID4gPiBJ
+J20gbm90IHNlZWluZyB3aHkgdGhpcyBwYXRjaCAxIGZpeGVzIGFueXRoaW5nIHNwZWNpZmljIHRv
+IHNuYXBzaG90DQo+ID4gPiBkZXZpY2UgcmVtb3ZhbCAoYnV0IEkgY2FuIHNlZSB3aHkgcGF0Y2gg
+MiBtYWtlcyBzbmFwc2hvdCBjcmVhdGlvbg0KPiA+ID4gIndvcmsiKS7CoMKgSSdsbCBhcHBseSB5
+b3VyIDJuZCBwYXRjaCBhbmQgc2VlIGlmIEkgY2FuIHNlZSB3aGF0IHlvdSBtZWFuLg0KPiA+ID4g
+DQo+ID4gPiBJIGFjdHVhbGx5IHNlZSB0aGlzIGVycm9yLCB3aXRob3V0IGVpdGhlciBvZiB5b3Vy
+IDIgcHJvcG9zZWQgcGF0Y2hlcw0KPiA+ID4gYXBwbGllZCwgd2hlbiBJIHRyeSB0byBjcmVhdGUg
+YSBzbmFwc2hvdCBvZiBhIERBWCBjYXBhYmxlIExWOg0KPiA+ID4gDQo+ID4gPiAjIGx2Y3JlYXRl
+IC1zIC1uIHNuYXAgLUwgMTAwTSBwbWVtL2x2DQo+ID4gPiDCoCBkZXZpY2UtbWFwcGVyOiByZWxv
+YWQgaW9jdGwgb24gKDI1Mzo3KSBmYWlsZWQ6IEludmFsaWQgYXJndW1lbnQNCj4gPiA+IMKgIEZh
+aWxlZCB0byBsb2NrIGxvZ2ljYWwgdm9sdW1lIHBtZW0vbHYuDQo+ID4gPiDCoCBBYm9ydGluZy4g
+TWFudWFsIGludGVydmVudGlvbiByZXF1aXJlZC4NCj4gPiA+IEp1biAyOCAxNTo1NzoyOCByaGVs
+LXN0b3JhZ2UtMDIga2VybmVsOiBkZXZpY2UtbWFwcGVyOiBpb2N0bDogY2FuJ3QNCj4gPiA+IGNo
+YW5nZSBkZXZpY2UgdHlwZSBhZnRlciBpbml0aWFsIHRhYmxlIGxvYWQuDQo+ID4NCj4gPiBZZXMs
+IHBhdGNoIDIgZml4ZXMgdGhpcyBlcnJvci4NCj4gPiANCj4gPiBJIGhhdmUgbm90IGxvb2tlZCBp
+bnRvIHdoeSBsdnJlbW92ZSBkb2VzIHRoaXMsIGJ1dCBsdnJlbW92ZSB0byBhIHNuYXBzaG90DQo+
+ID4gZGV2aWNlIGZhaWxzIHRvIHJlbG9hZCBETSB0YWJsZSBvZiAiPGRldj4tbHZzbmFwIiBkZXZp
+Y2UgKHdoaWNoIGlzIG1hcmtlZA0KPiA+IGFzIERNX1RZUEVfQklPX0JBU0VEKSB3aXRoIERNX1RZ
+UEVfREFYX0JJT19CQVNFRC4gwqBQYXRjaCAxIGZpeGVzIHRoaXMNCj4gPiBlcnJvci4NCj4NCj4g
+SXQgbG9va3MgbGlrZSBhIHN0cmFuZ2UgaW50ZXJtZWRpYXRlIHN0YXRlIHRoYXQgbHZtMiB1c2Vz
+IGR1cmluZw0KPiBzbmFwc2hvdCByZW1vdmFsLg0KPiANCj4gRnVsbCBsaXN0aW5nIG9mIHNuYXBz
+aG90IHJlbGF0ZWQgRE0gdGFibGVzIChiZWZvcmUgbHZyZW1vdmUpOg0KPiANCj4gcG1lbS1sdi1y
+ZWFsOiAwIDYwODY2NTYgbGluZWFyIDI1OTowIDIwNDgNCj4gcG1lbS1sdjogMCA2MDg2NjU2IHNu
+YXBzaG90LW9yaWdpbiAyNTM6NQ0KPiBwbWVtLXNuYXAtY293OiAwIDIwNDgwMCBsaW5lYXIgMjU5
+OjAgNjA4ODcwNA0KPiBwbWVtLXNuYXA6IDAgNjA4NjY1NiBzbmFwc2hvdCAyNTM6NSAyNTM6NiBQ
+IDgNCj4gDQo+IFdoZW4gcmVtb3ZpbmcgdGhpcyBzbmFwc2hvdCB3ZSdyZSB3YW50aW5nIHRvIGJl
+IGxlZnQgd2l0aDoNCj4gDQo+IHBtZW0tbHY6IDAgNjA4NjY1NiBsaW5lYXIgMjU5OjAgMjA0OA0K
+PiANCj4gSSBhdWdtZW50ZWQgdGhlIERNIGNvcmUgZXJyb3IgdG8gYmUgbW9yZSBleHByZXNzaXZl
+LCByZXN1bHRpbmcgaW46DQo+IMKgIGRldmljZS1tYXBwZXI6IGlvY3RsOiAyNTM6NzogY2FuJ3Qg
+Y2hhbmdlIGRldmljZSB0eXBlIChmcm9tIDEgdG8gNCkgYWZ0ZXINCj4gaW5pdGlhbCB0YWJsZSBs
+b2FkLg0KPiANCj4gMSBpcyBETV9UWVBFX0JJT19CQVNFRCBhbmQgNCBpcyBETV9UWVBFX0RBWF9C
+SU9fQkFTRUQgLS0gd2hpY2ggbWFrZXMNCj4gc2Vuc2UgZ2l2ZW4gdGhlIGxpbmVhciB0YXJnZXQg
+aXMgRE1fVFlQRV9EQVhfQklPX0JBU0VELg0KPiANCj4gVGhlIHByZXZpb3VzIERNIHRhYmxlIGZv
+ciAyNTM6NyB3YXM6DQo+IMKgIHBtZW0tc25hcDogMCA2MDg2NjU2IHNuYXBzaG90IDI1Mzo1IDI1
+Mzo2IFAgOA0KPiANCj4gVGhlIGludGVybWVkaWF0ZSB0YWJsZSB0aGF0IGx2bTIgaXMgdHJ5aW5n
+IHRvIGxvYWQgZm9yIDI1Mzo3IGlzOg0KPiDCoCAwIDIwNDgwMCBsaW5lYXIgMjU5OjAgNjA4ODcw
+NA0KPiANCj4gKHRoaXMgbGluZWFyIHRhcmdldCB3YXMgcHJldmlvdXNseSBwbWVtLXNuYXAtY293
+KQ0KDQpZZXMsIHRoYXQgaXMgY29uc2lzdGVudCB3aXRoIHdoYXQgSSBzYXcuDQoNCj4gPiANCj4g
+PiBJIHRoaW5rIGl0IGFsc28gZ2VuZXJhbGx5IG1ha2VzIHNlbnNlIHRvIGFsbG93IHRoaXMgY2Fz
+ZS4NCj4NCj4gWW91J3JlIHByb2JhYmx5IHJpZ2h0IGJ1dCBJIG5lZWQgdG8gdGhpbmsgYWJvdXQg
+aXQgYSBsaXR0bGUgYml0IG1vcmUuDQoNClNvdW5kcyBnb29kLg0KDQpUaGFua3MhDQotVG9zaGkN
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
+ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3Rz
+LjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
