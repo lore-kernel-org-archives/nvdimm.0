@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id 5F3801A1E1D
- for <linux-nvdimm@lists.01.org>; Wed, 29 Jun 2016 16:19:45 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH] acpi, nfit: print command names instead of numbers
-Date: Wed, 29 Jun 2016 23:19:07 +0000
-Message-ID: <1467242324.10222.0.camel@intel.com>
-References: <1467241230-15054-1-git-send-email-vishal.l.verma@intel.com>
- <CAPcyv4gFZc2CizeMhc7v+ZzdLpL5tWRO+0JrTY-GDTFMryVefA@mail.gmail.com>
-In-Reply-To: <CAPcyv4gFZc2CizeMhc7v+ZzdLpL5tWRO+0JrTY-GDTFMryVefA@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <B91593ACA20EE543A2861022E793775B@intel.com>
+Received: from mail-ob0-x235.google.com (mail-ob0-x235.google.com
+ [IPv6:2607:f8b0:4003:c01::235])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 10BBC1A1DF5
+ for <linux-nvdimm@lists.01.org>; Wed, 29 Jun 2016 16:13:28 -0700 (PDT)
+Received: by mail-ob0-x235.google.com with SMTP id o10so34878002obp.2
+ for <linux-nvdimm@lists.01.org>; Wed, 29 Jun 2016 16:12:52 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1467241230-15054-1-git-send-email-vishal.l.verma@intel.com>
+References: <1467241230-15054-1-git-send-email-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 29 Jun 2016 16:12:50 -0700
+Message-ID: <CAPcyv4gFZc2CizeMhc7v+ZzdLpL5tWRO+0JrTY-GDTFMryVefA@mail.gmail.com>
+Subject: Re: [PATCH] acpi, nfit: print command names instead of numbers
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,30 +21,30 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCAyMDE2LTA2LTI5IGF0IDE2OjEyIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIFdlZCwgSnVuIDI5LCAyMDE2IGF0IDQ6MDAgUE0sIFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
-dmVybWFAaW50ZWwuY28NCj4gbT4gd3JvdGU6DQo+ID4gDQo+ID4gRm9yIHRoZSBkZWJ1ZyBwcmlu
-dHMgaW4gYWNwaV9uZml0X2N0bCgpLCBhbGwgdGhlIHByaW50cyBleGNlcHQgdGhlDQo+ID4gaW5w
-dXQNCj4gPiBidWZmZXIgZHVtcCBwcmludGVkIHRoZSBjb21tYW5kIG5hbWUuIE1ha2UgdGhpcyBh
-bHNvIGRvIHRoZSBzYW1lIGZvcg0KPiA+IGJldHRlciByZWFkYWJpbGl0eS4NCj4gPiANCj4gPiBD
-YzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4gQ2M6IFJhZmFl
-bCBKLiBXeXNvY2tpIDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNvbT4NCj4gPiBTaWduZWQtb2Zm
-LWJ5OiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4NCj4gPiAtLS0NCj4g
-PiDCoGRyaXZlcnMvYWNwaS9uZml0LmMgfCA0ICsrLS0NCj4gPiDCoDEgZmlsZSBjaGFuZ2VkLCAy
-IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+IFdlIHVzZWQgdG8gZG8gdGhpcywgYnV0
-IG52ZGltbV9jbWRfbmFtZSgpIGN1cnJlbnRseSBvbmx5IGtub3dzIHRoZQ0KPiBuYW1lcyBmb3Ig
-dGhlICJJbnRlbCIgRFNNcy7CoMKgQXQgYSBtaW5pbXVtIHdlIHNob3VsZCBmb3JjZSBjbWRfbmFt
-ZSB0bw0KPiAidW5rbm93biIgZm9yIHRoZSBvdGhlciBmb3JtYXRzIHVudGlsIHN1cHBvcnQgaXMg
-YWRkZWQuDQoNCkxvb2tzIGxpa2UgYm90aCB0aGUgY21kX25hbWUgZnVuY3Rpb25zIChmb3IgYnVz
-IGFuZCBkaW1tKSBhbHJlYWR5IGRvDQpyZXR1cm4gJ3Vua25vd24nIHdoZW4gYSBtYXRjaCBpc24n
-dCBmb3VuZD8KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-TGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBz
-Oi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Wed, Jun 29, 2016 at 4:00 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> For the debug prints in acpi_nfit_ctl(), all the prints except the input
+> buffer dump printed the command name. Make this also do the same for
+> better readability.
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  drivers/acpi/nfit.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+
+We used to do this, but nvdimm_cmd_name() currently only knows the
+names for the "Intel" DSMs.  At a minimum we should force cmd_name to
+"unknown" for the other formats until support is added.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
