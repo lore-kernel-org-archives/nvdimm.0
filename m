@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id 5F95E1A1E4B
- for <linux-nvdimm@lists.01.org>; Sat,  4 Jun 2016 13:54:34 -0700 (PDT)
-Subject: [PATCH 11/13] Revert "KVM: x86: add pcommit support"
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 04 Jun 2016 13:53:31 -0700
-Message-ID: <146507361167.8347.15855177951605325281.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146507355220.8347.12117020810872172684.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id 900091A1E20
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Jun 2016 18:02:15 -0700 (PDT)
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm fixes for 4.7-rc6
+Date: Fri, 1 Jul 2016 01:01:35 +0000
+Message-ID: <1467334896.11105.19.camel@intel.com>
+Content-Language: en-US
+Content-ID: <E9234A9C728CC14C86DE8F2E0E189082@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,200 +16,173 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, hch@lst.de
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This reverts commit 8b3e34e46aca9b6d349b331cd9cf71ccbdc91b2e.
-
-Given the deprecation of the pcommit instruction, revert its usage as a
-vm exit source in kvm.
-
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/include/asm/vmx.h      |    1 -
- arch/x86/include/uapi/asm/vmx.h |    4 +---
- arch/x86/kvm/cpuid.c            |    2 +-
- arch/x86/kvm/cpuid.h            |    8 --------
- arch/x86/kvm/vmx.c              |   32 ++++----------------------------
- 5 files changed, 6 insertions(+), 41 deletions(-)
-
-diff --git a/arch/x86/include/asm/vmx.h b/arch/x86/include/asm/vmx.h
-index 14c63c7e8337..a002b07a7099 100644
---- a/arch/x86/include/asm/vmx.h
-+++ b/arch/x86/include/asm/vmx.h
-@@ -72,7 +72,6 @@
- #define SECONDARY_EXEC_SHADOW_VMCS              0x00004000
- #define SECONDARY_EXEC_ENABLE_PML               0x00020000
- #define SECONDARY_EXEC_XSAVES			0x00100000
--#define SECONDARY_EXEC_PCOMMIT			0x00200000
- #define SECONDARY_EXEC_TSC_SCALING              0x02000000
- 
- #define PIN_BASED_EXT_INTR_MASK                 0x00000001
-diff --git a/arch/x86/include/uapi/asm/vmx.h b/arch/x86/include/uapi/asm/vmx.h
-index 5b15d94a33f8..37fee272618f 100644
---- a/arch/x86/include/uapi/asm/vmx.h
-+++ b/arch/x86/include/uapi/asm/vmx.h
-@@ -78,7 +78,6 @@
- #define EXIT_REASON_PML_FULL            62
- #define EXIT_REASON_XSAVES              63
- #define EXIT_REASON_XRSTORS             64
--#define EXIT_REASON_PCOMMIT             65
- 
- #define VMX_EXIT_REASONS \
- 	{ EXIT_REASON_EXCEPTION_NMI,         "EXCEPTION_NMI" }, \
-@@ -127,8 +126,7 @@
- 	{ EXIT_REASON_INVVPID,               "INVVPID" }, \
- 	{ EXIT_REASON_INVPCID,               "INVPCID" }, \
- 	{ EXIT_REASON_XSAVES,                "XSAVES" }, \
--	{ EXIT_REASON_XRSTORS,               "XRSTORS" }, \
--	{ EXIT_REASON_PCOMMIT,               "PCOMMIT" }
-+	{ EXIT_REASON_XRSTORS,               "XRSTORS" }
- 
- #define VMX_ABORT_SAVE_GUEST_MSR_FAIL        1
- #define VMX_ABORT_LOAD_HOST_MSR_FAIL         4
-diff --git a/arch/x86/kvm/cpuid.c b/arch/x86/kvm/cpuid.c
-index 769af907f824..fe865563870d 100644
---- a/arch/x86/kvm/cpuid.c
-+++ b/arch/x86/kvm/cpuid.c
-@@ -364,7 +364,7 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
- 		F(FSGSBASE) | F(BMI1) | F(HLE) | F(AVX2) | F(SMEP) |
- 		F(BMI2) | F(ERMS) | f_invpcid | F(RTM) | f_mpx | F(RDSEED) |
- 		F(ADX) | F(SMAP) | F(AVX512F) | F(AVX512PF) | F(AVX512ER) |
--		F(AVX512CD) | F(CLFLUSHOPT) | F(CLWB) | F(PCOMMIT);
-+		F(AVX512CD) | F(CLFLUSHOPT) | F(CLWB);
- 
- 	/* cpuid 0xD.1.eax */
- 	const u32 kvm_cpuid_D_1_eax_x86_features =
-diff --git a/arch/x86/kvm/cpuid.h b/arch/x86/kvm/cpuid.h
-index e17a74b1d852..35058c2c0eea 100644
---- a/arch/x86/kvm/cpuid.h
-+++ b/arch/x86/kvm/cpuid.h
-@@ -144,14 +144,6 @@ static inline bool guest_cpuid_has_rtm(struct kvm_vcpu *vcpu)
- 	return best && (best->ebx & bit(X86_FEATURE_RTM));
- }
- 
--static inline bool guest_cpuid_has_pcommit(struct kvm_vcpu *vcpu)
--{
--	struct kvm_cpuid_entry2 *best;
--
--	best = kvm_find_cpuid_entry(vcpu, 7, 0);
--	return best && (best->ebx & bit(X86_FEATURE_PCOMMIT));
--}
--
- static inline bool guest_cpuid_has_rdtscp(struct kvm_vcpu *vcpu)
- {
- 	struct kvm_cpuid_entry2 *best;
-diff --git a/arch/x86/kvm/vmx.c b/arch/x86/kvm/vmx.c
-index fb93010beaa4..2e2685424fdc 100644
---- a/arch/x86/kvm/vmx.c
-+++ b/arch/x86/kvm/vmx.c
-@@ -2705,8 +2705,7 @@ static void nested_vmx_setup_ctls_msrs(struct vcpu_vmx *vmx)
- 		SECONDARY_EXEC_APIC_REGISTER_VIRT |
- 		SECONDARY_EXEC_VIRTUAL_INTR_DELIVERY |
- 		SECONDARY_EXEC_WBINVD_EXITING |
--		SECONDARY_EXEC_XSAVES |
--		SECONDARY_EXEC_PCOMMIT;
-+		SECONDARY_EXEC_XSAVES;
- 
- 	if (enable_ept) {
- 		/* nested EPT: emulate EPT also to L1 */
-@@ -3268,7 +3267,6 @@ static __init int setup_vmcs_config(struct vmcs_config *vmcs_conf)
- 			SECONDARY_EXEC_SHADOW_VMCS |
- 			SECONDARY_EXEC_XSAVES |
- 			SECONDARY_EXEC_ENABLE_PML |
--			SECONDARY_EXEC_PCOMMIT |
- 			SECONDARY_EXEC_TSC_SCALING;
- 		if (adjust_vmx_controls(min2, opt2,
- 					MSR_IA32_VMX_PROCBASED_CTLS2,
-@@ -4856,9 +4854,6 @@ static u32 vmx_secondary_exec_control(struct vcpu_vmx *vmx)
- 	if (!enable_pml)
- 		exec_control &= ~SECONDARY_EXEC_ENABLE_PML;
- 
--	/* Currently, we allow L1 guest to directly run pcommit instruction. */
--	exec_control &= ~SECONDARY_EXEC_PCOMMIT;
--
- 	return exec_control;
- }
- 
-@@ -4902,9 +4897,10 @@ static int vmx_vcpu_setup(struct vcpu_vmx *vmx)
- 
- 	vmcs_write32(CPU_BASED_VM_EXEC_CONTROL, vmx_exec_control(vmx));
- 
--	if (cpu_has_secondary_exec_ctrls())
-+	if (cpu_has_secondary_exec_ctrls()) {
- 		vmcs_write32(SECONDARY_VM_EXEC_CONTROL,
- 				vmx_secondary_exec_control(vmx));
-+	}
- 
- 	if (kvm_vcpu_apicv_active(&vmx->vcpu)) {
- 		vmcs_write64(EOI_EXIT_BITMAP0, 0);
-@@ -7557,13 +7553,6 @@ static int handle_pml_full(struct kvm_vcpu *vcpu)
- 	return 1;
- }
- 
--static int handle_pcommit(struct kvm_vcpu *vcpu)
--{
--	/* we never catch pcommit instruct for L1 guest. */
--	WARN_ON(1);
--	return 1;
--}
--
- /*
-  * The exit handlers return 1 if the exit was handled fully and guest execution
-  * may resume.  Otherwise they set the kvm_run parameter to indicate what needs
-@@ -7614,7 +7603,6 @@ static int (*const kvm_vmx_exit_handlers[])(struct kvm_vcpu *vcpu) = {
- 	[EXIT_REASON_XSAVES]                  = handle_xsaves,
- 	[EXIT_REASON_XRSTORS]                 = handle_xrstors,
- 	[EXIT_REASON_PML_FULL]		      = handle_pml_full,
--	[EXIT_REASON_PCOMMIT]                 = handle_pcommit,
- };
- 
- static const int kvm_vmx_max_exit_handlers =
-@@ -7923,8 +7911,6 @@ static bool nested_vmx_exit_handled(struct kvm_vcpu *vcpu)
- 		 * the XSS exit bitmap in vmcs12.
- 		 */
- 		return nested_cpu_has2(vmcs12, SECONDARY_EXEC_XSAVES);
--	case EXIT_REASON_PCOMMIT:
--		return nested_cpu_has2(vmcs12, SECONDARY_EXEC_PCOMMIT);
- 	default:
- 		return true;
- 	}
-@@ -9085,15 +9071,6 @@ static void vmx_cpuid_update(struct kvm_vcpu *vcpu)
- 
- 	if (cpu_has_secondary_exec_ctrls())
- 		vmcs_set_secondary_exec_control(secondary_exec_ctl);
--
--	if (static_cpu_has(X86_FEATURE_PCOMMIT) && nested) {
--		if (guest_cpuid_has_pcommit(vcpu))
--			vmx->nested.nested_vmx_secondary_ctls_high |=
--				SECONDARY_EXEC_PCOMMIT;
--		else
--			vmx->nested.nested_vmx_secondary_ctls_high &=
--				~SECONDARY_EXEC_PCOMMIT;
--	}
- }
- 
- static void vmx_set_supported_cpuid(u32 func, struct kvm_cpuid_entry2 *entry)
-@@ -9706,8 +9683,7 @@ static void prepare_vmcs02(struct kvm_vcpu *vcpu, struct vmcs12 *vmcs12)
- 		exec_control &= ~(SECONDARY_EXEC_VIRTUALIZE_APIC_ACCESSES |
- 				  SECONDARY_EXEC_RDTSCP |
- 				  SECONDARY_EXEC_VIRTUAL_INTR_DELIVERY |
--				  SECONDARY_EXEC_APIC_REGISTER_VIRT |
--				  SECONDARY_EXEC_PCOMMIT);
-+				  SECONDARY_EXEC_APIC_REGISTER_VIRT);
- 		if (nested_cpu_has(vmcs12,
- 				CPU_BASED_ACTIVATE_SECONDARY_CONTROLS))
- 			exec_control |= vmcs12->secondary_vm_exec_control;
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgorQUtBIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
+Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4u
+dG8gcmVjZWl2ZToKCjEvIFR3byByZWdyZXNzaW9uIGZpeGVzIHNpbmNlIHY0LjY6ICtBS0Etb25l
+IGZvciB0aGUgYnl0ZSBvcmRlciBvZiBhIHN5c2ZzCmF0dHJpYnV0ZSAoYnoxMjExNjEpIGFuZCBh
+bm90aGVyIGZvciBRRU1VIDIuNidzIE5WRElNTSBfRFNNIChBQ1BJCkRldmljZSBTcGVjaWZpYyBN
+ZXRob2QpIGltcGxlbWVudGF0aW9uIHRoYXQgZ2V0cyB0cmlwcGVkIHVwIGJ5IG5ldwphdXRvLXBy
+b2JpbmcgYmVoYXZpb3IgaW4gdGhlIE5GSVQgZHJpdmVyLgoKMi8gQSBmaXggdGFnZ2VkIGZvciAt
+c3RhYmxlIHRoYXQgc3RvcHMgdGhlIGtlcm5lbCBmcm9tCmNsb2JiZXJpbmcvaWdub3JpbmcgY2hh
+bmdlcyB0byB0aGUgY29uZmlndXJhdGlvbiBvZiBhICdwZm4nIGluc3RhbmNlCigic3RydWN0IHBh
+Z2UiIGRyaXZlcikuICtBS0EtRm9yIGV4YW1wbGUgY2hhbmdpbmcgdGhlIGFsaWdubWVudCBmcm9t
+IDJNIHRvCjFHIG1heSBzaWxlbnRseSByZXZlcnQgdG8gMk0gaWYgdGhhdCB2YWx1ZSBpcyBjdXJy
+ZW50bHkgc3RvcmVkIG9uCm1lZGlhLgoKMy8gQSBmaXggZnJvbSBFcmljIGZvciBhbiB4ZnN0ZXN0
+cyBmYWlsdXJlIGluIGRheC4gK0FLQS1JdCBpcyBub3QgY3VycmVudGx5CnRhZ2dlZCBmb3IgLXN0
+YWJsZSBzaW5jZSBpdCByZXF1aXJlcyBhbiA4LWV4YWJ5dGUgZmlsZSBzeXN0ZW0gdG8KdHJpZ2dl
+ciwgYW5kIHRoZXJlIGFwcGVhciB0byBiZSBubyB1c2VyIHZpc2libGUgc2lkZSBlZmZlY3RzLgoK
+VGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCAzMzY4OGFiYjI4MDJmZjNhMjMwYmQy
+NDQxZjc2NTQ3N2I5NGNjODllOgoKK0FLQSBMaW51eCA0LjctcmM0ICgyMDE2LTA2LTE5IDIxOjMw
+OjAyIC0wNzAwKQoKYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6CgorQUtB
+IGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZk
+aW1tIGxpYm52ZGltbS1maXhlcwoKZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIDFiY2Jm
+NDJkMjczMmIzZmRhYTg1NTliMGRmYzkxNTY3NzY5ZTIzYzg6CgorQUtBIG5maXQ6IGZpeCBmb3Jt
+YXQgaW50ZXJmYWNlIGNvZGUgYnl0ZSBvcmRlciAoMjAxNi0wNi0yOSAxMToxOTozMiAtMDcwMCkK
+Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0KRGFuIFdpbGxpYW1zICgzKToKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBw
+Zm4sIGRheDogZml4IGluaXRpYWxpemF0aW9uIHZzIGF1dG9kZXRlY3QgZm9yIG1vZGUgKy0gYWxp
+Z25tZW50CitBS0FBb0FDZ0FLQUFvQUNnLWFjcGksIG5maXQ6IGZpeCBhY3BpX2NoZWNrX2RzbSgp
+IHZzIHplcm8gZnVuY3Rpb25zIGltcGxlbWVudGVkCitBS0FBb0FDZ0FLQUFvQUNnLW5maXQ6IGZp
+eCBmb3JtYXQgaW50ZXJmYWNlIGNvZGUgYnl0ZSBvcmRlcgoKRXJpYyBTYW5kZWVuICgxKToKK0FL
+QUFvQUNnQUtBQW9BQ2ctZGF4OiBmaXggb2Zmc2V0IG92ZXJmbG93IGluIGRheF9pbwoKK0FLQS1k
+cml2ZXJzL2FjcGkvbmZpdC5jK0FLQUFvQUNnQUtBQW9BQ2dBS0F8IDEyICstKy0rLSstKy0tLS0t
+LS0KK0FLQS1kcml2ZXJzL2FjcGkvbmZpdC5oK0FLQUFvQUNnQUtBQW9BQ2dBS0F8IDEwICstKy0r
+LSstKy0tLS0tLQorQUtBLWRyaXZlcnMvYWNwaS91dGlscy5jK0FLQUFvQUNnQUtBQW9BQ2d8K0FL
+QUFvQS02ICstKy0rLS0tLQorQUtBLWRyaXZlcnMvbnZkaW1tL3Bmbl9kZXZzLmMgfCA1MSArLSst
+Ky0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0r
+LSstKy0rLSstKy0rLS0tLS0tLS0tLS0KK0FLQS1mcy9kYXguYytBS0FBb0FDZ0FLQUFvQUNnQUtB
+QW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2d8K0FLQUFvQS03ICstKy0rLSstKy0rLS0KK0FL
+QS01IGZpbGVzIGNoYW5nZWQsIDYwIGluc2VydGlvbnMoKy0pLCAyNiBkZWxldGlvbnMoLSkKCmNv
+bW1pdCAxZWU2NjY3Y2Q4ZDE4M2IyZmVkMTJmOTcyODVmMTg0NDMxZDJjYWY5CkF1dGhvcjogRGFu
+IFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+CkRhdGU6K0FLQUFvQUNnLVRodSBK
+dW4gMjMgMTc6NTA6MzkgMjAxNiAtMDcwMAoKK0FLQUFvQUNnQUtBLWxpYm52ZGltbSwgcGZuLCBk
+YXg6IGZpeCBpbml0aWFsaXphdGlvbiB2cyBhdXRvZGV0ZWN0IGZvciBtb2RlICstIGFsaWdubWVu
+dAorQUtBQW9BQ2dBS0EKK0FLQUFvQUNnQUtBLVRoZSB1cGRhdGVkIG5kY3RsIHVuaXQgdGVzdHMg
+ZGlzY292ZXJlZCB0aGF0IGlmIGEgcGZuIGNvbmZpZ3VyYXRpb24gd2l0aAorQUtBQW9BQ2dBS0Et
+YSA0SyBhbGlnbm1lbnQgaXMgcmVhZCBmcm9tIHRoZSBuYW1lc3BhY2UsIHRoYXQgYWxpZ25tZW50
+IHdpbGwgYmUKK0FLQUFvQUNnQUtBLWlnbm9yZWQgaW4gZmF2b3Igb2YgdGhlIGRlZmF1bHQgMk0g
+YWxpZ25tZW50LitBS0FBb0EtVGhlIHJlc3VsdCBpcyB0aGF0IHRoZQorQUtBQW9BQ2dBS0EtY29u
+ZmlndXJhdGlvbiB3aWxsIGZhaWwgaW5pdGlhbGl6YXRpb24gd2l0aCBhIG1lc3NhZ2UgbGlrZToK
+K0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BLWRheDYuMTogYmFkIG9mZnNldDog
+MHgyMjAwMCBkYXggZGlzYWJsZWQgYWxpZ246IDB4MjAwMDAwCitBS0FBb0FDZ0FLQQorQUtBQW9B
+Q2dBS0EtRml4IHRoaXMgYnkgYWxsb3dpbmcgdGhlIGFsaWdubWVudCByZWFkIGZyb20gdGhlIGlu
+Zm8gYmxvY2sgdG8gb3ZlcnJpZGUKK0FLQUFvQUNnQUtBLXRoZSBkZWZhdWx0IHdoaWNoIGlzIDJN
+IG5vdCAwIGluIHRoZSBhdXRvZGV0ZWN0IHBhdGguK0FLQUFvQS1UaGlzIGFsc28gZml4ZXMgYQor
+QUtBQW9BQ2dBS0Etc2ltaWxhciBwcm9ibGVtIHdpdGggdGhlIG1vZGUgYW5kIGFsaWdubWVudCBz
+ZXR0aW5ncyBzaWxlbnRseSBiZWluZworQUtBQW9BQ2dBS0Etb3ZlcndyaXR0ZW4gYnkgdGhlIGtl
+cm5lbCB3aGVuIHVzZXJzcGFjZSBoYXMgY2hhbmdlZCBpdC4rQUtBQW9BLVdlIG5vdyB3aWxsCitB
+S0FBb0FDZ0FLQS1laXRoZXIgb3ZlcndyaXRlIHRoZSBpbmZvIGJsb2NrIGlmIHVzZXJzcGFjZSBj
+aGFuZ2VzIHRoZSB1dWlkIG9yIGZhaWwKK0FLQUFvQUNnQUtBLWFuZCB3YXJuIGlmIGEgbGl2ZSBz
+ZXR0aW5nIGRpc2FncmVlcyB3aXRoIHRoZSBpbmZvIGJsb2NrLgorQUtBQW9BQ2dBS0EKK0FLQUFv
+QUNnQUtBLUNjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4KK0FLQUFvQUNnQUtBLUNjOiBNaWNh
+aCBQYXJyaXNoIDxtaWNhaC5wYXJyaXNoQGhwZS5jb20+CitBS0FBb0FDZ0FLQS1DYzogVG9zaGkg
+S2FuaSA8dG9zaGkua2FuaUBocGUuY29tPgorQUtBQW9BQ2dBS0EtU2lnbmVkLW9mZi1ieTogRGFu
+IFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cgpjb21taXQgNDk5NTczNGU5NzNh
+MmMyZTljNmY2NDEzY2JhZDk5MTNmYzRkZjBkYwpBdXRob3I6IERhbiBXaWxsaWFtcyA8ZGFuLmou
+d2lsbGlhbXNAaW50ZWwuY29tPgpEYXRlOitBS0FBb0FDZy1GcmkgSnVuIDI0IDA5OjA3OjM5IDIw
+MTYgLTA3MDAKCitBS0FBb0FDZ0FLQS1hY3BpLCBuZml0OiBmaXggYWNwaV9jaGVja19kc20oKSB2
+cyB6ZXJvIGZ1bmN0aW9ucyBpbXBsZW1lbnRlZAorQUtBQW9BQ2dBS0EKK0FLQUFvQUNnQUtBLVFF
+TVUgMi42IGltcGxlbWVudHMgbmFzY2VudCBzdXBwb3J0IGZvciBudmRpbW0gRFNNcy4gRGVwZW5k
+aW5nIG9uCitBS0FBb0FDZ0FLQS1jb25maWd1cmF0aW9uIGl0IG1heSBvbmx5IGltcGxlbWVudCB0
+aGUgZnVuY3Rpb24wIGRzbSB0byBpbmRpY2F0ZSB0aGF0CitBS0FBb0FDZ0FLQS1ubyBvdGhlciBE
+U01zIGFyZSBhdmFpbGFibGUuIENvbW1pdCAzMWVjYTc2YmEyZmMgIm5maXQsIGxpYm52ZGltbToK
+K0FLQUFvQUNnQUtBLWxpbWl0ZWQvd2hpdGVsaXN0ZWQgZGltbSBjb21tYW5kIG1hcnNoYWxpbmcg
+bWVjaGFuaXNtIiBicmVha3MgUUVNVSwgYnV0CitBS0FBb0FDZ0FLQS1RRU1VIGlzIHNwZWMgY29t
+cGxpYW50LitBS0FBb0EtUGVyIHRoZSBzcGVjIHRoZSB3YXkgdG8gaW5kaWNhdGUgdGhhdCBubwor
+QUtBQW9BQ2dBS0EtZnVuY3Rpb25zIGFyZSBzdXBwb3J0ZWQgaXM6CitBS0FBb0FDZ0FLQQorQUtB
+QW9BQ2dBS0FBb0FDZ0FLQUFvQS1JZiBGdW5jdGlvbiBJbmRleCBpcyB6ZXJvLCB0aGUgcmV0dXJu
+IGlzIGEgYnVmZmVyIGNvbnRhaW5pbmcgb25lIGJpdAorQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQS1m
+b3IgZWFjaCBmdW5jdGlvbiBpbmRleCwgc3RhcnRpbmcgd2l0aCB6ZXJvLiBCaXQgMCBpbmRpY2F0
+ZXMgd2hldGhlcgorQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQS10aGVyZSBpcyBzdXBwb3J0IGZvciBh
+bnkgZnVuY3Rpb25zIG90aGVyIHRoYW4gZnVuY3Rpb24gMCBmb3IgdGhlCitBS0FBb0FDZ0FLQUFv
+QUNnQUtBQW9BLXNwZWNpZmllZCBVVUlEIGFuZCBSZXZpc2lvbiBJRC4gSWYgc2V0IHRvIHplcm8s
+IG5vIGZ1bmN0aW9ucyBhcmUKK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0Etc3VwcG9ydGVkIChvdGhl
+ciB0aGFuIGZ1bmN0aW9uIHplcm8pIGZvciB0aGUgc3BlY2lmaWVkIFVVSUQgYW5kCitBS0FBb0FD
+Z0FLQUFvQUNnQUtBQW9BLVJldmlzaW9uIElELgorQUtBQW9BQ2dBS0EKK0FLQUFvQUNnQUtBLVVw
+ZGF0ZSB0aGUgbmZpdCBkcml2ZXIgdG8gZGV0ZXJtaW5lIHRoZSBmYW1pbHkgKGludGVyZmFjZSBV
+VUlEKSB3aXRob3V0CitBS0FBb0FDZ0FLQS1yZXF1aXJpbmcgdGhlIGltcGxlbWVudGF0aW9uIHRv
+IGRlZmluZSBhbnkgb3RoZXIgZnVuY3Rpb25zLCBpLmUuCitBS0FBb0FDZ0FLQS1zaG9ydC1jaXJj
+dWl0IGFjcGlfY2hlY2tfZHNtKCkgdG8gc3VjY2VlZCBwZXIgdGhlIHNwZWMuK0FLQUFvQS1UaGUg
+bmZpdCBkcml2ZXIKK0FLQUFvQUNnQUtBLWFwcGVhcnMgdG8gYmUgdGhlIG9ubHkgdXNlciBwYXNz
+aW5nIGZ1bmNzPT0wIHRvIGFjcGlfY2hlY2tfZHNtKCksIHNvCitBS0FBb0FDZ0FLQS10aGlzIGJl
+aGF2aW9yIGNoYW5nZSBvZiB0aGUgY29tbW9uIHJvdXRpbmUgc2hvdWxkIGJlIGxpbWl0ZWQgdG8g
+dGhlCitBS0FBb0FDZ0FLQS1wcm9iaW5nIGRvbmUgYnkgdGhlIG5maXQgZHJpdmVyLgorQUtBQW9B
+Q2dBS0EKK0FLQUFvQUNnQUtBLUNjOiBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9yZz4KK0FLQUFv
+QUNnQUtBLUNjOiBKZXJyeSBIb2VtYW5uIDxqZXJyeS5ob2VtYW5uQGhwZS5jb20+CitBS0FBb0FD
+Z0FLQS1BY2tlZC1ieTogIlJhZmFlbCBKLiBXeXNvY2tpIiA8cmFmYWVsQGtlcm5lbC5vcmc+CitB
+S0FBb0FDZ0FLQS1GaXhlczogMzFlY2E3NmJhMmZjICgibmZpdCwgbGlibnZkaW1tOiBsaW1pdGVk
+L3doaXRlbGlzdGVkIGRpbW0gY29tbWFuZCBtYXJzaGFsaW5nIG1lY2hhbmlzbSIpCitBS0FBb0FD
+Z0FLQS1SZXBvcnRlZC1ieTogWGlhbyBHdWFuZ3JvbmcgPGd1YW5ncm9uZy54aWFvQGxpbnV4Lmlu
+dGVsLmNvbT4KK0FLQUFvQUNnQUtBLVRlc3RlZC1ieTogWGlhbyBHdWFuZ3JvbmcgPGd1YW5ncm9u
+Zy54aWFvQGxpbnV4LmludGVsLmNvbT4KK0FLQUFvQUNnQUtBLVNpZ25lZC1vZmYtYnk6IERhbiBX
+aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0IDAyMzk1NDM1MWZhZTBl
+MzRiYTI0N2NmZjRkNzk4Yzk4MjkwYjIwYTQKQXV0aG9yOiBFcmljIFNhbmRlZW4gPHNhbmRlZW5A
+cmVkaGF0LmNvbT4KRGF0ZTorQUtBQW9BQ2ctVGh1IEp1biAyMyAxNjo1NDo0NiAyMDE2IC0wNTAw
+CgorQUtBQW9BQ2dBS0EtZGF4OiBmaXggb2Zmc2V0IG92ZXJmbG93IGluIGRheF9pbworQUtBQW9B
+Q2dBS0EKK0FLQUFvQUNnQUtBLVRoaXMgaXNuJ3QgZnVuY3Rpb25hbGx5IGFwcGFyZW50IGZvciBz
+b21lIHJlYXNvbiwgYnV0CitBS0FBb0FDZ0FLQS13aGVuIHdlIHRlc3QgaW8gYXQgZXh0cmVtZSBv
+ZmZzZXRzIGF0IHRoZSBlbmQgb2YgdGhlIGxvZmZfdAorQUtBQW9BQ2dBS0EtcmFuZywgc3VjaCBh
+cyBpbiBmc3Rlc3RzIHhmcy8wNzEsIHRoZSBjYWxjdWxhdGlvbiBvZgorQUtBQW9BQ2dBS0EibWF4
+IiBpbiBkYXhfaW8oKSBjYW4gYmUgd3JvbmcgZHVlIHRvIHBvcyArLSBzaXplIG92ZXJmbG93aW5n
+LgorQUtBQW9BQ2dBS0EKK0FLQUFvQUNnQUtBLUZvciBleGFtcGxlLAorQUtBQW9BQ2dBS0EKK0FL
+QUFvQUNnQUtBIyB4ZnNfaW8gLWMgInB3cml0ZSA5MjIzMzcyMDM2ODU0NzcxNzEyIDUxMiIgL21u
+dC90ZXN0L2ZpbGUKK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FLQS1lbnRlcnMgZGF4X2lvIHdpdGg6
+CitBS0FBb0FDZ0FLQQorQUtBQW9BQ2dBS0Etc3RhcnQgMHg3ZmZmZmZmZmZmZmZmMDAwCitBS0FB
+b0FDZ0FLQS1lbmQrQUtBQW9BQ2ctMHg3ZmZmZmZmZmZmZmZmMjAwCitBS0FBb0FDZ0FLQQorQUtB
+QW9BQ2dBS0EtYW5kIHRoZSByb3VuZGVkIHVwICJzaXplIiB2YXJpYWJsZSBpcyAweDEwMDAuK0FL
+QUFvQS1UaGlzIHlpZWxkczoKK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FLQS1wb3MgKy0gc2l6ZSAw
+eDgwMDAwMDAwMDAwMDAwMDAgKG92ZXJmbG93cyBsb2ZmX3QpCitBS0FBb0FDZ0FLQUFvQUNnQUtB
+QW9BQ2dBS0FBb0EtZW5kIDB4N2ZmZmZmZmZmZmZmZjIwMAorQUtBQW9BQ2dBS0EKK0FLQUFvQUNn
+QUtBLUR1ZSB0byB0aGUgb3ZlcmZsb3csIHRoZSBtaW4oKSBmdW5jdGlvbiBwaWNrcyB0aGUgd3Jv
+bmcKK0FLQUFvQUNnQUtBLXZhbHVlIGZvciB0aGUgIm1heCIgdmFyaWFibGUsIGFuZCB3aGVuIHdl
+IHNlbmQgKG1heCAtIHBvcykKK0FLQUFvQUNnQUtBLWludG8gaS5lLiBjb3B5X2Zyb21faXRlcl9w
+bWVtKCkgaXQgaXMgYWxzbyB0aGUgd3JvbmcgdmFsdWUuCitBS0FBb0FDZ0FLQQorQUtBQW9BQ2dB
+S0EtVGhpcyBzb21laG93KHRtKSBnZXRzIG1hZ2ljYWxseSBhYnNvcmJlZCB3aXRob3V0IGluY2lk
+ZW50LAorQUtBQW9BQ2dBS0EtcHJvYmFibHkgYmVjYXVzZSBpdGVyLT5jb3VudCBpcyBjb3JyZWN0
+LitBS0FBb0EtQnV0IGl0IHNlZW1zIGJlc3QKK0FLQUFvQUNnQUtBLXRvIGZpeCBpdCB1cCBwcm9w
+ZXJseSBieSBjb21wYXJpbmcgdGhlIHR3byB2YWx1ZXMgYXMKK0FLQUFvQUNnQUtBLXVuc2lnbmVk
+LgorQUtBQW9BQ2dBS0EKK0FLQUFvQUNnQUtBLVNpZ25lZC1vZmYtYnk6IEVyaWMgU2FuZGVlbiA8
+c2FuZGVlbkByZWRoYXQuY29tPgorQUtBQW9BQ2dBS0EtU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxp
+YW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cgpjb21taXQgMWJjYmY0MmQyNzMyYjNmZGFh
+ODU1OWIwZGZjOTE1Njc3NjllMjNjOApBdXRob3I6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlh
+bXNAaW50ZWwuY29tPgpEYXRlOitBS0FBb0FDZy1XZWQgSnVuIDI5IDExOjE5OjMyIDIwMTYgLTA3
+MDAKCitBS0FBb0FDZ0FLQS1uZml0OiBmaXggZm9ybWF0IGludGVyZmFjZSBjb2RlIGJ5dGUgb3Jk
+ZXIKK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FLQS1QZXIgSkVERUMgQW5uZXggTCBSZWxlYXNlIDMg
+dGhlIFNQRCBkYXRhIGlzOgorQUtBQW9BQ2dBS0EKK0FLQUFvQUNnQUtBLUJpdHMgOStBSDQtNSAw
+MCAwMDAgPSBGdW5jdGlvbiBVbmRlZmluZWQKK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFv
+QUNnQUtBLTAwIDAwMSA9IEJ5dGUgYWRkcmVzc2FibGUgZW5lcmd5IGJhY2tlZAorQUtBQW9BQ2dB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0EtMDAgMDEwID0gQmxvY2sgYWRkcmVzc2VkCitBS0FB
+b0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQS0wMCAwMTEgPSBCeXRlIGFkZHJlc3NhYmxl
+LCBubyBlbmVyZ3kgYmFja2VkCitBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQS1B
+bGwgb3RoZXIgY29kZXMgcmVzZXJ2ZWQKK0FLQUFvQUNnQUtBLUJpdHMgNCtBSDQtMCAwIDAwMDAg
+PSBQcm9wcmlldGFyeSBpbnRlcmZhY2UKK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNn
+QUtBLTAgMDAwMSA9IFN0YW5kYXJkIGludGVyZmFjZSAxCitBS0FBb0FDZ0FLQUFvQUNnQUtBQW9B
+Q2dBS0FBb0FDZ0FLQS1BbGwgb3RoZXIgY29kZXMgcmVzZXJ2ZWQ7IHNlZSBEZWZpbml0aW9ucyBv
+ZiBGdW5jdGlvbnMKK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FLQS4uLmFuZCBwZXIgdGhlIEFDUEkg
+Ni4xIHNwZWM6CitBS0FBb0FDZ0FLQQorQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQS1ieXRlMDogQml0
+cyA0K0FINC0wICgwIG9yIDEpCitBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BLWJ5dGUxOiBCaXRzIDkr
+QUg0LTUgKDEsIDIsIG9yIDMpCitBS0FBb0FDZ0FLQQorQUtBQW9BQ2dBS0EuLi5zbyBhIGZvcm1h
+dCBpbnRlcmZhY2UgY29kZSBkaXNwbGF5ZWQgYXMgMHgzMDEgc2hvdWxkIGJlIHN0b3JlZCBpbiB0
+aGUKK0FLQUFvQUNnQUtBLW5maXQgYXMgKDB4MSwgMHgzKSwgbGl0dGxlLWVuZGlhbi4KK0FLQUFv
+QUNnQUtBCitBS0FBb0FDZ0FLQS1DYzogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPgor
+QUtBQW9BQ2dBS0EtQ2M6IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD4KK0FL
+QUFvQUNnQUtBLUNjOiBSb2JlcnQgTW9vcmUgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+CitBS0FB
+b0FDZ0FLQS1DYzogUm9iZXJ0IEVsbGlvdHQgPGVsbGlvdHRAaHBlLmNvbT4KK0FLQUFvQUNnQUtB
+LUxpbms6IGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTIxMTYx
+CitBS0FBb0FDZ0FLQS1GaXhlczogMzBlYzVmZDQ2NGQ1ICgibmZpdDogZml4IGZvcm1hdCBpbnRl
+cmZhY2UgY29kZSBieXRlIG9yZGVyIHBlciBBQ1BJNi4xIikKK0FLQUFvQUNnQUtBLUZpeGVzOiA1
+YWQ5YTdmZGUwN2EgKCJhY3BpL25maXQ6IFVwZGF0ZSBuZml0IGRyaXZlciB0byBjb21wbHkgd2l0
+aCBBQ1BJIDYuMSIpCitBS0FBb0FDZ0FLQS1SZXBvcnRlZC1ieTogS3Jpc3RpbiBKYWNxdWUgPGty
+aXN0aW4uamFjcXVlQGludGVsLmNvbT4KK0FLQUFvQUNnQUtBLVNpZ25lZC1vZmYtYnk6IERhbiBX
+aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4
+LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5m
+by9saW51eC1udmRpbW0K
