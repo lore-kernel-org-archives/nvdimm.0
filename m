@@ -1,7 +1,7 @@
 From: negative.seo.works-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Subject: Beat bad competition with negative SEO
-Date: 01 Jul 2016 12:17:28 +0300
-Message-ID: <20160701121726.8106D8B2B234F03B@gmail.com>
+Date: 01 Jul 2016 19:39:12 +0300
+Message-ID: <20160701193912.984B1D72EFF56358@gmail.com>
 Reply-To: negative.seo.works-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -16,7 +16,7 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 Is your competition annoying you with bad SEO tactics?
