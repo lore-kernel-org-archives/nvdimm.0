@@ -1,11 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 5E3181A1E24
- for <linux-nvdimm@lists.01.org>; Mon, 18 Jul 2016 17:46:25 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 0/3] ARS rescanning triggered by latent errors or userspace
-Date: Mon, 18 Jul 2016 18:44:57 -0600
-Message-Id: <1468889100-30698-1-git-send-email-vishal.l.verma@intel.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id D73D91A1E00
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Jul 2016 00:29:53 -0700 (PDT)
+Date: Mon, 4 Jul 2016 09:29:11 +0200
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [ndctl PATCH] build: quiet warnings about missing git repository
+Message-ID: <20160704072911.h2j3vzs767lhzn2o@c203.arch.suse.de>
+References: <146740856798.33306.12339801003788127221.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <146740856798.33306.12339801003788127221.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,55 +19,35 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Yi Zhang <yi.a.zhang@hotmail.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This series adds on-demand ARS scanning on both, discovery of
-latent media errors, and a sysfs trigger from userspace.
+On Fri, Jul 01, 2016 at 02:29:28PM -0700, Dan Williams wrote:
+> The git-version script auto-appends the commit id, but complains if the
+> repository is missing.  The complaint is benign, but we should also tag
+> builds outside of git with a '+' because who knows what changes were
+> made locally.
+> =
 
-The rescanning part is easy to test using the nfit_test framework
-- create a namespace (this will by default have bad sectors in
-the middle), clear the bad sectors by writing to them, trigger
-the rescan through sysfs, and the bad sectors will reappear in
-/sys/block/<pmemX>/badblocks.
+> Link: https://github.com/pmem/ndctl/issues/5
+> Reported-by: Yi Zhang <yi.a.zhang@hotmail.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-For the mce handling, I've tested the notifier chain callback
-being called with a mock struct mce (called via another sysfs
-trigger - this isn't included in the patch obviously), which
-has the address field set to a known address in a SPA range,
-and the status field with the MCACOD flag set.
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 
-What I haven't easily been able to test is the same callback
-path with a 'real world' mce, being called as part of the
-x86_mce_decoder_chain notifier. I'd therefore appreciate a
-closer look at the initial filtering done in nfit_handle_mce
-(patch 3/3) from Tony or anyone more familiar with mce handling.
+-- =
 
-The series is based on v4.7-rc7, and a tree is available at
-https://git.kernel.org/cgit/linux/kernel/git/vishal/nvdimm.git/log/?h=ars-ondemand
-
-
-Vishal Verma (3):
-  pmem: clarify a debug print in pmem_clear_poison
-  nfit, libnvdimm: allow an ARS rescan to be triggered on demand
-  nfit: do an ARS rescan on hitting a latent media error
-
- drivers/acpi/nfit.c       | 138 ++++++++++++++++++++++++++++++++++++++++++++--
- drivers/acpi/nfit.h       |   2 +
- drivers/nvdimm/core.c     |  17 ++++++
- drivers/nvdimm/pmem.c     |   2 +-
- include/linux/libnvdimm.h |   1 +
- 5 files changed, 155 insertions(+), 5 deletions(-)
-
--- 
-2.7.4
-
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
