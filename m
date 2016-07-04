@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from smtp.nue.novell.com (smtp.nue.novell.com [195.135.221.5])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D5FD61A1E03
- for <linux-nvdimm@lists.01.org>; Mon,  4 Jul 2016 00:55:06 -0700 (PDT)
-Date: Mon, 4 Jul 2016 15:54:04 +0800
-From: joeyli <jlee@suse.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1F7361A1E00
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Jul 2016 00:32:03 -0700 (PDT)
+Date: Mon, 4 Jul 2016 09:31:22 +0200
+From: Johannes Thumshirn <jthumshirn@suse.de>
 Subject: Re: [PATCH] nfit: use devm_add_action_or_reset()
-Message-ID: <20160704075404.GB10278@linux-rxt1.site>
+Message-ID: <20160704073122.nkvnnminfrnuhhb4@c203.arch.suse.de>
 References: <1467606771-21704-1-git-send-email-vikas.cha.sajjan@hpe.com>
 MIME-Version: 1.0
 Content-Disposition: inline
@@ -19,8 +19,8 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
@@ -32,39 +32,20 @@ On Mon, Jul 04, 2016 at 10:02:51AM +0530, Vikas C Sajjan wrote:
 > the resources allocated. Lets use the helper devm_add_action_or_reset()
 > and return directly in case of error, since the cleanup function
 > has been already called by the helper if there was any error.
-> 
+> =
+
 > Signed-off-by: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
-> ---
->  drivers/acpi/nfit.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index c2ad967..44ebe1e 100644
-> --- a/drivers/acpi/nfit.c
-> +++ b/drivers/acpi/nfit.c
-> @@ -1920,11 +1920,11 @@ static int acpi_nfit_insert_resource(struct acpi_nfit_desc *acpi_desc,
->  	if (ret)
->  		return ret;
->  
-> -	ret = devm_add_action(acpi_desc->dev, acpi_nfit_remove_resource, res);
-> -	if (ret) {
-> -		remove_resource(res);
-> +	ret = devm_add_action_or_reset(acpi_desc->dev,
-> +					acpi_nfit_remove_resource,
-> +					res);
-> +	if (ret)
->  		return ret;
-> -	}
->  
->  	return 0;
->  }
-> -- 
-> 1.9.1
->
 
-Reviewed-by: Lee, Chun-Yi <jlee@suse.com>
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 
-Joey Lee 
+-- =
+
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
