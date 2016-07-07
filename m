@@ -1,11 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mailapp01.imgtec.com (mailapp01.imgtec.com [195.59.15.196])
- by ml01.01.org (Postfix) with ESMTP id 4B8D71A1E9F
- for <linux-nvdimm@lists.01.org>; Fri,  8 Jul 2016 09:30:14 -0700 (PDT)
-From: Eric Engestrom <eric.engestrom@imgtec.com>
-Subject: [PATCH 1/2] libnvdimm: add missing macros
-Date: Fri, 8 Jul 2016 17:29:10 +0100
-Message-ID: <20160708162911.18756-1-eric.engestrom@imgtec.com>
+Received: from NAM01-BN3-obe.outbound.protection.outlook.com
+ (mail-bn3nam01on0137.outbound.protection.outlook.com [104.47.33.137])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 2E0771A1E9F
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Jul 2016 21:08:05 -0700 (PDT)
+From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+Subject: RE: [PATCH] dax: use devm_add_action_or_reset()
+Date: Thu, 7 Jul 2016 04:02:26 +0000
+Message-ID: <DF4PR84MB00411E7F9BC7755BE410881AD93B0@DF4PR84MB0041.NAMPRD84.PROD.OUTLOOK.COM>
+References: <1467697807-27067-1-git-send-email-vikas.cha.sajjan@hpe.com>
+ <20160705065904.ek4ltpveavadqdqt@c203.arch.suse.de>
+ <CAPcyv4ivACkVySPL_-EQGWCVE=QHjQ+yBk-7tC12Ui29iuFWUQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4ivACkVySPL_-EQGWCVE=QHjQ+yBk-7tC12Ui29iuFWUQ@mail.gmail.com>
+Content-Language: en-US
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,22 +26,36 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Eric Engestrom <eric@engestrom.ch>, Eric Engestrom <eric.engestrom@imgtec.com>, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-U2lnbmVkLW9mZi1ieTogRXJpYyBFbmdlc3Ryb20gPGVyaWMuZW5nZXN0cm9tQGltZ3RlYy5jb20+
-Ci0tLQoKVGhpcyBjYW4ndCBjb21waWxlIHdpdGhvdXQgdGhlc2UgbWFjcm9z4oCmIElzIHRoaXMg
-aGVhZGVyIHJlYWxseSB1c2VkIGJ5IGFueW9uZT8KU2hvdWxkIGl0IGJlIHJlbW92ZWQsIHRvIGF2
-b2lkIGJpdC1yb3Q/CgotLS0KIGluY2x1ZGUvdWFwaS9saW51eC9uZGN0bC5oIHwgOCArKysrKysr
-KwogMSBmaWxlIGNoYW5nZWQsIDggaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdpdCBhL2luY2x1ZGUv
-dWFwaS9saW51eC9uZGN0bC5oIGIvaW5jbHVkZS91YXBpL2xpbnV4L25kY3RsLmgKaW5kZXggMzA5
-OTE1Zi4uNTBhZTVlNyAxMDA2NDQKLS0tIGEvaW5jbHVkZS91YXBpL2xpbnV4L25kY3RsLmgKKysr
-IGIvaW5jbHVkZS91YXBpL2xpbnV4L25kY3RsLmgKQEAgLTE1LDYgKzE1LDE0IEBACiAKICNpbmNs
-dWRlIDxsaW51eC90eXBlcy5oPgogCisjaWZkZWYgX19HTlVDX18KKyNkZWZpbmUgX19wYWNrZWQg
-X19hdHRyaWJ1dGVfXygocGFja2VkKSkKKyNlbHNlCisjZGVmaW5lIF9fcGFja2VkCisjZW5kaWYK
-KworI2RlZmluZSBBUlJBWV9TSVpFKGFycikgKHNpemVvZihhcnIpIC8gc2l6ZW9mKGFycilbMF0p
-CisKIHN0cnVjdCBuZF9jbWRfc21hcnQgewogCV9fdTMyIHN0YXR1czsKIAlfX3U4IGRhdGFbMTI4
-XTsKLS0gCjIuOS4wCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
-aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+DQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogRGFuIFdpbGxpYW1zIFttYWlsdG86
+ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tXSANClNlbnQ6IFRodXJzZGF5LCBKdWx5IDA3LCAyMDE2
+IDM6NDkgQU0NClRvOiBKb2hhbm5lcyBUaHVtc2hpcm4gPGp0aHVtc2hpcm5Ac3VzZS5kZT4NCkNj
+OiBTYWpqYW4sIFZpa2FzIEMgPHZpa2FzLmNoYS5zYWpqYW5AaHBlLmNvbT47IFJvc3MgWndpc2xl
+ciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT47IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5v
+cmc7IExpbnV4IEFDUEkgPGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnPjsgS25pcHBlcnMsIExp
+bmRhIDxsaW5kYS5rbmlwcGVyc0BocGUuY29tPg0KU3ViamVjdDogUmU6IFtQQVRDSF0gZGF4OiB1
+c2UgZGV2bV9hZGRfYWN0aW9uX29yX3Jlc2V0KCkNCg0KVGhhbmtzLCBhcHBsaWVkLg0KDQpUaGFu
+ayB5b3UsIERhbi4NCiANCk9uIE1vbiwgSnVsIDQsIDIwMTYgYXQgMTE6NTkgUE0sIEpvaGFubmVz
+IFRodW1zaGlybiA8anRodW1zaGlybkBzdXNlLmRlPiB3cm90ZToNCj4gT24gVHVlLCBKdWwgMDUs
+IDIwMTYgYXQgMTE6MjA6MDdBTSArMDUzMCwgVmlrYXMgQyBTYWpqYW4gd3JvdGU6DQo+PiBJZiBk
+ZXZtX2FkZF9hY3Rpb24oKSBmYWlscywgd2UgYXJlIGV4cGxpY2l0bHkgY2FsbGluZyB0aGUgY2xl
+YW51cCB0byANCj4+IGZyZWUgdGhlIHJlc291cmNlcyBhbGxvY2F0ZWQuIFVzZSB0aGUgaGVscGVy
+IA0KPj4gZGV2bV9hZGRfYWN0aW9uX29yX3Jlc2V0KCkgYW5kIHJldHVybiBkaXJlY3RseSBpbiBj
+YXNlIG9mIGVycm9yLCANCj4+IHNpbmNlIHRoZSBjbGVhbnVwIGZ1bmN0aW9uIGhhcyBiZWVuIGFs
+cmVhZHkgY2FsbGVkIGJ5IHRoZSBoZWxwZXIgaWYgdGhlcmUgd2FzIGFueSBlcnJvci4NCj4+DQo+
+PiBSZXBvcnRlZC1ieTogU3VkaXAgTXVraGVyamVlIDxzdWRpcG0ubXVraGVyamVlQGdtYWlsLmNv
+bT4NCj4+IFNpZ25lZC1vZmYtYnk6IFZpa2FzIEMgU2FqamFuIDx2aWthcy5jaGEuc2FqamFuQGhw
+ZS5jb20+DQo+DQo+IFJldmlld2VkLWJ5OiBKb2hhbm5lcyBUaHVtc2hpcm4gPGp0aHVtc2hpcm5A
+c3VzZS5kZT4NCj4NCj4gLS0NCj4gSm9oYW5uZXMgVGh1bXNoaXJuICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgU3RvcmFnZQ0KPiBqdGh1bXNoaXJuQHN1c2UuZGUgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICs0OSA5MTEgNzQwNTMgNjg5DQo+IFNVU0UgTElO
+VVggR21iSCwgTWF4ZmVsZHN0ci4gNSwgOTA0MDkgTsO8cm5iZXJnDQo+IEdGOiBGZWxpeCBJbWVu
+ZMO2cmZmZXIsIEphbmUgU21pdGhhcmQsIEdyYWhhbSBOb3J0b24gSFJCIDIxMjg0IChBRyANCj4g
+TsO8cm5iZXJnKSBLZXkgZmluZ2VycHJpbnQgPSBFQzM4IDlDQUIgQzJDNCBGMjVEIDg2MDAgRDBE
+MCAwMzkzIDk2OUQgDQo+IDJENzYgMDg1MA0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1A
+bGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
+bnZkaW1tCg==
