@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x232.google.com (mail-oi0-x232.google.com
- [IPv6:2607:f8b0:4003:c06::232])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C8C3E1A1F92
- for <linux-nvdimm@lists.01.org>; Fri,  8 Jul 2016 12:33:16 -0700 (PDT)
-Received: by mail-oi0-x232.google.com with SMTP id r2so72295333oih.2
- for <linux-nvdimm@lists.01.org>; Fri, 08 Jul 2016 12:32:34 -0700 (PDT)
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id 1C0FA1A1F92
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Jul 2016 10:27:08 -0700 (PDT)
+Date: Sat, 9 Jul 2016 01:25:39 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 1/2] libnvdimm: add missing macros
+Message-ID: <201607090117.yBNz7XdD%fengguang.wu@intel.com>
 MIME-Version: 1.0
 In-Reply-To: <20160708162911.18756-1-eric.engestrom@imgtec.com>
-References: <20160708162911.18756-1-eric.engestrom@imgtec.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 8 Jul 2016 12:32:33 -0700
-Message-ID: <CAPcyv4iqaNBwUNzEqcZm5E5XRDDftmcdCftAvmgNpySofqDykQ@mail.gmail.com>
-Subject: Re: [PATCH 1/2] libnvdimm: add missing macros
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,22 +16,73 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Eric Engestrom <eric.engestrom@imgtec.com>
-Cc: Eric Engestrom <eric@engestrom.ch>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: linux-nvdimm@lists.01.org, Eric Engestrom <eric@engestrom.ch>, linux-kernel@vger.kernel.org, kbuild-all@01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCBKdWwgOCwgMjAxNiBhdCA5OjI5IEFNLCBFcmljIEVuZ2VzdHJvbQo8ZXJpYy5lbmdl
-c3Ryb21AaW1ndGVjLmNvbT4gd3JvdGU6Cj4gU2lnbmVkLW9mZi1ieTogRXJpYyBFbmdlc3Ryb20g
-PGVyaWMuZW5nZXN0cm9tQGltZ3RlYy5jb20+Cj4gLS0tCj4KPiBUaGlzIGNhbid0IGNvbXBpbGUg
-d2l0aG91dCB0aGVzZSBtYWNyb3PigKYgSXMgdGhpcyBoZWFkZXIgcmVhbGx5IHVzZWQgYnkgYW55
-b25lPwo+IFNob3VsZCBpdCBiZSByZW1vdmVkLCB0byBhdm9pZCBiaXQtcm90PwoKSXQncyB1c2Vk
-IGJ5IG5kY3RsIFsxXS4gIFlvdSBjYW4ndCB1c2UgaXQgZGlyZWN0bHkgaW4gdXNlcnNwYWNlLCB5
-b3UKbmVlZCB0aGUga2VybmVsJ3MgIm1ha2UgaGVhZGVyc19pbnN0YWxsIiB0byBzdHJpcCBvdXQg
-dGhlCmtlcm5lbC1zcGVjaWZpYyBtYWNyb3MuCgpbMV06IGh0dHBzOi8vZ2l0aHViLmNvbS9wbWVt
-L25kY3RsCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
-bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
-L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Hi,
+
+[auto build test WARNING on linux-nvdimm/libnvdimm-for-next]
+[also build test WARNING on v4.7-rc6 next-20160708]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Eric-Engestrom/libnvdimm-add-missing-macros/20160709-003310
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
+config: x86_64-allmodconfig (attached as .config)
+compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=x86_64 
+
+All warnings (new ones prefixed by >>):
+
+   In file included from drivers/dax/../nvdimm/nd.h:20:0,
+                    from drivers/dax/pmem.c:18:
+>> include/uapi/linux/ndctl.h:24:0: warning: "ARRAY_SIZE" redefined
+    #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr)[0])
+    
+   In file included from include/linux/percpu-refcount.h:49:0,
+                    from drivers/dax/pmem.c:13:
+   include/linux/kernel.h:54:0: note: this is the location of the previous definition
+    #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+    
+
+vim +/ARRAY_SIZE +24 include/uapi/linux/ndctl.h
+
+     8	 * This program is distributed in the hope it will be useful, but WITHOUT ANY
+     9	 * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    10	 * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+    11	 * more details.
+    12	 */
+    13	#ifndef __NDCTL_H__
+    14	#define __NDCTL_H__
+    15	
+    16	#include <linux/types.h>
+    17	
+    18	#ifdef __GNUC__
+    19	#define __packed __attribute__((packed))
+    20	#else
+    21	#define __packed
+    22	#endif
+    23	
+  > 24	#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr)[0])
+    25	
+    26	struct nd_cmd_smart {
+    27		__u32 status;
+    28		__u8 data[128];
+    29	} __packed;
+    30	
+    31	#define ND_SMART_HEALTH_VALID	(1 << 0)
+    32	#define ND_SMART_TEMP_VALID 	(1 << 1)
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
