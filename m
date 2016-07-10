@@ -1,11 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 5DE001A1E9C
- for <linux-nvdimm@lists.01.org>; Sat,  9 Jul 2016 20:28:43 -0700 (PDT)
-Subject: [PATCH v2 15/17] Revert "KVM: x86: add pcommit support"
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id 7535F1A1E24
+ for <linux-nvdimm@lists.01.org>; Sat,  9 Jul 2016 20:27:50 -0700 (PDT)
+Subject: [PATCH v2 05/17] libnvdimm,
+ nfit: move flush hint mapping to region-device driver-data
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 09 Jul 2016 20:25:49 -0700
-Message-ID: <146812114910.32932.3209362338012516482.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 09 Jul 2016 20:24:56 -0700
+Message-ID: <146812109613.32932.9879982884048235667.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -21,193 +22,321 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, hch@lst.de
+Cc: linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, hch@lst.de, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This reverts commit 8b3e34e46aca9b6d349b331cd9cf71ccbdc91b2e.
+In preparation for triggering flushes of a DIMM's writes-posted-queue
+(WPQ) via the pmem driver move mapping of flush hint addresses to the
+region driver.  Since this uses devm_nvdimm_memremap() the flush
+addresses will remain mapped while any region to which the dimm belongs
+is active.
 
-Given the deprecation of the pcommit instruction, revert its usage as a
-vm exit source in kvm.
+We need to communicate more information to the nvdimm core to facilitate
+this mapping, namely each dimm object now carries an array of flush hint
+address resources.
 
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/vmx.h      |    1 -
- arch/x86/include/uapi/asm/vmx.h |    4 +---
- arch/x86/kvm/cpuid.c            |    2 +-
- arch/x86/kvm/cpuid.h            |    8 --------
- arch/x86/kvm/vmx.c              |   32 ++++----------------------------
- 5 files changed, 6 insertions(+), 41 deletions(-)
+ drivers/acpi/nfit.c          |   21 +++++++++++
+ drivers/acpi/nfit.h          |    1 +
+ drivers/nvdimm/dimm_devs.c   |    5 ++-
+ drivers/nvdimm/nd-core.h     |    3 +-
+ drivers/nvdimm/nd.h          |    8 +++-
+ drivers/nvdimm/region.c      |   16 ++++-----
+ drivers/nvdimm/region_devs.c |   79 ++++++++++++++++++++++++++++++++++++++++--
+ include/linux/libnvdimm.h    |    4 ++
+ 8 files changed, 119 insertions(+), 18 deletions(-)
 
-diff --git a/arch/x86/include/asm/vmx.h b/arch/x86/include/asm/vmx.h
-index 14c63c7e8337..a002b07a7099 100644
---- a/arch/x86/include/asm/vmx.h
-+++ b/arch/x86/include/asm/vmx.h
-@@ -72,7 +72,6 @@
- #define SECONDARY_EXEC_SHADOW_VMCS              0x00004000
- #define SECONDARY_EXEC_ENABLE_PML               0x00020000
- #define SECONDARY_EXEC_XSAVES			0x00100000
--#define SECONDARY_EXEC_PCOMMIT			0x00200000
- #define SECONDARY_EXEC_TSC_SCALING              0x02000000
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index b76c95981547..6796f780870a 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -714,9 +714,24 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
+ 		}
  
- #define PIN_BASED_EXT_INTR_MASK                 0x00000001
-diff --git a/arch/x86/include/uapi/asm/vmx.h b/arch/x86/include/uapi/asm/vmx.h
-index 5b15d94a33f8..37fee272618f 100644
---- a/arch/x86/include/uapi/asm/vmx.h
-+++ b/arch/x86/include/uapi/asm/vmx.h
-@@ -78,7 +78,6 @@
- #define EXIT_REASON_PML_FULL            62
- #define EXIT_REASON_XSAVES              63
- #define EXIT_REASON_XRSTORS             64
--#define EXIT_REASON_PCOMMIT             65
+ 		list_for_each_entry(nfit_flush, &acpi_desc->flushes, list) {
++			struct acpi_nfit_flush_address *flush;
++			u16 i;
++
+ 			if (nfit_flush->flush->device_handle != device_handle)
+ 				continue;
+ 			nfit_mem->nfit_flush = nfit_flush;
++			flush = nfit_flush->flush;
++			nfit_mem->flush_wpq = devm_kzalloc(acpi_desc->dev,
++					flush->hint_count
++					* sizeof(struct resource), GFP_KERNEL);
++			if (!nfit_mem->flush_wpq)
++				return -ENOMEM;
++			for (i = 0; i < flush->hint_count; i++) {
++				struct resource *res = &nfit_mem->flush_wpq[i];
++
++				res->start = flush->hint_address[i];
++				res->end = res->start + 8 - 1;
++			}
+ 			break;
+ 		}
  
- #define VMX_EXIT_REASONS \
- 	{ EXIT_REASON_EXCEPTION_NMI,         "EXCEPTION_NMI" }, \
-@@ -127,8 +126,7 @@
- 	{ EXIT_REASON_INVVPID,               "INVVPID" }, \
- 	{ EXIT_REASON_INVPCID,               "INVPCID" }, \
- 	{ EXIT_REASON_XSAVES,                "XSAVES" }, \
--	{ EXIT_REASON_XRSTORS,               "XRSTORS" }, \
--	{ EXIT_REASON_PCOMMIT,               "PCOMMIT" }
-+	{ EXIT_REASON_XRSTORS,               "XRSTORS" }
+@@ -1171,6 +1186,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 	int dimm_count = 0;
  
- #define VMX_ABORT_SAVE_GUEST_MSR_FAIL        1
- #define VMX_ABORT_LOAD_HOST_MSR_FAIL         4
-diff --git a/arch/x86/kvm/cpuid.c b/arch/x86/kvm/cpuid.c
-index 7597b42a8a88..643565364497 100644
---- a/arch/x86/kvm/cpuid.c
-+++ b/arch/x86/kvm/cpuid.c
-@@ -366,7 +366,7 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
- 		F(FSGSBASE) | F(BMI1) | F(HLE) | F(AVX2) | F(SMEP) |
- 		F(BMI2) | F(ERMS) | f_invpcid | F(RTM) | f_mpx | F(RDSEED) |
- 		F(ADX) | F(SMAP) | F(AVX512F) | F(AVX512PF) | F(AVX512ER) |
--		F(AVX512CD) | F(CLFLUSHOPT) | F(CLWB) | F(PCOMMIT);
-+		F(AVX512CD) | F(CLFLUSHOPT) | F(CLWB);
+ 	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
++		struct acpi_nfit_flush_address *flush;
+ 		unsigned long flags = 0, cmd_mask;
+ 		struct nvdimm *nvdimm;
+ 		u32 device_handle;
+@@ -1204,9 +1220,12 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
+ 			cmd_mask |= nfit_mem->dsm_mask;
  
- 	/* cpuid 0xD.1.eax */
- 	const u32 kvm_cpuid_D_1_eax_x86_features =
-diff --git a/arch/x86/kvm/cpuid.h b/arch/x86/kvm/cpuid.h
-index e17a74b1d852..35058c2c0eea 100644
---- a/arch/x86/kvm/cpuid.h
-+++ b/arch/x86/kvm/cpuid.h
-@@ -144,14 +144,6 @@ static inline bool guest_cpuid_has_rtm(struct kvm_vcpu *vcpu)
- 	return best && (best->ebx & bit(X86_FEATURE_RTM));
- }
++		flush = nfit_mem->nfit_flush ? nfit_mem->nfit_flush->flush
++			: NULL;
+ 		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
+ 				acpi_nfit_dimm_attribute_groups,
+-				flags, cmd_mask);
++				flags, cmd_mask, flush ? flush->hint_count : 0,
++				nfit_mem->flush_wpq);
+ 		if (!nvdimm)
+ 			return -ENOMEM;
  
--static inline bool guest_cpuid_has_pcommit(struct kvm_vcpu *vcpu)
--{
--	struct kvm_cpuid_entry2 *best;
--
--	best = kvm_find_cpuid_entry(vcpu, 7, 0);
--	return best && (best->ebx & bit(X86_FEATURE_PCOMMIT));
--}
--
- static inline bool guest_cpuid_has_rdtscp(struct kvm_vcpu *vcpu)
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index 52078475d969..9282eb324dcc 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -127,6 +127,7 @@ struct nfit_mem {
+ 	struct list_head list;
+ 	struct acpi_device *adev;
+ 	struct acpi_nfit_desc *acpi_desc;
++	struct resource *flush_wpq;
+ 	unsigned long dsm_mask;
+ 	int family;
+ };
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index bbde28d3dec5..d9bba5edd8dc 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -346,7 +346,8 @@ EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
+ 
+ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+ 		const struct attribute_group **groups, unsigned long flags,
+-		unsigned long cmd_mask)
++		unsigned long cmd_mask, int num_flush,
++		struct resource *flush_wpq)
  {
- 	struct kvm_cpuid_entry2 *best;
-diff --git a/arch/x86/kvm/vmx.c b/arch/x86/kvm/vmx.c
-index fb93010beaa4..2e2685424fdc 100644
---- a/arch/x86/kvm/vmx.c
-+++ b/arch/x86/kvm/vmx.c
-@@ -2705,8 +2705,7 @@ static void nested_vmx_setup_ctls_msrs(struct vcpu_vmx *vmx)
- 		SECONDARY_EXEC_APIC_REGISTER_VIRT |
- 		SECONDARY_EXEC_VIRTUAL_INTR_DELIVERY |
- 		SECONDARY_EXEC_WBINVD_EXITING |
--		SECONDARY_EXEC_XSAVES |
--		SECONDARY_EXEC_PCOMMIT;
-+		SECONDARY_EXEC_XSAVES;
- 
- 	if (enable_ept) {
- 		/* nested EPT: emulate EPT also to L1 */
-@@ -3268,7 +3267,6 @@ static __init int setup_vmcs_config(struct vmcs_config *vmcs_conf)
- 			SECONDARY_EXEC_SHADOW_VMCS |
- 			SECONDARY_EXEC_XSAVES |
- 			SECONDARY_EXEC_ENABLE_PML |
--			SECONDARY_EXEC_PCOMMIT |
- 			SECONDARY_EXEC_TSC_SCALING;
- 		if (adjust_vmx_controls(min2, opt2,
- 					MSR_IA32_VMX_PROCBASED_CTLS2,
-@@ -4856,9 +4854,6 @@ static u32 vmx_secondary_exec_control(struct vcpu_vmx *vmx)
- 	if (!enable_pml)
- 		exec_control &= ~SECONDARY_EXEC_ENABLE_PML;
- 
--	/* Currently, we allow L1 guest to directly run pcommit instruction. */
--	exec_control &= ~SECONDARY_EXEC_PCOMMIT;
--
- 	return exec_control;
- }
- 
-@@ -4902,9 +4897,10 @@ static int vmx_vcpu_setup(struct vcpu_vmx *vmx)
- 
- 	vmcs_write32(CPU_BASED_VM_EXEC_CONTROL, vmx_exec_control(vmx));
- 
--	if (cpu_has_secondary_exec_ctrls())
-+	if (cpu_has_secondary_exec_ctrls()) {
- 		vmcs_write32(SECONDARY_VM_EXEC_CONTROL,
- 				vmx_secondary_exec_control(vmx));
-+	}
- 
- 	if (kvm_vcpu_apicv_active(&vmx->vcpu)) {
- 		vmcs_write64(EOI_EXIT_BITMAP0, 0);
-@@ -7557,13 +7553,6 @@ static int handle_pml_full(struct kvm_vcpu *vcpu)
- 	return 1;
- }
- 
--static int handle_pcommit(struct kvm_vcpu *vcpu)
--{
--	/* we never catch pcommit instruct for L1 guest. */
--	WARN_ON(1);
--	return 1;
--}
--
- /*
-  * The exit handlers return 1 if the exit was handled fully and guest execution
-  * may resume.  Otherwise they set the kvm_run parameter to indicate what needs
-@@ -7614,7 +7603,6 @@ static int (*const kvm_vmx_exit_handlers[])(struct kvm_vcpu *vcpu) = {
- 	[EXIT_REASON_XSAVES]                  = handle_xsaves,
- 	[EXIT_REASON_XRSTORS]                 = handle_xrstors,
- 	[EXIT_REASON_PML_FULL]		      = handle_pml_full,
--	[EXIT_REASON_PCOMMIT]                 = handle_pcommit,
+ 	struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
+ 	struct device *dev;
+@@ -362,6 +363,8 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+ 	nvdimm->provider_data = provider_data;
+ 	nvdimm->flags = flags;
+ 	nvdimm->cmd_mask = cmd_mask;
++	nvdimm->num_flush = num_flush;
++	nvdimm->flush_wpq = flush_wpq;
+ 	atomic_set(&nvdimm->busy, 0);
+ 	dev = &nvdimm->dev;
+ 	dev_set_name(dev, "nmem%d", nvdimm->id);
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 790b62cc81ed..6e961f7f43e7 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -41,7 +41,8 @@ struct nvdimm {
+ 	unsigned long cmd_mask;
+ 	struct device dev;
+ 	atomic_t busy;
+-	int id;
++	int id, num_flush;
++	struct resource *flush_wpq;
  };
  
- static const int kvm_vmx_max_exit_handlers =
-@@ -7923,8 +7911,6 @@ static bool nested_vmx_exit_handled(struct kvm_vcpu *vcpu)
- 		 * the XSS exit bitmap in vmcs12.
- 		 */
- 		return nested_cpu_has2(vmcs12, SECONDARY_EXEC_XSAVES);
--	case EXIT_REASON_PCOMMIT:
--		return nested_cpu_has2(vmcs12, SECONDARY_EXEC_PCOMMIT);
- 	default:
- 		return true;
- 	}
-@@ -9085,15 +9071,6 @@ static void vmx_cpuid_update(struct kvm_vcpu *vcpu)
+ bool is_nvdimm(struct device *dev);
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 2819e886dfd2..5912bd6b4234 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -49,9 +49,10 @@ struct nvdimm_drvdata {
+ 	struct kref kref;
+ };
  
- 	if (cpu_has_secondary_exec_ctrls())
- 		vmcs_set_secondary_exec_control(secondary_exec_ctl);
--
--	if (static_cpu_has(X86_FEATURE_PCOMMIT) && nested) {
--		if (guest_cpuid_has_pcommit(vcpu))
--			vmx->nested.nested_vmx_secondary_ctls_high |=
--				SECONDARY_EXEC_PCOMMIT;
--		else
--			vmx->nested.nested_vmx_secondary_ctls_high &=
--				~SECONDARY_EXEC_PCOMMIT;
--	}
+-struct nd_region_namespaces {
+-	int count;
+-	int active;
++struct nd_region_data {
++	int ns_count;
++	int ns_active;
++	void __iomem *flush_wpq[0][0];
+ };
+ 
+ static inline struct nd_namespace_index *to_namespace_index(
+@@ -324,6 +325,7 @@ static inline void devm_nsio_disable(struct device *dev,
  }
+ #endif
+ int nd_blk_region_init(struct nd_region *nd_region);
++int nd_region_activate(struct nd_region *nd_region);
+ void __nd_iostat_start(struct bio *bio, unsigned long *start);
+ static inline bool nd_iostat_start(struct bio *bio, unsigned long *start)
+ {
+diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
+index 05a912359939..333175dac8d5 100644
+--- a/drivers/nvdimm/region.c
++++ b/drivers/nvdimm/region.c
+@@ -20,7 +20,7 @@ static int nd_region_probe(struct device *dev)
+ {
+ 	int err, rc;
+ 	static unsigned long once;
+-	struct nd_region_namespaces *num_ns;
++	struct nd_region_data *ndrd;
+ 	struct nd_region *nd_region = to_nd_region(dev);
  
- static void vmx_set_supported_cpuid(u32 func, struct kvm_cpuid_entry2 *entry)
-@@ -9706,8 +9683,7 @@ static void prepare_vmcs02(struct kvm_vcpu *vcpu, struct vmcs12 *vmcs12)
- 		exec_control &= ~(SECONDARY_EXEC_VIRTUALIZE_APIC_ACCESSES |
- 				  SECONDARY_EXEC_RDTSCP |
- 				  SECONDARY_EXEC_VIRTUAL_INTR_DELIVERY |
--				  SECONDARY_EXEC_APIC_REGISTER_VIRT |
--				  SECONDARY_EXEC_PCOMMIT);
-+				  SECONDARY_EXEC_APIC_REGISTER_VIRT);
- 		if (nested_cpu_has(vmcs12,
- 				CPU_BASED_ACTIVATE_SECONDARY_CONTROLS))
- 			exec_control |= vmcs12->secondary_vm_exec_control;
+ 	if (nd_region->num_lanes > num_online_cpus()
+@@ -33,21 +33,21 @@ static int nd_region_probe(struct device *dev)
+ 				nd_region->num_lanes);
+ 	}
+ 
++	rc = nd_region_activate(nd_region);
++	if (rc)
++		return rc;
++
+ 	rc = nd_blk_region_init(nd_region);
+ 	if (rc)
+ 		return rc;
+ 
+ 	rc = nd_region_register_namespaces(nd_region, &err);
+-	num_ns = devm_kzalloc(dev, sizeof(*num_ns), GFP_KERNEL);
+-	if (!num_ns)
+-		return -ENOMEM;
+-
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	num_ns->active = rc;
+-	num_ns->count = rc + err;
+-	dev_set_drvdata(dev, num_ns);
++	ndrd = dev_get_drvdata(dev);
++	ndrd->ns_active = rc;
++	ndrd->ns_count = rc + err;
+ 
+ 	if (rc && err && rc == err)
+ 		return -ENODEV;
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 694b21024871..67022f74febc 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -22,6 +22,79 @@
+ 
+ static DEFINE_IDA(region_ida);
+ 
++static int nvdimm_map_flush(struct device *dev, struct nvdimm *nvdimm, int dimm,
++		struct nd_region_data *ndrd)
++{
++	int i, j;
++
++	dev_dbg(dev, "%s: map %d flush address%s\n", nvdimm_name(nvdimm),
++			nvdimm->num_flush, nvdimm->num_flush == 1 ? "" : "es");
++	for (i = 0; i < nvdimm->num_flush; i++) {
++		struct resource *res = &nvdimm->flush_wpq[i];
++		unsigned long pfn = PHYS_PFN(res->start);
++		void __iomem *flush_page;
++
++		/* check if flush hints share a page */
++		for (j = 0; j < i; j++) {
++			struct resource *res_j = &nvdimm->flush_wpq[j];
++			unsigned long pfn_j = PHYS_PFN(res_j->start);
++
++			if (pfn == pfn_j)
++				break;
++		}
++
++		if (j < i)
++			flush_page = (void __iomem *) ((unsigned long)
++					ndrd->flush_wpq[dimm][j] & PAGE_MASK);
++		else
++			flush_page = devm_nvdimm_ioremap(dev,
++					PHYS_PFN(pfn), PAGE_SIZE);
++		if (!flush_page)
++			return -ENXIO;
++		ndrd->flush_wpq[dimm][i] = flush_page
++			+ (res->start & ~PAGE_MASK);
++	}
++
++	return 0;
++}
++
++int nd_region_activate(struct nd_region *nd_region)
++{
++	int i;
++	struct nd_region_data *ndrd;
++	struct device *dev = &nd_region->dev;
++	size_t flush_data_size = sizeof(void *);
++
++	nvdimm_bus_lock(&nd_region->dev);
++	for (i = 0; i < nd_region->ndr_mappings; i++) {
++		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
++		struct nvdimm *nvdimm = nd_mapping->nvdimm;
++
++		/* at least one null hint slot per-dimm for the "no-hint" case */
++		flush_data_size += sizeof(void *);
++		if (!nvdimm->num_flush)
++			continue;
++		flush_data_size += nvdimm->num_flush * sizeof(void *);
++	}
++	nvdimm_bus_unlock(&nd_region->dev);
++
++	ndrd = devm_kzalloc(dev, sizeof(*ndrd) + flush_data_size, GFP_KERNEL);
++	if (!ndrd)
++		return -ENOMEM;
++	dev_set_drvdata(dev, ndrd);
++
++	for (i = 0; i < nd_region->ndr_mappings; i++) {
++		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
++		struct nvdimm *nvdimm = nd_mapping->nvdimm;
++		int rc = nvdimm_map_flush(&nd_region->dev, nvdimm, i, ndrd);
++
++		if (rc)
++			return rc;
++	}
++
++	return 0;
++}
++
+ static void nd_region_release(struct device *dev)
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev);
+@@ -242,12 +315,12 @@ static DEVICE_ATTR_RO(available_size);
+ static ssize_t init_namespaces_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+-	struct nd_region_namespaces *num_ns = dev_get_drvdata(dev);
++	struct nd_region_data *ndrd = dev_get_drvdata(dev);
+ 	ssize_t rc;
+ 
+ 	nvdimm_bus_lock(dev);
+-	if (num_ns)
+-		rc = sprintf(buf, "%d/%d\n", num_ns->active, num_ns->count);
++	if (ndrd)
++		rc = sprintf(buf, "%d/%d\n", ndrd->ns_active, ndrd->ns_count);
+ 	else
+ 		rc = -ENXIO;
+ 	nvdimm_bus_unlock(dev);
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 1050f9aa3a3e..815b9b430ead 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -52,6 +52,7 @@ typedef int (*ndctl_fn)(struct nvdimm_bus_descriptor *nd_desc,
+ 
+ struct nd_namespace_label;
+ struct nvdimm_drvdata;
++
+ struct nd_mapping {
+ 	struct nvdimm *nvdimm;
+ 	struct nd_namespace_label **labels;
+@@ -142,7 +143,8 @@ unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm);
+ void *nvdimm_provider_data(struct nvdimm *nvdimm);
+ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+ 		const struct attribute_group **groups, unsigned long flags,
+-		unsigned long cmd_mask);
++		unsigned long cmd_mask, int num_flush,
++		struct resource *flush_wpq);
+ const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
+ const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
+ u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
 
 _______________________________________________
 Linux-nvdimm mailing list
