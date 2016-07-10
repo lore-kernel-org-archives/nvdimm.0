@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D9DF31A1E11
- for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 05:20:45 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 14/15] dax: Protect PTE modification on WP fault by radix tree
- entry lock
-Date: Fri, 22 Jul 2016 14:19:40 +0200
-Message-Id: <1469189981-19000-15-git-send-email-jack@suse.cz>
-In-Reply-To: <1469189981-19000-1-git-send-email-jack@suse.cz>
-References: <1469189981-19000-1-git-send-email-jack@suse.cz>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 071EC1A1E21
+ for <linux-nvdimm@lists.01.org>; Sat,  9 Jul 2016 20:28:22 -0700 (PDT)
+Subject: [PATCH v2 11/17] libnvdimm,
+ pmem: flush posted-write queues on shutdown
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 09 Jul 2016 20:25:27 -0700
+Message-ID: <146812112775.32932.16750910979264437016.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,60 +17,98 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, hch@lst.de, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently PTE gets updated in wp_pfn_shared() after dax_pfn_mkwrite()
-has released corresponding radix tree entry lock. When we want to
-writeprotect PTE on cache flush, we need PTE modification to happen
-under radix tree entry lock to ensure consisten updates of PTE and radix
-tree (standard faults use page lock to ensure this consistency). So move
-update of PTE bit into dax_pfn_mkwrite().
+Commit writes to media on system shutdown or pmem driver unload.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c    | 6 ++++++
- mm/memory.c | 2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/nvdimm/bus.c  |   16 ++++++++++++++++
+ drivers/nvdimm/pmem.c |    8 ++++++++
+ include/linux/nd.h    |    1 +
+ 3 files changed, 25 insertions(+)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 513881431be6..e8d61ac3d148 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1218,6 +1218,12 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
- 	if (!entry || !radix_tree_exceptional_entry(entry))
- 		goto out;
- 	radix_tree_tag_set(&mapping->page_tree, index, PAGECACHE_TAG_DIRTY);
-+	/*
-+	 * If we race with somebody updating the PTE and finish_mkwrite_fault()
-+	 * fails, we don't care. We need to return VM_FAULT_NOPAGE and retry
-+	 * the fault in either case.
-+	 */
-+	finish_mkwrite_fault(vma, vmf);
- 	put_unlocked_mapping_entry(mapping, index, entry);
- out:
- 	spin_unlock_irq(&mapping->tree_lock);
-diff --git a/mm/memory.c b/mm/memory.c
-index 30cf7b36df48..47241c2f6178 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2315,7 +2315,7 @@ static int wp_pfn_shared(struct mm_struct *mm,
- 			 linear_page_index(vma, address),
- 			 FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE, orig_pte);
- 		ret = vma->vm_ops->pfn_mkwrite(vma, &vmf);
--		if (ret & VM_FAULT_ERROR)
-+		if (ret & VM_FAULT_ERROR || ret & VM_FAULT_NOPAGE)
- 			return ret;
- 		if (finish_mkwrite_fault(vma, &vmf) < 0)
- 			return 0;
--- 
-2.6.6
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index e4882e63bece..1cc7880320fe 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -136,6 +136,21 @@ static int nvdimm_bus_remove(struct device *dev)
+ 	return rc;
+ }
+ 
++static void nvdimm_bus_shutdown(struct device *dev)
++{
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct nd_device_driver *nd_drv = NULL;
++
++	if (dev->driver)
++		nd_drv = to_nd_device_driver(dev->driver);
++
++	if (nd_drv && nd_drv->shutdown) {
++		nd_drv->shutdown(dev);
++		dev_dbg(&nvdimm_bus->dev, "%s.shutdown(%s)\n",
++				dev->driver->name, dev_name(dev));
++	}
++}
++
+ void nd_device_notify(struct device *dev, enum nvdimm_event event)
+ {
+ 	device_lock(dev);
+@@ -214,6 +229,7 @@ static struct bus_type nvdimm_bus_type = {
+ 	.match = nvdimm_bus_match,
+ 	.probe = nvdimm_bus_probe,
+ 	.remove = nvdimm_bus_remove,
++	.shutdown = nvdimm_bus_shutdown,
+ };
+ 
+ static ASYNC_DOMAIN_EXCLUSIVE(nd_async_domain);
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 18cd95719da0..3f3fdb9586b9 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -351,9 +351,16 @@ static int nd_pmem_remove(struct device *dev)
+ {
+ 	if (is_nd_btt(dev))
+ 		nvdimm_namespace_detach_btt(to_nd_btt(dev));
++	nvdimm_flush(to_nd_region(dev->parent));
++
+ 	return 0;
+ }
+ 
++static void nd_pmem_shutdown(struct device *dev)
++{
++	nvdimm_flush(to_nd_region(dev->parent));
++}
++
+ static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
+ {
+ 	struct pmem_device *pmem = dev_get_drvdata(dev);
+@@ -393,6 +400,7 @@ static struct nd_device_driver nd_pmem_driver = {
+ 	.probe = nd_pmem_probe,
+ 	.remove = nd_pmem_remove,
+ 	.notify = nd_pmem_notify,
++	.shutdown = nd_pmem_shutdown,
+ 	.drv = {
+ 		.name = "nd_pmem",
+ 	},
+diff --git a/include/linux/nd.h b/include/linux/nd.h
+index aee2761d294c..1ecd64643512 100644
+--- a/include/linux/nd.h
++++ b/include/linux/nd.h
+@@ -26,6 +26,7 @@ struct nd_device_driver {
+ 	unsigned long type;
+ 	int (*probe)(struct device *dev);
+ 	int (*remove)(struct device *dev);
++	void (*shutdown)(struct device *dev);
+ 	void (*notify)(struct device *dev, enum nvdimm_event event);
+ };
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
