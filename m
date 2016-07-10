@@ -1,11 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 8B2A81A1E4A
- for <linux-nvdimm@lists.01.org>; Wed, 20 Jul 2016 18:52:28 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 0/3] ARS rescanning triggered by latent errors or userspace
-Date: Wed, 20 Jul 2016 19:50:47 -0600
-Message-Id: <1469065850-32401-1-git-send-email-vishal.l.verma@intel.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id D4B761A1E10
+ for <linux-nvdimm@lists.01.org>; Sat,  9 Jul 2016 20:27:23 -0700 (PDT)
+Subject: [PATCH v2 00/17] replace pcommit with ADR or directed flushing
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 09 Jul 2016 20:24:29 -0700
+Message-ID: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,69 +14,108 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, linux-acpi@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Andy Lutomirski <luto@kernel.org>, Josh Poimboeuf <jpoimboe@redhat.com>, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Borislav Petkov <bp@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes in v2:
-- Rework the ars_done flag in nfit_spa to be ars_required, and reuse it for
-  rescanning (Dan)
-- Rename the ars_rescan attribute to simply 'scrub', and move into the nfit
-  group since only nfit buses have this capability (Dan)
-- Make the scrub attribute RW, and on reads return the number of times a
-  scrub has happened since driver load. This prompted some additional
-  refactoring, notably the new helpers acpi_nfit_desc_alloc_register, and
-  to_nvdimm_bus_dev. These are all in patch 2. (Dan)
-- Remove some redundant list_empty checks in patch 3 (Dan)
-- If the acpi_descs lists is not empty at driver unload time, WARN() (Dan)
+Changes since v1 [1]:
 
-This series adds on-demand ARS scanning on both, discovery of
-latent media errors, and a sysfs trigger from userspace.
+1/ Move flush address data from nvdimm_drvdata to nd_region_data (Greg,
+   Toshi)
 
-The rescanning part is easy to test using the nfit_test framework
-- create a namespace (this will by default have bad sectors in
-the middle), clear the bad sectors by writing to them, trigger
-the rescan through sysfs, and the bad sectors will reappear in
-/sys/block/<pmemX>/badblocks.
+2/ Add more detail to cover letter and patch descriptions (Linda, Jeff)
 
-For the mce handling, I've tested the notifier chain callback
-being called with a mock struct mce (called via another sysfs
-trigger - this isn't included in the patch obviously), which
-has the address field set to a known address in a SPA range,
-and the status field with the MCACOD flag set.
+3/ Account for s/REQ_FLUSH/REQ_PREFLUSH/ rename pending in -next.
 
-What I haven't easily been able to test is the same callback
-path with a 'real world' mce, being called as part of the
-x86_mce_decoder_chain notifier. I'd therefore appreciate a
-closer look at the initial filtering done in nfit_handle_mce
-(patch 3/3) from Tony or anyone more familiar with mce handling.
+4/ Add a directed flush at pmem ->remove() and ->shutdown() time.
 
-The series is based on v4.7-rc7, and a tree is available at
-https://git.kernel.org/cgit/linux/kernel/git/vishal/nvdimm.git/log/?h=ars-ondemand
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-June/005897.html
+
+---
+
+The pcommit instruction, which has not shipped on any product, is
+deprecated. Instead, the expectation is that platforms implement either
+ADR, or provide one or more flush addresses per nvdimm. ADR
+(Asynchronous DRAM Refresh) flushes data in posted write buffers to the
+memory controller on a power-fail event. Flush addresses are defined in
+ACPI 6.x as an NVDIMM Firmware Interface Table (NFIT) sub-structure:
+"Flush Hint Address Structure". A flush hint is an mmio address that
+when written and fenced assures that all previous posted writes
+targeting a given dimm have been flushed to media.
+
+Code paths that previously called wmb_pmem() instead must arrange for a
+flush request to be sent to the pmem driver. Towards this end, the pmem
+driver is converted to advertise itself as having a write cache to
+indicate to a filesystem that a flush request must occur before writes
+are guaranteed to be on media.  See "[PATCH v2 08/17] libnvdimm:
+introduce nvdimm_flush() and nvdimm_has_flush()" for details.
+
+---
+
+Dan Williams (17):
+      nfit: always associate flush hints
+      nfit: don't override return value of nfit_mem_init
+      libnvdimm: introduce devm_nvdimm_memremap(), convert nfit_spa_map() users
+      libnvdimm, nfit: remove nfit_spa_map() infrastructure
+      libnvdimm, nfit: move flush hint mapping to region-device driver-data
+      tools/testing/nvdimm: simulate multiple flush hints per-dimm
+      libnvdimm: keep region data alive over namespace removal
+      libnvdimm: introduce nvdimm_flush() and nvdimm_has_flush()
+      libnvdimm: cycle flush hints
+      libnvdimm, pmem: use REQ_FUA, REQ_FLUSH for nvdimm_flush()
+      libnvdimm, pmem: flush posted-write queues on shutdown
+      fs/dax: remove wmb_pmem()
+      libnvdimm, pmem: use nvdimm_flush() for namespace I/O writes
+      pmem: kill wmb_pmem()
+      Revert "KVM: x86: add pcommit support"
+      x86/insn: remove pcommit
+      pmem: kill __pmem address space
 
 
-
-Vishal Verma (3):
-  pmem: clarify a debug print in pmem_clear_poison
-  nfit, libnvdimm: allow an ARS scrub to be triggered on demand
-  nfit: do an ARS scrub on hitting a latent media error
-
- drivers/acpi/nfit.c              | 214 +++++++++++++++++++++++++++++++++++----
- drivers/acpi/nfit.h              |   5 +-
- drivers/nvdimm/core.c            |   7 ++
- drivers/nvdimm/pmem.c            |   2 +-
- include/linux/libnvdimm.h        |   1 +
- tools/testing/nvdimm/test/nfit.c |  16 +++
- 6 files changed, 224 insertions(+), 21 deletions(-)
-
--- 
-2.7.4
-
+ Documentation/filesystems/Locking                  |    2 
+ arch/powerpc/sysdev/axonram.c                      |    4 
+ arch/x86/include/asm/cpufeatures.h                 |    1 
+ arch/x86/include/asm/pmem.h                        |   77 ++-----
+ arch/x86/include/asm/special_insns.h               |   46 ----
+ arch/x86/include/asm/vmx.h                         |    1 
+ arch/x86/include/uapi/asm/vmx.h                    |    4 
+ arch/x86/kvm/cpuid.c                               |    2 
+ arch/x86/kvm/cpuid.h                               |    8 -
+ arch/x86/kvm/vmx.c                                 |   32 ---
+ arch/x86/lib/x86-opcode-map.txt                    |    2 
+ drivers/acpi/nfit.c                                |  230 +++-----------------
+ drivers/acpi/nfit.h                                |   25 --
+ drivers/block/brd.c                                |    4 
+ drivers/nvdimm/bus.c                               |   16 +
+ drivers/nvdimm/claim.c                             |    2 
+ drivers/nvdimm/core.c                              |  122 +++++++++++
+ drivers/nvdimm/dimm_devs.c                         |    5 
+ drivers/nvdimm/nd-core.h                           |    4 
+ drivers/nvdimm/nd.h                                |   10 +
+ drivers/nvdimm/pmem.c                              |   59 ++++-
+ drivers/nvdimm/pmem.h                              |    4 
+ drivers/nvdimm/region.c                            |   19 +-
+ drivers/nvdimm/region_devs.c                       |  148 ++++++++++++-
+ drivers/s390/block/dcssblk.c                       |    6 -
+ fs/dax.c                                           |   13 -
+ include/linux/blkdev.h                             |    6 -
+ include/linux/compiler.h                           |    2 
+ include/linux/libnvdimm.h                          |   16 +
+ include/linux/nd.h                                 |    3 
+ include/linux/pmem.h                               |  117 ++--------
+ scripts/checkpatch.pl                              |    1 
+ tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 
+ tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 
+ tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 
+ tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 
+ .../perf/util/intel-pt-decoder/x86-opcode-map.txt  |    2 
+ tools/testing/nvdimm/pmem-dax.c                    |    2 
+ tools/testing/nvdimm/test/nfit.c                   |   55 +++--
+ 39 files changed, 505 insertions(+), 555 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
