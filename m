@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id D192A1A1E10
- for <linux-nvdimm@lists.01.org>; Thu, 14 Jul 2016 14:41:54 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/2] dax: remote unused fault wrappers
-Date: Thu, 14 Jul 2016 15:40:49 -0600
-Message-Id: <20160714214049.20075-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20160714214049.20075-1-ross.zwisler@linux.intel.com>
-References: <20160714214049.20075-1-ross.zwisler@linux.intel.com>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id D25541A1E24
+ for <linux-nvdimm@lists.01.org>; Sat,  9 Jul 2016 20:28:48 -0700 (PDT)
+Subject: [PATCH v2 16/17] x86/insn: remove pcommit
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 09 Jul 2016 20:25:54 -0700
+Message-ID: <146812115425.32932.3314855641604340233.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,272 +16,187 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org, Dave Chinner <david@fromorbit.com>, xfs@oss.sgi.com, linux-nvdimm@lists.01.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, linux-acpi@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Andy Lutomirski <luto@kernel.org>, Josh Poimboeuf <jpoimboe@redhat.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Borislav Petkov <bp@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Remove the unused wrappers dax_fault() and dax_pmd_fault().  After this
-removal, rename __dax_fault() and __dax_pmd_fault() to dax_fault() and
-dax_pmd_fault() respectively, and update all callers.
+The pcommit instruction is being deprecated in favor of either ADR
+(asynchronous DRAM refresh: flush-on-power-fail) at the platform level, or
+posted-write-queue flush addresses as defined by the ACPI 6.x NFIT (NVDIMM
+Firmware Interface Table).
 
-The dax_fault() and dax_pmd_fault() wrappers were initially intended to
-capture some filesystem independent functionality around page faults
-(calling sb_start_pagefault() & sb_end_pagefault(), updating file
-mtime and ctime).  However, the following commits:
-
-commit 5726b27b09cc ("ext2: Add locking for DAX faults")
-commit ea3d7209ca01 ("ext4: fix races between page faults and hole punching")
-
-Added locking to the ext2 and ext4 filesystems after these common
-operations but before __dax_fault() and __dax_pmd_fault() were called.
-This means that these wrappers are no longer used, and are unlikely to be
-used in the future.  XFS has had locking analogous to what was recently
-added to ext2 and ext4 since DAX support was initially introduced by:
-
-commit 6b698edeeef0 ("xfs: add DAX file operations support")
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: x86@kernel.org
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c            | 73 ++++++++++-------------------------------------------
- fs/ext2/file.c      |  4 +--
- fs/ext4/file.c      |  4 +--
- fs/xfs/xfs_file.c   |  6 ++---
- include/linux/dax.h |  5 ----
- 5 files changed, 21 insertions(+), 71 deletions(-)
+ arch/x86/include/asm/cpufeatures.h                 |    1 
+ arch/x86/include/asm/special_insns.h               |   46 --------------------
+ arch/x86/lib/x86-opcode-map.txt                    |    2 -
+ tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 -
+ tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 -
+ tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 -
+ tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 --
+ .../perf/util/intel-pt-decoder/x86-opcode-map.txt  |    2 -
+ 8 files changed, 3 insertions(+), 58 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index e207f8f..432b9e6 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -819,16 +819,16 @@ static int dax_insert_mapping(struct address_space *mapping,
+diff --git a/arch/x86/include/asm/cpufeatures.h b/arch/x86/include/asm/cpufeatures.h
+index 4a413485f9eb..700d97df7d28 100644
+--- a/arch/x86/include/asm/cpufeatures.h
++++ b/arch/x86/include/asm/cpufeatures.h
+@@ -225,7 +225,6 @@
+ #define X86_FEATURE_RDSEED	( 9*32+18) /* The RDSEED instruction */
+ #define X86_FEATURE_ADX		( 9*32+19) /* The ADCX and ADOX instructions */
+ #define X86_FEATURE_SMAP	( 9*32+20) /* Supervisor Mode Access Prevention */
+-#define X86_FEATURE_PCOMMIT	( 9*32+22) /* PCOMMIT instruction */
+ #define X86_FEATURE_CLFLUSHOPT	( 9*32+23) /* CLFLUSHOPT instruction */
+ #define X86_FEATURE_CLWB	( 9*32+24) /* CLWB instruction */
+ #define X86_FEATURE_AVX512PF	( 9*32+26) /* AVX-512 Prefetch */
+diff --git a/arch/x86/include/asm/special_insns.h b/arch/x86/include/asm/special_insns.h
+index d96d04377765..587d7914ea4b 100644
+--- a/arch/x86/include/asm/special_insns.h
++++ b/arch/x86/include/asm/special_insns.h
+@@ -253,52 +253,6 @@ static inline void clwb(volatile void *__p)
+ 		: [pax] "a" (p));
  }
  
- /**
-- * __dax_fault - handle a page fault on a DAX file
-+ * dax_fault - handle a page fault on a DAX file
-  * @vma: The virtual memory area where the fault occurred
-  * @vmf: The description of the fault
-  * @get_block: The filesystem method used to translate file offsets to blocks
-  *
-  * When a page fault occurs, filesystems may call this helper in their
-- * fault handler for DAX files. __dax_fault() assumes the caller has done all
-+ * fault handler for DAX files. dax_fault() assumes the caller has done all
-  * the necessary locking for the page fault to proceed successfully.
-  */
--int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
-+int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			get_block_t get_block)
- {
- 	struct file *file = vma->vm_file;
-@@ -913,33 +913,6 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		return VM_FAULT_SIGBUS | major;
- 	return VM_FAULT_NOPAGE | major;
- }
--EXPORT_SYMBOL(__dax_fault);
--
 -/**
-- * dax_fault - handle a page fault on a DAX file
-- * @vma: The virtual memory area where the fault occurred
-- * @vmf: The description of the fault
-- * @get_block: The filesystem method used to translate file offsets to blocks
+- * pcommit_sfence() - persistent commit and fence
 - *
-- * When a page fault occurs, filesystems may call this helper in their
-- * fault handler for DAX files.
-- */
--int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
--	      get_block_t get_block)
--{
--	int result;
--	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
--
--	if (vmf->flags & FAULT_FLAG_WRITE) {
--		sb_start_pagefault(sb);
--		file_update_time(vma->vm_file);
--	}
--	result = __dax_fault(vma, vmf, get_block);
--	if (vmf->flags & FAULT_FLAG_WRITE)
--		sb_end_pagefault(sb);
--
--	return result;
--}
- EXPORT_SYMBOL_GPL(dax_fault);
- 
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE)
-@@ -967,7 +940,16 @@ static void __dax_dbg(struct buffer_head *bh, unsigned long address,
- 
- #define dax_pmd_dbg(bh, address, reason)	__dax_dbg(bh, address, reason, "dax_pmd")
- 
--int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
-+/**
-+ * dax_pmd_fault - handle a PMD fault on a DAX file
-+ * @vma: The virtual memory area where the fault occurred
-+ * @vmf: The description of the fault
-+ * @get_block: The filesystem method used to translate file offsets to blocks
-+ *
-+ * When a page fault occurs, filesystems may call this helper in their
-+ * pmd_fault handler for DAX files.
-+ */
-+int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		pmd_t *pmd, unsigned int flags, get_block_t get_block)
- {
- 	struct file *file = vma->vm_file;
-@@ -1119,7 +1101,7 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 		 *
- 		 * The PMD path doesn't have an equivalent to
- 		 * dax_pfn_mkwrite(), though, so for a read followed by a
--		 * write we traverse all the way through __dax_pmd_fault()
-+		 * write we traverse all the way through dax_pmd_fault()
- 		 * twice.  This means we can just skip inserting a radix tree
- 		 * entry completely on the initial read and just wait until
- 		 * the write to insert a dirty entry.
-@@ -1148,33 +1130,6 @@ int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	result = VM_FAULT_FALLBACK;
- 	goto out;
- }
--EXPORT_SYMBOL_GPL(__dax_pmd_fault);
--
--/**
-- * dax_pmd_fault - handle a PMD fault on a DAX file
-- * @vma: The virtual memory area where the fault occurred
-- * @vmf: The description of the fault
-- * @get_block: The filesystem method used to translate file offsets to blocks
+- * The PCOMMIT instruction ensures that data that has been flushed from the
+- * processor's cache hierarchy with CLWB, CLFLUSHOPT or CLFLUSH is accepted to
+- * memory and is durable on the DIMM.  The primary use case for this is
+- * persistent memory.
 - *
-- * When a page fault occurs, filesystems may call this helper in their
-- * pmd_fault handler for DAX files.
+- * This function shows how to properly use CLWB/CLFLUSHOPT/CLFLUSH and PCOMMIT
+- * with appropriate fencing.
+- *
+- * Example:
+- * void flush_and_commit_buffer(void *vaddr, unsigned int size)
+- * {
+- *         unsigned long clflush_mask = boot_cpu_data.x86_clflush_size - 1;
+- *         void *vend = vaddr + size;
+- *         void *p;
+- *
+- *         for (p = (void *)((unsigned long)vaddr & ~clflush_mask);
+- *              p < vend; p += boot_cpu_data.x86_clflush_size)
+- *                 clwb(p);
+- *
+- *         // SFENCE to order CLWB/CLFLUSHOPT/CLFLUSH cache flushes
+- *         // MFENCE via mb() also works
+- *         wmb();
+- *
+- *         // PCOMMIT and the required SFENCE for ordering
+- *         pcommit_sfence();
+- * }
+- *
+- * After this function completes the data pointed to by 'vaddr' has been
+- * accepted to memory and will be durable if the 'vaddr' points to persistent
+- * memory.
+- *
+- * PCOMMIT must always be ordered by an MFENCE or SFENCE, so to help simplify
+- * things we include both the PCOMMIT and the required SFENCE in the
+- * alternatives generated by pcommit_sfence().
 - */
--int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
--			pmd_t *pmd, unsigned int flags, get_block_t get_block)
+-static inline void pcommit_sfence(void)
 -{
--	int result;
--	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
--
--	if (flags & FAULT_FLAG_WRITE) {
--		sb_start_pagefault(sb);
--		file_update_time(vma->vm_file);
--	}
--	result = __dax_pmd_fault(vma, address, pmd, flags, get_block);
--	if (flags & FAULT_FLAG_WRITE)
--		sb_end_pagefault(sb);
--
--	return result;
+-	alternative(ASM_NOP7,
+-		    ".byte 0x66, 0x0f, 0xae, 0xf8\n\t" /* pcommit */
+-		    "sfence",
+-		    X86_FEATURE_PCOMMIT);
 -}
- EXPORT_SYMBOL_GPL(dax_pmd_fault);
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+-
+ #define nop() asm volatile ("nop")
  
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index 868c023..5efeefe 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -51,7 +51,7 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- 	}
- 	down_read(&ei->dax_sem);
  
--	ret = __dax_fault(vma, vmf, ext2_get_block);
-+	ret = dax_fault(vma, vmf, ext2_get_block);
+diff --git a/arch/x86/lib/x86-opcode-map.txt b/arch/x86/lib/x86-opcode-map.txt
+index d388de72eaca..28632ee68377 100644
+--- a/arch/x86/lib/x86-opcode-map.txt
++++ b/arch/x86/lib/x86-opcode-map.txt
+@@ -947,7 +947,7 @@ GrpTable: Grp15
+ 4: XSAVE
+ 5: XRSTOR | lfence (11B)
+ 6: XSAVEOPT | clwb (66) | mfence (11B)
+-7: clflush | clflushopt (66) | sfence (11B) | pcommit (66),(11B)
++7: clflush | clflushopt (66) | sfence (11B)
+ EndTable
  
- 	up_read(&ei->dax_sem);
- 	if (vmf->flags & FAULT_FLAG_WRITE)
-@@ -72,7 +72,7 @@ static int ext2_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
- 	}
- 	down_read(&ei->dax_sem);
+ GrpTable: Grp16
+diff --git a/tools/objtool/arch/x86/insn/x86-opcode-map.txt b/tools/objtool/arch/x86/insn/x86-opcode-map.txt
+index d388de72eaca..28632ee68377 100644
+--- a/tools/objtool/arch/x86/insn/x86-opcode-map.txt
++++ b/tools/objtool/arch/x86/insn/x86-opcode-map.txt
+@@ -947,7 +947,7 @@ GrpTable: Grp15
+ 4: XSAVE
+ 5: XRSTOR | lfence (11B)
+ 6: XSAVEOPT | clwb (66) | mfence (11B)
+-7: clflush | clflushopt (66) | sfence (11B) | pcommit (66),(11B)
++7: clflush | clflushopt (66) | sfence (11B)
+ EndTable
  
--	ret = __dax_pmd_fault(vma, addr, pmd, flags, ext2_get_block);
-+	ret = dax_pmd_fault(vma, addr, pmd, flags, ext2_get_block);
+ GrpTable: Grp16
+diff --git a/tools/perf/arch/x86/tests/insn-x86-dat-32.c b/tools/perf/arch/x86/tests/insn-x86-dat-32.c
+index 3b491cfe204e..38a48daed154 100644
+--- a/tools/perf/arch/x86/tests/insn-x86-dat-32.c
++++ b/tools/perf/arch/x86/tests/insn-x86-dat-32.c
+@@ -654,5 +654,3 @@
+ "0f c7 1d 78 56 34 12 \txrstors 0x12345678",},
+ {{0x0f, 0xc7, 0x9c, 0xc8, 0x78, 0x56, 0x34, 0x12, }, 8, 0, "", "",
+ "0f c7 9c c8 78 56 34 12 \txrstors 0x12345678(%eax,%ecx,8)",},
+-{{0x66, 0x0f, 0xae, 0xf8, }, 4, 0, "", "",
+-"66 0f ae f8          \tpcommit ",},
+diff --git a/tools/perf/arch/x86/tests/insn-x86-dat-64.c b/tools/perf/arch/x86/tests/insn-x86-dat-64.c
+index 4fe7cce179c4..1f11ea85b60f 100644
+--- a/tools/perf/arch/x86/tests/insn-x86-dat-64.c
++++ b/tools/perf/arch/x86/tests/insn-x86-dat-64.c
+@@ -764,5 +764,3 @@
+ "0f c7 9c c8 78 56 34 12 \txrstors 0x12345678(%rax,%rcx,8)",},
+ {{0x41, 0x0f, 0xc7, 0x9c, 0xc8, 0x78, 0x56, 0x34, 0x12, }, 9, 0, "", "",
+ "41 0f c7 9c c8 78 56 34 12 \txrstors 0x12345678(%r8,%rcx,8)",},
+-{{0x66, 0x0f, 0xae, 0xf8, }, 4, 0, "", "",
+-"66 0f ae f8          \tpcommit ",},
+diff --git a/tools/perf/arch/x86/tests/insn-x86-dat-src.c b/tools/perf/arch/x86/tests/insn-x86-dat-src.c
+index 41b1b1c62660..033b8a6fdab9 100644
+--- a/tools/perf/arch/x86/tests/insn-x86-dat-src.c
++++ b/tools/perf/arch/x86/tests/insn-x86-dat-src.c
+@@ -866,10 +866,6 @@ int main(void)
  
- 	up_read(&ei->dax_sem);
- 	if (flags & FAULT_FLAG_WRITE)
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index df44c87..6664f9c 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -202,7 +202,7 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- 	if (IS_ERR(handle))
- 		result = VM_FAULT_SIGBUS;
- 	else
--		result = __dax_fault(vma, vmf, ext4_dax_get_block);
-+		result = dax_fault(vma, vmf, ext4_dax_get_block);
+ #endif /* #ifndef __x86_64__ */
  
- 	if (write) {
- 		if (!IS_ERR(handle))
-@@ -237,7 +237,7 @@ static int ext4_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
- 	if (IS_ERR(handle))
- 		result = VM_FAULT_SIGBUS;
- 	else
--		result = __dax_pmd_fault(vma, addr, pmd, flags,
-+		result = dax_pmd_fault(vma, addr, pmd, flags,
- 					 ext4_dax_get_block);
+-	/* pcommit */
+-
+-	asm volatile("pcommit");
+-
+ 	/* Following line is a marker for the awk script - do not change */
+ 	asm volatile("rdtsc"); /* Stop here */
  
- 	if (write) {
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 47fc632..1b3dc9dd 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1551,7 +1551,7 @@ xfs_filemap_page_mkwrite(
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+diff --git a/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt b/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt
+index d388de72eaca..28632ee68377 100644
+--- a/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt
++++ b/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt
+@@ -947,7 +947,7 @@ GrpTable: Grp15
+ 4: XSAVE
+ 5: XRSTOR | lfence (11B)
+ 6: XSAVEOPT | clwb (66) | mfence (11B)
+-7: clflush | clflushopt (66) | sfence (11B) | pcommit (66),(11B)
++7: clflush | clflushopt (66) | sfence (11B)
+ EndTable
  
- 	if (IS_DAX(inode)) {
--		ret = __dax_mkwrite(vma, vmf, xfs_get_blocks_dax_fault);
-+		ret = dax_mkwrite(vma, vmf, xfs_get_blocks_dax_fault);
- 	} else {
- 		ret = block_page_mkwrite(vma, vmf, xfs_get_blocks);
- 		ret = block_page_mkwrite_return(ret);
-@@ -1585,7 +1585,7 @@ xfs_filemap_fault(
- 		 * changes to xfs_get_blocks_direct() to map unwritten extent
- 		 * ioend for conversion on read-only mappings.
- 		 */
--		ret = __dax_fault(vma, vmf, xfs_get_blocks_dax_fault);
-+		ret = dax_fault(vma, vmf, xfs_get_blocks_dax_fault);
- 	} else
- 		ret = filemap_fault(vma, vmf);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-@@ -1622,7 +1622,7 @@ xfs_filemap_pmd_fault(
- 	}
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
--	ret = __dax_pmd_fault(vma, addr, pmd, flags, xfs_get_blocks_dax_fault);
-+	ret = dax_pmd_fault(vma, addr, pmd, flags, xfs_get_blocks_dax_fault);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 
- 	if (flags & FAULT_FLAG_WRITE)
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 43d5f0b..9c6dc77 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -14,7 +14,6 @@ ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *,
- int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
- int dax_truncate_page(struct inode *, loff_t from, get_block_t);
- int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
--int __dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
- int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- void dax_wake_mapping_entry_waiter(struct address_space *mapping,
- 				   pgoff_t index, bool wake_all);
-@@ -46,19 +45,15 @@ static inline int __dax_zero_page_range(struct block_device *bdev,
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE)
- int dax_pmd_fault(struct vm_area_struct *, unsigned long addr, pmd_t *,
- 				unsigned int flags, get_block_t);
--int __dax_pmd_fault(struct vm_area_struct *, unsigned long addr, pmd_t *,
--				unsigned int flags, get_block_t);
- #else
- static inline int dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
- 				pmd_t *pmd, unsigned int flags, get_block_t gb)
- {
- 	return VM_FAULT_FALLBACK;
- }
--#define __dax_pmd_fault dax_pmd_fault
- #endif
- int dax_pfn_mkwrite(struct vm_area_struct *, struct vm_fault *);
- #define dax_mkwrite(vma, vmf, gb)	dax_fault(vma, vmf, gb)
--#define __dax_mkwrite(vma, vmf, gb)	__dax_fault(vma, vmf, gb)
- 
- static inline bool vma_is_dax(struct vm_area_struct *vma)
- {
--- 
-2.9.0
+ GrpTable: Grp16
 
 _______________________________________________
 Linux-nvdimm mailing list
