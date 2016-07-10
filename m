@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 68F391A1E4F
- for <linux-nvdimm@lists.01.org>; Wed, 20 Jul 2016 18:52:30 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 2/3] nfit,
- libnvdimm: allow an ARS scrub to be triggered on demand
-Date: Wed, 20 Jul 2016 19:50:49 -0600
-Message-Id: <1469065850-32401-3-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1469065850-32401-1-git-send-email-vishal.l.verma@intel.com>
-References: <1469065850-32401-1-git-send-email-vishal.l.verma@intel.com>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 01CF11A1E10
+ for <linux-nvdimm@lists.01.org>; Sat,  9 Jul 2016 20:28:54 -0700 (PDT)
+Subject: [PATCH v2 17/17] pmem: kill __pmem address space
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 09 Jul 2016 20:25:59 -0700
+Message-ID: <146812115987.32932.7318474941946627247.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,341 +16,571 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, hch@lst.de, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Normally, an ARS (Address Range Scrub) only happens at
-boot/initialization time. There can however arise situations where a
-bus-wide rescan is needed - notably, in the case of discovering a latent
-media error, we should do a full rescan to figure out what other sectors
-are bad, and thus potentially avoid triggering an mce on them in the
-future. Also provide a sysfs trigger to start a bus-wide scrub.
+The __pmem address space was meant to annotate codepaths that touch
+persistent memory and need to coordinate a call to wmb_pmem().  Now that
+wmb_pmem() is gone, there is little need to keep this annotation.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: <linux-nvdimm@lists.01.org>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c              | 123 +++++++++++++++++++++++++++++++++------
- drivers/acpi/nfit.h              |   4 +-
- drivers/nvdimm/core.c            |   7 +++
- include/linux/libnvdimm.h        |   1 +
- tools/testing/nvdimm/test/nfit.c |  16 +++++
- 5 files changed, 131 insertions(+), 20 deletions(-)
+ Documentation/filesystems/Locking |    2 +
+ arch/powerpc/sysdev/axonram.c     |    4 +-
+ arch/x86/include/asm/pmem.h       |   41 +++++++++-------------
+ drivers/acpi/nfit.h               |    2 +
+ drivers/block/brd.c               |    4 +-
+ drivers/nvdimm/pmem.c             |    6 ++-
+ drivers/nvdimm/pmem.h             |    4 +-
+ drivers/s390/block/dcssblk.c      |    6 ++-
+ fs/dax.c                          |    6 ++-
+ include/linux/blkdev.h            |    6 ++-
+ include/linux/compiler.h          |    2 -
+ include/linux/nd.h                |    2 +
+ include/linux/pmem.h              |   70 +++++++++----------------------------
+ scripts/checkpatch.pl             |    1 -
+ tools/testing/nvdimm/pmem-dax.c   |    2 +
+ 15 files changed, 56 insertions(+), 102 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index ac6ddcc0..4e65255 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -15,6 +15,7 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/ndctl.h>
-+#include <linux/sysfs.h>
- #include <linux/delay.h>
- #include <linux/list.h>
- #include <linux/acpi.h>
-@@ -806,8 +807,41 @@ static ssize_t revision_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(revision);
- 
-+/*
-+ * This shows the number of full Address Range Scrubs that have been
-+ * completed since driver load time. Userspace can wait on this using
-+ * select/poll etc.
-+ */
-+static ssize_t scrub_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
-+
-+	return sprintf(buf, "%d\n", acpi_desc->scrub_count);
-+}
-+
-+static int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc);
-+
-+static ssize_t scrub_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
-+	int rc;
-+
-+	rc = acpi_nfit_ars_rescan(acpi_desc);
-+	if (rc)
-+		return rc;
-+	return size;
-+}
-+static DEVICE_ATTR_RW(scrub);
-+
- static struct attribute *acpi_nfit_attributes[] = {
- 	&dev_attr_revision.attr,
-+	&dev_attr_scrub.attr,
- 	NULL,
- };
- 
-@@ -2138,7 +2172,7 @@ static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
- 	unsigned int tmo = scrub_timeout;
- 	int rc;
- 
--	if (nfit_spa->ars_done || !nfit_spa->nd_region)
-+	if (!(nfit_spa->ars_required && nfit_spa->nd_region))
- 		return;
- 
- 	rc = ars_start(acpi_desc, nfit_spa);
-@@ -2227,7 +2261,9 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 	 * firmware initiated scrubs to complete and then we go search for the
- 	 * affected spa regions to mark them scanned.  In the second phase we
- 	 * initiate a directed scrub for every range that was not scrubbed in
--	 * phase 1.
-+	 * phase 1. If we're called for a 'rescan', we harmlessly pass through
-+	 * the first phase, but really only care about running phase 2, where
-+	 * regions can be notified of new poison.
- 	 */
- 
- 	/* process platform firmware initiated scrubs */
-@@ -2330,14 +2366,17 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 		 * Flag all the ranges that still need scrubbing, but
- 		 * register them now to make data available.
- 		 */
--		if (nfit_spa->nd_region)
--			nfit_spa->ars_done = 1;
--		else
-+		if (!nfit_spa->nd_region) {
-+			nfit_spa->ars_required = 1;
- 			acpi_nfit_register_region(acpi_desc, nfit_spa);
-+		}
- 	}
- 
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
- 		acpi_nfit_async_scrub(acpi_desc, nfit_spa);
-+	acpi_desc->scrub_count++;
-+	if (acpi_desc->scrub_count_state)
-+		sysfs_notify_dirent(acpi_desc->scrub_count_state);
- 	mutex_unlock(&acpi_desc->init_mutex);
- }
- 
-@@ -2495,6 +2534,27 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
- 	return 0;
- }
- 
-+static int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc)
-+{
-+	struct device *dev = acpi_desc->dev;
-+	struct nfit_spa *nfit_spa;
-+
-+	if (work_busy(&acpi_desc->work))
-+		return -EBUSY;
-+
-+	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-+		struct acpi_nfit_system_address *spa = nfit_spa->spa;
-+
-+		if (nfit_spa_type(spa) != NFIT_SPA_PM)
-+			continue;
-+
-+		nfit_spa->ars_required = 1;
-+	}
-+	queue_work(nfit_wq, &acpi_desc->work);
-+	dev_info(dev, "%s: ars_scan triggered\n", __func__);
-+	return 0;
-+}
-+
- void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
+index 75eea7ce3d7c..d9c37ec4c760 100644
+--- a/Documentation/filesystems/Locking
++++ b/Documentation/filesystems/Locking
+@@ -395,7 +395,7 @@ prototypes:
+ 	int (*release) (struct gendisk *, fmode_t);
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+-	int (*direct_access) (struct block_device *, sector_t, void __pmem **,
++	int (*direct_access) (struct block_device *, sector_t, void **,
+ 				unsigned long *);
+ 	int (*media_changed) (struct gendisk *);
+ 	void (*unlock_native_capacity) (struct gendisk *);
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index ff75d70f7285..154cd9110c08 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -143,12 +143,12 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
+  */
+ static long
+ axon_ram_direct_access(struct block_device *device, sector_t sector,
+-		       void __pmem **kaddr, pfn_t *pfn, long size)
++		       void **kaddr, pfn_t *pfn, long size)
  {
- 	struct nvdimm_bus_descriptor *nd_desc;
-@@ -2523,6 +2583,37 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+ 	struct axon_ram_bank *bank = device->bd_disk->private_data;
+ 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
+ 
+-	*kaddr = (void __pmem __force *) bank->io_addr + offset;
++	*kaddr = bank->io_addr + offset;
+ 	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
+ 	return bank->size - offset;
  }
- EXPORT_SYMBOL_GPL(acpi_nfit_desc_init);
- 
-+static struct acpi_nfit_desc *acpi_nfit_desc_alloc_register(struct device *dev)
-+{
-+	struct acpi_nfit_desc *acpi_desc;
-+	struct kernfs_node *nfit;
-+	struct device *bus_dev;
-+
-+	acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
-+	if (!acpi_desc)
-+		return ERR_PTR(-ENOMEM);
-+
-+	acpi_nfit_desc_init(acpi_desc, dev);
-+
-+	acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
-+	if (!acpi_desc->nvdimm_bus)
-+		return ERR_PTR(-ENOMEM);
-+
-+	bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
-+	nfit = sysfs_get_dirent(bus_dev->kobj.sd, "nfit");
-+	if (!nfit) {
-+		dev_err(dev, "sysfs_get_dirent 'nfit' failed\n");
-+		return ERR_PTR(-ENODEV);
-+	}
-+	acpi_desc->scrub_count_state = sysfs_get_dirent(nfit, "scrub");
-+	if (!acpi_desc->scrub_count_state) {
-+		dev_err(dev, "sysfs_get_dirent 'scrub' failed\n");
-+		return ERR_PTR(-ENODEV);
-+	}
-+
-+	return acpi_desc;
-+}
-+
- static int acpi_nfit_add(struct acpi_device *adev)
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index a8cf2a6b14d9..643eba42d620 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -28,10 +28,9 @@
+  * Copy data to persistent memory media via non-temporal stores so that
+  * a subsequent pmem driver flush operation will drain posted write queues.
+  */
+-static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+-		size_t n)
++static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
  {
- 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
-@@ -2540,13 +2631,9 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 		return 0;
- 	}
- 
--	acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
--	if (!acpi_desc)
--		return -ENOMEM;
--	acpi_nfit_desc_init(acpi_desc, &adev->dev);
--	acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
--	if (!acpi_desc->nvdimm_bus)
--		return -ENOMEM;
-+	acpi_desc = acpi_nfit_desc_alloc_register(dev);
-+	if (IS_ERR(acpi_desc))
-+		return PTR_ERR(acpi_desc);
+-	int unwritten;
++	int rem;
  
  	/*
- 	 * Save the acpi header for later and then skip it,
-@@ -2587,6 +2674,7 @@ static int acpi_nfit_remove(struct acpi_device *adev)
+ 	 * We are copying between two kernel buffers, if
+@@ -39,19 +38,17 @@ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+ 	 * fault) we would have already reported a general protection fault
+ 	 * before the WARN+BUG.
+ 	 */
+-	unwritten = __copy_from_user_inatomic_nocache((void __force *) dst,
+-			(void __user *) src, n);
+-	if (WARN(unwritten, "%s: fault copying %p <- %p unwritten: %d\n",
+-				__func__, dst, src, unwritten))
++	rem = __copy_from_user_inatomic_nocache(dst, (void __user *) src, n);
++	if (WARN(rem, "%s: fault copying %p <- %p unwritten: %d\n",
++				__func__, dst, src, rem))
+ 		BUG();
+ }
  
- 	acpi_desc->cancel = 1;
- 	flush_workqueue(nfit_wq);
-+	sysfs_put(acpi_desc->scrub_count_state);
- 	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+-static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
+-		size_t n)
++static inline int arch_memcpy_from_pmem(void *dst, const void *src, size_t n)
+ {
+ 	if (static_cpu_has(X86_FEATURE_MCE_RECOVERY))
+-		return memcpy_mcsafe(dst, (void __force *) src, n);
+-	memcpy(dst, (void __force *) src, n);
++		return memcpy_mcsafe(dst, src, n);
++	memcpy(dst, src, n);
  	return 0;
  }
-@@ -2611,13 +2699,10 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- 	}
  
- 	if (!acpi_desc) {
--		acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
--		if (!acpi_desc)
--			goto out_unlock;
--		acpi_nfit_desc_init(acpi_desc, &adev->dev);
--		acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
--		if (!acpi_desc->nvdimm_bus)
--			goto out_unlock;
-+		acpi_desc = acpi_nfit_desc_alloc_register(dev);
-+		if (IS_ERR(acpi_desc))
-+			dev_err(dev, "%s: failed to alloc acpi_desc (%ld)\n",
-+				__func__, PTR_ERR(acpi_desc));
- 	} else {
- 		/*
- 		 * Finish previous registration before considering new
+@@ -63,15 +60,14 @@ static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
+  * Write back a cache range using the CLWB (cache line write back)
+  * instruction.
+  */
+-static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
++static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ {
+ 	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
+ 	unsigned long clflush_mask = x86_clflush_size - 1;
+-	void *vaddr = (void __force *)addr;
+-	void *vend = vaddr + size;
++	void *vend = addr + size;
+ 	void *p;
+ 
+-	for (p = (void *)((unsigned long)vaddr & ~clflush_mask);
++	for (p = (void *)((unsigned long)addr & ~clflush_mask);
+ 	     p < vend; p += x86_clflush_size)
+ 		clwb(p);
+ }
+@@ -93,14 +89,13 @@ static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
+  *
+  * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+  */
+-static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
++static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+ 		struct iov_iter *i)
+ {
+-	void *vaddr = (void __force *)addr;
+ 	size_t len;
+ 
+ 	/* TODO: skip the write-back by always using non-temporal stores */
+-	len = copy_from_iter_nocache(vaddr, bytes, i);
++	len = copy_from_iter_nocache(addr, bytes, i);
+ 
+ 	if (__iter_needs_pmem_wb(i))
+ 		arch_wb_cache_pmem(addr, bytes);
+@@ -115,17 +110,15 @@ static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+  *
+  * Write zeros into the memory range starting at 'addr' for 'size' bytes.
+  */
+-static inline void arch_clear_pmem(void __pmem *addr, size_t size)
++static inline void arch_clear_pmem(void *addr, size_t size)
+ {
+-	void *vaddr = (void __force *)addr;
+-
+-	memset(vaddr, 0, size);
++	memset(addr, 0, size);
+ 	arch_wb_cache_pmem(addr, size);
+ }
+ 
+-static inline void arch_invalidate_pmem(void __pmem *addr, size_t size)
++static inline void arch_invalidate_pmem(void *addr, size_t size)
+ {
+-	clflush_cache_range((void __force *) addr, size);
++	clflush_cache_range(addr, size);
+ }
+ #endif /* CONFIG_ARCH_HAS_PMEM_API */
+ #endif /* __ASM_X86_PMEM_H__ */
 diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 02b9ea1..954d2aa 100644
+index 9fda77cf81da..80fb2c0ac8bf 100644
 --- a/drivers/acpi/nfit.h
 +++ b/drivers/acpi/nfit.h
-@@ -77,7 +77,7 @@ struct nfit_spa {
- 	struct acpi_nfit_system_address *spa;
- 	struct list_head list;
- 	struct nd_region *nd_region;
--	unsigned int ars_done:1;
-+	unsigned int ars_required:1;
- 	u32 clear_err_unit;
- 	u32 max_ars;
+@@ -164,7 +164,7 @@ enum nd_blk_mmio_selector {
+ struct nd_blk_addr {
+ 	union {
+ 		void __iomem *base;
+-		void __pmem  *aperture;
++		void *aperture;
+ 	};
  };
-@@ -146,6 +146,8 @@ struct acpi_nfit_desc {
- 	struct nd_cmd_ars_status *ars_status;
- 	size_t ars_status_size;
- 	struct work_struct work;
-+	struct kernfs_node *scrub_count_state;
-+	unsigned int scrub_count;
- 	unsigned int cancel:1;
- 	unsigned long dimm_cmd_force_en;
- 	unsigned long bus_cmd_force_en;
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index be89764..d81db3ac 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -99,6 +99,13 @@ struct nvdimm_bus_descriptor *to_nd_desc(struct nvdimm_bus *nvdimm_bus)
- }
- EXPORT_SYMBOL_GPL(to_nd_desc);
  
-+struct device *to_nvdimm_bus_dev(struct nvdimm_bus *nvdimm_bus)
-+{
-+	/* struct nvdimm_bus definition is private to libnvdimm */
-+	return &nvdimm_bus->dev;
-+}
-+EXPORT_SYMBOL_GPL(to_nvdimm_bus_dev);
-+
- struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev)
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index c04bd9bc39fd..5f1fe4e6208d 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -381,7 +381,7 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
+ 
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+-			void __pmem **kaddr, pfn_t *pfn, long size)
++			void **kaddr, pfn_t *pfn, long size)
  {
- 	struct device *dev;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 0c3c30c..27cecc2 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -129,6 +129,7 @@ struct nvdimm *to_nvdimm(struct device *dev);
- struct nd_region *to_nd_region(struct device *dev);
- struct nd_blk_region *to_nd_blk_region(struct device *dev);
- struct nvdimm_bus_descriptor *to_nd_desc(struct nvdimm_bus *nvdimm_bus);
-+struct device *to_nvdimm_bus_dev(struct nvdimm_bus *nvdimm_bus);
- const char *nvdimm_name(struct nvdimm *nvdimm);
- unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm);
- void *nvdimm_provider_data(struct nvdimm *nvdimm);
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index c919866..74231de 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -20,6 +20,7 @@
- #include <linux/mutex.h>
- #include <linux/ndctl.h>
- #include <linux/sizes.h>
-+#include <linux/sysfs.h>
- #include <linux/list.h>
- #include <linux/slab.h>
- #include <nfit.h>
-@@ -1409,6 +1410,8 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct device *dev = &pdev->dev;
- 	struct nfit_test *nfit_test;
-+	struct kernfs_node *nfit;
-+	struct device *bus_dev;
- 	int rc;
+ 	struct brd_device *brd = bdev->bd_disk->private_data;
+ 	struct page *page;
+@@ -391,7 +391,7 @@ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+ 	page = brd_insert_page(brd, sector);
+ 	if (!page)
+ 		return -ENOSPC;
+-	*kaddr = (void __pmem *)page_address(page);
++	*kaddr = page_address(page);
+ 	*pfn = page_to_pfn_t(page);
  
- 	nfit_test = to_nfit_test(&pdev->dev);
-@@ -1471,6 +1474,18 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	if (!acpi_desc->nvdimm_bus)
- 		return -ENXIO;
+ 	return PAGE_SIZE;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 3f3fdb9586b9..ed1ec0afe66f 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -74,7 +74,7 @@ static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ 	bool bad_pmem = false;
+ 	void *mem = kmap_atomic(page);
+ 	phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
+-	void __pmem *pmem_addr = pmem->virt_addr + pmem_off;
++	void *pmem_addr = pmem->virt_addr + pmem_off;
  
-+	bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
-+	nfit = sysfs_get_dirent(bus_dev->kobj.sd, "nfit");
-+	if (!nfit) {
-+		dev_err(dev, "sysfs_get_dirent 'nfit' failed\n");
-+		return -ENODEV;
-+	}
-+	acpi_desc->scrub_count_state = sysfs_get_dirent(nfit, "scrub");
-+	if (!acpi_desc->scrub_count_state) {
-+		dev_err(dev, "sysfs_get_dirent 'scrub' failed\n");
-+		return -ENODEV;
-+	}
-+
- 	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
- 	if (rc) {
- 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
-@@ -1497,6 +1512,7 @@ static int nfit_test_remove(struct platform_device *pdev)
- 	struct nfit_test *nfit_test = to_nfit_test(&pdev->dev);
- 	struct acpi_nfit_desc *acpi_desc = &nfit_test->acpi_desc;
+ 	if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
+ 		bad_pmem = true;
+@@ -173,7 +173,7 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
  
-+	sysfs_put(acpi_desc->scrub_count_state);
- 	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+ /* see "strong" declaration in tools/testing/nvdimm/pmem-dax.c */
+ __weak long pmem_direct_access(struct block_device *bdev, sector_t sector,
+-		      void __pmem **kaddr, pfn_t *pfn, long size)
++		      void **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct pmem_device *pmem = bdev->bd_queue->queuedata;
+ 	resource_size_t offset = sector * 512 + pmem->data_offset;
+@@ -282,7 +282,7 @@ static int pmem_attach_disk(struct device *dev,
  
+ 	if (IS_ERR(addr))
+ 		return PTR_ERR(addr);
+-	pmem->virt_addr = (void __pmem *) addr;
++	pmem->virt_addr = addr;
+ 
+ 	has_flush = nvdimm_has_flush(nd_region);
+ 	if (has_flush < 0)
+diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+index c48d4e3aa346..b4ee4f71b4a1 100644
+--- a/drivers/nvdimm/pmem.h
++++ b/drivers/nvdimm/pmem.h
+@@ -6,7 +6,7 @@
+ #include <linux/fs.h>
+ 
+ long pmem_direct_access(struct block_device *bdev, sector_t sector,
+-		      void __pmem **kaddr, pfn_t *pfn, long size);
++		      void **kaddr, pfn_t *pfn, long size);
+ /* this definition is in it's own header for tools/testing/nvdimm to consume */
+ struct pmem_device {
+ 	/* One contiguous memory region per device */
+@@ -14,7 +14,7 @@ struct pmem_device {
+ 	/* when non-zero this device is hosting a 'pfn' instance */
+ 	phys_addr_t		data_offset;
+ 	u64			pfn_flags;
+-	void __pmem		*virt_addr;
++	void			*virt_addr;
+ 	/* immutable base size of the namespace */
+ 	size_t			size;
+ 	/* trim size when namespace capacity has been section aligned */
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index bed53c46dd90..023c5c975dc0 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -31,7 +31,7 @@ static void dcssblk_release(struct gendisk *disk, fmode_t mode);
+ static blk_qc_t dcssblk_make_request(struct request_queue *q,
+ 						struct bio *bio);
+ static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
+-			 void __pmem **kaddr, pfn_t *pfn, long size);
++			 void **kaddr, pfn_t *pfn, long size);
+ 
+ static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
+ 
+@@ -884,7 +884,7 @@ fail:
+ 
+ static long
+ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+-			void __pmem **kaddr, pfn_t *pfn, long size)
++			void **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct dcssblk_dev_info *dev_info;
+ 	unsigned long offset, dev_sz;
+@@ -894,7 +894,7 @@ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+ 		return -ENODEV;
+ 	dev_sz = dev_info->end - dev_info->start;
+ 	offset = secnum * 512;
+-	*kaddr = (void __pmem *) (dev_info->start + offset);
++	*kaddr = (void *) dev_info->start + offset;
+ 	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
+ 
+ 	return dev_sz - offset;
+diff --git a/fs/dax.c b/fs/dax.c
+index 434f421da660..c8312f6441bc 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -75,13 +75,13 @@ static long dax_map_atomic(struct block_device *bdev, struct blk_dax_ctl *dax)
+ 	struct request_queue *q = bdev->bd_queue;
+ 	long rc = -EIO;
+ 
+-	dax->addr = (void __pmem *) ERR_PTR(-EIO);
++	dax->addr = ERR_PTR(-EIO);
+ 	if (blk_queue_enter(q, true) != 0)
+ 		return rc;
+ 
+ 	rc = bdev_direct_access(bdev, dax);
+ 	if (rc < 0) {
+-		dax->addr = (void __pmem *) ERR_PTR(rc);
++		dax->addr = ERR_PTR(rc);
+ 		blk_queue_exit(q);
+ 		return rc;
+ 	}
+@@ -152,7 +152,7 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 	int rw = iov_iter_rw(iter), rc;
+ 	long map_len = 0;
+ 	struct blk_dax_ctl dax = {
+-		.addr = (void __pmem *) ERR_PTR(-EIO),
++		.addr = ERR_PTR(-EIO),
+ 	};
+ 	unsigned blkbits = inode->i_blkbits;
+ 	sector_t file_blks = (i_size_read(inode) + (1 << blkbits) - 1)
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 3d9cf326574f..fde908b2836b 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1659,7 +1659,7 @@ static inline bool integrity_req_gap_front_merge(struct request *req,
+  */
+ struct blk_dax_ctl {
+ 	sector_t sector;
+-	void __pmem *addr;
++	void *addr;
+ 	long size;
+ 	pfn_t pfn;
+ };
+@@ -1670,8 +1670,8 @@ struct block_device_operations {
+ 	int (*rw_page)(struct block_device *, sector_t, struct page *, int rw);
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+-	long (*direct_access)(struct block_device *, sector_t, void __pmem **,
+-			pfn_t *, long);
++	long (*direct_access)(struct block_device *, sector_t, void **, pfn_t *,
++			long);
+ 	unsigned int (*check_events) (struct gendisk *disk,
+ 				      unsigned int clearing);
+ 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
+diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+index 793c0829e3a3..b966974938ed 100644
+--- a/include/linux/compiler.h
++++ b/include/linux/compiler.h
+@@ -17,7 +17,6 @@
+ # define __release(x)	__context__(x,-1)
+ # define __cond_lock(x,c)	((c) ? ({ __acquire(x); 1; }) : 0)
+ # define __percpu	__attribute__((noderef, address_space(3)))
+-# define __pmem		__attribute__((noderef, address_space(5)))
+ #ifdef CONFIG_SPARSE_RCU_POINTER
+ # define __rcu		__attribute__((noderef, address_space(4)))
+ #else /* CONFIG_SPARSE_RCU_POINTER */
+@@ -45,7 +44,6 @@ extern void __chk_io_ptr(const volatile void __iomem *);
+ # define __cond_lock(x,c) (c)
+ # define __percpu
+ # define __rcu
+-# define __pmem
+ # define __private
+ # define ACCESS_PRIVATE(p, member) ((p)->member)
+ #endif /* __CHECKER__ */
+diff --git a/include/linux/nd.h b/include/linux/nd.h
+index 1ecd64643512..f1ea426d6a5e 100644
+--- a/include/linux/nd.h
++++ b/include/linux/nd.h
+@@ -68,7 +68,7 @@ struct nd_namespace_io {
+ 	struct nd_namespace_common common;
+ 	struct resource res;
+ 	resource_size_t size;
+-	void __pmem *addr;
++	void *addr;
+ 	struct badblocks bb;
+ };
+ 
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 9e3ea94b8157..e856c2cb0fe8 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -26,37 +26,35 @@
+  * calling these symbols with arch_has_pmem_api() and redirect to the
+  * implementation in asm/pmem.h.
+  */
+-static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+-		size_t n)
++static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+ {
+ 	BUG();
+ }
+ 
+-static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
+-		size_t n)
++static inline int arch_memcpy_from_pmem(void *dst, const void *src, size_t n)
+ {
+ 	BUG();
+ 	return -EFAULT;
+ }
+ 
+-static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
++static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+ 		struct iov_iter *i)
+ {
+ 	BUG();
  	return 0;
--- 
-2.7.4
+ }
+ 
+-static inline void arch_clear_pmem(void __pmem *addr, size_t size)
++static inline void arch_clear_pmem(void *addr, size_t size)
+ {
+ 	BUG();
+ }
+ 
+-static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
++static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ {
+ 	BUG();
+ }
+ 
+-static inline void arch_invalidate_pmem(void __pmem *addr, size_t size)
++static inline void arch_invalidate_pmem(void *addr, size_t size)
+ {
+ 	BUG();
+ }
+@@ -67,13 +65,6 @@ static inline bool arch_has_pmem_api(void)
+ 	return IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API);
+ }
+ 
+-static inline int default_memcpy_from_pmem(void *dst, void __pmem const *src,
+-		size_t size)
+-{
+-	memcpy(dst, (void __force *) src, size);
+-	return 0;
+-}
+-
+ /*
+  * memcpy_from_pmem - read from persistent memory with error handling
+  * @dst: destination buffer
+@@ -82,40 +73,13 @@ static inline int default_memcpy_from_pmem(void *dst, void __pmem const *src,
+  *
+  * Returns 0 on success negative error code on failure.
+  */
+-static inline int memcpy_from_pmem(void *dst, void __pmem const *src,
+-		size_t size)
++static inline int memcpy_from_pmem(void *dst, void const *src, size_t size)
+ {
+ 	if (arch_has_pmem_api())
+ 		return arch_memcpy_from_pmem(dst, src, size);
+ 	else
+-		return default_memcpy_from_pmem(dst, src, size);
+-}
+-
+-/*
+- * These defaults seek to offer decent performance and minimize the
+- * window between i/o completion and writes being durable on media.
+- * However, it is undefined / architecture specific whether
+- * ARCH_MEMREMAP_PMEM + default_memcpy_to_pmem is sufficient for
+- * making data durable relative to i/o completion.
+- */
+-static inline void default_memcpy_to_pmem(void __pmem *dst, const void *src,
+-		size_t size)
+-{
+-	memcpy((void __force *) dst, src, size);
+-}
+-
+-static inline size_t default_copy_from_iter_pmem(void __pmem *addr,
+-		size_t bytes, struct iov_iter *i)
+-{
+-	return copy_from_iter_nocache((void __force *)addr, bytes, i);
+-}
+-
+-static inline void default_clear_pmem(void __pmem *addr, size_t size)
+-{
+-	if (size == PAGE_SIZE && ((unsigned long)addr & ~PAGE_MASK) == 0)
+-		clear_page((void __force *)addr);
+-	else
+-		memset((void __force *)addr, 0, size);
++		memcpy(dst, src, size);
++	return 0;
+ }
+ 
+ /**
+@@ -130,12 +94,12 @@ static inline void default_clear_pmem(void __pmem *addr, size_t size)
+  * data may still reside in cpu or platform buffers, so this operation
+  * must be followed by a blkdev_issue_flush() on the pmem block device.
+  */
+-static inline void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
++static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
+ {
+ 	if (arch_has_pmem_api())
+ 		arch_memcpy_to_pmem(dst, src, n);
+ 	else
+-		default_memcpy_to_pmem(dst, src, n);
++		memcpy(dst, src, n);
+ }
+ 
+ /**
+@@ -147,12 +111,12 @@ static inline void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
+  * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+  * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+-static inline size_t copy_from_iter_pmem(void __pmem *addr, size_t bytes,
++static inline size_t copy_from_iter_pmem(void *addr, size_t bytes,
+ 		struct iov_iter *i)
+ {
+ 	if (arch_has_pmem_api())
+ 		return arch_copy_from_iter_pmem(addr, bytes, i);
+-	return default_copy_from_iter_pmem(addr, bytes, i);
++	return copy_from_iter_nocache(addr, bytes, i);
+ }
+ 
+ /**
+@@ -163,12 +127,12 @@ static inline size_t copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+  * Write zeros into the memory range starting at 'addr' for 'size' bytes.
+  * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+-static inline void clear_pmem(void __pmem *addr, size_t size)
++static inline void clear_pmem(void *addr, size_t size)
+ {
+ 	if (arch_has_pmem_api())
+ 		arch_clear_pmem(addr, size);
+ 	else
+-		default_clear_pmem(addr, size);
++		memset(addr, 0, size);
+ }
+ 
+ /**
+@@ -179,7 +143,7 @@ static inline void clear_pmem(void __pmem *addr, size_t size)
+  * For platforms that support clearing poison this flushes any poisoned
+  * ranges out of the cache
+  */
+-static inline void invalidate_pmem(void __pmem *addr, size_t size)
++static inline void invalidate_pmem(void *addr, size_t size)
+ {
+ 	if (arch_has_pmem_api())
+ 		arch_invalidate_pmem(addr, size);
+@@ -193,7 +157,7 @@ static inline void invalidate_pmem(void __pmem *addr, size_t size)
+  * Write back the processor cache range starting at 'addr' for 'size' bytes.
+  * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+-static inline void wb_cache_pmem(void __pmem *addr, size_t size)
++static inline void wb_cache_pmem(void *addr, size_t size)
+ {
+ 	if (arch_has_pmem_api())
+ 		arch_wb_cache_pmem(addr, size);
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 4904ced676d4..24a08363995a 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -313,7 +313,6 @@ our $Sparse	= qr{
+ 			__kernel|
+ 			__force|
+ 			__iomem|
+-			__pmem|
+ 			__must_check|
+ 			__init_refok|
+ 			__kprobes|
+diff --git a/tools/testing/nvdimm/pmem-dax.c b/tools/testing/nvdimm/pmem-dax.c
+index 1e0218ce6a8b..c9b8c48f85fc 100644
+--- a/tools/testing/nvdimm/pmem-dax.c
++++ b/tools/testing/nvdimm/pmem-dax.c
+@@ -16,7 +16,7 @@
+ #include <nd.h>
+ 
+ long pmem_direct_access(struct block_device *bdev, sector_t sector,
+-		void __pmem **kaddr, pfn_t *pfn, long size)
++		void **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct pmem_device *pmem = bdev->bd_queue->queuedata;
+ 	resource_size_t offset = sector * 512 + pmem->data_offset;
 
 _______________________________________________
 Linux-nvdimm mailing list
