@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from invmail3.skhynix.com (exvmail3.skhynix.com [166.125.252.90])
- by ml01.01.org (Postfix) with ESMTP id 1B0F41A1F26
- for <linux-nvdimm@lists.01.org>; Thu, 14 Jul 2016 19:47:24 -0700 (PDT)
-From: Kwangwoo Lee <kwangwoo.lee@sk.com>
-Subject: [PATCH v3 2/3] arm64: mm: add mmio_flush_range() to support pmem
-Date: Fri, 15 Jul 2016 11:46:21 +0900
-Message-Id: <1468550782-14454-3-git-send-email-kwangwoo.lee@sk.com>
-In-Reply-To: <1468550782-14454-1-git-send-email-kwangwoo.lee@sk.com>
-References: <1468550782-14454-1-git-send-email-kwangwoo.lee@sk.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 1ED861A1E34
+ for <linux-nvdimm@lists.01.org>; Sat,  9 Jul 2016 20:28:38 -0700 (PDT)
+Subject: [PATCH v2 14/17] pmem: kill wmb_pmem()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 09 Jul 2016 20:25:44 -0700
+Message-ID: <146812114395.32932.6871258291725696871.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,56 +16,201 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-arm-kernel@lists.infradead.org, linux-nvdimm@lists.01.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
-Cc: Kwangwoo Lee <kwangwoo.lee@sk.com>, linux-kernel@vger.kernel.org, Woosuk Chung <woosuk.chung@sk.com>
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, hch@lst.de, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-To enable pmem in arm64, mmio_flush_range() is required to build
-successfully. If NVDIMM is used as blk mode, not pmem , it is called in
-acpi_nfit_blk_single_io() via nd_blk_make_request() on read with
-NFIT_BLK_READ_FLUSH flag.
+All users have been replaced with flushing in the pmem driver.
 
-The function cleans and invalidates the cache lines using the argument -
-addr and size. Thus, it can be mapped with __flush_dcache_area().
-
-Signed-off-by: Kwangwoo Lee <kwangwoo.lee@sk.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm64/Kconfig                  | 1 +
- arch/arm64/include/asm/cacheflush.h | 2 ++
- 2 files changed, 3 insertions(+)
+ arch/x86/include/asm/pmem.h |   36 ++-------------------------------
+ include/linux/pmem.h        |   47 ++++---------------------------------------
+ 2 files changed, 6 insertions(+), 77 deletions(-)
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 4f43622..12546ce 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -15,6 +15,7 @@ config ARM64
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
- 	select ARCH_WANT_FRAME_POINTERS
- 	select ARCH_HAS_UBSAN_SANITIZE_ALL
-+	select ARCH_HAS_MMIO_FLUSH
- 	select ARM_AMBA
- 	select ARM_ARCH_TIMER
- 	select ARM_GIC
-diff --git a/arch/arm64/include/asm/cacheflush.h b/arch/arm64/include/asm/cacheflush.h
-index 903a94f..fba18e4 100644
---- a/arch/arm64/include/asm/cacheflush.h
-+++ b/arch/arm64/include/asm/cacheflush.h
-@@ -134,6 +134,8 @@ static inline void __flush_icache_all(void)
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index fbc5e92e1ecc..a8cf2a6b14d9 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -26,8 +26,7 @@
+  * @n: length of the copy in bytes
+  *
+  * Copy data to persistent memory media via non-temporal stores so that
+- * a subsequent arch_wmb_pmem() can flush cpu and memory controller
+- * write buffers to guarantee durability.
++ * a subsequent pmem driver flush operation will drain posted write queues.
   */
- #define flush_icache_page(vma,page)	do { } while (0)
+ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+ 		size_t n)
+@@ -57,32 +56,12 @@ static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
+ }
  
-+#define mmio_flush_range(addr, size)	__flush_dcache_area(addr, size)
-+
- /*
-  * Not required on AArch64 (PIPT or VIPT non-aliasing D-cache).
+ /**
+- * arch_wmb_pmem - synchronize writes to persistent memory
+- *
+- * After a series of arch_memcpy_to_pmem() operations this drains data
+- * from cpu write buffers and any platform (memory controller) buffers
+- * to ensure that written data is durable on persistent memory media.
+- */
+-static inline void arch_wmb_pmem(void)
+-{
+-	/*
+-	 * wmb() to 'sfence' all previous writes such that they are
+-	 * architecturally visible to 'pcommit'.  Note, that we've
+-	 * already arranged for pmem writes to avoid the cache via
+-	 * arch_memcpy_to_pmem().
+-	 */
+-	wmb();
+-	pcommit_sfence();
+-}
+-
+-/**
+  * arch_wb_cache_pmem - write back a cache range with CLWB
+  * @vaddr:	virtual start address
+  * @size:	number of bytes to write back
+  *
+  * Write back a cache range using the CLWB (cache line write back)
+- * instruction.  This function requires explicit ordering with an
+- * arch_wmb_pmem() call.
++ * instruction.
   */
--- 
-2.5.0
+ static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
+ {
+@@ -113,7 +92,6 @@ static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
+  * @i:		iterator with source data
+  *
+  * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+- * This function requires explicit ordering with an arch_wmb_pmem() call.
+  */
+ static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+ 		struct iov_iter *i)
+@@ -136,7 +114,6 @@ static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+  * @size:	number of bytes to zero
+  *
+  * Write zeros into the memory range starting at 'addr' for 'size' bytes.
+- * This function requires explicit ordering with an arch_wmb_pmem() call.
+  */
+ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
+ {
+@@ -150,14 +127,5 @@ static inline void arch_invalidate_pmem(void __pmem *addr, size_t size)
+ {
+ 	clflush_cache_range((void __force *) addr, size);
+ }
+-
+-static inline bool __arch_has_wmb_pmem(void)
+-{
+-	/*
+-	 * We require that wmb() be an 'sfence', that is only guaranteed on
+-	 * 64-bit builds
+-	 */
+-	return static_cpu_has(X86_FEATURE_PCOMMIT);
+-}
+ #endif /* CONFIG_ARCH_HAS_PMEM_API */
+ #endif /* __ASM_X86_PMEM_H__ */
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 57d146fe44dd..9e3ea94b8157 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -26,16 +26,6 @@
+  * calling these symbols with arch_has_pmem_api() and redirect to the
+  * implementation in asm/pmem.h.
+  */
+-static inline bool __arch_has_wmb_pmem(void)
+-{
+-	return false;
+-}
+-
+-static inline void arch_wmb_pmem(void)
+-{
+-	BUG();
+-}
+-
+ static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+ 		size_t n)
+ {
+@@ -101,20 +91,6 @@ static inline int memcpy_from_pmem(void *dst, void __pmem const *src,
+ 		return default_memcpy_from_pmem(dst, src, size);
+ }
+ 
+-/**
+- * arch_has_wmb_pmem - true if wmb_pmem() ensures durability
+- *
+- * For a given cpu implementation within an architecture it is possible
+- * that wmb_pmem() resolves to a nop.  In the case this returns
+- * false, pmem api users are unable to ensure durability and may want to
+- * fall back to a different data consistency model, or otherwise notify
+- * the user.
+- */
+-static inline bool arch_has_wmb_pmem(void)
+-{
+-	return arch_has_pmem_api() && __arch_has_wmb_pmem();
+-}
+-
+ /*
+  * These defaults seek to offer decent performance and minimize the
+  * window between i/o completion and writes being durable on media.
+@@ -152,7 +128,7 @@ static inline void default_clear_pmem(void __pmem *addr, size_t size)
+  * being effectively evicted from, or never written to, the processor
+  * cache hierarchy after the copy completes.  After memcpy_to_pmem()
+  * data may still reside in cpu or platform buffers, so this operation
+- * must be followed by a wmb_pmem().
++ * must be followed by a blkdev_issue_flush() on the pmem block device.
+  */
+ static inline void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
+ {
+@@ -163,28 +139,13 @@ static inline void memcpy_to_pmem(void __pmem *dst, const void *src, size_t n)
+ }
+ 
+ /**
+- * wmb_pmem - synchronize writes to persistent memory
+- *
+- * After a series of memcpy_to_pmem() operations this drains data from
+- * cpu write buffers and any platform (memory controller) buffers to
+- * ensure that written data is durable on persistent memory media.
+- */
+-static inline void wmb_pmem(void)
+-{
+-	if (arch_has_wmb_pmem())
+-		arch_wmb_pmem();
+-	else
+-		wmb();
+-}
+-
+-/**
+  * copy_from_iter_pmem - copy data from an iterator to PMEM
+  * @addr:	PMEM destination address
+  * @bytes:	number of bytes to copy
+  * @i:		iterator with source data
+  *
+  * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+- * This function requires explicit ordering with a wmb_pmem() call.
++ * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+ static inline size_t copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+ 		struct iov_iter *i)
+@@ -200,7 +161,7 @@ static inline size_t copy_from_iter_pmem(void __pmem *addr, size_t bytes,
+  * @size:	number of bytes to zero
+  *
+  * Write zeros into the memory range starting at 'addr' for 'size' bytes.
+- * This function requires explicit ordering with a wmb_pmem() call.
++ * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+ static inline void clear_pmem(void __pmem *addr, size_t size)
+ {
+@@ -230,7 +191,7 @@ static inline void invalidate_pmem(void __pmem *addr, size_t size)
+  * @size:	number of bytes to write back
+  *
+  * Write back the processor cache range starting at 'addr' for 'size' bytes.
+- * This function requires explicit ordering with a wmb_pmem() call.
++ * See blkdev_issue_flush() note for memcpy_to_pmem().
+  */
+ static inline void wb_cache_pmem(void __pmem *addr, size_t size)
+ {
 
 _______________________________________________
 Linux-nvdimm mailing list
