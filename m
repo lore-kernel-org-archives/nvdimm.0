@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
- by ml01.01.org (Postfix) with ESMTP id 2ABBE1A1E18
- for <linux-nvdimm@lists.01.org>; Mon, 11 Jul 2016 16:48:10 -0700 (PDT)
-From: "kwangwoo.lee@sk.com" <kwangwoo.lee@sk.com>
-Subject: RE: [PATCH v2] pmem: add pmem support codes on ARM64
-Date: Mon, 11 Jul 2016 23:47:22 +0000
-Message-ID: <ebe42cdfaca24d61ae2adc315b63771a@nmail01.hynixad.com>
+Received: from foss.arm.com (foss.arm.com [217.140.101.70])
+ by ml01.01.org (Postfix) with ESMTP id A783C1A1E12
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Jul 2016 07:35:04 -0700 (PDT)
+Date: Mon, 11 Jul 2016 15:34:03 +0100
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v2] pmem: add pmem support codes on ARM64
+Message-ID: <20160711143402.GA7691@leverpostej>
 References: <1467964298-29241-1-git-send-email-kwangwoo.lee@sk.com>
- <20160711143402.GA7691@leverpostej>
-In-Reply-To: <20160711143402.GA7691@leverpostej>
-Content-Language: ko-KR
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1467964298-29241-1-git-send-email-kwangwoo.lee@sk.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,114 +17,138 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="euc-kr"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "woosuk.chung@sk.com" <woosuk.chung@sk.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kwangwoo Lee <kwangwoo.lee@sk.com>
+Cc: linux-nvdimm@lists.01.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Woosuk Chung <woosuk.chung@sk.com>, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhhbmsgeW91IHZlcnkgbXVjaCwgTWFyayENCg0KSW4gbGludXgtbnZkaW1tIGxpc3QsIERhbiBX
-aWxsaWFtcyBwb3N0ZWQgcGF0Y2ggc2VyaWVzIHdoaWNoIGludHJvZHVjZWQgbnZkaW1tX2ZsdXNo
-KCkgYW5kIG52ZGltbV9oYXNfZmx1c2goKQ0KIHdoaWNoIGFzc3VtZXMgQVJTKEFzeW5jaHJvbm91
-cyBEUkFNIFJlZnJlc2gpIGZlYXR1cmUgb3IgdXNpbmcgRmx1c2ggSGludCBpbiBORklUIHRvIGdl
-dCBwZXJzaXN0ZW5jeS4gDQpBbmQuLiBhcmNoX3dtYl9wbWVtKCkgaGFzIGJlZW4ga2lsbGVkIGlu
-IHRoZSBwYXRjaC4NCg0KV2l0aCBrZWVwaW5nIHlvdXIgY29tbWVudHMgaW4gbWluZCwgSSdtIGdv
-aW5nIHRvIHJlYmFzZSBhbmQgcmV2aXNlIG15IHBhdGNoIHRvIGJlIG1vcmUgcHJvcGVyIHNvbHV0
-aW9uLiANCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBNYXJrIFJ1dGxh
-bmQgW21haWx0bzptYXJrLnJ1dGxhbmRAYXJtLmNvbV0NCj4gU2VudDogTW9uZGF5LCBKdWx5IDEx
-LCAyMDE2IDExOjM0IFBNDQo+IFRvOiDAzLGkv+woTEVFIEtXQU5HV09PKSBNUyBTVw0KPiBDYzog
-bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnOyBsaW51eC1udmRpbW1AbGlzdHMu
-MDEub3JnOyBSb3NzIFp3aXNsZXI7IENhdGFsaW4gTWFyaW5hczsNCj4gV2lsbCBEZWFjb247IERh
-biBXaWxsaWFtczsgVmlzaGFsIFZlcm1hOyDBpL/svK4oQ0hVTkcgV09PIFNVSykgTVMgU1c7ILHo
-x/bDtihLSU0gSFlVTkNIVUwpIE1TIFNXOyBsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9y
-Zw0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYyXSBwbWVtOiBhZGQgcG1lbSBzdXBwb3J0IGNvZGVz
-IG9uIEFSTTY0DQo+IA0KPiBIaSwNCj4gDQo+IE9uIEZyaSwgSnVsIDA4LCAyMDE2IGF0IDA0OjUx
-OjM4UE0gKzA5MDAsIEt3YW5nd29vIExlZSB3cm90ZToNCj4gPiArLyoqDQo+ID4gKyAqIGFyY2hf
-bWVtY3B5X3RvX3BtZW0gLSBjb3B5IGRhdGEgdG8gcGVyc2lzdGVudCBtZW1vcnkNCj4gPiArICog
-QGRzdDogZGVzdGluYXRpb24gYnVmZmVyIGZvciB0aGUgY29weQ0KPiA+ICsgKiBAc3JjOiBzb3Vy
-Y2UgYnVmZmVyIGZvciB0aGUgY29weQ0KPiA+ICsgKiBAbjogbGVuZ3RoIG9mIHRoZSBjb3B5IGlu
-IGJ5dGVzDQo+ID4gKyAqDQo+ID4gKyAqIENvcHkgZGF0YSB0byBwZXJzaXN0ZW50IG1lbW9yeSBt
-ZWRpYS4gaWYgQVJDSF9IQVNfUE1FTV9BUEkgaXMgZGVmaW5lZCwNCj4gPiArICogdGhlbiBNRU1S
-RU1BUF9XQiBpcyB1c2VkIHRvIG1lbXJlbWFwKCkgZHVyaW5nIHByb2JlLiBBIHN1YnNlcXVlbnQN
-Cj4gPiArICogYXJjaF93bWJfcG1lbSgpIG5lZWQgdG8gZ3VhcmFudGVlIGR1cmFiaWxpdHkuDQo+
-ID4gKyAqLw0KPiA+ICtzdGF0aWMgaW5saW5lIHZvaWQgYXJjaF9tZW1jcHlfdG9fcG1lbSh2b2lk
-IF9fcG1lbSAqZHN0LCBjb25zdCB2b2lkICpzcmMsDQo+ID4gKwkJc2l6ZV90IG4pDQo+ID4gK3sN
-Cj4gPiArCWludCB1bndyaXR0ZW47DQo+ID4gKw0KPiA+ICsJdW53cml0dGVuID0gX19jb3B5X2Zy
-b21fdXNlcl9pbmF0b21pYygodm9pZCBfX2ZvcmNlICopIGRzdCwNCj4gPiArCQkJKHZvaWQgX191
-c2VyICopIHNyYywgbik7DQo+ID4gKwlpZiAoV0FSTih1bndyaXR0ZW4sICIlczogZmF1bHQgY29w
-eWluZyAlcCA8LSAlcCB1bndyaXR0ZW46ICVkXG4iLA0KPiA+ICsJCQkJX19mdW5jX18sIGRzdCwg
-c3JjLCB1bndyaXR0ZW4pKQ0KPiA+ICsJCUJVRygpOw0KPiA+ICsNCj4gPiArCV9fZmx1c2hfZGNh
-Y2hlX2FyZWEoZHN0LCBuKTsNCj4gPiArfQ0KPiANCj4gSSBzdGlsbCBkb24ndCB1bmRlcnN0YW5k
-IHdoeSB3ZSB1c2UgYSBhY2Nlc3MgaGVscGVyIGhlcmUuDQo+IA0KPiBJIHNlZSB0aGF0IGRlZmF1
-bHRfbWVtY3B5X2Zyb21fcG1lbSBpcyBqdXN0IGEgbWVtY3B5LCBhbmQgbm8gc3Vycm91bmRpbmcN
-Cj4gZnJhbWV3b3JrIHNlZW1zIHRvIHNldF9mcyBmaXJzdC4gU28gdGhpcyBsb29rcyB2ZXJ5IHN1
-c3BpY2lvdXMuDQo+IA0KPiBXaHkgYXJlIHdlIHRyeWluZyB0byBoYW5kbGUgZmF1bHRzIG9uIGtl
-cm5lbCBtZW1vcnkgaGVyZT8gRXNwZWNpYWxseSBhcw0KPiB3ZSdyZSBnb2luZyB0byBCVUcoKSBp
-ZiB0aGF0IGhhcHBlbnMgYW55d2F5Pw0KDQpJJ2xsIGNoZWNrIHRoaXMgYWdhaW4uDQoNCj4gPiAr
-c3RhdGljIGlubGluZSBpbnQgYXJjaF9tZW1jcHlfZnJvbV9wbWVtKHZvaWQgKmRzdCwgY29uc3Qg
-dm9pZCBfX3BtZW0gKnNyYywNCj4gPiArCQlzaXplX3QgbikNCj4gPiArew0KPiA+ICsJbWVtY3B5
-KGRzdCwgKHZvaWQgX19mb3JjZSAqKSBzcmMsIG4pOw0KPiA+ICsJcmV0dXJuIDA7DQo+ID4gK30N
-Cj4gDQo+IFNpbWlsYXJseSwgSSBzdGlsbCBkb24ndCB1bmRlcnN0YW5kIHdoeSB0aGlzIGlzbid0
-IGEgbWlycm9yIGltYWdlIG9mDQo+IGFyY2hfbWVtY3B5X3RvX3BtZW0oKS4NCg0KRGl0dG8uDQoN
-Cj4gPiArDQo+ID4gKy8qKg0KPiA+ICsgKiBhcmNoX3dtYl9wbWVtIC0gc3luY2hyb25pemUgd3Jp
-dGVzIHRvIHBlcnNpc3RlbnQgbWVtb3J5DQo+ID4gKyAqDQo+ID4gKyAqIEFmdGVyIGEgc2VyaWVz
-IG9mIGFyY2hfbWVtY3B5X3RvX3BtZW0oKSBvcGVyYXRpb25zIHRoaXMgbmVlZCB0byBiZSBjYWxs
-ZWQgdG8NCj4gPiArICogZW5zdXJlIHRoYXQgd3JpdHRlbiBkYXRhIGlzIGR1cmFibGUgb24gcGVy
-c2lzdGVudCBtZW1vcnkgbWVkaWEuDQo+ID4gKyAqLw0KPiA+ICtzdGF0aWMgaW5saW5lIHZvaWQg
-YXJjaF93bWJfcG1lbSh2b2lkKQ0KPiA+ICt7DQo+ID4gKwkvKg0KPiA+ICsJICogV2UndmUgYWxy
-ZWFkeSBhcnJhbmdlZCBmb3IgcG1lbSB3cml0ZXMgdG8gYXZvaWQgdGhlIGNhY2hlIGluDQo+ID4g
-KwkgKiBhcmNoX21lbWNweV90b19wbWVtKCkNCj4gPiArCSAqLw0KPiANCj4gVGhpcyBjb21tZW50
-IGlzIG5vdCB0cnVlLiBXZSBmaXJzdCBjb3BpZWQsIHBvdGVudGlhbGx5IGhpdHRpbmcgYW5kL29y
-DQo+IGFsbG9jYXRpbmcgaW4gY2FjaGUocyksIHRoZW4gc3Vic2VxdWVudGx5IGNsZWFuZWQgKGFu
-ZCBpbnZhbGlkYXRlZCkNCj4gdGhvc2UuDQoNClRoaXMgZnVuY3Rpb24gaGFzIGJlZW4ga2lsbGVk
-IGluIHRoZSBsYXRlc3QgcGF0Y2ggc2VyaWVzIGJ5IERhbiBXaWxsaWFtcy4NCkknbSBnb2luZyB0
-byByZWJhc2UgdGhpcyBwYXRjaCBzZXQgdW5kZXIgdGhlIGNoYW5nZXMuDQoNCj4gPiArCXdtYigp
-Ow0KPiA+ICsNCj4gPiArCS8qDQo+ID4gKwkgKiBwY29tbWl0X3NmZW5jZSgpIG9uIFg4NiBoYXMg
-YmVlbiByZW1vdmVkIGFuZCB3aWxsIGJlIHJlcGxhY2VkIHdpdGgNCj4gPiArCSAqIGEgZnVuY3Rp
-b24gYWZ0ZXIgQVJNdjguMiB3aGljaCB3aWxsIHN1cHBvcnQgREMgQ1ZBUCB0byBlbnN1cmUNCj4g
-PiArCSAqIFBvaW50LW9mLVBlcnNpc3RlbmN5LiBVbnRpbCB0aGVuLCBtYXJrIGhlcmUgd2l0aCBh
-IGNvbW1lbnQgdG8ga2VlcA0KPiA+ICsJICogdGhlIHBvaW50IGZvciBfX2NsZWFuX2RjYWNoZV9h
-cmVhX3BvcCgpLg0KPiA+ICsJICovDQo+ID4gK30NCj4gDQo+IFRoaXMgY29tbWVudCBpcyBjb25m
-dXNpbmcuIFRoZXJlJ3Mgbm8gbmVlZCB0byBtZW50aW9uIHg4NiBoZXJlLg0KDQpPSy4gSSdsbCBm
-aXggdGhlIGNvbW1lbnQuDQoNCj4gQXMgSSBtZW50aW9uZWQgb24gdjEsIGluIHRoZSBhYnNlbmNl
-IG9mIHRoZSBBUk12OC4yIGV4dGVuc2lvbnMgZm9yDQo+IHBlcnNpc3RlbnQgbWVtb3J5LCBJIGFt
-IG5vdCBzdXJlIHdoZXRoZXIgdGhlIGFib3ZlIGlzIHN1ZmZpY2llbnQuIFRoZXJlDQo+IGNvdWxk
-IGJlIGNhY2hlcyBhZnRlciB0aGUgUG9DIHdoaWNoIGRhdGEgc2l0cyBpbiwgc3VjaCB0aGF0IGV2
-ZW4gYWZ0ZXIgYQ0KPiBjYWxsIHRvIF9fZmx1c2hfZGNhY2hlX2FyZWEoKSBzYWlkIGRhdGEgaGFz
-IG5vdCBiZWVuIHdyaXR0ZW4gYmFjayB0bw0KPiBwZXJzaXN0ZW50IG1lbW9yeS4NCg0KSSdsbCBj
-aGVjayBhbmQgaW52ZXN0aWdhdGUgbW9yZSBvbiB0aGlzIHVuZGVyIHRoZSBjb25zaWRlcmF0aW9u
-IG9mIEFSUyhBc3luY2hyb25vdXMgRFJBTSBSZWZyZXNoKQ0KYW5kIHRoZSBGbHVzaCBIaW50IFNj
-aGVtZSBmcm9tIEFDUEkvTkZJVC4NCg0KPiA+ICsvKioNCj4gPiArICogYXJjaF9pbnZhbGlkYXRl
-X3BtZW0gLSBpbnZhbGlkYXRlIGEgUE1FTSBtZW1vcnkgcmFuZ2UNCj4gPiArICogQGFkZHI6CXZp
-cnR1YWwgc3RhcnQgYWRkcmVzcw0KPiA+ICsgKiBAc2l6ZToJbnVtYmVyIG9mIGJ5dGVzIHRvIHpl
-cm8NCj4gPiArICoNCj4gPiArICogQWZ0ZXIgZmluaXNoaW5nIEFSUyhBZGRyZXNzIFJhbmdlIFNj
-cnViYmluZyksIGNsZWFuIGFuZCBpbnZhbGlkYXRlIHRoZQ0KPiA+ICsgKiBhZGRyZXNzIHJhbmdl
-Lg0KPiA+ICsgKi8NCj4gPiArc3RhdGljIGlubGluZSB2b2lkIGFyY2hfaW52YWxpZGF0ZV9wbWVt
-KHZvaWQgX19wbWVtICphZGRyLCBzaXplX3Qgc2l6ZSkNCj4gPiArew0KPiA+ICsJX19mbHVzaF9k
-Y2FjaGVfYXJlYShhZGRyLCBzaXplKTsNCj4gPiArfQ0KPiANCj4gQXMgd2l0aCBteSBwcmlvciBj
-b25jZXJuLCBJJ20gbm90IHN1cmUgdGhhdCB0aGlzIGlzIGd1YXJhbnRlZWQgdG8gbWFrZQ0KPiBw
-ZXJzaXN0ZW50IGRhdGEgdmlzaWJsZSB0byB0aGUgQ1BVLCBpZiB0aGVyZSBhcmUgY2FjaGVzIGFm
-dGVyIHRoZSBQb0MuDQo+IA0KPiBJdCBsb29rcyBsaWtlIHRoaXMgaXMgdXNlZCB0byBjbGVhciBw
-b2lzb24gb24geDg2LCBhbmQgSSBkb24ndCBrbm93DQo+IHdoZXRoZXIgdGhlIEFSTSBiZWhhdmlv
-dXIgaXMgY29tcGFyYWJsZS4NCg0KQVJTIGlzIGEgZmVhdHVyZSBvZiBOVkRJTU0uIEluIG15IG9w
-aW5pb24sIHRoZSBwZXJzaXN0ZW5jeSBuZWVkIHRvIGJlIGd1YXJhbnRlZWQNCmFmdGVyIGZpbmlz
-aGluZyBhcmNoX21lbWNweV90b19wbWVtKCkgd2l0aCBvbGQgYXJjaF93bWJfcG1lbSgpLCBBRFIs
-IG9yIEZsdXNoIEhpbnQuDQpJJ2xsIGNoZWNrIHRoaXMgbW9yZS4NCg0KPiA+ICAvKg0KPiA+ICsg
-KglfX2NsZWFuX2RjYWNoZV9hcmVhKGthZGRyLCBzaXplKQ0KPiA+ICsgKg0KPiA+ICsgKiAJRW5z
-dXJlIHRoYXQgYW55IEQtY2FjaGUgbGluZXMgZm9yIHRoZSBpbnRlcnZhbCBba2FkZHIsIGthZGRy
-K3NpemUpDQo+ID4gKyAqIAlhcmUgY2xlYW5lZCB0byB0aGUgUG9DLg0KPiA+ICsgKg0KPiA+ICsg
-KgktIGthZGRyICAgLSBrZXJuZWwgYWRkcmVzcw0KPiA+ICsgKgktIHNpemUgICAgLSBzaXplIGlu
-IHF1ZXN0aW9uDQo+ID4gKyAqLw0KPiA+ICtFTlRSWShfX2NsZWFuX2RjYWNoZV9hcmVhKQ0KPiA+
-ICthbHRlcm5hdGl2ZV9pZl9ub3QgQVJNNjRfV09SS0FST1VORF9DTEVBTl9DQUNIRQ0KPiA+ICsJ
-ZGNhY2hlX2J5X2xpbmVfb3AgY3ZhYywgc3ksIHgwLCB4MSwgeDIsIHgzDQo+ID4gK2FsdGVybmF0
-aXZlX2Vsc2UNCj4gPiArCWRjYWNoZV9ieV9saW5lX29wIGNpdmFjLCBzeSwgeDAsIHgxLCB4Miwg
-eDMNCj4gPiArYWx0ZXJuYXRpdmVfZW5kaWYNCj4gPiArCXJldA0KPiA+ICtFTkRQUk9DKF9fY2xl
-YW5fZGNhY2hlX2FyZWEpDQo+IA0KPiBUaGlzIGxvb2tzIGNvcnJlY3QgcGVyIG15IHVuZGVyc3Rh
-bmRpbmcgb2YgdGhlIGVycmF0YSB0aGF0IHVzZSB0aGlzDQo+IGNhcGFiaWxpdHkuDQoNClRoYW5r
-cywgSSdtIGdvaW5nIHRvIHNwbGl0IHRoZSBwYXRjaCB3aXRoIGxvZ2ljYWwgdW5pdHMuDQoNCj4g
-VGhhbmtzLA0KPiBNYXJrLg0KDQpCZXN0IFJlZ2FyZHMsDQpLd2FuZ3dvbyBMZWUNCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
-aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Hi,
+
+On Fri, Jul 08, 2016 at 04:51:38PM +0900, Kwangwoo Lee wrote:
+> +/**
+> + * arch_memcpy_to_pmem - copy data to persistent memory
+> + * @dst: destination buffer for the copy
+> + * @src: source buffer for the copy
+> + * @n: length of the copy in bytes
+> + *
+> + * Copy data to persistent memory media. if ARCH_HAS_PMEM_API is defined,
+> + * then MEMREMAP_WB is used to memremap() during probe. A subsequent
+> + * arch_wmb_pmem() need to guarantee durability.
+> + */
+> +static inline void arch_memcpy_to_pmem(void __pmem *dst, const void *src,
+> +		size_t n)
+> +{
+> +	int unwritten;
+> +
+> +	unwritten = __copy_from_user_inatomic((void __force *) dst,
+> +			(void __user *) src, n);
+> +	if (WARN(unwritten, "%s: fault copying %p <- %p unwritten: %d\n",
+> +				__func__, dst, src, unwritten))
+> +		BUG();
+> +
+> +	__flush_dcache_area(dst, n);
+> +}
+
+I still don't understand why we use a access helper here.
+
+I see that default_memcpy_from_pmem is just a memcpy, and no surrounding
+framework seems to set_fs first. So this looks very suspicious.
+
+Why are we trying to handle faults on kernel memory here? Especially as
+we're going to BUG() if that happens anyway?
+
+> +static inline int arch_memcpy_from_pmem(void *dst, const void __pmem *src,
+> +		size_t n)
+> +{
+> +	memcpy(dst, (void __force *) src, n);
+> +	return 0;
+> +}
+
+Similarly, I still don't understand why this isn't a mirror image of
+arch_memcpy_to_pmem().
+
+> +
+> +/**
+> + * arch_wmb_pmem - synchronize writes to persistent memory
+> + *
+> + * After a series of arch_memcpy_to_pmem() operations this need to be called to
+> + * ensure that written data is durable on persistent memory media.
+> + */
+> +static inline void arch_wmb_pmem(void)
+> +{
+> +	/*
+> +	 * We've already arranged for pmem writes to avoid the cache in
+> +	 * arch_memcpy_to_pmem()
+> +	 */
+
+This comment is not true. We first copied, potentially hitting and/or
+allocating in cache(s), then subsequently cleaned (and invalidated)
+those.
+
+> +	wmb();
+> +
+> +	/*
+> +	 * pcommit_sfence() on X86 has been removed and will be replaced with
+> +	 * a function after ARMv8.2 which will support DC CVAP to ensure
+> +	 * Point-of-Persistency. Until then, mark here with a comment to keep
+> +	 * the point for __clean_dcache_area_pop().
+> +	 */
+> +}
+
+This comment is confusing. There's no need to mention x86 here.
+
+As I mentioned on v1, in the absence of the ARMv8.2 extensions for
+persistent memory, I am not sure whether the above is sufficient. There
+could be caches after the PoC which data sits in, such that even after a
+call to __flush_dcache_area() said data has not been written back to
+persistent memory.
+
+> +/**
+> + * arch_invalidate_pmem - invalidate a PMEM memory range
+> + * @addr:	virtual start address
+> + * @size:	number of bytes to zero
+> + *
+> + * After finishing ARS(Address Range Scrubbing), clean and invalidate the
+> + * address range.
+> + */
+> +static inline void arch_invalidate_pmem(void __pmem *addr, size_t size)
+> +{
+> +	__flush_dcache_area(addr, size);
+> +}
+
+As with my prior concern, I'm not sure that this is guaranteed to make
+persistent data visible to the CPU, if there are caches after the PoC.
+
+It looks like this is used to clear poison on x86, and I don't know
+whether the ARM behaviour is comparable.
+
+>  /*
+> + *	__clean_dcache_area(kaddr, size)
+> + *
+> + * 	Ensure that any D-cache lines for the interval [kaddr, kaddr+size)
+> + * 	are cleaned to the PoC.
+> + *
+> + *	- kaddr   - kernel address
+> + *	- size    - size in question
+> + */
+> +ENTRY(__clean_dcache_area)
+> +alternative_if_not ARM64_WORKAROUND_CLEAN_CACHE
+> +	dcache_by_line_op cvac, sy, x0, x1, x2, x3
+> +alternative_else
+> +	dcache_by_line_op civac, sy, x0, x1, x2, x3
+> +alternative_endif
+> +	ret
+> +ENDPROC(__clean_dcache_area)
+
+This looks correct per my understanding of the errata that use this
+capability.
+
+Thanks,
+Mark.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
