@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 113181A1E43
- for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 05:20:46 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 15/15] dax: Clear dirty entry tags on cache flush
-Date: Fri, 22 Jul 2016 14:19:41 +0200
-Message-Id: <1469189981-19000-16-git-send-email-jack@suse.cz>
-In-Reply-To: <1469189981-19000-1-git-send-email-jack@suse.cz>
-References: <1469189981-19000-1-git-send-email-jack@suse.cz>
+Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
+ by ml01.01.org (Postfix) with ESMTP id 2ABBE1A1E18
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Jul 2016 16:48:10 -0700 (PDT)
+From: "kwangwoo.lee@sk.com" <kwangwoo.lee@sk.com>
+Subject: RE: [PATCH v2] pmem: add pmem support codes on ARM64
+Date: Mon, 11 Jul 2016 23:47:22 +0000
+Message-ID: <ebe42cdfaca24d61ae2adc315b63771a@nmail01.hynixad.com>
+References: <1467964298-29241-1-git-send-email-kwangwoo.lee@sk.com>
+ <20160711143402.GA7691@leverpostej>
+In-Reply-To: <20160711143402.GA7691@leverpostej>
+Content-Language: ko-KR
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,122 +18,114 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "woosuk.chung@sk.com" <woosuk.chung@sk.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently we never clear dirty tags in DAX mappings and thus address
-ranges to flush accumulate. Now that we have locking of radix tree
-entries, we have all the locking necessary to reliably clear the radix
-tree dirty tag when flushing caches for corresponding address range.
-Similarly to page_mkclean() we also have to write-protect pages to get a
-page fault when the page is next written to so that we can mark the
-entry dirty again.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index e8d61ac3d148..65f9a225c18e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -31,6 +31,7 @@
- #include <linux/vmstat.h>
- #include <linux/pfn_t.h>
- #include <linux/sizes.h>
-+#include <linux/mmu_notifier.h>
- 
- /*
-  * We use lowest available bit in exceptional entry for locking, other two
-@@ -670,6 +671,59 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
- 	return new_entry;
- }
- 
-+static inline unsigned long
-+pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
-+{
-+	unsigned long address;
-+
-+	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
-+	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
-+	return address;
-+}
-+
-+/* Walk all mappings of a given index of a file and writeprotect them */
-+static void dax_mapping_entry_mkclean(struct address_space *mapping,
-+				      pgoff_t index, unsigned long pfn)
-+{
-+	struct vm_area_struct *vma;
-+	pte_t *ptep;
-+	pte_t pte;
-+	spinlock_t *ptl;
-+	bool changed;
-+
-+	i_mmap_lock_read(mapping);
-+	vma_interval_tree_foreach(vma, &mapping->i_mmap, index, index) {
-+		unsigned long address;
-+
-+		cond_resched();
-+
-+		if (!(vma->vm_flags & VM_SHARED))
-+			continue;
-+
-+		address = pgoff_address(index, vma);
-+		changed = false;
-+		if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
-+			continue;
-+		if (pfn != pte_pfn(*ptep))
-+			goto unlock;
-+		if (!pte_dirty(*ptep) && !pte_write(*ptep))
-+			goto unlock;
-+
-+		flush_cache_page(vma, address, pfn);
-+		pte = ptep_clear_flush(vma, address, ptep);
-+		pte = pte_wrprotect(pte);
-+		pte = pte_mkclean(pte);
-+		set_pte_at(vma->vm_mm, address, ptep, pte);
-+		changed = true;
-+unlock:
-+		pte_unmap_unlock(ptep, ptl);
-+
-+		if (changed)
-+			mmu_notifier_invalidate_page(vma->vm_mm, address);
-+	}
-+	i_mmap_unlock_read(mapping);
-+}
-+
- static int dax_writeback_one(struct block_device *bdev,
- 		struct address_space *mapping, pgoff_t index, void *entry)
- {
-@@ -737,7 +791,17 @@ static int dax_writeback_one(struct block_device *bdev,
- 		goto unmap;
- 	}
- 
-+	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(dax.pfn));
- 	wb_cache_pmem(dax.addr, dax.size);
-+	/*
-+	 * After we have flushed the cache, we can clear the dirty tag. There
-+	 * cannot be new dirty data in the pfn after the flush has completed as
-+	 * the pfn mappings are writeprotected and fault waits for mapping
-+	 * entry lock.
-+	 */
-+	spin_lock_irq(&mapping->tree_lock);
-+	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
-+	spin_unlock_irq(&mapping->tree_lock);
- unmap:
- 	dax_unmap_atomic(bdev, &dax);
- 	put_locked_mapping_entry(mapping, index, entry);
--- 
-2.6.6
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhhbmsgeW91IHZlcnkgbXVjaCwgTWFyayENCg0KSW4gbGludXgtbnZkaW1tIGxpc3QsIERhbiBX
+aWxsaWFtcyBwb3N0ZWQgcGF0Y2ggc2VyaWVzIHdoaWNoIGludHJvZHVjZWQgbnZkaW1tX2ZsdXNo
+KCkgYW5kIG52ZGltbV9oYXNfZmx1c2goKQ0KIHdoaWNoIGFzc3VtZXMgQVJTKEFzeW5jaHJvbm91
+cyBEUkFNIFJlZnJlc2gpIGZlYXR1cmUgb3IgdXNpbmcgRmx1c2ggSGludCBpbiBORklUIHRvIGdl
+dCBwZXJzaXN0ZW5jeS4gDQpBbmQuLiBhcmNoX3dtYl9wbWVtKCkgaGFzIGJlZW4ga2lsbGVkIGlu
+IHRoZSBwYXRjaC4NCg0KV2l0aCBrZWVwaW5nIHlvdXIgY29tbWVudHMgaW4gbWluZCwgSSdtIGdv
+aW5nIHRvIHJlYmFzZSBhbmQgcmV2aXNlIG15IHBhdGNoIHRvIGJlIG1vcmUgcHJvcGVyIHNvbHV0
+aW9uLiANCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBNYXJrIFJ1dGxh
+bmQgW21haWx0bzptYXJrLnJ1dGxhbmRAYXJtLmNvbV0NCj4gU2VudDogTW9uZGF5LCBKdWx5IDEx
+LCAyMDE2IDExOjM0IFBNDQo+IFRvOiDAzLGkv+woTEVFIEtXQU5HV09PKSBNUyBTVw0KPiBDYzog
+bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnOyBsaW51eC1udmRpbW1AbGlzdHMu
+MDEub3JnOyBSb3NzIFp3aXNsZXI7IENhdGFsaW4gTWFyaW5hczsNCj4gV2lsbCBEZWFjb247IERh
+biBXaWxsaWFtczsgVmlzaGFsIFZlcm1hOyDBpL/svK4oQ0hVTkcgV09PIFNVSykgTVMgU1c7ILHo
+x/bDtihLSU0gSFlVTkNIVUwpIE1TIFNXOyBsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9y
+Zw0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYyXSBwbWVtOiBhZGQgcG1lbSBzdXBwb3J0IGNvZGVz
+IG9uIEFSTTY0DQo+IA0KPiBIaSwNCj4gDQo+IE9uIEZyaSwgSnVsIDA4LCAyMDE2IGF0IDA0OjUx
+OjM4UE0gKzA5MDAsIEt3YW5nd29vIExlZSB3cm90ZToNCj4gPiArLyoqDQo+ID4gKyAqIGFyY2hf
+bWVtY3B5X3RvX3BtZW0gLSBjb3B5IGRhdGEgdG8gcGVyc2lzdGVudCBtZW1vcnkNCj4gPiArICog
+QGRzdDogZGVzdGluYXRpb24gYnVmZmVyIGZvciB0aGUgY29weQ0KPiA+ICsgKiBAc3JjOiBzb3Vy
+Y2UgYnVmZmVyIGZvciB0aGUgY29weQ0KPiA+ICsgKiBAbjogbGVuZ3RoIG9mIHRoZSBjb3B5IGlu
+IGJ5dGVzDQo+ID4gKyAqDQo+ID4gKyAqIENvcHkgZGF0YSB0byBwZXJzaXN0ZW50IG1lbW9yeSBt
+ZWRpYS4gaWYgQVJDSF9IQVNfUE1FTV9BUEkgaXMgZGVmaW5lZCwNCj4gPiArICogdGhlbiBNRU1S
+RU1BUF9XQiBpcyB1c2VkIHRvIG1lbXJlbWFwKCkgZHVyaW5nIHByb2JlLiBBIHN1YnNlcXVlbnQN
+Cj4gPiArICogYXJjaF93bWJfcG1lbSgpIG5lZWQgdG8gZ3VhcmFudGVlIGR1cmFiaWxpdHkuDQo+
+ID4gKyAqLw0KPiA+ICtzdGF0aWMgaW5saW5lIHZvaWQgYXJjaF9tZW1jcHlfdG9fcG1lbSh2b2lk
+IF9fcG1lbSAqZHN0LCBjb25zdCB2b2lkICpzcmMsDQo+ID4gKwkJc2l6ZV90IG4pDQo+ID4gK3sN
+Cj4gPiArCWludCB1bndyaXR0ZW47DQo+ID4gKw0KPiA+ICsJdW53cml0dGVuID0gX19jb3B5X2Zy
+b21fdXNlcl9pbmF0b21pYygodm9pZCBfX2ZvcmNlICopIGRzdCwNCj4gPiArCQkJKHZvaWQgX191
+c2VyICopIHNyYywgbik7DQo+ID4gKwlpZiAoV0FSTih1bndyaXR0ZW4sICIlczogZmF1bHQgY29w
+eWluZyAlcCA8LSAlcCB1bndyaXR0ZW46ICVkXG4iLA0KPiA+ICsJCQkJX19mdW5jX18sIGRzdCwg
+c3JjLCB1bndyaXR0ZW4pKQ0KPiA+ICsJCUJVRygpOw0KPiA+ICsNCj4gPiArCV9fZmx1c2hfZGNh
+Y2hlX2FyZWEoZHN0LCBuKTsNCj4gPiArfQ0KPiANCj4gSSBzdGlsbCBkb24ndCB1bmRlcnN0YW5k
+IHdoeSB3ZSB1c2UgYSBhY2Nlc3MgaGVscGVyIGhlcmUuDQo+IA0KPiBJIHNlZSB0aGF0IGRlZmF1
+bHRfbWVtY3B5X2Zyb21fcG1lbSBpcyBqdXN0IGEgbWVtY3B5LCBhbmQgbm8gc3Vycm91bmRpbmcN
+Cj4gZnJhbWV3b3JrIHNlZW1zIHRvIHNldF9mcyBmaXJzdC4gU28gdGhpcyBsb29rcyB2ZXJ5IHN1
+c3BpY2lvdXMuDQo+IA0KPiBXaHkgYXJlIHdlIHRyeWluZyB0byBoYW5kbGUgZmF1bHRzIG9uIGtl
+cm5lbCBtZW1vcnkgaGVyZT8gRXNwZWNpYWxseSBhcw0KPiB3ZSdyZSBnb2luZyB0byBCVUcoKSBp
+ZiB0aGF0IGhhcHBlbnMgYW55d2F5Pw0KDQpJJ2xsIGNoZWNrIHRoaXMgYWdhaW4uDQoNCj4gPiAr
+c3RhdGljIGlubGluZSBpbnQgYXJjaF9tZW1jcHlfZnJvbV9wbWVtKHZvaWQgKmRzdCwgY29uc3Qg
+dm9pZCBfX3BtZW0gKnNyYywNCj4gPiArCQlzaXplX3QgbikNCj4gPiArew0KPiA+ICsJbWVtY3B5
+KGRzdCwgKHZvaWQgX19mb3JjZSAqKSBzcmMsIG4pOw0KPiA+ICsJcmV0dXJuIDA7DQo+ID4gK30N
+Cj4gDQo+IFNpbWlsYXJseSwgSSBzdGlsbCBkb24ndCB1bmRlcnN0YW5kIHdoeSB0aGlzIGlzbid0
+IGEgbWlycm9yIGltYWdlIG9mDQo+IGFyY2hfbWVtY3B5X3RvX3BtZW0oKS4NCg0KRGl0dG8uDQoN
+Cj4gPiArDQo+ID4gKy8qKg0KPiA+ICsgKiBhcmNoX3dtYl9wbWVtIC0gc3luY2hyb25pemUgd3Jp
+dGVzIHRvIHBlcnNpc3RlbnQgbWVtb3J5DQo+ID4gKyAqDQo+ID4gKyAqIEFmdGVyIGEgc2VyaWVz
+IG9mIGFyY2hfbWVtY3B5X3RvX3BtZW0oKSBvcGVyYXRpb25zIHRoaXMgbmVlZCB0byBiZSBjYWxs
+ZWQgdG8NCj4gPiArICogZW5zdXJlIHRoYXQgd3JpdHRlbiBkYXRhIGlzIGR1cmFibGUgb24gcGVy
+c2lzdGVudCBtZW1vcnkgbWVkaWEuDQo+ID4gKyAqLw0KPiA+ICtzdGF0aWMgaW5saW5lIHZvaWQg
+YXJjaF93bWJfcG1lbSh2b2lkKQ0KPiA+ICt7DQo+ID4gKwkvKg0KPiA+ICsJICogV2UndmUgYWxy
+ZWFkeSBhcnJhbmdlZCBmb3IgcG1lbSB3cml0ZXMgdG8gYXZvaWQgdGhlIGNhY2hlIGluDQo+ID4g
+KwkgKiBhcmNoX21lbWNweV90b19wbWVtKCkNCj4gPiArCSAqLw0KPiANCj4gVGhpcyBjb21tZW50
+IGlzIG5vdCB0cnVlLiBXZSBmaXJzdCBjb3BpZWQsIHBvdGVudGlhbGx5IGhpdHRpbmcgYW5kL29y
+DQo+IGFsbG9jYXRpbmcgaW4gY2FjaGUocyksIHRoZW4gc3Vic2VxdWVudGx5IGNsZWFuZWQgKGFu
+ZCBpbnZhbGlkYXRlZCkNCj4gdGhvc2UuDQoNClRoaXMgZnVuY3Rpb24gaGFzIGJlZW4ga2lsbGVk
+IGluIHRoZSBsYXRlc3QgcGF0Y2ggc2VyaWVzIGJ5IERhbiBXaWxsaWFtcy4NCkknbSBnb2luZyB0
+byByZWJhc2UgdGhpcyBwYXRjaCBzZXQgdW5kZXIgdGhlIGNoYW5nZXMuDQoNCj4gPiArCXdtYigp
+Ow0KPiA+ICsNCj4gPiArCS8qDQo+ID4gKwkgKiBwY29tbWl0X3NmZW5jZSgpIG9uIFg4NiBoYXMg
+YmVlbiByZW1vdmVkIGFuZCB3aWxsIGJlIHJlcGxhY2VkIHdpdGgNCj4gPiArCSAqIGEgZnVuY3Rp
+b24gYWZ0ZXIgQVJNdjguMiB3aGljaCB3aWxsIHN1cHBvcnQgREMgQ1ZBUCB0byBlbnN1cmUNCj4g
+PiArCSAqIFBvaW50LW9mLVBlcnNpc3RlbmN5LiBVbnRpbCB0aGVuLCBtYXJrIGhlcmUgd2l0aCBh
+IGNvbW1lbnQgdG8ga2VlcA0KPiA+ICsJICogdGhlIHBvaW50IGZvciBfX2NsZWFuX2RjYWNoZV9h
+cmVhX3BvcCgpLg0KPiA+ICsJICovDQo+ID4gK30NCj4gDQo+IFRoaXMgY29tbWVudCBpcyBjb25m
+dXNpbmcuIFRoZXJlJ3Mgbm8gbmVlZCB0byBtZW50aW9uIHg4NiBoZXJlLg0KDQpPSy4gSSdsbCBm
+aXggdGhlIGNvbW1lbnQuDQoNCj4gQXMgSSBtZW50aW9uZWQgb24gdjEsIGluIHRoZSBhYnNlbmNl
+IG9mIHRoZSBBUk12OC4yIGV4dGVuc2lvbnMgZm9yDQo+IHBlcnNpc3RlbnQgbWVtb3J5LCBJIGFt
+IG5vdCBzdXJlIHdoZXRoZXIgdGhlIGFib3ZlIGlzIHN1ZmZpY2llbnQuIFRoZXJlDQo+IGNvdWxk
+IGJlIGNhY2hlcyBhZnRlciB0aGUgUG9DIHdoaWNoIGRhdGEgc2l0cyBpbiwgc3VjaCB0aGF0IGV2
+ZW4gYWZ0ZXIgYQ0KPiBjYWxsIHRvIF9fZmx1c2hfZGNhY2hlX2FyZWEoKSBzYWlkIGRhdGEgaGFz
+IG5vdCBiZWVuIHdyaXR0ZW4gYmFjayB0bw0KPiBwZXJzaXN0ZW50IG1lbW9yeS4NCg0KSSdsbCBj
+aGVjayBhbmQgaW52ZXN0aWdhdGUgbW9yZSBvbiB0aGlzIHVuZGVyIHRoZSBjb25zaWRlcmF0aW9u
+IG9mIEFSUyhBc3luY2hyb25vdXMgRFJBTSBSZWZyZXNoKQ0KYW5kIHRoZSBGbHVzaCBIaW50IFNj
+aGVtZSBmcm9tIEFDUEkvTkZJVC4NCg0KPiA+ICsvKioNCj4gPiArICogYXJjaF9pbnZhbGlkYXRl
+X3BtZW0gLSBpbnZhbGlkYXRlIGEgUE1FTSBtZW1vcnkgcmFuZ2UNCj4gPiArICogQGFkZHI6CXZp
+cnR1YWwgc3RhcnQgYWRkcmVzcw0KPiA+ICsgKiBAc2l6ZToJbnVtYmVyIG9mIGJ5dGVzIHRvIHpl
+cm8NCj4gPiArICoNCj4gPiArICogQWZ0ZXIgZmluaXNoaW5nIEFSUyhBZGRyZXNzIFJhbmdlIFNj
+cnViYmluZyksIGNsZWFuIGFuZCBpbnZhbGlkYXRlIHRoZQ0KPiA+ICsgKiBhZGRyZXNzIHJhbmdl
+Lg0KPiA+ICsgKi8NCj4gPiArc3RhdGljIGlubGluZSB2b2lkIGFyY2hfaW52YWxpZGF0ZV9wbWVt
+KHZvaWQgX19wbWVtICphZGRyLCBzaXplX3Qgc2l6ZSkNCj4gPiArew0KPiA+ICsJX19mbHVzaF9k
+Y2FjaGVfYXJlYShhZGRyLCBzaXplKTsNCj4gPiArfQ0KPiANCj4gQXMgd2l0aCBteSBwcmlvciBj
+b25jZXJuLCBJJ20gbm90IHN1cmUgdGhhdCB0aGlzIGlzIGd1YXJhbnRlZWQgdG8gbWFrZQ0KPiBw
+ZXJzaXN0ZW50IGRhdGEgdmlzaWJsZSB0byB0aGUgQ1BVLCBpZiB0aGVyZSBhcmUgY2FjaGVzIGFm
+dGVyIHRoZSBQb0MuDQo+IA0KPiBJdCBsb29rcyBsaWtlIHRoaXMgaXMgdXNlZCB0byBjbGVhciBw
+b2lzb24gb24geDg2LCBhbmQgSSBkb24ndCBrbm93DQo+IHdoZXRoZXIgdGhlIEFSTSBiZWhhdmlv
+dXIgaXMgY29tcGFyYWJsZS4NCg0KQVJTIGlzIGEgZmVhdHVyZSBvZiBOVkRJTU0uIEluIG15IG9w
+aW5pb24sIHRoZSBwZXJzaXN0ZW5jeSBuZWVkIHRvIGJlIGd1YXJhbnRlZWQNCmFmdGVyIGZpbmlz
+aGluZyBhcmNoX21lbWNweV90b19wbWVtKCkgd2l0aCBvbGQgYXJjaF93bWJfcG1lbSgpLCBBRFIs
+IG9yIEZsdXNoIEhpbnQuDQpJJ2xsIGNoZWNrIHRoaXMgbW9yZS4NCg0KPiA+ICAvKg0KPiA+ICsg
+KglfX2NsZWFuX2RjYWNoZV9hcmVhKGthZGRyLCBzaXplKQ0KPiA+ICsgKg0KPiA+ICsgKiAJRW5z
+dXJlIHRoYXQgYW55IEQtY2FjaGUgbGluZXMgZm9yIHRoZSBpbnRlcnZhbCBba2FkZHIsIGthZGRy
+K3NpemUpDQo+ID4gKyAqIAlhcmUgY2xlYW5lZCB0byB0aGUgUG9DLg0KPiA+ICsgKg0KPiA+ICsg
+KgktIGthZGRyICAgLSBrZXJuZWwgYWRkcmVzcw0KPiA+ICsgKgktIHNpemUgICAgLSBzaXplIGlu
+IHF1ZXN0aW9uDQo+ID4gKyAqLw0KPiA+ICtFTlRSWShfX2NsZWFuX2RjYWNoZV9hcmVhKQ0KPiA+
+ICthbHRlcm5hdGl2ZV9pZl9ub3QgQVJNNjRfV09SS0FST1VORF9DTEVBTl9DQUNIRQ0KPiA+ICsJ
+ZGNhY2hlX2J5X2xpbmVfb3AgY3ZhYywgc3ksIHgwLCB4MSwgeDIsIHgzDQo+ID4gK2FsdGVybmF0
+aXZlX2Vsc2UNCj4gPiArCWRjYWNoZV9ieV9saW5lX29wIGNpdmFjLCBzeSwgeDAsIHgxLCB4Miwg
+eDMNCj4gPiArYWx0ZXJuYXRpdmVfZW5kaWYNCj4gPiArCXJldA0KPiA+ICtFTkRQUk9DKF9fY2xl
+YW5fZGNhY2hlX2FyZWEpDQo+IA0KPiBUaGlzIGxvb2tzIGNvcnJlY3QgcGVyIG15IHVuZGVyc3Rh
+bmRpbmcgb2YgdGhlIGVycmF0YSB0aGF0IHVzZSB0aGlzDQo+IGNhcGFiaWxpdHkuDQoNClRoYW5r
+cywgSSdtIGdvaW5nIHRvIHNwbGl0IHRoZSBwYXRjaCB3aXRoIGxvZ2ljYWwgdW5pdHMuDQoNCj4g
+VGhhbmtzLA0KPiBNYXJrLg0KDQpCZXN0IFJlZ2FyZHMsDQpLd2FuZ3dvbyBMZWUNCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
+aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
