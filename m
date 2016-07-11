@@ -1,10 +1,11 @@
-From: seo.max.pack-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Subject: improve keywords ranks within 1 week
-Date: 09 Jul 2016 18:23:03 +0300
-Message-ID: <20160709182302.1A3476B05681F1C5@gmail.com>
-Reply-To: seo.max.pack-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: "Genuine Traffic" <mike.sfsd4f564s6df45ds-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: A d R o t a t o r - w e b s i t e - t r a f f i c
+Date: Mon, 11 Jul 2016 11:59:17 +0300
+Message-ID: <8006563E.90D127AD@gmail.com>
+Reply-To: Genuine Traffic <mike.sfsd4f564s6df45ds-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5464660631274010053=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,20 +19,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============5464660631274010053==
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Ad rotator iframe traffic
+Starting from 6 usd for 25k visits
 
-All SEO efforts are more successful when they are a part of the=20
-powerful SEO campaign.=A0
-
-With the SEO Max package you can rest assured that your positions=20
-will start getting higher.=A0
-
-If you take your business seriously this is an ideal solution for=20
-you
-
-http://www.mg-dot.cn/detail.php?id=3D117
+More details here:
+http://www.seo4all.cn/detail.php?id=111
 
 
 
@@ -44,17 +36,3 @@ http://www.mg-dot.cn/detail.php?id=3D117
 
 
 Unsubscribe option is available on the footer of our website
-
-
---===============5464660631274010053==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============5464660631274010053==--
