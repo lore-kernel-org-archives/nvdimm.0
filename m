@@ -1,15 +1,11 @@
-From: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v2 16/17] x86/insn: remove pcommit
-Date: Tue, 12 Jul 2016 16:57:57 +0200
-Message-ID: <20160712145757.GV30909@twins.programming.kicks-ass.net>
-References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
- <146812115425.32932.3314855641604340233.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: seo.max.pack-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Subject: improve keywords ranks within 1 week
+Date: 12 Jul 2016 21:18:02 +0300
+Message-ID: <20160712211801.4548F7F8AC8B09DA@gmail.com>
+Reply-To: seo.max.pack-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============4405572294885484458=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <146812115425.32932.3314855641604340233.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,26 +15,46 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Josh Poimboeuf <jpoimboe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Sat, Jul 09, 2016 at 08:25:54PM -0700, Dan Williams wrote:
-> The pcommit instruction is being deprecated in favor of either ADR
-> (asynchronous DRAM refresh: flush-on-power-fail) at the platform level, or
-> posted-write-queue flush addresses as defined by the ACPI 6.x NFIT (NVDIMM
-> Firmware Interface Table).
+--===============4405572294885484458==
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
->  arch/x86/include/asm/cpufeatures.h                 |    1 
->  arch/x86/include/asm/special_insns.h               |   46 --------------------
->  arch/x86/lib/x86-opcode-map.txt                    |    2 -
->  tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 -
->  tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 -
->  tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 -
->  tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 --
+All SEO efforts are more successful when they are a part of the=20
+powerful SEO campaign.=A0
 
-Just deprecated, or is it completely eradicated, removed from history,
-will never ever happen and we'll reissue the opcode for something else?
+With the SEO Max package you can rest assured that your positions=20
+will start getting higher.=A0
 
-Because if its only deprecated then removing it from the instruction
-decoders seems wrong, old binaries might still contain the opcode.
+If you take your business seriously this is an ideal solution for=20
+you
+
+http://www.mg-dot.cn/detail.php?id=3D117
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option is available on the footer of our website
+
+
+--===============4405572294885484458==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============4405572294885484458==--
