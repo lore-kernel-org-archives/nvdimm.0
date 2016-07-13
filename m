@@ -1,16 +1,16 @@
-From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+From: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: dm stripe: add DAX support
-Date: Tue, 12 Jul 2016 22:22:05 +0000
-Message-ID: <1468362104.8908.43.camel@hpe.com>
+Date: Tue, 12 Jul 2016 22:01:01 -0400
+Message-ID: <20160713020100.GA5872@redhat.com>
 References: <1466792610-30369-1-git-send-email-toshi.kani@hpe.com>
  <20160624182859.GD13898@redhat.com>
+ <1468362104.8908.43.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20160624182859.GD13898-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <AB2D9CAA2F18C6499FB5184A42823254-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1468362104.8908.43.camel-ZPxbGqLxI0U@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,34 +20,67 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org
 Cc: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-T24gRnJpLCAyMDE2LTA2LTI0IGF0IDE0OjI5IC0wNDAwLCBNaWtlIFNuaXR6ZXIgd3JvdGU6DQo+
-wqANCj4gQlRXLCBpZiBpbiB5b3VyIHRlc3RpbmcgeW91IGNvdWxkIGV2YWx1YXRlL3F1YW50aWZ5
-IGFueSBleHRyYSBvdmVyaGVhZA0KPiBmcm9tIERNIHRoYXQnZCBiZSB1c2VmdWwgdG8gc2hhcmUu
-wqDCoEl0IGNvdWxkIGJlIHRoZXJlIGFyZSBib3R0bGVuZWNrcw0KPiB0aGF0IG5lZWQgdG8gYmUg
-Zml4ZWQsIGV0Yy4NCg0KSGVyZSBhcmUgc29tZSByZXN1bHRzIGZyb20gZmlvIGJlbmNobWFyay4g
-wqBUaGUgdGVzdCBpcyBzaW5nbGUtdGhyZWFkZWQgYW5kIGlzDQpib3VuZCB0byBvbmUgQ1BVLg0K
-DQrCoERBWCDCoExWTSDCoCBJT1BTIMKgIE5PVEUNCsKgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tDQrCoCBZIMKgIMKgTiDCoCDCoDc5MEsNCsKgIFkgwqAgwqBZIMKgIMKg
-NzU0SyDCoCA1JSBvdmVyaGVhZCB3aXRoIExWTQ0KwqAgTiDCoCDCoE4gwqAgwqA1NjdLDQrCoCBO
-IMKgIMKgWSDCoCDCoDQ1N0sgwqAgMjAlIG92ZXJoZWFkIHdpdGggTFZNDQoNCsKgREFYOiBZOiBt
-b3VudCAtbyBkYXgsbm9hdGltZSwgTjogbW91bnQgLW8gbm9hdGltZQ0KwqBMVk06IFk6IGRtLWxp
-bmVhciBvbiBwbWVtMCBkZXZpY2UsIE46IHBtZW0wIGRldmljZQ0KwqBmaW86IGJzPTRrLCBzaXpl
-PTJHLCBkaXJlY3Q9MSwgcnc9cmFuZHJlYWQswqBudW1qb2JzPTENCg0KQW1vbmcgdGhlIDUlIG92
-ZXJoZWFkIHdpdGggREFYL0xWTSwgdGhlIG5ldyBETSBkaXJlY3RfYWNjZXNzIGludGVyZmFjZXMN
-CmFjY291bnQgZm9yIGxlc3MgdGhhbiAwLjUlLg0KDQrCoGRtX2Jsa19kaXJlY3RfYWNjZXNzIDAu
-MjglDQrCoGxpbmVhcl9kaXJlY3RfYWNjZXNzIDAuMTclDQoNClRoZSBhdmVyYWdlIGxhdGVuY3kg
-aW5jcmVhc2VzIHNsaWdodGx5IGZyb20gMC45M3VzIHRvIDAuOTV1cy4gwqBJIHRoaW5rIG1vc3Qg
-b2YNCnRoZSBvdmVyaGVhZCBjb21lcyBmcm9tIHRoZSBzdWJtaXRfYmlvKCkgcGF0aCwgd2hpY2gg
-aXMgdXNlZCBvbmx5IGZvcg0KYWNjZXNzaW5nIG1ldGFkYXRhIHdpdGggREFYLiDCoEkgYmVsaWV2
-ZSB0aGlzIGlzIGR1ZSB0byBjbG9uaW5nIGJpbyBmb3IgZWFjaA0KcmVxdWVzdCBpbiBETS4gwqBU
-aGVyZSBpcyAxMiUgbW9yZSBMMiBtaXNzIGluIHRvdGFsLg0KDQpXaXRob3V0IERBWCwgMjAlIG92
-ZXJoZWFkIGlzIG9ic2VydmVkIHdpdGggTFZNLiDCoEF2ZXJhZ2UgbGF0ZW5jeSBpbmNyZWFzZXMN
-CmZyb20gMS4zOXVzIHRvIDEuODJ1cy4gwqBXaXRob3V0IERBWCwgYmlvIGlzIGNsb25lZCBmb3Ig
-Ym90aCBkYXRhIGFuZCBtZXRhZGF0YS4NCg0KVGhhbmtzLA0KLVRvc2hpDQoNCg0KDQoNCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBt
-YWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Tue, Jul 12 2016 at  6:22pm -0400,
+Kani, Toshimitsu <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
+
+> On Fri, 2016-06-24 at 14:29 -0400, Mike Snitzer wrote:
+> >=A0
+> > BTW, if in your testing you could evaluate/quantify any extra overhead
+> > from DM that'd be useful to share.=A0=A0It could be there are bottlenec=
+ks
+> > that need to be fixed, etc.
+> =
+
+> Here are some results from fio benchmark. =A0The test is single-threaded =
+and is
+> bound to one CPU.
+> =
+
+> =A0DAX =A0LVM =A0 IOPS =A0 NOTE
+> =A0---------------------------------------
+> =A0 Y =A0 =A0N =A0 =A0790K
+> =A0 Y =A0 =A0Y =A0 =A0754K =A0 5% overhead with LVM
+> =A0 N =A0 =A0N =A0 =A0567K
+> =A0 N =A0 =A0Y =A0 =A0457K =A0 20% overhead with LVM
+> =
+
+> =A0DAX: Y: mount -o dax,noatime, N: mount -o noatime
+> =A0LVM: Y: dm-linear on pmem0 device, N: pmem0 device
+> =A0fio: bs=3D4k, size=3D2G, direct=3D1, rw=3Drandread,=A0numjobs=3D1
+> =
+
+> Among the 5% overhead with DAX/LVM, the new DM direct_access interfaces
+> account for less than 0.5%.
+> =
+
+> =A0dm_blk_direct_access 0.28%
+> =A0linear_direct_access 0.17%
+> =
+
+> The average latency increases slightly from 0.93us to 0.95us. =A0I think =
+most of
+> the overhead comes from the submit_bio() path, which is used only for
+> accessing metadata with DAX. =A0I believe this is due to cloning bio for =
+each
+> request in DM. =A0There is 12% more L2 miss in total.
+> =
+
+> Without DAX, 20% overhead is observed with LVM. =A0Average latency increa=
+ses
+> from 1.39us to 1.82us. =A0Without DAX, bio is cloned for both data and me=
+tadata.
+
+Thanks for putting this summary together.  Unfortunately none of the DM
+changes can be queued for 4.8 until Jens takes the 2 block core patches:
+https://patchwork.kernel.org/patch/9196021/
+https://patchwork.kernel.org/patch/9196019/
+
+Not sure what the hold up and/or issue is with them.  But I've asked
+twice (and implicilty a 3rd time here).  Hopefully they land in time for
+4.8.
+
+Mike
