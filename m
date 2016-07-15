@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 507B21A1DFC
- for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 05:20:44 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 04/15] mm: Allow full handling of COW faults in ->fault
- handlers
-Date: Fri, 22 Jul 2016 14:19:30 +0200
-Message-Id: <1469189981-19000-5-git-send-email-jack@suse.cz>
-In-Reply-To: <1469189981-19000-1-git-send-email-jack@suse.cz>
-References: <1469189981-19000-1-git-send-email-jack@suse.cz>
+Received: from invmail3.skhynix.com (exvmail3.skhynix.com [166.125.252.90])
+ by ml01.01.org (Postfix) with ESMTP id 1B0F41A1F26
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jul 2016 19:47:24 -0700 (PDT)
+From: Kwangwoo Lee <kwangwoo.lee@sk.com>
+Subject: [PATCH v3 2/3] arm64: mm: add mmio_flush_range() to support pmem
+Date: Fri, 15 Jul 2016 11:46:21 +0900
+Message-Id: <1468550782-14454-3-git-send-email-kwangwoo.lee@sk.com>
+In-Reply-To: <1468550782-14454-1-git-send-email-kwangwoo.lee@sk.com>
+References: <1468550782-14454-1-git-send-email-kwangwoo.lee@sk.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,71 +20,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+To: linux-arm-kernel@lists.infradead.org, linux-nvdimm@lists.01.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
+Cc: Kwangwoo Lee <kwangwoo.lee@sk.com>, linux-kernel@vger.kernel.org, Woosuk Chung <woosuk.chung@sk.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To allow full handling of COW faults add memcg field to struct vm_fault
-and a return value of ->fault() handler meaning that COW fault is fully
-handled and memcg charge must not be canceled. This will allow us to
-remove knowledge about special DAX locking from the generic fault code.
+To enable pmem in arm64, mmio_flush_range() is required to build
+successfully. If NVDIMM is used as blk mode, not pmem , it is called in
+acpi_nfit_blk_single_io() via nd_blk_make_request() on read with
+NFIT_BLK_READ_FLUSH flag.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+The function cleans and invalidates the cache lines using the argument -
+addr and size. Thus, it can be mapped with __flush_dcache_area().
+
+Signed-off-by: Kwangwoo Lee <kwangwoo.lee@sk.com>
 ---
- include/linux/mm.h | 4 +++-
- mm/memory.c        | 5 ++++-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ arch/arm64/Kconfig                  | 1 +
+ arch/arm64/include/asm/cacheflush.h | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index dfb59b1f3584..2442f972bdc8 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -297,7 +297,8 @@ struct vm_fault {
- 	pgoff_t pgoff;			/* Logical page offset based on vma */
- 	void __user *virtual_address;	/* Faulting virtual address */
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 4f43622..12546ce 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -15,6 +15,7 @@ config ARM64
+ 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
+ 	select ARCH_WANT_FRAME_POINTERS
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
++	select ARCH_HAS_MMIO_FLUSH
+ 	select ARM_AMBA
+ 	select ARM_ARCH_TIMER
+ 	select ARM_GIC
+diff --git a/arch/arm64/include/asm/cacheflush.h b/arch/arm64/include/asm/cacheflush.h
+index 903a94f..fba18e4 100644
+--- a/arch/arm64/include/asm/cacheflush.h
++++ b/arch/arm64/include/asm/cacheflush.h
+@@ -134,6 +134,8 @@ static inline void __flush_icache_all(void)
+  */
+ #define flush_icache_page(vma,page)	do { } while (0)
  
--	struct page *cow_page;		/* Handler may choose to COW */
-+	struct page *cow_page;		/* Page handler may use for COW fault */
-+	struct mem_cgroup *memcg;	/* Cgroup cow_page belongs to */
- 	struct page *page;		/* ->fault handlers should return a
- 					 * page here, unless VM_FAULT_NOPAGE
- 					 * is set (which is also implied by
-@@ -1085,6 +1086,7 @@ static inline void clear_page_pfmemalloc(struct page *page)
- #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
- #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
- #define VM_FAULT_DAX_LOCKED 0x1000	/* ->fault has locked DAX entry */
-+#define VM_FAULT_DONE_COW   0x2000	/* ->fault has fully handled COW */
- 
- #define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
- 
-diff --git a/mm/memory.c b/mm/memory.c
-index 3c8bc4f08ee2..aef88d634072 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2836,7 +2836,7 @@ static int __do_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- 
- 	ret = vma->vm_ops->fault(vma, vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY |
--			    VM_FAULT_DAX_LOCKED)))
-+			    VM_FAULT_DAX_LOCKED | VM_FAULT_DONE_COW)))
- 		return ret;
- 
- 	if (unlikely(PageHWPoison(vmf->page))) {
-@@ -3059,9 +3059,12 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 	}
- 
- 	vmf->cow_page = new_page;
-+	vmf->memcg = memcg;
- 	ret = __do_fault(vma, vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
-+	if (ret & VM_FAULT_DONE_COW)
-+		return ret;
- 
- 	if (!(ret & VM_FAULT_DAX_LOCKED))
- 		copy_user_highpage(new_page, vmf->page, address, vma);
++#define mmio_flush_range(addr, size)	__flush_dcache_area(addr, size)
++
+ /*
+  * Not required on AArch64 (PIPT or VIPT non-aliasing D-cache).
+  */
 -- 
-2.6.6
+2.5.0
 
 _______________________________________________
 Linux-nvdimm mailing list
