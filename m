@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 071EC1A1E21
- for <linux-nvdimm@lists.01.org>; Sat,  9 Jul 2016 20:28:22 -0700 (PDT)
-Subject: [PATCH v2 11/17] libnvdimm,
- pmem: flush posted-write queues on shutdown
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 09 Jul 2016 20:25:27 -0700
-Message-ID: <146812112775.32932.16750910979264437016.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mail-oi0-x22a.google.com (mail-oi0-x22a.google.com
+ [IPv6:2607:f8b0:4003:c06::22a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 082B31A1F00
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jul 2016 22:25:21 -0700 (PDT)
+Received: by mail-oi0-x22a.google.com with SMTP id w18so148921781oiw.3
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jul 2016 22:24:34 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1468555535-30902-1-git-send-email-jlee@suse.com>
+References: <1468555535-30902-1-git-send-email-jlee@suse.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 14 Jul 2016 22:24:32 -0700
+Message-ID: <CAPcyv4hg=CGMCopRnxNdB33yJ0E9qpyyYQUix0yh2KtS_kFzgw@mail.gmail.com>
+Subject: Re: [PATCH v4] acpi, nfit: treat virtual ramdisk SPA as pmem region
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,95 +25,85 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, hch@lst.de, linux-kernel@vger.kernel.org
+To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lee, Chun-Yi  <jlee@suse.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Gary Lin" <GLin@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Commit writes to media on system shutdown or pmem driver unload.
+On Thu, Jul 14, 2016 at 9:05 PM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
+> This patch adds logic to treat virtual ramdisk SPA as pmem region, then
+> ramdisk's /dev/pmem* device can be mounted with iso9660.
+>
+> It's useful to work with the httpboot in EFI firmware to pull a remote
+> ISO file to the local memory region for booting and installation.
+>
+> Wiki page of UEFI HTTPBoot with OVMF:
+>         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
+>
+> The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
+> it contains empty _STA but without _DSM:
+>
+> DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
+> {
+>     Scope (\_SB)
+>     {
+>         Device (NVDR)
+>         {
+>             Name (_HID, "ACPI0012")  // _HID: Hardware ID
+>             Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
+>             Method (_STA, 0, NotSerialized)  // _STA: Status
+>             {
+>                 Return (0x0F)
+>             }
+>         }
+>     }
+> }
+>
+> In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
+> Structure Index" of virtual SPA shall be set to zero. That means virtual SPA
+> will not be associated by any NVDIMM region mapping.
+>
+> The VCD's SPA Range Structure in NFIT is similar to virtual disk region
+> as following:
+>
+> [028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
+> [02Ah 0042   2]                       Length : 0038
+>
+> [02Ch 0044   2]                  Range Index : 0000
+> [02Eh 0046   2]        Flags (decoded below) : 0000
+>                    Add/Online Operation Only : 0
+>                       Proximity Domain Valid : 0
+> [030h 0048   4]                     Reserved : 00000000
+> [034h 0052   4]             Proximity Domain : 00000000
+> [038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
+> [048h 0072   8]           Address Range Base : 00000000B6ABD018
+> [050h 0080   8]         Address Range Length : 0000000005500000
+> [058h 0088   8]         Memory Map Attribute : 0000000000000000
+>
+> The way to not associate a SPA range is to never reference it from a "flush hint",
+> "interleave", or "control region" table.
+>
+> After testing on OVMF, pmem driver can support the region that it doesn't
+> assoicate to any NVDIMM mapping. So, treat VCD like pmem is a idea to get
+> a pmem block device that it contains iso.
+>
+> v4:
+> Instoduce nfit_spa_is_virtual() to check virtual ramdisk SPA and create
+> pmem region.
+>
+> v3:
+> To simplify patch, removed useless VCD region in libnvdimm.
+>
+> v2:
+> Removed the code for setting VCD to a read-only region.
+>
+> Cc: Gary Lin <GLin@suse.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Linda Knippers <linda.knippers@hpe.com>
+> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/bus.c  |   16 ++++++++++++++++
- drivers/nvdimm/pmem.c |    8 ++++++++
- include/linux/nd.h    |    1 +
- 3 files changed, 25 insertions(+)
-
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index e4882e63bece..1cc7880320fe 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -136,6 +136,21 @@ static int nvdimm_bus_remove(struct device *dev)
- 	return rc;
- }
- 
-+static void nvdimm_bus_shutdown(struct device *dev)
-+{
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct nd_device_driver *nd_drv = NULL;
-+
-+	if (dev->driver)
-+		nd_drv = to_nd_device_driver(dev->driver);
-+
-+	if (nd_drv && nd_drv->shutdown) {
-+		nd_drv->shutdown(dev);
-+		dev_dbg(&nvdimm_bus->dev, "%s.shutdown(%s)\n",
-+				dev->driver->name, dev_name(dev));
-+	}
-+}
-+
- void nd_device_notify(struct device *dev, enum nvdimm_event event)
- {
- 	device_lock(dev);
-@@ -214,6 +229,7 @@ static struct bus_type nvdimm_bus_type = {
- 	.match = nvdimm_bus_match,
- 	.probe = nvdimm_bus_probe,
- 	.remove = nvdimm_bus_remove,
-+	.shutdown = nvdimm_bus_shutdown,
- };
- 
- static ASYNC_DOMAIN_EXCLUSIVE(nd_async_domain);
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 18cd95719da0..3f3fdb9586b9 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -351,9 +351,16 @@ static int nd_pmem_remove(struct device *dev)
- {
- 	if (is_nd_btt(dev))
- 		nvdimm_namespace_detach_btt(to_nd_btt(dev));
-+	nvdimm_flush(to_nd_region(dev->parent));
-+
- 	return 0;
- }
- 
-+static void nd_pmem_shutdown(struct device *dev)
-+{
-+	nvdimm_flush(to_nd_region(dev->parent));
-+}
-+
- static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
- {
- 	struct pmem_device *pmem = dev_get_drvdata(dev);
-@@ -393,6 +400,7 @@ static struct nd_device_driver nd_pmem_driver = {
- 	.probe = nd_pmem_probe,
- 	.remove = nd_pmem_remove,
- 	.notify = nd_pmem_notify,
-+	.shutdown = nd_pmem_shutdown,
- 	.drv = {
- 		.name = "nd_pmem",
- 	},
-diff --git a/include/linux/nd.h b/include/linux/nd.h
-index aee2761d294c..1ecd64643512 100644
---- a/include/linux/nd.h
-+++ b/include/linux/nd.h
-@@ -26,6 +26,7 @@ struct nd_device_driver {
- 	unsigned long type;
- 	int (*probe)(struct device *dev);
- 	int (*remove)(struct device *dev);
-+	void (*shutdown)(struct device *dev);
- 	void (*notify)(struct device *dev, enum nvdimm_event event);
- };
- 
-
+Applied, thanks.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
