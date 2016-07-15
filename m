@@ -1,17 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from smtp.nue.novell.com (smtp.nue.novell.com [195.135.221.5])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D9D1A1A1E05
- for <linux-nvdimm@lists.01.org>; Sun, 17 Jul 2016 02:37:23 -0700 (PDT)
-Date: Sun, 17 Jul 2016 17:36:14 +0800
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH v2] tools/testing/nvdimm: add virtual ramdisk range
-Message-ID: <20160717093614.GM27155@linux-rxt1.site>
-References: <146861130048.16896.9105590813517990661.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 9E3F11A1F04
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Jul 2016 12:38:56 -0700 (PDT)
+Subject: [PATCH v2] tools/testing/nvdimm: add virtual ramdisk range
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 15 Jul 2016 12:35:58 -0700
+Message-ID: <146861130048.16896.9105590813517990661.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <146861130048.16896.9105590813517990661.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,70 +18,75 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: "Lee, Chun-Yi" <jlee@suse.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan, 
+Test the virtual disk ranges that platform firmware like EDK2/OVMF might
+emit.
 
-On Fri, Jul 15, 2016 at 12:35:58PM -0700, Dan Williams wrote:
-> Test the virtual disk ranges that platform firmware like EDK2/OVMF might
-> emit.
-> 
-> Cc: "Lee, Chun-Yi" <jlee@suse.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
-> Changes since v1:
-> 
-> * Move this test range to nfit_test.1 to not break the spa ordering
->   expected by the nfit_test.0 tests.
->
+Cc: "Lee, Chun-Yi" <jlee@suse.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+Changes since v1:
 
-I reviewed and tested this patch by nvdimm testing driver.
-Please feel free to add
-	Reviewed-by: Lee, Chun-Yi <jlee@suse.com> 
+* Move this test range to nfit_test.1 to not break the spa ordering
+  expected by the nfit_test.0 tests.
 
-But I have a question to run nfit testing driver on OVMF. I always got
-"coherent allocation failed" as below:	
+ tools/testing/nvdimm/test/nfit.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-[   86.530950] platform nfit_test.0: swiotlb buffer is full (sz: 134217728 bytes)
-[   86.530954] swiotlb: coherent allocation failed for device nfit_test.0 size=134217728
-[   86.530956] CPU: 0 PID: 1291 Comm: insmod Tainted: G           OE   4.7.0-rc7-default+ #323
-[   86.530958] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 0.0.0 02/06/2015
-[   86.530959]  0000000000000000 ffff880234e63bb0 ffffffff81334e5c 0000000008000000
-[   86.530961]  ffff880232fa5998 ffff880234e63bf0 ffffffff8135eb79 ffff88020000000f
-[   86.530963]  00000000024002c0 ffff880232fa5998 0000000008000000 ffff880234e63c68
-[   86.530965] Call Trace:
-[   86.530971]  [<ffffffff81334e5c>] dump_stack+0x63/0x87
-[   86.530975]  [<ffffffff8135eb79>] swiotlb_alloc_coherent+0x149/0x160
-[   86.530978]  [<ffffffff810611d3>] x86_swiotlb_alloc_coherent+0x43/0x50
-[   86.530981]  [<ffffffffa054db3a>] dma_alloc_attrs.constprop.10+0x5a/0x80 [nfit_test]
-[   86.530984]  [<ffffffffa00d618c>] nfit_test_init+0x18c/0x1000 [nfit_test]
-[   86.530985]  [<ffffffffa00d6000>] ? 0xffffffffa00d6000
-[   86.530988]  [<ffffffff81002190>] do_one_initcall+0x50/0x190
-[   86.530992]  [<ffffffff811eef00>] ? kmem_cache_alloc_trace+0x170/0x220
-[   86.530995]  [<ffffffff8118dbfc>] ? do_init_module+0x27/0x1e2
-[   86.530997]  [<ffffffff8118dc35>] do_init_module+0x60/0x1e2
-[   86.531000]  [<ffffffff81108fb1>] load_module+0x1411/0x1c20
-[   86.531002]  [<ffffffff81105cb0>] ? __symbol_put+0x40/0x40
-[   86.531006]  [<ffffffff812dfbbd>] ? ima_post_read_file+0x3d/0x80
-[   86.531009]  [<ffffffff811099c9>] SYSC_finit_module+0xa9/0xd0
-[   86.531011]  [<ffffffff81109a0e>] SyS_finit_module+0xe/0x10
-[   86.531013]  [<ffffffff81003a62>] do_syscall_64+0x62/0x110
-[   86.531016]  [<ffffffff81630a61>] entry_SYSCALL64_slow_path+0x25/0x25
-[   86.531018] platform nfit_test.0: need 128M of free cma
-
-I tried to add "swiotlb=65536" and "cma=128M" or "cma=256M", even "cma=2G" kernel
-parameters, but nfit-test.ko still can NOT allocate DMA success.
-
-So, I always add a patch to change the DIMM_SIZE to SZ_1M, that means test0
-only uses 4M. Then the nfit-test.ko works for testing.
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 52df3c20231d..d4a4635c1186 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -104,6 +104,7 @@ enum {
+ 	NUM_MEM = NUM_DCR + NUM_BDW + 2 /* spa0 iset */ + 4 /* spa1 iset */,
+ 	DIMM_SIZE = SZ_32M,
+ 	LABEL_SIZE = SZ_128K,
++	SPA_VCD_SIZE = SZ_4M,
+ 	SPA0_SIZE = DIMM_SIZE,
+ 	SPA1_SIZE = DIMM_SIZE*2,
+ 	SPA2_SIZE = DIMM_SIZE,
+@@ -618,7 +619,7 @@ static int nfit_test0_alloc(struct nfit_test *t)
  
-Did I miss anything before running the nfit testing driver?
+ static int nfit_test1_alloc(struct nfit_test *t)
+ {
+-	size_t nfit_size = sizeof(struct acpi_nfit_system_address)
++	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * 2
+ 		+ sizeof(struct acpi_nfit_memory_map)
+ 		+ offsetof(struct acpi_nfit_control_region, window_size);
+ 
+@@ -631,6 +632,10 @@ static int nfit_test1_alloc(struct nfit_test *t)
+ 	if (!t->spa_set[0])
+ 		return -ENOMEM;
+ 
++	t->spa_set[1] = test_alloc(t, SPA_VCD_SIZE, &t->spa_set_dma[1]);
++	if (!t->spa_set[1])
++		return -ENOMEM;
++
+ 	return ars_state_init(&t->pdev.dev, &t->ars_state);
+ }
+ 
+@@ -1335,7 +1340,16 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	spa->address = t->spa_set_dma[0];
+ 	spa->length = SPA2_SIZE;
+ 
+-	offset += sizeof(*spa);
++	/* virtual cd region */
++	spa = nfit_buf + sizeof(*spa);
++	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
++	spa->header.length = sizeof(*spa);
++	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_VCD), 16);
++	spa->range_index = 0;
++	spa->address = t->spa_set_dma[1];
++	spa->length = SPA_VCD_SIZE;
++
++	offset += sizeof(*spa) * 2;
+ 	/* mem-region0 (spa0, dimm0) */
+ 	memdev = nfit_buf + offset;
+ 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
 
-
-Thanks a lot!
-Joey Lee 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
