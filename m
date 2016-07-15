@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id D25541A1E24
- for <linux-nvdimm@lists.01.org>; Sat,  9 Jul 2016 20:28:48 -0700 (PDT)
-Subject: [PATCH v2 16/17] x86/insn: remove pcommit
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id B33271A1F04
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Jul 2016 12:37:09 -0700 (PDT)
+Subject: [PATCH v2 2/2] nfit: cleanup acpi_nfit_init calling convention
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 09 Jul 2016 20:25:54 -0700
-Message-ID: <146812115425.32932.3314855641604340233.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 15 Jul 2016 12:34:11 -0700
+Message-ID: <146861116893.16732.16345540619016632023.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <146861106687.16732.18123746119721100494.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146861106687.16732.18123746119721100494.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,182 +21,183 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, linux-acpi@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Andy Lutomirski <luto@kernel.org>, Josh Poimboeuf <jpoimboe@redhat.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Borislav Petkov <bp@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, hch@lst.de
+Cc: linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pcommit instruction is being deprecated in favor of either ADR
-(asynchronous DRAM refresh: flush-on-power-fail) at the platform level, or
-posted-write-queue flush addresses as defined by the ACPI 6.x NFIT (NVDIMM
-Firmware Interface Table).
+Pass the nfit buffer as a parameter rather than hanging it off of
+acpi_desc.
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: x86@kernel.org
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: "Lee, Chun-Yi" <jlee@suse.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/cpufeatures.h                 |    1 
- arch/x86/include/asm/special_insns.h               |   46 --------------------
- arch/x86/lib/x86-opcode-map.txt                    |    2 -
- tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 -
- tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 -
- tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 -
- tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 --
- .../perf/util/intel-pt-decoder/x86-opcode-map.txt  |    2 -
- 8 files changed, 3 insertions(+), 58 deletions(-)
+Changes since v1:
 
-diff --git a/arch/x86/include/asm/cpufeatures.h b/arch/x86/include/asm/cpufeatures.h
-index 4a413485f9eb..700d97df7d28 100644
---- a/arch/x86/include/asm/cpufeatures.h
-+++ b/arch/x86/include/asm/cpufeatures.h
-@@ -225,7 +225,6 @@
- #define X86_FEATURE_RDSEED	( 9*32+18) /* The RDSEED instruction */
- #define X86_FEATURE_ADX		( 9*32+19) /* The ADCX and ADOX instructions */
- #define X86_FEATURE_SMAP	( 9*32+20) /* Supervisor Mode Access Prevention */
--#define X86_FEATURE_PCOMMIT	( 9*32+22) /* PCOMMIT instruction */
- #define X86_FEATURE_CLFLUSHOPT	( 9*32+23) /* CLFLUSHOPT instruction */
- #define X86_FEATURE_CLWB	( 9*32+24) /* CLWB instruction */
- #define X86_FEATURE_AVX512PF	( 9*32+26) /* AVX-512 Prefetch */
-diff --git a/arch/x86/include/asm/special_insns.h b/arch/x86/include/asm/special_insns.h
-index d96d04377765..587d7914ea4b 100644
---- a/arch/x86/include/asm/special_insns.h
-+++ b/arch/x86/include/asm/special_insns.h
-@@ -253,52 +253,6 @@ static inline void clwb(volatile void *__p)
- 		: [pax] "a" (p));
+* Reflowed based on fixups done to patch1, no other changes.
+
+ drivers/acpi/nfit.c              |   48 +++++++++++++-------------------------
+ drivers/acpi/nfit.h              |    3 +-
+ tools/testing/nvdimm/test/nfit.c |    7 +++---
+ 3 files changed, 22 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index cbdbe13bdbe8..4173cf0033c2 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -2237,12 +2237,11 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
+ 	return 0;
  }
  
--/**
-- * pcommit_sfence() - persistent commit and fence
-- *
-- * The PCOMMIT instruction ensures that data that has been flushed from the
-- * processor's cache hierarchy with CLWB, CLFLUSHOPT or CLFLUSH is accepted to
-- * memory and is durable on the DIMM.  The primary use case for this is
-- * persistent memory.
-- *
-- * This function shows how to properly use CLWB/CLFLUSHOPT/CLFLUSH and PCOMMIT
-- * with appropriate fencing.
-- *
-- * Example:
-- * void flush_and_commit_buffer(void *vaddr, unsigned int size)
-- * {
-- *         unsigned long clflush_mask = boot_cpu_data.x86_clflush_size - 1;
-- *         void *vend = vaddr + size;
-- *         void *p;
-- *
-- *         for (p = (void *)((unsigned long)vaddr & ~clflush_mask);
-- *              p < vend; p += boot_cpu_data.x86_clflush_size)
-- *                 clwb(p);
-- *
-- *         // SFENCE to order CLWB/CLFLUSHOPT/CLFLUSH cache flushes
-- *         // MFENCE via mb() also works
-- *         wmb();
-- *
-- *         // PCOMMIT and the required SFENCE for ordering
-- *         pcommit_sfence();
-- * }
-- *
-- * After this function completes the data pointed to by 'vaddr' has been
-- * accepted to memory and will be durable if the 'vaddr' points to persistent
-- * memory.
-- *
-- * PCOMMIT must always be ordered by an MFENCE or SFENCE, so to help simplify
-- * things we include both the PCOMMIT and the required SFENCE in the
-- * alternatives generated by pcommit_sfence().
-- */
--static inline void pcommit_sfence(void)
--{
--	alternative(ASM_NOP7,
--		    ".byte 0x66, 0x0f, 0xae, 0xf8\n\t" /* pcommit */
--		    "sfence",
--		    X86_FEATURE_PCOMMIT);
--}
--
- #define nop() asm volatile ("nop")
+-int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
++int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
+ {
+ 	struct device *dev = acpi_desc->dev;
+ 	struct nfit_table_prev prev;
+ 	const void *end;
+-	u8 *data;
+ 	int rc;
  
+ 	mutex_lock(&acpi_desc->init_mutex);
+@@ -2267,7 +2266,6 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+ 	list_cut_position(&prev.flushes, &acpi_desc->flushes,
+ 				acpi_desc->flushes.prev);
  
-diff --git a/arch/x86/lib/x86-opcode-map.txt b/arch/x86/lib/x86-opcode-map.txt
-index d388de72eaca..28632ee68377 100644
---- a/arch/x86/lib/x86-opcode-map.txt
-+++ b/arch/x86/lib/x86-opcode-map.txt
-@@ -947,7 +947,7 @@ GrpTable: Grp15
- 4: XSAVE
- 5: XRSTOR | lfence (11B)
- 6: XSAVEOPT | clwb (66) | mfence (11B)
--7: clflush | clflushopt (66) | sfence (11B) | pcommit (66),(11B)
-+7: clflush | clflushopt (66) | sfence (11B)
- EndTable
+-	data = (u8 *) acpi_desc->nfit;
+ 	end = data + sz;
+ 	while (!IS_ERR_OR_NULL(data))
+ 		data = add_table(acpi_desc, &prev, data, end);
+@@ -2407,40 +2405,30 @@ static int acpi_nfit_add(struct acpi_device *adev)
+ 	if (!acpi_desc->nvdimm_bus)
+ 		return -ENOMEM;
  
- GrpTable: Grp16
-diff --git a/tools/objtool/arch/x86/insn/x86-opcode-map.txt b/tools/objtool/arch/x86/insn/x86-opcode-map.txt
-index d388de72eaca..28632ee68377 100644
---- a/tools/objtool/arch/x86/insn/x86-opcode-map.txt
-+++ b/tools/objtool/arch/x86/insn/x86-opcode-map.txt
-@@ -947,7 +947,7 @@ GrpTable: Grp15
- 4: XSAVE
- 5: XRSTOR | lfence (11B)
- 6: XSAVEOPT | clwb (66) | mfence (11B)
--7: clflush | clflushopt (66) | sfence (11B) | pcommit (66),(11B)
-+7: clflush | clflushopt (66) | sfence (11B)
- EndTable
+-	/*
+-	 * Save the acpi header for later and then skip it,
+-	 * making nfit point to the first nfit table header.
+-	 */
++	/* Save the acpi header for exporting the revision via sysfs */
+ 	acpi_desc->acpi_header = *tbl;
+-	acpi_desc->nfit = (void *) tbl + sizeof(struct acpi_table_nfit);
+-	sz -= sizeof(struct acpi_table_nfit);
  
- GrpTable: Grp16
-diff --git a/tools/perf/arch/x86/tests/insn-x86-dat-32.c b/tools/perf/arch/x86/tests/insn-x86-dat-32.c
-index 3b491cfe204e..38a48daed154 100644
---- a/tools/perf/arch/x86/tests/insn-x86-dat-32.c
-+++ b/tools/perf/arch/x86/tests/insn-x86-dat-32.c
-@@ -654,5 +654,3 @@
- "0f c7 1d 78 56 34 12 \txrstors 0x12345678",},
- {{0x0f, 0xc7, 0x9c, 0xc8, 0x78, 0x56, 0x34, 0x12, }, 8, 0, "", "",
- "0f c7 9c c8 78 56 34 12 \txrstors 0x12345678(%eax,%ecx,8)",},
--{{0x66, 0x0f, 0xae, 0xf8, }, 4, 0, "", "",
--"66 0f ae f8          \tpcommit ",},
-diff --git a/tools/perf/arch/x86/tests/insn-x86-dat-64.c b/tools/perf/arch/x86/tests/insn-x86-dat-64.c
-index 4fe7cce179c4..1f11ea85b60f 100644
---- a/tools/perf/arch/x86/tests/insn-x86-dat-64.c
-+++ b/tools/perf/arch/x86/tests/insn-x86-dat-64.c
-@@ -764,5 +764,3 @@
- "0f c7 9c c8 78 56 34 12 \txrstors 0x12345678(%rax,%rcx,8)",},
- {{0x41, 0x0f, 0xc7, 0x9c, 0xc8, 0x78, 0x56, 0x34, 0x12, }, 9, 0, "", "",
- "41 0f c7 9c c8 78 56 34 12 \txrstors 0x12345678(%r8,%rcx,8)",},
--{{0x66, 0x0f, 0xae, 0xf8, }, 4, 0, "", "",
--"66 0f ae f8          \tpcommit ",},
-diff --git a/tools/perf/arch/x86/tests/insn-x86-dat-src.c b/tools/perf/arch/x86/tests/insn-x86-dat-src.c
-index 41b1b1c62660..033b8a6fdab9 100644
---- a/tools/perf/arch/x86/tests/insn-x86-dat-src.c
-+++ b/tools/perf/arch/x86/tests/insn-x86-dat-src.c
-@@ -866,10 +866,6 @@ int main(void)
+ 	/* Evaluate _FIT and override with that if present */
+ 	status = acpi_evaluate_object(adev->handle, "_FIT", NULL, &buf);
+ 	if (ACPI_SUCCESS(status) && buf.length > 0) {
+-		union acpi_object *obj;
+-		/*
+-		 * Adjust for the acpi_object header of the _FIT
+-		 */
+-		obj = buf.pointer;
+-		if (obj->type == ACPI_TYPE_BUFFER) {
+-			acpi_desc->nfit =
+-				(struct acpi_nfit_header *)obj->buffer.pointer;
+-			sz = obj->buffer.length;
+-			rc = acpi_nfit_init(acpi_desc, sz);
+-		} else
++		union acpi_object *obj = buf.pointer;
++
++		if (obj->type == ACPI_TYPE_BUFFER)
++			rc = acpi_nfit_init(acpi_desc, obj->buffer.pointer,
++					obj->buffer.length);
++		else
+ 			dev_dbg(dev, "%s invalid type %d, ignoring _FIT\n",
+ 				 __func__, (int) obj->type);
+-		acpi_desc->nfit = NULL;
+ 		kfree(buf.pointer);
+ 	} else
+-		rc = acpi_nfit_init(acpi_desc, sz);
++		/* skip over the lead-in header table */
++		rc = acpi_nfit_init(acpi_desc, (void *) tbl
++				+ sizeof(struct acpi_table_nfit),
++				sz - sizeof(struct acpi_table_nfit));
  
- #endif /* #ifndef __x86_64__ */
+-	if (rc) {
++	if (rc)
+ 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+-		return rc;
+-	}
+-	return 0;
++	return rc;
+ }
  
--	/* pcommit */
--
--	asm volatile("pcommit");
--
- 	/* Following line is a marker for the awk script - do not change */
- 	asm volatile("rdtsc"); /* Stop here */
+ static int acpi_nfit_remove(struct acpi_device *adev)
+@@ -2457,8 +2445,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
+ 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+-	union acpi_object *obj;
+ 	struct device *dev = &adev->dev;
++	union acpi_object *obj;
+ 	acpi_status status;
+ 	int ret;
  
-diff --git a/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt b/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt
-index d388de72eaca..28632ee68377 100644
---- a/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt
-+++ b/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt
-@@ -947,7 +947,7 @@ GrpTable: Grp15
- 4: XSAVE
- 5: XRSTOR | lfence (11B)
- 6: XSAVEOPT | clwb (66) | mfence (11B)
--7: clflush | clflushopt (66) | sfence (11B) | pcommit (66),(11B)
-+7: clflush | clflushopt (66) | sfence (11B)
- EndTable
+@@ -2496,14 +2484,12 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
  
- GrpTable: Grp16
+ 	obj = buf.pointer;
+ 	if (obj->type == ACPI_TYPE_BUFFER) {
+-		acpi_desc->nfit =
+-			(struct acpi_nfit_header *)obj->buffer.pointer;
+-		ret = acpi_nfit_init(acpi_desc, obj->buffer.length);
++		ret = acpi_nfit_init(acpi_desc, obj->buffer.pointer,
++				obj->buffer.length);
+ 		if (ret)
+ 			dev_err(dev, "failed to merge updated NFIT\n");
+ 	} else
+ 		dev_err(dev, "Invalid _FIT\n");
+-	acpi_desc->nfit = NULL;
+ 	kfree(buf.pointer);
+ 
+  out_unlock:
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index 80fb2c0ac8bf..5179eba97a47 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -135,7 +135,6 @@ struct nfit_mem {
+ struct acpi_nfit_desc {
+ 	struct nvdimm_bus_descriptor nd_desc;
+ 	struct acpi_table_header acpi_header;
+-	struct acpi_nfit_header *nfit;
+ 	struct mutex init_mutex;
+ 	struct list_head memdevs;
+ 	struct list_head flushes;
+@@ -201,6 +200,6 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
+ }
+ 
+ const u8 *to_nfit_uuid(enum nfit_uuids id);
+-int acpi_nfit_init(struct acpi_nfit_desc *nfit, acpi_size sz);
++int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *nfit, acpi_size sz);
+ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev);
+ #endif /* __NFIT_H__ */
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index ff09a28890ed..52df3c20231d 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -1458,7 +1458,6 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 	nfit_test->setup(nfit_test);
+ 	acpi_desc = &nfit_test->acpi_desc;
+ 	acpi_nfit_desc_init(acpi_desc, &pdev->dev);
+-	acpi_desc->nfit = nfit_test->nfit_buf;
+ 	acpi_desc->blk_do_io = nfit_test_blk_do_io;
+ 	nd_desc = &acpi_desc->nd_desc;
+ 	nd_desc->provider_name = NULL;
+@@ -1467,7 +1466,8 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 	if (!acpi_desc->nvdimm_bus)
+ 		return -ENXIO;
+ 
+-	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
++	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
++			nfit_test->nfit_size);
+ 	if (rc) {
+ 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+ 		return rc;
+@@ -1479,7 +1479,8 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 	nfit_test->setup_hotplug = 1;
+ 	nfit_test->setup(nfit_test);
+ 
+-	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
++	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
++			nfit_test->nfit_size);
+ 	if (rc) {
+ 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+ 		return rc;
 
 _______________________________________________
 Linux-nvdimm mailing list
