@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oi0-x22a.google.com (mail-oi0-x22a.google.com
+ [IPv6:2607:f8b0:4003:c06::22a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E4B391A1E20
- for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 05:20:45 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 05/15] mm: Factor out functionality to finish page faults
-Date: Fri, 22 Jul 2016 14:19:31 +0200
-Message-Id: <1469189981-19000-6-git-send-email-jack@suse.cz>
-In-Reply-To: <1469189981-19000-1-git-send-email-jack@suse.cz>
-References: <1469189981-19000-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 895891A1E06
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Jul 2016 10:29:36 -0700 (PDT)
+Received: by mail-oi0-x22a.google.com with SMTP id l65so176172345oib.1
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Jul 2016 10:28:47 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <578C6FDC.4050803@intel.com>
+References: <146861106687.16732.18123746119721100494.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <578C6FDC.4050803@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 18 Jul 2016 10:28:45 -0700
+Message-ID: <CAPcyv4iYZorHdm4Dc7GqEcqoijiAEDGJnx9pHYsaPsM1CsFG3Q@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] nfit: fix _FIT evaluation memory leak
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,170 +22,134 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+To: Xiao Guangrong <guangrong.xiao@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Introduce function finish_fault() which handles locking of page tables
-and insertion of PTE after page for the page fault is prepared. This
-will be somewhat easier to use from page fault handlers than current
-do_set_pte() which is unnecessarily low-level for most uses.
+On Sun, Jul 17, 2016 at 10:57 PM, Xiao Guangrong
+<guangrong.xiao@intel.com> wrote:
+>
+>
+> On 07/16/2016 03:32 AM, Dan Williams wrote:
+>>
+>> acpi_evaluate_object() allocates memory. Free the buffer allocated
+>> during acpi_nfit_add().  Also, make it clear that ->nfit is not used
+>> outside of acpi_nfit_init() context.
+>>
+>> Cc: <stable@vger.kernel.org>
+>> Cc: Vishal Verma <vishal.l.verma@intel.com>
+>> Reported-by: Xiao Guangrong <guangrong.xiao@intel.com>
+>> Reported-by: Haozhong Zhang <haozhong.zhang@intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>> Change since v1:
+>>
+>> * Fix unitialized use of 'rc' (Haozhong)
+>> * Clarify that their is no use-after-free problem in acpi_nfit_notify()
+>>    (Xiao)
+>>
+>
+> No... This is a real problem, please seem below.
+>
+>
+>>   drivers/acpi/nfit.c |   21 +++++++++------------
+>>   1 file changed, 9 insertions(+), 12 deletions(-)
+>>
+>> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+>> index d89a02d9ed10..cbdbe13bdbe8 100644
+>> --- a/drivers/acpi/nfit.c
+>> +++ b/drivers/acpi/nfit.c
+>> @@ -2390,7 +2390,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>>         struct acpi_table_header *tbl;
+>>         acpi_status status = AE_OK;
+>>         acpi_size sz;
+>> -       int rc;
+>> +       int rc = 0;
+>>
+>>         status = acpi_get_table_with_size(ACPI_SIG_NFIT, 0, &tbl, &sz);
+>>         if (ACPI_FAILURE(status)) {
+>> @@ -2427,12 +2427,15 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>>                         acpi_desc->nfit =
+>>                                 (struct acpi_nfit_header
+>> *)obj->buffer.pointer;
+>>                         sz = obj->buffer.length;
+>> +                       rc = acpi_nfit_init(acpi_desc, sz);
+>>                 } else
+>>                         dev_dbg(dev, "%s invalid type %d, ignoring
+>> _FIT\n",
+>>                                  __func__, (int) obj->type);
+>> -       }
+>> +               acpi_desc->nfit = NULL;
+>> +               kfree(buf.pointer);
+>> +       } else
+>> +               rc = acpi_nfit_init(acpi_desc, sz);
+>>
+>> -       rc = acpi_nfit_init(acpi_desc, sz);
+>>         if (rc) {
+>>                 nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+>>                 return rc;
+>> @@ -2454,7 +2457,6 @@ static void acpi_nfit_notify(struct acpi_device
+>> *adev, u32 event)
+>>   {
+>>         struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
+>>         struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+>> -       struct acpi_nfit_header *nfit_saved;
+>>         union acpi_object *obj;
+>>         struct device *dev = &adev->dev;
+>>         acpi_status status;
+>> @@ -2492,21 +2494,16 @@ static void acpi_nfit_notify(struct acpi_device
+>> *adev, u32 event)
+>>                 goto out_unlock;
+>>         }
+>>
+>> -       nfit_saved = acpi_desc->nfit;
+>>         obj = buf.pointer;
+>>         if (obj->type == ACPI_TYPE_BUFFER) {
+>>                 acpi_desc->nfit =
+>>                         (struct acpi_nfit_header *)obj->buffer.pointer;
+>>                 ret = acpi_nfit_init(acpi_desc, obj->buffer.length);
+>
+>
+> The issue is in acpi_nfit_init(), there are some info constructing nfit_spa
+> is directly from acpi_desc->nfit, for example:
+> acpi_nfit_init() -> add_table() -> add_spa():
+>
+> static bool add_spa(struct acpi_nfit_desc *acpi_desc,
+>                 struct nfit_table_prev *prev,
+>                 struct acpi_nfit_system_address *spa)
+> {
+>    ...
+>         list_for_each_entry(nfit_spa, &prev->spas, list) {
+>                 if (memcmp(nfit_spa->spa, spa, length) == 0) {      // A
+>                         list_move_tail(&nfit_spa->list, &acpi_desc->spas);
+>                         return true;
+>                 }
+>         }
+>    ...
+>                 return false;
+>         INIT_LIST_HEAD(&nfit_spa->list);
+>         nfit_spa->spa = spa;                // B
+>         list_add_tail(&nfit_spa->list, &acpi_desc->spas);
+>   ...
+> }
+>
+> Note at point B, @spa is from acpi_desc->nfit. At point A, this @spa will be
+> used
+> to check if it has already existed if hotplug event happens later.
+>
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- include/linux/mm.h |  1 +
- mm/memory.c        | 67 ++++++++++++++++++++++++++++++++++++++----------------
- 2 files changed, 48 insertions(+), 20 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 2442f972bdc8..21226cc2b1cd 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -606,6 +606,7 @@ static inline pte_t maybe_mkwrite(pte_t pte, struct vm_area_struct *vma)
- 
- void do_set_pte(struct vm_area_struct *vma, unsigned long address,
- 		struct page *page, pte_t *pte, bool write, bool anon);
-+int finish_fault(struct vm_area_struct *vma, struct vm_fault *vmf);
- #endif
- 
- /*
-diff --git a/mm/memory.c b/mm/memory.c
-index aef88d634072..b785f823caa4 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2890,6 +2890,49 @@ void do_set_pte(struct vm_area_struct *vma, unsigned long address,
- 	update_mmu_cache(vma, address, pte);
- }
- 
-+/**
-+ * finish_fault - finish page fault once we have prepared the page to fault
-+ *
-+ * @vma: virtual memory area
-+ * @vmf: structure describing the fault
-+ *
-+ * This function handles all that is needed to finish a page fault once the
-+ * page to fault in is prepared. It handles locking of PTEs, inserts PTE for
-+ * given page, adds reverse page mapping, handles memcg charges and LRU
-+ * addition. The function returns 0 on success, error in case page could not
-+ * be inserted into page tables.
-+ *
-+ * The function expects the page to be locked.
-+ */
-+int finish_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	unsigned long address = (unsigned long)vmf->virtual_address;
-+	struct page *page = vmf->page;
-+	bool anon = false;
-+	spinlock_t *ptl;
-+	pte_t *pte;
-+
-+	if (vmf->cow_page) {
-+		page = vmf->cow_page;
-+		anon = true;
-+	}
-+
-+	pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, address, &ptl);
-+	if (unlikely(!pte_same(*pte, vmf->orig_pte))) {
-+		pte_unmap_unlock(pte, ptl);
-+		return -EBUSY;
-+	}
-+	do_set_pte(vma, address, page, pte, vmf->flags & FAULT_FLAG_WRITE,
-+		   anon);
-+	if (anon) {
-+		mem_cgroup_commit_charge(page, vmf->memcg, false, false);
-+		lru_cache_add_active_or_unevictable(page, vma);
-+	}
-+	pte_unmap_unlock(pte, ptl);
-+
-+	return 0;
-+}
-+
- static unsigned long fault_around_bytes __read_mostly =
- 	rounddown_pow_of_two(65536);
- 
-@@ -3022,15 +3065,13 @@ static int do_read_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
--	pte = pte_offset_map_lock(mm, vmf->pmd, address, &ptl);
--	if (unlikely(!pte_same(*pte, vmf->orig_pte))) {
--		pte_unmap_unlock(pte, ptl);
-+	if (unlikely(finish_fault(vma, vmf) < 0)) {
- 		unlock_page(vmf->page);
- 		put_page(vmf->page);
- 		return ret;
- 	}
--	do_set_pte(vma, address, vmf->page, pte, false, false);
- 	unlock_page(vmf->page);
-+	return ret;
- unlock_out:
- 	pte_unmap_unlock(pte, ptl);
- 	return ret;
-@@ -3041,8 +3082,6 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- {
- 	struct page *new_page;
- 	struct mem_cgroup *memcg;
--	spinlock_t *ptl;
--	pte_t *pte;
- 	int ret;
- 	unsigned long address = (unsigned long)vmf->virtual_address;
- 
-@@ -3070,9 +3109,7 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		copy_user_highpage(new_page, vmf->page, address, vma);
- 	__SetPageUptodate(new_page);
- 
--	pte = pte_offset_map_lock(mm, vmf->pmd, address, &ptl);
--	if (unlikely(!pte_same(*pte, vmf->orig_pte))) {
--		pte_unmap_unlock(pte, ptl);
-+	if (unlikely(finish_fault(vma, vmf) < 0)) {
- 		if (!(ret & VM_FAULT_DAX_LOCKED)) {
- 			unlock_page(vmf->page);
- 			put_page(vmf->page);
-@@ -3082,10 +3119,6 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		}
- 		goto uncharge_out;
- 	}
--	do_set_pte(vma, address, new_page, pte, true, true);
--	mem_cgroup_commit_charge(new_page, memcg, false, false);
--	lru_cache_add_active_or_unevictable(new_page, vma);
--	pte_unmap_unlock(pte, ptl);
- 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
- 		unlock_page(vmf->page);
- 		put_page(vmf->page);
-@@ -3104,8 +3137,6 @@ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- {
- 	struct address_space *mapping;
- 	unsigned long address = (unsigned long)vmf->virtual_address;
--	spinlock_t *ptl;
--	pte_t *pte;
- 	int dirtied = 0;
- 	int ret, tmp;
- 
-@@ -3128,15 +3159,11 @@ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		}
- 	}
- 
--	pte = pte_offset_map_lock(mm, vmf->pmd, address, &ptl);
--	if (unlikely(!pte_same(*pte, vmf->orig_pte))) {
--		pte_unmap_unlock(pte, ptl);
-+	if (unlikely(finish_fault(vma, vmf) < 0)) {
- 		unlock_page(vmf->page);
- 		put_page(vmf->page);
- 		return ret;
- 	}
--	do_set_pte(vma, address, vmf->page, pte, true, false);
--	pte_unmap_unlock(pte, ptl);
- 
- 	if (set_page_dirty(vmf->page))
- 		dirtied = 1;
--- 
-2.6.6
+Argh, yes!  We need a unit test for this case.
 
+Another problem is that the old and new nfit entries have different
+lifetimes, especially if we ever want to support delete.  Another
+problem looking at this code is that the sizing of the idt and flush
+entries is wrong.  We should not allow those entries to change size
+during hotplug.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
