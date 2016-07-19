@@ -1,18 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id C55221A1E01
- for <linux-nvdimm@lists.01.org>; Tue, 19 Jul 2016 10:16:17 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 1/3] pmem: clarify a debug print in pmem_clear_poison
-Date: Tue, 19 Jul 2016 17:15:25 +0000
-Message-ID: <1468948496.30121.60.camel@intel.com>
+Received: from mail-oi0-x22c.google.com (mail-oi0-x22c.google.com
+ [IPv6:2607:f8b0:4003:c06::22c])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id CE3371A1E01
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Jul 2016 08:53:53 -0700 (PDT)
+Received: by mail-oi0-x22c.google.com with SMTP id j185so31625569oih.0
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Jul 2016 08:53:03 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1468889100-30698-2-git-send-email-vishal.l.verma@intel.com>
 References: <1468889100-30698-1-git-send-email-vishal.l.verma@intel.com>
  <1468889100-30698-2-git-send-email-vishal.l.verma@intel.com>
- <CAPcyv4gpRGJLVfoC3o-rVypQtppkAKg1hObr=1EhcT3Y3g8KUw@mail.gmail.com>
-In-Reply-To: <CAPcyv4gpRGJLVfoC3o-rVypQtppkAKg1hObr=1EhcT3Y3g8KUw@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <5C8E6D11FD483341ADC3BB7B3F7C54B3@intel.com>
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 19 Jul 2016 08:53:02 -0700
+Message-ID: <CAPcyv4gpRGJLVfoC3o-rVypQtppkAKg1hObr=1EhcT3Y3g8KUw@mail.gmail.com>
+Subject: Re: [PATCH 1/3] pmem: clarify a debug print in pmem_clear_poison
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,34 +22,36 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Luck,, "Rafael J  <rafael.j.wysocki@intel.com>, linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE2LTA3LTE5IGF0IDA4OjUzIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIE1vbiwgSnVsIDE4LCAyMDE2IGF0IDU6NDQgUE0sIFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
-dmVybWFAaW50ZWwuY28NCj4gbT4gd3JvdGU6DQo+ID4gUHJlZml4IHRoZSBzZWN0b3IgbnVtYmVy
-IGJlaW5nIGNsZWFyZWQgd2l0aCBhICcweCcgdG8gbWFrZSBpdCBjbGVhcg0KPiA+IHRoYXQNCj4g
-PiB0aGlzIGlzIGEgaGV4IHZhbHVlLg0KPiA+IA0KPiA+IFNpZ25lZC1vZmYtYnk6IFZpc2hhbCBW
-ZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+IMKgZHJpdmVycy9u
-dmRpbW0vcG1lbS5jIHwgMiArLQ0KPiA+IMKgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCsp
-LCAxIGRlbGV0aW9uKC0pDQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3Bt
-ZW0uYyBiL2RyaXZlcnMvbnZkaW1tL3BtZW0uYw0KPiA+IGluZGV4IDYwOGZjNDQuLjI5YWIyNWIg
-MTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9udmRpbW0vcG1lbS5jDQo+ID4gKysrIGIvZHJpdmVy
-cy9udmRpbW0vcG1lbS5jDQo+ID4gQEAgLTU3LDcgKzU3LDcgQEAgc3RhdGljIHZvaWQgcG1lbV9j
-bGVhcl9wb2lzb24oc3RydWN0IHBtZW1fZGV2aWNlDQo+ID4gKnBtZW0sIHBoeXNfYWRkcl90IG9m
-ZnNldCwNCj4gPiDCoMKgwqDCoMKgwqDCoMKgY2xlYXJlZCA9IG52ZGltbV9jbGVhcl9wb2lzb24o
-ZGV2LCBwbWVtLT5waHlzX2FkZHIgKyBvZmZzZXQsDQo+ID4gbGVuKTsNCj4gPiANCj4gPiDCoMKg
-wqDCoMKgwqDCoMKgaWYgKGNsZWFyZWQgPiAwICYmIGNsZWFyZWQgLyA1MTIpIHsNCj4gPiAtwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZGV2X2RiZyhkZXYsICIlczogJWxseCBjbGVhciAl
-bGQgc2VjdG9yJXNcbiIsDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGRldl9k
-YmcoZGV2LCAiJXM6IDB4JWxseCBjbGVhciAlbGQgc2VjdG9yJXNcbiIsDQo+IA0KPiAlI2xseCBp
-cyBhIGJpdCBzbWFsbGVyIC8gbW9yZSByZWFkYWJsZS7CoMKgU2hhbGwgSSBqdXN0IGZpeCB0aGlz
-IHVwIG9uDQo+IGFwcGx5aW5nPw0KDQpUSUwgOikgWWVzIHlvdSBjYW4gZG8gdGhlIGZpeHVwLCB0
-aGFua3MhCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
-bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
-L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Mon, Jul 18, 2016 at 5:44 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> Prefix the sector number being cleared with a '0x' to make it clear that
+> this is a hex value.
+>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  drivers/nvdimm/pmem.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index 608fc44..29ab25b 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -57,7 +57,7 @@ static void pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
+>         cleared = nvdimm_clear_poison(dev, pmem->phys_addr + offset, len);
+>
+>         if (cleared > 0 && cleared / 512) {
+> -               dev_dbg(dev, "%s: %llx clear %ld sector%s\n",
+> +               dev_dbg(dev, "%s: 0x%llx clear %ld sector%s\n",
+
+%#llx is a bit smaller / more readable.  Shall I just fix this up on applying?
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
