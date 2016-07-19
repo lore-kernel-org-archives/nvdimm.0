@@ -1,12 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id EAE321A1E45
- for <linux-nvdimm@lists.01.org>; Thu, 21 Jul 2016 20:28:48 -0700 (PDT)
-Subject: [PATCH 1/2] libnvdimm: move ->module to struct nvdimm_bus_descriptor
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 21 Jul 2016 20:25:44 -0700
-Message-ID: <146915794457.7201.5023729229431647060.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id 284241A1E01
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Jul 2016 11:33:23 -0700 (PDT)
+Date: Tue, 19 Jul 2016 12:32:04 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 2/3] nfit, libnvdimm: allow an ARS rescan to be triggered
+ on demand
+Message-ID: <20160719183204.GF12960@omniknight.lm.intel.com>
+References: <1468889100-30698-1-git-send-email-vishal.l.verma@intel.com>
+ <1468889100-30698-3-git-send-email-vishal.l.verma@intel.com>
+ <CAPcyv4guVe2Mm_EaBMMRqpfCahR_E0xbhtE30VoDAb+sqvK=AQ@mail.gmail.com>
+ <20160719174540.GC12960@omniknight.lm.intel.com>
+ <CAPcyv4gdbB7=qT=5Q=aQqJrgoYaKsZDX9mrkAA8D0XVZbb9sbA@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gdbB7=qT=5Q=aQqJrgoYaKsZDX9mrkAA8D0XVZbb9sbA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,144 +26,68 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Let the provider module be explicitly passed in rather than implicitly
-assumed by the module that calls nvdimm_bus_register().  This is in
-preparation for unifying the nfit and nfit_test driver teardown paths.
+On 07/19, Dan Williams wrote:
+> On Tue, Jul 19, 2016 at 10:45 AM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> > On 07/19, Dan Williams wrote:
+> >> On Mon, Jul 18, 2016 at 5:44 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> >> > Normally, an ARS (Address Range Scrub) only happens at
+> >> > boot/initialization time. There can however arise situations where a
+> >> > bus-wide rescan is needed - notably, in the case of discovering a latent
+> >> > media error, we should do a full rescan to figure out what other sectors
+> >> > are bad, and thus potentially avoid triggering an mce on them in the
+> >> > future. Also provide a sysfs trigger to start a bus-wide rescan.
+> >> >
+> >> > Cc: Dan Williams <dan.j.williams@intel.com>
+> >> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >> > Cc: <linux-acpi@vger.kernel.org>
+> >> > Cc: <linux-nvdimm@lists.01.org>
+> >> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> >> > ---
+> >> >  drivers/acpi/nfit.c       | 36 ++++++++++++++++++++++++++++++++----
+> >> >  drivers/acpi/nfit.h       |  1 +
+> >> >  drivers/nvdimm/core.c     | 17 +++++++++++++++++
+> >> >  include/linux/libnvdimm.h |  1 +
+> >> >  4 files changed, 51 insertions(+), 4 deletions(-)
+> >> >
+> >> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> >> > index ac6ddcc0..def9505 100644
+> >> > --- a/drivers/acpi/nfit.c
+> >> > +++ b/drivers/acpi/nfit.c
+> >> > @@ -2138,8 +2138,9 @@ static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
+> >> >         unsigned int tmo = scrub_timeout;
+> >> >         int rc;
+> >> >
+> >> > -       if (nfit_spa->ars_done || !nfit_spa->nd_region)
+> >> > -               return;
+> >> > +       if (!nfit_spa->ars_rescan)
+> >> > +               if (nfit_spa->ars_done || !nfit_spa->nd_region)
+> >> > +                       return;
+> >>
+> >> Do we need a new flag? Why not just clear ->ars_done?
+> >
+> > This is what I had started out with - clearing the done flag, but the
+> > done flag gets set at the end of acpi_nfit_scrub if a region has been
+> > registered for that SPA. In the rescan case, we'll almost always have
+> > our regions registered, so the done flag will get set here, and
+> > acpi_nfit_async_scrub won't look at it at all..
+> 
+> Maybe just flip the polarity of ->ars_done to ->ars_do?  Seems we
+> should be able to get away with not adding a new flag.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit.c              |    1 +
- drivers/nvdimm/bus.c             |    2 +-
- drivers/nvdimm/core.c            |    7 +++----
- drivers/nvdimm/e820.c            |    1 +
- drivers/nvdimm/nd-core.h         |    1 -
- include/linux/libnvdimm.h        |    7 +++----
- tools/testing/nvdimm/test/nfit.c |    1 +
- 7 files changed, 10 insertions(+), 10 deletions(-)
+Will it make a difference? We essentially use the do/done flag to decide
+which SPAs need further ARS work, i.e. ars_nfit_async_scrub. When we're
+running at init time, the SPAs that need to go into _async_scrub can be
+a subset of all SPAs because for some of them, the scrub may be complete,
+and we may have valid results. For the rescan case, _all_ SPAs need to be
+_async_scrub 'ed.
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index fb80f32db525..e7eb3b6f1514 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -2417,6 +2417,7 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
- 	acpi_desc->blk_do_io = acpi_nfit_blk_region_do_io;
- 	nd_desc = &acpi_desc->nd_desc;
- 	nd_desc->provider_name = "ACPI.NFIT";
-+	nd_desc->module = THIS_MODULE;
- 	nd_desc->ndctl = acpi_nfit_ctl;
- 	nd_desc->flush_probe = acpi_nfit_flush_probe;
- 	nd_desc->clear_to_send = acpi_nfit_clear_to_send;
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 1cc7880320fe..275dd5c0a301 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -73,7 +73,7 @@ static struct module *to_bus_provider(struct device *dev)
- 	if (is_nd_pmem(dev) || is_nd_blk(dev)) {
- 		struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
- 
--		return nvdimm_bus->module;
-+		return nvdimm_bus->nd_desc->module;
- 	}
- 	return NULL;
- }
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 757e0cf028bf..e8528756f54f 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -447,8 +447,8 @@ struct attribute_group nvdimm_bus_attribute_group = {
- };
- EXPORT_SYMBOL_GPL(nvdimm_bus_attribute_group);
- 
--struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
--		struct nvdimm_bus_descriptor *nd_desc, struct module *module)
-+struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
-+		struct nvdimm_bus_descriptor *nd_desc)
- {
- 	struct nvdimm_bus *nvdimm_bus;
- 	int rc;
-@@ -467,7 +467,6 @@ struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
- 		return NULL;
- 	}
- 	nvdimm_bus->nd_desc = nd_desc;
--	nvdimm_bus->module = module;
- 	nvdimm_bus->dev.parent = parent;
- 	nvdimm_bus->dev.release = nvdimm_bus_release;
- 	nvdimm_bus->dev.groups = nd_desc->attr_groups;
-@@ -491,7 +490,7 @@ struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
- 	put_device(&nvdimm_bus->dev);
- 	return NULL;
- }
--EXPORT_SYMBOL_GPL(__nvdimm_bus_register);
-+EXPORT_SYMBOL_GPL(nvdimm_bus_register);
- 
- static void set_badblock(struct badblocks *bb, sector_t s, int num)
- {
-diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
-index 95825b38559a..11ea90120542 100644
---- a/drivers/nvdimm/e820.c
-+++ b/drivers/nvdimm/e820.c
-@@ -47,6 +47,7 @@ static int e820_pmem_probe(struct platform_device *pdev)
- 
- 	nd_desc.attr_groups = e820_pmem_attribute_groups;
- 	nd_desc.provider_name = "e820";
-+	nd_desc.module = THIS_MODULE;
- 	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
- 	if (!nvdimm_bus)
- 		goto err;
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 6e961f7f43e7..38ce6bbbc170 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -26,7 +26,6 @@ extern int nvdimm_major;
- struct nvdimm_bus {
- 	struct nvdimm_bus_descriptor *nd_desc;
- 	wait_queue_head_t probe_wait;
--	struct module *module;
- 	struct list_head list;
- 	struct device dev;
- 	int id, probe_active;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index d37fda6dd64c..2ab869dece4a 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -70,6 +70,7 @@ struct nd_mapping {
- struct nvdimm_bus_descriptor {
- 	const struct attribute_group **attr_groups;
- 	unsigned long cmd_mask;
-+	struct module *module;
- 	char *provider_name;
- 	ndctl_fn ndctl;
- 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
-@@ -128,10 +129,8 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
- }
- 
- int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length);
--struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
--		struct nvdimm_bus_descriptor *nfit_desc, struct module *module);
--#define nvdimm_bus_register(parent, desc) \
--	__nvdimm_bus_register(parent, desc, THIS_MODULE)
-+struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
-+		struct nvdimm_bus_descriptor *nfit_desc);
- void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
- struct nvdimm_bus *to_nvdimm_bus(struct device *dev);
- struct nvdimm *to_nvdimm(struct device *dev);
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 78cba1e3b1da..642713f15723 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1463,6 +1463,7 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	acpi_desc->blk_do_io = nfit_test_blk_do_io;
- 	nd_desc = &acpi_desc->nd_desc;
- 	nd_desc->provider_name = NULL;
-+	nd_desc->module = THIS_MODULE;
- 	nd_desc->ndctl = nfit_test_ctl;
- 	acpi_desc->nvdimm_bus = nvdimm_bus_register(&pdev->dev, nd_desc);
- 	if (!acpi_desc->nvdimm_bus)
-
+Unless we change the initilization case to also start ARS for all SPAs
+irrespective of whether we found good results or not, I'm not sure I see
+how we can reuse the same flag?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
