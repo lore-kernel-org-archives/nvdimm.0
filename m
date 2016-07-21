@@ -1,17 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 37A611A1E18
- for <linux-nvdimm@lists.01.org>; Tue,  5 Jul 2016 02:02:58 -0700 (PDT)
-Date: Tue, 5 Jul 2016 11:02:15 +0200
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: [PATCH] libnvdimm: initialize struct blk_integrity with 0
-Message-ID: <20160705090215.k7xlvjjx4uvfit2m@c203.arch.suse.de>
-References: <20160623095204.32167-1-jthumshirn@suse.de>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20160623095204.32167-1-jthumshirn@suse.de>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 8B2A81A1E4A
+ for <linux-nvdimm@lists.01.org>; Wed, 20 Jul 2016 18:52:28 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v2 0/3] ARS rescanning triggered by latent errors or userspace
+Date: Wed, 20 Jul 2016 19:50:47 -0600
+Message-Id: <1469065850-32401-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,67 +13,69 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jun 23, 2016 at 11:52:04AM +0200, Johannes Thumshirn wrote:
-> Initialize struct blk_integrity with 0 as blk_integrity_register() takes =
-the
-> then unitialized struct blk_integrity::flags and ORs it to the resulting =
-block
-> integrity structure.
-> =
+Changes in v2:
+- Rework the ars_done flag in nfit_spa to be ars_required, and reuse it for
+  rescanning (Dan)
+- Rename the ars_rescan attribute to simply 'scrub', and move into the nfit
+  group since only nfit buses have this capability (Dan)
+- Make the scrub attribute RW, and on reads return the number of times a
+  scrub has happened since driver load. This prompted some additional
+  refactoring, notably the new helpers acpi_nfit_desc_alloc_register, and
+  to_nvdimm_bus_dev. These are all in patch 2. (Dan)
+- Remove some redundant list_empty checks in patch 3 (Dan)
+- If the acpi_descs lists is not empty at driver unload time, WARN() (Dan)
 
-> Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
-> ---
->  drivers/nvdimm/core.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> =
+This series adds on-demand ARS scanning on both, discovery of
+latent media errors, and a sysfs trigger from userspace.
 
-> diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-> index be89764..32e4fe2 100644
-> --- a/drivers/nvdimm/core.c
-> +++ b/drivers/nvdimm/core.c
-> @@ -601,7 +601,8 @@ int nd_integrity_init(struct gendisk *disk, unsigned =
-long meta_size)
->  	if (meta_size =3D=3D 0)
->  		return 0;
->  =
+The rescanning part is easy to test using the nfit_test framework
+- create a namespace (this will by default have bad sectors in
+the middle), clear the bad sectors by writing to them, trigger
+the rescan through sysfs, and the bad sectors will reappear in
+/sys/block/<pmemX>/badblocks.
 
-> -	bi.profile =3D NULL;
-> +	memset(&bi, 0, sizeof(bi));
-> +
->  	bi.tuple_size =3D meta_size;
->  	bi.tag_size =3D meta_size;
->  =
+For the mce handling, I've tested the notifier chain callback
+being called with a mock struct mce (called via another sysfs
+trigger - this isn't included in the patch obviously), which
+has the address field set to a known address in a SPA range,
+and the status field with the MCACOD flag set.
 
-> -- =
+What I haven't easily been able to test is the same callback
+path with a 'real world' mce, being called as part of the
+x86_mce_decoder_chain notifier. I'd therefore appreciate a
+closer look at the initial filtering done in nfit_handle_mce
+(patch 3/3) from Tony or anyone more familiar with mce handling.
 
-> 2.8.4
-> =
+The series is based on v4.7-rc7, and a tree is available at
+https://git.kernel.org/cgit/linux/kernel/git/vishal/nvdimm.git/log/?h=ars-ondemand
 
 
-Dan,
 
-have you seen this one? I've found it in patchwork but didn't get a mail on
-the list either.
+Vishal Verma (3):
+  pmem: clarify a debug print in pmem_clear_poison
+  nfit, libnvdimm: allow an ARS scrub to be triggered on demand
+  nfit: do an ARS scrub on hitting a latent media error
 
-Thanks,
-	Johannes
+ drivers/acpi/nfit.c              | 214 +++++++++++++++++++++++++++++++++++----
+ drivers/acpi/nfit.h              |   5 +-
+ drivers/nvdimm/core.c            |   7 ++
+ drivers/nvdimm/pmem.c            |   2 +-
+ include/linux/libnvdimm.h        |   1 +
+ tools/testing/nvdimm/test/nfit.c |  16 +++
+ 6 files changed, 224 insertions(+), 21 deletions(-)
 
--- =
+-- 
+2.7.4
 
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
-HRB 21284 (AG N=FCrnberg)
-Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
