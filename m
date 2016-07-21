@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from invmail.skhynix.com (exvmail.hynix.com [166.125.252.79])
- by ml01.01.org (Postfix) with ESMTP id 832341A1E08
- for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 00:29:41 -0700 (PDT)
-From: "kwangwoo.lee@sk.com" <kwangwoo.lee@sk.com>
-Subject: RE: [PATCH v3 1/3] arm64: mm: add __clean_dcache_area()
-Date: Fri, 22 Jul 2016 07:28:32 +0000
-Message-ID: <10b66389d013414490d85c6d11c69347@nmail01.hynixad.com>
+Received: from foss.arm.com (foss.arm.com [217.140.101.70])
+ by ml01.01.org (Postfix) with ESMTP id 4A6071A1E4A
+ for <linux-nvdimm@lists.01.org>; Thu, 21 Jul 2016 09:12:29 -0700 (PDT)
+Date: Thu, 21 Jul 2016 17:11:37 +0100
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v3 1/3] arm64: mm: add __clean_dcache_area()
+Message-ID: <20160721161137.GG21616@arm.com>
 References: <1468550782-14454-1-git-send-email-kwangwoo.lee@sk.com>
  <1468550782-14454-2-git-send-email-kwangwoo.lee@sk.com>
- <20160721161137.GG21616@arm.com>
-In-Reply-To: <20160721161137.GG21616@arm.com>
-Content-Language: ko-KR
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1468550782-14454-2-git-send-email-kwangwoo.lee@sk.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,66 +18,72 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="euc-kr"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Will Deacon <will.deacon@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Catalin Marinas <catalin.marinas@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "woosuk.chung@sk.com" <woosuk.chung@sk.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kwangwoo Lee <kwangwoo.lee@sk.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-nvdimm@lists.01.org, Catalin Marinas <catalin.marinas@arm.com>, linux-kernel@vger.kernel.org, Woosuk Chung <woosuk.chung@sk.com>, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgV2lsbCwNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBXaWxsIERl
-YWNvbiBbbWFpbHRvOndpbGwuZGVhY29uQGFybS5jb21dDQo+IFNlbnQ6IEZyaWRheSwgSnVseSAy
-MiwgMjAxNiAxOjEyIEFNDQo+IFRvOiDAzLGkv+woTEVFIEtXQU5HV09PKSBNUyBTVw0KPiBDYzog
-bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnOyBsaW51eC1udmRpbW1AbGlzdHMu
-MDEub3JnOyBDYXRhbGluIE1hcmluYXM7IE1hcmsgUnV0bGFuZDsNCj4gUm9zcyBad2lzbGVyOyBE
-YW4gV2lsbGlhbXM7IFZpc2hhbCBWZXJtYTsgwaS/7LyuKENIVU5HIFdPTyBTVUspIE1TIFNXOyCx
-6Mf2w7YoS0lNIEhZVU5DSFVMKSBNUyBTVzsNCj4gbGludXgta2VybmVsQHZnZXIua2VybmVsLm9y
-Zw0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYzIDEvM10gYXJtNjQ6IG1tOiBhZGQgX19jbGVhbl9k
-Y2FjaGVfYXJlYSgpDQo+IA0KPiBPbiBGcmksIEp1bCAxNSwgMjAxNiBhdCAxMTo0NjoyMEFNICsw
-OTAwLCBLd2FuZ3dvbyBMZWUgd3JvdGU6DQo+ID4gRW5zdXJlIEQtY2FjaGUgbGluZXMgYXJlIGNs
-ZWFuZWQgdG8gdGhlIFBvQyhQb2ludCBvZiBDb2hlcmVuY3kpLg0KPiA+DQo+ID4gVGhpcyBmdW5j
-dGlvbiBpcyBjYWxsZWQgYnkgYXJjaF93Yl9jYWNoZV9wbWVtKCkgdG8gY2xlYW4gdGhlIGNhY2hl
-IGxpbmVzDQo+ID4gYW5kIHJlbWFpbiB0aGUgZGF0YSBpbiBjYWNoZSBmb3IgdGhlIG5leHQgYWNj
-ZXNzLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogS3dhbmd3b28gTGVlIDxrd2FuZ3dvby5sZWVA
-c2suY29tPg0KPiA+IC0tLQ0KPiA+ICBhcmNoL2FybTY0L2luY2x1ZGUvYXNtL2NhY2hlZmx1c2gu
-aCB8ICAxICsNCj4gPiAgYXJjaC9hcm02NC9tbS9jYWNoZS5TICAgICAgICAgICAgICAgfCAxOCAr
-KysrKysrKysrKysrKysrKysNCj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCAxOSBpbnNlcnRpb25zKCsp
-DQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm02NC9pbmNsdWRlL2FzbS9jYWNoZWZsdXNo
-LmggYi9hcmNoL2FybTY0L2luY2x1ZGUvYXNtL2NhY2hlZmx1c2guaA0KPiA+IGluZGV4IGM2NDI2
-OGQuLjkwM2E5NGYgMTAwNjQ0DQo+ID4gLS0tIGEvYXJjaC9hcm02NC9pbmNsdWRlL2FzbS9jYWNo
-ZWZsdXNoLmgNCj4gPiArKysgYi9hcmNoL2FybTY0L2luY2x1ZGUvYXNtL2NhY2hlZmx1c2guaA0K
-PiA+IEBAIC02OCw2ICs2OCw3IEBADQo+ID4gIGV4dGVybiB2b2lkIGZsdXNoX2NhY2hlX3Jhbmdl
-KHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hLCB1bnNpZ25lZCBsb25nIHN0YXJ0LCB1bnNpZ25l
-ZCBsb25nIGVuZCk7DQo+ID4gIGV4dGVybiB2b2lkIGZsdXNoX2ljYWNoZV9yYW5nZSh1bnNpZ25l
-ZCBsb25nIHN0YXJ0LCB1bnNpZ25lZCBsb25nIGVuZCk7DQo+ID4gIGV4dGVybiB2b2lkIF9fZmx1
-c2hfZGNhY2hlX2FyZWEodm9pZCAqYWRkciwgc2l6ZV90IGxlbik7DQo+ID4gK2V4dGVybiB2b2lk
-IF9fY2xlYW5fZGNhY2hlX2FyZWEodm9pZCAqYWRkciwgc2l6ZV90IGxlbik7DQo+ID4gIGV4dGVy
-biB2b2lkIF9fY2xlYW5fZGNhY2hlX2FyZWFfcG91KHZvaWQgKmFkZHIsIHNpemVfdCBsZW4pOw0K
-PiA+ICBleHRlcm4gbG9uZyBfX2ZsdXNoX2NhY2hlX3VzZXJfcmFuZ2UodW5zaWduZWQgbG9uZyBz
-dGFydCwgdW5zaWduZWQgbG9uZyBlbmQpOw0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2FyY2gvYXJt
-NjQvbW0vY2FjaGUuUyBiL2FyY2gvYXJtNjQvbW0vY2FjaGUuUw0KPiA+IGluZGV4IDZkZjA3MDYu
-LjVhMzUwZTQgMTAwNjQ0DQo+ID4gLS0tIGEvYXJjaC9hcm02NC9tbS9jYWNoZS5TDQo+ID4gKysr
-IGIvYXJjaC9hcm02NC9tbS9jYWNoZS5TDQo+ID4gQEAgLTkzLDYgKzkzLDI0IEBAIEVOVFJZKF9f
-Zmx1c2hfZGNhY2hlX2FyZWEpDQo+ID4gIEVORFBJUFJPQyhfX2ZsdXNoX2RjYWNoZV9hcmVhKQ0K
-PiA+DQo+ID4gIC8qDQo+ID4gKyAqCV9fY2xlYW5fZGNhY2hlX2FyZWEoa2FkZHIsIHNpemUpDQo+
-ID4gKyAqDQo+ID4gKyAqIAlFbnN1cmUgdGhhdCBhbnkgRC1jYWNoZSBsaW5lcyBmb3IgdGhlIGlu
-dGVydmFsIFtrYWRkciwga2FkZHIrc2l6ZSkNCj4gPiArICogCWFyZSBjbGVhbmVkIHRvIHRoZSBQ
-b0MuDQo+ID4gKyAqDQo+ID4gKyAqCS0ga2FkZHIgICAtIGtlcm5lbCBhZGRyZXNzDQo+ID4gKyAq
-CS0gc2l6ZSAgICAtIHNpemUgaW4gcXVlc3Rpb24NCj4gPiArICovDQo+ID4gK0VOVFJZKF9fY2xl
-YW5fZGNhY2hlX2FyZWEpDQo+ID4gK2FsdGVybmF0aXZlX2lmX25vdCBBUk02NF9XT1JLQVJPVU5E
-X0NMRUFOX0NBQ0hFDQo+ID4gKwlkY2FjaGVfYnlfbGluZV9vcCBjdmFjLCBzeSwgeDAsIHgxLCB4
-MiwgeDMNCj4gPiArYWx0ZXJuYXRpdmVfZWxzZQ0KPiA+ICsJZGNhY2hlX2J5X2xpbmVfb3AgY2l2
-YWMsIHN5LCB4MCwgeDEsIHgyLCB4Mw0KPiA+ICthbHRlcm5hdGl2ZV9lbmRpZg0KPiA+ICsJcmV0
-DQo+ID4gK0VORFBST0MoX19jbGVhbl9kY2FjaGVfYXJlYSkNCj4gDQo+IFRoaXMgbG9va3MgZnVu
-Y3Rpb25hbGx5IGVxdWl2YWxlbnQgdG8gX19kbWFfY2xlYW5fcmFuZ2UuIEhvdyBhYm91dCB3ZToN
-Cj4gDQo+ICAgMS4gQ29udmVydCB0aGUgX19kbWFfKiByb3V0aW5lcyB0byB1c2UgZGNhY2hlX2J5
-X2xpbmUNCj4gICAyLiBJbnRyb2R1Y2UgX19jbGVhbl9kY2FjaGVfYXJlYV9wb2MgYXMgYSBmYWxs
-dGhyb3VnaCB0byBfX2RtYV9jbGVhbl9yYW5nZQ0KPiAgIDMuIFVzZSBfX2NsZWFuX2RjYWNoZV9h
-cmVhX3BvYyBmb3IgdGhlIHBtZW0gc3R1ZmYgKHdpdGggc29tZSBwYXJhbWV0ZXINCj4gICAgICBt
-YXJzaGFsbGluZyBpbiB0aGUgbWFjcm8pLg0KDQpPSy4gSSdsbCByZXZpc2UgdGhlIHBhdGNoIGZv
-bGxvd2luZyB5b3VyIGNvbW1lbnQgaW4gdGhlIG5leHQgcm91bmQuIFRoYW5rcyBmb3IgdGhlIGNv
-bW1lbnQhDQoNCj4gV2lsbA0KDQpCZXN0IFJlZ2FyZHMsDQpLd2FuZ3dvbyBMZWUNCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
-aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Fri, Jul 15, 2016 at 11:46:20AM +0900, Kwangwoo Lee wrote:
+> Ensure D-cache lines are cleaned to the PoC(Point of Coherency).
+> 
+> This function is called by arch_wb_cache_pmem() to clean the cache lines
+> and remain the data in cache for the next access.
+> 
+> Signed-off-by: Kwangwoo Lee <kwangwoo.lee@sk.com>
+> ---
+>  arch/arm64/include/asm/cacheflush.h |  1 +
+>  arch/arm64/mm/cache.S               | 18 ++++++++++++++++++
+>  2 files changed, 19 insertions(+)
+> 
+> diff --git a/arch/arm64/include/asm/cacheflush.h b/arch/arm64/include/asm/cacheflush.h
+> index c64268d..903a94f 100644
+> --- a/arch/arm64/include/asm/cacheflush.h
+> +++ b/arch/arm64/include/asm/cacheflush.h
+> @@ -68,6 +68,7 @@
+>  extern void flush_cache_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);
+>  extern void flush_icache_range(unsigned long start, unsigned long end);
+>  extern void __flush_dcache_area(void *addr, size_t len);
+> +extern void __clean_dcache_area(void *addr, size_t len);
+>  extern void __clean_dcache_area_pou(void *addr, size_t len);
+>  extern long __flush_cache_user_range(unsigned long start, unsigned long end);
+>  
+> diff --git a/arch/arm64/mm/cache.S b/arch/arm64/mm/cache.S
+> index 6df0706..5a350e4 100644
+> --- a/arch/arm64/mm/cache.S
+> +++ b/arch/arm64/mm/cache.S
+> @@ -93,6 +93,24 @@ ENTRY(__flush_dcache_area)
+>  ENDPIPROC(__flush_dcache_area)
+>  
+>  /*
+> + *	__clean_dcache_area(kaddr, size)
+> + *
+> + * 	Ensure that any D-cache lines for the interval [kaddr, kaddr+size)
+> + * 	are cleaned to the PoC.
+> + *
+> + *	- kaddr   - kernel address
+> + *	- size    - size in question
+> + */
+> +ENTRY(__clean_dcache_area)
+> +alternative_if_not ARM64_WORKAROUND_CLEAN_CACHE
+> +	dcache_by_line_op cvac, sy, x0, x1, x2, x3
+> +alternative_else
+> +	dcache_by_line_op civac, sy, x0, x1, x2, x3
+> +alternative_endif
+> +	ret
+> +ENDPROC(__clean_dcache_area)
+
+This looks functionally equivalent to __dma_clean_range. How about we:
+
+  1. Convert the __dma_* routines to use dcache_by_line
+  2. Introduce __clean_dcache_area_poc as a fallthrough to __dma_clean_range
+  3. Use __clean_dcache_area_poc for the pmem stuff (with some parameter
+     marshalling in the macro).
+
+Will
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
