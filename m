@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 94A711A1F21
- for <linux-nvdimm@lists.01.org>; Fri, 15 Jul 2016 12:40:18 -0700 (PDT)
-Subject: [PATCH] tools/testing/nvdimm: add manufacturing_{date|location}
- dimm properties
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 15 Jul 2016 12:37:19 -0700
-Message-ID: <146861143970.17001.5728377300713176227.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 5D8A71A1E07
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 05:20:44 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 0/15 v2] dax: Clear dirty bits after flushing caches
+Date: Fri, 22 Jul 2016 14:19:26 +0200
+Message-Id: <1469189981-19000-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,166 +15,64 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-New for ACPI 6.1, these fields are used in the common dimm
-representation format defined by section 5.2.25.9 "NVDIMM representation
-format".
+Hello,
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- tools/testing/nvdimm/test/nfit.c |   54 +++++++++++++++-----------------------
- 1 file changed, 21 insertions(+), 33 deletions(-)
+this is a second revision of my patches to clear dirty bits from radix tree of
+DAX inodes when caches for corresponding pfns have been flushed. This patch set
+is significantly larger than the previous version because I'm changing how
+->fault, ->page_mkwrite, and ->pfn_mkwrite handlers may choose to handle the
+fault so that we don't have to leak details about DAX locking into the generic
+code. In principle, these patches enable handlers to easily update PTEs and do
+other work necessary to finish the fault without duplicating the functionality
+present in the generic code.  I'd be really interested in feedback from mm
+folks whether such changes to fault handling code are fine or what they'd do
+differently...
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index d4a4635c1186..78cba1e3b1da 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -639,6 +639,16 @@ static int nfit_test1_alloc(struct nfit_test *t)
- 	return ars_state_init(&t->pdev.dev, &t->ars_state);
- }
- 
-+static void dcr_common_init(struct acpi_nfit_control_region *dcr)
-+{
-+	dcr->vendor_id = 0xabcd;
-+	dcr->device_id = 0;
-+	dcr->revision_id = 1;
-+	dcr->valid_fields = 1;
-+	dcr->manufacturing_location = 0xa;
-+	dcr->manufacturing_date = cpu_to_be16(2016);
-+}
-+
- static void nfit_test0_setup(struct nfit_test *t)
- {
- 	const int flush_hint_size = sizeof(struct acpi_nfit_flush_address)
-@@ -967,9 +977,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 0+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
-+	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[0];
- 	dcr->code = NFIT_FIC_BLK;
- 	dcr->windows = 1;
-@@ -984,9 +992,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 1+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
-+	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[1];
- 	dcr->code = NFIT_FIC_BLK;
- 	dcr->windows = 1;
-@@ -1001,9 +1007,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 2+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
-+	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[2];
- 	dcr->code = NFIT_FIC_BLK;
- 	dcr->windows = 1;
-@@ -1018,9 +1022,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 	dcr->region_index = 3+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
-+	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[3];
- 	dcr->code = NFIT_FIC_BLK;
- 	dcr->windows = 1;
-@@ -1037,9 +1039,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
- 			window_size);
- 	dcr->region_index = 4+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
-+	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[0];
- 	dcr->code = NFIT_FIC_BYTEN;
- 	dcr->windows = 0;
-@@ -1051,9 +1051,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
- 			window_size);
- 	dcr->region_index = 5+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
-+	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[1];
- 	dcr->code = NFIT_FIC_BYTEN;
- 	dcr->windows = 0;
-@@ -1065,9 +1063,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
- 			window_size);
- 	dcr->region_index = 6+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
-+	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[2];
- 	dcr->code = NFIT_FIC_BYTEN;
- 	dcr->windows = 0;
-@@ -1079,9 +1075,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
- 			window_size);
- 	dcr->region_index = 7+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
-+	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[3];
- 	dcr->code = NFIT_FIC_BYTEN;
- 	dcr->windows = 0;
-@@ -1176,9 +1170,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 		dcr->header.length = sizeof(struct acpi_nfit_control_region);
- 		dcr->region_index = 8+1;
--		dcr->vendor_id = 0xabcd;
--		dcr->device_id = 0;
--		dcr->revision_id = 1;
-+		dcr_common_init(dcr);
- 		dcr->serial_number = ~handle[4];
- 		dcr->code = NFIT_FIC_BLK;
- 		dcr->windows = 1;
-@@ -1195,9 +1187,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		dcr->header.length = offsetof(struct acpi_nfit_control_region,
- 				window_size);
- 		dcr->region_index = 9+1;
--		dcr->vendor_id = 0xabcd;
--		dcr->device_id = 0;
--		dcr->revision_id = 1;
-+		dcr_common_init(dcr);
- 		dcr->serial_number = ~handle[4];
- 		dcr->code = NFIT_FIC_BYTEN;
- 		dcr->windows = 0;
-@@ -1375,9 +1365,7 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
- 			window_size);
- 	dcr->region_index = 0+1;
--	dcr->vendor_id = 0xabcd;
--	dcr->device_id = 0;
--	dcr->revision_id = 1;
-+	dcr_common_init(dcr);
- 	dcr->serial_number = ~0;
- 	dcr->code = NFIT_FIC_BYTE;
- 	dcr->windows = 0;
+Changes since v1:
+* make sure all PTE updates happen under radix tree entry lock to protect
+  against races between faults & write-protecting code
+* remove information about DAX locking from mm/memory.c
+* smaller updates based on Ross' feedback
 
+----
+Background information regarding the motivation:
+
+Currently we never clear dirty bits in the radix tree of a DAX inode. Thus
+fsync(2) flushes all the dirty pfns again and again. This patches implement
+clearing of the dirty tag in the radix tree so that we issue flush only when
+needed.
+
+The difficulty with clearing the dirty tag is that we have to protect against
+a concurrent page fault setting the dirty tag and writing new data into the
+page. So we need a lock serializing page fault and clearing of the dirty tag
+and write-protecting PTEs (so that we get another pagefault when pfn is written
+to again and we have to set the dirty tag again).
+
+The effect of the patch set is easily visible:
+
+Writing 1 GB of data via mmap, then fsync twice.
+
+Before this patch set both fsyncs take ~205 ms on my test machine, after the
+patch set the first fsync takes ~283 ms (the additional cost of walking PTEs,
+clearing dirty bits etc. is very noticeable), the second fsync takes below
+1 us.
+
+As a bonus, these patches make filesystem freezing for DAX filesystems
+reliable because mappings are now properly writeprotected while freezing the
+fs.
+
+Patches have passed xfstests for both xfs and ext4.
+
+								Honza
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
