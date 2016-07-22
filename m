@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C441F1A1E0F
- for <linux-nvdimm@lists.01.org>; Wed, 27 Jul 2016 03:35:13 -0700 (PDT)
-Date: Wed, 27 Jul 2016 12:35:05 +0200
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: HPE SMART data retreival
-Message-ID: <20160727103505.ovq7jz4553s7kc42@c203.arch.suse.de>
-MIME-Version: 1.0
-Content-Disposition: inline
+ by ml01.01.org (Postfix) with ESMTPS id D819E1A1E10
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 05:20:45 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 08/15] mm: Export follow_pte()
+Date: Fri, 22 Jul 2016 14:19:34 +0200
+Message-Id: <1469189981-19000-9-git-send-email-jack@suse.cz>
+In-Reply-To: <1469189981-19000-1-git-send-email-jack@suse.cz>
+References: <1469189981-19000-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,56 +17,64 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Jerry Hoemann <jerry.hoemann@hpe.com>
-Cc: linux-nvdimm@lists.01.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan and Jerry,
+DAX will need to implement its own version of page_check_address(). To
+avoid duplicating page table walking code, export follow_pte() which
+does what we need.
 
-I'm currently looking into SMART data retrieval on HPE NVDIMMs.
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ include/linux/mm.h | 2 ++
+ mm/memory.c        | 5 +++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-After the first obstacle (like getting cat
-/sys/class/nd/ndctl0/device/nmem0/commands reutrn smart so ndctl will issue
-the ioctl) I ran into a rather nasty problem. According to [1] HPEDIMMs
-need the input buffer specially crafted for SMART data, according to [2]
-Intel DIMMs don't.
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index d2f2816d78ca..daf690fccc0c 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1191,6 +1191,8 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 			struct vm_area_struct *vma);
+ void unmap_mapping_range(struct address_space *mapping,
+ 		loff_t const holebegin, loff_t const holelen, int even_cows);
++int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
++	       spinlock_t **ptlp);
+ int follow_pfn(struct vm_area_struct *vma, unsigned long address,
+ 	unsigned long *pfn);
+ int follow_phys(struct vm_area_struct *vma, unsigned long address,
+diff --git a/mm/memory.c b/mm/memory.c
+index cfae2d5cc1e0..6780e5d8145c 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3635,8 +3635,8 @@ out:
+ 	return -EINVAL;
+ }
+ 
+-static inline int follow_pte(struct mm_struct *mm, unsigned long address,
+-			     pte_t **ptepp, spinlock_t **ptlp)
++int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
++	       spinlock_t **ptlp)
+ {
+ 	int res;
+ 
+@@ -3645,6 +3645,7 @@ static inline int follow_pte(struct mm_struct *mm, unsigned long address,
+ 			   !(res = __follow_pte(mm, address, ptepp, ptlp)));
+ 	return res;
+ }
++EXPORT_SYMBOL(follow_pte);
+ 
+ /**
+  * follow_pfn - look up PFN at a user virtual address
+-- 
+2.6.6
 
-Adding translation functions for the DIMMs accepted commands is one thing a=
-nd
-should be more or less trivial for all DIMMs (I'll post an RFC patch as soon
-as Linus merged Dan's 4.8 pull request so I can rebase it) but doing this
-type of conversation for each and every command for every defined vendor
-family for both the input and output buffers will drive us all mad I guess.
-
-Especially from the distribution's POV I'm not to keen on having customers
-with some new NVDIMM family and we would need to re-implement all the
-translators again. Adding a new ID is one thing but translation tables are a
-totally different story.
-
-So the question is have I overlooked something and there is a clean and easy
-solution to this problem, or not.
-
-@Jerry have you tested SMART data retrieval with ndctl? Did it work for you?
-
-Thanks,
-	Johannes
-
-[1] https://github.com/HewlettPackard/hpe-nvm/blob/master/Documentation/NFI=
-T_DSM_DDR4_NVDIMM-N_v84s.pdf
-[2] http://pmem.io/documents/NVDIMM_DSM_Interface_Example-V1.2.pdf
-
--- =
-
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
-HRB 21284 (AG N=FCrnberg)
-Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
