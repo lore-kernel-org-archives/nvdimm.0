@@ -1,11 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- by ml01.01.org (Postfix) with ESMTP id BB9031A1E14
- for <linux-nvdimm@lists.01.org>; Wed, 27 Jul 2016 15:39:52 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2] nvdimm, btt: add a size attribute for BTTs
-Date: Wed, 27 Jul 2016 16:38:59 -0600
-Message-Id: <1469659139-26088-1-git-send-email-vishal.l.verma@intel.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id D7F9D1A1E0A
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 05:20:45 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 12/15] mm: Lift vm_fault structure creation from
+ do_page_mkwrite()
+Date: Fri, 22 Jul 2016 14:19:38 +0200
+Message-Id: <1469189981-19000-13-git-send-email-jack@suse.cz>
+In-Reply-To: <1469189981-19000-1-git-send-email-jack@suse.cz>
+References: <1469189981-19000-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,87 +23,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-To be consistent with other namespaces, expose a 'size' attribute for
-BTT devices also.
+Move creation of struct vm_fault up from do_page_mkwrite() to avoid
+passing some parameters and actually safe creating it in one case.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Linda Knippers <linda.knippers@hpe.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
+ mm/memory.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-v2:
-- Use the correct locking in size_show (Dan)
-- Use a typecast for 64b multiplication
-
- drivers/nvdimm/btt.c      |  1 +
- drivers/nvdimm/btt_devs.c | 20 ++++++++++++++++++++
- drivers/nvdimm/nd.h       |  1 +
- 3 files changed, 22 insertions(+)
-
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 68a7c3c..e0084ae 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1270,6 +1270,7 @@ static int btt_blk_init(struct btt *btt)
- 		}
- 	}
- 	set_capacity(btt->btt_disk, btt->nlba * btt->sector_size >> 9);
-+	btt->nd_btt->size = btt->nlba * (u64)btt->sector_size;
- 	revalidate_disk(btt->btt_disk);
+diff --git a/mm/memory.c b/mm/memory.c
+index c3f639c33232..1d2916c53d43 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2033,17 +2033,12 @@ static void init_vmf(struct vm_fault *vmf, struct vm_area_struct *vma,
+  *
+  * We do this without the lock held, so that it can sleep if it needs to.
+  */
+-static int do_page_mkwrite(struct vm_area_struct *vma, struct page *page,
+-	       unsigned long address, pmd_t *pmd, pte_t orig_pte)
++static int do_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	struct vm_fault vmf;
+ 	int ret;
++	struct page *page = vmf->page;
  
- 	return 0;
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index 3fa7919..97dd292 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -140,10 +140,30 @@ static ssize_t namespace_store(struct device *dev,
- }
- static DEVICE_ATTR_RW(namespace);
+-	init_vmf(&vmf, vma, address, pmd, page->index,
+-		 FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE, orig_pte);
+-	vmf.page = page;
+-
+-	ret = vma->vm_ops->page_mkwrite(vma, &vmf);
++	ret = vma->vm_ops->page_mkwrite(vma, vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))
+ 		return ret;
+ 	if (unlikely(!(ret & VM_FAULT_LOCKED))) {
+@@ -2311,9 +2306,14 @@ static int wp_page_shared(struct mm_struct *mm, struct vm_area_struct *vma,
  
-+static ssize_t size_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_btt *nd_btt = to_nd_btt(dev);
-+	ssize_t rc;
-+
-+	device_lock(dev);
-+	if (dev->driver)
-+		rc = sprintf(buf, "%llu\n", nd_btt->size);
-+	else {
-+		/* no size to convey if the btt instance is disabled */
-+		rc = -ENXIO;
-+	}
-+	device_unlock(dev);
-+
-+	return rc;
-+}
-+static DEVICE_ATTR_RO(size);
-+
- static struct attribute *nd_btt_attributes[] = {
- 	&dev_attr_sector_size.attr,
- 	&dev_attr_namespace.attr,
- 	&dev_attr_uuid.attr,
-+	&dev_attr_size.attr,
- 	NULL,
- };
+ 	if (vma->vm_ops->page_mkwrite) {
+ 		int tmp;
++		struct vm_fault vmf;
  
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 4047639..8024a0e 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -143,6 +143,7 @@ struct nd_btt {
- 	struct nd_namespace_common *ndns;
- 	struct btt *btt;
- 	unsigned long lbasize;
-+	u64 size;
- 	u8 *uuid;
- 	int id;
- };
+ 		pte_unmap_unlock(page_table, ptl);
+-		tmp = do_page_mkwrite(vma, old_page, address, pmd, orig_pte);
++
++		init_vmf(&vmf, vma, address, pmd, old_page->index,
++			 FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE, orig_pte);
++		vmf.page = old_page;
++		tmp = do_page_mkwrite(vma, &vmf);
+ 		if (unlikely(!tmp || (tmp &
+ 				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+ 			put_page(old_page);
+@@ -3137,7 +3137,6 @@ uncharge_out:
+ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		struct vm_fault *vmf)
+ {
+-	unsigned long address = (unsigned long)vmf->virtual_address;
+ 	int ret, tmp;
+ 
+ 	ret = __do_fault(vma, vmf);
+@@ -3150,8 +3149,8 @@ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	 */
+ 	if (vma->vm_ops->page_mkwrite) {
+ 		unlock_page(vmf->page);
+-		tmp = do_page_mkwrite(vma, vmf->page, address, vmf->pmd,
+-				      vmf->orig_pte);
++		vmf->flags = FAULT_FLAG_WRITE | FAULT_FLAG_MKWRITE;
++		tmp = do_page_mkwrite(vma, vmf);
+ 		if (unlikely(!tmp ||
+ 				(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+ 			put_page(vmf->page);
 -- 
-2.7.4
+2.6.6
 
 _______________________________________________
 Linux-nvdimm mailing list
