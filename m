@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id 39CC21A1E49
- for <linux-nvdimm@lists.01.org>; Thu, 21 Jul 2016 20:28:58 -0700 (PDT)
-Subject: [PATCH 2/2] nfit, tools/testing/nvdimm/: unify shutdown paths
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 21 Jul 2016 20:25:50 -0700
-Message-ID: <146915794992.7201.150642033798020654.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146915794457.7201.5023729229431647060.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146915794457.7201.5023729229431647060.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id 89AF11A1DF8
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 14:10:28 -0700 (PDT)
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm regression fix for 4.7-final
+Date: Fri, 22 Jul 2016 21:09:34 +0000
+Message-ID: <1469221772.2244.16.camel@intel.com>
+Content-Language: en-US
+Content-ID: <15A181BF4EE4C549B2DCFA132FA2677C@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,153 +16,104 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-While testing the new on-demand ARS patches we discovered that
-differences between the nfit_test and normal nfit driver shutdown paths
-can leak resources.  Unify the shutdown paths to trigger via a devm_
-callback when the acpi_desc->dev is unbound from its driver.
-
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit.c              |   36 ++++++++++++++++++++++--------------
- tools/testing/nvdimm/test/nfit.c |   16 ++--------------
- 2 files changed, 24 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index e7eb3b6f1514..be7c2fde16e7 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -2291,6 +2291,16 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
- 	return 0;
- }
- 
-+static void acpi_nfit_destruct(void *data)
-+{
-+	struct acpi_nfit_desc *acpi_desc = data;
-+
-+	acpi_desc->cancel = 1;
-+	flush_workqueue(nfit_wq);
-+	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
-+	acpi_desc->nvdimm_bus = NULL;
-+}
-+
- int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
- {
- 	struct device *dev = acpi_desc->dev;
-@@ -2298,6 +2308,17 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
- 	const void *end;
- 	int rc;
- 
-+	if (!acpi_desc->nvdimm_bus) {
-+		acpi_desc->nvdimm_bus = nvdimm_bus_register(dev,
-+				&acpi_desc->nd_desc);
-+		if (!acpi_desc->nvdimm_bus)
-+			return -ENOMEM;
-+		rc = devm_add_action_or_reset(dev, acpi_nfit_destruct,
-+				acpi_desc);
-+		if (rc)
-+			return rc;
-+	}
-+
- 	mutex_lock(&acpi_desc->init_mutex);
- 
- 	INIT_LIST_HEAD(&prev.spas);
-@@ -2456,9 +2477,6 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 	if (!acpi_desc)
- 		return -ENOMEM;
- 	acpi_nfit_desc_init(acpi_desc, &adev->dev);
--	acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
--	if (!acpi_desc->nvdimm_bus)
--		return -ENOMEM;
- 
- 	/* Save the acpi header for exporting the revision via sysfs */
- 	acpi_desc->acpi_header = *tbl;
-@@ -2480,19 +2498,12 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 		rc = acpi_nfit_init(acpi_desc, (void *) tbl
- 				+ sizeof(struct acpi_table_nfit),
- 				sz - sizeof(struct acpi_table_nfit));
--
--	if (rc)
--		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
- 	return rc;
- }
- 
- static int acpi_nfit_remove(struct acpi_device *adev)
- {
--	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
--
--	acpi_desc->cancel = 1;
--	flush_workqueue(nfit_wq);
--	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
-+	/* see acpi_nfit_destruct */
- 	return 0;
- }
- 
-@@ -2519,9 +2530,6 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- 		if (!acpi_desc)
- 			goto out_unlock;
- 		acpi_nfit_desc_init(acpi_desc, &adev->dev);
--		acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
--		if (!acpi_desc->nvdimm_bus)
--			goto out_unlock;
- 	} else {
- 		/*
- 		 * Finish previous registration before considering new
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 642713f15723..5404efa578a3 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1465,16 +1465,11 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	nd_desc->provider_name = NULL;
- 	nd_desc->module = THIS_MODULE;
- 	nd_desc->ndctl = nfit_test_ctl;
--	acpi_desc->nvdimm_bus = nvdimm_bus_register(&pdev->dev, nd_desc);
--	if (!acpi_desc->nvdimm_bus)
--		return -ENXIO;
- 
- 	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
- 			nfit_test->nfit_size);
--	if (rc) {
--		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
-+	if (rc)
- 		return rc;
--	}
- 
- 	if (nfit_test->setup != nfit_test0_setup)
- 		return 0;
-@@ -1484,21 +1479,14 @@ static int nfit_test_probe(struct platform_device *pdev)
- 
- 	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
- 			nfit_test->nfit_size);
--	if (rc) {
--		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
-+	if (rc)
- 		return rc;
--	}
- 
- 	return 0;
- }
- 
- static int nfit_test_remove(struct platform_device *pdev)
- {
--	struct nfit_test *nfit_test = to_nfit_test(&pdev->dev);
--	struct acpi_nfit_desc *acpi_desc = &nfit_test->acpi_desc;
--
--	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
--
- 	return 0;
- }
- 
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgorQUtBIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
+Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4u
+dG8gcmVjZWl2ZSBhIHJlZ3Jlc3Npb24gZml4IGZvciBhIHByb2JsZW0gdGhhdCB3YXMgaW50cm9k
+dWNlZCBpbgp2NC43LXJjNi4KCkluIDQuNy1yYzEgd2UgaW50cm9kdWNlZCBhdXRvLXByb2Jpbmcg
+Zm9yIHRoZSBBQ1BJIERTTSAoZGV2aWNlLQpzcGVjaWZpYy1tZXRob2QpIGZvcm1hdCB0aGF0IHRo
+ZSBwbGF0Zm9ybSBmaXJtd2FyZSBpbXBsZW1lbnRzIGZvcgpudmRpbW0gZGV2aWNlcy4gV2UgaW5p
+dGlhbGx5IGZpeGVkIGEgcmVncmVzc2lvbiBpbiBwcm9iaW5nIHRoZSBRRU1VIERTTQppbXBsZW1l
+bnRhdGlvbiBieSBtYWtpbmcgYWNwaV9jaGVja19kc20oKSB0b2xlcmFudCBvZiB0aGUgd2F5IFFF
+TVUKcmVwb3J0cyB0aGUgIjAgRFNNcyBzdXBwb3J0ZWQiIGNvbmRpdGlvbi4gSG93ZXZlciwgdGhh
+dCBicm9rZSBIUEUKcGxhdGZvcm1zIHNpbmNlIHRoYXQgdG9sZXJhbmNlIGNhdXNlZCB0aGUgZHJp
+dmVyIHRvIG1pc3Rha2VubHkgbWF0Y2gKdGhlIDEtemVyby1ieXRlIHJlc3BvbnNlIHRob3NlIHBs
+YXRmb3JtcyBnaXZlIHRvICJ1bmtub3duIiBjb21tYW5kcy4KSW5zdGVhZCwgd2Ugc2ltcGx5IG1h
+a2UgdGhlIGRyaXZlciB0b2xlcmFudCBvZiBub3QgZmluZGluZyBhbnkKc3VwcG9ydGVkIERTTXMu
+ICtBS0EtVGhpcyBoYXMgYmVlbiB0ZXN0ZWQgdG8gd29yayB3aXRoIGJvdGggUUVNVSBhbmQgSFBF
+CnBsYXRmb3Jtcy4KClRoaXMgY29tbWl0IGhhcyBhcHBlYXJlZCBpbiBhIC1uZXh0IHJlbGVhc2Ug
+d2l0aCBubyByZXBvcnRlZCBpc3N1ZXMuCgpUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29t
+bWl0IGE5OWNkZTQzOGRlMGM0YzBjZWNjMWQxYWYxYTU1YTc1YjEwYmZkZWY6CgorQUtBIExpbnV4
+IDQuNy1yYzYgKDIwMTYtMDctMDMgMjM6MDE6MDAgLTA3MDApCgphcmUgYXZhaWxhYmxlIGluIHRo
+ZSBnaXQgcmVwb3NpdG9yeSBhdDoKCitBS0EgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9s
+aW51eC9rZXJuZWwvZ2l0L252ZGltbS9udmRpbW0gbGlibnZkaW1tLWZpeGVzCgpmb3IgeW91IHRv
+IGZldGNoIGNoYW5nZXMgdXAgdG8gYTcyMjU1OTgzZjEyZjMxZjBjOGQ4Mjc1ZmIxYTc4MTU0NmNm
+YWNiNzoKCitBS0EgbmZpdDogbWFrZSBESU1NIERTTXMgb3B0aW9uYWwgKDIwMTYtMDctMTkgMTI6
+MzI6MzkgLTA3MDApCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tCkRhbiBXaWxsaWFtcyAoMSk6CitBS0FBb0FDZ0FLQUFvQUNn
+LW5maXQ6IG1ha2UgRElNTSBEU01zIG9wdGlvbmFsCgorQUtBLWRyaXZlcnMvYWNwaS9uZml0LmMr
+QUtBQW9BfCAxMSArLSstKy0rLSstKy0tLS0tLQorQUtBLWRyaXZlcnMvYWNwaS91dGlscy5jIHwr
+QUtBQW9BLTYgKy0rLSstLS0tCitBS0EtMiBmaWxlcyBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKy0p
+LCA4IGRlbGV0aW9ucygtKQoKY29tbWl0IGE3MjI1NTk4M2YxMmYzMWYwYzhkODI3NWZiMWE3ODE1
+NDZjZmFjYjcKQXV0aG9yOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4K
+RGF0ZTorQUtBQW9BQ2ctVHVlIEp1bCAxOSAxMjozMjozOSAyMDE2IC0wNzAwCgorQUtBQW9BQ2dB
+S0EtbmZpdDogbWFrZSBESU1NIERTTXMgb3B0aW9uYWwKK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FL
+QS1Db21taXQgNDk5NTczNGU5NzNhICJhY3BpLCBuZml0OiBmaXggYWNwaV9jaGVja19kc20oKSB2
+cyB6ZXJvIGZ1bmN0aW9ucworQUtBQW9BQ2dBS0EtaW1wbGVtZW50ZWQiIGF0dGVtcHRlZCB0byBm
+aXggYSBRRU1VIHJlZ3Jlc3Npb24gYnkgc3VwcG9ydGluZyBpdHMgdXNhZ2UKK0FLQUFvQUNnQUtB
+LW9mIGEgemVyby1tYXNrIGFzIGEgdmFsaWQgcmVzcG9uc2UgdG8gYSBEU00tZmFtaWx5IHByb2Jl
+IHJlcXVlc3QuCitBS0FBb0FDZ0FLQS1Ib3dldmVyLCB0aGlzIGJlaGF2aW9yIGJyZWFrcyBIUCBw
+bGF0Zm9ybXMgdGhhdCByZXR1cm4gYSB6ZXJvLW1hc2sgYnkKK0FLQUFvQUNnQUtBLWRlZmF1bHQg
+Y2F1c2luZyB0aGUgcHJvYmUgdG8gbWlzaWRlbnRpZnkgdGhlIERTTS1mYW1pbHkuCitBS0FBb0FD
+Z0FLQQorQUtBQW9BQ2dBS0EtSW5zdGVhZCwgdGhlIFFFTVUgcmVncmVzc2lvbiBjYW4gYmUgZml4
+ZWQgYnkgc2ltcGx5IG5vdCByZXF1aXJpbmcgdGhlIERTTQorQUtBQW9BQ2dBS0EtZmFtaWx5IHRv
+IGJlIGlkZW50aWZpZWQuCitBS0FBb0FDZ0FLQQorQUtBQW9BQ2dBS0EtVGhpcyBlZmZlY3RpdmVs
+eSByZXZlcnRzIGNvbW1pdCA0OTk1NzM0ZTk3M2EsIGFuZCByZW1vdmVzIHRoZSBEU00KK0FLQUFv
+QUNnQUtBLXJlcXVpcmVtZW50IGZyb20gdGhlIGluaXQgcGF0aC4KK0FLQUFvQUNnQUtBCitBS0FB
+b0FDZ0FLQS1DYzogIlJhZmFlbCBKLiBXeXNvY2tpIiA8cmFmYWVsQGtlcm5lbC5vcmc+CitBS0FB
+b0FDZ0FLQS1DYzogWGlhbyBHdWFuZ3JvbmcgPGd1YW5ncm9uZy54aWFvQGxpbnV4LmludGVsLmNv
+bT4KK0FLQUFvQUNnQUtBLUNjOiBMaW5kYSBLbmlwcGVycyA8bGluZGEua25pcHBlcnNAaHBlLmNv
+bT4KK0FLQUFvQUNnQUtBLUZpeGVzOiA0OTk1NzM0ZTk3M2EgKCJhY3BpLCBuZml0OiBmaXggYWNw
+aV9jaGVja19kc20oKSB2cyB6ZXJvIGZ1bmN0aW9ucyBpbXBsZW1lbnRlZCIpCitBS0FBb0FDZ0FL
+QS1SZXBvcnRlZC1ieTogSmVycnkgSG9lbWFubiA8amVycnkuaG9lbWFubkBocGUuY29tPgorQUtB
+QW9BQ2dBS0EtVGVzdGVkLWJ5OiBKZXJyeSBIb2VtYW5uIDxqZXJyeS5ob2VtYW5uQGhwZS5jb20+
+CitBS0FBb0FDZ0FLQS1TaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1z
+QGludGVsLmNvbT4KCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVycy9h
+Y3BpL25maXQuYwppbmRleCBhYzZkZGNjMDgwZDQuLjFmMGUwNjA2NWFlNiAxMDA2NDQKLS0tIGEv
+ZHJpdmVycy9hY3BpL25maXQuYworLSstKy0gYi9kcml2ZXJzL2FjcGkvbmZpdC5jCkBAIC0xMTMx
+LDExICstMTEzMSwxMSBAQCBzdGF0aWMgaW50IGFjcGlfbmZpdF9hZGRfZGltbShzdHJ1Y3QgYWNw
+aV9uZml0X2Rlc2MgKmFjcGlfZGVzYywKK0FLQQorQUtBCS8qCitBS0EJK0FLQSogVW50aWwgc3Rh
+bmRhcmRpemF0aW9uIG1hdGVyaWFsaXplcyB3ZSBuZWVkIHRvIGNvbnNpZGVyIHVwIHRvIDMKLQkr
+QUtBKiBkaWZmZXJlbnQgY29tbWFuZCBzZXRzLitBS0FBb0EtTm90ZSwgdGhhdCBjaGVja2luZyBm
+b3IgemVybyBmdW5jdGlvbnMKLQkrQUtBKiB0ZWxscyB1cyBpZiBhbnkgY29tbWFuZHMgbWlnaHQg
+YmUgcmVhY2hhYmxlIHRocm91Z2ggdGhpcyB1dWlkLgorLQkrQUtBKiBkaWZmZXJlbnQgY29tbWFu
+ZCBzZXRzLitBS0FBb0EtTm90ZSwgdGhhdCBjaGVja2luZyBmb3IgZnVuY3Rpb24wIChiaXQwKQor
+LQkrQUtBKiB0ZWxscyB1cyBpZiBhbnkgY29tbWFuZHMgYXJlIHJlYWNoYWJsZSB0aHJvdWdoIHRo
+aXMgdXVpZC4KK0FLQQkrQUtBKi8KK0FLQQlmb3IgKGkgPSBOVkRJTU1fRkFNSUxZX0lOVEVMOyBp
+IDw9IE5WRElNTV9GQU1JTFlfSFBFMjsgaSstKy0pCi0JCWlmIChhY3BpX2NoZWNrX2RzbShhZGV2
+X2RpbW0tPmhhbmRsZSwgdG9fbmZpdF91dWlkKGkpLCAxLCAwKSkKKy0JCWlmIChhY3BpX2NoZWNr
+X2RzbShhZGV2X2RpbW0tPmhhbmRsZSwgdG9fbmZpdF91dWlkKGkpLCAxLCAxKSkKK0FLQQkJCWJy
+ZWFrOworQUtBCitBS0EJLyogbGltaXQgdGhlIHN1cHBvcnRlZCBjb21tYW5kcyB0byB0aG9zZSB0
+aGF0IGFyZSBwdWJsaWNseSBkb2N1bWVudGVkICovCkBAIC0xMTUxLDkgKy0xMTUxLDEwIEBAIHN0
+YXRpYyBpbnQgYWNwaV9uZml0X2FkZF9kaW1tKHN0cnVjdCBhY3BpX25maXRfZGVzYyAqYWNwaV9k
+ZXNjLAorQUtBCQlpZiAoZGlzYWJsZV92ZW5kb3Jfc3BlY2lmaWMpCitBS0EJCQlkc21fbWFzayAm
+PSArQUg0KDEgPDwgOCk7CitBS0EJfSBlbHNlIHsKLQkJZGV2X2VycihkZXYsICJ1bmtub3duIGRp
+bW0gY29tbWFuZCBmYW1pbHkrQUZ3LW4iKTsKKy0JCWRldl9kYmcoZGV2LCAidW5rbm93biBkaW1t
+IGNvbW1hbmQgZmFtaWx5K0FGdy1uIik7CitBS0EJCW5maXRfbWVtLT5mYW1pbHkgPSAtMTsKLQkJ
+cmV0dXJuIGZvcmNlX2VuYWJsZV9kaW1tcyA/IDAgOiAtRU5PREVWOworLQkJLyogRFNNcyBhcmUg
+b3B0aW9uYWwsIGNvbnRpbnVlIGxvYWRpbmcgdGhlIGRyaXZlci4uLiAqLworLQkJcmV0dXJuIDA7
+CitBS0EJfQorQUtBCitBS0EJdXVpZCA9IHRvX25maXRfdXVpZChuZml0X21lbS0+ZmFtaWx5KTsK
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS91dGlscy5jIGIvZHJpdmVycy9hY3BpL3V0aWxzLmMK
+aW5kZXggYjRkZTEzMGYyZDU3Li4yMmMwOTk1MmUxNzcgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNw
+aS91dGlscy5jCistKy0rLSBiL2RyaXZlcnMvYWNwaS91dGlscy5jCkBAIC02ODAsNiArLTY4MCw5
+IEBAIGJvb2wgYWNwaV9jaGVja19kc20oYWNwaV9oYW5kbGUgaGFuZGxlLCBjb25zdCB1OCAqdXVp
+ZCwgdTY0IHJldiwgdTY0IGZ1bmNzKQorQUtBCXU2NCBtYXNrID0gMDsKK0FLQQl1bmlvbiBhY3Bp
+X29iamVjdCAqb2JqOworQUtBCistCWlmIChmdW5jcyA9PSAwKQorLQkJcmV0dXJuIGZhbHNlOwor
+LQorQUtBCW9iaiA9IGFjcGlfZXZhbHVhdGVfZHNtKGhhbmRsZSwgdXVpZCwgcmV2LCAwLCBOVUxM
+KTsKK0FLQQlpZiAoIW9iaikKK0FLQQkJcmV0dXJuIGZhbHNlOwpAQCAtNjkyLDkgKy02OTUsNiBA
+QCBib29sIGFjcGlfY2hlY2tfZHNtKGFjcGlfaGFuZGxlIGhhbmRsZSwgY29uc3QgdTggKnV1aWQs
+IHU2NCByZXYsIHU2NCBmdW5jcykKK0FLQQkJCW1hc2sgfD0gKCgodTY0KW9iai0+YnVmZmVyLnBv
+aW50ZXJbaV0pIDw8IChpICogOCkpOworQUtBCUFDUElfRlJFRShvYmopOworQUtBCi0JaWYgKGZ1
+bmNzID09IDApCi0JCXJldHVybiB0cnVlOwotCitBS0EJLyoKK0FLQQkrQUtBKiBCaXQgMCBpbmRp
+Y2F0ZXMgd2hldGhlciB0aGVyZSdzIHN1cHBvcnQgZm9yIGFueSBmdW5jdGlvbnMgb3RoZXIgdGhh
+bgorQUtBCStBS0EqIGZ1bmN0aW9uIDAgZm9yIHRoZSBzcGVjaWZpZWQgVVVJRCBhbmQgcmV2aXNp
+b24uCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
+LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
+c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
