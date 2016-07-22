@@ -1,344 +1,146 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 7535F1A1E24
- for <linux-nvdimm@lists.01.org>; Sat,  9 Jul 2016 20:27:50 -0700 (PDT)
-Subject: [PATCH v2 05/17] libnvdimm,
- nfit: move flush hint mapping to region-device driver-data
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 09 Jul 2016 20:24:56 -0700
-Message-ID: <146812109613.32932.9879982884048235667.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, hch@lst.de, linux-kernel@vger.kernel.org
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 06/15] mm: Move handling of COW faults into DAX code
+Date: Fri, 22 Jul 2016 14:19:32 +0200
+Message-Id: <1469189981-19000-7-git-send-email-jack@suse.cz>
+In-Reply-To: <1469189981-19000-1-git-send-email-jack@suse.cz>
+References: <1469189981-19000-1-git-send-email-jack@suse.cz>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for triggering flushes of a DIMM's writes-posted-queue
-(WPQ) via the pmem driver move mapping of flush hint addresses to the
-region driver.  Since this uses devm_nvdimm_memremap() the flush
-addresses will remain mapped while any region to which the dimm belongs
-is active.
+Move final handling of COW faults from generic code into DAX fault
+handler. That way generic code doesn't have to be aware of peculiarities
+of DAX locking so remove that knowledge.
 
-We need to communicate more information to the nvdimm core to facilitate
-this mapping, namely each dimm object now carries an array of flush hint
-address resources.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- drivers/acpi/nfit.c          |   21 +++++++++++
- drivers/acpi/nfit.h          |    1 +
- drivers/nvdimm/dimm_devs.c   |    5 ++-
- drivers/nvdimm/nd-core.h     |    3 +-
- drivers/nvdimm/nd.h          |    8 +++-
- drivers/nvdimm/region.c      |   16 ++++-----
- drivers/nvdimm/region_devs.c |   79 ++++++++++++++++++++++++++++++++++++++++--
- include/linux/libnvdimm.h    |    4 ++
- 8 files changed, 119 insertions(+), 18 deletions(-)
+ fs/dax.c            | 11 ++++++++---
+ include/linux/dax.h |  7 -------
+ include/linux/mm.h  |  9 +--------
+ mm/memory.c         | 20 +++++---------------
+ 4 files changed, 14 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index b76c95981547..6796f780870a 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -714,9 +714,24 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
- 		}
- 
- 		list_for_each_entry(nfit_flush, &acpi_desc->flushes, list) {
-+			struct acpi_nfit_flush_address *flush;
-+			u16 i;
-+
- 			if (nfit_flush->flush->device_handle != device_handle)
- 				continue;
- 			nfit_mem->nfit_flush = nfit_flush;
-+			flush = nfit_flush->flush;
-+			nfit_mem->flush_wpq = devm_kzalloc(acpi_desc->dev,
-+					flush->hint_count
-+					* sizeof(struct resource), GFP_KERNEL);
-+			if (!nfit_mem->flush_wpq)
-+				return -ENOMEM;
-+			for (i = 0; i < flush->hint_count; i++) {
-+				struct resource *res = &nfit_mem->flush_wpq[i];
-+
-+				res->start = flush->hint_address[i];
-+				res->end = res->start + 8 - 1;
+diff --git a/fs/dax.c b/fs/dax.c
+index e207f8f9b700..ec875683c17d 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -879,10 +879,15 @@ int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 			goto unlock_entry;
+ 		if (!radix_tree_exceptional_entry(entry)) {
+ 			vmf->page = entry;
+-			return VM_FAULT_LOCKED;
++			if (unlikely(PageHWPoison(entry))) {
++				put_locked_mapping_entry(mapping, vmf->pgoff,
++							 entry);
++				return VM_FAULT_HWPOISON;
 +			}
- 			break;
  		}
- 
-@@ -1171,6 +1186,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 	int dimm_count = 0;
- 
- 	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+		struct acpi_nfit_flush_address *flush;
- 		unsigned long flags = 0, cmd_mask;
- 		struct nvdimm *nvdimm;
- 		u32 device_handle;
-@@ -1204,9 +1220,12 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
- 			cmd_mask |= nfit_mem->dsm_mask;
- 
-+		flush = nfit_mem->nfit_flush ? nfit_mem->nfit_flush->flush
-+			: NULL;
- 		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
- 				acpi_nfit_dimm_attribute_groups,
--				flags, cmd_mask);
-+				flags, cmd_mask, flush ? flush->hint_count : 0,
-+				nfit_mem->flush_wpq);
- 		if (!nvdimm)
- 			return -ENOMEM;
- 
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 52078475d969..9282eb324dcc 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -127,6 +127,7 @@ struct nfit_mem {
- 	struct list_head list;
- 	struct acpi_device *adev;
- 	struct acpi_nfit_desc *acpi_desc;
-+	struct resource *flush_wpq;
- 	unsigned long dsm_mask;
- 	int family;
- };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index bbde28d3dec5..d9bba5edd8dc 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -346,7 +346,8 @@ EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
- 
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
--		unsigned long cmd_mask)
-+		unsigned long cmd_mask, int num_flush,
-+		struct resource *flush_wpq)
- {
- 	struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
- 	struct device *dev;
-@@ -362,6 +363,8 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 	nvdimm->provider_data = provider_data;
- 	nvdimm->flags = flags;
- 	nvdimm->cmd_mask = cmd_mask;
-+	nvdimm->num_flush = num_flush;
-+	nvdimm->flush_wpq = flush_wpq;
- 	atomic_set(&nvdimm->busy, 0);
- 	dev = &nvdimm->dev;
- 	dev_set_name(dev, "nmem%d", nvdimm->id);
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 790b62cc81ed..6e961f7f43e7 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -41,7 +41,8 @@ struct nvdimm {
- 	unsigned long cmd_mask;
- 	struct device dev;
- 	atomic_t busy;
--	int id;
-+	int id, num_flush;
-+	struct resource *flush_wpq;
- };
- 
- bool is_nvdimm(struct device *dev);
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 2819e886dfd2..5912bd6b4234 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -49,9 +49,10 @@ struct nvdimm_drvdata {
- 	struct kref kref;
- };
- 
--struct nd_region_namespaces {
--	int count;
--	int active;
-+struct nd_region_data {
-+	int ns_count;
-+	int ns_active;
-+	void __iomem *flush_wpq[0][0];
- };
- 
- static inline struct nd_namespace_index *to_namespace_index(
-@@ -324,6 +325,7 @@ static inline void devm_nsio_disable(struct device *dev,
- }
- #endif
- int nd_blk_region_init(struct nd_region *nd_region);
-+int nd_region_activate(struct nd_region *nd_region);
- void __nd_iostat_start(struct bio *bio, unsigned long *start);
- static inline bool nd_iostat_start(struct bio *bio, unsigned long *start)
- {
-diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
-index 05a912359939..333175dac8d5 100644
---- a/drivers/nvdimm/region.c
-+++ b/drivers/nvdimm/region.c
-@@ -20,7 +20,7 @@ static int nd_region_probe(struct device *dev)
- {
- 	int err, rc;
- 	static unsigned long once;
--	struct nd_region_namespaces *num_ns;
-+	struct nd_region_data *ndrd;
- 	struct nd_region *nd_region = to_nd_region(dev);
- 
- 	if (nd_region->num_lanes > num_online_cpus()
-@@ -33,21 +33,21 @@ static int nd_region_probe(struct device *dev)
- 				nd_region->num_lanes);
+-		vmf->entry = entry;
+-		return VM_FAULT_DAX_LOCKED;
++		error = finish_fault(vma, vmf);
++		put_locked_mapping_entry(mapping, vmf->pgoff, entry);
++		return (error < 0) ? VM_FAULT_NOPAGE : VM_FAULT_DONE_COW;
  	}
  
-+	rc = nd_region_activate(nd_region);
-+	if (rc)
-+		return rc;
-+
- 	rc = nd_blk_region_init(nd_region);
- 	if (rc)
- 		return rc;
+ 	if (!buffer_mapped(&bh)) {
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 43d5f0b799c7..b077983ee927 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -21,7 +21,6 @@ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
  
- 	rc = nd_region_register_namespaces(nd_region, &err);
--	num_ns = devm_kzalloc(dev, sizeof(*num_ns), GFP_KERNEL);
--	if (!num_ns)
--		return -ENOMEM;
--
- 	if (rc < 0)
- 		return rc;
- 
--	num_ns->active = rc;
--	num_ns->count = rc + err;
--	dev_set_drvdata(dev, num_ns);
-+	ndrd = dev_get_drvdata(dev);
-+	ndrd->ns_active = rc;
-+	ndrd->ns_count = rc + err;
- 
- 	if (rc && err && rc == err)
- 		return -ENODEV;
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 694b21024871..67022f74febc 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -22,6 +22,79 @@
- 
- static DEFINE_IDA(region_ida);
- 
-+static int nvdimm_map_flush(struct device *dev, struct nvdimm *nvdimm, int dimm,
-+		struct nd_region_data *ndrd)
-+{
-+	int i, j;
-+
-+	dev_dbg(dev, "%s: map %d flush address%s\n", nvdimm_name(nvdimm),
-+			nvdimm->num_flush, nvdimm->num_flush == 1 ? "" : "es");
-+	for (i = 0; i < nvdimm->num_flush; i++) {
-+		struct resource *res = &nvdimm->flush_wpq[i];
-+		unsigned long pfn = PHYS_PFN(res->start);
-+		void __iomem *flush_page;
-+
-+		/* check if flush hints share a page */
-+		for (j = 0; j < i; j++) {
-+			struct resource *res_j = &nvdimm->flush_wpq[j];
-+			unsigned long pfn_j = PHYS_PFN(res_j->start);
-+
-+			if (pfn == pfn_j)
-+				break;
-+		}
-+
-+		if (j < i)
-+			flush_page = (void __iomem *) ((unsigned long)
-+					ndrd->flush_wpq[dimm][j] & PAGE_MASK);
-+		else
-+			flush_page = devm_nvdimm_ioremap(dev,
-+					PHYS_PFN(pfn), PAGE_SIZE);
-+		if (!flush_page)
-+			return -ENXIO;
-+		ndrd->flush_wpq[dimm][i] = flush_page
-+			+ (res->start & ~PAGE_MASK);
-+	}
-+
-+	return 0;
-+}
-+
-+int nd_region_activate(struct nd_region *nd_region)
-+{
-+	int i;
-+	struct nd_region_data *ndrd;
-+	struct device *dev = &nd_region->dev;
-+	size_t flush_data_size = sizeof(void *);
-+
-+	nvdimm_bus_lock(&nd_region->dev);
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+		struct nvdimm *nvdimm = nd_mapping->nvdimm;
-+
-+		/* at least one null hint slot per-dimm for the "no-hint" case */
-+		flush_data_size += sizeof(void *);
-+		if (!nvdimm->num_flush)
-+			continue;
-+		flush_data_size += nvdimm->num_flush * sizeof(void *);
-+	}
-+	nvdimm_bus_unlock(&nd_region->dev);
-+
-+	ndrd = devm_kzalloc(dev, sizeof(*ndrd) + flush_data_size, GFP_KERNEL);
-+	if (!ndrd)
-+		return -ENOMEM;
-+	dev_set_drvdata(dev, ndrd);
-+
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+		struct nvdimm *nvdimm = nd_mapping->nvdimm;
-+		int rc = nvdimm_map_flush(&nd_region->dev, nvdimm, i, ndrd);
-+
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
- static void nd_region_release(struct device *dev)
+ #ifdef CONFIG_FS_DAX
+ struct page *read_dax_sector(struct block_device *bdev, sector_t n);
+-void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index);
+ int __dax_zero_page_range(struct block_device *bdev, sector_t sector,
+ 		unsigned int offset, unsigned int length);
+ #else
+@@ -30,12 +29,6 @@ static inline struct page *read_dax_sector(struct block_device *bdev,
  {
- 	struct nd_region *nd_region = to_nd_region(dev);
-@@ -242,12 +315,12 @@ static DEVICE_ATTR_RO(available_size);
- static ssize_t init_namespaces_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
+ 	return ERR_PTR(-ENXIO);
+ }
+-/* Shouldn't ever be called when dax is disabled. */
+-static inline void dax_unlock_mapping_entry(struct address_space *mapping,
+-					    pgoff_t index)
+-{
+-	BUG();
+-}
+ static inline int __dax_zero_page_range(struct block_device *bdev,
+ 		sector_t sector, unsigned int offset, unsigned int length)
  {
--	struct nd_region_namespaces *num_ns = dev_get_drvdata(dev);
-+	struct nd_region_data *ndrd = dev_get_drvdata(dev);
- 	ssize_t rc;
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 21226cc2b1cd..d2f2816d78ca 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -304,12 +304,6 @@ struct vm_fault {
+ 					 * is set (which is also implied by
+ 					 * VM_FAULT_ERROR).
+ 					 */
+-	void *entry;			/* ->fault handler can alternatively
+-					 * return locked DAX entry. In that
+-					 * case handler should return
+-					 * VM_FAULT_DAX_LOCKED and fill in
+-					 * entry here.
+-					 */
+ 	pmd_t *pmd;			/* PMD we fault into */
+ 	pte_t orig_pte;			/* Value of PTE at the time of fault */
+ 	/* for ->map_pages() only */
+@@ -1086,8 +1080,7 @@ static inline void clear_page_pfmemalloc(struct page *page)
+ #define VM_FAULT_LOCKED	0x0200	/* ->fault locked the returned page */
+ #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
+ #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
+-#define VM_FAULT_DAX_LOCKED 0x1000	/* ->fault has locked DAX entry */
+-#define VM_FAULT_DONE_COW   0x2000	/* ->fault has fully handled COW */
++#define VM_FAULT_DONE_COW   0x1000	/* ->fault has fully handled COW */
  
- 	nvdimm_bus_lock(dev);
--	if (num_ns)
--		rc = sprintf(buf, "%d/%d\n", num_ns->active, num_ns->count);
-+	if (ndrd)
-+		rc = sprintf(buf, "%d/%d\n", ndrd->ns_active, ndrd->ns_count);
- 	else
- 		rc = -ENXIO;
- 	nvdimm_bus_unlock(dev);
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 1050f9aa3a3e..815b9b430ead 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -52,6 +52,7 @@ typedef int (*ndctl_fn)(struct nvdimm_bus_descriptor *nd_desc,
+ #define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
  
- struct nd_namespace_label;
- struct nvdimm_drvdata;
-+
- struct nd_mapping {
- 	struct nvdimm *nvdimm;
- 	struct nd_namespace_label **labels;
-@@ -142,7 +143,8 @@ unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm);
- void *nvdimm_provider_data(struct nvdimm *nvdimm);
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
--		unsigned long cmd_mask);
-+		unsigned long cmd_mask, int num_flush,
-+		struct resource *flush_wpq);
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
- u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
+diff --git a/mm/memory.c b/mm/memory.c
+index b785f823caa4..cfae2d5cc1e0 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2836,7 +2836,7 @@ static int __do_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 
+ 	ret = vma->vm_ops->fault(vma, vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY |
+-			    VM_FAULT_DAX_LOCKED | VM_FAULT_DONE_COW)))
++			    VM_FAULT_DONE_COW)))
+ 		return ret;
+ 
+ 	if (unlikely(PageHWPoison(vmf->page))) {
+@@ -3105,26 +3105,16 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	if (ret & VM_FAULT_DONE_COW)
+ 		return ret;
+ 
+-	if (!(ret & VM_FAULT_DAX_LOCKED))
+-		copy_user_highpage(new_page, vmf->page, address, vma);
++	copy_user_highpage(new_page, vmf->page, address, vma);
+ 	__SetPageUptodate(new_page);
+ 
+ 	if (unlikely(finish_fault(vma, vmf) < 0)) {
+-		if (!(ret & VM_FAULT_DAX_LOCKED)) {
+-			unlock_page(vmf->page);
+-			put_page(vmf->page);
+-		} else {
+-			dax_unlock_mapping_entry(vma->vm_file->f_mapping,
+-						 vmf->pgoff);
+-		}
+-		goto uncharge_out;
+-	}
+-	if (!(ret & VM_FAULT_DAX_LOCKED)) {
+ 		unlock_page(vmf->page);
+ 		put_page(vmf->page);
+-	} else {
+-		dax_unlock_mapping_entry(vma->vm_file->f_mapping, vmf->pgoff);
++		goto uncharge_out;
+ 	}
++	unlock_page(vmf->page);
++	put_page(vmf->page);
+ 	return ret;
+ uncharge_out:
+ 	mem_cgroup_cancel_charge(new_page, memcg, false);
+-- 
+2.6.6
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
