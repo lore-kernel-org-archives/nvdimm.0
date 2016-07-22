@@ -1,14 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id 89AF11A1DF8
- for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 14:10:28 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm regression fix for 4.7-final
-Date: Fri, 22 Jul 2016 21:09:34 +0000
-Message-ID: <1469221772.2244.16.camel@intel.com>
-Content-Language: en-US
-Content-ID: <15A181BF4EE4C549B2DCFA132FA2677C@intel.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E496F1A1E07
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 01:15:21 -0700 (PDT)
+Date: Fri, 22 Jul 2016 10:14:26 +0200
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions
+ implemented
+Message-ID: <20160722081426.ohcbyeld4ta4rzwa@c203.arch.suse.de>
+References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20160719171153.GA121461@tevye.fc.hp.com>
+ <cfd9968d-9835-0ef1-fafd-54fd3b892d1c@hpe.com>
+ <CAPcyv4gqmjMFveV+iE2NbvWnTb5kdy8w54VDgLYxeMJ5NJyzbw@mail.gmail.com>
+ <CAPcyv4hbyq7MVQrTxYixo+fP7R=wV-Nt84NNfVJKrYWwUSJg=Q@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hbyq7MVQrTxYixo+fP7R=wV-Nt84NNfVJKrYWwUSJg=Q@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,104 +24,65 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marvin Spinhirne <spin@hpe.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgorQUtBIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
-Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4u
-dG8gcmVjZWl2ZSBhIHJlZ3Jlc3Npb24gZml4IGZvciBhIHByb2JsZW0gdGhhdCB3YXMgaW50cm9k
-dWNlZCBpbgp2NC43LXJjNi4KCkluIDQuNy1yYzEgd2UgaW50cm9kdWNlZCBhdXRvLXByb2Jpbmcg
-Zm9yIHRoZSBBQ1BJIERTTSAoZGV2aWNlLQpzcGVjaWZpYy1tZXRob2QpIGZvcm1hdCB0aGF0IHRo
-ZSBwbGF0Zm9ybSBmaXJtd2FyZSBpbXBsZW1lbnRzIGZvcgpudmRpbW0gZGV2aWNlcy4gV2UgaW5p
-dGlhbGx5IGZpeGVkIGEgcmVncmVzc2lvbiBpbiBwcm9iaW5nIHRoZSBRRU1VIERTTQppbXBsZW1l
-bnRhdGlvbiBieSBtYWtpbmcgYWNwaV9jaGVja19kc20oKSB0b2xlcmFudCBvZiB0aGUgd2F5IFFF
-TVUKcmVwb3J0cyB0aGUgIjAgRFNNcyBzdXBwb3J0ZWQiIGNvbmRpdGlvbi4gSG93ZXZlciwgdGhh
-dCBicm9rZSBIUEUKcGxhdGZvcm1zIHNpbmNlIHRoYXQgdG9sZXJhbmNlIGNhdXNlZCB0aGUgZHJp
-dmVyIHRvIG1pc3Rha2VubHkgbWF0Y2gKdGhlIDEtemVyby1ieXRlIHJlc3BvbnNlIHRob3NlIHBs
-YXRmb3JtcyBnaXZlIHRvICJ1bmtub3duIiBjb21tYW5kcy4KSW5zdGVhZCwgd2Ugc2ltcGx5IG1h
-a2UgdGhlIGRyaXZlciB0b2xlcmFudCBvZiBub3QgZmluZGluZyBhbnkKc3VwcG9ydGVkIERTTXMu
-ICtBS0EtVGhpcyBoYXMgYmVlbiB0ZXN0ZWQgdG8gd29yayB3aXRoIGJvdGggUUVNVSBhbmQgSFBF
-CnBsYXRmb3Jtcy4KClRoaXMgY29tbWl0IGhhcyBhcHBlYXJlZCBpbiBhIC1uZXh0IHJlbGVhc2Ug
-d2l0aCBubyByZXBvcnRlZCBpc3N1ZXMuCgpUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29t
-bWl0IGE5OWNkZTQzOGRlMGM0YzBjZWNjMWQxYWYxYTU1YTc1YjEwYmZkZWY6CgorQUtBIExpbnV4
-IDQuNy1yYzYgKDIwMTYtMDctMDMgMjM6MDE6MDAgLTA3MDApCgphcmUgYXZhaWxhYmxlIGluIHRo
-ZSBnaXQgcmVwb3NpdG9yeSBhdDoKCitBS0EgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9s
-aW51eC9rZXJuZWwvZ2l0L252ZGltbS9udmRpbW0gbGlibnZkaW1tLWZpeGVzCgpmb3IgeW91IHRv
-IGZldGNoIGNoYW5nZXMgdXAgdG8gYTcyMjU1OTgzZjEyZjMxZjBjOGQ4Mjc1ZmIxYTc4MTU0NmNm
-YWNiNzoKCitBS0EgbmZpdDogbWFrZSBESU1NIERTTXMgb3B0aW9uYWwgKDIwMTYtMDctMTkgMTI6
-MzI6MzkgLTA3MDApCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tCkRhbiBXaWxsaWFtcyAoMSk6CitBS0FBb0FDZ0FLQUFvQUNn
-LW5maXQ6IG1ha2UgRElNTSBEU01zIG9wdGlvbmFsCgorQUtBLWRyaXZlcnMvYWNwaS9uZml0LmMr
-QUtBQW9BfCAxMSArLSstKy0rLSstKy0tLS0tLQorQUtBLWRyaXZlcnMvYWNwaS91dGlscy5jIHwr
-QUtBQW9BLTYgKy0rLSstLS0tCitBS0EtMiBmaWxlcyBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKy0p
-LCA4IGRlbGV0aW9ucygtKQoKY29tbWl0IGE3MjI1NTk4M2YxMmYzMWYwYzhkODI3NWZiMWE3ODE1
-NDZjZmFjYjcKQXV0aG9yOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4K
-RGF0ZTorQUtBQW9BQ2ctVHVlIEp1bCAxOSAxMjozMjozOSAyMDE2IC0wNzAwCgorQUtBQW9BQ2dB
-S0EtbmZpdDogbWFrZSBESU1NIERTTXMgb3B0aW9uYWwKK0FLQUFvQUNnQUtBCitBS0FBb0FDZ0FL
-QS1Db21taXQgNDk5NTczNGU5NzNhICJhY3BpLCBuZml0OiBmaXggYWNwaV9jaGVja19kc20oKSB2
-cyB6ZXJvIGZ1bmN0aW9ucworQUtBQW9BQ2dBS0EtaW1wbGVtZW50ZWQiIGF0dGVtcHRlZCB0byBm
-aXggYSBRRU1VIHJlZ3Jlc3Npb24gYnkgc3VwcG9ydGluZyBpdHMgdXNhZ2UKK0FLQUFvQUNnQUtB
-LW9mIGEgemVyby1tYXNrIGFzIGEgdmFsaWQgcmVzcG9uc2UgdG8gYSBEU00tZmFtaWx5IHByb2Jl
-IHJlcXVlc3QuCitBS0FBb0FDZ0FLQS1Ib3dldmVyLCB0aGlzIGJlaGF2aW9yIGJyZWFrcyBIUCBw
-bGF0Zm9ybXMgdGhhdCByZXR1cm4gYSB6ZXJvLW1hc2sgYnkKK0FLQUFvQUNnQUtBLWRlZmF1bHQg
-Y2F1c2luZyB0aGUgcHJvYmUgdG8gbWlzaWRlbnRpZnkgdGhlIERTTS1mYW1pbHkuCitBS0FBb0FD
-Z0FLQQorQUtBQW9BQ2dBS0EtSW5zdGVhZCwgdGhlIFFFTVUgcmVncmVzc2lvbiBjYW4gYmUgZml4
-ZWQgYnkgc2ltcGx5IG5vdCByZXF1aXJpbmcgdGhlIERTTQorQUtBQW9BQ2dBS0EtZmFtaWx5IHRv
-IGJlIGlkZW50aWZpZWQuCitBS0FBb0FDZ0FLQQorQUtBQW9BQ2dBS0EtVGhpcyBlZmZlY3RpdmVs
-eSByZXZlcnRzIGNvbW1pdCA0OTk1NzM0ZTk3M2EsIGFuZCByZW1vdmVzIHRoZSBEU00KK0FLQUFv
-QUNnQUtBLXJlcXVpcmVtZW50IGZyb20gdGhlIGluaXQgcGF0aC4KK0FLQUFvQUNnQUtBCitBS0FB
-b0FDZ0FLQS1DYzogIlJhZmFlbCBKLiBXeXNvY2tpIiA8cmFmYWVsQGtlcm5lbC5vcmc+CitBS0FB
-b0FDZ0FLQS1DYzogWGlhbyBHdWFuZ3JvbmcgPGd1YW5ncm9uZy54aWFvQGxpbnV4LmludGVsLmNv
-bT4KK0FLQUFvQUNnQUtBLUNjOiBMaW5kYSBLbmlwcGVycyA8bGluZGEua25pcHBlcnNAaHBlLmNv
-bT4KK0FLQUFvQUNnQUtBLUZpeGVzOiA0OTk1NzM0ZTk3M2EgKCJhY3BpLCBuZml0OiBmaXggYWNw
-aV9jaGVja19kc20oKSB2cyB6ZXJvIGZ1bmN0aW9ucyBpbXBsZW1lbnRlZCIpCitBS0FBb0FDZ0FL
-QS1SZXBvcnRlZC1ieTogSmVycnkgSG9lbWFubiA8amVycnkuaG9lbWFubkBocGUuY29tPgorQUtB
-QW9BQ2dBS0EtVGVzdGVkLWJ5OiBKZXJyeSBIb2VtYW5uIDxqZXJyeS5ob2VtYW5uQGhwZS5jb20+
-CitBS0FBb0FDZ0FLQS1TaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1z
-QGludGVsLmNvbT4KCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVycy9h
-Y3BpL25maXQuYwppbmRleCBhYzZkZGNjMDgwZDQuLjFmMGUwNjA2NWFlNiAxMDA2NDQKLS0tIGEv
-ZHJpdmVycy9hY3BpL25maXQuYworLSstKy0gYi9kcml2ZXJzL2FjcGkvbmZpdC5jCkBAIC0xMTMx
-LDExICstMTEzMSwxMSBAQCBzdGF0aWMgaW50IGFjcGlfbmZpdF9hZGRfZGltbShzdHJ1Y3QgYWNw
-aV9uZml0X2Rlc2MgKmFjcGlfZGVzYywKK0FLQQorQUtBCS8qCitBS0EJK0FLQSogVW50aWwgc3Rh
-bmRhcmRpemF0aW9uIG1hdGVyaWFsaXplcyB3ZSBuZWVkIHRvIGNvbnNpZGVyIHVwIHRvIDMKLQkr
-QUtBKiBkaWZmZXJlbnQgY29tbWFuZCBzZXRzLitBS0FBb0EtTm90ZSwgdGhhdCBjaGVja2luZyBm
-b3IgemVybyBmdW5jdGlvbnMKLQkrQUtBKiB0ZWxscyB1cyBpZiBhbnkgY29tbWFuZHMgbWlnaHQg
-YmUgcmVhY2hhYmxlIHRocm91Z2ggdGhpcyB1dWlkLgorLQkrQUtBKiBkaWZmZXJlbnQgY29tbWFu
-ZCBzZXRzLitBS0FBb0EtTm90ZSwgdGhhdCBjaGVja2luZyBmb3IgZnVuY3Rpb24wIChiaXQwKQor
-LQkrQUtBKiB0ZWxscyB1cyBpZiBhbnkgY29tbWFuZHMgYXJlIHJlYWNoYWJsZSB0aHJvdWdoIHRo
-aXMgdXVpZC4KK0FLQQkrQUtBKi8KK0FLQQlmb3IgKGkgPSBOVkRJTU1fRkFNSUxZX0lOVEVMOyBp
-IDw9IE5WRElNTV9GQU1JTFlfSFBFMjsgaSstKy0pCi0JCWlmIChhY3BpX2NoZWNrX2RzbShhZGV2
-X2RpbW0tPmhhbmRsZSwgdG9fbmZpdF91dWlkKGkpLCAxLCAwKSkKKy0JCWlmIChhY3BpX2NoZWNr
-X2RzbShhZGV2X2RpbW0tPmhhbmRsZSwgdG9fbmZpdF91dWlkKGkpLCAxLCAxKSkKK0FLQQkJCWJy
-ZWFrOworQUtBCitBS0EJLyogbGltaXQgdGhlIHN1cHBvcnRlZCBjb21tYW5kcyB0byB0aG9zZSB0
-aGF0IGFyZSBwdWJsaWNseSBkb2N1bWVudGVkICovCkBAIC0xMTUxLDkgKy0xMTUxLDEwIEBAIHN0
-YXRpYyBpbnQgYWNwaV9uZml0X2FkZF9kaW1tKHN0cnVjdCBhY3BpX25maXRfZGVzYyAqYWNwaV9k
-ZXNjLAorQUtBCQlpZiAoZGlzYWJsZV92ZW5kb3Jfc3BlY2lmaWMpCitBS0EJCQlkc21fbWFzayAm
-PSArQUg0KDEgPDwgOCk7CitBS0EJfSBlbHNlIHsKLQkJZGV2X2VycihkZXYsICJ1bmtub3duIGRp
-bW0gY29tbWFuZCBmYW1pbHkrQUZ3LW4iKTsKKy0JCWRldl9kYmcoZGV2LCAidW5rbm93biBkaW1t
-IGNvbW1hbmQgZmFtaWx5K0FGdy1uIik7CitBS0EJCW5maXRfbWVtLT5mYW1pbHkgPSAtMTsKLQkJ
-cmV0dXJuIGZvcmNlX2VuYWJsZV9kaW1tcyA/IDAgOiAtRU5PREVWOworLQkJLyogRFNNcyBhcmUg
-b3B0aW9uYWwsIGNvbnRpbnVlIGxvYWRpbmcgdGhlIGRyaXZlci4uLiAqLworLQkJcmV0dXJuIDA7
-CitBS0EJfQorQUtBCitBS0EJdXVpZCA9IHRvX25maXRfdXVpZChuZml0X21lbS0+ZmFtaWx5KTsK
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS91dGlscy5jIGIvZHJpdmVycy9hY3BpL3V0aWxzLmMK
-aW5kZXggYjRkZTEzMGYyZDU3Li4yMmMwOTk1MmUxNzcgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNw
-aS91dGlscy5jCistKy0rLSBiL2RyaXZlcnMvYWNwaS91dGlscy5jCkBAIC02ODAsNiArLTY4MCw5
-IEBAIGJvb2wgYWNwaV9jaGVja19kc20oYWNwaV9oYW5kbGUgaGFuZGxlLCBjb25zdCB1OCAqdXVp
-ZCwgdTY0IHJldiwgdTY0IGZ1bmNzKQorQUtBCXU2NCBtYXNrID0gMDsKK0FLQQl1bmlvbiBhY3Bp
-X29iamVjdCAqb2JqOworQUtBCistCWlmIChmdW5jcyA9PSAwKQorLQkJcmV0dXJuIGZhbHNlOwor
-LQorQUtBCW9iaiA9IGFjcGlfZXZhbHVhdGVfZHNtKGhhbmRsZSwgdXVpZCwgcmV2LCAwLCBOVUxM
-KTsKK0FLQQlpZiAoIW9iaikKK0FLQQkJcmV0dXJuIGZhbHNlOwpAQCAtNjkyLDkgKy02OTUsNiBA
-QCBib29sIGFjcGlfY2hlY2tfZHNtKGFjcGlfaGFuZGxlIGhhbmRsZSwgY29uc3QgdTggKnV1aWQs
-IHU2NCByZXYsIHU2NCBmdW5jcykKK0FLQQkJCW1hc2sgfD0gKCgodTY0KW9iai0+YnVmZmVyLnBv
-aW50ZXJbaV0pIDw8IChpICogOCkpOworQUtBCUFDUElfRlJFRShvYmopOworQUtBCi0JaWYgKGZ1
-bmNzID09IDApCi0JCXJldHVybiB0cnVlOwotCitBS0EJLyoKK0FLQQkrQUtBKiBCaXQgMCBpbmRp
-Y2F0ZXMgd2hldGhlciB0aGVyZSdzIHN1cHBvcnQgZm9yIGFueSBmdW5jdGlvbnMgb3RoZXIgdGhh
-bgorQUtBCStBS0EqIGZ1bmN0aW9uIDAgZm9yIHRoZSBzcGVjaWZpZWQgVVVJRCBhbmQgcmV2aXNp
-b24uCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
-LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
-c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Tue, Jul 19, 2016 at 01:01:16PM -0700, Dan Williams wrote:
+> On Tue, Jul 19, 2016 at 11:52 AM, Dan Williams <dan.j.williams@intel.com>=
+ wrote:
+> > On Tue, Jul 19, 2016 at 11:50 AM, Linda Knippers <linda.knippers@hpe.co=
+m> wrote:
+> >> On 7/19/2016 1:11 PM, Jerry Hoemann wrote:
+> [..]
+> >>> As nfit_mem->family always equals NVDIMM_FAMILY_INTEL, no subsequent
+> >>> DSM call will succeed for NVDIMM_FAMILY_HPE1 or any other
+> >>> family.
+> >>>
+> >>> I don't have a fix as of yet, but wanted to make you aware of
+> >>> the problem.
+> >>
+> >> Could we try the all known UUIDs looking for one that returns a non-ze=
+ro
+> >> value?
+> >>
+> >
+> > Yes, that seems like the way forward, and also make not finding a DSM
+> > family non-fatal.
+> =
+
+> Actually, all we need is that last bit...  Jerry, Xiao, can you try
+> the attached patch on top for v4.7-rc6 to see if it works in both HPe
+> and QEMU 2.6 environments respectively?
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+Hi Dan,
+
+Somehow the mailinglist dropped the patch attachment and patchwork didn't
+pick it up either.
+
+As you have a Tested-by by Jerry and Xiao, can you appliy it to your git so
+downstream distros can pick it up?
+
+Thanks a lot,
+	Johannes
+
+-- =
+
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
