@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- by ml01.01.org (Postfix) with ESMTP id D133F1A1E28
- for <linux-nvdimm@lists.01.org>; Tue, 19 Jul 2016 16:16:05 -0700 (PDT)
-Subject: [PATCH v3 2/2] nfit: cleanup acpi_nfit_init calling convention
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 19 Jul 2016 16:12:47 -0700
-Message-ID: <146896995110.19125.14096272615930854997.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <146896992879.19125.6684253593375468344.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146896992879.19125.6684253593375468344.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E4B391A1E20
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 05:20:45 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 05/15] mm: Factor out functionality to finish page faults
+Date: Fri, 22 Jul 2016 14:19:31 +0200
+Message-Id: <1469189981-19000-6-git-send-email-jack@suse.cz>
+In-Reply-To: <1469189981-19000-1-git-send-email-jack@suse.cz>
+References: <1469189981-19000-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,188 +17,169 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Lee, Chun-Yi" <jlee@suse.com>, linux-acpi@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Pass the nfit buffer as a parameter rather than hanging it off of
-acpi_desc.
+Introduce function finish_fault() which handles locking of page tables
+and insertion of PTE after page for the page fault is prepared. This
+will be somewhat easier to use from page fault handlers than current
+do_set_pte() which is unnecessarily low-level for most uses.
 
-Reviewed-by: "Lee, Chun-Yi" <jlee@suse.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
-Changes since v2:
+ include/linux/mm.h |  1 +
+ mm/memory.c        | 67 ++++++++++++++++++++++++++++++++++++++----------------
+ 2 files changed, 48 insertions(+), 20 deletions(-)
 
-* Only context changes due to v3 of patch1
-
- drivers/acpi/nfit.c              |   48 +++++++++++++-------------------------
- drivers/acpi/nfit.h              |    3 +-
- tools/testing/nvdimm/test/nfit.c |    7 +++---
- 3 files changed, 22 insertions(+), 36 deletions(-)
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 54a4ee0a90e0..fb80f32db525 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -2291,12 +2291,11 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
- 	return 0;
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 2442f972bdc8..21226cc2b1cd 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -606,6 +606,7 @@ static inline pte_t maybe_mkwrite(pte_t pte, struct vm_area_struct *vma)
+ 
+ void do_set_pte(struct vm_area_struct *vma, unsigned long address,
+ 		struct page *page, pte_t *pte, bool write, bool anon);
++int finish_fault(struct vm_area_struct *vma, struct vm_fault *vmf);
+ #endif
+ 
+ /*
+diff --git a/mm/memory.c b/mm/memory.c
+index aef88d634072..b785f823caa4 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2890,6 +2890,49 @@ void do_set_pte(struct vm_area_struct *vma, unsigned long address,
+ 	update_mmu_cache(vma, address, pte);
  }
  
--int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
-+int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
- {
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_table_prev prev;
- 	const void *end;
--	u8 *data;
- 	int rc;
- 
- 	mutex_lock(&acpi_desc->init_mutex);
-@@ -2321,7 +2320,6 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- 	list_cut_position(&prev.flushes, &acpi_desc->flushes,
- 				acpi_desc->flushes.prev);
- 
--	data = (u8 *) acpi_desc->nfit;
- 	end = data + sz;
- 	while (!IS_ERR_OR_NULL(data))
- 		data = add_table(acpi_desc, &prev, data, end);
-@@ -2461,40 +2459,30 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 	if (!acpi_desc->nvdimm_bus)
- 		return -ENOMEM;
- 
--	/*
--	 * Save the acpi header for later and then skip it,
--	 * making nfit point to the first nfit table header.
--	 */
-+	/* Save the acpi header for exporting the revision via sysfs */
- 	acpi_desc->acpi_header = *tbl;
--	acpi_desc->nfit = (void *) tbl + sizeof(struct acpi_table_nfit);
--	sz -= sizeof(struct acpi_table_nfit);
- 
- 	/* Evaluate _FIT and override with that if present */
- 	status = acpi_evaluate_object(adev->handle, "_FIT", NULL, &buf);
- 	if (ACPI_SUCCESS(status) && buf.length > 0) {
--		union acpi_object *obj;
--		/*
--		 * Adjust for the acpi_object header of the _FIT
--		 */
--		obj = buf.pointer;
--		if (obj->type == ACPI_TYPE_BUFFER) {
--			acpi_desc->nfit =
--				(struct acpi_nfit_header *)obj->buffer.pointer;
--			sz = obj->buffer.length;
--			rc = acpi_nfit_init(acpi_desc, sz);
--		} else
-+		union acpi_object *obj = buf.pointer;
++/**
++ * finish_fault - finish page fault once we have prepared the page to fault
++ *
++ * @vma: virtual memory area
++ * @vmf: structure describing the fault
++ *
++ * This function handles all that is needed to finish a page fault once the
++ * page to fault in is prepared. It handles locking of PTEs, inserts PTE for
++ * given page, adds reverse page mapping, handles memcg charges and LRU
++ * addition. The function returns 0 on success, error in case page could not
++ * be inserted into page tables.
++ *
++ * The function expects the page to be locked.
++ */
++int finish_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++{
++	unsigned long address = (unsigned long)vmf->virtual_address;
++	struct page *page = vmf->page;
++	bool anon = false;
++	spinlock_t *ptl;
++	pte_t *pte;
 +
-+		if (obj->type == ACPI_TYPE_BUFFER)
-+			rc = acpi_nfit_init(acpi_desc, obj->buffer.pointer,
-+					obj->buffer.length);
-+		else
- 			dev_dbg(dev, "%s invalid type %d, ignoring _FIT\n",
- 				 __func__, (int) obj->type);
--		acpi_desc->nfit = NULL;
- 		kfree(buf.pointer);
- 	} else
--		rc = acpi_nfit_init(acpi_desc, sz);
-+		/* skip over the lead-in header table */
-+		rc = acpi_nfit_init(acpi_desc, (void *) tbl
-+				+ sizeof(struct acpi_table_nfit),
-+				sz - sizeof(struct acpi_table_nfit));
++	if (vmf->cow_page) {
++		page = vmf->cow_page;
++		anon = true;
++	}
++
++	pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, address, &ptl);
++	if (unlikely(!pte_same(*pte, vmf->orig_pte))) {
++		pte_unmap_unlock(pte, ptl);
++		return -EBUSY;
++	}
++	do_set_pte(vma, address, page, pte, vmf->flags & FAULT_FLAG_WRITE,
++		   anon);
++	if (anon) {
++		mem_cgroup_commit_charge(page, vmf->memcg, false, false);
++		lru_cache_add_active_or_unevictable(page, vma);
++	}
++	pte_unmap_unlock(pte, ptl);
++
++	return 0;
++}
++
+ static unsigned long fault_around_bytes __read_mostly =
+ 	rounddown_pow_of_two(65536);
  
--	if (rc) {
-+	if (rc)
- 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
--		return rc;
--	}
--	return 0;
-+	return rc;
- }
+@@ -3022,15 +3065,13 @@ static int do_read_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
  
- static int acpi_nfit_remove(struct acpi_device *adev)
-@@ -2511,8 +2499,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+-	pte = pte_offset_map_lock(mm, vmf->pmd, address, &ptl);
+-	if (unlikely(!pte_same(*pte, vmf->orig_pte))) {
+-		pte_unmap_unlock(pte, ptl);
++	if (unlikely(finish_fault(vma, vmf) < 0)) {
+ 		unlock_page(vmf->page);
+ 		put_page(vmf->page);
+ 		return ret;
+ 	}
+-	do_set_pte(vma, address, vmf->page, pte, false, false);
+ 	unlock_page(vmf->page);
++	return ret;
+ unlock_out:
+ 	pte_unmap_unlock(pte, ptl);
+ 	return ret;
+@@ -3041,8 +3082,6 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
  {
- 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
- 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
--	union acpi_object *obj;
- 	struct device *dev = &adev->dev;
-+	union acpi_object *obj;
- 	acpi_status status;
+ 	struct page *new_page;
+ 	struct mem_cgroup *memcg;
+-	spinlock_t *ptl;
+-	pte_t *pte;
  	int ret;
+ 	unsigned long address = (unsigned long)vmf->virtual_address;
  
-@@ -2550,14 +2538,12 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+@@ -3070,9 +3109,7 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		copy_user_highpage(new_page, vmf->page, address, vma);
+ 	__SetPageUptodate(new_page);
  
- 	obj = buf.pointer;
- 	if (obj->type == ACPI_TYPE_BUFFER) {
--		acpi_desc->nfit =
--			(struct acpi_nfit_header *)obj->buffer.pointer;
--		ret = acpi_nfit_init(acpi_desc, obj->buffer.length);
-+		ret = acpi_nfit_init(acpi_desc, obj->buffer.pointer,
-+				obj->buffer.length);
- 		if (ret)
- 			dev_err(dev, "failed to merge updated NFIT\n");
- 	} else
- 		dev_err(dev, "Invalid _FIT\n");
--	acpi_desc->nfit = NULL;
- 	kfree(buf.pointer);
+-	pte = pte_offset_map_lock(mm, vmf->pmd, address, &ptl);
+-	if (unlikely(!pte_same(*pte, vmf->orig_pte))) {
+-		pte_unmap_unlock(pte, ptl);
++	if (unlikely(finish_fault(vma, vmf) < 0)) {
+ 		if (!(ret & VM_FAULT_DAX_LOCKED)) {
+ 			unlock_page(vmf->page);
+ 			put_page(vmf->page);
+@@ -3082,10 +3119,6 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		}
+ 		goto uncharge_out;
+ 	}
+-	do_set_pte(vma, address, new_page, pte, true, true);
+-	mem_cgroup_commit_charge(new_page, memcg, false, false);
+-	lru_cache_add_active_or_unevictable(new_page, vma);
+-	pte_unmap_unlock(pte, ptl);
+ 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
+ 		unlock_page(vmf->page);
+ 		put_page(vmf->page);
+@@ -3104,8 +3137,6 @@ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ {
+ 	struct address_space *mapping;
+ 	unsigned long address = (unsigned long)vmf->virtual_address;
+-	spinlock_t *ptl;
+-	pte_t *pte;
+ 	int dirtied = 0;
+ 	int ret, tmp;
  
-  out_unlock:
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 402f8c31adc7..b63a583a678f 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -135,7 +135,6 @@ struct nfit_mem {
- struct acpi_nfit_desc {
- 	struct nvdimm_bus_descriptor nd_desc;
- 	struct acpi_table_header acpi_header;
--	struct acpi_nfit_header *nfit;
- 	struct mutex init_mutex;
- 	struct list_head memdevs;
- 	struct list_head flushes;
-@@ -201,6 +200,6 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
- }
+@@ -3128,15 +3159,11 @@ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		}
+ 	}
  
- const u8 *to_nfit_uuid(enum nfit_uuids id);
--int acpi_nfit_init(struct acpi_nfit_desc *nfit, acpi_size sz);
-+int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *nfit, acpi_size sz);
- void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev);
- #endif /* __NFIT_H__ */
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index f458ba906f13..78cba1e3b1da 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1460,7 +1460,6 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	nfit_test->setup(nfit_test);
- 	acpi_desc = &nfit_test->acpi_desc;
- 	acpi_nfit_desc_init(acpi_desc, &pdev->dev);
--	acpi_desc->nfit = nfit_test->nfit_buf;
- 	acpi_desc->blk_do_io = nfit_test_blk_do_io;
- 	nd_desc = &acpi_desc->nd_desc;
- 	nd_desc->provider_name = NULL;
-@@ -1469,7 +1468,8 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	if (!acpi_desc->nvdimm_bus)
- 		return -ENXIO;
+-	pte = pte_offset_map_lock(mm, vmf->pmd, address, &ptl);
+-	if (unlikely(!pte_same(*pte, vmf->orig_pte))) {
+-		pte_unmap_unlock(pte, ptl);
++	if (unlikely(finish_fault(vma, vmf) < 0)) {
+ 		unlock_page(vmf->page);
+ 		put_page(vmf->page);
+ 		return ret;
+ 	}
+-	do_set_pte(vma, address, vmf->page, pte, true, false);
+-	pte_unmap_unlock(pte, ptl);
  
--	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
-+	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
-+			nfit_test->nfit_size);
- 	if (rc) {
- 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
- 		return rc;
-@@ -1481,7 +1481,8 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	nfit_test->setup_hotplug = 1;
- 	nfit_test->setup(nfit_test);
- 
--	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
-+	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
-+			nfit_test->nfit_size);
- 	if (rc) {
- 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
- 		return rc;
+ 	if (set_page_dirty(vmf->page))
+ 		dirtied = 1;
+-- 
+2.6.6
 
 _______________________________________________
 Linux-nvdimm mailing list
