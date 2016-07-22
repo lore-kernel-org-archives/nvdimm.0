@@ -1,80 +1,135 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id D80961A1F00
- for <linux-nvdimm@lists.01.org>; Thu, 14 Jul 2016 22:31:37 -0700 (PDT)
-Subject: [PATCH] tools/testing/nvdimm: add virtual ramdisk range
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 14 Jul 2016 22:28:40 -0700
-Message-ID: <146856052024.34333.9532520454252164419.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Lee, Chun-Yi" <jlee@suse.com>, linux-acpi@vger.kernel.org
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 13/15] mm: Provide helper for finishing mkwrite faults
+Date: Fri, 22 Jul 2016 14:19:39 +0200
+Message-Id: <1469189981-19000-14-git-send-email-jack@suse.cz>
+In-Reply-To: <1469189981-19000-1-git-send-email-jack@suse.cz>
+References: <1469189981-19000-1-git-send-email-jack@suse.cz>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Test the virtual disk ranges that platform firmware like EDK2/OVMF might
-emit.
+Provide a helper function for finishing write faults due to PTE being
+read-only. The helper will be used by DAX to avoid the need of
+complicating generic MM code with DAX locking specifics.
 
-Cc: "Lee, Chun-Yi" <jlee@suse.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- tools/testing/nvdimm/test/nfit.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ include/linux/mm.h |  1 +
+ mm/memory.c        | 62 +++++++++++++++++++++++++++++++++++-------------------
+ 2 files changed, 41 insertions(+), 22 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index ff09a28890ed..0a803f63307a 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -96,7 +96,7 @@
-  *    reference an NVDIMM.
-  */
- enum {
--	NUM_PM  = 3,
-+	NUM_PM  = 4,
- 	NUM_DCR = 5,
- 	NUM_HINTS = 8,
- 	NUM_BDW = NUM_DCR,
-@@ -591,6 +591,10 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 	if (!t->spa_set[2])
- 		return -ENOMEM;
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index daf690fccc0c..32ff572a6e6c 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -601,6 +601,7 @@ static inline pte_t maybe_mkwrite(pte_t pte, struct vm_area_struct *vma)
+ void do_set_pte(struct vm_area_struct *vma, unsigned long address,
+ 		struct page *page, pte_t *pte, bool write, bool anon);
+ int finish_fault(struct vm_area_struct *vma, struct vm_fault *vmf);
++int finish_mkwrite_fault(struct vm_area_struct *vma, struct vm_fault *vmf);
+ #endif
  
-+	t->spa_set[3] = test_alloc(t, SPA0_SIZE, &t->spa_set_dma[3]);
-+	if (!t->spa_set[3])
-+		return -ENOMEM;
-+
- 	for (i = 0; i < NUM_DCR; i++) {
- 		t->dimm[i] = test_alloc(t, DIMM_SIZE, &t->dimm_dma[i]);
- 		if (!t->dimm[i])
-@@ -745,7 +749,16 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	spa->address = t->dimm_dma[3];
- 	spa->length = DIMM_SIZE;
+ /*
+diff --git a/mm/memory.c b/mm/memory.c
+index 1d2916c53d43..30cf7b36df48 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2262,6 +2262,41 @@ oom:
+ 	return VM_FAULT_OOM;
+ }
  
--	offset = sizeof(*spa) * 10;
-+	/* virtual cd region */
-+	spa = nfit_buf + sizeof(*spa) * 10;
-+	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
-+	spa->header.length = sizeof(*spa);
-+	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_VCD), 16);
-+	spa->range_index = 0;
-+	spa->address = t->spa_set_dma[3];
-+	spa->length = SPA0_SIZE;
++/**
++ * finish_mkrite_fault - finish page fault making PTE writeable once the page
++ *			 page is prepared
++ *
++ * @vma: virtual memory area
++ * @vmf: structure describing the fault
++ *
++ * This function handles all that is needed to finish a write page fault due
++ * to PTE being read-only once the mapped page is prepared. It handles locking
++ * of PTE and modifying it. The function returns 0 on success, error in case
++ * the PTE changed before we acquired PTE lock.
++ *
++ * The function expects the page to be locked or other protection against
++ * concurrent faults / writeback (such as DAX radix tree locks).
++ */
++int finish_mkwrite_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++{
++	unsigned long address = (unsigned long)vmf->virtual_address;
++	pte_t *pte;
++	spinlock_t *ptl;
 +
-+	offset = sizeof(*spa) * 11;
- 	/* mem-region0 (spa0, dimm0) */
- 	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, address, &ptl);
++	/*
++	 * We might have raced with another page fault while we
++	 * released the pte_offset_map_lock.
++	 */
++	if (!pte_same(*pte, vmf->orig_pte)) {
++		pte_unmap_unlock(pte, ptl);
++		return -EBUSY;
++	}
++	wp_page_reuse(vma->vm_mm, vma, address, pte, ptl, vmf->orig_pte,
++		      vmf->page);
++	return 0;
++}
++
+ /*
+  * Handle write page faults for VM_MIXEDMAP or VM_PFNMAP for a VM_SHARED
+  * mapping
+@@ -2282,17 +2317,12 @@ static int wp_pfn_shared(struct mm_struct *mm,
+ 		ret = vma->vm_ops->pfn_mkwrite(vma, &vmf);
+ 		if (ret & VM_FAULT_ERROR)
+ 			return ret;
+-		page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
+-		/*
+-		 * We might have raced with another page fault while we
+-		 * released the pte_offset_map_lock.
+-		 */
+-		if (!pte_same(*page_table, orig_pte)) {
+-			pte_unmap_unlock(page_table, ptl);
++		if (finish_mkwrite_fault(vma, &vmf) < 0)
+ 			return 0;
+-		}
++	} else {
++		wp_page_reuse(mm, vma, address, page_table, ptl, orig_pte,
++			      NULL);
+ 	}
+-	wp_page_reuse(mm, vma, address, page_table, ptl, orig_pte, NULL);
+ 	return VM_FAULT_WRITE;
+ }
+ 
+@@ -2319,28 +2349,16 @@ static int wp_page_shared(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			put_page(old_page);
+ 			return tmp;
+ 		}
+-		/*
+-		 * Since we dropped the lock we need to revalidate
+-		 * the PTE as someone else may have changed it.  If
+-		 * they did, we just return, as we can count on the
+-		 * MMU to tell us if they didn't also make it writable.
+-		 */
+-		page_table = pte_offset_map_lock(mm, pmd, address,
+-						 &ptl);
+-		if (!pte_same(*page_table, orig_pte)) {
++		if (finish_mkwrite_fault(vma, &vmf) < 0) {
+ 			unlock_page(old_page);
+-			pte_unmap_unlock(page_table, ptl);
+ 			put_page(old_page);
+ 			return 0;
+ 		}
+-		wp_page_reuse(mm, vma, address, page_table, ptl, orig_pte,
+-			      old_page);
+ 	} else {
+ 		wp_page_reuse(mm, vma, address, page_table, ptl, orig_pte,
+ 			      old_page);
+ 		lock_page(old_page);
+ 	}
+-
+ 	fault_dirty_shared_page(vma, old_page);
+ 	put_page(old_page);
+ 	return VM_FAULT_WRITE;
+-- 
+2.6.6
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
