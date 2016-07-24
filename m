@@ -1,11 +1,12 @@
-From: "RONALD" <duranelizabethe2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: Permanent Fanpage Likes
-Date: Sun, 24 Jul 2016 00:11:11 -0100
-Message-ID: <F291FBFA.E5D3B4E5@gmail.com>
-Reply-To: RONALD <duranelizabethe2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: "ROY" <dysonkizz7-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: cheap and targeted Instagram Marketing
+Date: Sun, 24 Jul 2016 18:52:18 +0000 (UTC)
+Message-ID: <5EDB66EB.6B6AA01A@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3865792125385366244=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Date: Mon, 25 Jul 2016 14:00:50 -0700
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,40 +19,35 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============3865792125385366244==
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 
-Hello,
+We deliver USA and other Countries Targeted followers at the cheapest
+prices available.
 
-Boost social presence with fast and permanent Facebook Fanpage Likes. 
-Turn around time of delivery 3-5 days. 
+Cheap and fast instagram followers
+http://www.instabuygram.cn/buy-instagram-followers/
 
-Lifetime guarantee, order with confidence.
-http://www.buysocial.cn/detail.php?id=16 
+Instagram Likes
+http://www.instabuygram.cn/buy-instagram-likes/
 
-Regards
-RONALD
- 
+Try it out today
+
+regards
+ROY
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 Unsubscribe option is available on the footer of our website
-
-
-
---===============3865792125385366244==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============3865792125385366244==--
