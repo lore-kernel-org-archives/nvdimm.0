@@ -1,11 +1,11 @@
-From: "LARRY" <robikris22-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Reach Millions of FB Group Members
-Date: Sat, 23 Jul 2016 08:43:07 +0000 (UTC)
-Message-ID: <073691A7.ED2A71EE@gmail.com>
+From: "RONALD" <duranelizabethe2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: Permanent Fanpage Likes
+Date: Sun, 24 Jul 2016 00:11:11 -0100
+Message-ID: <F291FBFA.E5D3B4E5@gmail.com>
+Reply-To: RONALD <duranelizabethe2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5850488191570117051=="
+Content-Type: multipart/mixed; boundary="===============3865792125385366244=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Date: Sun, 24 Jul 2016 03:52:00 -0700
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,22 +18,21 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============5850488191570117051==
+--===============3865792125385366244==
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 Hello,
-Do you want to advertise on facebook? We're here to help. 
 
-We wil manually post your product/logo/link on Facebook Groups and will
-give you a full report with links of each live post where your advertisement
-was posted.
+Boost social presence with fast and permanent Facebook Fanpage Likes. 
+Turn around time of delivery 3-5 days. 
 
-http://www.buysocial.cn/detail.php?id=12
+Lifetime guarantee, order with confidence.
+http://www.buysocial.cn/detail.php?id=16 
 
 Regards
-LARRY
+RONALD
  
 
 
@@ -44,7 +43,7 @@ Unsubscribe option is available on the footer of our website
 
 
 
---===============5850488191570117051==
+--===============3865792125385366244==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -55,4 +54,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============5850488191570117051==--
+--===============3865792125385366244==--
