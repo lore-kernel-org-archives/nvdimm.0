@@ -1,15 +1,37 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oi0-x22b.google.com (mail-oi0-x22b.google.com
+ [IPv6:2607:f8b0:4003:c06::22b])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D819E1A1E10
- for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 05:20:45 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 08/15] mm: Export follow_pte()
-Date: Fri, 22 Jul 2016 14:19:34 +0200
-Message-Id: <1469189981-19000-9-git-send-email-jack@suse.cz>
-In-Reply-To: <1469189981-19000-1-git-send-email-jack@suse.cz>
-References: <1469189981-19000-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 7BC1C1A1DFA
+ for <linux-nvdimm@lists.01.org>; Sun, 24 Jul 2016 08:17:53 -0700 (PDT)
+Received: by mail-oi0-x22b.google.com with SMTP id w18so222623085oiw.3
+ for <linux-nvdimm@lists.01.org>; Sun, 24 Jul 2016 08:17:53 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <0844e82c-8ab1-d88d-879b-145b9add327d@users.sourceforge.net>
+References: <5307CAA2.8060406@users.sourceforge.net>
+ <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
+ <530A086E.8010901@users.sourceforge.net>
+ <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
+ <530A72AA.3000601@users.sourceforge.net>
+ <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
+ <530B5FB6.6010207@users.sourceforge.net>
+ <alpine.DEB.2.10.1402241710370.2074@hadrien>
+ <530C5E18.1020800@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251014170.2080@hadrien>
+ <530CD2C4.4050903@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251840450.7035@hadrien>
+ <530CF8FF.8080600@users.sourceforge.net>
+ <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
+ <530DD06F.4090703@users.sourceforge.net>
+ <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+ <5317A59D.4@users.sourceforge.net>
+ <0844e82c-8ab1-d88d-879b-145b9add327d@users.sourceforge.net>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 24 Jul 2016 08:17:52 -0700
+Message-ID: <CAPcyv4iC3uSv=nM3ZBrA+nBswLHdxqEg9q6TO7nNTVi7BpG04Q@mail.gmail.com>
+Subject: Re: [PATCH] libnvdimm-btt: Delete an unnecessary check before the
+ function call "__nd_device_register"
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,64 +39,27 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Julia Lawall <julia.lawall@lip6.fr>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX will need to implement its own version of page_check_address(). To
-avoid duplicating page table walking code, export follow_pte() which
-does what we need.
+On Sun, Jul 24, 2016 at 2:16 AM, SF Markus Elfring
+<elfring@users.sourceforge.net> wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sun, 24 Jul 2016 11:05:34 +0200
+>
+> The __nd_device_register() function tests whether its argument is NULL
+> and then returns immediately. Thus the test around the call is not needed.
+>
+> This issue was detected by using the Coccinelle software.
+>
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- include/linux/mm.h | 2 ++
- mm/memory.c        | 5 +++--
- 2 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index d2f2816d78ca..daf690fccc0c 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1191,6 +1191,8 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
- 			struct vm_area_struct *vma);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
-+int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
-+	       spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
- 	unsigned long *pfn);
- int follow_phys(struct vm_area_struct *vma, unsigned long address,
-diff --git a/mm/memory.c b/mm/memory.c
-index cfae2d5cc1e0..6780e5d8145c 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3635,8 +3635,8 @@ out:
- 	return -EINVAL;
- }
- 
--static inline int follow_pte(struct mm_struct *mm, unsigned long address,
--			     pte_t **ptepp, spinlock_t **ptlp)
-+int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
-+	       spinlock_t **ptlp)
- {
- 	int res;
- 
-@@ -3645,6 +3645,7 @@ static inline int follow_pte(struct mm_struct *mm, unsigned long address,
- 			   !(res = __follow_pte(mm, address, ptepp, ptlp)));
- 	return res;
- }
-+EXPORT_SYMBOL(follow_pte);
- 
- /**
-  * follow_pfn - look up PFN at a user virtual address
--- 
-2.6.6
-
+Thanks, applied.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
