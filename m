@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id 948A31A1E07
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jul 2016 14:24:57 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTP id 2246F1A1E07
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jul 2016 13:59:30 -0700 (PDT)
+Date: Tue, 26 Jul 2016 14:58:44 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
 Subject: Re: btt ndctl question
-Date: Tue, 26 Jul 2016 21:24:55 +0000
-Message-ID: <1469568262.7270.5.camel@intel.com>
+Message-ID: <20160726205843.GA5520@omniknight.lm.intel.com>
 References: <5797C9DE.3070901@redhat.com>
- <20160726205843.GA5520@omniknight.lm.intel.com>
-In-Reply-To: <20160726205843.GA5520@omniknight.lm.intel.com>
-Content-Language: en-US
-Content-ID: <43A9B052C04963448643C5DE17D06B49@intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <5797C9DE.3070901@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,91 +17,147 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "lknipper@redhat.com" <lknipper@redhat.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Linda Knippers <lknipper@redhat.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE2LTA3LTI2IGF0IDE0OjU4IC0wNjAwLCBWaXNoYWwgVmVybWEgd3JvdGU6DQo+
-IE9uIDA3LzI2LCBMaW5kYSBLbmlwcGVycyB3cm90ZToNCj4gPiANCj4gPiBNeSBzeXN0ZW0gaGFz
-IDQgOEcgTlZESU1NcyBhbmQgSSBoYXZlIHRoZW0gY29uZmlndXJlZCBpbiBkaWZmZXJlbnQNCj4g
-PiB3YXlzLCBhcyB5b3UgY2FuDQo+ID4gc2VlIGZyb20gdGhlIG5kY3RsIG91dHB1dDoNCj4gPiAN
-Cj4gPiAkIG5kY3RsIGxpc3QNCj4gPiBbDQo+ID4gwqAgew0KPiA+IMKgwqDCoMKgImRldiI6Im5h
-bWVzcGFjZTMuMCIsDQo+ID4gwqDCoMKgwqAibW9kZSI6InJhdyIsDQo+ID4gwqDCoMKgwqAic2l6
-ZSI6ODU4OTkzNDU5MiwNCj4gPiDCoMKgwqDCoCJibG9ja2RldiI6InBtZW0zIg0KPiA+IMKgIH0s
-DQo+ID4gwqAgew0KPiA+IMKgwqDCoMKgImRldiI6Im5hbWVzcGFjZTIuMCIsDQo+ID4gwqDCoMKg
-wqAibW9kZSI6Im1lbW9yeSIsDQo+ID4gwqDCoMKgwqAic2l6ZSI6ODU4NzgzNzQ0MCwNCj4gPiDC
-oMKgwqDCoCJ1dWlkIjoiMjU2N2Q3NjItNjhhZS00ODZiLWE2ZWItMmQzYWIxYjlkY2E5IiwNCj4g
-PiDCoMKgwqDCoCJibG9ja2RldiI6InBtZW0yIg0KPiA+IMKgIH0sDQo+ID4gwqAgew0KPiA+IMKg
-wqDCoMKgImRldiI6Im5hbWVzcGFjZTEuMCIsDQo+ID4gwqDCoMKgwqAibW9kZSI6InNlY3RvciIs
-DQo+ID4gwqDCoMKgwqAidXVpZCI6IjQ0ZmI0NzRlLTdkYjgtNDQzOC1hZDk1LTA1ZWNiOWYyMDc1
-ZSIsDQo+ID4gwqDCoMKgwqAic2VjdG9yX3NpemUiOjQwOTYsDQo+ID4gwqDCoMKgwqAiYmxvY2tk
-ZXYiOiJwbWVtMXMiDQo+ID4gwqAgfSwNCj4gPiDCoCB7DQo+ID4gwqDCoMKgwqAiZGV2IjoibmFt
-ZXNwYWNlMC4wIiwNCj4gPiDCoMKgwqDCoCJtb2RlIjoibWVtb3J5IiwNCj4gPiDCoMKgwqDCoCJz
-aXplIjo4NDUzNjE5NzEyLA0KPiA+IMKgwqDCoMKgInV1aWQiOiI5MzNlZDU0Yi01YjY0LTQ3ZjEt
-ODQwOS1jODhmN2M4NDY1MjIiLA0KPiA+IMKgwqDCoMKgImJsb2NrZGV2IjoicG1lbTAiDQo+ID4g
-wqAgfQ0KPiA+IF0NCj4gPiANCj4gPiBUaGUgdHdvIG1lbW9yeSBuYW1lc3BhY2VzIGhhdmUgZGlm
-ZmVyZW50IHNpemVzIGJlY2F1c2Ugb25lIGlzIC0tDQo+ID4gbWFwPWRldiBhbmQgdGhlIG90aGVy
-IGlzIC0tbWFwPW1lbS4NCj4gPiBJdCB3b3VsZCBiZSBuaWNlIGlmIHRoZSBtYXAgb3B0aW9uIHdh
-cyBkaXNwbGF5ZWQgYnV0IG15IHF1ZXN0aW9uIGlzDQo+ID4gYWJvdXQgdGhlIHNpemUgdmFsdWUg
-Zm9yIHRoZQ0KPiA+IGJ0dCBkZXZpY2UsIG9yIGxhY2sgb2Ygb25lLg0KPiA+IA0KPiA+IEFsbCB0
-aGUgbmFtZXNwYWNlcyBzaG93IGEgc2l6ZSBleGNlcHQgZm9yIHRoZSBidHQuwqDCoFRoZSBidHQg
-b25seQ0KPiA+IHNob3dzIGEgc2VjdG9yIHNpemUuwqDCoFRoZXJlDQo+ID4gaXMgbm8gc2l6ZSB2
-YWx1ZSBleHBvc2VkIGJ5IHRoZSBidHQgc3lzZnMgaW5mb3JtYXRpb24sIHdoaWNoIGlzDQo+ID4g
-cHJvYmFibHkgd2h5IGl0J3Mgbm90IGluIG5kY3RsLg0KPiA+IA0KPiA+IEkga25vdyB0aGUgc2l6
-ZSBjYW4gYmUgZ290dGVuIGZyb20gdGhlIGJsb2NrIGRldmljZSBidXQgaXQgbG9va3MNCj4gPiBs
-aWtlIGFuIG9taXNzaW9uIGhlcmUuDQo+ID4gSXMgdGhpcyBhIGJ1ZyBvciBhIGZlYXR1cmU/DQo+
-IA0KPiBQcm9iYWJseSBhbiBvbWlzc2lvbiA6KQ0KPiBUaGlzIHBhdGNoIHNob3VsZCBleHBvc2Ug
-YSBzaXplIGF0dHJpYnV0ZSBpbiBzeXNmczoNCj4gDQo+ICQgY2F0IC9zeXMvYnVzL25kL2Rldmlj
-ZXMvYnR0Ny4wL3NpemXCoA0KPiAzMjQ0MDMyMA0KPiANCj4gSSBjYW4gbG9vayBhdCB0aGUgJ25k
-Y3RsIGxpc3QnIGVuYWJsaW5nIHRvbyBpZiB0aGlzIGxvb2tzIGdvb2QuDQo+IA0KPiA4PC0tLS0t
-LQ0KPiANCj4gRnJvbSBmYjExOWJmNDM4MGQxZDY1ZDgyNzU0ZTU4MWJiZDQxMTYxYzIxMDBmIE1v
-biBTZXAgMTcgMDA6MDA6MDAgMjAwMQ0KPiBGcm9tOiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZl
-cm1hQGludGVsLmNvbT4NCj4gRGF0ZTogVHVlLCAyNiBKdWwgMjAxNiAxNDo1NDozOSAtMDYwMA0K
-PiBTdWJqZWN0OiBbUEFUQ0hdIG52ZGltbSwgYnR0OiBhZGQgYSBzaXplIGF0dHJpYnV0ZSBmb3Ig
-QlRUcw0KPiANCj4gVG8gYmUgY29uc2lzdGVudCB3aXRoIG90aGVyIG5hbWVzcGFjZXMsIGV4cG9z
-ZSBhICdzaXplJyBhdHRyaWJ1dGUgZm9yDQo+IEJUVCBkZXZpY2VzIGFsc28uDQo+IA0KPiBDYzog
-RGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+IFJlcG9ydGVkLWJ5OiBM
-aW5kYSBLbmlwcGVycyA8bGluZGEua25pcHBlcnNAaHBlLmNvbT4NCj4gU2lnbmVkLW9mZi1ieTog
-VmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IC0tLQ0KPiDCoGRyaXZl
-cnMvbnZkaW1tL2J0dC5jwqDCoMKgwqDCoMKgfMKgwqAxICsNCj4gwqBkcml2ZXJzL252ZGltbS9i
-dHRfZGV2cy5jIHwgMTUgKysrKysrKysrKysrKysrDQo+IMKgZHJpdmVycy9udmRpbW0vbmQuaMKg
-wqDCoMKgwqDCoMKgfMKgwqAxICsNCj4gwqAzIGZpbGVzIGNoYW5nZWQsIDE3IGluc2VydGlvbnMo
-KykNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL252ZGltbS9idHQuYyBiL2RyaXZlcnMvbnZk
-aW1tL2J0dC5jDQo+IGluZGV4IDY4YTdjM2MuLjcxY2UwZGMgMTAwNjQ0DQo+IC0tLSBhL2RyaXZl
-cnMvbnZkaW1tL2J0dC5jDQo+ICsrKyBiL2RyaXZlcnMvbnZkaW1tL2J0dC5jDQo+IEBAIC0xMjcw
-LDYgKzEyNzAsNyBAQCBzdGF0aWMgaW50IGJ0dF9ibGtfaW5pdChzdHJ1Y3QgYnR0ICpidHQpDQo+
-IMKgCQl9DQo+IMKgCX0NCj4gwqAJc2V0X2NhcGFjaXR5KGJ0dC0+YnR0X2Rpc2ssIGJ0dC0+bmxi
-YSAqIGJ0dC0+c2VjdG9yX3NpemUgPj4NCj4gOSk7DQo+ICsJYnR0LT5uZF9idHQtPnNpemUgPSBi
-dHQtPm5sYmEgKiBidHQtPnNlY3Rvcl9zaXplOw0KDQpCbGFyZ2gsIEkgdGhpbmsgSSB3YXMgYSBi
-aXQgaGFzdHk7IEkgdGhpbmsgdGhpcyBzaG91bGQgYmU6DQoNCisJYnR0LT5uZF9idHQtPnNpemUg
-PSBidHQtPm5sYmEgKiAodTY0KWJ0dC0+c2VjdG9yX3NpemU7DQoNClJpZ2h0PyAoSSBhbHdheXMg
-Z2V0IGJpdCBieSBpbnRlZ2VyIHByb21vdGlvbiBydWxlcy4uLikNCg0KDQoNCj4gwqAJcmV2YWxp
-ZGF0ZV9kaXNrKGJ0dC0+YnR0X2Rpc2spOw0KPiDCoA0KPiDCoAlyZXR1cm4gMDsNCj4gZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvbnZkaW1tL2J0dF9kZXZzLmMgYi9kcml2ZXJzL252ZGltbS9idHRfZGV2
-cy5jDQo+IGluZGV4IDNmYTc5MTkuLmI1NGNmYzcgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbnZk
-aW1tL2J0dF9kZXZzLmMNCj4gKysrIGIvZHJpdmVycy9udmRpbW0vYnR0X2RldnMuYw0KPiBAQCAt
-MTQwLDEwICsxNDAsMjUgQEAgc3RhdGljIHNzaXplX3QgbmFtZXNwYWNlX3N0b3JlKHN0cnVjdCBk
-ZXZpY2UNCj4gKmRldiwNCj4gwqB9DQo+IMKgc3RhdGljIERFVklDRV9BVFRSX1JXKG5hbWVzcGFj
-ZSk7DQo+IMKgDQo+ICsNCj4gK3N0YXRpYyBzc2l6ZV90IHNpemVfc2hvdyhzdHJ1Y3QgZGV2aWNl
-ICpkZXYsDQo+ICsJCXN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBjaGFyICpidWYpDQo+
-ICt7DQo+ICsJc3RydWN0IG5kX2J0dCAqbmRfYnR0ID0gdG9fbmRfYnR0KGRldik7DQo+ICsJc3Np
-emVfdCByYzsNCj4gKw0KPiArCW52ZGltbV9idXNfbG9jayhkZXYpOw0KPiArCXJjID0gc3ByaW50
-ZihidWYsICIlbGx1XG4iLCBuZF9idHQtPnNpemUpOw0KPiArCW52ZGltbV9idXNfdW5sb2NrKGRl
-dik7DQo+ICsJcmV0dXJuIHJjOw0KPiArfQ0KPiArc3RhdGljIERFVklDRV9BVFRSX1JPKHNpemUp
-Ow0KPiArDQo+IMKgc3RhdGljIHN0cnVjdCBhdHRyaWJ1dGUgKm5kX2J0dF9hdHRyaWJ1dGVzW10g
-PSB7DQo+IMKgCSZkZXZfYXR0cl9zZWN0b3Jfc2l6ZS5hdHRyLA0KPiDCoAkmZGV2X2F0dHJfbmFt
-ZXNwYWNlLmF0dHIsDQo+IMKgCSZkZXZfYXR0cl91dWlkLmF0dHIsDQo+ICsJJmRldl9hdHRyX3Np
-emUuYXR0ciwNCj4gwqAJTlVMTCwNCj4gwqB9Ow0KPiDCoA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9udmRpbW0vbmQuaCBiL2RyaXZlcnMvbnZkaW1tL25kLmgNCj4gaW5kZXggNDA0NzYzOS4uODAy
-NGEwZSAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9udmRpbW0vbmQuaA0KPiArKysgYi9kcml2ZXJz
-L252ZGltbS9uZC5oDQo+IEBAIC0xNDMsNiArMTQzLDcgQEAgc3RydWN0IG5kX2J0dCB7DQo+IMKg
-CXN0cnVjdCBuZF9uYW1lc3BhY2VfY29tbW9uICpuZG5zOw0KPiDCoAlzdHJ1Y3QgYnR0ICpidHQ7
-DQo+IMKgCXVuc2lnbmVkIGxvbmcgbGJhc2l6ZTsNCj4gKwl1NjQgc2l6ZTsNCj4gwqAJdTggKnV1
-aWQ7DQo+IMKgCWludCBpZDsNCj4gwqB9OwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBs
-aXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1u
-dmRpbW0K
+On 07/26, Linda Knippers wrote:
+> My system has 4 8G NVDIMMs and I have them configured in different ways, as you can
+> see from the ndctl output:
+> 
+> $ ndctl list
+> [
+>   {
+>     "dev":"namespace3.0",
+>     "mode":"raw",
+>     "size":8589934592,
+>     "blockdev":"pmem3"
+>   },
+>   {
+>     "dev":"namespace2.0",
+>     "mode":"memory",
+>     "size":8587837440,
+>     "uuid":"2567d762-68ae-486b-a6eb-2d3ab1b9dca9",
+>     "blockdev":"pmem2"
+>   },
+>   {
+>     "dev":"namespace1.0",
+>     "mode":"sector",
+>     "uuid":"44fb474e-7db8-4438-ad95-05ecb9f2075e",
+>     "sector_size":4096,
+>     "blockdev":"pmem1s"
+>   },
+>   {
+>     "dev":"namespace0.0",
+>     "mode":"memory",
+>     "size":8453619712,
+>     "uuid":"933ed54b-5b64-47f1-8409-c88f7c846522",
+>     "blockdev":"pmem0"
+>   }
+> ]
+> 
+> The two memory namespaces have different sizes because one is --map=dev and the other is --map=mem.
+> It would be nice if the map option was displayed but my question is about the size value for the
+> btt device, or lack of one.
+> 
+> All the namespaces show a size except for the btt.  The btt only shows a sector size.  There
+> is no size value exposed by the btt sysfs information, which is probably why it's not in ndctl.
+> 
+> I know the size can be gotten from the block device but it looks like an omission here.
+> Is this a bug or a feature?
+
+Probably an omission :)
+This patch should expose a size attribute in sysfs:
+
+$ cat /sys/bus/nd/devices/btt7.0/size 
+32440320
+
+I can look at the 'ndctl list' enabling too if this looks good.
+
+8<------
+
+>From fb119bf4380d1d65d82754e581bbd41161c2100f Mon Sep 17 00:00:00 2001
+From: Vishal Verma <vishal.l.verma@intel.com>
+Date: Tue, 26 Jul 2016 14:54:39 -0600
+Subject: [PATCH] nvdimm, btt: add a size attribute for BTTs
+
+To be consistent with other namespaces, expose a 'size' attribute for
+BTT devices also.
+
+Cc: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Linda Knippers <linda.knippers@hpe.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/btt.c      |  1 +
+ drivers/nvdimm/btt_devs.c | 15 +++++++++++++++
+ drivers/nvdimm/nd.h       |  1 +
+ 3 files changed, 17 insertions(+)
+
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 68a7c3c..71ce0dc 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1270,6 +1270,7 @@ static int btt_blk_init(struct btt *btt)
+ 		}
+ 	}
+ 	set_capacity(btt->btt_disk, btt->nlba * btt->sector_size >> 9);
++	btt->nd_btt->size = btt->nlba * btt->sector_size;
+ 	revalidate_disk(btt->btt_disk);
+ 
+ 	return 0;
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index 3fa7919..b54cfc7 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -140,10 +140,25 @@ static ssize_t namespace_store(struct device *dev,
+ }
+ static DEVICE_ATTR_RW(namespace);
+ 
++
++static ssize_t size_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_btt *nd_btt = to_nd_btt(dev);
++	ssize_t rc;
++
++	nvdimm_bus_lock(dev);
++	rc = sprintf(buf, "%llu\n", nd_btt->size);
++	nvdimm_bus_unlock(dev);
++	return rc;
++}
++static DEVICE_ATTR_RO(size);
++
+ static struct attribute *nd_btt_attributes[] = {
+ 	&dev_attr_sector_size.attr,
+ 	&dev_attr_namespace.attr,
+ 	&dev_attr_uuid.attr,
++	&dev_attr_size.attr,
+ 	NULL,
+ };
+ 
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 4047639..8024a0e 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -143,6 +143,7 @@ struct nd_btt {
+ 	struct nd_namespace_common *ndns;
+ 	struct btt *btt;
+ 	unsigned long lbasize;
++	u64 size;
+ 	u8 *uuid;
+ 	int id;
+ };
+-- 
+2.7.4
+
+
+> 
+> -- ljk
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
