@@ -2,14 +2,19 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F0E281A1E21
- for <linux-nvdimm@lists.01.org>; Fri, 22 Jul 2016 05:20:45 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 936AD1A1DF4
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jul 2016 07:09:35 -0700 (PDT)
+Date: Tue, 26 Jul 2016 16:09:30 +0200
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 07/15] dax: Make cache flushing protected by entry lock
-Date: Fri, 22 Jul 2016 14:19:33 +0200
-Message-Id: <1469189981-19000-8-git-send-email-jack@suse.cz>
-In-Reply-To: <1469189981-19000-1-git-send-email-jack@suse.cz>
+Subject: Re: [PATCH 14/15] dax: Protect PTE modification on WP fault by radix
+ tree entry lock
+Message-ID: <20160726140930.GD6860@quack2.suse.cz>
 References: <1469189981-19000-1-git-send-email-jack@suse.cz>
+ <1469189981-19000-15-git-send-email-jack@suse.cz>
+ <20160725213059.GA19713@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20160725213059.GA19713@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,137 +22,43 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently, flushing of caches for DAX mappings was ignoring entry lock.
-So far this was ok (modulo a bug that a difference in entry lock could
-cause cache flushing to be mistakenly skipped) but in the following
-patches we will write-protect PTEs on cache flushing and clear dirty
-tags. For that we will need more exclusion. So do cache flushing under
-an entry lock. This allows us to remove one lock-unlock pair of
-mapping->tree_lock as a bonus.
+On Mon 25-07-16 15:30:59, Ross Zwisler wrote:
+> On Fri, Jul 22, 2016 at 02:19:40PM +0200, Jan Kara wrote:
+> > Currently PTE gets updated in wp_pfn_shared() after dax_pfn_mkwrite()
+> > has released corresponding radix tree entry lock. When we want to
+> > writeprotect PTE on cache flush, we need PTE modification to happen
+> > under radix tree entry lock to ensure consisten updates of PTE and radix
+> > tree (standard faults use page lock to ensure this consistency). So move
+> > update of PTE bit into dax_pfn_mkwrite().
+> > 
+> > Signed-off-by: Jan Kara <jack@suse.cz>
+> 
+> After applying the whole series to a v4.7 baseline I was hitting a deadlock in
+> my testing, and it bisected to this commit.  This deadlock happens in my QEMU
+> guest with generic/068, ext4 and DAX.  It reproduces 100% of the time after
+> this commit.
+> 
+> Here is the lockdep info, passed through kasan_symbolize.py:
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 66 +++++++++++++++++++++++++++++++++++++++++-----------------------
- 1 file changed, 42 insertions(+), 24 deletions(-)
+Thanks! I've checked why I didn't see this and apparently I've run last
+round of testing on the wrong branch. Drat.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index ec875683c17d..513881431be6 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -674,43 +674,63 @@ static int dax_writeback_one(struct block_device *bdev,
- 		struct address_space *mapping, pgoff_t index, void *entry)
- {
- 	struct radix_tree_root *page_tree = &mapping->page_tree;
--	int type = RADIX_DAX_TYPE(entry);
--	struct radix_tree_node *node;
- 	struct blk_dax_ctl dax;
--	void **slot;
-+	void *entry2, **slot;
- 	int ret = 0;
-+	int type;
- 
--	spin_lock_irq(&mapping->tree_lock);
- 	/*
--	 * Regular page slots are stabilized by the page lock even
--	 * without the tree itself locked.  These unlocked entries
--	 * need verification under the tree lock.
-+	 * A page got tagged dirty in DAX mapping? Something is seriously
-+	 * wrong.
- 	 */
--	if (!__radix_tree_lookup(page_tree, index, &node, &slot))
--		goto unlock;
--	if (*slot != entry)
--		goto unlock;
--
--	/* another fsync thread may have already written back this entry */
--	if (!radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
--		goto unlock;
-+	if (WARN_ON(!radix_tree_exceptional_entry(entry)))
-+		return -EIO;
- 
-+	spin_lock_irq(&mapping->tree_lock);
-+	entry2 = get_unlocked_mapping_entry(mapping, index, &slot);
-+	/* Entry got punched out / reallocated? */
-+	if (!entry2 || !radix_tree_exceptional_entry(entry2))
-+		goto put_unlock;
-+	/*
-+	 * Entry got reallocated elsewhere? No need to writeback. We have to
-+	 * compare sectors as we must not bail out due to difference in lockbit
-+	 * or entry type.
-+	 */
-+	if (RADIX_DAX_SECTOR(entry2) != RADIX_DAX_SECTOR(entry))
-+		goto put_unlock;
-+	type = RADIX_DAX_TYPE(entry2);
- 	if (WARN_ON_ONCE(type != RADIX_DAX_PTE && type != RADIX_DAX_PMD)) {
- 		ret = -EIO;
--		goto unlock;
-+		goto put_unlock;
- 	}
- 
-+	/* Another fsync thread may have already written back this entry */
-+	if (!radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
-+		goto put_unlock;
-+	/* Lock the entry to serialize with page faults */
-+	entry = lock_slot(mapping, slot);
-+	/*
-+	 * We can clear the tag now but we have to be careful so that concurrent
-+	 * dax_writeback_one() calls for the same index cannot finish before we
-+	 * actually flush the caches. This is achieved as the calls will look
-+	 * at the entry only under tree_lock and once they do that they will
-+	 * see the entry locked and wait for it to unlock.
-+	 */
-+	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
-+	spin_unlock_irq(&mapping->tree_lock);
-+
- 	dax.sector = RADIX_DAX_SECTOR(entry);
- 	dax.size = (type == RADIX_DAX_PMD ? PMD_SIZE : PAGE_SIZE);
--	spin_unlock_irq(&mapping->tree_lock);
- 
- 	/*
- 	 * We cannot hold tree_lock while calling dax_map_atomic() because it
- 	 * eventually calls cond_resched().
- 	 */
- 	ret = dax_map_atomic(bdev, &dax);
--	if (ret < 0)
-+	if (ret < 0) {
-+		put_locked_mapping_entry(mapping, index, entry);
- 		return ret;
-+	}
- 
- 	if (WARN_ON_ONCE(ret < dax.size)) {
- 		ret = -EIO;
-@@ -718,15 +738,13 @@ static int dax_writeback_one(struct block_device *bdev,
- 	}
- 
- 	wb_cache_pmem(dax.addr, dax.size);
--
--	spin_lock_irq(&mapping->tree_lock);
--	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
--	spin_unlock_irq(&mapping->tree_lock);
-- unmap:
-+unmap:
- 	dax_unmap_atomic(bdev, &dax);
-+	put_locked_mapping_entry(mapping, index, entry);
- 	return ret;
- 
-- unlock:
-+put_unlock:
-+	put_unlocked_mapping_entry(mapping, index, entry2);
- 	spin_unlock_irq(&mapping->tree_lock);
- 	return ret;
- }
+I've fixed the bug you've spotted (we need to release tree_lock earlier)
+but xfstests are triggering some more issues now for me so I'm debugging
+those.
+
+								Honza
 -- 
-2.6.6
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
