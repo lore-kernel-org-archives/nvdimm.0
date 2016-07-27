@@ -1,10 +1,9 @@
-From: "Synergise PCB Inc" <server-5lVA0JJAlbpKh46wYiaRVA@public.gmane.org>
-Subject: COMPARE YOUR CURRENT PCB SUPPLIERS WITH OUR PCB PROMOTION
-Date: Mon, 25 Jul 2016 22:45:08 +0200
-Message-ID: <a604967925bc3f47d70cbd80e1893dd8@powersmtp.ml>
-Reply-To: server-5lVA0JJAlbpKh46wYiaRVA@public.gmane.org
+From: "Mail Administrator" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Mail System Error - Returned Mail
+Date: Wed, 27 Jul 2016 12:16:58 +0530
+Message-ID: <20160727064704.9A1EE1A1E0A@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -16,13 +15,25 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Your email client cannot read this email.
-To view it online, please go here:
-http://powersmtp.ml/display.php?M=425306&C=441e841e1576fee36b24f4a1d7efa3b9&S=14&L=12&N=1
+The message was not delivered due to the following reason:
 
+Your message was not delivered because the destination server was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
-To stop receiving these
-emails:http://powersmtp.ml/unsubscribe.php?M=425306&C=441e841e1576fee36b24f4a1d7efa3b9&L=12&N=14
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
+
+Your message was not delivered within 5 days:
+Host 17.219.175.38 is not responding.
+
+The following recipients could not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+if you feel this message to be in error.
