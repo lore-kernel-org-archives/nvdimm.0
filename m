@@ -1,20 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oi0-x22a.google.com (mail-oi0-x22a.google.com
+ [IPv6:2607:f8b0:4003:c06::22a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B5CFA1A1E2C
- for <linux-nvdimm@lists.01.org>; Fri, 29 Jul 2016 04:55:41 -0700 (PDT)
-Date: Fri, 29 Jul 2016 13:55:38 +0200
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: HPE SMART data retreival
-Message-ID: <20160729115538.hkhywboarkmzb6ti@c203.arch.suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id EFADD1A1E26
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Jul 2016 12:57:35 -0700 (PDT)
+Received: by mail-oi0-x22a.google.com with SMTP id j185so78008839oih.0
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Jul 2016 12:57:35 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <7096cc8e-f49b-5900-5ffd-a4633e827c62@hpe.com>
 References: <20160727103505.ovq7jz4553s7kc42@c203.arch.suse.de>
  <a3a59c82-ccbb-75ac-ee21-12c58ac51d39@hpe.com>
  <20160728094518.cqtaavikkrzqnf7k@c203.arch.suse.de>
  <92aa03b2-326d-a932-90df-36cae9b11ecc@hpe.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <92aa03b2-326d-a932-90df-36cae9b11ecc@hpe.com>
+ <CAPcyv4iuz-KbZ_cQ6R7nueyXYsiA43zwWqTX0JCJuYaqAr9+bQ@mail.gmail.com>
+ <7096cc8e-f49b-5900-5ffd-a4633e827c62@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 28 Jul 2016 12:57:34 -0700
+Message-ID: <CAPcyv4ioWKYafQ7cgPK5hvhtFHKabM9G9Q6gpunaUfce2fY6Vw@mail.gmail.com>
+Subject: Re: HPE SMART data retreival
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,198 +26,104 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Linda Knippers <linda.knippers@hpe.com>
-Cc: linux-nvdimm@lists.01.org
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jul 28, 2016 at 01:43:17PM -0400, Linda Knippers wrote:
+On Thu, Jul 28, 2016 at 11:46 AM, Linda Knippers <linda.knippers@hpe.com> wrote:
+>
+>
+> On 7/28/2016 2:20 PM, Dan Williams wrote:
+>> On Thu, Jul 28, 2016 at 10:43 AM, Linda Knippers <linda.knippers@hpe.com> wrote:
+>>>
+>>>
+>>> On 7/28/2016 5:45 AM, Johannes Thumshirn wrote:
+>>>> On Wed, Jul 27, 2016 at 02:23:51PM -0400, Linda Knippers wrote:
+>>>>> Hi Johannes,
+>>>>>
+>>>>> I hope Dan and Jerry also reply but I have recently started looking at
+>>>>> this too and have some comments below.
+>>>>
+>>>> So if we two are looking into it we might want to work together so we don't do
+>>>> all the work twice.
+>>>
+>>> Definitely!
+>>>
+>>>> I've pasted my current work to export HPE DIMM commands at the bottom of the
+>>>> mail, but I don't like it very much (see below for a proposal of a more
+>>>> elegant way).
+>>>>
+>>>>>
+>>>>> On 7/27/2016 6:35 AM, Johannes Thumshirn wrote:
+>>>>>> Hi Dan and Jerry,
+>>>>>>
+>>>>>> I'm currently looking into SMART data retrieval on HPE NVDIMMs.
+>>>>>>
+>>>>>> After the first obstacle (like getting cat
+>>>>>> /sys/class/nd/ndctl0/device/nmem0/commands reutrn smart so ndctl will issue
+>>>>>> the ioctl) I ran into a rather nasty problem. According to [1] HPEDIMMs
+>>>>>> need the input buffer specially crafted for SMART data, according to [2]
+>>>>>> Intel DIMMs don't.
+>>>>>
+>>>>> It is unfortunate that the DSM functions are different for different NVDIMM
+>>>>>
+>>>>> types.  There is a desire for standardization but for now this is what we have.
+>>>>
+>>>> Sure, let's see what we can come up with to "fix" the situation.
+>>>>
+>>>> I had a quick chat here internally at SUSE and one suggestion was to create
+>>>> something, let's call it "filter drivers", to support different DSMs for
+>>>> different NVDIMM families. I actually like the idea and if no-one objects I'll
+>>>> try to implement some kind of prototype for the "filter drivers".
+>>>
+>>> I think a question we need to answer is what should be in the kernel vs. in user
+>>> space and what the interface between the two should look like.  The kernel
+>>> doesn't necessarily need to know that function 1 returns health information
+>>> and function 2 returns threshold information unless it needs the information
+>>> itself.  I think the intent of cmd_call was just as a pass-through mechanism
+>>> to keep from adding more code into the kernel.  We could create ndctl functions
+>>> instead.  I know this is different from how the original Intel DSM functions
+>>> are implemented but that could be considered legacy code to support existing
+>>> applications at this point.
+>>>
+>>> For history, the first discussions about this approach were on the nvdimm
+>>> list back in November and it went from there.
+>>> https://lists.01.org/pipermail/linux-nvdimm/2015-November/002721.html
+>>>
+>>
+>> To me, the cmd_call mechanism is useful for commands that libnvdimm
+>> does not and may never care about.  For the generally useful commands
+>> that the kernel needs to be involved with I'd like to define a common
+>> kernel command set and do in-kernel translation across the
+>> different-for-difference sake implementations.
+>
+> I don't think any of them are different-for-different sake.
+>
+> No one has time for busy work.
+>
+>
+>
+> It takes a lot of work and collaboration to standardize these things
+>
+> and so far, we're still not even through the potential root device functions.
+>
+> Standardizing functions across different device types with different
+>
+> characteristics is even harder.
 
-[...]
+I understand that it is hard, we are where we are due to expediency,
+and Linux now supports all the known first generation command sets.
+The "different for difference sake" comment was made with my Linux hat
+on where I see the kernel supporting the _INTEL and _HPE2 command sets
+which are frustratingly similar.
 
-> > +acpi_nfit_decode_dsm_mask_from_hpe2(unsigned long dsm_mask)
-> > +{
-> > +	unsigned long cmd_mask =3D 0;
-> > +
-> > +	if (test_bit(1, &dsm_mask))
-> > +		set_bit(ND_CMD_SMART, &dsm_mask);
-> > +	if (test_bit(2, &dsm_mask))
-> > +		set_bit(ND_CMD_SMART_THRESHOLD, &dsm_mask);
-> > +	if (test_bit(4, &dsm_mask))
-> > +		set_bit(ND_CMD_DIMM_FLAGS, &dsm_mask);
-> > +	if (test_bit(6, &dsm_mask))
-> > +		set_bit(ND_CMD_VENDOR_EFFECT_LOG_SIZE, &dsm_mask);
-> > +	if (test_bit(7, &dsm_mask))
-> > +		set_bit(ND_CMD_VENDOR_EFFECT_LOG, &dsm_mask);
-> > +	if (test_bit(8, &dsm_mask))
-> > +		set_bit(ND_CMD_VENDOR, &dsm_mask);
-> > +
-> =
-
-> You're actually setting dsm_mask, not cmd_mask above.
-
-*duh* good catch.
-
-> =
-
-> I'm not sure I see the value of re-using the ND_CMD_* values that are
-> defined for the Intel DSM where they happen to be the same as for other
-> DSM vs. just defining a new set of values that match each DSM implementat=
-ion.
-> =
-
-> Or are you trying to map ND_CMD_SMART from user space into the function
-> number that implements that command for the particular DSM?
-> =
-
-> I think the only way to hid the implementation differences, including
-> the function differences, from user space would be to define generic
-> functions with generic output buffers that can represent all of the
-> data returned by any of the DSMs in a standard format.
-> =
-
-
-I'd like to go down the "map what can be mapped and create new commands
-for things we don't have yet" road. And yes I've been looking into the
-Microsoft DSM spec just to discover they define 31 methods and I'm not
-sure if we can map them. This is why I wrote the patches in a "draw on the
-whiteboard" style so you and Dan can comment early enough.
-
-> > +	return cmd_mask;
-> > +}
-> > +
-> > +static unsigned long (*decoder_funcs[])(unsigned long dsm_mask) =3D {
-> > +	[NVDIMM_FAMILY_INTEL] =3D acpi_nfit_decode_dsm_mask_from_intel,
-> > +	[NVDIMM_FAMILY_HPE1] =3D acpi_nfit_decode_dsm_mask_from_hpe1,
-> > +	[NVDIMM_FAMILY_HPE2] =3D acpi_nfit_decode_dsm_mask_from_hpe2,
-> =
-
-> I think Dan just pushed the code for yet another family.
-> =
-
-
-Yes I know, but my development tree doesn't have it merged yet.
-
-Anyways, how about this approach (for NFIT_FAMILY_HPE1, NFIT_FAMILY_INTEL a=
-lso
-started)?
-
-I think this is the way we should go to a) handle pre-standard differences =
-in
-the kernel and b) don't end up with massively bloated object files as that
-have code for multiple DSM specs all in one file.
-
-/*
- * Copyright(c) 2016 SUSE Linux GmbH. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
-#include <linux/module.h>
-#include <linux/acpi.h>
-#include <linux/nvdimm.h>
-
-#include "dsm_filter.h"
-
-
-static int
-nfit_hpe1_acpi_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nv=
-dimm,
-		   unsigned int cmd, void *buf, unsigned int buf_len,
-		   int *cmd_rc)
-{
-	/* do magic here */
-}
-
-static unsigned long nfit_hpe1_get_command_mask(unsigned long dsm_mask)
-{
-	unsigned long cmd_mask =3D 0;
-
-	if (test_bit(1, &dsm_mask))
-		set_bit(ND_CMD_SMART, &cmd_mask);
-	if (test_bit(2, &dsm_mask))
-		set_bit(ND_CMD_SMART_THRESHOLD, &cmd_mask);
-
-	return cmd_mask;
-}
-
-static nfit_dsm_ops hpe1_dsm_ops =3D {
-	.get_command_mask =3D nfit_hpe1_get_command_mask,
-	.acpi_nfit_ctl =3D nfit_hpe1_acpi_ctl,
-};
-
-static in nfit_hpe1_probe(struct nfit_dsm_device *ddev, const u8 *uuid)
-{
-	return 0;
-}
-
-static void nfit_hpe1_remove(struct nfit_dsm_device *ddev)
-{
-	return;
-}
-
-static u8 *nfit_hpe1_uuids[16] =3D {
-	"9002c334-acf3-4c0e-9642-a235f0d53bc6",
-	0,
-};
-MODULE_DEVICE_TABLE(nfit_dsm, nfit_hpe1_uuids);
-
-static struct nfit_dsm_driver hpe1_dsm_driver =3D {
-	.driver =3D {
-		.name =3D "nfit_dsm_hpe1",
-		.owner =3D THIS_MODULE,
-	},
-	.probe =3D nfit_hpe1_probe,
-	.remove =3D nfit_hpe1_remove,
-	.uuids =3D nfit_hpe1_uuids,
-};
-
-static int __init nfit_dsm_hpe1_init(void)
-{
-	return nfit_register_dsm_filter(&hpe1_dsm_driver);
-}
-module_init(nfit_dsm_hpe1_init);
-
-static void __exit nfit_dsm_hpe1_exit(void)
-{
-	nfit_unregister_dsm_filter(&hpe1_dsm_driver);
-}
-module_exit(nfit_dsm_hpe1_exit);
-
-MODULE_LICENSE("GPL v2");
-MODULE_AUTHOR("Johannes Thumshirn <jthumshirn@suse.de>");
-MODULE_DESCRIPTION("NFIT DSM filter driver for HPE Type 1 NVDIMMs");
-
-What's missing in here is a) the glue code to drivers/acpi/nfit.c and b) the
-implementations of HPE1 DSMs.
-
-Once I have these two I'll post a RFC patch series to the ML, but in the
-meanwhile I'm already open to comments.
-
-The glue code to nfit will be a bus so we have all the nice and shiny .prob=
-e()
-.remove() .uevent() and what not.
-
-Thanks,
-	Johannes
-
--- =
-
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
-HRB 21284 (AG N=FCrnberg)
-Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+Linux has always been a vehicle for discovering and refactoring
+commonality across vendors.  We can use a common Linux command format
+to inform the standardization discussion going forward.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
