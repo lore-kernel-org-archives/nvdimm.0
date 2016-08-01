@@ -1,23 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-wm0-x22c.google.com (mail-wm0-x22c.google.com
- [IPv6:2a00:1450:400c:c09::22c])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A3BAB1A1E11
- for <linux-nvdimm@lists.01.org>; Mon,  1 Aug 2016 03:13:49 -0700 (PDT)
-Received: by mail-wm0-x22c.google.com with SMTP id p129so52458301wmp.0
- for <linux-nvdimm@lists.01.org>; Mon, 01 Aug 2016 03:13:49 -0700 (PDT)
-Message-ID: <579F20D9.80107@plexistor.com>
-Date: Mon, 01 Aug 2016 13:13:45 +0300
-From: Boaz Harrosh <boaz@plexistor.com>
-MIME-Version: 1.0
+Received: from ipmail04.adl6.internode.on.net (ipmail04.adl6.internode.on.net
+ [150.101.137.141]) by ml01.01.org (Postfix) with ESMTP id E4D0F1A1E11
+ for <linux-nvdimm@lists.01.org>; Mon,  1 Aug 2016 00:39:09 -0700 (PDT)
+Date: Mon, 1 Aug 2016 17:39:06 +1000
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: Subtle races between DAX mmap fault and write path
-References: <20160727120745.GI6860@quack2.suse.cz>
- <20160727211039.GA20278@linux.intel.com> <20160727221949.GU16044@dastard>
- <20160728081033.GC4094@quack2.suse.cz> <20160729022152.GZ16044@dastard>
+Message-ID: <20160801073906.GK16044@dastard>
+References: <20160727221949.GU16044@dastard>
+ <20160728081033.GC4094@quack2.suse.cz>
+ <20160729022152.GZ16044@dastard>
  <CAPcyv4gOcDGzikJHYGxNXtYqQKkPUgkG+z4ASxogQUnp1zmD2g@mail.gmail.com>
  <20160730001249.GE16044@dastard>
-In-Reply-To: <20160730001249.GE16044@dastard>
+ <CAPcyv4gLTkx4ne7pWuMSqfFpLoOBx=TowvcWXw9UGUxn=jd-Tg@mail.gmail.com>
+ <20160801014645.GI16044@dastard> <86k2g15gh8.fsf@hiro.keithp.com>
+ <20160801040737.GJ16044@dastard>
+ <CAPcyv4jN5OvbPMA07w0vjBCBrGH-j2YsCjfvB3b6S6JJ_zUA=Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4jN5OvbPMA07w0vjBCBrGH-j2YsCjfvB3b6S6JJ_zUA=Q@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,68 +29,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Chinner <david@fromorbit.com>, Dan Williams <dan.j.williams@intel.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>, XFS Developers <xfs@oss.sgi.com>, Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, XFS Developers <xfs@oss.sgi.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 07/30/2016 03:12 AM, Dave Chinner wrote:
-<>
+On Sun, Jul 31, 2016 at 09:39:38PM -0700, Dan Williams wrote:
+> On Sun, Jul 31, 2016 at 9:07 PM, Dave Chinner <david@fromorbit.com> wrote:
+> > OTOH, DAX directly exposes the physical layout to the filesytem.
+> > And because it's DAX-based pmem and not cached struct pages, we
+> > can't run vm_map_ram() to virtually map the range we need to see as
+> > a contiguous range, as we do in XFS for large objects such as directory
+> > blocks and log buffers. For other large objects such as inode
+> > clusters, we can directly map each page as the objects within the
+> > clusters are page aligned and never overlap page boundaries, but
+> > that only works for inode and dquot buffers. Hence DAX as it stands
+> > makes it extremely difficult to "retrofit" DAX into all aspects of
+> > existing fileystems because exposing physical discontiguities breaks
+> > code that assumes they don't exist.
 > 
-> If we track the dirty blocks from write in the radix tree like we
-> for mmap, then we can just use a normal memcpy() in dax_do_io(),
-> getting rid of the slow cache bypass that is currently run. Radix
-> tree updates are much less expensive than a slow memcpy of large
-> amounts of data, ad fsync can then take care of persistence, just
-> like we do for mmap.
-> 
+> On this specific point about page remapping, the administrator can
+> configure struct pages for pmem and you can detect whether they are
+> present in the filesystem with pfn_t_has_page().  I.e. you could
+> require pages be present for XFS, if that helps...
 
-No! 
+It's kinda silly to require struct pages for the entire pmem device
+if they are only needed for accessing a (comparitively) small amount
+of metadata.
 
-mov_nt instructions, That "slow cache bypass that is currently run" above
-is actually faster then cached writes by 20%, and if you add the dirty
-tracking and cl_flush instructions it becomes x2 slower in the most
-optimal case and 3 times slower in the DAX case.
+Besides, now that I look at it more deeply, we can't use virtually
+mapped pmem for the log buffers.  We can't allocate memory at the
+point in time where we work out what LBA in the log we need to map
+to physical pmem for the current log write.  Hence calls to
+vm_map_ram() can't be used, and so that rules out using mapped page
+based pmem for log buffers.
 
-The network guys have noticed the mov_nt instructions superior performance
-for years before we pushed DAX into the tree. look for users of copy_from_iter_nocache
-and the comments when they where introduced, those where used before DAX, and
-nothing at all to do with persistence.
+I'll probably have to rewrite the xlog_write() engine completely to
+be able to handle discontiguous pages in the iclog buffers before we
+can consider mapping them via DAX now, and I'm really not sure it's
+worth the effort. I'd much prefer to spend time designing a native
+pmem filesystem....
 
-So what you are suggesting is fine only 3 times slower in the current
-implementation.
+Cheers,
 
-> We should just make the design assumption that all persistent memory
-> is volatile, track where we dirty it in all paths, and use the
-> fastest volatile memcpy primitives available to us in the IO path.
-
-The "fastest volatile memcpy primitives available" is what we do
-today with the mov_nt instructions.
-
-> We'll end up with a faster fastpath that if we use CPU cache bypass
-> copies, dax_do_io() and mmap will be coherent and synchronised, and
-> fsync() will have the same requirements and overhead regardless of
-> the way the application modifies the pmem or the hardware platform
-> used to implement the pmem.
-> 
-
-I measured, there is tests running in our labs every night, your
-suggestion on an ADR system is 3 times slower to reach persistence.
-
-Is why I was pushing for MMAP_PMEM_AWARE, because a smart mmap application
-from user-mode uses mov_nt anyway because it wants that 20% gain regardless
-of what the Kernel will do. Then it calls fsync() and the Kernel will burn
-x2 more CPU, just for the sake of burning CPU, because the data is already
-persistent at the get go.
-
-> Cheers,
-> Dave.
-
-As you, I do not care for DAX very much, but please lets keep the physical
-facts strait
-
-Cheers indeed
-Boaz
-
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
