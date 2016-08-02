@@ -1,12 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id EB7D31A1DEB
- for <linux-nvdimm@lists.01.org>; Thu, 11 Aug 2016 18:24:23 -0700 (PDT)
-Subject: [PATCH] libnvdimm: fix SMART Health DSM payload definition
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 11 Aug 2016 18:22:00 -0700
-Message-ID: <147096479825.21179.13980044056080259548.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mail-oi0-x231.google.com (mail-oi0-x231.google.com
+ [IPv6:2607:f8b0:4003:c06::231])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id D24CE1A1E51
+ for <linux-nvdimm@lists.01.org>; Mon,  1 Aug 2016 17:16:53 -0700 (PDT)
+Received: by mail-oi0-x231.google.com with SMTP id l65so215034085oib.1
+ for <linux-nvdimm@lists.01.org>; Mon, 01 Aug 2016 17:16:53 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <4bd310fe-68c2-4a2d-86ec-cf4b34ff179c@hpe.com>
+References: <20160727103505.ovq7jz4553s7kc42@c203.arch.suse.de>
+ <a3a59c82-ccbb-75ac-ee21-12c58ac51d39@hpe.com>
+ <20160728094518.cqtaavikkrzqnf7k@c203.arch.suse.de>
+ <92aa03b2-326d-a932-90df-36cae9b11ecc@hpe.com>
+ <20160729115538.hkhywboarkmzb6ti@c203.arch.suse.de>
+ <de71bb80-d0be-d5b7-39ed-dd24f53cc2e9@hpe.com>
+ <CAPcyv4ipJvm4jtH9ZhvDuPW00-ing-uutN0kLc9JNN1aXgsFJQ@mail.gmail.com>
+ <4bd310fe-68c2-4a2d-86ec-cf4b34ff179c@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 1 Aug 2016 17:16:52 -0700
+Message-ID: <CAPcyv4jnukf+x1NUuj3qJ8En35VRD63y_gxgZOtL_2ki=vpaCQ@mail.gmail.com>
+Subject: Re: HPE SMART data retreival
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,87 +32,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Linda Knippers <linda.knippers@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-"NVDIMM DSM Interface Example" v1.2 made an incompatible change to the
-layout of function1 "SMART and Health Info".  While the kernel does not
-directly consume this payload, it does define it in ndctl.h that
-userpace utilities consume.
+On Mon, Aug 1, 2016 at 3:51 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+> I don't think having multiple modules means there have to be multiple
+> management models, it just allows for multiple management implementations.
+> ACPI is all about abstracting differences.
 
-Reported-by: Brian Boylston <brian.boylston@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-
-Note, there's no urgency to get this into the kernel since the only
-consumer of it is userspace [1], and it can update in advance of this
-patch being merged upstream in v4.9.
-
-[1]: github.com/pmem/ndctl
-
- include/uapi/linux/ndctl.h |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
-
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index ba5a8c79652a..ede5c6a62164 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -21,14 +21,16 @@ struct nd_cmd_smart {
- } __packed;
- 
- #define ND_SMART_HEALTH_VALID	(1 << 0)
--#define ND_SMART_TEMP_VALID 	(1 << 1)
--#define ND_SMART_SPARES_VALID	(1 << 2)
--#define ND_SMART_ALARM_VALID	(1 << 3)
--#define ND_SMART_USED_VALID	(1 << 4)
--#define ND_SMART_SHUTDOWN_VALID	(1 << 5)
--#define ND_SMART_VENDOR_VALID	(1 << 6)
--#define ND_SMART_TEMP_TRIP	(1 << 0)
--#define ND_SMART_SPARE_TRIP	(1 << 1)
-+#define ND_SMART_SPARES_VALID	(1 << 1)
-+#define ND_SMART_USED_VALID	(1 << 2)
-+#define ND_SMART_TEMP_VALID 	(1 << 3)
-+#define ND_SMART_CTEMP_VALID 	(1 << 4)
-+#define ND_SMART_ALARM_VALID	(1 << 9)
-+#define ND_SMART_SHUTDOWN_VALID	(1 << 10)
-+#define ND_SMART_VENDOR_VALID	(1 << 11)
-+#define ND_SMART_SPARE_TRIP	(1 << 0)
-+#define ND_SMART_TEMP_TRIP	(1 << 1)
-+#define ND_SMART_CTEMP_TRIP	(1 << 2)
- #define ND_SMART_NON_CRITICAL_HEALTH	(1 << 0)
- #define ND_SMART_CRITICAL_HEALTH	(1 << 1)
- #define ND_SMART_FATAL_HEALTH		(1 << 2)
-@@ -37,14 +39,15 @@ struct nd_smart_payload {
- 	__u32 flags;
- 	__u8 reserved0[4];
- 	__u8 health;
--	__u16 temperature;
- 	__u8 spares;
--	__u8 alarm_flags;
- 	__u8 life_used;
-+	__u8 alarm_flags;
-+	__u16 temperature;
-+	__u16 ctrl_temperature;
-+	__u8 reserved1[15];
- 	__u8 shutdown_state;
--	__u8 reserved1;
- 	__u32 vendor_size;
--	__u8 vendor_data[108];
-+	__u8 vendor_data[92];
- } __packed;
- 
- struct nd_cmd_smart_threshold {
-@@ -53,7 +56,8 @@ struct nd_cmd_smart_threshold {
- } __packed;
- 
- struct nd_smart_threshold_payload {
--	__u16 alarm_control;
-+	__u8 alarm_control;
-+	__u8 reserved0;
- 	__u16 temperature;
- 	__u8 spares;
- 	__u8 reserved[3];
-
+ACPI is also about vendors talking to each other to minimize divergence.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
