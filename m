@@ -1,25 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM01-SN1-obe.outbound.protection.outlook.com
- (mail-sn1nam01on070a.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe40::70a])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 843371A1DFE
- for <linux-nvdimm@lists.01.org>; Thu,  4 Aug 2016 11:40:45 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Received: from ipmail04.adl6.internode.on.net (ipmail04.adl6.internode.on.net
+ [150.101.137.141]) by ml01.01.org (Postfix) with ESMTP id 143C01A1E58
+ for <linux-nvdimm@lists.01.org>; Mon,  1 Aug 2016 17:29:44 -0700 (PDT)
+Date: Tue, 2 Aug 2016 10:21:44 +1000
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: Subtle races between DAX mmap fault and write path
-Date: Thu, 4 Aug 2016 18:40:42 +0000
-Message-ID: <1470335997.8908.128.camel@hpe.com>
+Message-ID: <20160802002144.GL16044@dastard>
 References: <20160727120745.GI6860@quack2.suse.cz>
- <20160727211039.GA20278@linux.intel.com> <20160727221949.GU16044@dastard>
- <20160728081033.GC4094@quack2.suse.cz> <20160729022152.GZ16044@dastard>
+ <20160727211039.GA20278@linux.intel.com>
+ <20160727221949.GU16044@dastard>
+ <20160728081033.GC4094@quack2.suse.cz>
+ <20160729022152.GZ16044@dastard>
  <CAPcyv4gOcDGzikJHYGxNXtYqQKkPUgkG+z4ASxogQUnp1zmD2g@mail.gmail.com>
  <20160730001249.GE16044@dastard> <579F20D9.80107@plexistor.com>
- <20160802002144.GL16044@dastard>
-In-Reply-To: <20160802002144.GL16044@dastard>
-Content-Language: en-US
-Content-ID: <E38C7A131EA18342B740CA18083E487C@NAMPRD84.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <579F20D9.80107@plexistor.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,134 +23,172 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "david@fromorbit.com" <david@fromorbit.com>, "boaz@plexistor.com" <boaz@plexistor.com>
-Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Boaz Harrosh <boaz@plexistor.com>
+Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, XFS Developers <xfs@oss.sgi.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE2LTA4LTAyIGF0IDEwOjIxICsxMDAwLCBEYXZlIENoaW5uZXIgd3JvdGU6DQo+
-IE9uIE1vbiwgQXVnIDAxLCAyMDE2IGF0IDAxOjEzOjQ1UE0gKzAzMDAsIEJvYXogSGFycm9zaCB3
-cm90ZToNCj4gPiANCj4gPiBPbiAwNy8zMC8yMDE2IDAzOjEyIEFNLCBEYXZlIENoaW5uZXIgd3Jv
-dGU6DQo+ID4gPD4NCj4gPiA+IElmIHdlIHRyYWNrIHRoZSBkaXJ0eSBibG9ja3MgZnJvbSB3cml0
-ZSBpbiB0aGUgcmFkaXggdHJlZSBsaWtlIHdlDQo+ID4gPiBmb3IgbW1hcCwgdGhlbiB3ZSBjYW4g
-anVzdCB1c2UgYSBub3JtYWwgbWVtY3B5KCkgaW4gZGF4X2RvX2lvKCksDQo+ID4gPiBnZXR0aW5n
-IHJpZCBvZiB0aGUgc2xvdyBjYWNoZSBieXBhc3MgdGhhdCBpcyBjdXJyZW50bHkgcnVuLiBSYWRp
-eA0KPiA+ID4gdHJlZSB1cGRhdGVzIGFyZSBtdWNoIGxlc3MgZXhwZW5zaXZlIHRoYW4gYSBzbG93
-IG1lbWNweSBvZiBsYXJnZQ0KPiA+ID4gYW1vdW50cyBvZiBkYXRhLCBhZCBmc3luYyBjYW4gdGhl
-biB0YWtlIGNhcmUgb2YgcGVyc2lzdGVuY2UsIGp1c3QNCj4gPiA+IGxpa2Ugd2UgZG8gZm9yIG1t
-YXAuDQo+ID4gPiANCj4gPg0KPiA+IE5vIcKgDQo+ID4gDQo+ID4gbW92X250IGluc3RydWN0aW9u
-cywgVGhhdCAic2xvdyBjYWNoZSBieXBhc3MgdGhhdCBpcyBjdXJyZW50bHkgcnVuIiBhYm92ZQ0K
-PiA+IGlzIGFjdHVhbGx5IGZhc3RlciB0aGVuIGNhY2hlZCB3cml0ZXMgYnkgMjAlLCBhbmQgaWYg
-eW91IGFkZCB0aGUgZGlydHkNCj4gPiB0cmFja2luZyBhbmQgY2xfZmx1c2ggaW5zdHJ1Y3Rpb25z
-IGl0IGJlY29tZXMgeDIgc2xvd2VyIGluIHRoZSBtb3N0DQo+ID4gb3B0aW1hbCBjYXNlIGFuZCAz
-IHRpbWVzIHNsb3dlciBpbiB0aGUgREFYIGNhc2UuDQo+DQo+IElPV3MsIHdlJ2QgZXhwZWN0IHdy
-aXRpbmcgdG8gYSBmaWxlIHdpdGggREFYIHRvIGJlIGZhc3RlciB0aGFuIHdoZW4NCj4gYnVmZmVy
-ZWQgdGhyb3VnaCB0aGUgcGFnZSBjYWNoZSBhbmQgZnN5bmMoKWQsIHJpZ2h0Pw0KPg0KPiBUaGUg
-bnVtYmVycyBJIGdldCBzYXkgb3RoZXJ3aXNlLiBGaWxlc3lzdGVtIG9uIDhHQiBwbWVtIGJsb2Nr
-IGRldmljZToNCj4gDQo+ICQgc3VkbyBta2ZzLnhmcyAtZiAvZGV2L3BtZW0xDQo+IG1ldGEtZGF0
-YT0vZGV2L3BtZW0xwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBpc2l6ZT01MTLCoMKgwqDCoGFn
-Y291bnQ9NCwgYWdzaXplPTUyNDI4OCBibGtzDQo+IMKgwqDCoMKgwqDCoMKgwqDCoD3CoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgc2VjdHN6PTQwOTbCoMKgYXR0
-cj0yLCBwcm9qaWQzMmJpdD0xDQo+IMKgwqDCoMKgwqDCoMKgwqDCoD3CoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgY3JjPTHCoMKgwqDCoMKgwqDCoMKgZmlub2J0
-PTEsIHNwYXJzZT0wLCBybWFwYnQ9MCwNCj4gcmVmbGluaz0wDQo+IGRhdGHCoMKgwqDCoMKgPcKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBic2l6ZT00MDk2wqDC
-oMKgYmxvY2tzPTIwOTcxNTIsIGltYXhwY3Q9MjUNCj4gwqDCoMKgwqDCoMKgwqDCoMKgPcKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBzdW5pdD0wwqDCoMKgwqDC
-oMKgc3dpZHRoPTAgYmxrcw0KPiBuYW1pbmfCoMKgwqA9dmVyc2lvbiAywqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoGJzaXplPTQwOTbCoMKgwqBhc2NpaS1jaT0wIGZ0eXBlPTENCj4gbG9nwqDC
-oMKgwqDCoMKgPWludGVybmFsIGxvZ8KgwqDCoMKgwqDCoMKgwqDCoMKgwqBic2l6ZT00MDk2wqDC
-oMKgYmxvY2tzPTI1NjAsIHZlcnNpb249Mg0KPiDCoMKgwqDCoMKgwqDCoMKgwqA9wqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHNlY3Rzej00MDk2wqDCoHN1bml0
-PTEgYmxrcywgbGF6eS1jb3VudD0xDQo+IHJlYWx0aW1lID1ub25lwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqBleHRzej00MDk2wqDCoMKgYmxvY2tzPTAsIHJ0ZXh0ZW50cz0w
-DQo+IA0KPiBUZXN0IGNvbW1hbmQgdGhhdCB3cml0ZXMgMUdCIHRvIHRoZSBmaWxlc3lzdGVtOg0K
-PiANCj4gJCBzdWRvIHRpbWUgeGZzX2lvIC1mIC1jICJwd3JpdGUgMCAxZyIgLWMgInN5bmMiIC9t
-bnQvc2NyYXRjaC9mb28NCj4gd3JvdGUgMTA3Mzc0MTgyNC8xMDczNzQxODI0IGJ5dGVzIGF0IG9m
-ZnNldCAwDQo+IDEgR2lCLCAyNjIxNDQgb3BzOyAwOjAwOjAxLjAwICg4ODAuMDQwIE1pQi9zZWMg
-YW5kIDIyNTI5MC4zMzE3IG9wcy9zZWMpDQo+IDAuMDJ1c2VyIDEuMTNzeXN0ZW0gMDowMi4yN2Vs
-YXBzZWQgNTElQ1BVICgwYXZndGV4dCswYXZnZGF0YQ0KPiAyMzQ0bWF4cmVzaWRlbnQpaw0KPiAw
-aW5wdXRzKzBvdXRwdXRzICgwbWFqb3IrMTA5bWlub3IpcGFnZWZhdWx0cyAwc3dhcHMNCj4gDQo+
-IFJlc3VsdHM6DQo+IA0KPiAJwqDCoMKgwqBwd3JpdGUgQi9XIChNaUIvcykJCQlydW50aW1lDQo+
-IHJ1bglubyBEQVgJCURBWAkJbm8gREFYCQlEQQ0KPiBYDQo+IMKgMQk4ODAuMDQwCQkyMzYuMzUy
-CQkyLjI3cwkJDQo+IDQuMzRzDQo+IMKgMgk4NTcuMDk0CQkyNTcuMjk3CQkyLjE4cwkJDQo+IDMu
-OTlzDQo+IMKgMwk4NjUuODIwCQkyMzYuMDg3CQkyLjEzcwkJDQo+IDQuMzRzDQo+IA0KPiBJdCBp
-cyBxdWl0ZSBjbGVhciB0aGF0ICpEQVggaXMgbXVjaCBzbG93ZXIqIHRoYW4gbm9ybWFsIGJ1ZmZl
-cmVkDQo+IElPIHRocm91Z2ggdGhlIHBhZ2UgY2FjaGUgZm9sbG93ZWQgYnkgYSBmc3luYygpLg0K
-PiANCj4gU3RvcCBhbmQgdGhpbmsgd2h5IHRoYXQgbWlnaHQgYmUuIFdlJ3JlIG9ubHkgZG9pbmcg
-b25lIGNvcHkgd2l0aA0KPiBEQVgsIHNvIHdoeSBpcyB0aGUgcHdyaXRlKCkgc3BlZWQgNHggbG93
-ZXIgdGhhbiBmb3IgYSBjb3B5IGludG8gdGhlDQo+IHBhZ2UgY2FjaGU/IFdlJ3JlIG5vdCBjb3B5
-aW5nIDR4IHRoZSBkYXRhIGhlcmUuIFdlJ3JlIGNvcHlpbmcgaXQNCj4gb25jZS4gQnV0IHRoZXJl
-J3MgYW5vdGhlciB1bmNhY2hlZCB3cml0ZSB0byBlYWNoIHBhZ2UgZHVyaW5nDQo+IGFsbG9jYXRp
-b24gdG8gemVybyBlYWNoIGJsb2NrIGZpcnN0LCBzbyB3ZSdyZSBhY3R1YWxseSBkb2luZyB0d28N
-Cj4gdW5jYWNoZWQgd3JpdGVzIHRvIHRoZSBwYWdlLiBBbmQgd2UncmUgZG9pbmcgYW4gYWxsb2Nh
-dGlvbiBwZXIgcGFnZQ0KPiB3aXRoIERBWCwgd2hlcmVhcyB3ZSdyZSB1c2luZyBkZWxheWVkIGFs
-bG9jYXRpb24gaW4gdGhlIGJ1ZmZlcmVkIElPDQo+IGNhc2Ugd2hpY2ggaGFzIG11Y2ggbGVzcyBv
-dmVyaGVhZC4NCj4gDQo+IFRoZSBvbmx5IHRoaW5nIHdlIGNhbiBkbyBoZXJlIHRvIHNwZWVkIHRo
-ZSBEQVggY2FzZSB1cCBpcyBkbyBjYWNoZWQNCj4gbWVtY3B5IHNvIHRoYXQgdGhlIGRhdGEgY29w
-eSBhZnRlciB6ZXJvaW5nIHJ1bnMgYXQgTDEgY2FjaGUgc3BlZWQNCj4gKGkuZS4gNTB4IGZhc3Rl
-ciB0aGFuIGl0IGN1cnJlbnRseSBkb2VzKS4NCj4gDQo+IExldCdzIHRha2UgdGhlIGFsbG9jYXRp
-b24gb3V0IG9mIGl0LCBlaD8gTGV0J3MgZG8gb3ZlcndyaXRlIGluc3RlYWQsDQo+IGZzeW5jIGlu
-IHRoZSBidWZmZXJlZCBJbyBjYXNlLCBubyBmc3luYyBmb3IgREFYOg0KPiANCj4gCcKgwqDCoMKg
-cHdyaXRlIEIvVyAoTWlCL3MpCQkJcnVudGltZQ0KPiBydW4Jbm8gREFYCQlEQVgJCW5vIERBWAkJ
-REENCj4gWA0KPiDCoDEJMTExOQkJMTEyNQkJMS44NXMJCTAuOTNzDQo+IMKgMgkxMTEzCQkxMTIx
-CQkxLjgzcwkJMC45MXMNCj4gwqAzCTExMjgJCTEwNzgJCTEuODBzCQkwLjk0cw0KPiANCj4gU28s
-IHB3cml0ZSBzcGVlZHMgYXJlIG5vIGRpZmZlcmVudCBmb3IgREFYIHZzIHBhZ2UgY2FjaGUgSU8u
-IEFsc28sDQo+IG5vdyB3ZSBjYW4gc2VlIHRoZSBvdmVyaGVhZCBvZiB3cml0ZWJhY2sgLSBhIHNl
-Y29uZCBkYXRhIGNvcHkgdG8NCj4gdGhlIHBtZW0gZm9yIHRoZSBJTyBkdXJpbmcgZnN5bmMuIElm
-IEkgdGFrZSB0aGUgZnN5bmMoKSBhd2F5IGZyb20NCj4gdGhlIGJ1ZmZlcmVkIElPLCB0aGUgcnVu
-dGltZSBkcm9wcyB0byAwLjg5LTAuOTFzLCB3aGljaCBpcyBpZGVudGljYWwNCj4gdG8gdGhlIERB
-WCBjb2RlLiBHaXZlbiB0aGUgREFYIGNvZGUgaGFzIGEgc2hvcnQgSU8gcGF0aCB0aGFuDQo+IGJ1
-ZmZlcmVkIElPLCBpdCdzIG5vdCBzaG93aW5nIGFueSBhZHZhbnRhZ2Ugc3BlZWQgZm9yIHVzaW5n
-IHVuY2FjaGVkDQo+IElPLi4uLg0KPg0KPiBMZXQncyBnbyBiYWNrIHRvIHRoZSBhbGxvY2F0aW9u
-IGNhc2UsIGJ1dCB0aGlzIHRpbWUgdGFrZSBhZHZhbnRhZ2UNCj4gb2YgdGhlIG5ldyBpb21hcCBi
-YXNlZCBJbyBwYXRoIGluIFhGUyB0byBhbW9ydGlzZSB0aGUgREFYIGFsbG9jYXRpb24NCj4gb3Zl
-cmhlYWQgYnkgdXNpbmcgYSAxNk1CIElPIHNpemUgaW5zdGVhZCBvZiA0azoNCj4gDQo+ICQgc3Vk
-byB0aW1lIHhmc19pbyAtZiAtYyAicHdyaXRlIDAgMWcgLWIgMTZtIiAtYyBzeW5jIC9tbnQvc2Ny
-YXRjaC9mb28NCj4gDQo+IA0KPiAJwqDCoMKgwqBwd3JpdGUgQi9XIChNaUIvcykJCQlydW50aW1l
-DQo+IHJ1bglubyBEQVgJCURBWAkJbm8gREFYCQlEQQ0KPiBYDQo+IMKgMQkxMzQ0CQkxMDI4CQkx
-LjYzcwkJMS4wM3MNCj4gwqAyCTE0MTAJCcKgOTgwCQkxLjYycwkJMS4wNnMNCj4gwqAzCTEzOTkJ
-CTEwMzIJCTEuNzJzCQkwLjk5cw0KPiANCj4gU28sIHB3cml0ZSBiYW5kd2lkdGggb2YgdGhlIGNv
-cHkgaW50byB0aGUgcGFnZSBjYWNoZSBpcyBzdGlsbCBtdWNoDQo+IGhpZ2hlciB0aGFuIHRoYXQg
-b2YgdGhlIERBWCBwYXRoLCBidXQgbm93IHRoZSBhbGxvY2F0aW9uIG92ZXJoZWFkDQo+IGlzIG1p
-bmltaXNlZCBhbmQgaGVuY2UgdGhlIGRvdWJsZSBjb3B5IGluIHRoZSBidWZmZXJlZCBJTyB3cml0
-ZWJhY2sNCj4gcGF0aCBzaG93cyB1cC4gRm9yIGNvbXBsZXRlbmVzcywgbGV0cyBqdXN0IHJ1biB0
-aGUgb3ZlcndyaXRlIGNhc2UNCj4gaGVyZSB3aGljaCBpcyBlZmZlY3RpdmVseSBqdXN0IGNvbXBl
-dGluZ8KgwqBtZW1jcHkgaW1wbGVtZW50YXRpb25zLA0KPiBmc3luYyBmb3IgYnVmZmVyZWQsIG5v
-IGZzeW5jIGZvciBEQVg6DQo+IA0KPiAJwqDCoMKgwqBwd3JpdGUgQi9XIChNaUIvcykJCQlydW50
-aW1lDQo+IHJ1bglubyBEQVgJCURBWAkJbm8gREFYCQlEQQ0KPiBYDQo+IMKgMQkxNzkxCQkxNzI3
-CQkxLjUzcwkJMC41OXMNCj4gwqAyCTE3NjgJCTE3MjYJCTEuNTdzCQkwLjU5cw0KPiDCoDMJMTc5
-OQkJMTcyOQkJMS41NXMJCTAuNTlzDQo+IA0KPiBBZ2FpbiwgcnVudGltZSBzaG93cyB0aGUgb3Zl
-cmhlYWQgb2YgdGhlIGRvdWJsZSBjb3B5IGluIHRoZSBidWZmZXJlZA0KPiBJTy93cml0ZWJhY2sg
-cGF0aC4gSXQgYWxzbyBzaG93cyB0aGUgb3ZlcmhlYWQgaW4gdGhlIERBWCBwYXRoIG9mIHRoZQ0K
-PiBhbGxvY2F0aW9uIHplcm9pbmcgdnMgb3ZlcndyaXRlLiBJZiBJIGRyb3AgdGhlIGZzeW5jIGZy
-b20gdGhlDQo+IGJ1ZmZlcmVkIElPIHBhdGgsIGJhbmR3aWR0aCByZW1haW5zIHRoZSBzYW1lIGJ1
-dCBydW50aW1lIGRyb3BzIHRvDQo+IDAuNTUtMC41N3MsIHNvIGFnYWluIHRoZSBidWZmZXJlZCBJ
-TyB3cml0ZSBwYXRoIGlzIGZhc3RlciB0aGFuIERBWA0KPiB3aGlsZSBkb2luZyBtb3JlIHdvcmsu
-DQo+IA0KPiBJT3dzLCB0aGUgb3ZlcmhlYWQgb2YgZGlydHkgcGFnZSB0cmFja2luZyBpbiB0aGUg
-cGFnZSBjYWNoZSBtYXBwaW5nDQo+IHRyZWUgaXMgbm90IHNpZ25pZmljYW50IGluIHRlcm1zIG9m
-IHdyaXRlKCkgcGVyZm9ybWFuY2UuIEhlbmNlDQo+IEkgZmFpbCB0byBzZWUgd2h5IGl0IHNob3Vs
-ZCBiZSBzaWduaWZpY2FudCBpbiB0aGUgREFYIHBhdGggLSBpdCB3aWxsDQo+IHByb2JhYmx5IGhh
-dmUgbGVzcyBvdmVyaGVhZCBiZWNhdXNlIHdlIGhhdmUgbGVzcyB0byBhY2NvdW50IGZvciBpbg0K
-PiB0aGUgREFYIHdyaXRlIHBhdGguIFRoZSBvbmx5IHBlcmZvcm1hbmNlIHBlbmFsdHkgZm9yIGRp
-cnR5IHRyYWNraW5nDQo+IGlzIGluIHRoZSBmc3luYyB3cml0ZWJhY2sgcGF0aCBpdHNlbGYsIGFu
-ZCB0aGF0IGEgc2VwYXJhdGUgaXNzdWUNCj4gZm9yIG9wdGltaXNhdGlvbi4NCg0KSSBtb3N0bHkg
-YWdyZWUgd2l0aCB0aGUgYW5hbHlzaXMsIGJ1dCBJIGhhdmUgYSBmZXcgY29tbWVudHMgYWJvdXQg
-dGhlIHVzZSBvZg0KY2FjaGVkIC8gdW5jYWNoZWQgKG1vdm50KSBjb3B5IHRvIFBNRU0uDQoNCkkg
-ZG8gbm90IHRoaW5rIHRoZSB0ZXN0IHJlc3VsdHMgYXJlIHJlbGV2YW50IG9uIHRoaXMgcG9pbnQg
-YmVjYXVzZSBib3RoDQpidWZmZXJlZCBhbmQgZGF4IHdyaXRlKCkgcGF0aHMgdXNlIHVuY2FjaGVk
-IGNvcHkgdG8gYXZvaWQgY2xmbHVzaC4gwqBUaGUNCmJ1ZmZlcmVkIHBhdGggdXNlcyBjYWNoZWQg
-Y29weSB0byB0aGUgcGFnZSBjYWNoZSBhbmQgdGhlbiB1c2UgdW5jYWNoZWQgY29weSB0bw0KUE1F
-TSB2aWEgd3JpdGViYWNrLiDCoFRoZXJlZm9yZSwgdGhlIGJ1ZmZlcmVkIElPIHBhdGggYWxzbyBi
-ZW5lZml0cyBmcm9tIHVzaW5nDQp1bmNhY2hlZCBjb3B5IHRvIGF2b2lkIGNsZmx1c2guDQoNCkNh
-Y2hlZCBjb3B5IChyZXEgbW92cSkgaXMgc2xpZ2h0bHkgZmFzdGVyIHRoYW4gdW5jYWNoZWQgY29w
-eSwgYW5kIHNob3VsZCBiZQ0KdXNlZCBmb3Igd3JpdGluZyB0byB0aGUgcGFnZSBjYWNoZS4gwqBG
-b3Igd3JpdGluZyB0byBQTUVNLCBob3dldmVyLCBhZGRpdGlvbmFsDQpjbGZsdXNoIGNhbiBiZSBl
-eHBlbnNpdmUsIGFuZCBhbGxvY2F0aW5nIGNhY2hlbGluZXMgZm9yIFBNRU0gbGVhZHMgdG8gZXZp
-Y3QNCmFwcGxpY2F0aW9uJ3MgY2FjaGVsaW5lcy4NCg0KVGhhbmtzLA0KLVRvc2hpCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
-aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Mon, Aug 01, 2016 at 01:13:45PM +0300, Boaz Harrosh wrote:
+> On 07/30/2016 03:12 AM, Dave Chinner wrote:
+> <>
+> > 
+> > If we track the dirty blocks from write in the radix tree like we
+> > for mmap, then we can just use a normal memcpy() in dax_do_io(),
+> > getting rid of the slow cache bypass that is currently run. Radix
+> > tree updates are much less expensive than a slow memcpy of large
+> > amounts of data, ad fsync can then take care of persistence, just
+> > like we do for mmap.
+> > 
+> 
+> No! 
+> 
+> mov_nt instructions, That "slow cache bypass that is currently run" above
+> is actually faster then cached writes by 20%, and if you add the dirty
+> tracking and cl_flush instructions it becomes x2 slower in the most
+> optimal case and 3 times slower in the DAX case.
+
+IOWs, we'd expect writing to a file with DAX to be faster than when
+buffered through the page cache and fsync()d, right?
+
+The numbers I get say otherwise. Filesystem on 8GB pmem block device:
+
+$ sudo mkfs.xfs -f /dev/pmem1
+meta-data=/dev/pmem1             isize=512    agcount=4, agsize=524288 blks
+         =                       sectsz=4096  attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=0, rmapbt=0, reflink=0
+data     =                       bsize=4096   blocks=2097152, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+log      =internal log           bsize=4096   blocks=2560, version=2
+         =                       sectsz=4096  sunit=1 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+
+Test command that writes 1GB to the filesystem:
+
+$ sudo time xfs_io -f -c "pwrite 0 1g" -c "sync" /mnt/scratch/foo
+wrote 1073741824/1073741824 bytes at offset 0
+1 GiB, 262144 ops; 0:00:01.00 (880.040 MiB/sec and 225290.3317 ops/sec)
+0.02user 1.13system 0:02.27elapsed 51%CPU (0avgtext+0avgdata 2344maxresident)k
+0inputs+0outputs (0major+109minor)pagefaults 0swaps
+
+Results:
+
+	    pwrite B/W (MiB/s)			runtime
+run	no DAX		DAX		no DAX		DAX
+ 1	880.040		236.352		2.27s		4.34s
+ 2	857.094		257.297		2.18s		3.99s
+ 3	865.820		236.087		2.13s		4.34s
+
+It is quite clear that *DAX is much slower* than normal buffered
+IO through the page cache followed by a fsync().
+
+Stop and think why that might be. We're only doing one copy with
+DAX, so why is the pwrite() speed 4x lower than for a copy into the
+page cache? We're not copying 4x the data here. We're copying it
+once. But there's another uncached write to each page during
+allocation to zero each block first, so we're actually doing two
+uncached writes to the page. And we're doing an allocation per page
+with DAX, whereas we're using delayed allocation in the buffered IO
+case which has much less overhead.
+
+The only thing we can do here to speed the DAX case up is do cached
+memcpy so that the data copy after zeroing runs at L1 cache speed
+(i.e. 50x faster than it currently does).
+
+Let's take the allocation out of it, eh? Let's do overwrite instead,
+fsync in the buffered Io case, no fsync for DAX:
+
+	    pwrite B/W (MiB/s)			runtime
+run	no DAX		DAX		no DAX		DAX
+ 1	1119		1125		1.85s		0.93s
+ 2	1113		1121		1.83s		0.91s
+ 3	1128		1078		1.80s		0.94s
+
+So, pwrite speeds are no different for DAX vs page cache IO. Also,
+now we can see the overhead of writeback - a second data copy to
+the pmem for the IO during fsync. If I take the fsync() away from
+the buffered IO, the runtime drops to 0.89-0.91s, which is identical
+to the DAX code. Given the DAX code has a short IO path than
+buffered IO, it's not showing any advantage speed for using uncached
+IO....
+
+Let's go back to the allocation case, but this time take advantage
+of the new iomap based Io path in XFS to amortise the DAX allocation
+overhead by using a 16MB IO size instead of 4k:
+
+$ sudo time xfs_io -f -c "pwrite 0 1g -b 16m" -c sync /mnt/scratch/foo
+
+
+	    pwrite B/W (MiB/s)			runtime
+run	no DAX		DAX		no DAX		DAX
+ 1	1344		1028		1.63s		1.03s
+ 2	1410		 980		1.62s		1.06s
+ 3	1399		1032		1.72s		0.99s
+
+So, pwrite bandwidth of the copy into the page cache is still much
+higher than that of the DAX path, but now the allocation overhead
+is minimised and hence the double copy in the buffered IO writeback
+path shows up. For completeness, lets just run the overwrite case
+here which is effectively just competing  memcpy implementations,
+fsync for buffered, no fsync for DAX:
+
+	    pwrite B/W (MiB/s)			runtime
+run	no DAX		DAX		no DAX		DAX
+ 1	1791		1727		1.53s		0.59s
+ 2	1768		1726		1.57s		0.59s
+ 3	1799		1729		1.55s		0.59s
+
+Again, runtime shows the overhead of the double copy in the buffered
+IO/writeback path. It also shows the overhead in the DAX path of the
+allocation zeroing vs overwrite. If I drop the fsync from the
+buffered IO path, bandwidth remains the same but runtime drops to
+0.55-0.57s, so again the buffered IO write path is faster than DAX
+while doing more work.
+
+IOws, the overhead of dirty page tracking in the page cache mapping
+tree is not significant in terms of write() performance. Hence
+I fail to see why it should be significant in the DAX path - it will
+probably have less overhead because we have less to account for in
+the DAX write path. The only performance penalty for dirty tracking
+is in the fsync writeback path itself, and that a separate issue
+for optimisation.
+
+Quite frankly, what I see here is that whatever optimisations that
+have been made to make DAX fast don't show any real world benefit.
+Further, the claims that dirty tracking has too much overhead are
+*completely shot down* by the fact that buffered write IO through
+the page cache is *faster* than the current DAX write IO path.
+
+> The network guys have noticed the mov_nt instructions superior
+> performance for years before we pushed DAX into the tree. look for
+> users of copy_from_iter_nocache and the comments when they where
+> introduced, those where used before DAX, and nothing at all to do
+> with persistence.
+> 
+> So what you are suggesting is fine only 3 times slower in the current
+> implementation.
+
+What is optimal for one use case does not mean it is optimal for
+all.
+
+High level operation performance measurement disagrees with the
+assertion that we're using the *best* method of copying data in the
+DAX path available right now. Understand how data moves through the
+system, then optimise the data flow. What we are seeing here is that
+optimising for the fastest single data movement can result in lower
+overall performance where the code path requires multiple data
+movements to the same location....
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
