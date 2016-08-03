@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id D50191A1E1B
- for <linux-nvdimm@lists.01.org>; Tue, 16 Aug 2016 10:12:43 -0700 (PDT)
-Subject: [PATCH 2/4] dax: add region-available-size attribute
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id B3DF61A1E00
+ for <linux-nvdimm@lists.01.org>; Wed,  3 Aug 2016 15:58:25 -0700 (PDT)
+Subject: [4.6 stable PATCH 1/2] libnvdimm,
+ dax: record the specified alignment of a dax-device instance
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 16 Aug 2016 10:09:38 -0700
-Message-ID: <147136737849.26813.13273014239442957870.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147136736786.26813.5042217541564666020.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147136736786.26813.5042217541564666020.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 03 Aug 2016 15:55:31 -0700
+Message-ID: <147026493144.9715.5809217045641715960.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147026492600.9715.5445676747822316537.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147026492600.9715.5445676747822316537.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,296 +21,78 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for a facility that enables dax regions to be
-sub-divided, introduce a 'dax/available_size' attribute.  This attribute
-appears under the parent device that registered the device-dax region,
-and it assumes that the device-dax-core owns the driver-data for that
-device.
+commit 45a0dac0451136fa7ae34a6fea53ef6a136287ce upstream.
 
-'dax/available_size' adjusts dynamically as dax-device instances are
-registered and unregistered.
-
-As a side effect of using __request_region() to reserve capacity from
-the dax_region we now track pointers to those returned resources rather
-than duplicating the passed in resource array.
+We want to use the alignment as the allocation and mapping unit.
+Previously this information was only useful for establishing the data
+offset, but now it is important to remember the granularity for the
+later use.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/dax.c |  135 ++++++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 123 insertions(+), 12 deletions(-)
+ drivers/nvdimm/pfn.h      |    4 +++-
+ drivers/nvdimm/pfn_devs.c |    5 ++++-
+ drivers/nvdimm/pmem.c     |    3 ++-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-index 03bb54f7f58f..257cad62bd1d 100644
---- a/drivers/dax/dax.c
-+++ b/drivers/dax/dax.c
-@@ -38,6 +38,7 @@ MODULE_PARM_DESC(nr_dax, "max number of device-dax instances");
-  * @id: kernel-wide unique region for a memory range
-  * @base: linear address corresponding to @res
-  * @kref: to pin while other agents have a need to do lookups
-+ * @lock: synchronize changes / consistent-access to the resource tree (@res)
-  * @dev: parent device backing this region
-  * @align: allocation and mapping alignment for child dax devices
-  * @res: physical address range of the region
-@@ -48,6 +49,7 @@ struct dax_region {
- 	struct ida ida;
- 	void *base;
- 	struct kref kref;
-+	struct mutex lock;
- 	struct device *dev;
- 	unsigned int align;
- 	struct resource res;
-@@ -72,7 +74,56 @@ struct dax_dev {
- 	bool alive;
- 	int id;
- 	int num_resources;
--	struct resource res[0];
-+	struct resource **res;
-+};
-+
-+#define for_each_dax_region_resource(dax_region, res) \
-+	for (res = (dax_region)->res.child; res; res = res->sibling)
-+
-+static unsigned long long dax_region_avail_size(
-+		struct dax_region *dax_region)
-+{
-+	unsigned long long size;
-+	struct resource *res;
-+
-+	mutex_lock(&dax_region->lock);
-+	size = resource_size(&dax_region->res);
-+	for_each_dax_region_resource(dax_region, res)
-+		size -= resource_size(res);
-+	mutex_unlock(&dax_region->lock);
-+
-+	return size;
-+}
-+
-+static ssize_t available_size_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct dax_region *dax_region;
-+	ssize_t rc = -ENXIO;
-+
-+	device_lock(dev);
-+	dax_region = dev_get_drvdata(dev);
-+	if (dax_region)
-+		rc = sprintf(buf, "%llu\n", dax_region_avail_size(dax_region));
-+	device_unlock(dev);
-+
-+	return rc;
-+}
-+static DEVICE_ATTR_RO(available_size);
-+
-+static struct attribute *dax_region_attributes[] = {
-+	&dev_attr_available_size.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group dax_region_attribute_group = {
-+	.name = "dax_region",
-+	.attrs = dax_region_attributes,
-+};
-+
-+static const struct attribute_group *dax_region_attribute_groups[] = {
-+	&dax_region_attribute_group,
-+	NULL,
+diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
+index 8e343a3ca873..9d2704c83fa7 100644
+--- a/drivers/nvdimm/pfn.h
++++ b/drivers/nvdimm/pfn.h
+@@ -33,7 +33,9 @@ struct nd_pfn_sb {
+ 	/* minor-version-1 additions for section alignment */
+ 	__le32 start_pad;
+ 	__le32 end_trunc;
+-	u8 padding[4004];
++	/* minor-version-2 record the base alignment of the mapping */
++	__le32 align;
++	u8 padding[4000];
+ 	__le64 checksum;
  };
  
- static struct inode *dax_alloc_inode(struct super_block *sb)
-@@ -200,12 +251,27 @@ void dax_region_put(struct dax_region *dax_region)
- }
- EXPORT_SYMBOL_GPL(dax_region_put);
- 
-+
-+static void dax_region_unregister(void *region)
-+{
-+	struct dax_region *dax_region = region;
-+
-+	sysfs_remove_groups(&dax_region->dev->kobj,
-+			dax_region_attribute_groups);
-+	dax_region_put(dax_region);
-+}
-+
- struct dax_region *alloc_dax_region(struct device *parent, int region_id,
- 		struct resource *res, unsigned int align, void *addr,
- 		unsigned long pfn_flags)
- {
- 	struct dax_region *dax_region;
- 
-+	if (dev_get_drvdata(parent)) {
-+		dev_WARN(parent, "dax core found drvdata already in use\n");
-+		return NULL;
-+	}
-+
- 	if (!IS_ALIGNED(res->start, align)
- 			|| !IS_ALIGNED(resource_size(res), align))
- 		return NULL;
-@@ -213,16 +279,26 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
- 	dax_region = kzalloc(sizeof(*dax_region), GFP_KERNEL);
- 	if (!dax_region)
- 		return NULL;
--
--	memcpy(&dax_region->res, res, sizeof(*res));
-+	dev_set_drvdata(parent, dax_region);
-+	dax_region->res.name = dev_name(parent);
-+	dax_region->res.start = res->start;
-+	dax_region->res.end = res->end;
- 	dax_region->pfn_flags = pfn_flags;
-+	mutex_init(&dax_region->lock);
- 	kref_init(&dax_region->kref);
- 	dax_region->id = region_id;
- 	ida_init(&dax_region->ida);
- 	dax_region->align = align;
- 	dax_region->dev = parent;
- 	dax_region->base = addr;
-+	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups)) {
-+		kfree(dax_region);
-+		return NULL;;
-+	}
- 
-+	kref_get(&dax_region->kref);
-+	if (devm_add_action_or_reset(parent, dax_region_unregister, dax_region))
-+		return NULL;
- 	return dax_region;
- }
- EXPORT_SYMBOL_GPL(alloc_dax_region);
-@@ -240,7 +316,7 @@ static ssize_t size_show(struct device *dev,
- 	int i;
- 
- 	for (i = 0; i < dax_dev->num_resources; i++)
--		size += resource_size(&dax_dev->res[i]);
-+		size += resource_size(dax_dev->res[i]);
- 
- 	return sprintf(buf, "%llu\n", size);
- }
-@@ -309,7 +385,7 @@ static phys_addr_t pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
- 	int i;
- 
- 	for (i = 0; i < dax_dev->num_resources; i++) {
--		res = &dax_dev->res[i];
-+		res = dax_dev->res[i];
- 		phys = pgoff * PAGE_SIZE + res->start;
- 		if (phys >= res->start && phys <= res->end)
- 			break;
-@@ -317,7 +393,7 @@ static phys_addr_t pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index e071e214feba..58bf68c9c414 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -360,6 +360,9 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn)
+ 		pfn_sb->end_trunc = 0;
  	}
  
- 	if (i < dax_dev->num_resources) {
--		res = &dax_dev->res[i];
-+		res = dax_dev->res[i];
- 		if (phys + size - 1 <= res->end)
- 			return phys;
- 	}
-@@ -534,13 +610,16 @@ static void dax_dev_release(struct device *dev)
- 	ida_simple_remove(&dax_minor_ida, MINOR(dev->devt));
- 	dax_region_put(dax_region);
- 	iput(dax_dev->inode);
-+	kfree(dax_dev->res);
- 	kfree(dax_dev);
- }
- 
- static void unregister_dax_dev(void *dev)
- {
- 	struct dax_dev *dax_dev = to_dax_dev(dev);
-+	struct dax_region *dax_region = dax_dev->region;
- 	struct cdev *cdev = &dax_dev->cdev;
-+	int i;
- 
- 	dev_dbg(dev, "%s\n", __func__);
- 
-@@ -554,6 +633,13 @@ static void unregister_dax_dev(void *dev)
- 	dax_dev->alive = false;
- 	synchronize_rcu();
- 	unmap_mapping_range(dax_dev->inode->i_mapping, 0, 0, 1);
++	if (__le16_to_cpu(pfn_sb->version_minor) < 2)
++		pfn_sb->align = 0;
 +
-+	mutex_lock(&dax_region->lock);
-+	for (i = 0; i < dax_dev->num_resources; i++)
-+		__release_region(&dax_region->res, dax_dev->res[i]->start,
-+				resource_size(dax_dev->res[i]));
-+	mutex_unlock(&dax_region->lock);
-+
- 	cdev_del(cdev);
- 	device_unregister(dev);
- }
-@@ -568,28 +654,42 @@ int devm_create_dax_dev(struct dax_region *dax_region, struct resource *res,
- 	struct cdev *cdev;
- 	dev_t dev_t;
- 
--	dax_dev = kzalloc(sizeof(*dax_dev) + sizeof(*res) * count, GFP_KERNEL);
-+	dax_dev = kzalloc(sizeof(*dax_dev), GFP_KERNEL);
- 	if (!dax_dev)
- 		return -ENOMEM;
- 
-+	dax_dev->res = kzalloc(sizeof(res) * count, GFP_KERNEL);
-+	if (!dax_dev->res)
-+		goto err_res;
-+
- 	for (i = 0; i < count; i++) {
-+		struct resource *dax_res;
-+
- 		if (!IS_ALIGNED(res[i].start, dax_region->align)
- 				|| !IS_ALIGNED(resource_size(&res[i]),
- 					dax_region->align)) {
- 			rc = -EINVAL;
- 			break;
- 		}
--		dax_dev->res[i].start = res[i].start;
--		dax_dev->res[i].end = res[i].end;
-+
-+		mutex_lock(&dax_region->lock);
-+		dax_res = __request_region(&dax_region->res, res[i].start,
-+				resource_size(&res[i]), NULL, 0);
-+		mutex_unlock(&dax_region->lock);
-+		if (!dax_res) {
-+			rc = -EBUSY;
-+			break;
-+		}
-+		dax_dev->res[i] = dax_res;
+ 	switch (le32_to_cpu(pfn_sb->mode)) {
+ 	case PFN_MODE_RAM:
+ 	case PFN_MODE_PMEM:
+@@ -399,7 +402,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn)
+ 		return -EBUSY;
  	}
  
- 	if (i < count)
--		goto err_id;
-+		goto err_request_region;
+-	nd_pfn->align = 1UL << ilog2(offset);
++	nd_pfn->align = le32_to_cpu(pfn_sb->align);
+ 	if (!is_power_of_2(offset) || offset < PAGE_SIZE) {
+ 		dev_err(&nd_pfn->dev, "bad offset: %#llx dax disabled\n",
+ 				offset);
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 92f536596b24..58ad81dcd1a5 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -426,9 +426,10 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
+ 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
+ 	pfn_sb->version_major = cpu_to_le16(1);
+-	pfn_sb->version_minor = cpu_to_le16(1);
++	pfn_sb->version_minor = cpu_to_le16(2);
+ 	pfn_sb->start_pad = cpu_to_le32(start_pad);
+ 	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
++	pfn_sb->align = cpu_to_le32(nd_pfn->align);
+ 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
+ 	pfn_sb->checksum = cpu_to_le64(checksum);
  
- 	dax_dev->id = ida_simple_get(&dax_region->ida, 0, 0, GFP_KERNEL);
- 	if (dax_dev->id < 0) {
- 		rc = dax_dev->id;
--		goto err_id;
-+		goto err_request_region;
- 	}
- 
- 	minor = ida_simple_get(&dax_minor_ida, 0, 0, GFP_KERNEL);
-@@ -629,6 +729,10 @@ int devm_create_dax_dev(struct dax_region *dax_region, struct resource *res,
- 	dev->groups = dax_attribute_groups;
- 	dev->release = dax_dev_release;
- 	dev_set_name(dev, "dax%d.%d", dax_region->id, dax_dev->id);
-+	/* update resource names now that the owner device is named */
-+	for (i = 0; i < dax_dev->num_resources; i++)
-+		dax_dev->res[i]->name = dev_name(dev);
-+
- 	rc = device_add(dev);
- 	if (rc) {
- 		put_device(dev);
-@@ -643,7 +747,14 @@ int devm_create_dax_dev(struct dax_region *dax_region, struct resource *res,
- 	ida_simple_remove(&dax_minor_ida, minor);
-  err_minor:
- 	ida_simple_remove(&dax_region->ida, dax_dev->id);
-- err_id:
-+ err_request_region:
-+	mutex_lock(&dax_region->lock);
-+	for (i--; i >= 0; i--)
-+		__release_region(&dax_region->res, dax_dev->res[i]->start,
-+				resource_size(dax_dev->res[i]));
-+	mutex_unlock(&dax_region->lock);
-+	kfree(dax_dev->res);
-+ err_res:
- 	kfree(dax_dev);
- 
- 	return rc;
 
 _______________________________________________
 Linux-nvdimm mailing list
