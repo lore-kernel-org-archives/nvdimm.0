@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- by ml01.01.org (Postfix) with ESMTP id E78881A1DF8
- for <linux-nvdimm@lists.01.org>; Wed,  3 Aug 2016 10:11:27 -0700 (PDT)
-Date: Wed, 3 Aug 2016 11:11:27 -0600
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [4.8 hang] xfstests generic/361 hangs on dax enabled filesystems
-Message-ID: <20160803171127.GA15876@linux.intel.com>
-References: <20160803003354.GP16044@dastard>
+Received: from mail-oi0-x231.google.com (mail-oi0-x231.google.com
+ [IPv6:2607:f8b0:4003:c06::231])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DCAFF1A1E1B
+ for <linux-nvdimm@lists.01.org>; Tue,  2 Aug 2016 17:59:31 -0700 (PDT)
+Received: by mail-oi0-x231.google.com with SMTP id j185so260449566oih.0
+ for <linux-nvdimm@lists.01.org>; Tue, 02 Aug 2016 17:59:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
 In-Reply-To: <20160803003354.GP16044@dastard>
+References: <20160803003354.GP16044@dastard>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 2 Aug 2016 17:59:30 -0700
+Message-ID: <CAPcyv4gmMwBpbCj+U3gzeTAi3bgMXz-Va=8gP_9Jf9D=9O8Hgg@mail.gmail.com>
+Subject: Re: [4.8 hang] xfstests generic/361 hangs on dax enabled filesystems
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,23 +26,23 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dave Chinner <david@fromorbit.com>
-Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, xfs@oss.sgi.com
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, XFS Developers <xfs@oss.sgi.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Aug 03, 2016 at 10:33:54AM +1000, Dave Chinner wrote:
+On Tue, Aug 2, 2016 at 5:33 PM, Dave Chinner <david@fromorbit.com> wrote:
 > Hi folks,
-> 
+>
 > Just hit a reproducable hang in generic/361. Essentially this on
 > a 8GB pmem device:
-> 
+>
 > mkfs.xfs -f /dev/pmem1
 > mount -o dax /dev/pmem1 /mnt/scratch
 > xfs_io -f -c "truncate 1g" test.img
 > losetup -f --show /mnt/scratch/test.img
 > mkfs.xfs -f /dev/loop0
-> 
+>
 > And the mkfs.xfs command hangs with a discard that never completes:
-> 
+>
 > [  243.413918] INFO: task mkfs.xfs:5708 blocked for more than 120 seconds.
 > [  243.415678]       Not tainted 4.7.0-dgc+ #862
 > [  243.416772] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
@@ -66,18 +70,16 @@ On Wed, Aug 03, 2016 at 10:33:54AM +1000, Dave Chinner wrote:
 > [  243.446902]  [<ffffffff81210739>] SyS_ioctl+0x79/0x90
 > [  243.447927]  [<ffffffff81002bc5>] ? syscall_return_slowpath+0xf5/0x190
 > [  243.449236]  [<ffffffff81e63d32>] entry_SYSCALL_64_fastpath+0x1a/0xa4
-> 
+>
 > This only reproduces when the underlying filesystem is mounted with
 > -o dax, so there is a bad interaction with loop devices and DAX
 > occurring somewhere. generic/361 is a recent test (committed june 14)
 > so this probably hasn't actually been tested until now.
-> 
+>
 > I haven't got time to look at this right now, hence the report.
+>
 
-Cool, thanks for the report.  I've reproduced this with linux/master, and the
-test passes with v4.7.
-
-Running a bisect...
+Thanks Dave, we'll take a look.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
