@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-io0-x22c.google.com (mail-io0-x22c.google.com
- [IPv6:2607:f8b0:4001:c06::22c])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E79601A1E27
- for <linux-nvdimm@lists.01.org>; Mon,  1 Aug 2016 07:44:53 -0700 (PDT)
-Received: by mail-io0-x22c.google.com with SMTP id 38so184988321iol.0
- for <linux-nvdimm@lists.01.org>; Mon, 01 Aug 2016 07:44:53 -0700 (PDT)
-Subject: Re: [PATCH] block: fix bdi vs gendisk lifetime mismatch
-References: <146998891350.29275.1589003488607819550.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: Jens Axboe <axboe@kernel.dk>
-Message-ID: <6dcd18c9-94db-6d4f-32a0-1e8909252ed0@kernel.dk>
-Date: Mon, 1 Aug 2016 08:44:47 -0600
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 4A9FE1A1E2B
+ for <linux-nvdimm@lists.01.org>; Wed,  3 Aug 2016 16:25:51 -0700 (PDT)
+Subject: [ndctl PATCH 4/4] test: skip 4.7+ tests on older kernels
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 03 Aug 2016 16:23:27 -0700
+Message-ID: <147026660708.11162.11639119845161817556.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147026658649.11162.4510254495491443980.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147026658649.11162.4510254495491443980.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <146998891350.29275.1589003488607819550.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,55 +16,172 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, axboe@fb.com
-Cc: linux-block@vger.kernel.org, stable@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 07/31/2016 12:15 PM, Dan Williams wrote:
-> The name for a bdi of a gendisk is derived from the gendisk's devt.
-> However, since the gendisk is destroyed before the bdi it leaves a
-> window where a new gendisk could dynamically reuse the same devt while a
-> bdi with the same name is still live.  Arrange for the bdi to hold a
-> reference against its "owner" disk device while it is registered.
-> Otherwise we can hit sysfs duplicate name collisions like the following:
->
->  WARNING: CPU: 10 PID: 2078 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x64/0x80
->  sysfs: cannot create duplicate filename '/devices/virtual/bdi/259:1'
->
->  Hardware name: HP ProLiant DL580 Gen8, BIOS P79 05/06/2015
->   0000000000000286 0000000002c04ad5 ffff88006f24f970 ffffffff8134caec
->   ffff88006f24f9c0 0000000000000000 ffff88006f24f9b0 ffffffff8108c351
->   0000001f0000000c ffff88105d236000 ffff88105d1031e0 ffff8800357427f8
->  Call Trace:
->   [<ffffffff8134caec>] dump_stack+0x63/0x87
->   [<ffffffff8108c351>] __warn+0xd1/0xf0
->   [<ffffffff8108c3cf>] warn_slowpath_fmt+0x5f/0x80
->   [<ffffffff812a0d34>] sysfs_warn_dup+0x64/0x80
->   [<ffffffff812a0e1e>] sysfs_create_dir_ns+0x7e/0x90
->   [<ffffffff8134faaa>] kobject_add_internal+0xaa/0x320
->   [<ffffffff81358d4e>] ? vsnprintf+0x34e/0x4d0
->   [<ffffffff8134ff55>] kobject_add+0x75/0xd0
->   [<ffffffff816e66b2>] ? mutex_lock+0x12/0x2f
->   [<ffffffff8148b0a5>] device_add+0x125/0x610
->   [<ffffffff8148b788>] device_create_groups_vargs+0xd8/0x100
->   [<ffffffff8148b7cc>] device_create_vargs+0x1c/0x20
->   [<ffffffff811b775c>] bdi_register+0x8c/0x180
->   [<ffffffff811b7877>] bdi_register_dev+0x27/0x30
->   [<ffffffff813317f5>] add_disk+0x175/0x4a0
->
-> Cc: <stable@vger.kernel.org>
-> Reported-by: Yi Zhang <yizhan@redhat.com>
-> Tested-by: Yi Zhang <yizhan@redhat.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Add ndctl_test_attempt() guards on tests that will fail on 4.6 and older
+kernels.
 
-Added for 4.8, thanks Dan.
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ test/dax-errors.sh |    9 +++++++
+ test/device-dax.sh |   10 +++++++
+ test/libndctl.c    |   70 ++++++++++++++++++++++++++++++++--------------------
+ 3 files changed, 62 insertions(+), 27 deletions(-)
 
--- 
-Jens Axboe
+diff --git a/test/dax-errors.sh b/test/dax-errors.sh
+index 2a498f11e089..a383b14fcd5e 100755
+--- a/test/dax-errors.sh
++++ b/test/dax-errors.sh
+@@ -23,6 +23,15 @@ err() {
+ 	exit $rc
+ }
+ 
++eval $(uname -r | awk -F. '{print "maj="$1 ";" "min="$2}')
++if [ $maj -lt 4 ]; then
++	echo "kernel $maj.$min lacks dax error handling"
++	exit $rc
++elif [ $maj -eq 4 -a $min -lt 7 ]; then
++	echo "kernel $maj.$min lacks dax error handling"
++	exit $rc
++fi
++
+ set -e
+ mkdir -p $MNT
+ trap 'err $LINENO' ERR
+diff --git a/test/device-dax.sh b/test/device-dax.sh
+index f24a350b2806..6bc724fe7c95 100755
+--- a/test/device-dax.sh
++++ b/test/device-dax.sh
+@@ -1,6 +1,7 @@
+ #!/bin/bash
+ NDCTL="../ndctl/ndctl"
+ json2var="s/[{}\",]//g; s/:/=/g; s/\]//g"
++rc=77
+ 
+ err() {
+ 	rc=$?
+@@ -8,6 +9,15 @@ err() {
+ 	exit $rc
+ }
+ 
++eval $(uname -r | awk -F. '{print "maj="$1 ";" "min="$2}')
++if [ $maj -lt 4 ]; then
++	echo "kernel $maj.$min lacks device-dax"
++	exit $rc
++elif [ $maj -eq 4 -a $min -lt 7 ]; then
++	echo "kernel $maj.$min lacks device-dax"
++	exit $rc
++fi
++
+ set -e -x
+ trap 'err $LINENO' ERR
+ 
+diff --git a/test/libndctl.c b/test/libndctl.c
+index 011d905f7fb4..684235d65eac 100644
+--- a/test/libndctl.c
++++ b/test/libndctl.c
+@@ -2251,6 +2251,11 @@ static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+ 	};
+ 	unsigned int i, rc = 0;
+ 
++	/* the kernel did not start emulating smart data until 4.7 */
++	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0)))
++		dimm_commands &= ~((1 << ND_CMD_SMART)
++				| (1 << ND_CMD_SMART_THRESHOLD));
++
+ 	/* Check DIMM commands */
+ 	check_cmds = __check_dimm_cmds;
+ 	for (i = 0; i < BITS_PER_LONG; i++) {
+@@ -2365,35 +2370,44 @@ static int check_dimms(struct ndctl_bus *bus, struct dimm *dimms, int n,
+ 			return -ENXIO;
+ 		}
+ 
+-		if (ndctl_dimm_get_formats(dimm) != dimms[i].formats) {
+-			fprintf(stderr, "dimm%d expected formats: %d got: %d\n",
+-					i, dimms[i].formats,
+-					ndctl_dimm_get_formats(dimm));
+-			return -ENXIO;
+-		}
+-		for (j = 0; j < dimms[i].formats; j++) {
+-			if (ndctl_dimm_get_formatN(dimm, j) != dimms[i].format[j]) {
+-				fprintf(stderr, "dimm%d expected format[%d]: %d got: %d\n",
+-						i, j, dimms[i].format[j],
+-						ndctl_dimm_get_formatN(dimm, j));
++		if (ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0))) {
++			if (ndctl_dimm_get_formats(dimm) != dimms[i].formats) {
++				fprintf(stderr, "dimm%d expected formats: %d got: %d\n",
++						i, dimms[i].formats,
++						ndctl_dimm_get_formats(dimm));
+ 				return -ENXIO;
+ 			}
++			for (j = 0; j < dimms[i].formats; j++) {
++				if (ndctl_dimm_get_formatN(dimm, j) != dimms[i].format[j]) {
++					fprintf(stderr,
++						"dimm%d expected format[%d]: %d got: %d\n",
++							i, j, dimms[i].format[j],
++							ndctl_dimm_get_formatN(dimm, j));
++					return -ENXIO;
++				}
++			}
+ 		}
+ 
+-		if (ndctl_dimm_get_subsystem_vendor(dimm)
+-				!= dimms[i].subsystem_vendor) {
+-			fprintf(stderr, "dimm%d expected subsystem vendor: %d got: %d\n",
+-					i, dimms[i].subsystem_vendor,
+-					ndctl_dimm_get_subsystem_vendor(dimm));
+-			return -ENXIO;
++		if (ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0))) {
++			if (ndctl_dimm_get_subsystem_vendor(dimm)
++					!= dimms[i].subsystem_vendor) {
++				fprintf(stderr,
++					"dimm%d expected subsystem vendor: %d got: %d\n",
++						i, dimms[i].subsystem_vendor,
++						ndctl_dimm_get_subsystem_vendor(dimm));
++				return -ENXIO;
++			}
+ 		}
+ 
+-		if (ndctl_dimm_get_manufacturing_date(dimm)
+-				!= dimms[i].manufacturing_date) {
+-			fprintf(stderr, "dimm%d expected manufacturing date: %d got: %d\n",
+-					i, dimms[i].manufacturing_date,
+-					ndctl_dimm_get_manufacturing_date(dimm));
+-			return -ENXIO;
++		if (ndctl_test_attempt(test, KERNEL_VERSION(4, 8, 0))) {
++			if (ndctl_dimm_get_manufacturing_date(dimm)
++					!= dimms[i].manufacturing_date) {
++				fprintf(stderr,
++					"dimm%d expected manufacturing date: %d got: %d\n",
++						i, dimms[i].manufacturing_date,
++						ndctl_dimm_get_manufacturing_date(dimm));
++				return -ENXIO;
++			}
+ 		}
+ 
+ 		rc = check_commands(bus, dimm, bus_commands, dimm_commands, test);
+@@ -2455,10 +2469,12 @@ static int do_test0(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 	ndctl_region_foreach(bus, region)
+ 		ndctl_region_enable(region);
+ 
+-	rc = check_regions(bus, regions0, ARRAY_SIZE(regions0), DAX);
+-	if (rc)
+-		return rc;
+-	reset_bus(bus);
++	if (ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0))) {
++		rc = check_regions(bus, regions0, ARRAY_SIZE(regions0), DAX);
++		if (rc)
++			return rc;
++		reset_bus(bus);
++	}
+ 	rc = check_regions(bus, regions0, ARRAY_SIZE(regions0), PFN);
+ 	if (rc)
+ 		return rc;
 
 _______________________________________________
 Linux-nvdimm mailing list
