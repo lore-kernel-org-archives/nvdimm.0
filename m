@@ -1,23 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail06.adl2.internode.on.net (ipmail06.adl2.internode.on.net
- [150.101.137.129]) by ml01.01.org (Postfix) with ESMTP id C306B1A1DF7
- for <linux-nvdimm@lists.01.org>; Fri,  5 Aug 2016 04:27:42 -0700 (PDT)
-Date: Fri, 5 Aug 2016 21:27:39 +1000
-From: Dave Chinner <david@fromorbit.com>
+Received: from NAM01-SN1-obe.outbound.protection.outlook.com
+ (mail-sn1nam01on070a.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe40::70a])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 843371A1DFE
+ for <linux-nvdimm@lists.01.org>; Thu,  4 Aug 2016 11:40:45 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Subject: Re: Subtle races between DAX mmap fault and write path
-Message-ID: <20160805112739.GG16044@dastard>
+Date: Thu, 4 Aug 2016 18:40:42 +0000
+Message-ID: <1470335997.8908.128.camel@hpe.com>
 References: <20160727120745.GI6860@quack2.suse.cz>
- <20160727211039.GA20278@linux.intel.com>
- <20160727221949.GU16044@dastard>
- <20160728081033.GC4094@quack2.suse.cz>
- <20160729022152.GZ16044@dastard>
+ <20160727211039.GA20278@linux.intel.com> <20160727221949.GU16044@dastard>
+ <20160728081033.GC4094@quack2.suse.cz> <20160729022152.GZ16044@dastard>
  <CAPcyv4gOcDGzikJHYGxNXtYqQKkPUgkG+z4ASxogQUnp1zmD2g@mail.gmail.com>
  <20160730001249.GE16044@dastard> <579F20D9.80107@plexistor.com>
  <20160802002144.GL16044@dastard>
- <1470335997.8908.128.camel@hpe.com>
+In-Reply-To: <20160802002144.GL16044@dastard>
+Content-Language: en-US
+Content-ID: <E38C7A131EA18342B740CA18083E487C@NAMPRD84.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1470335997.8908.128.camel@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,67 +27,134 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>
+To: "david@fromorbit.com" <david@fromorbit.com>, "boaz@plexistor.com" <boaz@plexistor.com>
+Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-[ cut to just the important points ]
-On Thu, Aug 04, 2016 at 06:40:42PM +0000, Kani, Toshimitsu wrote:
-> On Tue, 2016-08-02 at 10:21 +1000, Dave Chinner wrote:
-> > If I drop the fsync from the
-> > buffered IO path, bandwidth remains the same but runtime drops to
-> > 0.55-0.57s, so again the buffered IO write path is faster than DAX
-> > while doing more work.
-> =
-
-> I do not think the test results are relevant on this point because both
-> buffered and dax write() paths use uncached copy to avoid clflush. =A0The
-> buffered path uses cached copy to the page cache and then use uncached co=
-py to
-> PMEM via writeback. =A0Therefore, the buffered IO path also benefits from=
- using
-> uncached copy to avoid clflush.
-
-Except that I tested without the writeback path for buffered IO, so
-there was a direct comparison for single cached copy vs single
-uncached copy.
-
-The undenial fact is that a write() with a single cached copy with
-all the overhead of dirty page tracking is /faster/ than a much
-shorter, simpler IO path that uses an uncached copy. That's what the
-numbers say....
-
-> Cached copy (req movq) is slightly faster than uncached copy,
-
-Not according to Boaz - he claims that uncached is 20% faster than
-cached. How about you two get together, do some benchmarking and get
-your story straight, eh?
-
-> and should be
-> used for writing to the page cache. =A0For writing to PMEM, however, addi=
-tional
-> clflush can be expensive, and allocating cachelines for PMEM leads to evi=
-ct
-> application's cachelines.
-
-I keep hearing people tell me why cached copies are slower, but
-no-one is providing numbers to back up their statements. The only
-numbers we have are the ones I've published showing cached copies w/
-full dirty tracking is faster than uncached copy w/o dirty tracking.
-
-Show me the numbers that back up your statements, then I'll listen
-to you.
-
--Dave.
--- =
-
-Dave Chinner
-david@fromorbit.com
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlLCAyMDE2LTA4LTAyIGF0IDEwOjIxICsxMDAwLCBEYXZlIENoaW5uZXIgd3JvdGU6DQo+
+IE9uIE1vbiwgQXVnIDAxLCAyMDE2IGF0IDAxOjEzOjQ1UE0gKzAzMDAsIEJvYXogSGFycm9zaCB3
+cm90ZToNCj4gPiANCj4gPiBPbiAwNy8zMC8yMDE2IDAzOjEyIEFNLCBEYXZlIENoaW5uZXIgd3Jv
+dGU6DQo+ID4gPD4NCj4gPiA+IElmIHdlIHRyYWNrIHRoZSBkaXJ0eSBibG9ja3MgZnJvbSB3cml0
+ZSBpbiB0aGUgcmFkaXggdHJlZSBsaWtlIHdlDQo+ID4gPiBmb3IgbW1hcCwgdGhlbiB3ZSBjYW4g
+anVzdCB1c2UgYSBub3JtYWwgbWVtY3B5KCkgaW4gZGF4X2RvX2lvKCksDQo+ID4gPiBnZXR0aW5n
+IHJpZCBvZiB0aGUgc2xvdyBjYWNoZSBieXBhc3MgdGhhdCBpcyBjdXJyZW50bHkgcnVuLiBSYWRp
+eA0KPiA+ID4gdHJlZSB1cGRhdGVzIGFyZSBtdWNoIGxlc3MgZXhwZW5zaXZlIHRoYW4gYSBzbG93
+IG1lbWNweSBvZiBsYXJnZQ0KPiA+ID4gYW1vdW50cyBvZiBkYXRhLCBhZCBmc3luYyBjYW4gdGhl
+biB0YWtlIGNhcmUgb2YgcGVyc2lzdGVuY2UsIGp1c3QNCj4gPiA+IGxpa2Ugd2UgZG8gZm9yIG1t
+YXAuDQo+ID4gPiANCj4gPg0KPiA+IE5vIcKgDQo+ID4gDQo+ID4gbW92X250IGluc3RydWN0aW9u
+cywgVGhhdCAic2xvdyBjYWNoZSBieXBhc3MgdGhhdCBpcyBjdXJyZW50bHkgcnVuIiBhYm92ZQ0K
+PiA+IGlzIGFjdHVhbGx5IGZhc3RlciB0aGVuIGNhY2hlZCB3cml0ZXMgYnkgMjAlLCBhbmQgaWYg
+eW91IGFkZCB0aGUgZGlydHkNCj4gPiB0cmFja2luZyBhbmQgY2xfZmx1c2ggaW5zdHJ1Y3Rpb25z
+IGl0IGJlY29tZXMgeDIgc2xvd2VyIGluIHRoZSBtb3N0DQo+ID4gb3B0aW1hbCBjYXNlIGFuZCAz
+IHRpbWVzIHNsb3dlciBpbiB0aGUgREFYIGNhc2UuDQo+DQo+IElPV3MsIHdlJ2QgZXhwZWN0IHdy
+aXRpbmcgdG8gYSBmaWxlIHdpdGggREFYIHRvIGJlIGZhc3RlciB0aGFuIHdoZW4NCj4gYnVmZmVy
+ZWQgdGhyb3VnaCB0aGUgcGFnZSBjYWNoZSBhbmQgZnN5bmMoKWQsIHJpZ2h0Pw0KPg0KPiBUaGUg
+bnVtYmVycyBJIGdldCBzYXkgb3RoZXJ3aXNlLiBGaWxlc3lzdGVtIG9uIDhHQiBwbWVtIGJsb2Nr
+IGRldmljZToNCj4gDQo+ICQgc3VkbyBta2ZzLnhmcyAtZiAvZGV2L3BtZW0xDQo+IG1ldGEtZGF0
+YT0vZGV2L3BtZW0xwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBpc2l6ZT01MTLCoMKgwqDCoGFn
+Y291bnQ9NCwgYWdzaXplPTUyNDI4OCBibGtzDQo+IMKgwqDCoMKgwqDCoMKgwqDCoD3CoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgc2VjdHN6PTQwOTbCoMKgYXR0
+cj0yLCBwcm9qaWQzMmJpdD0xDQo+IMKgwqDCoMKgwqDCoMKgwqDCoD3CoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgY3JjPTHCoMKgwqDCoMKgwqDCoMKgZmlub2J0
+PTEsIHNwYXJzZT0wLCBybWFwYnQ9MCwNCj4gcmVmbGluaz0wDQo+IGRhdGHCoMKgwqDCoMKgPcKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBic2l6ZT00MDk2wqDC
+oMKgYmxvY2tzPTIwOTcxNTIsIGltYXhwY3Q9MjUNCj4gwqDCoMKgwqDCoMKgwqDCoMKgPcKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBzdW5pdD0wwqDCoMKgwqDC
+oMKgc3dpZHRoPTAgYmxrcw0KPiBuYW1pbmfCoMKgwqA9dmVyc2lvbiAywqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoGJzaXplPTQwOTbCoMKgwqBhc2NpaS1jaT0wIGZ0eXBlPTENCj4gbG9nwqDC
+oMKgwqDCoMKgPWludGVybmFsIGxvZ8KgwqDCoMKgwqDCoMKgwqDCoMKgwqBic2l6ZT00MDk2wqDC
+oMKgYmxvY2tzPTI1NjAsIHZlcnNpb249Mg0KPiDCoMKgwqDCoMKgwqDCoMKgwqA9wqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHNlY3Rzej00MDk2wqDCoHN1bml0
+PTEgYmxrcywgbGF6eS1jb3VudD0xDQo+IHJlYWx0aW1lID1ub25lwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqBleHRzej00MDk2wqDCoMKgYmxvY2tzPTAsIHJ0ZXh0ZW50cz0w
+DQo+IA0KPiBUZXN0IGNvbW1hbmQgdGhhdCB3cml0ZXMgMUdCIHRvIHRoZSBmaWxlc3lzdGVtOg0K
+PiANCj4gJCBzdWRvIHRpbWUgeGZzX2lvIC1mIC1jICJwd3JpdGUgMCAxZyIgLWMgInN5bmMiIC9t
+bnQvc2NyYXRjaC9mb28NCj4gd3JvdGUgMTA3Mzc0MTgyNC8xMDczNzQxODI0IGJ5dGVzIGF0IG9m
+ZnNldCAwDQo+IDEgR2lCLCAyNjIxNDQgb3BzOyAwOjAwOjAxLjAwICg4ODAuMDQwIE1pQi9zZWMg
+YW5kIDIyNTI5MC4zMzE3IG9wcy9zZWMpDQo+IDAuMDJ1c2VyIDEuMTNzeXN0ZW0gMDowMi4yN2Vs
+YXBzZWQgNTElQ1BVICgwYXZndGV4dCswYXZnZGF0YQ0KPiAyMzQ0bWF4cmVzaWRlbnQpaw0KPiAw
+aW5wdXRzKzBvdXRwdXRzICgwbWFqb3IrMTA5bWlub3IpcGFnZWZhdWx0cyAwc3dhcHMNCj4gDQo+
+IFJlc3VsdHM6DQo+IA0KPiAJwqDCoMKgwqBwd3JpdGUgQi9XIChNaUIvcykJCQlydW50aW1lDQo+
+IHJ1bglubyBEQVgJCURBWAkJbm8gREFYCQlEQQ0KPiBYDQo+IMKgMQk4ODAuMDQwCQkyMzYuMzUy
+CQkyLjI3cwkJDQo+IDQuMzRzDQo+IMKgMgk4NTcuMDk0CQkyNTcuMjk3CQkyLjE4cwkJDQo+IDMu
+OTlzDQo+IMKgMwk4NjUuODIwCQkyMzYuMDg3CQkyLjEzcwkJDQo+IDQuMzRzDQo+IA0KPiBJdCBp
+cyBxdWl0ZSBjbGVhciB0aGF0ICpEQVggaXMgbXVjaCBzbG93ZXIqIHRoYW4gbm9ybWFsIGJ1ZmZl
+cmVkDQo+IElPIHRocm91Z2ggdGhlIHBhZ2UgY2FjaGUgZm9sbG93ZWQgYnkgYSBmc3luYygpLg0K
+PiANCj4gU3RvcCBhbmQgdGhpbmsgd2h5IHRoYXQgbWlnaHQgYmUuIFdlJ3JlIG9ubHkgZG9pbmcg
+b25lIGNvcHkgd2l0aA0KPiBEQVgsIHNvIHdoeSBpcyB0aGUgcHdyaXRlKCkgc3BlZWQgNHggbG93
+ZXIgdGhhbiBmb3IgYSBjb3B5IGludG8gdGhlDQo+IHBhZ2UgY2FjaGU/IFdlJ3JlIG5vdCBjb3B5
+aW5nIDR4IHRoZSBkYXRhIGhlcmUuIFdlJ3JlIGNvcHlpbmcgaXQNCj4gb25jZS4gQnV0IHRoZXJl
+J3MgYW5vdGhlciB1bmNhY2hlZCB3cml0ZSB0byBlYWNoIHBhZ2UgZHVyaW5nDQo+IGFsbG9jYXRp
+b24gdG8gemVybyBlYWNoIGJsb2NrIGZpcnN0LCBzbyB3ZSdyZSBhY3R1YWxseSBkb2luZyB0d28N
+Cj4gdW5jYWNoZWQgd3JpdGVzIHRvIHRoZSBwYWdlLiBBbmQgd2UncmUgZG9pbmcgYW4gYWxsb2Nh
+dGlvbiBwZXIgcGFnZQ0KPiB3aXRoIERBWCwgd2hlcmVhcyB3ZSdyZSB1c2luZyBkZWxheWVkIGFs
+bG9jYXRpb24gaW4gdGhlIGJ1ZmZlcmVkIElPDQo+IGNhc2Ugd2hpY2ggaGFzIG11Y2ggbGVzcyBv
+dmVyaGVhZC4NCj4gDQo+IFRoZSBvbmx5IHRoaW5nIHdlIGNhbiBkbyBoZXJlIHRvIHNwZWVkIHRo
+ZSBEQVggY2FzZSB1cCBpcyBkbyBjYWNoZWQNCj4gbWVtY3B5IHNvIHRoYXQgdGhlIGRhdGEgY29w
+eSBhZnRlciB6ZXJvaW5nIHJ1bnMgYXQgTDEgY2FjaGUgc3BlZWQNCj4gKGkuZS4gNTB4IGZhc3Rl
+ciB0aGFuIGl0IGN1cnJlbnRseSBkb2VzKS4NCj4gDQo+IExldCdzIHRha2UgdGhlIGFsbG9jYXRp
+b24gb3V0IG9mIGl0LCBlaD8gTGV0J3MgZG8gb3ZlcndyaXRlIGluc3RlYWQsDQo+IGZzeW5jIGlu
+IHRoZSBidWZmZXJlZCBJbyBjYXNlLCBubyBmc3luYyBmb3IgREFYOg0KPiANCj4gCcKgwqDCoMKg
+cHdyaXRlIEIvVyAoTWlCL3MpCQkJcnVudGltZQ0KPiBydW4Jbm8gREFYCQlEQVgJCW5vIERBWAkJ
+REENCj4gWA0KPiDCoDEJMTExOQkJMTEyNQkJMS44NXMJCTAuOTNzDQo+IMKgMgkxMTEzCQkxMTIx
+CQkxLjgzcwkJMC45MXMNCj4gwqAzCTExMjgJCTEwNzgJCTEuODBzCQkwLjk0cw0KPiANCj4gU28s
+IHB3cml0ZSBzcGVlZHMgYXJlIG5vIGRpZmZlcmVudCBmb3IgREFYIHZzIHBhZ2UgY2FjaGUgSU8u
+IEFsc28sDQo+IG5vdyB3ZSBjYW4gc2VlIHRoZSBvdmVyaGVhZCBvZiB3cml0ZWJhY2sgLSBhIHNl
+Y29uZCBkYXRhIGNvcHkgdG8NCj4gdGhlIHBtZW0gZm9yIHRoZSBJTyBkdXJpbmcgZnN5bmMuIElm
+IEkgdGFrZSB0aGUgZnN5bmMoKSBhd2F5IGZyb20NCj4gdGhlIGJ1ZmZlcmVkIElPLCB0aGUgcnVu
+dGltZSBkcm9wcyB0byAwLjg5LTAuOTFzLCB3aGljaCBpcyBpZGVudGljYWwNCj4gdG8gdGhlIERB
+WCBjb2RlLiBHaXZlbiB0aGUgREFYIGNvZGUgaGFzIGEgc2hvcnQgSU8gcGF0aCB0aGFuDQo+IGJ1
+ZmZlcmVkIElPLCBpdCdzIG5vdCBzaG93aW5nIGFueSBhZHZhbnRhZ2Ugc3BlZWQgZm9yIHVzaW5n
+IHVuY2FjaGVkDQo+IElPLi4uLg0KPg0KPiBMZXQncyBnbyBiYWNrIHRvIHRoZSBhbGxvY2F0aW9u
+IGNhc2UsIGJ1dCB0aGlzIHRpbWUgdGFrZSBhZHZhbnRhZ2UNCj4gb2YgdGhlIG5ldyBpb21hcCBi
+YXNlZCBJbyBwYXRoIGluIFhGUyB0byBhbW9ydGlzZSB0aGUgREFYIGFsbG9jYXRpb24NCj4gb3Zl
+cmhlYWQgYnkgdXNpbmcgYSAxNk1CIElPIHNpemUgaW5zdGVhZCBvZiA0azoNCj4gDQo+ICQgc3Vk
+byB0aW1lIHhmc19pbyAtZiAtYyAicHdyaXRlIDAgMWcgLWIgMTZtIiAtYyBzeW5jIC9tbnQvc2Ny
+YXRjaC9mb28NCj4gDQo+IA0KPiAJwqDCoMKgwqBwd3JpdGUgQi9XIChNaUIvcykJCQlydW50aW1l
+DQo+IHJ1bglubyBEQVgJCURBWAkJbm8gREFYCQlEQQ0KPiBYDQo+IMKgMQkxMzQ0CQkxMDI4CQkx
+LjYzcwkJMS4wM3MNCj4gwqAyCTE0MTAJCcKgOTgwCQkxLjYycwkJMS4wNnMNCj4gwqAzCTEzOTkJ
+CTEwMzIJCTEuNzJzCQkwLjk5cw0KPiANCj4gU28sIHB3cml0ZSBiYW5kd2lkdGggb2YgdGhlIGNv
+cHkgaW50byB0aGUgcGFnZSBjYWNoZSBpcyBzdGlsbCBtdWNoDQo+IGhpZ2hlciB0aGFuIHRoYXQg
+b2YgdGhlIERBWCBwYXRoLCBidXQgbm93IHRoZSBhbGxvY2F0aW9uIG92ZXJoZWFkDQo+IGlzIG1p
+bmltaXNlZCBhbmQgaGVuY2UgdGhlIGRvdWJsZSBjb3B5IGluIHRoZSBidWZmZXJlZCBJTyB3cml0
+ZWJhY2sNCj4gcGF0aCBzaG93cyB1cC4gRm9yIGNvbXBsZXRlbmVzcywgbGV0cyBqdXN0IHJ1biB0
+aGUgb3ZlcndyaXRlIGNhc2UNCj4gaGVyZSB3aGljaCBpcyBlZmZlY3RpdmVseSBqdXN0IGNvbXBl
+dGluZ8KgwqBtZW1jcHkgaW1wbGVtZW50YXRpb25zLA0KPiBmc3luYyBmb3IgYnVmZmVyZWQsIG5v
+IGZzeW5jIGZvciBEQVg6DQo+IA0KPiAJwqDCoMKgwqBwd3JpdGUgQi9XIChNaUIvcykJCQlydW50
+aW1lDQo+IHJ1bglubyBEQVgJCURBWAkJbm8gREFYCQlEQQ0KPiBYDQo+IMKgMQkxNzkxCQkxNzI3
+CQkxLjUzcwkJMC41OXMNCj4gwqAyCTE3NjgJCTE3MjYJCTEuNTdzCQkwLjU5cw0KPiDCoDMJMTc5
+OQkJMTcyOQkJMS41NXMJCTAuNTlzDQo+IA0KPiBBZ2FpbiwgcnVudGltZSBzaG93cyB0aGUgb3Zl
+cmhlYWQgb2YgdGhlIGRvdWJsZSBjb3B5IGluIHRoZSBidWZmZXJlZA0KPiBJTy93cml0ZWJhY2sg
+cGF0aC4gSXQgYWxzbyBzaG93cyB0aGUgb3ZlcmhlYWQgaW4gdGhlIERBWCBwYXRoIG9mIHRoZQ0K
+PiBhbGxvY2F0aW9uIHplcm9pbmcgdnMgb3ZlcndyaXRlLiBJZiBJIGRyb3AgdGhlIGZzeW5jIGZy
+b20gdGhlDQo+IGJ1ZmZlcmVkIElPIHBhdGgsIGJhbmR3aWR0aCByZW1haW5zIHRoZSBzYW1lIGJ1
+dCBydW50aW1lIGRyb3BzIHRvDQo+IDAuNTUtMC41N3MsIHNvIGFnYWluIHRoZSBidWZmZXJlZCBJ
+TyB3cml0ZSBwYXRoIGlzIGZhc3RlciB0aGFuIERBWA0KPiB3aGlsZSBkb2luZyBtb3JlIHdvcmsu
+DQo+IA0KPiBJT3dzLCB0aGUgb3ZlcmhlYWQgb2YgZGlydHkgcGFnZSB0cmFja2luZyBpbiB0aGUg
+cGFnZSBjYWNoZSBtYXBwaW5nDQo+IHRyZWUgaXMgbm90IHNpZ25pZmljYW50IGluIHRlcm1zIG9m
+IHdyaXRlKCkgcGVyZm9ybWFuY2UuIEhlbmNlDQo+IEkgZmFpbCB0byBzZWUgd2h5IGl0IHNob3Vs
+ZCBiZSBzaWduaWZpY2FudCBpbiB0aGUgREFYIHBhdGggLSBpdCB3aWxsDQo+IHByb2JhYmx5IGhh
+dmUgbGVzcyBvdmVyaGVhZCBiZWNhdXNlIHdlIGhhdmUgbGVzcyB0byBhY2NvdW50IGZvciBpbg0K
+PiB0aGUgREFYIHdyaXRlIHBhdGguIFRoZSBvbmx5IHBlcmZvcm1hbmNlIHBlbmFsdHkgZm9yIGRp
+cnR5IHRyYWNraW5nDQo+IGlzIGluIHRoZSBmc3luYyB3cml0ZWJhY2sgcGF0aCBpdHNlbGYsIGFu
+ZCB0aGF0IGEgc2VwYXJhdGUgaXNzdWUNCj4gZm9yIG9wdGltaXNhdGlvbi4NCg0KSSBtb3N0bHkg
+YWdyZWUgd2l0aCB0aGUgYW5hbHlzaXMsIGJ1dCBJIGhhdmUgYSBmZXcgY29tbWVudHMgYWJvdXQg
+dGhlIHVzZSBvZg0KY2FjaGVkIC8gdW5jYWNoZWQgKG1vdm50KSBjb3B5IHRvIFBNRU0uDQoNCkkg
+ZG8gbm90IHRoaW5rIHRoZSB0ZXN0IHJlc3VsdHMgYXJlIHJlbGV2YW50IG9uIHRoaXMgcG9pbnQg
+YmVjYXVzZSBib3RoDQpidWZmZXJlZCBhbmQgZGF4IHdyaXRlKCkgcGF0aHMgdXNlIHVuY2FjaGVk
+IGNvcHkgdG8gYXZvaWQgY2xmbHVzaC4gwqBUaGUNCmJ1ZmZlcmVkIHBhdGggdXNlcyBjYWNoZWQg
+Y29weSB0byB0aGUgcGFnZSBjYWNoZSBhbmQgdGhlbiB1c2UgdW5jYWNoZWQgY29weSB0bw0KUE1F
+TSB2aWEgd3JpdGViYWNrLiDCoFRoZXJlZm9yZSwgdGhlIGJ1ZmZlcmVkIElPIHBhdGggYWxzbyBi
+ZW5lZml0cyBmcm9tIHVzaW5nDQp1bmNhY2hlZCBjb3B5IHRvIGF2b2lkIGNsZmx1c2guDQoNCkNh
+Y2hlZCBjb3B5IChyZXEgbW92cSkgaXMgc2xpZ2h0bHkgZmFzdGVyIHRoYW4gdW5jYWNoZWQgY29w
+eSwgYW5kIHNob3VsZCBiZQ0KdXNlZCBmb3Igd3JpdGluZyB0byB0aGUgcGFnZSBjYWNoZS4gwqBG
+b3Igd3JpdGluZyB0byBQTUVNLCBob3dldmVyLCBhZGRpdGlvbmFsDQpjbGZsdXNoIGNhbiBiZSBl
+eHBlbnNpdmUsIGFuZCBhbGxvY2F0aW5nIGNhY2hlbGluZXMgZm9yIFBNRU0gbGVhZHMgdG8gZXZp
+Y3QNCmFwcGxpY2F0aW9uJ3MgY2FjaGVsaW5lcy4NCg0KVGhhbmtzLA0KLVRvc2hpCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
+aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
