@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- by ml01.01.org (Postfix) with ESMTP id C09061A1E13
- for <linux-nvdimm@lists.01.org>; Tue,  2 Aug 2016 11:27:06 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2] libnvdimm, nd_blk: mask off reserved status bits
-Date: Tue,  2 Aug 2016 12:26:53 -0600
-Message-Id: <20160802182653.6647-1-ross.zwisler@linux.intel.com>
-In-Reply-To: <20160729205912.20436-1-ross.zwisler@linux.intel.com>
-References: <20160729205912.20436-1-ross.zwisler@linux.intel.com>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id BC1BC1A1DFE
+ for <linux-nvdimm@lists.01.org>; Thu,  4 Aug 2016 11:44:33 -0700 (PDT)
+Subject: [ndctl PATCH v2] ndctl,
+ create-namespace: trap and report invalid sector-size values
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 04 Aug 2016 11:42:09 -0700
+Message-ID: <147033593728.33374.15172970808845415226.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,77 +15,108 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Lee," Chun-Yi" <jlee@suse.com>, linux-acpi@vger.kernel.org," stable@vger.kernel.org#v4.2+, Len Brown <lenb@kernel.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The "NVDIMM Block Window Driver Writer's Guide":
+While the kernel will prevent invalid configurations, the user
+experience of a kernel error message and disabling of the namespace is
+too harsh.  Trap and report these attempts to make create-namespace more
+user friendly.
 
-http://pmem.io/documents/
-http://pmem.io/documents/NVDIMM_DriverWritersGuide-July-2016.pdf
+    # ndctl create-namespace -e namespace0.0 -m sector -l 513 -f -v
+    validate_namespace_options:437: region0: does not support btt sector_size 513
+    failed to reconfigure namespace
 
-defines the layout of the block window status register.  For the July 2016
-version of the spec linked to above, this happens in Figure 4 on page 26.
-
-The only bits defined in this spec are bits 31, 5, 4, 2, 1 and 0.  The rest
-of the bits in the status register are reserved, and there is a warning
-following the diagram that says:
-
-  Note: The driver cannot assume the value of the RESERVED bits in the
-  status register are zero. These reserved bits need to be masked off, and
-  the driver must avoid checking the state of those bits.
-
-This change ensures that for hardware implementations that set these
-reserved bits in the status register, the driver won't incorrectly fail the
-block I/Os.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Lee, Chun-Yi <jlee@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: stable@vger.kernel.org # v4.2+
+Reported-by: Yi Zhang <yizhan@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+Changes in v2 to address unit test breakage:
 
-Changes from V1:
- - Rebased onto the v4.8 merge tree.  As Joey points out the ND BLK code
-   recently moved from drivers/acpi/nfit.c to drivers/acpi/nfit/core.c.
-   Since we were in the merge window for v4.8 I didn't know what to use as
-   a baseline, so I just used v4.7, which was apparently incorrect.  Sorry
-   about that.
+1/ stop setting a default sector size for cases where create-namespace
+   is operating in pmem mode.
 
- - Added Joey's reviewed-by.
+2/ don't set ndns in validate_namespace(), use a separate 'seed'
+   variable, otherwise we mistakenly change a 'create' to a 'reconfigure'
+   operation.
 
-For stable kernels v4.2 and beyond the v1 patch for drivers/acpi/nfit.c
-applies cleanly and should be used.
+ ndctl/builtin-xaction-namespace.c |   51 +++++++++++++++++++++++++++++++------
+ 1 file changed, 43 insertions(+), 8 deletions(-)
 
----
- drivers/acpi/nfit/core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 8c234dd..80cc7c0 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1527,11 +1527,12 @@ static u32 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
- {
- 	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
- 	u64 offset = nfit_blk->stat_offset + mmio->size * bw;
-+	const u32 STATUS_MASK = 0x80000037;
+diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
+index 8304203750d8..76d06bbb53ba 100644
+--- a/ndctl/builtin-xaction-namespace.c
++++ b/ndctl/builtin-xaction-namespace.c
+@@ -210,8 +210,13 @@ static int set_defaults(enum namespace_action mode)
+ 			error("'pmem' namespaces do not support setting 'sector size'\n");
+ 			rc = -EINVAL;
+ 		}
+-	} else if (!param.reconfig)
+-		param.sector_size = "4096";
++	} else if (!param.reconfig
++			&& (param.type && strcmp(param.type, "blk") == 0
++				|| (param.mode
++					&& strcmp(param.mode, "safe") == 0))) {
++			/* default sector size for blk-type or safe-mode */
++			param.sector_size = "4096";
++	}
  
- 	if (mmio->num_lines)
- 		offset = to_interleave_offset(offset, mmio);
- 
--	return readl(mmio->addr.base + offset);
-+	return readl(mmio->addr.base + offset) & STATUS_MASK;
+ 	return rc;
  }
+@@ -415,14 +420,44 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		p->mode = ndctl_namespace_get_mode(ndns);
  
- static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
--- 
-2.9.0
+ 	if (param.sector_size) {
+-		p->sector_size = parse_size64(param.sector_size);
++		struct ndctl_btt *btt;
++		int num, i;
+ 
+-		if (ndns && p->mode != NDCTL_NS_MODE_SAFE
+-				&& ndctl_namespace_get_type(ndns)
+-				== ND_DEVICE_NAMESPACE_PMEM) {
+-			debug("%s: does not support sector_size modification\n",
+-					ndctl_namespace_get_devname(ndns));
++		p->sector_size = parse_size64(param.sector_size);
++		btt = ndctl_region_get_btt_seed(region);
++		if (p->mode == NDCTL_NS_MODE_SAFE) {
++			if (!btt) {
++				debug("%s: does not support 'sector' mode\n",
++						ndctl_region_get_devname(region));
++				return -EINVAL;
++			}
++			num = ndctl_btt_get_num_sector_sizes(btt);
++			for (i = 0; i < num; i++)
++				if (ndctl_btt_get_supported_sector_size(btt, i)
++						== p->sector_size)
++					break;
++			if (i >= num) {
++				debug("%s: does not support btt sector_size %lu\n",
++						ndctl_region_get_devname(region),
++						p->sector_size);
++				return -EINVAL;
++			}
++		} else {
++			struct ndctl_namespace *seed = ndns;
++
++			if (!seed)
++				seed = ndctl_region_get_namespace_seed(region);
++			num = ndctl_namespace_get_num_sector_sizes(seed);
++			for (i = 0; i < num; i++)
++				if (ndctl_namespace_get_supported_sector_size(seed, i)
++						== p->sector_size)
++					break;
++			if (i >= num) {
++				debug("%s: does not support namespace sector_size %lu\n",
++						ndctl_region_get_devname(region),
++						p->sector_size);
+ 				return -EINVAL;
++			}
+ 		}
+ 	} else if (ndns) {
+ 		struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
 
 _______________________________________________
 Linux-nvdimm mailing list
