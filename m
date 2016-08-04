@@ -1,11 +1,14 @@
-From: "pxyduvowx" <hp-UhBDwZaCRYpWk0Htik3J/w@public.gmane.org>
-Subject: ii8zilyzjjlhypwnj7y4ycf1jbroux
-Date: Thu, 4 Aug 2016 12:21:50 +0800
-Message-ID: <20160804122200504087@rvyipmip.com>
+From: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: btt device node disappeared after configure with non support
+ sector_size
+Date: Thu, 4 Aug 2016 05:15:47 -0400 (EDT)
+Message-ID: <865881147.11251583.1470302147073.JavaMail.zimbra@redhat.com>
+References: <1128592617.11251323.1470302026839.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1128592617.11251323.1470302026839.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,42 +18,38 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-IOOAgOOAgA0K44CA6aG555uu566h55CG5a6e5oiY5pON5L2c77yIMuWkqeWunui3teWei++8ieOA
-gA0K44CA44CA44CADQrjgIDjgIANCuOAgOOAkOaXtumXtOWcsOeCueOAkSAyMDE25bm0MTHmnIgy
-NC0yNSDkuIrmtbcgIDEy5pyIMjItMjMg6IuP5bee44CADQrjgIDjgJDlj4LliqDlr7nosaHjgJEg
-6aG555uu5oC755uR44CB6YOo6Zeo57uP55CG44CB6auY57qn6aG555uu57uP55CG44CB6aG555uu
-5Zui6Zif5oiQ5ZGY562J77yM54m55Yir6YCC5ZCI5q2j5Zyo5LuO5LqL6aG555uu566h55CG55qE
-5Lq65ZGY44CADQrjgIDjgJDmjojor77mlrnlvI/jgJEg6K6y5biI6K6y5o6IKyDmoYjkvovnoJTo
-rqggK+inkuiJsuaJrua8lCArIOiusuW4iOeCueivhCDjgIANCuOAgOOAkOWtpuS5oOi0ueeUqOOA
-kSA1MjAw5YWDL+S4pOWkqe+8iOWQq+S4pOWkqeS4remkkOOAgeaMh+WumuaVmeadkOOAgeiMtueC
-ue+8ieOAgA0K44CA44CQ5Z6C6K+i54Ot57q/44CRIDA1MTItNjg3MC4wNjUzICAg77yIMO+8iTE4
-MC4xNTUuOTYuMzI344CADQrjgIDjgIANCuOAgOivvueoi+aUtuebiuOAgA0K44CAICAgICAgIOWv
-ueS8geS4muiAjOiogO+8jOaIkeS7rOehruS/neWtpuWRmOWcqOWfueiureWujOaIkOWQju+8jOWk
-p+WutuiDveeUqOWQjOS4gOenjeeQhuW/te+8jOWQjOS4gOenjeaWueazle+8jOWQjOS4gOenjeWb
-vuino++8jOWQjOS4gOenjeihqOagvOadpeWujOaIkOmhueebruOAguOAgA0K44CAICAgICAgIOWP
-guiureeahOavj+S4gOS9jeWtpuWRmOWfueiureWQjumDveWwhuWfueWFu+aIkOWFt+acieS7peS4
-i++8jOmhueebrue7j+eQhuW/heWkh+eahOS4ieenjeiDveWKm++8muOAgA0K44CAICAgICAgICAg
-IEHjgIHnoa7lrprojIPlm7TjgIANCuOAgCAgICAgICAgICBC44CB5Zyo6IyD5Zu05YaF5a6M5oiQ
-5Lu75Yqh55qE5Y+v572u5L+h5bqm44CADQrjgIAgICAgICAgICAgQ+OAgeWIhuaekOi2i+WKv+ea
-hOiDveWKm+OAgA0K44CA44CADQrjgIDor77nqIvlrpfml6jjgIANCuOAgOKAnOS7iuWkqeWfueiu
-ree7k+adn++8jOaYjuWkqeW8gOWni+WKqOaJi+OAguKAneKAlOKAlOWfueiureWwseaYr+S4uuS6
-huaUueWPmOeQhuW/te+8jOaKiuaJgOWtpuWIsOeahOeuoeeQhuW3peWFt+i/kOeUqOWIsOW5s+aX
-tueahOW3peS9nOS4reWOu+OAguOAgA0K44CA44CADQrjgIDigJzmsqHmnInlm77ooajlsLHmmK/m
-sqHmnInnrqHnkIbvvIzmsqHmnInmlbDlrZflsLHmmK/msqHmnInmjqfliLbigJ3jgILjgIANCuOA
-gOOAgA0K44CA6K++56iL5aSn57qy44CADQrjgIDjgIANCuOAgOesrOS4gOWkqeOAgA0K44CA5LiA
-44CB6aG555uu5Y+K6aG555uu566h55CG77yIOTowMOKAlDEwOjMw77yJ44CADQrjgIDjgIANCuOA
-gOS6jOOAgemhueebruWPiuWFtuaJgOWkhOeahOeOr+Wig+WIhuaekO+8iDEwOjQ14oCUMTI6MDDv
-vInjgIANCuOAgOOAgA0K44CA5LiJ44CB6aG555uu5rKf6YCa566h55CG77yIMTM6MDDigJQxNDoz
-MO+8ieOAgA0K44CA44CADQrjgIDnrKzkuozlpKnjgIANCuOAgOWbm+OAgemhueebruiMg+WbtOeu
-oeeQhu+8iFdCUyDlkoxSQU0g55qE5Yi25L2c5pa55rOV5ZKM6KeE5a6a77yJ77yIOTowMOKAlDEw
-OjMw77yJ44CADQrjgIDjgIANCuOAgOS6lOOAgemhueebruaXtumXtOeuoeeQhu+8iOe9kee7nOWb
-vueahOWfuuacrOWItuS9nOaWueazle+8ie+8iDEzOjAw4oCUMTQ6MzDvvInjgIANCuOAgOOAgA0K
-44CA5YWt44CB6aG555uu5pe26Ze0566h55CG77yI5bim5pyJQ1BN572R57uc5Zu+55qE5Yi25L2c
-5pa55rOV77yJ44CADQrjgIDjgIANCuOAgOS4g+OAgemhueebruaXtumXtOeuoeeQhu+8iDnlpKfl
-t6Xlhbflj4pDUE3nvZHnu5zlm77nmoQxMOWkp+eUqOmAlO+8ie+8iDE0OjQ14oCUMTY6MzDvvInj
-gIANCuOAgOOAgOOAgApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
-aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Hi folks,
+
+Seems I hit one issue that btt device node disappeared after configure with non support sector_size, could you help confirm it?
+
+4.7.0
+# ndctl create-namespace -f -e namespace0.0 --mode=sector  -l 512
+{
+  "dev":"namespace0.0",
+  "mode":"sector",
+  "uuid":"45b4900d-da76-47c8-956f-a70e4ea33fe3",
+  "sector_size":512,
+  "blockdev":"pmem0s"
+}
+# lsblk 
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+pmem0s 259:0    0     8G  0 disk 
+pmem1s 259:2    0   7.1G  0 disk 
+pmem2s 259:1    0   7.1G  0 disk 
+pmem3s 259:3    0   7.1G  0 disk 
+# ndctl create-namespace -f -e namespace0.0 --mode=sector  -l 513
+failed to reconfigure namespace
+
+# lsblk 
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+pmem1s 259:2    0   7.1G  0 disk 
+pmem2s 259:1    0   7.1G  0 disk 
+pmem3s 259:3    0   7.1G  0 disk 
+
+
+
+Best Regards,
+  Yi Zhang
