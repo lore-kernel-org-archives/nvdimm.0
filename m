@@ -1,13 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id BC1BC1A1DFE
- for <linux-nvdimm@lists.01.org>; Thu,  4 Aug 2016 11:44:33 -0700 (PDT)
-Subject: [ndctl PATCH v2] ndctl,
- create-namespace: trap and report invalid sector-size values
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 04 Aug 2016 11:42:09 -0700
-Message-ID: <147033593728.33374.15172970808845415226.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mail-oi0-x22c.google.com (mail-oi0-x22c.google.com
+ [IPv6:2607:f8b0:4003:c06::22c])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id F277A1A1DF5
+ for <linux-nvdimm@lists.01.org>; Thu,  4 Aug 2016 10:59:51 -0700 (PDT)
+Received: by mail-oi0-x22c.google.com with SMTP id k131so24218829oib.1
+ for <linux-nvdimm@lists.01.org>; Thu, 04 Aug 2016 10:59:51 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <147032474225.32368.15775067933518377793.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147032474225.32368.15775067933518377793.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 4 Aug 2016 10:59:50 -0700
+Message-ID: <CAPcyv4iAGx8BSaZvjXhe-eoPah4EtQzbckgZfHW_a3us6QCH6w@mail.gmail.com>
+Subject: Re: [ndctl PATCH] ndctl, create-namespace: trap and report invalid
+ sector-size values
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,105 +26,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-While the kernel will prevent invalid configurations, the user
-experience of a kernel error message and disabling of the namespace is
-too harsh.  Trap and report these attempts to make create-namespace more
-user friendly.
+On Thu, Aug 4, 2016 at 8:32 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+> While the kernel will prevent invalid configurations, the user
+> experience of a kernel error message and disabling of the namespace is
+> too harsh.  Trap and report these attempts to make create-namespace more
+> user friendly.
+>
+>     # ndctl create-namespace -e namespace0.0 -m sector -l 513 -f -v
+>     validate_namespace_options:437: region0: does not support btt sector_size 513
+>     failed to reconfigure namespace
+>
+> Reported-by: Yi Zhang <yizhan@redhat.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  ndctl/builtin-xaction-namespace.c |   40 +++++++++++++++++++++++++++++++------
+>  1 file changed, 34 insertions(+), 6 deletions(-)
 
-    # ndctl create-namespace -e namespace0.0 -m sector -l 513 -f -v
-    validate_namespace_options:437: region0: does not support btt sector_size 513
-    failed to reconfigure namespace
+Unit tests say we also need the following so that we don't try to set
+a sector size on pmem namespaces.
 
-Reported-by: Yi Zhang <yizhan@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes in v2 to address unit test breakage:
-
-1/ stop setting a default sector size for cases where create-namespace
-   is operating in pmem mode.
-
-2/ don't set ndns in validate_namespace(), use a separate 'seed'
-   variable, otherwise we mistakenly change a 'create' to a 'reconfigure'
-   operation.
-
- ndctl/builtin-xaction-namespace.c |   51 +++++++++++++++++++++++++++++++------
- 1 file changed, 43 insertions(+), 8 deletions(-)
-
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
-index 8304203750d8..76d06bbb53ba 100644
+diff --git a/ndctl/builtin-xaction-namespace.c
+b/ndctl/builtin-xaction-namespace.c
+index e136bfdefa39..35345fb26ec3 100644
 --- a/ndctl/builtin-xaction-namespace.c
 +++ b/ndctl/builtin-xaction-namespace.c
 @@ -210,8 +210,13 @@ static int set_defaults(enum namespace_action mode)
- 			error("'pmem' namespaces do not support setting 'sector size'\n");
- 			rc = -EINVAL;
- 		}
--	} else if (!param.reconfig)
--		param.sector_size = "4096";
-+	} else if (!param.reconfig
-+			&& (param.type && strcmp(param.type, "blk") == 0
-+				|| (param.mode
-+					&& strcmp(param.mode, "safe") == 0))) {
-+			/* default sector size for blk-type or safe-mode */
-+			param.sector_size = "4096";
-+	}
- 
- 	return rc;
- }
-@@ -415,14 +420,44 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		p->mode = ndctl_namespace_get_mode(ndns);
- 
- 	if (param.sector_size) {
--		p->sector_size = parse_size64(param.sector_size);
-+		struct ndctl_btt *btt;
-+		int num, i;
- 
--		if (ndns && p->mode != NDCTL_NS_MODE_SAFE
--				&& ndctl_namespace_get_type(ndns)
--				== ND_DEVICE_NAMESPACE_PMEM) {
--			debug("%s: does not support sector_size modification\n",
--					ndctl_namespace_get_devname(ndns));
-+		p->sector_size = parse_size64(param.sector_size);
-+		btt = ndctl_region_get_btt_seed(region);
-+		if (p->mode == NDCTL_NS_MODE_SAFE) {
-+			if (!btt) {
-+				debug("%s: does not support 'sector' mode\n",
-+						ndctl_region_get_devname(region));
-+				return -EINVAL;
-+			}
-+			num = ndctl_btt_get_num_sector_sizes(btt);
-+			for (i = 0; i < num; i++)
-+				if (ndctl_btt_get_supported_sector_size(btt, i)
-+						== p->sector_size)
-+					break;
-+			if (i >= num) {
-+				debug("%s: does not support btt sector_size %lu\n",
-+						ndctl_region_get_devname(region),
-+						p->sector_size);
-+				return -EINVAL;
-+			}
-+		} else {
-+			struct ndctl_namespace *seed = ndns;
-+
-+			if (!seed)
-+				seed = ndctl_region_get_namespace_seed(region);
-+			num = ndctl_namespace_get_num_sector_sizes(seed);
-+			for (i = 0; i < num; i++)
-+				if (ndctl_namespace_get_supported_sector_size(seed, i)
-+						== p->sector_size)
-+					break;
-+			if (i >= num) {
-+				debug("%s: does not support namespace sector_size %lu\n",
-+						ndctl_region_get_devname(region),
-+						p->sector_size);
- 				return -EINVAL;
-+			}
- 		}
- 	} else if (ndns) {
- 		struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
+                        error("'pmem' namespaces do not support
+setting 'sector size'\n");
+                        rc = -EINVAL;
+                }
+-       } else if (!param.reconfig)
+-               param.sector_size = "4096";
++       } else if (!param.reconfig
++                       && (param.type && strcmp(param.type, "blk") == 0
++                               || (param.mode
++                                       && strcmp(param.mode, "safe") == 0))) {
++                       /* default sector size for blk-type or safe-mode */
++                       param.sector_size = "4096";
++       }
 
+        return rc;
+ }
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
