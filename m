@@ -1,26 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM02-SN1-obe.outbound.protection.outlook.com
- (mail-sn1nam02on0724.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe44::724])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9BD9C1A1DFC
- for <linux-nvdimm@lists.01.org>; Fri,  5 Aug 2016 08:18:17 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Received: from ipmail06.adl2.internode.on.net (ipmail06.adl2.internode.on.net
+ [150.101.137.129]) by ml01.01.org (Postfix) with ESMTP id C306B1A1DF7
+ for <linux-nvdimm@lists.01.org>; Fri,  5 Aug 2016 04:27:42 -0700 (PDT)
+Date: Fri, 5 Aug 2016 21:27:39 +1000
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: Subtle races between DAX mmap fault and write path
-Date: Fri, 5 Aug 2016 15:18:14 +0000
-Message-ID: <1470410249.8908.170.camel@hpe.com>
+Message-ID: <20160805112739.GG16044@dastard>
 References: <20160727120745.GI6860@quack2.suse.cz>
- <20160727211039.GA20278@linux.intel.com> <20160727221949.GU16044@dastard>
- <20160728081033.GC4094@quack2.suse.cz> <20160729022152.GZ16044@dastard>
+ <20160727211039.GA20278@linux.intel.com>
+ <20160727221949.GU16044@dastard>
+ <20160728081033.GC4094@quack2.suse.cz>
+ <20160729022152.GZ16044@dastard>
  <CAPcyv4gOcDGzikJHYGxNXtYqQKkPUgkG+z4ASxogQUnp1zmD2g@mail.gmail.com>
  <20160730001249.GE16044@dastard> <579F20D9.80107@plexistor.com>
- <20160802002144.GL16044@dastard> <1470335997.8908.128.camel@hpe.com>
- <20160805112739.GG16044@dastard>
-In-Reply-To: <20160805112739.GG16044@dastard>
-Content-Language: en-US
-Content-ID: <EB300FE929CA60428CEEC314263A120B@NAMPRD84.PROD.OUTLOOK.COM>
+ <20160802002144.GL16044@dastard>
+ <1470335997.8908.128.camel@hpe.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1470335997.8908.128.camel@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,67 +25,67 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "david@fromorbit.com" <david@fromorbit.com>
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Cc: "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE2LTA4LTA1IGF0IDIxOjI3ICsxMDAwLCBEYXZlIENoaW5uZXIgd3JvdGU6DQo+
-IFsgY3V0IHRvIGp1c3QgdGhlIGltcG9ydGFudCBwb2ludHMgXQ0KPiBPbiBUaHUsIEF1ZyAwNCwg
-MjAxNiBhdCAwNjo0MDo0MlBNICswMDAwLCBLYW5pLCBUb3NoaW1pdHN1IHdyb3RlOg0KPiA+IA0K
-PiA+IE9uIFR1ZSwgMjAxNi0wOC0wMiBhdCAxMDoyMSArMTAwMCwgRGF2ZSBDaGlubmVyIHdyb3Rl
-Og0KPiA+ID4gDQo+ID4gPiBJZiBJIGRyb3AgdGhlIGZzeW5jIGZyb20gdGhlDQo+ID4gPiBidWZm
-ZXJlZCBJTyBwYXRoLCBiYW5kd2lkdGggcmVtYWlucyB0aGUgc2FtZSBidXQgcnVudGltZSBkcm9w
-cyB0bw0KPiA+ID4gMC41NS0wLjU3cywgc28gYWdhaW4gdGhlIGJ1ZmZlcmVkIElPIHdyaXRlIHBh
-dGggaXMgZmFzdGVyIHRoYW4gREFYDQo+ID4gPiB3aGlsZSBkb2luZyBtb3JlIHdvcmsuDQo+ID4N
-Cj4gPiBJIGRvIG5vdCB0aGluayB0aGUgdGVzdCByZXN1bHRzIGFyZSByZWxldmFudCBvbiB0aGlz
-IHBvaW50IGJlY2F1c2UgYm90aA0KPiA+IGJ1ZmZlcmVkIGFuZCBkYXggd3JpdGUoKSBwYXRocyB1
-c2UgdW5jYWNoZWQgY29weSB0byBhdm9pZCBjbGZsdXNoLiDCoFRoZQ0KPiA+IGJ1ZmZlcmVkIHBh
-dGggdXNlcyBjYWNoZWQgY29weSB0byB0aGUgcGFnZSBjYWNoZSBhbmQgdGhlbiB1c2UgdW5jYWNo
-ZWQNCj4gPiBjb3B5IHRvIFBNRU0gdmlhIHdyaXRlYmFjay4gwqBUaGVyZWZvcmUsIHRoZSBidWZm
-ZXJlZCBJTyBwYXRoIGFsc28gYmVuZWZpdHMNCj4gPiBmcm9tIHVzaW5nIHVuY2FjaGVkIGNvcHkg
-dG8gYXZvaWQgY2xmbHVzaC4NCj4NCj4gRXhjZXB0IHRoYXQgSSB0ZXN0ZWQgd2l0aG91dCB0aGUg
-d3JpdGViYWNrIHBhdGggZm9yIGJ1ZmZlcmVkIElPLCBzbw0KPiB0aGVyZSB3YXMgYSBkaXJlY3Qg
-Y29tcGFyaXNvbiBmb3Igc2luZ2xlIGNhY2hlZCBjb3B5IHZzIHNpbmdsZQ0KPiB1bmNhY2hlZCBj
-b3B5Lg0KDQpJIGFncmVlIHRoYXQgdGhlIHJlc3VsdCBzaG93ZWQgYSB0ZW50YXRpdmUgY29tcGFy
-aXNvbiBmb3IgY2FjaGVkIGNvcHkgdnMNCnVuY2FjaGVkIGNvcHkuIMKgTXkgcG9pbnQsIGhvd2V2
-ZXIsIGlzIHRoYXQgd3JpdGVzIHRvIFBNRU0gbmVlZCB0byBwZXJzaXN0DQp1bmxpa2UgdGhlIHBh
-Z2UgY2FjaGUuIMKgU28gZm9yIFBNRU0sIHRoZSBjb21wYXJpc29uIHNob3VsZCBiZSAoY2FjaGVk
-IGNvcHkgKw0KY2xmbHVzaCkgdnMgdW5jYWNoZWQgY29weS4NCg0KPiBUaGUgdW5kZW5pYWwgZmFj
-dCBpcyB0aGF0IGEgd3JpdGUoKSB3aXRoIGEgc2luZ2xlIGNhY2hlZCBjb3B5IHdpdGgNCj4gYWxs
-IHRoZSBvdmVyaGVhZCBvZiBkaXJ0eSBwYWdlIHRyYWNraW5nIGlzIC9mYXN0ZXIvIHRoYW4gYSBt
-dWNoDQo+IHNob3J0ZXIsIHNpbXBsZXIgSU8gcGF0aCB0aGF0IHVzZXMgYW4gdW5jYWNoZWQgY29w
-eS4gVGhhdCdzIHdoYXQgdGhlDQo+IG51bWJlcnMgc2F5Li4uLg0KDQpUaGlzIGNvc3QgZXZhbHVh
-dGlvbiBuZWVkcyB0byBpbmNsdWRlIHRoZSBjb3N0IG9mIGNsZmx1c2ggZm9yIGNhY2hlZCBjb3B5
-Lg0KwqBBbHNvLCBwYWdlIGNhY2hlIGFsbG9jYXRpb24gdGVuZHMgdG8gYmUgZmFzdGVyIHRoYW4g
-ZGlzayBibG9jayBhbGxvY2F0aW9uLg0KDQo+ID4gDQo+ID4gQ2FjaGVkIGNvcHkgKHJlcSBtb3Zx
-KSBpcyBzbGlnaHRseSBmYXN0ZXIgdGhhbiB1bmNhY2hlZCBjb3B5LA0KPg0KPiBOb3QgYWNjb3Jk
-aW5nIHRvIEJvYXogLSBoZSBjbGFpbXMgdGhhdCB1bmNhY2hlZCBpcyAyMCUgZmFzdGVyIHRoYW4N
-Cj4gY2FjaGVkLiBIb3cgYWJvdXQgeW91IHR3byBnZXQgdG9nZXRoZXIsIGRvIHNvbWUgYmVuY2ht
-YXJraW5nIGFuZCBnZXQNCj4geW91ciBzdG9yeSBzdHJhaWdodCwgZWg/DQoNCkkgdmFndWVseSBy
-ZW1lbWJlciBzZWVpbmcgc3VjaCByZXN1bHRzLCBidXQgSSBtYXkgYmUgd3JvbmcgYWJvdXQgdGhh
-dC4gwqBIZXJlDQphcmUgcGVyZm9ybWFuY2UgdGVzdCByZXN1bHRzIFJvYmVydCBFbGxpb3R0IGNv
-bmR1Y3RlZCBiZWZvcmUuDQpodHRwczovL2xrbWwub3JnL2xrbWwvMjAxNS80LzIvNDUzDQoNClRv
-IHF1b3RlIHRoZSByZXN1bHRzIHJlbGV2YW50IHRvIHRoaXMgdG9waWM6DQoNCi0gQ2FjaGVkIGNv
-cHkJCQkyLjUgTQ0KLSBVbmNhY2hlZCBjb3B5IHcvwqBNT1ZOVEkJMi42IE0JDQotIFVuY2FjaGVk
-IGNvcHkgdy/CoE1PVk5URFEJMy41IE0NCg0KTm90ZSB0aGF0IHdlIHVzZSBNT1ZOVEkgdG9kYXks
-IG5vdCBNT1ZOVERRLiDCoFdlIGluc3RydW1lbnRlZCBhIE1PVk5URFEgY29weQ0KZnVuY3Rpb24g
-Zm9yIHRoaXMgdGVzdC4gwqBXZSBjYW4gZnVydGhlciBpbXByb3ZlIHRoZSBjb3B5IHBlcmZvcm1h
-bmNlIGJ5IHVzaW5nDQpNT1ZOVERRLg0KDQo+ID4gYW5kIHNob3VsZCBiZSB1c2VkIGZvciB3cml0
-aW5nIHRvIHRoZSBwYWdlIGNhY2hlLiDCoEZvciB3cml0aW5nIHRvIFBNRU0sDQo+ID4gaG93ZXZl
-ciwgYWRkaXRpb25hbCBjbGZsdXNoIGNhbiBiZSBleHBlbnNpdmUsIGFuZCBhbGxvY2F0aW5nIGNh
-Y2hlbGluZXMNCj4gPiBmb3IgUE1FTSBsZWFkcyB0byBldmljdCBhcHBsaWNhdGlvbidzIGNhY2hl
-bGluZXMuDQo+DQo+IEkga2VlcCBoZWFyaW5nIHBlb3BsZSB0ZWxsIG1lIHdoeSBjYWNoZWQgY29w
-aWVzIGFyZSBzbG93ZXIsIGJ1dA0KPiBuby1vbmUgaXMgcHJvdmlkaW5nIG51bWJlcnMgdG8gYmFj
-ayB1cCB0aGVpciBzdGF0ZW1lbnRzLiBUaGUgb25seQ0KPiBudW1iZXJzIHdlIGhhdmUgYXJlIHRo
-ZSBvbmVzIEkndmUgcHVibGlzaGVkIHNob3dpbmcgY2FjaGVkIGNvcGllcyB3Lw0KPiBmdWxsIGRp
-cnR5IHRyYWNraW5nIGlzIGZhc3RlciB0aGFuIHVuY2FjaGVkIGNvcHkgdy9vIGRpcnR5IHRyYWNr
-aW5nLg0KPiANCj4gU2hvdyBtZSB0aGUgbnVtYmVycyB0aGF0IGJhY2sgdXAgeW91ciBzdGF0ZW1l
-bnRzLCB0aGVuIEknbGwgbGlzdGVuDQo+IHRvIHlvdS4NCg0KUGxlYXNlIHNlZSBhYm92ZS4gwqBD
-YWNoZWQgY29weSByZXF1aXJlcyBjbGZsdXNoIG9uIHRvcCBvZiB0aGF0Lg0KDQpUaGFua3MsDQot
-VG9zaGkNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
-bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
-L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+[ cut to just the important points ]
+On Thu, Aug 04, 2016 at 06:40:42PM +0000, Kani, Toshimitsu wrote:
+> On Tue, 2016-08-02 at 10:21 +1000, Dave Chinner wrote:
+> > If I drop the fsync from the
+> > buffered IO path, bandwidth remains the same but runtime drops to
+> > 0.55-0.57s, so again the buffered IO write path is faster than DAX
+> > while doing more work.
+> =
+
+> I do not think the test results are relevant on this point because both
+> buffered and dax write() paths use uncached copy to avoid clflush. =A0The
+> buffered path uses cached copy to the page cache and then use uncached co=
+py to
+> PMEM via writeback. =A0Therefore, the buffered IO path also benefits from=
+ using
+> uncached copy to avoid clflush.
+
+Except that I tested without the writeback path for buffered IO, so
+there was a direct comparison for single cached copy vs single
+uncached copy.
+
+The undenial fact is that a write() with a single cached copy with
+all the overhead of dirty page tracking is /faster/ than a much
+shorter, simpler IO path that uses an uncached copy. That's what the
+numbers say....
+
+> Cached copy (req movq) is slightly faster than uncached copy,
+
+Not according to Boaz - he claims that uncached is 20% faster than
+cached. How about you two get together, do some benchmarking and get
+your story straight, eh?
+
+> and should be
+> used for writing to the page cache. =A0For writing to PMEM, however, addi=
+tional
+> clflush can be expensive, and allocating cachelines for PMEM leads to evi=
+ct
+> application's cachelines.
+
+I keep hearing people tell me why cached copies are slower, but
+no-one is providing numbers to back up their statements. The only
+numbers we have are the ones I've published showing cached copies w/
+full dirty tracking is faster than uncached copy w/o dirty tracking.
+
+Show me the numbers that back up your statements, then I'll listen
+to you.
+
+-Dave.
+-- =
+
+Dave Chinner
+david@fromorbit.com
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
