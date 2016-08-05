@@ -1,14 +1,102 @@
-From: yizhan <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [ndctl PATCH v2] ndctl, create-namespace: trap and report invalid
- sector-size values
-Date: Fri, 5 Aug 2016 11:38:01 +0800
-Message-ID: <12ffc653-e986-d48e-4b8a-623d14672932@redhat.com>
-References: <147033593728.33374.15172970808845415226.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "JOSHUA" <klostocc091-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Reach Millions of FB Group Members
+Date: Fri, 05 Aug 2016 10:08:55 +0300
+Message-ID: <33E0C5A2.55216E7E@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="----------=_57A43B92.2E7131BF"
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_57A43B92.2E7131BF
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  Hello, Do you want to advertise on facebook? We're here to
+   help. We wil manually post your product/logo/link on Facebook Groups and
+  will give you a full report with links of each live post where your advertisement
+   was posted. [...] 
+
+Content analysis details:   (12.6 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 1.9 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: buysocial.cn]
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: buysocial.cn]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: buysocial.cn]
+ 0.6 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
+                            [175.123.242.195 listed in dnsbl.sorbs.net]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 1.2 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+             [Blocked - see <http://www.spamcop.net/bl.shtml?175.123.242.195>]
+ 2.8 FSL_HELO_FAKE          No description available.
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (klostocc091[at]gmail.com)
+ 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
+                            (klostocc091[at]gmail.com)
+ 0.4 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 2.4 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 1.7 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+
+
+------------=_57A43B92.2E7131BF
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <147033593728.33374.15172970808845415226.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1bVZFZ-0008Jd-H5
+	for gln-linux-nvdimm@m.gmane.org; Fri, 05 Aug 2016 09:08:57 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 122401A1DF8;
+	Fri,  5 Aug 2016 00:08:57 -0700 (PDT)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Received: from gmail.com (unknown [175.123.242.195])
+ by ml01.01.org (Postfix) with SMTP id F0CB61A1DF8
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Fri,  5 Aug 2016 00:08:54 -0700 (PDT)
+Message-ID: <33E0C5A2.55216E7E-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Fri, 05 Aug 2016 10:08:55 +0300
+From: "JOSHUA" <klostocc091-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; de;
+ rv:1.8.1.21) Gecko/20090302 Thunderbird/2.0.0.21
+MIME-Version: 1.0
+To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Subject: Reach Millions of FB Group Members
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.21
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,84 +104,37 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Reply-To: JOSHUA <klostocc091-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
 
-CgpPbiAwOC8wNS8yMDE2IDAyOjQyIEFNLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4gV2hpbGUgdGhl
-IGtlcm5lbCB3aWxsIHByZXZlbnQgaW52YWxpZCBjb25maWd1cmF0aW9ucywgdGhlIHVzZXIKPiBl
-eHBlcmllbmNlIG9mIGEga2VybmVsIGVycm9yIG1lc3NhZ2UgYW5kIGRpc2FibGluZyBvZiB0aGUg
-bmFtZXNwYWNlIGlzCj4gdG9vIGhhcnNoLiAgVHJhcCBhbmQgcmVwb3J0IHRoZXNlIGF0dGVtcHRz
-IHRvIG1ha2UgY3JlYXRlLW5hbWVzcGFjZSBtb3JlCj4gdXNlciBmcmllbmRseS4KPgo+ICAgICAg
-IyBuZGN0bCBjcmVhdGUtbmFtZXNwYWNlIC1lIG5hbWVzcGFjZTAuMCAtbSBzZWN0b3IgLWwgNTEz
-IC1mIC12Cj4gICAgICB2YWxpZGF0ZV9uYW1lc3BhY2Vfb3B0aW9uczo0Mzc6IHJlZ2lvbjA6IGRv
-ZXMgbm90IHN1cHBvcnQgYnR0IHNlY3Rvcl9zaXplIDUxMwo+ICAgICAgZmFpbGVkIHRvIHJlY29u
-ZmlndXJlIG5hbWVzcGFjZQo+Cj4gUmVwb3J0ZWQtYnk6IFlpIFpoYW5nIDx5aXpoYW5AcmVkaGF0
-LmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVs
-LmNvbT4KPiAtLS0KPiBDaGFuZ2VzIGluIHYyIHRvIGFkZHJlc3MgdW5pdCB0ZXN0IGJyZWFrYWdl
-Ogo+Cj4gMS8gc3RvcCBzZXR0aW5nIGEgZGVmYXVsdCBzZWN0b3Igc2l6ZSBmb3IgY2FzZXMgd2hl
-cmUgY3JlYXRlLW5hbWVzcGFjZQo+ICAgICBpcyBvcGVyYXRpbmcgaW4gcG1lbSBtb2RlLgo+Cj4g
-Mi8gZG9uJ3Qgc2V0IG5kbnMgaW4gdmFsaWRhdGVfbmFtZXNwYWNlKCksIHVzZSBhIHNlcGFyYXRl
-ICdzZWVkJwo+ICAgICB2YXJpYWJsZSwgb3RoZXJ3aXNlIHdlIG1pc3Rha2VubHkgY2hhbmdlIGEg
-J2NyZWF0ZScgdG8gYSAncmVjb25maWd1cmUnCj4gICAgIG9wZXJhdGlvbi4KPgo+ICAgbmRjdGwv
-YnVpbHRpbi14YWN0aW9uLW5hbWVzcGFjZS5jIHwgICA1MSArKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrLS0tLS0tCj4gICAxIGZpbGUgY2hhbmdlZCwgNDMgaW5zZXJ0aW9ucygrKSwgOCBk
-ZWxldGlvbnMoLSkKPgo+IGRpZmYgLS1naXQgYS9uZGN0bC9idWlsdGluLXhhY3Rpb24tbmFtZXNw
-YWNlLmMgYi9uZGN0bC9idWlsdGluLXhhY3Rpb24tbmFtZXNwYWNlLmMKPiBpbmRleCA4MzA0MjAz
-NzUwZDguLjc2ZDA2YmJiNTNiYSAxMDA2NDQKPiAtLS0gYS9uZGN0bC9idWlsdGluLXhhY3Rpb24t
-bmFtZXNwYWNlLmMKPiArKysgYi9uZGN0bC9idWlsdGluLXhhY3Rpb24tbmFtZXNwYWNlLmMKPiBA
-QCAtMjEwLDggKzIxMCwxMyBAQCBzdGF0aWMgaW50IHNldF9kZWZhdWx0cyhlbnVtIG5hbWVzcGFj
-ZV9hY3Rpb24gbW9kZSkKPiAgIAkJCWVycm9yKCIncG1lbScgbmFtZXNwYWNlcyBkbyBub3Qgc3Vw
-cG9ydCBzZXR0aW5nICdzZWN0b3Igc2l6ZSdcbiIpOwo+ICAgCQkJcmMgPSAtRUlOVkFMOwo+ICAg
-CQl9Cj4gLQl9IGVsc2UgaWYgKCFwYXJhbS5yZWNvbmZpZykKPiAtCQlwYXJhbS5zZWN0b3Jfc2l6
-ZSA9ICI0MDk2IjsKPiArCX0gZWxzZSBpZiAoIXBhcmFtLnJlY29uZmlnCj4gKwkJCSYmIChwYXJh
-bS50eXBlICYmIHN0cmNtcChwYXJhbS50eXBlLCAiYmxrIikgPT0gMApHb3QgYmVsb3cgd2Fybmlu
-ZyB3aGVuIGNvbXBpbGluZyB3aXRoIHRoaXMgcGF0Y2gKYnVpbHRpbi14YWN0aW9uLW5hbWVzcGFj
-ZS5jOiBJbiBmdW5jdGlvbiDigJhzZXRfZGVmYXVsdHPigJk6CmJ1aWx0aW4teGFjdGlvbi1uYW1l
-c3BhY2UuYzoyMTQ6MTk6IHdhcm5pbmc6IHN1Z2dlc3QgcGFyZW50aGVzZXMgYXJvdW5kIArigJgm
-JuKAmSB3aXRoaW4g4oCYfHzigJkgWy1XcGFyZW50aGVzZXNdCiAgICAgJiYgKHBhcmFtLnR5cGUg
-JiYgc3RyY21wKHBhcmFtLnR5cGUsICJibGsiKSA9PSAwCiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgXgogICBDQyAgICAgICBidWlsdGluLXhhYmxlLXJlZ2lvbi5vCiAgIENDICAgICAg
-IGJ1aWx0aW4tbGlzdC5vCiAgIENDICAgICAgIGJ1aWx0aW4tdGVzdC5vCiAgIENDICAgICAgIGJ1
-aWx0aW4taGVscC5vCiAgIENDICAgICAgIGJ1aWx0aW4temVyby1sYWJlbHMubwogICBDQyAgICAg
-ICBidWlsdGluLXJlYWQtbGFiZWxzLm8KICAgQ0MgICAgICAgdXRpbC9qc29uLm8KICAgQ0MgICAg
-ICAgdXRpbC9qc29uLXNtYXJ0Lm8KICAgQ0NMRCAgICAgbmRjdGwKICAgR0VOICAgICAgbGliL2xp
-Ym5kY3RsLnBjCgo+ICsJCQkJfHwgKHBhcmFtLm1vZGUKPiArCQkJCQkmJiBzdHJjbXAocGFyYW0u
-bW9kZSwgInNhZmUiKSA9PSAwKSkpIHsKPiArCQkJLyogZGVmYXVsdCBzZWN0b3Igc2l6ZSBmb3Ig
-YmxrLXR5cGUgb3Igc2FmZS1tb2RlICovCj4gKwkJCXBhcmFtLnNlY3Rvcl9zaXplID0gIjQwOTYi
-Owo+ICsJfQo+ICAgCj4gICAJcmV0dXJuIHJjOwo+ICAgfQo+IEBAIC00MTUsMTQgKzQyMCw0NCBA
-QCBzdGF0aWMgaW50IHZhbGlkYXRlX25hbWVzcGFjZV9vcHRpb25zKHN0cnVjdCBuZGN0bF9yZWdp
-b24gKnJlZ2lvbiwKPiAgIAkJcC0+bW9kZSA9IG5kY3RsX25hbWVzcGFjZV9nZXRfbW9kZShuZG5z
-KTsKPiAgIAo+ICAgCWlmIChwYXJhbS5zZWN0b3Jfc2l6ZSkgewo+IC0JCXAtPnNlY3Rvcl9zaXpl
-ID0gcGFyc2Vfc2l6ZTY0KHBhcmFtLnNlY3Rvcl9zaXplKTsKPiArCQlzdHJ1Y3QgbmRjdGxfYnR0
-ICpidHQ7Cj4gKwkJaW50IG51bSwgaTsKPiAgIAo+IC0JCWlmIChuZG5zICYmIHAtPm1vZGUgIT0g
-TkRDVExfTlNfTU9ERV9TQUZFCj4gLQkJCQkmJiBuZGN0bF9uYW1lc3BhY2VfZ2V0X3R5cGUobmRu
-cykKPiAtCQkJCT09IE5EX0RFVklDRV9OQU1FU1BBQ0VfUE1FTSkgewo+IC0JCQlkZWJ1ZygiJXM6
-IGRvZXMgbm90IHN1cHBvcnQgc2VjdG9yX3NpemUgbW9kaWZpY2F0aW9uXG4iLAo+IC0JCQkJCW5k
-Y3RsX25hbWVzcGFjZV9nZXRfZGV2bmFtZShuZG5zKSk7Cj4gKwkJcC0+c2VjdG9yX3NpemUgPSBw
-YXJzZV9zaXplNjQocGFyYW0uc2VjdG9yX3NpemUpOwo+ICsJCWJ0dCA9IG5kY3RsX3JlZ2lvbl9n
-ZXRfYnR0X3NlZWQocmVnaW9uKTsKPiArCQlpZiAocC0+bW9kZSA9PSBORENUTF9OU19NT0RFX1NB
-RkUpIHsKPiArCQkJaWYgKCFidHQpIHsKPiArCQkJCWRlYnVnKCIlczogZG9lcyBub3Qgc3VwcG9y
-dCAnc2VjdG9yJyBtb2RlXG4iLAo+ICsJCQkJCQluZGN0bF9yZWdpb25fZ2V0X2Rldm5hbWUocmVn
-aW9uKSk7Cj4gKwkJCQlyZXR1cm4gLUVJTlZBTDsKPiArCQkJfQo+ICsJCQludW0gPSBuZGN0bF9i
-dHRfZ2V0X251bV9zZWN0b3Jfc2l6ZXMoYnR0KTsKPiArCQkJZm9yIChpID0gMDsgaSA8IG51bTsg
-aSsrKQo+ICsJCQkJaWYgKG5kY3RsX2J0dF9nZXRfc3VwcG9ydGVkX3NlY3Rvcl9zaXplKGJ0dCwg
-aSkKPiArCQkJCQkJPT0gcC0+c2VjdG9yX3NpemUpCj4gKwkJCQkJYnJlYWs7Cj4gKwkJCWlmIChp
-ID49IG51bSkgewo+ICsJCQkJZGVidWcoIiVzOiBkb2VzIG5vdCBzdXBwb3J0IGJ0dCBzZWN0b3Jf
-c2l6ZSAlbHVcbiIsCj4gKwkJCQkJCW5kY3RsX3JlZ2lvbl9nZXRfZGV2bmFtZShyZWdpb24pLAo+
-ICsJCQkJCQlwLT5zZWN0b3Jfc2l6ZSk7Cj4gKwkJCQlyZXR1cm4gLUVJTlZBTDsKPiArCQkJfQo+
-ICsJCX0gZWxzZSB7Cj4gKwkJCXN0cnVjdCBuZGN0bF9uYW1lc3BhY2UgKnNlZWQgPSBuZG5zOwo+
-ICsKPiArCQkJaWYgKCFzZWVkKQo+ICsJCQkJc2VlZCA9IG5kY3RsX3JlZ2lvbl9nZXRfbmFtZXNw
-YWNlX3NlZWQocmVnaW9uKTsKPiArCQkJbnVtID0gbmRjdGxfbmFtZXNwYWNlX2dldF9udW1fc2Vj
-dG9yX3NpemVzKHNlZWQpOwo+ICsJCQlmb3IgKGkgPSAwOyBpIDwgbnVtOyBpKyspCj4gKwkJCQlp
-ZiAobmRjdGxfbmFtZXNwYWNlX2dldF9zdXBwb3J0ZWRfc2VjdG9yX3NpemUoc2VlZCwgaSkKPiAr
-CQkJCQkJPT0gcC0+c2VjdG9yX3NpemUpCj4gKwkJCQkJYnJlYWs7Cj4gKwkJCWlmIChpID49IG51
-bSkgewo+ICsJCQkJZGVidWcoIiVzOiBkb2VzIG5vdCBzdXBwb3J0IG5hbWVzcGFjZSBzZWN0b3Jf
-c2l6ZSAlbHVcbiIsCj4gKwkJCQkJCW5kY3RsX3JlZ2lvbl9nZXRfZGV2bmFtZShyZWdpb24pLAo+
-ICsJCQkJCQlwLT5zZWN0b3Jfc2l6ZSk7Cj4gICAJCQkJcmV0dXJuIC1FSU5WQUw7Cj4gKwkJCX0K
-PiAgIAkJfQo+ICAgCX0gZWxzZSBpZiAobmRucykgewo+ICAgCQlzdHJ1Y3QgbmRjdGxfYnR0ICpi
-dHQgPSBuZGN0bF9uYW1lc3BhY2VfZ2V0X2J0dChuZG5zKTsKPgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0Ckxp
-bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0
-aW5mby9saW51eC1udmRpbW0K
+Hello,
+Do you want to advertise on facebook? We're here to help. =
+
+
+We wil manually post your product/logo/link on Facebook Groups and will
+give you a full report with links of each live post where your advertisement
+was posted.
+
+http://www.buysocial.cn/detail.php?id=3D12
+
+Regards
+JOSHUA
+=A0
+
+
+
+
+
+Unsubscribe option is available on the footer of our website
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_57A43B92.2E7131BF--
