@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM03-DM3-obe.outbound.protection.outlook.com
- (mail-dm3nam03on072e.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe49::72e])
+Received: from NAM02-SN1-obe.outbound.protection.outlook.com
+ (mail-sn1nam02on0724.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe44::724])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9EDC21A1DF5
- for <linux-nvdimm@lists.01.org>; Fri,  5 Aug 2016 12:58:37 -0700 (PDT)
-From: "Boylston, Brian" <brian.boylston@hpe.com>
-Subject: RE: Subtle races between DAX mmap fault and write path
-Date: Fri, 5 Aug 2016 19:58:33 +0000
-Message-ID: <CS1PR84MB0119314ACA9B4823C0FE33318E180@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id 9BD9C1A1DFC
+ for <linux-nvdimm@lists.01.org>; Fri,  5 Aug 2016 08:18:17 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: Subtle races between DAX mmap fault and write path
+Date: Fri, 5 Aug 2016 15:18:14 +0000
+Message-ID: <1470410249.8908.170.camel@hpe.com>
 References: <20160727120745.GI6860@quack2.suse.cz>
  <20160727211039.GA20278@linux.intel.com> <20160727221949.GU16044@dastard>
  <20160728081033.GC4094@quack2.suse.cz> <20160729022152.GZ16044@dastard>
@@ -19,6 +19,7 @@ References: <20160727120745.GI6860@quack2.suse.cz>
  <20160805112739.GG16044@dastard>
 In-Reply-To: <20160805112739.GG16044@dastard>
 Content-Language: en-US
+Content-ID: <EB300FE929CA60428CEEC314263A120B@NAMPRD84.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,199 +28,67 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Chinner <david@fromorbit.com>, "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "david@fromorbit.com" <david@fromorbit.com>
+Cc: "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "xfs@oss.sgi.com" <xfs@oss.sgi.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dave Chinner wrote on 2016-08-05:
-> [ cut to just the important points ]
-> On Thu, Aug 04, 2016 at 06:40:42PM +0000, Kani, Toshimitsu wrote:
->> On Tue, 2016-08-02 at 10:21 +1000, Dave Chinner wrote:
->>> If I drop the fsync from the
->>> buffered IO path, bandwidth remains the same but runtime drops to
->>> 0.55-0.57s, so again the buffered IO write path is faster than DAX
->>> while doing more work.
->> =
-
->> I do not think the test results are relevant on this point because both
->> buffered and dax write() paths use uncached copy to avoid clflush. =A0The
->> buffered path uses cached copy to the page cache and then use uncached c=
-opy to
->> PMEM via writeback. =A0Therefore, the buffered IO path also benefits fro=
-m using
->> uncached copy to avoid clflush.
-> =
-
-> Except that I tested without the writeback path for buffered IO, so
-> there was a direct comparison for single cached copy vs single
-> uncached copy.
-> =
-
-> The undenial fact is that a write() with a single cached copy with
-> all the overhead of dirty page tracking is /faster/ than a much
-> shorter, simpler IO path that uses an uncached copy. That's what the
-> numbers say....
-> =
-
->> Cached copy (req movq) is slightly faster than uncached copy,
-> =
-
-> Not according to Boaz - he claims that uncached is 20% faster than
-> cached. How about you two get together, do some benchmarking and get
-> your story straight, eh?
-> =
-
->> and should be
->> used for writing to the page cache. =A0For writing to PMEM, however, add=
-itional
->> clflush can be expensive, and allocating cachelines for PMEM leads to ev=
-ict
->> application's cachelines.
-> =
-
-> I keep hearing people tell me why cached copies are slower, but
-> no-one is providing numbers to back up their statements. The only
-> numbers we have are the ones I've published showing cached copies w/
-> full dirty tracking is faster than uncached copy w/o dirty tracking.
-> =
-
-> Show me the numbers that back up your statements, then I'll listen
-> to you.
-
-Here are some numbers for a particular scenario, and the code is below.
-
-Time (in seconds) to copy a 16KiB buffer 1M times to a 4MiB NVDIMM buffer
-(1M total memcpy()s).  For the cached+clflush case, the flushes are done
-every 4MiB (which seems slightly faster than flushing every 16KiB):
-
-                  NUMA local    NUMA remote
-Cached+clflush      13.5           37.1
-movnt                1.0            1.3 =
-
-
-In the code below, pmem_persist() does the CLFLUSH(es) on the given range,
-and pmem_memcpy_persist() does non-temporal MOVs with an SFENCE:
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <libpmem.h>
-
-/*
- * gcc -Wall -O2 -m64 -mcx16 -o memcpyperf memcpyperf.c -lpmem
- *
- * Not sure if -mcx16 allows gcc to use faster memcpy bits?
- */
-
-/*
- * our source buffer.  we'll copy this much at a time.
- * align it so that memcpy() doesn't have to do anything funny.
- */
-char   __attribute__((aligned(0x100))) src[4 * 4096];
-
-int
-main(
-        int   argc,
-        char* argv[]
-)
-{
-        char*    path;
-        char     mode;
-        int      nloops;
-        char*    dstbase;
-        size_t   dstsz;
-        int      ispmem;
-        int      cpysz;
-        char*    dst;
-
-        if (argc !=3D 4) {
-                fprintf(stderr, "ERROR: usage: "
-                        "memcpyperf [cached | nt] PATH NLOOPS\n");
-                exit(1);
-        }
-        mode   =3D argv[1][0];
-        path   =3D argv[2];
-        nloops =3D atoi(argv[3]);
-
-        dstbase =3D pmem_map_file(path, 0, 0, 0, &dstsz, &ispmem);
-        if (NULL =3D=3D dstbase) {
-                perror(path);
-                exit(1);
-        }
-
-        if (!ispmem)
-                fprintf(stderr, "WARNING: %s is not pmem\n", path);
-
-        if (dstsz < sizeof(src))
-                cpysz =3D dstsz;
-        else
-                cpysz =3D sizeof(src);
-
-        fprintf(stderr, "INFO: dst %p src %p dstsz %ld cpysz %d\n",
-                dstbase, src, dstsz, cpysz);
-
-        dst =3D dstbase;
-        while (nloops--) {
-                if (mode =3D=3D 'c') {
-                        memcpy(dst, src, cpysz);
-                        /*
-                         * we could do the clflush here on the 16KiB we just
-                         * wrote, but with a 4MiB file (dst buffer) and 16K=
-iB
-                         * src buffer, it seems slightly faster to flush the
-                         * entire 4MiB below
-                         */
-                        //pmem_persist(dst, cpysz);
-                }
-                else {
-                        pmem_memcpy_persist(dst, src, cpysz);
-                }
-                dst +=3D cpysz;
-                if ((dst + cpysz) - dstbase > dstsz) {
-                        dst =3D dstbase;
-                        /* see note above */
-                        if (mode =3D=3D 'c')
-                                pmem_persist(dst, dstsz);
-                }
-        }
-
-        exit(0);
-
-}  /* main() */
-EOF
-
-Sample runs:
-
-$ numactl -N0 time -p ./memcpyperf c /pmem0/brian/cpt 1000000
-INFO: dst 0x7f3f1a000000 src 0x601200 dstsz 4194304 cpysz 16384
-real 13.53
-user 13.53
-sys 0.00
-$ numactl -N0 time -p ./memcpyperf n /pmem0/brian/cpt 1000000
-INFO: dst 0x7f2b54600000 src 0x601200 dstsz 4194304 cpysz 16384
-real 1.04
-user 1.04
-sys 0.00
-$ numactl -N1 time -p ./memcpyperf c /pmem0/brian/cpt 1000000
-INFO: dst 0x7f8f8c200000 src 0x601200 dstsz 4194304 cpysz 16384
-real 37.13
-user 37.15
-sys 0.00
-$ numactl -N1 time -p ./memcpyperf n /pmem0/brian/cpt 1000000
-INFO: dst 0x7f77f7400000 src 0x601200 dstsz 4194304 cpysz 16384
-real 1.24
-user 1.24
-sys 0.00
-
-
-Brian
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCAyMDE2LTA4LTA1IGF0IDIxOjI3ICsxMDAwLCBEYXZlIENoaW5uZXIgd3JvdGU6DQo+
+IFsgY3V0IHRvIGp1c3QgdGhlIGltcG9ydGFudCBwb2ludHMgXQ0KPiBPbiBUaHUsIEF1ZyAwNCwg
+MjAxNiBhdCAwNjo0MDo0MlBNICswMDAwLCBLYW5pLCBUb3NoaW1pdHN1IHdyb3RlOg0KPiA+IA0K
+PiA+IE9uIFR1ZSwgMjAxNi0wOC0wMiBhdCAxMDoyMSArMTAwMCwgRGF2ZSBDaGlubmVyIHdyb3Rl
+Og0KPiA+ID4gDQo+ID4gPiBJZiBJIGRyb3AgdGhlIGZzeW5jIGZyb20gdGhlDQo+ID4gPiBidWZm
+ZXJlZCBJTyBwYXRoLCBiYW5kd2lkdGggcmVtYWlucyB0aGUgc2FtZSBidXQgcnVudGltZSBkcm9w
+cyB0bw0KPiA+ID4gMC41NS0wLjU3cywgc28gYWdhaW4gdGhlIGJ1ZmZlcmVkIElPIHdyaXRlIHBh
+dGggaXMgZmFzdGVyIHRoYW4gREFYDQo+ID4gPiB3aGlsZSBkb2luZyBtb3JlIHdvcmsuDQo+ID4N
+Cj4gPiBJIGRvIG5vdCB0aGluayB0aGUgdGVzdCByZXN1bHRzIGFyZSByZWxldmFudCBvbiB0aGlz
+IHBvaW50IGJlY2F1c2UgYm90aA0KPiA+IGJ1ZmZlcmVkIGFuZCBkYXggd3JpdGUoKSBwYXRocyB1
+c2UgdW5jYWNoZWQgY29weSB0byBhdm9pZCBjbGZsdXNoLiDCoFRoZQ0KPiA+IGJ1ZmZlcmVkIHBh
+dGggdXNlcyBjYWNoZWQgY29weSB0byB0aGUgcGFnZSBjYWNoZSBhbmQgdGhlbiB1c2UgdW5jYWNo
+ZWQNCj4gPiBjb3B5IHRvIFBNRU0gdmlhIHdyaXRlYmFjay4gwqBUaGVyZWZvcmUsIHRoZSBidWZm
+ZXJlZCBJTyBwYXRoIGFsc28gYmVuZWZpdHMNCj4gPiBmcm9tIHVzaW5nIHVuY2FjaGVkIGNvcHkg
+dG8gYXZvaWQgY2xmbHVzaC4NCj4NCj4gRXhjZXB0IHRoYXQgSSB0ZXN0ZWQgd2l0aG91dCB0aGUg
+d3JpdGViYWNrIHBhdGggZm9yIGJ1ZmZlcmVkIElPLCBzbw0KPiB0aGVyZSB3YXMgYSBkaXJlY3Qg
+Y29tcGFyaXNvbiBmb3Igc2luZ2xlIGNhY2hlZCBjb3B5IHZzIHNpbmdsZQ0KPiB1bmNhY2hlZCBj
+b3B5Lg0KDQpJIGFncmVlIHRoYXQgdGhlIHJlc3VsdCBzaG93ZWQgYSB0ZW50YXRpdmUgY29tcGFy
+aXNvbiBmb3IgY2FjaGVkIGNvcHkgdnMNCnVuY2FjaGVkIGNvcHkuIMKgTXkgcG9pbnQsIGhvd2V2
+ZXIsIGlzIHRoYXQgd3JpdGVzIHRvIFBNRU0gbmVlZCB0byBwZXJzaXN0DQp1bmxpa2UgdGhlIHBh
+Z2UgY2FjaGUuIMKgU28gZm9yIFBNRU0sIHRoZSBjb21wYXJpc29uIHNob3VsZCBiZSAoY2FjaGVk
+IGNvcHkgKw0KY2xmbHVzaCkgdnMgdW5jYWNoZWQgY29weS4NCg0KPiBUaGUgdW5kZW5pYWwgZmFj
+dCBpcyB0aGF0IGEgd3JpdGUoKSB3aXRoIGEgc2luZ2xlIGNhY2hlZCBjb3B5IHdpdGgNCj4gYWxs
+IHRoZSBvdmVyaGVhZCBvZiBkaXJ0eSBwYWdlIHRyYWNraW5nIGlzIC9mYXN0ZXIvIHRoYW4gYSBt
+dWNoDQo+IHNob3J0ZXIsIHNpbXBsZXIgSU8gcGF0aCB0aGF0IHVzZXMgYW4gdW5jYWNoZWQgY29w
+eS4gVGhhdCdzIHdoYXQgdGhlDQo+IG51bWJlcnMgc2F5Li4uLg0KDQpUaGlzIGNvc3QgZXZhbHVh
+dGlvbiBuZWVkcyB0byBpbmNsdWRlIHRoZSBjb3N0IG9mIGNsZmx1c2ggZm9yIGNhY2hlZCBjb3B5
+Lg0KwqBBbHNvLCBwYWdlIGNhY2hlIGFsbG9jYXRpb24gdGVuZHMgdG8gYmUgZmFzdGVyIHRoYW4g
+ZGlzayBibG9jayBhbGxvY2F0aW9uLg0KDQo+ID4gDQo+ID4gQ2FjaGVkIGNvcHkgKHJlcSBtb3Zx
+KSBpcyBzbGlnaHRseSBmYXN0ZXIgdGhhbiB1bmNhY2hlZCBjb3B5LA0KPg0KPiBOb3QgYWNjb3Jk
+aW5nIHRvIEJvYXogLSBoZSBjbGFpbXMgdGhhdCB1bmNhY2hlZCBpcyAyMCUgZmFzdGVyIHRoYW4N
+Cj4gY2FjaGVkLiBIb3cgYWJvdXQgeW91IHR3byBnZXQgdG9nZXRoZXIsIGRvIHNvbWUgYmVuY2ht
+YXJraW5nIGFuZCBnZXQNCj4geW91ciBzdG9yeSBzdHJhaWdodCwgZWg/DQoNCkkgdmFndWVseSBy
+ZW1lbWJlciBzZWVpbmcgc3VjaCByZXN1bHRzLCBidXQgSSBtYXkgYmUgd3JvbmcgYWJvdXQgdGhh
+dC4gwqBIZXJlDQphcmUgcGVyZm9ybWFuY2UgdGVzdCByZXN1bHRzIFJvYmVydCBFbGxpb3R0IGNv
+bmR1Y3RlZCBiZWZvcmUuDQpodHRwczovL2xrbWwub3JnL2xrbWwvMjAxNS80LzIvNDUzDQoNClRv
+IHF1b3RlIHRoZSByZXN1bHRzIHJlbGV2YW50IHRvIHRoaXMgdG9waWM6DQoNCi0gQ2FjaGVkIGNv
+cHkJCQkyLjUgTQ0KLSBVbmNhY2hlZCBjb3B5IHcvwqBNT1ZOVEkJMi42IE0JDQotIFVuY2FjaGVk
+IGNvcHkgdy/CoE1PVk5URFEJMy41IE0NCg0KTm90ZSB0aGF0IHdlIHVzZSBNT1ZOVEkgdG9kYXks
+IG5vdCBNT1ZOVERRLiDCoFdlIGluc3RydW1lbnRlZCBhIE1PVk5URFEgY29weQ0KZnVuY3Rpb24g
+Zm9yIHRoaXMgdGVzdC4gwqBXZSBjYW4gZnVydGhlciBpbXByb3ZlIHRoZSBjb3B5IHBlcmZvcm1h
+bmNlIGJ5IHVzaW5nDQpNT1ZOVERRLg0KDQo+ID4gYW5kIHNob3VsZCBiZSB1c2VkIGZvciB3cml0
+aW5nIHRvIHRoZSBwYWdlIGNhY2hlLiDCoEZvciB3cml0aW5nIHRvIFBNRU0sDQo+ID4gaG93ZXZl
+ciwgYWRkaXRpb25hbCBjbGZsdXNoIGNhbiBiZSBleHBlbnNpdmUsIGFuZCBhbGxvY2F0aW5nIGNh
+Y2hlbGluZXMNCj4gPiBmb3IgUE1FTSBsZWFkcyB0byBldmljdCBhcHBsaWNhdGlvbidzIGNhY2hl
+bGluZXMuDQo+DQo+IEkga2VlcCBoZWFyaW5nIHBlb3BsZSB0ZWxsIG1lIHdoeSBjYWNoZWQgY29w
+aWVzIGFyZSBzbG93ZXIsIGJ1dA0KPiBuby1vbmUgaXMgcHJvdmlkaW5nIG51bWJlcnMgdG8gYmFj
+ayB1cCB0aGVpciBzdGF0ZW1lbnRzLiBUaGUgb25seQ0KPiBudW1iZXJzIHdlIGhhdmUgYXJlIHRo
+ZSBvbmVzIEkndmUgcHVibGlzaGVkIHNob3dpbmcgY2FjaGVkIGNvcGllcyB3Lw0KPiBmdWxsIGRp
+cnR5IHRyYWNraW5nIGlzIGZhc3RlciB0aGFuIHVuY2FjaGVkIGNvcHkgdy9vIGRpcnR5IHRyYWNr
+aW5nLg0KPiANCj4gU2hvdyBtZSB0aGUgbnVtYmVycyB0aGF0IGJhY2sgdXAgeW91ciBzdGF0ZW1l
+bnRzLCB0aGVuIEknbGwgbGlzdGVuDQo+IHRvIHlvdS4NCg0KUGxlYXNlIHNlZSBhYm92ZS4gwqBD
+YWNoZWQgY29weSByZXF1aXJlcyBjbGZsdXNoIG9uIHRvcCBvZiB0aGF0Lg0KDQpUaGFua3MsDQot
+VG9zaGkNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
+bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
+L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
