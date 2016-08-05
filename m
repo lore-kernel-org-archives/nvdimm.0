@@ -1,42 +1,29 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [4.8 hang] xfstests generic/361 hangs on dax enabled filesystems
-Date: Thu, 4 Aug 2016 12:54:25 -0600
-Message-ID: <20160804185425.GC3128@linux.intel.com>
-References: <20160803003354.GP16044@dastard>
-	<20160804154805.GA24025@infradead.org>
-	<20160804184658.GB3128@linux.intel.com>
+From: "admin" <zhangmeng-aH+Vt4fCGpPQT0dZR+AlfA@public.gmane.org>
+Subject: =?utf-8?B?T0Hpgq7nrrHljYfnuqc=?=
+Date: Fri, 5 Aug 2016 08:54:48 +0800
+Message-ID: <E6AD98B111B104C70B55F88F8402FA65@ufchjx>
+Reply-To: 838550257-9uewiaClKEY@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <xfs-bounces@oss.sgi.com>
-Content-Disposition: inline
-In-Reply-To: <20160804184658.GB3128@linux.intel.com>
-List-Unsubscribe: <http://oss.sgi.com/mailman/options/xfs>,
-	<mailto:xfs-request@oss.sgi.com?subject=unsubscribe>
-List-Archive: <http://oss.sgi.com/pipermail/xfs>
-List-Post: <mailto:xfs@oss.sgi.com>
-List-Help: <mailto:xfs-request@oss.sgi.com?subject=help>
-List-Subscribe: <http://oss.sgi.com/mailman/listinfo/xfs>,
-	<mailto:xfs-request@oss.sgi.com?subject=subscribe>
-Errors-To: xfs-bounces@oss.sgi.com
-Sender: xfs-bounces@oss.sgi.com
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org, xfs@oss.sgi.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu, Aug 04, 2016 at 12:46:58PM -0600, Ross Zwisler wrote:
-> On Thu, Aug 04, 2016 at 08:48:05AM -0700, Christoph Hellwig wrote:
-> > Just send a fix that you're Cc'ed on.  But now xfs/049 hangs, although
-> > only on pmem devices, loop on non-pmem seems to be fine.  4.7 was fine
-> > as well.
-> 
-> I don't think Mike's fix solves this issue.  I'm still able to reproduce the
-> hang with linux/master + the patch he sent out.
-> 
-> Did you retest and get a different result?
-
-Never mind, didn't see that you had sent out patches as well.
-
-_______________________________________________
-xfs mailing list
-xfs@oss.sgi.com
-http://oss.sgi.com/mailman/listinfo/xfs
+DQoNCuWwiuaVrOeahOmihuWvvOS7peWPiuWQjOS6i++8mg0KDQoNCg0K55Sx5LqO6YOo5YiG56a7
+6IGM5ZGY5bel56a76IGM5Yqe6YKu566x5pyq5LiK57y077yM5a+86Ie06LWE5paZ5rOE6ZyyT0Hp
+gq7nu5/nmoTlronlhajov5DokKXvvIENCg0KDQrnjrDor7flnKjlkZjlt6XphY3lkIjpgq7nrrHl
+pIfmoYjnmbvorrDvvIzpgL7ml7bmnKrlpIfmoYjnmoTpgq7nrrHlsIbliKDpmaTlpITnkIbjgIIN
+Cg0K54K5IOWHuyDlpIcg5qGIIOaIquatouaXpeacn++8mjIwMTblubQ45pyIMTHml6UNCg0KDQoN
+Cg0KICAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGlu
+dXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8v
+bGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
