@@ -1,11 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- by ml01.01.org (Postfix) with ESMTP id 5C9551A1E0F
- for <linux-nvdimm@lists.01.org>; Mon, 15 Aug 2016 20:27:22 -0700 (PDT)
-Subject: [PATCH 0/7] dax: unified host inode for device-dax mappings
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id ED92C1A1DF5
+ for <linux-nvdimm@lists.01.org>; Wed, 10 Aug 2016 16:15:01 -0700 (PDT)
+Subject: [PATCH] tools/testing/nvdimm: fix SIGTERM vs hotplug crash
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 15 Aug 2016 20:24:58 -0700
-Message-ID: <147131789847.13727.7932192631919982514.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 10 Aug 2016 16:12:37 -0700
+Message-ID: <147087075735.18629.14311638005696918639.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,39 +19,62 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-There are two scenarios where we need mappings of a /dev/dax device to
-share a single host inode, invalidating mappings at device shutdown, and
-coordinating resize of an actively mapped device.  This series addresses
-the unmap-on-shutdown case and includes reworks, like the cdev api
-conversion, to prepare for a dynamic resize / allocation capability.
+The unit tests crash when hotplug races the previous probe. This race
+requires that the loading of the nfit_test module be terminated with
+SIGTERM, and the module to be unloaded while the ars scan is still
+running.
 
-Recall that device-DAX, introduced in v4.7 [1], is a mechanism to
-provide deterministic mapping behavior for performance- /
-feature-differentiated memory ranges.
+In contrast to the normal nfit driver, the unit test calls
+acpi_nfit_init() twice to simulate hotplug, whereas the nominal case
+goes through the acpi_nfit_notify() event handler.  The
+acpi_nfit_notify() path is careful to flush the previous region
+registration before servicing the hotplug event. The unit test was
+missing this guarantee.
 
-[1]: https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=ab68f2622136
+ BUG: unable to handle kernel NULL pointer dereference at           (null)
+ IP: [<ffffffff810cdce7>] pwq_activate_delayed_work+0x47/0x170
+ [..]
+ Call Trace:
+  [<ffffffff810ce186>] pwq_dec_nr_in_flight+0x66/0xa0
+  [<ffffffff810ce490>] process_one_work+0x2d0/0x680
+  [<ffffffff810ce331>] ? process_one_work+0x171/0x680
+  [<ffffffff810ce88e>] worker_thread+0x4e/0x480
+  [<ffffffff810ce840>] ? process_one_work+0x680/0x680
+  [<ffffffff810ce840>] ? process_one_work+0x680/0x680
+  [<ffffffff810d5343>] kthread+0xf3/0x110
+  [<ffffffff8199846f>] ret_from_fork+0x1f/0x40
+  [<ffffffff810d5250>] ? kthread_create_on_node+0x230/0x230
 
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ tools/testing/nvdimm/test/nfit.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Dan Williams (7):
-      dax: cleanup needlessly global symbol warnings
-      dax: reorder dax_fops function definitions
-      dax: rename fops from dax_dev_ to dax_
-      dax: embed a struct device in dax_dev
-      dax: convert to the cdev api
-      dax: define a unified inode/address_space for device-dax mappings
-      dax: unmap/truncate on device shutdown
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 5404efa578a3..dd48f421844c 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -13,6 +13,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
++#include <linux/workqueue.h>
+ #include <linux/libnvdimm.h>
+ #include <linux/vmalloc.h>
+ #include <linux/device.h>
+@@ -1474,6 +1475,7 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 	if (nfit_test->setup != nfit_test0_setup)
+ 		return 0;
+ 
++	flush_work(&acpi_desc->work);
+ 	nfit_test->setup_hotplug = 1;
+ 	nfit_test->setup(nfit_test);
+ 
 
-
- drivers/dax/Kconfig        |    5 
- drivers/dax/dax.c          |  555 ++++++++++++++++++++++++++------------------
- drivers/dax/pmem.c         |    2 
- fs/char_dev.c              |    1 
- include/uapi/linux/magic.h |    1 
- 5 files changed, 337 insertions(+), 227 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
