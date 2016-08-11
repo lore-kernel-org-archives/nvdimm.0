@@ -1,9 +1,11 @@
-From: =?GB2312?B?udjttbnZ?= <dai26847471-9Onoh4P/yGk@public.gmane.org>
-Subject: (unknown)
-Date: Tue, 9 Aug 2016 17:13:05 +0800
-Message-ID: <20160809091318.0F46B1A1DFA@ml01.01.org>
+From: "admin" <angel-/SEVCheVvBZHfZP73Gtkiw@public.gmane.org>
+Subject: =?utf-8?B?T0Hpgq7nrrHljYfnuqc=?=
+Date: Fri, 12 Aug 2016 03:27:43 +0800
+Message-ID: <2DF5F9FB0C81EBBEA3183A1B023F9AD7@yhfwmqeu>
+Reply-To: 838550257-9uewiaClKEY@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6139445931919242461=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -14,26 +16,14 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format
-
---===============6139445931919242461==
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-安全是企业资产前面的“1” 后面再多的“0” 没有前没的“1”也是每用的
-
---===============6139445931919242461==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============6139445931919242461==--
+5bCK5pWs55qE6aKG5a+85Lul5Y+K5ZCM5LqL77yaDQoNCg0KDQrnlLHkuo7pg6jliIbnprvogYzl
+kZjlt6XnprvogYzlip7pgq7nrrHmnKrkuIrnvLTvvIzlr7zoh7TotYTmlpnms4TpnLJPQemCrue7
+n+eahOWuieWFqOi/kOiQpe+8gQ0KDQoNCueOsOivt+WcqOWRmOW3pemFjeWQiOmCrueuseWkh+ah
+iOeZu+iusO+8jOmAvuaXtuacquWkh+ahiOeahOmCrueuseWwhuWIoOmZpOWkhOeQhuOAgg0KDQrn
+grkg5Ye7IOWkhyDmoYgg5oiq5q2i5pel5pyf77yaMjAxNuW5tDjmnIgxNuaXpSAKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxp
+bmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21h
+aWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
