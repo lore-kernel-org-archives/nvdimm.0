@@ -1,13 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id C89F41A1E13
- for <linux-nvdimm@lists.01.org>; Tue, 16 Aug 2016 10:24:22 -0700 (PDT)
-Subject: [ndctl PATCH 6/8] test, create-namespace: reset global data
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id EB7D31A1DEB
+ for <linux-nvdimm@lists.01.org>; Thu, 11 Aug 2016 18:24:23 -0700 (PDT)
+Subject: [PATCH] libnvdimm: fix SMART Health DSM payload definition
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 16 Aug 2016 10:21:59 -0700
-Message-ID: <147136811941.27902.5105214686399519689.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147136808681.27902.14029119240021638000.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147136808681.27902.14029119240021638000.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 11 Aug 2016 18:22:00 -0700
+Message-ID: <147096479825.21179.13980044056080259548.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,52 +21,83 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Before we add unit tests that call cmd_create_namespace() directly, we
-need to ensure that consecutive calls to cmd_create_namespace() behave
-the same as consecutive invocations of 'ndctl create-namespace'. I.e.
-re-initialize global parameter to zero.
+"NVDIMM DSM Interface Example" v1.2 made an incompatible change to the
+layout of function1 "SMART and Health Info".  While the kernel does not
+directly consume this payload, it does define it in ndctl.h that
+userpace utilities consume.
 
+Reported-by: Brian Boylston <brian.boylston@hpe.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/builtin-xaction-namespace.c |   12 ++++++++++++
- test.h                            |    1 +
- 2 files changed, 13 insertions(+)
 
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
-index 12ade241ff64..13811ea22da1 100644
---- a/ndctl/builtin-xaction-namespace.c
-+++ b/ndctl/builtin-xaction-namespace.c
-@@ -51,6 +51,18 @@ static struct parameters {
- 	const char *sector_size;
- } param;
+Note, there's no urgency to get this into the kernel since the only
+consumer of it is userspace [1], and it can update in advance of this
+patch being merged upstream in v4.9.
+
+[1]: github.com/pmem/ndctl
+
+ include/uapi/linux/ndctl.h |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
+
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index ba5a8c79652a..ede5c6a62164 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -21,14 +21,16 @@ struct nd_cmd_smart {
+ } __packed;
  
-+void builtin_xaction_namespace_reset(void)
-+{
-+	/*
-+	 * Initialize parameter data for the unit test case where
-+	 * multiple calls to cmd_<action>_namespace() are made without
-+	 * an intervening exit().
-+	 */
-+	verbose = false;
-+	force = false;
-+	memset(&param, 0, sizeof(param));
-+}
-+
- #define NSLABEL_NAME_LEN 64
- struct parsed_parameters {
- 	enum ndctl_pfn_loc loc;
-diff --git a/test.h b/test.h
-index 120798f2dd75..331d4131e2c7 100644
---- a/test.h
-+++ b/test.h
-@@ -12,6 +12,7 @@ int __ndctl_test_attempt(struct ndctl_test *test, unsigned int kver,
- void __ndctl_test_skip(struct ndctl_test *test, const char *caller, int line);
- #define ndctl_test_skip(t) __ndctl_test_skip(t, __func__, __LINE__)
- struct ndctl_namespace *ndctl_get_test_dev(struct ndctl_ctx *ctx);
-+void builtin_xaction_namespace_reset(void);
+ #define ND_SMART_HEALTH_VALID	(1 << 0)
+-#define ND_SMART_TEMP_VALID 	(1 << 1)
+-#define ND_SMART_SPARES_VALID	(1 << 2)
+-#define ND_SMART_ALARM_VALID	(1 << 3)
+-#define ND_SMART_USED_VALID	(1 << 4)
+-#define ND_SMART_SHUTDOWN_VALID	(1 << 5)
+-#define ND_SMART_VENDOR_VALID	(1 << 6)
+-#define ND_SMART_TEMP_TRIP	(1 << 0)
+-#define ND_SMART_SPARE_TRIP	(1 << 1)
++#define ND_SMART_SPARES_VALID	(1 << 1)
++#define ND_SMART_USED_VALID	(1 << 2)
++#define ND_SMART_TEMP_VALID 	(1 << 3)
++#define ND_SMART_CTEMP_VALID 	(1 << 4)
++#define ND_SMART_ALARM_VALID	(1 << 9)
++#define ND_SMART_SHUTDOWN_VALID	(1 << 10)
++#define ND_SMART_VENDOR_VALID	(1 << 11)
++#define ND_SMART_SPARE_TRIP	(1 << 0)
++#define ND_SMART_TEMP_TRIP	(1 << 1)
++#define ND_SMART_CTEMP_TRIP	(1 << 2)
+ #define ND_SMART_NON_CRITICAL_HEALTH	(1 << 0)
+ #define ND_SMART_CRITICAL_HEALTH	(1 << 1)
+ #define ND_SMART_FATAL_HEALTH		(1 << 2)
+@@ -37,14 +39,15 @@ struct nd_smart_payload {
+ 	__u32 flags;
+ 	__u8 reserved0[4];
+ 	__u8 health;
+-	__u16 temperature;
+ 	__u8 spares;
+-	__u8 alarm_flags;
+ 	__u8 life_used;
++	__u8 alarm_flags;
++	__u16 temperature;
++	__u16 ctrl_temperature;
++	__u8 reserved1[15];
+ 	__u8 shutdown_state;
+-	__u8 reserved1;
+ 	__u32 vendor_size;
+-	__u8 vendor_data[108];
++	__u8 vendor_data[92];
+ } __packed;
  
- struct ndctl_ctx;
- int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
+ struct nd_cmd_smart_threshold {
+@@ -53,7 +56,8 @@ struct nd_cmd_smart_threshold {
+ } __packed;
+ 
+ struct nd_smart_threshold_payload {
+-	__u16 alarm_control;
++	__u8 alarm_control;
++	__u8 reserved0;
+ 	__u16 temperature;
+ 	__u8 spares;
+ 	__u8 reserved[3];
 
 _______________________________________________
 Linux-nvdimm mailing list
