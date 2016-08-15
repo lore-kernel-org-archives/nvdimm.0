@@ -1,22 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM02-BL2-obe.outbound.protection.outlook.com
- (mail-bl2nam02on072d.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe46::72d])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4D08A1A1E48
- for <linux-nvdimm@lists.01.org>; Mon,  1 Aug 2016 13:57:41 -0700 (PDT)
-Subject: Re: HPE SMART data retreival
-References: <20160727103505.ovq7jz4553s7kc42@c203.arch.suse.de>
- <a3a59c82-ccbb-75ac-ee21-12c58ac51d39@hpe.com>
- <20160728094518.cqtaavikkrzqnf7k@c203.arch.suse.de>
- <92aa03b2-326d-a932-90df-36cae9b11ecc@hpe.com>
- <20160729115538.hkhywboarkmzb6ti@c203.arch.suse.de>
-From: Linda Knippers <linda.knippers@hpe.com>
-Message-ID: <de71bb80-d0be-d5b7-39ed-dd24f53cc2e9@hpe.com>
-Date: Mon, 1 Aug 2016 16:57:31 -0400
-MIME-Version: 1.0
-In-Reply-To: <20160729115538.hkhywboarkmzb6ti@c203.arch.suse.de>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id B37671A1E2C
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Aug 2016 12:42:41 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 2/3] radix-tree tests: add iteration test
+Date: Mon, 15 Aug 2016 13:42:36 -0600
+Message-Id: <20160815194237.25967-3-ross.zwisler@linux.intel.com>
+In-Reply-To: <20160815194237.25967-1-ross.zwisler@linux.intel.com>
+References: <20160815194237.25967-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,173 +15,301 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Johannes Thumshirn <jthumshirn@suse.de>
-Cc: linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org, Konstantin Khlebnikov <koct9i@gmail.com>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Andrew Morton <akpm@linux-foundation.org>, Dmitry Vyukov <dvyukov@google.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+There are four cases I can see where we could end up with a NULL 'slot' in
+radix_tree_next_slot().  This unit test exercises all four of them, making
+sure that if in the future we have an unsafe path through
+radix_tree_next_slot(), we'll catch it.
 
+Here are details on the four cases:
 
-On 7/29/2016 7:55 AM, Johannes Thumshirn wrote:
-> On Thu, Jul 28, 2016 at 01:43:17PM -0400, Linda Knippers wrote:
-> 
-> [...]
->>
->> I'm not sure I see the value of re-using the ND_CMD_* values that are
->> defined for the Intel DSM where they happen to be the same as for other
->> DSM vs. just defining a new set of values that match each DSM implementation.
->>
->> Or are you trying to map ND_CMD_SMART from user space into the function
->> number that implements that command for the particular DSM?
->>
->> I think the only way to hid the implementation differences, including
->> the function differences, from user space would be to define generic
->> functions with generic output buffers that can represent all of the
->> data returned by any of the DSMs in a standard format.
->>
-> 
-> I'd like to go down the "map what can be mapped and create new commands
-> for things we don't have yet" road. And yes I've been looking into the
-> Microsoft DSM spec just to discover they define 31 methods and I'm not
-> sure if we can map them. This is why I wrote the patches in a "draw on the
-> whiteboard" style so you and Dan can comment early enough.
-> 
->>> +	return cmd_mask;
->>> +}
->>> +
->>> +static unsigned long (*decoder_funcs[])(unsigned long dsm_mask) = {
->>> +	[NVDIMM_FAMILY_INTEL] = acpi_nfit_decode_dsm_mask_from_intel,
->>> +	[NVDIMM_FAMILY_HPE1] = acpi_nfit_decode_dsm_mask_from_hpe1,
->>> +	[NVDIMM_FAMILY_HPE2] = acpi_nfit_decode_dsm_mask_from_hpe2,
->>
->> I think Dan just pushed the code for yet another family.
->>
-> 
-> Yes I know, but my development tree doesn't have it merged yet.
-> 
-> Anyways, how about this approach (for NFIT_FAMILY_HPE1, NFIT_FAMILY_INTEL also
-> started)?
-> 
-> I think this is the way we should go to a) handle pre-standard differences in
-> the kernel and b) don't end up with massively bloated object files as that
-> have code for multiple DSM specs all in one file.
-> 
-> /*
->  * Copyright(c) 2016 SUSE Linux GmbH. All rights reserved.
->  *
->  * This program is free software; you can redistribute it and/or modify
->  * it under the terms of version 2 of the GNU General Public License as
->  * published by the Free Software Foundation.
->  *
->  * This program is distributed in the hope that it will be useful, but
->  * WITHOUT ANY WARRANTY; without even the implied warranty of
->  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
->  * General Public License for more details.
->  */
-> #include <linux/module.h>
-> #include <linux/acpi.h>
-> #include <linux/nvdimm.h>
-> 
-> #include "dsm_filter.h"
-> 
-> 
-> static int
-> nfit_hpe1_acpi_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
-> 		   unsigned int cmd, void *buf, unsigned int buf_len,
-> 		   int *cmd_rc)
-> {
-> 	/* do magic here */
-> }
-> 
-> static unsigned long nfit_hpe1_get_command_mask(unsigned long dsm_mask)
-> {
-> 	unsigned long cmd_mask = 0;
-> 
-> 	if (test_bit(1, &dsm_mask))
-> 		set_bit(ND_CMD_SMART, &cmd_mask);
-> 	if (test_bit(2, &dsm_mask))
-> 		set_bit(ND_CMD_SMART_THRESHOLD, &cmd_mask);
-> 
-> 	return cmd_mask;
-> }
-> 
-> static nfit_dsm_ops hpe1_dsm_ops = {
-> 	.get_command_mask = nfit_hpe1_get_command_mask,
-> 	.acpi_nfit_ctl = nfit_hpe1_acpi_ctl,
-> };
-> 
-> static in nfit_hpe1_probe(struct nfit_dsm_device *ddev, const u8 *uuid)
-> {
-> 	return 0;
-> }
-> 
-> static void nfit_hpe1_remove(struct nfit_dsm_device *ddev)
-> {
-> 	return;
-> }
-> 
-> static u8 *nfit_hpe1_uuids[16] = {
-> 	"9002c334-acf3-4c0e-9642-a235f0d53bc6",
-> 	0,
-> };
-> MODULE_DEVICE_TABLE(nfit_dsm, nfit_hpe1_uuids);
-> 
-> static struct nfit_dsm_driver hpe1_dsm_driver = {
-> 	.driver = {
-> 		.name = "nfit_dsm_hpe1",
-> 		.owner = THIS_MODULE,
-> 	},
-> 	.probe = nfit_hpe1_probe,
-> 	.remove = nfit_hpe1_remove,
-> 	.uuids = nfit_hpe1_uuids,
-> };
-> 
-> static int __init nfit_dsm_hpe1_init(void)
-> {
-> 	return nfit_register_dsm_filter(&hpe1_dsm_driver);
-> }
-> module_init(nfit_dsm_hpe1_init);
-> 
-> static void __exit nfit_dsm_hpe1_exit(void)
-> {
-> 	nfit_unregister_dsm_filter(&hpe1_dsm_driver);
-> }
-> module_exit(nfit_dsm_hpe1_exit);
-> 
-> MODULE_LICENSE("GPL v2");
-> MODULE_AUTHOR("Johannes Thumshirn <jthumshirn@suse.de>");
-> MODULE_DESCRIPTION("NFIT DSM filter driver for HPE Type 1 NVDIMMs");
-> 
-> What's missing in here is a) the glue code to drivers/acpi/nfit.c and b) the
-> implementations of HPE1 DSMs.
-> 
-> Once I have these two I'll post a RFC patch series to the ML, but in the
-> meanwhile I'm already open to comments.
-> 
-> The glue code to nfit will be a bus so we have all the nice and shiny .probe()
-> .remove() .uevent() and what not.
+1) radix_tree_iter_retry() via a non-tagged iteration like
+radix_tree_for_each_slot().  In this case we currently aren't seeing a bug
+because radix_tree_iter_retry() sets
 
-There are some things I like about this approach.  What I like most is
-that it add modularity.  I think that when the ACPI tables for NVDIMM
-devices were designed, the idea was that you could have different types
-of NVDIMMs with different capabilities and management requirements, and
-have generic as well as device-specific software.  Section 9.20.5
-describes the different fields that might be used to distinguish the
-hardware and load device or vendor-specific drivers.  We don't have
-flexibility in the current code.  Perhaps it makes sense to evolve our
-current code base to one where the root functions are in the Generic NVDIMM
-management driver and we have vendor-specific management drivers for the
-non-root device DSMs.  I don't know if we need that for the other driver
-types but management is becoming more complicated without them.
+    iter->next_index = iter->index;
 
--- ljk
-> 
-> Thanks,
-> 	Johannes
-> 
+which means that in in the else case in radix_tree_next_slot(), 'count' is
+zero, so we skip over the while() loop and effectively just return NULL
+without ever dereferencing 'slot'.
+
+2) radix_tree_iter_retry() via tagged iteration like
+radix_tree_for_each_tagged().  This case was giving us NULL pointer
+dereferences in testing, and was fixed with this commit:
+
+commit 3cb9185c6730 ("radix-tree: fix radix_tree_iter_retry() for tagged
+iterators.")
+
+This fix doesn't explicitly check for 'slot' being NULL, though, it works
+around the NULL pointer dereference by instead zeroing iter->tags in
+radix_tree_iter_retry(), which makes us bail out of the if() case in
+radix_tree_next_slot() before we dereference 'slot'.
+
+3) radix_tree_iter_next() via via a non-tagged iteration like
+radix_tree_for_each_slot().  This currently happens in shmem_tag_pins()
+and shmem_partial_swap_usage().
+
+As with non-tagged iteration, 'count' in the else case of
+radix_tree_next_slot() is zero, so we skip over the while() loop and
+effectively just return NULL without ever dereferencing 'slot'.
+
+4) radix_tree_iter_next() via tagged iteration like
+radix_tree_for_each_tagged().  This happens in shmem_wait_for_pins().
+
+radix_tree_iter_next() zeros out iter->tags, so we end up exiting
+radix_tree_next_slot() here:
+
+    if (flags & RADIX_TREE_ITER_TAGGED) {
+	    void *canon = slot;
+
+	    iter->tags >>= 1;
+	    if (unlikely(!iter->tags))
+		    return NULL;
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ tools/testing/radix-tree/Makefile          |   3 +-
+ tools/testing/radix-tree/iteration_check.c | 180 +++++++++++++++++++++++++++++
+ tools/testing/radix-tree/main.c            |   1 +
+ tools/testing/radix-tree/test.h            |   1 +
+ 4 files changed, 184 insertions(+), 1 deletion(-)
+ create mode 100644 tools/testing/radix-tree/iteration_check.c
+
+diff --git a/tools/testing/radix-tree/Makefile b/tools/testing/radix-tree/Makefile
+index 3b53046..6079ec1 100644
+--- a/tools/testing/radix-tree/Makefile
++++ b/tools/testing/radix-tree/Makefile
+@@ -3,7 +3,8 @@ CFLAGS += -I. -g -Wall -D_LGPL_SOURCE
+ LDFLAGS += -lpthread -lurcu
+ TARGETS = main
+ OFILES = main.o radix-tree.o linux.o test.o tag_check.o find_next_bit.o \
+-	 regression1.o regression2.o regression3.o multiorder.o
++	 regression1.o regression2.o regression3.o multiorder.o \
++	 iteration_check.o
+ 
+ targets: $(TARGETS)
+ 
+diff --git a/tools/testing/radix-tree/iteration_check.c b/tools/testing/radix-tree/iteration_check.c
+new file mode 100644
+index 0000000..9adb8e7
+--- /dev/null
++++ b/tools/testing/radix-tree/iteration_check.c
+@@ -0,0 +1,180 @@
++/*
++ * iteration_check.c: test races having to do with radix tree iteration
++ * Copyright (c) 2016 Intel Corporation
++ * Author: Ross Zwisler <ross.zwisler@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++#include <linux/radix-tree.h>
++#include <pthread.h>
++#include "test.h"
++
++#define NUM_THREADS 4
++#define TAG 0
++static pthread_mutex_t tree_lock = PTHREAD_MUTEX_INITIALIZER;
++static pthread_t threads[NUM_THREADS];
++RADIX_TREE(tree, GFP_KERNEL);
++bool test_complete;
++
++/* relentlessly fill the tree with tagged entries */
++static void *add_entries_fn(void *arg)
++{
++	int pgoff;
++
++	while (!test_complete) {
++		for (pgoff = 0; pgoff < 100; pgoff++) {
++			pthread_mutex_lock(&tree_lock);
++			if (item_insert(&tree, pgoff) == 0)
++				item_tag_set(&tree, pgoff, TAG);
++			pthread_mutex_unlock(&tree_lock);
++		}
++	}
++
++	return NULL;
++}
++
++/*
++ * Iterate over the tagged entries, doing a radix_tree_iter_retry() as we find
++ * things that have been removed and randomly resetting our iteration to the
++ * next chunk with radix_tree_iter_next().  Both radix_tree_iter_retry() and
++ * radix_tree_iter_next() cause radix_tree_next_slot() to be called with a
++ * NULL 'slot' variable.
++ */
++static void *tagged_iteration_fn(void *arg)
++{
++	struct radix_tree_iter iter;
++	void **slot;
++
++	while (!test_complete) {
++		rcu_read_lock();
++		radix_tree_for_each_tagged(slot, &tree, &iter, 0, TAG) {
++			void *entry;
++			int i;
++
++			/* busy wait to let removals happen */
++			for (i = 0; i < 1000000; i++)
++				;
++
++			entry = radix_tree_deref_slot(slot);
++			if (unlikely(!entry))
++				continue;
++
++			if (radix_tree_deref_retry(entry)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
++
++			if (rand() % 50 == 0)
++				slot = radix_tree_iter_next(&iter);
++		}
++		rcu_read_unlock();
++	}
++
++	return NULL;
++}
++
++/*
++ * Iterate over the entries, doing a radix_tree_iter_retry() as we find things
++ * that have been removed and randomly resetting our iteration to the next
++ * chunk with radix_tree_iter_next().  Both radix_tree_iter_retry() and
++ * radix_tree_iter_next() cause radix_tree_next_slot() to be called with a
++ * NULL 'slot' variable.
++ */
++static void *untagged_iteration_fn(void *arg)
++{
++	struct radix_tree_iter iter;
++	void **slot;
++
++	while (!test_complete) {
++		rcu_read_lock();
++		radix_tree_for_each_slot(slot, &tree, &iter, 0) {
++			void *entry;
++			int i;
++
++			/* busy wait to let removals happen */
++			for (i = 0; i < 1000000; i++)
++				;
++
++			entry = radix_tree_deref_slot(slot);
++			if (unlikely(!entry))
++				continue;
++
++			if (radix_tree_deref_retry(entry)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
++
++			if (rand() % 50 == 0)
++				slot = radix_tree_iter_next(&iter);
++		}
++		rcu_read_unlock();
++	}
++
++	return NULL;
++}
++
++/*
++ * Randomly remove entries to help induce radix_tree_iter_retry() calls in the
++ * two iteration functions.
++ */
++static void *remove_entries_fn(void *arg)
++{
++	while (!test_complete) {
++		int pgoff;
++
++		pgoff = rand() % 100;
++
++		pthread_mutex_lock(&tree_lock);
++		item_delete(&tree, pgoff);
++		pthread_mutex_unlock(&tree_lock);
++	}
++
++	return NULL;
++}
++
++/* This is a unit test for a bug found by the syzkaller tester */
++void iteration_test(void)
++{
++	int i;
++
++	printf("Running iteration tests for 10 seconds\n");
++
++	srand(time(0));
++	test_complete = false;
++
++	if (pthread_create(&threads[0], NULL, tagged_iteration_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++	if (pthread_create(&threads[1], NULL, untagged_iteration_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++	if (pthread_create(&threads[2], NULL, add_entries_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++	if (pthread_create(&threads[3], NULL, remove_entries_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++
++	sleep(10);
++	test_complete = true;
++
++	for (i = 0; i < NUM_THREADS; i++) {
++		if (pthread_join(threads[i], NULL)) {
++			perror("pthread_join");
++			exit(1);
++		}
++	}
++
++	item_kill_tree(&tree);
++}
+diff --git a/tools/testing/radix-tree/main.c b/tools/testing/radix-tree/main.c
+index b7619ff..daa9010 100644
+--- a/tools/testing/radix-tree/main.c
++++ b/tools/testing/radix-tree/main.c
+@@ -332,6 +332,7 @@ int main(int argc, char **argv)
+ 	regression1_test();
+ 	regression2_test();
+ 	regression3_test();
++	iteration_test();
+ 	single_thread_tests(long_run);
+ 
+ 	sleep(1);
+diff --git a/tools/testing/radix-tree/test.h b/tools/testing/radix-tree/test.h
+index e851313..217fb24 100644
+--- a/tools/testing/radix-tree/test.h
++++ b/tools/testing/radix-tree/test.h
+@@ -27,6 +27,7 @@ void item_kill_tree(struct radix_tree_root *root);
+ 
+ void tag_check(void);
+ void multiorder_checks(void);
++void iteration_test(void);
+ 
+ struct item *
+ item_tag_set(struct radix_tree_root *root, unsigned long index, int tag);
+-- 
+2.9.0
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
