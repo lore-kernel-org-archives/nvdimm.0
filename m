@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0CD491A1E2B
- for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 14:56:46 -0700 (PDT)
-Subject: [PATCH 2/3] acpi, nfit: add dimm device notification support
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ by ml01.01.org (Postfix) with ESMTP id 885A51A1E12
+ for <linux-nvdimm@lists.01.org>; Tue, 16 Aug 2016 10:24:02 -0700 (PDT)
+Subject: [ndctl PATCH 2/8] libdaxctl: add daxctl_region_get_available_size()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 23 Aug 2016 14:54:22 -0700
-Message-ID: <147198926249.3136.6163137762013359047.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 16 Aug 2016 10:21:38 -0700
+Message-ID: <147136809892.27902.4723323881586951882.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147136808681.27902.14029119240021638000.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147136808681.27902.14029119240021638000.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,215 +21,172 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Per "ACPI 6.1 Section 9.20.3" NVDIMM devices, children of the ACPI0012
-NVDIMM Root device, can receive health event notifications.
+Retrieve the available_size attribute for a given dax_region.
 
-Given that these devices are precluded from registering a notification
-handler via acpi_driver.acpi_device_ops (due to no _HID), we use
-acpi_install_notify_handler() directly.  The registered handler,
-acpi_nvdimm_notify(), triggers a poll(2) event on the nmemX/nfit/flags
-sysfs attribute when a health event notification is received.
+As a side effect this rework region->region_path to carry the actual
+path without the "dax" class prefix for finding child device-dax
+instances.
 
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c   |   83 ++++++++++++++++++++++++++++++++++++++++++--
- drivers/acpi/nfit/nfit.h   |    5 +++
- drivers/nvdimm/dimm_devs.c |    6 +++
- include/linux/libnvdimm.h  |    1 +
- 4 files changed, 91 insertions(+), 4 deletions(-)
+ daxctl/lib/libdaxctl-private.h |    3 ++
+ daxctl/lib/libdaxctl.c         |   53 ++++++++++++++++++++++++++++++++++------
+ daxctl/lib/libdaxctl.sym       |    6 +++++
+ daxctl/libdaxctl.h             |    3 ++
+ 4 files changed, 57 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 8120e8218f93..65f155db4283 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1248,6 +1248,43 @@ static struct nvdimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
- 	return NULL;
+diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
+index abd78fd4cc52..a2924f1e93f5 100644
+--- a/daxctl/lib/libdaxctl-private.h
++++ b/daxctl/lib/libdaxctl-private.h
+@@ -18,10 +18,13 @@
+ /**
+  * struct daxctl_region - container for dax_devices
+  */
++#define REGION_BUF_SIZE 50
+ struct daxctl_region {
+ 	int id;
+ 	uuid_t uuid;
+ 	int refcount;
++	size_t buf_len;
++	void *region_buf;
+ 	int devices_init;
+ 	char *region_path;
+ 	struct daxctl_ctx *ctx;
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 9d71a2952630..4f6bbc0cd7a6 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -191,10 +191,11 @@ DAXCTL_EXPORT void daxctl_region_unref(struct daxctl_region *region)
+ 		return;
+ 
+ 	ctx = region->ctx;
+-	info(ctx, "region%d released\n", region->id);
++	dbg(ctx, "%s: %s\n", __func__, daxctl_region_get_devname(region));
+ 	list_for_each_safe(&region->devices, dev, _d, list)
+ 		free_dev(dev, &region->devices);
+ 	free(region->region_path);
++	free(region->region_buf);
+ 	free(region);
  }
  
-+static void __acpi_nvdimm_notify(struct device *dev, u32 event)
-+{
-+	struct nfit_mem *nfit_mem;
-+	struct acpi_nfit_desc *acpi_desc;
-+
-+	dev_dbg(dev->parent, "%s: %s: event: %d\n", dev_name(dev), __func__,
-+			event);
-+
-+	if (event != NFIT_NOTIFY_DIMM_HEALTH) {
-+		dev_dbg(dev->parent, "%s: unknown event: %d\n", dev_name(dev),
-+				event);
-+		return;
-+	}
-+
-+	acpi_desc = dev_get_drvdata(dev->parent);
-+	if (!acpi_desc)
-+		return;
-+
-+	/*
-+	 * If we successfully retrieved acpi_desc, then we know nfit_mem data
-+	 * is still valid.
-+	 */
-+	nfit_mem = dev_get_drvdata(dev);
-+	if (nfit_mem && nfit_mem->flags_attr)
-+		sysfs_notify_dirent(nfit_mem->flags_attr);
-+}
-+
-+static void acpi_nvdimm_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	struct acpi_device *adev = data;
-+	struct device *dev = &adev->dev;
-+
-+	device_lock(dev->parent);
-+	__acpi_nvdimm_notify(dev, event);
-+	device_unlock(dev->parent);
-+}
-+
- static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 		struct nfit_mem *nfit_mem, u32 device_handle)
+@@ -208,7 +209,6 @@ DAXCTL_EXPORT struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx,
+ 		int id, uuid_t uuid, const char *path)
  {
-@@ -1272,6 +1309,13 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 		return force_enable_dimms ? 0 : -ENODEV;
+ 	struct daxctl_region *region;
+-	char *region_path;
+ 
+ 	region = calloc(1, sizeof(*region));
+ 	if (!region)
+@@ -217,16 +217,18 @@ DAXCTL_EXPORT struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx,
+ 	region->id = id;
+ 	region->refcount = 1;
+ 	uuid_copy(region->uuid, uuid);
+-	if (asprintf(&region_path, "%s/dax", path) < 0)
+-		region_path = NULL;
+-	region->region_path = region_path;
++	region->region_path = strdup(path);
+ 	list_head_init(&region->devices);
++	region->buf_len = strlen(region->region_path) + REGION_BUF_SIZE;
++	region->region_buf = calloc(1, region->buf_len);
+ 
+-	if (!region->region_path) {
++	if (!region->region_path || !region->region_buf) {
+ 		daxctl_region_unref(region);
+ 		region = NULL;
  	}
  
-+	if (ACPI_FAILURE(acpi_install_notify_handler(adev_dimm->handle,
-+		ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify, adev_dimm))) {
-+		dev_err(dev, "%s: notification registration failed\n",
-+				dev_name(&adev_dimm->dev));
-+		return -ENXIO;
++	dbg(ctx, "%s: %s\n", __func__, daxctl_region_get_devname(region));
++
+ 	return region;
+ }
+ 
+@@ -295,18 +297,53 @@ DAXCTL_EXPORT int daxctl_region_get_id(struct daxctl_region *region)
+ 	return region->id;
+ }
+ 
++DAXCTL_EXPORT const char *daxctl_region_get_devname(struct daxctl_region *region)
++{
++        return devpath_to_devname(region->region_path);
++}
++
++DAXCTL_EXPORT unsigned long long daxctl_region_get_available_size(
++		struct daxctl_region *region)
++{
++	struct daxctl_ctx *ctx = daxctl_region_get_ctx(region);
++	char *path = region->region_buf;
++	char buf[SYSFS_ATTR_SIZE], *end;
++	int len = region->buf_len;
++	unsigned long long avail;
++
++	if (snprintf(path, len, "%s/dax_region/available_size",
++				region->region_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				daxctl_region_get_devname(region));
++		return 0;
 +	}
 +
- 	/*
- 	 * Until standardization materializes we need to consider 4
- 	 * different command sets.  Note, that checking for function0 (bit0)
-@@ -1313,15 +1357,14 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- {
- 	struct nfit_mem *nfit_mem;
--	int dimm_count = 0;
-+	int dimm_count = 0, rc;
-+	struct nvdimm *nvdimm;
- 
- 	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
- 		struct acpi_nfit_flush_address *flush;
- 		unsigned long flags = 0, cmd_mask;
--		struct nvdimm *nvdimm;
- 		u32 device_handle;
- 		u16 mem_flags;
--		int rc;
- 
- 		device_handle = __to_nfit_memdev(nfit_mem)->device_handle;
- 		nvdimm = acpi_nfit_dimm_by_handle(acpi_desc, device_handle);
-@@ -1374,7 +1417,28 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 
- 	}
- 
--	return nvdimm_bus_check_dimm_count(acpi_desc->nvdimm_bus, dimm_count);
-+	rc = nvdimm_bus_check_dimm_count(acpi_desc->nvdimm_bus, dimm_count);
-+	if (rc)
-+		return rc;
++	if (sysfs_read_attr(ctx, path, buf) < 0)
++		return 0;
 +
-+	/*
-+	 * Now that dimms are successfully registered, and async registration
-+	 * is flushed, attempt to enable event notification.
-+	 */
-+	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+		struct kernfs_node *nfit_kernfs;
-+
-+		nvdimm = nfit_mem->nvdimm;
-+		nfit_kernfs = sysfs_get_dirent(nvdimm_kobj(nvdimm)->sd, "nfit");
-+		if (nfit_kernfs)
-+			nfit_mem->flags_attr = sysfs_get_dirent(nfit_kernfs,
-+					"flags");
-+		sysfs_put(nfit_kernfs);
-+		if (!nfit_mem->flags_attr)
-+			dev_warn(acpi_desc->dev, "%s: notifications disabled\n",
-+					nvdimm_name(nvdimm));
-+	}
++	avail = strtoull(buf, &end, 0);
++	if (buf[0] && *end == '\0')
++		return avail;
 +	return 0;
- }
- 
- static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
-@@ -2400,6 +2464,7 @@ static int acpi_nfit_desc_init_scrub_attr(struct acpi_nfit_desc *acpi_desc)
- 
- static void acpi_nfit_destruct(void *data)
- {
-+	struct nfit_mem *nfit_mem;
- 	struct acpi_nfit_desc *acpi_desc = data;
- 	struct device *bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
- 
-@@ -2415,6 +2480,16 @@ static void acpi_nfit_destruct(void *data)
- 	 * either submit or see ->cancel set.
- 	 */
- 	device_lock(bus_dev);
-+	/*
-+	 * Clear out the nfit_mem->flags_attr and shut down dimm event
-+	 * notifications.
-+	 */
-+	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+		sysfs_put(nfit_mem->flags_attr);
-+		nfit_mem->flags_attr = NULL;
-+		acpi_remove_notify_handler(nfit_mem->adev->handle,
-+				ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
-+	}
- 	device_unlock(bus_dev);
- 
- 	flush_workqueue(nfit_wq);
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 52370347fb0e..13195824778c 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -82,6 +82,10 @@ enum nfit_root_notifiers {
- 	NFIT_NOTIFY_UPDATE = 0x80,
- };
- 
-+enum nfit_dimm_notifiers {
-+	NFIT_NOTIFY_DIMM_HEALTH = 0x81,
-+};
-+
- struct nfit_spa {
- 	struct list_head list;
- 	struct nd_region *nd_region;
-@@ -128,6 +132,7 @@ struct nfit_mem {
- 	struct acpi_nfit_system_address *spa_bdw;
- 	struct acpi_nfit_interleave *idt_dcr;
- 	struct acpi_nfit_interleave *idt_bdw;
-+	struct kernfs_node *flags_attr;
- 	struct nfit_flush *nfit_flush;
- 	struct list_head list;
- 	struct acpi_device *adev;
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index d9bba5edd8dc..ce75cc3f41fb 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -263,6 +263,12 @@ const char *nvdimm_name(struct nvdimm *nvdimm)
- }
- EXPORT_SYMBOL_GPL(nvdimm_name);
- 
-+struct kobject *nvdimm_kobj(struct nvdimm *nvdimm)
-+{
-+	return &nvdimm->dev.kobj;
 +}
-+EXPORT_SYMBOL_GPL(nvdimm_kobj);
 +
- unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm)
+ static void dax_devices_init(struct daxctl_region *region)
  {
- 	return nvdimm->cmd_mask;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index b519e137b9b7..ad18d0531b6e 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -139,6 +139,7 @@ struct nd_blk_region *to_nd_blk_region(struct device *dev);
- struct nvdimm_bus_descriptor *to_nd_desc(struct nvdimm_bus *nvdimm_bus);
- struct device *to_nvdimm_bus_dev(struct nvdimm_bus *nvdimm_bus);
- const char *nvdimm_name(struct nvdimm *nvdimm);
-+struct kobject *nvdimm_kobj(struct nvdimm *nvdimm);
- unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm);
- void *nvdimm_provider_data(struct nvdimm *nvdimm);
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+ 	struct daxctl_ctx *ctx = daxctl_region_get_ctx(region);
+ 	char daxdev_fmt[50];
++	char *region_path;
+ 
+ 	if (region->devices_init)
+ 		return;
+ 
+ 	region->devices_init = 1;
+ 	sprintf(daxdev_fmt, "dax%d.", region->id);
+-	sysfs_device_parse(ctx, region->region_path, daxdev_fmt, region,
+-			add_dax_dev);
++	if (asprintf(&region_path, "%s/dax", region->region_path) < 0)
++		region_path = NULL;
++	if (region_path)
++		sysfs_device_parse(ctx, region_path, daxdev_fmt, region,
++				add_dax_dev);
++	free(region_path);
+ }
+ 
+ DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index bdf3bd7da9b3..6fb11d8757cf 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -30,3 +30,9 @@ global:
+ 	daxctl_dev_get_minor;
+ 	daxctl_dev_get_size;
+ } LIBNDCTL_1;
++
++LIBDAXCTL_3 {
++global:
++	daxctl_region_get_available_size;
++	daxctl_region_get_devname;
++} LIBNDCTL_2;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index fbffe8c538b3..ada20ee1e9dd 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -41,6 +41,9 @@ void daxctl_region_unref(struct daxctl_region *region);
+ void daxctl_region_get_uuid(struct daxctl_region *region, uuid_t uu);
+ int daxctl_region_get_id(struct daxctl_region *region);
+ struct daxctl_ctx *daxctl_region_get_ctx(struct daxctl_region *region);
++unsigned long long daxctl_region_get_available_size(
++		struct daxctl_region *region);
++const char *daxctl_region_get_devname(struct daxctl_region *region);
+ 
+ struct daxctl_dev;
+ struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region);
 
 _______________________________________________
 Linux-nvdimm mailing list
