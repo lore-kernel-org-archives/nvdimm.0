@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- by ml01.01.org (Postfix) with ESMTP id 775261A1E43
- for <linux-nvdimm@lists.01.org>; Mon, 15 Aug 2016 12:42:41 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 1/3] radix-tree: 'slot' can be NULL in
- radix_tree_next_slot()
-Date: Mon, 15 Aug 2016 13:42:35 -0600
-Message-Id: <20160815194237.25967-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20160815194237.25967-1-ross.zwisler@linux.intel.com>
-References: <20160815194237.25967-1-ross.zwisler@linux.intel.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ by ml01.01.org (Postfix) with ESMTP id D267C1A1E24
+ for <linux-nvdimm@lists.01.org>; Tue, 16 Aug 2016 10:24:17 -0700 (PDT)
+Subject: [ndctl PATCH 5/8] test: refactor / export ndctl_get_test_dev()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 16 Aug 2016 10:21:54 -0700
+Message-ID: <147136811433.27902.16225655275740887590.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147136808681.27902.14029119240021638000.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147136808681.27902.14029119240021638000.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,98 +16,120 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org, Konstantin Khlebnikov <koct9i@gmail.com>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Andrew Morton <akpm@linux-foundation.org>, Dmitry Vyukov <dvyukov@google.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-There are four cases I can see where we could end up with a NULL 'slot' in
-radix_tree_next_slot().  Yet radix_tree_next_slot() never actually checks
-whether 'slot' is NULL.  It just happens that for the cases where 'slot' is
-NULL, some other combination of factors prevents us from dereferencing it.
+Provide a common C api for tests to locate an "memmap=ss!nn" defined
+namespace for destructive tests.
 
-It would be very easy for someone to unwittingly change one of these
-factors without realizing that we are implicitly depending on it to save us
-from a NULL pointer dereference.
-
-Add a comment documenting the things that allow 'slot' to be safely passed
-as NULL to radix_tree_next_slot().
-
-Here are details on the four cases:
-
-1) radix_tree_iter_retry() via a non-tagged iteration like
-radix_tree_for_each_slot().  In this case we currently aren't seeing a bug
-because radix_tree_iter_retry() sets
-
-	iter->next_index = iter->index;
-
-which means that in in the else case in radix_tree_next_slot(), 'count' is
-zero, so we skip over the while() loop and effectively just return NULL
-without ever dereferencing 'slot'.
-
-2) radix_tree_iter_retry() via tagged iteration like
-radix_tree_for_each_tagged().  This case was giving us NULL pointer
-dereferences in testing, and was fixed with this commit:
-
-commit 3cb9185c6730 ("radix-tree: fix radix_tree_iter_retry() for tagged
-iterators.")
-
-This fix doesn't explicitly check for 'slot' being NULL, though, it works
-around the NULL pointer dereference by instead zeroing iter->tags in
-radix_tree_iter_retry(), which makes us bail out of the if() case in
-radix_tree_next_slot() before we dereference 'slot'.
-
-3) radix_tree_iter_next() via via a non-tagged iteration like
-radix_tree_for_each_slot().  This currently happens in shmem_tag_pins()
-and shmem_partial_swap_usage().
-
-As with non-tagged iteration, 'count' in the else case of
-radix_tree_next_slot() is zero, so we skip over the while() loop and
-effectively just return NULL without ever dereferencing 'slot'.
-
-4) radix_tree_iter_next() via tagged iteration like
-radix_tree_for_each_tagged().  This happens in shmem_wait_for_pins().
-
-radix_tree_iter_next() zeros out iter->tags, so we end up exiting
-radix_tree_next_slot() here:
-
-	if (flags & RADIX_TREE_ITER_TAGGED) {
-		void *canon = slot;
-
-		iter->tags >>= 1;
-		if (unlikely(!iter->tags))
-			return NULL;
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/radix-tree.h | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ test.h         |    3 ++-
+ test/dax-dev.c |   42 +++++++++++++++++++++++++++---------------
+ 2 files changed, 29 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/radix-tree.h b/include/linux/radix-tree.h
-index 4c45105..4613bf3 100644
---- a/include/linux/radix-tree.h
-+++ b/include/linux/radix-tree.h
-@@ -461,6 +461,14 @@ static inline struct radix_tree_node *entry_to_node(void *ptr)
-  *
-  * This function updates @iter->index in the case of a successful lookup.
-  * For tagged lookup it also eats @iter->tags.
-+ *
-+ * There are several cases where 'slot' can be passed in as NULL to this
-+ * function.  These cases result from the use of radix_tree_iter_next() or
-+ * radix_tree_iter_retry().  In these cases we don't end up dereferencing
-+ * 'slot' because either:
-+ * a) we are doing tagged iteration and iter->tags has been set to 0, or
-+ * b) we are doing non-tagged iteration, and iter->index and iter->next_index
-+ *    have been set up so that radix_tree_chunk_size() returns 1 or 0.
-  */
- static __always_inline void **
- radix_tree_next_slot(void **slot, struct radix_tree_iter *iter, unsigned flags)
--- 
-2.9.0
+diff --git a/test.h b/test.h
+index 1ac03aa09762..120798f2dd75 100644
+--- a/test.h
++++ b/test.h
+@@ -1,7 +1,7 @@
+ #ifndef __TEST_H__
+ #define __TEST_H__
+ struct ndctl_test;
+-struct ndctl_test;
++struct ndctl_ctx;
+ struct ndctl_test *ndctl_test_new(unsigned int kver);
+ int ndctl_test_result(struct ndctl_test *test, int rc);
+ int ndctl_test_get_skipped(struct ndctl_test *test);
+@@ -11,6 +11,7 @@ int __ndctl_test_attempt(struct ndctl_test *test, unsigned int kver,
+ #define ndctl_test_attempt(t, v) __ndctl_test_attempt(t, v, __func__, __LINE__)
+ void __ndctl_test_skip(struct ndctl_test *test, const char *caller, int line);
+ #define ndctl_test_skip(t) __ndctl_test_skip(t, __func__, __LINE__)
++struct ndctl_namespace *ndctl_get_test_dev(struct ndctl_ctx *ctx);
+ 
+ struct ndctl_ctx;
+ int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
+diff --git a/test/dax-dev.c b/test/dax-dev.c
+index 519df324fdc8..0183b7af2052 100755
+--- a/test/dax-dev.c
++++ b/test/dax-dev.c
+@@ -25,12 +25,11 @@
+ #include <linux/version.h>
+ #include <ndctl/libndctl.h>
+ 
+-static int emit_e820_device(int loglevel, struct ndctl_test *test)
++struct ndctl_namespace *ndctl_get_test_dev(struct ndctl_ctx *ctx)
+ {
+-	int err, fd;
+ 	char path[256];
+ 	const char *bdev;
+-	struct ndctl_ctx *ctx;
++	int fd, rc = -ENXIO;
+ 	struct ndctl_bus *bus;
+ 	struct ndctl_dax *dax;
+ 	struct ndctl_pfn *pfn;
+@@ -38,15 +37,6 @@ static int emit_e820_device(int loglevel, struct ndctl_test *test)
+ 	struct ndctl_namespace *ndns;
+ 	enum ndctl_namespace_mode mode;
+ 
+-	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 3, 0)))
+-		return 77;
+-
+-	err = ndctl_new(&ctx);
+-	if (err < 0)
+-		return err;
+-
+-	ndctl_set_log_priority(ctx, loglevel);
+-	err = -ENXIO;
+ 	bus = ndctl_bus_get_by_provider(ctx, "e820");
+ 	if (!bus)
+ 		goto out;
+@@ -85,16 +75,38 @@ static int emit_e820_device(int loglevel, struct ndctl_test *test)
+ 	fd = open(path, O_RDWR | O_EXCL);
+ 	if (fd < 0)
+ 		goto out;
+-	err = 0;
++	close(fd);
++	rc = 0;
+ 
+  out:
+-	if (err) {
++	return rc ? NULL : ndns;
++}
++
++static int emit_e820_device(int loglevel, struct ndctl_test *test)
++{
++	int err;
++	struct ndctl_ctx *ctx;
++	struct ndctl_namespace *ndns;
++
++	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 3, 0)))
++		return 77;
++
++	err = ndctl_new(&ctx);
++	if (err < 0)
++		return err;
++
++	ndctl_set_log_priority(ctx, loglevel);
++
++	ndns = ndctl_get_test_dev(ctx);
++	if (!ndns) {
+ 		fprintf(stderr, "%s: failed to find usable victim device\n",
+ 				__func__);
+ 		ndctl_test_skip(test);
+ 		err = 77;
+-	} else
++	} else {
+ 		fprintf(stdout, "%s\n", ndctl_namespace_get_devname(ndns));
++		err = 0;
++	}
+ 	ndctl_unref(ctx);
+ 	return err;
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
