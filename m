@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id D12701A1E2C
- for <linux-nvdimm@lists.01.org>; Mon, 15 Aug 2016 12:09:25 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 4/7] dax: rename 'ret' to 'entry' in grab_mapping_entry
-Date: Mon, 15 Aug 2016 13:09:15 -0600
-Message-Id: <20160815190918.20672-5-ross.zwisler@linux.intel.com>
-In-Reply-To: <20160815190918.20672-1-ross.zwisler@linux.intel.com>
-References: <20160815190918.20672-1-ross.zwisler@linux.intel.com>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ by ml01.01.org (Postfix) with ESMTP id 9CA191A1DF2
+ for <linux-nvdimm@lists.01.org>; Tue, 16 Aug 2016 10:12:30 -0700 (PDT)
+Subject: [PATCH 1/4] dax: check resource alignment at dax region/device create
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 16 Aug 2016 10:09:33 -0700
+Message-ID: <147136737319.26813.14434475165026289637.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147136736786.26813.5042217541564666020.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147136736786.26813.5042217541564666020.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,88 +16,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-No functional change.
+All the extents of a dax-device must match the alignment of the region.
+Otherwise, we are unable to guarantee fault semantics of a given page
+size.  The region must be self-consistent itself as well.
 
-Everywhere else that we get entries via get_unlocked_mapping_entry(), we
-save it in 'entry' variables.  Just change this to be more descriptive.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/dax/dax.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 8030f93..fed6a52 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -394,13 +394,13 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
-  */
- static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index)
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 0a7899d5c65c..03bb54f7f58f 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -206,8 +206,11 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
  {
--	void *ret, **slot;
-+	void *entry, **slot;
+ 	struct dax_region *dax_region;
  
- restart:
- 	spin_lock_irq(&mapping->tree_lock);
--	ret = get_unlocked_mapping_entry(mapping, index, &slot);
-+	entry = get_unlocked_mapping_entry(mapping, index, &slot);
- 	/* No entry for given index? Make sure radix tree is big enough. */
--	if (!ret) {
-+	if (!entry) {
- 		int err;
+-	dax_region = kzalloc(sizeof(*dax_region), GFP_KERNEL);
++	if (!IS_ALIGNED(res->start, align)
++			|| !IS_ALIGNED(resource_size(res), align))
++		return NULL;
  
- 		spin_unlock_irq(&mapping->tree_lock);
-@@ -408,10 +408,10 @@ restart:
- 				mapping_gfp_mask(mapping) & ~__GFP_HIGHMEM);
- 		if (err)
- 			return ERR_PTR(err);
--		ret = (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
-+		entry = (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
- 			       RADIX_DAX_ENTRY_LOCK);
- 		spin_lock_irq(&mapping->tree_lock);
--		err = radix_tree_insert(&mapping->page_tree, index, ret);
-+		err = radix_tree_insert(&mapping->page_tree, index, entry);
- 		radix_tree_preload_end();
- 		if (err) {
- 			spin_unlock_irq(&mapping->tree_lock);
-@@ -423,11 +423,11 @@ restart:
- 		/* Good, we have inserted empty locked entry into the tree. */
- 		mapping->nrexceptional++;
- 		spin_unlock_irq(&mapping->tree_lock);
--		return ret;
-+		return entry;
- 	}
- 	/* Normal page in radix tree? */
--	if (!radix_tree_exceptional_entry(ret)) {
--		struct page *page = ret;
-+	if (!radix_tree_exceptional_entry(entry)) {
-+		struct page *page = entry;
++	dax_region = kzalloc(sizeof(*dax_region), GFP_KERNEL);
+ 	if (!dax_region)
+ 		return NULL;
  
- 		get_page(page);
- 		spin_unlock_irq(&mapping->tree_lock);
-@@ -440,9 +440,9 @@ restart:
- 		}
- 		return page;
- 	}
--	ret = lock_slot(mapping, slot);
-+	entry = lock_slot(mapping, slot);
- 	spin_unlock_irq(&mapping->tree_lock);
--	return ret;
-+	return entry;
- }
+@@ -560,15 +563,29 @@ int devm_create_dax_dev(struct dax_region *dax_region, struct resource *res,
+ {
+ 	struct device *parent = dax_region->dev;
+ 	struct dax_dev *dax_dev;
++	int rc = 0, minor, i;
+ 	struct device *dev;
+ 	struct cdev *cdev;
+-	int rc, minor;
+ 	dev_t dev_t;
  
- void dax_wake_mapping_entry_waiter(struct address_space *mapping,
--- 
-2.9.0
+ 	dax_dev = kzalloc(sizeof(*dax_dev) + sizeof(*res) * count, GFP_KERNEL);
+ 	if (!dax_dev)
+ 		return -ENOMEM;
+ 
++	for (i = 0; i < count; i++) {
++		if (!IS_ALIGNED(res[i].start, dax_region->align)
++				|| !IS_ALIGNED(resource_size(&res[i]),
++					dax_region->align)) {
++			rc = -EINVAL;
++			break;
++		}
++		dax_dev->res[i].start = res[i].start;
++		dax_dev->res[i].end = res[i].end;
++	}
++
++	if (i < count)
++		goto err_id;
++
+ 	dax_dev->id = ida_simple_get(&dax_region->ida, 0, 0, GFP_KERNEL);
+ 	if (dax_dev->id < 0) {
+ 		rc = dax_dev->id;
+@@ -601,7 +618,6 @@ int devm_create_dax_dev(struct dax_region *dax_region, struct resource *res,
+ 		goto err_cdev;
+ 
+ 	/* from here on we're committed to teardown via dax_dev_release() */
+-	memcpy(dax_dev->res, res, sizeof(*res) * count);
+ 	dax_dev->num_resources = count;
+ 	dax_dev->alive = true;
+ 	dax_dev->region = dax_region;
 
 _______________________________________________
 Linux-nvdimm mailing list
