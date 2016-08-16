@@ -1,11 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- by ml01.01.org (Postfix) with ESMTP id 6DBE51A1DF1
- for <linux-nvdimm@lists.01.org>; Wed, 10 Aug 2016 21:51:46 -0700 (PDT)
-Subject: [PATCH] fs/char_dev: fix cdev_put() vs f_op->release() use-after-free
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ by ml01.01.org (Postfix) with ESMTP id 126DF1A1E14
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Aug 2016 20:27:28 -0700 (PDT)
+Subject: [PATCH 1/7] dax: cleanup needlessly global symbol warnings
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 10 Aug 2016 21:49:22 -0700
-Message-ID: <147089096242.9037.17705831938180576705.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 15 Aug 2016 20:25:04 -0700
+Message-ID: <147131790405.13727.4769799544104882308.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147131789847.13727.7932192631919982514.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147131789847.13727.7932192631919982514.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,75 +20,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: viro@zeniv.linux.org.uk
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk
 List-ID: <linux-nvdimm@lists.01.org>
 
-drivers/dax/dax.c implements a character device that supports mmap().
-While trying to convert it to use the cdev api a unit test started
-failing. The test effectively does the following to test that the driver
-revokes active mappings when the device is unregistered:
+drivers/dax/dax.c:75:6: warning: symbol 'dax_region_put' was not declared.
+drivers/dax/dax.c:95:19: warning: symbol 'alloc_dax_region' was not declared.
+drivers/dax/dax.c:173:5: warning: symbol 'devm_create_dax_dev' was not declared.
+drivers/dax/pmem.c:27:17: warning: symbol 'to_dax_pmem' was not declared.
 
-    fd = open("/dev/dax0.0", ...);
-    mmap(..., fd, ...);
-    <twiddle sysfs to trigger device_unregister()>;
-    exit();
-
-...results in this crash:
-
-    dax dax0.0: dax_dev_vm_close
-    dax dax0.0: dax_dev_release: ffff880338afd298
-    dax_dev_free: ffff880338afd298
-    general protection fault: 0000 [#1] SMP
-    [..]
-    Call Trace:
-     [<ffffffff8128e2c0>] cdev_put+0x20/0x30
-     [<ffffffff8128b4db>] __fput+0x1ab/0x1f0
-     [<ffffffff8128b55e>] ____fput+0xe/0x10
-     [<ffffffff810d371e>] task_work_run+0x7e/0xa0
-     [<ffffffff810b41b2>] do_exit+0x302/0xc10
-
-Where dax_dev_release() is the f_op->release() method, and is
-implemented to simply drop the final references on our driver objects:
-
-        struct dax_dev *dax_dev = filp->private_data;
-        struct device *dev = dax_dev->dev;
-
-        dev_dbg(dax_dev->dev, "%s\n", __func__);
-        put_device(dev);
-        dax_dev_put(dax_dev);
-
-The dax_dev object embeds a 'struct cdev' which means f_op->release()
-may free cdev, so __fput() needs to drop the cdev reference before
-calling f_op->release().
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/file_table.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/dax/dax.c  |    1 +
+ drivers/dax/pmem.c |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/fs/file_table.c b/fs/file_table.c
-index ad17e05ebf95..8856b8008248 100644
---- a/fs/file_table.c
-+++ b/fs/file_table.c
-@@ -204,13 +204,13 @@ static void __fput(struct file *file)
- 			file->f_op->fasync(-1, file, 0);
- 	}
- 	ima_file_free(file);
--	if (file->f_op->release)
--		file->f_op->release(inode, file);
--	security_file_free(file);
- 	if (unlikely(S_ISCHR(inode->i_mode) && inode->i_cdev != NULL &&
- 		     !(file->f_mode & FMODE_PATH))) {
- 		cdev_put(inode->i_cdev);
- 	}
-+	if (file->f_op->release)
-+		file->f_op->release(inode, file);
-+	security_file_free(file);
- 	fops_put(file->f_op);
- 	put_pid(file->f_owner.pid);
- 	if ((file->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_READ)
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 803f3953b341..736c03830fd0 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -18,6 +18,7 @@
+ #include <linux/dax.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include "dax.h"
+ 
+ static int dax_major;
+ static struct class *dax_class;
+diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+index dfb168568af1..59b75c5972bb 100644
+--- a/drivers/dax/pmem.c
++++ b/drivers/dax/pmem.c
+@@ -24,7 +24,7 @@ struct dax_pmem {
+ 	struct completion cmp;
+ };
+ 
+-struct dax_pmem *to_dax_pmem(struct percpu_ref *ref)
++static struct dax_pmem *to_dax_pmem(struct percpu_ref *ref)
+ {
+ 	return container_of(ref, struct dax_pmem, ref);
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
