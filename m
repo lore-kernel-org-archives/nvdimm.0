@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F07CF1A1E2C
- for <linux-nvdimm@lists.01.org>; Mon, 15 Aug 2016 10:52:49 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH] libnvdimm: Fix nvdimm_probe error on NVDIMM-N
-Date: Mon, 15 Aug 2016 11:52:25 -0600
-Message-Id: <1471283545-16561-1-git-send-email-toshi.kani@hpe.com>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ by ml01.01.org (Postfix) with ESMTP id 3E12B1A1E13
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Aug 2016 20:27:59 -0700 (PDT)
+Subject: [PATCH 7/7] dax: unmap/truncate on device shutdown
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 15 Aug 2016 20:25:35 -0700
+Message-ID: <147131793557.13727.4080875938782302791.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147131789847.13727.7932192631919982514.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147131789847.13727.7932192631919982514.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,123 +16,35 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk
 List-ID: <linux-nvdimm@lists.01.org>
 
-'ndctl list --buses --dimms' does not list any NVDIMM-Ns since
-they are considered as idle.  ndctl checks if any driver is
-attached to nmem device.  nvdimm_probe() always fails in
-nvdimm_init_nsarea() since NVDIMM-Ns do not implement optinal
-ND_CMD_GET_CONFIG_DATA command.
+Invalidate all mappings of a device-dax instance when the device is
+unregistered.
 
-Change nvdimm_probe() to accept the case that the CONFIG_DATA
-command is not implemented for NVDIMM-Ns.  The driver attaches
-without ndd, which keeps it no-op to the device.
-
-Reported-by: Brian Boylston <brian.boylston@hpe.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/dimm.c      |   10 ++++++++++
- drivers/nvdimm/dimm_devs.c |   27 ++++++++++++++++-----------
- drivers/nvdimm/nd.h        |    1 +
- 3 files changed, 27 insertions(+), 11 deletions(-)
+ drivers/dax/dax.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-index 71d12bb..07e09c2 100644
---- a/drivers/nvdimm/dimm.c
-+++ b/drivers/nvdimm/dimm.c
-@@ -26,6 +26,13 @@ static int nvdimm_probe(struct device *dev)
- 	struct nvdimm_drvdata *ndd;
- 	int rc;
- 
-+	rc = nvdimm_check_config_data(dev);
-+	if (rc == -ENOENT)
-+		/* not required for non-aliased nvdimm, ex. NVDIMM-N */
-+		return 0;
-+	else
-+		return rc;
-+
- 	ndd = kzalloc(sizeof(*ndd), GFP_KERNEL);
- 	if (!ndd)
- 		return -ENOMEM;
-@@ -72,6 +79,9 @@ static int nvdimm_remove(struct device *dev)
- {
- 	struct nvdimm_drvdata *ndd = dev_get_drvdata(dev);
- 
-+	if (!ndd)
-+		return 0;
-+
- 	nvdimm_bus_lock(dev);
- 	dev_set_drvdata(dev, NULL);
- 	nvdimm_bus_unlock(dev);
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index d9bba5e..fee82d3 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -28,28 +28,33 @@ static DEFINE_IDA(dimm_ida);
-  * Retrieve bus and dimm handle and return if this bus supports
-  * get_config_data commands
-  */
--static int __validate_dimm(struct nvdimm_drvdata *ndd)
-+int nvdimm_check_config_data(struct device *dev)
- {
--	struct nvdimm *nvdimm;
--
--	if (!ndd)
--		return -EINVAL;
--
--	nvdimm = to_nvdimm(ndd->dev);
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
- 
- 	if (!nvdimm->cmd_mask)
--		return -ENXIO;
-+		goto err;
- 	if (!test_bit(ND_CMD_GET_CONFIG_DATA, &nvdimm->cmd_mask))
--		return -ENXIO;
-+		goto err;
- 
- 	return 0;
-+
-+ err:
-+	if (nvdimm->flags & NDD_ALIASING)
-+		return -ENXIO;
-+	else
-+		return -ENOENT;
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index e8b9319aeadb..0a7899d5c65c 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -550,6 +550,7 @@ static void unregister_dax_dev(void *dev)
+ 	 */
+ 	dax_dev->alive = false;
+ 	synchronize_rcu();
++	unmap_mapping_range(dax_dev->inode->i_mapping, 0, 0, 1);
+ 	cdev_del(cdev);
+ 	device_unregister(dev);
  }
- 
- static int validate_dimm(struct nvdimm_drvdata *ndd)
- {
--	int rc = __validate_dimm(ndd);
-+	int rc;
- 
--	if (rc && ndd)
-+	if (!ndd)
-+		return -EINVAL;
-+
-+	rc = nvdimm_check_config_data(ndd->dev);
-+	if (rc)
- 		dev_dbg(ndd->dev, "%pf: %s error: %d\n",
- 				__builtin_return_address(0), __func__, rc);
- 	return rc;
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 8024a0e..38d6f03 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -191,6 +191,7 @@ void nvdimm_exit(void);
- void nd_region_exit(void);
- struct nvdimm;
- struct nvdimm_drvdata *to_ndd(struct nd_mapping *nd_mapping);
-+int nvdimm_check_config_data(struct device *dev);
- int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd);
- int nvdimm_init_config_data(struct nvdimm_drvdata *ndd);
- int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
