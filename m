@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AC1551A1E4D
- for <linux-nvdimm@lists.01.org>; Thu, 25 Aug 2016 17:00:23 -0700 (PDT)
-Subject: [ndctl PATCH] test, libndctl: check btt size
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ by ml01.01.org (Postfix) with ESMTP id 9395D1A1E21
+ for <linux-nvdimm@lists.01.org>; Tue, 16 Aug 2016 10:24:07 -0700 (PDT)
+Subject: [ndctl PATCH 3/8] libdaxctl: add daxctl_region_get_seed()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 25 Aug 2016 16:58:00 -0700
-Message-ID: <147216948018.40698.3869445232513766645.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 16 Aug 2016 10:21:44 -0700
+Message-ID: <147136810416.27902.14672512795204206789.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147136808681.27902.14029119240021638000.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147136808681.27902.14029119240021638000.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,101 +23,73 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that the kernel reports the size of the btt, lets check that the
-size stays constant across kernel updates.  I.e. if we inadvertently
-introduce a change that causes the btt to reduce the effective capacity
-of the block device, this test is meant to catch it.
+Retrieve the device-dax seed, next device-dax instance to configure for
+the dax_region.
 
-Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/libndctl.c |   66 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ daxctl/lib/libdaxctl.c   |   24 ++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym |    1 +
+ daxctl/libdaxctl.h       |    1 +
+ 3 files changed, 26 insertions(+)
 
-diff --git a/test/libndctl.c b/test/libndctl.c
-index 5f86addc5c7e..e36fe8a4fe6f 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -937,6 +937,68 @@ static int check_pfn_create(struct ndctl_region *region,
- 	return rc;
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 4f6bbc0cd7a6..ecdb99640115 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -327,6 +327,30 @@ DAXCTL_EXPORT unsigned long long daxctl_region_get_available_size(
+ 	return 0;
  }
  
-+static int check_btt_size(struct ndctl_btt *btt)
++DAXCTL_EXPORT struct daxctl_dev *daxctl_region_get_dev_seed(
++		struct daxctl_region *region)
 +{
-+	struct ndctl_namespace *ndns = ndctl_btt_get_namespace(btt);
-+	unsigned long long ns_size = ndctl_namespace_get_size(ndns);
-+	unsigned long sect_size = ndctl_btt_get_sector_size(btt);
-+	unsigned long long actual, expect;
-+	int size_select, sect_select;
-+	unsigned long long expect_table[][2] = {
-+		[0] = {
-+			[0] = 0x11b4400,
-+			[1] = 0x8da2000,
-+		},
-+		[1] = {
-+			[0] = 0x13b0400,
-+			[1] = 0x9d82000,
-+		},
-+		[2] = {
-+			[0] = 0x1aa2600,
-+			[1] = 0xd513000,
-+		},
-+	};
++	struct daxctl_ctx *ctx = daxctl_region_get_ctx(region);
++	char *path = region->region_buf;
++	int len = region->buf_len;
++	char buf[SYSFS_ATTR_SIZE];
++	struct daxctl_dev *dev;
 +
-+	if (sect_size >= SZ_4K)
-+		sect_select = 1;
-+	else if (sect_size >= 512)
-+		sect_select = 0;
-+	else {
-+		fprintf(stderr, "%s: %s unexpected sector size: %lx\n",
-+				__func__, ndctl_btt_get_devname(btt),
-+				sect_size);
-+		return -ENXIO;
++	if (snprintf(path, len, "%s/dax_region/seed", region->region_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				daxctl_region_get_devname(region));
++		return NULL;
 +	}
 +
-+	switch (ns_size) {
-+	case SZ_18M:
-+		size_select = 0;
-+		break;
-+	case SZ_20M:
-+		size_select = 1;
-+		break;
-+	case SZ_27M:
-+		size_select = 2;
-+		break;
-+	default:
-+		fprintf(stderr, "%s: %s unexpected namespace size: %llx\n",
-+				__func__, ndctl_namespace_get_devname(ndns),
-+				ns_size);
-+		break;
-+	}
++	if (sysfs_read_attr(ctx, path, buf) < 0)
++		return NULL;
 +
-+	expect = expect_table[size_select][sect_select];
-+	actual = ndctl_btt_get_size(btt);
-+	if (expect != actual) {
-+		fprintf(stderr, "%s: namespace: %s unexpected size: %llx (expected: %llx)\n",
-+				ndctl_btt_get_devname(btt),
-+				ndctl_namespace_get_devname(ndns), actual, expect);
-+		return -ENXIO;
-+	}
-+
-+	return 0;
++	daxctl_dev_foreach(region, dev)
++		if (strcmp(buf, daxctl_dev_get_devname(dev)) == 0)
++			return dev;
++	return NULL;
 +}
 +
- static int check_btt_create(struct ndctl_region *region, struct ndctl_namespace *ndns,
- 		struct namespace *namespace)
+ static void dax_devices_init(struct daxctl_region *region)
  {
-@@ -982,6 +1044,10 @@ static int check_btt_create(struct ndctl_region *region, struct ndctl_namespace
- 			fprintf(stderr, "%s: expected safe mode got: %d\n",
- 					devname, mode);
+ 	struct daxctl_ctx *ctx = daxctl_region_get_ctx(region);
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 6fb11d8757cf..e74d75bf7847 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -35,4 +35,5 @@ LIBDAXCTL_3 {
+ global:
+ 	daxctl_region_get_available_size;
+ 	daxctl_region_get_devname;
++	daxctl_region_get_dev_seed;
+ } LIBNDCTL_2;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index ada20ee1e9dd..bb7aa363a605 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -44,6 +44,7 @@ struct daxctl_ctx *daxctl_region_get_ctx(struct daxctl_region *region);
+ unsigned long long daxctl_region_get_available_size(
+ 		struct daxctl_region *region);
+ const char *daxctl_region_get_devname(struct daxctl_region *region);
++struct daxctl_dev *daxctl_region_get_dev_seed(struct daxctl_region *region);
  
-+		rc = check_btt_size(btt);
-+		if (rc)
-+			goto err;
-+
- 		if (btt_seed == ndctl_region_get_btt_seed(region)
- 				&& btt == btt_seed) {
- 			fprintf(stderr, "%s: failed to advance btt seed\n",
+ struct daxctl_dev;
+ struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region);
 
 _______________________________________________
 Linux-nvdimm mailing list
