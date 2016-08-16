@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 521081A1E30
- for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 14:56:51 -0700 (PDT)
-Subject: [PATCH 3/3] tools/testing/nvdimm: unit test for acpi_nvdimm_notify()
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ by ml01.01.org (Postfix) with ESMTP id 666491A1E2A
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Aug 2016 20:27:43 -0700 (PDT)
+Subject: [PATCH 4/7] dax: embed a struct device in dax_dev
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 23 Aug 2016 14:54:27 -0700
-Message-ID: <147198926765.3136.15304034940920273330.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 15 Aug 2016 20:25:19 -0700
+Message-ID: <147131791986.13727.3628540285165752573.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147131789847.13727.7932192631919982514.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147131789847.13727.7932192631919982514.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,172 +21,295 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk
 List-ID: <linux-nvdimm@lists.01.org>
 
-Trigger an nmemX/nfit/flags attribute to fire an event whenever a
-smart-threshold DSM is received.
+The kref in dax_dev can be made redundant if the final put_device() on
+the device associated with the dax_dev frees the dax_dev.  This can be
+accomplished by embedding a struct device in struct dax_dev, open coding
+device_create() and specifying a custom release method.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c         |   10 ++++++--
- drivers/acpi/nfit/nfit.h         |    1 +
- tools/testing/nvdimm/test/nfit.c |   45 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 53 insertions(+), 3 deletions(-)
+ drivers/dax/dax.c |  130 ++++++++++++++++++-----------------------------------
+ 1 file changed, 45 insertions(+), 85 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 65f155db4283..91ed148784c3 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1248,7 +1248,7 @@ static struct nvdimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
- 	return NULL;
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 994dfa507dfb..181d2a5a21e4 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -49,7 +49,6 @@ struct dax_region {
+  * struct dax_dev - subdivision of a dax region
+  * @region - parent region
+  * @dev - device backing the character device
+- * @kref - enable this data to be tracked in filp->private_data
+  * @alive - !alive + rcu grace period == no new mappings can be established
+  * @id - child id in the region
+  * @num_resources - number of physical address extents in this device
+@@ -57,8 +56,7 @@ struct dax_region {
+  */
+ struct dax_dev {
+ 	struct dax_region *region;
+-	struct device *dev;
+-	struct kref kref;
++	struct device dev;
+ 	bool alive;
+ 	int id;
+ 	int num_resources;
+@@ -79,20 +77,6 @@ void dax_region_put(struct dax_region *dax_region)
  }
+ EXPORT_SYMBOL_GPL(dax_region_put);
  
--static void __acpi_nvdimm_notify(struct device *dev, u32 event)
-+void __acpi_nvdimm_notify(struct device *dev, u32 event)
- {
- 	struct nfit_mem *nfit_mem;
- 	struct acpi_nfit_desc *acpi_desc;
-@@ -1274,6 +1274,7 @@ static void __acpi_nvdimm_notify(struct device *dev, u32 event)
- 	if (nfit_mem && nfit_mem->flags_attr)
- 		sysfs_notify_dirent(nfit_mem->flags_attr);
+-static void dax_dev_free(struct kref *kref)
+-{
+-	struct dax_dev *dax_dev;
+-
+-	dax_dev = container_of(kref, struct dax_dev, kref);
+-	dax_region_put(dax_dev->region);
+-	kfree(dax_dev);
+-}
+-
+-static void dax_dev_put(struct dax_dev *dax_dev)
+-{
+-	kref_put(&dax_dev->kref, dax_dev_free);
+-}
+-
+ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+ 		struct resource *res, unsigned int align, void *addr,
+ 		unsigned long pfn_flags)
+@@ -117,10 +101,15 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
  }
-+EXPORT_SYMBOL_GPL(__acpi_nvdimm_notify);
+ EXPORT_SYMBOL_GPL(alloc_dax_region);
  
- static void acpi_nvdimm_notify(acpi_handle handle, u32 event, void *data)
- {
-@@ -2485,10 +2486,13 @@ static void acpi_nfit_destruct(void *data)
- 	 * notifications.
- 	 */
- 	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+		struct acpi_device *adev_dimm = nfit_mem->adev;
-+
- 		sysfs_put(nfit_mem->flags_attr);
- 		nfit_mem->flags_attr = NULL;
--		acpi_remove_notify_handler(nfit_mem->adev->handle,
--				ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
-+		if (adev_dimm)
-+			acpi_remove_notify_handler(adev_dimm->handle,
-+					ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
- 	}
- 	device_unlock(bus_dev);
- 
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 13195824778c..bb101170cd0b 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -233,5 +233,6 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
- const u8 *to_nfit_uuid(enum nfit_uuids id);
- int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *nfit, acpi_size sz);
- void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event);
-+void __acpi_nvdimm_notify(struct device *dev, u32 event);
- void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev);
- #endif /* __NFIT_H__ */
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 8d79c75d3cae..99ea68674f0a 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -161,6 +161,7 @@ struct nfit_test {
- 		unsigned long deadline;
- 		spinlock_t lock;
- 	} ars_state;
-+	struct device *dimm_dev[NUM_DCR];
- };
- 
- static struct nfit_test *to_nfit_test(struct device *dev)
-@@ -430,6 +431,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 			break;
- 		case ND_CMD_SMART_THRESHOLD:
- 			rc = nfit_test_cmd_smart_threshold(buf, buf_len);
-+			device_lock(&t->pdev.dev);
-+			__acpi_nvdimm_notify(t->dimm_dev[i], 0x81);
-+			device_unlock(&t->pdev.dev);
- 			break;
- 		default:
- 			return -ENOTTY;
-@@ -566,6 +570,18 @@ static int ars_state_init(struct device *dev, struct ars_state *ars_state)
- 	return 0;
- }
- 
-+static void put_dimms(void *data)
++static struct dax_dev *to_dax_dev(struct device *dev)
 +{
-+	struct device **dimm_dev = data;
-+	int i;
-+
-+	for (i = 0; i < NUM_DCR; i++)
-+		if (dimm_dev[i])
-+			device_unregister(dimm_dev[i]);
++	return container_of(dev, struct dax_dev, dev);
 +}
 +
-+static struct class *nfit_test_dimm;
-+
- static int nfit_test0_alloc(struct nfit_test *t)
+ static ssize_t size_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
- 	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * NUM_SPA
-@@ -621,6 +637,15 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 	if (!t->_fit)
- 		return -ENOMEM;
+-	struct dax_dev *dax_dev = dev_get_drvdata(dev);
++	struct dax_dev *dax_dev = to_dax_dev(dev);
+ 	unsigned long long size = 0;
+ 	int i;
  
-+	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t->dimm_dev))
-+		return -ENOMEM;
-+	for (i = 0; i < NUM_DCR; i++) {
-+		t->dimm_dev[i] = device_create(nfit_test_dimm, &t->pdev.dev, 0,
-+				NULL, "test_dimm%d", i);
-+		if (!t->dimm_dev[i])
-+			return -ENOMEM;
-+	}
-+
- 	return ars_state_init(&t->pdev.dev, &t->ars_state);
+@@ -149,7 +138,7 @@ static int check_vma(struct dax_dev *dax_dev, struct vm_area_struct *vma,
+ 		const char *func)
+ {
+ 	struct dax_region *dax_region = dax_dev->region;
+-	struct device *dev = dax_dev->dev;
++	struct device *dev = &dax_dev->dev;
+ 	unsigned long mask;
+ 
+ 	if (!dax_dev->alive)
+@@ -214,7 +203,7 @@ static int __dax_dev_fault(struct dax_dev *dax_dev, struct vm_area_struct *vma,
+ 		struct vm_fault *vmf)
+ {
+ 	unsigned long vaddr = (unsigned long) vmf->virtual_address;
+-	struct device *dev = dax_dev->dev;
++	struct device *dev = &dax_dev->dev;
+ 	struct dax_region *dax_region;
+ 	int rc = VM_FAULT_SIGBUS;
+ 	phys_addr_t phys;
+@@ -254,7 +243,7 @@ static int dax_dev_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	struct file *filp = vma->vm_file;
+ 	struct dax_dev *dax_dev = filp->private_data;
+ 
+-	dev_dbg(dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
++	dev_dbg(&dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
+ 			current->comm, (vmf->flags & FAULT_FLAG_WRITE)
+ 			? "write" : "read", vma->vm_start, vma->vm_end);
+ 	rcu_read_lock();
+@@ -269,7 +258,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ 		unsigned int flags)
+ {
+ 	unsigned long pmd_addr = addr & PMD_MASK;
+-	struct device *dev = dax_dev->dev;
++	struct device *dev = &dax_dev->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
+@@ -311,7 +300,7 @@ static int dax_dev_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+ 	struct file *filp = vma->vm_file;
+ 	struct dax_dev *dax_dev = filp->private_data;
+ 
+-	dev_dbg(dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
++	dev_dbg(&dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
+ 			current->comm, (flags & FAULT_FLAG_WRITE)
+ 			? "write" : "read", vma->vm_start, vma->vm_end);
+ 
+@@ -322,29 +311,9 @@ static int dax_dev_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+ 	return rc;
  }
  
-@@ -1414,6 +1439,7 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct device *dev = &pdev->dev;
- 	struct nfit_test *nfit_test;
-+	struct nfit_mem *nfit_mem;
- 	union acpi_object *obj;
+-static void dax_dev_vm_open(struct vm_area_struct *vma)
+-{
+-	struct file *filp = vma->vm_file;
+-	struct dax_dev *dax_dev = filp->private_data;
+-
+-	dev_dbg(dax_dev->dev, "%s\n", __func__);
+-	kref_get(&dax_dev->kref);
+-}
+-
+-static void dax_dev_vm_close(struct vm_area_struct *vma)
+-{
+-	struct file *filp = vma->vm_file;
+-	struct dax_dev *dax_dev = filp->private_data;
+-
+-	dev_dbg(dax_dev->dev, "%s\n", __func__);
+-	dax_dev_put(dax_dev);
+-}
+-
+ static const struct vm_operations_struct dax_dev_vm_ops = {
+ 	.fault = dax_dev_fault,
+ 	.pmd_fault = dax_dev_pmd_fault,
+-	.open = dax_dev_vm_open,
+-	.close = dax_dev_vm_close,
+ };
+ 
+ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+@@ -352,13 +321,12 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+ 	struct dax_dev *dax_dev = filp->private_data;
  	int rc;
  
-@@ -1493,6 +1519,20 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	obj->buffer.pointer = nfit_test->nfit_buf;
- 	*(nfit_test->_fit) = obj;
- 	__acpi_nfit_notify(&pdev->dev, nfit_test, 0x80);
-+
-+	/* associate dimm devices with nfit_mem data for notification testing */
-+	mutex_lock(&acpi_desc->init_mutex);
-+	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+		u32 nfit_handle = __to_nfit_memdev(nfit_mem)->device_handle;
-+		int i;
-+
-+		for (i = 0; i < NUM_DCR; i++)
-+			if (nfit_handle == handle[i])
-+				dev_set_drvdata(nfit_test->dimm_dev[i],
-+						nfit_mem);
-+	}
-+	mutex_unlock(&acpi_desc->init_mutex);
-+
+-	dev_dbg(dax_dev->dev, "%s\n", __func__);
++	dev_dbg(&dax_dev->dev, "%s\n", __func__);
+ 
+ 	rc = check_vma(dax_dev, vma, __func__);
+ 	if (rc)
+ 		return rc;
+ 
+-	kref_get(&dax_dev->kref);
+ 	vma->vm_ops = &dax_dev_vm_ops;
+ 	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
+ 	return 0;
+@@ -420,30 +388,20 @@ static int dax_open(struct inode *inode, struct file *filp)
+ 	if (!dev)
+ 		return -ENXIO;
+ 
+-	device_lock(dev);
+-	dax_dev = dev_get_drvdata(dev);
+-	if (dax_dev) {
+-		dev_dbg(dev, "%s\n", __func__);
+-		filp->private_data = dax_dev;
+-		kref_get(&dax_dev->kref);
+-		inode->i_flags = S_DAX;
+-	}
+-	device_unlock(dev);
++	dax_dev = to_dax_dev(dev);
++	dev_dbg(dev, "%s\n", __func__);
++	filp->private_data = dax_dev;
++	inode->i_flags = S_DAX;
+ 
+-	if (!dax_dev) {
+-		put_device(dev);
+-		return -ENXIO;
+-	}
  	return 0;
  }
  
-@@ -1526,6 +1566,10 @@ static __init int nfit_test_init(void)
+ static int dax_release(struct inode *inode, struct file *filp)
  {
- 	int rc, i;
+ 	struct dax_dev *dax_dev = filp->private_data;
+-	struct device *dev = dax_dev->dev;
++	struct device *dev = &dax_dev->dev;
  
-+	nfit_test_dimm = class_create(THIS_MODULE, "nfit_test_dimm");
-+	if (IS_ERR(nfit_test_dimm))
-+		return PTR_ERR(nfit_test_dimm);
+-	dev_dbg(dax_dev->dev, "%s\n", __func__);
+-	dax_dev_put(dax_dev);
++	dev_dbg(dev, "%s\n", __func__);
+ 	put_device(dev);
+ 
+ 	return 0;
+@@ -458,12 +416,21 @@ static const struct file_operations dax_fops = {
+ 	.mmap = dax_mmap,
+ };
+ 
+-static void unregister_dax_dev(void *_dev)
++static void dax_dev_release(struct device *dev)
+ {
+-	struct device *dev = _dev;
+-	struct dax_dev *dax_dev = dev_get_drvdata(dev);
++	struct dax_dev *dax_dev = to_dax_dev(dev);
+ 	struct dax_region *dax_region = dax_dev->region;
+ 
++	ida_simple_remove(&dax_region->ida, dax_dev->id);
++	ida_simple_remove(&dax_minor_ida, MINOR(dev->devt));
++	dax_region_put(dax_region);
++	kfree(dax_dev);
++}
 +
- 	nfit_test_setup(nfit_test_lookup);
++static void unregister_dax_dev(void *dev)
++{
++	struct dax_dev *dax_dev = to_dax_dev(dev);
++
+ 	dev_dbg(dev, "%s\n", __func__);
  
- 	for (i = 0; i < NUM_NFITS; i++) {
-@@ -1592,6 +1636,7 @@ static __exit void nfit_test_exit(void)
- 	for (i = 0; i < NUM_NFITS; i++)
- 		platform_device_unregister(&instances[i]->pdev);
- 	nfit_test_teardown();
-+	class_destroy(nfit_test_dimm);
+ 	/*
+@@ -475,13 +442,7 @@ static void unregister_dax_dev(void *_dev)
+ 	 */
+ 	dax_dev->alive = false;
+ 	synchronize_rcu();
+-
+-	get_device(dev);
+ 	device_unregister(dev);
+-	ida_simple_remove(&dax_region->ida, dax_dev->id);
+-	ida_simple_remove(&dax_minor_ida, MINOR(dev->devt));
+-	put_device(dev);
+-	dax_dev_put(dax_dev);
  }
  
- module_init(nfit_test_init);
+ int devm_create_dax_dev(struct dax_region *dax_region, struct resource *res,
+@@ -498,7 +459,6 @@ int devm_create_dax_dev(struct dax_region *dax_region, struct resource *res,
+ 		return -ENOMEM;
+ 	memcpy(dax_dev->res, res, sizeof(*res) * count);
+ 	dax_dev->num_resources = count;
+-	kref_init(&dax_dev->kref);
+ 	dax_dev->alive = true;
+ 	dax_dev->region = dax_region;
+ 	kref_get(&dax_region->kref);
+@@ -516,27 +476,27 @@ int devm_create_dax_dev(struct dax_region *dax_region, struct resource *res,
+ 	}
+ 
+ 	dev_t = MKDEV(dax_major, minor);
+-	dev = device_create_with_groups(dax_class, parent, dev_t, dax_dev,
+-			dax_attribute_groups, "dax%d.%d", dax_region->id,
+-			dax_dev->id);
+-	if (IS_ERR(dev)) {
+-		rc = PTR_ERR(dev);
+-		goto err_create;
+-	}
+-	dax_dev->dev = dev;
+ 
+-	rc = devm_add_action_or_reset(dax_region->dev, unregister_dax_dev, dev);
+-	if (rc)
++	dev = &dax_dev->dev;
++	device_initialize(dev);
++	dev->devt = dev_t;
++	dev->class = dax_class;
++	dev->parent = parent;
++	dev->groups = dax_attribute_groups;
++	dev->release = dax_dev_release;
++	dev_set_name(dev, "dax%d.%d", dax_region->id, dax_dev->id);
++	rc = device_add(dev);
++	if (rc) {
++		put_device(dev);
+ 		return rc;
++	}
+ 
+-	return 0;
++	return devm_add_action_or_reset(dax_region->dev, unregister_dax_dev, dev);
+ 
+- err_create:
+-	ida_simple_remove(&dax_minor_ida, minor);
+  err_minor:
+ 	ida_simple_remove(&dax_region->ida, dax_dev->id);
+  err_id:
+-	dax_dev_put(dax_dev);
++	kfree(dax_dev);
+ 
+ 	return rc;
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
