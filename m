@@ -1,54 +1,108 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- by ml01.01.org (Postfix) with ESMTP id B049D1A1DF8
- for <linux-nvdimm@lists.01.org>; Wed,  3 Aug 2016 16:25:30 -0700 (PDT)
-Subject: [ndctl PATCH 0/4] misc updates for v54
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 03 Aug 2016 16:23:06 -0700
-Message-ID: <147026658649.11162.4510254495491443980.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Tue, 16 Aug 2016 11:14:50 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 4/7] dax: rename 'ret' to 'entry' in grab_mapping_entry
+Message-ID: <20160816091450.GD27284@quack2.suse.cz>
+References: <20160815190918.20672-1-ross.zwisler@linux.intel.com>
+ <20160815190918.20672-5-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160815190918.20672-5-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Some test and output tidy-ups for the next release.
+On Mon 15-08-16 13:09:15, Ross Zwisler wrote:
+> No functional change.
+> 
+> Everywhere else that we get entries via get_unlocked_mapping_entry(), we
+> save it in 'entry' variables.  Just change this to be more descriptive.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Speaking of ndctl-v54, there's still the pending "btt-size" patch from
-Vishal that is awaiting the kernel enabling to land before the release
-goes out.
+Looks good. You can add:
 
----
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Dan Williams (4):
-      util: require --idle to list 0-sized device-dax instances
-      test: ensure create.sh always picks a suitable BTT-host namespace
-      test: skip pmem/blk-ns tests on KVM
-      test: skip 4.7+ tests on older kernels
+								Honza
 
+> ---
+>  fs/dax.c | 20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 8030f93..fed6a52 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -394,13 +394,13 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+>   */
+>  static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index)
+>  {
+> -	void *ret, **slot;
+> +	void *entry, **slot;
+>  
+>  restart:
+>  	spin_lock_irq(&mapping->tree_lock);
+> -	ret = get_unlocked_mapping_entry(mapping, index, &slot);
+> +	entry = get_unlocked_mapping_entry(mapping, index, &slot);
+>  	/* No entry for given index? Make sure radix tree is big enough. */
+> -	if (!ret) {
+> +	if (!entry) {
+>  		int err;
+>  
+>  		spin_unlock_irq(&mapping->tree_lock);
+> @@ -408,10 +408,10 @@ restart:
+>  				mapping_gfp_mask(mapping) & ~__GFP_HIGHMEM);
+>  		if (err)
+>  			return ERR_PTR(err);
+> -		ret = (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
+> +		entry = (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
+>  			       RADIX_DAX_ENTRY_LOCK);
+>  		spin_lock_irq(&mapping->tree_lock);
+> -		err = radix_tree_insert(&mapping->page_tree, index, ret);
+> +		err = radix_tree_insert(&mapping->page_tree, index, entry);
+>  		radix_tree_preload_end();
+>  		if (err) {
+>  			spin_unlock_irq(&mapping->tree_lock);
+> @@ -423,11 +423,11 @@ restart:
+>  		/* Good, we have inserted empty locked entry into the tree. */
+>  		mapping->nrexceptional++;
+>  		spin_unlock_irq(&mapping->tree_lock);
+> -		return ret;
+> +		return entry;
+>  	}
+>  	/* Normal page in radix tree? */
+> -	if (!radix_tree_exceptional_entry(ret)) {
+> -		struct page *page = ret;
+> +	if (!radix_tree_exceptional_entry(entry)) {
+> +		struct page *page = entry;
+>  
+>  		get_page(page);
+>  		spin_unlock_irq(&mapping->tree_lock);
+> @@ -440,9 +440,9 @@ restart:
+>  		}
+>  		return page;
+>  	}
+> -	ret = lock_slot(mapping, slot);
+> +	entry = lock_slot(mapping, slot);
+>  	spin_unlock_irq(&mapping->tree_lock);
+> -	return ret;
+> +	return entry;
+>  }
+>  
+>  void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+> -- 
+> 2.9.0
+> 
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
- ndctl/Makefile.am                 |    2 +
- ndctl/builtin-list.c              |    2 +
- ndctl/builtin-xaction-namespace.c |    2 +
- ndctl/util/json.c                 |   14 +++++--
- ndctl/util/json.h                 |    3 +-
- test/blk_namespaces.c             |   17 +++++++++
- test/create.sh                    |    2 +
- test/dax-errors.sh                |    9 +++++
- test/device-dax.sh                |   10 +++++
- test/libndctl.c                   |   70 +++++++++++++++++++++++--------------
- test/pmem_namespaces.c            |   18 ++++++++++
- 11 files changed, 113 insertions(+), 36 deletions(-)
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
