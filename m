@@ -1,14 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3428.houston.hpe.com (g4t3428.houston.hpe.com
- [15.241.140.76])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from NAM02-BL2-obe.outbound.protection.outlook.com
+ (mail-bl2nam02on0717.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe46::717])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AEB461A1DF4
- for <linux-nvdimm@lists.01.org>; Tue, 16 Aug 2016 12:09:05 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2] libnvdimm: Fix nvdimm_probe error on NVDIMM-N
-Date: Tue, 16 Aug 2016 13:08:40 -0600
-Message-Id: <1471374520-3331-1-git-send-email-toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 837A41A1DF6
+ for <linux-nvdimm@lists.01.org>; Tue, 16 Aug 2016 08:05:51 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH] libnvdimm: Fix nvdimm_probe error on NVDIMM-N
+Date: Tue, 16 Aug 2016 15:05:48 +0000
+Message-ID: <1471359928.32015.57.camel@hpe.com>
+References: <1471283545-16561-1-git-send-email-toshi.kani@hpe.com>
+ <CAPcyv4gPQcqHQHSKpF1cqK22cppyHxNf7swE3QcssY5tdE3evQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4gPQcqHQHSKpF1cqK22cppyHxNf7swE3QcssY5tdE3evQ@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <927FE5ABFB4F44498EF2A8CFF81D932D@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,128 +23,91 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-'ndctl list --buses --dimms' does not list any NVDIMM-Ns since
-they are considered as idle.  ndctl checks if any driver is
-attached to nmem device.  nvdimm_probe() always fails in
-nvdimm_init_nsarea() since NVDIMM-Ns do not implement optinal
-ND_CMD_GET_CONFIG_DATA command.
-
-Change nvdimm_probe() to accept the case that the CONFIG_DATA
-command is not implemented for NVDIMM-Ns.  The driver attaches
-without ndd, which keeps it no-op to the device.
-
-Reported-by: Brian Boylston <brian.boylston@hpe.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
----
-v2:
- - Fix failures in ndctl unit test suite. (Dan Williams)
- - Change ENOENT to ENOTTY, and remove gotos. (Dan Williams)
----
- drivers/nvdimm/dimm.c      |   11 +++++++++++
- drivers/nvdimm/dimm_devs.c |   28 +++++++++++++++-------------
- drivers/nvdimm/nd.h        |    1 +
- 3 files changed, 27 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-index 71d12bb..619834e 100644
---- a/drivers/nvdimm/dimm.c
-+++ b/drivers/nvdimm/dimm.c
-@@ -26,6 +26,14 @@ static int nvdimm_probe(struct device *dev)
- 	struct nvdimm_drvdata *ndd;
- 	int rc;
- 
-+	rc = nvdimm_check_config_data(dev);
-+	if (rc) {
-+		/* not required for non-aliased nvdimm, ex. NVDIMM-N */
-+		if (rc == -ENOTTY)
-+			rc = 0;
-+		return rc;
-+	}
-+
- 	ndd = kzalloc(sizeof(*ndd), GFP_KERNEL);
- 	if (!ndd)
- 		return -ENOMEM;
-@@ -72,6 +80,9 @@ static int nvdimm_remove(struct device *dev)
- {
- 	struct nvdimm_drvdata *ndd = dev_get_drvdata(dev);
- 
-+	if (!ndd)
-+		return 0;
-+
- 	nvdimm_bus_lock(dev);
- 	dev_set_drvdata(dev, NULL);
- 	nvdimm_bus_unlock(dev);
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index d9bba5e..c22244a 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -28,28 +28,30 @@ static DEFINE_IDA(dimm_ida);
-  * Retrieve bus and dimm handle and return if this bus supports
-  * get_config_data commands
-  */
--static int __validate_dimm(struct nvdimm_drvdata *ndd)
-+int nvdimm_check_config_data(struct device *dev)
- {
--	struct nvdimm *nvdimm;
--
--	if (!ndd)
--		return -EINVAL;
--
--	nvdimm = to_nvdimm(ndd->dev);
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
- 
--	if (!nvdimm->cmd_mask)
--		return -ENXIO;
--	if (!test_bit(ND_CMD_GET_CONFIG_DATA, &nvdimm->cmd_mask))
--		return -ENXIO;
-+	if (!nvdimm->cmd_mask ||
-+	    !test_bit(ND_CMD_GET_CONFIG_DATA, &nvdimm->cmd_mask)) {
-+		if (nvdimm->flags & NDD_ALIASING)
-+			return -ENXIO;
-+		else
-+			return -ENOTTY;
-+	}
- 
- 	return 0;
- }
- 
- static int validate_dimm(struct nvdimm_drvdata *ndd)
- {
--	int rc = __validate_dimm(ndd);
-+	int rc;
-+
-+	if (!ndd)
-+		return -EINVAL;
- 
--	if (rc && ndd)
-+	rc = nvdimm_check_config_data(ndd->dev);
-+	if (rc)
- 		dev_dbg(ndd->dev, "%pf: %s error: %d\n",
- 				__builtin_return_address(0), __func__, rc);
- 	return rc;
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 8024a0e..38d6f03 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -191,6 +191,7 @@ void nvdimm_exit(void);
- void nd_region_exit(void);
- struct nvdimm;
- struct nvdimm_drvdata *to_ndd(struct nd_mapping *nd_mapping);
-+int nvdimm_check_config_data(struct device *dev);
- int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd);
- int nvdimm_init_config_data(struct nvdimm_drvdata *ndd);
- int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCAyMDE2LTA4LTE1IGF0IDE0OjIwIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIE1vbiwgQXVnIDE1LCAyMDE2IGF0IDEwOjUyIEFNLCBUb3NoaSBLYW5pIDx0b3NoaS5rYW5p
+QGhwZS5jb20+DQo+IHdyb3RlOg0KPiA+IA0KPiA+ICduZGN0bCBsaXN0IC0tYnVzZXMgLS1kaW1t
+cycgZG9lcyBub3QgbGlzdCBhbnkgTlZESU1NLU5zIHNpbmNlDQo+ID4gdGhleSBhcmUgY29uc2lk
+ZXJlZCBhcyBpZGxlLsKgwqBuZGN0bCBjaGVja3MgaWYgYW55IGRyaXZlciBpcw0KPiA+IGF0dGFj
+aGVkIHRvIG5tZW0gZGV2aWNlLsKgwqBudmRpbW1fcHJvYmUoKSBhbHdheXMgZmFpbHMgaW4NCj4g
+PiBudmRpbW1faW5pdF9uc2FyZWEoKSBzaW5jZSBOVkRJTU0tTnMgZG8gbm90IGltcGxlbWVudCBv
+cHRpbmFsDQo+ID4gTkRfQ01EX0dFVF9DT05GSUdfREFUQSBjb21tYW5kLg0KPiA+IA0KPiA+IENo
+YW5nZSBudmRpbW1fcHJvYmUoKSB0byBhY2NlcHQgdGhlIGNhc2UgdGhhdCB0aGUgQ09ORklHX0RB
+VEENCj4gPiBjb21tYW5kIGlzIG5vdCBpbXBsZW1lbnRlZCBmb3IgTlZESU1NLU5zLsKgwqBUaGUg
+ZHJpdmVyIGF0dGFjaGVzDQo+ID4gd2l0aG91dCBuZGQsIHdoaWNoIGtlZXBzIGl0IG5vLW9wIHRv
+IHRoZSBkZXZpY2UuDQo+ID4gDQo+ID4gUmVwb3J0ZWQtYnk6IEJyaWFuIEJveWxzdG9uIDxicmlh
+bi5ib3lsc3RvbkBocGUuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFRvc2hpIEthbmkgPHRvc2hp
+LmthbmlAaHBlLmNvbT4NCj4gPiBDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRl
+bC5jb20+DQo+ID4gLS0tDQo+ID4gwqBkcml2ZXJzL252ZGltbS9kaW1tLmPCoMKgwqDCoMKgwqB8
+wqDCoMKgMTAgKysrKysrKysrKw0KPiA+IMKgZHJpdmVycy9udmRpbW0vZGltbV9kZXZzLmMgfMKg
+wqDCoDI3ICsrKysrKysrKysrKysrKystLS0tLS0tLS0tLQ0KPiA+IMKgZHJpdmVycy9udmRpbW0v
+bmQuaMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqAxICsNCj4gPiDCoDMgZmlsZXMgY2hhbmdlZCwg
+MjcgaW5zZXJ0aW9ucygrKSwgMTEgZGVsZXRpb25zKC0pDQo+IA0KPiBUaGlzIGZhaWxzIHRoZSBu
+ZGN0bCB1bml0IHRlc3Qgc3VpdGUsIHNlZSBiZWxvdyBwbHVzIHNvbWUgb3RoZXINCj4gY2xlYW51
+cHMuLi4NCg0KU29ycnksIEkgaGFkIG92ZXJsb29rZWQgYWJvdXQgdGhpcyB0ZXN0IHN1aXRlLi4u
+IEkgYnVpbHQgaXQgdG8gcnVuIHRoZQ0KdGVzdCBhbmQgd2FzIGFibGUgdG8gcmVwcm9kdWNlIHRo
+ZSBmYWlsdXJlcy4NCg0KPiA+IA0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL252ZGltbS9kaW1t
+LmMgYi9kcml2ZXJzL252ZGltbS9kaW1tLmMNCj4gPiBpbmRleCA3MWQxMmJiLi4wN2UwOWMyIDEw
+MDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvbnZkaW1tL2RpbW0uYw0KPiA+ICsrKyBiL2RyaXZlcnMv
+bnZkaW1tL2RpbW0uYw0KPiA+IEBAIC0yNiw2ICsyNiwxMyBAQCBzdGF0aWMgaW50IG52ZGltbV9w
+cm9iZShzdHJ1Y3QgZGV2aWNlICpkZXYpDQo+ID4gwqDCoMKgwqDCoMKgwqDCoHN0cnVjdCBudmRp
+bW1fZHJ2ZGF0YSAqbmRkOw0KPiA+IMKgwqDCoMKgwqDCoMKgwqBpbnQgcmM7DQo+ID4gDQo+ID4g
+K8KgwqDCoMKgwqDCoMKgcmMgPSBudmRpbW1fY2hlY2tfY29uZmlnX2RhdGEoZGV2KTsNCj4gPiAr
+wqDCoMKgwqDCoMKgwqBpZiAocmMgPT0gLUVOT0VOVCkNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgLyogbm90IHJlcXVpcmVkIGZvciBub24tYWxpYXNlZCBudmRpbW0sIGV4LiBO
+VkRJTU0tDQo+ID4gTiAqLw0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1
+cm4gMDsNCj4gPiArwqDCoMKgwqDCoMKgwqBlbHNlDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoHJldHVybiByYzsNCj4gPiArDQo+IA0KPiBDaGFuZ2UgdXNhZ2Ugb2YgRU5PRU5U
+IHRvIEVOT1RUWSB0aHJvdWdob3V0Li4uDQoNCldpbGwgZG8uDQoNCj4gPiANCj4gPiDCoMKgwqDC
+oMKgwqDCoMKgbmRkID0ga3phbGxvYyhzaXplb2YoKm5kZCksIEdGUF9LRVJORUwpOw0KPiA+IMKg
+wqDCoMKgwqDCoMKgwqBpZiAoIW5kZCkNCj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoHJldHVybiAtRU5PTUVNOw0KPiA+IEBAIC03Miw2ICs3OSw5IEBAIHN0YXRpYyBpbnQgbnZk
+aW1tX3JlbW92ZShzdHJ1Y3QgZGV2aWNlICpkZXYpDQo+ID4gwqB7DQo+ID4gwqDCoMKgwqDCoMKg
+wqDCoHN0cnVjdCBudmRpbW1fZHJ2ZGF0YSAqbmRkID0gZGV2X2dldF9kcnZkYXRhKGRldik7DQo+
+ID4gDQo+ID4gK8KgwqDCoMKgwqDCoMKgaWYgKCFuZGQpDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoHJldHVybiAwOw0KPiA+ICsNCj4gPiDCoMKgwqDCoMKgwqDCoMKgbnZkaW1t
+X2J1c19sb2NrKGRldik7DQo+ID4gwqDCoMKgwqDCoMKgwqDCoGRldl9zZXRfZHJ2ZGF0YShkZXYs
+IE5VTEwpOw0KPiA+IMKgwqDCoMKgwqDCoMKgwqBudmRpbW1fYnVzX3VubG9jayhkZXYpOw0KPiA+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL252ZGltbS9kaW1tX2RldnMuYw0KPiA+IGIvZHJpdmVycy9u
+dmRpbW0vZGltbV9kZXZzLmMNCj4gPiBpbmRleCBkOWJiYTVlLi5mZWU4MmQzIDEwMDY0NA0KPiA+
+IC0tLSBhL2RyaXZlcnMvbnZkaW1tL2RpbW1fZGV2cy5jDQo+ID4gKysrIGIvZHJpdmVycy9udmRp
+bW0vZGltbV9kZXZzLmMNCj4gPiBAQCAtMjgsMjggKzI4LDMzIEBAIHN0YXRpYyBERUZJTkVfSURB
+KGRpbW1faWRhKTsNCj4gPiDCoCAqIFJldHJpZXZlIGJ1cyBhbmQgZGltbSBoYW5kbGUgYW5kIHJl
+dHVybiBpZiB0aGlzIGJ1cyBzdXBwb3J0cw0KPiA+IMKgICogZ2V0X2NvbmZpZ19kYXRhIGNvbW1h
+bmRzDQo+ID4gwqAgKi8NCj4gPiAtc3RhdGljIGludCBfX3ZhbGlkYXRlX2RpbW0oc3RydWN0IG52
+ZGltbV9kcnZkYXRhICpuZGQpDQo+ID4gK2ludCBudmRpbW1fY2hlY2tfY29uZmlnX2RhdGEoc3Ry
+dWN0IGRldmljZSAqZGV2KQ0KPiA+IMKgew0KPiA+IC3CoMKgwqDCoMKgwqDCoHN0cnVjdCBudmRp
+bW0gKm52ZGltbTsNCj4gPiAtDQo+ID4gLcKgwqDCoMKgwqDCoMKgaWYgKCFuZGQpDQo+ID4gLcKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldHVybiAtRUlOVkFMOw0KPiA+IC0NCj4gPiAt
+wqDCoMKgwqDCoMKgwqBudmRpbW0gPSB0b19udmRpbW0obmRkLT5kZXYpOw0KPiA+ICvCoMKgwqDC
+oMKgwqDCoHN0cnVjdCBudmRpbW0gKm52ZGltbSA9IHRvX252ZGltbShkZXYpOw0KPiA+IA0KPiA+
+IMKgwqDCoMKgwqDCoMKgwqBpZiAoIW52ZGltbS0+Y21kX21hc2spDQo+ID4gLcKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoHJldHVybiAtRU5YSU87DQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoGdvdG8gZXJyOw0KPiA+IMKgwqDCoMKgwqDCoMKgwqBpZiAoIXRlc3RfYml0
+KE5EX0NNRF9HRVRfQ09ORklHX0RBVEEsICZudmRpbW0tPmNtZF9tYXNrKSkNCj4gPiAtwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIC1FTlhJTzsNCj4gPiArwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgZ290byBlcnI7DQo+ID4gDQo+ID4gwqDCoMKgwqDCoMKgwqDCoHJl
+dHVybiAwOw0KPiA+ICsNCj4gPiArIGVycjoNCj4gPiArwqDCoMKgwqDCoMKgwqBpZiAobnZkaW1t
+LT5mbGFncyAmIE5ERF9BTElBU0lORykNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgcmV0dXJuIC1FTlhJTzsNCj4gPiArwqDCoMKgwqDCoMKgwqBlbHNlDQo+ID4gK8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldHVybiAtRU5PRU5UOw0KPiANCj4gDQo+IExldCdzIG5v
+dCB1c2UgImdvdG8iIHNpbmNlIHRoZXJlIGlzIG5vdGhpbmcgdG8gdW53aW5kLg0KDQpHb3QgaXQu
+DQoNCj4gPiANCj4gPiDCoH0NCj4gPiANCj4gPiDCoHN0YXRpYyBpbnQgdmFsaWRhdGVfZGltbShz
+dHJ1Y3QgbnZkaW1tX2RydmRhdGEgKm5kZCkNCj4gPiDCoHsNCj4gPiAtwqDCoMKgwqDCoMKgwqBp
+bnQgcmMgPSBfX3ZhbGlkYXRlX2RpbW0obmRkKTsNCj4gPiArwqDCoMKgwqDCoMKgwqBpbnQgcmM7
+DQo+ID4gDQo+ID4gLcKgwqDCoMKgwqDCoMKgaWYgKHJjICYmIG5kZCkNCj4gPiArwqDCoMKgwqDC
+oMKgwqBpZiAoIW5kZCkNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJu
+IC1FSU5WQUw7DQo+IA0KPiBTaW5jZSB3ZSd2ZSBjYWxsZWQgbnZkaW1tX2NoZWNrX2NvbmZpZ19k
+YXRhKCkgYmVmb3JlIGFsbG9jYXRpbmcgbmRkDQo+IGl0IHdpbGwgYWx3YXlzIGJlIE5VTEwgY2F1
+c2luZyBESU1NcyB3aXRoIGxhYmVsIGFyZWFzIHRvIGZhaWwgaW5pdC4NCg0KSSBhbSBzdGlsbCBw
+dXp6bGVkIGF0IHRoZSBtb21lbnQsIGJ1dCB3aWxsIGxvb2sgaW50byB0aGUgaXNzdWUuDQoNClRo
+YW5rcyENCi1Ub3NoaQ0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
+Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
