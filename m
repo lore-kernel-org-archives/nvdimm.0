@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C1DCD1A1E3B
- for <linux-nvdimm@lists.01.org>; Wed, 24 Aug 2016 09:18:30 -0700 (PDT)
-Subject: [PATCH] dax: fix device-dax region base
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 24 Aug 2016 09:16:07 -0700
-Message-ID: <147205536732.1606.8994275381938837346.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7AA321A1E08
+ for <linux-nvdimm@lists.01.org>; Thu, 18 Aug 2016 07:15:55 -0700 (PDT)
+Date: Thu, 18 Aug 2016 16:15:50 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 5/7] dax: lock based on slot instead of [mapping, index]
+Message-ID: <20160818141550.GA2382@quack2.suse.cz>
+References: <20160815190918.20672-1-ross.zwisler@linux.intel.com>
+ <20160815190918.20672-6-ross.zwisler@linux.intel.com>
+ <20160816092816.GE27284@quack2.suse.cz>
+ <20160817202556.GA13009@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20160817202556.GA13009@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,66 +26,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Abhilash Kumar Mulumudi <m.abhilash-kumar@hpe.com>, stable@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The data offset for a dax region needs to account for a reservation in
-the resource range.  Otherwise, device-dax is allowing mappings directly
-into the memmap or device-info-block area with crash signatures like the
-following:
+On Wed 17-08-16 14:25:56, Ross Zwisler wrote:
+> On Tue, Aug 16, 2016 at 11:28:16AM +0200, Jan Kara wrote:
+> > On Mon 15-08-16 13:09:16, Ross Zwisler wrote:
+> > > DAX radix tree locking currently locks entries based on the unique
+> > > combination of the 'mapping' pointer and the pgoff_t 'index' for the entry.
+> > > This works for PTEs, but as we move to PMDs we will need to have all the
+> > > offsets within the range covered by the PMD to map to the same bit lock.
+> > > To accomplish this, lock based on the 'slot' pointer in the radix tree
+> > > instead of [mapping, index].
+> > 
+> > I'm not convinced this is safe. What makes the slot pointer still valid
+> > after you drop tree_lock? At least radix_tree_shrink() or
+> > radix_tree_expand() could move your slot without letting the waiter know
+> > and he would be never woken.
+> > 
+> > 								Honza
+> 
+> Yep, you're right, thanks for catching that.
+> 
+> Given that we can't rely on 'slot' being stable, my next idea is to use a
+> combination of [mapping, index], but tweak 'index' so that it's always the
+> beginning of the entry.  So for 4k entries we'd leave it alone, but for 2MiB
+> entries we'd mask it down to the appropriate 2MiB barrier.
+> 
+> Let me hack on that for a bit, unless you've a better idea.
 
- BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
- IP: [<ffffffff811ac851>] get_zone_device_page+0x11/0x30
- Call Trace:
-   follow_devmap_pmd+0x298/0x2c0
-   follow_page_mask+0x275/0x530
-   __get_user_pages+0xe3/0x750
-   __gfn_to_pfn_memslot+0x1b2/0x450 [kvm]
-   ? hrtimer_try_to_cancel+0x2c/0x120
-   ? kvm_read_l1_tsc+0x55/0x60 [kvm]
-   try_async_pf+0x66/0x230 [kvm]
-   ? kvm_host_page_size+0x90/0xa0 [kvm]
-   tdp_page_fault+0x130/0x280 [kvm]
-   kvm_mmu_page_fault+0x5f/0xf0 [kvm]
-   handle_ept_violation+0x94/0x180 [kvm_intel]
-   vmx_handle_exit+0x1d3/0x1440 [kvm_intel]
-   ? atomic_switch_perf_msrs+0x6f/0xa0 [kvm_intel]
-   ? vmx_vcpu_run+0x2d1/0x490 [kvm_intel]
-   kvm_arch_vcpu_ioctl_run+0x81d/0x16a0 [kvm]
-   ? wake_up_q+0x44/0x80
-   kvm_vcpu_ioctl+0x33c/0x620 [kvm]
-   ? __vfs_write+0x37/0x160
-   do_vfs_ioctl+0xa2/0x5d0
-   SyS_ioctl+0x79/0x90
-   entry_SYSCALL_64_fastpath+0x1a/0xa4
+No, that's what I'd do as well.
 
-Cc: <stable@vger.kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Fixes: ab68f2622136 ("/dev/dax, pmem: direct access to persistent memory")
-Reported-by: Abhilash Kumar Mulumudi <m.abhilash-kumar@hpe.com>
-Reported-by: Toshi Kani <toshi.kani@hpe.com>
-Tested-by: Toshi Kani <toshi.kani@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/pmem.c |    3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index dfb168568af1..1f01e98c83c7 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -116,6 +116,9 @@ static int dax_pmem_probe(struct device *dev)
- 	if (rc)
- 		return rc;
- 
-+	/* adjust the dax_region resource to the start of data */
-+	res.start += le64_to_cpu(pfn_sb->dataoff);
-+
- 	nd_region = to_nd_region(dev->parent);
- 	dax_region = alloc_dax_region(dev, nd_region->id, &res,
- 			le32_to_cpu(pfn_sb->align), addr, PFN_DEV|PFN_MAP);
-
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
