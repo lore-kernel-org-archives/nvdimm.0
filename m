@@ -1,89 +1,14 @@
-From: "Automatic Email Delivery Software" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Mail System Error - Returned Mail
-Date: Mon, 22 Aug 2016 14:47:39 +0530
-Message-ID: <20160822091756.7B7ED1A1DEF@ml01.01.org>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: kernel BUG observed during ndctl Unit Tests on 4.8.0-rc2
+Date: Mon, 22 Aug 2016 16:08:42 -0700
+Message-ID: <CAPcyv4jAOZ0tQWXpU3SMhytTPEmXvbSpPc2T=RKCVeeP-1Ks-A@mail.gmail.com>
+References: <448644206.3016525.1471849509227.JavaMail.zimbra@redhat.com>
+ <488108969.3025505.1471852323338.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_57BAC349.B8521848"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_57BAC349.B8521848
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  The original message was received at Mon, 22 Aug 2016 14:47:39
-   +0530 from [63.50.140.253] ----- The following addresses had permanent fatal
-   errors ----- <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org> ----- Transcript of session follows
-   ----- ... while talking to lists.01.org.: 550 5.1.2 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>...
-   Host unknown (Name server: host not found) [...] 
-
-Content analysis details:   (5.0 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
- 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
-                            [103.204.166.162 listed in dnsbl.sorbs.net]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0018]
- 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
- 2.6 MSOE_MID_WRONG_CASE    No description available.
- 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
-
-
-
-------------=_57BAC349.B8521848
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1bblMi-00058Q-Au
-	for gln-linux-nvdimm@m.gmane.org; Mon, 22 Aug 2016 11:17:56 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7B7ED1A1DEF;
-	Mon, 22 Aug 2016 02:17:56 -0700 (PDT)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from lists.01.org (unknown [103.204.166.162])
- by ml01.01.org (Postfix) with ESMTP id A3CB21A1DEF
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Mon, 22 Aug 2016 02:17:52 -0700 (PDT)
-From: "Automatic Email Delivery Software" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Subject: Mail System Error - Returned Mail
-Date: Mon, 22 Aug 2016 14:47:39 +0530
-MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-X-Content-Filtered-By: Mailman/MimeDel 2.1.21
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+In-Reply-To: <488108969.3025505.1471852323338.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -91,26 +16,30 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Message-Id: <20160822091756.7B7ED1A1DEF-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+To: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Mon, 22 Aug 2016 14:47:39 +0530
-from [63.50.140.253]
+On Mon, Aug 22, 2016 at 12:52 AM, Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> Hi folks
+>
+> I'm testing ndctl unit test on 4.8.0-rc2, always can encounter the kernel BUG, anyone can help check it?
+> I have list all the log below:
+>
+> http://pastebin.com/JUiEGQUE  -> devm_nvdimm_memremap+0x18d/0x280
+> http://pastebin.com/MmazZj3K  -> kfree+0x56/0x170
+> http://pastebin.com/4kbucxPy  -> kfree+0x56/0x170
+> http://pastebin.com/kBsBicFM  -> kfree+0x56/0x170
+> http://pastebin.com/CaVKTYzc  -> strcmp+0x16/0x30
+> http://pastebin.com/pFWYWTDg  -> kfree+0x56/0x170
+>
+> Another server which have NVDIMM:
+> http://pastebin.com/y25QT2Dz  -> __kmalloc+0x9d/0x200
+> http://pastebin.com/z6xp2Usa  -> kfree+0x56/0x170
+> http://pastebin.com/eqmiqivN  -> kfree+0x56/0x170
+> http://pastebin.com/jA0RHSbf  -> kmem_cache_free+0x65/0x1e0
 
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
------ Transcript of session follows -----
-... while talking to lists.01.org.:
-550 5.1.2 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Host unknown (Name server: host not found)
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_57BAC349.B8521848--
+Can you send your kernel config and the full log since boot?  When did
+this start failing?  I.e. might it be possible to bisect?
