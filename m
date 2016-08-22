@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mail-oi0-x235.google.com (mail-oi0-x235.google.com
+ [IPv6:2607:f8b0:4003:c06::235])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4702B1A1E1E
- for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 14:56:35 -0700 (PDT)
-Subject: [PATCH 0/3] acpi, nfit: nvdimm notification support + tests
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 23 Aug 2016 14:54:11 -0700
-Message-ID: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E3EC71A1E11
+ for <linux-nvdimm@lists.01.org>; Mon, 22 Aug 2016 15:43:23 -0700 (PDT)
+Received: by mail-oi0-x235.google.com with SMTP id f189so172613280oig.3
+ for <linux-nvdimm@lists.01.org>; Mon, 22 Aug 2016 15:43:23 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1471639258-28106-1-git-send-email-vishal.l.verma@intel.com>
+References: <1471639258-28106-1-git-send-email-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 22 Aug 2016 15:43:22 -0700
+Message-ID: <CAPcyv4iw0ErHB-1yp+w4nd+7A5aVHXbieRq2ikR953UL4FBUVQ@mail.gmail.com>
+Subject: Re: [PATCH] acpi,
+ nfit: check for the correct event code in notifications
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,34 +26,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.1 added an "NFIT Health Event Notification" for nvdimm devices.
-When this fires, system software is expected to issue a DSM to retrieve
-the latest health values.  For the NFIT driver this notification
-arrives as an event on the sysfs 'flags' attribute for an nfit/nvdimm
-device.  The 'flags' attribute reflects the "NVDIMM State Flags" of the
-"5.2.25.3 NVDIMM Region Mapping Structure", and when read indicates if
-the platform supports sending health events.
+On Fri, Aug 19, 2016 at 1:40 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> Commit 209851649dc4 "acpi: nfit: Add support for hot-add" added
+> support for _FIT notifications, but it neglected to verify the
+> notification event code matches the one in the ACPI spec for
+> "NFIT Update". Currently there is only one code in the spec, but
+> once additional codes are added, older kernels (without this fix)
+> will misbehave by assuming all event notifications are for an
+> NFIT Update.
+>
+> Fixes: 209851649dc4 ("acpi: nfit: Add support for hot-add")
+> Cc: <stable@vger.kernel.org>
+> Cc: <linux-acpi@vger.kernel.org>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Reported-by: Linda Knippers <linda.knippers@hpe.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
----
-
-Dan Williams (3):
-      tools/testing/nvdimm: unit test for acpi_nfit_notify()
-      acpi, nfit: add dimm device notification support
-      tools/testing/nvdimm: unit test for acpi_nvdimm_notify()
-
-
- drivers/acpi/nfit/core.c          |  112 ++++++++++++++++++++++++++++++++-----
- drivers/acpi/nfit/nfit.h          |    7 ++
- drivers/nvdimm/dimm_devs.c        |    6 ++
- include/linux/libnvdimm.h         |    1 
- tools/testing/nvdimm/Kbuild       |    1 
- tools/testing/nvdimm/test/iomap.c |   17 ++++++
- tools/testing/nvdimm/test/nfit.c  |   64 +++++++++++++++++++--
- 7 files changed, 188 insertions(+), 20 deletions(-)
+Looks good to me.  Given the lead time of spec changes I think this
+can wait for the 4.9 merge window.  I'll add it to the -next branch.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
