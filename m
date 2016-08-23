@@ -1,21 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM01-BN3-obe.outbound.protection.outlook.com
- (mail-bn3nam01on070d.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe41::70d])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oi0-x229.google.com (mail-oi0-x229.google.com
+ [IPv6:2607:f8b0:4003:c06::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F1AC81A1DE9
- for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 16:47:42 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH] memremap: Fix NULL pointer BUG in get_zone_device_page()
-Date: Tue, 23 Aug 2016 23:47:39 +0000
-Message-ID: <1471996023.1532.6.camel@hpe.com>
-References: <1471977800-12688-1-git-send-email-toshi.kani@hpe.com>
- <CAPcyv4g8y4P02wm6Fx5Cx1zX6_xysdYg7jG6jjz6GTX7KqCkvA@mail.gmail.com>
-In-Reply-To: <CAPcyv4g8y4P02wm6Fx5Cx1zX6_xysdYg7jG6jjz6GTX7KqCkvA@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <4E67E24F580E834DB5BFC47721541CF6@NAMPRD84.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id AA6D21A1E26
+ for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 15:32:46 -0700 (PDT)
+Received: by mail-oi0-x229.google.com with SMTP id 4so217170957oih.2
+ for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 15:32:46 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1471977800-12688-1-git-send-email-toshi.kani@hpe.com>
+References: <1471977800-12688-1-git-send-email-toshi.kani@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 23 Aug 2016 15:32:45 -0700
+Message-ID: <CAPcyv4g8y4P02wm6Fx5Cx1zX6_xysdYg7jG6jjz6GTX7KqCkvA@mail.gmail.com>
+Subject: Re: [PATCH] memremap: Fix NULL pointer BUG in get_zone_device_page()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,84 +21,92 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
-Cc: "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "Mulumudi, Abhilash Kumar  <m.abhilash-kumar@hpe.com>, linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "brian.starkey@arm.com" <brian.starkey@arm.com>
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, m.abhilash-kumar@hpe.com, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Brian Starkey <brian.starkey@arm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE2LTA4LTIzIGF0IDE1OjMyIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIFR1ZSwgQXVnIDIzLCAyMDE2IGF0IDExOjQzIEFNLCBUb3NoaSBLYW5pIDx0b3NoaS5rYW5p
-QGhwZS5jb20+DQo+IHdyb3RlOg0KwqA6DQo+IEknbSBub3Qgc3VyZSBhYm91dCB0aGlzIGZpeC7C
-oMKgVGhlIHBvaW50IG9mIGhvbm9yaW5nwqANCj4gdm1lbV9hbHRtYXBfb2Zmc2V0KCkgaXMgYmVj
-YXVzZSBhIHBvcnRpb24gb2YgdGhlIHJlc291cmNlIHRoYXQgaXMNCj4gcGFzc2VkIHRvIGRldm1f
-bWVtcmVtYXBfcGFnZXMoKSBhbHNvIGNvbnRhaW5zIHRoZSBtZXRhZGF0YSBpbmZvIGJsb2NrDQo+
-IGZvciB0aGUgZGV2aWNlLsKgwqBUaGUgb2Zmc2V0IHNheXMgInVzZSBldmVyeXRoaW5nIHBhc3Qg
-dGhpcyBwb2ludCBmb3INCj4gcGFnZXMiLsKgwqBUaGlzIG1heSB3b3JrIGZvciBhdm9pZGluZyBh
-IGNyYXNoLCBidXQgaXQgbWF5IGNvcnJ1cHQgaW5mbw0KPiBibG9jayBtZXRhZGF0YSBpbiB0aGUg
-cHJvY2Vzcy7CoMKgQ2FuIHlvdSBwcm92aWRlIG1vcmUgaW5mb3JtYXRpb24NCj4gYWJvdXQgdGhl
-IGZhaWxpbmcgc2NlbmFyaW8gdG8gYmUgc3VyZSB0aGF0IHdlIGFyZSBub3QgdHJpZ2dlcmluZyBh
-DQo+IGZhdWx0IG9uIGFuIGFkZHJlc3MgdGhhdCBpcyBub3QgbWVhbnQgdG8gaGF2ZSBhIHBhZ2Ug
-bWFwcGluZz/CoMKgSS5lLg0KPiB3aGF0IGlzIHRoZSBob3N0IHBoeXNpY2FsIGFkZHJlc3Mgb2Yg
-dGhlIHBhZ2UgdGhhdCBjYXVzZWQgdGhpcyBmYXVsdCwNCj4gYW5kIGlzIGl0IHZhbGlkPw0KDQpU
-aGUgZmF1bHQgYWRkcmVzcyBpbiBxdWVzdGlvbiB3YXMgdGhlIDJuZCBwYWdlIG9mIGFuIE5WRElN
-TSByYW5nZS4gwqBJDQphc3N1bWVkIHRoaXMgZmF1bHQgYWRkcmVzcyB3YXMgdmFsaWQgYW5kIG5l
-ZWRlZCB0byBiZSBoYW5kbGVkLiDCoEhlcmUgaXMNCnNvbWUgaW5mbyBhYm91dCB0aGUgYmFzZSBh
-bmQgcGF0Y2hlZCBjYXNlcy4gwqBMZXQgbWUga25vdyBpZiB5b3UgbmVlZA0KbW9yZSBpbmZvLg0K
-DQpCYXNlDQo9PT09DQoNClRoZSBmb2xsb3dpbmcgTlZESU1NIHJhbmdlIHdhcyBzZXQgdG8gL2Rl
-di9kYXguDQoNCi9wcm9jL2lvbWVtDQo0ODAwMDAwMDAtODdmZmZmZmZmIDogUGVyc2lzdGVudCBN
-ZW1vcnkNCg0KZGV2bV9tZW1yZW1hcF9wYWdlcygpIGluaXRpYWxpemVkIHN0cnVjdCBwYWdlIGZy
-b20gMHg0OTAyMDAtMHg4N2ZmZmYuDQpUaGlzIGxlZnQgMHg0ODAwMC0weDQ5MDFmZiB1bmluaXRp
-YWxpemVkIGZvciBwYWdlLT5wZ21hcC4NCg0KwqBkZXZtX21lbXJlbWFwX3BhZ2VzOiBwZ21hcCAw
-eGZmZmY4ODA0NmQwNDUzZjANCsKgWzBdwqDCoDogcGZuIDB4NDkwMjAwLCBwYWdlIGZmZmZlYTAw
-MTI0MDgwMDAsIHBnbWFwIGZmZmY4ODA0NmQwNDUzZjANCsKgWzFdwqDCoDogcGZuIDB4NDkwMjAx
-LCBwYWdlIGZmZmZlYTAwMTI0MDgwNDAsIHBnbWFwIGZmZmY4ODA0NmQwNDUzZjANCsKgWzJdwqDC
-oDogcGZuIDB4NDkwMjAyLCBwYWdlIGZmZmZlYTAwMTI0MDgwODAsIHBnbWFwIGZmZmY4ODA0NmQw
-NDUzZjANCsKgWzNdwqDCoDogcGZuIDB4NDkwMjAzLCBwYWdlIGZmZmZlYTAwMTI0MDgwYzAsIHBn
-bWFwIGZmZmY4ODA0NmQwNDUzZjANCsKgWzRdwqDCoDogcGZuIDB4NDkwMjA0LCBwYWdlIGZmZmZl
-YTAwMTI0MDgxMDAsIHBnbWFwIGZmZmY4ODA0NmQwNDUzZjANCsKgIDoNCsKgW0UrMV06IHBmbiAw
-eDg4MDAwMCwgcGFnZSBmZmZmZWEwMDIxZmZmZmMwLCBwZ21hcCBmZmZmODgwNDZkMDQ1M2YwDQoN
-ClRoZSBmYXVsdGVkIHBhZ2Ugd2FzIHBmbiAweDQ4MDAwMSwgd2hpY2ggd2FzIHRoZSAybmQgcGFn
-ZSBpbiB0aGUgTlZESU1NDQpyYW5nZSBhbmQgZGlkIG5vdCBoYXZlIHZhbGlkIHBnbWFwLiDCoFRo
-aXMgbGVkIHRoZSBCVUcuDQoNCsKgcGZuwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoDB4NDgw
-MDAxDQrCoHBhZ2XCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoDB4ZmZmZmVhMDAxMjAwMDA0MA0K
-wqBwYWdlLT5wZ21hcMKgwqDCoMKgwqDCoDB4ZmZmZmVhMDAxMjAwMDA2MA0KwqBwYWdlLT5wZ21h
-cC0+cmVmIChudWxsKQ0KDQpQYXRjaA0KPT09PT0NCg0KV2l0aCB0aGUgcGF0Y2gsIGRldm1fbWVt
-cmVtYXBfcGFnZXMoKSBpbml0aWFsaXplcyBhcyBmb2xsb3dzLg0KDQrCoGRldm1fbWVtcmVtYXBf
-cGFnZXM6IHBnbWFwIGZmZmY4ODA0NjJiM2I0YjANCsKgWzBdwqDCoDogcGZuIDB4NDgwMDAwLCBw
-YWdlIGZmZmZlYTAwMTIwMDAwMDAsIHBnbWFwIGZmZmY4ODA0NjJiM2I0YjANCsKgWzFdwqDCoDog
-cGZuIDB4NDgwMDAxLCBwYWdlIGZmZmZlYTAwMTIwMDAwNDAsIHBnbWFwIGZmZmY4ODA0NjJiM2I0
-YjANCsKgWzJdwqDCoDogcGZuIDB4NDgwMDAyLCBwYWdlIGZmZmZlYTAwMTIwMDAwODAsIHBnbWFw
-IGZmZmY4ODA0NjJiM2I0YjANCsKgWzNdwqDCoDogcGZuIDB4NDgwMDAzLCBwYWdlIGZmZmZlYTAw
-MTIwMDAwYzAsIHBnbWFwIGZmZmY4ODA0NjJiM2I0YjANCsKgWzRdwqDCoDogcGZuIDB4NDgwMDA0
-LCBwYWdlIGZmZmZlYTAwMTIwMDAxMDAsIHBnbWFwIGZmZmY4ODA0NjJiM2I0YjANCsKgIDoNCsKg
-W0UrMV06IHBmbiAweDg4MDAwMCwgcGFnZSBmZmZmZWEwMDIxZmZmZmMwLCBwZ21hcCBmZmZmODgw
-NDYyYjNiNGIwDQoNCkEgcGFnZSBmYXVsdCB0byBwZm4gMHg0ODAwMDEgaXMgaGFuZGxlZCBhcyBp
-dCBoYXMgdmFsaWQgcGdtYXAuDQoNCsKgcGZuwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoDB4
-NDgwMDAxDQrCoHBhZ2XCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoDB4ZmZmZmVhMDAxMjAwMDA0
-MA0KwqBwYWdlLT5wZ21hcMKgwqDCoMKgwqDCoDB4ZmZmZjg4MDQ2MmIzYjRiMA0KwqBwYWdlLT5w
-Z21hcC0+cmVmIDB4ZmZmZjg4MDQ2MmIzYjUzMA0KDQpJdHMgZGV2X3BhZ2VtYXAgYW5kIHZtZW1f
-YWx0bWFwIGFyZSBhcyBmb2xsb3dzLg0KDQpjcmFzaD4gcCB7c3RydWN0IGRldl9wYWdlbWFwfSAw
-eGZmZmY4ODA0NjJiM2I0YjANCiQyID0gew0KwqAgYWx0bWFwID0gMHhmZmZmODgwNDYyYjNiNGQw
-LA0KwqAgcmVzID0gMHhmZmZmODgwNDYyYjNiNDY4LA0KwqAgcmVmID0gMHhmZmZmODgwNDYyYjNi
-NTMwLA0KwqAgZGV2ID0gMHhmZmZmODgwNDYzZTM3MDEwDQp9DQoNCmNyYXNoPiBwIHtzdHJ1Y3Qg
-dm1lbV9hbHRtYXB9IDB4ZmZmZjg4MDQ2MmIzYjRkMA0KJDMgPSB7DQrCoCBiYXNlX3BmbiA9IDB4
-NDgwMDAwLA0KwqAgcmVzZXJ2ZSA9IDB4MiwNCsKgIGZyZWUgPSAweDEwMWZlLA0KwqAgYWxpZ24g
-PSAweDFmZSwNCsKgIGFsbG9jID0gMHgxMDAwMA0KfQ0KDQpUaGlzIHBhZ2UgZW50cnkgaXMgcGh5
-c2ljYWxseSBsb2NhdGVkIGF0IDB4NDgwMjAwMDQwLg0KDQpjcmFzaD4gdnRvcCAweGZmZmZlYTAw
-MTIwMDAwNDANClZJUlRVQUzCoMKgwqDCoMKgwqDCoMKgwqDCoMKgUEhZU0lDQUwNCmZmZmZlYTAw
-MTIwMDAwNDDCoMKgNDgwMjAwMDQwDQoNClBNTDQgRElSRUNUT1JZOiBmZmZmZmZmZjgxYzA2MDAw
-DQpQQUdFIERJUkVDVE9SWTogNDdmZmU2MDY3DQrCoMKgwqBQVUQ6IDQ3ZmZlNjAwMCA9PiA0N2Zm
-ZTUwNjcNCsKgwqDCoFBNRDogNDdmZmU1NDgwID0+IDgwMDAwMDA0ODAyMDAxZTMNCsKgIFBBR0U6
-IDQ4MDIwMDAwMMKgwqAoMk1CKQ0KDQrCoMKgwqDCoMKgwqBQVEXCoMKgwqDCoMKgwqDCoMKgwqBQ
-SFlTSUNBTMKgwqDCoEZMQUdTDQo4MDAwMDAwNDgwMjAwMWUzwqDCoDQ4MDIwMDAwMMKgwqAoUFJF
-U0VOVHxSV3xBQ0NFU1NFRHxESVJUWXxQU0V8R0xPQkFMfE5YKQ0KDQrCoMKgwqDCoMKgwqBQQUdF
-wqDCoMKgwqDCoMKgwqDCoFBIWVNJQ0FMwqDCoMKgwqDCoMKgTUFQUElOR8KgwqDCoMKgwqDCoMKg
-SU5ERVggQ05UIEZMQUdTDQpmZmZmZWEwMDEyMDA4MDAwIDQ4MDIwMDAwMMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgMMKgwqDCoMKgwqDCoMKgwqAwwqDCoDEgNGZmZmUwMDAwMDA0MDAN
-CnJlc2VydmVkDQoNClRoYW5rcywNCi1Ub3NoaQ0KX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRp
-bW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
-dXgtbnZkaW1tCg==
+On Tue, Aug 23, 2016 at 11:43 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> The following BUG was observed while starting up KVM with nvdimm
+> device as memory-backend-file to /dev/dax.
+>
+>  BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+>  IP: [<ffffffff811ac851>] get_zone_device_page+0x11/0x30
+>  Call Trace:
+>    follow_devmap_pmd+0x298/0x2c0
+>    follow_page_mask+0x275/0x530
+>    __get_user_pages+0xe3/0x750
+>    __gfn_to_pfn_memslot+0x1b2/0x450 [kvm]
+>    ? hrtimer_try_to_cancel+0x2c/0x120
+>    ? kvm_read_l1_tsc+0x55/0x60 [kvm]
+>    try_async_pf+0x66/0x230 [kvm]
+>    ? kvm_host_page_size+0x90/0xa0 [kvm]
+>    tdp_page_fault+0x130/0x280 [kvm]
+>    kvm_mmu_page_fault+0x5f/0xf0 [kvm]
+>    handle_ept_violation+0x94/0x180 [kvm_intel]
+>    vmx_handle_exit+0x1d3/0x1440 [kvm_intel]
+>    ? atomic_switch_perf_msrs+0x6f/0xa0 [kvm_intel]
+>    ? vmx_vcpu_run+0x2d1/0x490 [kvm_intel]
+>    kvm_arch_vcpu_ioctl_run+0x81d/0x16a0 [kvm]
+>    ? wake_up_q+0x44/0x80
+>    kvm_vcpu_ioctl+0x33c/0x620 [kvm]
+>    ? __vfs_write+0x37/0x160
+>    do_vfs_ioctl+0xa2/0x5d0
+>    SyS_ioctl+0x79/0x90
+>    entry_SYSCALL_64_fastpath+0x1a/0xa4
+>
+> devm_memremap_pages() calls for_each_device_pfn() to walk through
+> all pfns in page_map.  pfn_first(), however, returns a wrong pfn
+> that leaves page->pgmap uninitialized.
+>
+> Since arch_add_memory() has set up direct mappings to the NVDIMM
+> range with altmap, pfn_first() should not modify the start pfn.
+> Change pfn_first() to simply return pfn of res->start.
+>
+> Reported-and-tested-by: Abhilash Kumar Mulumudi <m.abhilash-kumar@hpe.com>
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> Cc: Brian Starkey <brian.starkey@arm.com>
+> ---
+>  kernel/memremap.c |    8 +-------
+>  1 file changed, 1 insertion(+), 7 deletions(-)
+>
+> diff --git a/kernel/memremap.c b/kernel/memremap.c
+> index 251d16b..50ea577 100644
+> --- a/kernel/memremap.c
+> +++ b/kernel/memremap.c
+> @@ -210,15 +210,9 @@ static void pgmap_radix_release(struct resource *res)
+>
+>  static unsigned long pfn_first(struct page_map *page_map)
+>  {
+> -       struct dev_pagemap *pgmap = &page_map->pgmap;
+>         const struct resource *res = &page_map->res;
+> -       struct vmem_altmap *altmap = pgmap->altmap;
+> -       unsigned long pfn;
+>
+> -       pfn = res->start >> PAGE_SHIFT;
+> -       if (altmap)
+> -               pfn += vmem_altmap_offset(altmap);
+> -       return pfn;
+> +       return res->start >> PAGE_SHIFT;
+>  }
+
+I'm not sure about this fix.  The point of honoring
+vmem_altmap_offset() is because a portion of the resource that is
+passed to devm_memremap_pages() also contains the metadata info block
+for the device.  The offset says "use everything past this point for
+pages".  This may work for avoiding a crash, but it may corrupt info
+block metadata in the process.  Can you provide more information about
+the failing scenario to be sure that we are not triggering a fault on
+an address that is not meant to have a page mapping?  I.e. what is the
+host physical address of the page that caused this fault, and is it
+valid?
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
