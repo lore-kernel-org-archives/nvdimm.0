@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- by ml01.01.org (Postfix) with ESMTP id 5F0651A1DF2
- for <linux-nvdimm@lists.01.org>; Tue, 16 Aug 2016 10:24:33 -0700 (PDT)
-Subject: [ndctl PATCH 8/8] test,
- device-dax: check mappings invalidated on namespace reconfiguration
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 46FC51A1E3D
+ for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 16:07:35 -0700 (PDT)
+Subject: [ndctl PATCH 2/3] ndctl: add ndctl_dimm_get_health_eventfd() api
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 16 Aug 2016 10:22:09 -0700
-Message-ID: <147136812987.27902.7097669727543459420.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147136808681.27902.14029119240021638000.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147136808681.27902.14029119240021638000.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 23 Aug 2016 16:05:11 -0700
+Message-ID: <147199351158.5587.16951459101164630768.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147199350116.5587.2852255825958647760.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147199350116.5587.2852255825958647760.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,89 +25,90 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Validate that the kernel does not leak mappings past the end of life of
-the namespace device.  I.e. ndctl_dax_delete() == "mappings return
-SIGBUS".
+Return a poll(2) capable file descriptor that triggers whenever an
+nvdimm device receives an ACPI 6.1 health event notification.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/device-dax.c |   31 ++++++++++++++++++++++++++++++-
- 1 file changed, 30 insertions(+), 1 deletion(-)
+ ndctl/lib/libndctl.c   |   11 +++++++++++
+ ndctl/lib/libndctl.sym |    1 +
+ ndctl/libndctl.h.in    |    1 +
+ 3 files changed, 13 insertions(+)
 
-diff --git a/test/device-dax.c b/test/device-dax.c
-index 7b624ea5bc8f..1a67a27ab134 100644
---- a/test/device-dax.c
-+++ b/test/device-dax.c
-@@ -5,6 +5,8 @@
- #include <stdlib.h>
- #include <syslog.h>
- #include <string.h>
-+#include <signal.h>
-+#include <setjmp.h>
- #include <sys/stat.h>
- #include <sys/mman.h>
- #include <sys/types.h>
-@@ -17,6 +19,8 @@
- #include <ndctl/builtin.h>
- #include <test.h>
- 
-+static sigjmp_buf sj_env;
-+
- static int create_namespace(int argc, const char **argv, struct ndctl_ctx *ctx)
- {
- 	builtin_xaction_namespace_reset();
-@@ -47,16 +51,31 @@ static int setup_device_dax(struct ndctl_namespace *ndns)
- 	return create_namespace(argc, argv, ctx);
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 5f354ac0fa7a..205fef17a151 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -139,6 +139,7 @@ struct ndctl_dimm {
+ 	char *unique_id;
+ 	char *dimm_path;
+ 	char *dimm_buf;
++	int health_eventfd;
+ 	int buf_len;
+ 	int id;
+ 	union {
+@@ -591,6 +592,8 @@ static void free_dimm(struct ndctl_dimm *dimm)
+ 	free(dimm->dimm_path);
+ 	if (dimm->module)
+ 		kmod_module_unref(dimm->module);
++	if (dimm->health_eventfd > -1)
++		close(dimm->health_eventfd);
+ 	free(dimm);
  }
  
-+static void sigbus(int sig, siginfo_t *siginfo, void *d)
+@@ -1169,6 +1172,7 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
+ 	dimm->vendor_id = -1;
+ 	dimm->device_id = -1;
+ 	dimm->revision_id = -1;
++	dimm->health_eventfd = -1;
+ 	dimm->subsystem_vendor_id = -1;
+ 	dimm->subsystem_device_id = -1;
+ 	dimm->subsystem_revision_id = -1;
+@@ -1250,6 +1254,8 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
+ 	sprintf(path, "%s/nfit/flags", dimm_base);
+ 	if (sysfs_read_attr(ctx, path, buf) == 0)
+ 		parse_nfit_mem_flags(dimm, buf);
++
++	dimm->health_eventfd = open(path, O_RDONLY|O_CLOEXEC);
+  out:
+ 	list_add(&bus->dimms, &dimm->list);
+ 	free(path);
+@@ -1429,6 +1435,11 @@ NDCTL_EXPORT int ndctl_dimm_is_cmd_supported(struct ndctl_dimm *dimm,
+ 	return !!(dimm->dsm_mask & (1ULL << cmd));
+ }
+ 
++NDCTL_EXPORT int ndctl_dimm_get_health_eventfd(struct ndctl_dimm *dimm)
 +{
-+	siglongjmp(sj_env, 1);
++	return dimm->health_eventfd;
 +}
 +
- static int test_device_dax(int loglevel, struct ndctl_test *test,
- 		struct ndctl_ctx *ctx)
+ NDCTL_EXPORT unsigned int ndctl_dimm_handle_get_node(struct ndctl_dimm *dimm)
  {
- 	int fd, rc, *p;
- 	char *buf, path[100];
-+	struct sigaction act;
- 	struct ndctl_dax *dax;
- 	struct daxctl_dev *dev;
- 	struct ndctl_namespace *ndns;
- 	struct daxctl_region *dax_region;
- 
-+	memset (&act, 0, sizeof(act));
-+	act.sa_sigaction = sigbus;
-+	act.sa_flags = SA_SIGINFO;
-+
-+	if (sigaction(SIGBUS, &act, 0)) {
-+		perror("sigaction");
-+		return 1;
-+	}
-+
- 	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0)))
- 		return 77;
- 
-@@ -105,8 +124,18 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 		return rc;
- 	}
- 
-+	/* test fault after device-dax instance disabled */
-+	if (sigsetjmp(sj_env, 1)) {
-+		/* got sigbus, success */
-+		close(fd);
-+		return 0;
-+	}
-+
-+	*p = 0xff;
-+	fprintf(stderr, "%s: failed to unmap after reset\n",
-+			daxctl_dev_get_devname(dev));
- 	close(fd);
--	return 0;
-+	return EXIT_FAILURE;
- }
- 
- int __attribute__((weak)) main(int argc, char *argv[])
+ 	return dimm->handle >> 16 & 0xfff;
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index b5d286683732..dfc44ae51362 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -62,6 +62,7 @@ global:
+ 	ndctl_dimm_failed_restore;
+ 	ndctl_dimm_smart_pending;
+ 	ndctl_dimm_failed_flush;
++	ndctl_dimm_get_health_eventfd;
+ 	ndctl_dimm_is_cmd_supported;
+ 	ndctl_dimm_handle_get_node;
+ 	ndctl_dimm_handle_get_socket;
+diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
+index 451466aedb7e..00bce4298958 100644
+--- a/ndctl/libndctl.h.in
++++ b/ndctl/libndctl.h.in
+@@ -143,6 +143,7 @@ int ndctl_dimm_failed_arm(struct ndctl_dimm *dimm);
+ int ndctl_dimm_failed_restore(struct ndctl_dimm *dimm);
+ int ndctl_dimm_smart_pending(struct ndctl_dimm *dimm);
+ int ndctl_dimm_failed_flush(struct ndctl_dimm *dimm);
++int ndctl_dimm_get_health_eventfd(struct ndctl_dimm *dimm);
+ unsigned int ndctl_dimm_handle_get_node(struct ndctl_dimm *dimm);
+ unsigned int ndctl_dimm_handle_get_socket(struct ndctl_dimm *dimm);
+ unsigned int ndctl_dimm_handle_get_imc(struct ndctl_dimm *dimm);
 
 _______________________________________________
 Linux-nvdimm mailing list
