@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-it0-x233.google.com (mail-it0-x233.google.com
- [IPv6:2607:f8b0:4001:c0b::233])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 247371A1E05
- for <linux-nvdimm@lists.01.org>; Mon, 29 Aug 2016 14:50:57 -0700 (PDT)
-Received: by mail-it0-x233.google.com with SMTP id g62so7726547ith.1
- for <linux-nvdimm@lists.01.org>; Mon, 29 Aug 2016 14:50:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 29 Aug 2016 23:50:55 +0200
-Message-ID: <CAJZ5v0j3+DHgU1A_0w-yCDyEzO2OneC=8UgexrnjGYOOqyW13A@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4AB571A1E26
+ for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 15:40:35 -0700 (PDT)
+Date: Tue, 23 Aug 2016 16:39:57 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
 Subject: Re: [PATCH 0/3] acpi, nfit: nvdimm notification support + tests
+Message-ID: <20160823223957.GC7799@omniknight.lm.intel.com>
+References: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,10 +24,10 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Aug 23, 2016 at 11:54 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+On 08/23, Dan Williams wrote:
 > ACPI 6.1 added an "NFIT Health Event Notification" for nvdimm devices.
 > When this fires, system software is expected to issue a DSM to retrieve
 > the latest health values.  For the NFIT driver this notification
@@ -37,18 +35,27 @@ On Tue, Aug 23, 2016 at 11:54 PM, Dan Williams <dan.j.williams@intel.com> wrote:
 > device.  The 'flags' attribute reflects the "NVDIMM State Flags" of the
 > "5.2.25.3 NVDIMM Region Mapping Structure", and when read indicates if
 > the platform supports sending health events.
->
+> 
 > ---
->
+> 
 > Dan Williams (3):
 >       tools/testing/nvdimm: unit test for acpi_nfit_notify()
 >       acpi, nfit: add dimm device notification support
 >       tools/testing/nvdimm: unit test for acpi_nvdimm_notify()
+> 
+> 
+>  drivers/acpi/nfit/core.c          |  112 ++++++++++++++++++++++++++++++++-----
+>  drivers/acpi/nfit/nfit.h          |    7 ++
+>  drivers/nvdimm/dimm_devs.c        |    6 ++
+>  include/linux/libnvdimm.h         |    1 
+>  tools/testing/nvdimm/Kbuild       |    1 
+>  tools/testing/nvdimm/test/iomap.c |   17 ++++++
+>  tools/testing/nvdimm/test/nfit.c  |   64 +++++++++++++++++++--
+>  7 files changed, 188 insertions(+), 20 deletions(-)
 
-ACK for the series from the ACPI core perspective.
+Looks good to me. For the series,
 
-Thanks,
-Rafael
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
