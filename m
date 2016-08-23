@@ -1,15 +1,13 @@
-From: yizhan <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: kernel BUG observed during ndctl Unit Tests on 4.8.0-rc2
-Date: Wed, 24 Aug 2016 03:45:20 +0800
-Message-ID: <4a567c42-3434-a558-5bff-8b482c754259@redhat.com>
-References: <448644206.3016525.1471849509227.JavaMail.zimbra@redhat.com>
- <488108969.3025505.1471852323338.JavaMail.zimbra@redhat.com>
- <CAPcyv4jAOZ0tQWXpU3SMhytTPEmXvbSpPc2T=RKCVeeP-1Ks-A@mail.gmail.com>
+From: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: [PATCH] memremap: Fix NULL pointer BUG in get_zone_device_page()
+Date: Tue, 23 Aug 2016 13:42:16 -0700
+Message-ID: <20160823134216.8f8e8944581fe1ae202377d1@linux-foundation.org>
+References: <1471977800-12688-1-git-send-email-toshi.kani@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4jAOZ0tQWXpU3SMhytTPEmXvbSpPc2T=RKCVeeP-1Ks-A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1471977800-12688-1-git-send-email-toshi.kani-ZPxbGqLxI0U@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,43 +17,25 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+To: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, m.abhilash-kumar-ZPxbGqLxI0U@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Starkey <brian.starkey-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
+On Tue, 23 Aug 2016 12:43:20 -0600 Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
 
+> The following BUG was observed while starting up KVM with nvdimm
+> device as memory-backend-file to /dev/dax.
+> 
+>  BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+>
+> ...
+>
+> devm_memremap_pages() calls for_each_device_pfn() to walk through
+> all pfns in page_map.  pfn_first(), however, returns a wrong pfn
+> that leaves page->pgmap uninitialized.
+> 
+> Since arch_add_memory() has set up direct mappings to the NVDIMM
+> range with altmap, pfn_first() should not modify the start pfn.
+> Change pfn_first() to simply return pfn of res->start.
 
-On 08/23/2016 07:08 AM, Dan Williams wrote:
-> On Mon, Aug 22, 2016 at 12:52 AM, Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->> Hi folks
->>
->> I'm testing ndctl unit test on 4.8.0-rc2, always can encounter the kernel BUG, anyone can help check it?
->> I have list all the log below:
->>
->> http://pastebin.com/JUiEGQUE  -> devm_nvdimm_memremap+0x18d/0x280
->> http://pastebin.com/MmazZj3K  -> kfree+0x56/0x170
->> http://pastebin.com/4kbucxPy  -> kfree+0x56/0x170
->> http://pastebin.com/kBsBicFM  -> kfree+0x56/0x170
->> http://pastebin.com/CaVKTYzc  -> strcmp+0x16/0x30
->> http://pastebin.com/pFWYWTDg  -> kfree+0x56/0x170
->>
->> Another server which have NVDIMM:
->> http://pastebin.com/y25QT2Dz  -> __kmalloc+0x9d/0x200
->> http://pastebin.com/z6xp2Usa  -> kfree+0x56/0x170
->> http://pastebin.com/eqmiqivN  -> kfree+0x56/0x170
->> http://pastebin.com/jA0RHSbf  -> kmem_cache_free+0x65/0x1e0
-> Can you send your kernel config and the full log since boot?  When did
-> this start failing?  I.e. might it be possible to bisect?
-Hi Dan
-
-Finally found below commit introduced this bug by git bisect.
-7bfe97c tools/testing/nvdimm: add virtual ramdisk range
-
-Below is the config and boot log:
-http://pastebin.com/TnLA5abh      kernel config
-http://pastebin.com/WDvjmH47    kernel dmesg
-
-Pls let me if you need more info.
-
-Thanks
-Yi
+Which kernel version(s) do you think need fixing?
