@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 573D41A1E24
- for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 15:04:31 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id B5C121A1E24
+ for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 15:04:30 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 2/9] ext2: tell DAX the size of allocation holes
-Date: Tue, 23 Aug 2016 16:04:12 -0600
-Message-Id: <20160823220419.11717-3-ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 1/9] ext4: allow DAX writeback for hole punch
+Date: Tue, 23 Aug 2016 16:04:11 -0600
+Message-Id: <20160823220419.11717-2-ross.zwisler@linux.intel.com>
 In-Reply-To: <20160823220419.11717-1-ross.zwisler@linux.intel.com>
 References: <20160823220419.11717-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -23,33 +23,43 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, stable@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When DAX calls ext2_get_block() and the file offset points to a hole we
-currently don't set bh_result->b_size.  When we re-enable PMD faults DAX
-will need bh_result->b_size to tell it the size of the hole so it can
-decide whether to fault in a 4 KiB zero page or a 2 MiB zero page.
+Currently when doing a DAX hole punch with ext4 we fail to do a writeback.
+This is because the logic around filemap_write_and_wait_range() in
+ext4_punch_hole() only looks for dirty page cache pages in the radix tree,
+not for dirty DAX exceptional entries.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: <stable@vger.kernel.org>
 ---
- fs/ext2/inode.c | 3 +++
- 1 file changed, 3 insertions(+)
+ fs/ext4/inode.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index d5c7d09..dd55d74 100644
---- a/fs/ext2/inode.c
-+++ b/fs/ext2/inode.c
-@@ -773,6 +773,9 @@ int ext2_get_block(struct inode *inode, sector_t iblock, struct buffer_head *bh_
- 	if (ret > 0) {
- 		bh_result->b_size = (ret << inode->i_blkbits);
- 		ret = 0;
-+	} else if (ret == 0) {
-+		/* hole case, need to fill in bh_result->b_size */
-+		bh_result->b_size = 1 << inode->i_blkbits;
- 	}
- 	return ret;
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 3131747..0900cb4 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3890,7 +3890,7 @@ int ext4_update_disksize_before_punch(struct inode *inode, loff_t offset,
+ }
  
+ /*
+- * ext4_punch_hole: punches a hole in a file by releaseing the blocks
++ * ext4_punch_hole: punches a hole in a file by releasing the blocks
+  * associated with the given offset and length
+  *
+  * @inode:  File inode
+@@ -3919,7 +3919,7 @@ int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length)
+ 	 * Write out all dirty pages to avoid race conditions
+ 	 * Then release them.
+ 	 */
+-	if (mapping->nrpages && mapping_tagged(mapping, PAGECACHE_TAG_DIRTY)) {
++	if (mapping_tagged(mapping, PAGECACHE_TAG_DIRTY)) {
+ 		ret = filemap_write_and_wait_range(mapping, offset,
+ 						   offset + length - 1);
+ 		if (ret)
 -- 
 2.9.0
 
