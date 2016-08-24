@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM01-BN3-obe.outbound.protection.outlook.com
- (mail-bn3nam01on072b.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe41::72b])
+Received: from NAM02-SN1-obe.outbound.protection.outlook.com
+ (mail-sn1nam02on0726.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe44::726])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 86BCA1A1E18
- for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 18:38:26 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 14A601A1E18
+ for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 18:30:00 -0700 (PDT)
 From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Subject: RE: [PATCH] memremap: Fix NULL pointer BUG in get_zone_device_page()
-Date: Wed, 24 Aug 2016 01:38:22 +0000
-Message-ID: <CS1PR84MB00054360FB0A974D170FA90982EA0@CS1PR84MB0005.NAMPRD84.PROD.OUTLOOK.COM>
+Date: Wed, 24 Aug 2016 01:29:56 +0000
+Message-ID: <CS1PR84MB0005F40F71804F3988DD23CB82EA0@CS1PR84MB0005.NAMPRD84.PROD.OUTLOOK.COM>
 References: <1471977800-12688-1-git-send-email-toshi.kani@hpe.com>
  <CAPcyv4g8y4P02wm6Fx5Cx1zX6_xysdYg7jG6jjz6GTX7KqCkvA@mail.gmail.com>
  <1471996023.1532.6.camel@hpe.com>
- <CAPcyv4g==6zCOO2nr4CV8r8cDe11KCfCrq5MQiUgNapmLey9Pw@mail.gmail.com>
-In-Reply-To: <CAPcyv4g==6zCOO2nr4CV8r8cDe11KCfCrq5MQiUgNapmLey9Pw@mail.gmail.com>
+ <CAPcyv4gJtTj8chX_eTNhs1PJ=D3X7USuDXwFSWSEZt1cUAXpUw@mail.gmail.com>
+In-Reply-To: <CAPcyv4gJtTj8chX_eTNhs1PJ=D3X7USuDXwFSWSEZt1cUAXpUw@mail.gmail.com>
 Content-Language: en-US
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -59,23 +59,65 @@ List-ID: <linux-nvdimm@lists.01.org>
 > > ====
 > >
 > > The following NVDIMM range was set to /dev/dax.
-> >
-> > /proc/iomem
-> > 480000000-87fffffff : Persistent Memory
-> >
-> > devm_memremap_pages() initialized struct page from 0x490200-0x87ffff.
 > 
-> This seems like the start of the trouble.  What happened to the first
-> 1GB of the address range?  I'm assuming the 'align' attribute is set
-> to 2MB because we start at a pfn offset of 0x200, but this should be
-> starting at 0x480200.
+> With ndctl create-namespace or manually via sysfs?  Specifically I'm
+> looking for what the 'align' attribute was set to when the
+> configuration was established.  Can you provide a dump of the sysfs
+> attributes for the /dev/dax parent device?
 
-pfn_first() adds an offset from vmem_altmap_offset(), which is
-altmap->reserve + altmap->free.  You can see why it ended up
-with this offset from the dumps in my previous email.
+I used the ndctl command below.
+ndctl create-namespace -f -e namespace0.0 -m dax
 
-Thanks
+Here is additional info from my note for the base case.
+
+p {struct dev_pagemap} 0xffff88046d0453f0
+$3 = {
+  altmap = 0xffff88046d045410,
+  res = 0xffff88046d0453a8,
+  ref = 0xffff88046d0452f0,
+  dev = 0xffff880464790410
+}
+
+crash> p {struct vmem_altmap} 0xffff88046d045410
+$6 = {
+  base_pfn = 0x480000,
+  reserve = 0x2,        // PHYS_PFN(SZ_8K)
+  free = 0x101fe,
+  align = 0x1fe,
+  alloc = 0x10000
+}
+
+crash> p {struct resource} 0xffff88046d0453a8
+$4 = {
+  start = 0x480000000,
+  end = 0x87fffffff,
+  name = 0xffff880c7da5d4a8 "region0",
+  flags = 0x200,
+  desc = 0x0,
+  parent = 0x0,
+  sibling = 0x0,
+  child = 0x0
+}
+
+crash> p {struct percpu_ref} 0xffff88046d0452f0
+$7 = {
+  count = {
+    counter = 0x8000000000000001
+  },
+  percpu_count_ptr = 0x60f380403a98,
+  release = 0xffffffffa008a0a0,
+  confirm_switch = 0x0,
+  force_atomic = 0x0,
+  rcu = {
+    next = 0x0,
+    func = 0x0
+  }
+}
+
+Thanks,
 -Toshi
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
