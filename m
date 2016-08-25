@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C58D71A1E2F
- for <linux-nvdimm@lists.01.org>; Tue, 23 Aug 2016 15:04:32 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 6A7E91A1E4D
+ for <linux-nvdimm@lists.01.org>; Thu, 25 Aug 2016 09:43:30 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 4/9] dax: remove buffer_size_valid()
-Date: Tue, 23 Aug 2016 16:04:14 -0600
-Message-Id: <20160823220419.11717-5-ross.zwisler@linux.intel.com>
-In-Reply-To: <20160823220419.11717-1-ross.zwisler@linux.intel.com>
-References: <20160823220419.11717-1-ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 RESEND] mm: silently skip readahead for DAX inodes
+Date: Thu, 25 Aug 2016 10:42:32 -0600
+Message-Id: <20160825164232.8989-1-ross.zwisler@linux.intel.com>
+In-Reply-To: <20160824221429.21158-1-ross.zwisler@linux.intel.com>
+References: <20160824221429.21158-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,66 +23,63 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, stable@vger.kernel.org, linux-mm@kvack.org, Jan Kara <jack@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that all our supported filesystems (ext2, ext4 and XFS) all properly
-set bh.b_size when we call get_block() for a hole, rely on that value and
-remove the buffer_size_valid() sanity check.
+For DAX inodes we need to be careful to never have page cache pages in the
+mapping->page_tree.  This radix tree should be composed only of DAX
+exceptional entries and zero pages.
+
+ltp's readahead02 test was triggering a warning because we were trying to
+insert a DAX exceptional entry but found that a page cache page had
+already been inserted into the tree.  This page was being inserted into the
+radix tree in response to a readahead(2) call.
+
+Readahead doesn't make sense for DAX inodes, but we don't want it to report
+a failure either.  Instead, we just return success and don't do any work.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: <stable@vger.kernel.org>    [4.5+]
 ---
- fs/dax.c | 22 +---------------------
- 1 file changed, 1 insertion(+), 21 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 993dc6f..8030f93 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -121,19 +121,6 @@ static bool buffer_written(struct buffer_head *bh)
- 	return buffer_mapped(bh) && !buffer_unwritten(bh);
+Changes from v1:
+ - Added a comment so readers don't have to go putzing around in the git
+   tree to understand why we're doing what we're doing. :)  (akpm)
+ - Resending, adding stable@vger.kernel.org.  Thank you, akpm, for the
+   catch.
+
+---
+ mm/readahead.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/mm/readahead.c b/mm/readahead.c
+index 65ec288..c8a955b 100644
+--- a/mm/readahead.c
++++ b/mm/readahead.c
+@@ -8,6 +8,7 @@
+  */
+ 
+ #include <linux/kernel.h>
++#include <linux/dax.h>
+ #include <linux/gfp.h>
+ #include <linux/export.h>
+ #include <linux/blkdev.h>
+@@ -544,6 +545,14 @@ do_readahead(struct address_space *mapping, struct file *filp,
+ 	if (!mapping || !mapping->a_ops)
+ 		return -EINVAL;
+ 
++	/*
++	 * Readahead doesn't make sense for DAX inodes, but we don't want it
++	 * to report a failure either.  Instead, we just return success and
++	 * don't do any work.
++	 */
++	if (dax_mapping(mapping))
++		return 0;
++
+ 	return force_page_cache_readahead(mapping, filp, index, nr);
  }
  
--/*
-- * When ext4 encounters a hole, it returns without modifying the buffer_head
-- * which means that we can't trust b_size.  To cope with this, we set b_state
-- * to 0 before calling get_block and, if any bit is set, we know we can trust
-- * b_size.  Unfortunate, really, since ext4 knows precisely how long a hole is
-- * and would save us time calling get_block repeatedly.
-- */
--static bool buffer_size_valid(struct buffer_head *bh)
--{
--	return bh->b_state != 0;
--}
--
--
- static sector_t to_sector(const struct buffer_head *bh,
- 		const struct inode *inode)
- {
-@@ -175,8 +162,6 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 				rc = get_block(inode, block, bh, rw == WRITE);
- 				if (rc)
- 					break;
--				if (!buffer_size_valid(bh))
--					bh->b_size = 1 << blkbits;
- 				bh_max = pos - first + bh->b_size;
- 				bdev = bh->b_bdev;
- 				/*
-@@ -1010,12 +995,7 @@ int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 
- 	bdev = bh.b_bdev;
- 
--	/*
--	 * If the filesystem isn't willing to tell us the length of a hole,
--	 * just fall back to PTEs.  Calling get_block 512 times in a loop
--	 * would be silly.
--	 */
--	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
-+	if (bh.b_size < PMD_SIZE) {
- 		dax_pmd_dbg(&bh, address, "allocated block too small");
- 		return VM_FAULT_FALLBACK;
- 	}
 -- 
 2.9.0
 
