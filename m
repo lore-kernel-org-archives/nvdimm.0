@@ -1,16 +1,84 @@
-From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v2 2/9] ext2: tell DAX the size of allocation holes
-Date: Fri, 26 Aug 2016 15:29:34 -0600
-Message-ID: <20160826212934.GA11265@linux.intel.com>
-References: <20160823220419.11717-1-ross.zwisler@linux.intel.com>
- <20160823220419.11717-3-ross.zwisler@linux.intel.com>
- <20160825075728.GA11235@infradead.org>
+From: "The Post Office" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: test
+Date: Sat, 27 Aug 2016 12:24:16 +0530
+Message-ID: <20160827065509.E8E451A1E61@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: multipart/mixed; boundary="----------=_57C13952.99BB8A74"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_57C13952.99BB8A74
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20160825075728.GA11235-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  The original message was received at Sat, 27 Aug 2016 12:24:16
+   +0530 from [125.67.200.247] ----- The following addresses had permanent fatal
+   errors ----- linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org ----- Transcript of the session follows
+   ----- ... while talking to server 94.4.109.57: >>> RCPT To:<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+   <<< 550 5.1.1 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Not known here [...] 
+
+Content analysis details:   (5.0 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
+                            [103.204.166.162 listed in dnsbl.sorbs.net]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0019]
+ 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
+ 2.6 MSOE_MID_WRONG_CASE    No description available.
+ 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
+
+
+
+------------=_57C13952.99BB8A74
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1bdXWI-0005BZ-0A
+	for gln-linux-nvdimm@m.gmane.org; Sat, 27 Aug 2016 08:55:10 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id E8E451A1E61;
+	Fri, 26 Aug 2016 23:55:09 -0700 (PDT)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from lists.01.org (unknown [103.204.166.162])
+ by ml01.01.org (Postfix) with ESMTP id C4F1E1A1E61
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Fri, 26 Aug 2016 23:55:03 -0700 (PDT)
+From: "The Post Office" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Subject: test
+Date: Sat, 27 Aug 2016 12:24:16 +0530
+MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+X-Content-Filtered-By: Mailman/MimeDel 2.1.21
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.21
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,126 +86,27 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Andreas Dilger <adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Jan Kara <jack-IBi9RG/b67k@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-List-Id: linux-nvdimm@lists.01.org
+Message-Id: <20160827065509.E8E451A1E61-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
-On Thu, Aug 25, 2016 at 12:57:28AM -0700, Christoph Hellwig wrote:
-> Hi Ross,
-> 
-> can you take at my (fully working, but not fully cleaned up) version
-> of the iomap based DAX code here:
-> 
-> http://git.infradead.org/users/hch/vfs.git/shortlog/refs/heads/iomap-dax
-> 
-> By using iomap we don't even have the size hole problem and totally
-> get out of the reverse-engineer what buffer_heads are trying to tell
-> us business.  It also gets rid of the other warts of the DAX path
-> due to pretending to be like direct I/O, so this might be a better
-> way forward also for ext2/4.
+The original message was received at Sat, 27 Aug 2016 12:24:16 +0530
+from [125.67.200.247]
 
-In general I agree that the usage of struct iomap seems more straightforward
-than the old way of using struct buffer_head + get_block_t.  I really don't
-think we want to have two competing DAX I/O and fault paths, though, which I
-assume everyone else agrees with as well.
+----- The following addresses had permanent fatal errors -----
+linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 
-These changes don't remove the things in XFS needed by the old I/O and fault
-paths (e.g.  xfs_get_blocks_direct() is still there an unchanged).  Is the
-correct way forward to get buy-in from ext2/ext4 so that they also move to
-supporting an iomap based I/O path (xfs_file_iomap_begin(),
-xfs_iomap_write_direct(), etc?).  That would allow us to have parallel I/O and
-fault paths for a while, then remove the old buffer_head based versions when
-the three supported filesystems have moved to iomap.
+----- Transcript of the session follows -----
+... while talking to server 94.4.109.57:
+>>> RCPT To:<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+<<< 550 5.1.1 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Not known here
 
-If ext2 and ext4 don't choose to move to iomap, though, I don't think we want
-to have a separate I/O & fault path for iomap/XFS.  That seems too painful,
-and the old buffer_head version should continue to work, ugly as it may be.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
 
-Assuming we can get buy-in from ext4/ext2, I can work on a PMD version of the
-iomap based fault path that is equivalent to the buffer_head based one I sent
-out in my series, and we can all eventually move to that.
 
-A few comments/questions on the implementation:
-
-1) In your mail above you say "It also gets rid of the other warts of the DAX
-   path due to pretending to be like direct I/O".  I assume by this you mean
-   the code in dax_do_io() around DIO_LOCKING, inode_dio_begin(), etc?
-   Perhaps there are other things as well in XFS, but this is what I see in
-   the DAX code.  If so, yep, this seems like a win.  I don't understand how
-   DIO_LOCKING is relevant to the DAX I/O path, as we never mix buffered and
-   direct access.
-
-   The comment in dax_do_io() for the inode_dio_begin() call says that it
-   prevents the I/O from races with truncate.  Am I correct that we now get
-   this protection via the xfs_rw_ilock()/xfs_rw_iunlock() calls in
-   xfs_file_dax_write()?
-
-2) Just a nit, I noticed that you used "~(PAGE_SIZE - 1)" in several places in
-   iomap_dax_actor() and iomap_dax_fault() instead of PAGE_MASK.  Was this
-   intentional?
-
-3) It's kind of weird having iomap_dax_fault() in fs/dax.c but having
-   iomap_dax_actor() and iomap_dax_rw() in fs/iomap.c?  I'm guessing the
-   latter is placed where it is because it uses iomap_apply(), which is local
-   to fs/iomap.c?  Anyway, it would be nice if we could keep them together, if
-   possible.
-
-4) In iomap_dax_actor() you do this check:
-
-	WARN_ON_ONCE(iomap->type != IOMAP_MAPPED);
-
-   If we hit this we should bail with -EIO, yea?  Otherwise we could write to
-   unmapped space or something horrible.
-
-5) In iomap_dax_fault, I think the "I/O beyond the end of the file" check
-   might have been broken.  Take for example an I/O to the second page of a
-   file, where the file has size one page.  So:
-   
-   vmf->pgoff = 1
-   i_size_read(inode) = 4096 
-   
-   Here's the old code in dax_fault():
-
-	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
-	if (vmf->pgoff >= size)
-		return VM_FAULT_SIGBUS;
-
-   size = (4096 + 4096 - 1) >> PAGE_SHIFT = 1
-   vmf->pgoff is 1 and size is 1, so we return SIGBUS
-
-   Here's the new code:
-
-	   if (pos >= i_size_read(inode) + PAGE_SIZE - 1)
-		return VM_FAULT_SIGBUS;
-
-   pos = vmf->pgoff << PAGE_SHIFT = 4096
-   i_size_read(inode) + PAGE_SIZE  - 1 = 8193
-   so, 'pos' isn't >= where we calculate the end of the file to be, so we do I/O
-
-   Basically the old check did the "+ PAGE_SIZE - 1" so that the >> PAGE_SHIFT
-   was sure to round up to the next full page.  You don't need this with your
-   current logic, so I think the test should just be:
-
-	   if (pos >= i_size_read(inode))
-		return VM_FAULT_SIGBUS;
-
-   Right?
-
-6) Regarding the "we don't even have the size hole problem" comment in your
-   mail, the current PMD logic requires us to know the size of the hole.  This
-   is important so that we can fault in a huge zero page if we have a 2 MiB
-   hole.  It's fine if that 2 MiB page then gets fragmented into 4k DAX
-   allocations when we start to do writes, but the path the other way doesn't
-   work.  If we don't know the size of holes then we can't fault in a 2 MiB
-   zero page, so we'll use 4k zero pages to satisfy reads.  This means that if
-   later we want to fault in a 2MiB DAX allocation, we don't have a single
-   entry that we can use to lock the entire 2MiB range while we clean the
-   radix tree an unmap the range from all the user processes.  With the
-   current PMD logic this will mean that if someone does a 4k read that faults
-   in a 4k zero page, we will only use 4k faults for that range and won't use
-   PMDs.
-
-   The current XFS code in the v4.8 tree tells me the size of the hole, and I
-   think we need to keep this functionality.
+------------=_57C13952.99BB8A74--
