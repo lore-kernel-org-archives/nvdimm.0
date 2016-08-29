@@ -1,14 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mail-oi0-x229.google.com (mail-oi0-x229.google.com
+ [IPv6:2607:f8b0:4003:c06::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9DB331A1E2B
- for <linux-nvdimm@lists.01.org>; Wed, 24 Aug 2016 10:17:51 -0700 (PDT)
-Subject: [ndctl PATCH] test: add device-dax direct-i/o test
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 24 Aug 2016 10:15:28 -0700
-Message-ID: <147205892817.13782.16283776602958182643.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1D9F81A1E05
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Aug 2016 13:54:35 -0700 (PDT)
+Received: by mail-oi0-x229.google.com with SMTP id j203so67070194oih.2
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Aug 2016 13:54:35 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1472503455.1532.28.camel@hpe.com>
+References: <1472497881-9323-1-git-send-email-toshi.kani@hpe.com>
+ <1472497881-9323-2-git-send-email-toshi.kani@hpe.com>
+ <CAPcyv4hJ1DrCkBCwqm02e1D85wtSPwUaSG2S84JaDJwFWA_4hA@mail.gmail.com>
+ <1472503455.1532.28.camel@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 29 Aug 2016 13:54:33 -0700
+Message-ID: <CAPcyv4jrziTR-gRbcjNfk=2C7S8pO5doakA9n8pjLJ3DMWg07w@mail.gmail.com>
+Subject: Re: [PATCH v4 RESEND 1/2] thp,
+ dax: add thp_get_unmapped_area for pmd mappings
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,273 +29,93 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "tytso@mit.edu" <tytso@mit.edu>, "mawilcox@microsoft.com" <mawilcox@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "david@fromorbit.com" <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "jack@suse.cz" <jack@suse.cz>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>, "mike.kravetz@oracle.com" <mike.kravetz@oracle.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A recent kernel bug report [1], highlighted the need to test page
-structure mappings and direct-i/o for device dax.  Repurpose the
-existing filesystem-dax test for this case.
+On Mon, Aug 29, 2016 at 1:44 PM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
+> On Mon, 2016-08-29 at 12:34 -0700, Dan Williams wrote:
+>> On Mon, Aug 29, 2016 at 12:11 PM, Toshi Kani <toshi.kani@hpe.com>
+>> wrote:
+>> >
+>> > When CONFIG_FS_DAX_PMD is set, DAX supports mmap() using pmd page
+>> > size.  This feature relies on both mmap virtual address and FS
+>> > block (i.e. physical address) to be aligned by the pmd page size.
+>> > Users can use mkfs options to specify FS to align block
+>> > allocations. However, aligning mmap address requires code changes
+>> > to existing applications for providing a pmd-aligned address to
+>> > mmap().
+>> >
+>> > For instance, fio with "ioengine=mmap" performs I/Os with mmap()
+>> > [1]. It calls mmap() with a NULL address, which needs to be changed
+>> > to provide a pmd-aligned address for testing with DAX pmd mappings.
+>> > Changing all applications that call mmap() with NULL is
+>> > undesirable.
+>> >
+>> > Add thp_get_unmapped_area(), which can be called by filesystem's
+>> > get_unmapped_area to align an mmap address by the pmd size for
+>> > a DAX file.  It calls the default handler, mm->get_unmapped_area(),
+>> > to find a range and then aligns it for a DAX file.
+>> >
+>> > The patch is based on Matthew Wilcox's change that allows adding
+>> > support of the pud page size easily.
+>  :
+>>
+>> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+>
+> Great!
+>
+>> ...with one minor nit:
+>>
+>>
+>> >
+>> >  include/linux/huge_mm.h |    7 +++++++
+>> >  mm/huge_memory.c        |   43
+>> > +++++++++++++++++++++++++++++++++++++++++++
+>> >  2 files changed, 50 insertions(+)
+>> >
+>> > diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+>> > index 6f14de4..4fca526 100644
+>> > --- a/include/linux/huge_mm.h
+>> > +++ b/include/linux/huge_mm.h
+>> > @@ -87,6 +87,10 @@ extern bool is_vma_temporary_stack(struct
+>> > vm_area_struct *vma);
+>> >
+>> >  extern unsigned long transparent_hugepage_flags;
+>> >
+>> > +extern unsigned long thp_get_unmapped_area(struct file *filp,
+>> > +               unsigned long addr, unsigned long len, unsigned
+>> > long pgoff,
+>> > +               unsigned long flags);
+>> > +
+>> >  extern void prep_transhuge_page(struct page *page);
+>> >  extern void free_transhuge_page(struct page *page);
+>> >
+>> > @@ -169,6 +173,9 @@ void put_huge_zero_page(void);
+>> >  static inline void prep_transhuge_page(struct page *page) {}
+>> >
+>> >  #define transparent_hugepage_flags 0UL
+>> > +
+>> > +#define thp_get_unmapped_area  NULL
+>>
+>> Lets make this:
+>>
+>> static inline unsigned long thp_get_unmapped_area(struct file *filp,
+>>                unsigned long addr, unsigned long len, unsigned long
+>> pgoff,
+>>                unsigned long flags)
+>> {
+>>     return 0;
+>> }
+>>
+>> ...to get some type checking in the CONFIG_TRANSPARENT_HUGEPAGE=n
+>> case.
+>>
+>
+> Per get_unmapped_area() in mm/mmap.c, I think we need to set it to NULL
+> when we do not override current->mm->get_unmapped_area.
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-August/006704.html
-
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/Makefile.am  |    1 
- test/dax-pmd.c    |  147 +++++++++++++++++++++++++++++------------------------
- test/device-dax.c |   10 ++++
- 3 files changed, 92 insertions(+), 66 deletions(-)
-
-diff --git a/test.h b/test.h
-index 331d4131e2c7..2940ac0f7396 100644
---- a/test.h
-+++ b/test.h
-@@ -16,7 +16,7 @@ void builtin_xaction_namespace_reset(void);
- 
- struct ndctl_ctx;
- int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
--int test_direct_io(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
-+int test_dax_directio(int dax_fd, void *dax_addr, off_t offset);
- int test_dpa_alloc(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
- int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
- int test_blk_namespaces(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
-diff --git a/test/Makefile.am b/test/Makefile.am
-index d13c138bb28a..f0240fe5883a 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -60,6 +60,7 @@ dax_errors_SOURCES = dax-errors.c
- device_dax_SOURCES = \
- 		device-dax.c \
- 		dax-dev.c \
-+		dax-pmd.c \
- 		core.c \
- 		../ndctl/builtin-xaction-namespace.c \
- 		../ndctl/util/json.c
-diff --git a/test/dax-pmd.c b/test/dax-pmd.c
-index ff0c70e9ea47..47f254e398b2 100644
---- a/test/dax-pmd.c
-+++ b/test/dax-pmd.c
-@@ -10,84 +10,35 @@
- #include <sys/ioctl.h>
- #include <stdlib.h>
- #include <linux/fs.h>
-+#include <test.h>
- #include <linux/fiemap.h>
- 
- #define NUM_EXTENTS 5
- #define HPAGE_SIZE (2 << 20)
- #define ALIGN(x, a) ((((unsigned long long) x) + (a - 1)) & ~(a - 1))
- #define fail() fprintf(stderr, "%s: failed at: %d\n", __func__, __LINE__)
--#define faili(i) fprintf(stderr, "%s: failed at: %d: %ld\n", __func__, __LINE__, i)
-+#define faili(i) fprintf(stderr, "%s: failed at: %d: %d\n", __func__, __LINE__, i)
- #define TEST_FILE "test_dax_data"
- 
--/* test_pmd assumes that fd references a pre-allocated + dax-capable file */
--static int test_pmd(int fd)
-+int test_dax_directio(int dax_fd, void *dax_addr, off_t offset)
- {
--	unsigned long long m_align, p_align;
--	int fd2 = -1, rc = -ENXIO;
--	struct fiemap_extent *ext;
--	void *base, *addr, *buf;
--	struct fiemap *map;
--	unsigned long i;
--
--	if (fd < 0) {
--		fail();
--		return -ENXIO;
--	}
--
--	map = calloc(1, sizeof(struct fiemap)
--			+ sizeof(struct fiemap_extent) * NUM_EXTENTS);
--	if (!map) {
--		fail();
--		return -ENXIO;
--	}
-+	int i, rc = -ENXIO;
-+	void *buf;
- 
- 	if (posix_memalign(&buf, 4096, 4096) != 0)
--		goto err_memalign;
--
--	base = mmap(NULL, 4*HPAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
--	if (base == MAP_FAILED) {
--		fail();
--		goto err_mmap;
--	}
--	munmap(base, 4*HPAGE_SIZE);
--
--	map->fm_start = 0;
--	map->fm_length = -1;
--	map->fm_extent_count = NUM_EXTENTS;
--	rc = ioctl(fd, FS_IOC_FIEMAP, map);
--	if (rc < 0) {
--		fail();
--		goto err_extent;
--	}
--
--	for (i = 0; i < map->fm_mapped_extents; i++) {
--		ext = &map->fm_extents[i];
--		fprintf(stderr, "[%ld]: l: %llx p: %llx len: %llx flags: %x\n",
--				i, ext->fe_logical, ext->fe_physical,
--				ext->fe_length, ext->fe_flags);
--		if (ext->fe_length > 2 * HPAGE_SIZE) {
--			fprintf(stderr, "found potential huge extent\n");
--			break;
--		}
--	}
--
--	if (i >= map->fm_mapped_extents) {
--		fail();
--		goto err_extent;
--	}
--
--	m_align = ALIGN(base, HPAGE_SIZE) - ((unsigned long) base);
--	p_align = ALIGN(ext->fe_physical, HPAGE_SIZE) - ext->fe_physical;
-+		return -ENOMEM;
- 
- 	for (i = 0; i < 3; i++) {
--		rc = -ENXIO;
--		addr = mmap((char *) base + m_align, 2*HPAGE_SIZE,
--				PROT_READ|PROT_WRITE, MAP_SHARED, fd,
--				ext->fe_logical + p_align);
-+		void *addr = mmap(dax_addr, 2*HPAGE_SIZE,
-+				PROT_READ|PROT_WRITE, MAP_SHARED, dax_fd,
-+				offset);
-+		int fd2;
-+
- 		if (addr == MAP_FAILED) {
- 			faili(i);
- 			break;
- 		}
-+		rc = -ENXIO;
- 
- 		fd2 = open(TEST_FILE, O_CREAT|O_TRUNC|O_DIRECT|O_RDWR,
- 				DEFFILEMODE);
-@@ -97,7 +48,7 @@ static int test_pmd(int fd)
- 			break;
- 		}
- 
--		fprintf(stderr, "%s: test: %ld\n", __func__, i);
-+		fprintf(stderr, "%s: test: %d\n", __func__, i);
- 		rc = 0;
- 		switch (i) {
- 		case 0: /* test O_DIRECT of unfaulted address */
-@@ -131,8 +82,10 @@ static int test_pmd(int fd)
- 			} else if (rc > 0) {
- 				/* parent */
- 				wait(&rc);
--				if (rc != EXIT_SUCCESS)
-+				rc = WEXITSTATUS(rc);
-+				if (rc != EXIT_SUCCESS) {
- 					faili(i);
-+				}
- 			} else
- 				faili(i);
- 			break;
-@@ -151,15 +104,77 @@ static int test_pmd(int fd)
- 			break;
- 	}
- 
-+	free(buf);
-+	return rc;
-+}
-+
-+/* test_pmd assumes that fd references a pre-allocated + dax-capable file */
-+static int test_pmd(int fd)
-+{
-+	unsigned long long m_align, p_align;
-+	struct fiemap_extent *ext;
-+	struct fiemap *map;
-+	int rc = -ENXIO;
-+	unsigned long i;
-+	void *base;
-+
-+	if (fd < 0) {
-+		fail();
-+		return -ENXIO;
-+	}
-+
-+	map = calloc(1, sizeof(struct fiemap)
-+			+ sizeof(struct fiemap_extent) * NUM_EXTENTS);
-+	if (!map) {
-+		fail();
-+		return -ENXIO;
-+	}
-+
-+	base = mmap(NULL, 4*HPAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-+	if (base == MAP_FAILED) {
-+		fail();
-+		goto err_mmap;
-+	}
-+	munmap(base, 4*HPAGE_SIZE);
-+
-+	map->fm_start = 0;
-+	map->fm_length = -1;
-+	map->fm_extent_count = NUM_EXTENTS;
-+	rc = ioctl(fd, FS_IOC_FIEMAP, map);
-+	if (rc < 0) {
-+		fail();
-+		goto err_extent;
-+	}
-+
-+	for (i = 0; i < map->fm_mapped_extents; i++) {
-+		ext = &map->fm_extents[i];
-+		fprintf(stderr, "[%ld]: l: %llx p: %llx len: %llx flags: %x\n",
-+				i, ext->fe_logical, ext->fe_physical,
-+				ext->fe_length, ext->fe_flags);
-+		if (ext->fe_length > 2 * HPAGE_SIZE) {
-+			fprintf(stderr, "found potential huge extent\n");
-+			break;
-+		}
-+	}
-+
-+	if (i >= map->fm_mapped_extents) {
-+		fail();
-+		goto err_extent;
-+	}
-+
-+	m_align = ALIGN(base, HPAGE_SIZE) - ((unsigned long) base);
-+	p_align = ALIGN(ext->fe_physical, HPAGE_SIZE) - ext->fe_physical;
-+
-+	rc = test_dax_directio(fd, (char *) base + m_align, ext->fe_logical
-+			+ p_align);
-+
-  err_extent:
-  err_mmap:
--	free(buf);
-- err_memalign:
- 	free(map);
- 	return rc;
- }
- 
--int main(int argc, char *argv[])
-+int __attribute__((weak)) main(int argc, char *argv[])
- {
- 	int fd, rc;
- 
-diff --git a/test/device-dax.c b/test/device-dax.c
-index fdd138884522..34ca284f2ef5 100644
---- a/test/device-dax.c
-+++ b/test/device-dax.c
-@@ -117,6 +117,16 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 	p = (int *) (buf + (1UL << 20));
- 	*p = 0;
- 
-+	if (ndctl_test_attempt(test, KERNEL_VERSION(4, 9, 0))) {
-+		/* prior to 4.8-final this crashes */
-+		rc = test_dax_directio(fd, NULL, 0);
-+		if (rc) {
-+			fprintf(stderr, "%s: failed dax direct-i/o\n",
-+					ndctl_namespace_get_devname(ndns));
-+			return rc;
-+		}
-+	}
-+
- 	rc = reset_device_dax(ndns);
- 	if (rc < 0) {
- 		fprintf(stderr, "%s: failed to reset device-dax instance\n",
-
+Ah, ok.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
