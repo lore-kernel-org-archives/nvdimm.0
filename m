@@ -1,112 +1,97 @@
-From: "The Post Office" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: test
-Date: Sat, 27 Aug 2016 12:24:16 +0530
-Message-ID: <20160827065509.E8E451A1E61@ml01.01.org>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH v2 2/9] ext2: tell DAX the size of allocation holes
+Date: Mon, 29 Aug 2016 10:42:34 +1000
+Message-ID: <20160829004234.GS22388@dastard>
+References: <20160823220419.11717-1-ross.zwisler@linux.intel.com>
+ <20160823220419.11717-3-ross.zwisler@linux.intel.com>
+ <20160825075728.GA11235@infradead.org>
+ <20160826212934.GA11265@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_57C13952.99BB8A74"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20160826212934.GA11265@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@infradead.org>, linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@ml01.01.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+On Fri, Aug 26, 2016 at 03:29:34PM -0600, Ross Zwisler wrote:
+> On Thu, Aug 25, 2016 at 12:57:28AM -0700, Christoph Hellwig wrote:
+> > Hi Ross,
+> > 
+> > can you take at my (fully working, but not fully cleaned up) version
+> > of the iomap based DAX code here:
+> > 
+> > http://git.infradead.org/users/hch/vfs.git/shortlog/refs/heads/iomap-dax
+> > 
+> > By using iomap we don't even have the size hole problem and totally
+> > get out of the reverse-engineer what buffer_heads are trying to tell
+> > us business.  It also gets rid of the other warts of the DAX path
+> > due to pretending to be like direct I/O, so this might be a better
+> > way forward also for ext2/4.
+> 
+> In general I agree that the usage of struct iomap seems more straightforward
+> than the old way of using struct buffer_head + get_block_t.  I really don't
+> think we want to have two competing DAX I/O and fault paths, though, which I
+> assume everyone else agrees with as well.
 
-------------=_57C13952.99BB8A74
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+We'll be moving XFS this way, regardless of whether the generic DAX
+code goes that way or not. iomap is a much cleaner, more efficient
+interface than get_blocks via bufferheads. We are slowly removing
+bufferheads from XFS so anything that uses them or depends on them
+that Xfs requires is going to have an iomap-based variant written
+for it.
 
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
+Christoph is doing the hard yards to make iomap a VFS level
+interface because that's a) the most efficient way to implement it,
+and b) it's the right place for IO path extent mapping abstractions.
+So there will be a iomap path for DAX, just like there will be a
+iomap path for direct IO, regardless of what other filesystems
+implement. i.e. other filesystems can move to the more efficient
+iomap infrastructure if they want, but we can't force them to do so.
 
-Content preview:  The original message was received at Sat, 27 Aug 2016 12:24:16
-   +0530 from [125.67.200.247] ----- The following addresses had permanent fatal
-   errors ----- linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org ----- Transcript of the session follows
-   ----- ... while talking to server 94.4.109.57: >>> RCPT To:<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-   <<< 550 5.1.1 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Not known here [...] 
+As such, the generic DAX path can either remain as it is, or we can
+move to iomap and use wrappers for converting get_block() +
+bufferehead to iomaps on non-iomap filesystems.  (i.e. similar to
+the existing iomap_to_bh() for allowing iomap lookups to be used to
+replace bufferheads returned by get_block().)
 
-Content analysis details:   (5.0 points, 5.0 required)
+I'd much prefer we move DAX to iomaps before there is wider uptake
+of it in other filesystems - I've been saying we should use iomaps
+for DAX right from the start. Now we have the iomap infrastructure
+in place we should jump straight to it. If we have to drag ext4
+kicking and screaming into the 1990s to get there then so be it - it
+won't be the first time...
 
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
-                            [103.204.166.162 listed in dnsbl.sorbs.net]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0019]
- 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
- 2.6 MSOE_MID_WRONG_CASE    No description available.
- 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
+> These changes don't remove the things in XFS needed by the old I/O and fault
+> paths (e.g.  xfs_get_blocks_direct() is still there an unchanged).  Is the
 
+Yes, they'll remain until their functionality has been replaced by
+iomap functions. e.g. xfs_get_blocks_direct() can't be removed
+until the direct IO path has an iomap interface.
 
+....
 
-------------=_57C13952.99BB8A74
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+> 6) Regarding the "we don't even have the size hole problem" comment in your
+>    mail, the current PMD logic requires us to know the size of the hole.  This
+....
+>    The current XFS code in the v4.8 tree tells me the size of the hole, and I
+>    think we need to keep this functionality.
 
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1bdXWI-0005BZ-0A
-	for gln-linux-nvdimm@m.gmane.org; Sat, 27 Aug 2016 08:55:10 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E8E451A1E61;
-	Fri, 26 Aug 2016 23:55:09 -0700 (PDT)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from lists.01.org (unknown [103.204.166.162])
- by ml01.01.org (Postfix) with ESMTP id C4F1E1A1E61
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Fri, 26 Aug 2016 23:55:03 -0700 (PDT)
-From: "The Post Office" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Subject: test
-Date: Sat, 27 Aug 2016 12:24:16 +0530
-MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-X-Content-Filtered-By: Mailman/MimeDel 2.1.21
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Message-Id: <20160827065509.E8E451A1E61-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+IOMAP_HOLE extents. It's a requirement of the iomap infrastructure
+that the filesystem reports hole extents in full for the range being
+mapped.
 
-The original message was received at Sat, 27 Aug 2016 12:24:16 +0530
-from [125.67.200.247]
+Cheers,
 
------ The following addresses had permanent fatal errors -----
-linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Dave.
 
------ Transcript of the session follows -----
-... while talking to server 94.4.109.57:
->>> RCPT To:<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-<<< 550 5.1.1 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Not known here
+-- 
+Dave Chinner
+david@fromorbit.com
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_57C13952.99BB8A74--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
