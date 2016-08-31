@@ -1,19 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from NAM01-BY2-obe.outbound.protection.outlook.com
+ (mail-by2nam01on0720.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe42::720])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7C5091A1E53
- for <linux-nvdimm@lists.01.org>; Wed, 31 Aug 2016 14:36:09 -0700 (PDT)
-Date: Wed, 31 Aug 2016 15:36:07 -0600
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EC7281A1E4E
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Aug 2016 13:20:51 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Subject: Re: [PATCH v2 0/9] re-enable DAX PMD support
-Message-ID: <20160831213607.GA6921@linux.intel.com>
+Date: Wed, 31 Aug 2016 20:20:48 +0000
+Message-ID: <1472674799.2092.19.camel@hpe.com>
 References: <20160823220419.11717-1-ross.zwisler@linux.intel.com>
  <20160830230150.GA12173@linux.intel.com>
- <1472674799.2092.19.camel@hpe.com>
+In-Reply-To: <20160830230150.GA12173@linux.intel.com>
+Content-Language: en-US
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1472674799.2092.19.camel@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,110 +22,65 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "tytso@mit.edu" <tytso@mit.edu>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "mawilcox@microsoft.com" <mawilcox@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "david@fromorbit.com" <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "jack@suse.com" <jack@suse.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>
+To: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>
+Cc: "tytso@mit.edu" <tytso@mit.edu>, "mawilcox@microsoft.com" <mawilcox@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "david@fromorbit.com" <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "jack@suse.com" <jack@suse.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Aug 31, 2016 at 08:20:48PM +0000, Kani, Toshimitsu wrote:
-> On Tue, 2016-08-30 at 17:01 -0600, Ross Zwisler wrote:
-> > On Tue, Aug 23, 2016 at 04:04:10PM -0600, Ross Zwisler wrote:
-> > > =
-
-> > > DAX PMDs have been disabled since Jan Kara introduced DAX radix
-> > > tree based locking.=A0=A0This series allows DAX PMDs to participate in
-> > > the DAX radix tree based locking scheme so that they can be re-
-> > > enabled.
-> > > =
-
-> > > Changes since v1:
-> > > =A0- PMD entry locking is now done based on the starting offset of
-> > > the PMD entry, rather than on the radix tree slot which was
-> > > unreliable. (Jan)
-> > > =A0- Fixed the one issue I could find with hole punch.=A0=A0As far as=
- I
-> > > can tell hole punch now works correctly for both PMD and PTE DAX
-> > > entries, 4k zero pages and huge zero pages.
-> > > =A0- Fixed the way that ext2 returns the size of holes in
-> > > ext2_get_block(). (Jan)
-> > > =A0- Made the 'wait_table' global variable static in respnse to a
-> > > sparse warning.
-> > > =A0- Fixed some more inconsitent usage between the names 'ret' and
-> > > 'entry' for radix tree entry variables.
-> > > =
-
-> > > Ross Zwisler (9):
-> > > =A0 ext4: allow DAX writeback for hole punch
-> > > =A0 ext2: tell DAX the size of allocation holes
-> > > =A0 ext4: tell DAX the size of allocation holes
-> > > =A0 dax: remove buffer_size_valid()
-> > > =A0 dax: make 'wait_table' global variable static
-> > > =A0 dax: consistent variable naming for DAX entries
-> > > =A0 dax: coordinate locking for offsets in PMD range
-> > > =A0 dax: re-enable DAX PMD support
-> > > =A0 dax: remove "depends on BROKEN" from FS_DAX_PMD
-> > > =
-
-> > > =A0fs/Kconfig=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0|=A0=A0=A01 -
-> > > =A0fs/dax.c=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0| 297 ++++++++++++++++=
-+++++++++++++-----------
-> > > ------------
-> > > =A0fs/ext2/inode.c=A0=A0=A0=A0=A0|=A0=A0=A03 +
-> > > =A0fs/ext4/inode.c=A0=A0=A0=A0=A0|=A0=A0=A07 +-
-> > > =A0include/linux/dax.h |=A0=A029 ++++-
-> > > =A0mm/filemap.c=A0=A0=A0=A0=A0=A0=A0=A0|=A0=A0=A06 +-
-> > > =A06 files changed, 201 insertions(+), 142 deletions(-)
-> > > =
-
-> > > --=A0
-> > > 2.9.0
-> > =
-
-> > Ping on this series?=A0=A0Any objections or comments?
-> =
-
-> Hi Ross,
-> =
-
-> I am seeing a major performance loss in fio mmap test with this patch-
-> set applied. =A0This happens with or without my patches [1] applied on
-> top of yours. =A0Without my patches,=A0dax_pmd_fault() falls back to the
-> pte handler since an mmap'ed address is not 2MB-aligned.
-> =
-
-> I have attached three test results.
-> =A0o rc4.log - 4.8.0-rc4 (base)
-> =A0o non-pmd.log - 4.8.0-rc4 + your patchset (fall back to pte)
-> =A0o pmd.log - 4.8.0-rc4 + your patchset + my patchset (use pmd maps)
-> =
-
-> My test steps are as follows.
-> =
-
-> mkfs.ext4 -O bigalloc -C 2M /dev/pmem0
-> mount -o dax /dev/pmem0 /mnt/pmem0
-> numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio test.fio
-> =
-
-> "test.fio"
-> ---
-> [global]
-> bs=3D4k
-> size=3D2G
-> directory=3D/mnt/pmem0
-> ioengine=3Dmmap
-> [randrw]
-> rw=3Drandrw
-> ---
-> =
-
-> Can you please take a look?
-
-Yep, thanks for the report.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlLCAyMDE2LTA4LTMwIGF0IDE3OjAxIC0wNjAwLCBSb3NzIFp3aXNsZXIgd3JvdGU6DQo+
+IE9uIFR1ZSwgQXVnIDIzLCAyMDE2IGF0IDA0OjA0OjEwUE0gLTA2MDAsIFJvc3MgWndpc2xlciB3
+cm90ZToNCj4gPiANCj4gPiBEQVggUE1EcyBoYXZlIGJlZW4gZGlzYWJsZWQgc2luY2UgSmFuIEth
+cmEgaW50cm9kdWNlZCBEQVggcmFkaXgNCj4gPiB0cmVlIGJhc2VkIGxvY2tpbmcuwqDCoFRoaXMg
+c2VyaWVzIGFsbG93cyBEQVggUE1EcyB0byBwYXJ0aWNpcGF0ZSBpbg0KPiA+IHRoZSBEQVggcmFk
+aXggdHJlZSBiYXNlZCBsb2NraW5nIHNjaGVtZSBzbyB0aGF0IHRoZXkgY2FuIGJlIHJlLQ0KPiA+
+IGVuYWJsZWQuDQo+ID4gDQo+ID4gQ2hhbmdlcyBzaW5jZSB2MToNCj4gPiDCoC0gUE1EIGVudHJ5
+IGxvY2tpbmcgaXMgbm93IGRvbmUgYmFzZWQgb24gdGhlIHN0YXJ0aW5nIG9mZnNldCBvZg0KPiA+
+IHRoZSBQTUQgZW50cnksIHJhdGhlciB0aGFuIG9uIHRoZSByYWRpeCB0cmVlIHNsb3Qgd2hpY2gg
+d2FzDQo+ID4gdW5yZWxpYWJsZS4gKEphbikNCj4gPiDCoC0gRml4ZWQgdGhlIG9uZSBpc3N1ZSBJ
+IGNvdWxkIGZpbmQgd2l0aCBob2xlIHB1bmNoLsKgwqBBcyBmYXIgYXMgSQ0KPiA+IGNhbiB0ZWxs
+IGhvbGUgcHVuY2ggbm93IHdvcmtzIGNvcnJlY3RseSBmb3IgYm90aCBQTUQgYW5kIFBURSBEQVgN
+Cj4gPiBlbnRyaWVzLCA0ayB6ZXJvIHBhZ2VzIGFuZCBodWdlIHplcm8gcGFnZXMuDQo+ID4gwqAt
+IEZpeGVkIHRoZSB3YXkgdGhhdCBleHQyIHJldHVybnMgdGhlIHNpemUgb2YgaG9sZXMgaW4NCj4g
+PiBleHQyX2dldF9ibG9jaygpLiAoSmFuKQ0KPiA+IMKgLSBNYWRlIHRoZSAnd2FpdF90YWJsZScg
+Z2xvYmFsIHZhcmlhYmxlIHN0YXRpYyBpbiByZXNwbnNlIHRvIGENCj4gPiBzcGFyc2Ugd2Fybmlu
+Zy4NCj4gPiDCoC0gRml4ZWQgc29tZSBtb3JlIGluY29uc2l0ZW50IHVzYWdlIGJldHdlZW4gdGhl
+IG5hbWVzICdyZXQnIGFuZA0KPiA+ICdlbnRyeScgZm9yIHJhZGl4IHRyZWUgZW50cnkgdmFyaWFi
+bGVzLg0KPiA+IA0KPiA+IFJvc3MgWndpc2xlciAoOSk6DQo+ID4gwqAgZXh0NDogYWxsb3cgREFY
+IHdyaXRlYmFjayBmb3IgaG9sZSBwdW5jaA0KPiA+IMKgIGV4dDI6IHRlbGwgREFYIHRoZSBzaXpl
+IG9mIGFsbG9jYXRpb24gaG9sZXMNCj4gPiDCoCBleHQ0OiB0ZWxsIERBWCB0aGUgc2l6ZSBvZiBh
+bGxvY2F0aW9uIGhvbGVzDQo+ID4gwqAgZGF4OiByZW1vdmUgYnVmZmVyX3NpemVfdmFsaWQoKQ0K
+PiA+IMKgIGRheDogbWFrZSAnd2FpdF90YWJsZScgZ2xvYmFsIHZhcmlhYmxlIHN0YXRpYw0KPiA+
+IMKgIGRheDogY29uc2lzdGVudCB2YXJpYWJsZSBuYW1pbmcgZm9yIERBWCBlbnRyaWVzDQo+ID4g
+wqAgZGF4OiBjb29yZGluYXRlIGxvY2tpbmcgZm9yIG9mZnNldHMgaW4gUE1EIHJhbmdlDQo+ID4g
+wqAgZGF4OiByZS1lbmFibGUgREFYIFBNRCBzdXBwb3J0DQo+ID4gwqAgZGF4OiByZW1vdmUgImRl
+cGVuZHMgb24gQlJPS0VOIiBmcm9tIEZTX0RBWF9QTUQNCj4gPiANCj4gPiDCoGZzL0tjb25maWfC
+oMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxIC0NCj4gPiDCoGZzL2RheC5jwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgfCAyOTcgKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0t
+LQ0KPiA+IC0tLS0tLS0tLS0tLQ0KPiA+IMKgZnMvZXh0Mi9pbm9kZS5jwqDCoMKgwqDCoHzCoMKg
+wqAzICsNCj4gPiDCoGZzL2V4dDQvaW5vZGUuY8KgwqDCoMKgwqB8wqDCoMKgNyArLQ0KPiA+IMKg
+aW5jbHVkZS9saW51eC9kYXguaCB8wqDCoDI5ICsrKystDQo+ID4gwqBtbS9maWxlbWFwLmPCoMKg
+wqDCoMKgwqDCoMKgfMKgwqDCoDYgKy0NCj4gPiDCoDYgZmlsZXMgY2hhbmdlZCwgMjAxIGluc2Vy
+dGlvbnMoKyksIDE0MiBkZWxldGlvbnMoLSkNCj4gPiANCj4gPiAtLcKgDQo+ID4gMi45LjANCj4g
+DQo+IFBpbmcgb24gdGhpcyBzZXJpZXM/wqDCoEFueSBvYmplY3Rpb25zIG9yIGNvbW1lbnRzPw0K
+DQpIaSBSb3NzLA0KDQpJIGFtIHNlZWluZyBhIG1ham9yIHBlcmZvcm1hbmNlIGxvc3MgaW4gZmlv
+IG1tYXAgdGVzdCB3aXRoIHRoaXMgcGF0Y2gtDQpzZXQgYXBwbGllZC4gwqBUaGlzIGhhcHBlbnMg
+d2l0aCBvciB3aXRob3V0IG15IHBhdGNoZXMgWzFdIGFwcGxpZWQgb24NCnRvcCBvZiB5b3Vycy4g
+wqBXaXRob3V0IG15IHBhdGNoZXMswqBkYXhfcG1kX2ZhdWx0KCkgZmFsbHMgYmFjayB0byB0aGUN
+CnB0ZSBoYW5kbGVyIHNpbmNlIGFuIG1tYXAnZWQgYWRkcmVzcyBpcyBub3QgMk1CLWFsaWduZWQu
+DQoNCkkgaGF2ZSBhdHRhY2hlZCB0aHJlZSB0ZXN0IHJlc3VsdHMuDQrCoG8gcmM0LmxvZyAtIDQu
+OC4wLXJjNCAoYmFzZSkNCsKgbyBub24tcG1kLmxvZyAtIDQuOC4wLXJjNCArIHlvdXIgcGF0Y2hz
+ZXQgKGZhbGwgYmFjayB0byBwdGUpDQrCoG8gcG1kLmxvZyAtIDQuOC4wLXJjNCArIHlvdXIgcGF0
+Y2hzZXQgKyBteSBwYXRjaHNldCAodXNlIHBtZCBtYXBzKQ0KDQpNeSB0ZXN0IHN0ZXBzIGFyZSBh
+cyBmb2xsb3dzLg0KDQpta2ZzLmV4dDQgLU8gYmlnYWxsb2MgLUMgMk0gL2Rldi9wbWVtMA0KbW91
+bnQgLW8gZGF4IC9kZXYvcG1lbTAgL21udC9wbWVtMA0KbnVtYWN0bCAtLXByZWZlcnJlZCBibG9j
+azpwbWVtMCAtLWNwdW5vZGViaW5kIGJsb2NrOnBtZW0wIGZpbyB0ZXN0LmZpbw0KDQoidGVzdC5m
+aW8iDQotLS0NCltnbG9iYWxdDQpicz00aw0Kc2l6ZT0yRw0KZGlyZWN0b3J5PS9tbnQvcG1lbTAN
+CmlvZW5naW5lPW1tYXANCltyYW5kcnddDQpydz1yYW5kcncNCi0tLQ0KDQpDYW4geW91IHBsZWFz
+ZSB0YWtlIGEgbG9vaz8NClRoYW5rcywNCi1Ub3NoaQ0KDQpbMV3CoGh0dHBzOi8vbGttbC5vcmcv
+bGttbC8yMDE2LzgvMjkvNTYwDQoNCg0KDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1t
+QGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LW52ZGltbQo=
