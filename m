@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mail-oi0-x22d.google.com (mail-oi0-x22d.google.com
+ [IPv6:2607:f8b0:4003:c06::22d])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 061DB1A1F3F
- for <linux-nvdimm@lists.01.org>; Wed,  7 Sep 2016 15:29:17 -0700 (PDT)
-Subject: [PATCH v2 2/2] mm: fix cache mode tracking in vm_insert_mixed()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 07 Sep 2016 15:26:19 -0700
-Message-ID: <147328717909.35069.14256589123570653697.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147328716869.35069.16311932814998156819.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147328716869.35069.16311932814998156819.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0E3871A1E74
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Sep 2016 12:46:23 -0700 (PDT)
+Received: by mail-oi0-x22d.google.com with SMTP id c15so132269037oig.0
+ for <linux-nvdimm@lists.01.org>; Thu, 01 Sep 2016 12:46:23 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <147198926249.3136.6163137762013359047.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <147198926249.3136.6163137762013359047.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 1 Sep 2016 12:46:21 -0700
+Message-ID: <CAPcyv4ikttQ2zjo9QZ4bSW5inX4z9cKvpL8JfMr0ugQfwFB3Jg@mail.gmail.com>
+Subject: Re: [PATCH 2/3] acpi, nfit: add dimm device notification support
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,58 +26,59 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Matthew Wilcox <mawilcox@microsoft.com>, David Airlie <airlied@linux.ie>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, akpm@linux-foundation.org
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-vm_insert_mixed() unlike vm_insert_pfn_prot() and vmf_insert_pfn_pmd(),
-fails to check the pgprot_t it uses for the mapping against the one
-recorded in the memtype tracking tree.  Add the missing call to
-track_pfn_insert() to preclude cases where incompatible aliased mappings
-are established for a given physical address range.
+On Tue, Aug 23, 2016 at 2:54 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> Per "ACPI 6.1 Section 9.20.3" NVDIMM devices, children of the ACPI0012
+> NVDIMM Root device, can receive health event notifications.
+>
+> Given that these devices are precluded from registering a notification
+> handler via acpi_driver.acpi_device_ops (due to no _HID), we use
+> acpi_install_notify_handler() directly.  The registered handler,
+> acpi_nvdimm_notify(), triggers a poll(2) event on the nmemX/nfit/flags
+> sysfs attribute when a health event notification is received.
+>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Cc: Toshi Kani <toshi.kani@hpe.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/acpi/nfit/core.c   |   83 ++++++++++++++++++++++++++++++++++++++++++--
+>  drivers/acpi/nfit/nfit.h   |    5 +++
+>  drivers/nvdimm/dimm_devs.c |    6 +++
+>  include/linux/libnvdimm.h  |    1 +
+>  4 files changed, 91 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 8120e8218f93..65f155db4283 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+[..]
+> @@ -2400,6 +2464,7 @@ static int acpi_nfit_desc_init_scrub_attr(struct acpi_nfit_desc *acpi_desc)
+>
+>  static void acpi_nfit_destruct(void *data)
+>  {
+> +       struct nfit_mem *nfit_mem;
+>         struct acpi_nfit_desc *acpi_desc = data;
+>         struct device *bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
+>
+> @@ -2415,6 +2480,16 @@ static void acpi_nfit_destruct(void *data)
+>          * either submit or see ->cancel set.
+>          */
+>         device_lock(bus_dev);
+> +       /*
+> +        * Clear out the nfit_mem->flags_attr and shut down dimm event
+> +        * notifications.
+> +        */
+> +       list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
+> +               sysfs_put(nfit_mem->flags_attr);
+> +               nfit_mem->flags_attr = NULL;
 
-Cc: David Airlie <airlied@linux.ie>
-Cc: dri-devel@lists.freedesktop.org
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- mm/memory.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/mm/memory.c b/mm/memory.c
-index 83be99d9d8a1..8841fed328f9 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -1649,10 +1649,14 @@ EXPORT_SYMBOL(vm_insert_pfn_prot);
- int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 			pfn_t pfn)
- {
-+	pgprot_t pgprot = vma->vm_page_prot;
-+
- 	BUG_ON(!(vma->vm_flags & VM_MIXEDMAP));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return -EFAULT;
-+	if (track_pfn_insert(vma, &pgprot, pfn))
-+		return -EINVAL;
- 
- 	/*
- 	 * If we don't have pte special, then we have to use the pfn_valid()
-@@ -1670,9 +1674,9 @@ int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 		 * result in pfn_t_has_page() == false.
- 		 */
- 		page = pfn_to_page(pfn_t_to_pfn(pfn));
--		return insert_page(vma, addr, page, vma->vm_page_prot);
-+		return insert_page(vma, addr, page, pgprot);
- 	}
--	return insert_pfn(vma, addr, pfn, vma->vm_page_prot);
-+	return insert_pfn(vma, addr, pfn, pgprot);
- }
- EXPORT_SYMBOL(vm_insert_mixed);
- 
-
+We need to check if flags_attr is NULL here in the case when the DIMM
+failed to initialize.  I believe the crash I am hitting is fixed by
+Toshi's patch https://patchwork.kernel.org/patch/9284427/, but I'll
+still fix this up for other cases.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
