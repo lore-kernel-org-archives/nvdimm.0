@@ -1,375 +1,288 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3C37A1A1E05
- for <linux-nvdimm@lists.01.org>; Sun, 11 Sep 2016 10:34:40 -0700 (PDT)
-Subject: [RFC PATCH 1/2] mm,
- mincore2(): retrieve dax and tlb-size attributes of an address range
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 11 Sep 2016 10:31:35 -0700
-Message-ID: <147361509579.17004.5258725187329709824.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+From: =?utf-8?B?6ams5YWI55Sf?= <rf-z3zkzL/8G1c@public.gmane.org>
+Subject: =?utf-8?B?6ZSA5ZSu57K+6IuxMuWkqeW8uuWMluiuree7gyAgICAgICAgLS0=?=
+ =?utf-8?B?LS0tIOmprOWFiOeUnw==?=
+Date: Fri, 2 Sep 2016 11:40:33 +0800
+Message-ID: <75540FD78DF23E04D35099B7C3FD2F39@qdu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: Andrea Arcangeli <aarcange@redhat.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-List-ID: <linux-nvdimm@lists.01.org>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
 
-As evidenced by this bug report [1], userspace libraries are interested
-in whether a mapping is DAX mapped, i.e. no intervening page cache.
-Rather than using the ambiguous VM_MIXEDMAP flag in smaps, provide an
-explicit "is dax" indication as a new flag in the page vector populated
-by mincore.
-
-There are also cases, particularly for testing and validating a
-configuration to know the hardware mapping geometry of the pages in a
-given process address range.  Consider filesystem-dax where a
-configuration needs to take care to align partitions and block
-allocations before huge page mappings might be used, or
-anonymous-transparent-huge-pages where a process is opportunistically
-assigned large pages.  mincore2() allows these configurations to be
-surveyed and validated.
-
-The implementation takes advantage of the unused bits in the per-page
-byte returned for each PAGE_SIZE extent of a given address range.  The
-new format of each vector byte is:
-
-(TLB_SHIFT - PAGE_SHIFT) << 2 | vma_is_dax() << 1 | page_present
-
-[1]: https://lkml.org/lkml/2016/9/7/61
-
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/syscalls.h               |    2 +
- include/uapi/asm-generic/mman-common.h |    3 +
- kernel/sys_ni.c                        |    1 
- mm/mincore.c                           |  126 +++++++++++++++++++++++++-------
- 4 files changed, 104 insertions(+), 28 deletions(-)
-
-diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
-index d02239022bd0..4aa2ee7e359a 100644
---- a/include/linux/syscalls.h
-+++ b/include/linux/syscalls.h
-@@ -467,6 +467,8 @@ asmlinkage long sys_munlockall(void);
- asmlinkage long sys_madvise(unsigned long start, size_t len, int behavior);
- asmlinkage long sys_mincore(unsigned long start, size_t len,
- 				unsigned char __user * vec);
-+asmlinkage long sys_mincore2(unsigned long start, size_t len,
-+				unsigned char __user * vec, int flags);
- 
- asmlinkage long sys_pivot_root(const char __user *new_root,
- 				const char __user *put_old);
-diff --git a/include/uapi/asm-generic/mman-common.h b/include/uapi/asm-generic/mman-common.h
-index 58274382a616..05037343f0da 100644
---- a/include/uapi/asm-generic/mman-common.h
-+++ b/include/uapi/asm-generic/mman-common.h
-@@ -72,4 +72,7 @@
- #define MAP_HUGE_SHIFT	26
- #define MAP_HUGE_MASK	0x3f
- 
-+#define MINCORE_DAX	1		/* indicate pages that are dax-mapped */
-+#define MINCORE_ORDER	2		/* retrieve hardware mapping-size-order */
-+
- #endif /* __ASM_GENERIC_MMAN_COMMON_H */
-diff --git a/kernel/sys_ni.c b/kernel/sys_ni.c
-index 2c5e3a8e00d7..e14b87834054 100644
---- a/kernel/sys_ni.c
-+++ b/kernel/sys_ni.c
-@@ -197,6 +197,7 @@ cond_syscall(sys_mlockall);
- cond_syscall(sys_munlockall);
- cond_syscall(sys_mlock2);
- cond_syscall(sys_mincore);
-+cond_syscall(sys_mincore2);
- cond_syscall(sys_madvise);
- cond_syscall(sys_mremap);
- cond_syscall(sys_remap_file_pages);
-diff --git a/mm/mincore.c b/mm/mincore.c
-index c0b5ba965200..15f9eb5de65b 100644
---- a/mm/mincore.c
-+++ b/mm/mincore.c
-@@ -15,25 +15,62 @@
- #include <linux/swap.h>
- #include <linux/swapops.h>
- #include <linux/hugetlb.h>
-+#include <linux/dax.h>
- 
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
- 
-+#define MINCORE_DAX_MASK 2
-+#define MINCORE_DAX_SHIFT 1
-+
-+#define MINCORE_ORDER_MASK 0x7c
-+#define MINCORE_ORDER_SHIFT 2
-+
-+struct mincore_params {
-+	unsigned char *vec;
-+	int flags;
-+};
-+
-+static void mincore_set(unsigned char *vec, struct vm_area_struct *vma, int nr,
-+		int flags)
-+{
-+	unsigned char mincore = 1;
-+
-+	if (!nr) {
-+		*vec = 0;
-+		return;
-+	}
-+
-+	if ((flags & MINCORE_DAX) && vma_is_dax(vma))
-+		mincore |= 1 << MINCORE_DAX_SHIFT;
-+	if (flags & MINCORE_ORDER) {
-+		unsigned char order = ilog2(nr);
-+
-+		WARN_ON((order << MINCORE_ORDER_SHIFT) & ~MINCORE_ORDER_MASK);
-+		mincore |= order << MINCORE_ORDER_SHIFT;
-+	}
-+	memset(vec, mincore, nr);
-+}
-+
- static int mincore_hugetlb(pte_t *pte, unsigned long hmask, unsigned long addr,
- 			unsigned long end, struct mm_walk *walk)
- {
- #ifdef CONFIG_HUGETLB_PAGE
-+	struct mincore_params *p = walk->private;
-+	int nr = (end - addr) >> PAGE_SHIFT;
-+	unsigned char *vec = p->vec;
- 	unsigned char present;
--	unsigned char *vec = walk->private;
- 
- 	/*
- 	 * Hugepages under user process are always in RAM and never
- 	 * swapped out, but theoretically it needs to be checked.
- 	 */
- 	present = pte && !huge_pte_none(huge_ptep_get(pte));
--	for (; addr != end; vec++, addr += PAGE_SIZE)
--		*vec = present;
--	walk->private = vec;
-+	if (!present)
-+		memset(vec, 0, nr);
-+	else
-+		mincore_set(vec, walk->vma, nr, p->flags);
-+	p->vec = vec + nr;
- #else
- 	BUG();
- #endif
-@@ -82,20 +119,24 @@ static unsigned char mincore_page(struct address_space *mapping, pgoff_t pgoff)
- }
- 
- static int __mincore_unmapped_range(unsigned long addr, unsigned long end,
--				struct vm_area_struct *vma, unsigned char *vec)
-+				struct vm_area_struct *vma, unsigned char *vec,
-+				int flags)
- {
- 	unsigned long nr = (end - addr) >> PAGE_SHIFT;
-+	unsigned char present;
- 	int i;
- 
- 	if (vma->vm_file) {
- 		pgoff_t pgoff;
- 
- 		pgoff = linear_page_index(vma, addr);
--		for (i = 0; i < nr; i++, pgoff++)
--			vec[i] = mincore_page(vma->vm_file->f_mapping, pgoff);
-+		for (i = 0; i < nr; i++, pgoff++) {
-+			present = mincore_page(vma->vm_file->f_mapping, pgoff);
-+			mincore_set(vec + i, vma, present, flags);
-+		}
- 	} else {
- 		for (i = 0; i < nr; i++)
--			vec[i] = 0;
-+			mincore_set(vec + i, vma, 0, flags);
- 	}
- 	return nr;
- }
-@@ -103,8 +144,11 @@ static int __mincore_unmapped_range(unsigned long addr, unsigned long end,
- static int mincore_unmapped_range(unsigned long addr, unsigned long end,
- 				   struct mm_walk *walk)
- {
--	walk->private += __mincore_unmapped_range(addr, end,
--						  walk->vma, walk->private);
-+	struct mincore_params *p = walk->private;
-+	int nr = __mincore_unmapped_range(addr, end, walk->vma, p->vec,
-+			p->flags);
-+
-+	p->vec += nr;
- 	return 0;
- }
- 
-@@ -114,18 +158,20 @@ static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 	spinlock_t *ptl;
- 	struct vm_area_struct *vma = walk->vma;
- 	pte_t *ptep;
--	unsigned char *vec = walk->private;
-+	struct mincore_params *p = walk->private;
-+	unsigned char *vec = p->vec;
- 	int nr = (end - addr) >> PAGE_SHIFT;
-+	int flags = p->flags;
- 
- 	ptl = pmd_trans_huge_lock(pmd, vma);
- 	if (ptl) {
--		memset(vec, 1, nr);
-+		mincore_set(vec, vma, nr, flags);
- 		spin_unlock(ptl);
- 		goto out;
- 	}
- 
- 	if (pmd_trans_unstable(pmd)) {
--		__mincore_unmapped_range(addr, end, vma, vec);
-+		__mincore_unmapped_range(addr, end, vma, vec, flags);
- 		goto out;
- 	}
- 
-@@ -135,9 +181,9 @@ static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 
- 		if (pte_none(pte))
- 			__mincore_unmapped_range(addr, addr + PAGE_SIZE,
--						 vma, vec);
-+						 vma, vec, flags);
- 		else if (pte_present(pte))
--			*vec = 1;
-+			mincore_set(vec, vma, 1, flags);
- 		else { /* pte is a swap entry */
- 			swp_entry_t entry = pte_to_swp_entry(pte);
- 
-@@ -146,14 +192,17 @@ static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 				 * migration or hwpoison entries are always
- 				 * uptodate
- 				 */
--				*vec = 1;
-+				mincore_set(vec, vma, 1, flags);
- 			} else {
- #ifdef CONFIG_SWAP
--				*vec = mincore_page(swap_address_space(entry),
--					entry.val);
-+				unsigned char present;
-+
-+				present = mincore_page(swap_address_space(entry),
-+						entry.val);
-+				mincore_set(vec, vma, present, flags);
- #else
- 				WARN_ON(1);
--				*vec = 1;
-+				mincore_set(vec, vma, 1, flags);
- #endif
- 			}
- 		}
-@@ -161,7 +210,7 @@ static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 	}
- 	pte_unmap_unlock(ptep - 1, ptl);
- out:
--	walk->private += nr;
-+	p->vec = vec + nr;
- 	cond_resched();
- 	return 0;
- }
-@@ -171,16 +220,21 @@ out:
-  * all the arguments, we hold the mmap semaphore: we should
-  * just return the amount of info we're asked for.
-  */
--static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *vec)
-+static long do_mincore(unsigned long addr, unsigned long pages,
-+		unsigned char *vec, int flags)
- {
- 	struct vm_area_struct *vma;
- 	unsigned long end;
- 	int err;
-+	struct mincore_params p = {
-+		.vec = vec,
-+		.flags = flags,
-+	};
- 	struct mm_walk mincore_walk = {
- 		.pmd_entry = mincore_pte_range,
- 		.pte_hole = mincore_unmapped_range,
- 		.hugetlb_entry = mincore_hugetlb,
--		.private = vec,
-+		.private = &p,
- 	};
- 
- 	vma = find_vma(current->mm, addr);
-@@ -195,13 +249,19 @@ static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *v
- }
- 
- /*
-- * The mincore(2) system call.
-+ * The mincore2(2) system call.
-  *
-- * mincore() returns the memory residency status of the pages in the
-+ * mincore2() returns the memory residency status of the pages in the
-  * current process's address space specified by [addr, addr + len).
-  * The status is returned in a vector of bytes.  The least significant
-  * bit of each byte is 1 if the referenced page is in memory, otherwise
-- * it is zero.
-+ * it is zero.  When 'flags' is non-zero each byte additionally contains
-+ * an indication of whether the referenced page in memory is a DAX
-+ * mapping (bit 2 of each vector byte), and/or the order of the mapping
-+ * (bits 3 through 7 of each vector byte).  Where the order relates to
-+ * the hardware mapping size backing the given logical-page.  For
-+ * example, a 2MB-dax-mapped-huge-page would correspond to 512 vector
-+ * entries with the value 0x27.
-  *
-  * Because the status of a page can change after mincore() checks it
-  * but before it returns to the application, the returned vector may
-@@ -218,8 +278,8 @@ static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *v
-  *		mapped
-  *  -EAGAIN - A kernel resource was temporarily unavailable.
-  */
--SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
--		unsigned char __user *, vec)
-+SYSCALL_DEFINE4(mincore2, unsigned long, start, size_t, len,
-+		unsigned char __user *, vec, int, flags)
- {
- 	long retval;
- 	unsigned long pages;
-@@ -229,6 +289,10 @@ SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
- 	if (start & ~PAGE_MASK)
- 		return -EINVAL;
- 
-+	/* Check that undefined flags are zero */
-+	if (flags & ~(MINCORE_DAX | MINCORE_ORDER))
-+		return -EINVAL;
-+
- 	/* ..and we need to be passed a valid user-space range */
- 	if (!access_ok(VERIFY_READ, (void __user *) start, len))
- 		return -ENOMEM;
-@@ -251,7 +315,7 @@ SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
- 		 * the temporary buffer size.
- 		 */
- 		down_read(&current->mm->mmap_sem);
--		retval = do_mincore(start, min(pages, PAGE_SIZE), tmp);
-+		retval = do_mincore(start, min(pages, PAGE_SIZE), tmp, flags);
- 		up_read(&current->mm->mmap_sem);
- 
- 		if (retval <= 0)
-@@ -268,3 +332,9 @@ SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
- 	free_page((unsigned long) tmp);
- 	return retval;
- }
-+
-+SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
-+		unsigned char __user *, vec)
-+{
-+	return sys_mincore2(start, len, vec, 0);
-+}
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+6ZSA5ZSu57K+6IuxMuWkqeW8uuWMluiuree7g+KAlOKAlOivvueoi+eugOS7iw0KDQrjgJDml7bp
+l7TlnLDngrnjgJEgMjAxNiAgIDnmnIgxMC0xMeWMl+S6rCAgICA55pyIMjQtMjXkuIrmtbcgDQog
+DQrjgJDlj4LliqDlr7nosaHjgJEg5oC757uP55CG44CB6ZSA5ZSu5oC755uR44CB5Yy65Z+f57uP
+55CG44CB6ZSA5ZSu57uP55CG44CB5Lia5Yqh5Luj6KGo44CB6ZSA5ZSu5Z+56K6t5LiT5ZGY562J
+44CCDQrjgJDlrabkuaDotLnnlKjjgJEgMjgwMOWFgy8x5Lq677yIMuS4remkkCwg56iO6LS5LOS4
+k+Wutua8lOiusui0uSzmlZnmnZDotLks6Iy254K5562JKe+8m+S9j+Wuv+e7n+S4gOWuieaOku+8
+jOi0ueeUqOiHqueQhg0KDQrjgJDnlLXlrZDpgq7nrrHjgJEgMjA3ODE4NDA4QHFxLmNvbeW8oOW9
+rCAgIDk3MTcwMDczMkBxcS5jb20g6aKc54+K54+KDQrjgJDlgLznj63miYvmnLrjgJExODEyMzkw
+NzM2Oe+8iOW8oOW9rO+8iSAgICAgICAxMzU0NDAxMzMxNe+8iOminOePiuePiu+8iSAgIA0KDQpK
+dWRnZe+8iOivhOS7t++8ieS4gOS4quS6uu+8jOS4gOS4quWFrOWPuOaYr+S4jeaYr+S8mOengO+8
+jOS4jeimgeeci+S7luaYr+S4jeaYr0hhcnZhcmTvvIjlk4jkvZvlpKflrabvvInvvIzmmK/kuI3m
+mK9TdGFuZm9yZO+8iOaWr+Wdpuemj+Wkp+Wtpu+8iS7kuI3opoFqdWRnZe+8iOivhOS7t++8iemH
+jOmdouacieWkmuWwkeWQjeeJjOWkp+WtpuavleS4mueUn++8jOiAjOimgWp1ZGdl77yI6K+E5Lu3
+77yJ6L+Z5biu5Lq65bmy5rS75piv5LiN5piv5Y+R55av5LiA5qC35bmy77yM55yL5LuW5q+P5aSp
+5LiL54+t5piv5LiN5piv56yR55yv55yv5Zue5a6277yBDQrigJTigJTpmL/ph4zlt7Tlt7Tlhazl
+j7jpqazkupENCg0KDQoNCuesrOS4gOeroAnlrqLmiLfpnIDmsYLliIbmnpANCuaAneiAg++8mg0K
+MeOAgemdouWvueWuouaIt+aJvuS4jeWIsOivneivtO+8jOaAjuS5iOWKnu+8n+S6jOasoeayn+mA
+muW6lOivpeiBiuS6m+S7gOS5iO+8nw0KMuOAgeS4uuS7gOS5iOaIkeaKiuaJgOaciei1hOaWmemD
+vee7meWuouaIt+S6hu+8jOS7lui/mOivtOimgeiAg+iZkeS4gOS4i++8nw0KM+OAgeWQjOS4gOS7
+tuS6i++8jOWuouaIt+S4jeWQjOeahOS6uuWRiuivieaIkeS4jeS4gOagt+eahOimgeaxgu+8jOWQ
+rOiwgeeahO+8nw0KNOOAgeWQjOS4gOS7tuS6i++8jOWuouaIt+WQjOS4gOS4quS6uuWRiuivieaI
+keS4pOasoeeahOetlOahiOS4jeS4gOagt++8jOWQrOWTquasoeeahO+8nw0KNeOAgeaOqOiNkOWT
+quS4gOenjeS6p+WTgee7meWuouaIt+Wlve+8n+acgOWlveeahO+8n+eojeWlveeahO+8n+i/mOaY
+r+Wkn+eUqOeahO+8nw0KNOOAgeS4uuS7gOS5iOaIkeaMieWuouaIt+imgeaxguWOu+WBmu+8jOS7
+lui/mOaYr+ayoeaciemAieaLqeaIkeS7rO+8nw0KNeOAgeS4jeWQjOeahOWuouaIt++8jOaIkeW6
+lOivpeWmguS9leW6lOWvue+8nw0KNuOAgeW/oOivmueahOWuouaIt+W6lOivpeWmguS9leWfueWF
+u++8nw0KDQrnrKzkuIDoioLjgIEJ5Li65LuA5LmI6KaB5a+55a6i5oi36ZyA5rGC6L+b6KGM5YiG
+5p6Q77yfDQox44CBCeWuouaIt+WIneasoeWRiuivieaIkeS7rOeahOS/oeaBr+W+gOW+gOaYr+ac
+ieaJgOS/neeVmeeahO+8mw0KMuOAgQnlrqLmiLfmg7PopoHnmoTkuqflk4HvvIzkuI3kuIDlrprl
+sLHmmK/lrp7pmYXmiYDpnIDopoHnmoTvvJsNCjPjgIEJ5a6i5oi35LiN57y65bCR5Lqn5ZOB5L+h
+5oGv77yM5Zuw5oOR55qE5piv6Ieq5bex5aaC5L2V6YCJ5oup77ybIA0KNOOAgQnlrqLmiLfotK3k
+ubDlhrPlrprmmK/mr5TovoPlh7rmnaXnmoTvvIzmsqHmnInmr5TovoPvvIzkuqflk4HlsLHmsqHm
+nInku7flgLzvvJsNCjXjgIEJ6ZSA5ZSu5Lq65ZGY56ys5LiA5oCd5oOz5piv5oiY5LqJ5oCd5oOz
+77yM5oOF5oql5pyA6YeN6KaB77ybDQo244CBCeacquadpeeahOmAgei0p+WRmCzogZTnu5zlkZgs
+5oql5Lu35ZGY5bCG6KKr5reY5rGwOw0KDQrnrKzkuozoioLjgIHlpoLkvZXlgZrlpb3lrqLmiLfp
+nIDmsYLliIbmnpDvvJ8NCuS4gOOAgeWfuuacrOimgeaxgu+8mg0KMS4J5peg5LqL5LiN55m75LiJ
+5a6d5q6/77yM5pyJ55uu55qE5Zyw5YGa5aW95ouc6K6/6K6h5YiS77ybDQoyLgnlvJXlr7zlrqLm
+iLfvvIzpppblhYjopoHmjqfliLbosIjor53nmoTmlrnlkJHjgIHoioLlpY/jgIHlhoXlrrnvvJsN
+CjMuCeS7juiusuS6p+WTgeeahOKAnOWNlueCueKAnei9rOWPmOWIsOiusuWuouaIt+eahOKAnOS5
+sOeCueKAnQ0KNC4J5aW955qE77yM5LiN5LiA5a6a5piv5pyA6YCC5ZCI55qE77yM5pyA5ZCI6YCC
+55qE5omN5piv5pyA5aW955qE77ybDQo1LgnkuI3opoHmiornjJzmtYvlvZPmiJDkuovlrp7vvIzi
+gJzosIjigJ3nmoTmmK/ku4DkuYjvvJ/igJzliKTigJ3mmK/nlLHosIHliKTvvJ8NCjYuCeiuqOiu
+uu+8muWuouaIt+ivtOS7t+agvOWkqui0te+8jOS7o+ihqOWTqjE156eN5LiN5ZCM55qE5oSP5oCd
+77yfDQoNCuS6jOOAgemcgOaxguWIhuaekOimgeeCue+8mg0KMS4J5LqG6Kej5a6i5oi355qENOen
+jeacn+acm+ebruagh++8mw0KMi4J5LqG6Kej5a6i5oi36YeH6LSt55qENeS4qumAguW9k++8mw0K
+My4J5Yik5pat6LCB5piv5YWz6ZSu5Lq655qEOOS4quS+neaNru+8mw0KNC4J5ZOqNuWkp+exu+mX
+rumimOS4jeWPr+S7pemXru+8nyDopoHooajovr7liKvkurrlkKzlvpfmh4LnmoTor53vvJsNCjUu
+CeaPkOmXruazqOaEj+eahOKAnDPkuI3osIjigJ3vvIzigJw05LiN6K6y4oCd77ybDQo2LgnlrqLm
+iLfpnIDmsYLliIbmnpDmiYvlhozliLblrprnmoQ25Liq5q2l6aqk77ybDQrvgawJ5om+5a+55pa5
+5ZCR77yM5LqL5Y2K5Yqf5YCN77yM5Li65LuA5LmI5om+6L+Z5Liq5a6i5oi377yfDQrvgawJ5pe2
+6Ze05rKh5a+577yM5Yqq5Yqb55m96LS577yM5Li65LuA5LmI6L+Z5Liq5pe25YCZ5om+77yfDQrv
+gawJ5om+5a+55Lq677yM6K+05a+56K+d77yM5Li65LuA5LmI5om+6L+Z5Liq5Lq677yfIA0K74Gs
+CeS4uuS7gOS5iOaOqOiNkOi/meS4quS6p+WTge+8n+e7meWuouaIt+mcgOimgeeahO+8jOiAjOS4
+jeaYr+iHquW3seaDs+e7meeahO+8myANCu+BrAnkuLrku4DkuYjnu5nov5nmoLfnmoTmnI3liqHv
+vJ8g5a6i5oi355yL6YeN5LiN5piv5Lqn5ZOB77yM6ICM5piv5L2/55So5Lu35YC877ybDQrvgawJ
+5Li65LuA5LmI5oql6L+Z5Liq5Lu377yfIOWcqOWuouaIt+eahOmihOeul+S4juWQjOihjOS5i+mX
+tOaJvuWIsOW5s+ihoe+8mw0KNy4J5Li65LuA5LmI6L+Y6L+Z5Liq5Lu377yf5YWz5rOo56ue5LqJ
+5a+55omL77yM6LCD5pW06Ieq5bex55qE562W55Wl77ybDQoNCuesrOS6jOeroCAg5aaC5L2V5q2j
+56Gu5o6o6I2Q5Lqn5ZOBDQrmgJ3ogIPvvJoNCjHjgIHkuLrku4DkuYjmiJHmu6HotrPlrqLmiLfm
+iYDmj5Dlh7rnmoTopoHmsYLvvIzlrqLmiLfljbTov5jpnIDopoHogIPomZHkuIDkuIvvvJ8NCjLj
+gIHkuLrku4DkuYjlrqLmiLfkuI3nm7jkv6HmiJHotKjph4/kuI7mnI3liqHnmoTmib/or7rvvJ8N
+CjPjgIHpnaLlr7nlrqLmiLfmj5Dlh7rpq5jnq6/kuqflk4HnmoTopoHmsYLvvIzogIzmiJHlj6rm
+nInkvY7nq6/kuqflk4HvvIzmgI7kuYjlip7vvJ8NCjTjgIHlpoLkvZXmjqjojZDkuqflk4HmiY3o
+g73orqnlrqLmiLfmhJ/op4nliLDmiJHku6zot5/liKvkurrkuI3kuIDmoLfvvJsNCg0K56ys5LiA
+6IqCIOS4uuS7gOS5iOmcgOimgeaIkeS7rOato+ehruWcsOaOqOiNkOS6p+WTge+8nw0KMeOAgeWu
+ouaIt+W+gOW+gOWvueiHquW3sea3seWxguasoeeahOmXrumimOW5tuS4jea4healmu+8mw0KMuOA
+geWuouaIt+eahOaPkOWHuueahOimgeaxguWPr+iDveaYr+aooeeziuaIluaKveixoSzmnInnmoTk
+u4Xku4Xmj5Dlh7rmlrnlkJHvvIzkuI3opoHlsYDpmZDkuo7lrqLmiLfmmI7mmL7nmoTpl67popgs
+5aS055eb5Yy75aS0LOiEmueXm+WMu+iEmu+8mw0KM+OAgeWuouaIt+W+gOW+gOS8muS7peaIkeS7
+rOernuWTgee7meS7lueahOadoeS7tuimgeaxguaIkeS7rO+8mw0KNOOAgea7oei2s+WuouaIt+aP
+kOWHuueahOimgeaxgu+8jOaYr+W8leWvvOWuouaIt+WcqOS4jeWQjOWFrOWPuOS5i+mXtOWBmuav
+lOi+g++8jOiAjOS4jeWcqOaIkeWFrOWPuOWBmuWHuuWGs+etlu+8mw0KDQrnrKzkuozoioIg5aaC
+5L2V5biu5Yqp5a6i5oi35bu656uL4oCc5o6S5LuW5oCn4oCd55qE6YeH6LSt5qCH5YeG77yfDQrm
+oYjkvovvvJrlrqLmiLflhbPlv4PnmoTmmK/kvaDlpoLkvZXkv53or4HkvaDnmoTotKjph4/lkozm
+nI3liqHmsLTlubMNCjHjgIHmiZPku5flsLHmmK/miZPlkI7li6TvvIzmjqjojZDkuqflk4HkuK3l
+uLjnlKjnmoQzNOmhueWGheWuue+8mw0KMuOAgeS6p+WTgeeahOWKn+iDveS4juWuouaIt+mcgOim
+geino+WGs+eahOmXrumimOimgeebuOWvueW6lO+8m+WuouaIt+WWnOasouaPkOS+m+ino+WGs+aW
+ueahiOeahOS6uu+8jOiAjOS4jeS7heaPkOS+m+W3peWFt+eahOS6uu+8mw0KM+OAgeWmguS9lee7
+meernuS6ieWvueaJi+S4muWKoeWRmOiuvue9rumanOeije+8nw0KDQrnrKzkuInoioIgIOingeS7
+gOS5iOS6uizor7Tku4DkuYjor507DQrkuI3lkIzmg4XlhrXkuIvlpoLkvZXorrLvvJ/ml7bpl7Tj
+gIHog73lipvjgIHnsr7lipvjgIHlhbTotqPjgIHmlofljJbmsLTlubPjgIHkuI3lkIznmoTogYzk
+vY3nrYnvvJsNCjEuIOS7gOS5iOaDheWGteS4i+WBj+mHjeS6jueQhuaAp+ivtOacjSzmiZPliqjl
+iKvkurrnmoTohJE/DQoyLiDku4DkuYjmg4XlhrXkuIvlgY/ph43kuo7mg4XmhJ/or7TmnI0s5omT
+5Yqo5Yir5Lq655qE5b+DPw0KMy4g5L2V56eN5oOF5Ya15LiL5Y+q6K6y5LyY5Yq/5LiN6K6y5Yqj
+5Yq/77yfDQo0LiDkvZXnp43mg4XlhrXkuIvljbPorrLkvJjlir/lj4jorrLliqPlir/vvJ8NCg0K
+56ys5LiJ56ugCeWmguS9leacieaViOWkhOeQhuW8guiurg0K5oCd6ICDDQox44CB6YGH5Yiw5bCP
+5rCU44CB5Zu65omn44CB57KX6bKB44CB5ZWw5Zem44CB5Yi76JaE44CB5ZC55q+b5rGC55a144CB
+5LyY5p+U5a+h5pat55qE5a6i5oi35bqU5a+577yfDQoy44CB5a6i5oi355u05o6l5oyC55S16K+d
+77yM5oCO5LmI5Yqe77yfDQoz44CB56ys5LqM5qyh6KeB6Z2i77yM5a6i5oi35a+55oiR5aSn5Y+R
+6IS+5rCU77yM5oCO5LmI5Yqe77yfDQo044CB5pyJ5LiA5Liq6KGM5Lia77yM6ZSA5ZSu5Lq65ZGY
+5q+P5aSp6YO95Lya6YGH5Yiw5aSn6YeP55qE5ouS57ud77yM5Li65LuA5LmI5Y205rKh5pyJ5Lu7
+5L2V5Lq65Lya5rKu5Lin77yfIA0KNeOAgeWuouaIt+WwseayoeacieWOi+WKm+WQl++8n+efpeW3
+suefpeW9vO+8jOWuouaIt+mHh+i0reaXtuS8muacieWTquS6m+WOi+WKm++8nw0KNuOAgeS4uuS7
+gOS5iOWuouaIt+WcqOS4iuePreaXtuS4juS4i+ePreWQjuS8muihqOeOsOS4jeWQjOeahOaAp+ag
+vOeJueW+ge+8nw0KDQrnrKzkuIDoioLvvJrkubDljZblj4zmlrnnmoTlv4Pmg4XliIbmnpANCjHj
+gIHlpoLmnpzkuIDmlrnmr5Tlj6bkuIDmlrnmm7TkuLvliqjjgIHmm7Tnp6/mnoHov73msYLlkIjk
+vZzvvIzliJnlkI7ogIXnp7DkuLrmvZzlnKjlrqLmiLcgDQoy44CB5Y2W5pa555+l6YGT5p+Q5Lu3
+5LiA5a6a5LiN6IO95Y2W77yM5L2G5Lmw5pa55LiN55+l6YGT5LuA5LmI5Lu35LiN6IO95Lmw77yb
+DQoz44CB5b2T5Y2W5pa56KGo546w6Ieq5bex5b6I5oOz5Y2W77yM5Lmw5pa55Lya6KGo546w6Ieq
+5bex5LiN5oOz5Lmw77ybDQo044CB5Lmw5pa56L+Y55qE5Lu377yM5bm25LiN5LiA5a6a5piv5LuW
+6K6k5Li65ZWG5ZOB5bCx5bqU6K+l5YC86L+Z5Liq5Lu377ybDQo144CB5LuY6ZKx5LmL5YmN77yM
+5Lmw5pa55Y2g5LyY5Yq/77yM5LmL5ZCO77yM5Y2W5pa55Y2g5LyY5Yq/77ybDQoNCuesrOS6jOiK
+guOAgeeQhuino+WuouaIt+i0reS5sOaXtueahOW/g+aAge+8mw0KMeOAgeWuouaIt+iwiOWIpOaX
+tuW4uOeUqDfnp43or5XmjqLmioDlt6fliIbmnpDvvJsNCjLjgIHlrqLmiLfmgIHluqbpnZ7luLjl
+pb3vvIzlsLHmmK/kuI3kuIvorqLljZXvvIzkuLrku4DkuYjvvJ8NCjPjgIHkuLrku4DkuYjmnInk
+upvlrqLmiLforqnmiJHku6zmhJ/op4npq5jpq5jlnKjkuIrvvIzoirHpkrHmmK/lpKfniLfvvJ/p
+mr7pgZPku5bku6zntKDotKjnnJ/nmoTlt67vvJ8NCjTjgIHlrqLmiLfoh6rouqvkvJrmnInlk6o2
+5Liq5Y6L5Yqb77yfDQrmoYjkvovvvJrlrqLmiLfmj5Dlh7rlkIjnkIbmnaHku7bvvIzmmK/lkKbm
+iJHlsLHlupTor6XpmY3ku7fvvJ8NCuahiOS+i++8muWmguS9leWIhua4heWuouaIt+W8guiuruea
+hOecn+WunuaAp++8nw0K5qGI5L6L77ya5b2T6LCI5Yik5Ye6546w5YO15bGA5pe25oCO5LmI5Yqe
+77yfDQrmoYjkvovvvJrkuLrku4DkuYjmiJHnrZTlupTlrqLmiLfmj5Dlh7rnmoTmiYDmnInnmoTm
+naHku7bvvIzlj43ogIzlpLHljrvkuoborqLljZXvvJ8NCuahiOS+i++8muWuouaIt+S4gOWGjeWc
+sOaPkOWHuuS4jeWQjOeahOadoeS7tu+8jOaAjuS5iOWkhOeQhu+8nw0K5qGI5L6L77ya5a6i5oi3
+6KaB5rGC5oiR6ZmN5Lu35pe2LOaAjuS5iOWKnj/or7fliIY45Liq5q2l6aqk5aSE55CGDQoNCues
+rOS4ieiKggkg5a6i5oi35byC6K6u5aSE55CG55qENeS4quWMuuWIhg0KMeOAgeimgeWMuuWIhuKA
+nOesrOS4gOKAnSDov5jmmK/igJzllK/kuIDigJ0NCjLjgIHlr7nlrqLmiLfopoHmsYLnmoTnnJ/k
+vKrov5vooYzpibTliKs7DQoz44CB6KaB5Yy65YiG4oCc5oOF57uq4oCd6L+Y5piv4oCc6KGM5Li6
+4oCdDQo044CB5Yy65YiG4oCc5YGH5oOz4oCd6L+Y5piv4oCc5LqL5a6e4oCdDQo144CB5Yy65Yir
+6Zeu6aKY55qE6L276YeNLOe8k+aApTsNCg0K56ys5Zub56ugICDlpoLkvZXlu7rnq4voia/lpb3n
+moTlrqLmg4XlhbPns7vvvJ8NCuahiOS+i++8mumUgOWUruW3peS9nOmcgOimgeeWr+eLguOAgeWc
+hua7keOAgeWlieaJv+OAgeingeS6uuivtOS6uuivne+8jOingemsvOivtOmsvOivneWQl++8nw0K
+5qGI5L6L77ya55Sf5oSP5LiN5oiQ5LuB5LmJ5Zyo77yM5ZKx5L+p5Lqk5Liq5pyL5Y+L77yM6L+Z
+5Y+l6K+d5bqU6K+l55Sx6LCB6K+077yfDQrmoYjkvovvvJrpgoDor7flrqLmiLflkIPppa3vvIzk
+vaDlupTor6XmgI7kuYjor7TvvJ8NCuahiOS+i++8muW9k+WuouaIt+ihqOaJrOS6huS9oO+8jOS9
+oOS8muaAjuS5iOWbnuetlO+8nw0K5qGI5L6L77ya5oiR5Luj6KGo5YWs5Y+455qE5b2i6LGh77yM
+5piv5ZCm5oiR5bqU6K+l6KGo546w6Ieq5bex5b6I5by65Yq/77yfDQrmoYjkvovvvJrkuLrkuobo
+jrflvpflrqLmiLfnmoTkv6Hku7vvvIzmiJHmmK/lkKblupTor6XoirHph43ph5HljIXoo4Xoh6rl
+t7HvvJ/orqnoh6rlt7Hlvojlroznvo7vvJ8NCuahiOS+i++8muaYr+WQpumcgOimgeWkhOWkhOih
+qOeOsOiHquW3seW+iOacieekvOiyjO+8nw0K5qGI5L6L77ya5aaC5L2V5LiO5LyB5Lia6auY5bGC
+44CB5pS/5bqc6auY5bGC5omT5Lqk6YGT77yfDQoNCuesrOS4gOiKgiDlgZrlm57nnJ/lrp7lkozn
+nJ/or5rnmoToh6rlt7HvvIzooajph4zlpoLkuIANCuekvOS7queahOebrueahOaYr+WwiumHjeWI
+q+S6uu+8jOiAjOS4jeaYr+S8quijheiHquW3se+8jOekvOS7quS4reW4uOingeeahOmUmeivr++8
+mw0KMeOAgea8lOWIq+S6uizlho3lpb3nmoTmvJTmioDkuZ/kvJrmkJ7noLjvvIzmg7PlgZrliKvk
+urrnmoTml7blgJks5L2g5bCx5Lya56a76Ieq5bex5b6I6L+c77ybDQoy44CB5LiN5ZCM55qE5Lq6
+LOmcgOaxguS4jeWQjCzotormlLnotorntK8s6LaK5pS56LaK5rCULOWPquS8muaKiuiHquW3seaK
+mOejqOW+l+W/g+a1ruawlOi6gSzkuI3lvpfkurrlv4PvvJsNCjPjgIHku6XmnIvlj4vnmoTlv4Pm
+gIHkuI7lrqLmiLfkuqTlvoDvvIzov4flpJrnmoTllYbkuJrljJbor63oqIDjgIHooYzkuLrjgIHo
+v4flpJrnmoTnpLzku6rlj6rkvJrorqnlrqLmiLfmhJ/op4nliLDnlJ/noazjgIHot53nprvjgIHm
+jpLmlqXjgIHlhazkuovlhazlip7vvIzmsqHmnInmhJ/mg4XvvJsNCjTjgIHpgILlvZPnmoTmmrTp
+nLLoh6rlt7HnmoTnvLrngrnvvIzotorlroznvo7nmoTkurrotorkuI3lj6/kv6HvvJsNCjXjgIHl
+rojml7Ys5a6I5L+hLOWuiOe6pizlj4rml7bkvKDpgJLov5vnqIvkuI7kv6Hmga/vvIzorqnlrqLm
+iLfmhJ/op4nliLDlj6/mjqfmgKfvvJsNCjbjgIHplIDllK7kuI3mmK/lkJHlrqLmiLfnrJHvvIzo
+gIzmmK/opoHorqnlrqLmiLflr7noh6rlt7HnrJHvvJsNCg0K56ys5LqM6IqCIOaEn+iwouS8pOWu
+s+aIkeeahOS6uu+8jOaYr+WboOS4uuaIkeiHquW3semUmeS6hu+8mw0KMeOAgQnkuIDlkbPpobrk
+u47jgIHmjqjljbjotKPku7vjgIHnkIborrrkuqTosIjjgIHosIjorrrlsI/kuovjgIHml6Dor5rk
+v6HvvJsNCjLjgIEJ5b2T5a6i5oi36K+06L+H5LiA5q615pe26Ze044CB5Lul5ZCO44CB5pS55aSp
+44CB5Zue5aS044CB5pyI5bqV5pe277yM5aaC5L2V5bqU5a+577yfDQoz44CBCei2iuWujOe+juea
+hOS6uui2iuS4jeWPr+S/oe+8jOiHquaIkeaatOmcsueahOWbm+S4quWxguasoe+8mw0KNOOAgQnl
+gZrlpb3pmLLplJnmgKfnmoTmnI3liqEs562+5a6M5ZCI5ZCM5LuF5LuF5piv5ZCI5L2c55qE5byA
+5aeL77ybDQrvgawJ5oyH5a+85a6i5oi35aaC5L2V5L2/55So77ybIA0K74GsCei3n+i4quS6p+WT
+geS9v+eUqOeahOaDheWGte+8myANCu+BrAnkuLrlrqLmiLflnKjkvb/nlKjov4fnqIvkuK3mj5Dk
+vpvmjIflr7zlu7rorq7vvJsgDQrvgawJ56ev5p6B6Kej562U5a6i5oi35Zyo5L2/55So5Lit5o+Q
+5Ye655qE6Zeu6aKY77ybIA0KDQoNCuesrOWbm+eroAnlm6LpmJ/phY3lkIgNCuaAneiAg++8mg0K
+MS4J5Zui6Zif6YWN5ZCI55qE5YmN5o+Q5piv5LuA5LmI77yf5piv5ZCm5Lu75oSP5Lik5Liq5Lq6
+5Zyo5LiA6LW36YO95Lya5pyJ5Zui6Zif57K+56We77yfDQoyLgnlm6LpmJ/phY3lkIjkuK3kuLrk
+u4DkuYjkvJrlh7rnjrDmia/nmq7nmoTnjrDosaHvvJ8NCjMuCeS4uuS7gOS5iOWFrOWPuOiKsemC
+o+S5iOmrmOaIkOacrOiuqeWkp+WutuWKoOa3seaEn+aDhe+8jOS9huacieS6m+S6uuS5i+mXtOi/
+mOaYr+aciemalOmYgu+8nw0KNC4J5Lia57up5aW955qE5Lq65b2x5ZON5Lia57up5beu55qE5Lq6
+5a655piT6L+Y5piv5Lia57up5beu55qE5b2x5ZON5Lia57up5aW955qE5a655piT77yfDQo1Lgnn
+u5/kuIDlupXolqrlpb3vvJ/ov5jmmK/lt67liKvljJblupXolqrlpb3vvJ/lpoLkvZXorqnlpKfl
+rrbpg73op4nlvpflhazlubPvvJ8NCjYuCeS4uuS7gOS5iOacieiDveWKm+eahOS4jeWQrOivne+8
+jOWQrOivneeahOWNtOayoeiDveWKm++8nw0KNy4J5Li65LuA5LmI5pyJ5Lqb5Lq65oC75piv5LiN
+5oyJ5oiR6KaB5rGC55qE5pa55rOV5Y675YGa77yfDQo4LgnpnaLlr7nkuJrnu6nmgLvmmK/lvojl
+t67nmoTlkZjlt6XvvIzliLDlupXmmK/nlZnov5jmmK/lvIDvvJ8NCg0K56ys5LiA6IqCCeWboumY
+n+mFjeWQiOeahOmHjeimgeaApw0KMS4J5LyY56eA55qE5Lia5Yqh5ZGY5Lia57up5b6A5b6A5piv
+5pmu6YCa55qE5Yeg5Y2B55Sa6Iez5LiK55m+5YCN77ybDQoyLgnmj5Dpq5jmiJDkuqTnmoTmlYjn
+jofvvIzkuI3opoHmnYDmlYzkuIDljYPvvIzogIzoh6rmjZ/lhavnmb7vvJsNCjMuCeS8mOengOS4
+muWKoeWRmOe8uuaXtumXtO+8jOS4mue7qeaZrumAmueahOS4muWKoeWRmOe8uuiDveWKm++8jOaJ
+rOmVv+mBv+efre+8jOS6uuWwveWFtuaJje+8mw0KNC4J5oqK5Lq65Yqb6LWE5rqQ5pWI55uK5Yip
+55So5pyA5aSn5YyW77ybDQo1LgnmiZPpgKDlroznvo7nmoTlm6LpmJ/vvIzorqnmiJDlkZjnmoTn
+vLrngrnnm7jkupLmirXmtojvvJsNCg0K56ys5LqM6IqC77yM5aaC5L2V5byA5bGV5Zui6Zif6YWN
+5ZCIDQrnrKzkuIDjgIEJ6IO95Yqb5LqS6KGlDQoxLgnlhbPms6jlkZjlt6XnmoTog73lipvvvIzk
+uI3opoHmiormnKrmnaXlr4TmiZjlnKjlkZjlt6XmnKrnn6XnmoTmvZzog73kuIrvvJsNCjIuCeS4
+jeimgeaKiuWRmOW3peWhkemAoOaIkOWQjOS4gOexu+Wei+eahOS6uu+8jOS4jeaKiuS4k+aJjeW9
+k+WFqOaJjeeUqO+8mw0KMy4J5Zui6Zif5Lul6IO95Li65pys77yM6ZSA5ZSu5bKX5L2N5bi46KeB
+55qEMTTpobnmioDog73vvJsNCjQuCeWUruWJjeOAgeWUruS4reOAgeWUruWQjuS6uuWRmOimgeax
+guS4juWmguS9leaQremFje+8nw0KNS4J5qGI5L6L77ya5paw5ZGY5bel5pyJ5r+A5oOF77yM5L2G
+6IO95Yqb5LiN6Laz77yM6ICB5ZGY5bel5pyJ6IO95Yqb77yM5L2G5r+A5oOF5LiN6Laz77yM5oCO
+5LmI5Yqe77yfDQoNCuesrOS6jOOAgeWIqeebiuWFs+iBlA0KMS4J5Li65LuA5LmI5oiQ5ZGY5Lya
+55u45LqS5Ya35ryg44CB5LqS5LiN5YWz5b+D44CB5b285q2k5bCB6ZSB5L+h5oGv5ZKM6LWE5rqQ
+77yfDQoyLgnkuLrku4DkuYjlm6LpmJ/miJDlkZjmiorlm6LpmJ/nmoTkuovkuI3lvZPlm57kuovv
+vJ8NCjMuCeWmguS9leaJjeiDveiuqeWboumYn+aIkOWRmOecn+W/g+eahOS4uuS8mOengOeahOaI
+kOWRmOiAjOmrmOWFtO+8nw0KNC4J5byA6Zmk5Lia57up5beu55qE5ZGY5bel77yM5YW25LuW5oiQ
+5ZGY57y65LmP5a6J5YWo5oSf5oCO5LmI5Yqe77yfDQo1LgnlpoLkvZXmiY3og73orqnlm6LpmJ/o
+h6rliqjoh6rlj5HnmoTliqrlipvlt6XkvZzvvJ8NCg0K56ys5LiJ6IqC44CB5LiN5ZCM5a6i5oi3
+5Zac5qyi5LiN5ZCM6aOO5qC855qE6ZSA5ZSu5Lq65ZGYDQox44CBIOmUgOWUruS6uuWRmOW9ouix
+oeS4juS4vuatou+8jOazqOaEj+iHquW3seeahOW9ouixoe+8mw0KMuOAgSDmmK/lkKblhbflpIfn
+m7jkvLznmoTog4zmma/vvIzpl6jlvZPmiLflr7nvvJsNCjPjgIEg5piv5ZCm5YW35aSH55u45ZCM
+55qE6K6k6K+G77yM6YGT5LiN5ZCM5LiN55u45Li655uf77ybDQo044CBIOaYr+WQpuKAnOaKleWF
+tuaJgOWlveKAne+8jOivneS4jeaKleacuuWNiuWPpeWkmu+8mw0KNeOAgSDotZ7nvo7vvIzllpzm
+rKLlr7nmlrnvvIzmiJHku6zlkIzmoLflr7nllpzmrKLmiJHku6znmoTkurrmnInlpb3mhJ/vvJsN
+CiAgICDlhYjkuqTmtYHmhJ/mg4Us5aKe6L+b5LqS5L+hLOassumAn+WImeS4jei+vjsNCjbjgIEg
+5piv5ZCm5a+56ZSA5ZSu5Lq65ZGY54af5oKJ77yM6ZSA5ZSu5pyA5b+M6K6z5Lqk5rWF6KiA5rex
+77ybDQogICAg5Yid5qyh6KeB6Z2i5bCx5LyB5Zu+6Lef5Yir5Lq65oiQ5Li65pyL5Y+L55qE6KGM
+5Li65b6I5bm856ia77ybDQogICAg5Yid5qyh6KeB6Z2i5bCx5pqX56S65aW95aSE55qE6KGM5Li6
+5b6I6IKk5rWF77ybDQogICAg5Yia6KeB6Z2i5bCx5by66LCD5Lu35qC85b6I5L6/5a6c55qE6KGM
+5Li65b6I5oSa6KCi77ybDQo344CBIOmUgOWUruS6uuWRmOaYr+WQpuWFt+Wkh+S6suWSjOWKm++8
+jOWIq+S6uueahOiEuOaYr+iHquW3seeahOS4gOmdoumVnOWtkO+8mw0KICAgIOaIkOS6pOW5tuS4
+jeWPluWGs+S6juivtOeQhu+8jOiAjOaYr+WPluWGs+S6juW/g+aDhQ0KOOOAgSDplIDllK7kurrl
+kZjmmK/lkKblgLzlvpfkv6HotZbjgIINCg0K56ys5YWt56ugICDmlrDlrqLmiLflvIDlj5ENCuah
+iOS+i++8muS4uuS7gOS5iOWuouaIt+S4gOW8gOWni+W+iOacieWFtOi2o++8jOS9hui/n+i/n+S4
+jeS4i+WNle+8nw0K5qGI5L6L77ya5YmN5aSp5piO5piO6K+05LiN5Lmw55qE5a6i5oi35bGF54S2
+5LuK5aSp5Y205Lmw5LqG77yM5a6i5oi355qE6K+d6IO955u45L+h5ZCX77yfDQrmoYjkvovvvJrl
+rqLmiLfnrZTlupTkubDmiJHlj7jnmoTkuqflk4HvvIzljbTnqoHnhLblj5jljabkubDliKvkurrn
+moTkuobvvIzkuLrku4DkuYjvvJ8NCuahiOS+i++8muS4uuS7gOS5iOaIkeS7rOS8muS5sOiHquW3
+seayoeacieWFtOi2o+eahOiAjOS4lOW5tuS4jemcgOimgeeahOS6p+WTge+8nw0K5LiA44CB5a6i
+5oi35piv5qC55o2u6Ieq5bex5omA5oqV5YWl55qE57K+5Yqb44CB6YeR6ZKx5p2l56Gu5a6a6Ieq
+5bex55qE5oCB5bqm77ybDQrkuozjgIHlpoLkvZXmiY3og73lvJXlr7zlrqLmiLfkvZzoh6rmiJHo
+r7TmnI3vvJ8NCjEuCeS4jeimgei9u+aYk+e7meWuouaIt+S4i+e7k+iuuu+8jOiwgeS8muS5sO+8
+jOiwgeS4jeS8muS5sA0KMi4J5oCB5bqm5LiK55qE5Y+Y5YyW5Y+r6K+05pyN77yM6KGM5Li65LiK
+55qE5Y+Y5YyW5Y+r5o6l5Y+X77ybDQozLgnmiJHku6zpg73llpzmrKLkuLrmiJHku6zoh6rlt7Hn
+moTooYzkuLrmib7nkIbnlLHvvIzljbTkuI3lloTkuo7lgZrmiJHku6zlt7Lmib7liLDnkIbnlLHn
+moTkuovvvJsNCjQuCeWuouaIt+aYr+WPkeeOsOS6huiHquW3seeahOmcgOaxgu+8jOKAnOWPkeeO
+sOKAneeahOS+neaNruaYr+iHquW3seeahOihjOS4uu+8myANCjUuCeahiOS+i++8muWQiOWQjOet
+vuiuouWQju+8jOW6lOivpemXruWTqjTlj6Xor53vvIzmj5DljYflrqLmiLflv6Dor5rluqbvvJ8N
+Cg0K56ys5LiD56ugIOiHquaIkea/gOWKsQ0KMS4J5YGa6ZSA5ZSu5bel5L2c6LWa6ZKx5pyA5b+r
+77yM5LiU5pyA5a655piT5b6X5Yiw6ICB5p2/55qE6YeN6KeG44CB5ZCM5LqL55qE5bCK6YeN77yb
+DQoyLgnkuI3opoHmiornrKzkuIDmrKHop4HpnaLnnIvmiJDmnIDlkI7kuIDmrKHvvIzlt6XkvZzo
+poHnp6/mnoHkvYbkuI3opoHnnYDmgKXvvJsNCjMuCeS4jeaYr+aIkOWKn+WkquaFou+8jOiAjOaY
+r+aUvuW8g+WkquW/q++8jOmSseaYr+e7meWGheihjOeahOS6uui1mueahO+8mw0KNC4J5LiN6KaB
+5oql552A6K+V6K+V55yL55qE5b+D5oCB77yM5LyB5Zu+5LiA5aSc5pq05a+M55qE5oqV5py65b+D
+5oCB6K6p5a6i5oi35Y+N5oSf77ybDQo1LgnkuI3mmK/mnInluIzmnJvmiY3lnZrmjIHvvIzogIzm
+mK/lnZrmjIHkuobmiY3mnInluIzmnJvvvJsgDQo2Lgnku5jlh7rmiY3kvJrmi6XmnInvvIzogIzk
+uI3mmK/mi6XmnInmiY3ku5jlh7rvvJvlgZrkuobmiY3kvJrvvIzogIzkuI3mmK/kvJrkuobmiY3l
+gZrvvJsNCjcuCeWlveW3peS9nOaYr+WBmuWHuuadpeeahO+8jOS4jeaYr+aJvuWHuuadpeeahO+8
+jOS4jeimgeaKiuiHquW3seaJmOS7mOe7meWFrOWPuO+8jOiAjOimgeeLrOeri+aIkOmVv++8mw0K
+OC4J5bCd6K+V5LiN5ZCM55qE5bel5L2c5pa55rOV77yM6ICM5LiN5piv5aSa5bm06YeN5aSN5L2/
+55So5LiA56eN5pa55byP77yM5YW35aSH6K+V6ZSZ55qE57K+56We77ybDQo5Lgnlt6XkvZzlj6/k
+u6Xlh7rplJnvvIzkvYbkuI3lj6/ku6XkuI3lgZrvvIzkuJbnlYzkuIrmnIDljbHpmannmoTojqvo
+v4fkuo7ljp/lnLDkuI3liqjvvJsNCjEwLgnkuI3opoHmiormnKrmnaXlr4TmiZjlnKjoh6rlt7Hk
+uIDml6DmiYDnn6XnmoTooYzkuJrkuIrvvIzlgZrlpb3nm67liY3nmoTlt6XkvZzvvJsNCg0K44CQ
+5Z+56K6t54m554K544CRDQoxLuWIhue7hOiuqOiuuu+8jOiuree7g+S4uuS4u++8jOS6kuWKqOW8
+j+aVmeWtpu+8mzLmrKHnjrDlnLrogIPor5U7DQoyLuecn+WunuahiOS+i+WIhuaekO+8jOWkp+mH
+j+ivvuWQjuS9nOS4mumimO+8jOaXouacieaKouetlO+8jOWPiOaciei+qeiuuu+8jOi/mOacieeO
+sOWcuua8lOe7g++8jOeDreeDiOeahOivvuWgguawm+WbtO+8mw0KMy7lsIbplIDllK7nrqHnkIbo
+no3lhaXln7norq3njrDlnLrvvJoNCiAgIDMuMSAg5LiN5LuF5YWz5rOo5Liq5Lq65a2m5Lmg6KGo
+546w77yM6ICM5LiU6YeN6KeG5Zui6Zif5ZCI5L2c77ybDQogICAzLjIgIOS4jeS7heWFs+azqDLl
+pKnku6XlhoXnmoTlrabkuaDvvIzogIzkuJTokKXpgKAy5aSp5Lul5ZCO55qE5Z+56K6t5a2m5Lmg
+5rCb5Zu077ybDQogICAzLjMgIOS4jeS7heiAg+aguOS4quS6uuW+l+WIhu+8jOiAjOS4lOiAg+ag
+uOWboumYn+W+l+WIhu+8m+S4jeS7heiAg+aguOWtpuWRmOeahOWtpuS5oOaIkOe7qe+8jOiAjOS4
+lOiAg+aguOWtpuWRmOWtpuS5oOeahOWPguS4juW6pu+8mw0KDQoNCuOAkOiusuW4iOS7i+e7jeOA
+keOAgOeOi+i2iuiAgeW4iA0K74Gs44CA6ZSA5ZSu5Zui6Zif566h55CG5ZKo6K+i5biI44CB6ZSA
+5ZSu5Z+56K6t6K6y5biI77ybDQrvgazjgIDmm77ku7vlj6/lj6Plj6/kuZDvvIjkuK3lm73vvInl
+hazlj7jkuJrliqHnu4/nkIbvvJvpmL/ph4zlt7Tlt7TvvIjkuK3lm73vvInnvZHnu5zmioDmnK/m
+nInpmZDlhazlj7jkuJrliqHnu4/nkIbvvJsNCu+BrOOAgOa4heWNjuWkp+Wtpi7ljZfkuqzlpKfl
+raZFTUJB54m56YKA5Z+56K6t6K6y5biI77yb5paw5Yqg5Z2h6I6x5L2b5aOr5a2m6Zmi54m557qm
+6K6y5biIOw0K74Gs44CAMjAwMOW5tOiHs+S7iuS4gOebtOS7juS6i+mUgOWUruS4jumUgOWUruS6
+uuWRmOa/gOWKseS4juiuree7g+W3peS9nCzmm77ku7vlj6/lj6Plj6/kuZDnmoTkuJrliqHnu4/n
+kIbvvIzlhajnkIPnn6XlkI3kvIHkuJrpmL/ph4zlt7Tlt7Tlhazlj7jnmoTkuJrliqHnu4/nkIbv
+vIzmm77mr4/mnIjnlq/ni4LkuIrpl6jmi5zorr8xMDDlrrbku6XkuIrnmoTlrqLmiLfvvIzljYrl
+hpvkuovljJbnmoTplIDllK7ogYzkuJrnlJ/mtq/vvIzpq5jlvLrluqbnmoTlt6XkvZzljovlipss
+5YWo6Z2i57O757uf55qE5Y+X6K6t57uP5Y6G77yM56ev57Sv5LqG5Liw5a+M55qE5a6i5oi35pS2
+6ZuG44CB6ZSA5ZSu6LCI5Yik44CB5a6i5oi36Lef6L+b44CB5a6i5oi35pyN5Yqh44CB6Ieq5oiR
+5r+A5Yqx55qE57uP6aqM77yM5Zyo5YWs5Y+45pu+6I634oCc5oKN5bCG5p2v4oCd5qac55y844CC
+DQoNCuOAkOabvue7j+Wfueiurei/h+eahOmDqOS7veWuouaIt+OAkQ0K5Y2O5Li65YWs5Y+4L+er
+i+mCpua8huS4mi/lpKrlubPkv53pmakv5qyn5pmu54Wn5piOL+WPr+WPo+WPr+S5kC/miazlrZDn
+n7PljJYv6aOe5Yip5rWmL+eZvuW6pi/kuK3lm73np7vliqgv5YyX5Lqs5Lic5L+h5YyX6YKuL+S4
+reWbveiBlOmAmi/miJDpg73pgJrlj5Hpm4blm6Iv5pC656iL572R57ucL+W5v+W3nuaWueWchuaI
+v+S6py/mt7HlnLPljZfmtbfphZLlupcv5qGC5p6X5LiJ6YeR6I2v5LiaL+S4ieS4gOmHjeW3pS/m
+t7HlnLPlrp3lvrfpm4blm6Iv5LmJ5LmM6YKu5pS/5bGAL+W5v+ilv+awtOeUteW3peeoi+WxgC/p
+h43luobnhaTnp5HpmaIv5rex5Zyz54m55Y+R6IKh5Lu9L+WMl+S6rOabsue+juWutuengS/kuZ3p
+mLPnlLXlmagv54+g5riv5py65Zy6L+W3oua5lumCruaUvy/mtY7ljZfpgq7mlL8v5Y2X5Lqs5Yy7
+6I2v5oC75YWs5Y+4L+Wbvee+jueUteWZqC/pm6jmtqbpm4blm6Iv5Lit5Zu95LiA5ouW6ZuG5Zui
+6IO95rqQ5YiG5YWs5Y+4L+mHjeW6huenkeWIm+WtpumZoi8NCiAgICAgICAgICAgICAtLS0tLS0t
+LS00ZDdpd2pyNw0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0
+dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
