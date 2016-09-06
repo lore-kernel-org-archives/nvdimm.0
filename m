@@ -1,45 +1,51 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 3/5] mm: fix show_smap() for zone_device-pmd ranges
-Date: Tue, 6 Sep 2016 13:16:03 -0700
-Message-ID: <20160906131603.5374113e726e1e05becc34cb@linux-foundation.org>
+From: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: [PATCH 4/5] mm: fix cache mode of dax pmd mappings
+Date: Tue, 6 Sep 2016 13:17:56 -0700
+Message-ID: <20160906131756.6b6c6315b7dfba3a9d5f233a@linux-foundation.org>
 References: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
-        <147318057623.30325.10495460878595242707.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <147318058165.30325.16762406881120129093.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <147318057623.30325.10495460878595242707.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@ml01.01.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-kernel@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <147318058165.30325.16762406881120129093.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Nilesh Choudhury <nilesh.choudhury-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, "Kirill A. Shutemov" <kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Kai Zhang <kai.ka.zhang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, 06 Sep 2016 09:49:36 -0700 Dan Williams <dan.j.williams@intel.com> wrote:
+On Tue, 06 Sep 2016 09:49:41 -0700 Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-> Attempting to dump /proc/<pid>/smaps for a process with pmd dax mappings
-> currently results in the following VM_BUG_ONs:
+> track_pfn_insert() is marking dax mappings as uncacheable.
 > 
->  kernel BUG at mm/huge_memory.c:1105!
->  task: ffff88045f16b140 task.stack: ffff88045be14000
->  RIP: 0010:[<ffffffff81268f9b>]  [<ffffffff81268f9b>] follow_trans_huge_pmd+0x2cb/0x340
->  [..]
->  Call Trace:
->   [<ffffffff81306030>] smaps_pte_range+0xa0/0x4b0
->   [<ffffffff814c2755>] ? vsnprintf+0x255/0x4c0
->   [<ffffffff8123c46e>] __walk_page_range+0x1fe/0x4d0
->   [<ffffffff8123c8a2>] walk_page_vma+0x62/0x80
->   [<ffffffff81307656>] show_smap+0xa6/0x2b0
+> It is used to keep mappings attributes consistent across a remapped range.
+> However, since dax regions are never registered via track_pfn_remap(), the
+> caching mode lookup for dax pfns always returns _PAGE_CACHE_MODE_UC.  We do not
+> use track_pfn_insert() in the dax-pte path, and we always want to use the
+> pgprot of the vma itself, so drop this call.
 > 
->  kernel BUG at fs/proc/task_mmu.c:585!
->  RIP: 0010:[<ffffffff81306469>]  [<ffffffff81306469>] smaps_pte_range+0x499/0x4b0
->  Call Trace:
->   [<ffffffff814c2795>] ? vsnprintf+0x255/0x4c0
->   [<ffffffff8123c46e>] __walk_page_range+0x1fe/0x4d0
->   [<ffffffff8123c8a2>] walk_page_vma+0x62/0x80
->   [<ffffffff81307696>] show_smap+0xa6/0x2b0
-> 
-> These locations are sanity checking page flags that must be set for an
-> anonymous transparent huge page, but are not set for the zone_device
-> pages associated with dax mappings.
+> Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Cc: Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> Cc: Kirill A. Shutemov <kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+> Cc: Nilesh Choudhury <nilesh.choudhury-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reported-by: Kai Zhang <kai.ka.zhang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reported-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Acked-by: Andrew Morton <akpm@linux-foundation.org>
+Changelog fails to explain the user-visible effects of the patch.  The
+stable maintainer(s) will look at this and wonder "ytf was I sent
+this".
+
+After fixing that, 
+
+Acked-by: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
