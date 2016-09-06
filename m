@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1924C1A1E5C
- for <linux-nvdimm@lists.01.org>; Thu, 29 Sep 2016 15:49:39 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 05/12] dax: make 'wait_table' global variable static
-Date: Thu, 29 Sep 2016 16:49:23 -0600
-Message-Id: <1475189370-31634-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1475189370-31634-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1475189370-31634-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 44B081A1E6C
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Sep 2016 09:52:37 -0700 (PDT)
+Subject: [PATCH 3/5] mm: fix show_smap() for zone_device-pmd ranges
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 06 Sep 2016 09:49:36 -0700
+Message-ID: <147318057623.30325.10495460878595242707.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,42 +18,84 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-mm@kvack.org, akpm@linux-foundation.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The global 'wait_table' variable is only used within fs/dax.c, and
-generates the following sparse warning:
+Attempting to dump /proc/<pid>/smaps for a process with pmd dax mappings
+currently results in the following VM_BUG_ONs:
 
-fs/dax.c:39:19: warning: symbol 'wait_table' was not declared. Should it be static?
+ kernel BUG at mm/huge_memory.c:1105!
+ task: ffff88045f16b140 task.stack: ffff88045be14000
+ RIP: 0010:[<ffffffff81268f9b>]  [<ffffffff81268f9b>] follow_trans_huge_pmd+0x2cb/0x340
+ [..]
+ Call Trace:
+  [<ffffffff81306030>] smaps_pte_range+0xa0/0x4b0
+  [<ffffffff814c2755>] ? vsnprintf+0x255/0x4c0
+  [<ffffffff8123c46e>] __walk_page_range+0x1fe/0x4d0
+  [<ffffffff8123c8a2>] walk_page_vma+0x62/0x80
+  [<ffffffff81307656>] show_smap+0xa6/0x2b0
 
-Make it static so it has scope local to fs/dax.c, and to make sparse happy.
+ kernel BUG at fs/proc/task_mmu.c:585!
+ RIP: 0010:[<ffffffff81306469>]  [<ffffffff81306469>] smaps_pte_range+0x499/0x4b0
+ Call Trace:
+  [<ffffffff814c2795>] ? vsnprintf+0x255/0x4c0
+  [<ffffffff8123c46e>] __walk_page_range+0x1fe/0x4d0
+  [<ffffffff8123c8a2>] walk_page_vma+0x62/0x80
+  [<ffffffff81307696>] show_smap+0xa6/0x2b0
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+These locations are sanity checking page flags that must be set for an
+anonymous transparent huge page, but are not set for the zone_device
+pages associated with dax mappings.
+
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    2 ++
+ mm/huge_memory.c   |    4 ++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 9b9be8a..ac28cdf 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -52,7 +52,7 @@
- #define DAX_WAIT_TABLE_BITS 12
- #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
+diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+index 187d84ef9de9..f6fa99eca515 100644
+--- a/fs/proc/task_mmu.c
++++ b/fs/proc/task_mmu.c
+@@ -581,6 +581,8 @@ static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
+ 		mss->anonymous_thp += HPAGE_PMD_SIZE;
+ 	else if (PageSwapBacked(page))
+ 		mss->shmem_thp += HPAGE_PMD_SIZE;
++	else if (is_zone_device_page(page))
++		/* pass */;
+ 	else
+ 		VM_BUG_ON_PAGE(1, page);
+ 	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd));
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 2db2112aa31e..a6abd76baa72 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -1078,7 +1078,7 @@ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
+ 		goto out;
  
--wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
-+static wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
+ 	page = pmd_page(*pmd);
+-	VM_BUG_ON_PAGE(!PageHead(page), page);
++	VM_BUG_ON_PAGE(!PageHead(page) && !is_zone_device_page(page), page);
+ 	if (flags & FOLL_TOUCH)
+ 		touch_pmd(vma, addr, pmd);
+ 	if ((flags & FOLL_MLOCK) && (vma->vm_flags & VM_LOCKED)) {
+@@ -1116,7 +1116,7 @@ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
+ 	}
+ skip_mlock:
+ 	page += (addr & ~HPAGE_PMD_MASK) >> PAGE_SHIFT;
+-	VM_BUG_ON_PAGE(!PageCompound(page), page);
++	VM_BUG_ON_PAGE(!PageCompound(page) && !is_zone_device_page(page), page);
+ 	if (flags & FOLL_GET)
+ 		get_page(page);
  
- static int __init init_dax_wait_table(void)
- {
--- 
-2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
