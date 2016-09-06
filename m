@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DC1881A1E3E
- for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 09:08:35 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 19/20] dax: Protect PTE modification on WP fault by radix tree
- entry lock
-Date: Tue, 27 Sep 2016 18:08:23 +0200
-Message-Id: <1474992504-20133-20-git-send-email-jack@suse.cz>
-In-Reply-To: <1474992504-20133-1-git-send-email-jack@suse.cz>
-References: <1474992504-20133-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id CDACC1A1E73
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Sep 2016 10:15:18 -0700 (PDT)
+Subject: [PATCH v2 2/2] tools/testing/nvdimm: unit test for
+ acpi_nvdimm_notify()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 06 Sep 2016 10:12:19 -0700
+Message-ID: <147318193977.31512.6886142718841435640.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147318192936.31512.1001529917260869136.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147318192936.31512.1001529917260869136.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,81 +19,181 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently PTE gets updated in wp_pfn_shared() after dax_pfn_mkwrite()
-has released corresponding radix tree entry lock. When we want to
-writeprotect PTE on cache flush, we need PTE modification to happen
-under radix tree entry lock to ensure consisten updates of PTE and radix
-tree (standard faults use page lock to ensure this consistency). So move
-update of PTE bit into dax_pfn_mkwrite().
+Trigger an nmemX/nfit/flags attribute to fire an event whenever a
+smart-threshold DSM is received.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+Acked-by: Rafael J. Wysocki <rafael@kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c    | 22 ++++++++++++++++------
- mm/memory.c |  2 +-
- 2 files changed, 17 insertions(+), 7 deletions(-)
+ drivers/acpi/nfit/core.c         |   10 ++++++--
+ drivers/acpi/nfit/nfit.h         |    1 +
+ tools/testing/nvdimm/test/nfit.c |   45 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 53 insertions(+), 3 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index c6cadf8413a3..a2d3781c9f4e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1163,17 +1163,27 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct file *file = vma->vm_file;
- 	struct address_space *mapping = file->f_mapping;
--	void *entry;
-+	void *entry, **slot;
- 	pgoff_t index = vmf->pgoff;
- 
- 	spin_lock_irq(&mapping->tree_lock);
--	entry = get_unlocked_mapping_entry(mapping, index, NULL);
--	if (!entry || !radix_tree_exceptional_entry(entry))
--		goto out;
-+	entry = get_unlocked_mapping_entry(mapping, index, &slot);
-+	if (!entry || !radix_tree_exceptional_entry(entry)) {
-+		if (entry)
-+			put_unlocked_mapping_entry(mapping, index, entry);
-+		spin_unlock_irq(&mapping->tree_lock);
-+		return VM_FAULT_NOPAGE;
-+	}
- 	radix_tree_tag_set(&mapping->page_tree, index, PAGECACHE_TAG_DIRTY);
--	put_unlocked_mapping_entry(mapping, index, entry);
--out:
-+	entry = lock_slot(mapping, slot);
- 	spin_unlock_irq(&mapping->tree_lock);
-+	/*
-+	 * If we race with somebody updating the PTE and finish_mkwrite_fault()
-+	 * fails, we don't care. We need to return VM_FAULT_NOPAGE and retry
-+	 * the fault in either case.
-+	 */
-+	finish_mkwrite_fault(vmf);
-+	put_locked_mapping_entry(mapping, index, entry);
- 	return VM_FAULT_NOPAGE;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 4af1db1cb599..ceb6671ab355 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1248,7 +1248,7 @@ static struct nvdimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
+ 	return NULL;
  }
- EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
-diff --git a/mm/memory.c b/mm/memory.c
-index e7a4a30a5e88..5fa3d0c5196e 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2310,7 +2310,7 @@ static int wp_pfn_shared(struct vm_fault *vmf)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 		vmf->flags |= FAULT_FLAG_MKWRITE;
- 		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
--		if (ret & VM_FAULT_ERROR)
-+		if (ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE))
- 			return ret;
- 		return finish_mkwrite_fault(vmf);
+ 
+-static void __acpi_nvdimm_notify(struct device *dev, u32 event)
++void __acpi_nvdimm_notify(struct device *dev, u32 event)
+ {
+ 	struct nfit_mem *nfit_mem;
+ 	struct acpi_nfit_desc *acpi_desc;
+@@ -1274,6 +1274,7 @@ static void __acpi_nvdimm_notify(struct device *dev, u32 event)
+ 	if (nfit_mem && nfit_mem->flags_attr)
+ 		sysfs_notify_dirent(nfit_mem->flags_attr);
+ }
++EXPORT_SYMBOL_GPL(__acpi_nvdimm_notify);
+ 
+ static void acpi_nvdimm_notify(acpi_handle handle, u32 event, void *data)
+ {
+@@ -1365,12 +1366,15 @@ static void shutdown_dimm_notify(void *data)
+ 	 * notifications.
+ 	 */
+ 	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
++		struct acpi_device *adev_dimm = nfit_mem->adev;
++
+ 		if (nfit_mem->flags_attr) {
+ 			sysfs_put(nfit_mem->flags_attr);
+ 			nfit_mem->flags_attr = NULL;
+ 		}
+-		acpi_remove_notify_handler(nfit_mem->adev->handle,
+-				ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
++		if (adev_dimm)
++			acpi_remove_notify_handler(adev_dimm->handle,
++					ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
  	}
--- 
-2.6.6
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ }
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 13195824778c..bb101170cd0b 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -233,5 +233,6 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
+ const u8 *to_nfit_uuid(enum nfit_uuids id);
+ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *nfit, acpi_size sz);
+ void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event);
++void __acpi_nvdimm_notify(struct device *dev, u32 event);
+ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev);
+ #endif /* __NFIT_H__ */
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 8d79c75d3cae..99ea68674f0a 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -161,6 +161,7 @@ struct nfit_test {
+ 		unsigned long deadline;
+ 		spinlock_t lock;
+ 	} ars_state;
++	struct device *dimm_dev[NUM_DCR];
+ };
+ 
+ static struct nfit_test *to_nfit_test(struct device *dev)
+@@ -430,6 +431,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 			break;
+ 		case ND_CMD_SMART_THRESHOLD:
+ 			rc = nfit_test_cmd_smart_threshold(buf, buf_len);
++			device_lock(&t->pdev.dev);
++			__acpi_nvdimm_notify(t->dimm_dev[i], 0x81);
++			device_unlock(&t->pdev.dev);
+ 			break;
+ 		default:
+ 			return -ENOTTY;
+@@ -566,6 +570,18 @@ static int ars_state_init(struct device *dev, struct ars_state *ars_state)
+ 	return 0;
+ }
+ 
++static void put_dimms(void *data)
++{
++	struct device **dimm_dev = data;
++	int i;
++
++	for (i = 0; i < NUM_DCR; i++)
++		if (dimm_dev[i])
++			device_unregister(dimm_dev[i]);
++}
++
++static struct class *nfit_test_dimm;
++
+ static int nfit_test0_alloc(struct nfit_test *t)
+ {
+ 	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * NUM_SPA
+@@ -621,6 +637,15 @@ static int nfit_test0_alloc(struct nfit_test *t)
+ 	if (!t->_fit)
+ 		return -ENOMEM;
+ 
++	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t->dimm_dev))
++		return -ENOMEM;
++	for (i = 0; i < NUM_DCR; i++) {
++		t->dimm_dev[i] = device_create(nfit_test_dimm, &t->pdev.dev, 0,
++				NULL, "test_dimm%d", i);
++		if (!t->dimm_dev[i])
++			return -ENOMEM;
++	}
++
+ 	return ars_state_init(&t->pdev.dev, &t->ars_state);
+ }
+ 
+@@ -1414,6 +1439,7 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 	struct acpi_nfit_desc *acpi_desc;
+ 	struct device *dev = &pdev->dev;
+ 	struct nfit_test *nfit_test;
++	struct nfit_mem *nfit_mem;
+ 	union acpi_object *obj;
+ 	int rc;
+ 
+@@ -1493,6 +1519,20 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 	obj->buffer.pointer = nfit_test->nfit_buf;
+ 	*(nfit_test->_fit) = obj;
+ 	__acpi_nfit_notify(&pdev->dev, nfit_test, 0x80);
++
++	/* associate dimm devices with nfit_mem data for notification testing */
++	mutex_lock(&acpi_desc->init_mutex);
++	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
++		u32 nfit_handle = __to_nfit_memdev(nfit_mem)->device_handle;
++		int i;
++
++		for (i = 0; i < NUM_DCR; i++)
++			if (nfit_handle == handle[i])
++				dev_set_drvdata(nfit_test->dimm_dev[i],
++						nfit_mem);
++	}
++	mutex_unlock(&acpi_desc->init_mutex);
++
+ 	return 0;
+ }
+ 
+@@ -1526,6 +1566,10 @@ static __init int nfit_test_init(void)
+ {
+ 	int rc, i;
+ 
++	nfit_test_dimm = class_create(THIS_MODULE, "nfit_test_dimm");
++	if (IS_ERR(nfit_test_dimm))
++		return PTR_ERR(nfit_test_dimm);
++
+ 	nfit_test_setup(nfit_test_lookup);
+ 
+ 	for (i = 0; i < NUM_NFITS; i++) {
+@@ -1592,6 +1636,7 @@ static __exit void nfit_test_exit(void)
+ 	for (i = 0; i < NUM_NFITS; i++)
+ 		platform_device_unregister(&instances[i]->pdev);
+ 	nfit_test_teardown();
++	class_destroy(nfit_test_dimm);
+ }
+ 
+ module_init(nfit_test_init);
 
 _______________________________________________
 Linux-nvdimm mailing list
