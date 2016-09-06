@@ -1,21 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
- [IPv6:2607:f8b0:4003:c06::233])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A529D1A1E6F
- for <linux-nvdimm@lists.01.org>; Tue,  6 Sep 2016 10:32:17 -0700 (PDT)
-Received: by mail-oi0-x233.google.com with SMTP id y2so83853890oie.0
- for <linux-nvdimm@lists.01.org>; Tue, 06 Sep 2016 10:32:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <DM2PR21MB00892878E2A17E076A18C795CBF90@DM2PR21MB0089.namprd21.prod.outlook.com>
-References: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
- <147318058165.30325.16762406881120129093.stgit@dwillia2-desk3.amr.corp.intel.com>
- <DM2PR21MB00892878E2A17E076A18C795CBF90@DM2PR21MB0089.namprd21.prod.outlook.com>
+ by ml01.01.org (Postfix) with ESMTPS id 92E001A1E79
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Sep 2016 09:52:40 -0700 (PDT)
+Subject: [PATCH 4/5] mm: fix cache mode of dax pmd mappings
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 6 Sep 2016 10:32:16 -0700
-Message-ID: <CAPcyv4gZK33SH7FjZDYpkf-9peeZ0E3pZu=ZjmHwSBxdh4zj-g@mail.gmail.com>
-Subject: Re: [PATCH 4/5] mm: fix cache mode of dax pmd mappings
+Date: Tue, 06 Sep 2016 09:49:41 -0700
+Message-ID: <147318058165.30325.16762406881120129093.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,18 +22,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Nilesh Choudhury <nilesh.choudhury@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Kai Zhang <kai.ka.zhang@oracle.com>
+To: linux-nvdimm@lists.01.org
+Cc: Matthew Wilcox <mawilcox@microsoft.com>, Nilesh Choudhury <nilesh.choudhury@oracle.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, akpm@linux-foundation.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Kai Zhang <kai.ka.zhang@oracle.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Sep 6, 2016 at 10:20 AM, Matthew Wilcox <mawilcox@microsoft.com> wrote:
-> I have no objection to this patch going in for now.
->
-> Longer term, surely we want to track what mode the PFNs are mapped in?  There are various bizarre suppositions out there about how persistent memory should be mapped, and it's probably better if the kernel ignores what the user specifies and keeps everything sane.  I've read the dire warnings in the Intel architecture manual and I have no desire to deal with the inevitable bug reports on some hardware I don't own and requires twenty weeks of operation in order to observe the bug.
+track_pfn_insert() is marking dax mappings as uncacheable.
 
-Is there a way for userspace to establish mappings with different
-cache modes, besides via /dev/mem?  That was the motivation for
-CONFIG_IO_STRICT_DEVMEM.
+It is used to keep mappings attributes consistent across a remapped range.
+However, since dax regions are never registered via track_pfn_remap(), the
+caching mode lookup for dax pfns always returns _PAGE_CACHE_MODE_UC.  We do not
+use track_pfn_insert() in the dax-pte path, and we always want to use the
+pgprot of the vma itself, so drop this call.
+
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Nilesh Choudhury <nilesh.choudhury@oracle.com>
+Reported-by: Kai Zhang <kai.ka.zhang@oracle.com>
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ mm/huge_memory.c |    2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index a6abd76baa72..338eff05c77a 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -676,8 +676,6 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return VM_FAULT_SIGBUS;
+-	if (track_pfn_insert(vma, &pgprot, pfn))
+-		return VM_FAULT_SIGBUS;
+ 	insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write);
+ 	return VM_FAULT_NOPAGE;
+ }
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
