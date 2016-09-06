@@ -1,102 +1,68 @@
-From: "Mail Delivery Subsystem" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Delivery reports about your e-mail
-Date: Tue, 6 Sep 2016 13:17:21 +0530
-Message-ID: <20160906074740.8029F1A1E3E@ml01.01.org>
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: RE: [PATCH 4/5] mm: fix cache mode of dax pmd mappings
+Date: Tue, 6 Sep 2016 17:20:47 +0000
+Message-ID: <DM2PR21MB00892878E2A17E076A18C795CBF90@DM2PR21MB0089.namprd21.prod.outlook.com>
+References: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <147318058165.30325.16762406881120129093.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_57CE74A3.631CF512"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <147318058165.30325.16762406881120129093.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: Toshi Kani <toshi.kani@hpe.com>, Nilesh Choudhury <nilesh.choudhury@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Kai Zhang <kai.ka.zhang@oracle.com>
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+SSBoYXZlIG5vIG9iamVjdGlvbiB0byB0aGlzIHBhdGNoIGdvaW5nIGluIGZvciBub3cuDQoNCkxv
+bmdlciB0ZXJtLCBzdXJlbHkgd2Ugd2FudCB0byB0cmFjayB3aGF0IG1vZGUgdGhlIFBGTnMgYXJl
+IG1hcHBlZCBpbj8gIFRoZXJlIGFyZSB2YXJpb3VzIGJpemFycmUgc3VwcG9zaXRpb25zIG91dCB0
+aGVyZSBhYm91dCBob3cgcGVyc2lzdGVudCBtZW1vcnkgc2hvdWxkIGJlIG1hcHBlZCwgYW5kIGl0
+J3MgcHJvYmFibHkgYmV0dGVyIGlmIHRoZSBrZXJuZWwgaWdub3JlcyB3aGF0IHRoZSB1c2VyIHNw
+ZWNpZmllcyBhbmQga2VlcHMgZXZlcnl0aGluZyBzYW5lLiAgSSd2ZSByZWFkIHRoZSBkaXJlIHdh
+cm5pbmdzIGluIHRoZSBJbnRlbCBhcmNoaXRlY3R1cmUgbWFudWFsIGFuZCBJIGhhdmUgbm8gZGVz
+aXJlIHRvIGRlYWwgd2l0aCB0aGUgaW5ldml0YWJsZSBidWcgcmVwb3J0cyBvbiBzb21lIGhhcmR3
+YXJlIEkgZG9uJ3Qgb3duIGFuZCByZXF1aXJlcyB0d2VudHkgd2Vla3Mgb2Ygb3BlcmF0aW9uIGlu
+IG9yZGVyIHRvIG9ic2VydmUgdGhlIGJ1Zy4NCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0N
+CkZyb206IERhbiBXaWxsaWFtcyBbbWFpbHRvOmRhbi5qLndpbGxpYW1zQGludGVsLmNvbV0gDQpT
+ZW50OiBUdWVzZGF5LCBTZXB0ZW1iZXIgNiwgMjAxNiAxMjo1MCBQTQ0KVG86IGxpbnV4LW52ZGlt
+bUBsaXN0cy4wMS5vcmcNCkNjOiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+OyBNYXR0
+aGV3IFdpbGNveCA8bWF3aWxjb3hAbWljcm9zb2Z0LmNvbT47IE5pbGVzaCBDaG91ZGh1cnkgPG5p
+bGVzaC5jaG91ZGh1cnlAb3JhY2xlLmNvbT47IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7
+IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LW1tQGt2YWNrLm9yZzsgYWtwbUBsaW51eC1m
+b3VuZGF0aW9uLm9yZzsgUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29t
+PjsgS2lyaWxsIEEuIFNodXRlbW92IDxraXJpbGwuc2h1dGVtb3ZAbGludXguaW50ZWwuY29tPjsg
+S2FpIFpoYW5nIDxrYWkua2EuemhhbmdAb3JhY2xlLmNvbT4NClN1YmplY3Q6IFtQQVRDSCA0LzVd
+IG1tOiBmaXggY2FjaGUgbW9kZSBvZiBkYXggcG1kIG1hcHBpbmdzDQoNCnRyYWNrX3Bmbl9pbnNl
+cnQoKSBpcyBtYXJraW5nIGRheCBtYXBwaW5ncyBhcyB1bmNhY2hlYWJsZS4NCg0KSXQgaXMgdXNl
+ZCB0byBrZWVwIG1hcHBpbmdzIGF0dHJpYnV0ZXMgY29uc2lzdGVudCBhY3Jvc3MgYSByZW1hcHBl
+ZCByYW5nZS4NCkhvd2V2ZXIsIHNpbmNlIGRheCByZWdpb25zIGFyZSBuZXZlciByZWdpc3RlcmVk
+IHZpYSB0cmFja19wZm5fcmVtYXAoKSwgdGhlIGNhY2hpbmcgbW9kZSBsb29rdXAgZm9yIGRheCBw
+Zm5zIGFsd2F5cyByZXR1cm5zIF9QQUdFX0NBQ0hFX01PREVfVUMuICBXZSBkbyBub3QgdXNlIHRy
+YWNrX3Bmbl9pbnNlcnQoKSBpbiB0aGUgZGF4LXB0ZSBwYXRoLCBhbmQgd2UgYWx3YXlzIHdhbnQg
+dG8gdXNlIHRoZSBwZ3Byb3Qgb2YgdGhlIHZtYSBpdHNlbGYsIHNvIGRyb3AgdGhpcyBjYWxsLg0K
+DQpDYzogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPg0KQ2M6IE1h
+dHRoZXcgV2lsY294IDxtYXdpbGNveEBtaWNyb3NvZnQuY29tPg0KQ2M6IEtpcmlsbCBBLiBTaHV0
+ZW1vdiA8a2lyaWxsLnNodXRlbW92QGxpbnV4LmludGVsLmNvbT4NCkNjOiBBbmRyZXcgTW9ydG9u
+IDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPg0KQ2M6IE5pbGVzaCBDaG91ZGh1cnkgPG5pbGVz
+aC5jaG91ZGh1cnlAb3JhY2xlLmNvbT4NClJlcG9ydGVkLWJ5OiBLYWkgWmhhbmcgPGthaS5rYS56
+aGFuZ0BvcmFjbGUuY29tPg0KUmVwb3J0ZWQtYnk6IFRvc2hpIEthbmkgPHRvc2hpLmthbmlAaHBl
+LmNvbT4NCkNjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4NClNpZ25lZC1vZmYtYnk6IERhbiBX
+aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KLS0tDQogbW0vaHVnZV9tZW1vcnku
+YyB8ICAgIDIgLS0NCiAxIGZpbGUgY2hhbmdlZCwgMiBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdp
+dCBhL21tL2h1Z2VfbWVtb3J5LmMgYi9tbS9odWdlX21lbW9yeS5jIGluZGV4IGE2YWJkNzZiYWE3
+Mi4uMzM4ZWZmMDVjNzdhIDEwMDY0NA0KLS0tIGEvbW0vaHVnZV9tZW1vcnkuYw0KKysrIGIvbW0v
+aHVnZV9tZW1vcnkuYw0KQEAgLTY3Niw4ICs2NzYsNiBAQCBpbnQgdm1mX2luc2VydF9wZm5fcG1k
+KHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hLCB1bnNpZ25lZCBsb25nIGFkZHIsDQogDQogCWlm
+IChhZGRyIDwgdm1hLT52bV9zdGFydCB8fCBhZGRyID49IHZtYS0+dm1fZW5kKQ0KIAkJcmV0dXJu
+IFZNX0ZBVUxUX1NJR0JVUzsNCi0JaWYgKHRyYWNrX3Bmbl9pbnNlcnQodm1hLCAmcGdwcm90LCBw
+Zm4pKQ0KLQkJcmV0dXJuIFZNX0ZBVUxUX1NJR0JVUzsNCiAJaW5zZXJ0X3Bmbl9wbWQodm1hLCBh
+ZGRyLCBwbWQsIHBmbiwgcGdwcm90LCB3cml0ZSk7DQogCXJldHVybiBWTV9GQVVMVF9OT1BBR0U7
+DQogfQ0KDQo=
 
-------------=_57CE74A3.631CF512
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Linux-nvdimm mailing list Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org https://lists.01.org/mailman/listinfo/linux-nvdimm
-   [...] 
-
-Content analysis details:   (7.1 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
-                            [103.204.166.162 listed in dnsbl.sorbs.net]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 0.1 RCVD_IN_SBL            RBL: Received via a relay in Spamhaus SBL
-                            [103.204.166.162 listed in zen.spamhaus.org]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
--0.0 BAYES_20               BODY: Bayes spam probability is 5 to 20%
-                            [score: 0.1152]
- 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
- 2.6 MSOE_MID_WRONG_CASE    No description available.
- 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
-
-
-
-------------=_57CE74A3.631CF512
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1bhB6Z-00071V-P5
-	for gln-linux-nvdimm@m.gmane.org; Tue, 06 Sep 2016 09:47:39 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8029F1A1E3E;
-	Tue,  6 Sep 2016 00:47:40 -0700 (PDT)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from lists.01.org (unknown [103.204.166.162])
- by ml01.01.org (Postfix) with ESMTP id 06A841A1E3E
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Tue,  6 Sep 2016 00:47:36 -0700 (PDT)
-From: "Mail Delivery Subsystem" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Subject: Delivery reports about your e-mail
-Date: Tue, 6 Sep 2016 13:17:21 +0530
-MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-X-Content-Filtered-By: Mailman/MimeDel 2.1.21
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Message-Id: <20160906074740.8029F1A1E3E-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_57CE74A3.631CF512--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
