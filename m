@@ -1,18 +1,17 @@
-From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH 4/5] mm: fix cache mode of dax pmd mappings
-Date: Wed, 7 Sep 2016 19:39:19 +0000
-Message-ID: <1473277101.2092.39.camel@hpe.com>
+Date: Wed, 7 Sep 2016 12:45:16 -0700
+Message-ID: <CAPcyv4hbBVYk=vqeiJ28LHZ8H3y9HiRwOhKEQY7D02jZA0goEA@mail.gmail.com>
 References: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
  <147318058165.30325.16762406881120129093.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20160906131756.6b6c6315b7dfba3a9d5f233a@linux-foundation.org>
  <CAPcyv4hjdPWxdY+UTKVstiLZ7r4oOCa+h+Hd+kzS+wJZidzCjA@mail.gmail.com>
+ <1473277101.2092.39.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4hjdPWxdY+UTKVstiLZ7r4oOCa+h+Hd+kzS+wJZidzCjA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Content-ID: <AFD00A2A8E7A154ABA21E62498A40D44-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+In-Reply-To: <1473277101.2092.39.camel-ZPxbGqLxI0U@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,58 +21,68 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org" <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "nilesh.choudhury-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <nilesh.choudhury-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "kai.ka.zhang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <kai.ka.zhang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Cc: "mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org" <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "nilesh.choudhury-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <nilesh.choudhury-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "kai.ka.zhang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <kai.ka.zhang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-T24gVHVlLCAyMDE2LTA5LTA2IGF0IDE0OjUyIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIFR1ZSwgU2VwIDYsIDIwMTYgYXQgMToxNyBQTSwgQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51
-eC1mb3VuZGF0aW9uLg0KPiBvcmc+IHdyb3RlOg0KPiA+IA0KPiA+IE9uIFR1ZSwgMDYgU2VwIDIw
-MTYgMDk6NDk6NDEgLTA3MDAgRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnQNCj4gPiBl
-bC5jb20+IHdyb3RlOg0KPiA+IA0KPiA+ID4gDQo+ID4gPiB0cmFja19wZm5faW5zZXJ0KCkgaXMg
-bWFya2luZyBkYXggbWFwcGluZ3MgYXMgdW5jYWNoZWFibGUuDQo+ID4gPiANCj4gPiA+IEl0IGlz
-IHVzZWQgdG8ga2VlcCBtYXBwaW5ncyBhdHRyaWJ1dGVzIGNvbnNpc3RlbnQgYWNyb3NzIGENCj4g
-PiA+IHJlbWFwcGVkIHJhbmdlLiBIb3dldmVyLCBzaW5jZSBkYXggcmVnaW9ucyBhcmUgbmV2ZXIg
-cmVnaXN0ZXJlZA0KPiA+ID4gdmlhIHRyYWNrX3Bmbl9yZW1hcCgpLCB0aGUgY2FjaGluZyBtb2Rl
-IGxvb2t1cCBmb3IgZGF4IHBmbnMNCj4gPiA+IGFsd2F5cyByZXR1cm5zIF9QQUdFX0NBQ0hFX01P
-REVfVUMuwqDCoFdlIGRvIG5vdCB1c2UNCj4gPiA+IHRyYWNrX3Bmbl9pbnNlcnQoKSBpbiB0aGUg
-ZGF4LXB0ZSBwYXRoLCBhbmQgd2UgYWx3YXlzIHdhbnQgdG8gdXNlDQo+ID4gPiB0aGUgcGdwcm90
-IG9mIHRoZSB2bWEgaXRzZWxmLCBzbyBkcm9wIHRoaXMgY2FsbC4NCj4gPiA+IA0KPiA+ID4gQ2M6
-IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4NCj4gPiA+IENjOiBN
-YXR0aGV3IFdpbGNveCA8bWF3aWxjb3hAbWljcm9zb2Z0LmNvbT4NCj4gPiA+IENjOiBLaXJpbGwg
-QS4gU2h1dGVtb3YgPGtpcmlsbC5zaHV0ZW1vdkBsaW51eC5pbnRlbC5jb20+DQo+ID4gPiBDYzog
-QW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4NCj4gPiA+IENjOiBOaWxl
-c2ggQ2hvdWRodXJ5IDxuaWxlc2guY2hvdWRodXJ5QG9yYWNsZS5jb20+DQo+ID4gPiBSZXBvcnRl
-ZC1ieTogS2FpIFpoYW5nIDxrYWkua2EuemhhbmdAb3JhY2xlLmNvbT4NCj4gPiA+IFJlcG9ydGVk
-LWJ5OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+DQo+ID4gPiBDYzogPHN0YWJsZUB2
-Z2VyLmtlcm5lbC5vcmc+DQo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5q
-LndpbGxpYW1zQGludGVsLmNvbT4NCj4gPiANCj4gPiBDaGFuZ2Vsb2cgZmFpbHMgdG8gZXhwbGFp
-biB0aGUgdXNlci12aXNpYmxlIGVmZmVjdHMgb2YgdGhlDQo+ID4gcGF0Y2guwqDCoFRoZSBzdGFi
-bGUgbWFpbnRhaW5lcihzKSB3aWxsIGxvb2sgYXQgdGhpcyBhbmQgd29uZGVyICJ5dGYNCj4gPiB3
-YXMgSSBzZW50IHRoaXMiLg0KPiANCj4gVHJ1ZSwgSSdsbCBjaGFuZ2UgaXQgdG8gdGhpczoNCj4g
-DQo+IHRyYWNrX3Bmbl9pbnNlcnQoKSBpcyBtYXJraW5nIGRheCBtYXBwaW5ncyBhcyB1bmNhY2hl
-YWJsZSByZW5kZXJpbmcNCj4gdGhlbSBpbXByYWN0aWNhbCBmb3IgYXBwbGljYXRpb24gdXNhZ2Uu
-wqDCoERBWC1wdGUgbWFwcGluZ3MgYXJlIGNhY2hlZA0KPiBhbmQgdGhlIGdvYWwgb2YgZXN0YWJs
-aXNoaW5nIERBWC1wbWQgbWFwcGluZ3MgaXMgdG8gYXR0YWluIG1vcmUNCj4gcGVyZm9ybWFuY2Us
-IG5vdCBkcmFtYXRpY2FsbHkgbGVzcyAoMyBvcmRlcnMgb2YgbWFnbml0dWRlKS4NCj4gDQo+IERl
-bGV0aW5nIHRoZSBjYWxsIHRvIHRyYWNrX3Bmbl9pbnNlcnQoKSBpbiB2bWZfaW5zZXJ0X3Bmbl9w
-bWQoKSBsZXRzDQo+IHRoZSBkZWZhdWx0IHBncHJvdCAod3JpdGUtYmFjayBjYWNoZSBlbmFibGVk
-KSBmcm9tIHRoZSB2bWEgYmUgdXNlZA0KPiBmb3IgdGhlIG1hcHBpbmcgd2hpY2ggeWllbGRzIHRo
-ZSBleHBlY3RlZCBwZXJmb3JtYW5jZSBpbXByb3ZlbWVudA0KPiBvdmVyIERBWC1wdGUgbWFwcGlu
-Z3MuDQo+IA0KPiB0cmFja19wZm5faW5zZXJ0KCkgaXMgbWVhbnQgdG8ga2VlcCB0aGUgY2FjaGUg
-bW9kZSBmb3IgYSBnaXZlbiByYW5nZQ0KPiBzeW5jaHJvbml6ZWQgYWNyb3NzIGRpZmZlcmVudCB1
-c2VycyBvZiByZW1hcF9wZm5fcmFuZ2UoKSBhbmQNCj4gdm1faW5zZXJ0X3Bmbl9wcm90KCkuwqDC
-oERBWCB1c2VzIG5laXRoZXIgb2YgdGhvc2UgbWFwcGluZyBtZXRob2RzLCBhbmQNCj4gdGhlIHBt
-ZW0gZHJpdmVyIGlzIGFscmVhZHkgbWFya2luZyBpdHMgbWVtb3J5IHJhbmdlcyBhcyB3cml0ZS1i
-YWNrDQo+IGNhY2hlIGVuYWJsZWQuwqDCoFNvLCByZW1vdmluZyB0aGUgY2FsbCB0byB0cmFja19w
-Zm5faW5zZXJ0KCkgbGVhdmVzDQo+IHRoZSBrZXJuZWwgbm8gd29yc2Ugb2ZmIHRoYW4gdGhlIGN1
-cnJlbnQgc2l0dWF0aW9uIHdoZXJlIGEgdXNlciBjb3VsZA0KPiBtYXAgdGhlIHJhbmdlIHZpYSAv
-ZGV2L21lbSB3aXRoIGFuIGluY29tcGF0aWJsZSBjYWNoZSBtb2RlIGNvbXBhcmVkDQo+IHRvIHRo
-ZSBkcml2ZXIuDQoNCkkgdGhpbmvCoGRldm1fbWVtcmVtYXBfcGFnZXMoKSBzaG91bGQgY2FsbMKg
-cmVzZXJ2ZV9tZW10eXBlKCkgb24geDg2IHRvDQprZWVwIGl0IGNvbnNpc3RlbnQgd2l0aMKgZGV2
-bV9tZW1yZW1hcCgpIG9uIHRoaXMgcmVnYXJkLiDCoFdlIG1heSBuZWVkIGFuDQphcmNoIHN0dWIg
-Zm9yIHJlc2VydmVfbWVtdHlwZSgpLCB0aG91Z2guIMKgVGhlbiwgdHJhY2tfcGZuX2luc2VydCgp
-DQpzaG91bGQgaGF2ZSBubyBpc3N1ZSBpbiB0aGlzIGNhc2UuDQoNClRoYW5rcywNCi1Ub3NoaQpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
-bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
-MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Wed, Sep 7, 2016 at 12:39 PM, Kani, Toshimitsu <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
+> On Tue, 2016-09-06 at 14:52 -0700, Dan Williams wrote:
+>> On Tue, Sep 6, 2016 at 1:17 PM, Andrew Morton <akpm@linux-foundation.
+>> org> wrote:
+>> >
+>> > On Tue, 06 Sep 2016 09:49:41 -0700 Dan Williams <dan.j.williams@int
+>> > el.com> wrote:
+>> >
+>> > >
+>> > > track_pfn_insert() is marking dax mappings as uncacheable.
+>> > >
+>> > > It is used to keep mappings attributes consistent across a
+>> > > remapped range. However, since dax regions are never registered
+>> > > via track_pfn_remap(), the caching mode lookup for dax pfns
+>> > > always returns _PAGE_CACHE_MODE_UC.  We do not use
+>> > > track_pfn_insert() in the dax-pte path, and we always want to use
+>> > > the pgprot of the vma itself, so drop this call.
+>> > >
+>> > > Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>> > > Cc: Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+>> > > Cc: Kirill A. Shutemov <kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>> > > Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+>> > > Cc: Nilesh Choudhury <nilesh.choudhury-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> > > Reported-by: Kai Zhang <kai.ka.zhang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> > > Reported-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+>> > > Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+>> > > Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> >
+>> > Changelog fails to explain the user-visible effects of the
+>> > patch.  The stable maintainer(s) will look at this and wonder "ytf
+>> > was I sent this".
+>>
+>> True, I'll change it to this:
+>>
+>> track_pfn_insert() is marking dax mappings as uncacheable rendering
+>> them impractical for application usage.  DAX-pte mappings are cached
+>> and the goal of establishing DAX-pmd mappings is to attain more
+>> performance, not dramatically less (3 orders of magnitude).
+>>
+>> Deleting the call to track_pfn_insert() in vmf_insert_pfn_pmd() lets
+>> the default pgprot (write-back cache enabled) from the vma be used
+>> for the mapping which yields the expected performance improvement
+>> over DAX-pte mappings.
+>>
+>> track_pfn_insert() is meant to keep the cache mode for a given range
+>> synchronized across different users of remap_pfn_range() and
+>> vm_insert_pfn_prot().  DAX uses neither of those mapping methods, and
+>> the pmem driver is already marking its memory ranges as write-back
+>> cache enabled.  So, removing the call to track_pfn_insert() leaves
+>> the kernel no worse off than the current situation where a user could
+>> map the range via /dev/mem with an incompatible cache mode compared
+>> to the driver.
+>
+> I think devm_memremap_pages() should call reserve_memtype() on x86 to
+> keep it consistent with devm_memremap() on this regard.  We may need an
+> arch stub for reserve_memtype(), though.  Then, track_pfn_insert()
+> should have no issue in this case.
+
+Yes, indeed!  In fact I already have that re-write getting 0day
+coverage before posting.  It occurred to me while re-writing the
+changelog per Andrew's prompting.
