@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf0-x244.google.com (mail-pf0-x244.google.com
- [IPv6:2607:f8b0:400e:c00::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM02-BL2-obe.outbound.protection.outlook.com
+ (mail-bl2nam02on072a.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe46::72a])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ABA4F1A1E0A
- for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 03:22:24 -0700 (PDT)
-Received: by mail-pf0-x244.google.com with SMTP id n24so7080578pfb.3
- for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 03:22:24 -0700 (PDT)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH] nvdimm: fix PHYS_PFN/PFN_PHYS mixup
-Date: Mon, 19 Sep 2016 20:19:00 +1000
-Message-Id: <1474280340-6394-1-git-send-email-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 444D91A1ECA
+ for <linux-nvdimm@lists.01.org>; Wed,  7 Sep 2016 05:49:29 -0700 (PDT)
+From: "Boylston, Brian" <brian.boylston@hpe.com>
+Subject: RE: [ndctl PATCH 2/2] ndctl, util: add support for HPE DSM SMART
+ interfaces
+Date: Wed, 7 Sep 2016 12:49:27 +0000
+Message-ID: <CS1PR84MB01195F5EB620AFB55810D3AD8EF80@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
+References: <20160902133238.22200-1-brian.boylston@hpe.com>
+ <20160902133238.22200-3-brian.boylston@hpe.com>
+ <CAPcyv4is4DqFi5yeW+hqegL5ArL7dvtxaZt9hwxii4gWcud0jA@mail.gmail.com>
+In-Reply-To: <CAPcyv4is4DqFi5yeW+hqegL5ArL7dvtxaZt9hwxii4gWcud0jA@mail.gmail.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,42 +24,71 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-nd_activate_region() iomaps any hint addresses required when activating
-a region. To prevent duplicate mappings it checks the PFN of the hint to
-be mapped against the PFNs of the already mapped hints. Unfortunately it
-doesn't convert the PFN back into a physical address before passing it
-to devm_nvdimm_ioremap(). Instead it applies PHYS_PFN a second time
-which ends about as well as you would imagine.
+Dan Williams wrote on 2016-09-03:
+> On Fri, Sep 2, 2016 at 6:32 AM, Brian Boylston <brian.boylston@hpe.com> wrote:
+>> This patch introduces util_hpe_dimm_health_to_json(), which calls the HPE
+>> DSM functions defined in [1] and populates a JSON object with health data.
+>> This delivers health reporting parity for HPE type N NVDIMMs, but we are
+>> planning a future patch to export JSON for some of the additional health
+>> data defined in [1].
+>> 
+>> [1]
+>> https://github.com/HewlettPackard/hpe-nvm/raw/master/Documentation/NFIT_
+>> DSM_DDR4_NVDIMM- N_v84s.pdf
+>> 
+>> Cc: Dan Williams <dan.j.williams@intel.com>
+>> Reviewed-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+>> Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
+>> ---
+>>  ndctl/Makefile.am       |   1 +
+>>  ndctl/builtin-list.c    |   2 +
+>>  ndctl/util/json-hpe.c   | 283 ++++++++++++++++++++++++++++++++++++++++
+>>  ndctl/util/json.h       |   6 +
+>>  ndctl/util/ndctl-hpe1.h | 335 ++++++++++++++++++++++++++++++++++++++++++++++++
+>>  5 files changed, 627 insertions(+)
+>>  create mode 100644 ndctl/util/json-hpe.c
+>>  create mode 100644 ndctl/util/ndctl-hpe1.h
+> 
+> Great!  Let's get this merged...
+> 
+>> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+>> index 04f3a63..ee1e856 100644
+>> --- a/ndctl/Makefile.am
+>> +++ b/ndctl/Makefile.am
+>> @@ -48,6 +48,7 @@ ndctl_SOURCES = ndctl.c \
+>> 
+>>  if ENABLE_SMART ndctl_SOURCES += util/json-smart.c +ndctl_SOURCES +=
+>>  util/json-hpe.c endif
+>>  
+>>  if ENABLE_DESTRUCTIVE
+>> diff --git a/ndctl/builtin-list.c b/ndctl/builtin-list.c
+>> index 0875ca9..fb1a361 100644
+>> --- a/ndctl/builtin-list.c
+>> +++ b/ndctl/builtin-list.c
+>> @@ -316,6 +316,8 @@ int cmd_list(int argc, const char **argv)
+>>                                 struct json_object *jhealth;
+>>                                 
+>>                                 jhealth = util_dimm_health_to_json(dimm);
+>> +                               if (!jhealth)
+>> +                                       jhealth = util_hpe_dimm_health_to_json(dimm);
+>>                                 if (jhealth)
+> 
+> I'd rather see ndctl_dimm_cmd_new_smart() learn how to generate the
+> smart health cmd that is proper for the given family of the dimm, and
+> handle any command format translation internal to the library rather
+> than adding a separate util_dimm_health_to_json().
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/region_devs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for the guidance, Dan.  I'll work on this and come back.
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index e8d5ba7b29af..4eef88eb5144 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -57,7 +57,7 @@ static int nvdimm_map_flush(struct device *dev, struct nvdimm *nvdimm, int dimm,
- 					ndrd->flush_wpq[dimm][j] & PAGE_MASK);
- 		else
- 			flush_page = devm_nvdimm_ioremap(dev,
--					PHYS_PFN(pfn), PAGE_SIZE);
-+					PFN_PHYS(pfn), PAGE_SIZE);
- 		if (!flush_page)
- 			return -ENXIO;
- 		ndrd->flush_wpq[dimm][i] = flush_page
--- 
-2.5.5
+Brian
 
 _______________________________________________
 Linux-nvdimm mailing list
