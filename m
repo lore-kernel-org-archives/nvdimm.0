@@ -1,105 +1,18 @@
-From: "JUAN" <andralbi54-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: re: SEO inquiry
-Date: Wed, 07 Sep 2016 17:57:12 +0300
-Message-ID: <25423C4B.5D981C54@gmail.com>
+From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH 4/5] mm: fix cache mode of dax pmd mappings
+Date: Wed, 7 Sep 2016 19:39:19 +0000
+Message-ID: <1473277101.2092.39.camel@hpe.com>
+References: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <147318058165.30325.16762406881120129093.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20160906131756.6b6c6315b7dfba3a9d5f233a@linux-foundation.org>
+ <CAPcyv4hjdPWxdY+UTKVstiLZ7r4oOCa+h+Hd+kzS+wJZidzCjA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_57D02AD4.01DF82FB"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_57D02AD4.01DF82FB
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  hi after thoroughly checking your website and analyzing your
-   competition activities, we can recommend one of the following SEO Packages:
-   http://www.conversion-seo.cn/seo-packages/ PS: we are offering 100 usd discount
-   on the GOLD SEO Package http://www.conversion-seo.cn/seo-packages/ [...] 
-
-Content analysis details:   (10.6 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: conversion-seo.cn]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-             [Blocked - see <http://www.spamcop.net/bl.shtml?202.115.193.215>]
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.conversion-seo.cn]
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.conversion-seo.cn]
- 2.8 FSL_HELO_FAKE          No description available.
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (andralbi54[at]gmail.com)
- 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
-                            (andralbi54[at]gmail.com)
--0.0 BAYES_40               BODY: Bayes spam probability is 20 to 40%
-                            [score: 0.3646]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_57D02AD4.01DF82FB
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1bheHs-00036o-25
-	for gln-linux-nvdimm@m.gmane.org; Wed, 07 Sep 2016 16:57:16 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id DF5F21A1EE4;
-	Wed,  7 Sep 2016 07:57:16 -0700 (PDT)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (unknown [202.115.193.215])
- by ml01.01.org (Postfix) with SMTP id B4F881A1EE4
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Wed,  7 Sep 2016 07:57:14 -0700 (PDT)
-Message-ID: <25423C4B.5D981C54-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Wed, 07 Sep 2016 17:57:12 +0300
-From: "JUAN" <andralbi54-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US;
- rv:1.8.1.18) Gecko/20081105 Thunderbird/2.0.0.18
-X-Accept-Language: en-us
-MIME-Version: 1.0
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: re: re: SEO inquiry
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+In-Reply-To: <CAPcyv4hjdPWxdY+UTKVstiLZ7r4oOCa+h+Hd+kzS+wJZidzCjA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Content-ID: <AFD00A2A8E7A154ABA21E62498A40D44-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -107,41 +20,60 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Reply-To: JUAN <andralbi54-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: "mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org" <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "nilesh.choudhury-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <nilesh.choudhury-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "kai.ka.zhang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <kai.ka.zhang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+List-Id: linux-nvdimm@lists.01.org
 
-hi
-after thoroughly checking your website and analyzing 
-your competition activities, we can recommend one 
-of the following SEO Packages:
-http://www.conversion-seo.cn/seo-packages/
-
-PS: we are offering 100 usd discount on the GOLD SEO Package
-http://www.conversion-seo.cn/seo-packages/
-
-
-Regards
-JUAN
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_57D02AD4.01DF82FB--
+T24gVHVlLCAyMDE2LTA5LTA2IGF0IDE0OjUyIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIFR1ZSwgU2VwIDYsIDIwMTYgYXQgMToxNyBQTSwgQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51
+eC1mb3VuZGF0aW9uLg0KPiBvcmc+IHdyb3RlOg0KPiA+IA0KPiA+IE9uIFR1ZSwgMDYgU2VwIDIw
+MTYgMDk6NDk6NDEgLTA3MDAgRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnQNCj4gPiBl
+bC5jb20+IHdyb3RlOg0KPiA+IA0KPiA+ID4gDQo+ID4gPiB0cmFja19wZm5faW5zZXJ0KCkgaXMg
+bWFya2luZyBkYXggbWFwcGluZ3MgYXMgdW5jYWNoZWFibGUuDQo+ID4gPiANCj4gPiA+IEl0IGlz
+IHVzZWQgdG8ga2VlcCBtYXBwaW5ncyBhdHRyaWJ1dGVzIGNvbnNpc3RlbnQgYWNyb3NzIGENCj4g
+PiA+IHJlbWFwcGVkIHJhbmdlLiBIb3dldmVyLCBzaW5jZSBkYXggcmVnaW9ucyBhcmUgbmV2ZXIg
+cmVnaXN0ZXJlZA0KPiA+ID4gdmlhIHRyYWNrX3Bmbl9yZW1hcCgpLCB0aGUgY2FjaGluZyBtb2Rl
+IGxvb2t1cCBmb3IgZGF4IHBmbnMNCj4gPiA+IGFsd2F5cyByZXR1cm5zIF9QQUdFX0NBQ0hFX01P
+REVfVUMuwqDCoFdlIGRvIG5vdCB1c2UNCj4gPiA+IHRyYWNrX3Bmbl9pbnNlcnQoKSBpbiB0aGUg
+ZGF4LXB0ZSBwYXRoLCBhbmQgd2UgYWx3YXlzIHdhbnQgdG8gdXNlDQo+ID4gPiB0aGUgcGdwcm90
+IG9mIHRoZSB2bWEgaXRzZWxmLCBzbyBkcm9wIHRoaXMgY2FsbC4NCj4gPiA+IA0KPiA+ID4gQ2M6
+IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4NCj4gPiA+IENjOiBN
+YXR0aGV3IFdpbGNveCA8bWF3aWxjb3hAbWljcm9zb2Z0LmNvbT4NCj4gPiA+IENjOiBLaXJpbGwg
+QS4gU2h1dGVtb3YgPGtpcmlsbC5zaHV0ZW1vdkBsaW51eC5pbnRlbC5jb20+DQo+ID4gPiBDYzog
+QW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4NCj4gPiA+IENjOiBOaWxl
+c2ggQ2hvdWRodXJ5IDxuaWxlc2guY2hvdWRodXJ5QG9yYWNsZS5jb20+DQo+ID4gPiBSZXBvcnRl
+ZC1ieTogS2FpIFpoYW5nIDxrYWkua2EuemhhbmdAb3JhY2xlLmNvbT4NCj4gPiA+IFJlcG9ydGVk
+LWJ5OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+DQo+ID4gPiBDYzogPHN0YWJsZUB2
+Z2VyLmtlcm5lbC5vcmc+DQo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5q
+LndpbGxpYW1zQGludGVsLmNvbT4NCj4gPiANCj4gPiBDaGFuZ2Vsb2cgZmFpbHMgdG8gZXhwbGFp
+biB0aGUgdXNlci12aXNpYmxlIGVmZmVjdHMgb2YgdGhlDQo+ID4gcGF0Y2guwqDCoFRoZSBzdGFi
+bGUgbWFpbnRhaW5lcihzKSB3aWxsIGxvb2sgYXQgdGhpcyBhbmQgd29uZGVyICJ5dGYNCj4gPiB3
+YXMgSSBzZW50IHRoaXMiLg0KPiANCj4gVHJ1ZSwgSSdsbCBjaGFuZ2UgaXQgdG8gdGhpczoNCj4g
+DQo+IHRyYWNrX3Bmbl9pbnNlcnQoKSBpcyBtYXJraW5nIGRheCBtYXBwaW5ncyBhcyB1bmNhY2hl
+YWJsZSByZW5kZXJpbmcNCj4gdGhlbSBpbXByYWN0aWNhbCBmb3IgYXBwbGljYXRpb24gdXNhZ2Uu
+wqDCoERBWC1wdGUgbWFwcGluZ3MgYXJlIGNhY2hlZA0KPiBhbmQgdGhlIGdvYWwgb2YgZXN0YWJs
+aXNoaW5nIERBWC1wbWQgbWFwcGluZ3MgaXMgdG8gYXR0YWluIG1vcmUNCj4gcGVyZm9ybWFuY2Us
+IG5vdCBkcmFtYXRpY2FsbHkgbGVzcyAoMyBvcmRlcnMgb2YgbWFnbml0dWRlKS4NCj4gDQo+IERl
+bGV0aW5nIHRoZSBjYWxsIHRvIHRyYWNrX3Bmbl9pbnNlcnQoKSBpbiB2bWZfaW5zZXJ0X3Bmbl9w
+bWQoKSBsZXRzDQo+IHRoZSBkZWZhdWx0IHBncHJvdCAod3JpdGUtYmFjayBjYWNoZSBlbmFibGVk
+KSBmcm9tIHRoZSB2bWEgYmUgdXNlZA0KPiBmb3IgdGhlIG1hcHBpbmcgd2hpY2ggeWllbGRzIHRo
+ZSBleHBlY3RlZCBwZXJmb3JtYW5jZSBpbXByb3ZlbWVudA0KPiBvdmVyIERBWC1wdGUgbWFwcGlu
+Z3MuDQo+IA0KPiB0cmFja19wZm5faW5zZXJ0KCkgaXMgbWVhbnQgdG8ga2VlcCB0aGUgY2FjaGUg
+bW9kZSBmb3IgYSBnaXZlbiByYW5nZQ0KPiBzeW5jaHJvbml6ZWQgYWNyb3NzIGRpZmZlcmVudCB1
+c2VycyBvZiByZW1hcF9wZm5fcmFuZ2UoKSBhbmQNCj4gdm1faW5zZXJ0X3Bmbl9wcm90KCkuwqDC
+oERBWCB1c2VzIG5laXRoZXIgb2YgdGhvc2UgbWFwcGluZyBtZXRob2RzLCBhbmQNCj4gdGhlIHBt
+ZW0gZHJpdmVyIGlzIGFscmVhZHkgbWFya2luZyBpdHMgbWVtb3J5IHJhbmdlcyBhcyB3cml0ZS1i
+YWNrDQo+IGNhY2hlIGVuYWJsZWQuwqDCoFNvLCByZW1vdmluZyB0aGUgY2FsbCB0byB0cmFja19w
+Zm5faW5zZXJ0KCkgbGVhdmVzDQo+IHRoZSBrZXJuZWwgbm8gd29yc2Ugb2ZmIHRoYW4gdGhlIGN1
+cnJlbnQgc2l0dWF0aW9uIHdoZXJlIGEgdXNlciBjb3VsZA0KPiBtYXAgdGhlIHJhbmdlIHZpYSAv
+ZGV2L21lbSB3aXRoIGFuIGluY29tcGF0aWJsZSBjYWNoZSBtb2RlIGNvbXBhcmVkDQo+IHRvIHRo
+ZSBkcml2ZXIuDQoNCkkgdGhpbmvCoGRldm1fbWVtcmVtYXBfcGFnZXMoKSBzaG91bGQgY2FsbMKg
+cmVzZXJ2ZV9tZW10eXBlKCkgb24geDg2IHRvDQprZWVwIGl0IGNvbnNpc3RlbnQgd2l0aMKgZGV2
+bV9tZW1yZW1hcCgpIG9uIHRoaXMgcmVnYXJkLiDCoFdlIG1heSBuZWVkIGFuDQphcmNoIHN0dWIg
+Zm9yIHJlc2VydmVfbWVtdHlwZSgpLCB0aG91Z2guIMKgVGhlbiwgdHJhY2tfcGZuX2luc2VydCgp
+DQpzaG91bGQgaGF2ZSBubyBpc3N1ZSBpbiB0aGlzIGNhc2UuDQoNClRoYW5rcywNCi1Ub3NoaQpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
+bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
+MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
