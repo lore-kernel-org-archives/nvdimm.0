@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
+ [IPv6:2607:f8b0:4003:c06::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 627871A1DED
- for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 15:07:47 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl: fix disable-dimm error message
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 19 Sep 2016 15:04:43 -0700
-Message-ID: <147432268390.5808.7591882075989403277.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 379CF1A1E5E
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Sep 2016 11:44:27 -0700 (PDT)
+Received: by mail-oi0-x233.google.com with SMTP id s131so83921289oie.2
+ for <linux-nvdimm@lists.01.org>; Thu, 08 Sep 2016 11:44:27 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20160908180410.548-1-brian.boylston@hpe.com>
+References: <20160908180410.548-1-brian.boylston@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 8 Sep 2016 11:44:24 -0700
+Message-ID: <CAPcyv4i_uDgUCSkp0CXtrj7weZMK2sPo+C+5A4QnxfKsPWv8Dw@mail.gmail.com>
+Subject: Re: [ndctl PATCH] libndctl: adjust indentation in add_dimm()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,42 +25,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Brian Boylston <brian.boylston@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-cmd_disable_dimm() expects a negative number for an error, otherwise we
-end up reporting:
+On Thu, Sep 8, 2016 at 11:04 AM, Brian Boylston <brian.boylston@hpe.com> wrote:
+> Use tabs instead of spaces to match the rest of the code.
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
 
-    # ndctl disable-dimm nmem1
-    nmem1 is active, skipping...
-    disabled 16 dimms
-
-...instead of:
-
-    # ndctl disable-dimm nmem1
-    nmem1 is active, skipping...
-    error disabling dimms: Device or resource busy
-
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/builtin-xable-dimm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/ndctl/builtin-xable-dimm.c b/ndctl/builtin-xable-dimm.c
-index 4bdbc7f8eea3..f0d298837aeb 100644
---- a/ndctl/builtin-xable-dimm.c
-+++ b/ndctl/builtin-xable-dimm.c
-@@ -67,7 +67,7 @@ static int do_xable_dimm(const char *dimm_arg,
- 
- 	rc = success;
- 	if (!success && skip)
--		rc = EBUSY;
-+		rc = -EBUSY;
-  out:
- 	dimm_bus = NULL;
- 	return rc;
-
+Thanks, applied.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
