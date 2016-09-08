@@ -1,19 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
- [IPv6:2607:f8b0:4003:c06::233])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 379CF1A1E5E
- for <linux-nvdimm@lists.01.org>; Thu,  8 Sep 2016 11:44:27 -0700 (PDT)
-Received: by mail-oi0-x233.google.com with SMTP id s131so83921289oie.2
- for <linux-nvdimm@lists.01.org>; Thu, 08 Sep 2016 11:44:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20160908180410.548-1-brian.boylston@hpe.com>
-References: <20160908180410.548-1-brian.boylston@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 8 Sep 2016 11:44:24 -0700
-Message-ID: <CAPcyv4i_uDgUCSkp0CXtrj7weZMK2sPo+C+5A4QnxfKsPWv8Dw@mail.gmail.com>
-Subject: Re: [ndctl PATCH] libndctl: adjust indentation in add_dimm()
+ by ml01.01.org (Postfix) with ESMTPS id 2AB4D1A1E59
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Sep 2016 11:05:32 -0700 (PDT)
+From: Brian Boylston <brian.boylston@hpe.com>
+Subject: [ndctl PATCH] libndctl: adjust indentation in add_dimm()
+Date: Thu,  8 Sep 2016 13:04:10 -0500
+Message-Id: <20160908180410.548-1-brian.boylston@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,21 +15,44 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brian Boylston <brian.boylston@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Sep 8, 2016 at 11:04 AM, Brian Boylston <brian.boylston@hpe.com> wrote:
-> Use tabs instead of spaces to match the rest of the code.
->
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
+Use tabs instead of spaces to match the rest of the code.
 
-Thanks, applied.
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
+---
+ ndctl/lib/libndctl.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 5f354ac..93f79f7 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -1149,10 +1149,10 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
+ 		goto err_read;
+ 	dimm->dsm_mask = parse_commands(buf, 1);
+ 
+-        dimm->dimm_buf = calloc(1, strlen(dimm_base) + 50);
+-        if (!dimm->dimm_buf)
+-                goto err_read;
+-        dimm->buf_len = strlen(dimm_base) + 50;
++	dimm->dimm_buf = calloc(1, strlen(dimm_base) + 50);
++	if (!dimm->dimm_buf)
++		goto err_read;
++	dimm->buf_len = strlen(dimm_base) + 50;
+ 
+ 	dimm->dimm_path = strdup(dimm_base);
+ 	if (!dimm->dimm_path)
+-- 
+2.8.3
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
