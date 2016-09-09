@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 05/10] dax: provide an iomap based dax read/write path
-Date: Fri,  9 Sep 2016 18:34:39 +0200
-Message-ID: <1473438884-674-6-git-send-email-hch@lst.de>
+Subject: [PATCH 07/10] xfs: fix locking for DAX writes
+Date: Fri,  9 Sep 2016 18:34:41 +0200
+Message-ID: <1473438884-674-8-git-send-email-hch@lst.de>
 References: <1473438884-674-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,148 +20,60 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a much simpler implementation of the DAX read/write path that makes
-use of the iomap infrastructure.  It does not try to mirror the direct I/O
-calling conventions and thus doesn't have to deal with i_dio_count or the
-end_io handler, but instead leaves locking and filesystem-specific I/O
-completion to the caller.
+So far DAX writes inherited the locking from direct I/O writes, but the direct
+I/O model of using shared locks for writes is actually wrong for DAX.  For
+direct I/O we're out of any standards and don't have to provide the Posix
+required exclusion between writers, but for DAX which gets transparently
+enable on applications without any knowledge of it we can't simply drop the
+requirement.  Even worse this only happens for aligned writes and thus
+doesn't show up for many typical use cases.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- fs/dax.c              | 103 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/iomap.h |   2 +
- 2 files changed, 105 insertions(+)
+ fs/xfs/xfs_file.c | 20 +-------------------
+ 1 file changed, 1 insertion(+), 19 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 84343ce..57ad456 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -31,6 +31,8 @@
- #include <linux/vmstat.h>
- #include <linux/pfn_t.h>
- #include <linux/sizes.h>
-+#include <linux/iomap.h>
-+#include "internal.h"
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index e612a02..62649cc 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -714,24 +714,11 @@ xfs_file_dax_write(
+ 	struct address_space	*mapping = iocb->ki_filp->f_mapping;
+ 	struct inode		*inode = mapping->host;
+ 	struct xfs_inode	*ip = XFS_I(inode);
+-	struct xfs_mount	*mp = ip->i_mount;
+ 	ssize_t			ret = 0;
+-	int			unaligned_io = 0;
+-	int			iolock;
++	int			iolock = XFS_IOLOCK_EXCL;
+ 	struct iov_iter		data;
  
- /*
-  * We use lowest available bit in exceptional entry for locking, other two
-@@ -1241,3 +1243,104 @@ int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
- 	return dax_zero_page_range(inode, from, length, get_block);
- }
- EXPORT_SYMBOL_GPL(dax_truncate_page);
-+
-+#ifdef CONFIG_FS_IOMAP
-+static loff_t
-+iomap_dax_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
-+		struct iomap *iomap)
-+{
-+	struct iov_iter *iter = data;
-+	loff_t end = pos + length, done = 0;
-+	ssize_t ret = 0;
-+
-+	if (iov_iter_rw(iter) == READ) {
-+		end = min(end, i_size_read(inode));
-+		if (pos >= end)
-+			return 0;
-+
-+		if (iomap->type == IOMAP_HOLE || iomap->type == IOMAP_UNWRITTEN)
-+			return iov_iter_zero(min(length, end - pos), iter);
-+	}
-+
-+	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED))
-+		return -EIO;
-+
-+	while (pos < end) {
-+		unsigned offset = pos & (PAGE_SIZE - 1);
-+		struct blk_dax_ctl dax = { 0 };
-+		ssize_t map_len;
-+
-+		dax.sector = iomap->blkno +
-+			(((pos & PAGE_MASK) - iomap->offset) >> 9);
-+		dax.size = (length + offset + PAGE_SIZE - 1) & PAGE_MASK;
-+		map_len = dax_map_atomic(iomap->bdev, &dax);
-+		if (map_len < 0) {
-+			ret = map_len;
-+			break;
-+		}
-+
-+		dax.addr += offset;
-+		map_len -= offset;
-+		if (map_len > end - pos)
-+			map_len = end - pos;
-+
-+		if (iov_iter_rw(iter) == WRITE)
-+			map_len = copy_from_iter_pmem(dax.addr, map_len, iter);
-+		else
-+			map_len = copy_to_iter(dax.addr, map_len, iter);
-+		dax_unmap_atomic(iomap->bdev, &dax);
-+		if (map_len <= 0) {
-+			ret = map_len ? map_len : -EFAULT;
-+			break;
-+		}
-+
-+		pos += map_len;
-+		length -= map_len;
-+		done += map_len;
-+	}
-+
-+	return done ? done : ret;
-+}
-+
-+/**
-+ * iomap_dax_rw - Perform I/O to a DAX file
-+ * @iocb: The control block for this I/O
-+ * @iter: The addresses to do I/O from or to
-+ * @ops: iomap ops passed from the file system
-+ *
-+ * This funtions performs read and write operations to directly mapped
-+ * persistent memory.  The callers needs to take care of read/write exclusion
-+ * and evicting any page cache pages in the region under I/O.
-+ */
-+ssize_t
-+iomap_dax_rw(struct kiocb *iocb, struct iov_iter *iter,
-+		struct iomap_ops *ops)
-+{
-+	struct inode *inode = iocb->ki_filp->f_mapping->host;
-+	loff_t pos = iocb->ki_pos, ret = 0, done = 0;
-+	size_t count = iov_iter_count(iter);
-+	unsigned flags = 0;
-+
-+	if (!count)
-+		return 0;
-+
-+	if (iov_iter_rw(iter) == WRITE)
-+		flags |= IOMAP_WRITE;
-+
-+	do {
-+		ret = iomap_apply(inode, pos, count, flags, ops, iter,
-+				  iomap_dax_actor);
-+		if (ret <= 0)
-+			break;
-+		pos += ret;
-+		done += ret;
-+	} while ((count = iov_iter_count(iter)));
-+
-+	if (!done)
-+		return ret;
-+
-+	iocb->ki_pos += done;
-+	return done;
-+}
-+EXPORT_SYMBOL_GPL(iomap_dax_rw);
-+#endif /* CONFIG_FS_IOMAP */
-diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-index 14d7067..3d5f785 100644
---- a/include/linux/iomap.h
-+++ b/include/linux/iomap.h
-@@ -65,6 +65,8 @@ struct iomap_ops {
+-	/* "unaligned" here means not aligned to a filesystem block */
+-	if ((iocb->ki_pos & mp->m_blockmask) ||
+-	    ((iocb->ki_pos + iov_iter_count(from)) & mp->m_blockmask)) {
+-		unaligned_io = 1;
+-		iolock = XFS_IOLOCK_EXCL;
+-	} else if (mapping->nrpages) {
+-		iolock = XFS_IOLOCK_EXCL;
+-	} else {
+-		iolock = XFS_IOLOCK_SHARED;
+-	}
+ 	xfs_rw_ilock(ip, iolock);
+-
+ 	ret = xfs_file_aio_write_checks(iocb, from, &iolock);
+ 	if (ret)
+ 		goto out;
+@@ -758,11 +745,6 @@ xfs_file_dax_write(
+ 		WARN_ON_ONCE(ret);
+ 	}
  
- ssize_t iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *from,
- 		struct iomap_ops *ops);
-+ssize_t iomap_dax_rw(struct kiocb *iocb, struct iov_iter *iter,
-+		struct iomap_ops *ops);
- int iomap_zero_range(struct inode *inode, loff_t pos, loff_t len,
- 		bool *did_zero, struct iomap_ops *ops);
- int iomap_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
+-	if (iolock == XFS_IOLOCK_EXCL && !unaligned_io) {
+-		xfs_rw_ilock_demote(ip, XFS_IOLOCK_EXCL);
+-		iolock = XFS_IOLOCK_SHARED;
+-	}
+-
+ 	trace_xfs_file_dax_write(ip, iov_iter_count(from), iocb->ki_pos);
+ 
+ 	data = *from;
 -- 
 2.1.4
