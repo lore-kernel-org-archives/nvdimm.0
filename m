@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 01/10] iomap: add IOMAP_F_NEW flag
-Date: Fri,  9 Sep 2016 18:34:35 +0200
-Message-ID: <1473438884-674-2-git-send-email-hch@lst.de>
+Subject: [PATCH 04/10] dax: don't pass buffer_head to copy_user_dax
+Date: Fri,  9 Sep 2016 18:34:38 +0200
+Message-ID: <1473438884-674-5-git-send-email-hch@lst.de>
 References: <1473438884-674-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,43 +20,46 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
+This way we can use this helper for the iomap based DAX implementation
+as well.
+
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- fs/xfs/xfs_iomap.c    | 2 ++
- include/linux/iomap.h | 1 +
- 2 files changed, 3 insertions(+)
+ fs/dax.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index f96c8ff..5d06a2d 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -635,6 +635,7 @@ retry:
- 	if (end_fsb != orig_end_fsb)
- 		xfs_inode_set_eofblocks_tag(ip);
+diff --git a/fs/dax.c b/fs/dax.c
+index 98463bb..84343ce 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -580,14 +580,13 @@ static int dax_load_hole(struct address_space *mapping, void *entry,
+ 	return VM_FAULT_LOCKED;
+ }
  
-+	iomap->flags = IOMAP_F_NEW;
- 	trace_xfs_iomap_alloc(ip, offset, count, 0, &got);
- done:
- 	if (isnullstartblock(got.br_startblock))
-@@ -1000,6 +1001,7 @@ xfs_file_iomap_begin(
+-static int copy_user_bh(struct page *to, struct inode *inode,
+-		struct buffer_head *bh, unsigned long vaddr)
++static int copy_user_dax(struct block_device *bdev, sector_t sector, size_t size,
++		struct page *to, unsigned long vaddr)
+ {
+ 	struct blk_dax_ctl dax = {
+-		.sector = to_sector(bh, inode),
+-		.size = bh->b_size,
++		.sector = sector,
++		.size = size,
+ 	};
+-	struct block_device *bdev = bh->b_bdev;
+ 	void *vto;
+ 
+ 	if (dax_map_atomic(bdev, &dax) < 0)
+@@ -867,7 +866,8 @@ int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	if (vmf->cow_page) {
+ 		struct page *new_page = vmf->cow_page;
+ 		if (buffer_written(&bh))
+-			error = copy_user_bh(new_page, inode, &bh, vaddr);
++			error = copy_user_dax(bh.b_bdev, to_sector(&bh, inode),
++					bh.b_size, new_page, vaddr);
+ 		else
+ 			clear_user_highpage(new_page, vaddr);
  		if (error)
- 			return error;
- 
-+		iomap->flags = IOMAP_F_NEW;
- 		trace_xfs_iomap_alloc(ip, offset, length, 0, &imap);
- 	} else {
- 		ASSERT(nimaps);
-diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-index 3d70ece..14d7067 100644
---- a/include/linux/iomap.h
-+++ b/include/linux/iomap.h
-@@ -22,6 +22,7 @@ struct vm_fault;
-  * Flags for iomap mappings:
-  */
- #define IOMAP_F_MERGED	0x01	/* contains multiple blocks/extents */
-+#define IOMAP_F_NEW	0x02	/* blocks have been newly allocated */
- 
- /*
-  * Magic value for blkno:
 -- 
 2.1.4
