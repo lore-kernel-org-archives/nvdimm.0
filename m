@@ -1,7 +1,7 @@
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: RE: [PATCH v2 2/9] ext2: tell DAX the size of allocation holes
-Date: Fri, 9 Sep 2016 20:35:01 +0000
-Message-ID: <DM2PR21MB0089BCA980B67D8C53B25A1BCBFA0@DM2PR21MB0089.namprd21.prod.outlook.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 2/9] ext2: tell DAX the size of allocation holes
+Date: Fri, 9 Sep 2016 15:34:43 -0700
+Message-ID: <CAPcyv4hjna08+Yw23w_V2f-RbBE6ar220+YGCuBVA-TACKWNug@mail.gmail.com>
 References: <20160823220419.11717-1-ross.zwisler@linux.intel.com>
  <20160823220419.11717-3-ross.zwisler@linux.intel.com>
  <20160825075728.GA11235@infradead.org>
@@ -9,112 +9,63 @@ References: <20160823220419.11717-1-ross.zwisler@linux.intel.com>
  <20160829074116.GA16491@infradead.org>
  <20160829125741.cdnbb2uaditcmnw2@thunk.org>
  <20160909164808.GC18554@linux.intel.com>
+ <DM2PR21MB0089BCA980B67D8C53B25A1BCBFA0@DM2PR21MB0089.namprd21.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160909164808.GC18554@linux.intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Christoph Hellwig <hch@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>, Dave Chinner <david@fromorbit.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <DM2PR21MB0089BCA980B67D8C53B25A1BCBFA0-B2pw06WL+/BAVFCO9/lqPs1VXTxX1y3OvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Cc: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Andreas Dilger <adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Jan Kara <jack-IBi9RG/b67k@public.gmane.org>, "linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-I feel like we're not only building on shifting sands, but we haven't decid=
-ed whether we're building a Pyramid or a Sphinx.
+/me grumbles about top-posting...
 
-I thought after Storage Summit, we had broad agreement that we were moving =
-to a primary DAX API that was not BH (nor indeed iomap) based.  We would st=
-ill have DAX helpers for block based filesystems (because duplicating all t=
-hat code between filesystems is pointless), but I now know of three filesys=
-tems which are not block based that are interested in using DAX.  Jared Hul=
-bert's AXFS is a nice public example.
+On Fri, Sep 9, 2016 at 1:35 PM, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org> wrote:
+> I feel like we're not only building on shifting sands, but we haven't decided whether we're building a Pyramid or a Sphinx.
+>
+> I thought after Storage Summit, we had broad agreement that we were moving to a primary DAX API that was not BH (nor indeed iomap) based.  We would still have DAX helpers for block based filesystems (because duplicating all that code between filesystems is pointless), but I now know of three filesystems which are not block based that are interested in using DAX.  Jared Hulbert's AXFS is a nice public example.
+>
+> I posted a prototype of this here:
+>
+> https://groups.google.com/d/msg/linux.kernel/xFFHVCQM7Go/ZQeDVYTnFgAJ
+>
+> It is, of course, woefully out of date, but some of the principles in it are still good (and I'm working to split it into digestible chunks).
+>
+> The essence:
+>
+> 1. VFS or VM calls filesystem (eg ->fault())
+> 2. Filesystem calls DAX (eg dax_fault())
+> 3. DAX looks in radix tree, finds no information.
+> 4. DAX calls (NEW!) mapping->a_ops->populate_pfns
+> 5a. Filesystem (if not block based) does its own thing to find out the PFNs corresponding to the requested range, then inserts them into the radix tree (possible helper in DAX code)
+> 5b. Filesystem (if block based) looks up its internal data structure (eg extent tree) and
+>    calls dax_create_pfns() (see giant patch from yesterday, only instead of
+>    passing a get_block_t, the filesystem has already filled in a bh which
+>    describes the entire extent that this access happens to land in).
+> 6b. DAX takes care of calling bdev_direct_access() from dax_create_pfns().
+>
+> Now, notice that there's no interaction with the rest of the filesystem here.  We can swap out BHs and iomaps relatively trivially; there's no call for making grand changes, like converting ext2 over to iomap.  The BH or iomap is only used for communicating the extent from the filesystem to DAX.
+>
+> Do we have agreement that this is the right way to go?
 
-I posted a prototype of this here:
+My $0.02...
 
-https://groups.google.com/d/msg/linux.kernel/xFFHVCQM7Go/ZQeDVYTnFgAJ
+So the current dax implementation is still struggling to get right
+(pmd faulting, dirty entry cleaning, etc) and this seems like a
+rewrite that sets us up for future features without addressing the
+current bugs and todo items.  In comparison the iomap conversion work
+seems incremental and conserving of current development momentum.
 
-It is, of course, woefully out of date, but some of the principles in it ar=
-e still good (and I'm working to split it into digestible chunks).
-
-The essence:
-
-1. VFS or VM calls filesystem (eg ->fault())=20
-2. Filesystem calls DAX (eg dax_fault())=20
-3. DAX looks in radix tree, finds no information.=20
-4. DAX calls (NEW!) mapping->a_ops->populate_pfns=20
-5a. Filesystem (if not block based) does its own thing to find out the PFNs=
- corresponding to the requested range, then inserts them into the radix tre=
-e (possible helper in DAX code)
-5b. Filesystem (if block based) looks up its internal data structure (eg ex=
-tent tree) and=20
-=A0 =A0calls dax_create_pfns() (see giant patch from yesterday, only instea=
-d of=20
-=A0 =A0passing a get_block_t, the filesystem has already filled in a bh whi=
-ch=20
-=A0 =A0describes the entire extent that this access happens to land in).=20
-6b. DAX takes care of calling bdev_direct_access() from=A0dax_create_pfns()=
-.
-
-Now, notice that there's no interaction with the rest of the filesystem her=
-e.  We can swap out BHs and iomaps relatively trivially; there's no call fo=
-r making grand changes, like converting ext2 over to iomap.  The BH or ioma=
-p is only used for communicating the extent from the filesystem to DAX.
-
-Do we have agreement that this is the right way to go?
-
------Original Message-----
-From: Ross Zwisler [mailto:ross.zwisler@linux.intel.com]=20
-Sent: Friday, September 9, 2016 12:48 PM
-To: Theodore Ts'o <tytso@mit.edu>; Christoph Hellwig <hch@infradead.org>; R=
-oss Zwisler <ross.zwisler@linux.intel.com>; linux-kernel@vger.kernel.org; A=
-ndrew Morton <akpm@linux-foundation.org>; linux-nvdimm@ml01.01.org; Matthew=
- Wilcox <mawilcox@microsoft.com>; Dave Chinner <david@fromorbit.com>; linux=
--mm@kvack.org; Andreas Dilger <adilger.kernel@dilger.ca>; Alexander Viro <v=
-iro@zeniv.linux.org.uk>; Jan Kara <jack@suse.com>; linux-fsdevel@vger.kerne=
-l.org; linux-ext4@vger.kernel.org
-Subject: Re: [PATCH v2 2/9] ext2: tell DAX the size of allocation holes
-
-On Mon, Aug 29, 2016 at 08:57:41AM -0400, Theodore Ts'o wrote:
-> On Mon, Aug 29, 2016 at 12:41:16AM -0700, Christoph Hellwig wrote:
-> >=20
-> > We're going to move forward killing buffer_heads in XFS.  I think ext4
-> > would dramatically benefit from this a well, as would ext2 (although I
-> > think all that DAX work in ext2 is a horrible idea to start with).
->=20
-> It's been on my todo list.  The only reason why I haven't done it yet
-> is because I knew you were working on a solution, and I didn't want to
-> do things one way for buffered I/O, and a different way for Direct
-> I/O, and disentangling the DIO code and the different assumptions of
-> how different file systems interact with the DIO code is a *mess*.
->=20
-> It may have gotten better more recently, but a few years ago I took a
-> look at it and backed slowly away.....
-
-Ted, what do you think of the idea of moving to struct iomap in ext2?
-
-If ext2 stays with the current struct buffer_head + get_block_t interface,
-then it looks like DAX basically has three options:
-
-1) Support two I/O paths and two versions of each of the fault paths (PTE,
-PMD, etc).  One of each of these would be based on struct iomap and would b=
-e
-used by xfs and potentially ext4, and the other would be based on struct
-buffer_head + get_block_t and would be used by ext2.
-
-2) Only have a single struct iomap based I/O path and fault path, and add
-shim/support code so that ext2 can use it, leaving the rest of ext2 to be
-struct buffer_head + get_block_t based.
-
-3) Only have a single struct buffer_head + get_block_t based DAX I/O and fa=
-ult
-path, and have XFS and potentially ext4 do the translation from their nativ=
-e
-struct iomap interface.
-
-It seems ideal for ext2 to switch along with everyone else, if getting rid =
-of
-struct buffer_head is a global goal.  If not, I guess barring technical iss=
-ues
-#2 above seems cleanest - move DAX to the new structure, and provide backwa=
-rds
-compatibility to ext2.  Thoughts?
+I agree with you that continuing to touch ext2 is not a good idea, but
+I'm not yet convinced that now is the time to go do dax-2.0 when we
+haven't finished shipping dax-1.0.
