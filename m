@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 04/10] dax: don't pass buffer_head to copy_user_dax
-Date: Fri,  9 Sep 2016 18:34:38 +0200
-Message-ID: <1473438884-674-5-git-send-email-hch@lst.de>
+Subject: [PATCH 03/10] dax: don't pass buffer_head to dax_insert_mapping
+Date: Fri,  9 Sep 2016 18:34:37 +0200
+Message-ID: <1473438884-674-4-git-send-email-hch@lst.de>
 References: <1473438884-674-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -29,37 +29,37 @@ Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
  1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 98463bb..84343ce 100644
+index 993dc6f..98463bb 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -580,14 +580,13 @@ static int dax_load_hole(struct address_space *mapping, void *entry,
- 	return VM_FAULT_LOCKED;
- }
+@@ -790,14 +790,13 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
  
--static int copy_user_bh(struct page *to, struct inode *inode,
--		struct buffer_head *bh, unsigned long vaddr)
-+static int copy_user_dax(struct block_device *bdev, sector_t sector, size_t size,
-+		struct page *to, unsigned long vaddr)
+ static int dax_insert_mapping(struct address_space *mapping,
+-			struct buffer_head *bh, void **entryp,
+-			struct vm_area_struct *vma, struct vm_fault *vmf)
++		struct block_device *bdev, sector_t sector, size_t size,
++		void **entryp, struct vm_area_struct *vma, struct vm_fault *vmf)
  {
+ 	unsigned long vaddr = (unsigned long)vmf->virtual_address;
+-	struct block_device *bdev = bh->b_bdev;
  	struct blk_dax_ctl dax = {
--		.sector = to_sector(bh, inode),
+-		.sector = to_sector(bh, mapping->host),
 -		.size = bh->b_size,
 +		.sector = sector,
 +		.size = size,
  	};
--	struct block_device *bdev = bh->b_bdev;
- 	void *vto;
+ 	void *ret;
+ 	void *entry = *entryp;
+@@ -898,7 +897,8 @@ int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
  
- 	if (dax_map_atomic(bdev, &dax) < 0)
-@@ -867,7 +866,8 @@ int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	if (vmf->cow_page) {
- 		struct page *new_page = vmf->cow_page;
- 		if (buffer_written(&bh))
--			error = copy_user_bh(new_page, inode, &bh, vaddr);
-+			error = copy_user_dax(bh.b_bdev, to_sector(&bh, inode),
-+					bh.b_size, new_page, vaddr);
- 		else
- 			clear_user_highpage(new_page, vaddr);
- 		if (error)
+ 	/* Filesystem should not return unwritten buffers to us! */
+ 	WARN_ON_ONCE(buffer_unwritten(&bh) || buffer_new(&bh));
+-	error = dax_insert_mapping(mapping, &bh, &entry, vma, vmf);
++	error = dax_insert_mapping(mapping, bh.b_bdev, to_sector(&bh, inode),
++			bh.b_size, &entry, vma, vmf);
+  unlock_entry:
+ 	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
+  out:
 -- 
 2.1.4
