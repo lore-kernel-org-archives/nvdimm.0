@@ -1,17 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail05.adl6.internode.on.net (ipmail05.adl6.internode.on.net
- [150.101.137.143]) by ml01.01.org (Postfix) with ESMTP id 485981A1DF1
- for <linux-nvdimm@lists.01.org>; Sun, 11 Sep 2016 18:40:39 -0700 (PDT)
-Date: Mon, 12 Sep 2016 11:40:35 +1000
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: DAX mapping detection (was: Re: [PATCH] Fix region lost in
- /proc/self/smaps)
-Message-ID: <20160912014035.GB30497@dastard>
+Received: from mail-it0-x229.google.com (mail-it0-x229.google.com
+ [IPv6:2607:f8b0:4001:c0b::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DA17B1A1DF9
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Sep 2016 08:40:30 -0700 (PDT)
+Received: by mail-it0-x229.google.com with SMTP id i184so20221919itf.1
+ for <linux-nvdimm@lists.01.org>; Fri, 09 Sep 2016 08:40:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5d5ef209-e005-12c6-9b34-1fdd21e1e6e2@linux.intel.com>
 References: <CAPcyv4iDra+mRqEejfGqapKEAFZmUtUcg0dsJ8nt7mOhcT-Qpw@mail.gmail.com>
  <20160908225636.GB15167@linux.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20160908225636.GB15167@linux.intel.com>
+ <CAPcyv4h5y4MHdXtdrdPRtG7L0_KCoxf_xwDGnHQ2r5yZoqkFzQ@mail.gmail.com>
+ <5d5ef209-e005-12c6-9b34-1fdd21e1e6e2@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 9 Sep 2016 08:40:29 -0700
+Message-ID: <CAPcyv4ibiZG3SkW0TZywn8Qovo3hpxBqs4wCfw1DFEbbE=1-Mg@mail.gmail.com>
+Subject: Re: DAX mapping detection (was: Re: [PATCH] Fix region lost in
+ /proc/self/smaps)
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,78 +29,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Dave Hansen <dave.hansen@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Gleb Natapov <gleb@kernel.org>, mtosatti@redhat.com, KVM list <kvm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Hajnoczi <stefanha@redhat.com>, Yumei Huang <yuhuang@redhat.com>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+Cc: Yumei Huang <yuhuang@redhat.com>, Michal Hocko <mhocko@suse.com>, KVM list <kvm@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Gleb Natapov <gleb@kernel.org>, mtosatti@redhat.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dave Hansen <dave.hansen@intel.com>, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Sep 08, 2016 at 04:56:36PM -0600, Ross Zwisler wrote:
-> On Wed, Sep 07, 2016 at 09:32:36PM -0700, Dan Williams wrote:
-> > My understanding is that it is looking for the VM_MIXEDMAP flag which
-> > is already ambiguous for determining if DAX is enabled even if this
-> > dynamic listing issue is fixed.  XFS has arranged for DAX to be a
-> > per-inode capability and has an XFS-specific inode flag.  We can make
-> > that a common inode flag, but it seems we should have a way to
-> > interrogate the mapping itself in the case where the inode is unknown
-> > or unavailable.  I'm thinking extensions to mincore to have flags for
-> > DAX and possibly whether the page is part of a pte, pmd, or pud
-> > mapping.  Just floating that idea before starting to look into the
-> > implementation, comments or other ideas welcome...
-> 
-> I think this goes back to our previous discussion about support for the PMEM
-> programming model.  Really I think what NVML needs isn't a way to tell if it
-> is getting a DAX mapping, but whether it is getting a DAX mapping on a
-> filesystem that fully supports the PMEM programming model.  This of course is
-> defined to be a filesystem where it can do all of its flushes from userspace
-> safely and never call fsync/msync, and that allocations that happen in page
-> faults will be synchronized to media before the page fault completes.
-> 
-> IIUC this is what NVML needs - a way to decide "do I use fsync/msync for
-> everything or can I rely fully on flushes from userspace?" 
+On Fri, Sep 9, 2016 at 1:55 AM, Xiao Guangrong
+<guangrong.xiao@linux.intel.com> wrote:
+[..]
+>>
+>> Whether a persistent memory mapping requires an msync/fsync is a
+>> filesystem specific question.  This mincore proposal is separate from
+>> that.  Consider device-DAX for volatile memory or mincore() called on
+>> an anonymous memory range.  In those cases persistence and filesystem
+>> metadata are not in the picture, but it would still be useful for
+>> userspace to know "is there page cache backing this mapping?" or "what
+>> is the TLB geometry of this mapping?".
+>
+>
+> I got a question about msync/fsync which is beyond the topic of this thread
+> :)
+>
+> Whether msync/fsync can make data persistent depends on ADR feature on
+> memory
+> controller, if it exists everything works well, otherwise, we need to have
+> another
+> interface that is why 'Flush hint table' in ACPI comes in. 'Flush hint
+> table' is
+> particularly useful for nvdimm virtualization if we use normal memory to
+> emulate
+> nvdimm with data persistent characteristic (the data will be flushed to a
+> persistent storage, e.g, disk).
+>
+> Does current PMEM programming model fully supports 'Flush hint table'? Is
+> userspace allowed to use these addresses?
 
-"need fsync/msync" is a dynamic state of an inode, not a static
-property. i.e. users can do things that change an inode behind the
-back of a mapping, even if they are not aware that this might
-happen. As such, a filesystem can invalidate an existing mapping
-at any time and userspace won't notice because it will simply fault
-in a new mapping on the next access...
-
-> For all existing implementations, I think the answer is "you need to use
-> fsync/msync" because we don't yet have proper support for the PMEM programming
-> model.
-
-Yes, that is correct.
-
-FWIW, I don't think it will ever be possible to support this ....
-wonderful "PMEM programming model" from any current or future kernel
-filesystem without a very specific set of restrictions on what can
-be done to a file.  e.g.
-
-	1. the file has to be fully allocated and zeroed before
-	   use. Preallocation/zeroing via unwritten extents is not
-	   allowed. Sparse files are not allowed. Shared extents are
-	   not allowed.
-	2. set the "PMEM_IMMUTABLE" inode flag - filesystem must
-	   check the file is fully allocated before allowing it to
-	   be set, and caller must have CAP_LINUX_IMMUTABLE.
-	3. Inode metadata is now immutable, and file data can only
-	   be accessed and/or modified via mmap().
-	4. All non-mmap methods of inode data modification
-	   will now fail with EPERM.
-	5. all methods of inode metadata modification will now fail
-	   with EPERM, timestamp udpdates will be ignored.
-	6. PMEM_IMMUTABLE flag can only be removed if the file is
-	   not currently mapped and caller has CAP_LINUX_IMMUTABLE.
-
-A flag like this /should/ make it possible to avoid fsync/msync() on
-a file for existing filesystems, but it also means that such files
-have significant management issues (hence the need for
-CAP_LINUX_IMMUTABLE to cover it's use).
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+If you publish flush hint addresses in the virtual NFIT the guest VM
+will write to them whenever a REQ_FLUSH or REQ_FUA request is sent to
+the virtual /dev/pmemX device.  Yes, seems straightforward to take a
+VM exit on those events and flush simulated pmem to persistent
+storage.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
