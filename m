@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 03/10] dax: don't pass buffer_head to dax_insert_mapping
-Date: Fri,  9 Sep 2016 18:34:37 +0200
-Message-ID: <1473438884-674-4-git-send-email-hch@lst.de>
+Subject: [PATCH 06/10] dax: provide an iomap based fault handler
+Date: Fri,  9 Sep 2016 18:34:40 +0200
+Message-ID: <1473438884-674-7-git-send-email-hch@lst.de>
 References: <1473438884-674-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,46 +20,151 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This way we can use this helper for the iomap based DAX implementation
-as well.
+Very similar to the existing dax_fault function, but instead of using
+the get_block callback we rely on the iomap_ops vector from iomap.c.
+That also avoids having to do two calls into the file system for write
+faults.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- fs/dax.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/dax.c              | 113 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/iomap.h |   2 +
+ 2 files changed, 115 insertions(+)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 993dc6f..98463bb 100644
+index 57ad456..a170a94 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -790,14 +790,13 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
+@@ -1343,4 +1343,117 @@ iomap_dax_rw(struct kiocb *iocb, struct iov_iter *iter,
+ 	return done;
+ }
+ EXPORT_SYMBOL_GPL(iomap_dax_rw);
++
++/**
++ * iomap_dax_fault - handle a page fault on a DAX file
++ * @vma: The virtual memory area where the fault occurred
++ * @vmf: The description of the fault
++ * @ops: iomap ops passed from the file system
++ *
++ * When a page fault occurs, filesystems may call this helper in their fault
++ * or mkwrite handler for DAX files. Sssumes the caller has done all the
++ * necessary locking for the page fault to proceed successfully.
++ */
++int iomap_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
++			struct iomap_ops *ops)
++{
++	struct address_space *mapping = vma->vm_file->f_mapping;
++	struct inode *inode = mapping->host;
++	unsigned long vaddr = (unsigned long)vmf->virtual_address;
++	loff_t pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
++	sector_t sector;
++	struct iomap iomap = { 0 };
++	unsigned flags = 0;
++	int error, major = 0;
++	void *entry;
++
++	/*
++	 * Check whether offset isn't beyond end of file now. Caller is supposed
++	 * to hold locks serializing us with truncate / punch hole so this is
++	 * a reliable test.
++	 */
++	if (pos >= i_size_read(inode))
++		return VM_FAULT_SIGBUS;
++
++	entry = grab_mapping_entry(mapping, vmf->pgoff);
++	if (IS_ERR(entry)) {
++		error = PTR_ERR(entry);
++		goto out;
++	}
++
++	if ((vmf->flags & FAULT_FLAG_WRITE) && !vmf->cow_page)
++		flags |= IOMAP_WRITE;
++
++	/*
++	 * Note that we don't bother to use iomap_apply here: DAX required
++	 * the file system block size to be equal the page size, which means
++	 * that we never have to deal with more than a single extent here.
++	 */
++	error = ops->iomap_begin(inode, pos, PAGE_SIZE, flags, &iomap);
++	if (error)
++		goto unlock_entry;
++	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
++		error = -EIO;		/* fs corruption? */
++		goto unlock_entry;
++	}
++
++	sector = iomap.blkno + (((pos & PAGE_MASK) - iomap.offset) >> 9);
++
++	if (vmf->cow_page) {
++		switch (iomap.type) {
++		case IOMAP_HOLE:
++		case IOMAP_UNWRITTEN:
++			clear_user_highpage(vmf->cow_page, vaddr);
++			break;
++		case IOMAP_MAPPED:
++			error = copy_user_dax(iomap.bdev, sector, PAGE_SIZE,
++					vmf->cow_page, vaddr);
++			break;
++		default:
++			WARN_ON_ONCE(1);
++			error = -EIO;
++			break;
++		}
++
++		if (error)
++			goto unlock_entry;
++		if (!radix_tree_exceptional_entry(entry)) {
++			vmf->page = entry;
++			return VM_FAULT_LOCKED;
++		}
++		vmf->entry = entry;
++		return VM_FAULT_DAX_LOCKED;
++	}
++
++	switch (iomap.type) {
++	case IOMAP_MAPPED:
++		if (iomap.flags & IOMAP_F_NEW) {
++			count_vm_event(PGMAJFAULT);
++			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
++			major = VM_FAULT_MAJOR;
++		}
++		break;
++	case IOMAP_UNWRITTEN:
++	case IOMAP_HOLE:
++		if (!(vmf->flags & FAULT_FLAG_WRITE))
++			return dax_load_hole(mapping, entry, vmf);
++	default:
++		WARN_ON_ONCE(1);
++		error = -EIO;
++	}
++
++	/* Filesystem should not return unwritten buffers to us! */
++	error = dax_insert_mapping(mapping, iomap.bdev, sector, PAGE_SIZE,
++			&entry, vma, vmf);
++unlock_entry:
++	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
++out:
++	if (error == -ENOMEM)
++		return VM_FAULT_OOM | major;
++	/* -EBUSY is fine, somebody else faulted on the same PTE */
++	if (error < 0 && error != -EBUSY)
++		return VM_FAULT_SIGBUS | major;
++	return VM_FAULT_NOPAGE | major;
++}
++EXPORT_SYMBOL_GPL(iomap_dax_fault);
+ #endif /* CONFIG_FS_IOMAP */
+diff --git a/include/linux/iomap.h b/include/linux/iomap.h
+index 3d5f785..a4ef953 100644
+--- a/include/linux/iomap.h
++++ b/include/linux/iomap.h
+@@ -73,6 +73,8 @@ int iomap_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
+ 		struct iomap_ops *ops);
+ int iomap_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		struct iomap_ops *ops);
++int iomap_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
++			struct iomap_ops *ops);
+ int iomap_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+ 		loff_t start, loff_t len, struct iomap_ops *ops);
  
- static int dax_insert_mapping(struct address_space *mapping,
--			struct buffer_head *bh, void **entryp,
--			struct vm_area_struct *vma, struct vm_fault *vmf)
-+		struct block_device *bdev, sector_t sector, size_t size,
-+		void **entryp, struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	unsigned long vaddr = (unsigned long)vmf->virtual_address;
--	struct block_device *bdev = bh->b_bdev;
- 	struct blk_dax_ctl dax = {
--		.sector = to_sector(bh, mapping->host),
--		.size = bh->b_size,
-+		.sector = sector,
-+		.size = size,
- 	};
- 	void *ret;
- 	void *entry = *entryp;
-@@ -898,7 +897,8 @@ int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 
- 	/* Filesystem should not return unwritten buffers to us! */
- 	WARN_ON_ONCE(buffer_unwritten(&bh) || buffer_new(&bh));
--	error = dax_insert_mapping(mapping, &bh, &entry, vma, vmf);
-+	error = dax_insert_mapping(mapping, bh.b_bdev, to_sector(&bh, inode),
-+			bh.b_size, &entry, vma, vmf);
-  unlock_entry:
- 	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
-  out:
 -- 
 2.1.4
