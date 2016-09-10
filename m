@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D04171A1E60
- for <linux-nvdimm@lists.01.org>; Tue, 13 Sep 2016 18:03:31 -0700 (PDT)
-Subject: [ndctl PATCH 2/3] build: build libraries and utilities in separate
- directories
+ by ml01.01.org (Postfix) with ESMTPS id 522791A1E02
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Sep 2016 18:44:41 -0700 (PDT)
+Subject: [ndctl PATCH 2/3] test,
+ device-dax: fix 'skip' reporting when test device not found
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 13 Sep 2016 18:00:28 -0700
-Message-ID: <147381482831.12944.18340370850453419240.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147381481774.12944.1660067055752367684.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147381481774.12944.1660067055752367684.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 09 Sep 2016 18:41:37 -0700
+Message-ID: <147347169770.15190.17079545331805636573.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147347168712.15190.17312702584906386275.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147347168712.15190.17312702584906386275.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,231 +26,41 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When trying to add an "ndctl test" user of the util/log.c and
-util/sysfs.c routines, automake complained about util/log.o being
-already built for a library when trying to include it in the utility.
-Move the library build into ndctl/lib/ rather than re-using ndctl/.
+If we are unable to find a test device, then the test should report
+skipped.  However if any ndctl_test_attempt() succeeds prior to this
+discovery ndctl_test_result() will return success (0) instead of skip
+(77).  Re-arrange the 4.7 kernel version check to be after the device
+availability check.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Makefile.am            |    2 +-
- configure.ac           |    3 ++-
- daxctl/Makefile.am     |   27 ---------------------------
- daxctl/lib/Makefile.am |   28 ++++++++++++++++++++++++++++
- ndctl/Makefile.am      |   47 -----------------------------------------------
- ndctl/lib/Makefile.am  |   46 ++++++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 77 insertions(+), 76 deletions(-)
- delete mode 100644 daxctl/Makefile.am
- create mode 100644 daxctl/lib/Makefile.am
- create mode 100644 ndctl/lib/Makefile.am
+ test/device-dax.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index ce1032e3381d..9eb396639efe 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,7 +1,7 @@
- include Makefile.am.in
+diff --git a/test/device-dax.c b/test/device-dax.c
+index 04d53da544cd..c1409ac8b8b8 100644
+--- a/test/device-dax.c
++++ b/test/device-dax.c
+@@ -76,9 +76,6 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
+ 		return 1;
+ 	}
  
- ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
--SUBDIRS = . daxctl ndctl
-+SUBDIRS = . daxctl/lib ndctl/lib ndctl
- if ENABLE_DOCS
- SUBDIRS += Documentation
- endif
-diff --git a/configure.ac b/configure.ac
-index 7bc97be9039d..7b4af616cf2b 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -260,7 +260,8 @@ AC_SUBST([my_CFLAGS])
- AC_CONFIG_HEADERS(config.h)
- AC_CONFIG_FILES([
-         Makefile
--        daxctl/Makefile
-+        daxctl/lib/Makefile
-+        ndctl/lib/Makefile
-         ndctl/Makefile
-         test/Makefile
-         Documentation/Makefile
-diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
-deleted file mode 100644
-index 67ae5aed4a18..000000000000
---- a/daxctl/Makefile.am
-+++ /dev/null
-@@ -1,27 +0,0 @@
--include $(top_srcdir)/Makefile.am.in
+-	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0)))
+-		return 77;
 -
--%.pc: %.pc.in Makefile
--	$(SED_PROCESS)
--
--lib_LTLIBRARIES = lib/libdaxctl.la
--
--lib_libdaxctl_la_SOURCES =\
--	libdaxctl.h \
--	lib/libdaxctl-private.h \
--	../util/sysfs.c \
--	../util/sysfs.h \
--	../util/log.c \
--	../util/log.h \
--	lib/libdaxctl.c
--
--EXTRA_DIST += lib/libdaxctl.sym
--
--lib_libdaxctl_la_LDFLAGS = $(AM_LDFLAGS) \
--	-version-info $(LIBDAXCTL_CURRENT):$(LIBDAXCTL_REVISION):$(LIBDAXCTL_AGE) \
--	-Wl,--version-script=$(top_srcdir)/daxctl/lib/libdaxctl.sym
--lib_libdaxctl_la_DEPENDENCIES = lib/libdaxctl.sym
--
--pkgconfigdir = $(libdir)/pkgconfig
--pkgconfig_DATA = lib/libdaxctl.pc
--EXTRA_DIST += lib/libdaxctl.pc.in
--CLEANFILES += lib/libdaxctl.pc
-diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
-new file mode 100644
-index 000000000000..92783847266a
---- /dev/null
-+++ b/daxctl/lib/Makefile.am
-@@ -0,0 +1,28 @@
-+include $(top_srcdir)/Makefile.am.in
-+
-+%.pc: %.pc.in Makefile
-+	$(SED_PROCESS)
-+
-+pkginclude_HEADERS = ../libdaxctl.h
-+lib_LTLIBRARIES = libdaxctl.la
-+
-+libdaxctl_la_SOURCES =\
-+	../libdaxctl.h \
-+	libdaxctl-private.h \
-+	../../util/sysfs.c \
-+	../../util/sysfs.h \
-+	../../util/log.c \
-+	../../util/log.h \
-+	libdaxctl.c
-+
-+EXTRA_DIST += libdaxctl.sym
-+
-+libdaxctl_la_LDFLAGS = $(AM_LDFLAGS) \
-+	-version-info $(LIBDAXCTL_CURRENT):$(LIBDAXCTL_REVISION):$(LIBDAXCTL_AGE) \
-+	-Wl,--version-script=$(top_srcdir)/daxctl/lib/libdaxctl.sym
-+libdaxctl_la_DEPENDENCIES = libdaxctl.sym
-+
-+pkgconfigdir = $(libdir)/pkgconfig
-+pkgconfig_DATA = libdaxctl.pc
-+EXTRA_DIST += libdaxctl.pc.in
-+CLEANFILES += libdaxctl.pc
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index f7d0a96af4f9..f6cd3f1c235b 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -1,38 +1,5 @@
- include $(top_srcdir)/Makefile.am.in
+ 	ndctl_set_log_priority(ctx, loglevel);
  
--BUILT_SOURCES = libndctl.h
--lib/libndctl.h: libndctl.h.in
--	touch $(top_srcdir)/version.m4
--
--%.pc: %.pc.in Makefile
--	$(SED_PROCESS)
--
--pkginclude_HEADERS = libndctl.h
--lib_LTLIBRARIES = lib/libndctl.la
--
--lib_libndctl_la_SOURCES =\
--	libndctl.h \
--	lib/libndctl-private.h \
--	../util/log.c \
--	../util/log.h \
--	../util/sysfs.c \
--	../util/sysfs.h \
--	lib/libndctl.c
--
--lib_libndctl_la_LIBADD =\
--	../daxctl/lib/libdaxctl.la \
--	$(UDEV_LIBS) \
--	$(UUID_LIBS) \
--	$(KMOD_LIBS)
--
--if ENABLE_ARS
--lib_libndctl_la_SOURCES += lib/libndctl-ars.c
--endif
--
--if ENABLE_SMART
--lib_libndctl_la_SOURCES += lib/libndctl-smart.c
--endif
--
- bin_PROGRAMS = ndctl
+ 	ndns = ndctl_get_test_dev(ctx);
+@@ -88,6 +85,9 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
+ 		return 77;
+ 	}
  
- ndctl_SOURCES = ndctl.c \
-@@ -71,17 +38,3 @@ ndctl_SOURCES += ../test/libndctl.c \
- 		 ../test/parent-uuid.c \
- 		 ../test/core.c
- endif
--
--
--
--EXTRA_DIST += lib/libndctl.sym
--
--lib_libndctl_la_LDFLAGS = $(AM_LDFLAGS) \
--	-version-info $(LIBNDCTL_CURRENT):$(LIBNDCTL_REVISION):$(LIBNDCTL_AGE) \
--	-Wl,--version-script=$(top_srcdir)/ndctl/lib/libndctl.sym
--lib_libndctl_la_DEPENDENCIES = lib/libndctl.sym
--
--pkgconfigdir = $(libdir)/pkgconfig
--pkgconfig_DATA = lib/libndctl.pc
--EXTRA_DIST += lib/libndctl.pc.in
--CLEANFILES += lib/libndctl.pc
-diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am
-new file mode 100644
-index 000000000000..ec3941a4a754
---- /dev/null
-+++ b/ndctl/lib/Makefile.am
-@@ -0,0 +1,46 @@
-+include $(top_srcdir)/Makefile.am.in
++	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0)))
++		return 77;
 +
-+BUILT_SOURCES = ../libndctl.h
-+../libndctl.h: ../libndctl.h.in
-+	touch $(top_srcdir)/version.m4
-+
-+%.pc: %.pc.in Makefile
-+	$(SED_PROCESS)
-+
-+pkginclude_HEADERS = ../libndctl.h
-+lib_LTLIBRARIES = libndctl.la
-+
-+libndctl_la_SOURCES =\
-+	libndctl.h \
-+	libndctl-private.h \
-+	../../util/log.c \
-+	../../util/log.h \
-+	../../util/sysfs.c \
-+	../../util/sysfs.h \
-+	libndctl.c
-+
-+libndctl_la_LIBADD =\
-+	../../daxctl/lib/libdaxctl.la \
-+	$(UDEV_LIBS) \
-+	$(UUID_LIBS) \
-+	$(KMOD_LIBS)
-+
-+if ENABLE_ARS
-+libndctl_la_SOURCES += libndctl-ars.c
-+endif
-+
-+if ENABLE_SMART
-+libndctl_la_SOURCES += libndctl-smart.c
-+endif
-+
-+EXTRA_DIST += libndctl.sym
-+
-+libndctl_la_LDFLAGS = $(AM_LDFLAGS) \
-+	-version-info $(LIBNDCTL_CURRENT):$(LIBNDCTL_REVISION):$(LIBNDCTL_AGE) \
-+	-Wl,--version-script=$(top_srcdir)/ndctl/lib/libndctl.sym
-+libndctl_la_DEPENDENCIES = libndctl.sym
-+
-+pkgconfigdir = $(libdir)/pkgconfig
-+pkgconfig_DATA = libndctl.pc
-+EXTRA_DIST += libndctl.pc.in
-+CLEANFILES += libndctl.pc
+ 	rc = setup_device_dax(ndns);
+ 	if (rc < 0) {
+ 		fprintf(stderr, "%s: failed device-dax setup\n",
 
 _______________________________________________
 Linux-nvdimm mailing list
