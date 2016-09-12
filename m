@@ -1,53 +1,50 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Date: Mon, 12 Sep 2016 18:05:07 +1000
-From: Nicholas Piggin <npiggin@gmail.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 12 Sep 2016 00:51:28 -0700
+From: Christoph Hellwig <hch@infradead.org>
 Subject: Re: DAX mapping detection (was: Re: [PATCH] Fix region lost in
  /proc/self/smaps)
-Message-ID: <20160912180507.533b3549@roar.ozlabs.ibm.com>
-In-Reply-To: <20160912075128.GB21474@infradead.org>
+Message-ID: <20160912075128.GB21474@infradead.org>
 References: <CAPcyv4iDra+mRqEejfGqapKEAFZmUtUcg0dsJ8nt7mOhcT-Qpw@mail.gmail.com>
  <20160908225636.GB15167@linux.intel.com>
  <20160912052703.GA1897@infradead.org>
  <CAOSf1CHaW=szD+YEjV6vcUG0KKr=aXv8RXomw9xAgknh_9NBFQ@mail.gmail.com>
- <20160912075128.GB21474@infradead.org>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Yumei Huang <yuhuang@redhat.com>, Michal Hocko <mhocko@suse.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, KVM list <kvm@vger.kernel.org>, Dave Hansen <dave.hansen@intel.com>, Gleb Natapov <gleb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, mtosatti@redhat.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOSf1CHaW=szD+YEjV6vcUG0KKr=aXv8RXomw9xAgknh_9NBFQ@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Oliver O'Halloran <oohall@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>, Yumei Huang <yuhuang@redhat.com>, Michal Hocko <mhocko@suse.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, KVM list <kvm@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Gleb Natapov <gleb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, mtosatti@redhat.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dave Hansen <dave.hansen@intel.com>, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, 12 Sep 2016 00:51:28 -0700
-Christoph Hellwig <hch@infradead.org> wrote:
+On Mon, Sep 12, 2016 at 05:25:15PM +1000, Oliver O'Halloran wrote:
+> What are the problems here? Is this a matter of existing filesystems
+> being unable/unwilling to support this or is it just fundamentally
+> broken?
 
-> On Mon, Sep 12, 2016 at 05:25:15PM +1000, Oliver O'Halloran wrote:
-> > What are the problems here? Is this a matter of existing filesystems
-> > being unable/unwilling to support this or is it just fundamentally
-> > broken?  
-> 
-> It's a fundamentally broken model.  See Dave's post that actually was
-> sent slightly earlier then mine for the list of required items, which
-> is fairly unrealistic.  You could probably try to architect a file
-> system for it, but I doubt it would gain much traction.
+It's a fundamentally broken model.  See Dave's post that actually was
+sent slightly earlier then mine for the list of required items, which
+is fairly unrealistic.  You could probably try to architect a file
+system for it, but I doubt it would gain much traction.
 
-It's not fundamentally broken, it just doesn't fit well existing
-filesystems.
+> The end goal is to let applications manage the persistence of
+> their own data without having to involve the kernel in every IOP, but
+> if we can't do that then what would a 90% solution look like? I think
+> most people would be OK with having to do an fsync() occasionally, but
+> not after ever write to pmem.
 
-Dave's post of requirements is also wrong. A filesystem does not have
-to guarantee all that, it only has to guarantee that is the case for
-a given block after it has a mapping and page fault returns, other
-operations can be supported by invalidating mappings, etc.
+You need an fsync for each write that you want to persist.  This sounds
+painful for now.  But I have an implementation that will allow the
+atomic commit of more or less arbitrary amounts of previous writes for
+XFS that I plan to land once the reflink work is in.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+That way you create almost arbitrarily complex data structures in your
+programs and commit them atomicly.  It's not going to fit the nvml
+model, but that whole think has been complete bullshit since the
+beginning anyway.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
