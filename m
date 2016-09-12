@@ -1,22 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CEB111A1DF1
- for <linux-nvdimm@lists.01.org>; Sun, 11 Sep 2016 20:45:00 -0700 (PDT)
-From: "Rudoff, Andy" <andy.rudoff@intel.com>
+Received: from ipmail05.adl6.internode.on.net (ipmail05.adl6.internode.on.net
+ [150.101.137.143]) by ml01.01.org (Postfix) with ESMTP id 485981A1DF1
+ for <linux-nvdimm@lists.01.org>; Sun, 11 Sep 2016 18:40:39 -0700 (PDT)
+Date: Mon, 12 Sep 2016 11:40:35 +1000
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: DAX mapping detection (was: Re: [PATCH] Fix region lost in
  /proc/self/smaps)
-Date: Mon, 12 Sep 2016 03:44:59 +0000
-Message-ID: <E987E30D-5C68-420C-B68D-7E0AAA7F2303@intel.com>
+Message-ID: <20160912014035.GB30497@dastard>
 References: <CAPcyv4iDra+mRqEejfGqapKEAFZmUtUcg0dsJ8nt7mOhcT-Qpw@mail.gmail.com>
  <20160908225636.GB15167@linux.intel.com>
- <CAPcyv4h5y4MHdXtdrdPRtG7L0_KCoxf_xwDGnHQ2r5yZoqkFzQ@mail.gmail.com>
- <5d5ef209-e005-12c6-9b34-1fdd21e1e6e2@linux.intel.com>
-In-Reply-To: <5d5ef209-e005-12c6-9b34-1fdd21e1e6e2@linux.intel.com>
-Content-Language: en-US
-Content-ID: <76885E75BDC24242BEF18F4F486DC627@intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20160908225636.GB15167@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,44 +23,78 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Xiao Guangrong <guangrong.xiao@linux.intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Hansen, Dave" <dave.hansen@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Gleb Natapov <gleb@kernel.org>, "mtosatti@redhat.com" <mtosatti@redhat.com>, KVM list <kvm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Hajnoczi <stefanha@redhat.com>, Yumei Huang <yuhuang@redhat.com>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Dave Hansen <dave.hansen@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Gleb Natapov <gleb@kernel.org>, mtosatti@redhat.com, KVM list <kvm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefan Hajnoczi <stefanha@redhat.com>, Yumei Huang <yuhuang@redhat.com>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
->Whether msync/fsync can make data persistent depends on ADR feature on
->memory controller, if it exists everything works well, otherwise, we need
->to have another interface that is why 'Flush hint table' in ACPI comes
->in. 'Flush hint table' is particularly useful for nvdimm virtualization if
->we use normal memory to emulate nvdimm with data persistent characteristic
->(the data will be flushed to a persistent storage, e.g, disk).
->
->Does current PMEM programming model fully supports 'Flush hint table'? Is
->userspace allowed to use these addresses?
+On Thu, Sep 08, 2016 at 04:56:36PM -0600, Ross Zwisler wrote:
+> On Wed, Sep 07, 2016 at 09:32:36PM -0700, Dan Williams wrote:
+> > My understanding is that it is looking for the VM_MIXEDMAP flag which
+> > is already ambiguous for determining if DAX is enabled even if this
+> > dynamic listing issue is fixed.  XFS has arranged for DAX to be a
+> > per-inode capability and has an XFS-specific inode flag.  We can make
+> > that a common inode flag, but it seems we should have a way to
+> > interrogate the mapping itself in the case where the inode is unknown
+> > or unavailable.  I'm thinking extensions to mincore to have flags for
+> > DAX and possibly whether the page is part of a pte, pmd, or pud
+> > mapping.  Just floating that idea before starting to look into the
+> > implementation, comments or other ideas welcome...
+> 
+> I think this goes back to our previous discussion about support for the PMEM
+> programming model.  Really I think what NVML needs isn't a way to tell if it
+> is getting a DAX mapping, but whether it is getting a DAX mapping on a
+> filesystem that fully supports the PMEM programming model.  This of course is
+> defined to be a filesystem where it can do all of its flushes from userspace
+> safely and never call fsync/msync, and that allocations that happen in page
+> faults will be synchronized to media before the page fault completes.
+> 
+> IIUC this is what NVML needs - a way to decide "do I use fsync/msync for
+> everything or can I rely fully on flushes from userspace?" 
 
-The Flush hint table is NOT a replacement for ADR.  To support pmem on
-the x86 architecture, the platform is required to ensure that a pmem
-store flushed from the CPU caches is in the persistent domain so that the
-application need not take any additional steps to make it persistent.
-The most common way to do this is the ADR feature.
+"need fsync/msync" is a dynamic state of an inode, not a static
+property. i.e. users can do things that change an inode behind the
+back of a mapping, even if they are not aware that this might
+happen. As such, a filesystem can invalidate an existing mapping
+at any time and userspace won't notice because it will simply fault
+in a new mapping on the next access...
 
-If the above is not true, then your x86 platform does not support pmem.
+> For all existing implementations, I think the answer is "you need to use
+> fsync/msync" because we don't yet have proper support for the PMEM programming
+> model.
 
-Flush hints are for use by the BIOS and drivers and are not intended to
-be used in user space.  Flush hints provide two things:
+Yes, that is correct.
 
-First, if a driver needs to write to command registers or movable windows
-on a DIMM, the Flush hint (if provided in the NFIT) is required to flush
-the command to the DIMM or ensure stores done through the movable window
-are complete before moving it somewhere else.
+FWIW, I don't think it will ever be possible to support this ....
+wonderful "PMEM programming model" from any current or future kernel
+filesystem without a very specific set of restrictions on what can
+be done to a file.  e.g.
 
-Second, for the rare case where the kernel wants to flush stores to the
-smallest possible failure domain (i.e. to the DIMM even though ADR will
-handle flushing it from a larger domain), the flush hints provide a way
-to do this.  This might be useful for things like file system journals to
-help ensure the file system is consistent even in the face of ADR failure.
+	1. the file has to be fully allocated and zeroed before
+	   use. Preallocation/zeroing via unwritten extents is not
+	   allowed. Sparse files are not allowed. Shared extents are
+	   not allowed.
+	2. set the "PMEM_IMMUTABLE" inode flag - filesystem must
+	   check the file is fully allocated before allowing it to
+	   be set, and caller must have CAP_LINUX_IMMUTABLE.
+	3. Inode metadata is now immutable, and file data can only
+	   be accessed and/or modified via mmap().
+	4. All non-mmap methods of inode data modification
+	   will now fail with EPERM.
+	5. all methods of inode metadata modification will now fail
+	   with EPERM, timestamp udpdates will be ignored.
+	6. PMEM_IMMUTABLE flag can only be removed if the file is
+	   not currently mapped and caller has CAP_LINUX_IMMUTABLE.
 
--andy
+A flag like this /should/ make it possible to avoid fsync/msync() on
+a file for existing filesystems, but it also means that such files
+have significant management issues (hence the need for
+CAP_LINUX_IMMUTABLE to cover it's use).
 
+Cheers,
 
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
