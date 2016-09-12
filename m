@@ -1,19 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x22a.google.com (mail-oi0-x22a.google.com
- [IPv6:2607:f8b0:4003:c06::22a])
+Received: from mail-oi0-x22f.google.com (mail-oi0-x22f.google.com
+ [IPv6:2607:f8b0:4003:c06::22f])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 431B21A1E0A
- for <linux-nvdimm@lists.01.org>; Mon, 12 Sep 2016 10:25:25 -0700 (PDT)
-Received: by mail-oi0-x22a.google.com with SMTP id m11so324581888oif.1
- for <linux-nvdimm@lists.01.org>; Mon, 12 Sep 2016 10:25:25 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id E85831A1E0A
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Sep 2016 10:15:37 -0700 (PDT)
+Received: by mail-oi0-x22f.google.com with SMTP id y2so324585844oie.0
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Sep 2016 10:15:37 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAOSf1CHKY7LT0z+wpo7jUy3aYUDHCKDKwF0XoMwpKN4JwfYjeA@mail.gmail.com>
+In-Reply-To: <20160912100910.GC23346@node.shutemov.name>
 References: <147361509579.17004.5258725187329709824.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAOSf1CHKY7LT0z+wpo7jUy3aYUDHCKDKwF0XoMwpKN4JwfYjeA@mail.gmail.com>
+ <20160912100910.GC23346@node.shutemov.name>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 12 Sep 2016 10:25:23 -0700
-Message-ID: <CAPcyv4i7faR5KnaSKFFHnc-=1XsTn2naWfiCjB4Mn2=womg9QA@mail.gmail.com>
+Date: Mon, 12 Sep 2016 10:15:35 -0700
+Message-ID: <CAPcyv4i0j2d9NqqG4JJFDykP400xT+JcO9wA+d9MiRJTBHTfbA@mail.gmail.com>
 Subject: Re: [RFC PATCH 1/2] mm, mincore2(): retrieve dax and tlb-size
  attributes of an address range
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -27,12 +27,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Oliver O'Halloran <oohall@gmail.com>
+To: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Andrea Arcangeli <aarcange@redhat.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-api@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun, Sep 11, 2016 at 11:29 PM, Oliver O'Halloran <oohall@gmail.com> wrote:
-> On Mon, Sep 12, 2016 at 3:31 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+On Mon, Sep 12, 2016 at 3:09 AM, Kirill A. Shutemov
+<kirill@shutemov.name> wrote:
+> On Sun, Sep 11, 2016 at 10:31:35AM -0700, Dan Williams wrote:
 >> As evidenced by this bug report [1], userspace libraries are interested
 >> in whether a mapping is DAX mapped, i.e. no intervening page cache.
 >> Rather than using the ambiguous VM_MIXEDMAP flag in smaps, provide an
@@ -53,28 +54,41 @@ On Sun, Sep 11, 2016 at 11:29 PM, Oliver O'Halloran <oohall@gmail.com> wrote:
 >> new format of each vector byte is:
 >>
 >> (TLB_SHIFT - PAGE_SHIFT) << 2 | vma_is_dax() << 1 | page_present
+>>
+>> [1]: https://lkml.org/lkml/2016/9/7/61
+>>
+>> Cc: Arnd Bergmann <arnd@arndb.de>
+>> Cc: Andrea Arcangeli <aarcange@redhat.com>
+>> Cc: Andrew Morton <akpm@linux-foundation.org>
+>> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+>> Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+>> Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  include/linux/syscalls.h               |    2 +
+>>  include/uapi/asm-generic/mman-common.h |    3 +
+>>  kernel/sys_ni.c                        |    1
+>>  mm/mincore.c                           |  126 +++++++++++++++++++++++++-------
+>>  4 files changed, 104 insertions(+), 28 deletions(-)
+>>
+>> diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
+>> index d02239022bd0..4aa2ee7e359a 100644
+>> --- a/include/linux/syscalls.h
+>> +++ b/include/linux/syscalls.h
+>> @@ -467,6 +467,8 @@ asmlinkage long sys_munlockall(void);
+>>  asmlinkage long sys_madvise(unsigned long start, size_t len, int behavior);
+>>  asmlinkage long sys_mincore(unsigned long start, size_t len,
+>>                               unsigned char __user * vec);
+>> +asmlinkage long sys_mincore2(unsigned long start, size_t len,
+>> +                             unsigned char __user * vec, int flags);
 >
-> What is userspace expected to do with the information in vec? Whether
-> PMD or THP mappings can be used is going to depend more on the block
-> allocations done by the filesystem rather than anything the an
-> application can directly influence. Returning a vector for each page
-> makes some sense in the mincore() case since the application can touch
-> each page to fault them in, but I don't see what they can do here.
+> We had few attempts to extand mincore(2) interface/functionality before.
+> None of them ended up in upsteam.
+>
+> How this attempt compares to previous?
 
-It's not a "can huge pages be used?" question it's interrogating the
-mapping that got established after the fact.  If an
-application/environment expects huge mappings, but pte mappings are
-getting established
-
-> Why not just get rid of vec entirely and make mincore2() a yes/no
-> check over the range for whatever is supplied in flags? That would
-> work for NVML's use case and it should be easier to extend if needed.
-
-I think having a way to ask the kernel if an address range satisfies a
-certain set of input attributes is a useful interface.  Perhaps a
-"MINCORE_CHECK" flag can indicate that the input vector contains a
-single character that it wants the kernel to validate during the page
-table walk, and return zero or the offset of the first mismatch.
+Not sure, I'm wading into this cold trying to get my pet problem
+solved, hence the RFC.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
