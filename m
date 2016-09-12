@@ -1,55 +1,61 @@
-Return-Path: <owner-linux-mm@kvack.org>
-MIME-Version: 1.0
-In-Reply-To: <147361509579.17004.5258725187329709824.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147361509579.17004.5258725187329709824.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: "Oliver O'Halloran" <oohall@gmail.com>
-Date: Mon, 12 Sep 2016 16:29:55 +1000
-Message-ID: <CAOSf1CHKY7LT0z+wpo7jUy3aYUDHCKDKwF0XoMwpKN4JwfYjeA@mail.gmail.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-pf0-x244.google.com (mail-pf0-x244.google.com
+ [IPv6:2607:f8b0:400e:c00::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7C6EC1A1DF1
+ for <linux-nvdimm@lists.01.org>; Sun, 11 Sep 2016 20:35:46 -0700 (PDT)
+Received: by mail-pf0-x244.google.com with SMTP id i75so2494218pfa.2
+ for <linux-nvdimm@lists.01.org>; Sun, 11 Sep 2016 20:35:46 -0700 (PDT)
+Date: Mon, 12 Sep 2016 13:35:36 +1000
+From: Nicholas Piggin <npiggin@gmail.com>
 Subject: Re: [RFC PATCH 1/2] mm, mincore2(): retrieve dax and tlb-size
  attributes of an address range
-Content-Type: text/plain; charset=UTF-8
-Sender: owner-linux-mm@kvack.org
+Message-ID: <20160912133536.1bdb57a9@roar.ozlabs.ibm.com>
+In-Reply-To: <147361509579.17004.5258725187329709824.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147361509579.17004.5258725187329709824.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>, linux-arch@vger.kernel.org, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Sep 12, 2016 at 3:31 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+On Sun, 11 Sep 2016 10:31:35 -0700
+Dan Williams <dan.j.williams@intel.com> wrote:
+
 > As evidenced by this bug report [1], userspace libraries are interested
 > in whether a mapping is DAX mapped, i.e. no intervening page cache.
 > Rather than using the ambiguous VM_MIXEDMAP flag in smaps, provide an
 > explicit "is dax" indication as a new flag in the page vector populated
 > by mincore.
->
-> There are also cases, particularly for testing and validating a
-> configuration to know the hardware mapping geometry of the pages in a
-> given process address range.  Consider filesystem-dax where a
-> configuration needs to take care to align partitions and block
-> allocations before huge page mappings might be used, or
-> anonymous-transparent-huge-pages where a process is opportunistically
-> assigned large pages.  mincore2() allows these configurations to be
-> surveyed and validated.
->
-> The implementation takes advantage of the unused bits in the per-page
-> byte returned for each PAGE_SIZE extent of a given address range.  The
-> new format of each vector byte is:
->
-> (TLB_SHIFT - PAGE_SHIFT) << 2 | vma_is_dax() << 1 | page_present
 
-What is userspace expected to do with the information in vec? Whether
-PMD or THP mappings can be used is going to depend more on the block
-allocations done by the filesystem rather than anything the an
-application can directly influence. Returning a vector for each page
-makes some sense in the mincore() case since the application can touch
-each page to fault them in, but I don't see what they can do here.
+Can you cc linux-arch when adding new syscalls (or other such things that
+need arch enablement).
 
-Why not just get rid of vec entirely and make mincore2() a yes/no
-check over the range for whatever is supplied in flags? That would
-work for NVML's use case and it should be easier to extend if needed.
+I wonder if the changelog for a new syscall should have a bit more grandeur.
+Without seeing patch 2, you might not know this was a new syscall just by
+reading the subject and changelog.
 
-Oliver
+mincore() defines other bits to be reserved, but I guess it probably breaks
+things if you suddenly started using them.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+It's a bit sad to introduce a new syscall for this and immediately use up
+all bits that can be returned. Would it be a serious problem to return a
+larger mask per page?
+
+Thanks,
+Nick
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
