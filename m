@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mail-wm0-x244.google.com (mail-wm0-x244.google.com
+ [IPv6:2a00:1450:400c:c09::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6320F1A1E6A
- for <linux-nvdimm@lists.01.org>; Tue,  6 Sep 2016 09:52:24 -0700 (PDT)
-Subject: [PATCH 1/5] dax: fix mapping size check
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 06 Sep 2016 09:49:26 -0700
-Message-ID: <147318056595.30325.8488744773976820879.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E52F71A1E48
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Sep 2016 11:44:51 -0700 (PDT)
+Received: by mail-wm0-x244.google.com with SMTP id g141so8593173wmd.1
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Sep 2016 11:44:51 -0700 (PDT)
+Date: Tue, 13 Sep 2016 20:44:46 +0200
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [RFC PATCH 2/2] x86: wire up mincore2()
+Message-ID: <20160913184445.GA810@gmail.com>
+References: <147361509579.17004.5258725187329709824.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <147361510160.17004.6974628969361614698.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <147361510160.17004.6974628969361614698.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,33 +27,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-pgoff_to_phys() validates that both the starting address and the length
-of the mapping against the resource list.  We need to check for a
-mapping size of PMD_SIZE not PAGE_SIZE in the pmd fault path.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/dax.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+* Dan Williams <dan.j.williams@intel.com> wrote:
 
-diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-index 803f3953b341..29f600f2c447 100644
---- a/drivers/dax/dax.c
-+++ b/drivers/dax/dax.c
-@@ -459,7 +459,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
- 	}
- 
- 	pgoff = linear_page_index(vma, pmd_addr);
--	phys = pgoff_to_phys(dax_dev, pgoff, PAGE_SIZE);
-+	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
- 	if (phys == -1) {
- 		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
- 				pgoff);
+> Add the new the mincore2() symbol to the x86 syscall tables.
 
+Could you please send the patch against -tip? We have this (new) commit in the x86 
+tree:
+
+  f9afc6197e9b x86: Wire up protection keys system calls
+
+... which created a new conflict.
+
+Thanks,
+
+	Ingo
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
