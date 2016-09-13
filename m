@@ -1,35 +1,67 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [RFC PATCH 1/2] mm, mincore2(): retrieve dax and tlb-size
- attributes of an address range
-Date: Mon, 12 Sep 2016 23:44:05 -0700
-Message-ID: <20160913064405.GA21069@infradead.org>
-References: <147361509579.17004.5258725187329709824.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 06/10] dax: provide an iomap based fault handler
+Date: Tue, 13 Sep 2016 09:51:26 -0600
+Message-ID: <20160913155126.GA10622@linux.intel.com>
+References: <1473438884-674-1-git-send-email-hch@lst.de>
+ <1473438884-674-7-git-send-email-hch@lst.de>
+ <20160909225557.GF30056@dastard>
+ <20160910073646.GA18547@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <147361509579.17004.5258725187329709824.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "Kirill A. Shutemov" <kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+In-Reply-To: <20160910073646.GA18547@lst.de>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Sun, Sep 11, 2016 at 10:31:35AM -0700, Dan Williams wrote:
-> As evidenced by this bug report [1], userspace libraries are interested
-> in whether a mapping is DAX mapped, i.e. no intervening page cache.
-> Rather than using the ambiguous VM_MIXEDMAP flag in smaps, provide an
-> explicit "is dax" indication as a new flag in the page vector populated
-> by mincore.
+On Sat, Sep 10, 2016 at 09:36:46AM +0200, Christoph Hellwig wrote:
+> On Sat, Sep 10, 2016 at 08:55:57AM +1000, Dave Chinner wrote:
+> > THe errors from the above two cases are not acted on. they are
+> > immediately overwritten by:
+> 
+> Yes, Robert also pointed this out.  Fix below.
+> 
+> > Is there a missing "if (error) goto out;" check somewhere here?
+> 
+> Just the one above.
+> 
+> > I'm also wondering if you've looked at supporting the PMD fault case
+> > with iomap?
+> 
+> PMD faults currently don't work at all.  Ross has a series to resurrect
+> them, but we'll need to coordinate between the two series somehow.  My
+> preference would be to not resurrect them for the bh path and only do
+> it for the iomap version.
 
-And how exactly does an implementation detail like DAX matter for an
-application?  The only thing that might matter is the atomicy boundary,
-but mincore is not the right interface for that.
+I'm working on this right now.  I expect that most/all of the infrastructure
+between the bh+get_block_t version and the iomap version to be shared, it'll
+just be a matter of having a PMD version of the iomap fault handler.  This
+should be pretty minor.
+
+Let's see how it goes, but right now my plan is to have both - I'd like to
+keep feature parity between ext2/ext4 and XFS, and that means having PMD
+faults in ext4 via bh+get_block_t until they move over to iomap.
+
+Regarding coordination, the PMD v2 series hasn't gotten much review so far, so
+I'm not sure it'll go in for v4.9.  At this point I'm planning on just
+rebasing on top of your iomap series, though if it gets taken sooner I
+wouldn't object.
+
+> diff --git a/fs/dax.c b/fs/dax.c
+> index a170a94..5534594 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1440,6 +1440,7 @@ int iomap_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+>  	default:
+>  		WARN_ON_ONCE(1);
+>  		error = -EIO;
+> +		goto unlock_entry;
+>  	}
+>  
+>  	/* Filesystem should not return unwritten buffers to us! */
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
