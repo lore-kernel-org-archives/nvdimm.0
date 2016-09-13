@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mail-oi0-x229.google.com (mail-oi0-x229.google.com
+ [IPv6:2607:f8b0:4003:c06::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 03D691A1E3D
- for <linux-nvdimm@lists.01.org>; Wed, 28 Sep 2016 17:11:01 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 1/3] nfit: don't start a full scrub by default for an MCE
-Date: Wed, 28 Sep 2016 18:10:09 -0600
-Message-Id: <1475107811-8880-2-git-send-email-vishal.l.verma@intel.com>
-In-Reply-To: <1475107811-8880-1-git-send-email-vishal.l.verma@intel.com>
-References: <1475107811-8880-1-git-send-email-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 96E5D1A1E1D
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Sep 2016 17:33:51 -0700 (PDT)
+Received: by mail-oi0-x229.google.com with SMTP id q188so231749066oia.3
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Sep 2016 17:33:51 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20160912161507.24311-1-ross.zwisler@linux.intel.com>
+References: <CAPcyv4g-KQDpxduXTokJMKvqKTDUnx4X3Ashiq02Cc6xhTc+DA@mail.gmail.com>
+ <20160912161507.24311-1-ross.zwisler@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 12 Sep 2016 17:33:50 -0700
+Message-ID: <CAPcyv4j9q=Bs3bLR9GTHjW9G_iQmmh2BneuzWcxFUO9awrFSkw@mail.gmail.com>
+Subject: Re: [PATCH v2] /dev/dax: fix Kconfig dependency build breakage
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,150 +22,57 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Starting a full Address Range Scrub (ARS) on hitting a memory error
-machine check exception may not always be desirable. Provide a way
-through sysfs to toggle the behavior between just adding the address
-(cache line) where the MCE happened to the poison list and doing a full
-scrub. The former (selective insertion of the address) is done
-unconditionally.
+On Mon, Sep 12, 2016 at 9:15 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> The function dax_pmem_probe() in drivers/dax/pmem.c is compiled under the
+> CONFIG_DEV_DAX_PMEM tri-state config option.  This config option currently
+> only depends on CONFIG_NVDIMM_DAX, a bool, which means that the following
+> configuration is possible:
+>
+> CONFIG_LIBNVDIMM=m
+> ...
+> CONFIG_NVDIMM_DAX=y
+> CONFIG_DEV_DAX=y
+> CONFIG_DEV_DAX_PMEM=y
+>
+> With this config LIBNVDIMM is compiled as a module with NVDIMM_DAX=y just
+> meaning that we will compile drivers/nvdimm/dax_devs.c into that module.
+> However, dax_pmem_probe() depends on several symbols defined in
+> drivers/nvdimm/dax_devs.c, which results in the following build errors:
+>
+> drivers/built-in.o: In function `dax_pmem_probe':
+> linux/drivers/dax/pmem.c:70: undefined reference to `to_nd_dax'
+> linux/drivers/dax/pmem.c:74: undefined reference to
+> `nvdimm_namespace_common_probe'
+> linux/drivers/dax/pmem.c:80: undefined reference to `devm_nsio_enable'
+> linux/drivers/dax/pmem.c:81: undefined reference to `nvdimm_setup_pfn'
+> linux/drivers/dax/pmem.c:84: undefined reference to `devm_nsio_disable'
+> linux/drivers/dax/pmem.c:122: undefined reference to `to_nd_region'
+> drivers/built-in.o: In function `dax_pmem_init':
+> linux/drivers/dax/pmem.c:147: undefined reference to `__nd_driver_register'
+>
+> Fix this by making NVDIMM_DAX a tristate.  DEV_DAX_PMEM depends on
+> NVDIMM_DAX which depends on LIBNVDIMM.  Since they are all now tristates,
+> if LIBNVDIMM is built as a kernel module DEV_DAX_PMEM will be as well.
+> This prevents dax_devs.c from being built as a built-in while its
+> dependencies are in the libnvdimm.ko module.
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>
+> Change from v1:
+>  - Made NVDIMM_DAX a tristate instead of adding an extra dependency. (djbw)
 
-Cc: linux-acpi@vger.kernel.org
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Linda Knippers <linda.knippers@hpe.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/acpi/nfit/core.c | 23 ++++++++++++++++++++---
- drivers/acpi/nfit/mce.c  | 24 +++++++++++++++++++-----
- drivers/acpi/nfit/nfit.h |  6 ++++++
- 3 files changed, 45 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 80cc7c0..ec1069e 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -901,6 +901,14 @@ static ssize_t scrub_show(struct device *dev,
- 	return rc;
- }
- 
-+/*
-+ * The 'scrub' attribute can only have following values written to it:
-+ * '1': Start an on-demand scrub, and enable a full scrub to happen if a
-+ *      machine check exception for a memory error is received.
-+ * '2': Switch to the default mode where a machine check will only insert
-+ *      the address on which the memory error was received into the poison
-+ *      and badblocks lists.
-+ */
- static ssize_t scrub_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t size)
- {
-@@ -911,15 +919,24 @@ static ssize_t scrub_store(struct device *dev,
- 	rc = kstrtol(buf, 0, &val);
- 	if (rc)
- 		return rc;
--	if (val != 1)
--		return -EINVAL;
- 
- 	device_lock(dev);
- 	nd_desc = dev_get_drvdata(dev);
- 	if (nd_desc) {
- 		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 
--		rc = acpi_nfit_ars_rescan(acpi_desc);
-+		switch (val) {
-+		case MCE_SCRUB_ON:
-+			rc = acpi_nfit_ars_rescan(acpi_desc);
-+			acpi_desc->scrub_mode = MCE_SCRUB_ON;
-+			break;
-+		case MCE_SCRUB_OFF:
-+			acpi_desc->scrub_mode = MCE_SCRUB_OFF;
-+			break;
-+		default:
-+			rc = -EINVAL;
-+			break;
-+		}
- 	}
- 	device_unlock(dev);
- 	if (rc)
-diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
-index 161f915..05005e2 100644
---- a/drivers/acpi/nfit/mce.c
-+++ b/drivers/acpi/nfit/mce.c
-@@ -14,6 +14,7 @@
-  */
- #include <linux/notifier.h>
- #include <linux/acpi.h>
-+#include <linux/nd.h>
- #include <asm/mce.h>
- #include "nfit.h"
- 
-@@ -62,12 +63,25 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
- 		}
- 		mutex_unlock(&acpi_desc->init_mutex);
- 
--		/*
--		 * We can ignore an -EBUSY here because if an ARS is already
--		 * in progress, just let that be the last authoritative one
--		 */
--		if (found_match)
-+		if (!found_match)
-+			continue;
-+
-+		/* If this fails due to an -ENOMEM, there is little we can do */
-+		nvdimm_bus_add_poison(acpi_desc->nvdimm_bus,
-+				ALIGN(mce->addr, L1_CACHE_BYTES),
-+				L1_CACHE_BYTES);
-+		nvdimm_region_notify(nfit_spa->nd_region,
-+				NVDIMM_REVALIDATE_POISON);
-+
-+		if (acpi_desc->scrub_mode == MCE_SCRUB_ON) {
-+			/*
-+			 * We can ignore an -EBUSY here because if an ARS is
-+			 * already in progress, just let that be the last
-+			 * authoritative one
-+			 */
- 			acpi_nfit_ars_rescan(acpi_desc);
-+		}
-+		break;
- 	}
- 
- 	mutex_unlock(&acpi_desc_lock);
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index e894ded..487dc0a 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -152,6 +152,7 @@ struct acpi_nfit_desc {
- 	struct list_head list;
- 	struct kernfs_node *scrub_count_state;
- 	unsigned int scrub_count;
-+	unsigned int scrub_mode;
- 	unsigned int cancel:1;
- 	unsigned long dimm_cmd_force_en;
- 	unsigned long bus_cmd_force_en;
-@@ -159,6 +160,11 @@ struct acpi_nfit_desc {
- 			void *iobuf, u64 len, int rw);
- };
- 
-+enum scrub_mode {
-+	MCE_SCRUB_ON = 1,
-+	MCE_SCRUB_OFF = 2,
-+};
-+
- enum nd_blk_mmio_selector {
- 	BDW,
- 	DCR,
--- 
-2.7.4
-
+Thanks, applied.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
