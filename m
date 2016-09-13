@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Date: Tue, 13 Sep 2016 00:17:32 -0700
-From: Christoph Hellwig <hch@infradead.org>
+Date: Tue, 13 Sep 2016 15:40:48 +1000
+From: Nicholas Piggin <npiggin@gmail.com>
 Subject: Re: DAX mapping detection (was: Re: [PATCH] Fix region lost in
  /proc/self/smaps)
-Message-ID: <20160913071732.GA19433@infradead.org>
+Message-ID: <20160913154048.76b0e0bc@roar.ozlabs.ibm.com>
+In-Reply-To: <CAPcyv4iPh2io4S4LpyFvgn9NcoOUEHU25uBz3aSZPJaxbZJZoA@mail.gmail.com>
 References: <CAPcyv4iDra+mRqEejfGqapKEAFZmUtUcg0dsJ8nt7mOhcT-Qpw@mail.gmail.com>
  <20160908225636.GB15167@linux.intel.com>
  <20160912052703.GA1897@infradead.org>
  <CAOSf1CHaW=szD+YEjV6vcUG0KKr=aXv8RXomw9xAgknh_9NBFQ@mail.gmail.com>
  <20160912075128.GB21474@infradead.org>
  <20160912180507.533b3549@roar.ozlabs.ibm.com>
- <20160912213435.GD30497@dastard>
- <20160913115311.509101b0@roar.ozlabs.ibm.com>
+ <20160912150148.GA10039@infradead.org>
+ <20160913113128.4eae792e@roar.ozlabs.ibm.com>
+ <CAPcyv4iPh2io4S4LpyFvgn9NcoOUEHU25uBz3aSZPJaxbZJZoA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20160913115311.509101b0@roar.ozlabs.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,36 +26,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Nicholas Piggin <npiggin@gmail.com>
-Cc: Yumei Huang <yuhuang@redhat.com>, Michal Hocko <mhocko@suse.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, KVM list <kvm@vger.kernel.org>, Dave Hansen <dave.hansen@intel.com>, Gleb Natapov <gleb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, mtosatti@redhat.com, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Linux MM <linux-mm@kvack.org>, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Yumei Huang <yuhuang@redhat.com>, Michal Hocko <mhocko@suse.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, KVM list <kvm@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Gleb Natapov <gleb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, mtosatti@redhat.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Dave Hansen <dave.hansen@intel.com>, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Sep 13, 2016 at 11:53:11AM +1000, Nicholas Piggin wrote:
-> - Application mmaps a file, faults in block 0
-> - FS allocates block, creates mappings, syncs metadata, sets "no fsync"
->   flag for that block, and completes the fault.
-> - Application writes some data to block 0, completes userspace flushes
-> 
-> * At this point, a crash must return with above data (or newer).
-> 
-> - Application starts writing more stuff into block 0
-> - Concurrently, fault in block 1
-> - FS starts to allocate, splits trees including mappings to block 0
-> 
-> * Crash
-> 
-> Is that right? How does your filesystem lose data before the sync
-> point?
+On Mon, 12 Sep 2016 21:06:49 -0700
+Dan Williams <dan.j.williams@intel.com> wrote:
 
-Witht all current file systems chances are your metadata hasn't been
-flushed out.  You could write all metadata synchronously from the
-page fault handler, but that's basically asking for all kinds of
-deadlocks.
+> On Mon, Sep 12, 2016 at 6:31 PM, Nicholas Piggin <npiggin@gmail.com> wrote:
+> > On Mon, 12 Sep 2016 08:01:48 -0700  
+> [..]
+> > That said, a noop system call is on the order of 100 cycles nowadays,
+> > so rushing to implement these APIs without seeing good numbers and
+> > actual users ready to go seems premature. *This* is the real reason
+> > not to implement new APIs yet.  
+> 
+> Yes, and harvesting the current crop of low hanging performance fruit
+> in the filesystem-DAX I/O path remains on the todo list.
+> 
+> In the meantime we're pursuing this mm api, mincore+ or whatever we
+> end up with, to allow userspace to distinguish memory address ranges
+> that are backed by a filesystem requiring coordination of metadata
+> updates + flushes for updates, vs something like device-dax that does
+> not.
 
-> If there is any huge complexity or unsolved problem, it is in XFS.
-> Conceptual problem is simple.
+Yes, that's reasonable.
 
-Good to have you back and make all the hard thing simple :)
+Do you need page/block granularity? Do you need a way to advise/request
+the fs for a particular capability? Is it enough to request and check
+success? Would the capability be likely to change, and if so, how would
+you notify the app asynchronously?
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
