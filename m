@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 05/12] dax: provide an iomap based dax read/write path
-Date: Wed, 14 Sep 2016 12:01:24 +0200
-Message-ID: <1473847291-18913-6-git-send-email-hch@lst.de>
+Subject: [PATCH 06/12] dax: provide an iomap based fault handler
+Date: Wed, 14 Sep 2016 12:01:25 +0200
+Message-ID: <1473847291-18913-7-git-send-email-hch@lst.de>
 References: <1473847291-18913-1-git-send-email-hch@lst.de>
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1473847291-18913-1-git-send-email-hch@lst.de>
@@ -10,165 +10,153 @@ To: linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.
 Cc: ross.zwisler@linux.intel.com
 List-Id: linux-nvdimm@lists.01.org
 
-This is a much simpler implementation of the DAX read/write path that makes
-use of the iomap infrastructure.  It does not try to mirror the direct I/O
-calling conventions and thus doesn't have to deal with i_dio_count or the
-end_io handler, but instead leaves locking and filesystem-specific I/O
-completion to the caller.
+Very similar to the existing dax_fault function, but instead of using
+the get_block callback we rely on the iomap_ops vector from iomap.c.
+That also avoids having to do two calls into the file system for write
+faults.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
  fs/dax.c            | 114 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dax.h |   4 ++
- 2 files changed, 118 insertions(+)
+ include/linux/dax.h |   2 +
+ 2 files changed, 116 insertions(+)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 84343ce..1f9f2d4 100644
+index 1f9f2d4..d67147d 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -31,6 +31,8 @@
- #include <linux/vmstat.h>
- #include <linux/pfn_t.h>
- #include <linux/sizes.h>
-+#include <linux/iomap.h>
-+#include "internal.h"
- 
- /*
-  * We use lowest available bit in exceptional entry for locking, other two
-@@ -1241,3 +1243,115 @@ int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
- 	return dax_zero_page_range(inode, from, length, get_block);
+@@ -1354,4 +1354,118 @@ iomap_dax_rw(struct kiocb *iocb, struct iov_iter *iter,
+ 	return done ? done : ret;
  }
- EXPORT_SYMBOL_GPL(dax_truncate_page);
-+
-+#ifdef CONFIG_FS_IOMAP
-+static loff_t
-+iomap_dax_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
-+		struct iomap *iomap)
-+{
-+	struct iov_iter *iter = data;
-+	loff_t end = pos + length, done = 0;
-+	ssize_t ret = 0;
-+
-+	if (iov_iter_rw(iter) == READ) {
-+		end = min(end, i_size_read(inode));
-+		if (pos >= end)
-+			return 0;
-+
-+		if (iomap->type == IOMAP_HOLE || iomap->type == IOMAP_UNWRITTEN)
-+			return iov_iter_zero(min(length, end - pos), iter);
-+	}
-+
-+	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED))
-+		return -EIO;
-+
-+	while (pos < end) {
-+		unsigned offset = pos & (PAGE_SIZE - 1);
-+		struct blk_dax_ctl dax = { 0 };
-+		ssize_t map_len;
-+
-+		dax.sector = iomap->blkno +
-+			(((pos & PAGE_MASK) - iomap->offset) >> 9);
-+		dax.size = (length + offset + PAGE_SIZE - 1) & PAGE_MASK;
-+		map_len = dax_map_atomic(iomap->bdev, &dax);
-+		if (map_len < 0) {
-+			ret = map_len;
-+			break;
-+		}
-+
-+		dax.addr += offset;
-+		map_len -= offset;
-+		if (map_len > end - pos)
-+			map_len = end - pos;
-+
-+		if (iov_iter_rw(iter) == WRITE)
-+			map_len = copy_from_iter_pmem(dax.addr, map_len, iter);
-+		else
-+			map_len = copy_to_iter(dax.addr, map_len, iter);
-+		dax_unmap_atomic(iomap->bdev, &dax);
-+		if (map_len <= 0) {
-+			ret = map_len ? map_len : -EFAULT;
-+			break;
-+		}
-+
-+		pos += map_len;
-+		length -= map_len;
-+		done += map_len;
-+	}
-+
-+	return done ? done : ret;
-+}
+ EXPORT_SYMBOL_GPL(iomap_dax_rw);
 +
 +/**
-+ * iomap_dax_rw - Perform I/O to a DAX file
-+ * @iocb:	The control block for this I/O
-+ * @iter:	The addresses to do I/O from or to
-+ * @ops:	iomap ops passed from the file system
++ * iomap_dax_fault - handle a page fault on a DAX file
++ * @vma: The virtual memory area where the fault occurred
++ * @vmf: The description of the fault
++ * @ops: iomap ops passed from the file system
 + *
-+ * This function performs read and write operations to directly mapped
-+ * persistent memory.  The callers needs to take care of read/write exclusion
-+ * and evicting any page cache pages in the region under I/O.
++ * When a page fault occurs, filesystems may call this helper in their fault
++ * or mkwrite handler for DAX files. Assumes the caller has done all the
++ * necessary locking for the page fault to proceed successfully.
 + */
-+ssize_t
-+iomap_dax_rw(struct kiocb *iocb, struct iov_iter *iter,
-+		struct iomap_ops *ops)
++int iomap_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
++			struct iomap_ops *ops)
 +{
-+	struct address_space *mapping = iocb->ki_filp->f_mapping;
++	struct address_space *mapping = vma->vm_file->f_mapping;
 +	struct inode *inode = mapping->host;
-+	loff_t pos = iocb->ki_pos, ret = 0, done = 0;
++	unsigned long vaddr = (unsigned long)vmf->virtual_address;
++	loff_t pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
++	sector_t sector;
++	struct iomap iomap = { 0 };
 +	unsigned flags = 0;
++	int error, major = 0;
++	void *entry;
 +
-+	if (iov_iter_rw(iter) == WRITE)
++	/*
++	 * Check whether offset isn't beyond end of file now. Caller is supposed
++	 * to hold locks serializing us with truncate / punch hole so this is
++	 * a reliable test.
++	 */
++	if (pos >= i_size_read(inode))
++		return VM_FAULT_SIGBUS;
++
++	entry = grab_mapping_entry(mapping, vmf->pgoff);
++	if (IS_ERR(entry)) {
++		error = PTR_ERR(entry);
++		goto out;
++	}
++
++	if ((vmf->flags & FAULT_FLAG_WRITE) && !vmf->cow_page)
 +		flags |= IOMAP_WRITE;
 +
 +	/*
-+	 * Yes, even DAX files can have page cache attached to them:  A zeroed
-+	 * page is inserted into the pagecache when we have to serve a write
-+	 * fault on a hole.  It should never be dirtied and can simply be
-+	 * dropped from the pagecache once we get real data for the page.
-+	 *
-+	 * XXX: This is racy against mmap, and there's nothing we can do about
-+	 * it. We'll eventually need to shift this down even further so that
-+	 * we can check if we allocated blocks over a hole first.
++	 * Note that we don't bother to use iomap_apply here: DAX required
++	 * the file system block size to be equal the page size, which means
++	 * that we never have to deal with more than a single extent here.
 +	 */
-+	if (mapping->nrpages) {
-+		ret = invalidate_inode_pages2_range(mapping,
-+				pos >> PAGE_SHIFT,
-+				(pos + iov_iter_count(iter) - 1) >> PAGE_SHIFT);
-+		WARN_ON_ONCE(ret);
++	error = ops->iomap_begin(inode, pos, PAGE_SIZE, flags, &iomap);
++	if (error)
++		goto unlock_entry;
++	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
++		error = -EIO;		/* fs corruption? */
++		goto unlock_entry;
 +	}
 +
-+	while (iov_iter_count(iter)) {
-+		ret = iomap_apply(inode, pos, iov_iter_count(iter), flags, ops,
-+				iter, iomap_dax_actor);
-+		if (ret <= 0)
++	sector = iomap.blkno + (((pos & PAGE_MASK) - iomap.offset) >> 9);
++
++	if (vmf->cow_page) {
++		switch (iomap.type) {
++		case IOMAP_HOLE:
++		case IOMAP_UNWRITTEN:
++			clear_user_highpage(vmf->cow_page, vaddr);
 +			break;
-+		pos += ret;
-+		done += ret;
++		case IOMAP_MAPPED:
++			error = copy_user_dax(iomap.bdev, sector, PAGE_SIZE,
++					vmf->cow_page, vaddr);
++			break;
++		default:
++			WARN_ON_ONCE(1);
++			error = -EIO;
++			break;
++		}
++
++		if (error)
++			goto unlock_entry;
++		if (!radix_tree_exceptional_entry(entry)) {
++			vmf->page = entry;
++			return VM_FAULT_LOCKED;
++		}
++		vmf->entry = entry;
++		return VM_FAULT_DAX_LOCKED;
 +	}
 +
-+	iocb->ki_pos += done;
-+	return done ? done : ret;
++	switch (iomap.type) {
++	case IOMAP_MAPPED:
++		if (iomap.flags & IOMAP_F_NEW) {
++			count_vm_event(PGMAJFAULT);
++			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
++			major = VM_FAULT_MAJOR;
++		}
++		error = dax_insert_mapping(mapping, iomap.bdev, sector,
++				PAGE_SIZE, &entry, vma, vmf);
++		break;
++	case IOMAP_UNWRITTEN:
++	case IOMAP_HOLE:
++		if (!(vmf->flags & FAULT_FLAG_WRITE))
++			return dax_load_hole(mapping, entry, vmf);
++		/*FALLTHU*/
++	default:
++		WARN_ON_ONCE(1);
++		error = -EIO;
++		break;
++	}
++
++ unlock_entry:
++	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
++ out:
++	if (error == -ENOMEM)
++		return VM_FAULT_OOM | major;
++	/* -EBUSY is fine, somebody else faulted on the same PTE */
++	if (error < 0 && error != -EBUSY)
++		return VM_FAULT_SIGBUS | major;
++	return VM_FAULT_NOPAGE | major;
 +}
-+EXPORT_SYMBOL_GPL(iomap_dax_rw);
-+#endif /* CONFIG_FS_IOMAP */
++EXPORT_SYMBOL_GPL(iomap_dax_fault);
+ #endif /* CONFIG_FS_IOMAP */
 diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 9c6dc77..a0595b4 100644
+index a0595b4..add6c4b 100644
 --- a/include/linux/dax.h
 +++ b/include/linux/dax.h
-@@ -6,9 +6,13 @@
- #include <linux/radix-tree.h>
- #include <asm/pgtable.h>
- 
-+struct iomap_ops;
-+
- /* We use lowest available exceptional entry bit for locking */
- #define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
- 
-+ssize_t iomap_dax_rw(struct kiocb *iocb, struct iov_iter *iter,
-+		struct iomap_ops *ops);
- ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *,
+@@ -17,6 +17,8 @@ ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *,
  		  get_block_t, dio_iodone_t, int flags);
  int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
+ int dax_truncate_page(struct inode *, loff_t from, get_block_t);
++int iomap_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
++			struct iomap_ops *ops);
+ int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
+ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
 -- 
 2.1.4
 
