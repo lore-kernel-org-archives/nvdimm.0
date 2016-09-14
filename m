@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 07/12] xfs: fix locking for DAX writes
-Date: Wed, 14 Sep 2016 12:01:26 +0200
-Message-ID: <1473847291-18913-8-git-send-email-hch@lst.de>
+Subject: [PATCH 11/12] ext2: stop passing buffer_head to ext2_get_blocks
+Date: Wed, 14 Sep 2016 12:01:30 +0200
+Message-ID: <1473847291-18913-12-git-send-email-hch@lst.de>
 References: <1473847291-18913-1-git-send-email-hch@lst.de>
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1473847291-18913-1-git-send-email-hch@lst.de>
@@ -10,61 +10,96 @@ To: linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.
 Cc: ross.zwisler@linux.intel.com
 List-Id: linux-nvdimm@lists.01.org
 
-So far DAX writes inherited the locking from direct I/O writes, but the direct
-I/O model of using shared locks for writes is actually wrong for DAX.  For
-direct I/O we're out of any standards and don't have to provide the Posix
-required exclusion between writers, but for DAX which gets transparently
-enable on applications without any knowledge of it we can't simply drop the
-requirement.  Even worse this only happens for aligned writes and thus
-doesn't show up for many typical use cases.
-
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/xfs/xfs_file.c | 20 +-------------------
- 1 file changed, 1 insertion(+), 19 deletions(-)
+ fs/ext2/inode.c | 39 ++++++++++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 15 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index e612a02..62649cc 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -714,24 +714,11 @@ xfs_file_dax_write(
- 	struct address_space	*mapping = iocb->ki_filp->f_mapping;
- 	struct inode		*inode = mapping->host;
- 	struct xfs_inode	*ip = XFS_I(inode);
--	struct xfs_mount	*mp = ip->i_mount;
- 	ssize_t			ret = 0;
--	int			unaligned_io = 0;
--	int			iolock;
-+	int			iolock = XFS_IOLOCK_EXCL;
- 	struct iov_iter		data;
- 
--	/* "unaligned" here means not aligned to a filesystem block */
--	if ((iocb->ki_pos & mp->m_blockmask) ||
--	    ((iocb->ki_pos + iov_iter_count(from)) & mp->m_blockmask)) {
--		unaligned_io = 1;
--		iolock = XFS_IOLOCK_EXCL;
--	} else if (mapping->nrpages) {
--		iolock = XFS_IOLOCK_EXCL;
--	} else {
--		iolock = XFS_IOLOCK_SHARED;
--	}
- 	xfs_rw_ilock(ip, iolock);
--
- 	ret = xfs_file_aio_write_checks(iocb, from, &iolock);
- 	if (ret)
- 		goto out;
-@@ -758,11 +745,6 @@ xfs_file_dax_write(
- 		WARN_ON_ONCE(ret);
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index d5c7d09..2a69ab2 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -618,7 +618,7 @@ static void ext2_splice_branch(struct inode *inode,
+  */
+ static int ext2_get_blocks(struct inode *inode,
+ 			   sector_t iblock, unsigned long maxblocks,
+-			   struct buffer_head *bh_result,
++			   u32 *bno, bool *new, bool *boundary,
+ 			   int create)
+ {
+ 	int err = -EIO;
+@@ -644,7 +644,6 @@ static int ext2_get_blocks(struct inode *inode,
+ 	/* Simplest case - block found, no allocation needed */
+ 	if (!partial) {
+ 		first_block = le32_to_cpu(chain[depth - 1].key);
+-		clear_buffer_new(bh_result); /* What's this do? */
+ 		count++;
+ 		/*map more blocks*/
+ 		while (count < maxblocks && count <= blocks_to_boundary) {
+@@ -699,7 +698,6 @@ static int ext2_get_blocks(struct inode *inode,
+ 			mutex_unlock(&ei->truncate_mutex);
+ 			if (err)
+ 				goto cleanup;
+-			clear_buffer_new(bh_result);
+ 			goto got_it;
+ 		}
  	}
+@@ -745,15 +743,16 @@ static int ext2_get_blocks(struct inode *inode,
+ 			mutex_unlock(&ei->truncate_mutex);
+ 			goto cleanup;
+ 		}
+-	} else
+-		set_buffer_new(bh_result);
++	} else {
++		*new = true;
++	}
  
--	if (iolock == XFS_IOLOCK_EXCL && !unaligned_io) {
--		xfs_rw_ilock_demote(ip, XFS_IOLOCK_EXCL);
--		iolock = XFS_IOLOCK_SHARED;
+ 	ext2_splice_branch(inode, iblock, partial, indirect_blks, count);
+ 	mutex_unlock(&ei->truncate_mutex);
+ got_it:
+-	map_bh(bh_result, inode->i_sb, le32_to_cpu(chain[depth-1].key));
++	*bno = le32_to_cpu(chain[depth-1].key);
+ 	if (count > blocks_to_boundary)
+-		set_buffer_boundary(bh_result);
++		*boundary = true;
+ 	err = count;
+ 	/* Clean up and exit */
+ 	partial = chain + depth - 1;	/* the whole chain */
+@@ -765,16 +764,26 @@ cleanup:
+ 	return err;
+ }
+ 
+-int ext2_get_block(struct inode *inode, sector_t iblock, struct buffer_head *bh_result, int create)
++int ext2_get_block(struct inode *inode, sector_t iblock,
++		struct buffer_head *bh_result, int create)
+ {
+ 	unsigned max_blocks = bh_result->b_size >> inode->i_blkbits;
+-	int ret = ext2_get_blocks(inode, iblock, max_blocks,
+-			      bh_result, create);
+-	if (ret > 0) {
+-		bh_result->b_size = (ret << inode->i_blkbits);
+-		ret = 0;
 -	}
--
- 	trace_xfs_file_dax_write(ip, iov_iter_count(from), iocb->ki_pos);
+-	return ret;
++	bool new = false, boundary = false;
++	u32 bno;
++	int ret;
++
++	ret = ext2_get_blocks(inode, iblock, max_blocks, &bno, &new, &boundary,
++			create);
++	if (ret <= 0)
++		return ret;
++
++	map_bh(bh_result, inode->i_sb, bno);
++	bh_result->b_size = (ret << inode->i_blkbits);
++	if (new)
++		set_buffer_new(bh_result);
++	if (boundary)
++		set_buffer_boundary(bh_result);
++	return 0;
  
- 	data = *from;
+ }
+ 
 -- 
 2.1.4
 
