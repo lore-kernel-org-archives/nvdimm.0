@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BC5531A1E4C
- for <linux-nvdimm@lists.01.org>; Thu,  8 Sep 2016 16:33:54 -0700 (PDT)
-Subject: [PATCH] libnvdimm: allow legacy (e820) pmem region to clear bad blocks
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 08 Sep 2016 16:33:28 -0700
-Message-ID: <147337760801.38083.16900960834862325097.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6A8DE1A1E56
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Sep 2016 18:31:51 -0700 (PDT)
+Subject: [PATCH 0/2] nfit: fail DSMs that return an unknown status value
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 13 Sep 2016 18:28:47 -0700
+Message-ID: <147381652762.13555.2547727388390513900.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,41 +20,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Bad blocks can be injected via /sys/block/pmemN/badblocks. In a situation
-where legacy pmem is being used or a pmem region created by using memmap
-kernel parameter, the injected bad blocks are not cleared due to
-nvdimm_clear_poison() failing from lack of ndctl function pointer. In
-this case we need to just return as handled and allow the bad blocks to
-be cleared rather than fail.
+When the kernel knows the format of a DSM and is consuming the data
+internal to the kernel, it needs to be careful to fail DSMs that return
+an error.  Recall that DSMs, ACPI Device Specific Methods, are used by
+the kernel to manipulate namespace label data, and scan for media
+errors.  For example, if a namespace label read command fails the
+returned data is undefined and should not be consumed by the libnvdimm
+core to make namespace provisioning decisions.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Also, add new unit test capability to allow dynamic failure injection
+for DSMs sent to nfit_test devices.
+
 ---
- drivers/nvdimm/bus.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 458daf9..935866f 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -185,8 +185,12 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 		return -ENXIO;
- 
- 	nd_desc = nvdimm_bus->nd_desc;
-+	/*
-+	 * if ndctl does not exist, it's PMEM_LEGACY and
-+	 * we want to just pretend everything is handled.
-+	 */
- 	if (!nd_desc->ndctl)
--		return -ENXIO;
-+		return len;
- 
- 	memset(&ars_cap, 0, sizeof(ars_cap));
- 	ars_cap.address = phys;
+Dan Williams (2):
+      nfit: fail DSMs that return non-zero status by default
+      tools/testing/nvdimm: test get_config_size DSM failures
 
+
+ drivers/acpi/nfit/core.c         |   48 +++++++++++++----------
+ tools/testing/nvdimm/test/nfit.c |   79 +++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 105 insertions(+), 22 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
