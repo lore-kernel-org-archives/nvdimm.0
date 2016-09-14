@@ -1,175 +1,235 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 10/12] xfs: use iomap to implement DAX
-Date: Wed, 14 Sep 2016 12:01:29 +0200
-Message-ID: <1473847291-18913-11-git-send-email-hch@lst.de>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: [PATCH 12/12] ext2: use iomap to implement DAX
+Date: Wed, 14 Sep 2016 12:01:31 +0200
+Message-ID: <1473847291-18913-13-git-send-email-hch@lst.de>
 References: <1473847291-18913-1-git-send-email-hch@lst.de>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1473847291-18913-1-git-send-email-hch@lst.de>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org
-Cc: ross.zwisler@linux.intel.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1473847291-18913-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Another users of buffer_heads bytes the dust.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- fs/xfs/xfs_file.c  | 61 +++++++++++++++---------------------------------------
- fs/xfs/xfs_iomap.c | 11 ++++++----
- 2 files changed, 24 insertions(+), 48 deletions(-)
+ fs/ext2/ext2.h  |  1 +
+ fs/ext2/file.c  | 72 +++++++++++++++++++++++++++++++++++++++++++++++++++------
+ fs/ext2/inode.c | 63 ++++++++++++++++++++++++++++++++++++++++++++++----
+ 3 files changed, 124 insertions(+), 12 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 62649cc..663634f 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -332,10 +332,7 @@ xfs_file_dax_read(
- 	struct kiocb		*iocb,
- 	struct iov_iter		*to)
- {
--	struct address_space	*mapping = iocb->ki_filp->f_mapping;
--	struct inode		*inode = mapping->host;
--	struct xfs_inode	*ip = XFS_I(inode);
--	struct iov_iter		data = *to;
-+	struct xfs_inode	*ip = XFS_I(iocb->ki_filp->f_mapping->host);
- 	size_t			count = iov_iter_count(to);
- 	ssize_t			ret = 0;
+diff --git a/fs/ext2/ext2.h b/fs/ext2/ext2.h
+index 06af2f9..37e2be7 100644
+--- a/fs/ext2/ext2.h
++++ b/fs/ext2/ext2.h
+@@ -814,6 +814,7 @@ extern const struct file_operations ext2_file_operations;
+ /* inode.c */
+ extern const struct address_space_operations ext2_aops;
+ extern const struct address_space_operations ext2_nobh_aops;
++extern struct iomap_ops ext2_iomap_ops;
  
-@@ -345,11 +342,7 @@ xfs_file_dax_read(
- 		return 0; /* skip atime */
+ /* namei.c */
+ extern const struct inode_operations ext2_dir_inode_operations;
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index 5efeefe..e089e1c 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -22,11 +22,59 @@
+ #include <linux/pagemap.h>
+ #include <linux/dax.h>
+ #include <linux/quotaops.h>
++#include <linux/iomap.h>
++#include <linux/uio.h>
+ #include "ext2.h"
+ #include "xattr.h"
+ #include "acl.h"
  
- 	xfs_rw_ilock(ip, XFS_IOLOCK_SHARED);
--	ret = dax_do_io(iocb, inode, &data, xfs_get_blocks_direct, NULL, 0);
--	if (ret > 0) {
--		iocb->ki_pos += ret;
--		iov_iter_advance(to, ret);
--	}
-+	ret = iomap_dax_rw(iocb, to, &xfs_iomap_ops);
- 	xfs_rw_iunlock(ip, XFS_IOLOCK_SHARED);
- 
- 	file_accessed(iocb->ki_filp);
-@@ -711,52 +704,32 @@ xfs_file_dax_write(
- 	struct kiocb		*iocb,
- 	struct iov_iter		*from)
- {
--	struct address_space	*mapping = iocb->ki_filp->f_mapping;
--	struct inode		*inode = mapping->host;
-+	struct inode		*inode = iocb->ki_filp->f_mapping->host;
- 	struct xfs_inode	*ip = XFS_I(inode);
--	ssize_t			ret = 0;
- 	int			iolock = XFS_IOLOCK_EXCL;
--	struct iov_iter		data;
-+	ssize_t			ret, error = 0;
-+	size_t			count;
-+	loff_t			pos;
- 
- 	xfs_rw_ilock(ip, iolock);
- 	ret = xfs_file_aio_write_checks(iocb, from, &iolock);
- 	if (ret)
- 		goto out;
- 
--	/*
--	 * Yes, even DAX files can have page cache attached to them:  A zeroed
--	 * page is inserted into the pagecache when we have to serve a write
--	 * fault on a hole.  It should never be dirtied and can simply be
--	 * dropped from the pagecache once we get real data for the page.
--	 *
--	 * XXX: This is racy against mmap, and there's nothing we can do about
--	 * it. dax_do_io() should really do this invalidation internally as
--	 * it will know if we've allocated over a holei for this specific IO and
--	 * if so it needs to update the mapping tree and invalidate existing
--	 * PTEs over the newly allocated range. Remove this invalidation when
--	 * dax_do_io() is fixed up.
--	 */
--	if (mapping->nrpages) {
--		loff_t end = iocb->ki_pos + iov_iter_count(from) - 1;
--
--		ret = invalidate_inode_pages2_range(mapping,
--						    iocb->ki_pos >> PAGE_SHIFT,
--						    end >> PAGE_SHIFT);
--		WARN_ON_ONCE(ret);
--	}
-+	pos = iocb->ki_pos;
-+	count = iov_iter_count(from);
- 
--	trace_xfs_file_dax_write(ip, iov_iter_count(from), iocb->ki_pos);
-+	trace_xfs_file_dax_write(ip, count, pos);
- 
--	data = *from;
--	ret = dax_do_io(iocb, inode, &data, xfs_get_blocks_direct,
--			xfs_end_io_direct_write, 0);
--	if (ret > 0) {
--		iocb->ki_pos += ret;
--		iov_iter_advance(from, ret);
-+	ret = iomap_dax_rw(iocb, from, &xfs_iomap_ops);
+ #ifdef CONFIG_FS_DAX
++static ssize_t ext2_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
++{
++	struct inode *inode = iocb->ki_filp->f_mapping->host;
++	ssize_t ret;
++
++	if (!iov_iter_count(to))
++		return 0; /* skip atime */
++
++	inode_lock_shared(inode);
++	ret = iomap_dax_rw(iocb, to, &ext2_iomap_ops);
++	inode_unlock_shared(inode);
++
++	file_accessed(iocb->ki_filp);
++	return ret;
++}
++
++static ssize_t ext2_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)
++{
++	struct file *file = iocb->ki_filp;
++	struct inode *inode = file->f_mapping->host;
++	ssize_t ret;
++
++	inode_lock(inode);
++	ret = generic_write_checks(iocb, from);
++	if (ret <= 0)
++		goto out_unlock;
++	ret = file_remove_privs(file);
++	if (ret)
++		goto out_unlock;
++	ret = file_update_time(file);
++	if (ret)
++		goto out_unlock;
++
++	ret = iomap_dax_rw(iocb, from, &ext2_iomap_ops);
 +	if (ret > 0 && iocb->ki_pos > i_size_read(inode)) {
 +		i_size_write(inode, iocb->ki_pos);
-+		error = xfs_setfilesize(ip, pos, count);
- 	}
++		mark_inode_dirty(inode);
++	}
 +
- out:
- 	xfs_rw_iunlock(ip, iolock);
--	return ret;
-+	return error ? error : ret;
++out_unlock:
++	inode_unlock(inode);
++	if (ret > 0)
++		ret = generic_write_sync(iocb, ret);
++	return ret;
++}
++
+ /*
+  * The lock ordering for ext2 DAX fault paths is:
+  *
+@@ -51,7 +99,7 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	}
+ 	down_read(&ei->dax_sem);
+ 
+-	ret = dax_fault(vma, vmf, ext2_get_block);
++	ret = iomap_dax_fault(vma, vmf, &ext2_iomap_ops);
+ 
+ 	up_read(&ei->dax_sem);
+ 	if (vmf->flags & FAULT_FLAG_WRITE)
+@@ -156,14 +204,24 @@ int ext2_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+ 	return ret;
  }
  
- STATIC ssize_t
-@@ -1495,7 +1468,7 @@ xfs_filemap_page_mkwrite(
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-/*
+- * We have mostly NULL's here: the current defaults are ok for
+- * the ext2 filesystem.
+- */
++static ssize_t ext2_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
++{
++	if (IS_DAX(iocb->ki_filp->f_mapping->host))
++		return ext2_dax_read_iter(iocb, to);
++	return generic_file_read_iter(iocb, to);
++}
++
++static ssize_t ext2_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
++{
++	if (IS_DAX(iocb->ki_filp->f_mapping->host))
++		return ext2_dax_write_iter(iocb, from);
++	return generic_file_write_iter(iocb, from);
++}
++
+ const struct file_operations ext2_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read_iter	= generic_file_read_iter,
+-	.write_iter	= generic_file_write_iter,
++	.read_iter	= ext2_file_read_iter,
++	.write_iter	= ext2_file_write_iter,
+ 	.unlocked_ioctl = ext2_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= ext2_compat_ioctl,
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 2a69ab2..aae5f61 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -32,6 +32,7 @@
+ #include <linux/buffer_head.h>
+ #include <linux/mpage.h>
+ #include <linux/fiemap.h>
++#include <linux/iomap.h>
+ #include <linux/namei.h>
+ #include <linux/uio.h>
+ #include "ext2.h"
+@@ -787,6 +788,59 @@ int ext2_get_block(struct inode *inode, sector_t iblock,
  
- 	if (IS_DAX(inode)) {
--		ret = dax_mkwrite(vma, vmf, xfs_get_blocks_dax_fault);
-+		ret = iomap_dax_fault(vma, vmf, &xfs_iomap_ops);
- 	} else {
- 		ret = iomap_page_mkwrite(vma, vmf, &xfs_iomap_ops);
- 		ret = block_page_mkwrite_return(ret);
-@@ -1529,7 +1502,7 @@ xfs_filemap_fault(
- 		 * changes to xfs_get_blocks_direct() to map unwritten extent
- 		 * ioend for conversion on read-only mappings.
- 		 */
--		ret = dax_fault(vma, vmf, xfs_get_blocks_dax_fault);
-+		ret = iomap_dax_fault(vma, vmf, &xfs_iomap_ops);
- 	} else
- 		ret = filemap_fault(vma, vmf);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index c3cc175..23f7811 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -935,11 +935,13 @@ error_on_bmapi_transaction:
- 	return error;
  }
  
--static inline bool imap_needs_alloc(struct xfs_bmbt_irec *imap, int nimaps)
-+static inline bool imap_needs_alloc(struct inode *inode,
-+		struct xfs_bmbt_irec *imap, int nimaps)
++#ifdef CONFIG_FS_DAX
++static int ext2_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
++		unsigned flags, struct iomap *iomap)
++{
++	unsigned int blkbits = inode->i_blkbits;
++	unsigned long first_block = offset >> blkbits;
++	unsigned long max_blocks = (length + (1 << blkbits) - 1) >> blkbits;
++	bool new = false, boundary = false;
++	u32 bno;
++	int ret;
++
++	ret = ext2_get_blocks(inode, first_block, max_blocks,
++			&bno, &new, &boundary, flags & IOMAP_WRITE);
++	if (ret < 0)
++		return ret;
++
++	iomap->flags = 0;
++	iomap->bdev = inode->i_sb->s_bdev;
++	iomap->offset = first_block << blkbits;
++
++	if (ret == 0) {
++		iomap->type = IOMAP_HOLE;
++		iomap->blkno = IOMAP_NULL_BLOCK;
++		iomap->length = 1 << blkbits;
++	} else {
++		iomap->type = IOMAP_MAPPED;
++		iomap->blkno = (sector_t)bno << (blkbits - 9);
++		iomap->length = (u64)ret << blkbits;
++		iomap->flags |= IOMAP_F_MERGED;
++	}
++
++	if (new)
++		iomap->flags |= IOMAP_F_NEW;
++	return 0;
++}
++
++static int
++ext2_iomap_end(struct inode *inode, loff_t offset, loff_t length,
++		ssize_t written, unsigned flags, struct iomap *iomap)
++{
++	if (iomap->type == IOMAP_MAPPED &&
++	    written < length &&
++	    (flags & IOMAP_WRITE))
++		ext2_write_failed(inode->i_mapping, offset + length);
++	return 0;
++}
++
++struct iomap_ops ext2_iomap_ops = {
++	.iomap_begin		= ext2_iomap_begin,
++	.iomap_end		= ext2_iomap_end,
++};
++#endif /* CONFIG_FS_DAX */
++
+ int ext2_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+ 		u64 start, u64 len)
  {
- 	return !nimaps ||
- 		imap->br_startblock == HOLESTARTBLOCK ||
--		imap->br_startblock == DELAYSTARTBLOCK;
-+		imap->br_startblock == DELAYSTARTBLOCK ||
-+		(IS_DAX(inode) && ISUNWRITTEN(imap));
- }
+@@ -872,11 +926,10 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+ 	loff_t offset = iocb->ki_pos;
+ 	ssize_t ret;
  
- static int
-@@ -960,7 +962,8 @@ xfs_file_iomap_begin(
- 	if (XFS_FORCED_SHUTDOWN(mp))
- 		return -EIO;
- 
--	if ((flags & IOMAP_WRITE) && !xfs_get_extsz_hint(ip)) {
-+	if ((flags & IOMAP_WRITE) &&
-+	    !IS_DAX(inode) && !xfs_get_extsz_hint(ip)) {
- 		return xfs_file_iomap_begin_delay(inode, offset, length, flags,
- 				iomap);
- 	}
-@@ -980,7 +983,7 @@ xfs_file_iomap_begin(
- 		return error;
- 	}
- 
--	if ((flags & IOMAP_WRITE) && imap_needs_alloc(&imap, nimaps)) {
-+	if ((flags & IOMAP_WRITE) && imap_needs_alloc(inode, &imap, nimaps)) {
- 		/*
- 		 * We cap the maximum length we map here to MAX_WRITEBACK_PAGES
- 		 * pages to keep the chunks of work done where somewhat symmetric
+-	if (IS_DAX(inode))
+-		ret = dax_do_io(iocb, inode, iter, ext2_get_block, NULL,
+-				DIO_LOCKING);
+-	else
+-		ret = blockdev_direct_IO(iocb, inode, iter, ext2_get_block);
++	if (WARN_ON_ONCE(IS_DAX(inode)))
++		return -EIO;
++
++	ret = blockdev_direct_IO(iocb, inode, iter, ext2_get_block);
+ 	if (ret < 0 && iov_iter_rw(iter) == WRITE)
+ 		ext2_write_failed(mapping, offset + count);
+ 	return ret;
 -- 
 2.1.4
-
