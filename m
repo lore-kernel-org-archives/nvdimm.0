@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3ADFD1A1F1E
- for <linux-nvdimm@lists.01.org>; Fri, 16 Sep 2016 13:11:52 -0700 (PDT)
-From: Brian Boylston <brian.boylston@hpe.com>
-Subject: [ndctl PATCH v3 1/4] libndctl: introduce ndctl_smart_ops
-Date: Fri, 16 Sep 2016 15:10:10 -0500
-Message-Id: <20160916201013.555-2-brian.boylston@hpe.com>
-In-Reply-To: <20160916201013.555-1-brian.boylston@hpe.com>
-References: <20160916201013.555-1-brian.boylston@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id A3A011A1E5B
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Sep 2016 18:31:56 -0700 (PDT)
+Subject: [PATCH 1/2] nfit: fail DSMs that return non-zero status by default
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 13 Sep 2016 18:28:53 -0700
+Message-ID: <147381653306.13555.14745102134571847874.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147381652762.13555.2547727388390513900.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147381652762.13555.2547727388390513900.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,293 +18,172 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a layer of indirection for the ndctl_cmd_smart*() family of
-interfaces.  This will allow the underlying implementation to be
-switched based on the DSM family supported by the DIMM.
+For the DSMs where the kernel knows the format of the output buffer and
+originates those DSMs from within the kernel, return -EIO for any
+non-zero status.  If the BIOS is indicating a status that we do not know
+how to handle, fail the DSM.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Changes in v3:
-  - Dropped the smart_dimm_op() macro and open coded
-    ndctl_dimm_cmd_new_smart() and ndctl_dimm_cmd_new_smart_threshold().
-    (suggested by Dan)
-  - I realized that v2 wouldn't compile if HAS_SMART was not 1, so I
-    changed intel_smart_ops and hpe1_smart_ops into pointers and set them
-    to NULL if HAS_SMART != 1.  They are const because that seems to
-    avoid compiler warnings about unused variables in cases where
-    libndctl-private.h is included by something other than libndctl.c.
+ drivers/acpi/nfit/core.c |   48 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 28 insertions(+), 20 deletions(-)
 
- ndctl/lib/libndctl-private.h |  23 +++++++++
- ndctl/lib/libndctl-smart.c   | 116 ++++++++++++++++++++++++++++++++++---------
- ndctl/lib/libndctl.c         |   7 +++
- ndctl/libndctl.h.in          |   1 +
- 4 files changed, 124 insertions(+), 23 deletions(-)
-
-diff --git a/ndctl/lib/libndctl-private.h b/ndctl/lib/libndctl-private.h
-index 65ef86d..5ff4fec 100644
---- a/ndctl/lib/libndctl-private.h
-+++ b/ndctl/lib/libndctl-private.h
-@@ -201,6 +201,29 @@ struct ndctl_cmd {
- 	};
- };
- 
-+struct ndctl_smart_ops {
-+	struct ndctl_cmd *(*new_smart)(struct ndctl_dimm *);
-+	unsigned int (*smart_get_flags)(struct ndctl_cmd *);
-+	unsigned int (*smart_get_health)(struct ndctl_cmd *);
-+	unsigned int (*smart_get_temperature)(struct ndctl_cmd *);
-+	unsigned int (*smart_get_spares)(struct ndctl_cmd *);
-+	unsigned int (*smart_get_alarm_flags)(struct ndctl_cmd *);
-+	unsigned int (*smart_get_life_used)(struct ndctl_cmd *);
-+	unsigned int (*smart_get_shutdown_state)(struct ndctl_cmd *);
-+	unsigned int (*smart_get_vendor_size)(struct ndctl_cmd *);
-+	unsigned char *(*smart_get_vendor_data)(struct ndctl_cmd *);
-+	struct ndctl_cmd *(*new_smart_threshold)(struct ndctl_dimm *);
-+	unsigned int (*smart_threshold_get_alarm_control)(struct ndctl_cmd *);
-+	unsigned int (*smart_threshold_get_temperature)(struct ndctl_cmd *);
-+	unsigned int (*smart_threshold_get_spares)(struct ndctl_cmd *);
-+};
-+
-+#if HAS_SMART == 1
-+struct ndctl_smart_ops * const intel_smart_ops;
-+#else
-+static struct ndctl_smart_ops * const intel_smart_ops = NULL;
-+#endif
-+
- /* internal library helpers for conditionally defined command numbers */
- #ifdef HAVE_NDCTL_ARS
- static const int nd_cmd_ars_status = ND_CMD_ARS_STATUS;
-diff --git a/ndctl/lib/libndctl-smart.c b/ndctl/lib/libndctl-smart.c
-index cba1e9d..73a49ef 100644
---- a/ndctl/lib/libndctl-smart.c
-+++ b/ndctl/lib/libndctl-smart.c
-@@ -16,7 +16,60 @@
- #include <ndctl/libndctl.h>
- #include "libndctl-private.h"
- 
--NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
-+/*
-+ * Define the wrappers around the ndctl_smart_ops:
-+ */
-+
-+NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart(
-+		struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_smart_ops *ops = ndctl_dimm_get_smart_ops(dimm);
-+	if (ops && ops->new_smart)
-+		return ops->new_smart(dimm);
-+	else
-+		return NULL;
-+}
-+
-+NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(
-+		struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_smart_ops *ops = ndctl_dimm_get_smart_ops(dimm);
-+	if (ops && ops->new_smart_threshold)
-+		return ops->new_smart_threshold(dimm);
-+	else
-+		return NULL;
-+}
-+
-+#define smart_cmd_op(name, op, rettype, defretvalue) \
-+NDCTL_EXPORT rettype name(struct ndctl_cmd *cmd) \
-+{ \
-+	if (cmd->dimm) { \
-+		struct ndctl_smart_ops *ops = ndctl_dimm_get_smart_ops(cmd->dimm); \
-+		if (ops && ops->op) \
-+			return ops->op(cmd); \
-+	} \
-+	return defretvalue; \
-+}
-+
-+smart_cmd_op(ndctl_cmd_smart_get_flags, smart_get_flags, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_get_health, smart_get_health, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_get_temperature, smart_get_temperature, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_get_spares, smart_get_spares, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_get_alarm_flags, smart_get_alarm_flags, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_get_life_used, smart_get_life_used, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_get_shutdown_state, smart_get_shutdown_state, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_get_vendor_size, smart_get_vendor_size, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_get_vendor_data, smart_get_vendor_data, unsigned char *, NULL)
-+smart_cmd_op(ndctl_cmd_smart_threshold_get_alarm_control, smart_threshold_get_alarm_control, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_threshold_get_temperature, smart_threshold_get_temperature, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_threshold_get_spares, smart_threshold_get_spares, unsigned int, 0)
-+
-+/*
-+ * The following intel_dimm_*() and intel_smart_*() functions implement
-+ * the ndctl_smart_ops for the Intel DSM family (NVDIMM_FAMILY_INTEL):
-+ */
-+
-+static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- {
- 	struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-@@ -45,66 +98,66 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- 	return cmd;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index ceb6671ab355..8d7cbecd7cce 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -94,54 +94,50 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
+ 	return to_acpi_device(acpi_desc->dev);
  }
  
--static int smart_valid(struct ndctl_cmd *cmd)
-+static int intel_smart_valid(struct ndctl_cmd *cmd)
+-static int xlat_status(void *buf, unsigned int cmd)
++static int xlat_status(void *buf, unsigned int cmd, u32 status)
  {
- 	if (cmd->type != ND_CMD_SMART || cmd->status != 0)
- 		return cmd->status < 0 ? cmd->status : -EINVAL;
+ 	struct nd_cmd_clear_error *clear_err;
+ 	struct nd_cmd_ars_status *ars_status;
+-	struct nd_cmd_ars_start *ars_start;
+-	struct nd_cmd_ars_cap *ars_cap;
+ 	u16 flags;
+ 
+ 	switch (cmd) {
+ 	case ND_CMD_ARS_CAP:
+-		ars_cap = buf;
+-		if ((ars_cap->status & 0xffff) == NFIT_ARS_CAP_NONE)
++		if ((status & 0xffff) == NFIT_ARS_CAP_NONE)
+ 			return -ENOTTY;
+ 
+ 		/* Command failed */
+-		if (ars_cap->status & 0xffff)
++		if (status & 0xffff)
+ 			return -EIO;
+ 
+ 		/* No supported scan types for this range */
+ 		flags = ND_ARS_PERSISTENT | ND_ARS_VOLATILE;
+-		if ((ars_cap->status >> 16 & flags) == 0)
++		if ((status >> 16 & flags) == 0)
+ 			return -ENOTTY;
+ 		break;
+ 	case ND_CMD_ARS_START:
+-		ars_start = buf;
+ 		/* ARS is in progress */
+-		if ((ars_start->status & 0xffff) == NFIT_ARS_START_BUSY)
++		if ((status & 0xffff) == NFIT_ARS_START_BUSY)
+ 			return -EBUSY;
+ 
+ 		/* Command failed */
+-		if (ars_start->status & 0xffff)
++		if (status & 0xffff)
+ 			return -EIO;
+ 		break;
+ 	case ND_CMD_ARS_STATUS:
+ 		ars_status = buf;
+ 		/* Command failed */
+-		if (ars_status->status & 0xffff)
++		if (status & 0xffff)
+ 			return -EIO;
+ 		/* Check extended status (Upper two bytes) */
+-		if (ars_status->status == NFIT_ARS_STATUS_DONE)
++		if (status == NFIT_ARS_STATUS_DONE)
+ 			return 0;
+ 
+ 		/* ARS is in progress */
+-		if (ars_status->status == NFIT_ARS_STATUS_BUSY)
++		if (status == NFIT_ARS_STATUS_BUSY)
+ 			return -EBUSY;
+ 
+ 		/* No ARS performed for the current boot */
+-		if (ars_status->status == NFIT_ARS_STATUS_NONE)
++		if (status == NFIT_ARS_STATUS_NONE)
+ 			return -EAGAIN;
+ 
+ 		/*
+@@ -149,19 +145,19 @@ static int xlat_status(void *buf, unsigned int cmd)
+ 		 * agent wants the scan to stop.  If we didn't overflow
+ 		 * then just continue with the returned results.
+ 		 */
+-		if (ars_status->status == NFIT_ARS_STATUS_INTR) {
++		if (status == NFIT_ARS_STATUS_INTR) {
+ 			if (ars_status->flags & NFIT_ARS_F_OVERFLOW)
+ 				return -ENOSPC;
+ 			return 0;
+ 		}
+ 
+ 		/* Unknown status */
+-		if (ars_status->status >> 16)
++		if (status >> 16)
+ 			return -EIO;
+ 		break;
+ 	case ND_CMD_CLEAR_ERROR:
+ 		clear_err = buf;
+-		if (clear_err->status & 0xffff)
++		if (status & 0xffff)
+ 			return -EIO;
+ 		if (!clear_err->cleared)
+ 			return -EIO;
+@@ -172,6 +168,9 @@ static int xlat_status(void *buf, unsigned int cmd)
+ 		break;
+ 	}
+ 
++	/* all other non-zero status results in an error */
++	if (status)
++		return -EIO;
  	return 0;
  }
  
--#define smart_get_field(cmd, field) \
--NDCTL_EXPORT unsigned int ndctl_cmd_smart_get_##field(struct ndctl_cmd *cmd) \
-+#define intel_smart_get_field(cmd, field) \
-+static unsigned int intel_cmd_smart_get_##field(struct ndctl_cmd *cmd) \
- { \
- 	struct nd_smart_payload *smart_data; \
--	if (smart_valid(cmd) < 0) \
-+	if (intel_smart_valid(cmd) < 0) \
- 		return UINT_MAX; \
- 	smart_data = (struct nd_smart_payload *) cmd->smart->data; \
- 	return smart_data->field; \
- }
+@@ -186,10 +185,10 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	struct nd_cmd_pkg *call_pkg = NULL;
+ 	const char *cmd_name, *dimm_name;
+ 	unsigned long cmd_mask, dsm_mask;
++	u32 offset, fw_status = 0;
+ 	acpi_handle handle;
+ 	unsigned int func;
+ 	const u8 *uuid;
+-	u32 offset;
+ 	int rc, i;
  
--smart_get_field(cmd, flags)
--smart_get_field(cmd, health)
--smart_get_field(cmd, temperature)
--smart_get_field(cmd, spares)
--smart_get_field(cmd, alarm_flags)
--smart_get_field(cmd, life_used)
--smart_get_field(cmd, shutdown_state)
--smart_get_field(cmd, vendor_size)
-+intel_smart_get_field(cmd, flags)
-+intel_smart_get_field(cmd, health)
-+intel_smart_get_field(cmd, temperature)
-+intel_smart_get_field(cmd, spares)
-+intel_smart_get_field(cmd, alarm_flags)
-+intel_smart_get_field(cmd, life_used)
-+intel_smart_get_field(cmd, shutdown_state)
-+intel_smart_get_field(cmd, vendor_size)
- 
--NDCTL_EXPORT unsigned char *ndctl_cmd_smart_get_vendor_data(struct ndctl_cmd *cmd)
-+static unsigned char *intel_cmd_smart_get_vendor_data(struct ndctl_cmd *cmd)
- {
- 	struct nd_smart_payload *smart_data;
- 
--	if (smart_valid(cmd) < 0)
-+	if (intel_smart_valid(cmd) < 0)
- 		return NULL;
- 	smart_data = (struct nd_smart_payload *) cmd->smart->data;
- 	return (unsigned char *) smart_data->vendor_data;
- }
- 
--static int smart_threshold_valid(struct ndctl_cmd *cmd)
-+static int intel_smart_threshold_valid(struct ndctl_cmd *cmd)
- {
- 	if (cmd->type != ND_CMD_SMART_THRESHOLD || cmd->status != 0)
- 		return cmd->status < 0 ? cmd->status : -EINVAL;
- 	return 0;
- }
- 
--#define smart_threshold_get_field(cmd, field) \
--NDCTL_EXPORT unsigned int ndctl_cmd_smart_threshold_get_##field( \
-+#define intel_smart_threshold_get_field(cmd, field) \
-+static unsigned int intel_cmd_smart_threshold_get_##field( \
- 			struct ndctl_cmd *cmd) \
- { \
- 	struct nd_smart_threshold_payload *smart_t_data; \
--	if (smart_threshold_valid(cmd) < 0) \
-+	if (intel_smart_threshold_valid(cmd) < 0) \
- 		return UINT_MAX; \
- 	smart_t_data = (struct nd_smart_threshold_payload *) \
- 			cmd->smart_t->data; \
- 	return smart_t_data->field; \
- }
- 
--smart_threshold_get_field(cmd, alarm_control)
--smart_threshold_get_field(cmd, temperature)
--smart_threshold_get_field(cmd, spares)
-+intel_smart_threshold_get_field(cmd, alarm_control)
-+intel_smart_threshold_get_field(cmd, temperature)
-+intel_smart_threshold_get_field(cmd, spares)
- 
--NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(
-+static struct ndctl_cmd *intel_dimm_cmd_new_smart_threshold(
- 		struct ndctl_dimm *dimm)
- {
- 	struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
-@@ -133,3 +186,20 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(
- 
- 	return cmd;
- }
+ 	func = cmd;
+@@ -317,6 +316,15 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 				out_obj->buffer.pointer + offset, out_size);
+ 		offset += out_size;
+ 	}
 +
-+struct ndctl_smart_ops * const intel_smart_ops = &(struct ndctl_smart_ops) {
-+	.new_smart = intel_dimm_cmd_new_smart,
-+	.smart_get_flags = intel_cmd_smart_get_flags,
-+	.smart_get_health = intel_cmd_smart_get_health,
-+	.smart_get_temperature = intel_cmd_smart_get_temperature,
-+	.smart_get_spares = intel_cmd_smart_get_spares,
-+	.smart_get_alarm_flags = intel_cmd_smart_get_alarm_flags,
-+	.smart_get_life_used = intel_cmd_smart_get_life_used,
-+	.smart_get_shutdown_state = intel_cmd_smart_get_shutdown_state,
-+	.smart_get_vendor_size = intel_cmd_smart_get_vendor_size,
-+	.smart_get_vendor_data = intel_cmd_smart_get_vendor_data,
-+	.new_smart_threshold = intel_dimm_cmd_new_smart_threshold,
-+	.smart_threshold_get_alarm_control = intel_cmd_smart_threshold_get_alarm_control,
-+	.smart_threshold_get_temperature = intel_cmd_smart_threshold_get_temperature,
-+	.smart_threshold_get_spares = intel_cmd_smart_threshold_get_spares,
-+};
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 93f79f7..3c9a506 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -125,6 +125,7 @@ struct ndctl_bus {
- struct ndctl_dimm {
- 	struct kmod_module *module;
- 	struct ndctl_bus *bus;
-+	struct ndctl_smart_ops *smart_ops;
- 	unsigned int handle, major, minor, serial;
- 	unsigned short phys_id;
- 	unsigned short vendor_id;
-@@ -1163,6 +1164,7 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
- 		goto err_read;
- 	dimm->module = to_module(ctx, buf);
- 
-+	dimm->smart_ops = intel_smart_ops;
- 	dimm->handle = -1;
- 	dimm->phys_id = -1;
- 	dimm->serial = -1;
-@@ -1459,6 +1461,11 @@ NDCTL_EXPORT struct ndctl_bus *ndctl_dimm_get_bus(struct ndctl_dimm *dimm)
- 	return dimm->bus;
- }
- 
-+NDCTL_EXPORT struct ndctl_smart_ops *ndctl_dimm_get_smart_ops(struct ndctl_dimm *dimm)
-+{
-+	return dimm->smart_ops;
-+}
++	/*
++	 * Set fw_status for all the commands with a known format to be
++	 * later interpreted by xlat_status().
++	 */
++	if (i >= 1 && ((cmd >= ND_CMD_ARS_CAP && cmd <= ND_CMD_CLEAR_ERROR)
++			|| (cmd >= ND_CMD_SMART && cmd <= ND_CMD_VENDOR)))
++		fw_status = *(u32 *) out_obj->buffer.pointer;
 +
- NDCTL_EXPORT struct ndctl_ctx *ndctl_dimm_get_ctx(struct ndctl_dimm *dimm)
- {
- 	return dimm->bus->ctx;
-diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
-index 451466a..679225c 100644
---- a/ndctl/libndctl.h.in
-+++ b/ndctl/libndctl.h.in
-@@ -150,6 +150,7 @@ unsigned int ndctl_dimm_handle_get_channel(struct ndctl_dimm *dimm);
- unsigned int ndctl_dimm_handle_get_dimm(struct ndctl_dimm *dimm);
- const char *ndctl_dimm_get_devname(struct ndctl_dimm *dimm);
- struct ndctl_bus *ndctl_dimm_get_bus(struct ndctl_dimm *dimm);
-+struct ndctl_smart_ops *ndctl_dimm_get_smart_ops(struct ndctl_dimm *dimm);
- struct ndctl_ctx *ndctl_dimm_get_ctx(struct ndctl_dimm *dimm);
- struct ndctl_dimm *ndctl_dimm_get_by_handle(struct ndctl_bus *bus,
- 		unsigned int handle);
--- 
-2.8.3
+ 	if (offset + in_buf.buffer.length < buf_len) {
+ 		if (i >= 1) {
+ 			/*
+@@ -325,7 +333,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 			 */
+ 			rc = buf_len - offset - in_buf.buffer.length;
+ 			if (cmd_rc)
+-				*cmd_rc = xlat_status(buf, cmd);
++				*cmd_rc = xlat_status(buf, cmd, fw_status);
+ 		} else {
+ 			dev_err(dev, "%s:%s underrun cmd: %s buf_len: %d out_len: %d\n",
+ 					__func__, dimm_name, cmd_name, buf_len,
+@@ -335,7 +343,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	} else {
+ 		rc = 0;
+ 		if (cmd_rc)
+-			*cmd_rc = xlat_status(buf, cmd);
++			*cmd_rc = xlat_status(buf, cmd, fw_status);
+ 	}
+ 
+  out:
 
 _______________________________________________
 Linux-nvdimm mailing list
