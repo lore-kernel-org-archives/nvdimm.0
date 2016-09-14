@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4ECDB1A1E2F
- for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 09:08:37 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 16/20] mm: Provide helper for finishing mkwrite faults
-Date: Tue, 27 Sep 2016 18:08:20 +0200
-Message-Id: <1474992504-20133-17-git-send-email-jack@suse.cz>
-In-Reply-To: <1474992504-20133-1-git-send-email-jack@suse.cz>
-References: <1474992504-20133-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 8ABC51A1E5B
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Sep 2016 20:42:11 -0700 (PDT)
+Date: Wed, 14 Sep 2016 11:41:53 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 2/2] tools/testing/nvdimm: test get_config_size DSM
+ failures
+Message-ID: <201609141142.bs4dcrJ1%fengguang.wu@intel.com>
+MIME-Version: 1.0
+In-Reply-To: <147381653820.13555.4462846098098492278.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,141 +19,67 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-acpi@vger.kernel.org, kbuild-all@01.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide a helper function for finishing write faults due to PTE being
-read-only. The helper will be used by DAX to avoid the need of
-complicating generic MM code with DAX locking specifics.
+Hi Dan,
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+[auto build test WARNING on next-20160913]
+[cannot apply to pm/linux-next linus/master linux/master v4.8-rc6 v4.8-rc5 v4.8-rc4 v4.8-rc6]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+[Suggest to use git(>=2.9.0) format-patch --base=<commit> (or --base=auto for convenience) to record what (public, well-known) commit your patch series was built on]
+[Check https://git-scm.com/docs/git-format-patch for more information]
+
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/nfit-fail-DSMs-that-return-non-zero-status-by-default/20160914-093545
+config: x86_64-rhel (attached as .config)
+compiler: gcc-6 (Debian 6.1.1-9) 6.1.1 20160705
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=x86_64 
+
+All warnings (new ones prefixed by >>):
+
+   tools/testing/nvdimm//test/nfit.c: In function 'handle_show':
+>> tools/testing/nvdimm//test/nfit.c:609:26: warning: format '%lx' expects argument of type 'long unsigned int', but argument 3 has type 'u32 {aka unsigned int}' [-Wformat=]
+     return sprintf(buf, "%#lx", handle[dimm]);
+                             ^
+
+vim +609 tools/testing/nvdimm//test/nfit.c
+
+   593	
+   594		if (sscanf(dev_name(dev), "test_dimm%d", &dimm) != 1
+   595				|| dimm >= NUM_DCR || dimm < 0)
+   596			return -ENXIO;
+   597		return dimm;
+   598	}
+   599	
+   600	
+   601	static ssize_t handle_show(struct device *dev, struct device_attribute *attr,
+   602			char *buf)
+   603	{
+   604		int dimm = dimm_name_to_id(dev);
+   605	
+   606		if (dimm < 0)
+   607			return dimm;
+   608	
+ > 609		return sprintf(buf, "%#lx", handle[dimm]);
+   610	}
+   611	DEVICE_ATTR_RO(handle);
+   612	
+   613	static ssize_t fail_cmd_show(struct device *dev, struct device_attribute *attr,
+   614			char *buf)
+   615	{
+   616		int dimm = dimm_name_to_id(dev);
+   617	
+
 ---
- include/linux/mm.h |  1 +
- mm/memory.c        | 65 +++++++++++++++++++++++++++++++-----------------------
- 2 files changed, 39 insertions(+), 27 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 1055f2ece80d..e5a014be8932 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -617,6 +617,7 @@ static inline pte_t maybe_mkwrite(pte_t pte, struct vm_area_struct *vma)
- int alloc_set_pte(struct vm_fault *vmf, struct mem_cgroup *memcg,
- 		struct page *page);
- int finish_fault(struct vm_fault *vmf);
-+int finish_mkwrite_fault(struct vm_fault *vmf);
- #endif
- 
- /*
-diff --git a/mm/memory.c b/mm/memory.c
-index f49e736d6a36..8c8cb7f2133e 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2266,6 +2266,36 @@ oom:
- 	return VM_FAULT_OOM;
- }
- 
-+/**
-+ * finish_mkrite_fault - finish page fault making PTE writeable once the page
-+ *			 page is prepared
-+ *
-+ * @vmf: structure describing the fault
-+ *
-+ * This function handles all that is needed to finish a write page fault due
-+ * to PTE being read-only once the mapped page is prepared. It handles locking
-+ * of PTE and modifying it. The function returns VM_FAULT_WRITE on success,
-+ * 0 when PTE got changed before we acquired PTE lock.
-+ *
-+ * The function expects the page to be locked or other protection against
-+ * concurrent faults / writeback (such as DAX radix tree locks).
-+ */
-+int finish_mkwrite_fault(struct vm_fault *vmf)
-+{
-+	vmf->pte = pte_offset_map_lock(vmf->vma->vm_mm, vmf->pmd, vmf->address,
-+				       &vmf->ptl);
-+	/*
-+	 * We might have raced with another page fault while we released the
-+	 * pte_offset_map_lock.
-+	 */
-+	if (!pte_same(*vmf->pte, vmf->orig_pte)) {
-+		pte_unmap_unlock(vmf->pte, vmf->ptl);
-+		return 0;
-+	}
-+	wp_page_reuse(vmf);
-+	return VM_FAULT_WRITE;
-+}
-+
- /*
-  * Handle write page faults for VM_MIXEDMAP or VM_PFNMAP for a VM_SHARED
-  * mapping
-@@ -2282,16 +2312,7 @@ static int wp_pfn_shared(struct vm_fault *vmf)
- 		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
- 		if (ret & VM_FAULT_ERROR)
- 			return ret;
--		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
--				vmf->address, &vmf->ptl);
--		/*
--		 * We might have raced with another page fault while we
--		 * released the pte_offset_map_lock.
--		 */
--		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
--			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			return 0;
--		}
-+		return finish_mkwrite_fault(vmf);
- 	}
- 	wp_page_reuse(vmf);
- 	return VM_FAULT_WRITE;
-@@ -2301,7 +2322,6 @@ static int wp_page_shared(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	int page_mkwrite = 0;
- 
- 	get_page(vmf->page);
- 
-@@ -2315,26 +2335,17 @@ static int wp_page_shared(struct vm_fault *vmf)
- 			put_page(vmf->page);
- 			return tmp;
- 		}
--		/*
--		 * Since we dropped the lock we need to revalidate
--		 * the PTE as someone else may have changed it.  If
--		 * they did, we just return, as we can count on the
--		 * MMU to tell us if they didn't also make it writable.
--		 */
--		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
--						vmf->address, &vmf->ptl);
--		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
-+		tmp = finish_mkwrite_fault(vmf);
-+		if (unlikely(!tmp || (tmp &
-+				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
- 			unlock_page(vmf->page);
--			pte_unmap_unlock(vmf->pte, vmf->ptl);
- 			put_page(vmf->page);
--			return 0;
-+			return tmp;
- 		}
--		page_mkwrite = 1;
--	}
--
--	wp_page_reuse(vmf);
--	if (!page_mkwrite)
-+	} else {
-+		wp_page_reuse(vmf);
- 		lock_page(vmf->page);
-+	}
- 	fault_dirty_shared_page(vma, vmf->page);
- 	put_page(vmf->page);
- 
--- 
-2.6.6
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
