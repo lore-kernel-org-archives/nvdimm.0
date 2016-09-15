@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x229.google.com (mail-oi0-x229.google.com
+ [IPv6:2607:f8b0:4003:c06::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ADAFB1A1DF4
- for <linux-nvdimm@lists.01.org>; Tue, 20 Sep 2016 13:47:35 -0700 (PDT)
-Subject: [PATCH] dm flakey: add DAX support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 20 Sep 2016 13:47:34 -0700
-Message-ID: <147440445480.62486.9559239844115396323.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2733D1A1E5E
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Sep 2016 19:22:25 -0700 (PDT)
+Received: by mail-oi0-x229.google.com with SMTP id w11so50574830oia.2
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Sep 2016 19:22:25 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20160913174140.10810-2-brian.boylston@hpe.com>
+References: <20160913174140.10810-1-brian.boylston@hpe.com>
+ <20160913174140.10810-2-brian.boylston@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 14 Sep 2016 19:22:23 -0700
+Message-ID: <CAPcyv4hDEgz9Y4KX3sQVNVw9K7ckuOeJVd4pUeFCagiTbpaZpw@mail.gmail.com>
+Subject: Re: [ndctl PATCH v2 1/4] libndctl: introduce ndctl_smart_ops
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,69 +26,92 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: snitzer@redhat.com, agk@redhat.com
-Cc: dm-devel@redhat.com, fstests@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Brian Boylston <brian.boylston@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change dm-flakey to implement direct_access function,
-flakey_direct_access(), which maps sector and calls direct_access
-function of its physical target device. This pretty much is a copy
-from DM Linear.
+On Tue, Sep 13, 2016 at 10:41 AM, Brian Boylston <brian.boylston@hpe.com> wrote:
+> Add a layer of indirection for the ndctl_cmd_smart*() family of
+> interfaces.  This will allow the underlying implementation to be
+> switched based on the DSM family supported by the DIMM.
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
+> ---
+>  ndctl/lib/libndctl-private.h |  21 ++++++++
+>  ndctl/lib/libndctl-smart.c   | 111 ++++++++++++++++++++++++++++++++++---------
+>  ndctl/lib/libndctl.c         |   8 ++++
+>  ndctl/libndctl.h.in          |   1 +
+>  4 files changed, 118 insertions(+), 23 deletions(-)
 
-This allows fs with DAX to pass in xfstests. It does not actually introduce
-data corruption and dropping writes unlike the non-DAX path. The main
-reason is due to the I/O path being out of dmflakey's control once
-direct_access() has been called. The the existing implementation cannot
-be adapted to DAX I/O path. The error injection will be introduced at a
-later date with more thought.
+Looks good to me and passes my regression tests.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/md/dm-flakey.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+Just one minor comment below:
 
-diff --git a/drivers/md/dm-flakey.c b/drivers/md/dm-flakey.c
-index 6a2e8dd..cf182a7 100644
---- a/drivers/md/dm-flakey.c
-+++ b/drivers/md/dm-flakey.c
-@@ -408,9 +408,27 @@ static int flakey_iterate_devices(struct dm_target *ti, iterate_devices_callout_
- 	return fn(ti, fc->dev, fc->start, ti->len, data);
- }
- 
-+static long flakey_direct_access(struct dm_target *ti, sector_t sector,
-+				 void **kaddr, pfn_t *pfn, long size)
-+{
-+	struct flakey_c *fc = ti->private;
-+	struct block_device *bdev = fc->dev->bdev;
-+	struct blk_dax_ctl dax = {
-+		.sector = flakey_map_sector(ti, sector),
-+		.size = size,
-+	};
-+	long ret;
-+
-+	ret = bdev_direct_access(bdev, &dax);
-+	*kaddr = dax.addr;
-+	*pfn = dax.pfn;
-+
-+	return ret;
-+}
-+
- static struct target_type flakey_target = {
- 	.name   = "flakey",
--	.version = {1, 3, 1},
-+	.version = {1, 4, 0},
- 	.module = THIS_MODULE,
- 	.ctr    = flakey_ctr,
- 	.dtr    = flakey_dtr,
-@@ -419,6 +437,7 @@ static struct target_type flakey_target = {
- 	.status = flakey_status,
- 	.prepare_ioctl = flakey_prepare_ioctl,
- 	.iterate_devices = flakey_iterate_devices,
-+	.direct_access = flakey_direct_access,
- };
- 
- static int __init dm_flakey_init(void)
+>
+> diff --git a/ndctl/lib/libndctl-private.h b/ndctl/lib/libndctl-private.h
+> index 65ef86d..8d2ebfc 100644
+> --- a/ndctl/lib/libndctl-private.h
+> +++ b/ndctl/lib/libndctl-private.h
+> @@ -201,6 +201,27 @@ struct ndctl_cmd {
+>         };
+>  };
+>
+> +struct ndctl_smart_ops {
+> +       struct ndctl_cmd *(*new_smart)(struct ndctl_dimm *);
+> +       unsigned int (*smart_get_flags)(struct ndctl_cmd *);
+> +       unsigned int (*smart_get_health)(struct ndctl_cmd *);
+> +       unsigned int (*smart_get_temperature)(struct ndctl_cmd *);
+> +       unsigned int (*smart_get_spares)(struct ndctl_cmd *);
+> +       unsigned int (*smart_get_alarm_flags)(struct ndctl_cmd *);
+> +       unsigned int (*smart_get_life_used)(struct ndctl_cmd *);
+> +       unsigned int (*smart_get_shutdown_state)(struct ndctl_cmd *);
+> +       unsigned int (*smart_get_vendor_size)(struct ndctl_cmd *);
+> +       unsigned char *(*smart_get_vendor_data)(struct ndctl_cmd *);
+> +       struct ndctl_cmd *(*new_smart_threshold)(struct ndctl_dimm *);
+> +       unsigned int (*smart_threshold_get_alarm_control)(struct ndctl_cmd *);
+> +       unsigned int (*smart_threshold_get_temperature)(struct ndctl_cmd *);
+> +       unsigned int (*smart_threshold_get_spares)(struct ndctl_cmd *);
+> +};
+> +
+> +#if HAS_SMART == 1
+> +struct ndctl_smart_ops intel_smart_ops;
+> +#endif
+> +
+>  /* internal library helpers for conditionally defined command numbers */
+>  #ifdef HAVE_NDCTL_ARS
+>  static const int nd_cmd_ars_status = ND_CMD_ARS_STATUS;
+> diff --git a/ndctl/lib/libndctl-smart.c b/ndctl/lib/libndctl-smart.c
+> index cba1e9d..a172541 100644
+> --- a/ndctl/lib/libndctl-smart.c
+> +++ b/ndctl/lib/libndctl-smart.c
+> @@ -16,7 +16,55 @@
+>  #include <ndctl/libndctl.h>
+>  #include "libndctl-private.h"
+>
+> -NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
+> +/*
+> + * The smart_dimm_op() and smart_cmd_op() macros are used here to
+> + * define the wrappers around the ndctl_smart_ops:
+> + */
+> +
+> +#define smart_dimm_op(name, op) \
+> +NDCTL_EXPORT struct ndctl_cmd *name( \
+> +               struct ndctl_dimm *dimm) \
+> +{ \
+> +       struct ndctl_smart_ops *ops = ndctl_dimm_get_smart_ops(dimm); \
+> +       if (ops && ops->op) \
+> +               return ops->op(dimm); \
+> +       else \
+> +               return NULL; \
+> +}
+> +
+> +smart_dimm_op(ndctl_dimm_cmd_new_smart, new_smart)
+> +smart_dimm_op(ndctl_dimm_cmd_new_smart_threshold, new_smart_threshold)
 
+There's only two of these routines and I don't suppose there will need
+to have many more variants in the future.  Let's just open code them
+and not use a macro.  The rest looks good.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
