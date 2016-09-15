@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8CAC01A1E56
- for <linux-nvdimm@lists.01.org>; Tue, 13 Sep 2016 10:44:02 -0700 (PDT)
-From: Brian Boylston <brian.boylston@hpe.com>
-Subject: [ndctl PATCH v2 2/4] libndctl: record dsm family in add_dimm()
-Date: Tue, 13 Sep 2016 12:41:38 -0500
-Message-Id: <20160913174140.10810-3-brian.boylston@hpe.com>
-In-Reply-To: <20160913174140.10810-1-brian.boylston@hpe.com>
-References: <20160913174140.10810-1-brian.boylston@hpe.com>
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 1733E1A1F03
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Sep 2016 13:09:30 -0700 (PDT)
+Date: Thu, 15 Sep 2016 14:09:28 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v2 2/9] ext2: tell DAX the size of allocation holes
+Message-ID: <20160915200928.GA8200@linux.intel.com>
+References: <20160823220419.11717-1-ross.zwisler@linux.intel.com>
+ <20160823220419.11717-3-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20160823220419.11717-3-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,50 +20,59 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Jan Kara <jack@suse.cz>
+Cc: Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The recorded DSM family can be used to provide family-specific
-functionality.
+On Tue, Aug 23, 2016 at 04:04:12PM -0600, Ross Zwisler wrote:
+> When DAX calls ext2_get_block() and the file offset points to a hole we
+> currently don't set bh_result->b_size.  When we re-enable PMD faults DAX
+> will need bh_result->b_size to tell it the size of the hole so it can
+> decide whether to fault in a 4 KiB zero page or a 2 MiB zero page.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  fs/ext2/inode.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+> index d5c7d09..dd55d74 100644
+> --- a/fs/ext2/inode.c
+> +++ b/fs/ext2/inode.c
+> @@ -773,6 +773,9 @@ int ext2_get_block(struct inode *inode, sector_t iblock, struct buffer_head *bh_
+>  	if (ret > 0) {
+>  		bh_result->b_size = (ret << inode->i_blkbits);
+>  		ret = 0;
+> +	} else if (ret == 0) {
+> +		/* hole case, need to fill in bh_result->b_size */
+> +		bh_result->b_size = 1 << inode->i_blkbits;
+>  	}
+>  	return ret;
+>  
+> -- 
+> 2.9.0
+> 
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
----
- ndctl/lib/libndctl.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Jan, is it possible for ext2 to return 2 MiB of contiguous space to us via
+ext2_get_block()?
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 9a9dc74..c824d83 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -136,6 +136,7 @@ struct ndctl_dimm {
- 	unsigned short subsystem_revision_id;
- 	unsigned short manufacturing_date;
- 	unsigned char manufacturing_location;
-+	unsigned long dsm_family;
- 	unsigned long dsm_mask;
- 	char *unique_id;
- 	char *dimm_path;
-@@ -1145,6 +1146,11 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
- 	if (sscanf(buf, "%d:%d", &dimm->major, &dimm->minor) != 2)
- 		goto err_read;
- 
-+	sprintf(path, "%s/nfit/family", dimm_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		goto err_read;
-+	dimm->dsm_family = strtoul(buf, NULL, 0);
-+
- 	sprintf(path, "%s/commands", dimm_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
- 		goto err_read;
--- 
-2.8.3
+I ask because we have all the infrastructure in place for ext2 to handle PMD
+faults (ext2_dax_pmd_fault(), etc.), but I don't think in my testing I've ever
+seen this actually happen.
 
+ext2 can obviously return multiple blocks from ext2_get_block(), but can it
+actually satisfy a whole PMD's worth (512 contiguous blocks)?  If so, what
+steps do I need to take to get this to work in my testing?
+
+If it can't happen, we should probably rip out ext2_dax_pmd_fault() so that we
+don't have to keep falling back to PTEs via the PMD path.
+
+Thanks,
+- Ross
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
