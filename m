@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
+ [IPv6:2607:f8b0:4003:c06::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 257E41A1E14
- for <linux-nvdimm@lists.01.org>; Fri,  9 Sep 2016 18:44:36 -0700 (PDT)
-Subject: [ndctl PATCH 1/3] test, device-dax: /proc/self/smaps
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Sep 2016 18:41:32 -0700
-Message-ID: <147347169244.15190.840534533992093250.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147347168712.15190.17312702584906386275.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147347168712.15190.17312702584906386275.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 39BDD1A1ECF
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Sep 2016 12:27:22 -0700 (PDT)
+Received: by mail-oi0-x233.google.com with SMTP id q188so84285890oia.3
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Sep 2016 12:27:22 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CS1PR84MB01193D526FA8BBE4269EDB698EF00@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
+References: <20160913174140.10810-1-brian.boylston@hpe.com>
+ <20160913174140.10810-3-brian.boylston@hpe.com>
+ <CAPcyv4gM4L42Lpm=fW+zCqR7q-SFCAnh+ZsSRjM00cHvG4-s_w@mail.gmail.com>
+ <CS1PR84MB01193D526FA8BBE4269EDB698EF00@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 15 Sep 2016 12:27:20 -0700
+Message-ID: <CAPcyv4h9wPiOUNA5eBMPSPiqUQrp_vnxf1Jjh1ag0HbNBqFW0w@mail.gmail.com>
+Subject: Re: [ndctl PATCH v2 2/4] libndctl: record dsm family in add_dimm()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,74 +28,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Boylston, Brian" <brian.boylston@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Until recently the kernel would crash when walking smaps with
-pmd_devmap() entries in the page table.
+On Thu, Sep 15, 2016 at 11:17 AM, Boylston, Brian
+<brian.boylston@hpe.com> wrote:
+> Dan Williams wrote on 2016-09-14:
+>> On Tue, Sep 13, 2016 at 10:41 AM, Brian Boylston <brian.boylston@hpe.com> wrote:
+>>> The recorded DSM family can be used to provide family-specific
+>>> functionality.
+>>>
+>>> Cc: Dan Williams <dan.j.williams@intel.com>
+>>> Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
+>>> ---
+>>>  ndctl/lib/libndctl.c | 6 ++++++
+>>>  1 file changed, 6 insertions(+)
+>>>
+>>> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+>>> index 9a9dc74..c824d83 100644
+>>> --- a/ndctl/lib/libndctl.c
+>>> +++ b/ndctl/lib/libndctl.c
+>>> @@ -136,6 +136,7 @@ struct ndctl_dimm {
+>>>         unsigned short subsystem_revision_id;
+>>>         unsigned short manufacturing_date;
+>>>         unsigned char manufacturing_location;
+>>> +       unsigned long dsm_family;
+>>>         unsigned long dsm_mask;
+>>>         char *unique_id;
+>>>         char *dimm_path;
+>>> @@ -1145,6 +1146,11 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
+>>>         if (sscanf(buf, "%d:%d", &dimm->major, &dimm->minor) != 2)
+>>>                 goto err_read;
+>>>
+>>> +       sprintf(path, "%s/nfit/family", dimm_base);
+>>> +       if (sysfs_read_attr(ctx, path, buf) < 0)
+>>> +               goto err_read;
+>>> +       dimm->dsm_family = strtoul(buf, NULL, 0);
+>>
+>>
+>> Hmm I don't think it should it be fatal to add_dimm() for a failure to
+>> have a family.  It's reasonable for a DIMM to exist in the NFIT, but
+>> have no DSMs or a DSM implementation that is new to the kernel.  Can
+>> we make this continue on and teach consumers of ->dsm_family that it
+>> might be an error value?
+>
+> Sure.  Some of the other values collected in add_dimm() use -1 as an
+> error or not available value; ok to use that for dsm_family?
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/device-dax.c |   26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+Sounds good.
 
-diff --git a/test/device-dax.c b/test/device-dax.c
-index a14e2a95db7e..04d53da544cd 100644
---- a/test/device-dax.c
-+++ b/test/device-dax.c
-@@ -60,12 +60,12 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 		struct ndctl_ctx *ctx)
- {
- 	int fd, rc, *p;
--	char *buf, path[100];
- 	struct sigaction act;
- 	struct ndctl_dax *dax;
- 	struct daxctl_dev *dev;
- 	struct ndctl_namespace *ndns;
- 	struct daxctl_region *dax_region;
-+	char *buf, path[100], data[4096];
- 
- 	memset (&act, 0, sizeof(act));
- 	act.sa_sigaction = sigbus;
-@@ -123,14 +123,36 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 	p = (int *) (buf + (1UL << 20));
- 	*p = 0;
- 
-+	/*
-+	 * Prior to 4.8-final these tests cause crashes, or are
-+	 * otherwise not supported.
-+	 */
- 	if (ndctl_test_attempt(test, KERNEL_VERSION(4, 9, 0))) {
--		/* prior to 4.8-final this crashes */
-+		int fd2;
-+
- 		rc = test_dax_directio(fd, NULL, 0);
- 		if (rc) {
- 			fprintf(stderr, "%s: failed dax direct-i/o\n",
- 					ndctl_namespace_get_devname(ndns));
- 			return rc;
- 		}
-+
-+		fd2 = open("/proc/self/smaps", O_RDONLY);
-+		if (fd2 < 0) {
-+			fprintf(stderr, "%s: failed smaps open\n",
-+					ndctl_namespace_get_devname(ndns));
-+			return -ENXIO;
-+		}
-+
-+		do {
-+			rc = read(fd2, data, sizeof(data));
-+		} while (rc > 0);
-+
-+		if (rc) {
-+			fprintf(stderr, "%s: failed smaps retrieval\n",
-+					ndctl_namespace_get_devname(ndns));
-+			return -ENXIO;
-+		}
- 	}
- 
- 	rc = reset_device_dax(ndns);
+> Also, should I add a public accessor function such as
+> ndctl_dimm_get_dsm_family()?  (although there wouldn't be a consumer yet)
 
+I'm not opposed to it for informational purposes, but I like the
+current direction where it doesn't really matter and the other ndctl
+routines are taught how to multiplex for different families.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
