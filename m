@@ -1,12 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x22e.google.com (mail-oi0-x22e.google.com
- [IPv6:2607:f8b0:4003:c06::22e])
+Received: from mail-oi0-x22b.google.com (mail-oi0-x22b.google.com
+ [IPv6:2607:f8b0:4003:c06::22b])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B82531A1F09
- for <linux-nvdimm@lists.01.org>; Thu, 15 Sep 2016 17:16:43 -0700 (PDT)
-Received: by mail-oi0-x22e.google.com with SMTP id r126so92985854oib.0
- for <linux-nvdimm@lists.01.org>; Thu, 15 Sep 2016 17:16:43 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 96BBD1A1F03
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Sep 2016 16:19:23 -0700 (PDT)
+Received: by mail-oi0-x22b.google.com with SMTP id m11so91697565oif.1
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Sep 2016 16:19:23 -0700 (PDT)
 MIME-Version: 1.0
 In-Reply-To: <20160915230748.GS30497@dastard>
 References: <147392246509.9873.17750323049785100997.stgit@dwillia2-desk3.amr.corp.intel.com>
@@ -15,8 +15,8 @@ References: <147392246509.9873.17750323049785100997.stgit@dwillia2-desk3.amr.cor
  <CAPcyv4jTw3cXpmmJRh7t16Xy2uYofDe+fJ+X_jnz+Q=o0uGneg@mail.gmail.com>
  <20160915230748.GS30497@dastard>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 15 Sep 2016 17:16:42 -0700
-Message-ID: <CAPcyv4jvcWEc2TkRh6-MoKb_-1VbFoiKUJEB=svQO+BVN8s-Sg@mail.gmail.com>
+Date: Thu, 15 Sep 2016 16:19:21 -0700
+Message-ID: <CAPcyv4hm4MBDQNJvOgqeG2OaA14WJ8kN5rSndusbhG3K=LP2JQ@mail.gmail.com>
 Subject: Re: [PATCH v2 2/3] mm, dax: add VM_DAX flag for DAX VMAs
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -50,11 +50,50 @@ On Thu, Sep 15, 2016 at 4:07 PM, Dave Chinner <david@fromorbit.com> wrote:
 > because that flag is set on an inode, it does not mean that DAX is
 > actually in use - it will be ignored if the backing dev is not dax
 > capable.
->
 
-What's the point of an admin flag if an admin can't do cat /proc/<pid
-of interest>/smaps, or some other mechanism, to validate that the
-setting the admin cares about is in effect?
+Ok, but then VM_DAX does not suffer from that problem.  I'm trying to
+understand why VM_DAX has no business being in the smaps "VmFlags"
+line, but something ambiguous to userspace like VM_MIXEDMAP does?
+
+>
+>> The other problem with hiding the DAX property is that it turns out to
+>> not be a transparent acceleration feature.  See xfs/086 xfs/088
+>> xfs/089 xfs/091 which fail with DAX and, as far as I understand, it is
+>> due to the fact that DAX disallows delayed allocation behavior.
+>
+> Which is not a bug, nor is it something that app developers should
+> be surprised by.
+>
+> i.e. Subtle differences in error reporting behaviour occur in
+> filesystems /all the time/. Run the test on a non-dax filesystem
+> with an extent size hint. It fails /exactly the same way as DAX/.
+> Run it with direct IO - fails the same way as DAX. Run it
+> with synchronous writes - it fails the same way as DAX.
+>
+> IOWs, if an app can't handle the way DAX reports errors, then they
+> are /broken/. Delayed allocation requires checking the return value
+> of fsync() or close() to capture the allocation error - many more
+> apps get that wrong than the ones that expect the immediate errors
+> from write()...
+>
+> Anyway: to domeonstrate that the nothign is actually broken, and
+> you might sometimes need to fix tests and send patches to
+> fstests@vger.kernel.org, this makes xfs/086 pass for me on DAX:
+>
+> --- a/tests/xfs/086
+> +++ b/tests/xfs/086
+> @@ -96,7 +96,8 @@ _scratch_mount
+>
+>  echo "+ modify files"
+>  for x in `seq 1 64`; do
+> -       $XFS_IO_PROG -f -c "pwrite -S 0x62 0 ${blksz}" "${TESTFILE}.${x}" >> $seqres.full
+> +       $XFS_IO_PROG -f -c "pwrite -S 0x62 0 ${blksz}" "${TESTFILE}.${x}" \
+> +               >> $seqres.full 2>&1
+>  done
+>  umount "${SCRATCH_MNT}"
+
+Thanks for that!  Wasn't immediately obvious to me, and didn't get
+that response when I asked on the list a while back.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
