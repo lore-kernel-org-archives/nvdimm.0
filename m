@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2E8CF1A1E43
- for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 14:40:50 -0700 (PDT)
-Subject: [ndctl PATCH 2/6] test, dsm-fail: test get_config_size DSM failures
+ by ml01.01.org (Postfix) with ESMTPS id 811241A1EE1
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Sep 2016 23:57:42 -0700 (PDT)
+Subject: [PATCH v2 0/3] mm,
+ dax: export dax capabilities and mapping size info to userspace
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 19 Sep 2016 14:37:46 -0700
-Message-ID: <147432106695.39548.12630092598068641070.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147432105652.39548.8883834720654751375.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147432105652.39548.8883834720654751375.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 14 Sep 2016 23:54:25 -0700
+Message-ID: <147392246509.9873.17750323049785100997.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,326 +21,87 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-mm@kvack.org
+Cc: Andrea Arcangeli <aarcange@redhat.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, npiggin@gmail.com, xfs@oss.sgi.com, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, hch@lst.de, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-We expect that if the dimm driver fails to enable then any
-label-data-dependent regions/namespaces will also fail to enable.
+In the debate about how to support persistent memory applications that
+want to use hardware-platform memory-media persistence
+rules/cpu-instructions rather than filesystem data intergrity system
+calls [1], one of the consistent requests is to move these applications
+to use a device file rather than a filesystem file [2].
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+While there is still a desire to offer the same syscall overhead
+avoidance in filesystem-dax as device-dax, there is performance
+optimization work and analysis that still needs to be done.
+Optimization/analysis to address filesystem-dax performance being slower
+than the typical page-cache path on top of pmem [3], and whether the
+performance gains are worth developing new filesytem data integrity
+mechanisms.
+
+In the meantime we have device-dax and are missing a way to identify its
+capabilities compared to filesytem-dax.  Critically, we want a
+persistent memory transaction library, that is handed an address range
+to manage, to be able to determine if it is safe to forgo calling
+fsync/msync to record newly allocated blocks after a write fault.  This
+question is answered by the new VM_SYNC flag.
+
+It is also important to know if the pages behind a mapping are backed by
+page cache and need to be synced, or are referencing media directly.  We
+have an XFS inode flag that can indicate the inode is DAX enabled, but
+nothing for device-dax or other filesystems.  Yes, an application that
+maps /dev/dax should assume the mapping is DAX, but it is useful to be
+able to tell that from the address range directly, and a common
+mechanism across filesystems.
+
+Finally, while developing and debugging the filesystem-dax huge page
+support it was frustrating that the only way to unit test and verify the
+implementation was via debug print statements.  This series extends
+mincore(2) to optionally provide an indication of the hardware mapping
+size.  This is hopefully useful to other cases that want to evaluate
+transparent-huge-page usage.
+
+
+Changes since the RFC [4]:
+
+1/ Drop DAX indication out of mincore.  It is a vma capability not a
+   per-page property and fits better as a vma flag.  Multiple people
+   indicated it would be better if the new syscall published the capability
+   as an extent or aggregated over a range, and this facility is already
+   provided by smaps.
+
+2/ Add VM_SYNC to explicity disclaim a need to call fsync/msync
+
+3/ Drop the syscall wire-up patch since it is trivial and can be revived
+   if we decide to move forward with the new mincore syscall.
+
+
+[1]: https://lwn.net/Articles/676737/
+[2]: https://lists.01.org/pipermail/linux-nvdimm/2016-September/006893.html
+[3]: https://lists.01.org/pipermail/linux-nvdimm/2016-August/006497.html
+[4]: https://lists.01.org/pipermail/linux-nvdimm/2016-September/006875.html
+
 ---
- ndctl/Makefile.am    |    3 +
- ndctl/builtin-test.c |    5 +
- test.h               |    1 
- test/Makefile.am     |   10 ++
- test/dsm-fail.c      |  220 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 239 insertions(+)
- create mode 100644 test/dsm-fail.c
 
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index f6cd3f1c235b..63f387b58de9 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -34,6 +34,9 @@ ndctl_LDADD =\
- 
- if ENABLE_TEST
- ndctl_SOURCES += ../test/libndctl.c \
-+		 ../test/dsm-fail.c \
-+		 ../util/log.c \
-+		 ../util/sysfs.c \
- 		 ../test/dpa-alloc.c \
- 		 ../test/parent-uuid.c \
- 		 ../test/core.c
-diff --git a/ndctl/builtin-test.c b/ndctl/builtin-test.c
-index d9c5b0f28d6e..d8539a133d10 100644
---- a/ndctl/builtin-test.c
-+++ b/ndctl/builtin-test.c
-@@ -49,6 +49,11 @@ int cmd_test(int argc, const char **argv, struct ndctl_ctx *ctx)
- 	if (rc && rc != 77)
- 		return rc;
- 
-+	rc = test_dsm_fail(loglevel, test, ctx);
-+	fprintf(stderr, "test-dsm-fail: %s\n", result(rc));
-+	if (rc && rc != 77)
-+		return rc;
-+
- 	rc = test_dpa_alloc(loglevel, test, ctx);
- 	fprintf(stderr, "test-dpa-alloc: %s\n", result(rc));
- 	if (rc && rc != 77)
-diff --git a/test.h b/test.h
-index 2940ac0f7396..bf708f38bfbf 100644
---- a/test.h
-+++ b/test.h
-@@ -18,6 +18,7 @@ struct ndctl_ctx;
- int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
- int test_dax_directio(int dax_fd, void *dax_addr, off_t offset);
- int test_dpa_alloc(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
-+int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
- int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
- int test_blk_namespaces(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
- int test_pmem_namespaces(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
-diff --git a/test/Makefile.am b/test/Makefile.am
-index f0240fe5883a..5513f429869f 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -2,6 +2,7 @@ include $(top_srcdir)/Makefile.am.in
- 
- TESTS =\
- 	libndctl \
-+	dsm-fail \
- 	dpa-alloc \
- 	parent-uuid \
- 	create.sh \
-@@ -10,6 +11,7 @@ TESTS =\
- 
- check_PROGRAMS =\
- 	libndctl \
-+	dsm-fail \
- 	dpa-alloc \
- 	parent-uuid \
- 	dax-errors
-@@ -39,6 +41,14 @@ LIBNDCTL_LIB =\
- libndctl_SOURCES = libndctl.c core.c
- libndctl_LDADD = $(LIBNDCTL_LIB) $(UUID_LIBS) $(KMOD_LIBS)
- 
-+dsm_fail_SOURCES =\
-+	dsm-fail.c \
-+	core.c \
-+	../util/log.c \
-+	../util/sysfs.c
-+
-+dsm_fail_LDADD = $(LIBNDCTL_LIB) $(KMOD_LIBS)
-+
- blk_ns_SOURCES = blk_namespaces.c core.c
- blk_ns_LDADD = $(LIBNDCTL_LIB) $(KMOD_LIBS)
- 
-diff --git a/test/dsm-fail.c b/test/dsm-fail.c
-new file mode 100644
-index 000000000000..ca80cef79092
---- /dev/null
-+++ b/test/dsm-fail.c
-@@ -0,0 +1,220 @@
-+/*
-+ * Copyright (c) 2014-2016, Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU Lesser General Public License,
-+ * version 2.1, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT ANY
-+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
-+ * more details.
-+ */
-+#include <stdio.h>
-+#include <stddef.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <ctype.h>
-+#include <errno.h>
-+#include <syslog.h>
-+#include <libkmod.h>
-+#include <util/log.h>
-+#include <util/sysfs.h>
-+#include <linux/version.h>
-+
-+#include <ccan/array_size/array_size.h>
-+#include <ndctl/libndctl.h>
-+#ifdef HAVE_NDCTL_H
-+#include <linux/ndctl.h>
-+#else
-+#include <ndctl.h>
-+#endif
-+#include <test.h>
-+
-+#define DIMM_PATH "/sys/devices/platform/nfit_test.0/nfit_test_dimm/test_dimm0"
-+
-+static void reset_bus(struct ndctl_bus *bus)
-+{
-+	struct ndctl_region *region;
-+	struct ndctl_dimm *dimm;
-+
-+	/* disable all regions so that set_config_data commands are permitted */
-+	ndctl_region_foreach(bus, region)
-+		ndctl_region_disable_invalidate(region);
-+
-+	ndctl_dimm_foreach(bus, dimm)
-+		ndctl_dimm_zero_labels(dimm);
-+
-+	/* set regions back to their default state */
-+	ndctl_region_foreach(bus, region)
-+		ndctl_region_enable(region);
-+}
-+
-+static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
-+{
-+	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
-+	struct ndctl_dimm *dimm, *victim = NULL;
-+	char path[1024], buf[SYSFS_ATTR_SIZE];
-+	struct ndctl_region *region;
-+	struct log_ctx log_ctx;
-+	unsigned int handle;
-+	int rc, err = 0;
-+
-+	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 9, 0)))
-+		return 77;
-+
-+	if (!bus)
-+		return -ENXIO;
-+
-+	log_init(&log_ctx, "test/dsm-fail", "NDCTL_TEST");
-+
-+	ndctl_bus_wait_probe(bus);
-+
-+	/* disable all regions so that we can disable a dimm */
-+	ndctl_region_foreach(bus, region)
-+		ndctl_region_disable_invalidate(region);
-+
-+	sprintf(path, "%s/handle", DIMM_PATH);
-+	rc = __sysfs_read_attr(&log_ctx, path, buf);
-+	if (rc) {
-+		fprintf(stderr, "failed to retrieve test dimm handle\n");
-+		return -ENXIO;
-+	}
-+
-+	handle = strtoul(buf, NULL, 0);
-+
-+	ndctl_dimm_foreach(bus, dimm) {
-+		if (ndctl_dimm_get_handle(dimm) == handle)
-+			victim = dimm;
-+
-+		if (ndctl_dimm_disable(dimm)) {
-+			fprintf(stderr, "failed to disable: %s\n",
-+					ndctl_dimm_get_devname(dimm));
-+			return -ENXIO;
-+		}
-+	}
-+
-+	if (!victim) {
-+		fprintf(stderr, "failed to find victim dimm\n");
-+		return -ENXIO;
-+	}
-+	fprintf(stderr, "victim: %s\n", ndctl_dimm_get_devname(victim));
-+
-+	sprintf(path, "%s/fail_cmd", DIMM_PATH);
-+	sprintf(buf, "%#x\n", 1 << ND_CMD_GET_CONFIG_SIZE);
-+	rc = __sysfs_write_attr(&log_ctx, path, buf);
-+	if (rc) {
-+		fprintf(stderr, "failed to set fail cmd mask\n");
-+		return -ENXIO;
-+	}
-+
-+	ndctl_dimm_foreach(bus, dimm) {
-+		rc = ndctl_dimm_enable(dimm);
-+		fprintf(stderr, "dimm: %s enable: %d\n",
-+				ndctl_dimm_get_devname(dimm), rc);
-+		if ((rc == 0) == (dimm == victim)) {
-+			fprintf(stderr, "fail expected %s enable %s victim: %s\n",
-+					ndctl_dimm_get_devname(dimm),
-+					(dimm == victim) ? "failure" : "success",
-+					ndctl_dimm_get_devname(victim));
-+			err = -ENXIO;
-+			goto out;
-+		}
-+	}
-+
-+	ndctl_region_foreach(bus, region) {
-+		bool has_victim = false;
-+
-+		ndctl_dimm_foreach_in_region(region, dimm) {
-+			if (dimm == victim) {
-+				has_victim = true;
-+				break;
-+			}
-+		}
-+
-+		rc = ndctl_region_enable(region);
-+		fprintf(stderr, "region: %s enable: %d has_victim: %d\n",
-+				ndctl_region_get_devname(region), rc, has_victim);
-+		if ((rc == 0) == has_victim) {
-+			fprintf(stderr, "fail expected %s enable %s with %s disabled\n",
-+					ndctl_region_get_devname(region),
-+					has_victim ? "failure" : "success",
-+					ndctl_dimm_get_devname(victim));
-+			err = -ENXIO;
-+			goto out;
-+		}
-+	}
-+
-+ out:
-+	sprintf(buf, "0\n");
-+	rc = __sysfs_write_attr(&log_ctx, path, buf);
-+	if (rc) {
-+		fprintf(stderr, "%s: failed to clear fail_cmd mask\n",
-+				ndctl_dimm_get_devname(victim));
-+		err = -ENXIO;
-+	}
-+	rc = ndctl_dimm_enable(victim);
-+	if (rc) {
-+		fprintf(stderr, "failed to enable victim: %s after clearing error\n",
-+				ndctl_dimm_get_devname(victim));
-+		err = -ENXIO;
-+	}
-+	reset_bus(bus);
-+
-+	return err;
-+}
-+
-+int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
-+{
-+	struct kmod_module *mod;
-+	struct kmod_ctx *kmod_ctx;
-+	int result = EXIT_FAILURE, err;
-+
-+	ndctl_set_log_priority(ctx, loglevel);
-+	kmod_ctx = kmod_new(NULL, NULL);
-+	if (!kmod_ctx)
-+		return result;
-+	kmod_set_log_priority(kmod_ctx, loglevel);
-+
-+	err = kmod_module_new_from_name(kmod_ctx, "nfit_test", &mod);
-+	if (err < 0)
-+		goto err_module;
-+
-+	err = kmod_module_probe_insert_module(mod, KMOD_PROBE_APPLY_BLACKLIST,
-+			NULL, NULL, NULL, NULL);
-+	if (err < 0) {
-+		result = 77;
-+		ndctl_test_skip(test);
-+		fprintf(stderr, "%s unavailable skipping tests\n",
-+				"nfit_test");
-+		goto err_module;
-+	}
-+
-+	if (do_test(ctx, test) == 0)
-+		result = EXIT_SUCCESS;
-+
-+	kmod_module_remove_module(mod, 0);
-+
-+ err_module:
-+	kmod_unref(kmod_ctx);
-+	return result;
-+}
-+
-+int __attribute__((weak)) main(int argc, char *argv[])
-+{
-+	struct ndctl_test *test = ndctl_test_new(0);
-+	struct ndctl_ctx *ctx;
-+	int rc;
-+
-+	if (!test) {
-+		fprintf(stderr, "failed to initialize test\n");
-+		return EXIT_FAILURE;
-+	}
-+
-+	rc = ndctl_new(&ctx);
-+	if (rc)
-+		return ndctl_test_result(test, rc);
-+	rc = test_dsm_fail(LOG_DEBUG, test, ctx);
-+	ndctl_unref(ctx);
-+	return ndctl_test_result(test, rc);
-+}
+Dan Williams (3):
+      mm, dax: add VM_SYNC flag for device-dax VMAs
+      mm, dax: add VM_DAX flag for DAX VMAs
+      mm, mincore2(): retrieve tlb-size attributes of an address range
 
+
+ drivers/dax/Kconfig                    |    1 
+ drivers/dax/dax.c                      |    2 
+ fs/Kconfig                             |    1 
+ fs/ext2/file.c                         |    2 
+ fs/ext4/file.c                         |    2 
+ fs/proc/task_mmu.c                     |    4 +
+ fs/xfs/xfs_file.c                      |    2 
+ include/linux/mm.h                     |   31 +++++++-
+ include/linux/syscalls.h               |    2 
+ include/uapi/asm-generic/mman-common.h |    2 
+ kernel/sys_ni.c                        |    1 
+ mm/mincore.c                           |  130 ++++++++++++++++++++++++--------
+ 12 files changed, 141 insertions(+), 39 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
