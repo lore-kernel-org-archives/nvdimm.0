@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2352.austin.hpe.com (g2t2352.austin.hpe.com [15.233.44.25])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EA66F1A1E1D
- for <linux-nvdimm@lists.01.org>; Fri,  9 Sep 2016 15:25:30 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 2/2] shmem: call __thp_get_unmapped_area to alloc a
- pmd-aligned addr
-Date: Fri,  9 Sep 2016 16:24:23 -0600
-Message-Id: <1473459863-11287-3-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1473459863-11287-1-git-send-email-toshi.kani@hpe.com>
-References: <1473459863-11287-1-git-send-email-toshi.kani@hpe.com>
+Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 73F591A1F24
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Sep 2016 13:12:02 -0700 (PDT)
+From: Brian Boylston <brian.boylston@hpe.com>
+Subject: [ndctl PATCH v3 3/4] libndctl: enable ND_CMD_CALL
+Date: Fri, 16 Sep 2016 15:10:12 -0500
+Message-Id: <20160916201013.555-4-brian.boylston@hpe.com>
+In-Reply-To: <20160916201013.555-1-brian.boylston@hpe.com>
+References: <20160916201013.555-1-brian.boylston@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,162 +22,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, mawilcox@microsoft.com, hughd@google.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, kirill.shutemov@linux.intel.com
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-shmem_get_unmapped_area() provides a functionality similar
-to __thp_get_unmapped_area() as both allocate a pmd-aligned
-address.
+. Enable parsing /sys/bus/nd/devices/nmemX/commands for ND_CMD_CALL
+. Enable translation of ND_CMD_CALL to ND_IOCTL_CALL
 
-Change shmem_get_unmapped_area() to do shm-specific checks
-and then call __thp_get_unmapped_area() for allocating
-a pmd-aligned address.
-
-link: https://lkml.org/lkml/2016/8/29/620
-Suggested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
 ---
- include/linux/huge_mm.h |   10 +++++++
- mm/shmem.c              |   68 +++++++++--------------------------------------
- 2 files changed, 23 insertions(+), 55 deletions(-)
+ ndctl/lib/libndctl.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index 4fca526..1b65924 100644
---- a/include/linux/huge_mm.h
-+++ b/include/linux/huge_mm.h
-@@ -90,6 +90,9 @@ extern unsigned long transparent_hugepage_flags;
- extern unsigned long thp_get_unmapped_area(struct file *filp,
- 		unsigned long addr, unsigned long len, unsigned long pgoff,
- 		unsigned long flags);
-+extern unsigned long __thp_get_unmapped_area(struct file *filp,
-+		unsigned long len, loff_t off, unsigned long flags,
-+		unsigned long size);
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 99938be..7a847fa 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -719,7 +719,7 @@ static int to_dsm_index(const char *name, int dimm)
+ 	int i, end_cmd;
  
- extern void prep_transhuge_page(struct page *page);
- extern void free_transhuge_page(struct page *page);
-@@ -176,6 +179,13 @@ static inline void prep_transhuge_page(struct page *page) {}
- 
- #define thp_get_unmapped_area	NULL
- 
-+static inline unsigned long __thp_get_unmapped_area(struct file *filp,
-+		unsigned long len, loff_t off, unsigned long flags,
-+		unsigned long size)
-+{
-+	return 0;
-+}
-+
- static inline int
- split_huge_page_to_list(struct page *page, struct list_head *list)
- {
-diff --git a/mm/shmem.c b/mm/shmem.c
-index aec5b49..ef27455 100644
---- a/mm/shmem.c
-+++ b/mm/shmem.c
-@@ -1925,45 +1925,23 @@ static int shmem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- }
- 
- unsigned long shmem_get_unmapped_area(struct file *file,
--				      unsigned long uaddr, unsigned long len,
-+				      unsigned long addr, unsigned long len,
- 				      unsigned long pgoff, unsigned long flags)
- {
--	unsigned long (*get_area)(struct file *,
--		unsigned long, unsigned long, unsigned long, unsigned long);
--	unsigned long addr;
--	unsigned long offset;
--	unsigned long inflated_len;
--	unsigned long inflated_addr;
--	unsigned long inflated_offset;
--
--	if (len > TASK_SIZE)
--		return -ENOMEM;
--
--	get_area = current->mm->get_unmapped_area;
--	addr = get_area(file, uaddr, len, pgoff, flags);
-+	loff_t off = (loff_t)pgoff << PAGE_SHIFT;
- 
- 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE))
--		return addr;
--	if (IS_ERR_VALUE(addr))
--		return addr;
--	if (addr & ~PAGE_MASK)
--		return addr;
--	if (addr > TASK_SIZE - len)
--		return addr;
--
-+		goto out;
- 	if (shmem_huge == SHMEM_HUGE_DENY)
--		return addr;
--	if (len < HPAGE_PMD_SIZE)
--		return addr;
--	if (flags & MAP_FIXED)
--		return addr;
-+		goto out;
-+
- 	/*
- 	 * Our priority is to support MAP_SHARED mapped hugely;
- 	 * and support MAP_PRIVATE mapped hugely too, until it is COWed.
- 	 * But if caller specified an address hint, respect that as before.
- 	 */
--	if (uaddr)
--		return addr;
-+	if (addr)
-+		goto out;
- 
- 	if (shmem_huge != SHMEM_HUGE_FORCE) {
- 		struct super_block *sb;
-@@ -1977,39 +1955,19 @@ unsigned long shmem_get_unmapped_area(struct file *file,
- 			 * for "/dev/zero", to create a shared anonymous object.
- 			 */
- 			if (IS_ERR(shm_mnt))
--				return addr;
-+				goto out;
- 			sb = shm_mnt->mnt_sb;
- 		}
- 		if (SHMEM_SB(sb)->huge == SHMEM_HUGE_NEVER)
--			return addr;
-+			goto out;
- 	}
- 
--	offset = (pgoff << PAGE_SHIFT) & (HPAGE_PMD_SIZE-1);
--	if (offset && offset + len < 2 * HPAGE_PMD_SIZE)
--		return addr;
--	if ((addr & (HPAGE_PMD_SIZE-1)) == offset)
--		return addr;
--
--	inflated_len = len + HPAGE_PMD_SIZE - PAGE_SIZE;
--	if (inflated_len > TASK_SIZE)
--		return addr;
--	if (inflated_len < len)
--		return addr;
--
--	inflated_addr = get_area(NULL, 0, inflated_len, 0, flags);
--	if (IS_ERR_VALUE(inflated_addr))
--		return addr;
--	if (inflated_addr & ~PAGE_MASK)
-+	addr = __thp_get_unmapped_area(file, len, off, flags, HPAGE_PMD_SIZE);
-+	if (addr)
- 		return addr;
- 
--	inflated_offset = inflated_addr & (HPAGE_PMD_SIZE-1);
--	inflated_addr += offset - inflated_offset;
--	if (inflated_offset > offset)
--		inflated_addr += HPAGE_PMD_SIZE;
--
--	if (inflated_addr > TASK_SIZE - len)
--		return addr;
--	return inflated_addr;
-+ out:
-+	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
- }
- 
- #ifdef CONFIG_NUMA
+ 	if (dimm) {
+-		end_cmd = ND_CMD_VENDOR;
++		end_cmd = ND_CMD_CALL;
+ 		cmd_name_fn = nvdimm_cmd_name;
+ 	} else {
+ 		end_cmd = nd_cmd_clear_error;
+@@ -2183,6 +2183,7 @@ static int to_ioctl_cmd(int cmd, int dimm)
+ 	case ND_CMD_GET_CONFIG_DATA:        return ND_IOCTL_GET_CONFIG_DATA;
+ 	case ND_CMD_SET_CONFIG_DATA:        return ND_IOCTL_SET_CONFIG_DATA;
+ 	case ND_CMD_VENDOR:                 return ND_IOCTL_VENDOR;
++	case ND_CMD_CALL:                   return ND_IOCTL_CALL;
+ 	case ND_CMD_VENDOR_EFFECT_LOG_SIZE:
+ 	case ND_CMD_VENDOR_EFFECT_LOG:
+ 	default:
+-- 
+2.8.3
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
