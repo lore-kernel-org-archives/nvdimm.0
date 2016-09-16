@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 44B081A1E6C
- for <linux-nvdimm@lists.01.org>; Tue,  6 Sep 2016 09:52:37 -0700 (PDT)
-Subject: [PATCH 3/5] mm: fix show_smap() for zone_device-pmd ranges
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 06 Sep 2016 09:49:36 -0700
-Message-ID: <147318057623.30325.10495460878595242707.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 82D5D1A1F21
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Sep 2016 13:11:58 -0700 (PDT)
+From: Brian Boylston <brian.boylston@hpe.com>
+Subject: [ndctl PATCH v3 2/4] libndctl: record dsm family in add_dimm()
+Date: Fri, 16 Sep 2016 15:10:11 -0500
+Message-Id: <20160916201013.555-3-brian.boylston@hpe.com>
+In-Reply-To: <20160916201013.555-1-brian.boylston@hpe.com>
+References: <20160916201013.555-1-brian.boylston@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,84 +17,61 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-mm@kvack.org, akpm@linux-foundation.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Attempting to dump /proc/<pid>/smaps for a process with pmd dax mappings
-currently results in the following VM_BUG_ONs:
+The recorded DSM family can be used to provide family-specific
+functionality.
 
- kernel BUG at mm/huge_memory.c:1105!
- task: ffff88045f16b140 task.stack: ffff88045be14000
- RIP: 0010:[<ffffffff81268f9b>]  [<ffffffff81268f9b>] follow_trans_huge_pmd+0x2cb/0x340
- [..]
- Call Trace:
-  [<ffffffff81306030>] smaps_pte_range+0xa0/0x4b0
-  [<ffffffff814c2755>] ? vsnprintf+0x255/0x4c0
-  [<ffffffff8123c46e>] __walk_page_range+0x1fe/0x4d0
-  [<ffffffff8123c8a2>] walk_page_vma+0x62/0x80
-  [<ffffffff81307656>] show_smap+0xa6/0x2b0
-
- kernel BUG at fs/proc/task_mmu.c:585!
- RIP: 0010:[<ffffffff81306469>]  [<ffffffff81306469>] smaps_pte_range+0x499/0x4b0
- Call Trace:
-  [<ffffffff814c2795>] ? vsnprintf+0x255/0x4c0
-  [<ffffffff8123c46e>] __walk_page_range+0x1fe/0x4d0
-  [<ffffffff8123c8a2>] walk_page_vma+0x62/0x80
-  [<ffffffff81307696>] show_smap+0xa6/0x2b0
-
-These locations are sanity checking page flags that must be set for an
-anonymous transparent huge page, but are not set for the zone_device
-pages associated with dax mappings.
-
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
 ---
- fs/proc/task_mmu.c |    2 ++
- mm/huge_memory.c   |    4 ++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+Changes in v3:
+  - Do not fail add_dimm() if the read of nfit/commands fails, just set
+    dimm->dsm_family to -1 instead (suggested by Dan).  As part of this,
+    I also moved the read to after the has_nfit() check.
 
-diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
-index 187d84ef9de9..f6fa99eca515 100644
---- a/fs/proc/task_mmu.c
-+++ b/fs/proc/task_mmu.c
-@@ -581,6 +581,8 @@ static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
- 		mss->anonymous_thp += HPAGE_PMD_SIZE;
- 	else if (PageSwapBacked(page))
- 		mss->shmem_thp += HPAGE_PMD_SIZE;
-+	else if (is_zone_device_page(page))
-+		/* pass */;
- 	else
- 		VM_BUG_ON_PAGE(1, page);
- 	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd));
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 2db2112aa31e..a6abd76baa72 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -1078,7 +1078,7 @@ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
- 		goto out;
+ ndctl/lib/libndctl.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 3c9a506..99938be 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -136,6 +136,7 @@ struct ndctl_dimm {
+ 	unsigned short subsystem_revision_id;
+ 	unsigned short manufacturing_date;
+ 	unsigned char manufacturing_location;
++	unsigned long dsm_family;
+ 	unsigned long dsm_mask;
+ 	char *unique_id;
+ 	char *dimm_path;
+@@ -1176,6 +1177,7 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
+ 	dimm->subsystem_revision_id = -1;
+ 	dimm->manufacturing_date = -1;
+ 	dimm->manufacturing_location = -1;
++	dimm->dsm_family = -1;
+ 	for (i = 0; i < formats; i++)
+ 		dimm->format[i] = -1;
  
- 	page = pmd_page(*pmd);
--	VM_BUG_ON_PAGE(!PageHead(page), page);
-+	VM_BUG_ON_PAGE(!PageHead(page) && !is_zone_device_page(page), page);
- 	if (flags & FOLL_TOUCH)
- 		touch_pmd(vma, addr, pmd);
- 	if ((flags & FOLL_MLOCK) && (vma->vm_flags & VM_LOCKED)) {
-@@ -1116,7 +1116,7 @@ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
- 	}
- skip_mlock:
- 	page += (addr & ~HPAGE_PMD_MASK) >> PAGE_SHIFT;
--	VM_BUG_ON_PAGE(!PageCompound(page), page);
-+	VM_BUG_ON_PAGE(!PageCompound(page) && !is_zone_device_page(page), page);
- 	if (flags & FOLL_GET)
- 		get_page(page);
+@@ -1239,6 +1241,10 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
+ 	if (sysfs_read_attr(ctx, path, buf) == 0)
+ 		dimm->subsystem_revision_id = strtoul(buf, NULL, 0);
  
++	sprintf(path, "%s/nfit/family", dimm_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		dimm->dsm_family = strtoul(buf, NULL, 0);
++
+ 	dimm->formats = formats;
+ 	sprintf(path, "%s/nfit/format", dimm_base);
+ 	if (sysfs_read_attr(ctx, path, buf) == 0)
+-- 
+2.8.3
 
 _______________________________________________
 Linux-nvdimm mailing list
