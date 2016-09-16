@@ -1,15 +1,27 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oi0-x22b.google.com (mail-oi0-x22b.google.com
+ [IPv6:2607:f8b0:4003:c06::22b])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D8C851A1E3D
- for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 09:08:35 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 12/20] mm: Factor out common parts of write fault handling
-Date: Tue, 27 Sep 2016 18:08:16 +0200
-Message-Id: <1474992504-20133-13-git-send-email-jack@suse.cz>
-In-Reply-To: <1474992504-20133-1-git-send-email-jack@suse.cz>
-References: <1474992504-20133-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 6772F1A1EED
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Sep 2016 03:47:34 -0700 (PDT)
+Received: by mail-oi0-x22b.google.com with SMTP id w11so106819184oia.2
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Sep 2016 03:47:34 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20160916053632.GT30497@dastard>
+References: <147392246509.9873.17750323049785100997.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <147392247875.9873.4205533916442000884.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20160915082615.GA9772@lst.de>
+ <CAPcyv4jTw3cXpmmJRh7t16Xy2uYofDe+fJ+X_jnz+Q=o0uGneg@mail.gmail.com>
+ <20160915230748.GS30497@dastard>
+ <CAPcyv4jvcWEc2TkRh6-MoKb_-1VbFoiKUJEB=svQO+BVN8s-Sg@mail.gmail.com>
+ <20160916012458.GW22388@dastard>
+ <CAPcyv4hoTNw8OM-hoYOqzCS04ZNh+Tv_xhLAiP3AXVcGK6H_mg@mail.gmail.com>
+ <20160916053632.GT30497@dastard>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 16 Sep 2016 03:47:32 -0700
+Message-ID: <CAPcyv4gRww==ftpcsYSU8=T+4DyoUqOBPSx67PQcUNjn3afeJg@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] mm, dax: add VM_DAX flag for DAX VMAs
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,141 +29,90 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dave Chinner <david@fromorbit.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Nicholas Piggin <npiggin@gmail.com>, XFS Developers <xfs@oss.sgi.com>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently we duplicate handling of shared write faults in
-wp_page_reuse() and do_shared_fault(). Factor them out into a common
-function.
+On Thu, Sep 15, 2016 at 10:36 PM, Dave Chinner <david@fromorbit.com> wrote:
+> On Thu, Sep 15, 2016 at 07:04:27PM -0700, Dan Williams wrote:
+>> On Thu, Sep 15, 2016 at 6:24 PM, Dave Chinner <david@fromorbit.com> wrote:
+>> > On Thu, Sep 15, 2016 at 05:16:42PM -0700, Dan Williams wrote:
+>> >> On Thu, Sep 15, 2016 at 4:07 PM, Dave Chinner <david@fromorbit.com> wrote:
+>> >> > On Thu, Sep 15, 2016 at 10:01:03AM -0700, Dan Williams wrote:
+>> >> >> On Thu, Sep 15, 2016 at 1:26 AM, Christoph Hellwig <hch@lst.de> wrote:
+>> >> >> > On Wed, Sep 14, 2016 at 11:54:38PM -0700, Dan Williams wrote:
+>> >> >> >> The DAX property, page cache bypass, of a VMA is only detectable via the
+>> >> >> >> vma_is_dax() helper to check the S_DAX inode flag.  However, this is
+>> >> >> >> only available internal to the kernel and is a property that userspace
+>> >> >> >> applications would like to interrogate.
+>> >> >> >
+>> >> >> > They have absolutely no business knowing such an implementation detail.
+>> >> >>
+>> >> >> Hasn't that train already left the station with FS_XFLAG_DAX?
+>> >> >
+>> >> > No, that's an admin flag, not a runtime hint for applications. Just
+>> >> > because that flag is set on an inode, it does not mean that DAX is
+>> >> > actually in use - it will be ignored if the backing dev is not dax
+>> >> > capable.
+>> >>
+>> >> What's the point of an admin flag if an admin can't do cat /proc/<pid
+>> >> of interest>/smaps, or some other mechanism, to validate that the
+>> >> setting the admin cares about is in effect?
+>> >
+>> > Sorry, I don't follow - why would you be looking at mapping file
+>> > regions in /proc to determine if some file somewhere in a filesystem
+>> > has a specific flag set on it or not?
+>> >
+>> > FS_XFLAG_DAX is an inode attribute flag, not something you can
+>> > query or administrate through mmap:
+>> >
+>> > I.e.
+>> > # xfs_io -c "lsattr" -c "chattr +x" -c lsattr -c "chattr -x" -c "lsattr" foo
+>> >  --------------- foo
+>> >  --------------x foo
+>> >  --------------- foo
+>> > #
+>> >
+>> > What happens when that flag is set on an inode is determined by a
+>> > whole bunch of other things that are completely separate to the
+>> > management of the inode flag itself.
+>>
+>> Right, I understand that, but how does an admin audit those "bunch of
+>> other things"
+>
+> Filesystem mounts checks all the various stuff that determines
+> whether DAX can be used. It logs to the console that it is "Dax
+> capable". Any file that then has FS_XFLAG_DAX set will result in DAX
+> being used. There is no other possibility when these two things are
+> reported.
+>
+> /me points at runtime diagnostic tracepoints like
+> trace_xfs_file_dax_read() and notes that dax is sadly lacking in
+> diagnostic tracepoints.
+>
+> Besides, userspace can't do anything useful with this information,
+> because the FS_XFLAG_DAX can be changed /at any time/ by an admin.
+> And the filesystem is free to remove it at any time, too, if it
+> needs to (e.g. file gets reflinked or snapshotted).
+>
+> That's right, an inode can dynamically change from DAX to non-DAX
+> underneath the application, and the application /will not notice/.
+> That's because changing the flag will sync and invalidate the
+> existing mappings and the next application access will simply fault
+> it back in using whatever mechanism the inode is now configured
+> with.
+>
+> Plain and simple: userspace has absolutely no fucking idea of
+> whether DAX is enabled or not, and whatever the kernel returns to
+> userspace above the DAX configuration is stale before it even got
+> out of the kernel....
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- mm/memory.c | 78 +++++++++++++++++++++++++++++--------------------------------
- 1 file changed, 37 insertions(+), 41 deletions(-)
-
-diff --git a/mm/memory.c b/mm/memory.c
-index 63d9c1a54caf..0643b3b5a12a 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2063,6 +2063,41 @@ static int do_page_mkwrite(struct vm_area_struct *vma, struct page *page,
- }
- 
- /*
-+ * Handle dirtying of a page in shared file mapping on a write fault.
-+ *
-+ * The function expects the page to be locked and unlocks it.
-+ */
-+static void fault_dirty_shared_page(struct vm_area_struct *vma,
-+				    struct page *page)
-+{
-+	struct address_space *mapping;
-+	bool dirtied;
-+	bool page_mkwrite = vma->vm_ops->page_mkwrite;
-+
-+	dirtied = set_page_dirty(page);
-+	VM_BUG_ON_PAGE(PageAnon(page), page);
-+	/*
-+	 * Take a local copy of the address_space - page.mapping may be zeroed
-+	 * by truncate after unlock_page().   The address_space itself remains
-+	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
-+	 * release semantics to prevent the compiler from undoing this copying.
-+	 */
-+	mapping = page_rmapping(page);
-+	unlock_page(page);
-+
-+	if ((dirtied || page_mkwrite) && mapping) {
-+		/*
-+		 * Some device drivers do not set page.mapping
-+		 * but still dirty their pages
-+		 */
-+		balance_dirty_pages_ratelimited(mapping);
-+	}
-+
-+	if (!page_mkwrite)
-+		file_update_time(vma->vm_file);
-+}
-+
-+/*
-  * Handle write page faults for pages that can be reused in the current vma
-  *
-  * This can happen either due to the mapping being with the VM_SHARED flag,
-@@ -2092,28 +2127,11 @@ static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- 
- 	if (dirty_shared) {
--		struct address_space *mapping;
--		int dirtied;
--
- 		if (!page_mkwrite)
- 			lock_page(page);
- 
--		dirtied = set_page_dirty(page);
--		VM_BUG_ON_PAGE(PageAnon(page), page);
--		mapping = page->mapping;
--		unlock_page(page);
-+		fault_dirty_shared_page(vma, page);
- 		put_page(page);
--
--		if ((dirtied || page_mkwrite) && mapping) {
--			/*
--			 * Some device drivers do not set page.mapping
--			 * but still dirty their pages
--			 */
--			balance_dirty_pages_ratelimited(mapping);
--		}
--
--		if (!page_mkwrite)
--			file_update_time(vma->vm_file);
- 	}
- 
- 	return VM_FAULT_WRITE;
-@@ -3256,8 +3274,6 @@ uncharge_out:
- static int do_shared_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct address_space *mapping;
--	int dirtied = 0;
- 	int ret, tmp;
- 
- 	ret = __do_fault(vmf);
-@@ -3286,27 +3302,7 @@ static int do_shared_fault(struct vm_fault *vmf)
- 		return ret;
- 	}
- 
--	if (set_page_dirty(vmf->page))
--		dirtied = 1;
--	/*
--	 * Take a local copy of the address_space - page.mapping may be zeroed
--	 * by truncate after unlock_page().   The address_space itself remains
--	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
--	 * release semantics to prevent the compiler from undoing this copying.
--	 */
--	mapping = page_rmapping(vmf->page);
--	unlock_page(vmf->page);
--	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
--		/*
--		 * Some device drivers do not set page.mapping but still
--		 * dirty their pages
--		 */
--		balance_dirty_pages_ratelimited(mapping);
--	}
--
--	if (!vma->vm_ops->page_mkwrite)
--		file_update_time(vma->vm_file);
--
-+	fault_dirty_shared_page(vma, vmf->page);
- 	return ret;
- }
- 
--- 
-2.6.6
-
+smaps is already known to be an ephemeral interface, but we output
+useful information there nonetheless.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
