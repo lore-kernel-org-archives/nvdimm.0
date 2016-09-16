@@ -1,79 +1,72 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 07/12] xfs: fix locking for DAX writes
-Date: Fri, 16 Sep 2016 13:27:09 +0200
-Message-ID: <1474025234-13804-8-git-send-email-hch@lst.de>
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 08/12] xfs: take the ilock shared if possible in xfs_file_iomap_begin
+Date: Fri, 16 Sep 2016 13:27:10 +0200
+Message-ID: <1474025234-13804-9-git-send-email-hch@lst.de>
 References: <1474025234-13804-1-git-send-email-hch@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1474025234-13804-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1474025234-13804-1-git-send-email-hch@lst.de>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org
+Cc: ross.zwisler@linux.intel.com
 List-Id: linux-nvdimm@lists.01.org
 
-So far DAX writes inherited the locking from direct I/O writes, but the direct
-I/O model of using shared locks for writes is actually wrong for DAX.  For
-direct I/O we're out of any standards and don't have to provide the Posix
-required exclusion between writers, but for DAX which gets transparently
-enable on applications without any knowledge of it we can't simply drop the
-requirement.  Even worse this only happens for aligned writes and thus
-doesn't show up for many typical use cases.
+We always just read the extent first, and will later lock exlusively
+after first dropping the lock in case we actually allocate blocks.
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/xfs/xfs_file.c | 20 +-------------------
- 1 file changed, 1 insertion(+), 19 deletions(-)
+ fs/xfs/xfs_iomap.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index e612a02..62649cc 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -714,24 +714,11 @@ xfs_file_dax_write(
- 	struct address_space	*mapping = iocb->ki_filp->f_mapping;
- 	struct inode		*inode = mapping->host;
- 	struct xfs_inode	*ip = XFS_I(inode);
--	struct xfs_mount	*mp = ip->i_mount;
- 	ssize_t			ret = 0;
--	int			unaligned_io = 0;
--	int			iolock;
-+	int			iolock = XFS_IOLOCK_EXCL;
- 	struct iov_iter		data;
+diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+index 5d06a2d..c3cc175 100644
+--- a/fs/xfs/xfs_iomap.c
++++ b/fs/xfs/xfs_iomap.c
+@@ -955,6 +955,7 @@ xfs_file_iomap_begin(
+ 	struct xfs_bmbt_irec	imap;
+ 	xfs_fileoff_t		offset_fsb, end_fsb;
+ 	int			nimaps = 1, error = 0;
++	unsigned		lockmode;
  
--	/* "unaligned" here means not aligned to a filesystem block */
--	if ((iocb->ki_pos & mp->m_blockmask) ||
--	    ((iocb->ki_pos + iov_iter_count(from)) & mp->m_blockmask)) {
--		unaligned_io = 1;
--		iolock = XFS_IOLOCK_EXCL;
--	} else if (mapping->nrpages) {
--		iolock = XFS_IOLOCK_EXCL;
--	} else {
--		iolock = XFS_IOLOCK_SHARED;
--	}
- 	xfs_rw_ilock(ip, iolock);
--
- 	ret = xfs_file_aio_write_checks(iocb, from, &iolock);
- 	if (ret)
- 		goto out;
-@@ -758,11 +745,6 @@ xfs_file_dax_write(
- 		WARN_ON_ONCE(ret);
+ 	if (XFS_FORCED_SHUTDOWN(mp))
+ 		return -EIO;
+@@ -964,7 +965,7 @@ xfs_file_iomap_begin(
+ 				iomap);
  	}
  
--	if (iolock == XFS_IOLOCK_EXCL && !unaligned_io) {
--		xfs_rw_ilock_demote(ip, XFS_IOLOCK_EXCL);
--		iolock = XFS_IOLOCK_SHARED;
--	}
--
- 	trace_xfs_file_dax_write(ip, iov_iter_count(from), iocb->ki_pos);
+-	xfs_ilock(ip, XFS_ILOCK_EXCL);
++	lockmode = xfs_ilock_data_map_shared(ip);
  
- 	data = *from;
+ 	ASSERT(offset <= mp->m_super->s_maxbytes);
+ 	if ((xfs_fsize_t)offset + length > mp->m_super->s_maxbytes)
+@@ -975,7 +976,7 @@ xfs_file_iomap_begin(
+ 	error = xfs_bmapi_read(ip, offset_fsb, end_fsb - offset_fsb, &imap,
+ 			       &nimaps, XFS_BMAPI_ENTIRE);
+ 	if (error) {
+-		xfs_iunlock(ip, XFS_ILOCK_EXCL);
++		xfs_iunlock(ip, lockmode);
+ 		return error;
+ 	}
+ 
+@@ -995,7 +996,8 @@ xfs_file_iomap_begin(
+ 		 * xfs_iomap_write_direct() expects the shared lock. It
+ 		 * is unlocked on return.
+ 		 */
+-		xfs_ilock_demote(ip, XFS_ILOCK_EXCL);
++		if (lockmode == XFS_ILOCK_EXCL)
++			xfs_ilock_demote(ip, lockmode);
+ 		error = xfs_iomap_write_direct(ip, offset, length, &imap,
+ 				nimaps);
+ 		if (error)
+@@ -1006,7 +1008,7 @@ xfs_file_iomap_begin(
+ 	} else {
+ 		ASSERT(nimaps);
+ 
+-		xfs_iunlock(ip, XFS_ILOCK_EXCL);
++		xfs_iunlock(ip, lockmode);
+ 		trace_xfs_iomap_found(ip, offset, length, 0, &imap);
+ 	}
+ 
 -- 
 2.1.4
+
