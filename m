@@ -1,195 +1,101 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 14/20] mm: Use vmf->page during WP faults
-Date: Tue, 27 Sep 2016 18:08:18 +0200
-Message-Id: <1474992504-20133-15-git-send-email-jack@suse.cz>
-In-Reply-To: <1474992504-20133-1-git-send-email-jack@suse.cz>
-References: <1474992504-20133-1-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
+ [IPv6:2607:f8b0:4003:c06::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 675451A1E0E
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 14:48:38 -0700 (PDT)
+Received: by mail-oi0-x233.google.com with SMTP id w11so214773453oia.2
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 14:48:38 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20160916201013.555-1-brian.boylston@hpe.com>
+References: <20160916201013.555-1-brian.boylston@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 19 Sep 2016 14:48:37 -0700
+Message-ID: <CAPcyv4h0CdJXyaiNKbysns2JpXhjZQCxbnC7+n1VgDPD4HVidQ@mail.gmail.com>
+Subject: Re: [ndctl PATCH v3 0/4] ndctl: add support for HPE type N SMART
+ health data
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Brian Boylston <brian.boylston@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-So far we set vmf->page during WP faults only when we needed to pass it
-to the ->page_mkwrite handler. Set it in all the cases now and use that
-instead of passing page pointer explicitely around.
+On Fri, Sep 16, 2016 at 1:10 PM, Brian Boylston <brian.boylston@hpe.com> wrote:
+> This set of patches adds support for the HPE SMART DSM functions and enables
+> ndctl to report DIMM health data for HPE type N NVDIMMs.  The relevant
+> firmware interfaces are described in [1].
+>
+> The first patch virtualizes the ndctl_cmd_smart*() family of libndctl
+> interfaces into a set of ndctl_smart_ops, allowing runtime implementation
+> differentiation depending on the firmware support provided by a DIMM.
+>
+> The second and third patches add miscellaneous pieces needed for the
+> final patch:
+>
+> The fourth patch adds a set of ndctl_smart_ops for the HPE1 DSM family,
+> based on the firmware interfaces defined in [1].  These ndctl_smart_ops
+> translate the HPE1 DSM output to match the interface of the existing
+> Intel DSM-inspired smart_ops.  This delivers health reporting parity for
+> HPE type N NVDIMMs, however:
+>
+> When evaluating this ndctl_smart_ops approach, please consider our goal of
+> adding JSON exports for some of the additional health data defined in [1].
+> I expect this would entail adding additional accessor functions to
+> ndctl_smart_ops, but it's not clear whether or how to extend the existing
+> get_flags()/check flags/get_data() model used by util_dimm_health_to_json().
+>
+> If you'd like to test these changes, note the following:
+>
+> . Some of the DSM functions for HPE type N NVDIMMs, including the ones used
+>   by this patch, require the acpi_ipmi kernel module to be loaded, and you
+>   may need to manually modprobe it.
+>
+> . Without [2], you'll need to include '--idle' in your ndctl invocation as
+>   ndctl will consider type Ns to be disabled and will otherwise omit them.
+>
+> . Without [3], "alarm_temperature" and "alarm_spares" will be inaccurate.
+>
+> [1] https://github.com/HewlettPackard/hpe-nvm/raw/master/Documentation/NFIT_DSM_DDR4_NVDIMM-N_v84s.pdf
+> [2] https://lists.01.org/pipermail/linux-nvdimm/2016-August/006619.html
+> [3] https://lists.01.org/pipermail/linux-nvdimm/2016-September/006810.html
+>
+> Changes in v3:
+>   - Dropped the smart_dimm_op() macro and open coded
+>     ndctl_dimm_cmd_new_smart() and ndctl_dimm_cmd_new_smart_threshold().
+>     (suggested by Dan)
+>   - Do not fail add_dimm() if the read of nfit/commands fails, just set
+>     dimm->dsm_family to -1 instead (suggested by Dan).  As part of this,
+>     I also moved the read to after the has_nfit() check.
+>   - Added missing bibliography to the commit message for the last patch.
+>   - I realized that v2 wouldn't compile if HAS_SMART was not 1, so I
+>     changed intel_smart_ops and hpe1_smart_ops into pointers and set them
+>     to NULL if HAS_SMART != 1.  They are const because that seems to
+>     avoid compiler warnings about unused variables in cases where
+>     libndctl-private.h is included by something other than libndctl.c.
+>
+> Changes in v2:
+>   New approach: taught libndctl how to translate between the HPE1 DSM
+>   family and the existing ndctl_cmd_smart*() libndctl interfaces
+>   (as suggested by Dan).
+>
+> Brian Boylston (4):
+>   libndctl: introduce ndctl_smart_ops
+>   libndctl: record dsm family in add_dimm()
+>   libndctl: enable ND_CMD_CALL
+>   libndctl: add support for the HPE1 family of DSM SMART functions
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- mm/memory.c | 58 +++++++++++++++++++++++++++++-----------------------------
- 1 file changed, 29 insertions(+), 29 deletions(-)
-
-diff --git a/mm/memory.c b/mm/memory.c
-index 7c87edaa7a8f..98304eb7bff4 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2099,11 +2099,12 @@ static void fault_dirty_shared_page(struct vm_area_struct *vma,
-  * case, all we need to do here is to mark the page as writable and update
-  * any related book-keeping.
-  */
--static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
-+static inline int wp_page_reuse(struct vm_fault *vmf,
- 				int page_mkwrite, int dirty_shared)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
-+	struct page *page = vmf->page;
- 	pte_t entry;
- 	/*
- 	 * Clear the pages cpupid information as the existing
-@@ -2147,10 +2148,11 @@ static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
-  *   held to the old page, as well as updating the rmap.
-  * - In any case, unlock the PTL and drop the reference we took to the old page.
-  */
--static int wp_page_copy(struct vm_fault *vmf, struct page *old_page)
-+static int wp_page_copy(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct page *old_page = vmf->page;
- 	struct page *new_page = NULL;
- 	pte_t entry;
- 	int page_copied = 0;
-@@ -2302,26 +2304,25 @@ static int wp_pfn_shared(struct vm_fault *vmf)
- 			return 0;
- 		}
- 	}
--	return wp_page_reuse(vmf, NULL, 0, 0);
-+	return wp_page_reuse(vmf, 0, 0);
- }
- 
--static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
-+static int wp_page_shared(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	int page_mkwrite = 0;
- 
--	get_page(old_page);
-+	get_page(vmf->page);
- 
- 	if (vma->vm_ops->page_mkwrite) {
- 		int tmp;
- 
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		vmf->page = old_page;
- 		tmp = do_page_mkwrite(vmf);
- 		if (unlikely(!tmp || (tmp &
- 				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
--			put_page(old_page);
-+			put_page(vmf->page);
- 			return tmp;
- 		}
- 		/*
-@@ -2333,15 +2334,15 @@ static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
- 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 						vmf->address, &vmf->ptl);
- 		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
--			unlock_page(old_page);
-+			unlock_page(vmf->page);
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			put_page(old_page);
-+			put_page(vmf->page);
- 			return 0;
- 		}
- 		page_mkwrite = 1;
- 	}
- 
--	return wp_page_reuse(vmf, old_page, page_mkwrite, 1);
-+	return wp_page_reuse(vmf, page_mkwrite, 1);
- }
- 
- /*
-@@ -2366,10 +2367,9 @@ static int do_wp_page(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *old_page;
- 
--	old_page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
--	if (!old_page) {
-+	vmf->page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
-+	if (!vmf->page) {
- 		/*
- 		 * VM_MIXEDMAP !pfn_valid() case, or VM_SOFTDIRTY clear on a
- 		 * VM_PFNMAP VMA.
-@@ -2382,30 +2382,30 @@ static int do_wp_page(struct vm_fault *vmf)
- 			return wp_pfn_shared(vmf);
- 
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		return wp_page_copy(vmf, old_page);
-+		return wp_page_copy(vmf);
- 	}
- 
- 	/*
- 	 * Take out anonymous pages first, anonymous shared vmas are
- 	 * not dirty accountable.
- 	 */
--	if (PageAnon(old_page) && !PageKsm(old_page)) {
-+	if (PageAnon(vmf->page) && !PageKsm(vmf->page)) {
- 		int total_mapcount;
--		if (!trylock_page(old_page)) {
--			get_page(old_page);
-+		if (!trylock_page(vmf->page)) {
-+			get_page(vmf->page);
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			lock_page(old_page);
-+			lock_page(vmf->page);
- 			vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 					vmf->address, &vmf->ptl);
- 			if (!pte_same(*vmf->pte, vmf->orig_pte)) {
--				unlock_page(old_page);
-+				unlock_page(vmf->page);
- 				pte_unmap_unlock(vmf->pte, vmf->ptl);
--				put_page(old_page);
-+				put_page(vmf->page);
- 				return 0;
- 			}
--			put_page(old_page);
-+			put_page(vmf->page);
- 		}
--		if (reuse_swap_page(old_page, &total_mapcount)) {
-+		if (reuse_swap_page(vmf->page, &total_mapcount)) {
- 			if (total_mapcount == 1) {
- 				/*
- 				 * The page is all ours. Move it to
-@@ -2414,24 +2414,24 @@ static int do_wp_page(struct vm_fault *vmf)
- 				 * Protected against the rmap code by
- 				 * the page lock.
- 				 */
--				page_move_anon_rmap(old_page, vma);
-+				page_move_anon_rmap(vmf->page, vma);
- 			}
--			unlock_page(old_page);
--			return wp_page_reuse(vmf, old_page, 0, 0);
-+			unlock_page(vmf->page);
-+			return wp_page_reuse(vmf, 0, 0);
- 		}
--		unlock_page(old_page);
-+		unlock_page(vmf->page);
- 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
- 					(VM_WRITE|VM_SHARED))) {
--		return wp_page_shared(vmf, old_page);
-+		return wp_page_shared(vmf);
- 	}
- 
- 	/*
- 	 * Ok, we need to copy. Oh, well..
- 	 */
--	get_page(old_page);
-+	get_page(vmf->page);
- 
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
--	return wp_page_copy(vmf, old_page);
-+	return wp_page_copy(vmf);
- }
- 
- static void unmap_mapping_range_vma(struct vm_area_struct *vma,
--- 
-2.6.6
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks, applied and pushed out to the 'pending' branch for ndctl-55.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
