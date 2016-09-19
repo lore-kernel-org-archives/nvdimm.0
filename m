@@ -1,82 +1,59 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 8 Sep 2016 13:57:07 +0300
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: Re: [PATCH v4 RESEND 0/2] Align mmap address for DAX pmd mappings
-Message-ID: <20160908105707.GA17331@node>
-References: <1472497881-9323-1-git-send-email-toshi.kani@hpe.com>
- <20160829204842.GA27286@node.shutemov.name>
- <1472506310.1532.47.camel@hpe.com>
- <1472508000.1532.59.camel@hpe.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 2B9AD1A1E1F
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 15:01:23 -0700 (PDT)
+Subject: [ndctl PATCH] build: fix recommended build procedure
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 19 Sep 2016 14:58:19 -0700
+Message-ID: <147432229981.5430.5565783441765433672.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1472508000.1532.59.camel@hpe.com>
-Sender: owner-linux-mm@kvack.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "hughd@google.com" <hughd@google.com>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "mike.kravetz@oracle.com" <mike.kravetz@oracle.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "mawilcox@microsoft.com" <mawilcox@microsoft.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "tytso@mit.edu" <tytso@mit.edu>, "david@fromorbit.com" <david@fromorbit.com>, "jack@suse.cz" <jack@suse.cz>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: Hideaki Kimura <hideaki.kimura@gmail.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Aug 29, 2016 at 10:00:43PM +0000, Kani, Toshimitsu wrote:
-> On Mon, 2016-08-29 at 15:31 -0600, Kani, Toshimitsu wrote:
-> > On Mon, 2016-08-29 at 23:48 +0300, Kirill A. Shutemov wrote:
-> > > 
-> > > On Mon, Aug 29, 2016 at 01:11:19PM -0600, Toshi Kani wrote:
-> > > > 
-> > > > 
-> > > > When CONFIG_FS_DAX_PMD is set, DAX supports mmap() using pmd page
-> > > > size.��This feature relies on both mmap virtual address and FS
-> > > > block (i.e. physical address) to be aligned by the pmd page size.
-> > > > Users can use mkfs options to specify FS to align block
-> > > > allocations. However, aligning mmap address requires code changes
-> > > > to existing applications for providing a pmd-aligned address to
-> > > > mmap().
-> > > > 
-> > > > For instance, fio with "ioengine=mmap" performs I/Os with mmap()
-> > > > [1]. It calls mmap() with a NULL address, which needs to be
-> > > > changed to provide a pmd-aligned address for testing with DAX pmd
-> > > > mappings. Changing all applications that call mmap() with NULL is
-> > > > undesirable.
-> > > > 
-> > > > This patch-set extends filesystems to align an mmap address for
-> > > > a DAX file so that unmodified applications can use DAX pmd
-> > > > mappings.
-> > > 
-> > > +Hugh
-> > > 
-> > > Can we get it used for shmem/tmpfs too?
-> > > I don't think we should duplicate essentially the same
-> > > functionality in multiple places.
-> > 
-> > Here is my brief analysis when I had looked at the Hugh's patch last
-> > time (before�shmem_get_unmapped_area() was accepted).
-> > https://patchwork.kernel.org/patch/8916741/
-> > 
-> > Besides some differences in the logic, ex. shmem_get_unmapped_area()
-> > always calls�current->mm->get_unmapped_area twice, yes, they
-> > basically provide the same functionality.
-> > 
-> > I think one issue is that shmem_get_unmapped_area() checks with its
-> > static flag 'shmem_huge', and additinally deals with SHMEM_HUGE_DENY
-> > and�SHMEM_HUGE_FORCE cases. �It also handles non-file case for
-> > !SHMEM_HUGE_FORCE.
-> 
-> Looking further, these shmem_huge handlings only check pre-conditions.
-> �So, we should be able to make shmem_get_unmapped_area() as a wrapper,
-> which checks such shmem-specific conitions, and then
-> call�__thp_get_unmapped_area() for the actual work. �All DAX-specific
-> checks are performed in thp_get_unmapped_area() as well. �We can make
-> �__thp_get_unmapped_area() as a common function.
-> 
-> I'd prefer to make such change as a separate item,
+Hideaki Kimura reports that the default build instructions do not result
+in a usable build.
 
-Do you have plan to submit such change?
+    $ ndctl --version
+    ndctl: error while loading shared libraries: libndctl.so.6: cannot
+        open shared object file: No such file or directory
 
--- 
- Kirill A. Shutemov
+Use the default recommended configure options from autogen.sh.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Reported-by: Hideaki Kimura <hideaki.kimura@gmail.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ README.md |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index 7256c2f15e20..e9dec67a0ea2 100644
+--- a/README.md
++++ b/README.md
+@@ -6,7 +6,7 @@ sub-system in the Linux kernel
+ Build
+ =====
+ `./autogen.sh`  
+-`./configure --enable-local`  
++`./configure CFLAGS='-g -O0' --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64`  
+ `make`  
+ `make check`  
+ `sudo make install`  
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
