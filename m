@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AD1B71A1E26
- for <linux-nvdimm@lists.01.org>; Thu, 29 Sep 2016 14:15:25 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.8
-Date: Thu, 29 Sep 2016 21:15:24 +0000
-Message-ID: <1475183722.21419.29.camel@intel.com>
-Content-Language: en-US
-Content-ID: <A99D99699CA1E04485A5D28B79FC52D8@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 10FB11A1E31
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 14:40:40 -0700 (PDT)
+Subject: [ndctl PATCH 0/6] miscellaneous updates / static analysis fixes
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 19 Sep 2016 14:37:36 -0700
+Message-ID: <147432105652.39548.8883834720654751375.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,116 +16,52 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
-Y20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4udG8g
-cmVjZWl2ZSB0aGUgZm9sbG93aW5nOgoKLSAoNCkgZml4ZXMgZm9yICJmbHVzaCBoaW50IiBzdXBw
-b3J0LiAgRmx1c2ggaGludHMgYXJlIGFkZHJlc3NlcwphZHZlcnRpc2VkIGJ5IHRoZSBBQ1BJIDYr
-LSBORklUIChOVkRJTU0gRmlybXdhcmUgSW50ZXJmYWNlIFRhYmxlKSB0aGF0CndoZW4gd3JpdHRl
-biBhbmQgZmVuY2VkIGd1YXJhbnRlZSB0aGF0IHdyaXRlcyBwZW5kaW5nIGluIHBsYXRmb3JtIHdy
-aXRlCmJ1ZmZlcnMgKG91dHNpZGUgdGhlIGNwdSkgaGF2ZSBiZWVuIGZsdXNoZWQgdG8gbWVkaWEu
-ICtBS0EtVGhleSBtaWdodCBhbHNvCmJlIHVzZWQgYnkgaHlwZXJ2aXNvcnMgYXMgYSB0cmlnZ2Vy
-IGNvbmRpdGlvbiB0byBmbHVzaCBndWVzdC1wZXJzaXN0ZW50IAptZW1vcnkgcmFuZ2VzIHRvIHN0
-b3JhZ2UuCgpGaXggYSBwb3RlbnRpYWwgZGF0YSBjb3JydXB0aW9uIGlzc3VlLCBhIGJyb2tlbiBk
-ZWZpbml0aW9uIG9mIHRoZSBoaW50CmFycmF5LCBhIHdyb25nIGFsbG9jYXRpb24gc2l6ZSBmb3Ig
-dGhlIHVuaXQgdGVzdCBpbXBsZW1lbnRhdGlvbiBvZiB0aGUKZmx1c2ggaGludCB0YWJsZSwgYW5k
-IG1pc3NpbmcgTlVMTCBjaGVjayBpbiBhbiBlcnJvciBwYXRoLiArQUtBLVRoZSB1bml0CnRlc3Qs
-IHdoaWxlIGl0IGRpZCBub3QgcHJldmVudCB0aGVzZSBidWdzIGZyb20gYmVpbmcgbWVyZ2VkLCBh
-dCBsZWFzdAp0cmlnZ2VyZWQgb2NjYXNpb25hbCBjcmFzaGVzIGluIGFkdmFuY2Ugb2YgcHJvZHVj
-dGlvbiB1c2FnZXMuCgotIEZpeCBoYW5kbGluZyBvZiBBQ1BJIERTTSBlcnJvciBzdGF0dXMgcmVz
-dWx0cy4gK0FLQS1UaGUgRFNNIG1lY2hhbmlzbQphbGxvd3MgY29tbXVuaWNhdGlvbiB3aXRoIHBs
-YXRmb3JtIGFuZCBtZW1vcnkgZGV2aWNlIGZpcm13YXJlLiArQUtBLVdlCmNvcnJlY3RseSBwYXJz
-ZSBrbm93biBlcnJvcnMsIGJ1dCB3ZXJlIHNpbGVudGx5IGlnbm9yaW5nIG90aGVycy4gK0FLQS1G
-aXgKaXQgdG8gY29uc2lzdGVudGx5IGZhaWwgYW55IGNvbW1hbmQgd2l0aCBhIG5vbi16ZXJvIHN0
-YXR1cyByZXR1cm4gdGhhdAp3ZSBvdGhlcndpc2UgZG8gbm90IGludGVycHJldCAvIGhhbmRsZS4K
-ClRoZXNlIGNoYW5nZXMgaGF2ZSBhIGJ1aWxkIHN1Y2Nlc3Mgbm90aWZpY2F0aW9uIGZyb20gdGhl
-IDBkYXkgcm9ib3QgYW5kCmhhdmUgYXBwZWFyZWQgaW4gYSAtbmV4dCByZWxlYXNlIG92ZXIgdGhl
-IHBhc3Qgd2Vlay4KClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgM2JlNzk4ODY3
-NGFiMzM1NjU3MDBhMzdiMjEwZjUwMjU2M2Q5MzJlNjoKCiAgTGludXggNC44LXJjNyAoMjAxNi0w
-OS0xOCAxNzoyNzo0MSAtMDcwMCkKCmFyZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBvc2l0b3J5
-IGF0OgoKICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZk
-aW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0
-byA1OTVjNzMwNzFlNjY0MWU1OWI4MzkxMWZiYjQwMjZlNzY3NDcxMDAwOgoKICBsaWJudmRpbW0s
-IHJlZ2lvbjogZml4IGZsdXNoIGhpbnQgdGFibGUgdGhpbmtvICgyMDE2LTA5LTI0IDExOjQ1OjM4
-IC0wNzAwKQoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLQpEYW4gV2lsbGlhbXMgKDQpOgogICAgICB0b29scy90ZXN0aW5nL252
-ZGltbTogZml4IGFsbG9jYXRpb24gcmFuZ2UgZm9yIG1vY2sgZmx1c2ggaGludCB0YWJsZXMKICAg
-ICAgbGlibnZkaW1tOiBmaXggZGV2bV9udmRpbW1fbWVtcmVtYXAoKSBlcnJvciBwYXRoCiAgICAg
-IG5maXQ6IGZhaWwgRFNNcyB0aGF0IHJldHVybiBub24temVybyBzdGF0dXMgYnkgZGVmYXVsdAog
-ICAgICBsaWJudmRpbW0sIHJlZ2lvbjogZml4IGZsdXNoIGhpbnQgdGFibGUgdGhpbmtvCgpPbGl2
-ZXIgTydIYWxsb3JhbiAoMSk6CiAgICAgIG52ZGltbTogZml4IFBIWVNfUEZOL1BGTl9QSFlTIG1p
-eHVwCgogZHJpdmVycy9hY3BpL25maXQvY29yZS5jICAgICAgICAgfCA0OCArLSstKy0rLSstKy0r
-LSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstLS0tLS0tLS0tLS0tLS0tLS0KIGRyaXZl
-cnMvbnZkaW1tL2NvcmUuYyAgICAgICAgICAgIHwgIDggKy0rLSstKy0rLSstLQogZHJpdmVycy9u
-dmRpbW0vbmQuaCAgICAgICAgICAgICAgfCAyMiArLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSst
-Ky0rLS0tCiBkcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jICAgICB8IDIyICstKy0rLSstKy0r
-LSstKy0rLSstLS0tLS0tLS0KIHRvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jIHwgIDMg
-Ky0rLS0KIDUgZmlsZXMgY2hhbmdlZCwgNzAgaW5zZXJ0aW9ucygrLSksIDMzIGRlbGV0aW9ucygt
-KQoKCmNvbW1pdCA0ODBiNjgzN2FhNTc5OTkxYzZhY2MxMTNiY2NmODM4ZTZhOTA4NDNjCkF1dGhv
-cjogT2xpdmVyIE8nSGFsbG9yYW4gPG9vaGFsbEBnbWFpbC5jb20+CkRhdGU6ICAgTW9uIFNlcCAx
-OSAyMDoxOTowMCAyMDE2ICstMTAwMAoKICAgIG52ZGltbTogZml4IFBIWVNfUEZOL1BGTl9QSFlT
-IG1peHVwCiAgICAKICAgIG5kX2FjdGl2YXRlX3JlZ2lvbigpIGlvbWFwcyBhbnkgaGludCBhZGRy
-ZXNzZXMgcmVxdWlyZWQgd2hlbiBhY3RpdmF0aW5nCiAgICBhIHJlZ2lvbi4gVG8gcHJldmVudCBk
-dXBsaWNhdGUgbWFwcGluZ3MgaXQgY2hlY2tzIHRoZSBQRk4gb2YgdGhlIGhpbnQgdG8KICAgIGJl
-IG1hcHBlZCBhZ2FpbnN0IHRoZSBQRk5zIG9mIHRoZSBhbHJlYWR5IG1hcHBlZCBoaW50cy4gVW5m
-b3J0dW5hdGVseSBpdAogICAgZG9lc24ndCBjb252ZXJ0IHRoZSBQRk4gYmFjayBpbnRvIGEgcGh5
-c2ljYWwgYWRkcmVzcyBiZWZvcmUgcGFzc2luZyBpdAogICAgdG8gZGV2bV9udmRpbW1faW9yZW1h
-cCgpLiBJbnN0ZWFkIGl0IGFwcGxpZXMgUEhZU19QRk4gYSBzZWNvbmQgdGltZQogICAgd2hpY2gg
-ZW5kcyBhYm91dCBhcyB3ZWxsIGFzIHlvdSB3b3VsZCBpbWFnaW5lLgogICAgCiAgICBTaWduZWQt
-b2ZmLWJ5OiBPbGl2ZXIgTydIYWxsb3JhbiA8b29oYWxsQGdtYWlsLmNvbT4KICAgIFNpZ25lZC1v
-ZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0IDlk
-MTVjZTljYWFmOWVjYmVjNzRlM2JlMTU2YTRhNTc0NTFlZDE2YzIKQXV0aG9yOiBEYW4gV2lsbGlh
-bXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KRGF0ZTogICBNb24gU2VwIDE5IDEzOjQ5OjQ4
-IDIwMTYgLTA3MDAKCiAgICB0b29scy90ZXN0aW5nL252ZGltbTogZml4IGFsbG9jYXRpb24gcmFu
-Z2UgZm9yIG1vY2sgZmx1c2ggaGludCB0YWJsZXMKICAgIAogICAgQ29tbWl0IDQ4MGI2ODM3YWE1
-NyAibnZkaW1tOiBmaXggUEhZU19QRk4vUEZOX1BIWVMgbWl4dXAiIGlkZW50aWZpZWQKICAgIHRo
-YXQgd2Ugd2VyZSBwYXNzaW5nIGFuIGludmFsaWQgYWRkcmVzcyB0byBkZXZtX252ZGltbV9pb3Jl
-bWFwKCkuIFdpdGgKICAgIHRoYXQgZml4ZWQgaXQgZXhwb3NlZCBhIGJ1ZyBpbiB0aGUgbWVtb3J5
-IHJlc2VydmF0aW9uIHNpemUgZm9yIGZsdXNoCiAgICBoaW50IHRhYmxlcy4gIFNpbmNlIHdlIG1h
-cCBhIGZ1bGwgcGFnZSB3ZSBuZWVkIHRvIG1vY2sgYSBmdWxsIHBhZ2Ugb2YKICAgIG1lbW9yeSB0
-byBiYWNrIHRoZSBmbHVzaCBoaW50IHRhYmxlIGVudHJpZXMuCiAgICAKICAgIENjOiBPbGl2ZXIg
-TydIYWxsb3JhbiA8b29oYWxsQGdtYWlsLmNvbT4KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxs
-aWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0IGVjZmI2ZDhhMDQxY2MyY2E4
-MGJjNjlmZmMyMGMwMDA2N2QxOTBkZjUKQXV0aG9yOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxp
-YW1zQGludGVsLmNvbT4KRGF0ZTogICBXZWQgU2VwIDIxIDA5OjIyOjMzIDIwMTYgLTA3MDAKCiAg
-ICBsaWJudmRpbW06IGZpeCBkZXZtX252ZGltbV9tZW1yZW1hcCgpIGVycm9yIHBhdGgKICAgIAog
-ICAgVGhlIGludGVybmFsIGFsbG9jX252ZGltbV9tYXAoKSBoZWxwZXIgbWlnaHQgZmFpbCwgcGFy
-dGljdWxhcmx5IGlmIHRoZQogICAgbWVtb3J5IHJlZ2lvbiBpcyBhbHJlYWR5IGJ1c3kuICBSZXBv
-cnQgcmVxdWVzdF9tZW1fcmVnaW9uKCkgZmFpbHVyZXMgYW5kCiAgICBjaGVjayBmb3IgdGhlIGZh
-aWx1cmUuCiAgICAKICAgIFJlcG9ydGVkLWJ5OiBSeWFuIENoZW4gPHJ5YW4uY2hhbjEwNUBnbWFp
-bC5jb20+CiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGlu
-dGVsLmNvbT4KCmNvbW1pdCAxMTI5NGQ2M2FjOTE1MjMwYTM2YjA2MDNjNjIxMzRlZjdiMTczZDBh
-CkF1dGhvcjogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+CkRhdGU6ICAg
-V2VkIFNlcCAyMSAwOToyMToyNiAyMDE2IC0wNzAwCgogICAgbmZpdDogZmFpbCBEU01zIHRoYXQg
-cmV0dXJuIG5vbi16ZXJvIHN0YXR1cyBieSBkZWZhdWx0CiAgICAKICAgIEZvciB0aGUgRFNNcyB3
-aGVyZSB0aGUga2VybmVsIGtub3dzIHRoZSBmb3JtYXQgb2YgdGhlIG91dHB1dCBidWZmZXIgYW5k
-CiAgICBvcmlnaW5hdGVzIHRob3NlIERTTXMgZnJvbSB3aXRoaW4gdGhlIGtlcm5lbCwgcmV0dXJu
-IC1FSU8gZm9yIGFueQogICAgbm9uLXplcm8gc3RhdHVzLiAgSWYgdGhlIEJJT1MgaXMgaW5kaWNh
-dGluZyBhIHN0YXR1cyB0aGF0IHdlIGRvIG5vdCBrbm93CiAgICBob3cgdG8gaGFuZGxlLCBmYWls
-IHRoZSBEU00uCiAgICAKICAgIENjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4KICAgIFNpZ25l
-ZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0
-IDU5NWM3MzA3MWU2NjQxZTU5YjgzOTExZmJiNDAyNmU3Njc0NzEwMDAKQXV0aG9yOiBEYW4gV2ls
-bGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KRGF0ZTogICBGcmkgU2VwIDIzIDE3OjUz
-OjUyIDIwMTYgLTA3MDAKCiAgICBsaWJudmRpbW0sIHJlZ2lvbjogZml4IGZsdXNoIGhpbnQgdGFi
-bGUgdGhpbmtvCiAgICAKICAgIFRoZSBkZWZpbml0aW9uIG9mIHRoZSBmbHVzaCBoaW50IHRhYmxl
-IGFzOgogICAgCiAgICAJdm9pZCBfX2lvbWVtICpmbHVzaF93cHFbMF1bMF07CiAgICAKICAgIC4u
-LnBhc3NlZCB0aGUgdW5pdCB0ZXN0LCBidXQgaXMgYnJva2VuIGFzIGZsdXNoX3dwcVswXVsxXSBh
-bmQKICAgIGZsdXNoX3dwcVsxXVswXSByZWZlciB0byB0aGUgc2FtZSBlbnRyeS4gIEZpeCB0aGlz
-IHRvIHVzZSBhIGhlbHBlciB0aGF0CiAgICBjYWxjdWxhdGVzIGEgc2xvdCBpbiB0aGUgdGFibGUg
-YmFzZWQgb24gdGhlIGdlb21ldHJ5IG9mIGZsdXNoIGhpbnRzIGluCiAgICB0aGUgcmVnaW9uLiAg
-VGhpcyBpcyBpbXBvcnRhbnQgdG8gZ2V0IHJpZ2h0IHNpbmNlIHZpcnR1YWxpemF0aW9uCiAgICBz
-b2x1dGlvbnMgdXNlIHRoaXMgbWVjaGFuaXNtIHRvIHRyaWdnZXIgaHlwZXJ2aXNvciBmbHVzaGVz
-IHRvIHBsYXRmb3JtCiAgICBwZXJzaXN0ZW5jZS4KICAgIAogICAgUmVwb3J0ZWQtYnk6IERhdmUg
-SmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPgogICAgVGVzdGVkLWJ5OiBEYXZlIEppYW5nIDxk
-YXZlLmppYW5nQGludGVsLmNvbT4KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFu
-Lmoud2lsbGlhbXNAaW50ZWwuY29tPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRp
-bW0K
+- refreshed "build: build libraries and utilities in separate
+  directories" on top of the HPE S.M.A.R.T. enabling patches.
+
+- fixed static analysis problems in "test, dsm-fail: test
+  get_config_size DSM failures"
+
+- miscellaneous updates and fixes, see the shortlog below
+
+---
+
+Dan Williams (6):
+      build: build libraries and utilities in separate directories
+      test, dsm-fail: test get_config_size DSM failures
+      Documentation: update top-level man page with latest commands
+      test, libndctl: fix uninitialized variable usage in check_btt_size()
+      libdaxctl: fix deref-before-null-check in daxctl_new_region
+      ndctl: fix potential null deref in util_namespace_to_json()
+
+
+ Documentation/ndctl.txt |    6 +
+ Makefile.am             |    2 
+ configure.ac            |    3 -
+ daxctl/Makefile.am      |   27 ------
+ daxctl/lib/Makefile.am  |   28 ++++++
+ daxctl/lib/libdaxctl.c  |   11 ++
+ ndctl/Makefile.am       |   51 +----------
+ ndctl/builtin-test.c    |    5 +
+ ndctl/lib/Makefile.am   |   47 ++++++++++
+ ndctl/util/json.c       |    2 
+ test.h                  |    1 
+ test/Makefile.am        |   10 ++
+ test/dsm-fail.c         |  220 +++++++++++++++++++++++++++++++++++++++++++++++
+ test/libndctl.c         |    2 
+ 14 files changed, 334 insertions(+), 81 deletions(-)
+ delete mode 100644 daxctl/Makefile.am
+ create mode 100644 daxctl/lib/Makefile.am
+ create mode 100644 ndctl/lib/Makefile.am
+ create mode 100644 test/dsm-fail.c
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
