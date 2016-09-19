@@ -1,118 +1,47 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 20/20] dax: Clear dirty entry tags on cache flush
-Date: Tue, 27 Sep 2016 18:08:24 +0200
-Message-Id: <1474992504-20133-21-git-send-email-jack@suse.cz>
-In-Reply-To: <1474992504-20133-1-git-send-email-jack@suse.cz>
-References: <1474992504-20133-1-git-send-email-jack@suse.cz>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from jimaz.cz (unknown [103.204.166.162])
+ by ml01.01.org (Postfix) with ESMTP id C5F5F1A1E0A
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 00:33:19 -0700 (PDT)
+From: jimaz@jimaz.cz
+Subject: Returned mail: see transcript for details
+Date: Mon, 19 Sep 2016 13:02:20 +0530
+MIME-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Message-Id: <20160919073323.88E4B1A1E12@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently we never clear dirty tags in DAX mappings and thus address
-ranges to flush accumulate. Now that we have locking of radix tree
-entries, we have all the locking necessary to reliably clear the radix
-tree dirty tag when flushing caches for corresponding address range.
-Similarly to page_mkclean() we also have to write-protect pages to get a
-page fault when the page is next written to so that we can mark the
-entry dirty again.
+Your message was not delivered due to the following reason(s):
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
+Your message could not be delivered because the destination server was
+unreachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index a2d3781c9f4e..233f548d298e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -31,6 +31,7 @@
- #include <linux/vmstat.h>
- #include <linux/pfn_t.h>
- #include <linux/sizes.h>
-+#include <linux/mmu_notifier.h>
- #include <linux/iomap.h>
- #include "internal.h"
- 
-@@ -668,6 +669,59 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
- 	return new_entry;
- }
- 
-+static inline unsigned long
-+pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
-+{
-+	unsigned long address;
-+
-+	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
-+	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
-+	return address;
-+}
-+
-+/* Walk all mappings of a given index of a file and writeprotect them */
-+static void dax_mapping_entry_mkclean(struct address_space *mapping,
-+				      pgoff_t index, unsigned long pfn)
-+{
-+	struct vm_area_struct *vma;
-+	pte_t *ptep;
-+	pte_t pte;
-+	spinlock_t *ptl;
-+	bool changed;
-+
-+	i_mmap_lock_read(mapping);
-+	vma_interval_tree_foreach(vma, &mapping->i_mmap, index, index) {
-+		unsigned long address;
-+
-+		cond_resched();
-+
-+		if (!(vma->vm_flags & VM_SHARED))
-+			continue;
-+
-+		address = pgoff_address(index, vma);
-+		changed = false;
-+		if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
-+			continue;
-+		if (pfn != pte_pfn(*ptep))
-+			goto unlock;
-+		if (!pte_dirty(*ptep) && !pte_write(*ptep))
-+			goto unlock;
-+
-+		flush_cache_page(vma, address, pfn);
-+		pte = ptep_clear_flush(vma, address, ptep);
-+		pte = pte_wrprotect(pte);
-+		pte = pte_mkclean(pte);
-+		set_pte_at(vma->vm_mm, address, ptep, pte);
-+		changed = true;
-+unlock:
-+		pte_unmap_unlock(ptep, ptl);
-+
-+		if (changed)
-+			mmu_notifier_invalidate_page(vma->vm_mm, address);
-+	}
-+	i_mmap_unlock_read(mapping);
-+}
-+
- static int dax_writeback_one(struct block_device *bdev,
- 		struct address_space *mapping, pgoff_t index, void *entry)
- {
-@@ -735,7 +789,17 @@ static int dax_writeback_one(struct block_device *bdev,
- 		goto unmap;
- 	}
- 
-+	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(dax.pfn));
- 	wb_cache_pmem(dax.addr, dax.size);
-+	/*
-+	 * After we have flushed the cache, we can clear the dirty tag. There
-+	 * cannot be new dirty data in the pfn after the flush has completed as
-+	 * the pfn mappings are writeprotected and fault waits for mapping
-+	 * entry lock.
-+	 */
-+	spin_lock_irq(&mapping->tree_lock);
-+	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
-+	spin_unlock_irq(&mapping->tree_lock);
- unmap:
- 	dax_unmap_atomic(bdev, &dax);
- 	put_locked_mapping_entry(mapping, index, entry);
--- 
-2.6.6
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
 
+Your message was not delivered within 8 days:
+Host 5.35.172.81 is not responding.
+
+The following recipients did not receive this message:
+<linux-nvdimm@lists.01.org>
+
+Please reply to postmaster@jimaz.cz
+if you feel this message to be in error.
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
