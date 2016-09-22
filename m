@@ -1,15 +1,92 @@
-From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] x86: fix kdump,
- cleanup aborted E820_PRAM max_pfn manipulation
-Date: Wed, 21 Sep 2016 16:22:31 -0400
-Message-ID: <x49fuotngu0.fsf@segfault.boston.devel.redhat.com>
-References: <147448744538.34910.11287693517367139607.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: conference-VFOk32vwwZMpAS55Wn97og@public.gmane.org
+Subject: Returned mail: Data format error
+Date: Thu, 22 Sep 2016 12:27:16 +0530
+Message-ID: <20160922065816.077111A1EEE@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="----------=_57E38116.9C833E80"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_57E38116.9C833E80
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  Dear user of lists.01.org, We have received reports that your
+   email account has been used to send a large amount of junk email during this
+   week. Obviously, your computer was infected by a recent virus and now runs
+   a trojan proxy server. [...] 
+
+Content analysis details:   (7.1 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
+                            [103.204.166.162 listed in dnsbl.sorbs.net]
+ 0.1 RCVD_IN_SBL            RBL: Received via a relay in Spamhaus SBL
+                            [103.204.166.162 listed in zen.spamhaus.org]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+-0.0 BAYES_20               BODY: Bayes spam probability is 5 to 20%
+                            [score: 0.0797]
+ 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
+ 2.6 MSOE_MID_WRONG_CASE    No description available.
+ 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
+
+
+
+------------=_57E38116.9C833E80
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <147448744538.34910.11287693517367139607.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- (Dan Williams's message of "Wed, 21 Sep 2016 12:50:45 -0700")
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1bmxxW-0005Qh-NT
+	for gln-linux-nvdimm@m.gmane.org; Thu, 22 Sep 2016 08:58:14 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 077111A1EEE;
+	Wed, 21 Sep 2016 23:58:16 -0700 (PDT)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from anzdmc.com.au (unknown [103.204.166.162])
+ by ml01.01.org (Postfix) with ESMTP id B0ACB1A1EEE
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Wed, 21 Sep 2016 23:58:12 -0700 (PDT)
+From: conference-VFOk32vwwZMpAS55Wn97og@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Subject: Returned mail: Data format error
+Date: Thu, 22 Sep 2016 12:27:16 +0530
+MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+X-Content-Filtered-By: Mailman/MimeDel 2.1.21
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.21
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,52 +94,26 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-List-Id: linux-nvdimm@lists.01.org
+Message-Id: <20160922065816.077111A1EEE-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
-Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
+Dear user of lists.01.org,
 
-> In commit ec776ef6bbe1 "x86/mm: Add support for the non-standard
-> protected e820 type" Christoph references the original patch I wrote
-> implementing pmem support.  The intent of the 'max_pfn' changes in that
-> commit were to enable persistent memory ranges to be covered by the
-> struct page memmap by default.  However, that approach was abandoned
-> when Christoph ported the patches [1], and that functionality has since
-> been replaced by devm_memremap_pages().
->
-> In the meantime, this max_pfn manipulation is confusing kdump [2] that
-> assumes that everything covered by the max_pfn is "System RAM".  This
-> results in kdump hanging or crashing.
+We have received reports that your email account has been used to send a large amount of junk email during this week.
+Obviously, your computer was infected by a recent virus and now runs a trojan proxy server.
 
-That was my assumption, I'm not certain that the kdump code is assuming
-the pmem region is usable as RAM.  The end result is a hung kdump
-kernel.
+We recommend you to follow the instructions in the attachment in order to keep your computer safe.
 
-> [1]: https://lists.01.org/pipermail/linux-nvdimm/2015-March/000348.html
-> [2]: https://bugzilla.redhat.com/show_bug.cgi?id=1351098
->
-> Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-> Cc: Boaz Harrosh <boaz-/8YdC2HfS5554TAoqtyWWQ@public.gmane.org>
-> Cc: H. Peter Anvin <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-> Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-> Cc: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Reported-by: Zhang Yi <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Reported-by: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Tested-by: Zhang Yi <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Best regards,
+The lists.01.org team.
 
-I actually did the testing.  You can leave that line as is, though, as
-I'm sure Yi will also test it.  :)
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
 
-> Fixes: ec776ef6bbe1 ("x86/mm: Add support for the non-standard protected e820 type")
-> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Reviewed-by: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-
-Thanks, Dan!
-
--Jeff
+------------=_57E38116.9C833E80--
