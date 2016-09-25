@@ -1,8 +1,8 @@
-From: =?utf-8?B?55m+6ZqOKOmmmea4rykg5pyJ6ZmQ5YWs5Y+45YWI55Sf?=
- <kemxsaryc-lR6AsLd81AqsTnJN9+BGXg@public.gmane.org>
-Subject: =?utf-8?B?55m+6ZqOKOmmmea4rykg5pyJ6ZmQ5YWs5Y+4?=
-Date: Sun, 25 Sep 2016 04:35:25 +0800
-Message-ID: <584728F082F5891BE7E5005D883EB6EE@an>
+From: =?utf-8?B?6Ziz5rGf5biC5Yqb546L5a6e5Lia5pyJ6ZmQ5YWs5Y+45YWI55Sf?=
+ <lzjzvcn-NPZn2/p0gKE@public.gmane.org>
+Subject: =?utf-8?B?6Ziz5rGf5biC5Yqb546L5a6e5Lia5pyJ6ZmQ5YWs5Y+4?=
+Date: Mon, 26 Sep 2016 06:16:43 +0800
+Message-ID: <31CA6A02BBAAD807C151712F357BD42A@qsrvma>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
