@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mail-oi0-x22f.google.com (mail-oi0-x22f.google.com
+ [IPv6:2607:f8b0:4003:c06::22f])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 24A111A1E8F
- for <linux-nvdimm@lists.01.org>; Thu, 29 Sep 2016 15:49:46 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 12/12] dax: remove "depends on BROKEN" from FS_DAX_PMD
-Date: Thu, 29 Sep 2016 16:49:30 -0600
-Message-Id: <1475189370-31634-13-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1475189370-31634-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1475189370-31634-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8828A1A1E02
+ for <linux-nvdimm@lists.01.org>; Mon, 26 Sep 2016 12:57:39 -0700 (PDT)
+Received: by mail-oi0-x22f.google.com with SMTP id t83so220436346oie.3
+ for <linux-nvdimm@lists.01.org>; Mon, 26 Sep 2016 12:57:39 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <DF4PR84MB01695337C9BD0AB787BA52D4ABCD0@DF4PR84MB0169.NAMPRD84.PROD.OUTLOOK.COM>
+References: <DF4PR84MB01695337C9BD0AB787BA52D4ABCD0@DF4PR84MB0169.NAMPRD84.PROD.OUTLOOK.COM>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 26 Sep 2016 12:57:38 -0700
+Message-ID: <CAPcyv4ixgpxp+diam0y3RkCTMroTbETcQ0Vh17JvCwgUA02Keg@mail.gmail.com>
+Subject: Re: /dev/dax size
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,38 +21,29 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that DAX PMD faults are once again working and are now participating in
-DAX's radix tree locking scheme, allow their config option to be enabled.
+On Mon, Sep 26, 2016 at 9:16 AM, Elliott, Robert (Persistent Memory)
+<elliott@hpe.com> wrote:
+> How is an application supposed to detect the max mmap() size possible
+> for a /dev/daxNN device?
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
+The 'size' sysfs attribute.
 
-diff --git a/fs/Kconfig b/fs/Kconfig
-index 2bc7ad7..b6f0fce 100644
---- a/fs/Kconfig
-+++ b/fs/Kconfig
-@@ -55,7 +55,6 @@ config FS_DAX_PMD
- 	depends on FS_DAX
- 	depends on ZONE_DEVICE
- 	depends on TRANSPARENT_HUGEPAGE
--	depends on BROKEN
- 
- endif # BLOCK
- 
--- 
-2.7.4
+> fio, for example, doesn't know what size to use.  Its os/os-linux.h
+> does not define FIO_HAVE_CHARDEV_SIZE and it has no chardev_size
+> function to determine the size of a character device.
 
+Hmm, seems fio would do the right thing if /dev/dax responded to block
+device size ioctl.  But I think I'd rather teach fio about device-dax
+explicitly since the i/o engine need not worry about page-cache
+management.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
