@@ -1,160 +1,76 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 10/20] mm: Move handling of COW faults into DAX code
-Date: Tue, 27 Sep 2016 18:08:14 +0200
-Message-Id: <1474992504-20133-11-git-send-email-jack@suse.cz>
-In-Reply-To: <1474992504-20133-1-git-send-email-jack@suse.cz>
-References: <1474992504-20133-1-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 518211A1DF1
+ for <linux-nvdimm@lists.01.org>; Mon, 26 Sep 2016 11:06:51 -0700 (PDT)
+Subject: [PATCH] nvdimm: reduce duplicated wqp flushes
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 26 Sep 2016 11:06:50 -0700
+Message-ID: <147491321005.138924.1988435746987431241.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Move final handling of COW faults from generic code into DAX fault
-handler. That way generic code doesn't have to be aware of peculiarities
-of DAX locking so remove that knowledge.
+Existing implemenetation writes to all the flush hint addresses for a
+given ND region. This is not necessary as the flushes are per imc and
+not per DIMM. Search the mappings and clear out the duplicates at init
+to avoid multiple flush to the same imc.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- fs/dax.c            | 22 ++++++++++++++++------
- include/linux/dax.h |  7 -------
- include/linux/mm.h  |  9 +--------
- mm/memory.c         | 14 ++++----------
- 4 files changed, 21 insertions(+), 31 deletions(-)
+ drivers/nvdimm/region_devs.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 0dc251ca77b8..b1c503930d1d 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -876,10 +876,15 @@ int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			goto unlock_entry;
- 		if (!radix_tree_exceptional_entry(entry)) {
- 			vmf->page = entry;
--			return VM_FAULT_LOCKED;
-+			if (unlikely(PageHWPoison(entry))) {
-+				put_locked_mapping_entry(mapping, vmf->pgoff,
-+							 entry);
-+				return VM_FAULT_HWPOISON;
-+			}
- 		}
--		vmf->entry = entry;
--		return VM_FAULT_DAX_LOCKED;
-+		error = finish_fault(vmf);
-+		put_locked_mapping_entry(mapping, vmf->pgoff, entry);
-+		return error ? error : VM_FAULT_DONE_COW;
- 	}
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index b1f3bb7..cac917f 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -70,7 +70,7 @@ static int nvdimm_map_flush(struct device *dev, struct nvdimm *nvdimm, int dimm,
  
- 	if (!buffer_mapped(&bh)) {
-@@ -1430,10 +1435,15 @@ int iomap_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			goto unlock_entry;
- 		if (!radix_tree_exceptional_entry(entry)) {
- 			vmf->page = entry;
--			return VM_FAULT_LOCKED;
-+			if (unlikely(PageHWPoison(entry))) {
-+				put_locked_mapping_entry(mapping, vmf->pgoff,
-+							 entry);
-+				return VM_FAULT_HWPOISON;
-+			}
- 		}
--		vmf->entry = entry;
--		return VM_FAULT_DAX_LOCKED;
-+		error = finish_fault(vmf);
-+		put_locked_mapping_entry(mapping, vmf->pgoff, entry);
-+		return error ? error : VM_FAULT_DONE_COW;
- 	}
- 
- 	switch (iomap.type) {
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index add6c4bc568f..b1a1acd10df2 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -26,7 +26,6 @@ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
- 
- #ifdef CONFIG_FS_DAX
- struct page *read_dax_sector(struct block_device *bdev, sector_t n);
--void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index);
- int __dax_zero_page_range(struct block_device *bdev, sector_t sector,
- 		unsigned int offset, unsigned int length);
- #else
-@@ -35,12 +34,6 @@ static inline struct page *read_dax_sector(struct block_device *bdev,
+ int nd_region_activate(struct nd_region *nd_region)
  {
- 	return ERR_PTR(-ENXIO);
+-	int i, num_flush = 0;
++	int i, j, num_flush = 0;
+ 	struct nd_region_data *ndrd;
+ 	struct device *dev = &nd_region->dev;
+ 	size_t flush_data_size = sizeof(void *);
+@@ -107,6 +107,21 @@ int nd_region_activate(struct nd_region *nd_region)
+ 			return rc;
+ 	}
+ 
++	/*
++	 * Clear out entries that are duplicates. This should prevent the
++	 * extra flushings.
++	 */
++	for (i = 0; i < nd_region->ndr_mappings - 1; i++) {
++		/* ignore if NULL already */
++		if (!ndrd_get_flush_wpq(ndrd, i, 0))
++			continue;
++
++		for (j = i + 1; j < nd_region->ndr_mappings; j++)
++			if (ndrd_get_flush_wpq(ndrd, i, 0) ==
++			    ndrd_get_flush_wpq(ndrd, j, 0))
++				ndrd_set_flush_wpq(ndrd, j, 0, NULL);
++	}
++
+ 	return 0;
  }
--/* Shouldn't ever be called when dax is disabled. */
--static inline void dax_unlock_mapping_entry(struct address_space *mapping,
--					    pgoff_t index)
--{
--	BUG();
--}
- static inline int __dax_zero_page_range(struct block_device *bdev,
- 		sector_t sector, unsigned int offset, unsigned int length)
- {
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 919ebdd27f1e..1055f2ece80d 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -310,12 +310,6 @@ struct vm_fault {
- 					 * is set (which is also implied by
- 					 * VM_FAULT_ERROR).
- 					 */
--	void *entry;			/* ->fault handler can alternatively
--					 * return locked DAX entry. In that
--					 * case handler should return
--					 * VM_FAULT_DAX_LOCKED and fill in
--					 * entry here.
--					 */
- 	/* These three entries are valid only while holding ptl lock */
- 	pte_t *pte;			/* Pointer to pte entry matching
- 					 * the 'address'. NULL if the page
-@@ -1118,8 +1112,7 @@ static inline void clear_page_pfmemalloc(struct page *page)
- #define VM_FAULT_LOCKED	0x0200	/* ->fault locked the returned page */
- #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
- #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
--#define VM_FAULT_DAX_LOCKED 0x1000	/* ->fault has locked DAX entry */
--#define VM_FAULT_DONE_COW   0x2000	/* ->fault has fully handled COW */
-+#define VM_FAULT_DONE_COW   0x1000	/* ->fault has fully handled COW */
  
- #define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
- 
-diff --git a/mm/memory.c b/mm/memory.c
-index f54cfad7fe04..a4522e8999b2 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2845,7 +2845,7 @@ static int __do_fault(struct vm_fault *vmf)
- 
- 	ret = vma->vm_ops->fault(vma, vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY |
--			    VM_FAULT_DAX_LOCKED | VM_FAULT_DONE_COW)))
-+			    VM_FAULT_DONE_COW)))
- 		return ret;
- 
- 	if (unlikely(PageHWPoison(vmf->page))) {
-@@ -3239,17 +3239,11 @@ static int do_cow_fault(struct vm_fault *vmf)
- 	if (ret & VM_FAULT_DONE_COW)
- 		return ret;
- 
--	if (!(ret & VM_FAULT_DAX_LOCKED))
--		copy_user_highpage(new_page, vmf->page, vmf->address, vma);
-+	copy_user_highpage(new_page, vmf->page, vmf->address, vma);
- 	__SetPageUptodate(new_page);
--
- 	ret |= finish_fault(vmf);
--	if (!(ret & VM_FAULT_DAX_LOCKED)) {
--		unlock_page(vmf->page);
--		put_page(vmf->page);
--	} else {
--		dax_unlock_mapping_entry(vma->vm_file->f_mapping, vmf->pgoff);
--	}
-+	unlock_page(vmf->page);
-+	put_page(vmf->page);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
- 	return ret;
--- 
-2.6.6
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
