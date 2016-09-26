@@ -1,37 +1,44 @@
-From: Christoph Hellwig <hch@lst.de>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Subject: Re: [PATCH 06/10] dax: provide an iomap based fault handler
-Date: Mon, 26 Sep 2016 02:05:16 +0200
-Message-ID: <20160926000516.GA32138@lst.de>
-References: <1473438884-674-1-git-send-email-hch@lst.de> <1473438884-674-7-git-send-email-hch@lst.de> <20160913231039.GF26002@linux.intel.com> <20160914071910.GC17278@lst.de> <20160914170759.GA14196@linux.intel.com>
+Date: Mon, 26 Sep 2016 02:08:05 +0200
+Message-ID: <20160926000805.GA32252@lst.de>
+References: <1473438884-674-1-git-send-email-hch@lst.de>
+ <1473438884-674-7-git-send-email-hch@lst.de> <20160909225557.GF30056@dastard>
+ <20160910073646.GA18547@lst.de> <20160913155126.GA10622@linux.intel.com>
+ <20160914070633.GA17278@lst.de> <20160923210237.GA23346@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160914170759.GA14196@linux.intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org
+In-Reply-To: <20160923210237.GA23346-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, Sep 14, 2016 at 11:07:59AM -0600, Ross Zwisler wrote:
-> I'll bite - why do you think adding a space before labels is a "fairly
-> horrible style"?
+On Fri, Sep 23, 2016 at 03:02:37PM -0600, Ross Zwisler wrote:
+> I can just add a hack to hop over the writeback in generic_file_read_iter(),
+> but I hesitate to do this because it seems like the correct thing to do is to
+> separate the ext4 DAX & DIO paths, which I think you are already doing.
 
-It introduces single whitespace indentation in a source base that is
-all about tabs and uses whitespaces very sparingly (some people use
-it to align function arguments, while others also consistently use tabs).
+I've started on it, and the read path works fine.  I'm a bit stuck on
+the write side as my attempts at it seems to corrupt data fairly easily
+when running xfstests.
 
-It's also a bit annoying when touching these error label chains for any
-sort of major change.
+> I believe that my DAX PMD patches are ready to go, but because of this issue
+> they currently only support XFS.  I'm tempted to send them out as they are
+> right now since they add a bunch of complexity to DAX that we need to review,
+> and that review can fully happen with only XFS support. We can add ext4
+> support back in later when it's ready.
 
-> Adding them gives a tangible benefit for unified diffs and
-> patches because it's much more useful to know that a change is in a given
-> function than that it follows a label called "out", which could be defined
-> many times in a given file.  Again, the example:
-
-Yes, but this is just diff beeing stupid.  There is no reason why diff
-couldn't handle this properly even without the space, and in fact at
-least git diff can be tought easily to do just that.
-
-There are a few threads about this label style going on on lkml in
-the last week, and one of them mentions the git diff tweak.  Try searching
-for "Clarify and complete chapter 7".
+Yes, please send them out.  We really should move ext4 over to iomap for
+DAX.  I'd love to get some help from someone more familar with ext4,
+and can send my code dump to get started.
