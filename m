@@ -1,85 +1,20 @@
-From: btssobil.csb-R9E+szwozl8@public.gmane.org
-Subject: Delivery reports about your e-mail
-Date: Mon, 26 Sep 2016 12:00:33 +0530
-Message-ID: <20160926063135.915651A1E03@ml01.01.org>
+From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [PATCH 06/10] dax: provide an iomap based fault handler
+Date: Mon, 26 Sep 2016 16:28:42 +0200
+Message-ID: <20160926142842.GF7733@quack2.suse.cz>
+References: <1473438884-674-1-git-send-email-hch@lst.de>
+ <1473438884-674-7-git-send-email-hch@lst.de>
+ <20160909225557.GF30056@dastard> <20160910073646.GA18547@lst.de>
+ <20160913155126.GA10622@linux.intel.com>
+ <20160914070633.GA17278@lst.de>
+ <20160923210237.GA23346@linux.intel.com>
+ <20160926000805.GA32252@lst.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_57E8C0CE.36B687D3"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_57E8C0CE.36B687D3
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Linux-nvdimm mailing list Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org https://lists.01.org/mailman/listinfo/linux-nvdimm
-   [...] 
-
-Content analysis details:   (7.1 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
-                            [103.204.166.162 listed in dnsbl.sorbs.net]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 0.1 RCVD_IN_SBL            RBL: Received via a relay in Spamhaus SBL
-                            [103.204.166.162 listed in zen.spamhaus.org]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
--0.0 BAYES_40               BODY: Bayes spam probability is 20 to 40%
-                            [score: 0.2263]
- 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
- 2.6 MSOE_MID_WRONG_CASE    No description available.
- 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
-
-
-
-------------=_57E8C0CE.36B687D3
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1boPRu-0002o2-6L
-	for gln-linux-nvdimm@m.gmane.org; Mon, 26 Sep 2016 08:31:34 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 915651A1E03;
-	Sun, 25 Sep 2016 23:31:35 -0700 (PDT)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from nic.in (unknown [103.204.166.162])
- by ml01.01.org (Postfix) with ESMTP id 4B25F1A1E03
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sun, 25 Sep 2016 23:31:32 -0700 (PDT)
-From: btssobil.csb-R9E+szwozl8@public.gmane.org
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Subject: Delivery reports about your e-mail
-Date: Mon, 26 Sep 2016 12:00:33 +0530
-MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-X-Content-Filtered-By: Mailman/MimeDel 2.1.21
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+Content-Disposition: inline
+In-Reply-To: <20160926000805.GA32252-jcswGhMUV9g@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -87,18 +22,45 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Message-Id: <20160926063135.915651A1E03-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
 
+On Mon 26-09-16 02:08:05, Christoph Hellwig wrote:
+> On Fri, Sep 23, 2016 at 03:02:37PM -0600, Ross Zwisler wrote:
+> > I can just add a hack to hop over the writeback in generic_file_read_iter(),
+> > but I hesitate to do this because it seems like the correct thing to do is to
+> > separate the ext4 DAX & DIO paths, which I think you are already doing.
+> 
+> I've started on it, and the read path works fine.  I'm a bit stuck on
+> the write side as my attempts at it seems to corrupt data fairly easily
+> when running xfstests.
 
+Well, I have a bunch of data corruption fixes for DAX sitting in my tree
+which I was able to trigger. E.g. there are some missing invalidations of
+blockdev aliases, also some races between fault vs write path the can lead
+to data loss. But at least the second fix requires clearing of dirty bits
+in the radix tree for DAX and that is a big pile of patches I have to sift
+through mm people (and related mm parts are in constant churn due to PMD
+pages in pagecache work so it is a mess).
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+> > I believe that my DAX PMD patches are ready to go, but because of this issue
+> > they currently only support XFS.  I'm tempted to send them out as they are
+> > right now since they add a bunch of complexity to DAX that we need to review,
+> > and that review can fully happen with only XFS support. We can add ext4
+> > support back in later when it's ready.
+> 
+> Yes, please send them out.  We really should move ext4 over to iomap for
+> DAX.  I'd love to get some help from someone more familar with ext4,
+> and can send my code dump to get started.
 
+Yeah, I'd also just implement it for iomap path and XFS as a start and then
+I'll port ext4 over to iomap infrastructure for DAX. There should be no
+principial problem.
 
-------------=_57E8C0CE.36B687D3--
+									Honza
+-- 
+Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
+SUSE Labs, CR
