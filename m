@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2BE9F1A1E34
- for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 13:48:18 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 5B3821A1E1F
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 13:48:15 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 05/11] dax: make 'wait_table' global variable static
-Date: Tue, 27 Sep 2016 14:47:56 -0600
-Message-Id: <1475009282-9818-6-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 02/11] ext4: tell DAX the size of allocation holes
+Date: Tue, 27 Sep 2016 14:47:53 -0600
+Message-Id: <1475009282-9818-3-git-send-email-ross.zwisler@linux.intel.com>
 In-Reply-To: <1475009282-9818-1-git-send-email-ross.zwisler@linux.intel.com>
 References: <1475009282-9818-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -26,31 +26,33 @@ To: linux-kernel@vger.kernel.org
 Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The global 'wait_table' variable is only used within fs/dax.c, and
-generates the following sparse warning:
+When DAX calls _ext4_get_block() and the file offset points to a hole we
+currently don't set bh->b_size.  This is current worked around via
+buffer_size_valid() in fs/dax.c.
 
-fs/dax.c:39:19: warning: symbol 'wait_table' was not declared. Should it be static?
-
-Make it static so it has scope local to fs/dax.c, and to make sparse happy.
+_ext4_get_block() has the hole size information from ext4_map_blocks(), so
+populate bh->b_size so we can remove buffer_size_valid() in a later patch.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/inode.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 9b9be8a..ac28cdf 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -52,7 +52,7 @@
- #define DAX_WAIT_TABLE_BITS 12
- #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
- 
--wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
-+static wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
- 
- static int __init init_dax_wait_table(void)
- {
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 0900cb4..9075fac 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -759,6 +759,9 @@ static int _ext4_get_block(struct inode *inode, sector_t iblock,
+ 		ext4_update_bh_state(bh, map.m_flags);
+ 		bh->b_size = inode->i_sb->s_blocksize * map.m_len;
+ 		ret = 0;
++	} else if (ret == 0) {
++		/* hole case, need to fill in bh->b_size */
++		bh->b_size = inode->i_sb->s_blocksize * map.m_len;
+ 	}
+ 	return ret;
+ }
 -- 
 2.7.4
 
