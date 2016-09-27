@@ -2,13 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ADB3A1A1E18
+ by ml01.01.org (Postfix) with ESMTPS id 990471A1DF5
  for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 09:43:45 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 4/6] xfs: Set BH_New for allocated DAX blocks in
- __xfs_get_blocks()
-Date: Tue, 27 Sep 2016 18:43:33 +0200
-Message-Id: <1474994615-29553-5-git-send-email-jack@suse.cz>
+Subject: [PATCH 1/6] dax: Do not warn about BH_New buffers
+Date: Tue, 27 Sep 2016 18:43:30 +0200
+Message-Id: <1474994615-29553-2-git-send-email-jack@suse.cz>
 In-Reply-To: <1474994615-29553-1-git-send-email-jack@suse.cz>
 References: <1474994615-29553-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -27,34 +26,59 @@ To: linux-fsdevel@vger.kernel.org
 Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-So far we did not set BH_New for newly allocated blocks for DAX inodes
-in __xfs_get_blocks() because we wanted to avoid zeroing done in generic
-DAX code which was racy. Now the zeroing is gone so we can remove this
-workaround and return BH_New for newly allocated blocks. DAX will use this
-information to properly update mappings of the file.
+Filesystems will return BH_New buffers to dax code to indicate freshly
+allocated blocks which will then trigger synchronization of file
+mappings in page tables with actual block mappings. So do not warn about
+returned BH_New buffers.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/xfs/xfs_aops.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/dax.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index 4a28fa91e3b1..b25b7b5a1e6e 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -1245,11 +1245,8 @@ __xfs_get_blocks(
- 		goto out_unlock;
+diff --git a/fs/dax.c b/fs/dax.c
+index 233f548d298e..1542653e8aa1 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -158,8 +158,6 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 		.addr = ERR_PTR(-EIO),
+ 	};
+ 	unsigned blkbits = inode->i_blkbits;
+-	sector_t file_blks = (i_size_read(inode) + (1 << blkbits) - 1)
+-								>> blkbits;
+ 
+ 	if (rw == READ)
+ 		end = min(end, i_size_read(inode));
+@@ -186,9 +184,8 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 				 * We allow uninitialized buffers for writes
+ 				 * beyond EOF as those cannot race with faults
+ 				 */
+-				WARN_ON_ONCE(
+-					(buffer_new(bh) && block < file_blks) ||
+-					(rw == WRITE && buffer_unwritten(bh)));
++				WARN_ON_ONCE(rw == WRITE &&
++					     buffer_unwritten(bh));
+ 			} else {
+ 				unsigned done = bh->b_size -
+ 						(bh_max - (pos - first));
+@@ -985,7 +982,7 @@ int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
  	}
  
--	if (IS_DAX(inode) && create) {
-+	if (IS_DAX(inode) && create)
- 		ASSERT(!ISUNWRITTEN(&imap));
--		/* zeroing is not needed at a higher layer */
--		new = 0;
--	}
+ 	/* Filesystem should not return unwritten buffers to us! */
+-	WARN_ON_ONCE(buffer_unwritten(&bh) || buffer_new(&bh));
++	WARN_ON_ONCE(buffer_unwritten(&bh));
+ 	error = dax_insert_mapping(mapping, bh.b_bdev, to_sector(&bh, inode),
+ 			bh.b_size, &entry, vma, vmf);
+  unlock_entry:
+@@ -1094,7 +1091,7 @@ int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		if (get_block(inode, block, &bh, 1) != 0)
+ 			return VM_FAULT_SIGBUS;
+ 		alloc = true;
+-		WARN_ON_ONCE(buffer_unwritten(&bh) || buffer_new(&bh));
++		WARN_ON_ONCE(buffer_unwritten(&bh));
+ 	}
  
- 	/* trim mapping down to size requested */
- 	xfs_map_trim_size(inode, iblock, bh_result, &imap, offset, size);
+ 	bdev = bh.b_bdev;
 -- 
 2.6.6
 
