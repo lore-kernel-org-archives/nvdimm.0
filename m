@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9364F1A1DED
- for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 15:09:56 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl: bash completion for {enable,
- disable}-dimm commands
-Date: Mon, 19 Sep 2016 16:09:00 -0600
-Message-Id: <1474322940-31495-1-git-send-email-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D6FD31A1E46
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 09:43:49 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 2/6] ext2: Return BH_New buffers for zeroed blocks
+Date: Tue, 27 Sep 2016 18:43:31 +0200
+Message-Id: <1474994615-29553-3-git-send-email-jack@suse.cz>
+In-Reply-To: <1474994615-29553-1-git-send-email-jack@suse.cz>
+References: <1474994615-29553-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,61 +22,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add bash completion for the two new commands. Don't add a "-i" by
-default in __ndctl_get_dimms, instead specift "-i" manually where needed
-(everywhere except the completion for disable-dimm)
+So far we did not return BH_New buffers from ext2_get_blocks() when we
+allocated and zeroed-out a block for DAX inode to avoid racy zeroing in
+DAX code. This zeroing is gone these days so we can remove the
+workaround.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- contrib/ndctl | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ fs/ext2/inode.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/contrib/ndctl b/contrib/ndctl
-index 160a9dc..2c04504 100755
---- a/contrib/ndctl
-+++ b/contrib/ndctl
-@@ -127,8 +127,7 @@ __ndctl_get_ns()
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index f6312c153731..ac8edbd4af74 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -754,9 +754,8 @@ static int ext2_get_blocks(struct inode *inode,
+ 			mutex_unlock(&ei->truncate_mutex);
+ 			goto cleanup;
+ 		}
+-	} else {
+-		*new = true;
+ 	}
++	*new = true;
  
- __ndctl_get_dimms()
- {
--	# when listing dimms, always list idle ones too
--	opts="--dimms -i $*"
-+	opts="--dimms $*"
- 	[ -n "$bus_filter" ] && opts="$opts --bus=$bus_filter"
- 	echo "$(ndctl list $opts | grep -E "^\s*\"dev\":" | cut -d\" -f4)"
- }
-@@ -148,7 +147,7 @@ __ndctl_comp_options()
- 			opts=$(__ndctl_get_regions)
- 			;;
- 		--dimm)
--			opts=$(__ndctl_get_dimms)
-+			opts=$(__ndctl_get_dimms -i)
- 			;;
- 		--namespace)
- 			opts=$(__ndctl_get_ns)
-@@ -201,10 +200,16 @@ __ndctl_comp_non_option_args()
- 	disable-region)
- 		opts="$(__ndctl_get_regions) all"
- 		;;
-+	enable-dimm)
-+		opts="$(__ndctl_get_dimms -i) all"
-+		;;
-+	disable-dimm)
-+		opts="$(__ndctl_get_dimms) all"
-+		;;
- 	read-labels)
- 		;&
- 	zero-labels)
--		opts="$(__ndctl_get_dimms) all"
-+		opts="$(__ndctl_get_dimms -i) all"
- 		;;
- 	*)
- 		return
+ 	ext2_splice_branch(inode, iblock, partial, indirect_blks, count);
+ 	mutex_unlock(&ei->truncate_mutex);
 -- 
-2.7.4
+2.6.6
 
 _______________________________________________
 Linux-nvdimm mailing list
