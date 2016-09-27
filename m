@@ -1,71 +1,117 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A0F791A1E68
- for <linux-nvdimm@lists.01.org>; Tue,  6 Sep 2016 09:52:29 -0700 (PDT)
-Subject: [PATCH 2/5] dax: fix offset to physical address translation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 06 Sep 2016 09:49:31 -0700
-Message-ID: <147318057109.30325.17721163157375660986.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147318056046.30325.5100892122988191500.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 09/20] mm: Factor out functionality to finish page faults
+Date: Tue, 27 Sep 2016 18:08:13 +0200
+Message-Id: <1474992504-20133-10-git-send-email-jack@suse.cz>
+In-Reply-To: <1474992504-20133-1-git-send-email-jack@suse.cz>
+References: <1474992504-20133-1-git-send-email-jack@suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In pgoff_to_phys() 'pgoff' is already relative to base of the dax
-device, so we only need to compare if the current offset is within the
-current resource extent.  Otherwise, we are double accounting the
-resource start offset when translating pgoff to a physical address.
+Introduce function finish_fault() as a helper function for finishing
+page faults. It is rather thin wrapper around alloc_set_pte() but since
+we'd want to call this from DAX code or filesystems, it is still useful
+to avoid some boilerplate code.
 
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- drivers/dax/dax.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/mm.h |  1 +
+ mm/memory.c        | 42 +++++++++++++++++++++++++++++++++---------
+ 2 files changed, 34 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-index 29f600f2c447..4653f84cabe7 100644
---- a/drivers/dax/dax.c
-+++ b/drivers/dax/dax.c
-@@ -357,16 +357,18 @@ static int check_vma(struct dax_dev *dax_dev, struct vm_area_struct *vma,
- static phys_addr_t pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
- 		unsigned long size)
- {
-+	phys_addr_t phys, offset;
- 	struct resource *res;
--	phys_addr_t phys;
- 	int i;
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index faa77b15e9a6..919ebdd27f1e 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -622,6 +622,7 @@ static inline pte_t maybe_mkwrite(pte_t pte, struct vm_area_struct *vma)
  
-+	offset = pgoff * PAGE_SIZE;
- 	for (i = 0; i < dax_dev->num_resources; i++) {
- 		res = &dax_dev->res[i];
--		phys = pgoff * PAGE_SIZE + res->start;
--		if (phys >= res->start && phys <= res->end)
-+		if (offset < resource_size(res)) {
-+			phys = offset + res->start;
- 			break;
--		pgoff -= PHYS_PFN(resource_size(res));
-+		}
-+		offset -= resource_size(res);
+ int alloc_set_pte(struct vm_fault *vmf, struct mem_cgroup *memcg,
+ 		struct page *page);
++int finish_fault(struct vm_fault *vmf);
+ #endif
+ 
+ /*
+diff --git a/mm/memory.c b/mm/memory.c
+index 17db88a38e8a..f54cfad7fe04 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3029,6 +3029,36 @@ int alloc_set_pte(struct vm_fault *vmf, struct mem_cgroup *memcg,
+ 	return 0;
+ }
+ 
++
++/**
++ * finish_fault - finish page fault once we have prepared the page to fault
++ *
++ * @vmf: structure describing the fault
++ *
++ * This function handles all that is needed to finish a page fault once the
++ * page to fault in is prepared. It handles locking of PTEs, inserts PTE for
++ * given page, adds reverse page mapping, handles memcg charges and LRU
++ * addition. The function returns 0 on success, VM_FAULT_ code in case of
++ * error.
++ *
++ * The function expects the page to be locked.
++ */
++int finish_fault(struct vm_fault *vmf)
++{
++	struct page *page;
++	int ret;
++
++	/* Did we COW the page? */
++	if (vmf->flags & FAULT_FLAG_WRITE && !(vmf->vma->vm_flags & VM_SHARED))
++		page = vmf->cow_page;
++	else
++		page = vmf->page;
++	ret = alloc_set_pte(vmf, vmf->memcg, page);
++	if (vmf->pte)
++		pte_unmap_unlock(vmf->pte, vmf->ptl);
++	return ret;
++}
++
+ static unsigned long fault_around_bytes __read_mostly =
+ 	rounddown_pow_of_two(65536);
+ 
+@@ -3174,9 +3204,7 @@ static int do_read_fault(struct vm_fault *vmf)
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
+ 
+-	ret |= alloc_set_pte(vmf, NULL, vmf->page);
+-	if (vmf->pte)
+-		pte_unmap_unlock(vmf->pte, vmf->ptl);
++	ret |= finish_fault(vmf);
+ 	unlock_page(vmf->page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		put_page(vmf->page);
+@@ -3215,9 +3243,7 @@ static int do_cow_fault(struct vm_fault *vmf)
+ 		copy_user_highpage(new_page, vmf->page, vmf->address, vma);
+ 	__SetPageUptodate(new_page);
+ 
+-	ret |= alloc_set_pte(vmf, memcg, new_page);
+-	if (vmf->pte)
+-		pte_unmap_unlock(vmf->pte, vmf->ptl);
++	ret |= finish_fault(vmf);
+ 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
+ 		unlock_page(vmf->page);
+ 		put_page(vmf->page);
+@@ -3258,9 +3284,7 @@ static int do_shared_fault(struct vm_fault *vmf)
+ 		}
  	}
  
- 	if (i < dax_dev->num_resources) {
+-	ret |= alloc_set_pte(vmf, NULL, vmf->page);
+-	if (vmf->pte)
+-		pte_unmap_unlock(vmf->pte, vmf->ptl);
++	ret |= finish_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE |
+ 					VM_FAULT_RETRY))) {
+ 		unlock_page(vmf->page);
+-- 
+2.6.6
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
