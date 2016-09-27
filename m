@@ -1,93 +1,118 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 29B911A1E45
- for <linux-nvdimm@lists.01.org>; Tue, 13 Sep 2016 10:43:46 -0700 (PDT)
-From: Brian Boylston <brian.boylston@hpe.com>
-Subject: [ndctl PATCH v2 0/4] ndctl: add support for HPE type N SMART health
- data
-Date: Tue, 13 Sep 2016 12:41:36 -0500
-Message-Id: <20160913174140.10810-1-brian.boylston@hpe.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 20/20] dax: Clear dirty entry tags on cache flush
+Date: Tue, 27 Sep 2016 18:08:24 +0200
+Message-Id: <1474992504-20133-21-git-send-email-jack@suse.cz>
+In-Reply-To: <1474992504-20133-1-git-send-email-jack@suse.cz>
+References: <1474992504-20133-1-git-send-email-jack@suse.cz>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This set of patches adds support for the HPE SMART DSM functions and enables
-ndctl to report DIMM health data for HPE type N NVDIMMs.  The relevant
-firmware interfaces are described in [1].
+Currently we never clear dirty tags in DAX mappings and thus address
+ranges to flush accumulate. Now that we have locking of radix tree
+entries, we have all the locking necessary to reliably clear the radix
+tree dirty tag when flushing caches for corresponding address range.
+Similarly to page_mkclean() we also have to write-protect pages to get a
+page fault when the page is next written to so that we can mark the
+entry dirty again.
 
-The first patch virtualizes the ndctl_cmd_smart*() family of libndctl
-interfaces into a set of ndctl_smart_ops, allowing runtime implementation
-differentiation depending on the firmware support provided by a DIMM.
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ fs/dax.c | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-The second and third patches add miscellaneous pieces needed for the
-final patch:
-
-The fourth patch adds a set of ndctl_smart_ops for the HPE1 DSM family,
-based on the firmware interfaces defined in [1].  These ndctl_smart_ops
-translate the HPE1 DSM output to match the interface of the existing
-Intel DSM-inspired smart_ops.  This delivers health reporting parity for
-HPE type N NVDIMMs, however:
-
-When evaluating this ndctl_smart_ops approach, please consider our goal of
-adding JSON exports for some of the additional health data defined in [1].
-I expect this would entail adding additional accessor functions to
-ndctl_smart_ops, but it's not clear whether or how to extend the existing
-get_flags()/check flags/get_data() model used by util_dimm_health_to_json().
-
-If you'd like to test these changes, note the following:
-
-. Some of the DSM functions for HPE type N NVDIMMs, including the ones used
-  by this patch, require the acpi_ipmi kernel module to be loaded, and you
-  may need to manually modprobe it.
-
-. Without [2], you'll need to include '--idle' in your ndctl invocation as
-  ndctl will consider type Ns to be disabled and will otherwise omit them.
-
-. Without [3], "alarm_temperature" and "alarm_spares" will be inaccurate.
-
-[1] https://github.com/HewlettPackard/hpe-nvm/raw/master/Documentation/NFIT_DSM_DDR4_NVDIMM-N_v84s.pdf
-[2] https://lists.01.org/pipermail/linux-nvdimm/2016-August/006619.html
-[3] https://lists.01.org/pipermail/linux-nvdimm/2016-September/006810.html
-
-Changes in v2:
-  New approach: taught libndctl how to translate between the HPE1 DSM
-  family and the existing ndctl_cmd_smart*() libndctl interfaces
-  (as suggested by Dan).
-
-Brian Boylston (4):
-  libndctl: introduce ndctl_smart_ops
-  libndctl: record dsm family in add_dimm()
-  libndctl: enable ND_CMD_CALL
-  libndctl: add support for the HPE1 family of DSM SMART functions
-
- ndctl/Makefile.am            |   1 +
- ndctl/lib/libndctl-hpe1.c    | 303 ++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl-private.h |  22 +++
- ndctl/lib/libndctl-smart.c   | 111 +++++++++++---
- ndctl/lib/libndctl.c         |  20 ++-
- ndctl/lib/ndctl-hpe1.h       | 335 +++++++++++++++++++++++++++++++++++++++++++
- ndctl/libndctl.h.in          |   1 +
- 7 files changed, 769 insertions(+), 24 deletions(-)
- create mode 100644 ndctl/lib/libndctl-hpe1.c
- create mode 100644 ndctl/lib/ndctl-hpe1.h
-
+diff --git a/fs/dax.c b/fs/dax.c
+index a2d3781c9f4e..233f548d298e 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -31,6 +31,7 @@
+ #include <linux/vmstat.h>
+ #include <linux/pfn_t.h>
+ #include <linux/sizes.h>
++#include <linux/mmu_notifier.h>
+ #include <linux/iomap.h>
+ #include "internal.h"
+ 
+@@ -668,6 +669,59 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
+ 	return new_entry;
+ }
+ 
++static inline unsigned long
++pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
++{
++	unsigned long address;
++
++	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
++	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
++	return address;
++}
++
++/* Walk all mappings of a given index of a file and writeprotect them */
++static void dax_mapping_entry_mkclean(struct address_space *mapping,
++				      pgoff_t index, unsigned long pfn)
++{
++	struct vm_area_struct *vma;
++	pte_t *ptep;
++	pte_t pte;
++	spinlock_t *ptl;
++	bool changed;
++
++	i_mmap_lock_read(mapping);
++	vma_interval_tree_foreach(vma, &mapping->i_mmap, index, index) {
++		unsigned long address;
++
++		cond_resched();
++
++		if (!(vma->vm_flags & VM_SHARED))
++			continue;
++
++		address = pgoff_address(index, vma);
++		changed = false;
++		if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
++			continue;
++		if (pfn != pte_pfn(*ptep))
++			goto unlock;
++		if (!pte_dirty(*ptep) && !pte_write(*ptep))
++			goto unlock;
++
++		flush_cache_page(vma, address, pfn);
++		pte = ptep_clear_flush(vma, address, ptep);
++		pte = pte_wrprotect(pte);
++		pte = pte_mkclean(pte);
++		set_pte_at(vma->vm_mm, address, ptep, pte);
++		changed = true;
++unlock:
++		pte_unmap_unlock(ptep, ptl);
++
++		if (changed)
++			mmu_notifier_invalidate_page(vma->vm_mm, address);
++	}
++	i_mmap_unlock_read(mapping);
++}
++
+ static int dax_writeback_one(struct block_device *bdev,
+ 		struct address_space *mapping, pgoff_t index, void *entry)
+ {
+@@ -735,7 +789,17 @@ static int dax_writeback_one(struct block_device *bdev,
+ 		goto unmap;
+ 	}
+ 
++	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(dax.pfn));
+ 	wb_cache_pmem(dax.addr, dax.size);
++	/*
++	 * After we have flushed the cache, we can clear the dirty tag. There
++	 * cannot be new dirty data in the pfn after the flush has completed as
++	 * the pfn mappings are writeprotected and fault waits for mapping
++	 * entry lock.
++	 */
++	spin_lock_irq(&mapping->tree_lock);
++	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
++	spin_unlock_irq(&mapping->tree_lock);
+ unmap:
+ 	dax_unmap_atomic(bdev, &dax);
+ 	put_locked_mapping_entry(mapping, index, entry);
 -- 
-2.8.3
+2.6.6
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
