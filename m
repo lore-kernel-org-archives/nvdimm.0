@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1F0851A1E46
- for <linux-nvdimm@lists.01.org>; Tue, 13 Sep 2016 10:44:07 -0700 (PDT)
-From: Brian Boylston <brian.boylston@hpe.com>
-Subject: [ndctl PATCH v2 3/4] libndctl: enable ND_CMD_CALL
-Date: Tue, 13 Sep 2016 12:41:39 -0500
-Message-Id: <20160913174140.10810-4-brian.boylston@hpe.com>
-In-Reply-To: <20160913174140.10810-1-brian.boylston@hpe.com>
-References: <20160913174140.10810-1-brian.boylston@hpe.com>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DC1881A1E3E
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 09:08:35 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 19/20] dax: Protect PTE modification on WP fault by radix tree
+ entry lock
+Date: Tue, 27 Sep 2016 18:08:23 +0200
+Message-Id: <1474992504-20133-20-git-send-email-jack@suse.cz>
+In-Reply-To: <1474992504-20133-1-git-send-email-jack@suse.cz>
+References: <1474992504-20133-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,41 +23,76 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-mm@kvack.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-. Enable parsing /sys/bus/nd/devices/nmemX/commands for ND_CMD_CALL
-. Enable translation of ND_CMD_CALL to ND_IOCTL_CALL
+Currently PTE gets updated in wp_pfn_shared() after dax_pfn_mkwrite()
+has released corresponding radix tree entry lock. When we want to
+writeprotect PTE on cache flush, we need PTE modification to happen
+under radix tree entry lock to ensure consisten updates of PTE and radix
+tree (standard faults use page lock to ensure this consistency). So move
+update of PTE bit into dax_pfn_mkwrite().
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- ndctl/lib/libndctl.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/dax.c    | 22 ++++++++++++++++------
+ mm/memory.c |  2 +-
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index c824d83..1e07520 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -719,7 +719,7 @@ static int to_dsm_index(const char *name, int dimm)
- 	int i, end_cmd;
+diff --git a/fs/dax.c b/fs/dax.c
+index c6cadf8413a3..a2d3781c9f4e 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1163,17 +1163,27 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct file *file = vma->vm_file;
+ 	struct address_space *mapping = file->f_mapping;
+-	void *entry;
++	void *entry, **slot;
+ 	pgoff_t index = vmf->pgoff;
  
- 	if (dimm) {
--		end_cmd = ND_CMD_VENDOR;
-+		end_cmd = ND_CMD_CALL;
- 		cmd_name_fn = nvdimm_cmd_name;
- 	} else {
- 		end_cmd = nd_cmd_clear_error;
-@@ -2184,6 +2184,7 @@ static int to_ioctl_cmd(int cmd, int dimm)
- 	case ND_CMD_GET_CONFIG_DATA:        return ND_IOCTL_GET_CONFIG_DATA;
- 	case ND_CMD_SET_CONFIG_DATA:        return ND_IOCTL_SET_CONFIG_DATA;
- 	case ND_CMD_VENDOR:                 return ND_IOCTL_VENDOR;
-+	case ND_CMD_CALL:                   return ND_IOCTL_CALL;
- 	case ND_CMD_VENDOR_EFFECT_LOG_SIZE:
- 	case ND_CMD_VENDOR_EFFECT_LOG:
- 	default:
+ 	spin_lock_irq(&mapping->tree_lock);
+-	entry = get_unlocked_mapping_entry(mapping, index, NULL);
+-	if (!entry || !radix_tree_exceptional_entry(entry))
+-		goto out;
++	entry = get_unlocked_mapping_entry(mapping, index, &slot);
++	if (!entry || !radix_tree_exceptional_entry(entry)) {
++		if (entry)
++			put_unlocked_mapping_entry(mapping, index, entry);
++		spin_unlock_irq(&mapping->tree_lock);
++		return VM_FAULT_NOPAGE;
++	}
+ 	radix_tree_tag_set(&mapping->page_tree, index, PAGECACHE_TAG_DIRTY);
+-	put_unlocked_mapping_entry(mapping, index, entry);
+-out:
++	entry = lock_slot(mapping, slot);
+ 	spin_unlock_irq(&mapping->tree_lock);
++	/*
++	 * If we race with somebody updating the PTE and finish_mkwrite_fault()
++	 * fails, we don't care. We need to return VM_FAULT_NOPAGE and retry
++	 * the fault in either case.
++	 */
++	finish_mkwrite_fault(vmf);
++	put_locked_mapping_entry(mapping, index, entry);
+ 	return VM_FAULT_NOPAGE;
+ }
+ EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
+diff --git a/mm/memory.c b/mm/memory.c
+index e7a4a30a5e88..5fa3d0c5196e 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2310,7 +2310,7 @@ static int wp_pfn_shared(struct vm_fault *vmf)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 		vmf->flags |= FAULT_FLAG_MKWRITE;
+ 		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
+-		if (ret & VM_FAULT_ERROR)
++		if (ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE))
+ 			return ret;
+ 		return finish_mkwrite_fault(vmf);
+ 	}
 -- 
-2.8.3
+2.6.6
 
 _______________________________________________
 Linux-nvdimm mailing list
