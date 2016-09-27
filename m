@@ -1,47 +1,80 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from jimaz.cz (unknown [103.204.166.162])
- by ml01.01.org (Postfix) with ESMTP id C5F5F1A1E0A
- for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 00:33:19 -0700 (PDT)
-From: jimaz@jimaz.cz
-Subject: Returned mail: see transcript for details
-Date: Mon, 19 Sep 2016 13:02:20 +0530
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20160919073323.88E4B1A1E12@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 0/20 v3] dax: Clear dirty bits after flushing caches
+Date: Tue, 27 Sep 2016 18:08:04 +0200
+Message-Id: <1474992504-20133-1-git-send-email-jack@suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Your message was not delivered due to the following reason(s):
+Hello,
 
-Your message could not be delivered because the destination server was
-unreachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+this is a third revision of my patches to clear dirty bits from radix tree of
+DAX inodes when caches for corresponding pfns have been flushed. This patch set
+is significantly larger than the previous version because I'm changing how
+->fault, ->page_mkwrite, and ->pfn_mkwrite handlers may choose to handle the
+fault so that we don't have to leak details about DAX locking into the generic
+code. In principle, these patches enable handlers to easily update PTEs and do
+other work necessary to finish the fault without duplicating the functionality
+present in the generic code. I'd be really like feedback from mm folks whether
+such changes to fault handling code are fine or what they'd do differently.
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
+The patches pass testing with xfstests on ext4 and xfs on my end
+- just be aware they are basis for further DAX fixes without which some
+stress tests can still trigger failures. I'll be sending these fixes separately
+in order to keep the series of reasonable size. For full testing, you
+can pull all the patches from
 
-Your message was not delivered within 8 days:
-Host 5.35.172.81 is not responding.
+git://git.kernel.org/pub/scm/linux/kernel/git/jack/linux-fs.git dax
 
-The following recipients did not receive this message:
-<linux-nvdimm@lists.01.org>
+but be aware I will likely rebase that branch and do other nasty stuff with
+it so don't use it as a basis of your git trees.
 
-Please reply to postmaster@jimaz.cz
-if you feel this message to be in error.
+Changes since v2:
+* rebased on top of 4.8-rc8 - this involved dealing with new fault_env
+  structure
+* changed calling convention for fault helpers
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Changes since v1:
+* make sure all PTE updates happen under radix tree entry lock to protect
+  against races between faults & write-protecting code
+* remove information about DAX locking from mm/memory.c
+* smaller updates based on Ross' feedback
+
+----
+Background information regarding the motivation:
+
+Currently we never clear dirty bits in the radix tree of a DAX inode. Thus
+fsync(2) flushes all the dirty pfns again and again. This patches implement
+clearing of the dirty tag in the radix tree so that we issue flush only when
+needed.
+
+The difficulty with clearing the dirty tag is that we have to protect against
+a concurrent page fault setting the dirty tag and writing new data into the
+page. So we need a lock serializing page fault and clearing of the dirty tag
+and write-protecting PTEs (so that we get another pagefault when pfn is written
+to again and we have to set the dirty tag again).
+
+The effect of the patch set is easily visible:
+
+Writing 1 GB of data via mmap, then fsync twice.
+
+Before this patch set both fsyncs take ~205 ms on my test machine, after the
+patch set the first fsync takes ~283 ms (the additional cost of walking PTEs,
+clearing dirty bits etc. is very noticeable), the second fsync takes below
+1 us.
+
+As a bonus, these patches make filesystem freezing for DAX filesystems
+reliable because mappings are now properly writeprotected while freezing the
+fs.
+
+Patches have passed xfstests for both xfs and ext4.
+
+								Honza
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
