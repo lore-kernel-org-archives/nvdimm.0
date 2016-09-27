@@ -2,12 +2,13 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D6FD31A1E46
- for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 09:43:49 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id ADB3A1A1E18
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 09:43:45 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 2/6] ext2: Return BH_New buffers for zeroed blocks
-Date: Tue, 27 Sep 2016 18:43:31 +0200
-Message-Id: <1474994615-29553-3-git-send-email-jack@suse.cz>
+Subject: [PATCH 4/6] xfs: Set BH_New for allocated DAX blocks in
+ __xfs_get_blocks()
+Date: Tue, 27 Sep 2016 18:43:33 +0200
+Message-Id: <1474994615-29553-5-git-send-email-jack@suse.cz>
 In-Reply-To: <1474994615-29553-1-git-send-email-jack@suse.cz>
 References: <1474994615-29553-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -26,31 +27,34 @@ To: linux-fsdevel@vger.kernel.org
 Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-So far we did not return BH_New buffers from ext2_get_blocks() when we
-allocated and zeroed-out a block for DAX inode to avoid racy zeroing in
-DAX code. This zeroing is gone these days so we can remove the
-workaround.
+So far we did not set BH_New for newly allocated blocks for DAX inodes
+in __xfs_get_blocks() because we wanted to avoid zeroing done in generic
+DAX code which was racy. Now the zeroing is gone so we can remove this
+workaround and return BH_New for newly allocated blocks. DAX will use this
+information to properly update mappings of the file.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/ext2/inode.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/xfs/xfs_aops.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index f6312c153731..ac8edbd4af74 100644
---- a/fs/ext2/inode.c
-+++ b/fs/ext2/inode.c
-@@ -754,9 +754,8 @@ static int ext2_get_blocks(struct inode *inode,
- 			mutex_unlock(&ei->truncate_mutex);
- 			goto cleanup;
- 		}
--	} else {
--		*new = true;
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index 4a28fa91e3b1..b25b7b5a1e6e 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -1245,11 +1245,8 @@ __xfs_get_blocks(
+ 		goto out_unlock;
  	}
-+	*new = true;
  
- 	ext2_splice_branch(inode, iblock, partial, indirect_blks, count);
- 	mutex_unlock(&ei->truncate_mutex);
+-	if (IS_DAX(inode) && create) {
++	if (IS_DAX(inode) && create)
+ 		ASSERT(!ISUNWRITTEN(&imap));
+-		/* zeroing is not needed at a higher layer */
+-		new = 0;
+-	}
+ 
+ 	/* trim mapping down to size requested */
+ 	xfs_map_trim_size(inode, iblock, bh_result, &imap, offset, size);
 -- 
 2.6.6
 
