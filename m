@@ -1,78 +1,98 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id BE27E1A1E30
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 09:08:35 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 13/20] mm: Pass vm_fault structure into do_page_mkwrite()
-Date: Tue, 27 Sep 2016 18:08:17 +0200
-Message-Id: <1474992504-20133-14-git-send-email-jack@suse.cz>
+Subject: [PATCH 08/20] mm: Allow full handling of COW faults in ->fault
+ handlers
+Date: Tue, 27 Sep 2016 18:08:12 +0200
+Message-Id: <1474992504-20133-9-git-send-email-jack@suse.cz>
 In-Reply-To: <1474992504-20133-1-git-send-email-jack@suse.cz>
 References: <1474992504-20133-1-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-We will need more information in the ->page_mkwrite() helper for DAX to
-be able to fully finish faults there. Pass vm_fault structure to
-do_page_mkwrite() and use it there so that information propagates
-properly from upper layers.
+To allow full handling of COW faults add memcg field to struct vm_fault
+and a return value of ->fault() handler meaning that COW fault is fully
+handled and memcg charge must not be canceled. This will allow us to
+remove knowledge about special DAX locking from the generic fault code.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- mm/memory.c | 19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ include/linux/mm.h | 4 +++-
+ mm/memory.c        | 8 +++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index c908fd7243ea..faa77b15e9a6 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -303,7 +303,8 @@ struct vm_fault {
+ 					 * the 'address' */
+ 	pte_t orig_pte;			/* Value of PTE at the time of fault */
+ 
+-	struct page *cow_page;		/* Handler may choose to COW */
++	struct page *cow_page;		/* Page handler may use for COW fault */
++	struct mem_cgroup *memcg;	/* Cgroup cow_page belongs to */
+ 	struct page *page;		/* ->fault handlers should return a
+ 					 * page here, unless VM_FAULT_NOPAGE
+ 					 * is set (which is also implied by
+@@ -1117,6 +1118,7 @@ static inline void clear_page_pfmemalloc(struct page *page)
+ #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
+ #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
+ #define VM_FAULT_DAX_LOCKED 0x1000	/* ->fault has locked DAX entry */
++#define VM_FAULT_DONE_COW   0x2000	/* ->fault has fully handled COW */
+ 
+ #define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
+ 
 diff --git a/mm/memory.c b/mm/memory.c
-index 0643b3b5a12a..7c87edaa7a8f 100644
+index 0c8779c23925..17db88a38e8a 100644
 --- a/mm/memory.c
 +++ b/mm/memory.c
-@@ -2034,20 +2034,14 @@ static gfp_t __get_fault_gfp_mask(struct vm_area_struct *vma)
-  *
-  * We do this without the lock held, so that it can sleep if it needs to.
-  */
--static int do_page_mkwrite(struct vm_area_struct *vma, struct page *page,
--	       unsigned long address)
-+static int do_page_mkwrite(struct vm_fault *vmf)
- {
--	struct vm_fault vmf;
+@@ -2844,9 +2844,8 @@ static int __do_fault(struct vm_fault *vmf)
  	int ret;
-+	struct page *page = vmf->page;
  
--	vmf.virtual_address = address & PAGE_MASK;
--	vmf.pgoff = page->index;
--	vmf.flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
--	vmf.gfp_mask = __get_fault_gfp_mask(vma);
--	vmf.page = page;
--	vmf.cow_page = NULL;
-+	vmf->flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
- 
--	ret = vma->vm_ops->page_mkwrite(vma, &vmf);
-+	ret = vmf->vma->vm_ops->page_mkwrite(vmf->vma, vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))
+ 	ret = vma->vm_ops->fault(vma, vmf);
+-	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+-		return ret;
+-	if (ret & VM_FAULT_DAX_LOCKED)
++	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY |
++			    VM_FAULT_DAX_LOCKED | VM_FAULT_DONE_COW)))
  		return ret;
- 	if (unlikely(!(ret & VM_FAULT_LOCKED))) {
-@@ -2323,7 +2317,8 @@ static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
- 		int tmp;
  
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		tmp = do_page_mkwrite(vma, old_page, vmf->address);
-+		vmf->page = old_page;
-+		tmp = do_page_mkwrite(vmf);
- 		if (unlikely(!tmp || (tmp &
- 				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
- 			put_page(old_page);
-@@ -3286,7 +3281,7 @@ static int do_shared_fault(struct vm_fault *vmf)
- 	 */
- 	if (vma->vm_ops->page_mkwrite) {
- 		unlock_page(vmf->page);
--		tmp = do_page_mkwrite(vma, vmf->page, vmf->address);
-+		tmp = do_page_mkwrite(vmf);
- 		if (unlikely(!tmp ||
- 				(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
- 			put_page(vmf->page);
+ 	if (unlikely(PageHWPoison(vmf->page))) {
+@@ -3205,9 +3204,12 @@ static int do_cow_fault(struct vm_fault *vmf)
+ 	}
+ 
+ 	vmf->cow_page = new_page;
++	vmf->memcg = memcg;
+ 	ret = __do_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		goto uncharge_out;
++	if (ret & VM_FAULT_DONE_COW)
++		return ret;
+ 
+ 	if (!(ret & VM_FAULT_DAX_LOCKED))
+ 		copy_user_highpage(new_page, vmf->page, vmf->address, vma);
 -- 
 2.6.6
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
