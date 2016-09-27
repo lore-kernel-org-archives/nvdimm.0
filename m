@@ -1,60 +1,195 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ED8061A1E47
- for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 09:43:49 -0700 (PDT)
+Return-Path: <owner-linux-mm@kvack.org>
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 3/6] ext4: Remove clearing of BH_New bit for zeroed blocks
-Date: Tue, 27 Sep 2016 18:43:32 +0200
-Message-Id: <1474994615-29553-4-git-send-email-jack@suse.cz>
-In-Reply-To: <1474994615-29553-1-git-send-email-jack@suse.cz>
-References: <1474994615-29553-1-git-send-email-jack@suse.cz>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+Subject: [PATCH 14/20] mm: Use vmf->page during WP faults
+Date: Tue, 27 Sep 2016 18:08:18 +0200
+Message-Id: <1474992504-20133-15-git-send-email-jack@suse.cz>
+In-Reply-To: <1474992504-20133-1-git-send-email-jack@suse.cz>
+References: <1474992504-20133-1-git-send-email-jack@suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-So far we did not return BH_New buffers from ext4_dax_get_block()
-because that would trigger racy zeroing in DAX code. This zeroing is
-gone these days so we can remove the workaround.
+So far we set vmf->page during WP faults only when we needed to pass it
+to the ->page_mkwrite handler. Set it in all the cases now and use that
+instead of passing page pointer explicitely around.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/ext4/inode.c | 5 -----
- 1 file changed, 5 deletions(-)
+ mm/memory.c | 58 +++++++++++++++++++++++++++++-----------------------------
+ 1 file changed, 29 insertions(+), 29 deletions(-)
 
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 87150122d361..7ccd6fd7819d 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -3298,11 +3298,6 @@ int ext4_dax_get_block(struct inode *inode, sector_t iblock,
- 		if (ret < 0)
- 			return ret;
+diff --git a/mm/memory.c b/mm/memory.c
+index 7c87edaa7a8f..98304eb7bff4 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2099,11 +2099,12 @@ static void fault_dirty_shared_page(struct vm_area_struct *vma,
+  * case, all we need to do here is to mark the page as writable and update
+  * any related book-keeping.
+  */
+-static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
++static inline int wp_page_reuse(struct vm_fault *vmf,
+ 				int page_mkwrite, int dirty_shared)
+ 	__releases(vmf->ptl)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
++	struct page *page = vmf->page;
+ 	pte_t entry;
+ 	/*
+ 	 * Clear the pages cpupid information as the existing
+@@ -2147,10 +2148,11 @@ static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
+  *   held to the old page, as well as updating the rmap.
+  * - In any case, unlock the PTL and drop the reference we took to the old page.
+  */
+-static int wp_page_copy(struct vm_fault *vmf, struct page *old_page)
++static int wp_page_copy(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct mm_struct *mm = vma->vm_mm;
++	struct page *old_page = vmf->page;
+ 	struct page *new_page = NULL;
+ 	pte_t entry;
+ 	int page_copied = 0;
+@@ -2302,26 +2304,25 @@ static int wp_pfn_shared(struct vm_fault *vmf)
+ 			return 0;
+ 		}
  	}
--	/*
--	 * At least for now we have to clear BH_New so that DAX code
--	 * doesn't attempt to zero blocks again in a racy way.
--	 */
--	clear_buffer_new(bh_result);
- 	return 0;
+-	return wp_page_reuse(vmf, NULL, 0, 0);
++	return wp_page_reuse(vmf, 0, 0);
  }
- #else
+ 
+-static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
++static int wp_page_shared(struct vm_fault *vmf)
+ 	__releases(vmf->ptl)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	int page_mkwrite = 0;
+ 
+-	get_page(old_page);
++	get_page(vmf->page);
+ 
+ 	if (vma->vm_ops->page_mkwrite) {
+ 		int tmp;
+ 
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		vmf->page = old_page;
+ 		tmp = do_page_mkwrite(vmf);
+ 		if (unlikely(!tmp || (tmp &
+ 				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+-			put_page(old_page);
++			put_page(vmf->page);
+ 			return tmp;
+ 		}
+ 		/*
+@@ -2333,15 +2334,15 @@ static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
+ 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+ 						vmf->address, &vmf->ptl);
+ 		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
+-			unlock_page(old_page);
++			unlock_page(vmf->page);
+ 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+-			put_page(old_page);
++			put_page(vmf->page);
+ 			return 0;
+ 		}
+ 		page_mkwrite = 1;
+ 	}
+ 
+-	return wp_page_reuse(vmf, old_page, page_mkwrite, 1);
++	return wp_page_reuse(vmf, page_mkwrite, 1);
+ }
+ 
+ /*
+@@ -2366,10 +2367,9 @@ static int do_wp_page(struct vm_fault *vmf)
+ 	__releases(vmf->ptl)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct page *old_page;
+ 
+-	old_page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
+-	if (!old_page) {
++	vmf->page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
++	if (!vmf->page) {
+ 		/*
+ 		 * VM_MIXEDMAP !pfn_valid() case, or VM_SOFTDIRTY clear on a
+ 		 * VM_PFNMAP VMA.
+@@ -2382,30 +2382,30 @@ static int do_wp_page(struct vm_fault *vmf)
+ 			return wp_pfn_shared(vmf);
+ 
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		return wp_page_copy(vmf, old_page);
++		return wp_page_copy(vmf);
+ 	}
+ 
+ 	/*
+ 	 * Take out anonymous pages first, anonymous shared vmas are
+ 	 * not dirty accountable.
+ 	 */
+-	if (PageAnon(old_page) && !PageKsm(old_page)) {
++	if (PageAnon(vmf->page) && !PageKsm(vmf->page)) {
+ 		int total_mapcount;
+-		if (!trylock_page(old_page)) {
+-			get_page(old_page);
++		if (!trylock_page(vmf->page)) {
++			get_page(vmf->page);
+ 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+-			lock_page(old_page);
++			lock_page(vmf->page);
+ 			vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+ 					vmf->address, &vmf->ptl);
+ 			if (!pte_same(*vmf->pte, vmf->orig_pte)) {
+-				unlock_page(old_page);
++				unlock_page(vmf->page);
+ 				pte_unmap_unlock(vmf->pte, vmf->ptl);
+-				put_page(old_page);
++				put_page(vmf->page);
+ 				return 0;
+ 			}
+-			put_page(old_page);
++			put_page(vmf->page);
+ 		}
+-		if (reuse_swap_page(old_page, &total_mapcount)) {
++		if (reuse_swap_page(vmf->page, &total_mapcount)) {
+ 			if (total_mapcount == 1) {
+ 				/*
+ 				 * The page is all ours. Move it to
+@@ -2414,24 +2414,24 @@ static int do_wp_page(struct vm_fault *vmf)
+ 				 * Protected against the rmap code by
+ 				 * the page lock.
+ 				 */
+-				page_move_anon_rmap(old_page, vma);
++				page_move_anon_rmap(vmf->page, vma);
+ 			}
+-			unlock_page(old_page);
+-			return wp_page_reuse(vmf, old_page, 0, 0);
++			unlock_page(vmf->page);
++			return wp_page_reuse(vmf, 0, 0);
+ 		}
+-		unlock_page(old_page);
++		unlock_page(vmf->page);
+ 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+ 					(VM_WRITE|VM_SHARED))) {
+-		return wp_page_shared(vmf, old_page);
++		return wp_page_shared(vmf);
+ 	}
+ 
+ 	/*
+ 	 * Ok, we need to copy. Oh, well..
+ 	 */
+-	get_page(old_page);
++	get_page(vmf->page);
+ 
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+-	return wp_page_copy(vmf, old_page);
++	return wp_page_copy(vmf);
+ }
+ 
+ static void unmap_mapping_range_vma(struct vm_area_struct *vma,
 -- 
 2.6.6
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
