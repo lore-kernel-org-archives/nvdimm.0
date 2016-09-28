@@ -1,47 +1,35 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH 4/6] xfs: Set BH_New for allocated DAX blocks in
- __xfs_get_blocks()
-Date: Wed, 28 Sep 2016 10:22:55 +1000
-Message-ID: <20160928002255.GG9806@dastard>
-References: <1474994615-29553-1-git-send-email-jack@suse.cz>
- <1474994615-29553-5-git-send-email-jack@suse.cz>
- <20160927170118.GA15908@infradead.org>
- <20160927171707.GA30327@quack2.suse.cz>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v3 00/11] re-enable DAX PMD support
+Date: Tue, 27 Sep 2016 19:08:42 -0700
+Message-ID: <20160928020842.GA4428@infradead.org>
+References: <1475009282-9818-1-git-send-email-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <20160927171707.GA30327@quack2.suse.cz>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@infradead.org>, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
+In-Reply-To: <1475009282-9818-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@ml01.01.org, linux-xfs@vger.kernel.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Sep 27, 2016 at 07:17:07PM +0200, Jan Kara wrote:
-> On Tue 27-09-16 10:01:18, Christoph Hellwig wrote:
-> > On Tue, Sep 27, 2016 at 06:43:33PM +0200, Jan Kara wrote:
-> > > So far we did not set BH_New for newly allocated blocks for DAX inodes
-> > > in __xfs_get_blocks() because we wanted to avoid zeroing done in generic
-> > > DAX code which was racy. Now the zeroing is gone so we can remove this
-> > > workaround and return BH_New for newly allocated blocks. DAX will use this
-> > > information to properly update mappings of the file.
-> > 
-> > __xfs_get_blocks isn't used by the DAX code any more.
-> > xfs_file_iomap_begin should already be doing the right thing for now.
+On Tue, Sep 27, 2016 at 02:47:51PM -0600, Ross Zwisler wrote:
+> DAX PMDs have been disabled since Jan Kara introduced DAX radix tree based
+> locking.  This series allows DAX PMDs to participate in the DAX radix tree
+> based locking scheme so that they can be re-enabled.
 > 
-> OK, the changelog is stale but I actually took care to integrate this with
-> your iomap patches and for the new invalidation code in iomap_dax_actor()
-> to work we need this additional information...
+> Jan and Christoph, can you please help review these changes?
 
-So this applies to the iomap-4.9-dax branch in the XFS tree?
+About to get on a plane, so it might take a bit to do a real review.
+In general this looks fine, but I guess the first two ext4 patches
+should just go straight to Ted independent of the rest?
 
-https://git.kernel.org/cgit/linux/kernel/git/dgc/linux-xfs.git/log/?h=iomap-4.9-dax
+Also Jan just posted a giant DAX patchbomb, we'll need to find a way
+to integrate all that work, and maybe prioritize things if we want
+to get bits into 4.9 still.
 
-i.e. Do I need to merge the patchset with that branch?
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
