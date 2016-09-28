@@ -1,18 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C00A91A1E24
- for <linux-nvdimm@lists.01.org>; Wed, 28 Sep 2016 11:57:44 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH] dev-dax: add support to display badblocks in sysfs for
- dev-dax
-Date: Wed, 28 Sep 2016 18:57:42 +0000
-Message-ID: <1475089016.2482.3.camel@intel.com>
-References: <147508875131.91583.12624254404354366550.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <147508875131.91583.12624254404354366550.stgit@djiang5-desk3.ch.intel.com>
-Content-Language: en-US
-Content-ID: <CB547174D127704A9A2CBEE50FBF12DF@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 87CF21A1E24
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Sep 2016 11:52:37 -0700 (PDT)
+Subject: [PATCH] dev-dax: add support to display badblocks in sysfs for dev-dax
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 28 Sep 2016 11:52:31 -0700
+Message-ID: <147508875131.91583.12624254404354366550.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,60 +16,86 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCAyMDE2LTA5LTI4IGF0IDExOjUyIC0wNzAwLCBEYXZlIEppYW5nIHdyb3RlOg0KPiBB
-ZGRpbmcgc3VwcG9ydCB0byBzaG93IGJhZGJsb2NrcyBpbiB0aGUgcG1lbSByZWdpb24gdGhhdCdz
-IHByb3ZpZGVkDQo+IGJ5IHRoZSBwb2lzb25fbGlzdC4gVGhpcyBzaG91bGQgc2hvdyB1cCBpbg0K
-PiAvc3lzL2NsYXNzL2RheC9kYXhOLk4vYmFkYmxvY2tzIGFzIHJlYWQgb25seS4NCg0KSSB0aGlu
-ayB3ZSBjYW4gYWxsb3cgZXJyb3IgaW5qZWN0aW9uIGJ5IG1ha2luZyB0aGlzIHJlYWQvd3JpdGUu
-IFNlZQ0KYmFkYmxvY2tzX3N0b3JlIGFuZCBob3cgaXQgaXMgdXNlZCBpbiBkaXNrX2JhZGJsb2Nr
-c19zdG9yZSwgYW5kIHRoYXQNCndpbGwgYWxsb3cgYmFkYmxvY2sgaW5qZWN0aW9uIGZvciB0ZXN0
-aW5nL2RlYnVnIHB1cnBvc2VzLg0KDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBEYXZlIEppYW5nIDxk
-YXZlLmppYW5nQGludGVsLmNvbT4NCj4gLS0tDQo+IMKgZHJpdmVycy9kYXgvZGF4LmMgfMKgwqDC
-oDIwICsrKysrKysrKysrKysrKysrKysrDQo+IMKgMSBmaWxlIGNoYW5nZWQsIDIwIGluc2VydGlv
-bnMoKykNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2RheC9kYXguYyBiL2RyaXZlcnMvZGF4
-L2RheC5jDQo+IGluZGV4IDI5ZjYwMGYuLmM3M2M0OTQgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMv
-ZGF4L2RheC5jDQo+ICsrKyBiL2RyaXZlcnMvZGF4L2RheC5jDQo+IEBAIC0xOCw2ICsxOCw4IEBA
-DQo+IMKgI2luY2x1ZGUgPGxpbnV4L2RheC5oPg0KPiDCoCNpbmNsdWRlIDxsaW51eC9mcy5oPg0K
-PiDCoCNpbmNsdWRlIDxsaW51eC9tbS5oPg0KPiArI2luY2x1ZGUgPGxpbnV4L2JhZGJsb2Nrcy5o
-Pg0KPiArI2luY2x1ZGUgIi4uL252ZGltbS9uZC5oIg0KPiDCoA0KPiDCoHN0YXRpYyBpbnQgZGF4
-X21ham9yOw0KPiDCoHN0YXRpYyBzdHJ1Y3QgY2xhc3MgKmRheF9jbGFzczsNCj4gQEAgLTQyLDYg
-KzQ0LDcgQEAgc3RydWN0IGRheF9yZWdpb24gew0KPiDCoAl1bnNpZ25lZCBpbnQgYWxpZ247DQo+
-IMKgCXN0cnVjdCByZXNvdXJjZSByZXM7DQo+IMKgCXVuc2lnbmVkIGxvbmcgcGZuX2ZsYWdzOw0K
-PiArCXN0cnVjdCBiYWRibG9ja3MgYmI7DQo+IMKgfTsNCj4gwqANCj4gwqAvKioNCj4gQEAgLTk3
-LDYgKzEwMCw3IEBAIHN0cnVjdCBkYXhfcmVnaW9uICphbGxvY19kYXhfcmVnaW9uKHN0cnVjdCBk
-ZXZpY2UNCj4gKnBhcmVudCwgaW50IHJlZ2lvbl9pZCwNCj4gwqAJCXVuc2lnbmVkIGxvbmcgcGZu
-X2ZsYWdzKQ0KPiDCoHsNCj4gwqAJc3RydWN0IGRheF9yZWdpb24gKmRheF9yZWdpb247DQo+ICsJ
-c3RydWN0IG5kX3JlZ2lvbiAqbmRfcmVnaW9uID0gdG9fbmRfcmVnaW9uKHBhcmVudC0+cGFyZW50
-KTsNCj4gwqANCj4gwqAJZGF4X3JlZ2lvbiA9IGt6YWxsb2Moc2l6ZW9mKCpkYXhfcmVnaW9uKSwg
-R0ZQX0tFUk5FTCk7DQo+IMKgDQo+IEBAIC0xMTIsNiArMTE2LDEwIEBAIHN0cnVjdCBkYXhfcmVn
-aW9uICphbGxvY19kYXhfcmVnaW9uKHN0cnVjdCBkZXZpY2UNCj4gKnBhcmVudCwgaW50IHJlZ2lv
-bl9pZCwNCj4gwqAJZGF4X3JlZ2lvbi0+ZGV2ID0gcGFyZW50Ow0KPiDCoAlkYXhfcmVnaW9uLT5i
-YXNlID0gYWRkcjsNCj4gwqANCj4gKwlpZiAoZGV2bV9pbml0X2JhZGJsb2NrcyhwYXJlbnQsICZk
-YXhfcmVnaW9uLT5iYikpDQo+ICsJCXJldHVybiBOVUxMOw0KPiArCW52ZGltbV9iYWRibG9ja3Nf
-cG9wdWxhdGUobmRfcmVnaW9uLCAmZGF4X3JlZ2lvbi0+YmIsIHJlcyk7DQo+ICsNCj4gwqAJcmV0
-dXJuIGRheF9yZWdpb247DQo+IMKgfQ0KPiDCoEVYUE9SVF9TWU1CT0xfR1BMKGFsbG9jX2RheF9y
-ZWdpb24pOw0KPiBAQCAtMTMwLDggKzEzOCwyMCBAQCBzdGF0aWMgc3NpemVfdCBzaXplX3Nob3co
-c3RydWN0IGRldmljZSAqZGV2LA0KPiDCoH0NCj4gwqBzdGF0aWMgREVWSUNFX0FUVFJfUk8oc2l6
-ZSk7DQo+IMKgDQo+ICtzdGF0aWMgc3NpemVfdCBkYXhfZGV2X2JhZGJsb2Nrc19zaG93KHN0cnVj
-dCBkZXZpY2UgKmRldiwNCj4gKwkJc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIg
-KnBhZ2UpDQo+ICt7DQo+ICsJc3RydWN0IGRheF9kZXYgKmRheF9kZXYgPSBkZXZfZ2V0X2RydmRh
-dGEoZGV2KTsNCj4gKwlzdHJ1Y3QgZGF4X3JlZ2lvbiAqZGF4X3JlZ2lvbiA9IGRheF9kZXYtPnJl
-Z2lvbjsNCj4gKw0KPiArCXJldHVybiBiYWRibG9ja3Nfc2hvdygmZGF4X3JlZ2lvbi0+YmIsIHBh
-Z2UsIDApOw0KPiArfQ0KPiArDQo+ICtzdGF0aWMgREVWSUNFX0FUVFIoYmFkYmxvY2tzLCBTX0lS
-VUdPLCBkYXhfZGV2X2JhZGJsb2Nrc19zaG93LCBOVUxMKTsNCj4gKw0KPiDCoHN0YXRpYyBzdHJ1
-Y3QgYXR0cmlidXRlICpkYXhfZGV2aWNlX2F0dHJpYnV0ZXNbXSA9IHsNCj4gwqAJJmRldl9hdHRy
-X3NpemUuYXR0ciwNCj4gKwkmZGV2X2F0dHJfYmFkYmxvY2tzLmF0dHIsDQo+IMKgCU5VTEwsDQo+
-IMKgfTsNCj4gwqANCj4gDQo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fDQo+IExpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QNCj4gTGludXgtbnZkaW1tQGxp
-c3RzLjAxLm9yZw0KPiBodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LW52ZGltbQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpM
-aW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6
-Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Adding support to show badblocks in the pmem region that's provided
+by the poison_list. This should show up in
+/sys/class/dax/daxN.N/badblocks as read only.
+
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ drivers/dax/dax.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 29f600f..c73c494 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -18,6 +18,8 @@
+ #include <linux/dax.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/badblocks.h>
++#include "../nvdimm/nd.h"
+ 
+ static int dax_major;
+ static struct class *dax_class;
+@@ -42,6 +44,7 @@ struct dax_region {
+ 	unsigned int align;
+ 	struct resource res;
+ 	unsigned long pfn_flags;
++	struct badblocks bb;
+ };
+ 
+ /**
+@@ -97,6 +100,7 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+ 		unsigned long pfn_flags)
+ {
+ 	struct dax_region *dax_region;
++	struct nd_region *nd_region = to_nd_region(parent->parent);
+ 
+ 	dax_region = kzalloc(sizeof(*dax_region), GFP_KERNEL);
+ 
+@@ -112,6 +116,10 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+ 	dax_region->dev = parent;
+ 	dax_region->base = addr;
+ 
++	if (devm_init_badblocks(parent, &dax_region->bb))
++		return NULL;
++	nvdimm_badblocks_populate(nd_region, &dax_region->bb, res);
++
+ 	return dax_region;
+ }
+ EXPORT_SYMBOL_GPL(alloc_dax_region);
+@@ -130,8 +138,20 @@ static ssize_t size_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(size);
+ 
++static ssize_t dax_dev_badblocks_show(struct device *dev,
++		struct device_attribute *attr, char *page)
++{
++	struct dax_dev *dax_dev = dev_get_drvdata(dev);
++	struct dax_region *dax_region = dax_dev->region;
++
++	return badblocks_show(&dax_region->bb, page, 0);
++}
++
++static DEVICE_ATTR(badblocks, S_IRUGO, dax_dev_badblocks_show, NULL);
++
+ static struct attribute *dax_device_attributes[] = {
+ 	&dev_attr_size.attr,
++	&dev_attr_badblocks.attr,
+ 	NULL,
+ };
+ 
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
