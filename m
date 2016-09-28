@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B83CA1A1E31
- for <linux-nvdimm@lists.01.org>; Mon, 19 Sep 2016 13:59:52 -0700 (PDT)
-Subject: [PATCH] tools/testing/nvdimm: fix allocation range for mock flush
- hint tables
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 19 Sep 2016 13:56:49 -0700
-Message-ID: <147431860913.2416.1876233800229605740.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from ipmail06.adl6.internode.on.net (ipmail06.adl6.internode.on.net
+ [150.101.137.145]) by ml01.01.org (Postfix) with ESMTP id 931951A1E1F
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Sep 2016 17:20:51 -0700 (PDT)
+Date: Wed, 28 Sep 2016 10:20:34 +1000
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH 6/6] dax: Avoid page invalidation races and unnecessary
+ radix tree traversals
+Message-ID: <20160928002034.GF9806@dastard>
+References: <1474994615-29553-1-git-send-email-jack@suse.cz>
+ <1474994615-29553-7-git-send-email-jack@suse.cz>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1474994615-29553-7-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,36 +23,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Commit 480b6837aa57 "nvdimm: fix PHYS_PFN/PFN_PHYS mixup" identified
-that we were passing an invalid address to devm_nvdimm_ioremap(). With
-that fixed it exposed a bug in the memory reservation size for flush
-hint tables.  Since we map a full page we need to mock a full page of
-memory to back the flush hint table entries.
+On Tue, Sep 27, 2016 at 06:43:35PM +0200, Jan Kara wrote:
+> @@ -1410,6 +1422,17 @@ iomap_dax_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+>  	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED))
+>  		return -EIO;
+>  
+> +	/*
+> +	 * Write can allocate block for an area which has a hole page mapped
+> +	 * into page tables. We have to tear down these mappings so that data
+> +	 * written by write(2) is visible in mmap.
+> +	 */
+> +	if (iomap->flags & IOMAP_F_NEW && inode->i_mapping->nrpages) {
 
-Cc: Oliver O'Halloran <oohall@gmail.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- tools/testing/nvdimm/test/nfit.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+gcc should be throwing warnings about that:
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index dd48f421844c..f64c57bf1d4b 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -603,7 +603,8 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 			return -ENOMEM;
- 		sprintf(t->label[i], "label%d", i);
- 
--		t->flush[i] = test_alloc(t, sizeof(u64) * NUM_HINTS,
-+		t->flush[i] = test_alloc(t, max(PAGE_SIZE,
-+					sizeof(u64) * NUM_HINTS),
- 				&t->flush_dma[i]);
- 		if (!t->flush[i])
- 			return -ENOMEM;
+	if ((iomap->flags & IOMAP_F_NEW) && inode->i_mapping->nrpages) {
 
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
