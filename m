@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x229.google.com (mail-oi0-x229.google.com
+ [IPv6:2607:f8b0:4003:c06::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 95BCC1A1DEE
- for <linux-nvdimm@lists.01.org>; Sat, 10 Sep 2016 08:44:57 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.8-rc6
-Date: Sat, 10 Sep 2016 15:44:52 +0000
-Message-ID: <1473522289.16399.24.camel@intel.com>
-Content-Language: en-US
-Content-ID: <9768C780FE9A6946A763F2686A4B6D56@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7D5C81A1DEB
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Sep 2016 19:26:11 -0700 (PDT)
+Received: by mail-oi0-x229.google.com with SMTP id t83so75977408oie.3
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Sep 2016 19:26:11 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4hsZQYsw=d5tn=yY-tBzMnTT2YP+ZJHd4EtLpxxf-S_ow@mail.gmail.com>
+References: <1475107811-8880-1-git-send-email-vishal.l.verma@intel.com>
+ <1475107811-8880-2-git-send-email-vishal.l.verma@intel.com>
+ <CAPcyv4hsZQYsw=d5tn=yY-tBzMnTT2YP+ZJHd4EtLpxxf-S_ow@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 28 Sep 2016 19:26:10 -0700
+Message-ID: <CAPcyv4hBCtUBs=YZeqfVmjJrfdoo8HXJQWQXG9bz5Lxx5utvQg@mail.gmail.com>
+Subject: Re: [PATCH 1/3] nfit: don't start a full scrub by default for an MCE
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,147 +23,87 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
-Y20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4udG8g
-cmVjZWl2ZSBudmRpbW0gZml4ZXMgZm9yIHY0LjgsIHR3byBvZiB0aGVtIGFyZSB0YWdnZWQgZm9y
-Ci1zdGFibGU6CgotIEZpeCBkZXZtX21lbXJlbWFwX3BhZ2VzKCkgdG8gdXNlIHRyYWNrX3Bmbl9p
-bnNlcnQoKS4gT3RoZXJ3aXNlLCBEQVgKcG1kIG1hcHBpbmdzIGVuZCB1cCB3aXRoIGFuIHVuY2Fj
-aGVkIHBncHJvdCwgYW5kIHVudXNhYmxlIHBlcmZvcm1hbmNlCmZvciB0aGUgZGV2aWNlLWRheCBp
-bnRlcmZhY2UuICtBS0EtVGhlIGRldmljZS1kYXggaW50ZXJmYWNlIGFwcGVhcmVkIGluIDQuNwpz
-byB0aGlzIGlzIHRhZ2dlZCBmb3IgLXN0YWJsZS4KCi0gRml4IGEgY291cGxlIFZNX0JVR19PTigp
-IGNoZWNrcyBpbiB0aGUgc2hvd19zbWFwcygpIHBhdGggdG8KdW5kZXJzdGFuZCBEQVggcG1kIGVu
-dHJpZXMuICtBS0EtVGhpcyBmaXggaXMgdGFnZ2VkIGZvciAtc3RhYmxlLgoKLSBGaXggYSBtaXMt
-bWVyZ2Ugb2YgdGhlIG5maXQgbWFjaGluZS1jaGVjayBoYW5kbGVyIHRvIGZsaXAgdGhlCnBvbGFy
-aXR5IG9mIGFuIGlmKCkgdG8gbWF0Y2ggdGhlIGZpbmFsIHZlcnNpb24gb2YgdGhlIHBhdGNoIHRo
-YXQgVmlzaGFsCnNlbnQgZm9yIDQuOC1yYzEuICtBS0EtV2l0aG91dCB0aGlzIHRoZSBuZml0IG1h
-Y2hpbmUgY2hlY2sgaGFuZGxlciBuZXZlcgpkZXRlY3RzIC8gaW5zZXJ0cyBuZXcgJ2JhZGJsb2Nr
-cycgZW50cmllcyB3aGljaCBhcHBsaWNhdGlvbnMgdXNlIHRvCmlkZW50aWZ5IGxvc3QgcG9ydGlv
-bnMgb2YgZmlsZXMuCgotIEZvciB0ZXN0IHB1cnBvc2VzLCBmaXggdGhlIG52ZGltbV9jbGVhcl9w
-b2lzb24oKSBwYXRoIHRvIG9wZXJhdGUgb24KbGVnYWN5IC8gc2ltdWxhdGVkIG52ZGltbSBtZW1v
-cnkgcmFuZ2VzLiArQUtBLVdpdGhvdXQgdGhpcyBmaXggYSB0ZXN0IGNhbgpzZXQgYmFkYmxvY2tz
-LCBidXQgbmV2ZXIgY2xlYXIgdGhlbSBvbiB0aGVzZSByYW5nZXMuCgotIEZpeCB0aGUgcmFuZ2Ug
-Y2hlY2tpbmcgZG9uZSBieSBkYXhfZGV2X3BtZF9mYXVsdCgpLiArQUtBLVRoaXMgaXMgbm90CnRh
-Z2dlZCBmb3IgLXN0YWJsZSBzaW5jZSB0aGlzIHByb2JsZW0gaXMgbWl0aWdhdGVkIGJ5IHNwZWNp
-ZnlpbmcKYWxpZ25lZCByZXNvdXJjZXMgYXQgZGV2aWNlLWRheCBzZXR1cCB0aW1lLgoKVGhlc2Ug
-cGF0Y2hlcyBoYXZlIGFwcGVhcmVkIGluIGEgbmV4dCByZWxlYXNlIG92ZXIgdGhlIHBhc3Qgd2Vl
-ay4gK0FLQS1UaGUKcmVjZW50IHJlYmFzZSB5b3UgY2FuIHNlZSBpbiB0aGUgdGltZXN0YW1wcyB3
-YXMgdG8gZHJvcCBhbiBpbnZhbGlkIGZpeAphcyBpZGVudGlmaWVkIGJ5IHRoZSB1cGRhdGVkIGRl
-dmljZS1kYXggdW5pdCB0ZXN0cyBbMV0uICtBS0EtVGhlIC1tbQp0b3VjaGVzIGhhdmUgYW4gYWNr
-IGZyb20gQW5kcmV3LgoKWzFdOiAiW25kY3RsIFBBVENIIDAvM10gZGV2aWNlLWRheCB0ZXN0IGZv
-ciByZWNlbnQga2VybmVsIGJ1Z3MiCmh0dHBzOi8vbGlzdHMuMDEub3JnL3BpcGVybWFpbC9saW51
-eC1udmRpbW0vMjAxNi1TZXB0ZW1iZXIvMDA2ODU1Lmh0bWwKClRoZSBmb2xsb3dpbmcgY2hhbmdl
-cyBzaW5jZSBjb21taXQgM2VhYjg4N2E1NTQyNGZjMmMyNzU1M2I3YmZlMzIzMzBkZjgzZjdiODoK
-CiAgTGludXggNC44LXJjNCAoMjAxNi0wOC0yOCAxNTowNDozMyAtMDcwMCkKCmFyZSBhdmFpbGFi
-bGUgaW4gdGhlIGdpdCByZXBvc2l0b3J5IGF0OgoKICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIv
-c2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMKCmZvciB5
-b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0byAxZThiOGQ5NjE5Zjk0NzZlOTRmMzJlYjIwY2FiMDAw
-ZDUwZDIzNmFhOgoKICBsaWJudmRpbW06IGFsbG93IGxlZ2FjeSAoZTgyMCkgcG1lbSByZWdpb24g
-dG8gY2xlYXIgYmFkIGJsb2NrcyAoMjAxNi0wOS0wOSAxNzozNDo0NiAtMDcwMCkKCi0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
-RGFuIFdpbGxpYW1zICgzKToKICAgICAgZGF4OiBmaXggbWFwcGluZyBzaXplIGNoZWNrCiAgICAg
-IG1tOiBmaXggc2hvd19zbWFwKCkgZm9yIHpvbmVfZGV2aWNlLXBtZCByYW5nZXMKICAgICAgbW06
-IGZpeCBjYWNoZSBtb2RlIG9mIGRheCBwbWQgbWFwcGluZ3MKCkRhdmUgSmlhbmcgKDEpOgogICAg
-ICBsaWJudmRpbW06IGFsbG93IGxlZ2FjeSAoZTgyMCkgcG1lbSByZWdpb24gdG8gY2xlYXIgYmFk
-IGJsb2NrcwoKVmlzaGFsIFZlcm1hICgxKToKICAgICAgbmZpdCwgbWNlOiBGaXggU1BBIG1hdGNo
-aW5nIGxvZ2ljIGluIE1DRSBoYW5kbGVyCgogYXJjaC94ODYvbW0vcGF0LmMgICAgICAgfCAxNyAr
-LSstKy0rLSstKy0rLSstKy0rLS0tLS0tLS0KIGRyaXZlcnMvYWNwaS9uZml0L21jZS5jIHwgIDIg
-Ky0tCiBkcml2ZXJzL2RheC9kYXguYyAgICAgICB8ICAyICstLQogZHJpdmVycy9udmRpbW0vYnVz
-LmMgICAgfCAgNiArLSstKy0rLSstLQogZnMvcHJvYy90YXNrX21tdS5jICAgICAgfCAgMiArLSst
-CiBrZXJuZWwvbWVtcmVtYXAuYyAgICAgICB8ICA5ICstKy0rLSstKy0rLSstKy0rLQogbW0vaHVn
-ZV9tZW1vcnkuYyAgICAgICAgfCAgNCArLSstLS0KIDcgZmlsZXMgY2hhbmdlZCwgMzAgaW5zZXJ0
-aW9ucygrLSksIDEyIGRlbGV0aW9ucygtKQoKY29tbWl0IDRjM2NiNmU5YTlkOTRkMTU1MzgwNzg1
-NGE1NjVjZDI3ZmY0YzIyYWEKQXV0aG9yOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGlu
-dGVsLmNvbT4KRGF0ZTogICBTYXQgU2VwIDMgMTA6MzY6MDAgMjAxNiAtMDcwMAoKICAgIGRheDog
-Zml4IG1hcHBpbmcgc2l6ZSBjaGVjawogICAgCiAgICBwZ29mZl90b19waHlzKCkgdmFsaWRhdGVz
-IHRoYXQgYm90aCB0aGUgc3RhcnRpbmcgYWRkcmVzcyBhbmQgdGhlIGxlbmd0aAogICAgb2YgdGhl
-IG1hcHBpbmcgYWdhaW5zdCB0aGUgcmVzb3VyY2UgbGlzdC4gIFdlIG5lZWQgdG8gY2hlY2sgZm9y
-IGEKICAgIG1hcHBpbmcgc2l6ZSBvZiBQTURfU0laRSBub3QgUEFHRV9TSVpFIGluIHRoZSBwbWQg
-ZmF1bHQgcGF0aC4KICAgIAogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53
-aWxsaWFtc0BpbnRlbC5jb20+Cgpjb21taXQgY2ExMjBjZjY4ODg3NGY0NDIzZTU3OWU3Y2M1ZGRm
-NzI0NGFlY2E0NQpBdXRob3I6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29t
-PgpEYXRlOiAgIFNhdCBTZXAgMyAxMDozODowMyAyMDE2IC0wNzAwCgogICAgbW06IGZpeCBzaG93
-X3NtYXAoKSBmb3Igem9uZV9kZXZpY2UtcG1kIHJhbmdlcwogICAgCiAgICBBdHRlbXB0aW5nIHRv
-IGR1bXAgL3Byb2MvPHBpZD4vc21hcHMgZm9yIGEgcHJvY2VzcyB3aXRoIHBtZCBkYXggbWFwcGlu
-Z3MKICAgIGN1cnJlbnRseSByZXN1bHRzIGluIHRoZSBmb2xsb3dpbmcgVk1fQlVHX09OczoKICAg
-IAogICAgIGtlcm5lbCBCVUcgYXQgbW0vaHVnZV9tZW1vcnkuYzoxMTA1IQogICAgIHRhc2s6IGZm
-ZmY4ODA0NWYxNmIxNDAgdGFzay5zdGFjazogZmZmZjg4MDQ1YmUxNDAwMAogICAgIFJJUDogMDAx
-MDpbPGZmZmZmZmZmODEyNjhmOWI+XSAgWzxmZmZmZmZmZjgxMjY4ZjliPl0gZm9sbG93X3RyYW5z
-X2h1Z2VfcG1kKy0weDJjYi8weDM0MAogICAgIFsuLl0KICAgICBDYWxsIFRyYWNlOgogICAgICBb
-PGZmZmZmZmZmODEzMDYwMzA+XSBzbWFwc19wdGVfcmFuZ2UrLTB4YTAvMHg0YjAKICAgICAgWzxm
-ZmZmZmZmZjgxNGMyNzU1Pl0gPyB2c25wcmludGYrLTB4MjU1LzB4NGMwCiAgICAgIFs8ZmZmZmZm
-ZmY4MTIzYzQ2ZT5dIF9fd2Fsa19wYWdlX3JhbmdlKy0weDFmZS8weDRkMAogICAgICBbPGZmZmZm
-ZmZmODEyM2M4YTI+XSB3YWxrX3BhZ2Vfdm1hKy0weDYyLzB4ODAKICAgICAgWzxmZmZmZmZmZjgx
-MzA3NjU2Pl0gc2hvd19zbWFwKy0weGE2LzB4MmIwCiAgICAKICAgICBrZXJuZWwgQlVHIGF0IGZz
-L3Byb2MvdGFza19tbXUuYzo1ODUhCiAgICAgUklQOiAwMDEwOls8ZmZmZmZmZmY4MTMwNjQ2OT5d
-ICBbPGZmZmZmZmZmODEzMDY0Njk+XSBzbWFwc19wdGVfcmFuZ2UrLTB4NDk5LzB4NGIwCiAgICAg
-Q2FsbCBUcmFjZToKICAgICAgWzxmZmZmZmZmZjgxNGMyNzk1Pl0gPyB2c25wcmludGYrLTB4MjU1
-LzB4NGMwCiAgICAgIFs8ZmZmZmZmZmY4MTIzYzQ2ZT5dIF9fd2Fsa19wYWdlX3JhbmdlKy0weDFm
-ZS8weDRkMAogICAgICBbPGZmZmZmZmZmODEyM2M4YTI+XSB3YWxrX3BhZ2Vfdm1hKy0weDYyLzB4
-ODAKICAgICAgWzxmZmZmZmZmZjgxMzA3Njk2Pl0gc2hvd19zbWFwKy0weGE2LzB4MmIwCiAgICAK
-ICAgIFRoZXNlIGxvY2F0aW9ucyBhcmUgc2FuaXR5IGNoZWNraW5nIHBhZ2UgZmxhZ3MgdGhhdCBt
-dXN0IGJlIHNldCBmb3IgYW4KICAgIGFub255bW91cyB0cmFuc3BhcmVudCBodWdlIHBhZ2UsIGJ1
-dCBhcmUgbm90IHNldCBmb3IgdGhlIHpvbmVfZGV2aWNlCiAgICBwYWdlcyBhc3NvY2lhdGVkIHdp
-dGggZGF4IG1hcHBpbmdzLgogICAgCiAgICBDYzogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJA
-bGludXguaW50ZWwuY29tPgogICAgQ2M6IEtpcmlsbCBBLiBTaHV0ZW1vdiA8a2lyaWxsLnNodXRl
-bW92QGxpbnV4LmludGVsLmNvbT4KICAgIEFja2VkLWJ5OiBBbmRyZXcgTW9ydG9uIDxha3BtQGxp
-bnV4LWZvdW5kYXRpb24ub3JnPgogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4u
-ai53aWxsaWFtc0BpbnRlbC5jb20+Cgpjb21taXQgOTA0OTc3MWY3ZDU0OTBhMzAyNTg5OTc2OTg0
-ODEwMDY0YzgzYWI0MApBdXRob3I6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwu
-Y29tPgpEYXRlOiAgIFdlZCBTZXAgNyAwODo1MToyMSAyMDE2IC0wNzAwCgogICAgbW06IGZpeCBj
-YWNoZSBtb2RlIG9mIGRheCBwbWQgbWFwcGluZ3MKICAgIAogICAgdHJhY2tfcGZuX2luc2VydCgp
-IGluIHZtZl9pbnNlcnRfcGZuX3BtZCgpIGlzIG1hcmtpbmcgZGF4IG1hcHBpbmdzIGFzCiAgICB1
-bmNhY2hlYWJsZSByZW5kZXJpbmcgdGhlbSBpbXByYWN0aWNhbCBmb3IgYXBwbGljYXRpb24gdXNh
-Z2UuICBEQVgtcHRlCiAgICBtYXBwaW5ncyBhcmUgY2FjaGVkIGFuZCB0aGUgZ29hbCBvZiBlc3Rh
-Ymxpc2hpbmcgREFYLXBtZCBtYXBwaW5ncyBpcyB0bwogICAgYXR0YWluIG1vcmUgcGVyZm9ybWFu
-Y2UsIG5vdCBkcmFtYXRpY2FsbHkgbGVzcyAoMyBvcmRlcnMgb2YgbWFnbml0dWRlKS4KICAgIAog
-ICAgdHJhY2tfcGZuX2luc2VydCgpIHJlbGllcyBvbiBhIHByZXZpb3VzIGNhbGwgdG8gcmVzZXJ2
-ZV9tZW10eXBlKCkgdG8KICAgIGVzdGFibGlzaCB0aGUgZXhwZWN0ZWQgcGFnZV9jYWNoZV9tb2Rl
-IGZvciB0aGUgcmFuZ2UuICBXaGlsZSBtZW1yZW1hcCgpCiAgICBhcnJhbmdlcyBmb3IgcmVzZXJ2
-ZV9tZW10eXBlKCkgdG8gYmUgY2FsbGVkLCBkZXZtX21lbXJlbWFwX3BhZ2VzKCkgZG9lcwogICAg
-bm90LiAgU28sIHRlYWNoIHRyYWNrX3Bmbl9pbnNlcnQoKSBhbmQgdW50cmFja19wZm4oKSBob3cg
-dG8gaGFuZGxlCiAgICB0cmFja2luZyB3aXRob3V0IGEgdm1hLCBhbmQgYXJyYW5nZSBmb3IgZGV2
-bV9tZW1yZW1hcF9wYWdlcygpIHRvCiAgICBlc3RhYmxpc2ggdGhlIHdyaXRlLWJhY2stY2FjaGUg
-cmVzZXJ2YXRpb24gaW4gdGhlIG1lbXR5cGUgdHJlZS4KICAgIAogICAgQ2M6IDxzdGFibGVAdmdl
-ci5rZXJuZWwub3JnPgogICAgQ2M6IE1hdHRoZXcgV2lsY294IDxtYXdpbGNveEBtaWNyb3NvZnQu
-Y29tPgogICAgQ2M6IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4K
-ICAgIENjOiBOaWxlc2ggQ2hvdWRodXJ5IDxuaWxlc2guY2hvdWRodXJ5QG9yYWNsZS5jb20+CiAg
-ICBDYzogS2lyaWxsIEEuIFNodXRlbW92IDxraXJpbGwuc2h1dGVtb3ZAbGludXguaW50ZWwuY29t
-PgogICAgUmVwb3J0ZWQtYnk6IFRvc2hpIEthbmkgPHRvc2hpLmthbmlAaHBlLmNvbT4KICAgIFJl
-cG9ydGVkLWJ5OiBLYWkgWmhhbmcgPGthaS5rYS56aGFuZ0BvcmFjbGUuY29tPgogICAgQWNrZWQt
-Ynk6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+CiAgICBTaWduZWQt
-b2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KCmNvbW1pdCAy
-ZTIxODA3ZDRiMTMxZGZkNGE4ZTVjODIxMTZhODViNjJmMjhhZWVjCkF1dGhvcjogVmlzaGFsIFZl
-cm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+CkRhdGU6ICAgRnJpIFNlcCAyIDE3OjI3OjMw
-IDIwMTYgLTA2MDAKCiAgICBuZml0LCBtY2U6IEZpeCBTUEEgbWF0Y2hpbmcgbG9naWMgaW4gTUNF
-IGhhbmRsZXIKICAgIAogICAgVGhlIGNoZWNrIGZvciBhICdwbWVtJyB0eXBlIFNQQSBpbiB0aGUg
-TUNFIGhhbmRsZXIgd2FzIGludmVydGVkIGR1ZSB0byBhCiAgICBtZXJnZS9yZWJhc2UgZXJyb3Iu
-CiAgICAKICAgIEZpeGVzOiA2ODM5YTZkIG5maXQ6IGRvIGFuIEFSUyBzY3J1YiBvbiBoaXR0aW5n
-IGEgbGF0ZW50IG1lZGlhIGVycm9yCiAgICBDYzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcK
-ICAgIENjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KICAgIFNpZ25l
-ZC1vZmYtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPgogICAgU2ln
-bmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cgpjb21t
-aXQgMWU4YjhkOTYxOWY5NDc2ZTk0ZjMyZWIyMGNhYjAwMGQ1MGQyMzZhYQpBdXRob3I6IERhdmUg
-SmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPgpEYXRlOiAgIEZyaSBTZXAgOSAwOToxMDowOCAy
-MDE2IC0wNzAwCgogICAgbGlibnZkaW1tOiBhbGxvdyBsZWdhY3kgKGU4MjApIHBtZW0gcmVnaW9u
-IHRvIGNsZWFyIGJhZCBibG9ja3MKICAgIAogICAgQmFkIGJsb2NrcyBjYW4gYmUgaW5qZWN0ZWQg
-dmlhIC9zeXMvYmxvY2svcG1lbU4vYmFkYmxvY2tzLiBJbiBhIHNpdHVhdGlvbgogICAgd2hlcmUg
-bGVnYWN5IHBtZW0gaXMgYmVpbmcgdXNlZCBvciBhIHBtZW0gcmVnaW9uIGNyZWF0ZWQgYnkgdXNp
-bmcgbWVtbWFwCiAgICBrZXJuZWwgcGFyYW1ldGVyLCB0aGUgaW5qZWN0ZWQgYmFkIGJsb2NrcyBh
-cmUgbm90IGNsZWFyZWQgZHVlIHRvCiAgICBudmRpbW1fY2xlYXJfcG9pc29uKCkgZmFpbGluZyBm
-cm9tIGxhY2sgb2YgbmRjdGwgZnVuY3Rpb24gcG9pbnRlci4gSW4KICAgIHRoaXMgY2FzZSB3ZSBu
-ZWVkIHRvIGp1c3QgcmV0dXJuIGFzIGhhbmRsZWQgYW5kIGFsbG93IHRoZSBiYWQgYmxvY2tzIHRv
-CiAgICBiZSBjbGVhcmVkIHJhdGhlciB0aGFuIGZhaWwuCiAgICAKICAgIFJldmlld2VkLWJ5OiBW
-aXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4KICAgIFNpZ25lZC1vZmYtYnk6
-IERhdmUgSmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPgogICAgU2lnbmVkLW9mZi1ieTogRGFu
-IFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGlu
-dXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LW52ZGltbQo=
+On Wed, Sep 28, 2016 at 5:53 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Wed, Sep 28, 2016 at 5:10 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+>> Starting a full Address Range Scrub (ARS) on hitting a memory error
+>> machine check exception may not always be desirable. Provide a way
+>> through sysfs to toggle the behavior between just adding the address
+>> (cache line) where the MCE happened to the poison list and doing a full
+>> scrub. The former (selective insertion of the address) is done
+>> unconditionally.
+>
+>
+>>
+>> Cc: linux-acpi@vger.kernel.org
+>> Cc: Dan Williams <dan.j.williams@intel.com>
+>> Cc: Linda Knippers <linda.knippers@hpe.com>
+>> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+>> ---
+>>  drivers/acpi/nfit/core.c | 23 ++++++++++++++++++++---
+>>  drivers/acpi/nfit/mce.c  | 24 +++++++++++++++++++-----
+>>  drivers/acpi/nfit/nfit.h |  6 ++++++
+>>  3 files changed, 45 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+>> index 80cc7c0..ec1069e 100644
+>> --- a/drivers/acpi/nfit/core.c
+>> +++ b/drivers/acpi/nfit/core.c
+>> @@ -901,6 +901,14 @@ static ssize_t scrub_show(struct device *dev,
+>
+> I think scrub_show() should display the current auto-scrub mode, right?
+>
+>>         return rc;
+>>  }
+>>
+>> +/*
+>> + * The 'scrub' attribute can only have following values written to it:
+>> + * '1': Start an on-demand scrub, and enable a full scrub to happen if a
+>> + *      machine check exception for a memory error is received.
+>> + * '2': Switch to the default mode where a machine check will only insert
+>> + *      the address on which the memory error was received into the poison
+>> + *      and badblocks lists.
+>> + */
+>>  static ssize_t scrub_store(struct device *dev,
+>>                 struct device_attribute *attr, const char *buf, size_t size)
+>>  {
+>> @@ -911,15 +919,24 @@ static ssize_t scrub_store(struct device *dev,
+>>         rc = kstrtol(buf, 0, &val);
+>>         if (rc)
+>>                 return rc;
+>> -       if (val != 1)
+>> -               return -EINVAL;
+>>
+>>         device_lock(dev);
+>>         nd_desc = dev_get_drvdata(dev);
+>>         if (nd_desc) {
+>>                 struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+>>
+>> -               rc = acpi_nfit_ars_rescan(acpi_desc);
+>> +               switch (val) {
+>> +               case MCE_SCRUB_ON:
+>> +                       rc = acpi_nfit_ars_rescan(acpi_desc);
+>> +                       acpi_desc->scrub_mode = MCE_SCRUB_ON;
+>> +                       break;
+>> +               case MCE_SCRUB_OFF:
+>> +                       acpi_desc->scrub_mode = MCE_SCRUB_OFF;
+>> +                       break;
+>
+> Shouldn't this still kick off a scrub?  It's awkward that the only way
+> to run a scrub is to put the driver into automatic re-scrub mode.
+
+Hmm, although it will probably still be awkward if we make it do a
+scrub in this case.  Might be better to have a separate "auto_scrub"
+property that sets what to do on latent error detection.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
