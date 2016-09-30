@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 94D7D1A1E05
- for <linux-nvdimm@lists.01.org>; Fri, 30 Sep 2016 17:08:11 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id E26391A1E0A
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Sep 2016 16:20:32 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3] test/clear.sh: test to making sure cleared badblocks
+Subject: [ndctl PATCH v2] test/clear.sh: test to making sure cleared badblocks
  don't reappear
-Date: Fri, 30 Sep 2016 18:07:20 -0600
-Message-Id: <1475280440-14641-1-git-send-email-vishal.l.verma@intel.com>
+Date: Fri, 30 Sep 2016 17:19:45 -0600
+Message-Id: <1475277585-10276-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -31,28 +31,19 @@ doesn't regress.
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
 
-v3: make the script's kernel version check also use the new
-check_min_kver function
+v2: Add a test to run the stale entries test only for kernels >= 4.9.0
 
- test/clear.sh | 30 ++++++++++++++++++++++--------
- 1 file changed, 22 insertions(+), 8 deletions(-)
+ test/clear.sh | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
 diff --git a/test/clear.sh b/test/clear.sh
-index 7765c10..dd5316a 100755
+index 7765c10..ddae0e6 100755
 --- a/test/clear.sh
 +++ b/test/clear.sh
-@@ -13,14 +13,16 @@ err() {
+@@ -13,6 +13,15 @@ err() {
  	exit $rc
  }
  
--eval $(uname -r | awk -F. '{print "maj="$1 ";" "min="$2}')
--if [ $maj -lt 4 ]; then
--	echo "kernel $maj.$min lacks clear poison support"
--	exit $rc
--elif [ $maj -eq 4 -a $min -lt 6 ]; then
--	echo "kernel $maj.$min lacks clear poison support"
--	exit $rc
--fi
 +check_min_kver()
 +{
 +	local ver="$1"
@@ -62,11 +53,10 @@ index 7765c10..dd5316a 100755
 +	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
 +}
 +
-+check_min_kver "4.6" || { echo "kernel $KVER lacks clear poison support"; exit $rc; }
- 
- set -e
- trap 'err $LINENO' ERR
-@@ -69,6 +71,18 @@ if read sector len < /sys/block/$blockdev/badblocks; then
+ eval $(uname -r | awk -F. '{print "maj="$1 ";" "min="$2}')
+ if [ $maj -lt 4 ]; then
+ 	echo "kernel $maj.$min lacks clear poison support"
+@@ -69,6 +78,18 @@ if read sector len < /sys/block/$blockdev/badblocks; then
  	echo "fail: $LINENO" && exit 1
  fi
  
