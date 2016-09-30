@@ -2,15 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 617E71A1E24
- for <linux-nvdimm@lists.01.org>; Fri,  9 Sep 2016 18:44:46 -0700 (PDT)
-Subject: [ndctl PATCH 3/3] test, device-dax: address translation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Sep 2016 18:41:42 -0700
-Message-ID: <147347170289.15190.16543786024420919307.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147347168712.15190.17312702584906386275.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147347168712.15190.17312702584906386275.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 78C0F1A1E29
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Sep 2016 16:20:21 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH 3/3] libnvdimm: clear the internal poison_list when clearing
+ badblocks
+Date: Fri, 30 Sep 2016 17:19:31 -0600
+Message-Id: <1475277571-10152-4-git-send-email-vishal.l.verma@intel.com>
+In-Reply-To: <1475277571-10152-1-git-send-email-vishal.l.verma@intel.com>
+References: <1475277571-10152-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,281 +18,177 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Validate that data written through /dev/pmemX is retrievable intact
-through /dev/daxX.  This tests that pmem and device-dax have the same
-device-to-physical address translation.
+nvdimm_clear_poison cleared the user-visible badblocks, and sent
+commands to the NVDIMM to clear the areas marked as 'poison', but it
+neglected to clear the same areas from the internal poison_list which is
+used to marshal ARS results before sorting them by namespace. As a
+result, once on-demand ARS functionality was added:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+37b137f nfit, libnvdimm: allow an ARS scrub to be triggered on demand
+
+A scrub triggered from either sysfs or an MCE was found to be adding
+stale entries that had been cleared from gendisk->badblocks, but were
+still present in nvdimm_bus->poison_list. Additionally, the stale entries
+could be triggered into producing stale disk->badblocks by simply disabling
+and re-enabling the namespace or region.
+
+This adds the missing step of clearing poison_list entries when clearing
+poison, so that it is always in sync with badblocks.
+
+Fixes: 37b137f nfit, libnvdimm: allow an ARS scrub to be triggered on demand
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- test/device-dax.c |  139 +++++++++++++++++++++++++++++++++++++++++++++++------
- util/size.h       |    1 
- 2 files changed, 125 insertions(+), 15 deletions(-)
+ drivers/nvdimm/bus.c      |  2 ++
+ drivers/nvdimm/core.c     | 73 ++++++++++++++++++++++++++++++++++++++++++++---
+ include/linux/libnvdimm.h |  2 ++
+ 3 files changed, 73 insertions(+), 4 deletions(-)
 
-diff --git a/test/device-dax.c b/test/device-dax.c
-index c1409ac8b8b8..82154d5c1fff 100644
---- a/test/device-dax.c
-+++ b/test/device-dax.c
-@@ -9,7 +9,9 @@
- #include <setjmp.h>
- #include <sys/stat.h>
- #include <sys/mman.h>
-+#include <sys/time.h>
- #include <sys/types.h>
-+#include <util/size.h>
- #include <linux/falloc.h>
- #include <linux/version.h>
- #include <ndctl/libndctl.h>
-@@ -51,21 +53,79 @@ static int setup_device_dax(struct ndctl_namespace *ndns)
- 	return create_namespace(argc, argv, ctx);
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 935866f..a8b6949 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -217,6 +217,8 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 		return rc;
+ 	if (cmd_rc < 0)
+ 		return cmd_rc;
++
++	nvdimm_clear_from_poison_list(nvdimm_bus, phys, len);
+ 	return clear_err.cleared;
  }
- 
-+static int setup_pmem_memory_mode(struct ndctl_namespace *ndns)
-+{
-+	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
-+	const char *argv[] = {
-+		"__func__", "-v", "-m", "memory", "-M", "dev", "-f", "-e", "",
-+	};
-+	int argc = ARRAY_SIZE(argv);
-+
-+	argv[argc - 1] = ndctl_namespace_get_devname(ndns);
-+	return create_namespace(argc, argv, ctx);
-+}
-+
- static void sigbus(int sig, siginfo_t *siginfo, void *d)
- {
- 	siglongjmp(sj_env, 1);
+ EXPORT_SYMBOL_GPL(nvdimm_clear_poison);
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index 715583f..42e40db 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -541,11 +541,12 @@ void nvdimm_badblocks_populate(struct nd_region *nd_region,
  }
+ EXPORT_SYMBOL_GPL(nvdimm_badblocks_populate);
  
-+#define VERIFY_SIZE SZ_4M
-+#define VERIFY_BUF_SIZE 4096
-+
-+static int verify_data(struct daxctl_dev *dev, char *dax_buf, int salt,
-+	struct ndctl_test *test)
-+{
-+	struct timeval tv1, tv2, tv_diff;
-+	int i;
-+
-+	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 9, 0)))
-+		return 0;
-+
-+	/* verify data and cache mode */
-+	gettimeofday(&tv1, NULL);
-+	for (i = 0; i < VERIFY_SIZE; i += VERIFY_BUF_SIZE) {
-+		unsigned int *verify = (unsigned int *) (dax_buf + i), j;
-+
-+		for (j = 0; j < VERIFY_BUF_SIZE / sizeof(int); j++)
-+			if (verify[j] != salt + i + j)
-+				break;
-+		if (j < VERIFY_BUF_SIZE / sizeof(int)) {
-+			fprintf(stderr, "%s: @ %#x expected %#x got %#x\n",
-+					daxctl_dev_get_devname(dev), i,
-+					verify[j], salt + i + j);
-+			return -ENXIO;
-+		}
-+	}
-+	gettimeofday(&tv2, NULL);
-+	timersub(&tv2, &tv1, &tv_diff);
-+	tv_diff.tv_usec += tv_diff.tv_sec * 1000000;
-+	if (tv_diff.tv_usec > 15000) {
-+		/*
-+		 * Checks whether the kernel correctly mapped the
-+		 * device-dax range as cacheable.  The numbers were
-+		 * derived from an Intel(R) Xeon(R) CPU E5-2690 v2 @
-+		 * 3.00GHz where the loop completes in 7500us when
-+		 * cached and 200ms when uncached.
-+		 */
-+		fprintf(stderr, "%s: verify loop took too long usecs: %ld\n",
-+				daxctl_dev_get_devname(dev), tv_diff.tv_usec);
-+		return -ENXIO;
-+	}
-+	return 0;
-+}
-+
- static int test_device_dax(int loglevel, struct ndctl_test *test,
- 		struct ndctl_ctx *ctx)
+-static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
++static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length,
++			gfp_t flags)
  {
--	int fd, rc, *p;
- 	struct sigaction act;
- 	struct ndctl_dax *dax;
-+	struct ndctl_pfn *pfn;
- 	struct daxctl_dev *dev;
-+	int i, fd, rc, *p, salt;
- 	struct ndctl_namespace *ndns;
- 	struct daxctl_region *dax_region;
--	char *buf, path[100], data[4096];
-+	char *buf, path[100], data[VERIFY_BUF_SIZE];
+ 	struct nd_poison *pl;
  
- 	memset (&act, 0, sizeof(act));
- 	act.sa_sigaction = sigbus;
-@@ -88,11 +148,46 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0)))
- 		return 77;
+-	pl = kzalloc(sizeof(*pl), GFP_KERNEL);
++	pl = kzalloc(sizeof(*pl), flags);
+ 	if (!pl)
+ 		return -ENOMEM;
  
-+	/* setup up memory mode pmem device and seed with verification data */
-+	rc = setup_pmem_memory_mode(ndns);
-+	if (rc < 0 || !(pfn = ndctl_namespace_get_pfn(ndns))) {
-+		fprintf(stderr, "%s: failed device-dax setup\n",
-+				ndctl_namespace_get_devname(ndns));
-+		goto out;
-+	}
-+
-+	sprintf(path, "/dev/%s", ndctl_pfn_get_block_device(pfn));
-+	fd = open(path, O_RDWR);
-+	if (fd < 0) {
-+		fprintf(stderr, "%s: failed to open pmem device\n", path);
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	srand(getpid());
-+	salt = rand();
-+	for (i = 0; i < VERIFY_SIZE; i += VERIFY_BUF_SIZE) {
-+		unsigned int *verify = (unsigned int *) data, j;
-+
-+		for (j = 0; j < VERIFY_BUF_SIZE / sizeof(int); j++)
-+			verify[j] = salt + i + j;
-+
-+		if (write(fd, data, sizeof(data)) != sizeof(data)) {
-+			fprintf(stderr, "%s: failed data setup\n",
-+					path);
-+			rc = -ENXIO;
-+			goto out;
-+		}
-+	}
-+	fsync(fd);
-+	close(fd);
-+
-+	/* switch the namespace to device-dax mode and verify data via mmap */
- 	rc = setup_device_dax(ndns);
- 	if (rc < 0) {
- 		fprintf(stderr, "%s: failed device-dax setup\n",
- 				ndctl_namespace_get_devname(ndns));
--		return rc;
-+		goto out;
- 	}
+@@ -561,7 +562,7 @@ static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
+ 	struct nd_poison *pl;
  
- 	dax = ndctl_namespace_get_dax(ndns);
-@@ -101,27 +196,35 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 	if (!dev) {
- 		fprintf(stderr, "%s: failed to find device-dax instance\n",
- 				ndctl_namespace_get_devname(ndns));
--		return -ENXIO;
-+		rc = -ENXIO;
-+		goto out;
- 	}
- 
- 	sprintf(path, "/dev/%s", daxctl_dev_get_devname(dev));
--
- 	fd = open(path, O_RDWR);
- 	if (fd < 0) {
- 		fprintf(stderr, "%s: failed to open device-dax instance\n",
- 				daxctl_dev_get_devname(dev));
--		return -ENXIO;
-+		rc = -ENXIO;
-+		goto out;
- 	}
- 
--	buf = mmap(NULL, 2UL << 20, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0);
-+	buf = mmap(NULL, VERIFY_SIZE, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0);
- 	if (buf != MAP_FAILED) {
- 		fprintf(stderr, "%s: expected MAP_PRIVATE failure\n", path);
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	buf = mmap(NULL, VERIFY_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-+	if (buf == MAP_FAILED) {
-+		fprintf(stderr, "%s: expected MAP_SHARED success\n", path);
- 		return -ENXIO;
- 	}
- 
--	buf = mmap(NULL, 2UL << 20, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
--	p = (int *) (buf + (1UL << 20));
--	*p = 0;
-+	rc = verify_data(dev, buf, salt, test);
-+	if (rc)
-+		goto out;
+ 	if (list_empty(&nvdimm_bus->poison_list))
+-		return add_poison(nvdimm_bus, addr, length);
++		return add_poison(nvdimm_bus, addr, length, GFP_KERNEL);
  
  	/*
- 	 * Prior to 4.8-final these tests cause crashes, or are
-@@ -134,14 +237,15 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 		if (rc) {
- 			fprintf(stderr, "%s: failed dax direct-i/o\n",
- 					ndctl_namespace_get_devname(ndns));
--			return rc;
-+			goto out;
- 		}
- 
- 		fd2 = open("/proc/self/smaps", O_RDONLY);
- 		if (fd2 < 0) {
- 			fprintf(stderr, "%s: failed smaps open\n",
- 					ndctl_namespace_get_devname(ndns));
--			return -ENXIO;
-+			rc = -ENXIO;
-+			goto out;
- 		}
- 
- 		do {
-@@ -151,7 +255,8 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 		if (rc) {
- 			fprintf(stderr, "%s: failed smaps retrieval\n",
- 					ndctl_namespace_get_devname(ndns));
--			return -ENXIO;
-+			rc = -ENXIO;
-+			goto out;
- 		}
- 	}
- 
-@@ -159,17 +264,19 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 	if (rc < 0) {
- 		fprintf(stderr, "%s: failed to reset device-dax instance\n",
- 				ndctl_namespace_get_devname(ndns));
--		return rc;
-+		goto out;
- 	}
- 
- 	/* test fault after device-dax instance disabled */
- 	if (sigsetjmp(sj_env, 1)) {
- 		/* got sigbus, success */
- 		close(fd);
--		return 0;
-+		rc = 0;
-+		goto out;
- 	}
- 
- 	rc = EXIT_SUCCESS;
-+	p = (int *) (buf + (1UL << 20));
- 	*p = 0xff;
- 	if (ndctl_test_attempt(test, KERNEL_VERSION(4, 9, 0))) {
- 		/* after 4.9 this test will properly get sigbus above */
-@@ -178,6 +285,8 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 				daxctl_dev_get_devname(dev));
- 	}
- 	close(fd);
-+ out:
-+	reset_device_dax(ndns);
- 	return rc;
+ 	 * There is a chance this is a duplicate, check for those first.
+@@ -581,7 +582,7 @@ static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
+ 	 * as any overlapping ranges will get resolved when the list is consumed
+ 	 * and converted to badblocks
+ 	 */
+-	return add_poison(nvdimm_bus, addr, length);
++	return add_poison(nvdimm_bus, addr, length, GFP_KERNEL);
  }
  
-diff --git a/util/size.h b/util/size.h
-index 64c146480ef0..9befecb28b14 100644
---- a/util/size.h
-+++ b/util/size.h
-@@ -4,6 +4,7 @@
- #define SZ_1K     0x00000400
- #define SZ_1M     0x00100000
- #define SZ_2M     0x00200000
-+#define SZ_4M     0x00400000
- #define SZ_1G     0x40000000
- #define SZ_1T 0x10000000000ULL
+ int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
+@@ -596,6 +597,70 @@ int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_bus_add_poison);
  
++void nvdimm_clear_from_poison_list(struct nvdimm_bus *nvdimm_bus,
++		phys_addr_t start, unsigned int len)
++{
++	struct list_head *poison_list = &nvdimm_bus->poison_list;
++	u64 clr_end = start + len - 1;
++	struct nd_poison *pl, *next;
++
++	nvdimm_bus_lock(&nvdimm_bus->dev);
++	WARN_ON_ONCE(list_empty(poison_list));
++
++	/*
++	 * [start, clr_end] is the poison interval being cleared.
++	 * [pl->start, pl_end] is the poison_list entry we're comparing
++	 * the above interval against. The poison list entry may need
++	 * to be modified (update either start or length), deleted, or
++	 * split into two based on the overlap characteristics
++	 */
++
++	list_for_each_entry_safe(pl, next, poison_list, list) {
++		u64 pl_end = pl->start + pl->length - 1;
++
++		/* Skip intervals with no intersection */
++		if (pl_end < start)
++			continue;
++		if (pl->start >  clr_end)
++			continue;
++		/* Delete completely overlapped poison entries */
++		if ((pl->start >= start) && (pl_end <= clr_end)) {
++			list_del(&pl->list);
++			kfree(pl);
++			continue;
++		}
++		/* Adjust start point of partially cleared entries */
++		if ((start <= pl->start) && (clr_end > pl->start)) {
++			pl->length -= clr_end - pl->start + 1;
++			pl->start = clr_end + 1;
++			continue;
++		}
++		/* Adjust pl->length for partial clearing at the tail end */
++		if ((pl->start < start) && (pl_end <= clr_end)) {
++			/* pl->start remains the same */
++			pl->length = start - pl->start;
++			continue;
++		}
++		/*
++		 * If clearing in the middle of an entry, we split it into
++		 * two by modifying the current entry to represent one half of
++		 * the split, and adding a new entry for the second half.
++		 */
++		if ((pl->start < start) && (pl_end > clr_end)) {
++			u64 new_start = clr_end + 1;
++			u64 new_len = pl_end - new_start + 1;
++
++			/* Add new entry covering the right half */
++			add_poison(nvdimm_bus, new_start, new_len, GFP_NOIO);
++			/* Adjust this entry to cover the left half */
++			pl->length = start - pl->start;
++			continue;
++		}
++	}
++	nvdimm_bus_unlock(&nvdimm_bus->dev);
++}
++EXPORT_SYMBOL_GPL(nvdimm_clear_from_poison_list);
++
+ #ifdef CONFIG_BLK_DEV_INTEGRITY
+ int nd_integrity_init(struct gendisk *disk, unsigned long meta_size)
+ {
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index b519e13..bbfce62 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -129,6 +129,8 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
+ }
+ 
+ int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length);
++void nvdimm_clear_from_poison_list(struct nvdimm_bus *nvdimm_bus,
++		phys_addr_t start, unsigned int len);
+ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
+ 		struct nvdimm_bus_descriptor *nfit_desc);
+ void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
