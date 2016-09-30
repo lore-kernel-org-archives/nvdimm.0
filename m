@@ -1,80 +1,70 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 0/20 v3] dax: Clear dirty bits after flushing caches
-Date: Tue, 27 Sep 2016 18:08:04 +0200
-Message-Id: <1474992504-20133-1-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
+ [IPv6:2607:f8b0:4003:c06::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 264D21A1E05
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Sep 2016 15:54:00 -0700 (PDT)
+Received: by mail-oi0-x233.google.com with SMTP id w11so146730475oia.2
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Sep 2016 15:54:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1475266232-18680-1-git-send-email-vishal.l.verma@intel.com>
+References: <1475266232-18680-1-git-send-email-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 30 Sep 2016 15:53:58 -0700
+Message-ID: <CAPcyv4iz9+Bvr2qkMjqGvV8y4S=pKLk0f6Oqobbk5h6Gg-Z=WA@mail.gmail.com>
+Subject: Re: [ndctl PATCH] test/clear.sh: test to making sure cleared
+ badblocks don't reappear
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
+On Fri, Sep 30, 2016 at 1:10 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> From v4.9 onwards, cleared badblocks won't reappear on an ARS or simply
+> after disabling/re-enabling a namespace. Add a test to make sure this
+> doesn't regress.
+>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  test/clear.sh | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+>
+> diff --git a/test/clear.sh b/test/clear.sh
+> index 7765c10..336ee44 100755
+> --- a/test/clear.sh
+> +++ b/test/clear.sh
+> @@ -69,6 +69,16 @@ if read sector len < /sys/block/$blockdev/badblocks; then
+>         echo "fail: $LINENO" && exit 1
+>  fi
+>
+> +# check for re-appearance of stale badblocks from poison_list
+> +$NDCTL disable-region $BUS all
+> +$NDCTL enable-region $BUS all
+> +
+> +# since we have cleared the errors, a disable/reenable shouldn't bring them back
+> +if read sector len < /sys/block/$blockdev/badblocks; then
+> +       # fail if reading badblocks returns data
+> +       echo "fail: $LINENO" && exit 1
+> +fi
+> +
 
-this is a third revision of my patches to clear dirty bits from radix tree of
-DAX inodes when caches for corresponding pfns have been flushed. This patch set
-is significantly larger than the previous version because I'm changing how
-->fault, ->page_mkwrite, and ->pfn_mkwrite handlers may choose to handle the
-fault so that we don't have to leak details about DAX locking into the generic
-code. In principle, these patches enable handlers to easily update PTEs and do
-other work necessary to finish the fault without duplicating the functionality
-present in the generic code. I'd be really like feedback from mm folks whether
-such changes to fault handling code are fine or what they'd do differently.
-
-The patches pass testing with xfstests on ext4 and xfs on my end
-- just be aware they are basis for further DAX fixes without which some
-stress tests can still trigger failures. I'll be sending these fixes separately
-in order to keep the series of reasonable size. For full testing, you
-can pull all the patches from
-
-git://git.kernel.org/pub/scm/linux/kernel/git/jack/linux-fs.git dax
-
-but be aware I will likely rebase that branch and do other nasty stuff with
-it so don't use it as a basis of your git trees.
-
-Changes since v2:
-* rebased on top of 4.8-rc8 - this involved dealing with new fault_env
-  structure
-* changed calling convention for fault helpers
-
-Changes since v1:
-* make sure all PTE updates happen under radix tree entry lock to protect
-  against races between faults & write-protecting code
-* remove information about DAX locking from mm/memory.c
-* smaller updates based on Ross' feedback
-
-----
-Background information regarding the motivation:
-
-Currently we never clear dirty bits in the radix tree of a DAX inode. Thus
-fsync(2) flushes all the dirty pfns again and again. This patches implement
-clearing of the dirty tag in the radix tree so that we issue flush only when
-needed.
-
-The difficulty with clearing the dirty tag is that we have to protect against
-a concurrent page fault setting the dirty tag and writing new data into the
-page. So we need a lock serializing page fault and clearing of the dirty tag
-and write-protecting PTEs (so that we get another pagefault when pfn is written
-to again and we have to set the dirty tag again).
-
-The effect of the patch set is easily visible:
-
-Writing 1 GB of data via mmap, then fsync twice.
-
-Before this patch set both fsyncs take ~205 ms on my test machine, after the
-patch set the first fsync takes ~283 ms (the additional cost of walking PTEs,
-clearing dirty bits etc. is very noticeable), the second fsync takes below
-1 us.
-
-As a bonus, these patches make filesystem freezing for DAX filesystems
-reliable because mappings are now properly writeprotected while freezing the
-fs.
-
-Patches have passed xfstests for both xfs and ext4.
-
-								Honza
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Hmm, can you gate this test by kernel version? I want to allow the
+unit test suite be run with expectations set to a specific kernel
+version.  We have ndctl_test_attempt() for C tests, but for shell
+tests we'd want to use get_system_kver() which honors a "KVER"
+environment variable.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
