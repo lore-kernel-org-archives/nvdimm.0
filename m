@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 418A31A1E0F
- for <linux-nvdimm@lists.01.org>; Tue, 18 Oct 2016 12:53:33 -0700 (PDT)
-Date: Tue, 18 Oct 2016 13:53:32 -0600
+ by ml01.01.org (Postfix) with ESMTPS id 646191A1E4D
+ for <linux-nvdimm@lists.01.org>; Mon,  3 Oct 2016 16:05:08 -0700 (PDT)
+Date: Mon, 3 Oct 2016 17:05:06 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH 19/20] dax: Protect PTE modification on WP fault by radix
- tree entry lock
-Message-ID: <20161018195332.GF7796@linux.intel.com>
-References: <1474992504-20133-1-git-send-email-jack@suse.cz>
- <1474992504-20133-20-git-send-email-jack@suse.cz>
+Subject: Re: [PATCH v4 00/12] re-enable DAX PMD support
+Message-ID: <20161003230506.GA15947@linux.intel.com>
+References: <1475189370-31634-1-git-send-email-ross.zwisler@linux.intel.com>
+ <20160929234345.GG27872@dastard>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <1474992504-20133-20-git-send-email-jack@suse.cz>
+In-Reply-To: <20160929234345.GG27872@dastard>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,54 +24,100 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dave Chinner <david@fromorbit.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Sep 27, 2016 at 06:08:23PM +0200, Jan Kara wrote:
-> Currently PTE gets updated in wp_pfn_shared() after dax_pfn_mkwrite()
-> has released corresponding radix tree entry lock. When we want to
-> writeprotect PTE on cache flush, we need PTE modification to happen
-> under radix tree entry lock to ensure consisten updates of PTE and radix
-					consistent
-
-> tree (standard faults use page lock to ensure this consistency). So move
-> update of PTE bit into dax_pfn_mkwrite().
+On Fri, Sep 30, 2016 at 09:43:45AM +1000, Dave Chinner wrote:
+> On Thu, Sep 29, 2016 at 04:49:18PM -0600, Ross Zwisler wrote:
+> > DAX PMDs have been disabled since Jan Kara introduced DAX radix tree based
+> > locking.  This series allows DAX PMDs to participate in the DAX radix tree
+> > based locking scheme so that they can be re-enabled.
+> > 
+> > Ted, can you please take the ext2 + ext4 patches through your tree?  Dave,
+> > can you please take the rest through the XFS tree?
 > 
-> Signed-off-by: Jan Kara <jack@suse.cz>
-> ---
->  fs/dax.c    | 22 ++++++++++++++++------
->  mm/memory.c |  2 +-
->  2 files changed, 17 insertions(+), 7 deletions(-)
+> That will make merging this difficult, because later patches in the
+> series are dependent on the ext2/ext4 patches early in the series.
+> I'd much prefer they all go through the one tree to avoid issues
+> like this.
+
+I think that at least some of the ext2 patches at least will be merged in v4.9
+through Ted's tree because they are just bugfixes.  For whatever is left I'm
+happy to have it merged to v4.10 through the XFS tree, thank you.
+
+> > 
+> > Changes since v3:
+> >  - Corrected dax iomap code namespace for functions defined in fs/dax.c.
+> >    (Dave Chinner)
+> >  - Added leading "dax" namespace to new static functions in fs/dax.c.
+> >    (Dave Chinner)
+> >  - Made all DAX PMD code in fs/dax.c conditionally compiled based on
+> >    CONFIG_FS_DAX_PMD.  Otherwise a stub in include/linux/dax.h that just
+> >    returns VM_FAULT_FALLBACK will be used.  (Dave Chinner)
+> >  - Removed dynamic debugging messages from DAX PMD fault path.  Debugging
+> >    tracepoints will be added later to both the PTE and PMD paths via a
+> >    later patch set. (Dave Chinner)
+> >  - Added a comment to ext2_dax_vm_ops explaining why we don't support DAX
+> >    PMD faults in ext2. (Dave Chinner)
+> > 
+> > This was built upon xfs/for-next with PMD performance fixes from Toshi Kani
+> > and Dan Williams.  Dan's patch has already been merged for v4.8, and
+> > Toshi's patches are currently queued in Andrew Morton's mm tree for v4.9
+> > inclusion.
 > 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index c6cadf8413a3..a2d3781c9f4e 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -1163,17 +1163,27 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
->  {
->  	struct file *file = vma->vm_file;
->  	struct address_space *mapping = file->f_mapping;
-> -	void *entry;
-> +	void *entry, **slot;
->  	pgoff_t index = vmf->pgoff;
->  
->  	spin_lock_irq(&mapping->tree_lock);
-> -	entry = get_unlocked_mapping_entry(mapping, index, NULL);
-> -	if (!entry || !radix_tree_exceptional_entry(entry))
-> -		goto out;
-> +	entry = get_unlocked_mapping_entry(mapping, index, &slot);
-> +	if (!entry || !radix_tree_exceptional_entry(entry)) {
-> +		if (entry)
-> +			put_unlocked_mapping_entry(mapping, index, entry);
+> the xfs/for-next branch is not a stable branch - it can rebase at
+> any time just like linux-next can. The topic branches that I merge
+> into the for-next branch, OTOH, are usually stable. i.e. The topic
+> branch you should be basing this on is "iomap-4.9-dax".
 
-I don't think you need this call to put_unlocked_mapping_entry().  If we get
-in here we know that 'entry' is a page cache page, in which case
-put_unlocked_mapping_entry() will just return without doing any work.
+Thanks, I didn't realize that.  I'll rebase onto iomap-4.9-dax, then on a
+v4.9-rc when things become more stable.
 
-With that nit & the spelling error above:
+> And then you'll also see that there are already ext2 patches in this
+> topic branch to convert it to iomap for DAX. So I'm quite happy to
+> take the ext2/4 patches in this series in the same way.
+> 
+> The patches from Dan and Toshi: is you patch series dependent on
+> them? Do I need to take them as well?
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Nope, Dan and Toshi's patches are just performance fixes, and should be merged
+through other trees for v4.9.
+
+> > Previously reported performance numbers:
+> > 
+> >   [global]
+> >   bs=4k
+> >   size=2G
+> >   directory=/mnt/pmem0
+> >   ioengine=mmap
+> >   [randrw]
+> >   rw=randrw
+> > 
+> > Here are the performance results with XFS using only pte faults:
+> >    READ: io=1022.7MB, aggrb=557610KB/s, minb=557610KB/s, maxb=557610KB/s, mint=1878msec, maxt=1878msec
+> >   WRITE: io=1025.4MB, aggrb=559084KB/s, minb=559084KB/s, maxb=559084KB/s, mint=1878msec, maxt=1878msec
+> > 
+> > Here are performance numbers for that same test using PMD faults:
+> >    READ: io=1022.7MB, aggrb=1406.7MB/s, minb=1406.7MB/s, maxb=1406.7MB/s, mint=727msec, maxt=727msec
+> >   WRITE: io=1025.4MB, aggrb=1410.4MB/s, minb=1410.4MB/s, maxb=1410.4MB/s, mint=727msec, maxt=727msec
+> 
+> The numbers look good - how much of that is from lower filesystem
+> allocation overhead and how much of it is from fewer page faults?
+> You can probably determine this by creating the test file with
+> write() to ensure it is fully allocated and so all the filesystem
+> is doing on both the read and write paths is mapping allocated
+> regions....
+
+Perhaps I'm doing something wrong, but I think that the first time I run the
+test I get all allocating writes because that's when the file is first
+created.  The file stays around between runs, though, so every run thereafter
+should already have a fully allocated file, so the only overhead difference
+should be page faults?  Does this sound correct?
+
+If that's true, the performance gain seems to be almost entirely due to fewer
+page faults.  For both the 4k case and the 2M case there isn't a noticeable
+performance difference between the unallocated vs fully allocated cases.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
