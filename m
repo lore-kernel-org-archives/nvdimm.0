@@ -1,59 +1,44 @@
 From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 0/20 v3] dax: Clear dirty bits after flushing caches
-Date: Mon, 3 Oct 2016 13:13:58 +0200
-Message-ID: <20161003111358.GQ6457@quack2.suse.cz>
-References: <1474992504-20133-1-git-send-email-jack@suse.cz>
- <20160930091418.GC24352@infradead.org>
- <20161003075902.GG6457@quack2.suse.cz>
- <20161003080337.GA13688@infradead.org>
- <20161003081549.GH6457@quack2.suse.cz>
- <20161003093248.GA27720@infradead.org>
+Subject: Re: [PATCH 5/6] mm: Invalidate DAX radix tree entries only if
+ appropriate
+Date: Mon, 3 Oct 2016 14:56:43 +0200
+Message-ID: <20161003125643.GR6457@quack2.suse.cz>
+References: <1474994615-29553-1-git-send-email-jack@suse.cz>
+ <1474994615-29553-6-git-send-email-jack@suse.cz>
+ <20160930085714.GE22381@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161003093248.GA27720@infradead.org>
-Sender: owner-linux-mm@kvack.org
+In-Reply-To: <20160930085714.GE22381@infradead.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Christoph Hellwig <hch@infradead.org>
-Cc: Jan Kara <jack@suse.cz>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon 03-10-16 02:32:48, Christoph Hellwig wrote:
-> On Mon, Oct 03, 2016 at 10:15:49AM +0200, Jan Kara wrote:
-> > Yeah, so DAX path is special because it installs its own PTE directly from
-> > the fault handler which we don't do in any other case (only driver fault
-> > handlers commonly do this but those generally don't care about
-> > ->page_mkwrite or file mappings for that matter).
-> > 
-> > I don't say there are no simplifications or unifications possible, but I'd
-> > prefer to leave them for a bit later once the current churn with ongoing
-> > work somewhat settles...
+On Fri 30-09-16 01:57:14, Christoph Hellwig wrote:
+> On Tue, Sep 27, 2016 at 06:43:34PM +0200, Jan Kara wrote:
+> > Currently invalidate_inode_pages2_range() and invalidate_mapping_pages()
+> > just delete all exceptional radix tree entries they find. For DAX this
+> > is not desirable as we track cache dirtiness in these entries and when
+> > they are evicted, we may not flush caches although it is necessary. This
+> > can for example manifest when we write to the same block both via mmap
+> > and via write(2) (to different offsets) and fsync(2) then does not
+> > properly flush CPU caches when modification via write(2) was the last
+> > one.
 > 
-> Allright, let's keep it simple for now.  Being said this series clearly
-> is 4.9 material, but any chance to get a respin of the invalidate_pages
+> Can you come up with an xfstests test case for these data loss cases?
 
-Agreed (actually 4.10).
-
-> series as that might still be 4.8 material?
-
-The problem with invalidate_pages series is that it depends on the ability
-to clear the dirty bits in the radix tree of DAX mappings (i.e. the first
-series). Otherwise radix tree entries that get once dirty can never be safely
-evicted, invalidate_inode_pages2_range() will keep returning EBUSY and
-callers get confused (I've tried that few weeks ago).
-
-If I dropped patch 5/6 for 4.9 merge (i.e., we would still happily discard
-dirty radix tree entries from invalidate_inode_pages2_range()), things
-would run fine, just fsync() may miss to flush caches for some pages. I'm
-not sure that's much better than current status quo though. Thoughts?
+I'm not sure how to easily do this. For DAX to be enabled, we need
+memory-like storage so there's no easy way to intercept writes that may be
+only in CPU caches but not in the persistent memory. Eventually we may want
+to write a DAX flush testing driver - something like ramdisk but that would
+keep "cached" and "persistent" version of each page and on wb_cache_pmem()
+copy one version to the other. We'd also need to hook into
+copy_from_iter_nocache() and stuff to make cache-avoiding writes behave as
+expected but all in all it should be doable...
 
 								Honza
 -- 
 Jan Kara <jack@suse.com>
 SUSE Labs, CR
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
