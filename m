@@ -1,40 +1,61 @@
-From: Jan Kara <jack@suse.cz>
+From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: [PATCH 4/6] xfs: Set BH_New for allocated DAX blocks in
  __xfs_get_blocks()
-Date: Mon, 3 Oct 2016 16:42:46 +0200
-Message-ID: <20161003144246.GA14183@quack2.suse.cz>
+Date: Mon, 3 Oct 2016 16:44:43 +0200
+Message-ID: <20161003144443.GB14183@quack2.suse.cz>
 References: <1474994615-29553-1-git-send-email-jack@suse.cz>
  <1474994615-29553-5-git-send-email-jack@suse.cz>
  <20160927170118.GA15908@infradead.org>
  <20160927171707.GA30327@quack2.suse.cz>
- <20160928021350.GA11309@infradead.org>
+ <20160928002255.GG9806@dastard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160928021350.GA11309@infradead.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
+In-Reply-To: <20160928002255.GG9806@dastard>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
+Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue 27-09-16 19:13:50, Christoph Hellwig wrote:
+On Wed 28-09-16 10:22:55, Dave Chinner wrote:
 > On Tue, Sep 27, 2016 at 07:17:07PM +0200, Jan Kara wrote:
+> > On Tue 27-09-16 10:01:18, Christoph Hellwig wrote:
+> > > On Tue, Sep 27, 2016 at 06:43:33PM +0200, Jan Kara wrote:
+> > > > So far we did not set BH_New for newly allocated blocks for DAX inodes
+> > > > in __xfs_get_blocks() because we wanted to avoid zeroing done in generic
+> > > > DAX code which was racy. Now the zeroing is gone so we can remove this
+> > > > workaround and return BH_New for newly allocated blocks. DAX will use this
+> > > > information to properly update mappings of the file.
+> > > 
+> > > __xfs_get_blocks isn't used by the DAX code any more.
+> > > xfs_file_iomap_begin should already be doing the right thing for now.
+> > 
 > > OK, the changelog is stale but I actually took care to integrate this with
 > > your iomap patches and for the new invalidation code in iomap_dax_actor()
 > > to work we need this additional information...
 > 
-> It's not just the changelogs (which will need updates on more than this
-> patch), but also the content.  We're not using get_blocks for DAX
-> anymore, so this patch should not be needed anymore.
+> So this applies to the iomap-4.9-dax branch in the XFS tree?
 
-Ah, you are right. After reading the code again this patch is not needed
-anymore because xfs_file_iomap_begin() returns IOMAP_F_NEW whenever we
-allocated block regardless whether it was zeroed-out or not. But if I get it
-right, all the IS_DAX checks in __xfs_get_blocks() can be dropped now, cannot
-they?
+Yes.
+
+> https://git.kernel.org/cgit/linux/kernel/git/dgc/linux-xfs.git/log/?h=iomap-4.9-dax
+> 
+> i.e. Do I need to merge the patchset with that branch?
+
+This patch series cannot be immediately applied as it functionally depends
+on the patches to allow safe clearing of dirty bits in DAX mappings.
 
 								Honza
 -- 
-Jan Kara <jack@suse.com>
+Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
 SUSE Labs, CR
