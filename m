@@ -1,13 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4B5C01A1E34
- for <linux-nvdimm@lists.01.org>; Sun,  9 Oct 2016 17:36:21 -0700 (PDT)
-From: Haozhong Zhang <haozhong.zhang@intel.com>
-Subject: [RFC NDCTL PATCH] ndctl: add support for Xen mode namespace
-Date: Mon, 10 Oct 2016 08:36:02 +0800
-Message-Id: <20161010003602.4513-1-haozhong.zhang@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 43C931A1E4D
+ for <linux-nvdimm@lists.01.org>; Mon,  3 Oct 2016 02:56:48 -0700 (PDT)
+Date: Mon, 3 Oct 2016 11:56:46 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v4 08/12] dax: remove dax_pmd_fault()
+Message-ID: <20161003095646.GN6457@quack2.suse.cz>
+References: <1475189370-31634-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1475189370-31634-9-git-send-email-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1475189370-31634-9-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,133 +20,286 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, xen-devel@lists.xenproject.org
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support to create the Xen mode namespace which turns the underlying
-pfn device into PFN_MODE_XEN.
+On Thu 29-09-16 16:49:26, Ross Zwisler wrote:
+> dax_pmd_fault() is the old struct buffer_head + get_block_t based 2 MiB DAX
+> fault handler.  This fault handler has been disabled for several kernel
+> releases, and support for PMDs will be reintroduced using the struct iomap
+> interface instead.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Signed-off-by: Haozhong Zhang <haozhong.zhang@intel.com>
----
- ndctl/builtin-xaction-namespace.c | 7 ++++++-
- ndctl/lib/libndctl.c              | 6 ++++++
- ndctl/libndctl.h.in               | 2 ++
- ndctl/util/json.c                 | 4 ++++
- 4 files changed, 18 insertions(+), 1 deletion(-)
+Looks good. You can add:
 
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
-index 9b1702d..f60551d 100644
---- a/ndctl/builtin-xaction-namespace.c
-+++ b/ndctl/builtin-xaction-namespace.c
-@@ -176,6 +176,8 @@ static int set_defaults(enum namespace_action mode)
- 			/* pass */;
- 		else if (strcmp(param.map, "dev") == 0)
- 			/* pass */;
-+		else if (strcmp(param.map, "xen") == 0)
-+			/* pass */;
- 		else {
- 			error("invalid map location '%s'\n", param.map);
- 			rc = -EINVAL;
-@@ -292,7 +294,8 @@ static bool do_setup_pfn(struct ndctl_namespace *ndns,
- 	 * array in device memory.
- 	 */
- 	if (!ndns || ndctl_namespace_get_mode(ndns) != NDCTL_NS_MODE_MEMORY
--			|| p->loc == NDCTL_PFN_LOC_PMEM)
-+			|| p->loc == NDCTL_PFN_LOC_PMEM
-+			|| p->loc == NDCTL_PFN_LOC_XEN)
- 		return true;
- 
- 	return false;
-@@ -486,6 +489,8 @@ static int validate_namespace_options(struct ndctl_region *region,
- 	if (param.map) {
- 		if (!strcmp(param.map, "mem"))
- 			p->loc = NDCTL_PFN_LOC_RAM;
-+		else if (!strcmp(param.map, "xen"))
-+			p->loc = NDCTL_PFN_LOC_XEN;
- 		else
- 			p->loc = NDCTL_PFN_LOC_PMEM;
- 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 14bf217..35882db 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -3015,6 +3015,8 @@ NDCTL_EXPORT enum ndctl_namespace_mode ndctl_namespace_get_mode(
- 		return NDCTL_NS_MODE_RAW;
- 	if (strcmp("safe", buf) == 0)
- 		return NDCTL_NS_MODE_SAFE;
-+	if (strcmp("xen", buf) == 0)
-+		return NDCTL_NS_MODE_XEN;
- 	return -ENXIO;
- }
- 
-@@ -3998,6 +4000,8 @@ static int __add_pfn(struct ndctl_pfn *pfn, const char *pfn_base)
- 		pfn->loc = NDCTL_PFN_LOC_RAM;
- 	else if (strcmp(buf, "pmem") == 0)
- 		pfn->loc = NDCTL_PFN_LOC_PMEM;
-+	else if (strcmp(buf, "xen") == 0)
-+		pfn->loc = NDCTL_PFN_LOC_XEN;
- 	else
- 		goto err_read;
- 
-@@ -4190,12 +4194,14 @@ NDCTL_EXPORT int ndctl_pfn_set_location(struct ndctl_pfn *pfn,
- 		[NDCTL_PFN_LOC_NONE] = "none",
- 		[NDCTL_PFN_LOC_RAM] = "ram",
- 		[NDCTL_PFN_LOC_PMEM] = "pmem",
-+		[NDCTL_PFN_LOC_XEN] = "xen",
- 	};
- 
- 	switch (loc) {
- 	case NDCTL_PFN_LOC_NONE:
- 	case NDCTL_PFN_LOC_RAM:
- 	case NDCTL_PFN_LOC_PMEM:
-+	case NDCTL_PFN_LOC_XEN:
- 		break;
- 	default:
- 		return -EINVAL;
-diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
-index 803368b..7d61e32 100644
---- a/ndctl/libndctl.h.in
-+++ b/ndctl/libndctl.h.in
-@@ -472,6 +472,7 @@ enum ndctl_namespace_mode {
- 	NDCTL_NS_MODE_SAFE,
- 	NDCTL_NS_MODE_RAW,
- 	NDCTL_NS_MODE_DAX,
-+	NDCTL_NS_MODE_XEN,
- };
- enum ndctl_namespace_mode ndctl_namespace_get_mode(
- 		struct ndctl_namespace *ndns);
-@@ -560,6 +561,7 @@ enum ndctl_pfn_loc {
- 	NDCTL_PFN_LOC_NONE,
- 	NDCTL_PFN_LOC_RAM,
- 	NDCTL_PFN_LOC_PMEM,
-+	NDCTL_PFN_LOC_XEN,
- };
- int ndctl_pfn_set_location(struct ndctl_pfn *pfn, enum ndctl_pfn_loc loc);
- enum ndctl_pfn_loc ndctl_pfn_get_location(struct ndctl_pfn *pfn);
-diff --git a/ndctl/util/json.c b/ndctl/util/json.c
-index 82e677c..8083219 100644
---- a/ndctl/util/json.c
-+++ b/ndctl/util/json.c
-@@ -188,6 +188,10 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 		size = ndctl_namespace_get_size(ndns);
- 		jobj = json_object_new_string("raw");
- 		break;
-+	case NDCTL_NS_MODE_XEN:
-+		size = ndctl_namespace_get_size(ndns);
-+		jobj = json_object_new_string("xen");
-+		break;
- 	default:
- 		jobj = NULL;
- 	}
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
+> ---
+>  fs/dax.c            | 213 ----------------------------------------------------
+>  include/linux/dax.h |   6 +-
+>  2 files changed, 1 insertion(+), 218 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 406feea..b5e7b13 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -909,219 +909,6 @@ int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+>  }
+>  EXPORT_SYMBOL_GPL(dax_fault);
+>  
+> -#if defined(CONFIG_TRANSPARENT_HUGEPAGE)
+> -/*
+> - * The 'colour' (ie low bits) within a PMD of a page offset.  This comes up
+> - * more often than one might expect in the below function.
+> - */
+> -#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
+> -
+> -static void __dax_dbg(struct buffer_head *bh, unsigned long address,
+> -		const char *reason, const char *fn)
+> -{
+> -	if (bh) {
+> -		char bname[BDEVNAME_SIZE];
+> -		bdevname(bh->b_bdev, bname);
+> -		pr_debug("%s: %s addr: %lx dev %s state %lx start %lld "
+> -			"length %zd fallback: %s\n", fn, current->comm,
+> -			address, bname, bh->b_state, (u64)bh->b_blocknr,
+> -			bh->b_size, reason);
+> -	} else {
+> -		pr_debug("%s: %s addr: %lx fallback: %s\n", fn,
+> -			current->comm, address, reason);
+> -	}
+> -}
+> -
+> -#define dax_pmd_dbg(bh, address, reason)	__dax_dbg(bh, address, reason, "dax_pmd")
+> -
+> -/**
+> - * dax_pmd_fault - handle a PMD fault on a DAX file
+> - * @vma: The virtual memory area where the fault occurred
+> - * @vmf: The description of the fault
+> - * @get_block: The filesystem method used to translate file offsets to blocks
+> - *
+> - * When a page fault occurs, filesystems may call this helper in their
+> - * pmd_fault handler for DAX files.
+> - */
+> -int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+> -		pmd_t *pmd, unsigned int flags, get_block_t get_block)
+> -{
+> -	struct file *file = vma->vm_file;
+> -	struct address_space *mapping = file->f_mapping;
+> -	struct inode *inode = mapping->host;
+> -	struct buffer_head bh;
+> -	unsigned blkbits = inode->i_blkbits;
+> -	unsigned long pmd_addr = address & PMD_MASK;
+> -	bool write = flags & FAULT_FLAG_WRITE;
+> -	struct block_device *bdev;
+> -	pgoff_t size, pgoff;
+> -	sector_t block;
+> -	int result = 0;
+> -	bool alloc = false;
+> -
+> -	/* dax pmd mappings require pfn_t_devmap() */
+> -	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
+> -		return VM_FAULT_FALLBACK;
+> -
+> -	/* Fall back to PTEs if we're going to COW */
+> -	if (write && !(vma->vm_flags & VM_SHARED)) {
+> -		split_huge_pmd(vma, pmd, address);
+> -		dax_pmd_dbg(NULL, address, "cow write");
+> -		return VM_FAULT_FALLBACK;
+> -	}
+> -	/* If the PMD would extend outside the VMA */
+> -	if (pmd_addr < vma->vm_start) {
+> -		dax_pmd_dbg(NULL, address, "vma start unaligned");
+> -		return VM_FAULT_FALLBACK;
+> -	}
+> -	if ((pmd_addr + PMD_SIZE) > vma->vm_end) {
+> -		dax_pmd_dbg(NULL, address, "vma end unaligned");
+> -		return VM_FAULT_FALLBACK;
+> -	}
+> -
+> -	pgoff = linear_page_index(vma, pmd_addr);
+> -	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+> -	if (pgoff >= size)
+> -		return VM_FAULT_SIGBUS;
+> -	/* If the PMD would cover blocks out of the file */
+> -	if ((pgoff | PG_PMD_COLOUR) >= size) {
+> -		dax_pmd_dbg(NULL, address,
+> -				"offset + huge page size > file size");
+> -		return VM_FAULT_FALLBACK;
+> -	}
+> -
+> -	memset(&bh, 0, sizeof(bh));
+> -	bh.b_bdev = inode->i_sb->s_bdev;
+> -	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
+> -
+> -	bh.b_size = PMD_SIZE;
+> -
+> -	if (get_block(inode, block, &bh, 0) != 0)
+> -		return VM_FAULT_SIGBUS;
+> -
+> -	if (!buffer_mapped(&bh) && write) {
+> -		if (get_block(inode, block, &bh, 1) != 0)
+> -			return VM_FAULT_SIGBUS;
+> -		alloc = true;
+> -		WARN_ON_ONCE(buffer_unwritten(&bh) || buffer_new(&bh));
+> -	}
+> -
+> -	bdev = bh.b_bdev;
+> -
+> -	if (bh.b_size < PMD_SIZE) {
+> -		dax_pmd_dbg(&bh, address, "allocated block too small");
+> -		return VM_FAULT_FALLBACK;
+> -	}
+> -
+> -	/*
+> -	 * If we allocated new storage, make sure no process has any
+> -	 * zero pages covering this hole
+> -	 */
+> -	if (alloc) {
+> -		loff_t lstart = pgoff << PAGE_SHIFT;
+> -		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
+> -
+> -		truncate_pagecache_range(inode, lstart, lend);
+> -	}
+> -
+> -	if (!write && !buffer_mapped(&bh)) {
+> -		spinlock_t *ptl;
+> -		pmd_t entry;
+> -		struct page *zero_page = get_huge_zero_page();
+> -
+> -		if (unlikely(!zero_page)) {
+> -			dax_pmd_dbg(&bh, address, "no zero page");
+> -			goto fallback;
+> -		}
+> -
+> -		ptl = pmd_lock(vma->vm_mm, pmd);
+> -		if (!pmd_none(*pmd)) {
+> -			spin_unlock(ptl);
+> -			dax_pmd_dbg(&bh, address, "pmd already present");
+> -			goto fallback;
+> -		}
+> -
+> -		dev_dbg(part_to_dev(bdev->bd_part),
+> -				"%s: %s addr: %lx pfn: <zero> sect: %llx\n",
+> -				__func__, current->comm, address,
+> -				(unsigned long long) to_sector(&bh, inode));
+> -
+> -		entry = mk_pmd(zero_page, vma->vm_page_prot);
+> -		entry = pmd_mkhuge(entry);
+> -		set_pmd_at(vma->vm_mm, pmd_addr, pmd, entry);
+> -		result = VM_FAULT_NOPAGE;
+> -		spin_unlock(ptl);
+> -	} else {
+> -		struct blk_dax_ctl dax = {
+> -			.sector = to_sector(&bh, inode),
+> -			.size = PMD_SIZE,
+> -		};
+> -		long length = dax_map_atomic(bdev, &dax);
+> -
+> -		if (length < 0) {
+> -			dax_pmd_dbg(&bh, address, "dax-error fallback");
+> -			goto fallback;
+> -		}
+> -		if (length < PMD_SIZE) {
+> -			dax_pmd_dbg(&bh, address, "dax-length too small");
+> -			dax_unmap_atomic(bdev, &dax);
+> -			goto fallback;
+> -		}
+> -		if (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR) {
+> -			dax_pmd_dbg(&bh, address, "pfn unaligned");
+> -			dax_unmap_atomic(bdev, &dax);
+> -			goto fallback;
+> -		}
+> -
+> -		if (!pfn_t_devmap(dax.pfn)) {
+> -			dax_unmap_atomic(bdev, &dax);
+> -			dax_pmd_dbg(&bh, address, "pfn not in memmap");
+> -			goto fallback;
+> -		}
+> -		dax_unmap_atomic(bdev, &dax);
+> -
+> -		/*
+> -		 * For PTE faults we insert a radix tree entry for reads, and
+> -		 * leave it clean.  Then on the first write we dirty the radix
+> -		 * tree entry via the dax_pfn_mkwrite() path.  This sequence
+> -		 * allows the dax_pfn_mkwrite() call to be simpler and avoid a
+> -		 * call into get_block() to translate the pgoff to a sector in
+> -		 * order to be able to create a new radix tree entry.
+> -		 *
+> -		 * The PMD path doesn't have an equivalent to
+> -		 * dax_pfn_mkwrite(), though, so for a read followed by a
+> -		 * write we traverse all the way through dax_pmd_fault()
+> -		 * twice.  This means we can just skip inserting a radix tree
+> -		 * entry completely on the initial read and just wait until
+> -		 * the write to insert a dirty entry.
+> -		 */
+> -		if (write) {
+> -			/*
+> -			 * We should insert radix-tree entry and dirty it here.
+> -			 * For now this is broken...
+> -			 */
+> -		}
+> -
+> -		dev_dbg(part_to_dev(bdev->bd_part),
+> -				"%s: %s addr: %lx pfn: %lx sect: %llx\n",
+> -				__func__, current->comm, address,
+> -				pfn_t_to_pfn(dax.pfn),
+> -				(unsigned long long) dax.sector);
+> -		result |= vmf_insert_pfn_pmd(vma, address, pmd,
+> -				dax.pfn, write);
+> -	}
+> -
+> - out:
+> -	return result;
+> -
+> - fallback:
+> -	count_vm_event(THP_FAULT_FALLBACK);
+> -	result = VM_FAULT_FALLBACK;
+> -	goto out;
+> -}
+> -EXPORT_SYMBOL_GPL(dax_pmd_fault);
+> -#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+> -
+>  /**
+>   * dax_pfn_mkwrite - handle first write to DAX page
+>   * @vma: The virtual memory area where the fault occurred
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 4065601..d9a8350 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -48,16 +48,12 @@ static inline int __dax_zero_page_range(struct block_device *bdev,
+>  }
+>  #endif
+>  
+> -#if defined(CONFIG_TRANSPARENT_HUGEPAGE)
+> -int dax_pmd_fault(struct vm_area_struct *, unsigned long addr, pmd_t *,
+> -				unsigned int flags, get_block_t);
+> -#else
+>  static inline int dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+>  				pmd_t *pmd, unsigned int flags, get_block_t gb)
+>  {
+>  	return VM_FAULT_FALLBACK;
+>  }
+> -#endif
+> +
+>  int dax_pfn_mkwrite(struct vm_area_struct *, struct vm_fault *);
+>  #define dax_mkwrite(vma, vmf, gb)	dax_fault(vma, vmf, gb)
+>  
+> -- 
+> 2.7.4
+> 
+> 
 -- 
-2.10.1
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
