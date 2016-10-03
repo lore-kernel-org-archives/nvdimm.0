@@ -1,18 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 646191A1E4D
- for <linux-nvdimm@lists.01.org>; Mon,  3 Oct 2016 16:05:08 -0700 (PDT)
-Date: Mon, 3 Oct 2016 17:05:06 -0600
+ by ml01.01.org (Postfix) with ESMTPS id 307A71A1E4D
+ for <linux-nvdimm@lists.01.org>; Mon,  3 Oct 2016 14:11:13 -0700 (PDT)
+Date: Mon, 3 Oct 2016 15:11:11 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH v4 00/12] re-enable DAX PMD support
-Message-ID: <20161003230506.GA15947@linux.intel.com>
+Message-ID: <20161003211111.GB28177@linux.intel.com>
 References: <1475189370-31634-1-git-send-email-ross.zwisler@linux.intel.com>
  <20160929234345.GG27872@dastard>
+ <20160930030343.GA12464@linux.intel.com>
+ <20160930064858.GJ27872@dastard>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20160929234345.GG27872@dastard>
+In-Reply-To: <20160930064858.GJ27872@dastard>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,96 +30,172 @@ To: Dave Chinner <david@fromorbit.com>
 Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Sep 30, 2016 at 09:43:45AM +1000, Dave Chinner wrote:
-> On Thu, Sep 29, 2016 at 04:49:18PM -0600, Ross Zwisler wrote:
-> > DAX PMDs have been disabled since Jan Kara introduced DAX radix tree based
-> > locking.  This series allows DAX PMDs to participate in the DAX radix tree
-> > based locking scheme so that they can be re-enabled.
+On Fri, Sep 30, 2016 at 04:48:58PM +1000, Dave Chinner wrote:
+> On Thu, Sep 29, 2016 at 09:03:43PM -0600, Ross Zwisler wrote:
+> > On Fri, Sep 30, 2016 at 09:43:45AM +1000, Dave Chinner wrote:
+> > > Finally: none of the patches in your tree have reviewed-by tags.
+> > > That says to me that none of this code has been reviewed yet.
+> > > Reviewed-by tags are non-negotiable requirement for anything going
+> > > through my trees. I don't have time right now to review this code,
+> > > so you're going to need to chase up other reviewers before merging.
+> > > 
+> > > And, really, this is getting very late in the cycle to be merging
+> > > new code - we're less than one working day away from the merge
+> > > window opening and we've missed the last linux-next build. I'd
+> > > suggest that we'd might be best served by slipping this to the PMD
+> > > support code to the next cycle when there's no time pressure for
+> > > review and we can get a decent linux-next soak on the code.
 > > 
-> > Ted, can you please take the ext2 + ext4 patches through your tree?  Dave,
-> > can you please take the rest through the XFS tree?
+> > I absolutely support your policy of only sending code to Linux that has passed
+> > peer review.
+> > 
+> > However, I do feel compelled to point out that this is not new code.  I didn't
+> > just spring it on everyone in the hours before the v4.8 merge window.  I
+> > posted the first version of this patch set on August 15th, *seven weeks ago*:
+> > 
+> > https://lkml.org/lkml/2016/8/15/613
+> >
+> > This was the day after v4.7-rc2 was released.
 > 
-> That will make merging this difficult, because later patches in the
-> series are dependent on the ext2/ext4 patches early in the series.
-> I'd much prefer they all go through the one tree to avoid issues
-> like this.
-
-I think that at least some of the ext2 patches at least will be merged in v4.9
-through Ted's tree because they are just bugfixes.  For whatever is left I'm
-happy to have it merged to v4.10 through the XFS tree, thank you.
-
-> > 
-> > Changes since v3:
-> >  - Corrected dax iomap code namespace for functions defined in fs/dax.c.
-> >    (Dave Chinner)
-> >  - Added leading "dax" namespace to new static functions in fs/dax.c.
-> >    (Dave Chinner)
-> >  - Made all DAX PMD code in fs/dax.c conditionally compiled based on
-> >    CONFIG_FS_DAX_PMD.  Otherwise a stub in include/linux/dax.h that just
-> >    returns VM_FAULT_FALLBACK will be used.  (Dave Chinner)
-> >  - Removed dynamic debugging messages from DAX PMD fault path.  Debugging
-> >    tracepoints will be added later to both the PTE and PMD paths via a
-> >    later patch set. (Dave Chinner)
-> >  - Added a comment to ext2_dax_vm_ops explaining why we don't support DAX
-> >    PMD faults in ext2. (Dave Chinner)
-> > 
-> > This was built upon xfs/for-next with PMD performance fixes from Toshi Kani
-> > and Dan Williams.  Dan's patch has already been merged for v4.8, and
-> > Toshi's patches are currently queued in Andrew Morton's mm tree for v4.9
-> > inclusion.
+> I understand, Ross. We've all been there - welcome to the club. :/
 > 
-> the xfs/for-next branch is not a stable branch - it can rebase at
-> any time just like linux-next can. The topic branches that I merge
-> into the for-next branch, OTOH, are usually stable. i.e. The topic
-> branch you should be basing this on is "iomap-4.9-dax".
-
-Thanks, I didn't realize that.  I'll rebase onto iomap-4.9-dax, then on a
-v4.9-rc when things become more stable.
-
-> And then you'll also see that there are already ext2 patches in this
-> topic branch to convert it to iomap for DAX. So I'm quite happy to
-> take the ext2/4 patches in this series in the same way.
+> The problem is there are lots of people writing code and very few
+> people who spent time reviewing it. And for many of those reviewers,
+> they also have to spend time on other code bases, whether it be the
+> distro's they maintain, the userspace that the kernel code needs to
+> function, or even the test code needed to make this all work
+> properly.
 > 
-> The patches from Dan and Toshi: is you patch series dependent on
-> them? Do I need to take them as well?
-
-Nope, Dan and Toshi's patches are just performance fixes, and should be merged
-through other trees for v4.9.
-
-> > Previously reported performance numbers:
-> > 
-> >   [global]
-> >   bs=4k
-> >   size=2G
-> >   directory=/mnt/pmem0
-> >   ioengine=mmap
-> >   [randrw]
-> >   rw=randrw
-> > 
-> > Here are the performance results with XFS using only pte faults:
-> >    READ: io=1022.7MB, aggrb=557610KB/s, minb=557610KB/s, maxb=557610KB/s, mint=1878msec, maxt=1878msec
-> >   WRITE: io=1025.4MB, aggrb=559084KB/s, minb=559084KB/s, maxb=559084KB/s, mint=1878msec, maxt=1878msec
-> > 
-> > Here are performance numbers for that same test using PMD faults:
-> >    READ: io=1022.7MB, aggrb=1406.7MB/s, minb=1406.7MB/s, maxb=1406.7MB/s, mint=727msec, maxt=727msec
-> >   WRITE: io=1025.4MB, aggrb=1410.4MB/s, minb=1410.4MB/s, maxb=1410.4MB/s, mint=727msec, maxt=727msec
+> Stuff that spans multiple subsystems such as DAX (i.e. vm,
+> filesystems and block devices) are particularly troublesome in this
+> respect because there are very few people with expertise in all
+> three aspects and hence able to review a change that spans all three
+> subsystems. Those people also tend to be the busiest and have to
+> prioritise what they do.
 > 
-> The numbers look good - how much of that is from lower filesystem
-> allocation overhead and how much of it is from fewer page faults?
-> You can probably determine this by creating the test file with
-> write() to ensure it is fully allocated and so all the filesystem
-> is doing on both the read and write paths is mapping allocated
-> regions....
+> Consider the XFS side of review in recent times: in the past 4
+> months, there's been ~30,000 lines of code change between kernel and
+> userspace.  And there's already another 15,000+ lines of code in the
+> backlog for the next 2-3 months.  That review load is falling on 3-4
+> people, who all have other work to do as well. This is for work that
+> was started well over a year ago, and that picked up from work that
+> was originally done 3 years ago. We're swamped on pure XFS review
+> right now, let alone all the other infratructure stuff we need to
+> get reviewed at the same time...
+> 
+> Having someone say "lets get sorted after the merge window" is far
+> better than having your patches ignored - it tells you someone wants
+> your code and is actually planning to review it in the near term!
+> Have patience. Keep the patches up to date, keep building what you
+> need to build on top of them. Missing a merge window is not the end
+> of the world.
+> 
+> > Since then I have responded promptly to the little review feedback that I've
+> > received.  I've also reviewed and tested other DAX changes, like the struct
+> > iomap changes from Christoph.
+> 
+> And I'm grateful for your doing that - it sped the process up a lot
+> because they then weren't blocked waiting for me to get to them. As
+> a result, I owe you some review time in return but unfortunately I
+> can't fully return the favour immediately. If more people treated
+> review as a selfless act that should be returned in kind, then we
+> wouldn't have a review bottleneck like we do...
+> 
+> > Those changes were first posted to the mailing
+> > list on September 9th, four weeks after mine.  Nevertheless, I was happy to
+> > rebase my changes on top of his, which meant a full rewrite of the DAX PMD
+> > fault handler so it would be based on struct iomap.  His changes are going to
+> > be merged for v4.9, and mine are not.
+> 
+> Yes, this can happen, too - core infrastructure changes can appear
+> suddenly and be implemented very quickly, but that does not mean
+> there hasn't been a lot of background work and effort put into the
+> code. The iomap code goes way back. Back to early 2010, in fact:
+> 
+> http://lkml.iu.edu/hypermail/linux/kernel/1005.1/02720.html
+> 
+> At that time I implemented a working multipage write IO path for
+> XFS, and Christoph integrated that int various OEM products shortly
+> afterwards. Yes, there have been iomap based XFS implementations out
+> there in production for over 5 years now, but that code was not
+> clean enough to even consider merging.
+> 
+> Another reference in 2013, when someone proposed a hack for embedded
+> systems to optimise the write path:
+> 
+> https://lkml.org/lkml/2013/7/23/809
+> 
+> Then Christoph introduced the struct iomap for pNFS and the XFS
+> block layout driver in late 2013, and when DAX first came along I
+> really wanted iomaps to be used up front rather than buffer heads
+> for block mapping.
+> 
+> Now we've finally got iomaps in the IO path and that's rapidly
+> cascading through all the XFS IO interfaces and into other
+> filesystems. This is exactly what we first talked about 6 years ago.
+> 
+> So while it might look like the iomap infrastructure has come out of
+> nowhere, it's really been a long, long road to get to this point. We
+> work to a different time scale over here - it's not uncommon to be
+> planning 5 years ahead for new XFS features. We know how long it
+> takes to develop, test, review and stabilise significant new
+> features, so while it might look like something appears and is
+> committed quickly, that's because you haven't seen the work that has
+> been done leading up to patches being presented for review and
+> merge.
+> 
+> Hopefully this will give you some more perspective on why I think
+> slipping a single release isn't something to get worried about. :)
+> 
+> > Please, help me understand what I can do to get my code reviewed.  Do I need
+> > to more aggressively ping my patch series, asking people by name for reviews?
+> 
+> On the XFS and fstests lists, if nobody has responded within a few
+> days (usually a week) then it's OK to ping it and see if anyone has
+> time to review it. In general, a single ping is enough if the
+> patchset is in good shape. Fix it all, repost, ping in a week if
+> there's no followup. Repeat until merge.
+> 
+> > Do we need to rework our code flow to Linus so that the DAX changes go through
+> > a filesystem tree like XFS or ext4, and ask the developers of that filesystem
+> > to help with reviews?  Something else?
+> 
+> The question we have to ask here is whether a lack of development
+> support from a filesystem stop us from driving the DAX
+> implementation forward?  I've said it before, and I'll say it again:
+> I'm happy to drive DAX on XFS forwards at the rate at which we can
+> sustain review via the XFS tree and I don't care if we break support
+> on ext2 or ext4. If we keep having to wait for ext4 to fix stuff to
+> catch up with what we want/need to do then progress will continue to
+> be sporadic and frustrating.  Perhaps it's time to stop waiting for
+> ext4 to play catchup every time we take a step forwards....
+> 
+> > I'm honestly very frustrated by this because I've done my best to be open to
+> > constructive criticism and I've tried to respond promptly to the feedback that
+> > I've received.  In the end, though, a system where it's a requirement that all
+> > upstreamed code be peer reviewed but in which I can't get any feedback is
+> > essentially a system where I'm not allowed to contribute.
+> 
+> There's always been a review bottleneck, and everyone ends up on the
+> end of that frustration from time to time. Delays will happen - it's
+> just part of the process we all need to deal with. I used to get
+> frustrated, too, but now I just accept it, roll with it and we've
+> made it an acceptible part of the process to ping patches when it
+> looks like they have been forgotten...
+> 
+> Cheers,
+> 
+> Dave.
+> -- 
+> Dave Chinner
+> david@fromorbit.com
 
-Perhaps I'm doing something wrong, but I think that the first time I run the
-test I get all allocating writes because that's when the file is first
-created.  The file stays around between runs, though, so every run thereafter
-should already have a fully allocated file, so the only overhead difference
-should be page faults?  Does this sound correct?
+Thank you for the advice and perspective, Dave.  :)
 
-If that's true, the performance gain seems to be almost entirely due to fewer
-page faults.  For both the 4k case and the 2M case there isn't a noticeable
-performance difference between the unallocated vs fully allocated cases.
+I've gotten a bunch of review feedback from Christoph and Jan (thank you!), so
+I'm busily addressing that.  Since we're now targeting v4.10 I'll also
+incorporate tracepoints so we can observe what's going on in our various fault
+paths.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
