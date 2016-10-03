@@ -1,39 +1,53 @@
 From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 02/20] mm: Join struct fault_env and vm_fault
-Date: Mon, 3 Oct 2016 09:43:51 +0200
-Message-ID: <20161003074351.GF6457@quack2.suse.cz>
+Subject: Re: [PATCH 0/20 v3] dax: Clear dirty bits after flushing caches
+Date: Mon, 3 Oct 2016 09:59:02 +0200
+Message-ID: <20161003075902.GG6457@quack2.suse.cz>
 References: <1474992504-20133-1-git-send-email-jack@suse.cz>
- <1474992504-20133-3-git-send-email-jack@suse.cz>
- <20160930091014.GB24352@infradead.org>
+ <20160930091418.GC24352@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <20160930091014.GB24352@infradead.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+In-Reply-To: <20160930091418.GC24352@infradead.org>
+Sender: owner-linux-mm@kvack.org
 To: Christoph Hellwig <hch@infradead.org>
 Cc: Jan Kara <jack@suse.cz>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-Id: linux-nvdimm@lists.01.org
 
-On Fri 30-09-16 02:10:14, Christoph Hellwig wrote:
-> On Tue, Sep 27, 2016 at 06:08:06PM +0200, Jan Kara wrote:
-> > Currently we have two different structures for passing fault information
-> > around - struct vm_fault and struct fault_env. DAX will need more
-> > information in struct vm_fault to handle its faults so the content of
-> > that structure would become event closer to fault_env. Furthermore it
-> > would need to generate struct fault_env to be able to call some of the
-> > generic functions. So at this point I don't think there's much use in
-> > keeping these two structures separate. Just embed into struct vm_fault
-> > all that is needed to use it for both purposes.
+On Fri 30-09-16 02:14:18, Christoph Hellwig wrote:
+> On Tue, Sep 27, 2016 at 06:08:04PM +0200, Jan Kara wrote:
+> > Hello,
+> > 
+> > this is a third revision of my patches to clear dirty bits from radix tree of
+> > DAX inodes when caches for corresponding pfns have been flushed. This patch set
+> > is significantly larger than the previous version because I'm changing how
+> > ->fault, ->page_mkwrite, and ->pfn_mkwrite handlers may choose to handle the
+> > fault
 > 
-> Looks sensible, and I wonder why it's not been like that from
-> the start.  But given that you touched all users of the virtual_address
-> member earlier:  any reason not to move everyone to the unmasked variant
-> there and avoid having to pass the address twice?
+> Btw, is there ny good reason to keep ->fault, ->pmd_fault, page->mkwrite
+> and pfn_mkwrite separate these days?  All of them now take a struct
+> vm_fault, and the differences aren't exactly obvious for callers and
+> users.
 
-Hum, right, probably makes sense. I'll do that for the next version.
+IMO ->fault and ->pmd_fault can be merged, ->page_mkwrite and ->pfn_mkwrite
+can be merged. There were even patches flying around for that. I want to do
+that but it's not a priority now as the patch set it already large enough.
+
+I'm not sure whether merging ->fault and ->page_mkwrite would be really
+helpful and it would certainly require some non-trivial changes in the
+fault path. For example currently a write fault of a file mapping will
+result in first ->fault being called which handles the read part of the
+fault and then ->page_mkwrite is called to handle write-enabling of the
+PTE. When the handlers would be merged, calling one handler twice would be
+really strange.
 
 								Honza
 -- 
 Jan Kara <jack@suse.com>
 SUSE Labs, CR
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
