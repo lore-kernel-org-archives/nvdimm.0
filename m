@@ -1,41 +1,72 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 4/6] xfs: Set BH_New for allocated DAX blocks in
- __xfs_get_blocks()
-Date: Mon, 3 Oct 2016 09:39:46 -0700
-Message-ID: <20161003163946.GA19832@infradead.org>
-References: <1474994615-29553-1-git-send-email-jack@suse.cz>
- <1474994615-29553-5-git-send-email-jack@suse.cz>
- <20160927170118.GA15908@infradead.org>
- <20160927171707.GA30327@quack2.suse.cz>
- <20160928021350.GA11309@infradead.org>
- <20161003144246.GA14183@quack2.suse.cz>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v4 00/12] re-enable DAX PMD support
+Date: Mon, 3 Oct 2016 12:54:03 -0600
+Message-ID: <20161003185403.GD2044@linux.intel.com>
+References: <1475189370-31634-1-git-send-email-ross.zwisler@linux.intel.com>
+ <20160929234345.GG27872@dastard>
+ <20160930030343.GA12464@linux.intel.com>
+ <20160930040055.GE9309@birch.djwong.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <20161003144246.GA14183-4I4JzKEfoa/jFM9bn6wA6Q@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+In-Reply-To: <20160930040055.GE9309@birch.djwong.org>
+Sender: owner-linux-mm@kvack.org
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@ml01.01.org, linux-xfs@vger.kernel.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon, Oct 03, 2016 at 04:42:46PM +0200, Jan Kara wrote:
-> Ah, you are right. After reading the code again this patch is not needed
-> anymore because xfs_file_iomap_begin() returns IOMAP_F_NEW whenever we
-> allocated block regardless whether it was zeroed-out or not. But if I get it
-> right, all the IS_DAX checks in __xfs_get_blocks() can be dropped now, cannot
-> they?
+On Thu, Sep 29, 2016 at 09:00:55PM -0700, Darrick J. Wong wrote:
+> On Thu, Sep 29, 2016 at 09:03:43PM -0600, Ross Zwisler wrote:
+> > On Fri, Sep 30, 2016 at 09:43:45AM +1000, Dave Chinner wrote:
+> > > Finally: none of the patches in your tree have reviewed-by tags.
+> > > That says to me that none of this code has been reviewed yet.
+> > > Reviewed-by tags are non-negotiable requirement for anything going
+> > > through my trees. I don't have time right now to review this code,
+> > > so you're going to need to chase up other reviewers before merging.
+> > > 
+> > > And, really, this is getting very late in the cycle to be merging
+> > > new code - we're less than one working day away from the merge
+> > > window opening and we've missed the last linux-next build. I'd
+> > > suggest that we'd might be best served by slipping this to the PMD
+> > > support code to the next cycle when there's no time pressure for
+> > > review and we can get a decent linux-next soak on the code.
+> > 
+> > I absolutely support your policy of only sending code to Linux that has passed
+> > peer review.
+> > 
+> > However, I do feel compelled to point out that this is not new code.  I didn't
+> > just spring it on everyone in the hours before the v4.8 merge window.  I
+> > posted the first version of this patch set on August 15th, *seven weeks ago*:
+> > 
+> > https://lkml.org/lkml/2016/8/15/613
+> > 
+> > This was the day after v4.7-rc2 was released.
+> > 
+> > Since then I have responded promptly to the little review feedback
+> > that I've received.  I've also reviewed and tested other DAX changes,
+> > like the struct iomap changes from Christoph.  Those changes were
+> > first posted to the mailing list on September 9th, four weeks after
+> > mine.  Nevertheless, I was happy to rebase my changes on top of his,
+> > which meant a full rewrite of the DAX PMD fault handler so it would be
+> > based on struct iomap.  His changes are going to be merged for v4.9,
+> > and mine are not.
+> 
+> I'm not knocking the iomap migration, but it did cause a fair amount of
+> churn in the XFS reflink patchset -- and that's for a filesystem that
+> already /had/ iomap implemented.  It'd be neat to have all(?) the DAX
+> filesystems (ext[24], XFS) move over to iomap so that you wouldn't have
+> to support multiple ways of talking to FSes.  AFAICT ext4 hasn't gotten
+> iomap, which complicates things.  But that's my opinion, maybe you're
+> fine with supporting iomap and not-iomap.
 
-Right now the code is required to keep the pmd_fault handler (which
-is always disabled though) compiling.  Once that one is gone the
-DAX code in __xfs_get_blocks can be removed.  In fact Ross sent a
-patch to do just that as part of his PMD fault rework.
+I agree that we want to move everything over to be iomap based.   I think
+Christoph is already working on moving ext4 over, but as of this set PMD
+support explicitly depends on the iomap interface, and I'm itching to remove
+the struct buffer_head + get_block_t PTE path and I/O path as well.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
