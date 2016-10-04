@@ -1,16 +1,90 @@
-From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v4 10/12] dax: add struct iomap based DAX PMD support
-Date: Mon, 3 Oct 2016 15:16:38 -0600
-Message-ID: <20161003211638.GC28177@linux.intel.com>
-References: <1475189370-31634-1-git-send-email-ross.zwisler@linux.intel.com>
- <1475189370-31634-11-git-send-email-ross.zwisler@linux.intel.com>
- <20160930095627.GB5299@infradead.org>
+From: "MAILER-DAEMON" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: Data format error
+Date: Tue, 4 Oct 2016 11:56:56 +0530
+Message-ID: <20161004062801.7E9911A1E8C@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: multipart/mixed; boundary="----------=_57F34C03.ECE47E61"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_57F34C03.ECE47E61
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20160930095627.GB5299-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  Your message was not delivered due to the following reason(s):
+   Your message was not delivered because the destination server was unreachable
+   within the allowed queue period. The amount of time a message is queued before
+   it is returned depends on local configura- tion parameters. [...] 
+
+Content analysis details:   (6.6 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+ 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
+                            [103.204.166.162 listed in dnsbl.sorbs.net]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 0.1 RCVD_IN_SBL            RBL: Received via a relay in Spamhaus SBL
+                            [103.204.166.162 listed in zen.spamhaus.org]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+-0.5 BAYES_05               BODY: Bayes spam probability is 1 to 5%
+                            [score: 0.0398]
+ 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
+ 2.6 MSOE_MID_WRONG_CASE    No description available.
+ 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
+
+
+
+------------=_57F34C03.ECE47E61
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1brJCq-0003sd-0W
+	for gln-linux-nvdimm@m.gmane.org; Tue, 04 Oct 2016 08:28:00 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 7E9911A1E8C;
+	Mon,  3 Oct 2016 23:28:01 -0700 (PDT)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from lists.01.org (unknown [103.204.166.162])
+ by ml01.01.org (Postfix) with ESMTP id 60B0D1A1E8C
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Mon,  3 Oct 2016 23:27:58 -0700 (PDT)
+From: "MAILER-DAEMON" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Subject: Returned mail: Data format error
+Date: Tue, 4 Oct 2016 11:56:56 +0530
+MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+X-Content-Filtered-By: Mailman/MimeDel 2.1.21
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.21
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,141 +92,36 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Andreas Dilger <adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Jan Kara <jack-IBi9RG/b67k@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-List-Id: linux-nvdimm@lists.01.org
+Message-Id: <20161004062801.7E9911A1E8C-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
-On Fri, Sep 30, 2016 at 02:56:27AM -0700, Christoph Hellwig wrote:
-> > -/*
-> > - * We use lowest available bit in exceptional entry for locking, other two
-> > - * bits to determine entry type. In total 3 special bits.
-> > - */
-> > -#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 3)
-> > -#define RADIX_DAX_PTE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
-> > -#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
-> > -#define RADIX_DAX_TYPE_MASK (RADIX_DAX_PTE | RADIX_DAX_PMD)
-> > -#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_TYPE_MASK)
-> > -#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
-> > -#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
-> > -		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE) | \
-> > -		RADIX_TREE_EXCEPTIONAL_ENTRY))
-> > -
-> 
-> Please split the move of these constants into a separate patch.
+Your message was not delivered due to the following reason(s):
 
-Will do for v5.
+Your message was not delivered because the destination server was
+unreachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
-> > -static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index)
-> > +static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index,
-> > +		unsigned long new_type)
-> >  {
-> > +	bool pmd_downgrade = false; /* splitting 2MiB entry into 4k entries? */
-> >  	void *entry, **slot;
-> >  
-> >  restart:
-> >  	spin_lock_irq(&mapping->tree_lock);
-> >  	entry = get_unlocked_mapping_entry(mapping, index, &slot);
-> > +
-> > +	if (entry && new_type == RADIX_DAX_PMD) {
-> > +		if (!radix_tree_exceptional_entry(entry) ||
-> > +				RADIX_DAX_TYPE(entry) == RADIX_DAX_PTE) {
-> > +			spin_unlock_irq(&mapping->tree_lock);
-> > +			return ERR_PTR(-EEXIST);
-> > +		}
-> > +	} else if (entry && new_type == RADIX_DAX_PTE) {
-> > +		if (radix_tree_exceptional_entry(entry) &&
-> > +		    RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD &&
-> > +		    (unsigned long)entry & (RADIX_DAX_HZP|RADIX_DAX_EMPTY)) {
-> > +			pmd_downgrade = true;
-> > +		}
-> > +	}
-> 
-> 	Would be nice to use switch on the type here:
-> 
-> 	old_type = RADIX_DAX_TYPE(entry);
-> 
-> 	if (entry) {
-> 		switch (new_type) {
-> 		case RADIX_DAX_PMD:
-> 			if (!radix_tree_exceptional_entry(entry) ||
-> 			    oldentry == RADIX_DAX_PTE) {
-> 			    	entry = ERR_PTR(-EEXIST);
-> 				goto out_unlock;
-> 			}
-> 			break;
-> 		case RADIX_DAX_PTE:
-> 			if (radix_tree_exceptional_entry(entry) &&
-> 			    old_entry = RADIX_DAX_PMD &&
-> 			    (unsigned long)entry & 
-> 			      (RADIX_DAX_HZP|RADIX_DAX_EMPTY))
-> 			      	..
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
 
-Will do.  This definitely makes things less dense and more readable.
+Your message was not delivered within 4 days:
+Host 214.10.141.152 is not responding.
 
-> Btw, why are only RADIX_DAX_PTE and RADIX_DAX_PMD in the type mask,
-> and not RADIX_DAX_HZP and RADIX_DAX_EMPTY?  With that we could use the
-> above old_entry local variable over this function and make it a lot les
-> of a mess.
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-So essentially in this revision of the series 'type' just means PMD or PTE
-(perhaps this should have been 'size' or something), and the Zero Page / Empty
-Entry / Regular DAX choice was something separate.  Jan also commented on
-this, and I agree there's room for improvement.  Let me try and rework it a
-bit for v5.
+Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+if you feel this message to be in error.
 
-> >  static void *dax_insert_mapping_entry(struct address_space *mapping,
-> >  				      struct vm_fault *vmf,
-> > -				      void *entry, sector_t sector)
-> > +				      void *entry, sector_t sector,
-> > +				      unsigned long new_type, bool hzp)
-> 
-> And then we could also drop the hzp argument here..
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
 
-Yep, that would be good.
 
-> >  #ifdef CONFIG_FS_IOMAP
-> > +static inline sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
-> > +{
-> > +	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
-> > +}
-> 
-> Please split adding this new helper into a separate patch.
-
-Done for v5.
-
-> > +#if defined(CONFIG_FS_DAX_PMD)
-> 
-> Please use #ifdef here.
-
-Will do.
-
-> > +#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_TYPE_MASK)
-> > +#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
-> > +
-> > +/* entries begin locked */
-> > +#define RADIX_DAX_ENTRY(sector, type) ((void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |\
-> > +	type | (unsigned long)sector << RADIX_DAX_SHIFT | RADIX_DAX_ENTRY_LOCK))
-> > +#define RADIX_DAX_HZP_ENTRY() ((void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | \
-> > +	RADIX_DAX_PMD | RADIX_DAX_HZP | RADIX_DAX_EMPTY | RADIX_DAX_ENTRY_LOCK))
-> > +#define RADIX_DAX_EMPTY_ENTRY(type) ((void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | \
-> > +		type | RADIX_DAX_EMPTY | RADIX_DAX_ENTRY_LOCK))
-> > +
-> > +#define RADIX_DAX_ORDER(type) (type == RADIX_DAX_PMD ? PMD_SHIFT-PAGE_SHIFT : 0)
-> 
-> All these macros don't properly brace their arguments.  I think
-> you'd make your life a lot easier by making them inline functions.
-
-Oh, great point.  Will do, although depending on how the 'type' thing works
-out we may end up with just a dax_radix_entry(sector, type) inline function,
-where 'type' can be (RADIX_DAX_PMD | RADIX_DAX_EMPTY), etc.  That would
-prevent the need for a bunch of different ways of making a new entry.
-
-> > +#if defined(CONFIG_FS_DAX_PMD)
-> 
-> #ifdef, please
-
-Will do.
-
-Thank you for the review, Christoph.
+------------=_57F34C03.ECE47E61--
