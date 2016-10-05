@@ -1,15 +1,15 @@
-From: "MAILER-DAEMON" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: Data format error
-Date: Tue, 4 Oct 2016 11:56:56 +0530
-Message-ID: <20161004062801.7E9911A1E8C@ml01.01.org>
+From: "RONALD" <sloneloga1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: reach millions with FB Groups Posting service
+Date: Wed, 05 Oct 2016 04:29:02 +0300
+Message-ID: <41E00FFD.8722518C@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_57F34C03.ECE47E61"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: multipart/mixed; boundary="----------=_57F4577A.9DBAEE37"
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format.
 
-------------=_57F34C03.ECE47E61
+------------=_57F4577A.9DBAEE37
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
@@ -20,40 +20,57 @@ message has been attached to this so you can view it or label
 similar future email.  If you have any questions, see
 @@CONTACT_ADDRESS@@ for details.
 
-Content preview:  Your message was not delivered due to the following reason(s):
-   Your message was not delivered because the destination server was unreachable
-   within the allowed queue period. The amount of time a message is queued before
-   it is returned depends on local configura- tion parameters. [...] 
+Content preview:  Hello, Do you want to advertise on facebook? We're here to
+   help. We wil manually post your product/logo/link on Facebook Groups and
+  will give you a full report with links of each live post where your advertisement
+   was posted. [...] 
 
-Content analysis details:   (6.6 points, 5.0 required)
+Content analysis details:   (14.1 points, 5.0 required)
 
  pts rule name              description
 ---- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
- 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
-                            [103.204.166.162 listed in dnsbl.sorbs.net]
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: buysocial.cn]
+ 1.7 URIBL_BLACK            Contains an URL listed in the URIBL blacklist
+                            [URIs: buysocial.cn]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: buysocial.cn]
 -0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
                             trust
                             [198.145.21.10 listed in list.dnswl.org]
- 0.1 RCVD_IN_SBL            RBL: Received via a relay in Spamhaus SBL
-                            [103.204.166.162 listed in zen.spamhaus.org]
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+               [Blocked - see <http://www.spamcop.net/bl.shtml?182.16.42.130>]
+ 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
+                            [URIs: www.buysocial.cn]
+ 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
+                            [URIs: www.buysocial.cn]
+ 2.8 FSL_HELO_FAKE          No description available.
 -0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
--0.5 BAYES_05               BODY: Bayes spam probability is 1 to 5%
-                            [score: 0.0398]
- 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
- 2.6 MSOE_MID_WRONG_CASE    No description available.
- 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (sloneloga1[at]gmail.com)
+ 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
+                            [score: 0.5000]
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+The original message was not completely plain text, and may be unsafe to
+open with some email clients; in particular, it may contain a virus,
+or confirm that your address can receive spam.  If you wish to view
+it, it may be safer to save it to a file and open it with an editor.
 
 
-
-------------=_57F34C03.ECE47E61
+------------=_57F4577A.9DBAEE37
 Content-Type: message/rfc822; x-spam-type=original
 Content-Description: original message before SpamAssassin
-Content-Disposition: inline
+Content-Disposition: attachment
 Content-Transfer-Encoding: 8bit
 
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
@@ -61,26 +78,24 @@ Envelope-to: gln-linux-nvdimm@m.gmane.org
 Received: from ml01.01.org ([198.145.21.10])
 	by blaine.gmane.org with esmtp (Exim 4.84_2)
 	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1brJCq-0003sd-0W
-	for gln-linux-nvdimm@m.gmane.org; Tue, 04 Oct 2016 08:28:00 +0200
+	id 1brb1F-0004le-7q
+	for gln-linux-nvdimm@m.gmane.org; Wed, 05 Oct 2016 03:29:13 +0200
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7E9911A1E8C;
-	Mon,  3 Oct 2016 23:28:01 -0700 (PDT)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from lists.01.org (unknown [103.204.166.162])
- by ml01.01.org (Postfix) with ESMTP id 60B0D1A1E8C
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Mon,  3 Oct 2016 23:27:58 -0700 (PDT)
-From: "MAILER-DAEMON" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Subject: Returned mail: Data format error
-Date: Tue, 4 Oct 2016 11:56:56 +0530
+	by ml01.01.org (Postfix) with ESMTP id 507F11A1E31;
+	Tue,  4 Oct 2016 18:29:14 -0700 (PDT)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Received: from gmail.com (unknown [182.16.42.130])
+ by ml01.01.org (Postfix) with SMTP id 76E581A1E31
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Tue,  4 Oct 2016 18:29:11 -0700 (PDT)
+Message-ID: <41E00FFD.8722518C-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Wed, 05 Oct 2016 04:29:02 +0300
+From: "RONALD" <sloneloga1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US;
+ rv:1.7.6) Gecko/20050317 Thunderbird/1.0.2
 MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-X-Content-Filtered-By: Mailman/MimeDel 2.1.21
+To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Subject: re: reach millions with FB Groups Posting service
 X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 X-Mailman-Version: 2.1.21
 Precedence: list
@@ -92,36 +107,48 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============7000102812200267077=="
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Message-Id: <20161004062801.7E9911A1E8C-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
-Your message was not delivered due to the following reason(s):
+--===============7000102812200267077==
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Your message was not delivered because the destination server was
-unreachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+Hello,
+Do you want to advertise on facebook? We're here to help. 
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
+We wil manually post your product/logo/link on Facebook Groups and will
+give you a full report with links of each live post where your advertisement
+was posted.
 
-Your message was not delivered within 4 days:
-Host 214.10.141.152 is not responding.
+http://www.buysocial.cn/detail.php?id=12
 
-The following recipients did not receive this message:
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Regards
+RONALD
+ 
 
-Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-if you feel this message to be in error.
+
+
+
+
+Unsubscribe option is available on the footer of our website
+
+
+
+--===============7000102812200267077==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
+--===============7000102812200267077==--
 
-------------=_57F34C03.ECE47E61--
+
+------------=_57F4577A.9DBAEE37--
