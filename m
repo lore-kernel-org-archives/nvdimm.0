@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 385881A1EC3
- for <linux-nvdimm@lists.01.org>; Wed, 12 Oct 2016 15:50:30 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id DD3961A1E8B
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Oct 2016 14:09:12 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v6 03/17] dax: remove buffer_size_valid()
-Date: Wed, 12 Oct 2016 16:50:08 -0600
-Message-Id: <20161012225022.15507-4-ross.zwisler@linux.intel.com>
-In-Reply-To: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
-References: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
+Subject: [PATCH v5 01/17] ext4: allow DAX writeback for hole punch
+Date: Fri,  7 Oct 2016 15:08:48 -0600
+Message-Id: <1475874544-24842-2-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,68 +23,45 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that ext4 properly sets bh.b_size when we call get_block() for a hole,
-rely on that value and remove the buffer_size_valid() sanity check.
+Currently when doing a DAX hole punch with ext4 we fail to do a writeback.
+This is because the logic around filemap_write_and_wait_range() in
+ext4_punch_hole() only looks for dirty page cache pages in the radix tree,
+not for dirty DAX exceptional entries.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: <stable@vger.kernel.org>
 ---
- fs/dax.c | 22 +---------------------
- 1 file changed, 1 insertion(+), 21 deletions(-)
+ fs/ext4/inode.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index cc025f8..9b9be8a 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -123,19 +123,6 @@ static bool buffer_written(struct buffer_head *bh)
- 	return buffer_mapped(bh) && !buffer_unwritten(bh);
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 3131747..0900cb4 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3890,7 +3890,7 @@ int ext4_update_disksize_before_punch(struct inode *inode, loff_t offset,
  }
  
--/*
-- * When ext4 encounters a hole, it returns without modifying the buffer_head
-- * which means that we can't trust b_size.  To cope with this, we set b_state
-- * to 0 before calling get_block and, if any bit is set, we know we can trust
-- * b_size.  Unfortunate, really, since ext4 knows precisely how long a hole is
-- * and would save us time calling get_block repeatedly.
-- */
--static bool buffer_size_valid(struct buffer_head *bh)
--{
--	return bh->b_state != 0;
--}
--
--
- static sector_t to_sector(const struct buffer_head *bh,
- 		const struct inode *inode)
- {
-@@ -177,8 +164,6 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
- 				rc = get_block(inode, block, bh, rw == WRITE);
- 				if (rc)
- 					break;
--				if (!buffer_size_valid(bh))
--					bh->b_size = 1 << blkbits;
- 				bh_max = pos - first + bh->b_size;
- 				bdev = bh->b_bdev;
- 				/*
-@@ -1012,12 +997,7 @@ int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 
- 	bdev = bh.b_bdev;
- 
--	/*
--	 * If the filesystem isn't willing to tell us the length of a hole,
--	 * just fall back to PTEs.  Calling get_block 512 times in a loop
--	 * would be silly.
--	 */
--	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
-+	if (bh.b_size < PMD_SIZE) {
- 		dax_pmd_dbg(&bh, address, "allocated block too small");
- 		return VM_FAULT_FALLBACK;
- 	}
+ /*
+- * ext4_punch_hole: punches a hole in a file by releaseing the blocks
++ * ext4_punch_hole: punches a hole in a file by releasing the blocks
+  * associated with the given offset and length
+  *
+  * @inode:  File inode
+@@ -3919,7 +3919,7 @@ int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length)
+ 	 * Write out all dirty pages to avoid race conditions
+ 	 * Then release them.
+ 	 */
+-	if (mapping->nrpages && mapping_tagged(mapping, PAGECACHE_TAG_DIRTY)) {
++	if (mapping_tagged(mapping, PAGECACHE_TAG_DIRTY)) {
+ 		ret = filemap_write_and_wait_range(mapping, offset,
+ 						   offset + length - 1);
+ 		if (ret)
 -- 
-2.9.0
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
