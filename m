@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1F03D81DDF
- for <linux-nvdimm@lists.01.org>; Fri, 28 Oct 2016 11:17:28 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.9-rc3
-Date: Fri, 28 Oct 2016 18:17:27 +0000
-Message-ID: <1477678645.21985.7.camel@intel.com>
-Content-Language: en-US
-Content-ID: <916D42E254729F4198FE9E7F00D4722E@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id E7E5C1A1EE7
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Oct 2016 14:09:16 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v5 08/17] dax: consistent variable naming for DAX entries
+Date: Fri,  7 Oct 2016 15:08:55 -0600
+Message-Id: <1475874544-24842-9-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,157 +17,134 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from:
+No functional change.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+Consistently use the variable name 'entry' instead of 'ret' for DAX radix
+tree entries.  This was already happening in most of the code, so update
+get_unlocked_mapping_entry(), grab_mapping_entry() and
+dax_unlock_mapping_entry().
 
-...to receive:
-
-A compilation fix, a NULL de-reference found by static analysis, a
-misuse of the percpu_ref_exit() (tagged for -stable), and notification
-of failed attempts to clear media errors.
-
-These patches have received a build success notification from the 0day-
-kbuild-robot and appeared in next-20161028.
-
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
+ fs/dax.c | 34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-The following changes since commit 1001354ca34179f3db924eb66672442a173147dc:
+diff --git a/fs/dax.c b/fs/dax.c
+index 98189ac..152a6e1 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -357,7 +357,7 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
+ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+ 					pgoff_t index, void ***slotp)
+ {
+-	void *ret, **slot;
++	void *entry, **slot;
+ 	struct wait_exceptional_entry_queue ewait;
+ 	wait_queue_head_t *wq = dax_entry_waitqueue(mapping, index);
+ 
+@@ -367,13 +367,13 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+ 	ewait.key.index = index;
+ 
+ 	for (;;) {
+-		ret = __radix_tree_lookup(&mapping->page_tree, index, NULL,
++		entry = __radix_tree_lookup(&mapping->page_tree, index, NULL,
+ 					  &slot);
+-		if (!ret || !radix_tree_exceptional_entry(ret) ||
++		if (!entry || !radix_tree_exceptional_entry(entry) ||
+ 		    !slot_locked(mapping, slot)) {
+ 			if (slotp)
+ 				*slotp = slot;
+-			return ret;
++			return entry;
+ 		}
+ 		prepare_to_wait_exclusive(wq, &ewait.wait,
+ 					  TASK_UNINTERRUPTIBLE);
+@@ -396,13 +396,13 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+  */
+ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index)
+ {
+-	void *ret, **slot;
++	void *entry, **slot;
+ 
+ restart:
+ 	spin_lock_irq(&mapping->tree_lock);
+-	ret = get_unlocked_mapping_entry(mapping, index, &slot);
++	entry = get_unlocked_mapping_entry(mapping, index, &slot);
+ 	/* No entry for given index? Make sure radix tree is big enough. */
+-	if (!ret) {
++	if (!entry) {
+ 		int err;
+ 
+ 		spin_unlock_irq(&mapping->tree_lock);
+@@ -410,10 +410,10 @@ restart:
+ 				mapping_gfp_mask(mapping) & ~__GFP_HIGHMEM);
+ 		if (err)
+ 			return ERR_PTR(err);
+-		ret = (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
++		entry = (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
+ 			       RADIX_DAX_ENTRY_LOCK);
+ 		spin_lock_irq(&mapping->tree_lock);
+-		err = radix_tree_insert(&mapping->page_tree, index, ret);
++		err = radix_tree_insert(&mapping->page_tree, index, entry);
+ 		radix_tree_preload_end();
+ 		if (err) {
+ 			spin_unlock_irq(&mapping->tree_lock);
+@@ -425,11 +425,11 @@ restart:
+ 		/* Good, we have inserted empty locked entry into the tree. */
+ 		mapping->nrexceptional++;
+ 		spin_unlock_irq(&mapping->tree_lock);
+-		return ret;
++		return entry;
+ 	}
+ 	/* Normal page in radix tree? */
+-	if (!radix_tree_exceptional_entry(ret)) {
+-		struct page *page = ret;
++	if (!radix_tree_exceptional_entry(entry)) {
++		struct page *page = entry;
+ 
+ 		get_page(page);
+ 		spin_unlock_irq(&mapping->tree_lock);
+@@ -442,9 +442,9 @@ restart:
+ 		}
+ 		return page;
+ 	}
+-	ret = lock_slot(mapping, slot);
++	entry = lock_slot(mapping, slot);
+ 	spin_unlock_irq(&mapping->tree_lock);
+-	return ret;
++	return entry;
+ }
+ 
+ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+@@ -469,11 +469,11 @@ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+ 
+ void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
+ {
+-	void *ret, **slot;
++	void *entry, **slot;
+ 
+ 	spin_lock_irq(&mapping->tree_lock);
+-	ret = __radix_tree_lookup(&mapping->page_tree, index, NULL, &slot);
+-	if (WARN_ON_ONCE(!ret || !radix_tree_exceptional_entry(ret) ||
++	entry = __radix_tree_lookup(&mapping->page_tree, index, NULL, &slot);
++	if (WARN_ON_ONCE(!entry || !radix_tree_exceptional_entry(entry) ||
+ 			 !slot_locked(mapping, slot))) {
+ 		spin_unlock_irq(&mapping->tree_lock);
+ 		return;
+-- 
+2.7.4
 
-  Linux 4.9-rc1 (2016-10-15 12:17:50 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
-
-for you to fetch changes up to 52e73eb2872c9af6f382b2b22954ca8214397a4e:
-
-  device-dax: fix percpu_ref_exit ordering (2016-10-27 17:04:05 -0700)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      nvdimm: make CONFIG_NVDIMM_DAX 'bool'
-
-Dan Carpenter (1):
-      libnvdimm, namespace: potential NULL deref on allocation error
-
-Dan Williams (1):
-      device-dax: fix percpu_ref_exit ordering
-
-Toshi Kani (1):
-      pmem: report error on clear poison failure
-
- drivers/dax/Kconfig             |  2 +-
- drivers/dax/pmem.c              |  2 +-
- drivers/nvdimm/Kconfig          |  2 +-
- drivers/nvdimm/namespace_devs.c | 14 ++++++++------
- drivers/nvdimm/pmem.c           |  8 ++++++--
- 5 files changed, 17 insertions(+), 11 deletions(-)
-
----
-
-commit 75d29713b792da4782cadfaa87e802183440694e
-Author: Dan Carpenter <dan.carpenter@oracle.com>
-Date:   Wed Oct 12 09:34:29 2016 +0300
-
-    libnvdimm, namespace: potential NULL deref on allocation error
-    
-    If the kcalloc() fails then "devs" can be NULL and we dereference it
-    checking "devs[i]".
-    
-    Fixes: 1b40e09a1232 ('libnvdimm: blk labels and namespace instantiation')
-    Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-commit 3115bb02b5c23d960df5f1bf551ec394a9bb10ec
-Author: Toshi Kani <toshi.kani@hpe.com>
-Date:   Thu Oct 13 09:54:21 2016 -0600
-
-    pmem: report error on clear poison failure
-    
-    ACPI Clear Uncorrectable Error DSM function may fail or may be
-    unsupported on a platform.  pmem_clear_poison() returns without clearing
-    badblocks in such cases.  This failure is detected at the next read
-    (-EIO).
-    
-    This behavior can lead to an issue when user keeps writing but does not
-    read immediately.  For instance, flight recorder file may be only read
-    when it is necessary for troubleshooting.
-    
-    Change pmem_do_bvec() and pmem_clear_poison() to return -EIO so that
-    filesystem can log an error message on a write error.
-    
-    Cc: Vishal Verma <vishal.l.verma@intel.com>
-    Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-commit 867dfe342118b1ea0256a85f7c0d9ceb0ead032a
-Author: Arnd Bergmann <arnd@arndb.de>
-Date:   Tue Oct 25 17:52:04 2016 +0200
-
-    nvdimm: make CONFIG_NVDIMM_DAX 'bool'
-    
-    A bugfix just tried to address a randconfig build problem and introduced
-    a variant of the same problem: with CONFIG_LIBNVDIMM=y and
-    CONFIG_NVDIMM_DAX=m, the nvdimm module now fails to link:
-    
-    drivers/nvdimm/built-in.o: In function `to_nd_device_type':
-    bus.c:(.text+0x1b5d): undefined reference to `is_nd_dax'
-    drivers/nvdimm/built-in.o: In function `nd_region_notify_driver_action.constprop.2':
-    region_devs.c:(.text+0x6b6c): undefined reference to `is_nd_dax'
-    region_devs.c:(.text+0x6b8c): undefined reference to `to_nd_dax'
-    drivers/nvdimm/built-in.o: In function `nd_region_probe':
-    region.c:(.text+0x70f3): undefined reference to `nd_dax_create'
-    drivers/nvdimm/built-in.o: In function `mode_show':
-    namespace_devs.c:(.text+0xa196): undefined reference to `is_nd_dax'
-    drivers/nvdimm/built-in.o: In function `nvdimm_namespace_common_probe':
-    (.text+0xa55f): undefined reference to `is_nd_dax'
-    drivers/nvdimm/built-in.o: In function `nvdimm_namespace_common_probe':
-    (.text+0xa56e): undefined reference to `to_nd_dax'
-    
-    This reverts the earlier fix, making NVDIMM_DAX a 'bool' option again
-    as it should be (it gets linked into the libnvdimm module). To fix
-    the original problem, I'm adding a dependency on LIBNVDIMM to
-    DEV_DAX_PMEM, which ensures we can't have that one built-in if the
-    rest is a module.
-    
-    Fixes: 4e65e9381c7a ("/dev/dax: fix Kconfig dependency build breakage")
-    Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-    Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-commit 52e73eb2872c9af6f382b2b22954ca8214397a4e
-Author: Dan Williams <dan.j.williams@intel.com>
-Date:   Thu Oct 27 17:04:05 2016 -0700
-
-    device-dax: fix percpu_ref_exit ordering
-    
-    We need to wait until the percpu_ref is released before exit. Otherwise,
-    we sometimes lose the race and trigger this new warning that was added
-    in v4.9 (commit a67823c1ed10 "percpu-refcount: init ->confirm_switch
-    member properly"):
-    
-     WARNING: CPU: 0 PID: 3629 at lib/percpu-refcount.c:107 percpu_ref_exit+0x51/0x60
-     [..]
-     Call Trace:
-      [<ffffffff814bf093>] dump_stack+0x85/0xc2
-      [<ffffffff810b15db>] __warn+0xcb/0xf0
-      [<ffffffff810b170d>] warn_slowpath_null+0x1d/0x20
-      [<ffffffff814d70c1>] percpu_ref_exit+0x51/0x60
-      [<ffffffffa005706a>] dax_pmem_percpu_exit+0x1a/0x50 [dax_pmem]
-      [<ffffffff81615f1f>] devm_action_release+0xf/0x20
-    
-    Cc: <stable@vger.kernel.org>
-    Fixes: ab68f2622136 ("/dev/dax, pmem: direct access to persistent memory")
-    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
