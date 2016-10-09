@@ -1,18 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from p3nlsmtpcp01-03.prod.phx3.secureserver.net
+ (p3nlsmtpcp01-03.prod.phx3.secureserver.net [184.168.200.142])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D82BF1A1E9E
- for <linux-nvdimm@lists.01.org>; Fri, 14 Oct 2016 11:02:36 -0700 (PDT)
-Date: Fri, 14 Oct 2016 12:02:35 -0600
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH 01/20] mm: Change type of vmf->virtual_address
-Message-ID: <20161014180235.GA27575@linux.intel.com>
-References: <1474992504-20133-1-git-send-email-jack@suse.cz>
- <1474992504-20133-2-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 7C90E1A1E34
+ for <linux-nvdimm@lists.01.org>; Sun,  9 Oct 2016 16:58:31 -0700 (PDT)
+Received: from tbanninger74 by p3plcpnl0291.prod.phx3.secureserver.net with
+ local (Exim 4.87)
+ (envelope-from <tbanninger74@p3plcpnl0291.prod.phx3.secureserver.net>)
+ id 1btNyD-0003aJ-Tq
+ for linux-nvdimm@lists.01.org; Sun, 09 Oct 2016 16:57:29 -0700
+Subject: Shipment delivery problem #0000613691
+Date: Sun, 9 Oct 2016 23:57:29 +0000
+From: "FedEx International MailService"
+ <mike.daniels@jimthorpepartyplanner.com>
+Message-ID: <44118f00cc2ea69b03d0713de6778811@jimthorpepartyplanner.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1474992504-20133-2-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,22 +23,24 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Reply-To: FedEx International MailService
+ <mike.daniels@jimthorpepartyplanner.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Sep 27, 2016 at 06:08:05PM +0200, Jan Kara wrote:
-> Every single user of vmf->virtual_address typed that entry to unsigned
-> long before doing anything with it. So just change the type of that
-> entry to unsigned long immediately.
-> 
-> Signed-off-by: Jan Kara <jack@suse.cz>
+Dear Customer,
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Your parcel has arrived at October 09. Courier was unable to deliver the parcel to you.
+Please, download Delivery Label attached to this email.
+
+Sincerely,
+Mike Daniels,
+FedEx Station Agent.
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
