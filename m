@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM01-BN3-obe.outbound.protection.outlook.com
- (mail-bn3nam01on0718.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe41::718])
+Received: from NAM01-SN1-obe.outbound.protection.outlook.com
+ (mail-sn1nam01on071f.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe40::71f])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9E3301A1E8E
- for <linux-nvdimm@lists.01.org>; Tue, 11 Oct 2016 06:26:09 -0700 (PDT)
-From: "Boylston, Brian" <brian.boylston@hpe.com>
-Subject: RE: [PATCH] use a nocache copy for bvecs in copy_from_iter_nocache()
-Date: Tue, 11 Oct 2016 13:26:07 +0000
-Message-ID: <CS1PR84MB0119D6AB03D91248DAFE0E538EDA0@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id 0E5D41A1DE9
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Oct 2016 08:26:07 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH] use a nocache copy for bvecs in copy_from_iter_nocache()
+Date: Mon, 10 Oct 2016 15:26:03 +0000
+Message-ID: <1476113071.20881.15.camel@hpe.com>
 References: <20161007155511.21502-1-brian.boylston@hpe.com>
  <20161007170842.GQ19539@ZenIV.linux.org.uk>
- <1476113071.20881.15.camel@hpe.com>
-In-Reply-To: <1476113071.20881.15.camel@hpe.com>
+In-Reply-To: <20161007170842.GQ19539@ZenIV.linux.org.uk>
 Content-Language: en-US
+Content-ID: <49938475457C2849B27452052CD4DCE6@NAMPRD84.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,33 +27,31 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>, "viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
+To: "viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>, "Boylston, Brian" <brian.boylston@hpe.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Moreno," Oliver" <oliver.moreno@hpe.com>, "x86@kernel.org, " <x86@kernel.org>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "tglx@linutronix.de" <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-S2FuaSwgVG9zaGltaXRzdSB3cm90ZSBvbiAyMDE2LTEwLTEwOg0KPiBPbiBGcmksIDIwMTYtMTAt
-MDcgYXQgMTg6MDggKzAxMDAsIEFsIFZpcm8gd3JvdGU6DQo+PiBPbiBGcmksIE9jdCAwNywgMjAx
-NiBhdCAxMDo1NToxMUFNIC0wNTAwLCBCcmlhbiBCb3lsc3RvbiB3cm90ZToNCj4+PiANCj4+PiBj
-b3B5X2Zyb21faXRlcl9ub2NhY2hlKCkgaXMgb25seSAibm9jYWNoZSIgZm9yIGlvdmVjcy7CoMKg
-RW5oYW5jZSBpdA0KPj4+IHRvIGFsc28gdXNlIGEgbm9jYWNoZSBjb3B5IGZvciBidmVjcy7CoMKg
-VGhpcyBpbXByb3ZlcyBwZXJmb3JtYW5jZSBieQ0KPj4+IDItM1ggd2hlbiBzcGxpY2UoKWluZyB0
-byBhIGZpbGUgaW4gYSBEQVgtbW91bnRlZCwgcG1lbS1iYWNrZWQgZmlsZQ0KPj4+IHN5c3RlbS4N
-Cj4+IA0KPj4+IA0KPj4+ICtzdGF0aWMgdm9pZCBtZW1jcHlfZnJvbV9wYWdlX25vY2FjaGUoY2hh
-ciAqdG8sIHN0cnVjdCBwYWdlICpwYWdlLA0KPj4+IHNpemVfdCBvZmZzZXQsIHNpemVfdCBsZW4p
-DQo+Pj4gK3sNCj4+PiArCWNoYXIgKmZyb20gPSBrbWFwX2F0b21pYyhwYWdlKTsNCj4+PiArCV9f
-Y29weV9mcm9tX3VzZXJfaW5hdG9taWNfbm9jYWNoZSh0bywgZnJvbSwgbGVuKTsNCj4+PiArCWt1
-bm1hcF9hdG9taWMoZnJvbSk7DQo+Pj4gK30NCj4+IA0KPj4gQXQgdGhlIHZlcnkgbGVhc3QsIGl0
-IHdpbGwgYmxvdyB1cCBvbiBhbnkgYXJjaGl0ZWN0dXJlIHdpdGggc3BsaXQNCj4+IHVzZXJsYW5k
-IGFuZCBrZXJuZWwgTU1VIGNvbnRleHRzLsKgwqBZb3UgKmNhbid0KiBmZWVkIGEga2VybmVsIHBv
-aW50ZXINCj4+IHRvIHRoaW5ncyBsaWtlIHRoYXQgYW5kIGV4cGVjdCBpdCB0byB3b3JrLsKgwqBB
-dCB0aGUgdmVyeSBsZWFzdCwgeW91DQo+PiBuZWVkIHRvIGFkZCBtZW1jcHlfbm9jYWNoZSgpIGFu
-ZCBoYXZlIGl0IGRlZmF1bHQgdG8gbWVtY3B5KCksIHdpdGgNCj4+IG5vbi1kdW1teSB2ZXJzaW9u
-IG9uIHg4Ni7CoMKgQW5kIHVzZSBfdGhhdF8sIHJhdGhlciB0aGFuIG1lc3Npbmcgd2l0aA0KPj4g
-X19jb3B5X2Zyb21fdXNlcl9pbmF0b21pY19ub2NhY2hlKCkNCj4gDQo+IEdvb2QgcG9pbnQuIMKg
-SSB0aGluayB3ZSBjYW4gYWRkIG1lbWNweV9ub2NhY2hlKCkgd2hpY2ggY2FsbHMNCj4gX19jb3B5
-X2Zyb21fdXNlcl9pbmF0b21pY19ub2NhY2hlKCkgb24geDg2IGFuZCBkZWZhdXRzIHRvIG1lbWNw
-eSgpIG9uDQo+IG90aGVyIGFyY2hpdGVjdHVyZXMuDQoNClRoYW5rcywgQWwgYW5kIFRvc2hpLCBm
-b3IgdGhlIGZlZWRiYWNrLiAgSSdsbCByZS13b3JrIGFuZCBjb21lIGJhY2suDQoNCkJyaWFuDQoN
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
-ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3Rz
-LjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+T24gRnJpLCAyMDE2LTEwLTA3IGF0IDE4OjA4ICswMTAwLCBBbCBWaXJvIHdyb3RlOg0KPiBPbiBG
+cmksIE9jdCAwNywgMjAxNiBhdCAxMDo1NToxMUFNIC0wNTAwLCBCcmlhbiBCb3lsc3RvbiB3cm90
+ZToNCj4gPiANCj4gPiBjb3B5X2Zyb21faXRlcl9ub2NhY2hlKCkgaXMgb25seSAibm9jYWNoZSIg
+Zm9yIGlvdmVjcy7CoMKgRW5oYW5jZSBpdA0KPiA+IHRvIGFsc28gdXNlIGEgbm9jYWNoZSBjb3B5
+IGZvciBidmVjcy7CoMKgVGhpcyBpbXByb3ZlcyBwZXJmb3JtYW5jZSBieQ0KPiA+IDItM1ggd2hl
+biBzcGxpY2UoKWluZyB0byBhIGZpbGUgaW4gYSBEQVgtbW91bnRlZCwgcG1lbS1iYWNrZWQgZmls
+ZQ0KPiA+IHN5c3RlbS4NCj4gDQo+ID4gDQo+ID4gK3N0YXRpYyB2b2lkIG1lbWNweV9mcm9tX3Bh
+Z2Vfbm9jYWNoZShjaGFyICp0bywgc3RydWN0IHBhZ2UgKnBhZ2UsDQo+ID4gc2l6ZV90IG9mZnNl
+dCwgc2l6ZV90IGxlbikNCj4gPiArew0KPiA+ICsJY2hhciAqZnJvbSA9IGttYXBfYXRvbWljKHBh
+Z2UpOw0KPiA+ICsJX19jb3B5X2Zyb21fdXNlcl9pbmF0b21pY19ub2NhY2hlKHRvLCBmcm9tLCBs
+ZW4pOw0KPiA+ICsJa3VubWFwX2F0b21pYyhmcm9tKTsNCj4gPiArfQ0KPiANCj4gQXQgdGhlIHZl
+cnkgbGVhc3QsIGl0IHdpbGwgYmxvdyB1cCBvbiBhbnkgYXJjaGl0ZWN0dXJlIHdpdGggc3BsaXQN
+Cj4gdXNlcmxhbmQgYW5kIGtlcm5lbCBNTVUgY29udGV4dHMuwqDCoFlvdSAqY2FuJ3QqIGZlZWQg
+YSBrZXJuZWwgcG9pbnRlcg0KPiB0byB0aGluZ3MgbGlrZSB0aGF0IGFuZCBleHBlY3QgaXQgdG8g
+d29yay7CoMKgQXQgdGhlIHZlcnkgbGVhc3QsIHlvdQ0KPiBuZWVkIHRvIGFkZCBtZW1jcHlfbm9j
+YWNoZSgpIGFuZCBoYXZlIGl0IGRlZmF1bHQgdG8gbWVtY3B5KCksIHdpdGgNCj4gbm9uLWR1bW15
+IHZlcnNpb24gb24geDg2LsKgwqBBbmQgdXNlIF90aGF0XywgcmF0aGVyIHRoYW4gbWVzc2luZyB3
+aXRoDQo+IF9fY29weV9mcm9tX3VzZXJfaW5hdG9taWNfbm9jYWNoZSgpDQoNCkdvb2QgcG9pbnQu
+IMKgSSB0aGluayB3ZSBjYW4gYWRkIG1lbWNweV9ub2NhY2hlKCkgd2hpY2ggY2FsbHMNCl9fY29w
+eV9mcm9tX3VzZXJfaW5hdG9taWNfbm9jYWNoZSgpIG9uIHg4NiBhbmQgZGVmYXV0cyB0byBtZW1j
+cHkoKSBvbg0Kb3RoZXIgYXJjaGl0ZWN0dXJlcy4NCg0KVGhhbmtzLA0KLVRvc2hpCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
+aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
