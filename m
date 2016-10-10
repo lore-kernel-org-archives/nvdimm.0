@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ABD0C1A1E8D
- for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 09:51:27 -0700 (PDT)
-Subject: [ndctl PATCH 4/8] ndctl: merge {enable,
- disable}-dimm with label commands
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 19 Oct 2016 09:48:09 -0700
-Message-ID: <147689568972.11015.17207071929007183833.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147689566876.11015.13898062253087685236.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147689566876.11015.13898062253087685236.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0969D1A1E40
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Oct 2016 11:05:04 -0700 (PDT)
+Subject: [PATCH v2] dev-dax: add support to display badblocks in sysfs for
+ dev-dax
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 10 Oct 2016 11:05:03 -0700
+Message-ID: <147612270288.117105.4963186004028519782.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,232 +21,180 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Combine builtin-xable-dimm.c and builtin-label.c into builtin-dimm.c to
-give glob support to the enable-dimm and disable-dimm commands. The
-command calling conventions already share a <DIMM> argument, so for
-consistency enable glob support across the set.
+Adding support to show badblocks in the pmem region that's provided
+by the poison_list. This should show up in
+/sys/class/dax/daxN.N/badblocks as read only. Currently we only support
+a single resource and we do not support badblocks for seeds. Additional
+support code will be implemented to support.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- ndctl/Makefile.am          |    3 -
- ndctl/builtin-dimm.c       |   40 +++++++++++++++
- ndctl/builtin-xable-dimm.c |  115 --------------------------------------------
- 3 files changed, 39 insertions(+), 119 deletions(-)
- rename ndctl/{builtin-labels.c => builtin-dimm.c} (90%)
- delete mode 100644 ndctl/builtin-xable-dimm.c
+ drivers/dax/dax.c  |   25 +++++++++++++++++++++----
+ drivers/dax/dax.h  |    8 +++++++-
+ drivers/dax/pmem.c |   37 ++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 64 insertions(+), 6 deletions(-)
 
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index dc990988ed43..263a8c4337dd 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -6,11 +6,10 @@ ndctl_SOURCES = ndctl.c \
- 		builtin-create-nfit.c \
- 		builtin-xaction-namespace.c \
- 		builtin-xable-region.c \
--		builtin-xable-dimm.c \
-+		builtin-dimm.c \
- 		builtin-list.c \
- 		builtin-test.c \
- 		builtin-help.c \
--		builtin-labels.c \
- 		util/json.c
- 
- if ENABLE_SMART
-diff --git a/ndctl/builtin-labels.c b/ndctl/builtin-dimm.c
-similarity index 90%
-rename from ndctl/builtin-labels.c
-rename to ndctl/builtin-dimm.c
-index ddd3eb578341..6d0c343a29e3 100644
---- a/ndctl/builtin-labels.c
-+++ b/ndctl/builtin-dimm.c
-@@ -70,6 +70,22 @@ struct action_context {
- 	FILE *f_out;
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index ed4843a9..6580f85 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -79,6 +79,7 @@ struct dax_dev {
+ 	int id;
+ 	int num_resources;
+ 	struct resource **res;
++	void *private;
  };
  
-+static int action_disable(struct ndctl_dimm *dimm, struct action_context *actx)
-+{
-+	if (ndctl_dimm_is_active(dimm)) {
-+		fprintf(stderr, "%s is active, skipping...\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return -EBUSY;
-+	}
-+
-+	return ndctl_dimm_disable(dimm);
-+}
-+
-+static int action_enable(struct ndctl_dimm *dimm, struct action_context *actx)
-+{
-+	return ndctl_dimm_enable(dimm);
-+}
-+
- static int action_zero(struct ndctl_dimm *dimm, struct action_context *actx)
- {
- 	return ndctl_dimm_zero_labels(dimm);
-@@ -335,7 +351,7 @@ static const struct option read_options[] = {
- 	OPT_END(),
- };
- 
--static const struct option zero_options[] = {
-+static const struct option base_options[] = {
- 	BASE_OPTIONS(),
- 	OPT_END(),
- };
-@@ -496,10 +512,30 @@ int cmd_read_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
- 
- int cmd_zero_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
- {
--	int count = dimm_action(argc, argv, ctx, action_zero, zero_options,
-+	int count = dimm_action(argc, argv, ctx, action_zero, base_options,
- 			"ndctl zero-labels <nmem0> [<nmem1>..<nmemN>] [<options>]");
- 
- 	fprintf(stderr, "zeroed %d nmem%s\n", count >= 0 ? count : 0,
- 			count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
+ #define for_each_dax_region_resource(dax_region, res) \
+@@ -336,6 +337,20 @@ static struct dax_dev *to_dax_dev(struct device *dev)
+ 	return container_of(dev, struct dax_dev, dev);
  }
-+
-+int cmd_disable_dimm(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 
++void *dax_dev_get_private(struct device *dev)
 +{
-+	int count = dimm_action(argc, argv, ctx, action_disable, base_options,
-+			"ndctl disable-dimm <nmem0> [<nmem1>..<nmemN>] [<options>]");
++	struct dax_dev *dax_dev = to_dax_dev(dev);
 +
-+	fprintf(stderr, "disabled %d nmem%s\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
++	return dax_dev->private;
 +}
++EXPORT_SYMBOL_GPL(dax_dev_get_private);
 +
-+int cmd_enable_dimm(int argc, const char **argv, struct ndctl_ctx *ctx)
++void dax_dev_set_private(struct dax_dev *dax_dev, void *priv)
 +{
-+	int count = dimm_action(argc, argv, ctx, action_enable, base_options,
-+			"ndctl enable-dimm <nmem0> [<nmem1>..<nmemN>] [<options>]");
-+
-+	fprintf(stderr, "enabled %d nmem%s\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
++	dax_dev->private = priv;
 +}
-diff --git a/ndctl/builtin-xable-dimm.c b/ndctl/builtin-xable-dimm.c
-deleted file mode 100644
-index f0d298837aeb..000000000000
---- a/ndctl/builtin-xable-dimm.c
-+++ /dev/null
-@@ -1,115 +0,0 @@
--#include <stdio.h>
--#include <errno.h>
--#include <stdlib.h>
--#include <unistd.h>
--#include <util/filter.h>
--#include <util/parse-options.h>
--#include <ndctl/libndctl.h>
--
--static const char *dimm_bus;
--
--static const struct option dimm_options[] = {
--	OPT_STRING('b', "bus", &dimm_bus, "bus-id",
--			"<dimm> must be on a bus with an id/provider of <bus-id>"),
--	OPT_END(),
--};
--
--static const char *parse_dimm_options(int argc, const char **argv,
--		char *xable_usage)
--{
--	const char * const u[] = {
--		xable_usage,
--		NULL
--	};
--	int i;
--
--        argc = parse_options(argc, argv, dimm_options, u, 0);
--
--	if (argc == 0)
--		error("specify a dimm to disable, or \"all\"\n");
--	for (i = 1; i < argc; i++)
--		error("unknown extra parameter \"%s\"\n", argv[i]);
--	if (argc == 0 || argc > 1) {
--		usage_with_options(u, dimm_options);
--		return NULL; /* we won't return from usage_with_options() */
--	}
--	return argv[0];
--}
--
--static int do_xable_dimm(const char *dimm_arg,
--		int (*xable_fn)(struct ndctl_dimm *), struct ndctl_ctx *ctx)
--{
--	int rc = -ENXIO, skip = 0, success = 0;
--	struct ndctl_dimm *dimm;
--	struct ndctl_bus *bus;
--
--	if (!dimm_arg)
--		goto out;
--
--        ndctl_bus_foreach(ctx, bus) {
--		if (!util_bus_filter(bus, dimm_bus))
--			continue;
--
--		ndctl_dimm_foreach(bus, dimm) {
--			if (!util_dimm_filter(dimm, dimm_arg))
--				continue;
--			if (xable_fn == ndctl_dimm_disable
--					&& ndctl_dimm_is_active(dimm)) {
--				fprintf(stderr, "%s is active, skipping...\n",
--						ndctl_dimm_get_devname(dimm));
--				skip++;
--				continue;
--			}
--			if (xable_fn(dimm) == 0)
--				success++;
--		}
--	}
--
--	rc = success;
--	if (!success && skip)
--		rc = -EBUSY;
-- out:
--	dimm_bus = NULL;
--	return rc;
--}
--
--int cmd_disable_dimm(int argc, const char **argv, struct ndctl_ctx *ctx)
--{
--	char *xable_usage = "ndctl disable-dimm <dimm> [<options>]";
--	const char *dimm = parse_dimm_options(argc, argv, xable_usage);
--	int disabled = do_xable_dimm(dimm, ndctl_dimm_disable,
--			ctx);
--
--	if (disabled < 0) {
--		fprintf(stderr, "error disabling dimms: %s\n",
--				strerror(-disabled));
--		return disabled;
--	} else if (disabled == 0) {
--		fprintf(stderr, "disabled 0 dimms\n");
--		return 0;
--	} else {
--		fprintf(stderr, "disabled %d dimm%s\n", disabled,
--				disabled > 1 ? "s" : "");
--		return 0;
--	}
--}
--
--int cmd_enable_dimm(int argc, const char **argv, struct ndctl_ctx *ctx)
--{
--	char *xable_usage = "ndctl enable-dimm <dimm> [<options>]";
--	const char *dimm = parse_dimm_options(argc, argv, xable_usage);
--	int enabled = do_xable_dimm(dimm, ndctl_dimm_enable, ctx);
--
--	if (enabled < 0) {
--		fprintf(stderr, "error enabling dimms: %s\n",
--				strerror(-enabled));
--		return enabled;
--	} else if (enabled == 0) {
--		fprintf(stderr, "enabled 0 dimms\n");
--		return 0;
--	} else {
--		fprintf(stderr, "enabled %d dimm%s\n", enabled,
--				enabled > 1 ? "s" : "");
--		return 0;
--	}
--}
++EXPORT_SYMBOL_GPL(dax_dev_set_private);
++
+ static ssize_t size_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -355,9 +370,10 @@ static struct attribute *dax_device_attributes[] = {
+ 	NULL,
+ };
+ 
+-static const struct attribute_group dax_device_attribute_group = {
++struct attribute_group dax_device_attribute_group = {
+ 	.attrs = dax_device_attributes,
+ };
++EXPORT_SYMBOL_GPL(dax_device_attribute_group);
+ 
+ static const struct attribute_group *dax_attribute_groups[] = {
+ 	&dax_device_attribute_group,
+@@ -676,7 +692,8 @@ static void unregister_dax_dev(void *dev)
+ }
+ 
+ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+-		struct resource *res, int count)
++		struct resource *res, int count,
++		const struct attribute_group **groups)
+ {
+ 	struct device *parent = dax_region->dev;
+ 	struct dax_dev *dax_dev;
+@@ -757,7 +774,7 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+ 	dev->devt = dev_t;
+ 	dev->class = dax_class;
+ 	dev->parent = parent;
+-	dev->groups = dax_attribute_groups;
++	dev->groups = groups ? groups : dax_attribute_groups;
+ 	dev->release = dax_dev_release;
+ 	dev_set_name(dev, "dax%d.%d", dax_region->id, dax_dev->id);
+ 	/* update resource names now that the owner device is named */
+@@ -777,7 +794,7 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+ 	if (atomic_inc_return(&dax_region->child_count) == 1) {
+ 		struct dax_dev *seed;
+ 
+-		seed = devm_create_dax_dev(dax_region, NULL, 0);
++		seed = devm_create_dax_dev(dax_region, NULL, 0, NULL);
+ 		if (IS_ERR(seed))
+ 			dev_warn(parent, "failed to create region seed\n");
+ 		else
+diff --git a/drivers/dax/dax.h b/drivers/dax/dax.h
+index ddd829a..c23c7ac 100644
+--- a/drivers/dax/dax.h
++++ b/drivers/dax/dax.h
+@@ -16,10 +16,16 @@ struct device;
+ struct dax_dev;
+ struct resource;
+ struct dax_region;
++extern struct attribute_group dax_device_attribute_group;
++
+ void dax_region_put(struct dax_region *dax_region);
+ struct dax_region *alloc_dax_region(struct device *parent,
+ 		int region_id, struct resource *res, unsigned int align,
+ 		void *addr, unsigned long flags);
+ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+-		struct resource *res, int count);
++		struct resource *res, int count,
++		const struct attribute_group **groups);
++void *dax_dev_get_private(struct device *dev);
++void dax_dev_set_private(struct dax_dev *dax_dev, void *priv);
++
+ #endif /* __DAX_H__ */
+diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+index 9630d88..56282a9 100644
+--- a/drivers/dax/pmem.c
++++ b/drivers/dax/pmem.c
+@@ -14,6 +14,7 @@
+ #include <linux/memremap.h>
+ #include <linux/module.h>
+ #include <linux/pfn_t.h>
++#include <linux/badblocks.h>
+ #include "../nvdimm/pfn.h"
+ #include "../nvdimm/nd.h"
+ #include "dax.h"
+@@ -22,6 +23,32 @@ struct dax_pmem {
+ 	struct device *dev;
+ 	struct percpu_ref ref;
+ 	struct completion cmp;
++	struct badblocks bb;
++};
++
++static ssize_t dax_pmem_badblocks_show(struct device *dev,
++		struct device_attribute *attr, char *page)
++{
++	struct dax_pmem *dax_pmem =
++		(struct dax_pmem *)dax_dev_get_private(dev);
++
++	return badblocks_show(&dax_pmem->bb, page, 0);
++}
++static DEVICE_ATTR(badblocks, S_IRUGO, dax_pmem_badblocks_show, NULL);
++
++static struct attribute *dax_pmem_badblock_attributes[] = {
++	&dev_attr_badblocks.attr,
++	NULL,
++};
++
++static struct attribute_group dax_pmem_badblock_attribute_group = {
++	.attrs = dax_pmem_badblock_attributes,
++};
++
++static const struct attribute_group *dax_pmem_attribute_groups[] = {
++	&dax_device_attribute_group,
++	&dax_pmem_badblock_attribute_group,
++	NULL,
+ };
+ 
+ static struct dax_pmem *to_dax_pmem(struct percpu_ref *ref)
+@@ -127,7 +154,15 @@ static int dax_pmem_probe(struct device *dev)
+ 		return -ENOMEM;
+ 
+ 	/* TODO: support for subdividing a dax region... */
+-	dax_dev = devm_create_dax_dev(dax_region, &res, 1);
++	dax_dev = devm_create_dax_dev(dax_region, &res, 1,
++			dax_pmem_attribute_groups);
++	dax_dev_set_private(dax_dev, dax_pmem);
++
++	rc = devm_init_badblocks(dev, &dax_pmem->bb);
++	if (rc)
++		return rc;
++
++	nvdimm_badblocks_populate(nd_region, &dax_pmem->bb, &res);
+ 
+ 	/* child dax_dev instances now own the lifetime of the dax_region */
+ 	dax_region_put(dax_region);
 
 _______________________________________________
 Linux-nvdimm mailing list
