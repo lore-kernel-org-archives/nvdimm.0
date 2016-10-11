@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from SMTP.EU.CITRIX.COM (smtp.ctxuk.citrix.com [185.25.65.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 692A01A1E6F
- for <linux-nvdimm@lists.01.org>; Tue, 11 Oct 2016 11:37:12 -0700 (PDT)
+Date: Tue, 11 Oct 2016 14:33:00 -0400
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Subject: Re: [Xen-devel] [RFC KERNEL PATCH 0/2] Add Dom0 NVDIMM support for Xen
+Message-ID: <20161011183259.GA23193@localhost.localdomain>
 References: <20161010003523.4423-1-haozhong.zhang@intel.com>
  <dde78bbd-4739-98a1-4b69-2c2dff0a9d71@citrix.com>
- <20161011055258.2v67idzs5kjtfs4q@hz-desktop>
-From: Andrew Cooper <andrew.cooper3@citrix.com>
-Message-ID: <de62aa59-37e0-b01f-1617-6fc8f6fb3620@citrix.com>
-Date: Tue, 11 Oct 2016 19:37:09 +0100
+ <57FCF26A02000078000F15E0@prv-mh.provo.novell.com>
+ <CAPcyv4gD3JTq93ET0SAYOxyPO9c0RTkPKSQKqZLo_8KPn53TiA@mail.gmail.com>
+ <20161011165811.GO19349@localhost.localdomain>
+ <CAPcyv4jX_xzj=gz=tfoNMx0qFtyeKwqttzCE5GrOi6Kz5anhiQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20161011055258.2v67idzs5kjtfs4q@hz-desktop>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4jX_xzj=gz=tfoNMx0qFtyeKwqttzCE5GrOi6Kz5anhiQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,90 +23,135 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, xen-devel@lists.xenproject.org, "Juergen Gross  <jgross@suse.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Andrew Morton" <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Johannes Thumshirn <jthumshirn@suse.de>, linux-kernel@vger.kernel.org, Stefano Stabellini <stefano@aporeto.com>, David Vrabel <david.vrabel@citrix.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Dan Williams <dan.j.williams@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Juergen Gross <JGross@suse.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefano Stabellini <stefano@aporeto.com>, David Vrabel <david.vrabel@citrix.com>, Jan Beulich <jbeulich@suse.com>, andrew.cooper3@citrix.com, xen-devel@lists.xenproject.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 11/10/16 06:52, Haozhong Zhang wrote:
-> On 10/10/16 17:43, Andrew Cooper wrote:
->> On 10/10/16 01:35, Haozhong Zhang wrote:
->>> Overview
->>> ========
->>> This RFC kernel patch series along with corresponding patch series of
->>> Xen, QEMU and ndctl implements Xen vNVDIMM, which can map the host
->>> NVDIMM devices to Xen HVM domU as vNVDIMM devices.
->>>
->>> Xen hypervisor does not include an NVDIMM driver, so it needs the
->>> assistance from the driver in Dom0 Linux kernel to manage NVDIMM
->>> devices. We currently only supports NVDIMM devices in pmem mode.
->>>
->>> Design and Implementation
->>> =========================
->>> The complete design can be found at
->>>   https://lists.xenproject.org/archives/html/xen-devel/2016-07/msg01921.html.
->>>
->>> All patch series can be found at
->>>   Xen:          https://github.com/hzzhan9/xen.git nvdimm-rfc-v1
->>>   QEMU:         https://github.com/hzzhan9/qemu.git xen-nvdimm-rfc-v1
->>>   Linux kernel: https://github.com/hzzhan9/nvdimm.git xen-nvdimm-rfc-v1
->>>   ndctl:        https://github.com/hzzhan9/ndctl.git pfn-xen-rfc-v1
->>>
->>> Xen hypervisor needs assistance from Dom0 Linux kernel for following tasks:
->>> 1) Reserve an area on NVDIMM devices for Xen hypervisor to place
->>>    memory management data structures, i.e. frame table and M2P table.
->>> 2) Report SPA ranges of NVDIMM devices and the reserved area to Xen
->>>    hypervisor.
->> Please can we take a step back here before diving down a rabbit hole.
->>
->>
->> How do pblk/pmem regions appear in the E820 map at boot?  At the very
->> least, I would expect at least a large reserved region.
-> ACPI specification does not require them to appear in E820, though
-> it defines E820 type-7 for persistent memory.
+On Tue, Oct 11, 2016 at 10:51:19AM -0700, Dan Williams wrote:
+> 260sn3756f-1
+> 	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT)
+> 	for <konrad.wilk@oracle.com>; Tue, 11 Oct 2016 17:51:21 +0000
+> Received: by mail-oi0-f43.google.com with SMTP id d132so32700570oib.2
+>         for <konrad.wilk@oracle.com>; Tue, 11 Oct 2016 10:51:20 -0700 (PDT)
+> DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+>         d=intel-com.20150623.gappssmtp.com; s=20150623;
+>         h=mime-version:in-reply-to:references:from:date:message-id:subject:to
+>          :cc;
+>         bh=vXHG8Ke0lr+jk8ivMDq3ZpmmHHjC205aTSytpqjXFgo=;
+>         b=CiKg4tJf1DGU2x/pSCYU7Jx79oCXMSIApwY2zJjO9Lny3erPxUyjNhszNyQkceYK1A
+>          Gzuw05eETGT/k0UWamFdN/ZXF3PucSXIXqrVtTS9kLQBlKPTWQJvndSRqZ6lPb36mlSA
+>          BrkdOREz5O/V7p/iGYhnxZU9eyfVY1ekgeMvTKP3su9Ye4Nk6GJYMEb5HSTCm1Ckmoq5
+>          T4Rlw6gcnbHCLx27vcghySG4YXcQ4r2qSPcSmAysve77sYCPYlM9XRVpzfPBTmINKGUo
+>          9w7MgVs5KG0dG60j1fJNjXoY0WSoP3uI67e69afqjAChzVndGDgMXjOzGrQ6+KQF088Q
+>          JeiQ==
+> X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+>         d=1e100.net; s=20130820;
+>         h=x-gm-message-state:mime-version:in-reply-to:references:from:date
+>          :message-id:subject:to:cc;
+>         bh=vXHG8Ke0lr+jk8ivMDq3ZpmmHHjC205aTSytpqjXFgo=;
+>         b=SmizBvFSmUHAy/WKfbD4m+QVSajIfcD9SQW7hwqmiwUtrACa2PxQWyx0dHe6DOqVVx
+>          jYHSxbbMiz105BMwxfv2pZlAl+phFkj8APxpL2XF36SIsq5u9+evlqBUuzGcpVJ+tXyI
+>          0xO0qfyspvNwLwJnkZ2bOxO9FM5cRhGGIAQ2uJCVIixLTPstJgkFL3taQ6bfr/epJGoF
+>          VbYrGRu0nxGTWEqk14q0YBt2uiDLWu6WiF8izG/fnyM39wzS0ZsO31hco3jpBWiq7X5N
+>          Ehn8ePiR9iYfowHhT3s2PefnrirD0zlJAamVqnbTNQS93PT26dWpm/vc8HVYiMLj+Fq8
+>          s2rw==
+> X-Gm-Message-State: AA6/9RlGCiscMzjRlXRLSGCPLACOp/VdD9I/y/dQ+vytyQN0tniPrwPxFp4VQtNbW/PYF1zzfyAX+iUOa+dgEsrg
+> X-Received: by 10.202.84.69 with SMTP id i66mr3504473oib.93.1476208279931;
+>  Tue, 11 Oct 2016 10:51:19 -0700 (PDT)
+> MIME-Version: 1.0
+> Received: by 10.157.39.201 with HTTP; Tue, 11 Oct 2016 10:51:19 -0700 (PDT)
+> In-Reply-To: <20161011165811.GO19349@localhost.localdomain>
+> References: <20161010003523.4423-1-haozhong.zhang@intel.com>
+>  <dde78bbd-4739-98a1-4b69-2c2dff0a9d71@citrix.com> <57FCF26A02000078000F15E0@prv-mh.provo.novell.com>
+>  <CAPcyv4gD3JTq93ET0SAYOxyPO9c0RTkPKSQKqZLo_8KPn53TiA@mail.gmail.com> <20161011165811.GO19349@localhost.localdomain>
+> From: Dan Williams <dan.j.williams@intel.com>
+> Date: Tue, 11 Oct 2016 10:51:19 -0700
+> Message-ID: <CAPcyv4jX_xzj=gz=tfoNMx0qFtyeKwqttzCE5GrOi6Kz5anhiQ@mail.gmail.com>
+> Subject: Re: [Xen-devel] [RFC KERNEL PATCH 0/2] Add Dom0 NVDIMM support for Xen
+> To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> Cc: Jan Beulich <jbeulich@suse.com>, Juergen Gross <JGross@suse.com>,
+>         Haozhong Zhang <haozhong.zhang@intel.com>,
+>         Xiao Guangrong <guangrong.xiao@linux.intel.com>,
+>         Arnd Bergmann <arnd@arndb.de>,
+>         "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+>         Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+>         andrew.cooper3@citrix.com,
+>         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+>         Stefano Stabellini <stefano@aporeto.com>,
+>         David Vrabel <david.vrabel@citrix.com>,
+>         Johannes Thumshirn <jthumshirn@suse.de>,
+>         xen-devel@lists.xenproject.org,
+>         Andrew Morton <akpm@linux-foundation.org>,
+>         Ross Zwisler <ross.zwisler@linux.intel.com>
+> Content-Type: text/plain; charset=UTF-8
+> X-Source-IP: 209.85.218.43
+> X-ServerName: mail-oi0-f43.google.com
+> X-Proofpoint-SPF-Result: pass
+> X-Proofpoint-SPF-Record: v=spf1 mx:intel.com include:_spf.google.com -all
+> X-Proofpoint-Virus-Version: vendor=nai engine=5800 definitions=8315 signatures=670727
+> X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 suspectscore=1
+>  malwarescore=0 phishscore=0 adultscore=0 bulkscore=0 classifier=spam
+>  adjust=0 reason=mlx scancount=1 engine=8.0.1-1609300000
+>  definitions=main-1610110304
+> X-Spam: Clean
+> 
+> On Tue, Oct 11, 2016 at 9:58 AM, Konrad Rzeszutek Wilk
+> <konrad.wilk@oracle.com> wrote:
+> > On Tue, Oct 11, 2016 at 08:53:33AM -0700, Dan Williams wrote:
+> >> On Tue, Oct 11, 2016 at 6:08 AM, Jan Beulich <jbeulich@suse.com> wrote:
+> >> >>>> Andrew Cooper <andrew.cooper3@citrix.com> 10/10/16 6:44 PM >>>
+> >> >>On 10/10/16 01:35, Haozhong Zhang wrote:
+> >> >>> Xen hypervisor needs assistance from Dom0 Linux kernel for following tasks:
+> >> >>> 1) Reserve an area on NVDIMM devices for Xen hypervisor to place
+> >> >>>    memory management data structures, i.e. frame table and M2P table.
+> >> >>> 2) Report SPA ranges of NVDIMM devices and the reserved area to Xen
+> >> >>>    hypervisor.
+> >> >>
+> >> >>However, I can't see any justification for 1).  Dom0 should not be
+> >> >>involved in Xen's management of its own frame table and m2p.  The mfns
+> >> >>making up the pmem/pblk regions should be treated just like any other
+> >> >>MMIO regions, and be handed wholesale to dom0 by default.
+> >> >
+> >> > That precludes the use as RAM extension, and I thought earlier rounds of
+> >> > discussion had got everyone in agreement that at least for the pmem case
+> >> > we will need some control data in Xen.
+> >>
+> >> The missing piece for me is why this reservation for control data
+> >> needs to be done in the libnvdimm core?  I would expect that any dax
+> >
+> > Isn't it done this way with Linux? That is say if the machine has
+> > 4GB of RAM and the NVDIMM is in TB range. You want to put the 'struct page'
+> > for the NVDIMM ranges somewhere. That place can be in regions on the
+> > NVDIMM that ndctl can reserve.
+> 
+> Yes.
+> 
+> >> capable file could be mapped and made available to a guest.  This
+> >> includes /dev/ramX devices that are dax capable, but are external to
+> >> the libnvdimm sub-system.
+> >
+> > This is more of just keeping track of the ranges if say the DAX file is
+> > extremely fragmented and requires a lot of 'struct pages' to keep track of
+> > when stiching up the VMA.
+> 
+> Right, but why does the libnvdimm core need to know about this
+> specific Xen reservation?  For example, if Xen wants some in-kernel
 
-Ok, so we might get some E820 type-7 ranges, or some holes.
+Let me turn this around - why does the libnvdimm core need to know about
+Linux specific parts? Shouldn't this be OS agnostic, so that FreeBSD
+for example can also poke a hole in this and fill it with its
+OS-management meta-data?
 
->
->> Is the MFN information (SPA in your terminology, so far as I can tell)
->> available in any static APCI tables, or are they only available as a
->> result of executing AML methods?
->>
-> For NVDIMM devices already plugged at power on, their MFN information
-> can be got from NFIT table. However, MFN information for hotplugged
-> NVDIMM devices should be got via AML _FIT method, so point 2) is needed.
+> driver to own a pmem region and place its own metadata on the device I
+> would recommend something like:
+> 
+>     bdev = blkdev_get_by_path("/dev/pmemX",  FMODE_EXCL...);
+>     bdev_direct_access(bdev, ...);
+> 
+> ...in other words, I don't think we want libnvdimm to grow new device
+> types for every possible in-kernel user, Xen, MD, DM, etc. Instead,
+> just claim the resulting device.
 
-How does NVDIMM hotplug compare to RAM hotplug?  Are the hotplug regions
-described at boot and marked as initially not present, or do you only
-know the hotplugged SPA at the point that it is hotplugged?
-
-I certainly agree that there needs to be a propagation of the hotplug
-notification from OSPM to Xen, which will involve some glue in the Xen
-subsystem in Linux, but I would expect that this would be similar to the
-existing plain RAM hotplug mechanism.
-
->
->> If the MFN information is only available via AML, then point 2) is
->> needed, although the reporting back to Xen should be restricted to a xen
->> component, rather than polluting the main device driver.
->>
->> However, I can't see any justification for 1).  Dom0 should not be
->> involved in Xen's management of its own frame table and m2p.  The mfns
->> making up the pmem/pblk regions should be treated just like any other
->> MMIO regions, and be handed wholesale to dom0 by default.
->>
-> Do you mean to treat them as mmio pages of type p2m_mmio_direct and
-> map them to guest by map_mmio_regions()?
-
-I don't see any reason why it shouldn't be treated like this.  Xen
-shouldn't be treating it as anything other than an opaque block of MFNs.
-
-The concept of trying to map a DAX file into the guest physical address
-space of a VM is indeed new and doesn't fit into Xen's current model,
-but all that fixing this requires is a new privileged mapping hypercall
-which takes a source domid and gfn scatter list, and a destination domid
-and scatter list.  (I see from a quick look at your Xen series that your
-XENMEM_populate_pmemmap looks roughly like this)
-
-~Andrew
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
