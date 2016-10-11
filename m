@@ -1,14 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5C54B1A1E46
- for <linux-nvdimm@lists.01.org>; Wed, 12 Oct 2016 13:43:57 -0700 (PDT)
-Subject: [ndctl PATCH] libndctl: fix 'type-pun' warnings with hpe1 commands
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 12 Oct 2016 13:40:41 -0700
-Message-ID: <147630484183.28641.3160414367749359017.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 54A621A1EC4
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Oct 2016 11:42:33 -0700 (PDT)
+Date: Tue, 11 Oct 2016 09:06:29 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v5 12/17] dax: add dax_iomap_sector() helper function
+Message-ID: <20161011070629.GD6952@quack2.suse.cz>
+References: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1475874544-24842-13-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1475874544-24842-13-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,133 +24,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Fix warnings of the form:
+On Fri 07-10-16 15:08:59, Ross Zwisler wrote:
+> To be able to correctly calculate the sector from a file position and a
+> struct iomap there is a complex little bit of logic that currently happens
+> in both dax_iomap_actor() and dax_iomap_fault().  This will need to be
+> repeated yet again in the DAX PMD fault handler when it is added, so break
+> it out into a helper function.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-    libndctl-hpe1.c: In function 'hpe1_smart_valid':
-    libndctl-hpe1.c:78:15: warning: dereferencing type-punned pointer will
-        break strict-aliasing rules [-Wstrict-aliasing]
-        CMD_HPE1(cmd)->gen.nd_family != NVDIMM_FAMILY_HPE1 ||
-        ^
-    libndctl-hpe1.c:79:15: warning: dereferencing type-punned pointer will
-        break strict-aliasing rules [-Wstrict-aliasing]
-        CMD_HPE1(cmd)->gen.nd_command != NDN_HPE1_CMD_SMART ||
-        ^
-    libndctl-hpe1.c: In function 'hpe1_cmd_smart_get_flags':
-    libndctl-hpe1.c:93:55: warning: dereferencing type-punned pointer will
-        break strict-aliasing rules [-Wstrict-aliasing]
-    libndctl-hpe1.c:93:55: warning: dereferencing type-punned pointer will
-        break strict-aliasing rules [-Wstrict-aliasing]
-    libndctl-hpe1.c: In function 'hpe1_cmd_smart_get_health':
-    libndctl-hpe1.c:121:56: warning: dereferencing type-punned pointer will
-        break strict-aliasing rules [-Wstrict-aliasing]
-    libndctl-hpe1.c:121:56: warning: dereferencing type-punned pointer will
-        break strict-aliasing rules [-Wstrict-aliasing]
+Looks good. You can add:
 
-...for distributions that include "-Wstrict-aliasing" in CFLAGS.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Cc: Brian Boylston <brian.boylston@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/lib/libndctl-hpe1.c    |    8 +++-----
- ndctl/lib/libndctl-private.h |    2 ++
- ndctl/lib/ndctl-hpe1.h       |   24 +++++++++++++++---------
- 3 files changed, 20 insertions(+), 14 deletions(-)
+								Honza
 
-diff --git a/ndctl/lib/libndctl-hpe1.c b/ndctl/lib/libndctl-hpe1.c
-index 48d8e02cf46e..ec542527e509 100644
---- a/ndctl/lib/libndctl-hpe1.c
-+++ b/ndctl/lib/libndctl-hpe1.c
-@@ -19,11 +19,9 @@
- 
- #include "ndctl-hpe1.h"
- 
--#define CMD_HPE1(_c) ((struct ndn_pkg_hpe1 *)((_c)->cmd_buf))
--#define CMD_HPE1_SMART(_c) \
--	((struct ndn_hpe1_smart_data *)(CMD_HPE1(_c)->u.smart.data))
--#define CMD_HPE1_SMART_THRESH(_c) \
--	((struct ndn_hpe1_smart_threshold_data *)(CMD_HPE1(_c)->u.thresh.data))
-+#define CMD_HPE1(_c) ((_c)->hpe1)
-+#define CMD_HPE1_SMART(_c) (CMD_HPE1(_c)->u.smart.data)
-+#define CMD_HPE1_SMART_THRESH(_c) (CMD_HPE1(_c)->u.thresh.data)
- 
- static struct ndctl_cmd *hpe1_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- {
-diff --git a/ndctl/lib/libndctl-private.h b/ndctl/lib/libndctl-private.h
-index 4363f2373d7b..0dc9e30cdb6e 100644
---- a/ndctl/lib/libndctl-private.h
-+++ b/ndctl/lib/libndctl-private.h
-@@ -31,6 +31,7 @@
- #include <ndctl/libndctl.h>
- #include <ccan/endian/endian.h>
- #include <ccan/short_types/short_types.h>
-+#include "ndctl-hpe1.h"
- 
- #define SZ_16M 0x01000000
- 
-@@ -191,6 +192,7 @@ struct ndctl_cmd {
- #ifdef HAVE_NDCTL_CLEAR_ERROR
- 		struct nd_cmd_clear_error clear_err[0];
- #endif
-+		struct ndn_pkg_hpe1 hpe1[0];
- 		struct nd_cmd_smart smart[0];
- 		struct nd_cmd_smart_threshold smart_t[0];
- 		struct nd_cmd_get_config_size get_size[0];
-diff --git a/ndctl/lib/ndctl-hpe1.h b/ndctl/lib/ndctl-hpe1.h
-index 0d41aab4e64f..b050831ec2c4 100644
---- a/ndctl/lib/ndctl-hpe1.h
-+++ b/ndctl/lib/ndctl-hpe1.h
-@@ -33,12 +33,6 @@ enum {
- };
- 
- /* NDN_HPE1_CMD_SMART */
--struct ndn_hpe1_smart {
--	__u32 in_valid_flags;
--	__u32 status;
--	__u8 data[124];
--} __attribute__((packed));
--
- /* ndn_hpe1_smart.in_valid_flags / ndn_hpe1_smart_data.out_valid_flags */
- #define NDN_HPE1_SMART_HEALTH_VALID	(1 << 0)
- #define NDN_HPE1_SMART_TEMP_VALID	(1 << 1)
-@@ -112,12 +106,16 @@ struct ndn_hpe1_smart_data {
- 	__u8	vnd_spec_data[60];
- } __attribute__((packed));
- 
--/* NDN_HPE1_CMD_SMART_THRESHOLD */
--struct ndn_hpe1_smart_threshold {
-+struct ndn_hpe1_smart {
-+	__u32 in_valid_flags;
- 	__u32 status;
--	__u8 data[32];
-+	union {
-+		__u8 buf[124];
-+		struct ndn_hpe1_smart_data data[0];
-+	};
- } __attribute__((packed));
- 
-+/* NDN_HPE1_CMD_SMART_THRESHOLD */
- struct ndn_hpe1_smart_threshold_data {
- 	__u16	threshold_alarm_ctl;
- 	__u16	temp_threshold;
-@@ -134,6 +132,14 @@ struct ndn_hpe1_smart_threshold_data {
- 	__u64	res4;
- } __attribute__((packed));
- 
-+struct ndn_hpe1_smart_threshold {
-+	__u32 status;
-+	union {
-+		__u8 buf[32];
-+		struct ndn_hpe1_smart_threshold_data data[0];
-+	};
-+} __attribute__((packed));
-+
- /* NDN_HPE1_CMD_GET_CONFIG_SIZE */
- struct ndn_hpe1_get_config_size {
- 	__u32 status;
-
+> ---
+>  fs/dax.c | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 982ccbb..7689ab0 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1023,6 +1023,11 @@ int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
+>  EXPORT_SYMBOL_GPL(dax_truncate_page);
+>  
+>  #ifdef CONFIG_FS_IOMAP
+> +static inline sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
+> +{
+> +	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
+> +}
+> +
+>  static loff_t
+>  dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+>  		struct iomap *iomap)
+> @@ -1048,8 +1053,7 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+>  		struct blk_dax_ctl dax = { 0 };
+>  		ssize_t map_len;
+>  
+> -		dax.sector = iomap->blkno +
+> -			(((pos & PAGE_MASK) - iomap->offset) >> 9);
+> +		dax.sector = dax_iomap_sector(iomap, pos);
+>  		dax.size = (length + offset + PAGE_SIZE - 1) & PAGE_MASK;
+>  		map_len = dax_map_atomic(iomap->bdev, &dax);
+>  		if (map_len < 0) {
+> @@ -1186,7 +1190,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+>  		goto unlock_entry;
+>  	}
+>  
+> -	sector = iomap.blkno + (((pos & PAGE_MASK) - iomap.offset) >> 9);
+> +	sector = dax_iomap_sector(&iomap, pos);
+>  
+>  	if (vmf->cow_page) {
+>  		switch (iomap.type) {
+> -- 
+> 2.7.4
+> 
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
