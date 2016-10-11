@@ -1,20 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from gateway32.websitewelcome.com (gateway32.websitewelcome.com
- [192.185.145.125])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 095271A1E57
- for <linux-nvdimm@lists.01.org>; Tue, 18 Oct 2016 14:42:30 -0700 (PDT)
-Received: from cm3.websitewelcome.com (unknown [108.167.139.23])
- by gateway32.websitewelcome.com (Postfix) with ESMTP id 648C1D4DFE0CA
- for <linux-nvdimm@lists.01.org>; Tue, 18 Oct 2016 16:42:29 -0500 (CDT)
-From: Stephen Bates <sbates@raithlin.com>
-Subject: [PATCH 2/3] iopmem : Add a block device driver for PCIe attached IO
- memory.
-Date: Tue, 18 Oct 2016 15:42:16 -0600
-Message-Id: <1476826937-20665-3-git-send-email-sbates@raithlin.com>
-In-Reply-To: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
-References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
+ by ml01.01.org (Postfix) with ESMTPS id 52FAA1A1E6F
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Oct 2016 23:37:48 -0700 (PDT)
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm for 4.9
+Date: Tue, 11 Oct 2016 06:37:45 +0000
+Message-ID: <1476167860.3887.8.camel@intel.com>
+Content-Language: en-US
+Content-ID: <9775E3097C0F5B4D91F03496F0B5B949@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,436 +18,138 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-block@vger.kernel.org, linux-mm@kvack.org
-Cc: hch@infradead.org, sbates@raithin.com, haggaie@mellanox.com, axboe@fb.com, corbet@lwn.net, jim.macdonald@everspin.com, Stephen Bates <sbates@raithlin.com>, jgunthorpe@obsidianresearch.com
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new block device driver that binds to PCIe devices and turns
-PCIe BARs into DAX capable block devices.
-
-Signed-off-by: Stephen Bates <sbates@raithlin.com>
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- MAINTAINERS            |   7 ++
- drivers/block/Kconfig  |  27 ++++
- drivers/block/Makefile |   1 +
- drivers/block/iopmem.c | 333 +++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 368 insertions(+)
- create mode 100644 drivers/block/iopmem.c
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 1cd38a7..c379f9d 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6510,6 +6510,13 @@ S:	Maintained
- F:	Documentation/devicetree/bindings/iommu/
- F:	drivers/iommu/
-
-+IOPMEM BLOCK DEVICE DRVIER
-+M:	Stephen Bates <sbates@raithlin.com>
-+L:	linux-block@vger.kernel.org
-+S:	Maintained
-+F:	drivers/block/iopmem.c
-+F:	Documentation/blockdev/iopmem.txt
-+
- IP MASQUERADING
- M:	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>
- S:	Maintained
-diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
-index 39dd30b..13ae1e7 100644
---- a/drivers/block/Kconfig
-+++ b/drivers/block/Kconfig
-@@ -537,4 +537,31 @@ config BLK_DEV_RSXX
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called rsxx.
-
-+config BLK_DEV_IOPMEM
-+	tristate "Persistent block device backed by PCIe Memory"
-+	depends on ZONE_DEVICE
-+	default n
-+	help
-+	  Say Y here if you want to include a generic device driver
-+	  that can create a block device from persistent PCIe attached
-+	  IO memory.
-+
-+	  To compile this driver as a module, choose M here: The
-+	  module will be called iopmem. A block device will be created
-+	  for each PCIe attached device that matches the vendor and
-+	  device ID as specified in the module. Alternativel this
-+	  driver can be bound to any aribtary PCIe function using the
-+	  sysfs bind entry.
-+
-+	  This block device supports direct access (DAX) file systems
-+	  and supports struct page backing for the IO Memory. This
-+	  makes the underlying memory suitable for things like RDMA
-+	  Memory Regions and Direct IO which is useful for PCIe
-+	  peer-to-peer DMA operations.
-+
-+	  Note that persistent is only assured if the memory on the
-+	  PCIe card has some form of power loss protection. This could
-+	  be provided via some form of battery, a supercap/NAND combo
-+	  or some exciting new persistent memory technology.
-+
- endif # BLK_DEV
-diff --git a/drivers/block/Makefile b/drivers/block/Makefile
-index 1e9661e..1f4f69b 100644
---- a/drivers/block/Makefile
-+++ b/drivers/block/Makefile
-@@ -41,6 +41,7 @@ obj-$(CONFIG_BLK_DEV_PCIESSD_MTIP32XX)	+= mtip32xx/
- obj-$(CONFIG_BLK_DEV_RSXX) += rsxx/
- obj-$(CONFIG_BLK_DEV_NULL_BLK)	+= null_blk.o
- obj-$(CONFIG_ZRAM) += zram/
-+obj-$(CONFIG_BLK_DEV_IOPMEM)	+= iopmem.o
-
- skd-y		:= skd_main.o
- swim_mod-y	:= swim.o swim_asm.o
-diff --git a/drivers/block/iopmem.c b/drivers/block/iopmem.c
-new file mode 100644
-index 0000000..4a1e693
---- /dev/null
-+++ b/drivers/block/iopmem.c
-@@ -0,0 +1,333 @@
-+/*
-+ * IOPMEM Block Device Driver
-+ * Copyright (c) 2016, Microsemi Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * This driver is heavily based on drivers/block/pmem.c.
-+ * Copyright (c) 2014, Intel Corporation.
-+ * Copyright (C) 2007 Nick Piggin
-+ * Copyright (C) 2007 Novell Inc.
-+ */
-+
-+#include <linux/blkdev.h>
-+#include <linux/module.h>
-+#include <linux/pci.h>
-+#include <linux/pfn_t.h>
-+#include <linux/memremap.h>
-+
-+static const int BAR_ID = 4;
-+
-+static struct pci_device_id iopmem_id_table[] = {
-+	{ PCI_DEVICE(0x11f8, 0xf115) },
-+	{ 0, }
-+};
-+MODULE_DEVICE_TABLE(pci, iopmem_id_table);
-+
-+struct iopmem_device {
-+	struct request_queue *queue;
-+	struct gendisk *disk;
-+	struct device *dev;
-+
-+	int instance;
-+
-+	/* One contiguous memory region per device */
-+	phys_addr_t		phys_addr;
-+	void			*virt_addr;
-+	size_t			size;
-+};
-+
-+  /*
-+   * We can only access the iopmem device with full 32-bit word
-+   * accesses which cannot be gaurantee'd by the regular memcpy
-+   */
-+
-+static void memcpy_from_iopmem(void *dst, const void *src, size_t sz)
-+{
-+	u64 *wdst = dst;
-+	const u64 *wsrc = src;
-+	u64 tmp;
-+
-+	while (sz >= sizeof(*wdst)) {
-+		*wdst++ = *wsrc++;
-+		sz -= sizeof(*wdst);
-+	}
-+
-+	if (!sz)
-+		return;
-+
-+	tmp = *wsrc;
-+	memcpy(wdst, &tmp, sz);
-+}
-+
-+static void write_iopmem(void *iopmem_addr, struct page *page,
-+		       unsigned int off, unsigned int len)
-+{
-+	void *mem = kmap_atomic(page);
-+
-+	memcpy(iopmem_addr, mem + off, len);
-+	kunmap_atomic(mem);
-+}
-+
-+static void read_iopmem(struct page *page, unsigned int off,
-+			void *iopmem_addr, unsigned int len)
-+{
-+	void *mem = kmap_atomic(page);
-+
-+	memcpy_from_iopmem(mem + off, iopmem_addr, len);
-+	kunmap_atomic(mem);
-+}
-+
-+static void iopmem_do_bvec(struct iopmem_device *iopmem, struct page *page,
-+			   unsigned int len, unsigned int off, bool is_write,
-+			   sector_t sector)
-+{
-+	phys_addr_t iopmem_off = sector * 512;
-+	void *iopmem_addr = iopmem->virt_addr + iopmem_off;
-+
-+	if (!is_write) {
-+		read_iopmem(page, off, iopmem_addr, len);
-+		flush_dcache_page(page);
-+	} else {
-+		flush_dcache_page(page);
-+		write_iopmem(iopmem_addr, page, off, len);
-+	}
-+}
-+
-+static blk_qc_t iopmem_make_request(struct request_queue *q, struct bio *bio)
-+{
-+	struct iopmem_device *iopmem = q->queuedata;
-+	struct bio_vec bvec;
-+	struct bvec_iter iter;
-+
-+	bio_for_each_segment(bvec, bio, iter) {
-+		iopmem_do_bvec(iopmem, bvec.bv_page, bvec.bv_len,
-+			    bvec.bv_offset, op_is_write(bio_op(bio)),
-+			    iter.bi_sector);
-+	}
-+
-+	bio_endio(bio);
-+	return BLK_QC_T_NONE;
-+}
-+
-+static int iopmem_rw_page(struct block_device *bdev, sector_t sector,
-+		       struct page *page, bool is_write)
-+{
-+	struct iopmem_device *iopmem = bdev->bd_queue->queuedata;
-+
-+	iopmem_do_bvec(iopmem, page, PAGE_SIZE, 0, is_write, sector);
-+	page_endio(page, is_write, 0);
-+	return 0;
-+}
-+
-+static long iopmem_direct_access(struct block_device *bdev, sector_t sector,
-+			       void **kaddr, pfn_t *pfn, long size)
-+{
-+	struct iopmem_device *iopmem = bdev->bd_queue->queuedata;
-+	resource_size_t offset = sector * 512;
-+
-+	if (!iopmem)
-+		return -ENODEV;
-+
-+	*kaddr = iopmem->virt_addr + offset;
-+	 *pfn = phys_to_pfn_t(iopmem->phys_addr + offset, PFN_DEV | PFN_MAP);
-+
-+	return iopmem->size - offset;
-+}
-+
-+static const struct block_device_operations iopmem_fops = {
-+	.owner =		THIS_MODULE,
-+	.rw_page =		iopmem_rw_page,
-+	.direct_access =	iopmem_direct_access,
-+};
-+
-+static DEFINE_IDA(iopmem_instance_ida);
-+static DEFINE_SPINLOCK(ida_lock);
-+
-+static int iopmem_set_instance(struct iopmem_device *iopmem)
-+{
-+	int instance, error;
-+
-+	do {
-+		if (!ida_pre_get(&iopmem_instance_ida, GFP_KERNEL))
-+			return -ENODEV;
-+
-+		spin_lock(&ida_lock);
-+		error = ida_get_new(&iopmem_instance_ida, &instance);
-+		spin_unlock(&ida_lock);
-+
-+	} while (error == -EAGAIN);
-+
-+	if (error)
-+		return -ENODEV;
-+
-+	iopmem->instance = instance;
-+	return 0;
-+}
-+
-+static void iopmem_release_instance(struct iopmem_device *iopmem)
-+{
-+	spin_lock(&ida_lock);
-+	ida_remove(&iopmem_instance_ida, iopmem->instance);
-+	spin_unlock(&ida_lock);
-+}
-+
-+static int iopmem_attach_disk(struct iopmem_device *iopmem)
-+{
-+	struct gendisk *disk;
-+	int nid = dev_to_node(iopmem->dev);
-+	struct request_queue *q = iopmem->queue;
-+
-+	blk_queue_write_cache(q, true, true);
-+	blk_queue_make_request(q, iopmem_make_request);
-+	blk_queue_physical_block_size(q, PAGE_SIZE);
-+	blk_queue_max_hw_sectors(q, UINT_MAX);
-+	blk_queue_bounce_limit(q, BLK_BOUNCE_ANY);
-+	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, q);
-+	queue_flag_set_unlocked(QUEUE_FLAG_DAX, q);
-+	q->queuedata = iopmem;
-+
-+	disk = alloc_disk_node(0, nid);
-+	if (unlikely(!disk))
-+		return -ENOMEM;
-+
-+	disk->fops		= &iopmem_fops;
-+	disk->queue		= q;
-+	disk->flags		= GENHD_FL_EXT_DEVT;
-+	sprintf(disk->disk_name, "iopmem%d", iopmem->instance);
-+	set_capacity(disk, iopmem->size / 512);
-+	iopmem->disk = disk;
-+
-+	device_add_disk(iopmem->dev, disk);
-+	revalidate_disk(disk);
-+
-+	return 0;
-+}
-+
-+static void iopmem_detach_disk(struct iopmem_device *iopmem)
-+{
-+	del_gendisk(iopmem->disk);
-+	put_disk(iopmem->disk);
-+}
-+
-+static int iopmem_probe(struct pci_dev *pdev, const struct pci_device_id *id)
-+{
-+	struct iopmem_device *iopmem;
-+	struct device *dev;
-+	int err = 0;
-+	int nid = dev_to_node(&pdev->dev);
-+
-+	if (pci_enable_device_mem(pdev) < 0) {
-+		dev_err(&pdev->dev, "unable to enable device!\n");
-+		goto out;
-+	}
-+
-+	iopmem = kzalloc(sizeof(*iopmem), GFP_KERNEL);
-+	if (unlikely(!iopmem)) {
-+		err = -ENOMEM;
-+		goto out_disable_device;
-+	}
-+
-+	iopmem->phys_addr = pci_resource_start(pdev, BAR_ID);
-+	iopmem->size = pci_resource_end(pdev, BAR_ID) - iopmem->phys_addr + 1;
-+	iopmem->dev = dev = get_device(&pdev->dev);
-+	pci_set_drvdata(pdev, iopmem);
-+
-+	err = iopmem_set_instance(iopmem);
-+	if (err)
-+		goto out_put_device;
-+
-+	dev_info(dev, "bar space 0x%llx len %lld\n",
-+		(unsigned long long) iopmem->phys_addr,
-+		(unsigned long long) iopmem->size);
-+
-+	if (!devm_request_mem_region(dev, iopmem->phys_addr,
-+				     iopmem->size, dev_name(dev))) {
-+		dev_warn(dev, "could not reserve region [0x%pa:0x%zx]\n",
-+			 &iopmem->phys_addr, iopmem->size);
-+		err = -EBUSY;
-+		goto out_release_instance;
-+	}
-+
-+	iopmem->queue = blk_alloc_queue_node(GFP_KERNEL, nid);
-+	if (!iopmem->queue) {
-+		err = -ENOMEM;
-+		goto out_release_instance;
-+	}
-+
-+	iopmem->virt_addr = devm_memremap_pages(dev, &pdev->resource[BAR_ID],
-+				&iopmem->queue->q_usage_counter,
-+				NULL, MEMREMAP_WC);
-+	if (IS_ERR(iopmem->virt_addr)) {
-+		err = -ENXIO;
-+		goto out_free_queue;
-+	}
-+
-+	err = iopmem_attach_disk(iopmem);
-+	if (err)
-+		goto out_free_queue;
-+
-+	return 0;
-+
-+out_free_queue:
-+	blk_cleanup_queue(iopmem->queue);
-+out_release_instance:
-+	iopmem_release_instance(iopmem);
-+out_put_device:
-+	put_device(&pdev->dev);
-+	kfree(iopmem);
-+out_disable_device:
-+	pci_disable_device(pdev);
-+out:
-+	return err;
-+}
-+
-+static void iopmem_remove(struct pci_dev *pdev)
-+{
-+	struct iopmem_device *iopmem = pci_get_drvdata(pdev);
-+
-+	blk_set_queue_dying(iopmem->queue);
-+	iopmem_detach_disk(iopmem);
-+	blk_cleanup_queue(iopmem->queue);
-+	iopmem_release_instance(iopmem);
-+	put_device(iopmem->dev);
-+	kfree(iopmem);
-+	pci_disable_device(pdev);
-+}
-+
-+static struct pci_driver iopmem_pci_driver = {
-+	.name = "iopmem",
-+	.id_table = iopmem_id_table,
-+	.probe = iopmem_probe,
-+	.remove = iopmem_remove,
-+};
-+
-+static int __init iopmem_init(void)
-+{
-+	int rc;
-+
-+	rc = pci_register_driver(&iopmem_pci_driver);
-+	if (rc)
-+		return rc;
-+
-+	pr_info("iopmem: module loaded\n");
-+	return 0;
-+}
-+
-+static void __exit iopmem_exit(void)
-+{
-+	pci_unregister_driver(&iopmem_pci_driver);
-+	pr_info("iopmem: module unloaded\n");
-+}
-+
-+MODULE_AUTHOR("Logan Gunthorpe <logang@deltatee.com>");
-+MODULE_LICENSE("GPL");
-+module_init(iopmem_init);
-+module_exit(iopmem_exit);
---
-2.1.4
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
+Y20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIHRhZ3MvbGlibnZkaW1tLWZvci00LjkK
+Ci4uLnRvIHJlY2VpdmUgdGhlIGxpYm52ZGltbSB1cGRhdGUgZm9yIDQuOS4KCkFzaWRlIGZyb20g
+dGhlIHJlY2VudGx5IGFkZGVkIHBtZW0gc3ViLWRpdmlzaW9uIHN1cHBvcnQgdGhlc2UgaGF2ZSBi
+ZWVuCmluIC1uZXh0IGZvciBzZXZlcmFsIHJlbGVhc2VzIHdpdGggbm8gcmVwb3J0ZWQgaXNzdWVz
+LiArQUtBLVRoZSBzdWItCmRpdmlzaW9uIHN1cHBvcnQgd2FzIGluY2x1ZGVkIGluIG5leHQtMjAx
+NjEwMTAgd2l0aCBubyByZXBvcnRlZCBpc3N1ZXMuCitBS0EtSXQgcGFzc2VzIGFsbCB1bml0IHRl
+c3RzIGluY2x1ZGluZyBuZXcgdGVzdHMgZm9yIGFsbCB0aGUgbmV3CmZ1bmN0aW9uYWxpdHkgYmVs
+b3cuCgpUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29tbWl0IDU5NWM3MzA3MWU2NjQxZTU5
+YjgzOTExZmJiNDAyNmU3Njc0NzEwMDA6CgogIGxpYm52ZGltbSwgcmVnaW9uOiBmaXggZmx1c2gg
+aGludCB0YWJsZSB0aGlua28gKDIwMTYtMDktMjQgMTE6NDU6MzggLTA3MDApCgphcmUgYXZhaWxh
+YmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoKCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHVi
+L3NjbS9saW51eC9rZXJuZWwvZ2l0L252ZGltbS9udmRpbW0gdGFncy9saWJudmRpbW0tZm9yLTQu
+OQoKZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIGU0NzZmOTQ0ODJmYzIwYTIzYjdiMzNi
+M2Q4ZTUwZjE5NTNmNzE4Mjg6CgogIE1lcmdlIGJyYW5jaCAnZm9yLTQuOS9kYXgnIGludG8gbGli
+bnZkaW1tLWZvci1uZXh0ICgyMDE2LTEwLTA3IDE2OjQ2OjMwIC0wNzAwKQoKLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpsaWJu
+dmRpbW0gZm9yIDQuOQoKKiBQTUVNIHN1Yi1kaXZpc2lvbiBzdXBwb3J0OiBBbGxvdyBhIHNpbmds
+ZSBQTUVNIHJlZ2lvbiB0byBiZSBkaXZpZGVkCiAgaW50byBtdWx0aXBsZSBuYW1lc3BhY2VzLiBP
+cmlnaW5hbGx5LCArQUg0LTIgeWVhcnMgYWdvLCBpdCB3YXMgdGhvdWdodCB0aGF0CiAgcGFydGl0
+aW9ucyBvZiBhIC9kZXYvcG1lbVggYmxvY2sgZGV2aWNlIGNvdWxkIGhhbmRsZSBzdWItYWxsb2Nh
+dGlvbnMgb2YKICBwZXJzaXN0ZW50IG1lbW9yeSBmb3IgZGlmZmVyZW50IHVzZSBjYXNlcy4gV2l0
+aCB0aGUgZGVjaXNpb24gdG8gbm90CiAgc3VwcG9ydCBEQVggbWFwcGluZ3Mgb2YgcmF3IGJsb2Nr
+LWRldmljZXMsIGFuZCB0aGUgZ2VuZXNpcyBvZgogIGRldmljZS1kYXgsIHRoZSBuZWVkIGZvciBo
+YXZpbmcgbXVsdGlwbGUgcG1lbS1uYW1lc3BhY2UgcGVyIHJlZ2lvbiBoYXMKICBncm93bi4KCiog
+RGV2aWNlLURBWCB1bmlmaWVkIGlub2RlOiBJbiBzdXBwb3J0IG9mIGR5bmFtaWMtcmVzaXppbmcg
+b2YgYQogIGRldmljZS1kYXggaW5zdGFuY2UgdGhlIGtlcm5lbCBhcnJhbmdlcyBmb3IgYWxsIG1h
+cHBpbmdzIG9mIGEKICBkZXZpY2UtZGF4IG5vZGUgdG8gc2hhcmUgdGhlIHNhbWUgaW5vZGUuIFRo
+aXMgYWxsb3dzIHVubWFwIC8gdHJ1bmNhdGUgLwogIGludmFsaWRhdGlvbiBldmVudHMgdG8gYWZm
+ZWN0IGFsbCBpbnN0YW5jZXMgb2YgdGhlIGRldmljZSBzaW1pbGFyIHRvIHRoZQogIGJlaGF2aW9y
+IG9mIG1tYXAgb24gYmxvY2sgZGV2aWNlcy4KCiogSGFyZHdhcmUgZXJyb3Igc2NydWJiaW5nIHJl
+d29ya3M6IFRoZSBvcmlnaW5hbCBhZGRyZXNzLXJhbmdlLXNjcnViICstCiAgYmFkYmxvY2tzIHRy
+YWNraW5nIHNvbHV0aW9uIGFsbG93ZWQgY2xlYXJpbmcgZW50cmllcyBhdCB0aGUgaW5kaXZpZHVh
+bAogIG5hbWVzcGFjZSBsZXZlbCwgYnV0IGl0IGZhaWxlZCB0byBjbGVhciB0aGUgaW50ZXJuYWwg
+bGlzdCBvZiBtZWRpYQogIGVycm9ycyBtYWludGFpbmVkIGF0IHRoZSBidXMgbGV2ZWwuIFRoZSBy
+ZXN1bHQgd2FzIHRoYXQgdGhlIG5leHQgc2NydWIKICBvciBuYW1lc3BhY2UgZGlzYWJsZS9yZS1l
+bmFibGUgZXZlbnQgd291bGQgcmVzdG9yZSB0aGUgY2xlYXJlZAogIGJhZGJsb2NrcywgYnV0IG5v
+dyB0aGF0IGlzIGZpeGVkLiBUaGUgdjQuOCBrZXJuZWwgaW50cm9kdWNlZCBhbgogIGF1dG8tc2Ny
+dWItb24tbWFjaGluZS1jaGVjayBiZWhhdmlvciB0byByZXBvcHVsYXRlIHRoZSBiYWRibG9ja3Mg
+bGlzdC4KICBOb3csIGluIHY0LjksIHRoZSBhdXRvLXNjcnViIGJlaGF2aW9yIGNhbiBiZSBkaXNh
+YmxlZCBhbmQgc2ltcGx5IGFycmFuZ2UKICBmb3IgdGhlIGVycm9yIHJlcG9ydGVkIGluIHRoZSBt
+YWNoaW5lLWNoZWNrIHRvIGJlIGFkZGVkIHRvIHRoZSBsaXN0LgoKKiBESU1NIGhlYWx0aC1ldmVu
+dCBub3RpZmljYXRpb24gc3VwcG9ydDogQUNQSSA2LjEgZGVmaW5lcyBhCiAgbm90aWZpY2F0aW9u
+IGV2ZW50IGNvZGUgdGhhdCBjYW4gYmUgc2VuZCB0byBBQ1BJIE5WRElNTSBkZXZpY2VzLiBBCiAg
+cG9sbCgyKSBjYXBhYmxlIGZpbGUgZGVzY3JpcHRvciBmb3IgdGhlc2UgZXZlbnRzIGNhbiBiZSBv
+YnRhaW5lZCBmcm9tCiAgdGhlIG5tZW1YL25maXQvZmxhZ3Mgc3lzZnMtYXR0cmlidXRlIG9mIGEg
+bGlibnZkaW1tIG1lbW9yeSBkZXZpY2UuCgoqIE1pc2NlbGxhbmVvdXMgZml4ZXM6IE5WRElNTS1O
+IHByb2JlIGVycm9yLCBkZXZpY2UtZGF4IGJ1aWxkIGVycm9yLCBhbmQKICBhIGNoYW5nZSB0byBk
+ZWR1cCB0aGUgZmx1c2ggaGludCBsaXN0IHRvIG5vdCBmbHVzaCB0aGUgbWVtb3J5IGNvbnRyb2xs
+ZXIKICBtb3JlIHRoYW4gbmVjZXNzYXJ5LgoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpBcm5kIEJlcmdtYW5uICgxKToKICAg
+ICAgZGF4OiB1c2UgY29ycmVjdCBkZXZfdCB2YWx1ZQoKRGFuIFdpbGxpYW1zICgzMSk6CiAgICAg
+IGxpYm52ZGltbTogZml4IFNNQVJUIEhlYWx0aCBEU00gcGF5bG9hZCBkZWZpbml0aW9uCiAgICAg
+IHRvb2xzL3Rlc3RpbmcvbnZkaW1tOiB1bml0IHRlc3QgZm9yIGFjcGlfbmZpdF9ub3RpZnkoKQog
+ICAgICBkYXg6IGNsZWFudXAgbmVlZGxlc3NseSBnbG9iYWwgc3ltYm9sIHdhcm5pbmdzCiAgICAg
+IGRheDogcmVvcmRlciBkYXhfZm9wcyBmdW5jdGlvbiBkZWZpbml0aW9ucwogICAgICBkYXg6IHJl
+bmFtZSBmb3BzIGZyb20gZGF4X2Rldl8gdG8gZGF4XwogICAgICBkYXg6IGVtYmVkIGEgc3RydWN0
+IGRldmljZSBpbiBkYXhfZGV2CiAgICAgIGRheDogY29udmVydCB0byB0aGUgY2RldiBhcGkKICAg
+ICAgZGF4OiBkZWZpbmUgYSB1bmlmaWVkIGlub2RlL2FkZHJlc3Nfc3BhY2UgZm9yIGRldmljZS1k
+YXggbWFwcGluZ3MKICAgICAgZGF4OiB1bm1hcC90cnVuY2F0ZSBvbiBkZXZpY2Ugc2h1dGRvd24K
+ICAgICAgZGF4OiBjaGVjayByZXNvdXJjZSBhbGlnbm1lbnQgYXQgZGF4IHJlZ2lvbi9kZXZpY2Ug
+Y3JlYXRlCiAgICAgIGFjcGksIG5maXQ6IGFkZCBkaW1tIGRldmljZSBub3RpZmljYXRpb24gc3Vw
+cG9ydAogICAgICB0b29scy90ZXN0aW5nL252ZGltbTogdW5pdCB0ZXN0IGZvciBhY3BpX252ZGlt
+bV9ub3RpZnkoKQogICAgICB0b29scy90ZXN0aW5nL252ZGltbTogdGVzdCBnZXRfY29uZmlnX3Np
+emUgRFNNIGZhaWx1cmVzCiAgICAgIGxpYm52ZGltbSwgbmFtZXNwYWNlOiBkZWJ1ZyBpbnZhbGlk
+IGludGVybGVhdmUtc2V0LWNvb2tpZSB2YWx1ZXMKICAgICAgbGlibnZkaW1tLCByZWdpb246IG1v
+dmUgcmVnaW9uLW1hcHBpbmcgaW5wdXQtcGFyYW10ZXJzIHRvIG5kX21hcHBpbmdfZGVzYwogICAg
+ICBsaWJudmRpbW0sIGxhYmVsOiBjb252ZXJ0IGxhYmVsIHRyYWNraW5nIHRvIGEgbGlua2VkIGxp
+c3QKICAgICAgbGlibnZkaW1tLCBuYW1lc3BhY2U6IHJlZmFjdG9yIHV1aWRfc2hvdygpIGludG8g
+YSBuYW1lc3BhY2VfdG9fdXVpZCgpIGhlbHBlcgogICAgICBsaWJudmRpbW0sIG5hbWVzcGFjZTog
+dW5pZnkgYmxrIGFuZCBwbWVtIGxhYmVsIHNjYW5uaW5nCiAgICAgIHRvb2xzL3Rlc3RpbmcvbnZk
+aW1tOiBzdXBwb3J0IGZvciBzdWItZGl2aWRpbmcgYSBwbWVtIHJlZ2lvbgogICAgICBsaWJudmRp
+bW0sIG5hbWVzcGFjZTogYWxsb3cgbXVsdGlwbGUgcG1lbS1uYW1lc3BhY2VzIHBlciByZWdpb24g
+YXQgc2NhbiB0aW1lCiAgICAgIGxpYm52ZGltbSwgbmFtZXNwYWNlOiBzb3J0IG5hbWVzcGFjZXMg
+YnkgZHBhIGF0IGluaXQKICAgICAgbGlibnZkaW1tLCByZWdpb246IHVwZGF0ZSBuZF9yZWdpb25f
+YXZhaWxhYmxlX2RwYSgpIGZvciBtdWx0aS1wbWVtIHN1cHBvcnQKICAgICAgbGlibnZkaW1tLCBu
+YW1lc3BhY2U6IGV4cGFuZCBwbWVtIGRldmljZSBuYW1pbmcgc2NoZW1lIGZvciBtdWx0aS1wbWVt
+CiAgICAgIGxpYm52ZGltbSwgbmFtZXNwYWNlOiB1cGRhdGUgbGFiZWwgaW1wbGVtZW50YXRpb24g
+Zm9yIG11bHRpLXBtZW0KICAgICAgbGlibnZkaW1tLCBuYW1lc3BhY2U6IGVuYWJsZSBhbGxvY2F0
+aW9uIG9mIG11bHRpcGxlIHBtZW0gbmFtZXNwYWNlcwogICAgICBsaWJudmRpbW0sIG5hbWVzcGFj
+ZTogZmlsdGVyIG91dCBvZiByYW5nZSBsYWJlbHMgaW4gc2Nhbl9sYWJlbHMoKQogICAgICBsaWJu
+dmRpbW0sIG5hbWVzcGFjZTogbGlmdCBzaW5nbGUgcG1lbSBsaW1pdCBpbiBzY2FuX2xhYmVscygp
+CiAgICAgIGxpYm52ZGltbSwgbmFtZXNwYWNlOiBhbGxvdyBjcmVhdGlvbiBvZiBtdWx0aXBsZSBw
+bWVtLW5hbWVzcGFjZXMgcGVyIHJlZ2lvbgogICAgICBkYXg6IGNvbnZlcnQgZGV2bV9jcmVhdGVf
+ZGF4X2RldiB0byBQVFJfRVJSCiAgICAgIE1lcmdlIGJyYW5jaCAnZm9yLTQuOS9saWJudmRpbW0n
+IGludG8gbGlibnZkaW1tLWZvci1uZXh0CiAgICAgIE1lcmdlIGJyYW5jaCAnZm9yLTQuOS9kYXgn
+IGludG8gbGlibnZkaW1tLWZvci1uZXh0CgpEYXZlIEppYW5nICgyKToKICAgICAgbnZkaW1tOiBy
+ZW1vdmUgZHVwbGljYXRlIG5kX21hcHBpbmcgZGVjbGFyYXRpb24KICAgICAgbnZkaW1tOiByZWR1
+Y2UgZHVwbGljYXRlZCB3cHEgZmx1c2hlcwoKR2VlcnQgVXl0dGVyaG9ldmVuICgxKToKICAgICAg
+bnZkaW1tOiBTcGVsbGluZyBzL3VuYWNrbm93ZWxkZ2VkL3VuYWNrbm93bGVkZ2VkLwoKUm9zcyBa
+d2lzbGVyICgxKToKICAgICAgL2Rldi9kYXg6IGZpeCBLY29uZmlnIGRlcGVuZGVuY3kgYnVpbGQg
+YnJlYWthZ2UKClRvc2hpIEthbmkgKDEpOgogICAgICBsaWJudmRpbW06IEZpeCBudmRpbW1fcHJv
+YmUgZXJyb3Igb24gTlZESU1NLU4KClZpc2hhbCBWZXJtYSAoNCk6CiAgICAgIGFjcGksIG5maXQ6
+IGNoZWNrIGZvciB0aGUgY29ycmVjdCBldmVudCBjb2RlIGluIG5vdGlmaWNhdGlvbnMKICAgICAg
+bmZpdDogZG9uJ3Qgc3RhcnQgYSBmdWxsIHNjcnViIGJ5IGRlZmF1bHQgZm9yIGFuIE1DRQogICAg
+ICBwbWVtOiByZWR1Y2Uga21hcF9hdG9taWMgc2VjdGlvbnMgdG8gdGhlIG1lbWNweXMgb25seQog
+ICAgICBsaWJudmRpbW06IGNsZWFyIHRoZSBpbnRlcm5hbCBwb2lzb25fbGlzdCB3aGVuIGNsZWFy
+aW5nIGJhZGJsb2NrcwoKIGRyaXZlcnMvYWNwaS9uZml0L2NvcmUuYyAgICAgICAgICAgICAgfCAy
+MTAgKy0rLSstKy0rLSstKy0tLQogZHJpdmVycy9hY3BpL25maXQvbWNlLmMgICAgICAgICAgICAg
+ICB8ICAyNCArLS0KIGRyaXZlcnMvYWNwaS9uZml0L25maXQuaCAgICAgICAgICAgICAgfCAgMTcg
+Ky0KIGRyaXZlcnMvZGF4L0tjb25maWcgICAgICAgICAgICAgICAgICAgfCAgIDUgKy0KIGRyaXZl
+cnMvZGF4L2RheC5jICAgICAgICAgICAgICAgICAgICAgfCA1NzcgKy0rLSstKy0rLSstKy0rLSst
+Ky0rLSstKy0rLSstLS0tLS0tLS0tLQogZHJpdmVycy9kYXgvZGF4LmggICAgICAgICAgICAgICAg
+ICAgICB8ICAgNSArLS0KIGRyaXZlcnMvZGF4L3BtZW0uYyAgICAgICAgICAgICAgICAgICAgfCAg
+IDcgKy0tCiBkcml2ZXJzL252ZGltbS9LY29uZmlnICAgICAgICAgICAgICAgIHwgICAyICstLQog
+ZHJpdmVycy9udmRpbW0vYnVzLmMgICAgICAgICAgICAgICAgICB8ICAgMiArLQogZHJpdmVycy9u
+dmRpbW0vY29yZS5jICAgICAgICAgICAgICAgICB8ICA3MyArLSstKy0tCiBkcml2ZXJzL252ZGlt
+bS9kaW1tLmMgICAgICAgICAgICAgICAgIHwgIDExICstCiBkcml2ZXJzL252ZGltbS9kaW1tX2Rl
+dnMuYyAgICAgICAgICAgIHwgMjI2ICstKy0rLSstKy0rLSstLS0tCiBkcml2ZXJzL252ZGltbS9s
+YWJlbC5jICAgICAgICAgICAgICAgIHwgMTkyICstKy0rLSstKy0tLS0tCiBkcml2ZXJzL252ZGlt
+bS9uYW1lc3BhY2VfZGV2cy5jICAgICAgIHwgNzkyICstKy0rLSstKy0rLSstKy0rLSstKy0rLSst
+Ky0rLSstKy0rLSstKy0rLSstKy0tLS0tLS0tLS0tLQogZHJpdmVycy9udmRpbW0vbmQtY29yZS5o
+ICAgICAgICAgICAgICB8ICAyNCArLS0KIGRyaXZlcnMvbnZkaW1tL25kLmggICAgICAgICAgICAg
+ICAgICAgfCAgMjkgKy0tCiBkcml2ZXJzL252ZGltbS9wbWVtLmMgICAgICAgICAgICAgICAgIHwg
+IDI4ICstLQogZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYyAgICAgICAgICB8ICA3NSArLSst
+Ky0tCiBmcy9jaGFyX2Rldi5jICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAxICstCiBpbmNs
+dWRlL2xpbnV4L2xpYm52ZGltbS5oICAgICAgICAgICAgIHwgIDI4ICstLQogaW5jbHVkZS9saW51
+eC9uZC5oICAgICAgICAgICAgICAgICAgICB8ICAgOCArLS0KIGluY2x1ZGUvdWFwaS9saW51eC9t
+YWdpYy5oICAgICAgICAgICAgfCAgIDEgKy0KIGluY2x1ZGUvdWFwaS9saW51eC9uZGN0bC5oICAg
+ICAgICAgICAgfCAgMzAgKy0tCiB0b29scy90ZXN0aW5nL252ZGltbS9LYnVpbGQgICAgICAgICAg
+IHwgICAxICstCiB0b29scy90ZXN0aW5nL252ZGltbS90ZXN0L2lvbWFwLmMgICAgIHwgMTUxICst
+Ky0rLSstKy0tLQogdG9vbHMvdGVzdGluZy9udmRpbW0vdGVzdC9uZml0LmMgICAgICB8IDE2MCAr
+LSstKy0rLSstKy0tCiB0b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXRfdGVzdC5oIHwgIDEy
+ICstLQogMjcgZmlsZXMgY2hhbmdlZCwgMTk0MCBpbnNlcnRpb25zKCstKSwgNzUxIGRlbGV0aW9u
+cygtKQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
+eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9s
+aXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
