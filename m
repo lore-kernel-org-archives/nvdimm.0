@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from NAM01-BN3-obe.outbound.protection.outlook.com
+ (mail-bn3nam01on0718.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe41::718])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 186481A1EEE
- for <linux-nvdimm@lists.01.org>; Fri,  7 Oct 2016 14:09:20 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 12/17] dax: add dax_iomap_sector() helper function
-Date: Fri,  7 Oct 2016 15:08:59 -0600
-Message-Id: <1475874544-24842-13-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9E3301A1E8E
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Oct 2016 06:26:09 -0700 (PDT)
+From: "Boylston, Brian" <brian.boylston@hpe.com>
+Subject: RE: [PATCH] use a nocache copy for bvecs in copy_from_iter_nocache()
+Date: Tue, 11 Oct 2016 13:26:07 +0000
+Message-ID: <CS1PR84MB0119D6AB03D91248DAFE0E538EDA0@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
+References: <20161007155511.21502-1-brian.boylston@hpe.com>
+ <20161007170842.GQ19539@ZenIV.linux.org.uk>
+ <1476113071.20881.15.camel@hpe.com>
+In-Reply-To: <1476113071.20881.15.camel@hpe.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,65 +23,37 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>, "viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Moreno," Oliver" <oliver.moreno@hpe.com>, "x86@kernel.org, " <x86@kernel.org>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "tglx@linutronix.de" <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To be able to correctly calculate the sector from a file position and a
-struct iomap there is a complex little bit of logic that currently happens
-in both dax_iomap_actor() and dax_iomap_fault().  This will need to be
-repeated yet again in the DAX PMD fault handler when it is added, so break
-it out into a helper function.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 982ccbb..7689ab0 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1023,6 +1023,11 @@ int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
- EXPORT_SYMBOL_GPL(dax_truncate_page);
- 
- #ifdef CONFIG_FS_IOMAP
-+static inline sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
-+{
-+	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
-+}
-+
- static loff_t
- dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		struct iomap *iomap)
-@@ -1048,8 +1053,7 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		struct blk_dax_ctl dax = { 0 };
- 		ssize_t map_len;
- 
--		dax.sector = iomap->blkno +
--			(((pos & PAGE_MASK) - iomap->offset) >> 9);
-+		dax.sector = dax_iomap_sector(iomap, pos);
- 		dax.size = (length + offset + PAGE_SIZE - 1) & PAGE_MASK;
- 		map_len = dax_map_atomic(iomap->bdev, &dax);
- 		if (map_len < 0) {
-@@ -1186,7 +1190,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		goto unlock_entry;
- 	}
- 
--	sector = iomap.blkno + (((pos & PAGE_MASK) - iomap.offset) >> 9);
-+	sector = dax_iomap_sector(&iomap, pos);
- 
- 	if (vmf->cow_page) {
- 		switch (iomap.type) {
--- 
-2.7.4
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+S2FuaSwgVG9zaGltaXRzdSB3cm90ZSBvbiAyMDE2LTEwLTEwOg0KPiBPbiBGcmksIDIwMTYtMTAt
+MDcgYXQgMTg6MDggKzAxMDAsIEFsIFZpcm8gd3JvdGU6DQo+PiBPbiBGcmksIE9jdCAwNywgMjAx
+NiBhdCAxMDo1NToxMUFNIC0wNTAwLCBCcmlhbiBCb3lsc3RvbiB3cm90ZToNCj4+PiANCj4+PiBj
+b3B5X2Zyb21faXRlcl9ub2NhY2hlKCkgaXMgb25seSAibm9jYWNoZSIgZm9yIGlvdmVjcy7CoMKg
+RW5oYW5jZSBpdA0KPj4+IHRvIGFsc28gdXNlIGEgbm9jYWNoZSBjb3B5IGZvciBidmVjcy7CoMKg
+VGhpcyBpbXByb3ZlcyBwZXJmb3JtYW5jZSBieQ0KPj4+IDItM1ggd2hlbiBzcGxpY2UoKWluZyB0
+byBhIGZpbGUgaW4gYSBEQVgtbW91bnRlZCwgcG1lbS1iYWNrZWQgZmlsZQ0KPj4+IHN5c3RlbS4N
+Cj4+IA0KPj4+IA0KPj4+ICtzdGF0aWMgdm9pZCBtZW1jcHlfZnJvbV9wYWdlX25vY2FjaGUoY2hh
+ciAqdG8sIHN0cnVjdCBwYWdlICpwYWdlLA0KPj4+IHNpemVfdCBvZmZzZXQsIHNpemVfdCBsZW4p
+DQo+Pj4gK3sNCj4+PiArCWNoYXIgKmZyb20gPSBrbWFwX2F0b21pYyhwYWdlKTsNCj4+PiArCV9f
+Y29weV9mcm9tX3VzZXJfaW5hdG9taWNfbm9jYWNoZSh0bywgZnJvbSwgbGVuKTsNCj4+PiArCWt1
+bm1hcF9hdG9taWMoZnJvbSk7DQo+Pj4gK30NCj4+IA0KPj4gQXQgdGhlIHZlcnkgbGVhc3QsIGl0
+IHdpbGwgYmxvdyB1cCBvbiBhbnkgYXJjaGl0ZWN0dXJlIHdpdGggc3BsaXQNCj4+IHVzZXJsYW5k
+IGFuZCBrZXJuZWwgTU1VIGNvbnRleHRzLsKgwqBZb3UgKmNhbid0KiBmZWVkIGEga2VybmVsIHBv
+aW50ZXINCj4+IHRvIHRoaW5ncyBsaWtlIHRoYXQgYW5kIGV4cGVjdCBpdCB0byB3b3JrLsKgwqBB
+dCB0aGUgdmVyeSBsZWFzdCwgeW91DQo+PiBuZWVkIHRvIGFkZCBtZW1jcHlfbm9jYWNoZSgpIGFu
+ZCBoYXZlIGl0IGRlZmF1bHQgdG8gbWVtY3B5KCksIHdpdGgNCj4+IG5vbi1kdW1teSB2ZXJzaW9u
+IG9uIHg4Ni7CoMKgQW5kIHVzZSBfdGhhdF8sIHJhdGhlciB0aGFuIG1lc3Npbmcgd2l0aA0KPj4g
+X19jb3B5X2Zyb21fdXNlcl9pbmF0b21pY19ub2NhY2hlKCkNCj4gDQo+IEdvb2QgcG9pbnQuIMKg
+SSB0aGluayB3ZSBjYW4gYWRkIG1lbWNweV9ub2NhY2hlKCkgd2hpY2ggY2FsbHMNCj4gX19jb3B5
+X2Zyb21fdXNlcl9pbmF0b21pY19ub2NhY2hlKCkgb24geDg2IGFuZCBkZWZhdXRzIHRvIG1lbWNw
+eSgpIG9uDQo+IG90aGVyIGFyY2hpdGVjdHVyZXMuDQoNClRoYW5rcywgQWwgYW5kIFRvc2hpLCBm
+b3IgdGhlIGZlZWRiYWNrLiAgSSdsbCByZS13b3JrIGFuZCBjb21lIGJhY2suDQoNCkJyaWFuDQoN
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
+ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3Rz
+LjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
