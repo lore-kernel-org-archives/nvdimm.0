@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CDFA51A1E86
- for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 09:13:05 -0700 (PDT)
-Subject: [PATCH 1/2] libnvdimm: allow a platform to force enable label support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 19 Oct 2016 09:09:53 -0700
-Message-ID: <147689339360.9946.18026760323007745863.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147689338812.9946.11071407155879544366.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147689338812.9946.11071407155879544366.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 1ADF01A1EDD
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Oct 2016 15:50:39 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v6 12/17] dax: dax_iomap_fault() needs to call iomap_end()
+Date: Wed, 12 Oct 2016 16:50:17 -0600
+Message-Id: <20161012225022.15507-13-ross.zwisler@linux.intel.com>
+In-Reply-To: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
+References: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,75 +17,117 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>, qemu-devel@nongnu.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Platforms like QEMU-KVM implement an NFIT table and label DSMs.
-However, since that environment does not define an aliased
-configuration, the labels are currently ignored and the kernel registers
-a single full-sized pmem-namespace per region. Now that the kernel
-supports sub-divisions of pmem regions the labels have a purpose.
-Arrange for the labels to be honored when we find an existing / valid
-namespace index block.
+Currently iomap_end() doesn't do anything for DAX page faults for both ext2
+and XFS.  ext2_iomap_end() just checks for a write underrun, and
+xfs_file_iomap_end() checks to see if it needs to finish a delayed
+allocation.  However, in the future iomap_end() calls might be needed to
+make sure we have balanced allocations, locks, etc.  So, add calls to
+iomap_end() with appropriate error handling to dax_iomap_fault().
 
-Cc: <qemu-devel@nongnu.org>
-Cc: Haozhong Zhang <haozhong.zhang@intel.com>
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- drivers/nvdimm/dimm.c      |    2 ++
- drivers/nvdimm/dimm_devs.c |    7 +++++++
- drivers/nvdimm/nd.h        |    1 +
- 3 files changed, 10 insertions(+)
+ fs/dax.c | 37 +++++++++++++++++++++++++++++--------
+ 1 file changed, 29 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-index 619834e144d1..ee0b412827bf 100644
---- a/drivers/nvdimm/dimm.c
-+++ b/drivers/nvdimm/dimm.c
-@@ -64,6 +64,8 @@ static int nvdimm_probe(struct device *dev)
- 	nd_label_copy(ndd, to_next_namespace_index(ndd),
- 			to_current_namespace_index(ndd));
- 	rc = nd_label_reserve_dpa(ndd);
-+	if (ndd->ns_current >= 0)
-+		nvdimm_set_aliasing(dev);
- 	nvdimm_bus_unlock(dev);
+diff --git a/fs/dax.c b/fs/dax.c
+index 7737954..6edd89b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1165,6 +1165,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	struct iomap iomap = { 0 };
+ 	unsigned flags = 0;
+ 	int error, major = 0;
++	int locked_status = 0;
+ 	void *entry;
  
- 	if (rc)
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index d614493ad5ac..0eedc49e0d47 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -184,6 +184,13 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
- 	return rc;
+ 	/*
+@@ -1194,7 +1195,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		goto unlock_entry;
+ 	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
+ 		error = -EIO;		/* fs corruption? */
+-		goto unlock_entry;
++		goto finish_iomap;
+ 	}
+ 
+ 	sector = dax_iomap_sector(&iomap, pos);
+@@ -1216,13 +1217,15 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		}
+ 
+ 		if (error)
+-			goto unlock_entry;
++			goto finish_iomap;
+ 		if (!radix_tree_exceptional_entry(entry)) {
+ 			vmf->page = entry;
+-			return VM_FAULT_LOCKED;
++			locked_status = VM_FAULT_LOCKED;
++		} else {
++			vmf->entry = entry;
++			locked_status = VM_FAULT_DAX_LOCKED;
+ 		}
+-		vmf->entry = entry;
+-		return VM_FAULT_DAX_LOCKED;
++		goto finish_iomap;
+ 	}
+ 
+ 	switch (iomap.type) {
+@@ -1237,8 +1240,10 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		break;
+ 	case IOMAP_UNWRITTEN:
+ 	case IOMAP_HOLE:
+-		if (!(vmf->flags & FAULT_FLAG_WRITE))
+-			return dax_load_hole(mapping, entry, vmf);
++		if (!(vmf->flags & FAULT_FLAG_WRITE)) {
++			locked_status = dax_load_hole(mapping, entry, vmf);
++			break;
++		}
+ 		/*FALLTHRU*/
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -1246,14 +1251,30 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		break;
+ 	}
+ 
++ finish_iomap:
++	if (ops->iomap_end) {
++		if (error) {
++			/* keep previous error */
++			ops->iomap_end(inode, pos, PAGE_SIZE, 0, flags,
++					&iomap);
++		} else {
++			error = ops->iomap_end(inode, pos, PAGE_SIZE,
++					PAGE_SIZE, flags, &iomap);
++		}
++	}
+  unlock_entry:
+-	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
++	if (!locked_status || error)
++		put_locked_mapping_entry(mapping, vmf->pgoff, entry);
+  out:
+ 	if (error == -ENOMEM)
+ 		return VM_FAULT_OOM | major;
+ 	/* -EBUSY is fine, somebody else faulted on the same PTE */
+ 	if (error < 0 && error != -EBUSY)
+ 		return VM_FAULT_SIGBUS | major;
++	if (locked_status) {
++		WARN_ON_ONCE(error); /* -EBUSY from ops->iomap_end? */
++		return locked_status;
++	}
+ 	return VM_FAULT_NOPAGE | major;
  }
- 
-+void nvdimm_set_aliasing(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+
-+	nvdimm->flags |= NDD_ALIASING;
-+}
-+
- static void nvdimm_release(struct device *dev)
- {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 065abf1b8f32..35dd75057e16 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -238,6 +238,7 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
- 		void *buf, size_t len);
- long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 		unsigned int len);
-+void nvdimm_set_aliasing(struct device *dev);
- struct nd_btt *to_nd_btt(struct device *dev);
- 
- struct nd_gen_sb {
+ EXPORT_SYMBOL_GPL(dax_iomap_fault);
+-- 
+2.9.0
 
 _______________________________________________
 Linux-nvdimm mailing list
