@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9FDB71A1E86
- for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 12:34:44 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 0F7FB1A1ED0
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Oct 2016 15:50:32 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v8 04/16] dax: make 'wait_table' global variable static
-Date: Wed, 19 Oct 2016 13:34:23 -0600
-Message-Id: <1476905675-32581-5-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v6 05/17] dax: make 'wait_table' global variable static
+Date: Wed, 12 Oct 2016 16:50:10 -0600
+Message-Id: <20161012225022.15507-6-ross.zwisler@linux.intel.com>
+In-Reply-To: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
+References: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -41,7 +41,7 @@ Reviewed-by: Jan Kara <jack@suse.cz>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index b09817a..e52e754 100644
+index 9b9be8a..ac28cdf 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
 @@ -52,7 +52,7 @@
@@ -54,7 +54,7 @@ index b09817a..e52e754 100644
  static int __init init_dax_wait_table(void)
  {
 -- 
-2.7.4
+2.9.0
 
 _______________________________________________
 Linux-nvdimm mailing list
