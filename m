@@ -1,198 +1,230 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7F1C41A1EE8
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Oct 2016 15:50:35 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 11/17] dax: correct dax iomap code namespace
-Date: Fri,  7 Oct 2016 15:08:58 -0600
-Message-Id: <1475874544-24842-12-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
+Subject: [PATCH v6 08/17] dax: coordinate locking for offsets in PMD range
+Date: Wed, 12 Oct 2016 16:50:13 -0600
+Message-Id: <20161012225022.15507-9-ross.zwisler@linux.intel.com>
+In-Reply-To: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
+References: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The recently added DAX functions that use the new struct iomap data
-structure were named iomap_dax_rw(), iomap_dax_fault() and
-iomap_dax_actor().  These are actually defined in fs/dax.c, though, so
-should be part of the "dax" namespace and not the "iomap" namespace.
-Rename them to dax_iomap_rw(), dax_iomap_fault() and dax_iomap_actor()
-respectively.
+DAX radix tree locking currently locks entries based on the unique
+combination of the 'mapping' pointer and the pgoff_t 'index' for the entry.
+This works for PTEs, but as we move to PMDs we will need to have all the
+offsets within the range covered by the PMD to map to the same bit lock.
+To accomplish this, for ranges covered by a PMD entry we will instead lock
+based on the page offset of the beginning of the PMD entry.  The 'mapping'
+pointer is still used in the same way.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dave Chinner <david@fromorbit.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c            | 16 ++++++++--------
- fs/ext2/file.c      |  6 +++---
- fs/xfs/xfs_file.c   |  8 ++++----
- include/linux/dax.h |  4 ++--
- 4 files changed, 17 insertions(+), 17 deletions(-)
+ fs/dax.c            | 65 +++++++++++++++++++++++++++++++++--------------------
+ include/linux/dax.h |  2 +-
+ mm/filemap.c        |  2 +-
+ 3 files changed, 43 insertions(+), 26 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 1b9154a..982ccbb 100644
+index 152a6e1..e103053 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -1024,7 +1024,7 @@ EXPORT_SYMBOL_GPL(dax_truncate_page);
- 
- #ifdef CONFIG_FS_IOMAP
- static loff_t
--iomap_dax_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
-+dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		struct iomap *iomap)
- {
- 	struct iov_iter *iter = data;
-@@ -1081,7 +1081,7 @@ iomap_dax_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+@@ -64,14 +64,6 @@ static int __init init_dax_wait_table(void)
  }
+ fs_initcall(init_dax_wait_table);
  
- /**
-- * iomap_dax_rw - Perform I/O to a DAX file
-+ * dax_iomap_rw - Perform I/O to a DAX file
-  * @iocb:	The control block for this I/O
-  * @iter:	The addresses to do I/O from or to
-  * @ops:	iomap ops passed from the file system
-@@ -1091,7 +1091,7 @@ iomap_dax_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
-  * and evicting any page cache pages in the region under I/O.
+-static wait_queue_head_t *dax_entry_waitqueue(struct address_space *mapping,
+-					      pgoff_t index)
+-{
+-	unsigned long hash = hash_long((unsigned long)mapping ^ index,
+-				       DAX_WAIT_TABLE_BITS);
+-	return wait_table + hash;
+-}
+-
+ static long dax_map_atomic(struct block_device *bdev, struct blk_dax_ctl *dax)
+ {
+ 	struct request_queue *q = bdev->bd_queue;
+@@ -285,7 +277,7 @@ EXPORT_SYMBOL_GPL(dax_do_io);
   */
- ssize_t
--iomap_dax_rw(struct kiocb *iocb, struct iov_iter *iter,
-+dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 		struct iomap_ops *ops)
+ struct exceptional_entry_key {
+ 	struct address_space *mapping;
+-	unsigned long index;
++	pgoff_t entry_start;
+ };
+ 
+ struct wait_exceptional_entry_queue {
+@@ -293,6 +285,26 @@ struct wait_exceptional_entry_queue {
+ 	struct exceptional_entry_key key;
+ };
+ 
++static wait_queue_head_t *dax_entry_waitqueue(struct address_space *mapping,
++		pgoff_t index, void *entry, struct exceptional_entry_key *key)
++{
++	unsigned long hash;
++
++	/*
++	 * If 'entry' is a PMD, align the 'index' that we use for the wait
++	 * queue to the start of that PMD.  This ensures that all offsets in
++	 * the range covered by the PMD map to the same bit lock.
++	 */
++	if (RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
++		index &= ~((1UL << (PMD_SHIFT - PAGE_SHIFT)) - 1);
++
++	key->mapping = mapping;
++	key->entry_start = index;
++
++	hash = hash_long((unsigned long)mapping ^ index, DAX_WAIT_TABLE_BITS);
++	return wait_table + hash;
++}
++
+ static int wake_exceptional_entry_func(wait_queue_t *wait, unsigned int mode,
+ 				       int sync, void *keyp)
  {
- 	struct address_space *mapping = iocb->ki_filp->f_mapping;
-@@ -1121,7 +1121,7 @@ iomap_dax_rw(struct kiocb *iocb, struct iov_iter *iter,
+@@ -301,7 +313,7 @@ static int wake_exceptional_entry_func(wait_queue_t *wait, unsigned int mode,
+ 		container_of(wait, struct wait_exceptional_entry_queue, wait);
  
- 	while (iov_iter_count(iter)) {
- 		ret = iomap_apply(inode, pos, iov_iter_count(iter), flags, ops,
--				iter, iomap_dax_actor);
-+				iter, dax_iomap_actor);
- 		if (ret <= 0)
- 			break;
- 		pos += ret;
-@@ -1131,10 +1131,10 @@ iomap_dax_rw(struct kiocb *iocb, struct iov_iter *iter,
- 	iocb->ki_pos += done;
- 	return done ? done : ret;
+ 	if (key->mapping != ewait->key.mapping ||
+-	    key->index != ewait->key.index)
++	    key->entry_start != ewait->key.entry_start)
+ 		return 0;
+ 	return autoremove_wake_function(wait, mode, sync, NULL);
  }
--EXPORT_SYMBOL_GPL(iomap_dax_rw);
-+EXPORT_SYMBOL_GPL(dax_iomap_rw);
- 
- /**
-- * iomap_dax_fault - handle a page fault on a DAX file
-+ * dax_iomap_fault - handle a page fault on a DAX file
-  * @vma: The virtual memory area where the fault occurred
-  * @vmf: The description of the fault
-  * @ops: iomap ops passed from the file system
-@@ -1143,7 +1143,7 @@ EXPORT_SYMBOL_GPL(iomap_dax_rw);
-  * or mkwrite handler for DAX files. Assumes the caller has done all the
-  * necessary locking for the page fault to proceed successfully.
-  */
--int iomap_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
-+int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			struct iomap_ops *ops)
+@@ -359,12 +371,10 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
  {
- 	struct address_space *mapping = vma->vm_file->f_mapping;
-@@ -1245,5 +1245,5 @@ int iomap_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		return VM_FAULT_SIGBUS | major;
- 	return VM_FAULT_NOPAGE | major;
+ 	void *entry, **slot;
+ 	struct wait_exceptional_entry_queue ewait;
+-	wait_queue_head_t *wq = dax_entry_waitqueue(mapping, index);
++	wait_queue_head_t *wq;
+ 
+ 	init_wait(&ewait.wait);
+ 	ewait.wait.func = wake_exceptional_entry_func;
+-	ewait.key.mapping = mapping;
+-	ewait.key.index = index;
+ 
+ 	for (;;) {
+ 		entry = __radix_tree_lookup(&mapping->page_tree, index, NULL,
+@@ -375,6 +385,8 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+ 				*slotp = slot;
+ 			return entry;
+ 		}
++
++		wq = dax_entry_waitqueue(mapping, index, entry, &ewait.key);
+ 		prepare_to_wait_exclusive(wq, &ewait.wait,
+ 					  TASK_UNINTERRUPTIBLE);
+ 		spin_unlock_irq(&mapping->tree_lock);
+@@ -447,10 +459,20 @@ restart:
+ 	return entry;
  }
--EXPORT_SYMBOL_GPL(iomap_dax_fault);
-+EXPORT_SYMBOL_GPL(dax_iomap_fault);
- #endif /* CONFIG_FS_IOMAP */
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index 0f257f8..32a4913 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -38,7 +38,7 @@ static ssize_t ext2_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
- 		return 0; /* skip atime */
  
- 	inode_lock_shared(inode);
--	ret = iomap_dax_rw(iocb, to, &ext2_iomap_ops);
-+	ret = dax_iomap_rw(iocb, to, &ext2_iomap_ops);
- 	inode_unlock_shared(inode);
++/*
++ * We do not necessarily hold the mapping->tree_lock when we call this
++ * function so it is possible that 'entry' is no longer a valid item in the
++ * radix tree.  This is okay, though, because all we really need to do is to
++ * find the correct waitqueue where tasks might be sleeping waiting for that
++ * old 'entry' and wake them.
++ */
+ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+-				   pgoff_t index, bool wake_all)
++		pgoff_t index, void *entry, bool wake_all)
+ {
+-	wait_queue_head_t *wq = dax_entry_waitqueue(mapping, index);
++	struct exceptional_entry_key key;
++	wait_queue_head_t *wq;
++
++	wq = dax_entry_waitqueue(mapping, index, entry, &key);
  
- 	file_accessed(iocb->ki_filp);
-@@ -62,7 +62,7 @@ static ssize_t ext2_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)
- 	if (ret)
- 		goto out_unlock;
+ 	/*
+ 	 * Checking for locked entry and prepare_to_wait_exclusive() happens
+@@ -458,13 +480,8 @@ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+ 	 * So at this point all tasks that could have seen our entry locked
+ 	 * must be in the waitqueue and the following check will see them.
+ 	 */
+-	if (waitqueue_active(wq)) {
+-		struct exceptional_entry_key key;
+-
+-		key.mapping = mapping;
+-		key.index = index;
++	if (waitqueue_active(wq))
+ 		__wake_up(wq, TASK_NORMAL, wake_all ? 0 : 1, &key);
+-	}
+ }
  
--	ret = iomap_dax_rw(iocb, from, &ext2_iomap_ops);
-+	ret = dax_iomap_rw(iocb, from, &ext2_iomap_ops);
- 	if (ret > 0 && iocb->ki_pos > i_size_read(inode)) {
- 		i_size_write(inode, iocb->ki_pos);
- 		mark_inode_dirty(inode);
-@@ -99,7 +99,7 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
+@@ -480,7 +497,7 @@ void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
  	}
- 	down_read(&ei->dax_sem);
+ 	unlock_slot(mapping, slot);
+ 	spin_unlock_irq(&mapping->tree_lock);
+-	dax_wake_mapping_entry_waiter(mapping, index, false);
++	dax_wake_mapping_entry_waiter(mapping, index, entry, false);
+ }
  
--	ret = iomap_dax_fault(vma, vmf, &ext2_iomap_ops);
-+	ret = dax_iomap_fault(vma, vmf, &ext2_iomap_ops);
+ static void put_locked_mapping_entry(struct address_space *mapping,
+@@ -505,7 +522,7 @@ static void put_unlocked_mapping_entry(struct address_space *mapping,
+ 		return;
  
- 	up_read(&ei->dax_sem);
- 	if (vmf->flags & FAULT_FLAG_WRITE)
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index de7c53c..8f12152 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -344,7 +344,7 @@ xfs_file_dax_read(
- 		return 0; /* skip atime */
+ 	/* We have to wake up next waiter for the radix tree entry lock */
+-	dax_wake_mapping_entry_waiter(mapping, index, false);
++	dax_wake_mapping_entry_waiter(mapping, index, entry, false);
+ }
  
- 	xfs_rw_ilock(ip, XFS_IOLOCK_SHARED);
--	ret = iomap_dax_rw(iocb, to, &xfs_iomap_ops);
-+	ret = dax_iomap_rw(iocb, to, &xfs_iomap_ops);
- 	xfs_rw_iunlock(ip, XFS_IOLOCK_SHARED);
+ /*
+@@ -532,7 +549,7 @@ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index)
+ 	radix_tree_delete(&mapping->page_tree, index);
+ 	mapping->nrexceptional--;
+ 	spin_unlock_irq(&mapping->tree_lock);
+-	dax_wake_mapping_entry_waiter(mapping, index, true);
++	dax_wake_mapping_entry_waiter(mapping, index, entry, true);
  
- 	file_accessed(iocb->ki_filp);
-@@ -730,7 +730,7 @@ xfs_file_dax_write(
- 
- 	trace_xfs_file_dax_write(ip, count, pos);
- 
--	ret = iomap_dax_rw(iocb, from, &xfs_iomap_ops);
-+	ret = dax_iomap_rw(iocb, from, &xfs_iomap_ops);
- 	if (ret > 0 && iocb->ki_pos > i_size_read(inode)) {
- 		i_size_write(inode, iocb->ki_pos);
- 		error = xfs_setfilesize(ip, pos, ret);
-@@ -1679,7 +1679,7 @@ xfs_filemap_page_mkwrite(
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 
- 	if (IS_DAX(inode)) {
--		ret = iomap_dax_fault(vma, vmf, &xfs_iomap_ops);
-+		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
- 	} else {
- 		ret = iomap_page_mkwrite(vma, vmf, &xfs_iomap_ops);
- 		ret = block_page_mkwrite_return(ret);
-@@ -1713,7 +1713,7 @@ xfs_filemap_fault(
- 		 * changes to xfs_get_blocks_direct() to map unwritten extent
- 		 * ioend for conversion on read-only mappings.
- 		 */
--		ret = iomap_dax_fault(vma, vmf, &xfs_iomap_ops);
-+		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
- 	} else
- 		ret = filemap_fault(vma, vmf);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 	return 1;
+ }
 diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 0f74866..a3dfee4 100644
+index add6c4b..a41a747 100644
 --- a/include/linux/dax.h
 +++ b/include/linux/dax.h
-@@ -11,13 +11,13 @@ struct iomap_ops;
- /* We use lowest available exceptional entry bit for locking */
- #define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
- 
--ssize_t iomap_dax_rw(struct kiocb *iocb, struct iov_iter *iter,
-+ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 		struct iomap_ops *ops);
- ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *,
- 		  get_block_t, dio_iodone_t, int flags);
- int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
- int dax_truncate_page(struct inode *, loff_t from, get_block_t);
--int iomap_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
-+int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 			struct iomap_ops *ops);
+@@ -22,7 +22,7 @@ int iomap_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
  int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
  int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+-				   pgoff_t index, bool wake_all);
++		pgoff_t index, void *entry, bool wake_all);
+ 
+ #ifdef CONFIG_FS_DAX
+ struct page *read_dax_sector(struct block_device *bdev, sector_t n);
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 2f1175e..a596462 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -617,7 +617,7 @@ static int page_cache_tree_insert(struct address_space *mapping,
+ 			if (node)
+ 				workingset_node_pages_dec(node);
+ 			/* Wakeup waiters for exceptional entry lock */
+-			dax_wake_mapping_entry_waiter(mapping, page->index,
++			dax_wake_mapping_entry_waiter(mapping, page->index, p,
+ 						      false);
+ 		}
+ 	}
 -- 
-2.7.4
+2.9.0
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
