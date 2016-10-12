@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6D4631A1EEE
- for <linux-nvdimm@lists.01.org>; Fri,  7 Oct 2016 14:09:18 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 64C841A1EEF
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Oct 2016 15:50:36 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 10/17] dax: remove dax_pmd_fault()
-Date: Fri,  7 Oct 2016 15:08:57 -0600
-Message-Id: <1475874544-24842-11-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v6 09/17] dax: remove dax_pmd_fault()
+Date: Wed, 12 Oct 2016 16:50:14 -0600
+Message-Id: <20161012225022.15507-10-ross.zwisler@linux.intel.com>
+In-Reply-To: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
+References: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,7 +23,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
 dax_pmd_fault() is the old struct buffer_head + get_block_t based 2 MiB DAX
@@ -40,10 +40,10 @@ Reviewed-by: Jan Kara <jack@suse.cz>
  2 files changed, 1 insertion(+), 218 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 608cee9..1b9154a 100644
+index e103053..3d0b103 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -908,219 +908,6 @@ int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+@@ -915,219 +915,6 @@ int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
  }
  EXPORT_SYMBOL_GPL(dax_fault);
  
@@ -286,7 +286,7 @@ index a41a747..0f74866 100644
  #define dax_mkwrite(vma, vmf, gb)	dax_fault(vma, vmf, gb)
  
 -- 
-2.7.4
+2.9.0
 
 _______________________________________________
 Linux-nvdimm mailing list
