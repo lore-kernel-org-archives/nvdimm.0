@@ -1,361 +1,191 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CFD9E1A1E4F
- for <linux-nvdimm@lists.01.org>; Fri,  7 Oct 2016 09:42:10 -0700 (PDT)
-Subject: [PATCH 05/14] tools/testing/nvdimm: support for sub-dividing a pmem
- region
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 07 Oct 2016 09:39:08 -0700
-Message-ID: <147585834790.22349.5107233158248726938.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147585832067.22349.6376523541984122050.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147585832067.22349.6376523541984122050.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Wed, 12 Oct 2016 09:45:05 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v5 15/17] dax: add struct iomap based DAX PMD support
+Message-ID: <20161012074505.GC13896@quack2.suse.cz>
+References: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1475874544-24842-16-git-send-email-ross.zwisler@linux.intel.com>
+ <20161011083152.GG6952@quack2.suse.cz>
+ <20161011225130.GC32165@linux.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161011225130.GC32165@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Update nfit_test to handle multiple sub-allocations within a given pmem
-region.  The mock resource now tracks and un-tracks sub-ranges as they
-are requested and released (either explicitly or via devm callback).
+On Tue 11-10-16 16:51:30, Ross Zwisler wrote:
+> On Tue, Oct 11, 2016 at 10:31:52AM +0200, Jan Kara wrote:
+> > On Fri 07-10-16 15:09:02, Ross Zwisler wrote:
+> > > diff --git a/fs/dax.c b/fs/dax.c
+> > > index ac3cd05..e51d51f 100644
+> > > --- a/fs/dax.c
+> > > +++ b/fs/dax.c
+> > > @@ -281,7 +281,7 @@ static wait_queue_head_t *dax_entry_waitqueue(struct address_space *mapping,
+> > >  	 * queue to the start of that PMD.  This ensures that all offsets in
+> > >  	 * the range covered by the PMD map to the same bit lock.
+> > >  	 */
+> > > -	if (RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
+> > > +	if ((unsigned long)entry & RADIX_DAX_PMD)
+> > >  		index &= ~((1UL << (PMD_SHIFT - PAGE_SHIFT)) - 1);
+> > 
+> > I agree with Christoph - helper for masking type bits would make this
+> > nicer.
+> 
+> Fixed via a dax_flag_test() helper as I outlined in the mail to Christoph.  It
+> seems clean to me, but if you or Christoph feel strongly that it would be
+> cleaner as a local 'flags' variable, I'll make the change.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- tools/testing/nvdimm/test/iomap.c     |  134 ++++++++++++++++++++++++++-------
- tools/testing/nvdimm/test/nfit.c      |   21 ++---
- tools/testing/nvdimm/test/nfit_test.h |   12 +++
- 3 files changed, 124 insertions(+), 43 deletions(-)
+One idea I had is that you could have helpers like:
 
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index dae5b9b6d186..3ccef732fce9 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -74,7 +74,7 @@ void __iomem *__nfit_test_ioremap(resource_size_t offset, unsigned long size,
- 
- 	if (nfit_res)
- 		return (void __iomem *) nfit_res->buf + offset
--			- nfit_res->res->start;
-+			- nfit_res->res.start;
- 	return fallback_fn(offset, size);
- }
- 
-@@ -85,7 +85,7 @@ void __iomem *__wrap_devm_ioremap_nocache(struct device *dev,
- 
- 	if (nfit_res)
- 		return (void __iomem *) nfit_res->buf + offset
--			- nfit_res->res->start;
-+			- nfit_res->res.start;
- 	return devm_ioremap_nocache(dev, offset, size);
- }
- EXPORT_SYMBOL(__wrap_devm_ioremap_nocache);
-@@ -96,7 +96,7 @@ void *__wrap_devm_memremap(struct device *dev, resource_size_t offset,
- 	struct nfit_test_resource *nfit_res = get_nfit_res(offset);
- 
- 	if (nfit_res)
--		return nfit_res->buf + offset - nfit_res->res->start;
-+		return nfit_res->buf + offset - nfit_res->res.start;
- 	return devm_memremap(dev, offset, size, flags);
- }
- EXPORT_SYMBOL(__wrap_devm_memremap);
-@@ -108,7 +108,7 @@ void *__wrap_devm_memremap_pages(struct device *dev, struct resource *res,
- 	struct nfit_test_resource *nfit_res = get_nfit_res(offset);
- 
- 	if (nfit_res)
--		return nfit_res->buf + offset - nfit_res->res->start;
-+		return nfit_res->buf + offset - nfit_res->res.start;
- 	return devm_memremap_pages(dev, res, ref, altmap);
- }
- EXPORT_SYMBOL(__wrap_devm_memremap_pages);
-@@ -129,7 +129,7 @@ void *__wrap_memremap(resource_size_t offset, size_t size,
- 	struct nfit_test_resource *nfit_res = get_nfit_res(offset);
- 
- 	if (nfit_res)
--		return nfit_res->buf + offset - nfit_res->res->start;
-+		return nfit_res->buf + offset - nfit_res->res.start;
- 	return memremap(offset, size, flags);
- }
- EXPORT_SYMBOL(__wrap_memremap);
-@@ -175,6 +175,63 @@ void __wrap_memunmap(void *addr)
- }
- EXPORT_SYMBOL(__wrap_memunmap);
- 
-+static bool nfit_test_release_region(struct device *dev,
-+		struct resource *parent, resource_size_t start,
-+		resource_size_t n);
-+
-+static void nfit_devres_release(struct device *dev, void *data)
-+{
-+	struct resource *res = *((struct resource **) data);
-+
-+	WARN_ON(!nfit_test_release_region(NULL, &iomem_resource, res->start,
-+			resource_size(res)));
-+}
-+
-+static int match(struct device *dev, void *__res, void *match_data)
-+{
-+	struct resource *res = *((struct resource **) __res);
-+	resource_size_t start = *((resource_size_t *) match_data);
-+
-+	return res->start == start;
-+}
-+
-+static bool nfit_test_release_region(struct device *dev,
-+		struct resource *parent, resource_size_t start,
-+		resource_size_t n)
-+{
-+	if (parent == &iomem_resource) {
-+		struct nfit_test_resource *nfit_res = get_nfit_res(start);
-+
-+		if (nfit_res) {
-+			struct nfit_test_request *req;
-+			struct resource *res = NULL;
-+
-+			if (dev) {
-+				devres_release(dev, nfit_devres_release, match,
-+						&start);
-+				return true;
-+			}
-+
-+			spin_lock(&nfit_res->lock);
-+			list_for_each_entry(req, &nfit_res->requests, list)
-+				if (req->res.start == start) {
-+					res = &req->res;
-+					list_del(&req->list);
-+					break;
-+				}
-+			spin_unlock(&nfit_res->lock);
-+
-+			WARN(!res || resource_size(res) != n,
-+					"%s: start: %llx n: %llx mismatch: %pr\n",
-+						__func__, start, n, res);
-+			if (res)
-+				kfree(req);
-+			return true;
-+		}
-+	}
-+	return false;
-+}
-+
- static struct resource *nfit_test_request_region(struct device *dev,
- 		struct resource *parent, resource_size_t start,
- 		resource_size_t n, const char *name, int flags)
-@@ -184,21 +241,57 @@ static struct resource *nfit_test_request_region(struct device *dev,
- 	if (parent == &iomem_resource) {
- 		nfit_res = get_nfit_res(start);
- 		if (nfit_res) {
--			struct resource *res = nfit_res->res + 1;
-+			struct nfit_test_request *req;
-+			struct resource *res = NULL;
- 
--			if (start + n > nfit_res->res->start
--					+ resource_size(nfit_res->res)) {
-+			if (start + n > nfit_res->res.start
-+					+ resource_size(&nfit_res->res)) {
- 				pr_debug("%s: start: %llx n: %llx overflow: %pr\n",
- 						__func__, start, n,
--						nfit_res->res);
-+						&nfit_res->res);
-+				return NULL;
-+			}
-+
-+			spin_lock(&nfit_res->lock);
-+			list_for_each_entry(req, &nfit_res->requests, list)
-+				if (start == req->res.start) {
-+					res = &req->res;
-+					break;
-+				}
-+			spin_unlock(&nfit_res->lock);
-+
-+			if (res) {
-+				WARN(1, "%pr already busy\n", res);
- 				return NULL;
- 			}
- 
-+			req = kzalloc(sizeof(*req), GFP_KERNEL);
-+			if (!req)
-+				return NULL;
-+			INIT_LIST_HEAD(&req->list);
-+			res = &req->res;
-+
- 			res->start = start;
- 			res->end = start + n - 1;
- 			res->name = name;
- 			res->flags = resource_type(parent);
- 			res->flags |= IORESOURCE_BUSY | flags;
-+			spin_lock(&nfit_res->lock);
-+			list_add(&req->list, &nfit_res->requests);
-+			spin_unlock(&nfit_res->lock);
-+
-+			if (dev) {
-+				struct resource **d;
-+
-+				d = devres_alloc(nfit_devres_release,
-+						sizeof(struct resource *),
-+						GFP_KERNEL);
-+				if (!d)
-+					return NULL;
-+				*d = res;
-+				devres_add(dev, d);
-+			}
-+
- 			pr_debug("%s: %pr\n", __func__, res);
- 			return res;
- 		}
-@@ -242,29 +335,10 @@ struct resource *__wrap___devm_request_region(struct device *dev,
- }
- EXPORT_SYMBOL(__wrap___devm_request_region);
- 
--static bool nfit_test_release_region(struct resource *parent,
--		resource_size_t start, resource_size_t n)
--{
--	if (parent == &iomem_resource) {
--		struct nfit_test_resource *nfit_res = get_nfit_res(start);
--		if (nfit_res) {
--			struct resource *res = nfit_res->res + 1;
--
--			if (start != res->start || resource_size(res) != n)
--				pr_info("%s: start: %llx n: %llx mismatch: %pr\n",
--						__func__, start, n, res);
--			else
--				memset(res, 0, sizeof(*res));
--			return true;
--		}
--	}
--	return false;
--}
--
- void __wrap___release_region(struct resource *parent, resource_size_t start,
- 		resource_size_t n)
- {
--	if (!nfit_test_release_region(parent, start, n))
-+	if (!nfit_test_release_region(NULL, parent, start, n))
- 		__release_region(parent, start, n);
- }
- EXPORT_SYMBOL(__wrap___release_region);
-@@ -272,7 +346,7 @@ EXPORT_SYMBOL(__wrap___release_region);
- void __wrap___devm_release_region(struct device *dev, struct resource *parent,
- 		resource_size_t start, resource_size_t n)
- {
--	if (!nfit_test_release_region(parent, start, n))
-+	if (!nfit_test_release_region(dev, parent, start, n))
- 		__devm_release_region(dev, parent, start, n);
- }
- EXPORT_SYMBOL(__wrap___devm_release_region);
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 175fc24f8f3a..0e721c6fb1cf 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -478,14 +478,12 @@ static struct nfit_test *instances[NUM_NFITS];
- static void release_nfit_res(void *data)
- {
- 	struct nfit_test_resource *nfit_res = data;
--	struct resource *res = nfit_res->res;
- 
- 	spin_lock(&nfit_test_lock);
- 	list_del(&nfit_res->list);
- 	spin_unlock(&nfit_test_lock);
- 
- 	vfree(nfit_res->buf);
--	kfree(res);
- 	kfree(nfit_res);
- }
- 
-@@ -493,12 +491,11 @@ static void *__test_alloc(struct nfit_test *t, size_t size, dma_addr_t *dma,
- 		void *buf)
- {
- 	struct device *dev = &t->pdev.dev;
--	struct resource *res = kzalloc(sizeof(*res) * 2, GFP_KERNEL);
- 	struct nfit_test_resource *nfit_res = kzalloc(sizeof(*nfit_res),
- 			GFP_KERNEL);
- 	int rc;
- 
--	if (!res || !buf || !nfit_res)
-+	if (!buf || !nfit_res)
- 		goto err;
- 	rc = devm_add_action(dev, release_nfit_res, nfit_res);
- 	if (rc)
-@@ -507,10 +504,11 @@ static void *__test_alloc(struct nfit_test *t, size_t size, dma_addr_t *dma,
- 	memset(buf, 0, size);
- 	nfit_res->dev = dev;
- 	nfit_res->buf = buf;
--	nfit_res->res = res;
--	res->start = *dma;
--	res->end = *dma + size - 1;
--	res->name = "NFIT";
-+	nfit_res->res.start = *dma;
-+	nfit_res->res.end = *dma + size - 1;
-+	nfit_res->res.name = "NFIT";
-+	spin_lock_init(&nfit_res->lock);
-+	INIT_LIST_HEAD(&nfit_res->requests);
- 	spin_lock(&nfit_test_lock);
- 	list_add(&nfit_res->list, &t->resources);
- 	spin_unlock(&nfit_test_lock);
-@@ -519,7 +517,6 @@ static void *__test_alloc(struct nfit_test *t, size_t size, dma_addr_t *dma,
-  err:
- 	if (buf)
- 		vfree(buf);
--	kfree(res);
- 	kfree(nfit_res);
- 	return NULL;
- }
-@@ -544,13 +541,13 @@ static struct nfit_test_resource *nfit_test_lookup(resource_size_t addr)
- 			continue;
- 		spin_lock(&nfit_test_lock);
- 		list_for_each_entry(n, &t->resources, list) {
--			if (addr >= n->res->start && (addr < n->res->start
--						+ resource_size(n->res))) {
-+			if (addr >= n->res.start && (addr < n->res.start
-+						+ resource_size(&n->res))) {
- 				nfit_res = n;
- 				break;
- 			} else if (addr >= (unsigned long) n->buf
- 					&& (addr < (unsigned long) n->buf
--						+ resource_size(n->res))) {
-+						+ resource_size(&n->res))) {
- 				nfit_res = n;
- 				break;
- 			}
-diff --git a/tools/testing/nvdimm/test/nfit_test.h b/tools/testing/nvdimm/test/nfit_test.h
-index 9f18e2a4a862..c281dd2e5e2d 100644
---- a/tools/testing/nvdimm/test/nfit_test.h
-+++ b/tools/testing/nvdimm/test/nfit_test.h
-@@ -13,11 +13,21 @@
- #ifndef __NFIT_TEST_H__
- #define __NFIT_TEST_H__
- #include <linux/list.h>
-+#include <linux/ioport.h>
-+#include <linux/spinlock_types.h>
-+
-+struct nfit_test_request {
-+	struct list_head list;
-+	struct resource res;
-+};
- 
- struct nfit_test_resource {
-+	struct list_head requests;
- 	struct list_head list;
--	struct resource *res;
-+	struct resource res;
- 	struct device *dev;
-+	spinlock_t lock;
-+	int req_count;
- 	void *buf;
- };
- 
+dax_is_pmd_entry()
+dax_is_pte_entry()
+dax_is_empty_entry()
+dax_is_hole_entry()
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+And then you would use these helpers - all the flags would be hidden in the
+helpers so even if we decide to change the flagging scheme to compress
+things or so, it should be pretty local change.
+
+> > > -		entry = (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
+> > > -			       RADIX_DAX_ENTRY_LOCK);
+> > > +
+> > > +		/*
+> > > +		 * Besides huge zero pages the only other thing that gets
+> > > +		 * downgraded are empty entries which don't need to be
+> > > +		 * unmapped.
+> > > +		 */
+> > > +		if (pmd_downgrade && ((unsigned long)entry & RADIX_DAX_HZP))
+> > > +			unmap_mapping_range(mapping,
+> > > +				(index << PAGE_SHIFT) & PMD_MASK, PMD_SIZE, 0);
+> > > +
+> > >  		spin_lock_irq(&mapping->tree_lock);
+> > > -		err = radix_tree_insert(&mapping->page_tree, index, entry);
+> > > +
+> > > +		if (pmd_downgrade) {
+> > > +			radix_tree_delete(&mapping->page_tree, index);
+> > > +			mapping->nrexceptional--;
+> > > +			dax_wake_mapping_entry_waiter(mapping, index, entry,
+> > > +					false);
+> > 
+> > You need to set 'wake_all' argument here to true. Otherwise there could be
+> > waiters waiting for non-existent entry forever...
+> 
+> Interesting.   Fixed, but let me make sure I understand.  So is the issue that
+> you could have say 2 tasks waiting on a PMD index that has been rounded down
+> to the PMD index via dax_entry_waitqueue()?
+> 
+> The person holding the lock on the entry would remove the PMD, insert a PTE
+> and wake just one of the PMD aligned waiters.  That waiter would wake up, do
+> something PTE based (since the PMD space is now polluted with PTEs), and then
+> wake any waiters on it's PTE index.  Meanwhile, the second waiter could sleep
+> forever on the PMD aligned index.  Is this correct?
+
+Yes.
+
+> So, perhaps more succinctly:
+> 
+> Thread 1		Thread 2		Thread 3
+> --------		--------		--------
+> index 0x202, hold PMD lock 0x200
+> 			index 0x203, sleep on 0x200
+> 						index 0x204, sleep on 0x200
+> downgrade, removing 0x200
+> wake one waiter on 0x200
+> insert PTE @ 0x202
+> 			wake up, grab index 0x203
+> 			...
+> 			wake one waiter on index 0x203
+> 
+> 						... sleeps forever
+> Right?
+ 
+Exactly.
+
+> > > @@ -608,22 +683,28 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
+> > >  		error = radix_tree_preload(vmf->gfp_mask & ~__GFP_HIGHMEM);
+> > >  		if (error)
+> > >  			return ERR_PTR(error);
+> > > +	} else if (((unsigned long)entry & RADIX_DAX_HZP) &&
+> > > +			!(flags & RADIX_DAX_HZP)) {
+> > > +		/* replacing huge zero page with PMD block mapping */
+> > > +		unmap_mapping_range(mapping,
+> > > +			(vmf->pgoff << PAGE_SHIFT) & PMD_MASK, PMD_SIZE, 0);
+> > >  	}
+> > >  
+> > >  	spin_lock_irq(&mapping->tree_lock);
+> > > -	new_entry = (void *)((unsigned long)RADIX_DAX_ENTRY(sector, false) |
+> > > -		       RADIX_DAX_ENTRY_LOCK);
+> > > +	new_entry = dax_radix_entry(sector, flags);
+> > > +
+> > 
+> > You've lost the RADIX_DAX_ENTRY_LOCK flag here?
+> 
+> Oh, nope, that's embedded in the dax_radix_entry() helper:
+> 
+> /* entries begin locked */
+> static inline void *dax_radix_entry(sector_t sector, unsigned long flags)
+> {
+> 	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
+> 			((unsigned long)sector << RADIX_DAX_SHIFT) |
+> 			RADIX_DAX_ENTRY_LOCK);
+> }
+> 
+> I'll s/dax_radix_entry/dax_radix_locked_entry/ or something to make this
+> clearer to the reader.
+
+Yep, that would be better. Thanks!
+
+> > >  	if (hole_fill) {
+> > >  		__delete_from_page_cache(entry, NULL);
+> > >  		/* Drop pagecache reference */
+> > >  		put_page(entry);
+> > > -		error = radix_tree_insert(page_tree, index, new_entry);
+> > > +		error = __radix_tree_insert(page_tree, index,
+> > > +				dax_radix_order(new_entry), new_entry);
+> > >  		if (error) {
+> > >  			new_entry = ERR_PTR(error);
+> > >  			goto unlock;
+> > >  		}
+> > >  		mapping->nrexceptional++;
+> > > -	} else {
+> > > +	} else if ((unsigned long)entry & (RADIX_DAX_HZP|RADIX_DAX_EMPTY)) {
+> > >  		void **slot;
+> > >  		void *ret;
+> > 
+> > Uh, why this condition need to change? Is it some protection so that we
+> > don't replace a mapped PMD entry with PTE one?
+> 
+> Yea, the logic was that if we have a radix tree that has PMDs in it, and some
+> new process comes along doing PTE faults, we can just leave the DAX mapped PMD
+> entries in the tree.  Locking, dirtying and flushing will happen on PMD basis
+> for all processes.
+
+Yup, I got this and I agree with that.
+
+> If you think this is dangerous or not worth the effort we can make it like the
+> hole case where any PTE sized faults will result in an unmap and a downgrade
+> to PTE sized entries in the radix tree.
+
+Ok, so probably I'm somewhat surprised that the logic that mapped PMD entry
+is not replaced by a PTE entry is handled down in
+dax_insert_mapping_entry(). But now looking at this it is just how we work
+in other cases as well so please just add a comment there.
+
+Longer term we may just shortcut the fault if grab_mapping_entry() will
+return us entry of type we can use. That can save us quite some work if
+several processes are mapping the same file. But again that's an
+optimization to do once the PMD, iomap, and page protection works settle.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
