@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B45AB1A1E05
- for <linux-nvdimm@lists.01.org>; Fri,  7 Oct 2016 08:56:49 -0700 (PDT)
-From: Brian Boylston <brian.boylston@hpe.com>
-Subject: [PATCH] use a nocache copy for bvecs in copy_from_iter_nocache()
-Date: Fri,  7 Oct 2016 10:55:11 -0500
-Message-Id: <20161007155511.21502-1-brian.boylston@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 14FCF1A1EFF
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Oct 2016 15:50:40 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v6 13/17] dax: move RADIX_DAX_* defines to dax.h
+Date: Wed, 12 Oct 2016 16:50:18 -0600
+Message-Id: <20161012225022.15507-14-ross.zwisler@linux.intel.com>
+In-Reply-To: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
+References: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,80 +22,82 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: oliver.moreno@hpe.com, x86@kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@ZenIV.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-copy_from_iter_nocache() is only "nocache" for iovecs.  Enhance it to also
-use a nocache copy for bvecs.  This improves performance by 2-3X when
-splice()ing to a file in a DAX-mounted, pmem-backed file system.
+The RADIX_DAX_* defines currently mostly live in fs/dax.c, with just
+RADIX_DAX_ENTRY_LOCK being in include/linux/dax.h so it can be used in
+mm/filemap.c.  When we add PMD support, though, mm/filemap.c will also need
+access to the RADIX_DAX_PTE type so it can properly construct a 4k sized
+empty entry.
 
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <x86@kernel.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
-Reviewed-by: Toshi Kani <toshi.kani@hpe.com>
-Reported-by: Oliver Moreno <oliver.moreno@hpe.com>
+Instead of shifting the defines between dax.c and dax.h as they are
+individually used in other code, just move them wholesale to dax.h so
+they'll be available when we need them.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- arch/x86/include/asm/pmem.h |  6 +++---
- lib/iov_iter.c              | 11 +++++++++--
- 2 files changed, 12 insertions(+), 5 deletions(-)
+ fs/dax.c            | 14 --------------
+ include/linux/dax.h | 15 ++++++++++++++-
+ 2 files changed, 14 insertions(+), 15 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index 643eba4..d071f45c 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -73,12 +73,12 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
- }
+diff --git a/fs/dax.c b/fs/dax.c
+index 6edd89b..c45cc4d 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -34,20 +34,6 @@
+ #include <linux/iomap.h>
+ #include "internal.h"
  
- /*
-- * copy_from_iter_nocache() on x86 only uses non-temporal stores for iovec
-- * iterators, so for other types (bvec & kvec) we must do a cache write-back.
-+ * copy_from_iter_nocache() on x86 uses non-temporal stores for iovec and
-+ * bvec iterators, but for kvec we must do a cache write-back.
-  */
- static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
- {
--	return iter_is_iovec(i) == false;
-+	return (i->type & ITER_KVEC) == ITER_KVEC;
- }
+-/*
+- * We use lowest available bit in exceptional entry for locking, other two
+- * bits to determine entry type. In total 3 special bits.
+- */
+-#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 3)
+-#define RADIX_DAX_PTE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
+-#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
+-#define RADIX_DAX_TYPE_MASK (RADIX_DAX_PTE | RADIX_DAX_PMD)
+-#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_TYPE_MASK)
+-#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
+-#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
+-		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE) | \
+-		RADIX_TREE_EXCEPTIONAL_ENTRY))
+-
+ /* We choose 4096 entries - same as per-zone page wait tables */
+ #define DAX_WAIT_TABLE_BITS 12
+ #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index a3dfee4..e9ea78c 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -8,8 +8,21 @@
  
- /**
-diff --git a/lib/iov_iter.c b/lib/iov_iter.c
-index 7e3138c..df4cb00 100644
---- a/lib/iov_iter.c
-+++ b/lib/iov_iter.c
-@@ -342,6 +342,13 @@ static void memcpy_from_page(char *to, struct page *page, size_t offset, size_t
- 	kunmap_atomic(from);
- }
+ struct iomap_ops;
  
-+static void memcpy_from_page_nocache(char *to, struct page *page, size_t offset, size_t len)
-+{
-+	char *from = kmap_atomic(page);
-+	__copy_from_user_inatomic_nocache(to, from, len);
-+	kunmap_atomic(from);
-+}
+-/* We use lowest available exceptional entry bit for locking */
++/*
++ * We use lowest available bit in exceptional entry for locking, other two
++ * bits to determine entry type. In total 3 special bits.
++ */
++#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 3)
+ #define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
++#define RADIX_DAX_PTE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
++#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
++#define RADIX_DAX_TYPE_MASK (RADIX_DAX_PTE | RADIX_DAX_PMD)
++#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_TYPE_MASK)
++#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
++#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
++		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE) | \
++		RADIX_TREE_EXCEPTIONAL_ENTRY))
 +
- static void memcpy_to_page(struct page *page, size_t offset, const char *from, size_t len)
- {
- 	char *to = kmap_atomic(page);
-@@ -392,8 +399,8 @@ size_t copy_from_iter_nocache(void *addr, size_t bytes, struct iov_iter *i)
- 	iterate_and_advance(i, bytes, v,
- 		__copy_from_user_nocache((to += v.iov_len) - v.iov_len,
- 					 v.iov_base, v.iov_len),
--		memcpy_from_page((to += v.bv_len) - v.bv_len, v.bv_page,
--				 v.bv_offset, v.bv_len),
-+		memcpy_from_page_nocache((to += v.bv_len) - v.bv_len,
-+					 v.bv_page, v.bv_offset, v.bv_len),
- 		memcpy((to += v.iov_len) - v.iov_len, v.iov_base, v.iov_len)
- 	)
  
+ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+ 		struct iomap_ops *ops);
 -- 
-1.8.3.1
+2.9.0
 
 _______________________________________________
 Linux-nvdimm mailing list
