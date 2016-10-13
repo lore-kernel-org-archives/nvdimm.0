@@ -1,83 +1,116 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2DDE41A1ED6
- for <linux-nvdimm@lists.01.org>; Wed, 12 Oct 2016 15:50:38 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v6 11/17] dax: add dax_iomap_sector() helper function
-Date: Wed, 12 Oct 2016 16:50:16 -0600
-Message-Id: <20161012225022.15507-12-ross.zwisler@linux.intel.com>
-In-Reply-To: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Thu, 13 Oct 2016 17:11:49 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v6 14/17] dax: move put_(un)locked_mapping_entry() in
+ dax.c
+Message-ID: <20161013151149.GA30680@quack2.suse.cz>
 References: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+ <20161012225022.15507-15-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161012225022.15507-15-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-To be able to correctly calculate the sector from a file position and a
-struct iomap there is a complex little bit of logic that currently happens
-in both dax_iomap_actor() and dax_iomap_fault().  This will need to be
-repeated yet again in the DAX PMD fault handler when it is added, so break
-it out into a helper function.
+On Wed 12-10-16 16:50:19, Ross Zwisler wrote:
+> No functional change.
+> 
+> The static functions put_locked_mapping_entry() and
+> put_unlocked_mapping_entry() will soon be used in error cases in
+> grab_mapping_entry(), so move their definitions above this function.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Looks good. You can add:
+
 Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index fdbd7a1..7737954 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1030,6 +1030,11 @@ int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
- EXPORT_SYMBOL_GPL(dax_truncate_page);
- 
- #ifdef CONFIG_FS_IOMAP
-+static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
-+{
-+	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
-+}
-+
- static loff_t
- dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		struct iomap *iomap)
-@@ -1055,8 +1060,7 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		struct blk_dax_ctl dax = { 0 };
- 		ssize_t map_len;
- 
--		dax.sector = iomap->blkno +
--			(((pos & PAGE_MASK) - iomap->offset) >> 9);
-+		dax.sector = dax_iomap_sector(iomap, pos);
- 		dax.size = (length + offset + PAGE_SIZE - 1) & PAGE_MASK;
- 		map_len = dax_map_atomic(iomap->bdev, &dax);
- 		if (map_len < 0) {
-@@ -1193,7 +1197,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		goto unlock_entry;
- 	}
- 
--	sector = iomap.blkno + (((pos & PAGE_MASK) - iomap.offset) >> 9);
-+	sector = dax_iomap_sector(&iomap, pos);
- 
- 	if (vmf->cow_page) {
- 		switch (iomap.type) {
+								Honza
+
+> ---
+>  fs/dax.c | 50 +++++++++++++++++++++++++-------------------------
+>  1 file changed, 25 insertions(+), 25 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index c45cc4d..0582c7c 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -382,6 +382,31 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+>  	}
+>  }
+>  
+> +static void put_locked_mapping_entry(struct address_space *mapping,
+> +				     pgoff_t index, void *entry)
+> +{
+> +	if (!radix_tree_exceptional_entry(entry)) {
+> +		unlock_page(entry);
+> +		put_page(entry);
+> +	} else {
+> +		dax_unlock_mapping_entry(mapping, index);
+> +	}
+> +}
+> +
+> +/*
+> + * Called when we are done with radix tree entry we looked up via
+> + * get_unlocked_mapping_entry() and which we didn't lock in the end.
+> + */
+> +static void put_unlocked_mapping_entry(struct address_space *mapping,
+> +				       pgoff_t index, void *entry)
+> +{
+> +	if (!radix_tree_exceptional_entry(entry))
+> +		return;
+> +
+> +	/* We have to wake up next waiter for the radix tree entry lock */
+> +	dax_wake_mapping_entry_waiter(mapping, index, entry, false);
+> +}
+> +
+>  /*
+>   * Find radix tree entry at given index. If it points to a page, return with
+>   * the page locked. If it points to the exceptional entry, return with the
+> @@ -486,31 +511,6 @@ void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
+>  	dax_wake_mapping_entry_waiter(mapping, index, entry, false);
+>  }
+>  
+> -static void put_locked_mapping_entry(struct address_space *mapping,
+> -				     pgoff_t index, void *entry)
+> -{
+> -	if (!radix_tree_exceptional_entry(entry)) {
+> -		unlock_page(entry);
+> -		put_page(entry);
+> -	} else {
+> -		dax_unlock_mapping_entry(mapping, index);
+> -	}
+> -}
+> -
+> -/*
+> - * Called when we are done with radix tree entry we looked up via
+> - * get_unlocked_mapping_entry() and which we didn't lock in the end.
+> - */
+> -static void put_unlocked_mapping_entry(struct address_space *mapping,
+> -				       pgoff_t index, void *entry)
+> -{
+> -	if (!radix_tree_exceptional_entry(entry))
+> -		return;
+> -
+> -	/* We have to wake up next waiter for the radix tree entry lock */
+> -	dax_wake_mapping_entry_waiter(mapping, index, entry, false);
+> -}
+> -
+>  /*
+>   * Delete exceptional DAX entry at @index from @mapping. Wait for radix tree
+>   * entry to get unlocked before deleting it.
+> -- 
+> 2.9.0
+> 
 -- 
-2.9.0
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
