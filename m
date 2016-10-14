@@ -1,60 +1,41 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Wed, 12 Oct 2016 10:31:51 +1100
-From: Dave Chinner <david@fromorbit.com>
-Subject: [regression, 4.9, pmem] memmap= command line, pmem device creation
- behaviour changed
-Message-ID: <20161011233151.GK23194@dastard>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id ECE561A1ED1
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Oct 2016 12:05:14 -0700 (PDT)
+Date: Fri, 14 Oct 2016 13:05:13 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 04/20] mm: Use passed vm_fault structure in __do_fault()
+Message-ID: <20161014190513.GC27575@linux.intel.com>
+References: <1474992504-20133-1-git-send-email-jack@suse.cz>
+ <1474992504-20133-5-git-send-email-jack@suse.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
+In-Reply-To: <1474992504-20133-5-git-send-email-jack@suse.cz>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan,
+On Tue, Sep 27, 2016 at 06:08:08PM +0200, Jan Kara wrote:
+> Instead of creating another vm_fault structure, use the one passed to
+> __do_fault() for passing arguments into fault handler.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-I boot my DAX test machine with "memmap=8G!16G,8G!24G" on the kernel
-command line to give me two 8GB pmem devices. This has worked fine
-on all kernels including 4.8. I just updated that test machine to a
-TOT linus kernel (4.9), and now I get a single 16GB pmem device.
-i.e.  the memory map the kernel generates is different.  This is
-what I get on boot from a 4.9 kernel:
-
-[    0.000000] e820: BIOS-provided physical RAM map:
-[    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
-[    0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
-[    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
-[    0.000000] BIOS-e820: [mem 0x0000000000100000-0x00000000bffdefff] usable
-[    0.000000] BIOS-e820: [mem 0x00000000bffdf000-0x00000000bfffffff] reserved
-[    0.000000] BIOS-e820: [mem 0x00000000feffc000-0x00000000feffffff] reserved
-[    0.000000] BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
-[    0.000000] BIOS-e820: [mem 0x0000000100000000-0x000000083fffffff] usable
-[    0.000000] NX (Execute Disable) protection: active
-[    0.000000] e820: user-defined physical RAM map:
-[    0.000000] user: [mem 0x0000000000000000-0x000000000009fbff] usable
-[    0.000000] user: [mem 0x000000000009fc00-0x000000000009ffff] reserved
-[    0.000000] user: [mem 0x00000000000f0000-0x00000000000fffff] reserved
-[    0.000000] user: [mem 0x0000000000100000-0x00000000bffdefff] usable
-[    0.000000] user: [mem 0x00000000bffdf000-0x00000000bfffffff] reserved
-[    0.000000] user: [mem 0x00000000feffc000-0x00000000feffffff] reserved
-[    0.000000] user: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
-[    0.000000] user: [mem 0x0000000100000000-0x00000003ffffffff] usable
-[    0.000000] user: [mem 0x0000000400000000-0x00000007ffffffff] persistent (type 12)
-[    0.000000] user: [mem 0x0000000800000000-0x000000083fffffff] usable
-
-
-On 4.8, I get two persistent (type 12) sections, each of 8GB. 4.9 is
-giving me a single 16GB region. This needs to behave like a 4.8
-kernel and return two persistent regions - persistent memory device
-setup cannot be allowed to change from kernel to kernel. Change in
-mapping and device setup like this will cause the corruption of
-and/or loss of data in the persistent memory devices that have
-changed shape, size or disappeared....
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
