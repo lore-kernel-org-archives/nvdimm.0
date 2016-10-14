@@ -3,15 +3,15 @@ Received: from mail.linuxfoundation.org (mail.linuxfoundation.org
  [140.211.169.12])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DB2C21A1EC4
- for <linux-nvdimm@lists.01.org>; Fri, 14 Oct 2016 05:27:56 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id BF4EC1A1ECF
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Oct 2016 04:41:12 -0700 (PDT)
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.8 19/37] x86/boot: Fix kdump,
+Subject: [PATCH 4.4 13/21] x86/boot: Fix kdump,
  cleanup aborted E820_PRAM max_pfn manipulation
-Date: Fri, 14 Oct 2016 14:27:05 +0200
-Message-Id: <20161014122552.530219886@linuxfoundation.org>
-In-Reply-To: <20161014122549.411962735@linuxfoundation.org>
-References: <20161014122549.411962735@linuxfoundation.org>
+Date: Fri, 14 Oct 2016 13:40:51 +0200
+Message-Id: <20161014114025.321710789@linuxfoundation.org>
+In-Reply-To: <20161014114024.667943585@linuxfoundation.org>
+References: <20161014114024.667943585@linuxfoundation.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -28,7 +28,7 @@ To: linux-kernel@vger.kernel.org
 Cc: Ingo Molnar <mingo@kernel.org>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-4.8-stable review patch.  If anyone has any objections, please let me know.
+4.4-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -80,7 +80,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/arch/x86/kernel/e820.c
 +++ b/arch/x86/kernel/e820.c
-@@ -348,7 +348,7 @@ int __init sanitize_e820_map(struct e820
+@@ -347,7 +347,7 @@ int __init sanitize_e820_map(struct e820
  		 * continue building up new bios map based on this
  		 * information
  		 */
@@ -89,7 +89,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  			if (last_type != 0)	 {
  				new_bios[new_bios_entry].size =
  					change_point[chgidx]->addr - last_addr;
-@@ -754,7 +754,7 @@ u64 __init early_reserve_e820(u64 size,
+@@ -753,7 +753,7 @@ u64 __init early_reserve_e820(u64 size,
  /*
   * Find the highest page frame number we have available
   */
@@ -98,7 +98,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  {
  	int i;
  	unsigned long last_pfn = 0;
-@@ -765,11 +765,7 @@ static unsigned long __init e820_end_pfn
+@@ -764,11 +764,7 @@ static unsigned long __init e820_end_pfn
  		unsigned long start_pfn;
  		unsigned long end_pfn;
  
@@ -111,7 +111,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  			continue;
  
  		start_pfn = ei->addr >> PAGE_SHIFT;
-@@ -794,12 +790,12 @@ static unsigned long __init e820_end_pfn
+@@ -793,12 +789,12 @@ static unsigned long __init e820_end_pfn
  }
  unsigned long __init e820_end_of_ram_pfn(void)
  {
