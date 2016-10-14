@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail.linuxfoundation.org (mail.linuxfoundation.org
+ [140.211.169.12])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BB3861A1E4D
- for <linux-nvdimm@lists.01.org>; Mon,  3 Oct 2016 02:35:16 -0700 (PDT)
-Date: Mon, 3 Oct 2016 11:35:13 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v4 04/12] ext2: remove support for DAX PMD faults
-Message-ID: <20161003093513.GJ6457@quack2.suse.cz>
-References: <1475189370-31634-1-git-send-email-ross.zwisler@linux.intel.com>
- <1475189370-31634-5-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 127801A1EC4
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Oct 2016 05:56:19 -0700 (PDT)
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.7 19/31] x86/boot: Fix kdump,
+ cleanup aborted E820_PRAM max_pfn manipulation
+Date: Fri, 14 Oct 2016 14:55:03 +0200
+Message-Id: <20161014122716.036754844@linuxfoundation.org>
+In-Reply-To: <20161014122715.235592611@linuxfoundation.org>
+References: <20161014122715.235592611@linuxfoundation.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1475189370-31634-5-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,103 +24,110 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: linux-kernel@vger.kernel.org
+Cc: Ingo Molnar <mingo@kernel.org>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu 29-09-16 16:49:22, Ross Zwisler wrote:
-> DAX PMD support was added via the following commit:
-> 
-> commit e7b1ea2ad658 ("ext2: huge page fault support")
-> 
-> I believe this path to be untested as ext2 doesn't reliably provide block
-> allocations that are aligned to 2MiB.  In my testing I've been unable to
-> get ext2 to actually fault in a PMD.  It always fails with a "pfn
-> unaligned" message because the sector returned by ext2_get_block() isn't
-> aligned.
-> 
-> I've tried various settings for the "stride" and "stripe_width" extended
-> options to mkfs.ext2, without any luck.
-> 
-> Since we can't reliably get PMDs, remove support so that we don't have an
-> untested code path that we may someday traverse when we happen to get an
-> aligned block allocation.  This should also make 4k DAX faults in ext2 a
-> bit faster since they will no longer have to call the PMD fault handler
-> only to get a response of VM_FAULT_FALLBACK.
-> 
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+4.7-stable review patch.  If anyone has any objections, please let me know.
 
-Looks good. You can add:
+------------------
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+From: Dan Williams <dan.j.williams@intel.com>
 
-								Honza
+commit 917db484dc6a69969d317b3e57add4208a8d9d42 upstream.
 
-> ---
->  fs/ext2/file.c | 29 ++++++-----------------------
->  1 file changed, 6 insertions(+), 23 deletions(-)
-> 
-> diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-> index 0ca363d..0f257f8 100644
-> --- a/fs/ext2/file.c
-> +++ b/fs/ext2/file.c
-> @@ -107,27 +107,6 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
->  	return ret;
->  }
->  
-> -static int ext2_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
-> -						pmd_t *pmd, unsigned int flags)
-> -{
-> -	struct inode *inode = file_inode(vma->vm_file);
-> -	struct ext2_inode_info *ei = EXT2_I(inode);
-> -	int ret;
-> -
-> -	if (flags & FAULT_FLAG_WRITE) {
-> -		sb_start_pagefault(inode->i_sb);
-> -		file_update_time(vma->vm_file);
-> -	}
-> -	down_read(&ei->dax_sem);
-> -
-> -	ret = dax_pmd_fault(vma, addr, pmd, flags, ext2_get_block);
-> -
-> -	up_read(&ei->dax_sem);
-> -	if (flags & FAULT_FLAG_WRITE)
-> -		sb_end_pagefault(inode->i_sb);
-> -	return ret;
-> -}
-> -
->  static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
->  		struct vm_fault *vmf)
->  {
-> @@ -154,7 +133,11 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
->  
->  static const struct vm_operations_struct ext2_dax_vm_ops = {
->  	.fault		= ext2_dax_fault,
-> -	.pmd_fault	= ext2_dax_pmd_fault,
-> +	/*
-> +	 * .pmd_fault is not supported for DAX because allocation in ext2
-> +	 * cannot be reliably aligned to huge page sizes and so pmd faults
-> +	 * will always fail and fail back to regular faults.
-> +	 */
->  	.page_mkwrite	= ext2_dax_fault,
->  	.pfn_mkwrite	= ext2_dax_pfn_mkwrite,
->  };
-> @@ -166,7 +149,7 @@ static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
->  
->  	file_accessed(file);
->  	vma->vm_ops = &ext2_dax_vm_ops;
-> -	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-> +	vma->vm_flags |= VM_MIXEDMAP;
->  	return 0;
->  }
->  #else
-> -- 
-> 2.7.4
-> 
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+In commit:
+
+  ec776ef6bbe1 ("x86/mm: Add support for the non-standard protected e820 type")
+
+Christoph references the original patch I wrote implementing pmem support.
+The intent of the 'max_pfn' changes in that commit were to enable persistent
+memory ranges to be covered by the struct page memmap by default.
+
+However, that approach was abandoned when Christoph ported the patches [1], and
+that functionality has since been replaced by devm_memremap_pages().
+
+In the meantime, this max_pfn manipulation is confusing kdump [2] that
+assumes that everything covered by the max_pfn is "System RAM".  This
+results in kdump hanging or crashing.
+
+ [1]: https://lists.01.org/pipermail/linux-nvdimm/2015-March/000348.html
+ [2]: https://bugzilla.redhat.com/show_bug.cgi?id=1351098
+
+So fix it.
+
+Reported-by: Zhang Yi <yizhan@redhat.com>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Tested-by: Zhang Yi <yizhan@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Boaz Harrosh <boaz@plexistor.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-nvdimm@lists.01.org
+Fixes: ec776ef6bbe1 ("x86/mm: Add support for the non-standard protected e820 type")
+Link: http://lkml.kernel.org/r/147448744538.34910.11287693517367139607.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+---
+ arch/x86/kernel/e820.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
+
+--- a/arch/x86/kernel/e820.c
++++ b/arch/x86/kernel/e820.c
+@@ -348,7 +348,7 @@ int __init sanitize_e820_map(struct e820
+ 		 * continue building up new bios map based on this
+ 		 * information
+ 		 */
+-		if (current_type != last_type || current_type == E820_PRAM) {
++		if (current_type != last_type) {
+ 			if (last_type != 0)	 {
+ 				new_bios[new_bios_entry].size =
+ 					change_point[chgidx]->addr - last_addr;
+@@ -754,7 +754,7 @@ u64 __init early_reserve_e820(u64 size,
+ /*
+  * Find the highest page frame number we have available
+  */
+-static unsigned long __init e820_end_pfn(unsigned long limit_pfn)
++static unsigned long __init e820_end_pfn(unsigned long limit_pfn, unsigned type)
+ {
+ 	int i;
+ 	unsigned long last_pfn = 0;
+@@ -765,11 +765,7 @@ static unsigned long __init e820_end_pfn
+ 		unsigned long start_pfn;
+ 		unsigned long end_pfn;
+ 
+-		/*
+-		 * Persistent memory is accounted as ram for purposes of
+-		 * establishing max_pfn and mem_map.
+-		 */
+-		if (ei->type != E820_RAM && ei->type != E820_PRAM)
++		if (ei->type != type)
+ 			continue;
+ 
+ 		start_pfn = ei->addr >> PAGE_SHIFT;
+@@ -794,12 +790,12 @@ static unsigned long __init e820_end_pfn
+ }
+ unsigned long __init e820_end_of_ram_pfn(void)
+ {
+-	return e820_end_pfn(MAX_ARCH_PFN);
++	return e820_end_pfn(MAX_ARCH_PFN, E820_RAM);
+ }
+ 
+ unsigned long __init e820_end_of_low_ram_pfn(void)
+ {
+-	return e820_end_pfn(1UL << (32-PAGE_SHIFT));
++	return e820_end_pfn(1UL << (32 - PAGE_SHIFT), E820_RAM);
+ }
+ 
+ static void early_panic(char *msg)
+
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
