@@ -3,15 +3,15 @@ Received: from mail.linuxfoundation.org (mail.linuxfoundation.org
  [140.211.169.12])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 127801A1EC4
- for <linux-nvdimm@lists.01.org>; Fri, 14 Oct 2016 05:56:19 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id DB2C21A1EC4
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Oct 2016 05:27:56 -0700 (PDT)
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.7 19/31] x86/boot: Fix kdump,
+Subject: [PATCH 4.8 19/37] x86/boot: Fix kdump,
  cleanup aborted E820_PRAM max_pfn manipulation
-Date: Fri, 14 Oct 2016 14:55:03 +0200
-Message-Id: <20161014122716.036754844@linuxfoundation.org>
-In-Reply-To: <20161014122715.235592611@linuxfoundation.org>
-References: <20161014122715.235592611@linuxfoundation.org>
+Date: Fri, 14 Oct 2016 14:27:05 +0200
+Message-Id: <20161014122552.530219886@linuxfoundation.org>
+In-Reply-To: <20161014122549.411962735@linuxfoundation.org>
+References: <20161014122549.411962735@linuxfoundation.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -28,7 +28,7 @@ To: linux-kernel@vger.kernel.org
 Cc: Ingo Molnar <mingo@kernel.org>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-4.7-stable review patch.  If anyone has any objections, please let me know.
+4.8-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
