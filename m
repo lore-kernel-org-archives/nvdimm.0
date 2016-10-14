@@ -1,21 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Message-Id: <5800CCAB020000780011759D@prv-mh.provo.novell.com>
+Date: Fri, 14 Oct 2016 04:16:43 -0600
+From: "Jan Beulich" <JBeulich@suse.com>
 Subject: Re: [Xen-devel] [RFC KERNEL PATCH 0/2] Add Dom0 NVDIMM support for Xen
-References: <CAPcyv4jYekNQQnD39sE=HekxUAOgXCx3_c3GLjV7MDUnvrK0vQ@mail.gmail.com>
+References: <20161012103318.vq36ed5ebb5xxcom@hz-desktop>
+ <57FE3B880200007800116A75@prv-mh.provo.novell.com>
+ <20161012145826.wwxecoo4o3ypos5o@hz-desktop>
+ <57FE75520200007800116D27@prv-mh.provo.novell.com>
+ <CAPcyv4jYekNQQnD39sE=HekxUAOgXCx3_c3GLjV7MDUnvrK0vQ@mail.gmail.com>
  <57FE7A710200007800116D60@prv-mh.provo.novell.com>
  <CAPcyv4gRMhfU1MF=qYAYfidWwjjRj_qQnH6OpFsodakisP2hfQ@mail.gmail.com>
  <57FF633E0200007800116F59@prv-mh.provo.novell.com>
  <20161013085344.ulju7pnnbvufc4em@hz-desktop>
  <57FF6B130200007800116F96@prv-mh.provo.novell.com>
- <CAPcyv4hpmVU477vrAeJrcHpMS9qRSnRwY1T8FrPqAxZXMyLBOg@mail.gmail.com>
- <ff42a1c8-6b7d-dea5-f1e6-0778f316eb50@citrix.com>
- <CAPcyv4js4fnVfGhfS0TkCCRQGsPen0_tKHNdwjdeP6L28sK4Cg@mail.gmail.com>
- <a69fe867-8d0d-75d9-dabe-509d1fd25646@citrix.com>
- <20161014070850.hbirvazu3e2pp4gb@hz-desktop>
-From: Andrew Cooper <andrew.cooper3@citrix.com>
-Message-ID: <e1a1cbad-b13c-7d0e-c0a6-504600fe9498@citrix.com>
-Date: Fri, 14 Oct 2016 13:18:48 +0100
-MIME-Version: 1.0
-In-Reply-To: <20161014070850.hbirvazu3e2pp4gb@hz-desktop>
+ <20161013154600.minrxkdrvqaln6sz@hz-desktop>
+In-Reply-To: <20161013154600.minrxkdrvqaln6sz@hz-desktop>
+Mime-Version: 1.0
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,165 +29,133 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Haozhong Zhang <haozhong.zhang@intel.com>
-Cc: Juergen Gross <JGross@suse.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefano Stabellini <stefano@aporeto.com>, David Vrabel <david.vrabel@citrix.com>, Jan Beulich <JBeulich@suse.com>, xen-devel@lists.xenproject.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Juergen Gross <JGross@suse.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, andrew.cooper3@citrix.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stefano Stabellini <stefano@aporeto.com>, David Vrabel <david.vrabel@citrix.com>, xen-devel@lists.xenproject.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 14/10/16 08:08, Haozhong Zhang wrote:
-> On 10/13/16 20:33 +0100, Andrew Cooper wrote:
->> On 13/10/16 19:59, Dan Williams wrote:
->>> On Thu, Oct 13, 2016 at 9:01 AM, Andrew Cooper
->>> <andrew.cooper3@citrix.com> wrote:
->>>> On 13/10/16 16:40, Dan Williams wrote:
->>>>> On Thu, Oct 13, 2016 at 2:08 AM, Jan Beulich <JBeulich@suse.com>
->>>>> wrote:
->>>>> [..]
->>>>>>> I think we can do the similar for Xen, like to lay another pseudo
->>>>>>> device on /dev/pmem and do the reservation, like 2. in my previous
->>>>>>> reply.
->>>>>> Well, my opinion certainly doesn't count much here, but I
->>>>>> continue to
->>>>>> consider this a bad idea. For entities like drivers it may well be
->>>>>> appropriate, but I think there ought to be an independent concept
->>>>>> of "OS reserved", and in the Xen case this could then be shared
->>>>>> between hypervisor and Dom0 kernel. Or if we were to consider Dom0
->>>>>> "just a guest", things should even be the other way around: Xen gets
->>>>>> all of the OS reserved space, and Dom0 needs something custom.
->>>>> You haven't made the case why Xen is special and other
->>>>> applications of
->>>>> persistent memory are not.
->>>> In a Xen system, Xen runs in the baremetal root-mode ring0, and
->>>> dom0 is
->>>> a VM running in ring1/3 with the nvdimm driver.  This is the opposite
->>>> way around to the KVM model.
+>>> On 13.10.16 at 17:46, <haozhong.zhang@intel.com> wrote:
+> On 10/13/16 03:08 -0600, Jan Beulich wrote:
+>>>>> On 13.10.16 at 10:53, <haozhong.zhang@intel.com> wrote:
+>>> On 10/13/16 02:34 -0600, Jan Beulich wrote:
+>>>>>>> On 12.10.16 at 18:19, <dan.j.williams@intel.com> wrote:
+>>>>> On Wed, Oct 12, 2016 at 9:01 AM, Jan Beulich <JBeulich@suse.com> wrote:
+>>>>>>>>> On 12.10.16 at 17:42, <dan.j.williams@intel.com> wrote:
+>>>>>>> On Wed, Oct 12, 2016 at 8:39 AM, Jan Beulich <JBeulich@suse.com> wrote:
+>>>>>>>>>>> On 12.10.16 at 16:58, <haozhong.zhang@intel.com> wrote:
+>>>>>>>>> On 10/12/16 05:32 -0600, Jan Beulich wrote:
+>>>>>>>>>>>>> On 12.10.16 at 12:33, <haozhong.zhang@intel.com> wrote:
+>>>>>>>>>>> The layout is shown as the following diagram.
+>>>>>>>>>>>
+>>>>>>>>>>> +---------------+-----------+-------+----------+--------------+
+>>>>>>>>>>> | whatever used | Partition | Super | Reserved | /dev/pmem0p1 |
+>>>>>>>>>>> |  by kernel    |   Table   | Block | for Xen  |              |
+>>>>>>>>>>> +---------------+-----------+-------+----------+--------------+
+>>>>>>>>>>>                 \_____________________ _______________________/
+>>>>>>>>>>>                                   V
+>>>>>>>>>>>                              /dev/pmem0
+>>>>>>>>>>
+>>>>>>>>>>I have to admit that I dislike this, for not being OS-agnostic.
+>>>>>>>>>>Neither should there be any Xen-specific region, nor should the
+>>>>>>>>>>"whatever used by kernel" one be restricted to just Linux. What
+>>>>>>>>>>I could see is an OS-reserved area ahead of the partition table,
+>>>>>>>>>>the exact usage of which depends on which OS is currently
+>>>>>>>>>>running (and in the Xen case this might be both Xen _and_ the
+>>>>>>>>>>Dom0 kernel, arbitrated by a tbd protocol). After all, when
+>>>>>>>>>>running under Xen, the Dom0 may not have a need for as much
+>>>>>>>>>>control data as it has when running on bare hardware, for it
+>>>>>>>>>>controlling less (if any) of the actual memory ranges when Xen
+>>>>>>>>>>is present.
+>>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> Isn't this OS-reserved area still not OS-agnostic, as it requires OS
+>>>>>>>>> to know where the reserved area is?  Or do you mean it's not if it's
+>>>>>>>>> defined by a protocol that is accepted by all OSes?
+>>>>>>>>
+>>>>>>>> The latter - we clearly won't get away without some agreement on
+>>>>>>>> where to retrieve position and size of this area. I was simply
+>>>>>>>> assuming that such a protocol already exists.
+>>>>>>>>
+>>>>>>>
+>>>>>>> No, we should not mix the struct page reservation that the Dom0 kernel
+>>>>>>> may actively use with the Xen reservation that the Dom0 kernel does
+>>>>>>> not consume.  Explain again what is wrong with the partition approach?
+>>>>>>
+>>>>>> Not sure what was unclear in my previous reply. I don't think there
+>>>>>> should be apriori knowledge of whether Xen is (going to be) used on
+>>>>>> a system, and even if it gets used, but just occasionally, it would
+>>>>>> (apart from the abstract considerations already given) be a waste
+>>>>>> of resources to set something aside that could be used for other
+>>>>>> purposes while Xen is not running. Static partitioning should only be
+>>>>>> needed for persistent data.
+>>>>>
+>>>>> The reservation needs to be persistent / static even if the data is
+>>>>> volatile, as is the case with struct page, because we can't have the
+>>>>> size of the device change depending on use.  So, from the aspect of
+>>>>> wasting space while Xen is not in use, both partitions and the
+>>>>> intrinsic reservation approach suffer the same problem. Setting that
+>>>>> aside I don't want to mix 2 different use cases into the same
+>>>>> reservation.
 >>>>
->>>> Dom0, being the hardware domain, has default ownership of all the
->>>> hardware, but to gain access in the first place, it must request a
->>>> mapping from Xen.
->>> This is where my understanding the Xen model breaks down.  Are you
->>> saying dom0 can't access the persistent memory range unless the ring0
->>> agent has metadata storage space for tracking what it maps into dom0?
->>
->> No.  I am trying to point out that the current suggestion wont work, and
->> needs re-designing.
->>
->> Xen *must* be able to properly configure mappings of the NVDIMM for
->> dom0, *without* modifying any content on the NVDIMM.  Otherwise, data
->> corruption will occur.
->>
->> Whether this means no Xen metadata, or the metadata living elsewhere in
->> regular ram, such as the main frametable, is an implementation detail.
->>
+>>>>Then you didn't understand what I've said: I certainly didn't mean
+>>>>the reservation to vary from a device perspective. However, when
+>>>>Xen is in use I don't see why part of that static reservation couldn't
+>>>>be used by Xen, and another part by the Dom0 kernel. The kernel
+>>>>obviously would need to ask the hypervisor how much of the space
+>>>>is left, and where that area starts.
+>>>>
 >>>
->>>> Once dom0 has a mapping of the nvdimm, the nvdimm driver can go to
->>>> work
->>>> and figure out what is on the DIMM, and which areas are safe to use.
->>> I don't understand this ordering of events.  Dom0 needs to have a
->>> mapping to even write the on-media structure to indicate a
->>> reservation.  So, initial dom0 access can't depend on metadata
->>> reservation already being present.
+>>> I think Dan means that there should be a clear separation between
+>>> reservations for different usages (kernel/xen/...). The libnvdimm
+>>> driver is for the linux kernel and only needs to maintain the
+>>> reservation for kernel functionality. For others including xen/dm/...,
+>>> if they want reservation for their own purpose, they should maintain
+>>> their own reservations out of libnvdimm driver and avoid bothering the
+>>> libnvdimm driver (e.g. add specific handling in libnvdimm driver).
+>>>
+>>> IIUC, one existing example is device-mapper device (dm) which needs to
+>>> reserve on-device area for its own meta-data. Its choice is to store
+>>> the meta-data on the block device (/dev/pmemN) provided by the
+>>> libnvdimm driver.
+>>>
+>>> I think we can do the similar for Xen, like to lay another pseudo
+>>> device on /dev/pmem and do the reservation, like 2. in my previous
+>>> reply.
 >>
->> I agree.
+>>Well, my opinion certainly doesn't count much here, but I continue to
+>>consider this a bad idea. For entities like drivers it may well be
+>>appropriate, but I think there ought to be an independent concept
+>>of "OS reserved", and in the Xen case this could then be shared
+>>between hypervisor and Dom0 kernel.
+> 
+> No such independent concept seems exist right now. It may be hard to
+> define such concept, because it's hard to know the common requirements
+> (e.g. size/alignment/...)  from ALL OSes. Making each component to
+> maintain its own reservation in its own way seems more flexible.
+> 
+>>Or if we were to consider Dom0
+>>"just a guest", things should even be the other way around: Xen gets
+>>all of the OS reserved space, and Dom0 needs something custom.
 >>
->> Overall, I think the following is needed.
->>
->> * Xen starts up.
->> ** Xen might find some NVDIMM SPA/MFN ranges in the NFIT table, and
->> needs to note this information somehow.
->> ** Xen might find some Type 7 E820 regions, and needs to note this
->> information somehow.
->
-> IIUC, this is to collect MFNs and no need to create frame table and
-> M2P at this stage. If so, what is different from ...
->
->> * Xen starts dom0.
->> * Once OSPM is running, a Xen component in Linux needs to collect and
->> report all NVDIMM SPA/MFN regions it knowns about.
->> ** This covers the AML-only case, and the hotplug case.
->
-> ... the MFNs reported here, especially that the former is a subset
-> (hotplug ones not included in the former) of latter.
+> 
+> Sure, it's possible to implement the driver in a way that if the
+> driver finds it runs on Xen, then it just leaves the OS reserved area
+> for Xen and itself goes to other reservation. Are there some
+> differences in practice from the way that Xen goes to other
+> reservation that makes we have to do so? If not and it's possible to
+> not touch the existing libnvdimm driver, why don't we just use the
+> existing libnvdimm driver and let xen driver make the reservation on
+> what the libnvdimm driver provides?
 
-Hopefully nothing.  However, Xen shouldn't exclusively rely on the dom0
-when it is capable of working things out itself, (which can aid with
-debugging one half of this arrangement).  Also, the MFNS found by Xen
-alone can be present in the default memory map for dom0.
+It continues to feel like you're trying to make the second step before
+the first: You talk about implementation, whereas I talk about the
+concept that should underly your implementation. One could view it
+the way that how said driver works with Xen in the picture should
+have been decided before it got implemented, and then the question
+of whether it would be okay to leave the existing implementation
+alone would not have appeared in the first place.
 
->
-> (There is no E820 hole or SRAT entries to tell which address range is
-> reserved for hotplugged NVDIMM)
->
->> * Dom0 requests a mapping of the NVDIMMs via the usual mechanism.
->
-> Two questions:
-> 1. Why is this request necessary? Even without such requests like what
->   my current implementation, Dom0 can still access NVDIMM.
+With that, I can't reasonably answer your questions.
 
-Can it?  (if so, great, but I don't think this holds in the general
-case.)  Is that a side effect of the NVDIMM being covered by a hole in
-the E820?  The current logic for what dom0 may access by default is
-somewhat ad-hoc, and I have a gut feeling that it won't work with E820
-type 7 regions.
-
->
->   Or do you mean Xen hypervisor should by default disallow Dom0 to
->   access MFNs reported in previous step until they are requested?
-
-No - I am not suggesting this.
-
->
-> 2. Who initiates the requests? If it's the libnvdimm driver, that
->   means we still need to introduce Xen specific code to the driver.
->
->   Or the requests are issued by OSPM (or the Xen component you
->   mentioned above) when they probe new dimms?
->
->   For the latter, Dan, do you think it's acceptable in NFIT code to
->   call the Xen component to request the access permission of the pmem
->   regions, e.g. in apic_nfit_insert_resource(). Of course, it's only
->   used for Dom0 case.
-
-The libnvdimm driver should continue to use ioremap() or whatever it
-currently does.  There shouldn't be Xen modifications like that.
-
-The one issue will come if libnvdimm tries to ioremap()/other an area
-which Xen is unaware is an NVDIMM, and rejects the mapping request. 
-Somehow, a Xen component will need to find the MFN/SPA layout and
-register this information with Xen, before the ioremap() call made by
-the libnvdimm driver.  Perhaps a notifier mechanism out from the ACPI
-subsystem might be the best way to make this work in a clean way.
-
->
->> ** This should work, as Xen is aware that there is something there to be
->> mapped (rather than just empty physical address space).
->> * Dom0 finds that some NVDIMM ranges are now available for use (probably
->> modelled as hotplug events).
->> * /dev/pmem $STUFF starts happening as normal.
->>
->> At some pointer later after dom0 policy decisions are made (ultimately,
->> by the host administrator):
->> * If an area of NVDIMM is chosen for Xen to use, Dom0 needs to inform
->> Xen of the SPA/MFN regions which are safe to use.
->> * Xen then incorporates these regions into its idea of RAM, and starts
->> using them for whatever.
->>
->
-> Agree. I think we may not need to fix the way/format/... to make the
-> reservation, and instead let the users (host administrators), who have
-> better understanding of their data, make the proper decision.
-
-Yes.  This is the best course of action.
-
->
-> In a worse case that no reservation is made, Xen hypervisor could turn
-> to use RAM for management structures for NVDIMM, with the cost of less
-> RAM for guests.
-
-Or simply not manage the NVDIMM at all.
-
-OTOH, a different usecase might be to register a small area for Xen to
-use to crash log into.
-
-~Andrew
+Jan
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
