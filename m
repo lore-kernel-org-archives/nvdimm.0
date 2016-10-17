@@ -1,13 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from NAM01-SN1-obe.outbound.protection.outlook.com
+ (mail-sn1nam01on0708.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe40::708])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C9C881A1E8E
- for <linux-nvdimm@lists.01.org>; Wed, 12 Oct 2016 15:50:27 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v6 00/17] re-enable DAX PMD support
-Date: Wed, 12 Oct 2016 16:50:05 -0600
-Message-Id: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3EEF31A1E10
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Oct 2016 12:12:20 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH] DAX: enable iostat for read/write
+Date: Mon, 17 Oct 2016 19:12:18 +0000
+Message-ID: <1476731438.20881.73.camel@hpe.com>
+References: <1476465913-25305-1-git-send-email-toshi.kani@hpe.com>
+ <20161015075443.GG27872@dastard> <1476725956.20881.68.camel@hpe.com>
+ <CAPcyv4h-5CUs8iApR5=_M_qx1oMuVq5vkyOej6Ci=B5oj-Bs-g@mail.gmail.com>
+In-Reply-To: <CAPcyv4h-5CUs8iApR5=_M_qx1oMuVq5vkyOej6Ci=B5oj-Bs-g@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <F3C02B1C5BE0C248A3A145B9AB960760@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,85 +24,37 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "david@fromorbit.com" <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX PMDs have been disabled since Jan Kara introduced DAX radix tree based
-locking.  This series allows DAX PMDs to participate in the DAX radix tree
-based locking scheme so that they can be re-enabled.
-
-For now I'm still using the same baseline for this series as I did with v5.
-I'll update the baseline once v4.9-rc1 is released, dropping whatever patches
-have already been merged.
-
-Changes since v5:
- - Reworked the way that DAX radix tree flags were handled. The old
-   handling was correct but a bit hard for the reader to parse.  Hopefully
-   this new way is more readable & maintainable.  (Jan & Christoph)
- - Made the definition of dax_radix_order() conditional based on
-   CONFIG_FS_DAX_PMD.  This was necessary because PMD_SHIFT isn't defined
-   on all systems. (kbuild)
- - Dropped the incorrect patch "ext2: return -EIO on ext2_iomap_end()
-   failure".  (Jan)
- - A few error path fixes in grab_mapping_entry().  (Jan)
- - A few more comments in grab_mapping_entry(),
-   dax_wake_mapping_entry_waiter() and dax_insert_mapping_entry(). (Jan)
- - Removed the 'inline' keyword from dax_iomap_sector().  (Dan)
- - Cleaned up the path through ops->iomap_end() in both dax_iomap_fault()
-   and dax_iomap_pmd_fault().  We now pass 0 for the 'written' argument on
-   error conditions.  (Jan & Christoph)
- - Improved the naming of 'size' to 'max_pgoff' in dax_iomap_pmd_fault().
-   (Jan)
-
-Thank you to Jan and Christoph for their review feedback.
-
-Here is a tree containing my changes:
-https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_pmd_v6
-
-This tree has passed xfstests for ext2, ext4 and XFS both with and without
-DAX, and has passed targeted testing where I inserted, removed and flushed
-DAX PTEs and PMDs in every combination I could think of.
-
-Ross Zwisler (17):
-  ext4: allow DAX writeback for hole punch
-  ext4: tell DAX the size of allocation holes
-  dax: remove buffer_size_valid()
-  ext2: remove support for DAX PMD faults
-  dax: make 'wait_table' global variable static
-  dax: remove the last BUG_ON() from fs/dax.c
-  dax: consistent variable naming for DAX entries
-  dax: coordinate locking for offsets in PMD range
-  dax: remove dax_pmd_fault()
-  dax: correct dax iomap code namespace
-  dax: add dax_iomap_sector() helper function
-  dax: dax_iomap_fault() needs to call iomap_end()
-  dax: move RADIX_DAX_* defines to dax.h
-  dax: move put_(un)locked_mapping_entry() in dax.c
-  dax: add struct iomap based DAX PMD support
-  xfs: use struct iomap based DAX PMD fault path
-  dax: remove "depends on BROKEN" from FS_DAX_PMD
-
- fs/Kconfig          |   1 -
- fs/dax.c            | 825 +++++++++++++++++++++++++++++-----------------------
- fs/ext2/file.c      |  35 +--
- fs/ext4/inode.c     |   7 +-
- fs/xfs/xfs_aops.c   |  26 +-
- fs/xfs/xfs_aops.h   |   3 -
- fs/xfs/xfs_file.c   |  10 +-
- include/linux/dax.h |  58 +++-
- mm/filemap.c        |   5 +-
- 9 files changed, 538 insertions(+), 432 deletions(-)
-
--- 
-2.9.0
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCAyMDE2LTEwLTE3IGF0IDExOjU1IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIE1vbiwgT2N0IDE3LCAyMDE2IGF0IDEwOjQwIEFNLCBLYW5pLCBUb3NoaW1pdHN1IDx0b3No
+aS5rYW5pQGhwZS5jbw0KPiBtPiB3cm90ZToNCj4gPiANCj4gPiBPbiBTYXQsIDIwMTYtMTAtMTUg
+YXQgMTg6NTQgKzExMDAsIERhdmUgQ2hpbm5lciB3cm90ZToNCj4gPiA+IA0KPiA+ID4gT24gRnJp
+LCBPY3QgMTQsIDIwMTYgYXQgMTE6MjU6MTNBTSAtMDYwMCwgVG9zaGkgS2FuaSB3cm90ZToNCj4g
+PiDCoDoNCj4gPiA+IA0KPiA+ID4gPiANCj4gPiA+ID4gK3N0YXRpYyB2b2lkIGRheF9pb3N0YXRf
+c3RhcnQoc3RydWN0IGdlbmRpc2sgKmRpc2ssIHN0cnVjdA0KPiA+ID4gPiBpb3ZfaXRlcg0KPiA+
+ID4gPiAqaXRlciwNCj4gPiA+ID4gK8KgwqDCoMKgwqB1bnNpZ25lZCBsb25nICpzdGFydCkNCj4g
+PiA+ID4gK3sNCj4gPiA+ID4gK2ludCBydyA9IGlvdl9pdGVyX3J3KGl0ZXIpOw0KPiA+ID4gPiAr
+aW50IHNlYyA9IGlvdl9pdGVyX2NvdW50KGl0ZXIpID4+IDk7DQo+ID4gPiA+ICtpbnQgY3B1ID0g
+cGFydF9zdGF0X2xvY2soKTsNCj4gPiA+ID4gKw0KPiA+ID4gPiArKnN0YXJ0ID0gamlmZmllczsN
+Cj4gPiA+ID4gK3BhcnRfcm91bmRfc3RhdHMoY3B1LCAmZGlzay0+cGFydDApOw0KPiA+ID4gPiAr
+cGFydF9zdGF0X2luYyhjcHUsICZkaXNrLT5wYXJ0MCwgaW9zW3J3XSk7DQo+ID4gPiA+ICtwYXJ0
+X3N0YXRfYWRkKGNwdSwgJmRpc2stPnBhcnQwLCBzZWN0b3JzW3J3XSwgc2VjKTsNCj4gPiA+ID4g
+K3BhcnRfaW5jX2luX2ZsaWdodCgmZGlzay0+cGFydDAsIHJ3KTsNCj4gPiA+ID4gK3BhcnRfc3Rh
+dF91bmxvY2soKTsNCj4gPiA+ID4gK30NCj4gPiA+IA0KPiA+ID4gV2h5IHJlaW1wbGVtZW50IGdl
+bmVyaWNfc3RhcnRfaW9fYWNjdCgpIGFuZA0KPiA+ID4gZ2VuZXJpY19lbmRfaW9fYWNjdCgpPw0K
+PiA+IA0KPiA+IEl0IHdhcyBtb2RlbGVkIGFmdGVyIF9fbmRfaW9zdGF0X3N0YXJ0KCkgLyBuZF9p
+b3N0YXJ0X2VuZCgpLsKgwqBJDQo+ID4gYWdyZWUgdGhhdCB3ZSBjYW4gdXNlIGdlbmVyaWNfc3Rh
+cnRfaW9fYWNjdCgpIGFuZA0KPiA+IGdlbmVyaWNfZW5kX2lvX2FjY3QoKSBoZXJlLg0KPiA+IA0K
+PiA+IFNob3VsZCB3ZSBhbHNvIGNoYW5nZSB0aGUgbmQgaW50ZXJmYWNlIHRvIHVzZSB0aGUgZ2Vu
+ZXJpYyB2ZXJzaW9uDQo+ID4gYXMgd2VsbD8NCj4gDQo+IFllcywgc291bmRzIGdvb2QgdG8gbWUu
+DQoNCldpbGwgZG8uIFRoYW5rcyENCi1Ub3NoaQpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGlt
+bUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
+eC1udmRpbW0K
