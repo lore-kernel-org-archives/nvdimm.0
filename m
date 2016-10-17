@@ -1,45 +1,68 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from a2nlsmtp01-03.prod.iad2.secureserver.net
- (a2nlsmtp01-03.prod.iad2.secureserver.net [198.71.225.37])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D12E51A1E2F
- for <linux-nvdimm@lists.01.org>; Sat, 22 Oct 2016 14:40:01 -0700 (PDT)
-Received: from keynetikadmin76 by a2plcpnl0601.prod.iad2.secureserver.net with
- local (Exim 4.87)
- (envelope-from <keynetikadmin76@a2plcpnl0601.prod.iad2.secureserver.net>)
- id 1by40J-003Ynq-Rc
- for linux-nvdimm@lists.01.org; Sat, 22 Oct 2016 14:38:59 -0700
-Subject: Unable to deliver your item, #0000853648
-Date: Sat, 22 Oct 2016 21:38:59 +0000
-From: "FedEx Standard Overnight" <craig.gibbons@legalcapitol.net>
-Message-ID: <099408da361c95e93544b5d609b29d07@legalcapitol.net>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 17 Oct 2016 11:01:49 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 03/20] mm: Use pgoff in struct vm_fault instead of
+ passing it separately
+Message-ID: <20161017090149.GE3359@quack2.suse.cz>
+References: <1474992504-20133-1-git-send-email-jack@suse.cz>
+ <1474992504-20133-4-git-send-email-jack@suse.cz>
+ <20161014184251.GB27575@linux.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Reply-To: FedEx Standard Overnight <craig.gibbons@legalcapitol.net>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161014184251.GB27575@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dear Customer,
+On Fri 14-10-16 12:42:51, Ross Zwisler wrote:
+> On Tue, Sep 27, 2016 at 06:08:07PM +0200, Jan Kara wrote:
+> > struct vm_fault has already pgoff entry. Use it instead of passing pgoff
+> > as a separate argument and then assigning it later.
+> > 
+> > Signed-off-by: Jan Kara <jack@suse.cz>
+> > ---
+> >  mm/memory.c | 35 ++++++++++++++++++-----------------
+> >  1 file changed, 18 insertions(+), 17 deletions(-)
+> > 
+> > diff --git a/mm/memory.c b/mm/memory.c
+> > index 447a1ef4a9e3..4c2ec9a9d8af 100644
+> > --- a/mm/memory.c
+> > +++ b/mm/memory.c
+> > @@ -2275,7 +2275,7 @@ static int wp_pfn_shared(struct vm_fault *vmf, pte_t orig_pte)
+> >  	if (vma->vm_ops && vma->vm_ops->pfn_mkwrite) {
+> >  		struct vm_fault vmf2 = {
+> >  			.page = NULL,
+> > -			.pgoff = linear_page_index(vma, vmf->address),
+> > +			.pgoff = vmf->pgoff,
+> 
+> I think there is one path where vmf->pgoff isn't set here.  Here's the path:
+> 
+> __collapse_huge_page_swapin()
+>   do_swap_page()
+>     do_wp_page()
+>       wp_pfn_shared()
+> 
+> We then use an uninitialized vmf->pgoff to set up vmf2->pgoff, which we pass
+> to vm_ops->pfn_mkwrite().
+> 
+> I think all we need to do to fix this is initialize .pgoff in
+> __collapse_huge_page_swapin().  With this one change:
+> 
+> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Courier was unable to deliver the parcel to you.
-Please, download Delivery Label attached to this email.
+Thanks for catching this. I don't think that bug had any visible effect
+since for anonymous pages (which is what do_swap_page() handles) we won't
+enter wp_pfn_shared() but it is definitely good to fix this.
 
-Sincerely,
-Craig Gibbons,
-Delivery Manager.
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
