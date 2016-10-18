@@ -1,158 +1,51 @@
-From: "Ouida Omalley  " <carlemau296-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Quality traffic Starting from 0.16 usd for 1000 visits
-Date: Tue, 18 Oct 2016 05:28:12 +0300
-Message-ID: <319f01d22900$6b3af350$9a45625f@carlemau296>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 0/20 v3] dax: Clear dirty bits after flushing caches
+Date: Tue, 18 Oct 2016 11:49:31 +0200
+Message-ID: <20161018094931.GM3359@quack2.suse.cz>
+References: <1474992504-20133-1-git-send-email-jack@suse.cz>
+ <20160930091418.GC24352@infradead.org>
+ <20161003075902.GG6457@quack2.suse.cz>
+ <20161003080337.GA13688@infradead.org>
+ <20161003081549.GH6457@quack2.suse.cz>
+ <20161003093248.GA27720@infradead.org>
+ <20161003111358.GQ6457@quack2.suse.cz>
+ <20161013203434.GD26922@linux.intel.com>
+ <20161017084732.GD3359@quack2.suse.cz>
+ <20161017185955.GA13782@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_58058878.1D414199"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161017185955.GA13782@linux.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org, Dan Williams <dan.j.williams@intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+On Mon 17-10-16 12:59:55, Ross Zwisler wrote:
+> On Mon, Oct 17, 2016 at 10:47:32AM +0200, Jan Kara wrote:
+> 
+> > This week I plan to rebase both series on top of rc1 + your THP patches so
+> > that we can move on with merging the stuff.
+> 
+> Yea...so how are we going to coordinate merging of these series for the v4.10
+> merge window?  My series mostly changes DAX, but it also changes XFS, ext2 and
+> ext4.  I think the plan right now is to have Dave Chinner take it through his
+> XFS tree.
+> 
+> Your first series is mostly mm changes with some DAX sprinkled in, and your
+> second series touches dax, mm and all 3 DAX filesystems.  
+> 
+> What is the best way to handle all this?  Have it go through one central tree
+> (-MM?), even though the changes touch code that exists outside of that trees
+> normal domain (like the FS code)?  Have my series go through the XFS tree and
+> yours through -MM, and give Linus a merge resolution patch?  Something else?
 
-------------=_58058878.1D414199
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+For your changes to go through XFS tree is IMO fine (changes outside of XFS
+& DAX are easy). Let me do the rebase first and then discuss how to merge
+my patches after that...
 
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Hi Pop under traffic at cheapest prices ever At only 0.16
-  usd for 1000 unique visits Here is the soecial offer link http://www.mgdotagency.com/index.php/pop-under-traffic/
-   Here are few of our options: [...] 
-
-Content analysis details:   (14.2 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: mgdotagency.com]
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: mgdotagency.com]
- 1.5 URIBL_RHS_DOB          Contains an URI of a new domain (Day Old Bread)
-                            [URIs: mgdotagency.com]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: mgdotagency.com]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-               [Blocked - see <http://www.spamcop.net/bl.shtml?222.97.39.119>]
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.mgdotagency.com]
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.mgdotagency.com]
- 2.8 FSL_HELO_FAKE          No description available.
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (carlemau296[at]gmail.com)
- 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
-                            (carlemau296[at]gmail.com)
- 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
-                            [score: 0.5000]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_58058878.1D414199
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1bwK75-0003cs-BT
-	for gln-linux-nvdimm@m.gmane.org; Tue, 18 Oct 2016 04:26:47 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 26B511A1E20;
-	Mon, 17 Oct 2016 19:26:48 -0700 (PDT)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (unknown [222.97.39.119])
- by ml01.01.org (Postfix) with SMTP id E23A61A1E20
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Mon, 17 Oct 2016 19:26:45 -0700 (PDT)
-Message-ID: <319f01d22900$6b3af350$9a45625f@carlemau296>
-From: "Ouida Omalley  " <carlemau296-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: Quality traffic Starting from 0.16 usd for 1000 visits
-Date: Tue, 18 Oct 2016 05:28:12 +0300
-MIME-Version: 1.0
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Office Outlook 12.0
-X-MimeOLE: Produced By Microsoft MimeOLE V12.0
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Reply-To: Ouida Omalley   <carlemau296-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
-Hi
-Pop under traffic at cheapest prices ever
-At only 0.16 usd for 1000 unique visits
-
-Here is the soecial offer link
-http://www.mgdotagency.com/index.php/pop-under-traffic/
-
-Here are few of our options:
-
-- General worldwide traffic
-- Premium keywords based traffic (very low bounce rate)
-- Adult Audience Traffic
-- Geo Targeted Traffic
-
-Visit us today
-http://www.mgdotagency.com/index.php/pop-under-traffic/
-
-Best Regards
-Ouida Omalley =A0
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option available on the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_58058878.1D414199--
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
