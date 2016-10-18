@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.linuxfoundation.org (mail.linuxfoundation.org
- [140.211.169.12])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BF4EC1A1ECF
- for <linux-nvdimm@lists.01.org>; Fri, 14 Oct 2016 04:41:12 -0700 (PDT)
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.4 13/21] x86/boot: Fix kdump,
- cleanup aborted E820_PRAM max_pfn manipulation
-Date: Fri, 14 Oct 2016 13:40:51 +0200
-Message-Id: <20161014114025.321710789@linuxfoundation.org>
-In-Reply-To: <20161014114024.667943585@linuxfoundation.org>
-References: <20161014114024.667943585@linuxfoundation.org>
+ by ml01.01.org (Postfix) with ESMTPS id 44F371A1E3E
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Oct 2016 11:37:20 -0700 (PDT)
+Date: Tue, 18 Oct 2016 12:37:19 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 17/20] mm: Export follow_pte()
+Message-ID: <20161018183719.GD7796@linux.intel.com>
+References: <1474992504-20133-1-git-send-email-jack@suse.cz>
+ <1474992504-20133-18-git-send-email-jack@suse.cz>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1474992504-20133-18-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,110 +24,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Ingo Molnar <mingo@kernel.org>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-4.4-stable review patch.  If anyone has any objections, please let me know.
+On Tue, Sep 27, 2016 at 06:08:21PM +0200, Jan Kara wrote:
+> DAX will need to implement its own version of page_check_address(). To
+> avoid duplicating page table walking code, export follow_pte() which
+> does what we need.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-------------------
-
-From: Dan Williams <dan.j.williams@intel.com>
-
-commit 917db484dc6a69969d317b3e57add4208a8d9d42 upstream.
-
-In commit:
-
-  ec776ef6bbe1 ("x86/mm: Add support for the non-standard protected e820 type")
-
-Christoph references the original patch I wrote implementing pmem support.
-The intent of the 'max_pfn' changes in that commit were to enable persistent
-memory ranges to be covered by the struct page memmap by default.
-
-However, that approach was abandoned when Christoph ported the patches [1], and
-that functionality has since been replaced by devm_memremap_pages().
-
-In the meantime, this max_pfn manipulation is confusing kdump [2] that
-assumes that everything covered by the max_pfn is "System RAM".  This
-results in kdump hanging or crashing.
-
- [1]: https://lists.01.org/pipermail/linux-nvdimm/2015-March/000348.html
- [2]: https://bugzilla.redhat.com/show_bug.cgi?id=1351098
-
-So fix it.
-
-Reported-by: Zhang Yi <yizhan@redhat.com>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Tested-by: Zhang Yi <yizhan@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Boaz Harrosh <boaz@plexistor.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-nvdimm@lists.01.org
-Fixes: ec776ef6bbe1 ("x86/mm: Add support for the non-standard protected e820 type")
-Link: http://lkml.kernel.org/r/147448744538.34910.11287693517367139607.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Ingo Molnar <mingo@kernel.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
----
- arch/x86/kernel/e820.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
-
---- a/arch/x86/kernel/e820.c
-+++ b/arch/x86/kernel/e820.c
-@@ -347,7 +347,7 @@ int __init sanitize_e820_map(struct e820
- 		 * continue building up new bios map based on this
- 		 * information
- 		 */
--		if (current_type != last_type || current_type == E820_PRAM) {
-+		if (current_type != last_type) {
- 			if (last_type != 0)	 {
- 				new_bios[new_bios_entry].size =
- 					change_point[chgidx]->addr - last_addr;
-@@ -753,7 +753,7 @@ u64 __init early_reserve_e820(u64 size,
- /*
-  * Find the highest page frame number we have available
-  */
--static unsigned long __init e820_end_pfn(unsigned long limit_pfn)
-+static unsigned long __init e820_end_pfn(unsigned long limit_pfn, unsigned type)
- {
- 	int i;
- 	unsigned long last_pfn = 0;
-@@ -764,11 +764,7 @@ static unsigned long __init e820_end_pfn
- 		unsigned long start_pfn;
- 		unsigned long end_pfn;
- 
--		/*
--		 * Persistent memory is accounted as ram for purposes of
--		 * establishing max_pfn and mem_map.
--		 */
--		if (ei->type != E820_RAM && ei->type != E820_PRAM)
-+		if (ei->type != type)
- 			continue;
- 
- 		start_pfn = ei->addr >> PAGE_SHIFT;
-@@ -793,12 +789,12 @@ static unsigned long __init e820_end_pfn
- }
- unsigned long __init e820_end_of_ram_pfn(void)
- {
--	return e820_end_pfn(MAX_ARCH_PFN);
-+	return e820_end_pfn(MAX_ARCH_PFN, E820_RAM);
- }
- 
- unsigned long __init e820_end_of_low_ram_pfn(void)
- {
--	return e820_end_pfn(1UL << (32-PAGE_SHIFT));
-+	return e820_end_pfn(1UL << (32 - PAGE_SHIFT), E820_RAM);
- }
- 
- static void early_panic(char *msg)
-
-
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
