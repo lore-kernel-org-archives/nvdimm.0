@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2F41A1A1EC3
- for <linux-nvdimm@lists.01.org>; Thu, 13 Oct 2016 08:56:00 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH] pmem: report error on clear poison failure
-Date: Thu, 13 Oct 2016 09:54:21 -0600
-Message-Id: <1476374061-9080-1-git-send-email-toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9FDB71A1E86
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 12:34:44 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v8 04/16] dax: make 'wait_table' global variable static
+Date: Wed, 19 Oct 2016 13:34:23 -0600
+Message-Id: <1476905675-32581-5-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,60 +22,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI Clear Uncorrectable Error DSM function may fail or may be
-unsupported on a platform.  pmem_clear_poison() returns without
-clearing badblocks in such cases, which leads to a silent data
-corruption.
+The global 'wait_table' variable is only used within fs/dax.c, and
+generates the following sparse warning:
 
-Change pmem_do_bvec() and pmem_clear_poison() to return -EIO
-so that filesystem can log an error message.
+fs/dax.c:39:19: warning: symbol 'wait_table' was not declared. Should it be static?
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
+Make it static so it has scope local to fs/dax.c, and to make sparse happy.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- drivers/nvdimm/pmem.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/dax.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 42b3a82..2461843 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -47,7 +47,7 @@ static struct nd_region *to_region(struct pmem_device *pmem)
- 	return to_nd_region(to_dev(pmem)->parent);
- }
+diff --git a/fs/dax.c b/fs/dax.c
+index b09817a..e52e754 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -52,7 +52,7 @@
+ #define DAX_WAIT_TABLE_BITS 12
+ #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
  
--static void pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
-+static int pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
- 		unsigned int len)
+-wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
++static wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
+ 
+ static int __init init_dax_wait_table(void)
  {
- 	struct device *dev = to_dev(pmem);
-@@ -62,8 +62,12 @@ static void pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
- 				__func__, (unsigned long long) sector,
- 				cleared / 512, cleared / 512 > 1 ? "s" : "");
- 		badblocks_clear(&pmem->bb, sector, cleared / 512);
-+	} else {
-+		return -EIO;
- 	}
-+
- 	invalidate_pmem(pmem->virt_addr + offset, len);
-+	return 0;
- }
- 
- static void write_pmem(void *pmem_addr, struct page *page,
-@@ -123,7 +127,7 @@ static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 		flush_dcache_page(page);
- 		write_pmem(pmem_addr, page, off, len);
- 		if (unlikely(bad_pmem)) {
--			pmem_clear_poison(pmem, pmem_off, len);
-+			rc = pmem_clear_poison(pmem, pmem_off, len);
- 			write_pmem(pmem_addr, page, off, len);
- 		}
- 	}
+-- 
+2.7.4
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
