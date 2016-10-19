@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 68C431A1E56
- for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 11:25:27 -0700 (PDT)
-Date: Wed, 19 Oct 2016 12:25:25 -0600
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 247E01A1E6E
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 00:19:09 -0700 (PDT)
+Date: Wed, 19 Oct 2016 09:19:06 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH 18/20] dax: Make cache flushing protected by entry lock
-Message-ID: <20161019182525.GA27720@linux.intel.com>
+Message-ID: <20161019071906.GH29967@quack2.suse.cz>
 References: <1474992504-20133-1-git-send-email-jack@suse.cz>
  <1474992504-20133-19-git-send-email-jack@suse.cz>
  <20161018192013.GE7796@linux.intel.com>
@@ -25,10 +25,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jean Delvare <jdelvare@suse.de>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Oct 18, 2016 at 01:20:13PM -0600, Ross Zwisler wrote:
+On Tue 18-10-16 13:20:13, Ross Zwisler wrote:
 > On Tue, Sep 27, 2016 at 06:08:22PM +0200, Jan Kara wrote:
 > > Currently, flushing of caches for DAX mappings was ignoring entry lock.
 > > So far this was ok (modulo a bug that a difference in entry lock could
@@ -61,18 +62,16 @@ On Tue, Oct 18, 2016 at 01:20:13PM -0600, Ross Zwisler wrote:
 > in front of the labels to make the patches pretty & to be consistent with the
 > rest of the DAX code?
 
-Never mind, it looks like the need for labels has been fixed with this commit:
+OK, done.
 
-commit 218dd85887da (".gitattributes: set git diff driver for C source code
-files")
+> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-With this, my git at least generates diffs that don't use labels in the chunk
-start, even without spaces.
+Thanks!
 
-Feel free to leave out the spaces, and we can remove the stragglers from
-fs/dax.c at some point.
-
-Thanks, Jean, for fixing this!
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
