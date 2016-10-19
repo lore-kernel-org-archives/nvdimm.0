@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DE3AE1A1EE4
- for <linux-nvdimm@lists.01.org>; Wed, 12 Oct 2016 15:50:33 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id E3F711A1E9B
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 12:34:45 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v6 07/17] dax: consistent variable naming for DAX entries
-Date: Wed, 12 Oct 2016 16:50:12 -0600
-Message-Id: <20161012225022.15507-8-ross.zwisler@linux.intel.com>
-In-Reply-To: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
-References: <20161012225022.15507-1-ross.zwisler@linux.intel.com>
+Subject: [PATCH v8 06/16] dax: consistent variable naming for DAX entries
+Date: Wed, 19 Oct 2016 13:34:25 -0600
+Message-Id: <1476905675-32581-7-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -41,7 +41,7 @@ Reviewed-by: Jan Kara <jack@suse.cz>
  1 file changed, 17 insertions(+), 17 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 98189ac..152a6e1 100644
+index 219fa2b..835e7f0 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
 @@ -357,7 +357,7 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
@@ -87,7 +87,7 @@ index 98189ac..152a6e1 100644
  		int err;
  
  		spin_unlock_irq(&mapping->tree_lock);
-@@ -410,10 +410,10 @@ restart:
+@@ -410,10 +410,10 @@ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index)
  				mapping_gfp_mask(mapping) & ~__GFP_HIGHMEM);
  		if (err)
  			return ERR_PTR(err);
@@ -100,7 +100,7 @@ index 98189ac..152a6e1 100644
  		radix_tree_preload_end();
  		if (err) {
  			spin_unlock_irq(&mapping->tree_lock);
-@@ -425,11 +425,11 @@ restart:
+@@ -425,11 +425,11 @@ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index)
  		/* Good, we have inserted empty locked entry into the tree. */
  		mapping->nrexceptional++;
  		spin_unlock_irq(&mapping->tree_lock);
@@ -115,7 +115,7 @@ index 98189ac..152a6e1 100644
  
  		get_page(page);
  		spin_unlock_irq(&mapping->tree_lock);
-@@ -442,9 +442,9 @@ restart:
+@@ -442,9 +442,9 @@ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index)
  		}
  		return page;
  	}
@@ -143,7 +143,7 @@ index 98189ac..152a6e1 100644
  		spin_unlock_irq(&mapping->tree_lock);
  		return;
 -- 
-2.9.0
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
