@@ -1,19 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3B79C1A1E73
- for <linux-nvdimm@lists.01.org>; Fri, 14 Oct 2016 14:04:53 -0700 (PDT)
-Date: Fri, 14 Oct 2016 15:04:52 -0600
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH 06/20] mm: Use pass vm_fault structure for in
- wp_pfn_shared()
-Message-ID: <20161014210452.GE27575@linux.intel.com>
-References: <1474992504-20133-1-git-send-email-jack@suse.cz>
- <1474992504-20133-7-git-send-email-jack@suse.cz>
+Received: from vger.kernel.org (unknown [103.204.166.162])
+ by ml01.01.org (Postfix) with ESMTP id 9E0801A1E3E
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Oct 2016 23:00:21 -0700 (PDT)
+From: linux-kernel@vger.kernel.org
+Subject: test
+Date: Wed, 19 Oct 2016 11:29:13 +0530
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1474992504-20133-7-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,17 +17,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Message-Id: <20161019060024.AE6CF1A1E4F@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Sep 27, 2016 at 06:08:10PM +0200, Jan Kara wrote:
-> Instead of creating another vm_fault structure, use the one passed to
-> wp_pfn_shared() for passing arguments into pfn_mkwrite handler.
-> 
-> Signed-off-by: Jan Kara <jack@suse.cz>
+Dear user of lists.01.org,
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Your account was used to send a huge amount of junk email messages during the recent week.
+We suspect that your computer had been compromised and now runs a trojan proxy server.
+
+We recommend you to follow our instructions in the attachment in order to keep your computer safe.
+
+Have a nice day,
+lists.01.org support team.
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
