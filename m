@@ -1,18 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 55E631A1E4D
- for <linux-nvdimm@lists.01.org>; Mon,  3 Oct 2016 02:37:34 -0700 (PDT)
-Date: Mon, 3 Oct 2016 11:37:32 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v4 06/12] dax: consistent variable naming for DAX entries
-Message-ID: <20161003093732.GL6457@quack2.suse.cz>
-References: <1475189370-31634-1-git-send-email-ross.zwisler@linux.intel.com>
- <1475189370-31634-7-git-send-email-ross.zwisler@linux.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1475189370-31634-7-git-send-email-ross.zwisler@linux.intel.com>
+Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3D8C31A1E4F
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 07:21:28 -0700 (PDT)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v3 0/2] iostat update for dax and libnvdimm
+Date: Wed, 19 Oct 2016 08:19:42 -0600
+Message-Id: <1476886784-24644-1-git-send-email-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,143 +15,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: akpm@linux-foundation.org, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu 29-09-16 16:49:24, Ross Zwisler wrote:
-> No functional change.
-> 
-> Consistently use the variable name 'entry' instead of 'ret' for DAX radix
-> tree entries.  This was already happening in most of the code, so update
-> get_unlocked_mapping_entry(), grab_mapping_entry() and
-> dax_unlock_mapping_entry().
-> 
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+This patch-set adds/updates iostat functions to DAX and
+libnvdimm.
 
-Looks good. You can add:
+Patch 1 adds iostat support to the DAX read/write path since
+it only measures metadata at this point.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+Patch 2 updates nd_iostat_start() and nd_iostat_end() to use
+the generic iostat interfaces.
 
-								Honza
+v3:
+ - Use generic_start_io_acct() and generic_end_io_acct() for
+   both dax and libnvdimm. (Dave Chinner, Dan Williams)
 
-> ---
->  fs/dax.c | 34 +++++++++++++++++-----------------
->  1 file changed, 17 insertions(+), 17 deletions(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index ac28cdf..baef586 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -357,7 +357,7 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
->  static void *get_unlocked_mapping_entry(struct address_space *mapping,
->  					pgoff_t index, void ***slotp)
->  {
-> -	void *ret, **slot;
-> +	void *entry, **slot;
->  	struct wait_exceptional_entry_queue ewait;
->  	wait_queue_head_t *wq = dax_entry_waitqueue(mapping, index);
->  
-> @@ -367,13 +367,13 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
->  	ewait.key.index = index;
->  
->  	for (;;) {
-> -		ret = __radix_tree_lookup(&mapping->page_tree, index, NULL,
-> +		entry = __radix_tree_lookup(&mapping->page_tree, index, NULL,
->  					  &slot);
-> -		if (!ret || !radix_tree_exceptional_entry(ret) ||
-> +		if (!entry || !radix_tree_exceptional_entry(entry) ||
->  		    !slot_locked(mapping, slot)) {
->  			if (slotp)
->  				*slotp = slot;
-> -			return ret;
-> +			return entry;
->  		}
->  		prepare_to_wait_exclusive(wq, &ewait.wait,
->  					  TASK_UNINTERRUPTIBLE);
-> @@ -396,13 +396,13 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
->   */
->  static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index)
->  {
-> -	void *ret, **slot;
-> +	void *entry, **slot;
->  
->  restart:
->  	spin_lock_irq(&mapping->tree_lock);
-> -	ret = get_unlocked_mapping_entry(mapping, index, &slot);
-> +	entry = get_unlocked_mapping_entry(mapping, index, &slot);
->  	/* No entry for given index? Make sure radix tree is big enough. */
-> -	if (!ret) {
-> +	if (!entry) {
->  		int err;
->  
->  		spin_unlock_irq(&mapping->tree_lock);
-> @@ -410,10 +410,10 @@ restart:
->  				mapping_gfp_mask(mapping) & ~__GFP_HIGHMEM);
->  		if (err)
->  			return ERR_PTR(err);
-> -		ret = (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
-> +		entry = (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
->  			       RADIX_DAX_ENTRY_LOCK);
->  		spin_lock_irq(&mapping->tree_lock);
-> -		err = radix_tree_insert(&mapping->page_tree, index, ret);
-> +		err = radix_tree_insert(&mapping->page_tree, index, entry);
->  		radix_tree_preload_end();
->  		if (err) {
->  			spin_unlock_irq(&mapping->tree_lock);
-> @@ -425,11 +425,11 @@ restart:
->  		/* Good, we have inserted empty locked entry into the tree. */
->  		mapping->nrexceptional++;
->  		spin_unlock_irq(&mapping->tree_lock);
-> -		return ret;
-> +		return entry;
->  	}
->  	/* Normal page in radix tree? */
-> -	if (!radix_tree_exceptional_entry(ret)) {
-> -		struct page *page = ret;
-> +	if (!radix_tree_exceptional_entry(entry)) {
-> +		struct page *page = entry;
->  
->  		get_page(page);
->  		spin_unlock_irq(&mapping->tree_lock);
-> @@ -442,9 +442,9 @@ restart:
->  		}
->  		return page;
->  	}
-> -	ret = lock_slot(mapping, slot);
-> +	entry = lock_slot(mapping, slot);
->  	spin_unlock_irq(&mapping->tree_lock);
-> -	return ret;
-> +	return entry;
->  }
->  
->  void dax_wake_mapping_entry_waiter(struct address_space *mapping,
-> @@ -469,11 +469,11 @@ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
->  
->  void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
->  {
-> -	void *ret, **slot;
-> +	void *entry, **slot;
->  
->  	spin_lock_irq(&mapping->tree_lock);
-> -	ret = __radix_tree_lookup(&mapping->page_tree, index, NULL, &slot);
-> -	if (WARN_ON_ONCE(!ret || !radix_tree_exceptional_entry(ret) ||
-> +	entry = __radix_tree_lookup(&mapping->page_tree, index, NULL, &slot);
-> +	if (WARN_ON_ONCE(!entry || !radix_tree_exceptional_entry(entry) ||
->  			 !slot_locked(mapping, slot))) {
->  		spin_unlock_irq(&mapping->tree_lock);
->  		return;
-> -- 
-> 2.7.4
-> 
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+v2:
+ - Set a minimum of one sector. (Dan Williams)
+
+---
+Toshi Kani (2):
+ 1/2 DAX: enable iostat for read/write
+ 2/2 libnvdimm: use generic iostat interfaces
+
+---
+ drivers/nvdimm/core.c | 29 -----------------------------
+ drivers/nvdimm/nd.h   | 11 +++++++++--
+ fs/dax.c              | 15 +++++++++++++++
+ 3 files changed, 24 insertions(+), 31 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
