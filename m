@@ -2,12 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9F9751A1E28
- for <linux-nvdimm@lists.01.org>; Thu, 27 Oct 2016 17:21:04 -0700 (PDT)
-Subject: [PATCH] device-dax: fix percpu_ref_exit ordering
+ by ml01.01.org (Postfix) with ESMTPS id 70D3E1A1E72
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 09:50:56 -0700 (PDT)
+Subject: [ndctl PATCH 1/8] libndctl: fix error returns for unsigned apis
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 27 Oct 2016 17:18:02 -0700
-Message-ID: <147761388212.10087.4433175969243569236.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 19 Oct 2016 09:47:54 -0700
+Message-ID: <147689567402.11015.8666074208286654272.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <147689566876.11015.13898062253087685236.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147689566876.11015.13898062253087685236.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,51 +23,50 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We need to wait until the percpu_ref is released before exit. Otherwise,
-we sometimes lose the race and trigger this new warning that was added
-in v4.9 (commit a67823c1ed10 "percpu-refcount: init ->confirm_switch
-member properly"):
+For unsigned attributes the library inconsistently returns ULLONG_MAX /
+ULONG_MAX as an error return.  Fix up ndctl_region_get_available_size()
+and ndctl_dimm_get_available_labels() to indicate errors following this
+scheme.
 
- WARNING: CPU: 0 PID: 3629 at lib/percpu-refcount.c:107 percpu_ref_exit+0x51/0x60
- [..]
- Call Trace:
-  [<ffffffff814bf093>] dump_stack+0x85/0xc2
-  [<ffffffff810b15db>] __warn+0xcb/0xf0
-  [<ffffffff810b170d>] warn_slowpath_null+0x1d/0x20
-  [<ffffffff814d70c1>] percpu_ref_exit+0x51/0x60
-  [<ffffffffa005706a>] dax_pmem_percpu_exit+0x1a/0x50 [dax_pmem]
-  [<ffffffff81615f1f>] devm_action_release+0xf/0x20
-
-Cc: <stable@vger.kernel.org>
-Fixes: ab68f2622136 ("/dev/dax, pmem: direct access to persistent memory")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/pmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ndctl/lib/libndctl.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index 9630d8837ba9..4a15fa5df98b 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -44,7 +44,6 @@ static void dax_pmem_percpu_exit(void *data)
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 02524501db16..7d870b082cd4 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -1707,11 +1707,11 @@ NDCTL_EXPORT unsigned long long ndctl_region_get_available_size(
+ 	if (snprintf(path, len, "%s/available_size", region->region_path) >= len) {
+ 		err(ctx, "%s: buffer too small!\n",
+ 				ndctl_region_get_devname(region));
+-		return -ENOMEM;
++		return ULLONG_MAX;
+ 	}
  
- 	dev_dbg(dax_pmem->dev, "%s\n", __func__);
- 	percpu_ref_exit(ref);
--	wait_for_completion(&dax_pmem->cmp);
+ 	if (sysfs_read_attr(ctx, path, buf) < 0)
+-		return -ENXIO;
++		return ULLONG_MAX;
+ 
+ 	return strtoull(buf, NULL, 0);
  }
+@@ -2519,11 +2519,11 @@ NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
+ 	if (snprintf(path, len, "%s/available_slots", dimm->dimm_path) >= len) {
+ 		err(ctx, "%s: buffer too small!\n",
+ 				ndctl_dimm_get_devname(dimm));
+-		return -ENOMEM;
++		return ULONG_MAX;
+ 	}
  
- static void dax_pmem_percpu_kill(void *data)
-@@ -54,6 +53,7 @@ static void dax_pmem_percpu_kill(void *data)
+ 	if (sysfs_read_attr(ctx, path, buf) < 0)
+-		return 0;
++		return ULONG_MAX;
  
- 	dev_dbg(dax_pmem->dev, "%s\n", __func__);
- 	percpu_ref_kill(ref);
-+	wait_for_completion(&dax_pmem->cmp);
+ 	return strtoul(buf, NULL, 0);
  }
- 
- static int dax_pmem_probe(struct device *dev)
 
 _______________________________________________
 Linux-nvdimm mailing list
