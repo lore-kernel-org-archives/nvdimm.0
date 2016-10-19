@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C694C1A1EFA
- for <linux-nvdimm@lists.01.org>; Fri,  7 Oct 2016 14:09:20 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id D5A621A1E6E
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 12:34:49 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 13/17] dax: dax_iomap_fault() needs to call iomap_end()
-Date: Fri,  7 Oct 2016 15:09:00 -0600
-Message-Id: <1475874544-24842-14-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v8 12/16] dax: move RADIX_DAX_* defines to dax.h
+Date: Wed, 19 Oct 2016 13:34:31 -0600
+Message-Id: <1476905675-32581-13-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,86 +23,79 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently iomap_end() doesn't do anything for DAX page faults for both ext2
-and XFS.  ext2_iomap_end() just checks for a write underrun, and
-xfs_file_iomap_end() checks to see if it needs to finish a delayed
-allocation.  However, in the future iomap_end() calls might be needed to
-make sure we have balanced allocations, locks, etc.  So, add calls to
-iomap_end() with appropriate error handling to dax_iomap_fault().
+The RADIX_DAX_* defines currently mostly live in fs/dax.c, with just
+RADIX_DAX_ENTRY_LOCK being in include/linux/dax.h so it can be used in
+mm/filemap.c.  When we add PMD support, though, mm/filemap.c will also need
+access to the RADIX_DAX_PTE type so it can properly construct a 4k sized
+empty entry.
+
+Instead of shifting the defines between dax.c and dax.h as they are
+individually used in other code, just move them wholesale to dax.h so
+they'll be available when we need them.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c | 31 ++++++++++++++++++++++++++++---
- 1 file changed, 28 insertions(+), 3 deletions(-)
+ fs/dax.c            | 14 --------------
+ include/linux/dax.h | 15 ++++++++++++++-
+ 2 files changed, 14 insertions(+), 15 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 7689ab0..5e8febe 100644
+index 6edd89b..c45cc4d 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -1187,7 +1187,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		goto unlock_entry;
- 	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
- 		error = -EIO;		/* fs corruption? */
--		goto unlock_entry;
-+		goto finish_iomap;
- 	}
+@@ -34,20 +34,6 @@
+ #include <linux/iomap.h>
+ #include "internal.h"
  
- 	sector = dax_iomap_sector(&iomap, pos);
-@@ -1209,7 +1209,14 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		}
+-/*
+- * We use lowest available bit in exceptional entry for locking, other two
+- * bits to determine entry type. In total 3 special bits.
+- */
+-#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 3)
+-#define RADIX_DAX_PTE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
+-#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
+-#define RADIX_DAX_TYPE_MASK (RADIX_DAX_PTE | RADIX_DAX_PMD)
+-#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_TYPE_MASK)
+-#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
+-#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
+-		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE) | \
+-		RADIX_TREE_EXCEPTIONAL_ENTRY))
+-
+ /* We choose 4096 entries - same as per-zone page wait tables */
+ #define DAX_WAIT_TABLE_BITS 12
+ #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index a3dfee4..e9ea78c 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -8,8 +8,21 @@
  
- 		if (error)
--			goto unlock_entry;
-+			goto finish_iomap;
+ struct iomap_ops;
+ 
+-/* We use lowest available exceptional entry bit for locking */
++/*
++ * We use lowest available bit in exceptional entry for locking, other two
++ * bits to determine entry type. In total 3 special bits.
++ */
++#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 3)
+ #define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
++#define RADIX_DAX_PTE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
++#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
++#define RADIX_DAX_TYPE_MASK (RADIX_DAX_PTE | RADIX_DAX_PMD)
++#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_TYPE_MASK)
++#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
++#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
++		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE) | \
++		RADIX_TREE_EXCEPTIONAL_ENTRY))
 +
-+		if (ops->iomap_end) {
-+			error = ops->iomap_end(inode, pos, PAGE_SIZE,
-+					PAGE_SIZE, flags, &iomap);
-+			if (error)
-+				goto unlock_entry;
-+		}
- 		if (!radix_tree_exceptional_entry(entry)) {
- 			vmf->page = entry;
- 			return VM_FAULT_LOCKED;
-@@ -1230,8 +1237,15 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		break;
- 	case IOMAP_UNWRITTEN:
- 	case IOMAP_HOLE:
--		if (!(vmf->flags & FAULT_FLAG_WRITE))
-+		if (!(vmf->flags & FAULT_FLAG_WRITE)) {
-+			if (ops->iomap_end)  {
-+				error = ops->iomap_end(inode, pos, PAGE_SIZE,
-+						PAGE_SIZE, flags, &iomap);
-+				if (error)
-+					goto unlock_entry;
-+			}
- 			return dax_load_hole(mapping, entry, vmf);
-+		}
- 		/*FALLTHRU*/
- 	default:
- 		WARN_ON_ONCE(1);
-@@ -1239,6 +1253,17 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		break;
- 	}
  
-+ finish_iomap:
-+	if (ops->iomap_end) {
-+		if (error) {
-+			/* keep previous error */
-+			ops->iomap_end(inode, pos, PAGE_SIZE, PAGE_SIZE, flags,
-+					&iomap);
-+		} else {
-+			error = ops->iomap_end(inode, pos, PAGE_SIZE,
-+					PAGE_SIZE, flags, &iomap);
-+		}
-+	}
-  unlock_entry:
- 	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
-  out:
+ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+ 		struct iomap_ops *ops);
 -- 
 2.7.4
 
