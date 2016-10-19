@@ -1,18 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 756951A1E3E
- for <linux-nvdimm@lists.01.org>; Tue, 18 Oct 2016 11:35:26 -0700 (PDT)
-Date: Tue, 18 Oct 2016 12:35:25 -0600
+ by ml01.01.org (Postfix) with ESMTPS id 64E251A1E56
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 10:25:42 -0700 (PDT)
+Date: Wed, 19 Oct 2016 11:25:41 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH 16/20] mm: Provide helper for finishing mkwrite faults
-Message-ID: <20161018183525.GC7796@linux.intel.com>
+Subject: Re: [PATCH 19/20] dax: Protect PTE modification on WP fault by radix
+ tree entry lock
+Message-ID: <20161019172541.GD22463@linux.intel.com>
 References: <1474992504-20133-1-git-send-email-jack@suse.cz>
- <1474992504-20133-17-git-send-email-jack@suse.cz>
+ <1474992504-20133-20-git-send-email-jack@suse.cz>
+ <20161018195332.GF7796@linux.intel.com>
+ <20161019072505.GI29967@quack2.suse.cz>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <1474992504-20133-17-git-send-email-jack@suse.cz>
+In-Reply-To: <20161019072505.GI29967@quack2.suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,64 +31,34 @@ To: Jan Kara <jack@suse.cz>
 Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Sep 27, 2016 at 06:08:20PM +0200, Jan Kara wrote:
-> Provide a helper function for finishing write faults due to PTE being
-> read-only. The helper will be used by DAX to avoid the need of
-> complicating generic MM code with DAX locking specifics.
+On Wed, Oct 19, 2016 at 09:25:05AM +0200, Jan Kara wrote:
+> On Tue 18-10-16 13:53:32, Ross Zwisler wrote:
+> > On Tue, Sep 27, 2016 at 06:08:23PM +0200, Jan Kara wrote:
+> > > -	void *entry;
+> > > +	void *entry, **slot;
+> > >  	pgoff_t index = vmf->pgoff;
+> > >  
+> > >  	spin_lock_irq(&mapping->tree_lock);
+> > > -	entry = get_unlocked_mapping_entry(mapping, index, NULL);
+> > > -	if (!entry || !radix_tree_exceptional_entry(entry))
+> > > -		goto out;
+> > > +	entry = get_unlocked_mapping_entry(mapping, index, &slot);
+> > > +	if (!entry || !radix_tree_exceptional_entry(entry)) {
+> > > +		if (entry)
+> > > +			put_unlocked_mapping_entry(mapping, index, entry);
+> > 
+> > I don't think you need this call to put_unlocked_mapping_entry().  If we get
+> > in here we know that 'entry' is a page cache page, in which case
+> > put_unlocked_mapping_entry() will just return without doing any work.
 > 
-> Signed-off-by: Jan Kara <jack@suse.cz>
-> ---
->  include/linux/mm.h |  1 +
->  mm/memory.c        | 65 +++++++++++++++++++++++++++++++-----------------------
->  2 files changed, 39 insertions(+), 27 deletions(-)
-> 
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 1055f2ece80d..e5a014be8932 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -617,6 +617,7 @@ static inline pte_t maybe_mkwrite(pte_t pte, struct vm_area_struct *vma)
->  int alloc_set_pte(struct vm_fault *vmf, struct mem_cgroup *memcg,
->  		struct page *page);
->  int finish_fault(struct vm_fault *vmf);
-> +int finish_mkwrite_fault(struct vm_fault *vmf);
->  #endif
->  
->  /*
-> diff --git a/mm/memory.c b/mm/memory.c
-> index f49e736d6a36..8c8cb7f2133e 100644
-> --- a/mm/memory.c
-> +++ b/mm/memory.c
-> @@ -2266,6 +2266,36 @@ oom:
->  	return VM_FAULT_OOM;
->  }
->  
-> +/**
-> + * finish_mkrite_fault - finish page fault making PTE writeable once the page
-      finish_mkwrite_fault
+> Right, but that is just an implementation detail internal to how the
+> locking works. The rules are simple to avoid issues and thus the invariant
+> is: Once you call get_unlocked_mapping_entry() you either have to lock the
+> entry and then call put_locked_mapping_entry() or you have to drop it with
+> put_unlocked_mapping_entry(). Once you add arguments about entry types
+> etc., errors are much easier to make...
 
-> @@ -2315,26 +2335,17 @@ static int wp_page_shared(struct vm_fault *vmf)
->  			put_page(vmf->page);
->  			return tmp;
->  		}
-> -		/*
-> -		 * Since we dropped the lock we need to revalidate
-> -		 * the PTE as someone else may have changed it.  If
-> -		 * they did, we just return, as we can count on the
-> -		 * MMU to tell us if they didn't also make it writable.
-> -		 */
-> -		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
-> -						vmf->address, &vmf->ptl);
-> -		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
-> +		tmp = finish_mkwrite_fault(vmf);
-> +		if (unlikely(!tmp || (tmp &
-> +				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
-
-The 'tmp' return from finish_mkwrite_fault() can only be 0 or VM_FAULT_WRITE.
-I think this test should just be 
-
-		if (unlikely(!tmp)) {
-
-With that and the small spelling fix:
+Makes sense.  You can add:
 
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
