@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mail-yw0-x232.google.com (mail-yw0-x232.google.com
+ [IPv6:2607:f8b0:4002:c05::232])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 77AE71A1E6E
- for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 12:34:50 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v8 13/16] dax: move put_(un)locked_mapping_entry() in dax.c
-Date: Wed, 19 Oct 2016 13:34:32 -0600
-Message-Id: <1476905675-32581-14-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B02121A1E31
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Oct 2016 13:06:58 -0700 (PDT)
+Received: by mail-yw0-x232.google.com with SMTP id t192so70750943ywf.0
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Oct 2016 13:06:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20161020193231.GA7106@omniknight.lm.intel.com>
+References: <147689566876.11015.13898062253087685236.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20161020193231.GA7106@omniknight.lm.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 20 Oct 2016 13:06:57 -0700
+Message-ID: <CAPcyv4h6oLP=V=OHQOMDrxws+rLXyjFFd_XFyCq+GbZB0v9K9w@mail.gmail.com>
+Subject: Re: [ndctl PATCH 0/8] dimm label space initialization support
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,98 +22,97 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: qemu-devel@nongnu.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-No functional change.
+On Thu, Oct 20, 2016 at 12:32 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> On 10/19, Dan Williams wrote:
+>> The 4.9 kernel added support for sub-dividing PMEM.  With this kernel
+>> patch [1] on top of that baseline, the PMEM-sub-division support can be
+>> enabled for QEMU-KVM and any other platforms that advertise both un-aliased
+>> PMEM regions and support for the label DSM commands [2].
+>>
+>> Given this increasing need to perform a label management operation
+>> across a set of DIMMs this update also adds glob(3) support.  For
+>> example you can now write commands like:
+>>
+>>     ndctl zero-labels nmem[2-4]
+>>
+>> ...as a shorthand for:
+>>
+>>     ndctl zero-labels nmem2 nmem3 nmem4
+>>
+>> This support extends to all the commands that take an undecorated dimm /
+>> nmem device as a parameter:
+>>
+>>     disable-dimm
+>>     enable-dimm
+>>     read-labels
+>>     zero-labels
+>>     init-labels
+>>     check-labels
+>>
+>> The patch "libndctl: fix error returns for unsigned apis" was something
+>> noticed while developing "init-labels", but is otherwise unrelated to
+>> the rest of the set.
+>>
+>> [1]: https://patchwork.kernel.org/patch/9384741/
+>> [2]: http://pmem.io/documents/NVDIMM_DSM_Interface_Example-V1.2.pdf
+>>
+>> ---
+>>
+>> Dan Williams (8):
+>>       libndctl: fix error returns for unsigned apis
+>>       ndctl: consolidate label commands into a single file
+>>       ndctl: glob support for label commands
+>>       ndctl: merge {enable,disable}-dimm with label commands
+>>       libndctl: add ndctl_cmd_cfg_read_get_size()
+>>       ndctl: provide a read_labels() helper
+>>       ndctl: init-labels command
+>>       ndctl: check-labels command
+>>
+>
+> Hi Dan,
+>
+> Here is the bash completion patch for the new commands:
+>
+> 8<-----
+>
+>
+> From 53e3090ecd124562540bb25948783c33d9390112 Mon Sep 17 00:00:00 2001
+> From: Vishal Verma <vishal.l.verma@intel.com>
+> Date: Thu, 20 Oct 2016 13:29:03 -0600
+> Subject: [PATCH] ndctl: bash completion for {init, check}-labels
+>
+> Add bash completion for the new init-labels and check-labels commands.
+>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  contrib/ndctl | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/contrib/ndctl b/contrib/ndctl
+> index 2c04504..ea7303c 100755
+> --- a/contrib/ndctl
+> +++ b/contrib/ndctl
+> @@ -206,6 +206,10 @@ __ndctl_comp_non_option_args()
+>         disable-dimm)
+>                 opts="$(__ndctl_get_dimms) all"
+>                 ;;
+> +       init-labels)
+> +               ;&
+> +       check-labels)
+> +               ;&
+>         read-labels)
+>                 ;&
+>         zero-labels)
 
-The static functions put_locked_mapping_entry() and
-put_unlocked_mapping_entry() will soon be used in error cases in
-grab_mapping_entry(), so move their definitions above this function.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 50 +++++++++++++++++++++++++-------------------------
- 1 file changed, 25 insertions(+), 25 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index c45cc4d..0582c7c 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -382,6 +382,31 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
- 	}
- }
- 
-+static void put_locked_mapping_entry(struct address_space *mapping,
-+				     pgoff_t index, void *entry)
-+{
-+	if (!radix_tree_exceptional_entry(entry)) {
-+		unlock_page(entry);
-+		put_page(entry);
-+	} else {
-+		dax_unlock_mapping_entry(mapping, index);
-+	}
-+}
-+
-+/*
-+ * Called when we are done with radix tree entry we looked up via
-+ * get_unlocked_mapping_entry() and which we didn't lock in the end.
-+ */
-+static void put_unlocked_mapping_entry(struct address_space *mapping,
-+				       pgoff_t index, void *entry)
-+{
-+	if (!radix_tree_exceptional_entry(entry))
-+		return;
-+
-+	/* We have to wake up next waiter for the radix tree entry lock */
-+	dax_wake_mapping_entry_waiter(mapping, index, entry, false);
-+}
-+
- /*
-  * Find radix tree entry at given index. If it points to a page, return with
-  * the page locked. If it points to the exceptional entry, return with the
-@@ -486,31 +511,6 @@ void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
- 	dax_wake_mapping_entry_waiter(mapping, index, entry, false);
- }
- 
--static void put_locked_mapping_entry(struct address_space *mapping,
--				     pgoff_t index, void *entry)
--{
--	if (!radix_tree_exceptional_entry(entry)) {
--		unlock_page(entry);
--		put_page(entry);
--	} else {
--		dax_unlock_mapping_entry(mapping, index);
--	}
--}
--
--/*
-- * Called when we are done with radix tree entry we looked up via
-- * get_unlocked_mapping_entry() and which we didn't lock in the end.
-- */
--static void put_unlocked_mapping_entry(struct address_space *mapping,
--				       pgoff_t index, void *entry)
--{
--	if (!radix_tree_exceptional_entry(entry))
--		return;
--
--	/* We have to wake up next waiter for the radix tree entry lock */
--	dax_wake_mapping_entry_waiter(mapping, index, entry, false);
--}
--
- /*
-  * Delete exceptional DAX entry at @index from @mapping. Wait for radix tree
-  * entry to get unlocked before deleting it.
--- 
-2.7.4
-
+Thanks, applied.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
