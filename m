@@ -1,20 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from gateway21.websitewelcome.com (gateway21.websitewelcome.com
- [192.185.45.212])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 41AEE1A1E56
- for <linux-nvdimm@lists.01.org>; Tue, 18 Oct 2016 14:42:28 -0700 (PDT)
-Received: from cm4.websitewelcome.com (unknown [108.167.139.16])
- by gateway21.websitewelcome.com (Postfix) with ESMTP id 9431FC8245A29
- for <linux-nvdimm@lists.01.org>; Tue, 18 Oct 2016 16:42:27 -0500 (CDT)
-From: Stephen Bates <sbates@raithlin.com>
-Subject: [PATCH 1/3] memremap.c : Add support for ZONE_DEVICE IO memory with
- struct pages.
-Date: Tue, 18 Oct 2016 15:42:15 -0600
-Message-Id: <1476826937-20665-2-git-send-email-sbates@raithlin.com>
-In-Reply-To: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
-References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
+ by ml01.01.org (Postfix) with ESMTPS id A8D111A1E6E
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Oct 2016 20:45:35 -0700 (PDT)
+Subject: [ndctl PATCH] ndctl: revert glob support for dimm commands
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 19 Oct 2016 20:42:33 -0700
+Message-ID: <147693495320.36426.9347832920609902979.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,292 +16,160 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-block@vger.kernel.org, linux-mm@kvack.org
-Cc: hch@infradead.org, sbates@raithin.com, haggaie@mellanox.com, axboe@fb.com, corbet@lwn.net, jim.macdonald@everspin.com, Stephen Bates <sbates@raithlin.com>, jgunthorpe@obsidianresearch.com
+To: linux-nvdimm@lists.01.org
+Cc: Eric Blake <eblake@redhat.com>, qemu-devel@nongnu.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Logan Gunthorpe <logang@deltatee.com>
+As pointed out by Eric, files in the local directory with names of the
+form 'nmemX' can break the recently added glob support by filtering
+otherwise valid dimm names in a glob like 'nmem[X-Y]'.  For robustness,
+the glob argument would always need to be shell escaped, but at that
+point it is less characters to simply rely on shell expansion of the
+form nmem{X..Y}, if available.
 
-We build on recent work that adds memory regions owned by a device
-driver (ZONE_DEVICE) [1] and to add struct page support for these new
-regions of memory [2].
-
-1. Add an extra flags argument into dev_memremap_pages to take in a
-MEMREMAP_XX argument. We update the existing calls to this function to
-reflect the change.
-
-2. For completeness, we add MEMREMAP_WT support to the memremap;
-however we have no actual need for this functionality.
-
-3. We add the static functions, add_zone_device_pages and
-remove_zone_device pages. These are similar to arch_add_memory except
-they don't create the memory mapping. We don't believe these need to be
-made arch specific, but are open to other opinions.
-
-4. dev_memremap_pages and devm_memremap_pages_release are updated to
-treat IO memory slightly differently. For IO memory we use a combination
-of the appropriate io_remap function and the zone_device pages functions
-created above. A flags variable and kaddr pointer are added to struct
-page_mem to facilitate this for the release function. We also set up
-the page attribute tables for the mapped region correctly based on the
-desired mapping.
-
-[1] https://lists.01.org/pipermail/linux-nvdimm/2015-August/001810.html
-[2] https://lists.01.org/pipermail/linux-nvdimm/2015-October/002387.html
-
-Signed-off-by: Stephen Bates <sbates@raithlin.com>
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reported-by: Eric Blake <eblake@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/pmem.c                |  4 +-
- drivers/nvdimm/pmem.c             |  4 +-
- include/linux/memremap.h          |  5 ++-
- kernel/memremap.c                 | 80 +++++++++++++++++++++++++++++++++++++--
- tools/testing/nvdimm/test/iomap.c |  3 +-
- 5 files changed, 86 insertions(+), 10 deletions(-)
+ ndctl/builtin-dimm.c |   70 +++++++++-----------------------------------------
+ 1 file changed, 13 insertions(+), 57 deletions(-)
 
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index 9630d88..58ac456 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -14,6 +14,7 @@
- #include <linux/memremap.h>
- #include <linux/module.h>
- #include <linux/pfn_t.h>
-+#include <linux/pmem.h>
- #include "../nvdimm/pfn.h"
- #include "../nvdimm/nd.h"
- #include "dax.h"
-@@ -108,7 +109,8 @@ static int dax_pmem_probe(struct device *dev)
- 	if (rc)
- 		return rc;
-
--	addr = devm_memremap_pages(dev, &res, &dax_pmem->ref, altmap);
-+	addr = devm_memremap_pages(dev, &res, &dax_pmem->ref, altmap,
-+							ARCH_MEMREMAP_PMEM);
- 	if (IS_ERR(addr))
- 		return PTR_ERR(addr);
-
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 42b3a82..97032a1 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -278,7 +278,7 @@ static int pmem_attach_disk(struct device *dev,
- 	pmem->pfn_flags = PFN_DEV;
- 	if (is_nd_pfn(dev)) {
- 		addr = devm_memremap_pages(dev, &pfn_res, &q->q_usage_counter,
--				altmap);
-+				altmap, ARCH_MEMREMAP_PMEM);
- 		pfn_sb = nd_pfn->pfn_sb;
- 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
- 		pmem->pfn_pad = resource_size(res) - resource_size(&pfn_res);
-@@ -287,7 +287,7 @@ static int pmem_attach_disk(struct device *dev,
- 		res->start += pmem->data_offset;
- 	} else if (pmem_should_map_pages(dev)) {
- 		addr = devm_memremap_pages(dev, &nsio->res,
--				&q->q_usage_counter, NULL);
-+				&q->q_usage_counter, NULL, ARCH_MEMREMAP_PMEM);
- 		pmem->pfn_flags |= PFN_MAP;
- 	} else
- 		addr = devm_memremap(dev, pmem->phys_addr,
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 9341619..fc99283 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -51,12 +51,13 @@ struct dev_pagemap {
-
- #ifdef CONFIG_ZONE_DEVICE
- void *devm_memremap_pages(struct device *dev, struct resource *res,
--		struct percpu_ref *ref, struct vmem_altmap *altmap);
-+		struct percpu_ref *ref, struct vmem_altmap *altmap,
-+		unsigned long flags);
- struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
- #else
- static inline void *devm_memremap_pages(struct device *dev,
- 		struct resource *res, struct percpu_ref *ref,
--		struct vmem_altmap *altmap)
-+		struct vmem_altmap *altmap, unsigned long flags)
- {
- 	/*
- 	 * Fail attempts to call devm_memremap_pages() without
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index b501e39..d5f462c 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -175,13 +175,41 @@ static RADIX_TREE(pgmap_radix, GFP_KERNEL);
- #define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
- #define SECTION_SIZE (1UL << PA_SECTION_SHIFT)
-
-+enum {
-+	PAGEMAP_IO_MEM = 1 << 0,
-+};
-+
- struct page_map {
- 	struct resource res;
- 	struct percpu_ref *ref;
- 	struct dev_pagemap pgmap;
- 	struct vmem_altmap altmap;
-+	void *kaddr;
-+	int flags;
- };
-
-+static int add_zone_device_pages(int nid, u64 start, u64 size)
-+{
-+	struct pglist_data *pgdat = NODE_DATA(nid);
-+	struct zone *zone = pgdat->node_zones + ZONE_DEVICE;
-+	unsigned long start_pfn = start >> PAGE_SHIFT;
-+	unsigned long nr_pages = size >> PAGE_SHIFT;
-+
-+	return __add_pages(nid, zone, start_pfn, nr_pages);
-+}
-+
-+static void remove_zone_device_pages(u64 start, u64 size)
-+{
-+	unsigned long start_pfn = start >> PAGE_SHIFT;
-+	unsigned long nr_pages = size >> PAGE_SHIFT;
-+	struct zone *zone;
-+	int ret;
-+
-+	zone = page_zone(pfn_to_page(start_pfn));
-+	ret = __remove_pages(zone, start_pfn, nr_pages);
-+	WARN_ON_ONCE(ret);
-+}
-+
- void get_zone_device_page(struct page *page)
- {
- 	percpu_ref_get(page->pgmap->ref);
-@@ -246,9 +274,17 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
- 	/* pages are dead and unused, undo the arch mapping */
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
--	arch_remove_memory(align_start, align_size);
-+
-+	if (page_map->flags & PAGEMAP_IO_MEM) {
-+		remove_zone_device_pages(align_start, align_size);
-+		iounmap(page_map->kaddr);
-+	} else {
-+		arch_remove_memory(align_start, align_size);
-+	}
-+
- 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
- 	pgmap_radix_release(res);
-+
- 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
- 			"%s: failed to free all reserved pages\n", __func__);
- }
-@@ -270,6 +306,8 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
-  * @res: "host memory" address range
-  * @ref: a live per-cpu reference count
-  * @altmap: optional descriptor for allocating the memmap from @res
-+ * @flags: either MEMREMAP_WB, MEMREMAP_WT and MEMREMAP_WC
-+ *         see memremap() for a description of the flags
-  *
-  * Notes:
-  * 1/ @ref must be 'live' on entry and 'dead' before devm_memunmap_pages() time
-@@ -280,7 +318,8 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
-  *    this is not enforced.
+diff --git a/ndctl/builtin-dimm.c b/ndctl/builtin-dimm.c
+index 304bd83a33da..19036fd38b46 100644
+--- a/ndctl/builtin-dimm.c
++++ b/ndctl/builtin-dimm.c
+@@ -10,7 +10,6 @@
+  * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+  * more details.
   */
- void *devm_memremap_pages(struct device *dev, struct resource *res,
--		struct percpu_ref *ref, struct vmem_altmap *altmap)
-+		struct percpu_ref *ref, struct vmem_altmap *altmap,
-+		unsigned long flags)
+-#include <glob.h>
+ #include <stdio.h>
+ #include <errno.h>
+ #include <stdlib.h>
+@@ -774,72 +773,35 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
+ 		int (*action)(struct ndctl_dimm *dimm, struct action_context *actx),
+ 		const struct option *options, const char *usage)
  {
- 	resource_size_t key, align_start, align_size, align_end;
- 	pgprot_t pgprot = PAGE_KERNEL;
-@@ -288,6 +327,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	struct page_map *page_map;
- 	int error, nid, is_ram;
- 	unsigned long pfn;
-+	void *addr = NULL;
-+	enum page_cache_mode pcm;
-
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
-@@ -353,15 +394,44 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	if (nid < 0)
- 		nid = numa_mem_id();
-
-+	if (flags & MEMREMAP_WB)
-+		pcm = _PAGE_CACHE_MODE_WB;
-+	else if (flags & MEMREMAP_WT)
-+		pcm = _PAGE_CACHE_MODE_WT;
-+	else if (flags & MEMREMAP_WC)
-+		pcm = _PAGE_CACHE_MODE_WC;
-+	else
-+		pcm = _PAGE_CACHE_MODE_WB;
-+
-+	pgprot = __pgprot(pgprot_val(pgprot) | cachemode2protval(pcm));
-+
- 	error = track_pfn_remap(NULL, &pgprot, PHYS_PFN(align_start), 0,
- 			align_size);
- 	if (error)
- 		goto err_pfn_remap;
-
--	error = arch_add_memory(nid, align_start, align_size, true);
-+	if (flags & MEMREMAP_WB || !flags) {
-+		error = arch_add_memory(nid, align_start, align_size, true);
-+		addr = __va(res->start);
-+	} else {
-+		page_map->flags |= PAGEMAP_IO_MEM;
-+		error = add_zone_device_pages(nid, align_start, align_size);
-+	}
-+
- 	if (error)
- 		goto err_add_memory;
-
-+	if (!addr && (flags & MEMREMAP_WT))
-+		addr = ioremap_wt(res->start, resource_size(res));
-+
-+	if (!addr && (flags & MEMREMAP_WC))
-+		addr = ioremap_wc(res->start, resource_size(res));
-+
-+	if (!addr && page_map->flags & PAGEMAP_IO_MEM) {
-+		remove_zone_device_pages(res->start, resource_size(res));
-+		goto err_add_memory;
-+	}
-+
- 	for_each_device_pfn(pfn, page_map) {
- 		struct page *page = pfn_to_page(pfn);
-
-@@ -374,8 +444,10 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 		list_del(&page->lru);
- 		page->pgmap = pgmap;
+-	int rc = 0, count, err = 0, glob_cnt = 0;
+ 	struct action_context actx = { NULL, NULL };
++	int i, rc = 0, count, err = 0;
+ 	const char * const u[] = {
+ 		usage,
+ 		NULL
+ 	};
+-	char *all[] = { "all " };
+-	glob_t glob_buf;
+-	size_t i;
++	unsigned long id;
+ 
+         argc = parse_options(argc, argv, options, u, 0);
+ 
+ 	if (argc == 0)
+ 		usage_with_options(u, options);
+-	for (i = 0; i < (size_t) argc; i++) {
+-		char *path;
+-
++	for (i = 0; i < argc; i++) {
+ 		if (strcmp(argv[i], "all") == 0) {
+ 			argv[0] = "all";
+ 			argc = 1;
+-			glob_cnt = 0;
+ 			break;
+ 		}
+-		rc = asprintf(&path, "/sys/bus/nd/devices/%s", argv[i]);
+-		if (rc < 0) {
+-			fprintf(stderr, "failed to parse %s\n", argv[i]);
+-			usage_with_options(u, options);
+-		}
+ 
+-		rc = glob(path, glob_cnt++ ? GLOB_APPEND : 0, NULL, &glob_buf);
+-		switch (rc) {
+-		case GLOB_NOSPACE:
+-		case GLOB_ABORTED:
+-			fprintf(stderr, "failed to parse %s\n", argv[i]);
+-			usage_with_options(u, options);
+-			break;
+-		case GLOB_NOMATCH:
+-		case 0:
+-			break;
++		if (sscanf(argv[i], "nmem%lu", &id) != 1) {
++			fprintf(stderr, "'%s' is not a valid dimm name\n",
++					argv[i]);
++			err++;
+ 		}
+-		free(path);
+-	}
+-
+-	if (!glob_cnt)
+-		glob_buf.gl_pathc = 0;
+-	count = 0;
+-	for (i = 0; i < glob_buf.gl_pathc; i++) {
+-		char *dimm_name	= strrchr(glob_buf.gl_pathv[i], '/');
+-		unsigned long id;
+-
+-		if (!dimm_name++)
+-			continue;
+-		if (sscanf(dimm_name, "nmem%lu", &id) == 1)
+-			count++;
  	}
-+
-+	page_map->kaddr = addr;
- 	devres_add(dev, page_map);
--	return __va(res->start);
-+	return addr;
+ 
+-	if (strcmp(argv[0], "all") == 0) {
+-		glob_buf.gl_pathc = ARRAY_SIZE(all);
+-		glob_buf.gl_pathv = all;
+-	} else if (!count) {
+-		fprintf(stderr, "Error: ' ");
+-		for (i = 0; i < (size_t) argc; i++)
+-			fprintf(stderr, "%s ", argv[i]);
+-		fprintf(stderr, "' does not specify any present devices\n");
+-		fprintf(stderr, "See 'ndctl list -D'\n");
++	if (err == argc) {
+ 		usage_with_options(u, options);
++		return -EINVAL;
+ 	}
+ 
+ 	if (param.json) {
+@@ -864,23 +826,20 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
+ 		ndctl_set_log_priority(ctx, LOG_DEBUG);
+ 
+ 	rc = 0;
++	err = 0;
+ 	count = 0;
+-	for (i = 0; i < glob_buf.gl_pathc; i++) {
+-		char *dimm_name = strrchr(glob_buf.gl_pathv[i], '/');
++	for (i = 0; i < argc; i++) {
+ 		struct ndctl_dimm *dimm;
+ 		struct ndctl_bus *bus;
+-		unsigned long id;
+ 
+-		if (!dimm_name++)
+-			continue;
+-		if (sscanf(dimm_name, "nmem%lu", &id) != 1)
++		if (sscanf(argv[i], "nmem%lu", &id) != 1)
+ 			continue;
+ 
+ 		ndctl_bus_foreach(ctx, bus) {
+ 			if (!util_bus_filter(bus, param.bus))
+ 				continue;
+ 			ndctl_dimm_foreach(bus, dimm) {
+-				if (!util_dimm_filter(dimm, dimm_name))
++				if (!util_dimm_filter(dimm, argv[i]))
+ 					continue;
+ 				rc = action(dimm, &actx);
+ 				if (rc == 0)
+@@ -902,9 +861,6 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
+ 		fclose(actx.f_out);
+ 
+  out:
+-	if (glob_cnt)
+-		globfree(&glob_buf);
+-
+ 	/*
+ 	 * count if some actions succeeded, 0 if none were attempted,
+ 	 * negative error code otherwise.
 
-  err_add_memory:
- 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index 3ccef73..b82fecb 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -17,6 +17,7 @@
- #include <linux/module.h>
- #include <linux/types.h>
- #include <linux/pfn_t.h>
-+#include <linux/pmem.h>
- #include <linux/acpi.h>
- #include <linux/io.h>
- #include <linux/mm.h>
-@@ -109,7 +110,7 @@ void *__wrap_devm_memremap_pages(struct device *dev, struct resource *res,
-
- 	if (nfit_res)
- 		return nfit_res->buf + offset - nfit_res->res.start;
--	return devm_memremap_pages(dev, res, ref, altmap);
-+	return devm_memremap_pages(dev, res, ref, altmap, ARCH_MEMREMAP_PMEM);
- }
- EXPORT_SYMBOL(__wrap_devm_memremap_pages);
-
---
-2.1.4
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
