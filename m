@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 52FAA1A1E6F
- for <linux-nvdimm@lists.01.org>; Mon, 10 Oct 2016 23:37:48 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm for 4.9
-Date: Tue, 11 Oct 2016 06:37:45 +0000
-Message-ID: <1476167860.3887.8.camel@intel.com>
-Content-Language: en-US
-Content-ID: <9775E3097C0F5B4D91F03496F0B5B949@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 641FB1A1E2A
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Oct 2016 01:48:49 -0700 (PDT)
+Date: Thu, 20 Oct 2016 10:48:45 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 16/20] mm: Provide helper for finishing mkwrite faults
+Message-ID: <20161020084845.GA22614@quack2.suse.cz>
+References: <1474992504-20133-1-git-send-email-jack@suse.cz>
+ <1474992504-20133-17-git-send-email-jack@suse.cz>
+ <20161018183525.GC7796@linux.intel.com>
+ <20161019071600.GG29967@quack2.suse.cz>
+ <20161019172152.GC22463@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20161019172152.GC22463@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,138 +23,58 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
-Y20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIHRhZ3MvbGlibnZkaW1tLWZvci00LjkK
-Ci4uLnRvIHJlY2VpdmUgdGhlIGxpYm52ZGltbSB1cGRhdGUgZm9yIDQuOS4KCkFzaWRlIGZyb20g
-dGhlIHJlY2VudGx5IGFkZGVkIHBtZW0gc3ViLWRpdmlzaW9uIHN1cHBvcnQgdGhlc2UgaGF2ZSBi
-ZWVuCmluIC1uZXh0IGZvciBzZXZlcmFsIHJlbGVhc2VzIHdpdGggbm8gcmVwb3J0ZWQgaXNzdWVz
-LiArQUtBLVRoZSBzdWItCmRpdmlzaW9uIHN1cHBvcnQgd2FzIGluY2x1ZGVkIGluIG5leHQtMjAx
-NjEwMTAgd2l0aCBubyByZXBvcnRlZCBpc3N1ZXMuCitBS0EtSXQgcGFzc2VzIGFsbCB1bml0IHRl
-c3RzIGluY2x1ZGluZyBuZXcgdGVzdHMgZm9yIGFsbCB0aGUgbmV3CmZ1bmN0aW9uYWxpdHkgYmVs
-b3cuCgpUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29tbWl0IDU5NWM3MzA3MWU2NjQxZTU5
-YjgzOTExZmJiNDAyNmU3Njc0NzEwMDA6CgogIGxpYm52ZGltbSwgcmVnaW9uOiBmaXggZmx1c2gg
-aGludCB0YWJsZSB0aGlua28gKDIwMTYtMDktMjQgMTE6NDU6MzggLTA3MDApCgphcmUgYXZhaWxh
-YmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoKCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHVi
-L3NjbS9saW51eC9rZXJuZWwvZ2l0L252ZGltbS9udmRpbW0gdGFncy9saWJudmRpbW0tZm9yLTQu
-OQoKZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIGU0NzZmOTQ0ODJmYzIwYTIzYjdiMzNi
-M2Q4ZTUwZjE5NTNmNzE4Mjg6CgogIE1lcmdlIGJyYW5jaCAnZm9yLTQuOS9kYXgnIGludG8gbGli
-bnZkaW1tLWZvci1uZXh0ICgyMDE2LTEwLTA3IDE2OjQ2OjMwIC0wNzAwKQoKLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpsaWJu
-dmRpbW0gZm9yIDQuOQoKKiBQTUVNIHN1Yi1kaXZpc2lvbiBzdXBwb3J0OiBBbGxvdyBhIHNpbmds
-ZSBQTUVNIHJlZ2lvbiB0byBiZSBkaXZpZGVkCiAgaW50byBtdWx0aXBsZSBuYW1lc3BhY2VzLiBP
-cmlnaW5hbGx5LCArQUg0LTIgeWVhcnMgYWdvLCBpdCB3YXMgdGhvdWdodCB0aGF0CiAgcGFydGl0
-aW9ucyBvZiBhIC9kZXYvcG1lbVggYmxvY2sgZGV2aWNlIGNvdWxkIGhhbmRsZSBzdWItYWxsb2Nh
-dGlvbnMgb2YKICBwZXJzaXN0ZW50IG1lbW9yeSBmb3IgZGlmZmVyZW50IHVzZSBjYXNlcy4gV2l0
-aCB0aGUgZGVjaXNpb24gdG8gbm90CiAgc3VwcG9ydCBEQVggbWFwcGluZ3Mgb2YgcmF3IGJsb2Nr
-LWRldmljZXMsIGFuZCB0aGUgZ2VuZXNpcyBvZgogIGRldmljZS1kYXgsIHRoZSBuZWVkIGZvciBo
-YXZpbmcgbXVsdGlwbGUgcG1lbS1uYW1lc3BhY2UgcGVyIHJlZ2lvbiBoYXMKICBncm93bi4KCiog
-RGV2aWNlLURBWCB1bmlmaWVkIGlub2RlOiBJbiBzdXBwb3J0IG9mIGR5bmFtaWMtcmVzaXppbmcg
-b2YgYQogIGRldmljZS1kYXggaW5zdGFuY2UgdGhlIGtlcm5lbCBhcnJhbmdlcyBmb3IgYWxsIG1h
-cHBpbmdzIG9mIGEKICBkZXZpY2UtZGF4IG5vZGUgdG8gc2hhcmUgdGhlIHNhbWUgaW5vZGUuIFRo
-aXMgYWxsb3dzIHVubWFwIC8gdHJ1bmNhdGUgLwogIGludmFsaWRhdGlvbiBldmVudHMgdG8gYWZm
-ZWN0IGFsbCBpbnN0YW5jZXMgb2YgdGhlIGRldmljZSBzaW1pbGFyIHRvIHRoZQogIGJlaGF2aW9y
-IG9mIG1tYXAgb24gYmxvY2sgZGV2aWNlcy4KCiogSGFyZHdhcmUgZXJyb3Igc2NydWJiaW5nIHJl
-d29ya3M6IFRoZSBvcmlnaW5hbCBhZGRyZXNzLXJhbmdlLXNjcnViICstCiAgYmFkYmxvY2tzIHRy
-YWNraW5nIHNvbHV0aW9uIGFsbG93ZWQgY2xlYXJpbmcgZW50cmllcyBhdCB0aGUgaW5kaXZpZHVh
-bAogIG5hbWVzcGFjZSBsZXZlbCwgYnV0IGl0IGZhaWxlZCB0byBjbGVhciB0aGUgaW50ZXJuYWwg
-bGlzdCBvZiBtZWRpYQogIGVycm9ycyBtYWludGFpbmVkIGF0IHRoZSBidXMgbGV2ZWwuIFRoZSBy
-ZXN1bHQgd2FzIHRoYXQgdGhlIG5leHQgc2NydWIKICBvciBuYW1lc3BhY2UgZGlzYWJsZS9yZS1l
-bmFibGUgZXZlbnQgd291bGQgcmVzdG9yZSB0aGUgY2xlYXJlZAogIGJhZGJsb2NrcywgYnV0IG5v
-dyB0aGF0IGlzIGZpeGVkLiBUaGUgdjQuOCBrZXJuZWwgaW50cm9kdWNlZCBhbgogIGF1dG8tc2Ny
-dWItb24tbWFjaGluZS1jaGVjayBiZWhhdmlvciB0byByZXBvcHVsYXRlIHRoZSBiYWRibG9ja3Mg
-bGlzdC4KICBOb3csIGluIHY0LjksIHRoZSBhdXRvLXNjcnViIGJlaGF2aW9yIGNhbiBiZSBkaXNh
-YmxlZCBhbmQgc2ltcGx5IGFycmFuZ2UKICBmb3IgdGhlIGVycm9yIHJlcG9ydGVkIGluIHRoZSBt
-YWNoaW5lLWNoZWNrIHRvIGJlIGFkZGVkIHRvIHRoZSBsaXN0LgoKKiBESU1NIGhlYWx0aC1ldmVu
-dCBub3RpZmljYXRpb24gc3VwcG9ydDogQUNQSSA2LjEgZGVmaW5lcyBhCiAgbm90aWZpY2F0aW9u
-IGV2ZW50IGNvZGUgdGhhdCBjYW4gYmUgc2VuZCB0byBBQ1BJIE5WRElNTSBkZXZpY2VzLiBBCiAg
-cG9sbCgyKSBjYXBhYmxlIGZpbGUgZGVzY3JpcHRvciBmb3IgdGhlc2UgZXZlbnRzIGNhbiBiZSBv
-YnRhaW5lZCBmcm9tCiAgdGhlIG5tZW1YL25maXQvZmxhZ3Mgc3lzZnMtYXR0cmlidXRlIG9mIGEg
-bGlibnZkaW1tIG1lbW9yeSBkZXZpY2UuCgoqIE1pc2NlbGxhbmVvdXMgZml4ZXM6IE5WRElNTS1O
-IHByb2JlIGVycm9yLCBkZXZpY2UtZGF4IGJ1aWxkIGVycm9yLCBhbmQKICBhIGNoYW5nZSB0byBk
-ZWR1cCB0aGUgZmx1c2ggaGludCBsaXN0IHRvIG5vdCBmbHVzaCB0aGUgbWVtb3J5IGNvbnRyb2xs
-ZXIKICBtb3JlIHRoYW4gbmVjZXNzYXJ5LgoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpBcm5kIEJlcmdtYW5uICgxKToKICAg
-ICAgZGF4OiB1c2UgY29ycmVjdCBkZXZfdCB2YWx1ZQoKRGFuIFdpbGxpYW1zICgzMSk6CiAgICAg
-IGxpYm52ZGltbTogZml4IFNNQVJUIEhlYWx0aCBEU00gcGF5bG9hZCBkZWZpbml0aW9uCiAgICAg
-IHRvb2xzL3Rlc3RpbmcvbnZkaW1tOiB1bml0IHRlc3QgZm9yIGFjcGlfbmZpdF9ub3RpZnkoKQog
-ICAgICBkYXg6IGNsZWFudXAgbmVlZGxlc3NseSBnbG9iYWwgc3ltYm9sIHdhcm5pbmdzCiAgICAg
-IGRheDogcmVvcmRlciBkYXhfZm9wcyBmdW5jdGlvbiBkZWZpbml0aW9ucwogICAgICBkYXg6IHJl
-bmFtZSBmb3BzIGZyb20gZGF4X2Rldl8gdG8gZGF4XwogICAgICBkYXg6IGVtYmVkIGEgc3RydWN0
-IGRldmljZSBpbiBkYXhfZGV2CiAgICAgIGRheDogY29udmVydCB0byB0aGUgY2RldiBhcGkKICAg
-ICAgZGF4OiBkZWZpbmUgYSB1bmlmaWVkIGlub2RlL2FkZHJlc3Nfc3BhY2UgZm9yIGRldmljZS1k
-YXggbWFwcGluZ3MKICAgICAgZGF4OiB1bm1hcC90cnVuY2F0ZSBvbiBkZXZpY2Ugc2h1dGRvd24K
-ICAgICAgZGF4OiBjaGVjayByZXNvdXJjZSBhbGlnbm1lbnQgYXQgZGF4IHJlZ2lvbi9kZXZpY2Ug
-Y3JlYXRlCiAgICAgIGFjcGksIG5maXQ6IGFkZCBkaW1tIGRldmljZSBub3RpZmljYXRpb24gc3Vw
-cG9ydAogICAgICB0b29scy90ZXN0aW5nL252ZGltbTogdW5pdCB0ZXN0IGZvciBhY3BpX252ZGlt
-bV9ub3RpZnkoKQogICAgICB0b29scy90ZXN0aW5nL252ZGltbTogdGVzdCBnZXRfY29uZmlnX3Np
-emUgRFNNIGZhaWx1cmVzCiAgICAgIGxpYm52ZGltbSwgbmFtZXNwYWNlOiBkZWJ1ZyBpbnZhbGlk
-IGludGVybGVhdmUtc2V0LWNvb2tpZSB2YWx1ZXMKICAgICAgbGlibnZkaW1tLCByZWdpb246IG1v
-dmUgcmVnaW9uLW1hcHBpbmcgaW5wdXQtcGFyYW10ZXJzIHRvIG5kX21hcHBpbmdfZGVzYwogICAg
-ICBsaWJudmRpbW0sIGxhYmVsOiBjb252ZXJ0IGxhYmVsIHRyYWNraW5nIHRvIGEgbGlua2VkIGxp
-c3QKICAgICAgbGlibnZkaW1tLCBuYW1lc3BhY2U6IHJlZmFjdG9yIHV1aWRfc2hvdygpIGludG8g
-YSBuYW1lc3BhY2VfdG9fdXVpZCgpIGhlbHBlcgogICAgICBsaWJudmRpbW0sIG5hbWVzcGFjZTog
-dW5pZnkgYmxrIGFuZCBwbWVtIGxhYmVsIHNjYW5uaW5nCiAgICAgIHRvb2xzL3Rlc3RpbmcvbnZk
-aW1tOiBzdXBwb3J0IGZvciBzdWItZGl2aWRpbmcgYSBwbWVtIHJlZ2lvbgogICAgICBsaWJudmRp
-bW0sIG5hbWVzcGFjZTogYWxsb3cgbXVsdGlwbGUgcG1lbS1uYW1lc3BhY2VzIHBlciByZWdpb24g
-YXQgc2NhbiB0aW1lCiAgICAgIGxpYm52ZGltbSwgbmFtZXNwYWNlOiBzb3J0IG5hbWVzcGFjZXMg
-YnkgZHBhIGF0IGluaXQKICAgICAgbGlibnZkaW1tLCByZWdpb246IHVwZGF0ZSBuZF9yZWdpb25f
-YXZhaWxhYmxlX2RwYSgpIGZvciBtdWx0aS1wbWVtIHN1cHBvcnQKICAgICAgbGlibnZkaW1tLCBu
-YW1lc3BhY2U6IGV4cGFuZCBwbWVtIGRldmljZSBuYW1pbmcgc2NoZW1lIGZvciBtdWx0aS1wbWVt
-CiAgICAgIGxpYm52ZGltbSwgbmFtZXNwYWNlOiB1cGRhdGUgbGFiZWwgaW1wbGVtZW50YXRpb24g
-Zm9yIG11bHRpLXBtZW0KICAgICAgbGlibnZkaW1tLCBuYW1lc3BhY2U6IGVuYWJsZSBhbGxvY2F0
-aW9uIG9mIG11bHRpcGxlIHBtZW0gbmFtZXNwYWNlcwogICAgICBsaWJudmRpbW0sIG5hbWVzcGFj
-ZTogZmlsdGVyIG91dCBvZiByYW5nZSBsYWJlbHMgaW4gc2Nhbl9sYWJlbHMoKQogICAgICBsaWJu
-dmRpbW0sIG5hbWVzcGFjZTogbGlmdCBzaW5nbGUgcG1lbSBsaW1pdCBpbiBzY2FuX2xhYmVscygp
-CiAgICAgIGxpYm52ZGltbSwgbmFtZXNwYWNlOiBhbGxvdyBjcmVhdGlvbiBvZiBtdWx0aXBsZSBw
-bWVtLW5hbWVzcGFjZXMgcGVyIHJlZ2lvbgogICAgICBkYXg6IGNvbnZlcnQgZGV2bV9jcmVhdGVf
-ZGF4X2RldiB0byBQVFJfRVJSCiAgICAgIE1lcmdlIGJyYW5jaCAnZm9yLTQuOS9saWJudmRpbW0n
-IGludG8gbGlibnZkaW1tLWZvci1uZXh0CiAgICAgIE1lcmdlIGJyYW5jaCAnZm9yLTQuOS9kYXgn
-IGludG8gbGlibnZkaW1tLWZvci1uZXh0CgpEYXZlIEppYW5nICgyKToKICAgICAgbnZkaW1tOiBy
-ZW1vdmUgZHVwbGljYXRlIG5kX21hcHBpbmcgZGVjbGFyYXRpb24KICAgICAgbnZkaW1tOiByZWR1
-Y2UgZHVwbGljYXRlZCB3cHEgZmx1c2hlcwoKR2VlcnQgVXl0dGVyaG9ldmVuICgxKToKICAgICAg
-bnZkaW1tOiBTcGVsbGluZyBzL3VuYWNrbm93ZWxkZ2VkL3VuYWNrbm93bGVkZ2VkLwoKUm9zcyBa
-d2lzbGVyICgxKToKICAgICAgL2Rldi9kYXg6IGZpeCBLY29uZmlnIGRlcGVuZGVuY3kgYnVpbGQg
-YnJlYWthZ2UKClRvc2hpIEthbmkgKDEpOgogICAgICBsaWJudmRpbW06IEZpeCBudmRpbW1fcHJv
-YmUgZXJyb3Igb24gTlZESU1NLU4KClZpc2hhbCBWZXJtYSAoNCk6CiAgICAgIGFjcGksIG5maXQ6
-IGNoZWNrIGZvciB0aGUgY29ycmVjdCBldmVudCBjb2RlIGluIG5vdGlmaWNhdGlvbnMKICAgICAg
-bmZpdDogZG9uJ3Qgc3RhcnQgYSBmdWxsIHNjcnViIGJ5IGRlZmF1bHQgZm9yIGFuIE1DRQogICAg
-ICBwbWVtOiByZWR1Y2Uga21hcF9hdG9taWMgc2VjdGlvbnMgdG8gdGhlIG1lbWNweXMgb25seQog
-ICAgICBsaWJudmRpbW06IGNsZWFyIHRoZSBpbnRlcm5hbCBwb2lzb25fbGlzdCB3aGVuIGNsZWFy
-aW5nIGJhZGJsb2NrcwoKIGRyaXZlcnMvYWNwaS9uZml0L2NvcmUuYyAgICAgICAgICAgICAgfCAy
-MTAgKy0rLSstKy0rLSstKy0tLQogZHJpdmVycy9hY3BpL25maXQvbWNlLmMgICAgICAgICAgICAg
-ICB8ICAyNCArLS0KIGRyaXZlcnMvYWNwaS9uZml0L25maXQuaCAgICAgICAgICAgICAgfCAgMTcg
-Ky0KIGRyaXZlcnMvZGF4L0tjb25maWcgICAgICAgICAgICAgICAgICAgfCAgIDUgKy0KIGRyaXZl
-cnMvZGF4L2RheC5jICAgICAgICAgICAgICAgICAgICAgfCA1NzcgKy0rLSstKy0rLSstKy0rLSst
-Ky0rLSstKy0rLSstLS0tLS0tLS0tLQogZHJpdmVycy9kYXgvZGF4LmggICAgICAgICAgICAgICAg
-ICAgICB8ICAgNSArLS0KIGRyaXZlcnMvZGF4L3BtZW0uYyAgICAgICAgICAgICAgICAgICAgfCAg
-IDcgKy0tCiBkcml2ZXJzL252ZGltbS9LY29uZmlnICAgICAgICAgICAgICAgIHwgICAyICstLQog
-ZHJpdmVycy9udmRpbW0vYnVzLmMgICAgICAgICAgICAgICAgICB8ICAgMiArLQogZHJpdmVycy9u
-dmRpbW0vY29yZS5jICAgICAgICAgICAgICAgICB8ICA3MyArLSstKy0tCiBkcml2ZXJzL252ZGlt
-bS9kaW1tLmMgICAgICAgICAgICAgICAgIHwgIDExICstCiBkcml2ZXJzL252ZGltbS9kaW1tX2Rl
-dnMuYyAgICAgICAgICAgIHwgMjI2ICstKy0rLSstKy0rLSstLS0tCiBkcml2ZXJzL252ZGltbS9s
-YWJlbC5jICAgICAgICAgICAgICAgIHwgMTkyICstKy0rLSstKy0tLS0tCiBkcml2ZXJzL252ZGlt
-bS9uYW1lc3BhY2VfZGV2cy5jICAgICAgIHwgNzkyICstKy0rLSstKy0rLSstKy0rLSstKy0rLSst
-Ky0rLSstKy0rLSstKy0rLSstKy0tLS0tLS0tLS0tLQogZHJpdmVycy9udmRpbW0vbmQtY29yZS5o
-ICAgICAgICAgICAgICB8ICAyNCArLS0KIGRyaXZlcnMvbnZkaW1tL25kLmggICAgICAgICAgICAg
-ICAgICAgfCAgMjkgKy0tCiBkcml2ZXJzL252ZGltbS9wbWVtLmMgICAgICAgICAgICAgICAgIHwg
-IDI4ICstLQogZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYyAgICAgICAgICB8ICA3NSArLSst
-Ky0tCiBmcy9jaGFyX2Rldi5jICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAxICstCiBpbmNs
-dWRlL2xpbnV4L2xpYm52ZGltbS5oICAgICAgICAgICAgIHwgIDI4ICstLQogaW5jbHVkZS9saW51
-eC9uZC5oICAgICAgICAgICAgICAgICAgICB8ICAgOCArLS0KIGluY2x1ZGUvdWFwaS9saW51eC9t
-YWdpYy5oICAgICAgICAgICAgfCAgIDEgKy0KIGluY2x1ZGUvdWFwaS9saW51eC9uZGN0bC5oICAg
-ICAgICAgICAgfCAgMzAgKy0tCiB0b29scy90ZXN0aW5nL252ZGltbS9LYnVpbGQgICAgICAgICAg
-IHwgICAxICstCiB0b29scy90ZXN0aW5nL252ZGltbS90ZXN0L2lvbWFwLmMgICAgIHwgMTUxICst
-Ky0rLSstKy0tLQogdG9vbHMvdGVzdGluZy9udmRpbW0vdGVzdC9uZml0LmMgICAgICB8IDE2MCAr
-LSstKy0rLSstKy0tCiB0b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXRfdGVzdC5oIHwgIDEy
-ICstLQogMjcgZmlsZXMgY2hhbmdlZCwgMTk0MCBpbnNlcnRpb25zKCstKSwgNzUxIGRlbGV0aW9u
-cygtKQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
-eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9s
-aXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Wed 19-10-16 11:21:52, Ross Zwisler wrote:
+> On Wed, Oct 19, 2016 at 09:16:00AM +0200, Jan Kara wrote:
+> > > > @@ -2315,26 +2335,17 @@ static int wp_page_shared(struct vm_fault *vmf)
+> > > >  			put_page(vmf->page);
+> > > >  			return tmp;
+> > > >  		}
+> > > > -		/*
+> > > > -		 * Since we dropped the lock we need to revalidate
+> > > > -		 * the PTE as someone else may have changed it.  If
+> > > > -		 * they did, we just return, as we can count on the
+> > > > -		 * MMU to tell us if they didn't also make it writable.
+> > > > -		 */
+> > > > -		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+> > > > -						vmf->address, &vmf->ptl);
+> > > > -		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
+> > > > +		tmp = finish_mkwrite_fault(vmf);
+> > > > +		if (unlikely(!tmp || (tmp &
+> > > > +				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+> > > 
+> > > The 'tmp' return from finish_mkwrite_fault() can only be 0 or VM_FAULT_WRITE.
+> > > I think this test should just be 
+> > > 
+> > > 		if (unlikely(!tmp)) {
+> > 
+> > Right, finish_mkwrite_fault() cannot currently throw other errors than
+> > "retry needed" which is indicated by tmp == 0. However I'd prefer to keep
+> > symmetry with finish_fault() handler which can throw other errors and
+> > better be prepared to handle them from finish_mkwrite_fault() as well.
+> 
+> Fair enough.  You can add:
+> 
+> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+
+Thanks. Actually, your question made me have a harder look at return values
+from finish_mkwrite_fault() and I've added one more commit switching the
+return values so that finish_mkwrite_fault() returns 0 on success and
+VM_FAULT_NOPAGE if PTE changed. That is less confusing and even more
+consistent with what finish_fault() returns.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
