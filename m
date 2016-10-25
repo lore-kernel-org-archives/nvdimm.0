@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from EUR01-DB5-obe.outbound.protection.outlook.com
- (mail-db5eur01on061d.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe02::61d])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 64E3C1A1E43
- for <linux-nvdimm@lists.01.org>; Wed, 26 Oct 2016 01:25:08 -0700 (PDT)
+Date: Wed, 26 Oct 2016 08:19:03 +1100
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH 0/3] iopmem : A block device for PCIe memory
+Message-ID: <20161025211903.GD14023@dastard>
 References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
  <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com>
-From: Haggai Eran <haggaie@mellanox.com>
-Message-ID: <a5418089-2615-8c04-aca8-50ceb43978f1@mellanox.com>
-Date: Wed, 26 Oct 2016 11:24:51 +0300
+ <20161019184814.GC16550@cgy1-donard.priv.deltatee.com>
+ <20161020232239.GQ23194@dastard>
+ <20161021095714.GA12209@infradead.org>
+ <20161021111253.GQ14023@dastard>
+ <20161025115043.GA14986@cgy1-donard.priv.deltatee.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20161025115043.GA14986@cgy1-donard.priv.deltatee.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,39 +24,72 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Stephen Bates <sbates@raithlin.com>
-Cc: jgunthorpe@obsidianresearch.com, sbates@raithin.com, "Raj, Ashok  <ashok.raj@intel.com>, linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, Jonathan Corbet <corbet@lwn.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, jim.macdonald@everspin.com, linux-block@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@infradead.org>
+To: Stephen Bates <sbates@raithlin.com>
+Cc: linux-block@vger.kernel.org, sbates@raithin.com, "Raj, Ashok  <ashok.raj@intel.com>, haggaie@mellanox.com, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Jonathan Corbet <corbet@lwn.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, jim.macdonald@everspin.com, Christoph Hellwig <hch@infradead.org>, Linux MM <linux-mm@kvack.org>, Jens Axboe <axboe@fb.com>, David Woodhouse <dwmw2@infradead.org>, jgunthorpe@obsidianresearch.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 10/19/2016 6:51 AM, Dan Williams wrote:
-> On Tue, Oct 18, 2016 at 2:42 PM, Stephen Bates <sbates@raithlin.com> wrote:
->> 1. Address Translation. Suggestions have been made that in certain
->> architectures and topologies the dma_addr_t passed to the DMA master
->> in a peer-2-peer transfer will not correctly route to the IO memory
->> intended. However in our testing to date we have not seen this to be
->> an issue, even in systems with IOMMUs and PCIe switches. It is our
->> understanding that an IOMMU only maps system memory and would not
->> interfere with device memory regions.
-I'm not sure that's the case. I think it works because with ZONE_DEVICE,
-the iommu driver will simply treat a dma_map_page call as any other PFN,
-and create a mapping as it does for any memory page.
+On Tue, Oct 25, 2016 at 05:50:43AM -0600, Stephen Bates wrote:
+> Hi Dave and Christoph
+> 
+> On Fri, Oct 21, 2016 at 10:12:53PM +1100, Dave Chinner wrote:
+> > On Fri, Oct 21, 2016 at 02:57:14AM -0700, Christoph Hellwig wrote:
+> > > On Fri, Oct 21, 2016 at 10:22:39AM +1100, Dave Chinner wrote:
+> > > > You do realise that local filesystems can silently change the
+> > > > location of file data at any point in time, so there is no such
+> > > > thing as a "stable mapping" of file data to block device addresses
+> > > > in userspace?
+> > > >
+> > > > If you want remote access to the blocks owned and controlled by a
+> > > > filesystem, then you need to use a filesystem with a remote locking
+> > > > mechanism to allow co-ordinated, coherent access to the data in
+> > > > those blocks. Anything else is just asking for ongoing, unfixable
+> > > > filesystem corruption or data leakage problems (i.e.  security
+> > > > issues).
+> > >
+> 
+> Dave are you saying that even for local mappings of files on a DAX
+> capable system it is possible for the mappings to move on you unless
+> the FS supports locking?
 
->> (It certainly has no opportunity
->> to do so if the transfer gets routed through a switch).
-It can still go through the IOMMU if you enable ACS upstream forwarding.
+Yes.
 
-> There may still be platforms where peer-to-peer cycles are routed up
-> through the root bridge and then back down to target device, but we
-> can address that when / if it happens.
-I agree.
+> Does that not mean DAX on such FS is
+> inherently broken?
 
-> I wonder if we could (ab)use a
-> software-defined 'pasid' as the requester id for a peer-to-peer
-> mapping that needs address translation.
-Why would you need that? Isn't it enough to map the peer-to-peer
-addresses correctly in the iommu driver?
+No. DAX is accessed through a virtual mapping layer that abstracts
+the physical location from userspace applications.
 
-Haggai
+Example: think copy-on-write overwrites. It occurs atomically from
+the perspective of userspace and starts by invalidating any current
+mappings userspace has of that physical location. The location is
+changes, the data copied in, and then when the locks are released
+userspace can fault in a new page table mapping on the next
+access....
+
+> > > And at least for XFS we have such a mechanism :)  E.g. I have a
+> > > prototype of a pNFS layout that uses XFS+DAX to allow clients to do
+> > > RDMA directly to XFS files, with the same locking mechanism we use
+> > > for the current block and scsi layout in xfs_pnfs.c.
+> 
+> Thanks for fixing this issue on XFS Christoph! I assume this problem
+> continues to exist on the other DAX capable FS?
+
+Yes, but it they implement the exportfs API that supplies this
+capability, they'll be able to use pNFS, too.
+
+> One more reason to consider a move to /dev/dax I guess ;-)...
+
+That doesn't get rid of the need for sane access control arbitration
+across all machines that are directly accessing the storage. That's
+the problem pNFS solves, regardless of whether your direct access
+target is a filesystem, a block device or object storage...
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
