@@ -3,14 +3,14 @@ Received: from mail.linuxfoundation.org (mail.linuxfoundation.org
  [140.211.169.12])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8B4E51A1DEB
- for <linux-nvdimm@lists.01.org>; Wed, 26 Oct 2016 05:34:34 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A3D971A1E43
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Oct 2016 05:28:23 -0700 (PDT)
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.4 082/112] x86/e820: Dont merge consecutive E820_PRAM ranges
-Date: Wed, 26 Oct 2016 14:23:05 +0200
-Message-Id: <20161026122308.235422020@linuxfoundation.org>
-In-Reply-To: <20161026122304.797016625@linuxfoundation.org>
-References: <20161026122304.797016625@linuxfoundation.org>
+Subject: [PATCH 4.8 102/140] x86/e820: Dont merge consecutive E820_PRAM ranges
+Date: Wed, 26 Oct 2016 14:22:42 +0200
+Message-Id: <20161026122224.758316903@linuxfoundation.org>
+In-Reply-To: <20161026122220.384323763@linuxfoundation.org>
+References: <20161026122220.384323763@linuxfoundation.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,7 +27,7 @@ To: linux-kernel@vger.kernel.org
 Cc: Denys Vlasenko <dvlasenk@redhat.com>, Josh Poimboeuf <jpoimboe@redhat.com>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Dave Chinner <david@fromorbit.com>, stable@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Brian Gerst <brgerst@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-4.4-stable review patch.  If anyone has any objections, please let me know.
+4.8-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -75,7 +75,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/arch/x86/kernel/e820.c
 +++ b/arch/x86/kernel/e820.c
-@@ -347,7 +347,7 @@ int __init sanitize_e820_map(struct e820
+@@ -348,7 +348,7 @@ int __init sanitize_e820_map(struct e820
  		 * continue building up new bios map based on this
  		 * information
  		 */
