@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf0-x244.google.com (mail-pf0-x244.google.com
- [IPv6:2607:f8b0:400e:c00::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.linuxfoundation.org (mail.linuxfoundation.org
+ [140.211.169.12])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 62A3A1A1E30
- for <linux-nvdimm@lists.01.org>; Mon, 17 Oct 2016 09:35:56 -0700 (PDT)
-Received: by mail-pf0-x244.google.com with SMTP id r16so13087644pfg.3
- for <linux-nvdimm@lists.01.org>; Mon, 17 Oct 2016 09:35:56 -0700 (PDT)
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH -next] libnvdimm: fix error return code in __blk_label_update()
-Date: Mon, 17 Oct 2016 16:35:48 +0000
-Message-Id: <1476722148-22795-1-git-send-email-weiyj.lk@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7A4691A1E29
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Oct 2016 02:23:32 -0700 (PDT)
+Date: Wed, 26 Oct 2016 11:23:39 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [4.4, 4.7 stable PATCH] acpi, nfit: check for the correct event
+ code in notifications
+Message-ID: <20161026092339.GC989@kroah.com>
+References: <1477346286-27012-1-git-send-email-vishal.l.verma@intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1477346286-27012-1-git-send-email-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,37 +25,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: stable@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
+On Mon, Oct 24, 2016 at 03:58:06PM -0600, Vishal Verma wrote:
+> commit c09f12186d6b03b798832d95289af76495990192 upstream.
+> 
+> Commit 209851649dc4 "acpi: nfit: Add support for hot-add" added
+> support for _FIT notifications, but it neglected to verify the
+> notification event code matches the one in the ACPI spec for
+> "NFIT Update". Currently there is only one code in the spec, but
+> once additional codes are added, older kernels (without this fix)
+> will misbehave by assuming all event notifications are for an
+> NFIT Update.
+> 
+> Fixes: 209851649dc4 ("acpi: nfit: Add support for hot-add")
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+> 
+> Note that the patch doesn't directly apply to stable-4.4, but using
+> 'git am -3' works. Is this sufficient, or should I send a sepatate
+> patch for 4.4?
 
-Fix to return error code -ENXIO from the nd_label_alloc_slot() error
-handling case instead of 0, as done elsewhere in this function.
+I've made it fit :)
 
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
----
- drivers/nvdimm/label.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+thanks,
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index fac7cab..ab2927c 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -710,8 +710,10 @@ static int __blk_label_update(struct nd_region *nd_region,
- 		if (is_old_resource(res, old_res_list, old_num_resources))
- 			continue; /* carry-over */
- 		slot = nd_label_alloc_slot(ndd);
--		if (slot == UINT_MAX)
-+		if (slot == UINT_MAX) {
-+			rc = -ENXIO;
- 			goto abort;
-+		}
- 		dev_dbg(ndd->dev, "%s: allocated: %d\n", __func__, slot);
- 
- 		nd_label = nd_label_base(ndd) + slot;
-
+greg k-h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
