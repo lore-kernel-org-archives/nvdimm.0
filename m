@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 948B41A1F00
- for <linux-nvdimm@lists.01.org>; Fri,  7 Oct 2016 14:09:21 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 14/17] dax: move RADIX_DAX_* defines to dax.h
-Date: Fri,  7 Oct 2016 15:09:01 -0600
-Message-Id: <1475874544-24842-15-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1475874544-24842-1-git-send-email-ross.zwisler@linux.intel.com>
+Date: Thu, 27 Oct 2016 05:32:19 -0700
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 0/3] iopmem : A block device for PCIe memory
+Message-ID: <20161027123219.GA757@infradead.org>
+References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
+ <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com>
+ <20161019184814.GC16550@cgy1-donard.priv.deltatee.com>
+ <20161020232239.GQ23194@dastard>
+ <20161021095714.GA12209@infradead.org>
+ <76e957c9-8002-5a46-8111-269bb0401718@grimberg.me>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <76e957c9-8002-5a46-8111-269bb0401718@grimberg.me>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,86 +19,25 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Sagi Grimberg <sagi@grimberg.me>
+Cc: jgunthorpe@obsidianresearch.com, sbates@raithin.com, "Raj, Ashok  <ashok.raj@intel.com>, haggaie@mellanox.com, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Jonathan Corbet <corbet@lwn.net>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, jim.macdonald@everspin.com, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@infradead.org>, Linux MM <linux-mm@kvack.org>, linux-block@vger.kernel.org, Jens Axboe <axboe@fb.com>, David Woodhouse <dwmw2@infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The RADIX_DAX_* defines currently mostly live in fs/dax.c, with just
-RADIX_DAX_ENTRY_LOCK being in include/linux/dax.h so it can be used in
-mm/filemap.c.  When we add PMD support, though, mm/filemap.c will also need
-access to the RADIX_DAX_PTE type so it can properly construct a 4k sized
-empty entry.
+On Thu, Oct 27, 2016 at 01:22:49PM +0300, Sagi Grimberg wrote:
+> Christoph, did you manage to leap to the future and solve the
+> RDMA persistency hole? :)
+> 
+> e.g. what happens with O_DSYNC in this model? Or you did
+> a message exchange for commits?
 
-Instead of shifting the defines between dax.c and dax.h as they are
-individually used in other code, just move them wholesale to dax.h so
-they'll be available when we need them.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c            | 14 --------------
- include/linux/dax.h | 15 ++++++++++++++-
- 2 files changed, 14 insertions(+), 15 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 5e8febe..ac3cd05 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -34,20 +34,6 @@
- #include <linux/iomap.h>
- #include "internal.h"
- 
--/*
-- * We use lowest available bit in exceptional entry for locking, other two
-- * bits to determine entry type. In total 3 special bits.
-- */
--#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 3)
--#define RADIX_DAX_PTE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
--#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
--#define RADIX_DAX_TYPE_MASK (RADIX_DAX_PTE | RADIX_DAX_PMD)
--#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_TYPE_MASK)
--#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
--#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
--		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE) | \
--		RADIX_TREE_EXCEPTIONAL_ENTRY))
--
- /* We choose 4096 entries - same as per-zone page wait tables */
- #define DAX_WAIT_TABLE_BITS 12
- #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index a3dfee4..e9ea78c 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -8,8 +8,21 @@
- 
- struct iomap_ops;
- 
--/* We use lowest available exceptional entry bit for locking */
-+/*
-+ * We use lowest available bit in exceptional entry for locking, other two
-+ * bits to determine entry type. In total 3 special bits.
-+ */
-+#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 3)
- #define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
-+#define RADIX_DAX_PTE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
-+#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
-+#define RADIX_DAX_TYPE_MASK (RADIX_DAX_PTE | RADIX_DAX_PMD)
-+#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_TYPE_MASK)
-+#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
-+#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
-+		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE) | \
-+		RADIX_TREE_EXCEPTIONAL_ENTRY))
-+
- 
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 		struct iomap_ops *ops);
--- 
-2.7.4
-
+Yes, pNFS calls this the layoutcommit.  That being said once we get a RDMA
+commit or flush operation we could easily make the layoutcommit optional
+for some operations.  There already is a precedence for the in the
+flexfiles layout specification.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
