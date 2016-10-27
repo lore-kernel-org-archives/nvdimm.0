@@ -1,12 +1,12 @@
-From: =?utf-8?B?MS4g5qGI5L6L5YiG5p6Q77ya6L+Z5Liq5Li7566h6K+l5aaC5L2V5YGa77yf5YWI55Sf?=
- <ell-lI6gpSKbMro@public.gmane.org>
-Subject: =?utf-8?B?MS4g5qGI5L6L5YiG5p6Q77ya6L+Z5Liq5Li7566h6K+l5aaC5L2V5YGa77yf?=
-Date: Sun, 1 Nov 2009 08:28:38 +0800
-Message-ID: <C8B5CE4B4CFBBCB83880CD24E4BC5ACB@bslk.org>
+From: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: multi-threads libvmmalloc fork test hang
+Date: Thu, 27 Oct 2016 19:22:30 +0800
+Message-ID: <20161027112230.wsumgs62fqdxt3sc@xzhoul.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,167 +16,90 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org
+Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-ICAgICAgICAgICAgICAgICAgICAgICAg6ZSALuWUri7kuLsu566hLjLlpKku5by6LuWMli7orq3n
-u4PokKUNCg0K44CQ5Y+C6K++LuaXtumXtOOAkSAyMDE25bm0MTDmnIgyOS0zMOS4iua1tyAgMTHm
-nIgxOS0yMOWMl+S6rCAgICAgIDEx5pyIMjYtMjfmt7HlnLMgICAxMuaciDEwLTEx5LiK5rW3DQrj
-gJDpgILlkIgu5a+56LGh44CRIOWwhuiiq+aPkOWNh+eahOmUgOWUrueyvuiLseOAgemUgOWUruS4
-u+S7u+OAgemUgOWUrue7j+eQhuOAgeWMuuWfn+e7j+eQhuOAgeS4muWKoee7j+eQhuOAgemUgOWU
-ruaAu+ebkeOAgeaAu+e7j+eQhg0K44CQ6K6y6K++LuaooeW8j+OAkSDorrLluIjorrLmjoggKyDo
-p4bpopHmvJTnu44gKyDmoYjkvovnoJTorqggK+inkuiJsuaJrua8lCArIOiusuW4iOeCueivhA0K
-44CQ5Y+C5LyaLuS7t+agvOOAkSAzODAw5ZyGLzHkurogICgxMeaciOeJueS7tzMyMDDlnIbkuIDk
-vY0pDQoNCuivvueoi+WJjeiogO+8mg0KICAgIOWkp+mDqOWIhumUgOWUruS4u+euoemDveaYr+S7
-jumUgOWUruesrOS4gOe6v+iiq+aPkOaLlOS4iuadpe+8jOS4quS6uueahOmUgOWUruiDveWKm+mD
-veW+iOW8uuOAguS9huaIkOS4uuS4gOS4qumUgOWUruWboumYn+eahOS4u+euoeWQjg0K77yM57uP
-5bi45Ye6546w55qE5LiA5Liq6Zeu6aKY5piv566h55CG6IO95Yqb5LiO57uP6aqM5LiN6Laz44CC
-6ZSA5ZSu566h55CG5bel5L2c5Y2D5aS05LiH57uq77yM6ZSA5ZSu5Li7566h5q+P5aSp6YO95Zyo
-5b+Z56KM44CB54Sm6JmR5Lit5bqmDQrov4fvvIzlvojlsJHmnInml7bpl7Tljrvmj5DljYfoh6rl
-t7HnmoTnrqHnkIbmioDog73jgILjgIrplIAu5ZSuLuS4uy7nrqEy5aSpLuW8ui7ljJYu6K6tLue7
-gy7okKXjgIvvvIzorqnplIDllK7kuLvnrqHlnKgy5aSp5YaF6L+b6KGM5by65YyW6K6t57uD77yM
-DQrlrabkuaDlv4XlpIfnmoTnrqHnkIbnn6Xor4bvvIznkIbmuIXln7rmnKznmoTnrqHnkIbmgJ3o
-t6/vvIzop6PlhrPnrqHnkIbkuK3luLjop4HnmoTpl67popjjgIINCjEuIOS9nOS4uumUgOWUruS4
-u+euoe+8jOS7peWJjeayoeWtpuS5oOi/h+euoeeQhuefpeivhu+8jOS4jeefpemBk+WmguS9leeu
-oeS6uu+8jOaAjuS5iOWKnu+8nw0KMi4g6ZSA5ZSu5Li7566h5b2T54S25bqU6K+l5pyJ6Ieq5bex
-55qE6ZSA5ZSu5Lu75Yqh5ZCX77yfDQozLiDlpoLkvZXkuI7kuIvlsZ7nm7jlpITvvJ/or6XkuKXl
-jonov5jmmK/lrr3lrrnvvJ/mhYjkuI3mjozlhbXov5jmmK/niLHlhbXlpoLlrZDvvJ8NCjQuIOS7
-gOS5iOagt+eahOS6uuaJjemAguWQiO+8n+W6lOivpeWmguS9leaMkemAiemUgOWUruS6uuWRmO+8
-nw0KNS4g6K+V55So5pyf55+t77yM6Zq+5Lul55yL5Yiw5paw5Lq655qE5Lia57up77yM6K+V55So
-5pyf5YaF5aaC5L2V6K+E5Lyw6ICD5a+f77yfDQo2LiDmnInkurror7TigJzmlZnkvJrlvpLlvJ/v
-vIzppb/mrbvluIjlgoXigJ3vvIzmgI7kuYjlip7vvJ/ov5jopoHljrvovoXlr7zkuJrliqHlkZjl
-kJfvvJ8NCjcuIOmUgOWUruS4mue7qeivpeWmguS9leaKkz8g6ZSA5ZSu5Li7566h5YGa5Lqb5LuA
-5LmI5bel5L2c5omN6IO955yf5q2j5o+Q5Y2H5Lia57up77yfDQo4LiDplIDllK7kurrlkZjmr4/l
-pKnlh7rljrvlkI7vvIzmmK/ljrvmi5zorr/lrqLmiLfvvIzov5jmmK/pgJvooZfjgIHljrvnvZHl
-kKfnjqnmuLjmiI/vvJ/kuI3lpb3nrqHnkIbvvIzmgI7kuYjlip7vvJ8NCjkuIOacieayoeacieS4
-gOenjeaWueazle+8jOS4jemcgOWinuWKoOaKleWFpe+8jOiAjOWPiOiDvemprOS4iuW4ruWKqeS4
-muWKoeWRmOaPkOWNh+S4mue7qe+8nw0KMTAuIOS4mue7qeernui1m+WvuemUgOWUruS6uuWRmOS8
-vOS5juayoeS7gOS5iOaViOaenO+8jOaAjuS5iOWKnu+8n+WmguS9leWOu+a/gOWKsemUgOWUruS6
-uuWRmO+8nw0K44CA44CA5Lul5LiK55aR6JmR77yM5Zyo44CK6ZSALuWUri7kuLsu566hMuWkqS7l
-vLou5YyWLuiurS4u57uDLuiQpeOAi+WwhuW+l+WIsOino+etlO+8gQ0KDQrln7norq3mlLbojrfv
-vJoNCjEuIOaYjuehrumUgOWUruS4u+euoeeahOW3peS9nOWumuS9je+8jOefpemBk+WmguS9leaK
-iuaPoeW3peS9nOmHjeeCue+8mw0KMi4g5biu5Yqp6ZSA5ZSu5Li7566h55CG5riF5oCd6Lev77yM
-5q2j56Gu5aSE55CG6ZSA5ZSu5Lit55qE5bi46KeB6Zeu6aKY77ybDQozLiDkuobop6PlpoLkvZXn
-u4Tlu7rplIDllK7lm6LpmJ/vvIzlpoLkvZXpgInkurrjgIHogrLkurrjgIHnlZnkurrvvJsNCjQu
-IOaYjueZvemUgOWUrui/h+eoi+euoeeQhueahOWOn+eQhuS4juaWueazle+8mw0KNS4g5a2m5Lya
-6ZSA5ZSu5Zui6Zif5Lia57up6ICD5qC45oyH5qCH6K6+5a6a55qE5pa55rOV77ybDQo277yO5LqG
-6Kej6ZSA5ZSu5Lia5Yqh5Lq65ZGY5aWW5oOp55qE5Z+65pys5Y6f55CG77ybDQo377yO5a2m5a6M
-44CK6ZSALuWUri7kuLsu566hLjLlpKku5by65YyW6K6t57uD6JCl44CL5bm25o6M5o+h5omA5a2m
-5oqA5ben5pa55rOV77yM6IO95pyJ5pWI5o+Q5Y2H6ZSA5ZSu5Zui6Zif5Lia57up44CCDQoNCuiv
-vueoi+eJueeCue+8mg0KMS4g5b6X5Yiw5biC5Zy66aqM6K+B55qE6K++56iL5omN5piv5aW96K++
-56iL77yBDQril4fkvZXngpzkuJzogIHluIjnmoTplIDllK7kuLvnrqHlvLrljJborq3nu4PokKXl
-t7Lnu4/ov57nu6005bm05q+P5pyI5Zyo5YyX5Lqs44CB5LiK5rW344CB5rex5Zyz6L2u5rWB5Li7
-5Yqe5YWs5byA6K++44CCDQoyLiDlvpfliLDlrablkZjorqTlj6/nmoTor77nqIvmiY3mmK/lpb3o
-r77nqIvvvIENCuKXh+acrOivvueoi+W3sue7j+W+l+WIsOaVsOWNg+WQjeadpeiHquWFqOWbveWQ
-hOihjOWQhOS4mueahOmUgOWUruS4u+euoeWlveivhOingeivgeOAgg0KMy4g6Ieq5Li756CU5Y+R
-55qE6K++56iL5omN5piv5aW96K++56iL77yBDQril4fmnKzor77nqIvnlLHkvZXngpzkuJzogIHl
-uIjoh6rkuLvnoJTlj5HvvIznu5PlkIjkuobkvZXogIHluIjlpJrlubTplIDllK7nrqHnkIblrp7m
-iJjnu4/pqozjgIINCjQuIOWOn+eJiOeahOivvueoi+aJjeaYr+Wlveivvueoi++8gQ0K4peH5biC
-6Z2i5LiK5bey57uP5Ye6546w5oqE6KKt6K++56iL77yM6L+Z5qC355qE6K++56iL5L2g5pWi5LiK
-5ZCX77yf6K+36K6k5YeG5L2V54Kc5Lic6ICB5biI55qE5Y6f5Yib57uP5YW46K++56iL44CCDQo1
-LiDog73op6PnrZTlrablkZjlrp7pmYXpl67popjnmoTogIHluIjmiY3mmK/lpb3ogIHluIjvvIEN
-CuKXh+S9leiAgeW4iOWFt+acieS4sOWvjOeahOWunumZhee7j+mqjOS4jueQhuiuuuWfuuehgO+8
-jOWPr+WcqOivvueoi+eOsOWcuuWNs+aXtuino+etlOWtpuWRmOaPkOWHuueahOWunumZheW3peS9
-nOS4remBh+WIsOeahOmXrumimOOAgg0KDQrorrLluIjku4vnu406DQrkvZXogIHluIgNCuWunuaI
-mOWei+mUgOWUrueuoeeQhuWfueiureS4k+Wutg0KDQrlrp7miJjnu4/pqow6DQril4flj6/lj6Pl
-j6/kuZDlhazlj7jplIDllK7nu4/nkIbvvIzmm77kuLvnrqHkuInkuKrokKXkuJrmiYDlj4rkuKTk
-uKrplIDllK7pg6jpl6jvvIzluKbpooblm6LpmJ/ku47ml6DliLDmnInliJvnq4vnm7TplIDns7vn
-u5/vvJsNCuKXh+mAmueUqOeUteawlO+8iEdF77yJ5Y2O5Y2X5aSn5Yy66ZSA5ZSu57uP55CG77yM
-5bu656uL5Lqn5ZOB6ZSA5ZSu5paw5rig6YGT5qih5byP77ybDQril4flkozorrDpu4Tln5Tpm4bl
-m6LkuYvlsYjoh6PmsI/okrjppo/msLTvvIhXYXRzb25zIFdhdGVy77yJ6ZSA5ZSu57uP55CGLeWN
-l+S4reWbve+8jOW7uueri+WBpeWFqOS6p+WTgeWIhumUgOS9k+ezu++8myAgICAgDQril4fkuqbm
-m77mnI3liqHkuo7msJHokKXkvIHkuJrvvIzmi4Xku7vov4fln7norq3kuK3lv4PjgIHliLbpgKDk
-vIHkuJrjgIHnp5HmioDlhazlj7jln7norq3mgLvnm5HjgIHkurrlipvotYTmupDmgLvnm5HjgIHp
-lIDllK7mgLvnm5HnrYnogYzvvJsNCuKXh+abvuW4pumihuaVsOeZvuS6uueahOmUgOWUruWboumY
-n+WPiuS4u+euoeWNjuWNl+Wbm+ecgemUgOWUruS4muWKoe+8jOWIm+mAoOmUgOmHj+avlOS4iuS4
-gOW5tOWinumVvzPlgI3nmoTkvbPnu6nvvJsNCuKXh+S7juWfuuWxgumUgOWUruWBmui1t++8jOe7
-j+WOhuS7juS4muWKoeWRmOWIsOmUgOWUruaAu+ebkeeahOi/h+eoi++8jOWvueWQhOe6p+mUgOWU
-ruS4u+euoeaJgOmBh+euoeeQhumXrumimOmDveacieaJgOS6huino++8mw0K4peH5aSa5bm055qE
-6ZSA5ZSu566h55CG57uP6aqM56ev57Sv77yM5biu5Yqp5a2m5ZGY5LqG6Kej55+l5ZCN5aSW5LyB
-5Zyo6ZSA5ZSu566h55CG5Lit55qE5YWI6L+b5pa55rOV77ybDQril4fnu4/ov4fmraPop4TnmoTo
-kKXplIDnkIborrrkvZPns7vorq3nu4PvvIzmtbflpJbnn6XlkI3llYblrabpmaJRVVTlt6XllYbn
-rqHnkIbnoZXlo6soTUJB77yJ77ybDQril4fljJfkuqzlpKflrabjgIHljJfkuqzkuqTpgJrlpKfl
-rabjgIHkuIrmtbfkuqTpgJrlpKflrabjgIHljJfkuqznkIblt6XlpKflrabjgIHopb/ljJflt6Xk
-uJrlpKflrabmt7HlnLPnoJTnqbbpmaLnibnogZjorrLluIjvvJsNCuKXh+W3suWHuueJiOS5puex
-je+8muOAiuWNgemhueWFqOiDvemUgOWUrueuoeeQhuiAheOAiyDjgIINCuKXh+WfueiureS7peS6
-kuWKqOOAgeWQr+WPkeOAgeaDheaZr+W8j+WfueiureingemVv++8m+WwhuWFiOi/m+eahOeuoeeQ
-hueQhuW/tee7k+WQiOiusuW4iOWkmuW5tOWunuaImOeuoeeQhue7j+mqjO+8m+azqOmHjeWPl+iu
-reS6uuWRmOeahA0K5oSf5oKf5Y+K5Y+C5LiO77yb5Z+56K6t6aOO5qC85rex5YWl5rWF5Ye644CB
-5p2h55CG5riF5pmw77yb6K++5aCC5rCU5rCb6L275p2+44CB5rS76LeD44CB5a6e5oiY5oCn5by6
-77yb6YCa6L+H5ZCE56eN5a6e6ZmF5qGI5L6L5Y+K5ri45oiP562JDQrmlrnlvI/lhYXliIbosIPl
-iqjlj4Lorq3kurrlkZjnmoTln7norq3ng63mg4XjgILkuLrkuIrljYPlrrbkvIHkuJrmj5Dkvpvp
-lIDllK7ln7norq3kuI7lkqjor6LvvIzlubbooqvlpJrlrrbnn6XlkI3kvIHkuJrogZjkuLrplIDl
-lK7lm6LpmJ/ovoUNCuWvvOmhvumXruOAgiANCg0K6K++56iL5aSn57qy77yaDQrnrKzkuIDpg6jl
-iIbjgIHplIDllK7kuLvnrqHnmoTlt6XkvZzkuI7op5LoibLlrprkvY0NCuS4gOOAgemUgOWUruS4
-u+euoeivpeWBmuS7gOS5iO+8nw0KMS4g5qGI5L6L5YiG5p6Q77ya6L+Z5Liq5Li7566h6K+l5aaC
-5L2V5YGa77yfDQoyLiDplIDllK7kuLvnrqHkuLrku4DkuYjov5nkuYjlv5nvvJ/lpoLkvZXog73k
-uI3ov5nkuYjlv5nvvJ8NCjMuIOmUgOWUruS4u+euoeeahOW3peS9nOmHjeeCueWcqOWTqumHjO+8
-nw0K5LqM44CB6ZSA5ZSu566h55CG55qE5Yeg5Liq5rOo5oSP54K5DQoxLiDnrqHnkIbopoHms6jm
-hI/luqbjgILmoYjkvovliIbmnpDvvJrov5nkuKrkuLvnrqHkuLrku4DkuYjkvJrlpLHotKXvvJ8g
-77yI566h55CG5pa55rOV5LiN5piv5LiA5oiQ5LiN5Y+Y55qE77yJDQoyLiDnrqHnkIbml6DlpKfk
-uovvvIzkuIDliIflnKjnu4boioLvvIjmipPplIDph4/vvIzkuZ/lvpfku47nu4boioLmipPotbfv
-vIkNCjMuIOmYsueBq+mHjeS6juaVkeeBq++8iOmihOmYsuabtOmHjeimge+8iQ0K5LiJ44CB6ZSA
-5ZSu5Li7566h6KeS6Imy5a6a5L2NDQoxLiDkuI7lhazlj7jjgIHkuIrlj7jjgIHlkIzkuovnmoTl
-hbPns7vlrprkvY0NCjIuIOS4juS4i+WxnueahOWFs+ezu+WumuS9jQ0K4oCU4oCU5Li7566h5LiO
-5LiL5bGe6IO95ZCm5oiQ5Li655yf5q2j55qE5pyL5Y+L77yfIA0K4oCU4oCU5a+55LiL5bGe6K+l
-5Lil5Y6J6L+Y5piv5a695a6577yfIA0KDQrnrKzkuozpg6jliIbjgIHplIDllK7lm6LpmJ/nmoTn
-u4Tlu7oNCuS4gOOAgemUgOWUruS6uuWRmOeahOaMkemAiQ0KMS4g6YCJ5Lq65q+U55So5Lq65pu0
-6YeN6KaB77yM5ZOq56eN6ZSA5ZSu5Lq65ZGY6YCC5ZCI5L2g77yf5LuA5LmI5oCn5qC85aW977yf
-DQoyLiDpnaLor5XplIDllK7kurrlkZjopoHms6jmhI/nmoTpl67popgNCjMuIOivleeUqOacn+Wm
-guS9leWIpOaWre+8nyDor5XnlKjmnJ/opoHogIPlr5/plIDllK7kurrlkZjnmoQy5aSn54K5DQrk
-uozjgIHplIDllK7kurrlkZjnmoTln7nogrINCjEuIOmUgOWUruS4u+euoeeahOS4u+imgeiBjOi0
-o++8muaVmeW4iOi/mOaYr+aVmee7g++8nw0KMi4g5Z+56K6t5oiQ5pys5aSq6auY77yfDQozLiDk
-uLrku4DkuYjln7norq3mlYjmnpzkuI3nkIbmg7PvvJ8NCjQuIOaMh+WvvOS4i+WxnuaXtuimgeaz
-qOaEj+eahOWHoOS4qumXrumimA0K4oCU4oCU5L2g6K+05LqG5LuW5LiA5a6a5oeC5ZCX77yfDQri
-gJTigJTku5bmh4LkuobkuIDlrprlgZrlkJfvvJ8NCjUuIOi+heWvvOmUgOWUruS6uuWRmOeahDXn
-p43kuLvopoHmlrnms5UNCuS4ieOAgeWmguS9leeVmeS9j+S8mOengOmUgOWUruS6uuWRmO+8nw0K
-MS4g5Li65LuA5LmI5LyY56eA6ZSA5ZSu5Lq65ZGY6KaB6LWw77yfDQoyLiDlpoLkvZXnlZnkvY/k
-vJjnp4DkurrmiY3vvJ8NCiANCuesrOS4iemDqOWIhuOAgemUgOWUruS6uuWRmOeuoeeQhuS4jumU
-gOWUruS4mue7qeeuoeeQhg0K5LiA44CB5oiR5Lus55qE5bel5L2c6YeN54K55bqU5pS+5Zyo5ZOq
-5Lqb5Lq66Lqr5LiK77yfDQoxLiDplIDllK7nu4/nkIbnmoTml7bpl7TkuI7nsr7lipvkuI3og73l
-ubPlnYfliIbphY3vvIzlpoLkvZXpgb/lhY3kvJrlk63nmoTlranlrZDmnInlpbblkIPnjrDosaHv
-vJ8NCjIuIOmUgOWUruS6uuWRmOeahDPlpKfliIbnsbsNCjMuIOmUgOWUruS6uuWRmOWIhuexu+eu
-oeeQhuWOn+WImQ0K5LqM44CB6ZSA5ZSu5Lia57up5aaC5L2V5oqT77yfDQoxLiDkuLrku4DkuYjm
-ipPkuJrnu6nvvIzmgLvmmK/kuI3op4HmlYjmnpzvvJ8gDQoyLiDmipPkuJrnu6nvvIzopoHku47k
-uInngrnlhaXmiYsNCuS4ieOAgemUgOWUruS6uuWRmOaXpeW4uOW3peS9nOeuoeeQhg0KMS4g6ZSA
-5ZSu5Lq65ZGY5Ye65Y675bmy5Zib5LqG77yM5L2g55+l6YGT5ZCX77yf5aaC5L2V566h55CG77yf
-DQoyLiDplIDllK7kurrlkZjml6XluLjlt6XkvZznrqHnkIbkuInmi5vjgIINCuKAlOKAlOS4jeeU
-qOWinuWKoOaKleWFpe+8jOiuqeWboumYn+mUgOWUruS4mue7qeaPkOWNh+eahOaWueazlQ0K5Zub
-44CB6ZSA5ZSu55uu5qCH6K6+5a6a5LiO5YiG6KejDQoxLiDplIDllK7nm67moIfnmoTorr7lrprl
-jp/liJkNCjIuIOmUgOWUruS6uuWRmOeahOS4mue7qeaMh+agh+WIhuino+aWueazlQ0K5LqU44CB
-6ZSA5ZSu5Lia57up6ICD5qC4DQox44CB6ZSA5ZSu5Lit55qE5YWz6ZSu5oyH5qCHDQrigJTigJTl
-poLkvZXogIPmoLjkuIvlsZ7vvJ/lhYjov5vnmoTplIDllK7nrqHnkIbvvIzlv4XpobvlgZrliLDp
-h4/ljJYNCjIuIOWFs+mUruS4mue7qeaMh+agh+KAlEtQSeS7i+e7jQ0K4oCU4oCU6ICD5qC46ZSA
-5ZSu5Lq65ZGY55qE5Yeg5Liq5YWz6ZSu5Lia57up5oyH5qCHDQozLiDov5DnlKjlhbPplK7kuJrn
-u6nmjIfmoIfnmoTlh6DkuKrms6jmhI/ngrkNCiANCuesrOWbm+mDqOWIhu+8jOmUgOWUruS6uuWR
-mOeahOa/gOWKseS4juaDqee9mg0K5LiA44CB5b+F6aG75LqG6Kej55qE5Yeg5Liq5r+A5Yqx5Y6f
-55CGDQoxLiDpqazmlq/mtJvpnIDmsYLlsYLmrKHnkIborroNCjIuIOWFrOW5s+eQhuiuuiAtLSDm
-oYjkvovliIbmnpANCuS6jOOAgea/gOWKseaWueazlQ0KMS4g5oiR5Lik5omL56m656m677yM5ou/
-5LuA5LmI5r+A5Yqx5LiL5bGe77yfDQrigJTigJTlh6DkuKrkvY7miJDmnKznmoTmv4DlirHmlrnm
-s5UNCjIuIOaPkOaLlOS4i+WxnuS4jua/gOWKsQ0K4oCU4oCU5Lia57up5aW95bCx5bqU6K+l5o+Q
-5ouU77yf5ZOq57G75Lq66IO95o+Q5ouU77yf5om25LiK6ams77yM6L+Y5b6X6YCB5LiA56iLIA0K
-5LiJ44CB5Lia57up56ue6LWb5LiO5r+A5YqxDQoxLiDkuJrnu6nnq57otZvkuIDlrprlkIjpgILl
-kJfvvJ8g5Lia57up56ue6LWb55qE5Yip5LiO5byKDQoyLiDlpoLkvZXpgb/lhY3kuJrnu6nnq57o
-tZvnmoTlvIrnq6/vvJ8NCuWbm+OAgemUgOWUruS6uuWRmOeahOaDqee9mg0KMS4g5pyJ5LqG6IOh
-6JCd5Y2c77yM6L+Y6ZyA6KaB5aSn5qOS5ZCX77yf5Y2V6Z2g5r+A5Yqx6KGM5ZCX77yfDQoyLiDl
-poLkvZXmibnor4TkuIvlsZ7vvJ/mibnor4TkuIvlsZ7nmoTmoIflh4bliqjkvZwNCiANCuesrOS6
-lOmDqOWIhuOAgemUgOWUruS4u+euoeeahOiHquaIkeaPkOWNhw0KMS4g5oiR5Lus5Li65LuA5LmI
-5Lya6KKr5o+Q5Y2H77yf5oiR5Lus55qE6IO95Yqb5piv5ZCm6IO96IOc5Lu7546w5Zyo55qE5bel
-5L2c77yfDQoyLiDlpoLkvZXmj5DljYfoh6rlt7HnmoTnrqHnkIbmioDog73vvJ8NCuKAlOKAlOaP
-kOmrmOeuoeeQhuaKgOiDveeahDPkuKrpgJTlvoQNCuKAlOKAlOeuoeeQhuiAheeahOWtpuS5oO+8
-jOaIkeS7rOaYr+WQpuecn+eahOaEj+ivhuWIsOWtpuS5oOeahOmHjeimgeaAp++8nw0K4oCU4oCU
-566h55CG6ICF5aaC5L2V5a2m5Lmg77yf5rKh5pyJ5pe26Ze05a2m5Lmg5oCO5LmI5Yqe77yfDQoz
-LiDplIDllK7kuLvnrqHopoHlvZPlv4PnmoTpmbfpmLEgDQrigJTigJTmoYjkvovliIbmnpDvvJro
-uqvnu4/nmb7miJjnmoTlpbnkuLrku4DkuYjlpLHotKU/DQrigJTigJTlpoLkvZXnoLTop6Ppmbfp
-mLHvvJ8NCg0KDQoNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCuS8gcK35qWtwrflrbjCt+e/ksK357ayIO+8
-iOS4reWci+efpeWQjeS8gealreWfueiok+acjeWLmeS+m+aHieWVhu+8iQ0KDQrjgJDmiYsuLi4u
-5py644CRIG83NTUtNjY2Mm8zNTUgICBsMzU0NG9sMzNsNeminOWwj+WnkA0K44CQ6YKuLi4uLueu
-seOAkSA5NzE3MDA3MzJAcXEuY29tICAg5b6uLuS/oe+8miA5NzE3MDA3MzINCi0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0NCuKWoOKWoOKWoOa4qemmqOaPkOekuu+8mumAgOiuoumCruS7tuivt+WbnuWkjeiHsyBw
-ZWl4dW4zMzAxQDE2My5jb20NCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGlu
-dXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LW52ZGltbQo=
+
+# description
+
+nvml test suite vmmalloc_fork test hang.
+
+$ ps -eo stat,comm  | grep vmma
+S+   vmmalloc_fork
+Sl+  vmmalloc_fork
+Z+   vmmalloc_fork <defunct>
+Sl+  vmmalloc_fork
+Z+   vmmalloc_fork <defunct>
+Z+   vmmalloc_fork <defunct>
+Sl+  vmmalloc_fork
+Z+   vmmalloc_fork <defunct>
+Z+   vmmalloc_fork <defunct>
+Z+   vmmalloc_fork <defunct>
+
+dmesg:
+
+[  250.499097] INFO: task vmmalloc_fork:9805 blocked for more than 120 seconds.
+[  250.530667]       Not tainted 4.9.09fe68ca+ #27
+[  250.550901] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[  250.585752] vmmalloc_fork   D[  250.598362]  ffffffff8171813c     0  9805   9765 0x00000080
+[  250.623445]  ffff88075dc68f80[  250.636052]  0000000000000000 ffff88076058db00 ffff88017c5b0000 ffff880763b19340[  250.668510]  ffffc9000fe1bbb0 ffffffff8171813c ffffc9000fe1bc20 ffffc9000fe1bbe0[  250.704220]  ffffffff82248898 ffff88076058db00 ffffffff82248898Call Trace:
+[  250.738382]  [<ffffffff8171813c>] ? __schedule+0x21c/0x6a0
+[  250.763404]  [<ffffffff817185f6>] schedule+0x36/0x80
+[  250.786177]  [<ffffffff81284471>] get_unlocked_mapping_entry+0xc1/0x120
+[  250.815869]  [<ffffffff81283810>] ? iomap_dax_rw+0x110/0x110
+[  250.841350]  [<ffffffff81284c0a>] grab_mapping_entry+0x4a/0x220
+[  250.868442]  [<ffffffff812851e9>] iomap_dax_fault+0xa9/0x3b0
+[  250.894437]  [<ffffffffa02b15fe>] xfs_filemap_fault+0xce/0xf0 [xfs]
+[  250.922805]  [<ffffffff811d3159>] __do_fault+0x79/0x100
+[  250.947035]  [<ffffffff811d7a2b>] do_fault+0x49b/0x690
+[  250.970964]  [<ffffffffa02b146c>] ? xfs_filemap_pmd_fault+0x9c/0x160 [xfs]
+[  251.001812]  [<ffffffff811d94ba>] handle_mm_fault+0x61a/0xa50
+[  251.027736]  [<ffffffff8106c3da>] __do_page_fault+0x22a/0x4a0
+[  251.053700]  [<ffffffff8106c680>] do_page_fault+0x30/0x80
+[  251.077962]  [<ffffffff81003b55>] ? do_syscall_64+0x175/0x180
+[  251.103835]  [<ffffffff8171e208>] page_fault+0x28/0x30
+
+
+# kernel versions:
+
+v4.6 pass in seconds
+v4.7 hang
+v4.9-rc1 hang
+Linus tree to commit 9fe68ca hang
+
+bisect points to 
+ first bad commit: [ac401cc782429cc8560ce4840b1405d603740917] dax: New fault locking
+
+v4.7 with these 3 commits reverted pass:
+4d9a2c8 - Jan Kara, 6 months ago : dax: Remove i_mmap_lock protection
+bc2466e - Jan Kara, 6 months ago : dax: Use radix tree entry lock to protect cow faults
+ac401cc - Jan Kara, 6 months ago : dax: New fault locking
+
+# nvml version:
+https://github.com/pmem/nvml.git
+to commit:
+  feab4d6f65102139ce460890c898fcad09ce20ae
+
+# How reproducible:
+always
+
+# Test steps:
+
+<git clone and pmem0 setup>
+
+$cd nvml
+$make install -j64
+
+$cat > src/test/testconfig.sh <<EOF
+PMEM_FS_DIR=/daxmnt
+NON_PMEM_FS_DIR=/tmp
+EOF
+
+$mkfs.xfs /dev/pmem0
+$mkdir -p /daxmnt/
+$mount -o dax /dev/pmem0 /daxmnt/
+
+$make -C src/test/vmmalloc_fork/ TEST_TIME=60m clean
+$make -C src/test/vmmalloc_fork/ TEST_TIME=60m check
+$umount /daxmnt
