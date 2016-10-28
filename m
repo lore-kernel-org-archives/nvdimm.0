@@ -1,13 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from NAM03-CO1-obe.outbound.protection.outlook.com
+ (mail-co1nam03on071e.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe48::71e])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3658781DFB
- for <linux-nvdimm@lists.01.org>; Fri, 28 Oct 2016 14:49:09 -0700 (PDT)
-Subject: [PATCH] device-dax: check devm_nsio_enable() return value
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 28 Oct 2016 14:46:07 -0700
-Message-ID: <147769116781.491.4900126924070257885.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EEC021A1E28
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Oct 2016 18:58:30 -0700 (PDT)
+From: "Boylston, Brian" <brian.boylston@hpe.com>
+Subject: RE: [PATCH v2 3/3] x86: remove unneeded flush in
+ arch_copy_from_iter_pmem()
+Date: Fri, 28 Oct 2016 01:58:29 +0000
+Message-ID: <CS1PR84MB0119143471FF0B524DA10EC08EAD0@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
+References: <20161026155021.20892-1-brian.boylston@hpe.com>
+ <20161026155021.20892-4-brian.boylston@hpe.com>
+ <58110A90.9070900@plexistor.com>
+In-Reply-To: <58110A90.9070900@plexistor.com>
+Content-Language: en-US
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,52 +28,81 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: Boaz Harrosh <boaz@plexistor.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "Moreno, Oliver" <oliver.moreno@hpe.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@ZenIV.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "boylston@burromesa.net" <boylston@burromesa.net>
 List-ID: <linux-nvdimm@lists.01.org>
 
-If the dax_pmem driver is passed a resource that is already busy the
-driver probe attempt should fail with a message like the following:
+Boaz Harrosh wrote on 2016-10-26:
+> On 10/26/2016 06:50 PM, Brian Boylston wrote:
+>> copy_from_iter_nocache() now uses nocache copies for all types of iovecs
+>> on x86, so the flush in arch_copy_from_iter_pmem() is no longer needed.
+>> 
+>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> Cc: Ingo Molnar <mingo@redhat.com>
+>> Cc: "H. Peter Anvin" <hpa@zytor.com>
+>> Cc: <x86@kernel.org>
+>> Cc: Al Viro <viro@ZenIV.linux.org.uk>
+>> Cc: Dan Williams <dan.j.williams@intel.com>
+>> Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
+>> Reviewed-by: Toshi Kani <toshi.kani@hpe.com>
+>> Reported-by: Oliver Moreno <oliver.moreno@hpe.com>
+>> ---
+>>  arch/x86/include/asm/pmem.h | 19 +------------------
+>>  1 file changed, 1 insertion(+), 18 deletions(-)
+>> diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+>> index 643eba4..2fbf4ae 100644
+>> --- a/arch/x86/include/asm/pmem.h
+>> +++ b/arch/x86/include/asm/pmem.h
+>> @@ -72,15 +72,6 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
+>>  		clwb(p);
+>>  }
+>> -/*
+>> - * copy_from_iter_nocache() on x86 only uses non-temporal stores for iovec
+>> - * iterators, so for other types (bvec & kvec) we must do a cache write-back.
+>> - */
+>> -static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
+>> -{
+>> -	return iter_is_iovec(i) == false;
+>> -}
+>> -
+>>  /**
+>>   * arch_copy_from_iter_pmem - copy data from an iterator to PMEM
+>>   * @addr:	PMEM destination address
+>> @@ -92,15 +83,7 @@ static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
+>>  static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+>>  		struct iov_iter *i)
+>>  {
+>> -	size_t len;
+>> -
+>> -	/* TODO: skip the write-back by always using non-temporal stores */
+>> -	len = copy_from_iter_nocache(addr, bytes, i);
+>> -
+>> -	if (__iter_needs_pmem_wb(i))
+>> -		arch_wb_cache_pmem(addr, bytes);
+>> -
+>> -	return len;
+>> +	return copy_from_iter_nocache(addr, bytes, i);
+> 
+> I wish you would remove all this completely. Don't see the point for it anymore
+> 
 
-  dax_pmem dax0.1: could not reserve region [mem 0x100000000-0x11fffffff]
+At first, I was just targeting bvecs for the splice() case, so I had left the
+check and the flush in there for kvecs.  When doing this v2 of the patch set,
+I made kvecs nocache as well, so removed the check and flush, but didn't follow
+through completely as you suggest.  Will revisit.
 
-However, if we do not catch the error we crash for the obvious reason of
-accessing memory that is not mapped.
+Thanks!
+Brian
 
- BUG: unable to handle kernel paging request at ffffc90020001000
- IP: [<ffffffff81496712>] __memcpy+0x12/0x20
- [..]
- Call Trace:
-  [<ffffffff815c4960>] ? nsio_rw_bytes+0x60/0x180
-  [<ffffffff815c6045>] nd_pfn_validate+0x75/0x320
-  [<ffffffff815c63a9>] nvdimm_setup_pfn+0xb9/0x5d0
-  [<ffffffff815c48ef>] ? devm_nsio_enable+0xff/0x110
-  [<ffffffff815cb699>] dax_pmem_probe+0x59/0x260
-
-Cc: <stable@vger.kernel.org>
-Fixes: ab68f2622136 ("/dev/dax, pmem: direct access to persistent memory")
-Reported-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/pmem.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index 4a15fa5df98b..73c6ce93a0d9 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -78,7 +78,9 @@ static int dax_pmem_probe(struct device *dev)
- 	nsio = to_nd_namespace_io(&ndns->dev);
- 
- 	/* parse the 'pfn' info block via ->rw_bytes */
--	devm_nsio_enable(dev, nsio);
-+	rc = devm_nsio_enable(dev, nsio);
-+	if (rc)
-+		return rc;
- 	altmap = nvdimm_setup_pfn(nd_pfn, &res, &__altmap);
- 	if (IS_ERR(altmap))
- 		return PTR_ERR(altmap);
-
+> Thanks a lot for doing this. I have this patch for ages in my trees and was too
+> lasy to fight them through. Yes it is a big boost for many workloads.
+> 
+> Lots of gratitude
+> Boaz
+> 
+>>  }
+>>  /**
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
