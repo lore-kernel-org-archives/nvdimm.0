@@ -1,14 +1,16 @@
-From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: multi-threads libvmmalloc fork test hang
-Date: Thu, 27 Oct 2016 15:37:20 +0200
-Message-ID: <20161027133720.GF19743@quack2.suse.cz>
-References: <20161027112230.wsumgs62fqdxt3sc@xzhoul.usersys.redhat.com>
+From: "Boylston, Brian" <brian.boylston-ZPxbGqLxI0U@public.gmane.org>
+Subject: RE: [PATCH v2 1/3] introduce memcpy_nocache()
+Date: Fri, 28 Oct 2016 01:52:47 +0000
+Message-ID: <CS1PR84MB01198F4F6DCE8D35E85394208EAD0@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
+References: <20161026155021.20892-1-brian.boylston@hpe.com>
+ <20161026155021.20892-2-brian.boylston@hpe.com>
+ <alpine.DEB.2.20.1610262110220.5013@nanos>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161027112230.wsumgs62fqdxt3sc-obHvtwIU90hQcClZ3XN9yxcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1610262110220.5013@nanos>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,97 +20,106 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Moreno,
+ Oliver" <oliver.moreno-ZPxbGqLxI0U@public.gmane.org>, "x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "boylston-393akWIupGAXhy9q4Lf3Ug@public.gmane.org" <boylston-393akWIupGAXhy9q4Lf3Ug@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-Thanks for the report. I'll try to reproduce it...
+Thomas Gleixner wrote on 2016-10-26:
+> On Wed, 26 Oct 2016, Brian Boylston wrote:
+>> --- a/arch/x86/include/asm/string_32.h
+>> +++ b/arch/x86/include/asm/string_32.h
+>> @@ -196,6 +196,9 @@ static inline void *__memcpy3d(void *to, const void *from, size_t len)
+> 
+>> +#define __HAVE_ARCH_MEMCPY_NOCACHE
+>> +extern void *memcpy_nocache(void *dest, const void *src, size_t count);
+> 
+> Can we please move that prototype to linux/string.h instead of having it in
+> both files and just define __HAVE_ARCH_MEMCPY_NOCACHE? And that define can
+> move into x86/include/asm/string.h. There is no point in duplicating all
+> that stuff.
 
-								Honza
+Yes, sounds good.
 
-On Thu 27-10-16 19:22:30, Xiong Zhou wrote:
-> # description
 > 
-> nvml test suite vmmalloc_fork test hang.
+>> --- a/arch/x86/include/asm/string_64.h
+>> +++ b/arch/x86/include/asm/string_64.h
+>> @@ -51,6 +51,9 @@ extern void *__memcpy(void *to, const void *from, size_t len);
 > 
-> $ ps -eo stat,comm  | grep vmma
-> S+   vmmalloc_fork
-> Sl+  vmmalloc_fork
-> Z+   vmmalloc_fork <defunct>
-> Sl+  vmmalloc_fork
-> Z+   vmmalloc_fork <defunct>
-> Z+   vmmalloc_fork <defunct>
-> Sl+  vmmalloc_fork
-> Z+   vmmalloc_fork <defunct>
-> Z+   vmmalloc_fork <defunct>
-> Z+   vmmalloc_fork <defunct>
+>> +#define __HAVE_ARCH_MEMCPY_NOCACHE
+>> +extern void *memcpy_nocache(void *dest, const void *src, size_t count)
 > 
-> dmesg:
+>> +#ifdef __HAVE_ARCH_MEMCPY_NOCACHE
 > 
-> [  250.499097] INFO: task vmmalloc_fork:9805 blocked for more than 120 seconds.
-> [  250.530667]       Not tainted 4.9.09fe68ca+ #27
-> [  250.550901] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-> [  250.585752] vmmalloc_fork   D[  250.598362]  ffffffff8171813c     0  9805   9765 0x00000080
-> [  250.623445]  ffff88075dc68f80[  250.636052]  0000000000000000 ffff88076058db00 ffff88017c5b0000 ffff880763b19340[  250.668510]  ffffc9000fe1bbb0 ffffffff8171813c ffffc9000fe1bc20 ffffc9000fe1bbe0[  250.704220]  ffffffff82248898 ffff88076058db00 ffffffff82248898Call Trace:
-> [  250.738382]  [<ffffffff8171813c>] ? __schedule+0x21c/0x6a0
-> [  250.763404]  [<ffffffff817185f6>] schedule+0x36/0x80
-> [  250.786177]  [<ffffffff81284471>] get_unlocked_mapping_entry+0xc1/0x120
-> [  250.815869]  [<ffffffff81283810>] ? iomap_dax_rw+0x110/0x110
-> [  250.841350]  [<ffffffff81284c0a>] grab_mapping_entry+0x4a/0x220
-> [  250.868442]  [<ffffffff812851e9>] iomap_dax_fault+0xa9/0x3b0
-> [  250.894437]  [<ffffffffa02b15fe>] xfs_filemap_fault+0xce/0xf0 [xfs]
-> [  250.922805]  [<ffffffff811d3159>] __do_fault+0x79/0x100
-> [  250.947035]  [<ffffffff811d7a2b>] do_fault+0x49b/0x690
-> [  250.970964]  [<ffffffffa02b146c>] ? xfs_filemap_pmd_fault+0x9c/0x160 [xfs]
-> [  251.001812]  [<ffffffff811d94ba>] handle_mm_fault+0x61a/0xa50
-> [  251.027736]  [<ffffffff8106c3da>] __do_page_fault+0x22a/0x4a0
-> [  251.053700]  [<ffffffff8106c680>] do_page_fault+0x30/0x80
-> [  251.077962]  [<ffffffff81003b55>] ? do_syscall_64+0x175/0x180
-> [  251.103835]  [<ffffffff8171e208>] page_fault+0x28/0x30
+> You define __HAVE_ARCH_MEMCPY_NOCACHE for both 32 and 64 bit. What is
+> this #ifdef for ?
+
+Now that you raise the question, I'm not sure, and I see that the
+x86 memcpy() definition isn't similarly wrapped.  I can adjust it.
+
 > 
+>> +void *memcpy_nocache(void *dest, const void *src, size_t count)
+>> +{
+>> +	__copy_from_user_inatomic_nocache(dest, src, count);
 > 
-> # kernel versions:
+> You want to replace a memcpy with this and then use copy from user. Why?
+> That does not make any sense to me and even if it makes sense for whatever
+> reason then this wants to be documented and the src argument needs a type
+> cast to (void __user *)..
+
+I agree that the documentation needs improvement.  The goal is to memcpy
+while avoiding the processor cache.  Following x86's arch_memcpy_to_pmem(),
+I was thinking that the user nocache implementation on x86 would work,
+but I have none of the comments that arch_memcpy_to_pmem() has...
+
 > 
-> v4.6 pass in seconds
-> v4.7 hang
-> v4.9-rc1 hang
-> Linus tree to commit 9fe68ca hang
+> Further this uses the inatomic variant. Why? Does a memcpy replacement
+> suddenly require to be called in atomic context? Again, this makes no sense
+> and lacks any form of comment. The kernel doc below does not say anything
+> about that.
+
+I borrowed the use of the inatomic variant from arch_memcpy_to_pmem().
+
+Perhaps I need to look at memcpy_to_pmem() as suggested by Boaz.
+
 > 
-> bisect points to 
->  first bad commit: [ac401cc782429cc8560ce4840b1405d603740917] dax: New fault locking
+> Neither provides the changelog any useful information which is
+> complementary to what the patch actually does.
 > 
-> v4.7 with these 3 commits reverted pass:
-> 4d9a2c8 - Jan Kara, 6 months ago : dax: Remove i_mmap_lock protection
-> bc2466e - Jan Kara, 6 months ago : dax: Use radix tree entry lock to protect cow faults
-> ac401cc - Jan Kara, 6 months ago : dax: New fault locking
+>> +#ifndef __HAVE_ARCH_MEMCPY_NOCACHE
+>> +/**
+>> + * memcpy_nocache - Copy one area of memory to another, avoiding the
+>> + * processor cache if possible
 > 
-> # nvml version:
-> https://github.com/pmem/nvml.git
-> to commit:
->   feab4d6f65102139ce460890c898fcad09ce20ae
+> I'm not sure whether kerneldoc is happy about that line break. Did you
+> build the docs?
 > 
-> # How reproducible:
-> always
+> Make the initial line shorter and explain the functionality in detail
+> below the arguments
 > 
-> # Test steps:
+>> + * @dest: Where to copy to
+>> + * @src: Where to copy from
+>> + * @count: The size of the area.
 > 
-> <git clone and pmem0 setup>
+> Nit. Can you please make this in tabular form for readability sake?
+
+No, I did not try to build the docs.  I'll revisit this and your other
+doc-related feedback.
+
+Thanks!
+Brian
+
 > 
-> $cd nvml
-> $make install -j64
+>  * @dest:	Where to copy to
+>  * @src:	Where to copy from
+>  * @count:	The size of the area.
+>> + */
+>> +static inline void *memcpy_nocache(void *dest, const void *src, size_t count)
+>> +{
+>> +	return memcpy(dest, src, count);
+>> +}
+>> +#endif
 > 
-> $cat > src/test/testconfig.sh <<EOF
-> PMEM_FS_DIR=/daxmnt
-> NON_PMEM_FS_DIR=/tmp
-> EOF
+> Thanks,
 > 
-> $mkfs.xfs /dev/pmem0
-> $mkdir -p /daxmnt/
-> $mount -o dax /dev/pmem0 /daxmnt/
-> 
-> $make -C src/test/vmmalloc_fork/ TEST_TIME=60m clean
-> $make -C src/test/vmmalloc_fork/ TEST_TIME=60m check
-> $umount /daxmnt
--- 
-Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
-SUSE Labs, CR
+> 	tglx
