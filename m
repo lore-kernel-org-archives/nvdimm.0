@@ -1,44 +1,72 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id AD50881DD3
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Oct 2016 08:35:00 -0700 (PDT)
+Date: Fri, 28 Oct 2016 09:35:00 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v8 05/16] dax: remove the last BUG_ON() from fs/dax.c
-Date: Wed, 19 Oct 2016 13:34:24 -0600
-Message-Id: <1476905675-32581-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1476905675-32581-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org
+Subject: Re: Infinite loop with DAX PMD faults
+Message-ID: <20161028153500.GA30329@linux.intel.com>
+References: <20161027190750.GA28888@quack2.suse.cz>
+ <20161027195449.GA29643@linux.intel.com>
+ <20161028080236.GB30952@quack2.suse.cz>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20161028080236.GB30952@quack2.suse.cz>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Don't take down the kernel if we get an invalid 'from' and 'length'
-argument pair.  Just warn once and return an error.
+On Fri, Oct 28, 2016 at 10:02:36AM +0200, Jan Kara wrote:
+> On Thu 27-10-16 13:54:49, Ross Zwisler wrote:
+> > On Thu, Oct 27, 2016 at 09:07:50PM +0200, Jan Kara wrote:
+> > > When testing my DAX patches rebased on top of Ross' DAX PMD series, I've
+> > > come across the following issue with generic/344 test from xfstests. The
+> > > test ends in an infinite fault loop when we fault index 0 over and over
+> > > again never finishing the fault. The problem is that we do a write fault
+> > > for index 0 when there is PMD for that index. So we enter wp_huge_pmd().
+> > > For whatever reason that returns VM_FAULT_FALLBACK so we continue to
+> > > handle_pte_fault(). There we do
+> > > 
+> > > 	if (pmd_trans_unstable(vmf->pmd) || pmd_devmap(*vmf->pmd))
+> > > 
+> > > check which is true - the PMD we have is pmd_trans_huge() - so we 'return
+> > > 0' and that results in retrying the fault and all happens from the
+> > > beginning again.
+> > > 
+> > > It isn't quite obvious how to break that cycle to me. The comment before
+> > > pmd_none_or_trans_huge_or_clear_bad() goes to great lengths explaining
+> > > possible races when PMD is pmd_trans_huge() so it needs careful evaluation
+> > > what needs to be done for DAX. Ross, any idea?
+> > 
+> > I'll try & reproduce this, and I'll get back to you.
+> 
+> For me it happened with ext4 which returned VM_FAULT_FALLBACK from its
+> pmd_fault handler on write fault (likely we were not able to allocate
+> sufficiently large contiguous hunk). So I'm not sure you will be able to
+> easily reproduce just with your series. However tweaking XFS to return
+> VM_FAULT_FALLBACK when FAULT_FLAG_WRITE is set should do the trick.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+I was able to reproduce it with XFS, with just my series.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index e52e754..219fa2b 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1194,7 +1194,8 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
- 	/* Block boundary? Nothing to do */
- 	if (!length)
- 		return 0;
--	BUG_ON((offset + length) > PAGE_SIZE);
-+	if (WARN_ON_ONCE((offset + length) > PAGE_SIZE))
-+		return -EINVAL;
- 
- 	memset(&bh, 0, sizeof(bh));
- 	bh.b_bdev = inode->i_sb->s_bdev;
--- 
-2.7.4
+The fallback check that's failing for me is this one:
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+        if (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR)
+
+in dax_pmd_insert_mapping().
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
