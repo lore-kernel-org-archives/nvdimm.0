@@ -1,25 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM01-BY2-obe.outbound.protection.outlook.com
- (mail-by2nam01on070a.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe42::70a])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9C12181D99
- for <linux-nvdimm@lists.01.org>; Fri, 28 Oct 2016 06:51:31 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2EEDF81D17
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Oct 2016 01:18:04 -0700 (PDT)
+Date: Fri, 28 Oct 2016 10:17:59 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: Infinite loop with DAX PMD faults
-Date: Fri, 28 Oct 2016 13:51:30 +0000
-Message-ID: <1477662579.20881.108.camel@hpe.com>
+Message-ID: <20161028081759.GD30952@quack2.suse.cz>
 References: <20161027190750.GA28888@quack2.suse.cz>
  <CAPcyv4gS3LwAq77t31aRCxuHu9UeC4axJbQmxS-JQJzBVV=GmQ@mail.gmail.com>
  <20161027210343.GA12217@linux.intel.com>
  <1477604810.20881.104.camel@hpe.com>
  <20161028041300.GA12061@linux.intel.com>
- <20161028081759.GD30952@quack2.suse.cz>
-In-Reply-To: <20161028081759.GD30952@quack2.suse.cz>
-Content-Language: en-US
-Content-ID: <D32A96B9EA5BFE4B98A60D06B7F2F67A@NAMPRD84.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20161028041300.GA12061@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,73 +23,98 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "jack@suse.cz" <jack@suse.cz>
-Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE2LTEwLTI4IGF0IDEwOjE3ICswMjAwLCBKYW4gS2FyYSB3cm90ZToNCj4gT24g
-VGh1IDI3LTEwLTE2IDIyOjEzOjAwLCBSb3NzIFp3aXNsZXIgd3JvdGU6DQo+ID4gDQo+ID4gT24g
-VGh1LCBPY3QgMjcsIDIwMTYgYXQgMDk6NDg6NDFQTSArMDAwMCwgS2FuaSwgVG9zaGltaXRzdSB3
-cm90ZToNCj4gPiA+IA0KPiA+ID4gT24gVGh1LCAyMDE2LTEwLTI3IGF0IDE1OjAzIC0wNjAwLCBS
-b3NzIFp3aXNsZXIgd3JvdGU6DQo+ID4gPiA+IA0KPiA+ID4gPiBPbiBUaHUsIE9jdCAyNywgMjAx
-NiBhdCAxMjo0NjozMlBNIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+ID4gPiA+ID4gDQo+
-ID4gPiA+ID4gDQo+ID4gPiA+ID4gT24gVGh1LCBPY3QgMjcsIDIwMTYgYXQgMTI6MDcgUE0sIEph
-biBLYXJhIDxqYWNrQHN1c2UuY3o+DQo+ID4gPiA+ID4gd3JvdGU6DQo+ID4gPiA+ID4gPiANCj4g
-PiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4gSGVsbG8sDQo+ID4gPiA+ID4gPiANCj4gPiA+ID4gPiA+
-IFdoZW4gdGVzdGluZyBteSBEQVggcGF0Y2hlcyByZWJhc2VkIG9uIHRvcCBvZiBSb3NzJyBEQVgg
-UE1EDQo+ID4gPiA+ID4gPiBzZXJpZXMsIEkndmUgY29tZSBhY3Jvc3MgdGhlIGZvbGxvd2luZyBp
-c3N1ZSB3aXRoDQo+ID4gPiA+ID4gPiBnZW5lcmljLzM0NCB0ZXN0IGZyb20geGZzdGVzdHMuIFRo
-ZSB0ZXN0IGVuZHMgaW4gYW4NCj4gPiA+ID4gPiA+IGluZmluaXRlIGZhdWx0IGxvb3Agd2hlbiB3
-ZSBmYXVsdCBpbmRleCAwIG92ZXIgYW5kIG92ZXINCj4gPiA+ID4gPiA+IGFnYWluIG5ldmVyIGZp
-bmlzaGluZyB0aGUgZmF1bHQuIFRoZSBwcm9ibGVtIGlzIHRoYXQgd2UgZG8NCj4gPiA+ID4gPiA+
-IGEgd3JpdGUgZmF1bHQgZm9yIGluZGV4IDAgd2hlbiB0aGVyZSBpcyBQTUQgZm9yIHRoYXQgaW5k
-ZXguDQo+ID4gPiA+ID4gPiBTbyB3ZSBlbnRlciB3cF9odWdlX3BtZCgpLiBGb3Igd2hhdGV2ZXIg
-cmVhc29uIHRoYXQgcmV0dXJucw0KPiA+ID4gPiA+ID4gVk1fRkFVTFRfRkFMTEJBQ0sgc28gd2Ug
-Y29udGludWUgdG8gaGFuZGxlX3B0ZV9mYXVsdCgpLg0KPiA+ID4gPiA+ID4gVGhlcmUgd2UgZG8N
-Cj4gPiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4gwqDCoMKgwqDCoMKgwqDCoGlmIChwbWRfdHJhbnNf
-dW5zdGFibGUodm1mLT5wbWQpIHx8DQo+ID4gPiA+ID4gPiBwbWRfZGV2bWFwKCp2bWYtDQo+ID4g
-PiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4gPiBwbWQpKQ0KPiA+ID4gPiA+ID4gDQo+ID4gPiA+ID4g
-PiBjaGVjayB3aGljaCBpcyB0cnVlIC0gdGhlIFBNRCB3ZSBoYXZlIGlzIHBtZF90cmFuc19odWdl
-KCkgLQ0KPiA+ID4gPiA+ID4gc28gd2UgJ3JldHVybiAwJyBhbmQgdGhhdCByZXN1bHRzIGluIHJl
-dHJ5aW5nIHRoZSBmYXVsdCBhbmQNCj4gPiA+ID4gPiA+IGFsbCBoYXBwZW5zIGZyb20gdGhlIGJl
-Z2lubmluZyBhZ2Fpbi4NCj4gPiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4gSXQgaXNuJ3QgcXVpdGUg
-b2J2aW91cyBob3cgdG8gYnJlYWsgdGhhdCBjeWNsZSB0byBtZS4gVGhlDQo+ID4gPiA+ID4gPiBj
-b21tZW50IGJlZm9yZSBwbWRfbm9uZV9vcl90cmFuc19odWdlX29yX2NsZWFyX2JhZCgpIGdvZXMN
-Cj4gPiA+ID4gPiA+IHRvIGdyZWF0IGxlbmd0aHMgZXhwbGFpbmluZyBwb3NzaWJsZSByYWNlcyB3
-aGVuIFBNRCBpcw0KPiA+ID4gPiA+ID4gcG1kX3RyYW5zX2h1Z2UoKSBzbyBpdCBuZWVkcyBjYXJl
-ZnVsIGV2YWx1YXRpb24gd2hhdCBuZWVkcw0KPiA+ID4gPiA+ID4gdG8gYmUgZG9uZSBmb3IgREFY
-LiBSb3NzLCBhbnkgaWRlYT8NCj4gPiA+ID4gPiANCj4gPiA+ID4gPiBDYW4geW91IGJpc2VjdCBp
-dCB3aXRoIENPTkZJR19CUk9LRU4gcmVtb3ZlZCBmcm9tIG9sZGVyDQo+ID4gPiA+ID4ga2VybmVs
-cz8NCj4gPiA+ID4gPiANCj4gPiA+ID4gPiBJIHJlbWVtYmVyIHRyYWNraW5nIGRvd24gc29tZXRo
-aW5nIGxpa2UgdGhpcyB3aGVuIGluaXRpYWxseQ0KPiA+ID4gPiA+IGRvaW5nIHRoZSBwbWQgc3Vw
-cG9ydC7CoMKgSXQgZW5kZWQgdXAgYmVpbmcgYSBtaXNzZWQNCj4gPiA+ID4gPiBwbWRfZGV2bWFw
-KCkgY2hlY2sgaW4gdGhlIGZhdWx0IHBhdGgsIHNvIGl0IG1heSBub3QgYmUgdGhlDQo+ID4gPiA+
-ID4gc2FtZSBpc3N1ZS7CoMKgSXQgd291bGQgYXQgbGVhc3QgYmUgaW50ZXJlc3RpbmcgdG8gc2Vl
-IGlmIDQuNg0KPiA+ID4gPiA+IGZhaWxzIGluIGEgc2ltaWxhciBtYW5uZXIgd2l0aCB0aGlzIHRl
-c3QgYW5kIEZTX0RBWF9QTUQNCj4gPiA+ID4gPiBlbmFibGVkLg0KPiA+ID4gPiANCj4gPiA+ID4g
-SSd2ZSBiZWVuIGFibGUgdG8gcmVwcm9kdWNlIHRoaXMgd2l0aCBteSB2NC45LXJjMiBicmFuY2gs
-IGJ1dA0KPiA+ID4gPiBpdCBkb2Vzbid0IHJlcHJvZHVjZSB3aXRoIHRoZSBvbGQgdjQuNiBrZXJu
-ZWwuDQo+ID4gPiANCj4gPiA+IE5vdCBzdXJlIGlmIGl0J3MgcmVsZXZhbnQsIGJ1dCBhcyBGWUkg
-SSBmaXhlZCBhIHNpbWlsYXIgaXNzdWUNCj4gPiA+IGJlZm9yZS4NCj4gPiA+IA0KPiA+ID4gY29t
-bWl0IDU5YmY0ZmI5ZDM4NjYwMWNiYWE3MGE5YjAwMTU5YWJiODQ2ZGVkYWENCj4gPiA+IGRheDog
-U3BsaXQgcG1kIG1hcCB3aGVuIGZhbGxiYWNrIG9uIENPVw0KPiA+ID4gDQo+ID4gPiAtVG9zaGkN
-Cj4gPiANCj4gPiBUaGFua3MhwqDCoEFwcGx5aW5nIGEgc2ltaWxhciBwYXRjaCBzb2x2ZXMgdGhp
-cw0KPiA+IGRlYWRsb2NrLsKgwqBVbmZvcnR1bmF0ZWx5IEkgZG9uJ3QgKHlldD8pIHVuZGVyc3Rh
-bmQgdGhpcyB3ZWxsIGVub3VnaA0KPiA+IHRvIHNheSB3aGV0aGVyIHRoaXMgaXMgdGhlIGNvcnJl
-Y3Qgc29sdXRpb24sIGJ1dCBpdCBtYWtlcw0KPiA+IGdlbmVyaWMvMzQ0ICsgUE1EcyBwYXNzLiA6
-KQ0KPiA+IA0KPiA+IERvZXMgYW55b25lIHdpdGggbW9yZSBtbSBrbm93bGVkZ2UgaGF2ZSB0aW1l
-IHRvIHJldmlldz8NCj4gDQo+IEknbSBub3QgcmVhbGx5IG11Y2ggaW50byBodWdlIHBhZ2VzIGJ1
-dCBBRkFJQ1QgdGhhdCBzaG91bGQgZml4IHRoZQ0KPiBwcm9ibGVtLiBJJ20ganVzdCBub3Qgc3Vy
-ZSB3aGV0aGVyIGluIG90aGVyIGNhc2VzIHdoZW4gd2UgcmV0dXJuDQo+IFZNX0ZBVUxUX0ZBTExC
-QUNLIHdlIGRvbid0IG5lZWQgc29tZXRoaW5nIHNpbWlsYXIuIFByb2JhYmx5IHRoaXMgd2lsbA0K
-PiBuZWVkIHNvbWUgZXhwZXJpbWVudHMNCj4gOykuDQoNCkdvb2QgdG8ga25vdyBpdCB3b3JrZWQu
-IDotKSBJIHRoaW5rIHdlIG5lZWQgdG8gc3BsaXQgYSBwbWQgbWFwcGluZyBpbg0KdGhlIGNhc2Ug
-b2YgQ09XIGZhbGxiYWNrLiBUaGUgcHRlIGhhbmRsZXIgbWF5IG5vdCBwcm9jZWVkIHdoZW4gYSBw
-bWQNCm1hcHBpbmcgaXMgc3RpbGwgaW4tcGxhY2UuDQoNClRoYW5rcywNCi1Ub3NoaQ0KDQpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0g
-bWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5v
-cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Thu 27-10-16 22:13:00, Ross Zwisler wrote:
+> On Thu, Oct 27, 2016 at 09:48:41PM +0000, Kani, Toshimitsu wrote:
+> > On Thu, 2016-10-27 at 15:03 -0600, Ross Zwisler wrote:
+> > > On Thu, Oct 27, 2016 at 12:46:32PM -0700, Dan Williams wrote:
+> > > > =
+
+> > > > On Thu, Oct 27, 2016 at 12:07 PM, Jan Kara <jack@suse.cz> wrote:
+> > > > > =
+
+> > > > > Hello,
+> > > > > =
+
+> > > > > When testing my DAX patches rebased on top of Ross' DAX PMD
+> > > > > series, I've come across the following issue with generic/344
+> > > > > test from xfstests. The test ends in an infinite fault loop when
+> > > > > we fault index 0 over and over again never finishing the fault.
+> > > > > The problem is that we do a write fault
+> > > > > for index 0 when there is PMD for that index. So we enter
+> > > > > wp_huge_pmd(). For whatever reason that returns VM_FAULT_FALLBACK
+> > > > > so we continue to handle_pte_fault(). There we do
+> > > > > =
+
+> > > > > =A0=A0=A0=A0=A0=A0=A0=A0if (pmd_trans_unstable(vmf->pmd) || pmd_d=
+evmap(*vmf-
+> > > > > >pmd))
+> > > > > =
+
+> > > > > check which is true - the PMD we have is pmd_trans_huge() - so we
+> > > > > 'return 0' and that results in retrying the fault and all happens
+> > > > > from the beginning again.
+> > > > > =
+
+> > > > > It isn't quite obvious how to break that cycle to me. The comment
+> > > > > before pmd_none_or_trans_huge_or_clear_bad() goes to great
+> > > > > lengths explaining possible races when PMD is pmd_trans_huge() so
+> > > > > it needs careful evaluation what needs to be done for DAX. Ross,
+> > > > > any idea?
+> > > > =
+
+> > > > Can you bisect it with CONFIG_BROKEN removed from older kernels?
+> > > > =
+
+> > > > I remember tracking down something like this when initially doing
+> > > > the pmd support.=A0=A0It ended up being a missed pmd_devmap() check=
+ in
+> > > > the fault path, so it may not be the same issue.=A0=A0It would at l=
+east
+> > > > be interesting to see if 4.6 fails in a similar manner with this
+> > > > test and FS_DAX_PMD enabled.
+> > > =
+
+> > > I've been able to reproduce this with my v4.9-rc2 branch, but it
+> > > doesn't reproduce with the old v4.6 kernel.
+> > =
+
+> > Not sure if it's relevant, but as FYI I fixed a similar issue before.
+> > =
+
+> > commit 59bf4fb9d386601cbaa70a9b00159abb846dedaa
+> > dax: Split pmd map when fallback on COW
+> > =
+
+> > -Toshi
+> =
+
+> Thanks!  Applying a similar patch solves this deadlock.  Unfortunately I =
+don't
+> (yet?) understand this well enough to say whether this is the correct
+> solution, but it makes generic/344 + PMDs pass. :)
+> =
+
+> Does anyone with more mm knowledge have time to review?
+
+I'm not really much into huge pages but AFAICT that should fix the problem.
+I'm just not sure whether in other cases when we return VM_FAULT_FALLBACK
+we don't need something similar. Probably this will need some experiments
+;).
+
+								Honza
+-- =
+
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
