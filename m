@@ -1,386 +1,288 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 07/21] mm: Add orig_pte field into vm_fault
-Date: Fri,  4 Nov 2016 05:25:03 +0100
-Message-Id: <1478233517-3571-8-git-send-email-jack@suse.cz>
-In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
-References: <1478233517-3571-1-git-send-email-jack@suse.cz>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
-List-ID: <linux-nvdimm@lists.01.org>
+From: =?utf-8?B?P+i3n+i4quS6p+WTgeS9v+eUqOeahOaDheWGte+8myDlhYjnlJ8=?=
+ <qrora-nhEeHEKhoTTYtjvyW6yDsg@public.gmane.org>
+Subject: =?utf-8?B?P+i3n+i4quS6p+WTgeS9v+eUqOeahOaDheWGte+8myA=?=
+Date: Mon, 31 Oct 2016 23:24:14 +0000 (UTC)
+Message-ID: <E678F732CE063CC53AA1B822C80C5686@olkss.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Date: Wed, 1 Nov 2017 07:23:52 +0800
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
 
-Add orig_pte field to vm_fault structure to allow ->page_mkwrite
-handlers to fully handle the fault. This also allows us to save some
-passing of extra arguments around.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- include/linux/mm.h |  4 +--
- mm/internal.h      |  2 +-
- mm/khugepaged.c    |  7 ++---
- mm/memory.c        | 82 +++++++++++++++++++++++++++---------------------------
- 4 files changed, 47 insertions(+), 48 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index df3958437473..5cc679b874eb 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -298,8 +298,8 @@ struct vm_fault {
- 	pgoff_t pgoff;			/* Logical page offset based on vma */
- 	unsigned long address;		/* Faulting virtual address */
- 	pmd_t *pmd;			/* Pointer to pmd entry matching
--					 * the 'address'
--					 */
-+					 * the 'address' */
-+	pte_t orig_pte;			/* Value of PTE at the time of fault */
- 
- 	struct page *cow_page;		/* Handler may choose to COW */
- 	struct page *page;		/* ->fault handlers should return a
-diff --git a/mm/internal.h b/mm/internal.h
-index 093b1eacc91b..44d68895a9b9 100644
---- a/mm/internal.h
-+++ b/mm/internal.h
-@@ -36,7 +36,7 @@
- /* Do not use these with a slab allocator */
- #define GFP_SLAB_BUG_MASK (__GFP_DMA32|__GFP_HIGHMEM|~__GFP_BITS_MASK)
- 
--int do_swap_page(struct vm_fault *vmf, pte_t orig_pte);
-+int do_swap_page(struct vm_fault *vmf);
- 
- void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
- 		unsigned long floor, unsigned long ceiling);
-diff --git a/mm/khugepaged.c b/mm/khugepaged.c
-index d7df06383b10..1f20f25fe029 100644
---- a/mm/khugepaged.c
-+++ b/mm/khugepaged.c
-@@ -873,7 +873,6 @@ static bool __collapse_huge_page_swapin(struct mm_struct *mm,
- 					unsigned long address, pmd_t *pmd,
- 					int referenced)
- {
--	pte_t pteval;
- 	int swapped_in = 0, ret = 0;
- 	struct vm_fault vmf = {
- 		.vma = vma,
-@@ -891,11 +890,11 @@ static bool __collapse_huge_page_swapin(struct mm_struct *mm,
- 	vmf.pte = pte_offset_map(pmd, address);
- 	for (; vmf.address < address + HPAGE_PMD_NR*PAGE_SIZE;
- 			vmf.pte++, vmf.address += PAGE_SIZE) {
--		pteval = *vmf.pte;
--		if (!is_swap_pte(pteval))
-+		vmf.orig_pte = *vmf.pte;
-+		if (!is_swap_pte(vmf.orig_pte))
- 			continue;
- 		swapped_in++;
--		ret = do_swap_page(&vmf, pteval);
-+		ret = do_swap_page(&vmf);
- 
- 		/* do_swap_page returns VM_FAULT_RETRY with released mmap_sem */
- 		if (ret & VM_FAULT_RETRY) {
-diff --git a/mm/memory.c b/mm/memory.c
-index 5f6bc9028a88..25028422a578 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2074,8 +2074,8 @@ static int do_page_mkwrite(struct vm_area_struct *vma, struct page *page,
-  * case, all we need to do here is to mark the page as writable and update
-  * any related book-keeping.
-  */
--static inline int wp_page_reuse(struct vm_fault *vmf, pte_t orig_pte,
--			struct page *page, int page_mkwrite, int dirty_shared)
-+static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
-+				int page_mkwrite, int dirty_shared)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
-@@ -2088,8 +2088,8 @@ static inline int wp_page_reuse(struct vm_fault *vmf, pte_t orig_pte,
- 	if (page)
- 		page_cpupid_xchg_last(page, (1 << LAST_CPUPID_SHIFT) - 1);
- 
--	flush_cache_page(vma, vmf->address, pte_pfn(orig_pte));
--	entry = pte_mkyoung(orig_pte);
-+	flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
-+	entry = pte_mkyoung(vmf->orig_pte);
- 	entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 	if (ptep_set_access_flags(vma, vmf->address, vmf->pte, entry, 1))
- 		update_mmu_cache(vma, vmf->address, vmf->pte);
-@@ -2139,8 +2139,7 @@ static inline int wp_page_reuse(struct vm_fault *vmf, pte_t orig_pte,
-  *   held to the old page, as well as updating the rmap.
-  * - In any case, unlock the PTL and drop the reference we took to the old page.
-  */
--static int wp_page_copy(struct vm_fault *vmf, pte_t orig_pte,
--		struct page *old_page)
-+static int wp_page_copy(struct vm_fault *vmf, struct page *old_page)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct mm_struct *mm = vma->vm_mm;
-@@ -2154,7 +2153,7 @@ static int wp_page_copy(struct vm_fault *vmf, pte_t orig_pte,
- 	if (unlikely(anon_vma_prepare(vma)))
- 		goto oom;
- 
--	if (is_zero_pfn(pte_pfn(orig_pte))) {
-+	if (is_zero_pfn(pte_pfn(vmf->orig_pte))) {
- 		new_page = alloc_zeroed_user_highpage_movable(vma,
- 							      vmf->address);
- 		if (!new_page)
-@@ -2178,7 +2177,7 @@ static int wp_page_copy(struct vm_fault *vmf, pte_t orig_pte,
- 	 * Re-check the pte - we dropped the lock
- 	 */
- 	vmf->pte = pte_offset_map_lock(mm, vmf->pmd, vmf->address, &vmf->ptl);
--	if (likely(pte_same(*vmf->pte, orig_pte))) {
-+	if (likely(pte_same(*vmf->pte, vmf->orig_pte))) {
- 		if (old_page) {
- 			if (!PageAnon(old_page)) {
- 				dec_mm_counter_fast(mm,
-@@ -2188,7 +2187,7 @@ static int wp_page_copy(struct vm_fault *vmf, pte_t orig_pte,
- 		} else {
- 			inc_mm_counter_fast(mm, MM_ANONPAGES);
- 		}
--		flush_cache_page(vma, vmf->address, pte_pfn(orig_pte));
-+		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
- 		entry = mk_pte(new_page, vma->vm_page_prot);
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 		/*
-@@ -2272,7 +2271,7 @@ static int wp_page_copy(struct vm_fault *vmf, pte_t orig_pte,
-  * Handle write page faults for VM_MIXEDMAP or VM_PFNMAP for a VM_SHARED
-  * mapping
-  */
--static int wp_pfn_shared(struct vm_fault *vmf, pte_t orig_pte)
-+static int wp_pfn_shared(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 
-@@ -2290,16 +2289,15 @@ static int wp_pfn_shared(struct vm_fault *vmf, pte_t orig_pte)
- 		 * We might have raced with another page fault while we
- 		 * released the pte_offset_map_lock.
- 		 */
--		if (!pte_same(*vmf->pte, orig_pte)) {
-+		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
- 			return 0;
- 		}
- 	}
--	return wp_page_reuse(vmf, orig_pte, NULL, 0, 0);
-+	return wp_page_reuse(vmf, NULL, 0, 0);
- }
- 
--static int wp_page_shared(struct vm_fault *vmf, pte_t orig_pte,
--		struct page *old_page)
-+static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
-@@ -2325,7 +2323,7 @@ static int wp_page_shared(struct vm_fault *vmf, pte_t orig_pte,
- 		 */
- 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 						vmf->address, &vmf->ptl);
--		if (!pte_same(*vmf->pte, orig_pte)) {
-+		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
- 			unlock_page(old_page);
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
- 			put_page(old_page);
-@@ -2334,7 +2332,7 @@ static int wp_page_shared(struct vm_fault *vmf, pte_t orig_pte,
- 		page_mkwrite = 1;
- 	}
- 
--	return wp_page_reuse(vmf, orig_pte, old_page, page_mkwrite, 1);
-+	return wp_page_reuse(vmf, old_page, page_mkwrite, 1);
- }
- 
- /*
-@@ -2355,13 +2353,13 @@ static int wp_page_shared(struct vm_fault *vmf, pte_t orig_pte,
-  * but allow concurrent faults), with pte both mapped and locked.
-  * We return with mmap_sem still held, but pte unmapped and unlocked.
-  */
--static int do_wp_page(struct vm_fault *vmf, pte_t orig_pte)
-+static int do_wp_page(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *old_page;
- 
--	old_page = vm_normal_page(vma, vmf->address, orig_pte);
-+	old_page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
- 	if (!old_page) {
- 		/*
- 		 * VM_MIXEDMAP !pfn_valid() case, or VM_SOFTDIRTY clear on a
-@@ -2372,10 +2370,10 @@ static int do_wp_page(struct vm_fault *vmf, pte_t orig_pte)
- 		 */
- 		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
- 				     (VM_WRITE|VM_SHARED))
--			return wp_pfn_shared(vmf, orig_pte);
-+			return wp_pfn_shared(vmf);
- 
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		return wp_page_copy(vmf, orig_pte, old_page);
-+		return wp_page_copy(vmf, old_page);
- 	}
- 
- 	/*
-@@ -2390,7 +2388,7 @@ static int do_wp_page(struct vm_fault *vmf, pte_t orig_pte)
- 			lock_page(old_page);
- 			vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 					vmf->address, &vmf->ptl);
--			if (!pte_same(*vmf->pte, orig_pte)) {
-+			if (!pte_same(*vmf->pte, vmf->orig_pte)) {
- 				unlock_page(old_page);
- 				pte_unmap_unlock(vmf->pte, vmf->ptl);
- 				put_page(old_page);
-@@ -2410,12 +2408,12 @@ static int do_wp_page(struct vm_fault *vmf, pte_t orig_pte)
- 				page_move_anon_rmap(old_page, vma);
- 			}
- 			unlock_page(old_page);
--			return wp_page_reuse(vmf, orig_pte, old_page, 0, 0);
-+			return wp_page_reuse(vmf, old_page, 0, 0);
- 		}
- 		unlock_page(old_page);
- 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
- 					(VM_WRITE|VM_SHARED))) {
--		return wp_page_shared(vmf, orig_pte, old_page);
-+		return wp_page_shared(vmf, old_page);
- 	}
- 
- 	/*
-@@ -2424,7 +2422,7 @@ static int do_wp_page(struct vm_fault *vmf, pte_t orig_pte)
- 	get_page(old_page);
- 
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
--	return wp_page_copy(vmf, orig_pte, old_page);
-+	return wp_page_copy(vmf, old_page);
- }
- 
- static void unmap_mapping_range_vma(struct vm_area_struct *vma,
-@@ -2512,7 +2510,7 @@ EXPORT_SYMBOL(unmap_mapping_range);
-  * We return with the mmap_sem locked or unlocked in the same cases
-  * as does filemap_fault().
-  */
--int do_swap_page(struct vm_fault *vmf, pte_t orig_pte)
-+int do_swap_page(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *page, *swapcache;
-@@ -2523,10 +2521,10 @@ int do_swap_page(struct vm_fault *vmf, pte_t orig_pte)
- 	int exclusive = 0;
- 	int ret = 0;
- 
--	if (!pte_unmap_same(vma->vm_mm, vmf->pmd, vmf->pte, orig_pte))
-+	if (!pte_unmap_same(vma->vm_mm, vmf->pmd, vmf->pte, vmf->orig_pte))
- 		goto out;
- 
--	entry = pte_to_swp_entry(orig_pte);
-+	entry = pte_to_swp_entry(vmf->orig_pte);
- 	if (unlikely(non_swap_entry(entry))) {
- 		if (is_migration_entry(entry)) {
- 			migration_entry_wait(vma->vm_mm, vmf->pmd,
-@@ -2534,7 +2532,7 @@ int do_swap_page(struct vm_fault *vmf, pte_t orig_pte)
- 		} else if (is_hwpoison_entry(entry)) {
- 			ret = VM_FAULT_HWPOISON;
- 		} else {
--			print_bad_pte(vma, vmf->address, orig_pte, NULL);
-+			print_bad_pte(vma, vmf->address, vmf->orig_pte, NULL);
- 			ret = VM_FAULT_SIGBUS;
- 		}
- 		goto out;
-@@ -2551,7 +2549,7 @@ int do_swap_page(struct vm_fault *vmf, pte_t orig_pte)
- 			 */
- 			vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 					vmf->address, &vmf->ptl);
--			if (likely(pte_same(*vmf->pte, orig_pte)))
-+			if (likely(pte_same(*vmf->pte, vmf->orig_pte)))
- 				ret = VM_FAULT_OOM;
- 			delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
- 			goto unlock;
-@@ -2608,7 +2606,7 @@ int do_swap_page(struct vm_fault *vmf, pte_t orig_pte)
- 	 */
- 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, vmf->address,
- 			&vmf->ptl);
--	if (unlikely(!pte_same(*vmf->pte, orig_pte)))
-+	if (unlikely(!pte_same(*vmf->pte, vmf->orig_pte)))
- 		goto out_nomap;
- 
- 	if (unlikely(!PageUptodate(page))) {
-@@ -2636,9 +2634,10 @@ int do_swap_page(struct vm_fault *vmf, pte_t orig_pte)
- 		exclusive = RMAP_EXCLUSIVE;
- 	}
- 	flush_icache_page(vma, page);
--	if (pte_swp_soft_dirty(orig_pte))
-+	if (pte_swp_soft_dirty(vmf->orig_pte))
- 		pte = pte_mksoft_dirty(pte);
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
-+	vmf->orig_pte = pte;
- 	if (page == swapcache) {
- 		do_page_add_anon_rmap(page, vma, vmf->address, exclusive);
- 		mem_cgroup_commit_charge(page, memcg, true, false);
-@@ -2668,7 +2667,7 @@ int do_swap_page(struct vm_fault *vmf, pte_t orig_pte)
- 	}
- 
- 	if (vmf->flags & FAULT_FLAG_WRITE) {
--		ret |= do_wp_page(vmf, pte);
-+		ret |= do_wp_page(vmf);
- 		if (ret & VM_FAULT_ERROR)
- 			ret &= VM_FAULT_ERROR;
- 		goto out;
-@@ -3330,7 +3329,7 @@ static int numa_migrate_prep(struct page *page, struct vm_area_struct *vma,
- 	return mpol_misplaced(page, vma, addr);
- }
- 
--static int do_numa_page(struct vm_fault *vmf, pte_t pte)
-+static int do_numa_page(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *page = NULL;
-@@ -3338,6 +3337,7 @@ static int do_numa_page(struct vm_fault *vmf, pte_t pte)
- 	int last_cpupid;
- 	int target_nid;
- 	bool migrated = false;
-+	pte_t pte = vmf->orig_pte;
- 	bool was_writable = pte_write(pte);
- 	int flags = 0;
- 
-@@ -3488,8 +3488,7 @@ static int handle_pte_fault(struct vm_fault *vmf)
- 		 * So now it's safe to run pte_offset_map().
- 		 */
- 		vmf->pte = pte_offset_map(vmf->pmd, vmf->address);
--
--		entry = *vmf->pte;
-+		vmf->orig_pte = *vmf->pte;
- 
- 		/*
- 		 * some architectures can have larger ptes than wordsize,
-@@ -3500,7 +3499,7 @@ static int handle_pte_fault(struct vm_fault *vmf)
- 		 * ptl lock held. So here a barrier will do.
- 		 */
- 		barrier();
--		if (pte_none(entry)) {
-+		if (pte_none(vmf->orig_pte)) {
- 			pte_unmap(vmf->pte);
- 			vmf->pte = NULL;
- 		}
-@@ -3513,19 +3512,20 @@ static int handle_pte_fault(struct vm_fault *vmf)
- 			return do_fault(vmf);
- 	}
- 
--	if (!pte_present(entry))
--		return do_swap_page(vmf, entry);
-+	if (!pte_present(vmf->orig_pte))
-+		return do_swap_page(vmf);
- 
--	if (pte_protnone(entry) && vma_is_accessible(vmf->vma))
--		return do_numa_page(vmf, entry);
-+	if (pte_protnone(vmf->orig_pte) && vma_is_accessible(vmf->vma))
-+		return do_numa_page(vmf);
- 
- 	vmf->ptl = pte_lockptr(vmf->vma->vm_mm, vmf->pmd);
- 	spin_lock(vmf->ptl);
-+	entry = vmf->orig_pte;
- 	if (unlikely(!pte_same(*vmf->pte, entry)))
- 		goto unlock;
- 	if (vmf->flags & FAULT_FLAG_WRITE) {
- 		if (!pte_write(entry))
--			return do_wp_page(vmf, entry);
-+			return do_wp_page(vmf);
- 		entry = pte_mkdirty(entry);
- 	}
- 	entry = pte_mkyoung(entry);
--- 
-2.6.6
-
+6ZSA5ZSu57K+6IuxMuWkqeW8uuWMluiuree7gw0KDQrjgJDml7bpl7TlnLDngrnjgJEgMjAxNuW5
+tCAgICAgMTHmnIgwNS0wNuaXpeS4iua1tyANCiAgICAgICAgICAgICAgICAgICAgIDEx5pyIMTkt
+MjDml6XljJfkuqwgICAgMTHmnIgyNi0yN+aXpea3seWcsyAgICAxMuaciDE3LTE45pel5LiK5rW3
+IA0KDQoNCkp1ZGdl77yI6K+E5Lu377yJ5LiA5Liq5Lq677yM5LiA5Liq5YWs5Y+45piv5LiN5piv
+5LyY56eA77yM5LiN6KaB55yL5LuW5piv5LiN5pivSGFydmFyZO+8iOWTiOS9m+Wkp+Wtpu+8ie+8
+jOaYr+S4jeaYr1N0YW5mb3Jk77yI5pav5Z2m56aP5aSn5a2m77yJLuS4jeimgWp1ZGdl77yI6K+E
+5Lu377yJ6YeM6Z2i5pyJ5aSa5bCR5ZCN54mM5aSn5a2m5q+V5Lia55Sf77yM6ICM6KaBanVkZ2Xv
+vIjor4Tku7fvvInov5nluK7kurrlubLmtLvmmK/kuI3mmK/lj5Hnlq/kuIDmoLflubLvvIznnIvk
+u5bmr4/lpKnkuIvnj63mmK/kuI3mmK/nrJHnnK/nnK/lm57lrrbvvIENCuKAlOKAlOmYv+mHjOW3
+tOW3tOWFrOWPuOmprOS6kQ0KDQoNCuKAlOKAlOivvueoi+eugOS7iw0KDQrnrKzkuIDnq6DlrqLm
+iLfpnIDmsYLliIbmnpANCuaAneiAg++8mg0KMeOAgemdouWvueWuouaIt+aJvuS4jeWIsOivneiv
+tO+8jOaAjuS5iOWKnu+8n+S6jOasoeayn+mAmuW6lOivpeiBiuS6m+S7gOS5iO+8nw0KMuOAgeS4
+uuS7gOS5iOaIkeaKiuaJgOaciei1hOaWmemDvee7meWuouaIt+S6hu+8jOS7lui/mOivtOimgeiA
+g+iZkeS4gOS4i++8nw0KM+OAgeWQjOS4gOS7tuS6i++8jOWuouaIt+S4jeWQjOeahOS6uuWRiuiv
+ieaIkeS4jeS4gOagt+eahOimgeaxgu+8jOWQrOiwgeeahO+8nw0KNOOAgeWQjOS4gOS7tuS6i++8
+jOWuouaIt+WQjOS4gOS4quS6uuWRiuivieaIkeS4pOasoeeahOetlOahiOS4jeS4gOagt++8jOWQ
+rOWTquasoeeahO+8nw0KNeOAgeaOqOiNkOWTquS4gOenjeS6p+WTgee7meWuouaIt+Wlve+8n+ac
+gOWlveeahO+8n+eojeWlveeahO+8n+i/mOaYr+Wkn+eUqOeahO+8nw0KNOOAgeS4uuS7gOS5iOaI
+keaMieWuouaIt+imgeaxguWOu+WBmu+8jOS7lui/mOaYr+ayoeaciemAieaLqeaIkeS7rO+8nw0K
+NeOAgeS4jeWQjOeahOWuouaIt++8jOaIkeW6lOivpeWmguS9leW6lOWvue+8nw0KNuOAgeW/oOiv
+mueahOWuouaIt+W6lOivpeWmguS9leWfueWFu++8nw0KDQrnrKzkuIDoioLjgIHkuLrku4DkuYjo
+poHlr7nlrqLmiLfpnIDmsYLov5vooYzliIbmnpDvvJ8NCjHjgIHlrqLmiLfliJ3mrKHlkYror4nm
+iJHku6znmoTkv6Hmga/lvoDlvoDmmK/mnInmiYDkv53nlZnnmoTvvJsNCjLjgIHlrqLmiLfmg7Po
+poHnmoTkuqflk4HvvIzkuI3kuIDlrprlsLHmmK/lrp7pmYXmiYDpnIDopoHnmoTvvJsNCjPjgIHl
+rqLmiLfkuI3nvLrlsJHkuqflk4Hkv6Hmga/vvIzlm7Dmg5HnmoTmmK/oh6rlt7HlpoLkvZXpgInm
+i6nvvJsgDQo044CB5a6i5oi36LSt5Lmw5Yaz5a6a5piv5q+U6L6D5Ye65p2l55qE77yM5rKh5pyJ
+5q+U6L6D77yM5Lqn5ZOB5bCx5rKh5pyJ5Lu35YC877ybDQo144CB6ZSA5ZSu5Lq65ZGY56ys5LiA
+5oCd5oOz5piv5oiY5LqJ5oCd5oOz77yM5oOF5oql5pyA6YeN6KaB77ybDQo244CB5pyq5p2l55qE
+6YCB6LSn5ZGYLOiBlOe7nOWRmCzmiqXku7flkZjlsIbooqvmt5jmsbA7DQoNCuesrOS6jOiKguOA
+geWmguS9leWBmuWlveWuouaIt+mcgOaxguWIhuaekO+8nw0K5LiA44CB5Z+65pys6KaB5rGC77ya
+DQoxLuaXoOS6i+S4jeeZu+S4ieWuneauv++8jOacieebrueahOWcsOWBmuWlveaLnOiuv+iuoeWI
+ku+8mw0KMi7lvJXlr7zlrqLmiLfvvIzpppblhYjopoHmjqfliLbosIjor53nmoTmlrnlkJHjgIHo
+ioLlpY/jgIHlhoXlrrnvvJsNCjMu5LuO6K6y5Lqn5ZOB55qE4oCc5Y2W54K54oCd6L2s5Y+Y5Yiw
+6K6y5a6i5oi355qE4oCc5Lmw54K54oCdDQo0LuWlveeahO+8jOS4jeS4gOWumuaYr+acgOmAguWQ
+iOeahO+8jOacgOWQiOmAgueahOaJjeaYr+acgOWlveeahO+8mw0KNS7kuI3opoHmiornjJzmtYvl
+vZPmiJDkuovlrp7vvIzigJzosIjigJ3nmoTmmK/ku4DkuYjvvJ/igJzliKTigJ3mmK/nlLHosIHl
+iKTvvJ8NCjYu6K6o6K6677ya5a6i5oi36K+05Lu35qC85aSq6LS177yM5Luj6KGo5ZOqMTXnp43k
+uI3lkIznmoTmhI/mgJ3vvJ8NCg0K5LqM44CB6ZyA5rGC5YiG5p6Q6KaB54K577yaDQoxLuS6huin
+o+WuouaIt+eahDTnp43mnJ/mnJvnm67moIfvvJsNCjIu5LqG6Kej5a6i5oi36YeH6LSt55qENeS4
+qumAguW9k++8mw0KMy7liKTmlq3osIHmmK/lhbPplK7kurrnmoQ45Liq5L6d5o2u77ybDQo0LuWT
+qjblpKfnsbvpl67popjkuI3lj6/ku6Xpl67vvJ8g6KaB6KGo6L6+5Yir5Lq65ZCs5b6X5oeC55qE
+6K+d77ybDQo1LuaPkOmXruazqOaEj+eahOKAnDPkuI3osIjigJ3vvIzigJw05LiN6K6y4oCd77yb
+DQo2LuWuouaIt+mcgOaxguWIhuaekOaJi+WGjOWItuWumueahDbkuKrmraXpqqTvvJsNCj/mib7l
+r7nmlrnlkJHvvIzkuovljYrlip/lgI3vvIzkuLrku4DkuYjmib7ov5nkuKrlrqLmiLfvvJ8NCj/m
+l7bpl7TmsqHlr7nvvIzliqrlipvnmb3otLnvvIzkuLrku4DkuYjov5nkuKrml7blgJnmib7vvJ8N
+Cj/mib7lr7nkurrvvIzor7Tlr7nor53vvIzkuLrku4DkuYjmib7ov5nkuKrkurrvvJ8gDQo/5Li6
+5LuA5LmI5o6o6I2Q6L+Z5Liq5Lqn5ZOB77yf57uZ5a6i5oi36ZyA6KaB55qE77yM6ICM5LiN5piv
+6Ieq5bex5oOz57uZ55qE77ybIA0KP+S4uuS7gOS5iOe7mei/meagt+eahOacjeWKoe+8nyDlrqLm
+iLfnnIvph43kuI3mmK/kuqflk4HvvIzogIzmmK/kvb/nlKjku7flgLzvvJsNCj/kuLrku4DkuYjm
+iqXov5nkuKrku7fvvJ8g5Zyo5a6i5oi355qE6aKE566X5LiO5ZCM6KGM5LmL6Ze05om+5Yiw5bmz
+6KGh77ybDQo3LuS4uuS7gOS5iOi/mOi/meS4quS7t++8n+WFs+azqOernuS6ieWvueaJi++8jOiw
+g+aVtOiHquW3seeahOetlueVpe+8mw0KDQrnrKzkuoznq6AgIOWmguS9leato+ehruaOqOiNkOS6
+p+WTgQ0K5oCd6ICD77yaDQox44CB5Li65LuA5LmI5oiR5ruh6Laz5a6i5oi35omA5o+Q5Ye655qE
+6KaB5rGC77yM5a6i5oi35Y206L+Y6ZyA6KaB6ICD6JmR5LiA5LiL77yfDQoy44CB5Li65LuA5LmI
+5a6i5oi35LiN55u45L+h5oiR6LSo6YeP5LiO5pyN5Yqh55qE5om/6K+677yfDQoz44CB6Z2i5a+5
+5a6i5oi35o+Q5Ye66auY56uv5Lqn5ZOB55qE6KaB5rGC77yM6ICM5oiR5Y+q5pyJ5L2O56uv5Lqn
+5ZOB77yM5oCO5LmI5Yqe77yfDQo044CB5aaC5L2V5o6o6I2Q5Lqn5ZOB5omN6IO96K6p5a6i5oi3
+5oSf6KeJ5Yiw5oiR5Lus6Lef5Yir5Lq65LiN5LiA5qC377ybDQoNCuesrOS4gOiKgiDkuLrku4Dk
+uYjpnIDopoHmiJHku6zmraPnoa7lnLDmjqjojZDkuqflk4HvvJ8NCjHjgIHlrqLmiLflvoDlvoDl
+r7noh6rlt7Hmt7HlsYLmrKHnmoTpl67popjlubbkuI3muIXmpZrvvJsNCjLjgIHlrqLmiLfnmoTm
+j5Dlh7rnmoTopoHmsYLlj6/og73mmK/mqKHns4rmiJbmir3osaEs5pyJ55qE5LuF5LuF5o+Q5Ye6
+5pa55ZCR77yM5LiN6KaB5bGA6ZmQ5LqO5a6i5oi35piO5pi+55qE6Zeu6aKYLOWktOeXm+WMu+Wk
+tCzohJrnl5vljLvohJrvvJsNCjPjgIHlrqLmiLflvoDlvoDkvJrku6XmiJHku6znq57lk4Hnu5nk
+u5bnmoTmnaHku7bopoHmsYLmiJHku6zvvJsNCjTjgIHmu6HotrPlrqLmiLfmj5Dlh7rnmoTopoHm
+sYLvvIzmmK/lvJXlr7zlrqLmiLflnKjkuI3lkIzlhazlj7jkuYvpl7TlgZrmr5TovoPvvIzogIzk
+uI3lnKjmiJHlhazlj7jlgZrlh7rlhrPnrZbvvJsNCg0K56ys5LqM6IqCIOWmguS9leW4ruWKqeWu
+ouaIt+W7uueri+KAnOaOkuS7luaAp+KAneeahOmHh+i0reagh+WHhu+8nw0K5qGI5L6L77ya5a6i
+5oi35YWz5b+D55qE5piv5L2g5aaC5L2V5L+d6K+B5L2g55qE6LSo6YeP5ZKM5pyN5Yqh5rC05bmz
+DQox44CB5omT5LuX5bCx5piv5omT5ZCO5Yuk77yM5o6o6I2Q5Lqn5ZOB5Lit5bi455So55qEMzTp
+obnlhoXlrrnvvJsNCjLjgIHkuqflk4HnmoTlip/og73kuI7lrqLmiLfpnIDopoHop6PlhrPnmoTp
+l67popjopoHnm7jlr7nlupTvvJvlrqLmiLfllpzmrKLmj5Dkvpvop6PlhrPmlrnmoYjnmoTkurrv
+vIzogIzkuI3ku4Xmj5Dkvpvlt6XlhbfnmoTkurrvvJsNCjPjgIHlpoLkvZXnu5nnq57kuonlr7nm
+iYvkuJrliqHlkZjorr7nva7pmpznoo3vvJ8NCg0K56ys5LiJ6IqCICDop4Hku4DkuYjkuros6K+0
+5LuA5LmI6K+dOw0K5LiN5ZCM5oOF5Ya15LiL5aaC5L2V6K6y77yf5pe26Ze044CB6IO95Yqb44CB
+57K+5Yqb44CB5YW06Laj44CB5paH5YyW5rC05bmz44CB5LiN5ZCM55qE6IGM5L2N562J77ybDQox
+LiDku4DkuYjmg4XlhrXkuIvlgY/ph43kuo7nkIbmgKfor7TmnI0s5omT5Yqo5Yir5Lq655qE6ISR
+Pw0KMi4g5LuA5LmI5oOF5Ya15LiL5YGP6YeN5LqO5oOF5oSf6K+05pyNLOaJk+WKqOWIq+S6uuea
+hOW/gz8NCjMuIOS9leenjeaDheWGteS4i+WPquiusuS8mOWKv+S4jeiusuWKo+WKv++8nw0KNC4g
+5L2V56eN5oOF5Ya15LiL5Y2z6K6y5LyY5Yq/5Y+I6K6y5Yqj5Yq/77yfDQoNCuesrOS4ieeroOWm
+guS9leacieaViOWkhOeQhuW8guiurg0K5oCd6ICDDQox44CB6YGH5Yiw5bCP5rCU44CB5Zu65omn
+44CB57KX6bKB44CB5ZWw5Zem44CB5Yi76JaE44CB5ZC55q+b5rGC55a144CB5LyY5p+U5a+h5pat
+55qE5a6i5oi35bqU5a+577yfDQoy44CB5a6i5oi355u05o6l5oyC55S16K+d77yM5oCO5LmI5Yqe
+77yfDQoz44CB56ys5LqM5qyh6KeB6Z2i77yM5a6i5oi35a+55oiR5aSn5Y+R6IS+5rCU77yM5oCO
+5LmI5Yqe77yfDQo044CB5pyJ5LiA5Liq6KGM5Lia77yM6ZSA5ZSu5Lq65ZGY5q+P5aSp6YO95Lya
+6YGH5Yiw5aSn6YeP55qE5ouS57ud77yM5Li65LuA5LmI5Y205rKh5pyJ5Lu75L2V5Lq65Lya5rKu
+5Lin77yfIA0KNeOAgeWuouaIt+WwseayoeacieWOi+WKm+WQl++8n+efpeW3suefpeW9vO+8jOWu
+ouaIt+mHh+i0reaXtuS8muacieWTquS6m+WOi+WKm++8nw0KNuOAgeS4uuS7gOS5iOWuouaIt+Wc
+qOS4iuePreaXtuS4juS4i+ePreWQjuS8muihqOeOsOS4jeWQjOeahOaAp+agvOeJueW+ge+8nw0K
+DQrnrKzkuIDoioLvvJrkubDljZblj4zmlrnnmoTlv4Pmg4XliIbmnpANCjHjgIHlpoLmnpzkuIDm
+lrnmr5Tlj6bkuIDmlrnmm7TkuLvliqjjgIHmm7Tnp6/mnoHov73msYLlkIjkvZzvvIzliJnlkI7o
+gIXnp7DkuLrmvZzlnKjlrqLmiLcgDQoy44CB5Y2W5pa555+l6YGT5p+Q5Lu35LiA5a6a5LiN6IO9
+5Y2W77yM5L2G5Lmw5pa55LiN55+l6YGT5LuA5LmI5Lu35LiN6IO95Lmw77ybDQoz44CB5b2T5Y2W
+5pa56KGo546w6Ieq5bex5b6I5oOz5Y2W77yM5Lmw5pa55Lya6KGo546w6Ieq5bex5LiN5oOz5Lmw
+77ybDQo044CB5Lmw5pa56L+Y55qE5Lu377yM5bm25LiN5LiA5a6a5piv5LuW6K6k5Li65ZWG5ZOB
+5bCx5bqU6K+l5YC86L+Z5Liq5Lu377ybDQo144CB5LuY6ZKx5LmL5YmN77yM5Lmw5pa55Y2g5LyY
+5Yq/77yM5LmL5ZCO77yM5Y2W5pa55Y2g5LyY5Yq/77ybDQoNCuesrOS6jOiKguOAgeeQhuino+Wu
+ouaIt+i0reS5sOaXtueahOW/g+aAge+8mw0KMeOAgeWuouaIt+iwiOWIpOaXtuW4uOeUqDfnp43o
+r5XmjqLmioDlt6fliIbmnpDvvJsNCjLjgIHlrqLmiLfmgIHluqbpnZ7luLjlpb3vvIzlsLHmmK/k
+uI3kuIvorqLljZXvvIzkuLrku4DkuYjvvJ8NCjPjgIHkuLrku4DkuYjmnInkupvlrqLmiLforqnm
+iJHku6zmhJ/op4npq5jpq5jlnKjkuIrvvIzoirHpkrHmmK/lpKfniLfvvJ/pmr7pgZPku5bku6zn
+tKDotKjnnJ/nmoTlt67vvJ8NCjTjgIHlrqLmiLfoh6rouqvkvJrmnInlk6o25Liq5Y6L5Yqb77yf
+DQrmoYjkvovvvJrlrqLmiLfmj5Dlh7rlkIjnkIbmnaHku7bvvIzmmK/lkKbmiJHlsLHlupTor6Xp
+mY3ku7fvvJ8NCuahiOS+i++8muWmguS9leWIhua4heWuouaIt+W8guiurueahOecn+WunuaAp++8
+nw0K5qGI5L6L77ya5b2T6LCI5Yik5Ye6546w5YO15bGA5pe25oCO5LmI5Yqe77yfDQrmoYjkvovv
+vJrkuLrku4DkuYjmiJHnrZTlupTlrqLmiLfmj5Dlh7rnmoTmiYDmnInnmoTmnaHku7bvvIzlj43o
+gIzlpLHljrvkuoborqLljZXvvJ8NCuahiOS+i++8muWuouaIt+S4gOWGjeWcsOaPkOWHuuS4jeWQ
+jOeahOadoeS7tu+8jOaAjuS5iOWkhOeQhu+8nw0K5qGI5L6L77ya5a6i5oi36KaB5rGC5oiR6ZmN
+5Lu35pe2LOaAjuS5iOWKnj/or7fliIY45Liq5q2l6aqk5aSE55CGDQoNCuesrOS4ieiKgiDlrqLm
+iLflvILorq7lpITnkIbnmoQ15Liq5Yy65YiGDQox44CB6KaB5Yy65YiG4oCc56ys5LiA4oCdIOi/
+mOaYr+KAnOWUr+S4gOKAnQ0KMuOAgeWvueWuouaIt+imgeaxgueahOecn+S8qui/m+ihjOmJtOWI
+qzsNCjPjgIHopoHljLrliIbigJzmg4Xnu6rigJ3ov5jmmK/igJzooYzkuLrigJ0NCjTjgIHljLrl
+iIbigJzlgYfmg7PigJ3ov5jmmK/igJzkuovlrp7igJ0NCjXjgIHljLrliKvpl67popjnmoTovbvp
+h40s57yT5oClOw0KDQrnrKzlm5vnq6AgIOWmguS9leW7uueri+iJr+WlveeahOWuouaDheWFs+ez
+u++8nw0K5qGI5L6L77ya6ZSA5ZSu5bel5L2c6ZyA6KaB55av54uC44CB5ZyG5ruR44CB5aWJ5om/
+44CB6KeB5Lq66K+05Lq66K+d77yM6KeB6ay86K+06ay86K+d5ZCX77yfDQrmoYjkvovvvJrnlJ/m
+hI/kuI3miJDku4HkuYnlnKjvvIzlkrHkv6nkuqTkuKrmnIvlj4vvvIzov5nlj6Xor53lupTor6Xn
+lLHosIHor7TvvJ8NCuahiOS+i++8mumCgOivt+WuouaIt+WQg+mlre+8jOS9oOW6lOivpeaAjuS5
+iOivtO+8nw0K5qGI5L6L77ya5b2T5a6i5oi36KGo5oms5LqG5L2g77yM5L2g5Lya5oCO5LmI5Zue
+562U77yfDQrmoYjkvovvvJrmiJHku6Pooajlhazlj7jnmoTlvaLosaHvvIzmmK/lkKbmiJHlupTo
+r6XooajnjrDoh6rlt7HlvojlvLrlir/vvJ8NCuahiOS+i++8muS4uuS6huiOt+W+l+WuouaIt+ea
+hOS/oeS7u++8jOaIkeaYr+WQpuW6lOivpeiKsemHjemHkeWMheijheiHquW3se+8n+iuqeiHquW3
+seW+iOWujOe+ju+8nw0K5qGI5L6L77ya5piv5ZCm6ZyA6KaB5aSE5aSE6KGo546w6Ieq5bex5b6I
+5pyJ56S86LKM77yfDQrmoYjkvovvvJrlpoLkvZXkuI7kvIHkuJrpq5jlsYLjgIHmlL/lupzpq5jl
+sYLmiZPkuqTpgZPvvJ8NCg0K56ys5LiA6IqCIOWBmuWbnuecn+WunuWSjOecn+ivmueahOiHquW3
+se+8jOihqOmHjOWmguS4gA0K56S85Luq55qE55uu55qE5piv5bCK6YeN5Yir5Lq677yM6ICM5LiN
+5piv5Lyq6KOF6Ieq5bex77yM56S85Luq5Lit5bi46KeB55qE6ZSZ6K+v77ybDQox44CB5ryU5Yir
+5Lq6LOWGjeWlveeahOa8lOaKgOS5n+S8muaQnueguO+8jOaDs+WBmuWIq+S6uueahOaXtuWAmSzk
+vaDlsLHkvJrnprvoh6rlt7Hlvojov5zvvJsNCjLjgIHkuI3lkIznmoTkuros6ZyA5rGC5LiN5ZCM
+LOi2iuaUuei2iue0ryzotormlLnotormsJQs5Y+q5Lya5oqK6Ieq5bex5oqY56Oo5b6X5b+D5rWu
+5rCU6LqBLOS4jeW+l+S6uuW/g++8mw0KM+OAgeS7peaci+WPi+eahOW/g+aAgeS4juWuouaIt+S6
+pOW+gO+8jOi/h+WkmueahOWVhuS4muWMluivreiogOOAgeihjOS4uuOAgei/h+WkmueahOekvOS7
+quWPquS8muiuqeWuouaIt+aEn+inieWIsOeUn+ehrOOAgei3neemu+OAgeaOkuaWpeOAgeWFrOS6
+i+WFrOWKnu+8jOayoeacieaEn+aDhe+8mw0KNOOAgemAguW9k+eahOaatOmcsuiHquW3seeahOe8
+uueCue+8jOi2iuWujOe+jueahOS6uui2iuS4jeWPr+S/oe+8mw0KNeOAgeWuiOaXtizlrojkv6Es
+5a6I57qmLOWPiuaXtuS8oOmAkui/m+eoi+S4juS/oeaBr++8jOiuqeWuouaIt+aEn+inieWIsOWP
+r+aOp+aAp++8mw0KNuOAgemUgOWUruS4jeaYr+WQkeWuouaIt+eske+8jOiAjOaYr+imgeiuqeWu
+ouaIt+WvueiHquW3seeske+8mw0KDQrnrKzkuozoioIg5oSf6LCi5Lyk5a6z5oiR55qE5Lq677yM
+5piv5Zug5Li65oiR6Ieq5bex6ZSZ5LqG77ybDQox44CB5LiA5ZGz6aG65LuO44CB5o6o5Y246LSj
+5Lu744CB55CG6K665Lqk6LCI44CB6LCI6K665bCP5LqL44CB5peg6K+a5L+h77ybDQoy44CB5b2T
+5a6i5oi36K+06L+H5LiA5q615pe26Ze044CB5Lul5ZCO44CB5pS55aSp44CB5Zue5aS044CB5pyI
+5bqV5pe277yM5aaC5L2V5bqU5a+577yfDQoz44CB6LaK5a6M576O55qE5Lq66LaK5LiN5Y+v5L+h
+77yM6Ieq5oiR5pq06Zyy55qE5Zub5Liq5bGC5qyh77ybDQo044CB5YGa5aW96Ziy6ZSZ5oCn55qE
+5pyN5YqhLOetvuWujOWQiOWQjOS7heS7heaYr+WQiOS9nOeahOW8gOWni++8mw0KP+aMh+WvvOWu
+ouaIt+WmguS9leS9v+eUqO+8myANCj/ot5/ouKrkuqflk4Hkvb/nlKjnmoTmg4XlhrXvvJsgDQo/
+5Li65a6i5oi35Zyo5L2/55So6L+H56iL5Lit5o+Q5L6b5oyH5a+85bu66K6u77ybIA0KP+enr+ae
+geino+etlOWuouaIt+WcqOS9v+eUqOS4reaPkOWHuueahOmXrumimO+8myANCg0KDQrnrKzlm5vn
+q6Dlm6LpmJ/phY3lkIgNCuaAneiAg++8mg0KMS7lm6LpmJ/phY3lkIjnmoTliY3mj5DmmK/ku4Dk
+uYjvvJ/mmK/lkKbku7vmhI/kuKTkuKrkurrlnKjkuIDotbfpg73kvJrmnInlm6LpmJ/nsr7npZ7v
+vJ8NCjIu5Zui6Zif6YWN5ZCI5Lit5Li65LuA5LmI5Lya5Ye6546w5omv55qu55qE546w6LGh77yf
+DQozLuS4uuS7gOS5iOWFrOWPuOiKsemCo+S5iOmrmOaIkOacrOiuqeWkp+WutuWKoOa3seaEn+aD
+he+8jOS9huacieS6m+S6uuS5i+mXtOi/mOaYr+aciemalOmYgu+8nw0KNC7kuJrnu6nlpb3nmoTk
+urrlvbHlk43kuJrnu6nlt67nmoTkurrlrrnmmJPov5jmmK/kuJrnu6nlt67nmoTlvbHlk43kuJrn
+u6nlpb3nmoTlrrnmmJPvvJ8NCjUu57uf5LiA5bqV6Jaq5aW977yf6L+Y5piv5beu5Yir5YyW5bqV
+6Jaq5aW977yf5aaC5L2V6K6p5aSn5a626YO96KeJ5b6X5YWs5bmz77yfDQo2LuS4uuS7gOS5iOac
+ieiDveWKm+eahOS4jeWQrOivne+8jOWQrOivneeahOWNtOayoeiDveWKm++8nw0KNy7kuLrku4Dk
+uYjmnInkupvkurrmgLvmmK/kuI3mjInmiJHopoHmsYLnmoTmlrnms5XljrvlgZrvvJ8NCjgu6Z2i
+5a+55Lia57up5oC75piv5b6I5beu55qE5ZGY5bel77yM5Yiw5bqV5piv55WZ6L+Y5piv5byA77yf
+DQoNCuesrOS4gOiKguWboumYn+mFjeWQiOeahOmHjeimgeaApw0KMS7kvJjnp4DnmoTkuJrliqHl
+kZjkuJrnu6nlvoDlvoDmmK/mma7pgJrnmoTlh6DljYHnlJroh7PkuIrnmb7lgI3vvJsNCjIu5o+Q
+6auY5oiQ5Lqk55qE5pWI546H77yM5LiN6KaB5p2A5pWM5LiA5Y2D77yM6ICM6Ieq5o2f5YWr55m+
+77ybDQozLuS8mOengOS4muWKoeWRmOe8uuaXtumXtO+8jOS4mue7qeaZrumAmueahOS4muWKoeWR
+mOe8uuiDveWKm++8jOaJrOmVv+mBv+efre+8jOS6uuWwveWFtuaJje+8mw0KNC7miorkurrlipvo
+tYTmupDmlYjnm4rliKnnlKjmnIDlpKfljJbvvJsNCjUu5omT6YCg5a6M576O55qE5Zui6Zif77yM
+6K6p5oiQ5ZGY55qE57y654K555u45LqS5oq15raI77ybDQoNCuesrOS6jOiKgu+8jOWmguS9leW8
+gOWxleWboumYn+mFjeWQiA0K56ys5LiA44CB6IO95Yqb5LqS6KGlDQoxLuWFs+azqOWRmOW3peea
+hOiDveWKm++8jOS4jeimgeaKiuacquadpeWvhOaJmOWcqOWRmOW3peacquefpeeahOa9nOiDveS4
+iu+8mw0KMi7kuI3opoHmiorlkZjlt6XloZHpgKDmiJDlkIzkuIDnsbvlnovnmoTkurrvvIzkuI3m
+iorkuJPmiY3lvZPlhajmiY3nlKjvvJsNCjMu5Zui6Zif5Lul6IO95Li65pys77yM6ZSA5ZSu5bKX
+5L2N5bi46KeB55qEMTTpobnmioDog73vvJsNCjQu5ZSu5YmN44CB5ZSu5Lit44CB5ZSu5ZCO5Lq6
+5ZGY6KaB5rGC5LiO5aaC5L2V5pCt6YWN77yfDQo1LuahiOS+i++8muaWsOWRmOW3peaciea/gOaD
+he+8jOS9huiDveWKm+S4jei2s++8jOiAgeWRmOW3peacieiDveWKm++8jOS9hua/gOaDheS4jei2
+s++8jOaAjuS5iOWKnu+8nw0KDQrnrKzkuozjgIHliKnnm4rlhbPogZQNCjEu5Li65LuA5LmI5oiQ
+5ZGY5Lya55u45LqS5Ya35ryg44CB5LqS5LiN5YWz5b+D44CB5b285q2k5bCB6ZSB5L+h5oGv5ZKM
+6LWE5rqQ77yfDQoyLuS4uuS7gOS5iOWboumYn+aIkOWRmOaKiuWboumYn+eahOS6i+S4jeW9k+Wb
+nuS6i++8nw0KMy7lpoLkvZXmiY3og73orqnlm6LpmJ/miJDlkZjnnJ/lv4PnmoTkuLrkvJjnp4Dn
+moTmiJDlkZjogIzpq5jlhbTvvJ8NCjQu5byA6Zmk5Lia57up5beu55qE5ZGY5bel77yM5YW25LuW
+5oiQ5ZGY57y65LmP5a6J5YWo5oSf5oCO5LmI5Yqe77yfDQo1LuWmguS9leaJjeiDveiuqeWboumY
+n+iHquWKqOiHquWPkeeahOWKquWKm+W3peS9nO+8nw0KDQrnrKzkuInoioLjgIHkuI3lkIzlrqLm
+iLfllpzmrKLkuI3lkIzpo47moLznmoTplIDllK7kurrlkZgNCjHjgIEg6ZSA5ZSu5Lq65ZGY5b2i
+6LGh5LiO5Li+5q2i77yM5rOo5oSP6Ieq5bex55qE5b2i6LGh77ybDQoy44CBIOaYr+WQpuWFt+Wk
+h+ebuOS8vOeahOiDjOaZr++8jOmXqOW9k+aIt+Wvue+8mw0KM+OAgSDmmK/lkKblhbflpIfnm7jl
+kIznmoTorqTor4bvvIzpgZPkuI3lkIzkuI3nm7jkuLrnm5/vvJsNCjTjgIEg5piv5ZCm4oCc5oqV
+5YW25omA5aW94oCd77yM6K+d5LiN5oqV5py65Y2K5Y+l5aSa77ybDQo144CBIOi1nue+ju+8jOWW
+nOasouWvueaWue+8jOaIkeS7rOWQjOagt+WvueWWnOasouaIkeS7rOeahOS6uuacieWlveaEn++8
+mw0KICAgIOWFiOS6pOa1geaEn+aDhSzlop7ov5vkupLkv6Es5qyy6YCf5YiZ5LiN6L6+Ow0KNuOA
+gSDmmK/lkKblr7nplIDllK7kurrlkZjnhp/mgonvvIzplIDllK7mnIDlv4zorrPkuqTmtYXoqIDm
+t7HvvJsNCiAgICDliJ3mrKHop4HpnaLlsLHkvIHlm77ot5/liKvkurrmiJDkuLrmnIvlj4vnmoTo
+oYzkuLrlvojlubznqJrvvJsNCiAgICDliJ3mrKHop4HpnaLlsLHmmpfnpLrlpb3lpITnmoTooYzk
+uLrlvojogqTmtYXvvJsNCiAgICDliJrop4HpnaLlsLHlvLrosIPku7fmoLzlvojkvr/lrpznmoTo
+oYzkuLrlvojmhJrooKLvvJsNCjfjgIEg6ZSA5ZSu5Lq65ZGY5piv5ZCm5YW35aSH5Lqy5ZKM5Yqb
+77yM5Yir5Lq655qE6IS45piv6Ieq5bex55qE5LiA6Z2i6ZWc5a2Q77ybDQogICAg5oiQ5Lqk5bm2
+5LiN5Y+W5Yaz5LqO6K+055CG77yM6ICM5piv5Y+W5Yaz5LqO5b+D5oOFDQo444CBIOmUgOWUruS6
+uuWRmOaYr+WQpuWAvOW+l+S/oei1luOAgg0KDQrnrKzlha3nq6AgIOaWsOWuouaIt+W8gOWPkQ0K
+5qGI5L6L77ya5Li65LuA5LmI5a6i5oi35LiA5byA5aeL5b6I5pyJ5YW06Laj77yM5L2G6L+f6L+f
+5LiN5LiL5Y2V77yfDQrmoYjkvovvvJrliY3lpKnmmI7mmI7or7TkuI3kubDnmoTlrqLmiLflsYXn
+hLbku4rlpKnljbTkubDkuobvvIzlrqLmiLfnmoTor53og73nm7jkv6HlkJfvvJ8NCuahiOS+i++8
+muWuouaIt+etlOW6lOS5sOaIkeWPuOeahOS6p+WTge+8jOWNtOeqgeeEtuWPmOWNpuS5sOWIq+S6
+uueahOS6hu+8jOS4uuS7gOS5iO+8nw0K5qGI5L6L77ya5Li65LuA5LmI5oiR5Lus5Lya5Lmw6Ieq
+5bex5rKh5pyJ5YW06Laj55qE6ICM5LiU5bm25LiN6ZyA6KaB55qE5Lqn5ZOB77yfDQrkuIDjgIHl
+rqLmiLfmmK/moLnmja7oh6rlt7HmiYDmipXlhaXnmoTnsr7lipvjgIHph5HpkrHmnaXnoa7lrpro
+h6rlt7HnmoTmgIHluqbvvJsNCuS6jOOAgeWmguS9leaJjeiDveW8leWvvOWuouaIt+S9nOiHquaI
+keivtOacje+8nw0KMS7kuI3opoHovbvmmJPnu5nlrqLmiLfkuIvnu5PorrrvvIzosIHkvJrkubDv
+vIzosIHkuI3kvJrkubANCjIu5oCB5bqm5LiK55qE5Y+Y5YyW5Y+r6K+05pyN77yM6KGM5Li65LiK
+55qE5Y+Y5YyW5Y+r5o6l5Y+X77ybDQozLuaIkeS7rOmDveWWnOasouS4uuaIkeS7rOiHquW3seea
+hOihjOS4uuaJvueQhueUse+8jOWNtOS4jeWWhOS6juWBmuaIkeS7rOW3suaJvuWIsOeQhueUseea
+hOS6i++8mw0KNC7lrqLmiLfmmK/lj5HnjrDkuoboh6rlt7HnmoTpnIDmsYLvvIzigJzlj5HnjrDi
+gJ3nmoTkvp3mja7mmK/oh6rlt7HnmoTooYzkuLrvvJsgDQo1LuahiOS+i++8muWQiOWQjOetvuiu
+ouWQju+8jOW6lOivpemXruWTqjTlj6Xor53vvIzmj5DljYflrqLmiLflv6Dor5rluqbvvJ8NCg0K
+56ys5LiD56ugIOiHquaIkea/gOWKsQ0KMS7lgZrplIDllK7lt6XkvZzotZrpkrHmnIDlv6vvvIzk
+uJTmnIDlrrnmmJPlvpfliLDogIHmnb/nmoTph43op4bjgIHlkIzkuovnmoTlsIrph43vvJsNCjIu
+5LiN6KaB5oqK56ys5LiA5qyh6KeB6Z2i55yL5oiQ5pyA5ZCO5LiA5qyh77yM5bel5L2c6KaB56ev
+5p6B5L2G5LiN6KaB552A5oCl77ybDQozLuS4jeaYr+aIkOWKn+WkquaFou+8jOiAjOaYr+aUvuW8
+g+WkquW/q++8jOmSseaYr+e7meWGheihjOeahOS6uui1mueahO+8mw0KNC7kuI3opoHmiqXnnYDo
+r5Xor5XnnIvnmoTlv4PmgIHvvIzkvIHlm77kuIDlpJzmmrTlr4znmoTmipXmnLrlv4PmgIHorqnl
+rqLmiLflj43mhJ/vvJsNCjUu5LiN5piv5pyJ5biM5pyb5omN5Z2a5oyB77yM6ICM5piv5Z2a5oyB
+5LqG5omN5pyJ5biM5pyb77ybIA0KNi7ku5jlh7rmiY3kvJrmi6XmnInvvIzogIzkuI3mmK/mi6Xm
+nInmiY3ku5jlh7rvvJvlgZrkuobmiY3kvJrvvIzogIzkuI3mmK/kvJrkuobmiY3lgZrvvJsNCjcu
+5aW95bel5L2c5piv5YGa5Ye65p2l55qE77yM5LiN5piv5om+5Ye65p2l55qE77yM5LiN6KaB5oqK
+6Ieq5bex5omY5LuY57uZ5YWs5Y+477yM6ICM6KaB54us56uL5oiQ6ZW/77ybDQo4LuWwneivleS4
+jeWQjOeahOW3peS9nOaWueazle+8jOiAjOS4jeaYr+WkmuW5tOmHjeWkjeS9v+eUqOS4gOenjeaW
+ueW8j++8jOWFt+Wkh+ivlemUmeeahOeyvuelnu+8mw0KOS7lt6XkvZzlj6/ku6Xlh7rplJnvvIzk
+vYbkuI3lj6/ku6XkuI3lgZrvvIzkuJbnlYzkuIrmnIDljbHpmannmoTojqvov4fkuo7ljp/lnLDk
+uI3liqjvvJsNCjEwLuS4jeimgeaKiuacquadpeWvhOaJmOWcqOiHquW3seS4gOaXoOaJgOefpeea
+hOihjOS4muS4iu+8jOWBmuWlveebruWJjeeahOW3peS9nO+8mw0KDQrjgJDln7norq3nibnngrnj
+gJENCjEu5YiG57uE6K6o6K6677yM6K6t57uD5Li65Li777yM5LqS5Yqo5byP5pWZ5a2m77ybMuas
+oeeOsOWcuuiAg+ivlTsNCjIu55yf5a6e5qGI5L6L5YiG5p6Q77yM5aSn6YeP6K++5ZCO5L2c5Lia
+6aKY77yM5pei5pyJ5oqi562U77yM5Y+I5pyJ6L6p6K6677yM6L+Y5pyJ546w5Zy65ryU57uD77yM
+54Ot54OI55qE6K++5aCC5rCb5Zu077ybDQozLuWwhumUgOWUrueuoeeQhuiejeWFpeWfueiureeO
+sOWcuu+8mg0KICAgMy4xICDkuI3ku4XlhbPms6jkuKrkurrlrabkuaDooajnjrDvvIzogIzkuJTp
+h43op4blm6LpmJ/lkIjkvZzvvJsNCiAgIDMuMiAg5LiN5LuF5YWz5rOoMuWkqeS7peWGheeahOWt
+puS5oO+8jOiAjOS4lOiQpemAoDLlpKnku6XlkI7nmoTln7norq3lrabkuaDmsJvlm7TvvJsNCiAg
+IDMuMyAg5LiN5LuF6ICD5qC45Liq5Lq65b6X5YiG77yM6ICM5LiU6ICD5qC45Zui6Zif5b6X5YiG
+77yb5LiN5LuF6ICD5qC45a2m5ZGY55qE5a2m5Lmg5oiQ57up77yM6ICM5LiU6ICD5qC45a2m5ZGY
+5a2m5Lmg55qE5Y+C5LiO5bqm77ybDQoNCg0K44CQ6K6y5biI5LuL57uN44CR44CA546L6ICB5biI
+DQrjgIDplIDllK7lm6LpmJ/nrqHnkIblkqjor6LluIjjgIHplIDllK7ln7norq3orrLluIjvvJsN
+CuOAgOabvuS7u+WPr+WPo+WPr+S5kO+8iOS4reWbve+8ieWFrOWPuOS4muWKoee7j+eQhu+8m+mY
+v+mHjOW3tOW3tO+8iOS4reWbve+8iee9kee7nOaKgOacr+aciemZkOWFrOWPuOS4muWKoee7j+eQ
+hu+8mw0K44CA5riF5Y2O5aSn5a2mLuWNl+S6rOWkp+WtpkVNQkHnibnpgoDln7norq3orrLluIjv
+vJvmlrDliqDlnaHojrHkvZvlo6vlrabpmaLnibnnuqborrLluIg7DQrjgIAyMDAw5bm06Iez5LuK
+5LiA55u05LuO5LqL6ZSA5ZSu5LiO6ZSA5ZSu5Lq65ZGY5r+A5Yqx5LiO6K6t57uD5bel5L2cLOab
+vuS7u+WPr+WPo+WPr+S5kOeahOS4muWKoee7j+eQhu+8jOWFqOeQg+efpeWQjeS8geS4mumYv+mH
+jOW3tOW3tOWFrOWPuOeahOS4muWKoee7j+eQhu+8jOabvuavj+aciOeWr+eLguS4iumXqOaLnOiu
+vzEwMOWutuS7peS4iueahOWuouaIt++8jOWNiuWGm+S6i+WMlueahOmUgOWUruiBjOS4mueUn+a2
+r++8jOmrmOW8uuW6pueahOW3peS9nOWOi+WKmyzlhajpnaLns7vnu5/nmoTlj5forq3nu4/ljobv
+vIznp6/ntK/kuobkuLDlr4znmoTlrqLmiLfmlLbpm4bjgIHplIDllK7osIjliKTjgIHlrqLmiLfo
+t5/ov5vjgIHlrqLmiLfmnI3liqHjgIHoh6rmiJHmv4DlirHnmoTnu4/pqozvvIzlnKjlhazlj7jm
+m77ojrfigJzmgo3lsIbmna/igJ3mppznnLzjgIINCg0K44CQ5pu+57uP5Z+56K6t6L+H55qE6YOo
+5Lu95a6i5oi344CRDQrljY7kuLrlhazlj7gv56uL6YKm5ryG5LiaL+WkquW5s+S/nemZqS/mrKfm
+ma7nhafmmI4v5Y+v5Y+j5Y+v5LmQL+aJrOWtkOefs+WMli/po57liKnmtaYv55m+5bqmL+S4reWb
+veenu+WKqC/ljJfkuqzkuJzkv6HljJfpgq4v5Lit5Zu96IGU6YCaL+aIkOmDvemAmuWPkembhuWb
+oi/mkLrnqIvnvZHnu5wv5bm/5bee5pa55ZyG5oi/5LqnL+a3seWcs+WNl+a1t+mFkuW6ly/moYLm
+npfkuInph5Hoja/kuJov5LiJ5LiA6YeN5belL+a3seWcs+WuneW+t+mbhuWboi/kuYnkuYzpgq7m
+lL/lsYAv5bm/6KW/5rC055S15bel56iL5bGAL+mHjeW6hueFpOenkemZoi/mt7HlnLPnibnlj5Ho
+gqHku70v5YyX5Lqs5puy576O5a6256eBL+S5nemYs+eUteWZqC/nj6DmuK/mnLrlnLov5bei5rmW
+6YKu5pS/L+a1juWNl+mCruaUvy/ljZfkuqzljLvoja/mgLvlhazlj7gv5Zu9576O55S15ZmoL+mb
+qOa2pumbhuWboi/kuK3lm73kuIDmi5bpm4blm6Log73mupDliIblhazlj7gv6YeN5bqG56eR5Yib
+5a2m6ZmiLw0KDQoNCg0KICAgDQrjgJDlj4LliqDlr7nosaHjgJEg5oC757uP55CG44CB6ZSA5ZSu
+5oC755uR44CB5Yy65Z+f57uP55CG44CB6ZSA5ZSu57uP55CG44CB5Lia5Yqh5Luj6KGo44CB6ZSA
+5ZSu5Z+56K6t5LiT5ZGY562J44CCDQrjgJDlrabkuaDotLnnlKjjgJEgMjgwMOWchi8y5aSpLzHk
+urrvvIjlkKvotYQu5paZLui0ueOAgeWNiC7ppJDjgIHojLYu54K544CB5Y+RLi7npajnrYkg77yJ
+DQrjgJDmiYsuLi4u5py644CRIG83NTUtNjY2Mm8zNTUgICBsMzU0NG9sMzNsNeminOWwj+WnkA0K
+44CQ6YKuLi4uLueuseOAkSA5NzE3MDA3MzJAcXEuY29tICAg5b6uLuS/oe+8miA5NzE3MDA3MzIN
+Cg0KDQrpgIDorqLor7fovazlj5Hpgq7ku7boh7M5NzE3MDA3MzJAcXEuY29tIA0KX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxp
+bmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21h
+aWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
