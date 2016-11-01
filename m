@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C81BD81EF0
- for <linux-nvdimm@lists.01.org>; Wed, 30 Nov 2016 15:45:54 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 1598081D4D
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:32 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 1/6] tracing: add __print_flags_u64()
-Date: Wed, 30 Nov 2016 16:45:28 -0700
-Message-Id: <1480549533-29038-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v9 11/16] dax: dax_iomap_fault() needs to call iomap_end()
+Date: Tue,  1 Nov 2016 13:54:13 -0600
+Message-Id: <1478030058-1422-12-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,127 +23,109 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add __print_flags_u64() and the helper trace_print_flags_seq_u64() in the
-same spirit as __print_symbolic_u64() and trace_print_symbols_seq_u64().
-These functions allow us to print symbols associated with flags that are 64
-bits wide even on 32 bit machines.
-
-These will be used by the DAX code so that we can print the flags set in a
-pfn_t such as PFN_SG_CHAIN, PFN_SG_LAST, PFN_DEV and PFN_MAP.
-
-Without this new function I was getting errors like the following when
-compiling for i386:
-
-./include/linux/pfn_t.h:13:22: warning: large integer implicitly truncated
-to unsigned type [-Woverflow]
- #define PFN_SG_CHAIN (1ULL << (BITS_PER_LONG_LONG - 1))
-  ^
+Currently iomap_end() doesn't do anything for DAX page faults for both ext2
+and XFS.  ext2_iomap_end() just checks for a write underrun, and
+xfs_file_iomap_end() checks to see if it needs to finish a delayed
+allocation.  However, in the future iomap_end() calls might be needed to
+make sure we have balanced allocations, locks, etc.  So, add calls to
+iomap_end() with appropriate error handling to dax_iomap_fault().
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- include/linux/trace_events.h |  4 ++++
- include/trace/trace_events.h | 11 +++++++++++
- kernel/trace/trace_output.c  | 38 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 53 insertions(+)
+ fs/dax.c | 37 +++++++++++++++++++++++++++++--------
+ 1 file changed, 29 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/trace_events.h b/include/linux/trace_events.h
-index be00761..db2c3ba 100644
---- a/include/linux/trace_events.h
-+++ b/include/linux/trace_events.h
-@@ -23,6 +23,10 @@ const char *trace_print_symbols_seq(struct trace_seq *p, unsigned long val,
- 				    const struct trace_print_flags *symbol_array);
+diff --git a/fs/dax.c b/fs/dax.c
+index 7737954..6edd89b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1165,6 +1165,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	struct iomap iomap = { 0 };
+ 	unsigned flags = 0;
+ 	int error, major = 0;
++	int locked_status = 0;
+ 	void *entry;
  
- #if BITS_PER_LONG == 32
-+const char *trace_print_flags_seq_u64(struct trace_seq *p, const char *delim,
-+		      unsigned long long flags,
-+		      const struct trace_print_flags_u64 *flag_array);
-+
- const char *trace_print_symbols_seq_u64(struct trace_seq *p,
- 					unsigned long long val,
- 					const struct trace_print_flags_u64
-diff --git a/include/trace/trace_events.h b/include/trace/trace_events.h
-index 467e12f..c6e9f72 100644
---- a/include/trace/trace_events.h
-+++ b/include/trace/trace_events.h
-@@ -283,8 +283,16 @@ TRACE_MAKE_SYSTEM_STR();
- 		trace_print_symbols_seq(p, value, symbols);		\
- 	})
+ 	/*
+@@ -1194,7 +1195,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		goto unlock_entry;
+ 	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
+ 		error = -EIO;		/* fs corruption? */
+-		goto unlock_entry;
++		goto finish_iomap;
+ 	}
  
-+#undef __print_flags_u64
- #undef __print_symbolic_u64
- #if BITS_PER_LONG == 32
-+#define __print_flags_u64(flag, delim, flag_array...)			\
-+	({								\
-+		static const struct trace_print_flags_u64 __flags[] =	\
-+			{ flag_array, { -1, NULL } };			\
-+		trace_print_flags_seq_u64(p, delim, flag, __flags);	\
-+	})
-+
- #define __print_symbolic_u64(value, symbol_array...)			\
- 	({								\
- 		static const struct trace_print_flags_u64 symbols[] =	\
-@@ -292,6 +300,9 @@ TRACE_MAKE_SYSTEM_STR();
- 		trace_print_symbols_seq_u64(p, value, symbols);	\
- 	})
- #else
-+#define __print_flags_u64(flag, delim, flag_array...)			\
-+			__print_flags(flag, delim, flag_array)
-+
- #define __print_symbolic_u64(value, symbol_array...)			\
- 			__print_symbolic(value, symbol_array)
- #endif
-diff --git a/kernel/trace/trace_output.c b/kernel/trace/trace_output.c
-index 3fc2042..ed4398f 100644
---- a/kernel/trace/trace_output.c
-+++ b/kernel/trace/trace_output.c
-@@ -124,6 +124,44 @@ EXPORT_SYMBOL(trace_print_symbols_seq);
+ 	sector = dax_iomap_sector(&iomap, pos);
+@@ -1216,13 +1217,15 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		}
  
- #if BITS_PER_LONG == 32
- const char *
-+trace_print_flags_seq_u64(struct trace_seq *p, const char *delim,
-+		      unsigned long long flags,
-+		      const struct trace_print_flags_u64 *flag_array)
-+{
-+	unsigned long mask;
-+	const char *str;
-+	const char *ret = trace_seq_buffer_ptr(p);
-+	int i, first = 1;
-+
-+	for (i = 0;  flag_array[i].name && flags; i++) {
-+
-+		mask = flag_array[i].mask;
-+		if ((flags & mask) != mask)
-+			continue;
-+
-+		str = flag_array[i].name;
-+		flags &= ~mask;
-+		if (!first && delim)
-+			trace_seq_puts(p, delim);
-+		else
-+			first = 0;
-+		trace_seq_puts(p, str);
+ 		if (error)
+-			goto unlock_entry;
++			goto finish_iomap;
+ 		if (!radix_tree_exceptional_entry(entry)) {
+ 			vmf->page = entry;
+-			return VM_FAULT_LOCKED;
++			locked_status = VM_FAULT_LOCKED;
++		} else {
++			vmf->entry = entry;
++			locked_status = VM_FAULT_DAX_LOCKED;
+ 		}
+-		vmf->entry = entry;
+-		return VM_FAULT_DAX_LOCKED;
++		goto finish_iomap;
+ 	}
+ 
+ 	switch (iomap.type) {
+@@ -1237,8 +1240,10 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		break;
+ 	case IOMAP_UNWRITTEN:
+ 	case IOMAP_HOLE:
+-		if (!(vmf->flags & FAULT_FLAG_WRITE))
+-			return dax_load_hole(mapping, entry, vmf);
++		if (!(vmf->flags & FAULT_FLAG_WRITE)) {
++			locked_status = dax_load_hole(mapping, entry, vmf);
++			break;
++		}
+ 		/*FALLTHRU*/
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -1246,14 +1251,30 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		break;
+ 	}
+ 
++ finish_iomap:
++	if (ops->iomap_end) {
++		if (error) {
++			/* keep previous error */
++			ops->iomap_end(inode, pos, PAGE_SIZE, 0, flags,
++					&iomap);
++		} else {
++			error = ops->iomap_end(inode, pos, PAGE_SIZE,
++					PAGE_SIZE, flags, &iomap);
++		}
 +	}
-+
-+	/* check for left over flags */
-+	if (flags) {
-+		if (!first && delim)
-+			trace_seq_puts(p, delim);
-+		trace_seq_printf(p, "0x%llx", flags);
+  unlock_entry:
+-	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
++	if (!locked_status || error)
++		put_locked_mapping_entry(mapping, vmf->pgoff, entry);
+  out:
+ 	if (error == -ENOMEM)
+ 		return VM_FAULT_OOM | major;
+ 	/* -EBUSY is fine, somebody else faulted on the same PTE */
+ 	if (error < 0 && error != -EBUSY)
+ 		return VM_FAULT_SIGBUS | major;
++	if (locked_status) {
++		WARN_ON_ONCE(error); /* -EBUSY from ops->iomap_end? */
++		return locked_status;
 +	}
-+
-+	trace_seq_putc(p, 0);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(trace_print_flags_seq_u64);
-+
-+const char *
- trace_print_symbols_seq_u64(struct trace_seq *p, unsigned long long val,
- 			 const struct trace_print_flags_u64 *symbol_array)
- {
+ 	return VM_FAULT_NOPAGE | major;
+ }
+ EXPORT_SYMBOL_GPL(dax_iomap_fault);
 -- 
 2.7.4
 
