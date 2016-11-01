@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2AF8281F43
- for <linux-nvdimm@lists.01.org>; Fri, 18 Nov 2016 01:17:30 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 50D1F81D3A
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:34 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 20/20] dax: Clear dirty entry tags on cache flush
-Date: Fri, 18 Nov 2016 10:17:24 +0100
-Message-Id: <1479460644-25076-21-git-send-email-jack@suse.cz>
-In-Reply-To: <1479460644-25076-1-git-send-email-jack@suse.cz>
-References: <1479460644-25076-1-git-send-email-jack@suse.cz>
+Subject: [PATCH 05/21] mm: Trim __do_fault() arguments
+Date: Tue,  1 Nov 2016 23:36:13 +0100
+Message-Id: <1478039794-20253-8-git-send-email-jack@suse.cz>
+In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
+References: <1478039794-20253-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,113 +23,183 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-mm@kvack.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill@shutemov.name>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently we never clear dirty tags in DAX mappings and thus address
-ranges to flush accumulate. Now that we have locking of radix tree
-entries, we have all the locking necessary to reliably clear the radix
-tree dirty tag when flushing caches for corresponding address range.
-Similarly to page_mkclean() we also have to write-protect pages to get a
-page fault when the page is next written to so that we can mark the
-entry dirty again.
+Use vm_fault structure to pass cow_page, page, and entry in and out of
+the function. That reduces number of __do_fault() arguments from 4 to 1.
 
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
+ mm/memory.c | 53 +++++++++++++++++++++++------------------------------
+ 1 file changed, 23 insertions(+), 30 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index d64465584f4c..cafd5597434b 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -31,6 +31,7 @@
- #include <linux/vmstat.h>
- #include <linux/pfn_t.h>
- #include <linux/sizes.h>
-+#include <linux/mmu_notifier.h>
- #include <linux/iomap.h>
- #include "internal.h"
- 
-@@ -613,6 +614,59 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
- 	return new_entry;
- }
- 
-+static inline unsigned long
-+pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
-+{
-+	unsigned long address;
-+
-+	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
-+	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
-+	return address;
-+}
-+
-+/* Walk all mappings of a given index of a file and writeprotect them */
-+static void dax_mapping_entry_mkclean(struct address_space *mapping,
-+				      pgoff_t index, unsigned long pfn)
-+{
-+	struct vm_area_struct *vma;
-+	pte_t *ptep;
-+	pte_t pte;
-+	spinlock_t *ptl;
-+	bool changed;
-+
-+	i_mmap_lock_read(mapping);
-+	vma_interval_tree_foreach(vma, &mapping->i_mmap, index, index) {
-+		unsigned long address;
-+
-+		cond_resched();
-+
-+		if (!(vma->vm_flags & VM_SHARED))
-+			continue;
-+
-+		address = pgoff_address(index, vma);
-+		changed = false;
-+		if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
-+			continue;
-+		if (pfn != pte_pfn(*ptep))
-+			goto unlock;
-+		if (!pte_dirty(*ptep) && !pte_write(*ptep))
-+			goto unlock;
-+
-+		flush_cache_page(vma, address, pfn);
-+		pte = ptep_clear_flush(vma, address, ptep);
-+		pte = pte_wrprotect(pte);
-+		pte = pte_mkclean(pte);
-+		set_pte_at(vma->vm_mm, address, ptep, pte);
-+		changed = true;
-+unlock:
-+		pte_unmap_unlock(ptep, ptl);
-+
-+		if (changed)
-+			mmu_notifier_invalidate_page(vma->vm_mm, address);
-+	}
-+	i_mmap_unlock_read(mapping);
-+}
-+
- static int dax_writeback_one(struct block_device *bdev,
- 		struct address_space *mapping, pgoff_t index, void *entry)
+diff --git a/mm/memory.c b/mm/memory.c
+index 8145dadb2645..f5ef7b8a30c5 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2848,26 +2848,22 @@ static int do_anonymous_page(struct vm_fault *vmf)
+  * released depending on flags and vma->vm_ops->fault() return value.
+  * See filemap_fault() and __lock_page_retry().
+  */
+-static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
+-		      struct page **page, void **entry)
++static int __do_fault(struct vm_fault *vmf)
  {
-@@ -686,7 +740,17 @@ static int dax_writeback_one(struct block_device *bdev,
- 		goto unmap;
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	int ret;
+ 
+-	vmf->cow_page = cow_page;
+-
+ 	ret = vma->vm_ops->fault(vma, vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
+-	if (ret & VM_FAULT_DAX_LOCKED) {
+-		*entry = vmf->entry;
++	if (ret & VM_FAULT_DAX_LOCKED)
+ 		return ret;
+-	}
+ 
+ 	if (unlikely(PageHWPoison(vmf->page))) {
+ 		if (ret & VM_FAULT_LOCKED)
+ 			unlock_page(vmf->page);
+ 		put_page(vmf->page);
++		vmf->page = NULL;
+ 		return VM_FAULT_HWPOISON;
  	}
  
-+	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(dax.pfn));
- 	wb_cache_pmem(dax.addr, dax.size);
-+	/*
-+	 * After we have flushed the cache, we can clear the dirty tag. There
-+	 * cannot be new dirty data in the pfn after the flush has completed as
-+	 * the pfn mappings are writeprotected and fault waits for mapping
-+	 * entry lock.
-+	 */
-+	spin_lock_irq(&mapping->tree_lock);
-+	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
-+	spin_unlock_irq(&mapping->tree_lock);
-  unmap:
- 	dax_unmap_atomic(bdev, &dax);
- 	put_locked_mapping_entry(mapping, index, entry);
+@@ -2876,7 +2872,6 @@ static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
+ 	else
+ 		VM_BUG_ON_PAGE(!PageLocked(vmf->page), vmf->page);
+ 
+-	*page = vmf->page;
+ 	return ret;
+ }
+ 
+@@ -3173,7 +3168,6 @@ static int do_fault_around(struct vm_fault *vmf)
+ static int do_read_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct page *fault_page;
+ 	int ret = 0;
+ 
+ 	/*
+@@ -3187,24 +3181,23 @@ static int do_read_fault(struct vm_fault *vmf)
+ 			return ret;
+ 	}
+ 
+-	ret = __do_fault(vmf, NULL, &fault_page, NULL);
++	ret = __do_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
+ 
+-	ret |= alloc_set_pte(vmf, NULL, fault_page);
++	ret |= alloc_set_pte(vmf, NULL, vmf->page);
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-	unlock_page(fault_page);
++	unlock_page(vmf->page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+-		put_page(fault_page);
++		put_page(vmf->page);
+ 	return ret;
+ }
+ 
+ static int do_cow_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct page *fault_page, *new_page;
+-	void *fault_entry;
++	struct page *new_page;
+ 	struct mem_cgroup *memcg;
+ 	int ret;
+ 
+@@ -3221,20 +3214,21 @@ static int do_cow_fault(struct vm_fault *vmf)
+ 		return VM_FAULT_OOM;
+ 	}
+ 
+-	ret = __do_fault(vmf, new_page, &fault_page, &fault_entry);
++	vmf->cow_page = new_page;
++	ret = __do_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		goto uncharge_out;
+ 
+ 	if (!(ret & VM_FAULT_DAX_LOCKED))
+-		copy_user_highpage(new_page, fault_page, vmf->address, vma);
++		copy_user_highpage(new_page, vmf->page, vmf->address, vma);
+ 	__SetPageUptodate(new_page);
+ 
+ 	ret |= alloc_set_pte(vmf, memcg, new_page);
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
+-		unlock_page(fault_page);
+-		put_page(fault_page);
++		unlock_page(vmf->page);
++		put_page(vmf->page);
+ 	} else {
+ 		dax_unlock_mapping_entry(vma->vm_file->f_mapping, vmf->pgoff);
+ 	}
+@@ -3250,12 +3244,11 @@ static int do_cow_fault(struct vm_fault *vmf)
+ static int do_shared_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct page *fault_page;
+ 	struct address_space *mapping;
+ 	int dirtied = 0;
+ 	int ret, tmp;
+ 
+-	ret = __do_fault(vmf, NULL, &fault_page, NULL);
++	ret = __do_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
+ 
+@@ -3264,26 +3257,26 @@ static int do_shared_fault(struct vm_fault *vmf)
+ 	 * about to become writable
+ 	 */
+ 	if (vma->vm_ops->page_mkwrite) {
+-		unlock_page(fault_page);
+-		tmp = do_page_mkwrite(vma, fault_page, vmf->address);
++		unlock_page(vmf->page);
++		tmp = do_page_mkwrite(vma, vmf->page, vmf->address);
+ 		if (unlikely(!tmp ||
+ 				(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+-			put_page(fault_page);
++			put_page(vmf->page);
+ 			return tmp;
+ 		}
+ 	}
+ 
+-	ret |= alloc_set_pte(vmf, NULL, fault_page);
++	ret |= alloc_set_pte(vmf, NULL, vmf->page);
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE |
+ 					VM_FAULT_RETRY))) {
+-		unlock_page(fault_page);
+-		put_page(fault_page);
++		unlock_page(vmf->page);
++		put_page(vmf->page);
+ 		return ret;
+ 	}
+ 
+-	if (set_page_dirty(fault_page))
++	if (set_page_dirty(vmf->page))
+ 		dirtied = 1;
+ 	/*
+ 	 * Take a local copy of the address_space - page.mapping may be zeroed
+@@ -3291,8 +3284,8 @@ static int do_shared_fault(struct vm_fault *vmf)
+ 	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
+ 	 * release semantics to prevent the compiler from undoing this copying.
+ 	 */
+-	mapping = page_rmapping(fault_page);
+-	unlock_page(fault_page);
++	mapping = page_rmapping(vmf->page);
++	unlock_page(vmf->page);
+ 	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
+ 		/*
+ 		 * Some device drivers do not set page.mapping but still
 -- 
 2.6.6
 
