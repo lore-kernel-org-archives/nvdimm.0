@@ -2,12 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 59A0781D4C
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 14:22:15 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id BD77281D11
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 14:22:11 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 0/11] ext4: Convert ext4 DAX IO to iomap framework
-Date: Tue,  1 Nov 2016 22:06:10 +0100
-Message-Id: <1478034381-19037-1-git-send-email-jack@suse.cz>
+Subject: [PATCH 02/11] ext4: Allow unaligned unlocked DAX IO
+Date: Tue,  1 Nov 2016 22:06:12 +0100
+Message-Id: <1478034381-19037-3-git-send-email-jack@suse.cz>
+In-Reply-To: <1478034381-19037-1-git-send-email-jack@suse.cz>
+References: <1478034381-19037-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,22 +26,34 @@ To: linux-ext4@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Ted Tso <tytso@mit.edu>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
+Currently we don't allow unaligned writes without inode_lock. This is
+because zeroing of partial blocks could cause data corruption for racing
+unaligned writes to the same block. However DAX handles zeroing during
+block allocation and thus zeroing of partial blocks cannot race. Allow
+DAX unaligned IO to run without inode_lock.
 
-this patch set converts ext4 DAX IO paths to the new iomap framework and
-removes the old bh-based DAX functions. As a result ext4 gains PMD page
-fault support, also some other minor bugs get fixed. The patch set is based
-on Ross' DAX PMD page fault support series [1]. It passes xfstests both in
-DAX and non-DAX mode.
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ fs/ext4/file.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-The question is how shall we merge this. If Dave is pulling PMD patches through
-XFS tree, then these patches could go there as well (chances for conflicts
-with other ext4 stuff are relatively low) or Dave could just export a stable
-branch with PMD series which Ted would just pull...
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index a6a7becb9465..55f8b922b76d 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -161,7 +161,8 @@ ext4_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 
+ 	iocb->private = &overwrite;
+ 	/* Check whether we do a DIO overwrite or not */
+-	if (o_direct && ext4_should_dioread_nolock(inode) && !unaligned_aio &&
++	if (((o_direct && !unaligned_aio) || IS_DAX(inode)) &&
++	    ext4_should_dioread_nolock(inode) &&
+ 	    ext4_overwrite_io(inode, iocb->ki_pos, iov_iter_count(from)))
+ 		overwrite = 1;
+ 
+-- 
+2.6.6
 
-								Honza
-
-[1] http://www.spinics.net/lists/linux-mm/msg115247.html
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
