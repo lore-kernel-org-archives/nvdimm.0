@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 64C2481CC7
- for <linux-nvdimm@lists.01.org>; Wed,  9 Nov 2016 13:16:21 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/2] ndctl: fix return value for disable-namespace
-Date: Wed,  9 Nov 2016 14:16:17 -0700
-Message-Id: <1478726177-21904-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1478726177-21904-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1478726177-21904-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1CB1F81D3B
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:34 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 06/20] mm: Use pass vm_fault structure for in wp_pfn_shared()
+Date: Tue,  1 Nov 2016 23:36:15 +0100
+Message-Id: <1478039794-20253-10-git-send-email-jack@suse.cz>
+In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
+References: <1478039794-20253-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,35 +22,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On success the "ndctl disable-namespace" returns the number of namespaces
-that were disabled to the shell as an exit value.  This non-zero value is
-interpreted by the shell as an error.
+Instead of creating another vm_fault structure, use the one passed to
+wp_pfn_shared() for passing arguments into pfn_mkwrite handler.
 
-Fix this by returning 0 on success, just like all the other ndctl commands.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- ndctl/builtin-xaction-namespace.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
-index 9b1702d..c556252 100644
---- a/ndctl/builtin-xaction-namespace.c
-+++ b/ndctl/builtin-xaction-namespace.c
-@@ -790,7 +790,7 @@ int cmd_disable_namespace(int argc, const char **argv, struct ndctl_ctx *ctx)
- 	} else {
- 		fprintf(stderr, "disabled %d namespace%s\n", disabled,
- 				disabled > 1 ? "s" : "");
--		return disabled;
-+		return 0;
- 	}
- }
+diff --git a/mm/memory.c b/mm/memory.c
+index ba7760fb7db2..48de8187d7b2 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2273,16 +2273,11 @@ static int wp_pfn_shared(struct vm_fault *vmf, pte_t orig_pte)
+ 	struct vm_area_struct *vma = vmf->vma;
  
+ 	if (vma->vm_ops && vma->vm_ops->pfn_mkwrite) {
+-		struct vm_fault vmf2 = {
+-			.page = NULL,
+-			.pgoff = vmf->pgoff,
+-			.virtual_address = vmf->address & PAGE_MASK,
+-			.flags = FAULT_FLAG_WRITE | FAULT_FLAG_MKWRITE,
+-		};
+ 		int ret;
+ 
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		ret = vma->vm_ops->pfn_mkwrite(vma, &vmf2);
++		vmf->flags |= FAULT_FLAG_MKWRITE;
++		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
+ 		if (ret & VM_FAULT_ERROR)
+ 			return ret;
+ 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
 -- 
-2.7.4
+2.6.6
 
 _______________________________________________
 Linux-nvdimm mailing list
