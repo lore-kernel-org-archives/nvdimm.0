@@ -2,13 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5821F81D3D
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:34 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 90B8281D43
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:36 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 03/21] mm: Use pgoff in struct vm_fault instead of passing it
- separately
-Date: Tue,  1 Nov 2016 23:36:11 +0100
-Message-Id: <1478039794-20253-6-git-send-email-jack@suse.cz>
+Subject: [PATCH 14/21] mm: Use vmf->page during WP faults
+Date: Tue,  1 Nov 2016 23:36:23 +0100
+Message-Id: <1478039794-20253-18-git-send-email-jack@suse.cz>
 In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
 References: <1478039794-20253-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -27,169 +26,182 @@ To: linux-mm@kvack.org
 Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-struct vm_fault has already pgoff entry. Use it instead of passing pgoff
-as a separate argument and then assigning it later.
+So far we set vmf->page during WP faults only when we needed to pass it
+to the ->page_mkwrite handler. Set it in all the cases now and use that
+instead of passing page pointer explicitly around.
 
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- mm/khugepaged.c |  1 +
- mm/memory.c     | 35 ++++++++++++++++++-----------------
- 2 files changed, 19 insertions(+), 17 deletions(-)
+ mm/memory.c | 58 +++++++++++++++++++++++++++++-----------------------------
+ 1 file changed, 29 insertions(+), 29 deletions(-)
 
-diff --git a/mm/khugepaged.c b/mm/khugepaged.c
-index f88b2d3810a7..d7df06383b10 100644
---- a/mm/khugepaged.c
-+++ b/mm/khugepaged.c
-@@ -880,6 +880,7 @@ static bool __collapse_huge_page_swapin(struct mm_struct *mm,
- 		.address = address,
- 		.flags = FAULT_FLAG_ALLOW_RETRY,
- 		.pmd = pmd,
-+		.pgoff = linear_page_index(vma, address),
- 	};
- 
- 	/* we only decide to swapin, if there is enough young ptes */
 diff --git a/mm/memory.c b/mm/memory.c
-index c652b65469cd..3b79eace8d23 100644
+index c89f99c270bc..e278a8a6ccc7 100644
 --- a/mm/memory.c
 +++ b/mm/memory.c
-@@ -2279,7 +2279,7 @@ static int wp_pfn_shared(struct vm_fault *vmf, pte_t orig_pte)
- 	if (vma->vm_ops && vma->vm_ops->pfn_mkwrite) {
- 		struct vm_fault vmf2 = {
- 			.page = NULL,
--			.pgoff = linear_page_index(vma, vmf->address),
-+			.pgoff = vmf->pgoff,
- 			.address = vmf->address,
- 			.flags = FAULT_FLAG_WRITE | FAULT_FLAG_MKWRITE,
- 		};
-@@ -2848,15 +2848,15 @@ static int do_anonymous_page(struct vm_fault *vmf)
-  * released depending on flags and vma->vm_ops->fault() return value.
-  * See filemap_fault() and __lock_page_retry().
+@@ -2103,11 +2103,12 @@ static void fault_dirty_shared_page(struct vm_area_struct *vma,
+  * case, all we need to do here is to mark the page as writable and update
+  * any related book-keeping.
   */
--static int __do_fault(struct vm_fault *vmf, pgoff_t pgoff,
--		struct page *cow_page, struct page **page, void **entry)
-+static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
-+		      struct page **page, void **entry)
+-static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
++static inline int wp_page_reuse(struct vm_fault *vmf,
+ 				int page_mkwrite, int dirty_shared)
+ 	__releases(vmf->ptl)
  {
  	struct vm_area_struct *vma = vmf->vma;
- 	struct vm_fault vmf2;
- 	int ret;
- 
- 	vmf2.address = vmf->address;
--	vmf2.pgoff = pgoff;
-+	vmf2.pgoff = vmf->pgoff;
- 	vmf2.flags = vmf->flags;
- 	vmf2.page = NULL;
- 	vmf2.gfp_mask = __get_fault_gfp_mask(vma);
-@@ -3115,9 +3115,10 @@ late_initcall(fault_around_debugfs);
-  * fault_around_pages() value (and therefore to page order).  This way it's
-  * easier to guarantee that we don't cross page table boundaries.
++	struct page *page = vmf->page;
+ 	pte_t entry;
+ 	/*
+ 	 * Clear the pages cpupid information as the existing
+@@ -2151,10 +2152,11 @@ static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
+  *   held to the old page, as well as updating the rmap.
+  * - In any case, unlock the PTL and drop the reference we took to the old page.
   */
--static int do_fault_around(struct vm_fault *vmf, pgoff_t start_pgoff)
-+static int do_fault_around(struct vm_fault *vmf)
- {
- 	unsigned long address = vmf->address, nr_pages, mask;
-+	pgoff_t start_pgoff = vmf->pgoff;
- 	pgoff_t end_pgoff;
- 	int off, ret = 0;
- 
-@@ -3175,7 +3176,7 @@ static int do_fault_around(struct vm_fault *vmf, pgoff_t start_pgoff)
- 	return ret;
- }
- 
--static int do_read_fault(struct vm_fault *vmf, pgoff_t pgoff)
-+static int do_read_fault(struct vm_fault *vmf)
+-static int wp_page_copy(struct vm_fault *vmf, struct page *old_page)
++static int wp_page_copy(struct vm_fault *vmf)
  {
  	struct vm_area_struct *vma = vmf->vma;
- 	struct page *fault_page;
-@@ -3187,12 +3188,12 @@ static int do_read_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 	 * something).
- 	 */
- 	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
--		ret = do_fault_around(vmf, pgoff);
-+		ret = do_fault_around(vmf);
- 		if (ret)
- 			return ret;
- 	}
- 
--	ret = __do_fault(vmf, pgoff, NULL, &fault_page, NULL);
-+	ret = __do_fault(vmf, NULL, &fault_page, NULL);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
-@@ -3205,7 +3206,7 @@ static int do_read_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 	return ret;
- }
- 
--static int do_cow_fault(struct vm_fault *vmf, pgoff_t pgoff)
-+static int do_cow_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *fault_page, *new_page;
-@@ -3226,7 +3227,7 @@ static int do_cow_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 		return VM_FAULT_OOM;
- 	}
- 
--	ret = __do_fault(vmf, pgoff, new_page, &fault_page, &fault_entry);
-+	ret = __do_fault(vmf, new_page, &fault_page, &fault_entry);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
- 
-@@ -3241,7 +3242,7 @@ static int do_cow_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 		unlock_page(fault_page);
- 		put_page(fault_page);
- 	} else {
--		dax_unlock_mapping_entry(vma->vm_file->f_mapping, pgoff);
-+		dax_unlock_mapping_entry(vma->vm_file->f_mapping, vmf->pgoff);
- 	}
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
-@@ -3252,7 +3253,7 @@ static int do_cow_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 	return ret;
- }
- 
--static int do_shared_fault(struct vm_fault *vmf, pgoff_t pgoff)
-+static int do_shared_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *fault_page;
-@@ -3260,7 +3261,7 @@ static int do_shared_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 	int dirtied = 0;
- 	int ret, tmp;
- 
--	ret = __do_fault(vmf, pgoff, NULL, &fault_page, NULL);
-+	ret = __do_fault(vmf, NULL, &fault_page, NULL);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
-@@ -3321,16 +3322,15 @@ static int do_shared_fault(struct vm_fault *vmf, pgoff_t pgoff)
- static int do_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	pgoff_t pgoff = linear_page_index(vma, vmf->address);
- 
- 	/* The VMA was not fully populated on mmap() or missing VM_DONTEXPAND */
- 	if (!vma->vm_ops->fault)
- 		return VM_FAULT_SIGBUS;
- 	if (!(vmf->flags & FAULT_FLAG_WRITE))
--		return do_read_fault(vmf, pgoff);
-+		return do_read_fault(vmf);
- 	if (!(vma->vm_flags & VM_SHARED))
--		return do_cow_fault(vmf, pgoff);
--	return do_shared_fault(vmf, pgoff);
-+		return do_cow_fault(vmf);
-+	return do_shared_fault(vmf);
- }
- 
- static int numa_migrate_prep(struct page *page, struct vm_area_struct *vma,
-@@ -3578,6 +3578,7 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
- 		.vma = vma,
- 		.address = address,
- 		.flags = flags,
-+		.pgoff = linear_page_index(vma, address),
- 	};
  	struct mm_struct *mm = vma->vm_mm;
- 	pgd_t *pgd;
++	struct page *old_page = vmf->page;
+ 	struct page *new_page = NULL;
+ 	pte_t entry;
+ 	int page_copied = 0;
+@@ -2306,26 +2308,25 @@ static int wp_pfn_shared(struct vm_fault *vmf)
+ 			return 0;
+ 		}
+ 	}
+-	return wp_page_reuse(vmf, NULL, 0, 0);
++	return wp_page_reuse(vmf, 0, 0);
+ }
+ 
+-static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
++static int wp_page_shared(struct vm_fault *vmf)
+ 	__releases(vmf->ptl)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	int page_mkwrite = 0;
+ 
+-	get_page(old_page);
++	get_page(vmf->page);
+ 
+ 	if (vma->vm_ops->page_mkwrite) {
+ 		int tmp;
+ 
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		vmf->page = old_page;
+ 		tmp = do_page_mkwrite(vmf);
+ 		if (unlikely(!tmp || (tmp &
+ 				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+-			put_page(old_page);
++			put_page(vmf->page);
+ 			return tmp;
+ 		}
+ 		/*
+@@ -2337,15 +2338,15 @@ static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
+ 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+ 						vmf->address, &vmf->ptl);
+ 		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
+-			unlock_page(old_page);
++			unlock_page(vmf->page);
+ 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+-			put_page(old_page);
++			put_page(vmf->page);
+ 			return 0;
+ 		}
+ 		page_mkwrite = 1;
+ 	}
+ 
+-	return wp_page_reuse(vmf, old_page, page_mkwrite, 1);
++	return wp_page_reuse(vmf, page_mkwrite, 1);
+ }
+ 
+ /*
+@@ -2370,10 +2371,9 @@ static int do_wp_page(struct vm_fault *vmf)
+ 	__releases(vmf->ptl)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct page *old_page;
+ 
+-	old_page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
+-	if (!old_page) {
++	vmf->page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
++	if (!vmf->page) {
+ 		/*
+ 		 * VM_MIXEDMAP !pfn_valid() case, or VM_SOFTDIRTY clear on a
+ 		 * VM_PFNMAP VMA.
+@@ -2386,30 +2386,30 @@ static int do_wp_page(struct vm_fault *vmf)
+ 			return wp_pfn_shared(vmf);
+ 
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		return wp_page_copy(vmf, old_page);
++		return wp_page_copy(vmf);
+ 	}
+ 
+ 	/*
+ 	 * Take out anonymous pages first, anonymous shared vmas are
+ 	 * not dirty accountable.
+ 	 */
+-	if (PageAnon(old_page) && !PageKsm(old_page)) {
++	if (PageAnon(vmf->page) && !PageKsm(vmf->page)) {
+ 		int total_mapcount;
+-		if (!trylock_page(old_page)) {
+-			get_page(old_page);
++		if (!trylock_page(vmf->page)) {
++			get_page(vmf->page);
+ 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+-			lock_page(old_page);
++			lock_page(vmf->page);
+ 			vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+ 					vmf->address, &vmf->ptl);
+ 			if (!pte_same(*vmf->pte, vmf->orig_pte)) {
+-				unlock_page(old_page);
++				unlock_page(vmf->page);
+ 				pte_unmap_unlock(vmf->pte, vmf->ptl);
+-				put_page(old_page);
++				put_page(vmf->page);
+ 				return 0;
+ 			}
+-			put_page(old_page);
++			put_page(vmf->page);
+ 		}
+-		if (reuse_swap_page(old_page, &total_mapcount)) {
++		if (reuse_swap_page(vmf->page, &total_mapcount)) {
+ 			if (total_mapcount == 1) {
+ 				/*
+ 				 * The page is all ours. Move it to
+@@ -2418,24 +2418,24 @@ static int do_wp_page(struct vm_fault *vmf)
+ 				 * Protected against the rmap code by
+ 				 * the page lock.
+ 				 */
+-				page_move_anon_rmap(old_page, vma);
++				page_move_anon_rmap(vmf->page, vma);
+ 			}
+-			unlock_page(old_page);
+-			return wp_page_reuse(vmf, old_page, 0, 0);
++			unlock_page(vmf->page);
++			return wp_page_reuse(vmf, 0, 0);
+ 		}
+-		unlock_page(old_page);
++		unlock_page(vmf->page);
+ 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+ 					(VM_WRITE|VM_SHARED))) {
+-		return wp_page_shared(vmf, old_page);
++		return wp_page_shared(vmf);
+ 	}
+ 
+ 	/*
+ 	 * Ok, we need to copy. Oh, well..
+ 	 */
+-	get_page(old_page);
++	get_page(vmf->page);
+ 
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+-	return wp_page_copy(vmf, old_page);
++	return wp_page_copy(vmf);
+ }
+ 
+ static void unmap_mapping_range_vma(struct vm_area_struct *vma,
 -- 
 2.6.6
 
