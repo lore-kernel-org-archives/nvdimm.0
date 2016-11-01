@@ -1,13 +1,29 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C353381D56
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:35 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 19/21] dax: Make cache flushing protected by entry lock
-Date: Tue,  1 Nov 2016 23:36:30 +0100
-Message-Id: <1478039794-20253-25-git-send-email-jack@suse.cz>
+Subject: [PATCH 18/20] dax: Make cache flushing protected by entry lock
+Date: Tue,  1 Nov 2016 23:36:28 +0100
+Message-Id: <1478039794-20253-23-git-send-email-jack@suse.cz>
 In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
 References: <1478039794-20253-1-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Currently, flushing of caches for DAX mappings was ignoring entry lock.
@@ -18,25 +34,26 @@ tags. For that we will need more exclusion. So do cache flushing under
 an entry lock. This allows us to remove one lock-unlock pair of
 mapping->tree_lock as a bonus.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c | 61 +++++++++++++++++++++++++++++++++++++++----------------------
- 1 file changed, 39 insertions(+), 22 deletions(-)
+ fs/dax.c | 66 +++++++++++++++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 42 insertions(+), 24 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index b4ea4bcca9e7..857117b6db6b 100644
+index b1c503930d1d..c6cadf8413a3 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -619,32 +619,50 @@ static int dax_writeback_one(struct block_device *bdev,
+@@ -672,43 +672,63 @@ static int dax_writeback_one(struct block_device *bdev,
  		struct address_space *mapping, pgoff_t index, void *entry)
  {
  	struct radix_tree_root *page_tree = &mapping->page_tree;
+-	int type = RADIX_DAX_TYPE(entry);
 -	struct radix_tree_node *node;
  	struct blk_dax_ctl dax;
 -	void **slot;
 +	void *entry2, **slot;
  	int ret = 0;
++	int type;
  
 -	spin_lock_irq(&mapping->tree_lock);
  	/*
@@ -61,24 +78,24 @@ index b4ea4bcca9e7..857117b6db6b 100644
 +	entry2 = get_unlocked_mapping_entry(mapping, index, &slot);
 +	/* Entry got punched out / reallocated? */
 +	if (!entry2 || !radix_tree_exceptional_entry(entry2))
-+		goto put_unlocked;
++		goto put_unlock;
 +	/*
 +	 * Entry got reallocated elsewhere? No need to writeback. We have to
 +	 * compare sectors as we must not bail out due to difference in lockbit
 +	 * or entry type.
 +	 */
-+	if (dax_radix_sector(entry2) != dax_radix_sector(entry))
-+		goto put_unlocked;
- 	if (WARN_ON_ONCE(dax_is_empty_entry(entry) ||
- 				dax_is_zero_entry(entry))) {
++	if (RADIX_DAX_SECTOR(entry2) != RADIX_DAX_SECTOR(entry))
++		goto put_unlock;
++	type = RADIX_DAX_TYPE(entry2);
+ 	if (WARN_ON_ONCE(type != RADIX_DAX_PTE && type != RADIX_DAX_PMD)) {
  		ret = -EIO;
 -		goto unlock;
-+		goto put_unlocked;
++		goto put_unlock;
  	}
  
 +	/* Another fsync thread may have already written back this entry */
 +	if (!radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
-+		goto put_unlocked;
++		goto put_unlock;
 +	/* Lock the entry to serialize with page faults */
 +	entry = lock_slot(mapping, slot);
 +	/*
@@ -91,13 +108,8 @@ index b4ea4bcca9e7..857117b6db6b 100644
 +	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
 +	spin_unlock_irq(&mapping->tree_lock);
 +
- 	/*
- 	 * Even if dax_writeback_mapping_range() was given a wbc->range_start
- 	 * in the middle of a PMD, the 'index' we are given will be aligned to
-@@ -654,15 +672,16 @@ static int dax_writeback_one(struct block_device *bdev,
- 	 */
- 	dax.sector = dax_radix_sector(entry);
- 	dax.size = PAGE_SIZE << dax_radix_order(entry);
+ 	dax.sector = RADIX_DAX_SECTOR(entry);
+ 	dax.size = (type == RADIX_DAX_PMD ? PMD_SIZE : PAGE_SIZE);
 -	spin_unlock_irq(&mapping->tree_lock);
  
  	/*
@@ -113,7 +125,7 @@ index b4ea4bcca9e7..857117b6db6b 100644
  
  	if (WARN_ON_ONCE(ret < dax.size)) {
  		ret = -EIO;
-@@ -670,15 +689,13 @@ static int dax_writeback_one(struct block_device *bdev,
+@@ -716,15 +736,13 @@ static int dax_writeback_one(struct block_device *bdev,
  	}
  
  	wb_cache_pmem(dax.addr, dax.size);
@@ -121,13 +133,14 @@ index b4ea4bcca9e7..857117b6db6b 100644
 -	spin_lock_irq(&mapping->tree_lock);
 -	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);
 -	spin_unlock_irq(&mapping->tree_lock);
-  unmap:
+- unmap:
++unmap:
  	dax_unmap_atomic(bdev, &dax);
 +	put_locked_mapping_entry(mapping, index, entry);
  	return ret;
  
 - unlock:
-+ put_unlocked:
++put_unlock:
 +	put_unlocked_mapping_entry(mapping, index, entry2);
  	spin_unlock_irq(&mapping->tree_lock);
  	return ret;
@@ -135,8 +148,7 @@ index b4ea4bcca9e7..857117b6db6b 100644
 -- 
 2.6.6
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
