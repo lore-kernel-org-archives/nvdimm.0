@@ -1,13 +1,29 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 9ECD481D34
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:35 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 21/21] dax: Clear dirty entry tags on cache flush
-Date: Tue,  1 Nov 2016 23:36:34 +0100
-Message-Id: <1478039794-20253-29-git-send-email-jack@suse.cz>
+Subject: [PATCH 20/20] dax: Clear dirty entry tags on cache flush
+Date: Tue,  1 Nov 2016 23:36:32 +0100
+Message-Id: <1478039794-20253-27-git-send-email-jack@suse.cz>
 In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
 References: <1478039794-20253-1-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Currently we never clear dirty tags in DAX mappings and thus address
@@ -18,14 +34,13 @@ Similarly to page_mkclean() we also have to write-protect pages to get a
 page fault when the page is next written to so that we can mark the
 entry dirty again.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
  fs/dax.c | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  1 file changed, 64 insertions(+)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 63b4cebe3f20..5651d58de74c 100644
+index a2d3781c9f4e..233f548d298e 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
 @@ -31,6 +31,7 @@
@@ -36,7 +51,7 @@ index 63b4cebe3f20..5651d58de74c 100644
  #include <linux/iomap.h>
  #include "internal.h"
  
-@@ -615,6 +616,59 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
+@@ -668,6 +669,59 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
  	return new_entry;
  }
  
@@ -96,7 +111,7 @@ index 63b4cebe3f20..5651d58de74c 100644
  static int dax_writeback_one(struct block_device *bdev,
  		struct address_space *mapping, pgoff_t index, void *entry)
  {
-@@ -688,7 +742,17 @@ static int dax_writeback_one(struct block_device *bdev,
+@@ -735,7 +789,17 @@ static int dax_writeback_one(struct block_device *bdev,
  		goto unmap;
  	}
  
@@ -111,14 +126,13 @@ index 63b4cebe3f20..5651d58de74c 100644
 +	spin_lock_irq(&mapping->tree_lock);
 +	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
 +	spin_unlock_irq(&mapping->tree_lock);
-  unmap:
+ unmap:
  	dax_unmap_atomic(bdev, &dax);
  	put_locked_mapping_entry(mapping, index, entry);
 -- 
 2.6.6
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
