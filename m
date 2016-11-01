@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0095381C93
- for <linux-nvdimm@lists.01.org>; Wed,  9 Nov 2016 15:20:57 -0800 (PST)
-Subject: [PATCH] libnvdimm: check and clear poison before writing to pmem
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 09 Nov 2016 16:20:42 -0700
-Message-ID: <147873364251.45471.9613527969861188296.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id C3F4C81D57
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:35 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 16/21] mm: Provide helper for finishing mkwrite faults
+Date: Tue,  1 Nov 2016 23:36:25 +0100
+Message-Id: <1478039794-20253-20-git-send-email-jack@suse.cz>
+In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
+References: <1478039794-20253-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,65 +17,143 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com, ross.zwisler@linux.intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We need to clear any poison when we are writing to pmem. The granularity
-will be sector size. If it's less then we can't do anything about it
-barring corruption.
+Provide a helper function for finishing write faults due to PTE being
+read-only. The helper will be used by DAX to avoid the need of
+complicating generic MM code with DAX locking specifics.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- drivers/nvdimm/claim.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ include/linux/mm.h |  1 +
+ mm/memory.c        | 67 ++++++++++++++++++++++++++++++++----------------------
+ 2 files changed, 41 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index d5dc80c..2078d25 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -226,6 +226,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 		resource_size_t offset, void *buf, size_t size, int rw)
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 56fdd79e5d1e..0920adb6ec1b 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -615,6 +615,7 @@ static inline pte_t maybe_mkwrite(pte_t pte, struct vm_area_struct *vma)
+ int alloc_set_pte(struct vm_fault *vmf, struct mem_cgroup *memcg,
+ 		struct page *page);
+ int finish_fault(struct vm_fault *vmf);
++int finish_mkwrite_fault(struct vm_fault *vmf);
+ #endif
+ 
+ /*
+diff --git a/mm/memory.c b/mm/memory.c
+index 06aba4203104..1517ff91c743 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2270,6 +2270,38 @@ static int wp_page_copy(struct vm_fault *vmf)
+ 	return VM_FAULT_OOM;
+ }
+ 
++/**
++ * finish_mkwrite_fault - finish page fault for a shared mapping, making PTE
++ *			  writeable once the page is prepared
++ *
++ * @vmf: structure describing the fault
++ *
++ * This function handles all that is needed to finish a write page fault in a
++ * shared mapping due to PTE being read-only once the mapped page is prepared.
++ * It handles locking of PTE and modifying it. The function returns
++ * VM_FAULT_WRITE on success, 0 when PTE got changed before we acquired PTE
++ * lock.
++ *
++ * The function expects the page to be locked or other protection against
++ * concurrent faults / writeback (such as DAX radix tree locks).
++ */
++int finish_mkwrite_fault(struct vm_fault *vmf)
++{
++	WARN_ON_ONCE(!(vmf->vma->vm_flags & VM_SHARED));
++	vmf->pte = pte_offset_map_lock(vmf->vma->vm_mm, vmf->pmd, vmf->address,
++				       &vmf->ptl);
++	/*
++	 * We might have raced with another page fault while we released the
++	 * pte_offset_map_lock.
++	 */
++	if (!pte_same(*vmf->pte, vmf->orig_pte)) {
++		pte_unmap_unlock(vmf->pte, vmf->ptl);
++		return 0;
++	}
++	wp_page_reuse(vmf);
++	return VM_FAULT_WRITE;
++}
++
+ /*
+  * Handle write page faults for VM_MIXEDMAP or VM_PFNMAP for a VM_SHARED
+  * mapping
+@@ -2286,16 +2318,7 @@ static int wp_pfn_shared(struct vm_fault *vmf)
+ 		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
+ 		if (ret & VM_FAULT_ERROR)
+ 			return ret;
+-		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+-				vmf->address, &vmf->ptl);
+-		/*
+-		 * We might have raced with another page fault while we
+-		 * released the pte_offset_map_lock.
+-		 */
+-		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
+-			pte_unmap_unlock(vmf->pte, vmf->ptl);
+-			return 0;
+-		}
++		return finish_mkwrite_fault(vmf);
+ 	}
+ 	wp_page_reuse(vmf);
+ 	return VM_FAULT_WRITE;
+@@ -2305,7 +2328,6 @@ static int wp_page_shared(struct vm_fault *vmf)
+ 	__releases(vmf->ptl)
  {
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
-+	unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
+ 	struct vm_area_struct *vma = vmf->vma;
+-	int page_mkwrite = 0;
  
- 	if (unlikely(offset + size > nsio->size)) {
- 		dev_WARN_ONCE(&ndns->dev, 1, "request out of range\n");
-@@ -233,12 +234,27 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 	}
+ 	get_page(vmf->page);
  
- 	if (rw == READ) {
--		unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
+@@ -2319,26 +2341,17 @@ static int wp_page_shared(struct vm_fault *vmf)
+ 			put_page(vmf->page);
+ 			return tmp;
+ 		}
+-		/*
+-		 * Since we dropped the lock we need to revalidate
+-		 * the PTE as someone else may have changed it.  If
+-		 * they did, we just return, as we can count on the
+-		 * MMU to tell us if they didn't also make it writable.
+-		 */
+-		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+-						vmf->address, &vmf->ptl);
+-		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
++		tmp = finish_mkwrite_fault(vmf);
++		if (unlikely(!tmp || (tmp &
++				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+ 			unlock_page(vmf->page);
+-			pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 			put_page(vmf->page);
+-			return 0;
++			return tmp;
+ 		}
+-		page_mkwrite = 1;
+-	}
 -
- 		if (unlikely(is_bad_pmem(&nsio->bb, offset / 512, sz_align)))
- 			return -EIO;
- 		return memcpy_from_pmem(buf, nsio->addr + offset, size);
- 	} else {
-+		sector_t sector = offset / 512;
-+
-+		if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
-+			if (IS_ALIGNED(offset, 512) &&
-+			    IS_ALIGNED(size, 512) && (size >= 512)) {
-+				int rc;
-+
-+				rc = nvdimm_clear_poison(&ndns->dev, offset,
-+							 size);
-+				if (rc != size)
-+					return -EIO;
-+
-+				badblocks_clear(&nsio->bb, sector, rc / 512);
-+			} else
-+				return -EIO;
-+		}
-+
- 		memcpy_to_pmem(nsio->addr + offset, buf, size);
- 		nvdimm_flush(to_nd_region(ndns->dev.parent));
- 	}
+-	wp_page_reuse(vmf);
+-	if (!page_mkwrite)
++	} else {
++		wp_page_reuse(vmf);
+ 		lock_page(vmf->page);
++	}
+ 	fault_dirty_shared_page(vma, vmf->page);
+ 	put_page(vmf->page);
+ 
+-- 
+2.6.6
 
 _______________________________________________
 Linux-nvdimm mailing list
