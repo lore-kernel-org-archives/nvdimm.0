@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 000EB81D2F
+ by ml01.01.org (Postfix) with ESMTPS id 8922F81D11
  for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:26 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v9 03/16] ext2: remove support for DAX PMD faults
-Date: Tue,  1 Nov 2016 13:54:05 -0600
-Message-Id: <1478030058-1422-4-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v9 02/16] dax: remove buffer_size_valid()
+Date: Tue,  1 Nov 2016 13:54:04 -0600
+Message-Id: <1478030058-1422-3-git-send-email-ross.zwisler@linux.intel.com>
 In-Reply-To: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
 References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -26,86 +26,63 @@ To: linux-kernel@vger.kernel.org
 Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX PMD support was added via the following commit:
-
-commit e7b1ea2ad658 ("ext2: huge page fault support")
-
-I believe this path to be untested as ext2 doesn't reliably provide block
-allocations that are aligned to 2MiB.  In my testing I've been unable to
-get ext2 to actually fault in a PMD.  It always fails with a "pfn
-unaligned" message because the sector returned by ext2_get_block() isn't
-aligned.
-
-I've tried various settings for the "stride" and "stripe_width" extended
-options to mkfs.ext2, without any luck.
-
-Since we can't reliably get PMDs, remove support so that we don't have an
-untested code path that we may someday traverse when we happen to get an
-aligned block allocation.  This should also make 4k DAX faults in ext2 a
-bit faster since they will no longer have to call the PMD fault handler
-only to get a response of VM_FAULT_FALLBACK.
+Now that ext4 properly sets bh.b_size when we call get_block() for a hole,
+rely on that value and remove the buffer_size_valid() sanity check.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/ext2/file.c | 29 ++++++-----------------------
- 1 file changed, 6 insertions(+), 23 deletions(-)
+ fs/dax.c | 22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index a0e1478..fb88b51 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -107,27 +107,6 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- 	return ret;
+diff --git a/fs/dax.c b/fs/dax.c
+index 014defd..b09817a 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -123,19 +123,6 @@ static bool buffer_written(struct buffer_head *bh)
+ 	return buffer_mapped(bh) && !buffer_unwritten(bh);
  }
  
--static int ext2_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
--						pmd_t *pmd, unsigned int flags)
+-/*
+- * When ext4 encounters a hole, it returns without modifying the buffer_head
+- * which means that we can't trust b_size.  To cope with this, we set b_state
+- * to 0 before calling get_block and, if any bit is set, we know we can trust
+- * b_size.  Unfortunate, really, since ext4 knows precisely how long a hole is
+- * and would save us time calling get_block repeatedly.
+- */
+-static bool buffer_size_valid(struct buffer_head *bh)
 -{
--	struct inode *inode = file_inode(vma->vm_file);
--	struct ext2_inode_info *ei = EXT2_I(inode);
--	int ret;
--
--	if (flags & FAULT_FLAG_WRITE) {
--		sb_start_pagefault(inode->i_sb);
--		file_update_time(vma->vm_file);
--	}
--	down_read(&ei->dax_sem);
--
--	ret = dax_pmd_fault(vma, addr, pmd, flags, ext2_get_block);
--
--	up_read(&ei->dax_sem);
--	if (flags & FAULT_FLAG_WRITE)
--		sb_end_pagefault(inode->i_sb);
--	return ret;
+-	return bh->b_state != 0;
 -}
 -
- static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
- 		struct vm_fault *vmf)
+-
+ static sector_t to_sector(const struct buffer_head *bh,
+ 		const struct inode *inode)
  {
-@@ -154,7 +133,11 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+@@ -177,8 +164,6 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 				rc = get_block(inode, block, bh, rw == WRITE);
+ 				if (rc)
+ 					break;
+-				if (!buffer_size_valid(bh))
+-					bh->b_size = 1 << blkbits;
+ 				bh_max = pos - first + bh->b_size;
+ 				bdev = bh->b_bdev;
+ 				/*
+@@ -1012,12 +997,7 @@ int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
  
- static const struct vm_operations_struct ext2_dax_vm_ops = {
- 	.fault		= ext2_dax_fault,
--	.pmd_fault	= ext2_dax_pmd_fault,
-+	/*
-+	 * .pmd_fault is not supported for DAX because allocation in ext2
-+	 * cannot be reliably aligned to huge page sizes and so pmd faults
-+	 * will always fail and fail back to regular faults.
-+	 */
- 	.page_mkwrite	= ext2_dax_fault,
- 	.pfn_mkwrite	= ext2_dax_pfn_mkwrite,
- };
-@@ -166,7 +149,7 @@ static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 	bdev = bh.b_bdev;
  
- 	file_accessed(file);
- 	vma->vm_ops = &ext2_dax_vm_ops;
--	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-+	vma->vm_flags |= VM_MIXEDMAP;
- 	return 0;
- }
- #else
+-	/*
+-	 * If the filesystem isn't willing to tell us the length of a hole,
+-	 * just fall back to PTEs.  Calling get_block 512 times in a loop
+-	 * would be silly.
+-	 */
+-	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
++	if (bh.b_size < PMD_SIZE) {
+ 		dax_pmd_dbg(&bh, address, "allocated block too small");
+ 		return VM_FAULT_FALLBACK;
+ 	}
 -- 
 2.7.4
 
