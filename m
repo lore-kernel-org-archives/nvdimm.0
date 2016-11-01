@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EE2A281D6F
- for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:25:24 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 08/21] mm: Allow full handling of COW faults in ->fault
- handlers
-Date: Fri,  4 Nov 2016 05:25:04 +0100
-Message-Id: <1478233517-3571-9-git-send-email-jack@suse.cz>
-In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
-References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id AF1A981D53
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:32 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v9 12/16] dax: move RADIX_DAX_* defines to dax.h
+Date: Tue,  1 Nov 2016 13:54:14 -0600
+Message-Id: <1478030058-1422-13-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,75 +22,82 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To allow full handling of COW faults add memcg field to struct vm_fault
-and a return value of ->fault() handler meaning that COW fault is fully
-handled and memcg charge must not be canceled. This will allow us to
-remove knowledge about special DAX locking from the generic fault code.
+The RADIX_DAX_* defines currently mostly live in fs/dax.c, with just
+RADIX_DAX_ENTRY_LOCK being in include/linux/dax.h so it can be used in
+mm/filemap.c.  When we add PMD support, though, mm/filemap.c will also need
+access to the RADIX_DAX_PTE type so it can properly construct a 4k sized
+empty entry.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Instead of shifting the defines between dax.c and dax.h as they are
+individually used in other code, just move them wholesale to dax.h so
+they'll be available when we need them.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- include/linux/mm.h | 4 +++-
- mm/memory.c        | 8 +++++---
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ fs/dax.c            | 14 --------------
+ include/linux/dax.h | 15 ++++++++++++++-
+ 2 files changed, 14 insertions(+), 15 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 5cc679b874eb..34d2891e9195 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -301,7 +301,8 @@ struct vm_fault {
- 					 * the 'address' */
- 	pte_t orig_pte;			/* Value of PTE at the time of fault */
+diff --git a/fs/dax.c b/fs/dax.c
+index 6edd89b..c45cc4d 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -34,20 +34,6 @@
+ #include <linux/iomap.h>
+ #include "internal.h"
  
--	struct page *cow_page;		/* Handler may choose to COW */
-+	struct page *cow_page;		/* Page handler may use for COW fault */
-+	struct mem_cgroup *memcg;	/* Cgroup cow_page belongs to */
- 	struct page *page;		/* ->fault handlers should return a
- 					 * page here, unless VM_FAULT_NOPAGE
- 					 * is set (which is also implied by
-@@ -1103,6 +1104,7 @@ static inline void clear_page_pfmemalloc(struct page *page)
- #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
- #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
- #define VM_FAULT_DAX_LOCKED 0x1000	/* ->fault has locked DAX entry */
-+#define VM_FAULT_DONE_COW   0x2000	/* ->fault has fully handled COW */
+-/*
+- * We use lowest available bit in exceptional entry for locking, other two
+- * bits to determine entry type. In total 3 special bits.
+- */
+-#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 3)
+-#define RADIX_DAX_PTE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
+-#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
+-#define RADIX_DAX_TYPE_MASK (RADIX_DAX_PTE | RADIX_DAX_PMD)
+-#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_TYPE_MASK)
+-#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
+-#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
+-		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE) | \
+-		RADIX_TREE_EXCEPTIONAL_ENTRY))
+-
+ /* We choose 4096 entries - same as per-zone page wait tables */
+ #define DAX_WAIT_TABLE_BITS 12
+ #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index a3dfee4..e9ea78c 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -8,8 +8,21 @@
  
- #define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
+ struct iomap_ops;
  
-diff --git a/mm/memory.c b/mm/memory.c
-index 25028422a578..ac901bb02398 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2848,9 +2848,8 @@ static int __do_fault(struct vm_fault *vmf)
- 	int ret;
+-/* We use lowest available exceptional entry bit for locking */
++/*
++ * We use lowest available bit in exceptional entry for locking, other two
++ * bits to determine entry type. In total 3 special bits.
++ */
++#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 3)
+ #define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
++#define RADIX_DAX_PTE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
++#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
++#define RADIX_DAX_TYPE_MASK (RADIX_DAX_PTE | RADIX_DAX_PMD)
++#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_TYPE_MASK)
++#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
++#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
++		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE) | \
++		RADIX_TREE_EXCEPTIONAL_ENTRY))
++
  
- 	ret = vma->vm_ops->fault(vma, vmf);
--	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
--		return ret;
--	if (ret & VM_FAULT_DAX_LOCKED)
-+	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY |
-+			    VM_FAULT_DAX_LOCKED | VM_FAULT_DONE_COW)))
- 		return ret;
- 
- 	if (unlikely(PageHWPoison(vmf->page))) {
-@@ -3209,9 +3208,12 @@ static int do_cow_fault(struct vm_fault *vmf)
- 	}
- 
- 	vmf->cow_page = new_page;
-+	vmf->memcg = memcg;
- 	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
-+	if (ret & VM_FAULT_DONE_COW)
-+		return ret;
- 
- 	if (!(ret & VM_FAULT_DAX_LOCKED))
- 		copy_user_highpage(new_page, vmf->page, vmf->address, vma);
+ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+ 		struct iomap_ops *ops);
 -- 
-2.6.6
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
