@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail06.adl6.internode.on.net (ipmail06.adl6.internode.on.net
- [150.101.137.145]) by ml01.01.org (Postfix) with ESMTP id EA7B681CC9
- for <linux-nvdimm@lists.01.org>; Wed,  2 Nov 2016 18:58:38 -0700 (PDT)
-Date: Thu, 3 Nov 2016 12:58:26 +1100
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH v9 00/16] re-enable DAX PMD support
-Message-ID: <20161103015826.GI9920@dastard>
-References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 5574B81D11
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:26 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v9 00/16] re-enable DAX PMD support
+Date: Tue,  1 Nov 2016 13:54:02 -0600
+Message-Id: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,52 +15,80 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Nov 01, 2016 at 01:54:02PM -0600, Ross Zwisler wrote:
-> DAX PMDs have been disabled since Jan Kara introduced DAX radix tree based
-> locking.  This series allows DAX PMDs to participate in the DAX radix tree
-> based locking scheme so that they can be re-enabled.
+DAX PMDs have been disabled since Jan Kara introduced DAX radix tree based
+locking.  This series allows DAX PMDs to participate in the DAX radix tree
+based locking scheme so that they can be re-enabled.
 
-I've seen patch 0/16 - where did you send the other 16? I need to
-pick up the bug fix that is in this patch set...
+Previously we had talked about this series going through the XFS tree, but
+Jan has a patch set that will need to build on this series and it heavily
+modifies the MM code.  I think he would prefer that series to go through
+Andrew Morton's -MM tree, so it probably makes sense for this series to go
+through that same tree.
 
-> Previously we had talked about this series going through the XFS tree, but
-> Jan has a patch set that will need to build on this series and it heavily
-> modifies the MM code.  I think he would prefer that series to go through
-> Andrew Morton's -MM tree, so it probably makes sense for this series to go
-> through that same tree.
+For reference, here is the series from Jan that I was talking about:
+https://marc.info/?l=linux-mm&m=147499252322902&w=2
 
-Seriously, I was 10 minutes away from pushing out the previous
-version of this patchset as a stable topic branch, just like has
-been discussed and several times over the past week.  Indeed, I
-mentioned that I was planning on pushing out this topic branch today
-not more than 4 hours ago, and you were on the cc list.
+Andrew, can you please pick this up for the v4.10 merge window?
+This series is currently based on v4.9-rc3.  I tried to rebase onto a -mm
+branch or tag, but couldn't find one that contained the DAX iomap changes
+that were merged as part of the v4.9 merge window.  I'm happy to rebase &
+test on a v4.9-rc* based -MM branch or tag whenever they are available.
 
-The -mm tree is not the place to merge patchsets with dependencies
-like this because it's an unstable, rebasing tree. Hence it cannot
-be shared and used as the base of common development between
-multiple git trees like we have for the fs/ subsystem.
+Changes since v8:
+- Rebased onto v4.9-rc3.
+- Updated the DAX PMD fault path so that on fallback we always check to see
+  if we are dealing with a transparent huge page, and if we are we will
+  split it.  This was already happening for one of the fallback cases via a
+  patch from Toshi, and Jan hit a deadlock in another fallback case where
+  the same splitting was needed.  (Jan & Toshi)
 
-This needs to go out as a stable topic branch so that other
-dependent work can reliably build on top of it for the next merge
-window. e.g. the ext4 DAX iomap patch series that is likely to be
-merged through the ext4 tree, so it needs a stable branch. There's
-iomap direct IO patches for XFS pending, and they conflict with this
-patchset. i.e. we need a stable git base to work from...
+This series has passed all my xfstests testing, including the test that was
+hitting the deadlock with v8.
 
-Cheers,
+Here is a tree containing my changes:
+https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_pmd_v9
 
-Dave.
+Ross Zwisler (16):
+  ext4: tell DAX the size of allocation holes
+  dax: remove buffer_size_valid()
+  ext2: remove support for DAX PMD faults
+  dax: make 'wait_table' global variable static
+  dax: remove the last BUG_ON() from fs/dax.c
+  dax: consistent variable naming for DAX entries
+  dax: coordinate locking for offsets in PMD range
+  dax: remove dax_pmd_fault()
+  dax: correct dax iomap code namespace
+  dax: add dax_iomap_sector() helper function
+  dax: dax_iomap_fault() needs to call iomap_end()
+  dax: move RADIX_DAX_* defines to dax.h
+  dax: move put_(un)locked_mapping_entry() in dax.c
+  dax: add struct iomap based DAX PMD support
+  xfs: use struct iomap based DAX PMD fault path
+  dax: remove "depends on BROKEN" from FS_DAX_PMD
+
+ fs/Kconfig          |   1 -
+ fs/dax.c            | 826 +++++++++++++++++++++++++++++-----------------------
+ fs/ext2/file.c      |  35 +--
+ fs/ext4/inode.c     |   3 +
+ fs/xfs/xfs_aops.c   |  26 +-
+ fs/xfs/xfs_aops.h   |   3 -
+ fs/xfs/xfs_file.c   |  10 +-
+ include/linux/dax.h |  58 +++-
+ mm/filemap.c        |   5 +-
+ 9 files changed, 537 insertions(+), 430 deletions(-)
+
 -- 
-Dave Chinner
-david@fromorbit.com
+2.7.4
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
