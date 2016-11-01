@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BE1F681D12
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 14:22:11 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 05/11] ext4: Use iomap for zeroing blocks in DAX mode
-Date: Tue,  1 Nov 2016 22:06:15 +0100
-Message-Id: <1478034381-19037-6-git-send-email-jack@suse.cz>
-In-Reply-To: <1478034381-19037-1-git-send-email-jack@suse.cz>
-References: <1478034381-19037-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 3D8BF81D3A
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:28 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v9 05/16] dax: remove the last BUG_ON() from fs/dax.c
+Date: Tue,  1 Nov 2016 13:54:07 -0600
+Message-Id: <1478030058-1422-6-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,38 +22,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-ext4@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Ted Tso <tytso@mit.edu>, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use iomap infrastructure for zeroing blocks when in DAX mode.
-ext4_iomap_begin() handles read requests just fine and that's all that
-is needed for iomap_zero_range().
+Don't take down the kernel if we get an invalid 'from' and 'length'
+argument pair.  Just warn once and return an error.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- fs/ext4/inode.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/dax.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index cc10145ea98b..ac26a390f14c 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -3844,8 +3844,10 @@ static int ext4_block_zero_page_range(handle_t *handle,
- 	if (length > max || length < 0)
- 		length = max;
+diff --git a/fs/dax.c b/fs/dax.c
+index e52e754..219fa2b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1194,7 +1194,8 @@ int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
+ 	/* Block boundary? Nothing to do */
+ 	if (!length)
+ 		return 0;
+-	BUG_ON((offset + length) > PAGE_SIZE);
++	if (WARN_ON_ONCE((offset + length) > PAGE_SIZE))
++		return -EINVAL;
  
--	if (IS_DAX(inode))
--		return dax_zero_page_range(inode, from, length, ext4_get_block);
-+	if (IS_DAX(inode)) {
-+		return iomap_zero_range(inode, from, length, NULL,
-+					&ext4_iomap_ops);
-+	}
- 	return __ext4_block_zero_page_range(handle, mapping, from, length);
- }
- 
+ 	memset(&bh, 0, sizeof(bh));
+ 	bh.b_bdev = inode->i_sb->s_bdev;
 -- 
-2.6.6
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
