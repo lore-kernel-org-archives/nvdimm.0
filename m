@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BD77281D11
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 14:22:11 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 02/11] ext4: Allow unaligned unlocked DAX IO
-Date: Tue,  1 Nov 2016 22:06:12 +0100
-Message-Id: <1478034381-19037-3-git-send-email-jack@suse.cz>
-In-Reply-To: <1478034381-19037-1-git-send-email-jack@suse.cz>
-References: <1478034381-19037-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 999EB81D11
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:27 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v9 04/16] dax: make 'wait_table' global variable static
+Date: Tue,  1 Nov 2016 13:54:06 -0600
+Message-Id: <1478030058-1422-5-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,37 +22,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-ext4@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Ted Tso <tytso@mit.edu>, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently we don't allow unaligned writes without inode_lock. This is
-because zeroing of partial blocks could cause data corruption for racing
-unaligned writes to the same block. However DAX handles zeroing during
-block allocation and thus zeroing of partial blocks cannot race. Allow
-DAX unaligned IO to run without inode_lock.
+The global 'wait_table' variable is only used within fs/dax.c, and
+generates the following sparse warning:
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+fs/dax.c:39:19: warning: symbol 'wait_table' was not declared. Should it be static?
+
+Make it static so it has scope local to fs/dax.c, and to make sparse happy.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- fs/ext4/file.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/dax.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index a6a7becb9465..55f8b922b76d 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -161,7 +161,8 @@ ext4_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+diff --git a/fs/dax.c b/fs/dax.c
+index b09817a..e52e754 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -52,7 +52,7 @@
+ #define DAX_WAIT_TABLE_BITS 12
+ #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
  
- 	iocb->private = &overwrite;
- 	/* Check whether we do a DIO overwrite or not */
--	if (o_direct && ext4_should_dioread_nolock(inode) && !unaligned_aio &&
-+	if (((o_direct && !unaligned_aio) || IS_DAX(inode)) &&
-+	    ext4_should_dioread_nolock(inode) &&
- 	    ext4_overwrite_io(inode, iocb->ki_pos, iov_iter_count(from)))
- 		overwrite = 1;
+-wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
++static wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
  
+ static int __init init_dax_wait_table(void)
+ {
 -- 
-2.6.6
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
