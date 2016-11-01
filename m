@@ -1,147 +1,159 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id A181381D55
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:35 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 15/20] mm: Provide helper for finishing mkwrite faults
-Date: Fri, 18 Nov 2016 10:17:19 +0100
-Message-Id: <1479460644-25076-16-git-send-email-jack@suse.cz>
-In-Reply-To: <1479460644-25076-1-git-send-email-jack@suse.cz>
-References: <1479460644-25076-1-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
+Subject: [PATCH 12/21] mm: Factor out common parts of write fault handling
+Date: Tue,  1 Nov 2016 23:36:21 +0100
+Message-Id: <1478039794-20253-16-git-send-email-jack@suse.cz>
+In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
+References: <1478039794-20253-1-git-send-email-jack@suse.cz>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-mm@kvack.org
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>, Ross Zwisler <ross.zwisler@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide a helper function for finishing write faults due to PTE being
-read-only. The helper will be used by DAX to avoid the need of
-complicating generic MM code with DAX locking specifics.
+Currently we duplicate handling of shared write faults in
+wp_page_reuse() and do_shared_fault(). Factor them out into a common
+function.
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- include/linux/mm.h |  1 +
- mm/memory.c        | 67 ++++++++++++++++++++++++++++++++----------------------
- 2 files changed, 41 insertions(+), 27 deletions(-)
+ mm/memory.c | 78 +++++++++++++++++++++++++++++--------------------------------
+ 1 file changed, 37 insertions(+), 41 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index fb128beecdac..685ff1c57f2b 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -615,6 +615,7 @@ static inline pte_t maybe_mkwrite(pte_t pte, struct vm_area_struct *vma)
- int alloc_set_pte(struct vm_fault *vmf, struct mem_cgroup *memcg,
- 		struct page *page);
- int finish_fault(struct vm_fault *vmf);
-+int finish_mkwrite_fault(struct vm_fault *vmf);
- #endif
- 
- /*
 diff --git a/mm/memory.c b/mm/memory.c
-index 7fd9c2c60281..5bb6773375ec 100644
+index 26b2858e6a12..4da66c984c2c 100644
 --- a/mm/memory.c
 +++ b/mm/memory.c
-@@ -2273,6 +2273,38 @@ static int wp_page_copy(struct vm_fault *vmf)
- 	return VM_FAULT_OOM;
+@@ -2067,6 +2067,41 @@ static int do_page_mkwrite(struct vm_area_struct *vma, struct page *page,
  }
  
-+/**
-+ * finish_mkwrite_fault - finish page fault for a shared mapping, making PTE
-+ *			  writeable once the page is prepared
+ /*
++ * Handle dirtying of a page in shared file mapping on a write fault.
 + *
-+ * @vmf: structure describing the fault
-+ *
-+ * This function handles all that is needed to finish a write page fault in a
-+ * shared mapping due to PTE being read-only once the mapped page is prepared.
-+ * It handles locking of PTE and modifying it. The function returns
-+ * VM_FAULT_WRITE on success, 0 when PTE got changed before we acquired PTE
-+ * lock.
-+ *
-+ * The function expects the page to be locked or other protection against
-+ * concurrent faults / writeback (such as DAX radix tree locks).
++ * The function expects the page to be locked and unlocks it.
 + */
-+int finish_mkwrite_fault(struct vm_fault *vmf)
++static void fault_dirty_shared_page(struct vm_area_struct *vma,
++				    struct page *page)
 +{
-+	WARN_ON_ONCE(!(vmf->vma->vm_flags & VM_SHARED));
-+	vmf->pte = pte_offset_map_lock(vmf->vma->vm_mm, vmf->pmd, vmf->address,
-+				       &vmf->ptl);
++	struct address_space *mapping;
++	bool dirtied;
++	bool page_mkwrite = vma->vm_ops->page_mkwrite;
++
++	dirtied = set_page_dirty(page);
++	VM_BUG_ON_PAGE(PageAnon(page), page);
 +	/*
-+	 * We might have raced with another page fault while we released the
-+	 * pte_offset_map_lock.
++	 * Take a local copy of the address_space - page.mapping may be zeroed
++	 * by truncate after unlock_page().   The address_space itself remains
++	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
++	 * release semantics to prevent the compiler from undoing this copying.
 +	 */
-+	if (!pte_same(*vmf->pte, vmf->orig_pte)) {
-+		pte_unmap_unlock(vmf->pte, vmf->ptl);
-+		return 0;
++	mapping = page_rmapping(page);
++	unlock_page(page);
++
++	if ((dirtied || page_mkwrite) && mapping) {
++		/*
++		 * Some device drivers do not set page.mapping
++		 * but still dirty their pages
++		 */
++		balance_dirty_pages_ratelimited(mapping);
 +	}
-+	wp_page_reuse(vmf);
-+	return VM_FAULT_WRITE;
++
++	if (!page_mkwrite)
++		file_update_time(vma->vm_file);
 +}
 +
- /*
-  * Handle write page faults for VM_MIXEDMAP or VM_PFNMAP for a VM_SHARED
-  * mapping
-@@ -2289,16 +2321,7 @@ static int wp_pfn_shared(struct vm_fault *vmf)
- 		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
- 		if (ret & VM_FAULT_ERROR)
- 			return ret;
--		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
--				vmf->address, &vmf->ptl);
--		/*
--		 * We might have raced with another page fault while we
--		 * released the pte_offset_map_lock.
--		 */
--		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
--			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			return 0;
++/*
+  * Handle write page faults for pages that can be reused in the current vma
+  *
+  * This can happen either due to the mapping being with the VM_SHARED flag,
+@@ -2096,28 +2131,11 @@ static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 
+ 	if (dirty_shared) {
+-		struct address_space *mapping;
+-		int dirtied;
+-
+ 		if (!page_mkwrite)
+ 			lock_page(page);
+ 
+-		dirtied = set_page_dirty(page);
+-		VM_BUG_ON_PAGE(PageAnon(page), page);
+-		mapping = page->mapping;
+-		unlock_page(page);
++		fault_dirty_shared_page(vma, page);
+ 		put_page(page);
+-
+-		if ((dirtied || page_mkwrite) && mapping) {
+-			/*
+-			 * Some device drivers do not set page.mapping
+-			 * but still dirty their pages
+-			 */
+-			balance_dirty_pages_ratelimited(mapping);
 -		}
-+		return finish_mkwrite_fault(vmf);
+-
+-		if (!page_mkwrite)
+-			file_update_time(vma->vm_file);
  	}
- 	wp_page_reuse(vmf);
+ 
  	return VM_FAULT_WRITE;
-@@ -2308,7 +2331,6 @@ static int wp_page_shared(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
+@@ -3262,8 +3280,6 @@ static int do_cow_fault(struct vm_fault *vmf)
+ static int do_shared_fault(struct vm_fault *vmf)
  {
  	struct vm_area_struct *vma = vmf->vma;
--	int page_mkwrite = 0;
+-	struct address_space *mapping;
+-	int dirtied = 0;
+ 	int ret, tmp;
  
- 	get_page(vmf->page);
+ 	ret = __do_fault(vmf);
+@@ -3292,27 +3308,7 @@ static int do_shared_fault(struct vm_fault *vmf)
+ 		return ret;
+ 	}
  
-@@ -2322,26 +2344,17 @@ static int wp_page_shared(struct vm_fault *vmf)
- 			put_page(vmf->page);
- 			return tmp;
- 		}
+-	if (set_page_dirty(vmf->page))
+-		dirtied = 1;
+-	/*
+-	 * Take a local copy of the address_space - page.mapping may be zeroed
+-	 * by truncate after unlock_page().   The address_space itself remains
+-	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
+-	 * release semantics to prevent the compiler from undoing this copying.
+-	 */
+-	mapping = page_rmapping(vmf->page);
+-	unlock_page(vmf->page);
+-	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
 -		/*
--		 * Since we dropped the lock we need to revalidate
--		 * the PTE as someone else may have changed it.  If
--		 * they did, we just return, as we can count on the
--		 * MMU to tell us if they didn't also make it writable.
+-		 * Some device drivers do not set page.mapping but still
+-		 * dirty their pages
 -		 */
--		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
--						vmf->address, &vmf->ptl);
--		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
-+		tmp = finish_mkwrite_fault(vmf);
-+		if (unlikely(!tmp || (tmp &
-+				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
- 			unlock_page(vmf->page);
--			pte_unmap_unlock(vmf->pte, vmf->ptl);
- 			put_page(vmf->page);
--			return 0;
-+			return tmp;
- 		}
--		page_mkwrite = 1;
+-		balance_dirty_pages_ratelimited(mapping);
 -	}
 -
--	wp_page_reuse(vmf);
--	if (!page_mkwrite)
-+	} else {
-+		wp_page_reuse(vmf);
- 		lock_page(vmf->page);
-+	}
- 	fault_dirty_shared_page(vma, vmf->page);
- 	put_page(vmf->page);
+-	if (!vma->vm_ops->page_mkwrite)
+-		file_update_time(vma->vm_file);
+-
++	fault_dirty_shared_page(vma, vmf->page);
+ 	return ret;
+ }
  
 -- 
 2.6.6
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
