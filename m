@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.polytechnique.org (mx1.polytechnique.org [129.104.30.34])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EDB6281F20
- for <linux-nvdimm@lists.01.org>; Sat, 26 Nov 2016 11:19:00 -0800 (PST)
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: [PATCH 1/1] libnvdimm, namespace: fix the type of name variable
-Date: Sat, 26 Nov 2016 20:18:04 +0100
-Message-Id: <20161126191804.21349-1-nicolas.iooss_linux@m4x.org>
+ by ml01.01.org (Postfix) with ESMTPS id BCD2081CC1
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 14:22:11 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 04/11] ext4: Convert DAX reads to iomap infrastructure
+Date: Tue,  1 Nov 2016 22:06:14 +0100
+Message-Id: <1478034381-19037-5-git-send-email-jack@suse.cz>
+In-Reply-To: <1478034381-19037-1-git-send-email-jack@suse.cz>
+References: <1478034381-19037-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,39 +22,165 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
-Cc: Nicolas Iooss <nicolas.iooss_linux@m4x.org>, linux-kernel@vger.kernel.org
+To: linux-ext4@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Ted Tso <tytso@mit.edu>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In create_namespace_blk(), the local variable "name" is defined as an
-array of NSLABEL_NAME_LEN pointers:
+Implement basic iomap_begin function that handles reading and use it for
+DAX reads.
 
-    char *name[NSLABEL_NAME_LEN];
-
-This variable is then used in calls to memcpy() and kmemdup() as if it
-were char[NSLABEL_NAME_LEN]. Remove the star in the variable definition
-to makes it look right.
-
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- drivers/nvdimm/namespace_devs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/ext4.h  |  2 ++
+ fs/ext4/file.c  | 40 +++++++++++++++++++++++++++++++++++++++-
+ fs/ext4/inode.c | 54 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 95 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index abe5c6bc756c..7569ba70cdde 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1997,7 +1997,7 @@ struct device *create_namespace_blk(struct nd_region *nd_region,
- 	struct nd_mapping *nd_mapping = &nd_region->mapping[0];
- 	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
- 	struct nd_namespace_blk *nsblk;
--	char *name[NSLABEL_NAME_LEN];
-+	char name[NSLABEL_NAME_LEN];
- 	struct device *dev = NULL;
- 	struct resource *res;
+diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
+index 282a51b07c57..098b39910001 100644
+--- a/fs/ext4/ext4.h
++++ b/fs/ext4/ext4.h
+@@ -3271,6 +3271,8 @@ static inline bool ext4_aligned_io(struct inode *inode, loff_t off, loff_t len)
+ 	return IS_ALIGNED(off, blksize) && IS_ALIGNED(len, blksize);
+ }
  
++extern struct iomap_ops ext4_iomap_ops;
++
+ #endif	/* __KERNEL__ */
+ 
+ #define EFSBADCRC	EBADMSG		/* Bad CRC detected */
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 55f8b922b76d..28ebc2418dc2 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -31,6 +31,44 @@
+ #include "xattr.h"
+ #include "acl.h"
+ 
++#ifdef CONFIG_FS_DAX
++static ssize_t ext4_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
++{
++	struct inode *inode = iocb->ki_filp->f_mapping->host;
++	ssize_t ret;
++
++	inode_lock_shared(inode);
++	/*
++	 * Recheck under inode lock - at this point we are sure it cannot
++	 * change anymore
++	 */
++	if (!IS_DAX(inode)) {
++		inode_unlock_shared(inode);
++		/* Fallback to buffered IO in case we cannot support DAX */
++		return generic_file_read_iter(iocb, to);
++	}
++	ret = dax_iomap_rw(iocb, to, &ext4_iomap_ops);
++	inode_unlock_shared(inode);
++
++	file_accessed(iocb->ki_filp);
++	return ret;
++}
++#endif
++
++static ssize_t ext4_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
++{
++	struct inode *inode = iocb->ki_filp->f_mapping->host;
++
++	if (!iov_iter_count(to))
++		return 0; /* skip atime */
++
++#ifdef CONFIG_FS_DAX
++	if (IS_DAX(inode))
++		return ext4_dax_read_iter(iocb, to);
++#endif
++	return generic_file_read_iter(iocb, to);
++}
++
+ /*
+  * Called when an inode is released. Note that this is different
+  * from ext4_file_open: open gets called at every open, but release
+@@ -691,7 +729,7 @@ loff_t ext4_llseek(struct file *file, loff_t offset, int whence)
+ 
+ const struct file_operations ext4_file_operations = {
+ 	.llseek		= ext4_llseek,
+-	.read_iter	= generic_file_read_iter,
++	.read_iter	= ext4_file_read_iter,
+ 	.write_iter	= ext4_file_write_iter,
+ 	.unlocked_ioctl = ext4_ioctl,
+ #ifdef CONFIG_COMPAT
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 4cbd1b24c237..cc10145ea98b 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -37,6 +37,7 @@
+ #include <linux/printk.h>
+ #include <linux/slab.h>
+ #include <linux/bitops.h>
++#include <linux/iomap.h>
+ 
+ #include "ext4_jbd2.h"
+ #include "xattr.h"
+@@ -3305,6 +3306,59 @@ int ext4_dax_get_block(struct inode *inode, sector_t iblock,
+ 	clear_buffer_new(bh_result);
+ 	return 0;
+ }
++
++static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
++			    unsigned flags, struct iomap *iomap)
++{
++	unsigned int blkbits = inode->i_blkbits;
++	unsigned long first_block = offset >> blkbits;
++	unsigned long last_block = (offset + length - 1) >> blkbits;
++	struct ext4_map_blocks map;
++	int ret;
++
++	if (flags & IOMAP_WRITE)
++		return -EIO;
++
++	if (WARN_ON_ONCE(ext4_has_inline_data(inode)))
++		return -ERANGE;
++
++	map.m_lblk = first_block;
++	map.m_len = last_block - first_block + 1;
++
++	ret = ext4_map_blocks(NULL, inode, &map, 0);
++	if (ret < 0)
++		return ret;
++
++	iomap->flags = 0;
++	iomap->bdev = inode->i_sb->s_bdev;
++	iomap->offset = first_block << blkbits;
++
++	if (ret == 0) {
++		iomap->type = IOMAP_HOLE;
++		iomap->blkno = IOMAP_NULL_BLOCK;
++		iomap->length = (u64)map.m_len << blkbits;
++	} else {
++		if (map.m_flags & EXT4_MAP_MAPPED) {
++			iomap->type = IOMAP_MAPPED;
++		} else if (map.m_flags & EXT4_MAP_UNWRITTEN) {
++			iomap->type = IOMAP_UNWRITTEN;
++		} else {
++			WARN_ON_ONCE(1);
++			return -EIO;
++		}
++		iomap->blkno = (sector_t)map.m_pblk << (blkbits - 9);
++		iomap->length = (u64)map.m_len << blkbits;
++	}
++
++	if (map.m_flags & EXT4_MAP_NEW)
++		iomap->flags |= IOMAP_F_NEW;
++	return 0;
++}
++
++struct iomap_ops ext4_iomap_ops = {
++	.iomap_begin		= ext4_iomap_begin,
++};
++
+ #else
+ /* Just define empty function, it will never get called. */
+ int ext4_dax_get_block(struct inode *inode, sector_t iblock,
 -- 
-2.10.2
+2.6.6
 
 _______________________________________________
 Linux-nvdimm mailing list
