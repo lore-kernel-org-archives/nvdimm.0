@@ -1,82 +1,56 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 12/20] mm: Pass vm_fault structure into do_page_mkwrite()
-Date: Fri, 18 Nov 2016 10:17:16 +0100
-Message-Id: <1479460644-25076-13-git-send-email-jack@suse.cz>
-In-Reply-To: <1479460644-25076-1-git-send-email-jack@suse.cz>
-References: <1479460644-25076-1-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: linux-mm@kvack.org
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>, Ross Zwisler <ross.zwisler@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Jan Kara <jack@suse.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id A9D7581D5D
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:35 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v9 16/16] dax: remove "depends on BROKEN" from FS_DAX_PMD
+Date: Tue,  1 Nov 2016 13:54:18 -0600
+Message-Id: <1478030058-1422-17-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-We will need more information in the ->page_mkwrite() helper for DAX to
-be able to fully finish faults there. Pass vm_fault structure to
-do_page_mkwrite() and use it there so that information propagates
-properly from upper layers.
+Now that DAX PMD faults are once again working and are now participating in
+DAX's radix tree locking scheme, allow their config option to be enabled.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- mm/memory.c | 22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ fs/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/mm/memory.c b/mm/memory.c
-index 139e115acf35..6d4e1b1cea51 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2038,20 +2038,17 @@ static gfp_t __get_fault_gfp_mask(struct vm_area_struct *vma)
-  *
-  * We do this without the lock held, so that it can sleep if it needs to.
-  */
--static int do_page_mkwrite(struct vm_area_struct *vma, struct page *page,
--	       unsigned long address)
-+static int do_page_mkwrite(struct vm_fault *vmf)
- {
--	struct vm_fault vmf;
- 	int ret;
-+	struct page *page = vmf->page;
-+	unsigned int old_flags = vmf->flags;
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 4bd03a2..8e9e5f41 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -55,7 +55,6 @@ config FS_DAX_PMD
+ 	depends on FS_DAX
+ 	depends on ZONE_DEVICE
+ 	depends on TRANSPARENT_HUGEPAGE
+-	depends on BROKEN
  
--	vmf.address = address & PAGE_MASK;
--	vmf.pgoff = page->index;
--	vmf.flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
--	vmf.gfp_mask = __get_fault_gfp_mask(vma);
--	vmf.page = page;
--	vmf.cow_page = NULL;
-+	vmf->flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
+ endif # BLOCK
  
--	ret = vma->vm_ops->page_mkwrite(vma, &vmf);
-+	ret = vmf->vma->vm_ops->page_mkwrite(vmf->vma, vmf);
-+	/* Restore original flags so that caller is not surprised */
-+	vmf->flags = old_flags;
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))
- 		return ret;
- 	if (unlikely(!(ret & VM_FAULT_LOCKED))) {
-@@ -2327,7 +2324,8 @@ static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
- 		int tmp;
- 
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		tmp = do_page_mkwrite(vma, old_page, vmf->address);
-+		vmf->page = old_page;
-+		tmp = do_page_mkwrite(vmf);
- 		if (unlikely(!tmp || (tmp &
- 				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
- 			put_page(old_page);
-@@ -3289,7 +3287,7 @@ static int do_shared_fault(struct vm_fault *vmf)
- 	 */
- 	if (vma->vm_ops->page_mkwrite) {
- 		unlock_page(vmf->page);
--		tmp = do_page_mkwrite(vma, vmf->page, vmf->address);
-+		tmp = do_page_mkwrite(vmf);
- 		if (unlikely(!tmp ||
- 				(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
- 			put_page(vmf->page);
 -- 
-2.6.6
+2.7.4
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
