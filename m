@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9FE0381D51
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:35 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 19/20] dax: Protect PTE modification on WP fault by radix tree
- entry lock
-Date: Tue,  1 Nov 2016 23:36:31 +0100
-Message-Id: <1478039794-20253-26-git-send-email-jack@suse.cz>
-In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
-References: <1478039794-20253-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 000EB81D2F
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:26 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v9 03/16] ext2: remove support for DAX PMD faults
+Date: Tue,  1 Nov 2016 13:54:05 -0600
+Message-Id: <1478030058-1422-4-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,76 +22,92 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently PTE gets updated in wp_pfn_shared() after dax_pfn_mkwrite()
-has released corresponding radix tree entry lock. When we want to
-writeprotect PTE on cache flush, we need PTE modification to happen
-under radix tree entry lock to ensure consisten updates of PTE and radix
-tree (standard faults use page lock to ensure this consistency). So move
-update of PTE bit into dax_pfn_mkwrite().
+DAX PMD support was added via the following commit:
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+commit e7b1ea2ad658 ("ext2: huge page fault support")
+
+I believe this path to be untested as ext2 doesn't reliably provide block
+allocations that are aligned to 2MiB.  In my testing I've been unable to
+get ext2 to actually fault in a PMD.  It always fails with a "pfn
+unaligned" message because the sector returned by ext2_get_block() isn't
+aligned.
+
+I've tried various settings for the "stride" and "stripe_width" extended
+options to mkfs.ext2, without any luck.
+
+Since we can't reliably get PMDs, remove support so that we don't have an
+untested code path that we may someday traverse when we happen to get an
+aligned block allocation.  This should also make 4k DAX faults in ext2 a
+bit faster since they will no longer have to call the PMD fault handler
+only to get a response of VM_FAULT_FALLBACK.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c    | 22 ++++++++++++++++------
- mm/memory.c |  2 +-
- 2 files changed, 17 insertions(+), 7 deletions(-)
+ fs/ext2/file.c | 29 ++++++-----------------------
+ 1 file changed, 6 insertions(+), 23 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index c6cadf8413a3..a2d3781c9f4e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1163,17 +1163,27 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct file *file = vma->vm_file;
- 	struct address_space *mapping = file->f_mapping;
--	void *entry;
-+	void *entry, **slot;
- 	pgoff_t index = vmf->pgoff;
- 
- 	spin_lock_irq(&mapping->tree_lock);
--	entry = get_unlocked_mapping_entry(mapping, index, NULL);
--	if (!entry || !radix_tree_exceptional_entry(entry))
--		goto out;
-+	entry = get_unlocked_mapping_entry(mapping, index, &slot);
-+	if (!entry || !radix_tree_exceptional_entry(entry)) {
-+		if (entry)
-+			put_unlocked_mapping_entry(mapping, index, entry);
-+		spin_unlock_irq(&mapping->tree_lock);
-+		return VM_FAULT_NOPAGE;
-+	}
- 	radix_tree_tag_set(&mapping->page_tree, index, PAGECACHE_TAG_DIRTY);
--	put_unlocked_mapping_entry(mapping, index, entry);
--out:
-+	entry = lock_slot(mapping, slot);
- 	spin_unlock_irq(&mapping->tree_lock);
-+	/*
-+	 * If we race with somebody updating the PTE and finish_mkwrite_fault()
-+	 * fails, we don't care. We need to return VM_FAULT_NOPAGE and retry
-+	 * the fault in either case.
-+	 */
-+	finish_mkwrite_fault(vmf);
-+	put_locked_mapping_entry(mapping, index, entry);
- 	return VM_FAULT_NOPAGE;
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index a0e1478..fb88b51 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -107,27 +107,6 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
-diff --git a/mm/memory.c b/mm/memory.c
-index e7a4a30a5e88..5fa3d0c5196e 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2310,7 +2310,7 @@ static int wp_pfn_shared(struct vm_fault *vmf)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 		vmf->flags |= FAULT_FLAG_MKWRITE;
- 		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
--		if (ret & VM_FAULT_ERROR)
-+		if (ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE))
- 			return ret;
- 		return finish_mkwrite_fault(vmf);
- 	}
+ 
+-static int ext2_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+-						pmd_t *pmd, unsigned int flags)
+-{
+-	struct inode *inode = file_inode(vma->vm_file);
+-	struct ext2_inode_info *ei = EXT2_I(inode);
+-	int ret;
+-
+-	if (flags & FAULT_FLAG_WRITE) {
+-		sb_start_pagefault(inode->i_sb);
+-		file_update_time(vma->vm_file);
+-	}
+-	down_read(&ei->dax_sem);
+-
+-	ret = dax_pmd_fault(vma, addr, pmd, flags, ext2_get_block);
+-
+-	up_read(&ei->dax_sem);
+-	if (flags & FAULT_FLAG_WRITE)
+-		sb_end_pagefault(inode->i_sb);
+-	return ret;
+-}
+-
+ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ 		struct vm_fault *vmf)
+ {
+@@ -154,7 +133,11 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+ 
+ static const struct vm_operations_struct ext2_dax_vm_ops = {
+ 	.fault		= ext2_dax_fault,
+-	.pmd_fault	= ext2_dax_pmd_fault,
++	/*
++	 * .pmd_fault is not supported for DAX because allocation in ext2
++	 * cannot be reliably aligned to huge page sizes and so pmd faults
++	 * will always fail and fail back to regular faults.
++	 */
+ 	.page_mkwrite	= ext2_dax_fault,
+ 	.pfn_mkwrite	= ext2_dax_pfn_mkwrite,
+ };
+@@ -166,7 +149,7 @@ static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ 	file_accessed(file);
+ 	vma->vm_ops = &ext2_dax_vm_ops;
+-	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++	vma->vm_flags |= VM_MIXEDMAP;
+ 	return 0;
+ }
+ #else
 -- 
-2.6.6
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
