@@ -2,13 +2,13 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7DFB581D47
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:36 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 9FE0381D51
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:35 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 20/21] dax: Protect PTE modification on WP fault by radix tree
+Subject: [PATCH 19/20] dax: Protect PTE modification on WP fault by radix tree
  entry lock
-Date: Tue,  1 Nov 2016 23:36:33 +0100
-Message-Id: <1478039794-20253-28-git-send-email-jack@suse.cz>
+Date: Tue,  1 Nov 2016 23:36:31 +0100
+Message-Id: <1478039794-20253-26-git-send-email-jack@suse.cz>
 In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
 References: <1478039794-20253-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -30,11 +30,10 @@ List-ID: <linux-nvdimm@lists.01.org>
 Currently PTE gets updated in wp_pfn_shared() after dax_pfn_mkwrite()
 has released corresponding radix tree entry lock. When we want to
 writeprotect PTE on cache flush, we need PTE modification to happen
-under radix tree entry lock to ensure consistent updates of PTE and radix
+under radix tree entry lock to ensure consisten updates of PTE and radix
 tree (standard faults use page lock to ensure this consistency). So move
 update of PTE bit into dax_pfn_mkwrite().
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
  fs/dax.c    | 22 ++++++++++++++++------
@@ -42,10 +41,10 @@ Signed-off-by: Jan Kara <jack@suse.cz>
  2 files changed, 17 insertions(+), 7 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 857117b6db6b..63b4cebe3f20 100644
+index c6cadf8413a3..a2d3781c9f4e 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -784,17 +784,27 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+@@ -1163,17 +1163,27 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
  	struct file *file = vma->vm_file;
  	struct address_space *mapping = file->f_mapping;
@@ -80,10 +79,10 @@ index 857117b6db6b..63b4cebe3f20 100644
  }
  EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
 diff --git a/mm/memory.c b/mm/memory.c
-index 7660f6169bee..2683e18d6d55 100644
+index e7a4a30a5e88..5fa3d0c5196e 100644
 --- a/mm/memory.c
 +++ b/mm/memory.c
-@@ -2316,7 +2316,7 @@ static int wp_pfn_shared(struct vm_fault *vmf)
+@@ -2310,7 +2310,7 @@ static int wp_pfn_shared(struct vm_fault *vmf)
  		pte_unmap_unlock(vmf->pte, vmf->ptl);
  		vmf->flags |= FAULT_FLAG_MKWRITE;
  		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
