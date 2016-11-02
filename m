@@ -1,14 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf0-x243.google.com (mail-lf0-x243.google.com
+ [IPv6:2a00:1450:4010:c07::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B21DF81DE5
- for <linux-nvdimm@lists.01.org>; Thu, 10 Nov 2016 09:45:56 -0800 (PST)
-Subject: [PATCH v2] libnvdimm: check and clear poison before writing to pmem
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 10 Nov 2016 10:45:36 -0700
-Message-ID: <147879993593.130465.16954973899565924428.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E97F681CE2
+ for <linux-nvdimm@lists.01.org>; Wed,  2 Nov 2016 03:02:33 -0700 (PDT)
+Received: by mail-lf0-x243.google.com with SMTP id n3so668207lfn.0
+ for <linux-nvdimm@lists.01.org>; Wed, 02 Nov 2016 03:02:35 -0700 (PDT)
+Date: Wed, 2 Nov 2016 12:55:58 +0300
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: Re: [PATCH 01/20] mm: Change type of vmf->virtual_address
+Message-ID: <20161102095558.GA20724@node.shutemov.name>
+References: <1478039794-20253-1-git-send-email-jack@suse.cz>
+ <1478039794-20253-2-git-send-email-jack@suse.cz>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1478039794-20253-2-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,65 +27,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com, ross.zwisler@linux.intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We need to clear any poison when we are writing to pmem. The granularity
-will be sector size. If it's less then we can't do anything about it
-barring corruption.
+On Tue, Nov 01, 2016 at 11:36:07PM +0100, Jan Kara wrote:
+> Every single user of vmf->virtual_address typed that entry to unsigned
+> long before doing anything with it. So just change the type of that
+> entry to unsigned long immediately.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/nvdimm/claim.c |   24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index d5dc80c..306d8fd 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -226,6 +226,11 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 		resource_size_t offset, void *buf, size_t size, int rw)
- {
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
-+	unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
-+	sector_t sector = offset >> 9;
-+
-+	if (unlikely(!size))
-+		return -EINVAL;
- 
- 	if (unlikely(offset + size > nsio->size)) {
- 		dev_WARN_ONCE(&ndns->dev, 1, "request out of range\n");
-@@ -233,12 +238,25 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 	}
- 
- 	if (rw == READ) {
--		unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
--
--		if (unlikely(is_bad_pmem(&nsio->bb, offset / 512, sz_align)))
-+		if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align)))
- 			return -EIO;
- 		return memcpy_from_pmem(buf, nsio->addr + offset, size);
- 	} else {
-+
-+		if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
-+			if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)) {
-+				long cleared;
-+
-+				cleared = nvdimm_clear_poison(&ndns->dev,
-+							      offset, size);
-+				if (cleared != size)
-+					return -EIO;
-+
-+				badblocks_clear(&nsio->bb, sector,
-+						cleared >> 9);
-+			}
-+		}
-+
- 		memcpy_to_pmem(nsio->addr + offset, buf, size);
- 		nvdimm_flush(to_nd_region(ndns->dev.parent));
- 	}
-
+-- 
+ Kirill A. Shutemov
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
