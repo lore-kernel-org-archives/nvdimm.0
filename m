@@ -1,15 +1,12 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 11/11] dax: Rip out get_block based IO support
-Date: Wed, 2 Nov 2016 07:31:00 -0700
-Message-ID: <20161102143100.GC18387@infradead.org>
-References: <1478034381-19037-1-git-send-email-jack@suse.cz>
- <1478034381-19037-12-git-send-email-jack@suse.cz>
+From: =?utf-8?B?5bSU5pud?= <xvqlwrnrp-urhEevKwldysTnJN9+BGXg@public.gmane.org>
+Subject: =?utf-8?B?5Zue5aSN77ya5aaC5L2V5YGa5aW9LuS8gS7kuJou6YeHLui0re+8jOmZjS7kvY4u?=
+ =?utf-8?B?6L+QLuiQpS7miJAu5pys?=
+Date: Thu, 3 Nov 2016 01:51:29 +0800
+Message-ID: <0D1A0CBD5E113504B3E327191118DC1C@zpywil.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1478034381-19037-12-git-send-email-jack-AlSwsSmVLrQ@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,12 +16,11 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ted Tso <tytso-3s7WtUTddSA@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Nov 01, 2016 at 10:06:21PM +0100, Jan Kara wrote:
-> No one uses functions using the get_block callback anymore. Rip them
-> out.
-
-Documentation/filesystems/dax.txt will also need some updates for this.
+RnJvbTog5bSU5pudICAvIHh2cWx3cm5ycEB6cHl3aWwubmV0DQpUbzogbGludXgtbnZkaW1tQGxp
+c3RzLjAxLm9yZw0KU2VudDogMjAxNi0xMS0zLzE6NTE6MzQNCiANCuiHquS/oeeahOeUn+WRveac
+gOe+juS4ve+8gQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0
+cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
