@@ -1,114 +1,94 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Fri, 4 Nov 2016 08:16:46 +1100
-From: Dave Chinner <david@fromorbit.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 046CA81D34
+ for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 10:51:02 -0700 (PDT)
+Date: Thu, 3 Nov 2016 11:51:02 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH v9 00/16] re-enable DAX PMD support
-Message-ID: <20161103211646.GB28177@dastard>
+Message-ID: <20161103175102.GA11784@linux.intel.com>
 References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
  <20161103015826.GI9920@dastard>
- <20161103175102.GA11784@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20161103175102.GA11784@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org
+In-Reply-To: <20161103015826.GI9920@dastard>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dave Chinner <david@fromorbit.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Nov 03, 2016 at 11:51:02AM -0600, Ross Zwisler wrote:
-> On Thu, Nov 03, 2016 at 12:58:26PM +1100, Dave Chinner wrote:
-> > On Tue, Nov 01, 2016 at 01:54:02PM -0600, Ross Zwisler wrote:
-> > > DAX PMDs have been disabled since Jan Kara introduced DAX radix tree based
-> > > locking.  This series allows DAX PMDs to participate in the DAX radix tree
-> > > based locking scheme so that they can be re-enabled.
-> > 
-> > I've seen patch 0/16 - where did you send the other 16? I need to
-> > pick up the bug fix that is in this patch set...
+On Thu, Nov 03, 2016 at 12:58:26PM +1100, Dave Chinner wrote:
+> On Tue, Nov 01, 2016 at 01:54:02PM -0600, Ross Zwisler wrote:
+> > DAX PMDs have been disabled since Jan Kara introduced DAX radix tree based
+> > locking.  This series allows DAX PMDs to participate in the DAX radix tree
+> > based locking scheme so that they can be re-enabled.
 > 
-> I CC'd your "david@fromorbit.com" address on the entire set, as well as all
-> the usual lists (linux-xfs, linux-fsdevel, linux-nvdimm, etc).
+> I've seen patch 0/16 - where did you send the other 16? I need to
+> pick up the bug fix that is in this patch set...
 
-Ok, now I'm /really/ confused. Procmail logs show:
+I CC'd your "david@fromorbit.com" address on the entire set, as well as all
+the usual lists (linux-xfs, linux-fsdevel, linux-nvdimm, etc).
 
->From ross.zwisler@linux.intel.com Wed Nov 02 06:56:46 2016
-Subject: [PATCH v9 00/16] re-enable DAX PMD support
-Folder: incoming/xfs-linux/new/1478030206.9177_1.dastard 5348
->From ross.zwisler@linux.intel.com Wed Nov 02 06:56:48 2016
-Subject: [PATCH v9 01/16] ext4: tell DAX the size of allocation holes
-Folder: incoming/xfs-linux/new/1478030208.9182_1.dastard 3725
->From ross.zwisler@linux.intel.com Wed Nov 02 06:56:49 2016
-Subject: [PATCH v9 02/16] dax: remove buffer_size_valid()
-Folder: incoming/xfs-linux/new/1478030209.9187_1.dastard 4692
-.....
+They are also available via the libnvdimm patchwork:
 
-so procmail has seen them, and put them all in the same bucket like
-it has for everything else.
+https://patchwork.kernel.org/project/linux-nvdimm/list/
 
-But only patch 0 appeared in my linux-xfs mail box - the rest of the
-files logged by procmail don't exist. No errors or indications of
-failures anywhere. They've just vanished into thin air...
+or via my tree:
 
-> They are also available via the libnvdimm patchwork:
+https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_pmd_v9
+
+The only patch that is different between v8 and v9 is:
+[PATCH v9 14/16] dax: add struct iomap based DAX PMD support
+
+> > Previously we had talked about this series going through the XFS tree, but
+> > Jan has a patch set that will need to build on this series and it heavily
+> > modifies the MM code.  I think he would prefer that series to go through
+> > Andrew Morton's -MM tree, so it probably makes sense for this series to go
+> > through that same tree.
 > 
-> https://patchwork.kernel.org/project/linux-nvdimm/list/
+> Seriously, I was 10 minutes away from pushing out the previous
+> version of this patchset as a stable topic branch, just like has
+> been discussed and several times over the past week.  Indeed, I
+> mentioned that I was planning on pushing out this topic branch today
+> not more than 4 hours ago, and you were on the cc list.
+
+I'm confused - I sent v9 of this series out 2 days ago, on Tuesday?
+I have seen multiple messages from you this week saying you were going to pick
+this series up, but I saw them all after I had already sent this series out.
+
+> The -mm tree is not the place to merge patchsets with dependencies
+> like this because it's an unstable, rebasing tree. Hence it cannot
+> be shared and used as the base of common development between
+> multiple git trees like we have for the fs/ subsystem.
 > 
-> or via my tree:
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_pmd_v9
-> 
-> The only patch that is different between v8 and v9 is:
-> [PATCH v9 14/16] dax: add struct iomap based DAX PMD support
+> This needs to go out as a stable topic branch so that other
+> dependent work can reliably build on top of it for the next merge
+> window. e.g. the ext4 DAX iomap patch series that is likely to be
+> merged through the ext4 tree, so it needs a stable branch. There's
+> iomap direct IO patches for XFS pending, and they conflict with this
+> patchset. i.e. we need a stable git base to work from...
 
-OK, thanks, I'll pull it in.
+Yea, my apologies.  Really this comes down to a lack of understanding on my
+part about about which series should be merged via which maintainers, and how
+stable topic branches can be shared.  I didn't realize that if you make a
+stable branch that could be easily used by other trees, and that for example
+Jan's MM or ext4 based patches could be merged by another maintainer but be
+based on your topic branch.
 
-> 
-> > > Previously we had talked about this series going through the XFS tree, but
-> > > Jan has a patch set that will need to build on this series and it heavily
-> > > modifies the MM code.  I think he would prefer that series to go through
-> > > Andrew Morton's -MM tree, so it probably makes sense for this series to go
-> > > through that same tree.
-> > 
-> > Seriously, I was 10 minutes away from pushing out the previous
-> > version of this patchset as a stable topic branch, just like has
-> > been discussed and several times over the past week.  Indeed, I
-> > mentioned that I was planning on pushing out this topic branch today
-> > not more than 4 hours ago, and you were on the cc list.
-> 
-> I'm confused - I sent v9 of this series out 2 days ago, on Tuesday?
-> I have seen multiple messages from you this week saying you were going to pick
-> this series up, but I saw them all after I had already sent this series out.
-
-That's what I'm really confused - I replied immediately after this
-email appeared in my in-box - I was working from v8 because I didn't
-know this version existed. This v9 patch zero email hit procmail on
-"Wed Nov 02 06:56:46 2016" and i replied immediately when i saw it:
-"On Thu, Nov 03, 2016 at 12:58:26PM +1100,"
-
-So there's some 30 hours between it passing through procmail and
-mutt adding it to my inbox. And mutt hasn't see any of the other
-emails in the thread.
-
-/me sighs and wonders how much other email has been going missing
-lately....
-
-> Sorry for the confusion,
-
-Clearly not your fault, Ross.
-
-> I was just trying to figure out a way that Jan's
-> changes could also be merged.  Please do pick up v9 of my PMD set. :)
-
-Will do, but I've got to find my way out of WTF-Landia first...
-
-Cheers,
-
-Dave.
-
--- 
-Dave Chinner
-david@fromorbit.com
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Sorry for the confusion, I was just trying to figure out a way that Jan's
+changes could also be merged.  Please do pick up v9 of my PMD set. :)
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
