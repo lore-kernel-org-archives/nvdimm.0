@@ -2,17 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2401E81D65
- for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:46:52 -0700 (PDT)
-Date: Fri, 4 Nov 2016 05:46:48 +0100
+ by ml01.01.org (Postfix) with ESMTPS id BEEA881CDC
+ for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:25:22 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 0/21 v4] dax: Clear dirty bits after flushing caches
-Message-ID: <20161104044648.GB3569@quack2.suse.cz>
-References: <1478039794-20253-1-git-send-email-jack@suse.cz>
- <20161102051733.GA3821@linux.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20161102051733.GA3821@linux.intel.com>
+Subject: [PATCH 0/21 v4 RESEND] dax: Clear dirty bits after flushing caches
+Date: Fri,  4 Nov 2016 05:24:56 +0100
+Message-Id: <1478233517-3571-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,106 +15,88 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+To: linux-mm@kvack.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 01-11-16 23:17:33, Ross Zwisler wrote:
-> On Tue, Nov 01, 2016 at 11:36:06PM +0100, Jan Kara wrote:
-> > Hello,
-> > 
-> > this is the fourth revision of my patches to clear dirty bits from radix tree
-> > of DAX inodes when caches for corresponding pfns have been flushed. This patch
-> > set is significantly larger than the previous version because I'm changing how
-> > ->fault, ->page_mkwrite, and ->pfn_mkwrite handlers may choose to handle the
-> > fault so that we don't have to leak details about DAX locking into the generic
-> > code. In principle, these patches enable handlers to easily update PTEs and do
-> > other work necessary to finish the fault without duplicating the functionality
-> > present in the generic code. I'd be really like feedback from mm folks whether
-> > such changes to fault handling code are fine or what they'd do differently.
-> > 
-> > The patches are based on 4.9-rc1 + Ross' DAX PMD page fault series [1] + ext4
-> > conversion of DAX IO patch to the iomap infrastructure [2]. For testing,
-> > I've pushed out a tree including all these patches and further DAX fixes
-> > to:
-> > 
-> > git://git.kernel.org/pub/scm/linux/kernel/git/jack/linux-fs.git dax
-> 
-> In my testing I hit what I believe to be a new lockdep splat.  This was
-> produced with ext4+dax+generic/246, though I've tried several times to
-> reproduce it and haven't been able.  This testing was done with your tree plus
-> one patch to fix the DAX PMD recursive fallback issue that you reported.  This
-> new patch is folded into v9 of my PMD series that I sent out earlier today.
-> 
-> I've posted the tree I was testing with here:
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=jan_dax
-> 
-> Here is the lockdep splat, passed through kasan_symbolize:
-> 
-> run fstests generic/246 at 2016-11-01 21:51:34
-> 
-> ======================================================
-> [ INFO: possible circular locking dependency detected ]
-> 4.9.0-rc1-00165-g13826b5 #2 Not tainted
-> -------------------------------------------------------
-> t_mmap_writev/13704 is trying to acquire lock:
->  ([ 3522.320075] &ei->i_mmap_sem
-> ){++++.+}[ 3522.320924] , at:
-> [<ffffffff8133ef06>] ext4_dax_fault+0x36/0xd0 fs/ext4/file.c:267
+Hello,
 
-Interesting, I didn't see this in my testing.
+I'm resending v4 of my DAX write-protection patches since I've messed up
+previous posting, mixing old and new version of the patch series...
 
-> -> #0[ 3522.342547]  (
-> &ei->i_mmap_sem[ 3522.343023] ){++++.+}
-> :
->        [<     inline     >] check_prev_add kernel/locking/lockdep.c:1829
->        [<     inline     >] check_prevs_add kernel/locking/lockdep.c:1939
->        [<     inline     >] validate_chain kernel/locking/lockdep.c:2266
->        [<ffffffff8110e89f>] __lock_acquire+0x127f/0x14d0 kernel/locking/lockdep.c:3335
->        [<ffffffff8110efa2>] lock_acquire+0xf2/0x1e0 kernel/locking/lockdep.c:3746
->        [<ffffffff81b39b7e>] down_read+0x3e/0xa0 kernel/locking/rwsem.c:22
->        [<ffffffff8133ef06>] ext4_dax_fault+0x36/0xd0 fs/ext4/file.c:267
->        [<ffffffff8122f9d1>] __do_fault+0x21/0x130 mm/memory.c:2872
->        [<     inline     >] do_read_fault mm/memory.c:3231
->        [<     inline     >] do_fault mm/memory.c:3333
->        [<     inline     >] handle_pte_fault mm/memory.c:3534
->        [<     inline     >] __handle_mm_fault mm/memory.c:3624
->        [<ffffffff812348ae>] handle_mm_fault+0x114e/0x1550 mm/memory.c:3661
->        [<ffffffff8106bc27>] __do_page_fault+0x247/0x4f0 arch/x86/mm/fault.c:1397
->        [<ffffffff8106bfad>] trace_do_page_fault+0x5d/0x290 arch/x86/mm/fault.c:1490
->        [<ffffffff81065dba>] do_async_page_fault+0x1a/0xa0 arch/x86/kernel/kvm.c:265
->        [<ffffffff81b3ea08>] async_page_fault+0x28/0x30 arch/x86/entry/entry_64.S:1015
->        [<     inline     >] arch_copy_from_iter_pmem ./arch/x86/include/asm/pmem.h:95
->        [<     inline     >] copy_from_iter_pmem ./include/linux/pmem.h:118
->        [<ffffffff812f4a27>] dax_iomap_actor+0x147/0x270 fs/dax.c:1027
->        [<ffffffff8130c513>] iomap_apply+0xb3/0x130 fs/iomap.c:78
+This is the fourth revision of my patches to clear dirty bits from radix tree
+of DAX inodes when caches for corresponding pfns have been flushed. This patch
+set is significantly larger than the previous version because I'm changing how
+->fault, ->page_mkwrite, and ->pfn_mkwrite handlers may choose to handle the
+fault so that we don't have to leak details about DAX locking into the generic
+code. In principle, these patches enable handlers to easily update PTEs and do
+other work necessary to finish the fault without duplicating the functionality
+present in the generic code. I'd be really like feedback from mm folks whether
+such changes to fault handling code are fine or what they'd do differently.
 
-So the problem is that we were doing write to a DAX file from a buffer
-which is mmapped DAX file and we took a fault when copying data from the
-buffer. That looks like a real problem. I'll have to think what to do with
-it... Thanks for report!
+The patches are based on 4.9-rc1 + Ross' DAX PMD page fault series [1] + ext4
+conversion of DAX IO patch to the iomap infrastructure [2]. For testing,
+I've pushed out a tree including all these patches and further DAX fixes
+to:
 
->        [<ffffffff812f46d6>] dax_iomap_rw+0x76/0xa0 fs/dax.c:1067
->        [<     inline     >] ext4_dax_write_iter fs/ext4/file.c:196
->        [<ffffffff8133fb13>] ext4_file_write_iter+0x243/0x340 fs/ext4/file.c:217
->        [<ffffffff812957d1>] do_iter_readv_writev+0xb1/0x130 fs/read_write.c:695
->        [<ffffffff81296384>] do_readv_writev+0x1a4/0x250 fs/read_write.c:872
->        [<ffffffff8129668f>] vfs_writev+0x3f/0x50 fs/read_write.c:911
->        [<ffffffff81296704>] do_writev+0x64/0x100 fs/read_write.c:944
->        [<     inline     >] SYSC_writev fs/read_write.c:1017
->        [<ffffffff81297900>] SyS_writev+0x10/0x20 fs/read_write.c:1014
->        [<ffffffff81b3d501>] entry_SYSCALL_64_fastpath+0x1f/0xc2 arch/x86/entry/entry_64.S:209
-> 
+git://git.kernel.org/pub/scm/linux/kernel/git/jack/linux-fs.git dax
 
-							Honza
---
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+The patches pass testing with xfstests on ext4 and xfs on my end. I'd be
+grateful for review so that we can push these patches for the next merge
+window.
+
+[1] http://www.spinics.net/lists/linux-mm/msg115247.html
+[2] Posted an hour ago - look for "ext4: Convert ext4 DAX IO to iomap framework"
+
+Changes since v3:
+* rebased on top of 4.9-rc1 + DAX PMD fault series + ext4 iomap conversion
+* reordered some of the patches
+* killed ->virtual_address field in vm_fault structure as requested by
+  Christoph
+
+Changes since v2:
+* rebased on top of 4.8-rc8 - this involved dealing with new fault_env
+  structure
+* changed calling convention for fault helpers
+
+Changes since v1:
+* make sure all PTE updates happen under radix tree entry lock to protect
+  against races between faults & write-protecting code
+* remove information about DAX locking from mm/memory.c
+* smaller updates based on Ross' feedback
+
+----
+Background information regarding the motivation:
+
+Currently we never clear dirty bits in the radix tree of a DAX inode. Thus
+fsync(2) flushes all the dirty pfns again and again. This patches implement
+clearing of the dirty tag in the radix tree so that we issue flush only when
+needed.
+
+The difficulty with clearing the dirty tag is that we have to protect against
+a concurrent page fault setting the dirty tag and writing new data into the
+page. So we need a lock serializing page fault and clearing of the dirty tag
+and write-protecting PTEs (so that we get another pagefault when pfn is written
+to again and we have to set the dirty tag again).
+
+The effect of the patch set is easily visible:
+
+Writing 1 GB of data via mmap, then fsync twice.
+
+Before this patch set both fsyncs take ~205 ms on my test machine, after the
+patch set the first fsync takes ~283 ms (the additional cost of walking PTEs,
+clearing dirty bits etc. is very noticeable), the second fsync takes below
+1 us.
+
+As a bonus, these patches make filesystem freezing for DAX filesystems
+reliable because mappings are now properly writeprotected while freezing the
+fs.
+								Honza
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
