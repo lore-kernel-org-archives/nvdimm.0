@@ -1,45 +1,80 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Wed, 16 Nov 2016 01:57:11 +0300
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: Re: [PATCH 17/21] mm: Change return values of finish_mkwrite_fault()
-Message-ID: <20161115225711.GQ23021@node>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 4913081D83
+ for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:25:27 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 17/21] mm: Change return values of finish_mkwrite_fault()
+Date: Fri,  4 Nov 2016 05:25:13 +0100
+Message-Id: <1478233517-3571-18-git-send-email-jack@suse.cz>
+In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
 References: <1478233517-3571-1-git-send-email-jack@suse.cz>
- <1478233517-3571-18-git-send-email-jack@suse.cz>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1478233517-3571-18-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-mm@kvack.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Nov 04, 2016 at 05:25:13AM +0100, Jan Kara wrote:
-> Currently finish_mkwrite_fault() returns 0 when PTE got changed before
-> we acquired PTE lock and VM_FAULT_WRITE when we succeeded in modifying
-> the PTE. This is somewhat confusing since 0 generally means success, it
-> is also inconsistent with finish_fault() which returns 0 on success.
-> Change finish_mkwrite_fault() to return 0 on success and VM_FAULT_NOPAGE
-> when PTE changed. Practically, there should be no behavioral difference
-> since we bail out from the fault the same way regardless whether we
-> return 0, VM_FAULT_NOPAGE, or VM_FAULT_WRITE. Also note that
-> VM_FAULT_WRITE has no effect for shared mappings since the only two
-> places that check it - KSM and GUP - care about private mappings only.
-> Generally the meaning of VM_FAULT_WRITE for shared mappings is not well
-> defined and we should probably clean that up.
-> 
-> Signed-off-by: Jan Kara <jack@suse.cz>
+Currently finish_mkwrite_fault() returns 0 when PTE got changed before
+we acquired PTE lock and VM_FAULT_WRITE when we succeeded in modifying
+the PTE. This is somewhat confusing since 0 generally means success, it
+is also inconsistent with finish_fault() which returns 0 on success.
+Change finish_mkwrite_fault() to return 0 on success and VM_FAULT_NOPAGE
+when PTE changed. Practically, there should be no behavioral difference
+since we bail out from the fault the same way regardless whether we
+return 0, VM_FAULT_NOPAGE, or VM_FAULT_WRITE. Also note that
+VM_FAULT_WRITE has no effect for shared mappings since the only two
+places that check it - KSM and GUP - care about private mappings only.
+Generally the meaning of VM_FAULT_WRITE for shared mappings is not well
+defined and we should probably clean that up.
 
-Sounds right.
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ mm/memory.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-
-
+diff --git a/mm/memory.c b/mm/memory.c
+index 1517ff91c743..b3bd6b6c6472 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2296,10 +2296,10 @@ int finish_mkwrite_fault(struct vm_fault *vmf)
+ 	 */
+ 	if (!pte_same(*vmf->pte, vmf->orig_pte)) {
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		return 0;
++		return VM_FAULT_NOPAGE;
+ 	}
+ 	wp_page_reuse(vmf);
+-	return VM_FAULT_WRITE;
++	return 0;
+ }
+ 
+ /*
+@@ -2342,8 +2342,7 @@ static int wp_page_shared(struct vm_fault *vmf)
+ 			return tmp;
+ 		}
+ 		tmp = finish_mkwrite_fault(vmf);
+-		if (unlikely(!tmp || (tmp &
+-				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
++		if (unlikely(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE))) {
+ 			unlock_page(vmf->page);
+ 			put_page(vmf->page);
+ 			return tmp;
 -- 
- Kirill A. Shutemov
+2.6.6
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
