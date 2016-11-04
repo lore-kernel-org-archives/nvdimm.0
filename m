@@ -1,64 +1,59 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CD7BF81F07
- for <linux-nvdimm@lists.01.org>; Wed, 30 Nov 2016 15:45:56 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 4/6] dax: update MAINTAINERS entries for FS DAX
-Date: Wed, 30 Nov 2016 16:45:31 -0700
-Message-Id: <1480549533-29038-5-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 18/21] mm: Export follow_pte()
+Date: Fri,  4 Nov 2016 05:25:14 +0100
+Message-Id: <1478233517-3571-19-git-send-email-jack@suse.cz>
+In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
+References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add the new include/trace/events/fs_dax.h tracepoint header, the existing
-include/linux/dax.h header, update Matthew's email address and add myself
-as a maintainer for filesystem DAX.
+DAX will need to implement its own version of page_check_address(). To
+avoid duplicating page table walking code, export follow_pte() which
+does what we need.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Matthew Wilcox <mawilcox@microsoft.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- MAINTAINERS | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/mm.h | 2 ++
+ mm/memory.c        | 4 ++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 2a58eea..b93ea2a 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3855,10 +3855,13 @@ S:	Maintained
- F:	drivers/i2c/busses/i2c-diolan-u2c.c
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 685ff1c57f2b..a5f52c0ce61a 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1210,6 +1210,8 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 			struct vm_area_struct *vma);
+ void unmap_mapping_range(struct address_space *mapping,
+ 		loff_t const holebegin, loff_t const holelen, int even_cows);
++int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
++	       spinlock_t **ptlp);
+ int follow_pfn(struct vm_area_struct *vma, unsigned long address,
+ 	unsigned long *pfn);
+ int follow_phys(struct vm_area_struct *vma, unsigned long address,
+diff --git a/mm/memory.c b/mm/memory.c
+index b3bd6b6c6472..7660f6169bee 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3782,8 +3782,8 @@ static int __follow_pte(struct mm_struct *mm, unsigned long address,
+ 	return -EINVAL;
+ }
  
- DIRECT ACCESS (DAX)
--M:	Matthew Wilcox <willy@linux.intel.com>
-+M:	Matthew Wilcox <mawilcox@microsoft.com>
-+M:	Ross Zwisler <ross.zwisler@linux.intel.com>
- L:	linux-fsdevel@vger.kernel.org
- S:	Supported
- F:	fs/dax.c
-+F:	include/linux/dax.h
-+F:	include/trace/events/fs_dax.h
+-static inline int follow_pte(struct mm_struct *mm, unsigned long address,
+-			     pte_t **ptepp, spinlock_t **ptlp)
++int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
++	       spinlock_t **ptlp)
+ {
+ 	int res;
  
- DIRECTORY NOTIFICATION (DNOTIFY)
- M:	Eric Paris <eparis@parisplace.org>
 -- 
-2.7.4
+2.6.6
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
