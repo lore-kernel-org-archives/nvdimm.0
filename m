@@ -1,22 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-wm0-x244.google.com (mail-wm0-x244.google.com
- [IPv6:2a00:1450:400c:c09::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7B4BD81EDE
- for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:10:46 -0800 (PST)
-Received: by mail-wm0-x244.google.com with SMTP id u144so4698859wmu.0
- for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:10:51 -0800 (PST)
-Date: Wed, 16 Nov 2016 01:10:48 +0300
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: Re: [PATCH 06/21] mm: Use passed vm_fault structure for in
- wp_pfn_shared()
-Message-ID: <20161115221048.GF23021@node>
+ by ml01.01.org (Postfix) with ESMTPS id EA9BA81D6B
+ for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:25:24 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 06/21] mm: Use passed vm_fault structure for in wp_pfn_shared()
+Date: Fri,  4 Nov 2016 05:25:02 +0100
+Message-Id: <1478233517-3571-7-git-send-email-jack@suse.cz>
+In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
 References: <1478233517-3571-1-git-send-email-jack@suse.cz>
- <1478233517-3571-7-git-send-email-jack@suse.cz>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1478233517-3571-7-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,25 +17,50 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-mm@kvack.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Nov 04, 2016 at 05:25:02AM +0100, Jan Kara wrote:
-> Instead of creating another vm_fault structure, use the one passed to
-> wp_pfn_shared() for passing arguments into pfn_mkwrite handler.
-> 
-> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Signed-off-by: Jan Kara <jack@suse.cz>
+Instead of creating another vm_fault structure, use the one passed to
+wp_pfn_shared() for passing arguments into pfn_mkwrite handler.
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ mm/memory.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
+diff --git a/mm/memory.c b/mm/memory.c
+index f5ef7b8a30c5..5f6bc9028a88 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2277,16 +2277,11 @@ static int wp_pfn_shared(struct vm_fault *vmf, pte_t orig_pte)
+ 	struct vm_area_struct *vma = vmf->vma;
+ 
+ 	if (vma->vm_ops && vma->vm_ops->pfn_mkwrite) {
+-		struct vm_fault vmf2 = {
+-			.page = NULL,
+-			.pgoff = vmf->pgoff,
+-			.address = vmf->address,
+-			.flags = FAULT_FLAG_WRITE | FAULT_FLAG_MKWRITE,
+-		};
+ 		int ret;
+ 
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		ret = vma->vm_ops->pfn_mkwrite(vma, &vmf2);
++		vmf->flags |= FAULT_FLAG_MKWRITE;
++		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
+ 		if (ret & VM_FAULT_ERROR)
+ 			return ret;
+ 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
 -- 
- Kirill A. Shutemov
+2.6.6
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
