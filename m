@@ -1,21 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-wm0-x22f.google.com (mail-wm0-x22f.google.com
- [IPv6:2a00:1450:400c:c09::22f])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DF3E681E5B
- for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:30:21 -0800 (PST)
-Received: by mail-wm0-x22f.google.com with SMTP id t79so31117733wmt.0
- for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:30:26 -0800 (PST)
-Date: Wed, 16 Nov 2016 01:30:23 +0300
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: Re: [PATCH 12/21] mm: Factor out common parts of write fault handling
-Message-ID: <20161115223023.GL23021@node>
+ by ml01.01.org (Postfix) with ESMTPS id 764E281D76
+ for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:25:26 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 12/21] mm: Factor out common parts of write fault handling
+Date: Fri,  4 Nov 2016 05:25:08 +0100
+Message-Id: <1478233517-3571-13-git-send-email-jack@suse.cz>
+In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
 References: <1478233517-3571-1-git-send-email-jack@suse.cz>
- <1478233517-3571-13-git-send-email-jack@suse.cz>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1478233517-3571-13-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,26 +17,142 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-mm@kvack.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Nov 04, 2016 at 05:25:08AM +0100, Jan Kara wrote:
-> Currently we duplicate handling of shared write faults in
-> wp_page_reuse() and do_shared_fault(). Factor them out into a common
-> function.
-> 
-> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Signed-off-by: Jan Kara <jack@suse.cz>
+Currently we duplicate handling of shared write faults in
+wp_page_reuse() and do_shared_fault(). Factor them out into a common
+function.
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ mm/memory.c | 78 +++++++++++++++++++++++++++++--------------------------------
+ 1 file changed, 37 insertions(+), 41 deletions(-)
 
+diff --git a/mm/memory.c b/mm/memory.c
+index 26b2858e6a12..4da66c984c2c 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2067,6 +2067,41 @@ static int do_page_mkwrite(struct vm_area_struct *vma, struct page *page,
+ }
+ 
+ /*
++ * Handle dirtying of a page in shared file mapping on a write fault.
++ *
++ * The function expects the page to be locked and unlocks it.
++ */
++static void fault_dirty_shared_page(struct vm_area_struct *vma,
++				    struct page *page)
++{
++	struct address_space *mapping;
++	bool dirtied;
++	bool page_mkwrite = vma->vm_ops->page_mkwrite;
++
++	dirtied = set_page_dirty(page);
++	VM_BUG_ON_PAGE(PageAnon(page), page);
++	/*
++	 * Take a local copy of the address_space - page.mapping may be zeroed
++	 * by truncate after unlock_page().   The address_space itself remains
++	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
++	 * release semantics to prevent the compiler from undoing this copying.
++	 */
++	mapping = page_rmapping(page);
++	unlock_page(page);
++
++	if ((dirtied || page_mkwrite) && mapping) {
++		/*
++		 * Some device drivers do not set page.mapping
++		 * but still dirty their pages
++		 */
++		balance_dirty_pages_ratelimited(mapping);
++	}
++
++	if (!page_mkwrite)
++		file_update_time(vma->vm_file);
++}
++
++/*
+  * Handle write page faults for pages that can be reused in the current vma
+  *
+  * This can happen either due to the mapping being with the VM_SHARED flag,
+@@ -2096,28 +2131,11 @@ static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 
+ 	if (dirty_shared) {
+-		struct address_space *mapping;
+-		int dirtied;
+-
+ 		if (!page_mkwrite)
+ 			lock_page(page);
+ 
+-		dirtied = set_page_dirty(page);
+-		VM_BUG_ON_PAGE(PageAnon(page), page);
+-		mapping = page->mapping;
+-		unlock_page(page);
++		fault_dirty_shared_page(vma, page);
+ 		put_page(page);
+-
+-		if ((dirtied || page_mkwrite) && mapping) {
+-			/*
+-			 * Some device drivers do not set page.mapping
+-			 * but still dirty their pages
+-			 */
+-			balance_dirty_pages_ratelimited(mapping);
+-		}
+-
+-		if (!page_mkwrite)
+-			file_update_time(vma->vm_file);
+ 	}
+ 
+ 	return VM_FAULT_WRITE;
+@@ -3262,8 +3280,6 @@ static int do_cow_fault(struct vm_fault *vmf)
+ static int do_shared_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct address_space *mapping;
+-	int dirtied = 0;
+ 	int ret, tmp;
+ 
+ 	ret = __do_fault(vmf);
+@@ -3292,27 +3308,7 @@ static int do_shared_fault(struct vm_fault *vmf)
+ 		return ret;
+ 	}
+ 
+-	if (set_page_dirty(vmf->page))
+-		dirtied = 1;
+-	/*
+-	 * Take a local copy of the address_space - page.mapping may be zeroed
+-	 * by truncate after unlock_page().   The address_space itself remains
+-	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
+-	 * release semantics to prevent the compiler from undoing this copying.
+-	 */
+-	mapping = page_rmapping(vmf->page);
+-	unlock_page(vmf->page);
+-	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
+-		/*
+-		 * Some device drivers do not set page.mapping but still
+-		 * dirty their pages
+-		 */
+-		balance_dirty_pages_ratelimited(mapping);
+-	}
+-
+-	if (!vma->vm_ops->page_mkwrite)
+-		file_update_time(vma->vm_file);
+-
++	fault_dirty_shared_page(vma, vmf->page);
+ 	return ret;
+ }
+ 
 -- 
- Kirill A. Shutemov
+2.6.6
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
