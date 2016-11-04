@@ -2,13 +2,13 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CB15781D41
- for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:25:22 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 76AC181D89
+ for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:25:27 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 03/21] mm: Use pgoff in struct vm_fault instead of passing it
- separately
-Date: Fri,  4 Nov 2016 05:24:59 +0100
-Message-Id: <1478233517-3571-4-git-send-email-jack@suse.cz>
+Subject: [PATCH 20/21] dax: Protect PTE modification on WP fault by radix tree
+ entry lock
+Date: Fri,  4 Nov 2016 05:25:16 +0100
+Message-Id: <1478233517-3571-21-git-send-email-jack@suse.cz>
 In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
 References: <1478233517-3571-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -27,169 +27,71 @@ To: linux-mm@kvack.org
 Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-struct vm_fault has already pgoff entry. Use it instead of passing pgoff
-as a separate argument and then assigning it later.
+Currently PTE gets updated in wp_pfn_shared() after dax_pfn_mkwrite()
+has released corresponding radix tree entry lock. When we want to
+writeprotect PTE on cache flush, we need PTE modification to happen
+under radix tree entry lock to ensure consistent updates of PTE and radix
+tree (standard faults use page lock to ensure this consistency). So move
+update of PTE bit into dax_pfn_mkwrite().
 
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- mm/khugepaged.c |  1 +
- mm/memory.c     | 35 ++++++++++++++++++-----------------
- 2 files changed, 19 insertions(+), 17 deletions(-)
+ fs/dax.c    | 22 ++++++++++++++++------
+ mm/memory.c |  2 +-
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
-diff --git a/mm/khugepaged.c b/mm/khugepaged.c
-index f88b2d3810a7..d7df06383b10 100644
---- a/mm/khugepaged.c
-+++ b/mm/khugepaged.c
-@@ -880,6 +880,7 @@ static bool __collapse_huge_page_swapin(struct mm_struct *mm,
- 		.address = address,
- 		.flags = FAULT_FLAG_ALLOW_RETRY,
- 		.pmd = pmd,
-+		.pgoff = linear_page_index(vma, address),
- 	};
+diff --git a/fs/dax.c b/fs/dax.c
+index 167583a9a324..7b00316ebf49 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -784,17 +784,27 @@ int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct file *file = vma->vm_file;
+ 	struct address_space *mapping = file->f_mapping;
+-	void *entry;
++	void *entry, **slot;
+ 	pgoff_t index = vmf->pgoff;
  
- 	/* we only decide to swapin, if there is enough young ptes */
+ 	spin_lock_irq(&mapping->tree_lock);
+-	entry = get_unlocked_mapping_entry(mapping, index, NULL);
+-	if (!entry || !radix_tree_exceptional_entry(entry))
+-		goto out;
++	entry = get_unlocked_mapping_entry(mapping, index, &slot);
++	if (!entry || !radix_tree_exceptional_entry(entry)) {
++		if (entry)
++			put_unlocked_mapping_entry(mapping, index, entry);
++		spin_unlock_irq(&mapping->tree_lock);
++		return VM_FAULT_NOPAGE;
++	}
+ 	radix_tree_tag_set(&mapping->page_tree, index, PAGECACHE_TAG_DIRTY);
+-	put_unlocked_mapping_entry(mapping, index, entry);
+-out:
++	entry = lock_slot(mapping, slot);
+ 	spin_unlock_irq(&mapping->tree_lock);
++	/*
++	 * If we race with somebody updating the PTE and finish_mkwrite_fault()
++	 * fails, we don't care. We need to return VM_FAULT_NOPAGE and retry
++	 * the fault in either case.
++	 */
++	finish_mkwrite_fault(vmf);
++	put_locked_mapping_entry(mapping, index, entry);
+ 	return VM_FAULT_NOPAGE;
+ }
+ EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
 diff --git a/mm/memory.c b/mm/memory.c
-index c652b65469cd..3b79eace8d23 100644
+index 7660f6169bee..2683e18d6d55 100644
 --- a/mm/memory.c
 +++ b/mm/memory.c
-@@ -2279,7 +2279,7 @@ static int wp_pfn_shared(struct vm_fault *vmf, pte_t orig_pte)
- 	if (vma->vm_ops && vma->vm_ops->pfn_mkwrite) {
- 		struct vm_fault vmf2 = {
- 			.page = NULL,
--			.pgoff = linear_page_index(vma, vmf->address),
-+			.pgoff = vmf->pgoff,
- 			.address = vmf->address,
- 			.flags = FAULT_FLAG_WRITE | FAULT_FLAG_MKWRITE,
- 		};
-@@ -2848,15 +2848,15 @@ static int do_anonymous_page(struct vm_fault *vmf)
-  * released depending on flags and vma->vm_ops->fault() return value.
-  * See filemap_fault() and __lock_page_retry().
-  */
--static int __do_fault(struct vm_fault *vmf, pgoff_t pgoff,
--		struct page *cow_page, struct page **page, void **entry)
-+static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
-+		      struct page **page, void **entry)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct vm_fault vmf2;
- 	int ret;
- 
- 	vmf2.address = vmf->address;
--	vmf2.pgoff = pgoff;
-+	vmf2.pgoff = vmf->pgoff;
- 	vmf2.flags = vmf->flags;
- 	vmf2.page = NULL;
- 	vmf2.gfp_mask = __get_fault_gfp_mask(vma);
-@@ -3115,9 +3115,10 @@ late_initcall(fault_around_debugfs);
-  * fault_around_pages() value (and therefore to page order).  This way it's
-  * easier to guarantee that we don't cross page table boundaries.
-  */
--static int do_fault_around(struct vm_fault *vmf, pgoff_t start_pgoff)
-+static int do_fault_around(struct vm_fault *vmf)
- {
- 	unsigned long address = vmf->address, nr_pages, mask;
-+	pgoff_t start_pgoff = vmf->pgoff;
- 	pgoff_t end_pgoff;
- 	int off, ret = 0;
- 
-@@ -3175,7 +3176,7 @@ static int do_fault_around(struct vm_fault *vmf, pgoff_t start_pgoff)
- 	return ret;
- }
- 
--static int do_read_fault(struct vm_fault *vmf, pgoff_t pgoff)
-+static int do_read_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *fault_page;
-@@ -3187,12 +3188,12 @@ static int do_read_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 	 * something).
- 	 */
- 	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
--		ret = do_fault_around(vmf, pgoff);
-+		ret = do_fault_around(vmf);
- 		if (ret)
+@@ -2316,7 +2316,7 @@ static int wp_pfn_shared(struct vm_fault *vmf)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 		vmf->flags |= FAULT_FLAG_MKWRITE;
+ 		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
+-		if (ret & VM_FAULT_ERROR)
++		if (ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE))
  			return ret;
+ 		return finish_mkwrite_fault(vmf);
  	}
- 
--	ret = __do_fault(vmf, pgoff, NULL, &fault_page, NULL);
-+	ret = __do_fault(vmf, NULL, &fault_page, NULL);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
-@@ -3205,7 +3206,7 @@ static int do_read_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 	return ret;
- }
- 
--static int do_cow_fault(struct vm_fault *vmf, pgoff_t pgoff)
-+static int do_cow_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *fault_page, *new_page;
-@@ -3226,7 +3227,7 @@ static int do_cow_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 		return VM_FAULT_OOM;
- 	}
- 
--	ret = __do_fault(vmf, pgoff, new_page, &fault_page, &fault_entry);
-+	ret = __do_fault(vmf, new_page, &fault_page, &fault_entry);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
- 
-@@ -3241,7 +3242,7 @@ static int do_cow_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 		unlock_page(fault_page);
- 		put_page(fault_page);
- 	} else {
--		dax_unlock_mapping_entry(vma->vm_file->f_mapping, pgoff);
-+		dax_unlock_mapping_entry(vma->vm_file->f_mapping, vmf->pgoff);
- 	}
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
-@@ -3252,7 +3253,7 @@ static int do_cow_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 	return ret;
- }
- 
--static int do_shared_fault(struct vm_fault *vmf, pgoff_t pgoff)
-+static int do_shared_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *fault_page;
-@@ -3260,7 +3261,7 @@ static int do_shared_fault(struct vm_fault *vmf, pgoff_t pgoff)
- 	int dirtied = 0;
- 	int ret, tmp;
- 
--	ret = __do_fault(vmf, pgoff, NULL, &fault_page, NULL);
-+	ret = __do_fault(vmf, NULL, &fault_page, NULL);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
-@@ -3321,16 +3322,15 @@ static int do_shared_fault(struct vm_fault *vmf, pgoff_t pgoff)
- static int do_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	pgoff_t pgoff = linear_page_index(vma, vmf->address);
- 
- 	/* The VMA was not fully populated on mmap() or missing VM_DONTEXPAND */
- 	if (!vma->vm_ops->fault)
- 		return VM_FAULT_SIGBUS;
- 	if (!(vmf->flags & FAULT_FLAG_WRITE))
--		return do_read_fault(vmf, pgoff);
-+		return do_read_fault(vmf);
- 	if (!(vma->vm_flags & VM_SHARED))
--		return do_cow_fault(vmf, pgoff);
--	return do_shared_fault(vmf, pgoff);
-+		return do_cow_fault(vmf);
-+	return do_shared_fault(vmf);
- }
- 
- static int numa_migrate_prep(struct page *page, struct vm_area_struct *vma,
-@@ -3578,6 +3578,7 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
- 		.vma = vma,
- 		.address = address,
- 		.flags = flags,
-+		.pgoff = linear_page_index(vma, address),
- 	};
- 	struct mm_struct *mm = vma->vm_mm;
- 	pgd_t *pgd;
 -- 
 2.6.6
 
