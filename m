@@ -1,104 +1,11 @@
-From: "ANTHONY" <fadecice330-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: reach millions with FB Groups Posting service
-Date: Wed, 09 Nov 2016 06:34:44 -0800
-Message-ID: <413D8DCF.69C97F06@gmail.com>
+From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [patch] nd_blk,nd_pmem,nd_btt: add endio blktrace events
+Date: Wed, 09 Nov 2016 14:08:33 -0500
+Message-ID: <x49twbgo4i6.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_58233413.6E7F9771"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_58233413.6E7F9771
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Hello, Do you want to advertise on facebook? We're here to
-   help. We wil manually post your product/logo/link on Facebook Groups and
-  will give you a full report with links of each live post where your advertisement
-   was posted. [...] 
-
-Content analysis details:   (10.6 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: buysocial.cn]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-             [Blocked - see <http://www.spamcop.net/bl.shtml?112.121.177.210>]
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.buysocial.cn]
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.buysocial.cn]
- 2.8 FSL_HELO_FAKE          No description available.
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (fadecice330[at]gmail.com)
- 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
-                            (fadecice330[at]gmail.com)
--0.0 BAYES_40               BODY: Bayes spam probability is 20 to 40%
-                            [score: 0.3004]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_58233413.6E7F9771
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1c4Txb-0006rn-3B
-	for gln-linux-nvdimm@m.gmane.org; Wed, 09 Nov 2016 15:34:43 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0237581C93;
-	Wed,  9 Nov 2016 06:34:42 -0800 (PST)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from gmail.com (unknown [112.121.177.210])
- by ml01.01.org (Postfix) with SMTP id 69F1981C92
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Wed,  9 Nov 2016 06:34:38 -0800 (PST)
-Message-ID: <413D8DCF.69C97F06-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Wed, 09 Nov 2016 06:34:44 -0800
-From: "ANTHONY" <fadecice330-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (X11; U; SunOS sun4u; en-US;
- rv:1.8.1.4) Gecko/20070622 Thunderbird/2.0.0.4
-MIME-Version: 1.0
-To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: re: reach millions with FB Groups Posting service
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -106,37 +13,74 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Reply-To: ANTHONY <fadecice330-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Dan J. Williams" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Cc: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
 
-Hello,
-Do you want to advertise on facebook? We're here to help. =
+Right now, any of the above three drivers will report Q events in
+blktrace but no corresponding C events.  Fix it.
 
+Signed-off-by: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-We wil manually post your product/logo/link on Facebook Groups and will
-give you a full report with links of each live post where your advertisement
-was posted.
-
-http://www.buysocial.cn/detail.php?id=3D12
-
-Regards
-ANTHONY
-=A0
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_58233413.6E7F9771--
+diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
+index 9faaa96..90676f3 100644
+--- a/drivers/nvdimm/blk.c
++++ b/drivers/nvdimm/blk.c
+@@ -19,6 +19,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/nd.h>
+ #include <linux/sizes.h>
++#include <trace/events/block.h>
+ #include "nd.h"
+ 
+ static u32 nsblk_meta_size(struct nd_namespace_blk *nsblk)
+@@ -213,6 +214,7 @@ static blk_qc_t nd_blk_make_request(struct request_queue *q, struct bio *bio)
+ 		nd_iostat_end(bio, start);
+ 
+  out:
++	trace_block_bio_complete(q, bio, bio->bi_error);
+ 	bio_endio(bio);
+ 	return BLK_QC_T_NONE;
+ }
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 368795a..a11c00d 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -23,6 +23,7 @@
+ #include <linux/ndctl.h>
+ #include <linux/fs.h>
+ #include <linux/nd.h>
++#include <trace/events/block.h>
+ #include "btt.h"
+ #include "nd.h"
+ 
+@@ -1195,6 +1196,7 @@ static blk_qc_t btt_make_request(struct request_queue *q, struct bio *bio)
+ 		nd_iostat_end(bio, start);
+ 
+ out:
++	trace_block_bio_complete(q, bio, bio->bi_error);
+ 	bio_endio(bio);
+ 	return BLK_QC_T_NONE;
+ }
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 42b3a82..4ea3b9f 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -29,6 +29,7 @@
+ #include <linux/slab.h>
+ #include <linux/pmem.h>
+ #include <linux/nd.h>
++#include <trace/events/block.h>
+ #include "pmem.h"
+ #include "pfn.h"
+ #include "nd.h"
+@@ -165,6 +166,7 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
+ 	if (bio->bi_opf & REQ_FUA)
+ 		nvdimm_flush(nd_region);
+ 
++	trace_block_bio_complete(q, bio, bio->bi_error);
+ 	bio_endio(bio);
+ 	return BLK_QC_T_NONE;
+ }
