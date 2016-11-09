@@ -1,14 +1,104 @@
-From: "" <ddj-/VFG5tYt6zCsTnJN9+BGXg@public.gmane.org>
-Subject: =?utf-8?B?44CK6aG555uu566h55CG5a6e5oiY5pON5L2c54+t44CLMTHmnIgyNC0yNeehrg==?=
- =?utf-8?B?5a6a5byA6K++77yM6K6y5biI77ya5YiY5q+b5Y2O6ICB5biI44CC6ZyA6KaB5ZKo6K+i55qE6K+35p2l?=
- =?utf-8?B?55S177yM5oiW6ICFUVHvvJo0NTI3OTA3NjTjgILmnInkvJjmg6A=?=
- =?utf-8?B?4pi644CC?=
-Date: Tue, 8 Nov 2016 15:35:00 +0800
-Message-ID: <7F3D21B81C6B2C48216212FF92D430AA@ymopjv.net>
+From: "ANTHONY" <fadecice330-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: reach millions with FB Groups Posting service
+Date: Wed, 09 Nov 2016 06:34:44 -0800
+Message-ID: <413D8DCF.69C97F06@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="----------=_58233413.6E7F9771"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_58233413.6E7F9771
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  Hello, Do you want to advertise on facebook? We're here to
+   help. We wil manually post your product/logo/link on Facebook Groups and
+  will give you a full report with links of each live post where your advertisement
+   was posted. [...] 
+
+Content analysis details:   (10.6 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: buysocial.cn]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+             [Blocked - see <http://www.spamcop.net/bl.shtml?112.121.177.210>]
+ 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
+                            [URIs: www.buysocial.cn]
+ 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
+                            [URIs: www.buysocial.cn]
+ 2.8 FSL_HELO_FAKE          No description available.
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (fadecice330[at]gmail.com)
+ 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
+                            (fadecice330[at]gmail.com)
+-0.0 BAYES_40               BODY: Bayes spam probability is 20 to 40%
+                            [score: 0.3004]
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+
+
+------------=_58233413.6E7F9771
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1c4Txb-0006rn-3B
+	for gln-linux-nvdimm@m.gmane.org; Wed, 09 Nov 2016 15:34:43 +0100
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 0237581C93;
+	Wed,  9 Nov 2016 06:34:42 -0800 (PST)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from gmail.com (unknown [112.121.177.210])
+ by ml01.01.org (Postfix) with SMTP id 69F1981C92
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Wed,  9 Nov 2016 06:34:38 -0800 (PST)
+Message-ID: <413D8DCF.69C97F06-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Wed, 09 Nov 2016 06:34:44 -0800
+From: "ANTHONY" <fadecice330-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (X11; U; SunOS sun4u; en-US;
+ rv:1.8.1.4) Gecko/20070622 Thunderbird/2.0.0.4
+MIME-Version: 1.0
+To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: re: reach millions with FB Groups Posting service
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.21
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,138 +106,37 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Reply-To: ANTHONY <fadecice330-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
 
-Qml0bWFwIEJpdG1hcCBCaXRtYXAgQml0bWFwIEJpdG1hcCBCaXRtYXAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAg6aG555uu566h55CG5a6e5oiY5pON5L2c54+tIA0K44CQ5Li76K6y77ya5YiY
-5q+b5Y2OIOOAkQ0KICDmiqXlkI3or6bmg4UgPg0K44CQ5pe26Ze05Zyw54K544CRIDIwMTblubQx
-MeaciDI0LTI15pel5LiK5rW344CBMTLmnIgyMi0yM+aXpeS4iua1tw0K44CQ5Y+C5Yqg5a+56LGh
-44CRIOmhueebruaAu+ebkeOAgemDqOmXqOe7j+eQhuOAgemrmOe6p+mhueebrue7j+eQhuOAgemh
-ueebruWboumYn+aIkOWRmOetie+8jOeJueWIq+mAguWQiOato+WcqOS7juS6iyAg6aG555uu566h
-55CG55qE5Lq65ZGYDQoNCuOAkOWtpuS5oOi0ueeUqOOAkSA1MjAw5YWDLzLlpKkvMeS6uu+8iOWQ
-q+WtpuS5oOi0ueOAgei1hOaWmei0ueOAgeS4pOWkqeWNiOmkkOOAgeiMtueCueOAgeeojui0ue+8
-iSAgDQrjgJDlnoLor6Lng63nur/jgJEgMDIxLTUxMDk3MzkzICAgMTU5LTIxMTctNDA2NCANCuOA
-kOiBlOezu+mCrueuseOAkSB3YW5namlhbi14aGxAdmlwLjEyNi5jb20gICANCg0KICDor77nqIvn
-roDku4sgPg0K6K++IOeoiyDog4wg5pmv77yaDQogICAgICDpmo/nnYDluILlnLrnq57kuonnmoTm
-l6Xnm4rliqDliafvvIzkvIHkuJrlj6rpnaDnu7TmjIHnjrDnirbnmoTmiafooYzns7vnu5/otorm
-naXotorkuI3og73mu6HotrPkuI3mlq3lj5jljJbnmoTluILlnLrpnIDmsYLvvIzlm6DogIzpobnn
-m67nrqHnkIbkuZ/otormnaXotorlj5fliLDkvIHkuJrnmoTph43op4bjgILmnKzor77nqIvpgJro
-v4forrLluIjorrLop6PjgIHmoYjkvovliIbmnpDjgIHlsI/nu4TorqjorrrjgIHlrablkZjnu4Pk
-uaDnrYnmjojor77mlrnlvI/vvIznu5nkvaDluKbmnaXlhajmlrDnmoTmgJ3nu7Top4bop5LvvIzo
-rqnmt7Hpmbfpobnnm67lm7DmibDnmoTkvaDok6bnhLblm57pppbjgIHojIXloZ7pob/lvIDjgILm
-lbTkuKror77nqIvov5znprvnkIborrrkuIrnmoTor7TmlZnvvIzogIzmmK/lvLrosIPlpoLkvZXm
-iorpobnnm67nrqHnkIbnmoTlt6XlhbflkozmioDlt6flupTnlKjliLDlrp7pmYXnmoTpobnnm67k
-uK3ljrvvvIzljrvop6PlhrPpobnnm67nrqHnkIbov4fnqIvkuK3nu4/luLjlh7rnjrDnmoTojIPl
-m7TkuI3muIXjgIHotKjph4/nvLrpmbfjgIHov5vluqbmi5bmnJ/nrYnlhbfkvZPpl67popjjgIIN
-Cg0KDQoNCg0KDQror77nqIvmlLbnm4rvvJoNCiAgIOWvueS8geS4muiAjOiogO+8jOaIkeS7rOeh
-ruS/neWtpuWRmOWcqOWfueiureWujOaIkOWQju+8jOWkp+WutuiDveeUqOWQjOS4gOenjeeQhuW/
-te+8jOWQjOS4gOenjeaWueazle+8jOWQjOS4gOenjeWbvuino++8jA0K5ZCM5LiA56eN6KGo5qC8
-5p2l5a6M5oiQ6aG555uu44CCDQox44CB5Y+C6K6t55qE5q+P5LiA5L2N5a2m5ZGY5Z+56K6t5ZCO
-6YO95bCG5Z+55YW75oiQ5YW35pyJ5Lul5LiLLOmhueebrue7j+eQhuW/heWkh+eahCzkuInnp43o
-g73lipvvvJoNCkHjgIHnoa7lrprojIPlm7QNCkLjgIHlnKjojIPlm7TlhoXlrozmiJDku7vliqHn
-moTlj6/nva7kv6HluqYNCkPjgIHliIbmnpDotovlir/nmoTog73lipsNCg0K6K++56iL5a6X5peo
-77yaDQogICDigJzku4rlpKnln7norq3nu5PmnZ/vvIzmmI7lpKnlvIDlp4vliqjmiYvjgILigJ3i
-gJTigJTln7norq3lsLHmmK/kuLrkuobmlLnlj5jnkIblv7XvvIzmiormiYDlrabliLDnmoTnrqHn
-kIblt6Xlhbfov5DnlKjliLANCuW5s+aXtueahOW3peS9nOS4reWOu+OAgg0KICAg4oCc5rKh5pyJ
-5Zu+6KGo5bCx5piv5rKh5pyJ566h55CG77yM5rKh5pyJ5pWw5a2X5bCx5piv5rKh5pyJ5o6n5Yi2
-4oCd44CCDQoNCuiusuW4iOS7i+e7jSA+5YiY5q+b5Y2ODQoqICDmlrDmtLvlipvpob7pl64v6aG2
-5LyY5ZKo6K+iIOmmluW4remhvumXrg0KKiAg5LiK5rW35Lqk6YCa5aSn5a2m5ray5Y6L5Lyg5Yqo
-5bel56iL5a2m5aOrDQoqICDoiqzlhbDotavlsJTmlrDln7rlpKflrabllYblrabpmaLnoZXlo6sN
-CiogIOWJkeahpeWkp+WtpuWbvemZheWfueiureW4iOi1hOi0qOivgeS5pg0KKiAg5pu+5ouF5Lu7
-5pmu5rSb6I+y5bCU5biV5Lid6YeR5bGe6aaW5bit5Luj6KGo5YWL56m65Y6L5py65pyJ6ZmQ5YWs
-5Y+45Ymv5oC757uP55CGDQoqICDljLnlhYvnlLXlrZDvvIjkuIrmtbfvvInmnInpmZDlhazlj7jl
-ia/mgLvnu4/nkIbjgIHmgKHlkozmnLrlmajmiafooYzmgLvnu4/nkIYNCiogIOS4iua1t+S4luWN
-muS8muS6i+WKoeWNj+iwg+WxgOmhueebrui/m+W6puaOp+WItueJuemCgOS4k+Wutg0KKiAg5Yqz
-5Yqb5aOr77yI5Lit5Zu977yJ5pyJ6ZmQ5YWs5Y+45pW05L2T6KOF5L+u6aG555uu54m56YKA6aG5
-55uu5oC755uRDQoNCuaOiOivvumjjuagvO+8mg0KICAgIOaOiOivvumHh+eUqOS6kuWKqOaAp+WP
-jOWQkeS6pOa1geaWueW8j++8jOahiOS+i+iuqOiuuuOAgeinkuiJsuaJrua8lOOAgeeuoeeQhuiv
-hOS8sOetieeahuiDveWIh+WQiOS4u+mimO+8jOS7peWunuS+i+S4quahiA0K5Li66aqo5bmy77yM
-6L6F5Lul5rex5Y6a5a2m5pyv55CG6K665Z+656GA77yb5Zyo5pWZ5Lya5a2m5ZGY5aaC5L2V5q2j
-56Gu5L2/55So566h55CG5bel5YW355qE5ZCM5pe277yM5rOo6YeN5Lyg5o6I57uZ5a2m5ZGY5aaC
-DQrkvZXliJvlu7rkuIDnp43lhajmlrDnkIblv7XnmoTnrqHnkIblubPlj7DvvIzkvb/lhbbog73l
-pJ/lnKjov5nkuKrlubPlj7DkuIroh6rnlLHlj5HmjKXlkozliJvmlrDjgIINCg0K5pyN5Yqh6L+H
-55qE5a6i5oi377yaDQrkuIfnp5HjgIHkuJbojILjgIFCQVNG5p+T5paZ44CB5pmu6I6x5YWL5pav
-5rCU5L2T44CB5qKF5YWw5pel5YWw55S15Zmo5pyJ6ZmQ5YWs5Y+444CB6KW/6Zeo5a2Q5byA5YWz
-44CB5aSp5rSl5rGJ6auY5rSX5rSB5YmC44CBDQrmsZ/ljZfpgKDoiLnljoLjgIHopb/pl6jlrZDp
-gJrorq/jgIHkuIrmtbfjgIHljLvnlpfmnLrmorDvvIjkuK3lm73vvInlhazlj7jjgIHoj7LliKnm
-tabnlLXlrZDjgIHkvIrojrHlhYvmlq/vvIjplb/mspnvvInlhazlj7jjgIENCuiPsuWIqea1puWN
-iuWvvOS9k++8iOW5v+S4nO+8ieOAgeWNoeeJueavlOWLkui1t+mHjeacuuOAgeS4iua1t+S4h+en
-keWcsOS6p+OAgeW5v+i+vueUteiEkeOAgeS4iua1t+i0neWwlOmYv+WwlOWNoeeJueOAgeiuuOe7
-pw0K55S15Zmo77yI5Zu95YaF5LiK5biC5YWs5Y+477yJ44CB5LiK5rW355S15rCU6ZuG5Zui5YWs
-5Y+444CB5LiK5rW35Zu96I2v6ZuG5Zui44CBMyBNICjkuK3lm70p44CB5LiK5rW36YCa55So54Wn
-5piO44CB5b635bCUDQrnpo/msb3ovabnlLXmsJTvvIjnmb3ln47vvInjgIHoi7Hlm71CUOefs+ay
-ueOAgeS4iuaxvU1CQeeglOS/ruePreOAgeWkp+W6huayueeUsCDvvIjkuK3vvIzoi7HmlofvvInj
-gIHlub/lt57oiJLpgILliIDniYcg44CBDQrlpI3mmJ/lrp7kuJrmnInpmZDlhazlj7jjgIHniLHp
-u5jnlJ/nlLXmsJTvvIjkuK3lm73vvInmnInpmZDlhazlj7jjgIHlub/kuJzljJfnlLXpgJrorq/v
-vIjoi7Hmlofmjojor77vvInjgIHmnb7kuIvkuIflrp3vvIjlub8NCuW3nu+8ieaciemZkOWFrOWP
-uOOAgeS4iua1t+aftOayueacuuiCoeS7veaciemZkOWFrOWPuOOAgemAmueUqOWMu+eWl+acuuai
-sO+8iOWMl+S6rO+8ieaciemZkOWFrOWPuOOAgeWMl+S6rOeZvuWlpeiNr+S4muOAgeW5vw0K5bee
-55m95LqR5YyW5bel44CB5b635bCU56aP5rG96L2m55S15rCU77yI5bm/5bee77yJ44CB6Im+5Yqb
-77yI5bm/5bee77yJ5YyF6KOF57O757uf5pyJ6ZmQ5YWs5Y+444CB5aSn5LyX5rG96L2m5Y+Y6YCf
-5Zmo77yI5LiKDQrmtbfvvInmnInpmZDlhazlj7jjgIHpo57liKnmtabnhafmmI7nlLXlrZDvvIjk
-uIrmtbfvvInmnInpmZDlhazlj7jjgIHkuIrmtbfmsb3ovablt6XkuJrplIDllK7mgLvlhazlj7jj
-gIHniLHpu5jnlJ/ov4fnqIvlpITnkIYNCu+8iOS4reWbve+8ieaciemZkOWFrOWPuOOAgeS4iua1
-t+awr+eiseiCoeS7veaciemZkOWFrOWPuOOAgeW5v+S4nOS4veePoOWMu+iNr+mbhuWbouaciemZ
-kOWFrOWPuOOAgea5luWMl+enu+WKqOmAmuS/oeWFrOWPuOOAgQ0K5oub5ZWG6ZO26KGMKOS4iua1
-tynjgIHlub/kuJznvo7nmoTml6XnlKjnlLXlmajjgIHlqIHlm77nlLXlrZDmnLrmorDvvIjkuIrm
-tbfvvInmnInpmZDlhazlj7jjgIHkuJzojp7np5Hms7DnlLXlrZDmnInpmZDlhazlj7jjgIENCue+
-juWNjuiupOivge+8iOS4reWbve+8ieaciemZkOWFrOWPuOOAgeW5v+W3nuacrOeUsOaxvei9puac
-iemZkOWFrOWPuOetieS4k+S4mue7j+WOhuOAgg0KDQogIOivvueoi+Wkp+e6siA+DQrnrKzkuIDl
-pKkNCuS4gOOAgemhueebruWPiumhueebrueuoeeQhu+8iDk6MDDigJQxMDozMO+8iQ0K6K6y5biI
-77yaDQoqICDku4DkuYjlj6vpobnnm64NCiogIOmhueebrueahOeJueeCuQ0KKiAg5LuA5LmI5Y+r
-566h55CGDQoqICDku4DkuYjlj6vpobnnm67nrqHnkIYNCuivvuWggue7g+S5oA0K5Zue562U5Y+C
-5Yqg6ICF6Zeu6aKYDQrlrablkZjvvJoNCiogIOWBmue7g+S5oOmimA0KKiAg6K6o6K66DQoqICDl
-rablkZjmj5Dpl64NCjEwOjMw4oCUMTA6NDUg5LyR5oGvDQogDQrkuozjgIHpobnnm67lj4rlhbbm
-iYDlpITnmoTnjq/looPliIbmnpDvvIgxMDo0NeKAlDEyOjAw77yJDQrorrLluIjvvJoNCiogIOmh
-ueebruS4reaKlei1hOS6uuS4jumhueebrue7j+eQhueahOWFs+ezuw0KKiAg6aG555uu57uP55CG
-55qE6IGM6LSjDQoqICDpobnnm67kuK3liKnlrrPlhbPns7vkurrliIbmnpANCiogIOmhueebruaX
-qeacn+S8sOeul+eahOS4gOiIrOW3peWFtw0KKiAg6aG555uu6Zi25q615Zu+5ZKM6LWE5rqQ5Zu+
-55qE5Yi25L2c5pa55rOVDQrlrablkZjvvJoNCiogIOiuqOiuug0KKiAg5o+Q6ZeuDQoxMjowMOKA
-lDEzOjAwIOWNiOmkkA0KIA0K5LiJ44CB6aG555uu5rKf6YCa566h55CG77yIMTM6MDDigJQxNDoz
-MO+8iQ0K6K6y5biI77yaDQoqICDpobnnm67nmoTmqKrlkJHmsp/pgJoNCiogIOmhueebruS4rei3
-qOmDqOmXqOWNj+iwg+eahOmXrumimOino+WGs+aWueazlQ0KKiAg6aG555uu55qE5b2S5bGe5ZKM
-6aG555uu55uu5qCHU01BUlTliIbmnpDmlrnms5UNCiogIOmhueebrueuoeeQhueahOWPkeWxleWO
-huWPsg0KKiAg6aG555uu5bel5L2c6ZmI6L+w6KGo55qE5Yi25L2c5pa55rOVDQrlrablkZjvvJoN
-CiogIOaPkOmXrg0KKiAg5YGa6Leo6YOo6Zeo5Y2P6LCD6KGo5qC857uD5LmgDQoxNDozMOKAlDE0
-OjQ15LyR5oGvDQogDQror77loILkvZzkuJrvvJrvvIgxNDo0NeKAlDE3OjAw77yJDQoqICDlrozm
-iJDpobnnm67lkK/liqjpmLbmrrXnmoTigJzkuozlm77kuIDooajigJ0NCiogIOWujOaIkOahiOS+
-i+S4reeahOKAnOmYtuauteWbvuKAneOAgeKAnOi1hOa6kOWbvuKAneWSjOKAnOW3peS9nOmZiOi/
-sOihqOKAnQ0KIA0K56ys5LqM5aSpDQrlm5vjgIHpobnnm67ojIPlm7TnrqHnkIbvvIhXQlMg5ZKM
-UkFNIOeahOWItuS9nOaWueazleWSjOinhOWumu+8ie+8iDk6MDDigJQxMDozMO+8iQ0K6K6y5biI
-77yaDQoqICDpobnnm67nmoTlt6XkvZzliIbop6Pnu5PmnoTvvIhXQlPvvIkNCiogIFdCU+eahOiv
-hOS8sOaWueazlQ0KKiAgV0JT5Lit55qE5rOo5oSP5LqL6aG5DQoqICDkuIDkuKrlrozmlbTnmoRX
-QlPns7vnu5/lupTor6Xovr7liLDku4DkuYjnm67nmoQNCiogIOmhueebrueahOi0o+S7u+efqemY
-teihqChSQU0pDQoqICDluIPnva7or77loILkvZzkuJrvvIjlrablkZjmoYjkvovkuK3nmoRXQlPl
-koxSQU0g77yJDQrlrablkZjvvJoNCiogIOaPkOmXrg0KKiAg5Lqk5rWBDQoqICDmr4/kurrlgZrm
-oYjkvovmqKHmi5/nmoTlvIDlpLQz5Liq5qih5Z2XDQoxMDozMOKAlDEwOjQ1IOS8keaBrw0KIA0K
-6K++5aCC5L2c5Lia77ya77yIMTA6NDXigJQxMjowMO+8iQ0K6K6y5biI77ya5a6M5oiQ6aG555uu
-6IyD5Zu06Zi25q6155qE4oCc5LiA5Zu+5LiA6KGo4oCdDQrlrablkZjvvJror77loILlrozmiJDm
-oYjkvovkuK3nmoRXQlPlkoxSQU0NCjEyOjAw4oCUMTM6MDAg5Y2I6aSQDQogDQrkupTjgIHpobnn
-m67ml7bpl7TnrqHnkIbvvIjnvZHnu5zlm77nmoTln7rmnKzliLbkvZzmlrnms5XvvInvvIgxMzow
-MOKAlDE0OjMw77yJDQrorrLluIjvvJoNCiogIOWItuS9nOS7u+WKoeS4juS7u+WKoeS5i+mXtOea
-hOmAu+i+kee9kee7nOWbvu+8iFBETe+8jEFETe+8jEdFUlTvvIxOZXR3b3JrIEJvYXJk77yJ55qE
-5Zub56eN5pa55rOVDQrlrablkZjvvJoNCiogIOiuqOiuuuaJgOWBmueahOahiOS+iw0KKiAg5Y+R
-6KGo5a+56aG555uu5pe26Ze0566h55CG55qE55yL5rOVDQoqICDmoLnmja7pobnnm67ml7bpl7Tn
-rqHnkIbnmoTop4TlrprvvIzlkIToh6rlj5HooajkuKrkurrnmoTmhI/op4ENCiANCuWFreOAgemh
-ueebruaXtumXtOeuoeeQhu+8iOW4puaciUNQTee9kee7nOWbvueahOWItuS9nOaWueazle+8iQ0K
-6K6y5biI77yaDQror77loILnu4PkuaANCiogIOWInee6p+e9kee7nOWbvuWItuS9nA0KKiAg6auY
-57qn572R57uc5Zu+5YaF5a655Y+K5Yi25L2c5pa55rOVDQrlsI/nu4Tnu4PkuaANCuWtpuWRmO+8
-mg0KKiAg6K++5aCC57uD5LmgLS0t5Yid57qn572R57uc5Zu+5Yi25L2cDQoqICDlsI/nu4Tnu4Pk
-uaAtLS3ku6XlsI/nu4TlvaLlvI/lrozmiJDpq5jnuqfnvZHnu5zlm77nrYnnu4PkuaANCjE0OjMw
-4oCUMTQ6NDXkvJHmga8NCiANCuS4g+OAgemhueebruaXtumXtOeuoeeQhu+8iDnlpKflt6Xlhbfl
-j4pDUE3nvZHnu5zlm77nmoQxMOWkp+eUqOmAlO+8ie+8iDE0OjQ14oCUMTY6MzDvvIkNCuiusuW4
-iO+8mg0KKiAg5bim5pyJQ1BN55qE572R57uc5Zu+55qE54m554K55Y+K5Y2B5aSn5Yqf6IO9DQoq
-ICDnlJjnibnlm77nmoTkvZznlKgNCiogIOWBmumYv+WwlOazleahiOS+iw0KKiAg5oC757uT6aG5
-55uu5pe26Ze0566h55CG55qE5Lmd5aSn5bel5YW3DQoqICDop6PnrZTlrablkZjpl67popgNCuWt
-puWRmO+8mg0KKiAg5YGa6Zi/5bCU5rOV5qGI5L6L57uD5LmgDQoqICDlrablkZjmj5Dpl64NCiog
-IOaOjOaPoemhueebrue7j+eQhuW/heWkh+eahDTkuKrlt6XlhbfvvIhXQlPvvIxSQU3vvIxDUE3l
-m77vvIznlJjnibnlm77vvIkNCiANCuivvueoi+e7k+adn+aAu+e7k++8mu+8iDE2OjMw4oCUMTc6
-MDDvvIkNCuiusuW4iO+8mg0KKiAg5a2m5ZGY6Zeu6aKY5LiO562U55aRDQoqICDpobnnm67igJzk
-upTlm77kuozooajigJ3nmoTmgLvnu5MNCiogIOW4g+e9ruivvuWQjuS9nOS4mg0K5a2m5ZGY77ya
-DQoqICDlrablkZjnp6/mnoHmj5Dpl64NCiogIOaUtumbhuWujOaIkOWbnuWutuS9nOS4mueahOWf
-uuacrOaWueazlQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0
-cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Hello,
+Do you want to advertise on facebook? We're here to help. =
+
+
+We wil manually post your product/logo/link on Facebook Groups and will
+give you a full report with links of each live post where your advertisement
+was posted.
+
+http://www.buysocial.cn/detail.php?id=3D12
+
+Regards
+ANTHONY
+=A0
+
+
+
+
+
+Unsubscribe option is available on the footer of our website
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_58233413.6E7F9771--
