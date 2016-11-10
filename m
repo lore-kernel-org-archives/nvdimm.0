@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 18D2381D2B
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:34 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 04/21] mm: Use passed vm_fault structure in __do_fault()
-Date: Tue,  1 Nov 2016 23:36:12 +0100
-Message-Id: <1478039794-20253-7-git-send-email-jack@suse.cz>
-In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
-References: <1478039794-20253-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 7BBD781C8A
+ for <linux-nvdimm@lists.01.org>; Wed,  9 Nov 2016 17:31:13 -0800 (PST)
+Subject: [PATCH 1/2] libndctl: add ndctl_pfn_has_align() api
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 09 Nov 2016 17:28:15 -0800
+Message-ID: <147874129531.37588.12721076898149272280.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,85 +16,78 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Instead of creating another vm_fault structure, use the one passed to
-__do_fault() for passing arguments into fault handler.
+In support of preventing create-namespace attempts to write the 'align'
+attribute on kernels that do not have the capability, add this detection
+api.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+We would not have needed this if ndctl_pfn_get_align() returned -ENOENT
+instead of zero, live and learn.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- mm/memory.c | 25 ++++++++++---------------
- 1 file changed, 10 insertions(+), 15 deletions(-)
+ ndctl/lib/libndctl.c   |   16 ++++++++++++++++
+ ndctl/lib/libndctl.sym |    1 +
+ ndctl/libndctl.h.in    |    1 +
+ 3 files changed, 18 insertions(+)
 
-diff --git a/mm/memory.c b/mm/memory.c
-index 3b79eace8d23..8145dadb2645 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2852,37 +2852,31 @@ static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
- 		      struct page **page, void **entry)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct vm_fault vmf2;
- 	int ret;
- 
--	vmf2.address = vmf->address;
--	vmf2.pgoff = vmf->pgoff;
--	vmf2.flags = vmf->flags;
--	vmf2.page = NULL;
--	vmf2.gfp_mask = __get_fault_gfp_mask(vma);
--	vmf2.cow_page = cow_page;
-+	vmf->cow_page = cow_page;
- 
--	ret = vma->vm_ops->fault(vma, &vmf2);
-+	ret = vma->vm_ops->fault(vma, vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 	if (ret & VM_FAULT_DAX_LOCKED) {
--		*entry = vmf2.entry;
-+		*entry = vmf->entry;
- 		return ret;
- 	}
- 
--	if (unlikely(PageHWPoison(vmf2.page))) {
-+	if (unlikely(PageHWPoison(vmf->page))) {
- 		if (ret & VM_FAULT_LOCKED)
--			unlock_page(vmf2.page);
--		put_page(vmf2.page);
-+			unlock_page(vmf->page);
-+		put_page(vmf->page);
- 		return VM_FAULT_HWPOISON;
- 	}
- 
- 	if (unlikely(!(ret & VM_FAULT_LOCKED)))
--		lock_page(vmf2.page);
-+		lock_page(vmf->page);
- 	else
--		VM_BUG_ON_PAGE(!PageLocked(vmf2.page), vmf2.page);
-+		VM_BUG_ON_PAGE(!PageLocked(vmf->page), vmf->page);
- 
--	*page = vmf2.page;
-+	*page = vmf->page;
- 	return ret;
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 82b11a0d3ac9..eed418936a38 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -4231,6 +4231,22 @@ NDCTL_EXPORT unsigned long ndctl_pfn_get_align(struct ndctl_pfn *pfn)
+ 	return pfn->align;
  }
  
-@@ -3579,6 +3573,7 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
- 		.address = address,
- 		.flags = flags,
- 		.pgoff = linear_page_index(vma, address),
-+		.gfp_mask = __get_fault_gfp_mask(vma),
- 	};
- 	struct mm_struct *mm = vma->vm_mm;
- 	pgd_t *pgd;
--- 
-2.6.6
++NDCTL_EXPORT int ndctl_pfn_has_align(struct ndctl_pfn *pfn)
++{
++	struct ndctl_ctx *ctx = ndctl_pfn_get_ctx(pfn);
++	char *path = pfn->pfn_buf;
++	int len = pfn->buf_len;
++	struct stat st;
++
++	if (snprintf(path, len, "%s/align", pfn->pfn_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				ndctl_pfn_get_devname(pfn));
++		return 0;
++	}
++
++	return stat(path, &st) == 0;
++}
++
+ NDCTL_EXPORT int ndctl_pfn_set_align(struct ndctl_pfn *pfn, unsigned long align)
+ {
+ 	struct ndctl_ctx *ctx = ndctl_pfn_get_ctx(pfn);
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 6bd032ea7526..603c386cc2a1 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -231,6 +231,7 @@ global:
+ 	ndctl_pfn_get_align;
+ 	ndctl_pfn_get_size;
+ 	ndctl_pfn_get_resource;
++	ndctl_pfn_has_align;
+ 	ndctl_pfn_set_align;
+ 	ndctl_pfn_set_namespace;
+ 	ndctl_pfn_get_bus;
+diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
+index d3379f76e1f9..9d7219894ed7 100644
+--- a/ndctl/libndctl.h.in
++++ b/ndctl/libndctl.h.in
+@@ -566,6 +566,7 @@ int ndctl_pfn_set_location(struct ndctl_pfn *pfn, enum ndctl_pfn_loc loc);
+ enum ndctl_pfn_loc ndctl_pfn_get_location(struct ndctl_pfn *pfn);
+ int ndctl_pfn_set_uuid(struct ndctl_pfn *pfn, uuid_t uu);
+ void ndctl_pfn_get_uuid(struct ndctl_pfn *pfn, uuid_t uu);
++int ndctl_pfn_has_align(struct ndctl_pfn *pfn);
+ int ndctl_pfn_set_align(struct ndctl_pfn *pfn, unsigned long align);
+ unsigned long ndctl_pfn_get_align(struct ndctl_pfn *pfn);
+ unsigned long long ndctl_pfn_get_resource(struct ndctl_pfn *pfn);
 
 _______________________________________________
 Linux-nvdimm mailing list
