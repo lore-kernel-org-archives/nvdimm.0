@@ -1,23 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM01-BN3-obe.outbound.protection.outlook.com
- (mail-bn3nam01on0709.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe41::709])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D863981C72
- for <linux-nvdimm@lists.01.org>; Thu, 10 Nov 2016 20:50:07 -0800 (PST)
-From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
-Subject: RE: [PATCH v2] libnvdimm: check and clear poison before writing to
+ by ml01.01.org (Postfix) with ESMTPS id 6E3B481DD7
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Nov 2016 15:35:22 -0800 (PST)
+Date: Thu, 10 Nov 2016 16:34:31 -0700
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v2] libnvdimm: check and clear poison before writing to
  pmem
-Date: Fri, 11 Nov 2016 04:50:09 +0000
-Message-ID: <DF4PR84MB01698F15BCE30750A06CBAFFABBB0@DF4PR84MB0169.NAMPRD84.PROD.OUTLOOK.COM>
+Message-ID: <20161110233431.GE26806@omniknight.lm.intel.com>
 References: <147879993593.130465.16954973899565924428.stgit@djiang5-desk3.ch.intel.com>
  <20161110191711.GB26806@omniknight.lm.intel.com>
  <CAPcyv4j9-PsJ4T8EdiiLnq1-hOLvasV7FymuLbYpsDfu3G7=EA@mail.gmail.com>
  <20161110215629.GC26806@omniknight.lm.intel.com>
-In-Reply-To: <20161110215629.GC26806@omniknight.lm.intel.com>
-Content-Language: en-US
+ <CAPcyv4jdmN=n+-voTV4sqPTFGuUTXN4vn17+mssVTmGD1DZRJw@mail.gmail.com>
+ <20161110220433.GD26806@omniknight.lm.intel.com>
+ <1a22fa03-8cac-fb8a-885d-5491a0d25012@intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1a22fa03-8cac-fb8a-885d-5491a0d25012@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,56 +30,146 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-> -----Original Message-----
-> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On
-> Behalf Of Vishal Verma
-> Sent: Thursday, November 10, 2016 3:56 PM
-> To: Dan Williams <dan.j.williams@intel.com>
-> Cc: linux-nvdimm@lists.01.org
-> Subject: Re: [PATCH v2] libnvdimm: check and clear poison before
-> writing to pmem
+On 11/10, Dave Jiang wrote:
+> On 11/10/2016 03:04 PM, Vishal Verma wrote:
+> > On 11/10, Dan Williams wrote:
+> >> On Thu, Nov 10, 2016 at 1:56 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> >>> On 11/10, Dan Williams wrote:
+> >>>> On Thu, Nov 10, 2016 at 11:17 AM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> >>>>> On 11/10, Dave Jiang wrote:
+> >>>>>> We need to clear any poison when we are writing to pmem. The granularity
+> >>>>>> will be sector size. If it's less then we can't do anything about it
+> >>>>>> barring corruption.
+> >>>>>>
+> >>>>>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> >>>>>> ---
+> >>>>>>  drivers/nvdimm/claim.c |   24 +++++++++++++++++++++---
+> >>>>>>  1 file changed, 21 insertions(+), 3 deletions(-)
+> >>>>>>
+> >>>>>> diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+> >>>>>> index d5dc80c..306d8fd 100644
+> >>>>>> --- a/drivers/nvdimm/claim.c
+> >>>>>> +++ b/drivers/nvdimm/claim.c
+> >>>>>> @@ -226,6 +226,11 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+> >>>>>>               resource_size_t offset, void *buf, size_t size, int rw)
+> >>>>>>  {
+> >>>>>>       struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+> >>>>>> +     unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
+> >>>>>> +     sector_t sector = offset >> 9;
+> >>>>>> +
+> >>>>>> +     if (unlikely(!size))
+> >>>>>> +             return -EINVAL;
+> >>>>>>
+> >>>>>>       if (unlikely(offset + size > nsio->size)) {
+> >>>>>>               dev_WARN_ONCE(&ndns->dev, 1, "request out of range\n");
+> >>>>>> @@ -233,12 +238,25 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+> >>>>>>       }
+> >>>>>>
+> >>>>>>       if (rw == READ) {
+> >>>>>> -             unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
+> >>>>>> -
+> >>>>>> -             if (unlikely(is_bad_pmem(&nsio->bb, offset / 512, sz_align)))
+> >>>>>> +             if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align)))
+> >>>>>>                       return -EIO;
+> >>>>>>               return memcpy_from_pmem(buf, nsio->addr + offset, size);
+> >>>>>>       } else {
+> >>>>>> +
+> >>>>>> +             if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
+> >>>>>> +                     if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)) {
+> >>>>>> +                             long cleared;
+> >>>>>> +
+> >>>>>> +                             cleared = nvdimm_clear_poison(&ndns->dev,
+> >>>>>> +                                                           offset, size);
+> >>>>>
+> >>>>> Everything above looks good..
+> >>>>>
+> >>>>>> +                             if (cleared != size)
+> >>>>>> +                                     return -EIO;
+> >>>>>
+> >>>>> But I think we don't want to return -EIO here. Instead, ...
+> >>>>>> +
+> >>>>>> +                             badblocks_clear(&nsio->bb, sector,
+> >>>>>> +                                             cleared >> 9);
+> >>>>>> +                     }
+> >>>>>> +             }
+> >>>>>> +
+> >>>>>>               memcpy_to_pmem(nsio->addr + offset, buf, size);
+> >>>>>>               nvdimm_flush(to_nd_region(ndns->dev.parent));
+> >>>>>
+> >>>>> Do _some_ writes. We have two options:
+> >>>>> 1. Try to write the whole thing (size), and return success. If the write
+> >>>>> touches any remaining poison, it will not complain, but the poison will
+> >>>>> be retained, so subsequent reads will hit it and fail.
+> >>>>>
+> >>>>> 2. Only write what we were able to clear, i.e. 'cleared' bytes. And
+> >>>>> since we didn't complete the write, error out.
+> >>>>>
+> >>>>> I think 1 makes more sense, but I could be convinced otherwise..
+> >>>>>
+> >>>>> One wild idea might be:
+> >>>>> rw_bytes can write arbitrary lengths, and commonly does up to 4K at a
+> >>>>> time (BTT data writes). This gives us a rather large window where we
+> >>>>> could be clearing 4K worth of badblocks all together, and then writing
+> >>>>> 4K of data. If we crash anywhere in the middle, we're almost guaranteed
+> >>>>> silent data corruption.
+> >>>>>
+> >>>>> Instead, what if, for the known-errors case for writes, we break it down
+> >>>>> into smaller chunks:
+> >>>>> Go cache line by cache line - if it may have poison (based on
+> >>>>> badblocks), clear poison, followed by a cache line worth of data write.
+> >>>>> When we cross a sector boundary (512), do a badblocks_clear.
+> >>>>>
+> >>>>> I think this gives us the best chance against silent corruption in the
+> >>>>> absence of an atomic clear-error-and-write command.
+> >>>>>
+> >>>>> Thoughts?
+> >>>>
+> >>>> This feels like over-engineering a still not perfect solution to a
+> >>>> rare problem.  Outside of atomic-write-and-clear we should just keep
+> >>>> the code best effort and simple.
+> >>>
+> >>> Fair enough :) In that case I think the only change needed is to simply
+> >>> remove the cleared != size check, do badblocks_clear for "cleared >> 9"
+> >>> (as it is now), and then write "size", and return success. Sound good?
+> >>>
+> >>
+> >> Return success even on an incomplete write? That's not the approach we
+> >> took with Toshi's recent change:
+> > 
+> > Good point, so maybe do the write, and then,
+> > if (cleared != size)
+> > 	return -EIO;
+> > 
+> > Yeah?
 > 
-...
-> >
-> > This feels like over-engineering a still not perfect solution to a
-> > rare problem.  Outside of atomic-write-and-clear we should just keep
-> > the code best effort and simple.
+> I think we also need to return -EIO if the alignment check fails after
+> we detected bad pmem in that case when we can't clear?
 > 
-> Fair enough :) In that case I think the only change needed is to simply
-> remove the cleared != size check, do badblocks_clear for "cleared >> 9"
-> (as it is now), and then write "size", and return success. Sound good?
+Yes, I think I agree.. It will mean that there will be no way to do
+small writes using rw_bytes to a bad sector, and that you have to clear
+it by other methods, but that is no different from status quo..
 
-Writing size is dangerous. The CPU might not have big enough write 
-instructions to avoid causing reads and trigger more uncorrectable 
-errors.  Plus, if the function supports size being less than the number
-of bytes covered by ECC (e.g. 8 bytes), then a read modify write 
-must be done.  If those 8 bytes currently hold an ECC error, then
-this write must not fix that error and silently upgrade an error
-into bogus good data.  But, preserving the error would mean the
-bytes written (and just declared good) are immediately bad again.
-
-Writing cleared is unnecessary, since the caller is only told that
-this write function failed, not that it failed after writing a
-certain number of bytes.
-
-This still needs to happen after badblocks_clear (or after the
-memcpy_to_pmem and nvdimm_flush, if I haven't convinced you to
-skip those steps):
-
->> +                             if (cleared != size)
->> +                                     return -EIO;
-
-
----
-Robert Elliott, HPE Persistent Memory
-
-
+So I think the flow is:
+if error
+	if aligned
+		clear error
+		clear (possibly some) badblocks
+		if clear error was successful
+			write all
+			return success
+		else
+			write partial (or write all anyway?)
+			return EIO
+	else
+		write all (?)
+		return EIO
+else
+	write all
+	return success
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
