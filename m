@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 874BF81C98
- for <linux-nvdimm@lists.01.org>; Mon, 21 Nov 2016 12:49:06 -0800 (PST)
-Subject: [PATCH v3] libnvdimm: clear poison in mem map metadata
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 21 Nov 2016 13:49:05 -0700
-Message-ID: <147976134582.93357.14661800715988484489.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0ED9381DC8
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Nov 2016 20:24:39 -0800 (PST)
+Subject: [PATCH] mm: disable numa migration faults for dax vmas
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 11 Nov 2016 20:21:41 -0800
+Message-ID: <147892450132.22062.16875659431109209179.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,62 +20,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Vlastimil Babka <vbabka@suse.cz>, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Clearing out the poison in the metadata block of the namespace before
-we use it. Range from start + 8k to pfn_sb->dataoff.
+Mark dax vmas as not migratable to exclude them from task_numa_work().
+This is especially relevant for device-dax which wants to ensure
+predictable access latency and not incur periodic faults.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/pfn_devs.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ include/linux/mempolicy.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index cea8350..7fa428e 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -527,11 +527,39 @@ static struct vmem_altmap *__nvdimm_setup_pfn(struct nd_pfn *nd_pfn,
- 		.base_pfn = init_altmap_base(base),
- 		.reserve = init_altmap_reserve(base),
- 	};
-+	sector_t sector;
-+	resource_size_t meta_start, meta_size;
-+	long cleared;
-+	unsigned int sz_align;
+diff --git a/include/linux/mempolicy.h b/include/linux/mempolicy.h
+index 5e5b2969d931..d72c691afaa6 100644
+--- a/include/linux/mempolicy.h
++++ b/include/linux/mempolicy.h
+@@ -7,6 +7,7 @@
  
- 	memcpy(res, &nsio->res, sizeof(*res));
- 	res->start += start_pad;
- 	res->end -= end_trunc;
  
-+	meta_start = res->start + SZ_8K;
-+	meta_size = offset - meta_start + 1;
+ #include <linux/mmzone.h>
++#include <linux/dax.h>
+ #include <linux/slab.h>
+ #include <linux/rbtree.h>
+ #include <linux/spinlock.h>
+@@ -177,6 +178,9 @@ static inline bool vma_migratable(struct vm_area_struct *vma)
+ 	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
+ 		return false;
+ 
++	if (vma_is_dax(vma))
++		return false;
 +
-+	if (meta_start + meta_size > offset)
-+		return ERR_PTR(-EINVAL);
-+
-+	sector = meta_start >> 9;
-+	sz_align = ALIGN(meta_size + (meta_start & (512 - 1)), 512);
-+
-+	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
-+		if (!IS_ALIGNED(meta_start, 512) ||
-+		    !IS_ALIGNED(meta_size, 512))
-+			return ERR_PTR(-EIO);
-+
-+		cleared = nvdimm_clear_poison(&nd_pfn->dev,
-+					      meta_start, meta_size);
-+		if (cleared <= 0)
-+			return ERR_PTR(-EIO);
-+
-+		badblocks_clear(&nsio->bb, sector, cleared >> 9);
-+		if (cleared != meta_size)
-+			return ERR_PTR(-EIO);
-+	}
-+
- 	if (nd_pfn->mode == PFN_MODE_RAM) {
- 		if (offset < SZ_8K)
- 			return ERR_PTR(-EINVAL);
+ #ifndef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+ 	if (vma->vm_flags & VM_HUGETLB)
+ 		return false;
 
 _______________________________________________
 Linux-nvdimm mailing list
