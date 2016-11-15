@@ -1,17 +1,34 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Wed, 16 Nov 2016 14:28:20 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-wm0-x244.google.com (mail-wm0-x244.google.com
+ [IPv6:2a00:1450:400c:c09::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B31BB81EE4
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:22:00 -0800 (PST)
+Received: by mail-wm0-x244.google.com with SMTP id a20so4787560wme.2
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:22:05 -0800 (PST)
+Date: Wed, 16 Nov 2016 01:22:01 +0300
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
 Subject: Re: [PATCH 10/21] mm: Move handling of COW faults into DAX code
-Message-ID: <20161116212820.GE31337@linux.intel.com>
+Message-ID: <20161115222201.GJ23021@node>
 References: <1478233517-3571-1-git-send-email-jack@suse.cz>
  <1478233517-3571-11-git-send-email-jack@suse.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <1478233517-3571-11-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
 On Fri, Nov 04, 2016 at 05:25:06AM +0100, Jan Kara wrote:
@@ -21,42 +38,14 @@ On Fri, Nov 04, 2016 at 05:25:06AM +0100, Jan Kara wrote:
 > private to fs/dax.c.
 > 
 > Signed-off-by: Jan Kara <jack@suse.cz>
-> ---
 
-> @@ -1006,13 +1007,14 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
->  
->  		if (error)
->  			goto finish_iomap;
-> -		if (!radix_tree_exceptional_entry(entry)) {
-> +
-> +		__SetPageUptodate(vmf->cow_page);
-> +		if (!radix_tree_exceptional_entry(entry))
->  			vmf->page = entry;
+On core-mm bits:
 
-I don't think we need to set vmf->page anymore.  We would clear it to NULL in
-a few lines anyway, and the only call in between is finish_fault(), which
-only cares about vmf->cow_page().  This allows us to remove the vmf->page =
-NULL line a few lines below as well.
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 
-> @@ -1051,7 +1053,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
->  		}
->  	}
->   unlock_entry:
-> -	if (!locked_status || error)
-> +	if (vmf_ret != VM_FAULT_LOCKED || error)
->  		put_locked_mapping_entry(mapping, vmf->pgoff, entry);
-
-I don't think this is quite right.  For example, for dax_load_hole(), if we
-can't get a page we put_locked_mapping_entry() and return VM_FAULT_OOM.
-Previously this logic would have skipped the second call to
-put_locked_mapping_entry(), but now with the strict check against
-VM_FAULT_LOCKED put the entry twice.
-
-Maybe the right thing to do is just fix dax_load_hole() so it never calls
-put_locked_mapping_entry(), and leave this check as you have it?
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+ Kirill A. Shutemov
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
