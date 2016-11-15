@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm0-x241.google.com (mail-wm0-x241.google.com
+ [IPv6:2a00:1450:400c:c09::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9AC6681F0F
- for <linux-nvdimm@lists.01.org>; Wed, 16 Nov 2016 12:00:19 -0800 (PST)
-Date: Wed, 16 Nov 2016 13:00:23 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7235F81EDE
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:14:42 -0800 (PST)
+Received: by mail-wm0-x241.google.com with SMTP id a20so4733191wme.2
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:14:47 -0800 (PST)
+Date: Wed, 16 Nov 2016 01:14:44 +0300
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
 Subject: Re: [PATCH 07/21] mm: Add orig_pte field into vm_fault
-Message-ID: <20161116200023.GD31337@linux.intel.com>
+Message-ID: <20161115221444.GG23021@node>
 References: <1478233517-3571-1-git-send-email-jack@suse.cz>
  <1478233517-3571-8-git-send-email-jack@suse.cz>
 MIME-Version: 1.0
@@ -35,7 +38,10 @@ On Fri, Nov 04, 2016 at 05:25:03AM +0100, Jan Kara wrote:
 > 
 > Signed-off-by: Jan Kara <jack@suse.cz>
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+
+-- 
+ Kirill A. Shutemov
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
