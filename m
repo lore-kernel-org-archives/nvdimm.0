@@ -1,55 +1,42 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1ECC381EC3
- for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 16:15:02 -0800 (PST)
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Tue, 15 Nov 2016 19:50:15 +0100
+From: Christoph Hellwig <hch@lst.de>
 Subject: Re: [PATCH] mm: add ZONE_DEVICE statistics to smaps
-References: <147881591739.39198.1358237993213024627.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: Dave Hansen <dave.hansen@intel.com>
-Message-ID: <1c6d61ef-2331-e517-d0d8-d4eefea8b18a@intel.com>
-Date: Tue, 15 Nov 2016 16:15:05 -0800
+Message-ID: <20161115185015.GA5854@lst.de>
+References: <147881591739.39198.1358237993213024627.stgit@dwillia2-desk3.amr.corp.intel.com> <CAPcyv4hTchhsNXhKx6WpUWsvFyZjzJ4sx1emLCSU2iDKSMG1hA@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <147881591739.39198.1358237993213024627.stgit@dwillia2-desk3.amr.corp.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hTchhsNXhKx6WpUWsvFyZjzJ4sx1emLCSU2iDKSMG1hA@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 11/10/2016 02:11 PM, Dan Williams wrote:
-> @@ -774,6 +778,8 @@ static int show_smap(struct seq_file *m, void *v, int is_pid)
->  		   "ShmemPmdMapped: %8lu kB\n"
->  		   "Shared_Hugetlb: %8lu kB\n"
->  		   "Private_Hugetlb: %7lu kB\n"
-> +		   "Device:         %8lu kB\n"
-> +		   "DeviceHugePages: %7lu kB\n"
->  		   "Swap:           %8lu kB\n"
->  		   "SwapPss:        %8lu kB\n"
->  		   "KernelPageSize: %8lu kB\n"
+Hi Dan,
 
-So, a couple of nits...
+On Mon, Nov 14, 2016 at 07:14:22PM -0800, Dan Williams wrote:
+> Wanted to get your opinion on this given your earlier concerns about
+> the VM_DAX flag.
+> 
+> This instead lets an application know how much of a vma is backed by
+> ZONE_DEVICE pages, but does not make any indications about the vma
+> having DAX semantics or not.  I.e. it is possible that 'device' and
+> 'device_huge' are non-zero *and* vma_is_dax() is false.  So, it is
+> purely accounting the composition of the present pages in the vma.
+> 
+> Another option is to have something like 'shared_thp' just to account
+> for file backed huge pages that dax can map.  However if ZONE_DEVICE
+> is leaking into other use cases I think it makes sense to have it be a
+> first class-citizen with respect to accounting alongside
+> 'anonymous_thp'.
 
-smaps is getting a bit big, and the fields that get added in this patch
-are going to be pretty infrequently used.  Is it OK if smaps grows
-forever, even if most of them items are "0 kB"?
+This counter sounds fine to me, it's a debug tool and not an obvious
+abuse candidate like VM_DAX.  But I'll defer to the VM folks for a real
+review.
 
-IOW, Could we make it output Device* only for DAX VMAs?  All the parsers
-have to handle that field being there or not (for old kernels).
-
-The other thing missing for DAX is the page size.  DAX mappings support
-mixed page sizes, so MMUPageSize in this context is pretty worthless.
-What will we do in here for 1GB DAX pages?
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
