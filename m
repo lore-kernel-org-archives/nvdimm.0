@@ -1,12 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from hqktytv.net (unknown [116.207.2.50])
- by ml01.01.org (Postfix) with ESMTP id 98AFC81DD1
- for <linux-nvdimm@lists.01.org>; Mon,  7 Nov 2016 04:07:18 -0800 (PST)
-Message-ID: <6A1B1E10236EF76E1AED04F1B51541E4@hqktytv.net>
-From: =?utf-8?B?5a6r6IKl?= <wn@hqktytv.net>
-Subject: =?utf-8?B?POWuq+iCpT7op4Tpgb/kvIHkuJrlhoXlrqHlj4rlj43oiJ7lvIrpo47pmak=?=
-Date: Mon, 7 Nov 2016 20:07:15 +0800
+Received: from mail-wm0-x242.google.com (mail-wm0-x242.google.com
+ [IPv6:2a00:1450:400c:c09::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 2B29881EDE
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:05:17 -0800 (PST)
+Received: by mail-wm0-x242.google.com with SMTP id g23so4675811wme.1
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:05:22 -0800 (PST)
+Date: Wed, 16 Nov 2016 01:05:19 +0300
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: Re: [PATCH 04/21] mm: Use passed vm_fault structure in __do_fault()
+Message-ID: <20161115220519.GD23021@node>
+References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+ <1478233517-3571-5-git-send-email-jack@suse.cz>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1478233517-3571-5-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,16 +23,26 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-LS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLSANCkZyb206IDzlrqvogqU+IHduQGhxa3R5dHYu
-bmV0DQpUbzogbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw0KU2VudDogMjAxNi0xMS03ICAyMDow
-NzoyMQ0KU3ViamVjdDog6ZmEIOS7tiDlhoUg5a65IOWwhiDkuLrmgqgg6Kej562UCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
-aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Fri, Nov 04, 2016 at 05:25:00AM +0100, Jan Kara wrote:
+> Instead of creating another vm_fault structure, use the one passed to
+> __do_fault() for passing arguments into fault handler.
+> 
+> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Signed-off-by: Jan Kara <jack@suse.cz>
+
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+
+-- 
+ Kirill A. Shutemov
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
