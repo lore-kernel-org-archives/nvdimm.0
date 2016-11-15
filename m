@@ -1,37 +1,45 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from centos-512mb-ams2-01.localdomain (unknown [146.185.180.38])
- by ml01.01.org (Postfix) with ESMTP id D456A81C94
- for <linux-nvdimm@lists.01.org>; Wed,  9 Nov 2016 07:24:30 -0800 (PST)
-Subject: We could not deliver your parcel, #00535004
-Date: Wed, 9 Nov 2016 15:24:05 +0000
-From: "FedEx International Economy" <albert.gibbons@mistresstilly.co.uk>
-Message-ID: <27e12b5269cd09e1e52ef160c629eae7@mistresstilly.co.uk>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Wed, 16 Nov 2016 01:57:11 +0300
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: Re: [PATCH 17/21] mm: Change return values of finish_mkwrite_fault()
+Message-ID: <20161115225711.GQ23021@node>
+References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+ <1478233517-3571-18-git-send-email-jack@suse.cz>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Reply-To: FedEx International Economy <albert.gibbons@mistresstilly.co.uk>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1478233517-3571-18-git-send-email-jack@suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: Jan Kara <jack@suse.cz>
+Cc: linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dear Customer,
+On Fri, Nov 04, 2016 at 05:25:13AM +0100, Jan Kara wrote:
+> Currently finish_mkwrite_fault() returns 0 when PTE got changed before
+> we acquired PTE lock and VM_FAULT_WRITE when we succeeded in modifying
+> the PTE. This is somewhat confusing since 0 generally means success, it
+> is also inconsistent with finish_fault() which returns 0 on success.
+> Change finish_mkwrite_fault() to return 0 on success and VM_FAULT_NOPAGE
+> when PTE changed. Practically, there should be no behavioral difference
+> since we bail out from the fault the same way regardless whether we
+> return 0, VM_FAULT_NOPAGE, or VM_FAULT_WRITE. Also note that
+> VM_FAULT_WRITE has no effect for shared mappings since the only two
+> places that check it - KSM and GUP - care about private mappings only.
+> Generally the meaning of VM_FAULT_WRITE for shared mappings is not well
+> defined and we should probably clean that up.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-Courier was unable to deliver the parcel to you.
-Please, download Delivery Label attached to this email.
+Sounds right.
 
-Warm regards,
-Albert Gibbons,
-Sr. Operation Manager.
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+-- 
+ Kirill A. Shutemov
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
