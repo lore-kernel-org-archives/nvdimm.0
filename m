@@ -1,15 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mail-wm0-x229.google.com (mail-wm0-x229.google.com
+ [IPv6:2a00:1450:400c:c09::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7487981D53
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:31 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v9 10/16] dax: add dax_iomap_sector() helper function
-Date: Tue,  1 Nov 2016 13:54:12 -0600
-Message-Id: <1478030058-1422-11-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6A61C81EA8
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:44:03 -0800 (PST)
+Received: by mail-wm0-x229.google.com with SMTP id g23so199396214wme.1
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Nov 2016 14:44:08 -0800 (PST)
+Date: Wed, 16 Nov 2016 01:44:05 +0300
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: Re: [PATCH 15/21] mm: Move part of wp_page_reuse() into the single
+ call site
+Message-ID: <20161115224405.GO23021@node>
+References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+ <1478233517-3571-16-git-send-email-jack@suse.cz>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1478233517-3571-16-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,66 +24,27 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To be able to correctly calculate the sector from a file position and a
-struct iomap there is a complex little bit of logic that currently happens
-in both dax_iomap_actor() and dax_iomap_fault().  This will need to be
-repeated yet again in the DAX PMD fault handler when it is added, so break
-it out into a helper function.
+On Fri, Nov 04, 2016 at 05:25:11AM +0100, Jan Kara wrote:
+> wp_page_reuse() handles write shared faults which is needed only in
+> wp_page_shared(). Move the handling only into that location to make
+> wp_page_reuse() simpler and avoid a strange situation when we sometimes
+> pass in locked page, sometimes unlocked etc.
+> 
+> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 
-diff --git a/fs/dax.c b/fs/dax.c
-index fdbd7a1..7737954 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1030,6 +1030,11 @@ int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
- EXPORT_SYMBOL_GPL(dax_truncate_page);
- 
- #ifdef CONFIG_FS_IOMAP
-+static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
-+{
-+	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
-+}
-+
- static loff_t
- dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		struct iomap *iomap)
-@@ -1055,8 +1060,7 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		struct blk_dax_ctl dax = { 0 };
- 		ssize_t map_len;
- 
--		dax.sector = iomap->blkno +
--			(((pos & PAGE_MASK) - iomap->offset) >> 9);
-+		dax.sector = dax_iomap_sector(iomap, pos);
- 		dax.size = (length + offset + PAGE_SIZE - 1) & PAGE_MASK;
- 		map_len = dax_map_atomic(iomap->bdev, &dax);
- 		if (map_len < 0) {
-@@ -1193,7 +1197,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		goto unlock_entry;
- 	}
- 
--	sector = iomap.blkno + (((pos & PAGE_MASK) - iomap.offset) >> 9);
-+	sector = dax_iomap_sector(&iomap, pos);
- 
- 	if (vmf->cow_page) {
- 		switch (iomap.type) {
 -- 
-2.7.4
-
+ Kirill A. Shutemov
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
