@@ -1,71 +1,60 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EB14481C59
- for <linux-nvdimm@lists.01.org>; Wed,  9 Nov 2016 17:31:18 -0800 (PST)
-Subject: [PATCH 2/2] ndctl,
- create-namespace: skip attempts to set 'align' on older kernels
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 09 Nov 2016 17:28:20 -0800
-Message-ID: <147874130070.37588.7156973366536136882.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <147874129531.37588.12721076898149272280.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147874129531.37588.12721076898149272280.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Wed, 16 Nov 2016 14:39:17 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 16/21] mm: Provide helper for finishing mkwrite faults
+Message-ID: <20161116133917.GM21785@quack2.suse.cz>
+References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+ <1478233517-3571-17-git-send-email-jack@suse.cz>
+ <20161115225210.GP23021@node>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161115225210.GP23021@node>
+Sender: owner-linux-mm@kvack.org
+To: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Jan Kara <jack@suse.cz>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prior to 4.5 kernel the 'align' attribute for pfn devices did not exist.
-Skip attempts to set it on those kernels.
+On Wed 16-11-16 01:52:10, Kirill A. Shutemov wrote:
+> On Fri, Nov 04, 2016 at 05:25:12AM +0100, Jan Kara wrote:
+> > Provide a helper function for finishing write faults due to PTE being
+> > read-only. The helper will be used by DAX to avoid the need of
+> > complicating generic MM code with DAX locking specifics.
+> > 
+> > Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > Signed-off-by: Jan Kara <jack@suse.cz>
+...
+> > -		/*
+> > -		 * Since we dropped the lock we need to revalidate
+> > -		 * the PTE as someone else may have changed it.  If
+> > -		 * they did, we just return, as we can count on the
+> > -		 * MMU to tell us if they didn't also make it writable.
+> > -		 */
+> > -		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+> > -						vmf->address, &vmf->ptl);
+> > -		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
+> > +		tmp = finish_mkwrite_fault(vmf);
+> > +		if (unlikely(!tmp || (tmp &
+> > +				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+> 
+> Looks like the second part of condition is never true here, right? Not
+> that it would matter, having the next patch in the queue.
 
-Link: https://github.com/pmem/ndctl/issues/7
-Reported-by: Yigal Korman <yigal@plexistor.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/builtin-xaction-namespace.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+Yeah, I had the condition like this to handle the standard set of return
+values. And as you say, the next patch even makes this condition have a
+real effect.
 
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
-index c55625274f62..8257eb9cd65e 100644
---- a/ndctl/builtin-xaction-namespace.c
-+++ b/ndctl/builtin-xaction-namespace.c
-@@ -319,7 +319,14 @@ static int setup_namespace(struct ndctl_region *region,
- 
- 		try(ndctl_pfn, set_uuid, pfn, uuid);
- 		try(ndctl_pfn, set_location, pfn, p->loc);
--		try(ndctl_pfn, set_align, pfn, SZ_2M);
-+
-+		/*
-+		 * TODO: when we allow setting a non-default alignment
-+		 * we'll need to check for "has_align" earlier and fail
-+		 * non-default attempts on older kernels.
-+		 */
-+		if (ndctl_pfn_has_align(pfn))
-+			try(ndctl_pfn, set_align, pfn, SZ_2M);
- 		try(ndctl_pfn, set_namespace, pfn, ndns);
- 		rc = ndctl_pfn_enable(pfn);
- 	} else if (p->mode == NDCTL_NS_MODE_DAX) {
-@@ -327,6 +334,7 @@ static int setup_namespace(struct ndctl_region *region,
- 
- 		try(ndctl_dax, set_uuid, dax, uuid);
- 		try(ndctl_dax, set_location, dax, p->loc);
-+		/* device-dax assumes 'align' attribute present */
- 		try(ndctl_dax, set_align, dax, SZ_2M);
- 		try(ndctl_dax, set_namespace, dax, ndns);
- 		rc = ndctl_dax_enable(dax);
+> Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Thanks.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
