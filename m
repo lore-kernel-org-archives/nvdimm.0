@@ -1,55 +1,78 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [patch] nd_blk,nd_pmem,nd_btt: add endio blktrace events
-Date: Tue, 15 Nov 2016 21:56:57 -0700
-Message-ID: <20161116045657.GA30049@linux.intel.com>
-References: <x49twbgo4i6.fsf@segfault.boston.devel.redhat.com>
- <20161109191715.GA20314@infradead.org>
- <x49mvh8o3fx.fsf@segfault.boston.devel.redhat.com>
- <20161109193441.GA17343@infradead.org>
- <x49inrwo2v5.fsf@segfault.boston.devel.redhat.com>
- <20161110193333.GA10865@infradead.org>
- <x4937iyf4mp.fsf@segfault.boston.devel.redhat.com>
+From: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH 01/21] mm: Join struct fault_env and vm_fault
+Date: Wed, 16 Nov 2016 11:51:32 +0100
+Message-ID: <20161116105132.GR3142@twins.programming.kicks-ass.net>
+References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+ <1478233517-3571-2-git-send-email-jack@suse.cz>
+ <20161115215021.GA23021@node>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-block-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <x4937iyf4mp.fsf@segfault.boston.devel.redhat.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>, linux-block@vger.kernel.org, linux-nvdimm@ml01.01.org, axboe@kernel.dk
+In-Reply-To: <20161115215021.GA23021@node>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Kirill A. Shutemov" <kirill-oKw7cIdHH8eLwutG50LtGA@public.gmane.org>
+Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "Kirill A. Shutemov" <kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Fri, Nov 11, 2016 at 09:55:10AM -0500, Jeff Moyer wrote:
-> Christoph Hellwig <hch@infradead.org> writes:
+On Wed, Nov 16, 2016 at 12:50:21AM +0300, Kirill A. Shutemov wrote:
+> On Fri, Nov 04, 2016 at 05:24:57AM +0100, Jan Kara wrote:
+> > Currently we have two different structures for passing fault information
+> > around - struct vm_fault and struct fault_env. DAX will need more
+> > information in struct vm_fault to handle its faults so the content of
+> > that structure would become event closer to fault_env. Furthermore it
+> > would need to generate struct fault_env to be able to call some of the
+> > generic functions. So at this point I don't think there's much use in
+> > keeping these two structures separate. Just embed into struct vm_fault
+> > all that is needed to use it for both purposes.
+> > 
+> > Signed-off-by: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
 > 
-> > On Wed, Nov 09, 2016 at 02:43:58PM -0500, Jeff Moyer wrote:
-> >> But on the issue side, we have different trace actions: Q vs. I.  On the
-> >> completion side, we just have C.  You'd end up getting two C events for
-> >> each Q, and that may confuse existing utilities (such as blkparse, btt,
-> >> iowatcher, fio, etc), not to mention any scripts built around the
-> >> tracepoints, and any users looking at the raw blkparse output.
-> >> 
-> >> So, are you suggesting we add another action on the endio side?  If so,
-> >> that's a different patch set.  ;-)  If you're suggesting this multiple C
-> >> event thing, I'm not on board with that.
-> >
-> > Ok, good point.  It's a little bit annoying how asymetic the tracepoints
-> > are, but fixing it now might cause more harm than it helps.
-> >
-> > That being said, it might still be a good idea to have bio_endio call
-> > the tracepoint, we'll just need a __bio_endio to bypass the tracepoints
-> > for calls from the request layer.  That way all bio-based drivers will
-> > automatically do the right thing.
+> I'm not necessary dislike this, but I remember Peter had objections before
+> when I proposed something similar.
 > 
-> OK, I'll look into that.  I'm also still trying to decide whether a
-> separate endio event would be useful.  Any opinions on that are welcome.
-> It could show up in blkparse as 'E'.  For btt, I guess we could add a
-> Q2E column.  I'm not sure C2E would ever be interesting, but maybe?
+> Peter?
 
-FWIW I think BRD has this same issue where we get block_bio_queue tracepoint
-events but not block_bio_complete.  Solving this in bio_endio() would fix that
-driver as well.
+My objection was that it would be a layering violation. The 'filesystem'
+shouldn't know about page-tables, all it should do is return a page
+matching a specific offset.
 
-Where does the Q (bio enqueue), I (req insert), etc. naming show up?  Looking
-at a tracepoint trace in perf I don't see that naming.  Is that just a short
-hand used between developers, or is it something else?
+So fault_env manages the core vm parts and has the page-table bits in,
+vm_fault manages the filesystem interface and gets us a page given an
+offset.
+
+Now, I'm entirely out of touch wrt DAX, so I've not idea what that
+needs/wants.
+
+> > diff --git a/include/linux/mm.h b/include/linux/mm.h
+> > index a92c8d73aeaf..657eb69eb87e 100644
+> > --- a/include/linux/mm.h
+> > +++ b/include/linux/mm.h
+> > @@ -292,10 +292,16 @@ extern pgprot_t protection_map[16];
+> >   * pgoff should be used in favour of virtual_address, if possible.
+> >   */
+> >  struct vm_fault {
+> > +	struct vm_area_struct *vma;	/* Target VMA */
+> >  	unsigned int flags;		/* FAULT_FLAG_xxx flags */
+> >  	gfp_t gfp_mask;			/* gfp mask to be used for allocations */
+> >  	pgoff_t pgoff;			/* Logical page offset based on vma */
+> > +	unsigned long address;		/* Faulting virtual address */
+> > +	void __user *virtual_address;	/* Faulting virtual address masked by
+> > +					 * PAGE_MASK */
+> > +	pmd_t *pmd;			/* Pointer to pmd entry matching
+> > +					 * the 'address'
+> > +					 */
+> >  
+> >  	struct page *cow_page;		/* Handler may choose to COW */
+> >  	struct page *page;		/* ->fault handlers should return a
+
+Egads, horrific commenting style that :-)
