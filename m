@@ -1,92 +1,46 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Wed, 16 Nov 2016 14:12:05 +0100
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 15/21] mm: Move part of wp_page_reuse() into the single call site
-Date: Tue,  1 Nov 2016 23:36:24 +0100
-Message-Id: <1478039794-20253-19-git-send-email-jack@suse.cz>
-In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
-References: <1478039794-20253-1-git-send-email-jack@suse.cz>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 05/21] mm: Trim __do_fault() arguments
+Message-ID: <20161116131205.GJ21785@quack2.suse.cz>
+References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+ <1478233517-3571-6-git-send-email-jack@suse.cz>
+ <20161115221001.GE23021@node>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161115221001.GE23021@node>
+Sender: owner-linux-mm@kvack.org
+To: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Jan Kara <jack@suse.cz>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-wp_page_reuse() handles write shared faults which is needed only in
-wp_page_shared(). Move the handling only into that location to make
-wp_page_reuse() simpler and avoid a strange situation when we sometimes
-pass in locked page, sometimes unlocked etc.
+On Wed 16-11-16 01:10:01, Kirill A. Shutemov wrote:
+> On Fri, Nov 04, 2016 at 05:25:01AM +0100, Jan Kara wrote:
+> >  static int do_cow_fault(struct vm_fault *vmf)
+> >  {
+> >  	struct vm_area_struct *vma = vmf->vma;
+> > -	struct page *fault_page, *new_page;
+> > -	void *fault_entry;
+> > +	struct page *new_page;
+> 
+> Why not get rid of new_page too?
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- mm/memory.c | 27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+OK, I did that as well.
 
-diff --git a/mm/memory.c b/mm/memory.c
-index e278a8a6ccc7..06aba4203104 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2103,8 +2103,7 @@ static void fault_dirty_shared_page(struct vm_area_struct *vma,
-  * case, all we need to do here is to mark the page as writable and update
-  * any related book-keeping.
-  */
--static inline int wp_page_reuse(struct vm_fault *vmf,
--				int page_mkwrite, int dirty_shared)
-+static inline void wp_page_reuse(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
-@@ -2124,16 +2123,6 @@ static inline int wp_page_reuse(struct vm_fault *vmf,
- 	if (ptep_set_access_flags(vma, vmf->address, vmf->pte, entry, 1))
- 		update_mmu_cache(vma, vmf->address, vmf->pte);
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
--
--	if (dirty_shared) {
--		if (!page_mkwrite)
--			lock_page(page);
--
--		fault_dirty_shared_page(vma, page);
--		put_page(page);
--	}
--
--	return VM_FAULT_WRITE;
- }
- 
- /*
-@@ -2308,7 +2297,8 @@ static int wp_pfn_shared(struct vm_fault *vmf)
- 			return 0;
- 		}
- 	}
--	return wp_page_reuse(vmf, 0, 0);
-+	wp_page_reuse(vmf);
-+	return VM_FAULT_WRITE;
- }
- 
- static int wp_page_shared(struct vm_fault *vmf)
-@@ -2346,7 +2336,13 @@ static int wp_page_shared(struct vm_fault *vmf)
- 		page_mkwrite = 1;
- 	}
- 
--	return wp_page_reuse(vmf, page_mkwrite, 1);
-+	wp_page_reuse(vmf);
-+	if (!page_mkwrite)
-+		lock_page(vmf->page);
-+	fault_dirty_shared_page(vma, vmf->page);
-+	put_page(vmf->page);
-+
-+	return VM_FAULT_WRITE;
- }
- 
- /*
-@@ -2421,7 +2417,8 @@ static int do_wp_page(struct vm_fault *vmf)
- 				page_move_anon_rmap(vmf->page, vma);
- 			}
- 			unlock_page(vmf->page);
--			return wp_page_reuse(vmf, 0, 0);
-+			wp_page_reuse(vmf);
-+			return VM_FAULT_WRITE;
- 		}
- 		unlock_page(vmf->page);
- 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+> Otherwise makes sense:
+> 
+> Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+
+Thanks!
+
+								Honza
 -- 
-2.6.6
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
