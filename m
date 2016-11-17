@@ -1,154 +1,83 @@
-From: "Georgiana Guntrum  " <anittiff04-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: social traffic for lists.01.org
-Date: Thu, 17 Nov 2016 09:17:14 +0200
-Message-ID: <9FCCF2FA.0A859568@gmail.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 01/21] mm: Join struct fault_env and vm_fault
+Date: Thu, 17 Nov 2016 10:07:42 +0100
+Message-ID: <20161117090742.GR21785@quack2.suse.cz>
+References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+ <1478233517-3571-2-git-send-email-jack@suse.cz>
+ <20161115215021.GA23021@node>
+ <20161116105132.GR3142@twins.programming.kicks-ass.net>
+ <20161116110101.GE21785@quack2.suse.cz>
+ <20161116172108.GV3142@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_582D5980.52E2CEF4"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20161116172108.GV3142@twins.programming.kicks-ass.net>
+Sender: owner-linux-mm@kvack.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Jan Kara <jack@suse.cz>, "Kirill A. Shutemov" <kirill@shutemov.name>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+On Wed 16-11-16 18:21:08, Peter Zijlstra wrote:
+> On Wed, Nov 16, 2016 at 12:01:01PM +0100, Jan Kara wrote:
+> > On Wed 16-11-16 11:51:32, Peter Zijlstra wrote:
+> 
+> > > Now, I'm entirely out of touch wrt DAX, so I've not idea what that
+> > > needs/wants.
+> > 
+> > Yeah, DAX does not have 'struct page' for its pages so it directly installs
+> > PFNs in the page tables. As a result it needs to know about page tables and
+> > stuff.
+> 
+> Not convinced, a physical address should then be the equivalent of a
+> struct page. You still don't need access to the actual pages tables. The
+> VM core can then convert the physical address to a PFN and stuff it in
+> the PTE entry.
+> 
+> > Now I've abstracted knowledge about that into helper functions back
+> > in mm/ but still we need to pass the information through the ->fault handler
+> > into those helpers and vm_fault structure is simply natural for that.
+> > So far we have tried to avoid that but the result was not pretty (special
+> > return codes from DAX ->fault handlers essentially leaking information
+> > about DAX internal locking into mm/ code to direct generic mm code to do
+> > the right thing for DAX).
+> 
+> Its probably the DAX locking bit I'm missing, because I cannot see why
+> VM_FAULT_DAX_LOCKED is 'broken' -- also, I'd have called that
+> VM_FAULT_PFN or similar and not have used the full entry but only the
+> PFN bits from it.
 
-------------=_582D5980.52E2CEF4
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+The problem really is in the locking. Currently fault code expects to get a
+locked page from the ->fault() handler (or it locks the returned page on
+its own). When we don't have struct page, we don't have a page lock. So we
+use different locks to synchronize against truncate, or other page faults
+of the same page by a different process. And modification of page tables
+needs to be protected by these locks in the same way as it needs to be
+protected by the page lock for normal pages.
 
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
+So I find it to be bigger layering violation for generic mm layer to know
+how DAX decided to serialize racing page faults, than for DAX layer to call
+helpers from mm layer to update page tables when it holds appropriate
+locks.
 
-Content preview:  hi Cheap Facebook Groups Traffic for your website http://www.instant-traffic.net/detail.php?id=113
-   Regards Georgiana Guntrum Unsubscribe option is available on the footer of
-   our website [...] 
+Essentially we just switch from a model "Return data from a fault handler
+so that generic layer can finish the page fault" to a model "Call helper
+from the fault handler passing it necessary information to finish the page
+fault". That model is more flexible (I agree it offers more opportunities
+for abuse as well) but overall result looks IMHO cleaner.
 
-Content analysis details:   (9.9 points, 5.0 required)
+And I would add that modifying page tables from a fault handler is nothing
+new - basically every video driver does it. They just generally don't have
+that comprehensive support for mmap so they get away with less exported
+functionality.
 
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: instant-traffic.net]
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-               [Blocked - see <http://www.spamcop.net/bl.shtml?115.79.140.79>]
- 2.8 FSL_HELO_FAKE          No description available.
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: instant-traffic.net]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (anittiff04[at]gmail.com)
--0.0 BAYES_20               BODY: Bayes spam probability is 5 to 20%
-                            [score: 0.0553]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
-The original message was not completely plain text, and may be unsafe to
-open with some email clients; in particular, it may contain a virus,
-or confirm that your address can receive spam.  If you wish to view
-it, it may be safer to save it to a file and open it with an editor.
-
-
-------------=_582D5980.52E2CEF4
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: attachment
-Content-Transfer-Encoding: 8bit
-
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1c7Gwa-0001jg-Jb
-	for gln-linux-nvdimm@m.gmane.org; Thu, 17 Nov 2016 08:17:12 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id AEA5E81F26;
-	Wed, 16 Nov 2016 23:17:09 -0800 (PST)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from gmail.com (unknown [115.79.140.79])
- by ml01.01.org (Postfix) with SMTP id 4B35481F24
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Wed, 16 Nov 2016 23:17:07 -0800 (PST)
-Message-ID: <9FCCF2FA.0A859568-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Thu, 17 Nov 2016 09:17:14 +0200
-From: "Georgiana Guntrum  " <anittiff04-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB;
- rv:1.8.1.6) Gecko/20070728 Thunderbird/2.0.0.6
-X-Accept-Language: en-us
-MIME-Version: 1.0
-To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: re: social traffic for lists.01.org
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============5043069547437575456=="
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
---===============5043069547437575456==
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-
-hi
-Cheap Facebook Groups Traffic for your website
-http://www.instant-traffic.net/detail.php?id=113
-
-Regards
-Georgiana Guntrum  
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-
---===============5043069547437575456==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============5043069547437575456==--
-
-
-------------=_582D5980.52E2CEF4--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
