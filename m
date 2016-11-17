@@ -2,14 +2,18 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BB94981CCC
- for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:25:22 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 18F8981F06
+ for <linux-nvdimm@lists.01.org>; Thu, 17 Nov 2016 01:36:50 -0800 (PST)
+Date: Thu, 17 Nov 2016 10:36:52 +0100
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 04/21] mm: Use passed vm_fault structure in __do_fault()
-Date: Fri,  4 Nov 2016 05:25:00 +0100
-Message-Id: <1478233517-3571-5-git-send-email-jack@suse.cz>
-In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
+Subject: Re: [PATCH 10/21] mm: Move handling of COW faults into DAX code
+Message-ID: <20161117093652.GS21785@quack2.suse.cz>
 References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+ <1478233517-3571-11-git-send-email-jack@suse.cz>
+ <20161116212820.GE31337@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20161116212820.GE31337@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,86 +21,72 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Instead of creating another vm_fault structure, use the one passed to
-__do_fault() for passing arguments into fault handler.
+On Wed 16-11-16 14:28:20, Ross Zwisler wrote:
+> On Fri, Nov 04, 2016 at 05:25:06AM +0100, Jan Kara wrote:
+> > Move final handling of COW faults from generic code into DAX fault
+> > handler. That way generic code doesn't have to be aware of peculiarities
+> > of DAX locking so remove that knowledge and make locking functions
+> > private to fs/dax.c.
+> > 
+> > Signed-off-by: Jan Kara <jack@suse.cz>
+> > ---
+> 
+> > @@ -1006,13 +1007,14 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+> >  
+> >  		if (error)
+> >  			goto finish_iomap;
+> > -		if (!radix_tree_exceptional_entry(entry)) {
+> > +
+> > +		__SetPageUptodate(vmf->cow_page);
+> > +		if (!radix_tree_exceptional_entry(entry))
+> >  			vmf->page = entry;
+> 
+> I don't think we need to set vmf->page anymore.  We would clear it to NULL in
+> a few lines anyway, and the only call in between is finish_fault(), which
+> only cares about vmf->cow_page().  This allows us to remove the vmf->page =
+> NULL line a few lines below as well.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- mm/memory.c | 25 ++++++++++---------------
- 1 file changed, 10 insertions(+), 15 deletions(-)
+Well, I would not like to depend too much on which fields of vm_fault
+finish_fault() actually uses - we should fill in as much as we have
+available. But the truth is we sometime have page to fill in into vmf->page
+and sometimes we don't so in this case I agree filling it in is pointless.
+Changed.
 
-diff --git a/mm/memory.c b/mm/memory.c
-index 3b79eace8d23..8145dadb2645 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2852,37 +2852,31 @@ static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
- 		      struct page **page, void **entry)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct vm_fault vmf2;
- 	int ret;
- 
--	vmf2.address = vmf->address;
--	vmf2.pgoff = vmf->pgoff;
--	vmf2.flags = vmf->flags;
--	vmf2.page = NULL;
--	vmf2.gfp_mask = __get_fault_gfp_mask(vma);
--	vmf2.cow_page = cow_page;
-+	vmf->cow_page = cow_page;
- 
--	ret = vma->vm_ops->fault(vma, &vmf2);
-+	ret = vma->vm_ops->fault(vma, vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 	if (ret & VM_FAULT_DAX_LOCKED) {
--		*entry = vmf2.entry;
-+		*entry = vmf->entry;
- 		return ret;
- 	}
- 
--	if (unlikely(PageHWPoison(vmf2.page))) {
-+	if (unlikely(PageHWPoison(vmf->page))) {
- 		if (ret & VM_FAULT_LOCKED)
--			unlock_page(vmf2.page);
--		put_page(vmf2.page);
-+			unlock_page(vmf->page);
-+		put_page(vmf->page);
- 		return VM_FAULT_HWPOISON;
- 	}
- 
- 	if (unlikely(!(ret & VM_FAULT_LOCKED)))
--		lock_page(vmf2.page);
-+		lock_page(vmf->page);
- 	else
--		VM_BUG_ON_PAGE(!PageLocked(vmf2.page), vmf2.page);
-+		VM_BUG_ON_PAGE(!PageLocked(vmf->page), vmf->page);
- 
--	*page = vmf2.page;
-+	*page = vmf->page;
- 	return ret;
- }
- 
-@@ -3579,6 +3573,7 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
- 		.address = address,
- 		.flags = flags,
- 		.pgoff = linear_page_index(vma, address),
-+		.gfp_mask = __get_fault_gfp_mask(vma),
- 	};
- 	struct mm_struct *mm = vma->vm_mm;
- 	pgd_t *pgd;
+> > @@ -1051,7 +1053,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+> >  		}
+> >  	}
+> >   unlock_entry:
+> > -	if (!locked_status || error)
+> > +	if (vmf_ret != VM_FAULT_LOCKED || error)
+> >  		put_locked_mapping_entry(mapping, vmf->pgoff, entry);
+> 
+> I don't think this is quite right.  For example, for dax_load_hole(), if we
+> can't get a page we put_locked_mapping_entry() and return VM_FAULT_OOM.
+> Previously this logic would have skipped the second call to
+> put_locked_mapping_entry(), but now with the strict check against
+> VM_FAULT_LOCKED put the entry twice.
+> 
+> Maybe the right thing to do is just fix dax_load_hole() so it never calls
+> put_locked_mapping_entry(), and leave this check as you have it?
+
+Yeah, good catch. Actually I have follow up patches which somewhat clean up
+dax_iomap_fault() so that page fault is fully completed within
+dax_iomap_fault() even when instantiating a hole page which makes error
+handling simpler. But I didn't want to complicate this series with it. So
+for now I'll do what you suggest. Thanks.
+
+								Honza
 -- 
-2.6.6
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
