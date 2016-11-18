@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1598081D4D
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:32 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v9 11/16] dax: dax_iomap_fault() needs to call iomap_end()
-Date: Tue,  1 Nov 2016 13:54:13 -0600
-Message-Id: <1478030058-1422-12-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH] x86: Add warning when memmap=nn!ss and
+ CONFIG_RANDOMIZE_BASE enabled
+References: <147941499514.131046.6450643991764692220.stgit@djiang5-desk3.ch.intel.com>
+ <alpine.DEB.2.20.1611181224440.3615@nanos>
+ <c3dc208d-c604-0a45-13a4-2aa0e92a7ac7@intel.com>
+ <CAA9_cmf9bPnPLZN0m1_OtLxZBJZhE6X16fRzkC7WOQQBZnu4QA@mail.gmail.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <ef0f4b1c-2a18-3dd9-a2f4-8c49d980c2ff@intel.com>
+Date: Fri, 18 Nov 2016 10:13:05 -0700
+MIME-Version: 1.0
+In-Reply-To: <CAA9_cmf9bPnPLZN0m1_OtLxZBJZhE6X16fRzkC7WOQQBZnu4QA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,118 +17,73 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Dan Williams <dan.j.williams@gmail.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, the arch/x86 maintainers <x86@kernel.org>, Dave Chinner <david@fromorbit.com>, LKML <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently iomap_end() doesn't do anything for DAX page faults for both ext2
-and XFS.  ext2_iomap_end() just checks for a write underrun, and
-xfs_file_iomap_end() checks to see if it needs to finish a delayed
-allocation.  However, in the future iomap_end() calls might be needed to
-make sure we have balanced allocations, locks, etc.  So, add calls to
-iomap_end() with appropriate error handling to dax_iomap_fault().
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 37 +++++++++++++++++++++++++++++--------
- 1 file changed, 29 insertions(+), 8 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 7737954..6edd89b 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1165,6 +1165,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	struct iomap iomap = { 0 };
- 	unsigned flags = 0;
- 	int error, major = 0;
-+	int locked_status = 0;
- 	void *entry;
- 
- 	/*
-@@ -1194,7 +1195,7 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		goto unlock_entry;
- 	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
- 		error = -EIO;		/* fs corruption? */
--		goto unlock_entry;
-+		goto finish_iomap;
- 	}
- 
- 	sector = dax_iomap_sector(&iomap, pos);
-@@ -1216,13 +1217,15 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		}
- 
- 		if (error)
--			goto unlock_entry;
-+			goto finish_iomap;
- 		if (!radix_tree_exceptional_entry(entry)) {
- 			vmf->page = entry;
--			return VM_FAULT_LOCKED;
-+			locked_status = VM_FAULT_LOCKED;
-+		} else {
-+			vmf->entry = entry;
-+			locked_status = VM_FAULT_DAX_LOCKED;
- 		}
--		vmf->entry = entry;
--		return VM_FAULT_DAX_LOCKED;
-+		goto finish_iomap;
- 	}
- 
- 	switch (iomap.type) {
-@@ -1237,8 +1240,10 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		break;
- 	case IOMAP_UNWRITTEN:
- 	case IOMAP_HOLE:
--		if (!(vmf->flags & FAULT_FLAG_WRITE))
--			return dax_load_hole(mapping, entry, vmf);
-+		if (!(vmf->flags & FAULT_FLAG_WRITE)) {
-+			locked_status = dax_load_hole(mapping, entry, vmf);
-+			break;
-+		}
- 		/*FALLTHRU*/
- 	default:
- 		WARN_ON_ONCE(1);
-@@ -1246,14 +1251,30 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		break;
- 	}
- 
-+ finish_iomap:
-+	if (ops->iomap_end) {
-+		if (error) {
-+			/* keep previous error */
-+			ops->iomap_end(inode, pos, PAGE_SIZE, 0, flags,
-+					&iomap);
-+		} else {
-+			error = ops->iomap_end(inode, pos, PAGE_SIZE,
-+					PAGE_SIZE, flags, &iomap);
-+		}
-+	}
-  unlock_entry:
--	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
-+	if (!locked_status || error)
-+		put_locked_mapping_entry(mapping, vmf->pgoff, entry);
-  out:
- 	if (error == -ENOMEM)
- 		return VM_FAULT_OOM | major;
- 	/* -EBUSY is fine, somebody else faulted on the same PTE */
- 	if (error < 0 && error != -EBUSY)
- 		return VM_FAULT_SIGBUS | major;
-+	if (locked_status) {
-+		WARN_ON_ONCE(error); /* -EBUSY from ops->iomap_end? */
-+		return locked_status;
-+	}
- 	return VM_FAULT_NOPAGE | major;
- }
- EXPORT_SYMBOL_GPL(dax_iomap_fault);
--- 
-2.7.4
 
+On 11/18/2016 10:07 AM, Dan Williams wrote:
+> On Fri, Nov 18, 2016 at 8:47 AM, Dave Jiang <dave.jiang@intel.com>
+> wrote:
+>> -----BEGIN PGP SIGNED MESSAGE----- Hash: SHA256
+>> 
+>> 
+>> 
+>> On 11/18/2016 04:33 AM, Thomas Gleixner wrote:
+>>> On Thu, 17 Nov 2016, Dave Jiang wrote:
+>>>> CONFIG_RANDOMIZE_BASE can place the kernel anywhere. This
+>>>> causes a problem for when memmap=nn!ss is used. This
+>>>> information is not known until after the kernel starts
+>>>> executing and the decision for where the randomized base goes
+>>>> happens before the kernel is uncompressed. memmap=nn!ss is
+>>>> not reliable in the presence of CONFIG_RANDOMIZE_BASE.
+>>> 
+>>> So this is a description of a problem. Now what's missing is a 
+>>> useful explanation why you think that adding a warning will
+>>> make things better.
+>>> 
+>>> IMNSHO adding that warning is just a pointless exercise.
+>>> 
+>>> Why aren't you addressing the real issue and make the boot
+>>> code parse that option and prevent that region from being used
+>>> for kernel placement?
+>>> 
+>>> The same issue exists for other memmap options as well, not
+>>> just for that PMEM thingy.
+>>> 
+>>> Thanks,
+>>> 
+>>> tglx
+>>> 
+>> 
+>> I wasn't planning to fix it because the pmem memmap option is
+>> really only used for testing. Is it possible to parse the kernel
+>> commandline parameters before the kernel is uncompressed?
+> 
+> Apologies, this was my mistake.  I missed that we have early boot 
+> command line parsing in addition to the in-kernel cmdline parsing.
+> 
+> Dave, I think we could fix this in: 
+> arch/x86/boot/compressed/kaslr.c::choose_random_location().
+> 
+
+Actually it was my fault. I was digging around that and somehow
+totally missed the early command line parsing bits.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iF4EAREIAAYFAlgvNqEACgkQZBXE8WajuT71LAD9GGV5sL9bAkunWlZZylNGZ+Ug
+XRfcnKB1g1+SJ4JFDuYA/RxrHAyBBhteIfSuORl5T+1ACYqwTA0MuHFwiASHXbuQ
+=+j9S
+-----END PGP SIGNATURE-----
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
