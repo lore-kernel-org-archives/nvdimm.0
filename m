@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BFCAF81ED0
- for <linux-nvdimm@lists.01.org>; Wed, 23 Nov 2016 10:45:12 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 6/6] dax: add tracepoints to dax_pmd_insert_mapping()
-Date: Wed, 23 Nov 2016 11:44:22 -0700
-Message-Id: <1479926662-21718-7-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1479926662-21718-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1479926662-21718-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 67ED981EDC
+ for <linux-nvdimm@lists.01.org>; Fri, 18 Nov 2016 01:17:26 -0800 (PST)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 09/20] mm: Factor out functionality to finish page faults
+Date: Fri, 18 Nov 2016 10:17:13 +0100
+Message-Id: <1479460644-25076-10-git-send-email-jack@suse.cz>
+In-Reply-To: <1479460644-25076-1-git-send-email-jack@suse.cz>
+References: <1479460644-25076-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,142 +22,113 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill@shutemov.name>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add tracepoints to dax_pmd_insert_mapping(), following the same logging
-conventions as the tracepoints in dax_iomap_pmd_fault().
+Introduce function finish_fault() as a helper function for finishing
+page faults. It is rather thin wrapper around alloc_set_pte() but since
+we'd want to call this from DAX code or filesystems, it is still useful
+to avoid some boilerplate code.
 
-Here is an example PMD fault showing the new tracepoints:
-
-big-1544  [006] ....    48.153479: dax_pmd_fault: shared mapping write
-address 0x10505000 vm_start 0x10200000 vm_end 0x10700000 pgoff 0x200
-max_pgoff 0x1400
-
-big-1544  [006] ....    48.155230: dax_pmd_insert_mapping: shared mapping
-write address 0x10505000 length 0x200000 pfn 0x100600 DEV|MAP radix_entry
-0xc000e
-
-big-1544  [006] ....    48.155266: dax_pmd_fault_done: shared mapping write
-address 0x10505000 vm_start 0x10200000 vm_end 0x10700000 pgoff 0x200
-max_pgoff 0x1400 NOPAGE
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c                      | 10 +++++++---
- include/linux/pfn_t.h         |  6 ++++++
- include/trace/events/fs_dax.h | 42 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 55 insertions(+), 3 deletions(-)
+ include/linux/mm.h |  1 +
+ mm/memory.c        | 44 +++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 36 insertions(+), 9 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 2824414..d6ba4a3 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1236,10 +1236,10 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
- 		.size = PMD_SIZE,
- 	};
- 	long length = dax_map_atomic(bdev, &dax);
--	void *ret;
-+	void *ret = NULL;
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 34d2891e9195..482455952f03 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -620,6 +620,7 @@ static inline pte_t maybe_mkwrite(pte_t pte, struct vm_area_struct *vma)
  
- 	if (length < 0) /* dax_map_atomic() failed */
--		return VM_FAULT_FALLBACK;
-+		goto fallback;
- 	if (length < PMD_SIZE)
- 		goto unmap_fallback;
- 	if (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR)
-@@ -1252,13 +1252,17 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
- 	ret = dax_insert_mapping_entry(mapping, vmf, *entryp, dax.sector,
- 			RADIX_DAX_PMD);
- 	if (IS_ERR(ret))
--		return VM_FAULT_FALLBACK;
-+		goto fallback;
- 	*entryp = ret;
+ int alloc_set_pte(struct vm_fault *vmf, struct mem_cgroup *memcg,
+ 		struct page *page);
++int finish_fault(struct vm_fault *vmf);
+ #endif
  
-+	trace_dax_pmd_insert_mapping(vma, address, write, length, dax.pfn, ret);
- 	return vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
- 
- unmap_fallback:
- 	dax_unmap_atomic(bdev, &dax);
-+fallback:
-+	trace_dax_pmd_insert_mapping_fallback(vma, address, write, length,
-+			dax.pfn, ret);
- 	return VM_FAULT_FALLBACK;
+ /*
+diff --git a/mm/memory.c b/mm/memory.c
+index 21a4a193a6c2..ba49e5bacf17 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3033,6 +3033,38 @@ int alloc_set_pte(struct vm_fault *vmf, struct mem_cgroup *memcg,
+ 	return 0;
  }
  
-diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
-index a3d90b9..033fc7b 100644
---- a/include/linux/pfn_t.h
-+++ b/include/linux/pfn_t.h
-@@ -15,6 +15,12 @@
- #define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
- #define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
++
++/**
++ * finish_fault - finish page fault once we have prepared the page to fault
++ *
++ * @vmf: structure describing the fault
++ *
++ * This function handles all that is needed to finish a page fault once the
++ * page to fault in is prepared. It handles locking of PTEs, inserts PTE for
++ * given page, adds reverse page mapping, handles memcg charges and LRU
++ * addition. The function returns 0 on success, VM_FAULT_ code in case of
++ * error.
++ *
++ * The function expects the page to be locked and on success it consumes a
++ * reference of a page being mapped (for the PTE which maps it).
++ */
++int finish_fault(struct vm_fault *vmf)
++{
++	struct page *page;
++	int ret;
++
++	/* Did we COW the page? */
++	if ((vmf->flags & FAULT_FLAG_WRITE) &&
++	    !(vmf->vma->vm_flags & VM_SHARED))
++		page = vmf->cow_page;
++	else
++		page = vmf->page;
++	ret = alloc_set_pte(vmf, vmf->memcg, page);
++	if (vmf->pte)
++		pte_unmap_unlock(vmf->pte, vmf->ptl);
++	return ret;
++}
++
+ static unsigned long fault_around_bytes __read_mostly =
+ 	rounddown_pow_of_two(65536);
  
-+#define PFN_FLAGS_TRACE \
-+	{ PFN_SG_CHAIN,	"SG_CHAIN" }, \
-+	{ PFN_SG_LAST,	"SG_LAST" }, \
-+	{ PFN_DEV,	"DEV" }, \
-+	{ PFN_MAP,	"MAP" }
-+
- static inline pfn_t __pfn_to_pfn_t(unsigned long pfn, u64 flags)
- {
- 	pfn_t pfn_t = { .val = pfn | (flags & PFN_FLAGS_MASK), };
-diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
-index 8814b1a..a03f820 100644
---- a/include/trace/events/fs_dax.h
-+++ b/include/trace/events/fs_dax.h
-@@ -87,6 +87,48 @@ DEFINE_EVENT(dax_pmd_load_hole_class, name, \
- DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
- DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
+@@ -3178,9 +3210,7 @@ static int do_read_fault(struct vm_fault *vmf)
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
  
-+DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
-+	TP_PROTO(struct vm_area_struct *vma, unsigned long address, int write,
-+		long length, pfn_t pfn, void *radix_entry),
-+	TP_ARGS(vma, address, write, length, pfn, radix_entry),
-+	TP_STRUCT__entry(
-+		__field(unsigned long, vm_flags)
-+		__field(unsigned long, address)
-+		__field(int, write)
-+		__field(long, length)
-+		__field(u64, pfn_val)
-+		__field(void *, radix_entry)
-+	),
-+	TP_fast_assign(
-+		__entry->vm_flags = vma->vm_flags;
-+		__entry->address = address;
-+		__entry->write = write;
-+		__entry->length = length;
-+		__entry->pfn_val = pfn.val;
-+		__entry->radix_entry = radix_entry;
-+	),
-+	TP_printk("%s mapping %s address %#lx length %#lx pfn %#llx %s"
-+		" radix_entry %#lx",
-+		__entry->vm_flags & VM_SHARED ? "shared" : "private",
-+		__entry->write ? "write" : "read",
-+		__entry->address,
-+		__entry->length,
-+		__entry->pfn_val & ~PFN_FLAGS_MASK,
-+		__print_flags(__entry->pfn_val & PFN_FLAGS_MASK, "|",
-+			PFN_FLAGS_TRACE),
-+		(unsigned long)__entry->radix_entry
-+	)
-+)
-+
-+#define DEFINE_PMD_INSERT_MAPPING_EVENT(name) \
-+DEFINE_EVENT(dax_pmd_insert_mapping_class, name, \
-+	TP_PROTO(struct vm_area_struct *vma, unsigned long address, \
-+		int write, long length, pfn_t pfn, void *radix_entry), \
-+	TP_ARGS(vma, address, write, length, pfn, radix_entry))
-+
-+DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
-+DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping_fallback);
-+
- #endif /* _TRACE_FS_DAX_H */
+-	ret |= alloc_set_pte(vmf, NULL, vmf->page);
+-	if (vmf->pte)
+-		pte_unmap_unlock(vmf->pte, vmf->ptl);
++	ret |= finish_fault(vmf);
+ 	unlock_page(vmf->page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		put_page(vmf->page);
+@@ -3215,9 +3245,7 @@ static int do_cow_fault(struct vm_fault *vmf)
+ 		copy_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma);
+ 	__SetPageUptodate(vmf->cow_page);
  
- /* This part must be outside protection */
+-	ret |= alloc_set_pte(vmf, vmf->memcg, vmf->cow_page);
+-	if (vmf->pte)
+-		pte_unmap_unlock(vmf->pte, vmf->ptl);
++	ret |= finish_fault(vmf);
+ 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
+ 		unlock_page(vmf->page);
+ 		put_page(vmf->page);
+@@ -3258,9 +3286,7 @@ static int do_shared_fault(struct vm_fault *vmf)
+ 		}
+ 	}
+ 
+-	ret |= alloc_set_pte(vmf, NULL, vmf->page);
+-	if (vmf->pte)
+-		pte_unmap_unlock(vmf->pte, vmf->ptl);
++	ret |= finish_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE |
+ 					VM_FAULT_RETRY))) {
+ 		unlock_page(vmf->page);
 -- 
-2.7.4
+2.6.6
 
 _______________________________________________
 Linux-nvdimm mailing list
