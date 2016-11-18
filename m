@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7BBD781C8A
- for <linux-nvdimm@lists.01.org>; Wed,  9 Nov 2016 17:31:13 -0800 (PST)
-Subject: [PATCH 1/2] libndctl: add ndctl_pfn_has_align() api
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 09 Nov 2016 17:28:15 -0800
-Message-ID: <147874129531.37588.12721076898149272280.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 2E10881EDC
+ for <linux-nvdimm@lists.01.org>; Fri, 18 Nov 2016 01:17:28 -0800 (PST)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 05/20] mm: Trim __do_fault() arguments
+Date: Fri, 18 Nov 2016 10:17:09 +0100
+Message-Id: <1479460644-25076-6-git-send-email-jack@suse.cz>
+In-Reply-To: <1479460644-25076-1-git-send-email-jack@suse.cz>
+References: <1479460644-25076-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,78 +17,215 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-mm@kvack.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill@shutemov.name>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of preventing create-namespace attempts to write the 'align'
-attribute on kernels that do not have the capability, add this detection
-api.
+Use vm_fault structure to pass cow_page, page, and entry in and out of
+the function. That reduces number of __do_fault() arguments from 4 to 1.
 
-We would not have needed this if ndctl_pfn_get_align() returned -ENOENT
-instead of zero, live and learn.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- ndctl/lib/libndctl.c   |   16 ++++++++++++++++
- ndctl/lib/libndctl.sym |    1 +
- ndctl/libndctl.h.in    |    1 +
- 3 files changed, 18 insertions(+)
+ mm/memory.c | 67 ++++++++++++++++++++++++++-----------------------------------
+ 1 file changed, 29 insertions(+), 38 deletions(-)
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 82b11a0d3ac9..eed418936a38 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -4231,6 +4231,22 @@ NDCTL_EXPORT unsigned long ndctl_pfn_get_align(struct ndctl_pfn *pfn)
- 	return pfn->align;
+diff --git a/mm/memory.c b/mm/memory.c
+index 2d7cdefc0690..acbe77a37aa0 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2848,26 +2848,22 @@ static int do_anonymous_page(struct vm_fault *vmf)
+  * released depending on flags and vma->vm_ops->fault() return value.
+  * See filemap_fault() and __lock_page_retry().
+  */
+-static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
+-		      struct page **page, void **entry)
++static int __do_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	int ret;
+ 
+-	vmf->cow_page = cow_page;
+-
+ 	ret = vma->vm_ops->fault(vma, vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
+-	if (ret & VM_FAULT_DAX_LOCKED) {
+-		*entry = vmf->entry;
++	if (ret & VM_FAULT_DAX_LOCKED)
+ 		return ret;
+-	}
+ 
+ 	if (unlikely(PageHWPoison(vmf->page))) {
+ 		if (ret & VM_FAULT_LOCKED)
+ 			unlock_page(vmf->page);
+ 		put_page(vmf->page);
++		vmf->page = NULL;
+ 		return VM_FAULT_HWPOISON;
+ 	}
+ 
+@@ -2876,7 +2872,6 @@ static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
+ 	else
+ 		VM_BUG_ON_PAGE(!PageLocked(vmf->page), vmf->page);
+ 
+-	*page = vmf->page;
+ 	return ret;
  }
  
-+NDCTL_EXPORT int ndctl_pfn_has_align(struct ndctl_pfn *pfn)
-+{
-+	struct ndctl_ctx *ctx = ndctl_pfn_get_ctx(pfn);
-+	char *path = pfn->pfn_buf;
-+	int len = pfn->buf_len;
-+	struct stat st;
-+
-+	if (snprintf(path, len, "%s/align", pfn->pfn_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				ndctl_pfn_get_devname(pfn));
-+		return 0;
-+	}
-+
-+	return stat(path, &st) == 0;
-+}
-+
- NDCTL_EXPORT int ndctl_pfn_set_align(struct ndctl_pfn *pfn, unsigned long align)
+@@ -3173,7 +3168,6 @@ static int do_fault_around(struct vm_fault *vmf)
+ static int do_read_fault(struct vm_fault *vmf)
  {
- 	struct ndctl_ctx *ctx = ndctl_pfn_get_ctx(pfn);
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 6bd032ea7526..603c386cc2a1 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -231,6 +231,7 @@ global:
- 	ndctl_pfn_get_align;
- 	ndctl_pfn_get_size;
- 	ndctl_pfn_get_resource;
-+	ndctl_pfn_has_align;
- 	ndctl_pfn_set_align;
- 	ndctl_pfn_set_namespace;
- 	ndctl_pfn_get_bus;
-diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
-index d3379f76e1f9..9d7219894ed7 100644
---- a/ndctl/libndctl.h.in
-+++ b/ndctl/libndctl.h.in
-@@ -566,6 +566,7 @@ int ndctl_pfn_set_location(struct ndctl_pfn *pfn, enum ndctl_pfn_loc loc);
- enum ndctl_pfn_loc ndctl_pfn_get_location(struct ndctl_pfn *pfn);
- int ndctl_pfn_set_uuid(struct ndctl_pfn *pfn, uuid_t uu);
- void ndctl_pfn_get_uuid(struct ndctl_pfn *pfn, uuid_t uu);
-+int ndctl_pfn_has_align(struct ndctl_pfn *pfn);
- int ndctl_pfn_set_align(struct ndctl_pfn *pfn, unsigned long align);
- unsigned long ndctl_pfn_get_align(struct ndctl_pfn *pfn);
- unsigned long long ndctl_pfn_get_resource(struct ndctl_pfn *pfn);
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct page *fault_page;
+ 	int ret = 0;
+ 
+ 	/*
+@@ -3187,54 +3181,52 @@ static int do_read_fault(struct vm_fault *vmf)
+ 			return ret;
+ 	}
+ 
+-	ret = __do_fault(vmf, NULL, &fault_page, NULL);
++	ret = __do_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
+ 
+-	ret |= alloc_set_pte(vmf, NULL, fault_page);
++	ret |= alloc_set_pte(vmf, NULL, vmf->page);
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-	unlock_page(fault_page);
++	unlock_page(vmf->page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+-		put_page(fault_page);
++		put_page(vmf->page);
+ 	return ret;
+ }
+ 
+ static int do_cow_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct page *fault_page, *new_page;
+-	void *fault_entry;
+ 	struct mem_cgroup *memcg;
+ 	int ret;
+ 
+ 	if (unlikely(anon_vma_prepare(vma)))
+ 		return VM_FAULT_OOM;
+ 
+-	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
+-	if (!new_page)
++	vmf->cow_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
++	if (!vmf->cow_page)
+ 		return VM_FAULT_OOM;
+ 
+-	if (mem_cgroup_try_charge(new_page, vma->vm_mm, GFP_KERNEL,
++	if (mem_cgroup_try_charge(vmf->cow_page, vma->vm_mm, GFP_KERNEL,
+ 				&memcg, false)) {
+-		put_page(new_page);
++		put_page(vmf->cow_page);
+ 		return VM_FAULT_OOM;
+ 	}
+ 
+-	ret = __do_fault(vmf, new_page, &fault_page, &fault_entry);
++	ret = __do_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		goto uncharge_out;
+ 
+ 	if (!(ret & VM_FAULT_DAX_LOCKED))
+-		copy_user_highpage(new_page, fault_page, vmf->address, vma);
+-	__SetPageUptodate(new_page);
++		copy_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma);
++	__SetPageUptodate(vmf->cow_page);
+ 
+-	ret |= alloc_set_pte(vmf, memcg, new_page);
++	ret |= alloc_set_pte(vmf, memcg, vmf->cow_page);
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
+-		unlock_page(fault_page);
+-		put_page(fault_page);
++		unlock_page(vmf->page);
++		put_page(vmf->page);
+ 	} else {
+ 		dax_unlock_mapping_entry(vma->vm_file->f_mapping, vmf->pgoff);
+ 	}
+@@ -3242,20 +3234,19 @@ static int do_cow_fault(struct vm_fault *vmf)
+ 		goto uncharge_out;
+ 	return ret;
+ uncharge_out:
+-	mem_cgroup_cancel_charge(new_page, memcg, false);
+-	put_page(new_page);
++	mem_cgroup_cancel_charge(vmf->cow_page, memcg, false);
++	put_page(vmf->cow_page);
+ 	return ret;
+ }
+ 
+ static int do_shared_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct page *fault_page;
+ 	struct address_space *mapping;
+ 	int dirtied = 0;
+ 	int ret, tmp;
+ 
+-	ret = __do_fault(vmf, NULL, &fault_page, NULL);
++	ret = __do_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
+ 
+@@ -3264,26 +3255,26 @@ static int do_shared_fault(struct vm_fault *vmf)
+ 	 * about to become writable
+ 	 */
+ 	if (vma->vm_ops->page_mkwrite) {
+-		unlock_page(fault_page);
+-		tmp = do_page_mkwrite(vma, fault_page, vmf->address);
++		unlock_page(vmf->page);
++		tmp = do_page_mkwrite(vma, vmf->page, vmf->address);
+ 		if (unlikely(!tmp ||
+ 				(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+-			put_page(fault_page);
++			put_page(vmf->page);
+ 			return tmp;
+ 		}
+ 	}
+ 
+-	ret |= alloc_set_pte(vmf, NULL, fault_page);
++	ret |= alloc_set_pte(vmf, NULL, vmf->page);
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE |
+ 					VM_FAULT_RETRY))) {
+-		unlock_page(fault_page);
+-		put_page(fault_page);
++		unlock_page(vmf->page);
++		put_page(vmf->page);
+ 		return ret;
+ 	}
+ 
+-	if (set_page_dirty(fault_page))
++	if (set_page_dirty(vmf->page))
+ 		dirtied = 1;
+ 	/*
+ 	 * Take a local copy of the address_space - page.mapping may be zeroed
+@@ -3291,8 +3282,8 @@ static int do_shared_fault(struct vm_fault *vmf)
+ 	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
+ 	 * release semantics to prevent the compiler from undoing this copying.
+ 	 */
+-	mapping = page_rmapping(fault_page);
+-	unlock_page(fault_page);
++	mapping = page_rmapping(vmf->page);
++	unlock_page(vmf->page);
+ 	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
+ 		/*
+ 		 * Some device drivers do not set page.mapping but still
+-- 
+2.6.6
 
 _______________________________________________
 Linux-nvdimm mailing list
