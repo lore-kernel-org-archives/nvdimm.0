@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BCD2081CC1
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 14:22:11 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 2AF8281F43
+ for <linux-nvdimm@lists.01.org>; Fri, 18 Nov 2016 01:17:30 -0800 (PST)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 04/11] ext4: Convert DAX reads to iomap infrastructure
-Date: Tue,  1 Nov 2016 22:06:14 +0100
-Message-Id: <1478034381-19037-5-git-send-email-jack@suse.cz>
-In-Reply-To: <1478034381-19037-1-git-send-email-jack@suse.cz>
-References: <1478034381-19037-1-git-send-email-jack@suse.cz>
+Subject: [PATCH 20/20] dax: Clear dirty entry tags on cache flush
+Date: Fri, 18 Nov 2016 10:17:24 +0100
+Message-Id: <1479460644-25076-21-git-send-email-jack@suse.cz>
+In-Reply-To: <1479460644-25076-1-git-send-email-jack@suse.cz>
+References: <1479460644-25076-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,163 +22,114 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-ext4@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Ted Tso <tytso@mit.edu>, linux-nvdimm@lists.01.org
+To: linux-mm@kvack.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill@shutemov.name>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Implement basic iomap_begin function that handles reading and use it for
-DAX reads.
+Currently we never clear dirty tags in DAX mappings and thus address
+ranges to flush accumulate. Now that we have locking of radix tree
+entries, we have all the locking necessary to reliably clear the radix
+tree dirty tag when flushing caches for corresponding address range.
+Similarly to page_mkclean() we also have to write-protect pages to get a
+page fault when the page is next written to so that we can mark the
+entry dirty again.
 
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/ext4/ext4.h  |  2 ++
- fs/ext4/file.c  | 40 +++++++++++++++++++++++++++++++++++++++-
- fs/ext4/inode.c | 54 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 95 insertions(+), 1 deletion(-)
+ fs/dax.c | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
-index 282a51b07c57..098b39910001 100644
---- a/fs/ext4/ext4.h
-+++ b/fs/ext4/ext4.h
-@@ -3271,6 +3271,8 @@ static inline bool ext4_aligned_io(struct inode *inode, loff_t off, loff_t len)
- 	return IS_ALIGNED(off, blksize) && IS_ALIGNED(len, blksize);
+diff --git a/fs/dax.c b/fs/dax.c
+index d64465584f4c..cafd5597434b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -31,6 +31,7 @@
+ #include <linux/vmstat.h>
+ #include <linux/pfn_t.h>
+ #include <linux/sizes.h>
++#include <linux/mmu_notifier.h>
+ #include <linux/iomap.h>
+ #include "internal.h"
+ 
+@@ -613,6 +614,59 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
+ 	return new_entry;
  }
  
-+extern struct iomap_ops ext4_iomap_ops;
-+
- #endif	/* __KERNEL__ */
- 
- #define EFSBADCRC	EBADMSG		/* Bad CRC detected */
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 55f8b922b76d..28ebc2418dc2 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -31,6 +31,44 @@
- #include "xattr.h"
- #include "acl.h"
- 
-+#ifdef CONFIG_FS_DAX
-+static ssize_t ext4_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
++static inline unsigned long
++pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
 +{
-+	struct inode *inode = iocb->ki_filp->f_mapping->host;
-+	ssize_t ret;
++	unsigned long address;
 +
-+	inode_lock_shared(inode);
++	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
++	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
++	return address;
++}
++
++/* Walk all mappings of a given index of a file and writeprotect them */
++static void dax_mapping_entry_mkclean(struct address_space *mapping,
++				      pgoff_t index, unsigned long pfn)
++{
++	struct vm_area_struct *vma;
++	pte_t *ptep;
++	pte_t pte;
++	spinlock_t *ptl;
++	bool changed;
++
++	i_mmap_lock_read(mapping);
++	vma_interval_tree_foreach(vma, &mapping->i_mmap, index, index) {
++		unsigned long address;
++
++		cond_resched();
++
++		if (!(vma->vm_flags & VM_SHARED))
++			continue;
++
++		address = pgoff_address(index, vma);
++		changed = false;
++		if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
++			continue;
++		if (pfn != pte_pfn(*ptep))
++			goto unlock;
++		if (!pte_dirty(*ptep) && !pte_write(*ptep))
++			goto unlock;
++
++		flush_cache_page(vma, address, pfn);
++		pte = ptep_clear_flush(vma, address, ptep);
++		pte = pte_wrprotect(pte);
++		pte = pte_mkclean(pte);
++		set_pte_at(vma->vm_mm, address, ptep, pte);
++		changed = true;
++unlock:
++		pte_unmap_unlock(ptep, ptl);
++
++		if (changed)
++			mmu_notifier_invalidate_page(vma->vm_mm, address);
++	}
++	i_mmap_unlock_read(mapping);
++}
++
+ static int dax_writeback_one(struct block_device *bdev,
+ 		struct address_space *mapping, pgoff_t index, void *entry)
+ {
+@@ -686,7 +740,17 @@ static int dax_writeback_one(struct block_device *bdev,
+ 		goto unmap;
+ 	}
+ 
++	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(dax.pfn));
+ 	wb_cache_pmem(dax.addr, dax.size);
 +	/*
-+	 * Recheck under inode lock - at this point we are sure it cannot
-+	 * change anymore
++	 * After we have flushed the cache, we can clear the dirty tag. There
++	 * cannot be new dirty data in the pfn after the flush has completed as
++	 * the pfn mappings are writeprotected and fault waits for mapping
++	 * entry lock.
 +	 */
-+	if (!IS_DAX(inode)) {
-+		inode_unlock_shared(inode);
-+		/* Fallback to buffered IO in case we cannot support DAX */
-+		return generic_file_read_iter(iocb, to);
-+	}
-+	ret = dax_iomap_rw(iocb, to, &ext4_iomap_ops);
-+	inode_unlock_shared(inode);
-+
-+	file_accessed(iocb->ki_filp);
-+	return ret;
-+}
-+#endif
-+
-+static ssize_t ext4_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
-+{
-+	struct inode *inode = iocb->ki_filp->f_mapping->host;
-+
-+	if (!iov_iter_count(to))
-+		return 0; /* skip atime */
-+
-+#ifdef CONFIG_FS_DAX
-+	if (IS_DAX(inode))
-+		return ext4_dax_read_iter(iocb, to);
-+#endif
-+	return generic_file_read_iter(iocb, to);
-+}
-+
- /*
-  * Called when an inode is released. Note that this is different
-  * from ext4_file_open: open gets called at every open, but release
-@@ -691,7 +729,7 @@ loff_t ext4_llseek(struct file *file, loff_t offset, int whence)
- 
- const struct file_operations ext4_file_operations = {
- 	.llseek		= ext4_llseek,
--	.read_iter	= generic_file_read_iter,
-+	.read_iter	= ext4_file_read_iter,
- 	.write_iter	= ext4_file_write_iter,
- 	.unlocked_ioctl = ext4_ioctl,
- #ifdef CONFIG_COMPAT
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 4cbd1b24c237..cc10145ea98b 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -37,6 +37,7 @@
- #include <linux/printk.h>
- #include <linux/slab.h>
- #include <linux/bitops.h>
-+#include <linux/iomap.h>
- 
- #include "ext4_jbd2.h"
- #include "xattr.h"
-@@ -3305,6 +3306,59 @@ int ext4_dax_get_block(struct inode *inode, sector_t iblock,
- 	clear_buffer_new(bh_result);
- 	return 0;
- }
-+
-+static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
-+			    unsigned flags, struct iomap *iomap)
-+{
-+	unsigned int blkbits = inode->i_blkbits;
-+	unsigned long first_block = offset >> blkbits;
-+	unsigned long last_block = (offset + length - 1) >> blkbits;
-+	struct ext4_map_blocks map;
-+	int ret;
-+
-+	if (flags & IOMAP_WRITE)
-+		return -EIO;
-+
-+	if (WARN_ON_ONCE(ext4_has_inline_data(inode)))
-+		return -ERANGE;
-+
-+	map.m_lblk = first_block;
-+	map.m_len = last_block - first_block + 1;
-+
-+	ret = ext4_map_blocks(NULL, inode, &map, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	iomap->flags = 0;
-+	iomap->bdev = inode->i_sb->s_bdev;
-+	iomap->offset = first_block << blkbits;
-+
-+	if (ret == 0) {
-+		iomap->type = IOMAP_HOLE;
-+		iomap->blkno = IOMAP_NULL_BLOCK;
-+		iomap->length = (u64)map.m_len << blkbits;
-+	} else {
-+		if (map.m_flags & EXT4_MAP_MAPPED) {
-+			iomap->type = IOMAP_MAPPED;
-+		} else if (map.m_flags & EXT4_MAP_UNWRITTEN) {
-+			iomap->type = IOMAP_UNWRITTEN;
-+		} else {
-+			WARN_ON_ONCE(1);
-+			return -EIO;
-+		}
-+		iomap->blkno = (sector_t)map.m_pblk << (blkbits - 9);
-+		iomap->length = (u64)map.m_len << blkbits;
-+	}
-+
-+	if (map.m_flags & EXT4_MAP_NEW)
-+		iomap->flags |= IOMAP_F_NEW;
-+	return 0;
-+}
-+
-+struct iomap_ops ext4_iomap_ops = {
-+	.iomap_begin		= ext4_iomap_begin,
-+};
-+
- #else
- /* Just define empty function, it will never get called. */
- int ext4_dax_get_block(struct inode *inode, sector_t iblock,
++	spin_lock_irq(&mapping->tree_lock);
++	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
++	spin_unlock_irq(&mapping->tree_lock);
+  unmap:
+ 	dax_unmap_atomic(bdev, &dax);
+ 	put_locked_mapping_entry(mapping, index, entry);
 -- 
 2.6.6
 
