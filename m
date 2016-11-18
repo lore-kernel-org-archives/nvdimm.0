@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4913081D83
- for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:25:27 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 012EF81F61
+ for <linux-nvdimm@lists.01.org>; Fri, 18 Nov 2016 01:17:30 -0800 (PST)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 17/21] mm: Change return values of finish_mkwrite_fault()
-Date: Fri,  4 Nov 2016 05:25:13 +0100
-Message-Id: <1478233517-3571-18-git-send-email-jack@suse.cz>
-In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
-References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+Subject: [PATCH 16/20] mm: Change return values of finish_mkwrite_fault()
+Date: Fri, 18 Nov 2016 10:17:20 +0100
+Message-Id: <1479460644-25076-17-git-send-email-jack@suse.cz>
+In-Reply-To: <1479460644-25076-1-git-send-email-jack@suse.cz>
+References: <1479460644-25076-1-git-send-email-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,7 +23,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-mm@kvack.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill@shutemov.name>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
 Currently finish_mkwrite_fault() returns 0 when PTE got changed before
@@ -39,16 +39,17 @@ places that check it - KSM and GUP - care about private mappings only.
 Generally the meaning of VM_FAULT_WRITE for shared mappings is not well
 defined and we should probably clean that up.
 
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
  mm/memory.c | 7 +++----
  1 file changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/mm/memory.c b/mm/memory.c
-index 1517ff91c743..b3bd6b6c6472 100644
+index 5bb6773375ec..bf87081c8a37 100644
 --- a/mm/memory.c
 +++ b/mm/memory.c
-@@ -2296,10 +2296,10 @@ int finish_mkwrite_fault(struct vm_fault *vmf)
+@@ -2299,10 +2299,10 @@ int finish_mkwrite_fault(struct vm_fault *vmf)
  	 */
  	if (!pte_same(*vmf->pte, vmf->orig_pte)) {
  		pte_unmap_unlock(vmf->pte, vmf->ptl);
@@ -61,7 +62,7 @@ index 1517ff91c743..b3bd6b6c6472 100644
  }
  
  /*
-@@ -2342,8 +2342,7 @@ static int wp_page_shared(struct vm_fault *vmf)
+@@ -2345,8 +2345,7 @@ static int wp_page_shared(struct vm_fault *vmf)
  			return tmp;
  		}
  		tmp = finish_mkwrite_fault(vmf);
