@@ -1,83 +1,45 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 01/21] mm: Join struct fault_env and vm_fault
-Date: Thu, 17 Nov 2016 10:07:42 +0100
-Message-ID: <20161117090742.GR21785@quack2.suse.cz>
-References: <1478233517-3571-1-git-send-email-jack@suse.cz>
- <1478233517-3571-2-git-send-email-jack@suse.cz>
- <20161115215021.GA23021@node>
- <20161116105132.GR3142@twins.programming.kicks-ass.net>
- <20161116110101.GE21785@quack2.suse.cz>
- <20161116172108.GV3142@twins.programming.kicks-ass.net>
+From: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: [PATCH] x86: Add warning when memmap=nn!ss and
+ CONFIG_RANDOMIZE_BASE enabled
+Date: Fri, 18 Nov 2016 12:33:35 +0100 (CET)
+Message-ID: <alpine.DEB.2.20.1611181224440.3615@nanos>
+References: <147941499514.131046.6450643991764692220.stgit@djiang5-desk3.ch.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20161116172108.GV3142@twins.programming.kicks-ass.net>
-Sender: owner-linux-mm@kvack.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Jan Kara <jack@suse.cz>, "Kirill A. Shutemov" <kirill@shutemov.name>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <147941499514.131046.6450643991764692220.stgit-Cxk7aZI4ujnJARH06PadV2t3HXsI98Cx0E9HWUfgJXw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed 16-11-16 18:21:08, Peter Zijlstra wrote:
-> On Wed, Nov 16, 2016 at 12:01:01PM +0100, Jan Kara wrote:
-> > On Wed 16-11-16 11:51:32, Peter Zijlstra wrote:
-> 
-> > > Now, I'm entirely out of touch wrt DAX, so I've not idea what that
-> > > needs/wants.
-> > 
-> > Yeah, DAX does not have 'struct page' for its pages so it directly installs
-> > PFNs in the page tables. As a result it needs to know about page tables and
-> > stuff.
-> 
-> Not convinced, a physical address should then be the equivalent of a
-> struct page. You still don't need access to the actual pages tables. The
-> VM core can then convert the physical address to a PFN and stuff it in
-> the PTE entry.
-> 
-> > Now I've abstracted knowledge about that into helper functions back
-> > in mm/ but still we need to pass the information through the ->fault handler
-> > into those helpers and vm_fault structure is simply natural for that.
-> > So far we have tried to avoid that but the result was not pretty (special
-> > return codes from DAX ->fault handlers essentially leaking information
-> > about DAX internal locking into mm/ code to direct generic mm code to do
-> > the right thing for DAX).
-> 
-> Its probably the DAX locking bit I'm missing, because I cannot see why
-> VM_FAULT_DAX_LOCKED is 'broken' -- also, I'd have called that
-> VM_FAULT_PFN or similar and not have used the full entry but only the
-> PFN bits from it.
+On Thu, 17 Nov 2016, Dave Jiang wrote:
+> CONFIG_RANDOMIZE_BASE can place the kernel anywhere. This causes a problem
+> for when memmap=nn!ss is used. This information is not known until after
+> the kernel starts executing and the decision for where the randomized
+> base goes happens before the kernel is uncompressed. memmap=nn!ss is not
+> reliable in the presence of CONFIG_RANDOMIZE_BASE.
 
-The problem really is in the locking. Currently fault code expects to get a
-locked page from the ->fault() handler (or it locks the returned page on
-its own). When we don't have struct page, we don't have a page lock. So we
-use different locks to synchronize against truncate, or other page faults
-of the same page by a different process. And modification of page tables
-needs to be protected by these locks in the same way as it needs to be
-protected by the page lock for normal pages.
+So this is a description of a problem. Now what's missing is a useful
+explanation why you think that adding a warning will make things better.
 
-So I find it to be bigger layering violation for generic mm layer to know
-how DAX decided to serialize racing page faults, than for DAX layer to call
-helpers from mm layer to update page tables when it holds appropriate
-locks.
+IMNSHO adding that warning is just a pointless exercise. 
 
-Essentially we just switch from a model "Return data from a fault handler
-so that generic layer can finish the page fault" to a model "Call helper
-from the fault handler passing it necessary information to finish the page
-fault". That model is more flexible (I agree it offers more opportunities
-for abuse as well) but overall result looks IMHO cleaner.
+Why aren't you addressing the real issue and make the boot code parse that
+option and prevent that region from being used for kernel placement?
+ 
+The same issue exists for other memmap options as well, not just for that
+PMEM thingy.
 
-And I would add that modifying page tables from a fault handler is nothing
-new - basically every video driver does it. They just generally don't have
-that comprehensive support for mmap so they get away with less exported
-functionality.
+Thanks,
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+	tglx
