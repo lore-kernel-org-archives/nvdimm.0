@@ -1,59 +1,70 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 18/21] mm: Export follow_pte()
-Date: Fri,  4 Nov 2016 05:25:14 +0100
-Message-Id: <1478233517-3571-19-git-send-email-jack@suse.cz>
-In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
-References: <1478233517-3571-1-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from NAM01-SN1-obe.outbound.protection.outlook.com
+ (mail-sn1nam01on070f.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe40::70f])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 6262981C80
+ for <linux-nvdimm@lists.01.org>; Fri, 18 Nov 2016 14:39:41 -0800 (PST)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2] libnvdimm: clear poison in mem map metadata
+Date: Fri, 18 Nov 2016 22:39:45 +0000
+Message-ID: <1479508650.20881.157.camel@hpe.com>
+References: <147948881573.51395.14734124244596181990.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <147948881573.51395.14734124244596181990.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
+Content-ID: <4AF9D6C2AEB9E04FAB9B23014C52C8DF@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX will need to implement its own version of page_check_address(). To
-avoid duplicating page table walking code, export follow_pte() which
-does what we need.
-
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- include/linux/mm.h | 2 ++
- mm/memory.c        | 4 ++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 685ff1c57f2b..a5f52c0ce61a 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1210,6 +1210,8 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
- 			struct vm_area_struct *vma);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
-+int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
-+	       spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
- 	unsigned long *pfn);
- int follow_phys(struct vm_area_struct *vma, unsigned long address,
-diff --git a/mm/memory.c b/mm/memory.c
-index b3bd6b6c6472..7660f6169bee 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3782,8 +3782,8 @@ static int __follow_pte(struct mm_struct *mm, unsigned long address,
- 	return -EINVAL;
- }
- 
--static inline int follow_pte(struct mm_struct *mm, unsigned long address,
--			     pte_t **ptepp, spinlock_t **ptlp)
-+int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
-+	       spinlock_t **ptlp)
- {
- 	int res;
- 
--- 
-2.6.6
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+T24gRnJpLCAyMDE2LTExLTE4IGF0IDEwOjA2IC0wNzAwLCBEYXZlIEppYW5nIHdyb3RlOg0KPiBD
+bGVhcmluZyBvdXQgdGhlIHBvaXNvbiBpbiB0aGUgbWV0YWRhdGEgYmxvY2sgb2YgdGhlIG5hbWVz
+cGFjZSBiZWZvcmUNCj4gd2UgdXNlIGl0LiBSYW5nZSBmcm9tIHN0YXJ0ICsgOGsgdG8gcGZuX3Ni
+LT5kYXRhb2ZmLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogRGF2ZSBKaWFuZyA8ZGF2ZS5qaWFuZ0Bp
+bnRlbC5jb20+DQo+IC0tLQ0KPiDCoGRyaXZlcnMvbnZkaW1tL3Bmbl9kZXZzLmMgfMKgwqDCoDMw
+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiDCoDEgZmlsZSBjaGFuZ2VkLCAzMCBp
+bnNlcnRpb25zKCspDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vcGZuX2RldnMu
+YyBiL2RyaXZlcnMvbnZkaW1tL3Bmbl9kZXZzLmMNCj4gaW5kZXggY2VhODM1MC4uMzBjN2VhZiAx
+MDA2NDQNCj4gLS0tIGEvZHJpdmVycy9udmRpbW0vcGZuX2RldnMuYw0KPiArKysgYi9kcml2ZXJz
+L252ZGltbS9wZm5fZGV2cy5jDQo+IEBAIC01MjcsMTEgKzUyNyw0MSBAQCBzdGF0aWMgc3RydWN0
+IHZtZW1fYWx0bWFwDQo+ICpfX252ZGltbV9zZXR1cF9wZm4oc3RydWN0IG5kX3BmbiAqbmRfcGZu
+LA0KPiDCoAkJLmJhc2VfcGZuID0gaW5pdF9hbHRtYXBfYmFzZShiYXNlKSwNCj4gwqAJCS5yZXNl
+cnZlID0gaW5pdF9hbHRtYXBfcmVzZXJ2ZShiYXNlKSwNCj4gwqAJfTsNCj4gKwlzZWN0b3JfdCBz
+ZWN0b3I7DQo+ICsJcmVzb3VyY2Vfc2l6ZV90IG1ldGFfc3RhcnQsIG1ldGFfc2l6ZTsNCj4gKwls
+b25nIGNsZWFyZWQ7DQo+ICsJdW5zaWduZWQgaW50IHN6X2FsaWduOw0KPiDCoA0KPiDCoAltZW1j
+cHkocmVzLCAmbnNpby0+cmVzLCBzaXplb2YoKnJlcykpOw0KPiDCoAlyZXMtPnN0YXJ0ICs9IHN0
+YXJ0X3BhZDsNCj4gwqAJcmVzLT5lbmQgLT0gZW5kX3RydW5jOw0KPiDCoA0KPiArCW1ldGFfc3Rh
+cnQgPSByZXMtPnN0YXJ0ICsgU1pfOEs7DQo+ICsJbWV0YV9zaXplID0gb2Zmc2V0IC0gbWV0YV9z
+dGFydCArIDE7DQo+ICsNCj4gKwlpZiAobWV0YV9zdGFydCArIG1ldGFfc2l6ZSA+IG9mZnNldCkN
+Cj4gKwkJcmV0dXJuIEVSUl9QVFIoLUVJTlZBTCk7DQo+ICsNCj4gKwlzZWN0b3IgPSBtZXRhX3N0
+YXJ0ID4+IDk7DQo+ICsJc3pfYWxpZ24gPSBBTElHTihtZXRhX3NpemUgKyAobWV0YV9zdGFydCAm
+ICg1MTIgLSAxKSksIDUxMik7DQo+ICsNCj4gKwlpZiAodW5saWtlbHkoaXNfYmFkX3BtZW0oJm5z
+aW8tPmJiLCBzZWN0b3IsIHN6X2FsaWduKSkpIHsNCj4gKwkJaWYgKElTX0FMSUdORUQobWV0YV9z
+dGFydCwgNTEyKSAmJg0KPiBJU19BTElHTkVEKG1ldGFfc2l6ZSwgNTEyKSkgew0KPiArCQkJY2xl
+YXJlZCA9IG52ZGltbV9jbGVhcl9wb2lzb24oJm5kX3Bmbi0+ZGV2LA0KPiArCQkJCQkJwqDCoMKg
+wqDCoMKgbWV0YV9zdGFydCwNCj4gbWV0YV9zaXplKTsNCj4gKwkJCWlmIChjbGVhcmVkIDw9IDAp
+DQo+ICsJCQkJcmV0dXJuIEVSUl9QVFIoLUVJTyk7DQo+ICsJCQllbHNlIHsNCj4gKwkJCQliYWRi
+bG9ja3NfY2xlYXIoJm5zaW8tPmJiLCBzZWN0b3IsDQo+ICsJCQkJCQljbGVhcmVkID4+IDkpOw0K
+PiArCQkJCWlmIChjbGVhcmVkICE9IG1ldGFfc2l6ZSkNCj4gKwkJCQkJcmV0dXJuIEVSUl9QVFIo
+LUVJTyk7DQo+ICsNCj4gKwkJCX0NCj4gKwkJfSBlbHNlDQo+ICsJCQlyZXR1cm4gRVJSX1BUUigt
+RUlPKTsNCj4gKwl9DQoNClRoZSBhYm92ZSBuZXN0ZWQgaWYtc3RhdGVtZW50cyBjYW4gYmUgY2hh
+bmdlZCB0bzoNCg0KaWYgKCFJU19BTElHTkVELi4uKQ0KCXJldHVybiBFUlJfUFRSKC1FSU8pOw0K
+DQpjbGVhcmVkID0gbnZkaW1tX2NsZWFyX3BvaXNvbiguLi4pOw0KaWYgKGNsZWFyZWQgPD0gMCkN
+CglyZXR1cm4gRVJSX1BUUigtRUlPKTsNCg0KYmFkYmxvY2tzX2NsZWFyKC4uLikNCmlmIChjbGVh
+cmVkICE9IG1ldGFfc2l6ZSkNCglyZXR1cm4gRVJSX1BUUigtRUlPKTsNCg0KVGhhbmtzLA0KLVRv
+c2hpDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
+bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
+L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
