@@ -1,19 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM01-BY2-obe.outbound.protection.outlook.com
- (mail-by2nam01on0712.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe42::712])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8F80881E88
- for <linux-nvdimm@lists.01.org>; Tue, 22 Nov 2016 16:07:01 -0800 (PST)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH v3] libnvdimm: clear poison in mem map metadata
-Date: Wed, 23 Nov 2016 00:07:00 +0000
-Message-ID: <1479859481.20881.158.camel@hpe.com>
-References: <147976134582.93357.14661800715988484489.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <147976134582.93357.14661800715988484489.stgit@djiang5-desk3.ch.intel.com>
-Content-Language: en-US
-Content-ID: <4DC540E917D76748969DD52AD8FD0E7E@NAMPRD84.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id 874BF81C98
+ for <linux-nvdimm@lists.01.org>; Mon, 21 Nov 2016 12:49:06 -0800 (PST)
+Subject: [PATCH v3] libnvdimm: clear poison in mem map metadata
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 21 Nov 2016 13:49:05 -0700
+Message-ID: <147976134582.93357.14661800715988484489.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,20 +16,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE2LTExLTIxIGF0IDEzOjQ5IC0wNzAwLCBEYXZlIEppYW5nIHdyb3RlOg0KPiBD
-bGVhcmluZyBvdXQgdGhlIHBvaXNvbiBpbiB0aGUgbWV0YWRhdGEgYmxvY2sgb2YgdGhlIG5hbWVz
-cGFjZSBiZWZvcmUNCj4gd2UgdXNlIGl0LiBSYW5nZSBmcm9tIHN0YXJ0ICsgOGsgdG8gcGZuX3Ni
-LT5kYXRhb2ZmLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogRGF2ZSBKaWFuZyA8ZGF2ZS5qaWFuZ0Bp
-bnRlbC5jb20+DQoNClRoYW5rcyBmb3IgdGhlIHVwZGF0ZS4gwqBUaGlzIGxvb2tzIGdvb2QgdG8g
-bWUuDQoNClJldmlld2VkLWJ5OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+DQoNCi1U
-b3NoaQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
-eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9s
-aXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Clearing out the poison in the metadata block of the namespace before
+we use it. Range from start + 8k to pfn_sb->dataoff.
+
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ drivers/nvdimm/pfn_devs.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index cea8350..7fa428e 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -527,11 +527,39 @@ static struct vmem_altmap *__nvdimm_setup_pfn(struct nd_pfn *nd_pfn,
+ 		.base_pfn = init_altmap_base(base),
+ 		.reserve = init_altmap_reserve(base),
+ 	};
++	sector_t sector;
++	resource_size_t meta_start, meta_size;
++	long cleared;
++	unsigned int sz_align;
+ 
+ 	memcpy(res, &nsio->res, sizeof(*res));
+ 	res->start += start_pad;
+ 	res->end -= end_trunc;
+ 
++	meta_start = res->start + SZ_8K;
++	meta_size = offset - meta_start + 1;
++
++	if (meta_start + meta_size > offset)
++		return ERR_PTR(-EINVAL);
++
++	sector = meta_start >> 9;
++	sz_align = ALIGN(meta_size + (meta_start & (512 - 1)), 512);
++
++	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
++		if (!IS_ALIGNED(meta_start, 512) ||
++		    !IS_ALIGNED(meta_size, 512))
++			return ERR_PTR(-EIO);
++
++		cleared = nvdimm_clear_poison(&nd_pfn->dev,
++					      meta_start, meta_size);
++		if (cleared <= 0)
++			return ERR_PTR(-EIO);
++
++		badblocks_clear(&nsio->bb, sector, cleared >> 9);
++		if (cleared != meta_size)
++			return ERR_PTR(-EIO);
++	}
++
+ 	if (nd_pfn->mode == PFN_MODE_RAM) {
+ 		if (offset < SZ_8K)
+ 			return ERR_PTR(-EINVAL);
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
