@@ -1,7 +1,7 @@
-From: "pdujihtpm" <agkvlves-s+Aztf/+rOdg9hUCZPvPmw@public.gmane.org>
-Subject: =?utf-8?B?5q2m5rGJ5qyn5LyX56eR5oqA5Y+R5bGV5pyJ6ZmQ5YWs5Y+4?=
-Date: Sat, 17 Jul 2010 05:21:41 +0800
-Message-ID: <20100717052155167386@agmxnqjp.org>
+From: "vyqhw" <ukpzosny-nyYkwpRmTRM@public.gmane.org>
+Subject: =?utf-8?B?5rex5Zyz6a2F5Yqo6Z+z5ZON5pyJ6ZmQ5YWs5Y+4?=
+Date: Tue, 22 Nov 2016 19:35:10 +0800
+Message-ID: <20161122193516824161@be.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
