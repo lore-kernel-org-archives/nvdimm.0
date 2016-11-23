@@ -1,22 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-From: "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>
+Date: Wed, 23 Nov 2016 16:25:03 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Thu, 24 Nov 2016 00:40:37 +0000
-Message-ID: <SN1PR12MB0703CE07F4878243164299C4FEB70@SN1PR12MB0703.namprd12.prod.outlook.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+Message-ID: <20161123232503.GA13965@obsidianresearch.com>
+References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
  <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
  <20161123190515.GA12146@obsidianresearch.com>
  <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
  <20161123193228.GC12146@obsidianresearch.com>
  <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
  <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>,
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
  <20161123215510.GA16311@obsidianresearch.com>
-In-Reply-To: <20161123215510.GA16311@obsidianresearch.com>
-Content-Language: en-CA
+ <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,78 +27,67 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Logan Gunthorpe <logang@deltatee.com>
-Cc: Haggai Eran <haggaie@mellanox.com>, "Bridgman, John  <John.Bridgman@amd.com>, linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Kuehling,, "Paul  <Paul.Blinzer@amd.com>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Sander,, "Suravee  <Suravee.Suthikulpanit@amd.com>, linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Deucher,, "Christian  <Christian.Koenig@amd.com>, Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Haggai Eran <haggaie@mellanox.com>, "Bridgman, John  <John.Bridgman@amd.com>, linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "Kuehling, Felix  <Felix.Kuehling@amd.com>, Serguei Sagalovitch" <serguei.sagalovitch@amd.com>, "Blinzer, Paul  <Paul.Blinzer@amd.com>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Sander,, "Suravee  <Suravee.Suthikulpanit@amd.com>, linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Deucher,, "Christian  <Christian.Koenig@amd.com>, Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Nov 23, 2016 at 02:11:29PM -0700, Logan Gunthorpe wrote:
+On Wed, Nov 23, 2016 at 02:42:12PM -0800, Dan Williams wrote:
+> > The crucial part for this discussion is the ability to fence and block
+> > DMA for a specific range. This is the hardware capability that lets
+> > page migration happen: fence&block DMA, migrate page, update page
+> > table in HCA, unblock DMA.
+> 
+> Wait, ODP requires migratable pages, ZONE_DEVICE pages are not
+> migratable.
 
-> Perhaps I am not following what Serguei is asking for, but I
-> understood the desire was for a complex GPU allocator that could
-> migrate pages between GPU and CPU memory under control of the GPU
-> driver, among other things. The desire is for DMA to continue to work
-> even after these migrations happen.
+Does it? I didn't think so.. Does ZONE_DEVICE break MMU notifiers/etc
+or something? There is certainly nothing about the hardware that cares
+about ZONE_DEVICE vs System memory.
 
-The main issue is to  how to solve use cases when p2p is 
-requested/initiated via CPU pointers where such pointers could 
-point to non-system memory location e.g.  VRAM.  
+I used 'migration' in the broader sense of doing any transformation to
+the page such that the DMA address changes - not the specific kernel
+MM process...
 
-It will allow to provide consistent working model for user to deal only
-with pointers (HSA, CUDA, OpenCL 2.0 SVM) as well as provide 
-performance optimization avoiding double-buffering and extra special code 
-when dealing with PCIe device memory.
+> You can't replace a PCIe mapping with just any other System RAM
+> physical address, right?
 
- Examples are:
+I thought that was exactly what HMM was trying to do? Migrate pages
+between CPU and GPU memory as needed. As Serguei has said this process
+needs to be driven by the GPU driver.
 
- - RDMA Network operations.  RDMA MRs where registered memory 
-could be e.g. VRAM.  Currently it is solved using so called PeerDirect  
-interface which  is currently out-of-tree and  provided as part of OFED.
-- File operations (fread/fwrite) when user wants to transfer file data directly 
-to/from e.g. VRAM
+The peer-peer issue is how do you do that while RDMA is possible on
+those pages, because when the page migrates to GPU memory you want the
+RDMA to follow it seamlessly.
 
+This is why page table mirroring is the best solution - use the
+existing mm machinery to link the DMA driver and whatever is
+controlling the VMA.
 
-Challenges are:
-- Because graphics sub-system must support overcomit (at least each 
-application/process should independently see all resources) ideally 
-such memory should be movable without changing CPU pointer value
-as well as "paged-out" supporting "page fault" at least on access from 
-CPU.
- - We must co-exist with existing DRM infrastructure, as well as 
-support sharing VRAM memory between different processes
-- We should be able to deal with large allocations: tens, hundreds of 
-MBs or may be GBs.
-- We may have PCIe devices where p2p may not work
-- Potentially any GPU memory should be supported including 
-memory carved out from system RAM (e.g. allocated via
-get_free_pages()).
+> At least not without a filesystem recording where things went, but
+> at point we're no longer talking about the base P2P-DMA mapping
 
+In the filesystem/DAX case, it would be the filesystem that initiates
+any change in the page physical address.
 
-Note:
--  In the case of RDMA MRs life-span of "pinning" 
-(get_user_pages"/put_page) may be defined/controlled by 
-application not kernel which  may be should 
-treated differently as special case. 
-  
+ODP *follows* changes in the VMA it does not cause any change in
+address mapping. That has to be done by whoever is in charge of the
+VMA.
 
-Original proposal was to create "struct pages" for VRAM memory 
-to allow "get_user_pages"  to work transparently similar 
-how it is/was done for "DAX Device" case. Unfortunately 
-based on my understanding "DAX Device" implementation 
-deal only with permanently  "locked" memory  (fixed location) 
-unrelated to "get_user_pages"/"put_page" scope  
-which doesn't satisfy requirements  for "eviction" / "moving" of 
-memory keeping CPU address intact.  
+> something like pnfs-rdma to a DAX filesystem.
 
-> The desire is for DMA to continue to work
-> even after these migrations happen
-At least some kind of mm notifier callback to inform about changing 
-in location (pre- and post-) similar how it is done for system pages. 
-My understanding is that It will not solve RDMA MR issue where "lock" 
-could be during the whole  application life but  (a) it will not make 
-RDMA MR case worse  (b) should be enough for all other cases for 
-"get_user_pages"/"put_page" controlled by  kernel.
- 
- 
+Something in the kernel (ie nfs-rdma) would be entirely different. We
+generally don't do long lived mappings in the kernel for RDMA
+(certainly not for NFS), so it is much more like your basic every day
+DMA operation: map, execute, unmap. We probably don't need to use page
+table mirroring for this.
+
+ODP comes in when userpsace mmaps a DAX file and then tries to use it
+for RDMA. Page table mirroring lets the DAX filesystem decide to move
+the backing pages at any time. When it wants to do that it interacts
+with the MM in the usual way which links to ODP and makes sure the
+migration is seamless.
+
+Jason
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
