@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F0AD781F12
- for <linux-nvdimm@lists.01.org>; Fri, 18 Nov 2016 01:17:29 -0800 (PST)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 14/20] mm: Move part of wp_page_reuse() into the single call
- site
-Date: Fri, 18 Nov 2016 10:17:18 +0100
-Message-Id: <1479460644-25076-15-git-send-email-jack@suse.cz>
-In-Reply-To: <1479460644-25076-1-git-send-email-jack@suse.cz>
-References: <1479460644-25076-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 3E21F81ECD
+ for <linux-nvdimm@lists.01.org>; Wed, 23 Nov 2016 10:45:10 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 4/6] dax: update MAINTAINERS entries for FS DAX
+Date: Wed, 23 Nov 2016 11:44:20 -0700
+Message-Id: <1479926662-21718-5-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1479926662-21718-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1479926662-21718-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,90 +22,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill@shutemov.name>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-kernel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-wp_page_reuse() handles write shared faults which is needed only in
-wp_page_shared(). Move the handling only into that location to make
-wp_page_reuse() simpler and avoid a strange situation when we sometimes
-pass in locked page, sometimes unlocked etc.
+Add the new include/trace/events/fs_dax.h tracepoint header, update
+Matthew's email address and add myself as a maintainer for filesystem DAX.
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Matthew Wilcox <mawilcox@microsoft.com>
 ---
- mm/memory.c | 27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ MAINTAINERS | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/mm/memory.c b/mm/memory.c
-index 8d08015ed44d..7fd9c2c60281 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2106,8 +2106,7 @@ static void fault_dirty_shared_page(struct vm_area_struct *vma,
-  * case, all we need to do here is to mark the page as writable and update
-  * any related book-keeping.
-  */
--static inline int wp_page_reuse(struct vm_fault *vmf,
--				int page_mkwrite, int dirty_shared)
-+static inline void wp_page_reuse(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
-@@ -2127,16 +2126,6 @@ static inline int wp_page_reuse(struct vm_fault *vmf,
- 	if (ptep_set_access_flags(vma, vmf->address, vmf->pte, entry, 1))
- 		update_mmu_cache(vma, vmf->address, vmf->pte);
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
--
--	if (dirty_shared) {
--		if (!page_mkwrite)
--			lock_page(page);
--
--		fault_dirty_shared_page(vma, page);
--		put_page(page);
--	}
--
--	return VM_FAULT_WRITE;
- }
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 2a58eea..8fef4bf 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3855,10 +3855,12 @@ S:	Maintained
+ F:	drivers/i2c/busses/i2c-diolan-u2c.c
  
- /*
-@@ -2311,7 +2300,8 @@ static int wp_pfn_shared(struct vm_fault *vmf)
- 			return 0;
- 		}
- 	}
--	return wp_page_reuse(vmf, 0, 0);
-+	wp_page_reuse(vmf);
-+	return VM_FAULT_WRITE;
- }
+ DIRECT ACCESS (DAX)
+-M:	Matthew Wilcox <willy@linux.intel.com>
++M:	Matthew Wilcox <mawilcox@microsoft.com>
++M:	Ross Zwisler <ross.zwisler@linux.intel.com>
+ L:	linux-fsdevel@vger.kernel.org
+ S:	Supported
+ F:	fs/dax.c
++F:	include/trace/events/fs_dax.h
  
- static int wp_page_shared(struct vm_fault *vmf)
-@@ -2349,7 +2339,13 @@ static int wp_page_shared(struct vm_fault *vmf)
- 		page_mkwrite = 1;
- 	}
- 
--	return wp_page_reuse(vmf, page_mkwrite, 1);
-+	wp_page_reuse(vmf);
-+	if (!page_mkwrite)
-+		lock_page(vmf->page);
-+	fault_dirty_shared_page(vma, vmf->page);
-+	put_page(vmf->page);
-+
-+	return VM_FAULT_WRITE;
- }
- 
- /*
-@@ -2424,7 +2420,8 @@ static int do_wp_page(struct vm_fault *vmf)
- 				page_move_anon_rmap(vmf->page, vma);
- 			}
- 			unlock_page(vmf->page);
--			return wp_page_reuse(vmf, 0, 0);
-+			wp_page_reuse(vmf);
-+			return VM_FAULT_WRITE;
- 		}
- 		unlock_page(vmf->page);
- 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+ DIRECTORY NOTIFICATION (DNOTIFY)
+ M:	Eric Paris <eparis@parisplace.org>
 -- 
-2.6.6
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
