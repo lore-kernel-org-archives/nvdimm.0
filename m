@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5574B81D11
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:26 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 5351981E8B
+ for <linux-nvdimm@lists.01.org>; Wed, 23 Nov 2016 10:45:05 -0800 (PST)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v9 00/16] re-enable DAX PMD support
-Date: Tue,  1 Nov 2016 13:54:02 -0600
-Message-Id: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH 0/6] introduce DAX tracepoint support
+Date: Wed, 23 Nov 2016 11:44:16 -0700
+Message-Id: <1479926662-21718-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,70 +21,47 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX PMDs have been disabled since Jan Kara introduced DAX radix tree based
-locking.  This series allows DAX PMDs to participate in the DAX radix tree
-based locking scheme so that they can be re-enabled.
+Tracepoints are the standard way to capture debugging and tracing
+information in many parts of the kernel, including the XFS and ext4
+filesystems.  This series creates a tracepoint header for FS DAX and add
+the first few DAX tracepoints to the PMD fault handler.  This allows the
+tracing for DAX to be done in the same way as the filesystem tracing so
+that developers can look at them together and get a coherent idea of what
+the system is doing.                                                            
+                                                                                
+I do intend to add tracepoints to the normal 4k DAX fault path and to the       
+DAX I/O path, but I wanted to get feedback on the PMD tracepoints before I      
+went any further.                                                               
+                                                                                
+This series is based on Jan Kara's "dax: Clear dirty bits after flushing        
+caches" series:                                                                 
+                                                                                
+https://lists.01.org/pipermail/linux-nvdimm/2016-November/007864.html           
+                                                                                
+I've pushed a git tree with this work here:                                     
+                                                                                
+https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_tracepoints
 
-Previously we had talked about this series going through the XFS tree, but
-Jan has a patch set that will need to build on this series and it heavily
-modifies the MM code.  I think he would prefer that series to go through
-Andrew Morton's -MM tree, so it probably makes sense for this series to go
-through that same tree.
+Ross Zwisler (6):
+  dax: fix build breakage with ext4, dax and !iomap
+  dax: remove leading space from labels
+  dax: add tracepoint infrastructure, PMD tracing
+  dax: update MAINTAINERS entries for FS DAX
+  dax: add tracepoints to dax_pmd_load_hole()
+  dax: add tracepoints to dax_pmd_insert_mapping()
 
-For reference, here is the series from Jan that I was talking about:
-https://marc.info/?l=linux-mm&m=147499252322902&w=2
-
-Andrew, can you please pick this up for the v4.10 merge window?
-This series is currently based on v4.9-rc3.  I tried to rebase onto a -mm
-branch or tag, but couldn't find one that contained the DAX iomap changes
-that were merged as part of the v4.9 merge window.  I'm happy to rebase &
-test on a v4.9-rc* based -MM branch or tag whenever they are available.
-
-Changes since v8:
-- Rebased onto v4.9-rc3.
-- Updated the DAX PMD fault path so that on fallback we always check to see
-  if we are dealing with a transparent huge page, and if we are we will
-  split it.  This was already happening for one of the fallback cases via a
-  patch from Toshi, and Jan hit a deadlock in another fallback case where
-  the same splitting was needed.  (Jan & Toshi)
-
-This series has passed all my xfstests testing, including the test that was
-hitting the deadlock with v8.
-
-Here is a tree containing my changes:
-https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_pmd_v9
-
-Ross Zwisler (16):
-  ext4: tell DAX the size of allocation holes
-  dax: remove buffer_size_valid()
-  ext2: remove support for DAX PMD faults
-  dax: make 'wait_table' global variable static
-  dax: remove the last BUG_ON() from fs/dax.c
-  dax: consistent variable naming for DAX entries
-  dax: coordinate locking for offsets in PMD range
-  dax: remove dax_pmd_fault()
-  dax: correct dax iomap code namespace
-  dax: add dax_iomap_sector() helper function
-  dax: dax_iomap_fault() needs to call iomap_end()
-  dax: move RADIX_DAX_* defines to dax.h
-  dax: move put_(un)locked_mapping_entry() in dax.c
-  dax: add struct iomap based DAX PMD support
-  xfs: use struct iomap based DAX PMD fault path
-  dax: remove "depends on BROKEN" from FS_DAX_PMD
-
- fs/Kconfig          |   1 -
- fs/dax.c            | 826 +++++++++++++++++++++++++++++-----------------------
- fs/ext2/file.c      |  35 +--
- fs/ext4/inode.c     |   3 +
- fs/xfs/xfs_aops.c   |  26 +-
- fs/xfs/xfs_aops.h   |   3 -
- fs/xfs/xfs_file.c   |  10 +-
- include/linux/dax.h |  58 +++-
- mm/filemap.c        |   5 +-
- 9 files changed, 537 insertions(+), 430 deletions(-)
+ MAINTAINERS                   |   4 +-
+ fs/Kconfig                    |   1 +
+ fs/dax.c                      |  78 ++++++++++++++----------
+ fs/ext2/Kconfig               |   1 -
+ include/linux/mm.h            |  14 +++++
+ include/linux/pfn_t.h         |   6 ++
+ include/trace/events/fs_dax.h | 135 ++++++++++++++++++++++++++++++++++++++++++
+ 7 files changed, 206 insertions(+), 33 deletions(-)
+ create mode 100644 include/trace/events/fs_dax.h
 
 -- 
 2.7.4
