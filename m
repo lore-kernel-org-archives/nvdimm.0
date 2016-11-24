@@ -1,16 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oi0-x235.google.com (mail-oi0-x235.google.com
+ [IPv6:2607:f8b0:4003:c06::235])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E690781EE6
- for <linux-nvdimm@lists.01.org>; Thu, 24 Nov 2016 01:47:02 -0800 (PST)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 3/6] dax: Avoid page invalidation races and unnecessary radix
- tree traversals
-Date: Thu, 24 Nov 2016 10:46:33 +0100
-Message-Id: <1479980796-26161-4-git-send-email-jack@suse.cz>
-In-Reply-To: <1479980796-26161-1-git-send-email-jack@suse.cz>
-References: <1479980796-26161-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 33A6181EF0
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Nov 2016 11:30:14 -0800 (PST)
+Received: by mail-oi0-x235.google.com with SMTP id v84so60134746oie.3
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Nov 2016 11:30:14 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20161124000458.GS31101@dastard>
+References: <147977413859.13657.2181994710415174471.stgit@djiang5-desk3.ch.intel.com>
+ <20161122084754.GA25596@gmail.com>
+ <CAPcyv4i+2NxdTc1xzVL+KQs8hLfUhbpGX3zstO_b=RY3hCy64w@mail.gmail.com>
+ <CAGXu5jKwJaqXcmkB9Tt-sXOYhrixSRmFWA7r4QxKp10qCfCyuA@mail.gmail.com>
+ <CAPcyv4jR8cVG4y90aCNycc8-PY29Jm3J89-w87dgE4hBpfVxWw@mail.gmail.com>
+ <20161124000458.GS31101@dastard>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 24 Nov 2016 11:30:12 -0800
+Message-ID: <CAPcyv4iHMg_-aAzk+f8MJ9_cscL8hz6g1sQ9ER+4gNLRP43ZfQ@mail.gmail.com>
+Subject: Re: [PATCH] x86: fix kaslr and memmap collision
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,82 +26,40 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, linux-ext4@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Kees Cook <keescook@chromium.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently each filesystem (possibly through generic_file_direct_write()
-or iomap_dax_rw()) takes care of invalidating page tables and evicting
-hole pages from the radix tree when write(2) to the file happens. This
-invalidation is only necessary when there is some block allocation
-resulting from write(2). Furthermore in current place the invalidation
-is racy wrt page fault instantiating a hole page just after we have
-invalidated it.
+On Wed, Nov 23, 2016 at 4:04 PM, Dave Chinner <david@fromorbit.com> wrote:
+> On Tue, Nov 22, 2016 at 11:01:32AM -0800, Dan Williams wrote:
+>> On Tue, Nov 22, 2016 at 10:54 AM, Kees Cook <keescook@chromium.org> wrote:
+>> > On Tue, Nov 22, 2016 at 9:26 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+>> >> No, you're right, we need to handle multiple ranges.  Since the
+>> >> mem_avoid array is statically allocated perhaps we can handle up to 4
+>> >> memmap= entries, but past that point disable kaslr for that boot?
+>> >
+>> > Yeah, that seems fine to me. I assume it's rare to have 4?
+>> >
+>>
+>> It should be rare to have *one* since ACPI 6.0 added support for
+>> communicating persistent memory ranges.  However there are legacy
+>> nvdimm users that I know are doing at least 2, but I have hard time
+>> imagining they would ever do more than 4.
+>
+> I doubt it's rare amongst the people using RAM to emulate pmem for
+> filesystem testing purposes. My "pmem" test VM always has at least 2
+> ranges set to give me two discrete pmem devices, and I have used 4
+> from time to time to do things like test multi-volume scratch XFS
+> filesystems in xfstests (i.e. data, log and realtime volumes) so I
+> didn't need to play games with partitioning or DM...
 
-So perform the page invalidation inside dax_do_io() where we can do it
-only when really necessary and after blocks have been allocated so
-nobody will be instantiating new hole pages anymore.
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 28 +++++++++++-----------------
- 1 file changed, 11 insertions(+), 17 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 4534f0e232e9..ddf77ef2ca18 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -984,6 +984,17 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED))
- 		return -EIO;
- 
-+	/*
-+	 * Write can allocate block for an area which has a hole page mapped
-+	 * into page tables. We have to tear down these mappings so that data
-+	 * written by write(2) is visible in mmap.
-+	 */
-+	if ((iomap->flags & IOMAP_F_NEW) && inode->i_mapping->nrpages) {
-+		invalidate_inode_pages2_range(inode->i_mapping,
-+					      pos >> PAGE_SHIFT,
-+					      (end - 1) >> PAGE_SHIFT);
-+	}
-+
- 	while (pos < end) {
- 		unsigned offset = pos & (PAGE_SIZE - 1);
- 		struct blk_dax_ctl dax = { 0 };
-@@ -1042,23 +1053,6 @@ dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 	if (iov_iter_rw(iter) == WRITE)
- 		flags |= IOMAP_WRITE;
- 
--	/*
--	 * Yes, even DAX files can have page cache attached to them:  A zeroed
--	 * page is inserted into the pagecache when we have to serve a write
--	 * fault on a hole.  It should never be dirtied and can simply be
--	 * dropped from the pagecache once we get real data for the page.
--	 *
--	 * XXX: This is racy against mmap, and there's nothing we can do about
--	 * it. We'll eventually need to shift this down even further so that
--	 * we can check if we allocated blocks over a hole first.
--	 */
--	if (mapping->nrpages) {
--		ret = invalidate_inode_pages2_range(mapping,
--				pos >> PAGE_SHIFT,
--				(pos + iov_iter_count(iter) - 1) >> PAGE_SHIFT);
--		WARN_ON_ONCE(ret);
--	}
--
- 	while (iov_iter_count(iter)) {
- 		ret = iomap_apply(inode, pos, iov_iter_count(iter), flags, ops,
- 				iter, dax_iomap_actor);
--- 
-2.6.6
-
+Right, but for testing do you need kaslr to be active? You can have as
+many memmap regions as you want, we'll just stop trying to find a
+random kernel base address after you've defined 4.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
