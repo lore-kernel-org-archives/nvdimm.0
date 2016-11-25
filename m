@@ -1,23 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Date: Thu, 24 Nov 2016 23:58:17 -0800
+From: Christoph Hellwig <hch@infradead.org>
 Subject: Re: Enabling peer to peer device transactions for PCIe devices
-References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <20161123190515.GA12146@obsidianresearch.com>
+Message-ID: <20161125075817.GA18428@infradead.org>
+References: <20161123190515.GA12146@obsidianresearch.com>
  <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
  <20161123193228.GC12146@obsidianresearch.com>
  <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
  <20161123203332.GA15062@obsidianresearch.com>
  <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
  <20161123215510.GA16311@obsidianresearch.com>
- <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
- <20161123232503.GA13965@obsidianresearch.com>
- <a33ec1cd-051f-8a24-0587-68707459c25c@amd.com>
- <5e1de9ee-34f5-136d-a07e-f949d492864f@deltatee.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <c60815a1-aaac-52eb-1714-66abb28bdc01@amd.com>
-Date: Fri, 25 Nov 2016 14:06:21 +0100
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <9cc22068-ede8-c1bc-5d8b-cf6224a7ce05@deltatee.com>
 MIME-Version: 1.0
-In-Reply-To: <5e1de9ee-34f5-136d-a07e-f949d492864f@deltatee.com>
+Content-Disposition: inline
+In-Reply-To: <9cc22068-ede8-c1bc-5d8b-cf6224a7ce05@deltatee.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,68 +23,28 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="windows-1252"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Logan Gunthorpe <logang@deltatee.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Dan Williams <dan.j.williams@intel.com>
-Cc: Haggai Eran <haggaie@mellanox.com>, "Bridgman, John  <John.Bridgman@amd.com>, linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "Kuehling, Felix  <Felix.Kuehling@amd.com>, Serguei Sagalovitch" <serguei.sagalovitch@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Blinzer,, "Suravee  <Suravee.Suthikulpanit@amd.com>, linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Deucher,, "Ben  <ben.sander@amd.com>, Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Haggai Eran <haggaie@mellanox.com>, "Bridgman, John  <John.Bridgman@amd.com>, linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "Kuehling, Felix  <Felix.Kuehling@amd.com>, Serguei Sagalovitch" <serguei.sagalovitch@amd.com>, "Blinzer, Paul  <Paul.Blinzer@amd.com>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "Sander, Ben  <ben.sander@amd.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Deucher,, "Christian  <Christian.Koenig@amd.com>, Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Am 24.11.2016 um 18:55 schrieb Logan Gunthorpe:
-> Hey,
->
-> On 24/11/16 02:45 AM, Christian K=F6nig wrote:
->> E.g. it can happen that PCI device A exports it's BAR using ZONE_DEVICE.
->> Not PCI device B (a SATA device) can directly read/write to it because
->> it is on the same bus segment, but PCI device C (a network card for
->> example) can't because it is on a different bus segment and the bridge
->> can't handle P2P transactions.
-> Yeah, that could be an issue but in our experience we have yet to see
-> it. We've tested with two separate PCI buses on different CPUs connected
-> through QPI links and it works fine. (It is rather slow but I understand
-> Intel has improved the bottleneck in newer CPUs than the ones we tested.)
+On Thu, Nov 24, 2016 at 11:11:34AM -0700, Logan Gunthorpe wrote:
+> * Regular DAX in the FS doesn't work at this time because the FS can
+> move the file you think your transfer to out from under you. Though I
+> understand there's been some work with XFS to solve that issue.
 
-Well Serguei send me a couple of documents about QPI when we started to =
-
-discuss this internally as well and that's exactly one of the cases I =
-
-had in mind when writing this.
-
-If I understood it correctly for such systems P2P is technical possible, =
-
-but not necessary a good idea. Usually it is faster to just use a =
-
-bouncing buffer when the peers are a bit "father" apart.
-
-That this problem is solved on newer hardware is good, but doesn't helps =
-
-us at all if we at want to support at least systems from the last five =
-
-years or so.
-
-> It may just be older hardware that has this issue. I expect that as long
-> as a failed transfer can be handled gracefully by the initiator I don't
-> see a need to predetermine whether a device can see another devices memor=
-y.
-
-I don't want to predetermine whether a device can see another devices =
-
-memory at get_user_pages() time.
-
-My thinking was more going into the direction of a whitelist to figure =
-
-out during dma_map_single()/dma_map_sg() time if we should use a =
-
-bouncing buffer or not.
-
-Christian.
-
->
->
-> Logan
-
-
+The file system will never move anything under locked down pages,
+locking down pages is used exactly to protect against that.  So as long
+as we page structures available RDMA to/from device memory _from kernel
+space_ is trivial, although for file systems to work properly you
+really want a notification to the consumer if the file systems wants
+to remove the mapping.  We have implemented that using FL_LAYOUTS locks
+for NFSD, but only XFS supports it so far.  Without that a long term
+locked down region of memory (e.g. a kernel MR) would prevent various
+file operations that would simply hang.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
