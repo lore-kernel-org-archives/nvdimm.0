@@ -11,12 +11,11 @@ References: <20161123190515.GA12146@obsidianresearch.com>
  <20161124164249.GD20818@obsidianresearch.com>
  <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
  <20161125193252.GC16504@obsidianresearch.com>
- <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <0087fba9-7bcb-8bb3-c26e-4ef3e4970c34@amd.com>
-Date: Sun, 27 Nov 2016 15:07:22 +0100
+From: Haggai Eran <haggaie@mellanox.com>
+Message-ID: <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
+Date: Sun, 27 Nov 2016 16:02:16 +0200
 MIME-Version: 1.0
-In-Reply-To: <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
+In-Reply-To: <20161125193252.GC16504@obsidianresearch.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,56 +23,73 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="windows-1252"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Haggai Eran <haggaie@mellanox.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
 Cc: "Bridgman, John" <John.Bridgman@amd.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "Kuehling, Felix  <Felix.Kuehling@amd.com>, Serguei Sagalovitch" <serguei.sagalovitch@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Blinzer,, "Suravee  <Suravee.Suthikulpanit@amd.com>, linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Deucher, Alexander  <Alexander.Deucher@amd.com>, Max Gurtovoy <maxg@mellanox.com>, Sander, Ben" <ben.sander@amd.com>, "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Am 27.11.2016 um 15:02 schrieb Haggai Eran:
-> On 11/25/2016 9:32 PM, Jason Gunthorpe wrote:
->> On Fri, Nov 25, 2016 at 02:22:17PM +0100, Christian K=F6nig wrote:
+On 11/25/2016 9:32 PM, Jason Gunthorpe wrote:
+> On Fri, Nov 25, 2016 at 02:22:17PM +0100, Christian K=F6nig wrote:
+>
+>>> Like you say below we have to handle short lived in the usual way, and
+>>> that covers basically every device except IB MRs, including the
+>>> command queue on a NVMe drive.
 >>
->>>> Like you say below we have to handle short lived in the usual way, and
->>>> that covers basically every device except IB MRs, including the
->>>> command queue on a NVMe drive.
->>> Well a problem which wasn't mentioned so far is that while GPUs do have=
- a
->>> page table to mirror the CPU page table, they usually can't recover from
->>> page faults.
->>> So what we do is making sure that all memory accessed by the GPU Jobs s=
-tays
->>> in place while those jobs run (pretty much the same pinning you do for =
-the
->>> DMA).
->> Yes, it is DMA, so this is a valid approach.
->>
->> But, you don't need page faults from the GPU to do proper coherent
->> page table mirroring. Basically when the driver submits the work to
->> the GPU it 'faults' the pages into the CPU and mirror translation
->> table (instead of pinning).
->>
->> Like in ODP, MMU notifiers/HMM are used to monitor for translation
->> changes. If a change comes in the GPU driver checks if an executing
->> command is touching those pages and blocks the MMU notifier until the
->> command flushes, then unfaults the page (blocking future commands) and
->> unblocks the mmu notifier.
-> I think blocking mmu notifiers against something that is basically
-> controlled by user-space can be problematic. This can block things like
-> memory reclaim. If you have user-space access to the device's queues,
-> user-space can block the mmu notifier forever.
-Really good point.
+>> Well a problem which wasn't mentioned so far is that while GPUs do have a
+>> page table to mirror the CPU page table, they usually can't recover from
+>> page faults.
+>
+>> So what we do is making sure that all memory accessed by the GPU Jobs st=
+ays
+>> in place while those jobs run (pretty much the same pinning you do for t=
+he
+>> DMA).
+>
+> Yes, it is DMA, so this is a valid approach.
+>
+> But, you don't need page faults from the GPU to do proper coherent
+> page table mirroring. Basically when the driver submits the work to
+> the GPU it 'faults' the pages into the CPU and mirror translation
+> table (instead of pinning).
+>
+> Like in ODP, MMU notifiers/HMM are used to monitor for translation
+> changes. If a change comes in the GPU driver checks if an executing
+> command is touching those pages and blocks the MMU notifier until the
+> command flushes, then unfaults the page (blocking future commands) and
+> unblocks the mmu notifier.
+I think blocking mmu notifiers against something that is basically
+controlled by user-space can be problematic. This can block things like
+memory reclaim. If you have user-space access to the device's queues,
+user-space can block the mmu notifier forever.
 
-I think this means the bare minimum if we don't have recoverable page =
+On PeerDirect, we have some kind of a middle-ground solution for pinning
+GPU memory. We create a non-ODP MR pointing to VRAM but rely on
+user-space and the GPU not to migrate it. If they do, the MR gets
+destroyed immediately. This should work on legacy devices without ODP
+support, and allows the system to safely terminate a process that
+misbehaves. The downside of course is that it cannot transparently
+migrate memory but I think for user-space RDMA doing that transparently
+requires hardware support for paging, via something like HMM.
 
-faults is to have preemption support like Felix described in his answer =
+...
 
-as well.
+> I'm hearing most people say ZONE_DEVICE is the way to handle this,
+> which means the missing remaing piece for RDMA is some kind of DMA
+> core support for p2p address translation..
 
-Going to keep that in mind,
-Christian.
+Yes, this is definitely something we need. I think Will Davis's patches
+are a good start.
+
+Another thing I think is that while HMM is good for user-space
+applications, for kernel p2p use there is no need for that. Using
+ZONE_DEVICE with or without something like DMA-BUF to pin and unpin
+pages for the short duration as you wrote above could work fine for
+kernel uses in which we can guarantee they are short.
+
+Haggai
 
 _______________________________________________
 Linux-nvdimm mailing list
