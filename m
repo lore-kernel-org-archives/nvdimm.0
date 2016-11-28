@@ -1,19 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8AE8381D16
- for <linux-nvdimm@lists.01.org>; Mon, 28 Nov 2016 14:46:52 -0800 (PST)
-Date: Mon, 28 Nov 2016 15:46:51 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Received: from ipmail06.adl2.internode.on.net (ipmail06.adl2.internode.on.net
+ [150.101.137.129]) by ml01.01.org (Postfix) with ESMTP id AD18D81C90
+ for <linux-nvdimm@lists.01.org>; Mon, 28 Nov 2016 01:09:27 -0800 (PST)
+Date: Mon, 28 Nov 2016 20:09:23 +1100
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH 3/6] dax: add tracepoint infrastructure, PMD tracing
-Message-ID: <20161128224651.GA1243@linux.intel.com>
+Message-ID: <20161128090923.GB31101@dastard>
 References: <1479926662-21718-1-git-send-email-ross.zwisler@linux.intel.com>
  <1479926662-21718-4-git-send-email-ross.zwisler@linux.intel.com>
- <20161125030059.GY31101@dastard>
+ <20161124173220.GR1555@ZenIV.linux.org.uk>
+ <20161125024918.GX31101@dastard>
+ <20161125041419.GT1555@ZenIV.linux.org.uk>
+ <20161125070642.GZ31101@dastard>
+ <20161125073747.GU1555@ZenIV.linux.org.uk>
+ <CA+55aFy5=74ad4tByQJYnkyX079z59yn02koJ_G8kfxamjvPDw@mail.gmail.com>
+ <20161127224208.GA31101@dastard>
+ <CA+55aFwmCVZECoMszXZkJ8tSpG5+Ynt-5EKxKqDepNtjUv5vkg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20161125030059.GY31101@dastard>
+In-Reply-To: <CA+55aFwmCVZECoMszXZkJ8tSpG5+Ynt-5EKxKqDepNtjUv5vkg@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,73 +30,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm <linux-mm@kvack.org>, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Nov 25, 2016 at 02:00:59PM +1100, Dave Chinner wrote:
-> On Wed, Nov 23, 2016 at 11:44:19AM -0700, Ross Zwisler wrote:
-> > Tracepoints are the standard way to capture debugging and tracing
-> > information in many parts of the kernel, including the XFS and ext4
-> > filesystems.  Create a tracepoint header for FS DAX and add the first DAX
-> > tracepoints to the PMD fault handler.  This allows the tracing for DAX to
-> > be done in the same way as the filesystem tracing so that developers can
-> > look at them together and get a coherent idea of what the system is doing.
-> > 
-> > I added both an entry and exit tracepoint because future patches will add
-> > tracepoints to child functions of dax_iomap_pmd_fault() like
-> > dax_pmd_load_hole() and dax_pmd_insert_mapping(). We want those messages to
-> > be wrapped by the parent function tracepoints so the code flow is more
-> > easily understood.  Having entry and exit tracepoints for faults also
-> > allows us to easily see what filesystems functions were called during the
-> > fault.  These filesystem functions get executed via iomap_begin() and
-> > iomap_end() calls, for example, and will have their own tracepoints.
-> > 
-> > For PMD faults we primarily want to understand the faulting address and
-> > whether it fell back to 4k faults.  If it fell back to 4k faults the
-> > tracepoints should let us understand why.
-> > 
-> > I named the new tracepoint header file "fs_dax.h" to allow for device DAX
-> > to have its own separate tracing header in the same directory at some
-> > point.
-> > 
-> > Here is an example output for these events from a successful PMD fault:
-> > 
-> > big-2057  [000] ....   136.396855: dax_pmd_fault: shared mapping write
-> > address 0x10505000 vm_start 0x10200000 vm_end 0x10700000 pgoff 0x200
-> > max_pgoff 0x1400
-> > 
-> > big-2057  [000] ....   136.397943: dax_pmd_fault_done: shared mapping write
-> > address 0x10505000 vm_start 0x10200000 vm_end 0x10700000 pgoff 0x200
-> > max_pgoff 0x1400 NOPAGE
+On Sun, Nov 27, 2016 at 04:58:43PM -0800, Linus Torvalds wrote:
+> On Sun, Nov 27, 2016 at 2:42 PM, Dave Chinner <david@fromorbit.com> wrote:
+> >
+> > And that's exactly why we need a method of marking tracepoints as
+> > stable. How else are we going to know whether a specific tracepoint
+> > is stable if the kernel code doesn't document that it's stable?
 > 
-> Can we make the output use the same format as most of the filesystem
-> code? i.e. the output starts with backing device + inode number like
-> so:
+> You are living in some unrealistic dream-world where you think you can
+> get the right tracepoint on the first try.
+
+No, I'm  under no illusions that we'd get stable tracepoints right
+the first go. I don't care about how we stabilise stable
+tracepoints, because nothing I maintain will use stable tracepoints.
+However, I will point out that we have /already solved these ABI
+development problems/.
+
+$ ls Documentation/ABI/
+obsolete  README  removed  stable  testing
+$
+
+Expands this to include stable tracepoints, not just sysfs files.
+New stable stuff gets classified as "testing" meaning it is supposed
+to be stable but may change before being declared officially stable.
+"stable" is obvious, are "obsolete" and "removed".
+
+
+> So there is no way in hell I would ever mark any tracepoint "stable"
+> until it has had a fair amount of use, and there are useful tools that
+> actually make use of it, and it has shown itself to be the right
+> trace-point.
 > 
-> 	xfs_ilock:            dev 8:96 ino 0x493 flags ILOCK_EXCL....
-> 
-> This way we can filter the output easily across both dax and
-> filesystem tracepoints with 'grep "ino 0x493"'...
+> And once that actually happens, what's the advantage of marking it
+> stable? None. It's a catch-22. Before it has uses and has been tested
+> and found to be good, it's not stable. And after, it's pointless.
 
-I think I can include the inode number, which I have via mapping->host.  Am I
-correct in assuming "struct inode.i_ino" will always be the same as
-"struct xfs_inode.i_ino"?
+And that "catch-22" is *precisely the problem we need to solve*.
 
-Unfortunately I don't have access to the major/minor (the dev_t) until I call
-iomap_begin().  Currently we call iomap_begin() only after we've done most of
-our sanity checking that would cause us to fall back to PTEs.
+Pointing out that there's a catch-22 doesn't help anyone - all the
+developers that are telling you that they really need a way to mark
+stable tracepoints already understand this catch-22 and they want a
+way to avoid it.  Being able to either say "this is stable and we'll
+support it forever" or "this will never be stable so use at your own
+risk" is a simple way of avoiding the catch-22. If an unstable
+tracepoint is useful to applications *and it can be implemented in a
+maintainable, stable form* then it can go through the process of
+being made stable and documented in Documentation/ABI/stable.
 
-I don't think we want to reorder things so that we start with an iomap_begin()
-- that would mean that we would begin by asking the filesystem for a block
-allocation, when in many cases we would then do an alignment check or
-something similar and then fall back to PTEs.
+Problem is solved, catch-22 is gone.
 
-I'll add "ino" to the output so it looks something like this:
+All we want is some method of making a clear, unambiguous statement
+about the nature of a specific tracepoint and a process for
+transitioning a tracepoint to a stable, maintainable form. We do it
+for other ABI interfaces, so why can't we do this for tracepoints?
 
-big-2057  [000] ....   136.397943: dax_pmd_fault_done: ino 0x493 shared
-mapping write address 0x10505000 vm_start 0x10200000 vm_end 0x10700000 pgoff
-0x200 max_pgoff 0x1400 NOPAGE
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
