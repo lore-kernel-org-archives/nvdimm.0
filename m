@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6CAC281E06
- for <linux-nvdimm@lists.01.org>; Mon, 28 Nov 2016 17:14:46 -0800 (PST)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH] libnvdimm: use consistent naming for request_mem_region()
-Date: Tue, 29 Nov 2016 01:14:13 +0000
-Message-ID: <1480382051.5111.8.camel@intel.com>
-References: <148036114338.1592.11338839039403854102.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148036114338.1592.11338839039403854102.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <4211CB3FBAE15E47AE005970D7F1615F@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3285D81C9A
+ for <linux-nvdimm@lists.01.org>; Mon, 28 Nov 2016 11:29:53 -0800 (PST)
+Subject: [PATCH] libnvdimm: use consistent naming for request_mem_region()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 28 Nov 2016 11:25:43 -0800
+Message-ID: <148036114338.1592.11338839039403854102.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,73 +16,102 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE2LTExLTI4IGF0IDExOjI1IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IEhlcmUgaXMgYW4gZXhhbXBsZSAvcHJvYy9pb21lbSBsaXN0aW5nIGZvciBhIHN5c3RlbSB3aXRo
-IDINCj4gbmFtZXNwYWNlcywNCj4gb25lIGluICJzZWN0b3IiIG1vZGUgYW5kIG9uZSBpbiAibWVt
-b3J5IiBtb2RlOg0KPiANCj4gwqAgMWZjMDAwMDAwLTJmYmZmZmZmZiA6IFBlcnNpc3RlbnQgTWVt
-b3J5IChsZWdhY3kpDQo+IMKgwqDCoMKgMWZjMDAwMDAwLTJmYmZmZmZmZiA6IG5hbWVzcGFjZTEu
-MA0KPiDCoCAzNDAwMDAwMDAtMzRmZmZmZmZmIDogUGVyc2lzdGVudCBNZW1vcnkNCj4gwqDCoMKg
-wqAzNDAwMDAwMDAtMzRmZmZmZmZmIDogYnR0MC4xDQo+IA0KPiBIZXJlIGlzIHRoZSBjb3JyZXNw
-b25kaW5nIG5kY3RsIGxpc3Rpbmc6DQo+IA0KPiDCoCAjIG5kY3RsIGxpc3QNCj4gwqAgWw0KPiDC
-oMKgwqDCoHsNCj4gwqDCoMKgwqDCoMKgImRldiI6Im5hbWVzcGFjZTEuMCIsDQo+IMKgwqDCoMKg
-wqDCoCJtb2RlIjoibWVtb3J5IiwNCj4gwqDCoMKgwqDCoMKgInNpemUiOjQyOTQ5NjcyOTYsDQo+
-IMKgwqDCoMKgwqDCoCJibG9ja2RldiI6InBtZW0xIg0KPiDCoMKgwqDCoH0sDQo+IMKgwqDCoMKg
-ew0KPiDCoMKgwqDCoMKgwqAiZGV2IjoibmFtZXNwYWNlMC4wIiwNCj4gwqDCoMKgwqDCoMKgIm1v
-ZGUiOiJzZWN0b3IiLA0KPiDCoMKgwqDCoMKgwqAic2l6ZSI6MjY3MDkxOTY4LA0KPiDCoMKgwqDC
-oMKgwqAidXVpZCI6ImY3NTk0Zjg2LWJhZGItNDU5Mi04NzVmLWRlZDU3N2RhMmVhZiIsDQo+IMKg
-wqDCoMKgwqDCoCJzZWN0b3Jfc2l6ZSI6NDA5NiwNCj4gwqDCoMKgwqDCoMKgImJsb2NrZGV2Ijoi
-cG1lbTBzIg0KPiDCoMKgwqDCoH0NCj4gwqAgXQ0KPiANCj4gTm90aWNlIHRoYXQgdGhlIG5kY3Rs
-IGxpc3RpbmcgaXMgcHVyZWx5IGluIHRlcm1zIG9mIG5hbWVzcGFjZQ0KPiBkZXZpY2VzLA0KPiB3
-aGlsZSB0aGUgaW9tZW0gbGlzdGluZyBsZWFrcyB0aGUgaW50ZXJuYWwgImJ0dDAuMSIgaW1wbGVt
-ZW50YXRpb24NCj4gZGV0YWlsLiBHaXZlbiB0aGF0IG5kY3RsIHJlcXVpcmVzIHRoZSBuYW1lc3Bh
-Y2UgZGV2aWNlIG5hbWUgdG8gY2hhbmdlDQo+IHRoZSBtb2RlLCBmb3IgZXhhbXBsZToNCj4gDQo+
-IMKgICMgbmRjdGwgY3JlYXRlLW5hbWVzcGFjZSAtLXJlY29uZmlnPW5hbWVzcGFjZTAuMCAtLW1v
-ZGU9cmF3IC0tZm9yY2UNCj4gDQo+IC4uLnVzZSB0aGUgbmFtZXNwYWNlIG5hbWUgaW4gdGhlIGlv
-bWVtIGxpc3RpbmcgdG8ga2VlcCB0aGUgY2xhaW1pbmcNCj4gZGV2aWNlIG5hbWUgY29uc2lzdGVu
-dCBhY3Jvc3MgZGlmZmVyZW50IG1vZGUgc2V0dGluZ3MuDQo+IA0KPiBDYzogVmlzaGFsIFZlcm1h
-IDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFt
-cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiAtLS0NCj4gwqBkcml2ZXJzL2RheC9wbWVt
-LmPCoMKgwqDCoMKgfMKgwqDCoMKgMyArKy0NCj4gwqBkcml2ZXJzL252ZGltbS9jbGFpbS5jIHzC
-oMKgwqDCoDIgKy0NCj4gwqBkcml2ZXJzL252ZGltbS9wbWVtLmPCoMKgfMKgwqDCoMKgMiArLQ0K
-PiDCoDMgZmlsZXMgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KDQpM
-b29rcyBnb29kIQ0KDQpSZXZlaXdlZC1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBp
-bnRlbC5jb20+DQoNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2RheC9wbWVtLmMgYi9kcml2
-ZXJzL2RheC9wbWVtLmMNCj4gaW5kZXggOTYzMGQ4ODM3YmE5Li4zZmY4NDc4NDI0OWEgMTAwNjQ0
-DQo+IC0tLSBhL2RyaXZlcnMvZGF4L3BtZW0uYw0KPiArKysgYi9kcml2ZXJzL2RheC9wbWVtLmMN
-Cj4gQEAgLTg3LDcgKzg3LDggQEAgc3RhdGljIGludCBkYXhfcG1lbV9wcm9iZShzdHJ1Y3QgZGV2
-aWNlICpkZXYpDQo+IMKgCXBmbl9zYiA9IG5kX3Bmbi0+cGZuX3NiOw0KPiDCoA0KPiDCoAlpZiAo
-IWRldm1fcmVxdWVzdF9tZW1fcmVnaW9uKGRldiwgbnNpby0+cmVzLnN0YXJ0LA0KPiAtCQkJCXJl
-c291cmNlX3NpemUoJm5zaW8tPnJlcyksDQo+IGRldl9uYW1lKGRldikpKSB7DQo+ICsJCQkJcmVz
-b3VyY2Vfc2l6ZSgmbnNpby0+cmVzKSwNCj4gKwkJCQlkZXZfbmFtZSgmbmRucy0+ZGV2KSkpIHsN
-Cj4gwqAJCWRldl93YXJuKGRldiwgImNvdWxkIG5vdCByZXNlcnZlIHJlZ2lvbiAlcFJcbiIsDQo+
-ICZuc2lvLT5yZXMpOw0KPiDCoAkJcmV0dXJuIC1FQlVTWTsNCj4gwqAJfQ0KPiBkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9udmRpbW0vY2xhaW0uYyBiL2RyaXZlcnMvbnZkaW1tL2NsYWltLmMNCj4gaW5k
-ZXggOGQ2NmZiYjc3OWVkLi40NjM4YjllYTUyMjkgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbnZk
-aW1tL2NsYWltLmMNCj4gKysrIGIvZHJpdmVycy9udmRpbW0vY2xhaW0uYw0KPiBAQCAtMjc1LDcg
-KzI3NSw3IEBAIGludCBkZXZtX25zaW9fZW5hYmxlKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0
-DQo+IG5kX25hbWVzcGFjZV9pbyAqbnNpbykNCj4gwqANCj4gwqAJbnNpby0+c2l6ZSA9IHJlc291
-cmNlX3NpemUocmVzKTsNCj4gwqAJaWYgKCFkZXZtX3JlcXVlc3RfbWVtX3JlZ2lvbihkZXYsIHJl
-cy0+c3RhcnQsDQo+IHJlc291cmNlX3NpemUocmVzKSwNCj4gLQkJCQlkZXZfbmFtZShkZXYpKSkg
-ew0KPiArCQkJCWRldl9uYW1lKCZuZG5zLT5kZXYpKSkgew0KPiDCoAkJZGV2X3dhcm4oZGV2LCAi
-Y291bGQgbm90IHJlc2VydmUgcmVnaW9uICVwUlxuIiwNCj4gcmVzKTsNCj4gwqAJCXJldHVybiAt
-RUJVU1k7DQo+IMKgCX0NCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3BtZW0uYyBiL2Ry
-aXZlcnMvbnZkaW1tL3BtZW0uYw0KPiBpbmRleCA0MmIzYTgyMTcwNzMuLjM0ZjE2YTE3YzA3YiAx
-MDA2NDQNCj4gLS0tIGEvZHJpdmVycy9udmRpbW0vcG1lbS5jDQo+ICsrKyBiL2RyaXZlcnMvbnZk
-aW1tL3BtZW0uYw0KPiBAQCAtMjY2LDcgKzI2Niw3IEBAIHN0YXRpYyBpbnQgcG1lbV9hdHRhY2hf
-ZGlzayhzdHJ1Y3QgZGV2aWNlICpkZXYsDQo+IMKgCQlkZXZfd2FybihkZXYsICJ1bmFibGUgdG8g
-Z3VhcmFudGVlIHBlcnNpc3RlbmNlIG9mDQo+IHdyaXRlc1xuIik7DQo+IMKgDQo+IMKgCWlmICgh
-ZGV2bV9yZXF1ZXN0X21lbV9yZWdpb24oZGV2LCByZXMtPnN0YXJ0LA0KPiByZXNvdXJjZV9zaXpl
-KHJlcyksDQo+IC0JCQkJZGV2X25hbWUoZGV2KSkpIHsNCj4gKwkJCQlkZXZfbmFtZSgmbmRucy0+
-ZGV2KSkpIHsNCj4gwqAJCWRldl93YXJuKGRldiwgImNvdWxkIG5vdCByZXNlcnZlIHJlZ2lvbiAl
-cFJcbiIsDQo+IHJlcyk7DQo+IMKgCQlyZXR1cm4gLUVCVVNZOw0KPiDCoAl9DQo+IApfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
-bGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcv
-bWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Here is an example /proc/iomem listing for a system with 2 namespaces,
+one in "sector" mode and one in "memory" mode:
+
+  1fc000000-2fbffffff : Persistent Memory (legacy)
+    1fc000000-2fbffffff : namespace1.0
+  340000000-34fffffff : Persistent Memory
+    340000000-34fffffff : btt0.1
+
+Here is the corresponding ndctl listing:
+
+  # ndctl list
+  [
+    {
+      "dev":"namespace1.0",
+      "mode":"memory",
+      "size":4294967296,
+      "blockdev":"pmem1"
+    },
+    {
+      "dev":"namespace0.0",
+      "mode":"sector",
+      "size":267091968,
+      "uuid":"f7594f86-badb-4592-875f-ded577da2eaf",
+      "sector_size":4096,
+      "blockdev":"pmem0s"
+    }
+  ]
+
+Notice that the ndctl listing is purely in terms of namespace devices,
+while the iomem listing leaks the internal "btt0.1" implementation
+detail. Given that ndctl requires the namespace device name to change
+the mode, for example:
+
+  # ndctl create-namespace --reconfig=namespace0.0 --mode=raw --force
+
+...use the namespace name in the iomem listing to keep the claiming
+device name consistent across different mode settings.
+
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/pmem.c     |    3 ++-
+ drivers/nvdimm/claim.c |    2 +-
+ drivers/nvdimm/pmem.c  |    2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+index 9630d8837ba9..3ff84784249a 100644
+--- a/drivers/dax/pmem.c
++++ b/drivers/dax/pmem.c
+@@ -87,7 +87,8 @@ static int dax_pmem_probe(struct device *dev)
+ 	pfn_sb = nd_pfn->pfn_sb;
+ 
+ 	if (!devm_request_mem_region(dev, nsio->res.start,
+-				resource_size(&nsio->res), dev_name(dev))) {
++				resource_size(&nsio->res),
++				dev_name(&ndns->dev))) {
+ 		dev_warn(dev, "could not reserve region %pR\n", &nsio->res);
+ 		return -EBUSY;
+ 	}
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index 8d66fbb779ed..4638b9ea5229 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -275,7 +275,7 @@ int devm_nsio_enable(struct device *dev, struct nd_namespace_io *nsio)
+ 
+ 	nsio->size = resource_size(res);
+ 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
+-				dev_name(dev))) {
++				dev_name(&ndns->dev))) {
+ 		dev_warn(dev, "could not reserve region %pR\n", res);
+ 		return -EBUSY;
+ 	}
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 42b3a8217073..34f16a17c07b 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -266,7 +266,7 @@ static int pmem_attach_disk(struct device *dev,
+ 		dev_warn(dev, "unable to guarantee persistence of writes\n");
+ 
+ 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
+-				dev_name(dev))) {
++				dev_name(&ndns->dev))) {
+ 		dev_warn(dev, "could not reserve region %pR\n", res);
+ 		return -EBUSY;
+ 	}
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
