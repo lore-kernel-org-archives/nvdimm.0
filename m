@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4839881D6B
- for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:25:25 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 05/21] mm: Trim __do_fault() arguments
-Date: Fri,  4 Nov 2016 05:25:01 +0100
-Message-Id: <1478233517-3571-6-git-send-email-jack@suse.cz>
-In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
-References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id B85AE81EC9
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Nov 2016 11:26:41 -0800 (PST)
+Subject: [PATCH v2] x86: fix kaslr and memmap collision
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 29 Nov 2016 12:26:40 -0700
+Message-ID: <148044760044.153060.616417783293212181.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,191 +16,223 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
+Cc: x86@kernel.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use vm_fault structure to pass cow_page, page, and entry in and out of
-the function. That reduces number of __do_fault() arguments from 4 to 1.
+CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
+However it does not take into account the memmap= parameter passed in from
+the kernel cmdline. This results in the kernel sometimes being put in
+the middle of the user memmap. Teaching kaslr to not insert the kernel in
+memmap defined regions. We will support up to 4 memmap regions. Any
+additional regions will cause kaslr to disable. The mem_avoid set has
+been augmented to add up to 4 regions of memmaps provided by the user
+to exclude those regions from the set of valid address range to insert
+the uncompressed kernel image.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- mm/memory.c | 53 +++++++++++++++++++++++------------------------------
- 1 file changed, 23 insertions(+), 30 deletions(-)
+ arch/x86/boot/boot.h             |    3 +
+ arch/x86/boot/compressed/kaslr.c |   82 ++++++++++++++++++++++++++++++++++++++
+ arch/x86/boot/string.c           |   38 ++++++++++++++++++
+ 3 files changed, 123 insertions(+)
 
-diff --git a/mm/memory.c b/mm/memory.c
-index 8145dadb2645..f5ef7b8a30c5 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2848,26 +2848,22 @@ static int do_anonymous_page(struct vm_fault *vmf)
-  * released depending on flags and vma->vm_ops->fault() return value.
-  * See filemap_fault() and __lock_page_retry().
+diff --git a/arch/x86/boot/boot.h b/arch/x86/boot/boot.h
+index e5612f3..59c2075 100644
+--- a/arch/x86/boot/boot.h
++++ b/arch/x86/boot/boot.h
+@@ -332,7 +332,10 @@ int strncmp(const char *cs, const char *ct, size_t count);
+ size_t strnlen(const char *s, size_t maxlen);
+ unsigned int atou(const char *s);
+ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base);
++unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base);
++long simple_strtol(const char *cp, char **endp, unsigned int base);
+ size_t strlen(const char *s);
++char *strchr(const char *s, int c);
+ 
+ /* tty.c */
+ void puts(const char *);
+diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
+index a66854d..915509f 100644
+--- a/arch/x86/boot/compressed/kaslr.c
++++ b/arch/x86/boot/compressed/kaslr.c
+@@ -11,6 +11,7 @@
   */
--static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
--		      struct page **page, void **entry)
-+static int __do_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	int ret;
+ #include "misc.h"
+ #include "error.h"
++#include "../boot.h"
  
--	vmf->cow_page = cow_page;
--
- 	ret = vma->vm_ops->fault(vma, vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
--	if (ret & VM_FAULT_DAX_LOCKED) {
--		*entry = vmf->entry;
-+	if (ret & VM_FAULT_DAX_LOCKED)
- 		return ret;
--	}
+ #include <generated/compile.h>
+ #include <linux/module.h>
+@@ -61,9 +62,16 @@ enum mem_avoid_index {
+ 	MEM_AVOID_INITRD,
+ 	MEM_AVOID_CMDLINE,
+ 	MEM_AVOID_BOOTPARAMS,
++	MEM_AVOID_MEMMAP1,
++	MEM_AVOID_MEMMAP2,
++	MEM_AVOID_MEMMAP3,
++	MEM_AVOID_MEMMAP4,
+ 	MEM_AVOID_MAX,
+ };
  
- 	if (unlikely(PageHWPoison(vmf->page))) {
- 		if (ret & VM_FAULT_LOCKED)
- 			unlock_page(vmf->page);
- 		put_page(vmf->page);
-+		vmf->page = NULL;
- 		return VM_FAULT_HWPOISON;
- 	}
++/* only supporting at most 4 memmap regions with kaslr */
++#define MAX_MEMMAP_REGIONS	4
++
+ static struct mem_vector mem_avoid[MEM_AVOID_MAX];
  
-@@ -2876,7 +2872,6 @@ static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
- 	else
- 		VM_BUG_ON_PAGE(!PageLocked(vmf->page), vmf->page);
- 
--	*page = vmf->page;
- 	return ret;
+ static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
+@@ -77,6 +85,72 @@ static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
+ 	return true;
  }
  
-@@ -3173,7 +3168,6 @@ static int do_fault_around(struct vm_fault *vmf)
- static int do_read_fault(struct vm_fault *vmf)
++#include "../../../../lib/cmdline.c"
++
++static int
++parse_memmap(char *p, unsigned long long *start, unsigned long long *size)
++{
++	char *oldp;
++
++	if (!p)
++		return -EINVAL;
++
++	/* we don't care about this option here */
++	if (!strncmp(p, "exactmap", 8))
++		return -EINVAL;
++
++	oldp = p;
++	*size = memparse(p, &p);
++	if (p == oldp)
++		return -EINVAL;
++
++	switch (*p) {
++	case '@':
++	case '#':
++	case '$':
++	case '!':
++		*start = memparse(p + 1, &p);
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static int mem_avoid_memmap(void)
++{
++	char arg[128];
++	int rc = 0;
++
++	/* see if we have any memmap areas */
++	if (cmdline_find_option("memmap", arg, sizeof(arg)) > 0) {
++		int i = 0;
++		char *str = arg;
++
++		while (str && (i < MAX_MEMMAP_REGIONS)) {
++			unsigned long long start, size;
++			char *k = strchr(str, ',');
++
++			if (k)
++				*k++ = 0;
++
++			rc = parse_memmap(str, &start, &size);
++			if (rc < 0)
++				break;
++			str = k;
++
++			mem_avoid[MEM_AVOID_MEMMAP1 + i].start = start;
++			mem_avoid[MEM_AVOID_MEMMAP1 + i].size = size;
++			i++;
++		}
++
++		/* more than 4 memmaps, fail kaslr */
++		if ((i >= MAX_MEMMAP_REGIONS) && str)
++			rc = -EINVAL;
++	}
++
++	return rc;
++}
++
+ /*
+  * In theory, KASLR can put the kernel anywhere in the range of [16M, 64T).
+  * The mem_avoid array is used to store the ranges that need to be avoided
+@@ -429,6 +503,7 @@ void choose_random_location(unsigned long input,
+ 			    unsigned long *virt_addr)
  {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *fault_page;
- 	int ret = 0;
+ 	unsigned long random_addr, min_addr;
++	int rc;
  
- 	/*
-@@ -3187,24 +3181,23 @@ static int do_read_fault(struct vm_fault *vmf)
- 			return ret;
+ 	/* By default, keep output position unchanged. */
+ 	*virt_addr = *output;
+@@ -438,6 +513,13 @@ void choose_random_location(unsigned long input,
+ 		return;
  	}
  
--	ret = __do_fault(vmf, NULL, &fault_page, NULL);
-+	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
++	/* Mark the memmap regions we need to avoid */
++	rc = mem_avoid_memmap();
++	if (rc < 0) {
++		warn("KASLR disabled: memmap exceeds limit of 4, giving up.");
++		return;
++	}
++
+ 	boot_params->hdr.loadflags |= KASLR_FLAG;
  
--	ret |= alloc_set_pte(vmf, NULL, fault_page);
-+	ret |= alloc_set_pte(vmf, NULL, vmf->page);
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--	unlock_page(fault_page);
-+	unlock_page(vmf->page);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
--		put_page(fault_page);
-+		put_page(vmf->page);
- 	return ret;
+ 	/* Prepare to add new identity pagetables on demand. */
+diff --git a/arch/x86/boot/string.c b/arch/x86/boot/string.c
+index cc3bd58..0464aaa 100644
+--- a/arch/x86/boot/string.c
++++ b/arch/x86/boot/string.c
+@@ -122,6 +122,31 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
  }
  
- static int do_cow_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *fault_page, *new_page;
--	void *fault_entry;
-+	struct page *new_page;
- 	struct mem_cgroup *memcg;
- 	int ret;
- 
-@@ -3221,20 +3214,21 @@ static int do_cow_fault(struct vm_fault *vmf)
- 		return VM_FAULT_OOM;
+ /**
++ * simple_strtoul - convert a string to an unsigned long
++ * @cp: The start of the string
++ * @endp: A pointer to the end of the parsed string will be placed here
++ * @base: The number base to use
++ */
++unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base)
++{
++	return simple_strtoull(cp, endp, base);
++}
++
++/**
++ * simple_strtol - convert a string to a signed long
++ * @cp: The start of the string
++ * @endp: A pointer to the end of the parsed string will be placed here
++ * @base: The number base to use
++ */
++long simple_strtol(const char *cp, char **endp, unsigned int base)
++{
++	if (*cp == '-')
++		return -simple_strtoul(cp + 1, endp, base);
++
++	return simple_strtoul(cp, endp, base);
++}
++
++/**
+  * strlen - Find the length of a string
+  * @s: The string to be sized
+  */
+@@ -155,3 +180,16 @@ char *strstr(const char *s1, const char *s2)
  	}
- 
--	ret = __do_fault(vmf, new_page, &fault_page, &fault_entry);
-+	vmf->cow_page = new_page;
-+	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
- 
- 	if (!(ret & VM_FAULT_DAX_LOCKED))
--		copy_user_highpage(new_page, fault_page, vmf->address, vma);
-+		copy_user_highpage(new_page, vmf->page, vmf->address, vma);
- 	__SetPageUptodate(new_page);
- 
- 	ret |= alloc_set_pte(vmf, memcg, new_page);
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
--		unlock_page(fault_page);
--		put_page(fault_page);
-+		unlock_page(vmf->page);
-+		put_page(vmf->page);
- 	} else {
- 		dax_unlock_mapping_entry(vma->vm_file->f_mapping, vmf->pgoff);
- 	}
-@@ -3250,12 +3244,11 @@ static int do_cow_fault(struct vm_fault *vmf)
- static int do_shared_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *fault_page;
- 	struct address_space *mapping;
- 	int dirtied = 0;
- 	int ret, tmp;
- 
--	ret = __do_fault(vmf, NULL, &fault_page, NULL);
-+	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
-@@ -3264,26 +3257,26 @@ static int do_shared_fault(struct vm_fault *vmf)
- 	 * about to become writable
- 	 */
- 	if (vma->vm_ops->page_mkwrite) {
--		unlock_page(fault_page);
--		tmp = do_page_mkwrite(vma, fault_page, vmf->address);
-+		unlock_page(vmf->page);
-+		tmp = do_page_mkwrite(vma, vmf->page, vmf->address);
- 		if (unlikely(!tmp ||
- 				(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
--			put_page(fault_page);
-+			put_page(vmf->page);
- 			return tmp;
- 		}
- 	}
- 
--	ret |= alloc_set_pte(vmf, NULL, fault_page);
-+	ret |= alloc_set_pte(vmf, NULL, vmf->page);
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE |
- 					VM_FAULT_RETRY))) {
--		unlock_page(fault_page);
--		put_page(fault_page);
-+		unlock_page(vmf->page);
-+		put_page(vmf->page);
- 		return ret;
- 	}
- 
--	if (set_page_dirty(fault_page))
-+	if (set_page_dirty(vmf->page))
- 		dirtied = 1;
- 	/*
- 	 * Take a local copy of the address_space - page.mapping may be zeroed
-@@ -3291,8 +3284,8 @@ static int do_shared_fault(struct vm_fault *vmf)
- 	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
- 	 * release semantics to prevent the compiler from undoing this copying.
- 	 */
--	mapping = page_rmapping(fault_page);
--	unlock_page(fault_page);
-+	mapping = page_rmapping(vmf->page);
-+	unlock_page(vmf->page);
- 	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
- 		/*
- 		 * Some device drivers do not set page.mapping but still
--- 
-2.6.6
+ 	return NULL;
+ }
++
++/**
++ * strchr - Find the first occurrence of the character c in the string s.
++ * @s: the string to be searched
++ * @c: the character to search for
++ */
++char *strchr(const char *s, int c)
++{
++	while (*s != (char)c)
++		if (*s++ == '\0')
++			return NULL;
++	return (char *)s;
++}
 
 _______________________________________________
 Linux-nvdimm mailing list
