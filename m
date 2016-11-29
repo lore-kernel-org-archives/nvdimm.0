@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 86B9881ED0
- for <linux-nvdimm@lists.01.org>; Wed, 23 Nov 2016 10:45:11 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 5/6] dax: add tracepoints to dax_pmd_load_hole()
-Date: Wed, 23 Nov 2016 11:44:21 -0700
-Message-Id: <1479926662-21718-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1479926662-21718-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1479926662-21718-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6CAC281E06
+ for <linux-nvdimm@lists.01.org>; Mon, 28 Nov 2016 17:14:46 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] libnvdimm: use consistent naming for request_mem_region()
+Date: Tue, 29 Nov 2016 01:14:13 +0000
+Message-ID: <1480382051.5111.8.camel@intel.com>
+References: <148036114338.1592.11338839039403854102.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148036114338.1592.11338839039403854102.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <4211CB3FBAE15E47AE005970D7F1615F@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,130 +20,73 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add tracepoints to dax_pmd_load_hole(), following the same logging
-conventions as the tracepoints in dax_iomap_pmd_fault().
-
-Here is an example PMD fault showing the new tracepoints:
-
-read_big-1393  [007] ....    32.133809: dax_pmd_fault: shared mapping read
-address 0x10400000 vm_start 0x10200000 vm_end 0x10600000 pgoff 0x200
-max_pgoff 0x1400
-
-read_big-1393  [007] ....    32.134067: dax_pmd_load_hole: shared mapping
-read address 0x10400000 zero_page ffffea0002b98000 radix_entry 0x1e
-
-read_big-1393  [007] ....    32.134069: dax_pmd_fault_done: shared mapping
-read address 0x10400000 vm_start 0x10200000 vm_end 0x10600000 pgoff 0x200
-max_pgoff 0x1400 NOPAGE
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c                      | 13 +++++++++----
- include/trace/events/fs_dax.h | 32 ++++++++++++++++++++++++++++++++
- 2 files changed, 41 insertions(+), 4 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 1aa7616..2824414 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1269,32 +1269,37 @@ static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	unsigned long pmd_addr = address & PMD_MASK;
- 	struct page *zero_page;
-+	void *ret = NULL;
- 	spinlock_t *ptl;
- 	pmd_t pmd_entry;
--	void *ret;
- 
- 	zero_page = mm_get_huge_zero_page(vma->vm_mm);
- 
- 	if (unlikely(!zero_page))
--		return VM_FAULT_FALLBACK;
-+		goto fallback;
- 
- 	ret = dax_insert_mapping_entry(mapping, vmf, *entryp, 0,
- 			RADIX_DAX_PMD | RADIX_DAX_HZP);
- 	if (IS_ERR(ret))
--		return VM_FAULT_FALLBACK;
-+		goto fallback;
- 	*entryp = ret;
- 
- 	ptl = pmd_lock(vma->vm_mm, pmd);
- 	if (!pmd_none(*pmd)) {
- 		spin_unlock(ptl);
--		return VM_FAULT_FALLBACK;
-+		goto fallback;
- 	}
- 
- 	pmd_entry = mk_pmd(zero_page, vma->vm_page_prot);
- 	pmd_entry = pmd_mkhuge(pmd_entry);
- 	set_pmd_at(vma->vm_mm, pmd_addr, pmd, pmd_entry);
- 	spin_unlock(ptl);
-+	trace_dax_pmd_load_hole(vma, address, zero_page, ret);
- 	return VM_FAULT_NOPAGE;
-+
-+fallback:
-+	trace_dax_pmd_load_hole_fallback(vma, address, zero_page, ret);
-+	return VM_FAULT_FALLBACK;
- }
- 
- int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
-diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
-index f9ed4eb..8814b1a 100644
---- a/include/trace/events/fs_dax.h
-+++ b/include/trace/events/fs_dax.h
-@@ -54,6 +54,38 @@ DEFINE_EVENT(dax_pmd_fault_class, name, \
- DEFINE_PMD_FAULT_EVENT(dax_pmd_fault);
- DEFINE_PMD_FAULT_EVENT(dax_pmd_fault_done);
- 
-+DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
-+	TP_PROTO(struct vm_area_struct *vma, unsigned long address,
-+		struct page *zero_page, void *radix_entry),
-+	TP_ARGS(vma, address, zero_page, radix_entry),
-+	TP_STRUCT__entry(
-+		__field(unsigned long, vm_flags)
-+		__field(unsigned long, address)
-+		__field(struct page *, zero_page)
-+		__field(void *, radix_entry)
-+	),
-+	TP_fast_assign(
-+		__entry->vm_flags = vma->vm_flags;
-+		__entry->address = address;
-+		__entry->zero_page = zero_page;
-+		__entry->radix_entry = radix_entry;
-+	),
-+	TP_printk("%s mapping read address %#lx zero_page %p radix_entry %#lx",
-+		__entry->vm_flags & VM_SHARED ? "shared" : "private",
-+		__entry->address,
-+		__entry->zero_page,
-+		(unsigned long)__entry->radix_entry
-+	)
-+)
-+
-+#define DEFINE_PMD_LOAD_HOLE_EVENT(name) \
-+DEFINE_EVENT(dax_pmd_load_hole_class, name, \
-+	TP_PROTO(struct vm_area_struct *vma, unsigned long address, \
-+		struct page *zero_page, void *radix_entry), \
-+	TP_ARGS(vma, address, zero_page, radix_entry))
-+
-+DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
-+DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
- 
- #endif /* _TRACE_FS_DAX_H */
- 
--- 
-2.7.4
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCAyMDE2LTExLTI4IGF0IDExOjI1IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IEhlcmUgaXMgYW4gZXhhbXBsZSAvcHJvYy9pb21lbSBsaXN0aW5nIGZvciBhIHN5c3RlbSB3aXRo
+IDINCj4gbmFtZXNwYWNlcywNCj4gb25lIGluICJzZWN0b3IiIG1vZGUgYW5kIG9uZSBpbiAibWVt
+b3J5IiBtb2RlOg0KPiANCj4gwqAgMWZjMDAwMDAwLTJmYmZmZmZmZiA6IFBlcnNpc3RlbnQgTWVt
+b3J5IChsZWdhY3kpDQo+IMKgwqDCoMKgMWZjMDAwMDAwLTJmYmZmZmZmZiA6IG5hbWVzcGFjZTEu
+MA0KPiDCoCAzNDAwMDAwMDAtMzRmZmZmZmZmIDogUGVyc2lzdGVudCBNZW1vcnkNCj4gwqDCoMKg
+wqAzNDAwMDAwMDAtMzRmZmZmZmZmIDogYnR0MC4xDQo+IA0KPiBIZXJlIGlzIHRoZSBjb3JyZXNw
+b25kaW5nIG5kY3RsIGxpc3Rpbmc6DQo+IA0KPiDCoCAjIG5kY3RsIGxpc3QNCj4gwqAgWw0KPiDC
+oMKgwqDCoHsNCj4gwqDCoMKgwqDCoMKgImRldiI6Im5hbWVzcGFjZTEuMCIsDQo+IMKgwqDCoMKg
+wqDCoCJtb2RlIjoibWVtb3J5IiwNCj4gwqDCoMKgwqDCoMKgInNpemUiOjQyOTQ5NjcyOTYsDQo+
+IMKgwqDCoMKgwqDCoCJibG9ja2RldiI6InBtZW0xIg0KPiDCoMKgwqDCoH0sDQo+IMKgwqDCoMKg
+ew0KPiDCoMKgwqDCoMKgwqAiZGV2IjoibmFtZXNwYWNlMC4wIiwNCj4gwqDCoMKgwqDCoMKgIm1v
+ZGUiOiJzZWN0b3IiLA0KPiDCoMKgwqDCoMKgwqAic2l6ZSI6MjY3MDkxOTY4LA0KPiDCoMKgwqDC
+oMKgwqAidXVpZCI6ImY3NTk0Zjg2LWJhZGItNDU5Mi04NzVmLWRlZDU3N2RhMmVhZiIsDQo+IMKg
+wqDCoMKgwqDCoCJzZWN0b3Jfc2l6ZSI6NDA5NiwNCj4gwqDCoMKgwqDCoMKgImJsb2NrZGV2Ijoi
+cG1lbTBzIg0KPiDCoMKgwqDCoH0NCj4gwqAgXQ0KPiANCj4gTm90aWNlIHRoYXQgdGhlIG5kY3Rs
+IGxpc3RpbmcgaXMgcHVyZWx5IGluIHRlcm1zIG9mIG5hbWVzcGFjZQ0KPiBkZXZpY2VzLA0KPiB3
+aGlsZSB0aGUgaW9tZW0gbGlzdGluZyBsZWFrcyB0aGUgaW50ZXJuYWwgImJ0dDAuMSIgaW1wbGVt
+ZW50YXRpb24NCj4gZGV0YWlsLiBHaXZlbiB0aGF0IG5kY3RsIHJlcXVpcmVzIHRoZSBuYW1lc3Bh
+Y2UgZGV2aWNlIG5hbWUgdG8gY2hhbmdlDQo+IHRoZSBtb2RlLCBmb3IgZXhhbXBsZToNCj4gDQo+
+IMKgICMgbmRjdGwgY3JlYXRlLW5hbWVzcGFjZSAtLXJlY29uZmlnPW5hbWVzcGFjZTAuMCAtLW1v
+ZGU9cmF3IC0tZm9yY2UNCj4gDQo+IC4uLnVzZSB0aGUgbmFtZXNwYWNlIG5hbWUgaW4gdGhlIGlv
+bWVtIGxpc3RpbmcgdG8ga2VlcCB0aGUgY2xhaW1pbmcNCj4gZGV2aWNlIG5hbWUgY29uc2lzdGVu
+dCBhY3Jvc3MgZGlmZmVyZW50IG1vZGUgc2V0dGluZ3MuDQo+IA0KPiBDYzogVmlzaGFsIFZlcm1h
+IDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFt
+cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiAtLS0NCj4gwqBkcml2ZXJzL2RheC9wbWVt
+LmPCoMKgwqDCoMKgfMKgwqDCoMKgMyArKy0NCj4gwqBkcml2ZXJzL252ZGltbS9jbGFpbS5jIHzC
+oMKgwqDCoDIgKy0NCj4gwqBkcml2ZXJzL252ZGltbS9wbWVtLmPCoMKgfMKgwqDCoMKgMiArLQ0K
+PiDCoDMgZmlsZXMgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KDQpM
+b29rcyBnb29kIQ0KDQpSZXZlaXdlZC1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBp
+bnRlbC5jb20+DQoNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2RheC9wbWVtLmMgYi9kcml2
+ZXJzL2RheC9wbWVtLmMNCj4gaW5kZXggOTYzMGQ4ODM3YmE5Li4zZmY4NDc4NDI0OWEgMTAwNjQ0
+DQo+IC0tLSBhL2RyaXZlcnMvZGF4L3BtZW0uYw0KPiArKysgYi9kcml2ZXJzL2RheC9wbWVtLmMN
+Cj4gQEAgLTg3LDcgKzg3LDggQEAgc3RhdGljIGludCBkYXhfcG1lbV9wcm9iZShzdHJ1Y3QgZGV2
+aWNlICpkZXYpDQo+IMKgCXBmbl9zYiA9IG5kX3Bmbi0+cGZuX3NiOw0KPiDCoA0KPiDCoAlpZiAo
+IWRldm1fcmVxdWVzdF9tZW1fcmVnaW9uKGRldiwgbnNpby0+cmVzLnN0YXJ0LA0KPiAtCQkJCXJl
+c291cmNlX3NpemUoJm5zaW8tPnJlcyksDQo+IGRldl9uYW1lKGRldikpKSB7DQo+ICsJCQkJcmVz
+b3VyY2Vfc2l6ZSgmbnNpby0+cmVzKSwNCj4gKwkJCQlkZXZfbmFtZSgmbmRucy0+ZGV2KSkpIHsN
+Cj4gwqAJCWRldl93YXJuKGRldiwgImNvdWxkIG5vdCByZXNlcnZlIHJlZ2lvbiAlcFJcbiIsDQo+
+ICZuc2lvLT5yZXMpOw0KPiDCoAkJcmV0dXJuIC1FQlVTWTsNCj4gwqAJfQ0KPiBkaWZmIC0tZ2l0
+IGEvZHJpdmVycy9udmRpbW0vY2xhaW0uYyBiL2RyaXZlcnMvbnZkaW1tL2NsYWltLmMNCj4gaW5k
+ZXggOGQ2NmZiYjc3OWVkLi40NjM4YjllYTUyMjkgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbnZk
+aW1tL2NsYWltLmMNCj4gKysrIGIvZHJpdmVycy9udmRpbW0vY2xhaW0uYw0KPiBAQCAtMjc1LDcg
+KzI3NSw3IEBAIGludCBkZXZtX25zaW9fZW5hYmxlKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0
+DQo+IG5kX25hbWVzcGFjZV9pbyAqbnNpbykNCj4gwqANCj4gwqAJbnNpby0+c2l6ZSA9IHJlc291
+cmNlX3NpemUocmVzKTsNCj4gwqAJaWYgKCFkZXZtX3JlcXVlc3RfbWVtX3JlZ2lvbihkZXYsIHJl
+cy0+c3RhcnQsDQo+IHJlc291cmNlX3NpemUocmVzKSwNCj4gLQkJCQlkZXZfbmFtZShkZXYpKSkg
+ew0KPiArCQkJCWRldl9uYW1lKCZuZG5zLT5kZXYpKSkgew0KPiDCoAkJZGV2X3dhcm4oZGV2LCAi
+Y291bGQgbm90IHJlc2VydmUgcmVnaW9uICVwUlxuIiwNCj4gcmVzKTsNCj4gwqAJCXJldHVybiAt
+RUJVU1k7DQo+IMKgCX0NCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3BtZW0uYyBiL2Ry
+aXZlcnMvbnZkaW1tL3BtZW0uYw0KPiBpbmRleCA0MmIzYTgyMTcwNzMuLjM0ZjE2YTE3YzA3YiAx
+MDA2NDQNCj4gLS0tIGEvZHJpdmVycy9udmRpbW0vcG1lbS5jDQo+ICsrKyBiL2RyaXZlcnMvbnZk
+aW1tL3BtZW0uYw0KPiBAQCAtMjY2LDcgKzI2Niw3IEBAIHN0YXRpYyBpbnQgcG1lbV9hdHRhY2hf
+ZGlzayhzdHJ1Y3QgZGV2aWNlICpkZXYsDQo+IMKgCQlkZXZfd2FybihkZXYsICJ1bmFibGUgdG8g
+Z3VhcmFudGVlIHBlcnNpc3RlbmNlIG9mDQo+IHdyaXRlc1xuIik7DQo+IMKgDQo+IMKgCWlmICgh
+ZGV2bV9yZXF1ZXN0X21lbV9yZWdpb24oZGV2LCByZXMtPnN0YXJ0LA0KPiByZXNvdXJjZV9zaXpl
+KHJlcyksDQo+IC0JCQkJZGV2X25hbWUoZGV2KSkpIHsNCj4gKwkJCQlkZXZfbmFtZSgmbmRucy0+
+ZGV2KSkpIHsNCj4gwqAJCWRldl93YXJuKGRldiwgImNvdWxkIG5vdCByZXNlcnZlIHJlZ2lvbiAl
+cFJcbiIsDQo+IHJlcyk7DQo+IMKgCQlyZXR1cm4gLUVCVVNZOw0KPiDCoAl9DQo+IApfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
+bGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcv
+bWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
