@@ -1,23 +1,11 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Mon, 28 Nov 2016 12:02:44 -0700
-Message-ID: <20161128190244.GA21975@obsidianresearch.com>
-References: <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
- <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
- <20161125193252.GC16504@obsidianresearch.com>
- <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
- <20161128165751.GB28381@obsidianresearch.com>
- <1480357179.19407.13.camel@mellanox.com>
+From: "boavvpmf" <gwfcpltrp-NRCdnGY/7ALk1uMJSBkQmQ@public.gmane.org>
+Subject: =?utf-8?B?5bm/5bee6I+y5Yip5pav5aSq6Ziz6IO956eR5oqA5pyJ6ZmQ5YWs5Y+4?=
+Date: Wed, 30 Nov 2016 05:51:37 +0800
+Message-ID: <20161130055145343388@vlwsllwt.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1480357179.19407.13.camel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,49 +15,168 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "John.Bridgman-5C7GfCeVMHo@public.gmane.org" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org" <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Paul.Blinzer-5C7GfCeVMHo@public.gmane.org" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "ben.sander-5C7GfCeVMHo@public.gmane.org" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Alexander.Deucher-5C7GfCeVMHo@public.gmane.org" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon, Nov 28, 2016 at 06:19:40PM +0000, Haggai Eran wrote:
-> > > GPU memory. We create a non-ODP MR pointing to VRAM but rely on
-> > > user-space and the GPU not to migrate it. If they do, the MR gets
-> > > destroyed immediately.
-> > That sounds horrible. How can that possibly work? What if the MR is
-> > being used when the GPU decides to migrate? 
-> Naturally this doesn't support migration. The GPU is expected to pin
-> these pages as long as the MR lives. The MR invalidation is done only as
-> a last resort to keep system correctness.
-
-That just forces applications to handle horrible unexpected
-failures. If this sort of thing is needed for correctness then OOM
-kill the offending process, don't corrupt its operation.
-
-> I think it is similar to how non-ODP MRs rely on user-space today to
-> keep them correct. If you do something like madvise(MADV_DONTNEED) on a
-> non-ODP MR's pages, you can still get yourself into a data corruption
-> situation (HCA sees one page and the process sees another for the same
-> virtual address). The pinning that we use only guarentees the HCA's page
-> won't be reused.
-
-That is not really data corruption - the data still goes where it was
-originally destined. That is an application violating the
-requirements of a MR. An application cannot munmap/mremap a VMA
-while a non ODP MR points to it and then keep using the MR.
-
-That is totally different from a GPU driver wanthing to mess with
-translation to physical pages.
-
-> > From what I understand we are not really talking about kernel p2p,
-> > everything proposed so far is being mediated by a userspace VMA, so
-> > I'd focus on making that work.
-
-> Fair enough, although we will need both eventually, and I hope the
-> infrastructure can be shared to some degree.
-
-What use case do you see for in kernel?
-
-Presumably in-kernel could use a vmap or something and the same basic
-flow?
-
-Jason
+5pawLOS7uyznu48s55CG44CB6YOoLOmXqCznu48s55CGLOWFqCzpnaIs566hLOeQhizmioAs6IO9
+LOaPkCzljYcu6K6tLue7g+KAlOKAlOivviznqIss566ALOS7iw0KDQrjgJDml7Ys6Ze0LOWcsCzn
+grnjgJEgMjAxNuW5tDEx5pyIMjUtMjbml6UgKOa3seWcsykgICAgICAgICAgICAxMuaciDE1LTE2
+ICjljJfkuqwpICAgICAgICAgICAxMuaciDE3LTE4ICjkuIrmtbcpDQrjgJDlj4Is5YqgLOWvuSzo
+saHjgJEg5paw5LiK5Lu75Li7566h44CB57uP55CG77yM5YKo5aSH5Lq65ZGY77yM6YOo6Zeo57uP
+55CGL+S4u+euoe+8jOiBjOiDvee7j+eQhu+8jOaKgOacr+e7j+eQhu+8jOePree7hOmVv++8jOS8
+geS4muS4remrmOWxgg0K44CQ5a2mLOS5oCzotLks55So44CRIDMsMiwwLDAs5ZyGLzLlpKkvMeS6
+uu+8iOWQq+iusizkuYnjgIHljYgs6aSQ44CB56iOLOi0ueOAgeiMtizngrnnrYkg77yJDQrjgJDl
+noIs6K+iLOeDrSznur/jgJEgMDc1NS0tLDY2NjIsMDM1NSAgICAxMzUsNDQwMSwzMzE1IOminOWw
+j+WnkA0K44CQ55S1LOWtkCzpgq4s566x44CRICAgOTcxNzAwNzMyQHFxLmNvbSAgIOW+rizkv6E6
+OTcxNzAwNzMyDQror74s56iLLOiDjCzmma8NCuOAgOOAgOS8geS4mueahOWPkeWxleWjruWkp++8
+jOmcgOimgeeuoeeQhuW5sumDqOeahOW/q+mAn+aIkOmVv++8m+mdouWvuei2iuadpei2iua/gOeD
+iOeahOW4guWcuuernuS6ie+8jOmcgOimgeeuoeeQhuW5sumDqOeahOeuoeeQhuawtOW5s+W/q+S4
+iuWPsOmYtuOAguiuuOWkmuS8geS4mueahOS4reWxgueuoeeQhuW5sumDqO+8jOWwpOWFtuaYr+aW
+sOS7u+eahOS4u+euoee7j+eQhu+8jOS7juS4k+S4muWyl+S9jei9rOaNouS4uuS4u+euoee7j+eQ
+huWQju+8jOWvueeuoeeQhuW3peS9nOWPiueuoeeQhuinkuiJsueahOiupOivhuS4jeWIsOS9je+8
+jOeuoeeQhuW3peS9nOeJh+mdouiAjOiiq+WKqO+8jOayoeacieecn+ato+aKiueuoeeQhueahOi0
+o+S7u+aLheW9k+i1t+adpeOAguacieS6m+S4reWxgueuoeeQhuW5sumDqOiZveeEtuWFt+acieeu
+oeeQhuaEj+ivhu+8jOS9hue8uuaAnei3r++8jOe8uuaWueazle+8jOe8uuWKqOS9nO+8jOeuoeS6
+i+W4puS6uuaViOaenOS4jeS9s++8jOS6i+aDheayoeWBmuWlve+8jOS6uuWRmOayoeeVmeS9j++8
+jOWboumYn+S4jeaIkOWei++8jOenr+aegeaAp+S4jemrmO+8jOWHneiBmuWKm+S4jeWkn++8jOW9
+kuWxnuaEn+S4jeW8uu+8jOW5sumDqOiHqui6q+W/meiAjOe0r++8jOe0r+iAjOeDpu+8jOS5heiA
+jOS5heS5i+m6u+acqOWApuaAoO+8gSAgDQrjgIDjgIDmlrAs5Lu7LOe7jyznkIblhajpnaLnrqHn
+kIbmioDog73mj5DljYforq3nu4Pln7norq3luK7liqnmlrAs5Lu7LOe7jyznkIbjgIHkuLvnrqHn
+rYnkvIHkuJrnrqHnkIblubLpg6jvvIzns7vnu5/nkIbop6PnrqHnkIbnmoTpgLvovpHmgKfvvIzn
+q5nlnKjmlbTkvZPop5LluqbvvIzmiormj6HnrqHnkIbop5LoibLvvIznkIbop6PkurrkuovnrqHn
+kIbnmoTnm7jovoXnm7jmiJDvvIzliIbmnpDpl67popjvvIzmorPnkIbmgJ3ot6/vvIzmjqLorqjm
+lrnms5XvvIzmvJTnu4Plt6XlhbfvvIzluK7liqnnvKnnn63kuK3lsYLlubLpg6jnmoTmiJDplb/l
+kajmnJ/vvIzlh4/lsJHnrqHnkIblpLHor6/vvIzmj5Dpq5jnrqHnkIbmlYjnjofvvIzku6XpgILl
+upTluILlnLrnq57kuonlvaLlir/lkozkvIHkuJrnmoTlv6vpgJ/lj5HlsZXvvIEgDQrln7ks6K6t
+LOaUtiznm4oNCjEu5bu656uL5Lit6KW/57uT5ZCI55qE57O757uf5oCn566h55CG5oCd57u05ZKM
+5qGG5p62DQoyLueQhuino+euoeeQhuiAheeahOacrOi0qOinkuiJsg0KMy7nkIbop6Pkurrkuovl
+iIbnprvlkozkurrkuovnu5PlkIjnmoTlhoXmtrXvvIzlu7rnq4vmgbDlvZPnmoTnrqHkurrnrqHk
+uovop4INCjQu5o6M5o+h5bel5L2c566h55CG55qE5pa55rOV5ZKM5bel5YW3DQo1LuS6huino+eu
+oeeQhuacieaViOiQveWcsOeahOetlueVpQ0KNi7mjozmj6HluKblm6LpmJ/nmoTmgJ3ot6/lkozm
+lrnms5UNCjcu5o6M5o+h5Lq65ZGY566h55CG5ZKM5r+A5Yqx55qE5oCd6Lev5ZKM5pa55rOVDQo4
+LuS/g+i/m+iHquaIkeaPkOWNhyDigJMg5LqG6Kej5oiQ6ZW/6Zi756KN5Zug57Sg77yM5L6/5LqO
+6Ieq5oiR5L+u54K877yM56qB56C06ZmQ5Yi2DQo5LueuoeeQhumXrumimOeOsOWcuuino+etlO+8
+iOmbhuS9k+aIluS4quWIq++8ie+8jOW4puedgOmXrumimOadpe+8jOW4puedgOaAnei3r+aIluet
+lOahiOi1sA0KDQrmlrAs5Lu7LOe7jyznkIbjgIHpg6gs6ZeoLOe7jyznkIYs5YWoLOmdoiznrqEs
+55CGLOaKgCzog70s5o+QLOWNhy7orq0u57uD4oCU4oCU6K++LOeoiyzlpKcs57qyDQrmqKHlnZfk
+uIDjgIHoh6os5oiRLOeuoSznkIYNCuS4gO+8juinkuiJsuS4juW/g+aAgeiupOefpQ0KMS7lpoLk
+vZXnkIbop6PnrqHnkIbvvJ8NCjIu5aaC5L2V55CG6Kej566h55CG6ICF6KeS6Imy55qE5pys6LSo
+DQozLuS8oOe7n+euoeeQhuaooeW8j+eahOW8iuerr+WSjOWbsOWigw0KNC7kurrkuovliIbnprvn
+moTpgLvovpHkuI7ljp/liJkNCuS6jO+8jueuoeeQhuWOn+WImeiupOefpQ0KMS7luLjop4HnmoTn
+rqHnkIbpmbfpmLEgLS0g5Lq65oOF566h55CG5LiO5Lq65rK7566h55CGDQoyLuS4uuS7gOS5iOS6
+uuaDheeuoeeQhuWvvOiHtOeuoeeQhuWbsOWig++8nw0KMy7liLbluqbljJbkuI7kurrmg4XljJbl
+poLkvZXlnKjnrqHnkIbkuK3mnInmnLrnu5PlkIjvvJ8NCjQu5aaC5L2V55CG6Kej5rWB56iL566h
+5LqL77yM6aKG5a+8566h5Lq677yfDQrkuInvvI7oh6rmiJHkv67ngrwNCjEu566h55CG6ICF5aaC
+5L2V5bqU5a+55Y6L5Yqb5aSn77yM54Om5oG85aSa55qE6Zeu6aKY77yfDQoyLuS7gOS5iOmZkOWI
+tuS6huaIkeS7rCAtLSDnkIbop6PigJzlj5fmg7PooYzor4bigJ3vvJ8NCjMu5aaC5L2V6KeJ5a+f
+5LiO6L2s5b+177yfDQo0Lui9rOW/teaWueazlee7g+S5oA0K5qih5Z2X5LqM44CB5belLOS9nCzn
+rqEs55CGDQrkuIDvvI4g5bel5L2c566h55CG6ZKI5a+56Zeu6aKYDQoxLuS4jeiDveaMieaXtuaM
+iei0qOWujOaIkOS7u+WKoQ0KMi7pl67popjph43lpI3lj5HnlJ/vvIzmnKrmnInmlYjop6PlhrMN
+CjMu5rWB56iL5Yi25bqm5b6X5LiN5Yiw5omn6KGM5ZKM5Z2a5oyBDQo0LuS4jeWIsOS9je+8jOS4
+jeWdmuaMge+8jOS4jemBteWuiO+8jOS4jeiupOecnw0K5LqM77yO5bel5L2c5omn6KGM5LiO6Zeu
+6aKY566h5o6nDQoxLuWIhg0KP+WmguS9leino+WGs+WSjOeuoeeQhuWbsOmavuWkjeadgumXrumi
+mO+8nw0KP+WIhuWdl+iBmueEpueuoeaOp+W3peWFtyAtLSDliIbmrrXmjqfliLbms5UNCj/liIbm
+rrXmjqfliLbms5XmvJTnu4MNCjIu566hDQo/5aaC5L2V566h55CG5bel5L2c5aSx5o6n54K55oiW
+6aOO6Zmp54K577yfDQo/5Yqo5L2c5YyW566h55CG5bel5YW3ICAtLSDkuInopoHntKDmjqfliLbm
+s5UNCj/kuInopoHntKDmjqfliLbms5XmvJTnu4MNCjMu5p+lDQo/5aaC5L2V5bqU5a+54oCc5LiN
+5Yiw5L2N5ZKM5LiN5Z2a5oyB4oCd6Zeu6aKY77yfDQo/5bel5L2c5qih5byP5ZKM5Lmg5oOv566h
+5o6n5py65Yi2IC0tIOeoveaguOaOp+WItuazlQ0KNC7ogIMNCj/lpoLkvZXnlKjmlbDmja7nrqHm
+jqfpl67popjvvJ8gLS0g5pWw5o2u6ICD5qC45rOVDQrmqKHlnZfkuInjgIHlm6Is6ZifLOeuoSzn
+kIYNCuS4gO+8juW4puWboumYn+eahOaAnei3rw0KMS7luKblm6LpmJ/opoHluKbku4DkuYjvvJ8N
+CjIu5bim5Zui6Zif55qE5Z+65pys5oCd6LevIC0tIOS4ieWxgue7k+aehO+8jOWbm+S4quaKk+eC
+uQ0KMy7lpoLkvZXnkIbop6Ppooblr7zlkozpqqjlubLlnKjlm6LpmJ/nrqHnkIbkuK3nmoTkvZzn
+lKjvvJ8NCjQuW+ahiOS+i+WIhuaekF3vvJrmlrDku7vkuLvnrqHlpoLkvZXlvIDlsYDlkozluKbl
+m6LpmJ/vvJ8NCuS6jO+8juWmguS9leaUuemAoOWboumYn+mjjuawlA0KMS7lpoLkvZXnkIbop6Pl
+m6LpmJ/po47msJTnmoTpl67popjooajnjrDlj4rlvbHlk43vvJ8NCjIu5aaC5L2V5aGR6YCg5Zui
+6Zif5Zyf5aOk5ZKM6aOO5rCU77yfDQozLlvmoYjkvovliIbmnpBd77ya5Z2a5oyB5Y6f5YiZ5oSP
+5ZGz552A5LuA5LmI77yfDQo0Llvmlrnms5Xnu4PkuaBd77ya5bu656uL5byV5a+85Zui6Zif6KGM
+5Li6566h55CG5py65Yi2DQrkuInvvI7lpoLkvZXorq3nu4PkuIvlsZ4NCjEu5aaC5L2V55CG6Kej
+5LyY56eA5Lq65omN55qE6IGM5Lia57Sg6LSo77yfDQoyLlvmoYjkvovliIbmnpBd77ya6auY57Sg
+6LSo5L+d5aeG5piv5oCO5qC354K85oiQ55qE77yfDQozLuWmguS9leeQhuino+S6uueahOaUueWP
+mO+8nw0KNC7ln7nlhbvkvJjnp4DkuIvlsZ7nmoTlhbPplK7opoHntKDlkozliqjkvZwNCuWbm++8
+juWmguS9leeuoeeQhuWSjOa/gOWKseS4i+Wxng0KMS7nrqHlpb3kuIvlsZ7nmoTkuKTkuKrlhbPp
+lK7ngrkNCjIu5aaC5L2V5oqK5o+h5r+A5Yqx5py65Yi26K6+6K6h55qE5YWz6ZSu54K577yfDQoz
+LuS4iuWPuOWmguS9leS4quaAp+WMlua/gOWKseS4i+Wxnu+8nw0KNC7lpoLkvZXokKXpgKDnp6/m
+noHlkJHkuIrnmoTlt6XkvZzmsJvlm7TvvJ8NCjUu5aaC5L2V55CG6Kej6aKR5bqm5ZKM5oSf6KeJ
+5a+55ZGY5bel5r+A5Yqx55qE5b2x5ZON77yfDQo2LuWRmOW3peiwg+WKqOeahOW/g+azleaIkOWw
+seWbm+e8mA0KNy5b5Li76aKY56CU6K6oXe+8muWmguS9leW7uueri+S4i+WxnuiupOWQjO+8nw0K
+OC5b5Li76aKY56CU6K6oXe+8muWmguS9leiwg+WKqOWRmOW3peW3peS9nOenr+aegeaAp++8nw0K
+5qih5Z2X5Zub44CB566h55CG5aaC5L2V5pyJ5pWIDQrkuIDvvI4g566h55CG6JC95Zyw562W55Wl
+DQoxLuS4uuS7gOS5iOabvue7j+eahOaIkOWKn+e7j+mqjOWIsOaWsOeahOeOr+Wig+WNtOWksei0
+peS6hu+8nw0KMi5b5qGI5L6L5YiG5p6QXe+8muS4uuS7gOS5iOiwg+aVtOS4iuePreaXtumXtOWN
+tOaLm+adpeWRmOW3peeahOW8uueDiOWPjeaKl++8nw0KMy7lpoLkvZXorqnnrqHnkIbmjqrmlr3m
+m7Tlpb3okL3lnLDmiafooYwgLS0g566h55CG6JC95Zyw55qE562W55WlDQo0LuWmguS9leeQhuin
+o+a4l+mAj+W8j+euoeeQhueahOWGhea2te+8nw0K5LqM77yO5YGa5aW9566h55CG55qE5pm65oWn
+DQoxLuS4uuS9leWQjOagt+eahOeuoeeQhuaWueazleWSjOW3peWFt++8jOeuoeeQhuaViOaenOWN
+tOW3rui3neW3qOWkp++8nw0KMi7nrqHnkIblpoLkvZXkv67ngrzigJznrKjlip/lpKvigJ0gLS0g
+57uG55+l6aKR5Y+N77yfDQoNCuaWsCzku7ss57uPLOeQhuOAgemDqCzpl6gs57uPLOeQhizlhags
+6Z2iLOeuoSznkIYs5oqALOiDvSzmj5As5Y2HLOiurSznu4PigJTigJTorrLluIjnroDku4sNCuab
+uSznpLws5piOIOiAgeW4iA0KP+W8uuiwg+iQveWcsOeahOWKqOS9nOWMluiuree7g+WvvOW4iO+8
+gQ0KP+S4reWxseWkp+Wtpk1CQSzkuK3lm73pppbmiblQTVDorqTor4HotYTmoLzkurrlkZjvvIzn
+n6XlkI3kvIHkuJrnrqHnkIbln7norq3lr7zluIjjgIINCuaVmSzogrIs6IOMLOaZrw0K44CAIOab
+ueekvOaYjuiAgeW4iOaciTIw5aSa5bm055qE5LyB5Lia5bel5L2c5LiO566h55CG5a6e6Le157uP
+6aqM77yM5YWI5ZCO5Zyo5Zu95LyB44CB5ZCI6LWE44CB5aSW6LWE44CB5rCR5LyB5ouF5Lu756CU
+5Y+R57uP55CG44CB6YOo6Zeo57uP55CG44CB5Lq65Yqb6LWE5rqQ5oC755uR44CB55Sf5Lqn5Y+K
+6L+Q6JCl5oC755uR44CB5bi45Yqh5Ymv5oC7562J6IGM44CC5LuO5LqL5LyB5Lia566h55CG5ZKo
+6K+i6aG+6ZeuNeW5tO+8jOW4ruWKqeS8geS4mui/m+ihjOeuoeeQhuWPmOmdqeWSjOeuoeeQhuW5
+sumDqOmYn+S8jeiuree7g+OAguabueiAgeW4iOiejeWQiOS4reilv+aWueeuoeeQhueQhuW/teWS
+jOaWueazle+8jOaThemVv+Wwhuilv+aWueeuoeeQhueQhuiuuuS4juS4reWbveS8geS4muWunumZ
+heebuOe7k+WQiO+8jOS7pee7k+aenOWSjOeuoeeQhuacieaViOaAp+S4uuWvvOWQke+8jOazqOmH
+jeaWueazleOAgeetlueVpeOAgeaOquaWveS4juWunumZheaDheWGteebuOe7k+WQiO+8jOi/veax
+guWvueS8geS4muS6p+eUn+WunumZheaViOaenOOAguabueekvOaYjuiAgeW4iOiupOS4uuS8geS4
+mueuoeeQhuW5sumDqOeuoeeQhuefpeivhuWSjOaAnee7tOWbuueEtumHjeimge+8jOWmguaenOS4
+jeiDveiQveWcsO+8jOS4jeiDveW6lOeUqOWcqOW3peS9nOS4reino+WGs+mXrumimO+8jOmCo+S5
+iOS7t+WAvOaciemZkO+8jOS6i+WAjeWKn+WNiu+8geS8geS4muimgeino+WGs+euoeeQhuS4iuea
+hOKAnOacgOWQjuS4gOWFrOmHjOKAnemXrumimO+8jOW/hemhu+WcqOWmguS9leiQveWcsO+8jOWm
+guS9leWBmueuoeeQhuWKqOS9nOS4iuS4i+W3peWkq++8geabueiAgeW4iOeahOiuree7g+W8uuiw
+g+aJvumXrumimO+8jOWBmuWKqOS9nO+8jOi/veaxguWtpueUqOe7k+WQiO+8gQ0K44CAIOabueek
+vOaYjuiAgeW4iOWcqOS8geS4muaJp+ihjOWKm+aPkOWNh++8jOS4remrmOWxgumihuWvvOWKm++8
+jOWboumYn+aJk+mAoO+8jOWboumYn+aWh+WMluW7uuiuvu+8jOW5sumDqOeuoeeQhuaKgOiDveiu
+ree7g+etieaWuemdouacieS4sOWvjOe7j+mqjOOAguS7luabvuS4u+aMgeS6huWkmuWutuS8geS4
+mueahOeuoeeQhuWSqOivoui+heWvvO+8jOS9v+S8geS4muS7jueuoeeQhua3t+S5seWkseaOp+OA
+geS4mue7qeWBnOa7nuS4jeWJjeOAgeS6uuWRmOiHqueUsea2o+aVo+eahOeKtuaAge+8jOmAkOat
+peaUueWPmOaIkOWItuW6puinhOiMg+OAgea1geeoi+aOp+WItuacieaViOOAgeS8geS4muS4mue7
+qeaYvuiRl+aPkOWNh+OAgeS8geS4muWHneiBmuWKm+WinuW8uueahOW0reaWsOS8geS4muOAgg0K
+44CAIOabueekvOaYjuiAgeW4iOiHquS7juS6i+S8geS4mueuoeeQhuWfueiureS7peadpe+8jOWG
+heWkluiureivvueoi+aVsOeZvuWcuu+8jOWPl+iureS6uuaVsOS4iuS4h+S6uu+8jOWFtuS4reOA
+iuaWsCzku7ss57uPLOeQhizlhags6Z2iLOeuoSznkIYs5oqALOiDvSzmj5DljYforq3nu4PjgIvl
+hazlvIDor77kuoznmb7kvZnmnJ/vvIzjgIpNVFDkuK3lsYLnrqHnkIborq3nu4PjgIvlhoXorq3k
+uIrnmb7mnJ/vvIzlhoXorq3nu5PlkIjkvIHkuJrlrp7pmYXmg4XlhrXlkozop6PlhrPlrablkZjp
+l67popjogIzmt7Hlj5flpb3or4TjgIINCuiAgSzluIgs54m5LOeCuQ0K5by66LCD5Yqh5a6e77yM
+5LiN5aS45aSn77yM5LiN5L2c56eA77yM5LiN5Yi75oSP5a6j5Lyg44CCDQrorrLmsYLlrp7miJjv
+vIzlrp7nlKjvvIzlrp7mlYjvvIzms6jph43liqjkvZzljJbvvJsNCuazqOmHjeeuoeeQhueahOaV
+tOS9k+aAp+WSjOmAu+i+keaApyzmj5DlgKHmiZPnu4TlkIjmi7PjgIINCuivvizloIIs6aOOLOag
+vA0K5qyi6L+O5a2m5ZGY546w5Zy65o+Q6Zeu77yM5bim552A6Zeu6aKY5p2l77yM5bim552A562U
+5qGI6LWwDQrpl67popjlr7zlkJHvvIzlvJXlr7zlkK/lj5HmgJ3ogIPlkozop6PlhrPpl67popgN
+Cua8lOiusu+8jOS6kuWKqO+8jOmXrumimOiuqOiuuu+8jOeOsOWcuua8lOe7g++8jOahiOS+i+WI
+huS6q+ebuOe7k+WQiA0K5Li7LOimgSzor74s56iLDQrjgIrmlrAs5Lu7LOe7jyznkIYs5YWoLOmd
+oiznrqEs55CGLOaKgCzog70s5o+QLOWNh+iuree7g+OAi+OAgeOAiuS4reWxgueuoeeQhk1UUOiu
+ree7g+OAi+OAgeOAiuS4remrmOWxgumihuWvvOWKm+OAi+OAgeOAiuS4reWxguaJp+ihjOWKm+OA
+i+OAgeOAiuS4reWxgumAieeUqOiCsueVmeOAi+OAgeOAiuS4reWxguW4puWboumYn+OAi+OAgeOA
+iueuoeeQhuayn+mAmuS4juWNj+iwg+OAi+OAgeOAiuS4reWxguaguOW/g+W3peS9nOiDveWKm+aP
+kOWNh+OAi+OAgeOAiuWboumYn+euoeeQhuS4juS6uuWRmOa/gOWKseOAi+OAgeOAiueUn+S6p+e7
+j+eQhuOAgeS4u+euoeWunuaImOeuoeeQhuaKgOiDveaPkOWNh+iuree7g+OAi+etieivvueoi+OA
+gj8NCumDqOWIhuWGheiureWuouaItw0K5Lit5Zu956We5Y2O77yM5Lit5aSW6L+Q6ZuG5Zui77yM
+5Lit57Ku6ZuG5Zui77yM5Y2X5Lqs55S15Yqb77yM5piG5bGx55S15Yqb77yM5Y2X5Lqs6aOO55S1
+77yM56aP55Sw6Zu35rKD5rG96L2m77yM54ix6L6+5YWL5rG96L2m77yM5aWH55Ge5rG96L2m77yM
+5Lic6aOO5pys55Sw77yM56aP5bu65L+h55So56S+57O757uf77yM5LiJ5LqV6YWS5Lia6ZuG5Zui
+77yM5LqU5b6X5Yip6Z2i57KJ77yM5a+M5YW06ZuG5Zui77yM5LyK5Yip6ZuG5Zui77yM5Lmd6byO
+6aWy5paZ6ZuG5Zui77yM5Lmd5pif5Y2w5Yi36ZuG5Zui77yM5bid5Lq66ZuG5Zui77yM5p2c5Yev
+6ZuG5Zui77yM6ZGr6IuR572u5Lia77yM5Yib6bi/5Zyw5Lqn77yM5bu65Lqo5Zyw5Lqn77yM5Y2P
+5L+h5Zyw5Lqn77yM5bGx6KW/5ZCI57q15oi/5Zyw5Lqn77yM56We5aiB6I2v5Lia77yM5Lmd5YW4
+5Yi26I2v77yM576O5aSn5bq36I2v5Lia77yM5rqQ5Z+66I2v5Lia77yM5rW35qC854mp5rWB77yM
+5a6c6ZqG54mp5rWB77yM6K+a5L+h6KGM54mp5Lia77yM5Lit5Lqk6ZOB6K6+77yM5Lit6ZOB55S1
+5rCU77yM5qC85Yqb6ZuG5Zui77yM576O5YWL576O5a626ZuG5Zui77yM5rWZ5rGf6L2757q65Z+O
+77yM5oSP5bCU5bq36Z6L5Lia77yM5paw5aSn54mn5Lia77yM5Lit5bGx6aOf5Ye66ZuG5Zui77yM
+5YyX5Lqs5a+M5rOw6ZuG5Zui77yM5rGf6IuP5b636YKm77yM5bm/5Lic5rC46aG66ZuG5Zui77yM
+5rex5Zyz5Yib5a+M5riv77yM5LiJ6Zu25L+h5oGv5a6J5YWo77yM5aSp5Y+v55S16K6v77yM5a6B
+5rOi6YCa5L+h77yM5o235pmu55S15a2Q77yM5Lic6Iqv55S15a2Q77yM5ZCI5ZKM55S15a2Q77yM
+6Iux6aOe5ouT55S15a2Q77yM5riF5rqQ5YWJ55S177yM5a+M5Y2O5py65qKw77yM6YeR56CU5py6
+5qKw77yM5LiW6YKm5py65qKw77yM5oiQ6YO96LGq54m577yM5bGx5Lic5Y2O54m577yM5oOg5bee
+576k5a+M77yM5YKy5aiB6ICX5p2Q77yM5YWt5Zu95YyW5bel77yM5LqR5Y2X6amw5a6P6ZSM6ZSX
+6ZuG5Zui4oCm4oCmDQrjgJDlnoIs6K+iLOeDrSznur/jgJEgMDc1NS0tLDY2NjIsMDM1NSAgICAx
+MzUsNDQwMSwzMzE1IOminOWwj+WnkCAgICAgUSxR77yaOTcxNzAwNzMyDQrpgIDorqLor7fovazl
+j5Hljp/mlofpgq7ku7boh7M5NzE3MDA3MzJAcXEuY29tCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgt
+bnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xpbnV4LW52ZGltbQo=
