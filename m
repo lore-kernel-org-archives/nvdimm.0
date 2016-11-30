@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 50D1F81D3A
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 15:37:34 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 05/21] mm: Trim __do_fault() arguments
-Date: Tue,  1 Nov 2016 23:36:13 +0100
-Message-Id: <1478039794-20253-8-git-send-email-jack@suse.cz>
-In-Reply-To: <1478039794-20253-1-git-send-email-jack@suse.cz>
-References: <1478039794-20253-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 8A18C81F07
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Nov 2016 15:45:57 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 5/6] dax: add tracepoints to dax_pmd_load_hole()
+Date: Wed, 30 Nov 2016 16:45:32 -0700
+Message-Id: <1480549533-29038-6-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,186 +22,140 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use vm_fault structure to pass cow_page, page, and entry in and out of
-the function. That reduces number of __do_fault() arguments from 4 to 1.
+Add tracepoints to dax_pmd_load_hole(), following the same logging
+conventions as the tracepoints in dax_iomap_pmd_fault().
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Here is an example PMD fault showing the new tracepoints:
+
+read_big-1478  [004] ....   238.242188: xfs_filemap_pmd_fault: dev 259:0
+ino 0x1003
+
+read_big-1478  [004] ....   238.242191: dax_pmd_fault: dev 259:0 ino 0x1003
+shared ALLOW_RETRY|KILLABLE|USER address 0x10400000 vm_start 0x10200000
+vm_end 0x10600000 pgoff 0x200 max_pgoff 0x1400
+
+read_big-1478  [004] ....   238.242390: dax_pmd_load_hole: dev 259:0 ino
+0x1003 shared address 0x10400000 zero_page ffffea0002c20000 radix_entry
+0x1e
+
+read_big-1478  [004] ....   238.242392: dax_pmd_fault_done: dev 259:0 ino
+0x1003 shared ALLOW_RETRY|KILLABLE|USER address 0x10400000 vm_start
+0x10200000 vm_end 0x10600000 pgoff 0x200 max_pgoff 0x1400 NOPAGE
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- mm/memory.c | 53 +++++++++++++++++++++++------------------------------
- 1 file changed, 23 insertions(+), 30 deletions(-)
+ fs/dax.c                      | 14 ++++++++++----
+ include/trace/events/fs_dax.h | 42 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 52 insertions(+), 4 deletions(-)
 
-diff --git a/mm/memory.c b/mm/memory.c
-index 8145dadb2645..f5ef7b8a30c5 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2848,26 +2848,22 @@ static int do_anonymous_page(struct vm_fault *vmf)
-  * released depending on flags and vma->vm_ops->fault() return value.
-  * See filemap_fault() and __lock_page_retry().
-  */
--static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
--		      struct page **page, void **entry)
-+static int __do_fault(struct vm_fault *vmf)
+diff --git a/fs/dax.c b/fs/dax.c
+index 4a99c2e..ad18366 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1269,33 +1269,39 @@ static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
  {
- 	struct vm_area_struct *vma = vmf->vma;
- 	int ret;
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	unsigned long pmd_addr = address & PMD_MASK;
++	struct inode *inode = mapping->host;
+ 	struct page *zero_page;
++	void *ret = NULL;
+ 	spinlock_t *ptl;
+ 	pmd_t pmd_entry;
+-	void *ret;
  
--	vmf->cow_page = cow_page;
--
- 	ret = vma->vm_ops->fault(vma, vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
--	if (ret & VM_FAULT_DAX_LOCKED) {
--		*entry = vmf->entry;
-+	if (ret & VM_FAULT_DAX_LOCKED)
- 		return ret;
--	}
+ 	zero_page = mm_get_huge_zero_page(vma->vm_mm);
  
- 	if (unlikely(PageHWPoison(vmf->page))) {
- 		if (ret & VM_FAULT_LOCKED)
- 			unlock_page(vmf->page);
- 		put_page(vmf->page);
-+		vmf->page = NULL;
- 		return VM_FAULT_HWPOISON;
+ 	if (unlikely(!zero_page))
+-		return VM_FAULT_FALLBACK;
++		goto fallback;
+ 
+ 	ret = dax_insert_mapping_entry(mapping, vmf, *entryp, 0,
+ 			RADIX_DAX_PMD | RADIX_DAX_HZP);
+ 	if (IS_ERR(ret))
+-		return VM_FAULT_FALLBACK;
++		goto fallback;
+ 	*entryp = ret;
+ 
+ 	ptl = pmd_lock(vma->vm_mm, pmd);
+ 	if (!pmd_none(*pmd)) {
+ 		spin_unlock(ptl);
+-		return VM_FAULT_FALLBACK;
++		goto fallback;
  	}
  
-@@ -2876,7 +2872,6 @@ static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
- 	else
- 		VM_BUG_ON_PAGE(!PageLocked(vmf->page), vmf->page);
- 
--	*page = vmf->page;
- 	return ret;
+ 	pmd_entry = mk_pmd(zero_page, vma->vm_page_prot);
+ 	pmd_entry = pmd_mkhuge(pmd_entry);
+ 	set_pmd_at(vma->vm_mm, pmd_addr, pmd, pmd_entry);
+ 	spin_unlock(ptl);
++	trace_dax_pmd_load_hole(inode, vma, address, zero_page, ret);
+ 	return VM_FAULT_NOPAGE;
++
++fallback:
++	trace_dax_pmd_load_hole_fallback(inode, vma, address, zero_page, ret);
++	return VM_FAULT_FALLBACK;
  }
  
-@@ -3173,7 +3168,6 @@ static int do_fault_around(struct vm_fault *vmf)
- static int do_read_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *fault_page;
- 	int ret = 0;
+ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+index 5acc016..9f0a455 100644
+--- a/include/trace/events/fs_dax.h
++++ b/include/trace/events/fs_dax.h
+@@ -61,6 +61,48 @@ DEFINE_EVENT(dax_pmd_fault_class, name, \
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault);
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault_done);
  
- 	/*
-@@ -3187,24 +3181,23 @@ static int do_read_fault(struct vm_fault *vmf)
- 			return ret;
- 	}
++DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
++	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
++		unsigned long address, struct page *zero_page,
++		void *radix_entry),
++	TP_ARGS(inode, vma, address, zero_page, radix_entry),
++	TP_STRUCT__entry(
++		__field(dev_t, dev)
++		__field(unsigned long, ino)
++		__field(unsigned long, vm_flags)
++		__field(unsigned long, address)
++		__field(struct page *, zero_page)
++		__field(void *, radix_entry)
++	),
++	TP_fast_assign(
++		__entry->dev = inode->i_sb->s_dev;
++		__entry->ino = inode->i_ino;
++		__entry->vm_flags = vma->vm_flags;
++		__entry->address = address;
++		__entry->zero_page = zero_page;
++		__entry->radix_entry = radix_entry;
++	),
++	TP_printk("dev %d:%d ino %#lx %s address %#lx zero_page %p "
++			"radix_entry %#lx",
++		MAJOR(__entry->dev),
++		MINOR(__entry->dev),
++		__entry->ino,
++		__entry->vm_flags & VM_SHARED ? "shared" : "private",
++		__entry->address,
++		__entry->zero_page,
++		(unsigned long)__entry->radix_entry
++	)
++)
++
++#define DEFINE_PMD_LOAD_HOLE_EVENT(name) \
++DEFINE_EVENT(dax_pmd_load_hole_class, name, \
++	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
++		unsigned long address, struct page *zero_page, \
++		void *radix_entry), \
++	TP_ARGS(inode, vma, address, zero_page, radix_entry))
++
++DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
++DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
  
--	ret = __do_fault(vmf, NULL, &fault_page, NULL);
-+	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
+ #endif /* _TRACE_FS_DAX_H */
  
--	ret |= alloc_set_pte(vmf, NULL, fault_page);
-+	ret |= alloc_set_pte(vmf, NULL, vmf->page);
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--	unlock_page(fault_page);
-+	unlock_page(vmf->page);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
--		put_page(fault_page);
-+		put_page(vmf->page);
- 	return ret;
- }
- 
- static int do_cow_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *fault_page, *new_page;
--	void *fault_entry;
-+	struct page *new_page;
- 	struct mem_cgroup *memcg;
- 	int ret;
- 
-@@ -3221,20 +3214,21 @@ static int do_cow_fault(struct vm_fault *vmf)
- 		return VM_FAULT_OOM;
- 	}
- 
--	ret = __do_fault(vmf, new_page, &fault_page, &fault_entry);
-+	vmf->cow_page = new_page;
-+	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
- 
- 	if (!(ret & VM_FAULT_DAX_LOCKED))
--		copy_user_highpage(new_page, fault_page, vmf->address, vma);
-+		copy_user_highpage(new_page, vmf->page, vmf->address, vma);
- 	__SetPageUptodate(new_page);
- 
- 	ret |= alloc_set_pte(vmf, memcg, new_page);
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
--		unlock_page(fault_page);
--		put_page(fault_page);
-+		unlock_page(vmf->page);
-+		put_page(vmf->page);
- 	} else {
- 		dax_unlock_mapping_entry(vma->vm_file->f_mapping, vmf->pgoff);
- 	}
-@@ -3250,12 +3244,11 @@ static int do_cow_fault(struct vm_fault *vmf)
- static int do_shared_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *fault_page;
- 	struct address_space *mapping;
- 	int dirtied = 0;
- 	int ret, tmp;
- 
--	ret = __do_fault(vmf, NULL, &fault_page, NULL);
-+	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
-@@ -3264,26 +3257,26 @@ static int do_shared_fault(struct vm_fault *vmf)
- 	 * about to become writable
- 	 */
- 	if (vma->vm_ops->page_mkwrite) {
--		unlock_page(fault_page);
--		tmp = do_page_mkwrite(vma, fault_page, vmf->address);
-+		unlock_page(vmf->page);
-+		tmp = do_page_mkwrite(vma, vmf->page, vmf->address);
- 		if (unlikely(!tmp ||
- 				(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
--			put_page(fault_page);
-+			put_page(vmf->page);
- 			return tmp;
- 		}
- 	}
- 
--	ret |= alloc_set_pte(vmf, NULL, fault_page);
-+	ret |= alloc_set_pte(vmf, NULL, vmf->page);
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE |
- 					VM_FAULT_RETRY))) {
--		unlock_page(fault_page);
--		put_page(fault_page);
-+		unlock_page(vmf->page);
-+		put_page(vmf->page);
- 		return ret;
- 	}
- 
--	if (set_page_dirty(fault_page))
-+	if (set_page_dirty(vmf->page))
- 		dirtied = 1;
- 	/*
- 	 * Take a local copy of the address_space - page.mapping may be zeroed
-@@ -3291,8 +3284,8 @@ static int do_shared_fault(struct vm_fault *vmf)
- 	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
- 	 * release semantics to prevent the compiler from undoing this copying.
- 	 */
--	mapping = page_rmapping(fault_page);
--	unlock_page(fault_page);
-+	mapping = page_rmapping(vmf->page);
-+	unlock_page(vmf->page);
- 	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
- 		/*
- 		 * Some device drivers do not set page.mapping but still
 -- 
-2.6.6
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
