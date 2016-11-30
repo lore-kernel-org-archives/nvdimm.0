@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1 with cipher CAMELLIA256-SHA (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 11BBD81D5D
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 12:54:35 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v9 15/16] xfs: use struct iomap based DAX PMD fault path
-Date: Tue,  1 Nov 2016 13:54:17 -0600
-Message-Id: <1478030058-1422-16-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1478030058-1422-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EFF0581D97
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Nov 2016 00:23:21 -0800 (PST)
+Date: Wed, 30 Nov 2016 09:23:18 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 3/6] dax: Avoid page invalidation races and unnecessary
+ radix tree traversals
+Message-ID: <20161130082318.GE16667@quack2.suse.cz>
+References: <1479980796-26161-1-git-send-email-jack@suse.cz>
+ <1479980796-26161-4-git-send-email-jack@suse.cz>
+ <20161129223138.GB16608@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20161129223138.GB16608@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,115 +22,103 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Switch xfs_filemap_pmd_fault() from using dax_pmd_fault() to the new and
-improved dax_iomap_pmd_fault().  Also, now that it has no more users,
-remove xfs_get_blocks_dax_fault().
+On Tue 29-11-16 15:31:38, Ross Zwisler wrote:
+> On Thu, Nov 24, 2016 at 10:46:33AM +0100, Jan Kara wrote:
+> > Currently each filesystem (possibly through generic_file_direct_write()
+> > or iomap_dax_rw()) takes care of invalidating page tables and evicting
+> 
+> Just some nits about the commit message: the DAX I/O path function is now
+> called dax_iomap_rw(), and no filesystems still use
+> generic_file_direct_write() for DAX so you can probably remove it from the
+> changelog - up to you.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/xfs/xfs_aops.c | 26 +++++---------------------
- fs/xfs/xfs_aops.h |  3 ---
- fs/xfs/xfs_file.c |  2 +-
- 3 files changed, 6 insertions(+), 25 deletions(-)
+Yeah, good spotting. Many things have changed through rebases. I've fixed
+up the changelog to reflect current state.
 
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index 3e57a56..561cf14 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -1298,8 +1298,7 @@ __xfs_get_blocks(
- 	sector_t		iblock,
- 	struct buffer_head	*bh_result,
- 	int			create,
--	bool			direct,
--	bool			dax_fault)
-+	bool			direct)
- {
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	struct xfs_mount	*mp = ip->i_mount;
-@@ -1420,13 +1419,8 @@ __xfs_get_blocks(
- 		if (ISUNWRITTEN(&imap))
- 			set_buffer_unwritten(bh_result);
- 		/* direct IO needs special help */
--		if (create) {
--			if (dax_fault)
--				ASSERT(!ISUNWRITTEN(&imap));
--			else
--				xfs_map_direct(inode, bh_result, &imap, offset,
--						is_cow);
--		}
-+		if (create)
-+			xfs_map_direct(inode, bh_result, &imap, offset, is_cow);
- 	}
- 
- 	/*
-@@ -1466,7 +1460,7 @@ xfs_get_blocks(
- 	struct buffer_head	*bh_result,
- 	int			create)
- {
--	return __xfs_get_blocks(inode, iblock, bh_result, create, false, false);
-+	return __xfs_get_blocks(inode, iblock, bh_result, create, false);
- }
- 
- int
-@@ -1476,17 +1470,7 @@ xfs_get_blocks_direct(
- 	struct buffer_head	*bh_result,
- 	int			create)
- {
--	return __xfs_get_blocks(inode, iblock, bh_result, create, true, false);
--}
--
--int
--xfs_get_blocks_dax_fault(
--	struct inode		*inode,
--	sector_t		iblock,
--	struct buffer_head	*bh_result,
--	int			create)
--{
--	return __xfs_get_blocks(inode, iblock, bh_result, create, true, true);
-+	return __xfs_get_blocks(inode, iblock, bh_result, create, true);
- }
- 
- /*
-diff --git a/fs/xfs/xfs_aops.h b/fs/xfs/xfs_aops.h
-index b3c6634..34dc00d 100644
---- a/fs/xfs/xfs_aops.h
-+++ b/fs/xfs/xfs_aops.h
-@@ -59,9 +59,6 @@ int	xfs_get_blocks(struct inode *inode, sector_t offset,
- 		       struct buffer_head *map_bh, int create);
- int	xfs_get_blocks_direct(struct inode *inode, sector_t offset,
- 			      struct buffer_head *map_bh, int create);
--int	xfs_get_blocks_dax_fault(struct inode *inode, sector_t offset,
--			         struct buffer_head *map_bh, int create);
--
- int	xfs_end_io_direct_write(struct kiocb *iocb, loff_t offset,
- 		ssize_t size, void *private);
- int	xfs_setfilesize(struct xfs_inode *ip, xfs_off_t offset, size_t size);
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 8ce5d3f..d818c16 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1545,7 +1545,7 @@ xfs_filemap_pmd_fault(
- 	}
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
--	ret = dax_pmd_fault(vma, addr, pmd, flags, xfs_get_blocks_dax_fault);
-+	ret = dax_iomap_pmd_fault(vma, addr, pmd, flags, &xfs_iomap_ops);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 
- 	if (flags & FAULT_FLAG_WRITE)
+> Aside from that:
+> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+
+Thanks.
+
+								Honza
+
+> 
+> > hole pages from the radix tree when write(2) to the file happens. This
+> > invalidation is only necessary when there is some block allocation
+> > resulting from write(2). Furthermore in current place the invalidation
+> > is racy wrt page fault instantiating a hole page just after we have
+> > invalidated it.
+> > 
+> > So perform the page invalidation inside dax_do_io() where we can do it
+> > only when really necessary and after blocks have been allocated so
+> > nobody will be instantiating new hole pages anymore.
+> > 
+> > Reviewed-by: Christoph Hellwig <hch@lst.de>
+> > Signed-off-by: Jan Kara <jack@suse.cz>
+> > ---
+> >  fs/dax.c | 28 +++++++++++-----------------
+> >  1 file changed, 11 insertions(+), 17 deletions(-)
+> > 
+> > diff --git a/fs/dax.c b/fs/dax.c
+> > index 4534f0e232e9..ddf77ef2ca18 100644
+> > --- a/fs/dax.c
+> > +++ b/fs/dax.c
+> > @@ -984,6 +984,17 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+> >  	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED))
+> >  		return -EIO;
+> >  
+> > +	/*
+> > +	 * Write can allocate block for an area which has a hole page mapped
+> > +	 * into page tables. We have to tear down these mappings so that data
+> > +	 * written by write(2) is visible in mmap.
+> > +	 */
+> > +	if ((iomap->flags & IOMAP_F_NEW) && inode->i_mapping->nrpages) {
+> > +		invalidate_inode_pages2_range(inode->i_mapping,
+> > +					      pos >> PAGE_SHIFT,
+> > +					      (end - 1) >> PAGE_SHIFT);
+> > +	}
+> > +
+> >  	while (pos < end) {
+> >  		unsigned offset = pos & (PAGE_SIZE - 1);
+> >  		struct blk_dax_ctl dax = { 0 };
+> > @@ -1042,23 +1053,6 @@ dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+> >  	if (iov_iter_rw(iter) == WRITE)
+> >  		flags |= IOMAP_WRITE;
+> >  
+> > -	/*
+> > -	 * Yes, even DAX files can have page cache attached to them:  A zeroed
+> > -	 * page is inserted into the pagecache when we have to serve a write
+> > -	 * fault on a hole.  It should never be dirtied and can simply be
+> > -	 * dropped from the pagecache once we get real data for the page.
+> > -	 *
+> > -	 * XXX: This is racy against mmap, and there's nothing we can do about
+> > -	 * it. We'll eventually need to shift this down even further so that
+> > -	 * we can check if we allocated blocks over a hole first.
+> > -	 */
+> > -	if (mapping->nrpages) {
+> > -		ret = invalidate_inode_pages2_range(mapping,
+> > -				pos >> PAGE_SHIFT,
+> > -				(pos + iov_iter_count(iter) - 1) >> PAGE_SHIFT);
+> > -		WARN_ON_ONCE(ret);
+> > -	}
+> > -
+> >  	while (iov_iter_count(iter)) {
+> >  		ret = iomap_apply(inode, pos, iov_iter_count(iter), flags, ops,
+> >  				iter, dax_iomap_actor);
+> > -- 
+> > 2.6.6
+> > 
 -- 
-2.7.4
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
