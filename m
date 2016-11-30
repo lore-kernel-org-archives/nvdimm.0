@@ -1,22 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-wm0-x22f.google.com (mail-wm0-x22f.google.com
- [IPv6:2a00:1450:400c:c09::22f])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E762281CE0
- for <linux-nvdimm@lists.01.org>; Tue,  1 Nov 2016 07:25:15 -0700 (PDT)
-Received: by mail-wm0-x22f.google.com with SMTP id p190so208655265wmp.1
- for <linux-nvdimm@lists.01.org>; Tue, 01 Nov 2016 07:25:17 -0700 (PDT)
-Message-ID: <5818A5C8.6040300@plexistor.com>
-Date: Tue, 01 Nov 2016 16:25:12 +0200
-From: Boaz Harrosh <boaz@plexistor.com>
-MIME-Version: 1.0
-Subject: Re: [PATCH v2 1/3] introduce memcpy_nocache()
-References: <20161026155021.20892-1-brian.boylston@hpe.com>
- <20161026155021.20892-2-brian.boylston@hpe.com>
- <58110959.90901@plexistor.com>
- <CS1PR84MB011975E5DCF3B091E53A3FB38EAD0@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
-In-Reply-To: <CS1PR84MB011975E5DCF3B091E53A3FB38EAD0@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id 55C9781F0D
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Nov 2016 15:45:58 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 6/6] dax: add tracepoints to dax_pmd_insert_mapping()
+Date: Wed, 30 Nov 2016 16:45:33 -0700
+Message-Id: <1480549533-29038-7-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,158 +17,167 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Boylston, Brian" <brian.boylston@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "Moreno, Oliver" <oliver.moreno@hpe.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@ZenIV.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "boylston@burromesa.net" <boylston@burromesa.net>
+To: linux-kernel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 10/28/2016 04:54 AM, Boylston, Brian wrote:
-> Boaz Harrosh wrote on 2016-10-26:
->> On 10/26/2016 06:50 PM, Brian Boylston wrote:
->>> Introduce memcpy_nocache() as a memcpy() that avoids the processor cache
->>> if possible.  Without arch-specific support, this defaults to just
->>> memcpy().  For now, include arch-specific support for x86.
->>>
->>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
->>> Cc: Thomas Gleixner <tglx@linutronix.de>
->>> Cc: Ingo Molnar <mingo@redhat.com>
->>> Cc: "H. Peter Anvin" <hpa@zytor.com>
->>> Cc: <x86@kernel.org>
->>> Cc: Al Viro <viro@ZenIV.linux.org.uk>
->>> Cc: Dan Williams <dan.j.williams@intel.com>
->>> Signed-off-by: Brian Boylston <brian.boylston@hpe.com>
->>> Reviewed-by: Toshi Kani <toshi.kani@hpe.com>
->>> Reported-by: Oliver Moreno <oliver.moreno@hpe.com>
->>> ---
->>>  arch/x86/include/asm/string_32.h |  3 +++
->>>  arch/x86/include/asm/string_64.h |  3 +++
->>>  arch/x86/lib/misc.c              | 12 ++++++++++++
->>>  include/linux/string.h           | 15 +++++++++++++++
->>>  4 files changed, 33 insertions(+)
->>> diff --git a/arch/x86/include/asm/string_32.h b/arch/x86/include/asm/string_32.h
->>> index 3d3e835..64f80c0 100644
->>> --- a/arch/x86/include/asm/string_32.h
->>> +++ b/arch/x86/include/asm/string_32.h
->>> @@ -196,6 +196,9 @@ static inline void *__memcpy3d(void *to, const void *from, size_t len)
->>>
->>>  #endif
->>> +#define __HAVE_ARCH_MEMCPY_NOCACHE
->>> +extern void *memcpy_nocache(void *dest, const void *src, size_t count);
->>> +
->>>  #define __HAVE_ARCH_MEMMOVE
->>>  void *memmove(void *dest, const void *src, size_t n);
->>> diff --git a/arch/x86/include/asm/string_64.h b/arch/x86/include/asm/string_64.h
->>> index 90dbbd9..a8fdd55 100644
->>> --- a/arch/x86/include/asm/string_64.h
->>> +++ b/arch/x86/include/asm/string_64.h
->>> @@ -51,6 +51,9 @@ extern void *__memcpy(void *to, const void *from, size_t len);
->>>  #define memcpy(dst, src, len) __inline_memcpy((dst), (src), (len))
->>>  #endif
->>> +#define __HAVE_ARCH_MEMCPY_NOCACHE
->>> +extern void *memcpy_nocache(void *dest, const void *src, size_t count);
->>> +
->>>  #define __HAVE_ARCH_MEMSET
->>>  void *memset(void *s, int c, size_t n);
->>>  void *__memset(void *s, int c, size_t n);
->>> diff --git a/arch/x86/lib/misc.c b/arch/x86/lib/misc.c
->>> index 76b373a..c993ab3 100644
->>> --- a/arch/x86/lib/misc.c
->>> +++ b/arch/x86/lib/misc.c
->>> @@ -1,3 +1,6 @@
->>> +#include <linux/export.h>
->>> +#include <linux/uaccess.h>
->>> +
->>>  /*
->>>   * Count the digits of @val including a possible sign.
->>>   *
->>> @@ -19,3 +22,12 @@ int num_digits(int val)
->>>  	}
->>>  	return d;
->>>  }
->>> +
->>> +#ifdef __HAVE_ARCH_MEMCPY_NOCACHE
->>> +void *memcpy_nocache(void *dest, const void *src, size_t count)
->>> +{
->>> +	__copy_from_user_inatomic_nocache(dest, src, count);
->>> +	return dest;
->>> +}
->>> +EXPORT_SYMBOL(memcpy_nocache);
->>> +#endif
->>> diff --git a/include/linux/string.h b/include/linux/string.h
->>> index 26b6f6a..7f40c41 100644
->>> --- a/include/linux/string.h
->>> +++ b/include/linux/string.h
->>> @@ -102,6 +102,21 @@ extern void * memset(void *,int,__kernel_size_t);
->>>  #ifndef __HAVE_ARCH_MEMCPY
->>>  extern void * memcpy(void *,const void *,__kernel_size_t);
->>>  #endif
->>> +
->>> +#ifndef __HAVE_ARCH_MEMCPY_NOCACHE
->>> +/**
->>> + * memcpy_nocache - Copy one area of memory to another, avoiding the
->>> + * processor cache if possible
->>> + * @dest: Where to copy to
->>> + * @src: Where to copy from
->>> + * @count: The size of the area.
->>> + */
->>> +static inline void *memcpy_nocache(void *dest, const void *src, size_t count)
->>> +{
->>> +	return memcpy(dest, src, count);
->>> +}
->>
->> What about memcpy_to_pmem() in linux/pmem.h it already has all the arch switches.
->>
->> Feels bad to add yet just another arch switch over __copy_user_nocache
->>
->> Just feels like too many things that do the same thing. Sigh
-> 
-> I agree that this looks like a nicer path.
-> 
-> I had considered adjusting copy_from_iter_nocache() to use memcpy_to_pmem(),
-> but lib/iov_iter.c doesn't currently #include linux/pmem.h.  Would it be
-> acceptable to add it?  Also, I wasn't sure if memcpy_to_pmem() would always
-> mean exactly "memcpy nocache".
-> 
+Add tracepoints to dax_pmd_insert_mapping(), following the same logging
+conventions as the tracepoints in dax_iomap_pmd_fault().
 
-I think this is the way to go. In my opinion there is no reason why not to include
-pmem.h into lib/iov_iter.c.
+Here is an example PMD fault showing the new tracepoints:
 
-And I think memcpy_to_pmem() would always be the fastest arch way to bypass cache
-so it should be safe to use this for all cases. It is so in the arches that support
-this now, and I cannot imagine a theoretical arch that would differ. But let the
-specific arch people holler if this steps on their tows, later when they care about
-this at all.
+big-1504  [001] ....   326.960743: xfs_filemap_pmd_fault: dev 259:0 ino
+0x1003
 
-> I had also considered adjusting copy_from_iter_pmem() (also in linux/pmem.h)
-> to just use memcpy_to_pmem() directly, but then it can't use the goodness
-> that is the iterate_and_advance() macro in iov_iter.c.
-> 
+big-1504  [001] ....   326.960753: dax_pmd_fault: dev 259:0 ino 0x1003
+shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
+0x10200000 vm_end 0x10700000 pgoff 0x200 max_pgoff 0x1400
 
-No please keep all these local to iov_iter.c. Any future changes should be local
-to here and fixed in one place.
+big-1504  [001] ....   326.960981: dax_pmd_insert_mapping: dev 259:0 ino
+0x1003 shared write address 0x10505000 length 0x200000 pfn 0x100600 DEV|MAP
+radix_entry 0xc000e
 
-> So, I took a shot with a possibly ill-fated memcpy_nocache().  Thoughts on
-> either of the above two?  Are these even in line with what you were thinking?
-> 
+big-1504  [001] ....   326.960986: dax_pmd_fault_done: dev 259:0 ino 0x1003
+shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
+0x10200000 vm_end 0x10700000 pgoff 0x200 max_pgoff 0x1400 NOPAGE
 
-Yes thanks again for pushing this. I think it is important. CC me on patches
-and I will send you my Review-by
-Boaz
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ fs/dax.c                      | 12 +++++++---
+ include/linux/pfn_t.h         |  6 +++++
+ include/trace/events/fs_dax.h | 51 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 66 insertions(+), 3 deletions(-)
 
-> Thanks!
-> Brian
-> 
->>
->> Boaz
->>
->>> +#endif
->>> +
->>>  #ifndef __HAVE_ARCH_MEMMOVE
->>>  extern void * memmove(void *,const void *,__kernel_size_t);
->>>  #endif
+diff --git a/fs/dax.c b/fs/dax.c
+index ad18366..66bbd2d 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1232,15 +1232,16 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+ {
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	struct block_device *bdev = iomap->bdev;
++	struct inode *inode = mapping->host;
+ 	struct blk_dax_ctl dax = {
+ 		.sector = dax_iomap_sector(iomap, pos),
+ 		.size = PMD_SIZE,
+ 	};
+ 	long length = dax_map_atomic(bdev, &dax);
+-	void *ret;
++	void *ret = NULL;
+ 
+ 	if (length < 0) /* dax_map_atomic() failed */
+-		return VM_FAULT_FALLBACK;
++		goto fallback;
+ 	if (length < PMD_SIZE)
+ 		goto unmap_fallback;
+ 	if (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR)
+@@ -1253,13 +1254,18 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+ 	ret = dax_insert_mapping_entry(mapping, vmf, *entryp, dax.sector,
+ 			RADIX_DAX_PMD);
+ 	if (IS_ERR(ret))
+-		return VM_FAULT_FALLBACK;
++		goto fallback;
+ 	*entryp = ret;
+ 
++	trace_dax_pmd_insert_mapping(inode, vma, address, write, length,
++			dax.pfn, ret);
+ 	return vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
+ 
+ unmap_fallback:
+ 	dax_unmap_atomic(bdev, &dax);
++fallback:
++	trace_dax_pmd_insert_mapping_fallback(inode, vma, address, write,
++			length, dax.pfn, ret);
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
+index a3d90b9..033fc7b 100644
+--- a/include/linux/pfn_t.h
++++ b/include/linux/pfn_t.h
+@@ -15,6 +15,12 @@
+ #define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
+ #define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
+ 
++#define PFN_FLAGS_TRACE \
++	{ PFN_SG_CHAIN,	"SG_CHAIN" }, \
++	{ PFN_SG_LAST,	"SG_LAST" }, \
++	{ PFN_DEV,	"DEV" }, \
++	{ PFN_MAP,	"MAP" }
++
+ static inline pfn_t __pfn_to_pfn_t(unsigned long pfn, u64 flags)
+ {
+ 	pfn_t pfn_t = { .val = pfn | (flags & PFN_FLAGS_MASK), };
+diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+index 9f0a455..7d0ea33 100644
+--- a/include/trace/events/fs_dax.h
++++ b/include/trace/events/fs_dax.h
+@@ -104,6 +104,57 @@ DEFINE_EVENT(dax_pmd_load_hole_class, name, \
+ DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
+ DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
+ 
++DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
++	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
++		unsigned long address, int write, long length, pfn_t pfn,
++		void *radix_entry),
++	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry),
++	TP_STRUCT__entry(
++		__field(dev_t, dev)
++		__field(unsigned long, ino)
++		__field(unsigned long, vm_flags)
++		__field(unsigned long, address)
++		__field(int, write)
++		__field(long, length)
++		__field(u64, pfn_val)
++		__field(void *, radix_entry)
++	),
++	TP_fast_assign(
++		__entry->dev = inode->i_sb->s_dev;
++		__entry->ino = inode->i_ino;
++		__entry->vm_flags = vma->vm_flags;
++		__entry->address = address;
++		__entry->write = write;
++		__entry->length = length;
++		__entry->pfn_val = pfn.val;
++		__entry->radix_entry = radix_entry;
++	),
++	TP_printk("dev %d:%d ino %#lx %s %s address %#lx length %#lx "
++			"pfn %#llx %s radix_entry %#lx",
++		MAJOR(__entry->dev),
++		MINOR(__entry->dev),
++		__entry->ino,
++		__entry->vm_flags & VM_SHARED ? "shared" : "private",
++		__entry->write ? "write" : "read",
++		__entry->address,
++		__entry->length,
++		__entry->pfn_val & ~PFN_FLAGS_MASK,
++		__print_flags_u64(__entry->pfn_val & PFN_FLAGS_MASK, "|",
++			PFN_FLAGS_TRACE),
++		(unsigned long)__entry->radix_entry
++	)
++)
++
++#define DEFINE_PMD_INSERT_MAPPING_EVENT(name) \
++DEFINE_EVENT(dax_pmd_insert_mapping_class, name, \
++	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
++		unsigned long address, int write, long length, pfn_t pfn, \
++		void *radix_entry), \
++	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry))
++
++DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
++DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping_fallback);
++
+ #endif /* _TRACE_FS_DAX_H */
+ 
+ /* This part must be outside protection */
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
