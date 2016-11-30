@@ -1,7 +1,7 @@
-From: Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Wed, 30 Nov 2016 12:28:24 -0500
-Message-ID: <2560aab2-426c-6e58-cb4f-77ec76e0c941@amd.com>
+Date: Wed, 30 Nov 2016 11:01:09 -0700
+Message-ID: <5f5b7989-84f5-737e-47c8-831f752d6280@deltatee.com>
 References: <20161123215510.GA16311@obsidianresearch.com>
  <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
  <20161124164249.GD20818@obsidianresearch.com>
@@ -14,7 +14,7 @@ References: <20161123215510.GA16311@obsidianresearch.com>
  <c0ddccf3-52ce-d883-a57a-70d8a1febf85@mellanox.com>
  <20161130162353.GA24639@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 In-Reply-To: <20161130162353.GA24639-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -28,38 +28,21 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "John.Bridgman-5C7GfCeVMHo@public.gmane.org" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Paul.Blinzer-5C7GfCeVMHo@public.gmane.org" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "ben.sander-5C7GfCeVMHo@public.gmane.org" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Alexander.Deucher-5C7GfCeVMHo@public.gmane.org" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "John.Bridgman-5C7GfCeVMHo@public.gmane.org" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org" <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Paul.Blinzer-5C7GfCeVMHo@public.gmane.org" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "ben.sander-5C7GfCeVMHo@public.gmane.org" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Alexander.Deucher-5C7GfCeVMHo@public.gmane.org" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On 2016-11-30 11:23 AM, Jason Gunthorpe wrote:
->> Yes, that sounds fine. Can we simply kill the process from the GPU driver?
->> Or do we need to extend the OOM killer to manage GPU pages?
-> I don't know..
-We could use send_sig_info to send signal from  kernel  to user space. 
-So theoretically GPU driver
-could issue KILL signal to some process.
 
-> On Wed, Nov 30, 2016 at 12:45:58PM +0200, Haggai Eran wrote:
->> I think we can achieve the kernel's needs with ZONE_DEVICE and DMA-API support
->> for peer to peer. I'm not sure we need vmap. We need a way to have a scatterlist
->> of MMIO pfns, and ZONE_DEVICE allows that.
-I do not think that using DMA-API as it is is the best solution (at 
-least in the current form):
 
--  It deals with handles/fd for the whole allocation but client 
-could/will use sub-allocation as
-well as theoretically possible to "merge" several allocations in one 
-from GPU perspective.
--  It require knowledge to export but because "sharing" is controlled 
-from user space it
-means that we must "export" all allocation by default
-- It deals with 'fd'/handles but user application may work with 
-addresses/pointers.
+On 30/11/16 09:23 AM, Jason Gunthorpe wrote:
+>> Two cases I can think of are RDMA access to an NVMe device's controller
+>> memory buffer,
+> 
+> I'm not sure on the use model there..
 
-Also current  DMA-API force each time to do all DMA table programming 
-unrelated if
-location was changed or not. With  vma / mmu  we are  able to install 
-notifier to intercept
-changes in location and update  translation tables only as needed (we do 
-not need to keep
-get_user_pages()  lock).
+The NVMe fabrics stuff could probably make use of this. It's an
+in-kernel system to allow remote access to an NVMe device over RDMA. So
+they ought to be able to optimize their transfers by DMAing directly to
+the NVMe's CMB -- no userspace interface would be required but there
+would need some kernel infrastructure.
+
+Logan
