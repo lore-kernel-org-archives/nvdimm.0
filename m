@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 746C781D74
- for <linux-nvdimm@lists.01.org>; Thu,  3 Nov 2016 21:25:26 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 14/21] mm: Use vmf->page during WP faults
-Date: Fri,  4 Nov 2016 05:25:10 +0100
-Message-Id: <1478233517-3571-15-git-send-email-jack@suse.cz>
-In-Reply-To: <1478233517-3571-1-git-send-email-jack@suse.cz>
-References: <1478233517-3571-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id C81BD81EF0
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Nov 2016 15:45:54 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 1/6] tracing: add __print_flags_u64()
+Date: Wed, 30 Nov 2016 16:45:28 -0700
+Message-Id: <1480549533-29038-2-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,188 +22,130 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-So far we set vmf->page during WP faults only when we needed to pass it
-to the ->page_mkwrite handler. Set it in all the cases now and use that
-instead of passing page pointer explicitly around.
+Add __print_flags_u64() and the helper trace_print_flags_seq_u64() in the
+same spirit as __print_symbolic_u64() and trace_print_symbols_seq_u64().
+These functions allow us to print symbols associated with flags that are 64
+bits wide even on 32 bit machines.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+These will be used by the DAX code so that we can print the flags set in a
+pfn_t such as PFN_SG_CHAIN, PFN_SG_LAST, PFN_DEV and PFN_MAP.
+
+Without this new function I was getting errors like the following when
+compiling for i386:
+
+./include/linux/pfn_t.h:13:22: warning: large integer implicitly truncated
+to unsigned type [-Woverflow]
+ #define PFN_SG_CHAIN (1ULL << (BITS_PER_LONG_LONG - 1))
+  ^
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- mm/memory.c | 58 +++++++++++++++++++++++++++++-----------------------------
- 1 file changed, 29 insertions(+), 29 deletions(-)
+ include/linux/trace_events.h |  4 ++++
+ include/trace/trace_events.h | 11 +++++++++++
+ kernel/trace/trace_output.c  | 38 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 53 insertions(+)
 
-diff --git a/mm/memory.c b/mm/memory.c
-index c89f99c270bc..e278a8a6ccc7 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2103,11 +2103,12 @@ static void fault_dirty_shared_page(struct vm_area_struct *vma,
-  * case, all we need to do here is to mark the page as writable and update
-  * any related book-keeping.
-  */
--static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
-+static inline int wp_page_reuse(struct vm_fault *vmf,
- 				int page_mkwrite, int dirty_shared)
- 	__releases(vmf->ptl)
+diff --git a/include/linux/trace_events.h b/include/linux/trace_events.h
+index be00761..db2c3ba 100644
+--- a/include/linux/trace_events.h
++++ b/include/linux/trace_events.h
+@@ -23,6 +23,10 @@ const char *trace_print_symbols_seq(struct trace_seq *p, unsigned long val,
+ 				    const struct trace_print_flags *symbol_array);
+ 
+ #if BITS_PER_LONG == 32
++const char *trace_print_flags_seq_u64(struct trace_seq *p, const char *delim,
++		      unsigned long long flags,
++		      const struct trace_print_flags_u64 *flag_array);
++
+ const char *trace_print_symbols_seq_u64(struct trace_seq *p,
+ 					unsigned long long val,
+ 					const struct trace_print_flags_u64
+diff --git a/include/trace/trace_events.h b/include/trace/trace_events.h
+index 467e12f..c6e9f72 100644
+--- a/include/trace/trace_events.h
++++ b/include/trace/trace_events.h
+@@ -283,8 +283,16 @@ TRACE_MAKE_SYSTEM_STR();
+ 		trace_print_symbols_seq(p, value, symbols);		\
+ 	})
+ 
++#undef __print_flags_u64
+ #undef __print_symbolic_u64
+ #if BITS_PER_LONG == 32
++#define __print_flags_u64(flag, delim, flag_array...)			\
++	({								\
++		static const struct trace_print_flags_u64 __flags[] =	\
++			{ flag_array, { -1, NULL } };			\
++		trace_print_flags_seq_u64(p, delim, flag, __flags);	\
++	})
++
+ #define __print_symbolic_u64(value, symbol_array...)			\
+ 	({								\
+ 		static const struct trace_print_flags_u64 symbols[] =	\
+@@ -292,6 +300,9 @@ TRACE_MAKE_SYSTEM_STR();
+ 		trace_print_symbols_seq_u64(p, value, symbols);	\
+ 	})
+ #else
++#define __print_flags_u64(flag, delim, flag_array...)			\
++			__print_flags(flag, delim, flag_array)
++
+ #define __print_symbolic_u64(value, symbol_array...)			\
+ 			__print_symbolic(value, symbol_array)
+ #endif
+diff --git a/kernel/trace/trace_output.c b/kernel/trace/trace_output.c
+index 3fc2042..ed4398f 100644
+--- a/kernel/trace/trace_output.c
++++ b/kernel/trace/trace_output.c
+@@ -124,6 +124,44 @@ EXPORT_SYMBOL(trace_print_symbols_seq);
+ 
+ #if BITS_PER_LONG == 32
+ const char *
++trace_print_flags_seq_u64(struct trace_seq *p, const char *delim,
++		      unsigned long long flags,
++		      const struct trace_print_flags_u64 *flag_array)
++{
++	unsigned long mask;
++	const char *str;
++	const char *ret = trace_seq_buffer_ptr(p);
++	int i, first = 1;
++
++	for (i = 0;  flag_array[i].name && flags; i++) {
++
++		mask = flag_array[i].mask;
++		if ((flags & mask) != mask)
++			continue;
++
++		str = flag_array[i].name;
++		flags &= ~mask;
++		if (!first && delim)
++			trace_seq_puts(p, delim);
++		else
++			first = 0;
++		trace_seq_puts(p, str);
++	}
++
++	/* check for left over flags */
++	if (flags) {
++		if (!first && delim)
++			trace_seq_puts(p, delim);
++		trace_seq_printf(p, "0x%llx", flags);
++	}
++
++	trace_seq_putc(p, 0);
++
++	return ret;
++}
++EXPORT_SYMBOL(trace_print_flags_seq_u64);
++
++const char *
+ trace_print_symbols_seq_u64(struct trace_seq *p, unsigned long long val,
+ 			 const struct trace_print_flags_u64 *symbol_array)
  {
- 	struct vm_area_struct *vma = vmf->vma;
-+	struct page *page = vmf->page;
- 	pte_t entry;
- 	/*
- 	 * Clear the pages cpupid information as the existing
-@@ -2151,10 +2152,11 @@ static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
-  *   held to the old page, as well as updating the rmap.
-  * - In any case, unlock the PTL and drop the reference we took to the old page.
-  */
--static int wp_page_copy(struct vm_fault *vmf, struct page *old_page)
-+static int wp_page_copy(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct page *old_page = vmf->page;
- 	struct page *new_page = NULL;
- 	pte_t entry;
- 	int page_copied = 0;
-@@ -2306,26 +2308,25 @@ static int wp_pfn_shared(struct vm_fault *vmf)
- 			return 0;
- 		}
- 	}
--	return wp_page_reuse(vmf, NULL, 0, 0);
-+	return wp_page_reuse(vmf, 0, 0);
- }
- 
--static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
-+static int wp_page_shared(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	int page_mkwrite = 0;
- 
--	get_page(old_page);
-+	get_page(vmf->page);
- 
- 	if (vma->vm_ops->page_mkwrite) {
- 		int tmp;
- 
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		vmf->page = old_page;
- 		tmp = do_page_mkwrite(vmf);
- 		if (unlikely(!tmp || (tmp &
- 				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
--			put_page(old_page);
-+			put_page(vmf->page);
- 			return tmp;
- 		}
- 		/*
-@@ -2337,15 +2338,15 @@ static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
- 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 						vmf->address, &vmf->ptl);
- 		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
--			unlock_page(old_page);
-+			unlock_page(vmf->page);
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			put_page(old_page);
-+			put_page(vmf->page);
- 			return 0;
- 		}
- 		page_mkwrite = 1;
- 	}
- 
--	return wp_page_reuse(vmf, old_page, page_mkwrite, 1);
-+	return wp_page_reuse(vmf, page_mkwrite, 1);
- }
- 
- /*
-@@ -2370,10 +2371,9 @@ static int do_wp_page(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *old_page;
- 
--	old_page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
--	if (!old_page) {
-+	vmf->page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
-+	if (!vmf->page) {
- 		/*
- 		 * VM_MIXEDMAP !pfn_valid() case, or VM_SOFTDIRTY clear on a
- 		 * VM_PFNMAP VMA.
-@@ -2386,30 +2386,30 @@ static int do_wp_page(struct vm_fault *vmf)
- 			return wp_pfn_shared(vmf);
- 
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		return wp_page_copy(vmf, old_page);
-+		return wp_page_copy(vmf);
- 	}
- 
- 	/*
- 	 * Take out anonymous pages first, anonymous shared vmas are
- 	 * not dirty accountable.
- 	 */
--	if (PageAnon(old_page) && !PageKsm(old_page)) {
-+	if (PageAnon(vmf->page) && !PageKsm(vmf->page)) {
- 		int total_mapcount;
--		if (!trylock_page(old_page)) {
--			get_page(old_page);
-+		if (!trylock_page(vmf->page)) {
-+			get_page(vmf->page);
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			lock_page(old_page);
-+			lock_page(vmf->page);
- 			vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 					vmf->address, &vmf->ptl);
- 			if (!pte_same(*vmf->pte, vmf->orig_pte)) {
--				unlock_page(old_page);
-+				unlock_page(vmf->page);
- 				pte_unmap_unlock(vmf->pte, vmf->ptl);
--				put_page(old_page);
-+				put_page(vmf->page);
- 				return 0;
- 			}
--			put_page(old_page);
-+			put_page(vmf->page);
- 		}
--		if (reuse_swap_page(old_page, &total_mapcount)) {
-+		if (reuse_swap_page(vmf->page, &total_mapcount)) {
- 			if (total_mapcount == 1) {
- 				/*
- 				 * The page is all ours. Move it to
-@@ -2418,24 +2418,24 @@ static int do_wp_page(struct vm_fault *vmf)
- 				 * Protected against the rmap code by
- 				 * the page lock.
- 				 */
--				page_move_anon_rmap(old_page, vma);
-+				page_move_anon_rmap(vmf->page, vma);
- 			}
--			unlock_page(old_page);
--			return wp_page_reuse(vmf, old_page, 0, 0);
-+			unlock_page(vmf->page);
-+			return wp_page_reuse(vmf, 0, 0);
- 		}
--		unlock_page(old_page);
-+		unlock_page(vmf->page);
- 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
- 					(VM_WRITE|VM_SHARED))) {
--		return wp_page_shared(vmf, old_page);
-+		return wp_page_shared(vmf);
- 	}
- 
- 	/*
- 	 * Ok, we need to copy. Oh, well..
- 	 */
--	get_page(old_page);
-+	get_page(vmf->page);
- 
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
--	return wp_page_copy(vmf, old_page);
-+	return wp_page_copy(vmf);
- }
- 
- static void unmap_mapping_range_vma(struct vm_area_struct *vma,
 -- 
-2.6.6
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
