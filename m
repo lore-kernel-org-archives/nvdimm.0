@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2174481F3D
- for <linux-nvdimm@lists.01.org>; Fri, 18 Nov 2016 01:17:28 -0800 (PST)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 04/20] mm: Use passed vm_fault structure in __do_fault()
-Date: Fri, 18 Nov 2016 10:17:08 +0100
-Message-Id: <1479460644-25076-5-git-send-email-jack@suse.cz>
-In-Reply-To: <1479460644-25076-1-git-send-email-jack@suse.cz>
-References: <1479460644-25076-1-git-send-email-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 7D22D81EFA
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Nov 2016 15:45:55 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 2/6] dax: remove leading space from labels
+Date: Wed, 30 Nov 2016 16:45:29 -0700
+Message-Id: <1480549533-29038-3-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,81 +22,119 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, "Kirill A. Shutemov" <kirill@shutemov.name>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-kernel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Instead of creating another vm_fault structure, use the one passed to
-__do_fault() for passing arguments into fault handler.
+No functional change.
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+As of this commit:
+
+commit 218dd85887da (".gitattributes: set git diff driver for C source code
+files")
+
+git-diff and git-format-patch both generate diffs whose hunks are correctly
+prefixed by function names instead of labels, even if those labels aren't
+indented with spaces.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- mm/memory.c | 25 ++++++++++---------------
- 1 file changed, 10 insertions(+), 15 deletions(-)
+ fs/dax.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/mm/memory.c b/mm/memory.c
-index 79b321dfdaf2..2d7cdefc0690 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2852,37 +2852,31 @@ static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
- 		      struct page **page, void **entry)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct vm_fault vmf2;
- 	int ret;
- 
--	vmf2.address = vmf->address;
--	vmf2.pgoff = vmf->pgoff;
--	vmf2.flags = vmf->flags;
--	vmf2.page = NULL;
--	vmf2.gfp_mask = __get_fault_gfp_mask(vma);
--	vmf2.cow_page = cow_page;
-+	vmf->cow_page = cow_page;
- 
--	ret = vma->vm_ops->fault(vma, &vmf2);
-+	ret = vma->vm_ops->fault(vma, vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 	if (ret & VM_FAULT_DAX_LOCKED) {
--		*entry = vmf2.entry;
-+		*entry = vmf->entry;
- 		return ret;
+diff --git a/fs/dax.c b/fs/dax.c
+index be39633..b14335c 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -422,7 +422,7 @@ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index,
+ 		return page;
  	}
- 
--	if (unlikely(PageHWPoison(vmf2.page))) {
-+	if (unlikely(PageHWPoison(vmf->page))) {
- 		if (ret & VM_FAULT_LOCKED)
--			unlock_page(vmf2.page);
--		put_page(vmf2.page);
-+			unlock_page(vmf->page);
-+		put_page(vmf->page);
- 		return VM_FAULT_HWPOISON;
- 	}
- 
- 	if (unlikely(!(ret & VM_FAULT_LOCKED)))
--		lock_page(vmf2.page);
-+		lock_page(vmf->page);
- 	else
--		VM_BUG_ON_PAGE(!PageLocked(vmf2.page), vmf2.page);
-+		VM_BUG_ON_PAGE(!PageLocked(vmf->page), vmf->page);
- 
--	*page = vmf2.page;
-+	*page = vmf->page;
- 	return ret;
+ 	entry = lock_slot(mapping, slot);
+- out_unlock:
++out_unlock:
+ 	spin_unlock_irq(&mapping->tree_lock);
+ 	return entry;
  }
+@@ -557,7 +557,7 @@ static int dax_load_hole(struct address_space *mapping, void **entry,
+ 				   vmf->gfp_mask | __GFP_ZERO);
+ 	if (!page)
+ 		return VM_FAULT_OOM;
+- out:
++out:
+ 	vmf->page = page;
+ 	ret = finish_fault(vmf);
+ 	vmf->page = NULL;
+@@ -659,7 +659,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
+ 	}
+ 	if (vmf->flags & FAULT_FLAG_WRITE)
+ 		radix_tree_tag_set(page_tree, index, PAGECACHE_TAG_DIRTY);
+- unlock:
++unlock:
+ 	spin_unlock_irq(&mapping->tree_lock);
+ 	if (hole_fill) {
+ 		radix_tree_preload_end();
+@@ -812,12 +812,12 @@ static int dax_writeback_one(struct block_device *bdev,
+ 	spin_lock_irq(&mapping->tree_lock);
+ 	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
+ 	spin_unlock_irq(&mapping->tree_lock);
+- unmap:
++unmap:
+ 	dax_unmap_atomic(bdev, &dax);
+ 	put_locked_mapping_entry(mapping, index, entry);
+ 	return ret;
  
-@@ -3579,6 +3573,7 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
- 		.address = address & PAGE_MASK,
- 		.flags = flags,
- 		.pgoff = linear_page_index(vma, address),
-+		.gfp_mask = __get_fault_gfp_mask(vma),
- 	};
- 	struct mm_struct *mm = vma->vm_mm;
- 	pgd_t *pgd;
+- put_unlocked:
++put_unlocked:
+ 	put_unlocked_mapping_entry(mapping, index, entry2);
+ 	spin_unlock_irq(&mapping->tree_lock);
+ 	return ret;
+@@ -1194,11 +1194,11 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		break;
+ 	}
+ 
+- error_unlock_entry:
++error_unlock_entry:
+ 	vmf_ret = dax_fault_return(error) | major;
+- unlock_entry:
++unlock_entry:
+ 	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
+- finish_iomap:
++finish_iomap:
+ 	if (ops->iomap_end) {
+ 		int copied = PAGE_SIZE;
+ 
+@@ -1255,7 +1255,7 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+ 
+ 	return vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
+ 
+- unmap_fallback:
++unmap_fallback:
+ 	dax_unmap_atomic(bdev, &dax);
+ 	return VM_FAULT_FALLBACK;
+ }
+@@ -1379,9 +1379,9 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		break;
+ 	}
+ 
+- unlock_entry:
++unlock_entry:
+ 	put_locked_mapping_entry(mapping, pgoff, entry);
+- finish_iomap:
++finish_iomap:
+ 	if (ops->iomap_end) {
+ 		int copied = PMD_SIZE;
+ 
+@@ -1396,7 +1396,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		ops->iomap_end(inode, pos, PMD_SIZE, copied, iomap_flags,
+ 				&iomap);
+ 	}
+- fallback:
++fallback:
+ 	if (result == VM_FAULT_FALLBACK) {
+ 		split_huge_pmd(vma, pmd, address);
+ 		count_vm_event(THP_FAULT_FALLBACK);
 -- 
-2.6.6
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
