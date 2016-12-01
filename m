@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6811881D97
- for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 07:26:20 -0800 (PST)
-Date: Thu, 1 Dec 2016 08:26:19 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1FA4E81EA4
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 00:11:48 -0800 (PST)
+Date: Thu, 1 Dec 2016 09:11:44 +0100
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH v2 2/6] dax: remove leading space from labels
-Message-ID: <20161201152619.GA5160@linux.intel.com>
+Message-ID: <20161201081144.GC12804@quack2.suse.cz>
 References: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
  <1480549533-29038-3-git-send-email-ross.zwisler@linux.intel.com>
- <20161201081144.GC12804@quack2.suse.cz>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20161201081144.GC12804@quack2.suse.cz>
+In-Reply-To: <1480549533-29038-3-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,33 +24,129 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Dec 01, 2016 at 09:11:44AM +0100, Jan Kara wrote:
-> On Wed 30-11-16 16:45:29, Ross Zwisler wrote:
-> > No functional change.
-> > 
-> > As of this commit:
-> > 
-> > commit 218dd85887da (".gitattributes: set git diff driver for C source code
-> > files")
-> > 
-> > git-diff and git-format-patch both generate diffs whose hunks are correctly
-> > prefixed by function names instead of labels, even if those labels aren't
-> > indented with spaces.
-> > 
-> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+On Wed 30-11-16 16:45:29, Ross Zwisler wrote:
+> No functional change.
 > 
-> Didn't we agree do leave this for a bit later?
+> As of this commit:
+> 
+> commit 218dd85887da (".gitattributes: set git diff driver for C source code
+> files")
+> 
+> git-diff and git-format-patch both generate diffs whose hunks are correctly
+> prefixed by function names instead of labels, even if those labels aren't
+> indented with spaces.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Sorry, I thought you just asked to not have to edit your "Page invalidation
-fixes" series because of this change.  This series is based on a tree that
-already includes your page invalidation work, so it shouldn't cause you any
-thrash.
+Didn't we agree do leave this for a bit later?
 
-I'll pull it out of the next version of this series.
+								Honza
+
+> ---
+>  fs/dax.c | 24 ++++++++++++------------
+>  1 file changed, 12 insertions(+), 12 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index be39633..b14335c 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -422,7 +422,7 @@ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index,
+>  		return page;
+>  	}
+>  	entry = lock_slot(mapping, slot);
+> - out_unlock:
+> +out_unlock:
+>  	spin_unlock_irq(&mapping->tree_lock);
+>  	return entry;
+>  }
+> @@ -557,7 +557,7 @@ static int dax_load_hole(struct address_space *mapping, void **entry,
+>  				   vmf->gfp_mask | __GFP_ZERO);
+>  	if (!page)
+>  		return VM_FAULT_OOM;
+> - out:
+> +out:
+>  	vmf->page = page;
+>  	ret = finish_fault(vmf);
+>  	vmf->page = NULL;
+> @@ -659,7 +659,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
+>  	}
+>  	if (vmf->flags & FAULT_FLAG_WRITE)
+>  		radix_tree_tag_set(page_tree, index, PAGECACHE_TAG_DIRTY);
+> - unlock:
+> +unlock:
+>  	spin_unlock_irq(&mapping->tree_lock);
+>  	if (hole_fill) {
+>  		radix_tree_preload_end();
+> @@ -812,12 +812,12 @@ static int dax_writeback_one(struct block_device *bdev,
+>  	spin_lock_irq(&mapping->tree_lock);
+>  	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
+>  	spin_unlock_irq(&mapping->tree_lock);
+> - unmap:
+> +unmap:
+>  	dax_unmap_atomic(bdev, &dax);
+>  	put_locked_mapping_entry(mapping, index, entry);
+>  	return ret;
+>  
+> - put_unlocked:
+> +put_unlocked:
+>  	put_unlocked_mapping_entry(mapping, index, entry2);
+>  	spin_unlock_irq(&mapping->tree_lock);
+>  	return ret;
+> @@ -1194,11 +1194,11 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+>  		break;
+>  	}
+>  
+> - error_unlock_entry:
+> +error_unlock_entry:
+>  	vmf_ret = dax_fault_return(error) | major;
+> - unlock_entry:
+> +unlock_entry:
+>  	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
+> - finish_iomap:
+> +finish_iomap:
+>  	if (ops->iomap_end) {
+>  		int copied = PAGE_SIZE;
+>  
+> @@ -1255,7 +1255,7 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+>  
+>  	return vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
+>  
+> - unmap_fallback:
+> +unmap_fallback:
+>  	dax_unmap_atomic(bdev, &dax);
+>  	return VM_FAULT_FALLBACK;
+>  }
+> @@ -1379,9 +1379,9 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+>  		break;
+>  	}
+>  
+> - unlock_entry:
+> +unlock_entry:
+>  	put_locked_mapping_entry(mapping, pgoff, entry);
+> - finish_iomap:
+> +finish_iomap:
+>  	if (ops->iomap_end) {
+>  		int copied = PMD_SIZE;
+>  
+> @@ -1396,7 +1396,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+>  		ops->iomap_end(inode, pos, PMD_SIZE, copied, iomap_flags,
+>  				&iomap);
+>  	}
+> - fallback:
+> +fallback:
+>  	if (result == VM_FAULT_FALLBACK) {
+>  		split_huge_pmd(vma, pmd, address);
+>  		count_vm_event(THP_FAULT_FALLBACK);
+> -- 
+> 2.7.4
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
