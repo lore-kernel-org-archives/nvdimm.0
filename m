@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 403C081F4C
- for <linux-nvdimm@lists.01.org>; Fri,  2 Dec 2016 02:08:23 -0800 (PST)
-Date: Fri, 2 Dec 2016 11:08:18 +0100
-From: Jan Kara <jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 6A60D81F23
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 15:27:05 -0800 (PST)
+Date: Thu, 1 Dec 2016 16:27:04 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH 5/6] dax: Call ->iomap_begin without entry lock during
  dax fault
-Message-ID: <20161202100818.GA26086@quack2.suse.cz>
+Message-ID: <20161201232704.GC13739@linux.intel.com>
 References: <1479980796-26161-1-git-send-email-jack@suse.cz>
  <1479980796-26161-6-git-send-email-jack@suse.cz>
  <20161201222447.GB13739@linux.intel.com>
@@ -26,11 +26,10 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Johannes Weiner <hannes@cmpxchg.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu 01-12-16 15:24:47, Ross Zwisler wrote:
+On Thu, Dec 01, 2016 at 03:24:47PM -0700, Ross Zwisler wrote:
 > On Thu, Nov 24, 2016 at 10:46:35AM +0100, Jan Kara wrote:
 > > Currently ->iomap_begin() handler is called with entry lock held. If the
 > > filesystem held any locks between ->iomap_begin() and ->iomap_end()
@@ -43,18 +42,40 @@ On Thu 01-12-16 15:24:47, Ross Zwisler wrote:
 > an issue currently, or are you just trying to make the code consistent so we
 > don't run into issues in the future?
 
-So dax_iomap_actor() copies data from / to user provided buffer. That can
-fault and if the buffer happens to be mmaped file on DAX filesystem, the
-fault will end up grabbing entry locks. Sample evil test:
+Ah, I see that you use this new ordering in patch 6/6 so that you can change
+your interaction with the ext4 journal.  I'm still curious if we have a lock
+ordering inversion within DAX, but if this ordering helps you with ext4, good
+enough.
 
-	fd = open("some_file", O_RDWR);
-	buf = mmap(NULL, 65536, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-	write(fd, buf, 4096);
+One quick comment:
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+> @@ -1337,19 +1353,10 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+>        */                                                                     
+>       entry = grab_mapping_entry(mapping, pgoff, RADIX_DAX_PMD);              
+>       if (IS_ERR(entry))                                                      
+> -             goto fallback;                                                  
+> +             goto finish_iomap;                                              
+>                                                                               
+> -     /*                                                                      
+> -      * Note that we don't use iomap_apply here.  We aren't doing I/O, only  
+> -      * setting up a mapping, so really we're using iomap_begin() as a way   
+> -      * to look up our filesystem block.                                     
+> -      */                                                                     
+> -     pos = (loff_t)pgoff << PAGE_SHIFT;                                      
+> -     error = ops->iomap_begin(inode, pos, PMD_SIZE, iomap_flags, &iomap);    
+> -     if (error)                                                              
+> -             goto unlock_entry;                                              
+>       if (iomap.offset + iomap.length < pos + PMD_SIZE)                       
+> -             goto finish_iomap;                                              
+> +             goto unlock_entry;       
+
+I think this offset+length bounds check could be moved along with the
+iomap_begin() call up above the grab_mapping_entry().  You would then goto
+'finish_iomap' if you hit this error condition, allowing you to avoid grabbing
+and releasing of the mapping entry.
+
+Other than that one small nit, this looks fine to me:
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
