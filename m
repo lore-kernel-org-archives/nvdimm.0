@@ -1,20 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x22a.google.com (mail-oi0-x22a.google.com
- [IPv6:2607:f8b0:4003:c06::22a])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C2DAB81FCF
- for <linux-nvdimm@lists.01.org>; Tue,  6 Dec 2016 17:11:51 -0800 (PST)
-Received: by mail-oi0-x22a.google.com with SMTP id y198so400461840oia.1
- for <linux-nvdimm@lists.01.org>; Tue, 06 Dec 2016 17:11:51 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <alpine.LSU.2.11.1612051648270.1536@eggly.anvils>
-References: <147931721349.37471.4835899844582504197.stgit@dwillia2-desk3.amr.corp.intel.com>
- <alpine.LSU.2.11.1612051648270.1536@eggly.anvils>
+ by ml01.01.org (Postfix) with ESMTPS id B2E4781F1F
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 14:34:12 -0800 (PST)
+Subject: [PATCH 03/11] mm: introduce common definitions for the size and
+ mask of a section
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 6 Dec 2016 17:11:50 -0800
-Message-ID: <CAPcyv4hp03_K1vMsf-=bxuKRYzX=ZMX+bcwnGwLbaoST_JwWjA@mail.gmail.com>
-Subject: Re: [PATCH] device-dax: fail all private mapping attempts
+Date: Thu, 01 Dec 2016 14:30:03 -0800
+Message-ID: <148063140295.37496.10420718896393609930.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,52 +23,69 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Hugh Dickins <hughd@google.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Hansen <dave.hansen@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Linux MM <linux-mm@kvack.org>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Dec 5, 2016 at 5:01 PM, Hugh Dickins <hughd@google.com> wrote:
-> On Wed, 16 Nov 2016, Dan Williams wrote:
->
->> The device-dax implementation originally tried to be tricky and allow
->> private read-only mappings, but in the process allowed writable
->> MAP_PRIVATE + MAP_NORESERVE mappings.  For simplicity and predictability
->> just fail all private mapping attempts since device-dax memory is
->> statically allocated and will never support overcommit.
->>
->> Cc: <stable@vger.kernel.org>
->> Cc: Dave Hansen <dave.hansen@linux.intel.com>
->> Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
->> Reported-by: Pawel Lebioda <pawel.lebioda@intel.com>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> ---
->>  drivers/dax/dax.c |    4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
->> index 0e499bfca41c..3d94ff20fdca 100644
->> --- a/drivers/dax/dax.c
->> +++ b/drivers/dax/dax.c
->> @@ -270,8 +270,8 @@ static int check_vma(struct dax_dev *dax_dev, struct vm_area_struct *vma,
->>       if (!dax_dev->alive)
->>               return -ENXIO;
->>
->> -     /* prevent private / writable mappings from being established */
->> -     if ((vma->vm_flags & (VM_NORESERVE|VM_SHARED|VM_WRITE)) == VM_WRITE) {
->> +     /* prevent private mappings from being established */
->> +     if ((vma->vm_flags & VM_SHARED) != VM_SHARED) {
->
-> I think that is more restrictive than you intended: haven't tried,
-> but I believe it rejects a PROT_READ, MAP_SHARED, O_RDONLY fd mmap,
-> leaving no way to mmap /dev/dax without write permission to it.
->
-> See line 1393 of mm/mmap.c: the test you want is probably
->         if (!(vma->vm_flags & VM_MAYSHARE))
->
+Up-level the local section size and mask from kernel/memremap.c to
+global definitions.  These will be used by the new sub-section hotplug
+support.
 
-Yes, it is. Thank you!
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ include/linux/mmzone.h |    2 ++
+ kernel/memremap.c      |   10 ++++------
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-Fix for the fix on the way...
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index b13b490321a5..5a0117a72ec4 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -1048,6 +1048,8 @@ static inline unsigned long early_pfn_to_nid(unsigned long pfn)
+  * PFN_SECTION_SHIFT		pfn to/from section number
+  */
+ #define PA_SECTION_SHIFT	(SECTION_SIZE_BITS)
++#define PA_SECTION_SIZE		(1UL << PA_SECTION_SHIFT)
++#define PA_SECTION_MASK		(~(PA_SECTION_SIZE-1))
+ #define PFN_SECTION_SHIFT	(SECTION_SIZE_BITS - PAGE_SHIFT)
+ 
+ #define NR_MEM_SECTIONS		(1UL << SECTIONS_SHIFT)
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 10becd7855ca..faf1b7b4114f 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -172,8 +172,6 @@ EXPORT_SYMBOL(devm_memunmap);
+ #ifdef CONFIG_ZONE_DEVICE
+ static DEFINE_MUTEX(pgmap_lock);
+ static RADIX_TREE(pgmap_radix, GFP_KERNEL);
+-#define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
+-#define SECTION_SIZE (1UL << PA_SECTION_SHIFT)
+ 
+ struct page_map {
+ 	struct resource res;
+@@ -265,8 +263,8 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
+ 	}
+ 
+ 	/* pages are dead and unused, undo the arch mapping */
+-	align_start = res->start & ~(SECTION_SIZE - 1);
+-	align_size = ALIGN(resource_size(res), SECTION_SIZE);
++	align_start = res->start & PA_SECTION_MASK;
++	align_size = ALIGN(resource_size(res), PA_SECTION_SIZE);
+ 	arch_remove_memory(align_start, align_size);
+ 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
+ 	pgmap_radix_release(res);
+@@ -310,8 +308,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	struct page_map *page_map;
+ 	int error, nid, is_ram;
+ 
+-	align_start = res->start & ~(SECTION_SIZE - 1);
+-	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
++	align_start = res->start & PA_SECTION_MASK;
++	align_size = ALIGN(res->start + resource_size(res), PA_SECTION_SIZE)
+ 		- align_start;
+ 	is_ram = region_intersects(align_start, align_size,
+ 		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
