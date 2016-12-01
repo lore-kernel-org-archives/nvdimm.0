@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B2E4781F1F
- for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 14:34:12 -0800 (PST)
-Subject: [PATCH 03/11] mm: introduce common definitions for the size and
- mask of a section
+ by ml01.01.org (Postfix) with ESMTPS id 7FD9781F1F
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 14:34:18 -0800 (PST)
+Subject: [PATCH 04/11] mm: cleanup sparse_init_one_section() return value
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 01 Dec 2016 14:30:03 -0800
-Message-ID: <148063140295.37496.10420718896393609930.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 01 Dec 2016 14:30:08 -0800
+Message-ID: <148063140833.37496.16919341685197482324.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -24,67 +23,92 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Mel Gorman <mgorman@techsingularity.net>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Up-level the local section size and mask from kernel/memremap.c to
-global definitions.  These will be used by the new sub-section hotplug
-support.
+We mark and check that the section is present under a spin_lock() in
+sparse_add_one_section(), so the lock ensures it will not change between
+those 2 events. Also, we do not check the -EBUSY return value in
+sparse_init(). Just make sparse_init_one_section() return void and clean
+up the error handling.
 
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/mmzone.h |    2 ++
- kernel/memremap.c      |   10 ++++------
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ mm/sparse.c |   21 ++++++---------------
+ 1 file changed, 6 insertions(+), 15 deletions(-)
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index b13b490321a5..5a0117a72ec4 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1048,6 +1048,8 @@ static inline unsigned long early_pfn_to_nid(unsigned long pfn)
-  * PFN_SECTION_SHIFT		pfn to/from section number
-  */
- #define PA_SECTION_SHIFT	(SECTION_SIZE_BITS)
-+#define PA_SECTION_SIZE		(1UL << PA_SECTION_SHIFT)
-+#define PA_SECTION_MASK		(~(PA_SECTION_SIZE-1))
- #define PFN_SECTION_SHIFT	(SECTION_SIZE_BITS - PAGE_SHIFT)
+diff --git a/mm/sparse.c b/mm/sparse.c
+index 91e1908db23d..59966a3e8ff0 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -231,19 +231,14 @@ struct page *sparse_decode_mem_map(unsigned long coded_mem_map, unsigned long pn
+ 	return ((struct page *)coded_mem_map) + section_nr_to_pfn(pnum);
+ }
  
- #define NR_MEM_SECTIONS		(1UL << SECTIONS_SHIFT)
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 10becd7855ca..faf1b7b4114f 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -172,8 +172,6 @@ EXPORT_SYMBOL(devm_memunmap);
- #ifdef CONFIG_ZONE_DEVICE
- static DEFINE_MUTEX(pgmap_lock);
- static RADIX_TREE(pgmap_radix, GFP_KERNEL);
--#define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
--#define SECTION_SIZE (1UL << PA_SECTION_SHIFT)
+-static int __meminit sparse_init_one_section(struct mem_section *ms,
++static void __meminit sparse_init_one_section(struct mem_section *ms,
+ 		unsigned long pnum, struct page *mem_map,
+ 		struct mem_section_usage *usage)
+ {
+-	if (!present_section(ms))
+-		return -EINVAL;
+-
+ 	ms->section_mem_map &= ~SECTION_MAP_MASK;
+ 	ms->section_mem_map |= sparse_encode_mem_map(mem_map, pnum) |
+ 		SECTION_HAS_MEM_MAP;
+ 	ms->usage = usage;
+-
+-	return 1;
+ }
  
- struct page_map {
- 	struct resource res;
-@@ -265,8 +263,8 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
+ unsigned long usemap_size(void)
+@@ -690,11 +685,6 @@ static void free_map_bootmem(struct page *memmap)
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
+-/*
+- * returns the number of sections whose mem_maps were properly
+- * set.  If this is <=0, then that means that the passed-in
+- * map was not consumed and must be freed.
+- */
+ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
+ {
+ 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
+@@ -725,7 +715,7 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
+ 
+ 	ms = __pfn_to_section(start_pfn);
+ 	if (ms->section_mem_map & SECTION_MARKED_PRESENT) {
+-		ret = -EEXIST;
++		ret = -EBUSY;
+ 		goto out;
  	}
  
- 	/* pages are dead and unused, undo the arch mapping */
--	align_start = res->start & ~(SECTION_SIZE - 1);
--	align_size = ALIGN(resource_size(res), SECTION_SIZE);
-+	align_start = res->start & PA_SECTION_MASK;
-+	align_size = ALIGN(resource_size(res), PA_SECTION_SIZE);
- 	arch_remove_memory(align_start, align_size);
- 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
- 	pgmap_radix_release(res);
-@@ -310,8 +308,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	struct page_map *page_map;
- 	int error, nid, is_ram;
+@@ -733,15 +723,16 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
  
--	align_start = res->start & ~(SECTION_SIZE - 1);
--	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
-+	align_start = res->start & PA_SECTION_MASK;
-+	align_size = ALIGN(res->start + resource_size(res), PA_SECTION_SIZE)
- 		- align_start;
- 	is_ram = region_intersects(align_start, align_size,
- 		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+ 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
+ 
+-	ret = sparse_init_one_section(ms, section_nr, memmap, usage);
++	sparse_init_one_section(ms, section_nr, memmap, usage);
+ 
+ out:
+ 	pgdat_resize_unlock(pgdat, &flags);
+-	if (ret <= 0) {
++	if (ret < 0 && ret != -EEXIST) {
+ 		kfree(usage);
+ 		__kfree_section_memmap(memmap);
++		return ret;
+ 	}
+-	return ret;
++	return 0;
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
 
 _______________________________________________
 Linux-nvdimm mailing list
