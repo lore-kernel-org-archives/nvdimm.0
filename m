@@ -1,12 +1,10 @@
-From: "Mail Delivery Failure" <mail-er-h606tYA93WXddJNmlsFzeA@public.gmane.org>
-Subject: =?utf-8?b?Kirns7vnu5/pgIDkv6EgVW5kZWxpdmVyZWQgTWFpbC1saW51eC1udmRpbW1A?=
- =?utf-8?b?bGlzdHMuMDEub3JnLSzmiqXlkYrnrqHnkIblkZg=?=
-Date: Thu, 01 Dec 2016 05:48:13 +0100
-Message-ID: <20161201044835.D464F40B00E@imap.realprotection.it>
+From: =?GB2312?B?w8+VRtz5?= <mbyyoufo-ji8yMucxiNfQT0dZR+AlfA@public.gmane.org>
+Subject: =?GB2312?B?bGludXgtbnZkaW1tOryo0Ke/vLrL0+vQvbPqzOXPtQ==?=
+Date: Fri, 2 Dec 2016 03:39:54 +0800
+Message-ID: <20161201193959.C085781F23@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7285572331063971429=="
+Content-Type: multipart/mixed; boundary="===============3737130739489866777=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,60 +14,24 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-You will not see this in a MIME-aware mail reader.
---===============7285572331063971429==
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Description: Mail message body
+This is a multi-part message in MIME format
 
-=5728=60A8=7684SMTP/ POP=8BBE=7F6E=4E00=4E2A=9519=8BEF=963B=6B62=67D0=4E9B=
-=4F20=5165=7684=7535=5B50=90AE=4EF6=2026=2026
- =
+--===============3737130739489866777==
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-    =
+Message-ID: <116898116898116898116898116898116898116898116898116898>
+From: linux-nvdimm*<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: <mbyyoufo-ji8yMucxiNfQT0dZR+AlfA@public.gmane.org>
 
-   =65F6=95F4=FF1A	 2016-11-30
-  =6536=4EF6=4EBA=FF1A	 linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
- =
+■■ 详细 ■■ 课程 ■■ 信息 ■■ 请阅读 ■■ 附件 ■■
 
-   =6295=9012=8BE6=60C5=FF1A	 =89C1=9644=4EF6
-  =9000=4FE1=89E3=91CA=FF1A	  =5728=60A8=7684SMTP/ POP=8BBE=7F6E=4E00=4E2A=
-=9519=8BEF=963B=6B62=67D0=4E9B=4F20=5165=7684=7535=5B50=90AE=4EF6=2026=2026=
- 550-5.1.1 :POP=914D=7F6E=6587=672C=65E0=6CD5=9A8C=8BC1
-  =5EFA=8BAE=89E3=51B3=65B9=6848=FF1A	    =
+发送时间:2016-12-02  03:39:53
 
- =
-
-
- =
-
- =53D1=9001=62A5=544A=FF0C=6765=5E2E=52A9=6211=4EEC=7684=56E2=961F=89E3=
-=51B3=4E86=8FD9=4E2A=95EE=9898:=53D1=9001=62A5=544A
- =
-
- =4F60=7684=7535=5B50=90AE=4EF6=53EF=80FD=4F1A=88AB=5B8C=5168=5835=585E=
-=FF0C=5982=679C=4E0D=62A5=8FD9=4E2A=9519=8BEF=3002
-
-
-  =53C2=8003=4FE1=606F=FF1A	    =
-
- This is the mail system at host regular1.263xmail.com.
- =
-
- host mail07.irisgraphic.com[216.14.208.27] said: 451 DNS temporary failure=
- (#4.3.0) (in reply to RCPT TO command)
-
-
-
-----------------
-=6B64=90AE=4EF6=4E3A=7CFB=7EDF=81EA=52A8=53D1=9001=FF0C=8BF7=4E0D=8981=76F4=
-=63A5=56DE=590D:)
-  =20
-
---===============7285572331063971429==
+--===============3737130739489866777==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -80,4 +42,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============7285572331063971429==--
+--===============3737130739489866777==--
