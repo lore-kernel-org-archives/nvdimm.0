@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 45E6D81F79
- for <linux-nvdimm@lists.01.org>; Thu,  8 Dec 2016 15:53:19 -0800 (PST)
-Subject: [PATCH 2 1/2] ndctl: introduce 4k allocation support for creating
- namespace
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 08 Dec 2016 16:53:16 -0700
-Message-ID: <148124119683.166989.2517425646704949235.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0595081F1F
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 14:33:56 -0800 (PST)
+Subject: [PATCH 00/11] mm: sub-section memory hotplug support
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 01 Dec 2016 14:29:46 -0800
+Message-ID: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,121 +20,93 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Existing implementation defaults all pages allocated as 2M superpages.
-For nfit_test dax device we need 4k pages allocated to work properly.
-Adding an --align,-a option to provide the alignment. Will accept
-4k and 2M at the moment as proper parameter. No -a option still defaults
-to 2M.
+Quoting "[PATCH 09/11] mm: support section-unaligned ZONE_DEVICE memory
+ranges":
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- ndctl/builtin-xaction-namespace.c |   34 +++++++++++++++++++++++++++++++---
- util/size.h                       |    1 +
- 2 files changed, 32 insertions(+), 3 deletions(-)
 
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
-index 8257eb9..038e59f 100644
---- a/ndctl/builtin-xaction-namespace.c
-+++ b/ndctl/builtin-xaction-namespace.c
-@@ -49,6 +49,7 @@ static struct parameters {
- 	const char *region;
- 	const char *reconfig;
- 	const char *sector_size;
-+	const char *align;
- } param;
- 
- void builtin_xaction_namespace_reset(void)
-@@ -71,6 +72,7 @@ struct parsed_parameters {
- 	enum ndctl_namespace_mode mode;
- 	unsigned long long size;
- 	unsigned long sector_size;
-+	unsigned long align;
- };
- 
- #define debug(fmt, ...) \
-@@ -104,6 +106,8 @@ OPT_STRING('l', "sector-size", &param.sector_size, "lba-size", \
- 	"specify the logical sector size in bytes"), \
- OPT_STRING('t', "type", &param.type, "type", \
- 	"specify the type of namespace to create 'pmem' or 'blk'"), \
-+OPT_STRING('a', "align", &param.align, "align", \
-+	"specify the namespace alignment in bytes (default: 0x200000 (2M))"), \
- OPT_BOOLEAN('f', "force", &force, "reconfigure namespace even if currently active")
- 
- static const struct option base_options[] = {
-@@ -319,14 +323,13 @@ static int setup_namespace(struct ndctl_region *region,
- 
- 		try(ndctl_pfn, set_uuid, pfn, uuid);
- 		try(ndctl_pfn, set_location, pfn, p->loc);
--
- 		/*
- 		 * TODO: when we allow setting a non-default alignment
- 		 * we'll need to check for "has_align" earlier and fail
- 		 * non-default attempts on older kernels.
- 		 */
- 		if (ndctl_pfn_has_align(pfn))
--			try(ndctl_pfn, set_align, pfn, SZ_2M);
-+			try(ndctl_pfn, set_align, pfn, p->align);
- 		try(ndctl_pfn, set_namespace, pfn, ndns);
- 		rc = ndctl_pfn_enable(pfn);
- 	} else if (p->mode == NDCTL_NS_MODE_DAX) {
-@@ -335,7 +338,7 @@ static int setup_namespace(struct ndctl_region *region,
- 		try(ndctl_dax, set_uuid, dax, uuid);
- 		try(ndctl_dax, set_location, dax, p->loc);
- 		/* device-dax assumes 'align' attribute present */
--		try(ndctl_dax, set_align, dax, SZ_2M);
-+		try(ndctl_dax, set_align, dax, p->align);
- 		try(ndctl_dax, set_namespace, dax, ndns);
- 		rc = ndctl_dax_enable(dax);
- 	} else if (p->mode == NDCTL_NS_MODE_SAFE) {
-@@ -439,6 +442,31 @@ static int validate_namespace_options(struct ndctl_region *region,
- 	} else if (ndns)
- 		p->mode = ndctl_namespace_get_mode(ndns);
- 
-+	if ((p->mode == NDCTL_NS_MODE_MEMORY) ||
-+			(p->mode == NDCTL_NS_MODE_DAX)) {
-+		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
-+
-+		if (!ndctl_pfn_has_align(pfn))
-+			return -EINVAL;
-+
-+		if (param.align) {
-+			p->align = parse_size64(param.align);
-+			switch (p->align) {
-+			case SZ_4K:
-+			case SZ_2M:
-+				break;
-+			case SZ_1G: /* unsupported yet... */
-+			default:
-+				debug("%s: invalid align\n", __func__);
-+				return -EINVAL;
-+			}
-+		} else
-+			p->align = SZ_2M;
-+	} else if (param.align) {
-+		debug("%s: does not support align\n", __func__);
-+		return -EINVAL;
-+	}
-+
- 	if (param.sector_size) {
- 		struct ndctl_btt *btt;
- 		int num, i;
-diff --git a/util/size.h b/util/size.h
-index 50917a5..634c926 100644
---- a/util/size.h
-+++ b/util/size.h
-@@ -2,6 +2,7 @@
- #define _NDCTL_SIZE_H_
- 
- #define SZ_1K     0x00000400
-+#define SZ_4K     0x00001000
- #define SZ_1M     0x00100000
- #define SZ_2M     0x00200000
- #define SZ_4M     0x00400000
+The initial motivation for this change is persistent memory platforms
+that, unfortunately, align the pmem range on a boundary less than a full
+section (64M vs 128M), and may change the alignment from one boot to the
+next. A secondary motivation is the arrival of prospective ZONE_DEVICE
+users that want devm_memremap_pages() to map PCI-E device memory ranges
+to enable peer-to-peer DMA.
 
+Currently the nvdimm core injects padding when 'pfn' (struct page
+mapping configuration) instances are created. However, not all users of
+devm_memremap_pages() have the opportunity to inject such padding. Users
+of the memmap=ss!nn kernel command line option can trigger the following
+failure with unaligned parameters like "memmap=0xfc000000!8G":
+
+ WARNING: CPU: 0 PID: 558 at kernel/memremap.c:300 devm_memremap_pages+0x3b5/0x4c0
+ devm_memremap_pages attempted on mixed region [mem 0x200000000-0x2fbffffff flags 0x200]
+ [..]
+ Call Trace:
+  [<ffffffff814c0393>] dump_stack+0x86/0xc3
+  [<ffffffff810b173b>] __warn+0xcb/0xf0
+  [<ffffffff810b17bf>] warn_slowpath_fmt+0x5f/0x80
+  [<ffffffff811eb105>] devm_memremap_pages+0x3b5/0x4c0
+  [<ffffffffa006f308>] __wrap_devm_memremap_pages+0x58/0x70 [nfit_test_iomap]
+  [<ffffffffa00e231a>] pmem_attach_disk+0x19a/0x440 [nd_pmem]
+
+Without this change a user could inadvertently lose access to nvdimm
+namespaces by adding/removing other DIMMs in the platform leading to the
+BIOS changing the base alignment of the namespace in an incompatible
+fashion. With this support we can accommodate a BIOS changing the
+namespace to any alignment provided it is >= SECTION_ACTIVE_SIZE.
+
+---
+
+Andrew, yes, this is rather late for 4.10, but it is ostensibly a fix
+for devm_memremap_pages(). Both the memmap=ss!nn and qemu-kvm methods of
+defining persistent memory can generate the misaligned configuration.
+However, in those cases the existing devm_memremap_pages() would have
+failed so no one could be relying on that.
+
+The greater concern is new misalignment injected by the BIOS after the
+libnvdimm sub-system already recorded that the namespace does not need
+alignment padding. In that case the user would need to figure out how to
+undo the BIOS change to regain access to their nvdimm device.
+
+The patches have received a build success notification from the
+0day-kbuild robot across 177 configs and pass the ndctl unit test suite.
+They merge cleanly on top of current -next (test merge with
+next-20161201).
+
+---
+
+Dan Williams (11):
+      mm, devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
+      mm: introduce struct mem_section_usage to track partial population of a section
+      mm: introduce common definitions for the size and mask of a section
+      mm: cleanup sparse_init_one_section() return value
+      mm: track active portions of a section at boot
+      mm: fix register_new_memory() zone type detection
+      mm: convert kmalloc_section_memmap() to populate_section_memmap()
+      mm: prepare for hot-{add,remove} of sub-section ranges
+      mm: support section-unaligned ZONE_DEVICE memory ranges
+      mm: enable section-unaligned devm_memremap_pages()
+      libnvdimm, pfn, dax: stop padding pmem namespaces to section alignment
+
+
+ arch/x86/mm/init_64.c          |   15 +
+ drivers/base/memory.c          |   26 +-
+ drivers/nvdimm/pfn_devs.c      |   40 +---
+ include/linux/memory.h         |    4 
+ include/linux/memory_hotplug.h |    6 -
+ include/linux/mm.h             |    3 
+ include/linux/mmzone.h         |   26 ++
+ kernel/memremap.c              |   75 ++++---
+ mm/Kconfig                     |    1 
+ mm/memory_hotplug.c            |   95 ++++----
+ mm/page_alloc.c                |    6 -
+ mm/sparse-vmemmap.c            |   24 +-
+ mm/sparse.c                    |  454 +++++++++++++++++++++++++++++-----------
+ 13 files changed, 509 insertions(+), 266 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
