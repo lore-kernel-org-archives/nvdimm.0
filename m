@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4686D81858
- for <linux-nvdimm@lists.01.org>; Sat, 31 Dec 2016 18:57:57 -0800 (PST)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] dax final updates and fixes for 4.10-rc2
-Date: Sun, 1 Jan 2017 02:57:56 +0000
-Message-ID: <1483239473.2943.17.camel@intel.com>
-Content-Language: en-US
-Content-ID: <AF13CB2738A7EF44A4F4026C2D15AAF2@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A017981F2D
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 14:34:50 -0800 (PST)
+Subject: [PATCH 10/11] mm: enable section-unaligned devm_memremap_pages()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 01 Dec 2016 14:30:40 -0800
+Message-ID: <148063144088.37496.13851137514859626846.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,142 +18,105 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: akpm@linux-foundation.org
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
-Y20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4udG8g
-cmVjZWl2ZSB0aGUgY29tcGxldGlvbiBvZiBKYW4ncyBEQVggd29yayBmb3IgNC4xMC4KCkFzIEkg
-bWVudGlvbmVkIGluIHRoZSBsaWJudmRpbW0tZm9yLTQuMTAgcHVsbCByZXF1ZXN0IFsxXSwgdGhl
-c2UgYXJlCnNvbWUgZmluYWwgZml4ZXMgZm9yIHRoZSBEQVggZGlydHktY2FjaGVsaW5lLXRyYWNr
-aW5nIGludmFsaWRhdGlvbiB3b3JrCnRoYXQgd2FzIG1lcmdlZCB0aHJvdWdoIHRoZSAtbW0sIGV4
-dDQsIGFuZCB4ZnMgdHJlZXMgaW4gLXJjMS4gVGhlc2UKcGF0Y2hlcyB3ZXJlIHByZXBhcmVkIHBy
-aW9yIHRvIHRoZSBtZXJnZSB3aW5kb3csIGJ1dCB3ZSB3YWl0ZWQgZm9yCjQuMTAtcmMxIHRvIGhh
-dmUgYSBzdGFibGUgbWVyZ2UgYmFzZSBhZnRlciBhbGwgdGhlIHByZXJlcXVpc2l0ZXMgd2VyZQpt
-ZXJnZWQuCgpRdW90aW5nIEphbiBvbiB0aGUgb3ZlcmFsbCBjaGFuZ2VzIGluIHRoZXNlIHBhdGNo
-ZXM6CgogICAgU28gSSdkIGxpa2UgYWxsIHRoZXNlIDYgcGF0Y2hlcyB0byBnbyBmb3IgcmMyLiBU
-aGUgZmlyc3QgdGhyZWUKICAgIHBhdGNoZXMgZml4IGludmFsaWRhdGlvbiBvZiBleGNlcHRpb25h
-bCBEQVggZW50cmllcyAoYSBidWcgd2hpY2ggaXMKICAgIHRoZXJlIGZvciBhIGxvbmcgdGltZSkg
-LSB3aXRob3V0IHRoZXNlIHBhdGNoZXMgZGF0YSBsb3NzIGNhbiBvY2N1cgogICAgb24gcG93ZXIg
-ZmFpbHVyZSBldmVuIHRob3VnaCB1c2VyIGNhbGxlZCBmc3luYygyKS4gVGhlIG90aGVyIHRocmVl
-CiAgICBwYXRjaGVzIGNoYW5nZSBsb2NraW5nIG9mIERBWCBmYXVsdHMgc28gdGhhdCAtPmlvbWFw
-X2JlZ2luKCkgaXMKICAgIGNhbGxlZCBpbiBhIG1vcmUgcmVsYXhlZCBsb2NraW5nIGNvbnRleHQg
-YW5kIHdlIGFyZSBzYWZlIHRvIHN0YXJ0IGEKICAgIHRyYW5zYWN0aW9uIHRoZXJlIGZvciBleHQ0
-LgoKVGhlc2UgaGF2ZSByZWNlaXZlZCBhIGJ1aWxkIHN1Y2Nlc3Mgbm90aWZpY2F0aW9uIGZyb20g
-dGhlIGtidWlsZCByb2JvdCwKYW5kIHBhc3MgdGhlIGxhdGVzdCBsaWJudmRpbW0gdW5pdCB0ZXN0
-cy4gVGhlcmUgaGF2ZSBub3QgYmVlbiBhbnkgLW5leHQKcmVsZWFzZXMgc2luY2UgLXJjMSwgc28g
-dGhleSBoYXZlIG5vdCBhcHBlYXJlZCB0aGVyZS4KClsxXTorQUtBLWh0dHBzOi8vbGlzdHMuMDEu
-b3JnL3BpcGVybWFpbC9saW51eC1udmRpbW0vMjAxNi1EZWNlbWJlci8wMDgyNzkuaAp0bWwKCi0t
-LQoKVGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCA3Y2U3ZDg5ZjQ4ODM0Y2VmZWNl
-NzgwNGQzOGZjNWQ4NTM4MmVkZjc3OgoKICBMaW51eCA0LjEwLXJjMSAoMjAxNi0xMi0yNSAxNjox
-MzowOCAtMDgwMCkKCmFyZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBvc2l0b3J5IGF0OgoKICBn
-aXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGlt
-bSBsaWJudmRpbW0tZml4ZXMKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0byAxZGIxNzU0
-MjhlZTM3NDQ4OTQ0ODM2MTIxM2U5YzNiNzQ5ZDE0OTAwOgoKICBleHQ0OiBTaW1wbGlmeSBEQVgg
-ZmF1bHQgcGF0aCAoMjAxNi0xMi0yNiAyMDoyOToyNSAtMDgwMCkKCi0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KSmFuIEthcmEg
-KDYpOgogICAgICBleHQyOiBSZXR1cm4gQkhfTmV3IGJ1ZmZlcnMgZm9yIHplcm9lZCBibG9ja3MK
-ICAgICAgbW06IEludmFsaWRhdGUgREFYIHJhZGl4IHRyZWUgZW50cmllcyBvbmx5IGlmIGFwcHJv
-cHJpYXRlCiAgICAgIGRheDogQXZvaWQgcGFnZSBpbnZhbGlkYXRpb24gcmFjZXMgYW5kIHVubmVj
-ZXNzYXJ5IHJhZGl4IHRyZWUgdHJhdmVyc2FscwogICAgICBkYXg6IEZpbmlzaCBmYXVsdCBjb21w
-bGV0ZWx5IHdoZW4gbG9hZGluZyBob2xlcwogICAgICBkYXg6IENhbGwgLT5pb21hcF9iZWdpbiB3
-aXRob3V0IGVudHJ5IGxvY2sgZHVyaW5nIGRheCBmYXVsdAogICAgICBleHQ0OiBTaW1wbGlmeSBE
-QVggZmF1bHQgcGF0aAoKIGZzL2RheC5jICAgICAgICAgICAgfCAyNDMgKy0rLSstKy0rLSstKy0r
-LSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstLS0tLS0t
-LS0tLS0tLS0tLS0tLQogZnMvZXh0Mi9pbm9kZS5jICAgICB8ICAgMyArLS0KIGZzL2V4dDQvZmls
-ZS5jICAgICAgfCAgNDggKy0rLSstLS0tLS0tLS0KIGluY2x1ZGUvbGludXgvZGF4LmggfCAgIDMg
-Ky0KIG1tL3RydW5jYXRlLmMgICAgICAgfCAgNzUgKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0t
-LS0KIDUgZmlsZXMgY2hhbmdlZCwgMjI5IGluc2VydGlvbnMoKy0pLCAxNDMgZGVsZXRpb25zKC0p
-Cgpjb21taXQgZTU2OGRmNmI4NGZmMDVhMjI0Njc1MDNhZmMxMWJlZTdhNmJhMDcwMApBdXRob3I6
-IEphbiBLYXJhIDxqYWNrQHN1c2UuY3o+CkRhdGU6ICAgV2VkIEF1ZyAxMCAxNjo0Mjo1MyAyMDE2
-ICstMDIwMAoKICAgIGV4dDI6IFJldHVybiBCSF9OZXcgYnVmZmVycyBmb3IgemVyb2VkIGJsb2Nr
-cwogICAgCiAgICBTbyBmYXIgd2UgZGlkIG5vdCByZXR1cm4gQkhfTmV3IGJ1ZmZlcnMgZnJvbSBl
-eHQyX2dldF9ibG9ja3MoKSB3aGVuIHdlCiAgICBhbGxvY2F0ZWQgYW5kIHplcm9lZC1vdXQgYSBi
-bG9jayBmb3IgREFYIGlub2RlIHRvIGF2b2lkIHJhY3kgemVyb2luZyBpbgogICAgREFYIGNvZGUu
-IFRoaXMgemVyb2luZyBpcyBnb25lIHRoZXNlIGRheXMgc28gd2UgY2FuIHJlbW92ZSB0aGUKICAg
-IHdvcmthcm91bmQuCiAgICAKICAgIFJldmlld2VkLWJ5OiBSb3NzIFp3aXNsZXIgPHJvc3Muendp
-c2xlckBsaW51eC5pbnRlbC5jb20+CiAgICBSZXZpZXdlZC1ieTogQ2hyaXN0b3BoIEhlbGx3aWcg
-PGhjaEBsc3QuZGU+CiAgICBTaWduZWQtb2ZmLWJ5OiBKYW4gS2FyYSA8amFja0BzdXNlLmN6Pgog
-ICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
-Cgpjb21taXQgYzZkY2Y1MmMyM2QyZDNmYjUyMzVjZWM0MmQ3ZGQzZjc4NmI4N2Q1NQpBdXRob3I6
-IEphbiBLYXJhIDxqYWNrQHN1c2UuY3o+CkRhdGU6ICAgV2VkIEF1ZyAxMCAxNzoyMjo0NCAyMDE2
-ICstMDIwMAoKICAgIG1tOiBJbnZhbGlkYXRlIERBWCByYWRpeCB0cmVlIGVudHJpZXMgb25seSBp
-ZiBhcHByb3ByaWF0ZQogICAgCiAgICBDdXJyZW50bHkgaW52YWxpZGF0ZV9pbm9kZV9wYWdlczJf
-cmFuZ2UoKSBhbmQgaW52YWxpZGF0ZV9tYXBwaW5nX3BhZ2VzKCkKICAgIGp1c3QgZGVsZXRlIGFs
-bCBleGNlcHRpb25hbCByYWRpeCB0cmVlIGVudHJpZXMgdGhleSBmaW5kLiBGb3IgREFYIHRoaXMK
-ICAgIGlzIG5vdCBkZXNpcmFibGUgYXMgd2UgdHJhY2sgY2FjaGUgZGlydGluZXNzIGluIHRoZXNl
-IGVudHJpZXMgYW5kIHdoZW4KICAgIHRoZXkgYXJlIGV2aWN0ZWQsIHdlIG1heSBub3QgZmx1c2gg
-Y2FjaGVzIGFsdGhvdWdoIGl0IGlzIG5lY2Vzc2FyeS4gVGhpcwogICAgY2FuIGZvciBleGFtcGxl
-IG1hbmlmZXN0IHdoZW4gd2Ugd3JpdGUgdG8gdGhlIHNhbWUgYmxvY2sgYm90aCB2aWEgbW1hcAog
-ICAgYW5kIHZpYSB3cml0ZSgyKSAodG8gZGlmZmVyZW50IG9mZnNldHMpIGFuZCBmc3luYygyKSB0
-aGVuIGRvZXMgbm90CiAgICBwcm9wZXJseSBmbHVzaCBDUFUgY2FjaGVzIHdoZW4gbW9kaWZpY2F0
-aW9uIHZpYSB3cml0ZSgyKSB3YXMgdGhlIGxhc3QKICAgIG9uZS4KICAgIAogICAgQ3JlYXRlIGFw
-cHJvcHJpYXRlIERBWCBmdW5jdGlvbnMgdG8gaGFuZGxlIGludmFsaWRhdGlvbiBvZiBEQVggZW50
-cmllcwogICAgZm9yIGludmFsaWRhdGVfaW5vZGVfcGFnZXMyX3JhbmdlKCkgYW5kIGludmFsaWRh
-dGVfbWFwcGluZ19wYWdlcygpIGFuZAogICAgd2lyZSB0aGVtIHVwIGludG8gdGhlIGNvcnJlc3Bv
-bmRpbmcgbW0gZnVuY3Rpb25zLgogICAgCiAgICBBY2tlZC1ieTogSm9oYW5uZXMgV2VpbmVyIDxo
-YW5uZXNAY21weGNoZy5vcmc+CiAgICBSZXZpZXdlZC1ieTogUm9zcyBad2lzbGVyIDxyb3NzLnp3
-aXNsZXJAbGludXguaW50ZWwuY29tPgogICAgU2lnbmVkLW9mZi1ieTogSmFuIEthcmEgPGphY2tA
-c3VzZS5jej4KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNA
-aW50ZWwuY29tPgoKY29tbWl0IGUzZmNlNjhjZGJlZDI5N2Q5MjdlOTkzYjNlYTdiOGIxY2VlNTQ1
-ZGEKQXV0aG9yOiBKYW4gS2FyYSA8amFja0BzdXNlLmN6PgpEYXRlOiAgIFdlZCBBdWcgMTAgMTc6
-MTA6MjggMjAxNiArLTAyMDAKCiAgICBkYXg6IEF2b2lkIHBhZ2UgaW52YWxpZGF0aW9uIHJhY2Vz
-IGFuZCB1bm5lY2Vzc2FyeSByYWRpeCB0cmVlIHRyYXZlcnNhbHMKICAgIAogICAgQ3VycmVudGx5
-IGRheF9pb21hcF9ydygpIHRha2VzIGNhcmUgb2YgaW52YWxpZGF0aW5nIHBhZ2UgdGFibGVzIGFu
-ZAogICAgZXZpY3RpbmcgaG9sZSBwYWdlcyBmcm9tIHRoZSByYWRpeCB0cmVlIHdoZW4gd3JpdGUo
-MikgdG8gdGhlIGZpbGUKICAgIGhhcHBlbnMuIFRoaXMgaW52YWxpZGF0aW9uIGlzIG9ubHkgbmVj
-ZXNzYXJ5IHdoZW4gdGhlcmUgaXMgc29tZSBibG9jawogICAgYWxsb2NhdGlvbiByZXN1bHRpbmcg
-ZnJvbSB3cml0ZSgyKS4gRnVydGhlcm1vcmUgaW4gY3VycmVudCBwbGFjZSB0aGUKICAgIGludmFs
-aWRhdGlvbiBpcyByYWN5IHdydCBwYWdlIGZhdWx0IGluc3RhbnRpYXRpbmcgYSBob2xlIHBhZ2Ug
-anVzdCBhZnRlcgogICAgd2UgaGF2ZSBpbnZhbGlkYXRlZCBpdC4KICAgIAogICAgU28gcGVyZm9y
-bSB0aGUgcGFnZSBpbnZhbGlkYXRpb24gaW5zaWRlIGRheF9pb21hcF9hY3RvcigpIHdoZXJlIHdl
-IGNhbgogICAgZG8gaXQgb25seSB3aGVuIHJlYWxseSBuZWNlc3NhcnkgYW5kIGFmdGVyIGJsb2Nr
-cyBoYXZlIGJlZW4gYWxsb2NhdGVkIHNvCiAgICBub2JvZHkgd2lsbCBiZSBpbnN0YW50aWF0aW5n
-IG5ldyBob2xlIHBhZ2VzIGFueW1vcmUuCiAgICAKICAgIFJldmlld2VkLWJ5OiBDaHJpc3RvcGgg
-SGVsbHdpZyA8aGNoQGxzdC5kZT4KICAgIFJldmlld2VkLWJ5OiBSb3NzIFp3aXNsZXIgPHJvc3Mu
-endpc2xlckBsaW51eC5pbnRlbC5jb20+CiAgICBTaWduZWQtb2ZmLWJ5OiBKYW4gS2FyYSA8amFj
-a0BzdXNlLmN6PgogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFt
-c0BpbnRlbC5jb20+Cgpjb21taXQgZjQ0OWI5MzZmMWFmZjc2OTZiMjRhMzM4ZjQ5M2Q1Y2VlOGQ0
-OGQ1NQpBdXRob3I6IEphbiBLYXJhIDxqYWNrQHN1c2UuY3o+CkRhdGU6ICAgV2VkIE9jdCAxOSAx
-NDo0ODozOCAyMDE2ICstMDIwMAoKICAgIGRheDogRmluaXNoIGZhdWx0IGNvbXBsZXRlbHkgd2hl
-biBsb2FkaW5nIGhvbGVzCiAgICAKICAgIFRoZSBvbmx5IGNhc2Ugd2hlbiB3ZSBkbyBub3QgZmlu
-aXNoIHRoZSBwYWdlIGZhdWx0IGNvbXBsZXRlbHkgaXMgd2hlbiB3ZQogICAgYXJlIGxvYWRpbmcg
-aG9sZSBwYWdlcyBpbnRvIGEgcmFkaXggdHJlZS4gQXZvaWQgdGhpcyBzcGVjaWFsIGNhc2UgYW5k
-CiAgICBmaW5pc2ggdGhlIGZhdWx0IGluIHRoYXQgY2FzZSBhcyB3ZWxsIGluc2lkZSB0aGUgREFY
-IGZhdWx0IGhhbmRsZXIuIEl0CiAgICB3aWxsIGFsbG93IHVzIGZvciBlYXNpZXIgaW9tYXAgaGFu
-ZGxpbmcuCiAgICAKICAgIFJldmlld2VkLWJ5OiBSb3NzIFp3aXNsZXIgPHJvc3Muendpc2xlckBs
-aW51eC5pbnRlbC5jb20+CiAgICBTaWduZWQtb2ZmLWJ5OiBKYW4gS2FyYSA8amFja0BzdXNlLmN6
-PgogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5j
-b20+Cgpjb21taXQgOWYxNDFkNmVmNjI1OGEzYTM3YTA0NTg0MmQ5YmE3ZTY4ZjM2ODk1NgpBdXRo
-b3I6IEphbiBLYXJhIDxqYWNrQHN1c2UuY3o+CkRhdGU6ICAgV2VkIE9jdCAxOSAxNDozNDozMSAy
-MDE2ICstMDIwMAoKICAgIGRheDogQ2FsbCAtPmlvbWFwX2JlZ2luIHdpdGhvdXQgZW50cnkgbG9j
-ayBkdXJpbmcgZGF4IGZhdWx0CiAgICAKICAgIEN1cnJlbnRseSAtPmlvbWFwX2JlZ2luKCkgaGFu
-ZGxlciBpcyBjYWxsZWQgd2l0aCBlbnRyeSBsb2NrIGhlbGQuIElmIHRoZQogICAgZmlsZXN5c3Rl
-bSBoZWxkIGFueSBsb2NrcyBiZXR3ZWVuIC0+aW9tYXBfYmVnaW4oKSBhbmQgLT5pb21hcF9lbmQo
-KQogICAgKHN1Y2ggYXMgZXh0NCB3aGljaCB3aWxsIHdhbnQgdG8gaG9sZCB0cmFuc2FjdGlvbiBv
-cGVuKSwgdGhpcyB3b3VsZCBjYXVzZQogICAgbG9jayBpbnZlcnNpb24gd2l0aCB0aGUgaW9tYXBf
-YXBwbHkoKSBmcm9tIHN0YW5kYXJkIElPIHBhdGggd2hpY2ggZmlyc3QKICAgIGNhbGxzIC0+aW9t
-YXBfYmVnaW4oKSBhbmQgb25seSB0aGVuIGNhbGxzIC0+YWN0b3IoKSBjYWxsYmFjayB3aGljaCBn
-cmFicwogICAgZW50cnkgbG9ja3MgZm9yIERBWCAoaWYgaXQgZmF1bHRzIHdoZW4gY29weWluZyBm
-cm9tL3RvIHVzZXIgcHJvdmlkZWQKICAgIGJ1ZmZlcnMpLgogICAgCiAgICBGaXggdGhlIHByb2Js
-ZW0gYnkgbmVzdGluZyBncmFiYmluZyBvZiBlbnRyeSBsb2NrIGluc2lkZSAtPmlvbWFwX2JlZ2lu
-KCkKICAgIC0gLT5pb21hcF9lbmQoKSBwYWlyLgogICAgCiAgICBSZXZpZXdlZC1ieTogUm9zcyBa
-d2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPgogICAgU2lnbmVkLW9mZi1ieTog
-SmFuIEthcmEgPGphY2tAc3VzZS5jej4KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8
-ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0IDFkYjE3NTQyOGVlMzc0NDg5NDQ4MzYx
-MjEzZTljM2I3NDlkMTQ5MDAKQXV0aG9yOiBKYW4gS2FyYSA8amFja0BzdXNlLmN6PgpEYXRlOiAg
-IEZyaSBPY3QgMjEgMTE6MzM6NDkgMjAxNiArLTAyMDAKCiAgICBleHQ0OiBTaW1wbGlmeSBEQVgg
-ZmF1bHQgcGF0aAogICAgCiAgICBOb3cgdGhhdCBkYXhfaW9tYXBfZmF1bHQoKSBjYWxscyAtPmlv
-bWFwX2JlZ2luKCkgd2l0aG91dCBlbnRyeSBsb2NrLCB3ZQogICAgY2FuIHVzZSB0cmFuc2FjdGlv
-biBzdGFydGluZyBpbiBleHQ0X2lvbWFwX2JlZ2luKCkgYW5kIHRodXMgc2ltcGxpZnkKICAgIGV4
-dDRfZGF4X2ZhdWx0KCkuIEl0IGFsc28gcHJvdmlkZXMgdXMgcHJvcGVyIHJldHJpZXMgaW4gY2Fz
-ZSBvZiBFTk9TUEMuCiAgICAKICAgIFNpZ25lZC1vZmYtYnk6IEphbiBLYXJhIDxqYWNrQHN1c2Uu
-Y3o+CiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVs
-LmNvbT4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGlu
-dXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8v
-bGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Teach devm_memremap_pages() about the new sub-section capabilities of
+arch_{add,remove}_memory().
+
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ kernel/memremap.c |   22 +++++++---------------
+ 1 file changed, 7 insertions(+), 15 deletions(-)
+
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index faf1b7b4114f..70b3b4e1b8b3 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -254,7 +254,6 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
+ {
+ 	struct page_map *page_map = data;
+ 	struct resource *res = &page_map->res;
+-	resource_size_t align_start, align_size;
+ 	struct dev_pagemap *pgmap = &page_map->pgmap;
+ 
+ 	if (percpu_ref_tryget_live(pgmap->ref)) {
+@@ -263,10 +262,8 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
+ 	}
+ 
+ 	/* pages are dead and unused, undo the arch mapping */
+-	align_start = res->start & PA_SECTION_MASK;
+-	align_size = ALIGN(resource_size(res), PA_SECTION_SIZE);
+-	arch_remove_memory(align_start, align_size);
+-	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
++	arch_remove_memory(res->start, resource_size(res));
++	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
+ 	pgmap_radix_release(res);
+ 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
+ 			"%s: failed to free all reserved pages\n", __func__);
+@@ -301,17 +298,13 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap)
+ {
+-	resource_size_t align_start, align_size, align_end;
+ 	unsigned long pfn, offset, order;
+ 	pgprot_t pgprot = PAGE_KERNEL;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
+ 	int error, nid, is_ram;
+ 
+-	align_start = res->start & PA_SECTION_MASK;
+-	align_size = ALIGN(res->start + resource_size(res), PA_SECTION_SIZE)
+-		- align_start;
+-	is_ram = region_intersects(align_start, align_size,
++	is_ram = region_intersects(res->start, resource_size(res),
+ 		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+ 
+ 	if (is_ram == REGION_MIXED) {
+@@ -344,7 +337,6 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+-	align_end = align_start + align_size - 1;
+ 
+ 	/* we're storing full physical addresses in the radix */
+ 	BUILD_BUG_ON(sizeof(unsigned long) < sizeof(resource_size_t));
+@@ -376,12 +368,12 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	if (nid < 0)
+ 		nid = numa_mem_id();
+ 
+-	error = track_pfn_remap(NULL, &pgprot, PHYS_PFN(align_start), 0,
+-			align_size);
++	error = track_pfn_remap(NULL, &pgprot, PHYS_PFN(res->start), 0,
++			resource_size(res));
+ 	if (error)
+ 		goto err_pfn_remap;
+ 
+-	error = arch_add_memory(nid, align_start, align_size, true);
++	error = arch_add_memory(nid, res->start, resource_size(res), true);
+ 	if (error)
+ 		goto err_add_memory;
+ 
+@@ -401,7 +393,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	return __va(res->start);
+ 
+  err_add_memory:
+-	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
++	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
+  err_pfn_remap:
+  err_radix:
+ 	pgmap_radix_release(res);
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
