@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from smtprelay.hostedemail.com (smtprelay0034.hostedemail.com
+ [216.40.44.34])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 40DA681C4E
- for <linux-nvdimm@lists.01.org>; Fri, 16 Dec 2016 14:10:53 -0800 (PST)
-Subject: [PATCH] libnvdimm: fix mishandled nvdimm_clear_poison() return value
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 16 Dec 2016 14:06:44 -0800
-Message-ID: <148192600397.40331.16038852518288391005.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 41E9E81EAC
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 08:56:59 -0800 (PST)
+Date: Thu, 1 Dec 2016 11:56:55 -0500
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH v3 5/5] dax: add tracepoints to dax_pmd_insert_mapping()
+Message-ID: <20161201115655.4315d942@gandalf.local.home>
+In-Reply-To: <1480610271-23699-6-git-send-email-ross.zwisler@linux.intel.com>
+References: <1480610271-23699-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1480610271-23699-6-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,101 +24,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Fabian Frederick <fabf@skynet.be>, Colin Ian King <colin.king@canonical.com>, linux-kernel@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Colin, via static analysis, reports that the length could be negative
-from nvdimm_clear_poison() in the error case. There was a similar
-problem with commit 0a3f27b9a6a8 "libnvdimm, namespace: avoid multiple
-sector calculations" that I noticed when merging the for-4.10/libnvdimm
-topic branch into libnvdimm-for-next, but I missed this one. Fix both of
-them to the following procedure:
+On Thu,  1 Dec 2016 09:37:51 -0700
+Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
 
-* if we clear a block's worth of media, clear that many blocks in
-  badblocks
+> Add tracepoints to dax_pmd_insert_mapping(), following the same logging
+> conventions as the tracepoints in dax_iomap_pmd_fault().
+> 
+> Here is an example PMD fault showing the new tracepoints:
+> 
+> big-1504  [001] ....   326.960743: xfs_filemap_pmd_fault: dev 259:0 ino
+> 0x1003
+> 
+> big-1504  [001] ....   326.960753: dax_pmd_fault: dev 259:0 ino 0x1003
+> shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
+> 0x10200000 vm_end 0x10700000 pgoff 0x200 max_pgoff 0x1400
+> 
+> big-1504  [001] ....   326.960981: dax_pmd_insert_mapping: dev 259:0 ino
+> 0x1003 shared write address 0x10505000 length 0x200000 pfn 0x100600 DEV|MAP
+> radix_entry 0xc000e
+> 
+> big-1504  [001] ....   326.960986: dax_pmd_fault_done: dev 259:0 ino 0x1003
+> shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
+> 0x10200000 vm_end 0x10700000 pgoff 0x200 max_pgoff 0x1400 NOPAGE
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Reviewed-by: Jan Kara <jack@suse.cz>
+> ---
 
-* if we clear less than the requested size of the transfer return an
-  error
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
 
-* always invalidate cache after any non-error / non-zero
-  nvdimm_clear_poison result
-
-Fixes: 82bf1037f2ca ("libnvdimm: check and clear poison before writing to pmem")
-Fixes: 0a3f27b9a6a8 ("libnvdimm, namespace: avoid multiple sector calculations")
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Reported-by: Colin Ian King <colin.king@canonical.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/claim.c |    9 +++++----
- drivers/nvdimm/pmem.c  |   21 ++++++++++++++-------
- 2 files changed, 19 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 97d1772774a8..b3323c0697f6 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -247,12 +247,13 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 			long cleared;
- 
- 			cleared = nvdimm_clear_poison(&ndns->dev, offset, size);
--			if (cleared != size) {
--				size = cleared;
-+			if (cleared < size)
- 				rc = -EIO;
-+			if (cleared > 0 && cleared / 512) {
-+				cleared /= 512;
-+				badblocks_clear(&nsio->bb, sector, cleared);
- 			}
--
--			badblocks_clear(&nsio->bb, sector, cleared >> 9);
-+			invalidate_pmem(nsio->addr + offset, size);
- 		} else
- 			rc = -EIO;
- 	}
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index bcc359a4e64d..ecf79fd64517 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -47,22 +47,29 @@ static struct nd_region *to_region(struct pmem_device *pmem)
- 	return to_nd_region(to_dev(pmem)->parent);
- }
- 
--static void pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
-+static int pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
- 		unsigned int len)
- {
- 	struct device *dev = to_dev(pmem);
--	sector_t sector, cleared;
-+	sector_t sector;
-+	long cleared;
-+	int rc = 0;
- 
- 	sector = (offset - pmem->data_offset) / 512;
--	cleared = nvdimm_clear_poison(dev, pmem->phys_addr + offset, len) / 512;
- 
--	if (cleared) {
--		dev_dbg(dev, "%s: %#llx clear %ld sector%s\n",
--				__func__, (unsigned long long) sector,
--				cleared, cleared > 1 ? "s" : "");
-+	cleared = nvdimm_clear_poison(dev, pmem->phys_addr + offset, len);
-+	if (cleared < len)
-+		rc = -EIO;
-+	if (cleared > 0 && cleared / 512) {
-+		cleared /= 512;
-+		dev_dbg(dev, "%s: %#llx clear %ld sector%s\n", __func__,
-+				(unsigned long long) sector, cleared,
-+				cleared > 1 ? "s" : "");
- 		badblocks_clear(&pmem->bb, sector, cleared);
- 	}
- 	invalidate_pmem(pmem->virt_addr + offset, len);
-+
-+	return rc;
- }
- 
- static void write_pmem(void *pmem_addr, struct page *page,
-
+-- Steve
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
