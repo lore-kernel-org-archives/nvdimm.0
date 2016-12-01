@@ -1,267 +1,403 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DBE3082081
- for <linux-nvdimm@lists.01.org>; Sat, 10 Dec 2016 22:38:55 -0800 (PST)
-Subject: [ndctl PATCH 2/6] libdaxctl: add daxctl_region_get_{id, size,
- align} apis
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH 09/11] mm: support section-unaligned ZONE_DEVICE memory
+ ranges
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 10 Dec 2016 22:34:46 -0800
-Message-ID: <148143808682.11895.3625276610774731857.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148143807638.11895.3823811556889353622.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148143807638.11895.3823811556889353622.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 01 Dec 2016 14:30:35 -0800
+Message-ID: <148063143537.37496.10587439764315811298.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: toshi.kani@hpe.com, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Logan Gunthorpe <logang@deltatee.com>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Retrieve the basic geometry and identification attributes of a region.
+The initial motivation for this change is persistent memory platforms
+that, unfortunately, align the pmem range on a boundary less than a full
+section (64M vs 128M), and may change the alignment from one boot to the
+next. A secondary motivation is the arrival of prospective ZONE_DEVICE
+users that want devm_memremap_pages() to map PCI-E device memory ranges
+to enable peer-to-peer DMA.
 
+Currently the nvdimm core injects padding when 'pfn' (struct page
+mapping configuration) instances are created. However, not all users of
+devm_memremap_pages() have the opportunity to inject such padding. Users
+of the memmap=ss!nn kernel command line option can trigger the following
+failure with unaligned parameters like "memmap=0xfc000000!8G":
+
+ WARNING: CPU: 0 PID: 558 at kernel/memremap.c:300 devm_memremap_pages+0x3b5/0x4c0
+ devm_memremap_pages attempted on mixed region [mem 0x200000000-0x2fbffffff flags 0x200]
+ [..]
+ Call Trace:
+  [<ffffffff814c0393>] dump_stack+0x86/0xc3
+  [<ffffffff810b173b>] __warn+0xcb/0xf0
+  [<ffffffff810b17bf>] warn_slowpath_fmt+0x5f/0x80
+  [<ffffffff811eb105>] devm_memremap_pages+0x3b5/0x4c0
+  [<ffffffffa006f308>] __wrap_devm_memremap_pages+0x58/0x70 [nfit_test_iomap]
+  [<ffffffffa00e231a>] pmem_attach_disk+0x19a/0x440 [nd_pmem]
+
+Without this change a user could inadvertently lose access to nvdimm
+namespaces by adding/removing other DIMMs in the platform leading to the
+BIOS changing the base alignment of the namespace in an incompatible
+fashion. With this support we can accommodate a BIOS changing the
+namespace to any alignment provided it is >= SECTION_ACTIVE_SIZE.
+
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- daxctl/lib/libdaxctl-private.h |    3 +
- daxctl/lib/libdaxctl.c         |   93 +++++++++++++++++++++++++++++++---------
- daxctl/lib/libdaxctl.sym       |   14 ++++--
- daxctl/libdaxctl.h             |    2 +
- 4 files changed, 87 insertions(+), 25 deletions(-)
+ mm/sparse.c |  272 ++++++++++++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 204 insertions(+), 68 deletions(-)
 
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index a2924f1e93f5..2d17f40b6ea9 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -23,10 +23,13 @@ struct daxctl_region {
- 	int id;
- 	uuid_t uuid;
- 	int refcount;
-+	char *devname;
- 	size_t buf_len;
- 	void *region_buf;
- 	int devices_init;
- 	char *region_path;
-+	unsigned int align;
-+	unsigned long long size;
- 	struct daxctl_ctx *ctx;
- 	struct list_head devices;
- };
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 06605de85fc3..a40a84a3c1bb 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -197,6 +197,7 @@ DAXCTL_EXPORT void daxctl_region_unref(struct daxctl_region *region)
- 		free_dev(dev, &region->devices);
- 	free(region->region_path);
- 	free(region->region_buf);
-+	free(region->devname);
- 	free(region);
- }
+diff --git a/mm/sparse.c b/mm/sparse.c
+index a8358d15a90d..d8c4bc9ccc1a 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -24,6 +24,7 @@
+ #ifdef CONFIG_SPARSEMEM_EXTREME
+ struct mem_section *mem_section[NR_SECTION_ROOTS]
+ 	____cacheline_internodealigned_in_smp;
++static DEFINE_SPINLOCK(mem_section_lock); /* atomically instantiate new entries */
+ #else
+ struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT]
+ 	____cacheline_internodealigned_in_smp;
+@@ -89,7 +90,22 @@ static int __meminit sparse_index_init(unsigned long section_nr, int nid)
+ 	if (!section)
+ 		return -ENOMEM;
  
-@@ -206,32 +207,68 @@ DAXCTL_EXPORT void daxctl_region_ref(struct daxctl_region *region)
- 		region->refcount++;
- }
- 
--DAXCTL_EXPORT struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx,
--		int id, uuid_t uuid, const char *path)
-+static void *add_dax_region(void *parent, int id, const char *base)
- {
-+	char *path = calloc(1, strlen(base) + 100);
-+	const char *attrs = "dax_region";
-+	struct daxctl_ctx *ctx = parent;
- 	struct daxctl_region *region;
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	if (!path)
-+		return NULL;
- 
- 	region = calloc(1, sizeof(*region));
- 	if (!region)
--		return NULL;
--	region->ctx = ctx;
-+		goto err_region;
-+
- 	region->id = id;
-+	region->align = -1;
-+	region->size = -1;
-+	region->ctx = ctx;
- 	region->refcount = 1;
--	uuid_copy(region->uuid, uuid);
-+	list_head_init(&region->devices);
-+	region->devname = strdup(devpath_to_devname(base));
- 
-+	sprintf(path, "%s/%s/size", base, attrs);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		region->size = strtoull(buf, NULL, 0);
-+
-+	sprintf(path, "%s/%s/align", base, attrs);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		region->align = strtoul(buf, NULL, 0);
-+
-+	sprintf(path, "%s/%s", base, attrs);
- 	region->region_path = strdup(path);
--	if (!region->region_path) {
--		free(region);
--		return NULL;
--	}
-+	if (!region->region_path)
-+		goto err_read;
- 
--	list_head_init(&region->devices);
--	region->buf_len = strlen(region->region_path) + REGION_BUF_SIZE;
--	region->region_buf = calloc(1, region->buf_len);
--	if (!region->region_buf) {
--		daxctl_region_unref(region);
-+	region->region_buf = calloc(1, strlen(path) + REGION_BUF_SIZE);
-+	if (!region->region_buf)
-+		goto err_read;
-+	region->buf_len = strlen(path) + REGION_BUF_SIZE;
-+
-+	free(path);
-+	return region;
-+
-+ err_read:
-+	free(region->region_buf);
-+	free(region->region_path);
-+	free(region);
-+ err_region:
-+	free(path);
-+	return NULL;
-+}
-+
-+DAXCTL_EXPORT struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx,
-+		int id, uuid_t uuid, const char *path)
-+{
-+	struct daxctl_region *region;
-+
-+	region = add_dax_region(ctx, id, path);
-+	if (!region)
- 		return NULL;
--	}
-+	uuid_copy(region->uuid, uuid);
- 
- 	dbg(ctx, "%s: %s\n", __func__, daxctl_region_get_devname(region));
- 
-@@ -302,9 +339,19 @@ DAXCTL_EXPORT int daxctl_region_get_id(struct daxctl_region *region)
- 	return region->id;
- }
- 
-+DAXCTL_EXPORT unsigned int daxctl_region_get_align(struct daxctl_region *region)
-+{
-+	return region->align;
-+}
-+
-+DAXCTL_EXPORT unsigned long long daxctl_region_get_size(struct daxctl_region *region)
-+{
-+	return region->size;
-+}
-+
- DAXCTL_EXPORT const char *daxctl_region_get_devname(struct daxctl_region *region)
- {
--        return devpath_to_devname(region->region_path);
-+	return region->devname;
- }
- 
- DAXCTL_EXPORT unsigned long long daxctl_region_get_available_size(
-@@ -316,7 +363,7 @@ DAXCTL_EXPORT unsigned long long daxctl_region_get_available_size(
- 	int len = region->buf_len;
- 	unsigned long long avail;
- 
--	if (snprintf(path, len, "%s/dax_region/available_size",
-+	if (snprintf(path, len, "%s/available_size",
- 				region->region_path) >= len) {
- 		err(ctx, "%s: buffer too small!\n",
- 				daxctl_region_get_devname(region));
-@@ -341,7 +388,7 @@ DAXCTL_EXPORT struct daxctl_dev *daxctl_region_get_dev_seed(
- 	char buf[SYSFS_ATTR_SIZE];
- 	struct daxctl_dev *dev;
- 
--	if (snprintf(path, len, "%s/dax_region/seed", region->region_path) >= len) {
-+	if (snprintf(path, len, "%s/seed", region->region_path) >= len) {
- 		err(ctx, "%s: buffer too small!\n",
- 				daxctl_region_get_devname(region));
- 		return NULL;
-@@ -367,11 +414,15 @@ static void dax_devices_init(struct daxctl_region *region)
- 
- 	region->devices_init = 1;
- 	sprintf(daxdev_fmt, "dax%d.", region->id);
--	if (asprintf(&region_path, "%s/dax", region->region_path) < 0)
--		region_path = NULL;
--	if (region_path)
-+	region_path = strdup(region->region_path);
-+	if (region_path) {
-+		char *c = strrchr(region_path, '_');
-+
-+		/* convert <devpath>/dax_region to <devpath>/dax */
-+		*c = '\0';
- 		sysfs_device_parse(ctx, region_path, daxdev_fmt, region,
- 				add_dax_dev);
+-	mem_section[root] = section;
++	spin_lock(&mem_section_lock);
++	if (mem_section[root] == NULL) {
++		mem_section[root] = section;
++		section = NULL;
 +	}
- 	free(region_path);
++	spin_unlock(&mem_section_lock);
++
++	/*
++	 * The only time we expect adding a section may race is during
++	 * post-meminit hotplug. So, there is no expectation that 'section'
++	 * leaks in the !slab_is_available() case.
++	 */
++	if (section && slab_is_available()) {
++		kfree(section);
++		return -EEXIST;
++	}
+ 
+ 	return 0;
+ }
+@@ -288,6 +304,15 @@ static void __meminit sparse_init_one_section(struct mem_section *ms,
+ 		unsigned long pnum, struct page *mem_map,
+ 		struct mem_section_usage *usage)
+ {
++	/*
++	 * Given that SPARSEMEM_VMEMMAP=y supports sub-section hotplug,
++	 * ->section_mem_map can not be guaranteed to point to a full
++	 *  section's worth of memory.  The field is only valid / used
++	 *  in the SPARSEMEM_VMEMMAP=n case.
++	 */
++	if (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP))
++		mem_map = NULL;
++
+ 	ms->section_mem_map &= ~SECTION_MAP_MASK;
+ 	ms->section_mem_map |= sparse_encode_mem_map(mem_map, pnum) |
+ 		SECTION_HAS_MEM_MAP;
+@@ -753,12 +778,176 @@ static void free_map_bootmem(struct page *memmap)
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
++static bool is_early_section(struct mem_section *ms)
++{
++	struct page *usemap_page;
++
++	usemap_page = virt_to_page(ms->usage->pageblock_flags);
++	if (PageSlab(usemap_page) || PageCompound(usemap_page))
++		return false;
++	else
++		return true;
++
++}
++
++#ifndef CONFIG_MEMORY_HOTREMOVE
++static void free_map_bootmem(struct page *memmap)
++{
++}
++#endif
++
++static void section_deactivate(struct pglist_data *pgdat, unsigned long pfn,
++                unsigned long nr_pages)
++{
++	bool early_section;
++	struct page *memmap = NULL;
++	struct mem_section_usage *usage = NULL;
++	int section_nr = pfn_to_section_nr(pfn);
++	struct mem_section *ms = __nr_to_section(section_nr);
++	unsigned long mask = section_active_mask(pfn, nr_pages), flags;
++
++	pgdat_resize_lock(pgdat, &flags);
++	if (!ms->usage) {
++		mask = 0;
++	} else if ((ms->usage->map_active & mask) != mask) {
++		WARN(1, "section already deactivated active: %#lx mask: %#lx\n",
++				ms->usage->map_active, mask);
++		mask = 0;
++	} else {
++		early_section = is_early_section(ms);
++		ms->usage->map_active ^= mask;
++		if (ms->usage->map_active == 0) {
++			usage = ms->usage;
++			ms->usage = NULL;
++			memmap = sparse_decode_mem_map(ms->section_mem_map,
++					section_nr);
++			ms->section_mem_map = 0;
++		}
++	}
++	pgdat_resize_unlock(pgdat, &flags);
++
++	/*
++	 * There are 3 cases to handle across two configurations
++	 * (SPARSEMEM_VMEMMAP={y,n}):
++	 *
++	 * 1/ deactivation of a partial hot-added section (only possible
++	 * in the SPARSEMEM_VMEMMAP=y case).
++	 *    a/ section was present at memory init
++	 *    b/ section was hot-added post memory init
++	 * 2/ deactivation of a complete hot-added section
++	 * 3/ deactivation of a complete section from memory init
++	 *
++	 * For 1/, when map_active does not go to zero we will not be
++	 * freeing the usage map, but still need to free the vmemmap
++	 * range.
++	 *
++	 * For 2/ and 3/ the SPARSEMEM_VMEMMAP={y,n} cases are unified
++	 */
++	if (!mask)
++		return;
++	if (nr_pages < PAGES_PER_SECTION) {
++		if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)) {
++			WARN(1, "partial memory section removal not supported\n");
++			return;
++		}
++		if (!early_section)
++			depopulate_section_memmap(pfn, nr_pages);
++		memmap = 0;
++	}
++
++	if (usage) {
++		if (!early_section) {
++			/*
++			 * 'memmap' may be zero in the SPARSEMEM_VMEMMAP=y case
++			 * (see sparse_init_one_section()), so we can't rely on
++			 * it to determine if we need to depopulate the memmap.
++			 * Instead, we uncoditionally depopulate due to 'usage'
++			 * being valid.
++			 */
++			if (memmap || (nr_pages >= PAGES_PER_SECTION
++					&& IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)))
++				depopulate_section_memmap(pfn, nr_pages);
++			kfree(usage);
++			return;
++		}
++	}
++
++	/*
++	 * The usemap came from bootmem. This is packed with other usemaps
++	 * on the section which has pgdat at boot time. Just keep it as is now.
++	 */
++	if (memmap)
++		free_map_bootmem(memmap);
++}
++
++static struct page *section_activate(struct pglist_data *pgdat,
++		unsigned long pfn, unsigned nr_pages)
++{
++	struct mem_section *ms = __nr_to_section(pfn_to_section_nr(pfn));
++	unsigned long mask = section_active_mask(pfn, nr_pages), flags;
++	struct mem_section_usage *usage;
++	bool early_section = false;
++	struct page *memmap;
++	int rc = 0;
++
++	usage = __alloc_section_usage();
++	if (!usage)
++		return ERR_PTR(-ENOMEM);
++
++	pgdat_resize_lock(pgdat, &flags);
++	if (!ms->usage) {
++		ms->usage = usage;
++		usage = NULL;
++	} else
++		early_section = is_early_section(ms);
++
++	if (!mask)
++		rc = -EINVAL;
++	else if (mask & ms->usage->map_active)
++		rc = -EBUSY;
++	else
++		ms->usage->map_active |= mask;
++	pgdat_resize_unlock(pgdat, &flags);
++
++	kfree(usage);
++
++	if (rc)
++		return ERR_PTR(rc);
++
++
++	/*
++	 * The early init code does not consider partially populated
++	 * initial sections, it simply assumes that memory will never be
++	 * referenced.  If we hot-add memory into such a section then we
++	 * do not need to populate the memmap and can simply reuse what
++	 * is already there.
++	 */
++	if (nr_pages < PAGES_PER_SECTION && early_section)
++		return pfn_to_page(pfn);
++
++	memmap = populate_section_memmap(pfn, nr_pages, pgdat->node_id);
++	if (!memmap) {
++		section_deactivate(pgdat, pfn, nr_pages);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	return memmap;
++}
++
++/**
++ * sparse_add_section() - create a new memmap section, or populate an
++ * existing one
++ * @zone: host zone for the new memory mapping
++ * @start_pfn: first pfn to add (section aligned if zone != ZONE_DEVICE)
++ * @nr_pages: number of new pages to add
++ *
++ * Returns 0 on success.
++ */
+ int __meminit sparse_add_section(struct zone *zone, unsigned long start_pfn,
+ 		unsigned long nr_pages)
+ {
+ 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+-	static struct mem_section_usage *usage;
+ 	struct mem_section *ms;
+ 	struct page *memmap;
+ 	unsigned long flags;
+@@ -771,37 +960,27 @@ int __meminit sparse_add_section(struct zone *zone, unsigned long start_pfn,
+ 	ret = sparse_index_init(section_nr, pgdat->node_id);
+ 	if (ret < 0 && ret != -EEXIST)
+ 		return ret;
+-	memmap = populate_section_memmap(start_pfn, PAGES_PER_SECTION,
+-			pgdat->node_id);
+-	if (!memmap)
+-		return -ENOMEM;
+-	usage = __alloc_section_usage();
+-	if (!usage) {
+-		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION);
+-		return -ENOMEM;
+-	}
+ 
+-	pgdat_resize_lock(pgdat, &flags);
++	memmap = section_activate(pgdat, start_pfn, nr_pages);
++	if (IS_ERR(memmap))
++		return PTR_ERR(memmap);
+ 
++	pgdat_resize_lock(pgdat, &flags);
+ 	ms = __pfn_to_section(start_pfn);
+-	if (ms->section_mem_map & SECTION_MARKED_PRESENT) {
++	if (nr_pages == PAGES_PER_SECTION && (ms->section_mem_map
++				& SECTION_MARKED_PRESENT)) {
+ 		ret = -EBUSY;
+ 		goto out;
+ 	}
+-
+-	memset(memmap, 0, sizeof(struct page) * PAGES_PER_SECTION);
+-
+ 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
+-
+-	sparse_init_one_section(ms, section_nr, memmap, usage);
+-
++	sparse_init_one_section(ms, section_nr, memmap, ms->usage);
+ out:
+ 	pgdat_resize_unlock(pgdat, &flags);
+-	if (ret < 0 && ret != -EEXIST) {
+-		kfree(usage);
+-		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION);
++	if (nr_pages == PAGES_PER_SECTION && ret < 0 && ret != -EEXIST) {
++		section_deactivate(pgdat, start_pfn, nr_pages);
+ 		return ret;
+ 	}
++	memset(memmap, 0, sizeof(struct page) * nr_pages);
+ 	return 0;
  }
  
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index e74d75bf7847..eef97f2546c0 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -1,4 +1,4 @@
--LIBNDCTL_1 {
-+LIBDAXCTL_1 {
- global:
- 	daxctl_get_userdata;
- 	daxctl_set_userdata;
-@@ -12,7 +12,7 @@ local:
-         *;
- };
+@@ -827,58 +1006,15 @@ static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
+ }
+ #endif
  
--LIBNDCTL_2 {
-+LIBDAXCTL_2 {
- global:
- 	daxctl_region_unref;
- 	daxctl_new_region;
-@@ -29,11 +29,17 @@ global:
- 	daxctl_dev_get_major;
- 	daxctl_dev_get_minor;
- 	daxctl_dev_get_size;
--} LIBNDCTL_1;
-+} LIBDAXCTL_1;
+-static void free_section_usage(struct page *memmap,
+-		struct mem_section_usage *usage, unsigned long pfn,
+-		unsigned long nr_pages)
+-{
+-	struct page *usemap_page;
+-
+-	if (!usage)
+-		return;
+-
+-	usemap_page = virt_to_page(usage->pageblock_flags);
+-	/*
+-	 * Check to see if allocation came from hot-plug-add
+-	 */
+-	if (PageSlab(usemap_page) || PageCompound(usemap_page)) {
+-		kfree(usage);
+-		if (memmap)
+-			depopulate_section_memmap(pfn, nr_pages);
+-		return;
+-	}
+-
+-	/*
+-	 * The usemap came from bootmem. This is packed with other usemaps
+-	 * on the section which has pgdat at boot time. Just keep it as is now.
+-	 */
+-
+-	if (memmap)
+-		free_map_bootmem(memmap);
+-}
+-
+ void sparse_remove_section(struct zone *zone, struct mem_section *ms,
+ 		unsigned long pfn, unsigned long nr_pages,
+ 		unsigned long map_offset)
+ {
+-	unsigned long flags;
+-	struct page *memmap = NULL;
+-	struct mem_section_usage *usage = NULL;
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
  
- LIBDAXCTL_3 {
- global:
- 	daxctl_region_get_available_size;
- 	daxctl_region_get_devname;
- 	daxctl_region_get_dev_seed;
--} LIBNDCTL_2;
-+} LIBDAXCTL_2;
-+
-+LIBDAXCTL_4 {
-+global:
-+	daxctl_region_get_size;
-+	daxctl_region_get_align;
-+} LIBDAXCTL_3;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index bb7aa363a605..42ed15b508e5 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -43,6 +43,8 @@ int daxctl_region_get_id(struct daxctl_region *region);
- struct daxctl_ctx *daxctl_region_get_ctx(struct daxctl_region *region);
- unsigned long long daxctl_region_get_available_size(
- 		struct daxctl_region *region);
-+unsigned long long daxctl_region_get_size(struct daxctl_region *region);
-+unsigned int daxctl_region_get_align(struct daxctl_region *region);
- const char *daxctl_region_get_devname(struct daxctl_region *region);
- struct daxctl_dev *daxctl_region_get_dev_seed(struct daxctl_region *region);
- 
+-	pgdat_resize_lock(pgdat, &flags);
+-	if (ms->section_mem_map) {
+-		usage = ms->usage;
+-		memmap = sparse_decode_mem_map(ms->section_mem_map,
+-						__section_nr(ms));
+-		ms->section_mem_map = 0;
+-		ms->usage = NULL;
+-	}
+-	pgdat_resize_unlock(pgdat, &flags);
+-
+-	clear_hwpoisoned_pages(memmap + map_offset,
+-			PAGES_PER_SECTION - map_offset);
+-	free_section_usage(memmap, usage, section_nr_to_pfn(__section_nr(ms)),
+-			PAGES_PER_SECTION);
++	clear_hwpoisoned_pages(pfn_to_page(pfn) + map_offset,
++			nr_pages - map_offset);
++	section_deactivate(pgdat, pfn, nr_pages);
+ }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ #endif /* CONFIG_MEMORY_HOTPLUG */
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
