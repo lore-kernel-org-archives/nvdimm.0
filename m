@@ -1,13 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from smtprelay.hostedemail.com (smtprelay0012.hostedemail.com
+ [216.40.44.12])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D567C81FCF
- for <linux-nvdimm@lists.01.org>; Tue,  6 Dec 2016 16:43:29 -0800 (PST)
-Subject: [PATCH 0/5] acpi, nfit: acpi_nfit_ctl() corner case fixes + tests
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 06 Dec 2016 16:39:20 -0800
-Message-ID: <148107115997.25138.3445497812509173966.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id DA10581D5D
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 08:11:13 -0800 (PST)
+Date: Thu, 1 Dec 2016 11:11:06 -0500
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH v2 6/6] dax: add tracepoints to dax_pmd_insert_mapping()
+Message-ID: <20161201111106.47510605@gandalf.local.home>
+In-Reply-To: <20161201154432.GD5160@linux.intel.com>
+References: <1480549533-29038-1-git-send-email-ross.zwisler@linux.intel.com>
+ <1480549533-29038-7-git-send-email-ross.zwisler@linux.intel.com>
+ <20161201091930.2084d32c@gandalf.local.home>
+ <20161201154432.GD5160@linux.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,58 +26,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
->>From [PATCH 5/5] tools/testing/nvdimm: unit test acpi_nfit_ctl():
----
-
-A recent flurry of bug discoveries in the nfit driver's DSM marshalling
-routine has highlighted the fact that we do not have unit test coverage
-for this routine. Add a self-test of acpi_nfit_ctl() routine before
-probing the "nfit_test.0" device. This mocks stimulus to acpi_nfit_ctl()
-and if any of the tests fail "nfit_test.0" will be unavailable causing
-the rest of the tests to not run / fail.
-    
-This unit test will also be a place to land reproductions of quirky
-BIOS behavior discovered in the field and ensure the kernel does not
-regress against implementations it has seen in practice.
-
----
-
-The problems addressed in this round of fixes date are concentrated
-around the variable-length output from the ARS (Address Range Scrub)
-Status command, and the proper handling of per-command extended status
-values.
-
-They are urgent as improper handling of ARS commands can lead to a
-platform that fails to boot. If there are media errors in the boot path
-on a platform that does not support machine-check recovery we rely on
-the ARS to inform the pmem driver which address ranges may trigger a
-machine-check when read.
-
----
-
-Dan Williams (4):
-      acpi, nfit, libnvdimm: fix / harden ars_status output length handling
-      acpi, nfit: validate ars_status output buffer size
-      acpi, nfit: fix bus vs dimm confusion in xlat_status
-      tools/testing/nvdimm: unit test acpi_nfit_ctl()
-
-Vishal Verma (1):
-      acpi, nfit: fix extended status translations for ACPI DSMs
+On Thu, 1 Dec 2016 08:44:32 -0700
+Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
 
 
- drivers/acpi/nfit/core.c              |   54 +++++---
- drivers/acpi/nfit/nfit.h              |    2 
- drivers/nvdimm/bus.c                  |   25 +++
- include/linux/libnvdimm.h             |    2 
- tools/testing/nvdimm/Kbuild           |    1 
- tools/testing/nvdimm/test/iomap.c     |   23 +++
- tools/testing/nvdimm/test/nfit.c      |  236 ++++++++++++++++++++++++++++++++-
- tools/testing/nvdimm/test/nfit_test.h |    8 +
- 8 files changed, 324 insertions(+), 27 deletions(-)
+> Actually I think it may be ideal to stick it as the 2nd entry after 'dev'.
+> dev_t is:
+> 
+> typedef __u32 __kernel_dev_t;
+> typedef __kernel_dev_t		dev_t;
+> 
+> So those two 32 bit values should combine into a single 64 bit space.
+
+Yeah that should work too.
+
+-- Steve
+
+> 
+> Thanks for the help, I obviously wasn't considering packing when ordering the
+> elements.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
