@@ -1,22 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Date: Mon, 19 Dec 2016 14:11:49 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: DAX mapping detection (was: Re: [PATCH] Fix region lost in
- /proc/self/smaps)
-Message-ID: <20161219211149.GA12822@linux.intel.com>
-References: <20160912213435.GD30497@dastard>
- <20160913115311.509101b0@roar.ozlabs.ibm.com>
- <20160914073902.GQ22388@dastard>
- <20160914201936.08315277@roar.ozlabs.ibm.com>
- <20160915023133.GR22388@dastard>
- <20160915134945.0aaa4f5a@roar.ozlabs.ibm.com>
- <20160915103210.GT22388@dastard>
- <20160915214222.505f4888@roar.ozlabs.ibm.com>
- <20160915223350.GU22388@dastard>
- <20160916155405.6b634bbc@roar.ozlabs.ibm.com>
+Received: from mail-oi0-x22c.google.com (mail-oi0-x22c.google.com
+ [IPv6:2607:f8b0:4003:c06::22c])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 6CFFC81EAB
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Dec 2016 11:52:19 -0800 (PST)
+Received: by mail-oi0-x22c.google.com with SMTP id v84so277320915oie.3
+ for <linux-nvdimm@lists.01.org>; Fri, 02 Dec 2016 11:52:19 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20160916155405.6b634bbc@roar.ozlabs.ibm.com>
+In-Reply-To: <1480706527-21274-1-git-send-email-fabf@skynet.be>
+References: <1480706527-21274-1-git-send-email-fabf@skynet.be>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 2 Dec 2016 11:52:18 -0800
+Message-ID: <CAPcyv4i1MjDC2xkVkzf0m_LcoaGwmQThEBcETi6pJ9pkG5cAvA@mail.gmail.com>
+Subject: Re: [PATCH 7/8 linux-next] mm: warn about possible alignment problem
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,28 +25,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Nicholas Piggin <npiggin@gmail.com>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jeff Moyer <jmoyer@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Yumei Huang <yuhuang@redhat.com>, Michal Hocko <mhocko@suse.com>, Xiaof Guangrong <guangrong.xiao@linux.intel.com>, KVM list <kvm@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Gleb Natapov <gleb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, mtosatti@redhat.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Dave Hansen <dave.hansen@intel.com>, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Fabian Frederick <fabf@skynet.be>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Sep 16, 2016 at 03:54:05PM +1000, Nicholas Piggin wrote:
-<>
-> Definitely the first step would be your simple preallocated per
-> inode approach until it is shown to be insufficient.
+On Fri, Dec 2, 2016 at 11:22 AM, Fabian Frederick <fabf@skynet.be> wrote:
+> Commit 5f29a77cd957
+> ("mm: fix mixed zone detection in devm_memremap_pages")
+> Aligned resource limits before region_intersects() which breaks
+> the following with false assertions on kernel command line: memmap=4M!700M
+>
+> "devm_memremap_pages attempted on mixed region [ mem 0x2bc00000-0x2bfffff
+> flags 0x200]"
+>
+> Memory regions
+> 0x100000-0x2bbfffff: usable
+> 0x2bc000000-0x2bbfffff: persistent
+> 0x2c0000000-0x2bffffff: usable
+>
+> resource start: 0x2bc00000
+> align start:    0x28000000
+> resource size:  0x3fffffff
+> align size:     0x80000000
+> SECTION_SIZE:    0x8000000
+>
+> Now we need aligned memmap declarations based on 128M in this case
+> eg memmap=128!640M
+>
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> ---
+>  kernel/memremap.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/kernel/memremap.c b/kernel/memremap.c
+> index b501e39..1bb5eec 100644
+> --- a/kernel/memremap.c
+> +++ b/kernel/memremap.c
+> @@ -296,8 +296,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+>                 IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+>
+>         if (is_ram == REGION_MIXED) {
+> -               WARN_ONCE(1, "%s attempted on mixed region %pr\n",
+> -                               __func__, res);
+> +               WARN_ONCE(1, "%s attempted on mixed region %pr or arguments not aligned to section size: %#lx\n",
+> +                               __func__, res, SECTION_SIZE);
+>                 return ERR_PTR(-ENXIO);
+>         }
 
-Reviving this thread a few months later...
+This should be addressed by the sub-section hotplug patches:
 
-Dave, we're interested in taking a serious look at what it would take to get
-PMEM_IMMUTABLE working.  Do you still hold the opinion that this is (or could
-become, with some amount of work) a workable solution?
-
-We're happy to do the grunt work for this feature, but we will probably need
-guidance from someone with more XFS experience.  With you out on extended leave
-the first half of 2017, who would be the best person to ask for this guidance?
-Darrick?
-
-Thanks,
-- Ross
+"[PATCH 00/11] mm: sub-section memory hotplug support"
+https://lkml.org/lkml/2016/12/1/740
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
