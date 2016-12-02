@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22f.google.com (mail-oi0-x22f.google.com
+ [IPv6:2607:f8b0:4003:c06::22f])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5547681FDC
- for <linux-nvdimm@lists.01.org>; Tue,  6 Dec 2016 16:43:35 -0800 (PST)
-Subject: [PATCH 1/5] acpi, nfit: fix extended status translations for ACPI DSMs
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 06 Dec 2016 16:39:25 -0800
-Message-ID: <148107116563.25138.8542559534788044870.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148107115997.25138.3445497812509173966.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148107115997.25138.3445497812509173966.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 41E2B81C5A
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Dec 2016 11:59:23 -0800 (PST)
+Received: by mail-oi0-x22f.google.com with SMTP id y198so278587494oia.1
+ for <linux-nvdimm@lists.01.org>; Fri, 02 Dec 2016 11:59:23 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <1480706479-21162-1-git-send-email-fabf@skynet.be>
+References: <1480706479-21162-1-git-send-email-fabf@skynet.be>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 2 Dec 2016 11:59:22 -0800
+Message-ID: <CAPcyv4isyZ8GVw0ggu54+CD09WgGwB38gtw5jM1AWsE8KC_q3Q@mail.gmail.com>
+Subject: Re: [PATCH 5/8 linux-next] libnvdimm: remove else after return in
+ nsio_rw_bytes()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,69 +26,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Fabian Frederick <fabf@skynet.be>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Vishal Verma <vishal.l.verma@intel.com>
+On Fri, Dec 2, 2016 at 11:21 AM, Fabian Frederick <fabf@skynet.be> wrote:
+> else after return is not needed.
+>
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> ---
+>  drivers/nvdimm/claim.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+> index d5dc80c..c0c113e 100644
+> --- a/drivers/nvdimm/claim.c
+> +++ b/drivers/nvdimm/claim.c
+> @@ -238,11 +238,10 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+>                 if (unlikely(is_bad_pmem(&nsio->bb, offset / 512, sz_align)))
+>                         return -EIO;
+>                 return memcpy_from_pmem(buf, nsio->addr + offset, size);
+> -       } else {
+> -               memcpy_to_pmem(nsio->addr + offset, buf, size);
+> -               nvdimm_flush(to_nd_region(ndns->dev.parent));
+>         }
+>
+> +       memcpy_to_pmem(nsio->addr + offset, buf, size);
+> +       nvdimm_flush(to_nd_region(ndns->dev.parent));
+>         return 0;
+>  }
 
-ACPI DSMs can have an 'extended' status which can be non-zero to convey
-additional information about the command. In the xlat_status routine,
-where we translate the command statuses, we were returning an error for
-a non-zero extended status, even if the primary status indicated success.
+Looks good, but this collides with
 
-Return from each command's 'case' once we have verified both its status
-and extend status are good.
+commit 82bf1037f2cab2d6960a08ae08513f2c3c0b335a
+Author: Dave Jiang <dave.jiang@intel.com>
+Date:   Fri Nov 11 12:37:36 2016 -0700
 
-Cc: <stable@vger.kernel.org>
-Fixes: 11294d63ac91 ("nfit: fail DSMs that return non-zero status by default")
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+    libnvdimm: check and clear poison before writing to pmem
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 71a7d07c28c9..60acbb1d159c 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -113,7 +113,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
- 		flags = ND_ARS_PERSISTENT | ND_ARS_VOLATILE;
- 		if ((status >> 16 & flags) == 0)
- 			return -ENOTTY;
--		break;
-+		return 0;
- 	case ND_CMD_ARS_START:
- 		/* ARS is in progress */
- 		if ((status & 0xffff) == NFIT_ARS_START_BUSY)
-@@ -122,7 +122,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
- 		/* Command failed */
- 		if (status & 0xffff)
- 			return -EIO;
--		break;
-+		return 0;
- 	case ND_CMD_ARS_STATUS:
- 		ars_status = buf;
- 		/* Command failed */
-@@ -154,7 +154,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
- 		/* Unknown status */
- 		if (status >> 16)
- 			return -EIO;
--		break;
-+		return 0;
- 	case ND_CMD_CLEAR_ERROR:
- 		clear_err = buf;
- 		if (status & 0xffff)
-@@ -163,7 +163,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
- 			return -EIO;
- 		if (clear_err->length > clear_err->cleared)
- 			return clear_err->cleared;
--		break;
-+		return 0;
- 	default:
- 		break;
- 	}
+    We need to clear any poison when we are writing to pmem. The granularity
+    will be sector size. If it's less then we can't do anything about it
+    barring corruption.
 
+    Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+    Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+    [djbw: fixup 0-length write request to succeed]
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+Can you respin this on top of libnvdimm-pending?
+
+https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/log/?h=libnvdimm-pending
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
