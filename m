@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
+ [IPv6:2607:f8b0:4003:c06::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3C7F281F17
- for <linux-nvdimm@lists.01.org>; Tue,  6 Dec 2016 17:39:02 -0800 (PST)
-Subject: [ndctl PATCH] test, device-dax: test read-only mappings
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 06 Dec 2016 17:34:52 -0800
-Message-ID: <148107449265.11076.1913078641623047618.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BB94181C63
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Dec 2016 11:55:41 -0800 (PST)
+Received: by mail-oi0-x233.google.com with SMTP id v84so277415929oie.3
+ for <linux-nvdimm@lists.01.org>; Fri, 02 Dec 2016 11:55:41 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <1480706506-21222-1-git-send-email-fabf@skynet.be>
+References: <1480706506-21222-1-git-send-email-fabf@skynet.be>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 2 Dec 2016 11:55:40 -0800
+Message-ID: <CAPcyv4gFswm=C-vXZ4fK3cndzpXN7nDz5VzpKESjtd01Fp2PRg@mail.gmail.com>
+Subject: Re: [PATCH 6/8 linux-next] libnvdimm,
+ namespace: use octal for permissions
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,77 +26,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Fabian Frederick <fabf@skynet.be>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hugh notes:
-"I think that is more restrictive than you intended: haven't tried, but
-I believe it rejects a PROT_READ, MAP_SHARED, O_RDONLY fd mmap, leaving
-no way to mmap /dev/dax without write permission to it."
+On Fri, Dec 2, 2016 at 11:21 AM, Fabian Frederick <fabf@skynet.be> wrote:
+> According to commit f90774e1fd27
+> ("checkpatch: look for symbolic permissions and suggest octal instead")
+>
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> ---
+>  drivers/nvdimm/namespace_devs.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+> index b00045b..0d2da9a 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+> @@ -1132,7 +1132,7 @@ static ssize_t size_show(struct device *dev,
+>         return sprintf(buf, "%llu\n", (unsigned long long)
+>                         nvdimm_namespace_capacity(to_ndns(dev)));
+>  }
+> -static DEVICE_ATTR(size, S_IRUGO, size_show, size_store);
+> +static DEVICE_ATTR(size, 0444, size_show, size_store);
+>
+>  static u8 *namespace_to_uuid(struct device *dev)
+>  {
+> @@ -1456,7 +1456,7 @@ static umode_t namespace_visible(struct kobject *kobj,
+>
+>         if (is_namespace_pmem(dev) || is_namespace_blk(dev)) {
+>                 if (a == &dev_attr_size.attr)
+> -                       return S_IWUSR | S_IRUGO;
+> +                       return 0200 | 0444;
 
-Reported-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/device-dax.c |   26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
-
-diff --git a/test/device-dax.c b/test/device-dax.c
-index 82154d5c1fff..75b17ed63088 100644
---- a/test/device-dax.c
-+++ b/test/device-dax.c
-@@ -201,22 +201,22 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 	}
- 
- 	sprintf(path, "/dev/%s", daxctl_dev_get_devname(dev));
--	fd = open(path, O_RDWR);
-+	fd = open(path, O_RDONLY);
- 	if (fd < 0) {
--		fprintf(stderr, "%s: failed to open device-dax instance\n",
-+		fprintf(stderr, "%s: failed to open(O_RDONLY) device-dax instance\n",
- 				daxctl_dev_get_devname(dev));
- 		rc = -ENXIO;
- 		goto out;
- 	}
- 
--	buf = mmap(NULL, VERIFY_SIZE, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0);
-+	buf = mmap(NULL, VERIFY_SIZE, PROT_READ, MAP_PRIVATE, fd, 0);
- 	if (buf != MAP_FAILED) {
- 		fprintf(stderr, "%s: expected MAP_PRIVATE failure\n", path);
- 		rc = -ENXIO;
- 		goto out;
- 	}
- 
--	buf = mmap(NULL, VERIFY_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-+	buf = mmap(NULL, VERIFY_SIZE, PROT_READ, MAP_SHARED, fd, 0);
- 	if (buf == MAP_FAILED) {
- 		fprintf(stderr, "%s: expected MAP_SHARED success\n", path);
- 		return -ENXIO;
-@@ -226,6 +226,24 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
- 	if (rc)
- 		goto out;
- 
-+	/* upgrade to a writable mapping */
-+	close(fd);
-+	munmap(buf, VERIFY_SIZE);
-+	fd = open(path, O_RDWR);
-+	if (fd < 0) {
-+		fprintf(stderr, "%s: failed to open(O_RDWR) device-dax instance\n",
-+				daxctl_dev_get_devname(dev));
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	buf = mmap(NULL, VERIFY_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-+	if (buf == MAP_FAILED) {
-+		fprintf(stderr, "%s: expected PROT_WRITE + MAP_SHARED success\n",
-+				path);
-+		return -ENXIO;
-+	}
-+
- 	/*
- 	 * Prior to 4.8-final these tests cause crashes, or are
- 	 * otherwise not supported.
-
+If we're going to use octal just go to "0644" directly.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
