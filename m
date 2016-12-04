@@ -1,110 +1,24 @@
-From: "Hai Howe  " <pyledary522-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: W e b s i t e - T r a f f i c - t h a t - w o r k s
-Date: Sat, 03 Dec 2016 21:28:40 +0200
-Message-ID: <3992490A.F5444639@gmail.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Sun, 4 Dec 2016 09:33:09 +0200
+Message-ID: <f0d4652f-291e-a700-c2ef-8134d8d21e51@mellanox.com>
+References: <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
+ <20161125193252.GC16504@obsidianresearch.com>
+ <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
+ <20161128165751.GB28381@obsidianresearch.com>
+ <1480357179.19407.13.camel@mellanox.com>
+ <20161128190244.GA21975@obsidianresearch.com>
+ <c0ddccf3-52ce-d883-a57a-70d8a1febf85@mellanox.com>
+ <20161130162353.GA24639@obsidianresearch.com>
+ <2560aab2-426c-6e58-cb4f-77ec76e0c941@amd.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_58431CE7.D24486B1"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_58431CE7.D24486B1
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Hi Pop under traffic at the cheapest prices ever http://www.mgdotagency.com/index.php/pop-under-traffic/
-   Best Regards Hai Howe Unsubscribe option available on the footer of our website
-   [...] 
-
-Content analysis details:   (11.9 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: mgdotagency.com]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: mgdotagency.com]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-              [Blocked - see <http://www.spamcop.net/bl.shtml?218.232.94.109>]
- 2.8 FSL_HELO_FAKE          No description available.
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (pyledary522[at]gmail.com)
- 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
-                            (pyledary522[at]gmail.com)
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0000]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.mgdotagency.com]
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.mgdotagency.com]
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
- 2.0 GAPPY_SUBJECT          Subject: contains G.a.p.p.y-T.e.x.t
-
-The original message was not completely plain text, and may be unsafe to
-open with some email clients; in particular, it may contain a virus,
-or confirm that your address can receive spam.  If you wish to view
-it, it may be safer to save it to a file and open it with an editor.
-
-
-------------=_58431CE7.D24486B1
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: attachment
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1cDFz8-00040o-1O
-	for gln-linux-nvdimm@m.gmane.org; Sat, 03 Dec 2016 20:28:34 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 68E4981F91;
-	Sat,  3 Dec 2016 11:28:37 -0800 (PST)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (unknown [218.232.94.109])
- by ml01.01.org (Postfix) with SMTP id 643B381F8D
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Sat,  3 Dec 2016 11:28:34 -0800 (PST)
-Message-ID: <3992490A.F5444639-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Sat, 03 Dec 2016 21:28:40 +0200
-From: "Hai Howe  " <pyledary522-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE;
- rv:1.9.2.8) Gecko/20100802 Thunderbird/3.1.2
-MIME-Version: 1.0
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: W e b s i t e - T r a f f i c - t h a t - w o r k s
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+In-Reply-To: <2560aab2-426c-6e58-cb4f-77ec76e0c941-5C7GfCeVMHo@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -112,50 +26,47 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Reply-To: Hai Howe   <pyledary522-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Type: multipart/mixed; boundary="===============7567855804916968658=="
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "John.Bridgman-5C7GfCeVMHo@public.gmane.org" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Paul.Blinzer-5C7GfCeVMHo@public.gmane.org" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "ben.sander-5C7GfCeVMHo@public.gmane.org" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Alexander.Deucher-5C7GfCeVMHo@public.gmane.org" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+List-Id: linux-nvdimm@lists.01.org
 
---===============7567855804916968658==
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+On 11/30/2016 7:28 PM, Serguei Sagalovitch wrote:
+> On 2016-11-30 11:23 AM, Jason Gunthorpe wrote:
+>>> Yes, that sounds fine. Can we simply kill the process from the GPU driver?
+>>> Or do we need to extend the OOM killer to manage GPU pages?
+>> I don't know..
+> We could use send_sig_info to send signal from  kernel  to user space. So theoretically GPU driver
+> could issue KILL signal to some process.
+> 
+>> On Wed, Nov 30, 2016 at 12:45:58PM +0200, Haggai Eran wrote:
+>>> I think we can achieve the kernel's needs with ZONE_DEVICE and DMA-API support
+>>> for peer to peer. I'm not sure we need vmap. We need a way to have a scatterlist
+>>> of MMIO pfns, and ZONE_DEVICE allows that.
+> I do not think that using DMA-API as it is is the best solution (at least in the current form):
+> 
+> -  It deals with handles/fd for the whole allocation but client could/will use sub-allocation as
+> well as theoretically possible to "merge" several allocations in one from GPU perspective.
+> -  It require knowledge to export but because "sharing" is controlled from user space it
+> means that we must "export" all allocation by default
+> - It deals with 'fd'/handles but user application may work with addresses/pointers.
 
-Hi
-Pop under traffic at the cheapest prices ever
-http://www.mgdotagency.com/index.php/pop-under-traffic/
+Aren't you confusing DMABUF and DMA-API? DMA-API is how you program the IOMMU (dma_map_page/dma_map_sg/etc.).
+The comment above is just about the need to extend this API to allow mapping peer device pages to bus addresses.
 
+In the past I sent an RFC for using DMABUF for peer to peer. I think it had some
+advantages for legacy devices. I agree that working with addresses and pointers through
+something like HMM/ODP is much more flexible and easier to program from user-space.
+For legacy, DMABUF would have allowed you a way to pin the pages so the GPU knows not to
+move them. However, that can probably also be achieved simply via the reference count
+on ZONE_DEVICE pages. The other nice thing about DMABUF is that it migrate the buffer
+itself during attachment according to the requirements of the device that is attaching,
+so you can automatically decide in the exporter whether to use p2p or a staging buffer.
 
-Best Regards
-Hai Howe  
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option available on the footer of our website
-
-
-
---===============7567855804916968658==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============7567855804916968658==--
-
-
-------------=_58431CE7.D24486B1--
+> 
+> Also current  DMA-API force each time to do all DMA table programming unrelated if
+> location was changed or not. With  vma / mmu  we are  able to install notifier to intercept
+> changes in location and update  translation tables only as needed (we do not need to keep
+> get_user_pages()  lock).
+I agree.
