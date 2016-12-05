@@ -1,19 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22b.google.com (mail-oi0-x22b.google.com
+ [IPv6:2607:f8b0:4003:c06::22b])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 37D5381FE6
- for <linux-nvdimm@lists.01.org>; Mon,  5 Dec 2016 13:43:07 -0800 (PST)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH] nfit: Fix extended status translations for ACPI DSMs
-Date: Mon, 5 Dec 2016 21:43:05 +0000
-Message-ID: <1480974124.2586.0.camel@intel.com>
-References: <1480973246-32078-1-git-send-email-vishal.l.verma@intel.com>
- <CAPcyv4hMB3GnphdfRqmoda6ZuxtPvPZM65ksM6tHc-WVBkwDSw@mail.gmail.com>
-In-Reply-To: <CAPcyv4hMB3GnphdfRqmoda6ZuxtPvPZM65ksM6tHc-WVBkwDSw@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <8075C29D89CC2F49ACA97F5DDA1AE146@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C7ECC81FE6
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Dec 2016 13:37:03 -0800 (PST)
+Received: by mail-oi0-x22b.google.com with SMTP id b126so356674933oia.2
+ for <linux-nvdimm@lists.01.org>; Mon, 05 Dec 2016 13:37:03 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <1480973246-32078-1-git-send-email-vishal.l.verma@intel.com>
+References: <1480973246-32078-1-git-send-email-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 5 Dec 2016 13:37:02 -0800
+Message-ID: <CAPcyv4hMB3GnphdfRqmoda6ZuxtPvPZM65ksM6tHc-WVBkwDSw@mail.gmail.com>
+Subject: Re: [PATCH] nfit: Fix extended status translations for ACPI DSMs
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,42 +21,46 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE2LTEyLTA1IGF0IDEzOjM3IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIE1vbiwgRGVjIDUsIDIwMTYgYXQgMToyNyBQTSwgVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52
-ZXJtYUBpbnRlbC5jb20NCj4gPiB3cm90ZToNCj4gPiANCj4gPiBBQ1BJIERTTXMgY2FuIGhhdmUg
-YW4gJ2V4dGVuZGVkJyBzdGF0dXMgd2hpY2ggY2FuIGJlIG5vbi16ZXJvIHRvDQo+ID4gY29udmV5
-DQo+ID4gYWRkaXRpb25hbCBpbmZvcm1hdGlvbiBhYm91dCB0aGUgY29tbWFuZC4gSW4gdGhlIHhs
-YXRfc3RhdHVzDQo+ID4gcm91dGluZSwNCj4gPiB3aGVyZSB3ZSB0cmFuc2xhdGUgdGhlIGNvbW1h
-bmQgc3RhdHVzZXMsIHdlIHdlcmUgcmV0dXJuaW5nIGFuIGVycm9yDQo+ID4gZm9yDQo+ID4gYSBu
-b24temVybyBleHRlbmRlZCBzdGF0dXMsIGV2ZW4gaWYgdGhlIHByaW1hcnkgc3RhdHVzIGluZGlj
-YXRlZA0KPiA+IHN1Y2Nlc3MuDQo+ID4gDQo+ID4gQ2M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2ls
-bGlhbXNAaW50ZWwuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFs
-LmwudmVybWFAaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+IMKgZHJpdmVycy9hY3BpL25maXQvY29y
-ZS5jIHwgMiArLQ0KPiA+IMKgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0
-aW9uKC0pDQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9uZml0L2NvcmUuYyBi
-L2RyaXZlcnMvYWNwaS9uZml0L2NvcmUuYw0KPiA+IGluZGV4IDcxYTdkMDcuLmQxNGYwOWIgMTAw
-NjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL25maXQvY29yZS5jDQo+ID4gKysrIGIvZHJpdmVy
-cy9hY3BpL25maXQvY29yZS5jDQo+ID4gQEAgLTE2OSw3ICsxNjksNyBAQCBzdGF0aWMgaW50IHhs
-YXRfc3RhdHVzKHZvaWQgKmJ1ZiwgdW5zaWduZWQgaW50DQo+ID4gY21kLCB1MzIgc3RhdHVzKQ0K
-PiA+IMKgwqDCoMKgwqDCoMKgwqB9DQo+ID4gDQo+ID4gwqDCoMKgwqDCoMKgwqDCoC8qIGFsbCBv
-dGhlciBub24temVybyBzdGF0dXMgcmVzdWx0cyBpbiBhbiBlcnJvciAqLw0KPiA+IC3CoMKgwqDC
-oMKgwqDCoGlmIChzdGF0dXMpDQo+ID4gK8KgwqDCoMKgwqDCoMKgaWYgKHN0YXR1cyAmIDB4ZmZm
-ZikNCj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldHVybiAtRUlPOw0KPiAN
-Cj4gSSBkb24ndCB0aGluayB0aGlzIGlzIHJpZ2h0LCBiZWNhdXNlIHdlIGhhdmUgbm8gaWRlYSBh
-dCB0aGlzIHBvaW50DQo+IHdoZXRoZXIgZXh0ZW5kZWQgc3RhdHVzIGlzIGZhdGFsIG9yIG5vdC4N
-Cj4gDQo+IEVhY2ggJ2Nhc2UnIHN0YXRlbWVudCBpbiB0aGF0ICdzd2l0Y2gnIHNob3VsZCBiZSBy
-ZXR1cm5pbmcgMCBpZiBpdA0KPiBkb2VzIG5vdCBzZWUgYW55IGVycm9ycy4gQmVjYXVzZSB0aGF0
-J3MgdGhlIG9ubHkgcGFydCBvZiB0aGUgZnVuY3Rpb24NCj4gd2l0aCBwZXItY29tbWFuZCBrbm93
-bGVkZ2Ugb2YgZXh0ZW5kZWQgYmVpbmcgYmVuaWduIC8gaW5mb3JtYXRpb25hbCB2cw0KPiBmYXRh
-bC4NCg0KR29vZCBwb2ludCAtIEkgd2FzIHdvbmRlcmluZyBqdXN0IHRoYXQuLiBJJ2xsIHJlc2Vu
-ZC4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
-bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
-dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Mon, Dec 5, 2016 at 1:27 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> ACPI DSMs can have an 'extended' status which can be non-zero to convey
+> additional information about the command. In the xlat_status routine,
+> where we translate the command statuses, we were returning an error for
+> a non-zero extended status, even if the primary status indicated success.
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  drivers/acpi/nfit/core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 71a7d07..d14f09b 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -169,7 +169,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
+>         }
+>
+>         /* all other non-zero status results in an error */
+> -       if (status)
+> +       if (status & 0xffff)
+>                 return -EIO;
+
+I don't think this is right, because we have no idea at this point
+whether extended status is fatal or not.
+
+Each 'case' statement in that 'switch' should be returning 0 if it
+does not see any errors. Because that's the only part of the function
+with per-command knowledge of extended being benign / informational vs
+fatal.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
