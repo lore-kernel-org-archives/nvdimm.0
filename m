@@ -1,64 +1,73 @@
-From: Hugh Dickins <hughd@google.com>
-Subject: Re: [PATCH] device-dax: fail all private mapping attempts
-Date: Mon, 5 Dec 2016 17:01:58 -0800 (PST)
-Message-ID: <alpine.LSU.2.11.1612051648270.1536@eggly.anvils>
-References: <147931721349.37471.4835899844582504197.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Stephen Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Tue, 6 Dec 2016 02:06:14 -0600
+Message-ID: <ac07a73f2601f6ca35cecc83c553feb0.squirrel@webmail.raithlin.com>
+References: <20161128165751.GB28381@obsidianresearch.com>
+ <1480357179.19407.13.camel@mellanox.com>
+ <20161128190244.GA21975@obsidianresearch.com>
+ <c0ddccf3-52ce-d883-a57a-70d8a1febf85@mellanox.com>
+ <20161130162353.GA24639@obsidianresearch.com>
+ <5f5b7989-84f5-737e-47c8-831f752d6280@deltatee.com>
+ <c1ead8a0-6850-fc84-2793-b986f5c1f726@mellanox.com>
+ <61a2fb07344aacd81111449d222de66e.squirrel@webmail.raithlin.com>
+ <20161205171830.GB27784@obsidianresearch.com>
+ <CAPcyv4hdMkXOxj9hUDpnftA7UTGDa498eBugdePp8EWr6S80gA@mail.gmail.com>
+ <20161205180231.GA28133@obsidianresearch.com>
+ <CAPcyv4iEXwvtDbZgnWzdKU6uN_sOGmXH1KtW_Nws6kUftJUigQ@mail.gmail.com>
+ <a3a1c239-297d-c091-7758-54acdf00f74e@deltatee.com>
+ <CAPcyv4iVHhOSxPrLMZ53Xw3CK+9cOWn9zEG8smMtqF_LAcKKpg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <147931721349.37471.4835899844582504197.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Pawel Lebioda <pawel.lebioda@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAPcyv4iVHhOSxPrLMZ53Xw3CK+9cOWn9zEG8smMtqF_LAcKKpg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "John.Bridgman-5C7GfCeVMHo@public.gmane.org" <john.bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, "serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org" <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Paul.Blinzer-5C7GfCeVMHo@public.gmane.org" <paul.blinzer-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "ben.sander-5C7GfCeVMHo@public.gmane.org" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org" <suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Alexander.Deucher-5C7GfCeVMHo@public.gmane.org" <alexander.deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, 16 Nov 2016, Dan Williams wrote:
+>>> I've already recommended that iopmem not be a block device and
+>>> instead be a device-dax instance. I also don't think it should claim
+>>> the PCI ID, rather the driver that wants to map one of its bars this
+>>> way can register the memory region with the device-dax core.
+>>>
+>>> I'm not sure there are enough device drivers that want to do this to
+>>> have it be a generic /sys/.../resource_dmableX capability. It still
+>>> seems to be an exotic one-off type of configuration.
+>>
+>>
+>> Yes, this is essentially my thinking. Except I think the userspace
+>> interface should really depend on the device itself. Device dax is a
+>> good  choice for many and I agree the block device approach wouldn't be
+>> ideal.
 
-> The device-dax implementation originally tried to be tricky and allow
-> private read-only mappings, but in the process allowed writable
-> MAP_PRIVATE + MAP_NORESERVE mappings.  For simplicity and predictability
-> just fail all private mapping attempts since device-dax memory is
-> statically allocated and will never support overcommit.
-> 
-> Cc: <stable@vger.kernel.org>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
-> Reported-by: Pawel Lebioda <pawel.lebioda@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/dax/dax.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-> index 0e499bfca41c..3d94ff20fdca 100644
-> --- a/drivers/dax/dax.c
-> +++ b/drivers/dax/dax.c
-> @@ -270,8 +270,8 @@ static int check_vma(struct dax_dev *dax_dev, struct vm_area_struct *vma,
->  	if (!dax_dev->alive)
->  		return -ENXIO;
->  
-> -	/* prevent private / writable mappings from being established */
-> -	if ((vma->vm_flags & (VM_NORESERVE|VM_SHARED|VM_WRITE)) == VM_WRITE) {
-> +	/* prevent private mappings from being established */
-> +	if ((vma->vm_flags & VM_SHARED) != VM_SHARED) {
+I tend to agree here. The block device interface has seen quite a bit of
+resistance and /dev/dax looks like a better approach for most. We can look
+at doing it that way in v2.
 
-I think that is more restrictive than you intended: haven't tried,
-but I believe it rejects a PROT_READ, MAP_SHARED, O_RDONLY fd mmap,
-leaving no way to mmap /dev/dax without write permission to it.
+>>
+>> Specifically for NVME CMB: I think it would make a lot of sense to just
+>> hand out these mappings with an mmap call on /dev/nvmeX. I expect CMB
+>> buffers would be volatile and thus you wouldn't need to keep track of
+>> where in the BAR the region came from. Thus, the mmap call would just be
+>> an allocator from BAR memory. If device-dax were used, userspace would
+>> need to lookup which device-dax instance corresponds to which nvme
+>> drive.
+>>
+>
+> I'm not opposed to mapping /dev/nvmeX.  However, the lookup is trivial
+> to accomplish in sysfs through /sys/dev/char to find the sysfs path of the
+> device-dax instance under the nvme device, or if you already have the nvme
+> sysfs path the dax instance(s) will appear under the "dax" sub-directory.
+>
 
-See line 1393 of mm/mmap.c: the test you want is probably
-	if (!(vma->vm_flags & VM_MAYSHARE))
-
-Hugh
-
->  		dev_info(dev, "%s: %s: fail, attempted private mapping\n",
->  				current->comm, func);
->  		return -EINVAL;
-> 
-> --
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Personally I think mapping the dax resource in the sysfs tree is a nice
+way to do this and a bit more intuitive than mapping a /dev/nvmeX.
