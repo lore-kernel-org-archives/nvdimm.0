@@ -1,47 +1,64 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Mon, 5 Dec 2016 12:06:32 -0800
-Message-ID: <20161205200632.GA24497@infradead.org>
-References: <61a2fb07344aacd81111449d222de66e.squirrel@webmail.raithlin.com>
- <20161205171830.GB27784@obsidianresearch.com>
- <CAPcyv4hdMkXOxj9hUDpnftA7UTGDa498eBugdePp8EWr6S80gA@mail.gmail.com>
- <20161205180231.GA28133@obsidianresearch.com>
- <CAPcyv4iEXwvtDbZgnWzdKU6uN_sOGmXH1KtW_Nws6kUftJUigQ@mail.gmail.com>
- <a3a1c239-297d-c091-7758-54acdf00f74e@deltatee.com>
- <CAPcyv4iVHhOSxPrLMZ53Xw3CK+9cOWn9zEG8smMtqF_LAcKKpg@mail.gmail.com>
- <20161205191438.GA20464@obsidianresearch.com>
- <10356964-c454-47fb-7fb3-8bf2a418b11b@deltatee.com>
- <20161205194614.GA21132@obsidianresearch.com>
+From: Hugh Dickins <hughd@google.com>
+Subject: Re: [PATCH] device-dax: fail all private mapping attempts
+Date: Mon, 5 Dec 2016 17:01:58 -0800 (PST)
+Message-ID: <alpine.LSU.2.11.1612051648270.1536@eggly.anvils>
+References: <147931721349.37471.4835899844582504197.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161205194614.GA21132-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "John.Bridgman-5C7GfCeVMHo@public.gmane.org" <john.bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, "serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org" <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Paul.Blinzer-5C7GfCeVMHo@public.gmane.org" <paul.blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, "ben.sander-5C7GfCeVMHo@public.gmane.org" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org" <suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Alexander.Deucher-5C7GfCeVMHo@public.gmane.org" <alexander.deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-media@>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <147931721349.37471.4835899844582504197.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Pawel Lebioda <pawel.lebioda@intel.com>
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon, Dec 05, 2016 at 12:46:14PM -0700, Jason Gunthorpe wrote:
-> In any event the allocator still needs to track which regions are in
-> use and be able to hook 'free' from userspace. That does suggest it
-> should be integrated into the nvme driver and not a bolt on driver..
+On Wed, 16 Nov 2016, Dan Williams wrote:
 
-Two totally different use cases:
+> The device-dax implementation originally tried to be tricky and allow
+> private read-only mappings, but in the process allowed writable
+> MAP_PRIVATE + MAP_NORESERVE mappings.  For simplicity and predictability
+> just fail all private mapping attempts since device-dax memory is
+> statically allocated and will never support overcommit.
+> 
+> Cc: <stable@vger.kernel.org>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+> Reported-by: Pawel Lebioda <pawel.lebioda@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/dax/dax.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+> index 0e499bfca41c..3d94ff20fdca 100644
+> --- a/drivers/dax/dax.c
+> +++ b/drivers/dax/dax.c
+> @@ -270,8 +270,8 @@ static int check_vma(struct dax_dev *dax_dev, struct vm_area_struct *vma,
+>  	if (!dax_dev->alive)
+>  		return -ENXIO;
+>  
+> -	/* prevent private / writable mappings from being established */
+> -	if ((vma->vm_flags & (VM_NORESERVE|VM_SHARED|VM_WRITE)) == VM_WRITE) {
+> +	/* prevent private mappings from being established */
+> +	if ((vma->vm_flags & VM_SHARED) != VM_SHARED) {
 
- - a card that exposes directly byte addressable storage as a PCI-e
-   bar.  Thin of it as a nvdimm on a PCI-e card.  That's the iopmem
-   case.
- - the NVMe CMB which exposes a byte addressable indirection buffer for
-   I/O, but does not actually provide byte addressable persistent
-   storage.  This is something that needs to be added to the NVMe driver
-   (and the block layer for the abstraction probably).
+I think that is more restrictive than you intended: haven't tried,
+but I believe it rejects a PROT_READ, MAP_SHARED, O_RDONLY fd mmap,
+leaving no way to mmap /dev/dax without write permission to it.
+
+See line 1393 of mm/mmap.c: the test you want is probably
+	if (!(vma->vm_flags & VM_MAYSHARE))
+
+Hugh
+
+>  		dev_info(dev, "%s: %s: fail, attempted private mapping\n",
+>  				current->comm, func);
+>  		return -EINVAL;
+> 
+> --
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
