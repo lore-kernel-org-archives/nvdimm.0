@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B92D682081
- for <linux-nvdimm@lists.01.org>; Sat, 10 Dec 2016 22:38:50 -0800 (PST)
-Subject: [ndctl PATCH 1/6] util, sysfs: convert add_dev_fn to return the device
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 10 Dec 2016 22:34:41 -0800
-Message-ID: <148143808173.11895.14120957888754123590.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148143807638.11895.3823811556889353622.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148143807638.11895.3823811556889353622.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 14AE281EE3
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Dec 2016 13:34:28 -0800 (PST)
+Subject: [PATCH 2/2] mm, dax: move pmd_fault() to take only vmf parameter
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 08 Dec 2016 14:34:27 -0700
+Message-ID: <148123286705.108913.2325773863507815426.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <148123286127.108913.2695398781030517780.stgit@djiang5-desk3.ch.intel.com>
+References: <148123286127.108913.2695398781030517780.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,526 +22,447 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, hch@lst.de, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently daxctl_new_region() adds a new region outside of
-sysfs_device_parse(). As we go to add support for scanning all
-dax_regions in a system we'll want to unigy daxctl_new_region() with
-an add_dax_region() + sysfs_device_parse() scheme. Changing add_dev_fn
-to return the device it added allows daxctl_new_region() to use the
-eventual add_dax_region() as a helper.
+pmd_fault() and relate functions really only need the vmf parameter since
+the additional parameters are all included in the vmf struct. Removing
+additional parameter and simplify pmd_fault() and friends.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- daxctl/lib/libdaxctl.c |   11 ++---
- ndctl/lib/libndctl.c   |  112 ++++++++++++++++++++----------------------------
- util/sysfs.c           |   15 +++---
- util/sysfs.h           |    2 -
- 4 files changed, 59 insertions(+), 81 deletions(-)
+ drivers/dax/dax.c             |   18 +++++++-------
+ fs/dax.c                      |   44 +++++++++++++++++------------------
+ fs/ext4/file.c                |    8 +++---
+ fs/xfs/xfs_file.c             |    7 ++----
+ include/linux/dax.h           |    7 ++----
+ include/linux/mm.h            |    2 +-
+ include/trace/events/fs_dax.h |   51 +++++++++++++++++++----------------------
+ mm/memory.c                   |    9 +++----
+ 8 files changed, 69 insertions(+), 77 deletions(-)
 
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 4d97ce32f067..06605de85fc3 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -238,7 +238,7 @@ DAXCTL_EXPORT struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx,
- 	return region;
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 947e49a..55160f8 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -378,8 +378,7 @@ static int dax_dev_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	return rc;
  }
  
--static int add_dax_dev(void *parent, int id, const char *daxdev_base)
-+static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+-static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+-		struct vm_area_struct *vma, struct vm_fault *vmf)
++static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
  {
- 	const char *devname = devpath_to_devname(daxdev_base);
- 	char *path = calloc(1, strlen(daxdev_base) + 100);
-@@ -246,11 +246,10 @@ static int add_dax_dev(void *parent, int id, const char *daxdev_base)
- 	struct daxctl_ctx *ctx = region->ctx;
- 	struct daxctl_dev *dev, *dev_dup;
- 	char buf[SYSFS_ATTR_SIZE];
--	int rc = -ENOMEM;
- 	struct stat st;
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct device *dev = &dax_dev->dev;
+@@ -388,7 +387,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ 	pgoff_t pgoff;
+ 	pfn_t pfn;
  
- 	if (!path)
--		return -ENOMEM;
-+		return NULL;
+-	if (check_vma(dax_dev, vma, __func__))
++	if (check_vma(dax_dev, vmf->vma, __func__))
+ 		return VM_FAULT_SIGBUS;
  
- 	dev = calloc(1, sizeof(*dev));
- 	if (!dev)
-@@ -282,12 +281,12 @@ static int add_dax_dev(void *parent, int id, const char *daxdev_base)
- 		if (dev_dup->id == dev->id) {
- 			free_dev(dev, NULL);
- 			free(path);
--			return 1;
-+			return dev_dup;
- 		}
+ 	dax_region = dax_dev->region;
+@@ -403,7 +402,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ 		return VM_FAULT_SIGBUS;
+ 	}
  
- 	list_add(&region->devices, &dev->list);
- 	free(path);
--	return 0;
-+	return dev;
+-	pgoff = linear_page_index(vma, pmd_addr);
++	pgoff = linear_page_index(vmf->vma, pmd_addr);
+ 	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
+@@ -413,22 +412,23 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
  
-  err_read:
- 	free(dev->dev_buf);
-@@ -295,7 +294,7 @@ static int add_dax_dev(void *parent, int id, const char *daxdev_base)
- 	free(dev);
-  err_dev:
- 	free(path);
--	return rc;
-+	return NULL;
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
++	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd, pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
  }
  
- DAXCTL_EXPORT int daxctl_region_get_id(struct daxctl_region *region)
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index eed418936a38..ff74c483076e 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -784,16 +784,15 @@ static void parse_nfit_mem_flags(struct ndctl_dimm *dimm, char *flags)
- 				ndctl_dimm_get_devname(dimm), flags);
- }
- 
--static int add_bus(void *parent, int id, const char *ctl_base)
-+static void *add_bus(void *parent, int id, const char *ctl_base)
+-static int dax_dev_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++static int dax_dev_pmd_fault(struct vm_fault *vmf)
  {
--	int rc = -ENOMEM;
- 	char buf[SYSFS_ATTR_SIZE];
- 	struct ndctl_ctx *ctx = parent;
- 	struct ndctl_bus *bus, *bus_dup;
- 	char *path = calloc(1, strlen(ctl_base) + 100);
+ 	int rc;
+-	struct file *filp = vma->vm_file;
++	struct file *filp = vmf->vma->vm_file;
+ 	struct dax_dev *dax_dev = filp->private_data;
  
- 	if (!path)
--		return -ENOMEM;
-+		return NULL;
+ 	dev_dbg(&dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
+ 			current->comm, (vmf->flags & FAULT_FLAG_WRITE)
+-			? "write" : "read", vma->vm_start, vma->vm_end);
++			? "write" : "read",
++			vmf->vma->vm_start, vmf->vma->vm_end);
  
- 	bus = calloc(1, sizeof(*bus));
- 	if (!bus)
-@@ -803,7 +802,6 @@ static int add_bus(void *parent, int id, const char *ctl_base)
- 	bus->ctx = ctx;
- 	bus->id = id;
+ 	rcu_read_lock();
+-	rc = __dax_dev_pmd_fault(dax_dev, vma, vmf);
++	rc = __dax_dev_pmd_fault(dax_dev, vmf);
+ 	rcu_read_unlock();
  
--	rc = -EINVAL;
- 	sprintf(path, "%s/dev", ctl_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0
- 			|| sscanf(buf, "%d:%d", &bus->major, &bus->minor) != 2)
-@@ -827,7 +825,6 @@ static int add_bus(void *parent, int id, const char *ctl_base)
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
- 		goto err_read;
+ 	return rc;
+diff --git a/fs/dax.c b/fs/dax.c
+index 21ebe5b..592da7b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1226,9 +1226,9 @@ EXPORT_SYMBOL_GPL(dax_iomap_fault);
+  */
+ #define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
  
--	rc = -ENOMEM;
- 	bus->provider = strdup(buf);
- 	if (!bus->provider)
- 		goto err_read;
-@@ -851,24 +848,23 @@ static int add_bus(void *parent, int id, const char *ctl_base)
- 					ndctl_bus_get_provider(bus)) == 0) {
- 			free_bus(bus, NULL);
- 			free(path);
--			return 1;
-+			return bus_dup;
- 		}
- 
- 	list_add(&ctx->busses, &bus->list);
-+	free(path);
- 
--	rc = 0;
--	goto out;
-+	return bus;
- 
-  err_dev_path:
-  err_read:
- 	free(bus->provider);
- 	free(bus->bus_buf);
- 	free(bus);
-- out:
-  err_bus:
- 	free(path);
- 
--	return rc;
-+	return NULL;
- }
- 
- static void busses_init(struct ndctl_ctx *ctx)
-@@ -1117,17 +1113,17 @@ static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
- static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath);
- static struct kmod_module *to_module(struct ndctl_ctx *ctx, const char *alias);
- 
--static int add_dimm(void *parent, int id, const char *dimm_base)
-+static void *add_dimm(void *parent, int id, const char *dimm_base)
+-static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+-		struct vm_fault *vmf, unsigned long address,
+-		struct iomap *iomap, loff_t pos, bool write, void **entryp)
++static int dax_pmd_insert_mapping(struct vm_area_struct *vma,
++		struct vm_fault *vmf, struct iomap *iomap, loff_t pos,
++		bool write, void **entryp)
  {
-+	int formats, i;
- 	struct ndctl_dimm *dimm;
- 	char buf[SYSFS_ATTR_SIZE];
--	int rc = -ENOMEM, formats, i;
- 	struct ndctl_bus *bus = parent;
- 	struct ndctl_ctx *ctx = bus->ctx;
- 	char *path = calloc(1, strlen(dimm_base) + 100);
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	struct block_device *bdev = iomap->bdev;
+@@ -1257,24 +1257,23 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+ 		goto fallback;
+ 	*entryp = ret;
  
- 	if (!path)
--		return -ENOMEM;
-+		return NULL;
+-	trace_dax_pmd_insert_mapping(inode, vma, address, write, length,
++	trace_dax_pmd_insert_mapping(inode, vmf, write, length,
+ 			dax.pfn, ret);
+-	return vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
++	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, dax.pfn, write);
  
- 	sprintf(path, "%s/nfit/formats", dimm_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
-@@ -1141,8 +1137,6 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
- 	dimm->bus = bus;
- 	dimm->id = id;
- 
--	rc = -ENXIO;
--
- 	sprintf(path, "%s/dev", dimm_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
- 		goto err_read;
-@@ -1270,13 +1264,13 @@ static int add_dimm(void *parent, int id, const char *dimm_base)
- 	list_add(&bus->dimms, &dimm->list);
- 	free(path);
- 
--	return 0;
-+	return dimm;
- 
-  err_read:
- 	free_dimm(dimm);
-  err_dimm:
- 	free(path);
--	return rc;
-+	return NULL;
+  unmap_fallback:
+ 	dax_unmap_atomic(bdev, &dax);
+ fallback:
+-	trace_dax_pmd_insert_mapping_fallback(inode, vma, address, write,
+-			length, dax.pfn, ret);
++	trace_dax_pmd_insert_mapping_fallback(inode, vmf, write, length,
++			dax.pfn, ret);
+ 	return VM_FAULT_FALLBACK;
  }
  
- static void dimms_init(struct ndctl_bus *bus)
-@@ -1551,9 +1545,8 @@ static struct ndctl_dimm *ndctl_dimm_get_by_id(struct ndctl_bus *bus, unsigned i
- 	return NULL;
- }
- 
--static int add_region(void *parent, int id, const char *region_base)
-+static void *add_region(void *parent, int id, const char *region_base)
+-static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
+-		struct vm_fault *vmf, unsigned long address,
++static int dax_pmd_load_hole(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		struct iomap *iomap, void **entryp)
  {
--	int rc = -ENOMEM;
- 	char buf[SYSFS_ATTR_SIZE];
- 	struct ndctl_region *region;
- 	struct ndctl_bus *bus = parent;
-@@ -1561,7 +1554,7 @@ static int add_region(void *parent, int id, const char *region_base)
- 	char *path = calloc(1, strlen(region_base) + 100);
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+-	unsigned long pmd_addr = address & PMD_MASK;
++	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct inode *inode = mapping->host;
+ 	struct page *zero_page;
+ 	void *ret = NULL;
+@@ -1292,27 +1291,27 @@ static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
+ 		goto fallback;
+ 	*entryp = ret;
  
- 	if (!path)
--		return -ENOMEM;
-+		return NULL;
+-	ptl = pmd_lock(vma->vm_mm, pmd);
+-	if (!pmd_none(*pmd)) {
++	ptl = pmd_lock(vma->vm_mm, vmf->pmd);
++	if (!pmd_none(*(vmf->pmd))) {
+ 		spin_unlock(ptl);
+ 		goto fallback;
+ 	}
  
- 	region = calloc(1, sizeof(*region));
- 	if (!region)
-@@ -1578,7 +1571,6 @@ static int add_region(void *parent, int id, const char *region_base)
- 	region->bus = bus;
- 	region->id = id;
+ 	pmd_entry = mk_pmd(zero_page, vma->vm_page_prot);
+ 	pmd_entry = pmd_mkhuge(pmd_entry);
+-	set_pmd_at(vma->vm_mm, pmd_addr, pmd, pmd_entry);
++	set_pmd_at(vma->vm_mm, pmd_addr, vmf->pmd, pmd_entry);
+ 	spin_unlock(ptl);
+-	trace_dax_pmd_load_hole(inode, vma, address, zero_page, ret);
++	trace_dax_pmd_load_hole(inode, vmf, zero_page, ret);
+ 	return VM_FAULT_NOPAGE;
  
--	rc = -EINVAL;
- 	sprintf(path, "%s/size", region_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
- 		goto err_read;
-@@ -1633,7 +1625,7 @@ static int add_region(void *parent, int id, const char *region_base)
- 	list_add(&bus->regions, &region->list);
- 
- 	free(path);
--	return 0;
-+	return region;
- 
-  err_read:
- 	free(region->region_buf);
-@@ -1641,7 +1633,7 @@ static int add_region(void *parent, int id, const char *region_base)
-  err_region:
- 	free(path);
- 
--	return rc;
-+	return NULL;
+ fallback:
+-	trace_dax_pmd_load_hole_fallback(inode, vma, address, zero_page, ret);
++	trace_dax_pmd_load_hole_fallback(inode, vmf, zero_page, ret);
+ 	return VM_FAULT_FALLBACK;
  }
  
- static void regions_init(struct ndctl_bus *bus)
-@@ -2736,7 +2728,7 @@ static char *get_block_device(struct ndctl_ctx *ctx, const char *block_path)
- static int parse_lbasize_supported(struct ndctl_ctx *ctx, const char *devname,
- 		const char *buf, struct ndctl_lbasize *lba);
- 
--static int add_namespace(void *parent, int id, const char *ndns_base)
-+static void *add_namespace(void *parent, int id, const char *ndns_base)
+-int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+-		struct iomap_ops *ops)
++int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
  {
- 	const char *devname = devpath_to_devname(ndns_base);
- 	char *path = calloc(1, strlen(ndns_base) + 100);
-@@ -2745,10 +2737,9 @@ static int add_namespace(void *parent, int id, const char *ndns_base)
- 	struct ndctl_bus *bus = region->bus;
- 	struct ndctl_ctx *ctx = bus->ctx;
- 	char buf[SYSFS_ATTR_SIZE];
--	int rc = -ENOMEM;
++	struct vm_area_struct *vma = vmf->vma;
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+@@ -1333,7 +1332,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	pgoff = linear_page_index(vma, pmd_addr);
+ 	max_pgoff = (i_size_read(inode) - 1) >> PAGE_SHIFT;
  
- 	if (!path)
--		return -ENOMEM;
-+		return NULL;
+-	trace_dax_pmd_fault(inode, vma, vmf, max_pgoff, 0);
++	trace_dax_pmd_fault(inode, vmf, max_pgoff, 0);
  
- 	ndns = calloc(1, sizeof(*ndns));
- 	if (!ndns)
-@@ -2804,7 +2795,6 @@ static int add_namespace(void *parent, int id, const char *ndns_base)
- 			goto err_read;
- 		if (strlen(buf) && uuid_parse(buf, ndns->uuid) < 0) {
- 			dbg(ctx, "%s:%s\n", path, buf);
--			rc = -EINVAL;
- 			goto err_read;
- 		}
+ 	/* Fall back to PTEs if we're going to COW */
+ 	if (write && !(vma->vm_flags & VM_SHARED))
+@@ -1381,15 +1380,14 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+-		result = dax_pmd_insert_mapping(vma, vmf->pmd, vmf,
+-				vmf->address, &iomap, pos, write, &entry);
++		result = dax_pmd_insert_mapping(vma, vmf, &iomap,
++				pos, write, &entry);
  		break;
-@@ -2830,12 +2820,12 @@ static int add_namespace(void *parent, int id, const char *ndns_base)
- 		if (ndns_dup->id == ndns->id) {
- 			free_namespace(ndns, NULL);
- 			free(path);
--			return 1;
-+			return ndns_dup;
- 		}
- 
- 	list_add(&region->namespaces, &ndns->list);
- 	free(path);
--	return 0;
-+	return ndns;
- 
-  err_read:
- 	free(ndns->ndns_buf);
-@@ -2844,7 +2834,7 @@ static int add_namespace(void *parent, int id, const char *ndns_base)
- 	free(ndns);
-  err_namespace:
- 	free(path);
--	return rc;
-+	return NULL;
+ 	case IOMAP_UNWRITTEN:
+ 	case IOMAP_HOLE:
+ 		if (WARN_ON_ONCE(write))
+ 			goto unlock_entry;
+-		result = dax_pmd_load_hole(vma, vmf->pmd, vmf, vmf->address,
+-				&iomap, &entry);
++		result = dax_pmd_load_hole(vma, vmf, &iomap, &entry);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -1419,7 +1417,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 	}
+ out:
+-	trace_dax_pmd_fault_done(inode, vma, vmf, max_pgoff, result);
++	trace_dax_pmd_fault_done(inode, vmf, max_pgoff, result);
+ 	return result;
+ }
+ EXPORT_SYMBOL_GPL(dax_iomap_pmd_fault);
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 10b64ba..75dc3dd 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -276,19 +276,19 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  }
  
- static void namespaces_init(struct ndctl_region *region)
-@@ -3154,9 +3144,9 @@ static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath)
- 	return sysfs_write_attr(ctx, path, devname);
- }
- 
--static int add_btt(void *parent, int id, const char *btt_base);
--static int add_pfn(void *parent, int id, const char *pfn_base);
--static int add_dax(void *parent, int id, const char *dax_base);
-+static void *add_btt(void *parent, int id, const char *btt_base);
-+static void *add_pfn(void *parent, int id, const char *pfn_base);
-+static void *add_dax(void *parent, int id, const char *dax_base);
- 
- static void btts_init(struct ndctl_region *region)
+ static int
+-ext4_dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++ext4_dax_pmd_fault(struct vm_fault *vmf)
  {
-@@ -3610,7 +3600,7 @@ static int parse_lbasize_supported(struct ndctl_ctx *ctx, const char *devname,
- 	return -ENXIO;
- }
+ 	int result;
+-	struct inode *inode = file_inode(vma->vm_file);
++	struct inode *inode = file_inode(vmf->vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
  
--static int add_btt(void *parent, int id, const char *btt_base)
-+static void *add_btt(void *parent, int id, const char *btt_base)
+ 	if (write) {
+ 		sb_start_pagefault(sb);
+-		file_update_time(vma->vm_file);
++		file_update_time(vmf->vma->vm_file);
+ 	}
+ 	down_read(&EXT4_I(inode)->i_mmap_sem);
+-	result = dax_iomap_pmd_fault(vma, vmf, &ext4_iomap_ops);
++	result = dax_iomap_pmd_fault(vmf, &ext4_iomap_ops);
+ 	up_read(&EXT4_I(inode)->i_mmap_sem);
+ 	if (write)
+ 		sb_end_pagefault(sb);
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index df0009f..321c5ac 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1525,10 +1525,9 @@ xfs_filemap_fault(
+  */
+ STATIC int
+ xfs_filemap_pmd_fault(
+-	struct vm_area_struct	*vma,
+ 	struct vm_fault *vmf)
  {
- 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(parent);
- 	const char *devname = devpath_to_devname(btt_base);
-@@ -3618,10 +3608,9 @@ static int add_btt(void *parent, int id, const char *btt_base)
- 	struct ndctl_region *region = parent;
- 	struct ndctl_btt *btt, *btt_dup;
- 	char buf[SYSFS_ATTR_SIZE];
--	int rc = -ENOMEM;
+-	struct inode		*inode = file_inode(vma->vm_file);
++	struct inode		*inode = file_inode(vmf->vma->vm_file);
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	int			ret;
  
- 	if (!path)
--		return -ENOMEM;
-+		return NULL;
+@@ -1539,11 +1538,11 @@ xfs_filemap_pmd_fault(
  
- 	btt = calloc(1, sizeof(*btt));
- 	if (!btt)
-@@ -3647,10 +3636,8 @@ static int add_btt(void *parent, int id, const char *btt_base)
- 	sprintf(path, "%s/uuid", btt_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
- 		goto err_read;
--	if (strlen(buf) && uuid_parse(buf, btt->uuid) < 0) {
--		rc = -EINVAL;
-+	if (strlen(buf) && uuid_parse(buf, btt->uuid) < 0)
- 		goto err_read;
--	}
+ 	if (vmf->flags & FAULT_FLAG_WRITE) {
+ 		sb_start_pagefault(inode->i_sb);
+-		file_update_time(vma->vm_file);
++		file_update_time(vmf->vma->vm_file);
+ 	}
  
- 	sprintf(path, "%s/sector_size", btt_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
-@@ -3669,11 +3656,11 @@ static int add_btt(void *parent, int id, const char *btt_base)
- 		if (btt->id == btt_dup->id) {
- 			btt_dup->size = btt->size;
- 			free_btt(btt, NULL);
--			return 1;
-+			return btt_dup;
- 		}
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-	ret = dax_iomap_pmd_fault(vma, vmf, &xfs_iomap_ops);
++	ret = dax_iomap_pmd_fault(vmf, &xfs_iomap_ops);
+ 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
  
- 	list_add(&region->btts, &btt->list);
--	return 0;
-+	return btt;
- 
-  err_read:
- 	free(btt->lbasize.supported);
-@@ -3682,7 +3669,7 @@ static int add_btt(void *parent, int id, const char *btt_base)
- 	free(btt);
-  err_btt:
- 	free(path);
--	return rc;
-+	return NULL;
- }
- 
- NDCTL_EXPORT struct ndctl_btt *ndctl_btt_get_first(struct ndctl_region *region)
-@@ -3967,16 +3954,15 @@ NDCTL_EXPORT int ndctl_btt_is_configured(struct ndctl_btt *btt)
+ 	if (vmf->flags & FAULT_FLAG_WRITE)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 9761c90..1ffdb4d 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -71,15 +71,14 @@ static inline unsigned int dax_radix_order(void *entry)
+ 		return PMD_SHIFT - PAGE_SHIFT;
  	return 0;
  }
- 
--static int __add_pfn(struct ndctl_pfn *pfn, const char *pfn_base)
-+static void *__add_pfn(struct ndctl_pfn *pfn, const char *pfn_base)
+-int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+-		struct iomap_ops *ops);
++int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops);
+ #else
+ static inline unsigned int dax_radix_order(void *entry)
  {
- 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(pfn->region);
- 	char *path = calloc(1, strlen(pfn_base) + 100);
- 	struct ndctl_region *region = pfn->region;
- 	char buf[SYSFS_ATTR_SIZE];
--	int rc = -ENOMEM;
+ 	return 0;
+ }
+-static inline int dax_iomap_pmd_fault(struct vm_area_struct *vma,
+-		struct vm_fault *vmf, struct iomap_ops *ops)
++static inline int dax_iomap_pmd_fault(struct vm_fault *vmf,
++		struct iomap_ops *ops)
+ {
+ 	return VM_FAULT_FALLBACK;
+ }
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index aef645b..795f03e 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -347,7 +347,7 @@ struct vm_operations_struct {
+ 	void (*close)(struct vm_area_struct * area);
+ 	int (*mremap)(struct vm_area_struct * area);
+ 	int (*fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
+-	int (*pmd_fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
++	int (*pmd_fault)(struct vm_fault *vmf);
+ 	void (*map_pages)(struct vm_fault *vmf,
+ 			pgoff_t start_pgoff, pgoff_t end_pgoff);
  
- 	if (!path)
--		return -ENOMEM;
-+		return NULL;
+diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+index a98665b..7f2d39b 100644
+--- a/include/trace/events/fs_dax.h
++++ b/include/trace/events/fs_dax.h
+@@ -7,9 +7,9 @@
+ #include <linux/tracepoint.h>
  
- 	pfn->generation = region->generation;
+ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+-		struct vm_fault *vmf, pgoff_t max_pgoff, int result),
+-	TP_ARGS(inode, vma, vmf, max_pgoff, result),
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
++		pgoff_t max_pgoff, int result),
++	TP_ARGS(inode, vmf, max_pgoff, result),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_start)
+@@ -25,9 +25,9 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ 	TP_fast_assign(
+ 		__entry->dev = inode->i_sb->s_dev;
+ 		__entry->ino = inode->i_ino;
+-		__entry->vm_start = vma->vm_start;
+-		__entry->vm_end = vma->vm_end;
+-		__entry->vm_flags = vma->vm_flags;
++		__entry->vm_start = vmf->vma->vm_start;
++		__entry->vm_end = vmf->vma->vm_end;
++		__entry->vm_flags = vmf->vma->vm_flags;
+ 		__entry->address = vmf->address;
+ 		__entry->flags = vmf->flags;
+ 		__entry->pgoff = vmf->pgoff;
+@@ -52,19 +52,18 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
  
-@@ -3997,10 +3983,8 @@ static int __add_pfn(struct ndctl_pfn *pfn, const char *pfn_base)
- 	sprintf(path, "%s/uuid", pfn_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
- 		goto err_read;
--	if (strlen(buf) && uuid_parse(buf, pfn->uuid) < 0) {
--		rc = -EINVAL;
-+	if (strlen(buf) && uuid_parse(buf, pfn->uuid) < 0)
- 		goto err_read;
--	}
+ #define DEFINE_PMD_FAULT_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_fault_class, name, \
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+-		struct vm_fault *vmf, \
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
+ 		pgoff_t max_pgoff, int result), \
+-	TP_ARGS(inode, vma, vmf, max_pgoff, result))
++	TP_ARGS(inode, vmf, max_pgoff, result))
  
- 	sprintf(path, "%s/mode", pfn_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
-@@ -4033,30 +4017,28 @@ static int __add_pfn(struct ndctl_pfn *pfn, const char *pfn_base)
- 		pfn->size = strtoull(buf, NULL, 0);
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault);
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault_done);
  
- 	free(path);
--	return 0;
-+	return pfn;
+ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+-		unsigned long address, struct page *zero_page,
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
++		struct page *zero_page,
+ 		void *radix_entry),
+-	TP_ARGS(inode, vma, address, zero_page, radix_entry),
++	TP_ARGS(inode, vmf, zero_page, radix_entry),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_flags)
+@@ -76,8 +75,8 @@ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+ 	TP_fast_assign(
+ 		__entry->dev = inode->i_sb->s_dev;
+ 		__entry->ino = inode->i_ino;
+-		__entry->vm_flags = vma->vm_flags;
+-		__entry->address = address;
++		__entry->vm_flags = vmf->vma->vm_flags;
++		__entry->address = vmf->address;
+ 		__entry->zero_page = zero_page;
+ 		__entry->radix_entry = radix_entry;
+ 	),
+@@ -95,19 +94,18 @@ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
  
-  err_read:
- 	free(pfn->pfn_buf);
- 	free(pfn->pfn_path);
- 	free(path);
--	return rc;
-+	return NULL;
+ #define DEFINE_PMD_LOAD_HOLE_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_load_hole_class, name, \
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+-		unsigned long address, struct page *zero_page, \
+-		void *radix_entry), \
+-	TP_ARGS(inode, vma, address, zero_page, radix_entry))
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
++		struct page *zero_page, void *radix_entry), \
++	TP_ARGS(inode, vmf, zero_page, radix_entry))
+ 
+ DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
+ DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
+ 
+ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+-		unsigned long address, int write, long length, pfn_t pfn,
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
++		int write, long length, pfn_t pfn,
+ 		void *radix_entry),
+-	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry),
++	TP_ARGS(inode, vmf, write, length, pfn, radix_entry),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_flags)
+@@ -121,8 +119,8 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+ 	TP_fast_assign(
+ 		__entry->dev = inode->i_sb->s_dev;
+ 		__entry->ino = inode->i_ino;
+-		__entry->vm_flags = vma->vm_flags;
+-		__entry->address = address;
++		__entry->vm_flags = vmf->vma->vm_flags;
++		__entry->address = vmf->address;
+ 		__entry->write = write;
+ 		__entry->length = length;
+ 		__entry->pfn_val = pfn.val;
+@@ -146,10 +144,9 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+ 
+ #define DEFINE_PMD_INSERT_MAPPING_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_insert_mapping_class, name, \
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+-		unsigned long address, int write, long length, pfn_t pfn, \
+-		void *radix_entry), \
+-	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry))
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
++		int write, long length, pfn_t pfn, void *radix_entry), \
++	TP_ARGS(inode, vmf, write, length, pfn, radix_entry))
+ 
+ DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
+ DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping_fallback);
+diff --git a/mm/memory.c b/mm/memory.c
+index 8ec36cf..e929c41 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3443,11 +3443,10 @@ static int do_numa_page(struct vm_fault *vmf)
+ 
+ static int create_huge_pmd(struct vm_fault *vmf)
+ {
+-	struct vm_area_struct *vma = vmf->vma;
+-	if (vma_is_anonymous(vma))
++	if (vma_is_anonymous(vmf->vma))
+ 		return do_huge_pmd_anonymous_page(vmf);
+-	if (vma->vm_ops->pmd_fault)
+-		return vma->vm_ops->pmd_fault(vma, vmf);
++	if (vmf->vma->vm_ops->pmd_fault)
++		return vmf->vma->vm_ops->pmd_fault(vmf);
+ 	return VM_FAULT_FALLBACK;
  }
  
--static int add_pfn(void *parent, int id, const char *pfn_base)
-+static void *add_pfn(void *parent, int id, const char *pfn_base)
- {
- 	struct ndctl_pfn *pfn = calloc(1, sizeof(*pfn)), *pfn_dup;
- 	struct ndctl_region *region = parent;
--	int rc;
+@@ -3456,7 +3455,7 @@ static int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
+ 	if (vma_is_anonymous(vmf->vma))
+ 		return do_huge_pmd_wp_page(vmf, orig_pmd);
+ 	if (vmf->vma->vm_ops->pmd_fault)
+-		return vmf->vma->vm_ops->pmd_fault(vmf->vma, vmf);
++		return vmf->vma->vm_ops->pmd_fault(vmf);
  
- 	if (!pfn)
--		return -ENOMEM;
-+		return NULL;
- 
- 	pfn->id = id;
- 	pfn->region = region;
--	rc = __add_pfn(pfn, pfn_base);
--	if (rc < 0) {
-+	if (!__add_pfn(pfn, pfn_base)) {
- 		free(pfn);
--		return rc;
-+		return NULL;
- 	}
- 
- 	ndctl_pfn_foreach(region, pfn_dup)
-@@ -4064,30 +4046,28 @@ static int add_pfn(void *parent, int id, const char *pfn_base)
- 			pfn_dup->resource = pfn->resource;
- 			pfn_dup->size = pfn->size;
- 			free_pfn(pfn, NULL);
--			return 1;
-+			return pfn_dup;
- 		}
- 
- 	list_add(&region->pfns, &pfn->list);
- 
--	return 0;
-+	return pfn;
- }
- 
--static int add_dax(void *parent, int id, const char *dax_base)
-+static void *add_dax(void *parent, int id, const char *dax_base)
- {
- 	struct ndctl_dax *dax = calloc(1, sizeof(*dax)), *dax_dup;
- 	struct ndctl_region *region = parent;
- 	struct ndctl_pfn *pfn = &dax->pfn;
--	int rc;
- 
- 	if (!dax)
--		return -ENOMEM;
-+		return NULL;
- 
- 	pfn->id = id;
- 	pfn->region = region;
--	rc = __add_pfn(pfn, dax_base);
--	if (rc < 0) {
-+	if (!__add_pfn(pfn, dax_base)) {
- 		free(dax);
--		return rc;
-+		return NULL;
- 	}
- 
- 	ndctl_dax_foreach(region, dax_dup) {
-@@ -4097,13 +4077,13 @@ static int add_dax(void *parent, int id, const char *dax_base)
- 			pfn_dup->resource = pfn->resource;
- 			pfn_dup->size = pfn->size;
- 			free_dax(dax, NULL);
--			return 1;
-+			return dax_dup;
- 		}
- 	}
- 
- 	list_add(&region->daxs, &dax->pfn.list);
- 
--	return 0;
-+	return dax;
- }
- 
- NDCTL_EXPORT struct ndctl_pfn *ndctl_pfn_get_first(struct ndctl_region *region)
-diff --git a/util/sysfs.c b/util/sysfs.c
-index 2b57f3ff30d7..31d1a898eba2 100644
---- a/util/sysfs.c
-+++ b/util/sysfs.c
-@@ -98,7 +98,8 @@ int __sysfs_device_parse(struct log_ctx *ctx, const char *base_path,
- 	while ((de = readdir(dir)) != NULL) {
- 		char *dev_path;
- 		char fmt[20];
--		int id, rc;
-+		void *dev;
-+		int id;
- 
- 		sprintf(fmt, "%s%%d", dev_name);
- 		if (de->d_ino == 0)
-@@ -111,16 +112,14 @@ int __sysfs_device_parse(struct log_ctx *ctx, const char *base_path,
- 			continue;
- 		}
- 
--		rc = add_dev(parent, id, dev_path);
-+		dev = add_dev(parent, id, dev_path);
- 		free(dev_path);
--		if (rc < 0) {
-+		if (!dev) {
- 			add_errors++;
--			log_err(ctx, "%s%d: add_dev() failed: %d\n",
--					dev_name, id, rc);
--		} else if (rc == 0) {
--			log_dbg(ctx, "%s%d: added\n", dev_name, id);
-+			log_err(ctx, "%s%d: add_dev() failed\n",
-+					dev_name, id);
- 		} else
--			log_dbg(ctx, "%s%d: duplicate\n", dev_name, id);
-+			log_dbg(ctx, "%s%d: processed\n", dev_name, id);
- 	}
- 	closedir(dir);
- 
-diff --git a/util/sysfs.h b/util/sysfs.h
-index 6a7b6449adcb..fb169c6da80a 100644
---- a/util/sysfs.h
-+++ b/util/sysfs.h
-@@ -15,7 +15,7 @@
- 
- #include <string.h>
- 
--typedef int (*add_dev_fn)(void *parent, int id, const char *dev_path);
-+typedef void *(*add_dev_fn)(void *parent, int id, const char *dev_path);
- 
- #define SYSFS_ATTR_SIZE 1024
- 
+ 	/* COW handled on pte level: split pmd */
+ 	VM_BUG_ON_VMA(vmf->vma->vm_flags & VM_SHARED, vmf->vma);
 
 _______________________________________________
 Linux-nvdimm mailing list
