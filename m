@@ -7,9 +7,9 @@ References: <cover.1480490191.git.lv.zheng@intel.com>
  <CAJZ5v0jYijDj2+UiPp41pHWdpuJvMUFoonViSvaCdBknkrbo2Q@mail.gmail.com>
  <CAPcyv4jNyH4Aq9SptOV+iOY8ncYiL19SwEhwzkFoUecp6nLTzA@mail.gmail.com>
  <1AE640813FDE7649BE1B193DEA596E886A2B2398@SHSMSX101.ccr.corp.intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 9 Dec 2016 03:05:52 +0100
-Message-ID: <CAJZ5v0hymbbBQwC4MrVxbaVRdGuKiHskjsfc+VLnMr3y2p+0yA@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 8 Dec 2016 18:04:30 -0800
+Message-ID: <CAPcyv4gVuay4uZu5qgDidWyj_LV9s+eRNW6CUZaELHxNtSeHtQ@mail.gmail.com>
 Subject: Re: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size()
  and early_acpi_os_unmap_memory() from Linux kernel
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -27,7 +27,7 @@ To: "Zheng, Lv" <lv.zheng@intel.com>
 Cc: "Brown, Len" <len.brown@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "Wysocki, Rafael J  <rafael.j.wysocki@intel.com>, Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Lv Zheng <zetalog@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Dec 9, 2016 at 2:59 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+On Thu, Dec 8, 2016 at 5:59 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
 > Hi, Rafael and Dan
 >
 >> From: Dan Williams [mailto:dan.j.williams@intel.com]
@@ -112,20 +112,11 @@ On Fri, Dec 9, 2016 at 2:59 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
 > It seems in drivers/acpi/nfit/core.c.
 > The returned table size is used by the NFIT code.
 > I think it should be changed to use table_header->length.
->
-> To Rafael:
-> I can offer a quick fix for this by returning table_header->length from acpi_get_table_with_size().
 
-OK
-
-I've dropped the problematic ACPICA commit for now (along with the one
-that depended on it) to prevent the issue from going in.
-
-The change that you are suggesting would defeat the purpose of what
-the NFIT code does.
-
-Thanks,
-Rafael
+Does the acpi core already validate that table_header->length is
+correct? i.e. is is possible that a broken implementation could have
+the wrong length in the header? I was assuming that was the purpose of
+the _with_size(), but maybe I was wrong?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
