@@ -2,16 +2,16 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 From: "Zheng, Lv" <lv.zheng@intel.com>
 Subject: RE: [PATCH 08/11] ACPICA: Tables: Back port
  acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel
-Date: Fri, 9 Dec 2016 02:27:08 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2B3409@SHSMSX101.ccr.corp.intel.com>
+Date: Fri, 9 Dec 2016 02:23:13 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2B33E4@SHSMSX101.ccr.corp.intel.com>
 References: <cover.1480490191.git.lv.zheng@intel.com>
  <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
  <CAA9_cmeUNuvfSSVWWiUt3PLG0WDUCw6m8uK4n5Doh3u_OtRDEg@mail.gmail.com>
  <CAJZ5v0jYijDj2+UiPp41pHWdpuJvMUFoonViSvaCdBknkrbo2Q@mail.gmail.com>
  <CAPcyv4jNyH4Aq9SptOV+iOY8ncYiL19SwEhwzkFoUecp6nLTzA@mail.gmail.com>
  <1AE640813FDE7649BE1B193DEA596E886A2B2398@SHSMSX101.ccr.corp.intel.com>
- <CAPcyv4gVuay4uZu5qgDidWyj_LV9s+eRNW6CUZaELHxNtSeHtQ@mail.gmail.com>
-In-Reply-To: <CAPcyv4gVuay4uZu5qgDidWyj_LV9s+eRNW6CUZaELHxNtSeHtQ@mail.gmail.com>
+ <CAJZ5v0hymbbBQwC4MrVxbaVRdGuKiHskjsfc+VLnMr3y2p+0yA@mail.gmail.com>
+In-Reply-To: <CAJZ5v0hymbbBQwC4MrVxbaVRdGuKiHskjsfc+VLnMr3y2p+0yA@mail.gmail.com>
 Content-Language: en-US
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -25,18 +25,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "Wysocki, Rafael J  <rafael.j.wysocki@intel.com>, Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Lv Zheng <zetalog@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "Wysocki, Rafael J  <rafael.j.wysocki@intel.com>, Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Lv Zheng <zetalog@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi, Dan
+Hi, Rafael
 
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Dan
-> Williams
+> From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of Rafael J. Wysocki
 > Subject: Re: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size() and
 > early_acpi_os_unmap_memory() from Linux kernel
 > 
-> On Thu, Dec 8, 2016 at 5:59 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> On Fri, Dec 9, 2016 at 2:59 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
 > > Hi, Rafael and Dan
 > >
 > >> From: Dan Williams [mailto:dan.j.williams@intel.com]
@@ -121,31 +120,23 @@ Hi, Dan
 > > It seems in drivers/acpi/nfit/core.c.
 > > The returned table size is used by the NFIT code.
 > > I think it should be changed to use table_header->length.
+> >
+> > To Rafael:
+> > I can offer a quick fix for this by returning table_header->length from acpi_get_table_with_size().
 > 
-> Does the acpi core already validate that table_header->length is
-> correct? i.e. is is possible that a broken implementation could have
-> the wrong length in the header? I was assuming that was the purpose of
-> the _with_size(), but maybe I was wrong?
+> OK
+> 
+> I've dropped the problematic ACPICA commit for now (along with the one
+> that depended on it) to prevent the issue from going in.
+> 
+> The change that you are suggesting would defeat the purpose of what
+> the NFIT code does.
 
-There is no such breakage.
-The purpose is not that.
-
-The purpose of the API is:
-During the Linux early stage, it is required to unmap the early maps as such pointer cannot be used by late stage.
-While ACPICA keeps such pointer in table_desc if acpi_get_table() is called.
-
-So Linux guys provided acpi_get_table_with_size(), in which table_desc will not remember the mapped pointer.
-The size must be returned to the caller as the caller need to use it as a parameter to unmap the memory during early stage.
+I've just sent the regression fix.
+Or we can just wait for Dan to confirm and apply the regression fix if it is working.
 
 Thanks and best regards
 Lv
-
-
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
