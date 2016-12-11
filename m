@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from me-ss2-ieksw9.mailengine1.com (me-ss2-ieksw9.mailengine1.com
- [72.19.210.94]) by ml01.01.org (Postfix) with ESMTP id B77AC8224C
- for <linux-nvdimm@lists.01.org>; Tue, 20 Dec 2016 16:56:57 -0800 (PST)
-Received: by me-ss2-ieksw9.mailengine1.com (PowerMTA(TM) v3.5r15sb7) id
- hb79li0jql4b for <linux-nvdimm@lists.01.org>;
- Tue, 20 Dec 2016 16:56:17 -0800 (envelope-from
- <bouncer@me-ss2-ieksw9.mailengine1.com>)
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DBE3082081
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Dec 2016 22:38:55 -0800 (PST)
+Subject: [ndctl PATCH 2/6] libdaxctl: add daxctl_region_get_{id, size,
+ align} apis
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 10 Dec 2016 22:34:46 -0800
+Message-ID: <148143808682.11895.3625276610774731857.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148143807638.11895.3823811556889353622.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148143807638.11895.3823811556889353622.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Date: Tue, 20 Dec 2016 16:53:26 -0800
-From: "Nicholas Meyler" <nickm@wdsearch.com>
-Subject: Great Careers: NLP Machine-Learning, Bitcoin CTO and Ceramics
-Message-ID: <300.0.15.121.1D25B250910F0D8.E33F2@me-ss2-ieksw9.mailengine1.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,206 +19,249 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Reply-To: "Nicholas J. Meyler" <nickm@wdsearch.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-RXhjaXRpbmcgTmV3IFNlYXJjaGVzIGZvciBEZWNlbWJlcgoKCigxKSBOTFAvTWFjaGluZS1MZWFy
-bmluZyBEYXRhIFNjaWVudGlzdCAoUGxlYXNhbnRvbiwgQ0EpOgoKTXkgY2xpZW50IGhhcyByZW1h
-aW5lZCBhdCB0aGUgY2VudGVyIG9mIHNjaWVudGlmaWMgZGlzY292ZXJ5IGZvciBtb3JlIHRoYW4g
-NTAgeWVhcnMsIG1hbnVmYWN0dXJpbmcgYW5kIGRpc3RyaWJ1dGluZyBhIGJyb2FkIHJhbmdlIG9m
-IHByb2R1Y3RzIGZvciB0aGUgbGlmZSBzY2llbmNlIHJlc2VhcmNoIGFuZCBjbGluaWNhbCBkaWFn
-bm9zdGljIG1hcmtldHMuIFRoZSBDb21wYW55IGlzIHJlbm93bmVkIHdvcmxkd2lkZSBhbW9uZyBo
-b3NwaXRhbHMsIHVuaXZlcnNpdGllcywgbWFqb3IgcmVzZWFyY2ggaW5zdGl0dXRpb25zLCBhcyB3
-ZWxsIGFzIGJpb3RlY2hub2xvZ3kgYW5kIHBoYXJtYWNldXRpY2FsIGNvbXBhbmllcyBmb3IgaXRz
-IGNvbW1pdG1lbnQgdG8gcXVhbGl0eSBhbmQgY3VzdG9tZXIgc2VydmljZS4gRm91bmRlZCBpbiAx
-OTUyLCB0aGV5IGFyZSBoZWFkcXVhcnRlcmVkIGluIEhlcmN1bGVzLCBDYWxpZm9ybmlhLCBhbmQg
-c2VydmUgbW9yZSB0aGFuIDg1LDAwMCByZXNlYXJjaCBhbmQgaW5kdXN0cnkgY3VzdG9tZXJzIHdv
-cmxkd2lkZSB0aHJvdWdoIGl0cyBnbG9iYWwgbmV0d29yayBvZiBvcGVyYXRpb25zLgoKTXkgZXhj
-aXRpbmcgQmlvdGVjaCBDbGllbnQgaXMgc2Vla2luZyBhIE5hdHVyYWwgTGFuZ3VhZ2UgUHJvY2Vz
-c2luZyAoTlBMKS9NYWNoaW5lIExlYXJuaW5nIChNTCkgc2NpZW50aXN0IHRvIGxlYWQgYW4gZWxp
-dGUgZGF0YSBzY2llbmNlIHRlYW0gcmVzcG9uc2libGUgZm9yIGNyZWF0aW5nIGlubm92YXRpdmUg
-dG9vbHMsIG1ldGhvZHMgYW5kIGJlc3QgcHJhY3RpY2VzIGFyb3VuZCB0aGUgc2NpZW50aWZpYyBs
-aXRlcmF0dXJlLiBUaGUgaWRlYWwgY2FuZGlkYXRlIGNhcmVzIGRlZXBseSBhYm91dCBkZXZlbG9w
-aW5nIGFuZCBpbXBsZW1lbnRpbmcgc29sdXRpb25zIHRoYXQgZHJhbWF0aWNhbGx5IGltcHJvdmUg
-b25lJ3MgYWJpbGl0eSB0byBpbnRlZ3JhdGUgYW5kIHF1YW50aWZ5IGtub3dsZWRnZSBleHRyYWN0
-ZWQgZnJvbSBtaWxsaW9ucyBvZiBzY2llbnRpZmljIHB1YmxpY2F0aW9ucy4KCldoYXQgeW914oCZ
-bGwgYmUgZG9pbmc6CsK3IHByb3ZpZGUgZGF5LXRvLWRheSBvdmVyc2lnaHQgYW5kIG1hbmFnZW1l
-bnQgb2YgdGhlIGRhdGUgc2NpZW5jZSBzdGFmZiBhbmQgYWN0aXZpdGllcwrCtyBjb2xsYWJvcmF0
-ZSB3aXRoIHNjaWVudGlzdHMgYW5kIG90aGVyIGJ1c2luZXNzIHBhcnRuZXJzCsK3IGhhbmRsZSBj
-b21wZXRpbmcgcmVxdWVzdHMgZnJvbSBhIHJhbmdlIG9mIGRhdGEgY3VzdG9tZXJzCsK3IGxlYWQg
-YnkgZXhhbXBsZSB0aHJvdWdoIGlkZWF0aW9uLCBwcm90b3R5cGluZyBhbmQgdGVzdGluZwrCtyBk
-ZXZlbG9wIGJlc3QgcHJhY3RpY2VzIHRoYXQgcHJvdmlkZSByZXN1bHRzIG9mIHRoZSBoaWdoZXN0
-IHF1YWxpdHkgYWJvdmUgdGhhdCB3aGljaCBpcyB0eXBpY2FsbHkgc2VlbiBpbiBhY2FkZW1pYSBh
-bmQgaW5kdXN0cnkKwrcgaWRlbnRpZnkgb3Bwb3J0dW5pdGllcyB0byBibGVuZCBhcnRpY2xlLCB0
-ZWNobm9sb2d5LCBwcm9kdWN0IG1ldHJpY3Mgd2l0aCBpbnRlcm5hbCBhbmQgZXh0ZXJuYWwgZGF0
-YSBhc3NldHMKwrcgcHJvdmlzaW9uIGludGVyYWN0aXZlIHRleHQgYW5hbHl0aWNzIHZpc3VhbGl6
-YXRpb25zCsK3IGJ1aWxkIGFuYWx5dGljcyBwcm90b3R5cGVzIGFuZCBkZW1vcyBmb3IgZW5kIHVz
-ZXJzCsK3IHByb3ZpZGUgdGhvdWdodCBsZWFkZXJzaGlwLCBwcm92aWRlIHN0cmF0ZWdpYyByb2Fk
-IG1hcCBmb3IgdGV4dCBtaW5pbmcgb2Ygc2NpZW50aWZpYyBsaXRlcmF0dXJlIGFuZCBob3cgdGhl
-IGxpdGVyYXR1cmUgZml0cyBpbnRvIG91ciBpbnRlbGxpZ2VuY2UgbGFuZHNjYXBlLCBzdXBwb3J0
-cyBuZXcgcHJvZHVjdCBkZXZlbG9wbWVudCwgYnVzaW5lc3MgZGV2ZWxvcG1lbnQsIGNvbXBsZW1l
-bnRzIGV4aXN0aW5nIGluc3RydW1lbnQgc29mdHdhcmUgYW5kIHBvdGVudGlhbGx5IGRpcmVjdGx5
-IGZhY2VzIGV4dGVybmFsIGN1c3RvbWVycwrCtyBidWlsZGluZyBkYXRlIHBpcGVsaW5lcyBmb3Ig
-cHJvY2Vzc2luZyBuYXR1cmFsIGxhbmd1YWdlIHRleHQgYXQgc2NhbGUKwrcgZGV2ZWxvcGluZyBm
-cm9udC1lbmQgdG9vbHMgYW5kIGludGVyZmFjZXMgKGUuZy4gbm90aWZpY2F0aW9uIGFuZCBhbGVy
-dCBzeXN0ZW1zLCBkYXNoYm9hcmQgcmVwb3J0cykgZm9yIGludGVybmFsIGNsaWVudHMgdG8gdmll
-dyBhbmQgaW50ZXJhY3Qgd2l0aCBwcm9jZXNzZWQgZGF0YQrCtyBzdGF5IHVwIHRvIHNwZWVkIG9u
-IHN0YXRlIG9mIHRoZSBhcnQgbWV0aG9kcyBmb3IgZWZmaWNpZW50IHRleHQgcHJvY2Vzc2luZwoK
-V2hhdCB5b3UgbmVlZCBmb3IgdGhpcyByb2xlOgoKwrcgTVMgb3IgUGhEIGluIENvbXB1dGVyIFNj
-aWVuY2UsIG1hdGgsIHN0YXRpc3RpY3Mgb3IgcmVsYXRlZCBmaWVsZArCtyAxMCsgeWVhcnMgdGV4
-dCBtaW5pbmcgYW5kIG1hY2hpbmUgbGVhcm5pbmcKwrcgcHJpb3IgZXhwZXJpZW5jZSBtYW5hZ2lu
-ZyBhbmQgY29hY2hpbmcgZGVlcGx5IHRlY2huaWNhbCBzdGFmZiBpbiBhbiBBZ2lsZSBlbnZpcm9u
-bWVudArCtyBwcmlvciBleHBlcmllbmNlIHdpdGggU2VhcmNoLCBtYWNoaW5lIGxlYXJuaW5nIGFu
-ZCBvdGhlciB0ZXh0IG1pbmluZyBtZXRob2RvbG9naWVzCsK3IGtub3dsZWRnZSBhbmQgZXhwZXJp
-ZW5jZSBpbiBvbmUgb3IgbW9yZSBvZiB0aGUgZm9sbG93aW5nIGFyZWFzOiBOYXR1cmFsIExhbmd1
-YWdlIFByb2Nlc3NpbmcsIE1hY2hpbmUgTGVhcm5pbmcsIFF1ZXN0aW9uIEFuc3dlcmluZywgVGV4
-dCBNaW5pbmcsIEluZm9ybWF0aW9uIFJldHJpZXZhbCwgRGlzdHJpYnV0aW9uYWwgU2VtYW50aWNz
-LCBhbmQvb3IgRGlzY291cnNlIE1vZGVsaW5nCsK3IGtub3dsZWRnZSBvZiBOYXRpb25hbCBMaWJy
-YXJ5IG9mIE1lZGljaW5lLCBQdWJNZWQsUHViTWVkIENlbnRyYWwsIGFuZCBNZWRpY2FsIEluZGV4
-IFN1YmplY3QgSGVhZGluZ3MgYW5kIHJlbGF0ZWQgc2NpZW50aWZpYyBsaXRlcmF0dXJlIHRvb2xz
-IGFuZCByZXNvdXJjZXMKCldoYXTigJlzIGluIGl0IGZvciB5b3U6CgrCtyBDb21wZXRpdGl2ZSBw
-YXkgYW5kIGdyZWF0IGJlbmVmaXRzIGluY2x1ZGluZyBtZWRpY2FsLCBkZW50YWwsIHZpc2lvbiwg
-NDAxayBhbmQgbW9yZQrCtyBPcHBvcnR1bml0aWVzIGZvciBncm93dGggYW5kIHRyYWluaW5nCsK3
-IFN0YWJpbGl0eSBvZiBhIHByb2ZpdGFibGUgNjArIHllYXIgb2xkIGNvbXBhbnkKCgoKIzIpIEF0
-dGVudGlvbiBCaXRjb2luL0Jsb2NrY2hhaW4gYW5kIEhGIFRyYWRpbmcgRXhwZXJ0czoKCk15IGV4
-Y2l0aW5nIG5ldyBjbGllbnQgaW4gTG9zIEFuZ2xlcyBpcyB0aGUgZmlyc3QgaW52ZXN0bWVudCBi
-YW5rIGZvciBkaWdpdGFsIGZpbmFuY2UsIHVzaW5nIGJpdGNvaW4gYW5kIGJsb2NrY2hhaW4gdGVj
-aG5vbG9neSwgd29ya2luZyB3aXRoIHRoZSBOZXcgWW9yayBDcnlwdG9jdXJyZW5jaWVzIEV4Y2hh
-bmdlLiAgCgogRm9yIG5vdywgdGhleSBmb2N1cyBvbiBidWlsZGluZyBhIGNyeXB0by1jdXJyZW5j
-eSB0cmFkaW5nIHBsYXRmb3JtIHdpdGggYSBmb2N1cyBvbiBJQ08gKEluaXRpYWwgQ29pbiBPZmZl
-cmluZykgdG9rZW5zIHdpdGggc21hcnQgY29udHJhY3RzIGFuZCBpbiBwYXJhbGxlbC4gIFRoZXkg
-YXJlIGJ1aWxkaW5nIGFuIGludmVzdG1lbnQgYmFuayB0byBjcmVhdGUgYSB0cmFuc3BhcmVudCBh
-bmQgY29tcGxpYW50IHByb2Nlc3MgZm9yIGNvbXBhbmllcyB0byByYWlzZSBmdW5kcyB2aWEgSUNP
-LiBUaGUgR3JvdXAgaXMgbGVhZCBieSBhIHN1Y2Nlc3NmdWwgZW50cmVwcmVuZXVyIHdobyByZWNl
-bnRseSBtYWRlIGEgc3VjY2Vzc2Z1bCBleGl0IGZyb20gaGlzIHNlY29uZCBidXNpbmVzcyB3aXRo
-IGEgJDEwMCsgbWlsbGlvbiB0aWNrZXQuCgpDVE8gUG9zaXRpb24gU3VtbWFyeQpUaGUgQ2hpZWYg
-VGVjaG5vbG9neSBPZmZpY2VyIChDVE8pIGlzIHJlc3BvbnNpYmxlIGZvciBvdmVyc2VlaW5nIGFs
-bCB0ZWNobmljYWwgYXNwZWN0cyBvZiB0aGUgYmxvY2tjaGFpbiBhbmQgZmludGVjaCBwcm9qZWN0
-cy4gVXNpbmcgYW4gYWN0aXZlIGFuZCBwcmFjdGljYWwgYXBwcm9hY2gsIHRoZSBDVE8gd2lsbCBk
-aXJlY3QgYWxsIGVtcGxveWVlcyBpbiBJVCBhbmQgSU8gZGVwYXJ0bWVudHMgdG8gYXR0YWluIHRo
-ZSBjb21wYW554oCZcyBzdHJhdGVnaWMgZ29hbHMgZXN0YWJsaXNoZWQgaW4gdGhlIGNvbXBhbnni
-gJlzIHN0cmF0ZWdpYyBwbGFuLgoKU3BlY2lmaWMgcmVzcG9uc2liaWxpdGllczoKQ1RPIG11c3Qg
-YmUgYWJsZSB0byBjb21tdW5pY2F0ZSBhbmQgY29sbGFib3JhdGUgd2l0aCBvdGhlciBkZXBhcnRt
-ZW50czoKCjEuIENFTywgU3RyYXRlZ3kgQm9hcmQgJiBQcm9kdWN0IE93bmVyCuKXj1ByZWRpY3Qg
-YW5kIHN0YXkgYWhlYWQgb2YgYW55IHRlY2huaWNhbCBwb2ludHMgYW5kIGlzc3VlcyB0aGF0IG1p
-Z2h0IHNpZ25pZmljYW50bHkgYWZmZWN0IHRoZSBjb21wYW55LiAK4pePQWR2aXNlIHRoZSBDRU8g
-YW5kIFN0cmF0ZWd5IEJvYXJkIG9uIHRoZSBsb25n4oCQdGVybSB0ZWNobmljYWwsIHN0cmF0ZWdp
-YyBkaXJlY3Rpb24gb2YgdGhlIGNvbXBhbnkgYW5kIHdoZXJlIHRvLCBvciB0byBub3QsIG1ha2Ug
-bGFyZ2Ugc3RyYXRlZ2ljIHRlY2hub2xvZ2ljYWwgYmV0cy4gCuKXj1Byb3ZpZGUgdGhlIENFTyBh
-bmQgUHJvZHVjdCBPd25lciB3aXRoIGRpZmZlcmVudCBvcHRpb25zIG9uIHRoZSB0ZWNobmljYWwg
-ZGlyZWN0aW9uIG9mIHRoZSBjb21wYW55IGFuZCBwcm92aWRlIHN1ZmZpY2llbnQgaW5mb3JtYXRp
-b24gZm9yIGRlY2lkaW5nIHdoYXQgaXMgdGhlIGJlc3Qgc29sdXRpb24gdG8gdGFrZSBhdCBhbnkg
-Z2l2ZW4gdGltZS4gCuKXj0JlIGFuIHVsdGltYXRlIGF1dGhvcml0eSBmb3IgdGhlIENFTywgU3Ry
-YXRlZ3kgQm9hcmQsIGFuZCBQcm9kdWN0IE93bmVyIGJ5IHByb3ZpZGluZyBhIG5ldXRyYWwgdmll
-dyB3aGljaCBwdXRzIHRoZSBjb21wYW554oCZcyBsb25n4oCQdGVybSBpbnRlcmVzdHMgYWJvdmUg
-YWxsIGVsc2UuCgoyLiBFbmdpbmVlcmluZy9Qcm9kdWN0IGRldmVsb3BtZW50IAril49Db250aW51
-YWxseSBpbXByb3ZlIHByb2R1Y3Rpb24gcGlwZWxpbmVzLCBiZWluZyBpbnZvbHZlZCBpbiB0aGUg
-ZGFpbHkgZXhlY3V0aW9uIGFuZCBlbmdpbmVlcmluZyB0ZWFtIG1hbmFnZW1lbnQgb25jZSB0aGUg
-cHJpb3JpdGllcyBhcmUgc2V0Lgril49MZWFkIGRldmVsb3BtZW50IHRlYW0sIGFzc2VzcyB0ZWFt
-IHBlcmZvcm1hbmNlIGFuZCBoZWxwIGV4ZWN1dGUgcmVjcnVpdGluZy9yZXRlbnRpb24gZWZmb3J0
-cy4gCuKXj1JlZ3VsYXIgcmVwb3J0aW5nIHRvIENFTyBhbmQgUHJvZHVjdCBPd25lci4gCuKXj0Nv
-bnRpbnVvdXNseSBvcHRpbWl6ZSBhY3Jvc3MgdGhlIHdob2xlIG9yZ2FuaXphdGlvbiB0byBhdm9p
-ZCBhbnkgZHVwbGljYXRpb24gb2YgZWZmb3J0LiAK4pePRW5zdXJlIGFsaWdubWVudCBvZiB0aGUg
-Z3JlYXRlciB0ZWNobmljYWwgb3JnYW5pemF0aW9uIGFuZCwgd2hlbiBuZWNlc3NhcnksIGFyYml0
-cmF0ZSB0ZWNobm/igJBjZW50cmljIHR1cmYgc2NyYXBzLCBhcmNoaXRlY3R1cmUgY29uZmxpY3Rz
-LCBldGMuIAril49TZXJ2ZSBhcyBtYXN0ZXIgYXJjaGl0ZWN0IGFjcm9zcyBwcm9kdWN0IGxpbmVz
-LgoKMy4gQnVzaW5lc3MgRGV2ZWxvcG1lbnQsIFBhcnRuZXJzaGlwcwril49Db21tdW5pY2F0ZSB3
-aXRoIGF1dGhvcml0eSBhYm91dCB0aGUgbWFya2V0OyBsaXN0ZW4gdG8gY3VzdG9tZXIgbmVlZHM7
-IHF1aWNrbHkgdW5kZXJzdGFuZCB0aGVpciBpc3N1ZXMsIGFuZCBnaXZlIGdvb2QgYWR2aWNlIG9u
-IHRoZSBjb21wYW554oCZcyBwcm9kdWN0cyB0byB0aGUgY3VzdG9tZXJzLiAK4pePUHJvdmlkZSB0
-ZWNobmljYWwgZHVlIGRpbGlnZW5jZSBvZiBwYXJ0bmVyIHRlY2hub2xvZ2llcyBhbmQgYWNxdWlz
-aXRpb24gdGFyZ2V0cyB0byBtYWtlIHN1cmUgdGhleSBwcm9wZXJseSBmaXQgd2l0aCB0aGUgY29t
-cGFueeKAmXMgcGxhdGZvcm1zIGFuZCBvZmZlcmluZ3MuIAril49LZWVwIHRyYWNrIG9mIGFsbCB0
-aGUgdGVjaCBzdGFydHVwcyBpbiB0aGUgc2FtZSBzcGFjZSwgYW5kIGhhdmUgdGhlbSBzdGFjayBy
-YW5rZWQgYmFzZWQgb24gd2hhdCBoZS9zaGUgY2FuIGdsZWFuIGFib3V0IHRoZWlyIHByb3NwZWN0
-cy4gVGhlIENUTyBzaG91bGQgaGF2ZSBjbGVhciB0aG91Z2h0cyAKYWJvdXQg4oCQIHBvc3NpYmxl
-IGFjcXVpc2l0aW9uIHRhcmdldHMsIHdoYXQgZXhwZXJ0aXNlIGlzIHRoZSBjb21wYW55IG1pc3Np
-bmc/IFdoaWNoIGNvbXBhbmllcyBhcmUgZG9pbmcgdGhlIGJlc3Qgd29yayBhY3Jvc3MgYWxsIG9m
-IHRoZSBhbmNpbGxhcnkgYXJlYXM/IFdoaWNoIGNvbXBhbmllcyAKaGF2ZSB0aGUgYmVzdCB0ZWNo
-bmljYWwgdGVhbXM/IFdoYXQgY291bGQgY29tcGV0aXRvcnMgYnV5IHRoYXQgd291bGQgaHVydCB0
-aGUgY29tcGFueT8gZXRjLiAK4pePUHJlZGljdCBpZiBhIG5ldyB0ZWNobm9sb2d5IHdvdWxkIGhh
-dmUgYSBzaWduaWZpY2FudCBpbXBhY3Qgb24gdGhlIGxvbmfigJB0ZXJtIHRlY2hub2xvZ2ljYWwg
-cm9hZG1hcCBmb3IgdGhlIGNvbXBhbnkuIAril49QcmVkaWN0IGxvbmfigJB0ZXJtIGNvbXBldGl0
-aXZlIHRyZW5kcyBkdWUgdG8gdGhlIGNvbnN0YW50IHNoaWZ0cyBpbiB0aGUgbWFya2V0LgoKNC4g
-TWFya2V0aW5nCuKXj1NlcnZlIGFzIHRoZSBwdWJsaWMgZmFjZSBvZiB0ZWNobm9sb2d5IGZvciB0
-aGUgY29tcGFueS4K4pePRXZhbmdlbGl6ZSB0aGUgY29tcGFueSB2aXNpb24gYW5kIHRlY2huaWNh
-bCBkaXJlY3Rpb24gdGhyb3VnaCBjb25mZXJlbmNlcywgc3BlYWtpbmcgZW5nYWdlbWVudHMsIGFu
-ZCBwcmVzcy9tZWRpYS9hbmFseXN0IGFjdGl2aXRpZXMuCuKXj01haW50YWluIGhlYWx0aHkgcmVs
-YXRpb25zaGlwcyB3aXRoIGRlc2lnbmF0ZWQga2V5IGluZHVzdHJ5IGFuYWx5c3RzLgril49TdXBw
-b3J0IHRoZSBtYXJrZXRpbmcgdGVhbSBpbiBidWlsZGluZyBhIGxhcmdlIGFjdGl2ZSBjb21tdW5p
-dHkgYXJvdW5kIHRoZSBjb21wYW554oCZcyBwcm9kdWN0cyAobWVldHVwcywgaGFja2F0aG9ucywg
-aW5kdXN0cnkgY29uZmVyZW5jZXMsIGV0Yy4pLgril49Tb2NpYWwgZW5nYWdlbWVudCBtYXJrZXRp
-bmcgdGhyb3VnaCB0d2l0dGVyLCBibG9nIHBvc3RzLCBhcnRpY2xlcy93aGl0ZXBhcGVycywgZXRj
-LgoKRWR1Y2F0aW9uIGFuZCBFeHBlcmllbmNlCuKXj0JTIGluIHJlbGF0ZWQgZmllbGQgYW5kIGF0
-IGxlYXN0IHNldmVuIHllYXJz4oCZIGV4cGVyaWVuY2UgaW4gdGhlIEluZm9ybWF0aW9uIFRlY2hu
-b2xvZ3kgYXJlbmEuCuKXj0F0IGxlYXN0IHR3byB5ZWFycyBtYW5hZ2VtZW50IGFuZCBzdHJhdGVn
-aWMgZXhwZXJpZW5jZSBpbiB0aGlzIGZpZWxkIG9yIE1CQS9NUyBpbiByZWxhdGVkIGZpZWxkIHdp
-dGggZml2ZSB5ZWFyc+KAmSBleHBlcmllbmNlLCAyIG9mIHdoaWNoIG11c3QgYmUgbWFuYWdlcmlh
-bCBhbmQgc3RyYXRlZ2ljLgril49FbGVjdHJvbmljcyBUcmFkaW5nIFN5c3RlbXMvRlguCuKXj0ph
-dmEvUHl0aG9uIGRldmVsb3Blci90ZWFtIGxlYWQgZXhwZXJpZW5jZSA3KyB5ZWFycy4K4pePU3lz
-dGVtcyBBcmNoaXRlY3Qgc2tpbGxzIG9yIGJhY2tncm91bmQK4pePQmxvY2tjaGFpbiwgU21hcnQg
-Y29udHJhY3RzLCBDcnlwdG9jdXJyZW5jaWVzIGJhY2tncm91bmQK4pePRmluYW5jaWFsL0Jsb2Nr
-Y2hhaW4gc3RhcnR1cHMgYmFja2dyb3VuZAoKQWRkaXRpb25hbCBza2lsbHMK4pePSGFzIHVuZGVy
-Z29uZSBvciBvdmVyc2VlbiB0ZWNobmljYWwgZHVlIGRpbGlnZW5jZSBvZiBlbGVjdHJvbmljIHRy
-YWRpbmcgcGxhdGZvcm0gb3Igc2ltaWxhciBwcm9kdWN0CuKXj1N0cm9uZyB3cml0aW5nIGFuZCBw
-cmVzZW50YXRpb24gc2tpbGxzCuKXj0FnaWxlIG1hc3Rlcgril49BYmlsaXR5IHRvIG1hbmFnZSBy
-ZW1vdGUgdGVhbXMK4pePUnVzc2lhbiBsYW5ndWFnZSAob3B0aW9uYWwpCgpBZGRpdGlvbmFsIHJl
-cXVpcmVtZW50cwril49Mb2NhdGlvbjogTG9z4oCQQW5nZWxlcyAocGVybWFuZW50IHJlc2lkZW5j
-ZSBvciBhYmxlIHRvIG1vdmUpIHByZWZlcmFibGUsIFdlc3QgQ29hc3QtYmFzZWQgd29ya2luZyBy
-ZW1vdGVseSB3aXRoIHdlZWtseSBmbGlnaHRzIHRvIExvcyBBbmdlbGVzIOKAkCBvcHRpb25hbAoK
-CgoKQW5vdGhlciBuZXcgY2xpZW50IGlzIG9uZSBvZiB0aGUgd29ybGQncyBsZWFkaW5nIG1hbnVm
-YWN0dXJlcnMgb2YgY2FwYWNpdG9ycywgc2Vla2luZyBhIERldmVsb3BtZW50IEVuZ2luZWVyIAoK
-KDMpIFNlbmlvciBEZXZlbG9wbWVudCBFbmdpbmVlciDigJMgQ2VyYW1pYyBEaWVsZWN0cmljICAo
-U3BhcnRhbmJ1cmcgQXJlYSwgU291dGggQ2Fyb2xpbmEpCgpUaGlzIGVuZ2luZWVyIHdpbGwgbGVh
-ZCBtYXRlcmlhbCBhbmQgcHJvY2VzcyBkZXZlbG9wbWVudCBpbiB0aGUgYXJlYSBvZiBjZXJhbWlj
-IGRpZWxlY3RyaWNzIGZvciBjZXJhbWljIGNhcGFjaXRvciBwcm9kdWN0cy4gVGhlIGNhbmRpZGF0
-ZSBzaG91bGQgaGF2ZSBrbm93bGVkZ2UgYW5kIGV4cGVyaWVuY2Ugd2l0aCBjZXJhbWljIGRpZWxl
-Y3RyaWMgZm9ybXVsYXRpb25zLCBhbmQgbWlsbGluZyBhbmQgZGlzcGVyc2lvbiBvZiBmaW5lIGNl
-cmFtaWMgcG93ZGVycy4gVGhlIGNhbmRpZGF0ZSB3aWxsIGJlIGZhbWlsaWFyIHdpdGggcHJvY2Vz
-c2luZyBvZiBjZXJhbWljIHBvd2RlcnMsIGRpc3BlcnNhbnRzLCBtaXhpbmcgYW5kIG1pbGxpbmcg
-b2YgbWljcm9uIGFuZCBzdWItbWljcm9uIHNpemUgcG93ZGVycywgZm9ybXVsYXRpbmcgbXVsdGkt
-Y29tcG9uZW50IGNvbXBvc2l0aW9ucywgY2VyYW1pYyB0aGljayBmaWxtcyBhbmQgY29hdGluZ3Ms
-IGFuZCBlbGVjdHJvbmljIHByb3BlcnRpZXMgb2YgY2VyYW1pY3MuIFRoZSBjYW5kaWRhdGUgd2ls
-bCBiZSBleHBlY3RlZCB0byBxdWlja2x5IGxlYXJuIHRoZSBrZXkgYXNwZWN0cyBvZiB0aGUgQ29t
-cGFueSBtYW51ZmFjdHVyaW5nIHRlY2hub2xvZ3kgYW5kIHByb2Nlc3MuIFRoaXMgcGVyc29uIHdp
-bGwgcGxheSBhIGNyaXRpY2FsIHJvbGUgaW4gZGV2ZWxvcGluZyBuZXcgcHJvZHVjdHMgdXNpbmcg
-bGVhZGluZyBlZGdlIHRlY2hub2xvZ2llcyBhbmQgd2lsbCBleGVjdXRlIGV4cGVyaW1lbnRhbCB3
-b3JrIHdpdGggYSBtaW5pbXVtIG9mIHN1cGVydmlzaW9uLgoKUmVxdWlyZW1lbnRzOgpBIHN0cm9u
-ZyB0ZWNobmljYWwgYmFja2dyb3VuZCBhbmQgZXhwZXJpZW5jZSBhcmUgcmVxdWlyZWQgaW4gQ2Vy
-YW1pYyBTY2llbmNlIGFuZCBFbmdpbmVlcmluZywgcHJvY2Vzc2luZyB3aXRoIGNlcmFtaWMgcG93
-ZGVycyBhbmQvb3IgY29hdGluZ3MsIERlc2lnbiBvZiBFeHBlcmltZW50cywgYW5kIHByb2JsZW0g
-c29sdmluZy4gR29vZCBjb21tdW5pY2F0aW9uIHNraWxscyBib3RoIHZlcmJhbCBhbmQgd3JpdHRl
-biBhcmUgZXNzZW50aWFsLiBFeHBlcmllbmNlIHdpdGggbWF0ZXJpYWwgY2hhcmFjdGVyaXphdGlv
-biB0ZWNobmlxdWVzLCBhbmQgZWxlY3RyaWNhbCBwcm9wZXJ0eSBtZWFzdXJlbWVudHMgd291bGQg
-YmUgcHJlZmVycmVkLCBlc3BlY2lhbGx5IHdpdGggcmVzcGVjdCB0byBNTENDIG9yIG90aGVyIGVs
-ZWN0cm9uaWMgY29tcG9uZW50cy4gICBFeHBlcmllbmNlIG9mIHN1Y2Nlc3NmdWwgcHJvZHVjdCBk
-ZXZlbG9wbWVudCBpbiB0aGUgZmllbGQgb2YgZWxlY3Ryb25pYyBjb21wb25lbnRzIGlzIGJlbmVm
-aWNpYWwuCiAgCkVkdWNhdGlvbi9FeHBlcmllbmNlOgpCLlMuIGluIEVuZ2luZWVyaW5nIChNYXRl
-cmlhbHMsIENlcmFtaWMgb3IgQ2hlbWljYWwpIGF0IG1pbmltdW07IE0uUy4gb3IgUGguRC4gaW4g
-RW5naW5lZXJpbmcgb3IgU2NpZW5jZSBpcyBzdHJvbmdseSBwcmVmZXJyZWQuIE1pbmltdW0gNSB5
-ZWFycyBvZiBhcHBsaWNhYmxlIGV4cGVyaWVuY2UuCgpZZWFycyBvZiBleHBlcmllbmNlOiAKNSBv
-ciBtb3JlCiAgICAgICAgICAgIApDb21wdXRlciBTa2lsbHM6ClByb2ZpY2llbmN5IGluIHVzaW5n
-IFdpbmRvd3MgUEMgYW5kIE1pY3Jvc29mdCBPZmZpY2Ugc3VpdGUsIGluIHBhcnRpY3VsYXI6IFdv
-cmQsIEV4Y2VsLCBQb3dlclBvaW50LCBNaWNyb3NvZnQtUHJvamVjdCBhbmQgc3RhdGlzdGljYWwg
-YW5hbHlzaXMgc29mdHdhcmUgc3VjaCBhcyBNaW5pVGFiCgpJZiB5b3UgYXJlIGludGVyZXN0ZWQg
-aW4gYW55IG9mIHRoZXNlIG91dHN0YW5kaW5nIG9wcG9ydHVuaXRpZXMsIHBsZWFzZSBzZW5kIG1l
-IGEgcmVzdW1lLiBSYW5kb20gcmVzdW1lIHN1Ym1pc3Npb25zIGFyZSBhbHdheXMgd2VsY29tZSwg
-dG9vLiBSZWZlcnJhbHMgYW5kIHJlY29tbWVuZGF0aW9ucyBhcmUgZ3JlYXRseSBhcHByZWNpYXRl
-ZC4gIAoKTWVyZWx5IHJlY2VpdmluZyB0aGlzIHdyaXR0ZW4gbWF0ZXJpYWwgZG9lcyBub3QgY29u
-c3RpdHV0ZSBvciBpbXBseSBhICJqb2Igb2ZmZXIiLCBidXQgaXMgcHJpbWFyaWx5IGEgbmV0d29y
-a2luZyBhbmQgaW5mb3JtYXRpb25hbCB0b29sIGZvciBpbnRlcmVzdGVkIHJlY2lwaWVudHMuCgoK
-ICBCZXN0IFJlZ2FyZHMsCgogIE5pY2hvbGFzIE1leWxlcgogIEdNL1ByZXNpZGVudCwgVGVjaG5v
-bG9neQogIFdpbmdhdGUgRHVucm9zcywgSW5jLgogIHBoICg4MTgpNTk3LTMyMDAgZXh0LiAyMTEK
-ICA8bmlja21Ad2RzZWFyY2guY29tPgoKCkFydGljbGUgYnkgRG91ZyBQZWNrb3ZlciwgSW52ZW50
-b3Igb2YgIlRva2VuaXphdGlvbiIgU2VjdXJpdHk6ICA8aHR0cHM6Ly93d3cubGlua2VkaW4uY29t
-L3B1bHNlL3ByaXZhY3ktdnMtc2VjdXJpdHkteW91LXJlYWR5LW5pY2hvbGFzLW1leWxlcj90cms9
-cHVsc2Vfc3BvY2stYXJ0aWNsZXM+CgoKCmh0dHA6Ly9hcHAuc3RyZWFtc2VuZC5jb20vcHJpdmF0
-ZS91NEt0L25LUi9yUE96cGpvL3Vuc3Vic2NyaWJlLzI4MDg2MzM5Cl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
-TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LW52ZGltbQo=
+Retrieve the basic geometry and identification attributes of a region.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ daxctl/lib/libdaxctl-private.h |    3 +
+ daxctl/lib/libdaxctl.c         |   93 +++++++++++++++++++++++++++++++---------
+ daxctl/lib/libdaxctl.sym       |   14 ++++--
+ daxctl/libdaxctl.h             |    2 +
+ 4 files changed, 87 insertions(+), 25 deletions(-)
+
+diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
+index a2924f1e93f5..2d17f40b6ea9 100644
+--- a/daxctl/lib/libdaxctl-private.h
++++ b/daxctl/lib/libdaxctl-private.h
+@@ -23,10 +23,13 @@ struct daxctl_region {
+ 	int id;
+ 	uuid_t uuid;
+ 	int refcount;
++	char *devname;
+ 	size_t buf_len;
+ 	void *region_buf;
+ 	int devices_init;
+ 	char *region_path;
++	unsigned int align;
++	unsigned long long size;
+ 	struct daxctl_ctx *ctx;
+ 	struct list_head devices;
+ };
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 06605de85fc3..a40a84a3c1bb 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -197,6 +197,7 @@ DAXCTL_EXPORT void daxctl_region_unref(struct daxctl_region *region)
+ 		free_dev(dev, &region->devices);
+ 	free(region->region_path);
+ 	free(region->region_buf);
++	free(region->devname);
+ 	free(region);
+ }
+ 
+@@ -206,32 +207,68 @@ DAXCTL_EXPORT void daxctl_region_ref(struct daxctl_region *region)
+ 		region->refcount++;
+ }
+ 
+-DAXCTL_EXPORT struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx,
+-		int id, uuid_t uuid, const char *path)
++static void *add_dax_region(void *parent, int id, const char *base)
+ {
++	char *path = calloc(1, strlen(base) + 100);
++	const char *attrs = "dax_region";
++	struct daxctl_ctx *ctx = parent;
+ 	struct daxctl_region *region;
++	char buf[SYSFS_ATTR_SIZE];
++
++	if (!path)
++		return NULL;
+ 
+ 	region = calloc(1, sizeof(*region));
+ 	if (!region)
+-		return NULL;
+-	region->ctx = ctx;
++		goto err_region;
++
+ 	region->id = id;
++	region->align = -1;
++	region->size = -1;
++	region->ctx = ctx;
+ 	region->refcount = 1;
+-	uuid_copy(region->uuid, uuid);
++	list_head_init(&region->devices);
++	region->devname = strdup(devpath_to_devname(base));
+ 
++	sprintf(path, "%s/%s/size", base, attrs);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		region->size = strtoull(buf, NULL, 0);
++
++	sprintf(path, "%s/%s/align", base, attrs);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		region->align = strtoul(buf, NULL, 0);
++
++	sprintf(path, "%s/%s", base, attrs);
+ 	region->region_path = strdup(path);
+-	if (!region->region_path) {
+-		free(region);
+-		return NULL;
+-	}
++	if (!region->region_path)
++		goto err_read;
+ 
+-	list_head_init(&region->devices);
+-	region->buf_len = strlen(region->region_path) + REGION_BUF_SIZE;
+-	region->region_buf = calloc(1, region->buf_len);
+-	if (!region->region_buf) {
+-		daxctl_region_unref(region);
++	region->region_buf = calloc(1, strlen(path) + REGION_BUF_SIZE);
++	if (!region->region_buf)
++		goto err_read;
++	region->buf_len = strlen(path) + REGION_BUF_SIZE;
++
++	free(path);
++	return region;
++
++ err_read:
++	free(region->region_buf);
++	free(region->region_path);
++	free(region);
++ err_region:
++	free(path);
++	return NULL;
++}
++
++DAXCTL_EXPORT struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx,
++		int id, uuid_t uuid, const char *path)
++{
++	struct daxctl_region *region;
++
++	region = add_dax_region(ctx, id, path);
++	if (!region)
+ 		return NULL;
+-	}
++	uuid_copy(region->uuid, uuid);
+ 
+ 	dbg(ctx, "%s: %s\n", __func__, daxctl_region_get_devname(region));
+ 
+@@ -302,9 +339,19 @@ DAXCTL_EXPORT int daxctl_region_get_id(struct daxctl_region *region)
+ 	return region->id;
+ }
+ 
++DAXCTL_EXPORT unsigned int daxctl_region_get_align(struct daxctl_region *region)
++{
++	return region->align;
++}
++
++DAXCTL_EXPORT unsigned long long daxctl_region_get_size(struct daxctl_region *region)
++{
++	return region->size;
++}
++
+ DAXCTL_EXPORT const char *daxctl_region_get_devname(struct daxctl_region *region)
+ {
+-        return devpath_to_devname(region->region_path);
++	return region->devname;
+ }
+ 
+ DAXCTL_EXPORT unsigned long long daxctl_region_get_available_size(
+@@ -316,7 +363,7 @@ DAXCTL_EXPORT unsigned long long daxctl_region_get_available_size(
+ 	int len = region->buf_len;
+ 	unsigned long long avail;
+ 
+-	if (snprintf(path, len, "%s/dax_region/available_size",
++	if (snprintf(path, len, "%s/available_size",
+ 				region->region_path) >= len) {
+ 		err(ctx, "%s: buffer too small!\n",
+ 				daxctl_region_get_devname(region));
+@@ -341,7 +388,7 @@ DAXCTL_EXPORT struct daxctl_dev *daxctl_region_get_dev_seed(
+ 	char buf[SYSFS_ATTR_SIZE];
+ 	struct daxctl_dev *dev;
+ 
+-	if (snprintf(path, len, "%s/dax_region/seed", region->region_path) >= len) {
++	if (snprintf(path, len, "%s/seed", region->region_path) >= len) {
+ 		err(ctx, "%s: buffer too small!\n",
+ 				daxctl_region_get_devname(region));
+ 		return NULL;
+@@ -367,11 +414,15 @@ static void dax_devices_init(struct daxctl_region *region)
+ 
+ 	region->devices_init = 1;
+ 	sprintf(daxdev_fmt, "dax%d.", region->id);
+-	if (asprintf(&region_path, "%s/dax", region->region_path) < 0)
+-		region_path = NULL;
+-	if (region_path)
++	region_path = strdup(region->region_path);
++	if (region_path) {
++		char *c = strrchr(region_path, '_');
++
++		/* convert <devpath>/dax_region to <devpath>/dax */
++		*c = '\0';
+ 		sysfs_device_parse(ctx, region_path, daxdev_fmt, region,
+ 				add_dax_dev);
++	}
+ 	free(region_path);
+ }
+ 
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index e74d75bf7847..eef97f2546c0 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -1,4 +1,4 @@
+-LIBNDCTL_1 {
++LIBDAXCTL_1 {
+ global:
+ 	daxctl_get_userdata;
+ 	daxctl_set_userdata;
+@@ -12,7 +12,7 @@ local:
+         *;
+ };
+ 
+-LIBNDCTL_2 {
++LIBDAXCTL_2 {
+ global:
+ 	daxctl_region_unref;
+ 	daxctl_new_region;
+@@ -29,11 +29,17 @@ global:
+ 	daxctl_dev_get_major;
+ 	daxctl_dev_get_minor;
+ 	daxctl_dev_get_size;
+-} LIBNDCTL_1;
++} LIBDAXCTL_1;
+ 
+ LIBDAXCTL_3 {
+ global:
+ 	daxctl_region_get_available_size;
+ 	daxctl_region_get_devname;
+ 	daxctl_region_get_dev_seed;
+-} LIBNDCTL_2;
++} LIBDAXCTL_2;
++
++LIBDAXCTL_4 {
++global:
++	daxctl_region_get_size;
++	daxctl_region_get_align;
++} LIBDAXCTL_3;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index bb7aa363a605..42ed15b508e5 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -43,6 +43,8 @@ int daxctl_region_get_id(struct daxctl_region *region);
+ struct daxctl_ctx *daxctl_region_get_ctx(struct daxctl_region *region);
+ unsigned long long daxctl_region_get_available_size(
+ 		struct daxctl_region *region);
++unsigned long long daxctl_region_get_size(struct daxctl_region *region);
++unsigned int daxctl_region_get_align(struct daxctl_region *region);
+ const char *daxctl_region_get_devname(struct daxctl_region *region);
+ struct daxctl_dev *daxctl_region_get_dev_seed(struct daxctl_region *region);
+ 
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
