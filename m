@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8144082124
- for <linux-nvdimm@lists.01.org>; Tue, 20 Dec 2016 13:08:14 -0800 (PST)
-Subject: [PATCH v3] x86: fix kaslr and memmap collision
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 20 Dec 2016 14:08:13 -0700
-Message-ID: <148226809303.147314.941589993797181767.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 378C382029
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Dec 2016 22:32:50 -0800 (PST)
+Subject: [PATCH 3/8] dax: register seed device
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 10 Dec 2016 22:28:41 -0800
+Message-ID: <148143772092.10950.13962446376991710280.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148143770485.10950.13227732273892953675.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148143770485.10950.13227732273892953675.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,261 +22,121 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
-Cc: x86@kernel.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
-However it does not take into account the memmap= parameter passed in from
-the kernel cmdline. This results in the kernel sometimes being put in
-the middle of the user memmap. Teaching kaslr to not insert the kernel in
-memmap defined regions. We will support up to 4 memmap regions. Any
-additional regions will cause kaslr to disable. The mem_avoid set has
-been augmented to add up to 4 regions of memmaps provided by the user
-to exclude those regions from the set of valid address range to insert
-the uncompressed kernel image.
+Towards adding support for sub-dividing device-dax regions, add a seed
+device.  Similar to libnvdimm a 'seed' device is un-configured device
+that is enabled after setting configuration parameters.  After a given
+seed device is enabled another is created and this process repeats until
+no more seed devices can be activated due to dax_available_size being
+exhausted.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+For now, this simply registers a seed instance after the first dax
+device instance is established.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/boot/boot.h             |    3 +
- arch/x86/boot/compressed/kaslr.c |  124 ++++++++++++++++++++++++++++++++++++++
- arch/x86/boot/string.c           |   38 ++++++++++++
- 3 files changed, 165 insertions(+)
+ drivers/dax/dax.c |   41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff --git a/arch/x86/boot/boot.h b/arch/x86/boot/boot.h
-index e5612f3..59c2075 100644
---- a/arch/x86/boot/boot.h
-+++ b/arch/x86/boot/boot.h
-@@ -332,7 +332,10 @@ int strncmp(const char *cs, const char *ct, size_t count);
- size_t strnlen(const char *s, size_t maxlen);
- unsigned int atou(const char *s);
- unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base);
-+unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base);
-+long simple_strtol(const char *cp, char **endp, unsigned int base);
- size_t strlen(const char *s);
-+char *strchr(const char *s, int c);
- 
- /* tty.c */
- void puts(const char *);
-diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
-index a66854d..be2b414 100644
---- a/arch/x86/boot/compressed/kaslr.c
-+++ b/arch/x86/boot/compressed/kaslr.c
-@@ -11,6 +11,7 @@
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index da2962b6f8de..c9ba011e333b 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -40,8 +40,10 @@ MODULE_PARM_DESC(nr_dax, "max number of device-dax instances");
+  * @kref: to pin while other agents have a need to do lookups
+  * @lock: synchronize changes / consistent-access to the resource tree (@res)
+  * @dev: parent device backing this region
++ * @seed: next device for dynamic allocation / configuration
+  * @align: allocation and mapping alignment for child dax devices
+  * @res: physical address range of the region
++ * @child_count: number of registered dax device instances
+  * @pfn_flags: identify whether the pfns are paged back or not
   */
- #include "misc.h"
- #include "error.h"
-+#include "../boot.h"
- 
- #include <generated/compile.h>
- #include <linux/module.h>
-@@ -61,9 +62,16 @@ enum mem_avoid_index {
- 	MEM_AVOID_INITRD,
- 	MEM_AVOID_CMDLINE,
- 	MEM_AVOID_BOOTPARAMS,
-+	MEM_AVOID_MEMMAP1,
-+	MEM_AVOID_MEMMAP2,
-+	MEM_AVOID_MEMMAP3,
-+	MEM_AVOID_MEMMAP4,
- 	MEM_AVOID_MAX,
+ struct dax_region {
+@@ -51,8 +53,10 @@ struct dax_region {
+ 	struct kref kref;
+ 	struct mutex lock;
+ 	struct device *dev;
++	struct device *seed;
+ 	unsigned int align;
+ 	struct resource res;
++	atomic_t child_count;
+ 	unsigned long pfn_flags;
  };
  
-+/* only supporting at most 4 memmap regions with kaslr */
-+#define MAX_MEMMAP_REGIONS	4
-+
- static struct mem_vector mem_avoid[MEM_AVOID_MAX];
- 
- static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
-@@ -77,6 +85,114 @@ static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
- 	return true;
+@@ -161,10 +165,31 @@ static ssize_t align_show(struct device *dev,
  }
+ static DEVICE_ATTR_RO(align);
  
-+/**
-+ *	_memparse - parse a string with mem suffixes into a number
-+ *	@ptr: Where parse begins
-+ *	@retptr: (output) Optional pointer to next char after parse completes
-+ *
-+ *	Parses a string into a number.  The number stored at @ptr is
-+ *	potentially suffixed with K, M, G, T, P, E.
-+ */
-+static unsigned long long _memparse(const char *ptr, char **retptr)
++static ssize_t seed_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
 +{
-+	char *endptr;	/* local pointer to end of parsed string */
++	struct dax_region *dax_region;
++	ssize_t rc = -ENXIO;
 +
-+	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
-+
-+	switch (*endptr) {
-+	case 'E':
-+	case 'e':
-+		ret <<= 10;
-+	case 'P':
-+	case 'p':
-+		ret <<= 10;
-+	case 'T':
-+	case 't':
-+		ret <<= 10;
-+	case 'G':
-+	case 'g':
-+		ret <<= 10;
-+	case 'M':
-+	case 'm':
-+		ret <<= 10;
-+	case 'K':
-+	case 'k':
-+		ret <<= 10;
-+		endptr++;
-+	default:
-+		break;
++	device_lock(dev);
++	dax_region = dev_get_drvdata(dev);
++	if (dax_region) {
++		mutex_lock(&dax_region->lock);
++		if (dax_region->seed)
++			rc = sprintf(buf, "%s\n", dev_name(dax_region->seed));
++		mutex_unlock(&dax_region->lock);
 +	}
-+
-+	if (retptr)
-+		*retptr = endptr;
-+
-+	return ret;
-+}
-+
-+static int
-+parse_memmap(char *p, unsigned long long *start, unsigned long long *size)
-+{
-+	char *oldp;
-+
-+	if (!p)
-+		return -EINVAL;
-+
-+	/* we don't care about this option here */
-+	if (!strncmp(p, "exactmap", 8))
-+		return -EINVAL;
-+
-+	oldp = p;
-+	*size = _memparse(p, &p);
-+	if (p == oldp)
-+		return -EINVAL;
-+
-+	switch (*p) {
-+	case '@':
-+	case '#':
-+	case '$':
-+	case '!':
-+		*start = _memparse(p + 1, &p);
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int mem_avoid_memmap(void)
-+{
-+	char arg[128];
-+	int rc = 0;
-+
-+	/* see if we have any memmap areas */
-+	if (cmdline_find_option("memmap", arg, sizeof(arg)) > 0) {
-+		int i = 0;
-+		char *str = arg;
-+
-+		while (str && (i < MAX_MEMMAP_REGIONS)) {
-+			unsigned long long start, size;
-+			char *k = strchr(str, ',');
-+
-+			if (k)
-+				*k++ = 0;
-+
-+			rc = parse_memmap(str, &start, &size);
-+			if (rc < 0)
-+				break;
-+			str = k;
-+
-+			mem_avoid[MEM_AVOID_MEMMAP1 + i].start = start;
-+			mem_avoid[MEM_AVOID_MEMMAP1 + i].size = size;
-+			i++;
-+		}
-+
-+		/* more than 4 memmaps, fail kaslr */
-+		if ((i >= MAX_MEMMAP_REGIONS) && str)
-+			rc = -EINVAL;
-+	}
++	device_unlock(dev);
 +
 +	return rc;
 +}
++static DEVICE_ATTR_RO(seed);
 +
- /*
-  * In theory, KASLR can put the kernel anywhere in the range of [16M, 64T).
-  * The mem_avoid array is used to store the ranges that need to be avoided
-@@ -429,6 +545,7 @@ void choose_random_location(unsigned long input,
- 			    unsigned long *virt_addr)
- {
- 	unsigned long random_addr, min_addr;
-+	int rc;
+ static struct attribute *dax_region_attributes[] = {
+ 	&dev_attr_available_size.attr,
+ 	&dev_attr_region_size.attr,
+ 	&dev_attr_align.attr,
++	&dev_attr_seed.attr,
+ 	&dev_attr_id.attr,
+ 	NULL,
+ };
+@@ -295,6 +320,9 @@ static void dax_region_free(struct kref *kref)
+ 	struct dax_region *dax_region;
  
- 	/* By default, keep output position unchanged. */
- 	*virt_addr = *output;
-@@ -438,6 +555,13 @@ void choose_random_location(unsigned long input,
- 		return;
- 	}
+ 	dax_region = container_of(kref, struct dax_region, kref);
++	WARN(atomic_read(&dax_region->child_count),
++			"%s: child count not zero\n",
++			dev_name(dax_region->dev));
+ 	kfree(dax_region);
+ }
  
-+	/* Mark the memmap regions we need to avoid */
-+	rc = mem_avoid_memmap();
-+	if (rc < 0) {
-+		warn("KASLR disabled: memmap exceeds limit of 4, giving up.");
-+		return;
+@@ -691,7 +719,10 @@ static void unregister_dax_dev(void *dev)
+ 	for (i = 0; i < dax_dev->num_resources; i++)
+ 		__release_region(&dax_region->res, dax_dev->res[i]->start,
+ 				resource_size(dax_dev->res[i]));
++	if (dax_region->seed == dev)
++		dax_region->seed = NULL;
+ 	mutex_unlock(&dax_region->lock);
++	atomic_dec(&dax_region->child_count);
+ 
+ 	cdev_del(cdev);
+ 	device_unregister(dev);
+@@ -796,6 +827,16 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+ 	if (rc)
+ 		return ERR_PTR(rc);
+ 
++	if (atomic_inc_return(&dax_region->child_count) == 1) {
++		struct dax_dev *seed;
++
++		seed = devm_create_dax_dev(dax_region, NULL, 0);
++		if (IS_ERR(seed))
++			dev_warn(parent, "failed to create region seed\n");
++		else
++			dax_region->seed = &seed->dev;
 +	}
 +
- 	boot_params->hdr.loadflags |= KASLR_FLAG;
+ 	return dax_dev;
  
- 	/* Prepare to add new identity pagetables on demand. */
-diff --git a/arch/x86/boot/string.c b/arch/x86/boot/string.c
-index cc3bd58..0464aaa 100644
---- a/arch/x86/boot/string.c
-+++ b/arch/x86/boot/string.c
-@@ -122,6 +122,31 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
- }
- 
- /**
-+ * simple_strtoul - convert a string to an unsigned long
-+ * @cp: The start of the string
-+ * @endp: A pointer to the end of the parsed string will be placed here
-+ * @base: The number base to use
-+ */
-+unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base)
-+{
-+	return simple_strtoull(cp, endp, base);
-+}
-+
-+/**
-+ * simple_strtol - convert a string to a signed long
-+ * @cp: The start of the string
-+ * @endp: A pointer to the end of the parsed string will be placed here
-+ * @base: The number base to use
-+ */
-+long simple_strtol(const char *cp, char **endp, unsigned int base)
-+{
-+	if (*cp == '-')
-+		return -simple_strtoul(cp + 1, endp, base);
-+
-+	return simple_strtoul(cp, endp, base);
-+}
-+
-+/**
-  * strlen - Find the length of a string
-  * @s: The string to be sized
-  */
-@@ -155,3 +180,16 @@ char *strstr(const char *s1, const char *s2)
- 	}
- 	return NULL;
- }
-+
-+/**
-+ * strchr - Find the first occurrence of the character c in the string s.
-+ * @s: the string to be searched
-+ * @c: the character to search for
-+ */
-+char *strchr(const char *s, int c)
-+{
-+	while (*s != (char)c)
-+		if (*s++ == '\0')
-+			return NULL;
-+	return (char *)s;
-+}
+  err_cdev:
 
 _______________________________________________
 Linux-nvdimm mailing list
