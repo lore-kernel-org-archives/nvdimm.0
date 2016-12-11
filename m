@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1B69181F1F
- for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 14:34:08 -0800 (PST)
-Subject: [PATCH 02/11] mm: introduce struct mem_section_usage to track
- partial population of a section
+ by ml01.01.org (Postfix) with ESMTPS id 441AF82081
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Dec 2016 22:39:01 -0800 (PST)
+Subject: [ndctl PATCH 3/6] daxctl: add dax region iteration apis
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 01 Dec 2016 14:29:57 -0800
-Message-ID: <148063139716.37496.1840701075077429142.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 10 Dec 2016 22:34:52 -0800
+Message-ID: <148143809204.11895.2157829231565692211.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148143807638.11895.3823811556889353622.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148143807638.11895.3823811556889353622.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,393 +22,271 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Mel Gorman <mgorman@techsingularity.net>, Vlastimil Babka <vbabka@suse.cz>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-'struct mem_section_usage' combines the existing 'pageblock_flags' bitmap
-with a new 'map_active' bitmap.  The new bitmap enables the memory
-hot{plug,remove} implementation to act on incremental sub-divisions of
-a section. The primary impetus for this functionality is to support
-platforms that mix "System RAM" and "Persistent Memory" within a single
-section.  We want to be able to hotplug "Persistent Memory" to extend a
-partially populated section and share that section between ZONE_DEVICE and
-ZONE_NORMAL/MOVABLE memory.
+Add support for generically iterating all the dax regions in the system.
+The duplicate device handling code handles any regions that were
+'created' with daxctl_new_region() rather than 'scanned' in the daxctl
+context.
 
-This introduces a pointer to the new 'map_active' bitmap through struct
-mem_section, but otherwise should not change any behavior.
-
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Stephen Bates <stephen.bates@microsemi.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/mmzone.h |   21 +++++++++-
- mm/memory_hotplug.c    |    4 +-
- mm/page_alloc.c        |    2 -
- mm/sparse.c            |   98 ++++++++++++++++++++++++++----------------------
- 4 files changed, 75 insertions(+), 50 deletions(-)
+ daxctl/lib/libdaxctl-private.h |    3 +
+ daxctl/lib/libdaxctl.c         |   93 ++++++++++++++++++++++++++++++++++++----
+ daxctl/lib/libdaxctl.sym       |    2 +
+ daxctl/libdaxctl.h             |   10 ++++
+ ndctl/lib/libndctl-private.h   |    1 
+ 5 files changed, 97 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 0f088f3a2fed..b13b490321a5 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1068,6 +1068,19 @@ static inline unsigned long early_pfn_to_nid(unsigned long pfn)
- #define SECTION_ALIGN_UP(pfn)	(((pfn) + PAGES_PER_SECTION - 1) & PAGE_SECTION_MASK)
- #define SECTION_ALIGN_DOWN(pfn)	((pfn) & PAGE_SECTION_MASK)
+diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
+index 2d17f40b6ea9..f7667324026f 100644
+--- a/daxctl/lib/libdaxctl-private.h
++++ b/daxctl/lib/libdaxctl-private.h
+@@ -28,9 +28,10 @@ struct daxctl_region {
+ 	void *region_buf;
+ 	int devices_init;
+ 	char *region_path;
+-	unsigned int align;
++	unsigned long align;
+ 	unsigned long long size;
+ 	struct daxctl_ctx *ctx;
++	struct list_node list;
+ 	struct list_head devices;
+ };
  
-+#define SECTION_ACTIVE_SIZE ((1UL << SECTION_SIZE_BITS) / BITS_PER_LONG)
-+#define SECTION_ACTIVE_MASK (~(SECTION_ACTIVE_SIZE - 1))
-+
-+struct mem_section_usage {
-+	/*
-+	 * SECTION_ACTIVE_SIZE portions of the section that are populated in
-+	 * the memmap
-+	 */
-+	unsigned long map_active;
-+	/* See declaration of similar field in struct zone */
-+	unsigned long pageblock_flags[0];
-+};
-+
- struct page;
- struct page_ext;
- struct mem_section {
-@@ -1085,8 +1098,7 @@ struct mem_section {
- 	 */
- 	unsigned long section_mem_map;
- 
--	/* See declaration of similar field in struct zone */
--	unsigned long *pageblock_flags;
-+	struct mem_section_usage *usage;
- #ifdef CONFIG_PAGE_EXTENSION
- 	/*
- 	 * If SPARSEMEM, pgdat doesn't have page_ext pointer. We use
-@@ -1117,6 +1129,11 @@ extern struct mem_section *mem_section[NR_SECTION_ROOTS];
- extern struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT];
- #endif
- 
-+static inline unsigned long *section_to_usemap(struct mem_section *ms)
-+{
-+	return ms->usage->pageblock_flags;
-+}
-+
- static inline struct mem_section *__nr_to_section(unsigned long nr)
- {
- 	if (!mem_section[SECTION_NR_TO_ROOT(nr)])
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index cad4b9125695..c7b3b2308ac3 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -227,7 +227,7 @@ static void register_page_bootmem_info_section(unsigned long start_pfn)
- 	for (i = 0; i < mapsize; i++, page++)
- 		get_page_bootmem(section_nr, page, SECTION_INFO);
- 
--	usemap = __nr_to_section(section_nr)->pageblock_flags;
-+	usemap = section_to_usemap(__nr_to_section(section_nr));
- 	page = virt_to_page(usemap);
- 
- 	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
-@@ -253,7 +253,7 @@ static void register_page_bootmem_info_section(unsigned long start_pfn)
- 
- 	register_page_bootmem_memmap(section_nr, memmap, PAGES_PER_SECTION);
- 
--	usemap = __nr_to_section(section_nr)->pageblock_flags;
-+	usemap = section_to_usemap(__nr_to_section(section_nr));
- 	page = virt_to_page(usemap);
- 
- 	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 8fd42aa7c4bd..8a509e382f55 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -352,7 +352,7 @@ static inline unsigned long *get_pageblock_bitmap(struct page *page,
- 							unsigned long pfn)
- {
- #ifdef CONFIG_SPARSEMEM
--	return __pfn_to_section(pfn)->pageblock_flags;
-+	return section_to_usemap(__pfn_to_section(pfn));
- #else
- 	return page_zone(page)->pageblock_flags;
- #endif /* CONFIG_SPARSEMEM */
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 1e168bf2779a..91e1908db23d 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -233,15 +233,15 @@ struct page *sparse_decode_mem_map(unsigned long coded_mem_map, unsigned long pn
- 
- static int __meminit sparse_init_one_section(struct mem_section *ms,
- 		unsigned long pnum, struct page *mem_map,
--		unsigned long *pageblock_bitmap)
-+		struct mem_section_usage *usage)
- {
- 	if (!present_section(ms))
- 		return -EINVAL;
- 
- 	ms->section_mem_map &= ~SECTION_MAP_MASK;
- 	ms->section_mem_map |= sparse_encode_mem_map(mem_map, pnum) |
--							SECTION_HAS_MEM_MAP;
-- 	ms->pageblock_flags = pageblock_bitmap;
-+		SECTION_HAS_MEM_MAP;
-+	ms->usage = usage;
- 
- 	return 1;
- }
-@@ -255,9 +255,13 @@ unsigned long usemap_size(void)
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--static unsigned long *__kmalloc_section_usemap(void)
-+static struct mem_section_usage *__alloc_section_usage(void)
- {
--	return kmalloc(usemap_size(), GFP_KERNEL);
-+	struct mem_section_usage *usage;
-+
-+	usage = kzalloc(sizeof(*usage) + usemap_size(), GFP_KERNEL);
-+	/* TODO: allocate the map_active bitmap */
-+	return usage;
- }
- #endif /* CONFIG_MEMORY_HOTPLUG */
- 
-@@ -293,7 +297,8 @@ sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
- 	return p;
- }
- 
--static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
-+static void __init check_usemap_section_nr(int nid,
-+		struct mem_section_usage *usage)
- {
- 	unsigned long usemap_snr, pgdat_snr;
- 	static unsigned long old_usemap_snr = NR_MEM_SECTIONS;
-@@ -301,7 +306,7 @@ static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
- 	struct pglist_data *pgdat = NODE_DATA(nid);
- 	int usemap_nid;
- 
--	usemap_snr = pfn_to_section_nr(__pa(usemap) >> PAGE_SHIFT);
-+	usemap_snr = pfn_to_section_nr(__pa(usage) >> PAGE_SHIFT);
- 	pgdat_snr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
- 	if (usemap_snr == pgdat_snr)
- 		return;
-@@ -336,7 +341,8 @@ sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
- 	return memblock_virt_alloc_node_nopanic(size, pgdat->node_id);
- }
- 
--static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
-+static void __init check_usemap_section_nr(int nid,
-+		struct mem_section_usage *usage)
- {
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
-@@ -344,26 +350,27 @@ static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
- static void __init sparse_early_usemaps_alloc_node(void *data,
- 				 unsigned long pnum_begin,
- 				 unsigned long pnum_end,
--				 unsigned long usemap_count, int nodeid)
-+				 unsigned long usage_count, int nodeid)
- {
--	void *usemap;
-+	void *usage;
- 	unsigned long pnum;
--	unsigned long **usemap_map = (unsigned long **)data;
--	int size = usemap_size();
-+	struct mem_section_usage **usage_map = data;
-+	int size = sizeof(struct mem_section_usage) + usemap_size();
- 
--	usemap = sparse_early_usemaps_alloc_pgdat_section(NODE_DATA(nodeid),
--							  size * usemap_count);
--	if (!usemap) {
-+	usage = sparse_early_usemaps_alloc_pgdat_section(NODE_DATA(nodeid),
-+							  size * usage_count);
-+	if (!usage) {
- 		pr_warn("%s: allocation failed\n", __func__);
- 		return;
- 	}
- 
-+	memset(usage, 0, size * usage_count);
- 	for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
- 		if (!present_section_nr(pnum))
- 			continue;
--		usemap_map[pnum] = usemap;
--		usemap += size;
--		check_usemap_section_nr(nodeid, usemap_map[pnum]);
-+		usage_map[pnum] = usage;
-+		usage += size;
-+		check_usemap_section_nr(nodeid, usage_map[pnum]);
- 	}
- }
- 
-@@ -468,7 +475,7 @@ void __weak __meminit vmemmap_populate_print_last(void)
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index a40a84a3c1bb..019f31b5067c 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -13,6 +13,7 @@
+ #include <stdio.h>
+ #include <errno.h>
+ #include <stdlib.h>
++#include <dirent.h>
+ #include <unistd.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+@@ -39,6 +40,8 @@ struct daxctl_ctx {
+ 	struct log_ctx ctx;
+ 	int refcount;
+ 	void *userdata;
++	int regions_init;
++	struct list_head regions;
+ };
  
  /**
-  *  alloc_usemap_and_memmap - memory alloction for pageblock flags and vmemmap
-- *  @map: usemap_map for pageblock flags or mmap_map for vmemmap
-+ *  @map: usage_map for mem_section_usage or mmap_map for vmemmap
-  */
- static void __init alloc_usemap_and_memmap(void (*alloc_func)
- 					(void *, unsigned long, unsigned long,
-@@ -521,10 +528,9 @@ static void __init alloc_usemap_and_memmap(void (*alloc_func)
-  */
- void __init sparse_init(void)
- {
-+	struct mem_section_usage *usage, **usage_map;
- 	unsigned long pnum;
- 	struct page *map;
--	unsigned long *usemap;
--	unsigned long **usemap_map;
- 	int size;
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
- 	int size2;
-@@ -539,21 +545,21 @@ void __init sparse_init(void)
+@@ -88,6 +91,7 @@ DAXCTL_EXPORT int daxctl_new(struct daxctl_ctx **ctx)
+ 	info(c, "ctx %p created\n", c);
+ 	dbg(c, "log_priority=%d\n", c->ctx.log_priority);
+ 	*ctx = c;
++	list_head_init(&c->regions);
  
- 	/*
- 	 * map is using big page (aka 2M in x86 64 bit)
--	 * usemap is less one page (aka 24 bytes)
-+	 * usage is less one page (aka 24 bytes)
- 	 * so alloc 2M (with 2M align) and 24 bytes in turn will
- 	 * make next 2M slip to one more 2M later.
- 	 * then in big system, the memory will have a lot of holes...
- 	 * here try to allocate 2M pages continuously.
- 	 *
- 	 * powerpc need to call sparse_init_one_section right after each
--	 * sparse_early_mem_map_alloc, so allocate usemap_map at first.
-+	 * sparse_early_mem_map_alloc, so allocate usage_map at first.
- 	 */
--	size = sizeof(unsigned long *) * NR_MEM_SECTIONS;
--	usemap_map = memblock_virt_alloc(size, 0);
--	if (!usemap_map)
--		panic("can not allocate usemap_map\n");
-+	size = sizeof(struct mem_section_usage *) * NR_MEM_SECTIONS;
-+	usage_map = memblock_virt_alloc(size, 0);
-+	if (!usage_map)
-+		panic("can not allocate usage_map\n");
- 	alloc_usemap_and_memmap(sparse_early_usemaps_alloc_node,
--							(void *)usemap_map);
-+							(void *)usage_map);
- 
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
- 	size2 = sizeof(struct page *) * NR_MEM_SECTIONS;
-@@ -568,8 +574,8 @@ void __init sparse_init(void)
- 		if (!present_section_nr(pnum))
- 			continue;
- 
--		usemap = usemap_map[pnum];
--		if (!usemap)
-+		usage = usage_map[pnum];
-+		if (!usage)
- 			continue;
- 
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
-@@ -581,7 +587,7 @@ void __init sparse_init(void)
- 			continue;
- 
- 		sparse_init_one_section(__nr_to_section(pnum), pnum, map,
--								usemap);
-+								usage);
- 	}
- 
- 	vmemmap_populate_print_last();
-@@ -589,7 +595,7 @@ void __init sparse_init(void)
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
- 	memblock_free_early(__pa(map_map), size2);
- #endif
--	memblock_free_early(__pa(usemap_map), size);
-+	memblock_free_early(__pa(usage_map), size);
+ 	return 0;
+ }
+@@ -180,10 +184,23 @@ static void free_dev(struct daxctl_dev *dev, struct list_head *head)
+ 	free(dev);
  }
  
- #ifdef CONFIG_MEMORY_HOTPLUG
-@@ -693,9 +699,9 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
++static void free_region(struct daxctl_region *region, struct list_head *head)
++{
++	struct daxctl_dev *dev, *_d;
++
++	list_for_each_safe(&region->devices, dev, _d, list)
++		free_dev(dev, &region->devices);
++	if (head)
++		list_del_from(head, &region->list);
++	free(region->region_path);
++	free(region->region_buf);
++	free(region->devname);
++	free(region);
++}
++
+ DAXCTL_EXPORT void daxctl_region_unref(struct daxctl_region *region)
  {
- 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
- 	struct pglist_data *pgdat = zone->zone_pgdat;
-+	static struct mem_section_usage *usage;
- 	struct mem_section *ms;
- 	struct page *memmap;
--	unsigned long *usemap;
- 	unsigned long flags;
- 	int ret;
+ 	struct daxctl_ctx *ctx;
+-	struct daxctl_dev *dev, *_d;
  
-@@ -709,8 +715,8 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
- 	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id);
- 	if (!memmap)
- 		return -ENOMEM;
--	usemap = __kmalloc_section_usemap();
--	if (!usemap) {
-+	usage = __alloc_section_usage();
-+	if (!usage) {
- 		__kfree_section_memmap(memmap);
- 		return -ENOMEM;
- 	}
-@@ -727,12 +733,12 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
- 
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
- 
--	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
-+	ret = sparse_init_one_section(ms, section_nr, memmap, usage);
- 
- out:
- 	pgdat_resize_unlock(pgdat, &flags);
- 	if (ret <= 0) {
--		kfree(usemap);
-+		kfree(usage);
- 		__kfree_section_memmap(memmap);
- 	}
- 	return ret;
-@@ -760,19 +766,20 @@ static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
- }
- #endif
- 
--static void free_section_usemap(struct page *memmap, unsigned long *usemap)
-+static void free_section_usage(struct page *memmap,
-+		struct mem_section_usage *usage)
- {
- 	struct page *usemap_page;
- 
--	if (!usemap)
-+	if (!usage)
+ 	if (!region)
  		return;
+@@ -193,12 +210,7 @@ DAXCTL_EXPORT void daxctl_region_unref(struct daxctl_region *region)
  
--	usemap_page = virt_to_page(usemap);
-+	usemap_page = virt_to_page(usage->pageblock_flags);
- 	/*
- 	 * Check to see if allocation came from hot-plug-add
- 	 */
- 	if (PageSlab(usemap_page) || PageCompound(usemap_page)) {
--		kfree(usemap);
-+		kfree(usage);
- 		if (memmap)
- 			__kfree_section_memmap(memmap);
- 		return;
-@@ -790,23 +797,24 @@ static void free_section_usemap(struct page *memmap, unsigned long *usemap)
- void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
- 		unsigned long map_offset)
- {
-+	unsigned long flags;
- 	struct page *memmap = NULL;
--	unsigned long *usemap = NULL, flags;
-+	struct mem_section_usage *usage = NULL;
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 
- 	pgdat_resize_lock(pgdat, &flags);
- 	if (ms->section_mem_map) {
--		usemap = ms->pageblock_flags;
-+		usage = ms->usage;
- 		memmap = sparse_decode_mem_map(ms->section_mem_map,
- 						__section_nr(ms));
- 		ms->section_mem_map = 0;
--		ms->pageblock_flags = NULL;
-+		ms->usage = NULL;
- 	}
- 	pgdat_resize_unlock(pgdat, &flags);
- 
- 	clear_hwpoisoned_pages(memmap + map_offset,
- 			PAGES_PER_SECTION - map_offset);
--	free_section_usemap(memmap, usemap);
-+	free_section_usage(memmap, usage);
+ 	ctx = region->ctx;
+ 	dbg(ctx, "%s: %s\n", __func__, daxctl_region_get_devname(region));
+-	list_for_each_safe(&region->devices, dev, _d, list)
+-		free_dev(dev, &region->devices);
+-	free(region->region_path);
+-	free(region->region_buf);
+-	free(region->devname);
+-	free(region);
++	free_region(region, &ctx->regions);
  }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+ DAXCTL_EXPORT void daxctl_region_ref(struct daxctl_region *region)
+@@ -209,12 +221,17 @@ DAXCTL_EXPORT void daxctl_region_ref(struct daxctl_region *region)
+ 
+ static void *add_dax_region(void *parent, int id, const char *base)
+ {
+-	char *path = calloc(1, strlen(base) + 100);
++	struct daxctl_region *region, *region_dup;
+ 	const char *attrs = "dax_region";
+ 	struct daxctl_ctx *ctx = parent;
+-	struct daxctl_region *region;
+ 	char buf[SYSFS_ATTR_SIZE];
++	char *path;
++
++	daxctl_region_foreach(ctx, region_dup)
++		if (region_dup->id == id)
++			return region_dup;
+ 
++	path = calloc(1, strlen(base) + 100);
+ 	if (!path)
+ 		return NULL;
+ 
+@@ -248,6 +265,8 @@ static void *add_dax_region(void *parent, int id, const char *base)
+ 		goto err_read;
+ 	region->buf_len = strlen(path) + REGION_BUF_SIZE;
+ 
++	list_add(&ctx->regions, &region->list);
++
+ 	free(path);
+ 	return region;
+ 
+@@ -339,7 +358,7 @@ DAXCTL_EXPORT int daxctl_region_get_id(struct daxctl_region *region)
+ 	return region->id;
+ }
+ 
+-DAXCTL_EXPORT unsigned int daxctl_region_get_align(struct daxctl_region *region)
++DAXCTL_EXPORT unsigned long daxctl_region_get_align(struct daxctl_region *region)
+ {
+ 	return region->align;
+ }
+@@ -426,6 +445,44 @@ static void dax_devices_init(struct daxctl_region *region)
+ 	free(region_path);
+ }
+ 
++static void dax_regions_init(struct daxctl_ctx *ctx)
++{
++	struct dirent *de;
++	DIR *dir;
++
++	if (ctx->regions_init)
++		return;
++
++	ctx->regions_init = 1;
++
++	dir = opendir("/sys/class/dax");
++	if (!dir) {
++		dbg(ctx, "no dax regions found\n");
++		return;
++	}
++
++	while ((de = readdir(dir)) != NULL) {
++		struct daxctl_region *region;
++		int id, region_id;
++		char *dev_path;
++
++		if (de->d_ino == 0)
++			continue;
++		if (sscanf(de->d_name, "dax%d.%d", &region_id, &id) != 2)
++			continue;
++		if (asprintf(&dev_path, "/sys/class/dax/%s/device", de->d_name) < 0) {
++			err(ctx, "dax region path allocation failure\n");
++			continue;
++		}
++
++		region = add_dax_region(ctx, region_id, dev_path);
++		free(dev_path);
++		if (!region)
++			err(ctx, "add_dax_region() for %s failed\n", de->d_name);
++	}
++	closedir(dir);
++}
++
+ DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
+ {
+ 	dax_devices_init(region);
+@@ -440,6 +497,22 @@ DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_next(struct daxctl_dev *dev)
+ 	return list_next(&region->devices, dev, list);
+ }
+ 
++DAXCTL_EXPORT struct daxctl_region *daxctl_region_get_first(
++		struct daxctl_ctx *ctx)
++{
++	dax_regions_init(ctx);
++
++	return list_top(&ctx->regions, struct daxctl_region, list);
++}
++
++DAXCTL_EXPORT struct daxctl_region *daxctl_region_get_next(
++		struct daxctl_region *region)
++{
++	struct daxctl_ctx *ctx = region->ctx;
++
++	return list_next(&ctx->regions, region, list);
++}
++
+ DAXCTL_EXPORT struct daxctl_region *daxctl_dev_get_region(struct daxctl_dev *dev)
+ {
+ 	return dev->region;
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index eef97f2546c0..1b1104dbe74c 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -42,4 +42,6 @@ LIBDAXCTL_4 {
+ global:
+ 	daxctl_region_get_size;
+ 	daxctl_region_get_align;
++	daxctl_region_get_first;
++	daxctl_region_get_next;
+ } LIBDAXCTL_3;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index 42ed15b508e5..071cb1b17e6e 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -36,6 +36,8 @@ void *daxctl_get_userdata(struct daxctl_ctx *ctx);
+ struct daxctl_region;
+ struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx, int id,
+ 		uuid_t uuid, const char *path);
++struct daxctl_region *daxctl_region_get_first(struct daxctl_ctx *ctx);
++struct daxctl_region *daxctl_region_get_next(struct daxctl_region *region);
+ void daxctl_region_ref(struct daxctl_region *region);
+ void daxctl_region_unref(struct daxctl_region *region);
+ void daxctl_region_get_uuid(struct daxctl_region *region, uuid_t uu);
+@@ -44,7 +46,7 @@ struct daxctl_ctx *daxctl_region_get_ctx(struct daxctl_region *region);
+ unsigned long long daxctl_region_get_available_size(
+ 		struct daxctl_region *region);
+ unsigned long long daxctl_region_get_size(struct daxctl_region *region);
+-unsigned int daxctl_region_get_align(struct daxctl_region *region);
++unsigned long daxctl_region_get_align(struct daxctl_region *region);
+ const char *daxctl_region_get_devname(struct daxctl_region *region);
+ struct daxctl_dev *daxctl_region_get_dev_seed(struct daxctl_region *region);
+ 
+@@ -63,6 +65,12 @@ unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
+              dev != NULL; \
+              dev = daxctl_dev_get_next(dev))
+ 
++
++#define daxctl_region_foreach(ctx, region) \
++        for (region = daxctl_region_get_first(ctx); \
++             region != NULL; \
++             region = daxctl_region_get_next(region))
++
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif
+diff --git a/ndctl/lib/libndctl-private.h b/ndctl/lib/libndctl-private.h
+index 050431850c66..778dbb508ead 100644
+--- a/ndctl/lib/libndctl-private.h
++++ b/ndctl/lib/libndctl-private.h
+@@ -135,6 +135,7 @@ struct ndctl_ctx {
+ 	/* log_ctx must be first member for ndctl_set_log_fn compat */
+ 	struct log_ctx ctx;
+ 	int refcount;
++	int regions_init;
+ 	void *userdata;
+ 	struct list_head busses;
+ 	int busses_init;
 
 _______________________________________________
 Linux-nvdimm mailing list
