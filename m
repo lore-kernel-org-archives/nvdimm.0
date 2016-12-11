@@ -1,16 +1,10 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C54308210F
- for <linux-nvdimm@lists.01.org>; Mon, 19 Dec 2016 15:30:48 -0800 (PST)
-Subject: [PATCH v2 3/3] dev-dax: add fallocate support to clear poison
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 19 Dec 2016 16:30:47 -0700
-Message-ID: <148219024781.15885.1883996216561314302.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <148219023506.15885.3919571427691230959.stgit@djiang5-desk3.ch.intel.com>
-References: <148219023506.15885.3919571427691230959.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+Received: from langzhao.com (unknown [111.176.76.194])
+ by ml01.01.org (Postfix) with ESMTP id 23AB481FC4
+ for <linux-nvdimm@lists.01.org>; Sun, 11 Dec 2016 08:24:44 -0800 (PST)
+From: =?GB2312?B?1qObaL2o?= <owchuancheng@langzhao.com>
+Subject: =?GB2312?B?u9i4tKO6yOe6ztXGztWztbzkudzA7bXEvqvL6C9saW51eC1udmRpbW0=?=
+Date: Mon, 12 Dec 2016 00:24:45 +0800
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,233 +12,153 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+Message-Id: <20161211162447.0BA068202C@ml01.01.org>
+To: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding fallocate support to device-dax. This implements FALLOC_FL_PUNCH_HOLE
-in order to allow clearing of badblocks/poison list.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/dax/dax-private.h |    1 +
- drivers/dax/dax.c         |   24 +++++++++++++++-
- drivers/dax/dax.h         |    4 ++-
- drivers/dax/pmem.c        |   68 ++++++++++++++++++++++++++++++++++++++++++++-
- fs/open.c                 |    2 +
- 5 files changed, 95 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index a119ef9..aea927d 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -38,6 +38,7 @@ struct dax_dev {
- 	int num_resources;
- 	struct resource res[0];
- 	void *private;
-+	const struct file_operations *fops;
- };
- 
- #endif
-diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-index f1857e6..b5cd73e 100644
---- a/drivers/dax/dax.c
-+++ b/drivers/dax/dax.c
-@@ -21,6 +21,7 @@
- #include <linux/dax.h>
- #include <linux/fs.h>
- #include <linux/mm.h>
-+#include <linux/falloc.h>
- #include "dax.h"
- #include "dax-private.h"
- 
-@@ -314,6 +315,12 @@ void *dax_dev_get_private(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(dax_dev_get_private);
- 
-+struct device *dax_dev_get_device(struct dax_dev *dax_dev)
-+{
-+	return &dax_dev->dev;
-+}
-+EXPORT_SYMBOL_GPL(dax_dev_get_device);
-+
- void dax_dev_set_private(struct dax_dev *dax_dev, void *priv)
- {
- 	dax_dev->private = priv;
-@@ -606,6 +613,17 @@ static int dax_release(struct inode *inode, struct file *filp)
- 	return 0;
- }
- 
-+static long dax_fallocate(struct file *file, int mode,
-+		loff_t offset, loff_t len)
-+{
-+	struct dax_dev *dax_dev = file->private_data;
-+
-+	if (dax_dev->fops)
-+		return dax_dev->fops->fallocate(file, mode, offset, len);
-+
-+	return -EOPNOTSUPP;
-+}
-+
- static const struct file_operations dax_fops = {
- 	.llseek = noop_llseek,
- 	.owner = THIS_MODULE,
-@@ -613,6 +631,7 @@ static const struct file_operations dax_fops = {
- 	.release = dax_release,
- 	.get_unmapped_area = dax_get_unmapped_area,
- 	.mmap = dax_mmap,
-+	.fallocate = dax_fallocate,
- };
- 
- static void dax_dev_release(struct device *dev)
-@@ -650,7 +669,8 @@ static void unregister_dax_dev(void *dev)
- 
- struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
- 		struct resource *res, int count,
--		const struct attribute_group **groups)
-+		const struct attribute_group **groups,
-+		const struct file_operations *fops)
- {
- 	struct device *parent = dax_region->dev;
- 	struct dax_dev *dax_dev;
-@@ -730,6 +750,8 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
- 	if (rc)
- 		return ERR_PTR(rc);
- 
-+	dax_dev->fops = fops;
-+
- 	return dax_dev;
- 
-  err_cdev:
-diff --git a/drivers/dax/dax.h b/drivers/dax/dax.h
-index c23c7ac..6a31a74 100644
---- a/drivers/dax/dax.h
-+++ b/drivers/dax/dax.h
-@@ -24,8 +24,10 @@ struct dax_region *alloc_dax_region(struct device *parent,
- 		void *addr, unsigned long flags);
- struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
- 		struct resource *res, int count,
--		const struct attribute_group **groups);
-+		const struct attribute_group **groups,
-+		const struct file_operations *fops);
- void *dax_dev_get_private(struct device *dev);
- void dax_dev_set_private(struct dax_dev *dax_dev, void *priv);
-+struct device *dax_dev_get_device(struct dax_dev *dax_dev);
- 
- #endif /* __DAX_H__ */
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index 5ffb2e9..5ab4900 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -15,6 +15,7 @@
- #include <linux/module.h>
- #include <linux/pfn_t.h>
- #include <linux/badblocks.h>
-+#include <linux/falloc.h>
- #include "../nvdimm/pfn.h"
- #include "../nvdimm/nd.h"
- #include "dax.h"
-@@ -24,6 +25,69 @@ struct dax_pmem {
- 	struct percpu_ref ref;
- 	struct completion cmp;
- 	struct badblocks bb;
-+	resource_size_t start;
-+	resource_size_t end;
-+};
-+
-+static void dax_pmem_clear_poison(struct dax_pmem *dax_pmem,
-+		loff_t offset, loff_t len)
-+{
-+	sector_t sector;
-+	long cleared;
-+
-+	sector = offset >> 9;
-+	cleared = nvdimm_clear_poison(dax_pmem->dev,
-+			dax_pmem->start + offset, len);
-+
-+	if ((cleared > 0) && (cleared >> 9)) {
-+		dev_dbg(dax_pmem->dev, "%s: %#llx clear %ld sector%s\n",
-+				__func__, (unsigned long long)sector,
-+				cleared >> 9, cleared >> 9 > 1 ? "s" : "");
-+		badblocks_clear(&dax_pmem->bb, sector, cleared >> 9);
-+	}
-+}
-+
-+static long dax_pmem_fallocate(struct file *file, int mode,
-+		loff_t start, loff_t len)
-+{
-+	struct dax_dev *dax_dev = file->private_data;
-+	struct device *dev;
-+	struct dax_pmem *dax_pmem;
-+	loff_t end = start + len - 1;
-+	loff_t res_size;
-+
-+	dev = dax_dev_get_device(dax_dev);
-+	dax_pmem = dax_dev_get_private(dev);
-+	res_size = dax_pmem->end - dax_pmem->start + 1;
-+
-+	dev_dbg(dev, "fallocate mode: %#x, start: %#llx, len: %llu\n",
-+			mode, start, len);
-+	dev_dbg(dev, "res start: %#llx end: %#llx size: %llu\n",
-+			dax_pmem->start, dax_pmem->end, res_size);
-+
-+	/* check size boundares */
-+	if (start >= dax_pmem->end)
-+		return -EINVAL;
-+	if (end >= res_size) {
-+		if (mode & FALLOC_FL_KEEP_SIZE)
-+			len = res_size - start;
-+		else
-+			return -EINVAL;
-+	}
-+
-+	switch (mode) {
-+	case FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE:
-+		dax_pmem_clear_poison(dax_pmem, start, len);
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct file_operations pmem_fops = {
-+	.fallocate = dax_pmem_fallocate,
- };
- 
- static ssize_t dax_pmem_badblocks_show(struct device *dev,
-@@ -158,8 +222,10 @@ static int dax_pmem_probe(struct device *dev)
- 
- 	/* TODO: support for subdividing a dax region... */
- 	dax_dev = devm_create_dax_dev(dax_region, &res, 1,
--			dax_pmem_attribute_groups);
-+			dax_pmem_attribute_groups, &pmem_fops);
- 	dax_dev_set_private(dax_dev, dax_pmem);
-+	dax_pmem->start = res.start;
-+	dax_pmem->end = res.end;
- 
- 	rc = devm_init_badblocks(dev, &dax_pmem->bb);
- 	if (rc)
-diff --git a/fs/open.c b/fs/open.c
-index d3ed817..15325fd 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -306,7 +306,7 @@ int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
- 	 * for directories or not.
- 	 */
- 	if (!S_ISREG(inode->i_mode) && !S_ISDIR(inode->i_mode) &&
--	    !S_ISBLK(inode->i_mode))
-+	    !S_ISBLK(inode->i_mode) && !S_ISCHR(inode->i_mode))
- 		return -ENODEV;
- 
- 	/* Check for wrap through zero too */
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SUQ6IDw0MzkzMDI0MzkzMDI0MzkzMDI0MzkzMDI0MzkzMDI0MzkzMDI0MzkzMDI0MzkzMDI+CkZy
+b206ID1saW51eC1udmRpbW09IDxsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnPgpUbzogPG93Y2h1
+YW5jaGVuZ0BsYW5nemhhby5jb20+CgrIq8Tc0M2ztbzk1vfIzsq11b28vMTcCjxsaW51eC1udmRp
+bW1AbGlzdHMuMDEub3JnPgq+2bDsyrG85KO6MjAxNsTqMTLUwjE3LTE4yNXJ7tvaICAgIDEy1MIy
+NC0yNcjVyc+6owq30SAgICDTw6O6yP3Hp7b+sNnUqi/Dv8jLCr/Os8y21M/zo7rG89K1s6ezpKGi
+1sbU7NK1yfqy+tfcvOChosn6svq+rcDtoaKztbzk1vfIzrywyfqy+tbG1OzW97ncvLDSu8/fuMmy
+vwqxqMP718nRr7Xnu7CjujA3NTUtNjEyLTg4LjAzNSAgIDAxMC01MTYtNjEuODYzICAgMDIxLTMx
+Mi02MS41ODAgCtTaz9/XydGvIFFRo7o2OTguMzQuMzYgICCxqMP70MXP5KO6cWl5ZXh1ZXhpNjY2
+QHFxLmNvbSAgKLGow/vH67vYuLTOssSpsajD+7Hto6kKCr/Os8yxs76wCtbG1Oy53MDt16i80rPC
+1r67qsDPyqbIq7n6zfXFxr/Os8wtLaG2yKvE3NDNs7W85Nb3yM7KtdW9vLzE3NG1wbeht6Os1NrI
+q7n6zca548bfxOrS1MC0o6zJ7srcufrE2s3ixvPStd28wLOho9TayKu5+rPJuaa+2bDsuau/qr/O
+wb2w2dPgs6G0zqOssqKxu7rctuDG89K10v29+MTa0bWjrNPIxuTKx9bQ19bNt8bz0rW6zdewsbjW
+xtTsxvPStaGj1Nq+2bDsuf2zzNbQo6zRp9SxttS/zrPMus3Az8qmtcTGwLzbv8nX27rPzqqwy7j2
+19ajuiLKtdTaIqGiIsq108MioaIiyrXVvSKhoiLKtbzKIqGjCsbfxOrMvcv3oaLG38Tqt6LVuaGi
+xt/E6rPBtemjrLPC1r67qsDPyqbT0MHLuPy24LXEuNDO8tPrzOHJ/aGjzqrBy7340ruyvbzTx7+/
+zrPMtcTT0NCn0NShos+1zbPQ1LrNv8bRp9DUo6wyMDE2xOrU2bbIuMSw5sn9vLaho7/Os8zS1L/G
+0ae53MDtzqq42aGi0tTPtc2zu6/OqsHsoaLS1M/Ku+61xM7KzOLOqsD9o6zW+sGmueO089Gn1LG4
+xLHkICLPsLnf0NTLvM6sIqOst8XG+iK+rdHpzqrN9SK1xLncwO2357jxoaMyMDE2sOahtsirxNzQ
+zbO1vOTW98jOyrXVvby8xNzRtcG3obfI/bTzzNi146O6CjGhosnuyOvHs7P2o6zJ+rav0te2rqOs
+ttTE6sHkus3Rp8D6w7vT0NKqx/OjuwoyoaK88rWl09DQp6Oswem77rjf0KejrMLktdjQ1Me/o7sK
+M6Gizt6437Tzyc+4xcTuo6y4/M7ewO3C29DUxKPKvbvyxKPQzaGjCgq/zrPMtPO42aO6CrXa0ru9
+sqGiv8bRp7ncwO0tLbe9z/KxyMWswaa4/NbY0qoKIgm137iyz7C536OssNrN0bSrzbMKzsrM4jGj
+utGntcO24NPDtcPJ2aOs0afKsdLX08PKscTRCs7KzOIyo7rPtc2zoaK3vbeooaK5pL7fyrW8+cqx
+trzIpcTEtvnE2KO/Cs7KzOIzo7rOqsqyw7TO0sPH19zKx7rcw6ajvwrOysziNKO6zqrKssO01rvW
+qrXAvNOw4KGivNPIy6GivNPJ6LG4o78KIgm137iyudzIy7XEvsC94aOs16rP8rmk1/e1xLG+ye0K
+zsrM4jWjurncwO21xLrL0MS+zcrHudzIy8rH0rvW1s7ztbyjvwrOysziNqO6udzA7bXEusvQxLHY
+0OvKx9HQvr+5pNf3tcSxvsnto78KIgm5pNf3sb7J7da709DBvbj2wezT8qO6yrG85NHQvr/T67e9
+t6jR0L6/Cs7KzOI3o7rOqrrOuaTX98qxvOTEx8O0s6S2+LP2u/XEx8O0ydmjvwq3vbeoMaO61fm3
+1rbhw+ujrLK9tffSu9bCo6EKt723qDKjurmk0/vJxsbkysKx2M/IwPvG5Mb3o6EKIgm5pL7ft9bP
+7aO6vPXJ2bOsuLq6ybzTsOC1xLDLtPPSqrXjCrXatv69sqGivfjI673HyastLcDlx+XX1M7SoaLI
+z9aqudzA7QoiCcDlx+XJ7bfdo6zT+837scjE3MGmuPzW2ArOysziMaO6s7W85Nb3yM7T67Dgs6S1
+vbXXyseyu8rH1ebV/bXEwey1vKO/Cs7KzOIyo7rB7LW8tb2118rHyMvK1ru5ysfIy7LFo78KzsrM
+4jOjusHstby1xLHYsbi1xMG9tPO7+bG+zPW8/srHyrLDtKO/Cs7KzOI0o7rB7LW8tcTI/bz+ysLT
+68G9tPPIzs7xo78K0qq14zGjutSxuaS9+sn9s6O3uLXEy8S087TtzvMKIgnIz9aqudzA7bXEyP20
+87v5sb7M2LXjCs7KzOI1o7q53MDtzqq6ztPryrG85M+iz6LP4LnYo78KzsrM4jajus6qyrLDtLK/
+yvS21MTjtcS53MDtsru40NDLyKSjvwrOysziN6O6yOe6zs/yyc+8ttPrz+DB2rK/w8W96MGmo78K
+Igm5pL7ft9bP7aO6z/LJz7y2vejBprXEzuW089KqteMKCrXayP29sqGi16XXobnYvPwtLcTjtcS5
+pNf31rnT2sTjtcTWsb3Tsr/PwgoiCbO1vOTW98jO0N7J7cj9vP7KwgrOysziMaO6y8TW1sntt929
+x8mro6iyu8rHxNzBpqOstvjKx7jftsijqQrOysziMqO6ttS0/cbz0rXT67Gos+q1xMG91tbQxMys
+o6iyu8rHytXI66Osyse829a1o6kKzsrM4jOjurbUtP3Pwsr0tcTI/bTz0qq146OosrvKx7K/yvTO
+3sTco6zKx7jQvvWyu7bUo6kKIgnKtdW90bXBt6O6udyyu7rDsOCzpKOsvs253LK7usOztbzkCs7K
+zOI0o7rSu77ku7C2qM67sODX6bOkvcfJq6O/Cs7KzOI1o7rSu77ku7C2qNLlsOCzpLXE1rDU8KO/
+Cs7KzOI2o7qw4Nfps6TT0MTEy8S089bCw/y1xLmk1/fIsc/eo78KzsrM4jejus6qyrLDtNPOwOvX
+tMystcTX99K1w7vT0NCnwsqjvwq3vbeoMaO6sODX6bOktcTLxNfWuaTX97eoo6i/tKGixcWhorj6
+oaK2oqOpCre9t6gyo7qw4LOk1+7Psru2tcTBvdbWuaTX97e9yr3Kx8qyw7Sjvwq3vbeoM6O6sOCz
+pNCttfe1xMHTysbT69fuvNG3ts6nCiIJz9azobncwO25pL7fo7oiyP2yu7zhytjUrdTyIr72tqiy
++sTcys23xQoKtdrLxL2yoaLP1rOhudzA7S0ttNO7t73atb3Ptc2ztcTIz9aqCiIJwO3E7r72tqi5
+pNf3s8m5+wrA7cTuMaO6yrW4ydDLxvOjrL/VzLjO88rCCsDtxO4yo7rPtc2z0NS+9raozsrM4r3i
+vva1xLPMtsgKIgmzo8q2ysfPtc2zo6y4/MrH06bTwwrOysziMaO6yrLDtM/Ws6G53MDttcTO5bTz
+ttTP86O/Cs7KzOIyo7rKssO0ysfP1rOhudzA7bXEwfm088/uxL/T68j9tPO6y9DEo78KzsrM4jOj
+usqyw7TKx8/Ws6G53MDttcTLxLTzu/nKr6O/Cs7KzOI0o7rKssO0ysfP1rOhudzA7bXEyP2087Dc
+scqjvwoiCcq11b231s/tCre9t6gxo7q88rWl09DQp7XY1cbO1bK/w8W1xLmk1/fW2NDECre9t6gy
+o7rI57rOubm9qM/Ws6G1xNK7uPbW0NDEwb249rv5sb614woKtdrO5b2yoaKw0cL2s6PKti0tUUNE
+yse4ybP2wLS1xAoiCcO7v8bRp9a7ysfC5Lrzo6zDu7Ojyra74crH1NbE0Qqzo8q2MaO60KfCytPr
+yfqy+sTcwaayu8rH0ru72MrCCrOjyrYyo7rUrcDt0+u3vcq9z+C7pdf308MKs6PKtjOjusH3z9+7
+r9PrwfezzLuv08PNvrK70rsKIgnOyszit9bO9qO6Cs7KzOIxo7qjqMLSwfehorW5wfehosjGwfe1
+xNDOs8m31s720+u21LLfo6kKzsrM4jKjusqyw7TKx7Hq17y7r7XEz9azobncwO2jvwrOysziM6O6
+yrLDtMrHserXvLuv1/fStaO/Cs7KzOI0o7rKssO0ysfX99K1serXvLuvo78KzsrM4jWjur6tvMO2
+r9f3tcTI/bK71K3U8qO/CiIJuaS+37fWz+2jurO1svrO78H3udzA7bXEIsj9srvV/rLfIgoiCby8
+xNzRtcG3o7rGvbri0KfCytPrxr264svwyqfCyrXEvMbL4woiCcq11b231s/to7rJ+rL6z9+yu8a9
+uuK1xMqutPPUrdLyt9bO9goKtdrB+b2yoaLUsbmkudzA7S0t0626z6Giv+3I3aGiyrXU2qGivOGz
+1gqh+SDDu9PQudyyu7rDtcTIy6Os1rvT0LK7u+G53LXEyMsK0qq14zGjurbUOTC689SxuaS53MDt
+tcTG37Tzt7TLvArSqrXjMqO6ttQ5MLrz1LG5pLncwO21xMbftPPSqrXjCqH5INSxuaS53MDttcS7
++bG+zsrM4rfWzvYKzsrM4jGjutSxuaTOqsqyw7S74be4tO0/Cs7KzOIyo7rUsbmkzqrKssO0u+HB
+98qnPwrOysziM6O61PXR+bLFxNy53MDtusPE47XE1LG5pD8KIgnUsbmkudzA7cq11b3RtcG3o7oK
+t723qDGjusnPy77X7rK7zde1sbXEIrDLtPPWq8zl0+/R1CIKt723qDKjusnPy77X7rK7zde1sbXE
+IsqutPO/2s230+/R1CIKt723qDOjusnPy77X8NbY1LG5pMjLuPG1xCLKrrTz0qq14yIKt723qDSj
+usjnus7D5rbU1LG5pNKq0LK1xCLO5bTzttSy3yIKIgm5pL7ft9bP7aO6Crmkvt8xo7q5pNf3vcy1
+vCLLxL3Xts63qCK1xNOm08MKuaS+3zGjusvE1tbOyszi1LG5pLXEudzA7be9yr0KCsvEoaLRp9Sx
+v86689f30rW78sq1vPmjqLjQzvLT68rVu/GjqQqjqNK7o6m40M7ysr+33QoxoaK21NPauaTX99bQ
+s/bP1rXEzsrM4qOsztLDx82os6O4/Lbgtdi56bj509oiubXNqNXPsK0ioaIi0K2197K7tbEioaIi
+1rTQ0LK7x78itcjOyszioaO007Htw+bJz7+0yLfKtcrH1eLQqc7KzOKho9fQz7jP68/ro6zSstDt
+xOO74beiz9bSu9Cp0snOyqO6xNG1wMjL0+vIy9auvOS+zcTHw7TE0dLUubXNqMLwo7+yv8PF1q68
+5MTRtcC+zcTHw7TE0dLU0K2198Lwo7/K9M/CxNG1wL7NsrvP67DRuaTX983qs8nC8KO/ttS0y87K
+zOLE49PQus640M/ro78KMqGiyOe5+8u1udzA7crH0rvDxdLVyvWjrLb40tXK9dfuvqu7qrXEvs3K
+x7S00uKho9f3zqrSu8P71tC7+bLjwey1vNXfo6zD5rbU0MLJ+rT6u/LV38HtwOC1xNSxuaTIuszl
+o6zU2rn9zfm1xLncwO25/bPM1tDL+df2tcTSu8fQo6zKx8/IyMPE47vyxOO1xMnPy7640NDLyKSj
+rLu5ysfPyMjD1LG5pLjQ0MvIpMTYo7+53MDttcS0tNLixOPT0MHLwvCjv9SxuaS21MTjtcS53MDt
+uNDQy8ikwcvC8KO/08XQ47XE1LG5pMbkyrXQ6NKquPzTxdDjtcS53MDt1d+howogICAgIDOhos2o
+uf24w7/Os8zO0sPH0tG+rdaqtcDBy8jLtcS12tK718qy+srHyMu48dfw0c+ho8DtveLG8MC0xuTK
+tbrcyN3S16Osv8nKx9f2xvDAtNXmtcS63MTRoaPU2r3xuvO1xLmk1/fW0MTjtPLL49T10fnIpbGj
+u6S6w9SxuaS1xMjLuPHX8NHPoaMKo6i2/qOpyrW8+bK/t90KICAgICAxoaK+obnc1tC5+sbz0rW1
+xNK7z9/UsbmkxuTKtdLRvq263NPF0OPBy6OstavU2rmks6e78rO1vOTWu9Kqs/bP1tbKwb/Oyszi
+u/LV38rHvbvG2s7KzOKjrNSxuaS7ucrH1+/U8MTRzNOho7G+v86zzM3quvPE47vYtb25q8u+s+nL
+xLj20KHKsbXEyrG85NW+tb3Su7j2ytO+9cG8usO1xLXYt72527Ls0rvPwsTjtcTUsbmk1/fStbXE
+17TMrKOsvs274cP3sNfWysG/zqrKssO0srvOyLaoo6y/tMnPyKXIyLvws6/M7M6qyrLDtNfcyse9
+u7K7s/a79aGjx+vE47nbsuy689XSs/bUrdLysqK7rsfl1+/U8KGjCiAgICAgMqGisb6/zrPMzeqz
+ybrzx+vE47vYtb25q8u+08PSu9XFQTO1xNa9sNHE47XEs7W85Ma9w+bNvLuuz8LAtKGj1NnTw7Dr
+zOy1xMqxvOS527Lss7W85LXEyrW8ysjLwfehos7vwfehotDFz6LB98/W17SjrLKisNHDv9K7tM7B
+97avwrfP39TaQTPWvcnPvfjQ0MGsvdOho8frxOPU2b+0v7TEx9XFxr3D5s28ysfKssO017S/9qOs
+sqLTybTLzca2z8Tjtb2117P2wcvKssO0zsrM4qGjCiAgICAgM6GixL/HsNbQufq5pLOnw7/M7Ly4
+uvXWu9TazqrSu7j2zsrM4sOmwrWjrMTHvs3Kx7jPu/WjobW9tdfKx7aptaXBv8yrtPPDu7eos9DK
+3KOsu7nKx7XEyLfJ+rL6xNzBptPQz96jrLvy1d/Kx8n6svrQp8LKzKu1zcTYo7/V4rj2zsrM4sv5
+09DIy7a8xNy08LXDyc/AtKOstavT1tPQvLi49sjLtcS08LC4yse21LXExNijv8jnufvL+dPQyMu2
+vLTwttTBy6OsxMfOqsqyw7S7ucrHzOzM7NXi0fmjv7bUtMvE49PQus640M/ro78KCteovNK96cnc
+CrPC1r67qi9TVEVWRU4gQ0hBTgogCdbG1Oy53MDt16i80i+5pMnMudzA7cu2yr8KIAlNTUOjqNbG
+1Oy53MDt1tDQxKOp18rJ7rnLzsoKIAnN0MLty7nG87nco6/QwrvuwabF4NG1zfjK18+vvbLKpiAg
+ICAgICAgICAKs8LAz8qmwPrIzsrAvefO5bDZx7/I1dfKxvPStcnosbjW97ncoaK5pNLVv6q3or6t
+wO2hotbG1Oy+rcDttcjWsKGj1Nq5+rzK1qrD+9bG1OzG89K1yM7WsMqxvOSzpLTvyq7I/cTqoaO0
+08rC1rDStb2yyqbJ+tHEyq7E6qGjsru1q9O109C34bi7tcTP1rOhudzA7cq11b2+rcD6LLb4x9K5
+pNf3xuS85MqmtNPQobSo0rvSsqOoyNWxvldGJklF0dC+v7Xa0rvIy6OsyNWxvtbG1OzStdHQvr+1
+xLn6saa8tsjLzu+jqaOs16jStdHQvr+5pNK1uaSzzLncwO26zcH3z9+7r8n6svqho9PIxuS+q82o
+tefX06Giu/rQtSi5pLPMu/rQtS/G+7O11sbU7C+0rLKw1sbU7CmhotbG0qmhotDCssTBz7XI1sbU
+7Mbz0rW1xL6rz7i7r7ncwO2hoyLKtdW90NTHv9PryrXTw9DUx7+jrLykx+nTxMSsIsrH0rW957bU
+s8LAz8qmtcTSu9bCxsC826GjCsjO1sbU7NK1vbLKptPr18nRr8qmyq7E6tLUwLSjrNLR1vrNxrbg
+vNLD8dOqxvPStcq1z9bBy7/n1L3Kvbei1bmho86qufrE2s3iyc/Hp7zSxvPStbXEudzA7cjL1LGh
+orbgy/m439Cj0afJ+qGisr+31rn6vNK8tr6tv6rH+Mzhuam5/cXg0bW78riotbyho7PCwM/KptT4
+vq24qLW8u/LF4NG1uf21xMbz0rXT0KO61tC5+tbQteehotbQufrW0Mz6oaLW0Ln6usu5pNK1IKGi
+1tC5+sn6zu/Wxsa3IKGi1tC0rLyvzcWhotbQwsG8r83FoaLW0LXn1fG7qigwODO+/LmkKSChotbQ
+ufrKr9PNoaLW0Ln6xM+ztaGiyP3Su9bYuaShotDs1t3W2LmkoaLN/sqkvK/NxaGiv8bBptS2KNDC
+ssTBzykgoaLQwruqwaq8r83FoaK7qsjzvK/NxaGiwarP67yvzcWhosvJz8K/1bX3IKGiv6jO98W3
+tefX0yChoszsy667qszsIKGizvfDxdfTsfnP5KGitqu357G+zO+3oravu/qhorqj0MW8r83FoaLG
+5sjwxvuztaGiva3B5cb7s7WhotK7xvuhorS0zqy8r83FoaK4u8q/yqnA1qGitqvI7bfJwPvG0aGi
+va3S9b+j9s6/xry8oaLPyLfm0qnStaGisNnA9tCs0rWhor7F0fS80rXnoaLDwLXEvNLTw7Xnxveh
+osTPtry159S0tq/BpqGisMLN0MGit/KhokNUU6GiybPKv7yqtPLW2Lmko6i1wrn6o6mhorXCufqx
+tLb7oaLToszhtvujqLzTxMO086OpoaLSwbjqtvu158b4tcihowqzwsDPyqbW+NPQoba3tMqh1tC5
++sq9uaSzp7ncwO2ht6GiobY5MLrz0rvP39SxuaS53MDtobe1yMrpvK6ho7Kiyty63LbgxvPStbXE
+yMjF9dPr1qez1qGjobbIq8Tc0M2ztbzk1vfIzsq11b28vMTc0bXBt6G3oaKhtsDNtq+2qLbuudzA
+7c+1zbO5udb+obehoqG2serXvLmkyrHT68n6svrP38a9uuK53MDtyrXVvaG3oaKhtlRUVDM2MLbI
+vLzE3Mzhyf3RtcG3obehoqG2vqvS5sn6svq829a1wffM5c+1tcS5ub2oobe1yL/OzOK1xMq11b3Q
+1KGiyrXTw9DUyty1vbn6xNrN4sbz0rW1xLjftsjIz7/Jus3Rp9SxtcTSu9bCusPGwKOhICAKCqG2
+yKvE3NDNs7W85Nb3yM7KtdW9vLzE3KG3sajD+7vY1rQKICjU2s/fsajD+8frz8LU2Li9vP6xqMP7
+u9jWtLHtzO7QtLrzt6LLzSDWwdDFz+QgNjk4MzQzNkBxcS5jb22jqQq1pc67w/uzxqO6X19fX19f
+X19fX19fX19fX19fX19fX19fCreixrHMp823o7pfX19fX19fX19fX19fX19fX19fX19fX18gt6LG
+scTayN2juqH1MaGixeDRtbfRIKH1MqGiu+HO8bfRCrmry7612Na3X19fX19fX19fX19fX19fX19f
+X19fX19fCQrBqs+1yMujul9fX19fX19fX19ftee7sKO6X19fX19fX19fX1/K1rv6o7pfX19fX19f
+X19fXwkK1rDO8aO6X19fX19fX19fX1+0q9Xmo7pfX19fX19fX19fX0UtbWFpbKO6X19fX19fX19f
+X18Kss674cjLyv2jul9fX1/Iywmyzrvht9HTw6O6IF9fX1/UqgkKuLa/7re9yr2juqH1MaGiz9a9
+8CCh9TKhoteq1coKss6809Gn1LHD+7Wlo7oK0NXD+6O6X19fX19fX19fX1/WsM7xo7pfX19fX19f
+X19fX8rWILv6o7pfX19fX19fX19fX0UtbWFpbKO6X19fX19fX19fX18K0NXD+6O6X19fX19fX19f
+X1/WsM7xo7pfX19fX19fX19fX8rWILv6o7pfX19fX19fX19fX0UtbWFpbKO6X19fX19fX19fX18J
+CQkJCtDVw/ujul9fX19fX19fX19f1rDO8aO6X19fX19fX19fX1/K1iC7+qO6X19fX19fX19fX19F
+LW1haWyjul9fX19fX19fX19fCQkJCQrQ1cP7o7pfX19fX19fX19fX9awzvGjul9fX19fX19fX19f
+ytYgu/qjul9fX19fX19fX19fRS1tYWlso7pfX19fX19fX19fXwkJCQkK0NXD+6O6X19fX19fX19f
+X1/WsM7xo7pfX19fX19fX19fX8rWILv6o7pfX19fX19fX19fX0UtbWFpbKO6X19fX19fX19fX18g
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAoKLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLSAKCgq3oiDLzSDKsSC85DoyMDE2LTEyLTEyICAwMDoyNDo0NApfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
+aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
+bi9saXN0aW5mby9saW51eC1udmRpbW0K
