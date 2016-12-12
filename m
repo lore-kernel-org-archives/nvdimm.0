@@ -1,11 +1,14 @@
-From: =?GB2312?B?1qObaL2o?= <owchuancheng-CnNtsHTVSUBWk0Htik3J/w@public.gmane.org>
-Subject: =?GB2312?B?u9i4tKO6yOe6ztXGztWztbzkudzA7bXEvqvL6C9saW51eC1udmRpbW0=?=
-Date: Mon, 12 Dec 2016 00:24:45 +0800
-Message-ID: <20161211162447.0A4D68202A@ml01.01.org>
+From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/8] device-dax: sub-division support
+Date: Mon, 12 Dec 2016 12:15:02 -0500
+Message-ID: <x497f75hxwp.fsf@segfault.boston.devel.redhat.com>
+References: <148143770485.10950.13227732273892953675.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <148143770485.10950.13227732273892953675.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ (Dan Williams's message of "Sat, 10 Dec 2016 22:28:25 -0800")
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,147 +18,65 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-SUQ6IDw0MzkzMDI0MzkzMDI0MzkzMDI0MzkzMDI0MzkzMDI0MzkzMDI0MzkzMDI0MzkzMDI+CkZy
-b206ID1saW51eC1udmRpbW09IDxsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnPgpUbzogPG93Y2h1
-YW5jaGVuZ0BsYW5nemhhby5jb20+CgrIq8Tc0M2ztbzk1vfIzsq11b28vMTcCjxsaW51eC1udmRp
-bW1AbGlzdHMuMDEub3JnPgq+2bDsyrG85KO6MjAxNsTqMTLUwjE3LTE4yNXJ7tvaICAgIDEy1MIy
-NC0yNcjVyc+6owq30SAgICDTw6O6yP3Hp7b+sNnUqi/Dv8jLCr/Os8y21M/zo7rG89K1s6ezpKGi
-1sbU7NK1yfqy+tfcvOChosn6svq+rcDtoaKztbzk1vfIzrywyfqy+tbG1OzW97ncvLDSu8/fuMmy
-vwqxqMP718nRr7Xnu7CjujA3NTUtNjEyLTg4LjAzNSAgIDAxMC01MTYtNjEuODYzICAgMDIxLTMx
-Mi02MS41ODAgCtTaz9/XydGvIFFRo7o2OTguMzQuMzYgICCxqMP70MXP5KO6cWl5ZXh1ZXhpNjY2
-QHFxLmNvbSAgKLGow/vH67vYuLTOssSpsajD+7Hto6kKCr/Os8yxs76wCtbG1Oy53MDt16i80rPC
-1r67qsDPyqbIq7n6zfXFxr/Os8wtLaG2yKvE3NDNs7W85Nb3yM7KtdW9vLzE3NG1wbeht6Os1NrI
-q7n6zca548bfxOrS1MC0o6zJ7srcufrE2s3ixvPStd28wLOho9TayKu5+rPJuaa+2bDsuau/qr/O
-wb2w2dPgs6G0zqOssqKxu7rctuDG89K10v29+MTa0bWjrNPIxuTKx9bQ19bNt8bz0rW6zdewsbjW
-xtTsxvPStaGj1Nq+2bDsuf2zzNbQo6zRp9SxttS/zrPMus3Az8qmtcTGwLzbv8nX27rPzqqwy7j2
-19ajuiLKtdTaIqGiIsq108MioaIiyrXVvSKhoiLKtbzKIqGjCsbfxOrMvcv3oaLG38Tqt6LVuaGi
-xt/E6rPBtemjrLPC1r67qsDPyqbT0MHLuPy24LXEuNDO8tPrzOHJ/aGjzqrBy7340ruyvbzTx7+/
-zrPMtcTT0NCn0NShos+1zbPQ1LrNv8bRp9DUo6wyMDE2xOrU2bbIuMSw5sn9vLaho7/Os8zS1L/G
-0ae53MDtzqq42aGi0tTPtc2zu6/OqsHsoaLS1M/Ku+61xM7KzOLOqsD9o6zW+sGmueO089Gn1LG4
-xLHkICLPsLnf0NTLvM6sIqOst8XG+iK+rdHpzqrN9SK1xLncwO2357jxoaMyMDE2sOahtsirxNzQ
-zbO1vOTW98jOyrXVvby8xNzRtcG3obfI/bTzzNi146O6CjGhosnuyOvHs7P2o6zJ+rav0te2rqOs
-ttTE6sHkus3Rp8D6w7vT0NKqx/OjuwoyoaK88rWl09DQp6Oswem77rjf0KejrMLktdjQ1Me/o7sK
-M6Gizt6437Tzyc+4xcTuo6y4/M7ewO3C29DUxKPKvbvyxKPQzaGjCgq/zrPMtPO42aO6CrXa0ru9
-sqGiv8bRp7ncwO0tLbe9z/KxyMWswaa4/NbY0qoKIgm137iyz7C536OssNrN0bSrzbMKzsrM4jGj
-utGntcO24NPDtcPJ2aOs0afKsdLX08PKscTRCs7KzOIyo7rPtc2zoaK3vbeooaK5pL7fyrW8+cqx
-trzIpcTEtvnE2KO/Cs7KzOIzo7rOqsqyw7TO0sPH19zKx7rcw6ajvwrOysziNKO6zqrKssO01rvW
-qrXAvNOw4KGivNPIy6GivNPJ6LG4o78KIgm137iyudzIy7XEvsC94aOs16rP8rmk1/e1xLG+ye0K
-zsrM4jWjurncwO21xLrL0MS+zcrHudzIy8rH0rvW1s7ztbyjvwrOysziNqO6udzA7bXEusvQxLHY
-0OvKx9HQvr+5pNf3tcSxvsnto78KIgm5pNf3sb7J7da709DBvbj2wezT8qO6yrG85NHQvr/T67e9
-t6jR0L6/Cs7KzOI3o7rOqrrOuaTX98qxvOTEx8O0s6S2+LP2u/XEx8O0ydmjvwq3vbeoMaO61fm3
-1rbhw+ujrLK9tffSu9bCo6EKt723qDKjurmk0/vJxsbkysKx2M/IwPvG5Mb3o6EKIgm5pL7ft9bP
-7aO6vPXJ2bOsuLq6ybzTsOC1xLDLtPPSqrXjCrXatv69sqGivfjI673HyastLcDlx+XX1M7SoaLI
-z9aqudzA7QoiCcDlx+XJ7bfdo6zT+837scjE3MGmuPzW2ArOysziMaO6s7W85Nb3yM7T67Dgs6S1
-vbXXyseyu8rH1ebV/bXEwey1vKO/Cs7KzOIyo7rB7LW8tb2118rHyMvK1ru5ysfIy7LFo78KzsrM
-4jOjusHstby1xLHYsbi1xMG9tPO7+bG+zPW8/srHyrLDtKO/Cs7KzOI0o7rB7LW8tcTI/bz+ysLT
-68G9tPPIzs7xo78K0qq14zGjutSxuaS9+sn9s6O3uLXEy8S087TtzvMKIgnIz9aqudzA7bXEyP20
-87v5sb7M2LXjCs7KzOI1o7q53MDtzqq6ztPryrG85M+iz6LP4LnYo78KzsrM4jajus6qyrLDtLK/
-yvS21MTjtcS53MDtsru40NDLyKSjvwrOysziN6O6yOe6zs/yyc+8ttPrz+DB2rK/w8W96MGmo78K
-Igm5pL7ft9bP7aO6z/LJz7y2vejBprXEzuW089KqteMKCrXayP29sqGi16XXobnYvPwtLcTjtcS5
-pNf31rnT2sTjtcTWsb3Tsr/PwgoiCbO1vOTW98jO0N7J7cj9vP7KwgrOysziMaO6y8TW1sntt929
-x8mro6iyu8rHxNzBpqOstvjKx7jftsijqQrOysziMqO6ttS0/cbz0rXT67Gos+q1xMG91tbQxMys
-o6iyu8rHytXI66Osyse829a1o6kKzsrM4jOjurbUtP3Pwsr0tcTI/bTz0qq146OosrvKx7K/yvTO
-3sTco6zKx7jQvvWyu7bUo6kKIgnKtdW90bXBt6O6udyyu7rDsOCzpKOsvs253LK7usOztbzkCs7K
-zOI0o7rSu77ku7C2qM67sODX6bOkvcfJq6O/Cs7KzOI1o7rSu77ku7C2qNLlsOCzpLXE1rDU8KO/
-Cs7KzOI2o7qw4Nfps6TT0MTEy8S089bCw/y1xLmk1/fIsc/eo78KzsrM4jejus6qyrLDtNPOwOvX
-tMystcTX99K1w7vT0NCnwsqjvwq3vbeoMaO6sODX6bOktcTLxNfWuaTX97eoo6i/tKGixcWhorj6
-oaK2oqOpCre9t6gyo7qw4LOk1+7Psru2tcTBvdbWuaTX97e9yr3Kx8qyw7Sjvwq3vbeoM6O6sOCz
-pNCttfe1xMHTysbT69fuvNG3ts6nCiIJz9azobncwO25pL7fo7oiyP2yu7zhytjUrdTyIr72tqiy
-+sTcys23xQoKtdrLxL2yoaLP1rOhudzA7S0ttNO7t73atb3Ptc2ztcTIz9aqCiIJwO3E7r72tqi5
-pNf3s8m5+wrA7cTuMaO6yrW4ydDLxvOjrL/VzLjO88rCCsDtxO4yo7rPtc2z0NS+9raozsrM4r3i
-vva1xLPMtsgKIgmzo8q2ysfPtc2zo6y4/MrH06bTwwrOysziMaO6yrLDtM/Ws6G53MDttcTO5bTz
-ttTP86O/Cs7KzOIyo7rKssO0ysfP1rOhudzA7bXEwfm088/uxL/T68j9tPO6y9DEo78KzsrM4jOj
-usqyw7TKx8/Ws6G53MDttcTLxLTzu/nKr6O/Cs7KzOI0o7rKssO0ysfP1rOhudzA7bXEyP2087Dc
-scqjvwoiCcq11b231s/tCre9t6gxo7q88rWl09DQp7XY1cbO1bK/w8W1xLmk1/fW2NDECre9t6gy
-o7rI57rOubm9qM/Ws6G1xNK7uPbW0NDEwb249rv5sb614woKtdrO5b2yoaKw0cL2s6PKti0tUUNE
-yse4ybP2wLS1xAoiCcO7v8bRp9a7ysfC5Lrzo6zDu7Ojyra74crH1NbE0Qqzo8q2MaO60KfCytPr
-yfqy+sTcwaayu8rH0ru72MrCCrOjyrYyo7rUrcDt0+u3vcq9z+C7pdf308MKs6PKtjOjusH3z9+7
-r9PrwfezzLuv08PNvrK70rsKIgnOyszit9bO9qO6Cs7KzOIxo7qjqMLSwfehorW5wfehosjGwfe1
-xNDOs8m31s720+u21LLfo6kKzsrM4jKjusqyw7TKx7Hq17y7r7XEz9azobncwO2jvwrOysziM6O6
-yrLDtMrHserXvLuv1/fStaO/Cs7KzOI0o7rKssO0ysfX99K1serXvLuvo78KzsrM4jWjur6tvMO2
-r9f3tcTI/bK71K3U8qO/CiIJuaS+37fWz+2jurO1svrO78H3udzA7bXEIsj9srvV/rLfIgoiCby8
-xNzRtcG3o7rGvbri0KfCytPrxr264svwyqfCyrXEvMbL4woiCcq11b231s/to7rJ+rL6z9+yu8a9
-uuK1xMqutPPUrdLyt9bO9goKtdrB+b2yoaLUsbmkudzA7S0t0626z6Giv+3I3aGiyrXU2qGivOGz
-1gqh+SDDu9PQudyyu7rDtcTIy6Os1rvT0LK7u+G53LXEyMsK0qq14zGjurbUOTC689SxuaS53MDt
-tcTG37Tzt7TLvArSqrXjMqO6ttQ5MLrz1LG5pLncwO21xMbftPPSqrXjCqH5INSxuaS53MDttcS7
-+bG+zsrM4rfWzvYKzsrM4jGjutSxuaTOqsqyw7S74be4tO0/Cs7KzOIyo7rUsbmkzqrKssO0u+HB
-98qnPwrOysziM6O61PXR+bLFxNy53MDtusPE47XE1LG5pD8KIgnUsbmkudzA7cq11b3RtcG3o7oK
-t723qDGjusnPy77X7rK7zde1sbXEIrDLtPPWq8zl0+/R1CIKt723qDKjusnPy77X7rK7zde1sbXE
-IsqutPO/2s230+/R1CIKt723qDOjusnPy77X8NbY1LG5pMjLuPG1xCLKrrTz0qq14yIKt723qDSj
-usjnus7D5rbU1LG5pNKq0LK1xCLO5bTzttSy3yIKIgm5pL7ft9bP7aO6Crmkvt8xo7q5pNf3vcy1
-vCLLxL3Xts63qCK1xNOm08MKuaS+3zGjusvE1tbOyszi1LG5pLXEudzA7be9yr0KCsvEoaLRp9Sx
-v86689f30rW78sq1vPmjqLjQzvLT68rVu/GjqQqjqNK7o6m40M7ysr+33QoxoaK21NPauaTX99bQ
-s/bP1rXEzsrM4qOsztLDx82os6O4/Lbgtdi56bj509oiubXNqNXPsK0ioaIi0K2197K7tbEioaIi
-1rTQ0LK7x78itcjOyszioaO007Htw+bJz7+0yLfKtcrH1eLQqc7KzOKho9fQz7jP68/ro6zSstDt
-xOO74beiz9bSu9Cp0snOyqO6xNG1wMjL0+vIy9auvOS+zcTHw7TE0dLUubXNqMLwo7+yv8PF1q68
-5MTRtcC+zcTHw7TE0dLU0K2198Lwo7/K9M/CxNG1wL7NsrvP67DRuaTX983qs8nC8KO/ttS0y87K
-zOLE49PQus640M/ro78KMqGiyOe5+8u1udzA7crH0rvDxdLVyvWjrLb40tXK9dfuvqu7qrXEvs3K
-x7S00uKho9f3zqrSu8P71tC7+bLjwey1vNXfo6zD5rbU0MLJ+rT6u/LV38HtwOC1xNSxuaTIuszl
-o6zU2rn9zfm1xLncwO25/bPM1tDL+df2tcTSu8fQo6zKx8/IyMPE47vyxOO1xMnPy7640NDLyKSj
-rLu5ysfPyMjD1LG5pLjQ0MvIpMTYo7+53MDttcS0tNLixOPT0MHLwvCjv9SxuaS21MTjtcS53MDt
-uNDQy8ikwcvC8KO/08XQ47XE1LG5pMbkyrXQ6NKquPzTxdDjtcS53MDt1d+howogICAgIDOhos2o
-uf24w7/Os8zO0sPH0tG+rdaqtcDBy8jLtcS12tK718qy+srHyMu48dfw0c+ho8DtveLG8MC0xuTK
-tbrcyN3S16Osv8nKx9f2xvDAtNXmtcS63MTRoaPU2r3xuvO1xLmk1/fW0MTjtPLL49T10fnIpbGj
-u6S6w9SxuaS1xMjLuPHX8NHPoaMKo6i2/qOpyrW8+bK/t90KICAgICAxoaK+obnc1tC5+sbz0rW1
-xNK7z9/UsbmkxuTKtdLRvq263NPF0OPBy6OstavU2rmks6e78rO1vOTWu9Kqs/bP1tbKwb/Oyszi
-u/LV38rHvbvG2s7KzOKjrNSxuaS7ucrH1+/U8MTRzNOho7G+v86zzM3quvPE47vYtb25q8u+s+nL
-xLj20KHKsbXEyrG85NW+tb3Su7j2ytO+9cG8usO1xLXYt72527Ls0rvPwsTjtcTUsbmk1/fStbXE
-17TMrKOsvs274cP3sNfWysG/zqrKssO0srvOyLaoo6y/tMnPyKXIyLvws6/M7M6qyrLDtNfcyse9
-u7K7s/a79aGjx+vE47nbsuy689XSs/bUrdLysqK7rsfl1+/U8KGjCiAgICAgMqGisb6/zrPMzeqz
-ybrzx+vE47vYtb25q8u+08PSu9XFQTO1xNa9sNHE47XEs7W85Ma9w+bNvLuuz8LAtKGj1NnTw7Dr
-zOy1xMqxvOS527Lss7W85LXEyrW8ysjLwfehos7vwfehotDFz6LB98/W17SjrLKisNHDv9K7tM7B
-97avwrfP39TaQTPWvcnPvfjQ0MGsvdOho8frxOPU2b+0v7TEx9XFxr3D5s28ysfKssO017S/9qOs
-sqLTybTLzca2z8Tjtb2117P2wcvKssO0zsrM4qGjCiAgICAgM6GixL/HsNbQufq5pLOnw7/M7Ly4
-uvXWu9TazqrSu7j2zsrM4sOmwrWjrMTHvs3Kx7jPu/WjobW9tdfKx7aptaXBv8yrtPPDu7eos9DK
-3KOsu7nKx7XEyLfJ+rL6xNzBptPQz96jrLvy1d/Kx8n6svrQp8LKzKu1zcTYo7/V4rj2zsrM4sv5
-09DIy7a8xNy08LXDyc/AtKOstavT1tPQvLi49sjLtcS08LC4yse21LXExNijv8jnufvL+dPQyMu2
-vLTwttTBy6OsxMfOqsqyw7S7ucrHzOzM7NXi0fmjv7bUtMvE49PQus640M/ro78KCteovNK96cnc
-CrPC1r67qi9TVEVWRU4gQ0hBTgogCdbG1Oy53MDt16i80i+5pMnMudzA7cu2yr8KIAlNTUOjqNbG
-1Oy53MDt1tDQxKOp18rJ7rnLzsoKIAnN0MLty7nG87nco6/QwrvuwabF4NG1zfjK18+vvbLKpiAg
-ICAgICAgICAKs8LAz8qmwPrIzsrAvefO5bDZx7/I1dfKxvPStcnosbjW97ncoaK5pNLVv6q3or6t
-wO2hotbG1Oy+rcDttcjWsKGj1Nq5+rzK1qrD+9bG1OzG89K1yM7WsMqxvOSzpLTvyq7I/cTqoaO0
-08rC1rDStb2yyqbJ+tHEyq7E6qGjsru1q9O109C34bi7tcTP1rOhudzA7cq11b2+rcD6LLb4x9K5
-pNf3xuS85MqmtNPQobSo0rvSsqOoyNWxvldGJklF0dC+v7Xa0rvIy6OsyNWxvtbG1OzStdHQvr+1
-xLn6saa8tsjLzu+jqaOs16jStdHQvr+5pNK1uaSzzLncwO26zcH3z9+7r8n6svqho9PIxuS+q82o
-tefX06Giu/rQtSi5pLPMu/rQtS/G+7O11sbU7C+0rLKw1sbU7CmhotbG0qmhotDCssTBz7XI1sbU
-7Mbz0rW1xL6rz7i7r7ncwO2hoyLKtdW90NTHv9PryrXTw9DUx7+jrLykx+nTxMSsIsrH0rW957bU
-s8LAz8qmtcTSu9bCxsC826GjCsjO1sbU7NK1vbLKptPr18nRr8qmyq7E6tLUwLSjrNLR1vrNxrbg
-vNLD8dOqxvPStcq1z9bBy7/n1L3Kvbei1bmho86qufrE2s3iyc/Hp7zSxvPStbXEudzA7cjL1LGh
-orbgy/m439Cj0afJ+qGisr+31rn6vNK8tr6tv6rH+Mzhuam5/cXg0bW78riotbyho7PCwM/KptT4
-vq24qLW8u/LF4NG1uf21xMbz0rXT0KO61tC5+tbQteehotbQufrW0Mz6oaLW0Ln6usu5pNK1IKGi
-1tC5+sn6zu/Wxsa3IKGi1tC0rLyvzcWhotbQwsG8r83FoaLW0LXn1fG7qigwODO+/LmkKSChotbQ
-ufrKr9PNoaLW0Ln6xM+ztaGiyP3Su9bYuaShotDs1t3W2LmkoaLN/sqkvK/NxaGiv8bBptS2KNDC
-ssTBzykgoaLQwruqwaq8r83FoaK7qsjzvK/NxaGiwarP67yvzcWhosvJz8K/1bX3IKGiv6jO98W3
-tefX0yChoszsy667qszsIKGizvfDxdfTsfnP5KGitqu357G+zO+3oravu/qhorqj0MW8r83FoaLG
-5sjwxvuztaGiva3B5cb7s7WhotK7xvuhorS0zqy8r83FoaK4u8q/yqnA1qGitqvI7bfJwPvG0aGi
-va3S9b+j9s6/xry8oaLPyLfm0qnStaGisNnA9tCs0rWhor7F0fS80rXnoaLDwLXEvNLTw7Xnxveh
-osTPtry159S0tq/BpqGisMLN0MGit/KhokNUU6GiybPKv7yqtPLW2Lmko6i1wrn6o6mhorXCufqx
-tLb7oaLToszhtvujqLzTxMO086OpoaLSwbjqtvu158b4tcihowqzwsDPyqbW+NPQoba3tMqh1tC5
-+sq9uaSzp7ncwO2ht6GiobY5MLrz0rvP39SxuaS53MDtobe1yMrpvK6ho7Kiyty63LbgxvPStbXE
-yMjF9dPr1qez1qGjobbIq8Tc0M2ztbzk1vfIzsq11b28vMTc0bXBt6G3oaKhtsDNtq+2qLbuudzA
-7c+1zbO5udb+obehoqG2serXvLmkyrHT68n6svrP38a9uuK53MDtyrXVvaG3oaKhtlRUVDM2MLbI
-vLzE3Mzhyf3RtcG3obehoqG2vqvS5sn6svq829a1wffM5c+1tcS5ub2oobe1yL/OzOK1xMq11b3Q
-1KGiyrXTw9DUyty1vbn6xNrN4sbz0rW1xLjftsjIz7/Jus3Rp9SxtcTSu9bCusPGwKOhICAKCqG2
-yKvE3NDNs7W85Nb3yM7KtdW9vLzE3KG3sajD+7vY1rQKICjU2s/fsajD+8frz8LU2Li9vP6xqMP7
-u9jWtLHtzO7QtLrzt6LLzSDWwdDFz+QgNjk4MzQzNkBxcS5jb22jqQq1pc67w/uzxqO6X19fX19f
-X19fX19fX19fX19fX19fX19fCreixrHMp823o7pfX19fX19fX19fX19fX19fX19fX19fX18gt6LG
-scTayN2juqH1MaGixeDRtbfRIKH1MqGiu+HO8bfRCrmry7612Na3X19fX19fX19fX19fX19fX19f
-X19fX19fCQrBqs+1yMujul9fX19fX19fX19ftee7sKO6X19fX19fX19fX1/K1rv6o7pfX19fX19f
-X19fXwkK1rDO8aO6X19fX19fX19fX1+0q9Xmo7pfX19fX19fX19fX0UtbWFpbKO6X19fX19fX19f
-X18Kss674cjLyv2jul9fX1/Iywmyzrvht9HTw6O6IF9fX1/UqgkKuLa/7re9yr2juqH1MaGiz9a9
-8CCh9TKhoteq1coKss6809Gn1LHD+7Wlo7oK0NXD+6O6X19fX19fX19fX1/WsM7xo7pfX19fX19f
-X19fX8rWILv6o7pfX19fX19fX19fX0UtbWFpbKO6X19fX19fX19fX18K0NXD+6O6X19fX19fX19f
-X1/WsM7xo7pfX19fX19fX19fX8rWILv6o7pfX19fX19fX19fX0UtbWFpbKO6X19fX19fX19fX18J
-CQkJCtDVw/ujul9fX19fX19fX19f1rDO8aO6X19fX19fX19fX1/K1iC7+qO6X19fX19fX19fX19F
-LW1haWyjul9fX19fX19fX19fCQkJCQrQ1cP7o7pfX19fX19fX19fX9awzvGjul9fX19fX19fX19f
-ytYgu/qjul9fX19fX19fX19fRS1tYWlso7pfX19fX19fX19fXwkJCQkK0NXD+6O6X19fX19fX19f
-X1/WsM7xo7pfX19fX19fX19fX8rWILv6o7pfX19fX19fX19fX0UtbWFpbKO6X19fX19fX19fX18g
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAoKLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLSAKCgq3oiDLzSDKsSC85DoyMDE2LTEyLTEyICAwMDoyNDo0NApfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
-aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
-bi9saXN0aW5mby9saW51eC1udmRpbW0K
+Hi, Dan,
+
+Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
+
+>>From [PATCH 6/8] dax: sub-division support:
+>
+> Device-DAX is a mechanism to establish mappings of performance / feature
+> differentiated memory with strict fault behavior guarantees.  With
+> sub-division support a platform owner can provision sub-allocations of a
+> dax-region into separate devices. The provisioning mechanism follows the
+> same scheme as the libnvdimm sub-system in that a 'seed' device is
+> created at initialization time that can be resized from zero to become
+> enabled.
+>
+> Unlike the nvdimm sub-system there is no on media labelling scheme
+> associated with this partitioning. Provisioning decisions are ephemeral
+> / not automatically restored after reboot. While the initial use case of
+> device-dax is persistent memory other uses case may be volatile, so the
+> device-dax core is unable to assume the underlying memory is pmem.  The
+> task of recalling a partitioning scheme or permissions on the device(s)
+> is left to userspace.
+
+Can you explain this reasoning in a bit more detail, please?  If you
+have specific use cases in mind, that would be helpful.
+
+> For persistent allocations, naming, and permissions automatically
+> recalled by the kernel, use filesystem-DAX. For a userspace helper
+
+I'd agree with that guidance if it wasn't for the fact that device dax
+was born out of the need to be able to flush dirty data in a safe manner
+from userspace.  At best, we're giving mixed guidance to application
+developers.
+
+-Jeff
+
+> library and utility for manipulating device-dax instances see libdaxctl
+> and the daxctl utility here: https://github.com/pmem/ndctl
+>
+> ---
+>
+> Dan Williams (8):
+>       dax: add region-available-size attribute
+>       dax: add region 'id', 'size', and 'align' attributes
+>       dax: register seed device
+>       dax: use multi-order radix for resource lookup
+>       dax: refactor locking out of size calculation routines
+>       dax: sub-division support
+>       dax: add / remove dax devices after provisioning
+>       dax: add debug for region available_size
+>
+>
+>  drivers/dax/Kconfig |    1 
+>  drivers/dax/dax.c   |  747 ++++++++++++++++++++++++++++++++++++++++++++++++---
+>  2 files changed, 698 insertions(+), 50 deletions(-)
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
