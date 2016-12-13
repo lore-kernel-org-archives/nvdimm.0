@@ -1,9 +1,13 @@
-From: =?GB2312?B?x9iXkr6w?= <xghkuina-N4dvsYl/OxNWk0Htik3J/w@public.gmane.org>
-Subject: =?GB2312?B?bGludXgtbnZkaW1tL8/WtPq7r8bz0rW1tbC4udzA7Q==?=
-Date: Wed, 14 Dec 2016 06:52:47 +0800
-Message-ID: <20161213225249.570F4821CA@ml01.01.org>
+From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/8] device-dax: sub-division support
+Date: Tue, 13 Dec 2016 18:46:09 -0500
+Message-ID: <x494m278kam.fsf@segfault.boston.devel.redhat.com>
+References: <148143770485.10950.13227732273892953675.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <x497f75hxwp.fsf@segfault.boston.devel.redhat.com>
+ <CAPcyv4hq=U8YkYqK4OE__FQyeGq2dKH+=14NttQu0M84yXZ7BQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6001040686359616624=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -14,31 +18,125 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format
+Hi, Dan,
 
---===============6001040686359616624==
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+In general, I have a couple of concerns with this patchset:
+1) You're making a case that subdivision shouldn't be persistent, which
+   means that all of the code we already have for subdividing devices
+   (partitions, libnvdimm) has to be re-invented in userspace, and
+   existing tools can't be used to manage nvdimms.
+2) You're pushing file system features into a character device.
 
+I think that using device dax for both volatile and non-volatile
+memories is a mistake.  For persistent memory, I think users would want
+any subdivision to be persistent.  I also think that using a familiar
+storage model, like block devices and partitions, would make a heck of a
+lot more sense than this proposal.  For volatile use cases, I don't have
+a problem with what you've proposed.  But then, I don't really think too
+much about those use cases, either, so maybe I'm not the best person to
+ask.
 
-To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+So, in my opinion, you should make device dax all about the volatile use
+case and we can go back to pushing dax for block devices to support use
+cases like big databases and passing NVDIMMs into VMs.  Yes, I'm signing
+up to help.
 
-■课■程■大■纲■烦■请■查■收■附■件■
+More detailed responses are inline below.
 
-发 送 时 间:2016-12-14  06:52:46
+Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
 
---===============6001040686359616624==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> On Mon, Dec 12, 2016 at 9:15 AM, Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>> Hi, Dan,
+>>
+>> Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
+>>
+>>>>From [PATCH 6/8] dax: sub-division support:
+>>>
+>>> Device-DAX is a mechanism to establish mappings of performance / feature
+>>> differentiated memory with strict fault behavior guarantees.  With
+>>> sub-division support a platform owner can provision sub-allocations of a
+>>> dax-region into separate devices. The provisioning mechanism follows the
+>>> same scheme as the libnvdimm sub-system in that a 'seed' device is
+>>> created at initialization time that can be resized from zero to become
+>>> enabled.
+>>>
+>>> Unlike the nvdimm sub-system there is no on media labelling scheme
+>>> associated with this partitioning. Provisioning decisions are ephemeral
+>>> / not automatically restored after reboot. While the initial use case of
+>>> device-dax is persistent memory other uses case may be volatile, so the
+>>> device-dax core is unable to assume the underlying memory is pmem.  The
+>>> task of recalling a partitioning scheme or permissions on the device(s)
+>>> is left to userspace.
+>>
+>> Can you explain this reasoning in a bit more detail, please?  If you
+>> have specific use cases in mind, that would be helpful.
+> 
+> A few use cases are top of mind:
+>
+> * userspace persistence support: filesystem-DAX as implemented in XFS
+> and EXT4 requires filesystem coordination for persistence, device-dax
+> does not. An application may not need a full namespace worth of
+> persistent memory, or may want to dynamically resize the amount of
+> persistent memory it is consuming. This enabling allows online resize
+> of device-dax file/instance.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+OK, so you've now implemented file extending and truncation (and block
+mapping, I guess).  Where does this end?  How many more file-system
+features will you add to this character device?
 
---===============6001040686359616624==--
+> * allocation + access mechanism for performance differentiated memory:
+> Persistent memory is one example of a reserved memory pool with
+> different performance characteristics than typical DRAM in a system,
+> and there are examples of other performance differentiated memory
+> pools (high bandwidth or low latency) showing up on commonly available
+> platforms. This mechanism gives purpose built applications (high
+> performance computing, databases, etc...) a way to establish mappings
+> with predictable fault-granularities and performance, but also allow
+> for different permissions per allocation.
+
+So, how would an application that wishes to use a device-dax subdivision
+of performance differentiated memory get access to it?
+1) administrator subdivides space and assigns it to a user
+2) application gets to use it
+
+Something like that?  Or do you expect applications to sub-divide the
+device-dax instance programmatically?  Why wouldn't you want the mapping
+to live beyond a single boot?
+
+> * carving up a PCI-E device memory bar for managing peer-to-peer
+> transactions: In the thread about enablling P2P DMA one of the
+> concerns that was raised was security separation of different users of
+> a device: http://marc.info/?l=linux-kernel&m=148106083913173&w=2
+
+OK, but I wasn't sure that there was consensus in that thread.  It
+seemed more likely that the block device ioctl path would be pursued.
+If this is the preferred method, I think you should document their
+requirements and show how the implementation meets them, instead of
+leaving that up to reviewers.  Or, at the very least, CC the interested
+parties?
+
+>>> For persistent allocations, naming, and permissions automatically
+>>> recalled by the kernel, use filesystem-DAX. For a userspace helper
+>>
+>> I'd agree with that guidance if it wasn't for the fact that device dax
+>> was born out of the need to be able to flush dirty data in a safe manner
+>> from userspace.  At best, we're giving mixed guidance to application
+>> developers.
+>
+> Yes, but at the same time device-DAX is sufficiently painful (no
+> read(2)/write(2) support, no builtin metadata support) that it may
+> spur application developers to lobby for a filesystem that offers
+> userspace dirty-data flushing. Until then we have this vehicle to test
+> the difference and dax-support for memory types beyond persistent
+> memory.
+
+Let's just work on the PMEM_IMMUTABLE flag that Dave suggested[1] and
+make device dax just for volatile memories.
+
+-Jeff
+
+[1] http://lkml.iu.edu/hypermail/linux/kernel/1609.1/05372.html
