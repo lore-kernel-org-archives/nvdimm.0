@@ -1,52 +1,35 @@
-From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [ext4]  e2ae766c1b:
- BUG:sleeping_function_called_from_invalid_context_at_kernel/locking/rwsem.c
-Date: Tue, 13 Dec 2016 09:47:48 +0100
-Message-ID: <20161213084748.GA15362@quack2.suse.cz>
-References: <20161212101321.GA37214@inn.lkp.intel.com>
- <20161212163518.GA20728@quack2.suse.cz>
- <20161212221329.GB3622@linux.intel.com>
- <20161212223735.t56oui7vlqhquaks@thunk.org>
- <20161212224851.GA691@linux.intel.com>
- <20161212230020.pbl5wnbqqdgcewlg@thunk.org>
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: Re: [PATCH 0/6 v3] dax: Page invalidation fixes
+Date: Tue, 13 Dec 2016 15:42:31 -0500
+Message-ID: <20161213204231.k2kdsdxqgtqjqzo4@thunk.org>
+References: <20161212164708.23244-1-jack@suse.cz>
+ <20161213115209.GG15362@quack2.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <20161212230020.pbl5wnbqqdgcewlg-AKGzg7BKzIDYtjvyW6yDsg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>
-Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, kernel test robot <xiaolong.ye-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkp-JC7UmRfGjtg@public.gmane.org
+In-Reply-To: <20161213115209.GG15362@quack2.suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-mm@kvack.org, linux-ext4@vger.kernel.org, Johannes Weiner <hannes@cmpxchg.org>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@ml01.01.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon 12-12-16 18:00:20, Ted Tso wrote:
-> On Mon, Dec 12, 2016 at 03:48:51PM -0700, Ross Zwisler wrote:
-> > On Mon, Dec 12, 2016 at 05:37:36PM -0500, Theodore Ts'o wrote:
-> > > Is this problem likely to happen in other file systems?  Should I take
-> > > this path through the ext4 tree, or would it be better via some other
-> > > git tree?
-> > > 
-> > > 					- Ted
-> > 
-> > The problem is in the generic DAX code and affects ext4 and xfs equally (ext2
-> > doesn't support PMDs).
-> 
-> Any preferences about how to send this patch to Linus?  This issue is
-> the only thing that was causing me to hold off on sending a pull
-> request to Linus....
+On Tue, Dec 13, 2016 at 12:52:09PM +0100, Jan Kara wrote:
+> OK, with the final ack from Johannes and since this is mostly DAX stuff,
+> can we take this through NVDIMM tree and push to Linus either late in the
+> merge window or for -rc2? These patches require my DAX patches sitting in mm
+> tree so they can be included in any git tree only once those patches land
+> in Linus' tree (which may happen only once Dave and Ted push out their
+> stuff - this is the most convoluted merge window I'd ever to deal with ;-)...
+> Dan?
 
-Yeah, just take it unless Dave already did.
+I've sent out the pull request for ext4.... which includes the
+dax-4.0-iomap-pmd and fscrypt branch.  Yes, convoluted.  :-)
 
-								Honza
--- 
-Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
-SUSE Labs, CR
+		      	      	       	    - Ted
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
