@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2CC6F81A33
- for <linux-nvdimm@lists.01.org>; Wed, 14 Dec 2016 11:55:25 -0800 (PST)
-Subject: [PATCH v2 1/3] dax: masking off __GFP_FS in fs DAX handlers
+ by ml01.01.org (Postfix) with ESMTPS id BD25781F8A
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Dec 2016 16:15:06 -0800 (PST)
+Subject: [PATCH 3/3] dev-dax: add fallocate support to clear poison
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 14 Dec 2016 12:55:23 -0700
-Message-ID: <148174532372.194339.4875475197715168429.stgit@djiang5-desk3.ch.intel.com>
+Date: Mon, 12 Dec 2016 17:15:03 -0700
+Message-ID: <148158810339.159590.9709505860734074382.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <148158809239.159590.16102609849408268953.stgit@djiang5-desk3.ch.intel.com>
+References: <148158809239.159590.16102609849408268953.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,164 +22,241 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-mm@kvack.org, tytso@mit.edu, hch@lst.de
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The callers into dax needs to clear __GFP_FS since they are responsible
-for acquiring locks / transactions that block __GFP_FS allocation. They
-will restore the lag when dax function return.
+Adding fallocate support to device-dax. This implements FALLOC_FL_PUNCH_HOLE
+in order to allow clearing of badblocks/poison list.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- fs/dax.c          |    1 +
- fs/ext2/file.c    |    9 ++++++++-
- fs/ext4/file.c    |   10 +++++++++-
- fs/xfs/xfs_file.c |   14 +++++++++++++-
- 4 files changed, 31 insertions(+), 3 deletions(-)
+ drivers/dax/dax-private.h |    1 +
+ drivers/dax/dax.c         |   28 +++++++++++++++++--
+ drivers/dax/dax.h         |    4 ++-
+ drivers/dax/pmem.c        |   68 ++++++++++++++++++++++++++++++++++++++++++++-
+ fs/open.c                 |    2 +
+ 5 files changed, 97 insertions(+), 6 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index d3fe880..6395bc6 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1380,6 +1380,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
- 	vmf.pgoff = pgoff;
- 	vmf.flags = flags;
- 	vmf.gfp_mask = mapping_gfp_mask(mapping) | __GFP_IO;
-+	vmf.gfp_mask &= ~__GFP_FS;
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+index 56f80d2..42ab18d 100644
+--- a/drivers/dax/dax-private.h
++++ b/drivers/dax/dax-private.h
+@@ -38,6 +38,7 @@ struct dax_dev {
+ 	int num_resources;
+ 	struct resource **res;
+ 	void *private;
++	const struct file_operations *fops;
+ };
  
- 	switch (iomap.type) {
- 	case IOMAP_MAPPED:
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index b0f2415..8422d5f 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -92,16 +92,19 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- 	struct inode *inode = file_inode(vma->vm_file);
- 	struct ext2_inode_info *ei = EXT2_I(inode);
- 	int ret;
-+	gfp_t old_gfp = vmf->gfp_mask;
+ #endif
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 32c9a7f..cc02ea3 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -22,6 +22,7 @@
+ #include <linux/dax.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/falloc.h>
+ #include "dax.h"
+ #include "dax-private.h"
  
- 	if (vmf->flags & FAULT_FLAG_WRITE) {
- 		sb_start_pagefault(inode->i_sb);
- 		file_update_time(vma->vm_file);
- 	}
-+	vmf->gfp_mask &= ~__GFP_FS;
- 	down_read(&ei->dax_sem);
+@@ -394,6 +395,12 @@ void *dax_dev_get_private(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(dax_dev_get_private);
  
- 	ret = dax_iomap_fault(vma, vmf, &ext2_iomap_ops);
- 
- 	up_read(&ei->dax_sem);
-+	vmf->gfp_mask = old_gfp;
- 	if (vmf->flags & FAULT_FLAG_WRITE)
- 		sb_end_pagefault(inode->i_sb);
- 	return ret;
-@@ -114,6 +117,7 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
- 	struct ext2_inode_info *ei = EXT2_I(inode);
- 	loff_t size;
- 	int ret;
-+	gfp_t old_gfp = vmf->gfp_mask;
- 
- 	sb_start_pagefault(inode->i_sb);
- 	file_update_time(vma->vm_file);
-@@ -123,8 +127,11 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
--	else
-+	else {
-+		vmf->gfp_mask &= ~__GFP_FS;
- 		ret = dax_pfn_mkwrite(vma, vmf);
-+		vmf->gfp_mask = old_gfp;
-+	}
- 
- 	up_read(&ei->dax_sem);
- 	sb_end_pagefault(inode->i_sb);
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index d663d3d..a3f2bf0 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -261,14 +261,17 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- 	struct inode *inode = file_inode(vma->vm_file);
- 	struct super_block *sb = inode->i_sb;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-+	gfp_t old_gfp = vmf->gfp_mask;
- 
- 	if (write) {
- 		sb_start_pagefault(sb);
- 		file_update_time(vma->vm_file);
- 	}
-+	vmf->gfp_mask &= ~__GFP_FS;
- 	down_read(&EXT4_I(inode)->i_mmap_sem);
- 	result = dax_iomap_fault(vma, vmf, &ext4_iomap_ops);
- 	up_read(&EXT4_I(inode)->i_mmap_sem);
-+	vmf->gfp_mask = old_gfp;
- 	if (write)
- 		sb_end_pagefault(sb);
- 
-@@ -320,8 +323,13 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
--	else
-+	else {
-+		gfp_t old_gfp = vmf->gfp_mask;
++struct device *dax_dev_get_device(struct dax_dev *dax_dev)
++{
++	return &dax_dev->dev;
++}
++EXPORT_SYMBOL_GPL(dax_dev_get_device);
 +
-+		vmf->gfp_mask &= ~__GFP_FS;
- 		ret = dax_pfn_mkwrite(vma, vmf);
-+		vmf->gfp_mask = old_gfp;
-+	}
- 	up_read(&EXT4_I(inode)->i_mmap_sem);
- 	sb_end_pagefault(sb);
+ void dax_dev_set_private(struct dax_dev *dax_dev, void *priv)
+ {
+ 	dax_dev->private = priv;
+@@ -797,7 +804,7 @@ static ssize_t dax_dev_resize(struct dax_region *dax_region,
+ 			&& &dax_dev->dev == dax_region->seed) {
+ 		struct dax_dev *seed;
  
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index d818c16..52202b4 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1474,7 +1474,11 @@ xfs_filemap_page_mkwrite(
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-		seed = devm_create_dax_dev(dax_region, NULL, 0, NULL);
++		seed = devm_create_dax_dev(dax_region, NULL, 0, NULL, NULL);
+ 		if (IS_ERR(seed))
+ 			dev_warn(dax_region->dev,
+ 					"failed to create new region seed\n");
+@@ -1114,6 +1121,17 @@ static int dax_release(struct inode *inode, struct file *filp)
+ 	return 0;
+ }
  
- 	if (IS_DAX(inode)) {
-+		gfp_t old_gfp = vmf->gfp_mask;
++static long dax_fallocate(struct file *file, int mode,
++		loff_t offset, loff_t len)
++{
++	struct dax_dev *dax_dev = file->private_data;
 +
-+		vmf->gfp_mask &= ~__GFP_FS;
- 		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
-+		vmf->gfp_mask = old_gfp;
- 	} else {
- 		ret = iomap_page_mkwrite(vma, vmf, &xfs_iomap_ops);
- 		ret = block_page_mkwrite_return(ret);
-@@ -1502,13 +1506,16 @@ xfs_filemap_fault(
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 	if (IS_DAX(inode)) {
-+		gfp_t old_gfp = vmf->gfp_mask;
- 		/*
- 		 * we do not want to trigger unwritten extent conversion on read
- 		 * faults - that is unnecessary overhead and would also require
- 		 * changes to xfs_get_blocks_direct() to map unwritten extent
- 		 * ioend for conversion on read-only mappings.
- 		 */
-+		vmf->gfp_mask &= ~__GFP_FS;
- 		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
-+		vmf->gfp_mask = old_gfp;
- 	} else
- 		ret = filemap_fault(vma, vmf);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-@@ -1581,8 +1588,13 @@ xfs_filemap_pfn_mkwrite(
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
--	else if (IS_DAX(inode))
-+	else if (IS_DAX(inode)) {
-+		gfp_t old_gfp = vmf->gfp_mask;
++	if (dax_dev->fops)
++		return dax_dev->fops->fallocate(file, mode, offset, len);
 +
-+		vmf->gfp_mask &= ~__GFP_FS;
- 		ret = dax_pfn_mkwrite(vma, vmf);
-+		vmf->gfp_mask = old_gfp;
++	return -EOPNOTSUPP;
++}
++
+ static const struct file_operations dax_fops = {
+ 	.llseek = noop_llseek,
+ 	.owner = THIS_MODULE,
+@@ -1121,6 +1139,7 @@ static const struct file_operations dax_fops = {
+ 	.release = dax_release,
+ 	.get_unmapped_area = dax_get_unmapped_area,
+ 	.mmap = dax_mmap,
++	.fallocate = dax_fallocate,
+ };
+ 
+ static void dax_dev_release(struct device *dev)
+@@ -1138,7 +1157,8 @@ static void dax_dev_release(struct device *dev)
+ 
+ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+ 		struct resource *res, int count,
+-		const struct attribute_group **groups)
++		const struct attribute_group **groups,
++		const struct file_operations *fops)
+ {
+ 	struct device *parent = dax_region->dev;
+ 	struct dax_dev *dax_dev;
+@@ -1260,10 +1280,12 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+ 	if (rc)
+ 		return ERR_PTR(rc);
+ 
++	dax_dev->fops = fops;
++
+ 	if (atomic_inc_return(&dax_region->child_count) == 1) {
+ 		struct dax_dev *seed;
+ 
+-		seed = devm_create_dax_dev(dax_region, NULL, 0, NULL);
++		seed = devm_create_dax_dev(dax_region, NULL, 0, NULL, fops);
+ 		if (IS_ERR(seed))
+ 			dev_warn(parent, "failed to create region seed\n");
+ 		else
+diff --git a/drivers/dax/dax.h b/drivers/dax/dax.h
+index c23c7ac..6a31a74 100644
+--- a/drivers/dax/dax.h
++++ b/drivers/dax/dax.h
+@@ -24,8 +24,10 @@ struct dax_region *alloc_dax_region(struct device *parent,
+ 		void *addr, unsigned long flags);
+ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+ 		struct resource *res, int count,
+-		const struct attribute_group **groups);
++		const struct attribute_group **groups,
++		const struct file_operations *fops);
+ void *dax_dev_get_private(struct device *dev);
+ void dax_dev_set_private(struct dax_dev *dax_dev, void *priv);
++struct device *dax_dev_get_device(struct dax_dev *dax_dev);
+ 
+ #endif /* __DAX_H__ */
+diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+index 808d3bb..ccf72b4 100644
+--- a/drivers/dax/pmem.c
++++ b/drivers/dax/pmem.c
+@@ -15,6 +15,7 @@
+ #include <linux/module.h>
+ #include <linux/pfn_t.h>
+ #include <linux/badblocks.h>
++#include <linux/falloc.h>
+ #include "../nvdimm/pfn.h"
+ #include "../nvdimm/nd.h"
+ #include "dax.h"
+@@ -24,6 +25,69 @@ struct dax_pmem {
+ 	struct percpu_ref ref;
+ 	struct completion cmp;
+ 	struct badblocks bb;
++	resource_size_t start;
++	resource_size_t end;
++};
++
++static void dax_pmem_clear_poison(struct dax_pmem *dax_pmem,
++		loff_t offset, loff_t len)
++{
++	sector_t sector;
++	long cleared;
++
++	sector = offset >> 9;
++	cleared = nvdimm_clear_poison(dax_pmem->dev,
++			dax_pmem->start + offset, len);
++
++	if ((cleared > 0) && (cleared >> 9)) {
++		dev_dbg(dax_pmem->dev, "%s: %#llx clear %ld sector%s\n",
++				__func__, (unsigned long long)sector,
++				cleared >> 9, cleared >> 9 > 1 ? "s" : "");
++		badblocks_clear(&dax_pmem->bb, sector, cleared >> 9);
 +	}
- 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
++}
++
++static long dax_pmem_fallocate(struct file *file, int mode,
++		loff_t start, loff_t len)
++{
++	struct dax_dev *dax_dev = file->private_data;
++	struct device *dev;
++	struct dax_pmem *dax_pmem;
++	loff_t end = start + len - 1;
++	loff_t res_size;
++
++	dev = dax_dev_get_device(dax_dev);
++	dax_pmem = dax_dev_get_private(dev);
++	res_size = dax_pmem->end - dax_pmem->start + 1;
++
++	dev_dbg(dev, "fallocate mode: %#x, start: %#llx, len: %llu\n",
++			mode, start, len);
++	dev_dbg(dev, "res start: %#llx end: %#llx size: %llu\n",
++			dax_pmem->start, dax_pmem->end, res_size);
++
++	/* check size boundares */
++	if (start >= dax_pmem->end)
++		return -EINVAL;
++	if (end >= res_size) {
++		if (mode & FALLOC_FL_KEEP_SIZE)
++			len = res_size - start;
++		else
++			return -EINVAL;
++	}
++
++	switch (mode) {
++	case FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE:
++		dax_pmem_clear_poison(dax_pmem, start, len);
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++
++	return 0;
++}
++
++static const struct file_operations pmem_fops = {
++	.fallocate = dax_pmem_fallocate,
+ };
+ 
+ static ssize_t dax_pmem_badblocks_show(struct device *dev,
+@@ -158,8 +222,10 @@ static int dax_pmem_probe(struct device *dev)
+ 
+ 	/* TODO: support for subdividing a dax region... */
+ 	dax_dev = devm_create_dax_dev(dax_region, &res, 1,
+-			dax_pmem_attribute_groups);
++			dax_pmem_attribute_groups, &pmem_fops);
+ 	dax_dev_set_private(dax_dev, dax_pmem);
++	dax_pmem->start = res.start;
++	dax_pmem->end = res.end;
+ 
+ 	rc = devm_init_badblocks(dev, &dax_pmem->bb);
+ 	if (rc)
+diff --git a/fs/open.c b/fs/open.c
+index d3ed817..15325fd 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -306,7 +306,7 @@ int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
+ 	 * for directories or not.
+ 	 */
+ 	if (!S_ISREG(inode->i_mode) && !S_ISDIR(inode->i_mode) &&
+-	    !S_ISBLK(inode->i_mode))
++	    !S_ISBLK(inode->i_mode) && !S_ISCHR(inode->i_mode))
+ 		return -ENODEV;
+ 
+ 	/* Check for wrap through zero too */
 
 _______________________________________________
 Linux-nvdimm mailing list
