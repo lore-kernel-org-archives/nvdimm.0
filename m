@@ -1,11 +1,15 @@
-From: "kvedqoaco" <hwm-M859o4prNc9g9hUCZPvPmw@public.gmane.org>
-Subject: =?utf-8?B?5ZCM5a2m77yM6L+Y5aW95ZCX77yf?=
-Date: Wed, 14 Dec 2016 18:04:51 +0800
-Message-ID: <20161214180503673630@bjxespvc.org>
+From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/3] dev-dax: add support to display badblocks in sysfs
+ for dev-dax
+Date: Wed, 14 Dec 2016 16:12:40 -0500
+Message-ID: <x491sxadxkn.fsf@segfault.boston.devel.redhat.com>
+References: <148158809239.159590.16102609849408268953.stgit@djiang5-desk3.ch.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <148158809239.159590.16102609849408268953.stgit-Cxk7aZI4ujnJARH06PadV2t3HXsI98Cx0E9HWUfgJXw@public.gmane.org>
+ (Dave Jiang's message of "Mon, 12 Dec 2016 17:14:52 -0700")
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,105 +19,198 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-44CK562WLOeVpSzmgKcs6ZSALOWUrizmioAs5ben44CL6ZSALOWUrizlhqAs5YabMuWkqSzlvLos
-5YyW5LmL5peFDQoNCg0KMjAxNuW5tDEy5pyIMTctMTjmt7HlnLMgIA0K44CQ5Y+C5Yqg5a+5LOix
-oeOAkSAg5pyJ5LiA5a6a57uP6aqM55qE6ZSA5ZSu5Lia5Yqh5Lq65ZGY44CB6ZSA5ZSu5Lia5Yqh
-5Li7566hIA0K44CQ5o6I6K++5pa5LOW8j+OAkSAg6K6y5biI6K6y6Kej44CB5pWF5LqL5qGI5L6L
-44CB5bCP57uE6K6o6K6644CB5Zui6Zif5ri45oiP562J5ZCE56eN5LqS5Yqo5byP5Z+56K6t5pa5
-5byP44CCDQrjgJDlrabkuaDotLks55So44CRIDMsMiwwLDAs5ZyGLzLlpKkvMeS6uu+8iOWQq+iu
-sizkuYnjgIHljYgs6aSQ44CB56iOLOi0ueOAgeiMtizngrnnrYkg77yJDQrjgJDogZTns7vmlrks
-5byP44CRIDEzNSw0NDAxLDMzMTUgICBRIFE6OTcxNzAwNzMyKOWQjOW+ruS/oSkgIA0KDQror74s
-56iLLOiDjCzmma8NCuOAkOW4uOingemXrumimOOAkQ0KbCAg5Lia57up5Y6L5Yqb5aSn77yM5L2G
-6KaB5o+Q5Y2H5Lia57up5Y+I6KeJ5b6X5peg5LuO5LiL5omL77yM5oCO5LmI5Yqe77yfDQpsICDm
-iqXku7flkI7lrqLmiLflsLHmsqHmnInlm57lupTkuobvvIzmgI7kuYjlip7vvJ8NCmwgIOWuouaI
-t+aLv+edgOaIkeS7rOeahOaKpeS7t+S4juWIq+S6uuavlO+8jOivtOaIkeS7rOeahOS7t+agvOi0
-te+8jOaAjuS5iOWKnu+8nw0KbCAg5LiO5a6i5oi36IGU57uc5LiA5q615pe26Ze05LqG77yM5L2G
-5a6i5oi35LiA55u05LiN5LiL5Y2V77yM5oCO5LmI5Yqe77yfDQpsICDmj5DkvpvmoLflk4Hnu5nl
-rqLmiLfmtYvor5XlkI7vvIzlrqLmiLflsLHkuI3nkIbmiJHku6zkuobvvIzmgI7kuYjlip7vvJ8N
-CmwgIOW8gOWPkemZjOeUn+WuouaIt+aXtu+8jOacieayoeacieWlveeahOaWueazleWHj+WwkeeU
-teivneaIlumCruS7tueahOaLkue7neeOh++8nw0KbCAg5pS25Yiw5a6i5oi355qE6K+i55uY5ZCO
-77yM6K6k55yf5YiG5p6Q6L+H5a6i5oi355qE6ZyA5rGC5bm25Zue5aSN5LqG77yM5L2G5a6i5oi3
-5Y+N6aaI55qE5b6I5bCR77yM5oCO5LmI5Yqe77yfDQpsICDlpoLkvZXmiorogIHlrqLmiLfnmoTm
-u6HmhI/luqbovazljJbkuLrplIDph4/vvJ8NCuS7peS4iumXrumimO+8jOWcqOOAiuetlueVpeaA
-p+mUgOWUruaKgOW3p+OAi+S4remDveWwhuW+l+WIsOino+etlO+8gQ0KDQrjgJDor74s56iLLOeJ
-uSzoibLjgJENCmwgIOmdnumUgOWUruWfuuehgOivvueoi++8jOS4jeaVmemUgOWUruivneacr+et
-ieWfuuacrOaKgOW3p++8jOS6puS4jeiusumUgOWUruWwj+S8juS/qe+8mw0KbCAg6YG/5YWN5bi4
-6KeB5Z+56K6t6K++56iL55qE5aaC5L2V6Zeu44CB5aaC5L2V5ZCs44CB5aaC5L2V6K+0562J6ZSA
-5ZSu57uG6IqC5YaF5a6577ybDQpsICDorqnlrablkZjlrabkuaDliLDvvIzlhYjku47lpKflpITn
-nYDmiYvvvIzop4TliJLlpb3plIDllK7nm67moIfvvIzmiY3og73mm7Tlpb3lnLDlrozmiJDmlbTk
-vZPplIDllK7mjIfmoIfvvJsNCmwgIOS7jumUgOWUruS4muWKoeWRmOmBh+WIsOeahOWunumZhemX
-rumimOWHuuWPke+8jOS7peino+WGs+WtpuWRmOWbsOaDkeS4uuWJjeaPkO+8jOS7peaPkOWNh+mU
-gOmHj+S4uuWul+aXqO+8mw0KbCAg6K6p5a2m5ZGY5LuO5oiY55Wl44CB5oiY5pyv5bGC6Z2i5LqG
-6Kej5aaC5L2V5o+Q5Y2H6ZSA6YeP77yM6ICM5LiN5piv57qg57uT5LqO5p+Q5Liq5a6i5oi344CB
-5p+Q5Lqb5rKf6YCa57uG6IqC77ybDQpsICDor77nqIvmoYjkvovlnYfph4fnlKjplIDllK7kuJrl
-iqHlkZjnmoTlrp7pmYXmoYjkvovvvIzmm7Tlhbflrp7miJjmgKfjgIINCiANCuOAkOivviznqIss
-5aSnLOe6suOAkQ0KIA0K56ys5LiA6YOo5YiG44CB6IO45pyJ5oiQ56u5IC0tIOmUgOWUruebruag
-h+inhOWIkg0K5LiA44CB5LuO6ZSA5ZSu55uu5qCH5Yiw5YW35L2T6KGM5YqoDQoxLiDplIDph4/k
-uI7lk6rkupvlm6DntKDnm7jlhbPvvJ/miJHku6zlj6/ku6XmiormjqfnmoTmnInlk6rkupvvvJ8N
-CjIuIOWmguS9lemAmui/h+aIkeS7rOWPr+aOp+eahOWboOe0oOWOu+W9seWTjemUgOmHj++8nw0K
-My4g5Y+q5pyJ5oqK6ZSA5ZSu55uu5qCH5YiG6YWN5Yiw5q+P5aSp55qE5bel5L2c5Lit77yM5oiR
-5Lus5omN6IO95pel56ev5pyI57Sv5Zyw5a6M5oiQ6ZSA5ZSu5Lu75YqhDQo0LiDlpoLkvZXmiorp
-lIDllK7nm67moIfliIbop6PliLDmr4/lpKnnmoTplIDllK7lt6XkvZzkuK3vvJ8NCuS6jOOAgemU
-gOWUrui/m+WxleWIhuaekOS4juaOqOi/mw0KMS4g5aaC5p6c5Y+v5Lul5YeG56Gu5Yik5pat5a6i
-5oi355qE5oiQ5Lqk5Y+v6IO95oCn77yM5oiR5Lus5bCx6IO95pu05pyJ5pWI5Zyw5Yip55So5pe2
-6Ze077yM5pu05aW95Zyw5a6M5oiQ6ZSA5ZSu55uu5qCH77ybDQoyLiDlrqLmiLfor7Tlvojlv6vl
-sLHlj6/ku6XkuIvljZXkuobvvIznnJ/nmoTlj6/kv6HlkJfvvJ8NCjMuIOaIkeS7rOacieaKiuaP
-oeeahOmUgOmHj+WIsOW6leacieWkmuWwke+8n+WmguS9leavlOi+g+WHhuehruWcsOa1i+eul+mU
-gOmHj++8nw0KNC4g6YCa6L+H6ZSA5ZSu6L+b5bGV5YiG5p6Q77yM5oiR5Lus6IO95aSf6aKE5rWL
-546w5pyJ6ZSA6YeP77yM5bCx6IO95Yik5pat546w54q25LiO55uu5qCH55qE5beu6Led77yM55+l
-6YGT5LiL5LiA5q2l5Yqq5Yqb55qE5pa55ZCR77ybDQo1LiDpgJrov4fov5vlsZXliIbmnpDvvIzm
-iJHku6zov5jog73mmI7noa7opoHlgZrku4DkuYjlt6XkvZzvvIzmiY3og73mjqjliqjplIDllK7p
-obnnm67ov5vlsZXjgIINCuWunueUqOmUgOWUruW3peWFt++8mg0KMS4g6ZSA5ZSu55uu5qCH5YiG
-6Kej6KGoDQoyLiDplIDllK7ov5vnqIvmoIflh4YNCjMuIOeOsOaciemUgOmHj+mihOa1i+ihqA0K
-IA0K56ys5LqM6YOo5YiG44CB6ZSA5ZSu5LmL5pysIC0tIOWuouaIt+mcgOaxgg0K5LiA44CB5q2j
-56Gu55CG6Kej6ZSA5ZSuDQoxLiDmiJHku6zlvojlpJrml7blgJnpg73or6/op6PplIDllK7kuobv
-vIzorqTkuLrplIDllK7lsLHmmK/og73or7TkvJrpgZPjgIHmnoHlipvor7TmnI3jgIHorr7ms5Xo
-r7Hlr7zjgILjgILjgIINCjIuIOWmguaenOaIkeS7rOS7juWuouaIt+eahOinkuW6pueci++8jOWw
-seiDveabtOa4healmuWcsOeQhuino+mUgOWUru+8mw0KMy4g5Y+q5pyJ55yf5q2j55CG6Kej5LqG
-6ZSA5ZSu55qE5ZCr5LmJ77yM5omN6IO96YCJ5oup5ZCI6YCC55qE5pa55rOV5Y676L6+5oiQ6ZSA
-5ZSu77yM5bm25LiU5LiO5a6i5oi35YWx6LWi77ybDQrkuozjgIHlrqLmiLfpnIDmsYLkuI7plIDl
-lK4NCjEuIOmUgOWUrui/h+eoi+S4re+8jOacgOmHjeimgeeahOS4gOeOr+aYr+S6huino+WuouaI
-t+mcgOaxgu+8jOS4uuS7gOS5iO+8nyANCjIuIOS7gOS5iOaYr+WuouaIt+eahOmcgOaxgu+8n+Wu
-ouaIt+S8muacieWTquS6m+mcgOaxgu+8nw0KMy4g5a6i5oi36Zmk5LqG5a+55Lqn5ZOB54m55oCn
-44CB5Lu35qC8562J55qE6ZyA5rGC5aSW77yM6L+Y5pyJ5YW25a6D55qE6ZyA5rGC5ZCX77yfDQo0
-LiDplIDllK7kuJrliqHlkZjlpoLkvZXliKnnlKjpnIDmsYLljrvmjqjliqjplIDllK7vvJ8NCjUu
-IOaIkeS7rOeahOS6p+WTgeiDveWkn+a7oei2s+WuouaIt+eahOWTquS6m+mcgOaxgu+8nw0KNi4g
-5aaC5p6c5oiR5Lus55qE5Lqn5ZOB5LiN6IO95ruh6Laz5a6i5oi355qE6ZyA5rGC77yM5oCO5LmI
-5Yqe77yfDQrlrp7nlKjplIDllK7lt6XlhbfvvJoNCjEuIOWuouaIt+mcgOaxguWIhuaekOihqA0K
-Mi4g5Lqn5ZOB54m554K55YiG5p6Q6KGoDQogDQrnrKzkuInpg6jliIbjgIHmupDlpLTmtLvmsLQg
-LS0g5a6i5oi35byA5Y+RDQrkuIDjgIHlrqLmiLflvIDlj5HkuI7plIDph4/lhbPns7sNCjEuIOim
-geWujOaIkOmUgOWUruebruagh++8jOW/hemhu+S4jeaWreW8gOWPkeaWsOWuouaItw0KMi4g5LuO
-6ZSA5ZSu5ryP5paX55yL5Lia57up5p2l5rqQDQrkuozjgIHmlrDlvIDlj5HlrqLmiLfmtYHnqIsN
-CjEuIOS4uuS7gOS5iOW8gOWPkeWuouaIt+mcgOimgea1geeoi++8nw0KMi4g5oiR5Lus5Li75Yqo
-5byA5Y+R55qE5paw5a6i5oi35LiO5om+5LiK6Zeo55qE5paw5a6i5oi35byA5Y+R5rWB56iL5pyJ
-5LuA5LmI5LiN5ZCM77yfDQozLiDmtYHnqIvkuYvpl7TnmoTlvq7lppnlt67liKvmnInku4DkuYjl
-kKvkuYnvvJ/lr7nmiJHku6znmoTplIDllK7mnInku4DkuYjlvbHlk43vvJ8NCuWunueUqOmUgOWU
-ruW3peWFt++8mg0KMS4g6ZmM55Sf5a6i5oi35byA5Y+R5rWB56iL5Zu+DQogDQrnrKzlm5vpg6jl
-iIbjgIHkuIDkuKrpg73kuI3og73lsJEgLS0g5a6i5oi35YWz6ZSuNeS6ug0K5LiA44CB6LCB5b2x
-5ZON5a6i5oi355qE6LSt5Lmw77yfDQoxLiDmiJHku6zkuI3mmK/kuI7kuIDkuKrkurrlnKjmiJjm
-lpfvvIHlrqLmiLfnmoTog4zlkI7ov5jmnInosIHvvJ/osIHlvbHlk43lrqLmiLfotK3kubDvvJ8N
-CjIuIOWuouaIt+WFs+mUrjXkurrmmK/lpoLkvZXlvbHlk43plIDllK7nmoTvvJ8NCjMuIOmUgOWU
-rui/h+eoi+S4re+8jOaIkeS7rOW6lOivpeWFs+azqOWFs+mUrjXkurrnmoTlk6rkupvpnIDmsYLv
-vJ8NCuS6jOOAgemUgOWUruS4reeahOmjjumZqeWcsOW4pg0KMS4g6ZSA5ZSu5Lit5Lya5pyJ5ZOq
-5Lqb6ZqQ6JeP55qE6aOO6Zmp5a+86Ie06ZSA5ZSu5aSx6LSl77yfDQoyLiDlpoLkvZXmjpLpmaTo
-v5nkupvpo47pmanvvJ8NCjMuIOahiOS+i+WIhuaekO+8muWIsOaJi+eahOiuouWNleS4uuS7gOS5
-iOS4ouS6hu+8nw0KNC4g5qGI5L6L5YiG5p6Q77ya5p+Q5bel56iL6aG555uu6ZSA5ZSu5aSx6LSl
-5YiG5p6QDQrlrp7nlKjplIDllK7lt6XlhbfvvJoNCjEuIOWuouaIt+WFs+mUrjXkurrliIbmnpDo
-oagNCiANCuesrOS6lOmDqOWIhuOAgeWFtuWug+mUgOWUruW4uOingemavumimA0K5LiA44CB5Lu3
-5qC85LiO6LCI5YikDQoxLiDlrqLmiLfkuLrku4DkuYjopoHljovku7fvvJ8NCjIuIOWuouaIt+iv
-tOS7t+agvOi0te+8jOaEj+WRs+edgOS7gOS5iO+8nw0KMy4g5a6i5oi36K+05oiR5Lus5q+U56ue
-5LqJ5a+55omL5Lu35qC86LS15LqG77yM5aaC5L2V5bqU5a+577yfDQo0LiDku4DkuYjml7blgJno
-sIjku7fmoLzmiY3mmK/mgbDlvZPnmoTvvJ8NCuS6jOOAgeWuouaIt+acjeWKoeS4jui3n+i/mw0K
-MS4g5ZSu5ZCO5pyN5Yqh55qE55uu55qE5L2V5Zyo77yf5a6i5oi35ruh5oSP5bqm5o+Q5Y2H5LqG
-77yM6ZSA6YeP5bCx5LiA5a6a5Lya5o+Q5Y2H5ZCX77yfDQoyLiDlpoLkvZXmiorlrqLmiLfmu6Hm
-hI/luqbovazljJbkuLrplIDph4/vvJ8NCjMuIOaPkOWNh+WuouaIt+a7oeaEj+W6puaIkOacrOi2
-iuadpei2iumrmO+8jOaAjuS5iOWKnu+8nyANCjQuIOiAgeWuouaIt+S4jeaWreimgeaxgumZjeS7
-t++8jOWmguS9leW6lOWvue+8nw0KIA0K44CQ5Z6CLOivoizng60s57q/44CRIDA3NTUtLSw2NjYy
-LDAzNTUgICAgICAxMzUsNDQwMSwzMzE1IOminOWwj+WnkCAgICAgUSxR77yaOTcxNzAwNzMyDQrp
-gIDorqLor7fovazlj5Hljp/mlofpgq7ku7boh7M5NzE3MDA3MzJAcXEuY29tCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
-IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
+
+> Adding support to show badblocks in the pmem region that's provided
+> by the poison_list. This should show up in
+> /sys/class/dax/daxN.N/badblocks as read only. Currently we only support
+> a single resource and we do not support badblocks for seeds. Additional
+> support code will be implemented to support.
+
+You didn't wire up a notify event.  Was that intentional?
+
+-Jeff
+
+>
+> Signed-off-by: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/dax/dax.c  |   27 ++++++++++++++++++++++-----
+>  drivers/dax/dax.h  |    8 +++++++-
+>  drivers/dax/pmem.c |   37 ++++++++++++++++++++++++++++++++++++-
+>  3 files changed, 65 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+> index 6450c07..2c34cae 100644
+> --- a/drivers/dax/dax.c
+> +++ b/drivers/dax/dax.c
+> @@ -83,6 +83,7 @@ struct dax_dev {
+>  	int id;
+>  	int num_resources;
+>  	struct resource **res;
+> +	void *private;
+>  };
+>  
+>  #define for_each_dax_region_resource(dax_region, res) \
+> @@ -408,6 +409,20 @@ static struct dax_dev *to_dax_dev(struct device *dev)
+>  	return container_of(dev, struct dax_dev, dev);
+>  }
+>  
+> +void *dax_dev_get_private(struct device *dev)
+> +{
+> +	struct dax_dev *dax_dev = to_dax_dev(dev);
+> +
+> +	return dax_dev->private;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_dev_get_private);
+> +
+> +void dax_dev_set_private(struct dax_dev *dax_dev, void *priv)
+> +{
+> +	dax_dev->private = priv;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_dev_set_private);
+> +
+>  static unsigned long long dax_dev_size(struct dax_dev *dax_dev)
+>  {
+>  	struct dax_region *dax_region = dax_dev->region;
+> @@ -805,7 +820,7 @@ static ssize_t dax_dev_resize(struct dax_region *dax_region,
+>  			&& &dax_dev->dev == dax_region->seed) {
+>  		struct dax_dev *seed;
+>  
+> -		seed = devm_create_dax_dev(dax_region, NULL, 0);
+> +		seed = devm_create_dax_dev(dax_region, NULL, 0, NULL);
+>  		if (IS_ERR(seed))
+>  			dev_warn(dax_region->dev,
+>  					"failed to create new region seed\n");
+> @@ -851,9 +866,10 @@ static struct attribute *dax_device_attributes[] = {
+>  	NULL,
+>  };
+>  
+> -static const struct attribute_group dax_device_attribute_group = {
+> +struct attribute_group dax_device_attribute_group = {
+>  	.attrs = dax_device_attributes,
+>  };
+> +EXPORT_SYMBOL_GPL(dax_device_attribute_group);
+>  
+>  static const struct attribute_group *dax_attribute_groups[] = {
+>  	&dax_device_attribute_group,
+> @@ -1143,7 +1159,8 @@ static void dax_dev_release(struct device *dev)
+>  }
+>  
+>  struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+> -		struct resource *res, int count)
+> +		struct resource *res, int count,
+> +		const struct attribute_group **groups)
+>  {
+>  	struct device *parent = dax_region->dev;
+>  	struct dax_dev *dax_dev;
+> @@ -1248,7 +1265,7 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+>  	dev->devt = dev_t;
+>  	dev->class = dax_class;
+>  	dev->parent = parent;
+> -	dev->groups = dax_attribute_groups;
+> +	dev->groups = groups ? groups : dax_attribute_groups;
+>  	dev->release = dax_dev_release;
+>  	dev_set_name(dev, "dax%d.%d", dax_region->id, dax_dev->id);
+>  	/* update resource names now that the owner device is named */
+> @@ -1268,7 +1285,7 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+>  	if (atomic_inc_return(&dax_region->child_count) == 1) {
+>  		struct dax_dev *seed;
+>  
+> -		seed = devm_create_dax_dev(dax_region, NULL, 0);
+> +		seed = devm_create_dax_dev(dax_region, NULL, 0, NULL);
+>  		if (IS_ERR(seed))
+>  			dev_warn(parent, "failed to create region seed\n");
+>  		else
+> diff --git a/drivers/dax/dax.h b/drivers/dax/dax.h
+> index ddd829a..c23c7ac 100644
+> --- a/drivers/dax/dax.h
+> +++ b/drivers/dax/dax.h
+> @@ -16,10 +16,16 @@ struct device;
+>  struct dax_dev;
+>  struct resource;
+>  struct dax_region;
+> +extern struct attribute_group dax_device_attribute_group;
+> +
+>  void dax_region_put(struct dax_region *dax_region);
+>  struct dax_region *alloc_dax_region(struct device *parent,
+>  		int region_id, struct resource *res, unsigned int align,
+>  		void *addr, unsigned long flags);
+>  struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+> -		struct resource *res, int count);
+> +		struct resource *res, int count,
+> +		const struct attribute_group **groups);
+> +void *dax_dev_get_private(struct device *dev);
+> +void dax_dev_set_private(struct dax_dev *dax_dev, void *priv);
+> +
+>  #endif /* __DAX_H__ */
+> diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+> index 033f49b3..808d3bb 100644
+> --- a/drivers/dax/pmem.c
+> +++ b/drivers/dax/pmem.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/memremap.h>
+>  #include <linux/module.h>
+>  #include <linux/pfn_t.h>
+> +#include <linux/badblocks.h>
+>  #include "../nvdimm/pfn.h"
+>  #include "../nvdimm/nd.h"
+>  #include "dax.h"
+> @@ -22,6 +23,32 @@ struct dax_pmem {
+>  	struct device *dev;
+>  	struct percpu_ref ref;
+>  	struct completion cmp;
+> +	struct badblocks bb;
+> +};
+> +
+> +static ssize_t dax_pmem_badblocks_show(struct device *dev,
+> +		struct device_attribute *attr, char *page)
+> +{
+> +	struct dax_pmem *dax_pmem =
+> +		(struct dax_pmem *)dax_dev_get_private(dev);
+> +
+> +	return badblocks_show(&dax_pmem->bb, page, 0);
+> +}
+> +static DEVICE_ATTR(badblocks, S_IRUGO, dax_pmem_badblocks_show, NULL);
+> +
+> +static struct attribute *dax_pmem_badblock_attributes[] = {
+> +	&dev_attr_badblocks.attr,
+> +	NULL,
+> +};
+> +
+> +static struct attribute_group dax_pmem_badblock_attribute_group = {
+> +	.attrs = dax_pmem_badblock_attributes,
+> +};
+> +
+> +static const struct attribute_group *dax_pmem_attribute_groups[] = {
+> +	&dax_device_attribute_group,
+> +	&dax_pmem_badblock_attribute_group,
+> +	NULL,
+>  };
+>  
+>  static struct dax_pmem *to_dax_pmem(struct percpu_ref *ref)
+> @@ -130,7 +157,15 @@ static int dax_pmem_probe(struct device *dev)
+>  		return -ENOMEM;
+>  
+>  	/* TODO: support for subdividing a dax region... */
+> -	dax_dev = devm_create_dax_dev(dax_region, &res, 1);
+> +	dax_dev = devm_create_dax_dev(dax_region, &res, 1,
+> +			dax_pmem_attribute_groups);
+> +	dax_dev_set_private(dax_dev, dax_pmem);
+> +
+> +	rc = devm_init_badblocks(dev, &dax_pmem->bb);
+> +	if (rc)
+> +		return rc;
+> +
+> +	nvdimm_badblocks_populate(nd_region, &dax_pmem->bb, &res);
+>  
+>  	/* child dax_dev instances now own the lifetime of the dax_region */
+>  	dax_region_put(dax_region);
+>
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
