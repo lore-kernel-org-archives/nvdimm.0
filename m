@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BF76681C73
- for <linux-nvdimm@lists.01.org>; Thu, 15 Dec 2016 15:40:42 -0800 (PST)
-Subject: [PATCH v4 1/3] dax: masking off __GFP_FS in fs DAX handlers
+ by ml01.01.org (Postfix) with ESMTPS id 9035481FD1
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Dec 2016 12:51:00 -0800 (PST)
+Subject: [PATCH v3 1/3] dax: masking off __GFP_FS in fs DAX handlers
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 15 Dec 2016 16:40:41 -0700
-Message-ID: <148184524161.184728.14005697153880489871.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 15 Dec 2016 13:50:59 -0700
+Message-ID: <148183505925.96369.9987658623875784437.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
