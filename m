@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5023E81F19
- for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 08:38:00 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 0/5] introduce DAX tracepoint support
-Date: Thu,  1 Dec 2016 09:37:46 -0700
-Message-Id: <1480610271-23699-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0228881C8D
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Dec 2016 14:10:39 -0800 (PST)
+Subject: Re: [PATCH v2] x86: fix kaslr and memmap collision
+References: <148044760044.153060.616417783293212181.stgit@djiang5-desk3.ch.intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <93dc229d-6362-f982-f9c8-8a0ca0bd8fb8@intel.com>
+Date: Thu, 15 Dec 2016 15:10:38 -0700
+MIME-Version: 1.0
+In-Reply-To: <148044760044.153060.616417783293212181.stgit@djiang5-desk3.ch.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,65 +18,229 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
+Cc: x86@kernel.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Tracepoints are the standard way to capture debugging and tracing
-information in many parts of the kernel, including the XFS and ext4
-filesystems.  This series creates a tracepoint header for FS DAX and add
-the first few DAX tracepoints to the PMD fault handler.  This allows the
-tracing for DAX to be done in the same way as the filesystem tracing so
-that developers can look at them together and get a coherent idea of what
-the system is doing.
+On 11/29/2016 12:26 PM, Dave Jiang wrote:
+> CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
+> However it does not take into account the memmap= parameter passed in from
+> the kernel cmdline. This results in the kernel sometimes being put in
+> the middle of the user memmap. Teaching kaslr to not insert the kernel in
+> memmap defined regions. We will support up to 4 memmap regions. Any
+> additional regions will cause kaslr to disable. The mem_avoid set has
+> been augmented to add up to 4 regions of memmaps provided by the user
+> to exclude those regions from the set of valid address range to insert
+> the uncompressed kernel image.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 
-I do intend to add tracepoints to the normal 4k DAX fault path and to the
-DAX I/O path, but I wanted to get feedback on the PMD tracepoints before I
-went any further.
+Peter, Ingo, or Thomas,
+Is this patch ok? Will someone be picking it up for 4.10? Thanks.
 
-This series is based on Jan Kara's "dax: Clear dirty bits after flushing
-caches" series:
-
-https://lists.01.org/pipermail/linux-nvdimm/2016-November/007864.html
-
-I've pushed a git tree with this work here:
-
-https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_tracepoints_v3
-
-Changes since v2:
- - Dropped "dax: remove leading space from labels" patch. (Jan)
- - Reordered TP_STRUCT__entry() fields so that all the 64 bit entries (for
-   64 bit machines) come first, followed by the 32 bit entries.  This
-   allows for optimal packing of the entires. (Steve)
- - Fixed 'mask' in trace_print_flags_seq_u64() to be an unsigned long long.
-   (Steve)
-
-Ross Zwisler (5):
-  tracing: add __print_flags_u64()
-  dax: add tracepoint infrastructure, PMD tracing
-  dax: update MAINTAINERS entries for FS DAX
-  dax: add tracepoints to dax_pmd_load_hole()
-  dax: add tracepoints to dax_pmd_insert_mapping()
-
- MAINTAINERS                   |   5 +-
- fs/dax.c                      |  56 ++++++++++-----
- include/linux/mm.h            |  25 +++++++
- include/linux/pfn_t.h         |   6 ++
- include/linux/trace_events.h  |   4 ++
- include/trace/events/fs_dax.h | 161 ++++++++++++++++++++++++++++++++++++++++++
- include/trace/trace_events.h  |  11 +++
- kernel/trace/trace_output.c   |  38 ++++++++++
- 8 files changed, 288 insertions(+), 18 deletions(-)
- create mode 100644 include/trace/events/fs_dax.h
-
--- 
-2.7.4
-
+> ---
+>  arch/x86/boot/boot.h             |    3 +
+>  arch/x86/boot/compressed/kaslr.c |   82 ++++++++++++++++++++++++++++++++++++++
+>  arch/x86/boot/string.c           |   38 ++++++++++++++++++
+>  3 files changed, 123 insertions(+)
+> 
+> diff --git a/arch/x86/boot/boot.h b/arch/x86/boot/boot.h
+> index e5612f3..59c2075 100644
+> --- a/arch/x86/boot/boot.h
+> +++ b/arch/x86/boot/boot.h
+> @@ -332,7 +332,10 @@ int strncmp(const char *cs, const char *ct, size_t count);
+>  size_t strnlen(const char *s, size_t maxlen);
+>  unsigned int atou(const char *s);
+>  unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base);
+> +unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base);
+> +long simple_strtol(const char *cp, char **endp, unsigned int base);
+>  size_t strlen(const char *s);
+> +char *strchr(const char *s, int c);
+>  
+>  /* tty.c */
+>  void puts(const char *);
+> diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
+> index a66854d..915509f 100644
+> --- a/arch/x86/boot/compressed/kaslr.c
+> +++ b/arch/x86/boot/compressed/kaslr.c
+> @@ -11,6 +11,7 @@
+>   */
+>  #include "misc.h"
+>  #include "error.h"
+> +#include "../boot.h"
+>  
+>  #include <generated/compile.h>
+>  #include <linux/module.h>
+> @@ -61,9 +62,16 @@ enum mem_avoid_index {
+>  	MEM_AVOID_INITRD,
+>  	MEM_AVOID_CMDLINE,
+>  	MEM_AVOID_BOOTPARAMS,
+> +	MEM_AVOID_MEMMAP1,
+> +	MEM_AVOID_MEMMAP2,
+> +	MEM_AVOID_MEMMAP3,
+> +	MEM_AVOID_MEMMAP4,
+>  	MEM_AVOID_MAX,
+>  };
+>  
+> +/* only supporting at most 4 memmap regions with kaslr */
+> +#define MAX_MEMMAP_REGIONS	4
+> +
+>  static struct mem_vector mem_avoid[MEM_AVOID_MAX];
+>  
+>  static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
+> @@ -77,6 +85,72 @@ static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
+>  	return true;
+>  }
+>  
+> +#include "../../../../lib/cmdline.c"
+> +
+> +static int
+> +parse_memmap(char *p, unsigned long long *start, unsigned long long *size)
+> +{
+> +	char *oldp;
+> +
+> +	if (!p)
+> +		return -EINVAL;
+> +
+> +	/* we don't care about this option here */
+> +	if (!strncmp(p, "exactmap", 8))
+> +		return -EINVAL;
+> +
+> +	oldp = p;
+> +	*size = memparse(p, &p);
+> +	if (p == oldp)
+> +		return -EINVAL;
+> +
+> +	switch (*p) {
+> +	case '@':
+> +	case '#':
+> +	case '$':
+> +	case '!':
+> +		*start = memparse(p + 1, &p);
+> +		return 0;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static int mem_avoid_memmap(void)
+> +{
+> +	char arg[128];
+> +	int rc = 0;
+> +
+> +	/* see if we have any memmap areas */
+> +	if (cmdline_find_option("memmap", arg, sizeof(arg)) > 0) {
+> +		int i = 0;
+> +		char *str = arg;
+> +
+> +		while (str && (i < MAX_MEMMAP_REGIONS)) {
+> +			unsigned long long start, size;
+> +			char *k = strchr(str, ',');
+> +
+> +			if (k)
+> +				*k++ = 0;
+> +
+> +			rc = parse_memmap(str, &start, &size);
+> +			if (rc < 0)
+> +				break;
+> +			str = k;
+> +
+> +			mem_avoid[MEM_AVOID_MEMMAP1 + i].start = start;
+> +			mem_avoid[MEM_AVOID_MEMMAP1 + i].size = size;
+> +			i++;
+> +		}
+> +
+> +		/* more than 4 memmaps, fail kaslr */
+> +		if ((i >= MAX_MEMMAP_REGIONS) && str)
+> +			rc = -EINVAL;
+> +	}
+> +
+> +	return rc;
+> +}
+> +
+>  /*
+>   * In theory, KASLR can put the kernel anywhere in the range of [16M, 64T).
+>   * The mem_avoid array is used to store the ranges that need to be avoided
+> @@ -429,6 +503,7 @@ void choose_random_location(unsigned long input,
+>  			    unsigned long *virt_addr)
+>  {
+>  	unsigned long random_addr, min_addr;
+> +	int rc;
+>  
+>  	/* By default, keep output position unchanged. */
+>  	*virt_addr = *output;
+> @@ -438,6 +513,13 @@ void choose_random_location(unsigned long input,
+>  		return;
+>  	}
+>  
+> +	/* Mark the memmap regions we need to avoid */
+> +	rc = mem_avoid_memmap();
+> +	if (rc < 0) {
+> +		warn("KASLR disabled: memmap exceeds limit of 4, giving up.");
+> +		return;
+> +	}
+> +
+>  	boot_params->hdr.loadflags |= KASLR_FLAG;
+>  
+>  	/* Prepare to add new identity pagetables on demand. */
+> diff --git a/arch/x86/boot/string.c b/arch/x86/boot/string.c
+> index cc3bd58..0464aaa 100644
+> --- a/arch/x86/boot/string.c
+> +++ b/arch/x86/boot/string.c
+> @@ -122,6 +122,31 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
+>  }
+>  
+>  /**
+> + * simple_strtoul - convert a string to an unsigned long
+> + * @cp: The start of the string
+> + * @endp: A pointer to the end of the parsed string will be placed here
+> + * @base: The number base to use
+> + */
+> +unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base)
+> +{
+> +	return simple_strtoull(cp, endp, base);
+> +}
+> +
+> +/**
+> + * simple_strtol - convert a string to a signed long
+> + * @cp: The start of the string
+> + * @endp: A pointer to the end of the parsed string will be placed here
+> + * @base: The number base to use
+> + */
+> +long simple_strtol(const char *cp, char **endp, unsigned int base)
+> +{
+> +	if (*cp == '-')
+> +		return -simple_strtoul(cp + 1, endp, base);
+> +
+> +	return simple_strtoul(cp, endp, base);
+> +}
+> +
+> +/**
+>   * strlen - Find the length of a string
+>   * @s: The string to be sized
+>   */
+> @@ -155,3 +180,16 @@ char *strstr(const char *s1, const char *s2)
+>  	}
+>  	return NULL;
+>  }
+> +
+> +/**
+> + * strchr - Find the first occurrence of the character c in the string s.
+> + * @s: the string to be searched
+> + * @c: the character to search for
+> + */
+> +char *strchr(const char *s, int c)
+> +{
+> +	while (*s != (char)c)
+> +		if (*s++ == '\0')
+> +			return NULL;
+> +	return (char *)s;
+> +}
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
