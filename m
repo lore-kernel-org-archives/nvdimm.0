@@ -1,254 +1,188 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from jix.net (unknown [122.190.107.140])
- by ml01.01.org (Postfix) with ESMTP id 0A7D18237D
- for <linux-nvdimm@lists.01.org>; Thu, 22 Dec 2016 05:02:11 -0800 (PST)
-Message-ID: <E526EF541C1FE0007E013B77ED2DB1CA@jix.net>
-From: =?utf-8?B?5p2c57uH?= <hjdv@jix.net>
-Subject: =?utf-8?B?5pyJ5pWI6LCD5bKX6LCD6Jaq44CB6KOB5ZGY6Kej6ZuH5Y+K6L+d57qq6Zeu6aKY5ZGY5bel5aSE55CG?=
- =?utf-8?B?5oqA5ben?=
-Date: Thu, 22 Dec 2016 21:02:00 +0800
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Thu, 15 Dec 2016 14:46:41 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v2 1/3] dax: masking off __GFP_FS in fs DAX handlers
+Message-ID: <20161215134641.GA13811@quack2.suse.cz>
+References: <148174532372.194339.4875475197715168429.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <148174532372.194339.4875475197715168429.stgit@djiang5-desk3.ch.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: akpm@linux-foundation.org, jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, hch@lst.de, linux-mm@kvack.org, tytso@mit.edu, ross.zwisler@linux.intel.com, dan.j.williams@intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-TWVzc2FnZS1JRDogNDM1MDQ1NDk5MTQzMw0KRnJvbTogPT8zM3FkPz89IDxsaW51eC1udmRpbW1A
-bGlzdHMuMDEub3JnPg0KVG86IDxoamR2QGppeC5uZXQ+DQrlj5HpgIHml7bpl7Q6MjAxNi0xMi0y
-MiAgMjE6MDI6MTINCuacieaViOiwg+Wyl+iwg+iWquOAgeijgeWRmOino+mbh+WPiui/nee6qumX
-rumimOWRmOW3peWkhOeQhuaKgOW3pw0K44CQ5pe26Ze05Zyw54K544CRICAxMuaciDI2LTI35pel
-5YyX5LqsICAgIDEy5pyIMzAtMzHml6Xmt7HlnLMNCuOAkOWPguWKoOWvueixoeOAkSDokaPkuovp
-lb/jgIHmgLvnu4/nkIbjgIHlia/mgLvnu4/nkIbjgIHkurrlipvotYTmupDmgLvnm5Ev57uP55CG
-L+S4k+WRmOWPiuS6uuS6i+ihjOaUv+euoeeQhuS6uuWRmOOAgeW3peS8muW5sumDqOOAgeazleWK
-oeS6uuWRmOWPiuebuOWFs+euoeeQhuS6uuWRmOOAgeebuOWFs+W+i+W4iOetieOAgg0K44CQ5o6I
-6K++5pa55byP44CRIOiusuW4iOiusuaOiCArIOinhumikea8lOe7jiArIOahiOS+i+eglOiuqCAr
-6KeS6Imy5omu5ryUICsg6K6y5biI54K56K+EDQrjgJDlrabkuaDotLnnlKjjgJEgIOS6jOWNg+WF
-q+eZvuWFgyDjgIHmr4/kuroNCuaKpeWQjeWSqOivoueUteivne+8mjA3NTUtNjEyLTg4MDM1ICAg
-MDEwLTUxNi02MTg2MyAgIDAyMS0zMTItNjE1ODAgDQogIOWcqOe6v+WSqOivoiBRUe+8mjY5ODM0
-MzYgICDmiqXlkI3kv6HnrrHvvJpxaXlleHVleGk2NjZAUVEuY29tDQoo5aaC6ZyA5oql5ZCN6K+3
-IOWwvuacq+aKpeWQjeihqO+8jOaIkeS7rOS8muWcqDI05bCP5pe25YaF6IGU57O75oKo77yJDQro
-r77nqIvog4zmma8NCg0K44CA44CAMjAwOOW5tO+8jOWbveWutuWHuuWPsOS6huOAiuWKs+WKqOWQ
-iOWQjOazleOAi+OAgeOAiuWKs+WKqOWQiOWQjOazleWunuaWveadoeS+i+OAi+OAgeOAiuWKs+WK
-qOS6ieiuruiwg+ino+S7suijgeazleOAi+OAgeOAiuiBjOW3peW4puiWquW5tOS8keWBh+adoeS+
-i+OAi+OAgeOAiuS8geS4muiBjOW3peW4puiWquW5tOS8keWBh+WunuaWveWKnuazleOAi++8mzIw
-MDnlubTvvIzlm73lrrblh7rlj7DkuobjgIrlirPliqjkurrkuovkuonorq7ku7Loo4Hlip7moYjo
-p4TliJnjgIvvvJsyMDEw5bm077yM5Zu95a625Ye65Y+w5LqG44CK5Yqz5Yqo5LqJ6K6u5Y+45rOV
-6Kej6YeK77yI5LiJ77yJ44CL5Y+K5L+u5pS55LqG44CK5bel5Lyk5L+d6Zmp5p2h5L6L44CL77yb
-MjAxMeW5tO+8jOWbveWutuWHuuWPsOS6huOAiuekvuS8muS/nemZqeazleOAi+WPiuOAiuWunuaW
-vTznpL7kvJrkv53pmanms5U+6Iul5bmy6KeE5a6a44CL77ybMjAxMuW5tO+8jOWbveWutuWHuuWP
-sOS6huOAiuS8geS4muawkeS4u+euoeeQhuinhOWumuOAi+OAgeOAiuWls+iBjOW3peWKs+WKqOS/
-neaKpOeJueWIq+inhOWumuOAi+WPiuS/ruaUueS6huOAiuiBjOS4mueXhemYsuayu+azleOAi++8
-mzIwMTPlubTvvIzlm73lrrblh7rlj7DkuobjgIrlirPliqjkuonorq7lj7jms5Xop6Pph4rvvIjl
-m5vvvInjgIvjgIHjgIrlirPliqHmtL7pgaPoi6XlubLop4TlrprjgIvvvJsyMDE05bm04oCm4oCm
-DQrjgIDjgIDkuIrov7Dms5Xlvovms5Xop4TmlL/nrZbnmoTmjIHnu63lrp7mlr3vvIzlrqLop4Lk
-uIropoHmsYLkvIHkuJrnsr7miZPnu4bnrpfvvIzlkKbliJnml6Dms5Xmib/lj5fkuI7ml6Xkv7Hl
-op7nmoTnlKjlt6XmiJDmnKzvvJvlrqLop4LkuIropoHmsYLnlKjkurrljZXkvY3lgZrliLDigJzn
-sr7nu4bljJbigJ3nrqHnkIbvvIzlkKbliJnpmr7ku6Xor4HmmI7lirPliqjogIXigJzkuI3lkIjm
-oLzjgIHkuI3og5zku7vjgIHkuKXph43lpLHogYzjgIHkuKXph43ov53nuqrov53op4TigJ3vvIzk
-uZ/pmr7ku6Xov5vooYzlkIjms5XmnInmlYjnmoTigJzosIPlspfosIPolqrjgIHoo4HlkZjop6Pp
-m4figJ3jgILlpoLmnpznlKjkurrljZXkvY3kvp3nhLblrp7mlr3igJzkvKDnu5/lvI/jgIHnspfm
-lL7lvI/jgIHpmo/kvr/lvI/igJ3nmoTnrqHnkIbvvIzpgqPkuYjnlKjkurrljZXkvY3lv4XlsIbp
-naLkuLTlt6jlpKfnmoTnlKjlt6Xpo47pmanlkozotZTlgb/otKPku7vvvIzlhbbnrqHnkIbmnYPl
-qIHkuZ/lsIblj5fliLDkuKXls7vnmoTmjJHmiJjvvIENCuOAgOOAgOS4uuW4ruWKqeW5v+Wkp+S8
-geS6i+S4muWNleS9jeS6huino+ebuOWFs+aUv+etluazleW+i+azleinhO+8jOaOjOaPoemYsuiM
-g+eUqOW3pemjjumZqeWSjOWMluino+WKs+WKqOS6ieiurueahOaKgOiDveaKgOW3p++8jOS7peWu
-nueOsOS9jumjjumZqeOAgeS9juaIkOacrOOAgemrmOe7qeaViOeahOS6uuWKm+i1hOa6kOeuoeeQ
-huebruagh++8jOeJuemCgOivt+aIkeWbveefpeWQjeeahOWKs+WKqOazleS4juWRmOW3peWFs+ez
-u+euoeeQhuWunuaImOS4k+WutumSn+awuOajo+iAgeW4iOS4u+iusuatpOivvueoi+OAguasoui/
-juS8geS6i+S4muWNleS9jeenr+aegee7hOe7h+ebuOWFs+S6uuWRmOWPguWKoOatpOWfueiureiv
-vueoi++8gQ0K6K++56iL54m56ImyDQoNCueogOe8uuaAp++8muatpOivvueoi+WwhuWKs+WKqOaz
-leS9k+ezu+WSjOiWqumFrOe7qeaViOeuoeeQhuS9k+ezu+e0p+WvhuebuOe7k+WQiO+8jOWbveWG
-heaegeWwkeWHuueOsOatpOexu+ivvueoi+OAgg0K6ZKI5a+55oCn77ya6K++56iL5YaF5a6557K+
-6YCJ5LqG6L+H5Y67NeW5tOadpeS4u+iusuiAgeW4iOS6suiHquWkhOeQhui/h+eahOS4lOWcqOS4
-jeWwkeeUqOS6uuWNleS9jeWGhemDqOS5n+abvuWPkeeUn+i/h+eahOS7o+ihqOaAp+ahiOS+i++8
-jOi/meS6m+ahiOS+i+WujOWFqOespuWQiOS4reWbveeOsOmYtuauteeahOWkp+eOr+Wig+Wkp+aw
-lOWAme+8jOaegeWFt+WPguiAg+aAp+WSjOWQr+WPkeaAp+OAgg0K5a6e5oiY5oCn77ya5a6e5oiY
-5rKZ55uY5ryU57uD77yM5a2m5ZGY5rex5YWl5oCd6ICD5LiO5YWF5YiG5LqS5Yqo77yM6ICB5biI
-5q+r5LiN5L+d55WZ5YC+5ZuK55u45o6I77yb5a2m5ZGY5oqK6ZSZ6K+v55WZ5Zyo6K++5aCC77yM
-5oqK5q2j56Gu55qE6KeC54K544CB5pa55rOV44CB5bel5YW344CB5oqA6IO95bim5Zue5Y6744CC
-DQror77nqIvmlLbnm4oNCg0KMeOAgeWFqOmdouS6huino+WKs+WKqOeUqOW3pei/h+eoi+eahOaz
-leW+i+mjjumZqe+8mw0KMuOAgeeQhuino+S4juWKs+WKqOeUqOW3peacieWFs+eahOaUv+etluaz
-leW+i+azleinhO+8mw0KM+OAgeWfueWFu+mihOa1i+OAgeWIhuaekOWKs+WKqOeUqOW3peazleW+
-i+mjjumZqeeahOaAnee7tO+8mw0KNOOAgeaOjOaPoemihOmYsuWSjOW6lOWvuemjjumZqeeahOWu
-nuaImOaKgOiDveWPiuaWueazleW3peWFt+KApuKApg0K6K++56iL5aSn57qyDQrkuJPpopjkuIDv
-vJrnu6nmlYjnrqHnkIbkuI7lspfkvY3osIPmlbQNCjEu5LyB5Lia5Y2V5pa56LCD5pW05bKX5L2N
-77yM5ZGY5bel5b6A5b6A5Y+v6KKr6L+r6Kej6Zmk5ZCI5ZCM5bm257Si6LWU57uP5rWO6KGl5YG/
-77yM5aaC5L2V6KeE6YG/77yfDQoyLuiwg+Wyl+aXtuayoeacieS5pumdouehruiupO+8jOWRmOW3
-peWIsOaWsOWyl+S9jeW3peS9nDLkuKrmnIjlkI7og73lkKbopoHmsYLmgaLlpI3liLDljp/lspfk
-vY3vvJ8NCjMu5Y+v5ZCm5a+54oCc5LiJ5pyf5YaF4oCd5aWz6IGM5bel6L+b6KGM6LCD5bKX44CB
-6LCD6Jaq77yfDQo0LuWRmOW3peiupOWQjOe7qeaViOe7k+aenO+8jOS4uuS7gOS5iOWcqOKAnOS4
-jeiDnOS7u+W3peS9nOKAneW8leWPkeeahOS6ieiuruS4rei/mOaYr+i0peivie+8nw0KNS7kuLrk
-u4DkuYjkvIHkuJrmoLnmja7nu6nmlYjnu5PmnpzmlK/ku5jlkZjlt6Xnu6nmlYjlpZbph5HvvIzm
-nIDnu4jooqvorqTlrprpnZ7ms5XlhYvmiaPlt6XotYTvvJ8NCjYu5rOV5b6L5LiK5aaC5L2V6K+B
-5piO5Yqz5Yqo6ICF4oCc5LiN6IO96IOc5Lu75bel5L2c4oCd77yfDQo3LuWvuee7qeaViOiAg+ag
-uOS4jeWQiOagvOeahOWRmOW3pe+8jOWmguS9leWQiOazlei+numAgO+8nw0KOC7nu6nmlYjmraPm
-gIHliIbluIPlvoDlvoDlvLrliLbliJLliIY1JeeahOWRmOW3peS4uuS4jeWQiOagvOiAhe+8jOaY
-r+WQpuWQiOazle+8nw0KIA0K5LiT6aKY5LqM77ya5Yqz5Yqo5oql6YWs44CB6Jaq6YWs56aP5Yip
-DQoxLuW3pei1hOaAu+mineWMheaLrOWTquS6m+W3pei1hOaYjue7hu+8nw0KMi7mlrDov5vlkZjl
-t6XolqrotYTnrqHnkIbpl67popjlj4rlpITnkIbmioDlt6fvvJsNCjMu6LCD5pW05bel5L2c5bKX
-5L2N5ZCO77yM5Y+v5Lul6LCD5pW06Jaq6LWE5qCH5YeG5ZCX77yfDQo0LuWmguS9lemAmui/h+iW
-qumFrOiwg+aVtOWkhOeQhuWRmOW3peWkseiBjOOAgei/nee6quetiemXrumimO+8nw0KNS7lgLzn
-j63nrpfkuI3nrpfliqDnj63vvJ8NCjYu5Yqg54+t5Yqg54K55bel6LWE5pSv5LuY5bi46KeB6K+v
-5Yy677yfDQo3LueUqOS6uuWNleS9jeWmguS9leiuvuiuoeW3pei1hOaehOaIkOS7pemZjeS9juWK
-oOePrei0ueaIkOacrO+8nw0KOC7mnKrnu4/nlKjkurrljZXkvY3lronmjpLvvIzlirPliqjogIXo
-h6rooYzliqDnj63nmoTvvIzmmK/lkKbpnIDmlK/ku5jliqDnj63lt6XotYTvvJ8NCjku5Yqz5Yqo
-6ICF5Li75byg5YWl6IGM5Lul5p2l55qE5Yqg54+t6LS577yM5aaC5L2V5bqU5a+577yfDQoxMC7l
-irPliqjogIXlnKjlt6XkvZzml6Vc5rOV5a6a6IqC5YGH5pel5Yqg54+t77yM6IO95ZCm5a6J5o6S
-6KGl5LyR6ICM5LiN5LqI5pSv5LuY5Yqg54+t6LS577yfDQoxMS7nl4XlgYfjgIHlubTkvJHlgYfj
-gIHlqZrlgYfjgIHkuqflgYfjgIHkuKflgYfnrYnnmoTkuqvlj5fmnaHku7blj4rlt6XotYTlvoXp
-gYfmoIflh4bvvJ8NCjEyLuemu+iBjOWRmOW3peW+gOW+gOWbnuWktOi/veiuqOW5tOe7iOWllu+8
-jOacieWPr+iDveW+l+WIsOaUr+aMge+8jOWmguS9leinhOmBv+ivpemjjumZqe+8nw0KIA0K5LiT
-6aKY5LiJ77ya6L+d57qq6L+d6KeE6Zeu6aKY5ZGY5bel5aSE55CGDQoxLuWKs+WKqOiAheW+gOW+
-gOaLkue7neetvuaUtuWkhOWIhuOAgeino+mbh+mAmuefpeS5pu+8jOWmguS9leW6lOWvue+8nw0K
-Mi7pl67popjlkZjlt6XlvoDlvoDmi5Lnu53mj5DkuqTjgIrmo4DorqjkuabjgIvmiJblkKborqTo
-v53nuqrov53op4Tkuovlrp7vvIzkvIHkuJror6XlpoLkvZXmlLbpm4bor4Hmja7vvJ8NCjMu5a+5
-5LqO6L+d57qq5ZGY5bel77yM5bqU6K+l5Zyo5LuA5LmI5pe26Ze05YaF5aSE55CG77yfDQo0LuaA
-juagt+eQhuino+KAnOS4pemHjei/neWPjeeUqOS6uuWNleS9jeeahOinhOeroOWItuW6puKAnT8N
-CjUu5aaC5L2V5Zyo44CK5oOp572a5p2h5L6L44CL5Lit5o+P6L+w4oCc5LiA6Iis6L+d57qq4oCd
-44CB4oCc6L6D6YeN6L+d57qq4oCd5Y+K4oCc5Lil6YeN6L+d57qq4oCd77yfIA0KNi7mgI7moLfn
-kIbop6PigJzkuKXph43lpLHogYzvvIzokKXnp4HoiJ7lvIrvvIznu5nnlKjkurrljZXkvY3pgKDm
-iJDph43lpKfmjZ/lrrPigJ3vvJ8NCjcu5aaC5L2V55WM5a6a4oCc6YeN5aSn5o2f5a6z4oCd77yM
-4oCc6YeN5aSn5o2f5a6z4oCd5piv5ZCm5b+F6aG75L2T546w5Li66YCg5oiQ55u05o6l55qE57uP
-5rWO5o2f5aSx77yfDQo4LuWmguS9lei/veeptuKAnOS4pemHjeWkseiBjOOAgeS4pemHjei/nee6
-qui/neinhOKAneiAheeahOazleW+i+i0o+S7u++8nw0KOS7og73lkKbnm7TmjqXop4TlrprigJzn
-poHmraLlhbzogYzvvIzlkKbliJnop4bkuLrkuKXph43ov53nuqrov53op4TigJ3vvJ8NCjEwLueb
-tOe6v+mDqOmXqOe7j+eQhuaTheiHquWPo+WktOi+numAgOWRmOW3pe+8jOS7suijgeacuuaehOW+
-gOW+gOiupOWumuS8geS4mumdnuazleino+mbh++8jOS8geS4muivpeWmguS9leWBmu+8jOaJjemB
-v+WFjeahiOS7tui0peivie+8nw0KMTEu5Yqz5Yqo6ICF5LiN6L6e6ICM5Yir44CB5peg5pWF5pe3
-5bel77yM5Y205Li75byg6KKr5LyB5Lia5Y+j5aS06Kej6ZuH77yM5b6A5b6A5b6X5Yiw5Luy6KOB
-5py65p6E55qE5pSv5oyB77yM5LyB5Lia6K+l5aaC5L2V5YGa77yM5omN6YG/5YWN5qGI5Lu26LSl
-6K+J77yfDQoxMi7igJzlvZXpn7PlvZXosaHigJ3or4Hmja7vvIzku7Loo4HkuI7ms5XpmaLmmK/l
-kKbph4fkv6HvvJvkvIHkuJrlhoXpg6hPQeezu+e7n+S4iueahOi1hOaWmeiDveWQpuS9nOS4uuiv
-geaNruS9v+eUqO+8m+eUteWtkOmCruS7tuOAgeaJi+acuuefreS/oeiDveWQpuS9nOS4uuivgeaN
-ruS9v+eUqO+8nyANCiANCuS4k+mimOWbm++8mue7j+a1juihpeWBvw0KMS7nlKjkurrljZXkvY3p
-nIDlkJHlirPliqjogIXmlK/ku5jnu4/mtY7ooaXlgb/nmoTmg4XlvaLmnInlk6rkupvvvJ8NCjIu
-5LuA5LmI5oOF5Ya15LiL55So5Lq65Y2V5L2N6ZyA5pSv5LuY5Lik5YCN55qE57uP5rWO6KGl5YG/
-77yfDQozLuWKs+WKqOiAheWPr+WQpuWQjOaXtuWQkeeUqOS6uuWNleS9jeS4u+W8oOe7j+a1juih
-peWBv+WSjOi1lOWBv+mHke+8nw0KNC7nu4/mtY7ooaXlgb/orqHnrpfnmoTln7rmlbDlj4rmoIfl
-h4blpoLkvZXnoa7lrprvvJ8NCjUu57uP5rWO6KGl5YG/5bm06ZmQ5pyA6auY5LiN6LaF6L+H5Y2B
-5LqM5bm055qE6YCC55So6IyD5Zu077yfDQo2LuWmguS9leiuoeeul+OAiuWKs+WKqOWQiOWQjOaz
-leOAi+eUn+aViOWJjeWQjueahOe7j+a1juihpeWBv+W5tOmZkO+8nw0KNy7lpoLkvZXnkIbop6Pi
-gJzlha3kuKrmnIjku6XkuIrkuI3mu6HkuIDlubTnmoTvvIzmjInkuIDlubTorqHnrpfvvJvkuI3m
-u6Hlha3kuKrmnIjnmoTvvIzlkJHlirPliqjogIXmlK/ku5jljYrkuKrmnIjlt6XotYTnmoTnu4/m
-tY7ooaXlgb/igJ3vvJ8NCjgu5Yqz5Yqo5ZCI5ZCM5rOV546v5aKD5LiL4oCcNTAl6aKd5aSW57uP
-5rWO6KGl5YG/6YeR4oCd5piv5ZCm57un57ut6YCC55So77yfDQogDQrkuJPpopjkupTvvJrop4Tn
-q6DliLbluqbjgIHlkZjlt6XmiYvlhowNCjEu5LyB5Lia5Lq65Yqb6LWE5rqQ566h55CG5L2T57O7
-5Lit5ZOq5Lqb5YaF5a656Lef5Yqz5Yqo5rOV5pyJ5b+F54S26IGU57O777yfDQoyLuS6uuWKm+i1
-hOa6kOOAgeWKs+WKqOeUqOW3peeuoeeQhuWItuW6puW6lOivpeWMheaLrOWTquS6m+W/heWkh+WG
-heWuue+8nw0KMy7liLblrprop4Tnq6DliLbluqbnmoTnqIvluo/opoHmsYLnu5nnlKjkurrljZXk
-vY3luKbmnaXlk6rkupvpo47pmanvvIzlpoLkvZXlupTlr7nvvJ8NCjQu6Z2e5Zu95pyJ55So5Lq6
-5Y2V5L2N5aaC5L2V57uE5bu64oCc6IGM5bel5Luj6KGo5aSn5Lya4oCd77yfDQo1LuaXoOe6uOWM
-luOAgee9kee7nOWMluWKnuWFrOS4i+eahOWFrOekuu+8jOWtmOWcqOWTquS6m+mjjumZqe+8nw0K
-Ni7lpoLkvZXlhaznpLrmiJblkYrnn6XvvIzmm7TnrKblkIjku7Loo4HmiJbor4norrznmoTkuL7o
-r4HopoHmsYLvvJ8NCjcu6KeE56ug5Yi25bqm6IO95ZCm6KeE5a6a5a+55ZGY5bel6L+b6KGM57uP
-5rWO5aSE572a77yfIA0KOC7op4Tnq6DliLbluqbov53lj43ms5Xlvovms5Xop4TvvIzlirPliqjo
-gIXlj6/ku6Xooqvov6vop6PpmaTlubbntKLlj5bnu4/mtY7ooaXlgb/vvIzlpoLkvZXpmLLojIPv
-vJ8NCiANCuS4k+mimOWFre+8muW3peS8pOS/nemZqeadoeS+iw0KMS7lsZ7kuo7lt6XkvKTojIPl
-m7TnmoTmg4XlvaLmnInlk6rkupvvvJ8NCjIu5LiN5b6X6K6k5a6a5Li65bel5Lyk55qE5oOF5b2i
-5pyJ5ZOq5Lqb77yfDQozLuaAjuagt+eQhuino+KAnOS4iuS4i+ePremAlOS4reKAne+8jOaAjuag
-t+aOp+WItuacn+mXtOeahOmjjumZqe+8nw0KNC7lj5HnlJ/lt6XkvKTkuovmlYXvvIznlKjkurrl
-jZXkvY3pnIDmib/mi4Xlk6rkupvotLnnlKjvvJ8NCjUu5bel5Lyk5ZGY5bel5YCf5pWF5ouS57ud
-5aSN5bel77yM5YCf5pWF5LiN5pat5LyR5YGH77yM5aaC5L2V5aSE55CG77yfDQo2LuWvueS6jues
-rOS4ieaWuemAoOaIkOeahOW3peS8pOS6i+aVhe+8jOWKs+WKqOiAheiDveWQpuimgeaxgueUqOS6
-uuWNleS9jeaUr+S7mOW3peS8pOW+hemBh+WPiOWQjOaXtuimgeaxguesrOS4ieaWueaUr+S7mOS6
-uui6q+S8pOWus+i1lOWBv++8nyANCjcu55So5Lq65Y2V5L2N6IO95ZCm5Lul5ZWG5Lia5L+d6Zmp
-55CG6LWU5qy+5pu/5Luj6IGM5bel5bel5Lyk6LWU5YG/5b6F6YGH77yfDQo4LuWPkeeUn+W3peS8
-pOS6i+aVhe+8jOWPjOaWueengeS4i+WSjOino++8jOihpeWBv+WNj+iuruivpeWmguS9leetvuiu
-ouaJjeacieaViO+8nw0KIA0K5LiT6aKY5LiD77ya5Yqz5Yqh5rS+6YGjDQoxLuWKs+WKoea0vumB
-o+eUqOW3peaooeW8j++8jOacieS9leWIqeW8iu+8jOWIqeWkp+i/mOaYr+W8iuWkp++8nw0KMi7l
-irPliqHmtL7pgaPlkIjkvZzljY/orq7lv4Xpobvms6jmhI/nmoTpo47pmannu4boioLmnInlk6rk
-upvvvJ8NCjMu5paw5rOV5LiL5Yqz5Yqh5rS+6YGj6Z2i5Li055qE5Li76KaB6aOO6Zmp5pyJ5ZOq
-5Lqb77yfDQo0Lua0vumBo+W3peKAnOesrOS4ieetvuKAneaXtu+8jOiDveWQpuimgeaxguetvuiu
-ouaXoOWbuuWumuacn+mZkOWKs+WKqOWQiOWQjO+8nw0KNS7lk6rkupvlspfkvY3lj6/ku6Xkvb/n
-lKjmtL7pgaPlt6XvvIzovoXliqnmgKfjgIHkuLTml7bmgKfjgIHmm7/ku6PmgKflpoLkvZXnkIbo
-p6PkuI7mk43kvZzvvJ8NCjYu5paw6KeE5a6a5a+55LqO5ZCM5bel5ZCM6YWs5o+Q5Ye65ZOq5Lqb
-5paw6KaB5rGC77yM5aaC5L2V6KeE6YG/5ZCM5bel5ZCM6YWs6aOO6Zmp77yfDQo3LumHh+eUqOWK
-s+WKoea0vumBo+eUqOW3peaWueW8j++8jOiDveWQpuW8guWcsOWPguS/ne+8nw0KOC7nlKjlt6Xl
-jZXkvY3lpoLkvZXooYzkvb/lr7nmtL7pgaPlkZjlt6XnmoTpgIDov5jmiJbpgIDmjaLmnYPvvJ8N
-Cjku5aaC5L2V5aSE55CG6L+d5Y+N55So5bel5Y2V5L2N6KeE56ug5Yi25bqm55qE5rS+6YGj5ZGY
-5bel77yfDQoxMC7mgI7moLfop4TlrprmtL7pgaPlkZjlt6XnmoTovp7ogYznqIvluo/lkoznprvo
-gYzotKPku7vvvJ8NCjExLumDqOWIhuWKs+WKoeWFrOWPuOW+iOWPr+iDvemdouS4tOWFs+mXreWB
-nOS4mu+8jOWOn+adpeeahOa0vumBo+W3peeahOWKs+WKqOWFs+ezu+WmguS9leWkhOeQhu+8nw0K
-MTIu5Lia5Yqh5aSW5YyF5LiO5Yqz5Yqh5rS+6YGj55qE5pys6LSo5Yy65Yir5pyJ5ZOq5Lqb77yf
-DQoxMy7lpoLkvZXnrZvpgInmib/ljIXmlrnvvIzpnIDogIPlr5/lk6rkupvnu4boioLopoHngrnv
-vJ8NCjE0LueUqOW3peWNleS9jeWmguS9leW6lOWvuea0vumBo+WQiOS9nOS6ieiuruWSjOWKs+WK
-qOS6ieiuru+8nw0KIA0K6K6y5biI566A5LuLDQrpkp/msLjmo6PogIHluIgNCui1hOa3seWKs+WK
-qOazleS4k+Wutg0K5pWZ6IKy6IOM5pmvDQogICAgICDlm73lhoXokZflkI3lirPliqjms5XkuI7l
-kZjlt6XlhbPns7vnrqHnkIblrp7miJjkuJPlrrbjgIHlirPliqjku7Loo4HlkZjjgIHkvIHkuJrl
-irPliqjkuonorq7pooTpmLLlupTlr7nkuJPlrrbjgIHpq5jnuqfkurrlipvotYTmupDnrqHnkIbl
-uIjjgIHpq5jnuqflirPliqjlhbPns7vljY/osIPluIjvvIzlm73lhoXnrKzkuIDmibnlgKHlr7zj
-gIHkvKDmkq3jgIHlrp7mlr3igJzlm73lrrblirPliqjms5XkuI7kvIHkuJrolqrphaznu6nmlYjm
-nInmnLrmlbTlkIjigJ3nmoTlhYjooYzogIXvvJvlm73lhoXljp/liJvlnovjgIHlrp7miJjlnovj
-gIHpob7pl67lnovnmoTln7norq3luIjjgIINCuOAgOOAgOeOsOS7u+KAnOWKs+W+i+mAmijkuK3l
-m70p6aG+6Zeu5Lit5b+D4oCd44CB5Lit5Y2O5Yib5LiW57qq5Z+56K6t572R6aaW5bit6aG+6Zeu
-77yM5LiK5rW35oiQ6YCa5b6L5biI5LqL5Yqh5omA5oqV6LWE5ZCI5LyZ5Lq677yb5YW85Lu75pe2
-5Luj5YWJ5Y2O566h55CG5a2m6Zmi44CB5rex5Zyz5aSW5ZWG5oqV6LWE5LyB5Lia5Y2P5Lya44CB
-5bm/5bee5biC5Yqz5Yqo5L+d6Zqc5a2m5Lya44CB5bm/5bee5biC5Lq65Yqb6LWE5rqQ5biC5Zy6
-5pyN5Yqh5Lit5b+D44CB5bm/5Lic55yB5Lq65Yqb6LWE5rqQ566h55CG5Y2P5Lya44CB6aaZ5riv
-5bel5Lia5oC75Lya44CB5Lit5bGx5aSn5a2m44CB5rWZ5rGf5aSn5a2m562JMTAw5aSa5a625Z+5
-6K6t5YWs5Y+444CB6KGM5Lia5Y2P5Lya44CB5pyJ5YWz5py65p6E55qE562+57qm6K6y5biI44CB
-54m56IGY6aG+6Zeu44CCDQrorrLluIjmk4Xplb8NCuOAgCAgIOmSn+iAgeW4iOeyvumAmuWKs+WK
-qOaUv+etluazleW+i+azleinhOWSjOWKs+WKqOS7suijgeOAgeivieiuvOeoi+W6j++8jOaThemV
-v+WKs+WKqOeUqOW3pemjjumZqeeahOacieaViOmihOmYsuS4juWKs+WKqOS6ieiuruahiOS7tuea
-hOeyvuWHhuW6lOWvue+8jOWWhOS6juaKiuWKs+WKqOazleW+i+azleinhOS4juS8geS4muS6uuWK
-m+i1hOa6kOeuoeeQhuacieacuuaVtOWQiO+8jOmAmuaZk+S8geS4muWKs+WKqOS6ieiurumYsuiM
-g+acuuWItueahOaehOW7uuWSjOWKs+WKqOeUqOW3peeuoeeQhuS9k+ezu+eahOS/ruato+WujOWW
-hOOAgumSn+iAgeW4iOe7j+W4uOWcqOWuouaIt+WKnuWFrOeOsOWcuuOAgeWfueiureeOsOWcuuS4
-uuWuouaIt+OAgeWtpuWRmOWNs+aXtui1t+iNieOAgeWuoeafpeOAgeS/ruaUueebuOWFs+WItuW6
-puOAgeWQiOWQjOOAgeaWh+S5pu+8jOaIluWIhuaekOWFt+S9k+ahiOS7tueahOW6lOWvueaAnei3
-r++8m+mSn+iAgeW4iOeLrOWIsOeahOeOsOWcuueahOS4k+S4muWKn+W6le+8jOavj+asoemDvei1
-ouW+l+W5v+Wkp+WuouaIt+OAgeWtpuWRmOWPkeiHquWGheW/g+eahOWlveivhOS4jjEwMCXnmoTk
-v6HmnI3vvIENCuiusuW4iOe7j+WOhg0KICAgICAg6ZKf6ICB5biI5pu+5Lu75LiT6IGM5Yqz5Yqo
-5Luy6KOB5ZGY77yM5pu+6I634oCc5bm/5bee5biC5LyY56eA5Yqz5Yqo5Luy6KOB5ZGY4oCd56ew
-5Y+377yM5pyf6Ze05a6h6KOB5Yqz5Yqo5LqJ6K6u5qGI5Lu2NDAw5aSa5a6X77yb5aSa5bm05p2l
-57Sv56ev5Luj55CG5Yqz5Yqo5LqJ6K6uNTAw5aSa5a6X77yM5Y+C5LiO5oiW5Li75oyB6Jaq6YWs
-57up5pWI5ZKo6K+i6aG555uuMjDlpJrkuKrvvIzlrqHmn6XlrozlloQ0MDDlpJrlrrbkvIHkuJrn
-moTkurrlipvotYTmupDnrqHnkIbop4Tnq6DliLbluqbjgILkuKrkurrplb/mnJ/mi4Xku7szMOWk
-muWutu+8iOe0r+iuoTIwMOWkmuWutu+8ieS8geS4mueahOS6uuWKm+i1hOa6kOeuoeeQhuazleW+
-i+mhvumXru+8m+S7pemSn+iAgeW4iOmihuihlOeahOS4k+WutumYn+S8je+8jOmVv+acn+S4uuS8
-geS6i+S4muWNleS9jeaPkOS+m+WKs+WKqOazleW4uOW5tOmhvumXruWPiuWQhOenjeWKs+i1hOS4
-k+mhueWSqOivouacjeWKoe+8jOWuouaIt+a7oeaEj+W6pumrmOi+vjk1JeOAgg0KICAgICAgMjAw
-NOW5tOW8gOWni+mSn+iAgeW4iOWFqOWbveWQhOWcsOW3oeiusuWKs+WKqOazleOAgeWKs+WKqOWF
-s+ezu+ivvueoi++8jOWPl+ebiuS8geS4mui+vjMwMDAw5a6277yM55u05o6l5Y+X55uK5a2m5ZGY
-NzAwMDDlpJrkurrvvIzln7norq3lnLDngrnmtonlj4oyMOWkmuS4quecgeS8muWfjuW4guWPiuay
-v+a1t+WcsOWMuuWkp+WfjuW4guOAgumSn+iAgeW4iOWwhuaer+eHpeeahOWKs+WKqOaUv+etluaz
-leinhOa6tuWFpeWunumZheeuoeeQhuahiOS+i+W9k+S4re+8jOWwhuS6uuWKm+i1hOa6kOeuoeeQ
-huS4juWKs+WKqOazleacieacuuWcsOaVtOWQiOWcqOS4gOi1t++8m+ivvueoi+WGheWuuTgwJeS4
-uuecn+WunuahiOS+i+OAgTIwJeS4uuW/heWkh+eahOmHjeeCueazleadoe+8m+WtpuWRmOWPguS4
-juiuqOiuuuOAgeS6kuWKqO+8jOivvueoi+eUn+WKqOaciei2o++8jOa3seWFpea1heWHuu+8jOWu
-nuaImOWei+i2heW8uu+8jOiuqeWtpuWRmOWNs+aXtuWtpuS7peiHtOeUqO+8geivvueoi+a7oeaE
-j+W6pumrmOi+vjk1Je+8jOS8l+WkmuWtpuWRmOWdh+ihqOekuu+8muKAnOesrOS4gOasoeWQrOWI
-sOWmguatpOWunuaImOOAgeWunueUqOOAgeWunuaViOeahOWKs+WKqOazleivvueoi++8gemSn+iA
-geW4iOmdnuW4uOWKoeWunuOAgeS4jeivtOaVmeOAgeayoeacieWVhuS4muWRs+mBk++8jOe7iOS6
-juWQrOWIsOS6huiuqeaIkeS4jeWGjeWQjuaClOeahOeyvuW9qeivvueoi++8geKAnQ0KICAgICAg
-6ZKf6ICB5biI5YWI5ZCO5Zyo44CK5bm/5bee5pel5oql44CL44CB44CK5Y2X5pa56YO95biC5oql
-44CL44CB44CK5Lit5Zu956S+5Lya56eR5a2m5oql44CL44CB44CK5Lq65Yqb6LWE5rqQ44CL44CB
-44CK6aaZ5riv5bel5Lia5oC75Lya5pyI5YiK44CL562J5oql5YiK44CB5p2C5b+X44CB5aqS5L2T
-5Y+R6KGo5LiT5Lia5paH56ug5oiW6YeH6K6/56i/NTDlpJrnr4fjgIINCiANCuaKpeWQjeS/oeaB
-rw0KKOWcqOe6v+aKpeWQjeivt+S4i+i9vemZhOS7tuaKpeWQjeWbnuaJp+ihqOWhq+WGmeWQjuWP
-kemAgeiHs+S/oeeusSA2OTgzNDM2QHFxLmNvbSkNCiAgICAg5oiR5Y2V5L2N5YWxICAgIOS6uueh
-ruWumuaKpeWQjeWPguWKoCAyMDE25bm0ICAgIOaciCAgICDml6XlnKggICAgICDkuL7lip7nmoTj
-gIrmnInmlYjosIPlspfosIPolqrjgIHoo4HlkZjop6Ppm4flj4rov53nuqrpl67popjlkZjlt6Xl
-pITnkIbmioDlt6fjgIvln7norq3nj63jgIINCuWNleS9jeWQjeensDogDQrlnLAg5Z2AOiANCuiB
-lOezu+S6uuWnk+WQjTog5oCnIOWIqzogDQrmiYsg5py6OiDnlLUg6K+dOiANCumDqOmXqC/ogYzl
-iqE6IEUtbWFpbDogDQrlj4Ig5LyaIOWtpiDlkZgg5L+hIOaBrw0K5aeTIOWQjeaApyDliKvogYwg
-5L2N5omLIOacukUtbWFpbOmHkSDpop0NCiAgICAgIA0KICAgICAgDQogICAgICANCue8tOi0ueaW
-ueW8jyDilqEg6L2s5biQICAg4pahIOeOsOmHkSAg77yI6K+36YCJ5oupIOWcqOKWoeaJk+KImu+8
-iSAgDQrkvY/lrr/opoHmsYLpooTlrprvvJrlj4zkurrmiL9fX1/pl7TvvJvljZXkurrmiL9fX1/p
-l7TvvIzkvY/lrr/ml7bpl7TvvJpfXyDmnIggX18g6IezIF9fIOaXpQ0KKOS4jeeUqOmihOWumuiv
-t+eVmeepuinotLnnlKjoh6rnkIbvvJsNCg0KIA0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoN
-Cg0KDQoNCg0KDQrmraTooajmiYDloavkv6Hmga/ku4XnlKjkuo7mi5vnlJ/lt6XkvZzvvIzlpoLp
-nIDlj4LliqDor7floavlhpnlm57kvKDnu5nmiJHku6zvvIzku6Xkvr/lj4rml7bkuLrmgqjlronm
-jpLkvJrliqHlubblj5Hnoa7orqTlh73vvIzosKLosKLmlK/mjIHvvIEKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlz
-dApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4v
-bGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Wed 14-12-16 12:55:23, Dave Jiang wrote:
+> The callers into dax needs to clear __GFP_FS since they are responsible
+> for acquiring locks / transactions that block __GFP_FS allocation. They
+> will restore the lag when dax function return.
+                   ^^^ flags             ^^^ returns.
+
+Otherwise the patch looks good to me. Feel free to add:
+
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  fs/dax.c          |    1 +
+>  fs/ext2/file.c    |    9 ++++++++-
+>  fs/ext4/file.c    |   10 +++++++++-
+>  fs/xfs/xfs_file.c |   14 +++++++++++++-
+>  4 files changed, 31 insertions(+), 3 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index d3fe880..6395bc6 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1380,6 +1380,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+>  	vmf.pgoff = pgoff;
+>  	vmf.flags = flags;
+>  	vmf.gfp_mask = mapping_gfp_mask(mapping) | __GFP_IO;
+> +	vmf.gfp_mask &= ~__GFP_FS;
+>  
+>  	switch (iomap.type) {
+>  	case IOMAP_MAPPED:
+> diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+> index b0f2415..8422d5f 100644
+> --- a/fs/ext2/file.c
+> +++ b/fs/ext2/file.c
+> @@ -92,16 +92,19 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+>  	struct inode *inode = file_inode(vma->vm_file);
+>  	struct ext2_inode_info *ei = EXT2_I(inode);
+>  	int ret;
+> +	gfp_t old_gfp = vmf->gfp_mask;
+>  
+>  	if (vmf->flags & FAULT_FLAG_WRITE) {
+>  		sb_start_pagefault(inode->i_sb);
+>  		file_update_time(vma->vm_file);
+>  	}
+> +	vmf->gfp_mask &= ~__GFP_FS;
+>  	down_read(&ei->dax_sem);
+>  
+>  	ret = dax_iomap_fault(vma, vmf, &ext2_iomap_ops);
+>  
+>  	up_read(&ei->dax_sem);
+> +	vmf->gfp_mask = old_gfp;
+>  	if (vmf->flags & FAULT_FLAG_WRITE)
+>  		sb_end_pagefault(inode->i_sb);
+>  	return ret;
+> @@ -114,6 +117,7 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+>  	struct ext2_inode_info *ei = EXT2_I(inode);
+>  	loff_t size;
+>  	int ret;
+> +	gfp_t old_gfp = vmf->gfp_mask;
+>  
+>  	sb_start_pagefault(inode->i_sb);
+>  	file_update_time(vma->vm_file);
+> @@ -123,8 +127,11 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+>  	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+>  	if (vmf->pgoff >= size)
+>  		ret = VM_FAULT_SIGBUS;
+> -	else
+> +	else {
+> +		vmf->gfp_mask &= ~__GFP_FS;
+>  		ret = dax_pfn_mkwrite(vma, vmf);
+> +		vmf->gfp_mask = old_gfp;
+> +	}
+>  
+>  	up_read(&ei->dax_sem);
+>  	sb_end_pagefault(inode->i_sb);
+> diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+> index d663d3d..a3f2bf0 100644
+> --- a/fs/ext4/file.c
+> +++ b/fs/ext4/file.c
+> @@ -261,14 +261,17 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+>  	struct inode *inode = file_inode(vma->vm_file);
+>  	struct super_block *sb = inode->i_sb;
+>  	bool write = vmf->flags & FAULT_FLAG_WRITE;
+> +	gfp_t old_gfp = vmf->gfp_mask;
+>  
+>  	if (write) {
+>  		sb_start_pagefault(sb);
+>  		file_update_time(vma->vm_file);
+>  	}
+> +	vmf->gfp_mask &= ~__GFP_FS;
+>  	down_read(&EXT4_I(inode)->i_mmap_sem);
+>  	result = dax_iomap_fault(vma, vmf, &ext4_iomap_ops);
+>  	up_read(&EXT4_I(inode)->i_mmap_sem);
+> +	vmf->gfp_mask = old_gfp;
+>  	if (write)
+>  		sb_end_pagefault(sb);
+>  
+> @@ -320,8 +323,13 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
+>  	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+>  	if (vmf->pgoff >= size)
+>  		ret = VM_FAULT_SIGBUS;
+> -	else
+> +	else {
+> +		gfp_t old_gfp = vmf->gfp_mask;
+> +
+> +		vmf->gfp_mask &= ~__GFP_FS;
+>  		ret = dax_pfn_mkwrite(vma, vmf);
+> +		vmf->gfp_mask = old_gfp;
+> +	}
+>  	up_read(&EXT4_I(inode)->i_mmap_sem);
+>  	sb_end_pagefault(sb);
+>  
+> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> index d818c16..52202b4 100644
+> --- a/fs/xfs/xfs_file.c
+> +++ b/fs/xfs/xfs_file.c
+> @@ -1474,7 +1474,11 @@ xfs_filemap_page_mkwrite(
+>  	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+>  
+>  	if (IS_DAX(inode)) {
+> +		gfp_t old_gfp = vmf->gfp_mask;
+> +
+> +		vmf->gfp_mask &= ~__GFP_FS;
+>  		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
+> +		vmf->gfp_mask = old_gfp;
+>  	} else {
+>  		ret = iomap_page_mkwrite(vma, vmf, &xfs_iomap_ops);
+>  		ret = block_page_mkwrite_return(ret);
+> @@ -1502,13 +1506,16 @@ xfs_filemap_fault(
+>  
+>  	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+>  	if (IS_DAX(inode)) {
+> +		gfp_t old_gfp = vmf->gfp_mask;
+>  		/*
+>  		 * we do not want to trigger unwritten extent conversion on read
+>  		 * faults - that is unnecessary overhead and would also require
+>  		 * changes to xfs_get_blocks_direct() to map unwritten extent
+>  		 * ioend for conversion on read-only mappings.
+>  		 */
+> +		vmf->gfp_mask &= ~__GFP_FS;
+>  		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
+> +		vmf->gfp_mask = old_gfp;
+>  	} else
+>  		ret = filemap_fault(vma, vmf);
+>  	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+> @@ -1581,8 +1588,13 @@ xfs_filemap_pfn_mkwrite(
+>  	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+>  	if (vmf->pgoff >= size)
+>  		ret = VM_FAULT_SIGBUS;
+> -	else if (IS_DAX(inode))
+> +	else if (IS_DAX(inode)) {
+> +		gfp_t old_gfp = vmf->gfp_mask;
+> +
+> +		vmf->gfp_mask &= ~__GFP_FS;
+>  		ret = dax_pfn_mkwrite(vma, vmf);
+> +		vmf->gfp_mask = old_gfp;
+> +	}
+>  	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
+>  	sb_end_pagefault(inode->i_sb);
+>  	return ret;
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
