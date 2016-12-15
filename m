@@ -1,15 +1,18 @@
-From: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] dev-dax: add support to display badblocks in sysfs
- for dev-dax
-Date: Wed, 14 Dec 2016 15:51:45 -0700
-Message-ID: <5285b143-5588-2f69-60fe-d7d905999cbb@intel.com>
-References: <148158809239.159590.16102609849408268953.stgit@djiang5-desk3.ch.intel.com>
- <x491sxadxkn.fsf@segfault.boston.devel.redhat.com>
+From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/8] device-dax: sub-division support
+Date: Thu, 15 Dec 2016 11:50:19 -0500
+Message-ID: <x49shpp3zn8.fsf@segfault.boston.devel.redhat.com>
+References: <148143770485.10950.13227732273892953675.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <x497f75hxwp.fsf@segfault.boston.devel.redhat.com>
+ <CAPcyv4hq=U8YkYqK4OE__FQyeGq2dKH+=14NttQu0M84yXZ7BQ@mail.gmail.com>
+ <x494m278kam.fsf@segfault.boston.devel.redhat.com>
+ <CAPcyv4hzCHqF9ALYFYCpv=WyHoMOFDoeWOd38b4sKwmkkmSgLQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <x491sxadxkn.fsf-RRHT56Q3PSP4kTEheFKJxxDDeQx5vsVwAInAS/Ez/D0@public.gmane.org>
+In-Reply-To: <CAPcyv4hzCHqF9ALYFYCpv=WyHoMOFDoeWOd38b4sKwmkkmSgLQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ (Dan Williams's message of "Tue, 13 Dec 2016 17:17:39 -0800")
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,204 +22,180 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
+Hi, Dan,
 
+Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
 
-On 12/14/2016 02:12 PM, Jeff Moyer wrote:
-> Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
-> 
->> Adding support to show badblocks in the pmem region that's provided
->> by the poison_list. This should show up in
->> /sys/class/dax/daxN.N/badblocks as read only. Currently we only support
->> a single resource and we do not support badblocks for seeds. Additional
->> support code will be implemented to support.
-> 
-> You didn't wire up a notify event.  Was that intentional?
-
-No. I totally missed it. Good catch!
-
-> 
-> -Jeff
-> 
+> On Tue, Dec 13, 2016 at 3:46 PM, Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>> Hi, Dan,
 >>
->> Signed-off-by: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> ---
->>  drivers/dax/dax.c  |   27 ++++++++++++++++++++++-----
->>  drivers/dax/dax.h  |    8 +++++++-
->>  drivers/dax/pmem.c |   37 ++++++++++++++++++++++++++++++++++++-
->>  3 files changed, 65 insertions(+), 7 deletions(-)
+>> In general, I have a couple of concerns with this patchset:
+>> 1) You're making a case that subdivision shouldn't be persistent, which
+>>    means that all of the code we already have for subdividing devices
+>>    (partitions, libnvdimm) has to be re-invented in userspace, and
+>>    existing tools can't be used to manage nvdimms.
+>
+> Keep in mind that the device-dax core just operates on address ranges,
+> whether those address ranges are persistent or not is invisible to the
+> core. The core simply can not assume that the address ranges it is
+> managing are persistent or volatile. For environments that want to use
+> traditional partitioning or libnvdimm namespace labels, nothing stops
+> them. The difference is just a mode setting at the namespace level,
+> for example:
+>
+>     ndctl create-namespace --reconfig=namespace0.0 --mode=dax --force
+>     ndctl create-namespace --reconfig=namespace0.0 --mode=memory --force
+>
+> Also recall that we have namespace sub-division support, with
+> persistent labels, that was added in 4.9. So instead of being limited
+> to one namespace per pmem-region we can now support multiple
+> namespaces per region.
+
+Namespace subdivision requires label support in the NVDIMM, and given
+that there are no NVDIMMs out there today that support labels, that's
+not an option.
+
+It makes a heck of a lot more sense to continue to manage storage via a
+block device.  I know that DAX support for block devices ran into
+roadblocks before, but I'm willing to give it another try.  You
+mentioned on irc that we may be able to emulate label support for
+DIMMs that don't have it.  I guess that would be another way forward.
+Did you have any ideas on how that might be implemented?
+
+>> 2) You're pushing file system features into a character device.
+>
+> Yes, just like a block device the device-dax instances support
+> sub-division and a unified inode.
+
+I'm not sure what you mean by a unified inode.
+
+> But, unlike a block device, no entanglements with the page cache or
+> other higher level file api features.
+
+>> OK, so you've now implemented file extending and truncation (and block
+>> mapping, I guess).  Where does this end?  How many more file-system
+>> features will you add to this character device?
 >>
->> diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
->> index 6450c07..2c34cae 100644
->> --- a/drivers/dax/dax.c
->> +++ b/drivers/dax/dax.c
->> @@ -83,6 +83,7 @@ struct dax_dev {
->>  	int id;
->>  	int num_resources;
->>  	struct resource **res;
->> +	void *private;
->>  };
->>  
->>  #define for_each_dax_region_resource(dax_region, res) \
->> @@ -408,6 +409,20 @@ static struct dax_dev *to_dax_dev(struct device *dev)
->>  	return container_of(dev, struct dax_dev, dev);
->>  }
->>  
->> +void *dax_dev_get_private(struct device *dev)
->> +{
->> +	struct dax_dev *dax_dev = to_dax_dev(dev);
->> +
->> +	return dax_dev->private;
->> +}
->> +EXPORT_SYMBOL_GPL(dax_dev_get_private);
->> +
->> +void dax_dev_set_private(struct dax_dev *dax_dev, void *priv)
->> +{
->> +	dax_dev->private = priv;
->> +}
->> +EXPORT_SYMBOL_GPL(dax_dev_set_private);
->> +
->>  static unsigned long long dax_dev_size(struct dax_dev *dax_dev)
->>  {
->>  	struct dax_region *dax_region = dax_dev->region;
->> @@ -805,7 +820,7 @@ static ssize_t dax_dev_resize(struct dax_region *dax_region,
->>  			&& &dax_dev->dev == dax_region->seed) {
->>  		struct dax_dev *seed;
->>  
->> -		seed = devm_create_dax_dev(dax_region, NULL, 0);
->> +		seed = devm_create_dax_dev(dax_region, NULL, 0, NULL);
->>  		if (IS_ERR(seed))
->>  			dev_warn(dax_region->dev,
->>  					"failed to create new region seed\n");
->> @@ -851,9 +866,10 @@ static struct attribute *dax_device_attributes[] = {
->>  	NULL,
->>  };
->>  
->> -static const struct attribute_group dax_device_attribute_group = {
->> +struct attribute_group dax_device_attribute_group = {
->>  	.attrs = dax_device_attributes,
->>  };
->> +EXPORT_SYMBOL_GPL(dax_device_attribute_group);
->>  
->>  static const struct attribute_group *dax_attribute_groups[] = {
->>  	&dax_device_attribute_group,
->> @@ -1143,7 +1159,8 @@ static void dax_dev_release(struct device *dev)
->>  }
->>  
->>  struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
->> -		struct resource *res, int count)
->> +		struct resource *res, int count,
->> +		const struct attribute_group **groups)
->>  {
->>  	struct device *parent = dax_region->dev;
->>  	struct dax_dev *dax_dev;
->> @@ -1248,7 +1265,7 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
->>  	dev->devt = dev_t;
->>  	dev->class = dax_class;
->>  	dev->parent = parent;
->> -	dev->groups = dax_attribute_groups;
->> +	dev->groups = groups ? groups : dax_attribute_groups;
->>  	dev->release = dax_dev_release;
->>  	dev_set_name(dev, "dax%d.%d", dax_region->id, dax_dev->id);
->>  	/* update resource names now that the owner device is named */
->> @@ -1268,7 +1285,7 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
->>  	if (atomic_inc_return(&dax_region->child_count) == 1) {
->>  		struct dax_dev *seed;
->>  
->> -		seed = devm_create_dax_dev(dax_region, NULL, 0);
->> +		seed = devm_create_dax_dev(dax_region, NULL, 0, NULL);
->>  		if (IS_ERR(seed))
->>  			dev_warn(parent, "failed to create region seed\n");
->>  		else
->> diff --git a/drivers/dax/dax.h b/drivers/dax/dax.h
->> index ddd829a..c23c7ac 100644
->> --- a/drivers/dax/dax.h
->> +++ b/drivers/dax/dax.h
->> @@ -16,10 +16,16 @@ struct device;
->>  struct dax_dev;
->>  struct resource;
->>  struct dax_region;
->> +extern struct attribute_group dax_device_attribute_group;
->> +
->>  void dax_region_put(struct dax_region *dax_region);
->>  struct dax_region *alloc_dax_region(struct device *parent,
->>  		int region_id, struct resource *res, unsigned int align,
->>  		void *addr, unsigned long flags);
->>  struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
->> -		struct resource *res, int count);
->> +		struct resource *res, int count,
->> +		const struct attribute_group **groups);
->> +void *dax_dev_get_private(struct device *dev);
->> +void dax_dev_set_private(struct dax_dev *dax_dev, void *priv);
->> +
->>  #endif /* __DAX_H__ */
->> diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
->> index 033f49b3..808d3bb 100644
->> --- a/drivers/dax/pmem.c
->> +++ b/drivers/dax/pmem.c
->> @@ -14,6 +14,7 @@
->>  #include <linux/memremap.h>
->>  #include <linux/module.h>
->>  #include <linux/pfn_t.h>
->> +#include <linux/badblocks.h>
->>  #include "../nvdimm/pfn.h"
->>  #include "../nvdimm/nd.h"
->>  #include "dax.h"
->> @@ -22,6 +23,32 @@ struct dax_pmem {
->>  	struct device *dev;
->>  	struct percpu_ref ref;
->>  	struct completion cmp;
->> +	struct badblocks bb;
->> +};
->> +
->> +static ssize_t dax_pmem_badblocks_show(struct device *dev,
->> +		struct device_attribute *attr, char *page)
->> +{
->> +	struct dax_pmem *dax_pmem =
->> +		(struct dax_pmem *)dax_dev_get_private(dev);
->> +
->> +	return badblocks_show(&dax_pmem->bb, page, 0);
->> +}
->> +static DEVICE_ATTR(badblocks, S_IRUGO, dax_pmem_badblocks_show, NULL);
->> +
->> +static struct attribute *dax_pmem_badblock_attributes[] = {
->> +	&dev_attr_badblocks.attr,
->> +	NULL,
->> +};
->> +
->> +static struct attribute_group dax_pmem_badblock_attribute_group = {
->> +	.attrs = dax_pmem_badblock_attributes,
->> +};
->> +
->> +static const struct attribute_group *dax_pmem_attribute_groups[] = {
->> +	&dax_device_attribute_group,
->> +	&dax_pmem_badblock_attribute_group,
->> +	NULL,
->>  };
->>  
->>  static struct dax_pmem *to_dax_pmem(struct percpu_ref *ref)
->> @@ -130,7 +157,15 @@ static int dax_pmem_probe(struct device *dev)
->>  		return -ENOMEM;
->>  
->>  	/* TODO: support for subdividing a dax region... */
->> -	dax_dev = devm_create_dax_dev(dax_region, &res, 1);
->> +	dax_dev = devm_create_dax_dev(dax_region, &res, 1,
->> +			dax_pmem_attribute_groups);
->> +	dax_dev_set_private(dax_dev, dax_pmem);
->> +
->> +	rc = devm_init_badblocks(dev, &dax_pmem->bb);
->> +	if (rc)
->> +		return rc;
->> +
->> +	nvdimm_badblocks_populate(nd_region, &dax_pmem->bb, &res);
->>  
->>  	/* child dax_dev instances now own the lifetime of the dax_region */
->>  	dax_region_put(dax_region);
+>
+> It ends here. A device-file per sub-allocation of a memory range is
+> the bare minimum to take device-dax from being a toy to something
+> usable in practice. Device-DAX will never support read(2)/write(2),
+> never support MAP_PRIVATE, and being DAX it will never interact with
+> the page cache which eliminates most of the rest of the file apis. It
+> will also never support higher order mm capabilities like overcommit
+> and migration.
+
+Well, Dave Jiang posted patches to add fallocate support.  So it didn't
+quite end there.
+
+>>> * allocation + access mechanism for performance differentiated memory:
+>>> Persistent memory is one example of a reserved memory pool with
+>>> different performance characteristics than typical DRAM in a system,
+>>> and there are examples of other performance differentiated memory
+>>> pools (high bandwidth or low latency) showing up on commonly available
+>>> platforms. This mechanism gives purpose built applications (high
+>>> performance computing, databases, etc...) a way to establish mappings
+>>> with predictable fault-granularities and performance, but also allow
+>>> for different permissions per allocation.
 >>
->> _______________________________________________
->> Linux-nvdimm mailing list
->> Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
->> https://lists.01.org/mailman/listinfo/linux-nvdimm
+>> So, how would an application that wishes to use a device-dax subdivision
+>> of performance differentiated memory get access to it?
+>> 1) administrator subdivides space and assigns it to a user
+>> 2) application gets to use it
+>>
+>> Something like that?  Or do you expect applications to sub-divide the
+>> device-dax instance programmatically?
+>
+> No, not programmatically, I would expect this would be a provisioning
+> time setup operation when the server/service is instantiated.
+
+That's a terrible model for storage.  If you're going to continue on
+this path, then I'd suggest that the moment the namespace is converted
+to be "device dax", the initial device should have a size of 0.  At
+least that way nobody can accidentally open it and scribble all over
+the full device.
+
+>> Why wouldn't you want the mapping to live beyond a single boot?
+>
+> This goes back to not being able to assume that the media is
+> persistent. If an application/use case needs the kernel to recall
+> provisioning decisions then that application needs to stick to
+> libnvdimm namespace labels, block device partitions, or a filesystem.
+
+You can't have it both ways.  Either device-dax is meant for persistent
+memory or it isn't.  You're stating that the right way to divide up a
+persistent memory namespace is to use labels, which don't exist.  Then
+you're proposing this method for dividing up device-dax as well, without
+anybody from the non-persistent memory camp even chiming in that this is
+something that they want.  What is the urgency here, and where are the
+users?
+
+I can only conclude that you actually do intend the subdivision to be
+used for persistent memory, and I'm telling you that what you've
+implemented doesn't fit that use case well at all.
+
+>>> * carving up a PCI-E device memory bar for managing peer-to-peer
+>>> transactions: In the thread about enablling P2P DMA one of the
+>>> concerns that was raised was security separation of different users of
+>>> a device: http://marc.info/?l=linux-kernel&m=148106083913173&w=2
+>>
+>> OK, but I wasn't sure that there was consensus in that thread.  It
+>> seemed more likely that the block device ioctl path would be pursued.
+>> If this is the preferred method, I think you should document their
+>> requirements and show how the implementation meets them, instead of
+>> leaving that up to reviewers.  Or, at the very least, CC the interested
+>> parties?
+>
+> I put those details here [1]. That thread did try to gather
+> requirements, but got muddled between graphics, mm, and RDMA concerns.
+> Device-dax is not attempting to solve problems outside of its core use
+> of allowing an application to statically allocate reserved memory. If
+> it works by accident for a P2P RDMA use case, great, but to your
+> earlier concern we're not going to chase that use case with ever more
+> device-dax features.
+>
+> [1]: http://marc.info/?l=linux-kernel&m=147983832620658&w=2
+
+That's a pretty thin proposal.  I'd much rather see the rest of the
+supporting code implemented as a proof of concept before we start taking
+interfaces into the kernel.  If your only justification is to use this
+with persistent memory, then I'm telling you I think it's a bad
+interface.
+
+>>>>> For persistent allocations, naming, and permissions automatically
+>>>>> recalled by the kernel, use filesystem-DAX. For a userspace helper
+>>>>
+>>>> I'd agree with that guidance if it wasn't for the fact that device dax
+>>>> was born out of the need to be able to flush dirty data in a safe manner
+>>>> from userspace.  At best, we're giving mixed guidance to application
+>>>> developers.
+>>>
+>>> Yes, but at the same time device-DAX is sufficiently painful (no
+>>> read(2)/write(2) support, no builtin metadata support) that it may
+>>> spur application developers to lobby for a filesystem that offers
+>>> userspace dirty-data flushing. Until then we have this vehicle to test
+>>> the difference and dax-support for memory types beyond persistent
+>>> memory.
+>>
+>> Let's just work on the PMEM_IMMUTABLE flag that Dave suggested[1] and
+>> make device dax just for volatile memories.
+>
+> Yes, let's work on PMEM_IMMUTABLE, and in the meantime we have
+> device-dax. It's not a zero sum situation.
+>
+> Device-dax handles physical memory ranges generically, if you want to
+> "make device dax just for volatile memories", that's a user decision
+> to not give persistent memory ranges to device-dax.
+
+Right now, your only use case is persistent memory, and I don't think
+this is the right interface for it.  Clearly someone is asking for this
+support.  Can you convince them to chime in on the mailing list with
+their requirements?  Alternatively, can you state what the requirements
+were that lead to this solution?
+
+Thanks,
+Jeff
