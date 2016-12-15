@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x235.google.com (mail-oi0-x235.google.com
+ [IPv6:2607:f8b0:4003:c06::235])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 61EA682081
- for <linux-nvdimm@lists.01.org>; Sat, 10 Dec 2016 22:39:11 -0800 (PST)
-Subject: [ndctl PATCH 5/6] test, daxctl: test dax region apis
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 10 Dec 2016 22:35:02 -0800
-Message-ID: <148143810220.11895.9642149313511155250.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148143807638.11895.3823811556889353622.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148143807638.11895.3823811556889353622.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2014B81DFB
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Dec 2016 22:47:02 -0800 (PST)
+Received: by mail-oi0-x235.google.com with SMTP id w63so42277218oiw.0
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Dec 2016 22:47:01 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4g8-J31Pk_Z8dOg_DRbvu6b7_Y9MhcWuqhNMgxhcodp7A@mail.gmail.com>
+References: <148143770485.10950.13227732273892953675.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <148143771052.10950.7622110904173815243.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20161214143802.GD6279@linux-x5ow.site>
+ <CAPcyv4g8-J31Pk_Z8dOg_DRbvu6b7_Y9MhcWuqhNMgxhcodp7A@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 14 Dec 2016 22:47:00 -0800
+Message-ID: <CAPcyv4juk+M7b3yKuE_9VEjYsfsR-Z8o2Pobu2ZY8mOAUptYNQ@mail.gmail.com>
+Subject: Re: [PATCH 1/8] dax: add region-available-size attribute
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,80 +28,77 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Spot check the new dax_region attributes available starting with kernel
-v4.10.
+On Wed, Dec 14, 2016 at 7:53 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Wed, Dec 14, 2016 at 6:38 AM, Johannes Thumshirn <jthumshirn@suse.de> wrote:
+>> Hi Dan,
+>>
+>> On Sat, Dec 10, 2016 at 10:28:30PM -0800, Dan Williams wrote:
+>>> In preparation for a facility that enables dax regions to be
+>>> sub-divided, introduce a 'dax/available_size' attribute.  This attribute
+>>> appears under the parent device that registered the device-dax region,
+>>> and it assumes that the device-dax-core owns the driver-data for that
+>>> device.
+>>>
+>>> 'dax/available_size' adjusts dynamically as dax-device instances are
+>>> registered and unregistered.
+>>>
+>>> As a side effect of using __request_region() to reserve capacity from
+>>> the dax_region we now track pointers to those returned resources rather
+>>> than duplicating the passed in resource array.
+>>>
+>>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>>> ---
+>>
+>> [...]
+>>
+>>> +static const struct attribute_group *dax_region_attribute_groups[] = {
+>>> +     &dax_region_attribute_group,
+>>> +     NULL,
+>>>  };
+>>>
+>>>  static struct inode *dax_alloc_inode(struct super_block *sb)
+>>> @@ -200,12 +251,27 @@ void dax_region_put(struct dax_region *dax_region)
+>>>  }
+>>>  EXPORT_SYMBOL_GPL(dax_region_put);
+>>>
+>>> +
+>>
+>> Stray extra newline?
+>>
+>> [...]
+>>
+>>>  struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+>>>               struct resource *res, unsigned int align, void *addr,
+>>>               unsigned long pfn_flags)
+>>>  {
+>>>       struct dax_region *dax_region;
+>>>
+>>> +     if (dev_get_drvdata(parent)) {
+>>> +             dev_WARN(parent, "dax core found drvdata already in use\n");
+>>> +             return NULL;
+>>> +     }
+>>> +
+>>
+>> My first thought was, it might be interesting to see who already claimed
+>> the drvdata. Then I figured, how are multiple sub-regions of a dax-device
+>> supposed to work? What am I missing here?
+>
+> This is a check similar to the -EBUSY return you would get from
+> request_mem_region(). In fact if all dax drivers are correctly calling
+> request_mem_region() before alloc_dax_region() then it would be
+> impossible for this check to ever fire. It's already impossible
+> because there's only one dax driver upstream (dax_pmem). It's not
+> really benefiting the kernel at all until we have multiple dax
+> drivers, I'll remove it.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/libndctl.c |   35 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 34 insertions(+), 1 deletion(-)
-
-diff --git a/test/libndctl.c b/test/libndctl.c
-index 840376c34d32..c6e199dbb078 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -625,9 +625,12 @@ static int validate_dax(struct ndctl_dax *dax)
- 	struct ndctl_namespace *ndns = ndctl_dax_get_namespace(dax);
- 	const char *devname = ndctl_namespace_get_devname(ndns);
- 	struct ndctl_region *region = ndctl_dax_get_region(dax);
--	struct daxctl_region *dax_region = NULL;
-+	struct ndctl_ctx *ctx = ndctl_dax_get_ctx(dax);
-+	struct ndctl_test *test = ndctl_get_private_data(ctx);
-+	struct daxctl_region *dax_region = NULL, *found;
- 	int rc = -ENXIO, fd, count, dax_expect;
- 	struct daxctl_dev *dax_dev, *seed;
-+	struct daxctl_ctx *dax_ctx;
- 	uuid_t uuid, region_uuid;
- 	char devpath[50];
- 
-@@ -638,6 +641,35 @@ static int validate_dax(struct ndctl_dax *dax)
- 		return -ENXIO;
- 	}
- 
-+	dax_ctx = ndctl_get_daxctl_ctx(ctx);
-+	count = 0;
-+	daxctl_region_foreach(dax_ctx, found)
-+		if (found == dax_region)
-+			count++;
-+	if (count != 1) {
-+		fprintf(stderr, "%s: failed to iterate to single region instance\n",
-+				devname);
-+		return -ENXIO;
-+	}
-+
-+	if (ndctl_test_attempt(test, KERNEL_VERSION(4, 10, 0))) {
-+		if (daxctl_region_get_size(dax_region)
-+				!= ndctl_dax_get_size(dax)) {
-+			fprintf(stderr, "%s: expect size: %llu != %llu\n",
-+					devname, ndctl_dax_get_size(dax),
-+					daxctl_region_get_size(dax_region));
-+			return -ENXIO;
-+		}
-+
-+		if (daxctl_region_get_align(dax_region)
-+				!= ndctl_dax_get_align(dax)) {
-+			fprintf(stderr, "%s: expect align: %lu != %lu\n",
-+					devname, ndctl_dax_get_align(dax),
-+					daxctl_region_get_align(dax_region));
-+			return -ENXIO;
-+		}
-+	}
-+
- 	rc = -ENXIO;
- 	ndctl_dax_get_uuid(dax, uuid);
- 	daxctl_region_get_uuid(dax_region, region_uuid);
-@@ -2646,6 +2678,7 @@ int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
- 	ndctl_set_log_priority(ctx, loglevel);
- 	daxctl_ctx = ndctl_get_daxctl_ctx(ctx);
- 	daxctl_set_log_priority(daxctl_ctx, loglevel);
-+	ndctl_set_private_data(ctx, test);
- 
- 	kmod_ctx = kmod_new(NULL, NULL);
- 	if (!kmod_ctx)
-
+No, I went to go delete this and remembered the real reason this was
+added. A device driver that calls alloc_dax_region() commits to
+letting the dax core own dev->driver_data. Since this wasn't even
+clear to me, I'll go fix up the comment.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
