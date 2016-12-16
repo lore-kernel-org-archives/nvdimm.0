@@ -1,403 +1,507 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH 09/11] mm: support section-unaligned ZONE_DEVICE memory
- ranges
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 01 Dec 2016 14:30:35 -0800
-Message-ID: <148063143537.37496.10587439764315811298.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E51078204F
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Dec 2016 23:17:35 -0800 (PST)
+Date: Fri, 16 Dec 2016 08:17:31 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v3 3/3] mm, dax: move pmd_fault() to take only vmf
+ parameter
+Message-ID: <20161216071731.GA26608@quack2.suse.cz>
+References: <148183505925.96369.9987658623875784437.stgit@djiang5-desk3.ch.intel.com>
+ <148183507090.96369.1341372300913394127.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <148183507090.96369.1341372300913394127.stgit@djiang5-desk3.ch.intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: toshi.kani@hpe.com, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Logan Gunthorpe <logang@deltatee.com>, Vlastimil Babka <vbabka@suse.cz>
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-mm@kvack.org, tytso@mit.edu, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-The initial motivation for this change is persistent memory platforms
-that, unfortunately, align the pmem range on a boundary less than a full
-section (64M vs 128M), and may change the alignment from one boot to the
-next. A secondary motivation is the arrival of prospective ZONE_DEVICE
-users that want devm_memremap_pages() to map PCI-E device memory ranges
-to enable peer-to-peer DMA.
+On Thu 15-12-16 13:51:11, Dave Jiang wrote:
+> pmd_fault() and related functions really only need the vmf parameter since
+> the additional parameters are all included in the vmf struct. Removing
+> additional parameter and simplify pmd_fault() and friends.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 
-Currently the nvdimm core injects padding when 'pfn' (struct page
-mapping configuration) instances are created. However, not all users of
-devm_memremap_pages() have the opportunity to inject such padding. Users
-of the memmap=ss!nn kernel command line option can trigger the following
-failure with unaligned parameters like "memmap=0xfc000000!8G":
+Looks good. You can add:
 
- WARNING: CPU: 0 PID: 558 at kernel/memremap.c:300 devm_memremap_pages+0x3b5/0x4c0
- devm_memremap_pages attempted on mixed region [mem 0x200000000-0x2fbffffff flags 0x200]
- [..]
- Call Trace:
-  [<ffffffff814c0393>] dump_stack+0x86/0xc3
-  [<ffffffff810b173b>] __warn+0xcb/0xf0
-  [<ffffffff810b17bf>] warn_slowpath_fmt+0x5f/0x80
-  [<ffffffff811eb105>] devm_memremap_pages+0x3b5/0x4c0
-  [<ffffffffa006f308>] __wrap_devm_memremap_pages+0x58/0x70 [nfit_test_iomap]
-  [<ffffffffa00e231a>] pmem_attach_disk+0x19a/0x440 [nd_pmem]
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Without this change a user could inadvertently lose access to nvdimm
-namespaces by adding/removing other DIMMs in the platform leading to the
-BIOS changing the base alignment of the namespace in an incompatible
-fashion. With this support we can accommodate a BIOS changing the
-namespace to any alignment provided it is >= SECTION_ACTIVE_SIZE.
+BTW, if you want to continue with this, it may be worthwhile to also
+convert vmf_insert_pfn_pmd() to take only 'vmf' and 'pfn' arguments.
 
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Stephen Bates <stephen.bates@microsemi.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- mm/sparse.c |  272 ++++++++++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 204 insertions(+), 68 deletions(-)
+								Honza
 
-diff --git a/mm/sparse.c b/mm/sparse.c
-index a8358d15a90d..d8c4bc9ccc1a 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -24,6 +24,7 @@
- #ifdef CONFIG_SPARSEMEM_EXTREME
- struct mem_section *mem_section[NR_SECTION_ROOTS]
- 	____cacheline_internodealigned_in_smp;
-+static DEFINE_SPINLOCK(mem_section_lock); /* atomically instantiate new entries */
- #else
- struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT]
- 	____cacheline_internodealigned_in_smp;
-@@ -89,7 +90,22 @@ static int __meminit sparse_index_init(unsigned long section_nr, int nid)
- 	if (!section)
- 		return -ENOMEM;
- 
--	mem_section[root] = section;
-+	spin_lock(&mem_section_lock);
-+	if (mem_section[root] == NULL) {
-+		mem_section[root] = section;
-+		section = NULL;
-+	}
-+	spin_unlock(&mem_section_lock);
-+
-+	/*
-+	 * The only time we expect adding a section may race is during
-+	 * post-meminit hotplug. So, there is no expectation that 'section'
-+	 * leaks in the !slab_is_available() case.
-+	 */
-+	if (section && slab_is_available()) {
-+		kfree(section);
-+		return -EEXIST;
-+	}
- 
- 	return 0;
- }
-@@ -288,6 +304,15 @@ static void __meminit sparse_init_one_section(struct mem_section *ms,
- 		unsigned long pnum, struct page *mem_map,
- 		struct mem_section_usage *usage)
- {
-+	/*
-+	 * Given that SPARSEMEM_VMEMMAP=y supports sub-section hotplug,
-+	 * ->section_mem_map can not be guaranteed to point to a full
-+	 *  section's worth of memory.  The field is only valid / used
-+	 *  in the SPARSEMEM_VMEMMAP=n case.
-+	 */
-+	if (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP))
-+		mem_map = NULL;
-+
- 	ms->section_mem_map &= ~SECTION_MAP_MASK;
- 	ms->section_mem_map |= sparse_encode_mem_map(mem_map, pnum) |
- 		SECTION_HAS_MEM_MAP;
-@@ -753,12 +778,176 @@ static void free_map_bootmem(struct page *memmap)
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
- 
-+static bool is_early_section(struct mem_section *ms)
-+{
-+	struct page *usemap_page;
-+
-+	usemap_page = virt_to_page(ms->usage->pageblock_flags);
-+	if (PageSlab(usemap_page) || PageCompound(usemap_page))
-+		return false;
-+	else
-+		return true;
-+
-+}
-+
-+#ifndef CONFIG_MEMORY_HOTREMOVE
-+static void free_map_bootmem(struct page *memmap)
-+{
-+}
-+#endif
-+
-+static void section_deactivate(struct pglist_data *pgdat, unsigned long pfn,
-+                unsigned long nr_pages)
-+{
-+	bool early_section;
-+	struct page *memmap = NULL;
-+	struct mem_section_usage *usage = NULL;
-+	int section_nr = pfn_to_section_nr(pfn);
-+	struct mem_section *ms = __nr_to_section(section_nr);
-+	unsigned long mask = section_active_mask(pfn, nr_pages), flags;
-+
-+	pgdat_resize_lock(pgdat, &flags);
-+	if (!ms->usage) {
-+		mask = 0;
-+	} else if ((ms->usage->map_active & mask) != mask) {
-+		WARN(1, "section already deactivated active: %#lx mask: %#lx\n",
-+				ms->usage->map_active, mask);
-+		mask = 0;
-+	} else {
-+		early_section = is_early_section(ms);
-+		ms->usage->map_active ^= mask;
-+		if (ms->usage->map_active == 0) {
-+			usage = ms->usage;
-+			ms->usage = NULL;
-+			memmap = sparse_decode_mem_map(ms->section_mem_map,
-+					section_nr);
-+			ms->section_mem_map = 0;
-+		}
-+	}
-+	pgdat_resize_unlock(pgdat, &flags);
-+
-+	/*
-+	 * There are 3 cases to handle across two configurations
-+	 * (SPARSEMEM_VMEMMAP={y,n}):
-+	 *
-+	 * 1/ deactivation of a partial hot-added section (only possible
-+	 * in the SPARSEMEM_VMEMMAP=y case).
-+	 *    a/ section was present at memory init
-+	 *    b/ section was hot-added post memory init
-+	 * 2/ deactivation of a complete hot-added section
-+	 * 3/ deactivation of a complete section from memory init
-+	 *
-+	 * For 1/, when map_active does not go to zero we will not be
-+	 * freeing the usage map, but still need to free the vmemmap
-+	 * range.
-+	 *
-+	 * For 2/ and 3/ the SPARSEMEM_VMEMMAP={y,n} cases are unified
-+	 */
-+	if (!mask)
-+		return;
-+	if (nr_pages < PAGES_PER_SECTION) {
-+		if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)) {
-+			WARN(1, "partial memory section removal not supported\n");
-+			return;
-+		}
-+		if (!early_section)
-+			depopulate_section_memmap(pfn, nr_pages);
-+		memmap = 0;
-+	}
-+
-+	if (usage) {
-+		if (!early_section) {
-+			/*
-+			 * 'memmap' may be zero in the SPARSEMEM_VMEMMAP=y case
-+			 * (see sparse_init_one_section()), so we can't rely on
-+			 * it to determine if we need to depopulate the memmap.
-+			 * Instead, we uncoditionally depopulate due to 'usage'
-+			 * being valid.
-+			 */
-+			if (memmap || (nr_pages >= PAGES_PER_SECTION
-+					&& IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)))
-+				depopulate_section_memmap(pfn, nr_pages);
-+			kfree(usage);
-+			return;
-+		}
-+	}
-+
-+	/*
-+	 * The usemap came from bootmem. This is packed with other usemaps
-+	 * on the section which has pgdat at boot time. Just keep it as is now.
-+	 */
-+	if (memmap)
-+		free_map_bootmem(memmap);
-+}
-+
-+static struct page *section_activate(struct pglist_data *pgdat,
-+		unsigned long pfn, unsigned nr_pages)
-+{
-+	struct mem_section *ms = __nr_to_section(pfn_to_section_nr(pfn));
-+	unsigned long mask = section_active_mask(pfn, nr_pages), flags;
-+	struct mem_section_usage *usage;
-+	bool early_section = false;
-+	struct page *memmap;
-+	int rc = 0;
-+
-+	usage = __alloc_section_usage();
-+	if (!usage)
-+		return ERR_PTR(-ENOMEM);
-+
-+	pgdat_resize_lock(pgdat, &flags);
-+	if (!ms->usage) {
-+		ms->usage = usage;
-+		usage = NULL;
-+	} else
-+		early_section = is_early_section(ms);
-+
-+	if (!mask)
-+		rc = -EINVAL;
-+	else if (mask & ms->usage->map_active)
-+		rc = -EBUSY;
-+	else
-+		ms->usage->map_active |= mask;
-+	pgdat_resize_unlock(pgdat, &flags);
-+
-+	kfree(usage);
-+
-+	if (rc)
-+		return ERR_PTR(rc);
-+
-+
-+	/*
-+	 * The early init code does not consider partially populated
-+	 * initial sections, it simply assumes that memory will never be
-+	 * referenced.  If we hot-add memory into such a section then we
-+	 * do not need to populate the memmap and can simply reuse what
-+	 * is already there.
-+	 */
-+	if (nr_pages < PAGES_PER_SECTION && early_section)
-+		return pfn_to_page(pfn);
-+
-+	memmap = populate_section_memmap(pfn, nr_pages, pgdat->node_id);
-+	if (!memmap) {
-+		section_deactivate(pgdat, pfn, nr_pages);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	return memmap;
-+}
-+
-+/**
-+ * sparse_add_section() - create a new memmap section, or populate an
-+ * existing one
-+ * @zone: host zone for the new memory mapping
-+ * @start_pfn: first pfn to add (section aligned if zone != ZONE_DEVICE)
-+ * @nr_pages: number of new pages to add
-+ *
-+ * Returns 0 on success.
-+ */
- int __meminit sparse_add_section(struct zone *zone, unsigned long start_pfn,
- 		unsigned long nr_pages)
- {
- 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
- 	struct pglist_data *pgdat = zone->zone_pgdat;
--	static struct mem_section_usage *usage;
- 	struct mem_section *ms;
- 	struct page *memmap;
- 	unsigned long flags;
-@@ -771,37 +960,27 @@ int __meminit sparse_add_section(struct zone *zone, unsigned long start_pfn,
- 	ret = sparse_index_init(section_nr, pgdat->node_id);
- 	if (ret < 0 && ret != -EEXIST)
- 		return ret;
--	memmap = populate_section_memmap(start_pfn, PAGES_PER_SECTION,
--			pgdat->node_id);
--	if (!memmap)
--		return -ENOMEM;
--	usage = __alloc_section_usage();
--	if (!usage) {
--		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION);
--		return -ENOMEM;
--	}
- 
--	pgdat_resize_lock(pgdat, &flags);
-+	memmap = section_activate(pgdat, start_pfn, nr_pages);
-+	if (IS_ERR(memmap))
-+		return PTR_ERR(memmap);
- 
-+	pgdat_resize_lock(pgdat, &flags);
- 	ms = __pfn_to_section(start_pfn);
--	if (ms->section_mem_map & SECTION_MARKED_PRESENT) {
-+	if (nr_pages == PAGES_PER_SECTION && (ms->section_mem_map
-+				& SECTION_MARKED_PRESENT)) {
- 		ret = -EBUSY;
- 		goto out;
- 	}
--
--	memset(memmap, 0, sizeof(struct page) * PAGES_PER_SECTION);
--
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
--
--	sparse_init_one_section(ms, section_nr, memmap, usage);
--
-+	sparse_init_one_section(ms, section_nr, memmap, ms->usage);
- out:
- 	pgdat_resize_unlock(pgdat, &flags);
--	if (ret < 0 && ret != -EEXIST) {
--		kfree(usage);
--		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION);
-+	if (nr_pages == PAGES_PER_SECTION && ret < 0 && ret != -EEXIST) {
-+		section_deactivate(pgdat, start_pfn, nr_pages);
- 		return ret;
- 	}
-+	memset(memmap, 0, sizeof(struct page) * nr_pages);
- 	return 0;
- }
- 
-@@ -827,58 +1006,15 @@ static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
- }
- #endif
- 
--static void free_section_usage(struct page *memmap,
--		struct mem_section_usage *usage, unsigned long pfn,
--		unsigned long nr_pages)
--{
--	struct page *usemap_page;
--
--	if (!usage)
--		return;
--
--	usemap_page = virt_to_page(usage->pageblock_flags);
--	/*
--	 * Check to see if allocation came from hot-plug-add
--	 */
--	if (PageSlab(usemap_page) || PageCompound(usemap_page)) {
--		kfree(usage);
--		if (memmap)
--			depopulate_section_memmap(pfn, nr_pages);
--		return;
--	}
--
--	/*
--	 * The usemap came from bootmem. This is packed with other usemaps
--	 * on the section which has pgdat at boot time. Just keep it as is now.
--	 */
--
--	if (memmap)
--		free_map_bootmem(memmap);
--}
--
- void sparse_remove_section(struct zone *zone, struct mem_section *ms,
- 		unsigned long pfn, unsigned long nr_pages,
- 		unsigned long map_offset)
- {
--	unsigned long flags;
--	struct page *memmap = NULL;
--	struct mem_section_usage *usage = NULL;
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 
--	pgdat_resize_lock(pgdat, &flags);
--	if (ms->section_mem_map) {
--		usage = ms->usage;
--		memmap = sparse_decode_mem_map(ms->section_mem_map,
--						__section_nr(ms));
--		ms->section_mem_map = 0;
--		ms->usage = NULL;
--	}
--	pgdat_resize_unlock(pgdat, &flags);
--
--	clear_hwpoisoned_pages(memmap + map_offset,
--			PAGES_PER_SECTION - map_offset);
--	free_section_usage(memmap, usage, section_nr_to_pfn(__section_nr(ms)),
--			PAGES_PER_SECTION);
-+	clear_hwpoisoned_pages(pfn_to_page(pfn) + map_offset,
-+			nr_pages - map_offset);
-+	section_deactivate(pgdat, pfn, nr_pages);
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #endif /* CONFIG_MEMORY_HOTPLUG */
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> ---
+>  drivers/dax/dax.c             |   18 +++++++-------
+>  fs/dax.c                      |   54 +++++++++++++++++++----------------------
+>  fs/ext4/file.c                |    8 +++---
+>  fs/xfs/xfs_file.c             |    7 ++---
+>  include/linux/dax.h           |    7 ++---
+>  include/linux/mm.h            |    2 +-
+>  include/trace/events/fs_dax.h |   54 +++++++++++++++++++----------------------
+>  mm/memory.c                   |    9 +++----
+>  8 files changed, 74 insertions(+), 85 deletions(-)
+> 
+> diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+> index 947e49a..55160f8 100644
+> --- a/drivers/dax/dax.c
+> +++ b/drivers/dax/dax.c
+> @@ -378,8 +378,7 @@ static int dax_dev_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+>  	return rc;
+>  }
+>  
+> -static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+> -		struct vm_area_struct *vma, struct vm_fault *vmf)
+> +static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+>  {
+>  	unsigned long pmd_addr = vmf->address & PMD_MASK;
+>  	struct device *dev = &dax_dev->dev;
+> @@ -388,7 +387,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+>  	pgoff_t pgoff;
+>  	pfn_t pfn;
+>  
+> -	if (check_vma(dax_dev, vma, __func__))
+> +	if (check_vma(dax_dev, vmf->vma, __func__))
+>  		return VM_FAULT_SIGBUS;
+>  
+>  	dax_region = dax_dev->region;
+> @@ -403,7 +402,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+>  		return VM_FAULT_SIGBUS;
+>  	}
+>  
+> -	pgoff = linear_page_index(vma, pmd_addr);
+> +	pgoff = linear_page_index(vmf->vma, pmd_addr);
+>  	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
+>  	if (phys == -1) {
+>  		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
+> @@ -413,22 +412,23 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+>  
+>  	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+>  
+> -	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
+> +	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd, pfn,
+>  			vmf->flags & FAULT_FLAG_WRITE);
+>  }
+>  
+> -static int dax_dev_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+> +static int dax_dev_pmd_fault(struct vm_fault *vmf)
+>  {
+>  	int rc;
+> -	struct file *filp = vma->vm_file;
+> +	struct file *filp = vmf->vma->vm_file;
+>  	struct dax_dev *dax_dev = filp->private_data;
+>  
+>  	dev_dbg(&dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
+>  			current->comm, (vmf->flags & FAULT_FLAG_WRITE)
+> -			? "write" : "read", vma->vm_start, vma->vm_end);
+> +			? "write" : "read",
+> +			vmf->vma->vm_start, vmf->vma->vm_end);
+>  
+>  	rcu_read_lock();
+> -	rc = __dax_dev_pmd_fault(dax_dev, vma, vmf);
+> +	rc = __dax_dev_pmd_fault(dax_dev, vmf);
+>  	rcu_read_unlock();
+>  
+>  	return rc;
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 157f77f..bc39809 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1226,11 +1226,10 @@ EXPORT_SYMBOL_GPL(dax_iomap_fault);
+>   */
+>  #define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
+>  
+> -static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+> -		struct vm_fault *vmf, unsigned long address,
+> -		struct iomap *iomap, loff_t pos, bool write, void **entryp)
+> +static int dax_pmd_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
+> +		loff_t pos, void **entryp)
+>  {
+> -	struct address_space *mapping = vma->vm_file->f_mapping;
+> +	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+>  	struct block_device *bdev = iomap->bdev;
+>  	struct inode *inode = mapping->host;
+>  	struct blk_dax_ctl dax = {
+> @@ -1257,31 +1256,30 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+>  		goto fallback;
+>  	*entryp = ret;
+>  
+> -	trace_dax_pmd_insert_mapping(inode, vma, address, write, length,
+> -			dax.pfn, ret);
+> -	return vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
+> +	trace_dax_pmd_insert_mapping(inode, vmf, length, dax.pfn, ret);
+> +	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd,
+> +			dax.pfn, vmf->flags & FAULT_FLAG_WRITE);
+>  
+>   unmap_fallback:
+>  	dax_unmap_atomic(bdev, &dax);
+>  fallback:
+> -	trace_dax_pmd_insert_mapping_fallback(inode, vma, address, write,
+> -			length, dax.pfn, ret);
+> +	trace_dax_pmd_insert_mapping_fallback(inode, vmf, length,
+> +			dax.pfn, ret);
+>  	return VM_FAULT_FALLBACK;
+>  }
+>  
+> -static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
+> -		struct vm_fault *vmf, unsigned long address,
+> -		struct iomap *iomap, void **entryp)
+> +static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
+> +		void **entryp)
+>  {
+> -	struct address_space *mapping = vma->vm_file->f_mapping;
+> -	unsigned long pmd_addr = address & PMD_MASK;
+> +	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+> +	unsigned long pmd_addr = vmf->address & PMD_MASK;
+>  	struct inode *inode = mapping->host;
+>  	struct page *zero_page;
+>  	void *ret = NULL;
+>  	spinlock_t *ptl;
+>  	pmd_t pmd_entry;
+>  
+> -	zero_page = mm_get_huge_zero_page(vma->vm_mm);
+> +	zero_page = mm_get_huge_zero_page(vmf->vma->vm_mm);
+>  
+>  	if (unlikely(!zero_page))
+>  		goto fallback;
+> @@ -1292,27 +1290,27 @@ static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
+>  		goto fallback;
+>  	*entryp = ret;
+>  
+> -	ptl = pmd_lock(vma->vm_mm, pmd);
+> -	if (!pmd_none(*pmd)) {
+> +	ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
+> +	if (!pmd_none(*(vmf->pmd))) {
+>  		spin_unlock(ptl);
+>  		goto fallback;
+>  	}
+>  
+> -	pmd_entry = mk_pmd(zero_page, vma->vm_page_prot);
+> +	pmd_entry = mk_pmd(zero_page, vmf->vma->vm_page_prot);
+>  	pmd_entry = pmd_mkhuge(pmd_entry);
+> -	set_pmd_at(vma->vm_mm, pmd_addr, pmd, pmd_entry);
+> +	set_pmd_at(vmf->vma->vm_mm, pmd_addr, vmf->pmd, pmd_entry);
+>  	spin_unlock(ptl);
+> -	trace_dax_pmd_load_hole(inode, vma, address, zero_page, ret);
+> +	trace_dax_pmd_load_hole(inode, vmf, zero_page, ret);
+>  	return VM_FAULT_NOPAGE;
+>  
+>  fallback:
+> -	trace_dax_pmd_load_hole_fallback(inode, vma, address, zero_page, ret);
+> +	trace_dax_pmd_load_hole_fallback(inode, vmf, zero_page, ret);
+>  	return VM_FAULT_FALLBACK;
+>  }
+>  
+> -int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+> -		struct iomap_ops *ops)
+> +int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
+>  {
+> +	struct vm_area_struct *vma = vmf->vma;
+>  	struct address_space *mapping = vma->vm_file->f_mapping;
+>  	unsigned long pmd_addr = vmf->address & PMD_MASK;
+>  	bool write = vmf->flags & FAULT_FLAG_WRITE;
+> @@ -1334,7 +1332,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+>  	vmf->pgoff = linear_page_index(vma, pmd_addr);
+>  	max_pgoff = (i_size_read(inode) - 1) >> PAGE_SHIFT;
+>  
+> -	trace_dax_pmd_fault(inode, vma, vmf, max_pgoff, 0);
+> +	trace_dax_pmd_fault(inode, vmf, max_pgoff, 0);
+>  
+>  	/* Fall back to PTEs if we're going to COW */
+>  	if (write && !(vma->vm_flags & VM_SHARED))
+> @@ -1379,15 +1377,13 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+>  
+>  	switch (iomap.type) {
+>  	case IOMAP_MAPPED:
+> -		result = dax_pmd_insert_mapping(vma, vmf->pmd, vmf,
+> -				vmf->address, &iomap, pos, write, &entry);
+> +		result = dax_pmd_insert_mapping(vmf, &iomap, pos, &entry);
+>  		break;
+>  	case IOMAP_UNWRITTEN:
+>  	case IOMAP_HOLE:
+>  		if (WARN_ON_ONCE(write))
+>  			goto unlock_entry;
+> -		result = dax_pmd_load_hole(vma, vmf->pmd, vmf, vmf->address,
+> -				&iomap, &entry);
+> +		result = dax_pmd_load_hole(vmf, &iomap, &entry);
+>  		break;
+>  	default:
+>  		WARN_ON_ONCE(1);
+> @@ -1417,7 +1413,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+>  		count_vm_event(THP_FAULT_FALLBACK);
+>  	}
+>  out:
+> -	trace_dax_pmd_fault_done(inode, vma, vmf, max_pgoff, result);
+> +	trace_dax_pmd_fault_done(inode, vmf, max_pgoff, result);
+>  	vmf->pgoff = old_pgoff;
+>  	return result;
+>  }
+> diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+> index e6cdb78..2f4fd28 100644
+> --- a/fs/ext4/file.c
+> +++ b/fs/ext4/file.c
+> @@ -279,23 +279,23 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+>  }
+>  
+>  static int
+> -ext4_dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+> +ext4_dax_pmd_fault(struct vm_fault *vmf)
+>  {
+>  	int result;
+> -	struct inode *inode = file_inode(vma->vm_file);
+> +	struct inode *inode = file_inode(vmf->vma->vm_file);
+>  	struct super_block *sb = inode->i_sb;
+>  	bool write = vmf->flags & FAULT_FLAG_WRITE;
+>  	gfp_t old_mask;
+>  
+>  	if (write) {
+>  		sb_start_pagefault(sb);
+> -		file_update_time(vma->vm_file);
+> +		file_update_time(vmf->vma->vm_file);
+>  	}
+>  
+>  	old_mask = vmf->gfp_mask;
+>  	vmf->gfp_mask &= ~__GFP_FS;
+>  	down_read(&EXT4_I(inode)->i_mmap_sem);
+> -	result = dax_iomap_pmd_fault(vma, vmf, &ext4_iomap_ops);
+> +	result = dax_iomap_pmd_fault(vmf, &ext4_iomap_ops);
+>  	up_read(&EXT4_I(inode)->i_mmap_sem);
+>  	vmf->gfp_mask = old_mask;
+>  	if (write)
+> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> index b1b8524..b548fc5 100644
+> --- a/fs/xfs/xfs_file.c
+> +++ b/fs/xfs/xfs_file.c
+> @@ -1532,10 +1532,9 @@ xfs_filemap_fault(
+>   */
+>  STATIC int
+>  xfs_filemap_pmd_fault(
+> -	struct vm_area_struct	*vma,
+>  	struct vm_fault *vmf)
+>  {
+> -	struct inode		*inode = file_inode(vma->vm_file);
+> +	struct inode		*inode = file_inode(vmf->vma->vm_file);
+>  	struct xfs_inode	*ip = XFS_I(inode);
+>  	int			ret;
+>  	gfp_t			old_mask;
+> @@ -1547,13 +1546,13 @@ xfs_filemap_pmd_fault(
+>  
+>  	if (vmf->flags & FAULT_FLAG_WRITE) {
+>  		sb_start_pagefault(inode->i_sb);
+> -		file_update_time(vma->vm_file);
+> +		file_update_time(vmf->vma->vm_file);
+>  	}
+>  
+>  	old_mask = vmf->gfp_mask;
+>  	vmf->gfp_mask &= ~__GFP_FS;
+>  	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+> -	ret = dax_iomap_pmd_fault(vma, vmf, &xfs_iomap_ops);
+> +	ret = dax_iomap_pmd_fault(vmf, &xfs_iomap_ops);
+>  	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+>  	vmf->gfp_mask = old_mask;
+>  
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 9761c90..1ffdb4d 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -71,15 +71,14 @@ static inline unsigned int dax_radix_order(void *entry)
+>  		return PMD_SHIFT - PAGE_SHIFT;
+>  	return 0;
+>  }
+> -int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+> -		struct iomap_ops *ops);
+> +int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops);
+>  #else
+>  static inline unsigned int dax_radix_order(void *entry)
+>  {
+>  	return 0;
+>  }
+> -static inline int dax_iomap_pmd_fault(struct vm_area_struct *vma,
+> -		struct vm_fault *vmf, struct iomap_ops *ops)
+> +static inline int dax_iomap_pmd_fault(struct vm_fault *vmf,
+> +		struct iomap_ops *ops)
+>  {
+>  	return VM_FAULT_FALLBACK;
+>  }
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index aef645b..795f03e 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -347,7 +347,7 @@ struct vm_operations_struct {
+>  	void (*close)(struct vm_area_struct * area);
+>  	int (*mremap)(struct vm_area_struct * area);
+>  	int (*fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
+> -	int (*pmd_fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
+> +	int (*pmd_fault)(struct vm_fault *vmf);
+>  	void (*map_pages)(struct vm_fault *vmf,
+>  			pgoff_t start_pgoff, pgoff_t end_pgoff);
+>  
+> diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+> index a98665b..c566ddc 100644
+> --- a/include/trace/events/fs_dax.h
+> +++ b/include/trace/events/fs_dax.h
+> @@ -7,9 +7,9 @@
+>  #include <linux/tracepoint.h>
+>  
+>  DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+> -	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+> -		struct vm_fault *vmf, pgoff_t max_pgoff, int result),
+> -	TP_ARGS(inode, vma, vmf, max_pgoff, result),
+> +	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
+> +		pgoff_t max_pgoff, int result),
+> +	TP_ARGS(inode, vmf, max_pgoff, result),
+>  	TP_STRUCT__entry(
+>  		__field(unsigned long, ino)
+>  		__field(unsigned long, vm_start)
+> @@ -25,9 +25,9 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+>  	TP_fast_assign(
+>  		__entry->dev = inode->i_sb->s_dev;
+>  		__entry->ino = inode->i_ino;
+> -		__entry->vm_start = vma->vm_start;
+> -		__entry->vm_end = vma->vm_end;
+> -		__entry->vm_flags = vma->vm_flags;
+> +		__entry->vm_start = vmf->vma->vm_start;
+> +		__entry->vm_end = vmf->vma->vm_end;
+> +		__entry->vm_flags = vmf->vma->vm_flags;
+>  		__entry->address = vmf->address;
+>  		__entry->flags = vmf->flags;
+>  		__entry->pgoff = vmf->pgoff;
+> @@ -52,19 +52,18 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+>  
+>  #define DEFINE_PMD_FAULT_EVENT(name) \
+>  DEFINE_EVENT(dax_pmd_fault_class, name, \
+> -	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+> -		struct vm_fault *vmf, \
+> +	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
+>  		pgoff_t max_pgoff, int result), \
+> -	TP_ARGS(inode, vma, vmf, max_pgoff, result))
+> +	TP_ARGS(inode, vmf, max_pgoff, result))
+>  
+>  DEFINE_PMD_FAULT_EVENT(dax_pmd_fault);
+>  DEFINE_PMD_FAULT_EVENT(dax_pmd_fault_done);
+>  
+>  DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+> -	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+> -		unsigned long address, struct page *zero_page,
+> +	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
+> +		struct page *zero_page,
+>  		void *radix_entry),
+> -	TP_ARGS(inode, vma, address, zero_page, radix_entry),
+> +	TP_ARGS(inode, vmf, zero_page, radix_entry),
+>  	TP_STRUCT__entry(
+>  		__field(unsigned long, ino)
+>  		__field(unsigned long, vm_flags)
+> @@ -76,8 +75,8 @@ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+>  	TP_fast_assign(
+>  		__entry->dev = inode->i_sb->s_dev;
+>  		__entry->ino = inode->i_ino;
+> -		__entry->vm_flags = vma->vm_flags;
+> -		__entry->address = address;
+> +		__entry->vm_flags = vmf->vma->vm_flags;
+> +		__entry->address = vmf->address;
+>  		__entry->zero_page = zero_page;
+>  		__entry->radix_entry = radix_entry;
+>  	),
+> @@ -95,19 +94,17 @@ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+>  
+>  #define DEFINE_PMD_LOAD_HOLE_EVENT(name) \
+>  DEFINE_EVENT(dax_pmd_load_hole_class, name, \
+> -	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+> -		unsigned long address, struct page *zero_page, \
+> -		void *radix_entry), \
+> -	TP_ARGS(inode, vma, address, zero_page, radix_entry))
+> +	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
+> +		struct page *zero_page, void *radix_entry), \
+> +	TP_ARGS(inode, vmf, zero_page, radix_entry))
+>  
+>  DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
+>  DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
+>  
+>  DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+> -	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+> -		unsigned long address, int write, long length, pfn_t pfn,
+> -		void *radix_entry),
+> -	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry),
+> +	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
+> +		long length, pfn_t pfn, void *radix_entry),
+> +	TP_ARGS(inode, vmf, length, pfn, radix_entry),
+>  	TP_STRUCT__entry(
+>  		__field(unsigned long, ino)
+>  		__field(unsigned long, vm_flags)
+> @@ -121,9 +118,9 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+>  	TP_fast_assign(
+>  		__entry->dev = inode->i_sb->s_dev;
+>  		__entry->ino = inode->i_ino;
+> -		__entry->vm_flags = vma->vm_flags;
+> -		__entry->address = address;
+> -		__entry->write = write;
+> +		__entry->vm_flags = vmf->vma->vm_flags;
+> +		__entry->address = vmf->address;
+> +		__entry->write = vmf->flags & FAULT_FLAG_WRITE;
+>  		__entry->length = length;
+>  		__entry->pfn_val = pfn.val;
+>  		__entry->radix_entry = radix_entry;
+> @@ -146,10 +143,9 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+>  
+>  #define DEFINE_PMD_INSERT_MAPPING_EVENT(name) \
+>  DEFINE_EVENT(dax_pmd_insert_mapping_class, name, \
+> -	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+> -		unsigned long address, int write, long length, pfn_t pfn, \
+> -		void *radix_entry), \
+> -	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry))
+> +	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
+> +		long length, pfn_t pfn, void *radix_entry), \
+> +	TP_ARGS(inode, vmf, length, pfn, radix_entry))
+>  
+>  DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
+>  DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping_fallback);
+> diff --git a/mm/memory.c b/mm/memory.c
+> index 8ec36cf..e929c41 100644
+> --- a/mm/memory.c
+> +++ b/mm/memory.c
+> @@ -3443,11 +3443,10 @@ static int do_numa_page(struct vm_fault *vmf)
+>  
+>  static int create_huge_pmd(struct vm_fault *vmf)
+>  {
+> -	struct vm_area_struct *vma = vmf->vma;
+> -	if (vma_is_anonymous(vma))
+> +	if (vma_is_anonymous(vmf->vma))
+>  		return do_huge_pmd_anonymous_page(vmf);
+> -	if (vma->vm_ops->pmd_fault)
+> -		return vma->vm_ops->pmd_fault(vma, vmf);
+> +	if (vmf->vma->vm_ops->pmd_fault)
+> +		return vmf->vma->vm_ops->pmd_fault(vmf);
+>  	return VM_FAULT_FALLBACK;
+>  }
+>  
+> @@ -3456,7 +3455,7 @@ static int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
+>  	if (vma_is_anonymous(vmf->vma))
+>  		return do_huge_pmd_wp_page(vmf, orig_pmd);
+>  	if (vmf->vma->vm_ops->pmd_fault)
+> -		return vmf->vma->vm_ops->pmd_fault(vmf->vma, vmf);
+> +		return vmf->vma->vm_ops->pmd_fault(vmf);
+>  
+>  	/* COW handled on pte level: split pmd */
+>  	VM_BUG_ON_VMA(vmf->vma->vm_flags & VM_SHARED, vmf->vma);
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
