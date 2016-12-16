@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BC4198206A
- for <linux-nvdimm@lists.01.org>; Fri, 16 Dec 2016 08:19:18 -0800 (PST)
-Date: Fri, 16 Dec 2016 09:19:16 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH v4 1/3] dax: masking off __GFP_FS in fs DAX handlers
-Message-ID: <20161216161916.GA2410@linux.intel.com>
-References: <148184524161.184728.14005697153880489871.stgit@djiang5-desk3.ch.intel.com>
- <20161216010730.GY4219@dastard>
+ by ml01.01.org (Postfix) with ESMTPS id 36F778205D
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Dec 2016 00:34:46 -0800 (PST)
+Date: Fri, 16 Dec 2016 09:34:42 +0100
+From: Michal Hocko <mhocko@suse.com>
+Subject: Re: [PATCH v3 1/3] dax: masking off __GFP_FS in fs DAX handlers
+Message-ID: <20161216083442.GA14105@dhcp22.suse.cz>
+References: <148183505925.96369.9987658623875784437.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20161216010730.GY4219@dastard>
+In-Reply-To: <148183505925.96369.9987658623875784437.stgit@djiang5-desk3.ch.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,60 +23,184 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Chinner <david@fromorbit.com>
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-mm@kvack.org, tytso@mit.edu, akpm@linux-foundation.org, hch@lst.de
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-mm@kvack.org, tytso@mit.edu, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Dec 16, 2016 at 12:07:30PM +1100, Dave Chinner wrote:
-> On Thu, Dec 15, 2016 at 04:40:41PM -0700, Dave Jiang wrote:
-> > The caller into dax needs to clear __GFP_FS mask bit since it's
-> > responsible for acquiring locks / transactions that blocks __GFP_FS
-> > allocation.  The caller will restore the original mask when dax function
-> > returns.
+On Thu 15-12-16 13:50:59, Dave Jiang wrote:
+> The caller into dax needs to clear __GFP_FS mask bit since it's
+> responsible for acquiring locks / transactions that blocks __GFP_FS
+> allocation.  The caller will restore the original mask when dax function
+> returns.
+
+Could you have a look at [1]. Does the new API look like a fit for your
+use case here? It at least sounds a bit easier from the code POV to me.
+
+[1] http://lkml.kernel.org/r/20161215140715.12732-1-mhocko@kernel.org
+
 > 
-> What's the allocation problem you're working around here? Can you
-> please describe the call chain that is the problem?
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Reviewed-by: Jan Kara <jack@suse.cz>
+> ---
+>  fs/dax.c          |    1 +
+>  fs/ext2/file.c    |    9 ++++++++-
+>  fs/ext4/file.c    |   10 +++++++++-
+>  fs/xfs/xfs_file.c |   14 +++++++++++++-
+>  4 files changed, 31 insertions(+), 3 deletions(-)
 > 
-> >  	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-> >  
-> >  	if (IS_DAX(inode)) {
-> > +		gfp_t old_gfp = vmf->gfp_mask;
-> > +
-> > +		vmf->gfp_mask &= ~__GFP_FS;
-> >  		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
-> > +		vmf->gfp_mask = old_gfp;
+> diff --git a/fs/dax.c b/fs/dax.c
+> index d3fe880..6395bc6 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1380,6 +1380,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+>  	vmf.pgoff = pgoff;
+>  	vmf.flags = flags;
+>  	vmf.gfp_mask = mapping_gfp_mask(mapping) | __GFP_IO;
+> +	vmf.gfp_mask &= ~__GFP_FS;
+>  
+>  	switch (iomap.type) {
+>  	case IOMAP_MAPPED:
+> diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+> index b0f2415..8422d5f 100644
+> --- a/fs/ext2/file.c
+> +++ b/fs/ext2/file.c
+> @@ -92,16 +92,19 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+>  	struct inode *inode = file_inode(vma->vm_file);
+>  	struct ext2_inode_info *ei = EXT2_I(inode);
+>  	int ret;
+> +	gfp_t old_gfp = vmf->gfp_mask;
+>  
+>  	if (vmf->flags & FAULT_FLAG_WRITE) {
+>  		sb_start_pagefault(inode->i_sb);
+>  		file_update_time(vma->vm_file);
+>  	}
+> +	vmf->gfp_mask &= ~__GFP_FS;
+>  	down_read(&ei->dax_sem);
+>  
+>  	ret = dax_iomap_fault(vma, vmf, &ext2_iomap_ops);
+>  
+>  	up_read(&ei->dax_sem);
+> +	vmf->gfp_mask = old_gfp;
+>  	if (vmf->flags & FAULT_FLAG_WRITE)
+>  		sb_end_pagefault(inode->i_sb);
+>  	return ret;
+> @@ -114,6 +117,7 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+>  	struct ext2_inode_info *ei = EXT2_I(inode);
+>  	loff_t size;
+>  	int ret;
+> +	gfp_t old_gfp = vmf->gfp_mask;
+>  
+>  	sb_start_pagefault(inode->i_sb);
+>  	file_update_time(vma->vm_file);
+> @@ -123,8 +127,11 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
+>  	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+>  	if (vmf->pgoff >= size)
+>  		ret = VM_FAULT_SIGBUS;
+> -	else
+> +	else {
+> +		vmf->gfp_mask &= ~__GFP_FS;
+>  		ret = dax_pfn_mkwrite(vma, vmf);
+> +		vmf->gfp_mask = old_gfp;
+> +	}
+>  
+>  	up_read(&ei->dax_sem);
+>  	sb_end_pagefault(inode->i_sb);
+> diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+> index d663d3d..a3f2bf0 100644
+> --- a/fs/ext4/file.c
+> +++ b/fs/ext4/file.c
+> @@ -261,14 +261,17 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+>  	struct inode *inode = file_inode(vma->vm_file);
+>  	struct super_block *sb = inode->i_sb;
+>  	bool write = vmf->flags & FAULT_FLAG_WRITE;
+> +	gfp_t old_gfp = vmf->gfp_mask;
+>  
+>  	if (write) {
+>  		sb_start_pagefault(sb);
+>  		file_update_time(vma->vm_file);
+>  	}
+> +	vmf->gfp_mask &= ~__GFP_FS;
+>  	down_read(&EXT4_I(inode)->i_mmap_sem);
+>  	result = dax_iomap_fault(vma, vmf, &ext4_iomap_ops);
+>  	up_read(&EXT4_I(inode)->i_mmap_sem);
+> +	vmf->gfp_mask = old_gfp;
+>  	if (write)
+>  		sb_end_pagefault(sb);
+>  
+> @@ -320,8 +323,13 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
+>  	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+>  	if (vmf->pgoff >= size)
+>  		ret = VM_FAULT_SIGBUS;
+> -	else
+> +	else {
+> +		gfp_t old_gfp = vmf->gfp_mask;
+> +
+> +		vmf->gfp_mask &= ~__GFP_FS;
+>  		ret = dax_pfn_mkwrite(vma, vmf);
+> +		vmf->gfp_mask = old_gfp;
+> +	}
+>  	up_read(&EXT4_I(inode)->i_mmap_sem);
+>  	sb_end_pagefault(sb);
+>  
+> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> index d818c16..52202b4 100644
+> --- a/fs/xfs/xfs_file.c
+> +++ b/fs/xfs/xfs_file.c
+> @@ -1474,7 +1474,11 @@ xfs_filemap_page_mkwrite(
+>  	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+>  
+>  	if (IS_DAX(inode)) {
+> +		gfp_t old_gfp = vmf->gfp_mask;
+> +
+> +		vmf->gfp_mask &= ~__GFP_FS;
+>  		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
+> +		vmf->gfp_mask = old_gfp;
+>  	} else {
+>  		ret = iomap_page_mkwrite(vma, vmf, &xfs_iomap_ops);
+>  		ret = block_page_mkwrite_return(ret);
+> @@ -1502,13 +1506,16 @@ xfs_filemap_fault(
+>  
+>  	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+>  	if (IS_DAX(inode)) {
+> +		gfp_t old_gfp = vmf->gfp_mask;
+>  		/*
+>  		 * we do not want to trigger unwritten extent conversion on read
+>  		 * faults - that is unnecessary overhead and would also require
+>  		 * changes to xfs_get_blocks_direct() to map unwritten extent
+>  		 * ioend for conversion on read-only mappings.
+>  		 */
+> +		vmf->gfp_mask &= ~__GFP_FS;
+>  		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
+> +		vmf->gfp_mask = old_gfp;
+>  	} else
+>  		ret = filemap_fault(vma, vmf);
+>  	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+> @@ -1581,8 +1588,13 @@ xfs_filemap_pfn_mkwrite(
+>  	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+>  	if (vmf->pgoff >= size)
+>  		ret = VM_FAULT_SIGBUS;
+> -	else if (IS_DAX(inode))
+> +	else if (IS_DAX(inode)) {
+> +		gfp_t old_gfp = vmf->gfp_mask;
+> +
+> +		vmf->gfp_mask &= ~__GFP_FS;
+>  		ret = dax_pfn_mkwrite(vma, vmf);
+> +		vmf->gfp_mask = old_gfp;
+> +	}
+>  	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
+>  	sb_end_pagefault(inode->i_sb);
+>  	return ret;
 > 
-> I really have to say that I hate code that clears and restores flags
-> without any explanation of why the code needs to play flag tricks. I
-> take one look at the XFS fault handling code and ask myself now "why
-> the hell do we need to clear those flags?" Especially as the other
-> paths into generic fault handlers /don't/ require us to do this.
-> What does DAX do that require us to treat memory allocation contexts
-> differently to the filemap_fault() path?
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
 
-This was done in response to Jan Kara's concern:
-
-  The gfp_mask that propagates from __do_fault() or do_page_mkwrite() is fine
-  because at that point it is correct. But once we grab filesystem locks which
-  are not reclaim safe, we should update vmf->gfp_mask we pass further down
-  into DAX code to not contain __GFP_FS (that's a bug we apparently have
-  there). And inside DAX code, we definitely are not generally safe to add
-  __GFP_FS to mapping_gfp_mask(). Maybe we'd be better off propagating struct
-  vm_fault into this function, using passed gfp_mask there and make sure
-  callers update gfp_mask as appropriate.
-
-https://lkml.org/lkml/2016/10/4/37
-
-IIUC I think the concern is that, for example, in xfs_filemap_page_mkwrite()
-we take a read lock on the struct inode.i_rwsem before we call
-dax_iomap_fault().
-
-dax_iomap_fault() then calls find_or_create_page(), etc. with the
-vfm->gfp_mask we were given.
-
-I believe the concern is that if that memory allocation tries to do FS
-operations to free memory because __GFP_FS is part of the gfp mask, then we
-could end up deadlocking because we are already holding FS locks.
+-- 
+Michal Hocko
+SUSE Labs
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
