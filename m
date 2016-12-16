@@ -1,19 +1,105 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/8] device-dax: sub-division support
-Date: Thu, 15 Dec 2016 18:33:50 -0800
-Message-ID: <CAPcyv4h0t5aXV-6bf=tWdPKGS0oLkWrb0Z7-poMC+Nipp1kWTA@mail.gmail.com>
-References: <148143770485.10950.13227732273892953675.stgit@dwillia2-desk3.amr.corp.intel.com>
- <x497f75hxwp.fsf@segfault.boston.devel.redhat.com>
- <CAPcyv4hq=U8YkYqK4OE__FQyeGq2dKH+=14NttQu0M84yXZ7BQ@mail.gmail.com>
- <x494m278kam.fsf@segfault.boston.devel.redhat.com>
- <CAPcyv4hzCHqF9ALYFYCpv=WyHoMOFDoeWOd38b4sKwmkkmSgLQ@mail.gmail.com>
- <x49shpp3zn8.fsf@segfault.boston.devel.redhat.com>
- <CAPcyv4gWW0NfiP6iGpaB5hAyiD8SMbeAfAKvezDLH1GzH_HqTA@mail.gmail.com>
+From: "EDWARD" <carlemau296-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: reach millions with FB Groups Posting service
+Date: Fri, 16 Dec 2016 11:58:52 +0200
+Message-ID: <558B95B9.4BA370B0@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="----------=_5853BAE1.9FD65D94"
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_5853BAE1.9FD65D94
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  Hello, Do you want to advertise on facebook? We're here to
+   help. We wil manually post your product/logo/link on Facebook Groups and
+  will give you a full report with links of each live post where your advertisement
+   was posted. [...] 
+
+Content analysis details:   (10.7 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: buysocial.cn]
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: buysocial.cn]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: buysocial.cn]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 2.8 FSL_HELO_FAKE          No description available.
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+               [Blocked - see <http://www.spamcop.net/bl.shtml?182.16.93.210>]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (carlemau296[at]gmail.com)
+ 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
+                            [score: 0.5000]
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+The original message was not completely plain text, and may be unsafe to
+open with some email clients; in particular, it may contain a virus,
+or confirm that your address can receive spam.  If you wish to view
+it, it may be safer to save it to a file and open it with an editor.
+
+
+------------=_5853BAE1.9FD65D94
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: attachment
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4gWW0NfiP6iGpaB5hAyiD8SMbeAfAKvezDLH1GzH_HqTA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1cHpHv-0007DB-NZ
+	for gln-linux-nvdimm@m.gmane.org; Fri, 16 Dec 2016 10:58:51 +0100
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 6ADBE8206A;
+	Fri, 16 Dec 2016 01:58:55 -0800 (PST)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Received: from gmail.com (unknown [182.16.93.210])
+ by ml01.01.org (Postfix) with SMTP id 4342B82064
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Fri, 16 Dec 2016 01:58:52 -0800 (PST)
+Message-ID: <558B95B9.4BA370B0-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Fri, 16 Dec 2016 11:58:52 +0200
+From: "EDWARD" <carlemau296-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US;
+ rv:1.7.10) Gecko/20050716 Thunderbird/1.0.6
+X-Accept-Language: en-us
+MIME-Version: 1.0
+To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Subject: re: reach millions with FB Groups Posting service
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.21
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,36 +107,48 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============6857882148789554161=="
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-List-Id: linux-nvdimm@lists.01.org
 
-On Thu, Dec 15, 2016 at 3:48 PM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Thu, Dec 15, 2016 at 8:50 AM, Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-[..]
-> As for sub-division it was designed for the volatile case, I've heard
-> feedback that some want it for the pmem case. You and I agree that
-> it's *not* a good interface for the pmem case, so I'm fine disabling
-> sub-division and telling them that they need to override a kernel
-> default to use this mechanism for pmem, but otherwise say "just use
-> libnvdimm namespace labels" for storage use cases.
+--===============6857882148789554161==
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-So I went to go add support for making sub-division default off and
-zero-size the initial device when sub-division is enabled. However, if
-the policy is that the initial device is zero-sized for safety then,
-for safety, we need to remember if the dax-region was *ever* in
-dynamic mode to make sure that moving to dynamic mode is a one way
-street.
+Hello,
+Do you want to advertise on facebook? We're here to help. 
 
-If we're persisting the region setting then we might as well be
-persisting the device-dax sub-division decisions. At that point we
-might as well just wait for libnvdimm to grow namespace label support
-for all NVDIMM types and let the provisioning happen at the level that
-we agree is the right level for pmem.
+We wil manually post your product/logo/link on Facebook Groups and will
+give you a full report with links of each live post where your advertisement
+was posted.
 
-Long story short, you're right, a volatile provisioning mechanism is
-only tenable for volatile media. This enabling should wait until a
-volatile consumer of device-dax surfaces, the dax_pmem driver should
-never use it.
+http://www.buysocial.cn/detail.php?id=12
+
+Regards
+EDWARD
+ 
+
+
+
+
+
+Unsubscribe option is available on the footer of our website
+
+
+
+--===============6857882148789554161==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============6857882148789554161==--
+
+
+------------=_5853BAE1.9FD65D94--
