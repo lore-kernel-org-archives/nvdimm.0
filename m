@@ -1,20 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 584BF820D7
- for <linux-nvdimm@lists.01.org>; Mon, 19 Dec 2016 09:56:59 -0800 (PST)
-From: "Jiang, Dave" <dave.jiang@intel.com>
+Received: from ipmail07.adl2.internode.on.net (ipmail07.adl2.internode.on.net
+ [150.101.137.131]) by ml01.01.org (Postfix) with ESMTP id 2700D81C61
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Dec 2016 14:05:23 -0800 (PST)
+Date: Sat, 17 Dec 2016 09:04:50 +1100
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH v4 1/3] dax: masking off __GFP_FS in fs DAX handlers
-Date: Mon, 19 Dec 2016 17:56:57 +0000
-Message-ID: <1482170215.11563.1.camel@intel.com>
+Message-ID: <20161216220450.GZ4219@dastard>
 References: <148184524161.184728.14005697153880489871.stgit@djiang5-desk3.ch.intel.com>
- <20161216010730.GY4219@dastard> <20161216161916.GA2410@linux.intel.com>
- <20161216220450.GZ4219@dastard>
-In-Reply-To: <20161216220450.GZ4219@dastard>
-Content-Language: en-US
-Content-ID: <0EA0D90568C04343810C5CFBB09144E4@intel.com>
+ <20161216010730.GY4219@dastard>
+ <20161216161916.GA2410@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20161216161916.GA2410@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,97 +19,110 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "david@fromorbit.com" <david@fromorbit.com>
-Cc: "jack@suse.cz" <jack@suse.cz>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "tytso@mit.edu" <tytso@mit.edu>, "hch@lst.de" <hch@lst.de>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-mm@kvack.org, tytso@mit.edu, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQpPbiBTYXQsIDIwMTYtMTItMTcgYXQgMDk6MDQgKzExMDAsIERhdmUgQ2hpbm5lciB3cm90ZToN
-Cj4gT24gRnJpLCBEZWMgMTYsIDIwMTYgYXQgMDk6MTk6MTZBTSAtMDcwMCwgUm9zcyBad2lzbGVy
-IHdyb3RlOg0KPiA+IA0KPiA+IE9uIEZyaSwgRGVjIDE2LCAyMDE2IGF0IDEyOjA3OjMwUE0gKzEx
-MDAsIERhdmUgQ2hpbm5lciB3cm90ZToNCj4gPiA+IA0KPiA+ID4gT24gVGh1LCBEZWMgMTUsIDIw
-MTYgYXQgMDQ6NDA6NDFQTSAtMDcwMCwgRGF2ZSBKaWFuZyB3cm90ZToNCj4gPiA+ID4gDQo+ID4g
-PiA+IFRoZSBjYWxsZXIgaW50byBkYXggbmVlZHMgdG8gY2xlYXIgX19HRlBfRlMgbWFzayBiaXQg
-c2luY2UgaXQncw0KPiA+ID4gPiByZXNwb25zaWJsZSBmb3IgYWNxdWlyaW5nIGxvY2tzIC8gdHJh
-bnNhY3Rpb25zIHRoYXQgYmxvY2tzDQo+ID4gPiA+IF9fR0ZQX0ZTDQo+ID4gPiA+IGFsbG9jYXRp
-b24uwqDCoFRoZSBjYWxsZXIgd2lsbCByZXN0b3JlIHRoZSBvcmlnaW5hbCBtYXNrIHdoZW4gZGF4
-DQo+ID4gPiA+IGZ1bmN0aW9uDQo+ID4gPiA+IHJldHVybnMuDQo+ID4gPiANCj4gPiA+IFdoYXQn
-cyB0aGUgYWxsb2NhdGlvbiBwcm9ibGVtIHlvdSdyZSB3b3JraW5nIGFyb3VuZCBoZXJlPyBDYW4g
-eW91DQo+ID4gPiBwbGVhc2UgZGVzY3JpYmUgdGhlIGNhbGwgY2hhaW4gdGhhdCBpcyB0aGUgcHJv
-YmxlbT8NCj4gPiA+IA0KPiA+ID4gPiANCj4gPiA+ID4gwqAJeGZzX2lsb2NrKFhGU19JKGlub2Rl
-KSwgWEZTX01NQVBMT0NLX1NIQVJFRCk7DQo+ID4gPiA+IMKgDQo+ID4gPiA+IMKgCWlmIChJU19E
-QVgoaW5vZGUpKSB7DQo+ID4gPiA+ICsJCWdmcF90IG9sZF9nZnAgPSB2bWYtPmdmcF9tYXNrOw0K
-PiA+ID4gPiArDQo+ID4gPiA+ICsJCXZtZi0+Z2ZwX21hc2sgJj0gfl9fR0ZQX0ZTOw0KPiA+ID4g
-PiDCoAkJcmV0ID0gZGF4X2lvbWFwX2ZhdWx0KHZtYSwgdm1mLA0KPiA+ID4gPiAmeGZzX2lvbWFw
-X29wcyk7DQo+ID4gPiA+ICsJCXZtZi0+Z2ZwX21hc2sgPSBvbGRfZ2ZwOw0KPiA+ID4gDQo+ID4g
-PiBJIHJlYWxseSBoYXZlIHRvIHNheSB0aGF0IEkgaGF0ZSBjb2RlIHRoYXQgY2xlYXJzIGFuZCBy
-ZXN0b3Jlcw0KPiA+ID4gZmxhZ3MNCj4gPiA+IHdpdGhvdXQgYW55IGV4cGxhbmF0aW9uIG9mIHdo
-eSB0aGUgY29kZSBuZWVkcyB0byBwbGF5IGZsYWcNCj4gPiA+IHRyaWNrcy4gSQ0KPiA+ID4gdGFr
-ZSBvbmUgbG9vayBhdCB0aGUgWEZTIGZhdWx0IGhhbmRsaW5nIGNvZGUgYW5kIGFzayBteXNlbGYg
-bm93DQo+ID4gPiAid2h5DQo+ID4gPiB0aGUgaGVsbCBkbyB3ZSBuZWVkIHRvIGNsZWFyIHRob3Nl
-IGZsYWdzPyIgRXNwZWNpYWxseSBhcyB0aGUNCj4gPiA+IG90aGVyDQo+ID4gPiBwYXRocyBpbnRv
-IGdlbmVyaWMgZmF1bHQgaGFuZGxlcnMgL2Rvbid0LyByZXF1aXJlIHVzIHRvIGRvIHRoaXMuDQo+
-ID4gPiBXaGF0IGRvZXMgREFYIGRvIHRoYXQgcmVxdWlyZSB1cyB0byB0cmVhdCBtZW1vcnkgYWxs
-b2NhdGlvbg0KPiA+ID4gY29udGV4dHMNCj4gPiA+IGRpZmZlcmVudGx5IHRvIHRoZSBmaWxlbWFw
-X2ZhdWx0KCkgcGF0aD8NCj4gPiANCj4gPiBUaGlzIHdhcyBkb25lIGluIHJlc3BvbnNlIHRvIEph
-biBLYXJhJ3MgY29uY2VybjoNCj4gPiANCj4gPiDCoCBUaGUgZ2ZwX21hc2sgdGhhdCBwcm9wYWdh
-dGVzIGZyb20gX19kb19mYXVsdCgpIG9yDQo+ID4gZG9fcGFnZV9ta3dyaXRlKCkgaXMgZmluZQ0K
-PiA+IMKgIGJlY2F1c2UgYXQgdGhhdCBwb2ludCBpdCBpcyBjb3JyZWN0LiBCdXQgb25jZSB3ZSBn
-cmFiIGZpbGVzeXN0ZW0NCj4gPiBsb2NrcyB3aGljaA0KPiA+IMKgIGFyZSBub3QgcmVjbGFpbSBz
-YWZlLCB3ZSBzaG91bGQgdXBkYXRlIHZtZi0+Z2ZwX21hc2sgd2UgcGFzcw0KPiA+IGZ1cnRoZXIg
-ZG93bg0KPiA+IMKgIGludG8gREFYIGNvZGUgdG8gbm90IGNvbnRhaW4gX19HRlBfRlMgKHRoYXQn
-cyBhIGJ1ZyB3ZSBhcHBhcmVudGx5DQo+ID4gaGF2ZQ0KPiA+IMKgIHRoZXJlKS4gQW5kIGluc2lk
-ZSBEQVggY29kZSwgd2UgZGVmaW5pdGVseSBhcmUgbm90IGdlbmVyYWxseSBzYWZlDQo+ID4gdG8g
-YWRkDQo+ID4gwqAgX19HRlBfRlMgdG8gbWFwcGluZ19nZnBfbWFzaygpLiBNYXliZSB3ZSdkIGJl
-IGJldHRlciBvZmYNCj4gPiBwcm9wYWdhdGluZyBzdHJ1Y3QNCj4gPiDCoCB2bV9mYXVsdCBpbnRv
-IHRoaXMgZnVuY3Rpb24sIHVzaW5nIHBhc3NlZCBnZnBfbWFzayB0aGVyZSBhbmQgbWFrZQ0KPiA+
-IHN1cmUNCj4gPiDCoCBjYWxsZXJzIHVwZGF0ZSBnZnBfbWFzayBhcyBhcHByb3ByaWF0ZS4NCj4g
-PiANCj4gPiBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxNi8xMC80LzM3DQo+ID4gDQo+ID4gSUlV
-QyBJIHRoaW5rIHRoZSBjb25jZXJuIGlzIHRoYXQsIGZvciBleGFtcGxlLCBpbg0KPiA+IHhmc19m
-aWxlbWFwX3BhZ2VfbWt3cml0ZSgpDQo+ID4gd2UgdGFrZSBhIHJlYWQgbG9jayBvbiB0aGUgc3Ry
-dWN0IGlub2RlLmlfcndzZW0gYmVmb3JlIHdlIGNhbGwNCj4gPiBkYXhfaW9tYXBfZmF1bHQoKS4N
-Cj4gDQo+IFRoYXQsIG15IGZyaWVuZHMsIGlzIGV4YWN0bHkgdGhlIHByb2JsZW0gdGhhdCBtYXBw
-aW5nX2dmcF9tYXNrKCkgaXMNCj4gbWVhbnQgdG8gc29sdmUuIFRoaXM6DQo+IA0KPiA+IA0KPiA+
-ID4gDQo+ID4gPiA+IA0KPiA+ID4gPiArCXZtZi5nZnBfbWFzayA9IG1hcHBpbmdfZ2ZwX21hc2so
-bWFwcGluZykgfCBfX0dGUF9GUw0KPiA+ID4gPiB8wqDCoF9fR0ZQX0lPOw0KPiANCj4gSXMganVz
-dCBzbyB3cm9uZyBpdCdzIG5vdCBmdW5ueS4NCj4gDQo+IFRoZSB3aG9sZSBwb2ludCBvZiBtYXBw
-aW5nX2dmcF9tYXNrKCkgaXMgdG8gcmVtb3ZlIGZsYWdzIGZyb20gdGhlDQo+IGdmcF9tYXNrIHVz
-ZWQgdG8gZG8gbWFwcGluZytwYWdlIGNhY2hlIHJlbGF0ZWQgYWxsb2NhdGlvbnMgdGhhdCB0aGUN
-Cj4gbWFwcGluZy0+aG9zdCBjb25zaWRlcnMgZGFuZ2Vyb3VzIHdoZW4gdGhlIGhvc3QgbWF5IGJl
-IGhvbGRpbmcgbG9ja3MuDQo+IFRoaXMgaW5jbHVkZXMgbWFwcGluZyB0cmVlIGFsbG9jYXRpb25z
-LCBhbmQgYW55dGhpbmcgZWxzZSByZXF1aXJlZA0KPiB0byBzZXQgdXAgYSBuZXcgZW50cnkgaW4g
-dGhlIG1hcHBpbmcgZHVyaW5nIElPIHBhdGggb3BlcmF0aW9ucy4gVGhhdA0KPiBpbmNsdWRlcyBw
-YWdlIGZhdWx0IG9wZXJhdGlvbnMuLi4NCj4gDQo+IGUuZy4gaW4geGZzX3NldHVwX2lub2RlKCk6
-DQo+IA0KPiDCoMKgwqDCoMKgwqDCoMKgLyoNCj4gwqDCoMKgwqDCoMKgwqDCoMKgKiBFbnN1cmUg
-YWxsIHBhZ2UgY2FjaGUgYWxsb2NhdGlvbnMgYXJlIGRvbmUgZnJvbSBHRlBfTk9GUw0KPiBjb250
-ZXh0IHRvDQo+IMKgwqDCoMKgwqDCoMKgwqDCoCogcHJldmVudCBkaXJlY3QgcmVjbGFpbSByZWN1
-cnNpb24gYmFjayBpbnRvIHRoZSBmaWxlc3lzdGVtDQo+IGFuZCBibG93aW5nDQo+IMKgwqDCoMKg
-wqDCoMKgwqDCoCogc3RhY2tzIG9yIGRlYWRsb2NraW5nLg0KPiDCoMKgwqDCoMKgwqDCoMKgwqAq
-Lw0KPiDCoMKgwqDCoMKgwqDCoMKgZ2ZwX21hc2sgPSBtYXBwaW5nX2dmcF9tYXNrKGlub2RlLT5p
-X21hcHBpbmcpOw0KPiDCoMKgwqDCoMKgwqDCoMKgbWFwcGluZ19zZXRfZ2ZwX21hc2soaW5vZGUt
-PmlfbWFwcGluZywgKGdmcF9tYXNrICYNCj4gfihfX0dGUF9GUykpKTsNCj4gDQo+IGkuZS4gWEZT
-IGNvbnNpZGVycyBpdCBpbnZhbGlkIHRvIHVzZSBHRlBfRlMgYXQgYWxsIGZvciBtYXBwaW5nDQo+
-IGFsbG9jYXRpb25zIGluIHRoZSBpbyBwYXRoLCBiZWNhdXNlIHdlICprbm93KiB0aGF0IHdlIGhv
-bGQNCj4gZmlsZXN5c3RlbXMgbG9ja3Mgb3ZlciB0aG9zZSBhbGxvY2F0aW9ucy4NCj4gDQo+ID4g
-DQo+ID4gZGF4X2lvbWFwX2ZhdWx0KCkgdGhlbiBjYWxscyBmaW5kX29yX2NyZWF0ZV9wYWdlKCks
-IGV0Yy4gd2l0aCB0aGUNCj4gPiB2Zm0tPmdmcF9tYXNrIHdlIHdlcmUgZ2l2ZW4uDQo+IA0KPiBZ
-dXAuIFByZWNpc2VseSB3aHkgd2Ugc2hvdWxkIGJlIHVzaW5nIG1hcHBpbmdfZ2ZwX21hc2soKSBh
-cyBpdCB3YXMNCj4gaW50ZW5kZWQgZm9yIHZtZi5nZnBfbWFzay4uLi4NCj4gDQo+ID4gDQo+ID4g
-SSBiZWxpZXZlIHRoZSBjb25jZXJuIGlzIHRoYXQgaWYgdGhhdCBtZW1vcnkgYWxsb2NhdGlvbiB0
-cmllcyB0byBkbw0KPiA+IEZTDQo+ID4gb3BlcmF0aW9ucyB0byBmcmVlIG1lbW9yeSBiZWNhdXNl
-IF9fR0ZQX0ZTIGlzIHBhcnQgb2YgdGhlIGdmcCBtYXNrLA0KPiA+IHRoZW4gd2UNCj4gPiBjb3Vs
-ZCBlbmQgdXAgZGVhZGxvY2tpbmcgYmVjYXVzZSB3ZSBhcmUgYWxyZWFkeSBob2xkaW5nIEZTIGxv
-Y2tzLg0KPiANCj4gV2hpY2ggaXMgYSBwcm9ibGVtIHdpdGggdGhlIGZpbGVzeXN0ZW0gbWFwcGlu
-ZyBtYXNrIHNldHVwLCBub3QgYQ0KPiByZWFzb24gdG8gc3ByaW5rbGUgcmFuZG9tIGdmcG1hc2sg
-Y2xlYXIvc2V0IHBhaXJzIGFyb3VuZCB0aGUgY29kZS4NCj4gaS5lLiBGb3IgREFYIGlub2Rlcywg
-dGhlIG1hcHBpbmcgbWFzayBzaG91bGQgY2xlYXIgX19HRlBfRlMgYXMgWEZTDQo+IGRvZXMgYWJv
-dmUsIGFuZCB0aGUgbWFwcGluZ19nZnBfbWFzaygpIHNob3VsZCBiZSB1c2VkIHVuYWR1bHRlcmF0
-ZWQNCj4gYnkgdGhlIERBWCBwYWdlIGZhdWx0IGNvZGUuLi4uDQoNCg0KSSdsbCBkcm9wIHRoaXMg
-cGF0Y2guIFdlIGNhbiBhZGRyZXNzIHRoZSBpc3N1ZSBzZXBhcmF0ZSBmcm9tIHRoZQ0KcG1kX2Zh
-dWx0IGNoYW5nZXMuwqANCg0KPiANCj4gQ2hlZXJzLA0KPiANCj4gRGF2ZS4KX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
-bGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxt
-YW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Fri, Dec 16, 2016 at 09:19:16AM -0700, Ross Zwisler wrote:
+> On Fri, Dec 16, 2016 at 12:07:30PM +1100, Dave Chinner wrote:
+> > On Thu, Dec 15, 2016 at 04:40:41PM -0700, Dave Jiang wrote:
+> > > The caller into dax needs to clear __GFP_FS mask bit since it's
+> > > responsible for acquiring locks / transactions that blocks __GFP_FS
+> > > allocation.  The caller will restore the original mask when dax function
+> > > returns.
+> > 
+> > What's the allocation problem you're working around here? Can you
+> > please describe the call chain that is the problem?
+> > 
+> > >  	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+> > >  
+> > >  	if (IS_DAX(inode)) {
+> > > +		gfp_t old_gfp = vmf->gfp_mask;
+> > > +
+> > > +		vmf->gfp_mask &= ~__GFP_FS;
+> > >  		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
+> > > +		vmf->gfp_mask = old_gfp;
+> > 
+> > I really have to say that I hate code that clears and restores flags
+> > without any explanation of why the code needs to play flag tricks. I
+> > take one look at the XFS fault handling code and ask myself now "why
+> > the hell do we need to clear those flags?" Especially as the other
+> > paths into generic fault handlers /don't/ require us to do this.
+> > What does DAX do that require us to treat memory allocation contexts
+> > differently to the filemap_fault() path?
+> 
+> This was done in response to Jan Kara's concern:
+> 
+>   The gfp_mask that propagates from __do_fault() or do_page_mkwrite() is fine
+>   because at that point it is correct. But once we grab filesystem locks which
+>   are not reclaim safe, we should update vmf->gfp_mask we pass further down
+>   into DAX code to not contain __GFP_FS (that's a bug we apparently have
+>   there). And inside DAX code, we definitely are not generally safe to add
+>   __GFP_FS to mapping_gfp_mask(). Maybe we'd be better off propagating struct
+>   vm_fault into this function, using passed gfp_mask there and make sure
+>   callers update gfp_mask as appropriate.
+> 
+> https://lkml.org/lkml/2016/10/4/37
+> 
+> IIUC I think the concern is that, for example, in xfs_filemap_page_mkwrite()
+> we take a read lock on the struct inode.i_rwsem before we call
+> dax_iomap_fault().
+
+That, my friends, is exactly the problem that mapping_gfp_mask() is
+meant to solve. This:
+
+> > > +	vmf.gfp_mask = mapping_gfp_mask(mapping) | __GFP_FS |  __GFP_IO;
+
+Is just so wrong it's not funny.
+
+The whole point of mapping_gfp_mask() is to remove flags from the
+gfp_mask used to do mapping+page cache related allocations that the
+mapping->host considers dangerous when the host may be holding locks.
+This includes mapping tree allocations, and anything else required
+to set up a new entry in the mapping during IO path operations. That
+includes page fault operations...
+
+e.g. in xfs_setup_inode():
+
+        /*
+         * Ensure all page cache allocations are done from GFP_NOFS context to
+         * prevent direct reclaim recursion back into the filesystem and blowing
+         * stacks or deadlocking.
+         */
+        gfp_mask = mapping_gfp_mask(inode->i_mapping);
+        mapping_set_gfp_mask(inode->i_mapping, (gfp_mask & ~(__GFP_FS)));
+
+i.e. XFS considers it invalid to use GFP_FS at all for mapping
+allocations in the io path, because we *know* that we hold
+filesystems locks over those allocations.
+
+> dax_iomap_fault() then calls find_or_create_page(), etc. with the
+> vfm->gfp_mask we were given.
+
+Yup. Precisely why we should be using mapping_gfp_mask() as it was
+intended for vmf.gfp_mask....
+
+> I believe the concern is that if that memory allocation tries to do FS
+> operations to free memory because __GFP_FS is part of the gfp mask, then we
+> could end up deadlocking because we are already holding FS locks.
+
+Which is a problem with the filesystem mapping mask setup, not a
+reason to sprinkle random gfpmask clear/set pairs around the code.
+i.e. For DAX inodes, the mapping mask should clear __GFP_FS as XFS
+does above, and the mapping_gfp_mask() should be used unadulterated
+by the DAX page fault code....
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
