@@ -1,21 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ZenIV.linux.org.uk (zeniv.linux.org.uk [195.92.253.2])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F017817BB
- for <linux-nvdimm@lists.01.org>; Wed, 28 Dec 2016 15:43:29 -0800 (PST)
-Date: Wed, 28 Dec 2016 23:43:22 +0000
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: [PATCH v2 1/3] introduce memcpy_nocache()
-Message-ID: <20161228234321.GA27417@ZenIV.linux.org.uk>
-References: <20161026155021.20892-1-brian.boylston@hpe.com>
- <20161026155021.20892-2-brian.boylston@hpe.com>
- <58110959.90901@plexistor.com>
- <CS1PR84MB011975E5DCF3B091E53A3FB38EAD0@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
- <5818A5C8.6040300@plexistor.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8F766820E6
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Dec 2016 10:27:28 -0800 (PST)
+Subject: [PATCH v5 2/2] mm, dax: move pmd_fault() to take only vmf parameter
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 19 Dec 2016 11:27:25 -0700
+Message-ID: <148217204575.68724.14929894272122410204.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <148217204020.68724.7039023452029022016.stgit@djiang5-desk3.ch.intel.com>
+References: <148217204020.68724.7039023452029022016.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <5818A5C8.6040300@plexistor.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,52 +22,464 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Boaz Harrosh <boaz@plexistor.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Moreno," Oliver" <oliver.moreno@hpe.com>, "x86@kernel.org, " <x86@kernel.org>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "boylston@burromesa.net" <boylston@burromesa.net>
+To: akpm@linux-foundation.org
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-mm@kvack.org, tytso@mit.edu, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Nov 01, 2016 at 04:25:12PM +0200, Boaz Harrosh wrote:
+pmd_fault() and related functions really only need the vmf parameter since
+the additional parameters are all included in the vmf struct. Removing
+additional parameter and simplify pmd_fault() and friends.
 
-> >> What about memcpy_to_pmem() in linux/pmem.h it already has all the arch switches.
-> >>
-> >> Feels bad to add yet just another arch switch over __copy_user_nocache
-> >>
-> >> Just feels like too many things that do the same thing. Sigh
-> > 
-> > I agree that this looks like a nicer path.
-> > 
-> > I had considered adjusting copy_from_iter_nocache() to use memcpy_to_pmem(),
-> > but lib/iov_iter.c doesn't currently #include linux/pmem.h.  Would it be
-> > acceptable to add it?  Also, I wasn't sure if memcpy_to_pmem() would always
-> > mean exactly "memcpy nocache".
-> > 
-> 
-> I think this is the way to go. In my opinion there is no reason why not to include
-> pmem.h into lib/iov_iter.c.
-> 
-> And I think memcpy_to_pmem() would always be the fastest arch way to bypass cache
-> so it should be safe to use this for all cases. It is so in the arches that support
-> this now, and I cannot imagine a theoretical arch that would differ. But let the
-> specific arch people holler if this steps on their tows, later when they care about
-> this at all.
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ drivers/dax/dax.c             |   18 +++++++-------
+ fs/dax.c                      |   54 +++++++++++++++++++----------------------
+ fs/ext4/file.c                |    8 +++---
+ fs/xfs/xfs_file.c             |    7 ++---
+ include/linux/dax.h           |    7 ++---
+ include/linux/mm.h            |    2 +-
+ include/trace/events/fs_dax.h |   54 +++++++++++++++++++----------------------
+ mm/memory.c                   |    9 +++----
+ 8 files changed, 74 insertions(+), 85 deletions(-)
+
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 947e49a..55160f8 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -378,8 +378,7 @@ static int dax_dev_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	return rc;
+ }
  
-First of all, if it's the fastest arch way to bypass cache, why the hell
-is it sitting in pmem-related areas?
+-static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+-		struct vm_area_struct *vma, struct vm_fault *vmf)
++static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+ {
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct device *dev = &dax_dev->dev;
+@@ -388,7 +387,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ 	pgoff_t pgoff;
+ 	pfn_t pfn;
+ 
+-	if (check_vma(dax_dev, vma, __func__))
++	if (check_vma(dax_dev, vmf->vma, __func__))
+ 		return VM_FAULT_SIGBUS;
+ 
+ 	dax_region = dax_dev->region;
+@@ -403,7 +402,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	pgoff = linear_page_index(vma, pmd_addr);
++	pgoff = linear_page_index(vmf->vma, pmd_addr);
+ 	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
+@@ -413,22 +412,23 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ 
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
++	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd, pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ 
+-static int dax_dev_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++static int dax_dev_pmd_fault(struct vm_fault *vmf)
+ {
+ 	int rc;
+-	struct file *filp = vma->vm_file;
++	struct file *filp = vmf->vma->vm_file;
+ 	struct dax_dev *dax_dev = filp->private_data;
+ 
+ 	dev_dbg(&dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
+ 			current->comm, (vmf->flags & FAULT_FLAG_WRITE)
+-			? "write" : "read", vma->vm_start, vma->vm_end);
++			? "write" : "read",
++			vmf->vma->vm_start, vmf->vma->vm_end);
+ 
+ 	rcu_read_lock();
+-	rc = __dax_dev_pmd_fault(dax_dev, vma, vmf);
++	rc = __dax_dev_pmd_fault(dax_dev, vmf);
+ 	rcu_read_unlock();
+ 
+ 	return rc;
+diff --git a/fs/dax.c b/fs/dax.c
+index 446e861..29a325b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1226,11 +1226,10 @@ EXPORT_SYMBOL_GPL(dax_iomap_fault);
+  */
+ #define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
+ 
+-static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+-		struct vm_fault *vmf, unsigned long address,
+-		struct iomap *iomap, loff_t pos, bool write, void **entryp)
++static int dax_pmd_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
++		loff_t pos, void **entryp)
+ {
+-	struct address_space *mapping = vma->vm_file->f_mapping;
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+ 	struct block_device *bdev = iomap->bdev;
+ 	struct inode *inode = mapping->host;
+ 	struct blk_dax_ctl dax = {
+@@ -1257,31 +1256,30 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+ 		goto fallback;
+ 	*entryp = ret;
+ 
+-	trace_dax_pmd_insert_mapping(inode, vma, address, write, length,
+-			dax.pfn, ret);
+-	return vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
++	trace_dax_pmd_insert_mapping(inode, vmf, length, dax.pfn, ret);
++	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd,
++			dax.pfn, vmf->flags & FAULT_FLAG_WRITE);
+ 
+  unmap_fallback:
+ 	dax_unmap_atomic(bdev, &dax);
+ fallback:
+-	trace_dax_pmd_insert_mapping_fallback(inode, vma, address, write,
+-			length, dax.pfn, ret);
++	trace_dax_pmd_insert_mapping_fallback(inode, vmf, length,
++			dax.pfn, ret);
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+-static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
+-		struct vm_fault *vmf, unsigned long address,
+-		struct iomap *iomap, void **entryp)
++static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
++		void **entryp)
+ {
+-	struct address_space *mapping = vma->vm_file->f_mapping;
+-	unsigned long pmd_addr = address & PMD_MASK;
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
++	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct inode *inode = mapping->host;
+ 	struct page *zero_page;
+ 	void *ret = NULL;
+ 	spinlock_t *ptl;
+ 	pmd_t pmd_entry;
+ 
+-	zero_page = mm_get_huge_zero_page(vma->vm_mm);
++	zero_page = mm_get_huge_zero_page(vmf->vma->vm_mm);
+ 
+ 	if (unlikely(!zero_page))
+ 		goto fallback;
+@@ -1292,27 +1290,27 @@ static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
+ 		goto fallback;
+ 	*entryp = ret;
+ 
+-	ptl = pmd_lock(vma->vm_mm, pmd);
+-	if (!pmd_none(*pmd)) {
++	ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
++	if (!pmd_none(*(vmf->pmd))) {
+ 		spin_unlock(ptl);
+ 		goto fallback;
+ 	}
+ 
+-	pmd_entry = mk_pmd(zero_page, vma->vm_page_prot);
++	pmd_entry = mk_pmd(zero_page, vmf->vma->vm_page_prot);
+ 	pmd_entry = pmd_mkhuge(pmd_entry);
+-	set_pmd_at(vma->vm_mm, pmd_addr, pmd, pmd_entry);
++	set_pmd_at(vmf->vma->vm_mm, pmd_addr, vmf->pmd, pmd_entry);
+ 	spin_unlock(ptl);
+-	trace_dax_pmd_load_hole(inode, vma, address, zero_page, ret);
++	trace_dax_pmd_load_hole(inode, vmf, zero_page, ret);
+ 	return VM_FAULT_NOPAGE;
+ 
+ fallback:
+-	trace_dax_pmd_load_hole_fallback(inode, vma, address, zero_page, ret);
++	trace_dax_pmd_load_hole_fallback(inode, vmf, zero_page, ret);
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+-int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+-		struct iomap_ops *ops)
++int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
+ {
++	struct vm_area_struct *vma = vmf->vma;
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+@@ -1333,7 +1331,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	vmf->pgoff = linear_page_index(vma, pmd_addr);
+ 	max_pgoff = (i_size_read(inode) - 1) >> PAGE_SHIFT;
+ 
+-	trace_dax_pmd_fault(inode, vma, vmf, max_pgoff, 0);
++	trace_dax_pmd_fault(inode, vmf, max_pgoff, 0);
+ 
+ 	/* Fall back to PTEs if we're going to COW */
+ 	if (write && !(vma->vm_flags & VM_SHARED))
+@@ -1378,15 +1376,13 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+-		result = dax_pmd_insert_mapping(vma, vmf->pmd, vmf,
+-				vmf->address, &iomap, pos, write, &entry);
++		result = dax_pmd_insert_mapping(vmf, &iomap, pos, &entry);
+ 		break;
+ 	case IOMAP_UNWRITTEN:
+ 	case IOMAP_HOLE:
+ 		if (WARN_ON_ONCE(write))
+ 			goto unlock_entry;
+-		result = dax_pmd_load_hole(vma, vmf->pmd, vmf, vmf->address,
+-				&iomap, &entry);
++		result = dax_pmd_load_hole(vmf, &iomap, &entry);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -1416,7 +1412,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 	}
+ out:
+-	trace_dax_pmd_fault_done(inode, vma, vmf, max_pgoff, result);
++	trace_dax_pmd_fault_done(inode, vmf, max_pgoff, result);
+ 	return result;
+ }
+ EXPORT_SYMBOL_GPL(dax_iomap_pmd_fault);
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 10b64ba..75dc3dd 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -276,19 +276,19 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ }
+ 
+ static int
+-ext4_dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++ext4_dax_pmd_fault(struct vm_fault *vmf)
+ {
+ 	int result;
+-	struct inode *inode = file_inode(vma->vm_file);
++	struct inode *inode = file_inode(vmf->vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 
+ 	if (write) {
+ 		sb_start_pagefault(sb);
+-		file_update_time(vma->vm_file);
++		file_update_time(vmf->vma->vm_file);
+ 	}
+ 	down_read(&EXT4_I(inode)->i_mmap_sem);
+-	result = dax_iomap_pmd_fault(vma, vmf, &ext4_iomap_ops);
++	result = dax_iomap_pmd_fault(vmf, &ext4_iomap_ops);
+ 	up_read(&EXT4_I(inode)->i_mmap_sem);
+ 	if (write)
+ 		sb_end_pagefault(sb);
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 4f65a9d..360513f 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1525,10 +1525,9 @@ xfs_filemap_fault(
+  */
+ STATIC int
+ xfs_filemap_pmd_fault(
+-	struct vm_area_struct	*vma,
+ 	struct vm_fault		*vmf)
+ {
+-	struct inode		*inode = file_inode(vma->vm_file);
++	struct inode		*inode = file_inode(vmf->vma->vm_file);
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	int			ret;
+ 
+@@ -1539,11 +1538,11 @@ xfs_filemap_pmd_fault(
+ 
+ 	if (vmf->flags & FAULT_FLAG_WRITE) {
+ 		sb_start_pagefault(inode->i_sb);
+-		file_update_time(vma->vm_file);
++		file_update_time(vmf->vma->vm_file);
+ 	}
+ 
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-	ret = dax_iomap_pmd_fault(vma, vmf, &xfs_iomap_ops);
++	ret = dax_iomap_pmd_fault(vmf, &xfs_iomap_ops);
+ 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 
+ 	if (vmf->flags & FAULT_FLAG_WRITE)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 9761c90..1ffdb4d 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -71,15 +71,14 @@ static inline unsigned int dax_radix_order(void *entry)
+ 		return PMD_SHIFT - PAGE_SHIFT;
+ 	return 0;
+ }
+-int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+-		struct iomap_ops *ops);
++int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops);
+ #else
+ static inline unsigned int dax_radix_order(void *entry)
+ {
+ 	return 0;
+ }
+-static inline int dax_iomap_pmd_fault(struct vm_area_struct *vma,
+-		struct vm_fault *vmf, struct iomap_ops *ops)
++static inline int dax_iomap_pmd_fault(struct vm_fault *vmf,
++		struct iomap_ops *ops)
+ {
+ 	return VM_FAULT_FALLBACK;
+ }
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index aef645b..795f03e 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -347,7 +347,7 @@ struct vm_operations_struct {
+ 	void (*close)(struct vm_area_struct * area);
+ 	int (*mremap)(struct vm_area_struct * area);
+ 	int (*fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
+-	int (*pmd_fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
++	int (*pmd_fault)(struct vm_fault *vmf);
+ 	void (*map_pages)(struct vm_fault *vmf,
+ 			pgoff_t start_pgoff, pgoff_t end_pgoff);
+ 
+diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+index a98665b..c566ddc 100644
+--- a/include/trace/events/fs_dax.h
++++ b/include/trace/events/fs_dax.h
+@@ -7,9 +7,9 @@
+ #include <linux/tracepoint.h>
+ 
+ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+-		struct vm_fault *vmf, pgoff_t max_pgoff, int result),
+-	TP_ARGS(inode, vma, vmf, max_pgoff, result),
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
++		pgoff_t max_pgoff, int result),
++	TP_ARGS(inode, vmf, max_pgoff, result),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_start)
+@@ -25,9 +25,9 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ 	TP_fast_assign(
+ 		__entry->dev = inode->i_sb->s_dev;
+ 		__entry->ino = inode->i_ino;
+-		__entry->vm_start = vma->vm_start;
+-		__entry->vm_end = vma->vm_end;
+-		__entry->vm_flags = vma->vm_flags;
++		__entry->vm_start = vmf->vma->vm_start;
++		__entry->vm_end = vmf->vma->vm_end;
++		__entry->vm_flags = vmf->vma->vm_flags;
+ 		__entry->address = vmf->address;
+ 		__entry->flags = vmf->flags;
+ 		__entry->pgoff = vmf->pgoff;
+@@ -52,19 +52,18 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ 
+ #define DEFINE_PMD_FAULT_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_fault_class, name, \
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+-		struct vm_fault *vmf, \
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
+ 		pgoff_t max_pgoff, int result), \
+-	TP_ARGS(inode, vma, vmf, max_pgoff, result))
++	TP_ARGS(inode, vmf, max_pgoff, result))
+ 
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault);
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault_done);
+ 
+ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+-		unsigned long address, struct page *zero_page,
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
++		struct page *zero_page,
+ 		void *radix_entry),
+-	TP_ARGS(inode, vma, address, zero_page, radix_entry),
++	TP_ARGS(inode, vmf, zero_page, radix_entry),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_flags)
+@@ -76,8 +75,8 @@ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+ 	TP_fast_assign(
+ 		__entry->dev = inode->i_sb->s_dev;
+ 		__entry->ino = inode->i_ino;
+-		__entry->vm_flags = vma->vm_flags;
+-		__entry->address = address;
++		__entry->vm_flags = vmf->vma->vm_flags;
++		__entry->address = vmf->address;
+ 		__entry->zero_page = zero_page;
+ 		__entry->radix_entry = radix_entry;
+ 	),
+@@ -95,19 +94,17 @@ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+ 
+ #define DEFINE_PMD_LOAD_HOLE_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_load_hole_class, name, \
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+-		unsigned long address, struct page *zero_page, \
+-		void *radix_entry), \
+-	TP_ARGS(inode, vma, address, zero_page, radix_entry))
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
++		struct page *zero_page, void *radix_entry), \
++	TP_ARGS(inode, vmf, zero_page, radix_entry))
+ 
+ DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
+ DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
+ 
+ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+-		unsigned long address, int write, long length, pfn_t pfn,
+-		void *radix_entry),
+-	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry),
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
++		long length, pfn_t pfn, void *radix_entry),
++	TP_ARGS(inode, vmf, length, pfn, radix_entry),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_flags)
+@@ -121,9 +118,9 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+ 	TP_fast_assign(
+ 		__entry->dev = inode->i_sb->s_dev;
+ 		__entry->ino = inode->i_ino;
+-		__entry->vm_flags = vma->vm_flags;
+-		__entry->address = address;
+-		__entry->write = write;
++		__entry->vm_flags = vmf->vma->vm_flags;
++		__entry->address = vmf->address;
++		__entry->write = vmf->flags & FAULT_FLAG_WRITE;
+ 		__entry->length = length;
+ 		__entry->pfn_val = pfn.val;
+ 		__entry->radix_entry = radix_entry;
+@@ -146,10 +143,9 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+ 
+ #define DEFINE_PMD_INSERT_MAPPING_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_insert_mapping_class, name, \
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+-		unsigned long address, int write, long length, pfn_t pfn, \
+-		void *radix_entry), \
+-	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry))
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
++		long length, pfn_t pfn, void *radix_entry), \
++	TP_ARGS(inode, vmf, length, pfn, radix_entry))
+ 
+ DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
+ DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping_fallback);
+diff --git a/mm/memory.c b/mm/memory.c
+index 8ec36cf..e929c41 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3443,11 +3443,10 @@ static int do_numa_page(struct vm_fault *vmf)
+ 
+ static int create_huge_pmd(struct vm_fault *vmf)
+ {
+-	struct vm_area_struct *vma = vmf->vma;
+-	if (vma_is_anonymous(vma))
++	if (vma_is_anonymous(vmf->vma))
+ 		return do_huge_pmd_anonymous_page(vmf);
+-	if (vma->vm_ops->pmd_fault)
+-		return vma->vm_ops->pmd_fault(vma, vmf);
++	if (vmf->vma->vm_ops->pmd_fault)
++		return vmf->vma->vm_ops->pmd_fault(vmf);
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+@@ -3456,7 +3455,7 @@ static int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
+ 	if (vma_is_anonymous(vmf->vma))
+ 		return do_huge_pmd_wp_page(vmf, orig_pmd);
+ 	if (vmf->vma->vm_ops->pmd_fault)
+-		return vmf->vma->vm_ops->pmd_fault(vmf->vma, vmf);
++		return vmf->vma->vm_ops->pmd_fault(vmf);
+ 
+ 	/* COW handled on pte level: split pmd */
+ 	VM_BUG_ON_VMA(vmf->vma->vm_flags & VM_SHARED, vmf->vma);
 
-More to the point, x86 implementation of that thing is tied to uaccess API
-for no damn reason whatsoever.  Let's add a real memcpy_nocache() and
-be done with that.  I mean, this
-        if (WARN(rem, "%s: fault copying %p <- %p unwritten: %d\n",
-                                __func__, dst, src, rem))
-                BUG();
-is *screaming* "API misused here".  And let's stay away from the STAC et.al. -
-it's pointless for kernel-to-kernel copies.
-
-BTW, your "it's iovec, only non-temporal stores there" logics in
-arch_copy_from_iter_pmem() is simply wrong - for one thing, unaligned
-copies will have parts done via normal stores, for another 32bit will
-_not_ go for non-caching codepath for short copies.  What semantics do
-we really need there?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
