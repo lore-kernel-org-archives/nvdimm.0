@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 95D4C823CE
- for <linux-nvdimm@lists.01.org>; Thu, 22 Dec 2016 13:19:09 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 4/4] dax: wrprotect pmd_t in dax_mapping_entry_mkclean
-Date: Thu, 22 Dec 2016 14:18:56 -0700
-Message-Id: <1482441536-14550-5-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 171168210F
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Dec 2016 15:30:43 -0800 (PST)
+Subject: [PATCH v2 2/3] nvdimm-testing: providing dax support for nvdimm
+ testing
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 19 Dec 2016 16:30:42 -0700
+Message-ID: <148219024240.15885.12802118754183356586.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <148219023506.15885.3919571427691230959.stgit@djiang5-desk3.ch.intel.com>
+References: <148219023506.15885.3919571427691230959.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,145 +19,213 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently dax_mapping_entry_mkclean() fails to clean and write protect the
-pmd_t of a DAX PMD entry during an *sync operation.  This can result in
-data loss in the following sequence:
+Adding dax support to the nvdimm testing in tools/testing/nvdimm. The
+memory allocated by the tool is via vmalloc and non-contiguous.
+Overriding pgoff_to_phys() call to support the vmalloc memory.
 
-1) mmap write to DAX PMD, dirtying PMD radix tree entry and making the
-   pmd_t dirty and writeable
-2) fsync, flushing out PMD data and cleaning the radix tree entry. We
-   currently fail to mark the pmd_t as clean and write protected.
-3) more mmap writes to the PMD.  These don't cause any page faults since
-   the pmd_t is dirty and writeable.  The radix tree entry remains clean.
-4) fsync, which fails to flush the dirty PMD data because the radix tree
-   entry was clean.
-5) crash - dirty data that should have been fsync'd as part of 4) could
-   still have been in the processor cache, and is lost.
-
-Fix this by marking the pmd_t clean and write protected in
-dax_mapping_entry_mkclean(), which is called as part of the fsync
-operation 2).  This will cause the writes in step 3) above to generate page
-faults where we'll re-dirty the PMD radix tree entry, resulting in flushes
-in the fsync that happens in step 4).
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Fixes: 4b4bb46d00b3 ("dax: clear dirty entry tags on cache flush")
-Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- fs/dax.c           | 49 ++++++++++++++++++++++++++++++++++---------------
- include/linux/mm.h |  2 --
- mm/memory.c        |  4 ++--
- 3 files changed, 36 insertions(+), 19 deletions(-)
+ drivers/dax/dax-private.h      |   43 ++++++++++++++++++++++++++++++++++++++++
+ drivers/dax/dax.c              |   30 +++++-----------------------
+ tools/testing/nvdimm/Kbuild    |    3 ++-
+ tools/testing/nvdimm/dax-dev.c |   40 +++++++++++++++++++++++++++++++++++++
+ 4 files changed, 90 insertions(+), 26 deletions(-)
+ create mode 100644 drivers/dax/dax-private.h
+ create mode 100644 tools/testing/nvdimm/dax-dev.c
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 5c74f60..62b3ed4 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -691,8 +691,8 @@ static void dax_mapping_entry_mkclean(struct address_space *mapping,
- 				      pgoff_t index, unsigned long pfn)
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+new file mode 100644
+index 0000000..a119ef9
+--- /dev/null
++++ b/drivers/dax/dax-private.h
+@@ -0,0 +1,43 @@
++/*
++ * Copyright(c) 2016 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __DAX_PRIVATE_H__
++#define __DAX_PRIVATE_H__
++
++#include <linux/device.h>
++#include <linux/cdev.h>
++
++/**
++ * struct dax_dev - subdivision of a dax region
++ * @region - parent region
++ * @resize_lock - for resource size reductions
++ * @dev - device backing the character device
++ * @cdev - core chardev data
++ * @alive - !alive + rcu grace period == no new mappings can be established
++ * @id - child id in the region
++ * @num_resources - number of physical address extents in this device
++ * @res - array of physical address ranges
++ */
++struct dax_dev {
++	struct dax_region *region;
++	rwlock_t resize_lock;
++	struct inode *inode;
++	struct device dev;
++	struct cdev cdev;
++	bool alive;
++	int id;
++	int num_resources;
++	struct resource res[0];
++	void *private;
++};
++
++#endif
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index c5fd53e..f1857e6 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -22,6 +22,7 @@
+ #include <linux/fs.h>
+ #include <linux/mm.h>
+ #include "dax.h"
++#include "dax-private.h"
+ 
+ static dev_t dax_devt;
+ static struct class *dax_class;
+@@ -54,28 +55,6 @@ struct dax_region {
+ 	unsigned long pfn_flags;
+ };
+ 
+-/**
+- * struct dax_dev - subdivision of a dax region
+- * @region - parent region
+- * @dev - device backing the character device
+- * @cdev - core chardev data
+- * @alive - !alive + rcu grace period == no new mappings can be established
+- * @id - child id in the region
+- * @num_resources - number of physical address extents in this device
+- * @res - array of physical address ranges
+- */
+-struct dax_dev {
+-	struct dax_region *region;
+-	struct inode *inode;
+-	struct device dev;
+-	struct cdev cdev;
+-	bool alive;
+-	int id;
+-	int num_resources;
+-	struct resource res[0];
+-	void *private;
+-};
+-
+ static ssize_t id_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
- 	struct vm_area_struct *vma;
--	pte_t *ptep;
--	pte_t pte;
-+	pte_t pte, *ptep = NULL;
-+	pmd_t *pmdp = NULL;
- 	spinlock_t *ptl;
- 	bool changed;
- 
-@@ -707,21 +707,40 @@ static void dax_mapping_entry_mkclean(struct address_space *mapping,
- 
- 		address = pgoff_address(index, vma);
- 		changed = false;
--		if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
-+		if (follow_pte_pmd(vma->vm_mm, address, &ptep, &pmdp, &ptl))
- 			continue;
--		if (pfn != pte_pfn(*ptep))
--			goto unlock;
--		if (!pte_dirty(*ptep) && !pte_write(*ptep))
--			goto unlock;
- 
--		flush_cache_page(vma, address, pfn);
--		pte = ptep_clear_flush(vma, address, ptep);
--		pte = pte_wrprotect(pte);
--		pte = pte_mkclean(pte);
--		set_pte_at(vma->vm_mm, address, ptep, pte);
--		changed = true;
--unlock:
--		pte_unmap_unlock(ptep, ptl);
-+		if (pmdp) {
-+			pmd_t pmd;
-+
-+			if (pfn != pmd_pfn(*pmdp))
-+				goto unlock_pmd;
-+			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
-+				goto unlock_pmd;
-+
-+			flush_cache_page(vma, address, pfn);
-+			pmd = pmdp_huge_clear_flush(vma, address, pmdp);
-+			pmd = pmd_wrprotect(pmd);
-+			pmd = pmd_mkclean(pmd);
-+			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
-+			changed = true;
-+unlock_pmd:
-+			spin_unlock(ptl);
-+		} else {
-+			if (pfn != pte_pfn(*ptep))
-+				goto unlock_pte;
-+			if (!pte_dirty(*ptep) && !pte_write(*ptep))
-+				goto unlock_pte;
-+
-+			flush_cache_page(vma, address, pfn);
-+			pte = ptep_clear_flush(vma, address, ptep);
-+			pte = pte_wrprotect(pte);
-+			pte = pte_mkclean(pte);
-+			set_pte_at(vma->vm_mm, address, ptep, pte);
-+			changed = true;
-+unlock_pte:
-+			pte_unmap_unlock(ptep, ptl);
-+		}
- 
- 		if (changed)
- 			mmu_notifier_invalidate_page(vma->vm_mm, address);
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index ff0e1c1..f4de7fa 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1210,8 +1210,6 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
- 			struct vm_area_struct *vma);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
--int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
--	       spinlock_t **ptlp);
- int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
- 			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
-diff --git a/mm/memory.c b/mm/memory.c
-index 29edd91..ddcf979 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3826,8 +3826,8 @@ static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
- 	return -EINVAL;
+@@ -411,7 +390,8 @@ static int check_vma(struct dax_dev *dax_dev, struct vm_area_struct *vma,
+ 	return 0;
  }
  
--int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
--	       spinlock_t **ptlp)
-+static inline int follow_pte(struct mm_struct *mm, unsigned long address,
-+			     pte_t **ptepp, spinlock_t **ptlp)
+-static phys_addr_t pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
++/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
++__weak phys_addr_t dax_pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
+ 		unsigned long size)
  {
- 	int res;
+ 	struct resource *res;
+@@ -454,7 +434,7 @@ static int __dax_dev_fault(struct dax_dev *dax_dev, struct vm_area_struct *vma,
+ 		return VM_FAULT_SIGBUS;
+ 	}
  
--- 
-2.7.4
+-	phys = pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
++	phys = dax_pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
+ 				vmf->pgoff);
+@@ -516,7 +496,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ 	}
+ 
+ 	pgoff = linear_page_index(vma, pmd_addr);
+-	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
++	phys = dax_pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
+ 				pgoff);
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index 405212b..6dcb3c4 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -28,7 +28,7 @@ obj-$(CONFIG_ND_BTT) += nd_btt.o
+ obj-$(CONFIG_ND_BLK) += nd_blk.o
+ obj-$(CONFIG_X86_PMEM_LEGACY) += nd_e820.o
+ obj-$(CONFIG_ACPI_NFIT) += nfit.o
+-obj-$(CONFIG_DEV_DAX) += dax.o
++obj-$(CONFIG_DEV_DAX) += dax.o dax-dev.o
+ obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
+ 
+ nfit-y := $(ACPI_SRC)/core.o
+@@ -49,6 +49,7 @@ nd_e820-y := $(NVDIMM_SRC)/e820.o
+ nd_e820-y += config_check.o
+ 
+ dax-y := $(DAX_SRC)/dax.o
++dax-y += dax-dev.o
+ dax-y += config_check.o
+ 
+ dax_pmem-y := $(DAX_SRC)/pmem.o
+diff --git a/tools/testing/nvdimm/dax-dev.c b/tools/testing/nvdimm/dax-dev.c
+new file mode 100644
+index 0000000..cd9a5e0
+--- /dev/null
++++ b/tools/testing/nvdimm/dax-dev.c
+@@ -0,0 +1,40 @@
++/*
++ * Copyright (c) 2016, Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++#include "test/nfit_test.h"
++#include <linux/mm.h>
++#include "../../../drivers/dax/dax-private.h"
++
++phys_addr_t dax_pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
++		unsigned long size)
++{
++	struct address_space *mapping = dax_dev->inode->i_mapping;
++	phys_addr_t dev_offset = PFN_PHYS(pgoff), res_offset;
++	struct resource *res;
++
++	res = radix_tree_lookup(&mapping->page_tree, PFN_PHYS(pgoff));
++	if (!res)
++		return -1;
++
++	res_offset = dev_offset - to_dev_offset(res);
++	if (res_offset + size >= resource_size(res))
++		return -1;
++
++	if (get_nfit_res(res->start + res_offset)) {
++		struct page *page;
++
++		page = vmalloc_to_page((void *)(res->start + res_offset));
++		return PFN_PHYS(page_to_pfn(page));
++	}
++
++	return res->start + res_offset;
++}
 
 _______________________________________________
 Linux-nvdimm mailing list
