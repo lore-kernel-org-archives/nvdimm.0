@@ -2,14 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 134F382029
- for <linux-nvdimm@lists.01.org>; Sat, 10 Dec 2016 22:33:11 -0800 (PST)
-Subject: [PATCH 7/8] dax: add / remove dax devices after provisioning
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 10 Dec 2016 22:29:01 -0800
-Message-ID: <148143774173.10950.7251573649546331606.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148143770485.10950.13227732273892953675.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148143770485.10950.13227732273892953675.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8144082124
+ for <linux-nvdimm@lists.01.org>; Tue, 20 Dec 2016 13:08:14 -0800 (PST)
+Subject: [PATCH v3] x86: fix kaslr and memmap collision
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 20 Dec 2016 14:08:13 -0700
+Message-ID: <148226809303.147314.941589993797181767.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,309 +20,261 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
+Cc: x86@kernel.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Create a new device-dax seed when incrementing the size of the existing
-seed from zero.
+CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
+However it does not take into account the memmap= parameter passed in from
+the kernel cmdline. This results in the kernel sometimes being put in
+the middle of the user memmap. Teaching kaslr to not insert the kernel in
+memmap defined regions. We will support up to 4 memmap regions. Any
+additional regions will cause kaslr to disable. The mem_avoid set has
+been augmented to add up to 4 regions of memmaps provided by the user
+to exclude those regions from the set of valid address range to insert
+the uncompressed kernel image.
 
-Destroy a device-dax instance when its size changes from non-zero to
-zero.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/dax/dax.c |  195 +++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 128 insertions(+), 67 deletions(-)
+ arch/x86/boot/boot.h             |    3 +
+ arch/x86/boot/compressed/kaslr.c |  124 ++++++++++++++++++++++++++++++++++++++
+ arch/x86/boot/string.c           |   38 ++++++++++++
+ 3 files changed, 165 insertions(+)
 
-diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-index 9b641c079e52..b130eff91b83 100644
---- a/drivers/dax/dax.c
-+++ b/drivers/dax/dax.c
-@@ -15,6 +15,7 @@
- #include <linux/device.h>
- #include <linux/mount.h>
- #include <linux/pfn_t.h>
-+#include <linux/async.h>
- #include <linux/hash.h>
- #include <linux/cdev.h>
- #include <linux/slab.h>
-@@ -32,6 +33,7 @@ static struct vfsmount *dax_mnt;
- static struct kmem_cache *dax_cache __read_mostly;
- static struct super_block *dax_superblock __read_mostly;
- MODULE_PARM_DESC(nr_dax, "max number of device-dax instances");
-+static ASYNC_DOMAIN_EXCLUSIVE(dax_dev_async);
+diff --git a/arch/x86/boot/boot.h b/arch/x86/boot/boot.h
+index e5612f3..59c2075 100644
+--- a/arch/x86/boot/boot.h
++++ b/arch/x86/boot/boot.h
+@@ -332,7 +332,10 @@ int strncmp(const char *cs, const char *ct, size_t count);
+ size_t strnlen(const char *s, size_t maxlen);
+ unsigned int atou(const char *s);
+ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base);
++unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base);
++long simple_strtol(const char *cp, char **endp, unsigned int base);
+ size_t strlen(const char *s);
++char *strchr(const char *s, int c);
  
- /**
-  * struct dax_region - mapping infrastructure for dax devices
-@@ -329,6 +331,7 @@ static void dax_region_free(struct kref *kref)
- 			"%s: child count not zero\n",
- 			dev_name(dax_region->dev));
- 	kfree(dax_region);
-+	module_put(THIS_MODULE);
- }
+ /* tty.c */
+ void puts(const char *);
+diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
+index a66854d..be2b414 100644
+--- a/arch/x86/boot/compressed/kaslr.c
++++ b/arch/x86/boot/compressed/kaslr.c
+@@ -11,6 +11,7 @@
+  */
+ #include "misc.h"
+ #include "error.h"
++#include "../boot.h"
  
- void dax_region_put(struct dax_region *dax_region)
-@@ -377,15 +380,22 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
- 	dax_region->align = align;
- 	dax_region->dev = parent;
- 	dax_region->base = addr;
--	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups)) {
--		kfree(dax_region);
--		return NULL;;
--	}
-+	if (!try_module_get(THIS_MODULE))
-+		goto err_module;
-+
-+	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups))
-+		goto err_groups;
- 
- 	kref_get(&dax_region->kref);
- 	if (devm_add_action_or_reset(parent, dax_region_unregister, dax_region))
- 		return NULL;
- 	return dax_region;
-+
-+err_groups:
-+	module_put(THIS_MODULE);
-+err_module:
-+	kfree(dax_region);
-+	return NULL;
- }
- EXPORT_SYMBOL_GPL(alloc_dax_region);
- 
-@@ -402,6 +412,9 @@ static unsigned long long dax_dev_size(struct dax_dev *dax_dev)
- 
- 	WARN_ON_ONCE(!mutex_is_locked(&dax_region->lock));
- 
-+	if (!dax_dev->alive)
-+		return 0;
-+
- 	for (i = 0; i < dax_dev->num_resources; i++)
- 		size += resource_size(dax_dev->res[i]);
- 
-@@ -415,6 +428,9 @@ static ssize_t size_show(struct device *dev,
- 	struct dax_dev *dax_dev = to_dax_dev(dev);
- 	struct dax_region *dax_region = dax_dev->region;
- 
-+	/* flush previous size operations */
-+	async_synchronize_full_domain(&dax_dev_async);
-+
- 	mutex_lock(&dax_region->lock);
- 	size = dax_dev_size(dax_dev);
- 	mutex_unlock(&dax_region->lock);
-@@ -494,6 +510,89 @@ static int dax_dev_adjust_resource(struct dax_dev *dax_dev,
- 	return rc;
- }
- 
-+static void clear_dax_dev_radix(struct dax_dev *dax_dev)
-+{
-+	struct address_space *mapping = dax_dev->inode->i_mapping;
-+	struct radix_tree_iter iter;
-+	void **slot;
-+
-+	rcu_read_lock();
-+	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, 0) {
-+		struct resource *res;
-+		unsigned long pgoff;
-+		unsigned order;
-+
-+		res = radix_tree_deref_slot(slot);
-+		if (unlikely(!res))
-+			continue;
-+		if (radix_tree_deref_retry(res)) {
-+			slot = radix_tree_iter_retry(&iter);
-+			continue;
-+		}
-+
-+		foreach_order_pgoff(res, order, pgoff)
-+			radix_tree_delete(&mapping->page_tree,
-+					to_dev_pgoff(res) + pgoff);
-+	}
-+	rcu_read_unlock();
-+
-+	synchronize_rcu();
-+}
-+
-+static void unregister_dax_dev(void *dev)
-+{
-+	struct dax_dev *dax_dev = to_dax_dev(dev);
-+	struct dax_region *dax_region = dax_dev->region;
-+	struct cdev *cdev = &dax_dev->cdev;
-+	int i;
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+
-+	/*
-+	 * Note, rcu is not protecting the liveness of dax_dev, rcu is
-+	 * ensuring that any fault handlers that might have seen
-+	 * dax_dev->alive == true, have completed.  Any fault handlers
-+	 * that start after synchronize_rcu() has started will abort
-+	 * upon seeing dax_dev->alive == false.
-+	 */
-+	dax_dev->alive = false;
-+	synchronize_rcu();
-+	unmap_mapping_range(dax_dev->inode->i_mapping, 0, 0, 1);
-+
-+	mutex_lock(&dax_region->lock);
-+	clear_dax_dev_radix(dax_dev);
-+	for (i = 0; i < dax_dev->num_resources; i++)
-+		__release_region(&dax_region->res, dax_dev->res[i]->start,
-+				resource_size(dax_dev->res[i]));
-+	if (dax_region->seed == dev)
-+		dax_region->seed = NULL;
-+	mutex_unlock(&dax_region->lock);
-+	atomic_dec(&dax_region->child_count);
-+
-+	cdev_del(cdev);
-+	device_unregister(dev);
-+}
-+
-+static void dax_dev_async_unregister(void *d, async_cookie_t cookie)
-+{
-+	struct device *dev = d;
-+	struct dax_dev *dax_dev = to_dax_dev(dev);
-+	struct dax_region *dax_region = dax_dev->region;
-+
-+	/*
-+	 * Check that we still have an enabled region, if not then this
-+	 * device was unregistered when the region was disabled.
-+	 */
-+	device_lock(dax_region->dev);
-+	if (dev_get_drvdata(dax_region->dev)) {
-+		devm_remove_action(dax_region->dev, unregister_dax_dev, dev);
-+		unregister_dax_dev(dev);
-+	}
-+	device_unlock(dax_region->dev);
-+
-+	put_device(dev);
-+}
-+
- static int dax_dev_shrink(struct dax_region *dax_region,
- 		struct dax_dev *dax_dev, unsigned long long size)
- {
-@@ -552,6 +651,14 @@ static int dax_dev_shrink(struct dax_region *dax_region,
- 	 */
- 	unmap_mapping_range(mapping, size, dev_size - size, 1);
- 
-+	if (size == 0 && &dax_dev->dev != dax_region->seed) {
-+		get_device(&dax_dev->dev);
-+		dax_dev->alive = false;
-+		synchronize_rcu();
-+		async_schedule_domain(dax_dev_async_unregister, &dax_dev->dev,
-+				&dax_dev_async);
-+	}
-+
- 	return rc;
- }
- 
-@@ -607,6 +714,9 @@ static ssize_t dax_dev_resize(struct dax_region *dax_region,
- 	resource_size_t region_end;
- 	int i, rc;
- 
-+	if (!dax_dev->alive)
-+		return -ENXIO;
-+
- 	if (size == dev_size)
- 		return 0;
- 	if (size > dev_size && size - dev_size > avail)
-@@ -686,6 +796,20 @@ static ssize_t dax_dev_resize(struct dax_region *dax_region,
- 		}
- 	}
- 
-+	device_lock(dax_region->dev);
-+	if (dev_get_drvdata(dax_region->dev) && dev_size == 0
-+			&& &dax_dev->dev == dax_region->seed) {
-+		struct dax_dev *seed;
-+
-+		seed = devm_create_dax_dev(dax_region, NULL, 0);
-+		if (IS_ERR(seed))
-+			dev_warn(dax_region->dev,
-+					"failed to create new region seed\n");
-+		else
-+			dax_region->seed = &seed->dev;
-+	}
-+	device_unlock(dax_region->dev);
-+
- 	return 0;
- }
- 
-@@ -1001,35 +1125,6 @@ static const struct file_operations dax_fops = {
- 	.mmap = dax_mmap,
+ #include <generated/compile.h>
+ #include <linux/module.h>
+@@ -61,9 +62,16 @@ enum mem_avoid_index {
+ 	MEM_AVOID_INITRD,
+ 	MEM_AVOID_CMDLINE,
+ 	MEM_AVOID_BOOTPARAMS,
++	MEM_AVOID_MEMMAP1,
++	MEM_AVOID_MEMMAP2,
++	MEM_AVOID_MEMMAP3,
++	MEM_AVOID_MEMMAP4,
+ 	MEM_AVOID_MAX,
  };
  
--static void clear_dax_dev_radix(struct dax_dev *dax_dev)
--{
--	struct address_space *mapping = dax_dev->inode->i_mapping;
--	struct radix_tree_iter iter;
--	void **slot;
--
--	rcu_read_lock();
--	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, 0) {
--		struct resource *res;
--		unsigned long pgoff;
--		unsigned order;
--
--		res = radix_tree_deref_slot(slot);
--		if (unlikely(!res))
--			continue;
--		if (radix_tree_deref_retry(res)) {
--			slot = radix_tree_iter_retry(&iter);
--			continue;
--		}
--
--		foreach_order_pgoff(res, order, pgoff)
--			radix_tree_delete(&mapping->page_tree,
--					to_dev_pgoff(res) + pgoff);
--	}
--	rcu_read_unlock();
--
--	synchronize_rcu();
--}
--
- static void dax_dev_release(struct device *dev)
- {
- 	struct dax_dev *dax_dev = to_dax_dev(dev);
-@@ -1043,40 +1138,6 @@ static void dax_dev_release(struct device *dev)
- 	kfree(dax_dev);
++/* only supporting at most 4 memmap regions with kaslr */
++#define MAX_MEMMAP_REGIONS	4
++
+ static struct mem_vector mem_avoid[MEM_AVOID_MAX];
+ 
+ static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
+@@ -77,6 +85,114 @@ static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
+ 	return true;
  }
  
--static void unregister_dax_dev(void *dev)
--{
--	struct dax_dev *dax_dev = to_dax_dev(dev);
--	struct dax_region *dax_region = dax_dev->region;
--	struct cdev *cdev = &dax_dev->cdev;
--	int i;
--
--	dev_dbg(dev, "%s\n", __func__);
--
--	/*
--	 * Note, rcu is not protecting the liveness of dax_dev, rcu is
--	 * ensuring that any fault handlers that might have seen
--	 * dax_dev->alive == true, have completed.  Any fault handlers
--	 * that start after synchronize_rcu() has started will abort
--	 * upon seeing dax_dev->alive == false.
--	 */
--	dax_dev->alive = false;
--	synchronize_rcu();
--	unmap_mapping_range(dax_dev->inode->i_mapping, 0, 0, 1);
--
--	mutex_lock(&dax_region->lock);
--	clear_dax_dev_radix(dax_dev);
--	for (i = 0; i < dax_dev->num_resources; i++)
--		__release_region(&dax_region->res, dax_dev->res[i]->start,
--				resource_size(dax_dev->res[i]));
--	if (dax_region->seed == dev)
--		dax_region->seed = NULL;
--	mutex_unlock(&dax_region->lock);
--	atomic_dec(&dax_region->child_count);
--
--	cdev_del(cdev);
--	device_unregister(dev);
--}
--
- struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
- 		struct resource *res, int count)
++/**
++ *	_memparse - parse a string with mem suffixes into a number
++ *	@ptr: Where parse begins
++ *	@retptr: (output) Optional pointer to next char after parse completes
++ *
++ *	Parses a string into a number.  The number stored at @ptr is
++ *	potentially suffixed with K, M, G, T, P, E.
++ */
++static unsigned long long _memparse(const char *ptr, char **retptr)
++{
++	char *endptr;	/* local pointer to end of parsed string */
++
++	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
++
++	switch (*endptr) {
++	case 'E':
++	case 'e':
++		ret <<= 10;
++	case 'P':
++	case 'p':
++		ret <<= 10;
++	case 'T':
++	case 't':
++		ret <<= 10;
++	case 'G':
++	case 'g':
++		ret <<= 10;
++	case 'M':
++	case 'm':
++		ret <<= 10;
++	case 'K':
++	case 'k':
++		ret <<= 10;
++		endptr++;
++	default:
++		break;
++	}
++
++	if (retptr)
++		*retptr = endptr;
++
++	return ret;
++}
++
++static int
++parse_memmap(char *p, unsigned long long *start, unsigned long long *size)
++{
++	char *oldp;
++
++	if (!p)
++		return -EINVAL;
++
++	/* we don't care about this option here */
++	if (!strncmp(p, "exactmap", 8))
++		return -EINVAL;
++
++	oldp = p;
++	*size = _memparse(p, &p);
++	if (p == oldp)
++		return -EINVAL;
++
++	switch (*p) {
++	case '@':
++	case '#':
++	case '$':
++	case '!':
++		*start = _memparse(p + 1, &p);
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static int mem_avoid_memmap(void)
++{
++	char arg[128];
++	int rc = 0;
++
++	/* see if we have any memmap areas */
++	if (cmdline_find_option("memmap", arg, sizeof(arg)) > 0) {
++		int i = 0;
++		char *str = arg;
++
++		while (str && (i < MAX_MEMMAP_REGIONS)) {
++			unsigned long long start, size;
++			char *k = strchr(str, ',');
++
++			if (k)
++				*k++ = 0;
++
++			rc = parse_memmap(str, &start, &size);
++			if (rc < 0)
++				break;
++			str = k;
++
++			mem_avoid[MEM_AVOID_MEMMAP1 + i].start = start;
++			mem_avoid[MEM_AVOID_MEMMAP1 + i].size = size;
++			i++;
++		}
++
++		/* more than 4 memmaps, fail kaslr */
++		if ((i >= MAX_MEMMAP_REGIONS) && str)
++			rc = -EINVAL;
++	}
++
++	return rc;
++}
++
+ /*
+  * In theory, KASLR can put the kernel anywhere in the range of [16M, 64T).
+  * The mem_avoid array is used to store the ranges that need to be avoided
+@@ -429,6 +545,7 @@ void choose_random_location(unsigned long input,
+ 			    unsigned long *virt_addr)
  {
+ 	unsigned long random_addr, min_addr;
++	int rc;
+ 
+ 	/* By default, keep output position unchanged. */
+ 	*virt_addr = *output;
+@@ -438,6 +555,13 @@ void choose_random_location(unsigned long input,
+ 		return;
+ 	}
+ 
++	/* Mark the memmap regions we need to avoid */
++	rc = mem_avoid_memmap();
++	if (rc < 0) {
++		warn("KASLR disabled: memmap exceeds limit of 4, giving up.");
++		return;
++	}
++
+ 	boot_params->hdr.loadflags |= KASLR_FLAG;
+ 
+ 	/* Prepare to add new identity pagetables on demand. */
+diff --git a/arch/x86/boot/string.c b/arch/x86/boot/string.c
+index cc3bd58..0464aaa 100644
+--- a/arch/x86/boot/string.c
++++ b/arch/x86/boot/string.c
+@@ -122,6 +122,31 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
+ }
+ 
+ /**
++ * simple_strtoul - convert a string to an unsigned long
++ * @cp: The start of the string
++ * @endp: A pointer to the end of the parsed string will be placed here
++ * @base: The number base to use
++ */
++unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base)
++{
++	return simple_strtoull(cp, endp, base);
++}
++
++/**
++ * simple_strtol - convert a string to a signed long
++ * @cp: The start of the string
++ * @endp: A pointer to the end of the parsed string will be placed here
++ * @base: The number base to use
++ */
++long simple_strtol(const char *cp, char **endp, unsigned int base)
++{
++	if (*cp == '-')
++		return -simple_strtoul(cp + 1, endp, base);
++
++	return simple_strtoul(cp, endp, base);
++}
++
++/**
+  * strlen - Find the length of a string
+  * @s: The string to be sized
+  */
+@@ -155,3 +180,16 @@ char *strstr(const char *s1, const char *s2)
+ 	}
+ 	return NULL;
+ }
++
++/**
++ * strchr - Find the first occurrence of the character c in the string s.
++ * @s: the string to be searched
++ * @c: the character to search for
++ */
++char *strchr(const char *s, int c)
++{
++	while (*s != (char)c)
++		if (*s++ == '\0')
++			return NULL;
++	return (char *)s;
++}
 
 _______________________________________________
 Linux-nvdimm mailing list
