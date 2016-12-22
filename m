@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C2D5881F1F
- for <linux-nvdimm@lists.01.org>; Thu,  1 Dec 2016 14:34:01 -0800 (PST)
-Subject: [PATCH 01/11] mm,
- devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 01 Dec 2016 14:29:52 -0800
-Message-ID: <148063139194.37496.13883044011361266303.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148063138593.37496.4684424640746238765.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 95D4C823CE
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Dec 2016 13:19:09 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 4/4] dax: wrprotect pmd_t in dax_mapping_entry_mkclean
+Date: Thu, 22 Dec 2016 14:18:56 -0700
+Message-Id: <1482441536-14550-5-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,153 +17,145 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-devm_memremap_pages() records mapped ranges in pgmap_radix with a entry
-per section's worth of memory (128MB).  The key for each of those entries is
-a section number.
+Currently dax_mapping_entry_mkclean() fails to clean and write protect the
+pmd_t of a DAX PMD entry during an *sync operation.  This can result in
+data loss in the following sequence:
 
-This leads to false positives when devm_memremap_pages() is passed a
-section-unaligned range as lookups in the misalignment fail to return
-NULL. We can close this hole by using the unmodified physical address as
-the key for entries in the tree.  The number of entries required to
-describe a remapped range is reduced by leveraging multi-order entries.
+1) mmap write to DAX PMD, dirtying PMD radix tree entry and making the
+   pmd_t dirty and writeable
+2) fsync, flushing out PMD data and cleaning the radix tree entry. We
+   currently fail to mark the pmd_t as clean and write protected.
+3) more mmap writes to the PMD.  These don't cause any page faults since
+   the pmd_t is dirty and writeable.  The radix tree entry remains clean.
+4) fsync, which fails to flush the dirty PMD data because the radix tree
+   entry was clean.
+5) crash - dirty data that should have been fsync'd as part of 4) could
+   still have been in the processor cache, and is lost.
 
-In practice this approach usually yields just one entry in the tree if
-the size and starting address is power-of-2 aligned.  Previously we
-needed mapping_size / 128MB entries.
+Fix this by marking the pmd_t clean and write protected in
+dax_mapping_entry_mkclean(), which is called as part of the fsync
+operation 2).  This will cause the writes in step 3) above to generate page
+faults where we'll re-dirty the PMD radix tree entry, resulting in flushes
+in the fsync that happens in step 4).
 
-Link: https://lists.01.org/pipermail/linux-nvdimm/2016-August/006666.html
-Reported-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Fixes: 4b4bb46d00b3 ("dax: clear dirty entry tags on cache flush")
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- kernel/memremap.c |   53 +++++++++++++++++++++++++++++++++++++++--------------
- mm/Kconfig        |    1 +
- 2 files changed, 40 insertions(+), 14 deletions(-)
+ fs/dax.c           | 49 ++++++++++++++++++++++++++++++++++---------------
+ include/linux/mm.h |  2 --
+ mm/memory.c        |  4 ++--
+ 3 files changed, 36 insertions(+), 19 deletions(-)
 
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index b501e390bb34..10becd7855ca 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -194,18 +194,39 @@ void put_zone_device_page(struct page *page)
- }
- EXPORT_SYMBOL(put_zone_device_page);
- 
--static void pgmap_radix_release(struct resource *res)
-+static unsigned order_at(struct resource *res, unsigned long offset)
+diff --git a/fs/dax.c b/fs/dax.c
+index 5c74f60..62b3ed4 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -691,8 +691,8 @@ static void dax_mapping_entry_mkclean(struct address_space *mapping,
+ 				      pgoff_t index, unsigned long pfn)
  {
--	resource_size_t key, align_start, align_size, align_end;
-+	unsigned long phys_offset = res->start + offset;
-+	resource_size_t size = resource_size(res);
-+	unsigned order_max, order_offset;
+ 	struct vm_area_struct *vma;
+-	pte_t *ptep;
+-	pte_t pte;
++	pte_t pte, *ptep = NULL;
++	pmd_t *pmdp = NULL;
+ 	spinlock_t *ptl;
+ 	bool changed;
  
--	align_start = res->start & ~(SECTION_SIZE - 1);
--	align_size = ALIGN(resource_size(res), SECTION_SIZE);
--	align_end = align_start + align_size - 1;
-+	if (size == offset)
-+		return UINT_MAX;
-+
-+	/*
-+	 * What is the largest power-of-2 range available from this
-+	 * resource offset to the end of the resource range, considering
-+	 * the alignment of the current offset?
-+	 */
-+	order_offset = ilog2(size | phys_offset);
-+	order_max = ilog2(size - offset);
-+	return min(order_max, order_offset);
-+}
-+
-+#define foreach_order_offset(res, order, offset) \
-+	for (offset = 0, order = order_at((res), offset); order < UINT_MAX; \
-+		offset += 1UL << order, order = order_at((res), offset))
-+
-+static void pgmap_radix_release(struct resource *res)
-+{
-+	unsigned long offset, order;
+@@ -707,21 +707,40 @@ static void dax_mapping_entry_mkclean(struct address_space *mapping,
  
- 	mutex_lock(&pgmap_lock);
--	for (key = res->start; key <= res->end; key += SECTION_SIZE)
--		radix_tree_delete(&pgmap_radix, key >> PA_SECTION_SHIFT);
-+	foreach_order_offset(res, order, offset)
-+		radix_tree_delete(&pgmap_radix, res->start + offset);
- 	mutex_unlock(&pgmap_lock);
+ 		address = pgoff_address(index, vma);
+ 		changed = false;
+-		if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
++		if (follow_pte_pmd(vma->vm_mm, address, &ptep, &pmdp, &ptl))
+ 			continue;
+-		if (pfn != pte_pfn(*ptep))
+-			goto unlock;
+-		if (!pte_dirty(*ptep) && !pte_write(*ptep))
+-			goto unlock;
+ 
+-		flush_cache_page(vma, address, pfn);
+-		pte = ptep_clear_flush(vma, address, ptep);
+-		pte = pte_wrprotect(pte);
+-		pte = pte_mkclean(pte);
+-		set_pte_at(vma->vm_mm, address, ptep, pte);
+-		changed = true;
+-unlock:
+-		pte_unmap_unlock(ptep, ptl);
++		if (pmdp) {
++			pmd_t pmd;
 +
-+	synchronize_rcu();
++			if (pfn != pmd_pfn(*pmdp))
++				goto unlock_pmd;
++			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
++				goto unlock_pmd;
++
++			flush_cache_page(vma, address, pfn);
++			pmd = pmdp_huge_clear_flush(vma, address, pmdp);
++			pmd = pmd_wrprotect(pmd);
++			pmd = pmd_mkclean(pmd);
++			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
++			changed = true;
++unlock_pmd:
++			spin_unlock(ptl);
++		} else {
++			if (pfn != pte_pfn(*ptep))
++				goto unlock_pte;
++			if (!pte_dirty(*ptep) && !pte_write(*ptep))
++				goto unlock_pte;
++
++			flush_cache_page(vma, address, pfn);
++			pte = ptep_clear_flush(vma, address, ptep);
++			pte = pte_wrprotect(pte);
++			pte = pte_mkclean(pte);
++			set_pte_at(vma->vm_mm, address, ptep, pte);
++			changed = true;
++unlock_pte:
++			pte_unmap_unlock(ptep, ptl);
++		}
+ 
+ 		if (changed)
+ 			mmu_notifier_invalidate_page(vma->vm_mm, address);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index ff0e1c1..f4de7fa 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1210,8 +1210,6 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 			struct vm_area_struct *vma);
+ void unmap_mapping_range(struct address_space *mapping,
+ 		loff_t const holebegin, loff_t const holelen, int even_cows);
+-int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
+-	       spinlock_t **ptlp);
+ int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
+ 			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
+ int follow_pfn(struct vm_area_struct *vma, unsigned long address,
+diff --git a/mm/memory.c b/mm/memory.c
+index 29edd91..ddcf979 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3826,8 +3826,8 @@ static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
+ 	return -EINVAL;
  }
  
- static unsigned long pfn_first(struct page_map *page_map)
-@@ -260,7 +281,7 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
- 
- 	WARN_ON_ONCE(!rcu_read_lock_held());
- 
--	page_map = radix_tree_lookup(&pgmap_radix, phys >> PA_SECTION_SHIFT);
-+	page_map = radix_tree_lookup(&pgmap_radix, phys);
- 	return page_map ? &page_map->pgmap : NULL;
- }
- 
-@@ -282,12 +303,12 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
- void *devm_memremap_pages(struct device *dev, struct resource *res,
- 		struct percpu_ref *ref, struct vmem_altmap *altmap)
+-int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
+-	       spinlock_t **ptlp)
++static inline int follow_pte(struct mm_struct *mm, unsigned long address,
++			     pte_t **ptepp, spinlock_t **ptlp)
  {
--	resource_size_t key, align_start, align_size, align_end;
-+	resource_size_t align_start, align_size, align_end;
-+	unsigned long pfn, offset, order;
- 	pgprot_t pgprot = PAGE_KERNEL;
- 	struct dev_pagemap *pgmap;
- 	struct page_map *page_map;
- 	int error, nid, is_ram;
--	unsigned long pfn;
+ 	int res;
  
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
-@@ -326,11 +347,15 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	mutex_lock(&pgmap_lock);
- 	error = 0;
- 	align_end = align_start + align_size - 1;
--	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
-+
-+	/* we're storing full physical addresses in the radix */
-+	BUILD_BUG_ON(sizeof(unsigned long) < sizeof(resource_size_t));
-+
-+	foreach_order_offset(res, order, offset) {
- 		struct dev_pagemap *dup;
- 
- 		rcu_read_lock();
--		dup = find_dev_pagemap(key);
-+		dup = find_dev_pagemap(res->start + offset);
- 		rcu_read_unlock();
- 		if (dup) {
- 			dev_err(dev, "%s: %pr collides with mapping for %s\n",
-@@ -338,8 +363,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 			error = -EBUSY;
- 			break;
- 		}
--		error = radix_tree_insert(&pgmap_radix, key >> PA_SECTION_SHIFT,
--				page_map);
-+		error = __radix_tree_insert(&pgmap_radix, res->start + offset,
-+				order, page_map);
- 		if (error) {
- 			dev_err(dev, "%s: failed: %d\n", __func__, error);
- 			break;
-diff --git a/mm/Kconfig b/mm/Kconfig
-index 86e3e0e74d20..495e72dcb4da 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -694,6 +694,7 @@ config ZONE_DEVICE
- 	depends on MEMORY_HOTREMOVE
- 	depends on SPARSEMEM_VMEMMAP
- 	depends on X86_64 #arch_add_memory() comprehends device memory
-+	select RADIX_TREE_MULTIORDER
- 
- 	help
- 	  Device memory hotplug support allows for establishing pmem,
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
