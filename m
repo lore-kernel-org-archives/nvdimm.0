@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E3085823C3
- for <linux-nvdimm@lists.01.org>; Thu, 22 Dec 2016 13:19:05 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 785F3823CA
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Dec 2016 13:19:08 -0800 (PST)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 1/4] dax: kill uml support
-Date: Thu, 22 Dec 2016 14:18:53 -0700
-Message-Id: <1482441536-14550-2-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 3/4] mm: add follow_pte_pmd()
+Date: Thu, 22 Dec 2016 14:18:55 -0700
+Message-Id: <1482441536-14550-4-git-send-email-ross.zwisler@linux.intel.com>
 In-Reply-To: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
 References: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -23,42 +23,97 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-arch@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
+Similar to follow_pte(), follow_pte_pmd() allows either a PTE leaf or a
+huge page PMD leaf to be found and returned.
 
-The lack of common transparent-huge-page helpers for UML is becoming
-increasingly painful for fs/dax.c now that it is growing more pmd
-functionality. Add UML to the list of unsupported architectures.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-[rez: squashed #ifdef removal into another patch in the series ]
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Dave Hansen <dave.hansen@intel.com>
 ---
- fs/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |  2 ++
+ mm/memory.c        | 37 ++++++++++++++++++++++++++++++-------
+ 2 files changed, 32 insertions(+), 7 deletions(-)
 
-diff --git a/fs/Kconfig b/fs/Kconfig
-index c2a377c..661931f 100644
---- a/fs/Kconfig
-+++ b/fs/Kconfig
-@@ -37,7 +37,7 @@ source "fs/f2fs/Kconfig"
- config FS_DAX
- 	bool "Direct Access (DAX) support"
- 	depends on MMU
--	depends on !(ARM || MIPS || SPARC)
-+	depends on !(ARM || MIPS || SPARC || UML)
- 	help
- 	  Direct Access (DAX) can be used on memory-backed block devices.
- 	  If the block device supports DAX and the filesystem supports DAX,
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 4424784..ff0e1c1 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1212,6 +1212,8 @@ void unmap_mapping_range(struct address_space *mapping,
+ 		loff_t const holebegin, loff_t const holelen, int even_cows);
+ int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
+ 	       spinlock_t **ptlp);
++int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
++			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
+ int follow_pfn(struct vm_area_struct *vma, unsigned long address,
+ 	unsigned long *pfn);
+ int follow_phys(struct vm_area_struct *vma, unsigned long address,
+diff --git a/mm/memory.c b/mm/memory.c
+index 455c3e6..29edd91 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3779,8 +3779,8 @@ int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
+ }
+ #endif /* __PAGETABLE_PMD_FOLDED */
+ 
+-static int __follow_pte(struct mm_struct *mm, unsigned long address,
+-		pte_t **ptepp, spinlock_t **ptlp)
++static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
++		pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
+ {
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+@@ -3797,11 +3797,20 @@ static int __follow_pte(struct mm_struct *mm, unsigned long address,
+ 
+ 	pmd = pmd_offset(pud, address);
+ 	VM_BUG_ON(pmd_trans_huge(*pmd));
+-	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
+-		goto out;
+ 
+-	/* We cannot handle huge page PFN maps. Luckily they don't exist. */
+-	if (pmd_huge(*pmd))
++	if (pmd_huge(*pmd)) {
++		if (!pmdpp)
++			goto out;
++
++		*ptlp = pmd_lock(mm, pmd);
++		if (pmd_huge(*pmd)) {
++			*pmdpp = pmd;
++			return 0;
++		}
++		spin_unlock(*ptlp);
++	}
++
++	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
+ 		goto out;
+ 
+ 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
+@@ -3824,9 +3833,23 @@ int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
+ 
+ 	/* (void) is needed to make gcc happy */
+ 	(void) __cond_lock(*ptlp,
+-			   !(res = __follow_pte(mm, address, ptepp, ptlp)));
++			   !(res = __follow_pte_pmd(mm, address, ptepp, NULL,
++					   ptlp)));
++	return res;
++}
++
++int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
++			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
++{
++	int res;
++
++	/* (void) is needed to make gcc happy */
++	(void) __cond_lock(*ptlp,
++			   !(res = __follow_pte_pmd(mm, address, ptepp, pmdpp,
++					   ptlp)));
+ 	return res;
+ }
++EXPORT_SYMBOL(follow_pte_pmd);
+ 
+ /**
+  * follow_pfn - look up PFN at a user virtual address
 -- 
 2.7.4
 
