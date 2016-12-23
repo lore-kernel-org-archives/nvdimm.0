@@ -1,19 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ua0-x242.google.com (mail-ua0-x242.google.com
- [IPv6:2607:f8b0:400c:c08::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3D8B681859
- for <linux-nvdimm@lists.01.org>; Wed, 28 Dec 2016 23:43:18 -0800 (PST)
-Received: by mail-ua0-x242.google.com with SMTP id 96so15276807uaq.2
- for <linux-nvdimm@lists.01.org>; Wed, 28 Dec 2016 23:43:18 -0800 (PST)
+Received: from abbgs.com (unknown [183.45.108.205])
+ by ml01.01.org (Postfix) with ESMTP id B8214823E8
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Dec 2016 18:55:01 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <147976134582.93357.14661800715988484489.stgit@djiang5-desk3.ch.intel.com>
-References: <147976134582.93357.14661800715988484489.stgit@djiang5-desk3.ch.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 28 Dec 2016 23:43:16 -0800
-Message-ID: <CAA9_cmdv1G5zKiOU4o=m_g63b_N4xLDupC6mVspYzm9NZk3Edw@mail.gmail.com>
-Subject: Re: [PATCH v3] libnvdimm: clear poison in mem map metadata
+From: "Coco Chen" <cantonfair2@126.com>
+Date: 23 Dec 2016 10:36:34 +0800
+Subject: =?utf-8?B?WW91ciB2aXNpdCB0byB0aGUgMTIxc3QgQ2FudG9uIEZhaXIgaW4gQ2hpbmEgKG1vKQ==?=
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,50 +13,18 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Reply-To: Coco Chen <cantonfair2@126.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Message-Id: <20161223025504.6F7E2823F2@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Nov 21, 2016 at 12:49 PM, Dave Jiang <dave.jiang@intel.com> wrote:
-> Clearing out the poison in the metadata block of the namespace before
-> we use it. Range from start + 8k to pfn_sb->dataoff.
->
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->  drivers/nvdimm/pfn_devs.c |   28 ++++++++++++++++++++++++++++
->  1 file changed, 28 insertions(+)
->
-> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-> index cea8350..7fa428e 100644
-> --- a/drivers/nvdimm/pfn_devs.c
-> +++ b/drivers/nvdimm/pfn_devs.c
-> @@ -527,11 +527,39 @@ static struct vmem_altmap *__nvdimm_setup_pfn(struct nd_pfn *nd_pfn,
->                 .base_pfn = init_altmap_base(base),
->                 .reserve = init_altmap_reserve(base),
->         };
-> +       sector_t sector;
-> +       resource_size_t meta_start, meta_size;
-> +       long cleared;
-> +       unsigned int sz_align;
->
->         memcpy(res, &nsio->res, sizeof(*res));
->         res->start += start_pad;
->         res->end -= end_trunc;
->
-> +       meta_start = res->start + SZ_8K;
-> +       meta_size = offset - meta_start + 1;
-> +
-> +       if (meta_start + meta_size > offset)
-> +               return ERR_PTR(-EINVAL);
-
-I missed this patch in the libnvdimm pull request for 4.10-rc1. I
-grabbed it for -rc2, but the lines above trigger a regression in the
-unit tests. So I dropped it and we should try again with an updated
-patch for 4.11 at this point.
+Dear Madam/Sir,&nbsp;I am pleased to announce that the 121st Canton Fair is coming. The Canton Fair is co-hosted biannually by the Ministry of Commerce of People Republic of China and the Guangdong Government, every spring and autumn. In the Autumn of 2016, the past120th Canton Fair attracted over 25,000 suppliers to exhibit over 150,000 kinds of quality products with distinctive features, and the annual turnover reached over USD 29 billion.We invite you to join the 121st Canton fair. The first 500 customers signing up for attendance may enjoy the following offers:1) Directory of superior suppliers of and a latest report for all industries.2) VIP permit will be granted3) Assistance on China Visa application4) Free one-way airport transfer and special price for hotel accommodation5) Free local mobile sim-card6) 2 free SPA couponsWe sincerely believe that you and your company will fruitfully benefit from it. Please find the contact person details as follows:Contact Person : Ms. Coco Ch
+ enEmail:cantonfair2@126.comTel: +971-55-7951168
+We look forward to your favorable reply.&nbsp;Best regards,Coco Chen- The China Import and Export Fair- Guangdong Emirates Business Union In U.A.E.We hosted Promotion Conferences of Canton Fair in:1.) Sept. 2014, Carlton Hotel, Dubai, U.A.E.2.) April 2015,&nbsp; Radisson Hotel, Dubai, U.A.E.3.) Aug. 2015,&nbsp; Holiday Inn, Abu Dhabi, U.A.E.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
