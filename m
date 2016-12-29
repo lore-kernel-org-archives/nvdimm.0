@@ -1,12 +1,104 @@
-From: "Coco Chen" <cantonfair2-KN7UnAbNpbg@public.gmane.org>
-Subject: =?utf-8?B?WW91ciB2aXNpdCB0byB0aGUgMTIxc3QgQ2FudG9uIEZhaXIgaW4gQ2hpbmEgKDQ2KQ==?=
-Date: 27 Dec 2016 13:42:23 +0800
-Message-ID: <20161227054244.6DB1481919@ml01.01.org>
-Reply-To: Coco Chen <cantonfair2-KN7UnAbNpbg@public.gmane.org>
+From: "Ranae Roddy  " <sugbsimo50-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: I need quality SEO work
+Date: Thu, 29 Dec 2016 21:52:03 +0200
+Message-ID: <5CBA77D3.F28FCD0A@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="----------=_5865697A.425D649B"
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_5865697A.425D649B
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  Hi Here is the link http://www.conversion-seo.cn/seo-packages/
+   Yours, Ranae Roddy Linux-nvdimm mailing list Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org https://lists.01.org/mailman/listinfo/linux-nvdimm
+   [...] 
+
+Content analysis details:   (9.6 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: conversion-seo.cn]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: conversion-seo.cn]
+ 2.8 FSL_HELO_FAKE          No description available.
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (sugbsimo50[at]gmail.com)
+ 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
+                            (sugbsimo50[at]gmail.com)
+ 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
+                            [score: 0.5000]
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+The original message was not completely plain text, and may be unsafe to
+open with some email clients; in particular, it may contain a virus,
+or confirm that your address can receive spam.  If you wish to view
+it, it may be safer to save it to a file and open it with an editor.
+
+
+------------=_5865697A.425D649B
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: attachment
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1cMgkH-0004oG-OR
+	for gln-linux-nvdimm@m.gmane.org; Thu, 29 Dec 2016 20:52:13 +0100
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id DFB7D8194D;
+	Thu, 29 Dec 2016 11:52:17 -0800 (PST)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Received: from gmail.com (unknown [210.92.18.86])
+ by ml01.01.org (Postfix) with SMTP id 7366A8194C
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Thu, 29 Dec 2016 11:52:15 -0800 (PST)
+Message-ID: <5CBA77D3.F28FCD0A-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Thu, 29 Dec 2016 21:52:03 +0200
+From: "Ranae Roddy  " <sugbsimo50-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US;
+ rv:1.8.1.24) Gecko/20100411 Thunderbird/2.0.0.24
+X-Accept-Language: en-us
+MIME-Version: 1.0
+To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Subject: re: I need quality SEO work
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.21
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,11 +106,38 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Reply-To: Ranae Roddy   <sugbsimo50-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============1794728651260227752=="
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
 
-Dear Madam/Sir,&nbsp;I am pleased to announce that the 121st Canton Fair is coming. The Canton Fair is co-hosted biannually by the Ministry of Commerce of People Republic of China and the Guangdong Government, every spring and autumn. In the Autumn of 2016, the past120th Canton Fair attracted over 25,000 suppliers to exhibit over 150,000 kinds of quality products with distinctive features, and the annual turnover reached over USD 29 billion.We invite you to join the 121st Canton fair. The first 500 customers signing up for attendance may enjoy the following offers:1) Directory of superior suppliers of and a latest report for all industries.2) VIP permit will be granted3) Assistance on China Visa application4) Free one-way airport transfer and special price for hotel accommodation5) Free lo
- cal mobile sim-card6) 2 free SPA couponsWe sincerely believe that you and your company will fruitfully benefit from it. Please find the contact person details as follows:Contact Person : Ms. Coco Ch
- enEmail:cantonfair2-cS4t20Fld3IYZaMpoT/xXg@public.gmane.org: +971-55-7951168We look forward to your favorable reply.&nbsp;Best regards,Coco Chen- The China Import and Export Fair- Guangdong Emirates Business Union In U.A.E.We hosted Promotion Conferences of Canton Fair in:1.) Sept. 2014, Carlton Hotel, Dubai, U.A.E.2.) April 2015,&nbsp; Radisson Hotel, Dubai, U.A.E.3.) Aug. 2015,&nbsp; Holiday Inn, Abu Dhabi, U.A.E.
+--===============1794728651260227752==
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+Hi
+Here is the link
+http://www.conversion-seo.cn/seo-packages/
+
+Yours,
+Ranae Roddy  
+
+
+
+
+--===============1794728651260227752==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============1794728651260227752==--
+
+
+------------=_5865697A.425D649B--
