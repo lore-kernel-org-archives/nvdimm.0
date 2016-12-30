@@ -1,15 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22e.google.com (mail-oi0-x22e.google.com
+ [IPv6:2607:f8b0:4003:c06::22e])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 785F3823CA
- for <linux-nvdimm@lists.01.org>; Thu, 22 Dec 2016 13:19:08 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 3/4] mm: add follow_pte_pmd()
-Date: Thu, 22 Dec 2016 14:18:55 -0700
-Message-Id: <1482441536-14550-4-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7FF9B81963
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Dec 2016 20:56:14 -0800 (PST)
+Received: by mail-oi0-x22e.google.com with SMTP id v84so415045569oie.3
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Dec 2016 20:56:14 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20161230035252.GV1555@ZenIV.linux.org.uk>
+References: <20161026155021.20892-1-brian.boylston@hpe.com>
+ <20161026155021.20892-2-brian.boylston@hpe.com> <58110959.90901@plexistor.com>
+ <CS1PR84MB011975E5DCF3B091E53A3FB38EAD0@CS1PR84MB0119.NAMPRD84.PROD.OUTLOOK.COM>
+ <5818A5C8.6040300@plexistor.com> <20161228234321.GA27417@ZenIV.linux.org.uk>
+ <CAPcyv4gg1XNJ3E=+0HDZnx08_dvvX+Prj-rLOsXcuHHO1pBLzg@mail.gmail.com>
+ <20161230035252.GV1555@ZenIV.linux.org.uk>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 29 Dec 2016 20:56:13 -0800
+Message-ID: <CAPcyv4gC0gaT7csVb=CbwhVNxGePDcSzOMZ_RXu+Q55uY3ScnA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] introduce memcpy_nocache()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,106 +26,46 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Moreno," Oliver" <oliver.moreno@hpe.com>, "x86@kernel.org, " <x86@kernel.org>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "boylston@burromesa.net" <boylston@burromesa.net>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to follow_pte(), follow_pte_pmd() allows either a PTE leaf or a
-huge page PMD leaf to be found and returned.
+On Thu, Dec 29, 2016 at 7:52 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+> On Thu, Dec 29, 2016 at 10:23:15AM -0800, Dan Williams wrote:
+>
+>> > BTW, your "it's iovec, only non-temporal stores there" logics in
+>> > arch_copy_from_iter_pmem() is simply wrong - for one thing, unaligned
+>> > copies will have parts done via normal stores, for another 32bit will
+>> > _not_ go for non-caching codepath for short copies.  What semantics do
+>> > we really need there?
+>>
+>> For typical pmem platforms we need to make sure all the writes are on
+>> the way to memory such than a later sfence can guarantee that all
+>> previous writes are visible to the platform "ADR" logic.  ADR handles
+>> flushing memory controller write buffers to media. At a minimum
+>> arch_copy_from_iter_pmem() needs to trigger a clwb (unordered cache
+>> line writeback) of each touched cache line if it is not using a cache
+>> bypassing store.
+>
+> Um...  Then we do have a problem - nocache variant of uaccess primitives
+> does *not* guarantee that clwb is redundant.
+>
+> What about the requirements of e.g. tcp_sendmsg() with its use of
+> skb_add_data_nocache()?  What warranties do we need there?
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dave Hansen <dave.hansen@intel.com>
----
- include/linux/mm.h |  2 ++
- mm/memory.c        | 37 ++++++++++++++++++++++++++++++-------
- 2 files changed, 32 insertions(+), 7 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 4424784..ff0e1c1 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1212,6 +1212,8 @@ void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
- int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
- 	       spinlock_t **ptlp);
-+int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
- 	unsigned long *pfn);
- int follow_phys(struct vm_area_struct *vma, unsigned long address,
-diff --git a/mm/memory.c b/mm/memory.c
-index 455c3e6..29edd91 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3779,8 +3779,8 @@ int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
- }
- #endif /* __PAGETABLE_PMD_FOLDED */
- 
--static int __follow_pte(struct mm_struct *mm, unsigned long address,
--		pte_t **ptepp, spinlock_t **ptlp)
-+static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+		pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
- {
- 	pgd_t *pgd;
- 	pud_t *pud;
-@@ -3797,11 +3797,20 @@ static int __follow_pte(struct mm_struct *mm, unsigned long address,
- 
- 	pmd = pmd_offset(pud, address);
- 	VM_BUG_ON(pmd_trans_huge(*pmd));
--	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
--		goto out;
- 
--	/* We cannot handle huge page PFN maps. Luckily they don't exist. */
--	if (pmd_huge(*pmd))
-+	if (pmd_huge(*pmd)) {
-+		if (!pmdpp)
-+			goto out;
-+
-+		*ptlp = pmd_lock(mm, pmd);
-+		if (pmd_huge(*pmd)) {
-+			*pmdpp = pmd;
-+			return 0;
-+		}
-+		spin_unlock(*ptlp);
-+	}
-+
-+	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
- 		goto out;
- 
- 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
-@@ -3824,9 +3833,23 @@ int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
- 
- 	/* (void) is needed to make gcc happy */
- 	(void) __cond_lock(*ptlp,
--			   !(res = __follow_pte(mm, address, ptepp, ptlp)));
-+			   !(res = __follow_pte_pmd(mm, address, ptepp, NULL,
-+					   ptlp)));
-+	return res;
-+}
-+
-+int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
-+{
-+	int res;
-+
-+	/* (void) is needed to make gcc happy */
-+	(void) __cond_lock(*ptlp,
-+			   !(res = __follow_pte_pmd(mm, address, ptepp, pmdpp,
-+					   ptlp)));
- 	return res;
- }
-+EXPORT_SYMBOL(follow_pte_pmd);
- 
- /**
-  * follow_pfn - look up PFN at a user virtual address
--- 
-2.7.4
-
+Yes, we need to distinguish the existing "nocache" that tries to avoid
+unnecessary cache pollution and this new "must write through" semantic
+for writing to persistent memory. I suspect usages of
+skb_add_data_nocache() are ok since they are in the transmit path.
+Receiving directly into a buffer that is expected to be persisted
+immediately is where we would need to be careful, but that is already
+backstopped by dirty cacheline tracking. So as far as I can see, we
+should only need a new memcpy_writethrough() (?) for the pmem
+direct-i/o path at present.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
