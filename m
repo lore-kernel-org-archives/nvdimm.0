@@ -1,103 +1,14 @@
-From: "JONATHAN" <harremme142-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: reach millions with FB Groups Posting service
-Date: Thu, 29 Dec 2016 21:54:43 +0200
-Message-ID: <1694561D.04C0078C@gmail.com>
+From: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: LTP rwtest01 blocks on DAX mountpoint
+Date: Fri, 30 Dec 2016 17:33:53 +0800
+Message-ID: <20161230093352.efidonh4btdbtaze@XZHOUW.usersys.redhat.com>
+References: <20161224110714.mp2mevzwkhlxm7zw@xzhoul.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_58656A17.E2BDB0C9"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_58656A17.E2BDB0C9
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Hello, Do you want to advertise on facebook? We're here to
-   help. We wil manually post your product/logo/link on Facebook Groups and
-  will give you a full report with links of each live post where your advertisement
-   was posted. [...] 
-
-Content analysis details:   (9.4 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: buysocial.cn]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-              [Blocked - see <http://www.spamcop.net/bl.shtml?118.193.233.11>]
- 2.8 FSL_HELO_FAKE          No description available.
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (harremme142[at]gmail.com)
- 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
-                            [score: 0.4405]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-The original message was not completely plain text, and may be unsafe to
-open with some email clients; in particular, it may contain a virus,
-or confirm that your address can receive spam.  If you wish to view
-it, it may be safer to save it to a file and open it with an editor.
-
-
-------------=_58656A17.E2BDB0C9
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: attachment
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1cMgmq-0006Pf-PJ
-	for gln-linux-nvdimm@m.gmane.org; Thu, 29 Dec 2016 20:54:52 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 31D9F81888;
-	Thu, 29 Dec 2016 11:54:57 -0800 (PST)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from gmail.com (unknown [118.193.233.11])
- by ml01.01.org (Postfix) with SMTP id 158898186F
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Thu, 29 Dec 2016 11:54:54 -0800 (PST)
-Message-ID: <1694561D.04C0078C-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Thu, 29 Dec 2016 21:54:43 +0200
-From: "JONATHAN" <harremme142-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US;
- rv:1.8.1.22) Gecko/20090608 Thunderbird/2.0.0.22
-X-Accept-Language: en-us
-MIME-Version: 1.0
-To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: re: reach millions with FB Groups Posting service
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+Content-Disposition: inline
+In-Reply-To: <20161224110714.mp2mevzwkhlxm7zw-obHvtwIU90hQcClZ3XN9yxcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -105,48 +16,95 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0851026491542184144=="
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
 
---===============0851026491542184144==
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+On Sat, Dec 24, 2016 at 07:07:14PM +0800, Xiong Zhou wrote:
+> Hi lists,
+> 
+> Since around 20161129 tag, LTP rwtest01 on dax mountpoint blocks
+> on linux-next tree, now on Linus tree.
+> 
+> In "normal", rwtest01 subcase ends in a few minutes, now it keeps
+> running for hours on dax mountpoint, both ext4 and xfs. Ctrl + c
+> can interrupt it.
 
-Hello,
-Do you want to advertise on facebook? We're here to help. 
+Test programme is waiting for a memcpy call to return.
 
-We wil manually post your product/logo/link on Facebook Groups and will
-give you a full report with links of each live post where your advertisement
-was posted.
+>From sysrq output, kernel code is not blocking on somewhere,
+it just wont return.
 
-http://www.buysocial.cn/detail.php?id=12
+> 
+> It is always reproducible, blocking following tests.
+> 
+> It does not happen when mounting without dax option.
+> It does not happen on v4.9.
+> 
+> Bisect point to:
+> 
+> commit 4b4bb46d00b386e1c972890dc5785a7966eaa9c0
+> Author: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+> Date:   Wed Dec 14 15:07:53 2016 -0800
+> 
+>     dax: clear dirty entry tags on cache flush
+> 
+> 
+> Reverting this commit on top of Linus tree "fixes" this issue.
+> 
+> Reproducer:
+> 
+> sh-4.2# cat rwt
+> rwtest01 export LTPROOT; rwtest -N rwtest01 -c -q -i 60s  -f sync 10%25000:$TMPDIR/rw-sync-$$
+> sh-4.2# 
+> mkfs.xfs /dev/pmem0p1
+> mount -o dax /dev/pmem0p1 /daxmnt && \
+> /opt/ltp/runltp -q -d /daxmnt -f rwt -p -b /dev/pmem0p2 -B xfs
+> umount /daxmnt
+> 
+> Bisect log is attached.
+> 
+> Thanks,
+> Xiong
 
-Regards
-JONATHAN
- 
+> git bisect start
+> # bad: [50f6584e4c626b8fa39edb66f33fec27bab3996c] Merge tag 'leds_for_4.10_email_update' of git://git.kernel.org/pub/scm/linux/kernel/git/j.anaszewski/linux-leds
+> git bisect bad 50f6584e4c626b8fa39edb66f33fec27bab3996c
+> # good: [69973b830859bc6529a7a0468ba0d80ee5117826] Linux 4.9
+> git bisect good 69973b830859bc6529a7a0468ba0d80ee5117826
+> # good: [5266e70335dac35c35b5ca9cea4251c1389d4a68] Merge tag 'tty-4.10-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty
+> git bisect good 5266e70335dac35c35b5ca9cea4251c1389d4a68
+> # bad: [6df8b74b1720db1133ace0861cb6721bfe57819a] Merge tag 'devicetree-for-4.10' of git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux
+> git bisect bad 6df8b74b1720db1133ace0861cb6721bfe57819a
+> # good: [f4000cd99750065d5177555c0a805c97174d1b9f] Merge tag 'arm64-upstream' of git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux
+> git bisect good f4000cd99750065d5177555c0a805c97174d1b9f
+> # bad: [e1e14ab8411df344a17687821f8f78f0a1e73cbb] radix tree test suite: delete unused rcupdate.c
+> git bisect bad e1e14ab8411df344a17687821f8f78f0a1e73cbb
+> # good: [f5b893c947151d424a4ab55ea3a8544b81974b31] scsi: qla4xxx: switch to pci_alloc_irq_vectors
+> git bisect good f5b893c947151d424a4ab55ea3a8544b81974b31
+> # good: [b9f98bd4034a3196ff068eb0fa376c5f41077480] Merge tag 'mmc-v4.10-2' of git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc
+> git bisect good b9f98bd4034a3196ff068eb0fa376c5f41077480
+> # good: [4d1f0fb096aedea7bb5489af93498a82e467c480] kernel/watchdog: use nmi registers snapshot in hardlockup handler
+> git bisect good 4d1f0fb096aedea7bb5489af93498a82e467c480
+> # good: [5b56d49fc31dbb0487e14ead790fc81ca9fb2c99] mm: add locked parameter to get_user_pages_remote()
+> git bisect good 5b56d49fc31dbb0487e14ead790fc81ca9fb2c99
+> # bad: [cfa40bcfd6fed7010b1633bf127ed8571d3b607e] radix tree test suite: benchmark for iterator
+> git bisect bad cfa40bcfd6fed7010b1633bf127ed8571d3b607e
+> # good: [a41b70d6dfc28b9e1a17c2a9f3181c2b614bfd54] mm: use vmf->page during WP faults
+> git bisect good a41b70d6dfc28b9e1a17c2a9f3181c2b614bfd54
+> # bad: [4b4bb46d00b386e1c972890dc5785a7966eaa9c0] dax: clear dirty entry tags on cache flush
+> git bisect bad 4b4bb46d00b386e1c972890dc5785a7966eaa9c0
+> # good: [a19e25536ed3a20845f642ce531e10c27fb2add5] mm: change return values of finish_mkwrite_fault()
+> git bisect good a19e25536ed3a20845f642ce531e10c27fb2add5
+> # good: [a6abc2c0e77b16480f4d2c1eb7925e5287ae1526] dax: make cache flushing protected by entry lock
+> git bisect good a6abc2c0e77b16480f4d2c1eb7925e5287ae1526
+> # good: [2f89dc12a25ddf995b9acd7b6543fe892e3473d6] dax: protect PTE modification on WP fault by radix tree entry lock
+> git bisect good 2f89dc12a25ddf995b9acd7b6543fe892e3473d6
+> # first bad commit: [4b4bb46d00b386e1c972890dc5785a7966eaa9c0] dax: clear dirty entry tags on cache flush
 
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-
---===============0851026491542184144==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============0851026491542184144==--
-
-
-------------=_58656A17.E2BDB0C9--
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
