@@ -1,7 +1,7 @@
 From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: LTP rwtest01 blocks on DAX mountpoint
-Date: Mon, 2 Jan 2017 11:05:46 +0100
-Message-ID: <20170102100546.GA18058@quack2.suse.cz>
+Date: Mon, 2 Jan 2017 18:16:17 +0100
+Message-ID: <20170102171617.GA23612@quack2.suse.cz>
 References: <20161224110714.mp2mevzwkhlxm7zw@xzhoul.usersys.redhat.com>
  <20161230093352.efidonh4btdbtaze@XZHOUW.usersys.redhat.com>
 Mime-Version: 1.0
@@ -39,8 +39,10 @@ On Fri 30-12-16 17:33:53, Xiong Zhou wrote:
 > From sysrq output, kernel code is not blocking on somewhere,
 > it just wont return.
 
-Thanks for report. I'll try to reproduce this. Looks like we are forever
-retrying the fault or something like that.
+I was trying to reproduce this but for me rwtest01 completes just fine on
+dax mountpoint (I've used your reproducer). So can you sample several
+kernel stack traces to get a rough idea where the kernel is running?
+Thanks!
 
 								Honza
 -- 
