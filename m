@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-MIME-Version: 1.0
-In-Reply-To: <20170103083137.GA15788@x1>
+Date: Tue, 3 Jan 2017 09:27:25 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH] x86: fix kaslr and memmap collision
+Message-ID: <20170103162725.GB13904@linux.intel.com>
 References: <147977413859.13657.2181994710415174471.stgit@djiang5-desk3.ch.intel.com>
  <20161122084754.GA25596@gmail.com>
  <CAPcyv4i+2NxdTc1xzVL+KQs8hLfUhbpGX3zstO_b=RY3hCy64w@mail.gmail.com>
  <20170103083137.GA15788@x1>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 3 Jan 2017 10:24:46 -0800
-Message-ID: <CAPcyv4jTsUD25OGW2iwF1V7i2CTF_-+e4CsTw8NQXXVE8QhsYw@mail.gmail.com>
-Subject: Re: [PATCH] x86: fix kaslr and memmap collision
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170103083137.GA15788@x1>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,53 +17,100 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Baoquan He <bhe@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, X86 ML <x86@kernel.org>, david <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, dyoung@redhat.com, Ingo Molnar <mingo@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, X86 ML <x86@kernel.org>, david <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, dyoung@redhat.com, Thomas Gleixner <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Jan 3, 2017 at 12:31 AM, Baoquan He <bhe@redhat.com> wrote:
-> Hi Dan,
->
-> On 11/22/16 at 09:26am, Dan Williams wrote:
->> [ replying for Dave since he's offline today and tomorrow ]
->>
->> On Tue, Nov 22, 2016 at 12:47 AM, Ingo Molnar <mingo@kernel.org> wrote:
->> >
->> > * Dave Jiang <dave.jiang@intel.com> wrote:
->> >
->> >> CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
->> >> However it does not take into account the memmap= parameter passed in from
->> >> the kernel commandline.
->> >
->> > memmap= parameters are often used as a list.
->> >
->> >> [...] This results in the kernel sometimes being put in the middle of the user
->> >> memmap. [...]
->> >
->> > What does this mean? If memmap= is used to re-define the memory map then the
->> > kernel getting in the middle of a RAM area is what we want, isn't it? What we
->> > don't want is for the kernel to get into reserved areas, right?
->>
->> Right, this is about teaching kaslr to not land the kernel in newly
->> defined reserved regions that were not marked reserved in the initial
->> e820 map from platform firmware.
->
-> If only tell kaslr to not land kernel in newly defined reserved regions,
-> memory added by "memmap=nn[KMG]@ss[KMG]" should not be avoided since
-> it's usable memory. Kernel randomized into this region is also what we
-> want. Not sure if I understand it right.
-
-You're right, this is supposed to be for memmap=nn!ss cases which
-defines reserved persistent memory ranges, not memmap=nn@ss which
-defines usable memory.
-
-We need to fix mem_avoid_memmap() to only skip memmap= statements that
-specify reserved memory.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlLCBKYW4gMDMsIDIwMTcgYXQgMDQ6MzE6MzdQTSArMDgwMCwgQmFvcXVhbiBIZSB3cm90
+ZToKPiBIaSBEYW4sCj4gCj4gT24gMTEvMjIvMTYgYXQgMDk6MjZhbSwgRGFuIFdpbGxpYW1zIHdy
+b3RlOgo+ID4gWyByZXBseWluZyBmb3IgRGF2ZSBzaW5jZSBoZSdzIG9mZmxpbmUgdG9kYXkgYW5k
+IHRvbW9ycm93IF0KPiA+IAo+ID4gT24gVHVlLCBOb3YgMjIsIDIwMTYgYXQgMTI6NDcgQU0sIElu
+Z28gTW9sbmFyIDxtaW5nb0BrZXJuZWwub3JnPiB3cm90ZToKPiA+ID4KPiA+ID4gKiBEYXZlIEpp
+YW5nIDxkYXZlLmppYW5nQGludGVsLmNvbT4gd3JvdGU6Cj4gPiA+Cj4gPiA+PiBDT05GSUdfUkFO
+RE9NSVpFX0JBU0UgcmVsb2NhdGVzIHRoZSBrZXJuZWwgdG8gYSByYW5kb20gYmFzZSBhZGRyZXNz
+Lgo+ID4gPj4gSG93ZXZlciBpdCBkb2VzIG5vdCB0YWtlIGludG8gYWNjb3VudCB0aGUgbWVtbWFw
+PSBwYXJhbWV0ZXIgcGFzc2VkIGluIGZyb20KPiA+ID4+IHRoZSBrZXJuZWwgY29tbWFuZGxpbmUu
+Cj4gPiA+Cj4gPiA+IG1lbW1hcD0gcGFyYW1ldGVycyBhcmUgb2Z0ZW4gdXNlZCBhcyBhIGxpc3Qu
+Cj4gPiA+Cj4gPiA+PiBbLi4uXSBUaGlzIHJlc3VsdHMgaW4gdGhlIGtlcm5lbCBzb21ldGltZXMg
+YmVpbmcgcHV0IGluIHRoZSBtaWRkbGUgb2YgdGhlIHVzZXIKPiA+ID4+IG1lbW1hcC4gWy4uLl0K
+PiA+ID4KPiA+ID4gV2hhdCBkb2VzIHRoaXMgbWVhbj8gSWYgbWVtbWFwPSBpcyB1c2VkIHRvIHJl
+LWRlZmluZSB0aGUgbWVtb3J5IG1hcCB0aGVuIHRoZQo+ID4gPiBrZXJuZWwgZ2V0dGluZyBpbiB0
+aGUgbWlkZGxlIG9mIGEgUkFNIGFyZWEgaXMgd2hhdCB3ZSB3YW50LCBpc24ndCBpdD8gV2hhdCB3
+ZQo+ID4gPiBkb24ndCB3YW50IGlzIGZvciB0aGUga2VybmVsIHRvIGdldCBpbnRvIHJlc2VydmVk
+IGFyZWFzLCByaWdodD8KPiA+IAo+ID4gUmlnaHQsIHRoaXMgaXMgYWJvdXQgdGVhY2hpbmcga2Fz
+bHIgdG8gbm90IGxhbmQgdGhlIGtlcm5lbCBpbiBuZXdseQo+ID4gZGVmaW5lZCByZXNlcnZlZCBy
+ZWdpb25zIHRoYXQgd2VyZSBub3QgbWFya2VkIHJlc2VydmVkIGluIHRoZSBpbml0aWFsCj4gPiBl
+ODIwIG1hcCBmcm9tIHBsYXRmb3JtIGZpcm13YXJlLgo+IAo+IElmIG9ubHkgdGVsbCBrYXNsciB0
+byBub3QgbGFuZCBrZXJuZWwgaW4gbmV3bHkgZGVmaW5lZCByZXNlcnZlZCByZWdpb25zLAo+IG1l
+bW9yeSBhZGRlZCBieSAibWVtbWFwPW5uW0tNR11Ac3NbS01HXSIgc2hvdWxkIG5vdCBiZSBhdm9p
+ZGVkIHNpbmNlCj4gaXQncyB1c2FibGUgbWVtb3J5LiBLZXJuZWwgcmFuZG9taXplZCBpbnRvIHRo
+aXMgcmVnaW9uIGlzIGFsc28gd2hhdCB3ZQo+IHdhbnQuIE5vdCBzdXJlIGlmIEkgdW5kZXJzdGFu
+ZCBpdCByaWdodC4KClRoZSBmb2xsb3dpbmcgdGV4dCBpcyBmcm9tOgpodHRwczovL252ZGltbS53
+aWtpLmtlcm5lbC5vcmcvaG93X3RvX2Nob29zZV90aGVfY29ycmVjdF9tZW1tYXBfa2VybmVsX3Bh
+cmFtZXRlcl9mb3JfcG1lbV9vbl95b3VyX3N5c3RlbQoKSG9wZWZ1bGx5IHRoaXMgd2lsbCBtYWtl
+IGl0IGNsZWFyZXIuCgotLS0KCkFub3RoZXIgdGhpbmcgdGhhdCB5b3UgbWF5IG5lZWQgdG8gYmUg
+YXdhcmUgb2YgaXMgdGhlIENPTkZJR19SQU5ET01JWkVfQkFTRQprZXJuZWwgY29uZmlnIG9wdGlv
+bi4gV2hlbiBlbmFibGVkLCB0aGlzIHJhbmRvbWl6ZXMgdGhlIHBoeXNpY2FsIGFkZHJlc3MgYXQK
+d2hpY2ggdGhlIGtlcm5lbCBpbWFnZSBpcyBkZWNvbXByZXNzZWQgYW5kIHRoZSB2aXJ0dWFsIGFk
+ZHJlc3Mgd2hlcmUgdGhlIGtlcm5lbAppbWFnZSBpcyBtYXBwZWQuIEN1cnJlbnRseSB0aGlzIHJh
+bmRvbSBhZGRyZXNzIGlzIGNob3NlbiB3aXRob3V0IHJlZ2FyZCB0byB0aGUKbWVtbWFwIGtlcm5l
+bCBjb21tYW5kIGxpbmUgcGFyYW1ldGVyLgoKVGhpcyBtZWFucyB0aGF0IHRoZSBrZXJuZWwgY2Fu
+IGNob29zZSB0byBwdXQgaXRzZWxmIGluIHRoZSBtaWRkbGUgb2YgeW91cgpyZXNlcnZlZCBtZW1t
+YXAgYXJlYS4gWW91IGNhbiBvYnNlcnZlIHRoaXMgYmVoYXZpb3IgdmlhIC9wcm9jL2lvbWVtLgoK
+SGVyZSBpcyAvcHJvYy9pb21lbSBmcm9tIGEgc3lzdGVtIHdpdGggQ09ORklHX1JBTkRPTUlaRV9C
+QVNFIHR1cm5lZCBvZmY6CgojIGNhdCAvcHJvYy9pb21lbQowMDAwMDAwMC0wMDAwMGZmZiA6IHJl
+c2VydmVkCjAwMDAxMDAwLTAwMDlmYmZmIDogU3lzdGVtIFJBTQowMDA5ZmMwMC0wMDA5ZmZmZiA6
+IHJlc2VydmVkCjAwMGEwMDAwLTAwMGJmZmZmIDogUENJIEJ1cyAwMDAwOjAwCjAwMGMwMDAwLTAw
+MGM5N2ZmIDogVmlkZW8gUk9NCjAwMGM5ODAwLTAwMGNhNWZmIDogQWRhcHRlciBST00KMDAwY2E4
+MDAtMDAwY2NiZmYgOiBBZGFwdGVyIFJPTQowMDBmMDAwMC0wMDBmZmZmZiA6IHJlc2VydmVkCiAg
+MDAwZjAwMDAtMDAwZmZmZmYgOiBTeXN0ZW0gUk9NCjAwMTAwMDAwLWJmZmQ4ZmZmIDogU3lzdGVt
+IFJBTQogIDAxMDAwMDAwLTAxYjE4NTk4IDogS2VybmVsIGNvZGUKICAwMWIxODU5OS0wMjNmNTNm
+ZiA6IEtlcm5lbCBkYXRhCiAgMDI3NmQwMDAtMDM2NWVmZmYgOiBLZXJuZWwgYnNzCmJmZmQ5MDAw
+LWJmZmZmZmZmIDogcmVzZXJ2ZWQKYzAwMDAwMDAtZmViZmZmZmYgOiBQQ0kgQnVzIDAwMDA6MDAK
+ICBmNDAwMDAwMC1mN2ZmZmZmZiA6IDAwMDA6MDA6MDIuMAogIGY4MDAwMDAwLWZiZmZmZmZmIDog
+MDAwMDowMDowMi4wCiAgZmMwMDAwMDAtZmMwM2ZmZmYgOiAwMDAwOjAwOjAzLjAKICBmYzA1MDAw
+MC1mYzA1MWZmZiA6IDAwMDA6MDA6MDIuMAogIGZjMDUyMDAwLWZjMDUyZmZmIDogMDAwMDowMDow
+My4wCiAgZmMwNTMwMDAtZmMwNTNmZmYgOiAwMDAwOjAwOjA0LjAKICBmYzA1NDAwMC1mYzA1NGZm
+ZiA6IDAwMDA6MDA6MDUuNwogICAgZmMwNTQwMDAtZmMwNTRmZmYgOiBlaGNpX2hjZAogIGZjMDU1
+MDAwLWZjMDU1ZmZmIDogMDAwMDowMDowNi4wCmZlYzAwMDAwLWZlYzAwM2ZmIDogSU9BUElDIDAK
+ZmVlMDAwMDAtZmVlMDBmZmYgOiBMb2NhbCBBUElDCmZlZmZjMDAwLWZlZmZmZmZmIDogcmVzZXJ2
+ZWQKZmZmYzAwMDAtZmZmZmZmZmYgOiByZXNlcnZlZAoxMDAwMDAwMDAtNGZmZmZmZmZmIDogUGVy
+c2lzdGVudCBNZW1vcnkgKGxlZ2FjeSkKICAxMDAwMDAwMDAtNGZmZmZmZmZmIDogbmFtZXNwYWNl
+MC4wCjUwMDAwMDAwMC01M2ZmZmZmZmYgOiBTeXN0ZW0gUkFNCgpUaGUgaW50ZXJlc3RpbmcgYml0
+cyBmb3IgdXMgYXJlIHRoZSDigJxTeXN0ZW0gUkFN4oCdIHJlZ2lvbiBmcm9tIDAwMTAwMDAwLWJm
+ZmQ4ZmZmLAphbmQgdGhlIOKAnFBlcnNpc3RlbnQgTWVtb3J5IChsZWdhY3kp4oCdIHJlZ2lvbiBm
+cm9tIDEwMDAwMDAwMC00ZmZmZmZmZmYuCgpJZiBJIHR1cm4gb24gQ09ORklHX1JBTkRPTUlaRV9C
+QVNFIG9uIHRoaXMgc2FtZSBzeXN0ZW0sIEkgZ2V0IHRoZSBmb2xsb3dpbmc6CgojIGNhdCAvcHJv
+Yy9pb21lbQowMDAwMDAwMC0wMDAwMGZmZiA6IHJlc2VydmVkCjAwMDAxMDAwLTAwMDlmYmZmIDog
+U3lzdGVtIFJBTQowMDA5ZmMwMC0wMDA5ZmZmZiA6IHJlc2VydmVkCjAwMGEwMDAwLTAwMGJmZmZm
+IDogUENJIEJ1cyAwMDAwOjAwCjAwMGMwMDAwLTAwMGM5N2ZmIDogVmlkZW8gUk9NCjAwMGM5ODAw
+LTAwMGNhNWZmIDogQWRhcHRlciBST00KMDAwY2E4MDAtMDAwY2NiZmYgOiBBZGFwdGVyIFJPTQow
+MDBmMDAwMC0wMDBmZmZmZiA6IHJlc2VydmVkCiAgMDAwZjAwMDAtMDAwZmZmZmYgOiBTeXN0ZW0g
+Uk9NCjAwMTAwMDAwLWJmZmQ4ZmZmIDogU3lzdGVtIFJBTQpiZmZkOTAwMC1iZmZmZmZmZiA6IHJl
+c2VydmVkCmMwMDAwMDAwLWZlYmZmZmZmIDogUENJIEJ1cyAwMDAwOjAwCiAgZjQwMDAwMDAtZjdm
+ZmZmZmYgOiAwMDAwOjAwOjAyLjAKICBmODAwMDAwMC1mYmZmZmZmZiA6IDAwMDA6MDA6MDIuMAog
+IGZjMDAwMDAwLWZjMDNmZmZmIDogMDAwMDowMDowMy4wCiAgZmMwNTAwMDAtZmMwNTFmZmYgOiAw
+MDAwOjAwOjAyLjAKICBmYzA1MjAwMC1mYzA1MmZmZiA6IDAwMDA6MDA6MDMuMAogIGZjMDUzMDAw
+LWZjMDUzZmZmIDogMDAwMDowMDowNC4wCiAgZmMwNTQwMDAtZmMwNTRmZmYgOiAwMDAwOjAwOjA1
+LjcKICAgIGZjMDU0MDAwLWZjMDU0ZmZmIDogZWhjaV9oY2QKICBmYzA1NTAwMC1mYzA1NWZmZiA6
+IDAwMDA6MDA6MDYuMApmZWMwMDAwMC1mZWMwMDNmZiA6IElPQVBJQyAwCmZlZTAwMDAwLWZlZTAw
+ZmZmIDogTG9jYWwgQVBJQwpmZWZmYzAwMC1mZWZmZmZmZiA6IHJlc2VydmVkCmZmZmMwMDAwLWZm
+ZmZmZmZmIDogcmVzZXJ2ZWQKMTAwMDAwMDAwLTRlNmZmZmZmZiA6IFBlcnNpc3RlbnQgTWVtb3J5
+IChsZWdhY3kpCjRlNzAwMDAwMC00ZTk2OGJmZmYgOiBTeXN0ZW0gUkFNCiAgNGU3MDAwMDAwLTRl
+N2IxODVkOCA6IEtlcm5lbCBjb2RlCiAgNGU3YjE4NWQ5LTRlODNmNTRiZiA6IEtlcm5lbCBkYXRh
+CiAgNGU4NzZkMDAwLTRlOTY1ZWZmZiA6IEtlcm5lbCBic3MKNGU5NjhjMDAwLTRmZmZmZmZmZiA6
+IFBlcnNpc3RlbnQgTWVtb3J5IChsZWdhY3kpCjUwMDAwMDAwMC01M2ZmZmZmZmYgOiBTeXN0ZW0g
+UkFNCgpUaGUg4oCcU3lzdGVtIFJBTeKAnSByZWdpb24gbm93IHNpdHMgaW4gdGhlIG1pZGRsZSBv
+ZiBteSDigJxQZXJzaXN0ZW50IE1lbW9yeQoobGVnYWN5KeKAnSByZWdpb24sIHNwbGl0dGluZyBp
+dCBpbiBoYWxmLiBUaGlzIHJlc3VsdHMgaW4gdGhlIGZvbGxvd2luZyBrZXJuZWwKV0FSTklORzoK
+ClsgICAgNi4zNTYxODBdIFdBUk5JTkc6IENQVTogNCBQSUQ6IDY4OSBhdCBrZXJuZWwvbWVtcmVt
+YXAuYzozMDAgZGV2bV9tZW1yZW1hcF9wYWdlcysweDNiMi8weDRjMApbICAgIDYuMzU3NzU3XSBk
+ZXZtX21lbXJlbWFwX3BhZ2VzIGF0dGVtcHRlZCBvbiBtaXhlZCByZWdpb24gW21lbSAweDRlOTY4
+YzAwMC0weDRmZmZmZmZmZiBmbGFncyAweDIwMF0KCmFuZCBubyAvZGV2L3BtZW0qIGRldmljZXMg
+YmVpbmcgY3JlYXRlZC4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
+Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
