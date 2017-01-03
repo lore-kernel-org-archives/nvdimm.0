@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9129F8188B
- for <linux-nvdimm@lists.01.org>; Tue,  3 Jan 2017 12:48:40 -0800 (PST)
-Subject: [PATCH v4] x86: fix kaslr and memmap collision
+Subject: Re: [PATCH] x86: fix kaslr and memmap collision
+References: <147977413859.13657.2181994710415174471.stgit@djiang5-desk3.ch.intel.com>
+ <20161122084754.GA25596@gmail.com>
+ <CAPcyv4i+2NxdTc1xzVL+KQs8hLfUhbpGX3zstO_b=RY3hCy64w@mail.gmail.com>
+ <20170103083137.GA15788@x1>
+ <CAPcyv4jTsUD25OGW2iwF1V7i2CTF_-+e4CsTw8NQXXVE8QhsYw@mail.gmail.com>
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 03 Jan 2017 13:48:39 -0700
-Message-ID: <148347651968.64111.7765172823804130174.stgit@djiang5-desk3.ch.intel.com>
+Message-ID: <c4b01273-abe2-c420-d20d-4817f5314e9e@intel.com>
+Date: Tue, 3 Jan 2017 13:15:12 -0700
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4jTsUD25OGW2iwF1V7i2CTF_-+e4CsTw8NQXXVE8QhsYw@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,270 +21,55 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
-Cc: bhe@redhat.com, linux-nvdimm@lists.01.org, x86@kernel.org, david@fromorbit.com, linux-kernel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, Baoquan He <bhe@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, X86 ML <x86@kernel.org>, david <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, dyoung@redhat.com, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
-However it does not take into account the memmap= parameter passed in from
-the kernel cmdline. This results in the kernel sometimes being put in
-the middle of the user memmap. Teaching kaslr to not insert the kernel in
-memmap defined regions. We will support up to 4 memmap regions. Any
-additional regions will cause kaslr to disable. The mem_avoid set has
-been augmented to add up to 4 regions of memmaps provided by the user
-to exclude those regions from the set of valid address range to insert
-the uncompressed kernel image. The nn@ss ranges will be skipped by the
-mem_avoid set since it indicates memory useable.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- arch/x86/boot/boot.h             |    3 +
- arch/x86/boot/compressed/kaslr.c |  131 ++++++++++++++++++++++++++++++++++++++
- arch/x86/boot/string.c           |   38 +++++++++++
- 3 files changed, 172 insertions(+)
 
-diff --git a/arch/x86/boot/boot.h b/arch/x86/boot/boot.h
-index e5612f3..59c2075 100644
---- a/arch/x86/boot/boot.h
-+++ b/arch/x86/boot/boot.h
-@@ -332,7 +332,10 @@ int strncmp(const char *cs, const char *ct, size_t count);
- size_t strnlen(const char *s, size_t maxlen);
- unsigned int atou(const char *s);
- unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base);
-+unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base);
-+long simple_strtol(const char *cp, char **endp, unsigned int base);
- size_t strlen(const char *s);
-+char *strchr(const char *s, int c);
- 
- /* tty.c */
- void puts(const char *);
-diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
-index a66854d..f5a1c8d 100644
---- a/arch/x86/boot/compressed/kaslr.c
-+++ b/arch/x86/boot/compressed/kaslr.c
-@@ -11,6 +11,7 @@
-  */
- #include "misc.h"
- #include "error.h"
-+#include "../boot.h"
- 
- #include <generated/compile.h>
- #include <linux/module.h>
-@@ -61,9 +62,16 @@ enum mem_avoid_index {
- 	MEM_AVOID_INITRD,
- 	MEM_AVOID_CMDLINE,
- 	MEM_AVOID_BOOTPARAMS,
-+	MEM_AVOID_MEMMAP1,
-+	MEM_AVOID_MEMMAP2,
-+	MEM_AVOID_MEMMAP3,
-+	MEM_AVOID_MEMMAP4,
- 	MEM_AVOID_MAX,
- };
- 
-+/* only supporting at most 4 memmap regions with kaslr */
-+#define MAX_MEMMAP_REGIONS	4
-+
- static struct mem_vector mem_avoid[MEM_AVOID_MAX];
- 
- static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
-@@ -77,6 +85,121 @@ static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
- 	return true;
- }
- 
-+/**
-+ *	_memparse - parse a string with mem suffixes into a number
-+ *	@ptr: Where parse begins
-+ *	@retptr: (output) Optional pointer to next char after parse completes
-+ *
-+ *	Parses a string into a number.  The number stored at @ptr is
-+ *	potentially suffixed with K, M, G, T, P, E.
-+ */
-+static unsigned long long _memparse(const char *ptr, char **retptr)
-+{
-+	char *endptr;	/* local pointer to end of parsed string */
-+
-+	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
-+
-+	switch (*endptr) {
-+	case 'E':
-+	case 'e':
-+		ret <<= 10;
-+	case 'P':
-+	case 'p':
-+		ret <<= 10;
-+	case 'T':
-+	case 't':
-+		ret <<= 10;
-+	case 'G':
-+	case 'g':
-+		ret <<= 10;
-+	case 'M':
-+	case 'm':
-+		ret <<= 10;
-+	case 'K':
-+	case 'k':
-+		ret <<= 10;
-+		endptr++;
-+	default:
-+		break;
-+	}
-+
-+	if (retptr)
-+		*retptr = endptr;
-+
-+	return ret;
-+}
-+
-+static int
-+parse_memmap(char *p, unsigned long long *start, unsigned long long *size)
-+{
-+	char *oldp;
-+
-+	if (!p)
-+		return -EINVAL;
-+
-+	/* we don't care about this option here */
-+	if (!strncmp(p, "exactmap", 8))
-+		return -EINVAL;
-+
-+	oldp = p;
-+	*size = _memparse(p, &p);
-+	if (p == oldp)
-+		return -EINVAL;
-+
-+	switch (*p) {
-+	case '@':
-+		/* skip this region, usable */
-+		*start = 0;
-+		*size = 0;
-+		return 0;
-+	case '#':
-+	case '$':
-+	case '!':
-+		*start = _memparse(p + 1, &p);
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int mem_avoid_memmap(void)
-+{
-+	char arg[128];
-+	int rc = 0;
-+
-+	/* see if we have any memmap areas */
-+	if (cmdline_find_option("memmap", arg, sizeof(arg)) > 0) {
-+		int i = 0;
-+		char *str = arg;
-+
-+		while (str && (i < MAX_MEMMAP_REGIONS)) {
-+			unsigned long long start, size;
-+			char *k = strchr(str, ',');
-+
-+			if (k)
-+				*k++ = 0;
-+
-+			rc = parse_memmap(str, &start, &size);
-+			if (rc < 0)
-+				break;
-+			str = k;
-+			/* a usable region that should not be skipped */
-+			if (size == 0)
-+				continue;
-+
-+			mem_avoid[MEM_AVOID_MEMMAP1 + i].start = start;
-+			mem_avoid[MEM_AVOID_MEMMAP1 + i].size = size;
-+			i++;
-+		}
-+
-+		/* more than 4 memmaps, fail kaslr */
-+		if ((i >= MAX_MEMMAP_REGIONS) && str)
-+			rc = -EINVAL;
-+	}
-+
-+	return rc;
-+}
-+
- /*
-  * In theory, KASLR can put the kernel anywhere in the range of [16M, 64T).
-  * The mem_avoid array is used to store the ranges that need to be avoided
-@@ -429,6 +552,7 @@ void choose_random_location(unsigned long input,
- 			    unsigned long *virt_addr)
- {
- 	unsigned long random_addr, min_addr;
-+	int rc;
- 
- 	/* By default, keep output position unchanged. */
- 	*virt_addr = *output;
-@@ -438,6 +562,13 @@ void choose_random_location(unsigned long input,
- 		return;
- 	}
- 
-+	/* Mark the memmap regions we need to avoid */
-+	rc = mem_avoid_memmap();
-+	if (rc < 0) {
-+		warn("KASLR disabled: memmap exceeds limit of 4, giving up.");
-+		return;
-+	}
-+
- 	boot_params->hdr.loadflags |= KASLR_FLAG;
- 
- 	/* Prepare to add new identity pagetables on demand. */
-diff --git a/arch/x86/boot/string.c b/arch/x86/boot/string.c
-index cc3bd58..0464aaa 100644
---- a/arch/x86/boot/string.c
-+++ b/arch/x86/boot/string.c
-@@ -122,6 +122,31 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
- }
- 
- /**
-+ * simple_strtoul - convert a string to an unsigned long
-+ * @cp: The start of the string
-+ * @endp: A pointer to the end of the parsed string will be placed here
-+ * @base: The number base to use
-+ */
-+unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base)
-+{
-+	return simple_strtoull(cp, endp, base);
-+}
-+
-+/**
-+ * simple_strtol - convert a string to a signed long
-+ * @cp: The start of the string
-+ * @endp: A pointer to the end of the parsed string will be placed here
-+ * @base: The number base to use
-+ */
-+long simple_strtol(const char *cp, char **endp, unsigned int base)
-+{
-+	if (*cp == '-')
-+		return -simple_strtoul(cp + 1, endp, base);
-+
-+	return simple_strtoul(cp, endp, base);
-+}
-+
-+/**
-  * strlen - Find the length of a string
-  * @s: The string to be sized
-  */
-@@ -155,3 +180,16 @@ char *strstr(const char *s1, const char *s2)
- 	}
- 	return NULL;
- }
-+
-+/**
-+ * strchr - Find the first occurrence of the character c in the string s.
-+ * @s: the string to be searched
-+ * @c: the character to search for
-+ */
-+char *strchr(const char *s, int c)
-+{
-+	while (*s != (char)c)
-+		if (*s++ == '\0')
-+			return NULL;
-+	return (char *)s;
-+}
+On 01/03/2017 11:24 AM, Dan Williams wrote:
+> On Tue, Jan 3, 2017 at 12:31 AM, Baoquan He <bhe@redhat.com> wrote:
+>> Hi Dan,
+>>
+>> On 11/22/16 at 09:26am, Dan Williams wrote:
+>>> [ replying for Dave since he's offline today and tomorrow ]
+>>>
+>>> On Tue, Nov 22, 2016 at 12:47 AM, Ingo Molnar <mingo@kernel.org> wrote:
+>>>>
+>>>> * Dave Jiang <dave.jiang@intel.com> wrote:
+>>>>
+>>>>> CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
+>>>>> However it does not take into account the memmap= parameter passed in from
+>>>>> the kernel commandline.
+>>>>
+>>>> memmap= parameters are often used as a list.
+>>>>
+>>>>> [...] This results in the kernel sometimes being put in the middle of the user
+>>>>> memmap. [...]
+>>>>
+>>>> What does this mean? If memmap= is used to re-define the memory map then the
+>>>> kernel getting in the middle of a RAM area is what we want, isn't it? What we
+>>>> don't want is for the kernel to get into reserved areas, right?
+>>>
+>>> Right, this is about teaching kaslr to not land the kernel in newly
+>>> defined reserved regions that were not marked reserved in the initial
+>>> e820 map from platform firmware.
+>>
+>> If only tell kaslr to not land kernel in newly defined reserved regions,
+>> memory added by "memmap=nn[KMG]@ss[KMG]" should not be avoided since
+>> it's usable memory. Kernel randomized into this region is also what we
+>> want. Not sure if I understand it right.
+> 
+> You're right, this is supposed to be for memmap=nn!ss cases which
+> defines reserved persistent memory ranges, not memmap=nn@ss which
+> defines usable memory.
+> 
+> We need to fix mem_avoid_memmap() to only skip memmap= statements that
+> specify reserved memory.
+> 
 
+I think nn@ss is the only one that we should skip over, otherwise
+everything else looks like should be avoided. I'll update.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
