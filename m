@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4194F81EA3
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 19:55:08 -0800 (PST)
-Subject: [PATCH 09/13] libnvdimm,
- pmem: implement cache bypass for all copy_from_iter() operations
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Jan 2017 19:51:02 -0800
-Message-ID: <148488426202.37913.7632846318354911904.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148488421301.37913.12835362165895864897.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148488421301.37913.12835362165895864897.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C518F81941
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jan 2017 10:29:56 -0800 (PST)
+Subject: [PATCH v5] x86: fix kaslr and memmap collision
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 04 Jan 2017 11:29:55 -0700
+Message-ID: <148355454697.187917.6504466419095085911.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,219 +20,268 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
+Cc: bhe@redhat.com, linux-nvdimm@lists.01.org, x86@kernel.org, david@fromorbit.com, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Introduce copy_from_iter_ops() to enable passing custom sub-routines to
-iterate_and_advance(). Define pmem operations that guarantee cache
-bypass to supplement the existing usage of __copy_from_iter_nocache()
-backed by arch_wb_cache_pmem().
+CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
+However it does not take into account the memmap= parameter passed in from
+the kernel cmdline. This results in the kernel sometimes being put in
+the middle of memmap. Teaching kaslr to not insert the kernel in
+memmap defined regions. We will support up to 4 memmap regions. Any
+additional regions will cause kaslr to disable. The mem_avoid set has
+been augmented to add up to 4 unusable regions of memmaps provided by the
+user to exclude those regions from the set of valid address range to insert
+the uncompressed kernel image. The nn@ss ranges will be skipped by the
+mem_avoid set since it indicates memory useable.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Brian Boylston <brian.boylston@hpe.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/nvdimm/Kconfig |    1 +
- drivers/nvdimm/pmem.c  |   12 +-----------
- drivers/nvdimm/pmem.h  |    7 +++++++
- drivers/nvdimm/x86.c   |   28 ++++++++++++++++++++++++++++
- include/linux/uio.h    |    4 ++++
- lib/Kconfig            |    3 +++
- lib/iov_iter.c         |   25 +++++++++++++++++++++++++
- 7 files changed, 69 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-index 2b62c122e1e5..03a67abfb33e 100644
---- a/drivers/nvdimm/Kconfig
-+++ b/drivers/nvdimm/Kconfig
-@@ -37,6 +37,7 @@ config BLK_DEV_PMEM
+v2:
+Addressing comments from Ingo.
+- Handle entire list of memmaps
+v3:
+Fix 32bit build issue
+v4:
+Addressing comments from Baoquan
+- Not exclude nn@ss ranges
+v5:
+Addressing additional comments from Baoquan
+- Update commit header and various coding style changes
+
+diff --git a/arch/x86/boot/boot.h b/arch/x86/boot/boot.h
+index e5612f3..59c2075 100644
+--- a/arch/x86/boot/boot.h
++++ b/arch/x86/boot/boot.h
+@@ -332,7 +332,10 @@ int strncmp(const char *cs, const char *ct, size_t count);
+ size_t strnlen(const char *s, size_t maxlen);
+ unsigned int atou(const char *s);
+ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base);
++unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base);
++long simple_strtol(const char *cp, char **endp, unsigned int base);
+ size_t strlen(const char *s);
++char *strchr(const char *s, int c);
  
- config ARCH_HAS_PMEM_API
- 	depends on X86_64
-+	select COPY_FROM_ITER_OPS
- 	def_bool y
+ /* tty.c */
+ void puts(const char *);
+diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
+index a66854d..036b514 100644
+--- a/arch/x86/boot/compressed/kaslr.c
++++ b/arch/x86/boot/compressed/kaslr.c
+@@ -11,6 +11,7 @@
+  */
+ #include "misc.h"
+ #include "error.h"
++#include "../boot.h"
  
- config ND_BLK
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index f971be271eac..47392c4f22b9 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -27,7 +27,6 @@
- #include <linux/vmalloc.h>
- #include <linux/pfn_t.h>
- #include <linux/slab.h>
--#include <linux/uio.h>
- #include <linux/nd.h>
- #include "pmem.h"
- #include "pfn.h"
-@@ -217,18 +216,9 @@ __weak long pmem_direct_access(struct block_device *bdev, sector_t sector,
- 	return pmem->size - pmem->pfn_pad - offset;
- }
- 
--static size_t pmem_copy_from_iter(void *addr, size_t bytes,
--		struct iov_iter *i)
--{
--	size_t rc = copy_from_iter_nocache(addr, bytes, i);
--
--	arch_wb_cache_pmem(addr, bytes);
--	return rc;
--}
--
- static const struct dax_operations pmem_dax_ops = {
- 	.direct_access = pmem_direct_access,
--	.copy_from_iter = pmem_copy_from_iter,
-+	.copy_from_iter = arch_copy_from_iter_pmem,
- 	.flush = arch_wb_cache_pmem,
+ #include <generated/compile.h>
+ #include <linux/module.h>
+@@ -56,11 +57,16 @@ struct mem_vector {
+ 	unsigned long size;
  };
  
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index 02f94e1f14ea..2cd8834f31ad 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -3,6 +3,7 @@
- #include <linux/badblocks.h>
- #include <linux/types.h>
- #include <linux/pfn_t.h>
-+#include <linux/uio.h>
- #include <linux/fs.h>
++/* only supporting at most 4 unusable memmap regions with kaslr */
++#define MAX_MEMMAP_REGIONS	4
++
+ enum mem_avoid_index {
+ 	MEM_AVOID_ZO_RANGE = 0,
+ 	MEM_AVOID_INITRD,
+ 	MEM_AVOID_CMDLINE,
+ 	MEM_AVOID_BOOTPARAMS,
++	MEM_AVOID_MEMMAP_BEGIN,
++	MEM_AVOID_MEMMAP_END = MEM_AVOID_MEMMAP_BEGIN + MAX_MEMMAP_REGIONS - 1,
+ 	MEM_AVOID_MAX,
+ };
  
- long pmem_direct_access(struct block_device *bdev, sector_t sector,
-@@ -11,6 +12,7 @@ long pmem_direct_access(struct block_device *bdev, sector_t sector,
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- void arch_wb_cache_pmem(void *addr, size_t size);
- void arch_invalidate_pmem(void *addr, size_t size);
-+size_t arch_copy_from_iter_pmem(void *addr, size_t bytes, struct iov_iter *i);
- #else
- static inline void arch_wb_cache_pmem(void *addr, size_t size)
- {
-@@ -18,6 +20,11 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
- static inline void arch_invalidate_pmem(void *addr, size_t size)
- {
+@@ -77,6 +83,121 @@ static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
+ 	return true;
  }
-+static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
-+		struct iov_iter *i)
+ 
++/**
++ *	_memparse - parse a string with mem suffixes into a number
++ *	@ptr: Where parse begins
++ *	@retptr: (output) Optional pointer to next char after parse completes
++ *
++ *	Parses a string into a number.  The number stored at @ptr is
++ *	potentially suffixed with K, M, G, T, P, E.
++ */
++static unsigned long long _memparse(const char *ptr, char **retptr)
 +{
-+	return copy_from_iter_nocache(addr, bytes, i);
++	char *endptr;	/* local pointer to end of parsed string */
++
++	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
++
++	switch (*endptr) {
++	case 'E':
++	case 'e':
++		ret <<= 10;
++	case 'P':
++	case 'p':
++		ret <<= 10;
++	case 'T':
++	case 't':
++		ret <<= 10;
++	case 'G':
++	case 'g':
++		ret <<= 10;
++	case 'M':
++	case 'm':
++		ret <<= 10;
++	case 'K':
++	case 'k':
++		ret <<= 10;
++		endptr++;
++	default:
++		break;
++	}
++
++	if (retptr)
++		*retptr = endptr;
++
++	return ret;
 +}
- #endif
- 
- /* this definition is in it's own header for tools/testing/nvdimm to consume */
-diff --git a/drivers/nvdimm/x86.c b/drivers/nvdimm/x86.c
-index 0d0e2e5fadae..08beed4196a0 100644
---- a/drivers/nvdimm/x86.c
-+++ b/drivers/nvdimm/x86.c
-@@ -10,6 +10,9 @@
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-  */
-+#include <linux/uio.h>
-+#include <linux/uaccess.h>
-+#include <linux/highmem.h>
- #include <asm/cacheflush.h>
- #include <asm/cpufeature.h>
- #include <asm/special_insns.h>
-@@ -54,3 +57,28 @@ void arch_memcpy_to_pmem(void *dst, void *src, unsigned size)
- 	__arch_memcpy_to_pmem(dst, src, size);
- }
- EXPORT_SYMBOL_GPL(arch_memcpy_to_pmem);
 +
-+static int pmem_from_user(void *dst, const void __user *src, unsigned size)
++static int
++parse_memmap(char *p, unsigned long long *start, unsigned long long *size)
 +{
-+	int rc = __copy_from_user_nocache(dst, src, size);
++	char *oldp;
 +
-+	/* 'nocache' does not guarantee 'writethrough'*/
-+	arch_wb_cache_pmem(dst, size);
++	if (!p)
++		return -EINVAL;
++
++	/* we don't care about this option here */
++	if (!strncmp(p, "exactmap", 8))
++		return -EINVAL;
++
++	oldp = p;
++	*size = _memparse(p, &p);
++	if (p == oldp)
++		return -EINVAL;
++
++	switch (*p) {
++	case '@':
++		/* skip this region, usable */
++		*start = 0;
++		*size = 0;
++		return 0;
++	case '#':
++	case '$':
++	case '!':
++		*start = _memparse(p + 1, &p);
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static int mem_avoid_memmap(void)
++{
++	char arg[128];
++	int rc = 0;
++
++	/* see if we have any memmap areas */
++	if (cmdline_find_option("memmap", arg, sizeof(arg)) > 0) {
++		int i = 0;
++		char *str = arg;
++
++		while (str && (i < MAX_MEMMAP_REGIONS)) {
++			unsigned long long start, size;
++			char *k = strchr(str, ',');
++
++			if (k)
++				*k++ = 0;
++
++			rc = parse_memmap(str, &start, &size);
++			if (rc < 0)
++				break;
++			str = k;
++			/* a usable region that should not be skipped */
++			if (size == 0)
++				continue;
++
++			mem_avoid[MEM_AVOID_MEMMAP_BEGIN + i].start = start;
++			mem_avoid[MEM_AVOID_MEMMAP_BEGIN + i].size = size;
++			i++;
++		}
++
++		/* more than 4 memmaps, fail kaslr */
++		if ((i >= MAX_MEMMAP_REGIONS) && str)
++			rc = -EINVAL;
++	}
 +
 +	return rc;
 +}
 +
-+static void pmem_from_page(char *to, struct page *page, size_t offset, size_t len)
-+{
-+	char *from = kmap_atomic(page);
-+
-+	arch_memcpy_to_pmem(to, from + offset, len);
-+	kunmap_atomic(from);
-+}
-+
-+size_t arch_copy_from_iter_pmem(void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	return copy_from_iter_ops(addr, bytes, i, pmem_from_user, pmem_from_page,
-+			arch_memcpy_to_pmem);
-+}
-+EXPORT_SYMBOL_GPL(arch_copy_from_iter_pmem);
-diff --git a/include/linux/uio.h b/include/linux/uio.h
-index 804e34c6f981..edb78f3fe2c8 100644
---- a/include/linux/uio.h
-+++ b/include/linux/uio.h
-@@ -91,6 +91,10 @@ size_t copy_to_iter(const void *addr, size_t bytes, struct iov_iter *i);
- size_t copy_from_iter(void *addr, size_t bytes, struct iov_iter *i);
- bool copy_from_iter_full(void *addr, size_t bytes, struct iov_iter *i);
- size_t copy_from_iter_nocache(void *addr, size_t bytes, struct iov_iter *i);
-+size_t copy_from_iter_ops(void *addr, size_t bytes, struct iov_iter *i,
-+		int (*user)(void *, const void __user *, unsigned),
-+		void (*page)(char *, struct page *, size_t, size_t),
-+		void (*copy)(void *, void *, unsigned));
- bool copy_from_iter_full_nocache(void *addr, size_t bytes, struct iov_iter *i);
- size_t iov_iter_zero(size_t bytes, struct iov_iter *);
- unsigned long iov_iter_alignment(const struct iov_iter *i);
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 006264ac768a..725f9f2aefd9 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -395,6 +395,9 @@ config HAS_DMA
- 	depends on !NO_DMA
- 	default y
+ /*
+  * In theory, KASLR can put the kernel anywhere in the range of [16M, 64T).
+  * The mem_avoid array is used to store the ranges that need to be avoided
+@@ -438,6 +559,12 @@ void choose_random_location(unsigned long input,
+ 		return;
+ 	}
  
-+config COPY_FROM_ITER_OPS
-+	bool
-+
- config CHECK_SIGNATURE
- 	bool
- 
-diff --git a/lib/iov_iter.c b/lib/iov_iter.c
-index 25f572303801..090cafc83233 100644
---- a/lib/iov_iter.c
-+++ b/lib/iov_iter.c
-@@ -571,6 +571,31 @@ size_t copy_from_iter(void *addr, size_t bytes, struct iov_iter *i)
- }
- EXPORT_SYMBOL(copy_from_iter);
- 
-+#ifdef CONFIG_COPY_FROM_ITER_OPS
-+size_t copy_from_iter_ops(void *addr, size_t bytes, struct iov_iter *i,
-+		int (*user)(void *, const void __user *, unsigned),
-+		void (*page)(char *, struct page *, size_t, size_t),
-+		void (*copy)(void *, void *, unsigned))
-+{
-+	char *to = addr;
-+
-+	if (unlikely(i->type & ITER_PIPE)) {
-+		WARN_ON(1);
-+		return 0;
++	/* Mark the memmap regions we need to avoid */
++	if (mem_avoid_memmap()) {
++		warn("KASLR disabled: memmap exceeds limit of 4, giving up.");
++		return;
 +	}
-+	iterate_and_advance(i, bytes, v,
-+		user((to += v.iov_len) - v.iov_len, v.iov_base,
-+				 v.iov_len),
-+		page((to += v.bv_len) - v.bv_len, v.bv_page, v.bv_offset,
-+				v.bv_len),
-+		copy((to += v.iov_len) - v.iov_len, v.iov_base, v.iov_len)
-+	)
 +
-+	return bytes;
+ 	boot_params->hdr.loadflags |= KASLR_FLAG;
+ 
+ 	/* Prepare to add new identity pagetables on demand. */
+diff --git a/arch/x86/boot/string.c b/arch/x86/boot/string.c
+index cc3bd58..0464aaa 100644
+--- a/arch/x86/boot/string.c
++++ b/arch/x86/boot/string.c
+@@ -122,6 +122,31 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
+ }
+ 
+ /**
++ * simple_strtoul - convert a string to an unsigned long
++ * @cp: The start of the string
++ * @endp: A pointer to the end of the parsed string will be placed here
++ * @base: The number base to use
++ */
++unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base)
++{
++	return simple_strtoull(cp, endp, base);
 +}
-+EXPORT_SYMBOL_GPL(copy_from_iter_ops);
-+#endif
 +
- bool copy_from_iter_full(void *addr, size_t bytes, struct iov_iter *i)
- {
- 	char *to = addr;
++/**
++ * simple_strtol - convert a string to a signed long
++ * @cp: The start of the string
++ * @endp: A pointer to the end of the parsed string will be placed here
++ * @base: The number base to use
++ */
++long simple_strtol(const char *cp, char **endp, unsigned int base)
++{
++	if (*cp == '-')
++		return -simple_strtoul(cp + 1, endp, base);
++
++	return simple_strtoul(cp, endp, base);
++}
++
++/**
+  * strlen - Find the length of a string
+  * @s: The string to be sized
+  */
+@@ -155,3 +180,16 @@ char *strstr(const char *s1, const char *s2)
+ 	}
+ 	return NULL;
+ }
++
++/**
++ * strchr - Find the first occurrence of the character c in the string s.
++ * @s: the string to be searched
++ * @c: the character to search for
++ */
++char *strchr(const char *s, int c)
++{
++	while (*s != (char)c)
++		if (*s++ == '\0')
++			return NULL;
++	return (char *)s;
++}
 
 _______________________________________________
 Linux-nvdimm mailing list
