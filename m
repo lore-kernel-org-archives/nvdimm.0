@@ -1,7 +1,7 @@
 From: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: LTP rwtest01 blocks on DAX mountpoint
-Date: Wed, 4 Jan 2017 09:21:20 +0800
-Message-ID: <20170104012120.rbhpa2li747usrmr@XZHOUW.usersys.redhat.com>
+Date: Wed, 4 Jan 2017 09:49:42 +0800
+Message-ID: <20170104014942.x34xunner432hipw@XZHOUW.usersys.redhat.com>
 References: <20161224110714.mp2mevzwkhlxm7zw@xzhoul.usersys.redhat.com>
  <20161230093352.efidonh4btdbtaze@XZHOUW.usersys.redhat.com>
  <20170102171617.GA23612@quack2.suse.cz>
@@ -81,4 +81,19 @@ On Tue, Jan 03, 2017 at 09:57:10AM -0700, Ross Zwisler wrote:
 > It's interesting that both tests started passing for you.  Did you change
 > something in your test setup?
 
-Nope.
+Er.. After double-checking, I have reduced nvml check test time on
+Dec 30,
+
+-make -C src check -j $NR_CPU
++make -C src check -j $NR_CPU TEST_TIME=1m
+
+Other then this, nothing changed but the kernel code, same machine,
+same cmdline, same configs.
+
+I'm going to dig this more, and test your patch.
+
+Thanks for looking into this!
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fsdevel" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
