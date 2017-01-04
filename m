@@ -1,15 +1,29 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22f.google.com (mail-oi0-x22f.google.com
+ [IPv6:2607:f8b0:4003:c06::22f])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 407B081B3C
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jan 2017 13:52:45 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 5/7] dax: add tracepoints to dax_pmd_insert_mapping()
-Date: Tue, 10 Jan 2017 14:52:20 -0700
-Message-Id: <1484085142-2297-6-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1484085142-2297-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1484085142-2297-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id DCF8C81925
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Jan 2017 18:14:39 -0800 (PST)
+Received: by mail-oi0-x22f.google.com with SMTP id b126so529267897oia.2
+ for <linux-nvdimm@lists.01.org>; Tue, 03 Jan 2017 18:14:39 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20170104015912.GF1555@ZenIV.linux.org.uk>
+References: <20161228234321.GA27417@ZenIV.linux.org.uk>
+ <CAPcyv4gg1XNJ3E=+0HDZnx08_dvvX+Prj-rLOsXcuHHO1pBLzg@mail.gmail.com>
+ <20161230035252.GV1555@ZenIV.linux.org.uk>
+ <CAPcyv4gC0gaT7csVb=CbwhVNxGePDcSzOMZ_RXu+Q55uY3ScnA@mail.gmail.com>
+ <20161231022558.GW1555@ZenIV.linux.org.uk>
+ <DF4PR84MB016972BE1CA018A9AC4BE592AB6F0@DF4PR84MB0169.NAMPRD84.PROD.OUTLOOK.COM>
+ <20170102050927.GY1555@ZenIV.linux.org.uk>
+ <CAPcyv4hCwH=-O0hed8kxigTvMGekBdJumXtLrZddgCXEUkrW2g@mail.gmail.com>
+ <20170103232206.GD1555@ZenIV.linux.org.uk>
+ <CAPcyv4hQ=pb=F+UUrgUZ2p2T47i6VJ+PjKTMu-Le2-mm1LEnLA@mail.gmail.com>
+ <20170104015912.GF1555@ZenIV.linux.org.uk>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 3 Jan 2017 18:14:38 -0800
+Message-ID: <CAPcyv4j_oyPqhE8jK7dVWkb4PY5tzTHjAL=utEtLGttGJ43Zsw@mail.gmail.com>
+Subject: Re: [RFC] memcpy_nocache() and memcpy_writethrough()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,169 +31,53 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Steven Rostedt <rostedt@goodmis.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Moreno," Oliver" <oliver.moreno@hpe.com>, "x86@kernel.org, " <x86@kernel.org>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, "boylston@burromesa.net" <boylston@burromesa.net>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add tracepoints to dax_pmd_insert_mapping(), following the same logging
-conventions as the tracepoints in dax_iomap_pmd_fault().
+On Tue, Jan 3, 2017 at 5:59 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+> On Tue, Jan 03, 2017 at 05:38:54PM -0800, Dan Williams wrote:
+>> > 1) memcpy_to_pmem() seems to rely upon the __copy_from_user_nocache()
+>> > having only used movnt; it does not attempt clwb at all.
+>>
+>> Yes, and there was a fix a while back to make sure it always used
+>> movnt so clwb after the fact is not required:
+>>
+>> a82eee742452 x86/uaccess/64: Handle the caching of 4-byte nocache
+>> copies properly in __copy_user_nocache()
+>>
+>> > 2) __copy_from_user_nocache() for short copies does not use movnt at all.
+>> > In that case neither sfence nor clwb is issued.
+>>
+>> For the 32bit case, yes, but the pmem driver should warn about this
+>> when it checks platform persistent memory capabilities (i.e. x86 32bit
+>> not supported). Ugh, we may have lost that warning for this specific
+>> case recently, I'll go double check and fix it up.
+>>
+>> > 3) it uses movnt only for part of copying in case of misaligned copy;
+>> > No clwb is issued, but sfence *is* - at the very end in 64bit case,
+>> > between movnt and copying the tail - in 32bit one.  Incidentally,
+>> > while 64bit case takes care to align the destination for movnt part,
+>> > 32bit one does not.
+>> >
+>> > How much of the above is broken and what do the callers rely upon?
+>>
+>> 32bit issues are known, but 64bit path is ok since that fix above.
+>
+> Bollocks.  That fix above does *NOT* eliminate all cached stores.  Just look
+> at the damn function - it still does cached stores for until the target is
+> aligned and it does the same for tail when end of destination is not aligned.
+> Right there in arch/x86/lib/copy_user_64.S.
 
-Here is an example PMD fault showing the new tracepoints:
+No, it does not eliminate all cache stores, but the cases where we use
+it have naturally aligned targets.
 
-big-1504  [001] ....   326.960743: xfs_filemap_pmd_fault: dev 259:0 ino
-0x1003
-
-big-1504  [001] ....   326.960753: dax_pmd_fault: dev 259:0 ino 0x1003
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
-0x10200000 vm_end 0x10700000 pgoff 0x200 max_pgoff 0x1400
-
-big-1504  [001] ....   326.960981: dax_pmd_insert_mapping: dev 259:0 ino
-0x1003 shared write address 0x10505000 length 0x200000 pfn 0x100600 DEV|MAP
-radix_entry 0xc000e
-
-big-1504  [001] ....   326.960986: dax_pmd_fault_done: dev 259:0 ino 0x1003
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
-0x10200000 vm_end 0x10700000 pgoff 0x200 max_pgoff 0x1400 NOPAGE
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
----
- fs/dax.c                      | 12 +++++++---
- include/linux/pfn_t.h         |  6 +++++
- include/trace/events/fs_dax.h | 51 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 66 insertions(+), 3 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 199a7e7..4671530 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1254,15 +1254,16 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
- {
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	struct block_device *bdev = iomap->bdev;
-+	struct inode *inode = mapping->host;
- 	struct blk_dax_ctl dax = {
- 		.sector = dax_iomap_sector(iomap, pos),
- 		.size = PMD_SIZE,
- 	};
- 	long length = dax_map_atomic(bdev, &dax);
--	void *ret;
-+	void *ret = NULL;
- 
- 	if (length < 0) /* dax_map_atomic() failed */
--		return VM_FAULT_FALLBACK;
-+		goto fallback;
- 	if (length < PMD_SIZE)
- 		goto unmap_fallback;
- 	if (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR)
-@@ -1275,13 +1276,18 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
- 	ret = dax_insert_mapping_entry(mapping, vmf, *entryp, dax.sector,
- 			RADIX_DAX_PMD);
- 	if (IS_ERR(ret))
--		return VM_FAULT_FALLBACK;
-+		goto fallback;
- 	*entryp = ret;
- 
-+	trace_dax_pmd_insert_mapping(inode, vma, address, write, length,
-+			dax.pfn, ret);
- 	return vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
- 
-  unmap_fallback:
- 	dax_unmap_atomic(bdev, &dax);
-+fallback:
-+	trace_dax_pmd_insert_mapping_fallback(inode, vma, address, write,
-+			length, dax.pfn, ret);
- 	return VM_FAULT_FALLBACK;
- }
- 
-diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
-index a3d90b9..033fc7b 100644
---- a/include/linux/pfn_t.h
-+++ b/include/linux/pfn_t.h
-@@ -15,6 +15,12 @@
- #define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
- #define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
- 
-+#define PFN_FLAGS_TRACE \
-+	{ PFN_SG_CHAIN,	"SG_CHAIN" }, \
-+	{ PFN_SG_LAST,	"SG_LAST" }, \
-+	{ PFN_DEV,	"DEV" }, \
-+	{ PFN_MAP,	"MAP" }
-+
- static inline pfn_t __pfn_to_pfn_t(unsigned long pfn, u64 flags)
- {
- 	pfn_t pfn_t = { .val = pfn | (flags & PFN_FLAGS_MASK), };
-diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
-index 43f1263..c3b0aae 100644
---- a/include/trace/events/fs_dax.h
-+++ b/include/trace/events/fs_dax.h
-@@ -104,6 +104,57 @@ DEFINE_EVENT(dax_pmd_load_hole_class, name, \
- DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
- DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
- 
-+DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
-+	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
-+		unsigned long address, int write, long length, pfn_t pfn,
-+		void *radix_entry),
-+	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry),
-+	TP_STRUCT__entry(
-+		__field(unsigned long, ino)
-+		__field(unsigned long, vm_flags)
-+		__field(unsigned long, address)
-+		__field(long, length)
-+		__field(u64, pfn_val)
-+		__field(void *, radix_entry)
-+		__field(dev_t, dev)
-+		__field(int, write)
-+	),
-+	TP_fast_assign(
-+		__entry->dev = inode->i_sb->s_dev;
-+		__entry->ino = inode->i_ino;
-+		__entry->vm_flags = vma->vm_flags;
-+		__entry->address = address;
-+		__entry->write = write;
-+		__entry->length = length;
-+		__entry->pfn_val = pfn.val;
-+		__entry->radix_entry = radix_entry;
-+	),
-+	TP_printk("dev %d:%d ino %#lx %s %s address %#lx length %#lx "
-+			"pfn %#llx %s radix_entry %#lx",
-+		MAJOR(__entry->dev),
-+		MINOR(__entry->dev),
-+		__entry->ino,
-+		__entry->vm_flags & VM_SHARED ? "shared" : "private",
-+		__entry->write ? "write" : "read",
-+		__entry->address,
-+		__entry->length,
-+		__entry->pfn_val & ~PFN_FLAGS_MASK,
-+		__print_flags_u64(__entry->pfn_val & PFN_FLAGS_MASK, "|",
-+			PFN_FLAGS_TRACE),
-+		(unsigned long)__entry->radix_entry
-+	)
-+)
-+
-+#define DEFINE_PMD_INSERT_MAPPING_EVENT(name) \
-+DEFINE_EVENT(dax_pmd_insert_mapping_class, name, \
-+	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
-+		unsigned long address, int write, long length, pfn_t pfn, \
-+		void *radix_entry), \
-+	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry))
-+
-+DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
-+DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping_fallback);
-+
- #endif /* _TRACE_FS_DAX_H */
- 
- /* This part must be outside protection */
--- 
-2.7.4
-
+Yes, it is terrible to then call wrap it in a memcpy_to_pmem() wrapper
+which does not document these alignment constraints.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
