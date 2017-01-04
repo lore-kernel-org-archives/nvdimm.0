@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A825281B01
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jan 2017 17:11:52 -0800 (PST)
-Subject: [PATCH 4/9] ndctl, create-namespace: add an 'align' option
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 09 Jan 2017 17:07:46 -0800
-Message-ID: <148401046640.16217.8910598760254195562.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148401044568.16217.6942951063735168785.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148401044568.16217.6942951063735168785.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CF24F81911
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Jan 2017 16:13:50 -0800 (PST)
+Date: Tue, 3 Jan 2017 17:13:49 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v2 0/4] Write protect DAX PMDs in *sync path
+Message-ID: <20170104001349.GA8176@linux.intel.com>
+References: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,287 +23,61 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-arch@vger.kernel.org, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When memory-mode support was added to the kernel it also included a
-facility to set the alignment of the namespace. By default it is set to
-2M, but 4K and 1G are also valid options. Add this support to the
-utility. As Dave notes, this is prompted by the desire to add test
-support for device-dax using nfit-test resources. Given the nfit_test
-resources are backed by vmalloc, the only alignment nfit_test can
-support is 4K.
+On Thu, Dec 22, 2016 at 02:18:52PM -0700, Ross Zwisler wrote:
+> Currently dax_mapping_entry_mkclean() fails to clean and write protect the
+> pmd_t of a DAX PMD entry during an *sync operation.  This can result in
+> data loss, as detailed in patch 4.
+> 
+> You can find a working tree here:
+> 
+> https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_pmd_clean_v2
+> 
+> This series applies cleanly to mmotm-2016-12-19-16-31.
+> 
+> Changes since v1:
+>  - Included Dan's patch to kill DAX support for UML.
+>  - Instead of wrapping the DAX PMD code in dax_mapping_entry_mkclean() in
+>    an #ifdef, we now create a stub for pmdp_huge_clear_flush() for the case
+>    when CONFIG_TRANSPARENT_HUGEPAGE isn't defined. (Dan & Jan)
+> 
+> Dan Williams (1):
+>   dax: kill uml support
+> 
+> Ross Zwisler (3):
+>   dax: add stub for pmdp_huge_clear_flush()
+>   mm: add follow_pte_pmd()
+>   dax: wrprotect pmd_t in dax_mapping_entry_mkclean
+> 
+>  fs/Kconfig                    |  2 +-
+>  fs/dax.c                      | 49 ++++++++++++++++++++++++++++++-------------
+>  include/asm-generic/pgtable.h | 10 +++++++++
+>  include/linux/mm.h            |  4 ++--
+>  mm/memory.c                   | 41 ++++++++++++++++++++++++++++--------
+>  5 files changed, 79 insertions(+), 27 deletions(-)
 
-Based on an earlier patch by Dave Jiang.
+Well, 0-day found another architecture that doesn't define pmd_pfn() et al.,
+so we'll need some more fixes. (Thank you, 0-day, for the coverage!)
 
-Cc: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- Documentation/ndctl-create-namespace.txt |   13 ++++++
- ndctl/builtin-xaction-namespace.c        |   70 ++++++++++++++++++++++++------
- ndctl/lib/libndctl.c                     |    5 ++
- ndctl/lib/libndctl.sym                   |    1 
- ndctl/libndctl.h.in                      |    1 
- util/size.h                              |    1 
- 6 files changed, 76 insertions(+), 15 deletions(-)
+I have to apologize, I didn't understand that Dan intended his "dax: kill uml
+support" patch to land in v4.11.  I thought he intended it as a cleanup to my
+series, which really needs to land in v4.10.  That's why I folded them
+together into this v2, along with the wrapper suggested by Jan.
 
-diff --git a/Documentation/ndctl-create-namespace.txt b/Documentation/ndctl-create-namespace.txt
-index 5b62b959ffb4..6007214658b6 100644
---- a/Documentation/ndctl-create-namespace.txt
-+++ b/Documentation/ndctl-create-namespace.txt
-@@ -84,6 +84,19 @@ OPTIONS
- 	suffixes "k" or "K" for KiB, "m" or "M" for MiB, "g" or "G" for
- 	GiB and "t" or "T" for TiB.
- 
-+	For pmem namepsaces the size must be a multiple of the
-+	interleave-width and the namespace alignment (see
-+	below).
-+
-+-a::
-+--align::
-+	Applications that want to establish DAX memory mappings
-+	with page table entries greater than 4K in size need a
-+	persistent memory namespace that is sufficiently aligned. For
-+	"memory" and "dax" mode this defaults to 2M. Note that "dax"
-+	mode enforces all mappings to be aligned to this value,
-+	i.e. fails unaligned mapping attempts.
-+
- -e::
- --reconfig=::
- 	Reconfigure an existing namespace (change the mode, sector size,
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
-index e260a87e9b1a..eb289b0e392f 100644
---- a/ndctl/builtin-xaction-namespace.c
-+++ b/ndctl/builtin-xaction-namespace.c
-@@ -49,6 +49,7 @@ static struct parameters {
- 	const char *region;
- 	const char *reconfig;
- 	const char *sector_size;
-+	const char *align;
- } param;
- 
- void builtin_xaction_namespace_reset(void)
-@@ -71,6 +72,7 @@ struct parsed_parameters {
- 	enum ndctl_namespace_mode mode;
- 	unsigned long long size;
- 	unsigned long sector_size;
-+	unsigned long align;
- };
- 
- #define debug(fmt, ...) \
-@@ -104,6 +106,8 @@ OPT_STRING('l', "sector-size", &param.sector_size, "lba-size", \
- 	"specify the logical sector size in bytes"), \
- OPT_STRING('t', "type", &param.type, "type", \
- 	"specify the type of namespace to create 'pmem' or 'blk'"), \
-+OPT_STRING('a', "align", &param.align, "align", \
-+	"specify the namespace alignment in bytes (default: 2M)"), \
- OPT_BOOLEAN('f', "force", &force, "reconfigure namespace even if currently active")
- 
- static const struct option base_options[] = {
-@@ -202,6 +206,12 @@ static int set_defaults(enum namespace_action mode)
- 		rc = -EINVAL;
- 	}
- 
-+	if (param.align && parse_size64(param.align) == ULLONG_MAX) {
-+		error("failed to parse namespace alignment '%s'\n",
-+				param.align);
-+		rc = -EINVAL;
-+	}
-+
- 	if (param.uuid) {
- 		uuid_t uuid;
- 
-@@ -326,7 +336,7 @@ static int setup_namespace(struct ndctl_region *region,
- 		 * non-default attempts on older kernels.
- 		 */
- 		if (ndctl_pfn_has_align(pfn))
--			try(ndctl_pfn, set_align, pfn, SZ_2M);
-+			try(ndctl_pfn, set_align, pfn, p->align);
- 		try(ndctl_pfn, set_namespace, pfn, ndns);
- 		rc = ndctl_pfn_enable(pfn);
- 	} else if (p->mode == NDCTL_NS_MODE_DAX) {
-@@ -335,7 +345,7 @@ static int setup_namespace(struct ndctl_region *region,
- 		try(ndctl_dax, set_uuid, dax, uuid);
- 		try(ndctl_dax, set_location, dax, p->loc);
- 		/* device-dax assumes 'align' attribute present */
--		try(ndctl_dax, set_align, dax, SZ_2M);
-+		try(ndctl_dax, set_align, dax, p->align);
- 		try(ndctl_dax, set_namespace, dax, ndns);
- 		rc = ndctl_dax_enable(dax);
- 	} else if (p->mode == NDCTL_NS_MODE_SAFE) {
-@@ -387,13 +397,13 @@ static int is_namespace_active(struct ndctl_namespace *ndns)
- static int validate_namespace_options(struct ndctl_region *region,
- 		struct ndctl_namespace *ndns, struct parsed_parameters *p)
- {
-+	const char *region_name = ndctl_region_get_devname(region);
- 	int rc = 0;
- 
- 	memset(p, 0, sizeof(*p));
- 
- 	if (!ndctl_region_is_enabled(region)) {
--		debug("%s: disabled, skipping...\n",
--				ndctl_region_get_devname(region));
-+		debug("%s: disabled, skipping...\n", region_name);
- 		return -EAGAIN;
- 	}
- 
-@@ -435,8 +445,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		if (ndctl_region_get_type(region) != ND_DEVICE_REGION_PMEM
- 				&& (p->mode == NDCTL_NS_MODE_MEMORY
- 					|| p->mode == NDCTL_NS_MODE_DAX)) {
--			debug("blk %s does not support %s mode\n",
--					ndctl_region_get_devname(region),
-+			debug("blk %s does not support %s mode\n", region_name,
- 					p->mode == NDCTL_NS_MODE_MEMORY
- 					? "memory" : "dax");
- 			return -EAGAIN;
-@@ -444,6 +453,40 @@ static int validate_namespace_options(struct ndctl_region *region,
- 	} else if (ndns)
- 		p->mode = ndctl_namespace_get_mode(ndns);
- 
-+	if (param.align) {
-+		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
-+		struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
-+
-+		if (p->mode == NDCTL_NS_MODE_MEMORY
-+				&& (!pfn || ndctl_pfn_has_align(pfn))) {
-+			debug("%s not support 'align' for memory mode\n",
-+					region_name);
-+			return -EAGAIN;
-+		} else if (p->mode == NDCTL_NS_MODE_DAX
-+				&& (!dax || ndctl_dax_has_align(dax))) {
-+			debug("%s not support 'align' for dax mode\n",
-+					region_name);
-+			return -EAGAIN;
-+		} else {
-+			error("%s mode does not support setting an alignment\n",
-+					p->mode == NDCTL_NS_MODE_SAFE
-+					? "sector" : "raw");
-+			return -ENXIO;
-+		}
-+
-+		p->align = parse_size64(param.align);
-+		switch (p->align) {
-+		case SZ_4K:
-+		case SZ_2M:
-+		case SZ_1G:
-+			break;
-+		default:
-+			error("unsupported align: %s\n", param.align);
-+			return -ENXIO;
-+		}
-+	} else
-+		p->align = SZ_2M;
-+
- 	if (param.sector_size) {
- 		struct ndctl_btt *btt;
- 		int num, i;
-@@ -453,7 +496,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		if (p->mode == NDCTL_NS_MODE_SAFE) {
- 			if (!btt) {
- 				debug("%s: does not support 'sector' mode\n",
--						ndctl_region_get_devname(region));
-+						region_name);
- 				return -EINVAL;
- 			}
- 			num = ndctl_btt_get_num_sector_sizes(btt);
-@@ -463,8 +506,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 					break;
- 			if (i >= num) {
- 				debug("%s: does not support btt sector_size %lu\n",
--						ndctl_region_get_devname(region),
--						p->sector_size);
-+						region_name, p->sector_size);
- 				return -EINVAL;
- 			}
- 		} else {
-@@ -479,8 +521,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 					break;
- 			if (i >= num) {
- 				debug("%s: does not support namespace sector_size %lu\n",
--						ndctl_region_get_devname(region),
--						p->sector_size);
-+						region_name, p->sector_size);
- 				return -EINVAL;
- 			}
- 		}
-@@ -517,12 +558,11 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
- 
- 		if (!pfn && param.mode_default) {
--			debug("%s memory mode not available\n",
--					ndctl_region_get_devname(region));
-+			debug("%s memory mode not available\n", region_name);
- 			p->mode = NDCTL_NS_MODE_RAW;
- 		} else if (!pfn) {
- 			error("operation failed, %s memory mode not available\n",
--					ndctl_region_get_devname(region));
-+					region_name);
- 			return -EINVAL;
- 		}
- 	}
-@@ -533,7 +573,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 
- 		if (!dax) {
- 			error("operation failed, %s dax mode not available\n",
--					ndctl_region_get_devname(region));
-+					region_name);
- 			return -EINVAL;
- 		}
- 	}
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 8240235dff5c..49e35bf0fd98 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -4477,6 +4477,11 @@ NDCTL_EXPORT unsigned long ndctl_dax_get_align(struct ndctl_dax *dax)
- 	return ndctl_pfn_get_align(&dax->pfn);
- }
- 
-+NDCTL_EXPORT int ndctl_dax_has_align(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_has_align(&dax->pfn);
-+}
-+
- NDCTL_EXPORT int ndctl_dax_set_align(struct ndctl_dax *dax, unsigned long align)
- {
- 	return ndctl_pfn_set_align(&dax->pfn, align);
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 506bf0d67aab..be2e3680d202 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -259,6 +259,7 @@ global:
- 	ndctl_dax_get_location;
- 	ndctl_dax_set_location;
- 	ndctl_dax_get_align;
-+	ndctl_dax_has_align;
- 	ndctl_dax_set_align;
- 	ndctl_dax_set_namespace;
- 	ndctl_dax_get_bus;
-diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
-index 394d22e24c7a..c27581d939c5 100644
---- a/ndctl/libndctl.h.in
-+++ b/ndctl/libndctl.h.in
-@@ -603,6 +603,7 @@ int ndctl_dax_set_uuid(struct ndctl_dax *dax, uuid_t uu);
- enum ndctl_pfn_loc ndctl_dax_get_location(struct ndctl_dax *dax);
- int ndctl_dax_set_location(struct ndctl_dax *dax, enum ndctl_pfn_loc loc);
- unsigned long ndctl_dax_get_align(struct ndctl_dax *dax);
-+int ndctl_dax_has_align(struct ndctl_dax *dax);
- int ndctl_dax_set_align(struct ndctl_dax *dax, unsigned long align);
- int ndctl_dax_set_namespace(struct ndctl_dax *dax,
- 		struct ndctl_namespace *ndns);
-diff --git a/util/size.h b/util/size.h
-index 50917a5cea34..634c92621bdc 100644
---- a/util/size.h
-+++ b/util/size.h
-@@ -2,6 +2,7 @@
- #define _NDCTL_SIZE_H_
- 
- #define SZ_1K     0x00000400
-+#define SZ_4K     0x00001000
- #define SZ_1M     0x00100000
- #define SZ_2M     0x00200000
- #define SZ_4M     0x00400000
+Andrew, does it work for you to just keep v1 of this series, and eventually
+send that to Linus for v4.10?
 
+https://lkml.org/lkml/2016/12/20/649
+
+You've already pulled that one into -mm, and it does correctly solve the data
+loss issue.
+
+That would let us deal with getting rid of the #ifdef, blacklisting
+architectures and introducing the pmdp_huge_clear_flush() strub in a follow-on
+series for v4.11.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
