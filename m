@@ -1,20 +1,14 @@
-From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: LTP rwtest01 blocks on DAX mountpoint
-Date: Wed, 4 Jan 2017 09:40:51 -0700
-Message-ID: <20170104164051.GA32600@linux.intel.com>
-References: <20161224110714.mp2mevzwkhlxm7zw@xzhoul.usersys.redhat.com>
- <20161230093352.efidonh4btdbtaze@XZHOUW.usersys.redhat.com>
- <20170102171617.GA23612@quack2.suse.cz>
- <20170102214941.GA2813@linux.intel.com>
- <20170103064922.o6v5dlq7pylhir36@XZHOUW.usersys.redhat.com>
- <20170103165710.GC13904@linux.intel.com>
- <20170104094834.siixhljtbuniopi2@XZHOUW.usersys.redhat.com>
+From: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v4] x86: fix kaslr and memmap collision
+Date: Wed, 4 Jan 2017 10:06:11 -0700
+Message-ID: <f91679bd-f728-d3aa-e943-45fb42d2e20b@intel.com>
+References: <148347651968.64111.7765172823804130174.stgit@djiang5-desk3.ch.intel.com>
+ <20170104023728.GC15788@x1>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170104094834.siixhljtbuniopi2-E9dkjZ7ERC1QcClZ3XN9yxcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <20170104023728.GC15788@x1>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,88 +18,324 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Baoquan He <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, Jan 04, 2017 at 05:48:34PM +0800, Xiong Zhou wrote:
-> On Tue, Jan 03, 2017 at 09:57:10AM -0700, Ross Zwisler wrote:
-> > On Tue, Jan 03, 2017 at 02:49:22PM +0800, Xiong Zhou wrote:
-> > > On Mon, Jan 02, 2017 at 02:49:41PM -0700, Ross Zwisler wrote:
-> > > > On Mon, Jan 02, 2017 at 06:16:17PM +0100, Jan Kara wrote:
-> > > > > On Fri 30-12-16 17:33:53, Xiong Zhou wrote:
-> > > > > > On Sat, Dec 24, 2016 at 07:07:14PM +0800, Xiong Zhou wrote:
-> > > > > > > Hi lists,
-> > > snip
-> > > > > I was trying to reproduce this but for me rwtest01 completes just fine on
-> > > > > dax mountpoint (I've used your reproducer). So can you sample several
-> > > > > kernel stack traces to get a rough idea where the kernel is running?
-> > > > > Thanks!
-> > > > > 
-> > > > > 								Honza
-> > > > 
-> > > > I'm also unable to reproduce this issue.  I've tried with both the blamed
-> > > > commit:
-> > > > 4b4bb46 (HEAD) dax: clear dirty entry tags on cache flush
-> > > > and with v4.9-rc2.  Both pass the test in my setup.
-> > > > Perhaps the variable is the size of your PMEM partitions?
-> > > > # fdisk -l /dev/pmem0
-> > > > Disk /dev/pmem0: 16 GiB, 17179869184 bytes, 33554432 sectors
-> > > > Units: sectors of 1 * 512 = 512 bytes
-> > > > Sector size (logical/physical): 512 bytes / 4096 bytes
-> > > > I/O size (minimum/optimal): 4096 bytes / 4096 bytes
-> > > > Disklabel type: dos
-> > > > Disk identifier: 0xfe50c900
-> > > > Device       Boot    Start      End  Sectors Size Id Type
-> > > > /dev/pmem0p1          4096 25165823 25161728  12G 83 Linux
-> > > > /dev/pmem0p2      25165824 33550335  8384512   4G 83 Linux
-> > > > 
-> > > > What does your setup look like?
-> > > > I'm using the current tip of the LTP tree:
-> > > > 8cc4165  waitid02: define _XOPEN_SOURCE 500
-> > > > Thanks,
-> > > > - Ross
-> > > 
-> > > Thanks all for looking into it.
-> > > 
-> > > Turns out the rc2 relative updates fix this issue, so does
-> > > an old issue i reported a while ago:
-> > > multi-threads libvmmalloc fork test hang
-> > > https://lists.01.org/pipermail/linux-nvdimm/2016-October/007602.html
-> > > 
-> > > I'm able to reproduce these issues before rc2, now it
-> > > passes on current Linus tree:
-> > > c8b4ec8 Merge tag 'fscrypt-for-stable'
-> > 
-> > Hmm...I'm able to reproduce the other libvmmalloc issue with both v4.10-rc2
-> > and with "c8b4ec8 Merge tag 'fscrypt-for-stable'".  I'm debugging that issue
-> > today.
-> > 
-> > It's interesting that both tests started passing for you.  Did you change
-> > something in your test setup?
+On 01/03/2017 07:37 PM, Baoquan He wrote:
+> Hi Dave,
 > 
-> Hi,
+> I have several concerns, please see the inline comments.
 > 
-> Quick update:
->   Ross's new patch fixed the vmmaloc_fork issue, not the rc2 update.
->   Regression tests is going on, so far so good.
-> 
-> I'm able to reproduce the vmmalloc_fork issue on rc2 kernel
-> 	c8b4ec8 Merge tag 'fscrypt-for-stable'
-> with nvml commit to
-> 	77c2a5a Merge pull request #1554 from krzycz/win-libvmem_rc
-> 
-> My previous statement about rc2 fixed old vmmalloc_fork issue
-> was wrong, my mistake. I have changed my test setup.
-> 
-> Now after some tests, Ross's patch
-> 	[PATCH] dax: fix deadlock with DAX 4k holes
-> on top of Linus tree c8b4ec8 have fixed this vmmalloc_fork issue.
-> My DAX regression tests is going on, looks good so far. Gonna
-> update once it have finished.
+> On 01/03/17 at 01:48pm, Dave Jiang wrote:
+>> CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
+>> However it does not take into account the memmap= parameter passed in from
+>> the kernel cmdline. This results in the kernel sometimes being put in
+>> the middle of the user memmap. Teaching kaslr to not insert the kernel in
+> 		    ~~~~~~~~~~~
+> It could be better to be replaced with "user-defined physical RAM map"
+> or memmap directly because memmap is meaning user-defined physical RAM
+> map. Please check the boot info printing about them. I was confused at
+> first glance.
 
-Cool, thanks for the update.  If you're still able to reproduce this second
-issue after my patch we can dig in to the differences between your test setup
-and mine so I can reproduce it & debug.
+Will update
 
-Thanks for the reports!
+>> memmap defined regions. We will support up to 4 memmap regions. Any
+>> additional regions will cause kaslr to disable. The mem_avoid set has
+>> been augmented to add up to 4 regions of memmaps provided by the user
+>                               ~~~
+>     4 un-usable memmap region need be cared, usable memory is not
+> concerned
+
+Will update
+
+.
+>> to exclude those regions from the set of valid address range to insert
+>> the uncompressed kernel image. The nn@ss ranges will be skipped by the
+>> mem_avoid set since it indicates memory useable.
+>>
+>> Signed-off-by: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> ---
+>>  arch/x86/boot/boot.h             |    3 +
+>>  arch/x86/boot/compressed/kaslr.c |  131 ++++++++++++++++++++++++++++++++++++++
+>>  arch/x86/boot/string.c           |   38 +++++++++++
+>>  3 files changed, 172 insertions(+)
+>>
+>> diff --git a/arch/x86/boot/boot.h b/arch/x86/boot/boot.h
+>> index e5612f3..59c2075 100644
+>> --- a/arch/x86/boot/boot.h
+>> +++ b/arch/x86/boot/boot.h
+>> @@ -332,7 +332,10 @@ int strncmp(const char *cs, const char *ct, size_t count);
+>>  size_t strnlen(const char *s, size_t maxlen);
+>>  unsigned int atou(const char *s);
+>>  unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base);
+>> +unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base);
+>> +long simple_strtol(const char *cp, char **endp, unsigned int base);
+>>  size_t strlen(const char *s);
+>> +char *strchr(const char *s, int c);
+>>  
+>>  /* tty.c */
+>>  void puts(const char *);
+>> diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
+>> index a66854d..f5a1c8d 100644
+>> --- a/arch/x86/boot/compressed/kaslr.c
+>> +++ b/arch/x86/boot/compressed/kaslr.c
+>> @@ -11,6 +11,7 @@
+>>   */
+>>  #include "misc.h"
+>>  #include "error.h"
+>> +#include "../boot.h"
+>>  
+>>  #include <generated/compile.h>
+>>  #include <linux/module.h>
+>> @@ -61,9 +62,16 @@ enum mem_avoid_index {
+>>  	MEM_AVOID_INITRD,
+>>  	MEM_AVOID_CMDLINE,
+>>  	MEM_AVOID_BOOTPARAMS,
+>> +	MEM_AVOID_MEMMAP1,
+>> +	MEM_AVOID_MEMMAP2,
+>> +	MEM_AVOID_MEMMAP3,
+>> +	MEM_AVOID_MEMMAP4,
+> 
+> This looks not good. Could it be done like fixed_addresses?
+> Something like:
+> 
+> 	MEM_AVOID_MEMMAP_BEGIN,
+> 	MEM_AVOID_MEMMAP_BEGIN + MEM_AVOID_MAX -1,
+> 
+> Please point it out to me if there's some existing code in kernel like
+> your way, I can also accept it.
+
+I think you mean:
+MEM_AVOID_MEMMAP_BEGIN + MAX_MEMMAP_REGIONS - 1
+
+I will change
+
+
+> 
+>>  	MEM_AVOID_MAX,
+>>  };
+>>  
+>> +/* only supporting at most 4 memmap regions with kaslr */
+> And here, "Only supporting at most 4 un-usable memmap regions with kaslr"?
+> Surely this is based on if you will ignore the usable memory and do not
+> store it as 0. And also the log need be changed too accordingly.
+>> +#define MAX_MEMMAP_REGIONS	4
+>> +
+>>  static struct mem_vector mem_avoid[MEM_AVOID_MAX];
+>>  
+>>  static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
+>> @@ -77,6 +85,121 @@ static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
+>>  	return true;
+>>  }
+>>  
+>> +/**
+>> + *	_memparse - parse a string with mem suffixes into a number
+>> + *	@ptr: Where parse begins
+>> + *	@retptr: (output) Optional pointer to next char after parse completes
+>> + *
+>> + *	Parses a string into a number.  The number stored at @ptr is
+>> + *	potentially suffixed with K, M, G, T, P, E.
+>> + */
+>> +static unsigned long long _memparse(const char *ptr, char **retptr)
+>> +{
+>> +	char *endptr;	/* local pointer to end of parsed string */
+>> +
+>> +	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
+>> +
+>> +	switch (*endptr) {
+>> +	case 'E':
+>> +	case 'e':
+>> +		ret <<= 10;
+>> +	case 'P':
+>> +	case 'p':
+>> +		ret <<= 10;
+>> +	case 'T':
+>> +	case 't':
+>> +		ret <<= 10;
+>> +	case 'G':
+>> +	case 'g':
+>> +		ret <<= 10;
+>> +	case 'M':
+>> +	case 'm':
+>> +		ret <<= 10;
+>> +	case 'K':
+>> +	case 'k':
+>> +		ret <<= 10;
+>> +		endptr++;
+>> +	default:
+>> +		break;
+>> +	}
+>> +
+>> +	if (retptr)
+>> +		*retptr = endptr;
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static int
+>> +parse_memmap(char *p, unsigned long long *start, unsigned long long *size)
+>> +{
+>> +	char *oldp;
+>> +
+>> +	if (!p)
+>> +		return -EINVAL;
+>> +
+>> +	/* we don't care about this option here */
+>> +	if (!strncmp(p, "exactmap", 8))
+>> +		return -EINVAL;
+>> +
+>> +	oldp = p;
+>> +	*size = _memparse(p, &p);
+>> +	if (p == oldp)
+>> +		return -EINVAL;
+>> +
+>> +	switch (*p) {
+>> +	case '@':
+>> +		/* skip this region, usable */
+>> +		*start = 0;
+>> +		*size = 0;
+>> +		return 0;
+> How about direclty return if nn@ss? Seems no need to waste one mem avoid
+> region slot. In fact even amount of usable memory regions are provided to
+> 100, it won't impact that you want to specify a reserve memmap region if
+> you skip it direclty. Personal opinion.
+
+We are not wasting the slot. If you look mem_avoid_memmap() where I call
+the function, it will skip with a continue if size == 0 without
+incrementing the 'i' counter. That will skip all the nn@ss regions
+without counting against the max avoid mapping.
+
+>> +	case '#':
+>> +	case '$':
+>> +	case '!':
+>> +		*start = _memparse(p + 1, &p);
+>> +		return 0;
+>> +	}
+>> +
+>> +	return -EINVAL;
+>> +}
+>> +
+>> +static int mem_avoid_memmap(void)
+>> +{
+>> +	char arg[128];
+>> +	int rc = 0;
+>> +
+>> +	/* see if we have any memmap areas */
+>> +	if (cmdline_find_option("memmap", arg, sizeof(arg)) > 0) {
+>> +		int i = 0;
+>> +		char *str = arg;
+>> +
+>> +		while (str && (i < MAX_MEMMAP_REGIONS)) {
+>> +			unsigned long long start, size;
+>> +			char *k = strchr(str, ',');
+>> +
+>> +			if (k)
+>> +				*k++ = 0;
+>> +
+>> +			rc = parse_memmap(str, &start, &size);
+>> +			if (rc < 0)
+>> +				break;
+>> +			str = k;
+>> +			/* a usable region that should not be skipped */
+>> +			if (size == 0)
+>> +				continue;
+>> +
+>> +			mem_avoid[MEM_AVOID_MEMMAP1 + i].start = start;
+>> +			mem_avoid[MEM_AVOID_MEMMAP1 + i].size = size;
+>> +			i++;
+>> +		}
+>> +
+>> +		/* more than 4 memmaps, fail kaslr */
+>> +		if ((i >= MAX_MEMMAP_REGIONS) && str)
+>> +			rc = -EINVAL;
+>> +	}
+>> +
+>> +	return rc;
+>> +}
+>> +
+>>  /*
+>>   * In theory, KASLR can put the kernel anywhere in the range of [16M, 64T).
+>>   * The mem_avoid array is used to store the ranges that need to be avoided
+>> @@ -429,6 +552,7 @@ void choose_random_location(unsigned long input,
+>>  			    unsigned long *virt_addr)
+>>  {
+>>  	unsigned long random_addr, min_addr;
+>> +	int rc;
+>>  
+>>  	/* By default, keep output position unchanged. */
+>>  	*virt_addr = *output;
+>> @@ -438,6 +562,13 @@ void choose_random_location(unsigned long input,
+>>  		return;
+>>  	}
+>>  
+>> +	/* Mark the memmap regions we need to avoid */
+>> +	rc = mem_avoid_memmap();
+>> +	if (rc < 0) {
+> Or write it like below, the rc is not needed. Personal coding style,
+> just talk about it.
+> 	if (mem_avoid_memmap()) {
+> 		warn("KASLR disabled: memmap exceeds limit of 4, giving up.");
+> 		return;
+> 	}
+
+Doesn't matter to me. I'll update as you suggest.
+
+>> +
+>>  	boot_params->hdr.loadflags |= KASLR_FLAG;
+>>  
+>>  	/* Prepare to add new identity pagetables on demand. */
+>> diff --git a/arch/x86/boot/string.c b/arch/x86/boot/string.c
+>> index cc3bd58..0464aaa 100644
+>> --- a/arch/x86/boot/string.c
+>> +++ b/arch/x86/boot/string.c
+>> @@ -122,6 +122,31 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
+>>  }
+>>  
+>>  /**
+>> + * simple_strtoul - convert a string to an unsigned long
+>> + * @cp: The start of the string
+>> + * @endp: A pointer to the end of the parsed string will be placed here
+>> + * @base: The number base to use
+>> + */
+>> +unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base)
+>> +{
+>> +	return simple_strtoull(cp, endp, base);
+>> +}
+>> +
+>> +/**
+>> + * simple_strtol - convert a string to a signed long
+>> + * @cp: The start of the string
+>> + * @endp: A pointer to the end of the parsed string will be placed here
+>> + * @base: The number base to use
+>> + */
+>> +long simple_strtol(const char *cp, char **endp, unsigned int base)
+>> +{
+>> +	if (*cp == '-')
+>> +		return -simple_strtoul(cp + 1, endp, base);
+>> +
+>> +	return simple_strtoul(cp, endp, base);
+>> +}
+>> +
+>> +/**
+>>   * strlen - Find the length of a string
+>>   * @s: The string to be sized
+>>   */
+>> @@ -155,3 +180,16 @@ char *strstr(const char *s1, const char *s2)
+>>  	}
+>>  	return NULL;
+>>  }
+>> +
+>> +/**
+>> + * strchr - Find the first occurrence of the character c in the string s.
+>> + * @s: the string to be searched
+>> + * @c: the character to search for
+>> + */
+>> +char *strchr(const char *s, int c)
+>> +{
+>> +	while (*s != (char)c)
+>> +		if (*s++ == '\0')
+>> +			return NULL;
+>> +	return (char *)s;
+>> +}
+>>
