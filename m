@@ -1,114 +1,111 @@
-From: Xiong Zhou <xzhou@redhat.com>
-Subject: Re: [PATCH] dax: fix deadlock with DAX 4k holes
-Date: Wed, 4 Jan 2017 22:26:15 +0800
-Message-ID: <20170104142615.34ci46l7otz7qrlz@XZHOUW.usersys.redhat.com>
-References: <20161027112230.wsumgs62fqdxt3sc@xzhoul.usersys.redhat.com>
- <1483479365-13607-1-git-send-email-ross.zwisler@linux.intel.com>
+From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: LTP rwtest01 blocks on DAX mountpoint
+Date: Wed, 4 Jan 2017 09:40:51 -0700
+Message-ID: <20170104164051.GA32600@linux.intel.com>
+References: <20161224110714.mp2mevzwkhlxm7zw@xzhoul.usersys.redhat.com>
+ <20161230093352.efidonh4btdbtaze@XZHOUW.usersys.redhat.com>
+ <20170102171617.GA23612@quack2.suse.cz>
+ <20170102214941.GA2813@linux.intel.com>
+ <20170103064922.o6v5dlq7pylhir36@XZHOUW.usersys.redhat.com>
+ <20170103165710.GC13904@linux.intel.com>
+ <20170104094834.siixhljtbuniopi2@XZHOUW.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1483479365-13607-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Xiong Zhou <xzhou@redhat.com>, stable@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, linux-nvdimm@ml01.01.org
+In-Reply-To: <20170104094834.siixhljtbuniopi2-E9dkjZ7ERC1QcClZ3XN9yxcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Jan 03, 2017 at 02:36:05PM -0700, Ross Zwisler wrote:
-> Currently in DAX if we have three read faults on the same hole address we
-> can end up with the following:
+On Wed, Jan 04, 2017 at 05:48:34PM +0800, Xiong Zhou wrote:
+> On Tue, Jan 03, 2017 at 09:57:10AM -0700, Ross Zwisler wrote:
+> > On Tue, Jan 03, 2017 at 02:49:22PM +0800, Xiong Zhou wrote:
+> > > On Mon, Jan 02, 2017 at 02:49:41PM -0700, Ross Zwisler wrote:
+> > > > On Mon, Jan 02, 2017 at 06:16:17PM +0100, Jan Kara wrote:
+> > > > > On Fri 30-12-16 17:33:53, Xiong Zhou wrote:
+> > > > > > On Sat, Dec 24, 2016 at 07:07:14PM +0800, Xiong Zhou wrote:
+> > > > > > > Hi lists,
+> > > snip
+> > > > > I was trying to reproduce this but for me rwtest01 completes just fine on
+> > > > > dax mountpoint (I've used your reproducer). So can you sample several
+> > > > > kernel stack traces to get a rough idea where the kernel is running?
+> > > > > Thanks!
+> > > > > 
+> > > > > 								Honza
+> > > > 
+> > > > I'm also unable to reproduce this issue.  I've tried with both the blamed
+> > > > commit:
+> > > > 4b4bb46 (HEAD) dax: clear dirty entry tags on cache flush
+> > > > and with v4.9-rc2.  Both pass the test in my setup.
+> > > > Perhaps the variable is the size of your PMEM partitions?
+> > > > # fdisk -l /dev/pmem0
+> > > > Disk /dev/pmem0: 16 GiB, 17179869184 bytes, 33554432 sectors
+> > > > Units: sectors of 1 * 512 = 512 bytes
+> > > > Sector size (logical/physical): 512 bytes / 4096 bytes
+> > > > I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+> > > > Disklabel type: dos
+> > > > Disk identifier: 0xfe50c900
+> > > > Device       Boot    Start      End  Sectors Size Id Type
+> > > > /dev/pmem0p1          4096 25165823 25161728  12G 83 Linux
+> > > > /dev/pmem0p2      25165824 33550335  8384512   4G 83 Linux
+> > > > 
+> > > > What does your setup look like?
+> > > > I'm using the current tip of the LTP tree:
+> > > > 8cc4165  waitid02: define _XOPEN_SOURCE 500
+> > > > Thanks,
+> > > > - Ross
+> > > 
+> > > Thanks all for looking into it.
+> > > 
+> > > Turns out the rc2 relative updates fix this issue, so does
+> > > an old issue i reported a while ago:
+> > > multi-threads libvmmalloc fork test hang
+> > > https://lists.01.org/pipermail/linux-nvdimm/2016-October/007602.html
+> > > 
+> > > I'm able to reproduce these issues before rc2, now it
+> > > passes on current Linus tree:
+> > > c8b4ec8 Merge tag 'fscrypt-for-stable'
+> > 
+> > Hmm...I'm able to reproduce the other libvmmalloc issue with both v4.10-rc2
+> > and with "c8b4ec8 Merge tag 'fscrypt-for-stable'".  I'm debugging that issue
+> > today.
+> > 
+> > It's interesting that both tests started passing for you.  Did you change
+> > something in your test setup?
 > 
-> Thread 0		Thread 1		Thread 2
-> --------		--------		--------
-> dax_iomap_fault
->  grab_mapping_entry
->   lock_slot
->    <locks empty DAX entry>
+> Hi,
 > 
->   			dax_iomap_fault
-> 			 grab_mapping_entry
-> 			  get_unlocked_mapping_entry
-> 			   <sleeps on empty DAX entry>
+> Quick update:
+>   Ross's new patch fixed the vmmaloc_fork issue, not the rc2 update.
+>   Regression tests is going on, so far so good.
 > 
-> 						dax_iomap_fault
-> 						 grab_mapping_entry
-> 						  get_unlocked_mapping_entry
-> 						   <sleeps on empty DAX entry>
->   dax_load_hole
->    find_or_create_page
->    ...
->     page_cache_tree_insert
->      dax_wake_mapping_entry_waiter
->       <wakes one sleeper>
->      __radix_tree_replace
->       <swaps empty DAX entry with 4k zero page>
+> I'm able to reproduce the vmmalloc_fork issue on rc2 kernel
+> 	c8b4ec8 Merge tag 'fscrypt-for-stable'
+> with nvml commit to
+> 	77c2a5a Merge pull request #1554 from krzycz/win-libvmem_rc
 > 
-> 			<wakes>
-> 			get_page
-> 			lock_page
-> 			...
-> 			put_locked_mapping_entry
-> 			unlock_page
-> 			put_page
+> My previous statement about rc2 fixed old vmmalloc_fork issue
+> was wrong, my mistake. I have changed my test setup.
 > 
-> 						<sleeps forever on the DAX
-> 						 wait queue>
-> 
-> The crux of the problem is that once we insert a 4k zero page, all locking
-> from then on is done in terms of that 4k zero page and any additional
-> threads sleeping on the empty DAX entry will never be woken.  Fix this by
-> waking all sleepers when we replace the DAX radix tree entry with a 4k zero
-> page.  This will allow all sleeping threads to successfully transition from
-> locking based on the DAX empty entry to locking on the 4k zero page.
-> 
-> With the test case reported by Xiong this happens very regularly in my test
-> setup, with some runs resulting in 9+ threads in this deadlocked state.
-> With this fix I've been able to run that same test dozens of times in a
-> loop without issue.
-> 
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Reported-by: Xiong Zhou <xzhou@redhat.com>
-> Fixes: commit ac401cc78242 ("dax: New fault locking")
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: stable@vger.kernel.org # 4.7+
-> ---
+> Now after some tests, Ross's patch
+> 	[PATCH] dax: fix deadlock with DAX 4k holes
+> on top of Linus tree c8b4ec8 have fixed this vmmalloc_fork issue.
+> My DAX regression tests is going on, looks good so far. Gonna
+> update once it have finished.
 
-Positive test result of this patch for this issue and the regression
-tests.
+Cool, thanks for the update.  If you're still able to reproduce this second
+issue after my patch we can dig in to the differences between your test setup
+and mine so I can reproduce it & debug.
 
-Great job!
-
-> 
-> This issue exists as far back as v4.7, and I was easly able to reproduce it
-> with v4.7 using the same test.
-> 
-> Unfortunately this patch won't apply cleanly to the stable trees, but the
-> change is very simple and should be easy to replicate by hand.  Please ping
-> me if you'd like patches that apply cleanly to the v4.9 and v4.8.15 trees.
-> 
-> ---
->  mm/filemap.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/mm/filemap.c b/mm/filemap.c
-> index d0e4d10..b772a33 100644
-> --- a/mm/filemap.c
-> +++ b/mm/filemap.c
-> @@ -138,7 +138,7 @@ static int page_cache_tree_insert(struct address_space *mapping,
->  				dax_radix_locked_entry(0, RADIX_DAX_EMPTY));
->  			/* Wakeup waiters for exceptional entry lock */
->  			dax_wake_mapping_entry_waiter(mapping, page->index, p,
-> -						      false);
-> +						      true);
->  		}
->  	}
->  	__radix_tree_replace(&mapping->page_tree, node, slot, page,
-> -- 
-> 2.7.4
-> 
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks for the reports!
