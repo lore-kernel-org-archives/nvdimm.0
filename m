@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E8B1681A58
- for <linux-nvdimm@lists.01.org>; Fri,  6 Jan 2017 17:46:44 -0800 (PST)
-Subject: [ndctl PATCH 6/7] ndctl, {enable,disable}-region: filter by type
+ by ml01.01.org (Postfix) with ESMTPS id 7380A8195A
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jan 2017 16:38:45 -0800 (PST)
+Subject: [PATCH] mm: fix devm_memremap_pages crash, use mem_hotplug_{begin,
+ done}
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 06 Jan 2017 17:42:38 -0800
-Message-ID: <148375335820.38836.1562013725964258644.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148375332631.38836.5735184615585844571.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148375332631.38836.5735184615585844571.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 04 Jan 2017 16:34:38 -0800
+Message-ID: <148357647831.9498.12606007370121652979.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,95 +21,81 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Allow the region to be selected by type. For example, disable all pmem:
+Both arch_add_memory() and arch_remove_memory() expect a single threaded
+context.
 
-	ndctl disable-region -t pmem all
+For example, arch/x86/mm/init_64.c::kernel_physical_mapping_init() does
+not hold any locks over this check and branch:
 
-One case this is useful for is scripting the bring-up of individual
-namespaces rather than the default of all at once and in parallel. For
-example:
+    if (pgd_val(*pgd)) {
+    	pud = (pud_t *)pgd_page_vaddr(*pgd);
+    	paddr_last = phys_pud_init(pud, __pa(vaddr),
+    				   __pa(vaddr_end),
+    				   page_size_mask);
+    	continue;
+    }
 
-* blacklist the nd_pmem module
-* disable all pmem regions
-* load the nd_pmem module
-* individually enable pmem regions
+    pud = alloc_low_page();
+    paddr_last = phys_pud_init(pud, __pa(vaddr), __pa(vaddr_end),
+    			   page_size_mask);
 
+The result is that two threads calling devm_memremap_pages()
+simultaneously can end up colliding on pgd initialization. This leads to
+crash signatures like the following where the loser of the race
+initializes the wrong pgd entry:
+
+    BUG: unable to handle kernel paging request at ffff888ebfff0000
+    IP: [<ffffffff8149e1e6>] memcpy_erms+0x6/0x10
+    PGD 2f8e8fc067 PUD 0 /* <---- Invalid PUD */
+    Oops: 0000 [#1] SMP DEBUG_PAGEALLOC
+    CPU: 54 PID: 3818 Comm: systemd-udevd Not tainted 4.6.7+ #13
+    task: ffff882fac290040 ti: ffff882f887a4000 task.ti: ffff882f887a4000
+    RIP: 0010:[<ffffffff8149e1e6>]  [<ffffffff8149e1e6>] memcpy_erms+0x6/0x10
+    [..]
+    Call Trace:
+     [<ffffffffc0119045>] ? pmem_do_bvec+0x205/0x370 [nd_pmem]
+     [<ffffffff8145b82a>] ? blk_queue_enter+0x3a/0x280
+     [<ffffffffc0119418>] pmem_rw_page+0x38/0x80 [nd_pmem]
+     [<ffffffff812b1c94>] bdev_read_page+0x84/0xb0
+
+Hold the standard memory hotplug mutex over calls to
+arch_{add,remove}_memory().
+
+Cc: <stable@vger.kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Fixes: 41e94a851304 ("add devm_memremap_pages")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/builtin-xable-region.c |   31 +++++++++++++++++++++++++++----
- 1 file changed, 27 insertions(+), 4 deletions(-)
+ kernel/memremap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/ndctl/builtin-xable-region.c b/ndctl/builtin-xable-region.c
-index 50cbdef5b339..0d46192fe6a4 100644
---- a/ndctl/builtin-xable-region.c
-+++ b/ndctl/builtin-xable-region.c
-@@ -6,11 +6,16 @@
- #include <util/parse-options.h>
- #include <ndctl/libndctl.h>
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index b501e390bb34..9ecedc28b928 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -246,7 +246,9 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
+ 	/* pages are dead and unused, undo the arch mapping */
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
++	mem_hotplug_begin();
+ 	arch_remove_memory(align_start, align_size);
++	mem_hotplug_done();
+ 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
+ 	pgmap_radix_release(res);
+ 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
+@@ -358,7 +360,9 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	if (error)
+ 		goto err_pfn_remap;
  
--static const char *region_bus;
-+static struct {
-+	const char *bus;
-+	const char *type;
-+} param;
- 
- static const struct option region_options[] = {
--	OPT_STRING('b', "bus", &region_bus, "bus-id",
-+	OPT_STRING('b', "bus", &param.bus, "bus-id",
- 			"<region> must be on a bus with an id/provider of <bus-id>"),
-+	OPT_STRING('t', "type", &param.type, "region-type",
-+			"<region> must be of the specified type"),
- 	OPT_END(),
- };
- 
-@@ -33,6 +38,20 @@ static const char *parse_region_options(int argc, const char **argv,
- 		usage_with_options(u, region_options);
- 		return NULL; /* we won't return from usage_with_options() */
- 	}
-+
-+	if (param.type) {
-+		if (strcmp(param.type, "pmem") == 0)
-+			/* pass */;
-+		else if (strcmp(param.type, "blk") == 0)
-+			/* pass */;
-+		else {
-+			error("unknown region type '%s', should be 'pmem' or 'blk'\n",
-+					param.type);
-+			usage_with_options(u, region_options);
-+			return NULL;
-+		}
-+	}
-+
- 	return argv[0];
- }
- 
-@@ -47,10 +66,14 @@ static int do_xable_region(const char *region_arg,
- 		goto out;
- 
-         ndctl_bus_foreach(ctx, bus) {
--		if (!util_bus_filter(bus, region_bus))
-+		if (!util_bus_filter(bus, param.bus))
- 			continue;
- 
- 		ndctl_region_foreach(bus, region) {
-+			const char *type = ndctl_region_get_type_name(region);
-+
-+			if (param.type && strcmp(param.type, type) != 0)
-+				continue;
- 			if (!util_region_filter(region, region_arg))
- 				continue;
- 			if (xable_fn(region) == 0)
-@@ -60,7 +83,7 @@ static int do_xable_region(const char *region_arg,
- 
- 	rc = success;
-  out:
--	region_bus = NULL;
-+	param.bus = NULL;
- 	return rc;
- }
++	mem_hotplug_begin();
+ 	error = arch_add_memory(nid, align_start, align_size, true);
++	mem_hotplug_done();
+ 	if (error)
+ 		goto err_add_memory;
  
 
 _______________________________________________
