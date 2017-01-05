@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AEA3781C73
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 14:11:41 -0800 (PST)
-Subject: [PATCH v3 10/12] mm: support section-unaligned ZONE_DEVICE memory
- ranges
+ by ml01.01.org (Postfix) with ESMTPS id 9D48B81992
+ for <linux-nvdimm@lists.01.org>; Thu,  5 Jan 2017 07:26:49 -0800 (PST)
+Subject: [ndctl PATCH] test: validate nfit_test modules before running tests
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Jan 2017 14:07:35 -0800
-Message-ID: <148486365538.19694.2240825079628024512.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 05 Jan 2017 07:22:42 -0800
+Message-ID: <148362976248.39125.3102549215272905495.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,392 +20,191 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The initial motivation for this change is persistent memory platforms
-that, unfortunately, align the pmem range on a boundary less than a full
-section (64M vs 128M), and may change the alignment from one boot to the
-next. A secondary motivation is the arrival of prospective ZONE_DEVICE
-users that want devm_memremap_pages() to map PCI-E device memory ranges
-to enable peer-to-peer DMA.
+System crashes and other failures can occur if an environment attempts
+to run the unit tests with the "production" / in-tree versions of the
+nfit and libnvdimm modules. Ensure that all required test modules are
+supplied by out-of-tree versions.
 
-Currently the nvdimm core injects padding when 'pfn' (struct page
-mapping configuration) instances are created. However, not all users of
-devm_memremap_pages() have the opportunity to inject such padding. Users
-of the memmap=ss!nn kernel command line option can trigger the following
-failure with unaligned parameters like "memmap=0xfc000000!8G":
+Granted that this detection mechanism will not differentiate the proper
+tools/testing/nvdimm/ out-of-tree modules with something like a "driver
+update" version of the modules, but it should catch the common case of a
+platform being misconfigured for unit-test execution.
 
- WARNING: CPU: 0 PID: 558 at kernel/memremap.c:300 devm_memremap_pages+0x3b5/0x4c0
- devm_memremap_pages attempted on mixed region [mem 0x200000000-0x2fbffffff flags 0x200]
- [..]
- Call Trace:
-  [<ffffffff814c0393>] dump_stack+0x86/0xc3
-  [<ffffffff810b173b>] __warn+0xcb/0xf0
-  [<ffffffff810b17bf>] warn_slowpath_fmt+0x5f/0x80
-  [<ffffffff811eb105>] devm_memremap_pages+0x3b5/0x4c0
-  [<ffffffffa006f308>] __wrap_devm_memremap_pages+0x58/0x70 [nfit_test_iomap]
-  [<ffffffffa00e231a>] pmem_attach_disk+0x19a/0x440 [nd_pmem]
-
-Without this change a user could inadvertently lose access to nvdimm
-namespaces by adding/removing other DIMMs in the platform leading to the
-BIOS changing the base alignment of the namespace in an incompatible
-fashion. With this support we can accommodate a BIOS changing the
-namespace to any alignment provided it is >= SECTION_ACTIVE_SIZE.
-
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Stephen Bates <stephen.bates@microsemi.com>
+Reported-by: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- mm/sparse.c |  272 ++++++++++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 204 insertions(+), 68 deletions(-)
+ test/Makefile.am |   25 ++++++++++--------
+ test/core.c      |   76 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 90 insertions(+), 11 deletions(-)
 
-diff --git a/mm/sparse.c b/mm/sparse.c
-index a8358d15a90d..c89b3bbebce0 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -24,6 +24,7 @@
- #ifdef CONFIG_SPARSEMEM_EXTREME
- struct mem_section *mem_section[NR_SECTION_ROOTS]
- 	____cacheline_internodealigned_in_smp;
-+static DEFINE_SPINLOCK(mem_section_lock); /* atomically instantiate new entries */
- #else
- struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT]
- 	____cacheline_internodealigned_in_smp;
-@@ -89,7 +90,22 @@ static int __meminit sparse_index_init(unsigned long section_nr, int nid)
- 	if (!section)
- 		return -ENOMEM;
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 592308ee5f07..524fafa4a28a 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -40,30 +40,33 @@ LIBNDCTL_LIB =\
+        ../ndctl/lib/libndctl.la \
+        ../daxctl/lib/libdaxctl.la
  
--	mem_section[root] = section;
-+	spin_lock(&mem_section_lock);
-+	if (mem_section[root] == NULL) {
-+		mem_section[root] = section;
-+		section = NULL;
-+	}
-+	spin_unlock(&mem_section_lock);
+-libndctl_SOURCES = libndctl.c core.c
++testcore =\
++	core.c \
++	../util/log.c \
++	../util/sysfs.c
 +
-+	/*
-+	 * The only time we expect adding a section may race is during
-+	 * post-meminit hotplug. So, there is no expectation that 'section'
-+	 * leaks in the !slab_is_available() case.
-+	 */
-+	if (section && slab_is_available()) {
-+		kfree(section);
-+		return -EEXIST;
-+	}
++libndctl_SOURCES = libndctl.c $(testcore)
+ libndctl_LDADD = $(LIBNDCTL_LIB) $(UUID_LIBS) $(KMOD_LIBS)
  
- 	return 0;
- }
-@@ -288,6 +304,15 @@ static void __meminit sparse_init_one_section(struct mem_section *ms,
- 		unsigned long pnum, struct page *mem_map,
- 		struct mem_section_usage *usage)
+ dsm_fail_SOURCES =\
+ 	dsm-fail.c \
+-	core.c \
+-	../util/log.c \
+-	../util/sysfs.c
++	$(testcore)
+ 
+ dsm_fail_LDADD = $(LIBNDCTL_LIB) $(KMOD_LIBS)
+ 
+-blk_ns_SOURCES = blk_namespaces.c core.c
++blk_ns_SOURCES = blk_namespaces.c $(testcore)
+ blk_ns_LDADD = $(LIBNDCTL_LIB) $(KMOD_LIBS)
+ 
+-pmem_ns_SOURCES = pmem_namespaces.c core.c
++pmem_ns_SOURCES = pmem_namespaces.c $(testcore)
+ pmem_ns_LDADD = $(LIBNDCTL_LIB) $(KMOD_LIBS)
+ 
+-dpa_alloc_SOURCES = dpa-alloc.c core.c
++dpa_alloc_SOURCES = dpa-alloc.c $(testcore)
+ dpa_alloc_LDADD = $(LIBNDCTL_LIB) $(UUID_LIBS) $(KMOD_LIBS)
+ 
+-parent_uuid_SOURCES = parent-uuid.c core.c
++parent_uuid_SOURCES = parent-uuid.c $(testcore)
+ parent_uuid_LDADD = $(LIBNDCTL_LIB) $(UUID_LIBS) $(KMOD_LIBS)
+ 
+-dax_dev_SOURCES = dax-dev.c core.c
++dax_dev_SOURCES = dax-dev.c $(testcore)
+ dax_dev_LDADD = $(LIBNDCTL_LIB) $(KMOD_LIBS)
+ 
+ dax_pmd_SOURCES = dax-pmd.c
+@@ -73,7 +76,7 @@ device_dax_SOURCES = \
+ 		device-dax.c \
+ 		dax-dev.c \
+ 		dax-pmd.c \
+-		core.c \
++		$(testcore) \
+ 		../ndctl/builtin-xaction-namespace.c \
+ 		../util/json.c
+ device_dax_LDADD = \
+@@ -84,7 +87,7 @@ device_dax_LDADD = \
+ 
+ multi_pmem_SOURCES = \
+ 		multi-pmem.c \
+-		core.c \
++		$(testcore) \
+ 		../ndctl/builtin-xaction-namespace.c \
+ 		../util/json.c
+ multi_pmem_LDADD = \
+diff --git a/test/core.c b/test/core.c
+index 3119fd826a94..d1c38902feb4 100644
+--- a/test/core.c
++++ b/test/core.c
+@@ -6,6 +6,10 @@
+ #include <stdio.h>
+ #include <test.h>
+ 
++#include <util/log.h>
++#include <util/sysfs.h>
++#include <ccan/array_size/array_size.h>
++
+ #define KVER_STRLEN 20
+ 
+ struct ndctl_test {
+@@ -103,12 +107,84 @@ int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+ 		int log_level)
  {
-+	/*
-+	 * Given that SPARSEMEM_VMEMMAP=y supports sub-section hotplug,
-+	 * ->section_mem_map can not be guaranteed to point to a full
-+	 *  section's worth of memory.  The field is only valid / used
-+	 *  in the SPARSEMEM_VMEMMAP=n case.
-+	 */
-+	if (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP))
-+		mem_map = NULL;
+ 	int rc;
++	unsigned int i;
++	struct log_ctx log_ctx;
++	const char *list[] = {
++		"nfit",
++		"dax",
++		"dax_pmem",
++		"libnvdimm",
++		"nd_blk",
++		"nd_btt",
++		"nd_e820",
++		"nd_pmem",
++	};
 +
- 	ms->section_mem_map &= ~SECTION_MAP_MASK;
- 	ms->section_mem_map |= sparse_encode_mem_map(mem_map, pnum) |
- 		SECTION_HAS_MEM_MAP;
-@@ -753,12 +778,176 @@ static void free_map_bootmem(struct page *memmap)
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
++	log_init(&log_ctx, "test/init", "NDCTL_TEST");
++	log_ctx.log_priority = log_level;
  
-+static bool is_early_section(struct mem_section *ms)
-+{
-+	struct page *usemap_page;
+ 	*ctx = kmod_new(NULL, NULL);
+ 	if (!*ctx)
+ 		return -ENXIO;
+ 	kmod_set_log_priority(*ctx, log_level);
+ 
++	/*
++	 * Check that all nfit, libnvdimm, and device-dax modules are
++	 * the mocked versions. If they are loaded, check that they have
++	 * the "out-of-tree" kernel taint, otherwise check that they
++	 * come from the "/lib/modules/<KVER>/extra" directory.
++	 */
++	for (i = 0; i < ARRAY_SIZE(list); i++) {
++		char attr[SYSFS_ATTR_SIZE];
++		const char *name = list[i];
++		const char *path;
++		char buf[100];
++		int state;
 +
-+	usemap_page = virt_to_page(ms->usage->pageblock_flags);
-+	if (PageSlab(usemap_page) || PageCompound(usemap_page))
-+		return false;
-+	else
-+		return true;
++		rc = kmod_module_new_from_name(*ctx, name, mod);
++		if (rc) {
++			log_err(&log_ctx, "%s.ko: missing\n", name);
++			break;
++		}
 +
-+}
++		path = kmod_module_get_path(*mod);
++		if (!path) {
++			log_err(&log_ctx, "%s.ko: failed to get path\n", name);
++			break;
++		}
 +
-+#ifndef CONFIG_MEMORY_HOTREMOVE
-+static void free_map_bootmem(struct page *memmap)
-+{
-+}
-+#endif
++		if (!strstr(path, "/extra/")) {
++			log_err(&log_ctx, "%s.ko: appears to be production version: %s\n",
++					name, path);
++			break;
++		}
 +
-+static void section_deactivate(struct pglist_data *pgdat, unsigned long pfn,
-+                unsigned long nr_pages)
-+{
-+	bool early_section;
-+	struct page *memmap = NULL;
-+	struct mem_section_usage *usage = NULL;
-+	int section_nr = pfn_to_section_nr(pfn);
-+	struct mem_section *ms = __nr_to_section(section_nr);
-+	unsigned long mask = section_active_mask(pfn, nr_pages), flags;
++		state = kmod_module_get_initstate(*mod);
++		if (state == KMOD_MODULE_LIVE) {
++			sprintf(buf, "/sys/module/%s/taint", name);
++			rc = __sysfs_read_attr(&log_ctx, buf, attr);
++			if (rc < 0) {
++				log_err(&log_ctx, "%s.ko: failed to read %s\n",
++						name, buf);
++				break;
++			}
 +
-+	pgdat_resize_lock(pgdat, &flags);
-+	if (!ms->usage) {
-+		mask = 0;
-+	} else if ((ms->usage->map_active & mask) != mask) {
-+		WARN(1, "section already deactivated active: %#lx mask: %#lx\n",
-+				ms->usage->map_active, mask);
-+		mask = 0;
-+	} else {
-+		early_section = is_early_section(ms);
-+		ms->usage->map_active ^= mask;
-+		if (ms->usage->map_active == 0) {
-+			usage = ms->usage;
-+			ms->usage = NULL;
-+			memmap = sparse_decode_mem_map(ms->section_mem_map,
-+					section_nr);
-+			ms->section_mem_map = 0;
++			if (strcmp(attr, "O") != 0) {
++				log_err(&log_ctx, "%s.ko: expected taint: O got: %s\n",
++						name, attr);
++				break;
++			}
++		} else if (state == KMOD_MODULE_BUILTIN) {
++			log_err(&log_ctx, "%s: must be built as a module\n", name);
++			break;
 +		}
 +	}
-+	pgdat_resize_unlock(pgdat, &flags);
 +
-+	/*
-+	 * There are 3 cases to handle across two configurations
-+	 * (SPARSEMEM_VMEMMAP={y,n}):
-+	 *
-+	 * 1/ deactivation of a partial hot-added section (only possible
-+	 * in the SPARSEMEM_VMEMMAP=y case).
-+	 *    a/ section was present at memory init
-+	 *    b/ section was hot-added post memory init
-+	 * 2/ deactivation of a complete hot-added section
-+	 * 3/ deactivation of a complete section from memory init
-+	 *
-+	 * For 1/, when map_active does not go to zero we will not be
-+	 * freeing the usage map, but still need to free the vmemmap
-+	 * range.
-+	 *
-+	 * For 2/ and 3/ the SPARSEMEM_VMEMMAP={y,n} cases are unified
-+	 */
-+	if (!mask)
-+		return;
-+	if (nr_pages < PAGES_PER_SECTION) {
-+		if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)) {
-+			WARN(1, "partial memory section removal not supported\n");
-+			return;
-+		}
-+		if (!early_section)
-+			depopulate_section_memmap(pfn, nr_pages);
-+		memmap = 0;
++	if (i < ARRAY_SIZE(list)) {
++		kmod_unref(*ctx);
++		return -ENXIO;
 +	}
 +
-+	if (usage) {
-+		if (!early_section) {
-+			/*
-+			 * 'memmap' may be zero in the SPARSEMEM_VMEMMAP=y case
-+			 * (see sparse_init_one_section()), so we can't rely on
-+			 * it to determine if we need to depopulate the memmap.
-+			 * Instead, we uncoditionally depopulate due to 'usage'
-+			 * being valid.
-+			 */
-+			if (memmap || (nr_pages >= PAGES_PER_SECTION
-+					&& IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)))
-+				depopulate_section_memmap(pfn, nr_pages);
-+			kfree(usage);
-+			return;
-+		}
-+	}
-+
-+	/*
-+	 * The usemap came from bootmem. This is packed with other usemaps
-+	 * on the section which has pgdat at boot time. Just keep it as is now.
-+	 */
-+	if (memmap)
-+		free_map_bootmem(memmap);
-+}
-+
-+static struct page * __meminit section_activate(struct pglist_data *pgdat,
-+		unsigned long pfn, unsigned nr_pages)
-+{
-+	struct mem_section *ms = __nr_to_section(pfn_to_section_nr(pfn));
-+	unsigned long mask = section_active_mask(pfn, nr_pages), flags;
-+	struct mem_section_usage *usage;
-+	bool early_section = false;
-+	struct page *memmap;
-+	int rc = 0;
-+
-+	usage = __alloc_section_usage();
-+	if (!usage)
-+		return ERR_PTR(-ENOMEM);
-+
-+	pgdat_resize_lock(pgdat, &flags);
-+	if (!ms->usage) {
-+		ms->usage = usage;
-+		usage = NULL;
-+	} else
-+		early_section = is_early_section(ms);
-+
-+	if (!mask)
-+		rc = -EINVAL;
-+	else if (mask & ms->usage->map_active)
-+		rc = -EBUSY;
-+	else
-+		ms->usage->map_active |= mask;
-+	pgdat_resize_unlock(pgdat, &flags);
-+
-+	kfree(usage);
-+
-+	if (rc)
-+		return ERR_PTR(rc);
-+
-+
-+	/*
-+	 * The early init code does not consider partially populated
-+	 * initial sections, it simply assumes that memory will never be
-+	 * referenced.  If we hot-add memory into such a section then we
-+	 * do not need to populate the memmap and can simply reuse what
-+	 * is already there.
-+	 */
-+	if (nr_pages < PAGES_PER_SECTION && early_section)
-+		return pfn_to_page(pfn);
-+
-+	memmap = populate_section_memmap(pfn, nr_pages, pgdat->node_id);
-+	if (!memmap) {
-+		section_deactivate(pgdat, pfn, nr_pages);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	return memmap;
-+}
-+
-+/**
-+ * sparse_add_section() - create a new memmap section, or populate an
-+ * existing one
-+ * @zone: host zone for the new memory mapping
-+ * @start_pfn: first pfn to add (section aligned if zone != ZONE_DEVICE)
-+ * @nr_pages: number of new pages to add
-+ *
-+ * Returns 0 on success.
-+ */
- int __meminit sparse_add_section(struct zone *zone, unsigned long start_pfn,
- 		unsigned long nr_pages)
- {
- 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
- 	struct pglist_data *pgdat = zone->zone_pgdat;
--	static struct mem_section_usage *usage;
- 	struct mem_section *ms;
- 	struct page *memmap;
- 	unsigned long flags;
-@@ -771,37 +960,27 @@ int __meminit sparse_add_section(struct zone *zone, unsigned long start_pfn,
- 	ret = sparse_index_init(section_nr, pgdat->node_id);
- 	if (ret < 0 && ret != -EEXIST)
- 		return ret;
--	memmap = populate_section_memmap(start_pfn, PAGES_PER_SECTION,
--			pgdat->node_id);
--	if (!memmap)
--		return -ENOMEM;
--	usage = __alloc_section_usage();
--	if (!usage) {
--		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION);
--		return -ENOMEM;
--	}
- 
--	pgdat_resize_lock(pgdat, &flags);
-+	memmap = section_activate(pgdat, start_pfn, nr_pages);
-+	if (IS_ERR(memmap))
-+		return PTR_ERR(memmap);
- 
-+	pgdat_resize_lock(pgdat, &flags);
- 	ms = __pfn_to_section(start_pfn);
--	if (ms->section_mem_map & SECTION_MARKED_PRESENT) {
-+	if (nr_pages == PAGES_PER_SECTION && (ms->section_mem_map
-+				& SECTION_MARKED_PRESENT)) {
- 		ret = -EBUSY;
- 		goto out;
- 	}
--
--	memset(memmap, 0, sizeof(struct page) * PAGES_PER_SECTION);
--
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
--
--	sparse_init_one_section(ms, section_nr, memmap, usage);
--
-+	sparse_init_one_section(ms, section_nr, memmap, ms->usage);
- out:
- 	pgdat_resize_unlock(pgdat, &flags);
--	if (ret < 0 && ret != -EEXIST) {
--		kfree(usage);
--		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION);
-+	if (nr_pages == PAGES_PER_SECTION && ret < 0 && ret != -EEXIST) {
-+		section_deactivate(pgdat, start_pfn, nr_pages);
- 		return ret;
- 	}
-+	memset(memmap, 0, sizeof(struct page) * nr_pages);
- 	return 0;
- }
- 
-@@ -827,58 +1006,15 @@ static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
- }
- #endif
- 
--static void free_section_usage(struct page *memmap,
--		struct mem_section_usage *usage, unsigned long pfn,
--		unsigned long nr_pages)
--{
--	struct page *usemap_page;
--
--	if (!usage)
--		return;
--
--	usemap_page = virt_to_page(usage->pageblock_flags);
--	/*
--	 * Check to see if allocation came from hot-plug-add
--	 */
--	if (PageSlab(usemap_page) || PageCompound(usemap_page)) {
--		kfree(usage);
--		if (memmap)
--			depopulate_section_memmap(pfn, nr_pages);
--		return;
--	}
--
--	/*
--	 * The usemap came from bootmem. This is packed with other usemaps
--	 * on the section which has pgdat at boot time. Just keep it as is now.
--	 */
--
--	if (memmap)
--		free_map_bootmem(memmap);
--}
--
- void sparse_remove_section(struct zone *zone, struct mem_section *ms,
- 		unsigned long pfn, unsigned long nr_pages,
- 		unsigned long map_offset)
- {
--	unsigned long flags;
--	struct page *memmap = NULL;
--	struct mem_section_usage *usage = NULL;
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 
--	pgdat_resize_lock(pgdat, &flags);
--	if (ms->section_mem_map) {
--		usage = ms->usage;
--		memmap = sparse_decode_mem_map(ms->section_mem_map,
--						__section_nr(ms));
--		ms->section_mem_map = 0;
--		ms->usage = NULL;
--	}
--	pgdat_resize_unlock(pgdat, &flags);
--
--	clear_hwpoisoned_pages(memmap + map_offset,
--			PAGES_PER_SECTION - map_offset);
--	free_section_usage(memmap, usage, section_nr_to_pfn(__section_nr(ms)),
--			PAGES_PER_SECTION);
-+	clear_hwpoisoned_pages(pfn_to_page(pfn) + map_offset,
-+			nr_pages - map_offset);
-+	section_deactivate(pgdat, pfn, nr_pages);
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #endif /* CONFIG_MEMORY_HOTPLUG */
+ 	rc = kmod_module_new_from_name(*ctx, "nfit_test", mod);
+ 	if (rc < 0) {
+ 		kmod_unref(*ctx);
 
 _______________________________________________
 Linux-nvdimm mailing list
