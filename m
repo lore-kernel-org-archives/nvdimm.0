@@ -1,58 +1,81 @@
-From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] pmem: return EIO on read_pmem() failure
-Date: Thu, 05 Jan 2017 10:11:32 -0500
-Message-ID: <x491swh35jv.fsf@segfault.boston.devel.redhat.com>
-References: <20170105100546.11379-1-stefanha@redhat.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v2 0/4] Write protect DAX PMDs in *sync path
+Date: Thu, 5 Jan 2017 17:27:34 -0800
+Message-ID: <20170105172734.23a7603ff19006b49e9ba01a@linux-foundation.org>
+References: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
+	<20170104001349.GA8176@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170105100546.11379-1-stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> (Stefan Hajnoczi's
- message of "Thu, 5 Jan 2017 10:05:46 +0000")
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20170104001349.GA8176@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@intel.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@ml01.01.org
 List-Id: linux-nvdimm@lists.01.org
 
-Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> writes:
+On Tue, 3 Jan 2017 17:13:49 -0700 Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
 
-> The read_pmem() function uses memcpy_mcsafe() on x86 where an EFAULT
-> error code indicates a failed read.  Block I/O should use EIO to
-> indicate failure.  Other pmem code paths (like bad blocks) already use
-> EIO so let's be consistent.
+> On Thu, Dec 22, 2016 at 02:18:52PM -0700, Ross Zwisler wrote:
+> > Currently dax_mapping_entry_mkclean() fails to clean and write protect the
+> > pmd_t of a DAX PMD entry during an *sync operation.  This can result in
+> > data loss, as detailed in patch 4.
+> > 
+> > You can find a working tree here:
+> > 
+> > https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_pmd_clean_v2
+> > 
+> > This series applies cleanly to mmotm-2016-12-19-16-31.
+> > 
+> > Changes since v1:
+> >  - Included Dan's patch to kill DAX support for UML.
+> >  - Instead of wrapping the DAX PMD code in dax_mapping_entry_mkclean() in
+> >    an #ifdef, we now create a stub for pmdp_huge_clear_flush() for the case
+> >    when CONFIG_TRANSPARENT_HUGEPAGE isn't defined. (Dan & Jan)
+> > 
+> > Dan Williams (1):
+> >   dax: kill uml support
+> > 
+> > Ross Zwisler (3):
+> >   dax: add stub for pmdp_huge_clear_flush()
+> >   mm: add follow_pte_pmd()
+> >   dax: wrprotect pmd_t in dax_mapping_entry_mkclean
+> > 
+> >  fs/Kconfig                    |  2 +-
+> >  fs/dax.c                      | 49 ++++++++++++++++++++++++++++++-------------
+> >  include/asm-generic/pgtable.h | 10 +++++++++
+> >  include/linux/mm.h            |  4 ++--
+> >  mm/memory.c                   | 41 ++++++++++++++++++++++++++++--------
+> >  5 files changed, 79 insertions(+), 27 deletions(-)
+> 
+> Well, 0-day found another architecture that doesn't define pmd_pfn() et al.,
+> so we'll need some more fixes. (Thank you, 0-day, for the coverage!)
+> 
+> I have to apologize, I didn't understand that Dan intended his "dax: kill uml
+> support" patch to land in v4.11.  I thought he intended it as a cleanup to my
+> series, which really needs to land in v4.10.  That's why I folded them
+> together into this v2, along with the wrapper suggested by Jan.
+> 
+> Andrew, does it work for you to just keep v1 of this series, and eventually
+> send that to Linus for v4.10?
+> 
+> https://lkml.org/lkml/2016/12/20/649
+> 
+> You've already pulled that one into -mm, and it does correctly solve the data
+> loss issue.
+> 
+> That would let us deal with getting rid of the #ifdef, blacklisting
+> architectures and introducing the pmdp_huge_clear_flush() strub in a follow-on
+> series for v4.11.
 
-I agree that it's the right thing to return, though right now it
-probably doesn't matter.  As Dan said, all paths leading back to
-userspace interpret any non-zero value as EIO.
+I have mm-add-follow_pte_pmd.patch and
+dax-wrprotect-pmd_t-in-dax_mapping_entry_mkclean.patch queued for 4.10.
+Please (re)send any additional patches, indicating for each one
+whether you believe it should also go into 4.10?
 
-Reviewed-by: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-> Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/nvdimm/pmem.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> index 7282d74..5b536be 100644
-> --- a/drivers/nvdimm/pmem.c
-> +++ b/drivers/nvdimm/pmem.c
-> @@ -90,7 +90,9 @@ static int read_pmem(struct page *page, unsigned int off,
->  
->  	rc = memcpy_from_pmem(mem + off, pmem_addr, len);
->  	kunmap_atomic(mem);
-> -	return rc;
-> +	if (rc)
-> +		return -EIO;
-> +	return 0;
->  }
->  
->  static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
