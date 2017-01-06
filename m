@@ -1,79 +1,140 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH v2 0/4] Write protect DAX PMDs in *sync path
-Date: Fri, 6 Jan 2017 11:18:19 -0700
-Message-ID: <20170106181819.GA3486@linux.intel.com>
-References: <1482441536-14550-1-git-send-email-ross.zwisler@linux.intel.com>
- <20170104001349.GA8176@linux.intel.com>
- <20170105172734.23a7603ff19006b49e9ba01a@linux-foundation.org>
+From: "VERDIE" <robikris22-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: I need real facebook fans
+Date: Sat, 07 Jan 2017 02:50:44 +0700
+Message-ID: <35E5474E.38711594@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arch-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170105172734.23a7603ff19006b49e9ba01a@linux-foundation.org>
-Sender: linux-arch-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@intel.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@ml01.01.org
+Content-Type: multipart/mixed; boundary="----------=_586FFBC7.69C6A339"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu, Jan 05, 2017 at 05:27:34PM -0800, Andrew Morton wrote:
-> On Tue, 3 Jan 2017 17:13:49 -0700 Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
-> 
-> > On Thu, Dec 22, 2016 at 02:18:52PM -0700, Ross Zwisler wrote:
-> > > Currently dax_mapping_entry_mkclean() fails to clean and write protect the
-> > > pmd_t of a DAX PMD entry during an *sync operation.  This can result in
-> > > data loss, as detailed in patch 4.
-> > > 
-> > > You can find a working tree here:
-> > > 
-> > > https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_pmd_clean_v2
-> > > 
-> > > This series applies cleanly to mmotm-2016-12-19-16-31.
-> > > 
-> > > Changes since v1:
-> > >  - Included Dan's patch to kill DAX support for UML.
-> > >  - Instead of wrapping the DAX PMD code in dax_mapping_entry_mkclean() in
-> > >    an #ifdef, we now create a stub for pmdp_huge_clear_flush() for the case
-> > >    when CONFIG_TRANSPARENT_HUGEPAGE isn't defined. (Dan & Jan)
-> > > 
-> > > Dan Williams (1):
-> > >   dax: kill uml support
-> > > 
-> > > Ross Zwisler (3):
-> > >   dax: add stub for pmdp_huge_clear_flush()
-> > >   mm: add follow_pte_pmd()
-> > >   dax: wrprotect pmd_t in dax_mapping_entry_mkclean
-> > > 
-> > >  fs/Kconfig                    |  2 +-
-> > >  fs/dax.c                      | 49 ++++++++++++++++++++++++++++++-------------
-> > >  include/asm-generic/pgtable.h | 10 +++++++++
-> > >  include/linux/mm.h            |  4 ++--
-> > >  mm/memory.c                   | 41 ++++++++++++++++++++++++++++--------
-> > >  5 files changed, 79 insertions(+), 27 deletions(-)
-> > 
-> > Well, 0-day found another architecture that doesn't define pmd_pfn() et al.,
-> > so we'll need some more fixes. (Thank you, 0-day, for the coverage!)
-> > 
-> > I have to apologize, I didn't understand that Dan intended his "dax: kill uml
-> > support" patch to land in v4.11.  I thought he intended it as a cleanup to my
-> > series, which really needs to land in v4.10.  That's why I folded them
-> > together into this v2, along with the wrapper suggested by Jan.
-> > 
-> > Andrew, does it work for you to just keep v1 of this series, and eventually
-> > send that to Linus for v4.10?
-> > 
-> > https://lkml.org/lkml/2016/12/20/649
-> > 
-> > You've already pulled that one into -mm, and it does correctly solve the data
-> > loss issue.
-> > 
-> > That would let us deal with getting rid of the #ifdef, blacklisting
-> > architectures and introducing the pmdp_huge_clear_flush() strub in a follow-on
-> > series for v4.11.
-> 
-> I have mm-add-follow_pte_pmd.patch and
-> dax-wrprotect-pmd_t-in-dax_mapping_entry_mkclean.patch queued for 4.10.
-> Please (re)send any additional patches, indicating for each one
-> whether you believe it should also go into 4.10?
+This is a multi-part message in MIME format.
 
-The two patches that you already have queued are correct, and no additional
-patches are necessary for v4.10 for this issue.
+------------=_586FFBC7.69C6A339
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  hi here it is http://www.topsocialfollowers.com/shop/facebook/
+   Regards VERDIE [...] 
+
+Content analysis details:   (8.2 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: topsocialfollowers.com]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 2.8 FSL_HELO_FAKE          No description available.
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+              [Blocked - see <http://www.spamcop.net/bl.shtml?89.179.180.228>]
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: topsocialfollowers.com]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (robikris22[at]gmail.com)
+ 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
+                            (robikris22[at]gmail.com)
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0000]
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+
+
+------------=_586FFBC7.69C6A339
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1cPayg-0001b0-Eq
+	for gln-linux-nvdimm@m.gmane.org; Fri, 06 Jan 2017 21:19:06 +0100
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id C178581A2F;
+	Fri,  6 Jan 2017 12:19:09 -0800 (PST)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from gmail.com (unknown [89.179.180.228])
+ by ml01.01.org (Postfix) with SMTP id A166281A2C
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Fri,  6 Jan 2017 12:19:07 -0800 (PST)
+Message-ID: <35E5474E.38711594-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Sat, 07 Jan 2017 02:50:44 +0700
+From: "VERDIE" <robikris22-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (X11; U; SunOS sun4u; en-US;
+ rv:1.8.1.4) Gecko/20070622 Thunderbird/2.0.0.4
+X-Accept-Language: en-us
+MIME-Version: 1.0
+To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: re: I need real facebook fans
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.21
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Reply-To: VERDIE <robikris22-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+hi
+here it is
+
+http://www.topsocialfollowers.com/shop/facebook/
+
+Regards
+VERDIE
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option is available on the footer of our website
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_586FFBC7.69C6A339--
