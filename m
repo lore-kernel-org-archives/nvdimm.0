@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6BF3E82004
- for <linux-nvdimm@lists.01.org>; Sat, 28 Jan 2017 00:40:58 -0800 (PST)
-Subject: [RFC PATCH 09/17] block: kill bdev_dax_capable()
+ by ml01.01.org (Postfix) with ESMTPS id 2D1BC81A51
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Jan 2017 17:46:29 -0800 (PST)
+Subject: [ndctl PATCH 3/7] ndctl, list: add option to filter namespace by mode
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 28 Jan 2017 00:36:52 -0800
-Message-ID: <148559261248.11180.9969692627177035979.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 06 Jan 2017 17:42:22 -0800
+Message-ID: <148375334240.38836.11254192921259549701.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148375332631.38836.5735184615585844571.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148375332631.38836.5735184615585844571.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,65 +23,108 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: snitzer@redhat.com, mawilcox@microsoft.com, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is leftover dead code that has since been replaced by
-bdev_dax_supported().
+For example, "ndctl list -m dax" list all the namespaces that are
+hosting a device-dax region.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/block_dev.c         |   24 ------------------------
- include/linux/blkdev.h |    1 -
- 2 files changed, 25 deletions(-)
+ ndctl/builtin-list.c |   33 ++++++++++++++++++++++++++++++++-
+ ndctl/libndctl.h.in  |    1 +
+ 2 files changed, 33 insertions(+), 1 deletion(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 601b71b76d7f..edb1d2b16b8f 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -807,30 +807,6 @@ int bdev_dax_supported(struct super_block *sb, int blocksize)
- }
- EXPORT_SYMBOL_GPL(bdev_dax_supported);
+diff --git a/ndctl/builtin-list.c b/ndctl/builtin-list.c
+index caafec8b8f39..b09da3057519 100644
+--- a/ndctl/builtin-list.c
++++ b/ndctl/builtin-list.c
+@@ -30,6 +30,7 @@ static struct {
+ 	const char *region;
+ 	const char *type;
+ 	const char *dimm;
++	const char *mode;
+ 	const char *namespace;
+ } param;
  
--/**
-- * bdev_dax_capable() - Return if the raw device is capable for dax
-- * @bdev: The device for raw block device access
-- */
--bool bdev_dax_capable(struct block_device *bdev)
--{
--	struct blk_dax_ctl dax = {
--		.size = PAGE_SIZE,
--	};
--
--	if (!IS_ENABLED(CONFIG_FS_DAX))
--		return false;
--
--	dax.sector = 0;
--	if (bdev_direct_access(bdev, &dax) < 0)
--		return false;
--
--	dax.sector = bdev->bd_part->nr_sects - (PAGE_SIZE / 512);
--	if (bdev_direct_access(bdev, &dax) < 0)
--		return false;
--
--	return true;
--}
--
- /*
-  * pseudo-fs
-  */
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 3c0ff78b1219..5e7706f7d533 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1904,7 +1904,6 @@ extern int bdev_write_page(struct block_device *, sector_t, struct page *,
- 						struct writeback_control *);
- extern long bdev_direct_access(struct block_device *, struct blk_dax_ctl *);
- extern int bdev_dax_supported(struct super_block *, int);
--extern bool bdev_dax_capable(struct block_device *);
- #else /* CONFIG_BLOCK */
+@@ -43,6 +44,25 @@ do { \
+ 			VERSION, __func__, __LINE__, ##__VA_ARGS__); \
+ } while (0)
  
- struct block_device;
++static enum ndctl_namespace_mode mode_to_type(const char *mode)
++{
++	if (!mode)
++		return -ENXIO;
++
++	if (strcasecmp(param.mode, "memory") == 0)
++		return NDCTL_NS_MODE_MEMORY;
++	else if (strcasecmp(param.mode, "sector") == 0)
++		return NDCTL_NS_MODE_SAFE;
++	else if (strcasecmp(param.mode, "safe") == 0)
++		return NDCTL_NS_MODE_SAFE;
++	else if (strcasecmp(param.mode, "dax") == 0)
++		return NDCTL_NS_MODE_DAX;
++	else if (strcasecmp(param.mode, "raw") == 0)
++		return NDCTL_NS_MODE_RAW;
++
++	return NDCTL_NS_MODE_UNKNOWN;
++}
++
+ static struct json_object *list_namespaces(struct ndctl_region *region,
+ 		struct json_object *container, struct json_object *jnamespaces,
+ 		bool continue_array)
+@@ -50,6 +70,7 @@ static struct json_object *list_namespaces(struct ndctl_region *region,
+ 	struct ndctl_namespace *ndns;
+ 
+ 	ndctl_namespace_foreach(region, ndns) {
++		enum ndctl_namespace_mode mode = ndctl_namespace_get_mode(ndns);
+ 		struct json_object *jndns;
+ 
+ 		/* are we emitting namespaces? */
+@@ -59,6 +80,9 @@ static struct json_object *list_namespaces(struct ndctl_region *region,
+ 		if (!util_namespace_filter(ndns, param.namespace))
+ 			continue;
+ 
++		if (param.mode && mode_to_type(param.mode) != mode)
++			continue;
++
+ 		if (!list.idle && !util_namespace_active(ndns))
+ 			continue;
+ 
+@@ -197,7 +221,9 @@ int cmd_list(int argc, const char **argv, void *ctx)
+ 		OPT_STRING('d', "dimm", &param.dimm, "dimm-id",
+ 				"filter by dimm"),
+ 		OPT_STRING('n', "namespace", &param.namespace, "namespace-id",
+-				"filter by namespace"),
++				"filter by namespace id"),
++		OPT_STRING('m', "mode", &param.mode, "namespace-mode",
++				"filter by namespace mode"),
+ 		OPT_STRING('t', "type", &param.type, "region-type",
+ 				"filter by region-type"),
+ 		OPT_BOOLEAN('B', "buses", &list.buses, "include bus info"),
+@@ -251,6 +277,11 @@ int cmd_list(int argc, const char **argv, void *ctx)
+ 			type = ND_DEVICE_REGION_BLK;
+ 	}
+ 
++	if (mode_to_type(param.mode) == NDCTL_NS_MODE_UNKNOWN) {
++		error("invalid mode: '%s'\n", param.mode);
++		return -EINVAL;
++	}
++
+ 	ndctl_bus_foreach(ctx, bus) {
+ 		struct json_object *jbus = NULL;
+ 		struct ndctl_region *region;
+diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
+index d45111775525..394d22e24c7a 100644
+--- a/ndctl/libndctl.h.in
++++ b/ndctl/libndctl.h.in
+@@ -475,6 +475,7 @@ enum ndctl_namespace_mode {
+ 	NDCTL_NS_MODE_SAFE,
+ 	NDCTL_NS_MODE_RAW,
+ 	NDCTL_NS_MODE_DAX,
++	NDCTL_NS_MODE_UNKNOWN,
+ };
+ enum ndctl_namespace_mode ndctl_namespace_get_mode(
+ 		struct ndctl_namespace *ndns);
 
 _______________________________________________
 Linux-nvdimm mailing list
