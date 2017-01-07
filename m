@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C29C981C73
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 14:10:42 -0800 (PST)
-Subject: [PATCH v3 00/12] mm: sub-section memory hotplug support
+ by ml01.01.org (Postfix) with ESMTPS id A1D8881A56
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Jan 2017 17:07:08 -0800 (PST)
+Subject: [RFC PATCH v2 2/2] block: fix blk_get_backing_dev_info() crash,
+ use bdev->bd_queue
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Jan 2017 14:06:36 -0800
-Message-ID: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 06 Jan 2017 17:03:01 -0800
+Message-ID: <148375098178.37020.13124065464072336113.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148375097100.37020.495735345355345658.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148375097100.37020.495735345355345658.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,99 +23,83 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Mel Gorman <mgorman@techsingularity.net>, Vlastimil Babka <vbabka@suse.cz>
+To: linux-block@vger.kernel.org
+Cc: Andi Kleen <ak@linux.intel.com>, Jan Kara <jack@suse.cz>, Rabin Vincent <rabinv@axis.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Jens Axboe <axboe@fb.com>, Wei Fang <fangwei1@huawei.com>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v2 [1]:
+The ->bd_queue member of struct block_device was added in commit
+87192a2a49c4 ("vfs: cache request_queue in struct block_device") in
+v3.3. However, blk_get_backing_dev_info() has been using
+bdev_get_queue() and grabbing the request_queue through the gendisk
+since before the git era.
 
-1/ Fixed a bug inserting multi-order entries into pgmap_radix. The
-   insert index needs to be 'order' aligned.
+At final __blkdev_put() time ->bd_disk is cleared while ->bd_queue is
+not. The queue remains valid until the final put of the parent disk.
 
-2/ Fixed a __meminit section mismatch warning for section_activate()
+The following crash signature results from blk_get_backing_dev_info()
+trying to lookup the queue through ->bd_disk after the final put of the
+block device. Simply switch bdev_get_queue() to use ->bd_queue directly
+which is guaranteed to still be valid since the request_queue is alive
+as long as the inode corresponding to the bdev has not been destroyed.
 
-3/ Forward ported to v4.10-rc4
-
-[1]: https://lwn.net/Articles/708627/
-
----
-
-The initial motivation for this change is persistent memory platforms
-that, unfortunately, align the pmem range on a boundary less than a full
-section (64M vs 128M), and may change the alignment from one boot to the
-next. A secondary motivation is the arrival of prospective ZONE_DEVICE
-users that want devm_memremap_pages() to map PCI-E device memory ranges
-to enable peer-to-peer DMA. There is a range of possible physical
-address alignments of PCI-E BARs that are less than 128M.
-
-Currently the libnvdimm core injects padding when 'pfn' (struct page
-mapping configuration) instances are created. However, not all users of
-devm_memremap_pages() have the opportunity to inject such padding. Users
-of the memmap=ss!nn kernel command line option can trigger the following
-failure with unaligned parameters like "memmap=0xfc000000!8G":
-
- WARNING: CPU: 0 PID: 558 at kernel/memremap.c:300
- devm_memremap_pages attempted on mixed region [mem 0x200000000-0x2fbffffff flags 0x200]
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000568
+ IP: blk_get_backing_dev_info+0x10/0x20
  [..]
  Call Trace:
-  [<ffffffff814c0393>] dump_stack+0x86/0xc3
-  [<ffffffff810b173b>] __warn+0xcb/0xf0
-  [<ffffffff810b17bf>] warn_slowpath_fmt+0x5f/0x80
-  [<ffffffff811eb105>] devm_memremap_pages+0x3b5/0x4c0
-  [<ffffffffa006f308>] __wrap_devm_memremap_pages+0x58/0x70 [nfit_test_iomap]
-  [<ffffffffa00e231a>] pmem_attach_disk+0x19a/0x440 [nd_pmem]
+  __inode_attach_wb+0x3a7/0x5d0
+  __filemap_fdatawrite_range+0xf8/0x100
+  filemap_write_and_wait+0x40/0x90
+  fsync_bdev+0x54/0x60
+  ? bdget_disk+0x30/0x40
+  invalidate_partition+0x24/0x50
+  del_gendisk+0xfa/0x230
 
-Without this change a user could inadvertently lose access to nvdimm
-namespaces after a configuration change. The act of adding, removing, or
-rearranging DIMMs in the platform could lead to the BIOS changing the
-base alignment of the namespace in an incompatible fashion.  With this
-support we can accommodate a BIOS changing the namespace to any
-alignment provided it is >= SECTION_ACTIVE_SIZE.
-
-In other words, we are protecting against misalignment injected by the
-BIOS after the libnvdimm sub-system already recorded that the namespace
-does not need alignment padding. In that case the user would need to
-figure out how to undo the configuration change to regain access to
-their nvdimm capacity.
-
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Wei Fang <fangwei1@huawei.com>
+Cc: Rabin Vincent <rabinv@axis.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ block/blk-core.c       |    4 ++--
+ include/linux/blkdev.h |    6 +++++-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-The patches have received a build success notification from the
-0day-kbuild robot across 142 configs and pass the latest libnvdimm/ndctl
-unit test suite. They merge cleanly on top of current -next (test merge
-with next-20170118).
+diff --git a/block/blk-core.c b/block/blk-core.c
+index e8713137b846..cfd6731dfed7 100644
+--- a/block/blk-core.c
++++ b/block/blk-core.c
+@@ -108,8 +108,8 @@ void blk_queue_congestion_threshold(struct request_queue *q)
+  * @bdev:	device
+  *
+  * Locates the passed device's request queue and returns the address of its
+- * backing_dev_info.  This function can only be called if @bdev is opened
+- * and the return value is never NULL.
++ * backing_dev_info.  This function can be called until the final iput()
++ * of the bdev inode.
+  */
+ struct backing_dev_info *blk_get_backing_dev_info(struct block_device *bdev)
+ {
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index c47c358ba052..fd332da0fc38 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -841,7 +841,11 @@ bool blk_poll(struct request_queue *q, blk_qc_t cookie);
+ 
+ static inline struct request_queue *bdev_get_queue(struct block_device *bdev)
+ {
+-	return bdev->bd_disk->queue;	/* this is never NULL */
++	/*
++	 * ->bd_queue is valid as long as there is a reference against
++	 *  the bdev inode.
++	 */
++	return bdev->bd_queue;
+ }
+ 
+ /*
 
----
-
-Dan Williams (12):
-      mm: fix type width of section to/from pfn conversion macros
-      mm, devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
-      mm: introduce struct mem_section_usage to track partial population of a section
-      mm: introduce common definitions for the size and mask of a section
-      mm: cleanup sparse_init_one_section() return value
-      mm: track active portions of a section at boot
-      mm: fix register_new_memory() zone type detection
-      mm: convert kmalloc_section_memmap() to populate_section_memmap()
-      mm: prepare for hot-{add,remove} of sub-section ranges
-      mm: support section-unaligned ZONE_DEVICE memory ranges
-      mm: enable section-unaligned devm_memremap_pages()
-      libnvdimm, pfn, dax: stop padding pmem namespaces to section alignment
-
-
- arch/x86/mm/init_64.c          |   15 +
- drivers/base/memory.c          |   26 +-
- drivers/nvdimm/pfn_devs.c      |   42 +---
- include/linux/memory.h         |    4 
- include/linux/memory_hotplug.h |    6 -
- include/linux/mm.h             |    3 
- include/linux/mmzone.h         |   30 ++-
- kernel/memremap.c              |   74 ++++---
- mm/Kconfig                     |    1 
- mm/memory_hotplug.c            |   95 ++++----
- mm/page_alloc.c                |    6 -
- mm/sparse-vmemmap.c            |   24 +-
- mm/sparse.c                    |  454 +++++++++++++++++++++++++++++-----------
- 13 files changed, 511 insertions(+), 269 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
