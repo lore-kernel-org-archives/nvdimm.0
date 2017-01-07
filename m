@@ -2,12 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A83A481EFA
- for <linux-nvdimm@lists.01.org>; Mon, 23 Jan 2017 17:29:06 -0800 (PST)
-Subject: [ndctl PATCH v2] ndctl, create-namespace: add an 'align' option
+ by ml01.01.org (Postfix) with ESMTPS id 3622B8178C
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Jan 2017 17:07:03 -0800 (PST)
+Subject: [RFC PATCH v2 1/2] block: fix lifetime of request_queue /
+ backing_dev_info relative to bdev
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 23 Jan 2017 17:25:00 -0800
-Message-ID: <148522094936.19906.16022034275569720722.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 06 Jan 2017 17:02:56 -0800
+Message-ID: <148375097659.37020.8663217538744770382.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148375097100.37020.495735345355345658.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148375097100.37020.495735345355345658.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,328 +23,137 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-block@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Jens Axboe <axboe@fb.com>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When memory-mode support was added to the kernel it also included a
-facility to set the alignment of the namespace. By default it is set to
-2M, but 4K and 1G are also valid options. Add this support to the
-utility. As Dave notes, this is prompted by the desire to add test
-support for device-dax using nfit-test resources. Given the nfit_test
-resources are backed by vmalloc, the only alignment nfit_test can
-support is 4K.
+By definition the lifetime of a struct block_device is equal to the
+lifetime of its corresponding inode since they both live in struct
+bdev_inode. Up until the inode is destroyed it may be the target of
+delayed write-back requests. Issuing write-back to a block_device
+requires a lookup of the bdev backing_dev_info that is embedded in the
+request_queue.
 
-Based on an earlier patch by Dave Jiang.
+It follows that a struct request_queue must be alive as long as a
+corresponding block device inode is the active target of requests.
 
-Cc: Dave Jiang <dave.jiang@intel.com>
+Match the lifetimes of backing_dev_info and its usage in
+inode-write-back by arranging for the bdev to take a reference against
+its request_queue when the bdev is instantiated. Release the
+request_queue reference when the inode is freed.
+
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Reported-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ block/blk-core.c   |    3 ++-
+ fs/block_dev.c     |   25 +++++++++++++++----------
+ include/linux/fs.h |    1 +
+ 3 files changed, 18 insertions(+), 11 deletions(-)
 
-Changes in v2:
-
-* fix default alignment handling, catch the default case and don't
-  enforce alignment checks for older kernels or modes where it doesn't
-  make sense.
-
-* fix up / clarify code comments
-
- Documentation/ndctl-create-namespace.txt |   13 ++++
- ndctl/builtin-xaction-namespace.c        |   95 +++++++++++++++++++++++-------
- ndctl/lib/libndctl.c                     |    5 ++
- ndctl/lib/libndctl.sym                   |    1 
- ndctl/libndctl.h.in                      |    1 
- util/size.h                              |    1 
- 6 files changed, 95 insertions(+), 21 deletions(-)
-
-diff --git a/Documentation/ndctl-create-namespace.txt b/Documentation/ndctl-create-namespace.txt
-index 5b62b959ffb4..6007214658b6 100644
---- a/Documentation/ndctl-create-namespace.txt
-+++ b/Documentation/ndctl-create-namespace.txt
-@@ -84,6 +84,19 @@ OPTIONS
- 	suffixes "k" or "K" for KiB, "m" or "M" for MiB, "g" or "G" for
- 	GiB and "t" or "T" for TiB.
+diff --git a/block/blk-core.c b/block/blk-core.c
+index 14d7c0740dc0..e8713137b846 100644
+--- a/block/blk-core.c
++++ b/block/blk-core.c
+@@ -378,7 +378,8 @@ EXPORT_SYMBOL(blk_run_queue);
  
-+	For pmem namepsaces the size must be a multiple of the
-+	interleave-width and the namespace alignment (see
-+	below).
-+
-+-a::
-+--align::
-+	Applications that want to establish DAX memory mappings
-+	with page table entries greater than 4K in size need a
-+	persistent memory namespace that is sufficiently aligned. For
-+	"memory" and "dax" mode this defaults to 2M. Note that "dax"
-+	mode enforces all mappings to be aligned to this value,
-+	i.e. fails unaligned mapping attempts.
-+
- -e::
- --reconfig=::
- 	Reconfigure an existing namespace (change the mode, sector size,
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
-index e260a87e9b1a..78f5d04aa13d 100644
---- a/ndctl/builtin-xaction-namespace.c
-+++ b/ndctl/builtin-xaction-namespace.c
-@@ -39,6 +39,7 @@ static bool force;
- static struct parameters {
- 	bool do_scan;
- 	bool mode_default;
-+	bool align_default;
- 	const char *bus;
- 	const char *map;
- 	const char *type;
-@@ -49,6 +50,7 @@ static struct parameters {
- 	const char *region;
- 	const char *reconfig;
- 	const char *sector_size;
-+	const char *align;
- } param;
- 
- void builtin_xaction_namespace_reset(void)
-@@ -71,6 +73,7 @@ struct parsed_parameters {
- 	enum ndctl_namespace_mode mode;
- 	unsigned long long size;
- 	unsigned long sector_size;
-+	unsigned long align;
- };
- 
- #define debug(fmt, ...) \
-@@ -104,6 +107,8 @@ OPT_STRING('l', "sector-size", &param.sector_size, "lba-size", \
- 	"specify the logical sector size in bytes"), \
- OPT_STRING('t', "type", &param.type, "type", \
- 	"specify the type of namespace to create 'pmem' or 'blk'"), \
-+OPT_STRING('a', "align", &param.align, "align", \
-+	"specify the namespace alignment in bytes (default: 2M)"), \
- OPT_BOOLEAN('f', "force", &force, "reconfigure namespace even if currently active")
- 
- static const struct option base_options[] = {
-@@ -202,6 +207,15 @@ static int set_defaults(enum namespace_action mode)
- 		rc = -EINVAL;
- 	}
- 
-+	if (param.align && parse_size64(param.align) == ULLONG_MAX) {
-+		error("failed to parse namespace alignment '%s'\n",
-+				param.align);
-+		rc = -EINVAL;
-+	} else if (!param.align) {
-+		param.align = "2M";
-+		param.align_default = true;
-+	}
-+
- 	if (param.uuid) {
- 		uuid_t uuid;
- 
-@@ -319,14 +333,8 @@ static int setup_namespace(struct ndctl_region *region,
- 
- 		try(ndctl_pfn, set_uuid, pfn, uuid);
- 		try(ndctl_pfn, set_location, pfn, p->loc);
--
--		/*
--		 * TODO: when we allow setting a non-default alignment
--		 * we'll need to check for "has_align" earlier and fail
--		 * non-default attempts on older kernels.
--		 */
- 		if (ndctl_pfn_has_align(pfn))
--			try(ndctl_pfn, set_align, pfn, SZ_2M);
-+			try(ndctl_pfn, set_align, pfn, p->align);
- 		try(ndctl_pfn, set_namespace, pfn, ndns);
- 		rc = ndctl_pfn_enable(pfn);
- 	} else if (p->mode == NDCTL_NS_MODE_DAX) {
-@@ -335,7 +343,7 @@ static int setup_namespace(struct ndctl_region *region,
- 		try(ndctl_dax, set_uuid, dax, uuid);
- 		try(ndctl_dax, set_location, dax, p->loc);
- 		/* device-dax assumes 'align' attribute present */
--		try(ndctl_dax, set_align, dax, SZ_2M);
-+		try(ndctl_dax, set_align, dax, p->align);
- 		try(ndctl_dax, set_namespace, dax, ndns);
- 		rc = ndctl_dax_enable(dax);
- 	} else if (p->mode == NDCTL_NS_MODE_SAFE) {
-@@ -387,13 +395,13 @@ static int is_namespace_active(struct ndctl_namespace *ndns)
- static int validate_namespace_options(struct ndctl_region *region,
- 		struct ndctl_namespace *ndns, struct parsed_parameters *p)
+ void blk_put_queue(struct request_queue *q)
  {
-+	const char *region_name = ndctl_region_get_devname(region);
- 	int rc = 0;
+-	kobject_put(&q->kobj);
++	if (q)
++		kobject_put(&q->kobj);
+ }
+ EXPORT_SYMBOL(blk_put_queue);
  
- 	memset(p, 0, sizeof(*p));
- 
- 	if (!ndctl_region_is_enabled(region)) {
--		debug("%s: disabled, skipping...\n",
--				ndctl_region_get_devname(region));
-+		debug("%s: disabled, skipping...\n", region_name);
- 		return -EAGAIN;
- 	}
- 
-@@ -435,8 +443,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		if (ndctl_region_get_type(region) != ND_DEVICE_REGION_PMEM
- 				&& (p->mode == NDCTL_NS_MODE_MEMORY
- 					|| p->mode == NDCTL_NS_MODE_DAX)) {
--			debug("blk %s does not support %s mode\n",
--					ndctl_region_get_devname(region),
-+			debug("blk %s does not support %s mode\n", region_name,
- 					p->mode == NDCTL_NS_MODE_MEMORY
- 					? "memory" : "dax");
- 			return -EAGAIN;
-@@ -444,6 +451,55 @@ static int validate_namespace_options(struct ndctl_region *region,
- 	} else if (ndns)
- 		p->mode = ndctl_namespace_get_mode(ndns);
- 
-+	if (param.align) {
-+		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
-+		struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
-+
-+		p->align = parse_size64(param.align);
-+
-+		if (p->mode == NDCTL_NS_MODE_MEMORY && p->align != SZ_2M
-+				&& (!pfn || !ndctl_pfn_has_align(pfn))) {
-+			/*
-+			 * Initial pfn device support in the kernel
-+			 * supported a 2M default alignment when
-+			 * ndctl_pfn_has_align() returns false.
-+			 */
-+			debug("%s not support 'align' for memory mode\n",
-+					region_name);
-+			return -EAGAIN;
-+		} else if (p->mode == NDCTL_NS_MODE_DAX
-+				&& (!dax || !ndctl_dax_has_align(dax))) {
-+			/*
-+			 * Unlike the pfn case, we require the kernel to
-+			 * have 'align' support for device-dax.
-+			 */
-+			debug("%s not support 'align' for dax mode\n",
-+					region_name);
-+			return -EAGAIN;
-+		} else if (!param.align_default
-+				&& (p->mode == NDCTL_NS_MODE_SAFE
-+					|| p->mode == NDCTL_NS_MODE_RAW)) {
-+			/*
-+			 * Specifying an alignment has no effect for
-+			 * raw, or btt mode namespaces.
-+			 */
-+			error("%s mode does not support setting an alignment\n",
-+					p->mode == NDCTL_NS_MODE_SAFE
-+					? "sector" : "raw");
-+			return -ENXIO;
-+		}
-+
-+		switch (p->align) {
-+		case SZ_4K:
-+		case SZ_2M:
-+		case SZ_1G:
-+			break;
-+		default:
-+			error("unsupported align: %s\n", param.align);
-+			return -ENXIO;
-+		}
-+	}
-+
- 	if (param.sector_size) {
- 		struct ndctl_btt *btt;
- 		int num, i;
-@@ -453,7 +509,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		if (p->mode == NDCTL_NS_MODE_SAFE) {
- 			if (!btt) {
- 				debug("%s: does not support 'sector' mode\n",
--						ndctl_region_get_devname(region));
-+						region_name);
- 				return -EINVAL;
- 			}
- 			num = ndctl_btt_get_num_sector_sizes(btt);
-@@ -463,8 +519,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 					break;
- 			if (i >= num) {
- 				debug("%s: does not support btt sector_size %lu\n",
--						ndctl_region_get_devname(region),
--						p->sector_size);
-+						region_name, p->sector_size);
- 				return -EINVAL;
- 			}
- 		} else {
-@@ -479,8 +534,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 					break;
- 			if (i >= num) {
- 				debug("%s: does not support namespace sector_size %lu\n",
--						ndctl_region_get_devname(region),
--						p->sector_size);
-+						region_name, p->sector_size);
- 				return -EINVAL;
- 			}
- 		}
-@@ -517,12 +571,11 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
- 
- 		if (!pfn && param.mode_default) {
--			debug("%s memory mode not available\n",
--					ndctl_region_get_devname(region));
-+			debug("%s memory mode not available\n", region_name);
- 			p->mode = NDCTL_NS_MODE_RAW;
- 		} else if (!pfn) {
- 			error("operation failed, %s memory mode not available\n",
--					ndctl_region_get_devname(region));
-+					region_name);
- 			return -EINVAL;
- 		}
- 	}
-@@ -533,7 +586,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 
- 		if (!dax) {
- 			error("operation failed, %s dax mode not available\n",
--					ndctl_region_get_devname(region));
-+					region_name);
- 			return -EINVAL;
- 		}
- 	}
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 8240235dff5c..49e35bf0fd98 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -4477,6 +4477,11 @@ NDCTL_EXPORT unsigned long ndctl_dax_get_align(struct ndctl_dax *dax)
- 	return ndctl_pfn_get_align(&dax->pfn);
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 899fa8ccc347..8f94b74bfc7d 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -589,12 +589,22 @@ static struct inode *bdev_alloc_inode(struct super_block *sb)
+ 	return &ei->vfs_inode;
  }
  
-+NDCTL_EXPORT int ndctl_dax_has_align(struct ndctl_dax *dax)
++static void bdev_release(struct work_struct *w)
 +{
-+	return ndctl_pfn_has_align(&dax->pfn);
++	struct block_device *bdev = container_of(w, typeof(*bdev), bd_release);
++	struct bdev_inode *bdi = container_of(bdev, typeof(*bdi), bdev);
++
++	blk_put_queue(bdev->bd_queue);
++	kmem_cache_free(bdev_cachep, bdi);
 +}
 +
- NDCTL_EXPORT int ndctl_dax_set_align(struct ndctl_dax *dax, unsigned long align)
+ static void bdev_i_callback(struct rcu_head *head)
  {
- 	return ndctl_pfn_set_align(&dax->pfn, align);
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 506bf0d67aab..be2e3680d202 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -259,6 +259,7 @@ global:
- 	ndctl_dax_get_location;
- 	ndctl_dax_set_location;
- 	ndctl_dax_get_align;
-+	ndctl_dax_has_align;
- 	ndctl_dax_set_align;
- 	ndctl_dax_set_namespace;
- 	ndctl_dax_get_bus;
-diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
-index 394d22e24c7a..c27581d939c5 100644
---- a/ndctl/libndctl.h.in
-+++ b/ndctl/libndctl.h.in
-@@ -603,6 +603,7 @@ int ndctl_dax_set_uuid(struct ndctl_dax *dax, uuid_t uu);
- enum ndctl_pfn_loc ndctl_dax_get_location(struct ndctl_dax *dax);
- int ndctl_dax_set_location(struct ndctl_dax *dax, enum ndctl_pfn_loc loc);
- unsigned long ndctl_dax_get_align(struct ndctl_dax *dax);
-+int ndctl_dax_has_align(struct ndctl_dax *dax);
- int ndctl_dax_set_align(struct ndctl_dax *dax, unsigned long align);
- int ndctl_dax_set_namespace(struct ndctl_dax *dax,
- 		struct ndctl_namespace *ndns);
-diff --git a/util/size.h b/util/size.h
-index 50917a5cea34..634c92621bdc 100644
---- a/util/size.h
-+++ b/util/size.h
-@@ -2,6 +2,7 @@
- #define _NDCTL_SIZE_H_
+ 	struct inode *inode = container_of(head, struct inode, i_rcu);
+-	struct bdev_inode *bdi = BDEV_I(inode);
++	struct block_device *bdev = &BDEV_I(inode)->bdev;
  
- #define SZ_1K     0x00000400
-+#define SZ_4K     0x00001000
- #define SZ_1M     0x00100000
- #define SZ_2M     0x00200000
- #define SZ_4M     0x00400000
+-	kmem_cache_free(bdev_cachep, bdi);
++	/* blk_put_queue needs process context */
++	schedule_work(&bdev->bd_release);
+ }
+ 
+ static void bdev_destroy_inode(struct inode *inode)
+@@ -613,6 +623,7 @@ static void init_once(void *foo)
+ #ifdef CONFIG_SYSFS
+ 	INIT_LIST_HEAD(&bdev->bd_holder_disks);
+ #endif
++	INIT_WORK(&bdev->bd_release, bdev_release);
+ 	inode_init_once(&ei->vfs_inode);
+ 	/* Initialize mutex for freeze. */
+ 	mutex_init(&bdev->bd_fsfreeze_mutex);
+@@ -1268,6 +1279,8 @@ static int __blkdev_get(struct block_device *bdev, fmode_t mode, int for_part)
+ 	mutex_lock_nested(&bdev->bd_mutex, for_part);
+ 	if (!bdev->bd_openers) {
+ 		bdev->bd_disk = disk;
++		if (!blk_get_queue(disk->queue))
++			goto out_clear;
+ 		bdev->bd_queue = disk->queue;
+ 		bdev->bd_contains = bdev;
+ 
+@@ -1288,7 +1301,6 @@ static int __blkdev_get(struct block_device *bdev, fmode_t mode, int for_part)
+ 					disk_put_part(bdev->bd_part);
+ 					bdev->bd_part = NULL;
+ 					bdev->bd_disk = NULL;
+-					bdev->bd_queue = NULL;
+ 					mutex_unlock(&bdev->bd_mutex);
+ 					disk_unblock_events(disk);
+ 					put_disk(disk);
+@@ -1364,7 +1376,6 @@ static int __blkdev_get(struct block_device *bdev, fmode_t mode, int for_part)
+ 	disk_put_part(bdev->bd_part);
+ 	bdev->bd_disk = NULL;
+ 	bdev->bd_part = NULL;
+-	bdev->bd_queue = NULL;
+ 	if (bdev != bdev->bd_contains)
+ 		__blkdev_put(bdev->bd_contains, mode, 1);
+ 	bdev->bd_contains = NULL;
+@@ -1586,12 +1597,6 @@ static void __blkdev_put(struct block_device *bdev, fmode_t mode, int for_part)
+ 		kill_bdev(bdev);
+ 
+ 		bdev_write_inode(bdev);
+-		/*
+-		 * Detaching bdev inode from its wb in __destroy_inode()
+-		 * is too late: the queue which embeds its bdi (along with
+-		 * root wb) can be gone as soon as we put_disk() below.
+-		 */
+-		inode_detach_wb(bdev->bd_inode);
+ 	}
+ 	if (bdev->bd_contains == bdev) {
+ 		if (disk->fops->release)
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index dc0478c07b2a..f084e4a2198b 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -488,6 +488,7 @@ struct block_device {
+ 	int			bd_fsfreeze_count;
+ 	/* Mutex for freeze */
+ 	struct mutex		bd_fsfreeze_mutex;
++	struct work_struct	bd_release;
+ };
+ 
+ /*
 
 _______________________________________________
 Linux-nvdimm mailing list
