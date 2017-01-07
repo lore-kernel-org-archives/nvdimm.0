@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 48B4E81B3C
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jan 2017 13:52:49 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 7/7] mm, dax: move pmd_fault() to take only vmf parameter
-Date: Tue, 10 Jan 2017 14:52:22 -0700
-Message-Id: <1484085142-2297-8-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1484085142-2297-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1484085142-2297-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B5056817B1
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Jan 2017 17:46:18 -0800 (PST)
+Subject: [ndctl PATCH 1/7] ndctl,
+ daxctl: refactor main boilerplate for a new 'daxctl' utility
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 06 Jan 2017 17:42:11 -0800
+Message-ID: <148375333167.38836.6539434328188570516.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148375332631.38836.5735184615585844571.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148375332631.38836.5735184615585844571.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,472 +19,734 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, "Darrick J. Wong" <darrick.wong@oracle.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, Steven Rostedt <rostedt@goodmis.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dave Jiang <dave.jiang@intel.com>
+Prepare the generic command infrastructure for reuse with daxctl.
 
-pmd_fault() and related functions really only need the vmf parameter since
-the additional parameters are all included in the vmf struct. Removing
-additional parameter and simplify pmd_fault() and friends.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/dax.c             | 18 +++++++--------
- fs/dax.c                      | 54 ++++++++++++++++++++-----------------------
- fs/ext4/file.c                |  8 +++----
- fs/xfs/xfs_file.c             |  7 +++---
- include/linux/dax.h           |  7 +++---
- include/linux/mm.h            |  2 +-
- include/trace/events/fs_dax.h | 54 ++++++++++++++++++++-----------------------
- mm/memory.c                   |  9 ++++----
- 8 files changed, 74 insertions(+), 85 deletions(-)
+ Makefile.am                       |    2 
+ ndctl/Makefile.am                 |    1 
+ ndctl/builtin-bat.c               |    2 
+ ndctl/builtin-create-nfit.c       |    2 
+ ndctl/builtin-dimm.c              |   14 ++-
+ ndctl/builtin-list.c              |    2 
+ ndctl/builtin-test.c              |    2 
+ ndctl/builtin-xable-region.c      |    4 -
+ ndctl/builtin-xaction-namespace.c |    8 +-
+ ndctl/builtin.h                   |   36 ++++----
+ ndctl/ndctl.c                     |  160 +++++++++----------------------------
+ test/device-dax.c                 |    2 
+ util/help.c                       |   44 ++--------
+ util/main.c                       |  123 ++++++++++++++++++++++++++++
+ util/main.h                       |   10 ++
+ 15 files changed, 219 insertions(+), 193 deletions(-)
+ rename ndctl/builtin-help.c => util/help.c (73%)
+ create mode 100644 util/main.c
+ create mode 100644 util/main.h
 
-diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-index a8833cc..18e9875 100644
---- a/drivers/dax/dax.c
-+++ b/drivers/dax/dax.c
-@@ -472,8 +472,7 @@ static int dax_dev_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+diff --git a/Makefile.am b/Makefile.am
+index 9eb396639efe..01caca803540 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -64,6 +64,8 @@ libutil_a_SOURCES = \
+ 	util/parse-options.h \
+ 	util/usage.c \
+ 	util/size.c \
++	util/main.c \
++	util/help.c \
+ 	util/strbuf.c \
+ 	util/wrapper.c \
+ 	util/filter.c
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index 2d0d8eb40841..f03647ae9d99 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -10,7 +10,6 @@ ndctl_SOURCES = ndctl.c \
+ 		 ../util/log.c \
+ 		builtin-list.c \
+ 		builtin-test.c \
+-		builtin-help.c \
+ 		util/json.c
+ 
+ if ENABLE_SMART
+diff --git a/ndctl/builtin-bat.c b/ndctl/builtin-bat.c
+index 48b41dab6d92..5e14d39cfac5 100644
+--- a/ndctl/builtin-bat.c
++++ b/ndctl/builtin-bat.c
+@@ -4,7 +4,7 @@
+ #include <limits.h>
+ #include <util/parse-options.h>
+ 
+-int cmd_bat(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_bat(int argc, const char **argv, void *ctx)
+ {
+ 	int loglevel = LOG_DEBUG, i, rc;
+ 	struct ndctl_test *test;
+diff --git a/ndctl/builtin-create-nfit.c b/ndctl/builtin-create-nfit.c
+index 780bb84580f5..ebcd7446d14f 100644
+--- a/ndctl/builtin-create-nfit.c
++++ b/ndctl/builtin-create-nfit.c
+@@ -164,7 +164,7 @@ static int write_nfit(struct nfit *nfit, const char *file, int force)
+ }
+ 
+ struct ndctl_ctx;
+-int cmd_create_nfit(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_create_nfit(int argc, const char **argv, void *ctx)
+ {
+ 	int i, rc = -ENXIO, force = 0;
+ 	const char * const u[] = {
+diff --git a/ndctl/builtin-dimm.c b/ndctl/builtin-dimm.c
+index 4c433d56dfe3..8a041cee8cab 100644
+--- a/ndctl/builtin-dimm.c
++++ b/ndctl/builtin-dimm.c
+@@ -772,7 +772,7 @@ static const struct option init_options[] = {
+ 	OPT_END(),
+ };
+ 
+-static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
++static int dimm_action(int argc, const char **argv, void *ctx,
+ 		int (*action)(struct ndctl_dimm *dimm, struct action_context *actx),
+ 		const struct option *options, const char *usage)
+ {
+@@ -874,7 +874,7 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
+ 	return count;
+ }
+ 
+-int cmd_read_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_read_labels(int argc, const char **argv, void *ctx)
+ {
+ 	int count = dimm_action(argc, argv, ctx, action_read, read_options,
+ 			"ndctl read-labels <nmem0> [<nmem1>..<nmemN>] [-o <filename>]");
+@@ -884,7 +884,7 @@ int cmd_read_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
+ 
+-int cmd_zero_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_zero_labels(int argc, const char **argv, void *ctx)
+ {
+ 	int count = dimm_action(argc, argv, ctx, action_zero, base_options,
+ 			"ndctl zero-labels <nmem0> [<nmem1>..<nmemN>] [<options>]");
+@@ -894,7 +894,7 @@ int cmd_zero_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
+ 
+-int cmd_init_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_init_labels(int argc, const char **argv, void *ctx)
+ {
+ 	int count = dimm_action(argc, argv, ctx, action_init, init_options,
+ 			"ndctl init-labels <nmem0> [<nmem1>..<nmemN>] [<options>]");
+@@ -904,7 +904,7 @@ int cmd_init_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
+ 
+-int cmd_check_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_check_labels(int argc, const char **argv, void *ctx)
+ {
+ 	int count = dimm_action(argc, argv, ctx, action_check, base_options,
+ 			"ndctl check-labels <nmem0> [<nmem1>..<nmemN>] [<options>]");
+@@ -914,7 +914,7 @@ int cmd_check_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
+ 
+-int cmd_disable_dimm(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_disable_dimm(int argc, const char **argv, void *ctx)
+ {
+ 	int count = dimm_action(argc, argv, ctx, action_disable, base_options,
+ 			"ndctl disable-dimm <nmem0> [<nmem1>..<nmemN>] [<options>]");
+@@ -924,7 +924,7 @@ int cmd_disable_dimm(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
+ 
+-int cmd_enable_dimm(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_enable_dimm(int argc, const char **argv, void *ctx)
+ {
+ 	int count = dimm_action(argc, argv, ctx, action_enable, base_options,
+ 			"ndctl enable-dimm <nmem0> [<nmem1>..<nmemN>] [<options>]");
+diff --git a/ndctl/builtin-list.c b/ndctl/builtin-list.c
+index 1486cb1dedc3..caafec8b8f39 100644
+--- a/ndctl/builtin-list.c
++++ b/ndctl/builtin-list.c
+@@ -188,7 +188,7 @@ static int num_list_flags(void)
+ 	return list.buses + list.dimms + list.regions + list.namespaces;
+ }
+ 
+-int cmd_list(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_list(int argc, const char **argv, void *ctx)
+ {
+ 	const struct option options[] = {
+ 		OPT_STRING('b', "bus", &param.bus, "bus-id", "filter by bus"),
+diff --git a/ndctl/builtin-test.c b/ndctl/builtin-test.c
+index caa666b68e69..01ff981749fc 100644
+--- a/ndctl/builtin-test.c
++++ b/ndctl/builtin-test.c
+@@ -14,7 +14,7 @@ static char *result(int rc)
+ 		return "PASS";
+ }
+ 
+-int cmd_test(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_test(int argc, const char **argv, void *ctx)
+ {
+ 	struct ndctl_test *test;
+ 	int loglevel = LOG_DEBUG, i, rc;
+diff --git a/ndctl/builtin-xable-region.c b/ndctl/builtin-xable-region.c
+index 41f465a4543f..50cbdef5b339 100644
+--- a/ndctl/builtin-xable-region.c
++++ b/ndctl/builtin-xable-region.c
+@@ -64,7 +64,7 @@ static int do_xable_region(const char *region_arg,
  	return rc;
  }
  
--static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
--		struct vm_area_struct *vma, struct vm_fault *vmf)
-+static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+-int cmd_disable_region(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_disable_region(int argc, const char **argv, void *ctx)
  {
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	struct device *dev = &dax_dev->dev;
-@@ -482,7 +481,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
- 	pgoff_t pgoff;
- 	pfn_t pfn;
- 
--	if (check_vma(dax_dev, vma, __func__))
-+	if (check_vma(dax_dev, vmf->vma, __func__))
- 		return VM_FAULT_SIGBUS;
- 
- 	dax_region = dax_dev->region;
-@@ -497,7 +496,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
- 		return VM_FAULT_SIGBUS;
+ 	char *xable_usage = "ndctl disable-region <region> [<options>]";
+ 	const char *region = parse_region_options(argc, argv, xable_usage);
+@@ -85,7 +85,7 @@ int cmd_disable_region(int argc, const char **argv, struct ndctl_ctx *ctx)
  	}
- 
--	pgoff = linear_page_index(vma, pmd_addr);
-+	pgoff = linear_page_index(vmf->vma, pmd_addr);
- 	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
- 	if (phys == -1) {
- 		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
-@@ -507,22 +506,23 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
- 
- 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
- 
--	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
-+	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd, pfn,
- 			vmf->flags & FAULT_FLAG_WRITE);
  }
  
--static int dax_dev_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
-+static int dax_dev_pmd_fault(struct vm_fault *vmf)
+-int cmd_enable_region(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_enable_region(int argc, const char **argv, void *ctx)
+ {
+ 	char *xable_usage = "ndctl enable-region <region> [<options>]";
+ 	const char *region = parse_region_options(argc, argv, xable_usage);
+diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
+index 8257eb9cd65e..f7a4e5b74a16 100644
+--- a/ndctl/builtin-xaction-namespace.c
++++ b/ndctl/builtin-xaction-namespace.c
+@@ -781,7 +781,7 @@ static int do_xaction_namespace(const char *namespace,
+ 	return rc;
+ }
+ 
+-int cmd_disable_namespace(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_disable_namespace(int argc, const char **argv, void *ctx)
+ {
+ 	char *xable_usage = "ndctl disable-namespace <namespace> [<options>]";
+ 	const char *namespace = parse_namespace_options(argc, argv,
+@@ -802,7 +802,7 @@ int cmd_disable_namespace(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 	}
+ }
+ 
+-int cmd_enable_namespace(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_enable_namespace(int argc, const char **argv, void *ctx)
+ {
+ 	char *xable_usage = "ndctl enable-namespace <namespace> [<options>]";
+ 	const char *namespace = parse_namespace_options(argc, argv,
+@@ -823,7 +823,7 @@ int cmd_enable_namespace(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 	}
+ }
+ 
+-int cmd_create_namespace(int argc, const char **argv, struct ndctl_ctx *ctx)
++int cmd_create_namespace(int argc, const char **argv, void *ctx)
+ {
+ 	char *xable_usage = "ndctl create-namespace [<options>]";
+ 	const char *namespace = parse_namespace_options(argc, argv,
+@@ -853,7 +853,7 @@ int cmd_create_namespace(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 	return 0;
+ }
+ 
+-int cmd_destroy_namespace(int argc , const char **argv, struct ndctl_ctx *ctx)
++int cmd_destroy_namespace(int argc , const char **argv, void *ctx)
+ {
+ 	char *xable_usage = "ndctl destroy-namespace <namespace> [<options>]";
+ 	const char *namespace = parse_namespace_options(argc, argv,
+diff --git a/ndctl/builtin.h b/ndctl/builtin.h
+index 0293335c127e..9b66196450fd 100644
+--- a/ndctl/builtin.h
++++ b/ndctl/builtin.h
+@@ -3,31 +3,29 @@
+ extern const char ndctl_usage_string[];
+ extern const char ndctl_more_info_string[];
+ 
+-struct ndctl_ctx;
+ struct cmd_struct {
+ 	const char *cmd;
+-	int (*fn)(int, const char **, struct ndctl_ctx *ctx);
++	int (*fn)(int, const char **, void *ctx);
+ };
+ 
+-int cmd_create_nfit(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_enable_namespace(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_create_namespace(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_destroy_namespace(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_disable_namespace(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_enable_region(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_disable_region(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_enable_dimm(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_disable_dimm(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_zero_labels(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_read_labels(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_init_labels(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_check_labels(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_list(int argc, const char **argv, struct ndctl_ctx *ctx);
+-int cmd_help(int argc, const char **argv, struct ndctl_ctx *ctx);
++int cmd_create_nfit(int argc, const char **argv, void *ctx);
++int cmd_enable_namespace(int argc, const char **argv, void *ctx);
++int cmd_create_namespace(int argc, const char **argv, void *ctx);
++int cmd_destroy_namespace(int argc, const char **argv, void *ctx);
++int cmd_disable_namespace(int argc, const char **argv, void *ctx);
++int cmd_enable_region(int argc, const char **argv, void *ctx);
++int cmd_disable_region(int argc, const char **argv, void *ctx);
++int cmd_enable_dimm(int argc, const char **argv, void *ctx);
++int cmd_disable_dimm(int argc, const char **argv, void *ctx);
++int cmd_zero_labels(int argc, const char **argv, void *ctx);
++int cmd_read_labels(int argc, const char **argv, void *ctx);
++int cmd_init_labels(int argc, const char **argv, void *ctx);
++int cmd_check_labels(int argc, const char **argv, void *ctx);
++int cmd_list(int argc, const char **argv, void *ctx);
+ #ifdef ENABLE_TEST
+-int cmd_test(int argc, const char **argv, struct ndctl_ctx *ctx);
++int cmd_test(int argc, const char **argv, void *ctx);
+ #endif
+ #ifdef ENABLE_DESTRUCTIVE
+-int cmd_bat(int argc, const char **argv, struct ndctl_ctx *ctx);
++int cmd_bat(int argc, const char **argv, void *ctx);
+ #endif
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 4f000fe51fae..80a0491c440a 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -9,20 +9,47 @@
+ #include <ndctl/libndctl.h>
+ #include <ccan/array_size/array_size.h>
+ 
++#include <util/parse-options.h>
+ #include <util/strbuf.h>
+ #include <util/util.h>
++#include <util/main.h>
+ 
+ const char ndctl_usage_string[] = "ndctl [--version] [--help] COMMAND [ARGS]";
+ const char ndctl_more_info_string[] =
+ 	"See 'ndctl help COMMAND' for more information on a specific command.\n"
+ 	" ndctl --list-cmds to see all available commands";
+ 
+-static int cmd_version(int argc, const char **argv, struct ndctl_ctx *ctx)
++static int cmd_version(int argc, const char **argv, void *ctx)
+ {
+ 	printf("%s\n", VERSION);
+ 	return 0;
+ }
+ 
++static int cmd_help(int argc, const char **argv, void *ctx)
++{
++	const char * const builtin_help_subcommands[] = {
++		"enable-region", "disable-region", "zero-labels",
++		"enable-namespace", "disable-namespace", NULL };
++	struct option builtin_help_options[] = {
++		OPT_END(),
++	};
++	const char *builtin_help_usage[] = {
++		"ndctl help [command]",
++		NULL
++	};
++
++	argc = parse_options_subcommand(argc, argv, builtin_help_options,
++			builtin_help_subcommands, builtin_help_usage, 0);
++
++	if (!argv[0]) {
++		printf("\n usage: %s\n\n", ndctl_usage_string);
++		printf("\n %s\n\n", ndctl_more_info_string);
++		return 0;
++	}
++
++	return help_show_man_page(argv[0], "ndctl", "NDCTL_MAN_VIEWER");
++}
++
+ static struct cmd_struct commands[] = {
+ 	{ "version", cmd_version },
+ 	{ "create-nfit", cmd_create_nfit },
+@@ -48,131 +75,16 @@ static struct cmd_struct commands[] = {
+ 	#endif
+ };
+ 
+-static int handle_options(const char ***argv, int *argc)
+-{
+-	int handled = 0;
+-
+-	while (*argc > 0) {
+-		const char *cmd = (*argv)[0];
+-		if (cmd[0] != '-')
+-			break;
+-
+-		if (!strcmp(cmd, "--version") || !strcmp(cmd, "--help"))
+-			break;
+-
+-		/*
+-		 * Shortcut for '-h' and '-v' options to invoke help
+-		 * and version command.
+-		 */
+-		if (!strcmp(cmd, "-h")) {
+-			(*argv)[0] = "--help";
+-			break;
+-		}
+-
+-		if (!strcmp(cmd, "-v")) {
+-			(*argv)[0] = "--version";
+-			break;
+-		}
+-
+-		if (!strcmp(cmd, "--list-cmds")) {
+-			unsigned int i;
+-
+-			for (i = 0; i < ARRAY_SIZE(commands); i++) {
+-				struct cmd_struct *p = commands+i;
+-
+-				/* filter out commands from auto-complete */
+-				if (strcmp(p->cmd, "create-nfit") == 0)
+-					continue;
+-				if (strcmp(p->cmd, "test") == 0)
+-					continue;
+-				if (strcmp(p->cmd, "bat") == 0)
+-					continue;
+-				printf("%s\n", p->cmd);
+-			}
+-			exit(0);
+-		} else {
+-			fprintf(stderr, "Unknown option: %s\n", cmd);
+-			usage(ndctl_usage_string);
+-		}
+-
+-		(*argv)++;
+-		(*argc)--;
+-		handled++;
+-	}
+-	return handled;
+-}
+-
+-static int run_builtin(struct cmd_struct *p, int argc, const char **argv)
++int main(int argc, const char **argv)
+ {
+-	int status;
+-	struct stat st;
+ 	struct ndctl_ctx *ctx;
++	int rc;
+ 
+-	/*
+-	 * Yes, establishing the ndctl context here makes this code less
+-	 * generic, but it allows for unit testing the top level
+-	 * interface to the built-in commands.
+-	 */
+-	status = ndctl_new(&ctx);
+-	if (status)
+-		return status;
+-	status = p->fn(argc, argv, ctx);
+-	ndctl_unref(ctx);
+-
+-	if (status)
+-		return status & 0xff;
+-
+-	/* Somebody closed stdout? */
+-	if (fstat(fileno(stdout), &st))
+-		return 0;
+-	/* Ignore write errors for pipes and sockets.. */
+-	if (S_ISFIFO(st.st_mode) || S_ISSOCK(st.st_mode))
+-		return 0;
+-
+-	status = 1;
+-	/* Check for ENOSPC and EIO errors.. */
+-	if (fflush(stdout)) {
+-		fprintf(stderr, "write failure on standard output: %s", strerror(errno));
+-		goto out;
+-	}
+-	if (ferror(stdout)) {
+-		fprintf(stderr, "unknown write failure on standard output");
+-		goto out;
+-	}
+-	if (fclose(stdout)) {
+-		fprintf(stderr, "close failed on standard output: %s", strerror(errno));
+-		goto out;
+-	}
+-	status = 0;
+-out:
+-	return status;
+-}
+-
+-static void handle_internal_command(int argc, const char **argv)
+-{
+-	const char *cmd = argv[0];
+-	unsigned int i;
+-
+-	/* Turn "ndctl cmd --help" into "ndctl help cmd" */
+-	if (argc > 1 && !strcmp(argv[1], "--help")) {
+-		argv[1] = argv[0];
+-		argv[0] = cmd = "help";
+-	}
+-
+-	for (i = 0; i < ARRAY_SIZE(commands); i++) {
+-		struct cmd_struct *p = commands+i;
+-		if (strcmp(p->cmd, cmd))
+-			continue;
+-		exit(run_builtin(p, argc, argv));
+-	}
+-}
+-
+-int main(int argc, const char **argv)
+-{
+ 	/* Look for flags.. */
+ 	argv++;
+ 	argc--;
+-	handle_options(&argv, &argc);
++	main_handle_options(&argv, &argc, ndctl_usage_string, commands,
++			ARRAY_SIZE(commands));
+ 
+ 	if (argc > 0) {
+ 		if (!prefixcmp(argv[0], "--"))
+@@ -183,7 +95,13 @@ int main(int argc, const char **argv)
+ 		printf("\n %s\n\n", ndctl_more_info_string);
+ 		goto out;
+ 	}
+-	handle_internal_command(argc, argv);
++
++	rc = ndctl_new(&ctx);
++	if (rc)
++		goto out;
++	main_handle_internal_command(argc, argv, ctx, commands,
++			ARRAY_SIZE(commands));
++	ndctl_unref(ctx);
+ 	fprintf(stderr, "Unknown command: '%s'\n", argv[0]);
+ out:
+ 	return 1;
+diff --git a/test/device-dax.c b/test/device-dax.c
+index 75b17ed63088..0ace922ee55d 100644
+--- a/test/device-dax.c
++++ b/test/device-dax.c
+@@ -23,7 +23,7 @@
+ 
+ static sigjmp_buf sj_env;
+ 
+-static int create_namespace(int argc, const char **argv, struct ndctl_ctx *ctx)
++static int create_namespace(int argc, const char **argv, void *ctx)
+ {
+ 	builtin_xaction_namespace_reset();
+ 	return cmd_create_namespace(argc, argv, ctx);
+diff --git a/ndctl/builtin-help.c b/util/help.c
+similarity index 73%
+rename from ndctl/builtin-help.c
+rename to util/help.c
+index 14ad9d5738d0..310a40bd83e8 100644
+--- a/ndctl/builtin-help.c
++++ b/util/help.c
+@@ -56,16 +56,16 @@ static void exec_man_man(const char *path, const char *page)
+ 		strerror_r(errno, sbuf, sizeof(sbuf)));
+ }
+ 
+-static char *cmd_to_page(const char *ndctl_cmd, char **page)
++static char *cmd_to_page(const char *cmd, char **page, const char *util_name)
  {
  	int rc;
--	struct file *filp = vma->vm_file;
-+	struct file *filp = vmf->vma->vm_file;
- 	struct dax_dev *dax_dev = filp->private_data;
  
- 	dev_dbg(&dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
- 			current->comm, (vmf->flags & FAULT_FLAG_WRITE)
--			? "write" : "read", vma->vm_start, vma->vm_end);
-+			? "write" : "read",
-+			vmf->vma->vm_start, vmf->vma->vm_end);
+-	if (!ndctl_cmd)
+-		rc = asprintf(page, "ndctl");
+-	else if (!prefixcmp(ndctl_cmd, "ndctl"))
+-		rc = asprintf(page, "%s", ndctl_cmd);
++	if (!cmd)
++		rc = asprintf(page, "%s", util_name);
++	else if (!prefixcmp(cmd, util_name))
++		rc = asprintf(page, "%s", cmd);
+ 	else
+-		rc = asprintf(page, "ndctl-%s", ndctl_cmd);
++		rc = asprintf(page, "%s-%s", util_name, cmd);
  
- 	rcu_read_lock();
--	rc = __dax_dev_pmd_fault(dax_dev, vma, vmf);
-+	rc = __dax_dev_pmd_fault(dax_dev, vmf);
- 	rcu_read_unlock();
- 
- 	return rc;
-diff --git a/fs/dax.c b/fs/dax.c
-index 2ef7847..7095602 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1248,11 +1248,10 @@ EXPORT_SYMBOL_GPL(dax_iomap_fault);
-  */
- #define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
- 
--static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
--		struct vm_fault *vmf, unsigned long address,
--		struct iomap *iomap, loff_t pos, bool write, void **entryp)
-+static int dax_pmd_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
-+		loff_t pos, void **entryp)
- {
--	struct address_space *mapping = vma->vm_file->f_mapping;
-+	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	struct block_device *bdev = iomap->bdev;
- 	struct inode *inode = mapping->host;
- 	struct blk_dax_ctl dax = {
-@@ -1279,31 +1278,30 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
- 		goto fallback;
- 	*entryp = ret;
- 
--	trace_dax_pmd_insert_mapping(inode, vma, address, write, length,
--			dax.pfn, ret);
--	return vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
-+	trace_dax_pmd_insert_mapping(inode, vmf, length, dax.pfn, ret);
-+	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd,
-+			dax.pfn, vmf->flags & FAULT_FLAG_WRITE);
- 
-  unmap_fallback:
- 	dax_unmap_atomic(bdev, &dax);
- fallback:
--	trace_dax_pmd_insert_mapping_fallback(inode, vma, address, write,
--			length, dax.pfn, ret);
-+	trace_dax_pmd_insert_mapping_fallback(inode, vmf, length,
-+			dax.pfn, ret);
- 	return VM_FAULT_FALLBACK;
+ 	if (rc < 0)
+ 		return NULL;
+@@ -119,12 +119,13 @@ static void exec_viewer(const char *name, const char *page)
+ 		warning("'%s': unknown man viewer.", name);
  }
  
--static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
--		struct vm_fault *vmf, unsigned long address,
--		struct iomap *iomap, void **entryp)
-+static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
-+		void **entryp)
+-static int show_man_page(const char *ndctl_cmd)
++int help_show_man_page(const char *cmd, const char *util_name,
++		const char *viewer)
  {
--	struct address_space *mapping = vma->vm_file->f_mapping;
--	unsigned long pmd_addr = address & PMD_MASK;
-+	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
-+	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	struct inode *inode = mapping->host;
- 	struct page *zero_page;
- 	void *ret = NULL;
- 	spinlock_t *ptl;
- 	pmd_t pmd_entry;
+-	const char *fallback = getenv("NDCTL_MAN_VIEWER");
++	const char *fallback = getenv(viewer);
+ 	char *page;
  
--	zero_page = mm_get_huge_zero_page(vma->vm_mm);
-+	zero_page = mm_get_huge_zero_page(vmf->vma->vm_mm);
- 
- 	if (unlikely(!zero_page))
- 		goto fallback;
-@@ -1314,27 +1312,27 @@ static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
- 		goto fallback;
- 	*entryp = ret;
- 
--	ptl = pmd_lock(vma->vm_mm, pmd);
--	if (!pmd_none(*pmd)) {
-+	ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
-+	if (!pmd_none(*(vmf->pmd))) {
- 		spin_unlock(ptl);
- 		goto fallback;
- 	}
- 
--	pmd_entry = mk_pmd(zero_page, vma->vm_page_prot);
-+	pmd_entry = mk_pmd(zero_page, vmf->vma->vm_page_prot);
- 	pmd_entry = pmd_mkhuge(pmd_entry);
--	set_pmd_at(vma->vm_mm, pmd_addr, pmd, pmd_entry);
-+	set_pmd_at(vmf->vma->vm_mm, pmd_addr, vmf->pmd, pmd_entry);
- 	spin_unlock(ptl);
--	trace_dax_pmd_load_hole(inode, vma, address, zero_page, ret);
-+	trace_dax_pmd_load_hole(inode, vmf, zero_page, ret);
- 	return VM_FAULT_NOPAGE;
- 
- fallback:
--	trace_dax_pmd_load_hole_fallback(inode, vma, address, zero_page, ret);
-+	trace_dax_pmd_load_hole_fallback(inode, vmf, zero_page, ret);
- 	return VM_FAULT_FALLBACK;
+-	page = cmd_to_page(ndctl_cmd, &page);
++	page = cmd_to_page(cmd, &page, util_name);
+ 	if (!page)
+ 		return -1;
+ 	setup_man_path();
+@@ -136,28 +137,3 @@ static int show_man_page(const char *ndctl_cmd)
+ 	free(page);
+ 	return -1;
  }
- 
--int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
--		struct iomap_ops *ops)
-+int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
- {
-+	struct vm_area_struct *vma = vmf->vma;
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-@@ -1355,7 +1353,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 	vmf->pgoff = linear_page_index(vma, pmd_addr);
- 	max_pgoff = (i_size_read(inode) - 1) >> PAGE_SHIFT;
- 
--	trace_dax_pmd_fault(inode, vma, vmf, max_pgoff, 0);
-+	trace_dax_pmd_fault(inode, vmf, max_pgoff, 0);
- 
- 	/* Fall back to PTEs if we're going to COW */
- 	if (write && !(vma->vm_flags & VM_SHARED))
-@@ -1401,15 +1399,13 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 
- 	switch (iomap.type) {
- 	case IOMAP_MAPPED:
--		result = dax_pmd_insert_mapping(vma, vmf->pmd, vmf,
--				vmf->address, &iomap, pos, write, &entry);
-+		result = dax_pmd_insert_mapping(vmf, &iomap, pos, &entry);
- 		break;
- 	case IOMAP_UNWRITTEN:
- 	case IOMAP_HOLE:
- 		if (WARN_ON_ONCE(write))
- 			goto unlock_entry;
--		result = dax_pmd_load_hole(vma, vmf->pmd, vmf, vmf->address,
--				&iomap, &entry);
-+		result = dax_pmd_load_hole(vmf, &iomap, &entry);
- 		break;
- 	default:
- 		WARN_ON_ONCE(1);
-@@ -1439,7 +1435,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
- 		count_vm_event(THP_FAULT_FALLBACK);
- 	}
- out:
--	trace_dax_pmd_fault_done(inode, vma, vmf, max_pgoff, result);
-+	trace_dax_pmd_fault_done(inode, vmf, max_pgoff, result);
- 	return result;
- }
- EXPORT_SYMBOL_GPL(dax_iomap_pmd_fault);
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 10b64ba..75dc3dd 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -276,19 +276,19 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- }
- 
- static int
--ext4_dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
-+ext4_dax_pmd_fault(struct vm_fault *vmf)
- {
- 	int result;
--	struct inode *inode = file_inode(vma->vm_file);
-+	struct inode *inode = file_inode(vmf->vma->vm_file);
- 	struct super_block *sb = inode->i_sb;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 
- 	if (write) {
- 		sb_start_pagefault(sb);
--		file_update_time(vma->vm_file);
-+		file_update_time(vmf->vma->vm_file);
- 	}
- 	down_read(&EXT4_I(inode)->i_mmap_sem);
--	result = dax_iomap_pmd_fault(vma, vmf, &ext4_iomap_ops);
-+	result = dax_iomap_pmd_fault(vmf, &ext4_iomap_ops);
- 	up_read(&EXT4_I(inode)->i_mmap_sem);
- 	if (write)
- 		sb_end_pagefault(sb);
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 332e194..02f9093 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1431,10 +1431,9 @@ xfs_filemap_fault(
-  */
- STATIC int
- xfs_filemap_pmd_fault(
--	struct vm_area_struct	*vma,
- 	struct vm_fault		*vmf)
- {
--	struct inode		*inode = file_inode(vma->vm_file);
-+	struct inode		*inode = file_inode(vmf->vma->vm_file);
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	int			ret;
- 
-@@ -1445,11 +1444,11 @@ xfs_filemap_pmd_fault(
- 
- 	if (vmf->flags & FAULT_FLAG_WRITE) {
- 		sb_start_pagefault(inode->i_sb);
--		file_update_time(vma->vm_file);
-+		file_update_time(vmf->vma->vm_file);
- 	}
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
--	ret = dax_iomap_pmd_fault(vma, vmf, &xfs_iomap_ops);
-+	ret = dax_iomap_pmd_fault(vmf, &xfs_iomap_ops);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 
- 	if (vmf->flags & FAULT_FLAG_WRITE)
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index a829fee..c1bd6ab 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -71,15 +71,14 @@ static inline unsigned int dax_radix_order(void *entry)
- 		return PMD_SHIFT - PAGE_SHIFT;
- 	return 0;
- }
--int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
--		struct iomap_ops *ops);
-+int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops);
- #else
- static inline unsigned int dax_radix_order(void *entry)
- {
- 	return 0;
- }
--static inline int dax_iomap_pmd_fault(struct vm_area_struct *vma,
--		struct vm_fault *vmf, struct iomap_ops *ops)
-+static inline int dax_iomap_pmd_fault(struct vm_fault *vmf,
-+		struct iomap_ops *ops)
- {
- 	return VM_FAULT_FALLBACK;
- }
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 1c96128..e9012ba 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -347,7 +347,7 @@ struct vm_operations_struct {
- 	void (*close)(struct vm_area_struct * area);
- 	int (*mremap)(struct vm_area_struct * area);
- 	int (*fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
--	int (*pmd_fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
-+	int (*pmd_fault)(struct vm_fault *vmf);
- 	void (*map_pages)(struct vm_fault *vmf,
- 			pgoff_t start_pgoff, pgoff_t end_pgoff);
- 
-diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
-index a98665b..c566ddc 100644
---- a/include/trace/events/fs_dax.h
-+++ b/include/trace/events/fs_dax.h
-@@ -7,9 +7,9 @@
- #include <linux/tracepoint.h>
- 
- DECLARE_EVENT_CLASS(dax_pmd_fault_class,
--	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
--		struct vm_fault *vmf, pgoff_t max_pgoff, int result),
--	TP_ARGS(inode, vma, vmf, max_pgoff, result),
-+	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
-+		pgoff_t max_pgoff, int result),
-+	TP_ARGS(inode, vmf, max_pgoff, result),
- 	TP_STRUCT__entry(
- 		__field(unsigned long, ino)
- 		__field(unsigned long, vm_start)
-@@ -25,9 +25,9 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
- 	TP_fast_assign(
- 		__entry->dev = inode->i_sb->s_dev;
- 		__entry->ino = inode->i_ino;
--		__entry->vm_start = vma->vm_start;
--		__entry->vm_end = vma->vm_end;
--		__entry->vm_flags = vma->vm_flags;
-+		__entry->vm_start = vmf->vma->vm_start;
-+		__entry->vm_end = vmf->vma->vm_end;
-+		__entry->vm_flags = vmf->vma->vm_flags;
- 		__entry->address = vmf->address;
- 		__entry->flags = vmf->flags;
- 		__entry->pgoff = vmf->pgoff;
-@@ -52,19 +52,18 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
- 
- #define DEFINE_PMD_FAULT_EVENT(name) \
- DEFINE_EVENT(dax_pmd_fault_class, name, \
--	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
--		struct vm_fault *vmf, \
-+	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
- 		pgoff_t max_pgoff, int result), \
--	TP_ARGS(inode, vma, vmf, max_pgoff, result))
-+	TP_ARGS(inode, vmf, max_pgoff, result))
- 
- DEFINE_PMD_FAULT_EVENT(dax_pmd_fault);
- DEFINE_PMD_FAULT_EVENT(dax_pmd_fault_done);
- 
- DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
--	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
--		unsigned long address, struct page *zero_page,
-+	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
-+		struct page *zero_page,
- 		void *radix_entry),
--	TP_ARGS(inode, vma, address, zero_page, radix_entry),
-+	TP_ARGS(inode, vmf, zero_page, radix_entry),
- 	TP_STRUCT__entry(
- 		__field(unsigned long, ino)
- 		__field(unsigned long, vm_flags)
-@@ -76,8 +75,8 @@ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
- 	TP_fast_assign(
- 		__entry->dev = inode->i_sb->s_dev;
- 		__entry->ino = inode->i_ino;
--		__entry->vm_flags = vma->vm_flags;
--		__entry->address = address;
-+		__entry->vm_flags = vmf->vma->vm_flags;
-+		__entry->address = vmf->address;
- 		__entry->zero_page = zero_page;
- 		__entry->radix_entry = radix_entry;
- 	),
-@@ -95,19 +94,17 @@ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
- 
- #define DEFINE_PMD_LOAD_HOLE_EVENT(name) \
- DEFINE_EVENT(dax_pmd_load_hole_class, name, \
--	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
--		unsigned long address, struct page *zero_page, \
--		void *radix_entry), \
--	TP_ARGS(inode, vma, address, zero_page, radix_entry))
-+	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
-+		struct page *zero_page, void *radix_entry), \
-+	TP_ARGS(inode, vmf, zero_page, radix_entry))
- 
- DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
- DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
- 
- DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
--	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
--		unsigned long address, int write, long length, pfn_t pfn,
--		void *radix_entry),
--	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry),
-+	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
-+		long length, pfn_t pfn, void *radix_entry),
-+	TP_ARGS(inode, vmf, length, pfn, radix_entry),
- 	TP_STRUCT__entry(
- 		__field(unsigned long, ino)
- 		__field(unsigned long, vm_flags)
-@@ -121,9 +118,9 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
- 	TP_fast_assign(
- 		__entry->dev = inode->i_sb->s_dev;
- 		__entry->ino = inode->i_ino;
--		__entry->vm_flags = vma->vm_flags;
--		__entry->address = address;
--		__entry->write = write;
-+		__entry->vm_flags = vmf->vma->vm_flags;
-+		__entry->address = vmf->address;
-+		__entry->write = vmf->flags & FAULT_FLAG_WRITE;
- 		__entry->length = length;
- 		__entry->pfn_val = pfn.val;
- 		__entry->radix_entry = radix_entry;
-@@ -146,10 +143,9 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
- 
- #define DEFINE_PMD_INSERT_MAPPING_EVENT(name) \
- DEFINE_EVENT(dax_pmd_insert_mapping_class, name, \
--	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
--		unsigned long address, int write, long length, pfn_t pfn, \
--		void *radix_entry), \
--	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry))
-+	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
-+		long length, pfn_t pfn, void *radix_entry), \
-+	TP_ARGS(inode, vmf, length, pfn, radix_entry))
- 
- DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
- DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping_fallback);
-diff --git a/mm/memory.c b/mm/memory.c
-index e648c62..6012a05 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3471,11 +3471,10 @@ static int do_numa_page(struct vm_fault *vmf)
- 
- static int create_huge_pmd(struct vm_fault *vmf)
- {
--	struct vm_area_struct *vma = vmf->vma;
--	if (vma_is_anonymous(vma))
-+	if (vma_is_anonymous(vmf->vma))
- 		return do_huge_pmd_anonymous_page(vmf);
--	if (vma->vm_ops->pmd_fault)
--		return vma->vm_ops->pmd_fault(vma, vmf);
-+	if (vmf->vma->vm_ops->pmd_fault)
-+		return vmf->vma->vm_ops->pmd_fault(vmf);
- 	return VM_FAULT_FALLBACK;
- }
- 
-@@ -3484,7 +3483,7 @@ static int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
- 	if (vma_is_anonymous(vmf->vma))
- 		return do_huge_pmd_wp_page(vmf, orig_pmd);
- 	if (vmf->vma->vm_ops->pmd_fault)
--		return vmf->vma->vm_ops->pmd_fault(vmf->vma, vmf);
-+		return vmf->vma->vm_ops->pmd_fault(vmf);
- 
- 	/* COW handled on pte level: split pmd */
- 	VM_BUG_ON_VMA(vmf->vma->vm_flags & VM_SHARED, vmf->vma);
--- 
-2.7.4
+-
+-int cmd_help(int argc, const char **argv, struct ndctl_ctx *ctx)
+-{
+-	const char * const builtin_help_subcommands[] = {
+-		"enable-region", "disable-region", "zero-labels",
+-		"enable-namespace", "disable-namespace", NULL };
+-	struct option builtin_help_options[] = {
+-		OPT_END(),
+-	};
+-	const char *builtin_help_usage[] = {
+-		"ndctl help [command]",
+-		NULL
+-	};
+-
+-	argc = parse_options_subcommand(argc, argv, builtin_help_options,
+-			builtin_help_subcommands, builtin_help_usage, 0);
+-
+-	if (!argv[0]) {
+-		printf("\n usage: %s\n\n", ndctl_usage_string);
+-		printf("\n %s\n\n", ndctl_more_info_string);
+-		return 0;
+-	}
+-
+-	return show_man_page(argv[0]);
+-}
+diff --git a/util/main.c b/util/main.c
+new file mode 100644
+index 000000000000..cb3c634e93f5
+--- /dev/null
++++ b/util/main.c
+@@ -0,0 +1,123 @@
++#include <stdio.h>
++#include <errno.h>
++#include <string.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <builtin.h>
++
++#include <util/strbuf.h>
++#include <util/util.h>
++
++int main_handle_options(const char ***argv, int *argc, const char *usage_msg,
++		struct cmd_struct *cmds, int num_cmds)
++{
++	int handled = 0;
++
++	while (*argc > 0) {
++		const char *cmd = (*argv)[0];
++		if (cmd[0] != '-')
++			break;
++
++		if (!strcmp(cmd, "--version") || !strcmp(cmd, "--help"))
++			break;
++
++		/*
++		 * Shortcut for '-h' and '-v' options to invoke help
++		 * and version command.
++		 */
++		if (!strcmp(cmd, "-h")) {
++			(*argv)[0] = "--help";
++			break;
++		}
++
++		if (!strcmp(cmd, "-v")) {
++			(*argv)[0] = "--version";
++			break;
++		}
++
++		if (!strcmp(cmd, "--list-cmds")) {
++			int i;
++
++			for (i = 0; i < num_cmds; i++) {
++				struct cmd_struct *p = cmds+i;
++
++				/* filter out commands from auto-complete */
++				if (strcmp(p->cmd, "create-nfit") == 0)
++					continue;
++				if (strcmp(p->cmd, "test") == 0)
++					continue;
++				if (strcmp(p->cmd, "bat") == 0)
++					continue;
++				printf("%s\n", p->cmd);
++			}
++			exit(0);
++		} else {
++			fprintf(stderr, "Unknown option: %s\n", cmd);
++			usage(usage_msg);
++		}
++
++		(*argv)++;
++		(*argc)--;
++		handled++;
++	}
++	return handled;
++}
++
++static int run_builtin(struct cmd_struct *p, int argc, const char **argv,
++		void *ctx)
++{
++	int status;
++	struct stat st;
++
++	status = p->fn(argc, argv, ctx);
++
++	if (status)
++		return status & 0xff;
++
++	/* Somebody closed stdout? */
++	if (fstat(fileno(stdout), &st))
++		return 0;
++	/* Ignore write errors for pipes and sockets.. */
++	if (S_ISFIFO(st.st_mode) || S_ISSOCK(st.st_mode))
++		return 0;
++
++	status = 1;
++	/* Check for ENOSPC and EIO errors.. */
++	if (fflush(stdout)) {
++		fprintf(stderr, "write failure on standard output: %s", strerror(errno));
++		goto out;
++	}
++	if (ferror(stdout)) {
++		fprintf(stderr, "unknown write failure on standard output");
++		goto out;
++	}
++	if (fclose(stdout)) {
++		fprintf(stderr, "close failed on standard output: %s", strerror(errno));
++		goto out;
++	}
++	status = 0;
++out:
++	return status;
++}
++
++void main_handle_internal_command(int argc, const char **argv, void *ctx,
++		struct cmd_struct *cmds, int num_cmds)
++{
++	const char *cmd = argv[0];
++	int i;
++
++	/* Turn "<binary> cmd --help" into "<binary> help cmd" */
++	if (argc > 1 && !strcmp(argv[1], "--help")) {
++		argv[1] = argv[0];
++		argv[0] = cmd = "help";
++	}
++
++	for (i = 0; i < num_cmds; i++) {
++		struct cmd_struct *p = cmds+i;
++		if (strcmp(p->cmd, cmd))
++			continue;
++		exit(run_builtin(p, argc, argv, ctx));
++	}
++}
+diff --git a/util/main.h b/util/main.h
+new file mode 100644
+index 000000000000..bdd4f701665c
+--- /dev/null
++++ b/util/main.h
+@@ -0,0 +1,10 @@
++#ifndef __MAIN_H__
++#define __MAIN_H__
++struct cmd_struct;
++int main_handle_options(const char ***argv, int *argc, const char *usage_msg,
++		struct cmd_struct *cmds, int num_cmds);
++void main_handle_internal_command(int argc, const char **argv, void *ctx,
++		struct cmd_struct *cmds, int num_cmds);
++int help_show_man_page(const char *cmd, const char *util_name,
++		const char *viewer);
++#endif /* __MAIN_H__ */
 
 _______________________________________________
 Linux-nvdimm mailing list
