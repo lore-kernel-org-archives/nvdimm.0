@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6CA7F81B01
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jan 2017 17:11:32 -0800 (PST)
-Subject: [PATCH 0/9] ndctl, create-namespace: updates and fixes
+ by ml01.01.org (Postfix) with ESMTPS id E8B1681A58
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Jan 2017 17:46:44 -0800 (PST)
+Subject: [ndctl PATCH 6/7] ndctl, {enable,disable}-region: filter by type
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 09 Jan 2017 17:07:25 -0800
-Message-ID: <148401044568.16217.6942951063735168785.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 06 Jan 2017 17:42:38 -0800
+Message-ID: <148375335820.38836.1562013725964258644.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148375332631.38836.5735184615585844571.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148375332631.38836.5735184615585844571.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,39 +25,94 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Close some holes in namespace creation that allowed invalid
-configurations to leak through to the kernel rather than trapping and
-warning about them earlier.
+Allow the region to be selected by type. For example, disable all pmem:
 
-Add a man page and rpm specfile support for the recently added daxctl
-utility.
+	ndctl disable-region -t pmem all
 
+One case this is useful for is scripting the bring-up of individual
+namespaces rather than the default of all at once and in parallel. For
+example:
+
+* blacklist the nd_pmem module
+* disable all pmem regions
+* load the nd_pmem module
+* individually enable pmem regions
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ ndctl/builtin-xable-region.c |   31 +++++++++++++++++++++++++++----
+ 1 file changed, 27 insertions(+), 4 deletions(-)
 
-Dan Williams (9):
-      ndctl, create-namespace: skip idle regions when scanning for capacity
-      ndctl, create-namespace: skip blk regions when scanning for memory or dax mode
-      ndctl, create-namespace: improve failure message
-      ndctl, create-namespace: add an 'align' option
-      daxctl, list: add man page
-      daxctl: add daxctl to rpm spec
-      ndctl: return unit size from parse_size64()
-      ndctl: fix ndctl_region_get_interleave_ways(), set minimum
-      ndctl, create-namespace: enforce --size must be even multiple of interleave-width
+diff --git a/ndctl/builtin-xable-region.c b/ndctl/builtin-xable-region.c
+index 50cbdef5b339..0d46192fe6a4 100644
+--- a/ndctl/builtin-xable-region.c
++++ b/ndctl/builtin-xable-region.c
+@@ -6,11 +6,16 @@
+ #include <util/parse-options.h>
+ #include <ndctl/libndctl.h>
+ 
+-static const char *region_bus;
++static struct {
++	const char *bus;
++	const char *type;
++} param;
+ 
+ static const struct option region_options[] = {
+-	OPT_STRING('b', "bus", &region_bus, "bus-id",
++	OPT_STRING('b', "bus", &param.bus, "bus-id",
+ 			"<region> must be on a bus with an id/provider of <bus-id>"),
++	OPT_STRING('t', "type", &param.type, "region-type",
++			"<region> must be of the specified type"),
+ 	OPT_END(),
+ };
+ 
+@@ -33,6 +38,20 @@ static const char *parse_region_options(int argc, const char **argv,
+ 		usage_with_options(u, region_options);
+ 		return NULL; /* we won't return from usage_with_options() */
+ 	}
++
++	if (param.type) {
++		if (strcmp(param.type, "pmem") == 0)
++			/* pass */;
++		else if (strcmp(param.type, "blk") == 0)
++			/* pass */;
++		else {
++			error("unknown region type '%s', should be 'pmem' or 'blk'\n",
++					param.type);
++			usage_with_options(u, region_options);
++			return NULL;
++		}
++	}
++
+ 	return argv[0];
+ }
+ 
+@@ -47,10 +66,14 @@ static int do_xable_region(const char *region_arg,
+ 		goto out;
+ 
+         ndctl_bus_foreach(ctx, bus) {
+-		if (!util_bus_filter(bus, region_bus))
++		if (!util_bus_filter(bus, param.bus))
+ 			continue;
+ 
+ 		ndctl_region_foreach(bus, region) {
++			const char *type = ndctl_region_get_type_name(region);
++
++			if (param.type && strcmp(param.type, type) != 0)
++				continue;
+ 			if (!util_region_filter(region, region_arg))
+ 				continue;
+ 			if (xable_fn(region) == 0)
+@@ -60,7 +83,7 @@ static int do_xable_region(const char *region_arg,
+ 
+ 	rc = success;
+  out:
+-	region_bus = NULL;
++	param.bus = NULL;
+ 	return rc;
+ }
+ 
 
-
- Documentation/Makefile.am                |    3 -
- Documentation/daxctl-list.txt            |   78 ++++++++++++++++
- Documentation/ndctl-create-namespace.txt |   13 +++
- ndctl.spec.in                            |    8 +-
- ndctl/builtin-xaction-namespace.c        |  143 +++++++++++++++++++++++++-----
- ndctl/lib/libndctl.c                     |    7 +
- ndctl/lib/libndctl.sym                   |    1 
- ndctl/libndctl.h.in                      |    1 
- util/size.c                              |   17 +++-
- util/size.h                              |    2 
- 10 files changed, 243 insertions(+), 30 deletions(-)
- create mode 100644 Documentation/daxctl-list.txt
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
