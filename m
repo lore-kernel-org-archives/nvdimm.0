@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Date: Tue, 3 Jan 2017 16:31:37 +0800
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCH] x86: fix kaslr and memmap collision
-Message-ID: <20170103083137.GA15788@x1>
-References: <147977413859.13657.2181994710415174471.stgit@djiang5-desk3.ch.intel.com>
- <20161122084754.GA25596@gmail.com>
- <CAPcyv4i+2NxdTc1xzVL+KQs8hLfUhbpGX3zstO_b=RY3hCy64w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4i+2NxdTc1xzVL+KQs8hLfUhbpGX3zstO_b=RY3hCy64w@mail.gmail.com>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B7D4481AEA
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jan 2017 13:52:36 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 0/7] DAX tracepoints, mm argument simplification
+Date: Tue, 10 Jan 2017 14:52:15 -0700
+Message-Id: <1484085142-2297-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,47 +15,67 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Kees Cook <keescook@chromium.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, X86 ML <x86@kernel.org>, david <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, dyoung@redhat.com, Ingo Molnar <mingo@kernel.org>
+To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: Theodore Ts'o <tytso@mit.edu>, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Steven Rostedt <rostedt@goodmis.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan,
+Andrew,
 
-On 11/22/16 at 09:26am, Dan Williams wrote:
-> [ replying for Dave since he's offline today and tomorrow ]
-> 
-> On Tue, Nov 22, 2016 at 12:47 AM, Ingo Molnar <mingo@kernel.org> wrote:
-> >
-> > * Dave Jiang <dave.jiang@intel.com> wrote:
-> >
-> >> CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
-> >> However it does not take into account the memmap= parameter passed in from
-> >> the kernel commandline.
-> >
-> > memmap= parameters are often used as a list.
-> >
-> >> [...] This results in the kernel sometimes being put in the middle of the user
-> >> memmap. [...]
-> >
-> > What does this mean? If memmap= is used to re-define the memory map then the
-> > kernel getting in the middle of a RAM area is what we want, isn't it? What we
-> > don't want is for the kernel to get into reserved areas, right?
-> 
-> Right, this is about teaching kaslr to not land the kernel in newly
-> defined reserved regions that were not marked reserved in the initial
-> e820 map from platform firmware.
+This contains both my DAX tracepoint code and Dave Jiang's MM argument
+simplifications.  Dave's code was written with my tracepoint code as a
+baseline, so it seemed simplest to keep them together in a single series.
 
-If only tell kaslr to not land kernel in newly defined reserved regions,
-memory added by "memmap=nn[KMG]@ss[KMG]" should not be avoided since
-it's usable memory. Kernel randomized into this region is also what we
-want. Not sure if I understand it right.
+This series is based on the v4.10-rc3-mmots-2017-01-09-17-08 snapshot.  A
+working tree can be found here:
 
-Thanks
-Baoquan
+https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=mmots_dax_tracepoint
+
+Changes from the previous versions of these patches:
+ - Combined Dave's code and mine into a single series.
+ - Resolved some minor merge conflics in Dave's patches so they could be
+   applied to the latest mmots snapshot.
+ - Added Reviewed-by and Acked-by tags to patches as appropriate.
+
+My goal for this series is to get it merged for v4.11.
+
+Thanks,
+- Ross
+
+Dave Jiang (2):
+  mm, dax: make pmd_fault() and friends to be the same as fault()
+  mm, dax: move pmd_fault() to take only vmf parameter
+
+Ross Zwisler (5):
+  tracing: add __print_flags_u64()
+  dax: add tracepoint infrastructure, PMD tracing
+  dax: update MAINTAINERS entries for FS DAX
+  dax: add tracepoints to dax_pmd_load_hole()
+  dax: add tracepoints to dax_pmd_insert_mapping()
+
+ MAINTAINERS                   |   5 +-
+ drivers/dax/dax.c             |  26 ++++---
+ fs/dax.c                      | 114 ++++++++++++++++--------------
+ fs/ext4/file.c                |  13 ++--
+ fs/xfs/xfs_file.c             |  15 ++--
+ include/linux/dax.h           |   6 +-
+ include/linux/mm.h            |  28 +++++++-
+ include/linux/pfn_t.h         |   6 ++
+ include/linux/trace_events.h  |   4 ++
+ include/trace/events/fs_dax.h | 156 ++++++++++++++++++++++++++++++++++++++++++
+ include/trace/trace_events.h  |  11 +++
+ kernel/trace/trace_output.c   |  38 ++++++++++
+ mm/memory.c                   |  11 ++-
+ 13 files changed, 338 insertions(+), 95 deletions(-)
+ create mode 100644 include/trace/events/fs_dax.h
+
+-- 
+2.7.4
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
