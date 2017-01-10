@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from me-ss2-ieksw9.mailengine1.com (me-ss2-ieksw9.mailengine1.com
- [72.19.210.94]) by ml01.01.org (Postfix) with ESMTP id 62F5E81AE8
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jan 2017 15:25:54 -0800 (PST)
-Received: by me-ss2-ieksw9.mailengine1.com (PowerMTA(TM) v3.5r15sb7) id
- hege040jql4t for <linux-nvdimm@lists.01.org>;
- Mon, 9 Jan 2017 15:25:14 -0800 (envelope-from
- <bouncer@me-ss2-ieksw9.mailengine1.com>)
-MIME-Version: 1.0
-Date: Mon, 09 Jan 2017 15:22:21 -0800
-From: "Nicholas Meyler" <nickm@wdsearch.com>
-Subject: Great Opportunities: AI/Data-Mining/NLP,  Blockchain CTO, etc.
-Message-ID: <300.0.15.E3C.1D26ACFA128F47E.7D1B0@me-ss2-ieksw9.mailengine1.com>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 48B4E81B3C
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jan 2017 13:52:49 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 7/7] mm, dax: move pmd_fault() to take only vmf parameter
+Date: Tue, 10 Jan 2017 14:52:22 -0700
+Message-Id: <1484085142-2297-8-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1484085142-2297-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1484085142-2297-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,209 +17,474 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Reply-To: "Nicholas J. Meyler" <nickm@wdsearch.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, "Darrick J. Wong" <darrick.wong@oracle.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, Steven Rostedt <rostedt@goodmis.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-RXhjaXRpbmcgU2VhcmNoZXMgZm9yIEphbnVhcnkKCgooMSkgTkxQL01hY2hpbmUtTGVhcm5pbmcg
-RGF0YSBTY2llbnRpc3QgKFBsZWFzYW50b24sIENBKToKCk15IGNsaWVudCBoYXMgcmVtYWluZWQg
-YXQgdGhlIGNlbnRlciBvZiBzY2llbnRpZmljIGRpc2NvdmVyeSBmb3IgbW9yZSB0aGFuIDUwIHll
-YXJzLCBtYW51ZmFjdHVyaW5nIGFuZCBkaXN0cmlidXRpbmcgYSBicm9hZCByYW5nZSBvZiBwcm9k
-dWN0cyBmb3IgdGhlIGxpZmUgc2NpZW5jZSByZXNlYXJjaCBhbmQgY2xpbmljYWwgZGlhZ25vc3Rp
-YyBtYXJrZXRzLiBUaGUgQ29tcGFueSBpcyByZW5vd25lZCB3b3JsZHdpZGUgYW1vbmcgaG9zcGl0
-YWxzLCB1bml2ZXJzaXRpZXMsIG1ham9yIHJlc2VhcmNoIGluc3RpdHV0aW9ucywgYXMgd2VsbCBh
-cyBiaW90ZWNobm9sb2d5IGFuZCBwaGFybWFjZXV0aWNhbCBjb21wYW5pZXMgZm9yIGl0cyBjb21t
-aXRtZW50IHRvIHF1YWxpdHkgYW5kIGN1c3RvbWVyIHNlcnZpY2UuIEZvdW5kZWQgaW4gMTk1Miwg
-dGhleSBhcmUgaGVhZHF1YXJ0ZXJlZCBpbiBIZXJjdWxlcywgQ2FsaWZvcm5pYSwgYW5kIHNlcnZl
-IG1vcmUgdGhhbiA4NSwwMDAgcmVzZWFyY2ggYW5kIGluZHVzdHJ5IGN1c3RvbWVycyB3b3JsZHdp
-ZGUgdGhyb3VnaCBpdHMgZ2xvYmFsIG5ldHdvcmsgb2Ygb3BlcmF0aW9ucy4KCk15IGV4Y2l0aW5n
-IEJpb3RlY2ggQ2xpZW50IGlzIHNlZWtpbmcgYSBOYXR1cmFsIExhbmd1YWdlIFByb2Nlc3Npbmcg
-KE5QTCkvTWFjaGluZSBMZWFybmluZyAoTUwpIHNjaWVudGlzdCB0byBsZWFkIGFuIGVsaXRlIGRh
-dGEgc2NpZW5jZSB0ZWFtIHJlc3BvbnNpYmxlIGZvciBjcmVhdGluZyBpbm5vdmF0aXZlIHRvb2xz
-LCBtZXRob2RzIGFuZCBiZXN0IHByYWN0aWNlcyBhcm91bmQgdGhlIHNjaWVudGlmaWMgbGl0ZXJh
-dHVyZS4gVGhlIGlkZWFsIGNhbmRpZGF0ZSBjYXJlcyBkZWVwbHkgYWJvdXQgZGV2ZWxvcGluZyBh
-bmQgaW1wbGVtZW50aW5nIHNvbHV0aW9ucyB0aGF0IGRyYW1hdGljYWxseSBpbXByb3ZlIG9uZSdz
-IGFiaWxpdHkgdG8gaW50ZWdyYXRlIGFuZCBxdWFudGlmeSBrbm93bGVkZ2UgZXh0cmFjdGVkIGZy
-b20gbWlsbGlvbnMgb2Ygc2NpZW50aWZpYyBwdWJsaWNhdGlvbnMuCgpXaGF0IHlvdeKAmWxsIGJl
-IGRvaW5nOgrCtyBwcm92aWRlIGRheS10by1kYXkgb3ZlcnNpZ2h0IGFuZCBtYW5hZ2VtZW50IG9m
-IHRoZSBkYXRlIHNjaWVuY2Ugc3RhZmYgYW5kIGFjdGl2aXRpZXMKwrcgY29sbGFib3JhdGUgd2l0
-aCBzY2llbnRpc3RzIGFuZCBvdGhlciBidXNpbmVzcyBwYXJ0bmVycwrCtyBoYW5kbGUgY29tcGV0
-aW5nIHJlcXVlc3RzIGZyb20gYSByYW5nZSBvZiBkYXRhIGN1c3RvbWVycwrCtyBsZWFkIGJ5IGV4
-YW1wbGUgdGhyb3VnaCBpZGVhdGlvbiwgcHJvdG90eXBpbmcgYW5kIHRlc3RpbmcKwrcgZGV2ZWxv
-cCBiZXN0IHByYWN0aWNlcyB0aGF0IHByb3ZpZGUgcmVzdWx0cyBvZiB0aGUgaGlnaGVzdCBxdWFs
-aXR5IGFib3ZlIHRoYXQgd2hpY2ggaXMgdHlwaWNhbGx5IHNlZW4gaW4gYWNhZGVtaWEgYW5kIGlu
-ZHVzdHJ5CsK3IGlkZW50aWZ5IG9wcG9ydHVuaXRpZXMgdG8gYmxlbmQgYXJ0aWNsZSwgdGVjaG5v
-bG9neSwgcHJvZHVjdCBtZXRyaWNzIHdpdGggaW50ZXJuYWwgYW5kIGV4dGVybmFsIGRhdGEgYXNz
-ZXRzCsK3IHByb3Zpc2lvbiBpbnRlcmFjdGl2ZSB0ZXh0IGFuYWx5dGljcyB2aXN1YWxpemF0aW9u
-cwrCtyBidWlsZCBhbmFseXRpY3MgcHJvdG90eXBlcyBhbmQgZGVtb3MgZm9yIGVuZCB1c2VycwrC
-tyBwcm92aWRlIHRob3VnaHQgbGVhZGVyc2hpcCwgcHJvdmlkZSBzdHJhdGVnaWMgcm9hZCBtYXAg
-Zm9yIHRleHQgbWluaW5nIG9mIHNjaWVudGlmaWMgbGl0ZXJhdHVyZSBhbmQgaG93IHRoZSBsaXRl
-cmF0dXJlIGZpdHMgaW50byBvdXIgaW50ZWxsaWdlbmNlIGxhbmRzY2FwZSwgc3VwcG9ydHMgbmV3
-IHByb2R1Y3QgZGV2ZWxvcG1lbnQsIGJ1c2luZXNzIGRldmVsb3BtZW50LCBjb21wbGVtZW50cyBl
-eGlzdGluZyBpbnN0cnVtZW50IHNvZnR3YXJlIGFuZCBwb3RlbnRpYWxseSBkaXJlY3RseSBmYWNl
-cyBleHRlcm5hbCBjdXN0b21lcnMKwrcgYnVpbGRpbmcgZGF0ZSBwaXBlbGluZXMgZm9yIHByb2Nl
-c3NpbmcgbmF0dXJhbCBsYW5ndWFnZSB0ZXh0IGF0IHNjYWxlCsK3IGRldmVsb3BpbmcgZnJvbnQt
-ZW5kIHRvb2xzIGFuZCBpbnRlcmZhY2VzIChlLmcuIG5vdGlmaWNhdGlvbiBhbmQgYWxlcnQgc3lz
-dGVtcywgZGFzaGJvYXJkIHJlcG9ydHMpIGZvciBpbnRlcm5hbCBjbGllbnRzIHRvIHZpZXcgYW5k
-IGludGVyYWN0IHdpdGggcHJvY2Vzc2VkIGRhdGEKwrcgc3RheSB1cCB0byBzcGVlZCBvbiBzdGF0
-ZSBvZiB0aGUgYXJ0IG1ldGhvZHMgZm9yIGVmZmljaWVudCB0ZXh0IHByb2Nlc3NpbmcKCldoYXQg
-eW91IG5lZWQgZm9yIHRoaXMgcm9sZToKwrcgTVMgb3IgUGhEIGluIENvbXB1dGVyIFNjaWVuY2Us
-IG1hdGgsIHN0YXRpc3RpY3Mgb3IgcmVsYXRlZCBmaWVsZArCtyAxMCsgeWVhcnMgdGV4dCBtaW5p
-bmcgYW5kIG1hY2hpbmUgbGVhcm5pbmcKwrcgcHJpb3IgZXhwZXJpZW5jZSBtYW5hZ2luZyBhbmQg
-Y29hY2hpbmcgZGVlcGx5IHRlY2huaWNhbCBzdGFmZiBpbiBhbiBBZ2lsZSBlbnZpcm9ubWVudArC
-tyBwcmlvciBleHBlcmllbmNlIHdpdGggU2VhcmNoLCBtYWNoaW5lIGxlYXJuaW5nIGFuZCBvdGhl
-ciB0ZXh0IG1pbmluZyBtZXRob2RvbG9naWVzCsK3IGtub3dsZWRnZSBhbmQgZXhwZXJpZW5jZSBp
-biBvbmUgb3IgbW9yZSBvZiB0aGUgZm9sbG93aW5nIGFyZWFzOiBOYXR1cmFsIExhbmd1YWdlIFBy
-b2Nlc3NpbmcsIE1hY2hpbmUgTGVhcm5pbmcsIFF1ZXN0aW9uIEFuc3dlcmluZywgVGV4dCBNaW5p
-bmcsIEluZm9ybWF0aW9uIFJldHJpZXZhbCwgRGlzdHJpYnV0aW9uYWwgU2VtYW50aWNzLCBhbmQv
-b3IgRGlzY291cnNlIE1vZGVsaW5nCsK3IGtub3dsZWRnZSBvZiBOYXRpb25hbCBMaWJyYXJ5IG9m
-IE1lZGljaW5lLCBQdWJNZWQsUHViTWVkIENlbnRyYWwsIGFuZCBNZWRpY2FsIEluZGV4IFN1Ympl
-Y3QgSGVhZGluZ3MgYW5kIHJlbGF0ZWQgc2NpZW50aWZpYyBsaXRlcmF0dXJlIHRvb2xzIGFuZCBy
-ZXNvdXJjZXMKCldoYXTigJlzIGluIGl0IGZvciB5b3U6CsK3IENvbXBldGl0aXZlIHBheSBhbmQg
-Z3JlYXQgYmVuZWZpdHMgaW5jbHVkaW5nIG1lZGljYWwsIGRlbnRhbCwgdmlzaW9uLCA0MDFrIGFu
-ZCBtb3JlCsK3IE9wcG9ydHVuaXRpZXMgZm9yIGdyb3d0aCBhbmQgdHJhaW5pbmcKwrcgU3RhYmls
-aXR5IG9mIGEgcHJvZml0YWJsZSA2MCsgeWVhciBvbGQgY29tcGFueQoKCgpNeSBuZXcgY2xpZW50
-IGlzIG9uZSBvZiB0aGUgd29ybGQncyBsZWFkaW5nIG1hbnVmYWN0dXJlcnMgb2YgY2FwYWNpdG9y
-cywgc2Vla2luZyBhIERldmVsb3BtZW50IEVuZ2luZWVyIAoKKDIpIFNlbmlvciBEZXZlbG9wbWVu
-dCBFbmdpbmVlciDigJMgQ2VyYW1pYyBEaWVsZWN0cmljIChTcGFydGFuYnVyZyBBcmVhLCBTb3V0
-aCBDYXJvbGluYSkKClRoaXMgZW5naW5lZXIgd2lsbCBsZWFkIG1hdGVyaWFsIGFuZCBwcm9jZXNz
-IGRldmVsb3BtZW50IGluIHRoZSBhcmVhIG9mIGNlcmFtaWMgZGllbGVjdHJpY3MgZm9yIGNlcmFt
-aWMgY2FwYWNpdG9yIHByb2R1Y3RzLiBUaGUgY2FuZGlkYXRlIHNob3VsZCBoYXZlIGtub3dsZWRn
-ZSBhbmQgZXhwZXJpZW5jZSB3aXRoIGNlcmFtaWMgZGllbGVjdHJpYyBmb3JtdWxhdGlvbnMsIGFu
-ZCBtaWxsaW5nIGFuZCBkaXNwZXJzaW9uIG9mIGZpbmUgY2VyYW1pYyBwb3dkZXJzLiBUaGUgY2Fu
-ZGlkYXRlIHdpbGwgYmUgZmFtaWxpYXIgd2l0aCBwcm9jZXNzaW5nIG9mIGNlcmFtaWMgcG93ZGVy
-cywgZGlzcGVyc2FudHMsIG1peGluZyBhbmQgbWlsbGluZyBvZiBtaWNyb24gYW5kIHN1Yi1taWNy
-b24gc2l6ZSBwb3dkZXJzLCBmb3JtdWxhdGluZyBtdWx0aS1jb21wb25lbnQgY29tcG9zaXRpb25z
-LCBjZXJhbWljIHRoaWNrIGZpbG1zIGFuZCBjb2F0aW5ncywgYW5kIGVsZWN0cm9uaWMgcHJvcGVy
-dGllcyBvZiBjZXJhbWljcy4gVGhlIGNhbmRpZGF0ZSB3aWxsIGJlIGV4cGVjdGVkIHRvIHF1aWNr
-bHkgbGVhcm4gdGhlIGtleSBhc3BlY3RzIG9mIHRoZSBDb21wYW55IG1hbnVmYWN0dXJpbmcgdGVj
-aG5vbG9neSBhbmQgcHJvY2Vzcy4gVGhpcyBwZXJzb24gd2lsbCBwbGF5IGEgY3JpdGljYWwgcm9s
-ZSBpbiBkZXZlbG9waW5nIG5ldyBwcm9kdWN0cyB1c2luZyBsZWFkaW5nIGVkZ2UgdGVjaG5vbG9n
-aWVzIGFuZCB3aWxsIGV4ZWN1dGUgZXhwZXJpbWVudGFsIHdvcmsgd2l0aCBhIG1pbmltdW0gb2Yg
-c3VwZXJ2aXNpb24uCgpSZXF1aXJlbWVudHM6CkEgc3Ryb25nIHRlY2huaWNhbCBiYWNrZ3JvdW5k
-IGFuZCBleHBlcmllbmNlIGFyZSByZXF1aXJlZCBpbiBDZXJhbWljIFNjaWVuY2UgYW5kIEVuZ2lu
-ZWVyaW5nLCBwcm9jZXNzaW5nIHdpdGggY2VyYW1pYyBwb3dkZXJzIGFuZC9vciBjb2F0aW5ncywg
-RGVzaWduIG9mIEV4cGVyaW1lbnRzLCBhbmQgcHJvYmxlbSBzb2x2aW5nLiBHb29kIGNvbW11bmlj
-YXRpb24gc2tpbGxzIGJvdGggdmVyYmFsIGFuZCB3cml0dGVuIGFyZSBlc3NlbnRpYWwuIEV4cGVy
-aWVuY2Ugd2l0aCBtYXRlcmlhbCBjaGFyYWN0ZXJpemF0aW9uIHRlY2huaXF1ZXMsIGFuZCBlbGVj
-dHJpY2FsIHByb3BlcnR5IG1lYXN1cmVtZW50cyB3b3VsZCBiZSBwcmVmZXJyZWQsIGVzcGVjaWFs
-bHkgd2l0aCByZXNwZWN0IHRvIE1MQ0Mgb3Igb3RoZXIgZWxlY3Ryb25pYyBjb21wb25lbnRzLiAg
-IEV4cGVyaWVuY2Ugb2Ygc3VjY2Vzc2Z1bCBwcm9kdWN0IGRldmVsb3BtZW50IGluIHRoZSBmaWVs
-ZCBvZiBlbGVjdHJvbmljIGNvbXBvbmVudHMgaXMgYmVuZWZpY2lhbC4KICAKRWR1Y2F0aW9uL0V4
-cGVyaWVuY2U6CkIuUy4gaW4gRW5naW5lZXJpbmcgKE1hdGVyaWFscywgQ2VyYW1pYyBvciBDaGVt
-aWNhbCkgYXQgbWluaW11bTsgTS5TLiBvciBQaC5ELiBpbiBFbmdpbmVlcmluZyBvciBTY2llbmNl
-IGlzIHN0cm9uZ2x5IHByZWZlcnJlZC4gTWluaW11bSA1IHllYXJzIG9mIGFwcGxpY2FibGUgZXhw
-ZXJpZW5jZS4KClllYXJzIG9mIGV4cGVyaWVuY2U6CjUgb3IgbW9yZQogICAgICAgICAgICAKQ29t
-cHV0ZXIgU2tpbGxzOgpQcm9maWNpZW5jeSBpbiB1c2luZyBXaW5kb3dzIFBDIGFuZCBNaWNyb3Nv
-ZnQgT2ZmaWNlIHN1aXRlLCBpbiBwYXJ0aWN1bGFyOiBXb3JkLCBFeGNlbCwgUG93ZXJQb2ludCwg
-TWljcm9zb2Z0LVByb2plY3QgYW5kIHN0YXRpc3RpY2FsIGFuYWx5c2lzIHNvZnR3YXJlIHN1Y2gg
-YXMgTWluaVRhYgoKTk9URTogIFNwZWNpZmljYWxseSBsb29raW5nIGZvciBleHBlcmllbmNlIHdp
-dGggQmFyaXVtIFRpdGFuYXRlLCBDYWxjaXVtIFppcmNvbmF0ZSwgWXR0cml1bSwgWXR0ZXJiaXVt
-LCBldGMuIG1hdGVyaWFscywgaW5jbHVkaW5nIFJhcmUgRWFydGggZG9wYW50czsgY3J5c3RhbCBj
-aGVtaXN0cnk7IHRoaWNrIGZpbG1zCgoKCgojMykgQXR0ZW50aW9uIEJpdGNvaW4vQmxvY2tjaGFp
-biBhbmQgSEYgVHJhZGluZyBFeHBlcnRzOgoKTXkgZXhjaXRpbmcgbmV3IGNsaWVudCBpbiBMb3Mg
-QW5nbGVzIGlzIHRoZSBmaXJzdCBpbnZlc3RtZW50IGJhbmsgZm9yIGRpZ2l0YWwgZmluYW5jZSwg
-dXNpbmcgYml0Y29pbiBhbmQgYmxvY2tjaGFpbiB0ZWNobm9sb2d5LCB3b3JraW5nIHdpdGggdGhl
-IE5ldyBZb3JrIENyeXB0b2N1cnJlbmNpZXMgRXhjaGFuZ2UuICAKCiBGb3Igbm93LCB0aGV5IGZv
-Y3VzIG9uIGJ1aWxkaW5nIGEgY3J5cHRvLWN1cnJlbmN5IHRyYWRpbmcgcGxhdGZvcm0gd2l0aCBh
-IGZvY3VzIG9uIElDTyAoSW5pdGlhbCBDb2luIE9mZmVyaW5nKSB0b2tlbnMgd2l0aCBzbWFydCBj
-b250cmFjdHMgYW5kIGluIHBhcmFsbGVsLiAgVGhleSBhcmUgYnVpbGRpbmcgYW4gaW52ZXN0bWVu
-dCBiYW5rIHRvIGNyZWF0ZSBhIHRyYW5zcGFyZW50IGFuZCBjb21wbGlhbnQgcHJvY2VzcyBmb3Ig
-Y29tcGFuaWVzIHRvIHJhaXNlIGZ1bmRzIHZpYSBJQ08uIFRoZSBHcm91cCBpcyBsZWFkIGJ5IGEg
-c3VjY2Vzc2Z1bCBlbnRyZXByZW5ldXIgd2hvIHJlY2VudGx5IG1hZGUgYSBzdWNjZXNzZnVsIGV4
-aXQgZnJvbSBoaXMgc2Vjb25kIGJ1c2luZXNzIHdpdGggYSAkMTAwKyBtaWxsaW9uIHRpY2tldC4K
-CkNUTyBQb3NpdGlvbiBTdW1tYXJ5ClRoZSBDaGllZiBUZWNobm9sb2d5IE9mZmljZXIgKENUTykg
-aXMgcmVzcG9uc2libGUgZm9yIG92ZXJzZWVpbmcgYWxsIHRlY2huaWNhbCBhc3BlY3RzIG9mIHRo
-ZSBibG9ja2NoYWluIGFuZCBmaW50ZWNoIHByb2plY3RzLiBVc2luZyBhbiBhY3RpdmUgYW5kIHBy
-YWN0aWNhbCBhcHByb2FjaCwgdGhlIENUTyB3aWxsIGRpcmVjdCBhbGwgZW1wbG95ZWVzIGluIElU
-IGFuZCBJTyBkZXBhcnRtZW50cyB0byBhdHRhaW4gdGhlIGNvbXBhbnnigJlzIHN0cmF0ZWdpYyBn
-b2FscyBlc3RhYmxpc2hlZCBpbiB0aGUgY29tcGFueeKAmXMgc3RyYXRlZ2ljIHBsYW4uCgpTcGVj
-aWZpYyByZXNwb25zaWJpbGl0aWVzOgpDVE8gbXVzdCBiZSBhYmxlIHRvIGNvbW11bmljYXRlIGFu
-ZCBjb2xsYWJvcmF0ZSB3aXRoIG90aGVyIGRlcGFydG1lbnRzOgoKMS4gQ0VPLCBTdHJhdGVneSBC
-b2FyZCAmIFByb2R1Y3QgT3duZXIK4pePUHJlZGljdCBhbmQgc3RheSBhaGVhZCBvZiBhbnkgdGVj
-aG5pY2FsIHBvaW50cyBhbmQgaXNzdWVzIHRoYXQgbWlnaHQgc2lnbmlmaWNhbnRseSBhZmZlY3Qg
-dGhlIGNvbXBhbnkuIAril49BZHZpc2UgdGhlIENFTyBhbmQgU3RyYXRlZ3kgQm9hcmQgb24gdGhl
-IGxvbmfigJB0ZXJtIHRlY2huaWNhbCwgc3RyYXRlZ2ljIGRpcmVjdGlvbiBvZiB0aGUgY29tcGFu
-eSBhbmQgd2hlcmUgdG8sIG9yIHRvIG5vdCwgbWFrZSBsYXJnZSBzdHJhdGVnaWMgdGVjaG5vbG9n
-aWNhbCBiZXRzLiAK4pePUHJvdmlkZSB0aGUgQ0VPIGFuZCBQcm9kdWN0IE93bmVyIHdpdGggZGlm
-ZmVyZW50IG9wdGlvbnMgb24gdGhlIHRlY2huaWNhbCBkaXJlY3Rpb24gb2YgdGhlIGNvbXBhbnkg
-YW5kIHByb3ZpZGUgc3VmZmljaWVudCBpbmZvcm1hdGlvbiBmb3IgZGVjaWRpbmcgd2hhdCBpcyB0
-aGUgYmVzdCBzb2x1dGlvbiB0byB0YWtlIGF0IGFueSBnaXZlbiB0aW1lLiAK4pePQmUgYW4gdWx0
-aW1hdGUgYXV0aG9yaXR5IGZvciB0aGUgQ0VPLCBTdHJhdGVneSBCb2FyZCwgYW5kIFByb2R1Y3Qg
-T3duZXIgYnkgcHJvdmlkaW5nIGEgbmV1dHJhbCB2aWV3IHdoaWNoIHB1dHMgdGhlIGNvbXBhbnni
-gJlzIGxvbmfigJB0ZXJtIGludGVyZXN0cyBhYm92ZSBhbGwgZWxzZS4KCjIuIEVuZ2luZWVyaW5n
-L1Byb2R1Y3QgZGV2ZWxvcG1lbnQgCuKXj0NvbnRpbnVhbGx5IGltcHJvdmUgcHJvZHVjdGlvbiBw
-aXBlbGluZXMsIGJlaW5nIGludm9sdmVkIGluIHRoZSBkYWlseSBleGVjdXRpb24gYW5kIGVuZ2lu
-ZWVyaW5nIHRlYW0gbWFuYWdlbWVudCBvbmNlIHRoZSBwcmlvcml0aWVzIGFyZSBzZXQuCuKXj0xl
-YWQgZGV2ZWxvcG1lbnQgdGVhbSwgYXNzZXNzIHRlYW0gcGVyZm9ybWFuY2UgYW5kIGhlbHAgZXhl
-Y3V0ZSByZWNydWl0aW5nL3JldGVudGlvbiBlZmZvcnRzLiAK4pePUmVndWxhciByZXBvcnRpbmcg
-dG8gQ0VPIGFuZCBQcm9kdWN0IE93bmVyLiAK4pePQ29udGludW91c2x5IG9wdGltaXplIGFjcm9z
-cyB0aGUgd2hvbGUgb3JnYW5pemF0aW9uIHRvIGF2b2lkIGFueSBkdXBsaWNhdGlvbiBvZiBlZmZv
-cnQuIAril49FbnN1cmUgYWxpZ25tZW50IG9mIHRoZSBncmVhdGVyIHRlY2huaWNhbCBvcmdhbml6
-YXRpb24gYW5kLCB3aGVuIG5lY2Vzc2FyeSwgYXJiaXRyYXRlIHRlY2hub+KAkGNlbnRyaWMgdHVy
-ZiBzY3JhcHMsIGFyY2hpdGVjdHVyZSBjb25mbGljdHMsIGV0Yy4K4pePU2VydmUgYXMgbWFzdGVy
-IGFyY2hpdGVjdCBhY3Jvc3MgcHJvZHVjdCBsaW5lcy4KCjMuIEJ1c2luZXNzIERldmVsb3BtZW50
-LCBQYXJ0bmVyc2hpcHMK4pePQ29tbXVuaWNhdGUgd2l0aCBhdXRob3JpdHkgYWJvdXQgdGhlIG1h
-cmtldDsgbGlzdGVuIHRvIGN1c3RvbWVyIG5lZWRzOyBxdWlja2x5IHVuZGVyc3RhbmQgdGhlaXIg
-aXNzdWVzLCBhbmQgZ2l2ZSBnb29kIGFkdmljZSBvbiB0aGUgY29tcGFueeKAmXMgcHJvZHVjdHMg
-dG8gdGhlIGN1c3RvbWVycy4gCuKXj1Byb3ZpZGUgdGVjaG5pY2FsIGR1ZSBkaWxpZ2VuY2Ugb2Yg
-cGFydG5lciB0ZWNobm9sb2dpZXMgYW5kIGFjcXVpc2l0aW9uIHRhcmdldHMgdG8gbWFrZSBzdXJl
-IHRoZXkgcHJvcGVybHkgZml0IHdpdGggdGhlIGNvbXBhbnnigJlzIHBsYXRmb3JtcyBhbmQgb2Zm
-ZXJpbmdzLiAK4pePS2VlcCB0cmFjayBvZiBhbGwgdGhlIHRlY2ggc3RhcnR1cHMgaW4gdGhlIHNh
-bWUgc3BhY2UsIGFuZCBoYXZlIHRoZW0gc3RhY2sgcmFua2VkIGJhc2VkIG9uIHdoYXQgaGUvc2hl
-IGNhbiBnbGVhbiBhYm91dCB0aGVpciBwcm9zcGVjdHMuIFRoZSBDVE8gc2hvdWxkIGhhdmUgY2xl
-YXIgdGhvdWdodHMgCmFib3V0IOKAkCBwb3NzaWJsZSBhY3F1aXNpdGlvbiB0YXJnZXRzLCB3aGF0
-IGV4cGVydGlzZSBpcyB0aGUgY29tcGFueSBtaXNzaW5nPyBXaGljaCBjb21wYW5pZXMgYXJlIGRv
-aW5nIHRoZSBiZXN0IHdvcmsgYWNyb3NzIGFsbCBvZiB0aGUgYW5jaWxsYXJ5IGFyZWFzPyBXaGlj
-aCBjb21wYW5pZXMgCmhhdmUgdGhlIGJlc3QgdGVjaG5pY2FsIHRlYW1zPyBXaGF0IGNvdWxkIGNv
-bXBldGl0b3JzIGJ1eSB0aGF0IHdvdWxkIGh1cnQgdGhlIGNvbXBhbnk/IGV0Yy4gCuKXj1ByZWRp
-Y3QgaWYgYSBuZXcgdGVjaG5vbG9neSB3b3VsZCBoYXZlIGEgc2lnbmlmaWNhbnQgaW1wYWN0IG9u
-IHRoZSBsb25n4oCQdGVybSB0ZWNobm9sb2dpY2FsIHJvYWRtYXAgZm9yIHRoZSBjb21wYW55LiAK
-4pePUHJlZGljdCBsb25n4oCQdGVybSBjb21wZXRpdGl2ZSB0cmVuZHMgZHVlIHRvIHRoZSBjb25z
-dGFudCBzaGlmdHMgaW4gdGhlIG1hcmtldC4KCjQuIE1hcmtldGluZwril49TZXJ2ZSBhcyB0aGUg
-cHVibGljIGZhY2Ugb2YgdGVjaG5vbG9neSBmb3IgdGhlIGNvbXBhbnkuCuKXj0V2YW5nZWxpemUg
-dGhlIGNvbXBhbnkgdmlzaW9uIGFuZCB0ZWNobmljYWwgZGlyZWN0aW9uIHRocm91Z2ggY29uZmVy
-ZW5jZXMsIHNwZWFraW5nIGVuZ2FnZW1lbnRzLCBhbmQgcHJlc3MvbWVkaWEvYW5hbHlzdCBhY3Rp
-dml0aWVzLgril49NYWludGFpbiBoZWFsdGh5IHJlbGF0aW9uc2hpcHMgd2l0aCBkZXNpZ25hdGVk
-IGtleSBpbmR1c3RyeSBhbmFseXN0cy4K4pePU3VwcG9ydCB0aGUgbWFya2V0aW5nIHRlYW0gaW4g
-YnVpbGRpbmcgYSBsYXJnZSBhY3RpdmUgY29tbXVuaXR5IGFyb3VuZCB0aGUgY29tcGFueeKAmXMg
-cHJvZHVjdHMgKG1lZXR1cHMsIGhhY2thdGhvbnMsIGluZHVzdHJ5IGNvbmZlcmVuY2VzLCBldGMu
-KS4K4pePU29jaWFsIGVuZ2FnZW1lbnQgbWFya2V0aW5nIHRocm91Z2ggdHdpdHRlciwgYmxvZyBw
-b3N0cywgYXJ0aWNsZXMvd2hpdGVwYXBlcnMsIGV0Yy4KCkVkdWNhdGlvbiBhbmQgRXhwZXJpZW5j
-ZQril49CUyBpbiByZWxhdGVkIGZpZWxkIGFuZCBhdCBsZWFzdCBzZXZlbiB5ZWFyc+KAmSBleHBl
-cmllbmNlIGluIHRoZSBJbmZvcm1hdGlvbiBUZWNobm9sb2d5IGFyZW5hLgril49BdCBsZWFzdCB0
-d28geWVhcnMgbWFuYWdlbWVudCBhbmQgc3RyYXRlZ2ljIGV4cGVyaWVuY2UgaW4gdGhpcyBmaWVs
-ZCBvciBNQkEvTVMgaW4gcmVsYXRlZCBmaWVsZCB3aXRoIGZpdmUgeWVhcnPigJkgZXhwZXJpZW5j
-ZSwgMiBvZiB3aGljaCBtdXN0IGJlIG1hbmFnZXJpYWwgYW5kIHN0cmF0ZWdpYy4K4pePRWxlY3Ry
-b25pY3MgVHJhZGluZyBTeXN0ZW1zL0ZYLgril49KYXZhL1B5dGhvbiBkZXZlbG9wZXIvdGVhbSBs
-ZWFkIGV4cGVyaWVuY2UgNysgeWVhcnMuCuKXj1N5c3RlbXMgQXJjaGl0ZWN0IHNraWxscyBvciBi
-YWNrZ3JvdW5kCuKXj0Jsb2NrY2hhaW4sIFNtYXJ0IGNvbnRyYWN0cywgQ3J5cHRvY3VycmVuY2ll
-cyBiYWNrZ3JvdW5kCuKXj0ZpbmFuY2lhbC9CbG9ja2NoYWluIHN0YXJ0dXBzIGJhY2tncm91bmQK
-CkFkZGl0aW9uYWwgc2tpbGxzCuKXj0hhcyB1bmRlcmdvbmUgb3Igb3ZlcnNlZW4gdGVjaG5pY2Fs
-IGR1ZSBkaWxpZ2VuY2Ugb2YgZWxlY3Ryb25pYyB0cmFkaW5nIHBsYXRmb3JtIG9yIHNpbWlsYXIg
-cHJvZHVjdAril49TdHJvbmcgd3JpdGluZyBhbmQgcHJlc2VudGF0aW9uIHNraWxscwril49BZ2ls
-ZSBtYXN0ZXIK4pePQWJpbGl0eSB0byBtYW5hZ2UgcmVtb3RlIHRlYW1zCuKXj1J1c3NpYW4gbGFu
-Z3VhZ2UgKG9wdGlvbmFsKQoKQWRkaXRpb25hbCByZXF1aXJlbWVudHMK4pePTG9jYXRpb246IExv
-c+KAkEFuZ2VsZXMgKHBlcm1hbmVudCByZXNpZGVuY2Ugb3IgYWJsZSB0byBtb3ZlKSBwcmVmZXJh
-YmxlLCBXZXN0IENvYXN0LWJhc2VkIHdvcmtpbmcgcmVtb3RlbHkgd2l0aCB3ZWVrbHkgZmxpZ2h0
-cyB0byBMb3MgQW5nZWxlcyDigJAgb3B0aW9uYWwKCklmIHlvdSBhcmUgaW50ZXJlc3RlZCBpbiBh
-bnkgb2YgdGhlc2Ugb3V0c3RhbmRpbmcgb3Bwb3J0dW5pdGllcywgcGxlYXNlIHNlbmQgbWUgYSBy
-ZXN1bWUuIFJhbmRvbSByZXN1bWUgc3VibWlzc2lvbnMgYXJlIGFsd2F5cyB3ZWxjb21lLCB0b28u
-IFJlZmVycmFscyBhbmQgcmVjb21tZW5kYXRpb25zIGFyZSBncmVhdGx5IGFwcHJlY2lhdGVkLiAg
-CgpNZXJlbHkgcmVjZWl2aW5nIHRoaXMgd3JpdHRlbiBtYXRlcmlhbCBkb2VzIG5vdCBjb25zdGl0
-dXRlIG9yIGltcGx5IGEgImpvYiBvZmZlciIsIGJ1dCBpcyBwcmltYXJpbHkgYSBuZXR3b3JraW5n
-IGFuZCBpbmZvcm1hdGlvbmFsIHRvb2wgZm9yIGludGVyZXN0ZWQgcmVjaXBpZW50cy4KCgogIEJl
-c3QgUmVnYXJkcywKCiAgTmljaG9sYXMgTWV5bGVyCiAgR00vUHJlc2lkZW50LCBUZWNobm9sb2d5
-CiAgV2luZ2F0ZSBEdW5yb3NzLCBJbmMuCiAgcGggKDgxOCk1OTctMzIwMCBleHQuIDIxMQogIDxu
-aWNrbUB3ZHNlYXJjaC5jb20+CgoKQXJ0aWNsZSBieSBEb3VnIFBlY2tvdmVyLCBJbnZlbnRvciBv
-ZiAiVG9rZW5pemF0aW9uIiBTZWN1cml0eTogIDxodHRwczovL3d3dy5saW5rZWRpbi5jb20vcHVs
-c2UvcHJpdmFjeS12cy1zZWN1cml0eS15b3UtcmVhZHktbmljaG9sYXMtbWV5bGVyP3Ryaz1wdWxz
-ZV9zcG9jay1hcnRpY2xlcz4uICBUaGlzIElQIGlzIGZvciBzYWxlISAgCgoKCmh0dHA6Ly9hcHAu
-c3RyZWFtc2VuZC5jb20vcHJpdmF0ZS91NEt0L25LUi9yUE96cGpvL3Vuc3Vic2NyaWJlLzI4MTgy
-NDcxCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
-LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
-c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+From: Dave Jiang <dave.jiang@intel.com>
+
+pmd_fault() and related functions really only need the vmf parameter since
+the additional parameters are all included in the vmf struct. Removing
+additional parameter and simplify pmd_fault() and friends.
+
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ drivers/dax/dax.c             | 18 +++++++--------
+ fs/dax.c                      | 54 ++++++++++++++++++++-----------------------
+ fs/ext4/file.c                |  8 +++----
+ fs/xfs/xfs_file.c             |  7 +++---
+ include/linux/dax.h           |  7 +++---
+ include/linux/mm.h            |  2 +-
+ include/trace/events/fs_dax.h | 54 ++++++++++++++++++++-----------------------
+ mm/memory.c                   |  9 ++++----
+ 8 files changed, 74 insertions(+), 85 deletions(-)
+
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index a8833cc..18e9875 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -472,8 +472,7 @@ static int dax_dev_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	return rc;
+ }
+ 
+-static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+-		struct vm_area_struct *vma, struct vm_fault *vmf)
++static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+ {
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct device *dev = &dax_dev->dev;
+@@ -482,7 +481,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ 	pgoff_t pgoff;
+ 	pfn_t pfn;
+ 
+-	if (check_vma(dax_dev, vma, __func__))
++	if (check_vma(dax_dev, vmf->vma, __func__))
+ 		return VM_FAULT_SIGBUS;
+ 
+ 	dax_region = dax_dev->region;
+@@ -497,7 +496,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	pgoff = linear_page_index(vma, pmd_addr);
++	pgoff = linear_page_index(vmf->vma, pmd_addr);
+ 	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
+@@ -507,22 +506,23 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ 
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
++	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd, pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ 
+-static int dax_dev_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++static int dax_dev_pmd_fault(struct vm_fault *vmf)
+ {
+ 	int rc;
+-	struct file *filp = vma->vm_file;
++	struct file *filp = vmf->vma->vm_file;
+ 	struct dax_dev *dax_dev = filp->private_data;
+ 
+ 	dev_dbg(&dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
+ 			current->comm, (vmf->flags & FAULT_FLAG_WRITE)
+-			? "write" : "read", vma->vm_start, vma->vm_end);
++			? "write" : "read",
++			vmf->vma->vm_start, vmf->vma->vm_end);
+ 
+ 	rcu_read_lock();
+-	rc = __dax_dev_pmd_fault(dax_dev, vma, vmf);
++	rc = __dax_dev_pmd_fault(dax_dev, vmf);
+ 	rcu_read_unlock();
+ 
+ 	return rc;
+diff --git a/fs/dax.c b/fs/dax.c
+index 2ef7847..7095602 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1248,11 +1248,10 @@ EXPORT_SYMBOL_GPL(dax_iomap_fault);
+  */
+ #define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
+ 
+-static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+-		struct vm_fault *vmf, unsigned long address,
+-		struct iomap *iomap, loff_t pos, bool write, void **entryp)
++static int dax_pmd_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
++		loff_t pos, void **entryp)
+ {
+-	struct address_space *mapping = vma->vm_file->f_mapping;
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+ 	struct block_device *bdev = iomap->bdev;
+ 	struct inode *inode = mapping->host;
+ 	struct blk_dax_ctl dax = {
+@@ -1279,31 +1278,30 @@ static int dax_pmd_insert_mapping(struct vm_area_struct *vma, pmd_t *pmd,
+ 		goto fallback;
+ 	*entryp = ret;
+ 
+-	trace_dax_pmd_insert_mapping(inode, vma, address, write, length,
+-			dax.pfn, ret);
+-	return vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
++	trace_dax_pmd_insert_mapping(inode, vmf, length, dax.pfn, ret);
++	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd,
++			dax.pfn, vmf->flags & FAULT_FLAG_WRITE);
+ 
+  unmap_fallback:
+ 	dax_unmap_atomic(bdev, &dax);
+ fallback:
+-	trace_dax_pmd_insert_mapping_fallback(inode, vma, address, write,
+-			length, dax.pfn, ret);
++	trace_dax_pmd_insert_mapping_fallback(inode, vmf, length,
++			dax.pfn, ret);
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+-static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
+-		struct vm_fault *vmf, unsigned long address,
+-		struct iomap *iomap, void **entryp)
++static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
++		void **entryp)
+ {
+-	struct address_space *mapping = vma->vm_file->f_mapping;
+-	unsigned long pmd_addr = address & PMD_MASK;
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
++	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct inode *inode = mapping->host;
+ 	struct page *zero_page;
+ 	void *ret = NULL;
+ 	spinlock_t *ptl;
+ 	pmd_t pmd_entry;
+ 
+-	zero_page = mm_get_huge_zero_page(vma->vm_mm);
++	zero_page = mm_get_huge_zero_page(vmf->vma->vm_mm);
+ 
+ 	if (unlikely(!zero_page))
+ 		goto fallback;
+@@ -1314,27 +1312,27 @@ static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
+ 		goto fallback;
+ 	*entryp = ret;
+ 
+-	ptl = pmd_lock(vma->vm_mm, pmd);
+-	if (!pmd_none(*pmd)) {
++	ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
++	if (!pmd_none(*(vmf->pmd))) {
+ 		spin_unlock(ptl);
+ 		goto fallback;
+ 	}
+ 
+-	pmd_entry = mk_pmd(zero_page, vma->vm_page_prot);
++	pmd_entry = mk_pmd(zero_page, vmf->vma->vm_page_prot);
+ 	pmd_entry = pmd_mkhuge(pmd_entry);
+-	set_pmd_at(vma->vm_mm, pmd_addr, pmd, pmd_entry);
++	set_pmd_at(vmf->vma->vm_mm, pmd_addr, vmf->pmd, pmd_entry);
+ 	spin_unlock(ptl);
+-	trace_dax_pmd_load_hole(inode, vma, address, zero_page, ret);
++	trace_dax_pmd_load_hole(inode, vmf, zero_page, ret);
+ 	return VM_FAULT_NOPAGE;
+ 
+ fallback:
+-	trace_dax_pmd_load_hole_fallback(inode, vma, address, zero_page, ret);
++	trace_dax_pmd_load_hole_fallback(inode, vmf, zero_page, ret);
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+-int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+-		struct iomap_ops *ops)
++int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
+ {
++	struct vm_area_struct *vma = vmf->vma;
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+@@ -1355,7 +1353,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 	vmf->pgoff = linear_page_index(vma, pmd_addr);
+ 	max_pgoff = (i_size_read(inode) - 1) >> PAGE_SHIFT;
+ 
+-	trace_dax_pmd_fault(inode, vma, vmf, max_pgoff, 0);
++	trace_dax_pmd_fault(inode, vmf, max_pgoff, 0);
+ 
+ 	/* Fall back to PTEs if we're going to COW */
+ 	if (write && !(vma->vm_flags & VM_SHARED))
+@@ -1401,15 +1399,13 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+-		result = dax_pmd_insert_mapping(vma, vmf->pmd, vmf,
+-				vmf->address, &iomap, pos, write, &entry);
++		result = dax_pmd_insert_mapping(vmf, &iomap, pos, &entry);
+ 		break;
+ 	case IOMAP_UNWRITTEN:
+ 	case IOMAP_HOLE:
+ 		if (WARN_ON_ONCE(write))
+ 			goto unlock_entry;
+-		result = dax_pmd_load_hole(vma, vmf->pmd, vmf, vmf->address,
+-				&iomap, &entry);
++		result = dax_pmd_load_hole(vmf, &iomap, &entry);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -1439,7 +1435,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 	}
+ out:
+-	trace_dax_pmd_fault_done(inode, vma, vmf, max_pgoff, result);
++	trace_dax_pmd_fault_done(inode, vmf, max_pgoff, result);
+ 	return result;
+ }
+ EXPORT_SYMBOL_GPL(dax_iomap_pmd_fault);
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 10b64ba..75dc3dd 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -276,19 +276,19 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ }
+ 
+ static int
+-ext4_dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++ext4_dax_pmd_fault(struct vm_fault *vmf)
+ {
+ 	int result;
+-	struct inode *inode = file_inode(vma->vm_file);
++	struct inode *inode = file_inode(vmf->vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 
+ 	if (write) {
+ 		sb_start_pagefault(sb);
+-		file_update_time(vma->vm_file);
++		file_update_time(vmf->vma->vm_file);
+ 	}
+ 	down_read(&EXT4_I(inode)->i_mmap_sem);
+-	result = dax_iomap_pmd_fault(vma, vmf, &ext4_iomap_ops);
++	result = dax_iomap_pmd_fault(vmf, &ext4_iomap_ops);
+ 	up_read(&EXT4_I(inode)->i_mmap_sem);
+ 	if (write)
+ 		sb_end_pagefault(sb);
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 332e194..02f9093 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1431,10 +1431,9 @@ xfs_filemap_fault(
+  */
+ STATIC int
+ xfs_filemap_pmd_fault(
+-	struct vm_area_struct	*vma,
+ 	struct vm_fault		*vmf)
+ {
+-	struct inode		*inode = file_inode(vma->vm_file);
++	struct inode		*inode = file_inode(vmf->vma->vm_file);
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	int			ret;
+ 
+@@ -1445,11 +1444,11 @@ xfs_filemap_pmd_fault(
+ 
+ 	if (vmf->flags & FAULT_FLAG_WRITE) {
+ 		sb_start_pagefault(inode->i_sb);
+-		file_update_time(vma->vm_file);
++		file_update_time(vmf->vma->vm_file);
+ 	}
+ 
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-	ret = dax_iomap_pmd_fault(vma, vmf, &xfs_iomap_ops);
++	ret = dax_iomap_pmd_fault(vmf, &xfs_iomap_ops);
+ 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 
+ 	if (vmf->flags & FAULT_FLAG_WRITE)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index a829fee..c1bd6ab 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -71,15 +71,14 @@ static inline unsigned int dax_radix_order(void *entry)
+ 		return PMD_SHIFT - PAGE_SHIFT;
+ 	return 0;
+ }
+-int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+-		struct iomap_ops *ops);
++int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops);
+ #else
+ static inline unsigned int dax_radix_order(void *entry)
+ {
+ 	return 0;
+ }
+-static inline int dax_iomap_pmd_fault(struct vm_area_struct *vma,
+-		struct vm_fault *vmf, struct iomap_ops *ops)
++static inline int dax_iomap_pmd_fault(struct vm_fault *vmf,
++		struct iomap_ops *ops)
+ {
+ 	return VM_FAULT_FALLBACK;
+ }
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 1c96128..e9012ba 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -347,7 +347,7 @@ struct vm_operations_struct {
+ 	void (*close)(struct vm_area_struct * area);
+ 	int (*mremap)(struct vm_area_struct * area);
+ 	int (*fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
+-	int (*pmd_fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
++	int (*pmd_fault)(struct vm_fault *vmf);
+ 	void (*map_pages)(struct vm_fault *vmf,
+ 			pgoff_t start_pgoff, pgoff_t end_pgoff);
+ 
+diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+index a98665b..c566ddc 100644
+--- a/include/trace/events/fs_dax.h
++++ b/include/trace/events/fs_dax.h
+@@ -7,9 +7,9 @@
+ #include <linux/tracepoint.h>
+ 
+ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+-		struct vm_fault *vmf, pgoff_t max_pgoff, int result),
+-	TP_ARGS(inode, vma, vmf, max_pgoff, result),
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
++		pgoff_t max_pgoff, int result),
++	TP_ARGS(inode, vmf, max_pgoff, result),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_start)
+@@ -25,9 +25,9 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ 	TP_fast_assign(
+ 		__entry->dev = inode->i_sb->s_dev;
+ 		__entry->ino = inode->i_ino;
+-		__entry->vm_start = vma->vm_start;
+-		__entry->vm_end = vma->vm_end;
+-		__entry->vm_flags = vma->vm_flags;
++		__entry->vm_start = vmf->vma->vm_start;
++		__entry->vm_end = vmf->vma->vm_end;
++		__entry->vm_flags = vmf->vma->vm_flags;
+ 		__entry->address = vmf->address;
+ 		__entry->flags = vmf->flags;
+ 		__entry->pgoff = vmf->pgoff;
+@@ -52,19 +52,18 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ 
+ #define DEFINE_PMD_FAULT_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_fault_class, name, \
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+-		struct vm_fault *vmf, \
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
+ 		pgoff_t max_pgoff, int result), \
+-	TP_ARGS(inode, vma, vmf, max_pgoff, result))
++	TP_ARGS(inode, vmf, max_pgoff, result))
+ 
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault);
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault_done);
+ 
+ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+-		unsigned long address, struct page *zero_page,
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
++		struct page *zero_page,
+ 		void *radix_entry),
+-	TP_ARGS(inode, vma, address, zero_page, radix_entry),
++	TP_ARGS(inode, vmf, zero_page, radix_entry),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_flags)
+@@ -76,8 +75,8 @@ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+ 	TP_fast_assign(
+ 		__entry->dev = inode->i_sb->s_dev;
+ 		__entry->ino = inode->i_ino;
+-		__entry->vm_flags = vma->vm_flags;
+-		__entry->address = address;
++		__entry->vm_flags = vmf->vma->vm_flags;
++		__entry->address = vmf->address;
+ 		__entry->zero_page = zero_page;
+ 		__entry->radix_entry = radix_entry;
+ 	),
+@@ -95,19 +94,17 @@ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+ 
+ #define DEFINE_PMD_LOAD_HOLE_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_load_hole_class, name, \
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+-		unsigned long address, struct page *zero_page, \
+-		void *radix_entry), \
+-	TP_ARGS(inode, vma, address, zero_page, radix_entry))
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
++		struct page *zero_page, void *radix_entry), \
++	TP_ARGS(inode, vmf, zero_page, radix_entry))
+ 
+ DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
+ DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
+ 
+ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+-		unsigned long address, int write, long length, pfn_t pfn,
+-		void *radix_entry),
+-	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry),
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
++		long length, pfn_t pfn, void *radix_entry),
++	TP_ARGS(inode, vmf, length, pfn, radix_entry),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_flags)
+@@ -121,9 +118,9 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+ 	TP_fast_assign(
+ 		__entry->dev = inode->i_sb->s_dev;
+ 		__entry->ino = inode->i_ino;
+-		__entry->vm_flags = vma->vm_flags;
+-		__entry->address = address;
+-		__entry->write = write;
++		__entry->vm_flags = vmf->vma->vm_flags;
++		__entry->address = vmf->address;
++		__entry->write = vmf->flags & FAULT_FLAG_WRITE;
+ 		__entry->length = length;
+ 		__entry->pfn_val = pfn.val;
+ 		__entry->radix_entry = radix_entry;
+@@ -146,10 +143,9 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+ 
+ #define DEFINE_PMD_INSERT_MAPPING_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_insert_mapping_class, name, \
+-	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+-		unsigned long address, int write, long length, pfn_t pfn, \
+-		void *radix_entry), \
+-	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry))
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
++		long length, pfn_t pfn, void *radix_entry), \
++	TP_ARGS(inode, vmf, length, pfn, radix_entry))
+ 
+ DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
+ DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping_fallback);
+diff --git a/mm/memory.c b/mm/memory.c
+index e648c62..6012a05 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3471,11 +3471,10 @@ static int do_numa_page(struct vm_fault *vmf)
+ 
+ static int create_huge_pmd(struct vm_fault *vmf)
+ {
+-	struct vm_area_struct *vma = vmf->vma;
+-	if (vma_is_anonymous(vma))
++	if (vma_is_anonymous(vmf->vma))
+ 		return do_huge_pmd_anonymous_page(vmf);
+-	if (vma->vm_ops->pmd_fault)
+-		return vma->vm_ops->pmd_fault(vma, vmf);
++	if (vmf->vma->vm_ops->pmd_fault)
++		return vmf->vma->vm_ops->pmd_fault(vmf);
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+@@ -3484,7 +3483,7 @@ static int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
+ 	if (vma_is_anonymous(vmf->vma))
+ 		return do_huge_pmd_wp_page(vmf, orig_pmd);
+ 	if (vmf->vma->vm_ops->pmd_fault)
+-		return vmf->vma->vm_ops->pmd_fault(vmf->vma, vmf);
++		return vmf->vma->vm_ops->pmd_fault(vmf);
+ 
+ 	/* COW handled on pte level: split pmd */
+ 	VM_BUG_ON_VMA(vmf->vma->vm_flags & VM_SHARED, vmf->vma);
+-- 
+2.7.4
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
