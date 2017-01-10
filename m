@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EE4C681E95
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 14:11:06 -0800 (PST)
-Subject: [PATCH v3 03/12] mm: introduce struct mem_section_usage to track
- partial population of a section
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Jan 2017 14:06:57 -0800
-Message-ID: <148486361735.19694.17147399375362860739.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id E244781B28
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jan 2017 13:52:41 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 4/7] dax: add tracepoints to dax_pmd_load_hole()
+Date: Tue, 10 Jan 2017 14:52:19 -0700
+Message-Id: <1484085142-2297-5-git-send-email-ross.zwisler@linux.intel.com>
+In-Reply-To: <1484085142-2297-1-git-send-email-ross.zwisler@linux.intel.com>
+References: <1484085142-2297-1-git-send-email-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,398 +17,146 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
+To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Steven Rostedt <rostedt@goodmis.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-'struct mem_section_usage' combines the existing 'pageblock_flags' bitmap
-with a new 'map_active' bitmap.  The new bitmap enables the memory
-hot{plug,remove} implementation to act on incremental sub-divisions of
-a section. The primary impetus for this functionality is to support
-platforms that mix "System RAM" and "Persistent Memory" within a single
-section.  We want to be able to hotplug "Persistent Memory" to extend a
-partially populated section and share that section between ZONE_DEVICE and
-ZONE_NORMAL/MOVABLE memory.
+Add tracepoints to dax_pmd_load_hole(), following the same logging
+conventions as the tracepoints in dax_iomap_pmd_fault().
 
-This introduces a pointer to the new 'map_active' bitmap through struct
-mem_section, but otherwise should not change any behavior.
+Here is an example PMD fault showing the new tracepoints:
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Stephen Bates <stephen.bates@microsemi.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+read_big-1478  [004] ....   238.242188: xfs_filemap_pmd_fault: dev 259:0
+ino 0x1003
+
+read_big-1478  [004] ....   238.242191: dax_pmd_fault: dev 259:0 ino 0x1003
+shared ALLOW_RETRY|KILLABLE|USER address 0x10400000 vm_start 0x10200000
+vm_end 0x10600000 pgoff 0x200 max_pgoff 0x1400
+
+read_big-1478  [004] ....   238.242390: dax_pmd_load_hole: dev 259:0 ino
+0x1003 shared address 0x10400000 zero_page ffffea0002c20000 radix_entry
+0x1e
+
+read_big-1478  [004] ....   238.242392: dax_pmd_fault_done: dev 259:0 ino
+0x1003 shared ALLOW_RETRY|KILLABLE|USER address 0x10400000 vm_start
+0x10200000 vm_end 0x10600000 pgoff 0x200 max_pgoff 0x1400 NOPAGE
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
 ---
- include/linux/mmzone.h |   21 +++++++++-
- mm/memory_hotplug.c    |    4 +-
- mm/page_alloc.c        |    2 -
- mm/sparse.c            |   98 ++++++++++++++++++++++++++----------------------
- 4 files changed, 75 insertions(+), 50 deletions(-)
+ fs/dax.c                      | 14 ++++++++++----
+ include/trace/events/fs_dax.h | 42 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 52 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index df36d21e0247..18cc15b93d19 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1068,6 +1068,19 @@ static inline unsigned long early_pfn_to_nid(unsigned long pfn)
- #define SECTION_ALIGN_UP(pfn)	(((pfn) + PAGES_PER_SECTION - 1) & PAGE_SECTION_MASK)
- #define SECTION_ALIGN_DOWN(pfn)	((pfn) & PAGE_SECTION_MASK)
+diff --git a/fs/dax.c b/fs/dax.c
+index b719ecf..199a7e7 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1291,33 +1291,39 @@ static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
+ {
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	unsigned long pmd_addr = address & PMD_MASK;
++	struct inode *inode = mapping->host;
+ 	struct page *zero_page;
++	void *ret = NULL;
+ 	spinlock_t *ptl;
+ 	pmd_t pmd_entry;
+-	void *ret;
  
-+#define SECTION_ACTIVE_SIZE ((1UL << SECTION_SIZE_BITS) / BITS_PER_LONG)
-+#define SECTION_ACTIVE_MASK (~(SECTION_ACTIVE_SIZE - 1))
+ 	zero_page = mm_get_huge_zero_page(vma->vm_mm);
+ 
+ 	if (unlikely(!zero_page))
+-		return VM_FAULT_FALLBACK;
++		goto fallback;
+ 
+ 	ret = dax_insert_mapping_entry(mapping, vmf, *entryp, 0,
+ 			RADIX_DAX_PMD | RADIX_DAX_HZP);
+ 	if (IS_ERR(ret))
+-		return VM_FAULT_FALLBACK;
++		goto fallback;
+ 	*entryp = ret;
+ 
+ 	ptl = pmd_lock(vma->vm_mm, pmd);
+ 	if (!pmd_none(*pmd)) {
+ 		spin_unlock(ptl);
+-		return VM_FAULT_FALLBACK;
++		goto fallback;
+ 	}
+ 
+ 	pmd_entry = mk_pmd(zero_page, vma->vm_page_prot);
+ 	pmd_entry = pmd_mkhuge(pmd_entry);
+ 	set_pmd_at(vma->vm_mm, pmd_addr, pmd, pmd_entry);
+ 	spin_unlock(ptl);
++	trace_dax_pmd_load_hole(inode, vma, address, zero_page, ret);
+ 	return VM_FAULT_NOPAGE;
 +
-+struct mem_section_usage {
-+	/*
-+	 * SECTION_ACTIVE_SIZE portions of the section that are populated in
-+	 * the memmap
-+	 */
-+	unsigned long map_active;
-+	/* See declaration of similar field in struct zone */
-+	unsigned long pageblock_flags[0];
-+};
++fallback:
++	trace_dax_pmd_load_hole_fallback(inode, vma, address, zero_page, ret);
++	return VM_FAULT_FALLBACK;
+ }
+ 
+ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+index 58b0b56..43f1263 100644
+--- a/include/trace/events/fs_dax.h
++++ b/include/trace/events/fs_dax.h
+@@ -61,6 +61,48 @@ DEFINE_EVENT(dax_pmd_fault_class, name, \
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault);
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault_done);
+ 
++DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
++	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
++		unsigned long address, struct page *zero_page,
++		void *radix_entry),
++	TP_ARGS(inode, vma, address, zero_page, radix_entry),
++	TP_STRUCT__entry(
++		__field(unsigned long, ino)
++		__field(unsigned long, vm_flags)
++		__field(unsigned long, address)
++		__field(struct page *, zero_page)
++		__field(void *, radix_entry)
++		__field(dev_t, dev)
++	),
++	TP_fast_assign(
++		__entry->dev = inode->i_sb->s_dev;
++		__entry->ino = inode->i_ino;
++		__entry->vm_flags = vma->vm_flags;
++		__entry->address = address;
++		__entry->zero_page = zero_page;
++		__entry->radix_entry = radix_entry;
++	),
++	TP_printk("dev %d:%d ino %#lx %s address %#lx zero_page %p "
++			"radix_entry %#lx",
++		MAJOR(__entry->dev),
++		MINOR(__entry->dev),
++		__entry->ino,
++		__entry->vm_flags & VM_SHARED ? "shared" : "private",
++		__entry->address,
++		__entry->zero_page,
++		(unsigned long)__entry->radix_entry
++	)
++)
 +
- struct page;
- struct page_ext;
- struct mem_section {
-@@ -1085,8 +1098,7 @@ struct mem_section {
- 	 */
- 	unsigned long section_mem_map;
- 
--	/* See declaration of similar field in struct zone */
--	unsigned long *pageblock_flags;
-+	struct mem_section_usage *usage;
- #ifdef CONFIG_PAGE_EXTENSION
- 	/*
- 	 * If SPARSEMEM, pgdat doesn't have page_ext pointer. We use
-@@ -1117,6 +1129,11 @@ extern struct mem_section *mem_section[NR_SECTION_ROOTS];
- extern struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT];
- #endif
- 
-+static inline unsigned long *section_to_usemap(struct mem_section *ms)
-+{
-+	return ms->usage->pageblock_flags;
-+}
++#define DEFINE_PMD_LOAD_HOLE_EVENT(name) \
++DEFINE_EVENT(dax_pmd_load_hole_class, name, \
++	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
++		unsigned long address, struct page *zero_page, \
++		void *radix_entry), \
++	TP_ARGS(inode, vma, address, zero_page, radix_entry))
 +
- static inline struct mem_section *__nr_to_section(unsigned long nr)
- {
- 	if (!mem_section[SECTION_NR_TO_ROOT(nr)])
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index de34951bdf41..a73a1fcaa181 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -227,7 +227,7 @@ static void register_page_bootmem_info_section(unsigned long start_pfn)
- 	for (i = 0; i < mapsize; i++, page++)
- 		get_page_bootmem(section_nr, page, SECTION_INFO);
++DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
++DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
  
--	usemap = __nr_to_section(section_nr)->pageblock_flags;
-+	usemap = section_to_usemap(__nr_to_section(section_nr));
- 	page = virt_to_page(usemap);
+ #endif /* _TRACE_FS_DAX_H */
  
- 	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
-@@ -253,7 +253,7 @@ static void register_page_bootmem_info_section(unsigned long start_pfn)
- 
- 	register_page_bootmem_memmap(section_nr, memmap, PAGES_PER_SECTION);
- 
--	usemap = __nr_to_section(section_nr)->pageblock_flags;
-+	usemap = section_to_usemap(__nr_to_section(section_nr));
- 	page = virt_to_page(usemap);
- 
- 	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index d604d2596b7b..68ccf5bcdbb2 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -352,7 +352,7 @@ static inline unsigned long *get_pageblock_bitmap(struct page *page,
- 							unsigned long pfn)
- {
- #ifdef CONFIG_SPARSEMEM
--	return __pfn_to_section(pfn)->pageblock_flags;
-+	return section_to_usemap(__pfn_to_section(pfn));
- #else
- 	return page_zone(page)->pageblock_flags;
- #endif /* CONFIG_SPARSEMEM */
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 1e168bf2779a..91e1908db23d 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -233,15 +233,15 @@ struct page *sparse_decode_mem_map(unsigned long coded_mem_map, unsigned long pn
- 
- static int __meminit sparse_init_one_section(struct mem_section *ms,
- 		unsigned long pnum, struct page *mem_map,
--		unsigned long *pageblock_bitmap)
-+		struct mem_section_usage *usage)
- {
- 	if (!present_section(ms))
- 		return -EINVAL;
- 
- 	ms->section_mem_map &= ~SECTION_MAP_MASK;
- 	ms->section_mem_map |= sparse_encode_mem_map(mem_map, pnum) |
--							SECTION_HAS_MEM_MAP;
-- 	ms->pageblock_flags = pageblock_bitmap;
-+		SECTION_HAS_MEM_MAP;
-+	ms->usage = usage;
- 
- 	return 1;
- }
-@@ -255,9 +255,13 @@ unsigned long usemap_size(void)
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--static unsigned long *__kmalloc_section_usemap(void)
-+static struct mem_section_usage *__alloc_section_usage(void)
- {
--	return kmalloc(usemap_size(), GFP_KERNEL);
-+	struct mem_section_usage *usage;
-+
-+	usage = kzalloc(sizeof(*usage) + usemap_size(), GFP_KERNEL);
-+	/* TODO: allocate the map_active bitmap */
-+	return usage;
- }
- #endif /* CONFIG_MEMORY_HOTPLUG */
- 
-@@ -293,7 +297,8 @@ sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
- 	return p;
- }
- 
--static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
-+static void __init check_usemap_section_nr(int nid,
-+		struct mem_section_usage *usage)
- {
- 	unsigned long usemap_snr, pgdat_snr;
- 	static unsigned long old_usemap_snr = NR_MEM_SECTIONS;
-@@ -301,7 +306,7 @@ static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
- 	struct pglist_data *pgdat = NODE_DATA(nid);
- 	int usemap_nid;
- 
--	usemap_snr = pfn_to_section_nr(__pa(usemap) >> PAGE_SHIFT);
-+	usemap_snr = pfn_to_section_nr(__pa(usage) >> PAGE_SHIFT);
- 	pgdat_snr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
- 	if (usemap_snr == pgdat_snr)
- 		return;
-@@ -336,7 +341,8 @@ sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
- 	return memblock_virt_alloc_node_nopanic(size, pgdat->node_id);
- }
- 
--static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
-+static void __init check_usemap_section_nr(int nid,
-+		struct mem_section_usage *usage)
- {
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
-@@ -344,26 +350,27 @@ static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
- static void __init sparse_early_usemaps_alloc_node(void *data,
- 				 unsigned long pnum_begin,
- 				 unsigned long pnum_end,
--				 unsigned long usemap_count, int nodeid)
-+				 unsigned long usage_count, int nodeid)
- {
--	void *usemap;
-+	void *usage;
- 	unsigned long pnum;
--	unsigned long **usemap_map = (unsigned long **)data;
--	int size = usemap_size();
-+	struct mem_section_usage **usage_map = data;
-+	int size = sizeof(struct mem_section_usage) + usemap_size();
- 
--	usemap = sparse_early_usemaps_alloc_pgdat_section(NODE_DATA(nodeid),
--							  size * usemap_count);
--	if (!usemap) {
-+	usage = sparse_early_usemaps_alloc_pgdat_section(NODE_DATA(nodeid),
-+							  size * usage_count);
-+	if (!usage) {
- 		pr_warn("%s: allocation failed\n", __func__);
- 		return;
- 	}
- 
-+	memset(usage, 0, size * usage_count);
- 	for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
- 		if (!present_section_nr(pnum))
- 			continue;
--		usemap_map[pnum] = usemap;
--		usemap += size;
--		check_usemap_section_nr(nodeid, usemap_map[pnum]);
-+		usage_map[pnum] = usage;
-+		usage += size;
-+		check_usemap_section_nr(nodeid, usage_map[pnum]);
- 	}
- }
- 
-@@ -468,7 +475,7 @@ void __weak __meminit vmemmap_populate_print_last(void)
- 
- /**
-  *  alloc_usemap_and_memmap - memory alloction for pageblock flags and vmemmap
-- *  @map: usemap_map for pageblock flags or mmap_map for vmemmap
-+ *  @map: usage_map for mem_section_usage or mmap_map for vmemmap
-  */
- static void __init alloc_usemap_and_memmap(void (*alloc_func)
- 					(void *, unsigned long, unsigned long,
-@@ -521,10 +528,9 @@ static void __init alloc_usemap_and_memmap(void (*alloc_func)
-  */
- void __init sparse_init(void)
- {
-+	struct mem_section_usage *usage, **usage_map;
- 	unsigned long pnum;
- 	struct page *map;
--	unsigned long *usemap;
--	unsigned long **usemap_map;
- 	int size;
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
- 	int size2;
-@@ -539,21 +545,21 @@ void __init sparse_init(void)
- 
- 	/*
- 	 * map is using big page (aka 2M in x86 64 bit)
--	 * usemap is less one page (aka 24 bytes)
-+	 * usage is less one page (aka 24 bytes)
- 	 * so alloc 2M (with 2M align) and 24 bytes in turn will
- 	 * make next 2M slip to one more 2M later.
- 	 * then in big system, the memory will have a lot of holes...
- 	 * here try to allocate 2M pages continuously.
- 	 *
- 	 * powerpc need to call sparse_init_one_section right after each
--	 * sparse_early_mem_map_alloc, so allocate usemap_map at first.
-+	 * sparse_early_mem_map_alloc, so allocate usage_map at first.
- 	 */
--	size = sizeof(unsigned long *) * NR_MEM_SECTIONS;
--	usemap_map = memblock_virt_alloc(size, 0);
--	if (!usemap_map)
--		panic("can not allocate usemap_map\n");
-+	size = sizeof(struct mem_section_usage *) * NR_MEM_SECTIONS;
-+	usage_map = memblock_virt_alloc(size, 0);
-+	if (!usage_map)
-+		panic("can not allocate usage_map\n");
- 	alloc_usemap_and_memmap(sparse_early_usemaps_alloc_node,
--							(void *)usemap_map);
-+							(void *)usage_map);
- 
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
- 	size2 = sizeof(struct page *) * NR_MEM_SECTIONS;
-@@ -568,8 +574,8 @@ void __init sparse_init(void)
- 		if (!present_section_nr(pnum))
- 			continue;
- 
--		usemap = usemap_map[pnum];
--		if (!usemap)
-+		usage = usage_map[pnum];
-+		if (!usage)
- 			continue;
- 
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
-@@ -581,7 +587,7 @@ void __init sparse_init(void)
- 			continue;
- 
- 		sparse_init_one_section(__nr_to_section(pnum), pnum, map,
--								usemap);
-+								usage);
- 	}
- 
- 	vmemmap_populate_print_last();
-@@ -589,7 +595,7 @@ void __init sparse_init(void)
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
- 	memblock_free_early(__pa(map_map), size2);
- #endif
--	memblock_free_early(__pa(usemap_map), size);
-+	memblock_free_early(__pa(usage_map), size);
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
-@@ -693,9 +699,9 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
- {
- 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
- 	struct pglist_data *pgdat = zone->zone_pgdat;
-+	static struct mem_section_usage *usage;
- 	struct mem_section *ms;
- 	struct page *memmap;
--	unsigned long *usemap;
- 	unsigned long flags;
- 	int ret;
- 
-@@ -709,8 +715,8 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
- 	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id);
- 	if (!memmap)
- 		return -ENOMEM;
--	usemap = __kmalloc_section_usemap();
--	if (!usemap) {
-+	usage = __alloc_section_usage();
-+	if (!usage) {
- 		__kfree_section_memmap(memmap);
- 		return -ENOMEM;
- 	}
-@@ -727,12 +733,12 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
- 
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
- 
--	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
-+	ret = sparse_init_one_section(ms, section_nr, memmap, usage);
- 
- out:
- 	pgdat_resize_unlock(pgdat, &flags);
- 	if (ret <= 0) {
--		kfree(usemap);
-+		kfree(usage);
- 		__kfree_section_memmap(memmap);
- 	}
- 	return ret;
-@@ -760,19 +766,20 @@ static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
- }
- #endif
- 
--static void free_section_usemap(struct page *memmap, unsigned long *usemap)
-+static void free_section_usage(struct page *memmap,
-+		struct mem_section_usage *usage)
- {
- 	struct page *usemap_page;
- 
--	if (!usemap)
-+	if (!usage)
- 		return;
- 
--	usemap_page = virt_to_page(usemap);
-+	usemap_page = virt_to_page(usage->pageblock_flags);
- 	/*
- 	 * Check to see if allocation came from hot-plug-add
- 	 */
- 	if (PageSlab(usemap_page) || PageCompound(usemap_page)) {
--		kfree(usemap);
-+		kfree(usage);
- 		if (memmap)
- 			__kfree_section_memmap(memmap);
- 		return;
-@@ -790,23 +797,24 @@ static void free_section_usemap(struct page *memmap, unsigned long *usemap)
- void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
- 		unsigned long map_offset)
- {
-+	unsigned long flags;
- 	struct page *memmap = NULL;
--	unsigned long *usemap = NULL, flags;
-+	struct mem_section_usage *usage = NULL;
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 
- 	pgdat_resize_lock(pgdat, &flags);
- 	if (ms->section_mem_map) {
--		usemap = ms->pageblock_flags;
-+		usage = ms->usage;
- 		memmap = sparse_decode_mem_map(ms->section_mem_map,
- 						__section_nr(ms));
- 		ms->section_mem_map = 0;
--		ms->pageblock_flags = NULL;
-+		ms->usage = NULL;
- 	}
- 	pgdat_resize_unlock(pgdat, &flags);
- 
- 	clear_hwpoisoned_pages(memmap + map_offset,
- 			PAGES_PER_SECTION - map_offset);
--	free_section_usemap(memmap, usemap);
-+	free_section_usage(memmap, usage);
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #endif /* CONFIG_MEMORY_HOTPLUG */
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
