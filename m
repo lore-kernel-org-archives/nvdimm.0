@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B79E2817B4
- for <linux-nvdimm@lists.01.org>; Wed, 11 Jan 2017 01:02:24 -0800 (PST)
-Date: Wed, 11 Jan 2017 10:02:22 +0100
-From: Christoph Hellwig <hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 6C85981B4A
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Jan 2017 00:15:27 -0800 (PST)
+Date: Wed, 11 Jan 2017 09:15:23 +0100
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH] dax: fix build warnings with FS_DAX and !FS_IOMAP
-Message-ID: <20170111090222.GA7350@lst.de>
+Message-ID: <20170111081523.GA16116@quack2.suse.cz>
 References: <1946137.McqY686LOu@wuerfel>
  <1484087383-29478-1-git-send-email-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
@@ -20,18 +20,81 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Looks fine:
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlIDEwLTAxLTE3IDE1OjI5OjQzLCBSb3NzIFp3aXNsZXIgd3JvdGU6Cj4gQXMgcmVwb3J0
+ZWQgYnkgQXJuZDoKPiAKPiBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxNy8xLzEwLzc1Ngo+IAo+
+IENvbXBpbGluZyB3aXRoIHRoZSBmb2xsb3dpbmcgY29uZmlndXJhdGlvbjoKPiAKPiAgICMgQ09O
+RklHX0VYVDJfRlMgaXMgbm90IHNldAo+ICAgIyBDT05GSUdfRVhUNF9GUyBpcyBub3Qgc2V0Cj4g
+ICAjIENPTkZJR19YRlNfRlMgaXMgbm90IHNldAo+ICAgIyBDT05GSUdfRlNfSU9NQVAgZGVwZW5k
+cyBvbiB0aGUgYWJvdmUgZmlsZXN5c3RlbXMsIGFzIGlzIG5vdCBzZXQKPiAgIENPTkZJR19GU19E
+QVg9eQo+IAo+IGdlbmVyYXRlcyBidWlsZCB3YXJuaW5ncyBhYm91dCB1bnVzZWQgZnVuY3Rpb25z
+IGluIGZzL2RheC5jOgo+IAo+IGZzL2RheC5jOjg3ODoxMjogd2FybmluZzog4oCYZGF4X2luc2Vy
+dF9tYXBwaW5n4oCZIGRlZmluZWQgYnV0IG5vdCB1c2VkIFstV3VudXNlZC1mdW5jdGlvbl0KPiAg
+c3RhdGljIGludCBkYXhfaW5zZXJ0X21hcHBpbmcoc3RydWN0IGFkZHJlc3Nfc3BhY2UgKm1hcHBp
+bmcsCj4gICAgICAgICAgICAgXn5+fn5+fn5+fn5+fn5+fn5+Cj4gZnMvZGF4LmM6NTcyOjEyOiB3
+YXJuaW5nOiDigJhjb3B5X3VzZXJfZGF44oCZIGRlZmluZWQgYnV0IG5vdCB1c2VkIFstV3VudXNl
+ZC1mdW5jdGlvbl0KPiAgc3RhdGljIGludCBjb3B5X3VzZXJfZGF4KHN0cnVjdCBibG9ja19kZXZp
+Y2UgKmJkZXYsIHNlY3Rvcl90IHNlY3Rvciwgc2l6ZV90IHNpemUsCj4gICAgICAgICAgICAgXn5+
+fn5+fn5+fn5+fgo+IGZzL2RheC5jOjU0MjoxMjogd2FybmluZzog4oCYZGF4X2xvYWRfaG9sZeKA
+mSBkZWZpbmVkIGJ1dCBub3QgdXNlZCBbLVd1bnVzZWQtZnVuY3Rpb25dCj4gIHN0YXRpYyBpbnQg
+ZGF4X2xvYWRfaG9sZShzdHJ1Y3QgYWRkcmVzc19zcGFjZSAqbWFwcGluZywgdm9pZCAqKmVudHJ5
+LAo+ICAgICAgICAgICAgIF5+fn5+fn5+fn5+fn4KPiBmcy9kYXguYzozMTI6MTQ6IHdhcm5pbmc6
+IOKAmGdyYWJfbWFwcGluZ19lbnRyeeKAmSBkZWZpbmVkIGJ1dCBub3QgdXNlZCBbLVd1bnVzZWQt
+ZnVuY3Rpb25dCj4gIHN0YXRpYyB2b2lkICpncmFiX21hcHBpbmdfZW50cnkoc3RydWN0IGFkZHJl
+c3Nfc3BhY2UgKm1hcHBpbmcsIHBnb2ZmX3QgaW5kZXgsCj4gICAgICAgICAgICAgICBefn5+fn5+
+fn5+fn5+fn5+fn4KPiAKPiBOb3cgdGhhdCB0aGUgc3RydWN0IGJ1ZmZlcl9oZWFkIGJhc2VkIERB
+WCBmYXVsdCBwYXRocyBhbmQgSS9PIHBhdGggaGF2ZQo+IGJlZW4gcmVtb3ZlZCB3ZSByZWFsbHkg
+ZGVwZW5kIG9uIGlvbWFwIHN1cHBvcnQgYmVpbmcgcHJlc2VudCBmb3IgREFYLiAgTWFrZQo+IHRo
+aXMgZXhwbGljaXQgYnkgc2VsZWN0aW5nIEZTX0lPTUFQIGlmIHdlIGNvbXBpbGUgaW4gREFYIHN1
+cHBvcnQuCj4gCj4gVGhpcyBhbGxvd3MgdXMgdG8gcmVtb3ZlIGNvbmRpdGlvbmFsIHNlbGVjdGlv
+bnMgb2YgRlNfSU9NQVAgd2hlbiBGU19EQVggd2FzCj4gcHJlc2VudCBmb3IgZXh0MiBhbmQgZXh0
+NCwgYW5kIHRvIHJlbW92ZSBhbiAjaWZkZWYgaW4gZnMvZGF4LmMuCj4gCj4gU2lnbmVkLW9mZi1i
+eTogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPgo+IFJlcG9ydGVk
+LWJ5OiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFybmRiLmRlPgo+IENjOiBKYW4gS2FyYSA8amFja0Bz
+dXNlLmN6Pgo+IENjOiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4KCkxvb2tzIGdvb2Qu
+IEkgYWdyZWUgdGhhdCBEQVggd2l0aG91dCBGU19JT01BUCBkb2VzIG5vdCBtYWtlIHNlbnNlLiBZ
+b3UgY2FuCmFkZDoKClJldmlld2VkLWJ5OiBKYW4gS2FyYSA8amFja0BzdXNlLmN6PgoKCQkJCQkJ
+CQlIb256YQo+IC0tLQo+ICBmcy9LY29uZmlnICAgICAgfCAxICsKPiAgZnMvZGF4LmMgICAgICAg
+IHwgMiAtLQo+ICBmcy9leHQyL0tjb25maWcgfCAxIC0KPiAgZnMvZXh0NC9LY29uZmlnIHwgMSAt
+Cj4gIDQgZmlsZXMgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDQgZGVsZXRpb25zKC0pCj4gCj4g
+ZGlmZiAtLWdpdCBhL2ZzL0tjb25maWcgYi9mcy9LY29uZmlnCj4gaW5kZXggYzJhMzc3Yy4uODNl
+YWI1MiAxMDA2NDQKPiAtLS0gYS9mcy9LY29uZmlnCj4gKysrIGIvZnMvS2NvbmZpZwo+IEBAIC0z
+OCw2ICszOCw3IEBAIGNvbmZpZyBGU19EQVgKPiAgCWJvb2wgIkRpcmVjdCBBY2Nlc3MgKERBWCkg
+c3VwcG9ydCIKPiAgCWRlcGVuZHMgb24gTU1VCj4gIAlkZXBlbmRzIG9uICEoQVJNIHx8IE1JUFMg
+fHwgU1BBUkMpCj4gKwlzZWxlY3QgRlNfSU9NQVAKPiAgCWhlbHAKPiAgCSAgRGlyZWN0IEFjY2Vz
+cyAoREFYKSBjYW4gYmUgdXNlZCBvbiBtZW1vcnktYmFja2VkIGJsb2NrIGRldmljZXMuCj4gIAkg
+IElmIHRoZSBibG9jayBkZXZpY2Ugc3VwcG9ydHMgREFYIGFuZCB0aGUgZmlsZXN5c3RlbSBzdXBw
+b3J0cyBEQVgsCj4gZGlmZiAtLWdpdCBhL2ZzL2RheC5jIGIvZnMvZGF4LmMKPiBpbmRleCA1Yzc0
+ZjYwLi4wODNiOTUwIDEwMDY0NAo+IC0tLSBhL2ZzL2RheC5jCj4gKysrIGIvZnMvZGF4LmMKPiBA
+QCAtOTY5LDcgKzk2OSw2IEBAIGludCBfX2RheF96ZXJvX3BhZ2VfcmFuZ2Uoc3RydWN0IGJsb2Nr
+X2RldmljZSAqYmRldiwgc2VjdG9yX3Qgc2VjdG9yLAo+ICB9Cj4gIEVYUE9SVF9TWU1CT0xfR1BM
+KF9fZGF4X3plcm9fcGFnZV9yYW5nZSk7Cj4gIAo+IC0jaWZkZWYgQ09ORklHX0ZTX0lPTUFQCj4g
+IHN0YXRpYyBzZWN0b3JfdCBkYXhfaW9tYXBfc2VjdG9yKHN0cnVjdCBpb21hcCAqaW9tYXAsIGxv
+ZmZfdCBwb3MpCj4gIHsKPiAgCXJldHVybiBpb21hcC0+Ymxrbm8gKyAoKChwb3MgJiBQQUdFX01B
+U0spIC0gaW9tYXAtPm9mZnNldCkgPj4gOSk7Cj4gQEAgLTE0MDcsNCArMTQwNiwzIEBAIGludCBk
+YXhfaW9tYXBfcG1kX2ZhdWx0KHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hLCB1bnNpZ25lZCBs
+b25nIGFkZHJlc3MsCj4gIH0KPiAgRVhQT1JUX1NZTUJPTF9HUEwoZGF4X2lvbWFwX3BtZF9mYXVs
+dCk7Cj4gICNlbmRpZiAvKiBDT05GSUdfRlNfREFYX1BNRCAqLwo+IC0jZW5kaWYgLyogQ09ORklH
+X0ZTX0lPTUFQICovCj4gZGlmZiAtLWdpdCBhL2ZzL2V4dDIvS2NvbmZpZyBiL2ZzL2V4dDIvS2Nv
+bmZpZwo+IGluZGV4IDM2YmVhNWEuLmM2MzQ4NzRlIDEwMDY0NAo+IC0tLSBhL2ZzL2V4dDIvS2Nv
+bmZpZwo+ICsrKyBiL2ZzL2V4dDIvS2NvbmZpZwo+IEBAIC0xLDYgKzEsNSBAQAo+ICBjb25maWcg
+RVhUMl9GUwo+ICAJdHJpc3RhdGUgIlNlY29uZCBleHRlbmRlZCBmcyBzdXBwb3J0Igo+IC0Jc2Vs
+ZWN0IEZTX0lPTUFQIGlmIEZTX0RBWAo+ICAJaGVscAo+ICAJICBFeHQyIGlzIGEgc3RhbmRhcmQg
+TGludXggZmlsZSBzeXN0ZW0gZm9yIGhhcmQgZGlza3MuCj4gIAo+IGRpZmYgLS1naXQgYS9mcy9l
+eHQ0L0tjb25maWcgYi9mcy9leHQ0L0tjb25maWcKPiBpbmRleCA3YjkwNjkxLi5lMzgwMzlmIDEw
+MDY0NAo+IC0tLSBhL2ZzL2V4dDQvS2NvbmZpZwo+ICsrKyBiL2ZzL2V4dDQvS2NvbmZpZwo+IEBA
+IC0zNyw3ICszNyw2IEBAIGNvbmZpZyBFWFQ0X0ZTCj4gIAlzZWxlY3QgQ1JDMTYKPiAgCXNlbGVj
+dCBDUllQVE8KPiAgCXNlbGVjdCBDUllQVE9fQ1JDMzJDCj4gLQlzZWxlY3QgRlNfSU9NQVAgaWYg
+RlNfREFYCj4gIAloZWxwCj4gIAkgIFRoaXMgaXMgdGhlIG5leHQgZ2VuZXJhdGlvbiBvZiB0aGUg
+ZXh0MyBmaWxlc3lzdGVtLgo+ICAKPiAtLSAKPiAyLjcuNAo+IAotLSAKSmFuIEthcmEgPGphY2tA
+c3VzZS5jb20+ClNVU0UgTGFicywgQ1IKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
