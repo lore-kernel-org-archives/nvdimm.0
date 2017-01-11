@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 789C381E96
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 14:11:52 -0800 (PST)
-Subject: [PATCH v3 12/12] libnvdimm, pfn,
- dax: stop padding pmem namespaces to section alignment
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Jan 2017 14:07:46 -0800
-Message-ID: <148486366619.19694.12717075723603032515.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EE1B6817B4
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Jan 2017 01:01:40 -0800 (PST)
+Date: Wed, 11 Jan 2017 10:01:36 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 1/2] ext4: fix DAX write locking
+Message-ID: <20170111090136.GE16116@quack2.suse.cz>
+References: <1484063288-18255-1-git-send-email-hch@lst.de>
+ <1484063288-18255-2-git-send-email-hch@lst.de>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1484063288-18255-2-git-send-email-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,119 +20,42 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-fsdevel@vger.kernel.org, Ted Tso <tytso@mit.edu>, linux-ext4@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that the mm core supports section-unaligned hotplug of ZONE_DEVICE
-memory, we no longer need to add padding at pfn/dax device creation
-time. The kernel will still honor padding established by older kernels.
-
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pfn_devs.c |   42 +++++++-----------------------------------
- 1 file changed, 7 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index a2ac9e641aa9..5d17710f7402 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -538,7 +538,7 @@ static struct vmem_altmap *__nvdimm_setup_pfn(struct nd_pfn *nd_pfn,
- 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
- 		altmap = NULL;
- 	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
--		nd_pfn->npfns = (resource_size(res) - offset) / PAGE_SIZE;
-+		nd_pfn->npfns = PHYS_PFN((resource_size(res) - offset));
- 		if (le64_to_cpu(nd_pfn->pfn_sb->npfns) > nd_pfn->npfns)
- 			dev_info(&nd_pfn->dev,
- 					"number of pfns truncated from %lld to %ld\n",
-@@ -557,7 +557,6 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- {
- 	u32 dax_label_reserve = is_nd_dax(&nd_pfn->dev) ? SZ_128K : 0;
- 	struct nd_namespace_common *ndns = nd_pfn->ndns;
--	u32 start_pad = 0, end_trunc = 0;
- 	resource_size_t start, size;
- 	struct nd_namespace_io *nsio;
- 	struct nd_region *nd_region;
-@@ -590,42 +589,16 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 		return -ENXIO;
- 	}
- 
--	memset(pfn_sb, 0, sizeof(*pfn_sb));
--
--	/*
--	 * Check if pmem collides with 'System RAM' when section aligned and
--	 * trim it accordingly
--	 */
--	nsio = to_nd_namespace_io(&ndns->dev);
--	start = PHYS_SECTION_ALIGN_DOWN(nsio->res.start);
--	size = resource_size(&nsio->res);
--	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
--				IORES_DESC_NONE) == REGION_MIXED) {
--		start = nsio->res.start;
--		start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
--	}
--
--	start = nsio->res.start;
--	size = PHYS_SECTION_ALIGN_UP(start + size) - start;
--	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
--				IORES_DESC_NONE) == REGION_MIXED) {
--		size = resource_size(&nsio->res);
--		end_trunc = start + size - PHYS_SECTION_ALIGN_DOWN(start + size);
--	}
--
--	if (start_pad + end_trunc)
--		dev_info(&nd_pfn->dev, "%s section collision, truncate %d bytes\n",
--				dev_name(&ndns->dev), start_pad + end_trunc);
--
- 	/*
- 	 * Note, we use 64 here for the standard size of struct page,
- 	 * debugging options may cause it to be larger in which case the
- 	 * implementation will limit the pfns advertised through
- 	 * ->direct_access() to those that are included in the memmap.
- 	 */
--	start += start_pad;
-+	nsio = to_nd_namespace_io(&ndns->dev);
-+	start = nsio->res.start;
- 	size = resource_size(&nsio->res);
--	npfns = (size - start_pad - end_trunc - SZ_8K) / SZ_4K;
-+	npfns = PHYS_PFN(size - SZ_8K);
- 	if (nd_pfn->mode == PFN_MODE_PMEM) {
- 		unsigned long memmap_size;
- 
-@@ -642,13 +615,14 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	else
- 		return -ENXIO;
- 
--	if (offset + start_pad + end_trunc >= size) {
-+	if (offset >= size) {
- 		dev_err(&nd_pfn->dev, "%s unable to satisfy requested alignment\n",
- 				dev_name(&ndns->dev));
- 		return -ENXIO;
- 	}
- 
--	npfns = (size - offset - start_pad - end_trunc) / SZ_4K;
-+	memset(pfn_sb, 0, sizeof(*pfn_sb));
-+	npfns = PHYS_PFN(size - offset);
- 	pfn_sb->mode = cpu_to_le32(nd_pfn->mode);
- 	pfn_sb->dataoff = cpu_to_le64(offset);
- 	pfn_sb->npfns = cpu_to_le64(npfns);
-@@ -657,8 +631,6 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
- 	pfn_sb->version_major = cpu_to_le16(1);
- 	pfn_sb->version_minor = cpu_to_le16(2);
--	pfn_sb->start_pad = cpu_to_le32(start_pad);
--	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
- 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
- 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
- 	pfn_sb->checksum = cpu_to_le64(checksum);
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlIDEwLTAxLTE3IDE2OjQ4OjA3LCBDaHJpc3RvcGggSGVsbHdpZyB3cm90ZToKPiBVbmxp
+a2UgT19ESVJFQ1QgREFYIGlzIG5vdCBhbiBvcHRpb25hbCBvcHQtaW4gZmVhdHVyZSBzZWxlY3Rl
+ZCBieSB0aGUKPiBhcHBsaWNhdGlvbiwgc28gd2UnbGwgaGF2ZSB0byBwcm92aWRlIHRoZSB0cmFk
+aXRpb25hbCBzeW5jaHJvbtGWemF0aW9uCj4gb2Ygb3ZlcmxhcHBpbmcgd3JpdGVzIGFzIHdlIGRv
+IGZvciBidWZmZXJlZCB3cml0ZXMuCj4gCj4gVGhpcyB3YXMgYnJva2VuIGhpc3RvcmljYWxseSBm
+b3IgREFYLCBidXQgZ290IGZpeGVkIGZvciBleHQyIGFuZCBYRlMKPiBhcyBwYXJ0IG9mIHRoZSBp
+b21hcCBjb252ZXJzaW9uLiAgRml4IHVwIGV4dDQgYXMgd2VsbC4KPiAKPiBTaWduZWQtb2ZmLWJ5
+OiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4KCk1ha2VzIHNlbnNlLiBZb3UgY2FuIGFk
+ZDoKClJldmlld2VkLWJ5OiBKYW4gS2FyYSA8amFja0BzdXNlLmN6PgoKVGVkLCBjYW4geW91IHBs
+ZWFzZSBwaWNrIGl0IHVwPyBUaGFua3MhCgoJCQkJCQkJCUhvbnphCgo+IC0tLQo+ICBmcy9leHQ0
+L2ZpbGUuYyB8IDEwICstLS0tLS0tLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCsp
+LCA5IGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9mcy9leHQ0L2ZpbGUuYyBiL2ZzL2V4
+dDQvZmlsZS5jCj4gaW5kZXggZDY2M2QzZC4uYTFlODhhYSAxMDA2NDQKPiAtLS0gYS9mcy9leHQ0
+L2ZpbGUuYwo+ICsrKyBiL2ZzL2V4dDQvZmlsZS5jCj4gQEAgLTE3NSw3ICsxNzUsNiBAQCBleHQ0
+X2RheF93cml0ZV9pdGVyKHN0cnVjdCBraW9jYiAqaW9jYiwgc3RydWN0IGlvdl9pdGVyICpmcm9t
+KQo+ICB7Cj4gIAlzdHJ1Y3QgaW5vZGUgKmlub2RlID0gZmlsZV9pbm9kZShpb2NiLT5raV9maWxw
+KTsKPiAgCXNzaXplX3QgcmV0Owo+IC0JYm9vbCBvdmVyd3JpdGUgPSBmYWxzZTsKPiAgCj4gIAlp
+bm9kZV9sb2NrKGlub2RlKTsKPiAgCXJldCA9IGV4dDRfd3JpdGVfY2hlY2tzKGlvY2IsIGZyb20p
+Owo+IEBAIC0xODgsMTYgKzE4Nyw5IEBAIGV4dDRfZGF4X3dyaXRlX2l0ZXIoc3RydWN0IGtpb2Ni
+ICppb2NiLCBzdHJ1Y3QgaW92X2l0ZXIgKmZyb20pCj4gIAlpZiAocmV0KQo+ICAJCWdvdG8gb3V0
+Owo+ICAKPiAtCWlmIChleHQ0X292ZXJ3cml0ZV9pbyhpbm9kZSwgaW9jYi0+a2lfcG9zLCBpb3Zf
+aXRlcl9jb3VudChmcm9tKSkpIHsKPiAtCQlvdmVyd3JpdGUgPSB0cnVlOwo+IC0JCWRvd25ncmFk
+ZV93cml0ZSgmaW5vZGUtPmlfcndzZW0pOwo+IC0JfQo+ICAJcmV0ID0gZGF4X2lvbWFwX3J3KGlv
+Y2IsIGZyb20sICZleHQ0X2lvbWFwX29wcyk7Cj4gIG91dDoKPiAtCWlmICghb3ZlcndyaXRlKQo+
+IC0JCWlub2RlX3VubG9jayhpbm9kZSk7Cj4gLQllbHNlCj4gLQkJaW5vZGVfdW5sb2NrX3NoYXJl
+ZChpbm9kZSk7Cj4gKwlpbm9kZV91bmxvY2soaW5vZGUpOwo+ICAJaWYgKHJldCA+IDApCj4gIAkJ
+cmV0ID0gZ2VuZXJpY193cml0ZV9zeW5jKGlvY2IsIHJldCk7Cj4gIAlyZXR1cm4gcmV0Owo+IC0t
+IAo+IDIuMS40Cj4gCi0tIApKYW4gS2FyYSA8amFja0BzdXNlLmNvbT4KU1VTRSBMYWJzLCBDUgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
+bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
+MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
