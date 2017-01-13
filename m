@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1B58081FBC
- for <linux-nvdimm@lists.01.org>; Mon, 30 Jan 2017 13:53:10 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH] ext4: Remove unused function ext4_dax_huge_fault()
-Date: Mon, 30 Jan 2017 14:52:52 -0700
-Message-Id: <1485813172-7284-1-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <148545058784.17912.6353162518188733642.stgit@djiang5-desk3.ch.intel.com>
-References: <148545058784.17912.6353162518188733642.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5BDF381C2E
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Jan 2017 18:09:03 -0800 (PST)
+Subject: [ndctl PATCH] test, multi-pmem: check namespace deletion
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 12 Jan 2017 18:04:57 -0800
+Message-ID: <148427309710.29210.6139502982382358673.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,51 +16,76 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mawilcox@microsoft.com, linux-nvdimm@lists.01.org, dave.hansen@linux.intel.com, linux-xfs@vger.kernel.org, linux-mm@kvack.org, kirill.shutemov@linux.intel.com, jack@suse.com, linux-ext4@vger.kernel.org, vbabka@suse.cz
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-ZXh0NF9kYXhfcG1kX2ZhdWx0KCkgd2FzIHJlbmFtZWQgdG8gZXh0NF9kYXhfaHVnZV9mYXVsdCgp
-IGluIHRoaXMgY29tbWl0OgoKY29tbWl0IDdlOTBmYzBmODc4NSAoIm1tLGZzLGRheDogY2hhbmdl
-IC0+cG1kX2ZhdWx0IHRvIC0+aHVnZV9mYXVsdCIpCgpIb3dldmVyLCB0aGUgdm1fb3BlcmF0aW9u
-c19zdHJ1Y3Qgb3BzIHRhYmxlIGZvciBleHQ0IHdhcyBtb2RpZmllZCBpbiB0aGF0CmNvbW1pdCBz
-byB0aGF0IC5odWdlX2ZhdWx0IGNhbGxlZCBleHQ0X2RheF9mYXVsdCgpLCBub3QKZXh0NF9kYXhf
-aHVnZV9mYXVsdCgpLiAgVGhpcyBpcyBhY3R1YWxseSBmaW5lLCB0aG91Z2gsIHNpbmNlIGFzIG9m
-IHRoYXQKY29tbWl0IGV4dDRfZGF4X2ZhdWx0KCkgYW5kIGV4dDRfZGF4X2h1Z2VfZmF1bHQoKSBh
-cmUgaWRlbnRpY2FsLCBib3RoCmV2ZW50dWFsbHkgY2FsbGluZyBkYXhfaW9tYXBfZmF1bHQoKS4K
-ClNvLCBpbnN0ZWFkIG9mIGNoYW5naW5nIHRoZSBvcHRzIHRhYmxlIHRvIGhhdmUgLmh1Z2VfZmF1
-bHQgY2FsbApleHQ0X2RheF9odWdlX2ZhdWx0KCksIGp1c3QgbGVhdmUgaXQgY2FsbGluZyBleHQ0
-X2RheF9mYXVsdCgpIGFuZCByZW1vdmUKdGhlIHVudXNlZCBmdW5jdGlvbi4KClRoaXMgZml4IGFs
-c28gcXVpZXRzIHRoZSBmb2xsb3dpbmcgY29tcGlsYXRpb24gd2FybmluZzoKCi9leHQ0L2ZpbGUu
-YzoyNzk6MTogd2FybmluZzog4oCYZXh0NF9kYXhfaHVnZV9mYXVsdOKAmSBkZWZpbmVkIGJ1dCBu
-b3QgdXNlZCBbLVd1bnVzZWQtZnVuY3Rpb25dCiBleHQ0X2RheF9odWdlX2ZhdWx0KHN0cnVjdCB2
-bV9mYXVsdCAqdm1mKQoKU2lnbmVkLW9mZi1ieTogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJA
-bGludXguaW50ZWwuY29tPgpGaXhlczogN2U5MGZjMGY4Nzg1ICgibW0sZnMsZGF4OiBjaGFuZ2Ug
-LT5wbWRfZmF1bHQgdG8gLT5odWdlX2ZhdWx0IikKQ2M6IERhdmUgSmlhbmcgPGRhdmUuamlhbmdA
-aW50ZWwuY29tPgotLS0KRmVlbCBmcmVlIHRvIHNxdWFzaCB3aXRoIDdlOTBmYzBmODc4NSBpZiB0
-aGF0J3MgYmVzdC4KClRoZSBjb21taXQgSUQgb2YgdGhlIG9yaWdpbmFsIHBhdGNoIGNvbWVzIGZy
-b20gbW1vdHMvbWFzdGVyIHdoaWNoIGlzCmN1cnJlbnRseSBhdCB2NC4xMC1yYzUtbW1vdHMtMjAx
-Ny0wMS0yNi0xNS00OS4KLS0tCiBmcy9leHQ0L2ZpbGUuYyB8IDIxIC0tLS0tLS0tLS0tLS0tLS0t
-LS0tLQogMSBmaWxlIGNoYW5nZWQsIDIxIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2ZzL2V4
-dDQvZmlsZS5jIGIvZnMvZXh0NC9maWxlLmMKaW5kZXggZWQyMmQyMC4uNTFkNzE1NSAxMDA2NDQK
-LS0tIGEvZnMvZXh0NC9maWxlLmMKKysrIGIvZnMvZXh0NC9maWxlLmMKQEAgLTI3NSwyNyArMjc1
-LDYgQEAgc3RhdGljIGludCBleHQ0X2RheF9mYXVsdChzdHJ1Y3Qgdm1fZmF1bHQgKnZtZikKIAly
-ZXR1cm4gcmVzdWx0OwogfQogCi1zdGF0aWMgaW50Ci1leHQ0X2RheF9odWdlX2ZhdWx0KHN0cnVj
-dCB2bV9mYXVsdCAqdm1mKQotewotCWludCByZXN1bHQ7Ci0Jc3RydWN0IGlub2RlICppbm9kZSA9
-IGZpbGVfaW5vZGUodm1mLT52bWEtPnZtX2ZpbGUpOwotCXN0cnVjdCBzdXBlcl9ibG9jayAqc2Ig
-PSBpbm9kZS0+aV9zYjsKLQlib29sIHdyaXRlID0gdm1mLT5mbGFncyAmIEZBVUxUX0ZMQUdfV1JJ
-VEU7Ci0KLQlpZiAod3JpdGUpIHsKLQkJc2Jfc3RhcnRfcGFnZWZhdWx0KHNiKTsKLQkJZmlsZV91
-cGRhdGVfdGltZSh2bWYtPnZtYS0+dm1fZmlsZSk7Ci0JfQotCWRvd25fcmVhZCgmRVhUNF9JKGlu
-b2RlKS0+aV9tbWFwX3NlbSk7Ci0JcmVzdWx0ID0gZGF4X2lvbWFwX2ZhdWx0KHZtZiwgJmV4dDRf
-aW9tYXBfb3BzKTsKLQl1cF9yZWFkKCZFWFQ0X0koaW5vZGUpLT5pX21tYXBfc2VtKTsKLQlpZiAo
-d3JpdGUpCi0JCXNiX2VuZF9wYWdlZmF1bHQoc2IpOwotCi0JcmV0dXJuIHJlc3VsdDsKLX0KLQog
-LyoKICAqIEhhbmRsZSB3cml0ZSBmYXVsdCBmb3IgVk1fTUlYRURNQVAgbWFwcGluZ3MuIFNpbWls
-YXJseSB0byBleHQ0X2RheF9mYXVsdCgpCiAgKiBoYW5kbGVyIHdlIGNoZWNrIGZvciByYWNlcyBh
-Z2Fpc3QgdHJ1bmNhdGUuIE5vdGUgdGhhdCBzaW5jZSB3ZSBjeWNsZSB0aHJvdWdoCi0tIAoyLjcu
-NAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
-bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
-dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+The initial implementation of multi-pmem support neglected to enable
+deletion of pmem namespaces. Add a test to check for this condition.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ test/multi-pmem.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/test/multi-pmem.c b/test/multi-pmem.c
+index 8f76e02d2fd1..dd1269ced667 100644
+--- a/test/multi-pmem.c
++++ b/test/multi-pmem.c
+@@ -54,6 +54,28 @@ static void destroy_namespace(struct ndctl_namespace *ndns)
+ 	cmd_destroy_namespace(argc, argv, ctx);
+ }
+ 
++/* Check that the namespace device is gone (if it wasn't the seed) */
++static int check_deleted(struct ndctl_region *region, const char *devname,
++		struct ndctl_test *test)
++{
++	struct ndctl_namespace *ndns;
++
++	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 10, 0)))
++		return 0;
++
++	ndctl_namespace_foreach(region, ndns) {
++		if (strcmp(devname, ndctl_namespace_get_devname(ndns)))
++			continue;
++		if (ndns == ndctl_region_get_namespace_seed(region))
++			continue;
++		fprintf(stderr, "mult-pmem: expected %s to be deleted\n",
++				devname);
++		return -ENXIO;
++	}
++
++	return 0;
++}
++
+ static int do_multi_pmem(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ {
+ 	int i;
+@@ -190,6 +212,9 @@ static int do_multi_pmem(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 					devname, blk_avail, blk_avail_orig);
+ 			return -ENXIO;
+ 		}
++
++		if (check_deleted(target, devname, test) != 0)
++			return -ENXIO;
+ 	}
+ 
+ 	ndns = namespaces[NUM_NAMESPACES - 1];
+@@ -204,6 +229,9 @@ static int do_multi_pmem(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 		return -ENXIO;
+ 	}
+ 
++	if (check_deleted(target, devname, test) != 0)
++		return -ENXIO;
++
+ 	ndctl_bus_foreach(ctx, bus) {
+ 		if (strncmp(ndctl_bus_get_provider(bus), "nfit_test", 9) != 0)
+ 			continue;
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
