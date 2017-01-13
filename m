@@ -1,144 +1,130 @@
-From: "Nohemi Nimmons  " <michhyma42-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: I need quality SEO work
-Date: Sat, 31 Dec 2016 19:59:03 +0200
-Message-ID: <90014590.F488D49F@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_5867F201.7C64FCDF"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_5867F201.7C64FCDF
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Hi Here is the link http://www.conversion-seo.cn/seo-packages/
-   Yours, Nohemi Nimmons Linux-nvdimm mailing list Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-   https://lists.01.org/mailman/listinfo/linux-nvdimm [...] 
-
-Content analysis details:   (10.9 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: conversion-seo.cn]
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-              [Blocked - see <http://www.spamcop.net/bl.shtml?219.90.114.225>]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: conversion-seo.cn]
- 2.8 FSL_HELO_FAKE          No description available.
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (michhyma42[at]gmail.com)
- 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
-                            (michhyma42[at]gmail.com)
- 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
-                            [score: 0.4987]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-The original message was not completely plain text, and may be unsafe to
-open with some email clients; in particular, it may contain a virus,
-or confirm that your address can receive spam.  If you wish to view
-it, it may be safer to save it to a file and open it with an editor.
-
-
-------------=_5867F201.7C64FCDF
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: attachment
-Content-Transfer-Encoding: 8bit
-
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1cNNvy-0003sF-UL
-	for gln-linux-nvdimm@m.gmane.org; Sat, 31 Dec 2016 18:59:11 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 52D608180A;
-	Sat, 31 Dec 2016 09:59:14 -0800 (PST)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from gmail.com (static-ip-225-114-90-219.rev.dyxnet.com
- [219.90.114.225]) by ml01.01.org (Postfix) with SMTP id 58E8881809
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sat, 31 Dec 2016 09:59:11 -0800 (PST)
-Message-ID: <90014590.F488D49F-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Sat, 31 Dec 2016 19:59:03 +0200
-From: "Nohemi Nimmons  " <michhyma42-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US;
- rv:1.8.1.18) Gecko/20081105 Thunderbird/2.0.0.18
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+References: <20170105201935.GC2166@redhat.com>
+ <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
+ <20170106003034.GB4670@obsidianresearch.com>
+ <20170106015831.GA2226@gmail.com>
+ <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
+ <20170106173722.GB3804@redhat.com>
+ <20170106182625.GB5724@obsidianresearch.com>
+ <2a148b6e-86bc-4c4d-2f22-d733e2cc94cc@deltatee.com>
+ <d5a72e1e5f6d606697dc0027f073fd87.squirrel@webmail.raithlin.com>
+ <20170112151129.GA10942@redhat.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <0733efde-1a6e-5237-0868-e9fb31f237c7@amd.com>
+Date: Fri, 13 Jan 2017 14:04:30 +0100
 MIME-Version: 1.0
-To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: re: I need quality SEO work
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+In-Reply-To: <20170112151129.GA10942@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Reply-To: Nohemi Nimmons   <michhyma42-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Type: multipart/mixed; boundary="===============4584615133234452379=="
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="windows-1252"; Format="flowed"
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Jerome Glisse <jglisse@redhat.com>, Stephen Bates <sbates@raithlin.com>
+Cc: david1.zhou@amd.com, hch@infradead.org, "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>, "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>, "Kuehling, Felix  <felix.kuehling@amd.com>, Serguei Sagalovitch" <serguei.sagalovitch@amd.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>, "Blinzer, " Paul" <paul.blinzer@amd.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>," qiang.yu@amd.com, "Suthikulpanit, Suravee" <suravee.suthikulpanit@amd.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "Deucher, Alexander  <alexander.deucher@amd.com>, Jerome Glisse <j.glisse@gmail.com>, Sander, Ben" <ben.sander@amd.com>, "'Linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>
+List-ID: <linux-nvdimm@lists.01.org>
 
---===============4584615133234452379==
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Am 12.01.2017 um 16:11 schrieb Jerome Glisse:
+> On Wed, Jan 11, 2017 at 10:54:39PM -0600, Stephen Bates wrote:
+>> On Fri, January 6, 2017 4:10 pm, Logan Gunthorpe wrote:
+>>>
+>>> On 06/01/17 11:26 AM, Jason Gunthorpe wrote:
+>>>
+>>>
+>>>> Make a generic API for all of this and you'd have my vote..
+>>>>
+>>>>
+>>>> IMHO, you must support basic pinning semantics - that is necessary to
+>>>> support generic short lived DMA (eg filesystem, etc). That hardware can
+>>>> clearly do that if it can support ODP.
+>>> I agree completely.
+>>>
+>>>
+>>> What we want is for RDMA, O_DIRECT, etc to just work with special VMAs
+>>> (ie. at least those backed with ZONE_DEVICE memory). Then
+>>> GPU/NVME/DAX/whatever drivers can just hand these VMAs to userspace
+>>> (using whatever interface is most appropriate) and userspace can do what
+>>> it pleases with them. This makes _so_ much sense and actually largely
+>>> already works today (as demonstrated by iopmem).
+>> +1 for iopmem ;-)
+>>
+>> I feel like we are going around and around on this topic. I would like to
+>> see something that is upstream that enables P2P even if it is only the
+>> minimum viable useful functionality to begin. I think aiming for the moon
+>> (which is what HMM and things like it are) are simply going to take more
+>> time if they ever get there.
+>>
+>> There is a use case for in-kernel P2P PCIe transfers between two NVMe
+>> devices and between an NVMe device and an RDMA NIC (using NVMe CMBs or
+>> BARs on the NIC). I am even seeing users who now want to move data P2P
+>> between FPGAs and NVMe SSDs and the upstream kernel should be able to
+>> support these users or they will look elsewhere.
+>>
+>> The iopmem patchset addressed all the use cases above and while it is not
+>> an in kernel API it could have been modified to be one reasonably easily.
+>> As Logan states the driver can then choose to pass the VMAs to user-space
+>> in a manner that makes sense.
+>>
+>> Earlier in the thread someone mentioned LSF/MM. There is already a
+>> proposal to discuss this topic so if you are interested please respond to
+>> the email letting the committee know this topic is of interest to you [1=
+].
+>>
+>> Also earlier in the thread someone discussed the issues around the IOMMU.
+>> Given the known issues around P2P transfers in certain CPU root complexes
+>> [2] it might just be a case of only allowing P2P when a PCIe switch
+>> connects the two EPs. Another option is just to use CONFIG_EXPERT and ma=
+ke
+>> sure people are aware of the pitfalls if they invoke the P2P option.
+>
+> iopmem is not applicable to GPU what i propose is to split the issue in 2
+> so that everyone can reuse the part that needs to be common namely the DMA
+> API part where you have to create IOMMU mapping for one device to point
+> to the other device memory.
+>
+> We can have a DMA API that is agnostic to how the device memory is manage
+> (so does not matter if device memory have struct page or not). This what
+> i have been arguing in this thread. To make progress on this issue we need
+> to stop conflicting different use case.
+>
+> So i say let solve the IOMMU issue first and let everyone use it in their
+> own way with their device. I do not think we can share much more than
+> that.
 
-Hi
-Here is the link
-http://www.conversion-seo.cn/seo-packages/
+Yeah, exactly what I said from the very beginning as well. Just hacking =
 
-Yours,
-Nohemi Nimmons  
+together quick solutions doesn't really solve the problem in the long term.
 
+What we need is proper adjusting of the DMA API towards handling of P2P =
 
+and then build solutions for the different use cases on top of that.
 
+We should also avoid falling into the trap of trying to just handle the =
 
---===============4584615133234452379==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+existing get_user_pages and co interfaces so that the existing code =
+
+doesn't need to change. P2P needs to be validated for each use case =
+
+individually and not implemented in workarounds with fingers crossed and =
+
+hoped for the best.
+
+Regards,
+Christian.
+
+>
+> Cheers,
+> J=E9r=F4me
+
 
 _______________________________________________
 Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============4584615133234452379==--
-
-
-------------=_5867F201.7C64FCDF--
