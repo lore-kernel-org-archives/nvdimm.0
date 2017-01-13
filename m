@@ -1,108 +1,13 @@
-From: "FRANK" <dysonkizz7-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: reach millions with FB Groups Posting service
-Date: Fri, 13 Jan 2017 10:04:32 -0800
-Message-ID: <A87E1933.A728D649@gmail.com>
+From: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: [PATCH v6] DAX: enable iostat for read/write
+Date: Fri, 13 Jan 2017 14:54:06 -0800
+Message-ID: <20170113145406.b1f065fb7fda67fd18830969@linux-foundation.org>
+References: <20170113233418.32252-1-toshi.kani@hpe.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_587916BB.443081E6"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_587916BB.443081E6
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Hello, Do you want to advertise on facebook? We're here to
-   help. We wil manually post your product/logo/link on Facebook Groups and
-  will give you a full report with links of each live post where your advertisement
-   was posted. [...] 
-
-Content analysis details:   (12.4 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: buysocial.cn]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.buysocial.cn]
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.buysocial.cn]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-               [Blocked - see <http://www.spamcop.net/bl.shtml?182.16.38.106>]
- 2.8 FSL_HELO_FAKE          No description available.
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: buysocial.cn]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (dysonkizz7[at]gmail.com)
- 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
-                            [score: 0.4993]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-The original message was not completely plain text, and may be unsafe to
-open with some email clients; in particular, it may contain a virus,
-or confirm that your address can receive spam.  If you wish to view
-it, it may be safer to save it to a file and open it with an editor.
-
-
-------------=_587916BB.443081E6
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: attachment
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1cS6DF-00057A-AW
-	for gln-linux-nvdimm@m.gmane.org; Fri, 13 Jan 2017 19:04:29 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 49F8681C5A;
-	Fri, 13 Jan 2017 10:04:32 -0800 (PST)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (unknown [182.16.38.106])
- by ml01.01.org (Postfix) with SMTP id 062A081C59
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Fri, 13 Jan 2017 10:04:29 -0800 (PST)
-Message-ID: <A87E1933.A728D649-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Fri, 13 Jan 2017 10:04:32 -0800
-From: "FRANK" <dysonkizz7-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US;
- rv:1.8.1.12) Gecko/20080227 Thunderbird/2.0.0.12
-MIME-Version: 1.0
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: re: reach millions with FB Groups Posting service
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+In-Reply-To: <20170113233418.32252-1-toshi.kani-ZPxbGqLxI0U@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -110,48 +15,50 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============8341204516300217780=="
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
 
---===============8341204516300217780==
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+On Fri, 13 Jan 2017 16:34:18 -0700 Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
 
-Hello,
-Do you want to advertise on facebook? We're here to help. 
+> DAX IO path does not support iostat, but its metadata IO path does.
+> Therefore, iostat shows metadata IO statistics only, which has been
+> confusing to users.
+> 
+> Add iostat support to the DAX read/write path.
+> 
+> Note, iostat still does not support the DAX mmap path as it allows
+> user applications to access directly.
+> 
+> ...
+>
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1058,12 +1058,24 @@ dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+>  {
+>  	struct address_space *mapping = iocb->ki_filp->f_mapping;
+>  	struct inode *inode = mapping->host;
+> +	struct gendisk *disk = inode->i_sb->s_bdev->bd_disk;
+>  	loff_t pos = iocb->ki_pos, ret = 0, done = 0;
+>  	unsigned flags = 0;
+> +	unsigned long start = 0;
+> +	int do_acct = blk_queue_io_stat(disk->queue);
 
-We wil manually post your product/logo/link on Facebook Groups and will
-give you a full report with links of each live post where your advertisement
-was posted.
+(The poorly named) blk_queue_io_stat() actually returns a bool.  This
+is well concealed because blk_queue_io_stat() is unnecessarily
+implemented as a macro (why oh why).
 
-http://www.buysocial.cn/detail.php?id=12
-
-Regards
-FRANK
- 
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-
---===============8341204516300217780==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============8341204516300217780==--
-
-
-------------=_587916BB.443081E6--
+--- a/fs/dax.c~dax-enable-iostat-for-read-write-fix
++++ a/fs/dax.c
+@@ -1085,7 +1085,7 @@ dax_iomap_rw(struct kiocb *iocb, struct
+ 	loff_t pos = iocb->ki_pos, ret = 0, done = 0;
+ 	unsigned flags = 0;
+ 	unsigned long start = 0;
+-	int do_acct = blk_queue_io_stat(disk->queue);
++	bool do_acct = blk_queue_io_stat(disk->queue);
+ 
+ 	if (iov_iter_rw(iter) == WRITE)
+ 		flags |= IOMAP_WRITE;
+_
