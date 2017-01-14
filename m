@@ -1,14 +1,105 @@
-From: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [LSF/MM TOPIC] Future direction of DAX
-Date: Sat, 14 Jan 2017 00:26:21 -0800
-Message-ID: <20170114082621.GC10498@birch.djwong.org>
-References: <20170114002008.GA25379@linux.intel.com>
+From: "JOE" <anittiff04-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: I need followers for Instagram
+Date: Sat, 14 Jan 2017 02:45:39 -0800
+Message-ID: <9E9BD184.5D8F1124@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: multipart/mixed; boundary="----------=_587A0164.A711E268"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_587A0164.A711E268
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20170114002008.GA25379-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  Hello Here is the link http://www.instabuygram.cn/buy-instagram-followers/
+   regards JOE [...] 
+
+Content analysis details:   (11.3 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: instabuygram.cn]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+              [Blocked - see <http://www.spamcop.net/bl.shtml?203.255.31.195>]
+ 2.8 FSL_HELO_FAKE          No description available.
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: instabuygram.cn]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: instabuygram.cn]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (anittiff04[at]gmail.com)
+ 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
+                            (anittiff04[at]gmail.com)
+-0.5 BAYES_05               BODY: Bayes spam probability is 1 to 5%
+                            [score: 0.0495]
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
+                            [URIs: www.instabuygram.cn]
+ 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
+                            [URIs: www.instabuygram.cn]
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+
+
+------------=_587A0164.A711E268
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1cSLq9-0002yv-HA
+	for gln-linux-nvdimm@m.gmane.org; Sat, 14 Jan 2017 11:45:41 +0100
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 0889081C98;
+	Sat, 14 Jan 2017 02:45:45 -0800 (PST)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from gmail.com (unknown [203.255.31.195])
+ by ml01.01.org (Postfix) with SMTP id C6BBB81C97
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sat, 14 Jan 2017 02:45:42 -0800 (PST)
+Message-ID: <9E9BD184.5D8F1124-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Sat, 14 Jan 2017 02:45:39 -0800
+From: "JOE" <anittiff04-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US;
+ rv:1.8.1.14) Gecko/20080421 Thunderbird/2.0.0.14
+X-Accept-Language: en-us
+MIME-Version: 1.0
+To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: re: I need followers for Instagram
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.21
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,88 +107,45 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Reply-To: JOE <anittiff04-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
 
-On Fri, Jan 13, 2017 at 05:20:08PM -0700, Ross Zwisler wrote:
-> This past year has seen a lot of new DAX development.  We have added support
-> for fsync/msync, moved to the new iomap I/O data structure, introduced radix
-> tree based locking, re-enabled PMD support (twice!), and have fixed a bunch of
-> bugs.
-> 
-> We still have a lot of work to do, though, and I'd like to propose a discussion
-> around what features people would like to see enabled in the coming year as
-> well as what what use cases their customers have that we might not be aware of.
-> 
-> Here are a few topics to start the conversation:
-> 
-> - The current plan to allow users to safely flush dirty data from userspace is
->   built around the PMEM_IMMUTABLE feature [1].  I'm hoping that by LSF/MM we
->   will have at least started work on PMEM_IMMUTABLE, but I'm guessing there
->   will be more to discuss.
 
-Yes, probably. :)
+Hello
 
-> - The DAX fsync/msync model was built for platforms that need to flush dirty
->   processor cache lines in order to make data durable on NVDIMMs.  There exist
->   platforms, however, that are set up so that the processor caches are
->   effectively part of the ADR safe zone.  This means that dirty data can be
->   assumed to be durable even in the processor cache, obviating the need to
->   manually flush the cache during fsync/msync.  These platforms still need to
->   call fsync/msync to ensure that filesystem metadata updates are properly
->   written to media.  Our first idea on how to properly support these platforms
->   would be for DAX to be made aware that in some cases doesn't need to keep
->   metadata about dirty cache lines.  A similar issue exists for volatile uses
->   of DAX such as with BRD or with PMEM and the memmap command line parameter,
->   and we'd like a solution that covers them all.
-> 
-> - If I recall correctly, at one point Dave Chinner suggested that we change
->   DAX so that I/O would use cached stores instead of the non-temporal stores
->   that it currently uses.  We would then track pages that were written to by
->   DAX in the radix tree so that they would be flushed later during
->   fsync/msync.  Does this sound like a win?  Also, assuming that we can find a
->   solution for platforms where the processor cache is part of the ADR safe
->   zone (above topic) this would be a clear improvement, moving us from using
->   non-temporal stores to faster cached stores with no downside.
-> 
-> - Jan suggested [2] that we could use the radix tree as a cache to service DAX
->   faults without needing to call into the filesystem.  Are there any issues
->   with this approach, and should we move forward with it as an optimization?
-> 
-> - Whenever you mount a filesystem with DAX, it spits out a message that says
->   "DAX enabled. Warning: EXPERIMENTAL, use at your own risk".  What criteria
->   needs to be met for DAX to no longer be considered experimental?
+Here is the link
+http://www.instabuygram.cn/buy-instagram-followers/
 
-For XFS I'd like to get reflink working with it, for starters.  We
-probably need a bunch more verification work to show that file IO
-doesn't adopt any bad quirks having turned on the per-inode DAX flag.
 
-Some day we'll start designing a pmem-native fs, I guess. :P
+regards
+JOE
 
-> - When we msync() a huge page, if the range is less than the entire huge page,
->   should we flush the entire huge page and mark it clean in the radix tree, or
->   should we only flush the requested range and leave the radix tree entry
->   dirty?
-> 
-> - Should we enable 1 GiB huge pages in filesystem DAX?  Does anyone have any
->   specific customer requests for this or performance data suggesting it would
->   be a win?  If so, what work needs to be done to get 1 GiB sized and aligned
->   filesystem block allocations, to get the required enabling in the MM layer,
->   etc?
 
-<giggle> :)
 
---D
 
-> 
-> Thanks,
-> - Ross
-> 
-> [1] https://lkml.org/lkml/2016/12/19/571
-> [2] https://lkml.org/lkml/2016/10/12/70
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-fsdevel" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option is available on the footer of our website
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_587A0164.A711E268--
