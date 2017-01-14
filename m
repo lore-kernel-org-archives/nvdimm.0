@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from esa2.hgst.iphmx.com (esa2.hgst.iphmx.com [68.232.143.124])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E88BA81BC9
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jan 2017 16:50:17 -0800 (PST)
-Date: Fri, 13 Jan 2017 17:49:10 -0700
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: Re: [LSF/MM TOPIC] Badblocks checking/representation in filesystems
-Message-ID: <20170114004910.GA4880@omniknight.lm.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 55EB381C7C
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jan 2017 16:00:47 -0800 (PST)
+From: Slava Dubeyko <Vyacheslav.Dubeyko@wdc.com>
+Subject: RE: [LSF/MM TOPIC] Badblocks checking/representation in filesystems
+Date: Sat, 14 Jan 2017 00:00:45 +0000
+Message-ID: <SN2PR04MB2191756EABCB0E9DAA3B5328887B0@SN2PR04MB2191.namprd04.prod.outlook.com>
 References: <at1mp6pou4lenesjdgh22k4p.1484345585589@email.android.com>
  <b9rbflutjt10mb4ofherta8j.1484345610771@email.android.com>
- <SN2PR04MB2191756EABCB0E9DAA3B5328887B0@SN2PR04MB2191.namprd04.prod.outlook.com>
+In-Reply-To: <b9rbflutjt10mb4ofherta8j.1484345610771@email.android.com>
+Content-Language: en-US
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <SN2PR04MB2191756EABCB0E9DAA3B5328887B0@SN2PR04MB2191.namprd04.prod.outlook.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,218 +20,124 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Slava Dubeyko <Vyacheslav.Dubeyko@wdc.com>
+To: "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>
 Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, "lsf-pc@lists.linux-foundation.org" <lsf-pc@lists.linux-foundation.org>, Viacheslav Dubeyko <slava@dubeyko.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 01/14, Slava Dubeyko wrote:
-> =
-
-> ---- Original Message ----
-> Subject: [LSF/MM TOPIC] Badblocks checking/representation in filesystems
-> Sent: Jan 13, 2017 1:40 PM
-> From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-> To: lsf-pc@lists.linux-foundation.org
-> Cc: linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, linux-fsdevel=
-@vger.kernel.org
-> =
-
-> > The current implementation of badblocks, where we consult the badblocks
-> > list for every IO in the block driver works, and is a last option
-> > failsafe, but from a user perspective, it isn't the easiest interface to
-> > work with.
-> =
-
-> As I remember, FAT and HFS+ specifications contain description of bad blo=
-cks
-> (physical sectors) table. I believe that this table was used for the case=
- of
-> floppy media. But, finally, this table becomes to be the completely obsol=
-ete
-> artefact because mostly storage devices are reliably enough. Why do you n=
-eed
-> in exposing the bad blocks on the file system level?  Do you expect that =
-next
-> generation of NVM memory will be so unreliable that file system needs to =
-manage
-> bad blocks? What's about erasure coding schemes? Do file system really ne=
-ed to suffer
-> from the bad block issue? =
-
-> =
-
-> Usually, we are using LBAs and it is the responsibility of storage device=
- to map
-> a bad physical block/page/sector into valid one. Do you mean that we have
-> access to physical NVM memory address directly? But it looks like that we=
- can
-> have a "bad block" issue even we will access data into page cache's memory
-> page (if we will use NVM memory for page cache, of course). So, what do y=
-ou
-> imply by "bad block" issue? =
-
-
-We don't have direct physical access to the device's address space, in
-the sense the device is still free to perform remapping of chunks of NVM
-underneath us. The problem is that when a block or address range (as
-small as a cache line) goes bad, the device maintains a poison bit for
-every affected cache line. Behind the scenes, it may have already
-remapped the range, but the cache line poison has to be kept so that
-there is a notification to the user/owner of the data that something has
-been lost. Since NVM is byte addressable memory sitting on the memory
-bus, such a poisoned cache line results in memory errors and SIGBUSes.
-Compared to tradational storage where an app will get nice and friendly
-(relatively speaking..) -EIOs. The whole badblocks implementation was
-done so that the driver can intercept IO (i.e. reads) to _known_ bad
-locations, and short-circuit them with an EIO. If the driver doesn't
-catch these, the reads will turn into a memory bus access, and the
-poison will cause a SIGBUS.
-
-This effort is to try and make this badblock checking smarter - and try
-and reduce the penalty on every IO to a smaller range, which only the
-filesystem can do.
-
-> =
-
-> > =
-
-> > A while back, Dave Chinner had suggested a move towards smarter
-> > handling, and I posted initial RFC patches [1], but since then the topic
-> > hasn't really moved forward.
-> > =
-
-> > I'd like to propose and have a discussion about the following new
-> > functionality:
-> > =
-
-> > 1. Filesystems develop a native representation of badblocks. For
-> > example, in xfs, this would (presumably) be linked to the reverse
-> > mapping btree. The filesystem representation has the potential to be=A0
-> > more efficient than the block driver doing the check, as the fs can
-> > check the IO happening on a file against just that file's range. =
-
-> =
-
-> What do you mean by "file system can check the IO happening on a file"?
-> Do you mean read or write operation? What's about metadata?
-
-For the purpose described above, i.e. returning early EIOs when
-possible, this will be limited to reads and metadata reads. If we're
-about to do a metadata read, and realize the block(s) about to be read
-are on the badblocks list, then we do the same thing as when we discover
-other kinds of metadata corruption.
-
-> =
-
-> If we are talking about the discovering a bad block on read operation then
-> rare modern file system is able to survive as for the case of metadata as
-> for the case of user data. Let's imagine that we have really mature file
-> system driver then what does it mean to encounter a bad block? The failure
-> to read a logical block of some metadata (bad block) means that we are
-> unable to extract some part of a metadata structure. From file system
-> driver point of view, it looks like that our file system is corrupted, we=
- need
-> to stop the file system operations and, finally, to check and recover file
-> system volume by means of fsck tool. If we find a bad block for some
-> user file then, again, it looks like an issue. Some file systems simply
-> return "unrecovered read error". Another one, theoretically, is able
-> to survive because of snapshots, for example. But, anyway, it will look
-> like as Read-Only mount state and the user will need to resolve such
-> trouble by hands.
-
-As far as I can tell, all of these things remain the same. The goal here
-isn't to survive more NVM badblocks than we would've before, and lost
-data or lost metadata will continue to have the same consequences as
-before, and will need the same recovery actions/intervention as before.
-The goal is to make the failure model similar to what users expect
-today, and as much as possible make recovery actions too similarly
-intuitive.
-
-> =
-
-> If we are talking about discovering a bad block during write operation th=
-en,
-> again, we are in trouble. Usually, we are using asynchronous model
-> of write/flush operation. We are preparing the consistent state of all our
-> metadata structures in the memory, at first. The flush operations for met=
-adata
-> and user data can be done in different times. And what should be done if =
-we
-> discover bad block for any piece of metadata or user data? Simple trackin=
-g of
-> bad blocks is not enough at all. Let's consider user data, at first. If w=
-e cannot
-> write some file's block successfully then we have two ways: (1) forget ab=
-out
-> this piece of data; (2) try to change the associated LBA for this piece o=
-f data.
-> The operation of re-allocation LBA number for discovered bad block
-> (user data case) sounds as real pain. Because you need to rebuild the met=
-adata
-> that track the location of this part of file. And it sounds as practically
-> impossible operation, for the case of LFS file system, for example.
-> If we have trouble with flushing any part of metadata then it sounds as
-> complete disaster for any file system.
-
-Writes can get more complicated in certain cases. If it is a regular
-page cache writeback, or any aligned write that goes through the block
-driver, that is completely fine. The block driver will check that the
-block was previously marked as bad, do a "clear poison" operation
-(defined in the ACPI spec), which tells the firmware that the poison bit
-is not OK to be cleared, and writes the new data. This also removes the
-block from the badblocks list, and in this scheme, triggers a
-notification to the filesystem that it too can remove the block from its
-accounting. mmap writes and DAX can get more complicated, and at times
-they will just trigger a SIGBUS, and there's no way around that.
-
-> =
-
-> Are you really sure that file system should process bad block issue?
-> =
-
-> >In contrast, today, the block driver checks against the whole block devi=
-ce
-> > range for every IO. On encountering badblocks, the filesystem can
-> > generate a better notification/error message that points the user to=A0
-> > (file, offset) as opposed to the block driver, which can only provide
-> > (block-device, sector).
-> >
-> > 2. The block layer adds a notifier to badblock addition/removal
-> > operations, which the filesystem subscribes to, and uses to maintain its
-> > badblocks accounting. (This part is implemented as a proof of concept in
-> > the RFC mentioned above [1]).
-> =
-
-> I am not sure that any bad block notification during/after IO operation
-> is valuable for file system. Maybe, it could help if file system simply w=
-ill
-> know about bad block beforehand the operation of logical block allocation.
-> But what subsystem will discover bad blocks before any IO operations?
-> How file system will receive information or some bad block table?
-
-The driver populates its badblocks lists whenever an Address Range Scrub
-is started (also via ACPI methods). This is always done at
-initialization time, so that it can build an in-memory representation of
-the badblocks. Additionally, this can also be triggered manually. And
-finally badblocks can also get populated for new latent errors when a
-machine check exception occurs. All of these can trigger notification to
-the file system without actual user reads happening.
-
-> I am not convinced that suggested badblocks approach is really feasible.
-> Also I am not sure that file system should see the bad blocks at all.
-> Why hardware cannot manage this issue for us?
-
-Hardware does manage the actual badblocks issue for us in the sense that
-when it discovers a badblock it will do the remapping. But since this is
-on the memory bus, and has different error signatures than applications
-are used to, we want to make the error handling similar to the existing
-storage model.
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+DQotLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLQ0KU3ViamVjdDogW0xTRi9NTSBUT1BJQ10gQmFk
+YmxvY2tzIGNoZWNraW5nL3JlcHJlc2VudGF0aW9uIGluIGZpbGVzeXN0ZW1zDQpTZW50OiBKYW4g
+MTMsIDIwMTcgMTo0MCBQTQ0KRnJvbTogIlZlcm1hLCBWaXNoYWwgTCIgPHZpc2hhbC5sLnZlcm1h
+QGludGVsLmNvbT4NClRvOiBsc2YtcGNAbGlzdHMubGludXgtZm91bmRhdGlvbi5vcmcNCkNjOiBs
+aW51eC1udmRpbW1AbGlzdHMuMDEub3JnLCBsaW51eC1ibG9ja0B2Z2VyLmtlcm5lbC5vcmcsIGxp
+bnV4LWZzZGV2ZWxAdmdlci5rZXJuZWwub3JnDQoNCj4gVGhlIGN1cnJlbnQgaW1wbGVtZW50YXRp
+b24gb2YgYmFkYmxvY2tzLCB3aGVyZSB3ZSBjb25zdWx0IHRoZSBiYWRibG9ja3MNCj4gbGlzdCBm
+b3IgZXZlcnkgSU8gaW4gdGhlIGJsb2NrIGRyaXZlciB3b3JrcywgYW5kIGlzIGEgbGFzdCBvcHRp
+b24NCj4gZmFpbHNhZmUsIGJ1dCBmcm9tIGEgdXNlciBwZXJzcGVjdGl2ZSwgaXQgaXNuJ3QgdGhl
+IGVhc2llc3QgaW50ZXJmYWNlIHRvDQo+IHdvcmsgd2l0aC4NCg0KQXMgSSByZW1lbWJlciwgRkFU
+IGFuZCBIRlMrIHNwZWNpZmljYXRpb25zIGNvbnRhaW4gZGVzY3JpcHRpb24gb2YgYmFkIGJsb2Nr
+cw0KKHBoeXNpY2FsIHNlY3RvcnMpIHRhYmxlLiBJIGJlbGlldmUgdGhhdCB0aGlzIHRhYmxlIHdh
+cyB1c2VkIGZvciB0aGUgY2FzZSBvZg0KZmxvcHB5IG1lZGlhLiBCdXQsIGZpbmFsbHksIHRoaXMg
+dGFibGUgYmVjb21lcyB0byBiZSB0aGUgY29tcGxldGVseSBvYnNvbGV0ZQ0KYXJ0ZWZhY3QgYmVj
+YXVzZSBtb3N0bHkgc3RvcmFnZSBkZXZpY2VzIGFyZSByZWxpYWJseSBlbm91Z2guIFdoeSBkbyB5
+b3UgbmVlZA0KaW4gZXhwb3NpbmcgdGhlIGJhZCBibG9ja3Mgb24gdGhlIGZpbGUgc3lzdGVtIGxl
+dmVsPyAgRG8geW91IGV4cGVjdCB0aGF0IG5leHQNCmdlbmVyYXRpb24gb2YgTlZNIG1lbW9yeSB3
+aWxsIGJlIHNvIHVucmVsaWFibGUgdGhhdCBmaWxlIHN5c3RlbSBuZWVkcyB0byBtYW5hZ2UNCmJh
+ZCBibG9ja3M/IFdoYXQncyBhYm91dCBlcmFzdXJlIGNvZGluZyBzY2hlbWVzPyBEbyBmaWxlIHN5
+c3RlbSByZWFsbHkgbmVlZCB0byBzdWZmZXINCmZyb20gdGhlIGJhZCBibG9jayBpc3N1ZT8gDQoN
+ClVzdWFsbHksIHdlIGFyZSB1c2luZyBMQkFzIGFuZCBpdCBpcyB0aGUgcmVzcG9uc2liaWxpdHkg
+b2Ygc3RvcmFnZSBkZXZpY2UgdG8gbWFwDQphIGJhZCBwaHlzaWNhbCBibG9jay9wYWdlL3NlY3Rv
+ciBpbnRvIHZhbGlkIG9uZS4gRG8geW91IG1lYW4gdGhhdCB3ZSBoYXZlDQphY2Nlc3MgdG8gcGh5
+c2ljYWwgTlZNIG1lbW9yeSBhZGRyZXNzIGRpcmVjdGx5PyBCdXQgaXQgbG9va3MgbGlrZSB0aGF0
+IHdlIGNhbg0KaGF2ZSBhICJiYWQgYmxvY2siIGlzc3VlIGV2ZW4gd2Ugd2lsbCBhY2Nlc3MgZGF0
+YSBpbnRvIHBhZ2UgY2FjaGUncyBtZW1vcnkNCnBhZ2UgKGlmIHdlIHdpbGwgdXNlIE5WTSBtZW1v
+cnkgZm9yIHBhZ2UgY2FjaGUsIG9mIGNvdXJzZSkuIFNvLCB3aGF0IGRvIHlvdQ0KaW1wbHkgYnkg
+ImJhZCBibG9jayIgaXNzdWU/IA0KDQo+IA0KPiBBIHdoaWxlIGJhY2ssIERhdmUgQ2hpbm5lciBo
+YWQgc3VnZ2VzdGVkIGEgbW92ZSB0b3dhcmRzIHNtYXJ0ZXINCj4gaGFuZGxpbmcsIGFuZCBJIHBv
+c3RlZCBpbml0aWFsIFJGQyBwYXRjaGVzIFsxXSwgYnV0IHNpbmNlIHRoZW4gdGhlIHRvcGljDQo+
+IGhhc24ndCByZWFsbHkgbW92ZWQgZm9yd2FyZC4NCj4gDQo+IEknZCBsaWtlIHRvIHByb3Bvc2Ug
+YW5kIGhhdmUgYSBkaXNjdXNzaW9uIGFib3V0IHRoZSBmb2xsb3dpbmcgbmV3DQo+IGZ1bmN0aW9u
+YWxpdHk6DQo+IA0KPiAxLiBGaWxlc3lzdGVtcyBkZXZlbG9wIGEgbmF0aXZlIHJlcHJlc2VudGF0
+aW9uIG9mIGJhZGJsb2Nrcy4gRm9yDQo+IGV4YW1wbGUsIGluIHhmcywgdGhpcyB3b3VsZCAocHJl
+c3VtYWJseSkgYmUgbGlua2VkIHRvIHRoZSByZXZlcnNlDQo+IG1hcHBpbmcgYnRyZWUuIFRoZSBm
+aWxlc3lzdGVtIHJlcHJlc2VudGF0aW9uIGhhcyB0aGUgcG90ZW50aWFsIHRvIGJlwqANCj4gbW9y
+ZSBlZmZpY2llbnQgdGhhbiB0aGUgYmxvY2sgZHJpdmVyIGRvaW5nIHRoZSBjaGVjaywgYXMgdGhl
+IGZzIGNhbg0KPiBjaGVjayB0aGUgSU8gaGFwcGVuaW5nIG9uIGEgZmlsZSBhZ2FpbnN0IGp1c3Qg
+dGhhdCBmaWxlJ3MgcmFuZ2UuIA0KDQpXaGF0IGRvIHlvdSBtZWFuIGJ5ICJmaWxlIHN5c3RlbSBj
+YW4gY2hlY2sgdGhlIElPIGhhcHBlbmluZyBvbiBhIGZpbGUiPw0KRG8geW91IG1lYW4gcmVhZCBv
+ciB3cml0ZSBvcGVyYXRpb24/IFdoYXQncyBhYm91dCBtZXRhZGF0YT8NCg0KSWYgd2UgYXJlIHRh
+bGtpbmcgYWJvdXQgdGhlIGRpc2NvdmVyaW5nIGEgYmFkIGJsb2NrIG9uIHJlYWQgb3BlcmF0aW9u
+IHRoZW4NCnJhcmUgbW9kZXJuIGZpbGUgc3lzdGVtIGlzIGFibGUgdG8gc3Vydml2ZSBhcyBmb3Ig
+dGhlIGNhc2Ugb2YgbWV0YWRhdGEgYXMNCmZvciB0aGUgY2FzZSBvZiB1c2VyIGRhdGEuIExldCdz
+IGltYWdpbmUgdGhhdCB3ZSBoYXZlIHJlYWxseSBtYXR1cmUgZmlsZQ0Kc3lzdGVtIGRyaXZlciB0
+aGVuIHdoYXQgZG9lcyBpdCBtZWFuIHRvIGVuY291bnRlciBhIGJhZCBibG9jaz8gVGhlIGZhaWx1
+cmUNCnRvIHJlYWQgYSBsb2dpY2FsIGJsb2NrIG9mIHNvbWUgbWV0YWRhdGEgKGJhZCBibG9jaykg
+bWVhbnMgdGhhdCB3ZSBhcmUNCnVuYWJsZSB0byBleHRyYWN0IHNvbWUgcGFydCBvZiBhIG1ldGFk
+YXRhIHN0cnVjdHVyZS4gRnJvbSBmaWxlIHN5c3RlbQ0KZHJpdmVyIHBvaW50IG9mIHZpZXcsIGl0
+IGxvb2tzIGxpa2UgdGhhdCBvdXIgZmlsZSBzeXN0ZW0gaXMgY29ycnVwdGVkLCB3ZSBuZWVkDQp0
+byBzdG9wIHRoZSBmaWxlIHN5c3RlbSBvcGVyYXRpb25zIGFuZCwgZmluYWxseSwgdG8gY2hlY2sg
+YW5kIHJlY292ZXIgZmlsZQ0Kc3lzdGVtIHZvbHVtZSBieSBtZWFucyBvZiBmc2NrIHRvb2wuIElm
+IHdlIGZpbmQgYSBiYWQgYmxvY2sgZm9yIHNvbWUNCnVzZXIgZmlsZSB0aGVuLCBhZ2FpbiwgaXQg
+bG9va3MgbGlrZSBhbiBpc3N1ZS4gU29tZSBmaWxlIHN5c3RlbXMgc2ltcGx5DQpyZXR1cm4gInVu
+cmVjb3ZlcmVkIHJlYWQgZXJyb3IiLiBBbm90aGVyIG9uZSwgdGhlb3JldGljYWxseSwgaXMgYWJs
+ZQ0KdG8gc3Vydml2ZSBiZWNhdXNlIG9mIHNuYXBzaG90cywgZm9yIGV4YW1wbGUuIEJ1dCwgYW55
+d2F5LCBpdCB3aWxsIGxvb2sNCmxpa2UgYXMgUmVhZC1Pbmx5IG1vdW50IHN0YXRlIGFuZCB0aGUg
+dXNlciB3aWxsIG5lZWQgdG8gcmVzb2x2ZSBzdWNoDQp0cm91YmxlIGJ5IGhhbmRzLg0KDQpJZiB3
+ZSBhcmUgdGFsa2luZyBhYm91dCBkaXNjb3ZlcmluZyBhIGJhZCBibG9jayBkdXJpbmcgd3JpdGUg
+b3BlcmF0aW9uIHRoZW4sDQphZ2Fpbiwgd2UgYXJlIGluIHRyb3VibGUuIFVzdWFsbHksIHdlIGFy
+ZSB1c2luZyBhc3luY2hyb25vdXMgbW9kZWwNCm9mIHdyaXRlL2ZsdXNoIG9wZXJhdGlvbi4gV2Ug
+YXJlIHByZXBhcmluZyB0aGUgY29uc2lzdGVudCBzdGF0ZSBvZiBhbGwgb3VyDQptZXRhZGF0YSBz
+dHJ1Y3R1cmVzIGluIHRoZSBtZW1vcnksIGF0IGZpcnN0LiBUaGUgZmx1c2ggb3BlcmF0aW9ucyBm
+b3IgbWV0YWRhdGENCmFuZCB1c2VyIGRhdGEgY2FuIGJlIGRvbmUgaW4gZGlmZmVyZW50IHRpbWVz
+LiBBbmQgd2hhdCBzaG91bGQgYmUgZG9uZSBpZiB3ZQ0KZGlzY292ZXIgYmFkIGJsb2NrIGZvciBh
+bnkgcGllY2Ugb2YgbWV0YWRhdGEgb3IgdXNlciBkYXRhPyBTaW1wbGUgdHJhY2tpbmcgb2YNCmJh
+ZCBibG9ja3MgaXMgbm90IGVub3VnaCBhdCBhbGwuIExldCdzIGNvbnNpZGVyIHVzZXIgZGF0YSwg
+YXQgZmlyc3QuIElmIHdlIGNhbm5vdA0Kd3JpdGUgc29tZSBmaWxlJ3MgYmxvY2sgc3VjY2Vzc2Z1
+bGx5IHRoZW4gd2UgaGF2ZSB0d28gd2F5czogKDEpIGZvcmdldCBhYm91dA0KdGhpcyBwaWVjZSBv
+ZiBkYXRhOyAoMikgdHJ5IHRvIGNoYW5nZSB0aGUgYXNzb2NpYXRlZCBMQkEgZm9yIHRoaXMgcGll
+Y2Ugb2YgZGF0YS4NClRoZSBvcGVyYXRpb24gb2YgcmUtYWxsb2NhdGlvbiBMQkEgbnVtYmVyIGZv
+ciBkaXNjb3ZlcmVkIGJhZCBibG9jaw0KKHVzZXIgZGF0YSBjYXNlKSBzb3VuZHMgYXMgcmVhbCBw
+YWluLiBCZWNhdXNlIHlvdSBuZWVkIHRvIHJlYnVpbGQgdGhlIG1ldGFkYXRhDQp0aGF0IHRyYWNr
+IHRoZSBsb2NhdGlvbiBvZiB0aGlzIHBhcnQgb2YgZmlsZS4gQW5kIGl0IHNvdW5kcyBhcyBwcmFj
+dGljYWxseQ0KaW1wb3NzaWJsZSBvcGVyYXRpb24sIGZvciB0aGUgY2FzZSBvZiBMRlMgZmlsZSBz
+eXN0ZW0sIGZvciBleGFtcGxlLg0KSWYgd2UgaGF2ZSB0cm91YmxlIHdpdGggZmx1c2hpbmcgYW55
+IHBhcnQgb2YgbWV0YWRhdGEgdGhlbiBpdCBzb3VuZHMgYXMNCmNvbXBsZXRlIGRpc2FzdGVyIGZv
+ciBhbnkgZmlsZSBzeXN0ZW0uDQoNCkFyZSB5b3UgcmVhbGx5IHN1cmUgdGhhdCBmaWxlIHN5c3Rl
+bSBzaG91bGQgcHJvY2VzcyBiYWQgYmxvY2sgaXNzdWU/DQoNCj5JbiBjb250cmFzdCwgdG9kYXks
+IHRoZSBibG9jayBkcml2ZXIgY2hlY2tzIGFnYWluc3QgdGhlIHdob2xlIGJsb2NrIGRldmljZQ0K
+PiByYW5nZSBmb3IgZXZlcnkgSU8uIE9uIGVuY291bnRlcmluZyBiYWRibG9ja3MsIHRoZSBmaWxl
+c3lzdGVtIGNhbg0KPiBnZW5lcmF0ZSBhIGJldHRlciBub3RpZmljYXRpb24vZXJyb3IgbWVzc2Fn
+ZSB0aGF0IHBvaW50cyB0aGUgdXNlciB0b8KgDQo+IChmaWxlLCBvZmZzZXQpIGFzIG9wcG9zZWQg
+dG8gdGhlIGJsb2NrIGRyaXZlciwgd2hpY2ggY2FuIG9ubHkgcHJvdmlkZQ0KPiAoYmxvY2stZGV2
+aWNlLCBzZWN0b3IpLg0KPg0KPiAyLiBUaGUgYmxvY2sgbGF5ZXIgYWRkcyBhIG5vdGlmaWVyIHRv
+IGJhZGJsb2NrIGFkZGl0aW9uL3JlbW92YWwNCj4gb3BlcmF0aW9ucywgd2hpY2ggdGhlIGZpbGVz
+eXN0ZW0gc3Vic2NyaWJlcyB0bywgYW5kIHVzZXMgdG8gbWFpbnRhaW4gaXRzDQo+IGJhZGJsb2Nr
+cyBhY2NvdW50aW5nLiAoVGhpcyBwYXJ0IGlzIGltcGxlbWVudGVkIGFzIGEgcHJvb2Ygb2YgY29u
+Y2VwdCBpbg0KPiB0aGUgUkZDIG1lbnRpb25lZCBhYm92ZSBbMV0pLg0KDQpJIGFtIG5vdCBzdXJl
+IHRoYXQgYW55IGJhZCBibG9jayBub3RpZmljYXRpb24gZHVyaW5nL2FmdGVyIElPIG9wZXJhdGlv
+bg0KaXMgdmFsdWFibGUgZm9yIGZpbGUgc3lzdGVtLiBNYXliZSwgaXQgY291bGQgaGVscCBpZiBm
+aWxlIHN5c3RlbSBzaW1wbHkgd2lsbA0Ka25vdyBhYm91dCBiYWQgYmxvY2sgYmVmb3JlaGFuZCB0
+aGUgb3BlcmF0aW9uIG9mIGxvZ2ljYWwgYmxvY2sgYWxsb2NhdGlvbi4NCkJ1dCB3aGF0IHN1YnN5
+c3RlbSB3aWxsIGRpc2NvdmVyIGJhZCBibG9ja3MgYmVmb3JlIGFueSBJTyBvcGVyYXRpb25zPw0K
+SG93IGZpbGUgc3lzdGVtIHdpbGwgcmVjZWl2ZSBpbmZvcm1hdGlvbiBvciBzb21lIGJhZCBibG9j
+ayB0YWJsZT8NCkkgYW0gbm90IGNvbnZpbmNlZCB0aGF0IHN1Z2dlc3RlZCBiYWRibG9ja3MgYXBw
+cm9hY2ggaXMgcmVhbGx5IGZlYXNpYmxlLg0KQWxzbyBJIGFtIG5vdCBzdXJlIHRoYXQgZmlsZSBz
+eXN0ZW0gc2hvdWxkIHNlZSB0aGUgYmFkIGJsb2NrcyBhdCBhbGwuDQpXaHkgaGFyZHdhcmUgY2Fu
+bm90IG1hbmFnZSB0aGlzIGlzc3VlIGZvciB1cz8NCg0KVGhhbmtzLA0KVnlhY2hlc2xhdiBEdWJl
+eWtvLg0KIA0KV2VzdGVybiBEaWdpdGFsIENvcnBvcmF0aW9uIChhbmQgaXRzIHN1YnNpZGlhcmll
+cykgRS1tYWlsIENvbmZpZGVudGlhbGl0eSBOb3RpY2UgJiBEaXNjbGFpbWVyOgoKVGhpcyBlLW1h
+aWwgYW5kIGFueSBmaWxlcyB0cmFuc21pdHRlZCB3aXRoIGl0IG1heSBjb250YWluIGNvbmZpZGVu
+dGlhbCBvciBsZWdhbGx5IHByaXZpbGVnZWQgaW5mb3JtYXRpb24gb2YgV0RDIGFuZC9vciBpdHMg
+YWZmaWxpYXRlcywgYW5kIGFyZSBpbnRlbmRlZCBzb2xlbHkgZm9yIHRoZSB1c2Ugb2YgdGhlIGlu
+ZGl2aWR1YWwgb3IgZW50aXR5IHRvIHdoaWNoIHRoZXkgYXJlIGFkZHJlc3NlZC4gSWYgeW91IGFy
+ZSBub3QgdGhlIGludGVuZGVkIHJlY2lwaWVudCwgYW55IGRpc2Nsb3N1cmUsIGNvcHlpbmcsIGRp
+c3RyaWJ1dGlvbiBvciBhbnkgYWN0aW9uIHRha2VuIG9yIG9taXR0ZWQgdG8gYmUgdGFrZW4gaW4g
+cmVsaWFuY2Ugb24gaXQsIGlzIHByb2hpYml0ZWQuIElmIHlvdSBoYXZlIHJlY2VpdmVkIHRoaXMg
+ZS1tYWlsIGluIGVycm9yLCBwbGVhc2Ugbm90aWZ5IHRoZSBzZW5kZXIgaW1tZWRpYXRlbHkgYW5k
+IGRlbGV0ZSB0aGUgZS1tYWlsIGluIGl0cyBlbnRpcmV0eSBmcm9tIHlvdXIgc3lzdGVtLgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0g
+bWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5v
+cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
