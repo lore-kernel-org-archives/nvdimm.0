@@ -1,47 +1,37 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next 0112 tree breaks fs DAX
-Date: Mon, 16 Jan 2017 21:45:43 +1100
-Message-ID: <20170116214543.1388c2e9@canb.auug.org.au>
-References: <20170113101641.3jecr5qx2pgajc2k@XZHOUW.usersys.redhat.com>
-        <20170116092916.lltpfa24gzlj3hkr@XZHOUW.usersys.redhat.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [LSF/MM TOPIC] Future direction of DAX
+Date: Mon, 16 Jan 2017 15:00:41 -0500
+Message-ID: <x49wpduzseu.fsf@dhcp-25-115.bos.redhat.com>
+References: <20170114002008.GA25379@linux.intel.com>
+        <20170114082621.GC10498@birch.djwong.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20170116092916.lltpfa24gzlj3hkr@XZHOUW.usersys.redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Xiong Zhou <xzhou@redhat.com>
-Cc: linux-nvdimm@ml01.01.org, dave.jiang@intel.com, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <20170114082621.GC10498@birch.djwong.org> (Darrick J. Wong's
+        message of "Sat, 14 Jan 2017 00:26:21 -0800")
+Sender: linux-block-owner@vger.kernel.org
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, lsf-pc@lists.linux-foundation.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org, linux-block@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hi Xiong,
+"Darrick J. Wong" <darrick.wong@oracle.com> writes:
 
-Just cc'ing Andrew.
-
-On Mon, 16 Jan 2017 17:29:16 +0800 Xiong Zhou <xzhou@redhat.com> wrote:
+>> - Whenever you mount a filesystem with DAX, it spits out a message that says
+>>   "DAX enabled. Warning: EXPERIMENTAL, use at your own risk".  What criteria
+>>   needs to be met for DAX to no longer be considered experimental?
 >
-> On Fri, Jan 13, 2017 at 06:16:41PM +0800, Xiong Zhou wrote:
-> > Hi,
-> > 
-> > These cases "hang" when testing with -o dax mount option:
-> > xfstests generic/030 generic/34{0,4,5,6} generic/198
-> > (maybe more)
-> > 
-> > The test programme holetest or aiodio keep running for a
-> > long time. It's killable, but it seems never return.
-> > 
-> > With both ext4 and xfs as fs.
-> > 
-> > Without -o dax mount option, cases pass in seconds.
-> > 
-> > 0111 tree passed the tests.
-> > 
-> > sh-4.2# git log --oneline next-20170111..next-20170112 fs/dax.c
-> > 0c9a7909dd13 mm, dax: change pmd_fault() to take only vmf parameter
-> > f8dbc198d4ea mm, dax: make pmd_fault() and friends be the same as fault()  
-> 
-> 0112 tree with above 2 commits reverted pass the tests.
+> For XFS I'd like to get reflink working with it, for starters.
 
--- 
-Cheers,
-Stephen Rothwell
+What do you mean by this, exactly?  When Dave outlined the requirements
+for PMEM_IMMUTABLE, it was very clear that metadata updates would not be
+possible.  And would you really cosider this a barrier to marking dax
+fully supported?  I wouldn't.
+
+> We probably need a bunch more verification work to show that file IO
+> doesn't adopt any bad quirks having turned on the per-inode DAX flag.
+
+Can you be more specific?  We have ltp and xfstests.  If you have some
+mkfs/mount options that you think should be tested, speak up.  Beyond
+that, if it passes ./check -g auto and ltp, are we good?
+
+-Jeff
