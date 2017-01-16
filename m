@@ -1,55 +1,36 @@
-From: Viacheslav Dubeyko <slava@dubeyko.com>
-Subject: Re: [LSF/MM TOPIC] Future direction of DAX
-Date: Sun, 15 Jan 2017 16:19:51 -0800
-Message-ID: <1484525991.27533.31.camel@dubeyko.com>
-References: <20170114002008.GA25379@linux.intel.com>
-	 <20170114082621.GC10498@birch.djwong.org>
+From: Xiong Zhou <xzhou@redhat.com>
+Subject: Re: linux-next 0112 tree breaks fs DAX
+Date: Mon, 16 Jan 2017 17:29:16 +0800
+Message-ID: <20170116092916.lltpfa24gzlj3hkr@XZHOUW.usersys.redhat.com>
+References: <20170113101641.3jecr5qx2pgajc2k@XZHOUW.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20170114082621.GC10498@birch.djwong.org>
-Sender: owner-linux-mm@kvack.org
-To: "Darrick J. Wong" <darrick.wong@oracle.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, lsf-pc@lists.linux-foundation.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@ml01.01.org, linux-block@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170113101641.3jecr5qx2pgajc2k@XZHOUW.usersys.redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-nvdimm@ml01.01.org, dave.jiang@intel.com
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Sat, 2017-01-14 at 00:26 -0800, Darrick J. Wong wrote:
+On Fri, Jan 13, 2017 at 06:16:41PM +0800, Xiong Zhou wrote:
+> Hi,
+> 
+> These cases "hang" when testing with -o dax mount option:
+> xfstests generic/030 generic/34{0,4,5,6} generic/198
+> (maybe more)
+> 
+> The test programme holetest or aiodio keep running for a
+> long time. It's killable, but it seems never return.
+> 
+> With both ext4 and xfs as fs.
+> 
+> Without -o dax mount option, cases pass in seconds.
+> 
+> 0111 tree passed the tests.
+> 
+> sh-4.2# git log --oneline next-20170111..next-20170112 fs/dax.c
+> 0c9a7909dd13 mm, dax: change pmd_fault() to take only vmf parameter
+> f8dbc198d4ea mm, dax: make pmd_fault() and friends be the same as fault()
 
-<skipped>
-
-> Some day we'll start designing a pmem-native fs, I guess. :P
-
-There are research efforts in this direction already ([1]-[15]). The
-latest one is NOVA, as far as I can see. But, frankly speaking, I
-believe that we need in new hardware paradigm/architecture and new OS
-paradigm for the next generation of NVM memory. The DAX is
-simple palliative, temporary solution. But, from my point of view,
-pmem-native fs is also not good direction because, anyway, memory
-subsystem will be affected significantly. And, finally, evolution of
-memory subsystem will reveal something completely different that we can
-imagine right now.
-
-Thanks,
-Vyacheslav Dubeyko. 
-
-[1] http://pages.cs.wisc.edu/~swift/papers/eurosys14-aerie.pdf
-[2] https://www.researchgate.net/publication/282792714_A_User-Level_File_System_for_Fast_Storage_Devices
-[3] https://people.eecs.berkeley.edu/~dcoetzee/publications/Better%20IO%20Through%20Byte-Addressable,%20Persistent%20Memory.pdf
-[4] https://www.computer.org/csdl/proceedings/msst/2013/0217/00/06558440.pdf
-[5] https://users.soe.ucsc.edu/~scott/papers/MASCOTS04b.pdf
-[6] http://ieeexplore.ieee.org/document/4142472/
-[7] https://cseweb.ucsd.edu/~swanson/papers/FAST2016NOVA.pdf
-[8] http://cesg.tamu.edu/wp-content/uploads/2012/02/MSST13.pdf
-[9] http://ieeexplore.ieee.org/document/5487498/
-[10] https://pdfs.semanticscholar.org/544c/1ddf24b90c3dfba7b1934049911b869c99b4.pdf
-[11] http://pramfs.sourceforge.net/tech.html
-[12] https://pdfs.semanticscholar.org/2981/b5abcbe1023b9f3cd962b0be7ef8bd45acfd.pdf
-[13] http://ieeexplore.ieee.org/document/6232378/
-[14] http://ieeexplore.ieee.org/document/7304365/
-[15] http://ieeexplore.ieee.org/document/6272446/
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+0112 tree with above 2 commits reverted pass the tests.
