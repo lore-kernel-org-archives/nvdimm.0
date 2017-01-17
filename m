@@ -1,15 +1,20 @@
-From: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: linux-next 0112 tree breaks fs DAX
-Date: Tue, 17 Jan 2017 09:05:33 -0700
-Message-ID: <833df5ca-39a5-f402-fcd1-985217a55a85@intel.com>
-References: <20170113101641.3jecr5qx2pgajc2k@XZHOUW.usersys.redhat.com>
- <20170116092916.lltpfa24gzlj3hkr@XZHOUW.usersys.redhat.com>
- <20170116214543.1388c2e9@canb.auug.org.au>
+From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [LSF/MM TOPIC] Future direction of DAX
+Date: Tue, 17 Jan 2017 11:07:14 -0500
+Message-ID: <x49r3411xhp.fsf@segfault.boston.devel.redhat.com>
+References: <20170114002008.GA25379@linux.intel.com>
+ <20170114082621.GC10498@birch.djwong.org>
+ <x49wpduzseu.fsf@dhcp-25-115.bos.redhat.com>
+ <20170117015033.GD10498@birch.djwong.org>
+ <20170117075735.GB19654@infradead.org>
+ <x49mvep4tzw.fsf@segfault.boston.devel.redhat.com>
+ <20170117150638.GA3747@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170116214543.1388c2e9-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+In-Reply-To: <20170117150638.GA3747-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> (Christoph Hellwig's
+ message of "Tue, 17 Jan 2017 07:06:38 -0800")
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,38 +24,37 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, "Zwisler, Ross" <ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On 01/16/2017 03:45 AM, Stephen Rothwell wrote:
-> Hi Xiong,
-> 
-> Just cc'ing Andrew.
-> 
-> On Mon, 16 Jan 2017 17:29:16 +0800 Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->>
->> On Fri, Jan 13, 2017 at 06:16:41PM +0800, Xiong Zhou wrote:
->>> Hi,
->>>
->>> These cases "hang" when testing with -o dax mount option:
->>> xfstests generic/030 generic/34{0,4,5,6} generic/198
->>> (maybe more)
->>>
->>> The test programme holetest or aiodio keep running for a
->>> long time. It's killable, but it seems never return.
->>>
->>> With both ext4 and xfs as fs.
->>>
->>> Without -o dax mount option, cases pass in seconds.
->>>
->>> 0111 tree passed the tests.
->>>
->>> sh-4.2# git log --oneline next-20170111..next-20170112 fs/dax.c
->>> 0c9a7909dd13 mm, dax: change pmd_fault() to take only vmf parameter
->>> f8dbc198d4ea mm, dax: make pmd_fault() and friends be the same as fault()  
->>
->> 0112 tree with above 2 commits reverted pass the tests.
-> 
+Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> writes:
 
-Thanks. I will debug.
+> On Tue, Jan 17, 2017 at 09:54:27AM -0500, Jeff Moyer wrote:
+>> I spoke with Dave before the holidays, and he indicated that
+>> PMEM_IMMUTABLE would be an acceptable solution to allowing applications
+>> to flush data completely from userspace.  I know this subject has been
+>> beaten to death, but would you mind just summarizing your opinion on
+>> this one more time?  I'm guessing this will be something more easily
+>> hashed out at LSF, though.
+>
+> Come up with a prototype that doesn't suck and allows all fs features to
+> actually work.
+
+OK, I'll take this to mean that PMEM_IMMUTABLE is a non-starter.
+Perhaps synchronous page faults (or whatever you want to call it) would
+work, but...
+
+> And show an application that actually cares and shows benefits on
+> publicly available real hardware.
+
+This is the crux of the issue.
+
+> Until then go away and stop wasting everyones time.
+
+Fair enough.  It seems fairly likely that this sort of functionality
+would provide a big benefit.  But I agree we should have a real-world
+use case as proof.
+
+Thanks,
+Jeff
