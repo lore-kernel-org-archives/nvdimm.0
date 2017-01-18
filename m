@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 29FB081EA1
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 19:55:24 -0800 (PST)
-Subject: [PATCH 12/13] libnvdimm,
- pmem: disable dax flushing when pmem is fronting a volatile region
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Jan 2017 19:51:17 -0800
-Message-ID: <148488427774.37913.13035450429562766439.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148488421301.37913.12835362165895864897.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148488421301.37913.12835362165895864897.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0E7D781B9C
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Jan 2017 16:21:05 -0800 (PST)
+Subject: [PATCH v7 1/2] mm,
+ dax: make pmd_fault() and friends to be the same as fault()
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 17 Jan 2017 17:21:04 -0700
+Message-ID: <148469861071.195597.3619476895250028518.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,122 +21,329 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: akpm@linux-foundation.org
+Cc: sfr@canb.auug.org.au, jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-mm@kvack.org, tytso@mit.edu, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pmem driver attaches to both persistent and volatile memory ranges
-advertised by the ACPI NFIT. When the region is volatile it is redundant
-to spend cycles flushing caches at fsync(). Check if the hosting region
-is volatile and do not publish a ->flush() dax method if so.
+Instead of passing in multiple parameters in the pmd_fault() handler,
+a vmf can be passed in just like a fault() handler. This will simplify
+code and remove the need for the actual pmd fault handlers to allocate a
+vmf. Related functions are also modified to do the same.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- drivers/nvdimm/pmem.c        |   31 ++++++++++++++++++++++++++-----
- drivers/nvdimm/region_devs.c |    8 ++++++--
- 2 files changed, 32 insertions(+), 7 deletions(-)
+ drivers/dax/dax.c             |   16 +++++++---------
+ fs/dax.c                      |   28 +++++++++++-----------------
+ fs/ext4/file.c                |    9 ++++-----
+ fs/xfs/xfs_file.c             |   10 ++++------
+ include/linux/dax.h           |    7 +++----
+ include/linux/mm.h            |    3 +--
+ include/trace/events/fs_dax.h |   15 +++++++--------
+ mm/memory.c                   |    6 ++----
+ 8 files changed, 39 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 47392c4f22b9..53b7e4eb9d92 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -229,6 +229,17 @@ static const struct block_device_operations pmem_fops = {
- 	.dax_ops =		&pmem_dax_ops,
- };
+v7:
+Xiong found issue with xfs_tests stall when DAX option is turned out. It
+seems the issue has to do with dax_iomap_pmd_fault(). The pgoff needs
+to be linear_page_index(vma, vmf->address & PMD_MASK) in this funciton.
+However, the passed in address is linear_page_index(vma, vmf->address)
+and based on the PTE and not the PMD. The vmf->pgoff needs to be what was
+passed in when returned. Therefore we go back to having a local variable
+of pgoff in the dax_iomap_pmd_fault that is based on address & PMD_MASK. 
+
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index ed758b7..a8833cc 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -473,10 +473,9 @@ static int dax_dev_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ }
  
-+static const struct dax_operations vmem_dax_ops = {
-+	.direct_access = pmem_direct_access,
-+};
-+
-+static const struct block_device_operations vmem_fops = {
-+	.owner =		THIS_MODULE,
-+	.rw_page =		pmem_rw_page,
-+	.revalidate_disk =	nvdimm_revalidate_disk,
-+	.dax_ops =		&vmem_dax_ops,
-+};
-+
- static void pmem_release_queue(void *q)
+ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+-		struct vm_area_struct *vma, unsigned long addr, pmd_t *pmd,
+-		unsigned int flags)
++		struct vm_area_struct *vma, struct vm_fault *vmf)
  {
- 	blk_cleanup_queue(q);
-@@ -254,6 +265,7 @@ static int pmem_attach_disk(struct device *dev,
- 	struct resource pfn_res;
- 	struct request_queue *q;
- 	struct gendisk *disk;
-+	int has_flush;
- 	void *addr;
+-	unsigned long pmd_addr = addr & PMD_MASK;
++	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct device *dev = &dax_dev->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+@@ -508,23 +507,22 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
  
- 	/* while nsio_rw_bytes is active, parse a pfn info block if present */
-@@ -274,7 +286,8 @@ static int pmem_attach_disk(struct device *dev,
- 	dev_set_drvdata(dev, pmem);
- 	pmem->phys_addr = res->start;
- 	pmem->size = resource_size(res);
--	if (nvdimm_has_flush(nd_region) < 0)
-+	has_flush = nvdimm_has_flush(nd_region);
-+	if (has_flush == -ENXIO)
- 		dev_warn(dev, "unable to guarantee persistence of writes\n");
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
  
- 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
-@@ -316,7 +329,12 @@ static int pmem_attach_disk(struct device *dev,
- 		return PTR_ERR(addr);
- 	pmem->virt_addr = addr;
+-	return vmf_insert_pfn_pmd(vma, addr, pmd, pfn,
+-			flags & FAULT_FLAG_WRITE);
++	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
++			vmf->flags & FAULT_FLAG_WRITE);
+ }
  
--	blk_queue_write_cache(q, true, true);
-+	/*
-+	 * If the region is !volatile request that the upper layers send
-+	 * flush requests to trigger fencing and wpq flushing
-+	 */
-+	if (has_flush != -EINVAL)
-+		blk_queue_write_cache(q, true, true);
- 	blk_queue_make_request(q, pmem_make_request);
- 	blk_queue_physical_block_size(q, PAGE_SIZE);
- 	blk_queue_max_hw_sectors(q, UINT_MAX);
-@@ -329,9 +347,12 @@ static int pmem_attach_disk(struct device *dev,
- 	if (!disk)
- 		return -ENOMEM;
- 
--	disk->fops		= &pmem_fops;
--	disk->queue		= q;
--	disk->flags		= GENHD_FL_EXT_DEVT;
-+	if (has_flush == -EINVAL)
-+		disk->fops = &vmem_fops;
-+	else
-+		disk->fops = &pmem_fops;
-+	disk->queue = q;
-+	disk->flags = GENHD_FL_EXT_DEVT;
- 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
- 	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
- 			/ 512);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 6945df8a3367..ef32b938023e 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -953,15 +953,19 @@ EXPORT_SYMBOL_GPL(nvdimm_flush);
-  * nvdimm_has_flush - determine write flushing requirements
-  * @nd_region: blk or interleaved pmem region
-  *
-- * Returns 1 if writes require flushing
-- * Returns 0 if writes do not require flushing
-+ * Returns 1 if writes require wpq flushing
-+ * Returns 0 if writes do not require wpq flushing
-  * Returns -ENXIO if flushing capability can not be determined
-+ * Returns -EINVAL if neither wpq nor cache flushing is required
-  */
- int nvdimm_has_flush(struct nd_region *nd_region)
+-static int dax_dev_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+-		pmd_t *pmd, unsigned int flags)
++static int dax_dev_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
- 	struct nd_region_data *ndrd = dev_get_drvdata(&nd_region->dev);
- 	int i;
+ 	int rc;
+ 	struct file *filp = vma->vm_file;
+ 	struct dax_dev *dax_dev = filp->private_data;
  
-+	if (is_nd_volatile(&nd_region->dev))
-+		return -EINVAL;
-+
- 	/* no nvdimm or pmem api == flushing capability unknown */
- 	if (nd_region->ndr_mappings == 0
- 			|| !IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API))
+ 	dev_dbg(&dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
+-			current->comm, (flags & FAULT_FLAG_WRITE)
++			current->comm, (vmf->flags & FAULT_FLAG_WRITE)
+ 			? "write" : "read", vma->vm_start, vma->vm_end);
+ 
+ 	rcu_read_lock();
+-	rc = __dax_dev_pmd_fault(dax_dev, vma, addr, pmd, flags);
++	rc = __dax_dev_pmd_fault(dax_dev, vma, vmf);
+ 	rcu_read_unlock();
+ 
+ 	return rc;
+diff --git a/fs/dax.c b/fs/dax.c
+index 4671530..5bed549 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1332,18 +1332,17 @@ static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+-int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+-		pmd_t *pmd, unsigned int flags, struct iomap_ops *ops)
++int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
++		struct iomap_ops *ops)
+ {
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+-	unsigned long pmd_addr = address & PMD_MASK;
+-	bool write = flags & FAULT_FLAG_WRITE;
++	unsigned long pmd_addr = vmf->address & PMD_MASK;
++	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	unsigned int iomap_flags = (write ? IOMAP_WRITE : 0) | IOMAP_FAULT;
+ 	struct inode *inode = mapping->host;
+ 	int result = VM_FAULT_FALLBACK;
+ 	struct iomap iomap = { 0 };
+ 	pgoff_t max_pgoff, pgoff;
+-	struct vm_fault vmf;
+ 	void *entry;
+ 	loff_t pos;
+ 	int error;
+@@ -1356,7 +1355,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	pgoff = linear_page_index(vma, pmd_addr);
+ 	max_pgoff = (i_size_read(inode) - 1) >> PAGE_SHIFT;
+ 
+-	trace_dax_pmd_fault(inode, vma, address, flags, pgoff, max_pgoff, 0);
++	trace_dax_pmd_fault(inode, vma, vmf, max_pgoff, 0);
+ 
+ 	/* Fall back to PTEs if we're going to COW */
+ 	if (write && !(vma->vm_flags & VM_SHARED))
+@@ -1400,21 +1399,17 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	if (IS_ERR(entry))
+ 		goto finish_iomap;
+ 
+-	vmf.pgoff = pgoff;
+-	vmf.flags = flags;
+-	vmf.gfp_mask = mapping_gfp_mask(mapping) | __GFP_IO;
+-
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+-		result = dax_pmd_insert_mapping(vma, pmd, &vmf, address,
+-				&iomap, pos, write, &entry);
++		result = dax_pmd_insert_mapping(vma, vmf->pmd, vmf,
++				vmf->address, &iomap, pos, write, &entry);
+ 		break;
+ 	case IOMAP_UNWRITTEN:
+ 	case IOMAP_HOLE:
+ 		if (WARN_ON_ONCE(write))
+ 			goto unlock_entry;
+-		result = dax_pmd_load_hole(vma, pmd, &vmf, address, &iomap,
+-				&entry);
++		result = dax_pmd_load_hole(vma, vmf->pmd, vmf, vmf->address,
++				&iomap, &entry);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -1440,12 +1435,11 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 	}
+  fallback:
+ 	if (result == VM_FAULT_FALLBACK) {
+-		split_huge_pmd(vma, pmd, address);
++		split_huge_pmd(vma, vmf->pmd, vmf->address);
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 	}
+ out:
+-	trace_dax_pmd_fault_done(inode, vma, address, flags, pgoff, max_pgoff,
+-			result);
++	trace_dax_pmd_fault_done(inode, vma, vmf, max_pgoff, result);
+ 	return result;
+ }
+ EXPORT_SYMBOL_GPL(dax_iomap_pmd_fault);
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index d663d3d..10b64ba 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -275,21 +275,20 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	return result;
+ }
+ 
+-static int ext4_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+-						pmd_t *pmd, unsigned int flags)
++static int
++ext4_dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	int result;
+ 	struct inode *inode = file_inode(vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+-	bool write = flags & FAULT_FLAG_WRITE;
++	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 
+ 	if (write) {
+ 		sb_start_pagefault(sb);
+ 		file_update_time(vma->vm_file);
+ 	}
+ 	down_read(&EXT4_I(inode)->i_mmap_sem);
+-	result = dax_iomap_pmd_fault(vma, addr, pmd, flags,
+-				     &ext4_iomap_ops);
++	result = dax_iomap_pmd_fault(vma, vmf, &ext4_iomap_ops);
+ 	up_read(&EXT4_I(inode)->i_mmap_sem);
+ 	if (write)
+ 		sb_end_pagefault(sb);
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 0f77519..332e194 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1432,9 +1432,7 @@ xfs_filemap_fault(
+ STATIC int
+ xfs_filemap_pmd_fault(
+ 	struct vm_area_struct	*vma,
+-	unsigned long		addr,
+-	pmd_t			*pmd,
+-	unsigned int		flags)
++	struct vm_fault		*vmf)
+ {
+ 	struct inode		*inode = file_inode(vma->vm_file);
+ 	struct xfs_inode	*ip = XFS_I(inode);
+@@ -1445,16 +1443,16 @@ xfs_filemap_pmd_fault(
+ 
+ 	trace_xfs_filemap_pmd_fault(ip);
+ 
+-	if (flags & FAULT_FLAG_WRITE) {
++	if (vmf->flags & FAULT_FLAG_WRITE) {
+ 		sb_start_pagefault(inode->i_sb);
+ 		file_update_time(vma->vm_file);
+ 	}
+ 
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-	ret = dax_iomap_pmd_fault(vma, addr, pmd, flags, &xfs_iomap_ops);
++	ret = dax_iomap_pmd_fault(vma, vmf, &xfs_iomap_ops);
+ 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 
+-	if (flags & FAULT_FLAG_WRITE)
++	if (vmf->flags & FAULT_FLAG_WRITE)
+ 		sb_end_pagefault(inode->i_sb);
+ 
+ 	return ret;
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 24ad711..a829fee 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -71,16 +71,15 @@ static inline unsigned int dax_radix_order(void *entry)
+ 		return PMD_SHIFT - PAGE_SHIFT;
+ 	return 0;
+ }
+-int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+-		pmd_t *pmd, unsigned int flags, struct iomap_ops *ops);
++int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
++		struct iomap_ops *ops);
+ #else
+ static inline unsigned int dax_radix_order(void *entry)
+ {
+ 	return 0;
+ }
+ static inline int dax_iomap_pmd_fault(struct vm_area_struct *vma,
+-		unsigned long address, pmd_t *pmd, unsigned int flags,
+-		struct iomap_ops *ops)
++		struct vm_fault *vmf, struct iomap_ops *ops)
+ {
+ 	return VM_FAULT_FALLBACK;
+ }
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index aaf4c96..1c96128 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -347,8 +347,7 @@ struct vm_operations_struct {
+ 	void (*close)(struct vm_area_struct * area);
+ 	int (*mremap)(struct vm_area_struct * area);
+ 	int (*fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
+-	int (*pmd_fault)(struct vm_area_struct *, unsigned long address,
+-						pmd_t *, unsigned int flags);
++	int (*pmd_fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
+ 	void (*map_pages)(struct vm_fault *vmf,
+ 			pgoff_t start_pgoff, pgoff_t end_pgoff);
+ 
+diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+index c3b0aae..a98665b 100644
+--- a/include/trace/events/fs_dax.h
++++ b/include/trace/events/fs_dax.h
+@@ -8,9 +8,8 @@
+ 
+ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ 	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
+-		unsigned long address, unsigned int flags, pgoff_t pgoff,
+-		pgoff_t max_pgoff, int result),
+-	TP_ARGS(inode, vma, address, flags, pgoff, max_pgoff, result),
++		struct vm_fault *vmf, pgoff_t max_pgoff, int result),
++	TP_ARGS(inode, vma, vmf, max_pgoff, result),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_start)
+@@ -29,9 +28,9 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ 		__entry->vm_start = vma->vm_start;
+ 		__entry->vm_end = vma->vm_end;
+ 		__entry->vm_flags = vma->vm_flags;
+-		__entry->address = address;
+-		__entry->flags = flags;
+-		__entry->pgoff = pgoff;
++		__entry->address = vmf->address;
++		__entry->flags = vmf->flags;
++		__entry->pgoff = vmf->pgoff;
+ 		__entry->max_pgoff = max_pgoff;
+ 		__entry->result = result;
+ 	),
+@@ -54,9 +53,9 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ #define DEFINE_PMD_FAULT_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_fault_class, name, \
+ 	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
+-		unsigned long address, unsigned int flags, pgoff_t pgoff, \
++		struct vm_fault *vmf, \
+ 		pgoff_t max_pgoff, int result), \
+-	TP_ARGS(inode, vma, address, flags, pgoff, max_pgoff, result))
++	TP_ARGS(inode, vma, vmf, max_pgoff, result))
+ 
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault);
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault_done);
+diff --git a/mm/memory.c b/mm/memory.c
+index 03691d6..e648c62 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3475,8 +3475,7 @@ static int create_huge_pmd(struct vm_fault *vmf)
+ 	if (vma_is_anonymous(vma))
+ 		return do_huge_pmd_anonymous_page(vmf);
+ 	if (vma->vm_ops->pmd_fault)
+-		return vma->vm_ops->pmd_fault(vma, vmf->address, vmf->pmd,
+-				vmf->flags);
++		return vma->vm_ops->pmd_fault(vma, vmf);
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+@@ -3485,8 +3484,7 @@ static int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
+ 	if (vma_is_anonymous(vmf->vma))
+ 		return do_huge_pmd_wp_page(vmf, orig_pmd);
+ 	if (vmf->vma->vm_ops->pmd_fault)
+-		return vmf->vma->vm_ops->pmd_fault(vmf->vma, vmf->address,
+-						   vmf->pmd, vmf->flags);
++		return vmf->vma->vm_ops->pmd_fault(vmf->vma, vmf);
+ 
+ 	/* COW handled on pte level: split pmd */
+ 	VM_BUG_ON_VMA(vmf->vma->vm_flags & VM_SHARED, vmf->vma);
 
 _______________________________________________
 Linux-nvdimm mailing list
