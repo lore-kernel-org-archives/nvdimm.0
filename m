@@ -1,6 +1,6 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
 MIME-Version: 1.0
-In-Reply-To: <1BAF6FD6-1FDB-4F7C-A915-891F46E78B8C@dilger.ca>
+In-Reply-To: <20170117235150.GE4880@omniknight.lm.intel.com>
 References: <at1mp6pou4lenesjdgh22k4p.1484345585589@email.android.com>
  <b9rbflutjt10mb4ofherta8j.1484345610771@email.android.com>
  <SN2PR04MB2191756EABCB0E9DAA3B5328887B0@SN2PR04MB2191.namprd04.prod.outlook.com>
@@ -8,10 +8,12 @@ References: <at1mp6pou4lenesjdgh22k4p.1484345585589@email.android.com>
  <20170117063355.GL14033@birch.djwong.org>
  <20170117213549.GB4880@omniknight.lm.intel.com>
  <CAOvWMLYMR-VvAVNuVjXPC-woxY6afQX5-hMC=Vj2p=3AGj9tyA@mail.gmail.com>
- <1BAF6FD6-1FDB-4F7C-A915-891F46E78B8C@dilger.ca>
+ <20170117223705.GD4880@omniknight.lm.intel.com>
+ <CAOvWMLYcP9PN6LT51gwJvmyCTfRRrVeDTrjN-8_zTKhD+UmDiw@mail.gmail.com>
+ <20170117235150.GE4880@omniknight.lm.intel.com>
 From: Andiry Xu <andiry@gmail.com>
-Date: Tue, 17 Jan 2017 18:01:14 -0800
-Message-ID: <CAOvWMLZA092iUCnFxCxPZmDNX-hH08xbSnweBhK-E-m9Ko0yuw@mail.gmail.com>
+Date: Tue, 17 Jan 2017 17:58:43 -0800
+Message-ID: <CAOvWMLZCt39EDg-1uppVVUeRG40JvOo9sKLY2XMuynZdnc0W9w@mail.gmail.com>
 Subject: Re: [LSF/MM TOPIC] Badblocks checking/representation in filesystems
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,127 +26,90 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andreas Dilger <adilger@dilger.ca>
+To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Slava Dubeyko <Vyacheslav.Dubeyko@wdc.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Viacheslav Dubeyko <slava@dubeyko.com>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, "lsf-pc@lists.linux-foundation.org" <lsf-pc@lists.linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Jan 17, 2017 at 4:16 PM, Andreas Dilger <adilger@dilger.ca> wrote:
-> On Jan 17, 2017, at 3:15 PM, Andiry Xu <andiry@gmail.com> wrote:
->> On Tue, Jan 17, 2017 at 1:35 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
->>> On 01/16, Darrick J. Wong wrote:
->>>> On Fri, Jan 13, 2017 at 05:49:10PM -0700, Vishal Verma wrote:
->>>>> On 01/14, Slava Dubeyko wrote:
->>>>>>
->>>>>> ---- Original Message ----
->>>>>> Subject: [LSF/MM TOPIC] Badblocks checking/representation in filesystems
->>>>>> Sent: Jan 13, 2017 1:40 PM
->>>>>> From: "Verma, Vishal L" <vishal.l.verma@intel.com>
->>>>>> To: lsf-pc@lists.linux-foundation.org
->>>>>> Cc: linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org
->>>>>>
->>>>>>> The current implementation of badblocks, where we consult the
->>>>>>> badblocks list for every IO in the block driver works, and is a
->>>>>>> last option failsafe, but from a user perspective, it isn't the
->>>>>>> easiest interface to work with.
->>>>>>
->>>>>> As I remember, FAT and HFS+ specifications contain description of bad blocks
->>>>>> (physical sectors) table. I believe that this table was used for the case of
->>>>>> floppy media. But, finally, this table becomes to be the completely obsolete
->>>>>> artefact because mostly storage devices are reliably enough. Why do you need
->>>>
->>>> ext4 has a badblocks inode to own all the bad spots on disk, but ISTR it
->>>> doesn't support(??) extents or 64-bit filesystems, and might just be a
->>>> vestigial organ at this point.  XFS doesn't have anything to track bad
->>>> blocks currently....
->>>>
->>>>>> in exposing the bad blocks on the file system level?  Do you expect that next
->>>>>> generation of NVM memory will be so unreliable that file system needs to manage
->>>>>> bad blocks? What's about erasure coding schemes? Do file system really need to suffer
->>>>>> from the bad block issue?
->>>>>>
->>>>>> Usually, we are using LBAs and it is the responsibility of storage device to map
->>>>>> a bad physical block/page/sector into valid one. Do you mean that we have
->>>>>> access to physical NVM memory address directly? But it looks like that we can
->>>>>> have a "bad block" issue even we will access data into page cache's memory
->>>>>> page (if we will use NVM memory for page cache, of course). So, what do you
->>>>>> imply by "bad block" issue?
->>>>>
->>>>> We don't have direct physical access to the device's address space, in
->>>>> the sense the device is still free to perform remapping of chunks of NVM
->>>>> underneath us. The problem is that when a block or address range (as
->>>>> small as a cache line) goes bad, the device maintains a poison bit for
->>>>> every affected cache line. Behind the scenes, it may have already
->>>>> remapped the range, but the cache line poison has to be kept so that
->>>>> there is a notification to the user/owner of the data that something has
->>>>> been lost. Since NVM is byte addressable memory sitting on the memory
->>>>> bus, such a poisoned cache line results in memory errors and SIGBUSes.
->>>>> Compared to tradational storage where an app will get nice and friendly
->>>>> (relatively speaking..) -EIOs. The whole badblocks implementation was
->>>>> done so that the driver can intercept IO (i.e. reads) to _known_ bad
->>>>> locations, and short-circuit them with an EIO. If the driver doesn't
->>>>> catch these, the reads will turn into a memory bus access, and the
->>>>> poison will cause a SIGBUS.
->>>>
->>>> "driver" ... you mean XFS?  Or do you mean the thing that makes pmem
->>>> look kind of like a traditional block device? :)
->>>
->>> Yes, the thing that makes pmem look like a block device :) --
->>> drivers/nvdimm/pmem.c
->>>
->>>>
->>>>> This effort is to try and make this badblock checking smarter - and try
->>>>> and reduce the penalty on every IO to a smaller range, which only the
->>>>> filesystem can do.
->>>>
->>>> Though... now that XFS merged the reverse mapping support, I've been
->>>> wondering if there'll be a resubmission of the device errors callback?
->>>> It still would be useful to be able to inform the user that part of
->>>> their fs has gone bad, or, better yet, if the buffer is still in memory
->>>> someplace else, just write it back out.
->>>>
->>>> Or I suppose if we had some kind of raid1 set up between memories we
->>>> could read one of the other copies and rewrite it into the failing
->>>> region immediately.
->>>
->>> Yes, that is kind of what I was hoping to accomplish via this
->>> discussion. How much would filesystems want to be involved in this sort
->>> of badblocks handling, if at all. I can refresh my patches that provide
->>> the fs notification, but that's the easy bit, and a starting point.
->>>
->>
->> I have some questions. Why moving badblock handling to file system
->> level avoid the checking phase? In file system level for each I/O I
->> still have to check the badblock list, right? Do you mean during mount
->> it can go through the pmem device and locates all the data structures
->> mangled by badblocks and handle them accordingly, so that during
->> normal running the badblocks will never be accessed? Or, if there is
->> replicataion/snapshot support, use a copy to recover the badblocks?
+On Tue, Jan 17, 2017 at 3:51 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> On 01/17, Andiry Xu wrote:
 >
-> With ext4 badblocks, the main outcome is that the bad blocks would be
-> pemanently marked in the allocation bitmap as being used, and they would
-> never be allocated to a file, so they should never be accessed unless
-> doing a full device scan (which ext4 and e2fsck never do).  That would
-> avoid the need to check every I/O against the bad blocks list, if the
-> driver knows that the filesystem will handle this.
+> <snip>
+>
+>> >>
+>> >> The pmem_do_bvec() read logic is like this:
+>> >>
+>> >> pmem_do_bvec()
+>> >>     if (is_bad_pmem())
+>> >>         return -EIO;
+>> >>     else
+>> >>         memcpy_from_pmem();
+>> >>
+>> >> Note memcpy_from_pmem() is calling memcpy_mcsafe(). Does this imply
+>> >> that even if a block is not in the badblock list, it still can be bad
+>> >> and causes MCE? Does the badblock list get changed during file system
+>> >> running? If that is the case, should the file system get a
+>> >> notification when it gets changed? If a block is good when I first
+>> >> read it, can I still trust it to be good for the second access?
+>> >
+>> > Yes, if a block is not in the badblocks list, it can still cause an
+>> > MCE. This is the latent error case I described above. For a simple read()
+>> > via the pmem driver, this will get handled by memcpy_mcsafe. For mmap,
+>> > an MCE is inevitable.
+>> >
+>> > Yes the badblocks list may change while a filesystem is running. The RFC
+>> > patches[1] I linked to add a notification for the filesystem when this
+>> > happens.
+>> >
+>>
+>> This is really bad and it makes file system implementation much more
+>> complicated. And badblock notification does not help very much,
+>> because any block can be bad potentially, no matter it is in badblock
+>> list or not. And file system has to perform checking for every read,
+>> using memcpy_mcsafe. This is disaster for file system like NOVA, which
+>> uses pointer de-reference to access data structures on pmem. Now if I
+>> want to read a field in an inode on pmem, I have to copy it to DRAM
+>> first and make sure memcpy_mcsafe() does not report anything wrong.
+>
+> You have a good point, and I don't know if I have an answer for this..
+> Assuming a system with MCE recovery, maybe NOVA can add a mce handler
+> similar to nfit_handle_mce(), and handle errors as they happen, but I'm
+> being very hand-wavey here and don't know how much/how well that might
+> work..
+>
+>>
+>> > No, if the media, for some reason, 'dvelops' a bad cell, a second
+>> > consecutive read does have a chance of being bad. Once a location has
+>> > been marked as bad, it will stay bad till the ACPI clear error 'DSM' has
+>> > been called to mark it as clean.
+>> >
+>>
+>> I wonder what happens to write in this case? If a block is bad but not
+>> reported in badblock list. Now I write to it without reading first. Do
+>> I clear the poison with the write? Or still require a ACPI DSM?
+>
+> With writes, my understanding is there is still a possibility that an
+> internal read-modify-write can happen, and cause a MCE (this is the same
+> as writing to a bad DRAM cell, which can also cause an MCE). You can't
+> really use the ACPI DSM preemptively because you don't know whether the
+> location was bad. The error flow will be something like write causes the
+> MCE, a badblock gets added (either through the mce handler or after the
+> next reboot), and the recovery path is now the same as a regular badblock.
 >
 
-Thank you for explanation. However this only works for free blocks,
-right? What about allocated blocks, like file data and metadata?
+This is different from my understanding. Right now write_pmem() in
+pmem_do_bvec() does not use memcpy_mcsafe(). If the block is bad it
+clears poison and writes to pmem again. Seems to me writing to bad
+blocks does not cause MCE. Do we need memcpy_mcsafe for pmem stores?
 
 Thanks,
 Andiry
 
-> The one caveat is that ext4 only allows 32-bit block numbers in the
-> badblocks list, since this feature hasn't been used in a long time.
-> This is good for up to 16TB filesystems, but if there was a demand to
-> use this feature again it would be possible allow 64-bit block numbers.
->
-> Cheers, Andreas
->
->
->
->
->
+>>
+>> > [1]: http://www.linux.sgi.com/archives/xfs/2016-06/msg00299.html
+>> >
+>>
+>> Thank you for the patchset. I will look into it.
+>>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
