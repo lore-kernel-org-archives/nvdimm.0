@@ -1,18 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2001:1868:205::9])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from NAM01-SN1-obe.outbound.protection.outlook.com
+ (mail-sn1nam01on0705.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe40::705])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 86C7F81E0A
- for <linux-nvdimm@lists.01.org>; Tue, 17 Jan 2017 21:25:35 -0800 (PST)
-Date: Tue, 17 Jan 2017 21:25:33 -0800
-From: willy@bombadil.infradead.org
-Subject: Re: [LSF/MM TOPIC] Future direction of DAX
-Message-ID: <20170118052533.GA18349@bombadil.infradead.org>
+ by ml01.01.org (Postfix) with ESMTPS id 3ACBD81B9C
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Jan 2017 16:03:10 -0800 (PST)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [Lsf-pc] [LSF/MM TOPIC] Future direction of DAX
+Date: Wed, 18 Jan 2017 00:03:08 +0000
+Message-ID: <1484701124.2029.9.camel@hpe.com>
 References: <20170114002008.GA25379@linux.intel.com>
+ <20170117155910.GU2517@quack2.suse.cz>
+In-Reply-To: <20170117155910.GU2517@quack2.suse.cz>
+Content-Language: en-US
+Content-ID: <75D4FFDF1F75974CBD1510C98C246452@NAMPRD84.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20170114002008.GA25379@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,36 +23,53 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, lsf-pc@lists.linux-foundation.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, linux-mm@kvack.org
+To: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "jack@suse.cz" <jack@suse.cz>
+Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "lsf-pc@lists.linux-foundation.org" <lsf-pc@lists.linux-foundation.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jan 13, 2017 at 05:20:08PM -0700, Ross Zwisler wrote:
-> We still have a lot of work to do, though, and I'd like to propose a discussion
-> around what features people would like to see enabled in the coming year as
-> well as what what use cases their customers have that we might not be aware of.
-
-+1 to the discussion
-
-> - Jan suggested [2] that we could use the radix tree as a cache to service DAX
->   faults without needing to call into the filesystem.  Are there any issues
->   with this approach, and should we move forward with it as an optimization?
-
-Ahem.  I believe I proposed this at last year's LSFMM.  And I sent
-patches to start that work.  And Dan blocked it.  So I'm not terribly
-amused to see somebody else given credit for the idea.
-
-It's not just an optimisation.  It's also essential for supporting
-filesystems which don't have block devices.  I'm aware of at least two
-customer demands for this in different domains.
-
-1. Embedded uses with NOR flash
-2. Cloud/virt uses with multiple VMs on a single piece of hardware
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlLCAyMDE3LTAxLTE3IGF0IDE2OjU5ICswMTAwLCBKYW4gS2FyYSB3cm90ZToNCj4gT24g
+RnJpIDEzLTAxLTE3IDE3OjIwOjA4LCBSb3NzIFp3aXNsZXIgd3JvdGU6DQogOg0KPiA+IC0gSWYg
+SSByZWNhbGwgY29ycmVjdGx5LCBhdCBvbmUgcG9pbnQgRGF2ZSBDaGlubmVyIHN1Z2dlc3RlZCB0
+aGF0DQo+ID4gd2UgY2hhbmdlIC0gSWYgSSByZWNhbGwgY29ycmVjdGx5LCBhdCBvbmUgcG9pbnQg
+RGF2ZSBDaGlubmVyDQo+ID4gc3VnZ2VzdGVkIHRoYXQgd2UgY2hhbmdlIMKgIERBWCBzbyB0aGF0
+IEkvTyB3b3VsZCB1c2UgY2FjaGVkIHN0b3Jlcw0KPiA+IGluc3RlYWQgb2YgdGhlIG5vbi10ZW1w
+b3JhbCBzdG9yZXMgwqAgdGhhdCBpdCBjdXJyZW50bHkgdXNlcy7CoMKgV2UNCj4gPiB3b3VsZCB0
+aGVuIHRyYWNrIHBhZ2VzIHRoYXQgd2VyZSB3cml0dGVuIHRvIGJ5IERBWCBpbiB0aGUgcmFkaXgN
+Cj4gPiB0cmVlIHNvIHRoYXQgdGhleSB3b3VsZCBiZSBmbHVzaGVkIGxhdGVyIGR1cmluZyDCoA0K
+PiA+IGZzeW5jL21zeW5jLsKgwqBEb2VzIHRoaXMgc291bmQgbGlrZSBhIHdpbj/CoMKgQWxzbywg
+YXNzdW1pbmcgdGhhdCB3ZQ0KPiA+IGNhbiBmaW5kIGEgc29sdXRpb24gZm9yIHBsYXRmb3JtcyB3
+aGVyZSB0aGUgcHJvY2Vzc29yIGNhY2hlIGlzIHBhcnQNCj4gPiBvZiB0aGUgQURSIHNhZmUgem9u
+ZSAoYWJvdmUgdG9waWMpIHRoaXMgd291bGQgYmUgYSBjbGVhcg0KPiA+IGltcHJvdmVtZW50LCBt
+b3ZpbmcgdXMgZnJvbSB1c2luZyBub24tdGVtcG9yYWwgc3RvcmVzIHRvIGZhc3Rlcg0KPiA+IGNh
+Y2hlZCBzdG9yZXMgd2l0aCBubyBkb3duc2lkZS4NCj4gDQo+IEkgZ3Vlc3MgdGhpcyBuZWVkcyBt
+ZWFzdXJlbWVudHMuIEJ1dCBpdCBpcyB3b3J0aCBhIHRyeS4NCg0KQnJhaW4gQm95bHN0b24gZGlk
+IHNvbWUgbWVhc3VyZW1lbnQgYmVmb3JlLg0KaHR0cDovL29zcy5zZ2kuY29tL2FyY2hpdmVzL3hm
+cy8yMDE2LTA4L21zZzAwMjM5Lmh0bWwNCg0KSSB1cGRhdGVkIGhpcyB0ZXN0IHByb2dyYW0gdG8g
+c2tpcCBwbWVtX3BlcnNpc3QoKSBmb3IgdGhlIGNhY2hlZCBjb3B5DQpjYXNlLg0KDQrCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBkc3QgPSBkc3RiYXNlOw0K
+KyAjaWYgMA0KwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+Lyogc2VlIG5vdGUgYWJvdmUgKi8NCsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoGlmIChtb2RlID09ICdjJykNCsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBwbWVtX3BlcnNpc3QoZHN0LCBk
+c3Rzeik7DQorICNlbmRpZg0KwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB9DQoNCkhl
+cmUgYXJlIHNhbXBsZSBydW5zOg0KDQokIG51bWFjdGwgLU4wIHRpbWUgLXAgLi9tZW1jcHlwZXJm
+IGMgL21udC9wbWVtMC9maWxlIDEwMDAwMDANCklORk86IGRzdCAweDdmMWQwMDAwMDAwMCBzcmMg
+MHg2MDEyMDAgZHN0c3ogMjc1NjUwOTY5NiBjcHlzeiAxNjM4NA0KcmVhbCAzLjI4DQp1c2VyIDMu
+MjcNCnN5cyAwLjAwDQoNCiQgbnVtYWN0bCAtTjAgdGltZSAtcCAuL21lbWNweXBlcmYgbiAvbW50
+L3BtZW0wL2ZpbGUgMTAwMDAwMA0KSU5GTzogZHN0IDB4N2Y2MDgwMDAwMDAwIHNyYyAweDYwMTIw
+MCBkc3RzeiAyNzU2NTA5Njk2IGNweXN6IDE2Mzg0DQpyZWFsIDEuMDENCnVzZXIgMS4wMQ0Kc3lz
+IDAuMDANCg0KJCBudW1hY3RsIC1OMSB0aW1lIC1wIC4vbWVtY3B5cGVyZiBjIC9tbnQvcG1lbTAv
+ZmlsZSAxMDAwMDAwDQpJTkZPOiBkc3QgMHg3ZmU5MDAwMDAwMDAgc3JjIDB4NjAxMjAwIGRzdHN6
+IDI3NTY1MDk2OTYgY3B5c3ogMTYzODQNCnJlYWwgNC4wNg0KdXNlciA0LjA2DQpzeXMgMC4wMA0K
+DQokIG51bWFjdGwgLU4xIHRpbWUgLXAgLi9tZW1jcHlwZXJmIG4gL21udC9wbWVtMC9maWxlIDEw
+MDAwMDANCklORk86IGRzdCAweDdmNzY0MDAwMDAwMCBzcmMgMHg2MDEyMDAgZHN0c3ogMjc1NjUw
+OTY5NiBjcHlzeiAxNjM4NA0KcmVhbCAxLjI3DQp1c2VyIDEuMjcNCnN5cyAwLjAwDQoNCkluIHRo
+aXMgc2ltcGxlIHRlc3QsIHVzaW5nIG5vbi10ZW1wb3JhbCBjb3B5IGlzIHN0aWxsIGZhc3RlciB0
+aGFuIHVzaW5nDQpjYWNoZWQgY29weS4NCg0KVGhhbmtzLA0KLVRvc2hpDQoNCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
+IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
