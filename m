@@ -1,7 +1,7 @@
 From: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 4/4] generic: test mmap dio through DAX and non-DAX
-Date: Wed, 18 Jan 2017 11:07:06 +0800
-Message-ID: <1484708826-23529-5-git-send-email-xzhou@redhat.com>
+Subject: [PATCH 3/4] xfs: test per-inode DAX flag by IO
+Date: Wed, 18 Jan 2017 11:07:05 +0800
+Message-ID: <1484708826-23529-4-git-send-email-xzhou@redhat.com>
 References: <1484708826-23529-1-git-send-email-xzhou@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,25 +21,28 @@ To: fstests-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
+We do mmap and O_DIRECT read/write, through files
+with and without DAX flag.
+
 Signed-off-by: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- tests/generic/405     | 100 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/generic/405.out |   2 +
- tests/generic/group   |   1 +
- 3 files changed, 103 insertions(+)
- create mode 100755 tests/generic/405
- create mode 100644 tests/generic/405.out
+ tests/xfs/138     | 105 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/xfs/138.out |   2 ++
+ tests/xfs/group   |   1 +
+ 3 files changed, 108 insertions(+)
+ create mode 100755 tests/xfs/138
+ create mode 100644 tests/xfs/138.out
 
-diff --git a/tests/generic/405 b/tests/generic/405
+diff --git a/tests/xfs/138 b/tests/xfs/138
 new file mode 100755
-index 0000000..3717937
+index 0000000..4b965b3
 --- /dev/null
-+++ b/tests/generic/405
-@@ -0,0 +1,100 @@
++++ b/tests/xfs/138
+@@ -0,0 +1,105 @@
 +#! /bin/bash
-+# FS QA Test 405
++# FS QA Test 138
 +#
-+# mmap dio between DAX and non-DAX mountpoints.
++# Test per-inode DAX flag by mmap direct IO.
 +#
 +#-----------------------------------------------------------------------
 +# Copyright (c) 2017 Red Hat Inc.  All Rights Reserved.
@@ -81,29 +84,32 @@ index 0000000..3717937
 +# remove previous $seqres.full before test
 +rm -f $seqres.full
 +
-+# real QA test starts here
-+
-+# Modify as appropriate.
-+_supported_fs xfs ext4
++_supported_fs xfs
 +_supported_os Linux
-+_require_test
 +_require_scratch_dax
 +_require_test_program "feature"
++_require_xfs_io_command "chattr" "+/-x"
 +
 +# $1 mmap read/write size
 +_dax_flag_mmap_dio()
 +{
 +	# both dax
++	$XFS_IO_PROG -c "chattr +x" $SCRATCH_MNT/tf_s
++	$XFS_IO_PROG -c "chattr +x" $SCRATCH_MNT/tf_d
 +	src/t_mmap_dio $SCRATCH_MNT/tf_s $SCRATCH_MNT/tf_d $1
 +
 +	# from non dax to dax
-+	src/t_mmap_dio $TEST_DIR/tf_s $SCRATCH_MNT/tf_d $1
++	$XFS_IO_PROG -c "chattr -x" $SCRATCH_MNT/tf_s
++	src/t_mmap_dio $SCRATCH_MNT/tf_s $SCRATCH_MNT/tf_d $1
 +
 +	# from dax to non dax
-+	src/t_mmap_dio $SCRATCH_MNT/tf_s $TEST_DIR/tf_d $1
++	$XFS_IO_PROG -c "chattr +x" $SCRATCH_MNT/tf_s
++	$XFS_IO_PROG -c "chattr -x" $SCRATCH_MNT/tf_d
++	src/t_mmap_dio $SCRATCH_MNT/tf_s $SCRATCH_MNT/tf_d $1
 +
 +	# both non dax
-+	src/t_mmap_dio $TEST_DIR/tf_s $TEST_DIR/tf_d $1
++	$XFS_IO_PROG -c "chattr -x" $SCRATCH_MNT/tf_s
++	src/t_mmap_dio $SCRATCH_MNT/tf_s $SCRATCH_MNT/tf_d $1
 +}
 +
 +_do_tests()
@@ -119,39 +125,44 @@ index 0000000..3717937
 +
 +_scratch_mkfs >> $seqres.full 2>&1 || _fail "mkfs failed"
 +
-+# SCRATCH_DEV mount with dax option
++# mount with dax option
 +_scratch_mount "-o dax" >> $seqres.full 2>&1 || \
 +	_fail "mount -o dax failed"
 +
 +dd if=/dev/zero of=$SCRATCH_MNT/tf_s bs=4k count=256k > /dev/null 2>&1
 +dd if=/dev/zero of=$SCRATCH_MNT/tf_d bs=4k count=256k > /dev/null 2>&1
-+dd if=/dev/zero of=$TEST_DIR/tf_s bs=4k count=256k > /dev/null 2>&1
-+dd if=/dev/zero of=$TEST_DIR/tf_d bs=4k count=256k > /dev/null 2>&1
 +
 +_do_tests
-+_test_unmount
-+_scratch_unmount
++_scratch_unmount >> $seqres.full 2>&1 || _fail "umount failed"
++
++# mount again wo/ dax option
++_scratch_mount >> $seqres.full 2>&1 || _fail "mount failed"
++_do_tests
++_scratch_unmount >> $seqres.full 2>&1
 +
 +# success, all done
 +echo "Silence is golden"
 +status=0
 +exit
-diff --git a/tests/generic/405.out b/tests/generic/405.out
+diff --git a/tests/xfs/138.out b/tests/xfs/138.out
 new file mode 100644
-index 0000000..bae761d
+index 0000000..614ba1a
 --- /dev/null
-+++ b/tests/generic/405.out
++++ b/tests/xfs/138.out
 @@ -0,0 +1,2 @@
-+QA output created by 405
++QA output created by 138
 +Silence is golden
-diff --git a/tests/generic/group b/tests/generic/group
-index 6fc9c3d..a1be466 100644
---- a/tests/generic/group
-+++ b/tests/generic/group
-@@ -407,3 +407,4 @@
- 402 auto quick rw
- 403 auto quick attr
- 404 auto quick insert
-+405 auto quick
+diff --git a/tests/xfs/group b/tests/xfs/group
+index 3c5884c..4b406c0 100644
+--- a/tests/xfs/group
++++ b/tests/xfs/group
+@@ -135,6 +135,7 @@
+ 135 auto logprint quick v2log
+ 136 attr2
+ 137 auto metadata v2log
++138 auto attr quick
+ 139 auto quick clone
+ 140 auto clone
+ 141 auto log metadata
 -- 
 1.8.3.1
