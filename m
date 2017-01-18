@@ -1,7 +1,7 @@
 From: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/4] common/rc: add _require_scratch_dax
-Date: Wed, 18 Jan 2017 11:07:03 +0800
-Message-ID: <1484708826-23529-2-git-send-email-xzhou@redhat.com>
+Subject: [PATCH 2/4] src/t_mmap_dio: add mmap dio test
+Date: Wed, 18 Jan 2017 11:07:04 +0800
+Message-ID: <1484708826-23529-3-git-send-email-xzhou@redhat.com>
 References: <1484708826-23529-1-git-send-email-xzhou@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,33 +21,128 @@ To: fstests-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-To make sure we can test DAX feature on SCRATCH_DEV.
+To test read/write between a mmap area of one file
+and another file directly, with different size.
 
 Signed-off-by: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- common/rc | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ .gitignore       |  1 +
+ src/Makefile     |  2 +-
+ src/t_mmap_dio.c | 81 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 83 insertions(+), 1 deletion(-)
+ create mode 100644 src/t_mmap_dio.c
 
-diff --git a/common/rc b/common/rc
-index 892c46e..ea7956b 100644
---- a/common/rc
-+++ b/common/rc
-@@ -2632,6 +2632,16 @@ _require_scratch_shutdown()
- 	_scratch_unmount
- }
+diff --git a/.gitignore b/.gitignore
+index 7dcea14..48a40a0 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -129,6 +129,7 @@
+ /src/cloner
+ /src/renameat2
+ /src/t_rename_overwrite
++/src/t_mmap_dio
  
-+# Does dax mount option work on this dev/fs?
-+_require_scratch_dax()
+ # dmapi/ binaries
+ /dmapi/src/common/cmd/read_invis
+diff --git a/src/Makefile b/src/Makefile
+index 94d74aa..eb5a56c 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -12,7 +12,7 @@ TARGETS = dirstress fill fill2 getpagesize holes lstat64 \
+ 	godown resvtest writemod makeextents itrash rename \
+ 	multi_open_unlink dmiperf unwritten_sync genhashnames t_holes \
+ 	t_mmap_writev t_truncate_cmtime dirhash_collide t_rename_overwrite \
+-	holetest t_truncate_self
++	holetest t_truncate_self t_mmap_dio
+ 
+ LINUX_TARGETS = xfsctl bstat t_mtab getdevicesize preallo_rw_pattern_reader \
+ 	preallo_rw_pattern_writer ftrunc trunc fs_perms testx looptest \
+diff --git a/src/t_mmap_dio.c b/src/t_mmap_dio.c
+new file mode 100644
+index 0000000..545e900
+--- /dev/null
++++ b/src/t_mmap_dio.c
+@@ -0,0 +1,81 @@
++/*
++ * This programme was originally written by
++ *     Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
++ */
++#define _GNU_SOURCE 1
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <sys/mman.h>
++#include <libaio.h>
++#include <errno.h>
++#include <sys/time.h>
++
++void usage(char *prog)
 +{
-+	_scratch_unmount
-+	_scratch_mkfs > /dev/null 2>&1
-+	_scratch_mount -o dax || \
-+		_notrun "$SCRATCH_DEV $FSTYP does not support -o dax"
-+	_scratch_unmount
++	fprintf(stderr,
++		"usage: %s <source file> <dest file> <test size>\n",
++		prog);
++	exit(1);
 +}
 +
- # Does norecovery support by this fs?
- _require_norecovery()
- {
++void err_exit(char *op, unsigned long len)
++{
++	fprintf(stderr, "%s(%s) len %lu\n",
++		op, strerror(errno), len);
++	exit(1);
++}
++
++int main(int argc, char **argv)
++{
++	int fd, fd2, ret;
++	char *map;
++	unsigned long len;
++
++	if (argc < 3)
++		usage(basename(argv[0]));
++
++	len = strtoul(argv[3], NULL, 10);
++	if (errno == ERANGE)
++		err_exit("strtoul", 0);
++
++	/* Open source file and mmap*/
++	fd = open(argv[1], O_RDWR, 0644);
++	if (fd < 0)
++		err_exit("open s", len);
++
++	map = (char *)mmap(NULL, len,
++		PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
++	if (map == MAP_FAILED)
++		err_exit("mmap", len);
++
++	/* Open dest file with O_DIRECT */
++	fd2 = open(argv[2], O_RDWR|O_DIRECT, 0644);
++	if (fd2 < 0)
++		err_exit("open d", len);
++
++	/* First, test storing to dest file from source mapping */
++	ret = write(fd2, map, len);
++	if (ret != len)
++		err_exit("write", len);
++
++	ret = (int)lseek(fd2, 0, SEEK_SET);
++	if (ret == -1)
++		err_exit("lseek", len);
++
++	/* Next, test reading from dest file into source mapping */
++	ret = read(fd2, map, len);
++	if (ret != len)
++		err_exit("read", len);
++	ret = msync(map, len, MS_SYNC);
++	if (ret < 0)
++		err_exit("msync", len);
++
++	ret = munmap(map, len);
++	if (ret < 0)
++		err_exit("munmap", len);
++
++	exit(0);
++}
 -- 
 1.8.3.1
