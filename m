@@ -1,12 +1,26 @@
-From: "USPS Delivery" <rafael.gay-wbbz6yfMSZWsh3iqZDeihNBPR1lH4CV8@public.gmane.org>
-Subject: USPS parcel #1229714 delivery problem
-Date: Tue, 17 Jan 2017 21:20:16 -0600
-Message-ID: <23fa992f029a9a4b333f99f689109fac@unityruralbank.com>
-Reply-To: USPS Delivery <rafael.gay-wbbz6yfMSZWsh3iqZDeihNBPR1lH4CV8@public.gmane.org>
+From: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Lsf-pc] [LSF/MM TOPIC] Badblocks checking/representation in
+ filesystems
+Date: Wed, 18 Jan 2017 21:56:58 +0000
+Message-ID: <1484776549.4358.33.camel@intel.com>
+References: <at1mp6pou4lenesjdgh22k4p.1484345585589@email.android.com>
+ <b9rbflutjt10mb4ofherta8j.1484345610771@email.android.com>
+ <SN2PR04MB2191756EABCB0E9DAA3B5328887B0@SN2PR04MB2191.namprd04.prod.outlook.com>
+ <20170114004910.GA4880@omniknight.lm.intel.com>
+ <SN2PR04MB2191A6EDB7203AF86600FD25887D0@SN2PR04MB2191.namprd04.prod.outlook.com>
+ <20170117143703.GP2517@quack2.suse.cz>
+ <20170117221421.GC4880@omniknight.lm.intel.com>
+ <20170118101641.GD24789@quack2.suse.cz>
+ <x49r3406r2i.fsf@segfault.boston.devel.redhat.com>
+ <20170118210241.GE10498@birch.djwong.org>
+ <CAPcyv4hd7bpCa7d9msX0Y8gLz7WsqXT3VExQwwLuAcsmMxVTPg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAPcyv4hd7bpCa7d9msX0Y8gLz7WsqXT3VExQwwLuAcsmMxVTPg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Content-ID: <FC561BF92EC8E74C91A7AC64554B421E-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,15 +30,49 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "jack-AlSwsSmVLrQ@public.gmane.org" <jack-AlSwsSmVLrQ@public.gmane.org>, "Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org" <Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org" <slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org>, "linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-Dear Customer,
-
-Your item has arrived at the USPS Post Office at January 17, but the courier was unable to deliver parcel to you.
-
-Please check the attachment for details!
-
-Sincerely,
-Rafael Gay,
-USPS Delivery Agent.
+T24gV2VkLCAyMDE3LTAxLTE4IGF0IDEzOjMyIC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIFdlZCwgSmFuIDE4LCAyMDE3IGF0IDE6MDIgUE0sIERhcnJpY2sgSi4gV29uZw0KPiA8ZGFy
+cmljay53b25nQG9yYWNsZS5jb20+IHdyb3RlOg0KPiA+IE9uIFdlZCwgSmFuIDE4LCAyMDE3IGF0
+IDAzOjM5OjE3UE0gLTA1MDAsIEplZmYgTW95ZXIgd3JvdGU6DQo+ID4gPiBKYW4gS2FyYSA8amFj
+a0BzdXNlLmN6PiB3cml0ZXM6DQo+ID4gPiANCj4gPiA+ID4gT24gVHVlIDE3LTAxLTE3IDE1OjE0
+OjIxLCBWaXNoYWwgVmVybWEgd3JvdGU6DQo+ID4gPiA+ID4gWW91ciBub3RlIG9uIHRoZSBvbmxp
+bmUgcmVwYWlyIGRvZXMgcmFpc2UgYW5vdGhlciB0YW5nZW50aWFsbHkNCj4gPiA+ID4gPiByZWxh
+dGVkDQo+ID4gPiA+ID4gdG9waWMuIEN1cnJlbnRseSwgaWYgdGhlcmUgYXJlIGJhZGJsb2Nrcywg
+d3JpdGVzIHZpYSB0aGUgYmlvDQo+ID4gPiA+ID4gc3VibWlzc2lvbg0KPiA+ID4gPiA+IHBhdGgg
+d2lsbCBjbGVhciB0aGUgZXJyb3IgKGlmIHRoZSBoYXJkd2FyZSBpcyBhYmxlIHRvIHJlbWFwDQo+
+ID4gPiA+ID4gdGhlIGJhZA0KPiA+ID4gPiA+IGxvY2F0aW9ucykuIEhvd2V2ZXIsIGlmIHRoZSBm
+aWxlc3lzdGVtIGlzIG1vdW50ZWQgZWl0aCBEQVgsDQo+ID4gPiA+ID4gZXZlbg0KPiA+ID4gPiA+
+IG5vbi1tbWFwIG9wZXJhdGlvbnMgLSByZWFkKCkgYW5kIHdyaXRlKCkgd2lsbCBnbyB0aHJvdWdo
+IHRoZQ0KPiA+ID4gPiA+IGRheCBwYXRocw0KPiA+ID4gPiA+IChkYXhfZG9faW8oKSkuIFdlIGhh
+dmVuJ3QgZm91bmQgYSBnb29kL2FncmVlYWJsZSB3YXkgdG8NCj4gPiA+ID4gPiBwZXJmb3JtDQo+
+ID4gPiA+ID4gZXJyb3ItY2xlYXJpbmcgaW4gdGhpcyBjYXNlLiBTbyBjdXJyZW50bHksIGlmIGEg
+ZGF4IG1vdW50ZWQNCj4gPiA+ID4gPiBmaWxlc3lzdGVtDQo+ID4gPiA+ID4gaGFzIGJhZGJsb2Nr
+cywgdGhlIG9ubHkgd2F5IHRvIGNsZWFyIHRob3NlIGJhZGJsb2NrcyBpcyB0bw0KPiA+ID4gPiA+
+IG1vdW50IGl0DQo+ID4gPiA+ID4gd2l0aG91dCBEQVgsIGFuZCBvdmVyd3JpdGUvemVybyB0aGUg
+YmFkIGxvY2F0aW9ucy4gVGhpcyBpcyBhDQo+ID4gPiA+ID4gcHJldHR5DQo+ID4gPiA+ID4gdGVy
+cmlibGUgdXNlciBleHBlcmllbmNlLCBhbmQgSSdtIGhvcGluZyB0aGlzIGNhbiBiZSBzb2x2ZWQg
+aW4NCj4gPiA+ID4gPiBhIGJldHRlcg0KPiA+ID4gPiA+IHdheS4NCj4gPiA+ID4gDQo+ID4gPiA+
+IFBsZWFzZSByZW1pbmQgbWUsIHdoYXQgaXMgdGhlIHByb2JsZW0gd2l0aCBEQVggY29kZSBkb2lu
+Zw0KPiA+ID4gPiBuZWNlc3Nhcnkgd29yayB0bw0KPiA+ID4gPiBjbGVhciB0aGUgZXJyb3Igd2hl
+biBpdCBnZXRzIEVJTyBmcm9tIG1lbWNweSBvbiB3cml0ZT8NCj4gPiA+IA0KPiA+ID4gWW91IHdv
+bid0IGdldCBhbiBNQ0UgZm9yIGEgc3RvcmU7wqDCoG9ubHkgbG9hZHMgZ2VuZXJhdGUgdGhlbS4N
+Cj4gPiA+IA0KPiA+ID4gV29uJ3QgZmFsbG9jYXRlIEZMX1pFUk9fUkFOR0UgY2xlYXIgYmFkIGJs
+b2NrcyB3aGVuIG1vdW50ZWQgd2l0aA0KPiA+ID4gLW8gZGF4Pw0KPiA+IA0KPiA+IE5vdCBuZWNl
+c3NhcmlseTsgWEZTIHVzdWFsbHkgaW1wbGVtZW50cyB0aGlzIGJ5IHB1bmNoaW5nIG91dCB0aGUN
+Cj4gPiByYW5nZQ0KPiA+IGFuZCB0aGVuIHJlYWxsb2NhdGluZyBpdCBhcyB1bndyaXR0ZW4gYmxv
+Y2tzLg0KPiA+IA0KPiANCj4gVGhhdCBkb2VzIGNsZWFyIHRoZSBlcnJvciBiZWNhdXNlIHRoZSB1
+bndyaXR0ZW4gYmxvY2tzIGFyZSB6ZXJvZWQgYW5kDQo+IGVycm9ycyBjbGVhcmVkIHdoZW4gdGhl
+eSBiZWNvbWUgYWxsb2NhdGVkIGFnYWluLg0KDQpZZXMsIHRoZSBwcm9ibGVtIHdhcyB0aGF0IHdy
+aXRlcyB3b24ndCBjbGVhciBlcnJvcnMuIHplcm9pbmcgdGhyb3VnaA0KZWl0aGVyIGhvbGUtcHVu
+Y2gsIHRydW5jYXRlLCB1bmxpbmtpbmcgdGhlIGZpbGUgc2hvdWxkIGFsbCB3b3JrDQooYXNzdW1p
+bmcgdGhlIGhvbGUtcHVuY2ggb3IgdHJ1bmNhdGUgcmFuZ2VzIHdob2xseSBjb250YWluIHRoZQ0K
+J2JhZGJsb2NrJyBzZWN0b3IpLg0KDQoNCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18NCj4gTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdA0KPiBMaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnDQo+IGh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbGludXgtbnZkaW1tCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
+ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
