@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 809AD81A50
- for <linux-nvdimm@lists.01.org>; Fri,  6 Jan 2017 17:46:34 -0800 (PST)
-Subject: [ndctl PATCH 4/7] ndctl, list: add '--device-dax' option
+ by ml01.01.org (Postfix) with ESMTPS id 5A44F81E93
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 14:10:58 -0800 (PST)
+Subject: [PATCH v3 02/12] mm,
+ devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 06 Jan 2017 17:42:27 -0800
-Message-ID: <148375334767.38836.3212498203274864340.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148375332631.38836.5735184615585844571.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148375332631.38836.5735184615585844571.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 19 Jan 2017 14:06:52 -0800
+Message-ID: <148486361197.19694.17322218559382955416.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,116 +23,148 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Only include dax region and sub-device info when requested by this new
-option to ndctl list. If '--device-dax' is the only option then the
-listing will only include namespaces in device-dax mode.
+devm_memremap_pages() records mapped ranges in pgmap_radix with an entry
+per section's worth of memory (128MB).  The key for each of those
+entries is a section number.
 
+This leads to false positives when devm_memremap_pages() is passed a
+section-unaligned range as lookups in the misalignment fail to return
+NULL. We can close this hole by using the pfn as the key for entries in
+the tree.  The number of entries required to describe a remapped range
+is reduced by leveraging multi-order entries.
+
+In practice this approach usually yields just one entry in the tree if
+the size and starting address are of the same power-of-2 alignment.
+Previously we always needed nr_entries = mapping_size / 128MB.
+
+Link: https://lists.01.org/pipermail/linux-nvdimm/2016-August/006666.html
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/builtin-list.c              |    7 ++++++-
- ndctl/builtin-xaction-namespace.c |    2 +-
- util/json.c                       |   12 +++++++-----
- util/json.h                       |    2 +-
- 4 files changed, 15 insertions(+), 8 deletions(-)
+ kernel/memremap.c |   52 ++++++++++++++++++++++++++++++++++++++--------------
+ mm/Kconfig        |    1 +
+ 2 files changed, 39 insertions(+), 14 deletions(-)
 
-diff --git a/ndctl/builtin-list.c b/ndctl/builtin-list.c
-index b09da3057519..ed4edf6f0249 100644
---- a/ndctl/builtin-list.c
-+++ b/ndctl/builtin-list.c
-@@ -23,6 +23,7 @@ static struct {
- 	bool namespaces;
- 	bool idle;
- 	bool health;
-+	bool dax;
- } list;
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 9ecedc28b928..e0a2de6a168b 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -194,18 +194,41 @@ void put_zone_device_page(struct page *page)
+ }
+ EXPORT_SYMBOL(put_zone_device_page);
  
- static struct {
-@@ -98,7 +99,7 @@ static struct json_object *list_namespaces(struct ndctl_region *region,
- 						jnamespaces);
- 		}
+-static void pgmap_radix_release(struct resource *res)
++static unsigned long order_at(struct resource *res, unsigned long pgoff)
+ {
+-	resource_size_t key, align_start, align_size, align_end;
++	unsigned long phys_pgoff = PHYS_PFN(res->start) + pgoff;
++	unsigned long nr_pages, mask;
  
--		jndns = util_namespace_to_json(ndns, list.idle);
-+		jndns = util_namespace_to_json(ndns, list.idle, list.dax);
- 		if (!jndns) {
- 			fail("\n");
- 			continue;
-@@ -233,6 +234,8 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 				"include region info"),
- 		OPT_BOOLEAN('N', "namespaces", &list.namespaces,
- 				"include namespace info (default)"),
-+		OPT_BOOLEAN('X', "device-dax", &list.dax,
-+				"include device-dax info"),
- 		OPT_BOOLEAN('i', "idle", &list.idle, "include idle devices"),
- 		OPT_END(),
- 	};
-@@ -265,6 +268,8 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 		list.buses = !!param.bus;
- 		list.regions = !!param.region;
- 		list.dimms = !!param.dimm;
-+		if (list.dax && !param.mode)
-+			param.mode = "dax";
- 	}
+-	align_start = res->start & ~(SECTION_SIZE - 1);
+-	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+-	align_end = align_start + align_size - 1;
++	nr_pages = PHYS_PFN(resource_size(res));
++	if (nr_pages == pgoff)
++		return ULONG_MAX;
++
++	/*
++	 * What is the largest aligned power-of-2 range available from
++	 * this resource pgoff to the end of the resource range,
++	 * considering the alignment of the current pgoff?
++	 */
++	mask = phys_pgoff | rounddown_pow_of_two(nr_pages - pgoff);
++	if (!mask)
++		return ULONG_MAX;
++
++	return find_first_bit(&mask, BITS_PER_LONG);
++}
++
++#define foreach_order_pgoff(res, order, pgoff) \
++	for (pgoff = 0, order = order_at((res), pgoff); order < ULONG_MAX; \
++			pgoff += 1UL << order, order = order_at((res), pgoff))
++
++static void pgmap_radix_release(struct resource *res)
++{
++	unsigned long pgoff, order;
  
- 	if (num_list_flags() == 0)
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
-index f7a4e5b74a16..2c4f85f5e4ac 100644
---- a/ndctl/builtin-xaction-namespace.c
-+++ b/ndctl/builtin-xaction-namespace.c
-@@ -352,7 +352,7 @@ static int setup_namespace(struct ndctl_region *region,
- 		error("%s: failed to enable\n",
- 				ndctl_namespace_get_devname(ndns));
- 	} else {
--		struct json_object *jndns = util_namespace_to_json(ndns, 0);
-+		struct json_object *jndns = util_namespace_to_json(ndns, 0, 0);
- 
- 		if (jndns)
- 			printf("%s\n", json_object_to_json_string_ext(jndns,
-diff --git a/util/json.c b/util/json.c
-index 82e677c2c7a7..299c1b5782ee 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -139,7 +139,7 @@ static json_object *util_daxctl_region_to_json(struct daxctl_region *region,
+ 	mutex_lock(&pgmap_lock);
+-	for (key = res->start; key <= res->end; key += SECTION_SIZE)
+-		radix_tree_delete(&pgmap_radix, key >> PA_SECTION_SHIFT);
++	foreach_order_pgoff(res, order, pgoff)
++		radix_tree_delete(&pgmap_radix, PHYS_PFN(res->start) + pgoff);
+ 	mutex_unlock(&pgmap_lock);
++
++	synchronize_rcu();
  }
  
- struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
--		bool include_idle)
-+		bool include_idle, bool include_dax)
- {
- 	struct json_object *jndns = json_object_new_object();
- 	unsigned long long size = ULLONG_MAX;
-@@ -231,10 +231,12 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 		if (!jobj)
- 			goto err;
- 		json_object_object_add(jndns, "uuid", jobj);
--		dax_region = ndctl_dax_get_daxctl_region(dax);
--		jobj = util_daxctl_region_to_json(dax_region, include_idle);
--		if (jobj)
--			json_object_object_add(jndns, "daxdevs", jobj);
-+		if (include_dax) {
-+			dax_region = ndctl_dax_get_daxctl_region(dax);
-+			jobj = util_daxctl_region_to_json(dax_region, include_idle);
-+			if (jobj)
-+				json_object_object_add(jndns, "daxdevs", jobj);
-+		}
- 	} else if (ndctl_namespace_get_type(ndns) != ND_DEVICE_NAMESPACE_IO) {
- 		const char *name;
+ static unsigned long pfn_first(struct page_map *page_map)
+@@ -262,7 +285,7 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
  
-diff --git a/util/json.h b/util/json.h
-index 7492e51621a7..b8fc00f57ea8 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -11,7 +11,7 @@ struct json_object *util_bus_to_json(struct ndctl_bus *bus);
- struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm);
- struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping);
- struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
--		bool include_idle);
-+		bool include_idle, bool include_dax);
- #ifdef HAVE_NDCTL_SMART
- struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm);
- #else
+ 	WARN_ON_ONCE(!rcu_read_lock_held());
+ 
+-	page_map = radix_tree_lookup(&pgmap_radix, phys >> PA_SECTION_SHIFT);
++	page_map = radix_tree_lookup(&pgmap_radix, PHYS_PFN(phys));
+ 	return page_map ? &page_map->pgmap : NULL;
+ }
+ 
+@@ -284,12 +307,12 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap)
+ {
+-	resource_size_t key, align_start, align_size, align_end;
++	resource_size_t align_start, align_size, align_end;
++	unsigned long pfn, pgoff, order;
+ 	pgprot_t pgprot = PAGE_KERNEL;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
+ 	int error, nid, is_ram;
+-	unsigned long pfn;
+ 
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
+@@ -328,11 +351,12 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+ 	align_end = align_start + align_size - 1;
+-	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
++
++	foreach_order_pgoff(res, order, pgoff) {
+ 		struct dev_pagemap *dup;
+ 
+ 		rcu_read_lock();
+-		dup = find_dev_pagemap(key);
++		dup = find_dev_pagemap(res->start + PFN_PHYS(pgoff));
+ 		rcu_read_unlock();
+ 		if (dup) {
+ 			dev_err(dev, "%s: %pr collides with mapping for %s\n",
+@@ -340,8 +364,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 			error = -EBUSY;
+ 			break;
+ 		}
+-		error = radix_tree_insert(&pgmap_radix, key >> PA_SECTION_SHIFT,
+-				page_map);
++		error = __radix_tree_insert(&pgmap_radix,
++				PHYS_PFN(res->start) + pgoff, order, page_map);
+ 		if (error) {
+ 			dev_err(dev, "%s: failed: %d\n", __func__, error);
+ 			break;
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 9b8fccb969dc..4aff67e042f1 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -690,6 +690,7 @@ config ZONE_DEVICE
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
+ 	depends on X86_64 #arch_add_memory() comprehends device memory
++	select RADIX_TREE_MULTIORDER
+ 
+ 	help
+ 	  Device memory hotplug support allows for establishing pmem,
 
 _______________________________________________
 Linux-nvdimm mailing list
