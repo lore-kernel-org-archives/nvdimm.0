@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 125BB81AEA
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jan 2017 13:52:38 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 1/7] tracing: add __print_flags_u64()
-Date: Tue, 10 Jan 2017 14:52:16 -0700
-Message-Id: <1484085142-2297-2-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1484085142-2297-1-git-send-email-ross.zwisler@linux.intel.com>
-References: <1484085142-2297-1-git-send-email-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 86BB381E93
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 14:11:48 -0800 (PST)
+Subject: [PATCH v3 11/12] mm: enable section-unaligned devm_memremap_pages()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 19 Jan 2017 14:07:40 -0800
+Message-ID: <148486366055.19694.17199008017867229383.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,136 +18,107 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Steven Rostedt <rostedt@goodmis.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add __print_flags_u64() and the helper trace_print_flags_seq_u64() in the
-same spirit as __print_symbolic_u64() and trace_print_symbols_seq_u64().
-These functions allow us to print symbols associated with flags that are 64
-bits wide even on 32 bit machines.
+Teach devm_memremap_pages() about the new sub-section capabilities of
+arch_{add,remove}_memory().
 
-These will be used by the DAX code so that we can print the flags set in a
-pfn_t such as PFN_SG_CHAIN, PFN_SG_LAST, PFN_DEV and PFN_MAP.
-
-Without this new function I was getting errors like the following when
-compiling for i386:
-
-./include/linux/pfn_t.h:13:22: warning: large integer implicitly truncated
-to unsigned type [-Woverflow]
- #define PFN_SG_CHAIN (1ULL << (BITS_PER_LONG_LONG - 1))
-  ^
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/trace_events.h |  4 ++++
- include/trace/trace_events.h | 11 +++++++++++
- kernel/trace/trace_output.c  | 38 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 53 insertions(+)
+ kernel/memremap.c |   22 +++++++---------------
+ 1 file changed, 7 insertions(+), 15 deletions(-)
 
-diff --git a/include/linux/trace_events.h b/include/linux/trace_events.h
-index be00761..db2c3ba 100644
---- a/include/linux/trace_events.h
-+++ b/include/linux/trace_events.h
-@@ -23,6 +23,10 @@ const char *trace_print_symbols_seq(struct trace_seq *p, unsigned long val,
- 				    const struct trace_print_flags *symbol_array);
- 
- #if BITS_PER_LONG == 32
-+const char *trace_print_flags_seq_u64(struct trace_seq *p, const char *delim,
-+		      unsigned long long flags,
-+		      const struct trace_print_flags_u64 *flag_array);
-+
- const char *trace_print_symbols_seq_u64(struct trace_seq *p,
- 					unsigned long long val,
- 					const struct trace_print_flags_u64
-diff --git a/include/trace/trace_events.h b/include/trace/trace_events.h
-index 467e12f..c6e9f72 100644
---- a/include/trace/trace_events.h
-+++ b/include/trace/trace_events.h
-@@ -283,8 +283,16 @@ TRACE_MAKE_SYSTEM_STR();
- 		trace_print_symbols_seq(p, value, symbols);		\
- 	})
- 
-+#undef __print_flags_u64
- #undef __print_symbolic_u64
- #if BITS_PER_LONG == 32
-+#define __print_flags_u64(flag, delim, flag_array...)			\
-+	({								\
-+		static const struct trace_print_flags_u64 __flags[] =	\
-+			{ flag_array, { -1, NULL } };			\
-+		trace_print_flags_seq_u64(p, delim, flag, __flags);	\
-+	})
-+
- #define __print_symbolic_u64(value, symbol_array...)			\
- 	({								\
- 		static const struct trace_print_flags_u64 symbols[] =	\
-@@ -292,6 +300,9 @@ TRACE_MAKE_SYSTEM_STR();
- 		trace_print_symbols_seq_u64(p, value, symbols);	\
- 	})
- #else
-+#define __print_flags_u64(flag, delim, flag_array...)			\
-+			__print_flags(flag, delim, flag_array)
-+
- #define __print_symbolic_u64(value, symbol_array...)			\
- 			__print_symbolic(value, symbol_array)
- #endif
-diff --git a/kernel/trace/trace_output.c b/kernel/trace/trace_output.c
-index 5d33a73..5204485 100644
---- a/kernel/trace/trace_output.c
-+++ b/kernel/trace/trace_output.c
-@@ -124,6 +124,44 @@ EXPORT_SYMBOL(trace_print_symbols_seq);
- 
- #if BITS_PER_LONG == 32
- const char *
-+trace_print_flags_seq_u64(struct trace_seq *p, const char *delim,
-+		      unsigned long long flags,
-+		      const struct trace_print_flags_u64 *flag_array)
-+{
-+	unsigned long long mask;
-+	const char *str;
-+	const char *ret = trace_seq_buffer_ptr(p);
-+	int i, first = 1;
-+
-+	for (i = 0;  flag_array[i].name && flags; i++) {
-+
-+		mask = flag_array[i].mask;
-+		if ((flags & mask) != mask)
-+			continue;
-+
-+		str = flag_array[i].name;
-+		flags &= ~mask;
-+		if (!first && delim)
-+			trace_seq_puts(p, delim);
-+		else
-+			first = 0;
-+		trace_seq_puts(p, str);
-+	}
-+
-+	/* check for left over flags */
-+	if (flags) {
-+		if (!first && delim)
-+			trace_seq_puts(p, delim);
-+		trace_seq_printf(p, "0x%llx", flags);
-+	}
-+
-+	trace_seq_putc(p, 0);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(trace_print_flags_seq_u64);
-+
-+const char *
- trace_print_symbols_seq_u64(struct trace_seq *p, unsigned long long val,
- 			 const struct trace_print_flags_u64 *symbol_array)
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index e58d7828ff9a..e6476a8e8b6a 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -256,7 +256,6 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
  {
--- 
-2.7.4
+ 	struct page_map *page_map = data;
+ 	struct resource *res = &page_map->res;
+-	resource_size_t align_start, align_size;
+ 	struct dev_pagemap *pgmap = &page_map->pgmap;
+ 
+ 	if (percpu_ref_tryget_live(pgmap->ref)) {
+@@ -265,12 +264,10 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
+ 	}
+ 
+ 	/* pages are dead and unused, undo the arch mapping */
+-	align_start = res->start & PA_SECTION_MASK;
+-	align_size = ALIGN(resource_size(res), PA_SECTION_SIZE);
+ 	mem_hotplug_begin();
+-	arch_remove_memory(align_start, align_size);
++	arch_remove_memory(res->start, resource_size(res));
+ 	mem_hotplug_done();
+-	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
++	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
+ 	pgmap_radix_release(res);
+ 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
+ 			"%s: failed to free all reserved pages\n", __func__);
+@@ -305,17 +302,13 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap)
+ {
+-	resource_size_t align_start, align_size, align_end;
+ 	unsigned long pfn, pgoff, order;
+ 	pgprot_t pgprot = PAGE_KERNEL;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
+ 	int error, nid, is_ram;
+ 
+-	align_start = res->start & PA_SECTION_MASK;
+-	align_size = ALIGN(res->start + resource_size(res), PA_SECTION_SIZE)
+-		- align_start;
+-	is_ram = region_intersects(align_start, align_size,
++	is_ram = region_intersects(res->start, resource_size(res),
+ 		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+ 
+ 	if (is_ram == REGION_MIXED) {
+@@ -348,7 +341,6 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+-	align_end = align_start + align_size - 1;
+ 
+ 	foreach_order_pgoff(res, order, pgoff) {
+ 		struct dev_pagemap *dup;
+@@ -377,13 +369,13 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	if (nid < 0)
+ 		nid = numa_mem_id();
+ 
+-	error = track_pfn_remap(NULL, &pgprot, PHYS_PFN(align_start), 0,
+-			align_size);
++	error = track_pfn_remap(NULL, &pgprot, PHYS_PFN(res->start), 0,
++			resource_size(res));
+ 	if (error)
+ 		goto err_pfn_remap;
+ 
+ 	mem_hotplug_begin();
+-	error = arch_add_memory(nid, align_start, align_size, true);
++	error = arch_add_memory(nid, res->start, resource_size(res), true);
+ 	mem_hotplug_done();
+ 	if (error)
+ 		goto err_add_memory;
+@@ -404,7 +396,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	return __va(res->start);
+ 
+  err_add_memory:
+-	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
++	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
+  err_pfn_remap:
+  err_radix:
+ 	pgmap_radix_release(res);
 
 _______________________________________________
 Linux-nvdimm mailing list
