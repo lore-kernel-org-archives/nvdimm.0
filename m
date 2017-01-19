@@ -1,24 +1,13 @@
-From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [Lsf-pc] [LSF/MM TOPIC] Badblocks checking/representation in
- filesystems
-Date: Thu, 19 Jan 2017 09:10:11 +0100
-Message-ID: <20170119081011.GA2565@quack2.suse.cz>
-References: <SN2PR04MB2191756EABCB0E9DAA3B5328887B0@SN2PR04MB2191.namprd04.prod.outlook.com>
- <20170114004910.GA4880@omniknight.lm.intel.com>
- <SN2PR04MB2191A6EDB7203AF86600FD25887D0@SN2PR04MB2191.namprd04.prod.outlook.com>
- <20170117143703.GP2517@quack2.suse.cz>
- <20170117221421.GC4880@omniknight.lm.intel.com>
- <20170118101641.GD24789@quack2.suse.cz>
- <x49r3406r2i.fsf@segfault.boston.devel.redhat.com>
- <20170118210241.GE10498@birch.djwong.org>
- <CAPcyv4hd7bpCa7d9msX0Y8gLz7WsqXT3VExQwwLuAcsmMxVTPg@mail.gmail.com>
- <1484776549.4358.33.camel@intel.com>
+From: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 0/2] mmap dio and DAX
+Date: Thu, 19 Jan 2017 18:13:56 +0800
+Message-ID: <1484820838-5098-1-git-send-email-xzhou@redhat.com>
+References: <20170119055405.GT1859@eguan.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1484776549.4358.33.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20170119055405.GT1859-+7p9VZFSOIEFmhoHi+V13ACJwEvxM/w9@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,77 +17,49 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "jack-AlSwsSmVLrQ@public.gmane.org" <jack-AlSwsSmVLrQ@public.gmane.org>, "Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org" <Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org>, "darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org" <slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org>, "linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+To: eguan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, fstests-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed 18-01-17 21:56:58, Verma, Vishal L wrote:
-> On Wed, 2017-01-18 at 13:32 -0800, Dan Williams wrote:
-> > On Wed, Jan 18, 2017 at 1:02 PM, Darrick J. Wong
-> > <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> > > On Wed, Jan 18, 2017 at 03:39:17PM -0500, Jeff Moyer wrote:
-> > > > Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org> writes:
-> > > > =
+v2 :
+  Merge helper function changes into the first patch;
+  Rewrite _require_dax, check options for sure;
+  Print msg in t_mmap_dio.c to show which test going wrong;
+  Empty mount options and check after mount to ensure we
+wont mount with wrong option;
+  Remove unnecessary leading underscore and _fail;
+  Use xfs_io instead of dd;
+  Other minor fixes.
 
-> > > > > On Tue 17-01-17 15:14:21, Vishal Verma wrote:
-> > > > > > Your note on the online repair does raise another tangentially
-> > > > > > related
-> > > > > > topic. Currently, if there are badblocks, writes via the bio
-> > > > > > submission
-> > > > > > path will clear the error (if the hardware is able to remap
-> > > > > > the bad
-> > > > > > locations). However, if the filesystem is mounted eith DAX,
-> > > > > > even
-> > > > > > non-mmap operations - read() and write() will go through the
-> > > > > > dax paths
-> > > > > > (dax_do_io()). We haven't found a good/agreeable way to
-> > > > > > perform
-> > > > > > error-clearing in this case. So currently, if a dax mounted
-> > > > > > filesystem
-> > > > > > has badblocks, the only way to clear those badblocks is to
-> > > > > > mount it
-> > > > > > without DAX, and overwrite/zero the bad locations. This is a
-> > > > > > pretty
-> > > > > > terrible user experience, and I'm hoping this can be solved in
-> > > > > > a better
-> > > > > > way.
-> > > > > =
+Test status:
+  Both cases not run on normal block device;
+  Both cases PASS on ramdisk based pmem devices;
+  Both cases FAIL on nvdimm devices with:
+    +write(Bad address) len 1024 dax to nondax
+    +write(Bad address) len 4096 dax to nondax
+    +write(Bad address) len 16777216 dax to nondax
+    +write(Bad address) len 67108864 dax to nondax
 
-> > > > > Please remind me, what is the problem with DAX code doing
-> > > > > necessary work to
-> > > > > clear the error when it gets EIO from memcpy on write?
-> > > > =
+Xiong Zhou (2):
+  xfs: test per-inode DAX flag by IO
+  generic: test mmap dio through DAX and non-DAX
 
-> > > > You won't get an MCE for a store;=A0=A0only loads generate them.
-> > > > =
+ .gitignore            |   1 +
+ common/rc             |  14 ++++++
+ src/Makefile          |   2 +-
+ src/t_mmap_dio.c      |  81 +++++++++++++++++++++++++++++++++++
+ tests/generic/405     | 116 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/405.out |   2 +
+ tests/generic/group   |   1 +
+ tests/xfs/138         | 110 +++++++++++++++++++++++++++++++++++++++++++++++
+ tests/xfs/138.out     |   2 +
+ tests/xfs/group       |   1 +
+ 10 files changed, 329 insertions(+), 1 deletion(-)
+ create mode 100644 src/t_mmap_dio.c
+ create mode 100755 tests/generic/405
+ create mode 100644 tests/generic/405.out
+ create mode 100755 tests/xfs/138
+ create mode 100644 tests/xfs/138.out
 
-> > > > Won't fallocate FL_ZERO_RANGE clear bad blocks when mounted with
-> > > > -o dax?
-> > > =
-
-> > > Not necessarily; XFS usually implements this by punching out the
-> > > range
-> > > and then reallocating it as unwritten blocks.
-> > > =
-
-> > =
-
-> > That does clear the error because the unwritten blocks are zeroed and
-> > errors cleared when they become allocated again.
-> =
-
-> Yes, the problem was that writes won't clear errors. zeroing through
-> either hole-punch, truncate, unlinking the file should all work
-> (assuming the hole-punch or truncate ranges wholly contain the
-> 'badblock' sector).
-
-Let me repeat my question: You have mentioned that if we do IO through DAX,
-writes won't clear errors and we should fall back to normal block path to
-do write to clear the error. What does prevent us from directly clearing
-the error from DAX path?
-
-								Honza
--- =
-
-Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
-SUSE Labs, CR
+-- 
+1.8.3.1
