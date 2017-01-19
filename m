@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 04ABA81F5F
- for <linux-nvdimm@lists.01.org>; Tue, 31 Jan 2017 13:33:48 -0800 (PST)
-Subject: [PATCH] mm, dax: clear PMD or PUD size flags when in fall through path
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 31 Jan 2017 14:33:47 -0700
-Message-ID: <148589842696.5820.16078080610311444794.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4734781CB1
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 14:11:20 -0800 (PST)
+Subject: [PATCH v3 06/12] mm: track active portions of a section at boot
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 19 Jan 2017 14:07:13 -0800
+Message-ID: <148486363375.19694.14661926204436340901.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,102 +23,130 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: akpm@linux-foundation.org
-Cc: mawilcox@microsoft.com, linux-nvdimm@lists.01.org, dave.hansen@linux.intel.com, linux-xfs@vger.kernel.org, linux-mm@kvack.org, vbabka@suse.cz, jack@suse.com, linux-ext4@vger.kernel.org, kirill.shutemov@linux.intel.com
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Ross reported that:
-Running xfstests generic/030 with XFS + DAX gives me the following kernel BUG,
-which I bisected to this commit: mm,fs,dax: Change ->pmd_fault to ->huge_fault
+Prepare for hot{plug,remove} of sub-ranges of a section by tracking a
+section active bitmask, each bit representing 2MB (SECTION_SIZE (128M) /
+map_active bitmask length (64)).
 
-[  370.086205] ------------[ cut here ]------------
-[  370.087182] kernel BUG at arch/x86/mm/fault.c:1038!
-[  370.088336] invalid opcode: 0000 [#3] PREEMPT SMP
-[  370.089073] Modules linked in: dax_pmem nd_pmem dax nd_btt nd_e820 libnvdimm
-[  370.090212] CPU: 0 PID: 12415 Comm: xfs_io Tainted: G      D         4.10.0-rc5-mm1-00202-g7e90fc0 #10
-[  370.091648] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.9.1-1.fc24 04/01/2014
-[  370.092946] task: ffff8800ac4f8000 task.stack: ffffc9001148c000
-[  370.093769] RIP: 0010:mm_fault_error+0x15e/0x190
-[  370.094410] RSP: 0000:ffffc9001148fe60 EFLAGS: 00010246
-[  370.095135] RAX: 0000000000000000 RBX: 0000000000000006 RCX: ffff8800ac4f8000
-[  370.096107] RDX: 00007f111c8e6400 RSI: 0000000000000006 RDI: ffffc9001148ff58
-[  370.097087] RBP: ffffc9001148fe88 R08: 0000000000000000 R09: ffff880510bd3300
-[  370.098072] R10: ffff8800ac4f8000 R11: 0000000000000000 R12: 00007f111c8e6400
-[  370.099057] R13: 00007f111c8e6400 R14: ffff880510bd3300 R15: 0000000000000055
-[  370.100135] FS:  00007f111d95e700(0000) GS:ffff880514800000(0000) knlGS:0000000000000000
-[  370.101238] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  370.102021] CR2: 00007f111c8e6400 CR3: 00000000add00000 CR4: 00000000001406f0
-[  370.103189] Call Trace:
-[  370.103537]  __do_page_fault+0x54e/0x590
-[  370.104090]  trace_do_page_fault+0x58/0x2c0
-[  370.104675]  do_async_page_fault+0x2c/0x90
-[  370.105342]  async_page_fault+0x28/0x30
-[  370.106044] RIP: 0033:0x405e9a
-[  370.106470] RSP: 002b:00007fffb7f30590 EFLAGS: 00010287
-[  370.107185] RAX: 00000000004e6400 RBX: 0000000000000057 RCX: 00000000004e7000
-[  370.108155] RDX: 00007f111c400000 RSI: 00000000004e7000 RDI: 0000000001c35080
-[  370.109157] RBP: 00000000004e6400 R08: 0000000000000014 R09: 1999999999999999
-[  370.110158] R10: 00007f111d2dc200 R11: 0000000000000000 R12: 0000000001c32fc0
-[  370.111165] R13: 0000000000000000 R14: 0000000000000c00 R15: 0000000000000005
-[  370.112171] Code: 07 00 00 00 e8 a4 ee ff ff e9 11 ff ff ff 4c 89 ea 48 89 de 45 31 c0 31 c9 e8 8f f7 ff ff 48 83 c4 08 5b 41 5c 41 5d 41 5e 5d c3 <0f> 0b 41 8b 94 24 80 04 00 00 49 8d b4 24 b0 06 00 00 4c 89 e9
-[  370.114823] RIP: mm_fault_error+0x15e/0x190 RSP: ffffc9001148fe60
-[  370.115722] ---[ end trace 2ce10d930638254d ]---
-
-It appears that there are 2 issues. First, the size bits used for vm_fault
-needs to be shifted over. Otherwise, FAULT_FLAG_SIZE_PMD is clobbering
-FAULT_FLAG_INSTRUCTION. Second issue, after create_huge_pmd() is being
-called and is falling back to the pte fault handler, the FAULT_FLAG_SIZE_PMD
-flag remains and that causes the dax fault handler to go towards the pmd
-fault handler instead of the pte fault handler. Fixes are made for the pud
-and pmd fall through paths.
-
-Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/mm.h |    8 ++++----
- mm/memory.c        |    4 ++++
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ include/linux/mmzone.h |    3 +++
+ mm/page_alloc.c        |    4 +++-
+ mm/sparse.c            |   53 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 59 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index f50e730..6194aeb 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -285,10 +285,10 @@ extern pgprot_t protection_map[16];
- #define FAULT_FLAG_REMOTE	0x80	/* faulting for non current tsk/mm */
- #define FAULT_FLAG_INSTRUCTION  0x100	/* The fault was during an instruction fetch */
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index aa37e2e860ed..6b9d44ce1e2e 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -1083,6 +1083,8 @@ struct mem_section_usage {
+ 	unsigned long pageblock_flags[0];
+ };
  
--#define FAULT_FLAG_SIZE_MASK	0x700	/* Support up to 8-level page tables */
--#define FAULT_FLAG_SIZE_PTE	0x000	/* First level (eg 4k) */
--#define FAULT_FLAG_SIZE_PMD	0x100	/* Second level (eg 2MB) */
--#define FAULT_FLAG_SIZE_PUD	0x200	/* Third level (eg 1GB) */
-+#define FAULT_FLAG_SIZE_MASK	0x7000	/* Support up to 8-level page tables */
-+#define FAULT_FLAG_SIZE_PTE	0x0000	/* First level (eg 4k) */
-+#define FAULT_FLAG_SIZE_PMD	0x1000	/* Second level (eg 2MB) */
-+#define FAULT_FLAG_SIZE_PUD	0x2000	/* Third level (eg 1GB) */
++void section_active_init(unsigned long pfn, unsigned long nr_pages);
++
+ struct page;
+ struct page_ext;
+ struct mem_section {
+@@ -1224,6 +1226,7 @@ void sparse_init(void);
+ #else
+ #define sparse_init()	do {} while (0)
+ #define sparse_index_init(_sec, _nid)  do {} while (0)
++#define section_active_init(_pfn, _nr_pages) do {} while (0)
+ #endif /* CONFIG_SPARSEMEM */
  
- #define FAULT_FLAG_TRACE \
- 	{ FAULT_FLAG_WRITE,		"WRITE" }, \
-diff --git a/mm/memory.c b/mm/memory.c
-index d465806..bdf1661 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3663,6 +3663,8 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
- 		ret = create_huge_pud(&vmf);
- 		if (!(ret & VM_FAULT_FALLBACK))
- 			return ret;
-+		/* fall through path, remove PUD flag */
-+		vmf.flags &= ~FAULT_FLAG_SIZE_PUD;
- 	} else {
- 		pud_t orig_pud = *vmf.pud;
+ /*
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 68ccf5bcdbb2..9a3ab6c245a8 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -6352,10 +6352,12 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
  
-@@ -3693,6 +3695,8 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
- 		ret = create_huge_pmd(&vmf);
- 		if (!(ret & VM_FAULT_FALLBACK))
- 			return ret;
-+		/* fall through path, remove PMD flag */
-+		vmf.flags &= ~FAULT_FLAG_SIZE_PMD;
- 	} else {
- 		pmd_t orig_pmd = *vmf.pmd;
+ 	/* Print out the early node map */
+ 	pr_info("Early memory node ranges\n");
+-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
+ 		pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
+ 			(u64)start_pfn << PAGE_SHIFT,
+ 			((u64)end_pfn << PAGE_SHIFT) - 1);
++		section_active_init(start_pfn, end_pfn - start_pfn);
++	}
  
+ 	/* Initialise every node */
+ 	mminit_verify_pageflags_layout();
+diff --git a/mm/sparse.c b/mm/sparse.c
+index 59966a3e8ff0..00fdb5d04680 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -168,6 +168,59 @@ void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
+ 	}
+ }
+ 
++static int section_active_index(phys_addr_t phys)
++{
++	return (phys & ~(PA_SECTION_MASK)) / SECTION_ACTIVE_SIZE;
++}
++
++static unsigned long section_active_mask(unsigned long pfn,
++		unsigned long nr_pages)
++{
++	int idx_start, idx_size;
++	phys_addr_t start, size;
++
++	if (!nr_pages)
++		return 0;
++
++	start = PFN_PHYS(pfn);
++	size = PFN_PHYS(min(nr_pages, PAGES_PER_SECTION
++				- (pfn & ~PAGE_SECTION_MASK)));
++	size = ALIGN(size, SECTION_ACTIVE_SIZE);
++
++	idx_start = section_active_index(start);
++	idx_size = section_active_index(size);
++
++	if (idx_size == 0)
++		return -1;
++	return ((1UL << idx_size) - 1) << idx_start;
++}
++
++void section_active_init(unsigned long pfn, unsigned long nr_pages)
++{
++	int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
++	int i, start_sec = pfn_to_section_nr(pfn);
++
++	if (!nr_pages)
++		return;
++
++	for (i = start_sec; i <= end_sec; i++) {
++		struct mem_section *ms;
++		unsigned long mask;
++		unsigned long pfns;
++
++		pfns = min(nr_pages, PAGES_PER_SECTION
++				- (pfn & ~PAGE_SECTION_MASK));
++		mask = section_active_mask(pfn, pfns);
++
++		ms = __nr_to_section(i);
++		pr_debug("%s: sec: %d mask: %#018lx\n", __func__, i, mask);
++		ms->usage->map_active = mask;
++
++		pfn += pfns;
++		nr_pages -= pfns;
++	}
++}
++
+ /* Record a memory area against a node. */
+ void __init memory_present(int nid, unsigned long start, unsigned long end)
+ {
 
 _______________________________________________
 Linux-nvdimm mailing list
