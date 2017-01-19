@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C909381EA0
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 19:54:51 -0800 (PST)
-Subject: [PATCH 06/13] x86, dax, libnvdimm: move wb_cache_pmem() to libnvdimm
+ by ml01.01.org (Postfix) with ESMTPS id 3188F81E81
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 14:11:25 -0800 (PST)
+Subject: [PATCH v3 07/12] mm: fix register_new_memory() zone type detection
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Jan 2017 19:50:45 -0800
-Message-ID: <148488424537.37913.11896267277639094978.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148488421301.37913.12835362165895864897.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148488421301.37913.12835362165895864897.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 19 Jan 2017 14:07:19 -0800
+Message-ID: <148486363923.19694.16803321290568634521.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,207 +22,142 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-With all calls to this routine re-directed through the pmem driver, we
-can kill the pmem api indirection. arch_wb_cache_pmem() is now
-optionally supplied by an arch specific extension to libnvdimm.  Same as
-before, pmem flushing is only defined for x86_64, but it is
-straightforward to add other archs in the future.
+In preparation for sub-section memory hotplug support, remove a
+dependency on ->section_mem_map being populated. In SPARSEMEM_VMEMMAP=y
+configurations pfn_to_page() does not use ->section_mem_map. The
+sub-section hotplug support relies on this fact and skips initializing
+it. Without ->section_mem_map populated, or aligned to section boundary,
+conversions of mem_section instances to zones is not possible.
 
-Cc: <x86@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+So, this removes a false dependency on a structure field that will only
+be valid in the SPARSEMEM_VMEMMAP=n case, and only used for
+pfn_to_page() (and similar) operations.
+
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/pmem.h |   20 --------------------
- drivers/nvdimm/Makefile     |    1 +
- drivers/nvdimm/pmem.c       |    4 ++--
- drivers/nvdimm/pmem.h       |    9 +++++++++
- drivers/nvdimm/x86.c        |   36 ++++++++++++++++++++++++++++++++++++
- include/linux/pmem.h        |   19 -------------------
- tools/testing/nvdimm/Kbuild |    1 +
- 7 files changed, 49 insertions(+), 41 deletions(-)
- create mode 100644 drivers/nvdimm/x86.c
+ drivers/base/memory.c  |   26 +++++++++-----------------
+ include/linux/memory.h |    4 ++--
+ mm/memory_hotplug.c    |    4 ++--
+ 3 files changed, 13 insertions(+), 21 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index ab4983df7bff..4759a179aa52 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -44,26 +44,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
- 		BUG();
+diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+index 8ab8ea1253e6..be0c4e860188 100644
+--- a/drivers/base/memory.c
++++ b/drivers/base/memory.c
+@@ -685,24 +685,16 @@ static int add_memory_block(int base_section_nr)
+ 	return 0;
  }
  
--/**
-- * arch_wb_cache_pmem - write back a cache range with CLWB
-- * @vaddr:	virtual start address
-- * @size:	number of bytes to write back
-- *
-- * Write back a cache range using the CLWB (cache line write back)
-- * instruction.
-- */
--static inline void arch_wb_cache_pmem(void *addr, size_t size)
+-static bool is_zone_device_section(struct mem_section *ms)
 -{
--	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
--	unsigned long clflush_mask = x86_clflush_size - 1;
--	void *vend = addr + size;
--	void *p;
+-	struct page *page;
 -
--	for (p = (void *)((unsigned long)addr & ~clflush_mask);
--	     p < vend; p += x86_clflush_size)
--		clwb(p);
+-	page = sparse_decode_mem_map(ms->section_mem_map, __section_nr(ms));
+-	return is_zone_device_page(page);
 -}
 -
- static inline void arch_invalidate_pmem(void *addr, size_t size)
+ /*
+  * need an interface for the VM to add new memory regions,
+  * but without onlining it.
+  */
+-int register_new_memory(int nid, struct mem_section *section)
++int register_new_memory(struct zone *zone, int nid, struct mem_section *section)
  {
- 	clflush_cache_range(addr, size);
-diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
-index 909554c3f955..9eafb1dd2876 100644
---- a/drivers/nvdimm/Makefile
-+++ b/drivers/nvdimm/Makefile
-@@ -24,3 +24,4 @@ libnvdimm-$(CONFIG_ND_CLAIM) += claim.o
- libnvdimm-$(CONFIG_BTT) += btt_devs.o
- libnvdimm-$(CONFIG_NVDIMM_PFN) += pfn_devs.o
- libnvdimm-$(CONFIG_NVDIMM_DAX) += dax_devs.o
-+libnvdimm-$(CONFIG_X86_64) += x86.o
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 68fc7599a053..838241bb31d1 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -222,14 +222,14 @@ static size_t pmem_copy_from_iter(void *addr, size_t bytes,
- {
- 	size_t rc = copy_from_iter_nocache(addr, bytes, i);
+ 	int ret = 0;
+ 	struct memory_block *mem;
  
--	wb_cache_pmem(addr, bytes);
-+	arch_wb_cache_pmem(addr, bytes);
- 	return rc;
+-	if (is_zone_device_section(section))
++	if (is_dev_zone(zone))
+ 		return 0;
+ 
+ 	mutex_lock(&mem_sysfs_mutex);
+@@ -736,14 +728,11 @@ unregister_memory(struct memory_block *memory)
+ 	device_unregister(&memory->dev);
  }
  
- static const struct dax_operations pmem_dax_ops = {
- 	.direct_access = pmem_direct_access,
- 	.copy_from_iter = pmem_copy_from_iter,
--	.flush = wb_cache_pmem,
-+	.flush = arch_wb_cache_pmem,
- };
+-static int remove_memory_section(unsigned long node_id,
+-			       struct mem_section *section, int phys_device)
++static int remove_memory_section(struct zone *zone, unsigned long node_id,
++		struct mem_section *section, int phys_device)
+ {
+ 	struct memory_block *mem;
  
- static const struct block_device_operations pmem_fops = {
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index b4ee4f71b4a1..4faacff434ff 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -7,6 +7,15 @@
- 
- long pmem_direct_access(struct block_device *bdev, sector_t sector,
- 		      void **kaddr, pfn_t *pfn, long size);
-+
-+#ifdef CONFIG_ARCH_HAS_PMEM_API
-+void arch_wb_cache_pmem(void *addr, size_t size);
-+#else
-+static inline void arch_wb_cache_pmem(void *addr, size_t size)
-+{
-+}
-+#endif
-+
- /* this definition is in it's own header for tools/testing/nvdimm to consume */
- struct pmem_device {
- 	/* One contiguous memory region per device */
-diff --git a/drivers/nvdimm/x86.c b/drivers/nvdimm/x86.c
-new file mode 100644
-index 000000000000..79d7267da4d2
---- /dev/null
-+++ b/drivers/nvdimm/x86.c
-@@ -0,0 +1,36 @@
-+/*
-+ * Copyright(c) 2015 - 2017 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#include <asm/cacheflush.h>
-+#include <asm/cpufeature.h>
-+#include <asm/special_insns.h>
-+
-+/**
-+ * arch_wb_cache_pmem - write back a cache range with CLWB
-+ * @vaddr:	virtual start address
-+ * @size:	number of bytes to write back
-+ *
-+ * Write back a cache range using the CLWB (cache line write back)
-+ * instruction.
-+ */
-+void arch_wb_cache_pmem(void *addr, size_t size)
-+{
-+	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
-+	unsigned long clflush_mask = x86_clflush_size - 1;
-+	void *vend = addr + size;
-+	void *p;
-+
-+	for (p = (void *)((unsigned long)addr & ~clflush_mask);
-+	     p < vend; p += x86_clflush_size)
-+		clwb(p);
-+}
-+EXPORT_SYMBOL_GPL(arch_wb_cache_pmem);
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 772bd02a5b52..33ae761f010a 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -31,11 +31,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
- 	BUG();
- }
- 
--static inline void arch_wb_cache_pmem(void *addr, size_t size)
--{
--	BUG();
--}
+-	if (is_zone_device_section(section))
+-		return 0;
 -
- static inline void arch_invalidate_pmem(void *addr, size_t size)
- {
- 	BUG();
-@@ -80,18 +75,4 @@ static inline void invalidate_pmem(void *addr, size_t size)
- 	if (arch_has_pmem_api())
- 		arch_invalidate_pmem(addr, size);
+ 	mutex_lock(&mem_sysfs_mutex);
+ 	mem = find_memory_block(section);
+ 	unregister_mem_sect_under_nodes(mem, __section_nr(section));
+@@ -758,12 +747,15 @@ static int remove_memory_section(unsigned long node_id,
+ 	return 0;
  }
--
--/**
-- * wb_cache_pmem - write back processor cache for PMEM memory range
-- * @addr:	virtual start address
-- * @size:	number of bytes to write back
-- *
-- * Write back the processor cache range starting at 'addr' for 'size' bytes.
-- * See blkdev_issue_flush() note for memcpy_to_pmem().
-- */
--static inline void wb_cache_pmem(void *addr, size_t size)
--{
--	if (arch_has_pmem_api())
--		arch_wb_cache_pmem(addr, size);
--}
- #endif /* __PMEM_H__ */
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index 405212be044a..7488dfa1309a 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -66,6 +66,7 @@ libnvdimm-$(CONFIG_ND_CLAIM) += $(NVDIMM_SRC)/claim.o
- libnvdimm-$(CONFIG_BTT) += $(NVDIMM_SRC)/btt_devs.o
- libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
- libnvdimm-$(CONFIG_NVDIMM_DAX) += $(NVDIMM_SRC)/dax_devs.o
-+libnvdimm-$(CONFIG_X86_64) += $(NVDIMM_SRC)/x86.o
- libnvdimm-y += config_check.o
  
- obj-m += test/
+-int unregister_memory_section(struct mem_section *section)
++int unregister_memory_section(struct zone *zone, struct mem_section *section)
+ {
++	if (is_dev_zone(zone))
++		return 0;
++
+ 	if (!present_section(section))
+ 		return -EINVAL;
+ 
+-	return remove_memory_section(0, section, 0);
++	return remove_memory_section(zone, 0, section, 0);
+ }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+diff --git a/include/linux/memory.h b/include/linux/memory.h
+index 093607f90b91..301dfb03ecb7 100644
+--- a/include/linux/memory.h
++++ b/include/linux/memory.h
+@@ -108,12 +108,12 @@ extern int register_memory_notifier(struct notifier_block *nb);
+ extern void unregister_memory_notifier(struct notifier_block *nb);
+ extern int register_memory_isolate_notifier(struct notifier_block *nb);
+ extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
+-extern int register_new_memory(int, struct mem_section *);
++extern int register_new_memory(struct zone *, int, struct mem_section *);
+ extern int memory_block_change_state(struct memory_block *mem,
+ 				     unsigned long to_state,
+ 				     unsigned long from_state_req);
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-extern int unregister_memory_section(struct mem_section *);
++extern int unregister_memory_section(struct zone *, struct mem_section *);
+ #endif
+ extern int memory_dev_init(void);
+ extern int memory_notify(unsigned long val, void *v);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index a73a1fcaa181..684addad9708 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -516,7 +516,7 @@ static int __meminit __add_section(int nid, struct zone *zone,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
++	return register_new_memory(zone, nid, __pfn_to_section(phys_start_pfn));
+ }
+ 
+ /*
+@@ -783,7 +783,7 @@ static int __remove_section(struct zone *zone, struct mem_section *ms,
+ 	if (!valid_section(ms))
+ 		return ret;
+ 
+-	ret = unregister_memory_section(ms);
++	ret = unregister_memory_section(zone, ms);
+ 	if (ret)
+ 		return ret;
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
