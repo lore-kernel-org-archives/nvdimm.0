@@ -1,15 +1,24 @@
-From: Eryu Guan <eguan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 4/4] generic: test mmap dio through DAX and non-DAX
-Date: Thu, 19 Jan 2017 13:54:05 +0800
-Message-ID: <20170119055405.GT1859@eguan.usersys.redhat.com>
-References: <1484708826-23529-1-git-send-email-xzhou@redhat.com>
- <1484708826-23529-5-git-send-email-xzhou@redhat.com>
+From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [Lsf-pc] [LSF/MM TOPIC] Badblocks checking/representation in
+ filesystems
+Date: Thu, 19 Jan 2017 09:10:11 +0100
+Message-ID: <20170119081011.GA2565@quack2.suse.cz>
+References: <SN2PR04MB2191756EABCB0E9DAA3B5328887B0@SN2PR04MB2191.namprd04.prod.outlook.com>
+ <20170114004910.GA4880@omniknight.lm.intel.com>
+ <SN2PR04MB2191A6EDB7203AF86600FD25887D0@SN2PR04MB2191.namprd04.prod.outlook.com>
+ <20170117143703.GP2517@quack2.suse.cz>
+ <20170117221421.GC4880@omniknight.lm.intel.com>
+ <20170118101641.GD24789@quack2.suse.cz>
+ <x49r3406r2i.fsf@segfault.boston.devel.redhat.com>
+ <20170118210241.GE10498@birch.djwong.org>
+ <CAPcyv4hd7bpCa7d9msX0Y8gLz7WsqXT3VExQwwLuAcsmMxVTPg@mail.gmail.com>
+ <1484776549.4358.33.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1484708826-23529-5-git-send-email-xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1484776549.4358.33.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,169 +28,77 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, fstests-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "jack-AlSwsSmVLrQ@public.gmane.org" <jack-AlSwsSmVLrQ@public.gmane.org>, "Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org" <Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org>, "darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org" <slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org>, "linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, Jan 18, 2017 at 11:07:06AM +0800, Xiong Zhou wrote:
-> Signed-off-by: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+On Wed 18-01-17 21:56:58, Verma, Vishal L wrote:
+> On Wed, 2017-01-18 at 13:32 -0800, Dan Williams wrote:
+> > On Wed, Jan 18, 2017 at 1:02 PM, Darrick J. Wong
+> > <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > > On Wed, Jan 18, 2017 at 03:39:17PM -0500, Jeff Moyer wrote:
+> > > > Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org> writes:
+> > > > =
 
-Better to have detailed commit log.
+> > > > > On Tue 17-01-17 15:14:21, Vishal Verma wrote:
+> > > > > > Your note on the online repair does raise another tangentially
+> > > > > > related
+> > > > > > topic. Currently, if there are badblocks, writes via the bio
+> > > > > > submission
+> > > > > > path will clear the error (if the hardware is able to remap
+> > > > > > the bad
+> > > > > > locations). However, if the filesystem is mounted eith DAX,
+> > > > > > even
+> > > > > > non-mmap operations - read() and write() will go through the
+> > > > > > dax paths
+> > > > > > (dax_do_io()). We haven't found a good/agreeable way to
+> > > > > > perform
+> > > > > > error-clearing in this case. So currently, if a dax mounted
+> > > > > > filesystem
+> > > > > > has badblocks, the only way to clear those badblocks is to
+> > > > > > mount it
+> > > > > > without DAX, and overwrite/zero the bad locations. This is a
+> > > > > > pretty
+> > > > > > terrible user experience, and I'm hoping this can be solved in
+> > > > > > a better
+> > > > > > way.
+> > > > > =
 
-> ---
->  tests/generic/405     | 100 ++++++++++++++++++++++++++++++++++++++++++++++++++
->  tests/generic/405.out |   2 +
->  tests/generic/group   |   1 +
->  3 files changed, 103 insertions(+)
->  create mode 100755 tests/generic/405
->  create mode 100644 tests/generic/405.out
-> 
-> diff --git a/tests/generic/405 b/tests/generic/405
-> new file mode 100755
-> index 0000000..3717937
-> --- /dev/null
-> +++ b/tests/generic/405
-> @@ -0,0 +1,100 @@
-> +#! /bin/bash
-> +# FS QA Test 405
-> +#
-> +# mmap dio between DAX and non-DAX mountpoints.
-> +#
-> +#-----------------------------------------------------------------------
-> +# Copyright (c) 2017 Red Hat Inc.  All Rights Reserved.
-> +#
-> +# This program is free software; you can redistribute it and/or
-> +# modify it under the terms of the GNU General Public License as
-> +# published by the Free Software Foundation.
-> +#
-> +# This program is distributed in the hope that it would be useful,
-> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
-> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> +# GNU General Public License for more details.
-> +#
-> +# You should have received a copy of the GNU General Public License
-> +# along with this program; if not, write the Free Software Foundation,
-> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> +#-----------------------------------------------------------------------
-> +#
-> +
-> +seq=`basename $0`
-> +seqres=$RESULT_DIR/$seq
-> +echo "QA output created by $seq"
-> +
-> +here=`pwd`
-> +tmp=/tmp/$$
-> +status=1	# failure is the default!
-> +trap "_cleanup; exit \$status" 0 1 2 3 15
-> +
-> +_cleanup()
-> +{
-> +	cd /
-> +	rm -f $tmp.*
-> +}
-> +
-> +# get standard environment, filters and checks
-> +. ./common/rc
-> +. ./common/filter
-> +
-> +# remove previous $seqres.full before test
-> +rm -f $seqres.full
-> +
-> +# real QA test starts here
-> +
-> +# Modify as appropriate.
-> +_supported_fs xfs ext4
+> > > > > Please remind me, what is the problem with DAX code doing
+> > > > > necessary work to
+> > > > > clear the error when it gets EIO from memcpy on write?
+> > > > =
 
-_supported_fs generic
+> > > > You won't get an MCE for a store;=A0=A0only loads generate them.
+> > > > =
 
-Other _require rules make sure we have everything we need, so no need to
-restrict supported fs to xfs and ext4. (And if we really want to do so,
-the test should be a "shared" test, not generic.)
+> > > > Won't fallocate FL_ZERO_RANGE clear bad blocks when mounted with
+> > > > -o dax?
+> > > =
 
-> +_supported_os Linux
-> +_require_test
-> +_require_scratch_dax
-> +_require_test_program "feature"
-> +
-> +# $1 mmap read/write size
-> +_dax_flag_mmap_dio()
+> > > Not necessarily; XFS usually implements this by punching out the
+> > > range
+> > > and then reallocating it as unwritten blocks.
+> > > =
 
-Not testing per-file flag now, the name seems a bit misleading.
+> > =
 
-> +{
-> +	# both dax
-> +	src/t_mmap_dio $SCRATCH_MNT/tf_s $SCRATCH_MNT/tf_d $1
-> +
-> +	# from non dax to dax
-> +	src/t_mmap_dio $TEST_DIR/tf_s $SCRATCH_MNT/tf_d $1
+> > That does clear the error because the unwritten blocks are zeroed and
+> > errors cleared when they become allocated again.
+> =
 
-Assuming TEST_DIR isn't a DAX mount, which seems not always the case.
+> Yes, the problem was that writes won't clear errors. zeroing through
+> either hole-punch, truncate, unlinking the file should all work
+> (assuming the hole-punch or truncate ranges wholly contain the
+> 'badblock' sector).
 
-Perhaps you can check mount options of TEST_DEV using _fs_options() to
-see if it's mounted with dax, and _notrun if it is.
+Let me repeat my question: You have mentioned that if we do IO through DAX,
+writes won't clear errors and we should fall back to normal block path to
+do write to clear the error. What does prevent us from directly clearing
+the error from DAX path?
 
-Thanks,
-Eryu
+								Honza
+-- =
 
-> +
-> +	# from dax to non dax
-> +	src/t_mmap_dio $SCRATCH_MNT/tf_s $TEST_DIR/tf_d $1
-> +
-> +	# both non dax
-> +	src/t_mmap_dio $TEST_DIR/tf_s $TEST_DIR/tf_d $1
-> +}
-> +
-> +_do_tests()
-> +{
-> +	# less than page size
-> +	_dax_flag_mmap_dio 1024
-> +	# page size
-> +	_dax_flag_mmap_dio `src/feature -s`
-> +	# bigger sizes, for PMD faults
-> +	_dax_flag_mmap_dio 16777216
-> +	_dax_flag_mmap_dio 67108864
-> +}
-> +
-> +_scratch_mkfs >> $seqres.full 2>&1 || _fail "mkfs failed"
-> +
-> +# SCRATCH_DEV mount with dax option
-> +_scratch_mount "-o dax" >> $seqres.full 2>&1 || \
-> +	_fail "mount -o dax failed"
-> +
-> +dd if=/dev/zero of=$SCRATCH_MNT/tf_s bs=4k count=256k > /dev/null 2>&1
-> +dd if=/dev/zero of=$SCRATCH_MNT/tf_d bs=4k count=256k > /dev/null 2>&1
-> +dd if=/dev/zero of=$TEST_DIR/tf_s bs=4k count=256k > /dev/null 2>&1
-> +dd if=/dev/zero of=$TEST_DIR/tf_d bs=4k count=256k > /dev/null 2>&1
-> +
-> +_do_tests
-> +_test_unmount
-> +_scratch_unmount
-> +
-> +# success, all done
-> +echo "Silence is golden"
-> +status=0
-> +exit
-> diff --git a/tests/generic/405.out b/tests/generic/405.out
-> new file mode 100644
-> index 0000000..bae761d
-> --- /dev/null
-> +++ b/tests/generic/405.out
-> @@ -0,0 +1,2 @@
-> +QA output created by 405
-> +Silence is golden
-> diff --git a/tests/generic/group b/tests/generic/group
-> index 6fc9c3d..a1be466 100644
-> --- a/tests/generic/group
-> +++ b/tests/generic/group
-> @@ -407,3 +407,4 @@
->  402 auto quick rw
->  403 auto quick attr
->  404 auto quick insert
-> +405 auto quick
-> -- 
-> 1.8.3.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe fstests" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
+SUSE Labs, CR
