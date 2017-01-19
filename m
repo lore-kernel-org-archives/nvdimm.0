@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 00F0982009
- for <linux-nvdimm@lists.01.org>; Sat, 28 Jan 2017 00:40:31 -0800 (PST)
-Subject: [RFC PATCH 04/17] dax: introduce dax_operations
+ by ml01.01.org (Postfix) with ESMTPS id C29C981C73
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 14:10:42 -0800 (PST)
+Subject: [PATCH v3 00/12] mm: sub-section memory hotplug support
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 28 Jan 2017 00:36:26 -0800
-Message-ID: <148559258599.11180.15865082041593158216.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 19 Jan 2017 14:06:36 -0800
+Message-ID: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,119 +20,99 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: snitzer@redhat.com, mawilcox@microsoft.com, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Mel Gorman <mgorman@techsingularity.net>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Track a set of dax_operations per dax_inode that can be set at
-alloc_dax_inode() time. These operations will be used to stop the abuse
-of block_device_operations for communicating dax capabilities to
-filesystems. It will also be used to replace the "pmem api" and move
-pmem-specific cache maintenance, and other dax-driver-specific
-filesystem-dax operations, to dax inode methods. In particular this
-allows us to stop abusing __copy_user_nocache(), via memcpy_to_pmem(),
-with a driver specific replacement.
+Changes since v2 [1]:
 
-This is a standalone introduction of the operations. Follow on patches
-convert each dax-driver and teach fs/dax.c to use ->direct_access() from
-dax_operations instead of block_device_operations.
+1/ Fixed a bug inserting multi-order entries into pgmap_radix. The
+   insert index needs to be 'order' aligned.
 
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+2/ Fixed a __meminit section mismatch warning for section_activate()
+
+3/ Forward ported to v4.10-rc4
+
+[1]: https://lwn.net/Articles/708627/
+
 ---
- drivers/dax/dax.h    |    4 +++-
- drivers/dax/device.c |    6 +++++-
- drivers/dax/super.c  |    6 +++++-
- include/linux/dax.h  |    5 +++++
- 4 files changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dax/dax.h b/drivers/dax/dax.h
-index f33c16ed2ec6..aeb1d49aafb8 100644
---- a/drivers/dax/dax.h
-+++ b/drivers/dax/dax.h
-@@ -13,7 +13,9 @@
- #ifndef __DAX_H__
- #define __DAX_H__
- struct dax_inode;
--struct dax_inode *alloc_dax_inode(void *private, const char *host);
-+struct dax_operations;
-+struct dax_inode *alloc_dax_inode(void *private, const char *host,
-+		const struct dax_operations *ops);
- void put_dax_inode(struct dax_inode *dax_inode);
- bool dax_inode_alive(struct dax_inode *dax_inode);
- void kill_dax_inode(struct dax_inode *dax_inode);
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 6d0a3241a608..c3d9405ec285 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -560,7 +560,11 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
- 		goto err_id;
- 	}
- 
--	dax_inode = alloc_dax_inode(dax_dev, NULL);
-+	/*
-+	 * No 'host' or dax_operations since there is no access to this
-+	 * device outside of mmap of the resulting character device.
-+	 */
-+	dax_inode = alloc_dax_inode(dax_dev, NULL, NULL);
- 	if (!dax_inode)
- 		goto err_inode;
- 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 7ac048f94b2b..eb844ffea3cf 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -17,6 +17,7 @@
- #include <linux/cdev.h>
- #include <linux/hash.h>
- #include <linux/slab.h>
-+#include <linux/dax.h>
- #include <linux/fs.h>
- 
- static int nr_dax = CONFIG_NR_DEV_DAX;
-@@ -61,6 +62,7 @@ struct dax_inode {
- 	const char *host;
- 	void *private;
- 	bool alive;
-+	const struct dax_operations *ops;
- };
- 
- bool dax_inode_alive(struct dax_inode *dax_inode)
-@@ -204,7 +206,8 @@ static void dax_add_host(struct dax_inode *dax_inode, const char *host)
- 	spin_unlock(&dax_host_lock);
- }
- 
--struct dax_inode *alloc_dax_inode(void *private, const char *__host)
-+struct dax_inode *alloc_dax_inode(void *private, const char *__host,
-+		const struct dax_operations *ops)
- {
- 	struct dax_inode *dax_inode;
- 	const char *host;
-@@ -225,6 +228,7 @@ struct dax_inode *alloc_dax_inode(void *private, const char *__host)
- 		goto err_inode;
- 
- 	dax_add_host(dax_inode, host);
-+	dax_inode->ops = ops;
- 	dax_inode->private = private;
- 	return dax_inode;
- 
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 8fe19230e118..def9a9d118c9 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -7,6 +7,11 @@
- #include <asm/pgtable.h>
- 
- struct iomap_ops;
-+struct dax_inode;
-+struct dax_operations {
-+	long (*direct_access)(struct dax_inode *, phys_addr_t, void **,
-+			pfn_t *, long);
-+};
- 
- int dax_read_lock(void);
- void dax_read_unlock(int id);
+The initial motivation for this change is persistent memory platforms
+that, unfortunately, align the pmem range on a boundary less than a full
+section (64M vs 128M), and may change the alignment from one boot to the
+next. A secondary motivation is the arrival of prospective ZONE_DEVICE
+users that want devm_memremap_pages() to map PCI-E device memory ranges
+to enable peer-to-peer DMA. There is a range of possible physical
+address alignments of PCI-E BARs that are less than 128M.
 
+Currently the libnvdimm core injects padding when 'pfn' (struct page
+mapping configuration) instances are created. However, not all users of
+devm_memremap_pages() have the opportunity to inject such padding. Users
+of the memmap=ss!nn kernel command line option can trigger the following
+failure with unaligned parameters like "memmap=0xfc000000!8G":
+
+ WARNING: CPU: 0 PID: 558 at kernel/memremap.c:300
+ devm_memremap_pages attempted on mixed region [mem 0x200000000-0x2fbffffff flags 0x200]
+ [..]
+ Call Trace:
+  [<ffffffff814c0393>] dump_stack+0x86/0xc3
+  [<ffffffff810b173b>] __warn+0xcb/0xf0
+  [<ffffffff810b17bf>] warn_slowpath_fmt+0x5f/0x80
+  [<ffffffff811eb105>] devm_memremap_pages+0x3b5/0x4c0
+  [<ffffffffa006f308>] __wrap_devm_memremap_pages+0x58/0x70 [nfit_test_iomap]
+  [<ffffffffa00e231a>] pmem_attach_disk+0x19a/0x440 [nd_pmem]
+
+Without this change a user could inadvertently lose access to nvdimm
+namespaces after a configuration change. The act of adding, removing, or
+rearranging DIMMs in the platform could lead to the BIOS changing the
+base alignment of the namespace in an incompatible fashion.  With this
+support we can accommodate a BIOS changing the namespace to any
+alignment provided it is >= SECTION_ACTIVE_SIZE.
+
+In other words, we are protecting against misalignment injected by the
+BIOS after the libnvdimm sub-system already recorded that the namespace
+does not need alignment padding. In that case the user would need to
+figure out how to undo the configuration change to regain access to
+their nvdimm capacity.
+
+---
+
+The patches have received a build success notification from the
+0day-kbuild robot across 142 configs and pass the latest libnvdimm/ndctl
+unit test suite. They merge cleanly on top of current -next (test merge
+with next-20170118).
+
+---
+
+Dan Williams (12):
+      mm: fix type width of section to/from pfn conversion macros
+      mm, devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
+      mm: introduce struct mem_section_usage to track partial population of a section
+      mm: introduce common definitions for the size and mask of a section
+      mm: cleanup sparse_init_one_section() return value
+      mm: track active portions of a section at boot
+      mm: fix register_new_memory() zone type detection
+      mm: convert kmalloc_section_memmap() to populate_section_memmap()
+      mm: prepare for hot-{add,remove} of sub-section ranges
+      mm: support section-unaligned ZONE_DEVICE memory ranges
+      mm: enable section-unaligned devm_memremap_pages()
+      libnvdimm, pfn, dax: stop padding pmem namespaces to section alignment
+
+
+ arch/x86/mm/init_64.c          |   15 +
+ drivers/base/memory.c          |   26 +-
+ drivers/nvdimm/pfn_devs.c      |   42 +---
+ include/linux/memory.h         |    4 
+ include/linux/memory_hotplug.h |    6 -
+ include/linux/mm.h             |    3 
+ include/linux/mmzone.h         |   30 ++-
+ kernel/memremap.c              |   74 ++++---
+ mm/Kconfig                     |    1 
+ mm/memory_hotplug.c            |   95 ++++----
+ mm/page_alloc.c                |    6 -
+ mm/sparse-vmemmap.c            |   24 +-
+ mm/sparse.c                    |  454 +++++++++++++++++++++++++++++-----------
+ 13 files changed, 511 insertions(+), 269 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
