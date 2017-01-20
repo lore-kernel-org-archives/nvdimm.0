@@ -1,115 +1,125 @@
-From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [Lsf-pc] [LSF/MM TOPIC] Badblocks checking/representation in
- filesystems
-Date: Fri, 20 Jan 2017 10:03:57 +0100
-Message-ID: <20170120090357.GD14115@quack2.suse.cz>
-References: <20170117143703.GP2517@quack2.suse.cz>
- <20170117221421.GC4880@omniknight.lm.intel.com>
- <20170118101641.GD24789@quack2.suse.cz>
- <x49r3406r2i.fsf@segfault.boston.devel.redhat.com>
- <20170118210241.GE10498@birch.djwong.org>
- <CAPcyv4hd7bpCa7d9msX0Y8gLz7WsqXT3VExQwwLuAcsmMxVTPg@mail.gmail.com>
- <1484776549.4358.33.camel@intel.com>
- <20170119081011.GA2565@quack2.suse.cz>
- <20170119185910.GF4880@omniknight.lm.intel.com>
- <CAPcyv4jZz_iqLutd0gPEL3udqbFxvBH8CZY5oDgUjG5dGbC2gg@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v3 06/12] mm: track active portions of a section at boot
+Date: Fri, 20 Jan 2017 09:56:10 -0800
+Message-ID: <CAPcyv4i83iBa5WFCMrvxEhU3WUKnQGo9BegONXyThkNW=tnz1g@mail.gmail.com>
+References: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <148486363375.19694.14661926204436340901.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20170119160552.7bdc2e41f19bd52987a752bc@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4jZz_iqLutd0gPEL3udqbFxvBH8CZY5oDgUjG5dGbC2gg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, "Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org" <Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org>, "darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org" <slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org>, "linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20170119160552.7bdc2e41f19bd52987a752bc@linux-foundation.org>
+Sender: owner-linux-mm@kvack.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@ml01.01.org>, Logan Gunthorpe <logang@deltatee.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Bates <stephen.bates@microsemi.com>, Linux MM <linux-mm@kvack.org>, Johannes Weiner <hannes@cmpxchg.org>, Mel Gorman <mgorman@techsingularity.net>, Vlastimil Babka <vbabka@suse.cz>
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu 19-01-17 11:03:12, Dan Williams wrote:
-> On Thu, Jan 19, 2017 at 10:59 AM, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> > On 01/19, Jan Kara wrote:
-> >> On Wed 18-01-17 21:56:58, Verma, Vishal L wrote:
-> >> > On Wed, 2017-01-18 at 13:32 -0800, Dan Williams wrote:
-> >> > > On Wed, Jan 18, 2017 at 1:02 PM, Darrick J. Wong
-> >> > > <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> >> > > > On Wed, Jan 18, 2017 at 03:39:17PM -0500, Jeff Moyer wrote:
-> >> > > > > Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org> writes:
-> >> > > > >
-> >> > > > > > On Tue 17-01-17 15:14:21, Vishal Verma wrote:
-> >> > > > > > > Your note on the online repair does raise another tangentially
-> >> > > > > > > related
-> >> > > > > > > topic. Currently, if there are badblocks, writes via the bio
-> >> > > > > > > submission
-> >> > > > > > > path will clear the error (if the hardware is able to remap
-> >> > > > > > > the bad
-> >> > > > > > > locations). However, if the filesystem is mounted eith DAX,
-> >> > > > > > > even
-> >> > > > > > > non-mmap operations - read() and write() will go through the
-> >> > > > > > > dax paths
-> >> > > > > > > (dax_do_io()). We haven't found a good/agreeable way to
-> >> > > > > > > perform
-> >> > > > > > > error-clearing in this case. So currently, if a dax mounted
-> >> > > > > > > filesystem
-> >> > > > > > > has badblocks, the only way to clear those badblocks is to
-> >> > > > > > > mount it
-> >> > > > > > > without DAX, and overwrite/zero the bad locations. This is a
-> >> > > > > > > pretty
-> >> > > > > > > terrible user experience, and I'm hoping this can be solved in
-> >> > > > > > > a better
-> >> > > > > > > way.
-> >> > > > > >
-> >> > > > > > Please remind me, what is the problem with DAX code doing
-> >> > > > > > necessary work to
-> >> > > > > > clear the error when it gets EIO from memcpy on write?
-> >> > > > >
-> >> > > > > You won't get an MCE for a store;  only loads generate them.
-> >> > > > >
-> >> > > > > Won't fallocate FL_ZERO_RANGE clear bad blocks when mounted with
-> >> > > > > -o dax?
-> >> > > >
-> >> > > > Not necessarily; XFS usually implements this by punching out the
-> >> > > > range
-> >> > > > and then reallocating it as unwritten blocks.
-> >> > > >
-> >> > >
-> >> > > That does clear the error because the unwritten blocks are zeroed and
-> >> > > errors cleared when they become allocated again.
-> >> >
-> >> > Yes, the problem was that writes won't clear errors. zeroing through
-> >> > either hole-punch, truncate, unlinking the file should all work
-> >> > (assuming the hole-punch or truncate ranges wholly contain the
-> >> > 'badblock' sector).
-> >>
-> >> Let me repeat my question: You have mentioned that if we do IO through DAX,
-> >> writes won't clear errors and we should fall back to normal block path to
-> >> do write to clear the error. What does prevent us from directly clearing
-> >> the error from DAX path?
-> >>
-> > With DAX, all IO goes through DAX paths. There are two cases:
-> > 1. mmap and loads/stores: Obviously there is no kernel intervention
-> > here, and no badblocks handling is possible.
-> > 2. read() or write() IO: In the absence of dax, this would go through
-> > the bio submission path, through the pmem driver, and that would handle
-> > error clearing. With DAX, this goes through dax_iomap_actor, which also
-> > doesn't go through the pmem driver (it does a dax mapping, followed by
-> > essentially memcpy), and hence cannot handle badblocks.
-> 
-> Hmm, that may no longer be true after my changes to push dax flushing
-> to the driver. I.e. we could have a copy_from_iter() implementation
-> that attempts to clear errors... I'll get that series out and we can
-> discuss there.
+On Thu, Jan 19, 2017 at 4:05 PM, Andrew Morton
+<akpm@linux-foundation.org> wrote:
+> On Thu, 19 Jan 2017 14:07:13 -0800 Dan Williams <dan.j.williams@intel.com> wrote:
+>
+>> Prepare for hot{plug,remove} of sub-ranges of a section by tracking a
+>> section active bitmask, each bit representing 2MB (SECTION_SIZE (128M) /
+>> map_active bitmask length (64)).
+>>
+>> --- a/include/linux/mmzone.h
+>> +++ b/include/linux/mmzone.h
+>> @@ -1083,6 +1083,8 @@ struct mem_section_usage {
+>>       unsigned long pageblock_flags[0];
+>>  };
+>>
+>> +void section_active_init(unsigned long pfn, unsigned long nr_pages);
+>> +
+>>  struct page;
+>>  struct page_ext;
+>>  struct mem_section {
+>> @@ -1224,6 +1226,7 @@ void sparse_init(void);
+>>  #else
+>>  #define sparse_init()        do {} while (0)
+>>  #define sparse_index_init(_sec, _nid)  do {} while (0)
+>> +#define section_active_init(_pfn, _nr_pages) do {} while (0)
+>
+> Using a #define for this is crappy.  A static inline does typechecking
+> and can suppress unused-var warnings in callers.
+>
+>>  #endif /* CONFIG_SPARSEMEM */
+>>
+>>  /*
+>> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+>> index 68ccf5bcdbb2..9a3ab6c245a8 100644
+>> --- a/mm/page_alloc.c
+>> +++ b/mm/page_alloc.c
+>> @@ -6352,10 +6352,12 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
+>>
+>>       /* Print out the early node map */
+>>       pr_info("Early memory node ranges\n");
+>> -     for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
+>> +     for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
+>>               pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
+>>                       (u64)start_pfn << PAGE_SHIFT,
+>>                       ((u64)end_pfn << PAGE_SHIFT) - 1);
+>> +             section_active_init(start_pfn, end_pfn - start_pfn);
+>
+> section_active_init() can be __init, methinks.  We don't want to carry
+> the extra .text after boot.
+>
+> --- a/include/linux/mmzone.h~mm-track-active-portions-of-a-section-at-boot-fix
+> +++ a/include/linux/mmzone.h
+> @@ -1083,7 +1083,7 @@ struct mem_section_usage {
+>         unsigned long pageblock_flags[0];
+>  };
+>
+> -void section_active_init(unsigned long pfn, unsigned long nr_pages);
+> +void __init section_active_init(unsigned long pfn, unsigned long nr_pages);
+>
+>  struct page;
+>  struct page_ext;
+> @@ -1226,6 +1226,10 @@ void sparse_init(void);
+>  #else
+>  #define sparse_init()  do {} while (0)
+>  #define sparse_index_init(_sec, _nid)  do {} while (0)
+> +static inline void section_active_init(unsigned long pfn,
+> +                                      unsigned long nr_pages)
+> +{
+> +}
+>  #define section_active_init(_pfn, _nr_pages) do {} while (0)
+>  #endif /* CONFIG_SPARSEMEM */
+>
+> --- a/mm/sparse.c~mm-track-active-portions-of-a-section-at-boot-fix
+> +++ a/mm/sparse.c
+> @@ -168,13 +168,13 @@ void __meminit mminit_validate_memmodel_
+>         }
+>  }
+>
+> -static int section_active_index(phys_addr_t phys)
+> +static int __init section_active_index(phys_addr_t phys)
+>  {
+>         return (phys & ~(PA_SECTION_MASK)) / SECTION_ACTIVE_SIZE;
+>  }
+>
+> -static unsigned long section_active_mask(unsigned long pfn,
+> -               unsigned long nr_pages)
+> +static unsigned long __init section_active_mask(unsigned long pfn,
+> +                                               unsigned long nr_pages)
+>  {
+>         int idx_start, idx_size;
+>         phys_addr_t start, size;
+> @@ -195,7 +195,7 @@ static unsigned long section_active_mask
+>         return ((1UL << idx_size) - 1) << idx_start;
+>  }
+>
+> -void section_active_init(unsigned long pfn, unsigned long nr_pages)
+> +void __init section_active_init(unsigned long pfn, unsigned long nr_pages)
+>  {
+>         int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
+>         int i, start_sec = pfn_to_section_nr(pfn);
+> _
+>
 
-Yeah, that was precisely my point - doing copy_from_iter() that clears
-errors should be possible...
+Yes, looks good to me.
 
-								Honza
--- 
-Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
-SUSE Labs, CR
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
