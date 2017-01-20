@@ -1,14 +1,24 @@
-From: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 2/2] generic: test mmap io through DAX and non-DAX
-Date: Fri, 20 Jan 2017 14:15:50 +0800
-Message-ID: <1484892950-25178-3-git-send-email-xzhou@redhat.com>
-References: <1484878888-11483-1-git-send-email-xzhou@redhat.com>
- <1484892950-25178-1-git-send-email-xzhou@redhat.com>
+From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [Lsf-pc] [LSF/MM TOPIC] Badblocks checking/representation in
+ filesystems
+Date: Fri, 20 Jan 2017 10:03:57 +0100
+Message-ID: <20170120090357.GD14115@quack2.suse.cz>
+References: <20170117143703.GP2517@quack2.suse.cz>
+ <20170117221421.GC4880@omniknight.lm.intel.com>
+ <20170118101641.GD24789@quack2.suse.cz>
+ <x49r3406r2i.fsf@segfault.boston.devel.redhat.com>
+ <20170118210241.GE10498@birch.djwong.org>
+ <CAPcyv4hd7bpCa7d9msX0Y8gLz7WsqXT3VExQwwLuAcsmMxVTPg@mail.gmail.com>
+ <1484776549.4358.33.camel@intel.com>
+ <20170119081011.GA2565@quack2.suse.cz>
+ <20170119185910.GF4880@omniknight.lm.intel.com>
+ <CAPcyv4jZz_iqLutd0gPEL3udqbFxvBH8CZY5oDgUjG5dGbC2gg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1484892950-25178-1-git-send-email-xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4jZz_iqLutd0gPEL3udqbFxvBH8CZY5oDgUjG5dGbC2gg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,164 +28,88 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: fstests-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, eguan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, "Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org" <Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org>, "darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org" <slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org>, "linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-Mount TEST_DEV as non-DAX, SCRATCH_DEV as DAX, then
-do some IO between them. In this case we use mmap
-and dio/buffered IO read/write test programme.
+On Thu 19-01-17 11:03:12, Dan Williams wrote:
+> On Thu, Jan 19, 2017 at 10:59 AM, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> > On 01/19, Jan Kara wrote:
+> >> On Wed 18-01-17 21:56:58, Verma, Vishal L wrote:
+> >> > On Wed, 2017-01-18 at 13:32 -0800, Dan Williams wrote:
+> >> > > On Wed, Jan 18, 2017 at 1:02 PM, Darrick J. Wong
+> >> > > <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> >> > > > On Wed, Jan 18, 2017 at 03:39:17PM -0500, Jeff Moyer wrote:
+> >> > > > > Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org> writes:
+> >> > > > >
+> >> > > > > > On Tue 17-01-17 15:14:21, Vishal Verma wrote:
+> >> > > > > > > Your note on the online repair does raise another tangentially
+> >> > > > > > > related
+> >> > > > > > > topic. Currently, if there are badblocks, writes via the bio
+> >> > > > > > > submission
+> >> > > > > > > path will clear the error (if the hardware is able to remap
+> >> > > > > > > the bad
+> >> > > > > > > locations). However, if the filesystem is mounted eith DAX,
+> >> > > > > > > even
+> >> > > > > > > non-mmap operations - read() and write() will go through the
+> >> > > > > > > dax paths
+> >> > > > > > > (dax_do_io()). We haven't found a good/agreeable way to
+> >> > > > > > > perform
+> >> > > > > > > error-clearing in this case. So currently, if a dax mounted
+> >> > > > > > > filesystem
+> >> > > > > > > has badblocks, the only way to clear those badblocks is to
+> >> > > > > > > mount it
+> >> > > > > > > without DAX, and overwrite/zero the bad locations. This is a
+> >> > > > > > > pretty
+> >> > > > > > > terrible user experience, and I'm hoping this can be solved in
+> >> > > > > > > a better
+> >> > > > > > > way.
+> >> > > > > >
+> >> > > > > > Please remind me, what is the problem with DAX code doing
+> >> > > > > > necessary work to
+> >> > > > > > clear the error when it gets EIO from memcpy on write?
+> >> > > > >
+> >> > > > > You won't get an MCE for a store;  only loads generate them.
+> >> > > > >
+> >> > > > > Won't fallocate FL_ZERO_RANGE clear bad blocks when mounted with
+> >> > > > > -o dax?
+> >> > > >
+> >> > > > Not necessarily; XFS usually implements this by punching out the
+> >> > > > range
+> >> > > > and then reallocating it as unwritten blocks.
+> >> > > >
+> >> > >
+> >> > > That does clear the error because the unwritten blocks are zeroed and
+> >> > > errors cleared when they become allocated again.
+> >> >
+> >> > Yes, the problem was that writes won't clear errors. zeroing through
+> >> > either hole-punch, truncate, unlinking the file should all work
+> >> > (assuming the hole-punch or truncate ranges wholly contain the
+> >> > 'badblock' sector).
+> >>
+> >> Let me repeat my question: You have mentioned that if we do IO through DAX,
+> >> writes won't clear errors and we should fall back to normal block path to
+> >> do write to clear the error. What does prevent us from directly clearing
+> >> the error from DAX path?
+> >>
+> > With DAX, all IO goes through DAX paths. There are two cases:
+> > 1. mmap and loads/stores: Obviously there is no kernel intervention
+> > here, and no badblocks handling is possible.
+> > 2. read() or write() IO: In the absence of dax, this would go through
+> > the bio submission path, through the pmem driver, and that would handle
+> > error clearing. With DAX, this goes through dax_iomap_actor, which also
+> > doesn't go through the pmem driver (it does a dax mapping, followed by
+> > essentially memcpy), and hence cannot handle badblocks.
+> 
+> Hmm, that may no longer be true after my changes to push dax flushing
+> to the driver. I.e. we could have a copy_from_iter() implementation
+> that attempts to clear errors... I'll get that series out and we can
+> discuss there.
 
-Signed-off-by: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- tests/generic/405     | 119 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/generic/405.out |   2 +
- tests/generic/group   |   1 +
- 3 files changed, 122 insertions(+)
- create mode 100755 tests/generic/405
- create mode 100644 tests/generic/405.out
+Yeah, that was precisely my point - doing copy_from_iter() that clears
+errors should be possible...
 
-diff --git a/tests/generic/405 b/tests/generic/405
-new file mode 100755
-index 0000000..31d8df5
---- /dev/null
-+++ b/tests/generic/405
-@@ -0,0 +1,119 @@
-+#! /bin/bash
-+# FS QA Test 405
-+#
-+# mmap direct/buffered io between DAX and non-DAX mountpoints.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Red Hat Inc.  All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+_supported_fs generic
-+_supported_os Linux
-+_require_test
-+_require_scratch_dax
-+_require_test_program "feature"
-+_require_test_program "t_mmap_dio"
-+
-+# $1 mmap read/write size
-+t_mmap_dio_dax()
-+{
-+	# both dax
-+	# with O_DIRECT first
-+	src/t_mmap_dio $SCRATCH_MNT/tf_{s,d} $1 "dio both dax"
-+	# again with buffered IO
-+	src/t_mmap_dio -b $SCRATCH_MNT/tf_{s,d} \
-+		$1 "buffered both dax"
-+
-+	# from non dax to dax
-+	src/t_mmap_dio $TEST_DIR/tf_s \
-+		$SCRATCH_MNT/tf_d $1 "dio nondax to dax"
-+	src/t_mmap_dio -b $TEST_DIR/tf_s \
-+		$SCRATCH_MNT/tf_d $1 "buffered nondax to dax"
-+
-+	# from dax to non dax
-+	src/t_mmap_dio $SCRATCH_MNT/tf_s \
-+		$TEST_DIR/tf_d $1 "dio dax to nondax"
-+	src/t_mmap_dio -b $SCRATCH_MNT/tf_s \
-+		$TEST_DIR/tf_d $1 "buffered dax to nondax"
-+
-+	# both non dax
-+	src/t_mmap_dio $TEST_DIR/tf_{s,d} $1 "dio both nondax"
-+	src/t_mmap_dio -b $TEST_DIR/tf_{s,d} \
-+		$1 "buffered both nondax"
-+}
-+
-+do_tests()
-+{
-+	# less than page size
-+	t_mmap_dio_dax 1024
-+	# page size
-+	t_mmap_dio_dax `src/feature -s`
-+	# bigger sizes, for PMD faults
-+	t_mmap_dio_dax 16777216
-+	t_mmap_dio_dax 67108864
-+}
-+
-+_scratch_mkfs > /dev/null 2>&1
-+
-+# mount SCRATCH_DEV with dax option, TEST_DEV not
-+export MOUNT_OPTIONS=""
-+export TEST_FS_MOUNT_OPTS=""
-+_test_cycle_mount
-+_fs_options $TEST_DEV | grep -qw "dax" && \
-+	_notrun "we need $TEST_DEV mount without dax"
-+_scratch_mount "-o dax"
-+
-+psize=`src/feature -s`
-+tsize=$((1024 * 1024 * 1024))
-+
-+$XFS_IO_PROG -f -c "pwrite -W -b $psize 0 $tsize" \
-+	$SCRATCH_MNT/tf_s >> $seqres.full 2>&1
-+$XFS_IO_PROG -f -c "pwrite -W -b $psize 0 $tsize" \
-+	$SCRATCH_MNT/tf_d >> $seqres.full 2>&1
-+$XFS_IO_PROG -f -c "pwrite -W -b $psize 0 $tsize" \
-+	$TEST_DIR/tf_s >> $seqres.full 2>&1
-+$XFS_IO_PROG -f -c "pwrite -W -b $psize 0 $tsize" \
-+	$TEST_DIR/tf_d >> $seqres.full 2>&1
-+
-+do_tests
-+
-+# success, all done
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/generic/405.out b/tests/generic/405.out
-new file mode 100644
-index 0000000..bae761d
---- /dev/null
-+++ b/tests/generic/405.out
-@@ -0,0 +1,2 @@
-+QA output created by 405
-+Silence is golden
-diff --git a/tests/generic/group b/tests/generic/group
-index 6fc9c3d..a1be466 100644
---- a/tests/generic/group
-+++ b/tests/generic/group
-@@ -407,3 +407,4 @@
- 402 auto quick rw
- 403 auto quick attr
- 404 auto quick insert
-+405 auto quick
+								Honza
 -- 
-1.8.3.1
+Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
+SUSE Labs, CR
