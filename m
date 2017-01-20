@@ -1,120 +1,119 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v3 06/12] mm: track active portions of a section at boot
-Date: Thu, 19 Jan 2017 16:05:52 -0800
-Message-ID: <20170119160552.7bdc2e41f19bd52987a752bc@linux-foundation.org>
-References: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<148486363375.19694.14661926204436340901.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [LSF/MM TOPIC] Badblocks checking/representation in filesystems
+Date: Fri, 20 Jan 2017 00:32:14 +0000
+Message-ID: <1484872265.4857.1.camel@intel.com>
+References: <at1mp6pou4lenesjdgh22k4p.1484345585589@email.android.com>
+ <b9rbflutjt10mb4ofherta8j.1484345610771@email.android.com>
+ <SN2PR04MB2191756EABCB0E9DAA3B5328887B0@SN2PR04MB2191.namprd04.prod.outlook.com>
+ <20170114004910.GA4880@omniknight.lm.intel.com>
+ <20170117063355.GL14033@birch.djwong.org>
+ <20170117213549.GB4880@omniknight.lm.intel.com>
+ <CAOvWMLYMR-VvAVNuVjXPC-woxY6afQX5-hMC=Vj2p=3AGj9tyA@mail.gmail.com>
+ <20170117223705.GD4880@omniknight.lm.intel.com>
+ <CAOvWMLYcP9PN6LT51gwJvmyCTfRRrVeDTrjN-8_zTKhD+UmDiw@mail.gmail.com>
+ <20170117235150.GE4880@omniknight.lm.intel.com>
+ <CAOvWMLZCt39EDg-1uppVVUeRG40JvOo9sKLY2XMuynZdnc0W9w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <148486363375.19694.14661926204436340901.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@ml01.01.org, Logan Gunthorpe <logang@deltatee.com>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Mel Gorman <mgorman@techsingularity.net>, Vlastimil Babka <vbabka@suse.cz>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAOvWMLZCt39EDg-1uppVVUeRG40JvOo9sKLY2XMuynZdnc0W9w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Content-ID: <A90976A10BEAAB47887A170FAFFA2C66-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "andiry-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <andiry-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org" <Vyacheslav.Dubeyko-Sjgp3cTcYWE@public.gmane.org>, "darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org" <slava-yeENwD64cLxBDgjK7y7TUQ@public.gmane.org>, "linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu, 19 Jan 2017 14:07:13 -0800 Dan Williams <dan.j.williams@intel.com> wrote:
-
-> Prepare for hot{plug,remove} of sub-ranges of a section by tracking a
-> section active bitmask, each bit representing 2MB (SECTION_SIZE (128M) /
-> map_active bitmask length (64)).
-> 
-> --- a/include/linux/mmzone.h
-> +++ b/include/linux/mmzone.h
-> @@ -1083,6 +1083,8 @@ struct mem_section_usage {
->  	unsigned long pageblock_flags[0];
->  };
->  
-> +void section_active_init(unsigned long pfn, unsigned long nr_pages);
-> +
->  struct page;
->  struct page_ext;
->  struct mem_section {
-> @@ -1224,6 +1226,7 @@ void sparse_init(void);
->  #else
->  #define sparse_init()	do {} while (0)
->  #define sparse_index_init(_sec, _nid)  do {} while (0)
-> +#define section_active_init(_pfn, _nr_pages) do {} while (0)
-
-Using a #define for this is crappy.  A static inline does typechecking
-and can suppress unused-var warnings in callers.
-
->  #endif /* CONFIG_SPARSEMEM */
->  
->  /*
-> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> index 68ccf5bcdbb2..9a3ab6c245a8 100644
-> --- a/mm/page_alloc.c
-> +++ b/mm/page_alloc.c
-> @@ -6352,10 +6352,12 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
->  
->  	/* Print out the early node map */
->  	pr_info("Early memory node ranges\n");
-> -	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
-> +	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
->  		pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
->  			(u64)start_pfn << PAGE_SHIFT,
->  			((u64)end_pfn << PAGE_SHIFT) - 1);
-> +		section_active_init(start_pfn, end_pfn - start_pfn);
-
-section_active_init() can be __init, methinks.  We don't want to carry
-the extra .text after boot.
-
---- a/include/linux/mmzone.h~mm-track-active-portions-of-a-section-at-boot-fix
-+++ a/include/linux/mmzone.h
-@@ -1083,7 +1083,7 @@ struct mem_section_usage {
- 	unsigned long pageblock_flags[0];
- };
- 
--void section_active_init(unsigned long pfn, unsigned long nr_pages);
-+void __init section_active_init(unsigned long pfn, unsigned long nr_pages);
- 
- struct page;
- struct page_ext;
-@@ -1226,6 +1226,10 @@ void sparse_init(void);
- #else
- #define sparse_init()	do {} while (0)
- #define sparse_index_init(_sec, _nid)  do {} while (0)
-+static inline void section_active_init(unsigned long pfn,
-+				       unsigned long nr_pages)
-+{
-+}
- #define section_active_init(_pfn, _nr_pages) do {} while (0)
- #endif /* CONFIG_SPARSEMEM */
- 
---- a/mm/sparse.c~mm-track-active-portions-of-a-section-at-boot-fix
-+++ a/mm/sparse.c
-@@ -168,13 +168,13 @@ void __meminit mminit_validate_memmodel_
- 	}
- }
- 
--static int section_active_index(phys_addr_t phys)
-+static int __init section_active_index(phys_addr_t phys)
- {
- 	return (phys & ~(PA_SECTION_MASK)) / SECTION_ACTIVE_SIZE;
- }
- 
--static unsigned long section_active_mask(unsigned long pfn,
--		unsigned long nr_pages)
-+static unsigned long __init section_active_mask(unsigned long pfn,
-+						unsigned long nr_pages)
- {
- 	int idx_start, idx_size;
- 	phys_addr_t start, size;
-@@ -195,7 +195,7 @@ static unsigned long section_active_mask
- 	return ((1UL << idx_size) - 1) << idx_start;
- }
- 
--void section_active_init(unsigned long pfn, unsigned long nr_pages)
-+void __init section_active_init(unsigned long pfn, unsigned long nr_pages)
- {
- 	int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
- 	int i, start_sec = pfn_to_section_nr(pfn);
-_
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+T24gVHVlLCAyMDE3LTAxLTE3IGF0IDE3OjU4IC0wODAwLCBBbmRpcnkgWHUgd3JvdGU6DQo+IE9u
+IFR1ZSwgSmFuIDE3LCAyMDE3IGF0IDM6NTEgUE0sIFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVy
+bWFAaW50ZWwuY28NCj4gbT4gd3JvdGU6DQo+ID4gT24gMDEvMTcsIEFuZGlyeSBYdSB3cm90ZToN
+Cj4gPiANCj4gPiA8c25pcD4NCj4gPiANCj4gPiA+ID4gPiANCj4gPiA+ID4gPiBUaGUgcG1lbV9k
+b19idmVjKCkgcmVhZCBsb2dpYyBpcyBsaWtlIHRoaXM6DQo+ID4gPiA+ID4gDQo+ID4gPiA+ID4g
+cG1lbV9kb19idmVjKCkNCj4gPiA+ID4gPiDCoMKgwqDCoGlmIChpc19iYWRfcG1lbSgpKQ0KPiA+
+ID4gPiA+IMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gLUVJTzsNCj4gPiA+ID4gPiDCoMKgwqDCoGVs
+c2UNCj4gPiA+ID4gPiDCoMKgwqDCoMKgwqDCoMKgbWVtY3B5X2Zyb21fcG1lbSgpOw0KPiA+ID4g
+PiA+IA0KPiA+ID4gPiA+IE5vdGUgbWVtY3B5X2Zyb21fcG1lbSgpIGlzIGNhbGxpbmcgbWVtY3B5
+X21jc2FmZSgpLiBEb2VzIHRoaXMNCj4gPiA+ID4gPiBpbXBseQ0KPiA+ID4gPiA+IHRoYXQgZXZl
+biBpZiBhIGJsb2NrIGlzIG5vdCBpbiB0aGUgYmFkYmxvY2sgbGlzdCwgaXQgc3RpbGwgY2FuDQo+
+ID4gPiA+ID4gYmUgYmFkDQo+ID4gPiA+ID4gYW5kIGNhdXNlcyBNQ0U/IERvZXMgdGhlIGJhZGJs
+b2NrIGxpc3QgZ2V0IGNoYW5nZWQgZHVyaW5nIGZpbGUNCj4gPiA+ID4gPiBzeXN0ZW0NCj4gPiA+
+ID4gPiBydW5uaW5nPyBJZiB0aGF0IGlzIHRoZSBjYXNlLCBzaG91bGQgdGhlIGZpbGUgc3lzdGVt
+IGdldCBhDQo+ID4gPiA+ID4gbm90aWZpY2F0aW9uIHdoZW4gaXQgZ2V0cyBjaGFuZ2VkPyBJZiBh
+IGJsb2NrIGlzIGdvb2Qgd2hlbiBJDQo+ID4gPiA+ID4gZmlyc3QNCj4gPiA+ID4gPiByZWFkIGl0
+LCBjYW4gSSBzdGlsbCB0cnVzdCBpdCB0byBiZSBnb29kIGZvciB0aGUgc2Vjb25kDQo+ID4gPiA+
+ID4gYWNjZXNzPw0KPiA+ID4gPiANCj4gPiA+ID4gWWVzLCBpZiBhIGJsb2NrIGlzIG5vdCBpbiB0
+aGUgYmFkYmxvY2tzIGxpc3QsIGl0IGNhbiBzdGlsbCBjYXVzZQ0KPiA+ID4gPiBhbg0KPiA+ID4g
+PiBNQ0UuIFRoaXMgaXMgdGhlIGxhdGVudCBlcnJvciBjYXNlIEkgZGVzY3JpYmVkIGFib3ZlLiBG
+b3IgYQ0KPiA+ID4gPiBzaW1wbGUgcmVhZCgpDQo+ID4gPiA+IHZpYSB0aGUgcG1lbSBkcml2ZXIs
+IHRoaXMgd2lsbCBnZXQgaGFuZGxlZCBieSBtZW1jcHlfbWNzYWZlLiBGb3INCj4gPiA+ID4gbW1h
+cCwNCj4gPiA+ID4gYW4gTUNFIGlzIGluZXZpdGFibGUuDQo+ID4gPiA+IA0KPiA+ID4gPiBZZXMg
+dGhlIGJhZGJsb2NrcyBsaXN0IG1heSBjaGFuZ2Ugd2hpbGUgYSBmaWxlc3lzdGVtIGlzIHJ1bm5p
+bmcuDQo+ID4gPiA+IFRoZSBSRkMNCj4gPiA+ID4gcGF0Y2hlc1sxXSBJIGxpbmtlZCB0byBhZGQg
+YSBub3RpZmljYXRpb24gZm9yIHRoZSBmaWxlc3lzdGVtDQo+ID4gPiA+IHdoZW4gdGhpcw0KPiA+
+ID4gPiBoYXBwZW5zLg0KPiA+ID4gPiANCj4gPiA+IA0KPiA+ID4gVGhpcyBpcyByZWFsbHkgYmFk
+IGFuZCBpdCBtYWtlcyBmaWxlIHN5c3RlbSBpbXBsZW1lbnRhdGlvbiBtdWNoDQo+ID4gPiBtb3Jl
+DQo+ID4gPiBjb21wbGljYXRlZC4gQW5kIGJhZGJsb2NrIG5vdGlmaWNhdGlvbiBkb2VzIG5vdCBo
+ZWxwIHZlcnkgbXVjaCwNCj4gPiA+IGJlY2F1c2UgYW55IGJsb2NrIGNhbiBiZSBiYWQgcG90ZW50
+aWFsbHksIG5vIG1hdHRlciBpdCBpcyBpbg0KPiA+ID4gYmFkYmxvY2sNCj4gPiA+IGxpc3Qgb3Ig
+bm90LiBBbmQgZmlsZSBzeXN0ZW0gaGFzIHRvIHBlcmZvcm0gY2hlY2tpbmcgZm9yIGV2ZXJ5DQo+
+ID4gPiByZWFkLA0KPiA+ID4gdXNpbmcgbWVtY3B5X21jc2FmZS4gVGhpcyBpcyBkaXNhc3RlciBm
+b3IgZmlsZSBzeXN0ZW0gbGlrZSBOT1ZBLA0KPiA+ID4gd2hpY2gNCj4gPiA+IHVzZXMgcG9pbnRl
+ciBkZS1yZWZlcmVuY2UgdG8gYWNjZXNzIGRhdGEgc3RydWN0dXJlcyBvbiBwbWVtLiBOb3cNCj4g
+PiA+IGlmIEkNCj4gPiA+IHdhbnQgdG8gcmVhZCBhIGZpZWxkIGluIGFuIGlub2RlIG9uIHBtZW0s
+IEkgaGF2ZSB0byBjb3B5IGl0IHRvDQo+ID4gPiBEUkFNDQo+ID4gPiBmaXJzdCBhbmQgbWFrZSBz
+dXJlIG1lbWNweV9tY3NhZmUoKSBkb2VzIG5vdCByZXBvcnQgYW55dGhpbmcNCj4gPiA+IHdyb25n
+Lg0KPiA+IA0KPiA+IFlvdSBoYXZlIGEgZ29vZCBwb2ludCwgYW5kIEkgZG9uJ3Qga25vdyBpZiBJ
+IGhhdmUgYW4gYW5zd2VyIGZvcg0KPiA+IHRoaXMuLg0KPiA+IEFzc3VtaW5nIGEgc3lzdGVtIHdp
+dGggTUNFIHJlY292ZXJ5LCBtYXliZSBOT1ZBIGNhbiBhZGQgYSBtY2UNCj4gPiBoYW5kbGVyDQo+
+ID4gc2ltaWxhciB0byBuZml0X2hhbmRsZV9tY2UoKSwgYW5kIGhhbmRsZSBlcnJvcnMgYXMgdGhl
+eSBoYXBwZW4sIGJ1dA0KPiA+IEknbQ0KPiA+IGJlaW5nIHZlcnkgaGFuZC13YXZleSBoZXJlIGFu
+ZCBkb24ndCBrbm93IGhvdyBtdWNoL2hvdyB3ZWxsIHRoYXQNCj4gPiBtaWdodA0KPiA+IHdvcmsu
+Lg0KPiA+IA0KPiA+ID4gDQo+ID4gPiA+IE5vLCBpZiB0aGUgbWVkaWEsIGZvciBzb21lIHJlYXNv
+biwgJ2R2ZWxvcHMnIGEgYmFkIGNlbGwsIGENCj4gPiA+ID4gc2Vjb25kDQo+ID4gPiA+IGNvbnNl
+Y3V0aXZlIHJlYWQgZG9lcyBoYXZlIGEgY2hhbmNlIG9mIGJlaW5nIGJhZC4gT25jZSBhDQo+ID4g
+PiA+IGxvY2F0aW9uIGhhcw0KPiA+ID4gPiBiZWVuIG1hcmtlZCBhcyBiYWQsIGl0IHdpbGwgc3Rh
+eSBiYWQgdGlsbCB0aGUgQUNQSSBjbGVhciBlcnJvcg0KPiA+ID4gPiAnRFNNJyBoYXMNCj4gPiA+
+ID4gYmVlbiBjYWxsZWQgdG8gbWFyayBpdCBhcyBjbGVhbi4NCj4gPiA+ID4gDQo+ID4gPiANCj4g
+PiA+IEkgd29uZGVyIHdoYXQgaGFwcGVucyB0byB3cml0ZSBpbiB0aGlzIGNhc2U/IElmIGEgYmxv
+Y2sgaXMgYmFkIGJ1dA0KPiA+ID4gbm90DQo+ID4gPiByZXBvcnRlZCBpbiBiYWRibG9jayBsaXN0
+LiBOb3cgSSB3cml0ZSB0byBpdCB3aXRob3V0IHJlYWRpbmcNCj4gPiA+IGZpcnN0LiBEbw0KPiA+
+ID4gSSBjbGVhciB0aGUgcG9pc29uIHdpdGggdGhlIHdyaXRlPyBPciBzdGlsbCByZXF1aXJlIGEg
+QUNQSSBEU00/DQo+ID4gDQo+ID4gV2l0aCB3cml0ZXMsIG15IHVuZGVyc3RhbmRpbmcgaXMgdGhl
+cmUgaXMgc3RpbGwgYSBwb3NzaWJpbGl0eSB0aGF0DQo+ID4gYW4NCj4gPiBpbnRlcm5hbCByZWFk
+LW1vZGlmeS13cml0ZSBjYW4gaGFwcGVuLCBhbmQgY2F1c2UgYSBNQ0UgKHRoaXMgaXMgdGhlDQo+
+ID4gc2FtZQ0KPiA+IGFzIHdyaXRpbmcgdG8gYSBiYWQgRFJBTSBjZWxsLCB3aGljaCBjYW4gYWxz
+byBjYXVzZSBhbiBNQ0UpLiBZb3UNCj4gPiBjYW4ndA0KPiA+IHJlYWxseSB1c2UgdGhlIEFDUEkg
+RFNNIHByZWVtcHRpdmVseSBiZWNhdXNlIHlvdSBkb24ndCBrbm93IHdoZXRoZXINCj4gPiB0aGUN
+Cj4gPiBsb2NhdGlvbiB3YXMgYmFkLiBUaGUgZXJyb3IgZmxvdyB3aWxsIGJlIHNvbWV0aGluZyBs
+aWtlIHdyaXRlIGNhdXNlcw0KPiA+IHRoZQ0KPiA+IE1DRSwgYSBiYWRibG9jayBnZXRzIGFkZGVk
+IChlaXRoZXIgdGhyb3VnaCB0aGUgbWNlIGhhbmRsZXIgb3IgYWZ0ZXINCj4gPiB0aGUNCj4gPiBu
+ZXh0IHJlYm9vdCksIGFuZCB0aGUgcmVjb3ZlcnkgcGF0aCBpcyBub3cgdGhlIHNhbWUgYXMgYSBy
+ZWd1bGFyDQo+ID4gYmFkYmxvY2suDQo+ID4gDQo+IA0KPiBUaGlzIGlzIGRpZmZlcmVudCBmcm9t
+IG15IHVuZGVyc3RhbmRpbmcuIFJpZ2h0IG5vdyB3cml0ZV9wbWVtKCkgaW4NCj4gcG1lbV9kb19i
+dmVjKCkgZG9lcyBub3QgdXNlIG1lbWNweV9tY3NhZmUoKS4gSWYgdGhlIGJsb2NrIGlzIGJhZCBp
+dA0KPiBjbGVhcnMgcG9pc29uIGFuZCB3cml0ZXMgdG8gcG1lbSBhZ2Fpbi4gU2VlbXMgdG8gbWUg
+d3JpdGluZyB0byBiYWQNCj4gYmxvY2tzIGRvZXMgbm90IGNhdXNlIE1DRS4gRG8gd2UgbmVlZCBt
+ZW1jcHlfbWNzYWZlIGZvciBwbWVtIHN0b3Jlcz8NCg0KWW91IGFyZSByaWdodCwgd3JpdGVzIGRv
+bid0IHVzZSBtZW1jcHlfbWNzYWZlLCBhbmQgd2lsbCBub3QgZGlyZWN0bHkNCmNhdXNlIGFuIE1D
+RS4gSG93ZXZlciBhIHdyaXRlIGNhbiBjYXVzZSBhbiBhc3luY2hyb25vdXMgJ0NNQ0knIC0NCmNv
+cnJlY3RlZCBtYWNoaW5lIGNoZWNrIGludGVycnVwdCwgYnV0IHRoaXMgaXMgbm90IGNyaXRpY2Fs
+LCBhbmQgd29udCBiZQ0KYSBtZW1vcnkgZXJyb3IgYXMgdGhlIGNvcmUgZGlkbid0IGNvbnN1bWUg
+cG9pc29uLiBtZW1jcHlfbWNzYWZlIGNhbm5vdA0KcHJvdGVjdCBhZ2FpbnN0IHRoaXMgYmVjYXVz
+ZSB0aGUgd3JpdGUgaXMgJ3Bvc3RlZCcgYW5kIHRoZSBDTUNJIGlzIG5vdA0Kc3luY2hyb25vdXMu
+IE5vdGUgdGhhdCB0aGlzIGlzIG9ubHkgaW4gdGhlIGxhdGVudCBlcnJvciBvciBtZW1tYXAtc3Rv
+cmUNCmNhc2UuDQoNCj4gDQo+IFRoYW5rcywNCj4gQW5kaXJ5DQo+IA0KPiA+ID4gDQo+ID4gPiA+
+IFsxXTogaHR0cDovL3d3dy5saW51eC5zZ2kuY29tL2FyY2hpdmVzL3hmcy8yMDE2LTA2L21zZzAw
+Mjk5Lmh0bWwNCj4gPiA+ID4gDQo+ID4gPiANCj4gPiA+IFRoYW5rIHlvdSBmb3IgdGhlIHBhdGNo
+c2V0LiBJIHdpbGwgbG9vayBpbnRvIGl0Lg0KPiA+ID4gCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgt
+bnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xpbnV4LW52ZGltbQo=
