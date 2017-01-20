@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 08E3B819D0
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jan 2017 09:56:08 -0800 (PST)
-Subject: [PATCH v6] x86: fix kaslr and memmap collision
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 10 Jan 2017 10:56:07 -0700
-Message-ID: <148407086864.34638.4228724339196415751.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 829C281E9E
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 19:54:35 -0800 (PST)
+Subject: [PATCH 03/13] x86, dax, pmem: introduce 'copy_from_iter' dax operation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 19 Jan 2017 19:50:29 -0800
+Message-ID: <148488422955.37913.7723740119156814265.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148488421301.37913.12835362165895864897.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148488421301.37913.12835362165895864897.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,294 +22,191 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
-Cc: keescook@chromium.org, bhe@redhat.com, linux-nvdimm@lists.01.org, x86@kernel.org, david@fromorbit.com, linux-kernel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
-However it does not take into account the memmap= parameter passed in from
-the kernel cmdline. This results in the kernel sometimes being put in
-the middle of memmap. Teaching kaslr to not insert the kernel in
-memmap defined regions. We will support up to 4 memmap regions. Any
-additional regions will cause kaslr to disable. The mem_avoid set has
-been augmented to add up to 4 unusable regions of memmaps provided by the
-user to exclude those regions from the set of valid address range to insert
-the uncompressed kernel image. The nn@ss ranges will be skipped by the
-mem_avoid set since it indicates memory useable.
+The direct-I/O write path for a pmem device must ensure that data is flushed
+to a power-fail safe zone when the operation is complete. However, other
+dax capable block devices, like brd, do not have this requirement.
+Introduce a 'copy_from_iter' dax operation so that pmem can inject
+cache management without imposing this overhead on other dax capable
+block_device drivers.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: <x86@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/boot/boot.h             |    3 +
- arch/x86/boot/compressed/kaslr.c |  132 ++++++++++++++++++++++++++++++++++++++
- arch/x86/boot/string.c           |   38 +++++++++++
- 3 files changed, 172 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/pmem.h |   31 -------------------------------
+ drivers/nvdimm/pmem.c       |   10 ++++++++++
+ fs/dax.c                    |   11 ++++++++++-
+ include/linux/blkdev.h      |    1 +
+ include/linux/pmem.h        |   24 ------------------------
+ 5 files changed, 21 insertions(+), 56 deletions(-)
 
- v2:
- Addressing comments from Ingo.
- - Handle entire list of memmaps
- v3:
- Fix 32bit build issue
- v4:
- Addressing comments from Baoquan
- - Not exclude nn@ss ranges
- v5:
- Addressing additional comments from Baoquan
- - Update commit header and various coding style changes
- v6:
- Address comments from Kees
- - Only fail for physical address randomization
-
-diff --git a/arch/x86/boot/boot.h b/arch/x86/boot/boot.h
-index e5612f3..59c2075 100644
---- a/arch/x86/boot/boot.h
-+++ b/arch/x86/boot/boot.h
-@@ -332,7 +332,10 @@ int strncmp(const char *cs, const char *ct, size_t count);
- size_t strnlen(const char *s, size_t maxlen);
- unsigned int atou(const char *s);
- unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base);
-+unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base);
-+long simple_strtol(const char *cp, char **endp, unsigned int base);
- size_t strlen(const char *s);
-+char *strchr(const char *s, int c);
- 
- /* tty.c */
- void puts(const char *);
-diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
-index a66854d..e919b70 100644
---- a/arch/x86/boot/compressed/kaslr.c
-+++ b/arch/x86/boot/compressed/kaslr.c
-@@ -11,6 +11,7 @@
-  */
- #include "misc.h"
- #include "error.h"
-+#include "../boot.h"
- 
- #include <generated/compile.h>
- #include <linux/module.h>
-@@ -56,11 +57,18 @@ struct mem_vector {
- 	unsigned long size;
- };
- 
-+/* only supporting at most 4 unusable memmap regions with kaslr */
-+#define MAX_MEMMAP_REGIONS	4
-+
-+static bool memmap_too_large;
-+
- enum mem_avoid_index {
- 	MEM_AVOID_ZO_RANGE = 0,
- 	MEM_AVOID_INITRD,
- 	MEM_AVOID_CMDLINE,
- 	MEM_AVOID_BOOTPARAMS,
-+	MEM_AVOID_MEMMAP_BEGIN,
-+	MEM_AVOID_MEMMAP_END = MEM_AVOID_MEMMAP_BEGIN + MAX_MEMMAP_REGIONS - 1,
- 	MEM_AVOID_MAX,
- };
- 
-@@ -77,6 +85,119 @@ static bool mem_overlaps(struct mem_vector *one, struct mem_vector *two)
- 	return true;
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index f26ba430d853..0ca5e693f4a2 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -64,37 +64,6 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ 		clwb(p);
  }
  
-+/**
-+ *	_memparse - parse a string with mem suffixes into a number
-+ *	@ptr: Where parse begins
-+ *	@retptr: (output) Optional pointer to next char after parse completes
-+ *
-+ *	Parses a string into a number.  The number stored at @ptr is
-+ *	potentially suffixed with K, M, G, T, P, E.
-+ */
-+static unsigned long long _memparse(const char *ptr, char **retptr)
+-/*
+- * copy_from_iter_nocache() on x86 only uses non-temporal stores for iovec
+- * iterators, so for other types (bvec & kvec) we must do a cache write-back.
+- */
+-static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
+-{
+-	return iter_is_iovec(i) == false;
+-}
+-
+-/**
+- * arch_copy_from_iter_pmem - copy data from an iterator to PMEM
+- * @addr:	PMEM destination address
+- * @bytes:	number of bytes to copy
+- * @i:		iterator with source data
+- *
+- * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+- */
+-static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+-		struct iov_iter *i)
+-{
+-	size_t len;
+-
+-	/* TODO: skip the write-back by always using non-temporal stores */
+-	len = copy_from_iter_nocache(addr, bytes, i);
+-
+-	if (__iter_needs_pmem_wb(i))
+-		arch_wb_cache_pmem(addr, bytes);
+-
+-	return len;
+-}
+-
+ /**
+  * arch_clear_pmem - zero a PMEM memory range
+  * @addr:	virtual start address
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 6e5442174245..71e5e365d3fc 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -217,8 +217,18 @@ __weak long pmem_direct_access(struct block_device *bdev, sector_t sector,
+ 	return pmem->size - pmem->pfn_pad - offset;
+ }
+ 
++static size_t pmem_copy_from_iter(void *addr, size_t bytes,
++		struct iov_iter *i)
 +{
-+	char *endptr;	/* local pointer to end of parsed string */
++	size_t rc = copy_from_iter_nocache(addr, bytes, i);
 +
-+	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
-+
-+	switch (*endptr) {
-+	case 'E':
-+	case 'e':
-+		ret <<= 10;
-+	case 'P':
-+	case 'p':
-+		ret <<= 10;
-+	case 'T':
-+	case 't':
-+		ret <<= 10;
-+	case 'G':
-+	case 'g':
-+		ret <<= 10;
-+	case 'M':
-+	case 'm':
-+		ret <<= 10;
-+	case 'K':
-+	case 'k':
-+		ret <<= 10;
-+		endptr++;
-+	default:
-+		break;
-+	}
-+
-+	if (retptr)
-+		*retptr = endptr;
-+
-+	return ret;
++	wb_cache_pmem(addr, bytes);
++	return rc;
 +}
 +
-+static int
-+parse_memmap(char *p, unsigned long long *start, unsigned long long *size)
-+{
-+	char *oldp;
-+
-+	if (!p)
-+		return -EINVAL;
-+
-+	/* we don't care about this option here */
-+	if (!strncmp(p, "exactmap", 8))
-+		return -EINVAL;
-+
-+	oldp = p;
-+	*size = _memparse(p, &p);
-+	if (p == oldp)
-+		return -EINVAL;
-+
-+	switch (*p) {
-+	case '@':
-+		/* skip this region, usable */
-+		*start = 0;
-+		*size = 0;
-+		return 0;
-+	case '#':
-+	case '$':
-+	case '!':
-+		*start = _memparse(p + 1, &p);
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static void mem_avoid_memmap(void)
-+{
-+	char arg[128];
-+	int rc = 0;
-+
-+	/* see if we have any memmap areas */
-+	if (cmdline_find_option("memmap", arg, sizeof(arg)) > 0) {
-+		int i = 0;
-+		char *str = arg;
-+
-+		while (str && (i < MAX_MEMMAP_REGIONS)) {
-+			unsigned long long start, size;
-+			char *k = strchr(str, ',');
-+
-+			if (k)
-+				*k++ = 0;
-+
-+			rc = parse_memmap(str, &start, &size);
-+			if (rc < 0)
-+				break;
-+			str = k;
-+			/* a usable region that should not be skipped */
-+			if (size == 0)
-+				continue;
-+
-+			mem_avoid[MEM_AVOID_MEMMAP_BEGIN + i].start = start;
-+			mem_avoid[MEM_AVOID_MEMMAP_BEGIN + i].size = size;
-+			i++;
-+		}
-+
-+		/* more than 4 memmaps, fail kaslr */
-+		if ((i >= MAX_MEMMAP_REGIONS) && str)
-+			memmap_too_large = true;
-+	}
-+}
-+
- /*
-  * In theory, KASLR can put the kernel anywhere in the range of [16M, 64T).
-  * The mem_avoid array is used to store the ranges that need to be avoided
-@@ -197,6 +318,9 @@ static void mem_avoid_init(unsigned long input, unsigned long input_size,
+ static const struct dax_operations pmem_dax_ops = {
+ 	.direct_access = pmem_direct_access,
++	.copy_from_iter = pmem_copy_from_iter,
+ };
  
- 	/* We don't need to set a mapping for setup_data. */
+ static const struct block_device_operations pmem_fops = {
+diff --git a/fs/dax.c b/fs/dax.c
+index 81a77c070344..22cd57424a55 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1006,6 +1006,10 @@ static loff_t
+ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+ 		struct iomap *iomap)
+ {
++	struct block_device *bdev = iomap->bdev;
++	size_t (*dax_copy_from_iter)(void *, size_t, struct iov_iter *);
++	const struct block_device_operations *ops = bdev->bd_disk->fops;
++	const struct dax_operations *dax_ops = ops->dax_ops;
+ 	struct iov_iter *iter = data;
+ 	loff_t end = pos + length, done = 0;
+ 	ssize_t ret = 0;
+@@ -1033,6 +1037,11 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+ 					      (end - 1) >> PAGE_SHIFT);
+ 	}
  
-+	/* Mark the memmap regions we need to avoid */
-+	mem_avoid_memmap();
++	if (dax_ops->copy_from_iter)
++		dax_copy_from_iter = dax_ops->copy_from_iter;
++	else
++		dax_copy_from_iter = copy_from_iter_nocache;
 +
- #ifdef CONFIG_X86_VERBOSE_BOOTUP
- 	/* Make sure video RAM can be used. */
- 	add_identity_map(0, PMD_SIZE);
-@@ -379,6 +503,12 @@ static unsigned long find_random_phys_addr(unsigned long minimum,
- 	int i;
- 	unsigned long addr;
+ 	while (pos < end) {
+ 		unsigned offset = pos & (PAGE_SIZE - 1);
+ 		struct blk_dax_ctl dax = { 0 };
+@@ -1052,7 +1061,7 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+ 			map_len = end - pos;
  
-+	/* Check if we had too many memmaps. */
-+	if (memmap_too_large) {
-+		debug_putstr("Aborted e820 scan (more than 4 memmap= args)!\n");
-+		return 0;
-+	}
-+
- 	/* Make sure minimum is aligned. */
- 	minimum = ALIGN(minimum, CONFIG_PHYSICAL_ALIGN);
+ 		if (iov_iter_rw(iter) == WRITE)
+-			map_len = copy_from_iter_pmem(dax.addr, map_len, iter);
++			map_len = dax_copy_from_iter(dax.addr, map_len, iter);
+ 		else
+ 			map_len = copy_to_iter(dax.addr, map_len, iter);
+ 		dax_unmap_atomic(iomap->bdev, &dax);
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 8afce34823f5..7ca559d124a3 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1866,6 +1866,7 @@ struct blk_dax_ctl {
+ struct dax_operations {
+ 	long (*direct_access)(struct block_device *, sector_t, void **, pfn_t *,
+ 			long);
++	size_t (*copy_from_iter)(void *, size_t, struct iov_iter *);
+ };
  
-@@ -456,7 +586,7 @@ void choose_random_location(unsigned long input,
- 	/* Walk e820 and find a random address. */
- 	random_addr = find_random_phys_addr(min_addr, output_size);
- 	if (!random_addr) {
--		warn("KASLR disabled: could not find suitable E820 region!");
-+		warn("Physical KASLR disabled: no suitable memory region!");
- 	} else {
- 		/* Update the new physical address location. */
- 		if (*output != random_addr) {
-diff --git a/arch/x86/boot/string.c b/arch/x86/boot/string.c
-index cc3bd58..0464aaa 100644
---- a/arch/x86/boot/string.c
-+++ b/arch/x86/boot/string.c
-@@ -122,6 +122,31 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
+ struct block_device_operations {
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 71ecf3d46aac..9d542a5600e4 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -31,13 +31,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+ 	BUG();
+ }
+ 
+-static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+-		struct iov_iter *i)
+-{
+-	BUG();
+-	return 0;
+-}
+-
+ static inline void arch_clear_pmem(void *addr, size_t size)
+ {
+ 	BUG();
+@@ -80,23 +73,6 @@ static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
  }
  
  /**
-+ * simple_strtoul - convert a string to an unsigned long
-+ * @cp: The start of the string
-+ * @endp: A pointer to the end of the parsed string will be placed here
-+ * @base: The number base to use
-+ */
-+unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base)
-+{
-+	return simple_strtoull(cp, endp, base);
-+}
-+
-+/**
-+ * simple_strtol - convert a string to a signed long
-+ * @cp: The start of the string
-+ * @endp: A pointer to the end of the parsed string will be placed here
-+ * @base: The number base to use
-+ */
-+long simple_strtol(const char *cp, char **endp, unsigned int base)
-+{
-+	if (*cp == '-')
-+		return -simple_strtoul(cp + 1, endp, base);
-+
-+	return simple_strtoul(cp, endp, base);
-+}
-+
-+/**
-  * strlen - Find the length of a string
-  * @s: The string to be sized
-  */
-@@ -155,3 +180,16 @@ char *strstr(const char *s1, const char *s2)
- 	}
- 	return NULL;
- }
-+
-+/**
-+ * strchr - Find the first occurrence of the character c in the string s.
-+ * @s: the string to be searched
-+ * @c: the character to search for
-+ */
-+char *strchr(const char *s, int c)
-+{
-+	while (*s != (char)c)
-+		if (*s++ == '\0')
-+			return NULL;
-+	return (char *)s;
-+}
+- * copy_from_iter_pmem - copy data from an iterator to PMEM
+- * @addr:	PMEM destination address
+- * @bytes:	number of bytes to copy
+- * @i:		iterator with source data
+- *
+- * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+- * See blkdev_issue_flush() note for memcpy_to_pmem().
+- */
+-static inline size_t copy_from_iter_pmem(void *addr, size_t bytes,
+-		struct iov_iter *i)
+-{
+-	if (arch_has_pmem_api())
+-		return arch_copy_from_iter_pmem(addr, bytes, i);
+-	return copy_from_iter_nocache(addr, bytes, i);
+-}
+-
+-/**
+  * clear_pmem - zero a PMEM memory range
+  * @addr:	virtual start address
+  * @size:	number of bytes to zero
 
 _______________________________________________
 Linux-nvdimm mailing list
