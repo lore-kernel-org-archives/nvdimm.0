@@ -1,13 +1,13 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: mmap dio write failure
-Date: Thu, 19 Jan 2017 22:04:01 -0800
-Message-ID: <CAPcyv4hO8gEwYHRNRm3n-ZjNzMeW_2x-X-z_09i6wU0DAeFD=A@mail.gmail.com>
-References: <20170120044007.kwevjo7nawwolagy@XZHOUW.usersys.redhat.com>
+From: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v4 0/2] mmap dio and DAX
+Date: Fri, 20 Jan 2017 14:15:48 +0800
+Message-ID: <1484892950-25178-1-git-send-email-xzhou@redhat.com>
+References: <1484878888-11483-1-git-send-email-xzhou@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170120044007.kwevjo7nawwolagy-E9dkjZ7ERC1QcClZ3XN9yxcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <1484878888-11483-1-git-send-email-xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,51 +17,68 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Eryu Guan <eguan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: fstests-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, eguan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu, Jan 19, 2017 at 8:40 PM, Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> Hi,
->
-> At first, I am not sure whether this is an issue.
->
-> mmap a file in a DAX mountpoint, open another file
-> in a non-DAX mountpoint with O_DIRECT, write the
-> mapped area to the other file.
->
-> This write Success on pmem ramdisk(memmap=2G!20G like)
-> This write Fail(Bad address) on nvdimm pmem devices.
-> This write Fail(Bad address) on brd based ramdisk.
->
-> If we skip the O_DIRECT flag, all tests pass.
->
-> If we write from DAX to DAX, all tests pass.
-> If we write from non-DAX to DAX, all tests pass.
->
-> Kernel version: Linus tree commit 44b4b46.
->
-> I have checked back to v4.6 testing on nvdimm devices,
-> all the same results. I do remember that this test
-> passed on nvdimms back to May 2016 and i have some
-> notes for that. However things changed a lot, test
-> scripts, kernel code, even the nvdimm and machine
-> firmweare.
->
+common/rc         : requires SCRATCH_DEV support DAX
+src/t_mmap_dio.c  : intro mmap and O_DIRECT rw through files
+tests/generic/405 : IO between DAX/non-DAX mountpoints
+tests/xfs/138     : IO between DAX/non-DAX xfs files(per-inode flag)
 
-This is expected and is the difference between a namespace in "raw"
-mode and a namespace in "memory" mode. You can check your namespace's
-mode with "ndctl list" (ndctl is packaged in Fedora).
+v2 :
+  Merge helper function changes into the first patch;
+  Rewrite _require_dax, check options for sure;
+  Print msg in t_mmap_dio.c to show which test going wrong;
+  Empty mount options and check after mount to ensure we
+wont mount with wrong option;
+  Remove unnecessary leading underscore and _fail;
+  Use xfs_io instead of dd;
+  Other minor fixes.
 
-The reason why memmap=ss!nn namespaces work by default is that we
-assume they are relatively small and can afford to allocate struct
-page in system memory. We don't make the same assumption with
-NFIT-defined namespaces. They might be so large that trying to
-allocate struct page for them could consume all of system memory. So
-you have to convert them into "memory" mode and make a decision at the
-time as to whether you want to use a portion of the pmem capacity as
-struct page storage, or to go ahead and allocate struct page from
-system memory.  By default ndctl will opt to reserve space from pmem
-with a command like:
+v3:
+ close fds in C test programme for clean up.
 
-    ndctl create-namespace --reconfig=namespace0.0 --mode=memory --force
+v4:
+ Test both buffered and O_DIRECT IO;
+ Fix arg numbers in C test programme;
+ Fix fs options check after mount.
+ Cc Jeff Moyer since this test is based on his code.
+ (Sorry for the late cc!)
+
+Test status:
+  Both cases not run on normal block device;
+  Both cases PASS on ramdisk based pmem devices;
+  DIO in both cases FAIL on brd based ramdisk with:
+  DIO in both cases FAIL on nvdimm devices with:
+    +write(Bad address) len 1024 dio dax to nondax
+    +write(Bad address) len 4096 dio dax to nondax
+    +write(Bad address) len 16777216 dio dax to nondax
+    +write(Bad address) len 67108864 dio dax to nondax
+
+  I've reported this to nvdimm list.
+  https://lists.01.org/pipermail/linux-nvdimm/2017-January/008600.html
+
+Xiong Zhou (2):
+  xfs: test per-inode DAX flag by IO
+  generic: test mmap io through DAX and non-DAX
+
+ .gitignore            |   1 +
+ common/rc             |  13 ++++++
+ src/Makefile          |   2 +-
+ src/t_mmap_dio.c      | 105 ++++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/405     | 119 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/405.out |   2 +
+ tests/generic/group   |   1 +
+ tests/xfs/138         | 116 ++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/xfs/138.out     |   2 +
+ tests/xfs/group       |   1 +
+ 10 files changed, 361 insertions(+), 1 deletion(-)
+ create mode 100644 src/t_mmap_dio.c
+ create mode 100755 tests/generic/405
+ create mode 100644 tests/generic/405.out
+ create mode 100755 tests/xfs/138
+ create mode 100644 tests/xfs/138.out
+
+-- 
+1.8.3.1
