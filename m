@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5944681C81
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jan 2017 16:20:09 -0800 (PST)
-Date: Fri, 13 Jan 2017 17:20:08 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [LSF/MM TOPIC] Future direction of DAX
-Message-ID: <20170114002008.GA25379@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C909381EA0
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 19:54:51 -0800 (PST)
+Subject: [PATCH 06/13] x86, dax, libnvdimm: move wb_cache_pmem() to libnvdimm
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 19 Jan 2017 19:50:45 -0800
+Message-ID: <148488424537.37913.11896267277639094978.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148488421301.37913.12835362165895864897.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148488421301.37913.12835362165895864897.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,72 +22,208 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: lsf-pc@lists.linux-foundation.org
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This past year has seen a lot of new DAX development.  We have added support
-for fsync/msync, moved to the new iomap I/O data structure, introduced radix
-tree based locking, re-enabled PMD support (twice!), and have fixed a bunch of
-bugs.
+With all calls to this routine re-directed through the pmem driver, we
+can kill the pmem api indirection. arch_wb_cache_pmem() is now
+optionally supplied by an arch specific extension to libnvdimm.  Same as
+before, pmem flushing is only defined for x86_64, but it is
+straightforward to add other archs in the future.
 
-We still have a lot of work to do, though, and I'd like to propose a discussion
-around what features people would like to see enabled in the coming year as
-well as what what use cases their customers have that we might not be aware of.
+Cc: <x86@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/x86/include/asm/pmem.h |   20 --------------------
+ drivers/nvdimm/Makefile     |    1 +
+ drivers/nvdimm/pmem.c       |    4 ++--
+ drivers/nvdimm/pmem.h       |    9 +++++++++
+ drivers/nvdimm/x86.c        |   36 ++++++++++++++++++++++++++++++++++++
+ include/linux/pmem.h        |   19 -------------------
+ tools/testing/nvdimm/Kbuild |    1 +
+ 7 files changed, 49 insertions(+), 41 deletions(-)
+ create mode 100644 drivers/nvdimm/x86.c
 
-Here are a few topics to start the conversation:
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index ab4983df7bff..4759a179aa52 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -44,26 +44,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+ 		BUG();
+ }
+ 
+-/**
+- * arch_wb_cache_pmem - write back a cache range with CLWB
+- * @vaddr:	virtual start address
+- * @size:	number of bytes to write back
+- *
+- * Write back a cache range using the CLWB (cache line write back)
+- * instruction.
+- */
+-static inline void arch_wb_cache_pmem(void *addr, size_t size)
+-{
+-	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
+-	unsigned long clflush_mask = x86_clflush_size - 1;
+-	void *vend = addr + size;
+-	void *p;
+-
+-	for (p = (void *)((unsigned long)addr & ~clflush_mask);
+-	     p < vend; p += x86_clflush_size)
+-		clwb(p);
+-}
+-
+ static inline void arch_invalidate_pmem(void *addr, size_t size)
+ {
+ 	clflush_cache_range(addr, size);
+diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
+index 909554c3f955..9eafb1dd2876 100644
+--- a/drivers/nvdimm/Makefile
++++ b/drivers/nvdimm/Makefile
+@@ -24,3 +24,4 @@ libnvdimm-$(CONFIG_ND_CLAIM) += claim.o
+ libnvdimm-$(CONFIG_BTT) += btt_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_PFN) += pfn_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_DAX) += dax_devs.o
++libnvdimm-$(CONFIG_X86_64) += x86.o
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 68fc7599a053..838241bb31d1 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -222,14 +222,14 @@ static size_t pmem_copy_from_iter(void *addr, size_t bytes,
+ {
+ 	size_t rc = copy_from_iter_nocache(addr, bytes, i);
+ 
+-	wb_cache_pmem(addr, bytes);
++	arch_wb_cache_pmem(addr, bytes);
+ 	return rc;
+ }
+ 
+ static const struct dax_operations pmem_dax_ops = {
+ 	.direct_access = pmem_direct_access,
+ 	.copy_from_iter = pmem_copy_from_iter,
+-	.flush = wb_cache_pmem,
++	.flush = arch_wb_cache_pmem,
+ };
+ 
+ static const struct block_device_operations pmem_fops = {
+diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+index b4ee4f71b4a1..4faacff434ff 100644
+--- a/drivers/nvdimm/pmem.h
++++ b/drivers/nvdimm/pmem.h
+@@ -7,6 +7,15 @@
+ 
+ long pmem_direct_access(struct block_device *bdev, sector_t sector,
+ 		      void **kaddr, pfn_t *pfn, long size);
++
++#ifdef CONFIG_ARCH_HAS_PMEM_API
++void arch_wb_cache_pmem(void *addr, size_t size);
++#else
++static inline void arch_wb_cache_pmem(void *addr, size_t size)
++{
++}
++#endif
++
+ /* this definition is in it's own header for tools/testing/nvdimm to consume */
+ struct pmem_device {
+ 	/* One contiguous memory region per device */
+diff --git a/drivers/nvdimm/x86.c b/drivers/nvdimm/x86.c
+new file mode 100644
+index 000000000000..79d7267da4d2
+--- /dev/null
++++ b/drivers/nvdimm/x86.c
+@@ -0,0 +1,36 @@
++/*
++ * Copyright(c) 2015 - 2017 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#include <asm/cacheflush.h>
++#include <asm/cpufeature.h>
++#include <asm/special_insns.h>
++
++/**
++ * arch_wb_cache_pmem - write back a cache range with CLWB
++ * @vaddr:	virtual start address
++ * @size:	number of bytes to write back
++ *
++ * Write back a cache range using the CLWB (cache line write back)
++ * instruction.
++ */
++void arch_wb_cache_pmem(void *addr, size_t size)
++{
++	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
++	unsigned long clflush_mask = x86_clflush_size - 1;
++	void *vend = addr + size;
++	void *p;
++
++	for (p = (void *)((unsigned long)addr & ~clflush_mask);
++	     p < vend; p += x86_clflush_size)
++		clwb(p);
++}
++EXPORT_SYMBOL_GPL(arch_wb_cache_pmem);
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 772bd02a5b52..33ae761f010a 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -31,11 +31,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+ 	BUG();
+ }
+ 
+-static inline void arch_wb_cache_pmem(void *addr, size_t size)
+-{
+-	BUG();
+-}
+-
+ static inline void arch_invalidate_pmem(void *addr, size_t size)
+ {
+ 	BUG();
+@@ -80,18 +75,4 @@ static inline void invalidate_pmem(void *addr, size_t size)
+ 	if (arch_has_pmem_api())
+ 		arch_invalidate_pmem(addr, size);
+ }
+-
+-/**
+- * wb_cache_pmem - write back processor cache for PMEM memory range
+- * @addr:	virtual start address
+- * @size:	number of bytes to write back
+- *
+- * Write back the processor cache range starting at 'addr' for 'size' bytes.
+- * See blkdev_issue_flush() note for memcpy_to_pmem().
+- */
+-static inline void wb_cache_pmem(void *addr, size_t size)
+-{
+-	if (arch_has_pmem_api())
+-		arch_wb_cache_pmem(addr, size);
+-}
+ #endif /* __PMEM_H__ */
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index 405212be044a..7488dfa1309a 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -66,6 +66,7 @@ libnvdimm-$(CONFIG_ND_CLAIM) += $(NVDIMM_SRC)/claim.o
+ libnvdimm-$(CONFIG_BTT) += $(NVDIMM_SRC)/btt_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_DAX) += $(NVDIMM_SRC)/dax_devs.o
++libnvdimm-$(CONFIG_X86_64) += $(NVDIMM_SRC)/x86.o
+ libnvdimm-y += config_check.o
+ 
+ obj-m += test/
 
-- The current plan to allow users to safely flush dirty data from userspace is
-  built around the PMEM_IMMUTABLE feature [1].  I'm hoping that by LSF/MM we
-  will have at least started work on PMEM_IMMUTABLE, but I'm guessing there
-  will be more to discuss.
-
-- The DAX fsync/msync model was built for platforms that need to flush dirty
-  processor cache lines in order to make data durable on NVDIMMs.  There exist
-  platforms, however, that are set up so that the processor caches are
-  effectively part of the ADR safe zone.  This means that dirty data can be
-  assumed to be durable even in the processor cache, obviating the need to
-  manually flush the cache during fsync/msync.  These platforms still need to
-  call fsync/msync to ensure that filesystem metadata updates are properly
-  written to media.  Our first idea on how to properly support these platforms
-  would be for DAX to be made aware that in some cases doesn't need to keep
-  metadata about dirty cache lines.  A similar issue exists for volatile uses
-  of DAX such as with BRD or with PMEM and the memmap command line parameter,
-  and we'd like a solution that covers them all.
-
-- If I recall correctly, at one point Dave Chinner suggested that we change
-  DAX so that I/O would use cached stores instead of the non-temporal stores
-  that it currently uses.  We would then track pages that were written to by
-  DAX in the radix tree so that they would be flushed later during
-  fsync/msync.  Does this sound like a win?  Also, assuming that we can find a
-  solution for platforms where the processor cache is part of the ADR safe
-  zone (above topic) this would be a clear improvement, moving us from using
-  non-temporal stores to faster cached stores with no downside.
-
-- Jan suggested [2] that we could use the radix tree as a cache to service DAX
-  faults without needing to call into the filesystem.  Are there any issues
-  with this approach, and should we move forward with it as an optimization?
-
-- Whenever you mount a filesystem with DAX, it spits out a message that says
-  "DAX enabled. Warning: EXPERIMENTAL, use at your own risk".  What criteria
-  needs to be met for DAX to no longer be considered experimental?
-
-- When we msync() a huge page, if the range is less than the entire huge page,
-  should we flush the entire huge page and mark it clean in the radix tree, or
-  should we only flush the requested range and leave the radix tree entry
-  dirty?
-
-- Should we enable 1 GiB huge pages in filesystem DAX?  Does anyone have any
-  specific customer requests for this or performance data suggesting it would
-  be a win?  If so, what work needs to be done to get 1 GiB sized and aligned
-  filesystem block allocations, to get the required enabling in the MM layer,
-  etc?
-
-Thanks,
-- Ross
-
-[1] https://lkml.org/lkml/2016/12/19/571
-[2] https://lkml.org/lkml/2016/10/12/70
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
