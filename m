@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x231.google.com (mail-oi0-x231.google.com
+ [IPv6:2607:f8b0:4003:c06::231])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 01B2D81B11
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jan 2017 17:11:57 -0800 (PST)
-Subject: [PATCH 5/9] daxctl, list: add man page
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 09 Jan 2017 17:07:51 -0800
-Message-ID: <148401047150.16217.7015648387163654132.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148401044568.16217.6942951063735168785.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148401044568.16217.6942951063735168785.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 85E2281EB5
+ for <linux-nvdimm@lists.01.org>; Fri, 20 Jan 2017 16:38:41 -0800 (PST)
+Received: by mail-oi0-x231.google.com with SMTP id w204so52407240oiw.0
+ for <linux-nvdimm@lists.01.org>; Fri, 20 Jan 2017 16:38:41 -0800 (PST)
 MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 20 Jan 2017 16:38:40 -0800
+Message-ID: <CAPcyv4j7VwY-DX8VGC6wNCQ-ug0ttCgrx4Y_hSG-xRR8f_PU3Q@mail.gmail.com>
+Subject: [GIT PULL] libnvdimm fixes for 4.10-rc5
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,129 +23,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-btrfs@vger.kernel.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Document the 'daxctl list' command which emits the details of the
-Device-DAX regions and device instances in the system:
+Hi Linus, please pull from:
 
-  # daxctl list -DRi
-  {
-    "id":1,
-    "devices":[
-      {
-        "chardev":"dax1.0",
-        "size":3233808384
-      }
-    ]
-  }
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+...to receive:
+
+* A regression fix for the multiple-pmem-namespace-per-region support
+added in 4.9. Even if an existing environment is not using that
+feature the act of creating and a destroying a single namespace with
+the ndctl utility will lead to the proliferation of extra unwanted
+namespace devices.
+
+* A fix for the error code returned from the pmem driver when the
+memcpy_mcsafe() routine returns -EFAULT. Btrfs seems to be the only
+block I/O consumer that tries to parse the meaning of the error code
+when it is non-zero.
+
+Neither of these fixes are critical, the namespace leak is awkward in
+that it can cause device naming to change and complicates debugging
+namespace initialization issues. The error code fix is included out of
+caution for what other consumers might be expecting -EIO for block I/O
+errors.
+
 ---
- Documentation/Makefile.am     |    3 +-
- Documentation/daxctl-list.txt |   78 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 80 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/daxctl-list.txt
 
-diff --git a/Documentation/Makefile.am b/Documentation/Makefile.am
-index adcc9e7dde8e..6daeb5621af0 100644
---- a/Documentation/Makefile.am
-+++ b/Documentation/Makefile.am
-@@ -12,7 +12,8 @@ man1_MANS = \
- 	ndctl-disable-namespace.1 \
- 	ndctl-create-namespace.1 \
- 	ndctl-destroy-namespace.1 \
--	ndctl-list.1
-+	ndctl-list.1 \
-+	daxctl-list.1
- 
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/daxctl-list.txt b/Documentation/daxctl-list.txt
-new file mode 100644
-index 000000000000..168d410d12d8
---- /dev/null
-+++ b/Documentation/daxctl-list.txt
-@@ -0,0 +1,78 @@
-+daxctl-list(1)
-+=============
-+
-+NAME
-+----
-+daxctl-list - dump the platform Device-DAX regions, devices, and
-+attributes in json.
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'daxctl list' [<options>]
-+
-+Walk all the device-dax-regions in the system and list all device
-+instances along with some of their major attributes.
-+
-+Options can be specified to limit the output to objects of a certain
-+class.  Where the classes are regions or devices.  By default, 'daxctl
-+list' with no options is equivalent to:
-+[verse]
-+daxctl list --devices
-+
-+EXAMPLE
-+-------
-+[verse]
-+# daxctl list --regions --devices
-+
-+["literal"]
-+{
-+  "id":1,
-+  "devices":[
-+    {
-+      "chardev":"dax1.0",
-+      "size":3233808384
-+    }
-+  ]
-+}
-+
-+OPTIONS
-+-------
-+-r::
-+--region=::
-+	A device-dax region is a contiguous range of memory that
-+	hosts one or more /dev/daxX.Y devices, where X is the region id
-+	and Y is the device instance id. The keyword 'all' can be
-+	specified to carry out the operation on every region in the
-+	system.
-+
-+-d::
-+--dev=::
-+	Specify a dax device name, <region id>.<instance id>
-+	tuple, or keyword 'all' to filter the listing. For
-+	example to list the first device instance in region1:
-+
-+[verse]
-+# daxctl list --dev=1.0
-+
-+["literal"]
-+{
-+  "chardev":"dax1.0",
-+  "size":3233808384
-+}
-+
-+-D::
-+--devices::
-+	Include device-dax instance info in the listing (default)
-+
-+-R::
-+--regions::
-+	Include region info in the listing
-+
-+-R::
-+--regions::
-+	Include region info in the listing
-+
-+-i::
-+--idle::
-+	Include idle (not enabled / zero-sized) devices in the listing
+The following changes since commit a121103c922847ba5010819a3f250f1f7fc84ab8:
 
+  Linux 4.10-rc3 (2017-01-08 14:18:17 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+
+for you to fetch changes up to 1f19b983a8877f81763fab3e693c6befe212736d:
+
+  libnvdimm, namespace: fix pmem namespace leak, delete when size set
+to zero (2017-01-13 09:50:33 -0800)
+
+----------------------------------------------------------------
+Dan Williams (1):
+      libnvdimm, namespace: fix pmem namespace leak, delete when size
+set to zero
+
+Stefan Hajnoczi (1):
+      pmem: return EIO on read_pmem() failure
+
+ drivers/nvdimm/namespace_devs.c | 23 ++++++++++-------------
+ drivers/nvdimm/pmem.c           |  4 +++-
+ 2 files changed, 13 insertions(+), 14 deletions(-)
+
+commit d47d1d27fd6206c18806440f6ebddf51a806be4f
+Author: Stefan Hajnoczi <stefanha@redhat.com>
+Date:   Thu Jan 5 10:05:46 2017 +0000
+
+    pmem: return EIO on read_pmem() failure
+
+    The read_pmem() function uses memcpy_mcsafe() on x86 where an EFAULT
+    error code indicates a failed read.  Block I/O should use EIO to
+    indicate failure.  Other pmem code paths (like bad blocks) already use
+    EIO so let's be consistent.
+
+    This fixes compatibility with consumers like btrfs that try to parse the
+    specific error code rather than treat all errors the same.
+
+    Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+    Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+commit 1f19b983a8877f81763fab3e693c6befe212736d
+Author: Dan Williams <dan.j.williams@intel.com>
+Date:   Mon Jan 9 17:30:49 2017 -0800
+
+    libnvdimm, namespace: fix pmem namespace leak, delete when size set to zero
+
+    Commit 98a29c39dc68 ("libnvdimm, namespace: allow creation of multiple
+    pmem-namespaces per region") added support for establishing additional
+    pmem namespace beyond the seed device, similar to blk namespaces.
+    However, it neglected to delete the namespace when the size is set to
+    zero.
+
+    Fixes: 98a29c39dc68 ("libnvdimm, namespace: allow creation of
+multiple pmem-namespaces per region")
+    Cc: <stable@vger.kernel.org>
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
