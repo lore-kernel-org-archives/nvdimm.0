@@ -1,134 +1,35 @@
-From: "Clement Sigel  " <shkrsugi29-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: real Google analytics traffic
-Date: Sun, 22 Jan 2017 19:21:25 +0200
-Message-ID: <6F31D705.707D4A2B@gmail.com>
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: RE: [PATCH 00/13] dax, pmem: move cpu cache maintenance to     libnvdimm
+Date: Sun, 22 Jan 2017 18:19:24 +0000
+Message-ID: <BY2PR21MB00368E95CBB533D4C761C882CB730@BY2PR21MB0036.namprd21.prod.outlook.com>
+References: <148488421301.37913.12835362165895864897.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <BY2PR21MB0036C7BBC487D7C101F36DCFCB700@BY2PR21MB0036.namprd21.prod.outlook.com>
+ <20170121175212.GA28180@lst.de>
+ <BY2PR21MB00367799FE7B7E8302A99260CB730@BY2PR21MB0036.namprd21.prod.outlook.com>
+ <20170122162910.GA5267@lst.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_5884EA7C.3D7EB288"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170122162910.GA5267@lst.de>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Brian Boylston <brian.boylston@hpe.com>, Tony Luck <tony.luck@intel.com>, Jan Kara <jack@suse.cz>, Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Jeff Moyer <jmoyer@redhat.com>, Jens Axboe <axboe@fb.com>, "dm-devel@redhat.com" <dm-devel@redhat.com>, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
-
-------------=_5884EA7C.3D7EB288
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Hi here is the link http://www.seo-wise.net/index.php/pop-under-traffic/
-   Best Regards Clement Sigel Unsubscribe option available on the footer of
-  our website [...] 
-
-Content analysis details:   (6.6 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: seo-wise.net]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: seo-wise.net]
- 2.8 FSL_HELO_FAKE          No description available.
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (shkrsugi29[at]gmail.com)
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0000]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_5884EA7C.3D7EB288
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1cVLqv-000344-2a
-	for gln-linux-nvdimm@m.gmane.org; Sun, 22 Jan 2017 18:22:53 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4ADEC81ED1;
-	Sun, 22 Jan 2017 09:22:57 -0800 (PST)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from gmail.com (unknown [221.160.34.117])
- by ml01.01.org (Postfix) with SMTP id 58ED181ECF
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sun, 22 Jan 2017 09:22:52 -0800 (PST)
-Message-ID: <6F31D705.707D4A2B-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Sun, 22 Jan 2017 19:21:25 +0200
-From: "Clement Sigel  " <shkrsugi29-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US;
- rv:1.8.0.10) Gecko/20070403 Thunderbird/1.5.0.10
-MIME-Version: 1.0
-To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: re: real Google analytics traffic
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
-Hi
-here is the link
-http://www.seo-wise.net/index.php/pop-under-traffic/
-
-
-Best Regards
-Clement Sigel =A0
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option available on the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_5884EA7C.3D7EB288--
+RnJvbTogQ2hyaXN0b3BoIEhlbGx3aWcgW21haWx0bzpoY2hAbHN0LmRlXQ0KPiBPbiBTdW4sIEph
+biAyMiwgMjAxNyBhdCAwMzo0MzowOVBNICswMDAwLCBNYXR0aGV3IFdpbGNveCB3cm90ZToNCj4g
+PiBJbiB0aGUgY2FzZSBvZiBhIG5ldHdvcmsgZmlsZXN5c3RlbSBiZWluZyB1c2VkIHRvIGNvbW11
+bmljYXRlIHdpdGgNCj4gPiBhIGRpZmZlcmVudCBWTSBvbiB0aGUgc2FtZSBwaHlzaWNhbCBtYWNo
+aW5lLCB0aGVyZSBpcyBubyBiYWNraW5nDQo+ID4gZGV2aWNlLCBqdXN0IGEgbmV0d29yayBwcm90
+b2NvbC4NCj4gDQo+IEFnYWluLCBkbyB5b3UgbWVhbiBibG9jayBkZXZpY2U/ICBGb3IgYSBmaWxl
+c3lzdGVtIHRoYXQgZG9lcyBub3QgZG8gYW55DQo+IHBhZ2VjYWNoZSB3cml0ZWJhY2sgd2UgYWxy
+ZWFkeSBkb24ndCBuZWVkIGEgYmFja2luZyBkZXZpY2UsIHNvIEkgZG9uJ3QNCj4gcmVhbGx5IHNl
+ZSBhbiBpc3N1ZSB0aGVyZSB0byBzdGFydCB3aXRoLg0KDQpObywgSSBtZWFuIGEgbmV0d29yayBm
+aWxlc3lzdGVtIGxpa2UgOXAgb3IgY2lmcyBvciBuZnMuICBJZiB0aGUgbWVtY3B5IGlzIHN1cHBv
+c2VkIHRvIGJlIHBlcmZvcm1lZCBieSB0aGUgYmFja2luZyBkZXZpY2UgYW5kIHRoZXJlIGlzIG5v
+IGJhY2tpbmcgZGV2aWNlLCB0aGVuIGl0J3MgZ29pbmcgdG8gbmVlZCB0byBiZSBkb25lIGJ5IHRo
+ZSBuZXR3b3JrIGZpbGVzeXN0ZW0uDQoNCihBbHNvLCB0aGUgbmV0d29yayBmaWxlc3lzdGVtIG1p
+Z2h0IGhhdmUgYSBjb21tYW5kLCBsaWtlIFJETUEgaGFzL3dpbGwgaGF2ZSwgdG8gZW5zdXJlIHRo
+YXQgdGhlIHdyaXRlIGhhcyByZWFjaGVkIHBlcnNpc3RlbmNlKQ0K
