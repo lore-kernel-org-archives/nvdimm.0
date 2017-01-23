@@ -1,15 +1,15 @@
 From: "Rosamund Thatcher" <mrosthatcher-/E1597aS9LR3+QwDJ9on6Q@public.gmane.org>
 Subject: Re: Overdue payment of your $980,520.00 USD,reply for details.
 Date: Mon, 23 Jan 2017 04:55:44 -0800
-Message-ID: <20170123132822.3822E819DC@ml01.01.org>
+Message-ID: <20170123133536.D8E4581EDF@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_58860508.7D005487"
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: multipart/mixed; boundary="----------=_588606AF.22DA5BF9"
+To: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format.
 
-------------=_58860508.7D005487
+------------=_588606AF.22DA5BF9
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
@@ -32,18 +32,18 @@ Content analysis details:   (8.8 points, 5.0 required)
 
  pts rule name              description
 ---- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
+ 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
+                            [185.58.226.53 listed in dnsbl.sorbs.net]
 -0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
                             trust
                             [198.145.21.10 listed in list.dnswl.org]
  1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
                [Blocked - see <http://www.spamcop.net/bl.shtml?185.58.226.53>]
- 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
-                            [185.58.226.53 listed in dnsbl.sorbs.net]
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
  1.2 RCVD_NUMERIC_HELO      Received: contains an IP address used for HELO
 -0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
  2.4 RCVD_HELO_IP_MISMATCH  Received: HELO and IP do not match, but should
@@ -62,7 +62,7 @@ Content analysis details:   (8.8 points, 5.0 required)
 
 
 
-------------=_58860508.7D005487
+------------=_588606AF.22DA5BF9
 Content-Type: message/rfc822; x-spam-type=original
 Content-Description: original message before SpamAssassin
 Content-Disposition: inline
@@ -73,22 +73,22 @@ Envelope-to: gln-linux-nvdimm@m.gmane.org
 Received: from ml01.01.org ([198.145.21.10])
 	by blaine.gmane.org with esmtp (Exim 4.84_2)
 	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1cVefR-0002Sq-K2
-	for gln-linux-nvdimm@m.gmane.org; Mon, 23 Jan 2017 14:28:17 +0100
+	id 1cVemS-0008HU-0X
+	for gln-linux-nvdimm@m.gmane.org; Mon, 23 Jan 2017 14:35:32 +0100
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 3822E819DC;
-	Mon, 23 Jan 2017 05:28:22 -0800 (PST)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+	by ml01.01.org (Postfix) with ESMTP id D8E4581EDF;
+	Mon, 23 Jan 2017 05:35:36 -0800 (PST)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 Received: from panel.whost.cl (panel.whost.cl [170.239.84.178])
- by ml01.01.org (Postfix) with ESMTP id 87D7481786
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Mon, 23 Jan 2017 05:28:20 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTP id 0283C819DC
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Mon, 23 Jan 2017 05:35:36 -0800 (PST)
 Received: from 101.203.174.209 (unknown [185.58.226.53])
- by panel.whost.cl (Postfix) with ESMTPA id 796A211AC31
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Mon, 23 Jan 2017 09:55:42 -0300 (CLST)
+ by panel.whost.cl (Postfix) with ESMTPA id 88D5B11AC35
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Mon, 23 Jan 2017 09:55:42 -0300 (CLST)
 From: "Rosamund Thatcher" <mrosthatcher-/E1597aS9LR3+QwDJ9on6Q@public.gmane.org>
 Subject: Re: Overdue payment of your $980,520.00 USD,reply for details.
-To: "linux-nvdimm" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "linux-nvdimm" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 MIME-Version: 1.0
 Date: Mon, 23 Jan 2017 04:55:44 -0800
 Content-Disposition: inline
@@ -109,7 +109,7 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Message-Id: <20170123132822.3822E819DC-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Message-Id: <20170123133536.D8E4581EDF-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
 77u/TmV3IFBhZ2UgMU91ciBSZWY6IFVOL0ZDQTctMDJVCiAKIApHb29kIE1vcm5pbmcsCiAKIApX
 ZSB3aXNoIHRvIGNvbmdyYXR1bGF0ZSBhbmQgaW5mb3JtIHlvdSB0aGF0IGFmdGVyIHRob3JvdWdo
@@ -139,4 +139,4 @@ X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4w
 MS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
 
 
-------------=_58860508.7D005487--
+------------=_588606AF.22DA5BF9--
