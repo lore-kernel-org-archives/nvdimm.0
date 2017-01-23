@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CE6BF81B14
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jan 2017 14:30:03 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH] dax: fix build warnings with FS_DAX and !FS_IOMAP
-Date: Tue, 10 Jan 2017 15:29:43 -0700
-Message-Id: <1484087383-29478-1-git-send-email-ross.zwisler@linux.intel.com>
-In-Reply-To: <1946137.McqY686LOu@wuerfel>
-References: <1946137.McqY686LOu@wuerfel>
+ by ml01.01.org (Postfix) with ESMTPS id 3C19A81EEA
+ for <linux-nvdimm@lists.01.org>; Mon, 23 Jan 2017 15:47:38 -0800 (PST)
+Subject: [PATCH 3/3] dax: Support for transparent PUD pages for device DAX
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 23 Jan 2017 16:47:36 -0700
+Message-ID: <148521525631.31533.2193884571494676804.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <148521477073.31533.17781371321988910714.stgit@djiang5-desk3.ch.intel.com>
+References: <148521477073.31533.17781371321988910714.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,73 +18,90 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: akpm@linux-foundation.org
+Cc: mawilcox@microsoft.com, linux-nvdimm@lists.01.org, dave.hansen@linux.intel.com, linux-mm@kvack.org, kirill.shutemov@linux.intel.com, jack@suse.com, vbabka@suse.cz
 List-ID: <linux-nvdimm@lists.01.org>
 
-QXMgcmVwb3J0ZWQgYnkgQXJuZDoKCmh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDE3LzEvMTAvNzU2
-CgpDb21waWxpbmcgd2l0aCB0aGUgZm9sbG93aW5nIGNvbmZpZ3VyYXRpb246CgogICMgQ09ORklH
-X0VYVDJfRlMgaXMgbm90IHNldAogICMgQ09ORklHX0VYVDRfRlMgaXMgbm90IHNldAogICMgQ09O
-RklHX1hGU19GUyBpcyBub3Qgc2V0CiAgIyBDT05GSUdfRlNfSU9NQVAgZGVwZW5kcyBvbiB0aGUg
-YWJvdmUgZmlsZXN5c3RlbXMsIGFzIGlzIG5vdCBzZXQKICBDT05GSUdfRlNfREFYPXkKCmdlbmVy
-YXRlcyBidWlsZCB3YXJuaW5ncyBhYm91dCB1bnVzZWQgZnVuY3Rpb25zIGluIGZzL2RheC5jOgoK
-ZnMvZGF4LmM6ODc4OjEyOiB3YXJuaW5nOiDigJhkYXhfaW5zZXJ0X21hcHBpbmfigJkgZGVmaW5l
-ZCBidXQgbm90IHVzZWQgWy1XdW51c2VkLWZ1bmN0aW9uXQogc3RhdGljIGludCBkYXhfaW5zZXJ0
-X21hcHBpbmcoc3RydWN0IGFkZHJlc3Nfc3BhY2UgKm1hcHBpbmcsCiAgICAgICAgICAgIF5+fn5+
-fn5+fn5+fn5+fn5+fgpmcy9kYXguYzo1NzI6MTI6IHdhcm5pbmc6IOKAmGNvcHlfdXNlcl9kYXji
-gJkgZGVmaW5lZCBidXQgbm90IHVzZWQgWy1XdW51c2VkLWZ1bmN0aW9uXQogc3RhdGljIGludCBj
-b3B5X3VzZXJfZGF4KHN0cnVjdCBibG9ja19kZXZpY2UgKmJkZXYsIHNlY3Rvcl90IHNlY3Rvciwg
-c2l6ZV90IHNpemUsCiAgICAgICAgICAgIF5+fn5+fn5+fn5+fn4KZnMvZGF4LmM6NTQyOjEyOiB3
-YXJuaW5nOiDigJhkYXhfbG9hZF9ob2xl4oCZIGRlZmluZWQgYnV0IG5vdCB1c2VkIFstV3VudXNl
-ZC1mdW5jdGlvbl0KIHN0YXRpYyBpbnQgZGF4X2xvYWRfaG9sZShzdHJ1Y3QgYWRkcmVzc19zcGFj
-ZSAqbWFwcGluZywgdm9pZCAqKmVudHJ5LAogICAgICAgICAgICBefn5+fn5+fn5+fn5+CmZzL2Rh
-eC5jOjMxMjoxNDogd2FybmluZzog4oCYZ3JhYl9tYXBwaW5nX2VudHJ54oCZIGRlZmluZWQgYnV0
-IG5vdCB1c2VkIFstV3VudXNlZC1mdW5jdGlvbl0KIHN0YXRpYyB2b2lkICpncmFiX21hcHBpbmdf
-ZW50cnkoc3RydWN0IGFkZHJlc3Nfc3BhY2UgKm1hcHBpbmcsIHBnb2ZmX3QgaW5kZXgsCiAgICAg
-ICAgICAgICAgXn5+fn5+fn5+fn5+fn5+fn5+CgpOb3cgdGhhdCB0aGUgc3RydWN0IGJ1ZmZlcl9o
-ZWFkIGJhc2VkIERBWCBmYXVsdCBwYXRocyBhbmQgSS9PIHBhdGggaGF2ZQpiZWVuIHJlbW92ZWQg
-d2UgcmVhbGx5IGRlcGVuZCBvbiBpb21hcCBzdXBwb3J0IGJlaW5nIHByZXNlbnQgZm9yIERBWC4g
-IE1ha2UKdGhpcyBleHBsaWNpdCBieSBzZWxlY3RpbmcgRlNfSU9NQVAgaWYgd2UgY29tcGlsZSBp
-biBEQVggc3VwcG9ydC4KClRoaXMgYWxsb3dzIHVzIHRvIHJlbW92ZSBjb25kaXRpb25hbCBzZWxl
-Y3Rpb25zIG9mIEZTX0lPTUFQIHdoZW4gRlNfREFYIHdhcwpwcmVzZW50IGZvciBleHQyIGFuZCBl
-eHQ0LCBhbmQgdG8gcmVtb3ZlIGFuICNpZmRlZiBpbiBmcy9kYXguYy4KClNpZ25lZC1vZmYtYnk6
-IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4KUmVwb3J0ZWQtYnk6
-IEFybmQgQmVyZ21hbm4gPGFybmRAYXJuZGIuZGU+CkNjOiBKYW4gS2FyYSA8amFja0BzdXNlLmN6
-PgpDYzogQ2hyaXN0b3BoIEhlbGx3aWcgPGhjaEBsc3QuZGU+Ci0tLQogZnMvS2NvbmZpZyAgICAg
-IHwgMSArCiBmcy9kYXguYyAgICAgICAgfCAyIC0tCiBmcy9leHQyL0tjb25maWcgfCAxIC0KIGZz
-L2V4dDQvS2NvbmZpZyB8IDEgLQogNCBmaWxlcyBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgNCBk
-ZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9mcy9LY29uZmlnIGIvZnMvS2NvbmZpZwppbmRleCBj
-MmEzNzdjLi44M2VhYjUyIDEwMDY0NAotLS0gYS9mcy9LY29uZmlnCisrKyBiL2ZzL0tjb25maWcK
-QEAgLTM4LDYgKzM4LDcgQEAgY29uZmlnIEZTX0RBWAogCWJvb2wgIkRpcmVjdCBBY2Nlc3MgKERB
-WCkgc3VwcG9ydCIKIAlkZXBlbmRzIG9uIE1NVQogCWRlcGVuZHMgb24gIShBUk0gfHwgTUlQUyB8
-fCBTUEFSQykKKwlzZWxlY3QgRlNfSU9NQVAKIAloZWxwCiAJICBEaXJlY3QgQWNjZXNzIChEQVgp
-IGNhbiBiZSB1c2VkIG9uIG1lbW9yeS1iYWNrZWQgYmxvY2sgZGV2aWNlcy4KIAkgIElmIHRoZSBi
-bG9jayBkZXZpY2Ugc3VwcG9ydHMgREFYIGFuZCB0aGUgZmlsZXN5c3RlbSBzdXBwb3J0cyBEQVgs
-CmRpZmYgLS1naXQgYS9mcy9kYXguYyBiL2ZzL2RheC5jCmluZGV4IDVjNzRmNjAuLjA4M2I5NTAg
-MTAwNjQ0Ci0tLSBhL2ZzL2RheC5jCisrKyBiL2ZzL2RheC5jCkBAIC05NjksNyArOTY5LDYgQEAg
-aW50IF9fZGF4X3plcm9fcGFnZV9yYW5nZShzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2LCBzZWN0
-b3JfdCBzZWN0b3IsCiB9CiBFWFBPUlRfU1lNQk9MX0dQTChfX2RheF96ZXJvX3BhZ2VfcmFuZ2Up
-OwogCi0jaWZkZWYgQ09ORklHX0ZTX0lPTUFQCiBzdGF0aWMgc2VjdG9yX3QgZGF4X2lvbWFwX3Nl
-Y3RvcihzdHJ1Y3QgaW9tYXAgKmlvbWFwLCBsb2ZmX3QgcG9zKQogewogCXJldHVybiBpb21hcC0+
-Ymxrbm8gKyAoKChwb3MgJiBQQUdFX01BU0spIC0gaW9tYXAtPm9mZnNldCkgPj4gOSk7CkBAIC0x
-NDA3LDQgKzE0MDYsMyBAQCBpbnQgZGF4X2lvbWFwX3BtZF9mYXVsdChzdHJ1Y3Qgdm1fYXJlYV9z
-dHJ1Y3QgKnZtYSwgdW5zaWduZWQgbG9uZyBhZGRyZXNzLAogfQogRVhQT1JUX1NZTUJPTF9HUEwo
-ZGF4X2lvbWFwX3BtZF9mYXVsdCk7CiAjZW5kaWYgLyogQ09ORklHX0ZTX0RBWF9QTUQgKi8KLSNl
-bmRpZiAvKiBDT05GSUdfRlNfSU9NQVAgKi8KZGlmZiAtLWdpdCBhL2ZzL2V4dDIvS2NvbmZpZyBi
-L2ZzL2V4dDIvS2NvbmZpZwppbmRleCAzNmJlYTVhLi5jNjM0ODc0ZSAxMDA2NDQKLS0tIGEvZnMv
-ZXh0Mi9LY29uZmlnCisrKyBiL2ZzL2V4dDIvS2NvbmZpZwpAQCAtMSw2ICsxLDUgQEAKIGNvbmZp
-ZyBFWFQyX0ZTCiAJdHJpc3RhdGUgIlNlY29uZCBleHRlbmRlZCBmcyBzdXBwb3J0IgotCXNlbGVj
-dCBGU19JT01BUCBpZiBGU19EQVgKIAloZWxwCiAJICBFeHQyIGlzIGEgc3RhbmRhcmQgTGludXgg
-ZmlsZSBzeXN0ZW0gZm9yIGhhcmQgZGlza3MuCiAKZGlmZiAtLWdpdCBhL2ZzL2V4dDQvS2NvbmZp
-ZyBiL2ZzL2V4dDQvS2NvbmZpZwppbmRleCA3YjkwNjkxLi5lMzgwMzlmIDEwMDY0NAotLS0gYS9m
-cy9leHQ0L0tjb25maWcKKysrIGIvZnMvZXh0NC9LY29uZmlnCkBAIC0zNyw3ICszNyw2IEBAIGNv
-bmZpZyBFWFQ0X0ZTCiAJc2VsZWN0IENSQzE2CiAJc2VsZWN0IENSWVBUTwogCXNlbGVjdCBDUllQ
-VE9fQ1JDMzJDCi0Jc2VsZWN0IEZTX0lPTUFQIGlmIEZTX0RBWAogCWhlbHAKIAkgIFRoaXMgaXMg
-dGhlIG5leHQgZ2VuZXJhdGlvbiBvZiB0aGUgZXh0MyBmaWxlc3lzdGVtLgogCi0tIAoyLjcuNAoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZk
-aW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMu
-MDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Adding transparent huge PUD pages support for device DAX by adding a
+pud_fault handler.
+
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ drivers/dax/dax.c |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 922ec46..b90bb30 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -493,6 +493,51 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ 
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++static int __dax_dev_pud_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
++{
++	unsigned long pud_addr = vmf->address & PUD_MASK;
++	struct device *dev = &dax_dev->dev;
++	struct dax_region *dax_region;
++	phys_addr_t phys;
++	pgoff_t pgoff;
++	pfn_t pfn;
++
++	if (check_vma(dax_dev, vmf->vma, __func__))
++		return VM_FAULT_SIGBUS;
++
++	dax_region = dax_dev->region;
++	if (dax_region->align > PUD_SIZE) {
++		dev_dbg(dev, "%s: alignment > fault size\n", __func__);
++		return VM_FAULT_SIGBUS;
++	}
++
++	/* dax pud mappings require pfn_t_devmap() */
++	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) != (PFN_DEV|PFN_MAP)) {
++		dev_dbg(dev, "%s: alignment > fault size\n", __func__);
++		return VM_FAULT_SIGBUS;
++	}
++
++	pgoff = linear_page_index(vmf->vma, pud_addr);
++	phys = pgoff_to_phys(dax_dev, pgoff, PUD_SIZE);
++	if (phys == -1) {
++		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
++				pgoff);
++		return VM_FAULT_SIGBUS;
++	}
++
++	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++
++	return vmf_insert_pfn_pud(vmf->vma, vmf->address, vmf->pud, pfn,
++			vmf->flags & FAULT_FLAG_WRITE);
++}
++#else
++static int __dax_dev_pud_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
++{
++	return VM_FAULT_FALLBACK;
++}
++#endif /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++
+ static int dax_dev_fault(struct vm_fault *vmf)
+ {
+ 	int rc;
+@@ -512,6 +557,9 @@ static int dax_dev_fault(struct vm_fault *vmf)
+ 	case FAULT_FLAG_SIZE_PMD:
+ 		rc = __dax_dev_pmd_fault(dax_dev, vmf);
+ 		break;
++	case FAULT_FLAG_SIZE_PUD:
++		rc = __dax_dev_pud_fault(dax_dev, vmf);
++		break;
+ 	default:
+ 		return VM_FAULT_FALLBACK;
+ 	}
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
