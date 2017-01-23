@@ -1,14 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BD28C81944
- for <linux-nvdimm@lists.01.org>; Wed,  4 Jan 2017 15:35:47 -0800 (PST)
-Subject: [ndctl PATCH] test: fix multi_pmem link error
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 04 Jan 2017 15:31:40 -0800
-Message-ID: <148357270056.3357.1307228634254197776.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2BC9681EEA
+ for <linux-nvdimm@lists.01.org>; Mon, 23 Jan 2017 13:36:24 -0800 (PST)
+Date: Mon, 23 Jan 2017 14:36:14 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH] mm, fs: reduce fault, page_mkwrite, and pfn_mkwrite to
+ take only vmf
+Message-ID: <20170123213614.GA27007@linux.intel.com>
+References: <148495502151.58418.7078842737664999534.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <148495502151.58418.7078842737664999534.stgit@djiang5-desk3.ch.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,41 +24,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: tytso@mit.edu, mawilcox@microsoft.com, darrick.wong@oracle.com, linux-mm@kvack.org, dave.hansen@intel.com, jack@suse.com, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-As reported by issue #8:
+On Fri, Jan 20, 2017 at 04:33:08PM -0700, Dave Jiang wrote:
+> ->fault(), ->page_mkwrite(), and ->pfn_mkwrite() calls do not need to take
+> a vma and vmf parameter when the vma already resides in vmf. Remove the vma
+> parameter to simplify things.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+> 
+> This patch has received a build success notification from the 0day-kbuild
+> robot across 124 configs. 
+> 
+> ---
+<>
+> diff --git a/arch/x86/entry/vdso/vma.c b/arch/x86/entry/vdso/vma.c
+> index 10820f6..b6661fd 100644
+> --- a/arch/x86/entry/vdso/vma.c
+> +++ b/arch/x86/entry/vdso/vma.c
+> @@ -38,7 +38,7 @@ void __init init_vdso_image(const struct vdso_image *image)
+>  struct linux_binprm;
+>  
+>  static int vdso_fault(const struct vm_special_mapping *sm,
+> -		      struct vm_area_struct *vma, struct vm_fault *vmf)
+> +		struct vm_area_struct *vma, struct vm_fault *vmf)
 
-  "I tried to build ndctl, and I executed "make check",
-   but I met link error of libuuid like followings.
+Unneeded spacing change.
 
-    /usr/bin/ld: multi-pmem.o: undefined reference to symbol 'uuid_unparse@@UUID_1.0'
-    /lib/x86_64-linux-gnu/libuuid.so.1: error adding symbols: DSO missing from command line
+Other than that, this looks good to me.  I agree with Jan's observation that
+it creates a lot of thrash, but I personally like the change because it
+eliminates the question of what to do when the 'vma' you're passed in doesn't
+match 'vmf->vma'.  Having one source of truth seems good, and it reduces the
+amount of args we are passing around.
 
-   Not only libuuid, but also libkmod has similar problem."
-
-Add the missing libraries to the dependency list. This happens to work
-on latest Fedora, but fails for the reporter on Ubuntu 14.04.
-
-Link: https://github.com/pmem/ndctl/issues/8
-Reported-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/Makefile.am |    2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 9e3ae1dab411..7ec14118f74d 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -89,4 +89,6 @@ multi_pmem_SOURCES = \
- multi_pmem_LDADD = \
- 		$(LIBNDCTL_LIB) \
- 		$(JSON_LIBS) \
-+		$(UUID_LIBS) \
-+		$(KMOD_LIBS) \
- 		../libutil.a
-
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
