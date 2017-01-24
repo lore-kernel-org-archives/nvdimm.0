@@ -1,16 +1,11 @@
-From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] ndctl: add a BTT check utility
-Date: Mon, 23 Jan 2017 13:20:08 -0500
-Message-ID: <x49vat5ljtz.fsf@segfault.boston.devel.redhat.com>
-References: <20170120031234.24226-1-vishal.l.verma@intel.com>
- <x49lgu52uk0.fsf@segfault.boston.devel.redhat.com>
- <1484959224.4857.6.camel@intel.com>
+From: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [LTP issues] MAP_LOCKED MS_INVALIDATE, dio rw odd count on DAX
+Date: Tue, 24 Jan 2017 13:24:05 +0800
+Message-ID: <20170124052405.o7oz6xr3bwwmjxvo@XZHOUW.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="j2au3orvnrua6zfh"
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1484959224.4857.6.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (Vishal L. Verma's message of
- "Sat, 21 Jan 2017 00:41:33 +0000")
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,195 +15,278 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-IlZlcm1hLCBWaXNoYWwgTCIgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4gd3JpdGVzOgoKPiBP
-biBGcmksIDIwMTctMDEtMjAgYXQgMTg6MTQgLTA1MDAsIEplZmYgTW95ZXIgd3JvdGU6Cgo+PiBI
-b3cgd2FzIHRoaXMgdGVzdGVkP8KgwqBEaWQgeW91IHBlcnR1cmIgdGhlIGJ0dCBpbiB3YXlzIHRo
-YXQgeW91IGV4cGVjdAo+PiBjYW4gYW5kIGNhbid0IGJlIGZpeGVkP8KgwqBDYW4geW91IGFkZCB0
-ZXN0cyBmb3IgdGhhdD8KPgo+IFllcywgc28gZm9yIHNvbWUgdGhpbmdzIEkgdGVzdGVkIGJ5IGVz
-c2VudGlhbGx5IGhhbmQgZWRpdGluZyB0aGUKPiBtZXRhZGF0YS4gQnV0IGZvciBvdGhlciB0aGlu
-Z3MgLSBtYWlubHkgbXVsdGktYXJlbmEgdGVzdGluZywgYW5kIHRoZQo+IGRpZmZlcmVudCByZWNv
-dmVyeSBhdHRlbXB0cyBmb3IgZmlyc3Rfc2IsIEkgbW9kaWZpZWQgdGhlIGtlcm5lbCBidHQgdG8K
-PiBwcm9kdWNlIHNtYWxsIDhNQiBhcmVuYXMsIGFuZCBkaWQgdGhlIHNhbWUgaW4gdGhlIGNoZWNr
-ZXIuIEZvciB0aGUKPiBmb3JtZXIsIHRob3NlIGNhbiBiZSAnZm9ybWFsaXplZCcgYXMgbmRjdGwg
-dW5pdCB0ZXN0cywgYW5kIEkgd2lsbCBzdGFydAo+IGRvaW5nIHRoYXQuIEJ1dCBmb3IgdGhlIGxh
-dHRlciwgSSBkb24ndCBrbm93IGlmIHRoZXJlJ3MgYW4gZWFzeSB3YXkgdG8KPiBnZXQgZnVsbCBj
-b3ZlcmFnZSBvbiB0aG9zZSBjYXNlcy4KCk9LLCB5ZWFoLCBsZXQncyBkZWZpbml0ZWx5IHB1dCB0
-ZXN0cyBpbiB0aGUgdHJlZSBmb3IgYW55dGhpbmcgdGhhdCBpcwplYXN5IHRvIGRvLiAgQ2FuJ3Qg
-d2UgY3JlYXRlIHRlc3QgbmZpdHMgbGFyZ2UgZW5vdWdoIGZvciBtdWx0aXBsZQphcmVuYXM/ICBP
-bmUgdGhpbmcgd2UgY291bGQgZG8gaXMga2VlcCBhcm91bmQgYm9ndXMgbWV0YWRhdGEgaW1hZ2Vz
-IGFuZApqdXN0IHNob3ZlIHRoZW0gaW50byB0aGUgcmF3IGRldmljZS4gIE9ubHkgaWYgdGhhdCdz
-IGVhc2llciB0aGFuCnByb2dyYW1tYXRpY2FsbHkgcGVydHVyYnVpbmcgdGhpbmdzLgoKQWxzbywg
-d2UgbWF5IGNvbnNpZGVyIGEgYnR0IG1ldGFkYXRhIGR1bXAgdXRpbGl0eSwgbXVjaCBsaWtlIGZp
-bGUKc3lzdGVtcyBoYXZlLgoKPj4gQ2hlY2tpbmcgc2hvdWxkIG5vdCBiZSBhbiBvcHRpb25hbCBm
-ZWF0dXJlLsKgwqBKdXN0IGFsd2F5cyBidWlsZCBpdCBpbi4KPgo+IFlvdSBtZWFuIGNoZWNraW5n
-IG1ldGFkYXRhIHdoZW4gYnJpbmdpbmcgdXAgdGhlIG5hbWVzcGFjZT8gVGhlIGtlcm5lbAo+IGRv
-ZXMgZXNzZW50aWFsIGNoZWNrcyBvZiBjb3Vyc2UsIGJ1dCBkbyB5b3UgbWVhbiB0aGUgbW9yZSBp
-bnZvbHZlZCBvbmVzCj4gbGlrZSBsb2cvbWFwIGVudHJ5IGJvdW5kcywgdGhlIGJhY2t1cCBpbmZv
-IGJsb2NrIGV0Yz8KCkkgbWVhbid0IHRoZSAiY2hlY2siIG5kY3RsIGNvbW1hbmQgc2hvdWxkbid0
-IGJlIHNlbGVjdGFibGUgdmlhCmNvbmZpZ3VyZS4gIEkgdGhpbmsgRGFuIGhhZCB0aGUgc2FtZSBj
-b21tZW50LgoKPj4gV2h5IHNob3VsZCBhIHVzZXIgaGF2ZSB0byBkaXNhYmxlIGEgbmFtZXNwYWNl
-IGluIG9yZGVyIHRvIHJ1biB0aGUKPj4gY2hlY2tlcj/CoMKgSSBndWVzcyB0aGF0J3MgdGhlIGFu
-YWxvZyBvZiB1bm1vdW50aW5nIGFuIGZzP8KgwqBTdGlsbCwgc2VlbXMKPj4gbGlrZSB3ZSBjb3Vs
-ZCBqdXN0IGRvIHRoYXQgZm9yIHRoZSB1c2VyLgo+Cj4gTW9zdGx5IHNvIHRoYXQgdGhlIHVzZXIg
-Y2FuIGJlIHN1cmUgbm90aGluZyBlbHNlIGlzIHVzaW5nIGl0IHdoZW4gdGhlCj4gY2hlY2sgc3Rh
-cnRzPyBXZSBjb3VsZCBkaXNhYmxlIGl0IGZvciB0aGVtLCBidXQgSSBqdXN0IHRob3VnaHQgdGhp
-cwo+IHdvdWxkIGJlIHNhZmVyPyBBbiBvcHRpb24gY291bGQgYmUgcHJvdmlkaW5nIGEgLS1mb3Jj
-ZSBvcHRpb24gbGlrZSBJCj4gdGhpbmsgZGVzdHJveSBvciByZWNvbmZpZyBkby4uCgpJIHRoaW5r
-IHRoYXQncyBhIGdvb2QgY29tcHJvbWlzZS4KCj4+IENhbiB0aGlzIGNvZGUgaW4gYW55IHdheSBi
-ZSBzaGFyZWQgd2l0aCBsaWJwbWVtYmxrP8KgwqBUaGV5IGhhdmUgdGhlaXIKPj4gb3duCj4+IGNo
-ZWNrZXIgKHdoaWNoIGRvZXMgZGlmZmVyZW50IHRoaW5ncyksIGFuZCBpdCBzZWVtcyBsaWtlIGEg
-bG9zdAo+PiBvcHBvcnR1bml0eSB0byBub3QgYmUgYWJsZSB0byBsZXZlcmFnZSB0aGUgc2FtZSBj
-b2RlIGluIGJvdGggcGxhY2VzLgo+Cj4gV2Ugc3RhcnRlZCBvdXQgd2l0aCB0aGF0LCBpbiBmYWN0
-IHdpdGggZGVwZW5kaW5nIG9uIGxpYnBtZW1ibGsncyBjaGVja2VyCj4gYW5kIGNhbGxpbmcgaW50
-byB0aGVpciBsaWJyYXJ5LCBidXQgaXQgd2FzIG9kZCBmb3IgbmRjdGwgKGEgY29yZSBzeXN0ZW0K
-PiBsaWJyYXJ5IG9mIHNvcnRzKSB0byBkZXBlbmQgb24gbGlicG1lbWJsayAoYW4gJ2FwcGxpY2F0
-aW9uJyBsaWJyYXJ5KS4KPiBUaGVuIHdlIGNvbnNpZGVyZWQgbW92aW5nIHRoZSBsaWJwbWVtYmxr
-IGNoZWNrZXIgcGFydHMgaW50byBsaWJuZGN0bCwKPiBhbmQgbWFraW5nIHBtZW1ibGsgZGVwZW5k
-IG9uIHVzLCBidXQgdGhleSBhbHNvIHVzZWQgdGhlaXIgbGlicmFyeSBvbgo+IHdpbmRvd3MsIHNv
-IHdlIGNvdWxkbid0IGp1c3QgbW92ZSBpdC4gRmluYWxseSB3ZSBqdXN0IGRlY2lkZWQgdG8gaGF2
-ZSBhCj4gY29weSBvZiB0aGUgY29kZSBpbiBuZGN0bCwgc28gSSByZXdyb3RlIGl0IGluIGEgbmRj
-dGwgbmF0aXZlIHdheS4KCk9LLgoKPj4gVGhlcmUgc2VlbXMgdG8gYmUgYSBsb3Qgb2YgcmVwZWF0
-ZWQgY29kZSBzZXF1ZW5jZXMgYXJvdW5kIHJlYWRpbmcgYW5kCj4+IHZlcmlmeWluZyB0aGUgYnR0
-IGluZm8gYmxvY2tzLsKgwqBQZXJoYXBzIHRoYXQgY2FuIGJlIGZhY3RvcmVkCj4+IG91dD/CoMKg
-TWF5YmUKPj4gZ2V0IHJpZCBvZiB0aGUgZmlyc3Rfc2Igc3BlY2lhbCBzbm93Zmxha2UgYW5kIHJv
-bGwgdGhhdCBpbnRvIHRoZSBhcmVuYQo+PiBkaXNjb3Zlcnk/CgpZb3UgZGlkbid0IGNvbW1lbnQg
-b24gdGhpcyBvbmUuLi4gZGlkIHlvdSBtaXNzIGl0LCBvciB3aWxsIHlvdQppbnZlc3RpZ2F0ZSwg
-b3IgZG8geW91IHRoaW5rIGl0J3MgYSBib2d1cyBjb21tZW50PwoKPj4gPiBkaWZmIC0tZ2l0IGEv
-bmRjdGwvYnR0LXN0cnVjdHMuaCBiL25kY3RsL2J0dC1zdHJ1Y3RzLmgKPj4gPiArI2RlZmluZSBJ
-Ql9GTEFHX0VSUk9SIDB4MDAwMDAwMDEKPj4gPiArI2RlZmluZSBJQl9GTEFHX0VSUk9SX01BU0sg
-MHgwMDAwMDAwMQo+PiAKPj4gSUJfRkxBR19FUlJPUiBpcyBkZWZpbmVkIGJ1dCBuZXZlciB1c2Vk
-L2NoZWNrZWQuwqDCoE9mIGNvdXJzZSwgbmVpdGhlcgo+PiB0aGUKPj4ga2VybmVsIG5vciB0aGlz
-IHV0aWxpdHkgd2lsbCBzZXQgdGhhdCBmbGFnLsKgwqBXZSBzaG91bGQgcHJvYmFibHkgZGVjaWRl
-Cj4+IHdoZXRoZXIgaXQgbWFrZXMgc2Vuc2UgdG8gZG8gc28uCj4KPiBUcnVlLCB3aWxsIHJlbW92
-ZS4KCldlbGwsIGhvbGQgb24uICBUaGlzIGZsYWcgZXhpc3RzIGluIHRoZSBzcGVjLCBzbyBhdCB0
-aGUgdmVyeSBsZWFzdCB3ZQpzaG91bGQgY29uc2lkZXIgd2hlcmUgaXQgc2hvdWxkIGJlIHNldCwg
-YW5kIHdoYXQgdG8gZG8gaWYgaXQgL2lzLyBzZXQuCkxldCdzIG5vdCBqdXN0IHJlbW92ZSBpdC4K
-Cj4+IEkgZmluZCBpdCBvZGQgdGhhdCB0aGUgY2FsbGVyIGhhcyB0byBwYXNzIGluIHRoZSBvZmZz
-ZXQgNGsgYmVmb3JlIHRoZQo+PiBzdGFydCBvZiB0aGUgaW5mbyBibG9jay7CoMKgSXQgc2VlbXMg
-bmF0dXJhbCBmb3IgdGhlIGZpcnN0IGluZm8gYmxvY2ssCj4+IGJ1dAo+PiBmb3IgdGhlIGJhY2t1
-cCwgaXQncyB0b3RhbGx5IGJvZ3VzLsKgwqA7LSkKPgo+IEkgYWdyZWUsIGFuZCBJIGhhdGVkIGl0
-IHRvbyA6KQo+IEJ1dCBJIHdhbnRlZCB0byBrZWVwIHRoZSArNEsgYWRkaXRpb24gaW4gdGhlIGxv
-d2VzdCBsZXZlbCBmdW5jdGlvbnMuLgo+IEhhdmUgYSBiZXR0ZXIgaWRlYT8gOikgIFRoaXMgZG9l
-cyBraW5kYSBraWxsIHRoZSBpZGVhIG9mICJvaCB0aGUgNGsKPiBvZmZzZXR0aW5nIHdpbGwgYmUg
-Y29tcGxldGVseSBoaWRkZW4gZnJvbSB0aGUgaGlnaGVyIGxldmVsIGxvZ2ljIgo+Cj4gVGhlIG9w
-cG9zaXRlIG9mIHRoaXMgd291bGQgYmUgc3ByaW5rbGluZyBhIG51bWJlciBvZiArNEsgZXZlcnl3
-aGVyZQo+IGVsc2UsIGFuZCBJIHRoaW5rIHdpdGggdGhpcyB3ZSBvbmx5IGhhdmUgdG8gZG8gdGhl
-IGludmVyc2UgaW4gYSBjb3VwbGUKPiBvZiBwbGFjZXMuLgoKSSBndWVzcyBJJ2QgaGF2ZSB0byBz
-ZWUgdGhlIHJlc3VsdCBvZiBpbnZlcnRpbmcgdGhlIHJvbGVzLiAgRmVlbCBmcmVlIHRvCmhvbGQg
-b2ZmIG9uIHRoaXMgb25lLCBJIGRvbid0IHRoaW5rIGl0J3MgY3JpdGljYWwuCgo+PiBBZ2Fpbiwg
-eiBhbmQgZSBhcmUgdW51c2VkLsKgwqBOdWtlICdlbS4KPgo+IFRydWUsIEkganVzdCBjb3BpZWQg
-dGhlc2Ugb3ZlciBmcm9tIHRoZSBrZXJuZWwgaW1wbGVtZW50YXRpb24sIGFuZAo+IHdhc24ndCBz
-dXJlIGlmIEknZCBldmVyIGJlIHVzaW5nIHogYW5kIGUuIEN1cnJlbnRseSB0aGUga2VybmVsIGRv
-ZXNuJ3QKPiBldmVuIHNldCB0aG9zZSwgc28gaXQgaXMgYSBiaXQgcmVkdW5kYW50LiBJZiB0aGUg
-a2VybmVsIGRvZXMgZ3JvdyB0aGUKPiBhYmlsaXR5IHRvIHVzZSB0aGVtIGluIGZ1dHVyZSwgdGhl
-cmUgY291bGQgYmUgdXNlIGZvciB0aGVzZSwgYnV0IEkKPiBzdXBwb3NlIEkgc2hvdWxkIHJlbW92
-ZSB0aGUgZGVhZCBjb2RlIHVudGlsIHRoYXQgaGFwcGVucyA6KQoKRXZlcnkgc2luZ2xlIHN0YXRl
-IG9mIHRob3NlIHR3byBiaXRzIGlzIHZhbGlkLiAgSG93IHdvdWxkIHlvdSBldmVyIGRvCnNvbWV0
-aGluZyB1c2VmdWwgd2l0aCB0aGVtPwoKPj4gU2hvdWxkIHdlIHBlcmZvcm0gYSBsb2FkIG9mIHRo
-ZSBpbmZvIGJsb2NrIGFmdGVyIHRoZSBtc3luYyB0byBlbnN1cmUKPj4gaXQKPj4gd2FzIHdyaXR0
-ZW4gKHRvIHRyaWdnZXIgYW4gTUNFIGlmIG9uZSBpcyBnb2luZyB0byBoYXBwZW4pP8KgwqBUaGF0
-IHNhbWUKPj4gcXVlc3Rpb24gY291bGQgYmUgYXNrZWQgZm9yIGVhY2ggcGxhY2Ugd2hlcmUgYW4g
-dXBkYXRlIGlzIG1hZGUuCj4KPiBHb29kIHF1ZXN0aW9uLiBJIGd1ZXNzIHRoZSBwcm9iYWJpbGl0
-eSBvZiB0aG9zZSBsb2NhdGlvbnMgaGF2aW5nIGEgYmFkCj4gY2VsbCBpcyBsb3cgYmVjYXVzZSB3
-ZSBkaWQganVzdCByZWFkIHRoZW0gdG8gZmluZCBvdXQgdGhlcmUgaXMgYQo+IHByb2JsZW0sIGFu
-ZCBzdWJzZXF1ZW50bHkgd3JpdGluZyB0aGVtIHNob3VsZCBoYXZlIGEgbG93IHByb2JhYmlsaXR5
-IG9mCj4gdHJpZ2dlcmluZyBhIENNQ0kuIEJ1dCByZS1yZWFkaW5nIHRvIG1ha2Ugc3VyZSBpdCB3
-YXMgY29ycmVjdGx5IHdyaXR0ZW4KPiBpcyBub3QgYSBiYWQgaWRlYS4gRGFuLCB0aG91Z2h0cz8K
-ClRoaXMgb25lJ3Mgbm90IGNyaXRpY2FsLiAgQnV0IGl0J3MgYSBjaGVja2VyIHRvb2wsIHNvIGl0
-IG1pZ2h0IGJlIG5pY2UKdG8gYmUgcGFyYW5vaWQuCgo+PiBUaGlzIGlzbid0IGFuIGVycm9yLsKg
-wqBXZSBleHBlY3QgdGhpcyB0byBoYXBwZW4gaWYgcG93ZXIgaXMgc3VkZGVubHkKPj4gbG9zdCwg
-YW5kIHRoZSBmb3JtYXQgaXMgYnVpbHQgdG8gcmVjb3ZlciBmcm9tIGl0LsKgwqBJZiB5b3UgbG9n
-IGl0IGF0Cj4+IGFsbCwgSSB3b3VsZCBtYWtlIGl0IGFuIGluZm9ybWF0aW9uYWwgbWVzc2FnZS4K
-Pj4gCj4+IEkgd29uZGVyIHdoZXRoZXIgd2Ugc2hvdWxkIGV2ZW4gZml4IGl0LsKgwqBJIHdvcnJ5
-IGFib3V0IGhhdmluZyB0aGUgc2FtZQo+PiByZWNvdmVyeSBjb2RlIGluIG11bHRpcGxlIHBsYWNl
-cyAodGhlIGtlcm5lbCBhbmQgaGVyZSkuwqDCoFdoYXQgZG8geW91Cj4+IHRoaW5rPwo+Cj4gSG0s
-IEkgYWdyZWUgYWJvdXQgdGhlIG1lc3NhZ2UsIGluIHRoYXQgaXQgaXMgcm91dGluZS4gQnV0IEkg
-YWRkZWQgdGhlCj4gcmVwYWlyaW5nIHNvIHRoYXQgYSB1c2VyIG1heSBqdXN0IGRlY2lkZSB0byBk
-byBhIGNoZWNrIHVzaW5nIHRoaXMgYWZ0ZXIKPiBhIHBvd2VyIGZhaWx1cmUsIGFuZCB3ZSBjYW4g
-ZWFzaWx5IGZpeCBpdCB3aGVuIHdlIGhhdmUgdGhlIGNoYW5jZS4gSSBkbwo+IGFncmVlIGFib3V0
-IHRoZSBjaGVjay9jb3JyZWN0aW9uIGluIG11bHRpcGxlIHBsYWNlcywgSSB3b3VsZG4ndCBiZSB0
-b28KPiBvcHBvc2VkIHRvIHJlbW92aW5nIGl0IGVudGlyZWx5IGZyb20gaGVyZS4KCklmIHlvdSBy
-ZW1vdmUgaXQsIHB1dCBhIGJpZyBjb21tZW50IGluIHRoZXJlLiAgOikgIEknbGwgbGVhdmUgdGhl
-CnVsdGltYXRlIGRlY2lzaW9uIHVwIHRvIHlvdS4gIEl0J3Mgbm90IGNvbXBsZXggcmVjb3Zlcnks
-IHNvIHdlICpzaG91bGQqCmJlIG9rYXkgdG8gaGF2ZSB0aGF0IGxvZ2ljIGluIG11bHRpcGxlIHBs
-YWNlcy4uLgoKPj4gPiArCS8qCj4+ID4gKwnCoCogQXR0ZW1wdCAzOiB1c2UgaW5mbzJvZmYgYXMt
-aXMsIGFuZCBjaGVjayBpZiB3ZSBmaW5kIGEKPj4gPiB2YWxpZCBpbmZvCj4+ID4gKwnCoCogYmxv
-Y2sgYXQgdGhhdCBsb2NhdGlvbi4KPj4gPiArCcKgKi8KPj4gPiArCcKgb2Zmc2V0ID0gbGUzMnRv
-aChidHRfc2JbMF0uaW5mbzJvZmYpOwo+PiA+ICsJwqBpZiAob2Zmc2V0KSB7Cj4+IAo+PiBNYXli
-ZSBkbyBzb21lIGJvdW5kcyBjaGVja2luZyBvbiBvZmZzZXQ/Cj4KPiBJZiB0aGUgb2Zmc2V0IGlz
-IGJvZ3VzIGVpdGhlciB0aGUgcmVhZCB3aWxsIGZhaWwgb3IgdGhlIHZlcmlmeSB3aWxsLCBidXQK
-PiB5ZXMgSSBjb3VsZCBhZGQgY2hlY2tpbmcgdG9vLgoKQWdhaW4sIG5vdCBjcml0aWNhbC4gIEkn
-bGwgbGVhdmUgaXQgdXAgdG8geW91LgoKPj4gPiArCQlwcmludGYoIkF0dGVtcHRpbmcgdG8gcmVj
-b3ZlciBpbmZvLWJsb2NrIGZyb20gaW5mbzIKPj4gPiBvZmZzZXQgKGFzLWlzKSAlI2xseFxuIiwg
-b2Zmc2V0KTsKPj4gPiArCQlyYyA9IGJ0dF9yZWFkX2luZm8oYnR0YywgJmJ0dF9zYlsxXSwgb2Zm
-c2V0KTsKPj4gPiArCQlpZiAocmMpCj4+ID4gKwkJCWdvdG8gb3V0Owo+PiA+ICsJCXJjID0gYnR0
-X2luZm9fdmVyaWZ5KGJ0dGMsICZidHRfc2JbMV0pOwo+PiA+ICsJCWlmIChyYyA9PSAwKSB7Cj4+
-ID4gKwkJCXJjID0gYnR0X3dyaXRlX2luZm8oYnR0YywgJmJ0dF9zYlsxXSwgMCk7Cj4+ID4gKwkJ
-CWdvdG8gb3V0Owo+PiA+ICsJCX0KPj4gPiArCX0gZWxzZQo+PiA+ICsJCXJjID0gLUVOWElPOwo+
-PiAKPj4gWW91IGNvdWxkIGFsc28gbG9vayBmb3IgdGhlIHByaW1hcnkgaW5mbyBibG9ja3MgZm9y
-IHRoZSBvdGhlciBhcmVuYXMuCj4KPiBUaGF0IHNlZW1zIGtpbmQgb2YgZGlmZmljdWx0IGFzIHdl
-IGRvbid0IHJlYWxseSBoYXZlIGFueSBpbmZvcm1hdGlvbiBvbgo+IHdoZXJlIHRoZSBvdGhlciBh
-cmVuYXMgbWlnaHQgYmUuCj4gV2UgY291bGQgZG8gYSBmdWxsIGNhbGN1bGF0aW9uIG9mICJ0aGlz
-IGlzIHdoZXJlIEkgd291bGQgbGF5IG91dCB0aGUKPiBhcmVuYXMgaWYgSSBoYWQgdGhpcyByYXdz
-aXplIiwgYnV0IEkgd2FzIGhvcGluZyB0byBhdm9pZCBkb2luZyB0aGF0Li4KCk9LLiAgSWYgd2Ug
-Z2V0IHRvIGhlcmUsIHRoaW5ncyBhcmUgcHJldHR5IHdlbGwgc2NyZXdlZC4gIEZlZWwgZnJlZSB0
-bwppZ25vcmUgdGhhdCBzdWdnZXN0aW9uLgoKPj4gPiArIG91dDoKPj4gPiArCWZyZWUoYnR0X3Ni
-KTsKPj4gPiArCXJldHVybiByYzsKPj4gPiArfQo+PiA+ICsKPj4gPiArc3RhdGljIGludCBuYW1l
-c3BhY2VfY2hlY2soc3RydWN0IG5kY3RsX3JlZ2lvbiAqcmVnaW9uLAo+PiA+ICsJCXN0cnVjdCBu
-ZGN0bF9uYW1lc3BhY2UgKm5kbnMpCj4+ID4gK3sKPj4gCj4+IG5hbWVzcGFjZV9jaGVjayBzb3Vu
-ZHMgZ2VuZXJpYywgYnV0IGl0IHJlYWxseSBvbmx5IHdvcmtzIGZvciB0aGUgYnR0Lgo+PiBBbHNv
-LCBzaG91bGQgd2UgdmVyaWZ5IHRoYXQgdGhlIG5hbWVzcGFjZSB3YXMgY29uZmlndXJlZCB3aXRo
-IGEgYnR0Cj4+IGJlZm9yZSBldmVuIGF0dGVtcHRpbmcgdG8gY2hlY2sgaXQ/Cj4KPiBUcnVlLiBJ
-IGRpZCB0aGluayBvZiBjaGVja2luZyBpZiB0aGlzIGlzIGEgYnR0IG5hbWVzcGFjZSBiZWZvcmUK
-PiBjaGVja2luZywgYnV0IEkgdGhpbmsgaWYgdGhlIG5hbWVzcGFjZSBpcyBkaXNhYmxlZCwgbXkg
-dW5kZXJzdGFuZGluZyBpcwo+IG5kY3RsIGFuZCBsaWJuZGN0bCBoYXZlIG5vIGlkZWEgd2hldGhl
-ciBpdCBpcyBhIGJ0dCBuYW1lc3BhY2Ugb3Igbm90Lgo+IFRoZSBCVFQgaXMgZGlzY292ZXJlZCBi
-eSB0aGUga2VybmVsIHdoZW4gZG9pbmcgaXQncyBwcm9iZSwgYW5kIG9uY2UgaXQKPiBpcyB1cCwg
-bmRjdGwgY2FuIHNlZSB0aGF0LCBidXQgdW50aWwgdGhlbiwgaXQgY2FuIHJlYWxseSBvbmx5IGZp
-bmQgb3V0Cj4gaWYgdGhlcmUgaXMgYSB2YWxpZCBCVFQgYnkgdHJ5aW5nIHRvIHJlYWQgdGhlIG1l
-dGFkYXRhIGl0c2VsZi4KClllYWguICBBdCBzb21lIHBvaW50IEkgZ3Vlc3Mgd2UgaGF2ZSB0byB0
-cnVzdCB0aGUgYWRtaW4gbm90IHRvIHRyeSB0bwpmaXggdGhlIGJ0dCBvbiBhIG5vbi1idHQgZGV2
-aWNlLiAgSG93ZXZlciwgaWYgd2UgYWxsb3dlZCB0aGVtIHRvIHJ1biB0aGUKY29tbWFuZCBvbiBh
-IHBtZW1OcyBkZXZpY2UsIHRoYXQgd291bGQgcmVkdWNlIHRoZSBvcHBvcnR1bml0aWVzIGZvcgpm
-YWlsdXJlLgoKPj4gPiArCXJhd19tb2RlID0gbmRjdGxfbmFtZXNwYWNlX2dldF9yYXdfbW9kZShu
-ZG5zKTsKPj4gPiArCW5kY3RsX25hbWVzcGFjZV9zZXRfcmF3X21vZGUobmRucywgMSk7Cj4+ID4g
-KwlyYyA9IG5kY3RsX25hbWVzcGFjZV9lbmFibGUobmRucyk7Cj4+ID4gKwlpZiAocmMgIT0gMCkK
-Pj4gPiArCQllcnJvcigiJXM6IGZhaWxlZCB0byBlbmFibGUgcmF3IG1vZGVcbiIsIGRldm5hbWUp
-Owo+PiA+ICsJbmRjdGxfbmFtZXNwYWNlX3NldF9yYXdfbW9kZShuZG5zLCByYXdfbW9kZSk7Cj4+
-IAo+PiBXaGF0IHRoZSBoZWNrIGRvIHRoZSBhYm92ZSA2IGxpbmVzIGRvP8KgwqBQbGVhc2UgZXhw
-bGFpbi4KPgo+IExpbmRhIGhhZCB0aGUgc2FtZSBxdWVzdGlvbiBzbyBJIHN1cHBvc2UgSSBzaG91
-bGQgYXQgbGVhc3QgaGF2ZSBhCj4gY29tbWVudCB0aGVyZSA6KQo+IEJ1dCB0aGUgaWRlYSBpcyB3
-ZSBnZXQgdGhlIGV4aXN0aW5nIG1vZGUgKHJhdyBvciBub3QpLCBhbmQgc2F2ZSBpdCBpbgo+IHJh
-d19tb2RlLiBUaGVuIHRyeSB0byBlbmFibGUgaXQgd2l0aCByYXdfbW9kZSA9IDEuIElmIGl0IGZh
-aWxzLCByZXN0b3JlCj4gdGhlIHNhdmVkIHJhd19tb2RlLgoKSSBoYWQgbW9yZSBiYXNpYyBxdWVz
-dGlvbnMsIGxpa2Ugd2hhdCB0aGUgaGVjayBpcyBnb2luZyBvbj8gIDotKSBJJ3ZlCmRvbmUgc29t
-ZSBtb3JlIHJlYWRpbmcsIGFuZCB0aGlzIGlzIHdoYXQgSSB0aGluayBpcyBoYXBwZW5pbmcuCgoJ
-LyogSW4gdHlwaWNhbCB1c2FnZSwgdGhlIGN1cnJlbnQgcmF3X21vZGUgc2hvdWxkIGJlIGZhbHNl
-LiAqLwoJcmF3X21vZGUgPSBuZGN0bF9uYW1lc3BhY2VfZ2V0X3Jhd19tb2RlKG5kbnMpOwoJLyoK
-CSAqIFB1dHRpbmcgdGhlIG5hbWVzcGFjZSBpbnRvIHJhdyBtb2RlIHdpbGwgYWxsb3cgdXMgdG8g
-YWNjZXNzCgkgKiB0aGUgYnR0IG1ldGFkYXRhLgoJICovCgluZGN0bF9uYW1lc3BhY2Vfc2V0X3Jh
-d19tb2RlKG5kbnMsIDEpOwoJLyoKCSAqIE5vdyBlbmFibGUgdGhlIG5hbWVzcGFjZS4gIFRoaXMg
-d2lsbCByZXN1bHQgaW4gYSBwbWVtIGRldmljZQoJICogbm9kZSBzaG93aW5nIHVwIGluIC9kZXYg
-dGhhdCBpcyBpbiByYXcgbW9kZS4KCSAqLwoJcmMgPSBuZGN0bF9uYW1lc3BhY2VfZW5hYmxlKG5k
-bnMpOwoJaWYgKHJjICE9IDApCgkJZXJyb3IoIiVzOiBmYWlsZWQgdG8gZW5hYmxlIHJhdyBtb2Rl
-XG4iLCBkZXZuYW1lKTsKCXNwcmludGYocGF0aCwgIi9kZXYvJXMiLCBuZGN0bF9uYW1lc3BhY2Vf
-Z2V0X2Jsb2NrX2RldmljZShuZG5zKSk7CgpBbmQgbW92ZSB0aGUgcmVzZXR0aW5nIG9mIHJhd19t
-b2RlIGRvd24gaW50byB0aGUgb3V0OiBsYWJlbC4gIFRoYXQgd2lsbApnbyBhIGxvbmcgd2F5IHRv
-d2FyZHMgY2xlYXJpbmcgdXAgdGhlIGNvbmZ1c2lvbiBJIGhhZCB3aGVuIHJlYWRpbmcgdGhlCmNv
-ZGUgZm9yIHRoZSBmaXJzdCB0aW1lLiAgSSB0aGluayB5b3Ugc2hvdWxkIGFsc28gbWVudGlvbiB0
-aGF0IGEKcHJlLWNvbmRpdGlvbiBmb3IgdGhpcyBmdW5jdGlvbiBpcyB0aGF0IHRoZSBuYW1lc3Bh
-Y2UgaXMgZGlzYWJsZWQsIGFuZAp5b3Ugc2hvdWxkIGNoZWNrIGZvciBpdCBhbmQgcHJvdmlkZSBh
-IHVzZWZ1bCBlcnJvciBtZXNzYWdlIGlmIGl0J3MKYWxyZWFkeSBlbmFibGVkLgoKPiBNYXliZSB0
-aGlzIGlzIGEgYml0IHBvaW50bGVzcz8gQnV0IHdlIHNob3VsZCB0cnkgYW5kIGtlZXAgdGhpbmdz
-IGluIHRoZQo+IHNhbWUgc3RhdGUgdGhlIHVzZXIgaGFkLCByaWdodD8gOikKCkkgZGVmaW5pdGVs
-eSBhZ3JlZSB3ZSBzaG91bGQga2VlcCB0aGluZ3MgaW4gdGhlIHNhbWUgc3RhdGUuICBJIHJlYWxs
-eQpkaWRuJ3QgaGF2ZSBhIGdvb2QgZ3Jhc3Agb2Ygd2hhdCB3YXMgZ29pbmcgb24gdGhlcmUsIGFu
-ZCBjb21tZW50cyB3b3VsZApoYXZlIHNhdmVkIG1lIHNvbWUgdGltZSBkaWdnaW5nIHRocm91Z2gg
-Ym90aCBuZGN0bCBhbmQga2VybmVsIGNvZGUuCgpDaGVlcnMsCkplZmYKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlz
-dApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4v
-bGlzdGluZm8vbGludXgtbnZkaW1tCg==
+
+--j2au3orvnrua6zfh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi,
+
+LTP tests on DAX show 2 issues.
+
+msync03 and diotest4, both xfs and ext4,
+
+non-DAX  pass
+DAX      fail
+
+1, MAP_LOCKED && msync with MS_INVALIDATE, which should fail.
+
+Flag checking code in msync looks ok but missing _LOCK vma falgs
+for DAX mapped vma ? i guess DAX now does not support that ?
+Tracking by LTP testcase "msync03"
+
+2. O_DIRECT rw odd counts on DAX
+
+read/write 1 byte on file opened with O_DIRECT, EINVAL is
+expected but Success.
+I'm not sure whether this is an issue, please enlighten :)
+Tracking by LTP testcase "dio04 diotest4".
+
+BTW, I am testing DAX with xfstests, LTP and other fs test
+cases. If the same case fails on DAX but pass on non-DAX,
+i'll look into and report if it is a real issue to me. I've
+been doing this for a while, recently, I started looking at
+cases that fail on non-DAX and pass on DAX inspired by
+Darrick in another thread.
+
+For now, test result looks good. Except the above 2 issues
+which I've seen for a while and not sure they are really
+issues, xfstests check -g auto has no major regressions
+between DAX and non-DAX. generic/403 is a new case and its
+failures are under investigation, i'll report if it is.
+
+Thanks,
+Xiong
+
+--j2au3orvnrua6zfh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="msync03.c"
+
+/*
+ * Copyright (c) International Business Machines  Corp., 2001
+ * Copyright (c) 2014 Fujitsu Ltd.
+ */
+
+#include <stdio.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <sys/mount.h>
+#include <pwd.h>
+#include <sys/resource.h>
+
+#define BUF_SIZE	256
+
+static void setup(void);
+static void cleanup(void);
+static int fd;
+static char *addr1;
+static size_t page_sz;
+int main(int ac, char **av)
+{
+	int ret, lc;
+	char write_buf[BUF_SIZE];
+
+	if (ac != 2) {
+		fprintf(stderr, "%s <test file>\n", av[0]);
+		return 1;
+	}
+
+	page_sz = (size_t)sysconf(_SC_PAGESIZE);
+
+	fd = open(av[1], O_RDWR | O_CREAT, 0666);
+
+	memset(write_buf, 'a', BUF_SIZE);
+	ret = write(fd, write_buf, BUF_SIZE);
+	if (ret == -1) {
+		fprintf(stderr, "write failed\n");
+		return 1;
+	}
+
+	addr1 = mmap(0, page_sz, PROT_READ | PROT_WRITE,
+			  MAP_SHARED | MAP_LOCKED, fd, 0);
+	if (addr1 == MAP_FAILED) {
+		fprintf(stderr, "mmap failed unexpectedly\n");
+		return 1;
+	}
+
+	ret = msync(addr1, page_sz, MS_INVALIDATE);
+	if (ret != -1) {
+		fprintf(stderr, "msync succeeded unexpectedly, test fail\n");
+		return 1;
+	}
+
+	if (errno == EBUSY) {
+		fprintf(stderr, "msync failed as expected, test pass\n");
+	} else {
+		fprintf(stderr,
+			 "msync failed unexpectedly; expected: "
+			 "%d - %s, test fail\n", EBUSY, strerror(EBUSY));
+	}
+
+	if (addr1 && munmap(addr1, page_sz) < 0)
+		fprintf(stderr, "munmap() failed\n");
+
+	if (fd > 0 && close(fd) < 0)
+		fprintf(stderr, "close() failed\n");
+
+	return 0;
+}
+
+--j2au3orvnrua6zfh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="diotest4.c"
+
+/*
+ *
+ *   Copyright (c) International Business Machines  Corp., 2002
+ *
+ * NAME
+ *      diotest4.c
+ *
+ * DESCRIPTION
+ *	The program generates error conditions and verifies the error
+ *	code generated with the expected error value. The program also
+ *	tests some of the boundary condtions. The size of test file created
+ *	is filesize_in_blocks * 4k.
+ *	Test blocks:
+ *	[3] Odd count of read and write
+ *
+*/
+
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/file.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <sys/syscall.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/shm.h>
+
+#define BUFSIZE 	4096
+#define TRUE	1
+
+/*
+ * runtest_f: Do read, writes. Verify the error value obtained by
+ *	running read or write with the expected error value (errnum).
+*/
+int
+runtest_f(int fd, char *buf, int offset, int count, int errnum, int testnum,
+	  char *msg)
+{
+	int ret;
+	int l_fail = 0;
+
+	if (lseek(fd, offset, SEEK_SET) < 0) {
+		if (errno != errnum) {
+			fprintf(stderr, "lseek before read failed: %s\n",
+				 strerror(errno));
+			l_fail = TRUE;
+		}
+	} else {
+		errno = 0;
+		ret = read(fd, buf, count);
+		if (ret >= 0 || errno != errnum) {
+			fprintf(stderr, "read allows %s. returns %d: %s\n",
+				 msg, ret, strerror(errno));
+			l_fail = TRUE;
+		}
+	}
+	if (lseek(fd, offset, SEEK_SET) < 0) {
+		if (errno != errnum) {
+			fprintf(stderr, "lseek before write failed: %s\n",
+				 strerror(errno));
+			l_fail = TRUE;
+		}
+	} else {
+		errno = 0;
+		ret = write(fd, buf, count);
+		if (ret >= 0 || errno != errnum) {
+			fprintf(stderr, "write allows %s.returns %d: %s\n",
+				 msg, ret, strerror(errno));
+			l_fail = TRUE;
+		}
+	}
+	return (l_fail);
+}
+
+int main(int argc, char *argv[])
+{
+	int bufsize = BUFSIZE;
+	int count, ret;
+	int offset;
+	int fd, newfd;
+	int failed = 0;
+	char *buf0;
+
+	if (argc != 2) {
+		fprintf(stderr, "%s <test file>\n", argv[0]);
+		return 1;
+	}
+
+	/* Open file and fill, allocate for buffer */
+	if ((fd = open(argv[1], O_DIRECT | O_RDWR | O_CREAT, 0666)) < 0) {
+		fprintf(stderr, "open failed for %s: %s\n",
+			 argv[1], strerror(errno));
+		return 1;
+	}
+	if ((buf0 = valloc(BUFSIZE)) == NULL) {
+		fprintf(stderr, "valloc() buf0 failed: %s\n",
+			 strerror(errno));
+		return 1;
+	}
+	memset(buf0, 0, BUFSIZE);
+	if (write(fd, buf0, BUFSIZE) < 0) {
+		fprintf(stderr, "write failed for %s: %s\n",
+			 argv[1], strerror(errno));
+		return 1;
+	}
+	close(fd);
+	if ((fd = open(argv[1], O_DIRECT | O_RDWR)) < 0) {
+		fprintf(stderr, "open failed for %s: %s\n",
+			 argv[1], strerror(errno));
+		return 1;
+	}
+
+	/* Test-3: Odd count of read and write */
+	offset = 0;
+	count = 1;
+	lseek(fd, 0, SEEK_SET);
+	if (write(fd, buf0, BUFSIZE) == -1) {
+		fprintf(stderr, "can't write to file %d", ret);
+	}
+	ret = runtest_f(fd, buf0, offset, count, EINVAL, 3, "odd count");
+	if (ret == TRUE)
+		fprintf(stderr, "diotest4 fail\n");
+	else
+		fprintf(stderr, "diotest4 pass\n");
+
+	close(fd);
+	return 0;
+}
+
+--j2au3orvnrua6zfh
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--j2au3orvnrua6zfh--
