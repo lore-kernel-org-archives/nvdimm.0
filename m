@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B487981EFA
- for <linux-nvdimm@lists.01.org>; Mon, 23 Jan 2017 16:06:34 -0800 (PST)
-Subject: [PATCH] dax: put back __GFP_IO in the dax fault handler
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 23 Jan 2017 17:06:30 -0700
-Message-ID: <148521639006.25631.4184774582309071957.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D03EF81F04
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Jan 2017 10:33:40 -0800 (PST)
+Date: Tue, 24 Jan 2017 11:33:39 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH] dax: pgoff in fs DAX trace needs to be corrected
+Message-ID: <20170124183339.GB28860@linux.intel.com>
+References: <148521639917.25631.6919429328589810158.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <148521639917.25631.6919429328589810158.stgit@djiang5-desk3.ch.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,39 +23,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
+To: Dave Jiang <dave.jiang@intel.com>
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-__GFP_IO got accidentally dropped in the dax fault handler during the
-vmf parameter conversion. Putting it back.
+On Mon, Jan 23, 2017 at 05:06:39PM -0700, Dave Jiang wrote:
+> With only vmf being passed in, the pgoff in vmf that is passed in is for
+> the PTE and not the PMD. Fix up so the pgoff is corrected.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- fs/dax.c |    2 ++
- 1 file changed, 2 insertions(+)
+Yep, this seems right to me.  Thanks for catching it.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 2e90f7a..20e9db8 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1332,6 +1332,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
- 	loff_t pos;
- 	int error;
- 
-+	vmf->gfp_mask |= __GFP_IO;
- 	/*
- 	 * Check whether offset isn't beyond end of file now. Caller is
- 	 * supposed to hold locks serializing us with truncate / punch hole so
-@@ -1423,6 +1424,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
- 	}
- out:
- 	trace_dax_pmd_fault_done(inode, vmf, max_pgoff, result);
-+	vmf->gfp_mask &= ~__GFP_IO;
- 	return result;
- }
- #else
-
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
