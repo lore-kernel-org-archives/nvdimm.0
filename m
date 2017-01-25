@@ -1,41 +1,34 @@
-From: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH v7] x86: fix kaslr and memmap collision
-Date: Wed, 25 Jan 2017 11:47:47 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1701251147350.3728@nanos>
-References: <148417664156.131935.2248592164852799738.stgit@djiang5-desk3.ch.intel.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH v5] DAX: enable iostat for read/write
+Date: Wed, 25 Jan 2017 10:15:50 -0500
+Message-ID: <x498tpznpax.fsf@segfault.boston.devel.redhat.com>
+References: <20170112183848.23159-1-toshi.kani@hpe.com>
+        <20170125111952.GA11978@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <148417664156.131935.2248592164852799738.stgit-Cxk7aZI4ujnJARH06PadV2t3HXsI98Cx0E9HWUfgJXw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170125111952.GA11978@infradead.org> (Christoph Hellwig's
+        message of "Wed, 25 Jan 2017 03:19:52 -0800")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Toshi Kani <toshi.kani@hpe.com>, akpm@linux-foundation.org, dan.j.williams@intel.com, linux-nvdimm@ml01.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, Joe Perches <joe@perches.com>, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, 11 Jan 2017, Dave Jiang wrote:
+Christoph Hellwig <hch@infradead.org> writes:
 
-> CONFIG_RANDOMIZE_BASE relocates the kernel to a random base address.
-> However it does not take into account the memmap= parameter passed in from
-> the kernel cmdline. This results in the kernel sometimes being put in
-> the middle of memmap. Teaching kaslr to not insert the kernel in
-> memmap defined regions. We will support up to 4 memmap regions. Any
-> additional regions will cause kaslr to disable. The mem_avoid set has
-> been augmented to add up to 4 unusable regions of memmaps provided by the
-> user to exclude those regions from the set of valid address range to insert
-> the uncompressed kernel image. The nn@ss ranges will be skipped by the
-> mem_avoid set since it indicates memory useable.
-> 
-> Signed-off-by: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Acked-by: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-> Acked-by: Baoquan He <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> On Thu, Jan 12, 2017 at 11:38:48AM -0700, Toshi Kani wrote:
+>> DAX IO path does not support iostat, but its metadata IO path does.
+>> Therefore, iostat shows metadata IO statistics only, which has been
+>> confusing to users.
+>> 
+>> Add iostat support to the DAX read/write path.
+>> 
+>> Note, iostat still does not support the DAX mmap path as it allows
+>> user applications to access directly.
+>
+> NAK.  DAX I/O should not be accounted for block device statistics.
 
-Reviewed-by: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Agreed, this is a layering violation.
+
+Cheers,
+Jeff
