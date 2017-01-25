@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4734781CB1
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 14:11:20 -0800 (PST)
-Subject: [PATCH v3 06/12] mm: track active portions of a section at boot
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Jan 2017 14:07:13 -0800
-Message-ID: <148486363375.19694.14661926204436340901.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+In-Reply-To: <1485360117.12563.85.camel@perches.com>
+References: <1485285847-7006-1-git-send-email-bhumirks@gmail.com>
+ <1485311842.12563.50.camel@perches.com>
+ <CAPcyv4i7-vT+-VqU2n4bxrtcwrYtJ5rcVg3=bf5gCx-YRe3HkA@mail.gmail.com>
+ <1485312569.12563.52.camel@perches.com>
+ <alpine.DEB.2.20.1701250745340.2011@hadrien>
+ <1485360117.12563.85.camel@perches.com>
+From: Bhumika Goyal <bhumirks@gmail.com>
+Date: Wed, 25 Jan 2017 21:46:45 +0530
+Message-ID: <CAOH+1jE5F_2qL2O_iMo69y5rpTmSq-1eOKTas6_xuP8xitfWbw@mail.gmail.com>
+Subject: Re: [PATCH] nvdimm: constify device_type structures
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,132 +22,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
+To: Joe Perches <joe@perches.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prepare for hot{plug,remove} of sub-ranges of a section by tracking a
-section active bitmask, each bit representing 2MB (SECTION_SIZE (128M) /
-map_active bitmask length (64)).
+On Wed, Jan 25, 2017 at 9:31 PM, Joe Perches <joe@perches.com> wrote:
+> On Wed, 2017-01-25 at 07:49 +0100, Julia Lawall wrote:
+>> What does the data column actually represent?  I tried size on the .o file
+>> generated from:
+>>
+>> commit a65f0161f4d69d6738d4821e649448312cd818e2
+>> Author: Stephen Rothwell <sfr@canb.auug.org.au>
+>> Date:   Tue Jan 17 15:22:28 2017 +1100
+>>
+>> with CONFIG_X86_64=y and I get:
+>>
+>>    text          data     bss     dec     hex filename
+>>   19726          3480      16   23222    5ab6 drivers/nvdimm/namespace_devs.o
+>>
+>> but when I run objdump -sh drivers/nvdimm/namespace_devs.o, I find a .data
+>> segment of size 1008 and a .data.unlikely segment of size 8, which don't
+>> match up with the results of size.
+>
+> Likely you have dynamic_debug enabled and you
+> need to include these additional sections:
+>
+>         __jump_table
+>         __verbose
+>
+> If user_mode_linux is enabled, add sections:
+>
+>         .fini_array
+>         .init_array
+>
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Stephen Bates <stephen.bates@microsemi.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/mmzone.h |    3 +++
- mm/page_alloc.c        |    4 +++-
- mm/sparse.c            |   53 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 59 insertions(+), 1 deletion(-)
+Thanks for the explanation. I also compiled the patch for x86-64 but
+couldn't find what went wrong but this solved the problem.
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index aa37e2e860ed..6b9d44ce1e2e 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1083,6 +1083,8 @@ struct mem_section_usage {
- 	unsigned long pageblock_flags[0];
- };
- 
-+void section_active_init(unsigned long pfn, unsigned long nr_pages);
-+
- struct page;
- struct page_ext;
- struct mem_section {
-@@ -1224,6 +1226,7 @@ void sparse_init(void);
- #else
- #define sparse_init()	do {} while (0)
- #define sparse_index_init(_sec, _nid)  do {} while (0)
-+#define section_active_init(_pfn, _nr_pages) do {} while (0)
- #endif /* CONFIG_SPARSEMEM */
- 
- /*
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 68ccf5bcdbb2..9a3ab6c245a8 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -6352,10 +6352,12 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
- 
- 	/* Print out the early node map */
- 	pr_info("Early memory node ranges\n");
--	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
-+	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
- 		pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
- 			(u64)start_pfn << PAGE_SHIFT,
- 			((u64)end_pfn << PAGE_SHIFT) - 1);
-+		section_active_init(start_pfn, end_pfn - start_pfn);
-+	}
- 
- 	/* Initialise every node */
- 	mminit_verify_pageflags_layout();
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 59966a3e8ff0..00fdb5d04680 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -168,6 +168,59 @@ void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
- 	}
- }
- 
-+static int section_active_index(phys_addr_t phys)
-+{
-+	return (phys & ~(PA_SECTION_MASK)) / SECTION_ACTIVE_SIZE;
-+}
-+
-+static unsigned long section_active_mask(unsigned long pfn,
-+		unsigned long nr_pages)
-+{
-+	int idx_start, idx_size;
-+	phys_addr_t start, size;
-+
-+	if (!nr_pages)
-+		return 0;
-+
-+	start = PFN_PHYS(pfn);
-+	size = PFN_PHYS(min(nr_pages, PAGES_PER_SECTION
-+				- (pfn & ~PAGE_SECTION_MASK)));
-+	size = ALIGN(size, SECTION_ACTIVE_SIZE);
-+
-+	idx_start = section_active_index(start);
-+	idx_size = section_active_index(size);
-+
-+	if (idx_size == 0)
-+		return -1;
-+	return ((1UL << idx_size) - 1) << idx_start;
-+}
-+
-+void section_active_init(unsigned long pfn, unsigned long nr_pages)
-+{
-+	int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
-+	int i, start_sec = pfn_to_section_nr(pfn);
-+
-+	if (!nr_pages)
-+		return;
-+
-+	for (i = start_sec; i <= end_sec; i++) {
-+		struct mem_section *ms;
-+		unsigned long mask;
-+		unsigned long pfns;
-+
-+		pfns = min(nr_pages, PAGES_PER_SECTION
-+				- (pfn & ~PAGE_SECTION_MASK));
-+		mask = section_active_mask(pfn, pfns);
-+
-+		ms = __nr_to_section(i);
-+		pr_debug("%s: sec: %d mask: %#018lx\n", __func__, i, mask);
-+		ms->usage->map_active = mask;
-+
-+		pfn += pfns;
-+		nr_pages -= pfns;
-+	}
-+}
-+
- /* Record a memory area against a node. */
- void __init memory_present(int nid, unsigned long start, unsigned long end)
- {
-
+Thanks,
+Bhumika
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
