@@ -1,96 +1,13 @@
-From: "GARY" <josekyle766-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: I need followers for Instagram
-Date: Wed, 25 Jan 2017 20:47:29 -0800
-Message-ID: <ECD7BD9B.417F8577@gmail.com>
+From: Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: No Persistent Memory (legacy) even persistent (type 12) was found
+Date: Thu, 26 Jan 2017 07:56:58 +0000 (UTC)
+Message-ID: <31922059.1436799.1485417418342@mail.yahoo.com>
+References: <31922059.1436799.1485417418342.ref@mail.yahoo.com>
+Reply-To: Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_58897F6D.4B9C4A24"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_58897F6D.4B9C4A24
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Hello Here is the link http://www.instabuygram.cn/buy-instagram-followers/
-   regards GARY [...] 
-
-Content analysis details:   (8.6 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-              [Blocked - see <http://www.spamcop.net/bl.shtml?203.255.31.195>]
- 2.8 FSL_HELO_FAKE          No description available.
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (josekyle766[at]gmail.com)
--0.0 BAYES_20               BODY: Bayes spam probability is 5 to 20%
-                            [score: 0.1632]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: instabuygram.cn]
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_58897F6D.4B9C4A24
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1cWbxu-0006j6-Pt
-	for gln-linux-nvdimm@m.gmane.org; Thu, 26 Jan 2017 05:47:18 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B9F9781F9B;
-	Wed, 25 Jan 2017 20:47:23 -0800 (PST)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (unknown [203.255.31.195])
- by ml01.01.org (Postfix) with SMTP id 7EAED81F9A
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Wed, 25 Jan 2017 20:47:20 -0800 (PST)
-Message-ID: <ECD7BD9B.417F8577-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Wed, 25 Jan 2017 20:47:29 -0800
-From: "GARY" <josekyle766-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.0; en-GB;
- rv:1.8.1.24) Gecko/20100228 Thunderbird/2.0.0.24
-MIME-Version: 1.0
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: re: I need followers for Instagram
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -98,44 +15,158 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Id: linux-nvdimm@lists.01.org
 
-
-Hello
-
-Here is the link
-http://www.instabuygram.cn/buy-instagram-followers/
-
-
-regards
-GARY
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_58897F6D.4B9C4A24--
+CkhpOgoKCsKgSSBhbSB0cnlpbmcgdG8gcGxheSB3aXRoIHRoZSBOVkRJTU0gZHJpdmVyIGFuZCBm
+b2xsb3cgaW5zdHJ1Y3Rpb25zIGluIApodHRwczovL252ZGltbS53aWtpLmtlcm5lbC5vcmcvaG93
+X3RvX2Nob29zZV90aGVfY29ycmVjdF9tZW1tYXBfa2VybmVsX3BhcmFtZXRlcl9mb3JfcG1lbV9v
+bl95b3VyX3N5c3RlbSBhbmQgCgoKCmh0dHBzOi8vd3d3LnN1c2UuY29tL2NvbW11bml0aWVzL2Js
+b2cvbnZkaW1tLWVuYWJsaW5nLXBhcnQtMi1pbnRlbAoKCgoKCgoKCmZvciBzZXR0aW5nIHVwIGFu
+IGVtdWxhdGVkIE5WRElNTSBtZW1vcnkuIAoKCgoKCgoKCkkgY2xhaW1lZCB0aGUgbWVtb3J5IHJh
+bmdlIGZyb20gMHgxMDAwMDAwMCAtLSAweDFmZmZmZmZmIHZpYSBhZGRpbmcgYSBrZXJuZWwgY29t
+bWFuZCBsaW5lIHBhcmFtIG1lbW1hcD0yNTZNITI1Nk0gLgoKCgpzb2NjZXJsQHVidW50dTp+JCBk
+bWVzZyB8IGdyZXAgZTgyMApbwqDCoMKgIDAuMDAwMDAwXSBlODIwOiBCSU9TLXByb3ZpZGVkIHBo
+eXNpY2FsIFJBTSBtYXA6ClvCoMKgwqAgMC4wMDAwMDBdIEJJT1MtZTgyMDogW21lbSAweDAwMDAw
+MDAwMDAwMDAwMDAtMHgwMDAwMDAwMDAwMDlmZmZmXSB1c2FibGUKW8KgwqDCoCAwLjAwMDAwMF0g
+QklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDAwMDBjMDAwMC0weDAwMDAwMDAwMDAwZmZmZmZdIHJl
+c2VydmVkClvCoMKgwqAgMC4wMDAwMDBdIEJJT1MtZTgyMDogW21lbSAweDAwMDAwMDAwMDAxMDAw
+MDAtMHgwMDAwMDAwMDdlZWVjZmZmXSB1c2FibGXCoMKgIDwtLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tICoKW8KgwqDCoCAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDA3
+ZWVlZDAwMC0weDAwMDAwMDAwN2VlZjFmZmZdIEFDUEkgZGF0YQpbwqDCoMKgIDAuMDAwMDAwXSBC
+SU9TLWU4MjA6IFttZW0gMHgwMDAwMDAwMDdlZWYyMDAwLTB4MDAwMDAwMDA3ZWYxYWZmZl0gcmVz
+ZXJ2ZWQKW8KgwqDCoCAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDA3ZWYxYjAw
+MC0weDAwMDAwMDAwN2ZmOWFmZmZdIHVzYWJsZQpbwqDCoMKgIDAuMDAwMDAwXSBCSU9TLWU4MjA6
+IFttZW0gMHgwMDAwMDAwMDdmZjliMDAwLTB4MDAwMDAwMDA3ZmZiNmZmZl0gcmVzZXJ2ZWQKW8Kg
+wqDCoCAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDA3ZmZiNzAwMC0weDAwMDAw
+MDAwN2ZmYjhmZmZdIHR5cGUgMjAKW8KgwqDCoCAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4
+MDAwMDAwMDA3ZmZiOTAwMC0weDAwMDAwMDAwN2ZmYmFmZmZdIHJlc2VydmVkClvCoMKgwqAgMC4w
+MDAwMDBdIEJJT1MtZTgyMDogW21lbSAweDAwMDAwMDAwN2ZmYmIwMDAtMHgwMDAwMDAwMDdmZmJi
+ZmZmXSB0eXBlIDIwClvCoMKgwqAgMC4wMDAwMDBdIEJJT1MtZTgyMDogW21lbSAweDAwMDAwMDAw
+N2ZmYmMwMDAtMHgwMDAwMDAwMDdmZmJkZmZmXSByZXNlcnZlZApbwqDCoMKgIDAuMDAwMDAwXSBC
+SU9TLWU4MjA6IFttZW0gMHgwMDAwMDAwMDdmZmJlMDAwLTB4MDAwMDAwMDA3ZmZiZWZmZl0gdHlw
+ZSAyMApbwqDCoMKgIDAuMDAwMDAwXSBCSU9TLWU4MjA6IFttZW0gMHgwMDAwMDAwMDdmZmJmMDAw
+LTB4MDAwMDAwMDA3ZmZjMGZmZl0gcmVzZXJ2ZWQKW8KgwqDCoCAwLjAwMDAwMF0gQklPUy1lODIw
+OiBbbWVtIDB4MDAwMDAwMDA3ZmZjMTAwMC0weDAwMDAwMDAwN2ZmYzFmZmZdIHR5cGUgMjAKW8Kg
+wqDCoCAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDA3ZmZjMjAwMC0weDAwMDAw
+MDAwN2ZmYzNmZmZdIHJlc2VydmVkClvCoMKgwqAgMC4wMDAwMDBdIEJJT1MtZTgyMDogW21lbSAw
+eDAwMDAwMDAwN2ZmYzQwMDAtMHgwMDAwMDAwMDdmZmM1ZmZmXSB0eXBlIDIwClvCoMKgwqAgMC4w
+MDAwMDBdIEJJT1MtZTgyMDogW21lbSAweDAwMDAwMDAwN2ZmYzYwMDAtMHgwMDAwMDAwMDdmZmM3
+ZmZmXSByZXNlcnZlZApbwqDCoMKgIDAuMDAwMDAwXSBCSU9TLWU4MjA6IFttZW0gMHgwMDAwMDAw
+MDdmZmM4MDAwLTB4MDAwMDAwMDA3ZmZjOGZmZl0gdHlwZSAyMApbwqDCoMKgIDAuMDAwMDAwXSBC
+SU9TLWU4MjA6IFttZW0gMHgwMDAwMDAwMDdmZmM5MDAwLTB4MDAwMDAwMDA3ZmZmMmZmZl0gcmVz
+ZXJ2ZWQKW8KgwqDCoCAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDA3ZmZmMzAw
+MC0weDAwMDAwMDAwN2ZmZmFmZmZdIEFDUEkgZGF0YQpbwqDCoMKgIDAuMDAwMDAwXSBCSU9TLWU4
+MjA6IFttZW0gMHgwMDAwMDAwMDdmZmZiMDAwLTB4MDAwMDAwMDA3ZmZmZWZmZl0gQUNQSSBOVlMK
+W8KgwqDCoCAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDA3ZmZmZjAwMC0weDAw
+MDAwMDAwN2ZmZmZmZmZdIHVzYWJsZQpbwqDCoMKgIDAuMDAwMDAwXSBlODIwOiB1c2VyLWRlZmlu
+ZWQgcGh5c2ljYWwgUkFNIG1hcDoKW8KgwqDCoCAwLjAwMDAwMF0gZTgyMDogdXBkYXRlIFttZW0g
+MHgwMDAwMDAwMC0weDAwMDAwZmZmXSB1c2FibGUgPT0+IHJlc2VydmVkClvCoMKgwqAgMC4wMDAw
+MDBdIGU4MjA6IHJlbW92ZSBbbWVtIDB4MDAwYTAwMDAtMHgwMDBmZmZmZl0gdXNhYmxlClvCoMKg
+wqAgMC4wMDAwMDBdIGU4MjA6IGxhc3RfcGZuID0gMHg4MDAwMCBtYXhfYXJjaF9wZm4gPSAweDQw
+MDAwMDAwMApbwqDCoMKgIDAuMDAwMDAwXSBlODIwOiBbbWVtIDB4ODAwMDAwMDAtMHhmZmZmZmZm
+Zl0gYXZhaWxhYmxlIGZvciBQQ0kgZGV2aWNlcwoKCgoKc29jY2VybEB1YnVudHU6fiQgZG1lc2cg
+fCBncmVwIHVzZXIKW8KgwqDCoCAwLjAwMDAwMF0gZTgyMDogdXNlci1kZWZpbmVkIHBoeXNpY2Fs
+IFJBTSBtYXA6ClvCoMKgwqAgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMDAwMDAwMDAw
+LTB4MDAwMDAwMDAwMDA5ZmZmZl0gdXNhYmxlClvCoMKgwqAgMC4wMDAwMDBdIHVzZXI6IFttZW0g
+MHgwMDAwMDAwMDAwMGMwMDAwLTB4MDAwMDAwMDAwMDBmZmZmZl0gcmVzZXJ2ZWQKW8KgwqDCoCAw
+LjAwMDAwMF0gdXNlcjogW21lbSAweDAwMDAwMDAwMDAxMDAwMDAtMHgwMDAwMDAwMDBmZmZmZmZm
+XSB1c2FibGUKW8KgwqDCoCAwLjAwMDAwMF0gdXNlcjogW21lbSAweDAwMDAwMDAwMTAwMDAwMDAt
+MHgwMDAwMDAwMDFmZmZmZmZmXSBwZXJzaXN0ZW50ICh0eXBlIDEyKcKgIDwtLS0tLS0tLSB0aGlz
+IHNob3dzwqAgdGhlIG1lbW1hcCB3b3JrcyBhcyBleHBlY3RlZApbwqDCoMKgIDAuMDAwMDAwXSB1
+c2VyOiBbbWVtIDB4MDAwMDAwMDAyMDAwMDAwMC0weDAwMDAwMDAwN2VlZWNmZmZdIHVzYWJsZQpb
+wqDCoMKgIDAuMDAwMDAwXSB1c2VyOiBbbWVtIDB4MDAwMDAwMDA3ZWVlZDAwMC0weDAwMDAwMDAw
+N2VlZjFmZmZdIEFDUEkgZGF0YQpbwqDCoMKgIDAuMDAwMDAwXSB1c2VyOiBbbWVtIDB4MDAwMDAw
+MDA3ZWVmMjAwMC0weDAwMDAwMDAwN2VmMWFmZmZdIHJlc2VydmVkClvCoMKgwqAgMC4wMDAwMDBd
+IHVzZXI6IFttZW0gMHgwMDAwMDAwMDdlZjFiMDAwLTB4MDAwMDAwMDA3ZmY5YWZmZl0gdXNhYmxl
+ClvCoMKgwqAgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMDdmZjliMDAwLTB4MDAwMDAw
+MDA3ZmZiNmZmZl0gcmVzZXJ2ZWQKW8KgwqDCoCAwLjAwMDAwMF0gdXNlcjogW21lbSAweDAwMDAw
+MDAwN2ZmYjcwMDAtMHgwMDAwMDAwMDdmZmI4ZmZmXSB0eXBlIDIwClvCoMKgwqAgMC4wMDAwMDBd
+IHVzZXI6IFttZW0gMHgwMDAwMDAwMDdmZmI5MDAwLTB4MDAwMDAwMDA3ZmZiYWZmZl0gcmVzZXJ2
+ZWQKW8KgwqDCoCAwLjAwMDAwMF0gdXNlcjogW21lbSAweDAwMDAwMDAwN2ZmYmIwMDAtMHgwMDAw
+MDAwMDdmZmJiZmZmXSB0eXBlIDIwClvCoMKgwqAgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAw
+MDAwMDdmZmJjMDAwLTB4MDAwMDAwMDA3ZmZiZGZmZl0gcmVzZXJ2ZWQKW8KgwqDCoCAwLjAwMDAw
+MF0gdXNlcjogW21lbSAweDAwMDAwMDAwN2ZmYmUwMDAtMHgwMDAwMDAwMDdmZmJlZmZmXSB0eXBl
+IDIwClvCoMKgwqAgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMDdmZmJmMDAwLTB4MDAw
+MDAwMDA3ZmZjMGZmZl0gcmVzZXJ2ZWQKW8KgwqDCoCAwLjAwMDAwMF0gdXNlcjogW21lbSAweDAw
+MDAwMDAwN2ZmYzEwMDAtMHgwMDAwMDAwMDdmZmMxZmZmXSB0eXBlIDIwClvCoMKgwqAgMC4wMDAw
+MDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMDdmZmMyMDAwLTB4MDAwMDAwMDA3ZmZjM2ZmZl0gcmVz
+ZXJ2ZWQKW8KgwqDCoCAwLjAwMDAwMF0gdXNlcjogW21lbSAweDAwMDAwMDAwN2ZmYzQwMDAtMHgw
+MDAwMDAwMDdmZmM1ZmZmXSB0eXBlIDIwClvCoMKgwqAgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgw
+MDAwMDAwMDdmZmM2MDAwLTB4MDAwMDAwMDA3ZmZjN2ZmZl0gcmVzZXJ2ZWQKW8KgwqDCoCAwLjAw
+MDAwMF0gdXNlcjogW21lbSAweDAwMDAwMDAwN2ZmYzgwMDAtMHgwMDAwMDAwMDdmZmM4ZmZmXSB0
+eXBlIDIwClvCoMKgwqAgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMDdmZmM5MDAwLTB4
+MDAwMDAwMDA3ZmZmMmZmZl0gcmVzZXJ2ZWQKW8KgwqDCoCAwLjAwMDAwMF0gdXNlcjogW21lbSAw
+eDAwMDAwMDAwN2ZmZjMwMDAtMHgwMDAwMDAwMDdmZmZhZmZmXSBBQ1BJIGRhdGEKW8KgwqDCoCAw
+LjAwMDAwMF0gdXNlcjogW21lbSAweDAwMDAwMDAwN2ZmZmIwMDAtMHgwMDAwMDAwMDdmZmZlZmZm
+XSBBQ1BJIE5WUwpbwqDCoMKgIDAuMDAwMDAwXSB1c2VyOiBbbWVtIDB4MDAwMDAwMDA3ZmZmZjAw
+MC0weDAwMDAwMDAwN2ZmZmZmZmZdIHVzYWJsZQoKCgoKSG93ZXZlcizCoCBJIGNvdWxkIG5vdCBm
+aW5kIGFueSBQZXJzaXN0ZW50IE1lbW9yeSAobGVnYWN5KSBmcm9tIHRoZSBpb21lbSBvdXRwdXQu
+CgoKSSB3YXMgZXhwZWN0aW5nIHNvbWV0aGluZyBsaWtlIAoKCgoxMDAwMDAwMC0xZmZmZmZmZiA6
+IFBlcnNpc3RlbnQgTWVtb3J5IChsZWdhY3kpCgoKc29jY2VybEB1YnVudHU6fiQKc29jY2VybEB1
+YnVudHU6fiQgY2F0IC9wcm9jL2lvbWVtCjAwMDAwMDAwLTAwMDAwMDAwIDogcmVzZXJ2ZWQKMDAw
+MDAwMDAtMDAwMDAwMDAgOiBTeXN0ZW0gUkFNCjAwMDAwMDAwLTAwMDAwMDAwIDogcmVzZXJ2ZWQK
+wqAgMDAwMDAwMDAtMDAwMDAwMDAgOiBTeXN0ZW0gUk9NCjAwMDAwMDAwLTAwMDAwMDAwIDogU3lz
+dGVtIFJBTQrCoCAwMDAwMDAwMC0wMDAwMDAwMCA6IEtlcm5lbCBjb2RlCsKgIDAwMDAwMDAwLTAw
+MDAwMDAwIDogS2VybmVsIGRhdGEKwqAgMDAwMDAwMDAtMDAwMDAwMDAgOiBLZXJuZWwgYnNzCjAw
+MDAwMDAwLTAwMDAwMDAwIDogU3lzdGVtIFJBTQowMDAwMDAwMC0wMDAwMDAwMCA6IEFDUEkgVGFi
+bGVzCjAwMDAwMDAwLTAwMDAwMDAwIDogU3lzdGVtIFJBTQowMDAwMDAwMC0wMDAwMDAwMCA6IHJl
+c2VydmVkCjAwMDAwMDAwLTAwMDAwMDAwIDogcmVzZXJ2ZWQKMDAwMDAwMDAtMDAwMDAwMDAgOiBy
+ZXNlcnZlZAowMDAwMDAwMC0wMDAwMDAwMCA6IHJlc2VydmVkCjAwMDAwMDAwLTAwMDAwMDAwIDog
+cmVzZXJ2ZWQKMDAwMDAwMDAtMDAwMDAwMDAgOiByZXNlcnZlZAowMDAwMDAwMC0wMDAwMDAwMCA6
+IEFDUEkgVGFibGVzCjAwMDAwMDAwLTAwMDAwMDAwIDogQUNQSSBOb24tdm9sYXRpbGUgU3RvcmFn
+ZQowMDAwMDAwMC0wMDAwMDAwMCA6IFN5c3RlbSBSQU0KMDAwMDAwMDAtMDAwMDAwMDAgOiA1NjIw
+ZTBjNy04MDYyLTRkY2UtYWViNy01MjBjN2VmNzYxNzEKMDAwMDAwMDAtMDAwMDAwMDAgOiBQTlAw
+MDAzOjAwCjAwMDAwMDAwLTAwMDAwMDAwIDogTG9jYWwgQVBJQwrCoCAwMDAwMDAwMC0wMDAwMDAw
+MCA6IFBOUDAwMDM6MDAKc29jY2VybEB1YnVudHU6fiQKCgoKCgpJIGRvIGhhdmUgdGhlIGZvbGxv
+d2luZyBrZXJuZWwgY29uZmlnIGZsYWdzIHNldAoKCgoKCkNPTkZJR19BUkNIX0hBU19QTUVNX0FQ
+ST15CkNPTkZJR19CTEtfREVWX1BNRU09bQpDT05GSUdfTElCTlZESU1NPXkKQ09ORklHX1g4Nl9Q
+TUVNX0xFR0FDWT15CkNPTkZJR19GU19EQVg9eQpDT05GSUdfQkxLX0RFVl9SQU1fREFYPXkKCgpB
+bnkgaWRlYSBvbiB3aGF0IEkgbWlnaHQgaGF2ZSBtaXNzZWQ/CgoKVGhhbmtzClNvY2NlcgoKCnNv
+Y2NlcmxAdWJ1bnR1On4vbGludXgkIGdyZXAgLW5yIEFSQ0hfSEFTX1BNRU1fQVBJCmluY2x1ZGUv
+Y29uZmlnL2F1dG8uY29uZjoxNjY0OkNPTkZJR19BUkNIX0hBU19QTUVNX0FQST15CmluY2x1ZGUv
+Z2VuZXJhdGVkL2F1dG9jb25mLmg6MTY2NjojZGVmaW5lIENPTkZJR19BUkNIX0hBU19QTUVNX0FQ
+SSAxCmluY2x1ZGUvbGludXgvcG1lbS5oOjE5OiNpZmRlZiBDT05GSUdfQVJDSF9IQVNfUE1FTV9B
+UEkKaW5jbHVkZS9saW51eC9wbWVtLmg6NjU6wqDCoMKgwqDCoMKgwqAgcmV0dXJuIElTX0VOQUJM
+RUQoQ09ORklHX0FSQ0hfSEFTX1BNRU1fQVBJKTsKY2FyY2gveDg2L2luY2x1ZGUvYXNtL3BtZW0u
+aDoyMTojaWZkZWYgQ09ORklHX0FSQ0hfSEFTX1BNRU1fQVBJCmFyY2gveDg2L2luY2x1ZGUvYXNt
+L3BtZW0uaDoxMjA6I2VuZGlmIC8qIENPTkZJR19BUkNIX0hBU19QTUVNX0FQSSAqL8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqAgXkMKc29jY2VybEB1YnVudHU6fi9saW51eCQgZ3JlcCAtbnIgQkxL
+X0RFVl9QTUVNCkJpbmFyeSBmaWxlIC5naXQvb2JqZWN0cy9wYWNrL3BhY2stYWJiMjUzZjlmMTRl
+MGE0MTgwNzdjNTQ3OGZmYWQ1MjE4Y2JiYWYyMy5wYWNrIG1hdGNoZXMKaW5jbHVkZS9jb25maWcv
+dHJpc3RhdGUuY29uZjozOTk1OkNPTkZJR19CTEtfREVWX1BNRU09WQppbmNsdWRlL2NvbmZpZy9h
+dXRvLmNvbmY6NTc3MTpDT05GSUdfQkxLX0RFVl9QTUVNPXkKaW5jbHVkZS9nZW5lcmF0ZWQvYXV0
+b2NvbmYuaDo1NzczOiNkZWZpbmUgQ09ORklHX0JMS19ERVZfUE1FTSAxCl5DCnNvY2NlcmxAdWJ1
+bnR1On4vbGludXgkIGdyZXAgLW5yIF9MSUJOVkRJTU0KaW5jbHVkZS9jb25maWcvdHJpc3RhdGUu
+Y29uZjoxOTE4OkNPTkZJR19MSUJOVkRJTU09WQppbmNsdWRlL2NvbmZpZy9hdXRvLmNvbmY6Mjc3
+ODpDT05GSUdfTElCTlZESU1NPXkKaW5jbHVkZS9nZW5lcmF0ZWQvYXV0b2NvbmYuaDoyNzgwOiNk
+ZWZpbmUgQ09ORklHX0xJQk5WRElNTSAxCmluY2x1ZGUvbGludXgvbGlibnZkaW1tLmg6MTU6I2lm
+bmRlZiBfX0xJQk5WRElNTV9IX18KaW5jbHVkZS9saW51eC9saWJudmRpbW0uaDoxNjojZGVmaW5l
+IF9fTElCTlZESU1NX0hfXwppbmNsdWRlL2xpbnV4L2xpYm52ZGltbS5oOjE2MzojZW5kaWYgLyog
+X19MSUJOVkRJTU1fSF9fICovCl5DCnNvY2NlcmxAdWJ1bnR1On4vbGludXgkIGdyZXAgLW5yIFg4
+Nl9QTUVNX0xFR0FDWQppbmNsdWRlL2NvbmZpZy90cmlzdGF0ZS5jb25mOjQ1MzU6Q09ORklHX1g4
+Nl9QTUVNX0xFR0FDWT1ZCmluY2x1ZGUvY29uZmlnL2F1dG8uY29uZjo1NTAyOkNPTkZJR19YODZf
+UE1FTV9MRUdBQ1lfREVWSUNFPXkKaW5jbHVkZS9jb25maWcvYXV0by5jb25mOjY1Njk6Q09ORklH
+X1g4Nl9QTUVNX0xFR0FDWT15CmluY2x1ZGUvZ2VuZXJhdGVkL2F1dG9jb25mLmg6NTUwNDojZGVm
+aW5lIENPTkZJR19YODZfUE1FTV9MRUdBQ1lfREVWSUNFIDEKaW5jbHVkZS9nZW5lcmF0ZWQvYXV0
+b2NvbmYuaDo2NTcxOiNkZWZpbmUgQ09ORklHX1g4Nl9QTUVNX0xFR0FDWSAxCl5DCnNvY2NlcmxA
+dWJ1bnR1On4vbGludXgkIGdyZXAgLW5yIEZTX0RBWApCaW5hcnkgZmlsZSAuZ2l0L29iamVjdHMv
+cGFjay9wYWNrLWFiYjI1M2Y5ZjE0ZTBhNDE4MDc3YzU0NzhmZmFkNTIxOGNiYmFmMjMucGFjayBt
+YXRjaGVzCmluY2x1ZGUvY29uZmlnL2F1dG8uY29uZjo1NDU5OkNPTkZJR19GU19EQVg9eQppbmNs
+dWRlL2NvbmZpZy9hdXRvLmNvbmY6NjQzNzpDT05GSUdfRlNfREFYX1BNRD15CmluY2x1ZGUvZ2Vu
+ZXJhdGVkL2F1dG9jb25mLmg6NTQ2MTojZGVmaW5lIENPTkZJR19GU19EQVggMQppbmNsdWRlL2dl
+bmVyYXRlZC9hdXRvY29uZi5oOjY0Mzk6I2RlZmluZSBDT05GSUdfRlNfREFYX1BNRCAxCl5DCnNv
+Y2NlcmxAdWJ1bnR1On4vbGludXgkIGdyZXAgLW5yIEJMS19ERVZfUkFNX0RBWAppbmNsdWRlL2Nv
+bmZpZy9hdXRvLmNvbmY6NzI3OkNPTkZJR19CTEtfREVWX1JBTV9EQVg9eQppbmNsdWRlL2dlbmVy
+YXRlZC9hdXRvY29uZi5oOjcyOTojZGVmaW5lIENPTkZJR19CTEtfREVWX1JBTV9EQVggMQphcmNo
+L3Bvd2VycGMvY29uZmlncy9tcGM1MTJ4X2RlZmNvbmZpZzo1NTpDT05GSUdfQkxLX0RFVl9SQU1f
+REFYPXkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
+bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
+L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
