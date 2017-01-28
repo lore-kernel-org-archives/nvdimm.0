@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3188F81E81
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jan 2017 14:11:25 -0800 (PST)
-Subject: [PATCH v3 07/12] mm: fix register_new_memory() zone type detection
+ by ml01.01.org (Postfix) with ESMTPS id 281A182003
+ for <linux-nvdimm@lists.01.org>; Sat, 28 Jan 2017 00:40:21 -0800 (PST)
+Subject: [RFC PATCH 02/17] dax: convert dax_inode locking to srcu
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Jan 2017 14:07:19 -0800
-Message-ID: <148486363923.19694.16803321290568634521.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148486359570.19694.18265063120757801811.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 28 Jan 2017 00:36:15 -0800
+Message-ID: <148559257511.11180.7445606032994481709.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,142 +22,172 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
+To: linux-nvdimm@lists.01.org
+Cc: snitzer@redhat.com, mawilcox@microsoft.com, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for sub-section memory hotplug support, remove a
-dependency on ->section_mem_map being populated. In SPARSEMEM_VMEMMAP=y
-configurations pfn_to_page() does not use ->section_mem_map. The
-sub-section hotplug support relies on this fact and skips initializing
-it. Without ->section_mem_map populated, or aligned to section boundary,
-conversions of mem_section instances to zones is not possible.
+In preparation for adding dax_operations that perform ->direct_access()
+and user copy operations relative to a dax_inode, convert the existing
+dax_inode locking to srcu. Some dax drivers need to sleep in their
+->direct_access() methods and user copying may fault / sleep.
 
-So, this removes a false dependency on a structure field that will only
-be valid in the SPARSEMEM_VMEMMAP=n case, and only used for
-pfn_to_page() (and similar) operations.
-
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Stephen Bates <stephen.bates@microsemi.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/base/memory.c  |   26 +++++++++-----------------
- include/linux/memory.h |    4 ++--
- mm/memory_hotplug.c    |    4 ++--
- 3 files changed, 13 insertions(+), 21 deletions(-)
+ drivers/dax/Kconfig  |    1 +
+ drivers/dax/device.c |   18 +++++++++---------
+ drivers/dax/super.c  |   20 ++++++++++++++++----
+ include/linux/dax.h  |    3 +++
+ 4 files changed, 29 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index 8ab8ea1253e6..be0c4e860188 100644
---- a/drivers/base/memory.c
-+++ b/drivers/base/memory.c
-@@ -685,24 +685,16 @@ static int add_memory_block(int base_section_nr)
- 	return 0;
- }
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index 39bcbf4c5e40..b7053eafd88e 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -1,5 +1,6 @@
+ menuconfig DAX
+ 	tristate "DAX: direct access to differentiated memory"
++	select SRCU
+ 	default m if NVDIMM_DAX
  
--static bool is_zone_device_section(struct mem_section *ms)
--{
--	struct page *page;
--
--	page = sparse_decode_mem_map(ms->section_mem_map, __section_nr(ms));
--	return is_zone_device_page(page);
--}
--
- /*
-  * need an interface for the VM to add new memory regions,
-  * but without onlining it.
-  */
--int register_new_memory(int nid, struct mem_section *section)
-+int register_new_memory(struct zone *zone, int nid, struct mem_section *section)
+ if DAX
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 5b5572314929..af06d0bfd6ea 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -333,16 +333,16 @@ static int __dax_dev_fault(struct dax_dev *dax_dev, struct vm_area_struct *vma,
+ 
+ static int dax_dev_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
- 	int ret = 0;
- 	struct memory_block *mem;
+-	int rc;
++	int rc, id;
+ 	struct file *filp = vma->vm_file;
+ 	struct dax_dev *dax_dev = filp->private_data;
  
--	if (is_zone_device_section(section))
-+	if (is_dev_zone(zone))
- 		return 0;
+ 	dev_dbg(&dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
+ 			current->comm, (vmf->flags & FAULT_FLAG_WRITE)
+ 			? "write" : "read", vma->vm_start, vma->vm_end);
+-	rcu_read_lock();
++	id = dax_read_lock();
+ 	rc = __dax_dev_fault(dax_dev, vma, vmf);
+-	rcu_read_unlock();
++	dax_read_unlock(id);
  
- 	mutex_lock(&mem_sysfs_mutex);
-@@ -736,14 +728,11 @@ unregister_memory(struct memory_block *memory)
- 	device_unregister(&memory->dev);
+ 	return rc;
  }
- 
--static int remove_memory_section(unsigned long node_id,
--			       struct mem_section *section, int phys_device)
-+static int remove_memory_section(struct zone *zone, unsigned long node_id,
-+		struct mem_section *section, int phys_device)
+@@ -390,7 +390,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ static int dax_dev_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+ 		pmd_t *pmd, unsigned int flags)
  {
- 	struct memory_block *mem;
+-	int rc;
++	int rc, id;
+ 	struct file *filp = vma->vm_file;
+ 	struct dax_dev *dax_dev = filp->private_data;
  
--	if (is_zone_device_section(section))
--		return 0;
--
- 	mutex_lock(&mem_sysfs_mutex);
- 	mem = find_memory_block(section);
- 	unregister_mem_sect_under_nodes(mem, __section_nr(section));
-@@ -758,12 +747,15 @@ static int remove_memory_section(unsigned long node_id,
- 	return 0;
+@@ -398,9 +398,9 @@ static int dax_dev_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+ 			current->comm, (flags & FAULT_FLAG_WRITE)
+ 			? "write" : "read", vma->vm_start, vma->vm_end);
+ 
+-	rcu_read_lock();
++	id = dax_read_lock();
+ 	rc = __dax_dev_pmd_fault(dax_dev, vma, addr, pmd, flags);
+-	rcu_read_unlock();
++	dax_read_unlock(id);
+ 
+ 	return rc;
  }
+@@ -412,8 +412,8 @@ static const struct vm_operations_struct dax_dev_vm_ops = {
  
--int unregister_memory_section(struct mem_section *section)
-+int unregister_memory_section(struct zone *zone, struct mem_section *section)
+ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
  {
-+	if (is_dev_zone(zone))
-+		return 0;
++	int rc, id;
+ 	struct dax_dev *dax_dev = filp->private_data;
+-	int rc;
+ 
+ 	dev_dbg(&dax_dev->dev, "%s\n", __func__);
+ 
+@@ -421,9 +421,9 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+ 	 * We lock to check dax_inode liveness and will re-check at
+ 	 * fault time.
+ 	 */
+-	rcu_read_lock();
++	id = dax_read_lock();
+ 	rc = check_vma(dax_dev, vma, __func__);
+-	rcu_read_unlock();
++	dax_read_unlock(id);
+ 	if (rc)
+ 		return rc;
+ 
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index e6369b851619..7c4dc97d53a8 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -24,11 +24,24 @@ module_param(nr_dax, int, S_IRUGO);
+ MODULE_PARM_DESC(nr_dax, "max number of dax device instances");
+ 
+ static dev_t dax_devt;
++DEFINE_STATIC_SRCU(dax_srcu);
+ static struct vfsmount *dax_mnt;
+ static DEFINE_IDA(dax_minor_ida);
+ static struct kmem_cache *dax_cache __read_mostly;
+ static struct super_block *dax_superblock __read_mostly;
+ 
++int dax_read_lock(void)
++{
++	return srcu_read_lock(&dax_srcu);
++}
++EXPORT_SYMBOL_GPL(dax_read_lock);
 +
- 	if (!present_section(section))
- 		return -EINVAL;
++void dax_read_unlock(int id)
++{
++	srcu_read_unlock(&dax_srcu, id);
++}
++EXPORT_SYMBOL_GPL(dax_read_unlock);
++
+ /**
+  * struct dax_inode - anchor object for dax services
+  * @inode: core vfs
+@@ -45,8 +58,7 @@ struct dax_inode {
  
--	return remove_memory_section(0, section, 0);
-+	return remove_memory_section(zone, 0, section, 0);
+ bool dax_inode_alive(struct dax_inode *dax_inode)
+ {
+-	RCU_LOCKDEP_WARN(!rcu_read_lock_held(),
+-			"dax operations require rcu_read_lock()\n");
++	lockdep_assert_held(&dax_srcu);
+ 	return dax_inode->alive;
  }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
+ EXPORT_SYMBOL_GPL(dax_inode_alive);
+@@ -55,7 +67,7 @@ EXPORT_SYMBOL_GPL(dax_inode_alive);
+  * Note, rcu is not protecting the liveness of dax_inode, rcu is
+  * ensuring that any fault handlers or operations that might have seen
+  * dax_inode_alive(), have completed.  Any operations that start after
+- * synchronize_rcu() has run will abort upon seeing !dax_inode_alive().
++ * synchronize_srcu() has run will abort upon seeing !dax_inode_alive().
+  */
+ void kill_dax_inode(struct dax_inode *dax_inode)
+ {
+@@ -63,7 +75,7 @@ void kill_dax_inode(struct dax_inode *dax_inode)
+ 		return;
  
-diff --git a/include/linux/memory.h b/include/linux/memory.h
-index 093607f90b91..301dfb03ecb7 100644
---- a/include/linux/memory.h
-+++ b/include/linux/memory.h
-@@ -108,12 +108,12 @@ extern int register_memory_notifier(struct notifier_block *nb);
- extern void unregister_memory_notifier(struct notifier_block *nb);
- extern int register_memory_isolate_notifier(struct notifier_block *nb);
- extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
--extern int register_new_memory(int, struct mem_section *);
-+extern int register_new_memory(struct zone *, int, struct mem_section *);
- extern int memory_block_change_state(struct memory_block *mem,
- 				     unsigned long to_state,
- 				     unsigned long from_state_req);
- #ifdef CONFIG_MEMORY_HOTREMOVE
--extern int unregister_memory_section(struct mem_section *);
-+extern int unregister_memory_section(struct zone *, struct mem_section *);
- #endif
- extern int memory_dev_init(void);
- extern int memory_notify(unsigned long val, void *v);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index a73a1fcaa181..684addad9708 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -516,7 +516,7 @@ static int __meminit __add_section(int nid, struct zone *zone,
- 	if (ret < 0)
- 		return ret;
- 
--	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
-+	return register_new_memory(zone, nid, __pfn_to_section(phys_start_pfn));
+ 	dax_inode->alive = false;
+-	synchronize_rcu();
++	synchronize_srcu(&dax_srcu);
+ 	dax_inode->private = NULL;
  }
+ EXPORT_SYMBOL_GPL(kill_dax_inode);
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 24ad71173995..67002898d130 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -8,6 +8,9 @@
  
+ struct iomap_ops;
+ 
++int dax_read_lock(void);
++void dax_read_unlock(int id);
++
  /*
-@@ -783,7 +783,7 @@ static int __remove_section(struct zone *zone, struct mem_section *ms,
- 	if (!valid_section(ms))
- 		return ret;
- 
--	ret = unregister_memory_section(ms);
-+	ret = unregister_memory_section(zone, ms);
- 	if (ret)
- 		return ret;
- 
+  * We use lowest available bit in exceptional entry for locking, one bit for
+  * the entry size (PMD) and two more to tell us if the entry is a huge zero
 
 _______________________________________________
 Linux-nvdimm mailing list
