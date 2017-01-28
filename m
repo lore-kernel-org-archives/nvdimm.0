@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 775AB82002
- for <linux-nvdimm@lists.01.org>; Sat, 28 Jan 2017 00:41:09 -0800 (PST)
-Subject: [RFC PATCH 11/17] dm: add dax_operations support (producer)
+ by ml01.01.org (Postfix) with ESMTPS id 69A258200F
+ for <linux-nvdimm@lists.01.org>; Sat, 28 Jan 2017 00:40:47 -0800 (PST)
+Subject: [RFC PATCH 07/17] brd: add dax_operations support
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 28 Jan 2017 00:37:03 -0800
-Message-ID: <148559262335.11180.461652469893258568.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 28 Jan 2017 00:36:41 -0800
+Message-ID: <148559260182.11180.12359489023506043402.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -26,158 +26,160 @@ To: linux-nvdimm@lists.01.org
 Cc: snitzer@redhat.com, mawilcox@microsoft.com, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Setup a dax_inode to have the same lifetime as the dm block device and
+Setup a dax_inode to have the same lifetime as the brd block device and
 add a ->direct_access() method that is equivalent to
-dm_blk_direct_access(). Once fs/dax.c has been converted to use
-dax_operations the old dm_blk_direct_access() will be removed.
-
-This enabling is only for the top-level dm representation to upper
-layers. Sub-sequent patches are needed to convert the bottom layer
-interface to backing devices.
+brd_direct_access(). Once fs/dax.c has been converted to use
+dax_operations the old brd_direct_access() will be removed.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/md/Kconfig   |    1 +
- drivers/md/dm-core.h |    3 +++
- drivers/md/dm.c      |   42 +++++++++++++++++++++++++++++++++++++++---
- 3 files changed, 43 insertions(+), 3 deletions(-)
+ drivers/block/Kconfig |    1 +
+ drivers/block/brd.c   |   57 +++++++++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 49 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index b7767da50c26..1de8372d9459 100644
---- a/drivers/md/Kconfig
-+++ b/drivers/md/Kconfig
-@@ -200,6 +200,7 @@ config BLK_DEV_DM_BUILTIN
- config BLK_DEV_DM
- 	tristate "Device mapper support"
- 	select BLK_DEV_DM_BUILTIN
-+	select DAX
+diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
+index 223ff2fcae7e..604b51a884b6 100644
+--- a/drivers/block/Kconfig
++++ b/drivers/block/Kconfig
+@@ -337,6 +337,7 @@ config BLK_DEV_SX8
+ 
+ config BLK_DEV_RAM
+ 	tristate "RAM block device support"
++	select DAX if BLK_DEV_RAM_DAX
  	---help---
- 	  Device-mapper is a low level volume manager.  It works by allowing
- 	  people to specify mappings for ranges of logical sectors.  Various
-diff --git a/drivers/md/dm-core.h b/drivers/md/dm-core.h
-index 40ceba1fe8be..f6eb8d8db646 100644
---- a/drivers/md/dm-core.h
-+++ b/drivers/md/dm-core.h
-@@ -24,6 +24,8 @@ struct dm_kobject_holder {
- 	struct completion completion;
- };
- 
-+struct dax_inode;
-+
- /*
-  * DM core internal structure that used directly by dm.c and dm-rq.c
-  * DM targets must _not_ deference a mapped_device to directly access its members!
-@@ -58,6 +60,7 @@ struct mapped_device {
- 	struct target_type *immutable_target_type;
- 
- 	struct gendisk *disk;
-+	struct dax_inode *dax_inode;
- 	char name[16];
- 
- 	void *interface_ptr;
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index db934b1dba9d..1b3d9253e92c 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -15,6 +15,7 @@
- #include <linux/blkpg.h>
- #include <linux/bio.h>
- #include <linux/mempool.h>
-+#include <linux/dax.h>
+ 	  Saying Y here will allow you to use a portion of your RAM memory as
+ 	  a block device, so that you can make file systems on it, read and
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 3adc32a3153b..1279df4dc07c 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -21,6 +21,7 @@
  #include <linux/slab.h>
- #include <linux/idr.h>
- #include <linux/hdreg.h>
-@@ -905,10 +906,10 @@ int dm_set_target_max_io_len(struct dm_target *ti, sector_t len)
- }
- EXPORT_SYMBOL_GPL(dm_set_target_max_io_len);
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ #include <linux/pfn_t.h>
++#include <linux/dax.h>
+ #endif
  
--static long dm_blk_direct_access(struct block_device *bdev, sector_t sector,
--				 void **kaddr, pfn_t *pfn, long size)
-+static long __dm_direct_access(struct mapped_device *md, phys_addr_t dev_addr,
-+			       void **kaddr, pfn_t *pfn, long size)
+ #include <linux/uaccess.h>
+@@ -41,6 +42,9 @@ struct brd_device {
+ 
+ 	struct request_queue	*brd_queue;
+ 	struct gendisk		*brd_disk;
++#ifdef CONFIG_BLK_DEV_RAM_DAX
++	struct dax_inode	*dax_inode;
++#endif
+ 	struct list_head	brd_list;
+ 
+ 	/*
+@@ -375,15 +379,14 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
+ }
+ 
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+-static long brd_direct_access(struct block_device *bdev, sector_t sector,
++static long __brd_direct_access(struct brd_device *brd, phys_addr_t dev_addr,
+ 			void **kaddr, pfn_t *pfn, long size)
  {
--	struct mapped_device *md = bdev->bd_disk->private_data;
-+	sector_t sector = dev_addr >> SECTOR_SHIFT;
- 	struct dm_table *map;
- 	struct dm_target *ti;
- 	int srcu_idx;
-@@ -932,6 +933,23 @@ static long dm_blk_direct_access(struct block_device *bdev, sector_t sector,
- 	return min(ret, size);
- }
+-	struct brd_device *brd = bdev->bd_disk->private_data;
+ 	struct page *page;
  
-+static long dm_blk_direct_access(struct block_device *bdev, sector_t sector,
-+				 void **kaddr, pfn_t *pfn, long size)
-+{
-+	struct mapped_device *md = bdev->bd_disk->private_data;
+ 	if (!brd)
+ 		return -ENODEV;
+-	page = brd_insert_page(brd, sector);
++	page = brd_insert_page(brd, dev_addr / 512);
+ 	if (!page)
+ 		return -ENOSPC;
+ 	*kaddr = page_address(page);
+@@ -391,14 +394,34 @@ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+ 
+ 	return PAGE_SIZE;
+ }
 +
-+	return __dm_direct_access(md, sector << SECTOR_SHIFT, kaddr, pfn, size);
++static long brd_blk_direct_access(struct block_device *bdev, sector_t sector,
++			void **kaddr, pfn_t *pfn, long size)
++{
++	struct brd_device *brd = bdev->bd_disk->private_data;
++
++	return __brd_direct_access(brd, sector * 512, kaddr, pfn, size);
 +}
 +
-+static long dm_dax_direct_access(struct dax_inode *dax_inode,
-+				 phys_addr_t dev_addr, void **kaddr, pfn_t *pfn,
-+				 long size)
++static long brd_dax_direct_access(struct dax_inode *dax_inode,
++		phys_addr_t dev_addr, void **kaddr, pfn_t *pfn, long size)
 +{
-+	struct mapped_device *md = dax_inode_get_private(dax_inode);
++	struct brd_device *brd = dax_inode_get_private(dax_inode);
 +
-+	return __dm_direct_access(md, dev_addr, kaddr, pfn, size);
++	return __brd_direct_access(brd, dev_addr, kaddr, pfn, size);
 +}
 +
- /*
-  * A target may call dm_accept_partial_bio only from the map routine.  It is
-  * allowed for all bio types except REQ_PREFLUSH.
-@@ -1376,6 +1394,7 @@ static int next_free_minor(int *minor)
- }
++static const struct dax_operations brd_dax_ops = {
++	.direct_access = brd_dax_direct_access,
++};
+ #else
+-#define brd_direct_access NULL
++#define brd_blk_direct_access NULL
+ #endif
  
- static const struct block_device_operations dm_blk_dops;
-+static const struct dax_operations dm_dax_ops;
- 
- static void dm_wq_work(struct work_struct *work);
- 
-@@ -1423,6 +1442,12 @@ static void cleanup_mapped_device(struct mapped_device *md)
- 	if (md->bs)
- 		bioset_free(md->bs);
- 
-+	if (md->dax_inode) {
-+		kill_dax_inode(md->dax_inode);
-+		put_dax_inode(md->dax_inode);
-+		md->dax_inode = NULL;
-+	}
-+
- 	if (md->disk) {
- 		spin_lock(&_minor_lock);
- 		md->disk->private_data = NULL;
-@@ -1450,6 +1475,7 @@ static void cleanup_mapped_device(struct mapped_device *md)
- static struct mapped_device *alloc_dev(int minor)
- {
- 	int r, numa_node_id = dm_get_numa_node();
-+	struct dax_inode *dax_inode;
- 	struct mapped_device *md;
- 	void *old_md;
- 
-@@ -1514,6 +1540,12 @@ static struct mapped_device *alloc_dev(int minor)
- 	md->disk->queue = md->queue;
- 	md->disk->private_data = md;
- 	sprintf(md->disk->disk_name, "dm-%d", minor);
-+
-+	dax_inode = alloc_dax_inode(md, md->disk->disk_name, &dm_dax_ops);
-+	if (!dax_inode)
-+		goto bad;
-+	md->dax_inode = dax_inode;
-+
- 	add_disk(md->disk);
- 	format_dev_t(md->name, MKDEV(_major, minor));
- 
-@@ -2735,6 +2767,10 @@ static const struct block_device_operations dm_blk_dops = {
- 	.owner = THIS_MODULE
+ static const struct block_device_operations brd_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.rw_page =		brd_rw_page,
+-	.direct_access =	brd_direct_access,
++	.direct_access =	brd_blk_direct_access,
  };
  
-+static const struct dax_operations dm_dax_ops = {
-+	.direct_access = dm_dax_direct_access,
-+};
-+
  /*
-  * module hooks
-  */
+@@ -441,7 +464,9 @@ static struct brd_device *brd_alloc(int i)
+ {
+ 	struct brd_device *brd;
+ 	struct gendisk *disk;
+-
++#ifdef CONFIG_BLK_DEV_RAM_DAX
++	struct dax_inode *dax_inode;
++#endif
+ 	brd = kzalloc(sizeof(*brd), GFP_KERNEL);
+ 	if (!brd)
+ 		goto out;
+@@ -469,9 +494,6 @@ static struct brd_device *brd_alloc(int i)
+ 	blk_queue_max_discard_sectors(brd->brd_queue, UINT_MAX);
+ 	brd->brd_queue->limits.discard_zeroes_data = 1;
+ 	queue_flag_set_unlocked(QUEUE_FLAG_DISCARD, brd->brd_queue);
+-#ifdef CONFIG_BLK_DEV_RAM_DAX
+-	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
+-#endif
+ 	disk = brd->brd_disk = alloc_disk(max_part);
+ 	if (!disk)
+ 		goto out_free_queue;
+@@ -484,8 +506,21 @@ static struct brd_device *brd_alloc(int i)
+ 	sprintf(disk->disk_name, "ram%d", i);
+ 	set_capacity(disk, rd_size * 2);
+ 
++#ifdef CONFIG_BLK_DEV_RAM_DAX
++	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
++	dax_inode = alloc_dax_inode(brd, disk->disk_name, &brd_dax_ops);
++	if (!dax_inode)
++		goto out_free_inode;
++#endif
++
++
+ 	return brd;
+ 
++#ifdef CONFIG_BLK_DEV_RAM_DAX
++out_free_inode:
++	kill_dax_inode(dax_inode);
++	put_dax_inode(dax_inode);
++#endif
+ out_free_queue:
+ 	blk_cleanup_queue(brd->brd_queue);
+ out_free_dev:
+@@ -525,6 +560,10 @@ static struct brd_device *brd_init_one(int i, bool *new)
+ static void brd_del_one(struct brd_device *brd)
+ {
+ 	list_del(&brd->brd_list);
++#ifdef CONFIG_BLK_DEV_RAM_DAX
++	kill_dax_inode(brd->dax_inode);
++	put_dax_inode(brd->dax_inode);
++#endif
+ 	del_gendisk(brd->brd_disk);
+ 	brd_free(brd);
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
