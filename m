@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9FA4C81EEA
- for <linux-nvdimm@lists.01.org>; Mon, 23 Jan 2017 15:47:19 -0800 (PST)
-Subject: [PATCH 0/3] 1G transparent hugepage support for device dax
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 23 Jan 2017 16:47:18 -0700
-Message-ID: <148521477073.31533.17781371321988910714.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 00F0982009
+ for <linux-nvdimm@lists.01.org>; Sat, 28 Jan 2017 00:40:31 -0800 (PST)
+Subject: [RFC PATCH 04/17] dax: introduce dax_operations
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 28 Jan 2017 00:36:26 -0800
+Message-ID: <148559258599.11180.15865082041593158216.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,55 +22,119 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mawilcox@microsoft.com, linux-nvdimm@lists.01.org, dave.hansen@linux.intel.com, linux-mm@kvack.org, kirill.shutemov@linux.intel.com, jack@suse.com, vbabka@suse.cz
+To: linux-nvdimm@lists.01.org
+Cc: snitzer@redhat.com, mawilcox@microsoft.com, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following series implements support for 1G trasparent hugepage on
-x86 for device dax. The bulk of the code was written by Mathew Wilcox
-a while back supporting transparent 1G hugepage for fs DAX. I have
-forward ported the relevant bits to 4.10-rc. The current submission has
-only the necessary code to support device DAX.
+Track a set of dax_operations per dax_inode that can be set at
+alloc_dax_inode() time. These operations will be used to stop the abuse
+of block_device_operations for communicating dax capabilities to
+filesystems. It will also be used to replace the "pmem api" and move
+pmem-specific cache maintenance, and other dax-driver-specific
+filesystem-dax operations, to dax inode methods. In particular this
+allows us to stop abusing __copy_user_nocache(), via memcpy_to_pmem(),
+with a driver specific replacement.
 
+This is a standalone introduction of the operations. Follow on patches
+convert each dax-driver and teach fs/dax.c to use ->direct_access() from
+dax_operations instead of block_device_operations.
+
+Suggested-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/dax/dax.h    |    4 +++-
+ drivers/dax/device.c |    6 +++++-
+ drivers/dax/super.c  |    6 +++++-
+ include/linux/dax.h  |    5 +++++
+ 4 files changed, 18 insertions(+), 3 deletions(-)
 
-Dave Jiang (1):
-      dax: Support for transparent PUD pages for device DAX
+diff --git a/drivers/dax/dax.h b/drivers/dax/dax.h
+index f33c16ed2ec6..aeb1d49aafb8 100644
+--- a/drivers/dax/dax.h
++++ b/drivers/dax/dax.h
+@@ -13,7 +13,9 @@
+ #ifndef __DAX_H__
+ #define __DAX_H__
+ struct dax_inode;
+-struct dax_inode *alloc_dax_inode(void *private, const char *host);
++struct dax_operations;
++struct dax_inode *alloc_dax_inode(void *private, const char *host,
++		const struct dax_operations *ops);
+ void put_dax_inode(struct dax_inode *dax_inode);
+ bool dax_inode_alive(struct dax_inode *dax_inode);
+ void kill_dax_inode(struct dax_inode *dax_inode);
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 6d0a3241a608..c3d9405ec285 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -560,7 +560,11 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+ 		goto err_id;
+ 	}
+ 
+-	dax_inode = alloc_dax_inode(dax_dev, NULL);
++	/*
++	 * No 'host' or dax_operations since there is no access to this
++	 * device outside of mmap of the resulting character device.
++	 */
++	dax_inode = alloc_dax_inode(dax_dev, NULL, NULL);
+ 	if (!dax_inode)
+ 		goto err_inode;
+ 
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 7ac048f94b2b..eb844ffea3cf 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -17,6 +17,7 @@
+ #include <linux/cdev.h>
+ #include <linux/hash.h>
+ #include <linux/slab.h>
++#include <linux/dax.h>
+ #include <linux/fs.h>
+ 
+ static int nr_dax = CONFIG_NR_DEV_DAX;
+@@ -61,6 +62,7 @@ struct dax_inode {
+ 	const char *host;
+ 	void *private;
+ 	bool alive;
++	const struct dax_operations *ops;
+ };
+ 
+ bool dax_inode_alive(struct dax_inode *dax_inode)
+@@ -204,7 +206,8 @@ static void dax_add_host(struct dax_inode *dax_inode, const char *host)
+ 	spin_unlock(&dax_host_lock);
+ }
+ 
+-struct dax_inode *alloc_dax_inode(void *private, const char *__host)
++struct dax_inode *alloc_dax_inode(void *private, const char *__host,
++		const struct dax_operations *ops)
+ {
+ 	struct dax_inode *dax_inode;
+ 	const char *host;
+@@ -225,6 +228,7 @@ struct dax_inode *alloc_dax_inode(void *private, const char *__host)
+ 		goto err_inode;
+ 
+ 	dax_add_host(dax_inode, host);
++	dax_inode->ops = ops;
+ 	dax_inode->private = private;
+ 	return dax_inode;
+ 
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 8fe19230e118..def9a9d118c9 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -7,6 +7,11 @@
+ #include <asm/pgtable.h>
+ 
+ struct iomap_ops;
++struct dax_inode;
++struct dax_operations {
++	long (*direct_access)(struct dax_inode *, phys_addr_t, void **,
++			pfn_t *, long);
++};
+ 
+ int dax_read_lock(void);
+ void dax_read_unlock(int id);
 
-Matthew Wilcox (2):
-      mm,fs,dax: Change ->pmd_fault to ->huge_fault
-      mm,x86: Add support for PUD-sized transparent hugepages
-
-
- arch/Kconfig                          |    3 
- arch/x86/Kconfig                      |    1 
- arch/x86/include/asm/paravirt.h       |   11 +
- arch/x86/include/asm/paravirt_types.h |    2 
- arch/x86/include/asm/pgtable-2level.h |   17 ++
- arch/x86/include/asm/pgtable-3level.h |   24 +++
- arch/x86/include/asm/pgtable.h        |  145 +++++++++++++++++++
- arch/x86/include/asm/pgtable_64.h     |   15 ++
- arch/x86/kernel/paravirt.c            |    1 
- arch/x86/mm/pgtable.c                 |   31 ++++
- drivers/dax/dax.c                     |   82 ++++++++---
- fs/dax.c                              |   43 ++++--
- fs/ext2/file.c                        |    2 
- fs/ext4/file.c                        |    6 -
- fs/xfs/xfs_file.c                     |   10 +
- fs/xfs/xfs_trace.h                    |    2 
- include/asm-generic/pgtable.h         |   75 +++++++++-
- include/asm-generic/tlb.h             |   14 ++
- include/linux/dax.h                   |    6 -
- include/linux/huge_mm.h               |   83 ++++++++++-
- include/linux/mm.h                    |   40 +++++
- include/linux/mmu_notifier.h          |   14 ++
- include/linux/pfn_t.h                 |    8 +
- mm/gup.c                              |    7 +
- mm/huge_memory.c                      |  249 +++++++++++++++++++++++++++++++++
- mm/memory.c                           |  102 ++++++++++++--
- mm/pagewalk.c                         |   20 +++
- mm/pgtable-generic.c                  |   14 ++
- 28 files changed, 952 insertions(+), 75 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
