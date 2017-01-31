@@ -1,16 +1,106 @@
-From: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ndctl: add a BTT check utility
-Date: Tue, 31 Jan 2017 00:12:04 +0000
-Message-ID: <1485821454.4857.13.camel@intel.com>
-References: <20170120031234.24226-1-vishal.l.verma@intel.com>
- <x49lgu52uk0.fsf@segfault.boston.devel.redhat.com>
+From: "JONNA" <fadecice330-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: I need real facebook fans
+Date: Mon, 30 Jan 2017 21:11:55 -0600
+Message-ID: <D7417A9A.2E024860@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="----------=_58900739.E212A186"
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_58900739.E212A186
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  hi yes, here is the link http://www.topsocialfollowers.com/shop/facebook/
+   Regards JONNA Unsubscribe option is available on the footer of our website
+   [...] 
+
+Content analysis details:   (9.9 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 2.8 FSL_HELO_FAKE          No description available.
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: topsocialfollowers.com]
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+               [Blocked - see <http://www.spamcop.net/bl.shtml?211.72.12.220>]
+ 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
+                            [URIs: www.topsocialfollowers.com]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (fadecice330[at]gmail.com)
+ 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
+                            (fadecice330[at]gmail.com)
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0000]
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: topsocialfollowers.com]
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: topsocialfollowers.com]
+ 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
+                            [URIs: www.topsocialfollowers.com]
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+
+
+------------=_58900739.E212A186
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <x49lgu52uk0.fsf-RRHT56Q3PSP4kTEheFKJxxDDeQx5vsVwAInAS/Ez/D0@public.gmane.org>
-Content-Language: en-US
-Content-ID: <F27854A43F94184BBE8A0B651F26FA53-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1cYPJ5-0005Jr-J4
+	for gln-linux-nvdimm@m.gmane.org; Tue, 31 Jan 2017 04:40:35 +0100
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 37C6382027;
+	Mon, 30 Jan 2017 19:40:40 -0800 (PST)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Received: from gmail.com (211-72-12-220.HINET-IP.hinet.net [211.72.12.220])
+ by ml01.01.org (Postfix) with SMTP id 6E02F82025
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Mon, 30 Jan 2017 19:40:37 -0800 (PST)
+Message-ID: <D7417A9A.2E024860-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Mon, 30 Jan 2017 21:11:55 -0600
+From: "JONNA" <fadecice330-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; fr-CA;
+ rv:1.9.1.7) Gecko/20100111 Thunderbird/3.0.1
+X-Accept-Language: en-us
+MIME-Version: 1.0
+To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Subject: re: I need real facebook fans
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.21
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,50 +108,37 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Reply-To: JONNA <fadecice330-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-List-Id: linux-nvdimm@lists.01.org
 
-T24gRnJpLCAyMDE3LTAxLTIwIGF0IDE4OjE0IC0wNTAwLCBKZWZmIE1veWVyIHdyb3RlOg0KDQo8
-c25pcD4NCj4gDQo+ID4gK3N0YXRpYyBpbnQgYnR0X21hcF9yZWFkKHN0cnVjdCBhcmVuYV9pbmZv
-ICphLCBfX3UzMiBsYmEsIF9fdTMyDQo+ID4gKm1hcHBpbmcsDQo+ID4gKwkJCWludCAqdHJpbSwg
-aW50ICplcnJvcikNCj4gPiArew0KPiA+ICsJX191MzIgcmF3X21hcHBpbmcsIHBvc3RtYXAsIHpl
-LCB6X2ZsYWcsIGVfZmxhZzsNCj4gPiArDQo+ID4gKwlyYXdfbWFwcGluZyA9IGxlMzJ0b2goYS0+
-bWFwLm1hcFtsYmFdKTsNCj4gPiArCXpfZmxhZyA9IChyYXdfbWFwcGluZyAmIE1BUF9UUklNX01B
-U0spID4+IE1BUF9UUklNX1NISUZUOw0KPiA+ICsJZV9mbGFnID0gKHJhd19tYXBwaW5nICYgTUFQ
-X0VSUl9NQVNLKSA+PiBNQVBfRVJSX1NISUZUOw0KPiA+ICsJemUgPSAoel9mbGFnIDw8IDEpICsg
-ZV9mbGFnOw0KPiA+ICsJcG9zdG1hcCA9IHJhd19tYXBwaW5nICYgTUFQX0xCQV9NQVNLOw0KPiA+
-ICsNCj4gPiArCS8qIFJldXNlIHRoZSB7eixlfV9mbGFnIHZhcmlhYmxlcyBmb3IgKnRyaW0gYW5k
-ICplcnJvciAqLw0KPiA+ICsJel9mbGFnID0gMDsNCj4gPiArCWVfZmxhZyA9IDA7DQo+ID4gKw0K
-PiA+ICsJc3dpdGNoICh6ZSkgew0KPiA+ICsJY2FzZSAwOg0KPiA+ICsJCS8qIEluaXRpYWwgc3Rh
-dGUuIFJldHVybiBwb3N0bWFwID0gcHJlbWFwICovDQo+ID4gKwkJKm1hcHBpbmcgPSBsYmE7DQo+
-ID4gKwkJYnJlYWs7DQo+ID4gKwljYXNlIDE6DQo+ID4gKwkJKm1hcHBpbmcgPSBwb3N0bWFwOw0K
-PiA+ICsJCWVfZmxhZyA9IDE7DQo+ID4gKwkJYnJlYWs7DQo+ID4gKwljYXNlIDI6DQo+ID4gKwkJ
-Km1hcHBpbmcgPSBwb3N0bWFwOw0KPiA+ICsJCXpfZmxhZyA9IDE7DQo+ID4gKwkJYnJlYWs7DQo+
-ID4gKwljYXNlIDM6DQo+ID4gKwkJKm1hcHBpbmcgPSBwb3N0bWFwOw0KPiA+ICsJCWJyZWFrOw0K
-PiA+ICsJZGVmYXVsdDoNCj4gPiArCQlyZXR1cm4gLUVJTzsNCj4gPiArCX0NCj4gPiArDQo+ID4g
-KwlpZiAodHJpbSkNCj4gPiArCQkqdHJpbSA9IHpfZmxhZzsNCj4gPiArCWlmIChlcnJvcikNCj4g
-PiArCQkqZXJyb3IgPSBlX2ZsYWc7DQo+ID4gKw0KPiA+ICsJcmV0dXJuIDA7DQo+ID4gK30NCj4g
-DQo+IE5vIGNhbGxlciB1c2VzIHogb3IgZSwgc28gZ2V0IHJpZCBvZiB0aG9zZSBhcmdzLsKgwqBB
-bHNvLCB5b3VyIGRlZmF1bHQNCj4gZW50cnkgaW4gdGhlIHN3aXRjaCBzdGF0ZW1lbnQgY2FuIG5l
-dmVyIGJlIGhpdC7CoMKgRml4aW5nIHRob3NlLCB0aGUNCj4gZnVuY3Rpb24gaXMganVzdDoNCj4g
-DQo+IC8qDQo+IMKgKiBidHRfbWFwX2xvb2t1cA0KPiDCoCoNCj4gwqAqIEdpdmVuIGEgcHJlLW1h
-cCBBcmVuYSBCbG9jayBBZGRyZXNzLCByZXR1cm4gdGhlIHBvc3QtbWFwIEFCQS4NCj4gwqAqLw0K
-PiBzdGF0aWMgdTMyIGJ0dF9tYXBfbG9va3VwKHN0cnVjdCBhcmVuYV9pbmZvICphLCBfX3UzMiBs
-YmEpDQo+IHsNCj4gwqDCoMKgwqDCoMKgwqDCoHJldHVybiAobGUzMnRvaChhLT5tYXAubWFwW2xi
-YV0pICYgTUFQX0xCQV9NQVNLKTsNCg0KSSB0aGluayB0aGlzIG1pZ2h0IGJlIGFuIG92ZXJzaW1w
-bGlmaWNhdGlvbj8NCldlIHN0aWxsIGhhdmUgdG8gY2hlY2sgd2hldGhlciB0aGUgeiBhbmQgZSBm
-bGFncyBhcmUgYm90aCAwLCBhbmQgaWYgc28NCnJldHVybiAnbGJhJyAtLSB0aGUgaW5pdGlhbCBz
-dGF0ZSBjaGVjay4gVGhpcyB3b3VsZCByZXR1cm4gJzAnIHdoaWNoDQp3b3VsZCBiZSBpbmNvcnJl
-Y3QuLiBJIHdpbGwgc2ltcGxpZnkgdGhlIGFyZ3VtZW50cyBldGMgdGhvdWdoLCBhbmQgbm90DQpy
-ZXR1cm4gdGhlIHZhbHVlcyBvZiBmbGFncy4NCg0KPiB9DQo+IA0KPiBZb3UgY2FuIHRha2Ugb3Ig
-bGVhdmUgdGhlIGZ1bmN0aW9uIG5hbWUgY2hhbmdlLsKgwqBQbGVhc2Uga2VlcCB0aGUNCj4gY29t
-bWVudCwgYW5kIG1heWJlIGtlcm5lbC1kb2MtaWZ5IGl0Lg0KPiANCj4gPiArc3RhdGljIGludCBi
-dHRfbWFwX3dyaXRlKHN0cnVjdCBhcmVuYV9pbmZvICphLCBfX3UzMiBsYmEsIF9fdTMyDQo+ID4g
-bWFwcGluZywNCj4gPiArCQkJX191MzIgel9mbGFnLCBfX3UzMiBlX2ZsYWcpDQo+ID4gK3sNCj4g
-DQo+IEFnYWluLCB6IGFuZCBlIGFyZSB1bnVzZWQuwqDCoE51a2UgJ2VtLg0KX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
-bGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxt
-YW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+hi
+yes, here is the link
+http://www.topsocialfollowers.com/shop/facebook/
+
+Regards
+JONNA
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option is available on the footer of our website
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_58900739.E212A186--
