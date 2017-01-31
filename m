@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E2CA881FF6
- for <linux-nvdimm@lists.01.org>; Sat, 28 Jan 2017 00:41:03 -0800 (PST)
-Subject: [RFC PATCH 10/17] block: introduce bdev_dax_direct_access()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 28 Jan 2017 00:36:58 -0800
-Message-ID: <148559261791.11180.12085685820239925499.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8C87B81F6F
+ for <linux-nvdimm@lists.01.org>; Mon, 30 Jan 2017 16:15:42 -0800 (PST)
+Subject: Re: [PATCH v2 1/3] mm,fs,dax: Change ->pmd_fault to ->huge_fault
+References: <148545012634.17912.13951763606410303827.stgit@djiang5-desk3.ch.intel.com>
+ <148545058784.17912.6353162518188733642.stgit@djiang5-desk3.ch.intel.com>
+ <20170130234321.GA26702@linux.intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <79fcc6fe-77c5-7145-cf24-4a04df482803@intel.com>
+Date: Mon, 30 Jan 2017 17:15:40 -0700
 MIME-Version: 1.0
+In-Reply-To: <20170130234321.GA26702@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,158 +24,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: snitzer@redhat.com, mawilcox@microsoft.com, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: mawilcox@microsoft.com, linux-nvdimm@lists.01.org, dave.hansen@linux.intel.com, linux-xfs@vger.kernel.org, linux-mm@kvack.org, kirill.shutemov@linux.intel.com, jack@suse.com, akpm@linux-foundation.org, linux-ext4@vger.kernel.org, vbabka@suse.cz
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide a replacement for bdev_direct_access() that uses
-dax_operations.direct_access() instead of
-block_device_operations.direct_access(). Once all consumers of the old
-api have been converted bdev_direct_access() will be deleted.
+On 01/30/2017 04:43 PM, Ross Zwisler wrote:
+> On Thu, Jan 26, 2017 at 10:09:47AM -0700, Dave Jiang wrote:
+>> In preparation for adding the ability to handle PUD pages, convert
+>> ->pmd_fault to ->huge_fault.  The vm_fault structure is extended to
+>> include a union of the different page table pointers that may be needed,
+>> and three flag bits are reserved to indicate which type of pointer is in
+>> the union.
+>>
+>> [DJ: Forward ported to 4.10-rc]
+>>
+>> Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> 
+> Hey Dave,
+> 
+> Running xfstests generic/030 with XFS + DAX gives me the following kernel BUG,
+> which I bisected to this commit:
+> 
+> [  370.086205] ------------[ cut here ]------------
+> [  370.087182] kernel BUG at arch/x86/mm/fault.c:1038!
+> [  370.088336] invalid opcode: 0000 [#3] PREEMPT SMP
+> [  370.089073] Modules linked in: dax_pmem nd_pmem dax nd_btt nd_e820 libnvdimm
+> [  370.090212] CPU: 0 PID: 12415 Comm: xfs_io Tainted: G      D         4.10.0-rc5-mm1-00202-g7e90fc0 #10
+> [  370.091648] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.9.1-1.fc24 04/01/2014
+> [  370.092946] task: ffff8800ac4f8000 task.stack: ffffc9001148c000
+> [  370.093769] RIP: 0010:mm_fault_error+0x15e/0x190
+> [  370.094410] RSP: 0000:ffffc9001148fe60 EFLAGS: 00010246
+> [  370.095135] RAX: 0000000000000000 RBX: 0000000000000006 RCX: ffff8800ac4f8000
+> [  370.096107] RDX: 00007f111c8e6400 RSI: 0000000000000006 RDI: ffffc9001148ff58
+> [  370.097087] RBP: ffffc9001148fe88 R08: 0000000000000000 R09: ffff880510bd3300
+> [  370.098072] R10: ffff8800ac4f8000 R11: 0000000000000000 R12: 00007f111c8e6400
+> [  370.099057] R13: 00007f111c8e6400 R14: ffff880510bd3300 R15: 0000000000000055
+> [  370.100135] FS:  00007f111d95e700(0000) GS:ffff880514800000(0000) knlGS:0000000000000000
+> [  370.101238] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [  370.102021] CR2: 00007f111c8e6400 CR3: 00000000add00000 CR4: 00000000001406f0
+> [  370.103189] Call Trace:
+> [  370.103537]  __do_page_fault+0x54e/0x590
+> [  370.104090]  trace_do_page_fault+0x58/0x2c0
+> [  370.104675]  do_async_page_fault+0x2c/0x90
+> [  370.105342]  async_page_fault+0x28/0x30
+> [  370.106044] RIP: 0033:0x405e9a
+> [  370.106470] RSP: 002b:00007fffb7f30590 EFLAGS: 00010287
+> [  370.107185] RAX: 00000000004e6400 RBX: 0000000000000057 RCX: 00000000004e7000
+> [  370.108155] RDX: 00007f111c400000 RSI: 00000000004e7000 RDI: 0000000001c35080
+> [  370.109157] RBP: 00000000004e6400 R08: 0000000000000014 R09: 1999999999999999
+> [  370.110158] R10: 00007f111d2dc200 R11: 0000000000000000 R12: 0000000001c32fc0
+> [  370.111165] R13: 0000000000000000 R14: 0000000000000c00 R15: 0000000000000005
+> [  370.112171] Code: 07 00 00 00 e8 a4 ee ff ff e9 11 ff ff ff 4c 89 ea 48 89 de 45 31 c0 31 c9 e8 8f f7 ff ff 48 83 c4 08 5b 41 5c 41 5d 41 5e 5d c3 <0f> 0b 41 8b 94 24 80 04 00 00 49 8d b4 24 b0 06 00 00 4c 89 e9 
+> [  370.114823] RIP: mm_fault_error+0x15e/0x190 RSP: ffffc9001148fe60
+> [  370.115722] ---[ end trace 2ce10d930638254d ]---
+> 
+> 
+> Can you let me know if you can reproduce this?
 
-Given that block device partitioning decisions can cause dax page
-alignment constraints to be violated we still need to validate the
-block_device before calling the dax ->direct_access method.
+I reproduced. Will debug.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- block/Kconfig          |    1 +
- drivers/dax/super.c    |   33 +++++++++++++++++++++++++++++++++
- fs/block_dev.c         |   28 ++++++++++++++++++++++++++++
- include/linux/blkdev.h |    3 +++
- include/linux/dax.h    |    2 ++
- 5 files changed, 67 insertions(+)
-
-diff --git a/block/Kconfig b/block/Kconfig
-index 8bf114a3858a..9be785173280 100644
---- a/block/Kconfig
-+++ b/block/Kconfig
-@@ -6,6 +6,7 @@ menuconfig BLOCK
-        default y
-        select SBITMAP
-        select SRCU
-+       select DAX
-        help
- 	 Provide block layer support for the kernel.
- 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index eb844ffea3cf..ab5b082df5dd 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -65,6 +65,39 @@ struct dax_inode {
- 	const struct dax_operations *ops;
- };
- 
-+long dax_direct_access(struct dax_inode *dax_inode, phys_addr_t dev_addr,
-+		void **kaddr, pfn_t *pfn, long size)
-+{
-+	long avail;
-+
-+	/*
-+	 * The device driver is allowed to sleep, in order to make the
-+	 * memory directly accessible.
-+	 */
-+	might_sleep();
-+
-+	if (!dax_inode)
-+		return -EOPNOTSUPP;
-+
-+	if (!dax_inode_alive(dax_inode))
-+		return -ENXIO;
-+
-+	if (size < 0)
-+		return size;
-+
-+	if (dev_addr % PAGE_SIZE)
-+		return -EINVAL;
-+
-+	avail = dax_inode->ops->direct_access(dax_inode, dev_addr, kaddr, pfn,
-+			size);
-+	if (!avail)
-+		return -ERANGE;
-+	if (avail > 0 && avail & ~PAGE_MASK)
-+		return -ENXIO;
-+	return min(avail, size);
-+}
-+EXPORT_SYMBOL_GPL(dax_direct_access);
-+
- bool dax_inode_alive(struct dax_inode *dax_inode)
- {
- 	lockdep_assert_held(&dax_srcu);
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index edb1d2b16b8f..bf4b51a3a412 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -18,6 +18,7 @@
- #include <linux/module.h>
- #include <linux/blkpg.h>
- #include <linux/magic.h>
-+#include <linux/dax.h>
- #include <linux/buffer_head.h>
- #include <linux/swap.h>
- #include <linux/pagevec.h>
-@@ -763,6 +764,33 @@ long bdev_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
- EXPORT_SYMBOL_GPL(bdev_direct_access);
- 
- /**
-+ * bdev_dax_direct_access() - bdev-sector to pfn_t and kernel virtual address
-+ * @bdev: host block device for @dax_inode
-+ * @dax_inode: interface data and operations for a memory device
-+ * @dax: control and output parameters for ->direct_access
-+ *
-+ * Return: negative errno if an error occurs, otherwise the number of bytes
-+ * accessible at this address.
-+ *
-+ * Locking: must be called with dax_read_lock() held
-+ */
-+long bdev_dax_direct_access(struct block_device *bdev,
-+		struct dax_inode *dax_inode, struct blk_dax_ctl *dax)
-+{
-+	sector_t sector = dax->sector;
-+
-+	if (!blk_queue_dax(bdev->bd_queue))
-+		return -EOPNOTSUPP;
-+	if ((sector + DIV_ROUND_UP(dax->size, 512))
-+			> part_nr_sects_read(bdev->bd_part))
-+		return -ERANGE;
-+	sector += get_start_sect(bdev);
-+	return dax_direct_access(dax_inode, sector * 512, &dax->addr,
-+			&dax->pfn, dax->size);
-+}
-+EXPORT_SYMBOL_GPL(bdev_dax_direct_access);
-+
-+/**
-  * bdev_dax_supported() - Check if the device supports dax for filesystem
-  * @sb: The superblock of the device
-  * @blocksize: The block size of the device
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 5e7706f7d533..3b3c5ce376fd 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1903,6 +1903,9 @@ extern int bdev_read_page(struct block_device *, sector_t, struct page *);
- extern int bdev_write_page(struct block_device *, sector_t, struct page *,
- 						struct writeback_control *);
- extern long bdev_direct_access(struct block_device *, struct blk_dax_ctl *);
-+struct dax_inode;
-+extern long bdev_dax_direct_access(struct block_device *bdev,
-+		struct dax_inode *dax_inode, struct blk_dax_ctl *dax);
- extern int bdev_dax_supported(struct super_block *, int);
- #else /* CONFIG_BLOCK */
- 
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 5aa620e8e5a2..2ef8e18e2587 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -22,6 +22,8 @@ void *dax_inode_get_private(struct dax_inode *dax_inode);
- void put_dax_inode(struct dax_inode *dax_inode);
- bool dax_inode_alive(struct dax_inode *dax_inode);
- void kill_dax_inode(struct dax_inode *dax_inode);
-+long dax_direct_access(struct dax_inode *dax_inode, phys_addr_t dev_addr,
-+		void **kaddr, pfn_t *pfn, long size);
- 
- /*
-  * We use lowest available bit in exceptional entry for locking, one bit for
-
+> 
+> Thanks,
+> - Ross
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
