@@ -1,14 +1,16 @@
-From: "USPS Priority Delivery"
- <cecil.shaw-GrlPVIU0NpAJfEkdG0pimo9cUYGeVUOzgpXfwWVMSblWk0Htik3J/w@public.gmane.org>
-Subject: Delivery problem, parcel USPS #04043880
-Date: Sat, 28 Jan 2017 02:33:33 +0700
-Message-ID: <ee6de75a857643fcae350a162133819d@xn--72c6aanb7amf0cxa4d2bydyfucyd.com>
-Reply-To: USPS Priority Delivery
- <cecil.shaw-GrlPVIU0NpAJfEkdG0pimo9cUYGeVUOzgpXfwWVMSblWk0Htik3J/w@public.gmane.org>
+From: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ndctl: add a BTT check utility
+Date: Tue, 31 Jan 2017 00:12:04 +0000
+Message-ID: <1485821454.4857.13.camel@intel.com>
+References: <20170120031234.24226-1-vishal.l.verma@intel.com>
+ <x49lgu52uk0.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <x49lgu52uk0.fsf-RRHT56Q3PSP4kTEheFKJxxDDeQx5vsVwAInAS/Ez/D0@public.gmane.org>
+Content-Language: en-US
+Content-ID: <F27854A43F94184BBE8A0B651F26FA53-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,15 +20,48 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: "jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-Dear Customer,
-
-USPS courier was unable to contact you for your parcel delivery.
-
-Postal label is enclosed to this e-mail. Please check the attachment!
-
-Your help is greatly appreciated,
-Cecil Shaw,
-USPS Office Manager.
+T24gRnJpLCAyMDE3LTAxLTIwIGF0IDE4OjE0IC0wNTAwLCBKZWZmIE1veWVyIHdyb3RlOg0KDQo8
+c25pcD4NCj4gDQo+ID4gK3N0YXRpYyBpbnQgYnR0X21hcF9yZWFkKHN0cnVjdCBhcmVuYV9pbmZv
+ICphLCBfX3UzMiBsYmEsIF9fdTMyDQo+ID4gKm1hcHBpbmcsDQo+ID4gKwkJCWludCAqdHJpbSwg
+aW50ICplcnJvcikNCj4gPiArew0KPiA+ICsJX191MzIgcmF3X21hcHBpbmcsIHBvc3RtYXAsIHpl
+LCB6X2ZsYWcsIGVfZmxhZzsNCj4gPiArDQo+ID4gKwlyYXdfbWFwcGluZyA9IGxlMzJ0b2goYS0+
+bWFwLm1hcFtsYmFdKTsNCj4gPiArCXpfZmxhZyA9IChyYXdfbWFwcGluZyAmIE1BUF9UUklNX01B
+U0spID4+IE1BUF9UUklNX1NISUZUOw0KPiA+ICsJZV9mbGFnID0gKHJhd19tYXBwaW5nICYgTUFQ
+X0VSUl9NQVNLKSA+PiBNQVBfRVJSX1NISUZUOw0KPiA+ICsJemUgPSAoel9mbGFnIDw8IDEpICsg
+ZV9mbGFnOw0KPiA+ICsJcG9zdG1hcCA9IHJhd19tYXBwaW5nICYgTUFQX0xCQV9NQVNLOw0KPiA+
+ICsNCj4gPiArCS8qIFJldXNlIHRoZSB7eixlfV9mbGFnIHZhcmlhYmxlcyBmb3IgKnRyaW0gYW5k
+ICplcnJvciAqLw0KPiA+ICsJel9mbGFnID0gMDsNCj4gPiArCWVfZmxhZyA9IDA7DQo+ID4gKw0K
+PiA+ICsJc3dpdGNoICh6ZSkgew0KPiA+ICsJY2FzZSAwOg0KPiA+ICsJCS8qIEluaXRpYWwgc3Rh
+dGUuIFJldHVybiBwb3N0bWFwID0gcHJlbWFwICovDQo+ID4gKwkJKm1hcHBpbmcgPSBsYmE7DQo+
+ID4gKwkJYnJlYWs7DQo+ID4gKwljYXNlIDE6DQo+ID4gKwkJKm1hcHBpbmcgPSBwb3N0bWFwOw0K
+PiA+ICsJCWVfZmxhZyA9IDE7DQo+ID4gKwkJYnJlYWs7DQo+ID4gKwljYXNlIDI6DQo+ID4gKwkJ
+Km1hcHBpbmcgPSBwb3N0bWFwOw0KPiA+ICsJCXpfZmxhZyA9IDE7DQo+ID4gKwkJYnJlYWs7DQo+
+ID4gKwljYXNlIDM6DQo+ID4gKwkJKm1hcHBpbmcgPSBwb3N0bWFwOw0KPiA+ICsJCWJyZWFrOw0K
+PiA+ICsJZGVmYXVsdDoNCj4gPiArCQlyZXR1cm4gLUVJTzsNCj4gPiArCX0NCj4gPiArDQo+ID4g
+KwlpZiAodHJpbSkNCj4gPiArCQkqdHJpbSA9IHpfZmxhZzsNCj4gPiArCWlmIChlcnJvcikNCj4g
+PiArCQkqZXJyb3IgPSBlX2ZsYWc7DQo+ID4gKw0KPiA+ICsJcmV0dXJuIDA7DQo+ID4gK30NCj4g
+DQo+IE5vIGNhbGxlciB1c2VzIHogb3IgZSwgc28gZ2V0IHJpZCBvZiB0aG9zZSBhcmdzLsKgwqBB
+bHNvLCB5b3VyIGRlZmF1bHQNCj4gZW50cnkgaW4gdGhlIHN3aXRjaCBzdGF0ZW1lbnQgY2FuIG5l
+dmVyIGJlIGhpdC7CoMKgRml4aW5nIHRob3NlLCB0aGUNCj4gZnVuY3Rpb24gaXMganVzdDoNCj4g
+DQo+IC8qDQo+IMKgKiBidHRfbWFwX2xvb2t1cA0KPiDCoCoNCj4gwqAqIEdpdmVuIGEgcHJlLW1h
+cCBBcmVuYSBCbG9jayBBZGRyZXNzLCByZXR1cm4gdGhlIHBvc3QtbWFwIEFCQS4NCj4gwqAqLw0K
+PiBzdGF0aWMgdTMyIGJ0dF9tYXBfbG9va3VwKHN0cnVjdCBhcmVuYV9pbmZvICphLCBfX3UzMiBs
+YmEpDQo+IHsNCj4gwqDCoMKgwqDCoMKgwqDCoHJldHVybiAobGUzMnRvaChhLT5tYXAubWFwW2xi
+YV0pICYgTUFQX0xCQV9NQVNLKTsNCg0KSSB0aGluayB0aGlzIG1pZ2h0IGJlIGFuIG92ZXJzaW1w
+bGlmaWNhdGlvbj8NCldlIHN0aWxsIGhhdmUgdG8gY2hlY2sgd2hldGhlciB0aGUgeiBhbmQgZSBm
+bGFncyBhcmUgYm90aCAwLCBhbmQgaWYgc28NCnJldHVybiAnbGJhJyAtLSB0aGUgaW5pdGlhbCBz
+dGF0ZSBjaGVjay4gVGhpcyB3b3VsZCByZXR1cm4gJzAnIHdoaWNoDQp3b3VsZCBiZSBpbmNvcnJl
+Y3QuLiBJIHdpbGwgc2ltcGxpZnkgdGhlIGFyZ3VtZW50cyBldGMgdGhvdWdoLCBhbmQgbm90DQpy
+ZXR1cm4gdGhlIHZhbHVlcyBvZiBmbGFncy4NCg0KPiB9DQo+IA0KPiBZb3UgY2FuIHRha2Ugb3Ig
+bGVhdmUgdGhlIGZ1bmN0aW9uIG5hbWUgY2hhbmdlLsKgwqBQbGVhc2Uga2VlcCB0aGUNCj4gY29t
+bWVudCwgYW5kIG1heWJlIGtlcm5lbC1kb2MtaWZ5IGl0Lg0KPiANCj4gPiArc3RhdGljIGludCBi
+dHRfbWFwX3dyaXRlKHN0cnVjdCBhcmVuYV9pbmZvICphLCBfX3UzMiBsYmEsIF9fdTMyDQo+ID4g
+bWFwcGluZywNCj4gPiArCQkJX191MzIgel9mbGFnLCBfX3UzMiBlX2ZsYWcpDQo+ID4gK3sNCj4g
+DQo+IEFnYWluLCB6IGFuZCBlIGFyZSB1bnVzZWQuwqDCoE51a2UgJ2VtLg0KX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
+bGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxt
+YW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
