@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F117A81FF4
- for <linux-nvdimm@lists.01.org>; Sat, 28 Jan 2017 00:41:14 -0800 (PST)
-Subject: [RFC PATCH 12/17] dm: add dax_operations support (consumer)
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 28 Jan 2017 00:37:08 -0800
-Message-ID: <148559262885.11180.15866050277537726376.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148559256378.11180.8957776806175202312.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 04ABA81F5F
+ for <linux-nvdimm@lists.01.org>; Tue, 31 Jan 2017 13:33:48 -0800 (PST)
+Subject: [PATCH] mm, dax: clear PMD or PUD size flags when in fall through path
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 31 Jan 2017 14:33:47 -0700
+Message-ID: <148589842696.5820.16078080610311444794.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,282 +20,103 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: snitzer@redhat.com, mawilcox@microsoft.com, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: akpm@linux-foundation.org
+Cc: mawilcox@microsoft.com, linux-nvdimm@lists.01.org, dave.hansen@linux.intel.com, linux-xfs@vger.kernel.org, linux-mm@kvack.org, vbabka@suse.cz, jack@suse.com, linux-ext4@vger.kernel.org, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Arrange for dm to lookup the dax services available from member
-devices. Update the dax-capable targets, linear and stripe, to route dax
-operations to the underlying device.
+Ross reported that:
+Running xfstests generic/030 with XFS + DAX gives me the following kernel BUG,
+which I bisected to this commit: mm,fs,dax: Change ->pmd_fault to ->huge_fault
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+[  370.086205] ------------[ cut here ]------------
+[  370.087182] kernel BUG at arch/x86/mm/fault.c:1038!
+[  370.088336] invalid opcode: 0000 [#3] PREEMPT SMP
+[  370.089073] Modules linked in: dax_pmem nd_pmem dax nd_btt nd_e820 libnvdimm
+[  370.090212] CPU: 0 PID: 12415 Comm: xfs_io Tainted: G      D         4.10.0-rc5-mm1-00202-g7e90fc0 #10
+[  370.091648] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.9.1-1.fc24 04/01/2014
+[  370.092946] task: ffff8800ac4f8000 task.stack: ffffc9001148c000
+[  370.093769] RIP: 0010:mm_fault_error+0x15e/0x190
+[  370.094410] RSP: 0000:ffffc9001148fe60 EFLAGS: 00010246
+[  370.095135] RAX: 0000000000000000 RBX: 0000000000000006 RCX: ffff8800ac4f8000
+[  370.096107] RDX: 00007f111c8e6400 RSI: 0000000000000006 RDI: ffffc9001148ff58
+[  370.097087] RBP: ffffc9001148fe88 R08: 0000000000000000 R09: ffff880510bd3300
+[  370.098072] R10: ffff8800ac4f8000 R11: 0000000000000000 R12: 00007f111c8e6400
+[  370.099057] R13: 00007f111c8e6400 R14: ffff880510bd3300 R15: 0000000000000055
+[  370.100135] FS:  00007f111d95e700(0000) GS:ffff880514800000(0000) knlGS:0000000000000000
+[  370.101238] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  370.102021] CR2: 00007f111c8e6400 CR3: 00000000add00000 CR4: 00000000001406f0
+[  370.103189] Call Trace:
+[  370.103537]  __do_page_fault+0x54e/0x590
+[  370.104090]  trace_do_page_fault+0x58/0x2c0
+[  370.104675]  do_async_page_fault+0x2c/0x90
+[  370.105342]  async_page_fault+0x28/0x30
+[  370.106044] RIP: 0033:0x405e9a
+[  370.106470] RSP: 002b:00007fffb7f30590 EFLAGS: 00010287
+[  370.107185] RAX: 00000000004e6400 RBX: 0000000000000057 RCX: 00000000004e7000
+[  370.108155] RDX: 00007f111c400000 RSI: 00000000004e7000 RDI: 0000000001c35080
+[  370.109157] RBP: 00000000004e6400 R08: 0000000000000014 R09: 1999999999999999
+[  370.110158] R10: 00007f111d2dc200 R11: 0000000000000000 R12: 0000000001c32fc0
+[  370.111165] R13: 0000000000000000 R14: 0000000000000c00 R15: 0000000000000005
+[  370.112171] Code: 07 00 00 00 e8 a4 ee ff ff e9 11 ff ff ff 4c 89 ea 48 89 de 45 31 c0 31 c9 e8 8f f7 ff ff 48 83 c4 08 5b 41 5c 41 5d 41 5e 5d c3 <0f> 0b 41 8b 94 24 80 04 00 00 49 8d b4 24 b0 06 00 00 4c 89 e9
+[  370.114823] RIP: mm_fault_error+0x15e/0x190 RSP: ffffc9001148fe60
+[  370.115722] ---[ end trace 2ce10d930638254d ]---
+
+It appears that there are 2 issues. First, the size bits used for vm_fault
+needs to be shifted over. Otherwise, FAULT_FLAG_SIZE_PMD is clobbering
+FAULT_FLAG_INSTRUCTION. Second issue, after create_huge_pmd() is being
+called and is falling back to the pte fault handler, the FAULT_FLAG_SIZE_PMD
+flag remains and that causes the dax fault handler to go towards the pmd
+fault handler instead of the pte fault handler. Fixes are made for the pud
+and pmd fall through paths.
+
+Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/md/dm-linear.c        |   24 ++++++++++++++++++++++++
- drivers/md/dm-snap.c          |   12 ++++++++++++
- drivers/md/dm-stripe.c        |   30 ++++++++++++++++++++++++++++++
- drivers/md/dm-target.c        |   11 +++++++++++
- drivers/md/dm.c               |   16 ++++++++++++----
- include/linux/device-mapper.h |    7 +++++++
- 6 files changed, 96 insertions(+), 4 deletions(-)
+ include/linux/mm.h |    8 ++++----
+ mm/memory.c        |    4 ++++
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index 4788b0b989a9..e91ca8089333 100644
---- a/drivers/md/dm-linear.c
-+++ b/drivers/md/dm-linear.c
-@@ -159,6 +159,29 @@ static long linear_direct_access(struct dm_target *ti, sector_t sector,
- 	return ret;
- }
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index f50e730..6194aeb 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -285,10 +285,10 @@ extern pgprot_t protection_map[16];
+ #define FAULT_FLAG_REMOTE	0x80	/* faulting for non current tsk/mm */
+ #define FAULT_FLAG_INSTRUCTION  0x100	/* The fault was during an instruction fetch */
  
-+static long linear_dax_direct_access(struct dm_target *ti, phys_addr_t dev_addr,
-+				     void **kaddr, pfn_t *pfn, long size)
-+{
-+	struct linear_c *lc = ti->private;
-+	struct block_device *bdev = lc->dev->bdev;
-+	struct dax_inode *dax_inode = lc->dev->dax_inode;
-+	struct blk_dax_ctl dax = {
-+		.sector = linear_map_sector(ti, dev_addr >> SECTOR_SHIFT),
-+		.size = size,
-+	};
-+	long ret;
-+
-+	ret = bdev_dax_direct_access(bdev, dax_inode, &dax);
-+	*kaddr = dax.addr;
-+	*pfn = dax.pfn;
-+
-+	return ret;
-+}
-+
-+static const struct dm_dax_operations linear_dax_ops = {
-+	.dm_direct_access = linear_dax_direct_access,
-+};
-+
- static struct target_type linear_target = {
- 	.name   = "linear",
- 	.version = {1, 3, 0},
-@@ -170,6 +193,7 @@ static struct target_type linear_target = {
- 	.prepare_ioctl = linear_prepare_ioctl,
- 	.iterate_devices = linear_iterate_devices,
- 	.direct_access = linear_direct_access,
-+	.dax_ops = &linear_dax_ops,
- };
+-#define FAULT_FLAG_SIZE_MASK	0x700	/* Support up to 8-level page tables */
+-#define FAULT_FLAG_SIZE_PTE	0x000	/* First level (eg 4k) */
+-#define FAULT_FLAG_SIZE_PMD	0x100	/* Second level (eg 2MB) */
+-#define FAULT_FLAG_SIZE_PUD	0x200	/* Third level (eg 1GB) */
++#define FAULT_FLAG_SIZE_MASK	0x7000	/* Support up to 8-level page tables */
++#define FAULT_FLAG_SIZE_PTE	0x0000	/* First level (eg 4k) */
++#define FAULT_FLAG_SIZE_PMD	0x1000	/* Second level (eg 2MB) */
++#define FAULT_FLAG_SIZE_PUD	0x2000	/* Third level (eg 1GB) */
  
- int __init dm_linear_init(void)
-diff --git a/drivers/md/dm-snap.c b/drivers/md/dm-snap.c
-index c65feeada864..1990e3bd6958 100644
---- a/drivers/md/dm-snap.c
-+++ b/drivers/md/dm-snap.c
-@@ -2309,6 +2309,13 @@ static long origin_direct_access(struct dm_target *ti, sector_t sector,
- 	return -EIO;
- }
+ #define FAULT_FLAG_TRACE \
+ 	{ FAULT_FLAG_WRITE,		"WRITE" }, \
+diff --git a/mm/memory.c b/mm/memory.c
+index d465806..bdf1661 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3663,6 +3663,8 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
+ 		ret = create_huge_pud(&vmf);
+ 		if (!(ret & VM_FAULT_FALLBACK))
+ 			return ret;
++		/* fall through path, remove PUD flag */
++		vmf.flags &= ~FAULT_FLAG_SIZE_PUD;
+ 	} else {
+ 		pud_t orig_pud = *vmf.pud;
  
-+static long origin_dax_direct_access(struct dm_target *ti, phys_addr_t dev_addr,
-+		void **kaddr, pfn_t *pfn, long size)
-+{
-+	DMWARN("device does not support dax.");
-+	return -EIO;
-+}
-+
- /*
-  * Set the target "max_io_len" field to the minimum of all the snapshots'
-  * chunk sizes.
-@@ -2357,6 +2364,10 @@ static int origin_iterate_devices(struct dm_target *ti,
- 	return fn(ti, o->dev, 0, ti->len, data);
- }
+@@ -3693,6 +3695,8 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
+ 		ret = create_huge_pmd(&vmf);
+ 		if (!(ret & VM_FAULT_FALLBACK))
+ 			return ret;
++		/* fall through path, remove PMD flag */
++		vmf.flags &= ~FAULT_FLAG_SIZE_PMD;
+ 	} else {
+ 		pmd_t orig_pmd = *vmf.pmd;
  
-+static const struct dm_dax_operations origin_dax_ops = {
-+	.dm_direct_access = origin_dax_direct_access,
-+};
-+
- static struct target_type origin_target = {
- 	.name    = "snapshot-origin",
- 	.version = {1, 9, 0},
-@@ -2369,6 +2380,7 @@ static struct target_type origin_target = {
- 	.status  = origin_status,
- 	.iterate_devices = origin_iterate_devices,
- 	.direct_access = origin_direct_access,
-+	.dax_ops = &origin_dax_ops,
- };
- 
- static struct target_type snapshot_target = {
-diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
-index 28193a57bf47..47fb56a6184a 100644
---- a/drivers/md/dm-stripe.c
-+++ b/drivers/md/dm-stripe.c
-@@ -331,6 +331,31 @@ static long stripe_direct_access(struct dm_target *ti, sector_t sector,
- 	return ret;
- }
- 
-+static long stripe_dax_direct_access(struct dm_target *ti, phys_addr_t dev_addr,
-+		void **kaddr, pfn_t *pfn, long size)
-+{
-+	struct stripe_c *sc = ti->private;
-+	uint32_t stripe;
-+	struct block_device *bdev;
-+	struct dax_inode *dax_inode;
-+	struct blk_dax_ctl dax = {
-+		.size = size,
-+	};
-+	long ret;
-+
-+	stripe_map_sector(sc, dev_addr >> SECTOR_SHIFT, &stripe, &dax.sector);
-+
-+	dax.sector += sc->stripe[stripe].physical_start;
-+	bdev = sc->stripe[stripe].dev->bdev;
-+	dax_inode = sc->stripe[stripe].dev->dax_inode;
-+
-+	ret = bdev_dax_direct_access(bdev, dax_inode, &dax);
-+	*kaddr = dax.addr;
-+	*pfn = dax.pfn;
-+
-+	return ret;
-+}
-+
- /*
-  * Stripe status:
-  *
-@@ -437,6 +462,10 @@ static void stripe_io_hints(struct dm_target *ti,
- 	blk_limits_io_opt(limits, chunk_size * sc->stripes);
- }
- 
-+static const struct dm_dax_operations stripe_dax_ops = {
-+	.dm_direct_access = stripe_dax_direct_access,
-+};
-+
- static struct target_type stripe_target = {
- 	.name   = "striped",
- 	.version = {1, 6, 0},
-@@ -449,6 +478,7 @@ static struct target_type stripe_target = {
- 	.iterate_devices = stripe_iterate_devices,
- 	.io_hints = stripe_io_hints,
- 	.direct_access = stripe_direct_access,
-+	.dax_ops = &stripe_dax_ops,
- };
- 
- int __init dm_stripe_init(void)
-diff --git a/drivers/md/dm-target.c b/drivers/md/dm-target.c
-index 710ae28fd618..ab072f53cf24 100644
---- a/drivers/md/dm-target.c
-+++ b/drivers/md/dm-target.c
-@@ -154,6 +154,16 @@ static long io_err_direct_access(struct dm_target *ti, sector_t sector,
- 	return -EIO;
- }
- 
-+static long io_err_dax_direct_access(struct dm_target *ti, phys_addr_t dev_addr,
-+				     void **kaddr, pfn_t *pfn, long size)
-+{
-+	return -EIO;
-+}
-+
-+static const struct dm_dax_operations err_dax_ops = {
-+	.dm_direct_access = io_err_dax_direct_access,
-+};
-+
- static struct target_type error_target = {
- 	.name = "error",
- 	.version = {1, 5, 0},
-@@ -165,6 +175,7 @@ static struct target_type error_target = {
- 	.clone_and_map_rq = io_err_clone_and_map_rq,
- 	.release_clone_rq = io_err_release_clone_rq,
- 	.direct_access = io_err_direct_access,
-+	.dax_ops = &err_dax_ops,
- };
- 
- int __init dm_target_init(void)
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 1b3d9253e92c..5c5eeda0eb0a 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -627,6 +627,7 @@ static int open_table_device(struct table_device *td, dev_t dev,
- 	}
- 
- 	td->dm_dev.bdev = bdev;
-+	td->dm_dev.dax_inode = dax_get_by_host(bdev->bd_disk->disk_name);
- 	return 0;
- }
- 
-@@ -640,7 +641,9 @@ static void close_table_device(struct table_device *td, struct mapped_device *md
- 
- 	bd_unlink_disk_holder(td->dm_dev.bdev, dm_disk(md));
- 	blkdev_put(td->dm_dev.bdev, td->dm_dev.mode | FMODE_EXCL);
-+	put_dax_inode(td->dm_dev.dax_inode);
- 	td->dm_dev.bdev = NULL;
-+	td->dm_dev.dax_inode = NULL;
- }
- 
- static struct table_device *find_table_device(struct list_head *l, dev_t dev,
-@@ -907,7 +910,7 @@ int dm_set_target_max_io_len(struct dm_target *ti, sector_t len)
- EXPORT_SYMBOL_GPL(dm_set_target_max_io_len);
- 
- static long __dm_direct_access(struct mapped_device *md, phys_addr_t dev_addr,
--			       void **kaddr, pfn_t *pfn, long size)
-+			       void **kaddr, pfn_t *pfn, long size, bool blk)
- {
- 	sector_t sector = dev_addr >> SECTOR_SHIFT;
- 	struct dm_table *map;
-@@ -926,8 +929,11 @@ static long __dm_direct_access(struct mapped_device *md, phys_addr_t dev_addr,
- 	len = max_io_len(sector, ti) << SECTOR_SHIFT;
- 	size = min(len, size);
- 
--	if (ti->type->direct_access)
-+	if (blk && ti->type->direct_access)
- 		ret = ti->type->direct_access(ti, sector, kaddr, pfn, size);
-+	else if (ti->type->dax_ops)
-+		ret = ti->type->dax_ops->dm_direct_access(ti, dev_addr, kaddr,
-+				pfn, size);
- out:
- 	dm_put_live_table(md, srcu_idx);
- 	return min(ret, size);
-@@ -938,7 +944,8 @@ static long dm_blk_direct_access(struct block_device *bdev, sector_t sector,
- {
- 	struct mapped_device *md = bdev->bd_disk->private_data;
- 
--	return __dm_direct_access(md, sector << SECTOR_SHIFT, kaddr, pfn, size);
-+	return __dm_direct_access(md, sector << SECTOR_SHIFT, kaddr, pfn, size,
-+			true);
- }
- 
- static long dm_dax_direct_access(struct dax_inode *dax_inode,
-@@ -947,7 +954,8 @@ static long dm_dax_direct_access(struct dax_inode *dax_inode,
- {
- 	struct mapped_device *md = dax_inode_get_private(dax_inode);
- 
--	return __dm_direct_access(md, dev_addr, kaddr, pfn, size);
-+	return __dm_direct_access(md, dev_addr, kaddr, pfn, size,
-+			false);
- }
- 
- /*
-diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
-index ef7962e84444..1b64f412bb45 100644
---- a/include/linux/device-mapper.h
-+++ b/include/linux/device-mapper.h
-@@ -137,12 +137,18 @@ void dm_error(const char *message);
- 
- struct dm_dev {
- 	struct block_device *bdev;
-+	struct dax_inode *dax_inode;
- 	fmode_t mode;
- 	char name[16];
- };
- 
- dev_t dm_get_dev_t(const char *path);
- 
-+struct dm_dax_operations {
-+	long (*dm_direct_access)(struct dm_target *ti, phys_addr_t dev_addr,
-+			void **kaddr, pfn_t *pfn, long size);
-+};
-+
- /*
-  * Constructors should call these functions to ensure destination devices
-  * are opened/closed correctly.
-@@ -180,6 +186,7 @@ struct target_type {
- 	dm_iterate_devices_fn iterate_devices;
- 	dm_io_hints_fn io_hints;
- 	dm_direct_access_fn direct_access;
-+	const struct dm_dax_operations *dax_ops;
- 
- 	/* For internal device-mapper use. */
- 	struct list_head list;
 
 _______________________________________________
 Linux-nvdimm mailing list
