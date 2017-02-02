@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM03-CO1-obe.outbound.protection.outlook.com
- (mail-co1nam03on072a.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe48::72a])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6B9E5820BE
- for <linux-nvdimm@lists.01.org>; Mon, 13 Feb 2017 08:28:20 -0800 (PST)
-From: Linda Knippers <linda.knippers@hpe.com>
-Subject: [PATCH 2/3] Allow specifying a default DSM family
-Date: Mon, 13 Feb 2017 11:27:48 -0500
-Message-ID: <1add4491ffe50ece3ab84e4ab2455086a928272f.1486750247.git.linda.knippers@hpe.com>
-In-Reply-To: <cover.1486750246.git.linda.knippers@hpe.com>
-References: <cover.1486750246.git.linda.knippers@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id A67A681F48
+ for <linux-nvdimm@lists.01.org>; Thu,  2 Feb 2017 12:35:27 -0800 (PST)
+Date: Thu, 2 Feb 2017 13:34:19 -0700
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] acpi, nfit: fix acpi_nfit_flush_probe() crash
+Message-ID: <20170202203418.GC14128@omniknight.lm.intel.com>
+References: <148606158246.11883.8248896172906265924.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <148606158246.11883.8248896172906265924.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,78 +23,69 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-acpi@vger.kernel.org, stable@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide the ability to request a default DSM family. If it is not
-supported, then fall back to the normal discovery order.
+On 02/02, Dan Williams wrote:
+> We queue an on-stack work item to 'nfit_wq' and wait for it to complete
+> as part of a 'flush_probe' request. However, if the user cancels the
+> wait we need to make sure the item is flushed from the queue otherwise
+> we are leaving an out-of-scope stack address on the work list.
+> 
+>  BUG: unable to handle kernel paging request at ffffbcb3c72f7cd0
+>  IP: [<ffffffffa9413a7b>] __list_add+0x1b/0xb0
+>  [..]
+>  RIP: 0010:[<ffffffffa9413a7b>]  [<ffffffffa9413a7b>] __list_add+0x1b/0xb0
+>  RSP: 0018:ffffbcb3c7ba7c00  EFLAGS: 00010046
+>  [..]
+>  Call Trace:
+>   [<ffffffffa90bb11a>] insert_work+0x3a/0xc0
+>   [<ffffffffa927fdda>] ? seq_open+0x5a/0xa0
+>   [<ffffffffa90bb30a>] __queue_work+0x16a/0x460
+>   [<ffffffffa90bbb08>] queue_work_on+0x38/0x40
+>   [<ffffffffc0cf2685>] acpi_nfit_flush_probe+0x95/0xc0 [nfit]
+>   [<ffffffffc0cf25d0>] ? nfit_visible+0x40/0x40 [nfit]
+>   [<ffffffffa9571495>] wait_probe_show+0x25/0x60
+>   [<ffffffffa9546b30>] dev_attr_show+0x20/0x50
+> 
+> Fixes: 7ae0fa439faf ("nfit, libnvdimm: async region scrub workqueue")
+> Cc: <stable@vger.kernel.org>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/acpi/nfit/core.c |    6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
 
-This is helpful for testing platforms that support multiple DSM families.
-It will also allow administrators to request the DSM family that their
-management tools support, which may not be the first one found using
-the current discovery order.
+Looks good to me.
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Signed-off-by: Linda Knippers <linda.knippers@hpe.com>
----
- drivers/acpi/nfit/core.c | 24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index b80d4d9..e38773f 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -51,6 +51,12 @@
- MODULE_PARM_DESC(disable_vendor_specific,
- 		"Limit commands to the publicly specified set\n");
- 
-+static int default_dsm_family = -1;
-+module_param(default_dsm_family, int, S_IRUGO);
-+MODULE_PARM_DESC(default_dsm_family,
-+		"Try this DSM type first when identifying NVDIMM family");
-+
-+
- LIST_HEAD(acpi_descs);
- DEFINE_MUTEX(acpi_desc_lock);
- 
-@@ -1367,7 +1373,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	struct device *dev = acpi_desc->dev;
- 	unsigned long dsm_mask;
- 	const u8 *uuid;
--	int i;
-+	int i = -1;
- 
- 	/* nfit test assumes 1:1 relationship between commands and dsms */
- 	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
-@@ -1395,10 +1401,23 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	 * Until standardization materializes we need to consider 4
- 	 * different command sets.  Note, that checking for function0 (bit0)
- 	 * tells us if any commands are reachable through this uuid.
-+	 * First check for a requested default.
- 	 */
--	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
--		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
--			break;
-+	if (default_dsm_family >= NVDIMM_FAMILY_INTEL &&
-+			default_dsm_family <= NVDIMM_FAMILY_MSFT) {
-+		if (acpi_check_dsm(adev_dimm->handle,
-+				to_nfit_uuid(default_dsm_family), 1, 1))
-+			i = default_dsm_family;
-+		else
-+			dev_dbg(dev, "default_dsm_family %d not supported\n",
-+				default_dsm_family);
-+	}
-+	if (i == -1) {
-+		for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
-+			if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i),
-+					1, 1))
-+				break;
-+	}
- 
- 	/* limit the supported commands to those that are publicly documented */
- 	nfit_mem->family = i;
--- 
-1.8.3.1
-
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 2f82b8eba360..7361d00818e2 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -2704,6 +2704,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+>  	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
+>  	struct device *dev = acpi_desc->dev;
+>  	struct acpi_nfit_flush_work flush;
+> +	int rc;
+>  
+>  	/* bounce the device lock to flush acpi_nfit_add / acpi_nfit_notify */
+>  	device_lock(dev);
+> @@ -2716,7 +2717,10 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+>  	INIT_WORK_ONSTACK(&flush.work, flush_probe);
+>  	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
+>  	queue_work(nfit_wq, &flush.work);
+> -	return wait_for_completion_interruptible(&flush.cmp);
+> +
+> +	rc = wait_for_completion_interruptible(&flush.cmp);
+> +	cancel_work_sync(&flush.work);
+> +	return rc;
+>  }
+>  
+>  static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
