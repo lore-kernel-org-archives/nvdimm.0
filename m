@@ -1,63 +1,99 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: read failure (was Re: mmap dio write failure)
-Date: Tue, 7 Feb 2017 20:10:14 -0800
-Message-ID: <CAPcyv4iF2xH=9FHDMqb8OYMFO45GkiEEKf1y73Q7scGQSJniag@mail.gmail.com>
-References: <20170120044007.kwevjo7nawwolagy@XZHOUW.usersys.redhat.com>
- <20170208035105.lvewz5ce7xbu5zud@XZHOUW.usersys.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170208035105.lvewz5ce7xbu5zud-E9dkjZ7ERC1QcClZ3XN9yxcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Eryu Guan <eguan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Xiong Zhou <xzhou@redhat.com>
+Subject: [PATCH v6 0/2]  mmap dio and DAX
+Date: Wed,  8 Feb 2017 12:11:16 +0800
+Message-ID: <1486527078-11173-1-git-send-email-xzhou@redhat.com>
+References: <20170206191717.GB12290@linux.intel.com>
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <20170206191717.GB12290@linux.intel.com>
+Sender: fstests-owner@vger.kernel.org
+To: ross.zwisler@linux.intel.com, fstests@vger.kernel.org
+Cc: linux-nvdimm@ml01.01.org, jmoyer@redhat.com, eguan@redhat.com, Xiong Zhou <xzhou@redhat.com>
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Feb 7, 2017 at 7:51 PM, Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Fri, Jan 20, 2017 at 12:40:07PM +0800, Xiong Zhou wrote:
->> Hi,
->>
->> At first, I am not sure whether this is an issue.
->>
->> mmap a file in a DAX mountpoint, open another file
->> in a non-DAX mountpoint with O_DIRECT, write the
->> mapped area to the other file.
->>
->> This write Success on pmem ramdisk(memmap=2G!20G like)
->> This write Fail(Bad address) on nvdimm pmem devices.
->> This write Fail(Bad address) on brd based ramdisk.
->>
->> If we skip the O_DIRECT flag, all tests pass.
->>
->> If we write from DAX to DAX, all tests pass.
->> If we write from non-DAX to DAX, all tests pass.
->>
-> snip..
->
-> To falloc instead of pwrite while initiating test files,
-> ( Thanks Ross! :)
-> the write call returned success, however the following
-> read back to mmaped area FAILED the same way:
->
-> return (Bad address) on raw-mode nvdimm device;
-> return (Success)     on memory-mode nvdimm device;
-> return (Bad address) on brd based ramdisk.
->
-> Also, this only happends with O_DIRECT flag on.
->
-> This smells like an issue to me, still looking into why
-> read can't get that page..
->
+Hi Ross and all,
 
-Why does it smell like an issue? Any path that calls get_user_pages()
-and a DAX mmap range will fail without "memory" mode. I'm of the
-opinion that we should disable DAX altogether for raw-mode.
+After adding some initialization of test files, I've
+got different test results that the write call succeeds
+while the following read call fails.
+
+Please help test and review, Thanks!
+
+-----
+common/rc         : requires SCRATCH_DEV support DAX
+src/t_mmap_dio.c  : intro mmap and O_DIRECT rw through files
+tests/generic/405 : IO between DAX/non-DAX mountpoints
+tests/xfs/138     : IO between DAX/non-DAX xfs files(per-inode flag)
+
+v2 :
+  Merge helper function changes into the first patch;
+  Rewrite _require_dax, check options for sure;
+  Print msg in t_mmap_dio.c to show which test going wrong;
+  Empty mount options and check after mount to ensure we
+wont mount with wrong option;
+  Remove unnecessary leading underscore and _fail;
+  Use xfs_io instead of dd;
+  Other minor fixes.
+
+v3:
+ close fds in C test programme for clean up.
+
+v4:
+ Test both buffered and O_DIRECT IO;
+ Fix arg numbers in C test programme;
+ Fix fs options check after mount.
+ Cc Jeff Moyer since this test is based on his code.
+ (Sorry for the late cc!)
+
+v5:
+ Mainly from Ross Zwisler <ross.zwisler@linux.intel.com>
+ Add mkfs options to make fs 2M aligned, to hit PMD faults;
+ Use falloc instead of pwrite to init test file aviding 4k
+alignment;
+ 64M test file instead of 1G;
+ Bumping test seq numners;
+ Other minor fixes.
+
+v6:
+ Test file size increase to 128M;
+ Add fsync after write in t_mmap_dio.c;
+ Split sub tests in both cases, re-initialize test files
+before every sub test. This change reveals the new read
+failure issue.
+
+Test status:
+  Both cases not run on normal block device;
+  Both cases not run on ext2/3 fs(no falloc);
+  Both cases PASS on memory-mode nvdimm devices;
+  DIO in both cases FAIL on brd based ramdisk with:
+  DIO in both cases FAIL on raw-mode nvdimm devices with:
+    +read(Bad address) len 1024 dio dax to nondax
+    +read(Bad address) len 4096 dio dax to nondax
+    +read(Bad address) len 16777216 dio dax to nondax
+    +read(Bad address) len 67108864 dio dax to nondax
+  I've reported this as an issue:
+  https://lists.01.org/pipermail/linux-nvdimm/2017-February/008781.html
+
+
+Xiong Zhou (2):
+  xfs: test per-inode DAX flag by IO
+  generic: test mmap io through DAX and non-DAX
+
+ .gitignore            |   1 +
+ common/rc             |  13 +++++
+ src/Makefile          |   2 +-
+ src/t_mmap_dio.c      | 111 +++++++++++++++++++++++++++++++++++
+ tests/generic/407     | 152 ++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/407.out |   2 +
+ tests/generic/group   |   1 +
+ tests/xfs/196         | 158 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/xfs/196.out     |   2 +
+ tests/xfs/group       |   1 +
+ 10 files changed, 442 insertions(+), 1 deletion(-)
+ create mode 100644 src/t_mmap_dio.c
+ create mode 100755 tests/generic/407
+ create mode 100644 tests/generic/407.out
+ create mode 100755 tests/xfs/196
+ create mode 100644 tests/xfs/196.out
+
+-- 
+1.8.3.1
