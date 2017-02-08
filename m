@@ -1,14 +1,17 @@
-From: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: WARN_ON_ONCE() during generic/270
-Date: Wed, 8 Feb 2017 11:23:12 -0800
-Message-ID: <20170208192312.GC32032@birch.djwong.org>
-References: <20170208191156.GA19071@linux.intel.com>
+From: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>
+Subject: Re: [PATCH 1/2] ext4: fix DAX write locking
+Date: Wed, 8 Feb 2017 14:38:32 -0500
+Message-ID: <20170208193832.zydlsh64ieage2js@thunk.org>
+References: <1484063288-18255-1-git-send-email-hch@lst.de>
+ <1484063288-18255-2-git-send-email-hch@lst.de>
+ <20170111090136.GE16116@quack2.suse.cz>
+ <20170208171410.GA27359@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170208191156.GA19071-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+In-Reply-To: <20170208171410.GA27359-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,74 +21,26 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: xfs <linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-> To: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, xfs-VZNHf3L845pBDgjK7y7TUQ@public.gmane.org
-
-[list moved; cc'ing linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org]
-
-On Wed, Feb 08, 2017 at 12:11:56PM -0700, Ross Zwisler wrote:
-> I hit the following WARN_ON_ONCE() during generic/270 with xfs (passed through
-> kasan_symbolize.py):
-> 
->   run fstests generic/270 at 2017-02-08 10:56:07
->   XFS (pmem0p2): Unmounting Filesystem
->   XFS (pmem0p2): DAX enabled. Warning: EXPERIMENTAL, use at your own risk
->   XFS (pmem0p2): Mounting V5 Filesystem
->   XFS (pmem0p2): Ending clean mount
->   XFS (pmem0p2): Quotacheck needed: Please wait.
->   XFS (pmem0p2): Quotacheck: Done.
->   XFS (pmem0p2): xlog_verify_grant_tail: space > BBTOB(tail_blocks)
-
-What does xfs_info say about this fs?  I guess we're not trying to use
-rmap here, so there's less metadata to shove through the log.
-
-I'm also wondering which file are we trying to insert-range on, and
-what its bmap looks like?
-
---D
-
->   ------------[ cut here ]------------
->   WARNING: CPU: 7 PID: 23652 at fs/xfs/libxfs/xfs_bmap.c:5981[<      none      >] xfs_bmse_shift_one+0x3da/0x4c0 fs/xfs/libxfs/xfs_bmap.c:5981
->   Modules linked in: dax_pmem nd_pmem dax nd_btt nd_e820 libnvdimm
->   CPU: 4 PID: 23652 Comm: 23288.fsstress. Not tainted 4.10.0-rc7-00065-g926af627 #1
->   Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.9.1-1.fc24 04/01/2014
->   Call Trace:
->   [<     inline     >] __dump_stack lib/dump_stack.c:15
->   [<      none      >] dump_stack+0x86/0xc3 lib/dump_stack.c:51
->   [<      none      >] __warn+0xcb/0xf0 kernel/panic.c:547
->   [<      none      >] warn_slowpath_null+0x1d/0x20 kernel/panic.c:582
->   [<      none      >] xfs_bmse_shift_one+0x3da/0x4c0 fs/xfs/libxfs/xfs_bmap.c:5981
->   [<      none      >] xfs_bmap_shift_extents+0x305/0x490 fs/xfs/libxfs/xfs_bmap.c:6144
->   [<      none      >] xfs_shift_file_space+0x25f/0x320 fs/xfs/xfs_bmap_util.c:1475
->   [<      none      >] xfs_insert_file_space+0x5a/0x180 fs/xfs/xfs_bmap_util.c:1548
->   [<      none      >] xfs_file_fallocate+0x34c/0x3b0 fs/xfs/xfs_file.c:844
->    ?[<      none      >] rcu_sync_lockdep_assert+0x2f/0x60 kernel/rcu/sync.c:68
->   [<      none      >] vfs_fallocate+0x15a/0x230 fs/open.c:320
->   [<     inline     >] SYSC_fallocate fs/open.c:343
->   [<      none      >] SyS_fallocate+0x48/0x80 fs/open.c:337
->   [<      none      >] entry_SYSCALL_64_fastpath+0x1f/0xc2 /home/rzwisler/project/linux/arch/x86/entry/entry_64.S:204
->   RIP: 0033:0x7f34dc4ff0ca
->   RSP: 002b:00007ffcffa58058 EFLAGS: 00000246 ORIG_RAX: 000000000000011d
->   RAX: ffffffffffffffda RBX: 0000000000000166 RCX: 00007f34dc4ff0ca
->   RDX: 00000000000ba000 RSI: 0000000000000020 RDI: 0000000000000003
->   RBP: 0000000000000003 R08: 000000000000007b R09: 00007ffcffa5807c
->   R10: 00000000000bc000 R11: 0000000000000246 R12: 00007f34d8000de0
->   R13: 00000000ffffffff R14: 000000000000af4a R15: 0000000000000000
->   ---[ end trace e24f5d4cbfc216f6 ]---
-> 
-> This trace is with the current linux/master:
-> 
-> commit 926af6273fc6 ("Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net")
-> 
-> though I initially his this issue with a v4.9 kernel.  My test setup is a pair
-> of PMEM ramdisks made with the memmap command line parameter, and my
-> test filesystem is mounted with DAX.
-> 
-> This can be reproduced pretty easily by just running generic/270 in a
-> loop.
-> 
-> Thanks,
-> - Ross
+T24gV2VkLCBGZWIgMDgsIDIwMTcgYXQgMDk6MTQ6MTBBTSAtMDgwMCwgQ2hyaXN0b3BoIEhlbGx3
+aWcgd3JvdGU6Cj4gT24gV2VkLCBKYW4gMTEsIDIwMTcgYXQgMTA6MDE6MzZBTSArMDEwMCwgSmFu
+IEthcmEgd3JvdGU6Cj4gPiBPbiBUdWUgMTAtMDEtMTcgMTY6NDg6MDcsIENocmlzdG9waCBIZWxs
+d2lnIHdyb3RlOgo+ID4gPiBVbmxpa2UgT19ESVJFQ1QgREFYIGlzIG5vdCBhbiBvcHRpb25hbCBv
+cHQtaW4gZmVhdHVyZSBzZWxlY3RlZCBieSB0aGUKPiA+ID4gYXBwbGljYXRpb24sIHNvIHdlJ2xs
+IGhhdmUgdG8gcHJvdmlkZSB0aGUgdHJhZGl0aW9uYWwgc3luY2hyb27RlnphdGlvbgo+ID4gPiBv
+ZiBvdmVybGFwcGluZyB3cml0ZXMgYXMgd2UgZG8gZm9yIGJ1ZmZlcmVkIHdyaXRlcy4KPiA+ID4g
+Cj4gPiA+IFRoaXMgd2FzIGJyb2tlbiBoaXN0b3JpY2FsbHkgZm9yIERBWCwgYnV0IGdvdCBmaXhl
+ZCBmb3IgZXh0MiBhbmQgWEZTCj4gPiA+IGFzIHBhcnQgb2YgdGhlIGlvbWFwIGNvbnZlcnNpb24u
+ICBGaXggdXAgZXh0NCBhcyB3ZWxsLgo+ID4gPiAKPiA+ID4gU2lnbmVkLW9mZi1ieTogQ2hyaXN0
+b3BoIEhlbGx3aWcgPGhjaEBsc3QuZGU+Cj4gPiAKPiA+IE1ha2VzIHNlbnNlLiBZb3UgY2FuIGFk
+ZDoKPiA+IAo+ID4gUmV2aWV3ZWQtYnk6IEphbiBLYXJhIDxqYWNrQHN1c2UuY3o+Cj4gPiAKPiA+
+IFRlZCwgY2FuIHlvdSBwbGVhc2UgcGljayBpdCB1cD8gVGhhbmtzIQo+IAo+IERpZCB0aGlzIGdl
+dCBwaWNrZWQgdXA/CgpTb3JyeSwgSSBtaXNzZWQgSmFuJ3MgcmVxdWVzdCB0byBwaWNrIGl0IHVw
+LiAgSSBoYWQgYXNzdW1lZCBpdCB3b3VsZApiZSBnb2luZyBpbiB2aWEgdGhlIGRheCB0cmVlLiAg
+SSdsbCB0YWtlIGEgbG9vayBhdCBpdCBub3cgZm9yIHRoZSBleHQ0CnRyZWUuCgoJCQkJCS0gVGVk
+CgkJCQkJCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
+bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
+L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
