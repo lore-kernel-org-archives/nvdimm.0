@@ -1,15 +1,13 @@
 From: Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: mmap dio write failure
-Date: Tue, 7 Feb 2017 18:01:57 +0800
-Message-ID: <20170207100157.nwepleslmdumnrhy@XZHOUW.usersys.redhat.com>
+Subject: read failure (was Re: mmap dio write failure)
+Date: Wed, 8 Feb 2017 11:51:05 +0800
+Message-ID: <20170208035105.lvewz5ce7xbu5zud@XZHOUW.usersys.redhat.com>
 References: <20170120044007.kwevjo7nawwolagy@XZHOUW.usersys.redhat.com>
- <CAPcyv4hO8gEwYHRNRm3n-ZjNzMeW_2x-X-z_09i6wU0DAeFD=A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="5ivbbo24xtyftq2r"
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4hO8gEwYHRNRm3n-ZjNzMeW_2x-X-z_09i6wU0DAeFD=A@mail.gmail.com>
+In-Reply-To: <20170120044007.kwevjo7nawwolagy-E9dkjZ7ERC1QcClZ3XN9yxcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,78 +17,177 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Eryu Guan <eguan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Cc: eguan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu, Jan 19, 2017 at 10:04:01PM -0800, Dan Williams wrote:
-> On Thu, Jan 19, 2017 at 8:40 PM, Xiong Zhou <xzhou-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> > Hi,
-> >
-> > At first, I am not sure whether this is an issue.
-> >
-> > mmap a file in a DAX mountpoint, open another file
-> > in a non-DAX mountpoint with O_DIRECT, write the
-> > mapped area to the other file.
-> >
-> > This write Success on pmem ramdisk(memmap=2G!20G like)
-> > This write Fail(Bad address) on nvdimm pmem devices.
-> > This write Fail(Bad address) on brd based ramdisk.
-> >
-> > If we skip the O_DIRECT flag, all tests pass.
-> >
-> > If we write from DAX to DAX, all tests pass.
-> > If we write from non-DAX to DAX, all tests pass.
-> >
-> > Kernel version: Linus tree commit 44b4b46.
-> >
-> > I have checked back to v4.6 testing on nvdimm devices,
-> > all the same results. I do remember that this test
-> > passed on nvdimms back to May 2016 and i have some
-> > notes for that. However things changed a lot, test
-> > scripts, kernel code, even the nvdimm and machine
-> > firmweare.
-> >
+
+--5ivbbo24xtyftq2r
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Jan 20, 2017 at 12:40:07PM +0800, Xiong Zhou wrote:
+> Hi,
 > 
-> This is expected and is the difference between a namespace in "raw"
-> mode and a namespace in "memory" mode. You can check your namespace's
-> mode with "ndctl list" (ndctl is packaged in Fedora).
+> At first, I am not sure whether this is an issue.
 > 
-> The reason why memmap=ss!nn namespaces work by default is that we
-> assume they are relatively small and can afford to allocate struct
-> page in system memory. We don't make the same assumption with
-> NFIT-defined namespaces. They might be so large that trying to
-> allocate struct page for them could consume all of system memory. So
-> you have to convert them into "memory" mode and make a decision at the
-> time as to whether you want to use a portion of the pmem capacity as
-> struct page storage, or to go ahead and allocate struct page from
-> system memory.  By default ndctl will opt to reserve space from pmem
-> with a command like:
+> mmap a file in a DAX mountpoint, open another file
+> in a non-DAX mountpoint with O_DIRECT, write the
+> mapped area to the other file.
 > 
->     ndctl create-namespace --reconfig=namespace0.0 --mode=memory --force
+> This write Success on pmem ramdisk(memmap=2G!20G like)
+> This write Fail(Bad address) on nvdimm pmem devices.
+> This write Fail(Bad address) on brd based ramdisk.
+> 
+> If we skip the O_DIRECT flag, all tests pass.
+> 
+> If we write from DAX to DAX, all tests pass.
+> If we write from non-DAX to DAX, all tests pass.
+> 
+snip..
 
-Thanks for the info!
+To falloc instead of pwrite while initiating test files,
+( Thanks Ross! :) 
+the write call returned success, however the following
+read back to mmaped area FAILED the same way:
 
-Changing mode does work for the test.
+return (Bad address) on raw-mode nvdimm device;
+return (Success)     on memory-mode nvdimm device;
+return (Bad address) on brd based ramdisk.
 
-Is that write failure(Bad address) expected even CONFIG_NVDIMM_PFN=y ?
+Also, this only happends with O_DIRECT flag on.
 
-Refer to Documentation/filesystems/dax.txt,
-"
-Calling get_user_pages() on a range of user memory that has been mmaped
-from a DAX file will fail when there are no 'struct page' to describe
-those pages.  This problem has been addressed in some device drivers
-by adding optional struct page support for pages under the control of
-the driver (see CONFIG_NVDIMM_PFN in drivers/nvdimm for an example of
-how to do this). In the non struct page cases O_DIRECT reads/writes to
-those memory ranges from a non-DAX file will fail (note that O_DIRECT
-reads/writes _of a DAX file_ do work, it is the memory that is being
-accessed that is key here).  Other things that will not work in the
-non struct page case include RDMA, sendfile() and splice().
-"
-
-And why brd based ramdisk failed the same way ?  It's ram after all :)
-
+This smells like an issue to me, still looking into why
+read can't get that page..
 
 Thanks,
 Xiong
+
+--5ivbbo24xtyftq2r
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="t_mmap_dio.c"
+
+/*
+ * This programme was originally written by
+ *     Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ *
+ * Copyright (C) 2016, Red Hat, Inc.
+ */
+#define _GNU_SOURCE 1
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <libaio.h>
+#include <errno.h>
+#include <sys/time.h>
+
+void usage(char *prog)
+{
+	fprintf(stderr,
+		"usage: %s <src file> <dest file> <size> <msg>\n",
+		prog);
+	exit(1);
+}
+
+void err_exit(char *op, unsigned long len, char *s)
+{
+	fprintf(stderr, "%s(%s) len %lu %s\n",
+		op, strerror(errno), len, s);
+	exit(1);
+}
+
+int main(int argc, char **argv)
+{
+	int fd, fd2, ret, dio = 1;
+	char *map;
+	char *msg;
+	char *sfile;
+	char *dfile;
+	unsigned long len, opt;
+
+	if (argc < 4)
+		usage(basename(argv[0]));
+
+	while ((opt = getopt(argc, argv, "b")) != -1)
+		dio = 0;
+
+	sfile = argv[optind];
+	dfile = argv[optind + 1];
+	msg = argv[optind + 3];
+	len = strtoul(argv[optind + 2], NULL, 10);
+	if (errno == ERANGE)
+		err_exit("strtoul", 0, msg);
+
+	/* Open source file and mmap*/
+	fd = open(sfile, O_RDWR, 0644);
+	if (fd < 0)
+		err_exit("open src", len, msg);
+
+	map = (char *)mmap(NULL, len,
+		PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	if (map == MAP_FAILED)
+		err_exit("mmap", len, msg);
+
+	if (dio == 1) {
+		/* Open dest file with O_DIRECT */
+		fd2 = open(dfile, O_RDWR|O_DIRECT, 0644);
+		if (fd2 < 0)
+			err_exit("open dest", len, msg);
+	} else {
+		/* Open dest file without O_DIRECT */
+		fd2 = open(dfile, O_RDWR, 0644);
+		if (fd2 < 0)
+			err_exit("open dest", len, msg);
+	}
+
+	/* First, test storing to dest file from source mapping */
+	ret = write(fd2, map, len);
+	if (ret != len)
+		err_exit("write", len, msg);
+
+	ret = fsync(fd2);
+	if (ret != 0)
+		err_exit("fsync", len, msg);
+
+	ret = (int)lseek(fd2, 0, SEEK_SET);
+	if (ret == -1)
+		err_exit("lseek", len, msg);
+
+	/* Next, test reading from dest file into source mapping */
+	ret = read(fd2, map, len);
+	if (ret != len)
+		err_exit("read", len, msg);
+	ret = msync(map, len, MS_SYNC);
+	if (ret < 0)
+		err_exit("msync", len, msg);
+
+	ret = munmap(map, len);
+	if (ret < 0)
+		err_exit("munmap", len, msg);
+
+	ret = close(fd);
+	if (ret < 0)
+		err_exit("clsoe fd", len, msg);
+
+	ret = close(fd2);
+	if (ret < 0)
+		err_exit("close fd2", len, msg);
+
+	exit(0);
+}
+
+--5ivbbo24xtyftq2r
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--5ivbbo24xtyftq2r--
