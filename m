@@ -2,14 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 36E52820F7
- for <linux-nvdimm@lists.01.org>; Thu, 16 Feb 2017 13:58:04 -0800 (PST)
-Subject: [PATCH v2 2/2] mm: validate device_hotplug is held for memory hotplug
+ by ml01.01.org (Postfix) with ESMTPS id 8E25782044
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Feb 2017 21:34:17 -0800 (PST)
+Subject: [-mm PATCH] mm: fix get_user_pages() vs device-dax pud mappings
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 16 Feb 2017 13:53:58 -0800
-Message-ID: <148728203880.38457.1158394701925100383.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148728202805.38457.18028105614854319884.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148728202805.38457.18028105614854319884.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 07 Feb 2017 21:30:11 -0800
+Message-ID: <148653181153.38226.9605457830505509385.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,67 +21,103 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mm@kvack.org, Ben Hutchings <ben@decadent.org.uk>, Vlastimil Babka <vbabka@suse.cz>
+Cc: linux-nvdimm@lists.01.org, Matthew Wilcox <mawilcox@microsoft.com>, Nilesh Choudhury <nilesh.choudhury@oracle.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-mem_hotplug_begin() assumes that it can set mem_hotplug.active_writer
-and run the hotplug process without racing another thread. Validate this
-assumption with a lockdep assertion.
+A new unit test for the device-dax 1GB enabling currently fails with
+this warning before hanging the test thread:
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reported-by: Ben Hutchings <ben@decadent.org.uk>
+ WARNING: CPU: 0 PID: 21 at lib/percpu-refcount.c:155 percpu_ref_switch_to_atomic_rcu+0x1e3/0x1f0
+ percpu ref (dax_pmem_percpu_release [dax_pmem]) <= 0 (0) after switching to atomic
+ [..]
+ CPU: 0 PID: 21 Comm: rcuos/1 Tainted: G           O    4.10.0-rc7-next-20170207+ #944
+ [..]
+ Call Trace:
+  dump_stack+0x86/0xc3
+  __warn+0xcb/0xf0
+  warn_slowpath_fmt+0x5f/0x80
+  ? rcu_nocb_kthread+0x27a/0x510
+  ? dax_pmem_percpu_exit+0x50/0x50 [dax_pmem]
+  percpu_ref_switch_to_atomic_rcu+0x1e3/0x1f0
+  ? percpu_ref_exit+0x60/0x60
+  rcu_nocb_kthread+0x339/0x510
+  ? rcu_nocb_kthread+0x27a/0x510
+  kthread+0x101/0x140
+
+The get_user_pages() path needs to arrange for references to be taken
+against the dev_pagemap instance backing the pud mapping. Refactor the
+existing __gup_device_huge_pmd() to also account for the pud case.
+
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Nilesh Choudhury <nilesh.choudhury@oracle.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/base/core.c    |    5 +++++
- include/linux/device.h |    1 +
- mm/memory_hotplug.c    |    2 ++
- 3 files changed, 8 insertions(+)
+ arch/x86/mm/gup.c |   28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index 8c25e68e67d7..3050e6f99403 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -638,6 +638,11 @@ int lock_device_hotplug_sysfs(void)
- 	return restart_syscall();
+diff --git a/arch/x86/mm/gup.c b/arch/x86/mm/gup.c
+index 0d4fb3ebbbac..99c7805a9693 100644
+--- a/arch/x86/mm/gup.c
++++ b/arch/x86/mm/gup.c
+@@ -154,14 +154,12 @@ static inline void get_head_page_multiple(struct page *page, int nr)
+ 	SetPageReferenced(page);
  }
  
-+void assert_held_device_hotplug(void)
+-static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
++static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+ 		unsigned long end, struct page **pages, int *nr)
+ {
+ 	int nr_start = *nr;
+-	unsigned long pfn = pmd_pfn(pmd);
+ 	struct dev_pagemap *pgmap = NULL;
+ 
+-	pfn += (addr & ~PMD_MASK) >> PAGE_SHIFT;
+ 	do {
+ 		struct page *page = pfn_to_page(pfn);
+ 
+@@ -180,6 +178,24 @@ static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
+ 	return 1;
+ }
+ 
++static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
++		unsigned long end, struct page **pages, int *nr)
 +{
-+	lockdep_assert_held(&device_hotplug_lock);
++	unsigned long fault_pfn;
++
++	fault_pfn = pmd_pfn(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
++	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
 +}
 +
- #ifdef CONFIG_BLOCK
- static inline int device_is_not_partition(struct device *dev)
- {
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 491b4c0ca633..815965ee55dd 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -1135,6 +1135,7 @@ static inline bool device_supports_offline(struct device *dev)
- extern void lock_device_hotplug(void);
- extern void unlock_device_hotplug(void);
- extern int lock_device_hotplug_sysfs(void);
-+void assert_held_device_hotplug(void);
- extern int device_offline(struct device *dev);
- extern int device_online(struct device *dev);
- extern void set_primary_fwnode(struct device *dev, struct fwnode_handle *fwnode);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index b8c11e063ff0..1635a2a085e5 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -126,6 +126,8 @@ void put_online_mems(void)
- 
- void mem_hotplug_begin(void)
- {
-+	assert_held_device_hotplug();
++static int __gup_device_huge_pud(pud_t pud, unsigned long addr,
++		unsigned long end, struct page **pages, int *nr)
++{
++	unsigned long fault_pfn;
 +
- 	mem_hotplug.active_writer = current;
++	fault_pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
++	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
++}
++
+ static noinline int gup_huge_pmd(pmd_t pmd, unsigned long addr,
+ 		unsigned long end, int write, struct page **pages, int *nr)
+ {
+@@ -251,9 +267,13 @@ static noinline int gup_huge_pud(pud_t pud, unsigned long addr,
  
- 	memhp_lock_acquire();
+ 	if (!pte_allows_gup(pud_val(pud), write))
+ 		return 0;
++
++	VM_BUG_ON(!pfn_valid(pud_pfn(pud)));
++	if (pud_devmap(pud))
++		return __gup_device_huge_pud(pud, addr, end, pages, nr);
++
+ 	/* hugepages are never "special" */
+ 	VM_BUG_ON(pud_flags(pud) & _PAGE_SPECIAL);
+-	VM_BUG_ON(!pfn_valid(pud_pfn(pud)));
+ 
+ 	refs = 0;
+ 	head = pud_page(pud);
 
 _______________________________________________
 Linux-nvdimm mailing list
