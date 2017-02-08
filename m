@@ -1,22 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CD1B281F4E
- for <linux-nvdimm@lists.01.org>; Wed,  8 Feb 2017 20:35:23 -0800 (PST)
-Date: Thu, 9 Feb 2017 12:34:43 +0800
-From: Ye Xiaolong <xiaolong.ye@intel.com>
-Subject: Re: [kbuild-all] [PATCH] mm: replace FAULT_FLAG_SIZE with parameter
- to huge_fault
-Message-ID: <20170209043443.GB13723@yexl-desktop>
-References: <201702040648.oOjnlEcm%fengguang.wu@intel.com>
- <2020f442-8e77-cf14-a6b1-b4b00d0da80b@intel.com>
- <CAPcyv4hmswhXsnS9q1Ut76f3-a2h5Hx7XYkS1iNyak8wG9VuEw@mail.gmail.com>
- <CAPcyv4hVqxedr9sEigw0Xsr_SoMAnvPrmPNOrX7QYNuCz=DRQA@mail.gmail.com>
- <86962573-01b7-4ce7-182e-7a77f183cf0e@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9A75682088
+ for <linux-nvdimm@lists.01.org>; Wed,  8 Feb 2017 00:42:00 -0800 (PST)
+Date: Wed, 8 Feb 2017 09:41:56 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH] mm: replace FAULT_FLAG_SIZE with parameter to huge_fault
+Message-ID: <20170208084156.GD26317@quack2.suse.cz>
+References: <148615748258.43180.1690152053774975329.stgit@djiang5-desk3.ch.intel.com>
+ <20170206143648.GA461@infradead.org>
+ <CAPcyv4jHYR2-_SgD7a6ab5vWigYsDoSb7FZdTchP8Xg+BF-2yg@mail.gmail.com>
+ <20170206172731.GA17515@infradead.org>
+ <CAPcyv4hiwWebCT=qPccKqaQKAHydMYsg9+=pYh=SPkNzakLc1A@mail.gmail.com>
+ <20170207084411.GA527@node.shutemov.name>
+ <CAPcyv4h1LvbEqBi=F=BTtLrHHOvAH3MU2OBDs444-dzwNyupFQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <86962573-01b7-4ce7-182e-7a77f183cf0e@intel.com>
+In-Reply-To: <CAPcyv4h1LvbEqBi=F=BTtLrHHOvAH3MU2OBDs444-dzwNyupFQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,82 +29,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: kbuild test robot <lkp@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-xfs@vger.kernel.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, kbuild-all@01.org, Jan Kara <jack@suse.com>, linux-ext4 <linux-ext4@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Vlastimil Babka <vbabka@suse.cz>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-xfs@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Hansen <dave.hansen@linux.intel.com>, Christoph Hellwig <hch@infradead.org>, Linux MM <linux-mm@kvack.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4 <linux-ext4@vger.kernel.org>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 02/03, Dave Jiang wrote:
->On 02/03/2017 05:00 PM, Dan Williams wrote:
->> On Fri, Feb 3, 2017 at 3:26 PM, Dan Williams <dan.j.williams@intel.com> wrote:
->>> On Fri, Feb 3, 2017 at 3:25 PM, Dave Jiang <dave.jiang@intel.com> wrote:
->>>> On 02/03/2017 03:56 PM, kbuild test robot wrote:
->>>>> Hi Dave,
->>>>>
->>>>> [auto build test ERROR on mmotm/master]
->>>>> [cannot apply to linus/master linux/master v4.10-rc6 next-20170203]
->>>>> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->>>>
->>>> This one is a bit odd. I just pulled mmotm tree master branch and built
->>>> with the attached .config and it passed for me (and I don't see this
->>>> commit in the master branch). I also built linux-next with this patch on
->>>> top and it also passes with attached .config. Looking at the err log
->>>> below it seems the code has a mix of partial from before and after the
->>>> patch. I'm rather confused about it....
->>>
->>> This is a false positive. It tried to build it against latest mainline
->>> instead of linux-next.
->> 
->> On second look it seems I ended up with a duplicate
->> ext4_huge_dax_fault after "git am" when I apply this on top of
->> next-20170202.  The following fixes it up for me and tests fine:
->
->I think it's missing this patch from Ross
->http://marc.info/?l=linux-mm&m=148581319303697&w=2
+On Tue 07-02-17 08:56:56, Dan Williams wrote:
+> On Tue, Feb 7, 2017 at 12:44 AM, Kirill A. Shutemov
+> <kirill@shutemov.name> wrote:
+> > On Mon, Feb 06, 2017 at 09:30:22AM -0800, Dan Williams wrote:
+> >> On Mon, Feb 6, 2017 at 9:27 AM, Christoph Hellwig <hch@infradead.org> wrote:
+> >> > On Mon, Feb 06, 2017 at 08:24:48AM -0800, Dan Williams wrote:
+> >> >> > Also can be use this opportunity
+> >> >> > to fold ->huge_fault into ->fault?
+> >
+> > BTW, for tmpfs we already use ->fault for both small and huge pages.
+> > If ->fault returned THP, core mm look if it's possible to map the page as
+> > huge in this particular VMA (due to size/alignment). If yes mm maps the
+> > page with PMD, if not fallback to PTE.
+> >
+> > I think it would be nice to do the same for DAX: filesystem provides core
+> > mm with largest page this part of file can be mapped with (base aligned
+> > address + lenght for DAX) and core mm sort out the rest.
+> 
+> For DAX we would need plumb pfn_t into the core mm so that we have the
+> PFN_DEV and PFN_MAP flags beyond the raw pfn.
 
-Yes, 0day applied the patch on top of mmotm/master when this fix commit 0c4044b3f
-("ext4: Remove unused function ext4_dax_huge_fault()") hasn't been merged.
+So we can pass necessary information through struct vm_fault rather easily.
+However due to DAX locking we cannot really "return" pfn for generic code
+to install (we need to unlock radix tree locks after modifying page
+tables). So if we want generic code to handle PFNs what needs to be done is
+to teach finish_fault() to handle pfn_t which is passed to it and install
+it in page tables.
 
-Thanks,
-Xiaolong
->
->> 
->> diff --git a/fs/ext4/file.c b/fs/ext4/file.c
->> index f8f4f6d068e5..e8ab46efc4f9 100644
->> --- a/fs/ext4/file.c
->> +++ b/fs/ext4/file.c
->> @@ -276,27 +276,6 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
->>         return result;
->>  }
->> 
->> -static int
->> -ext4_dax_huge_fault(struct vm_fault *vmf)
->> -{
->> -       int result;
->> -       struct inode *inode = file_inode(vmf->vma->vm_file);
->> -       struct super_block *sb = inode->i_sb;
->> -       bool write = vmf->flags & FAULT_FLAG_WRITE;
->> -
->> -       if (write) {
->> -               sb_start_pagefault(sb);
->> -               file_update_time(vmf->vma->vm_file);
->> -       }
->> -       down_read(&EXT4_I(inode)->i_mmap_sem);
->> -       result = dax_iomap_fault(vmf, &ext4_iomap_ops);
->> -       up_read(&EXT4_I(inode)->i_mmap_sem);
->> -       if (write)
->> -               sb_end_pagefault(sb);
->> -
->> -       return result;
->> -}
->> -
->>  static int ext4_dax_fault(struct vm_fault *vmf)
->>  {
->>         return ext4_dax_huge_fault(vmf, PE_SIZE_PTE);
->> 
->_______________________________________________
->kbuild-all mailing list
->kbuild-all@lists.01.org
->https://lists.01.org/mailman/listinfo/kbuild-all
+Long term we could transition all page fault handlers (at least the
+non-trivial ones) to using finish_fault() which would IMO make the code
+flow easier to follow and export less of MM internals into drivers. However
+there's so many fault handlers that I didn't have a good motivation to do
+that yet.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
