@@ -1,17 +1,18 @@
-From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+From: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>
 Subject: Re: question about ext4 block allocation
-Date: Thu, 9 Feb 2017 13:21:54 -0700
-Message-ID: <20170209202154.GB15524@linux.intel.com>
+Date: Thu, 9 Feb 2017 17:54:40 -0500
+Message-ID: <20170209225440.pz4pychpxsnfl22o@thunk.org>
 References: <20170206231409.GA16676@linux.intel.com>
  <20170209153009.GB3009@quack2.suse.cz>
  <20170209175228.GA15524@linux.intel.com>
  <20170209192948.wy4yubzfss5hu7cl@thunk.org>
+ <20170209202154.GB15524@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170209192948.wy4yubzfss5hu7cl-AKGzg7BKzIDYtjvyW6yDsg@public.gmane.org>
+In-Reply-To: <20170209202154.GB15524-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,31 +22,32 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>
+To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu, Feb 09, 2017 at 02:29:48PM -0500, Theodore Ts'o wrote:
-> On Thu, Feb 09, 2017 at 10:52:28AM -0700, Ross Zwisler wrote:
-> > I've pared down his xfstest to be a pretty minimal reproducer, and you can
-> > find it here:
+On Thu, Feb 09, 2017 at 01:21:54PM -0700, Ross Zwisler wrote:
+> On Thu, Feb 09, 2017 at 02:29:48PM -0500, Theodore Ts'o wrote:
+> > On Thu, Feb 09, 2017 at 10:52:28AM -0700, Ross Zwisler wrote:
+> > > I've pared down his xfstest to be a pretty minimal reproducer, and you can
+> > > find it here:
+> > > 
+> > > https://git.kernel.org/cgit/linux/kernel/git/zwisler/xfstests-dev.git/log/?h=ext4_PMD_allocation
 > > 
-> > https://git.kernel.org/cgit/linux/kernel/git/zwisler/xfstests-dev.git/log/?h=ext4_PMD_allocation
+> > I'm getting "No repositories found".  And looking at the top level
+> > git.kernel.org, it doesn't look like there is an
+> > zwisler/xfstests-dev.git tree there at all.  Was it uploaded correctly?
+> > 
+> > 			      	       	     	 - Ted
 > 
-> I'm getting "No repositories found".  And looking at the top level
-> git.kernel.org, it doesn't look like there is an
-> zwisler/xfstests-dev.git tree there at all.  Was it uploaded correctly?
+> The above link works for me, and I can see it in the top level view:
 > 
-> 			      	       	     	 - Ted
+> https://git.kernel.org/cgit/
+> 
+> I just created the repo today, though.  Maybe it's just taking a mirror a
+> second to catch up or something?
 
-The above link works for me, and I can see it in the top level view:
+Yup, that must have been what it was.  I must have caught a DNS mirror
+that was slow in updating.
 
-https://git.kernel.org/cgit/
-
-I just created the repo today, though.  Maybe it's just taking a mirror a
-second to catch up or something?
-
-Please let me know if you continue to be unable to see it, and I'll figure it
-out.
-
-- Ross
+				- Ted
