@@ -1,15 +1,17 @@
-From: Brian Foster <bfoster-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: WARN_ON_ONCE() during generic/270
-Date: Thu, 9 Feb 2017 12:19:29 -0500
-Message-ID: <20170209171928.GC22182@bfoster.bfoster>
-References: <20170208191156.GA19071@linux.intel.com>
- <20170208192312.GC32032@birch.djwong.org>
+From: "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] acpi, nfit: skip ARS on machine-check-recovery capable
+ platforms
+Date: Thu, 9 Feb 2017 17:20:56 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F3A2B11EA@ORSMSX114.amr.corp.intel.com>
+References: <148651103020.2605.2544850985469410207.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <x4937fopvla.fsf@segfault.boston.devel.redhat.com>
+ <CAPcyv4hM2pz-sAcuXJTidfTMwA9sRVzCgwJjiw8ndtco8jmP=w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170208192312.GC32032-PTl6brltDGh4DFYR7WNSRA@public.gmane.org>
+In-Reply-To: <CAPcyv4hM2pz-sAcuXJTidfTMwA9sRVzCgwJjiw8ndtco8jmP=w@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,110 +21,37 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: xfs <linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, Feb 08, 2017 at 11:23:12AM -0800, Darrick J. Wong wrote:
-> > To: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, xfs-VZNHf3L845pBDgjK7y7TUQ@public.gmane.org
-> 
-> [list moved; cc'ing linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org]
-> 
-> On Wed, Feb 08, 2017 at 12:11:56PM -0700, Ross Zwisler wrote:
-> > I hit the following WARN_ON_ONCE() during generic/270 with xfs (passed through
-> > kasan_symbolize.py):
-> > 
-> >   run fstests generic/270 at 2017-02-08 10:56:07
-> >   XFS (pmem0p2): Unmounting Filesystem
-> >   XFS (pmem0p2): DAX enabled. Warning: EXPERIMENTAL, use at your own risk
-> >   XFS (pmem0p2): Mounting V5 Filesystem
-> >   XFS (pmem0p2): Ending clean mount
-> >   XFS (pmem0p2): Quotacheck needed: Please wait.
-> >   XFS (pmem0p2): Quotacheck: Done.
-> >   XFS (pmem0p2): xlog_verify_grant_tail: space > BBTOB(tail_blocks)
-> 
-> What does xfs_info say about this fs?  I guess we're not trying to use
-> rmap here, so there's less metadata to shove through the log.
-> 
-> I'm also wondering which file are we trying to insert-range on, and
-> what its bmap looks like?
-> 
+> Adding Tony so he can either confirm, or point and laugh at my
+> assumptions. In general you're right that there are machine check
+> events that are not recoverable, but I'm thinking of problems like bus
+> lockups and other disasters out of the direct cpu-to-memory data path.
+> The question is whether should we avoid the cpu consuming media errors
+> at all costs regardless of machine-check recovery. Tony might there be
+> system-fatal gaps in memcpy_mcsafe() or userspace poison consumption
+> handling that you would recommend aggressively trying to avoid media
+> errors?
 
-I reproduced this with a generic ramdisk (no DAX) and managed to get an
-ino via a tracepoint and a resulting bmap:
+TL;DR - I think it is worth it ... but I worry more about errors than most
+people.
 
-# xfs_io -c "fiemap -v" /mnt/fsstress.19801/p6f/d3/d3be/d4f9/f684
-/mnt/fsstress.19801/p6f/d3/d3be/d4f9/f684:
- EXT: FILE-OFFSET      BLOCK-RANGE      TOTAL FLAGS
-   0: [0..239]:        hole               240
-   1: [240..391]:      794920..795071     152   0x0
-   2: [392..871]:      hole               480
-   3: [872..903]:      795072..795103      32   0x0
-   4: [904..975]:      795104..795175      72   0x1
-   5: [976..1780]:     hole               805
+In current generation systems the two most common sources of machine
+checks are memory, and I/O.  They dwarf all the others like cache and
+bus lockups.  So it is worth trying to avoid memory issues.
 
-Note that this the post-shift bmap. The warning is complaining that
-extents 3 and 4 are contiguous and thus can be merged. This is
-unexpected on "insert space" (right shift) because, IIRC, we aren't
-creating any new extent boundaries that didn't previously exist (as
-opposed to collapse, which starts by punching a hole and connecting
-bordering extents).
+Whether you can recover from a machine check triggered from a CPU
+read of memory depends on which instructions you use, and the alignment
+of the access. That's why memcpy_mcsafe() will start with a few byte reads
+if needed to align the source address while other copy routines prefer to
+align the destination ... memory writes that straddle cache lines are more
+expensive than reads that do that ... but the point of the routine is to be
+safe, so we drop a tiny amount of performance in the unaligned case to
+make sure we will be able to recover.
 
-This isn't really a functional problem, more flagging an
-unexpected/non-optimal but presumably still correct state. It may be the
-case that the assumption of never having separate but contiguous extents
-is not valid and the fix is to simply kill off the warning (perhaps
-being at or near ENOSPC is a factor here). It's probably worth some
-investigation to determine why this occurs for sure, however, just in
-case we have a problem somewhere else...
+We can't control how userspace will access memory ... so if we can find
+the errors before they stumble into them it is a win.
 
-Brian
-
-> --D
-> 
-> >   ------------[ cut here ]------------
-> >   WARNING: CPU: 7 PID: 23652 at fs/xfs/libxfs/xfs_bmap.c:5981[<      none      >] xfs_bmse_shift_one+0x3da/0x4c0 fs/xfs/libxfs/xfs_bmap.c:5981
-> >   Modules linked in: dax_pmem nd_pmem dax nd_btt nd_e820 libnvdimm
-> >   CPU: 4 PID: 23652 Comm: 23288.fsstress. Not tainted 4.10.0-rc7-00065-g926af627 #1
-> >   Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.9.1-1.fc24 04/01/2014
-> >   Call Trace:
-> >   [<     inline     >] __dump_stack lib/dump_stack.c:15
-> >   [<      none      >] dump_stack+0x86/0xc3 lib/dump_stack.c:51
-> >   [<      none      >] __warn+0xcb/0xf0 kernel/panic.c:547
-> >   [<      none      >] warn_slowpath_null+0x1d/0x20 kernel/panic.c:582
-> >   [<      none      >] xfs_bmse_shift_one+0x3da/0x4c0 fs/xfs/libxfs/xfs_bmap.c:5981
-> >   [<      none      >] xfs_bmap_shift_extents+0x305/0x490 fs/xfs/libxfs/xfs_bmap.c:6144
-> >   [<      none      >] xfs_shift_file_space+0x25f/0x320 fs/xfs/xfs_bmap_util.c:1475
-> >   [<      none      >] xfs_insert_file_space+0x5a/0x180 fs/xfs/xfs_bmap_util.c:1548
-> >   [<      none      >] xfs_file_fallocate+0x34c/0x3b0 fs/xfs/xfs_file.c:844
-> >    ?[<      none      >] rcu_sync_lockdep_assert+0x2f/0x60 kernel/rcu/sync.c:68
-> >   [<      none      >] vfs_fallocate+0x15a/0x230 fs/open.c:320
-> >   [<     inline     >] SYSC_fallocate fs/open.c:343
-> >   [<      none      >] SyS_fallocate+0x48/0x80 fs/open.c:337
-> >   [<      none      >] entry_SYSCALL_64_fastpath+0x1f/0xc2 /home/rzwisler/project/linux/arch/x86/entry/entry_64.S:204
-> >   RIP: 0033:0x7f34dc4ff0ca
-> >   RSP: 002b:00007ffcffa58058 EFLAGS: 00000246 ORIG_RAX: 000000000000011d
-> >   RAX: ffffffffffffffda RBX: 0000000000000166 RCX: 00007f34dc4ff0ca
-> >   RDX: 00000000000ba000 RSI: 0000000000000020 RDI: 0000000000000003
-> >   RBP: 0000000000000003 R08: 000000000000007b R09: 00007ffcffa5807c
-> >   R10: 00000000000bc000 R11: 0000000000000246 R12: 00007f34d8000de0
-> >   R13: 00000000ffffffff R14: 000000000000af4a R15: 0000000000000000
-> >   ---[ end trace e24f5d4cbfc216f6 ]---
-> > 
-> > This trace is with the current linux/master:
-> > 
-> > commit 926af6273fc6 ("Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net")
-> > 
-> > though I initially his this issue with a v4.9 kernel.  My test setup is a pair
-> > of PMEM ramdisks made with the memmap command line parameter, and my
-> > test filesystem is mounted with DAX.
-> > 
-> > This can be reproduced pretty easily by just running generic/270 in a
-> > loop.
-> > 
-> > Thanks,
-> > - Ross
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tony
