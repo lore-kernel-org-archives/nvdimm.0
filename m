@@ -1,10 +1,9 @@
-From: instituicoes-znW/NA+y0T6mo65txXcteHS5uNuOjpZe@public.gmane.org
-Subject: New notice to Appear in Court
-Date: Thu, 9 Feb 2017 05:55:26 +0000
-Message-ID: <20170209055526.EABC45C4AAD@web2.host-services.com>
+From: =?GB2312?B?t72Nm9HF?= <dhdzhuanze-e3Rj3bZqsRJMRgmVZSpWw0EOCMrvLtNR@public.gmane.org>
+Subject: =?GB2312?B?yOe6zrm5vajKyrrPsvrGt76twO2zybOktcTTxcG8zcHIwKO/?=
+Date: Thu, 9 Feb 2017 14:22:43 +0800
+Message-ID: <20170209062257.22CD981FB0@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2085831185831727173=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,16 +14,32 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-Dear Sir or Madam,
+This is a multi-part message in MIME format
 
-You have to appear in the Court on the February 16 for your case hearing.
-You are kindly asked to prepare and bring the documents relating to the case to Court on the specified date.
+--===============2085831185831727173==
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-We attached the Notice to this e-mail.
+新年好！
 
-Yours faithfully,
- ,
-Court Secretary.
+To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+ 请 * 查 * 阅 * 附 * 件 * 大 * 纲
+
+发送时间:2017-02-09  14:22:42
+
+--===============2085831185831727173==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============2085831185831727173==--
