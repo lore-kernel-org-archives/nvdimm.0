@@ -1,15 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x235.google.com (mail-oi0-x235.google.com
+ [IPv6:2607:f8b0:4003:c06::235])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C0C9C82228
- for <linux-nvdimm@lists.01.org>; Tue, 21 Feb 2017 11:51:37 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 6/6] dax: add tracepoint to dax_insert_mapping()
-Date: Tue, 21 Feb 2017 12:51:16 -0700
-Message-Id: <20170221195116.13278-7-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170221195116.13278-1-ross.zwisler@linux.intel.com>
-References: <20170221195116.13278-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 17B4581EE0
+ for <linux-nvdimm@lists.01.org>; Thu,  9 Feb 2017 21:00:20 -0800 (PST)
+Received: by mail-oi0-x235.google.com with SMTP id u143so14846559oif.3
+ for <linux-nvdimm@lists.01.org>; Thu, 09 Feb 2017 21:00:20 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1486653999.2900.63.camel@decadent.org.uk>
+References: <20170118104625.550018627@linuxfoundation.org>
+ <20170118104625.789178853@linuxfoundation.org>
+ <1486653999.2900.63.camel@decadent.org.uk>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 9 Feb 2017 21:00:19 -0800
+Message-ID: <CAPcyv4iFwmQnLRdW0whHLC0W_1Y2-j89vxxHyP=yD1mwGPBaHQ@mail.gmail.com>
+Subject: Re: [PATCH 4.4 05/48] mm: fix devm_memremap_pages crash, use
+ mem_hotplug_{begin, done}
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,93 +24,69 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a tracepoint to dax_insert_mapping(), following the same logging
-conventions as the rest of DAX.  This tracepoint, along with the one in
-dax_load_hole(), lets us know how a DAX PTE fault was serviced.
+On Thu, Feb 9, 2017 at 7:26 AM, Ben Hutchings <ben@decadent.org.uk> wrote:
+> On Wed, 2017-01-18 at 11:46 +0100, Greg Kroah-Hartman wrote:
+>> 4.4-stable review patch.  If anyone has any objections, please let me know.
+>>
+>> ------------------
+>>
+>> From: Dan Williams <dan.j.williams@intel.com>
+>>
+>> commit f931ab479dd24cf7a2c6e2df19778406892591fb upstream.
+>>
+>> Both arch_add_memory() and arch_remove_memory() expect a single threaded
+>> context.
+> [...]
+>> The result is that two threads calling devm_memremap_pages()
+>> simultaneously can end up colliding on pgd initialization.  This leads
+>> to crash signatures like the following where the loser of the race
+>> initializes the wrong pgd entry:
+> [...]
+>> Hold the standard memory hotplug mutex over calls to
+>> arch_{add,remove}_memory().
+> [...]
+>
+> This is not a sufficient fix, because memory_hotplug.c still assumes
+> there's only one 'writer':
+>
+> void put_online_mems(void)
+> {
+>         ...
+>         if (!--mem_hotplug.refcount && unlikely(mem_hotplug.active_writer))
+>                 wake_up_process(mem_hotplug.active_writer);
+>         ...
+> }
+>
+> void mem_hotplug_begin(void)
+> {
+>         mem_hotplug.active_writer = current;
+>
+>         memhp_lock_acquire();
+>         for (;;) {
+>                 mutex_lock(&mem_hotplug.lock);
+>                 if (likely(!mem_hotplug.refcount))
+>                         break;
+>                 __set_current_state(TASK_UNINTERRUPTIBLE);
+>                 mutex_unlock(&mem_hotplug.lock);
+>                 schedule();
+>         }
+> }
+>
+> With multiple writers, one or more of them may hang or
+> {get,put}_online_mems() may mess up the hotplug reference count.
 
-Here is an example DAX fault that inserts a PTE mapping:
-
-small-1126  [007] ....   145.451604: dax_pte_fault: dev 259:0 ino 0x1003
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10420000 pgoff 0x220
-
-small-1126  [007] ....   145.452317: dax_insert_mapping: dev 259:0 ino
-0x1003 shared write address 0x10420000 radix_entry 0x100006
-
-small-1126  [007] ....   145.452399: dax_pte_fault_done: dev 259:0 ino
-0x1003 shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10420000 pgoff
-0x220 MAJOR|NOPAGE
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c                      |  1 +
- include/trace/events/fs_dax.h | 30 ++++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index d340389..ed53ce9 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -931,6 +931,7 @@ static int dax_insert_mapping(struct address_space *mapping,
- 		return PTR_ERR(ret);
- 	*entryp = ret;
- 
-+	trace_dax_insert_mapping(mapping->host, vmf, ret);
- 	return vm_insert_mixed(vma, vaddr, dax.pfn);
- }
- 
-diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
-index 292a471..08bb3ed 100644
---- a/include/trace/events/fs_dax.h
-+++ b/include/trace/events/fs_dax.h
-@@ -194,6 +194,36 @@ DEFINE_PTE_FAULT_EVENT(dax_pfn_mkwrite_no_entry);
- DEFINE_PTE_FAULT_EVENT(dax_pfn_mkwrite);
- DEFINE_PTE_FAULT_EVENT(dax_load_hole);
- 
-+TRACE_EVENT(dax_insert_mapping,
-+	TP_PROTO(struct inode *inode, struct vm_fault *vmf, void *radix_entry),
-+	TP_ARGS(inode, vmf, radix_entry),
-+	TP_STRUCT__entry(
-+		__field(unsigned long, ino)
-+		__field(unsigned long, vm_flags)
-+		__field(unsigned long, address)
-+		__field(void *, radix_entry)
-+		__field(dev_t, dev)
-+		__field(int, write)
-+	),
-+	TP_fast_assign(
-+		__entry->dev = inode->i_sb->s_dev;
-+		__entry->ino = inode->i_ino;
-+		__entry->vm_flags = vmf->vma->vm_flags;
-+		__entry->address = vmf->address;
-+		__entry->write = vmf->flags & FAULT_FLAG_WRITE;
-+		__entry->radix_entry = radix_entry;
-+	),
-+	TP_printk("dev %d:%d ino %#lx %s %s address %#lx radix_entry %#lx",
-+		MAJOR(__entry->dev),
-+		MINOR(__entry->dev),
-+		__entry->ino,
-+		__entry->vm_flags & VM_SHARED ? "shared" : "private",
-+		__entry->write ? "write" : "read",
-+		__entry->address,
-+		(unsigned long)__entry->radix_entry
-+	)
-+)
-+
- DECLARE_EVENT_CLASS(dax_writeback_range_class,
- 	TP_PROTO(struct inode *inode, pgoff_t start_index, pgoff_t end_index),
- 	TP_ARGS(inode, start_index, end_index),
--- 
-2.9.3
-
+You're right. We need to hold lock_device_hotplug_sysfs() before
+calling mem_hotplug_begin().  I'll take a look at a follow-on fix and
+also add an assert_held_device_hotplug() helper to catch this in the
+future.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
