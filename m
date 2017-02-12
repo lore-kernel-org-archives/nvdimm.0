@@ -1,20 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM03-CO1-obe.outbound.protection.outlook.com
- (mail-co1nam03on0712.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe48::712])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DBBAD81F68
- for <linux-nvdimm@lists.01.org>; Thu,  9 Feb 2017 17:53:30 -0800 (PST)
-From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
-Subject: RE: How is a Region format interface codec used in NFIT/PEME/BLK/BTT
- driver?
-Date: Fri, 10 Feb 2017 01:53:29 +0000
-Message-ID: <DF4PR84MB01696B8DE74E61FCF4C4E449AB440@DF4PR84MB0169.NAMPRD84.PROD.OUTLOOK.COM>
-References: <2062963119.1995548.1486669514254.ref@mail.yahoo.com>
- <2062963119.1995548.1486669514254@mail.yahoo.com>
-In-Reply-To: <2062963119.1995548.1486669514254@mail.yahoo.com>
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id 5B8A882071
+ for <linux-nvdimm@lists.01.org>; Sun, 12 Feb 2017 14:38:22 -0800 (PST)
+Subject: [PATCH 1/2] mm, devm_memremap_pages: hold device_hotplug lock over
+ mem_hotplug_{begin, done}
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 12 Feb 2017 14:34:16 -0800
+Message-ID: <148693885680.16345.17802627926777862337.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148693885124.16345.14319993365448440148.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148693885124.16345.14319993365448440148.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,55 +19,64 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Soccer Liu <soccer_liu@yahoo.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Ben Hutchings <ben@decadent.org.uk>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBMaW51eC1udmRpbW0gW21haWx0
-bzpsaW51eC1udmRpbW0tYm91bmNlc0BsaXN0cy4wMS5vcmddIE9uDQo+IEJlaGFsZiBPZiBTb2Nj
-ZXIgTGl1DQo+IFNlbnQ6IFRodXJzZGF5LCBGZWJydWFyeSAwOSwgMjAxNyAxOjQ1IFBNDQo+IFN1
-YmplY3Q6IEhvdyBpcyBhIFJlZ2lvbiBmb3JtYXQgaW50ZXJmYWNlIGNvZGVjIHVzZWQgaW4NCj4g
-TkZJVC9QRU1FL0JMSy9CVFQgZHJpdmVyPw0KPiANCj4gwqAgSSBhbSB0cnlpbmcgdG8gZmlndXJl
-IG91dCB3aGF0IGNoYW5nZXMgbWlnaHQgYmUgbmVlZGVkIGluIHRoZQ0KPiBOVkRJTU0gZHJpdmVy
-IHNldCBmb3IgYWRkaW5nIGEgbmV3IMKgUmVnaW9uIGZvcm1hdCBpbnRlcmZhY2UgY29kZS4NCj4g
-QWZ0ZXIgc29tZSByZXNlYXJjaGluZywgSSBmb3VuZCB0aGUgZm9sbG93aW5nIGNvbnN0YW50cyB3
-ZXJlIGRlZmluZWQNCj4gaW4gdGhlIE5GSVQgaGVhZGVyIGZpbGUgYnV0IG5ldmVyIHJlYWxseSBn
-b3QgcmVmZXJlbmNlZCBpbiB0aGUgZHJpdmVyDQo+IGNvZGUuIChJdCdzIHVzZWQgaW4gdGhlIHRl
-c3QgY29kZSkNCj4gNjQgI2RlZmluZSBORklUX0ZJQ19CWVRFIGNwdV90b19sZTE2KDB4MTAxKSAv
-KiBieXRlLWFkZHJlc3NhYmxlDQo+IGVuZXJneSBiYWNrZWQgKi8NCj4gIDY1ICNkZWZpbmUgTkZJ
-VF9GSUNfQkxLIGNwdV90b19sZTE2KDB4MjAxKSAvKiBibG9jay1hZGRyZXNzYWJsZSBub24tDQo+
-IGVuZXJneSBiYWNrZWQgKi8NCj4gIDY2ICNkZWZpbmUgTkZJVF9GSUNfQllURU4gY3B1X3RvX2xl
-MTYoMHgzMDEpIC8qIGJ5dGUtYWRkcmVzc2FibGUNCj4gbm9uLWVuZXJneSBiYWNrZWQgKi8NCg0K
-SkVERUMgaXMgdGhlIHVuZGVybHlpbmcgYXNzaWdubWVudCBhdXRob3JpdHkgZm9yIHRoZXNlIHZh
-bHVlcy4NCg0KVGhlIEFDUEkgc3BlY2lmaWNhdGlvbiBkZWZpbmVzIGhvdyB0aGUgc3lzdGVtIGZp
-bGxzIGluIHRoZSAyLWJ5dGUNCmxpdHRsZS1lbmRpYW4gUmVnaW9uIEZvcm1hdCBJbnRlcmZhY2Ug
-Q29kZSBmaWVsZCBpbiB0aGUgTkZJVCBOVkRJTU0NCkNvbnRyb2wgUmVnaW9uIFN0cnVjdHVyZToN
-Cg0KICAiVGhpcyBmaWVsZCBzaGFsbCBiZSBzZXQgdG8gdGhlIHZhbHVlIG9mIHRoZSBOVkRJTU0g
-U1BEDQogIEZ1bmN0aW9uIEludGVyZmFjZSBkZXNjcmlwdG9yIGZvciB0aGUgZnVuY3Rpb24gaW50
-ZXJmYWNlDQogIHJlcHJlc2VudGVkIGJ5IHRoZSBOVkRJTU0gQ29udHJvbCBSZWdpb24gc3RydWN0
-dXJlLCB3aXRoOg0KICBhKSBieXRlIDAgYml0cyA3OjUgc2V0IHRvIDAwMGI7DQogIGIpIGJ5dGUg
-MCBiaXRzIDQ6MCBzZXQgdG8gdGhlIEZ1bmN0aW9uIEludGVyZmFjZSBmaWVsZCAoaS5lLiwNCiAg
-RnVuY3Rpb24gSW50ZXJmYWNlIGRlc2NyaXB0b3IgYml0cyA0OjApOw0KICBjKSBieXRlIDEgYml0
-cyA3OjAgc2V0IHRvIDAwMGI7IGFuZA0KICBkKSBieXRlIDEgYml0cyA0OjAgc2V0IHRvIHRoZSBG
-dW5jdGlvbiBDbGFzcyBmaWVsZCAoaS5lLiwNCiAgRnVuY3Rpb24gSW50ZXJmYWNlIGRlc2NyaXB0
-b3IgYml0cyA5OjUpLiINCg0KVGhlIFNQRCBFRVBST00gY29udGVudHMgYXJlIGRlZmluZWQgYnkg
-SkVTRDIxQyBQYWdlIDQuMS4yLkwNCihTZXJpYWwgUHJlc2VuY2UgRGV0ZWN0IChTUEQpIGZvciBE
-RFI0IFNEUkFNIE1vZHVsZXMpOg0KDQpGb3IgRnVuY3Rpb24gQ2xhc3MgMHgwLCBGdW5jdGlvbiBJ
-bnRlcmZhY2UgaXM6DQogICogMHgwMCA9IHByb3ByaWV0YXJ5DQogICogYWxsIG90aGVycyByZXNl
-cnZlZA0KDQpGb3IgRnVuY3Rpb24gQ2xhc3MgMHgwMSwgRnVuY3Rpb24gSW50ZXJmYWNlIGlzOg0K
-ICAqIDB4MDAgPSBwcm9wcmlldGFyeQ0KICAqIDB4MDEgPSBKRVNEMjQ1IEJBRUJJIChmb3IgTlZE
-SU1NLU5zKQ0KICAqIGFsbCBvdGhlcnMgcmVzZXJ2ZWQNCg0KRm9yIEZ1bmN0aW9uIENsYXNzIDB4
-MDIsIEZ1bmN0aW9uIEludGVyZmFjZSBpczoNCiAgKiAweDAwID0gcHJvcHJpZXRhcnkNCiAgKiAw
-eDAxID0gc29tZSB5ZXQtdG8tYmUgZGVmaW5lZA0KICAgICAgICAgICBibG9jayBhZGRyZXNzYWJs
-ZSBpbnRlcmZhY2UNCiAgKiBhbGwgb3RoZXJzIHJlc2VydmVkDQoNCkZvciBGdW5jdGlvbiBDbGFz
-cyAweDAzLCBGdW5jdGlvbiBJbnRlcmZhY2UgaXM6DQogICogMHgwMCA9IHByb3ByaWV0YXJ5DQog
-ICogMHgwMSA9IHNvbWUgeWV0LXRvLWJlIGRlZmluZWQNCiAgICAgICAgICAgYnl0ZSBhZGRyZXNz
-YWJsZSBub24tZW5lcmd5IGJhY2tlZCBpbnRlcmZhY2UNCiAgKiBhbGwgb3RoZXJzIHJlc2VydmVk
-DQoNCkFsbCBvdGhlciBGdW5jdGlvbiBDbGFzcyB2YWx1ZXMgYXJlIHJlc2VydmVkLg0KDQoNCi0t
-LQ0KUm9iZXJ0IEVsbGlvdHQsIEhQRSBQZXJzaXN0ZW50IE1lbW9yeQ0KDQoNCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
-IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+The mem_hotplug_{begin,done} lock coordinates with
+{get,put}_online_mems() to hold off "readers" of the current state of
+memory from new hotplug actions. mem_hotplug_begin() expects exclusive
+access, via the device_hotplug lock, to set mem_hotplug.active_writer.
+Calling mem_hotplug_begin() without locking device_hotplug can lead to
+corrupting mem_hotplug.refcount and missed wakeups / soft lockups.
+
+Cc: <stable@vger.kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Fixes: f931ab479dd2 ("mm: fix devm_memremap_pages crash, use mem_hotplug_{begin, done}")
+Reported-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ kernel/memremap.c |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index e6476a8e8b6a..16640415c150 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -264,9 +264,12 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
+ 	}
+ 
+ 	/* pages are dead and unused, undo the arch mapping */
++	lock_device_hotplug();
+ 	mem_hotplug_begin();
+ 	arch_remove_memory(res->start, resource_size(res));
+ 	mem_hotplug_done();
++	unlock_device_hotplug();
++
+ 	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
+ 	pgmap_radix_release(res);
+ 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
+@@ -374,9 +377,11 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	if (error)
+ 		goto err_pfn_remap;
+ 
++	lock_device_hotplug();
+ 	mem_hotplug_begin();
+ 	error = arch_add_memory(nid, res->start, resource_size(res), true);
+ 	mem_hotplug_done();
++	unlock_device_hotplug();
+ 	if (error)
+ 		goto err_add_memory;
+ 
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
