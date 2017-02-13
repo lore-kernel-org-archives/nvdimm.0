@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from NAM01-BN3-obe.outbound.protection.outlook.com
+ (mail-bn3nam01on0700.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe41::700])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8E25782044
- for <linux-nvdimm@lists.01.org>; Tue,  7 Feb 2017 21:34:17 -0800 (PST)
-Subject: [-mm PATCH] mm: fix get_user_pages() vs device-dax pud mappings
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 07 Feb 2017 21:30:11 -0800
-Message-ID: <148653181153.38226.9605457830505509385.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0295E820D1
+ for <linux-nvdimm@lists.01.org>; Mon, 13 Feb 2017 10:02:21 -0800 (PST)
+Subject: Re: [PATCH 3/3] Remove unnecessary newline
+References: <cover.1486750246.git.linda.knippers@hpe.com>
+ <057ada9967af9e029d2d32cef87b5ab87db4de47.1486750247.git.linda.knippers@hpe.com>
+ <CAPcyv4h6qKU8jSFCDwsf2UyeOL0R_2RfKU=eUETMb0mOjZeOwA@mail.gmail.com>
+From: Linda Knippers <linda.knippers@hpe.com>
+Message-ID: <58A1F4A7.9030007@hpe.com>
+Date: Mon, 13 Feb 2017 13:02:15 -0500
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4h6qKU8jSFCDwsf2UyeOL0R_2RfKU=eUETMb0mOjZeOwA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,105 +26,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, Matthew Wilcox <mawilcox@microsoft.com>, Nilesh Choudhury <nilesh.choudhury@oracle.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A new unit test for the device-dax 1GB enabling currently fails with
-this warning before hanging the test thread:
+On 02/13/2017 12:32 PM, Dan Williams wrote:
+> On Mon, Feb 13, 2017 at 8:27 AM, Linda Knippers <linda.knippers@hpe.com> wrote:
+>> Newline in MODULE_PARM_DESC messes up the modprobe output so remove it.
+> 
+> Yes, looks good. When this "messes up" does that mean the output less
+> pretty, or do you know if it breaks scripts parsing the output? Just
+> want to be clear on the effects of this change.
 
- WARNING: CPU: 0 PID: 21 at lib/percpu-refcount.c:155 percpu_ref_switch_to_atomic_rcu+0x1e3/0x1f0
- percpu ref (dax_pmem_percpu_release [dax_pmem]) <= 0 (0) after switching to atomic
- [..]
- CPU: 0 PID: 21 Comm: rcuos/1 Tainted: G           O    4.10.0-rc7-next-20170207+ #944
- [..]
- Call Trace:
-  dump_stack+0x86/0xc3
-  __warn+0xcb/0xf0
-  warn_slowpath_fmt+0x5f/0x80
-  ? rcu_nocb_kthread+0x27a/0x510
-  ? dax_pmem_percpu_exit+0x50/0x50 [dax_pmem]
-  percpu_ref_switch_to_atomic_rcu+0x1e3/0x1f0
-  ? percpu_ref_exit+0x60/0x60
-  rcu_nocb_kthread+0x339/0x510
-  ? rcu_nocb_kthread+0x27a/0x510
-  kthread+0x101/0x140
+If you do a 'modinfo nfit', it puts "(bool)" on a separate line.
+That's unlike all the other parameters.  If someone is parsing the output
+of modinfo, they may not get the type.
 
-The get_user_pages() path needs to arrange for references to be taken
-against the dev_pagemap instance backing the pud mapping. Refactor the
-existing __gup_device_huge_pmd() to also account for the pud case.
+Without my patch, you get this:
 
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Nilesh Choudhury <nilesh.choudhury@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/mm/gup.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+parm:           force_enable_dimms:Ignore _STA (ACPI DIMM device) status (bool)
+parm:           scrub_timeout:Initial scrub timeout in seconds (uint)
+parm:           scrub_overflow_abort:Number of times we overflow ARS results before abort (uint)
+parm:           disable_vendor_specific:Limit commands to the publicly specified set
+(bool)
+parm:           default_dsm_family:Try this DSM type first when identifying NVDIMM family (int)
 
-diff --git a/arch/x86/mm/gup.c b/arch/x86/mm/gup.c
-index 0d4fb3ebbbac..99c7805a9693 100644
---- a/arch/x86/mm/gup.c
-+++ b/arch/x86/mm/gup.c
-@@ -154,14 +154,12 @@ static inline void get_head_page_multiple(struct page *page, int nr)
- 	SetPageReferenced(page);
- }
- 
--static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
-+static int __gup_device_huge(unsigned long pfn, unsigned long addr,
- 		unsigned long end, struct page **pages, int *nr)
- {
- 	int nr_start = *nr;
--	unsigned long pfn = pmd_pfn(pmd);
- 	struct dev_pagemap *pgmap = NULL;
- 
--	pfn += (addr & ~PMD_MASK) >> PAGE_SHIFT;
- 	do {
- 		struct page *page = pfn_to_page(pfn);
- 
-@@ -180,6 +178,24 @@ static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
- 	return 1;
- }
- 
-+static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
-+		unsigned long end, struct page **pages, int *nr)
-+{
-+	unsigned long fault_pfn;
-+
-+	fault_pfn = pmd_pfn(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-+	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
-+}
-+
-+static int __gup_device_huge_pud(pud_t pud, unsigned long addr,
-+		unsigned long end, struct page **pages, int *nr)
-+{
-+	unsigned long fault_pfn;
-+
-+	fault_pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
-+	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
-+}
-+
- static noinline int gup_huge_pmd(pmd_t pmd, unsigned long addr,
- 		unsigned long end, int write, struct page **pages, int *nr)
- {
-@@ -251,9 +267,13 @@ static noinline int gup_huge_pud(pud_t pud, unsigned long addr,
- 
- 	if (!pte_allows_gup(pud_val(pud), write))
- 		return 0;
-+
-+	VM_BUG_ON(!pfn_valid(pud_pfn(pud)));
-+	if (pud_devmap(pud))
-+		return __gup_device_huge_pud(pud, addr, end, pages, nr);
-+
- 	/* hugepages are never "special" */
- 	VM_BUG_ON(pud_flags(pud) & _PAGE_SPECIAL);
--	VM_BUG_ON(!pfn_valid(pud_pfn(pud)));
- 
- 	refs = 0;
- 	head = pud_page(pud);
+instead of this:
 
+parm:           force_enable_dimms:Ignore _STA (ACPI DIMM device) status (bool)
+parm:           scrub_timeout:Initial scrub timeout in seconds (uint)
+parm:           scrub_overflow_abort:Number of times we overflow ARS results before abort (uint)
+parm:           disable_vendor_specific:Limit commands to the publicly specified set (bool)
+parm:           default_dsm_family:Try this DSM type first when identifying NVDIMM family (int)
+
+
+-- ljk
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
