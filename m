@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM03-CO1-obe.outbound.protection.outlook.com
+ (mail-co1nam03on072a.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe48::72a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 397E882221
- for <linux-nvdimm@lists.01.org>; Mon, 20 Feb 2017 21:03:10 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon, 20 Feb 2017 22:00:53 -0700
-Message-Id: <1487653253-11497-15-git-send-email-logang@deltatee.com>
-In-Reply-To: <1487653253-11497-1-git-send-email-logang@deltatee.com>
-References: <1487653253-11497-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 14/14] switchtec: utilize new device_add_cdev helper function
+ by ml01.01.org (Postfix) with ESMTPS id 6B9E5820BE
+ for <linux-nvdimm@lists.01.org>; Mon, 13 Feb 2017 08:28:20 -0800 (PST)
+From: Linda Knippers <linda.knippers@hpe.com>
+Subject: [PATCH 2/3] Allow specifying a default DSM family
+Date: Mon, 13 Feb 2017 11:27:48 -0500
+Message-ID: <1add4491ffe50ece3ab84e4ab2455086a928272f.1486750247.git.linda.knippers@hpe.com>
+In-Reply-To: <cover.1486750246.git.linda.knippers@hpe.com>
+References: <cover.1486750246.git.linda.knippers@hpe.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,37 +20,81 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, Benny Halevy <bhalevy@primarydata.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tpmdd-devel@lists.sourceforge.net, linux-mtd@lists.infradead.org, osd-dev@open-osd.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
+To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/pci/switch/switchtec.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Provide the ability to request a default DSM family. If it is not
+supported, then fall back to the normal discovery order.
 
-diff --git a/drivers/pci/switch/switchtec.c b/drivers/pci/switch/switchtec.c
-index 82bfd18..95aabd0 100644
---- a/drivers/pci/switch/switchtec.c
-+++ b/drivers/pci/switch/switchtec.c
-@@ -1233,9 +1233,8 @@ static struct switchtec_dev *stdev_create(struct pci_dev *pdev)
- 	cdev = &stdev->cdev;
- 	cdev_init(cdev, &switchtec_fops);
- 	cdev->owner = THIS_MODULE;
--	cdev->kobj.parent = &dev->kobj;
+This is helpful for testing platforms that support multiple DSM families.
+It will also allow administrators to request the DSM family that their
+management tools support, which may not be the first one found using
+the current discovery order.
+
+Signed-off-by: Linda Knippers <linda.knippers@hpe.com>
+---
+ drivers/acpi/nfit/core.c | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index b80d4d9..e38773f 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -51,6 +51,12 @@
+ MODULE_PARM_DESC(disable_vendor_specific,
+ 		"Limit commands to the publicly specified set\n");
  
--	rc = cdev_add(&stdev->cdev, dev->devt, 1);
-+	rc = device_add_cdev(dev, cdev);
- 	if (rc)
- 		goto err_cdev;
++static int default_dsm_family = -1;
++module_param(default_dsm_family, int, S_IRUGO);
++MODULE_PARM_DESC(default_dsm_family,
++		"Try this DSM type first when identifying NVDIMM family");
++
++
+ LIST_HEAD(acpi_descs);
+ DEFINE_MUTEX(acpi_desc_lock);
  
+@@ -1367,7 +1373,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 	struct device *dev = acpi_desc->dev;
+ 	unsigned long dsm_mask;
+ 	const u8 *uuid;
+-	int i;
++	int i = -1;
+ 
+ 	/* nfit test assumes 1:1 relationship between commands and dsms */
+ 	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
+@@ -1395,10 +1401,23 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 	 * Until standardization materializes we need to consider 4
+ 	 * different command sets.  Note, that checking for function0 (bit0)
+ 	 * tells us if any commands are reachable through this uuid.
++	 * First check for a requested default.
+ 	 */
+-	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
+-		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
+-			break;
++	if (default_dsm_family >= NVDIMM_FAMILY_INTEL &&
++			default_dsm_family <= NVDIMM_FAMILY_MSFT) {
++		if (acpi_check_dsm(adev_dimm->handle,
++				to_nfit_uuid(default_dsm_family), 1, 1))
++			i = default_dsm_family;
++		else
++			dev_dbg(dev, "default_dsm_family %d not supported\n",
++				default_dsm_family);
++	}
++	if (i == -1) {
++		for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
++			if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i),
++					1, 1))
++				break;
++	}
+ 
+ 	/* limit the supported commands to those that are publicly documented */
+ 	nfit_mem->family = i;
 -- 
-2.1.4
+1.8.3.1
 
 _______________________________________________
 Linux-nvdimm mailing list
