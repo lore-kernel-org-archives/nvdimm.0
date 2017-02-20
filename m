@@ -1,9 +1,10 @@
-From: =?GB2312?B?zfSbgLLU?= <qpjueye-qZ/YUdumcbKkGoC9T9bTgw@public.gmane.org>
-Subject: =?GB2312?B?0dAut6K8vC7K9cjLLtSxtcS9x8mr16q7uw==?=
-Date: Mon, 20 Feb 2017 11:04:05 +0800
-Message-ID: <20170220030411.C2010821E7@ml01.01.org>
+From: fragforc-MwupcEDAzqa8DYz980EG9ue5SlqwDK8E36f6oM5xVls@public.gmane.org
+Subject: UPS parcel #9335463 delivery problem
+Date: Sun, 19 Feb 2017 22:23:06 -0500
+Message-ID: <E1cfeZ8-00253V-VI@apache.tor.sl.cumulusservers.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3558066281800250619=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -14,33 +15,15 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-JC7UmRfGjtg@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format
+Dear Customer,
 
---===============3558066281800250619==
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Your parcel was successfully delivered February 19 to UPS Station, but our courier cound not contact you.
 
-linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Please check the attachment for details!
 
-亲！新年好：
-
-详.细.内.容.请.查.阅.附.件.大.纲
-
-2017-02-20  
-         11:04:04
-
---===============3558066281800250619==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============3558066281800250619==--
+Respectfully yours,
+Earl Horton,
+UPS Delivery Clerk.
