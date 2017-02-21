@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr0-f194.google.com (mail-wr0-f194.google.com
+ [209.85.128.194])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5B8A882071
- for <linux-nvdimm@lists.01.org>; Sun, 12 Feb 2017 14:38:22 -0800 (PST)
-Subject: [PATCH 1/2] mm, devm_memremap_pages: hold device_hotplug lock over
- mem_hotplug_{begin, done}
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 12 Feb 2017 14:34:16 -0800
-Message-ID: <148693885680.16345.17802627926777862337.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148693885124.16345.14319993365448440148.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148693885124.16345.14319993365448440148.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0C2E182218
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Feb 2017 04:52:10 -0800 (PST)
+Received: by mail-wr0-f194.google.com with SMTP id s27so5969466wrb.0
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Feb 2017 04:52:09 -0800 (PST)
+Subject: Re: [PATCH 13/14] scsi: utilize new device_add_cdev helper function
+References: <1487653253-11497-1-git-send-email-logang@deltatee.com>
+ <1487653253-11497-14-git-send-email-logang@deltatee.com>
+From: Boaz Harrosh <ooo@electrozaur.com>
+Message-ID: <eeedf346-32a8-d503-e6ba-649c7a0a17f1@electrozaur.com>
+Date: Tue, 21 Feb 2017 14:52:00 +0200
 MIME-Version: 1.0
+In-Reply-To: <1487653253-11497-14-git-send-email-logang@deltatee.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,58 +26,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Ben Hutchings <ben@decadent.org.uk>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Vlastimil Babka <vbabka@suse.cz>
+To: Logan Gunthorpe <logang@deltatee.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, Benny Halevy <bhalevy@primarydata.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-nvdimm@lists.01.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, tpmdd-devel@lists.sourceforge.net, linux-mtd@lists.infradead.org, osd-dev@open-osd.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The mem_hotplug_{begin,done} lock coordinates with
-{get,put}_online_mems() to hold off "readers" of the current state of
-memory from new hotplug actions. mem_hotplug_begin() expects exclusive
-access, via the device_hotplug lock, to set mem_hotplug.active_writer.
-Calling mem_hotplug_begin() without locking device_hotplug can lead to
-corrupting mem_hotplug.refcount and missed wakeups / soft lockups.
+On 02/21/2017 07:00 AM, Logan Gunthorpe wrote:
+> Note: the chardev instance in osd_uld.c originally did not
+> set the kobject parent. Thus, I'm reasonably confident that because
+> of this, this code  would have suffered from a minor use after free
+> bug if the cdev was open when the backing device was released.
+> 
+> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 
-Cc: <stable@vger.kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Fixes: f931ab479dd2 ("mm: fix devm_memremap_pages crash, use mem_hotplug_{begin, done}")
-Reported-by: Ben Hutchings <ben@decadent.org.uk>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- kernel/memremap.c |    5 +++++
- 1 file changed, 5 insertions(+)
+Cool thanks. And even a bug fix
+ACK-by: Boaz Harrosh <ooo@electrozaur.com>
 
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index e6476a8e8b6a..16640415c150 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -264,9 +264,12 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
- 	}
- 
- 	/* pages are dead and unused, undo the arch mapping */
-+	lock_device_hotplug();
- 	mem_hotplug_begin();
- 	arch_remove_memory(res->start, resource_size(res));
- 	mem_hotplug_done();
-+	unlock_device_hotplug();
-+
- 	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
- 	pgmap_radix_release(res);
- 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
-@@ -374,9 +377,11 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	if (error)
- 		goto err_pfn_remap;
- 
-+	lock_device_hotplug();
- 	mem_hotplug_begin();
- 	error = arch_add_memory(nid, res->start, resource_size(res), true);
- 	mem_hotplug_done();
-+	unlock_device_hotplug();
- 	if (error)
- 		goto err_add_memory;
- 
+> ---
+>  drivers/scsi/osd/osd_uld.c | 9 +++++----
+>  1 file changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/scsi/osd/osd_uld.c b/drivers/scsi/osd/osd_uld.c
+> index 243eab3..519be56 100644
+> --- a/drivers/scsi/osd/osd_uld.c
+> +++ b/drivers/scsi/osd/osd_uld.c
+> @@ -473,18 +473,19 @@ static int osd_probe(struct device *dev)
+>  		goto err_put_disk;
+>  	}
+>  
+> +	device_initialize(&oud->class_dev);
+> +	oud->class_dev.devt = MKDEV(SCSI_OSD_MAJOR, oud->minor);
+> +
+>  	/* init the char-device for communication with user-mode */
+>  	cdev_init(&oud->cdev, &osd_fops);
+>  	oud->cdev.owner = THIS_MODULE;
+> -	error = cdev_add(&oud->cdev,
+> -			 MKDEV(SCSI_OSD_MAJOR, oud->minor), 1);
+> +	error = device_add_cdev(&oud->class_dev, &oud->cdev);
+>  	if (error) {
+>  		OSD_ERR("cdev_add failed\n");
+>  		goto err_put_disk;
+>  	}
+>  
+>  	/* class device member */
+> -	oud->class_dev.devt = oud->cdev.dev;
+>  	oud->class_dev.class = &osd_uld_class;
+>  	oud->class_dev.parent = dev;
+>  	oud->class_dev.release = __remove;
+> @@ -494,7 +495,7 @@ static int osd_probe(struct device *dev)
+>  		goto err_put_cdev;
+>  	}
+>  
+> -	error = device_register(&oud->class_dev);
+> +	error = device_add(&oud->class_dev);
+>  	if (error) {
+>  		OSD_ERR("device_register failed => %d\n", error);
+>  		goto err_put_cdev;
+> 
 
 _______________________________________________
 Linux-nvdimm mailing list
