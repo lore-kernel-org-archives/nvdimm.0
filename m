@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 964B682221
- for <linux-nvdimm@lists.01.org>; Mon, 20 Feb 2017 21:03:10 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 010768220C
+ for <linux-nvdimm@lists.01.org>; Mon, 20 Feb 2017 21:06:51 -0800 (PST)
 From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon, 20 Feb 2017 22:00:44 -0700
-Message-Id: <1487653253-11497-6-git-send-email-logang@deltatee.com>
+Date: Mon, 20 Feb 2017 22:00:47 -0700
+Message-Id: <1487653253-11497-9-git-send-email-logang@deltatee.com>
 In-Reply-To: <1487653253-11497-1-git-send-email-logang@deltatee.com>
 References: <1487653253-11497-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 05/14] tpm-chip: utilize new device_add_cdev helper function
+Subject: [PATCH 08/14] iio:core: utilize new device_add_cdev helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,30 +28,23 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/char/tpm/tpm-chip.c | 3 +--
+ drivers/iio/industrialio-core.c | 3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/char/tpm/tpm-chip.c b/drivers/char/tpm/tpm-chip.c
-index a77262d..dc90b45 100644
---- a/drivers/char/tpm/tpm-chip.c
-+++ b/drivers/char/tpm/tpm-chip.c
-@@ -187,7 +187,6 @@ struct tpm_chip *tpm_chip_alloc(struct device *dev,
+diff --git a/drivers/iio/industrialio-core.c b/drivers/iio/industrialio-core.c
+index aaca428..b0ef245 100644
+--- a/drivers/iio/industrialio-core.c
++++ b/drivers/iio/industrialio-core.c
+@@ -1718,8 +1718,7 @@ int iio_device_register(struct iio_dev *indio_dev)
  
- 	cdev_init(&chip->cdev, &tpm_fops);
- 	chip->cdev.owner = THIS_MODULE;
--	chip->cdev.kobj.parent = &chip->dev.kobj;
+ 	cdev_init(&indio_dev->chrdev, &iio_buffer_fileops);
+ 	indio_dev->chrdev.owner = indio_dev->info->driver_module;
+-	indio_dev->chrdev.kobj.parent = &indio_dev->dev.kobj;
+-	ret = cdev_add(&indio_dev->chrdev, indio_dev->dev.devt, 1);
++	ret = device_add_cdev(&indio_dev->dev, &indio_dev->chrdev);
+ 	if (ret < 0)
+ 		goto error_unreg_eventset;
  
- 	return chip;
- 
-@@ -230,7 +229,7 @@ static int tpm_add_char_device(struct tpm_chip *chip)
- {
- 	int rc;
- 
--	rc = cdev_add(&chip->cdev, chip->dev.devt, 1);
-+	rc = device_add_cdev(&chip->dev, &chip->cdev);
- 	if (rc) {
- 		dev_err(&chip->dev,
- 			"unable to cdev_add() %s, major %d, minor %d, err=%d\n",
 -- 
 2.1.4
 
