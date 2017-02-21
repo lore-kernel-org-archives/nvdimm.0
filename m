@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C721481F3A
- for <linux-nvdimm@lists.01.org>; Mon, 27 Feb 2017 08:51:33 -0800 (PST)
-Subject: [PATCH] fs, dax: fix build warning for !CONFIG_FS_DAX_PMD case for
- dax_iomap_pmd_fault
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 27 Feb 2017 09:51:32 -0700
-Message-ID: <148821429251.38263.11870148981890888722.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8FC0282223
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Feb 2017 15:41:17 -0800 (PST)
+References: <1487653253-11497-1-git-send-email-logang@deltatee.com>
+ <1487653253-11497-2-git-send-email-logang@deltatee.com>
+ <20170221053522.GA1466@dtor-ws>
+ <17f32963-1d0e-5d17-64c9-742b05415722@deltatee.com>
+ <CAPcyv4jOWDxjQoBdZ8GQ+yhcAcL2gOBoEEHE-02beopXKFmGQA@mail.gmail.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <0f24273d-028c-9fa3-3fe7-975d2b0540f8@deltatee.com>
+Date: Tue, 21 Feb 2017 16:41:01 -0700
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4jOWDxjQoBdZ8GQ+yhcAcL2gOBoEEHE-02beopXKFmGQA@mail.gmail.com>
+Subject: Re: [PATCH 01/14] chardev: add helper function to register char devs
+ with a struct device
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,50 +27,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: sfr@canb.auug.org.au, mawilcox@microsoft.com, linux-nvdimm@lists.01.org, dave.hansen@linux.intel.com, linux-mm@kvack.org, kirill.shutemov@linux.intel.com, jack@suse.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Jan Kara <jack@suse.cz>, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Alexandre Bounine <alexandre.bounine@idt.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, linux-scsi <linux-scsi@vger.kernel.org>, Peter Huewe <peterhuewe@gmx.de>, Parav Pandit <pandit.parav@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Alexandre Courbot <gnurou@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, rtc-linux@googlegroups.com, Leon Romanovsky <leon@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma@vger.kernel.org, Richard Weinberger <richard@nod.at>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Marek Vasut <marek.vasut@gmail.com>, Doug Ledford <dledford@redhat.com>, tpmdd-devel@lists.sourceforge.net, Hans Verkuil <hans.verkuil@cisco.com>, Matt Porter <mporter@kernel.crashing.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Boaz Harrosh <ooo@electrozaur.com>, Arnd Bergmann <arnd@arndb.de>, Boris Brezillon <boris.brezillon@free-electrons.com>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, linux-input@vger.kernel.org, Marcel Selhorst <tpmdd@selhorst.net>, Vladimir Zapolskiy <vz@mleia.com>, Joe Perches <joe@perches.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Benny Halevy <bhalevy@primarydata.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Bjorn Helgaas <bhelgaas@google.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Dmitry Vyukov <dvyukov@google.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Haggai Eran <haggaie@mellanox.com>, Lorenzo Stoakes <lstoakes@gmail.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Artem Bityutskiy <dedekind1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-gpio@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Bates <stephen.bates@microsemi.com>, Hartmut Knaack <knaack.h@gmx.de>, Olof Johansson <olof@lixom.net>, linux-mtd@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Jonathan Cameron <jic23@kernel.org>, osd-dev@open-osd.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Stephen reported:
-With just Linus' tree, today's linux-next build (powerpc ppc64_defconfig)
-produced this warning:
+Hey,
 
-fs/dax.c: In function 'dax_iomap_fault':
-fs/dax.c:1462:35: warning: passing argument 2 of 'dax_iomap_pmd_fault' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
-   return dax_iomap_pmd_fault(vmf, ops);
-                                   ^
-fs/dax.c:1439:12: note: expected 'struct iomap_ops *' but argument is of type 'const struct iomap_ops *'
- static int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
-            ^
+Ok, I'll do a v2 later this week with some of the feedback and tags?
 
-Introduced by
+Logan
 
-  commit a2d581675d48 ("mm,fs,dax: change ->pmd_fault to ->huge_fault")
-
-which missed fixing up the !CONFIG_FS_DAX_PMD case.
-
-
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- fs/dax.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 5ae8b71..7436c98 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1436,7 +1436,8 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
- 	return result;
- }
- #else
--static int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
-+static int dax_iomap_pmd_fault(struct vm_fault *vmf,
-+			       const struct iomap_ops *ops)
- {
- 	return VM_FAULT_FALLBACK;
- }
-
+On 21/02/17 11:18 AM, Dan Williams wrote:
+> On Mon, Feb 20, 2017 at 10:35 PM, Logan Gunthorpe <logang@deltatee.com> wrote:
+>>
+>>
+>> On 20/02/17 10:35 PM, Dmitry Torokhov wrote:
+>>> My only objection is to this statement. There is absolutely nothing that
+>>> prevents from calling device_unregister() first and cdev_del() later.
+>>> Refcounting will sort it all out.
+>>
+>> Yeah, I was really trying to warn people against calling cdev_del within
+>> the release function of the device. If you do that, then the cdev
+>> reference will block the device from ever getting released.
+>>
+>> Certainly, you could call device_unregister followed by cdev_del. I
+>> could reword this if you feel it necessary.
+> 
+> I agree with Dmitry, just delete the statement in parenthesis and the
+> rest is fine. If you're modifying this patch it might be good to take
+> the opportunity to add a WARN_ON(!parent->kobj.state_initialized) to
+> catch attempts to call device_add_cdev() with an uninitialized device.
+> 
+> You can also add:
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
