@@ -2,12 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0D48E82225
+ by ml01.01.org (Postfix) with ESMTPS id B87A182225
  for <linux-nvdimm@lists.01.org>; Tue, 21 Feb 2017 11:51:37 -0800 (PST)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 0/6] second round of tracepoints for DAX
-Date: Tue, 21 Feb 2017 12:51:10 -0700
-Message-Id: <20170221195116.13278-1-ross.zwisler@linux.intel.com>
+Subject: [PATCH 5/6] dax: add tracepoint to dax_writeback_one()
+Date: Tue, 21 Feb 2017 12:51:15 -0700
+Message-Id: <20170221195116.13278-6-ross.zwisler@linux.intel.com>
+In-Reply-To: <20170221195116.13278-1-ross.zwisler@linux.intel.com>
+References: <20170221195116.13278-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,48 +26,77 @@ To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
 Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This second round of DAX tracepoint patches adds tracing to the PTE fault
-path (dax_iomap_pte_fault(), dax_pfn_mkwrite(), dax_load_hole(),
-dax_insert_mapping()) and to the writeback path
-(dax_writeback_mapping_range(), dax_writeback_one()).
+Add a tracepoint to dax_writeback_one(), following the same logging
+conventions as the rest of DAX.
 
-The purpose of this tracing is to give us a high level view of what DAX is
-doing, whether faults are being serviced by PMDs or PTEs, and by real
-storage or by zero pages covering holes.
+Here is an example range writeback which ends up flushing one PMD and one
+PTE:
 
-I do have some patches nearly ready which also add tracing to
-grab_mapping_entry() and dax_insert_mapping_entry().  These are more
-targeted at logging how we are interacting with the radix tree, how we use
-empty entries for locking, whether we "downgrade" huge zero pages to
-4k PTE sized allocations, etc.  In the end it seemed to me that this might
-be too detailed to have as constantly present tracepoints, but if anyone
-sees value in having tracepoints like this in the DAX code permanently
-(Jan?), please let me know and I'll add those last two patches.
+test-1265  [003] ....   496.615250: dax_writeback_range: dev 259:0 ino 0x1003
+pgoff 0x0-0x7ffffffffffff
 
-All these tracepoints were done to be consistent with the style of the XFS
-tracepoints and with the existing DAX PMD tracepoints.
+test-1265  [003] ....   496.616263: dax_writeback_one: dev 259:0 ino 0x1003
+pgoff 0x0 pglen 0x200
 
-This series applies cleanly to the current mmots/master:
+test-1265  [003] ....   496.616270: dax_writeback_one: dev 259:0 ino 0x1003
+pgoff 0x305 pglen 0x1
 
-commit 35aa45ffe8d9 ("pci: test for unexpectedly disabled bridges")
+test-1265  [003] ....   496.616272: dax_writeback_range_done: dev 259:0 ino
+0x1003 pgoff 0x0-0x7ffffffffffff
 
-and I'm hoping that it'll end up going to Linus through akpm's -mm tree.
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ fs/dax.c                      |  1 +
+ include/trace/events/fs_dax.h | 24 ++++++++++++++++++++++++
+ 2 files changed, 25 insertions(+)
 
-Thanks,
-- Ross
-
-Ross Zwisler (6):
-  dax: add tracepoints to dax_iomap_pte_fault()
-  dax: add tracepoints to dax_pfn_mkwrite()
-  dax: add tracepoints to dax_load_hole()
-  dax: add tracepoints to dax_writeback_mapping_range()
-  dax: add tracepoint to dax_writeback_one()
-  dax: add tracepoint to dax_insert_mapping()
-
- fs/dax.c                      |  44 ++++++++++----
- include/trace/events/fs_dax.h | 130 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 163 insertions(+), 11 deletions(-)
-
+diff --git a/fs/dax.c b/fs/dax.c
+index 7ca1989..d340389 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -843,6 +843,7 @@ static int dax_writeback_one(struct block_device *bdev,
+ 	spin_lock_irq(&mapping->tree_lock);
+ 	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
+ 	spin_unlock_irq(&mapping->tree_lock);
++	trace_dax_writeback_one(mapping->host, index, dax.size >> PAGE_SHIFT);
+  unmap:
+ 	dax_unmap_atomic(bdev, &dax);
+ 	put_locked_mapping_entry(mapping, index, entry);
+diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+index 9afe8c8..292a471 100644
+--- a/include/trace/events/fs_dax.h
++++ b/include/trace/events/fs_dax.h
+@@ -226,6 +226,30 @@ DEFINE_EVENT(dax_writeback_range_class, name, \
+ DEFINE_WRITEBACK_RANGE_EVENT(dax_writeback_range);
+ DEFINE_WRITEBACK_RANGE_EVENT(dax_writeback_range_done);
+ 
++TRACE_EVENT(dax_writeback_one,
++	TP_PROTO(struct inode *inode, pgoff_t pgoff, pgoff_t pglen),
++	TP_ARGS(inode, pgoff, pglen),
++	TP_STRUCT__entry(
++		__field(unsigned long, ino)
++		__field(pgoff_t, pgoff)
++		__field(pgoff_t, pglen)
++		__field(dev_t, dev)
++	),
++	TP_fast_assign(
++		__entry->dev = inode->i_sb->s_dev;
++		__entry->ino = inode->i_ino;
++		__entry->pgoff = pgoff;
++		__entry->pglen = pglen;
++	),
++	TP_printk("dev %d:%d ino %#lx pgoff %#lx pglen %#lx",
++		MAJOR(__entry->dev),
++		MINOR(__entry->dev),
++		__entry->ino,
++		__entry->pgoff,
++		__entry->pglen
++	)
++)
++
+ #endif /* _TRACE_FS_DAX_H */
+ 
+ /* This part must be outside protection */
 -- 
 2.9.3
 
