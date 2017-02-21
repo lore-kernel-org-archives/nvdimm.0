@@ -1,22 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x235.google.com (mail-oi0-x235.google.com
- [IPv6:2607:f8b0:4003:c06::235])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 17B4581EE0
- for <linux-nvdimm@lists.01.org>; Thu,  9 Feb 2017 21:00:20 -0800 (PST)
-Received: by mail-oi0-x235.google.com with SMTP id u143so14846559oif.3
- for <linux-nvdimm@lists.01.org>; Thu, 09 Feb 2017 21:00:20 -0800 (PST)
+Subject: Re: [PATCH 00/14] Cleanup chardev instances with helper function
+References: <1487653253-11497-1-git-send-email-logang@deltatee.com>
+From: Richard Weinberger <richard@nod.at>
+Message-ID: <94a91057-82f1-98da-d624-0b30658e23da@nod.at>
+Date: Tue, 21 Feb 2017 08:54:08 +0100
 MIME-Version: 1.0
-In-Reply-To: <1486653999.2900.63.camel@decadent.org.uk>
-References: <20170118104625.550018627@linuxfoundation.org>
- <20170118104625.789178853@linuxfoundation.org>
- <1486653999.2900.63.camel@decadent.org.uk>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 9 Feb 2017 21:00:19 -0800
-Message-ID: <CAPcyv4iFwmQnLRdW0whHLC0W_1Y2-j89vxxHyP=yD1mwGPBaHQ@mail.gmail.com>
-Subject: Re: [PATCH 4.4 05/48] mm: fix devm_memremap_pages crash, use
- mem_hotplug_{begin, done}
+In-Reply-To: <1487653253-11497-1-git-send-email-logang@deltatee.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,65 +17,103 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ben Hutchings <ben@decadent.org.uk>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: Logan Gunthorpe <logang@deltatee.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, Benny Halevy <bhalevy@primarydata.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tpmdd-devel@lists.sourceforge.net, linux-mtd@lists.infradead.org, osd-dev@open-osd.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Feb 9, 2017 at 7:26 AM, Ben Hutchings <ben@decadent.org.uk> wrote:
-> On Wed, 2017-01-18 at 11:46 +0100, Greg Kroah-Hartman wrote:
->> 4.4-stable review patch.  If anyone has any objections, please let me know.
->>
->> ------------------
->>
->> From: Dan Williams <dan.j.williams@intel.com>
->>
->> commit f931ab479dd24cf7a2c6e2df19778406892591fb upstream.
->>
->> Both arch_add_memory() and arch_remove_memory() expect a single threaded
->> context.
-> [...]
->> The result is that two threads calling devm_memremap_pages()
->> simultaneously can end up colliding on pgd initialization.  This leads
->> to crash signatures like the following where the loser of the race
->> initializes the wrong pgd entry:
-> [...]
->> Hold the standard memory hotplug mutex over calls to
->> arch_{add,remove}_memory().
-> [...]
->
-> This is not a sufficient fix, because memory_hotplug.c still assumes
-> there's only one 'writer':
->
-> void put_online_mems(void)
-> {
->         ...
->         if (!--mem_hotplug.refcount && unlikely(mem_hotplug.active_writer))
->                 wake_up_process(mem_hotplug.active_writer);
->         ...
-> }
->
-> void mem_hotplug_begin(void)
-> {
->         mem_hotplug.active_writer = current;
->
->         memhp_lock_acquire();
->         for (;;) {
->                 mutex_lock(&mem_hotplug.lock);
->                 if (likely(!mem_hotplug.refcount))
->                         break;
->                 __set_current_state(TASK_UNINTERRUPTIBLE);
->                 mutex_unlock(&mem_hotplug.lock);
->                 schedule();
->         }
-> }
->
-> With multiple writers, one or more of them may hang or
-> {get,put}_online_mems() may mess up the hotplug reference count.
+Logan,
 
-You're right. We need to hold lock_device_hotplug_sysfs() before
-calling mem_hotplug_begin().  I'll take a look at a follow-on fix and
-also add an assert_held_device_hotplug() helper to catch this in the
-future.
+Am 21.02.2017 um 06:00 schrieb Logan Gunthorpe:
+> Hello,
+> 
+> Our story for this patch-set begins with a new driver I wrote and am in
+> the process of submitting upstream. That driver creates a fairly
+> standard char device and the code for it was copied from a similar
+> instance in device-dax. However, upon review, Greg Kroah-Hartman
+> noticed [1] a suspicious line that assigned to the parent field of
+> the underlying kobject for the char device.
+> 
+> I removed that from my code and endeavoured to remove it from the
+> code I copied as well. However, Dan Williams pointed out [2] that this
+> code is necessary for correct reference counting of the underlying
+> structures. This prompted me to do a fair bit more research and
+> investigation into whats going on and I found it to be a common pattern.
+> (Although misleading and though required to be correct, frequently
+> forgotten.) This pattern is used in at least 15 places in the kernel
+> and probably should have been used in at least 5 more.
+> 
+> This patch-set aims to correct this and hopefully prevent future
+> developers from wasting their time on it. The first patch introduces
+> a new helper API as originally proposed by Dan Williams [3]. Please
+> see the commit message for that patch for a longer description of the
+> problem and history.
+> 
+> The subsequent patches either update correct instances to use the
+> new API or fix incorrect usages to ensure the cdev correctly takes
+> a reference count using the new API (this is noted in those patches).
+> 
+> This moves all except four of the cdev.kobj.parent usages into the one
+> cdev function, the remaining four are in the infiniband subsystem and
+> I've left alone because that subsystem seems to make use of kobjects
+> directly (instead of struct devices). These are noted in patch 7 of
+> this series.
+> 
+> This series is based on v4.10 with the exception of the last patch
+> which is for my new driver which, as yet, has not been accepted
+> upstream.
+> 
+> @Dan the first patch in this series will need your sign-off.
+> 
+> Thanks,
+> 
+> Logan
+> 
+> [1] https://lkml.org/lkml/2017/2/10/370
+> [2] https://lkml.org/lkml/2017/2/10/607
+> [3] https://lkml.org/lkml/2017/2/13/700
+> 
+> Logan Gunthorpe (14):
+>   chardev: add helper function to register char devs with a struct
+>     device
+>   device-dax: utilize new device_add_cdev helper function
+>   input: utilize new device_add_cdev helper function
+>   gpiolib: utilize new device_add_cdev helper function
+>   tpm-chip: utilize new device_add_cdev helper function
+>   platform/chrome: utilize new device_add_cdev helper function
+>   infiniband: utilize new device_add_cdev helper function
+>   iio:core: utilize new device_add_cdev helper function
+>   media: utilize new device_add_cdev helper function
+>   mtd: utilize new device_add_cdev helper function
+>   rapidio: utilize new device_add_cdev helper function
+>   rtc: utilize new device_add_cdev helper function
+>   scsi: utilize new device_add_cdev helper function
+>   switchtec: utilize new device_add_cdev helper function
+> 
+>  drivers/char/tpm/tpm-chip.c              |  3 +--
+>  drivers/dax/dax.c                        |  5 ++---
+>  drivers/gpio/gpiolib.c                   |  3 +--
+>  drivers/iio/industrialio-core.c          |  3 +--
+>  drivers/infiniband/core/ucm.c            |  8 +++++---
+>  drivers/input/evdev.c                    |  3 +--
+>  drivers/input/joydev.c                   |  3 +--
+>  drivers/input/mousedev.c                 |  3 +--
+>  drivers/media/cec/cec-core.c             |  3 +--
+>  drivers/media/media-devnode.c            |  3 +--
+>  drivers/mtd/ubi/build.c                  |  8 +++++---
+>  drivers/mtd/ubi/vmt.c                    | 10 +++++-----
+>  drivers/pci/switch/switchtec.c           |  3 +--
+>  drivers/platform/chrome/cros_ec_dev.c    |  6 ++----
+>  drivers/rapidio/devices/rio_mport_cdev.c |  9 ++++++---
+>  drivers/rtc/rtc-dev.c                    |  3 +--
+>  drivers/scsi/osd/osd_uld.c               |  9 +++++----
+>  fs/char_dev.c                            | 24 ++++++++++++++++++++++++
+>  include/linux/cdev.h                     |  1 +
+>  19 files changed, 65 insertions(+), 45 deletions(-)
+
+Do you have a git tree where I can pull from?
+
+Thanks,
+//richard
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
