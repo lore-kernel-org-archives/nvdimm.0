@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B8F6482106
- for <linux-nvdimm@lists.01.org>; Sat, 25 Feb 2017 22:40:35 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Sat, 25 Feb 2017 23:38:04 -0700
-Message-Id: <1488091097-12328-4-git-send-email-logang@deltatee.com>
-In-Reply-To: <1488091097-12328-1-git-send-email-logang@deltatee.com>
-References: <1488091097-12328-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 03/16] device-dax: utilize new cdev_device_add helper
- function
+ by ml01.01.org (Postfix) with ESMTPS id C0C9C82228
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Feb 2017 11:51:37 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 6/6] dax: add tracepoint to dax_insert_mapping()
+Date: Tue, 21 Feb 2017 12:51:16 -0700
+Message-Id: <20170221195116.13278-7-ross.zwisler@linux.intel.com>
+In-Reply-To: <20170221195116.13278-1-ross.zwisler@linux.intel.com>
+References: <20170221195116.13278-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,92 +22,87 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Replace the open coded registration of the cdev and dev with the
-new device_add_cdev() helper. The helper replaces a common pattern by
-taking the proper reference against the parent device and adding both
-the cdev and the device.
+Add a tracepoint to dax_insert_mapping(), following the same logging
+conventions as the rest of DAX.  This tracepoint, along with the one in
+dax_load_hole(), lets us know how a DAX PTE fault was serviced.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Here is an example DAX fault that inserts a PTE mapping:
+
+small-1126  [007] ....   145.451604: dax_pte_fault: dev 259:0 ino 0x1003
+shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10420000 pgoff 0x220
+
+small-1126  [007] ....   145.452317: dax_insert_mapping: dev 259:0 ino
+0x1003 shared write address 0x10420000 radix_entry 0x100006
+
+small-1126  [007] ....   145.452399: dax_pte_fault_done: dev 259:0 ino
+0x1003 shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10420000 pgoff
+0x220 MAJOR|NOPAGE
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- drivers/dax/dax.c | 18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ fs/dax.c                      |  1 +
+ include/trace/events/fs_dax.h | 30 ++++++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+)
 
-diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-index b62a52f..e60b519 100644
---- a/drivers/dax/dax.c
-+++ b/drivers/dax/dax.c
-@@ -632,8 +632,6 @@ static void dax_dev_release(struct device *dev)
+diff --git a/fs/dax.c b/fs/dax.c
+index d340389..ed53ce9 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -931,6 +931,7 @@ static int dax_insert_mapping(struct address_space *mapping,
+ 		return PTR_ERR(ret);
+ 	*entryp = ret;
  
- static void kill_dax_dev(struct dax_dev *dax_dev)
- {
--	struct cdev *cdev = &dax_dev->cdev;
--
- 	/*
- 	 * Note, rcu is not protecting the liveness of dax_dev, rcu is
- 	 * ensuring that any fault handlers that might have seen
-@@ -644,7 +642,6 @@ static void kill_dax_dev(struct dax_dev *dax_dev)
- 	dax_dev->alive = false;
- 	synchronize_rcu();
- 	unmap_mapping_range(dax_dev->inode->i_mapping, 0, 0, 1);
--	cdev_del(cdev);
++	trace_dax_insert_mapping(mapping->host, vmf, ret);
+ 	return vm_insert_mixed(vma, vaddr, dax.pfn);
  }
  
- static void unregister_dax_dev(void *dev)
-@@ -654,7 +651,8 @@ static void unregister_dax_dev(void *dev)
- 	dev_dbg(dev, "%s\n", __func__);
+diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+index 292a471..08bb3ed 100644
+--- a/include/trace/events/fs_dax.h
++++ b/include/trace/events/fs_dax.h
+@@ -194,6 +194,36 @@ DEFINE_PTE_FAULT_EVENT(dax_pfn_mkwrite_no_entry);
+ DEFINE_PTE_FAULT_EVENT(dax_pfn_mkwrite);
+ DEFINE_PTE_FAULT_EVENT(dax_load_hole);
  
- 	kill_dax_dev(dax_dev);
--	device_unregister(dev);
-+	cdev_device_del(&dax_dev->cdev, dev);
-+	put_device(dev);
- }
- 
- struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
-@@ -705,18 +703,13 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
- 		goto err_inode;
- 	}
- 
--	/* device_initialize() so cdev can reference kobj parent */
-+	/* from here on we're committed to teardown via dax_dev_release() */
- 	device_initialize(dev);
- 
- 	cdev = &dax_dev->cdev;
- 	cdev_init(cdev, &dax_fops);
- 	cdev->owner = parent->driver->owner;
--	cdev->kobj.parent = &dev->kobj;
--	rc = cdev_add(&dax_dev->cdev, dev_t, 1);
--	if (rc)
--		goto err_cdev;
- 
--	/* from here on we're committed to teardown via dax_dev_release() */
- 	dax_dev->num_resources = count;
- 	dax_dev->alive = true;
- 	dax_dev->region = dax_region;
-@@ -728,7 +721,8 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
- 	dev->groups = dax_attribute_groups;
- 	dev->release = dax_dev_release;
- 	dev_set_name(dev, "dax%d.%d", dax_region->id, dax_dev->id);
--	rc = device_add(dev);
++TRACE_EVENT(dax_insert_mapping,
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, void *radix_entry),
++	TP_ARGS(inode, vmf, radix_entry),
++	TP_STRUCT__entry(
++		__field(unsigned long, ino)
++		__field(unsigned long, vm_flags)
++		__field(unsigned long, address)
++		__field(void *, radix_entry)
++		__field(dev_t, dev)
++		__field(int, write)
++	),
++	TP_fast_assign(
++		__entry->dev = inode->i_sb->s_dev;
++		__entry->ino = inode->i_ino;
++		__entry->vm_flags = vmf->vma->vm_flags;
++		__entry->address = vmf->address;
++		__entry->write = vmf->flags & FAULT_FLAG_WRITE;
++		__entry->radix_entry = radix_entry;
++	),
++	TP_printk("dev %d:%d ino %#lx %s %s address %#lx radix_entry %#lx",
++		MAJOR(__entry->dev),
++		MINOR(__entry->dev),
++		__entry->ino,
++		__entry->vm_flags & VM_SHARED ? "shared" : "private",
++		__entry->write ? "write" : "read",
++		__entry->address,
++		(unsigned long)__entry->radix_entry
++	)
++)
 +
-+	rc = cdev_device_add(cdev, dev);
- 	if (rc) {
- 		kill_dax_dev(dax_dev);
- 		put_device(dev);
-@@ -741,8 +735,6 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
- 
- 	return dax_dev;
- 
-- err_cdev:
--	iput(dax_dev->inode);
-  err_inode:
- 	ida_simple_remove(&dax_minor_ida, minor);
-  err_minor:
+ DECLARE_EVENT_CLASS(dax_writeback_range_class,
+ 	TP_PROTO(struct inode *inode, pgoff_t start_index, pgoff_t end_index),
+ 	TP_ARGS(inode, start_index, end_index),
 -- 
-2.1.4
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
