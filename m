@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 102258221C
- for <linux-nvdimm@lists.01.org>; Mon, 20 Feb 2017 21:04:01 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon, 20 Feb 2017 22:00:51 -0700
-Message-Id: <1487653253-11497-13-git-send-email-logang@deltatee.com>
-In-Reply-To: <1487653253-11497-1-git-send-email-logang@deltatee.com>
-References: <1487653253-11497-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 12/14] rtc: utilize new device_add_cdev helper function
+ by ml01.01.org (Postfix) with ESMTPS id F04988221D
+ for <linux-nvdimm@lists.01.org>; Wed, 22 Feb 2017 14:48:40 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 0/3] Add ndctl check-namespace
+Date: Wed, 22 Feb 2017 15:47:21 -0700
+Message-Id: <20170222224724.7696-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,35 +20,92 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, Benny Halevy <bhalevy@primarydata.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tpmdd-devel@lists.sourceforge.net, linux-mtd@lists.infradead.org, osd-dev@open-osd.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/rtc/rtc-dev.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+I think I've covered all the review comments, but do let me know in case
+I missed something!
 
-diff --git a/drivers/rtc/rtc-dev.c b/drivers/rtc/rtc-dev.c
-index a6d9434..e4012bb 100644
---- a/drivers/rtc/rtc-dev.c
-+++ b/drivers/rtc/rtc-dev.c
-@@ -477,12 +477,11 @@ void rtc_dev_prepare(struct rtc_device *rtc)
- 
- 	cdev_init(&rtc->char_dev, &rtc_dev_fops);
- 	rtc->char_dev.owner = rtc->owner;
--	rtc->char_dev.kobj.parent = &rtc->dev.kobj;
- }
- 
- void rtc_dev_add_device(struct rtc_device *rtc)
- {
--	if (cdev_add(&rtc->char_dev, rtc->dev.devt, 1))
-+	if (device_add_cdev(&rtc->dev, &rtc->char_dev))
- 		dev_warn(&rtc->dev, "%s: failed to add char device %d:%d\n",
- 			rtc->name, MAJOR(rtc_devt), rtc->id);
- 	else
+Changes in v2:
+- Move checking functionality to a separate file (Dan, Jeff)
+- Rename btt-structs.h to check.h (Dan)
+- Don't provide a configure option for building the checker, always
+  build it in. (Dan, Jeff)
+- Fix the Documentation example to also include disable-namespace (Linda)
+- Update the description text to note the namespace needs to be disabled
+  before checking (Linda)
+- Use util/size.h for sizes (Dan)
+- Use --repair to do repairs instead of --dry-run to disable repairs (Dan)
+- Fix btt_read_info short read error handling (Jeff)
+- Simplify the map lookup/write routines (Jeff)
+- Differentiate the use off BTT_PG_SIZE, sysconf(_SC_PAGESIZE), and SZ_4K
+  (for the fixed start offset) in the different places they're used (Jeff)
+- Add the missing msync when copying over info2 (Jeff)
+- Add unit tests to test the checker (Jeff)
+- Add a missing error case check in do_xaction_namespace for check
+- Add a --force option that allows running on an active namespace (Jeff)
+- Add a bitmap test for checking all internal blocks are referenced exactly
+  once between the map and flog (Jeff)
+- Remove unused #defines in check.h
+- Add comments to explain what we do with raw_mode (Jeff)
+- Add some sanity checking when parsing an arena's metadata (Jeff)
+- Refactor some read-verify sequences into a helper that combines the two (Jeff)
+- Additional bounds checking on the 'offset' in recover_first_sb attempt 3 (Jeff)
+- Add a missing ACTION_DESTROY string in parse_namespace_options (Dan)
+- Use uXX, and cpu_to_XX from ccan/endian (Dan)
+- Move the fletcher64 Routing to util/ as it is shared by builtin-dimm.c (Dan)
+- Open the raw block device only once with O_EXCL instead of every time on
+  read/write/mmap (Dan)
+- Add a new 'inform' routing in util/usage.c, and use it for some non-critical
+  messages (Dan)
+- Remove namespace_is_offline() from builtin-check.c. Instead, use
+  util_namespace_active() from util/json.c
+- Add a missing return value check after info block restoration in
+  discover_arenas
+
+
+Vishal Verma (3):
+  ndctl: move the fletcher64 routine to util/
+  ndctl: add a BTT check utility
+  ndctl, test: Add a unit test for the BTT checker
+
+ Documentation/Makefile.am               |   1 +
+ Documentation/ndctl-check-namespace.txt |  64 +++
+ Documentation/ndctl.txt                 |   1 +
+ Makefile.am                             |   7 +-
+ builtin.h                               |   1 +
+ ccan/bitmap/LICENSE                     |   1 +
+ ccan/bitmap/bitmap.c                    | 125 +++++
+ ccan/bitmap/bitmap.h                    | 243 +++++++++
+ contrib/ndctl                           |   3 +
+ licenses/LGPL-2.1                       | 508 +++++++++++++++++
+ ndctl.spec.in                           |   5 +-
+ ndctl/Makefile.am                       |   1 +
+ ndctl/builtin-check.c                   | 938 ++++++++++++++++++++++++++++++++
+ ndctl/builtin-dimm.c                    |  18 +-
+ ndctl/builtin-xaction-namespace.c       |  66 ++-
+ ndctl/check.h                           | 123 +++++
+ ndctl/ndctl.c                           |   1 +
+ test/Makefile.am                        |   5 +-
+ test/btt-check.sh                       | 167 ++++++
+ util/fletcher.c                         |  23 +
+ util/fletcher.h                         |   8 +
+ util/usage.c                            |  15 +
+ util/util.h                             |   9 +
+ 23 files changed, 2311 insertions(+), 22 deletions(-)
+ create mode 100644 Documentation/ndctl-check-namespace.txt
+ create mode 120000 ccan/bitmap/LICENSE
+ create mode 100644 ccan/bitmap/bitmap.c
+ create mode 100644 ccan/bitmap/bitmap.h
+ create mode 100644 licenses/LGPL-2.1
+ create mode 100644 ndctl/builtin-check.c
+ create mode 100644 ndctl/check.h
+ create mode 100755 test/btt-check.sh
+ create mode 100644 util/fletcher.c
+ create mode 100644 util/fletcher.h
+
 -- 
-2.1.4
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
