@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B543E8220C
- for <linux-nvdimm@lists.01.org>; Mon, 20 Feb 2017 21:03:58 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon, 20 Feb 2017 22:00:46 -0700
-Message-Id: <1487653253-11497-8-git-send-email-logang@deltatee.com>
-In-Reply-To: <1487653253-11497-1-git-send-email-logang@deltatee.com>
-References: <1487653253-11497-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 07/14] infiniband: utilize new device_add_cdev helper function
+ by ml01.01.org (Postfix) with ESMTPS id DE4BB8221D
+ for <linux-nvdimm@lists.01.org>; Wed, 22 Feb 2017 14:48:41 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 1/3] ndctl: move the fletcher64 routine to util/
+Date: Wed, 22 Feb 2017 15:47:22 -0700
+Message-Id: <20170222224724.7696-2-vishal.l.verma@intel.com>
+In-Reply-To: <20170222224724.7696-1-vishal.l.verma@intel.com>
+References: <20170222224724.7696-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,56 +22,125 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, Benny Halevy <bhalevy@primarydata.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tpmdd-devel@lists.sourceforge.net, linux-mtd@lists.infradead.org, osd-dev@open-osd.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch updates core/ucm.c which didn't originally use the
-cdev.kobj.parent with it's parent device. I did not look heavily into
-whether this was a bug or not, but it seems likely to me there would
-be a use before free.
+In preparation for check-namespace, since it will also use the
+fletcher64 routine, move it to util/ so that it can be shared by both
+builtin-check.c and builtin-dimm.c
 
-I also took a look at core/uverbs_main.c, core/user_mad.c and
-hw/hfi1/device.c which utilize cdev.kobj.parent but because the
-infiniband core seems to use kobjs internally instead of struct devices
-they could not be converted to use the new helper API and still
-directly manipulate the internals of the kobj.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/infiniband/core/ucm.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ Makefile.am          |  3 ++-
+ ndctl/builtin-dimm.c | 18 ++----------------
+ util/fletcher.c      | 23 +++++++++++++++++++++++
+ util/fletcher.h      |  8 ++++++++
+ 4 files changed, 35 insertions(+), 17 deletions(-)
+ create mode 100644 util/fletcher.c
+ create mode 100644 util/fletcher.h
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index e0a995b..38ea316 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1283,18 +1283,20 @@ static void ib_ucm_add_one(struct ib_device *device)
- 		set_bit(devnum, dev_map);
- 	}
+diff --git a/Makefile.am b/Makefile.am
+index 06cd1b0..5453b2a 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -68,6 +68,7 @@ libutil_a_SOURCES = \
+ 	util/help.c \
+ 	util/strbuf.c \
+ 	util/wrapper.c \
+-	util/filter.c
++	util/filter.c \
++	util/fletcher.c
  
-+	device_initialize(&ucm_dev->dev);
-+	ucm_dev->dev.devt = base;
+ nobase_include_HEADERS = daxctl/libdaxctl.h
+diff --git a/ndctl/builtin-dimm.c b/ndctl/builtin-dimm.c
+index 637b10b..93f9530 100644
+--- a/ndctl/builtin-dimm.c
++++ b/ndctl/builtin-dimm.c
+@@ -22,6 +22,7 @@
+ #include <util/json.h>
+ #include <util/filter.h>
+ #include <json-c/json.h>
++#include <util/fletcher.h>
+ #include <ndctl/libndctl.h>
+ #include <util/parse-options.h>
+ #include <ccan/minmax/minmax.h>
+@@ -358,7 +359,7 @@ struct nvdimm_data {
+ };
+ 
+ /*
+- * Note, best_seq(), inc_seq(), fletcher64(), sizeof_namespace_index()
++ * Note, best_seq(), inc_seq(), sizeof_namespace_index()
+  * nvdimm_num_label_slots(), label_validate(), and label_write_index()
+  * are copied from drivers/nvdimm/label.c in the Linux kernel with the
+  * following modifications:
+@@ -371,21 +372,6 @@ struct nvdimm_data {
+  * 7/ dropped clear_bit_le() usage in label_write_index
+  */
+ 
+-static u64 fletcher64(void *addr, size_t len, bool le)
+-{
+-	u32 *buf = addr;
+-	u32 lo32 = 0;
+-	u64 hi32 = 0;
+-	size_t i;
+-
+-	for (i = 0; i < len / sizeof(u32); i++) {
+-		lo32 += le ? le32_to_cpu((le32) buf[i]) : buf[i];
+-		hi32 += lo32;
+-	}
+-
+-	return hi32 << 32 | lo32;
+-}
+-
+ static unsigned inc_seq(unsigned seq)
+ {
+ 	static const unsigned next[] = { 0, 2, 3, 1 };
+diff --git a/util/fletcher.c b/util/fletcher.c
+new file mode 100644
+index 0000000..cee2fc3
+--- /dev/null
++++ b/util/fletcher.c
+@@ -0,0 +1,23 @@
++#include <stdlib.h>
++#include <stdbool.h>
++#include <util/fletcher.h>
++#include <ccan/endian/endian.h>
++#include <ccan/short_types/short_types.h>
 +
- 	cdev_init(&ucm_dev->cdev, &ucm_fops);
- 	ucm_dev->cdev.owner = THIS_MODULE;
- 	kobject_set_name(&ucm_dev->cdev.kobj, "ucm%d", ucm_dev->devnum);
--	if (cdev_add(&ucm_dev->cdev, base, 1))
-+	if (device_add_cdev(&ucm_dev->dev, &ucm_dev->cdev))
- 		goto err;
- 
- 	ucm_dev->dev.class = &cm_class;
- 	ucm_dev->dev.parent = device->dma_device;
--	ucm_dev->dev.devt = ucm_dev->cdev.dev;
- 	ucm_dev->dev.release = ib_ucm_release_dev;
- 	dev_set_name(&ucm_dev->dev, "ucm%d", ucm_dev->devnum);
--	if (device_register(&ucm_dev->dev))
-+	if (device_add(&ucm_dev->dev))
- 		goto err_cdev;
- 
- 	if (device_create_file(&ucm_dev->dev, &dev_attr_ibdev))
++/*
++ * Note, fletcher64() is copied from drivers/nvdimm/label.c in the Linux kernel
++ */
++u64 fletcher64(void *addr, size_t len, bool le)
++{
++	u32 *buf = addr;
++	u32 lo32 = 0;
++	u64 hi32 = 0;
++	size_t i;
++
++	for (i = 0; i < len / sizeof(u32); i++) {
++		lo32 += le ? le32_to_cpu((le32) buf[i]) : buf[i];
++		hi32 += lo32;
++	}
++
++	return hi32 << 32 | lo32;
++}
+diff --git a/util/fletcher.h b/util/fletcher.h
+new file mode 100644
+index 0000000..e3bbce3
+--- /dev/null
++++ b/util/fletcher.h
+@@ -0,0 +1,8 @@
++#ifndef _NDCTL_FLETCHER_H_
++#define _NDCTL_FLETCHER_H_
++
++#include <ccan/short_types/short_types.h>
++
++u64 fletcher64(void *addr, size_t len, bool le);
++
++#endif /* _NDCTL_FLETCHER_H_ */
 -- 
-2.1.4
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
