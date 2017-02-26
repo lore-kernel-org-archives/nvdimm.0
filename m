@@ -1,74 +1,178 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Fri, 3 Feb 2017 12:01:37 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH] mm, dax: clear PMD or PUD size flags when in fall
- through path
-Message-ID: <20170203190137.GA17709@linux.intel.com>
-References: <148589842696.5820.16078080610311444794.stgit@djiang5-desk3.ch.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 95F4D82123
+ for <linux-nvdimm@lists.01.org>; Sat, 25 Feb 2017 22:40:23 -0800 (PST)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Sat, 25 Feb 2017 23:38:16 -0700
+Message-Id: <1488091097-12328-16-git-send-email-logang@deltatee.com>
+In-Reply-To: <1488091097-12328-1-git-send-email-logang@deltatee.com>
+References: <1488091097-12328-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 15/16] scsi: utilize new cdev_device_add helper function
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <148589842696.5820.16078080610311444794.stgit@djiang5-desk3.ch.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: akpm@linux-foundation.org, mawilcox@microsoft.com, linux-nvdimm@lists.01.org, dave.hansen@linux.intel.com, linux-xfs@vger.kernel.org, linux-mm@kvack.org, kirill.shutemov@linux.intel.com, jack@suse.com, dan.j.williams@intel.com, linux-ext4@vger.kernel.org, ross.zwisler@linux.intel.com, vbabka@suse.cz
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Jan 31, 2017 at 02:33:47PM -0700, Dave Jiang wrote:
-> Ross reported that:
-> Running xfstests generic/030 with XFS + DAX gives me the following kernel BUG,
-> which I bisected to this commit: mm,fs,dax: Change ->pmd_fault to ->huge_fault
-> 
-> [  370.086205] ------------[ cut here ]------------
-> [  370.087182] kernel BUG at arch/x86/mm/fault.c:1038!
-> [  370.088336] invalid opcode: 0000 [#3] PREEMPT SMP
-> [  370.089073] Modules linked in: dax_pmem nd_pmem dax nd_btt nd_e820 libnvdimm
-> [  370.090212] CPU: 0 PID: 12415 Comm: xfs_io Tainted: G      D         4.10.0-rc5-mm1-00202-g7e90fc0 #10
-> [  370.091648] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.9.1-1.fc24 04/01/2014
-> [  370.092946] task: ffff8800ac4f8000 task.stack: ffffc9001148c000
-> [  370.093769] RIP: 0010:mm_fault_error+0x15e/0x190
-> [  370.094410] RSP: 0000:ffffc9001148fe60 EFLAGS: 00010246
-> [  370.095135] RAX: 0000000000000000 RBX: 0000000000000006 RCX: ffff8800ac4f8000
-> [  370.096107] RDX: 00007f111c8e6400 RSI: 0000000000000006 RDI: ffffc9001148ff58
-> [  370.097087] RBP: ffffc9001148fe88 R08: 0000000000000000 R09: ffff880510bd3300
-> [  370.098072] R10: ffff8800ac4f8000 R11: 0000000000000000 R12: 00007f111c8e6400
-> [  370.099057] R13: 00007f111c8e6400 R14: ffff880510bd3300 R15: 0000000000000055
-> [  370.100135] FS:  00007f111d95e700(0000) GS:ffff880514800000(0000) knlGS:0000000000000000
-> [  370.101238] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [  370.102021] CR2: 00007f111c8e6400 CR3: 00000000add00000 CR4: 00000000001406f0
-> [  370.103189] Call Trace:
-> [  370.103537]  __do_page_fault+0x54e/0x590
-> [  370.104090]  trace_do_page_fault+0x58/0x2c0
-> [  370.104675]  do_async_page_fault+0x2c/0x90
-> [  370.105342]  async_page_fault+0x28/0x30
-> [  370.106044] RIP: 0033:0x405e9a
-> [  370.106470] RSP: 002b:00007fffb7f30590 EFLAGS: 00010287
-> [  370.107185] RAX: 00000000004e6400 RBX: 0000000000000057 RCX: 00000000004e7000
-> [  370.108155] RDX: 00007f111c400000 RSI: 00000000004e7000 RDI: 0000000001c35080
-> [  370.109157] RBP: 00000000004e6400 R08: 0000000000000014 R09: 1999999999999999
-> [  370.110158] R10: 00007f111d2dc200 R11: 0000000000000000 R12: 0000000001c32fc0
-> [  370.111165] R13: 0000000000000000 R14: 0000000000000c00 R15: 0000000000000005
-> [  370.112171] Code: 07 00 00 00 e8 a4 ee ff ff e9 11 ff ff ff 4c 89 ea 48 89 de 45 31 c0 31 c9 e8 8f f7 ff ff 48 83 c4 08 5b 41 5c 41 5d 41 5e 5d c3 <0f> 0b 41 8b 94 24 80 04 00 00 49 8d b4 24 b0 06 00 00 4c 89 e9
-> [  370.114823] RIP: mm_fault_error+0x15e/0x190 RSP: ffffc9001148fe60
-> [  370.115722] ---[ end trace 2ce10d930638254d ]---
-> 
-> It appears that there are 2 issues. First, the size bits used for vm_fault
-> needs to be shifted over. Otherwise, FAULT_FLAG_SIZE_PMD is clobbering
-> FAULT_FLAG_INSTRUCTION. Second issue, after create_huge_pmd() is being
-> called and is falling back to the pte fault handler, the FAULT_FLAG_SIZE_PMD
-> flag remains and that causes the dax fault handler to go towards the pmd
-> fault handler instead of the pte fault handler. Fixes are made for the pud
-> and pmd fall through paths.
-> 
-> Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+This driver did not set kobj.parent so it likely suffered from
+a potential use after free race if the user unregistered the
+device while it was in use.
 
-Yep, this seems to solve the issue for me.  Thanks!
+This was not so straightforward a conversion but I think this patch
+cleans up its probe's error path significantly.
 
-Tested-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+This patch adds device_initialize, which is required for
+cdev_device_add. Then it switches to put_device instead of kfree as
+recommended by device_initialize's documentation. This removes a lot
+from the error path which was already in __remove.
+A couple things needed to be re-ordered to be entirely correct, though.
+ida_remove is also moved out of __remove and into unregister to
+simplify things and follow the pattern other devices are using.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+This also drop an extra unnecessary get_device/put_device in the code.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+---
+ drivers/scsi/osd/osd_uld.c | 56 +++++++++++++++++-----------------------------
+ 1 file changed, 20 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/scsi/osd/osd_uld.c b/drivers/scsi/osd/osd_uld.c
+index 243eab3..66b8805 100644
+--- a/drivers/scsi/osd/osd_uld.c
++++ b/drivers/scsi/osd/osd_uld.c
+@@ -399,9 +399,6 @@ static void __remove(struct device *dev)
+ 
+ 	kfree(oud->odi.osdname);
+ 
+-	if (oud->cdev.owner)
+-		cdev_del(&oud->cdev);
+-
+ 	osd_dev_fini(&oud->od);
+ 	scsi_device_put(scsi_device);
+ 
+@@ -410,7 +407,6 @@ static void __remove(struct device *dev)
+ 
+ 	if (oud->disk)
+ 		put_disk(oud->disk);
+-	ida_remove(&osd_minor_ida, oud->minor);
+ 
+ 	kfree(oud);
+ }
+@@ -445,8 +441,20 @@ static int osd_probe(struct device *dev)
+ 	if (NULL == oud)
+ 		goto err_retract_minor;
+ 
++	/* class device member */
++	device_initialize(&oud->class_dev);
+ 	dev_set_drvdata(dev, oud);
+ 	oud->minor = minor;
++	oud->class_dev.devt = MKDEV(SCSI_OSD_MAJOR, oud->minor);
++	oud->class_dev.class = &osd_uld_class;
++	oud->class_dev.parent = dev;
++	oud->class_dev.release = __remove;
++
++	/* hold one more reference to the scsi_device that will get released
++	 * in __release, in case a logout is happening while fs is mounted
++	 */
++	scsi_device_get(scsi_device);
++	osd_dev_init(&oud->od, scsi_device);
+ 
+ 	/* allocate a disk and set it up */
+ 	/* FIXME: do we need this since sg has already done that */
+@@ -460,59 +468,34 @@ static int osd_probe(struct device *dev)
+ 	sprintf(disk->disk_name, "osd%d", oud->minor);
+ 	oud->disk = disk;
+ 
+-	/* hold one more reference to the scsi_device that will get released
+-	 * in __release, in case a logout is happening while fs is mounted
+-	 */
+-	scsi_device_get(scsi_device);
+-	osd_dev_init(&oud->od, scsi_device);
+-
+ 	/* Detect the OSD Version */
+ 	error = __detect_osd(oud);
+ 	if (error) {
+ 		OSD_ERR("osd detection failed, non-compatible OSD device\n");
+-		goto err_put_disk;
++		goto err_free_osd;
+ 	}
+ 
+ 	/* init the char-device for communication with user-mode */
+ 	cdev_init(&oud->cdev, &osd_fops);
+ 	oud->cdev.owner = THIS_MODULE;
+-	error = cdev_add(&oud->cdev,
+-			 MKDEV(SCSI_OSD_MAJOR, oud->minor), 1);
+-	if (error) {
+-		OSD_ERR("cdev_add failed\n");
+-		goto err_put_disk;
+-	}
+ 
+-	/* class device member */
+-	oud->class_dev.devt = oud->cdev.dev;
+-	oud->class_dev.class = &osd_uld_class;
+-	oud->class_dev.parent = dev;
+-	oud->class_dev.release = __remove;
+ 	error = dev_set_name(&oud->class_dev, "%s", disk->disk_name);
+ 	if (error) {
+ 		OSD_ERR("dev_set_name failed => %d\n", error);
+-		goto err_put_cdev;
++		goto err_free_osd;
+ 	}
+ 
+-	error = device_register(&oud->class_dev);
++	error = cdev_device_add(&oud->cdev, &oud->class_dev);
+ 	if (error) {
+ 		OSD_ERR("device_register failed => %d\n", error);
+-		goto err_put_cdev;
++		goto err_free_osd;
+ 	}
+ 
+-	get_device(&oud->class_dev);
+-
+ 	OSD_INFO("osd_probe %s\n", disk->disk_name);
+ 	return 0;
+ 
+-err_put_cdev:
+-	cdev_del(&oud->cdev);
+-err_put_disk:
+-	scsi_device_put(scsi_device);
+-	put_disk(disk);
+ err_free_osd:
+-	dev_set_drvdata(dev, NULL);
+-	kfree(oud);
++	put_device(&oud->class_dev);
+ err_retract_minor:
+ 	ida_remove(&osd_minor_ida, minor);
+ 	return error;
+@@ -529,9 +512,10 @@ static int osd_remove(struct device *dev)
+ 			scsi_device);
+ 	}
+ 
+-	device_unregister(&oud->class_dev);
+-
++	cdev_device_del(&oud->cdev, &oud->class_dev);
++	ida_remove(&osd_minor_ida, oud->minor);
+ 	put_device(&oud->class_dev);
++
+ 	return 0;
+ }
+ 
+-- 
+2.1.4
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
