@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DE4BB8221D
- for <linux-nvdimm@lists.01.org>; Wed, 22 Feb 2017 14:48:41 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 1/3] ndctl: move the fletcher64 routine to util/
-Date: Wed, 22 Feb 2017 15:47:22 -0700
-Message-Id: <20170222224724.7696-2-vishal.l.verma@intel.com>
-In-Reply-To: <20170222224724.7696-1-vishal.l.verma@intel.com>
-References: <20170222224724.7696-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 21D3582132
+ for <linux-nvdimm@lists.01.org>; Sat, 25 Feb 2017 22:40:49 -0800 (PST)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Sat, 25 Feb 2017 23:38:17 -0700
+Message-Id: <1488091097-12328-17-git-send-email-logang@deltatee.com>
+In-Reply-To: <1488091097-12328-1-git-send-email-logang@deltatee.com>
+References: <1488091097-12328-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 16/16] switchtec: utilize new device_add_cdev helper
+ function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,125 +23,64 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for check-namespace, since it will also use the
-fletcher64 routine, move it to util/ so that it can be shared by both
-builtin-check.c and builtin-dimm.c
+Very straightforward conversion to device_add_cdev. Drop cdev_add and
+device_add and use cdev_device_add.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- Makefile.am          |  3 ++-
- ndctl/builtin-dimm.c | 18 ++----------------
- util/fletcher.c      | 23 +++++++++++++++++++++++
- util/fletcher.h      |  8 ++++++++
- 4 files changed, 35 insertions(+), 17 deletions(-)
- create mode 100644 util/fletcher.c
- create mode 100644 util/fletcher.h
+ drivers/pci/switch/switchtec.c | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 06cd1b0..5453b2a 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -68,6 +68,7 @@ libutil_a_SOURCES = \
- 	util/help.c \
- 	util/strbuf.c \
- 	util/wrapper.c \
--	util/filter.c
-+	util/filter.c \
-+	util/fletcher.c
+diff --git a/drivers/pci/switch/switchtec.c b/drivers/pci/switch/switchtec.c
+index 94384e7..bd8135b 100644
+--- a/drivers/pci/switch/switchtec.c
++++ b/drivers/pci/switch/switchtec.c
+@@ -1182,10 +1182,10 @@ static void stdev_unregister(struct switchtec_dev *stdev)
+ 	pci_clear_master(stdev->pdev);
+ 	pci_set_drvdata(stdev->pdev, NULL);
  
- nobase_include_HEADERS = daxctl/libdaxctl.h
-diff --git a/ndctl/builtin-dimm.c b/ndctl/builtin-dimm.c
-index 637b10b..93f9530 100644
---- a/ndctl/builtin-dimm.c
-+++ b/ndctl/builtin-dimm.c
-@@ -22,6 +22,7 @@
- #include <util/json.h>
- #include <util/filter.h>
- #include <json-c/json.h>
-+#include <util/fletcher.h>
- #include <ndctl/libndctl.h>
- #include <util/parse-options.h>
- #include <ccan/minmax/minmax.h>
-@@ -358,7 +359,7 @@ struct nvdimm_data {
- };
+-	cdev_del(&stdev->cdev);
++	cdev_device_del(&stdev->cdev, &stdev->dev);
+ 	ida_simple_remove(&switchtec_minor_ida,
+ 			  MINOR(stdev->dev.devt));
+-	device_unregister(&stdev->dev);
++	put_device(&stdev->dev);
+ }
  
- /*
-- * Note, best_seq(), inc_seq(), fletcher64(), sizeof_namespace_index()
-+ * Note, best_seq(), inc_seq(), sizeof_namespace_index()
-  * nvdimm_num_label_slots(), label_validate(), and label_write_index()
-  * are copied from drivers/nvdimm/label.c in the Linux kernel with the
-  * following modifications:
-@@ -371,21 +372,6 @@ struct nvdimm_data {
-  * 7/ dropped clear_bit_le() usage in label_write_index
-  */
+ static struct switchtec_dev *stdev_create(struct pci_dev *pdev)
+@@ -1231,24 +1231,17 @@ static struct switchtec_dev *stdev_create(struct pci_dev *pdev)
+ 	cdev = &stdev->cdev;
+ 	cdev_init(cdev, &switchtec_fops);
+ 	cdev->owner = THIS_MODULE;
+-	cdev->kobj.parent = &dev->kobj;
  
--static u64 fletcher64(void *addr, size_t len, bool le)
--{
--	u32 *buf = addr;
--	u32 lo32 = 0;
--	u64 hi32 = 0;
--	size_t i;
+-	rc = cdev_add(&stdev->cdev, dev->devt, 1);
++	rc = cdev_device_add(&stdev->cdev, dev);
+ 	if (rc)
+ 		goto err_cdev;
+ 
+-	rc = device_add(dev);
+-	if (rc)
+-		goto err_devadd;
 -
--	for (i = 0; i < len / sizeof(u32); i++) {
--		lo32 += le ? le32_to_cpu((le32) buf[i]) : buf[i];
--		hi32 += lo32;
--	}
--
--	return hi32 << 32 | lo32;
--}
--
- static unsigned inc_seq(unsigned seq)
- {
- 	static const unsigned next[] = { 0, 2, 3, 1 };
-diff --git a/util/fletcher.c b/util/fletcher.c
-new file mode 100644
-index 0000000..cee2fc3
---- /dev/null
-+++ b/util/fletcher.c
-@@ -0,0 +1,23 @@
-+#include <stdlib.h>
-+#include <stdbool.h>
-+#include <util/fletcher.h>
-+#include <ccan/endian/endian.h>
-+#include <ccan/short_types/short_types.h>
-+
-+/*
-+ * Note, fletcher64() is copied from drivers/nvdimm/label.c in the Linux kernel
-+ */
-+u64 fletcher64(void *addr, size_t len, bool le)
-+{
-+	u32 *buf = addr;
-+	u32 lo32 = 0;
-+	u64 hi32 = 0;
-+	size_t i;
-+
-+	for (i = 0; i < len / sizeof(u32); i++) {
-+		lo32 += le ? le32_to_cpu((le32) buf[i]) : buf[i];
-+		hi32 += lo32;
-+	}
-+
-+	return hi32 << 32 | lo32;
-+}
-diff --git a/util/fletcher.h b/util/fletcher.h
-new file mode 100644
-index 0000000..e3bbce3
---- /dev/null
-+++ b/util/fletcher.h
-@@ -0,0 +1,8 @@
-+#ifndef _NDCTL_FLETCHER_H_
-+#define _NDCTL_FLETCHER_H_
-+
-+#include <ccan/short_types/short_types.h>
-+
-+u64 fletcher64(void *addr, size_t len, bool le);
-+
-+#endif /* _NDCTL_FLETCHER_H_ */
+ 	return stdev;
+ 
+-err_devadd:
++err_cdev:
+ 	mutex_lock(&stdev->mrpc_mutex);
+ 	stdev->alive = false;
+ 	mutex_unlock(&stdev->mrpc_mutex);
+-	cdev_del(&stdev->cdev);
+-err_cdev:
+ 	ida_simple_remove(&switchtec_minor_ida, minor);
+ err_put:
+ 	put_device(&stdev->dev);
 -- 
-2.9.3
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
