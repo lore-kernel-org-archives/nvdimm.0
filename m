@@ -2,15 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3B51D820D9
- for <linux-nvdimm@lists.01.org>; Sat, 25 Feb 2017 22:41:24 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 174FC8210A
+ for <linux-nvdimm@lists.01.org>; Sat, 25 Feb 2017 22:40:21 -0800 (PST)
 From: Logan Gunthorpe <logang@deltatee.com>
-Date: Sat, 25 Feb 2017 23:38:02 -0700
-Message-Id: <1488091097-12328-2-git-send-email-logang@deltatee.com>
+Date: Sat, 25 Feb 2017 23:38:09 -0700
+Message-Id: <1488091097-12328-9-git-send-email-logang@deltatee.com>
 In-Reply-To: <1488091097-12328-1-git-send-email-logang@deltatee.com>
 References: <1488091097-12328-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 01/16] chardev: add helper function to register char devs
- with a struct device
+Subject: [PATCH v2 08/16] IB/ucm: utilize new cdev_device_add helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,172 +26,113 @@ To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.william
 Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Credit for this patch goes is shared with Dan Williams [1]. I've
-taken things one step further to make the helper function more
-useful and clean up calling code.
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 
-There's a common pattern in the kernel whereby a struct cdev is placed
-in a structure along side a struct device which manages the life-cycle
-of both. In the naive approach, the reference counting is broken and
-the struct device can free everything before the chardev code
-is entirely released.
+The use after free is not triggerable here because the cdev holds
+the module lock and the only device_unregister is only triggered by
+module unload, however make the change for consistency.
 
-Many developers have solved this problem by linking the internal kobjs
-in this fashion:
+To make this work the cdev_del needs to move out of the struct device
+release function.
 
-cdev.kobj.parent = &parent_dev.kobj;
+This cleans up the error path significantly and thus also fixes a minor
+bug where the devnum would not be released if cdev_add failed.
 
-The cdev code explicitly gets and puts a reference to it's kobj parent.
-So this seems like it was intended to be used this way. Dmitrty Torokhov
-first put this in place in 2012 with this commit:
-
-2f0157f char_dev: pin parent kobject
-
-and the first instance of the fix was then done in the input subsystem
-in the following commit:
-
-4a215aa Input: fix use-after-free introduced with dynamic minor changes
-
-Subsequently over the years, however, this issue seems to have tripped
-up multiple developers independently. For example, see these commits:
-
-0d5b7da iio: Prevent race between IIO chardev opening and IIO device
-(by Lars-Peter Clausen in 2013)
-
-ba0ef85 tpm: Fix initialization of the cdev
-(by Jason Gunthorpe in 2015)
-
-5b28dde [media] media: fix use-after-free in cdev_put() when app exits
-after driver unbind
-(by Shauh Khan in 2016)
-
-This technique is similarly done in at least 15 places within the kernel
-and probably should have been done so in another, at least, 5 places.
-The kobj line also looks very suspect in that one would not expect
-drivers to have to mess with kobject internals in this way.
-Even highly experienced kernel developers can be surprised by this
-code, as seen in [2].
-
-To help alleviate this situation, and hopefully prevent future
-wasted effort on this problem, this patch introduces a helper function
-to register a char device along with its parent struct device.
-This creates a more regular API for tying a char device to its parent
-without the developer having to set members in the underlying kobject.
-
-This patch introduce cdev_device_add and cdev_device_del which
-replaces a common pattern including setting the kobj parent, calling
-cdev_add and then calling device_add. It also introduces cdev_set_parent
-for the few cases that set the kobject parent without using device_add.
-
-[1] https://lkml.org/lkml/2017/2/13/700
-[2] https://lkml.org/lkml/2017/2/10/370
-
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- fs/char_dev.c        | 67 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/cdev.h |  4 ++++
- 2 files changed, 71 insertions(+)
+ drivers/infiniband/core/ucm.c | 36 +++++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 17 deletions(-)
 
-diff --git a/fs/char_dev.c b/fs/char_dev.c
-index 44a240c..471d480 100644
---- a/fs/char_dev.c
-+++ b/fs/char_dev.c
-@@ -471,6 +471,70 @@ int cdev_add(struct cdev *p, dev_t dev, unsigned count)
- 	return 0;
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index e0a995b..c348701 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -1205,12 +1205,15 @@ static void ib_ucm_release_dev(struct device *dev)
+ 	struct ib_ucm_device *ucm_dev;
+ 
+ 	ucm_dev = container_of(dev, struct ib_ucm_device, dev);
+-	cdev_del(&ucm_dev->cdev);
++	kfree(ucm_dev);
++}
++
++static void ib_ucm_free_dev(struct ib_ucm_device *ucm_dev)
++{
+ 	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
+ 		clear_bit(ucm_dev->devnum, dev_map);
+ 	else
+ 		clear_bit(ucm_dev->devnum - IB_UCM_MAX_DEVICES, overflow_map);
+-	kfree(ucm_dev);
  }
  
-+/**
-+ * cdev_set_parent() - set the parent kobject for a char device
-+ * @p: the cdev structure
-+ * @kobj: the kobject to take a reference to
-+ *
-+ * cdev_set_parent() sets a parent kobject which will be referenced
-+ * appropriately so the parent is not freed before the cdev. This
-+ * should be called before cdev_add.
-+ */
-+void cdev_set_parent(struct cdev *p, struct kobject *kobj)
-+{
-+	WARN_ON(!kobj->state_initialized);
-+	p->kobj.parent = kobj;
-+}
-+
-+/**
-+ * cdev_device_add() - add a char device and it's corresponding
-+ *	struct device, linkink
-+ * @dev: the device structure
-+ * @cdev: the cdev structure
-+ *
-+ * cdev_device_add() adds the char device represented by @cdev to the system,
-+ * just as cdev_add does. It then adds @dev to the system using device_add
-+ * The dev_t for the char device will be taken from the struct device which
-+ * needs to be initialized first. This helper function correctly takes a
-+ * reference to the parent device so the parent will not get released until
-+ * all references to the cdev are released.
-+ *
-+ * This function should be used whenever the struct cdev and the
-+ * struct device are members of the same structure whose lifetime is
-+ * managed by the struct device.
-+ */
-+int cdev_device_add(struct cdev *cdev, struct device *dev)
-+{
-+	int rc = 0;
-+
-+	cdev_set_parent(cdev, &dev->kobj);
-+
-+	rc = cdev_add(cdev, dev->devt, 1);
-+	if (rc)
-+		return rc;
-+
-+	rc = device_add(dev);
-+	if (rc)
-+		cdev_del(cdev);
-+
-+	return rc;
-+}
-+
-+/**
-+ * cdev_device_del() - inverse of cdev_device_add
-+ * @dev: the device structure
-+ * @cdev: the cdev structure
-+ *
-+ * cdev_device_del() is a helper function to call cdev_del
-+ * and device_del. It should be used whenever cdev_device_add
-+ * is used.
-+ */
-+void cdev_device_del(struct cdev *cdev, struct device *dev)
-+{
-+	device_del(dev);
-+	cdev_del(cdev);
-+}
-+
- static void cdev_unmap(dev_t dev, unsigned count)
- {
- 	kobj_unmap(cdev_map, dev, count);
-@@ -570,5 +634,8 @@ EXPORT_SYMBOL(cdev_init);
- EXPORT_SYMBOL(cdev_alloc);
- EXPORT_SYMBOL(cdev_del);
- EXPORT_SYMBOL(cdev_add);
-+EXPORT_SYMBOL(cdev_set_parent);
-+EXPORT_SYMBOL(cdev_device_add);
-+EXPORT_SYMBOL(cdev_device_del);
- EXPORT_SYMBOL(__register_chrdev);
- EXPORT_SYMBOL(__unregister_chrdev);
-diff --git a/include/linux/cdev.h b/include/linux/cdev.h
-index f876361..4c99579 100644
---- a/include/linux/cdev.h
-+++ b/include/linux/cdev.h
-@@ -26,6 +26,10 @@ void cdev_put(struct cdev *p);
+ static const struct file_operations ucm_fops = {
+@@ -1266,7 +1269,9 @@ static void ib_ucm_add_one(struct ib_device *device)
+ 	if (!ucm_dev)
+ 		return;
  
- int cdev_add(struct cdev *, dev_t, unsigned);
++	device_initialize(&ucm_dev->dev);
+ 	ucm_dev->ib_dev = device;
++	ucm_dev->dev.release = ib_ucm_release_dev;
  
-+void cdev_set_parent(struct cdev *p, struct kobject *kobj);
-+int cdev_device_add(struct cdev *cdev, struct device *dev);
-+void cdev_device_del(struct cdev *cdev, struct device *dev);
+ 	devnum = find_first_zero_bit(dev_map, IB_UCM_MAX_DEVICES);
+ 	if (devnum >= IB_UCM_MAX_DEVICES) {
+@@ -1283,19 +1288,18 @@ static void ib_ucm_add_one(struct ib_device *device)
+ 		set_bit(devnum, dev_map);
+ 	}
+ 
 +
- void cdev_del(struct cdev *);
+ 	cdev_init(&ucm_dev->cdev, &ucm_fops);
+ 	ucm_dev->cdev.owner = THIS_MODULE;
+ 	kobject_set_name(&ucm_dev->cdev.kobj, "ucm%d", ucm_dev->devnum);
+-	if (cdev_add(&ucm_dev->cdev, base, 1))
+-		goto err;
  
- void cd_forget(struct inode *);
+ 	ucm_dev->dev.class = &cm_class;
+ 	ucm_dev->dev.parent = device->dma_device;
+-	ucm_dev->dev.devt = ucm_dev->cdev.dev;
+-	ucm_dev->dev.release = ib_ucm_release_dev;
++	ucm_dev->dev.devt = base;
++
+ 	dev_set_name(&ucm_dev->dev, "ucm%d", ucm_dev->devnum);
+-	if (device_register(&ucm_dev->dev))
+-		goto err_cdev;
++	if (cdev_device_add(&ucm_dev->cdev, &ucm_dev->dev))
++		goto err_devnum;
+ 
+ 	if (device_create_file(&ucm_dev->dev, &dev_attr_ibdev))
+ 		goto err_dev;
+@@ -1304,15 +1308,11 @@ static void ib_ucm_add_one(struct ib_device *device)
+ 	return;
+ 
+ err_dev:
+-	device_unregister(&ucm_dev->dev);
+-err_cdev:
+-	cdev_del(&ucm_dev->cdev);
+-	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
+-		clear_bit(devnum, dev_map);
+-	else
+-		clear_bit(devnum, overflow_map);
++	cdev_device_del(&ucm_dev->cdev, &ucm_dev->dev);
++err_devnum:
++	ib_ucm_free_dev(ucm_dev);
+ err:
+-	kfree(ucm_dev);
++	put_device(&ucm_dev->dev);
+ 	return;
+ }
+ 
+@@ -1323,7 +1323,9 @@ static void ib_ucm_remove_one(struct ib_device *device, void *client_data)
+ 	if (!ucm_dev)
+ 		return;
+ 
+-	device_unregister(&ucm_dev->dev);
++	cdev_device_del(&ucm_dev->cdev, &ucm_dev->dev);
++	ib_ucm_free_dev(ucm_dev);
++	put_device(&ucm_dev->dev);
+ }
+ 
+ static CLASS_ATTR_STRING(abi_version, S_IRUGO,
 -- 
 2.1.4
 
