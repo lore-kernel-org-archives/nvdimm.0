@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 174FC8210A
- for <linux-nvdimm@lists.01.org>; Sat, 25 Feb 2017 22:40:21 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 8293F820B9
+ for <linux-nvdimm@lists.01.org>; Sat, 25 Feb 2017 22:40:08 -0800 (PST)
 From: Logan Gunthorpe <logang@deltatee.com>
-Date: Sat, 25 Feb 2017 23:38:09 -0700
-Message-Id: <1488091097-12328-9-git-send-email-logang@deltatee.com>
+Date: Sat, 25 Feb 2017 23:38:14 -0700
+Message-Id: <1488091097-12328-14-git-send-email-logang@deltatee.com>
 In-Reply-To: <1488091097-12328-1-git-send-email-logang@deltatee.com>
 References: <1488091097-12328-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 08/16] IB/ucm: utilize new cdev_device_add helper function
+Subject: [PATCH v2 13/16] rapidio: utilize new cdev_device_add helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,113 +26,88 @@ To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.william
 Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+This driver did not originally set kobj.parent so it likely had
+potential a use after free bug which this patch fixes.
 
-The use after free is not triggerable here because the cdev holds
-the module lock and the only device_unregister is only triggered by
-module unload, however make the change for consistency.
+We convert from device_register to device_initialize/cdev_device_add.
+While we are at it we use put_device instead of kfree (as recommended
+by the device_initialize documentation). We also remove an unnecessary
+extra get_device from the code.
 
-To make this work the cdev_del needs to move out of the struct device
-release function.
-
-This cleans up the error path significantly and thus also fixes a minor
-bug where the devnum would not be released if cdev_add failed.
-
-Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/infiniband/core/ucm.c | 36 +++++++++++++++++++-----------------
- 1 file changed, 19 insertions(+), 17 deletions(-)
+ drivers/rapidio/devices/rio_mport_cdev.c | 24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index e0a995b..c348701 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1205,12 +1205,15 @@ static void ib_ucm_release_dev(struct device *dev)
- 	struct ib_ucm_device *ucm_dev;
+diff --git a/drivers/rapidio/devices/rio_mport_cdev.c b/drivers/rapidio/devices/rio_mport_cdev.c
+index 9013a58..b8165e9 100644
+--- a/drivers/rapidio/devices/rio_mport_cdev.c
++++ b/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -2445,31 +2445,25 @@ static struct mport_dev *mport_cdev_add(struct rio_mport *mport)
+ 	mutex_init(&md->buf_mutex);
+ 	mutex_init(&md->file_mutex);
+ 	INIT_LIST_HEAD(&md->file_list);
+-	cdev_init(&md->cdev, &mport_fops);
+-	md->cdev.owner = THIS_MODULE;
+-	ret = cdev_add(&md->cdev, MKDEV(MAJOR(dev_number), mport->id), 1);
+-	if (ret < 0) {
+-		kfree(md);
+-		rmcd_error("Unable to register a device, err=%d", ret);
+-		return NULL;
+-	}
  
- 	ucm_dev = container_of(dev, struct ib_ucm_device, dev);
--	cdev_del(&ucm_dev->cdev);
-+	kfree(ucm_dev);
-+}
+-	md->dev.devt = md->cdev.dev;
++	device_initialize(&md->dev);
++	md->dev.devt = MKDEV(MAJOR(dev_number), mport->id);
+ 	md->dev.class = dev_class;
+ 	md->dev.parent = &mport->dev;
+ 	md->dev.release = mport_device_release;
+ 	dev_set_name(&md->dev, DEV_NAME "%d", mport->id);
+ 	atomic_set(&md->active, 1);
+ 
+-	ret = device_register(&md->dev);
++	cdev_init(&md->cdev, &mport_fops);
++	md->cdev.owner = THIS_MODULE;
 +
-+static void ib_ucm_free_dev(struct ib_ucm_device *ucm_dev)
-+{
- 	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
- 		clear_bit(ucm_dev->devnum, dev_map);
- 	else
- 		clear_bit(ucm_dev->devnum - IB_UCM_MAX_DEVICES, overflow_map);
--	kfree(ucm_dev);
- }
- 
- static const struct file_operations ucm_fops = {
-@@ -1266,7 +1269,9 @@ static void ib_ucm_add_one(struct ib_device *device)
- 	if (!ucm_dev)
- 		return;
- 
-+	device_initialize(&ucm_dev->dev);
- 	ucm_dev->ib_dev = device;
-+	ucm_dev->dev.release = ib_ucm_release_dev;
- 
- 	devnum = find_first_zero_bit(dev_map, IB_UCM_MAX_DEVICES);
- 	if (devnum >= IB_UCM_MAX_DEVICES) {
-@@ -1283,19 +1288,18 @@ static void ib_ucm_add_one(struct ib_device *device)
- 		set_bit(devnum, dev_map);
++	ret = cdev_device_add(&md->cdev, &md->dev);
+ 	if (ret) {
+ 		rmcd_error("Failed to register mport %d (err=%d)",
+ 		       mport->id, ret);
+ 		goto err_cdev;
  	}
  
-+
- 	cdev_init(&ucm_dev->cdev, &ucm_fops);
- 	ucm_dev->cdev.owner = THIS_MODULE;
- 	kobject_set_name(&ucm_dev->cdev.kobj, "ucm%d", ucm_dev->devnum);
--	if (cdev_add(&ucm_dev->cdev, base, 1))
--		goto err;
+-	get_device(&md->dev);
+-
+ 	INIT_LIST_HEAD(&md->doorbells);
+ 	spin_lock_init(&md->db_lock);
+ 	INIT_LIST_HEAD(&md->portwrites);
+@@ -2514,8 +2508,7 @@ static struct mport_dev *mport_cdev_add(struct rio_mport *mport)
+ 	return md;
  
- 	ucm_dev->dev.class = &cm_class;
- 	ucm_dev->dev.parent = device->dma_device;
--	ucm_dev->dev.devt = ucm_dev->cdev.dev;
--	ucm_dev->dev.release = ib_ucm_release_dev;
-+	ucm_dev->dev.devt = base;
-+
- 	dev_set_name(&ucm_dev->dev, "ucm%d", ucm_dev->devnum);
--	if (device_register(&ucm_dev->dev))
--		goto err_cdev;
-+	if (cdev_device_add(&ucm_dev->cdev, &ucm_dev->dev))
-+		goto err_devnum;
- 
- 	if (device_create_file(&ucm_dev->dev, &dev_attr_ibdev))
- 		goto err_dev;
-@@ -1304,15 +1308,11 @@ static void ib_ucm_add_one(struct ib_device *device)
- 	return;
- 
- err_dev:
--	device_unregister(&ucm_dev->dev);
--err_cdev:
--	cdev_del(&ucm_dev->cdev);
--	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
--		clear_bit(devnum, dev_map);
--	else
--		clear_bit(devnum, overflow_map);
-+	cdev_device_del(&ucm_dev->cdev, &ucm_dev->dev);
-+err_devnum:
-+	ib_ucm_free_dev(ucm_dev);
- err:
--	kfree(ucm_dev);
-+	put_device(&ucm_dev->dev);
- 	return;
+ err_cdev:
+-	cdev_del(&md->cdev);
+-	kfree(md);
++	put_device(&md->dev);
+ 	return NULL;
  }
  
-@@ -1323,7 +1323,9 @@ static void ib_ucm_remove_one(struct ib_device *device, void *client_data)
- 	if (!ucm_dev)
- 		return;
+@@ -2579,7 +2572,7 @@ static void mport_cdev_remove(struct mport_dev *md)
+ 	atomic_set(&md->active, 0);
+ 	mport_cdev_terminate_dma(md);
+ 	rio_del_mport_pw_handler(md->mport, md, rio_mport_pw_handler);
+-	cdev_del(&(md->cdev));
++	cdev_device_del(&md->cdev, &md->dev);
+ 	mport_cdev_kill_fasync(md);
  
--	device_unregister(&ucm_dev->dev);
-+	cdev_device_del(&ucm_dev->cdev, &ucm_dev->dev);
-+	ib_ucm_free_dev(ucm_dev);
-+	put_device(&ucm_dev->dev);
+ 	flush_workqueue(dma_wq);
+@@ -2604,7 +2597,6 @@ static void mport_cdev_remove(struct mport_dev *md)
+ 
+ 	rio_release_inb_dbell(md->mport, 0, 0x0fff);
+ 
+-	device_unregister(&md->dev);
+ 	put_device(&md->dev);
  }
  
- static CLASS_ATTR_STRING(abi_version, S_IRUGO,
 -- 
 2.1.4
 
