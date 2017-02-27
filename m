@@ -1,11 +1,16 @@
-From: =?GB2312?B?yq+bTr31?= <dlseikun-KAFJ/qX7cq8AvxtiuMwx3w@public.gmane.org>
-Subject: =?GB2312?B?yOe6zr21tc2yybm6uPfP7rPJsb4=?=
-Date: Mon, 27 Feb 2017 10:48:30 +0800
-Message-ID: <20170227024828.7AAA2821BB@ml01.01.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v2 06/16] tpm-chip: utilize new cdev_device_add helper
+ function
+Date: Mon, 27 Feb 2017 09:42:09 -0700
+Message-ID: <20170227164209.GD5891@obsidianresearch.com>
+References: <1488091097-12328-1-git-send-email-logang@deltatee.com>
+ <1488091097-12328-7-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1488091097-12328-7-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,151 +20,65 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Alexandre Bounine <alexandre.bounine-49Rm3DX9dRQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Matt Porter <mporte>
 List-Id: linux-nvdimm@lists.01.org
 
-CmxpbnV4LW52ZGltbToKvbW1zbLJubqzybG+vLC5qdOmyczMuMXQvLzHyQpsaW51eC1udmRpbW1A
-bGlzdHMuMDEub3JnCsqxvOS12LXjo7ogCjIwMTfE6jAz1MIwMy0wNMjVye7b2qGiMDPUwjE3LTE4
-yNXJz7qjICAKv86zzLfR08OjuiAzMjAw1Kogo6iw/MCo18rBz7fRoaLO57LNvLDJz8/Czuey6LXj
-tcijqQq/zrPMttTP86O6uN+y47ncwO3V36Gissm5urK/w8Whosa3udyyv8PFoaLJ6LzGsr/DxaGi
-ssbO8bK/w8W8sMbky/vP4LnYsr/DxcjL1LEuCrGow/vXydGvtee7sKO6MDc1NS02MTItODguMDM1
-ICAgMDEwLTUxNi02MS44NjMgICAwMjEtMzEyLTYxLjU4MCAK1NrP39fJ0a8gUVGjujY5ODM0MzYg
-ICCxqMP70MXP5KO6Njk4MzQzNkBxcS5jb20gICixqMP7x+u72Li0IM6yxKmxqMP7se2jqQoKv86z
-zLGzvrCjugrX1NbQufq9+Mjr0MKzo8ys0tTAtKOsuPfA4Mbz0rW1xMn6tOa7t76ztry3osn6wcvS
-u7aotcS4xLHkoaPU2rL6xNy5/cqjo6y+utX5tcTRucGm1L3AtNS9tPO1xM/W17TPwqOsyOe6zr21
-tc2yybm6tcS498/us8mxvqO/yOe6zrfWzva5qdOmycy1xLGovNujv8jnus7HobWxtcTM4bP2ztK3
-vbXEssm5utKqx/OjrLb4srvWwdPauanTpsnMsai829DpuN+jv7WxztK3vc6qyPXKxsqxo6zI57rO
-zOG4387Sw8e1xMu1t/7Bpj8gyOe6zrrPwO3J6NbD1K2yxMHPtcSwssirv+K05j/I57rO1MvTw9XQ
-seq8vMr1wLS9tbXNssm5urPJsb6jv9Xi0Km2vMrH0rXE2rLJubrNrNDQw8e52NeitcS9ubXj0unM
-4qGjCgq/zrPMytXS5qO6Cj8JyOe6zsnotqiyybm6udzA7bXEvKjQp8S/seqjvyAgCj8JyOe6ztbG
-tqmyybm6s8mxvtSky+Ojvwo/Ccjnus6x3MPisrux2NKqtcSyybm6s8mxvqO/Cj8JyOe6zrfWzva5
-qdOmycy1xLGovNujvwo/Ccjnus7WxraozLjF0LzGu66jvwo/Ccjnus7Uy9PDssm5usy4xdC1xL21
-wfrKrr7F1cajvwo/Ccjnus66z8DtyejWw7LJubrO78a3tcSwssirv+K05qO/Cj8JyOe6zs2ouf3V
-0LHqvfjQ0NPQ0Ke1xCK/s7zbIqO/Cgq/zrPMtPO42aO6CrXa0ru9sqO6yOe6zsnotqiyybm6udzA
-7bXEvKjQp8S/seqjvwo/CbLJubq53MDttcRLUEnWuLHq09DExNCpo78KPwm499bWssm5urncwO21
-xMS/seqy7tLsCj8Jssm5urPJsb61xNGnz7DH+s/fCj8Jssm5usq1zu/T67LJubq3/s7xtcTLs9Dy
-x/ix8Ao/Cc6qyrLDtLLJubqzybG+1L3AtNS9w/S40KO/Cj8Jssm5urPJsb653MDttcS3vbeo09DE
-xNCpo78KPwnM18basaPWtSAKPwnI57rO1/a6w7LJubq5qdOmycy1xLncwO2jvwo/Cc3q1fu1xLLJ
-ubq53MDtzOXPtQq12rb+vbKjusjnus6x4NbGssm5urPJsb7UpMvjo78KPwm5q8u+ssbO8dSky+O1
-xM7ltPPE2sjdCj8Jt9HTw9Sky+O1xMvEzNe3vbeoCj8JyOe6zr/Y1sbUy9f30NSyybm6tcS5zLao
-1KTL4wo/CcHju/nUpMvj0+vU9sG/1KTL4wo/Ccqyw7TKx7jFwsrUpMvjCj8J07DP7LLJubrUpMvj
-17zIt9DUtcTB+bTz0vLL2Ao/Cbmry77I57rOyei2qLLJubrUpMvjtcS/vLrLxL+x6go/Ccqyw7TK
-x7bgxre4tLrP1KTL46O/Cj8JyOe6zrvxyKHQ0MfpvNu48dDFz6Kjvwo/Cc34wufL0cv3tcTLxLTz
-zb6+tgo/Ccjnus7M4bjfsNm2yLXIy9HL97XE0KfCyqO/Cj8JyrLDtMrHz7XNs9DUy9HL9wo/Ccqy
-w7TKx7S51rHL0cv3Cj8Jssm5utaws6HC28yzCj8JQiB0byBCIM341b7Su8DAse0KPwnT0NCnwPvT
-w7zbuPHUpLLitcTXqNK1zfjVvgq12sj9vbKjusjnus6x3MPisrux2NKqtcSyybm6s8mxvqO/Cj8J
-ssm5urXEyKjBptPQtuC086O/Cj8JyOe6zsjDuPeyv8PFxeS6zwo/Ccjnus6x3MPisrux2NKqtcSy
-ybm6s8mxvqO/Cj8JsLjA/bfWzvYKtdrLxL2yo7rI57rOt9bO9rmp06bJzLXEsai826O/CrXa0ru9
-2qO6uanTpsnMw8fKx8jnus62qLzbo78KPwmy+sa3vNu48crH1PXR+baos/bAtLXEo78KPwnKssO0
-ysfQ0Mfptqi827eoPwo/Ccqyw7TKx7zb1rW2qLzbt6ijvwo/Cbzb1rW2qLzbt6jI57rOtqi82wo/
-CbPJsb62qLzbt6jI57rOtqi82wo/Ccqyw7TKx7HfvMqzybG+tqi827eoIAo/Ccqyw7TKx7Hktq+z
-ybG+0+u5zLaos8mxvgo/Ccqyw7TKx7HfvMq5sc/XCj8Jsd+8yrPJsb62qLzbt6i21LLJubq1xMb0
-t6IKPwnKssO0ysfEv7HqytXS5raovNu3qAo/CcS/serK1dLmtqi827eotcSyybm6xvS3ogo/Ccbz
-0rXA4NDNsrvNrLbUs8mxvraovNu3qLXE07DP7Ao/Ccn6svqzp7zStcTLxNbWuanTpsG0wODQzQo/
-CcvE1ta5qdOmwbTA4NDNtcS2qLzbCj8JtPq5pMbz0rW1xLPJsb62qLzbt6gKPwm0+rmkxvPStbPJ
-sb62qLzbt6i1xLLJubrSqrXjCj8JyrLDtMrHIrC0yfqy+sqxvOS31syvIj8KPwnJzMOz0M3G89K1
-tcS2qLzbzNi14wo/CcnMw7PQzcnMxre1xM7ltPO31sDgIAo/CcnMw7Oy+sa3t9bA4LXEssm5usb0
-CrXatv692qO6yOe6zrfWzva5qdOmycy1xLGovNujvwo/Cbmp06bJzLXEwb3W1rGovNvQzsq9Cj8J
-z/u6xNDUsvrGt7PJsb7D98+4se0KPwnXyrL60NSy+sa3s8mxvsP3z7ix7Qo/CdfKsvrQzbLJubq1
-xMj91tbQzsq9Cj8JzqrKssO0ztLDx9fitviyu8Lyo78KPwm/ydfiwd61xMHs0/IKPwnOqsqyw7TS
-qs3isPyjvwo/Cbf+zvHQ1Lmp06bJzMjnus6xqLzbCrXazuW9sqO607DP7LLJubrMuMXQ0Ke5+7XE
-0vLL2NPQxMTQqaO/Cj8JuPfW1sy4xdC1xLHIvc8KPwnBorOh0NTMuMXQ0+vA+9Lm0NTMuMXQtcSx
-yL3PCj8Jus7OqiK5q8a9Igo/CbrOzqrLq9OuCj8Jssm5usy4xdC1xEtQSda4serT0MTE0KkKPwmy
-ybm6zLjF0LXEu/mxvsH3s8wKPwnExNCp0vLL2LbUztK1xMy4xdDE3MGm07DP7L3PtPMKPwnQ1Ljx
-tcTLxNbWwODQzQo/CdDUuPG1xNfpus/M2NX3Cj8J0NS48dPr1rDStQo/CdDUuPG1xMalxeTQ1Ao/
-CdDUuPHT68y4xdAKPwnE+tfuyN3S17rN1+6yu8jd0tfP4LSmtcTMuMXQttTK1go/CcvE1tbMuMXQ
-ttTK1rXEzNi149PQxMTQqQo/Ccjnus6/y7f+19TJ7bXEyPW14wq12sH5vbKjusjnus7WxraozLjF
-0LXEvMa7rqO/Cj8JvLTQy9DUzLjF0NPrvMa7rtDUzLjF0Ao/CdbGtqjMuMXQvMa7rrXExt+087K9
-1ugKPwm12tK7sr2jusurt73S4s/ytcTD98i3Cj8Jtdq2/rK9o7rLq7e9su7S7LXEt9bO9go/CbXa
-yP2yvaO6uPfP7rfWxue1xNbY0qrQ1MbAt9YKPwm12svEsr2jusnotqi498/ut9bG57XEzLjF0MS/
-seoKPwm12s7lsr2jurj3zLjF0MS/seq1xLLfwtS2qNDUCj8JtdrB+bK9o7rMuMXQt73KvbXEyLe2
-qAo/CbXaxt+yvaO60KHX6bPJ1LG1xLfWuaQKtdrG372yo7rI57rOyrXKqdPQ0Ke1xMy4xdCjvwo/
-Cb+qs6G/qrXDyOe6zgo/CdX7uPbMuMXQtcTVxr/YyOe6zgo/CcTE1ta/s7zbt73Kvbj8usMKPwnE
-xNbWzLjF0NDOyr3I3dLXs/bOysziCj8JyOe6ztf2usO157uwzLjF0Ao/Cc6qyrLDtM7St7274cj1
-ysajvwo/Cc7St73Oqsj1ysbU9cO0zLgKPwnKssO0yse31r3Xts6yz8qzCj8Jt9a917bOss/Ks7XE
-st/C1LK91ugKPwnI57rOzOHJ/cu1t/7Bpgo/CbXayP23vbXEss6/vNLAvt0KPwnI57rOzOG438y4
-xdDKsbXEubXNqMq10KcKPwnO0sPHu+HOys7KzOLC8Ao/Ccjnus7Oys7KzOLC8Ao/Cbe0srW21Le9
-tcS8uNbWt73KvQo/Cbm1zai1xL37vMkKPwm21Le9uvbTxs7S1PXDtMy4Cj8JyOe6zs3su9jKp87z
-o6jKp7/ao6kKPwmz9s/Wvam+1tT1w7TMuAo/Ccy4xdC94cr4yrHU9cO0sOwKPwnI57rO0+uyu82s
-tcS21M/zzLjF0Ao/CbLJubrMuMXQtcQnvbXB+squvsXVxicKPwm12tK7o7rK1My9vMYKPwm12rb+
-o7rJ+baru/fO97zGCj8JtdrI/aO6x7/Iy8v5xNG8xgo/CbXay8Sjuru7zrvLvL+8vMYKPwm12s7l
-o7rHycGiw/vEv7zGCj8JtdrB+aO6z8jH4brz1ti8xgo/CbXaxt+jurW1vP3FxrzGCj8Jtdqwy6O6
-y7PK1sej0fK8xgo/CbXavsWjurykvau8xgo/CbXayq6jus/etqjRodTxvMYKPwm12squ0rujusjL
-x+m8xgo/CbXayq62/qO60KHIpsPczLi8xgo/CbXayq7I/aO6t+7LzdGh1PHIqLzGCj8JtdrKrsvE
-o7rS1L6y1sa2r7zGCj8JtdrKrs7lo7qztcLWvMYKPwm12squwfmjury30cC44LzGCj8JtdrKrsbf
-o7rT+8fcucrX3bzGCj8JtdrKrrDLo7q45r2rvMYKPwm12squvsWjurrswbPT67DXwbMKtdqwy72y
-o7rI57rOvbW1zbLJubrO78a3tcS/4rTms8mxvqO/CrXa0ru92qO6v+K05rncwO21xMz01b3Kx8qy
-w7Sjvwo/Cc7Sw8fOqsqyw7TSqrG4v+K05go/Cb/itOa5/bjftcTIsbXj09DExNCpCj8JssbO8bnc
-wO21xMj91cWx7Qo/CdW808O088G/18q98LXEuvO5+wo/Ccbz0rXAz9fcttS/4rTmudzA7bXE0qrH
-89PQxMTQqQo/Cbriwb+/4rTmyse38bv90bm1xNa4serT0MTE0KkKPwm/4rTm1tzXqsLKtcS8uNbW
-y+O3qAo/Ccjnus68xsvjxLO1pca31Nq1pb/itcTW3NeqwsoKPwnI57rOvMbL47mry77X3L/itOa1
-xNbc16rCygo/CdTss8m5q8u+19y/4rTmu7rC/bXE0vLL2NPQxMTQqQo/Cb/itObW3NeqwsrMq7/s
-tcTIsbXjCrXatv692qO6yOe6zrrPwO3J6NbDsLLIq7/itOajvwo/Ccqyw7TKx7CyyKu/4rTmCj8J
-vva2qLCyyKu/4rTmwb+1xMG9tPPSqsvYCj8JsLLIq7/itObS8tfT0+u/4rTmt/7O8cuuxr21xLnY
-z7Wx7Qo/Ccjnus68xsvjsLLIq7/itOa53MDtz9bXtNa1Cj8JyOe6zrzGy+PWuLaoy8279cjVxtq1
-xCe2qbWlz+zTpsqxvOQnCj8JyrLDtMrHserXvLLuCj8JyrLDtMrH1f3MrLfWsrwKPwm8xsvjserX
-vLLutcTX99PDCj8JserXvLLutcS8xsvjCj8JyOe6zs3Gy+PP1tPQv+K05sG/yrG1xLCyyKu/4rTm
-wb+8sMixu/XCygo/CdT10fnNxsvjsrvE3Mixu/XKsbXEsLLIq7/itObBvwo/Ccjnus689cnZsLLI
-q7/itObBvwo/CdOwz+ywssirv+K05sno1sO1xNLyy9gKPwnI57rOyei2qLCyyKu/4rTmwb8KPwnI
-57rOxdC2z7CyyKu/4rTmyei2qLXEus/A7dDUCrXayP292qO6yOe6ztf2usNKSVS5qdOmudzA7aO/
-Cj8JyrLDtMrHSklUuanTprncwO0KPwnKssO0ysciweO/4rTmudzA7SIKPwlKSVS5qdOmtcTI/dbW
-wODQzQo/CUpJVLmp06a21Murt721xMD70+ux1wo/Ccjnus7T0NCnyrXKqUpJVLmp06a3vcq9CrXa
-vsW9sqO6yOe6zs2ouf3V0M22seq9+NDQ09DQp7XEIr+zvNsio78KPwnG89K1ssm5utPr1f64rrLJ
-ubq1xMf4sfAKPwnV/riussm5urXEudzA7bbUz/MKPwnV/riussm5urXEzuXW1tDOyr0KPwnKssO0
-vdAi0fux6iIKPwnKssO0x+m/9s/C06a4w7LJ08PV0M22seoKPwmyu82sssm5urXE1dCx6szYteMK
-PwnI57rOyrXKqdH7x+vV0M22seoKPwnI57rO17yxuNXQserOxLz+Cj8JxsCx6re9t6jT0MTE0KkK
-PwnEs7mry761xMbAseqwuMD9Cj8Jtdq2/rK9o7q8xsvjxr2++bGovNvWtQo/CbXayP2yvaO6vMbL
-48nMzvGx6rXDt9YKPwm12svEsr2jurzGy+PX27rPxsC31ta1Cj8JyOe6zsbAtqi8vMr1seoKPwnV
-0M22seq3vcq9tcS31sDgCj8JsLWx6tPrw/ex6rXEsci9zwo/CdXQseq1xLy41tbQzsq9Cj8JyrLD
-tMrHtK7NqM22serX76O/zNjV99PQxMTQqSAKPwnI57rOxsa94rLOserV37XEJ7K7uewnCj8JyOe6
-zrGjs9bNtrHqycy1xLv9vKvQ1Ao/CdXQserKtbz51tC1xLy4uPbOysziCj8Jzbax6rGj1qS98NPr
-wsTUvLGj1qS98AoJCteovNK96cnco7oK1cXW2brAIEpvaG5zb24gWmhhbmejurHP0rXT2sPAufrD
-3M73uPnW3cGitPPRp6Osy7bKv9GnzrujrMrHuMS477+qt8W689Tnxtq1xLqjuem437y21rDStb6t
-wO3Iy6Gj1PjPyLrzyM7WsNPaw8C5+rrgys+hotOiufrBqrrPsf24yaGiw8C5+sPA1N6zvLXINTAw
-x7+/57n6uavLvqOstaPIzrmry77Uy9f319y84LywxuTL+7jfvLa53MDt1rDO8aGjtv7KrrbgxOq1
-xMq11b2+rcD6o6zXqLOk09qyybm60+u5qdOmwbS53MDto6zKx7n6xNqyybm6zu/B98Hs0/LW0MnZ
-09C1xLyvt+G4u7qjzeK5pNf3vq3R6aGiufrE2tfKye653MDt1MTA+rywufq8ysiozf7Iz9ak09rS
-u8nttcTKtdW9xcm53MDt0+vXydGv16i80qGjCtXFwM/Kprmk1/e88sD6IENhcmVlcqO6Crnj1t3K
-0LOkt+HG89K109DP3rmry76jrdfcvq3A7QpHdWFuZ3pob3UgQ2hhbmdmZW5nIEx0ZC4sIC0tLSBH
-ZW5lcmFsIE1hbmFnZXIKPwm549bd0trS7c7vwffF5MvN09DP3rmry76jrbix19y+rcDtCkd1YW5n
-emhvdSBZaXlpIERpc3RyaWJ1dGlvbiBMdGQgLSBEZXB1dHkgR2VuZXJhbCBNYW5hZ2VyCj8Jw8C5
-+sPA1N6zvLnj1t3T0M/euavLvqOt19y84ApNZWFkIEpvaG5zb24gKEd1YW5nemhvdSkgTHRkLiwg
-LS0tIERpcmVjdG9yCj8J06K5+sGqus+x/bjJ1tC5+tPQz965q8u+o62+rcDtCkJyaXRpc2ggVW5p
-dGVkIEJpc2N1aXQgTHRkLiwgLSBNYW5hZ2VyCj8JuuDKz6Oo1tC5+qOp09DP3rmry76jrdb3yM4K
-SC5KLkhlaW56ICggQ2hpbmEpIEx0ZCAtLS0gU3VwZXJ2aXNvcgoK1cXAz8qmy/m008rCuf21xNDQ
-0rWjusqzxrfQ0NK1oaKxo72hxrfQ0NK1oaLP1rT6zu/B99PrxeTLzdDQ0rWhormk0rXGt7zTuaTS
-tQrVxdbZusDAz8qmtcTK2r/Ot+e48aO6uLvT0Lrcx7+1xLykx+ksILfnyKShotPExKwsIM/Ws6G4
-0Mi+wabHv6GjssnTw9Gt0PK9pb34oaLJ7sjrx7Oz9rXEvczRp7e9yr2horfhuLvJ+ravtcTKtdW9
-sLjA/aOssO/W+tGn1LHN2L/tytPSsKOszOG438u8zqzE3MGmo6zVxs7Vz+C52LXEt723qLrNuaS+
-36Gjv868/snovMbBpsfzye62yKOsyrXTw6GisLjA/bbgzqq5pL7f0NSwuMD9LNPQutzHv7XEyrWy
-2dDUoaO/zrPMxNrI3b/ntsi08yy+ocG/zvzIobj3uPbQ0NK1tcS+q7Tio6y+39PQuN+2yLXExajL
-9dDULgrF4NG1uf21xLK/t9bG89K1o7rHv8n6o6jW0Ln6o6nSvcHGxveyxKO70sHA+7yvzcWju8zA
-s7yxtr2ho7u3ycD7xta98L/Gzf6ju8Ltyr+7+byv17DP5KO7yNW34cbz0rWju8zss725pLPMo7vO
-5Lq6tquxvqO7v6rUqryvzcWju9bQ0rHW2Lmko7vFo86ytee7+qO7ttnBpryvzcWju9X9tcK8r83F
-o7vPycDW1sbSqaO70MKw2cD20KzStaO7t+e7qrjfv8aju76nv8bE3NS0o7vI8Mu5v7W077/GvLyj
-u7TzwazV5tDEyrPGt6O7w8C1xLyvzcWju8a9sLK8r83Fo7vj8szsu6+ju9f0ttjNv8HPo7u2q7fn
-sb7M77eitq+7+qO7s6S0utK7xvuju9DC1tDUtMzVtMm8r83Fo7u2q924tLSxprTvtefG96O7utrB
-+r2tyP21w8D7vsbStaO7yc+6o7rNu8bSqdK1o7u9rcvVtPPW2tK90qm8r83Fo7vL98ThsK7BotDF
-o7vT7s2ovK/NxaO7zbPSu7yvzcWju77FsLLSvcHGtefX06O7u6rI88uuxOCju8uzt+HL2dTLo7u7
-qrrq0du+taO7vajMz7uvuaSju7rgy7nC9buvuaSju8nhuKXA1byvzcWju8TPt73A7r31vMexo72h
-xreju9bQufrSxravueO2q7fWuavLvqO7v8bBptS20MLE3NS0o7tTSU1PTrXnxveju7DZysK/ycDW
-o7vTxcbVtefX06O7u6rR9LXn19Oju9Xmuaa38qO7u6rm2ryvzcWju8GisNe8r83Fo7u088irvK/N
-xaO71urW3rXnwaa7+rO1o7vJvbaru+O34bv60LW8r83Fo7vMxrjWvK/NxbPQtcK41rOno7vO99fT
-sMK1xMu5tefM3aO7ueO3otL40NA7ueO2q9DC0MvP2M/It+ayu9DiuNbWxsa3o7u62MD7ys+5xcmv
-s92/xqO7yc+6o7ijwdnDxcqzxreju73duN+/xry8oa0KCqG2vbW1zbLJubqzybG+vLC5qdOmyczM
-uMXQvLzHyaG3sajD+7vY1rQKofUwM9TCMDMtMDTI1cnu29ogofUwM9TCMTctMTjI1cnPuqMgCiDM
-7rrDz8Kx7brzt6LLzdbBIDY5ODM0MzZAcXEuY29tCrWlzrvD+7PGOl9fX19fX19fX19fX19fX19f
-X19fX19fXyAgtdgg1rc6X19fX19fX19fX19fX19fX19fX19fX19fCsGqz7XIy9DVw/s6X19fX19f
-X19fX19fXyAg0NQgsfA6X19fX19fXwnK1iC7+jpfX19fX19fCrXnILuwOl9fX19fX18gsr/DxS/W
-sM7xOl9fX19fX18gIEUtbWFpbDpfX19fX19fIAkKss4gu+Eg0acg1LEg0MUgz6IK0NUgw/tfX19f
-X19f0NQgsfBfX19fX19f1rAgzrtfX19fX19fytYgu/pfX19fX19fRS1tYWlsX19fX19fXwq98CC2
-7l9fX19fX18gIL3Jt9G3vcq9OqH1INeq1cogIKH1IM/WvfAgIKOox+vRodTxINTaofW08qHMo6kJ
-CQq0y7Hty/nM7tDFz6K99tPD09rV0Mn6uaTX96OsyOfQ6LLOvNPH68zu0LS72LSruPjO0sPHo6zS
-1LHjvLDKsc6qxPqwssXFu+HO8bKit6LIt8jPuq+jrNC70LvWp7PWo6EKMS7H68T6sNGxqMP7u9jW
-tMjP1ebM7rrDuvO72LSrztLLvqOszqrIt7GjxPqxqMP7zt7O8yzH68T61Nm0zrXnu7DIt8jPISAJ
-CQoyLrG+v86zzL/J1eu21Mbz0rXQ6Mfzo6zJz8PFt/7O8aOs1+nWr8Ta0bWjrLu2063XydGvoaMK
-My7H67LOu+HRp9Sx17yxuNK7utDD+8asLNLUsePRp9SxvOS9u8H30afPsKGjCjQux+vXvLG4vLi4
-9rmk1/fW0NP2tb21xM7KzOLS1LHjvfjQ0MzWwtuhowpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52
-ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1udmRpbW0K
+On Sat, Feb 25, 2017 at 11:38:07PM -0700, Logan Gunthorpe wrote:
+> Replace the open coded registration of the cdev and dev with the
+> new device_add_cdev() helper. The helper replaces a common pattern by
+> taking the proper reference against the parent device and adding both
+> the cdev and the device.
+> 
+> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+>  drivers/char/tpm/tpm-chip.c | 19 +++----------------
+>  1 file changed, 3 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/char/tpm/tpm-chip.c b/drivers/char/tpm/tpm-chip.c
+> index a77262d..933f96e 100644
+> +++ b/drivers/char/tpm/tpm-chip.c
+> @@ -187,7 +187,6 @@ struct tpm_chip *tpm_chip_alloc(struct device *dev,
+>  
+>  	cdev_init(&chip->cdev, &tpm_fops);
+>  	chip->cdev.owner = THIS_MODULE;
+> -	chip->cdev.kobj.parent = &chip->dev.kobj;
+>  
+>  	return chip;
+>  
+> @@ -230,27 +229,16 @@ static int tpm_add_char_device(struct tpm_chip *chip)
+>  {
+>  	int rc;
+>  
+> -	rc = cdev_add(&chip->cdev, chip->dev.devt, 1);
+> +	rc = cdev_device_add(&chip->cdev, &chip->dev);
+>  	if (rc) {
+>  		dev_err(&chip->dev,
+> -			"unable to cdev_add() %s, major %d, minor %d, err=%d\n",
+> +			"unable to cdev_device_add() %s, major %d, minor %d, err=%d\n",
+>  			dev_name(&chip->dev), MAJOR(chip->dev.devt),
+>  			MINOR(chip->dev.devt), rc);
+>  
+>  		return rc;
+>  	}
+>  
+> -	rc = device_add(&chip->dev);
+> -	if (rc) {
+> -		dev_err(&chip->dev,
+> -			"unable to device_register() %s, major %d, minor %d, err=%d\n",
+> -			dev_name(&chip->dev), MAJOR(chip->dev.devt),
+> -			MINOR(chip->dev.devt), rc);
+> -
+> -		cdev_del(&chip->cdev);
+> -		return rc;
+> -	}
+
+This will collide with the patch I sent:
+
+https://patchwork.kernel.org/patch/9589001/
+
+Jarkko: The resolution will be to continue to call tpm_del_char_device
+from the cdev_device_add error path and drop all calls to cdev_del
+
+Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+
+Jason
