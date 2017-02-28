@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B87A182225
- for <linux-nvdimm@lists.01.org>; Tue, 21 Feb 2017 11:51:37 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 5/6] dax: add tracepoint to dax_writeback_one()
-Date: Tue, 21 Feb 2017 12:51:15 -0700
-Message-Id: <20170221195116.13278-6-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170221195116.13278-1-ross.zwisler@linux.intel.com>
-References: <20170221195116.13278-1-ross.zwisler@linux.intel.com>
+Date: Tue, 28 Feb 2017 06:31:02 +0100
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v2 01/16] chardev: add helper function to register char
+ devs with a struct device
+Message-ID: <20170228053102.GA14688@kroah.com>
+References: <1488091097-12328-1-git-send-email-logang@deltatee.com>
+ <1488091097-12328-2-git-send-email-logang@deltatee.com>
+ <CAPcyv4i91_esBtBxbnDH3ZDd8Mnz4HoJEW2yeEvQ4QikFBjapA@mail.gmail.com>
+ <20170227165618.GE5891@obsidianresearch.com>
+ <7df6e57b-531c-1b23-05bf-c368df2d20f3@deltatee.com>
+ <CAPcyv4jiPE1jK9ubbsAm_ZNMt=S106NCpXD4KPUWpcK9_GEDJA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4jiPE1jK9ubbsAm_ZNMt=S106NCpXD4KPUWpcK9_GEDJA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,89 +20,44 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Jan Kara <jack@suse.cz>, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Alexandre Bounine <alexandre.bounine@idt.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, linux-scsi <linux-scsi@vger.kernel.org>, Peter Huewe <peterhuewe@gmx.de>, Parav Pandit <pandit.parav@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Alexandre Courbot <gnurou@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, rtc-linux@googlegroups.com, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, Richard Weinberger <richard@nod.at>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Marek Vasut <marek.vasut@gmail.com>, Doug Ledford <dledford@redhat.com>, Hans Verkuil <hans.verkuil@cisco.com>, Matt Porter <mporter@kernel.crashing.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Boaz Harrosh <ooo@electrozaur.com>, Arnd Bergmann <arnd@arndb.de>, Boris Brezillon <boris.brezillon@free-electrons.com>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, linux-input@vger.kernel.org, Marcel Selhorst <tpmdd@selhorst.net>, Vladimir Zapolskiy <vz@mleia.com>, Joe Perches <joe@perches.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Bjorn Helgaas <bhelgaas@google.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Dmitry Vyukov <dvyukov@google.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Haggai Eran <haggaie@mellanox.com>, Lorenzo Stoakes <lstoakes@gmail.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Artem Bityutskiy <dedekind1@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-gpio@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Bates <stephen.bates@microsemi.com>, Hartmut Knaack <knaack.h@gmx.de>, Olof Johansson <olof@lixom.net>, linux-mtd@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, Brian Norris <computersforpeace@gmail.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a tracepoint to dax_writeback_one(), following the same logging
-conventions as the rest of DAX.
+On Mon, Feb 27, 2017 at 07:36:09PM -0800, Dan Williams wrote:
+> On Mon, Feb 27, 2017 at 7:27 PM, Logan Gunthorpe <logang@deltatee.com> wrote:
+> >
+> >
+> > On 27/02/17 09:56 AM, Jason Gunthorpe wrote:
+> >> Yes please, that is way too subtle. Suggest:
+> >>
+> >> NOTE: Callers must assume that userspace was able to open the cdev and
+> >> can call cdev fops callbacks at any time, even if this function fails.
+> >>
+> >> I would also add a note to cdev_device_del:
+> >>
+> >> NOTE: This guarantees that associated sysfs callbacks are not running
+> >> or runnable, however any open cdevs will remain and their fops remain
+> >> callable even after this returns.
+> >>
+> >> Since I have seen a lot of confusion on that point as well..
+> >
+> > Sure, I'll add that verbiage to a v3 sometime after rc1.
+> 
+> It would also be great to patch1 into a stable non-rebasing git tree
+> so it can be used as a baseline for other 4.12 targeted development.
+> The device-dax patches in particular collide with some pending
+> development.
 
-Here is an example range writeback which ends up flushing one PMD and one
-PTE:
+I'll do that once -rc1 is out, I can't take any new patches right now :)
 
-test-1265  [003] ....   496.615250: dax_writeback_range: dev 259:0 ino 0x1003
-pgoff 0x0-0x7ffffffffffff
+thanks,
 
-test-1265  [003] ....   496.616263: dax_writeback_one: dev 259:0 ino 0x1003
-pgoff 0x0 pglen 0x200
-
-test-1265  [003] ....   496.616270: dax_writeback_one: dev 259:0 ino 0x1003
-pgoff 0x305 pglen 0x1
-
-test-1265  [003] ....   496.616272: dax_writeback_range_done: dev 259:0 ino
-0x1003 pgoff 0x0-0x7ffffffffffff
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c                      |  1 +
- include/trace/events/fs_dax.h | 24 ++++++++++++++++++++++++
- 2 files changed, 25 insertions(+)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 7ca1989..d340389 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -843,6 +843,7 @@ static int dax_writeback_one(struct block_device *bdev,
- 	spin_lock_irq(&mapping->tree_lock);
- 	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
- 	spin_unlock_irq(&mapping->tree_lock);
-+	trace_dax_writeback_one(mapping->host, index, dax.size >> PAGE_SHIFT);
-  unmap:
- 	dax_unmap_atomic(bdev, &dax);
- 	put_locked_mapping_entry(mapping, index, entry);
-diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
-index 9afe8c8..292a471 100644
---- a/include/trace/events/fs_dax.h
-+++ b/include/trace/events/fs_dax.h
-@@ -226,6 +226,30 @@ DEFINE_EVENT(dax_writeback_range_class, name, \
- DEFINE_WRITEBACK_RANGE_EVENT(dax_writeback_range);
- DEFINE_WRITEBACK_RANGE_EVENT(dax_writeback_range_done);
- 
-+TRACE_EVENT(dax_writeback_one,
-+	TP_PROTO(struct inode *inode, pgoff_t pgoff, pgoff_t pglen),
-+	TP_ARGS(inode, pgoff, pglen),
-+	TP_STRUCT__entry(
-+		__field(unsigned long, ino)
-+		__field(pgoff_t, pgoff)
-+		__field(pgoff_t, pglen)
-+		__field(dev_t, dev)
-+	),
-+	TP_fast_assign(
-+		__entry->dev = inode->i_sb->s_dev;
-+		__entry->ino = inode->i_ino;
-+		__entry->pgoff = pgoff;
-+		__entry->pglen = pglen;
-+	),
-+	TP_printk("dev %d:%d ino %#lx pgoff %#lx pglen %#lx",
-+		MAJOR(__entry->dev),
-+		MINOR(__entry->dev),
-+		__entry->ino,
-+		__entry->pgoff,
-+		__entry->pglen
-+	)
-+)
-+
- #endif /* _TRACE_FS_DAX_H */
- 
- /* This part must be outside protection */
--- 
-2.9.3
-
+greg k-h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
