@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E2BB2803DE
- for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 23:11:58 -0700 (PDT)
-Subject: [PATCH v4 00/13] mm: sub-section memory hotplug support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 15 Mar 2017 23:06:47 -0700
-Message-ID: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id C3181821B9
+ for <linux-nvdimm@lists.01.org>; Wed,  1 Mar 2017 11:52:26 -0800 (PST)
+Message-ID: <1488398227.24621.1.camel@linux.intel.com>
+Subject: Re: [PATCH 2/2] nfit, libnvdimm: fix interleave set cookie calculation
+From: Nicholas Moulin <nicholas.w.moulin@linux.intel.com>
+Date: Wed, 01 Mar 2017 12:57:07 -0700
+In-Reply-To: <148835949014.28806.14335060350919963814.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148835947931.28806.15339584183213827869.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <148835949014.28806.14335060350919963814.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,101 +23,180 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Nicolai Stange <nicstange@gmail.com>, Alexander Potapenko <glider@google.com>, Vlastimil Babka <vbabka@suse.cz>, Johannes Weiner <hannes@cmpxchg.org>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Dmitry Vyukov <dvyukov@google.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-acpi@vger.kernel.org, stable@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v3 [1]:
+Patch verified, cookies align again
 
-1/ Rebased on v4.11-rc2
+On Wed, 2017-03-01 at 01:11 -0800, Dan Williams wrote:
+> The interleave-set cookie is a sum that sanity checks the composition of
+> an interleave set has not changed from when the namespace was initially
+> created.  The checksum is calculated by sorting the DIMMs by their
+> location in the interleave-set. The comparison for the sort must be
+> 64-bit wide, not byte-by-byte as performed by memcmp() in the broken
+> case.
+> 
+> Fix the implementation to accept correct cookie values in addition to
+> the Linux "memcmp" order cookies, but only allow correct cookies to be
+> generated going forward. It does mean that namespaces created by
+> third-party-tooling, or created by newer kernels with this fix, will not
+> validate on older kernels. However, there are a couple mitigating
+> conditions:
+> 
+>     1/ platforms with namespace-label capable NVDIMMs are not widely
+>        available.
+> 
+>     2/ interleave-sets with a single-dimm are by definition not affected
+>        (nothing to sort). This covers the QEMU-KVM NVDIMM emulation case.
+> 
+> The cookie stored in the namespace label can be fixed up by writing
+> the namespace "alt_name" attribute in sysfs.
+> 
+> Cc: <stable@vger.kernel.org>
+> Fixes: eaf961536e16 ("libnvdimm, nfit: add interleave-set state-tracking infrastructure")
+> Reported-by: Nicholas Moulin <nicholas.w.moulin@linux.intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/acpi/nfit/core.c        |   16 +++++++++++++++-
+>  drivers/nvdimm/namespace_devs.c |   18 ++++++++++++++----
+>  drivers/nvdimm/nd.h             |    1 +
+>  drivers/nvdimm/region_devs.c    |    9 +++++++++
+>  include/linux/libnvdimm.h       |    2 ++
+>  5 files changed, 41 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 7361d00818e2..662036bdc65e 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1603,7 +1603,7 @@ static size_t sizeof_nfit_set_info(int num_mappings)
+>  		+ num_mappings * sizeof(struct nfit_set_info_map);
+>  }
+>  
+> -static int cmp_map(const void *m0, const void *m1)
+> +static int cmp_map_compat(const void *m0, const void *m1)
+>  {
+>  	const struct nfit_set_info_map *map0 = m0;
+>  	const struct nfit_set_info_map *map1 = m1;
+> @@ -1612,6 +1612,14 @@ static int cmp_map(const void *m0, const void *m1)
+>  			sizeof(u64));
+>  }
+>  
+> +static int cmp_map(const void *m0, const void *m1)
+> +{
+> +	const struct nfit_set_info_map *map0 = m0;
+> +	const struct nfit_set_info_map *map1 = m1;
+> +
+> +	return map0->region_offset - map1->region_offset;
+> +}
+> +
+>  /* Retrieve the nth entry referencing this spa */
+>  static struct acpi_nfit_memory_map *memdev_from_spa(
+>  		struct acpi_nfit_desc *acpi_desc, u16 range_index, int n)
+> @@ -1667,6 +1675,12 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
+>  	sort(&info->mapping[0], nr, sizeof(struct nfit_set_info_map),
+>  			cmp_map, NULL);
+>  	nd_set->cookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
+> +
+> +	/* support namespaces created with the wrong sort order */
+> +	sort(&info->mapping[0], nr, sizeof(struct nfit_set_info_map),
+> +			cmp_map_compat, NULL);
+> +	nd_set->altcookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
+> +
+>  	ndr_desc->nd_set = nd_set;
+>  	devm_kfree(dev, info);
+>  
+> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+> index ce3e8dfa10ad..1b481a5fb966 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+> @@ -1700,6 +1700,7 @@ static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
+>  struct device *create_namespace_pmem(struct nd_region *nd_region,
+>  		struct nd_namespace_label *nd_label)
+>  {
+> +	u64 altcookie = nd_region_interleave_set_altcookie(nd_region);
+>  	u64 cookie = nd_region_interleave_set_cookie(nd_region);
+>  	struct nd_label_ent *label_ent;
+>  	struct nd_namespace_pmem *nspm;
+> @@ -1718,7 +1719,11 @@ struct device *create_namespace_pmem(struct nd_region *nd_region,
+>  	if (__le64_to_cpu(nd_label->isetcookie) != cookie) {
+>  		dev_dbg(&nd_region->dev, "invalid cookie in label: %pUb\n",
+>  				nd_label->uuid);
+> -		return ERR_PTR(-EAGAIN);
+> +		if (__le64_to_cpu(nd_label->isetcookie) != altcookie)
+> +			return ERR_PTR(-EAGAIN);
+> +
+> +		dev_dbg(&nd_region->dev, "valid altcookie in label: %pUb\n",
+> +				nd_label->uuid);
+>  	}
+>  
+>  	nspm = kzalloc(sizeof(*nspm), GFP_KERNEL);
+> @@ -1733,9 +1738,14 @@ struct device *create_namespace_pmem(struct nd_region *nd_region,
+>  	res->name = dev_name(&nd_region->dev);
+>  	res->flags = IORESOURCE_MEM;
+>  
+> -	for (i = 0; i < nd_region->ndr_mappings; i++)
+> -		if (!has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
+> -			break;
+> +	for (i = 0; i < nd_region->ndr_mappings; i++) {
+> +		if (has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
+> +			continue;
+> +		if (has_uuid_at_pos(nd_region, nd_label->uuid, altcookie, i))
+> +			continue;
+> +		break;
+> +	}
+> +
+>  	if (i < nd_region->ndr_mappings) {
+>  		struct nvdimm_drvdata *ndd = to_ndd(&nd_region->mapping[i]);
+>  
+> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+> index 35dd75057e16..2a99c83aa19f 100644
+> --- a/drivers/nvdimm/nd.h
+> +++ b/drivers/nvdimm/nd.h
+> @@ -328,6 +328,7 @@ struct nd_region *to_nd_region(struct device *dev);
+>  int nd_region_to_nstype(struct nd_region *nd_region);
+>  int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
+>  u64 nd_region_interleave_set_cookie(struct nd_region *nd_region);
+> +u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region);
+>  void nvdimm_bus_lock(struct device *dev);
+>  void nvdimm_bus_unlock(struct device *dev);
+>  bool is_nvdimm_bus_locked(struct device *dev);
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index 7cd705f3247c..b7cb5066d961 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -505,6 +505,15 @@ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region)
+>  	return 0;
+>  }
+>  
+> +u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region)
+> +{
+> +	struct nd_interleave_set *nd_set = nd_region->nd_set;
+> +
+> +	if (nd_set)
+> +		return nd_set->altcookie;
+> +	return 0;
+> +}
+> +
+>  void nd_mapping_free_labels(struct nd_mapping *nd_mapping)
+>  {
+>  	struct nd_label_ent *label_ent, *e;
+> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+> index 8458c5351e56..77e7af32543f 100644
+> --- a/include/linux/libnvdimm.h
+> +++ b/include/linux/libnvdimm.h
+> @@ -70,6 +70,8 @@ struct nd_cmd_desc {
+>  
+>  struct nd_interleave_set {
+>  	u64 cookie;
+> +	/* compatibility with initial buggy Linux implementation */
+> +	u64 altcookie;
+>  };
+>  
+>  struct nd_mapping_desc {
+> 
 
-2/ Worked around kasan regression ("x86, kasan: clarify kasan's
-   dependency on vmemmap_populate_hugepages()") (Nicolai)
 
-[1]: https://lwn.net/Articles/712099/
-
----
-
-The initial motivation for this change is persistent memory platforms
-that, unfortunately, align the pmem range on a boundary less than a full
-section (64M vs 128M), and may change the alignment from one boot to the
-next. A secondary motivation is the arrival of prospective ZONE_DEVICE
-users that want devm_memremap_pages() to map PCI-E device memory ranges
-to enable peer-to-peer DMA. There is a range of possible physical
-address alignments of PCI-E BARs that are less than 128M.
-
-Currently the libnvdimm core injects padding when 'pfn' (struct page
-mapping configuration) instances are created. However, not all users of
-devm_memremap_pages() have the opportunity to inject such padding. Users
-of the memmap=ss!nn kernel command line option can trigger the following
-failure with unaligned parameters like "memmap=0xfc000000!8G":
-
- WARNING: CPU: 0 PID: 558 at kernel/memremap.c:300
- devm_memremap_pages attempted on mixed region [mem 0x200000000-0x2fbffffff flags 0x200]
- [..]
- Call Trace:
-  [<ffffffff814c0393>] dump_stack+0x86/0xc3
-  [<ffffffff810b173b>] __warn+0xcb/0xf0
-  [<ffffffff810b17bf>] warn_slowpath_fmt+0x5f/0x80
-  [<ffffffff811eb105>] devm_memremap_pages+0x3b5/0x4c0
-  [<ffffffffa006f308>] __wrap_devm_memremap_pages+0x58/0x70 [nfit_test_iomap]
-  [<ffffffffa00e231a>] pmem_attach_disk+0x19a/0x440 [nd_pmem]
-
-Without this change a user could inadvertently lose access to nvdimm
-namespaces after a configuration change. The act of adding, removing, or
-rearranging DIMMs in the platform could lead to the BIOS changing the
-base alignment of the namespace in an incompatible fashion.  With this
-support we can accommodate a BIOS changing the namespace to any
-alignment provided it is >= SECTION_ACTIVE_SIZE.
-
-In other words, we are protecting against misalignment injected by the
-BIOS after the libnvdimm sub-system already recorded that the namespace
-does not need alignment padding. In that case the user would need to
-figure out how to undo the configuration change to regain access to
-their nvdimm capacity.
-
----
-
-The patches have received a build success notification from the
-0day-kbuild robot across 172 configs and pass the latest libnvdimm/ndctl
-unit test suite. They depend on "mm: add private lock to serialize
-memory hotplug operations" [2] which is already in -mm.
-
-[2]: https://lkml.org/lkml/2017/3/9/395
-
----
-
-Dan Williams (13):
-      mm: fix type width of section to/from pfn conversion macros
-      mm, devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
-      mm: introduce struct mem_section_usage to track partial population of a section
-      mm: introduce common definitions for the size and mask of a section
-      mm: cleanup sparse_init_one_section() return value
-      mm: track active portions of a section at boot
-      mm: fix register_new_memory() zone type detection
-      x86, kasan: clarify kasan's dependency on vmemmap_populate_hugepages()
-      mm: convert kmalloc_section_memmap() to populate_section_memmap()
-      mm: prepare for hot-{add,remove} of sub-section ranges
-      mm: support section-unaligned ZONE_DEVICE memory ranges
-      mm: enable section-unaligned devm_memremap_pages()
-      libnvdimm, pfn, dax: stop padding pmem namespaces to section alignment
-
-
- arch/x86/mm/init_64.c          |   17 +
- arch/x86/mm/kasan_init_64.c    |   30 ++-
- drivers/base/memory.c          |   26 +-
- drivers/nvdimm/pfn_devs.c      |   42 +---
- include/linux/memory.h         |    4 
- include/linux/memory_hotplug.h |    6 -
- include/linux/mm.h             |    5 
- include/linux/mmzone.h         |   30 ++-
- kernel/memremap.c              |   76 ++++---
- mm/Kconfig                     |    1 
- mm/memory_hotplug.c            |   95 ++++----
- mm/page_alloc.c                |    6 -
- mm/sparse-vmemmap.c            |   24 +-
- mm/sparse.c                    |  454 +++++++++++++++++++++++++++++-----------
- 14 files changed, 540 insertions(+), 276 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
