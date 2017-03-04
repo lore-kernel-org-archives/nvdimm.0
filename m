@@ -1,8 +1,7 @@
-From: "FREDA" <polafutj1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: re: SEO for ml01.01.org
-Date: Fri, 03 Mar 2017 16:01:26 +0200
-Message-ID: <B048581B.0146B0B1@gmail.com>
-Reply-To: FREDA <polafutj1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: rapt13r3al3stat3-H+1pifgjNThoBvdFSJRtU0yjVH5/BOaD@public.gmane.org
+Subject: UPS courier can not deliver parcel #02755913 to you
+Date: Sat, 4 Mar 2017 05:03:29 +0200
+Message-ID: <20170304030329.EE6EC1242E1@grassagoogoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,12 +18,12 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-hi
-after thoroughly checking your website and analyzing 
-your competition activities, we can recommend this whitehat SEO service
+Dear Customer,
 
-Please check the SEO Report attached
+Your parcel was successfully delivered March 01 to UPS Station, but our courier cound not contact you.
 
+Please review delivery label in attachment!
 
-Regards
-FREDA
+Thank you for making business with us,
+Ralph Collier,
+UPS Parcels Delivery Manager.
