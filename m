@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9723A8036D
- for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 11:33:24 -0700 (PDT)
-Subject: [PATCH v3 2/5] libnvdimm: Add resource sysfs attrib to nd region
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 15 Mar 2017 11:33:23 -0700
-Message-ID: <148960280384.4721.16547227425992657603.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <148960279823.4721.5449530412401763266.stgit@djiang5-desk3.ch.intel.com>
-References: <148960279823.4721.5449530412401763266.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0BE1A802D3
+ for <linux-nvdimm@lists.01.org>; Fri,  3 Mar 2017 22:14:25 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 0/7] Add ndctl check-namespace
+Date: Fri,  3 Mar 2017 23:13:00 -0700
+Message-Id: <20170304061307.13530-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,58 +20,116 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding sysfs attribute in order to export the physical address of the
-ND region. This is for supporting of user app poison clear via
-device dax.
+Changes in v3:
+- Move the addition of ccan/bitmap to its own patch(es) (Dan)
+- Drop the changelog update from the spec (Dan)
+- Fix the [verse] section in the documentation text for check-namespace (Dan)
+- Unify all namespace_disable paths to perform checking for a mounted
+  filesystem (Dan)
+- Change the logging to use util/log.h (Dan)
+- Use BTT_START_OFFSET for the initial offset, and store it in bttc (Jeff, Dan)
+- Fix a number of line > 80 chars (everything but strings) (Jeff)
+- Fix short write error handling, add fsync (Jeff)
+- Save system page size in bttc to avoid calling sysconf repeatedly (Jeff)
+- In check_log_map(), loop through the entire log even in case of an error,
+  and if there was a saved error, fail. (Jeff)
+- btt-check.sh: in the post repair test, validate that the data read back
+  is the same as what was written (Jeff)
+- Stop playing games with pre-adding/subtracting the initial 4K offset (Jeff)
+- btt_read_info doesn't need to use 'rc', return directly.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
----
- drivers/nvdimm/region_devs.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+Changes in v2:
+- Move checking functionality to a separate file (Dan, Jeff)
+- Rename btt-structs.h to check.h (Dan)
+- Don't provide a configure option for building the checker, always
+  build it in. (Dan, Jeff)
+- Fix the Documentation example to also include disable-namespace (Linda)
+- Update the description text to note the namespace needs to be disabled
+  before checking (Linda)
+- Use util/size.h for sizes (Dan)
+- Use --repair to do repairs instead of --dry-run to disable repairs (Dan)
+- Fix btt_read_info short read error handling (Jeff)
+- Simplify the map lookup/write routines (Jeff)
+- Differentiate the use off BTT_PG_SIZE, sysconf(_SC_PAGESIZE), and SZ_4K
+  (for the fixed start offset) in the different places they're used (Jeff)
+- Add the missing msync when copying over info2 (Jeff)
+- Add unit tests to test the checker (Jeff)
+- Add a missing error case check in do_xaction_namespace for check
+- Add a --force option that allows running on an active namespace (Jeff)
+- Add a bitmap test for checking all internal blocks are referenced exactly
+  once between the map and flog (Jeff)
+- Remove unused #defines in check.h
+- Add comments to explain what we do with raw_mode (Jeff)
+- Add some sanity checking when parsing an arena's metadata (Jeff)
+- Refactor some read-verify sequences into a helper that combines the two (Jeff)
+- Additional bounds checking on the 'offset' in recover_first_sb attempt 3 (Jeff)
+- Add a missing ACTION_DESTROY string in parse_namespace_options (Dan)
+- Use uXX, and cpu_to_XX from ccan/endian (Dan)
+- Move the fletcher64 Routing to util/ as it is shared by builtin-dimm.c (Dan)
+- Open the raw block device only once with O_EXCL instead of every time on
+  read/write/mmap (Dan)
+- Add a new 'inform' routing in util/usage.c, and use it for some non-critical
+  messages (Dan)
+- Remove namespace_is_offline() from builtin-check.c. Instead, use
+  util_namespace_active() from util/json.c
+- Add a missing return value check after info block restoration in
+  discover_arenas
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 3500fc8..8de5a04 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -463,6 +463,15 @@ static struct device_attribute dev_attr_nd_badblocks = {
- 	.show = nd_badblocks_show,
- };
- 
-+static ssize_t resource_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+
-+	return sprintf(buf, "%#llx\n", nd_region->ndr_start);
-+}
-+static DEVICE_ATTR_RO(resource);
-+
- static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_size.attr,
- 	&dev_attr_nstype.attr,
-@@ -476,6 +485,7 @@ static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_namespace_seed.attr,
- 	&dev_attr_init_namespaces.attr,
- 	&dev_attr_nd_badblocks.attr,
-+	&dev_attr_resource.attr,
- 	NULL,
- };
- 
-@@ -495,6 +505,9 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
- 	if (!is_nd_pmem(dev) && a == &dev_attr_nd_badblocks.attr)
- 		return 0;
- 
-+	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
-+		return 0;
-+
- 	if (a != &dev_attr_set_cookie.attr
- 			&& a != &dev_attr_available_size.attr)
- 		return a->mode;
+
+Vishal Verma (7):
+  libndctl: add a ndctl_namespace_is_active helper
+  libndctl: add a ndctl_namespace_disable_safe() API
+  ccan: Add ccan/bitmap in preparation for the BTT checker
+  ccan/bitmap: fix a set of gcc warnings (with -Wshadow)
+  ndctl: move the fletcher64 routine to util/
+  ndctl: add a BTT check utility
+  ndctl, test: Add a unit test for the BTT checker
+
+ Documentation/Makefile.am               |   1 +
+ Documentation/ndctl-check-namespace.txt |  64 +++
+ Documentation/ndctl.txt                 |   1 +
+ Makefile.am                             |   7 +-
+ builtin.h                               |   1 +
+ ccan/bitmap/LICENSE                     |   1 +
+ ccan/bitmap/bitmap.c                    | 125 ++++
+ ccan/bitmap/bitmap.h                    | 243 ++++++++
+ contrib/ndctl                           |   3 +
+ licenses/LGPL-2.1                       | 508 ++++++++++++++++
+ ndctl.spec.in                           |   2 +-
+ ndctl/Makefile.am                       |   1 +
+ ndctl/builtin-check.c                   | 988 ++++++++++++++++++++++++++++++++
+ ndctl/builtin-dimm.c                    |  18 +-
+ ndctl/builtin-list.c                    |   2 +-
+ ndctl/builtin-xaction-namespace.c       | 112 ++--
+ ndctl/check.h                           | 127 ++++
+ ndctl/lib/libndctl.c                    |  59 ++
+ ndctl/lib/libndctl.sym                  |   2 +
+ ndctl/libndctl.h.in                     |   3 +
+ ndctl/ndctl.c                           |   1 +
+ test/Makefile.am                        |   5 +-
+ test/btt-check.sh                       | 170 ++++++
+ util/fletcher.c                         |  23 +
+ util/fletcher.h                         |   8 +
+ util/json.c                             |  17 +-
+ util/json.h                             |   1 -
+ util/util.h                             |   8 +
+ 28 files changed, 2423 insertions(+), 78 deletions(-)
+ create mode 100644 Documentation/ndctl-check-namespace.txt
+ create mode 120000 ccan/bitmap/LICENSE
+ create mode 100644 ccan/bitmap/bitmap.c
+ create mode 100644 ccan/bitmap/bitmap.h
+ create mode 100644 licenses/LGPL-2.1
+ create mode 100644 ndctl/builtin-check.c
+ create mode 100644 ndctl/check.h
+ create mode 100755 test/btt-check.sh
+ create mode 100644 util/fletcher.c
+ create mode 100644 util/fletcher.h
+
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
