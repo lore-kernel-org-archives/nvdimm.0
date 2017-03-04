@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A7FFC80337
- for <linux-nvdimm@lists.01.org>; Sun,  5 Mar 2017 23:06:58 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon,  6 Mar 2017 00:04:21 -0700
-Message-Id: <1488783873-2614-6-git-send-email-logang@deltatee.com>
-In-Reply-To: <1488783873-2614-1-git-send-email-logang@deltatee.com>
-References: <1488783873-2614-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v3 05/16] gpiolib: utilize new cdev_device_add helper function
+Received: from me-ss2-ieksw9.mailengine1.com (me-ss2-ieksw9.mailengine1.com
+ [72.19.210.94]) by ml01.01.org (Postfix) with ESMTP id 3A481802D4
+ for <linux-nvdimm@lists.01.org>; Fri,  3 Mar 2017 20:09:58 -0800 (PST)
+Received: by me-ss2-ieksw9.mailengine1.com (PowerMTA(TM) v3.5r15sb7) id
+ hn8v1c0jql44 for <linux-nvdimm@lists.01.org>;
+ Fri, 3 Mar 2017 20:09:42 -0800 (envelope-from
+ <bouncer@me-ss2-ieksw9.mailengine1.com>)
+MIME-Version: 1.0
+Date: Fri, 03 Mar 2017 20:07:22 -0800
+From: "Nicholas Meyler" <nickm@wdsearch.com>
+Subject: Great AI/Data Science and Robotics/Machine Vision Opportunities
+Message-ID: <300.0.15.463.1D2949D264E7FE2.DB774@me-ss2-ieksw9.mailengine1.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,79 +18,125 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Reply-To: "Nicholas J. Meyler" <nickm@wdsearch.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Replace the open coded registration of the cdev and dev with the
-new device_add_cdev() helper. The helper replaces a common pattern by
-taking the proper reference against the parent device and adding both
-the cdev and the device.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/gpio/gpiolib.c | 23 ++++++++---------------
- 1 file changed, 8 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index 8b4d721..3ce2a27 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -1035,18 +1035,14 @@ static int gpiochip_setup_dev(struct gpio_device *gdev)
- 
- 	cdev_init(&gdev->chrdev, &gpio_fileops);
- 	gdev->chrdev.owner = THIS_MODULE;
--	gdev->chrdev.kobj.parent = &gdev->dev.kobj;
- 	gdev->dev.devt = MKDEV(MAJOR(gpio_devt), gdev->id);
--	status = cdev_add(&gdev->chrdev, gdev->dev.devt, 1);
--	if (status < 0)
--		chip_warn(gdev->chip, "failed to add char device %d:%d\n",
--			  MAJOR(gpio_devt), gdev->id);
--	else
--		chip_dbg(gdev->chip, "added GPIO chardev (%d:%d)\n",
--			 MAJOR(gpio_devt), gdev->id);
--	status = device_add(&gdev->dev);
-+
-+	status = cdev_device_add(&gdev->chrdev, &gdev->dev);
- 	if (status)
--		goto err_remove_chardev;
-+		return status;
-+
-+	chip_dbg(gdev->chip, "added GPIO chardev (%d:%d)\n",
-+		 MAJOR(gpio_devt), gdev->id);
- 
- 	status = gpiochip_sysfs_register(gdev);
- 	if (status)
-@@ -1061,9 +1057,7 @@ static int gpiochip_setup_dev(struct gpio_device *gdev)
- 	return 0;
- 
- err_remove_device:
--	device_del(&gdev->dev);
--err_remove_chardev:
--	cdev_del(&gdev->chrdev);
-+	cdev_device_del(&gdev->chrdev, &gdev->dev);
- 	return status;
- }
- 
-@@ -1347,8 +1341,7 @@ void gpiochip_remove(struct gpio_chip *chip)
- 	 * be removed, else it will be dangling until the last user is
- 	 * gone.
- 	 */
--	cdev_del(&gdev->chrdev);
--	device_del(&gdev->dev);
-+	cdev_device_del(&gdev->chrdev, &gdev->dev);
- 	put_device(&gdev->dev);
- }
- EXPORT_SYMBOL_GPL(gpiochip_remove);
--- 
-2.1.4
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+TWFyY2ggTWFkbmVzcyEKCigxKSBOTFAvTWFjaGluZS1MZWFybmluZyBEYXRhIFNjaWVudGlzdCAo
+SGVyY3VsZXMsQ0EpOgoKTXkgY2xpZW50IGhhcyByZW1haW5lZCBhdCB0aGUgY2VudGVyIG9mIHNj
+aWVudGlmaWMgZGlzY292ZXJ5IGZvciBtb3JlIHRoYW4gNTAgeWVhcnMsIG1hbnVmYWN0dXJpbmcg
+YW5kIGRpc3RyaWJ1dGluZyBhIGJyb2FkIHJhbmdlIG9mIHByb2R1Y3RzIGZvciB0aGUgbGlmZSBz
+Y2llbmNlIHJlc2VhcmNoIGFuZCBjbGluaWNhbCBkaWFnbm9zdGljIG1hcmtldHMuIFRoZSBDb21w
+YW55IGlzIHJlbm93bmVkIHdvcmxkd2lkZSBhbW9uZyBob3NwaXRhbHMsIHVuaXZlcnNpdGllcywg
+bWFqb3IgcmVzZWFyY2ggaW5zdGl0dXRpb25zLCBhcyB3ZWxsIGFzIGJpb3RlY2hub2xvZ3kgYW5k
+IHBoYXJtYWNldXRpY2FsIGNvbXBhbmllcyBmb3IgaXRzIGNvbW1pdG1lbnQgdG8gcXVhbGl0eSBh
+bmQgY3VzdG9tZXIgc2VydmljZS4gRm91bmRlZCBpbiAxOTUyLCB0aGV5IGFyZSBoZWFkcXVhcnRl
+cmVkIGluIEhlcmN1bGVzLCBDYWxpZm9ybmlhLCBhbmQgc2VydmUgbW9yZSB0aGFuIDg1LDAwMCBy
+ZXNlYXJjaCBhbmQgaW5kdXN0cnkgY3VzdG9tZXJzIHdvcmxkd2lkZSB0aHJvdWdoIGl0cyBnbG9i
+YWwgbmV0d29yayBvZiBvcGVyYXRpb25zLgoKTXkgZXhjaXRpbmcgQmlvdGVjaCBDbGllbnQgaXMg
+c2Vla2luZyBhIE5hdHVyYWwgTGFuZ3VhZ2UgUHJvY2Vzc2luZyAoTlBMKS9NYWNoaW5lIExlYXJu
+aW5nIChNTCkgc2NpZW50aXN0IHRvIGxlYWQgYW4gZWxpdGUgZGF0YSBzY2llbmNlIHRlYW0gcmVz
+cG9uc2libGUgZm9yIGNyZWF0aW5nIGlubm92YXRpdmUgdG9vbHMsIG1ldGhvZHMgYW5kIGJlc3Qg
+cHJhY3RpY2VzIGFyb3VuZCB0aGUgc2NpZW50aWZpYyBsaXRlcmF0dXJlLiBUaGUgaWRlYWwgY2Fu
+ZGlkYXRlIGNhcmVzIGRlZXBseSBhYm91dCBkZXZlbG9waW5nIGFuZCBpbXBsZW1lbnRpbmcgc29s
+dXRpb25zIHRoYXQgZHJhbWF0aWNhbGx5IGltcHJvdmUgb25lJ3MgYWJpbGl0eSB0byBpbnRlZ3Jh
+dGUgYW5kIHF1YW50aWZ5IGtub3dsZWRnZSBleHRyYWN0ZWQgZnJvbSBtaWxsaW9ucyBvZiBzY2ll
+bnRpZmljIHB1YmxpY2F0aW9ucy4KCldoYXQgeW914oCZbGwgYmUgZG9pbmc6CsK3IHByb3ZpZGUg
+ZGF5LXRvLWRheSBvdmVyc2lnaHQgYW5kIG1hbmFnZW1lbnQgb2YgdGhlIGRhdGUgc2NpZW5jZSBz
+dGFmZiBhbmQgYWN0aXZpdGllcwrCtyBjb2xsYWJvcmF0ZSB3aXRoIHNjaWVudGlzdHMgYW5kIG90
+aGVyIGJ1c2luZXNzIHBhcnRuZXJzCsK3IGhhbmRsZSBjb21wZXRpbmcgcmVxdWVzdHMgZnJvbSBh
+IHJhbmdlIG9mIGRhdGEgY3VzdG9tZXJzCsK3IGxlYWQgYnkgZXhhbXBsZSB0aHJvdWdoIGlkZWF0
+aW9uLCBwcm90b3R5cGluZyBhbmQgdGVzdGluZwrCtyBkZXZlbG9wIGJlc3QgcHJhY3RpY2VzIHRo
+YXQgcHJvdmlkZSByZXN1bHRzIG9mIHRoZSBoaWdoZXN0IHF1YWxpdHkgYWJvdmUgdGhhdCB3aGlj
+aCBpcyB0eXBpY2FsbHkgc2VlbiBpbiBhY2FkZW1pYSBhbmQgaW5kdXN0cnkKwrcgaWRlbnRpZnkg
+b3Bwb3J0dW5pdGllcyB0byBibGVuZCBhcnRpY2xlLCB0ZWNobm9sb2d5LCBwcm9kdWN0IG1ldHJp
+Y3Mgd2l0aCBpbnRlcm5hbCBhbmQgZXh0ZXJuYWwgZGF0YSBhc3NldHMKwrcgcHJvdmlzaW9uIGlu
+dGVyYWN0aXZlIHRleHQgYW5hbHl0aWNzIHZpc3VhbGl6YXRpb25zCsK3IGJ1aWxkIGFuYWx5dGlj
+cyBwcm90b3R5cGVzIGFuZCBkZW1vcyBmb3IgZW5kIHVzZXJzCsK3IHByb3ZpZGUgdGhvdWdodCBs
+ZWFkZXJzaGlwLCBwcm92aWRlIHN0cmF0ZWdpYyByb2FkIG1hcCBmb3IgdGV4dCBtaW5pbmcgb2Yg
+c2NpZW50aWZpYyBsaXRlcmF0dXJlIGFuZCBob3cgdGhlIGxpdGVyYXR1cmUgZml0cyBpbnRvIG91
+ciBpbnRlbGxpZ2VuY2UgbGFuZHNjYXBlLCBzdXBwb3J0cyBuZXcgcHJvZHVjdCBkZXZlbG9wbWVu
+dCwgYnVzaW5lc3MgZGV2ZWxvcG1lbnQsIGNvbXBsZW1lbnRzIGV4aXN0aW5nIGluc3RydW1lbnQg
+c29mdHdhcmUgYW5kIHBvdGVudGlhbGx5IGRpcmVjdGx5IGZhY2VzIGV4dGVybmFsIGN1c3RvbWVy
+cwrCtyBidWlsZGluZyBkYXRlIHBpcGVsaW5lcyBmb3IgcHJvY2Vzc2luZyBuYXR1cmFsIGxhbmd1
+YWdlIHRleHQgYXQgc2NhbGUKwrcgZGV2ZWxvcGluZyBmcm9udC1lbmQgdG9vbHMgYW5kIGludGVy
+ZmFjZXMgKGUuZy4gbm90aWZpY2F0aW9uIGFuZCBhbGVydCBzeXN0ZW1zLCBkYXNoYm9hcmQgcmVw
+b3J0cykgZm9yIGludGVybmFsIGNsaWVudHMgdG8gdmlldyBhbmQgaW50ZXJhY3Qgd2l0aCBwcm9j
+ZXNzZWQgZGF0YQrCtyBzdGF5IHVwIHRvIHNwZWVkIG9uIHN0YXRlIG9mIHRoZSBhcnQgbWV0aG9k
+cyBmb3IgZWZmaWNpZW50IHRleHQgcHJvY2Vzc2luZwoKV2hhdCB5b3UgbmVlZCBmb3IgdGhpcyBy
+b2xlOgoKwrcgTVMgb3IgUGhEIGluIENvbXB1dGVyIFNjaWVuY2UsIG1hdGgsIHN0YXRpc3RpY3Mg
+b3IgcmVsYXRlZCBmaWVsZArCtyAxMCsgeWVhcnMgdGV4dCBtaW5pbmcgYW5kIG1hY2hpbmUgbGVh
+cm5pbmcKwrcgcHJpb3IgZXhwZXJpZW5jZSBtYW5hZ2luZyBhbmQgY29hY2hpbmcgZGVlcGx5IHRl
+Y2huaWNhbCBzdGFmZiBpbiBhbiBBZ2lsZSBlbnZpcm9ubWVudArCtyBwcmlvciBleHBlcmllbmNl
+IHdpdGggU2VhcmNoLCBtYWNoaW5lIGxlYXJuaW5nIGFuZCBvdGhlciB0ZXh0IG1pbmluZyBtZXRo
+b2RvbG9naWVzCsK3IGtub3dsZWRnZSBhbmQgZXhwZXJpZW5jZSBpbiBvbmUgb3IgbW9yZSBvZiB0
+aGUgZm9sbG93aW5nIGFyZWFzOiBOYXR1cmFsIExhbmd1YWdlIFByb2Nlc3NpbmcsIE1hY2hpbmUg
+TGVhcm5pbmcsIFF1ZXN0aW9uIEFuc3dlcmluZywgVGV4dCBNaW5pbmcsIEluZm9ybWF0aW9uIFJl
+dHJpZXZhbCwgRGlzdHJpYnV0aW9uYWwgU2VtYW50aWNzLCBhbmQvb3IgRGlzY291cnNlIE1vZGVs
+aW5nCsK3IGtub3dsZWRnZSBvZiBOYXRpb25hbCBMaWJyYXJ5IG9mIE1lZGljaW5lLCBQdWJNZWQs
+UHViTWVkIENlbnRyYWwsIGFuZCBNZWRpY2FsIEluZGV4IFN1YmplY3QgSGVhZGluZ3MgYW5kIHJl
+bGF0ZWQgc2NpZW50aWZpYyBsaXRlcmF0dXJlIHRvb2xzIGFuZCByZXNvdXJjZXMKCldoYXTigJlz
+IGluIGl0IGZvciB5b3U6CgrCtyBDb21wZXRpdGl2ZSBwYXkgYW5kIGdyZWF0IGJlbmVmaXRzIGlu
+Y2x1ZGluZyBtZWRpY2FsLCBkZW50YWwsIHZpc2lvbiwgNDAxayBhbmQgbW9yZQrCtyBPcHBvcnR1
+bml0aWVzIGZvciBncm93dGggYW5kIHRyYWluaW5nCsK3IFN0YWJpbGl0eSBvZiBhIHByb2ZpdGFi
+bGUgNjArIHllYXIgb2xkIGNvbXBhbnkKCgoKCk15IG5ldyBjbGllbnQgaXMgYW4gZXhjaXRpbmcg
+bWFjaGluZSB2aXNpb24gYW5kIHJvYm90aWNzIHNvZnR3YXJlIGNvbXBhbnkgYmFzZWQgaW4gVG9r
+eW8sIHdoaWNoIGlzIGxvb2tpbmcgdG8gcmVjcnVpdCB0aGUgYnJpZ2h0ZXN0IHRhbGVudCBpbiB0
+aGUgZmllbGQgdG8gd29yayBpbiB0aGVpciBsb2NhdGlvbi4gSW4gdGhlIGZ1dHVyZSwgc29tZSBy
+ZW1vdGUgb3IgVVMtYmFzZWQgd29yayB3aWxsIHByb2JhYmx5IGJlIGF2YWlsYWJsZSwgYnV0IG5v
+dCBub3cuIFRoZXkgd2VyZSBzdGVhbHRoaWx5IGZvdW5kZWQgdGhyZWUgeWVhcnMgYWdvIGFuZCBh
+cmUgYWxyZWFkeSBmdWxseSBzZWxmLWZ1bmRlZCBhbmQgcHJvZml0YWJsZSB3aXRoIGEgZ29vZCBy
+ZXZlbnVlIHN0cmVhbSB0aGF0IGhhcyBncm93biBieSAyMCUgcGVyIHllYXIuCgpUaGV5IGdhdGhl
+ciB0aGUgc21hcnRlc3QgcGVvcGxlIHRvIHRhY2tsZSBpbmR1c3RyaWFsIGF1dG9tYXRpb24gcHJv
+YmxlbXMsIGFuZCBhcmUgbG9va2luZyBmb3IgdGFsZW50ZWQgZW5naW5lZXJzIHRvIHdvcmsgb24g
+bW90aW9uLXBsYW5uaW5nLCBvYmplY3QgcmVjb2duaXRpb24gYW5kIHBvc2UgZXN0aW1hdGlvbiBm
+b3Igcm9ib3RpYyBtYW5pcHVsYXRpb24sIGluIG1hbnkgY2hhbGxlbmdpbmcgc2NlbmFyaW9zIHN1
+Y2ggYXMgcmFuZG9tIGJpbi1waWNraW5nIGFuZCBib3gtcGlja2luZy4gVGhleSB3b3JrIGluIGEg
+ZmFzdCBwYWNlZCwgQWdpbGUgZW52aXJvbm1lbnQsIHdoZXJlIHRoZXkgY29uc3RhbnRseSBjb2xs
+YWJvcmF0ZSwgcGVlciByZXZpZXcgaWRlYXMsIGFuZCB0ZXN0IHByb3Bvc2VkIHNvbHV0aW9ucy4g
+VGhleSBlbmNvdXJhZ2UgY29udGludW91cyBicmFpbnN0b3JtaW5nIGFuZCBsZWFybmluZyB3aXRo
+aW4gdGhlIHRlYW0uCgpSZWxvY2F0aW9uIGFzc2lzdGFuY2UgYW5kIGNvbXBldGl0aXZlIHNhbGFy
+aWVzIHdpbGwgYmUgcHJvdmlkZWQuCgoKKDIpIENhbGlicmF0aW9uIEV4cGVydCBmb3IgQ29tcHV0
+ZXIgVmlzaW9uCgpSZXF1aXJlZCBTa2lsbHMKLSBFeHBlcmllbmNlIGluIHNlbnNvciBjYWxpYnJh
+dGlvbiwgM0Qgc2Vuc29yIGRldmVsb3BtZW50LCBhbmQgcmVsYXRlZCBwcm9qZWN0cwotIERlZXAg
+dW5kZXJzdGFuZGluZyBvZiBwcm9qZWN0aXZlIGdlb21ldHJ5Ci0gSGlnaCBwcm9maWNpZW5jeSBp
+biBQeXRob24gb3IgQysrCi0gQWJpbGl0eSB0byB0dXJuIGlkZWFzIGludG8gY29kZQotIEVmZmVj
+dGl2ZSBvcmFsIGFuZCB3cml0dGVuIGNvbW11bmljYXRpb24gc2tpbGxzIGluIEVuZ2xpc2gKLSBI
+aWdobHkgZW50aHVzaWFzdGljIGFib3V0IHJvYm90aWNzCgpQcmVmZXJhYmxlIFNraWxscwotIERl
+ZXAga25vd2xlZGdlIG9mIGxlbnMgZGlzdG9ydGlvbiBtb2RlbHMsIG11bHRpLWNhbWVyYSBzZW5z
+b3IgY2FsaWJyYXRpb24sIGFuZCBtdWx0aS12aWV3IGdlb21ldHJ5Ci0gVmFzdCBjb21wdXRlciB2
+aXNpb24gb3IgY29tcHV0ZXIgZ3JhcGhpY3MgZXhwZXJpZW5jZQotIFZlcnkgc29saWQgZXhwZXJp
+ZW5jZSBpbiBib3RoIFB5dGhvbiBhbmQgQysrCi0gRXhwZXJpZW5jZSB3aXRoIG11bHRpLWNvcmUg
+YXJjaGl0ZWN0dXJlcwotIEV4cGVyaWVuY2UgaW4gY3JlYXRpbmcgZ2VuZXJpYyBjb2RlIHRoYXQg
+c2NhbGVzIHRvIG11bHRpcGxlIGFwcGxpY2F0aW9ucwotIFByZXZpb3VzIGNvbnRyaWJ1dGlvbnMg
+dG8gb3BlbiBzb3VyY2UgcHJvamVjdHMKCgooMykgT2JqZWN0IFBvc2UgRXN0aW1hdGlvbiBFeHBl
+cnQgZm9yIFJvYm90aWMgTWFuaXB1bGF0aW9uCgpSZXF1aXJlZCBTa2lsbHMKLSBNU2MgRGVncmVl
+IG9yIGhpZ2hlciBpbiBjb21wdXRlciBzY2llbmNlIG9yIHJlbGF0ZWQgZmllbGRzCi0gMysgeWVh
+cnMgb2YgYWNhZGVtaWMgb3Igd29yayBleHBlcmllbmNlIGluIG9iamVjdCByZWNvZ25pdGlvbiBv
+ciBwb3NlIGVzdGltYXRpb24KLSBIaWdoIHByb2ZpY2llbmN5IGluIFB5dGhvbiBhbmQvb3IgQysr
+Ci0gRXhwZXJpZW5jZSBpbiBjcmVhdGluZyBjb21wdXRhdGlvbmFsbHkgZWZmaWNpZW50IGNvZGUg
+dGhhdCBnZW5lcmFsaXplcyB0byBtdWx0aXBsZSBkZXRlY3RvcnMKLSBBYmlsaXR5IHRvIHR1cm4g
+YWNhZGVtaWMgaWRlYXMgaW50byBoaWdoLXF1YWxpdHkgcHJhY3RpY2FsIGNvZGUKLSBFZmZlY3Rp
+dmUgb3JhbCBhbmQgd3JpdHRlbiBjb21tdW5pY2F0aW9uIHNraWxscyBpbiBFbmdsaXNoCi0gSGln
+aGx5IGVudGh1c2lhc3RpYyBhYm91dCByb2JvdGljcwoKUHJlZmVyYWJsZSBTa2lsbHMKLSBQaEQg
+aW4gQ29tcHV0ZXIgVmlzaW9uIHJlbGF0ZWQgdG9waWNzIG9yIE1TYyB3aXRoIHZhc3QgY29tcHV0
+ZXIgdmlzaW9uIGV4cGVyaWVuY2UKLSBFeHBlcnQgaW4gM0QgcG9zZSBlc3RpbWF0aW9uIG9mIHRl
+eHR1cmVkIGFuZCB0ZXh0dXJlbGVzcyBvYmplY3RzIGluIGNsdXR0ZXJlZCBzY2VuZXMsIHdpdGgg
+cHJvdmVuIGV4cGVyaWVuY2UKLSBWZXJ5IHNvbGlkIFB5dGhvbiBhbmQgQysrIGV4cGVyaWVuY2UK
+LSBFeHBlcmllbmNlIHdpdGggYSB2YXN0IHNldCBvZiBjb21wdXRlciB2aXNpb24gbGlicmFyaWVz
+Ci0gRXhwZXJpZW5jZSB3aXRoIG11bHRpLWNvcmUgYXJjaGl0ZWN0dXJlcwotIFByZXZpb3VzIGNv
+bnRyaWJ1dGlvbnMgdG8gb3BlbiBzb3VyY2UgcHJvamVjdHMKLSBBZHZhbmNlZCBMaW51eCB1c2Vy
+CgoKSWYgeW91IGFyZSBpbnRlcmVzdGVkIGluIGFwcGx5aW5nIGZvciBvbmUgb3IgbW9yZSBvZiB0
+aGVzZSBwb3NpdGlvbnMsIHBsZWFzZSByZXNwb25kIHdpdGggYSByZXN1bWUuIFJlZmVycmFscyBh
+bmQgcmVjb21tZW5kYXRpb25zIGFyZSBhbHNvIHdlbGNvbWVkLgoKICAgIEJlc3QgUmVnYXJkcywK
+CiAgICBOaWNob2xhcyBNZXlsZXIKICAgIFByZXNpZGVudC9HTSwgVGVjaG5vbG9neQogICAgV2lu
+Z2F0ZSBEdW5yb3NzLCBJbmMuCiAgICBwaCAoODE4KTU5Ny0zMjAwIGV4dC4gMjExCiAgICA8bmlj
+a21Ad2RzZWFyY2guY29tPgoKCgpodHRwOi8vYXBwLnN0cmVhbXNlbmQuY29tL3ByaXZhdGUvdTRL
+dC9uS1IvclBPenBqby91bnN1YnNjcmliZS8yODQ4OTY5NQpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4
+LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5m
+by9saW51eC1udmRpbW0K
