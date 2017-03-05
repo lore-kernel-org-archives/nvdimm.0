@@ -1,10 +1,9 @@
-From: "Newsletter" <newsletter-6wjWZgRE5CSgDFqkeP7wKw@public.gmane.org>
-Subject: AMERICAN MADE PCB. 75% DISCOUNT
-Date: Thu, 02 Mar 2017 19:36:13 +0100
-Message-ID: <36545ccafced6722b4746a9d6f5bc040@bhvangebot.co>
-Reply-To: synergisepcb2-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+From: Apache <apache-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Subject: UPS parcel #4525768 delivery problem
+Date: Mon, 6 Mar 2017 04:27:35 +0900
+Message-ID: <201703051927.v25JRZhW016632@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -16,13 +15,15 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm-JC7UmRfGjtg@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Your email client cannot read this email.
-To view it online, please go here:
-http://bhvangebot.co/display.php?M=524516&C=fbc6e23328a28a2310efa9d8f2fdfccc&S=33&L=8&N=29
+Dear Customer,
 
+Your parcel was successfully delivered March 01 to UPS Station, but our courier cound not contact you.
 
-To stop receiving these
-emails:http://bhvangebot.co/unsubscribe.php?M=524516&C=fbc6e23328a28a2310efa9d8f2fdfccc&L=8&N=33
+Please check the attachment for details!
+
+With sincere appreciation,
+Wade Vance,
+UPS Senior Support Manager.
